@@ -64,7 +64,7 @@ You can download the source of GPL'd MiniGUI versions from the site:
 
 ## THE RUNTIME MODES OF MINIGUI
 
-    You can configure and compile MiniGUI as one of three runtime modes:
+You can configure and compile MiniGUI as one of three runtime modes:
 
     * `MiniGUI-Threads': A program running on MiniGUI-Threads can create
       multiple cascaded windows in different threads, and all the windows
@@ -82,74 +82,74 @@ You can download the source of GPL'd MiniGUI versions from the site:
       is useful for some systems which lack of PThread support, like some 
       buggy uClinux systems.
 
-    The original MiniGUI (version 1.0) run in MiniGUI-Threads mode.
-    It is based on POSIX-compliant thread library. And this thread-based 
-    architecture of MiniGUI is very fit for most traditional embedded 
-    operating systems, such as eCos, uC/OS-II, and VxWorks. However, 
-    if you use embedded Linux, the architecture like X Window will have 
-    better stability and scalability, because of the independent memory 
-    address space of every process.
+The original MiniGUI (version 1.0) run in MiniGUI-Threads mode.
+It is based on POSIX-compliant thread library. And this thread-based 
+architecture of MiniGUI is very fit for most traditional embedded 
+operating systems, such as eCos, uC/OS-II, and VxWorks. However, 
+if you use embedded Linux, the architecture like X Window will have 
+better stability and scalability, because of the independent memory 
+address space of every process.
 
-    Since version 2.0, we provides a new runtime mode called MiniGUI-Processes.
-    You can use MiniGUI-Processes to run more than one MiniGUI-based 
-    program in the form of UNIX process at the same time. MiniGUI-Processes 
-    is a full-featured multi-process version of original MiniGUI -- You 
-    can run a program based on MiniGUI-Processes from a program called 
-    'mginit'. Just like X Window, the former process is called a client, 
-    and the latter the server. 
+Since version 2.0, we provides a new runtime mode called MiniGUI-Processes.
+You can use MiniGUI-Processes to run more than one MiniGUI-based 
+program in the form of UNIX process at the same time. MiniGUI-Processes 
+is a full-featured multi-process version of original MiniGUI -- You 
+can run a program based on MiniGUI-Processes from a program called 
+'mginit'. Just like X Window, the former process is called a client, 
+and the latter the server. 
 
-    Clients connect to the server via UNIX domain socket, and the server 
-    receives and responses requests from clients. The server provides shared 
-    resources for clients, manage window objects, and sends mouse 
-    (or touch screen) and keyboard events to the active top-most client. 
-    If a client exits or dies for some reasons, it will not damage other 
-    clients and the server.
+Clients connect to the server via UNIX domain socket, and the server 
+receives and responses requests from clients. The server provides shared 
+resources for clients, manage window objects, and sends mouse 
+(or touch screen) and keyboard events to the active top-most client. 
+If a client exits or dies for some reasons, it will not damage other 
+clients and the server.
 
 
 ## NEW FEATURES OF THIS VERSION
 
-    For more information, please refer to ReleaesNotes-3.2.x.pdf file in 
-    the product CD-ROM (in the 'docs/' directory).
+For more information, please refer to ReleaesNotes-3.0.x.pdf file in 
+the product CD-ROM (in the 'docs/' directory).
 
 
 ## HISTORY
 
-    About ten years have pasted since MiniGUI was initially created at 
-    the end of 1998, and now it becomes much reliable and stable. 
-    During the past years, many remarkable changes have taken place in 
-    the MiniGUI project.
+About ten years have pasted since MiniGUI was initially created at 
+the end of 1998, and now it becomes much reliable and stable. 
+During the past years, many remarkable changes have taken place in 
+the MiniGUI project.
 
-    At the original, the version 0.2.xx was based on SVGALib and PThread 
-    (LinuxThreads). Then the version 0.3.xx had many enhanced features 
-    including Graphics Abstract Layer (GAL), Input Abstract Layer (IAL), 
-    and the support for multiple charsets and multiple fonts. 
+At the original, the version 0.2.xx was based on SVGALib and PThread 
+(LinuxThreads). Then the version 0.3.xx had many enhanced features 
+including Graphics Abstract Layer (GAL), Input Abstract Layer (IAL), 
+and the support for multiple charsets and multiple fonts. 
 
-    In version 1.0.00, we designed MiniGUI-Lite, which was more fit for 
-    some complex embedded systems, such as PDAs, Thin-Clients, or STBs. 
-    MiniGUI-Lite made the embedded systems more stable and efficient. 
-    The version 1.0.00 provided the native fbcon engine based on Linux 
-    FrameBuffer device directly as well. 
+In version 1.0.00, we designed MiniGUI-Lite, which was more fit for 
+some complex embedded systems, such as PDAs, Thin-Clients, or STBs. 
+MiniGUI-Lite made the embedded systems more stable and efficient. 
+The version 1.0.00 provided the native fbcon engine based on Linux 
+FrameBuffer device directly as well. 
 
-    In the development of version 1.1.00, we re-wrote the GAL and GDI 
-    interfaces, and provided some advanced video features, such as raster 
-    operation, transparent blitting, alpha blending, and video hardware 
-    acceleration. We also provided some important GDI functions, such as 
-    Ellipse, Arc, Polygon, and FloodFill.
+In the development of version 1.1.00, we re-wrote the GAL and GDI 
+interfaces, and provided some advanced video features, such as raster 
+operation, transparent blitting, alpha blending, and video hardware 
+acceleration. We also provided some important GDI functions, such as 
+Ellipse, Arc, Polygon, and FloodFill.
 
-    In the development of version 1.6.0, we added advanced 2D graphics
-    functions to MiniGUI. It provides the abstract logical pen and brush
-    objects, and can be used to render advanced graphics objects.
+In the development of version 1.6.0, we added advanced 2D graphics
+functions to MiniGUI. It provides the abstract logical pen and brush
+objects, and can be used to render advanced graphics objects.
 
-    In the development of version 2.0.x, we developed MiniGUI-Processes.
+In the development of version 2.0.x, we developed MiniGUI-Processes.
 
-    In the development of version 3.0.x, we introduced Look & Feel Renderer,
-    BIDI text support, No-rectagular window, double-buffer window, and
-    other main featuers.
+In the development of version 3.0.x, we introduced Look & Feel Renderer,
+BIDI text support, No-rectagular window, double-buffer window, and
+other main featuers.
 
-    In the development of version 3.2.x, we enhanced MiniGUI to support Gtk+ 
-    v2.16.x smoothly.
+In the development of version 3.2.x, we enhanced MiniGUI to support Gtk+ 
+v2.16.x smoothly.
 
-    A brief history description of the developement progress lay below:
+A brief history description of the developement progress lay below:
 
         0)  1994 ~ 1996:    MiniGUI DOS version.
         1)  Dec, 1998:      Began to write.
@@ -220,53 +220,53 @@ You can download the source of GPL'd MiniGUI versions from the site:
 
 ## ABOUT THE AUTHORS
 
-    The original author of MiniGUI is Wei Yongming, and now MiniGUI is 
-    maintained by FMSoft. For more information, please browse 
-    our home page:
+The original author of MiniGUI is Wei Yongming, and now MiniGUI is 
+maintained by FMSoft. For more information, please browse 
+our home page:
 
     http://www.minigui.com
 
-    The GPL'd versions and dependent libraries of MiniGUI can be found at:
+The GPL'd versions and dependent libraries of MiniGUI can be found at:
 
     http://www.minigui.org
 
 
 ## IF YOU HAVE A PROBLEM
 
-    If you have any technical problem, advice or comment, please send 
-    messages to consult@minigui.com.
+If you have any technical problem, advice or comment, please send 
+messages to consult@minigui.com.
 
-    If you are interested in the commercial MiniGUI products and licensing, 
-    please write to sales@minigui.com.  
+If you are interested in the commercial MiniGUI products and licensing, 
+please write to sales@minigui.com.  
 
 
 ## A LITTLE FAQ
 
-    Q: Is GPL'd MiniGUI free for commercial use?
+Q: Is GPL'd MiniGUI free for commercial use?
 
-    A: Simply no. FMSoft release some versions of MiniGUI under
-       GPL license. It is free for those who are 100% GPL and those who 
-       never copy, modify and distribute MiniGUI. But if you want to use 
-       these GPL'd versions for commerce, you should get the commercial 
-       license from FMSoft first.
+A: Simply no. FMSoft release some versions of MiniGUI under
+   GPL license. It is free for those who are 100% GPL and those who 
+   never copy, modify and distribute MiniGUI. But if you want to use 
+   these GPL'd versions for commerce, you should get the commercial 
+   license from FMSoft first.
 
-    Q: Which operating system does MiniGUI support?
+Q: Which operating system does MiniGUI support?
 
-    A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS, 
-       VxWorks, ThreadX, OSE, and even Win32. Any other real-time OSes can 
-       be supported theoretically.
+A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS, 
+   VxWorks, ThreadX, OSE, and even Win32. Any other real-time OSes can 
+   be supported theoretically.
 
-    Q: Which architecture does MiniGUI support?
+Q: Which architecture does MiniGUI support?
 
-    A: Intel x86, ARM (ARM7/AMR9/StrongARM/xScale), PowerPC, MIPS, 
-       DragonBall, ColdFire, Blackfin, and so on.
+A: Intel x86, ARM (ARM7/AMR9/StrongARM/xScale), PowerPC, MIPS, 
+   DragonBall, ColdFire, Blackfin, and so on.
 
-    Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?
+Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?
 
-    A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD. 
+A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD. 
 
 
-8. COPYING
+## COPYING
 
-    Copyright (C) 2002~2017, Beijing FMSoft Technologies Co., Ltd.
+Copyright (C) 2002~2017, Beijing FMSoft Technologies Co., Ltd.
 
