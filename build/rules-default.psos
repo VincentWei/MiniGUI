@@ -1,0 +1,25 @@
+# rules for pSOS
+
+TARGET_OS=psos
+
+AS=
+CC=
+CXX=
+CPP=
+AR=
+RANLIB=
+MAKE=/usr/bin/make
+
+ARFLAGS=
+COFLAG=
+
+OBJ=
+LIBA=
+
+PREFIX=c:/cross
+TARGET_DIR=
+
+INCS+=-I${TARGET_DIR}/h
+
+CFLAGS+=
+

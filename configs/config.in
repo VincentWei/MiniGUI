@@ -1,0 +1,425 @@
+#
+# For a description of the syntax of this configuration file,
+# see _LINUX_SOURCE_DIR/Documentation/kbuild/config-language.txt.
+#
+
+mainmenu_name "MiniGUI Configuration"
+
+# system wide options
+mainmenu_option next_comment
+comment 'System options'
+
+bool 'Build MiniGUI-Processes' CONFIG_PROCS
+if [ "$CONFIG_PROCS" = "y" ]; then
+    bool '  MiniGUI-Standalone' CONFIG_STAND_ALONE
+fi
+
+bool 'Use incore (built-in) resource' CONFIG_INCORE_RES
+
+bool 'Clipboard support' CONFIG_CLIPBOARD
+bool 'Unit of timer is 10ms' CONFIG_TIMERUNIT10MS
+
+comment 'About cursor options'
+bool 'Cursor support' CONFIG_CURSORSUPPORT
+bool 'User can move window with mouse' CONFIG_MOVEABLE
+bool 'Mouse button can do double click' CONFIG_DBCLK
+
+comment 'Debugging options'
+bool '  Build with debugging information' CONFIG_DEBUG
+bool '  Trace messages of MiniGUI' CONFIG_TRACEMESSAGE
+bool '  Include symbol name of messages' CONFIG_MSGSTR
+
+comment 'C library options'
+bool '  Use our own implementation of malloc' CONFIG_OWN_MALLOC
+bool '  Use our own implementation of stdio' CONFIG_OWN_STDIO
+
+endmenu
+
+# GAL engine options
+mainmenu_option next_comment
+comment 'GAL and its engine options'
+
+bool 'Include Advanced 2D Graphics APIs' CONFIG_NEWGAL_ADV2DAPI
+bool 'NEWGAL engine of Dummy' CONFIG_NEWGAL_DUMMY
+bool 'NEWGAL engine for Common LCD interface' CONFIG_NEWGAL_COMMONLCD
+bool 'NEWGAL engine of Shadow' CONFIG_NEWGAL_SHADOW
+bool 'NEWGAL engine of MLShadow' CONFIG_NEWGAL_MLSHADOW
+
+bool 'NEWGAL engine for Linux FrameBuffer console (Linux/uClinux only)' CONFIG_NEWGAL_FBCON
+if [ "$CONFIG_NEWGAL_FBCON" = "y" ]; then
+    choice '  Support for rotation of screen' \
+    "Clockwise-90                       CONFIG_GAL_COORTRANS_CW        \
+     Counter-clockwise-90               CONFIG_GAL_COORTRANS_CCW       \
+     none                               CONFIG_GAL_COORTRANS_NONE"     none
+    bool '  Have console on Linux FrameBuffer' CONFIG_GAL_NATIVE_TEXTMODE
+fi
+
+bool 'NEWGAL engine for Qt Virtual FrameBuffer (Linux/uClinux only)' CONFIG_NEWGAL_QVFB
+bool 'NEWGAL engine for DirectFB (Linux only)' CONFIG_NEWGAL_DFB
+bool 'NEWGAL engine for Windows Virtual FrameBuffer (Win32 only)' CONFIG_NEWGAL_WVFB
+
+bool 'NEWGAL engine for EM85xx OSD' CONFIG_NEWGAL_EM85XXOSD
+bool 'NEWGAL engine for EM85xx YUV' CONFIG_NEWGAL_EM85XXYUV
+bool 'NEWGAL engine for EM86xx GFX' CONFIG_NEWGAL_EM86GFX
+bool 'NEWGAL engine for SVPXX OSD' CONFIG_NEWGAL_SVPXXOSD
+bool 'NEWGAL engine for HHCF5249-BF533' CONFIG_NEWGAL_BF533
+bool 'NEWGAL engine for UT Pocket Media Controller' CONFIG_NEWGAL_UTPMC
+bool 'NEWGAL engine for UDTech MB93493' CONFIG_NEWGAL_MB93493
+
+endmenu
+
+# IAL engine options
+mainmenu_option next_comment
+comment 'IAL engine options'
+
+bool 'Dummy IAL engine' CONFIG_IAL_DUMMY
+bool 'Automatic IAL engine' CONFIG_IAL_AUTO
+bool 'Random IAL engine' CONFIG_IAL_RANDOM
+
+bool 'Common Input engine' CONFIG_IAL_COMMON
+
+bool 'Linux native (console) input engine' CONFIG_IAL_NATIVE
+
+if [ "$CONFIG_IAL_NATIVE" = "y" ]; then
+    comment '  Native IAL engine subdriver options'
+    bool '  PS2 mouse' CONFIG_IAL_NATIVE_PS2MOUSE
+    bool '  IntelligentMouse (IMPS/2) mouse' CONFIG_IAL_NATIVE_IMPS2MOUSE
+    bool '  MS mouse' CONFIG_IAL_NATIVE_MSMOUSE
+    bool '  MS3 mouse' CONFIG_IAL_NATIVE_MS3MOUSE
+    bool '  GPM daemon' CONFIG_IAL_NATIVE_GPM
+fi
+bool 'iPAQ H3600 (also H3800)' CONFIG_IAL_IPAQ
+
+endmenu
+
+# Font options
+mainmenu_option next_comment
+comment 'Font options'
+
+bool 'Raw bitmap font' CONFIG_FONT_RBF
+if [ "$CONFIG_INCORE_RES" = "y" ]; then
+    bool '  Incore ISO8859-1 12x24 RBF font' CONFIG_FONT_INCORE24
+    bool '  Incore GB2312 12x12 RBF fixed/song font' CONFIG_FONT_INCOREGB12
+    bool '  Incore GB2312 16x16 RBF fixed/song font' CONFIG_FONT_INCOREGB16
+    bool '  Incore GB2312 24x24 RBF fixed/song font' CONFIG_FONT_INCOREGB24
+    bool '  Incore GB2312 16x16 RBF fixed/hei font' CONFIG_FONT_INCOREGB16_HEI
+    bool '  Incore Big5 12x12 RBF fixed/ming font' CONFIG_FONT_INCOREBIG12
+    bool '  Incore Big5 16x16 RBF fixed/ming font' CONFIG_FONT_INCOREBIG16
+    bool '  Incore Big5 24x24 RBF fixed/ming font' CONFIG_FONT_INCOREBIG24
+    bool '  Incore Kanji 12-Pixel RBF fonts' CONFIG_FONT_INCOREKJ12
+    bool '  Incore Kanji 14-Pixel RBF fonts' CONFIG_FONT_INCOREKJ14
+    bool '  Incore Kanji 16-Pixel RBF fonts' CONFIG_FONT_INCOREKJ16
+fi
+bool 'Var bitmap font' CONFIG_FONT_VBF
+bool 'Incore font sansserif' CONFIG_FONT_INCORESSERIF
+bool 'Incore font courier' CONFIG_FONT_INCORECOURIER
+bool 'Incore font symbol' CONFIG_FONT_INCORESYMBOL
+bool 'Incore font vgas' CONFIG_FONT_INCOREVGAS
+bool 'Qt Prerendered Font' CONFIG_FONT_QPF
+bool 'TrueType font' CONFIG_FONT_TTF
+if [ "$CONFIG_FONT_TTF" = "y" ]; then
+    bool 'Support trueType font cache render' CONFIG_FONT_TTFCACHE
+fi
+
+endmenu
+
+# Charset options
+mainmenu_option next_comment
+comment 'Charset options'
+
+bool 'East European (Latin 2, ISO-8859-2) charset' CONFIG_CHARSET_LATIN2
+bool 'South European (Latin 3, ISO-8859-3) charset' CONFIG_CHARSET_LATIN3
+bool 'North European (Latin 4, ISO-8859-4) charset' CONFIG_CHARSET_LATIN4
+bool 'Cyrillic (ISO-8859-5) charset' CONFIG_CHARSET_CYRILLIC
+bool 'Arabic (ISO-8859-6) charset' CONFIG_CHARSET_ARABIC
+bool 'Greek (ISO-8859-7) charset' CONFIG_CHARSET_GREEK
+bool 'Hebrew (ISO-8859-8) charset' CONFIG_CHARSET_HEBREW
+bool 'Turkish (Latin 5, ISO-8859-9) charset' CONFIG_CHARSET_LATIN5
+bool 'Nordic, Latin 6, ISO-8859-10) charset' CONFIG_CHARSET_LATIN6
+bool 'Thai (ISO-8859-11) charset' CONFIG_CHARSET_THAI
+bool 'Latin 7 (ISO-8859-13) charset' CONFIG_CHARSET_LATIN7
+bool 'Latin 8 (ISO-8859-14) charset' CONFIG_CHARSET_LATIN8
+bool 'Latin 9 (ISO-8859-15, West Extended) charset' CONFIG_CHARSET_LATIN9
+bool 'Latin 10 (ISO-8859-16, Romanian) charset' CONFIG_CHARSET_LATIN10
+bool 'EUC encoding of GB2312 charset' CONFIG_CHARSET_GB2312
+bool 'GBK charset' CONFIG_CHARSET_GBK
+bool 'GB18030-0 charset' CONFIG_CHARSET_GB18030
+bool 'BIG5 charset' CONFIG_CHARSET_BIG5
+bool 'EUC encoding of KSC5636 and KSC5601 charsets' CONFIG_CHARSET_EUCKR
+bool 'EUC encoding of JISX0201 and JISX0208 charsets' CONFIG_CHARSET_EUCJP
+bool 'Shift-JIS encoding of JISX0201 and JISX0208 charsets' CONFIG_CHARSET_SHIFTJIS
+bool 'UNICODE (ISO-10646-1 and UTF-8 encoding)' CONFIG_CHARSET_UNICODE
+
+endmenu
+
+# Keyboard layout specific options
+mainmenu_option next_comment
+comment 'Keyboard layout specific options'
+
+bool 'French PC keyboard (non-US 102 keys)' CONFIG_KBD_FRPC
+bool 'Keyboard layout for French' CONFIG_KBD_FR
+bool 'Keyboard layout for German' CONFIG_KBD_DE
+bool 'Keyboard layout for German Latin1' CONFIG_KBD_DELATIN1
+bool 'Keyboard layout for Italian' CONFIG_KBD_IT
+bool 'Keyboard layout for Spanish' CONFIG_KBD_ES
+bool 'Keyboard layout for Spanish CP850' CONFIG_KBD_ESCP850
+
+endmenu
+
+# Image options
+mainmenu_option next_comment
+comment 'Image options'
+
+bool 'Includes SaveBitmap-related functions' CONFIG_IMAGE_SAVEBMP
+bool 'PCX file support' CONFIG_IMAGE_PCX
+bool 'LBM/PBM file support' CONFIG_IMAGE_LBM
+bool 'TGA file support' CONFIG_IMAGE_TGA
+bool 'GIF file support' CONFIG_IMAGE_GIF
+bool 'JPG file support' CONFIG_IMAGE_JPG
+bool 'PNG file support' CONFIG_IMAGE_PNG
+
+endmenu
+
+# Look and Feel options
+mainmenu_option next_comment
+comment 'Look and Feel options'
+choice 'LF reference' \
+    "Skin                    CONFIG_LF_SKIN \
+     Flat                       CONFIG_LF_FLAT
+
+endmenu
+
+# Misc options
+mainmenu_option next_comment
+comment 'Misc options'
+
+bool 'mouse calibration' CONFIG_MISC_MOUSECALIBRATE
+bool 'Include About Dialog Box' CONFIG_MISC_ABOUTDLG
+bool 'screenshots' CONFIG_MISC_SAVESCR
+
+endmenu
+
+# Controls options
+mainmenu_option next_comment
+comment 'Controls options'
+
+bool 'Static' CONFIG_CTRL_STATIC
+bool 'Button' CONFIG_CTRL_BUTTON
+bool 'Simple Edit' CONFIG_CTRL_SIMEDIT
+bool 'Single-Line Edit' CONFIG_CTRL_SLEDIT
+bool 'Multi-Line Text Edit' CONFIG_CTRL_TEXTEDIT
+bool 'ScrollView' CONFIG_CTRL_SCROLLVIEW
+bool 'ListBox' CONFIG_CTRL_LISTBOX
+bool 'ProgressBar' CONFIG_CTRL_PROGRESSBAR
+bool 'ToolBar' CONFIG_CTRL_TOOLBAR
+bool 'NewToolBar' CONFIG_CTRL_NEWTOOLBAR
+bool 'MenuButton' CONFIG_CTRL_MENUBUTTON
+bool 'TrackBar' CONFIG_CTRL_TRACKBAR
+bool 'ComboBox' CONFIG_CTRL_COMBOBOX
+bool 'PropertySheet' CONFIG_CTRL_PROPSHEET
+bool 'TreeView control' CONFIG_CTRL_TREEVIEW
+bool 'ListView control' CONFIG_CTRL_LISTVIEW
+bool 'MonthCalendar control' CONFIG_CTRL_MONTHCAL
+bool 'SpinBox control' CONFIG_CTRL_SPINBOX
+bool 'CoolBar control' CONFIG_CTRL_COOLBAR
+bool 'Animation control' CONFIG_CTRL_ANIMATION
+bool 'IconView control' CONFIG_CTRL_ICONVIEW
+bool 'Grid control (test)' CONFIG_CTRL_GRIDVIEW
+endmenu
+
+# -----------------------------------------------------------------------------
+
+comment ''
+
+# Development environment options
+mainmenu_option next_comment
+comment 'Development environment options'
+
+# Target OS selection
+choice 'The target operating system' \
+    "Linux                     CONFIG_OS_LINUX   \
+     uClinux                   CONFIG_OS_UCLINUX \
+     eCos                      CONFIG_OS_ECOS    \
+     uC/OS-II                  CONFIG_OS_UCOSII  \
+     VxWorks                   CONFIG_OS_VXWORKS \
+     Nucleus                   CONFIG_OS_NUCLEUS \
+     ThreadX                   CONFIG_OS_THREADX \
+     OSE                       CONFIG_OS_OSE \
+     WIN32                     CONFIG_OS_WIN32 \
+     pSOS                      CONFIG_OS_PSOS "  Linux
+
+# compiler selection
+choice 'Compiler' \
+        "arm-linux-gcc          CONFIG_COMPILER_ARM              \
+         armv4l-unknown-linux-gcc       CONFIG_COMPILER_ARMV4L   \
+         mipsel-linux-gcc       CONFIG_COMPILER_MIPSEL           \
+         ppc-linux-gcc          CONFIG_COMPILER_PPC              \
+         m68k-elf-gcc           CONFIG_COMPILER_M68K_ELF         \
+         arm-elf-gcc            CONFIG_COMPILER_ARM_ELF          \
+         i386                   CONFIG_COMPILER_X86"       i386
+
+# target selection
+if [ "$CONFIG_COMPILER_M68K_ELF" = "y" ]; then
+choice 'Target' \
+        "m68k/68328            CONFIG_TARGET_M68K_XCOPILOT    \
+         m68k/68ez328          CONFIG_TARGET_M68K_68EZ328     \
+         m68k/Coldfire5200     CONFIG_TARGET_M68K_CF5200      \
+         m68k/Coldfire5307     CONFIG_TARGET_M68K_CF5307"     m68k/68328 
+fi
+
+if [ "$CONFIG_OS_ECOS" = "y" ]; then
+choice 'Target' \
+         "sa11x0/iPAQ           CONFIG_TARGET_SA11X0_IPAQ"     sa11x0/iPAQ 
+fi
+
+# libc selection
+choice 'Libc' \
+        "glibc          CONFIG_LIBC_GLIBC              \
+         uClibc         CONFIG_LIBC_UCLIBC"       glibc
+
+if [ "$CONFIG_COMPILER_X86" = "y" ]; then
+    define_mystring TARGET_ARCH "i386"
+    define_mystring TARGET "i386-linux"
+    define_mystring HOST "i386-linux"
+    define_mystring CC   "gcc"
+    define_mystring DEF_PREFIX "/usr/local"
+fi
+if [ "$CONFIG_COMPILER_ARM" = "y" ]; then
+    define_mystring TARGET_ARCH "arm"
+    define_mystring TARGET "arm-linux"
+    define_mystring HOST "arm-linux"
+    define_mystring CC   "arm-linux-gcc"
+    define_mystring DEF_PREFIX "/usr/local/arm-linux/arm-linux"
+fi
+if [ "$CONFIG_COMPILER_ARMV4L" = "y" ]; then
+    define_mystring TARGET_ARCH "armv4l"
+    define_mystring TARGET "arm-unknown-linux"
+    define_mystring HOST "arm-unknown-linux"
+    define_mystring CC   "armv4l-unknown-linux-gcc"
+    define_mystring DEF_PREFIX "/opt/host/armv4l/armv4l-unknown-linux"
+fi
+if [ "$CONFIG_COMPILER_MIPSEL" = "y" ]; then
+    define_mystring TARGET_ARCH "mipsel"
+    define_mystring TARGET "mipsel-linux"
+    define_mystring HOST "mipsel-linux"
+    define_mystring CC   "mipsel-linux-gcc"
+    define_mystring DEF_PREFIX "/usr/mipsel-linux"
+fi
+if [ "$CONFIG_COMPILER_PPC" = "y" ]; then
+    define_mystring TARGET_ARCH "ppc"
+    define_mystring TARGET "ppc-linux"
+    define_mystring HOST "ppc-linux"
+    define_mystring CC   "ppc-linux-gcc"
+    define_mystring DEF_PREFIX "/usr/ppc-linux"
+fi
+if [ "$CONFIG_COMPILER_M68K_ELF" = "y" ]; then
+    define_mystring TARGET_ARCH "m68k"
+    define_mystring TARGET m68k-elf-linux
+    define_mystring HOST m68k-elf-linux
+    define_mystring CC   m68k-elf-gcc
+    if [ "$CONFIG_OS_UCLINUX" = "y" ]; then
+        define_mystring DEF_PREFIX "/opt/uClinux/m68k-elf"
+    else
+        define_mystring DEF_PREFIX "/usr/local/m68k-elf"
+    fi
+fi
+if [ "$CONFIG_COMPILER_ARM_ELF" = "y" ]; then
+    define_mystring TARGET_ARCH "arm"
+    define_mystring TARGET "arm-elf-linux"
+    define_mystring HOST "arm-elf-linux"
+    define_mystring CC   "arm-elf-gcc"
+    if [ "$CONFIG_OS_UCLINUX" = "y" ]; then
+        define_mystring DEF_PREFIX "/opt/uClinux/arm-elf"
+    else
+        define_mystring DEF_PREFIX "/usr/local/arm-elf"
+    fi
+fi
+
+# compilation options
+
+# path selection
+if [ "$CONFIG_OS_UCLINUX" = "y" ]; then
+    comment 'Compilation and installation options'
+    mystring 'uClinux dist directory' UCDIST_DIR /opt/uClinux/uClinux-dist
+    define_mystring UC_KERNEL_HEADER "$UCDIST_DIR/linux-2.4.x/include"
+    bool 'Choose different uClibc directory' CONFIG_UCLIBC_DIR
+    if [ "$CONFIG_UCLIBC_DIR" = "y" ]; then
+      mystring "uClibc header" UCLIBC_HEADER "$UCDIST_DIR/lib/uClibc/include"
+      mystring "uClibc lib" UCLIBC_LIB "$UCDIST_DIR/lib/uClibc/lib"
+    else
+      define_mystring UCLIBC_HEADER "$UCDIST_DIR/lib/uClibc/include"
+      define_mystring UCLIBC_LIB "$UCDIST_DIR/lib/uClibc/lib"
+    fi
+    if [ "$CONFIG_LIBC_UCLIBC" = "y" ]; then
+       define_bool CONFIG_NO_SHARE y
+    fi
+else
+  if [ "$CONFIG_LIBC_UCLIBC" = "y" ]; then
+    comment 'Options for uClibc'
+    mystring 'uClibc header' UCLIBC_HEADER $/usr/$TARGET_ARCH-linux-uclibc/include
+    mystring 'uClibc lib' UCLIBC_LIB $/usr/$TARGET_ARCH-linux-uclibc/lib
+  fi
+fi
+
+# must needed ?
+#define_mystring_null PREFIX
+
+comment 'Installation options'
+mystring 'Path prefix' PREFIX $DEF_PREFIX
+
+comment 'Additonal Compiler Flags'
+mystring 'CFLAGS' ADD_CFLAGS
+mystring 'LDFLAGS' ADD_LDFLAGS
+
+endmenu
+
+# -----------------------------------------------------------------------------
+
+comment ''
+
+# Baler options
+mainmenu_option next_comment
+comment 'Tarball baler options'
+
+comment "Target operating system (Please choose only one OS)"
+bool 'Linux' PACK_OS_LINUX
+bool 'uClinux' PACK_OS_UCLINUX
+bool 'eCos' PACK_OS_ECOS
+bool 'uC/OS-II' PACK_OS_UCOSII
+bool 'VxWorks' PACK_OS_VXWORKS
+bool 'ThreadX' PACK_OS_THREADX
+bool 'Nucleus' PACK_OS_NUCLEUS
+bool 'OSE'     PACK_OS_OSE
+bool 'pSOS'    PACK_OS_PSOS
+bool 'Win32 platform' PACK_OS_WIN32
+bool 'OpenDarwin platform' PACK_OS_DARWIN
+
+if [ "$PACK_OS_UCOSII" = "y" ]; then
+    PACK_OWN_MALLOC=y
+    PACK_OWN_STDIO=y
+fi
+ 
+comment ""
+comment "Own libc implementation"
+bool 'malloc' PACK_OWN_MALLOC
+bool 'stdio' PACK_OWN_STDIO
+
+comment ""
+comment "Incore fonts"
+bool 'Incore GB2312 12x12 RBF font' PACK_FONT_INCOREGB12
+bool 'Incore GB2312 16x16 RBF font' PACK_FONT_INCOREGB16
+bool 'Incore GB2312 24x24 RBF font' PACK_FONT_INCOREGB24
+bool 'Incore GB2312 16x16 RBF hei font' PACK_FONT_INCOREGB16_HEI
+bool 'Incore Big5 12x12 RBF fixed/ming font' PACK_FONT_INCOREBIG12
+bool 'Incore Big5 16x16 RBF fixed/ming font' PACK_FONT_INCOREBIG16
+bool 'Incore Big5 24x24 RBF fixed/ming font' PACK_FONT_INCOREBIG24
+bool 'Incore Kanji 12-Pixel RBF fonts' PACK_FONT_INCOREKJ12
+bool 'Incore Kanji 14-Pixel RBF fonts' PACK_FONT_INCOREKJ14
+bool 'Incore Kanji 16-Pixel RBF fonts' PACK_FONT_INCOREKJ16
+
+comment ""
+mystring 'Tarball Postfix' PACK_POSTFIX private
+
+endmenu
+
+# end

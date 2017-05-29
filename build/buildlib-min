@@ -1,0 +1,47 @@
+#!/bin/sh
+
+./configure \
+    --disable-micemoveable \
+    --disable-dblclk \
+    --disable-cursor \
+    --disable-mousecalibrate \
+    --disable-clipboard \
+    --disable-vbfsupport \
+    --disable-rbfgb12 \
+    --disable-fontsserif \
+    --disable-fontcourier \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-latin9support \
+    --disable-gbsupport \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-gifsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --disable-mousecalibrate \
+    --disable-adv2dapi \
+    --disable-videoqvfb \
+    --disable-qvfbial \
+    --disable-extctrlmonthcal \
+    --disable-extctrltreeview \
+    --disable-extctrlspinbox \
+    --disable-extctrlcoolbar \
+    --disable-extctrllistview \
+    --disable-extctrliconview \
+    --disable-extctrlgridview \
+    --disable-extctrlanimation \
+    --disable-extskin \
+    --disable-libvcongui \
+    --disable-nativeps2 \
+    --disable-nativeimps2 \
+    --disable-nativems \
+    --disable-nativems3 \
+    --disable-nativegpm \
+    --with-style=flat

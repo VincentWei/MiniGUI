@@ -1,0 +1,25 @@
+# rules for threadx on vfanvil
+
+TARGET_OS=threadx
+
+AS=
+CC=armcc
+CXX=armcpp
+CPP=armcc -E
+AR=armar
+RANLIB=echo
+MAKE=make
+
+ARFLAGS=-create
+
+# INC path should be changed 
+# To support png image (PNG_INC), please include file :png.h pngconf.h zconf.h zlib.h
+THREADX_INC=D:\datang_single\libminigui\include\datang_include
+PNG_INC=D:\datang_single\libminigui\include\png
+MINIGUI_INC=D:\datang_single\libminigui\include
+
+DEFS+=-D__TARGET_VFANVIL__
+INCS+=-I${THREADX_INC} -I${PNG_INC} -I${MINIGUI_INC}
+CFLAGS+= -O0 -Otime -cpu ARM7TDMI -W -apcs /interwork -Wabdfrvy -Ec -c -D__NOUNIX__ -DANVIL -DMONACO -D__MINIGUI_LIB__ -DTX_ENABLE_FIQ_SUPPORT -Dinline=__inline
+
+PREFIX=c:/cross

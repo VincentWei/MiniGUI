@@ -1,0 +1,5 @@
+# Makefile defines for building the MiniGUI DLL with Microsoft VC
+abs_top_srcdir=../../..
+
+include Makefile.am
+include ../../../rules.make

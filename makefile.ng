@@ -1,0 +1,34 @@
+# Top makefile for building the MiniGUI libraries
+#     and GNU Make
+# Useful for non-gcc compilers
+# Use: make -f makefile.ng [options]
+
+###############################################################################
+
+# This is the top project directory
+TOPPROJALL = 1
+TOPLOOP=1
+abs_top_srcdir=.
+
+# sub lib or install directories
+SUB_DIRS = src include
+
+###############################################################################
+
+# Includes the common make defines
+include rules.make
+
+###############################################################################
+
+install::
+	$(CP) mgconfig.h $(includedir)/minigui/mgconfig.h
+
+installdirs :: force
+	-mkdir $(prefix)
+	-mkdir $(includedir)
+	-mkdir $(includedir)/minigui
+	-mkdir $(libdir)
+
+mgconfig.h: $(CONFIGH)
+	$(CP) $(CONFIGH) mgconfig.h
+

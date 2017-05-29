@@ -1,0 +1,18 @@
+There are four programs in directory src/:
+    1. test_window -- test:
+            the functions hit_test and calc_we_area, 
+            window element attributes changing,
+            window renderer changing.
+            window border style changing.
+
+    2. test_draw_menu -- test:
+            the menu with radio or check mark,
+            drawing functions in renderer.
+
+    3. test_calccolor -- test:
+            function HSV2RGB and RGB2HSV use fixed point decimal fraction,
+            calc_3dbox_color in renderer.
+            The program use assert() to test correctness of calculating.
+
+    4. ctrldemo -- the same as ctrldemo in mde, but the default renderer 
+            can be changed by menubar.

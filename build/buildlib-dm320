@@ -1,0 +1,31 @@
+#!/bin/sh
+rm -f config.cache config.status
+CC=arm-linux-gcc \
+./configure --prefix=/opt/styleflying/arm-linux \
+    --build=i686-linux \
+    --host=arm-linux-linux \
+    --target=arm-linux-linux \
+    --disable-procs \
+    --enable-incoreres \
+    --disable-cursor \
+    --enable-dm270ial \
+    --enable-dummyial \
+    --disable-qvfbial \
+    --disable-vbfsupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --enable-extskin \
+    --disable-adv2dapi \
+    --enable-tinyscreen \
+    --disable-savescreen 

@@ -1,0 +1,164 @@
+
+NOTICE 
+======
+
+Please carefully read the licensing statements for each software
+before you use the files in this CD.
+
+Copying or reading the software or other resources (called "software" 
+hereinafter) from this CD-ROM provided by Feynman Software indicates 
+that you have already read and accepted the correspondent licensing 
+and authorization terms. If you can't accept it, please immediately 
+stop copying and return the product.
+
+==============================================================================
+
+
+CONTENTS IN THIS CD-ROM
+=======================
+
+	minigui/1.6.x
+		Sound code, resource package for MiniGUI Value-Added Release, 
+        MDE demo package and sample package for "MiniGUI Programming
+		Guide" of MiniGUI version 1.6.x.
+
+	minigui/docs
+		"MiniGUI User Manual", "MiniGUI Programming Guide", and 
+		"MiniGUI API Reference Manual" for MiniGUI version 1.6.x.
+        Note that "MiniGUI API Reference Manual" are given in
+        pdf, html, and chm formats.
+
+	minigui/free-fonts
+		Several free RBF fonts. For the names of those RBF fonts, 
+                please read the font.name file in this directory.
+
+	deplibs
+		The third-party libraries including libfreetype, 
+		t1lib, SVGALib, LibJPEG, LibPNG, and QVFB.
+
+	cross-tools
+		Cross-compiling toolchains for ARM, MIPS, PowerPC, 
+		M68K and other platforms.
+
+	uClinux-dist
+		uClinux distribution and patch for xCopilot.
+
+    Xcopilot
+		Xcopilot simulator
+
+==============================================================================
+
+
+COPYING FOR MINIGUI
+===================
+
+    Copyright (C) 2002-2005, Beijing Feynman Software Technology Co., Ltd.
+    Copyright (C) 1998-2002, Wei Yongming
+    Portion copyright (C) 2000, 2001, Song Lixin, Zheng Xiang and others.
+
+    MiniGUI is free software; you can redistribute it and/or modify it under 
+    the terms of the GNU General Public License as published by the 
+    Free Software Foundation; either version 2 of the License, 
+    or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful, 
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+    See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License 
+    along with this library; if not, write to the Free Software Foundation, 
+    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+==============================================================================
+
+
+COPYING FOR MDE AND MG-SAMPLES
+==============================
+
+    Copyright (C) 2002-2005, Beijing Feynman Software Technology Co., Ltd.
+    Copyright (C) 2002, Wei Yongming
+
+    MDE and MG-SAMPLES is free software; you can redistribute it and/or 
+    modify it under the terms of the GNU General Public License as published 
+    by the Free Software Foundation; either version 2 of the License, 
+    or (at your option) any later version.
+
+    This software is distributed in the hope that it will be useful, 
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+    See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License 
+    along with this library; if not, write to the Free Software Foundation, 
+    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+==============================================================================
+
+
+OTHERS
+======
+
+  * MiniGUI is released under the GPL license, please read the COPYING file.
+  * Proprietary system or commercial users, please read LICENSE.POLICY file.
+  * MDE is released under the GPL license, please read the COPYING file.
+  * Mg-samples is released under the GPL license, please read the COPYING file.
+  * The third-party libraries or tools in the deplibs/ directory in this 
+    CD-ROM are released under LGPL and/or GPL licenses, please read the 
+    COPYING.LIB, COPYING.LESSER or COPYING file in each package.
+
+==============================================================================
+
+
+TERMS FOR MINIGUI-VAR PRODUCT USERS
+===================================
+
+MiniGUI-VAR product, licensed by the amount of developers, is a 
+value-added product provided by Feynman Software for those who 
+develop proprietary or commercial products. Customers who have 
+bought the MiniGUI-VAR can:
+
+  a) Obtain the license to develop non-GPL application software based on
+     MiniGUI.
+  b) Demonstrate the MiniGUI-based non-GPL application software to 
+     your customers before the products coming into the market, or 
+     release the demo applications based-on MiniGUI in public.
+  c) Three-month technology supports for MiniGUI application development. 
+  d) One-year free upgrade of MiniGUI.
+
+
+----------------------------------------------------------------
+Note that you should buy the MiniGUI runtime licenses before your
+products based-on MiniGUI come into the market.
+
+Note that using free-download MiniGUI in proprietary or commercial 
+products, you also need to buy the runtime licenses first.
+----------------------------------------------------------------
+
+==============================================================================
+ 
+
+CONTACT INFORMATION
+===================
+
+Company: Beijing Feynman Software Technology Co., Ltd.
+Address: Room 501, Building D, The Westing House Apartment, 
+         Number 12, Suzhou Street, Haidian District, Beijing, 
+         P. R. China
+Zip: 100080
+
+Bank: China Merchants Bank Beijing Wanquanhe Branch
+Accounts: 6480136210001
+
+Tel: 86-10-82873666/82873999
+Fax: 86-10-82873999/82873999-88
+
+Website: http://www.minigui.com, http://www.fmsoft.cn
+Sales: sales@minigui.com
+Tech. consultation: support@minigui.com
+
+For more products, please visit
+	http://www.fmsoft.com/product/index.shtml 
+
+==============================================================================
+

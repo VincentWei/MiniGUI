@@ -1,0 +1,48 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CC=arm-elf-gcc \
+CFLAGS="-Os -D__uClinux__ -mcpu=arm7tdmi -fno-exceptions -fno-rtti -nostartfiles -fno-builtin " \
+LDFLAGS="-Wl,-elf2flt" \
+./configure --prefix=/opt/armtools/arm-elf \
+    --build=i386-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --with-osname=uclinux \
+    --disable-shared \
+    --disable-procs \
+    --disable-standalone \
+    --with-style=fashion \
+    --enable-incoreres \
+    --enable-rbfgb12 \
+    --enable-rbf16 \
+    --enable-fonthelv \
+    --enable-adv2dapi \
+    --enable-videofbcon \
+    --disable-videoqvfb \
+    --disable-qvfbial \
+    --disable-videodummy \
+    --disable-videocommlcd \
+    --disable-micemoveable \
+    --enable-cursor \
+    --disable-textmode \
+    --disable-palm2ial \
+    --enable-embest44b0ial \
+    --disable-nativeial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbsupport \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-extctrlgridview \
+    --disable-savebitmap \
+    --enable-imegb2312 \
+    --enable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --enable-tinyscreen
+

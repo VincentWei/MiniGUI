@@ -1,0 +1,45 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+./configure --prefix=/var/tmp/minigui-build/usr \
+    --disable-procs \
+    --disable-standalone \
+    --enable-incoreres \
+    --enable-rbf16 \
+    --enable-rbf24 \
+    --enable-rbfgb12 \
+    --enable-rbfgb16 \
+    --enable-rbfgb24 \
+    --enable-rbfkj12 \
+    --enable-rbfkj14 \
+    --enable-rbfkj16 \
+    --enable-fontsymbol \
+    --enable-fontvgas \
+    --enable-fonthelv \
+    --enable-videofbcon \
+    --enable-videoqvfb \
+    --disable-videodummy \
+    --disable-videocommlcd \
+    --disable-micemoveable \
+    --disable-dummyial \
+    --disable-autoial \
+    --enable-nativeial \
+    --enable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbsupport \
+    --enable-shiftjissupport \
+    --enable-eucjpsupport \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --enable-tinyscreen
+

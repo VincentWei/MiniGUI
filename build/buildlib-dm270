@@ -1,0 +1,35 @@
+#!/bin/sh
+rm -f config.cache config.status
+CC=arm-elf-gcc \
+CFLAGS="-Os -D__uClinux__ -mcpu=arm7tdmi -fno-exceptions -fno-rtti -nostartfiles -fno-builtin " \
+LDFLAGS="-Wl,-elf2flt" \
+./configure --prefix=/usr/local/arm-elf \
+    --build=i686-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --with-osname=uclinux \
+    --disable-procs \
+    --disable-shared \
+    --enable-incoreres \
+    --disable-cursor \
+    --enable-dm270ial \
+    --enable-dummyial \
+    --disable-qvfbial \
+    --disable-vbfsupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --enable-extskin \
+    --disable-adv2dapi \
+    --enable-tinyscreen \
+    --disable-savescreen

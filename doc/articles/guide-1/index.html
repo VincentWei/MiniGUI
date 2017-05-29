@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南(一)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>
+<meta name="KEYWORDS" content="MiniGUI,实时嵌入式系统,嵌入式,Linux MiniGUI"/>
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+<p><strong class="title">基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南(一)</strong><br>
+<strong class="subtitle">选择MiniGUI-Threads 或者 MiniGUI-Lite</strong></p>
+<p><a href="#author1">魏永明</a> (<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>)<br />
+自由撰稿人<br />
+2001 年 6 月</p>
+<!-- END title and author lines -->
+
+<table width="150" border="0" cellspacing="0" cellpadding="3" align="right">
+	<tr><td><a href=#1>引言</a></td></tr>
+	<tr><td><a href=#2>MiniGUI-Threads 和 MiniGUI-Lite 的区别</a></td></tr>
+	<tr><td><a href=#3>MiniGUI-Threads 的典型应用和软件架构</a></td></tr>
+	<tr><td><a href=#4>MiniGUI-Lite 的典型应用和软件架构</a></td></tr>
+	<tr><td><a href=#5>小结</a></td></tr>
+</table>
+<!-- End TOC -->
+
+<em>自 MiniGUI 从 1998 年底推出以来，越来越多的人开始选择 MiniGUI 在 Linux 上开发实时嵌入式系统。为了帮助嵌入式软件开发人员使用 MiniGUI编写出更好的应用程序，我们将撰写一系列文章讲解基于 Linux 和 MiniGUI 的嵌入式系统软件开发，并冠名"基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南"。本文是该系列文章的第一篇，将讲述如何针对具体项目选择使用 MiniGUI-Threads 或者 MiniGUI-Lite 版本，并比较不同版本对系统软件结构的影响。</em>
+
+<p><a name="1"><span class="atitle2">1：引言</span></a>
+<br />自 MiniGUI 从 1998 年底推出以来，越来越多的人开始选择 MiniGUI 在 Linux 上开发实时嵌入式系统。MiniGUI 系统也逐渐成熟，并在各种嵌入式系统中扮演了重要的角色。为了帮助嵌入式软件开发人员使用 MiniGUI编写出更好的应用程序，我们将撰写一系列文章讲解基于 Linux 和 MiniGUI 的嵌入式系统软件开发，并冠名"基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南"。该系列文章将讲述如何在基于 Linux 的系统上利用 MiniGUI 开发具有图形用户界面支持的嵌入式系统软件，其内容不仅仅限于 MiniGUI 的编程，还会涉及到一些 Linux 下嵌入式系统软件开发的技巧。系列文章的初步规划如下：
+<ul><li>如何针对特定项目选择 MiniGUI-Threads 和 MiniGUI-Lite
+	<li>理解消息循环和窗口过程
+	<li>对话框和控件编程
+	<li>使用 GDI 函数
+	<li>MiniGUI 和 Linux 系统调用
+	<li>MiniGUI-Lite 与进程间通讯
+	<li>将 MiniGUI 及应用程序移植到特定平台
+	<li>利用 autoconf 接口编写跨平台代码
+	<li>如何调试 MiniGUI 应用程序</ul>
+本文是该系列文章的第一篇，将讲述如何针对具体项目选择使用 MiniGUI-Threads 或者 MiniGUI-Lite 版本，并比较不同版本对系统软件结构的影响。</p>
+
+<p><a name="2"><span class="atitle2">2：MiniGUI-Threads 和 MiniGUI-Lite 的区别</span></a>
+<br />大家都知道，我们可以将 MiniGUI 编译成两个截然不同的版本，一个是 MiniGUI-Threads，一个是 MiniGUI-Lite。这两个版本适用于不同的应用需求。在选择到底使用 MiniGUI-Threads 还是 MiniGUI-Lite 之前，我们首先需要了解这两个版本之间的区别。</p>
+<p>MiniGUI-Threads 是 MiniGUI 的最初版本。MiniGUI 最初为一个工业控制系统开发的，该系统功能单一，但却需要非常高的实时性，因此考虑将 MiniGUI 开发成一个基于多线程的图形用户界面支持系统。因为在传统的 UNIX/Linux 系统上，典型的 GUI 系统（比如 X）采用传统的基于 UNIX 套接字的客户/服务器系统结构。在这种体系结构下，客户建立窗口、绘制等等都要通过套接字传递到服务器，由服务器完成实质工作。这样，系统非常依赖于 UNIX 套接字通讯。而大家都知道，UNIX 套接字的数据传递，要经过内核，然后再传递到另外一个程序。这样，大量的数据在客户/内核/服务器之间传递，从而增加了系统负荷，也占用了许多系统资源。这对许多嵌入式系统，尤其是实时性要求非常高的系统来说，是不可接受的。</p>
+<p>为了解决这个问题，MiniGUI 首先采用了线程机制（类似Windows CE），所有的应用程序都运行在同一个地址空间，这样，大大提高了程序之间的通讯效率，并且特别适合于实时性要求非常高的系统。这就是 MiniGUI-Threads。基于 MiniGUI-Threads 的程序，可以具有多个线程，每个线程有不同的功能和任务，并且可以建立各自的窗口，不同的线程之间，可以通过 MiniGUI 提供的消息传递机制进行事件传送和同步。</p>
+<p>但显然，这种基于线程的结构也导致了系统整体的脆弱――如果某个线程因为非法的数据访问而终止运行，则整个进程都将受到影响。不过，这种体系结构对实时控制系统等时间关键的系统来讲，还是非常适合的。</p>
+<p>为了解决 MiniGUI-Threads 版本因为线程而引入的一些问题，同时也为了让 MiniGUI更加适合于嵌入式系统，我们决定开发一个 MiniGUI-Lite 版本。这个版本的开发目的是：
+<ul><li>保持与原先 MiniGUI 版本在源代码级 99% 以上的兼容。
+	<li>不再使用线程库。
+	<li>可以同时运行多个基于 MiniGUI-Lite 的应用程序，即多个进程，并且提供前后台进程的切换。</ul></p>
+<p>显然，要同时满足上述三个目的，如果采用传统的 C/S 结构对MiniGUI-Threads 进行改造，应该不难实现。但前面提到的传统 C/S 结构的缺陷却无法避免。经过对 PDA 等嵌入式系统的分析，我们发现，某些 PDA 产品具有运行多个任务的能力，但同一时刻在屏幕上进行绘制的程序，一般不会超过两个。因此，只要确保将这两个进程的绘制相互隔离，就不需要采用复杂的 C/S 结构处理多个进程窗口之间的互相剪切。也就是说，在这种产品中，如果采用基于传统 C/S 结构的多窗口系统，实际是一种浪费。</p>
+<p>有了上述认识，我们对 MiniGUI-Threads 进行了如下简化设计：
+<ul><li>每个进程维护自己的主窗口 Z 序，同一进程创建的主窗口之间互相剪切。也就是说，除这个进程只有一个线程，只有一个消息循环之外，它与原有的 MiniGUI 版本之间没有任何区别。每个进程在进行屏幕绘制时，不需要考虑其他进程。
+	<li>建立一个简单的客户/服务器体系，但确保最小化进程间的数据复制功能。因此，在服务器和客户之间传递的数据仅限于输入设备的输入数据，以及客户和服务器之间的某些请求和响应数据。
+	<li>有一个服务器进程（mginit），它负责初始化一些输入设备，并且通过 UNIX Domain 套接字将输入设备的消息发送到前台的 MiniGUI-Lite 客户进程。
+	<li>服务器和客户被分别限定在屏幕的某两个不相交矩形内进行绘制，同一时刻，只能有一个客户及服务器进行屏幕绘制。其他客户可继续运行，但屏幕输入被屏蔽。服务器可以利用 API 接口将某个客户切换到前台。同时，服务器和客户之间采用信号和 System V 信号量进行同步。
+	<li>服务器还采用 System V IPC 机制提供一些资源的共享，包括位图、图标、鼠标、字体等等，以便减少实际内存的消耗。</ul></p>
+<p>从传统 C/S 窗口系统的角度看，MiniGUI-Lite 的这种设计，无法处理达到完整的多窗口支持，这的确是一个结构设计上的不足和缺陷。不过，这实际是 MiniGUI-Lite 不同于其他窗口系统的一个特征。因为处理每个进程之间的互相剪切问题，将导致客户和服务器之间的通讯量大大增加，但实际上在许多嵌入式系统当中这种处理是没有必要的。在类似 PDA 的嵌入式系统中，往往各个程序启动后，就独占屏幕进行绘制输出，其他程序根本就没有必要知道它现在的窗口被别的进程剪切了，因为它根本就没有机会输出到屏幕上。所以，在 MiniGUI-Lite 当中，当一个进程成为最顶层程序时，服务器会保证其输出正常，而当有新的程序成为最顶层程序时，服务器也会保证其他程序不能输出到屏幕上。但这些进程依然在正常执行着，不过，服务器只向最顶层的程序发送外部事件消息。</p>
+<p>表 1 给出了 MiniGUI-Threads 和 MiniGUI-Lite 的区别。从表中总结的区别看来，MiniGUI-Threads 适合于功能单一、实时性要求很高的系统，比如工业控制系统；而 MiniGUI-Lite 适合于功能丰富、结构复杂、显示屏幕较小的系统，比如 PDA 等信息产品。</p>
+<p>表 1 MiniGUI-Threads 和 MiniGUI-Lite 的区别
+<table border=01 cellpadding=3 cellspacing=0 width=90% align=center>
+<tr><td>&nbsp;</td><td>MiniGUI-Threads</td><td>MiniGUI-Lite</td></tr>
+<tr><td>多窗口支持</td><td>完全</td><td>不能处理进程间窗口的剪切，但提供进程内多窗口的完全支持</td></tr>
+<tr><td>字体支持</td><td>支持点阵字体（VBF、RBF）和矢量字体（Adobe Type1 和 TrueType）</td><td>目前尚不支持对 Adobe Type1 和 TrueType 等矢量字体的支持</td></tr>
+<tr><td>线程间消息传递</td><td>通过 MiniGUI 的消息函数，可在不同的线程之间传递消息</td><td>未考虑多线程应用，不能直接通过 MiniGUI 消息函数在不同线程之间传递消息</td></tr>
+<tr><td>多线程窗口</td><td>MiniGUI 能够处理不同线程之间的窗口层叠</td><td>不能处理多线程之间的窗口层叠</td></tr>
+<tr><td>其他</td><td>基于线程的 C/S 结构，系统健壮性较差，因此要求系统经过严格测试</td><td>采用 UNIX Domain Socket 的基于进程的 C/S 结构，可建立健壮的软件架构。并提供了方便的高层 IPC 机制</td></tr>
+</table>
+除上表中列出的不同之外，MiniGUI-Threads 和 MiniGUI-Lite 的 API 是一致的。</p>
+
+<p><a name="3"><span class="atitle2">3：MiniGUI-Threads 的典型应用和软件架构</span></a>
+<br />本文介绍的基于 MiniGUI-Threads 典型应用是一个计算机数字控制（CNC）系统。这个系统是由清华大学基于 RT-Linux 建立的机床控制系统。该系统使用 MiniGUI-Threads 作为图形用户界面支持系统。图 1 是该 CNC 系统的用户界面。</p>
+<p align=center><img src="Image01.gif" width="800" height="600" border=0 alt="清华大学基于 RT-Linux 和 MiniGUI 的数控系统主界面"><br />图 1  清华大学基于 RT-Linux 和 MiniGUI 的数控系统主界面</p>
+<p>图 2 是该系统的架构。在用户层，该系统有三个线程，一个作为 GUI 主线程存在，另一个作为监视线程监视系统的工作状态，并在该线程建立的窗口上输出状态信息，第三个线程是工作线程，该线程执行加工指令，并通过 RT-Linux 的实时 FIFO 和系统的实时模块进行通讯。</p>
+<p align=center><img src="Image02.gif" width="351" height="178" border=0 alt="清华大学基于 RT-Linux 和 MiniGUI 的数控系统架构"><br />图 2 清华大学基于 RT-Linux 和 MiniGUI 的数控系统架构</p>
+
+<p><a name="4"><span class="atitle2">4：MiniGUI-Lite 的典型应用和软件架构</span></a>
+<br />这里介绍的典型应用是一个基于 MiniGUI-Lite 的 PDA。该 PDA 由国内某公司基于 Linux 开发，其上可以运行各种 PIM 程序、浏览器以及各种游戏程序。图 3 是该 PDA 的用户界面。</p>
+<p align=center><img src="Image03.jpg" width="240" height="320" border=0 alt="某公司开发的基于 MiniGUI 的 PDA 软件界面"><br />图 3  某公司开发的基于 MiniGUI 的 PDA 软件界面</p>
+<p>该系统中的所有应用程序都以 Linux 进程的形式执行，mginit（即 MiniGUI-Lite）提供了输入法支持和应用程序管理功能。当应用程序之间需要通讯时，可以通过 MiniGUI-Lite 所提供的 request/response 接口实现。图 4 是该系统的架构。</p>
+<p align=center><img src="Image04.gif" width="351" height="218" border=0 alt="某公司开发的基于 MiniGUI 的 PDA 软件架构"><br />图 4 某公司开发的基于 MiniGUI 的 PDA 软件架构</p>
+
+<p><a name="5"><span class="atitle2">5：小结</span></a>
+<br />本文讲解了 MiniGUI-Threads 和 MiniGUI-Lite 之间的区别，并举例说明了基于这两个不同版本的不同软件架构。嵌入式程序开发人员必须明白这两个版本之间的区别，并针对具体应用恰当选择使用哪个版本。</p>
+
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<a name="author1"><span class="atitle2">作者简介</span></a>
+<br />魏永明（<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>），男，27 岁，工学硕士。国内最有影响的自由软件项目之一－－MiniGUI 的创始人及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。
+</td></tr></table>
+
+</body>
+</html>
+

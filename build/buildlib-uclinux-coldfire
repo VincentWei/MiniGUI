@@ -1,0 +1,39 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CC=m68k-elf-gcc \
+CFLAGS="-Os -I/opt/uClinux/uClinux-dist/lib/uClibc/include -I/opt/uClinux/uClinux-dist/linux-2.4.x/include -m5200 -Wa,-S -Wa,-m5200 -msep-data " \
+LDFLAGS="-Wl,-elf2flt -Wl,-move-rodata -L/opt/uClinux/uClinux-dist/lib/uClibc/lib -lc" \
+./configure --prefix=/opt/uClinux/uClinux-dist/minigui/m68k-elf/ \
+    --build=i386-linux \
+    --host=m68k-elf-linux \
+    --target=m68k-elf-linux \
+    --disable-shared \
+    --disable-procs \
+    --with-osname=uclinux \
+    --disable-standalone \
+    --enable-incoreres \
+    --with-style=flat \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-textmode \
+    --enable-dummyial \
+    --disable-mc68x328ial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --enable-tinyscreen

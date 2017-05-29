@@ -1,0 +1,876 @@
+# This configuration help texts file format is borrowed from 
+# _LINUX_SOURCE_DIR/Documentation/Configure.help.
+#
+# Format of this file: description<nl>variable<nl>help text<nl><nl>.
+# The help texts may contain empty lines, but every non-empty line must
+# be indented two positions.  Order of the help texts does not matter,
+# however, no variable should be documented twice: if it is, only the
+# first occurrence will be used. We try to keep the help texts of related
+# variables close together. Lines starting with `#' are ignored. To be
+# nice to menuconfig, limit your line length to 70 characters. Use emacs'
+# kfill.el to edit and ispell.el to spell check this file or you lose.
+#
+# Comments of the form "# Choice:" followed by a menu name are used
+# internally by the maintainers' consistency-checking tools.
+#
+# If you add a help text to this file, please try to be as gentle as
+# possible. Don't use unexplained acronyms and generally write for the
+# hypothetical ignorant but intelligent user who has just bought a PC,
+# removed Windows, installed Linux and is now recompiling the kernel
+# for the first time. Tell them what to do if they're unsure. Technical
+# information should go in a README in the Documentation directory.
+#
+# Mention all the relevant READMEs and HOWTOs in the help text.
+# Make them file URLs relative to the top level of the source tree so
+# that help browsers can turn them into hotlinks.  All URLs should be
+# surrounded by <>.
+#
+# Repetitions are fine since the help texts are not meant to be read
+# in sequence.  It is good style to include URLs pointing to more
+# detailed technical information, pictures of the hardware, etc.
+#
+# The most important thing to include in a help entry is *motivation*.
+# Explain why someone configuring a kernel might want to select your
+# option.
+
+Build MiniGUI-Processes
+CONFIG_PROCS
+  Build the runtime mode MiniGUI-Processes.
+  If you excludes this option, the MiniGUI library will be built as 
+  MiniGUI-Threads version.
+
+  In MiniGUI-Processes mode, the applications (tasks) are organized 
+  as separate processes. There is a server application (process) 
+  called "mginit", and other client applications (processes). 
+  The clients and the server communicate with each other via UNIX 
+  Domain Socket.
+
+  The MiniGUI-Threads version uses pthread library, and the tasks are 
+  organized as threads.
+
+Build MiniGUI-Standalone
+CONFIG_STAND_ALONE
+  Build the runtime mode MiniGUI-Standalone.
+
+  In normal MiniGUI-Processes version, the applications (tasks) are 
+  organized as separate processes. Include this option, we will get a 
+  standalone version, i.e., there is only a process, and no clients 
+  can run on the mode.
+
+Use built-in resource
+CONFIG_INCORE_RES
+  Use incore resource data to initialize MiniGUI instead of file I/O.
+  Choose this option will override the configuration in MiniGUI.cfg file.
+
+Unit of timer is 10ms
+CONFIG_TIMERUNIT10MS
+  The MiniGUI timer interval value is in unit of 10 ms.
+
+  BOOL GUIAPI SetTimer (HWND hWnd, int id, unsigned int speed);
+
+  The argument "speed" in SetTimer function may represent the frequency of the timer,
+  or represent the interval value of the timer. This is depend on
+  the runtime library of MiniGUI. If _TIMER_UNIT_10MS is defined,
+  "speed" represents the interval value of the timer, in the unit of 10ms,
+  else is the frequency. If "speed" represents the frequency of the timer,
+  when it is equal to 10, the timer will expire after every second.
+
+  If you wants to define _TIMER_UNIT_10MS (default), includes this option.
+
+Cursor support
+CONFIG_CURSORSUPPORT
+  You can excludes mouse cursor support from MiniGUI library by excluding this option.
+
+Clipboard support
+CONFIG_CLIPBOARD
+  If you want to copy/paste text between editors, please include this option.
+
+User can move window with mouse
+CONFIG_MOVEABLE
+  In embedded systems, this option may usually be excluded. No one will need or like a moveable
+  window on handheld devices like PDA.
+
+Mouse button can do double click
+CONFIG_DBCLK
+  Double click is not usual in embedded system, you may want to exclude this option.
+
+Build with debugging messages
+CONFIG_DEBUG
+  Build MiniGUI library with debugging messages.
+
+Trace messages of MiniGUI
+CONFIG_TRACEMESSAGE
+  Trace messages of MiniGUI.
+
+Include symbol name of messages
+CONFIG_MSGSTR
+  Include symbol name of messages.
+
+Use our own implementation of malloc
+CONFIG_OWN_MALLOC
+  Use our own implementation of malloc/calloc/free functions.
+
+Use our own implementation of stdio
+CONFIG_OWN_STDIO
+  Use our own implementation of printf/fprintf/sprintf functions.
+  You should only use the own stdio functions for no-file-io OSes,
+  such as uC/OS-II. 
+
+Include fixed math routines
+CONFIG_FIXED_MATH
+  Include fixed math routines. MiniGUI uses fixed math routines
+  to implement some NEWGDI functions.
+
+Uses old GAL interface and its engines
+CONFIG_OLDGAL
+  Uses old GAL and old GDI interfaces instead of NEWGAL.
+ 
+  NEWGAL and new GDI interfaces are more powerful and flexible, 
+  but NEWGAL only supports linear FrameBuffer above 8BPP.
+
+  Old GAL supports more display mode (the lowest color depth supported is 1BPP black-white mode).
+  If you want to use MiniGUI in low color depth devices, includes this option.
+
+Native Linear FrameBuffer GAL
+CONFIG_GAL_NATIVE
+  Native Linear FrameBuffer GAL engine. This engine is based on various linear FrameBuffer, 
+  and supports various color depths.
+
+FrameBuffer GAL engine on Linux FrameBuffer console
+CONFIG_GAL_NATIVE_FBCON
+  FrameBuffer GAL engine on Linux FrameBuffer console.
+
+FrameBuffer GAL engine on Qt Virtual FrameBuffer
+CONFIG_GAL_NATIVE_QVFB
+  FrameBuffer GAL engine on Qt Virtual FrameBuffer.
+
+FrameBuffer GAL engine on Common LCD interface.
+CONFIG_GAL_NATIVE_COMMLCD
+  FrameBuffer GAL engine on Common LCD interface.
+
+Have console on FrameBuffer
+CONFIG_GAL_NATIVE_TEXTMODE
+  Enable this option when your Linux system have console (text mode) on FrameBuffer.
+
+Support for clockwise rotation of screen
+CONFIG_GAL_NATIVE_COORTRANS
+  Support for clockwise rotation of screen. This option is useful for iPAQ.
+
+R1BPP FB
+CONFIG_GAL_NATIVE_R1BPPFB
+  Native GAL engine 1BPP FB subdriver (Most significant bit is right).
+
+L1BPP FB
+CONFIG_GAL_NATIVE_L1BPPFB
+  Native GAL engine 1BPP FB subdriver (Most significant bit is left).
+
+R2BPP FB
+CONFIG_GAL_NATIVE_R2BPPFB
+  Native GAL engine 2BPP FB subdriver (Most significant bit is right).
+
+L2BPP FB
+CONFIG_GAL_NATIVE_L2BPPFB
+  Native GAL engine 2BPP FB subdriver (Most significant bit is left).
+
+R4BPP FB
+CONFIG_GAL_NATIVE_R4BPPFB
+  Native GAL engine 4BPP FB subdriver (Most significant bit is right).
+
+L4BPP FB
+CONFIG_GAL_NATIVE_L4BPPFB
+  Native GAL engine 4BPP FB subdriver (Most significant bit is left).
+
+8BPP FB
+CONFIG_GAL_NATIVE_8BPPFB
+  Native GAL engine 8BPP FB subdriver
+
+16BPP FB
+CONFIG_GAL_NATIVE_16BPPFB
+  Native GAL engine 16BPP FB subdriver
+
+24BPP FB (incompleted)
+CONFIG_GAL_NATIVE_24BPPFB
+  Native GAL engine 24BPP FB subdriver
+
+32BPP FB
+CONFIG_GAL_NATIVE_32BPPFB
+  Native GAL engine 32BPP FB subdriver
+
+VGA16 FB (do not include, dangerous)
+CONFIG_GAL_NATIVE_VGA16FB
+  Dangerous, do not include.
+
+GAL and IAL engine on SVGALIB (for old GAL and MiniGUI-Threads)
+CONFIG_GALIAL_SVGALIB
+  GAL and IAL engine on SVGALIB (for old GAL and MiniGUI-Threads)
+
+GAL and IAL engine on LibGGI (for old GAL and MiniGUI-Threads)
+CONIFG_GALIAL_LIBGGI
+  GAL and IAL engine on LibGGI (for old GAL and MiniGUI-Threads)
+
+VGA 16-color mode
+CONFIG_GAL_VGA16
+  Standar VGA 16-color display mode.
+
+Advanced 2D Graphics APIs on NEWGAL
+CONFIG_NEWGAL_ADV2DAPI
+  Include advanced 2D graphics APIs on NEWGAL. The advanced
+  2D graphics APIs provide the support for pen type/style and 
+  brush pattern. This feature needs math library.
+
+NEWGAL engine on Linux FrameBuffer console
+CONFIG_NEWGAL_FBCON
+  Include NEWGAL engine on Linux FrameBuffer console.
+
+NEWGAL engine on Qt Virtual FrameBuffer
+CONFIG_NEWGAL_QVFB
+  Include NEWGAL engine on Qt FrameBuffer.
+
+NEWGAL engine on EM85xx OSD FrameBuffer
+CONFIG_NEWGAL_EM85XXOSD
+  Include NEWGAL engine on EM85xx (by Sigma Designs Inc.) OSD FrameBuffer.
+
+NEWGAL engine on EM85xx YUV layer 
+CONFIG_NEWGAL_EM85XXYUV
+  Include NEWGAL engine on EM85xx (by Sigma Designs Inc.) YUV layer.
+
+NEWGAL engine on EM86xx GFX
+CONFIG_NEWGAL_EM86GFX
+  Include NEWGAL engine on EM86xx (by Sigma Designs Inc.) GFX library.
+
+Dummy NEWGAL engine
+CONFIG_NEWGAL_DUMMY
+  Include dummy NEWGAL engine.
+
+NEWGAL engine on HI35XX 
+CONFIG_NEWGAL_HI35XX
+  Include NEWGAL engine on HI35XX (by hisilicon Inc.).
+
+NEWGAL engine on common LCD interface
+CONFIG_NEWGAL_COMMONLCD
+  Include NEWGAL engine on common LCD interface.
+
+NEWGAL engine of Shadow
+CONFIG_NEWGAL_SHADOW
+  Include NEWGAL engine of shadow
+
+NEWGAL engine of MLShadow
+CONFIG_NEWGAL_MLSHADOW
+  Include NEWGAL engine of mlshadow
+
+iPAQ H3600 (also H3800)
+CONFIG_IAL_IPAQ
+  IAL engine for iPAQ H3600 and H3800 series. This engine runs on
+  Linux and eCos.
+
+Dummy IAL engine
+CONFIG_IAL_DUMMY
+  You can skip input processing by using Dummy IAL engine.
+
+Automatic IAL engine
+CONFIG_IAL_AUTO
+  The automatic IAL engine can produce mouse or key data automatically.
+
+Random IAL engine
+CONFIG_IAL_RANDOM
+  The random IAL engine can produce random mouse or key data.
+
+Common IAL engine
+CONFIG_IAL_COMMON
+  The common IAL engine for common embedded device.
+
+Native (console) IAL engine
+CONFIG_IAL_NATIVE
+  Native (console) IAL engine is used to support mouse and keyboard on standar PC console.
+
+PS2 mouse
+CONFIG_IAL_NATIVE_PS2MOUSE
+  Support for PS2 mouse protocol.
+
+IntelligentMouse (IMPS/2) mouse
+CONFIG_IAL_NATIVE_IMPS2MOUSE
+  Support for IntelligentMouse (IMPS/2) mouse protocol.
+
+MS mouse
+CONFIG_IAL_NATIVE_MSMOUSE
+  Support for old MS serial mouse.
+
+MS3 mouse
+CONFIG_IAL_NATIVE_MS3MOUSE
+  Support for MS3 serial mouse.
+
+GPM daemon
+CONFIG_IAL_NATIVE_GPM
+  Support for GPM mouse daemon.
+
+  You can use GPM to support obsolete mouse type such as serial mouse.
+
+Raw bitmap font
+CONFIG_FONT_RBF
+  Support for Raw Bitmap Font.
+
+  Raw Bitmap Font format used in MiniGUI is defined by Feynman Software.
+  MiniGUI needs at lease one kind RBF font to run (the system font must be Raw Bitmap Font),
+  so you should not exclude this option.
+
+Incore ISO8859-1 12x24 RBF font
+CONFIG_FONT_INCORE24
+  Include incore 12x24 RBF font for ISO8859-1 charset.
+
+  This option is only effective when INCORE_RES option is enabled.
+
+Incore GB2312 12x12 RBF font
+CONFIG_FONT_INCOREGB12
+  Include incore 12x12 RBF font for GB2312 charset.
+
+  This option is only effective when INCORE_RES option is enabled.
+
+Var bitmap font
+CONFIG_FONT_VBF
+  Support for Var Bitmap Font (Variable width Bitmap Font).
+
+  Var Bitmap Font format used in MiniGUI is defined by Feynman Software.
+  VBF fonts includes Courier, Times and Helvetica fonts.
+  
+Incore font sansserif
+CONFIG_FONT_INCORESSERIF
+  Incore font sansserif
+
+Incore font courier
+CONFIG_FONT_INCORECOURIER
+  Incore font courier
+
+Incore font symbol
+CONFIG_FONT_INCORESYMBOL
+  Incore font symbol
+
+Incore font vgas
+CONFIG_FONT_INCOREVGAS
+  Incore font vgas
+
+Qt Prerendered Font
+CONFIG_FONT_QPF
+  Qt Prerendered Font.
+
+  This font format is defined in Qt/Embedded.
+  QPF font uses UNICODE encoding, so UNICODE support must be included if you want to include
+  this option.
+
+TrueType font
+CONFIG_FONT_TTF
+  TrueType font support.
+  
+  MiniGUI uses freetype 1.3.x library to render truetype fonts.
+  Note that MiniGUI can't work on freetype 2.0, so you may need to exclude this option
+  if your system uses freetype 2.0.
+  
+East European (Latin 2, ISO-8859-2) charset
+CONFIG_CHARSET_LATIN2
+  East European (Latin 2, ISO-8859-2) charset
+
+South European (Latin 3, ISO-8859-3) charset
+CONFIG_CHARSET_LATIN3
+  South European (Latin 3, ISO-8859-3) charset
+
+North European (Latin 4, ISO-8859-4) charset
+CONFIG_CHARSET_LATIN4
+  North European (Latin 4, ISO-8859-4) charset
+
+Cyrillic (ISO-8859-5) charset
+CONFIG_CHARSET_CYRILLIC
+  Cyrillic (ISO-8859-5) charset
+
+Arabic (ISO-8859-6) charset
+CONFIG_CHARSET_ARABIC
+  Arabic (ISO-8859-6) charset
+
+Greek (ISO-8859-7) charset
+CONFIG_CHARSET_GREEK
+  Greek (ISO-8859-7) charset
+
+Hebrew (ISO-8859-8) charset
+CONFIG_CHARSET_HEBREW
+  Hebrew (ISO-8859-8) charset
+
+Turkish (Latin 5, ISO-8859-9) charset
+CONFIG_CHARSET_LATIN5
+  Turkish (Latin 5, ISO-8859-9) charset
+
+Nordic, Latin 6, ISO-8859-10) charset
+CONFIG_CHARSET_LATIN6
+  Nordic, Latin 6, ISO-8859-10) charset
+
+Thai (ISO-8859-11) charset
+CONFIG_CHARSET_THAI
+  Thai (ISO-8859-11) charset
+
+Latin 7 (ISO-8859-13) charset
+CONFIG_CHARSET_LATIN7
+  Latin 7 (ISO-8859-13) charset
+
+Latin 8 (ISO-8859-14) charset
+CONFIG_CHARSET_LATIN8
+  Latin 8 (ISO-8859-14) charset
+
+Latin 9 (ISO-8859-15, West Extended) charset
+CONFIG_CHARSET_LATIN9
+  Latin 9 (ISO-8859-15, West Extended) charset
+
+Latin 10 (ISO-8859-16, Romanian) charset
+CONFIG_CHARSET_LATIN10
+  Latin 10 (ISO-8859-16, Romanian) charset
+
+EUC encoding of GB2312 charset
+CONFIG_CHARSET_GB2312
+  EUC encoding of GB2312 charset
+
+GBK charset
+CONFIG_CHARSET_GBK
+  GBK charset
+
+GB18030-0 charset
+CONFIG_CHARSET_GB18030
+  GB18030-0 charset
+
+BIG5 charset
+CONFIG_CHARSET_BIG5
+  BIG5 charset
+
+EUC encoding of KSC5636 and KSC5601 charsets
+CONFIG_CHARSET_EUCKR
+  EUC encoding of KSC5636 and KSC5601 charsets
+
+EUC encoding of JISX0201 and JISX0208 charsets
+CONFIG_CHARSET_EUCJP
+  EUC encoding of JISX0201 and JISX0208 charsets
+
+Shift-JIS encoding of JISX0201 and JISX0208 charsets
+CONFIG_CHARSET_SHIFTJIS
+  Shift-JIS encoding of JISX0201 and JISX0208 charsets
+
+UNICODE (ISO-10646-1 and UTF-8 encoding)
+CONFIG_CHARSET_UNICODE
+  UNICODE (ISO-10646-1 and UTF-8 encoding)
+
+French PC keyboard (non-US 102 keys)
+CONFIG_KBD_FRPC
+  French PC keyboard (non-US 102 keys)
+
+Keyboard layout for French
+CONFIG_KBD_FR
+  Keyboard layout for French
+
+Keyboard layout for German
+CONFIG_KBD_DE
+  Keyboard layout for German
+
+Keyboard layout for German Latin1
+CONFIG_KBD_DELATIN1
+  Keyboard layout for German Latin1
+
+Keyboard layout for Italian
+CONFIG_KBD_IT
+  Keyboard layout for Italian
+
+Keyboard layout for Spanish
+CONFIG_KBD_ES
+  Keyboard layout for Spanish
+
+Keyboard layout for Spanish CP850
+CONFIG_KBD_ESCP850
+  Keyboard layout for Spanish CP850
+
+Includes SaveBitmap-related functions
+CONFIG_IMAGE_SAVEBMP
+  Includes SaveBitmap-related functions support.
+
+  If you include this option, SaveBitmapToFile and SaveMyBitmapToFile will be supported.
+  You may use this two functions to save BITMAP and MYBITMAP structure to bmp file.
+  
+PCX file support
+CONFIG_IMAGE_PCX
+  Supports PCX image format.
+
+LBM/PBM file support
+CONFIG_IMAGE_LBM
+  Supports LBM/PBM image format.
+
+TGA file support
+CONFIG_IMAGE_TGA
+  TGA file support
+
+GIF file support
+CONFIG_IMAGE_GIF
+  GIF file support
+
+JPG file support
+CONFIG_IMAGE_JPG
+  JPG file support.
+
+  You may need libjpeg library if support this option.
+
+PNG file support
+CONFIG_IMAGE_PNG
+  PNG file support
+
+  You may need libpng library if support this option.
+
+Using Skin LF 
+CONFIG_LF_SKIN
+  Using skin look and feel
+
+  In skin lf, the windows and controls are drawn in skin bmp.
+
+Target is a gray screen
+CONFIG_LF_FLAT
+  Using flat look and feel
+
+  Supports for gray scale devices. The windows and controls are drawn with 
+  flat style and gray scale colors.
+
+Include code for mouse calibration
+CONFIG_MISC_MOUSECALIBRATE
+  Code for mouse calibration.
+  
+Include About Dialog Box
+CONFIG_MISC_ABOUTDLG
+  Supports for 'About MiniGUI' dialog. 
+
+  To open or active the 'About MiniGUI' dialog, you should call OpenAboutDialog
+  function.  
+
+  Calling this function will create a main window displaying
+  copyright and license information of MiniGUI. When the about dialog
+  is displaying, calling this function again will bring the dialog to be
+  the topmost main window, not create a new one.
+  
+Include code for screenshots
+CONFIG_MISC_SAVESCR
+  Includes codes for getting screenshots.
+
+  If this option is included, you can use SaveMainWindowContent function
+  to save content of a main window to a file.
+
+Static
+CONFIG_CTRL_STATIC
+  Static control is used to display information and text, without input capability.
+
+Button
+CONFIG_CTRL_BUTTON
+  Button control is used to activate an action.
+
+Simple EDIT
+CONFIG_CTRL_SIMEDIT
+  Simple EDIT control is used to input and display text.
+  
+  This edit control uses the system default fixed logical font.
+
+Single-Line EDIT
+CONFIG_CTRL_SLEDIT
+  Single-line EDIT control is used to input and display text.
+
+  This edit control uses the system logical font for control,
+  which may be variable-width font.
+
+Old Multi-Line EDIT
+CONFIG_CTRL_OLDMEDIT
+  Old Multi-line EDIT control is used to input and display text.
+
+  This control is obsolete, please use TEXTEDIT control instead.
+
+Text Edit
+CONFIG_CTRL_TEXTEDIT
+  Text edit control is a multi-line editor, used to input and view text.
+
+  You can use CTRL_TEXTEDIT, CTRL_MEDIT, or CTRL_MLEDIT class name to create a 
+  text edit control.
+
+  Text Edit control inherits ScrollView control, you must also enable ScrollView
+  control to use TextEdit control.
+
+ScrollView
+CONFIG_CTRL_SCROLLVIEW
+  ScrollView control is a scrollable window, you can add controls into scrollview
+  and browse with scrollbar.
+
+  ScrollView provides basic scrolled window support and listed item support, you 
+  can do many things with scrollview. 
+
+Listbox
+CONFIG_CTRL_LISTBOX
+  Listbox control is used to display a list of items.
+
+ProgressBar
+CONFIG_CTRL_PROGRESSBAR
+  Progressbar control is used to show the varying progress status. 
+
+Toolbar
+CONFIG_CTRL_TOOLBAR
+  Toolbar control is a tool bar with some button-like item.
+
+NewToolbar
+CONFIG_CTRL_NEWTOOLBAR
+  Newtoolbar control is a image-button tool bar used to activate actions.
+
+MenuButton
+CONFIG_CTRL_MENUBUTTON
+  Menubutton control is a button-like control, clicking on it will drop a 
+  menu to choose from.
+
+Trackbar
+CONFIG_CTRL_TRACKBAR
+  Trackbar control is a track-like bar with a slider on it. This control is
+  used to show position status and variance.
+  
+Combobox
+CONFIG_CTRL_COMBOBOX
+  With an input area and a click area(arrow), the Combobox controls is used to 
+  choose an item and show it in the input area.
+
+  Combobox control with CBS_DROPDOWNLIST style is somewhat like menubutton control. 
+  Clicking on a combobox control will drop a menu to choose an item. 
+
+  CBS_SIMPLE style Combobox creates a listbox to display items.
+  The current selection in the list box is displayed in the edit control.
+
+  CBS_AUTOSPIN style Combobox creates AutoSpin box to choose an item.
+  AutoSpin box has an input field with a spin button. The input field
+  displays an integer, and you can click spin button to increase or
+  decrease the value of the integer.
+
+  CBS_SPINLIST style Combobox creates SpinList to choose an item.
+  SpinList box has an input field with a spin button. The input field
+  displays some text, and you can click spin button to change the text.
+  The candidate text string comes from the strings you add to the box.
+
+PropertySheet
+CONFIG_CTRL_PROPSHEET
+  Propsheet control has a page title area and a page conten area. Clicking on the
+  page title will cause changing the current page and the showing content.
+
+TreeView control
+CONFIG_CTRL_TREEVIEW
+  Treeview control is used to show a list of items with a tree-like fashion.
+
+ListView control
+CONFIG_CTRL_LISTVIEW
+  Listview control is used to display the properties of a list of items.
+  A listview is consist of some rows and columns.
+
+IconView control
+CONFIG_CTRL_ICONVIEW
+  Iconview control is used to display icons in a control.
+
+GridView control
+CONFIG_CTRL_GRIDVIEW
+  GridView control is used to display a grid form.
+  A gridview is consist of some rows and columns.
+
+MonthCalendar control
+CONFIG_CTRL_MONTHCAL
+  Monthcalendar control displays date information in a calendar-like fashion. 
+
+SpinBox control
+CONFIG_CTRL_SPINBOX
+  Spinbox control is a control. User can click on the 
+  up arrow or the down arrow to change the spinbox current value.
+  
+CoolBar control
+CONFIG_CTRL_COOLBAR
+  Coolbar control is a simple tool bar with text or image button-like items.
+
+Animation control
+CONFIG_CTRL_ANIMATION
+  Includes Animation control and GIF 98a support.
+
+
+platform
+CONFIG_OS_LINUX
+  Selects the OS platform.
+
+  uClinux (http://www.uclinux.org) is a derivative of Linux kernel intended for 
+  microcontrollers without Memory Management Units (MMUs).
+
+  uClinux kernel was created to support non-MMU microprocessors, it is small but retains 
+  the main advantages of the linux operating system: stability, superior network capability, 
+  and excellent file system support. Most Linux applications can run on uClinux with little 
+  or without any changes.
+
+  MiniGUI version 1.3 and laters makes some optimization for uClinux, such as built-in 
+  resources support, and specific memory allocations.
+
+  To use MiniGUI under uClinux, compiles it as static library.
+
+  eCos (http://sources.redhat.com/ecos/) is an open source, royalty-free, real-time operating 
+  system intended for embedded applications. The highly configurable nature of eCos allows 
+  the operating system to be customised to precise application requirements, delivering the 
+  best possible run-time performance and an optimised hardware resource footprint. 
+
+  uC/OS-II (http://www.ucosii.com/) is an open source, real-time operating 
+  system kernel intended for real-time embedded applications. 
+
+
+compiler
+CONFIG_COMPILER_ARM
+  Choose your cross compiler here.
+
+  arm-linux-gcc :    arm cross compiler for StrongARM, gcc 2.1.3.
+
+  armv4l-linux-gcc : arm cross compiler for arm version 4 little endian, including StrongARM, arm7, arm9. 
+
+  mipsel-linux-gcc : mipsel cross compiler.
+
+  ppc-linux-gcc :    PowerPC cross compiler.
+
+  m68k-elf-gcc :     m68k cross compiler for uClinux.
+
+  arm-elf-gcc :      arm cross compiler for uClinux.
+
+  i386 :             x86 gcc compiler, default.
+
+target
+CONFIG_TARGET_M68K_XCOPILOT
+  Choose your target processor, useful if compiling for uClinux.
+
+  m68k/68328 :         Motorola mc68328 processor, including Xcopilot emulator, etc
+  m68k/68ez328 :       Motorola 68ez328 processor, including Arcturus/uCsimm, etc.
+  m68k/Coldfire 5200:  Coldfire 5200.
+  m68k/Coldfire 5307:  Coldfire 5307.
+  
+
+libc
+CONFIG_LIBC_GLIBC
+  Selects the uClibc or glibc as the libc.
+
+  uClibc - a Small C Library for Linux
+  Erik Andersen <andersen@codepoet.org>
+
+  uClibc is a C library for
+  developing embedded Linux systems. It is much smaller than the
+  GNU C Library, but nearly all applications supported by glibc
+  also work perfectly with uClibc. Porting applications from glibc
+  to uClibc typically involves just recompiling the source code.
+  uClibc even supports shared libraries and threading. It currently
+  runs on standard Linux and MMU-less (also known as uClinux)
+  systems with support for alpha, ARM, i386, i960, h8300, m68k,
+  mips/mipsel, PowerPC, SH, SPARC, and v850 processors.
+
+  If you are building an embedded Linux system and you find that
+  glibc is eating up too much space, you should consider using
+  uClibc. If you are building a huge fileserver with 12 Terabytes
+  of storage, then using glibc may be a better choice...
+
+  uClibc is maintained by Erik Andersen and is licensed under the
+  GNU LIBRARY GENERAL PUBLIC LICENSE . This license allows you to
+  make closed source commercial applications using uClibc (Please
+  consider sharing some of the money you make ;-). You do not need
+  to give away all your source code just because you use uClibc
+  and/or run on Linux.
+
+  --------------------------------------------------------------
+
+  uClibc does not support shared library under uClinux now, so you may
+  need to compile MiniGUI as static library.
+
+  If you are compiling MiniGUI for uClinux and choose uClibc as the libc
+  library, you do not need to configure uClibc separately.
+
+  If you are not using uClibc under uClinux-dist, make sure you have 
+  compiled and install uClibc v0.9.19 in the director:
+  "/usr/ARCH-linux-uclibc".
+
+
+uClinux-Dist directory
+UCDIST_DIR
+  Set directory of your uClinux-dist if you are using uClinux.
+
+uClibc directory
+CONFIG_UCLIBC_DIR
+  Set directory of your uClibc if you are not using uClibc under uClinux.
+
+uClibc header directory
+UCLIBC_HEADER
+  Directory of your uClibc header.
+
+uClibc library directory
+UCLIBC_LIB
+  Directory of your binary uClibc library.
+
+Installation prefix
+PREFIX
+  Installation prefix for MiniGUI, you are recommended to use the default value.
+
+Include code for Linux operating system
+PACK_OS_LINUX
+  Linux will be the best embedded operating system.
+
+Include code for uClinux operating system
+PACK_OS_UCLINUX
+  uClinux (http://www.uclinux.org) is a derivative of Linux kernel intended for 
+  microcontrollers without Memory Management Units (MMUs).
+
+  uClinux kernel was created to support non-MMU microprocessors, it is small but retains 
+  the main advantages of the linux operating system: stability, superior network capability, 
+  and excellent file system support. Most Linux applications can run on uClinux with little 
+  or without any changes.
+
+  MiniGUI version 1.6 and laters makes some optimization for uClinux, such as built-in 
+  resources support, and specific memory allocations.
+
+  To use MiniGUI under uClinux, compiles it as static library.
+
+Include code for eCos operating system
+PACK_OS_ECOS
+  eCos (http://sources.redhat.com/ecos/) is an open source, royalty-free, real-time operating 
+  system intended for embedded applications. The highly configurable nature of eCos allows 
+  the operating system to be customised to precise application requirements, delivering the 
+  best possible run-time performance and an optimised hardware resource footprint. 
+
+Include code for uC/OS-II operating system
+PACK_OS_UCOSII
+  uC/OS-II (http://www.ucosii.com/) is an open source, real-time operating 
+  system kernel intended for real-time embedded applications. 
+
+Include code for VxWorks operating system
+PACK_OS_VXWORKS
+  VxWorks is a famous tranditional real-time embedded operating system by WindRiver.
+
+Include code for OSE operating system
+PACK_OS_OSE
+  OSE is a famous tranditional real-time embedded operating system by ENEA.
+
+Include code for Nucleus operating system
+PACK_OS_NUCLEUS
+  Nucleus is a tranditional real-time embedded operating system.
+
+Include code for pSOS operating system
+PACK_OS_PSOS
+  pSOS is a tranditional real-time embedded operating system by WindRiver.
+
+Include code for Win32 platform
+PACK_OS_WIN32
+  Microsoft's Windows operating systems: Windows 95/98, Windows NT, Windows 2000, and Windows XP.
+
+Include code for OpenDarwin platform
+PACK_OS_DARWIN
+  Apple's OpenDarwin platform i.e. Mac OS X.
+
+Include code for ThreadX operating system
+PACK_OS_THREADX
+  ThreadX is a real-time embedded operating system.
+
+Inlcude code for our own implementation of malloc
+PACK_OWN_MALLOC
+  Use our own implementation of malloc/calloc/free functions.
+
+Inlcude code for our own implementation of stdio
+PACK_OWN_STDIO
+  Use our own implementation of printf/fprintf/sprintf functions.
+  You should only use the own stdio functions for no-file-io OSes,
+  such as uC/OS-II. 
+
+Tarball postfix
+PACK_POSTFIX
+  The postfix of MiniGUI tarball.
+
+# End:

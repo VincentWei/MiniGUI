@@ -1,0 +1,23 @@
+# rules for ucosii on s3c2410
+
+TARGET_OS=ucos2
+
+AS=
+CC=armcc
+CXX=armcpp
+CPP=armcc -E
+AR=armar
+RANLIB=echo
+MAKE=make
+
+ARFLAGS=-create
+
+# should be changed
+UCOSII_INC=D:\ucos\ucosii_inc
+
+DEFS+=-D__TARGET_S3C2410__
+INCS+=-I${UCOSII_INC}
+CFLAGS+= -O0 -g+ -cpu ARM920T -Ec -c
+#COFLAG=-o
+
+PREFIX=c:/cross

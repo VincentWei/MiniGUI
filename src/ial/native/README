@@ -1,0 +1,22 @@
+The _GPM_SUPPORT and _PS2_SUPPORT have been moved to config.h.
+
+
+Old README
+----------
+
+IMPORTANT NOTE:
+
+You can edit native.h to include or exclude specific pointing device drivers.
+
+Define or undefine the following macros to include or exclude specific drivers:
+
+    #undef _GPM_SUPPORT
+or
+    #define _GPM_SUPPORT        1
+to exclude or include mouse driver based on GPM.
+
+    #undef _PS2_SUPPORT
+or
+    #define _PS2_SUPPORT        1
+to exclude or include PS/2 mouse driver.
+

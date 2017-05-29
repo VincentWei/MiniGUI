@@ -1,0 +1,62 @@
+#!/bin/bash
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the arm-elf-tools already.
+#   2. Your uClinux distribution has been installed into the directory of '/opt/em85xx/'.
+#
+
+alias make='make -j3'
+rm config.cache config.status -f
+#项目名称
+PRO_NAME=changhong
+
+
+#编译链前缀
+CC_PREFIX='arm-none-linux-gnueabi'
+
+#指定minigui的安装目录
+PREFIX=~/work/$PRO_NAME/local
+
+#定义交叉编译链的路径
+CROSSTOOLPATH=/home/hejia/work/$PRO_NAME/toolchain/bin
+export PATH=$CROSSTOOLPATH:$PATH
+#export PATH
+
+#gcc的编译参数(按照实际情况修改)及编译minigui的配置参数
+BUILD=i686-linux
+HOST=arm-linux
+TARGET=arm-linux
+
+STRIP=$CC_PREFIX-strip \
+RANLIB=$CC_PREFIX-ranlib \
+LD=$CC_PREFIX-ld \
+AS=$CC_PREFIX-as \
+AR=$CC_PREFIX-ar \
+CXX=$CC_PREFIX-g++ \
+CC=$CC_PREFIX-gcc \
+CFLAGS="-g -I$CROSSTOOLPATH/../$CC_PREFIX/include -I${PREFIX}/include" \
+LDFLAGS="-L$CROSSTOOLPATH/../$CC_PREFIX/lib -L${PREFIX}/lib" \
+	./configure --prefix=${PREFIX} \
+    --build=$BUILD\
+    --host=$HOST \
+    --target=$TARGET \
+    --disable-videoqvfb \
+    --disable-pcxvfb \
+    --enable-videoshadow \
+    --enable-ctrlgridview \
+    --enable-procs=no \
+    --enable-autoial \
+    --enable-incoreres \
+    --enable-upfsupport \
+    --enable-flatlf \
+    --enable-skinlf \
+    --enable-vbfsupport \
+    --enable-bmpfsupport \
+    --disable-consoleial \
+    --disable-savescreen 
+
+
+    make;make install
+echo DONE;

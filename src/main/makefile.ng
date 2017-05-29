@@ -1,0 +1,6 @@
+# Makefile defines for building the MiniGUI library with GNU Make
+abs_top_srcdir=../..
+
+include Makefile.am
+include ../../rules.make
+

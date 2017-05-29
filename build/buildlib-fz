@@ -1,0 +1,21 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the arm-elf-tools already.
+#   2. Your uClinux distribution has been installed into the directory of '/opt/em85xx/'.
+#
+
+rm config.cache config.status -f
+PREFIX=/home/hejia/work/crosscp/local
+CC=arm-linux-gcc \
+CFLAGS="-I/home/hejia/work/crosscp/crosstool/arm-linux/include -I${PREFIX}/include" \
+CXXFLAGS="-I/home/hejia/work/crosscp/crosstool/arm-linux/include -I${PREFIX}/include" \
+LDFLAGS="-L/home/hejia/work/crosscp/crosstool/arm-linux/lib -L${PREFIX}/lib" \
+	./configure --prefix=${PREFIX} \
+    --enable-procs \
+    --build=i686-linux \
+    --host=arm-linux \
+    --target=arm-linux \
+	--enable-customial

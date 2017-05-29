@@ -1,0 +1,49 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the m68k-elf-tools already.
+#   2. Your uClinux distribution has been installed into the directory of '/opt/uClinux/uClinux-dist'.
+#   3. You configured the uClinux to use uClibc, and have configured uClibc to support pthread.
+#   4. You have made the uClinux distribution.
+#   5. You have made a symbol link of "uClibc" to the correct uClibc directory.
+#
+
+rm config.cache config.status -f
+
+CC=arm-linux-gcc \
+#CFLAGS="-O2 -g -I/usr/local/arm-linux/arm-linux/include" \
+#LDFLAGS="-L/usr/local/arm-linux/arm-linux/lib" \
+./configure --prefix=/usr/local/arm-linux/arm-linux \
+    --build=i386-linux \
+    --host=arm-linux \
+    --target=arm-linux \
+    --with-osname=linux \
+    --enable-procs \
+    --enable-standalone \
+    --enable-incoreres \
+    --with-style=flat \
+    --disable-videoqvfb \
+    --disable-micemoveable \
+    --enable-cursor \
+    --enable-rbfgb24 \
+    --enable-rbf24 \
+    --enable-l7200ial \
+    --enable-dummyial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen

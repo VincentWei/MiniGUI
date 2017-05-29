@@ -1,0 +1,35 @@
+#!/bin/bash
+
+rm config.cache config.status -f
+
+CC=armv4l-unknown-linux-gcc \
+./configure --prefix=/opt/host/armv4l/armv4l-unknown-linux \
+    --build=i386-linux \
+    --host=arm-unknown-linux \
+    --target=arm-unknown-linux \
+    --disable-debug \
+    --disable-static \
+    --enable-procs \
+    --enable-dummyial \
+    --enable-ucb1x00ial \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-imegb2312 \
+    --disable-imegb2312pinyin \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-ext-fullgif \
+    --with-style=flat \
+    --disable-dblclk
+

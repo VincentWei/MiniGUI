@@ -1,0 +1,25 @@
+# rules for tornado
+
+TARGET_OS=vxworks
+
+AS=
+CC=ccarm
+CXX=cpparm
+CPP=ccarm
+AR=ararm
+RANLIB=ranlibarm
+MAKE=/usr/bin/make
+
+ARFLAGS=crus
+COFLAG=-c
+
+OBJ=o
+LIBA=a
+
+PREFIX=c:/cross
+TARGET_DIR=/cygdrive/c/Tornado2.2/target
+
+INCS+=-I${TARGET_DIR}/h
+
+CFLAGS+=-O2 -mapcs-32 -mlittle-endian -march=armv5 -fno-builtin -Wall -DCPU=ARMARCH5 -DCPU_946E -DARMMMU=ARMMMU_946E -DARMCACHE=ARMCACHE_946 -DTOOL_FAMILY=gnu -DTOOL=gnu -DRW_MULTI_THREAD
+

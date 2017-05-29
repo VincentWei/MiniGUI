@@ -1,0 +1,3109 @@
+# Microsoft Developer Studio Generated Dependency File, included by miniguiwin32.mak
+
+..\src\ial\auto.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\ial\dummy.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\ial\ial.c : \
+	"..\include\common.h"\
+	"..\include\customial.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\ial\pcxvfb.h"\
+	"..\src\ial\wvfb.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\ial.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	
+
+..\src\ial\wvfbial.c : \
+	"..\include\common.h"\
+	"..\include\customial.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\ial\winial.h"\
+	"..\src\ial\wvfb.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\ial.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	
+
+..\src\font\big5unimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\bitmapfont.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\font\charset-bidi.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\bidi.h"\
+	
+
+..\src\font\charset.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\font\gunichartables.h"\
+	"..\src\font\gunicode.h"\
+	"..\src\include\devfont.h"\
+	
+
+..\src\font\devfont.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\font\rawbitmap.h"\
+	"..\src\font\varbitmap.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\sysfont.h"\
+	"..\src\include\sysres.h"\
+	
+
+..\src\font\euckrunimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\font\font-engines.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\fontcache.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\fontname.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\fontname.h"\
+	
+
+..\src\font\freetype.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\misc.h"\
+	
+
+..\src\font\freetype2.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\misc.h"\
+	
+
+..\src\font\gb18030unimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\gbkunimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\gbunimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\jisunimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\logfont.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\sysfont.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\font\mapunitogb.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\qpf.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\font\qpf.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\misc.h"\
+	
+
+..\src\font\rawbitmap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\font\rawbitmap.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\misc.h"\
+	
+
+..\src\font\sjisunimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\sysfont.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\font\rawbitmap.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\sysfont.h"\
+	
+
+..\src\font\textops.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\devfont.h"\
+	
+
+..\src\font\ujisunimap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\font\upf.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\misc.h"\
+	
+
+..\src\font\varbitmap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\font\charset.h"\
+	"..\src\font\varbitmap.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\fontname.h"\
+	"..\src\include\misc.h"\
+	
+
+..\src\main\main.c : \
+	"..\include\common.h"\
+	"..\include\customial.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\ial.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	
+
+"..\src\main\minigui-win32.c" : \
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+..\src\newgal\wvfb\winfb.c : \
+	"..\mgconfig.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+..\src\newgal\blit.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\memops.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	"..\src\newgal\pixels_c.h"\
+	"..\src\newgal\RLEaccel_c.h"\
+	"..\src\newgal\sysvideo.h"\
+	
+
+..\src\newgal\blit_0.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	
+
+..\src\newgal\blit_1.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	"..\src\newgal\sysvideo.h"\
+	
+
+..\src\newgal\blit_A.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	
+
+..\src\newgal\blit_N.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	
+
+..\src\newgal\newgal.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	
+
+..\src\newgal\pixels.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	"..\src\newgal\pixels_c.h"\
+	"..\src\newgal\RLEaccel_c.h"\
+	"..\src\newgal\sysvideo.h"\
+	
+
+..\src\newgal\RLEaccel.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\memops.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	"..\src\newgal\RLEaccel_c.h"\
+	"..\src\newgal\sysvideo.h"\
+	
+
+..\src\newgal\stretch.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	
+
+..\src\newgal\video.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\newgal.h"\
+	"..\src\newgal\blit.h"\
+	"..\src\newgal\blit_A.h"\
+	"..\src\newgal\pixels_c.h"\
+	"..\src\newgal\sysvideo.h"\
+	
+
+..\src\control\bidiedit.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\control\button.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\endianrw.h"\
+	"..\include\fixedmath.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\button_impl.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\combobox.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\combobox_impl.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\ctrlmisc.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	
+
+..\src\control\listbox.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\listbox_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\listmodel.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\listmodel.h"\
+	"..\src\control\scrolled.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\menubutton.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\menubutton_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\newtoolbar.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\newtoolbar_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\progressbar.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\progressbar_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\propsheet.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\propsheet_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\scrollbar.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\control\scrolled.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\scrolled.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\scrollview.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\listmodel.h"\
+	"..\src\control\scrolled.h"\
+	"..\src\control\scrollview_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\scrollwnd.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\scrolled.h"\
+	"..\src\control\scrollwnd.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\static.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\static_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\textedit.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\listmodel.h"\
+	"..\src\control\scrolled.h"\
+	"..\src\control\scrollview_impl.h"\
+	"..\src\control\text.h"\
+	"..\src\control\textedit_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\control\trackbar.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\control\ctrlmisc.h"\
+	"..\src\control\trackbar_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\ex_ctrl\animation.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\ex_ctrl\coolbar.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\ex_ctrl\coolbar_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\ex_ctrl\gif89a.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\ex_ctrl\monthcalendar.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\ex_ctrl\monthcalendar_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\ex_ctrl\spinbox.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\ex_ctrl\spinbox_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\ex_ctrl\treeview.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\ex_ctrl\treeview_impl.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\gui\accelkey.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\accelkey.h"\
+	"..\src\include\blockheap.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\gui\arabickeymap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+..\src\gui\caret.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\gui\ctrlclass.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+"..\src\gui\de-kmap.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+"..\src\gui\de-latin1-kmap.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+"..\src\gui\de-latin1-nodeadkeys-kmap.c" : \
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+..\src\gui\defkeymap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+..\src\gui\dialog.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+"..\src\gui\es-cp850-kmap.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+"..\src\gui\es-kmap.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+"..\src\gui\fr-kmap.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+"..\src\gui\fr-pc-kmap.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+..\src\gui\hebrewkeymap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+"..\src\gui\it-kmap.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+..\src\gui\keyboard.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\keyboard.h"\
+	"..\src\gui\linux_kd.h"\
+	"..\src\gui\linux_keyboard.h"\
+	"..\src\gui\linux_types.h"\
+	
+
+..\src\gui\lf_classic.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\scrollbar.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\endianrw.h"\
+	"..\include\fixedmath.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\gui\lf_common.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\element.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\icon.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\gui\lf_flat.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\gui\lf_skin.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\gui\menu.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\kernel\blockheap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\blockheap.h"\
+	
+
+"..\src\kernel\cursor-procs.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\kernel\cursor-sa.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\kernel\cursor.c : \
+	"..\include\common.h"\
+	"..\include\customial.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\ial.h"\
+	"..\src\include\inline.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\memops.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\readbmp.h"\
+	"..\src\include\sysres.h"\
+	"..\src\include\zorder.h"\
+	
+
+"..\src\kernel\desktop-procs.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\kernel\desktop-sa.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\kernel\event.c : \
+	"..\include\common.h"\
+	"..\include\customial.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\event.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\ial.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\kernel\fixstr.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+"..\src\kernel\init-lite.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\kernel\init.c : \
+	"..\include\common.h"\
+	"..\include\customial.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\accelkey.h"\
+	"..\src\include\clipboard.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\event.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\ial.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\menu.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\timer.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\kernel\message.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\blockheap.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\timer.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\kernel\sharedres.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\kernel\timer.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\timer.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\misc\about.c : \
+	"..\include\common.h"\
+	"..\include\ctrl\animation.h"\
+	"..\include\ctrl\button.h"\
+	"..\include\ctrl\combobox.h"\
+	"..\include\ctrl\coolbar.h"\
+	"..\include\ctrl\ctrlhelper.h"\
+	"..\include\ctrl\edit.h"\
+	"..\include\ctrl\gridview.h"\
+	"..\include\ctrl\iconview.h"\
+	"..\include\ctrl\listbox.h"\
+	"..\include\ctrl\listview.h"\
+	"..\include\ctrl\menubutton.h"\
+	"..\include\ctrl\monthcal.h"\
+	"..\include\ctrl\newtoolbar.h"\
+	"..\include\ctrl\progressbar.h"\
+	"..\include\ctrl\propsheet.h"\
+	"..\include\ctrl\scrollview.h"\
+	"..\include\ctrl\spinbox.h"\
+	"..\include\ctrl\static.h"\
+	"..\include\ctrl\textedit.h"\
+	"..\include\ctrl\trackbar.h"\
+	"..\include\ctrl\treeview.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\misc\clipboard.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\clipboard.h"\
+	
+
+..\src\misc\endianrw.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\misc\error.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\misc\listenfd.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\misc\math.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\fixedmath.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\misc\misc.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\clipboard.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\misc.h"\
+	
+
+..\src\misc\nposix.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\misc\rwops.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\misc\sockio.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\mybmp\gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\readbmp.h"\
+	
+
+..\src\mybmp\lbm.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\readbmp.h"\
+	
+
+..\src\mybmp\mybmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\bitmap.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\readbmp.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\mybmp\pcx.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\readbmp.h"\
+	
+
+..\src\mybmp\tga.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\readbmp.h"\
+	
+
+..\src\mybmp\winbmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\readbmp.h"\
+	
+
+..\src\newgdi\advapi.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mistruct.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\arc.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\attr.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\bidi.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\bidi.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\glyph.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\drawtext.h"\
+	
+
+..\src\newgdi\bitmap.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\bitmap.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\readbmp.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\clip.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\coor.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\drawtext.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\drawtext.h"\
+	
+
+..\src\newgdi\flood.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\generators.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\fixedmath.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\newgdi\icon.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\icon.h"\
+	"..\src\include\inline.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\memops.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\readbmp.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\line.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\fixedmath.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\memops.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\map.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\miarc.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\midc.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mispans.h"\
+	"..\src\newgdi\mistruct.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\midash.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mistruct.h"\
+	
+
+..\src\newgdi\mifillarc.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\midc.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mistruct.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\mifpolycon.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\midc.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mistruct.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\mispans.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\midc.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mispans.h"\
+	"..\src\newgdi\mistruct.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\miwideline.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\midc.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mispans.h"\
+	"..\src\newgdi\mistruct.h"\
+	"..\src\newgdi\miwideline.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\palette.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\pixel.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\pixel_ops.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\mi.h"\
+	"..\src\newgdi\midc.h"\
+	"..\src\newgdi\mifillarc.h"\
+	"..\src\newgdi\mifpoly.h"\
+	"..\src\newgdi\mistruct.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\polygon.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\fixedmath.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	"..\src\newgdi\polygon.h"\
+	
+
+..\src\newgdi\readbmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\bitmap.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\misc.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\readbmp.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\rect.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\newgdi\region.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	"..\src\include\blockheap.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\newgal.h"\
+	
+
+..\src\newgdi\rotatebmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\fixedmath.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\bitmap.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\pixel_ops.h"\
+	
+
+..\src\newgdi\screen.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	
+
+..\src\newgdi\tabbedtextout.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\drawtext.h"\
+	
+
+..\src\newgdi\text.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\drawtext.h"\
+	
+
+..\src\newgdi\textout.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\gdi.h"\
+	"..\include\minigui.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\include\window.h"\
+	"..\mgconfig.h"\
+	"..\src\include\cliprect.h"\
+	"..\src\include\ctrlclass.h"\
+	"..\src\include\cursor.h"\
+	"..\src\include\dc.h"\
+	"..\src\include\devfont.h"\
+	"..\src\include\gal.h"\
+	"..\src\include\internals.h"\
+	"..\src\include\newgal.h"\
+	"..\src\include\zorder.h"\
+	"..\src\newgdi\drawtext.h"\
+	
+
+..\src\sysres\bmp\classic_check_button.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\classic_radio_button.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\flat_check_button.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\flat_radio_button.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_arrows.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_arrows_shell.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_bborder.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_bkgnd.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_caption.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_checkbtn.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_cpn_btn.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_header.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_lborder.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_pb_htrack.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_pb_htruck.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_pb_vtrack.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_pb_vtruck.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_pushbtn.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_radiobtn.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_rborder.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_sb_arrows.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_sb_hshaft.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_sb_hthumb.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_sb_vshaft.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_sb_vthumb.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_tab.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_tb_horz.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_tb_vert.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_tborder.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_tbslider_h.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_tbslider_v.gif.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\bmp\skin_tree.bmp.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\excalmatory-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\excalmatory.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\failed-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\failed.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\fold-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\fold.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\folder-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\folder.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\form-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\form.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\help-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\help.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\textfile-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\textfile.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\unfold-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\unfold.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+"..\src\sysres\icon\warning-flat.ico.c" : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\icon\warning.ico.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\sysres\cursor\cursors.c : \
+	"..\include\common.h"\
+	"..\include\endianrw.h"\
+	"..\include\own_stdio.h"\
+	"..\include\win32_pthread.h"\
+	"..\include\win32_sched.h"\
+	"..\include\win32_semaphore.h"\
+	"..\mgconfig.h"\
+	
+
+..\src\template.c : \
+	"..\src\template.h"\
+	

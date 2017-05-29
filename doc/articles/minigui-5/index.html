@@ -1,0 +1,527 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>多窗口管理和控件及控件类</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+	<p><strong class="title">MiniGUI 体系结构之二</strong><br>
+	<strong class="subtitle">多窗口管理和控件及控件类</strong></p>
+	
+	<p>魏永明<br>
+	蓝点软件（北京）研发中心技术主管<br>
+	2001/01/06</p>
+<!-- END title and author lines -->
+
+<!-- Editor #5: Begin Table of Contents -->
+	<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>目录:</b></font></td></tr><tr>
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="1" alt="" border="0"/></font></td>
+                                 
+                             </tr>
+                             <tr>
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="4" alt="" border="0"/></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1">引言</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2">窗口 Z 序</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3">窗口剪切算法</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4">主窗口和控件、控件类</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#5">输入法模块大设计</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#6">小结</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#7">附：MiniGUI 的最新进展</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">资源</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author">有关作者</a></font></td></tr>
+                <tr><td bgcolor="#000000"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="137" height="3"/></font></td></tr>
+	</table></p>
+<!-- End Table of Contents -->
+
+<!-- comments #6: html content of the paper -->
+<p><em>本文是 MiniGUI 体系结构系列文章的第二篇，重点介绍 MiniGUI 的多窗口机制以及相关的窗口类技术。其中涉及到窗口 Z 序、窗口剪切、控件类和控件以及输入法模块设计等等。</em></p>
+
+<a name="1">
+<p><strong class="subhead">1  引言</strong></p>
+<p>
+在任何一个足够复杂的 GUI 系统中，处理窗口之间的互相剪切是其首要解决的问题。因为多窗口系统首先要确保一个窗口中的绘制输出不会影响到另外一个窗口。为此，GUI 系统一般要利用 Z 序来管理窗口之间的互相剪切关系。根据窗口在 Z 序中所处的位置，GUI 系统要计算每个窗口受剪切的区域，即剪切域。通常，窗口的剪切域定义为互不相交的矩形集合。GUI 系统的底层图形引擎在进行输出时，要根据当前输出的剪切域进行输出的剪切操作。从而保证窗口的绘制输出不会互相影响。因为任何一个窗口的创建、销毁、隐藏、显示均有可能影响其他窗口的剪切域，所以首先要有一个高效的剪切域维护算法。本文将详细描述 MiniGUI 中的剪切域生成算法。
+</p>
+<p>
+许多人对控件（或者部件）的概念已经相当熟悉了。控件可以理解为主窗口中的子窗口。这些子窗口的行为和主窗口一样，即能够接收键盘和鼠标等外部输入，也可以在自己的区域内进行输出――只是它们的所有活动被限制在主窗口中。MiniGUI 也支持子窗口，并且可以在子窗口中嵌套建立子窗口。我们将 MiniGUI 中的所有子窗口均称为控件。
+</p>
+<p>
+在 Windows 或 X Window 中，系统会预先定义一些控件类，当利用某个控件类创建控件之后，所有属于这个控件类的控件均会具有相同的行为和显示。利用这些技术，可以确保一致的人机操作界面，而对程序员来讲，可以像搭积木一样地组建图形用户界面。MiniGUI 使用了控件类和控件的概念，并且可以方便地对已有控件进行重载，使得其有一些特殊效果。比如，需要建立一个只允许输入数字的编辑框时，就可以通过重载已有编辑框而实现，而不需要重新编写一个新的控件类。
+</p>
+<p>
+在多语种环境中，输入法是一个必不可少的模块。输入法提供了将标准键盘输入翻译为适当语种的文字的能力。MiniGUI 中也包含有标准的中文简体输入法，包括全拼、五笔和智能拼音等等。本文最后将介绍 MiniGUI 中的输入法模块实现。
+</p>
+
+<a name="2">
+<p><strong class="subhead">2  窗口 Z 序</strong></p>
+<p>
+Z 序实际定义了窗口之间的层叠顺序。说起“Z 序”这个名称，实际是相对屏幕坐标而言的。一般而言，屏幕上的所有窗口均有一个坐标系，即原点在左上角，X 轴水平向右，Y 轴垂直向下的坐标系。Z 序就是相对于一个假想的 Z 轴而言的，这个 Z 轴从屏幕外指向屏幕内。窗口在这个 Z 轴上的值，就确定了其 Z 序。Z 序值大的窗口，覆盖了 Z 序值小的窗口。
+</p>
+<p>
+当然，在程序当中，Z 序一般表示为一个链表。越接近于链表头的节点，其 Z 序值就越大。在 MiniGUI 中，我们维护了两个 Z 序。其中一个 Z 序永远位于另一个 Z 序之上。这样，就可以创建始终位于其他窗口之上的窗口，比如输入法窗口。如果在建立窗口时，指定了 WS_EX_TOPMOST 扩展属性，就可以创建这样的主窗口。因为 Z 序的操作实际就是链表的操作，这里就不再赘述。
+</p>
+<a name="3">
+<p><strong class="subhead">3  窗口剪切算法</strong></p>
+<p>
+有了窗口 Z 序，我们就可以计算每个窗口的剪切域。我们把因为窗口 Z 序而产生的剪切域称为“全局剪切域”，这是相对于窗口自身定义的剪切域而言的，我们把后者称为“局部剪切域”。窗口中的所有输出，首先要受到全局剪切域的影响，其次受到局部剪切域的影响。我们在这里重点讲解窗口的全局剪切域的生成和维护。
+</p>
+
+<strong>3.1  全局剪切域的生成和维护</strong>
+<p>
+在 MiniGUI 中，剪切域表示为若干互不相交的矩形之并集，这些矩形称为剪切矩形。最初，屏幕上没有任何窗口时，桌面的剪切域由一个矩形组成，即屏幕矩形；当屏幕上只有一个窗口时，该窗口的剪切域由一个矩形组成，该矩形即为窗口在屏幕上的矩形，而桌面的剪切域却可能是由多个矩形组成的。图 1 说明了只有一个窗口时的桌面的剪切域组成。从图中可以看出，此时桌面的剪切域由四个矩形组成，分别是 A、B、C 和 D。如果窗口在桌面的位置变化为图 2 所示，则桌面的剪切域将由两个矩形组成（A和B）。
+</p>
+
+<p align="center">
+        <img src="image01.jpg" border="0"><BR>
+图 1  由四个矩形组成的桌面剪切域
+</p>
+
+<p align="center">
+        <img src="image02.jpg" border="0"><BR>
+图 2  由两个矩形组成的桌面剪切域
+</p>
+
+<p>
+读者很容易看出，在只有一个窗口的情况下，形成桌面剪切域的矩形最多只能有四个。
+</p>
+
+<p>
+此时，如果有一个新的窗口出现，则新的窗口将同时剪切旧的窗口和桌面（图 3。窗口的剪切矩形用空心矩形表示，而桌面的剪切矩形用实心矩形表示）。而这时，桌面和旧窗口的剪切域将多出一些矩形，这些矩形应该是原有剪切域中的每个矩形受到新窗口矩形影响之后生成的剪切矩形。同样，原有剪切域中的每个矩形只能最多只能派生出4个新剪切域，而某些矩形根本不会受到新窗口矩形的影响。
+</p>
+<p align="center">
+        <img src="image03.jpg" border="0"><BR>
+图 3  有新窗口被创建时，桌面和旧窗口的剪切域
+</p>
+<p>
+这样，我们可以将某个窗口全局剪切域归纳为原有剪切域中排除（Exclude）某个矩形而生成的：
+</p>
+<ol>
+    <li>窗口的全局剪切域初始化为窗口矩形。</li>
+    <li>当窗口之上有其他窗口覆盖时，则该窗口的全局剪切域为排除新窗口矩形之后的剪切域。</li>
+    <li>沿 Z 序迭代第 2 步，直到最顶层窗口。</li>
+</ol>
+<p>
+清单 1 中的代码是在显示一个新窗口时，MiniGUI 处理被该窗口所覆盖的其他所有窗口的代码。这段代码调用了剪切域维护接口中的 SubtractClipRect 函数计算新的剪切域。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+清单 1  显示新窗口时计算被新窗口覆盖的窗口的全局剪切域
+
+// clip all windows under this window.
+static void clip_windows_under_this (ZORDERINFO* zorder, PMAINWIN pWin, RECT* rcWin)
+{
+    PZORDERNODE pNode;
+    PGCRINFO pGCRInfo;
+    
+    pNode = zorder-&gt;pTopMost;
+    while (pNode-&gt;hWnd != (HWND)pWin)
+        pNode = pNode-&gt;pNext;
+    pNode = pNode-&gt;pNext;
+
+    while (pNode)
+    {
+        if (((PMAINWIN)(pNode-&gt;hWnd))-&gt;dwStyle &amp; WS_VISIBLE) {
+            pGCRInfo = ((PMAINWIN)(pNode-&gt;hWnd))-&gt;pGCRInfo;
+        
+            pthread_mutex_lock (&amp;pGCRInfo-&gt;lock);
+            SubtractClipRect (&amp;pGCRInfo-&gt;crgn, rcWin);
+            pGCRInfo-&gt;age ++;
+            pthread_mutex_unlock (&amp;pGCRInfo-&gt;lock);
+        }
+
+        pNode = pNode-&gt;pNext;
+    }
+}
+
+</pre></td></tr></table>
+
+<p>
+与排除矩形相反的操作是包含（Include）某个矩形到剪切域中。这个操作用于隐藏或者销毁某个窗口时。当一个窗口被隐藏或销毁时，该窗口之下的所有窗口将受到影响，此时，要将被隐藏或销毁窗口的矩形包含到这些受影响窗口的全局剪切域中。为此，MiniGUI 的剪切域维护接口中有一个函数专用于该类操作（IncludeClipRect）。为确保剪切域中矩形互不相交，该函数首先计算与每个剪切矩形的相交矩形，然后将自己添加到该剪切域中。
+</p>
+<p>
+但是，在某些情况下，我们必须重新计算所有窗口的全局剪切域，比如在移动某个窗口时。
+</p>
+<strong>3.2  剪切矩形的私有堆</strong>
+<p>
+显然，在剪切域非常复杂，或者窗口非常多时，需要大量的矩形来表示每个窗口的全局剪切域。而在 C 程序中，如果频繁使用 malloc 和 free 申请和释放每个剪切矩形，将带来许多问题。第一，malloc 和 free 是非常耗时的操作；第二，频繁的 malloc 和 free 将导致 C 程序堆的碎片化，从而可能导致将来的内存分配失败。为了避免频繁使用 malloc 和 free，MiniGUI 在初始化时，建立了一个私有的堆。我们可以直接从这个堆中分配剪切矩形，而不需要从进程的全局堆中分配剪切矩形。这个私有堆实际是由一些空闲待用的剪切矩形组成的。每次分配时返回该链表的头节点，而在释放时放进该链表的尾节点。如果该链表为空，则利用 malloc 从进程的全局堆中分配剪切矩形。清单 2 说明了这个私有堆的初始化和操作。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+清单 2  从剪切矩形私有堆中分配和释放剪切矩形
+
+PCLIPRECT GUIAPI ClipRectAlloc(PFREECLIPRECTLIST pList)
+{
+    PCLIPRECT pRect;
+
+#ifndef _LITE_VERSION
+    pthread_mutex_lock (&amp;pList-&gt;lock);
+#endif
+
+    if (pList-&gt;head) {
+        pRect = pList-&gt;head;
+        pList-&gt;head = pRect-&gt;next;
+    }
+    else {
+
+        if (pList-&gt;free &lt; pList-&gt;size) {
+            pRect = pList-&gt;heap + pList-&gt;free;
+            pRect-&gt;fromheap = TRUE;
+            pList-&gt;free ++;
+        }
+        else {
+            pRect = malloc (sizeof(CLIPRECT));
+            if (pRect == NULL)
+                fprintf (stderr, "GDI error: alloc clip rect failure!\n");
+            else
+                pRect-&gt;fromheap = FALSE;
+        }
+    }
+
+#ifndef _LITE_VERSION
+    pthread_mutex_unlock (&amp;pList-&gt;lock);
+#endif
+
+    return pRect;
+}
+
+void GUIAPI FreeClipRect(PFREECLIPRECTLIST pList, CLIPRECT* pRect)
+{
+#ifndef _LITE_VERSION
+    pthread_mutex_lock (&amp;pList-&gt;lock);
+#endif
+
+    pRect-&gt;next = NULL;
+    if (pList-&gt;head) {
+        pList-&gt;tail-&gt;next = (PCLIPRECT)pRect;
+        pList-&gt;tail = (PCLIPRECT)pRect;
+    }
+    else {
+        pList-&gt;head = pList-&gt;tail = (PCLIPRECT)pRect; 
+    }
+
+#ifndef _LITE_VERSION
+    pthread_mutex_unlock (&amp;pList-&gt;lock);
+#endif
+}
+
+</pre></td></tr></table>
+
+<a name="4">
+<p><strong class="subhead">4  主窗口和控件、控件类</strong></p>
+<strong>4.1  控件类和控件</strong>
+<p>
+如果读者曾经编写过 Windows 应用程序的话，就应该了解窗口类的概念。在 Windows 中，程序所建立的每个窗口，都对应着某种窗口类。这一概念和面向对象编程中的类、对象的关系类似。借用面向对象的术语，Windows 中的每个窗口实际都是某个窗口类的一个实例。在 X Window 编程中，也有类似的概念，比如我们建立的每一个 Widget，实际都是某个 Widget 类的实例。
+</p>
+<p>
+这样，如果程序需要建立一个窗口，就首先要确保选择正确的窗口类，因为每个窗口类决定了对应窗口实例的表象和行为。这里的表象指窗口的外观，比如窗口边框宽度，是否有标题栏等等，行为指窗口对用户输入的响应。每一个 GUI 系统都会预定义一些窗口类，常见的有按钮、列表框、滚动条、编辑框等等。如果程序要建立的窗口很特殊，就需要首先注册一个窗口类，然后建立这个窗口类一个实例。这样就大大提高了代码的可重用性。
+</p>
+<p>
+在 MiniGUI 中，我们认为主窗口通常是一种比较特殊的窗口。因为主窗口代码的可重用性一般很低，如果按照通常的方式为每个主窗口注册一个窗口类的话，则会导致额外不必要的存储空间，所以我们并没有在主窗口提供窗口类支持。但主窗口中的所有子窗口，即控件，均支持窗口类（控件类）的概念。MiniGUI 提供了常用的预定义控件类，包括按钮（包括单选钮、复选钮）、静态框、列表框、进度条、滑块、编辑框等等。程序也可以定制自己的控件类，注册后再创建对应的实例。清单 3 中的代码就创建了一个编辑框，一个按钮。
+</p>
+<p>
+采用控件类和控件实例的结构，不仅可以提高代码的可重用性，而且还可以方便地对已有控件类进行扩展。比如，在需要建立一个只允许输入数字的编辑框时，就可以通过重载已有编辑框控件类而实现，而不需要重新编写一个新的控件类。在 MiniGUI 中，这种技术称为子类化或者窗口派生。子类化的方法有三种：
+</p>
+<ul>
+  <li>一种是对已经建立的控件实例进行子类化，子类化的结果是只影响这一个控件实例；</li>
+  <li>一种是对某个控件类进行子类化，将影响其后创建的所有该控件类的控件实例；</li>
+  <li>最后一种是在某个控件类的基础上新注册一个子类化的控件类，不会影响原有控件类。在 Windows 中，这种技术又称为超类化。</li>
+</ul>
+<p>
+在 MiniGUI 中，控件的子类化实际是通过替换已有的窗口过程实现的。清单 4 中的代码就通过控件类创建了两个子类化的编辑框，一个只能输入数字，而另一个只能输入字母：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+清单 4  控件的子类化
+
+#define IDC_CTRL1     100
+#define IDC_CTRL2     110
+#define IDC_CTRL3     120
+#define IDC_CTRL4     130
+
+#define MY_ES_DIGIT_ONLY    0x0001
+#define MY_ES_ALPHA_ONLY    0x0002
+static WNDPROC old_edit_proc;
+static int RestrictedEditBox (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+{
+    if (message == MSG_CHAR) {
+        DWORD my_style = GetWindowAdditionalData (hwnd);
+
+        /* 确定被屏蔽的按键类型 */
+        if ((my_style &amp; MY_ES_DIGIT_ONLY) &amp;&amp; (wParam &lt; '0' || wParam &gt; '9'))
+            return 0;
+        else if (my_style &amp; MY_ES_ALPHA_ONLY)
+            if (!((wParam &gt;= 'A' &amp;&amp; wParam &lt;= 'Z') || (wParam &gt;= 'a' &amp;&amp; wParam &lt;= 'z')))
+                /* 收到被屏蔽的按键消息，直接返回 */
+                return 0;
+    }
+
+    /* 由老的窗口过程处理其余消息 */
+    return (*old_edit_proc) (hwnd, message, wParam, lParam);
+}
+
+static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message) {
+    case MSG_CREATE:
+    {
+        HWND hWnd1, hWnd2, hWnd3;
+
+        CreateWindow (CTRL_STATIC, "Digit-only box:", WS_CHILD | WS_VISIBLE | SS_RIGHT, 0, 
+                    10, 10, 180, 24, hWnd, 0);
+        hWnd1 = CreateWindow (CTRL_EDIT, "", WS_CHILD | WS_VISIBLE | WS_BORDER, IDC_CTRL1, 
+                    200, 10, 180, 24, hWnd, MY_ES_DIGIT_ONLY);
+        CreateWindow (CTRL_STATIC, "Alpha-only box:", WS_CHILD | WS_VISIBLE | SS_RIGHT, 0, 
+                    10, 40, 180, 24, hWnd, 0);
+        hWnd2 = CreateWindow (CTRL_EDIT, "", WS_CHILD | WS_BORDER | WS_VISIBLE, IDC_CTRL2, 
+                    200, 40, 180, 24, hWnd, MY_ES_ALPHA_ONLY);
+        CreateWindow (CTRL_STATIC, "Normal edit box:", WS_CHILD | WS_VISIBLE | SS_RIGHT, 0, 
+                    10, 70, 180, 24, hWnd, 0);
+        hWnd3 = CreateWindow (CTRL_EDIT, "", WS_CHILD | WS_BORDER | WS_VISIBLE, IDC_CTRL2, 
+                    200, 70, 180, 24, hWnd, MY_ES_ALPHA_ONLY);
+
+        CreateWindow ("button", "Close", WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE, IDC_CTRL4, 
+                    100, 100, 60, 24, hWnd, 0);
+
+        /* 用自定义的窗口过程替换编辑框的窗口过程，并保存老的窗口过程。*/
+        old_edit_proc = SetWindowCallbackProc (hWnd1, RestrictedEditBox);
+        SetWindowCallbackProc (hWnd2, RestrictedEditBox);
+        break;
+    }
+
+    ...
+    }
+
+    return DefaultMainWinProc (hWnd, message, wParam, lParam);
+}
+
+</pre></td></tr></table>
+
+<p>
+在清单 4 中，程序首先定义了一个窗口处理过程，即 RestrictedEditBox 函数。然后，在利用 CreateWindow 函数建立控件时，将其中两个编辑框的窗口处理过程通过 SetWindowCallbackProc 替换成了自己定义的 RestrictedEditBox 函数，并且将该函数返回的值（即老的控件窗口处理过程地址）保存在了 old_edit_box 变量中。在建立这些编辑框之后，它们的消息将首先由 RestrictedEditBox 函数处理，然后在某些情况下才由老的窗口处理过程处理。
+</p>
+<p>
+限于篇幅，另外两种控件子类化的方法就不在这里讲述。
+</p>
+<strong>4.2  MiniGUI 中控件类的实现</strong>
+<p>
+MiniGUI 函数库实际维护了一个当前所有控件类的数据结构，其中包含了控件类名称以及对应的控件类信息。该数据结构实际是一个哈希表，哈希表的每个入口包含由一个指针，该指针指向所有名程以某个字母开头（不分大小写）的控件类信息链表。控件类信息结构定义如下：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+#define MAXLEN_CLASSNAME    15
+typedef struct _CTRLCLASSINFO
+{
+    char      name [MAXLEN_CLASSNAME + 1];
+                                // 控件类名程
+    /*
+     * common properties of this class
+     */
+    DWORD     dwStyle;          // 控件类风格
+
+    HCURSOR   hCursor;          // 控件光标
+    int       iBkColor;         // 控件的背景颜色
+    
+    int (*ControlProc)(HWND, int, WPARAM, LPARAM);
+                                // 控件处理过程
+
+    DWORD dwAddData;            // 附加数据
+
+    int nUseCount;              // 使用计数，即系统中属于该控件类的控件个数
+    struct _CTRLCLASSINFO*  next;
+                                // 下一个控件类信息结构
+} CTRLCLASSINFO;
+typedef CTRLCLASSINFO* PCTRLCLASSINFO;
+</pre></td></tr></table>
+
+<p>
+在控件类的数据结构中包含了鼠标、光标、控件类的回调函数地址等等信息。在创建属于该控件类的控件时，这些信息会复制到控件数据结构中。这样，新的控件实例就继承了这种控件类的表象和行为。
+</p>
+<p>
+该哈希表的哈希函数实际非常简单，它的返回值就是控件类名称首字母的英文字母表顺序值：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+static int HashFunc (char* szClassname)
+{
+    /* 判断首字符是否为字母 */
+    if (!isalpha (szClassName[0])) return ERR_CTRLCLASS_INVNAME;
+    
+    /* 讲所有字符转换为大写 */
+    while (szClassName[i]) {
+        szClassName[i] = toupper(szClassName[i]);
+
+        i++;
+        if (i &gt; MAXLEN_CLASSNAME)
+            return ERR_CTRLCLASS_INVLEN;
+    }
+    
+    /* 获得哈希值 */
+    return szClassName[0] - 'A';
+}
+</pre></td></tr></table>
+
+<p>
+控件类的注册和注销函数非常简单，这里不再赘述。
+</p>
+<strong>4.3  MiniGUI 中控件的实现</strong>
+<p>
+控件结构相对复杂一些。其中包含了控件在父窗口中的位置信息、控件风格、扩展风格、控件鼠标、图标、控件回调函数地址等等：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+typedef struct _CONTROL
+{
+    /*
+     * 这些成员和 MAINWIN 结构一致.
+     */
+    short DataType;         // 内部使用的数据类型
+    short WinType;          // 内部使用的窗口类型
+
+    int left, top;          // 控件在父窗口中的位置
+    int right, bottom;
+
+    int cl, ct;             // 控件客户区在父窗口中的位置
+    int cr, cb;
+
+    DWORD dwStyle;          // 控件风格
+    DWORD dwExStyle;        // 控件扩展风格
+
+    int iBkColor;		    // 背景颜色
+    HMENU hMenu;		    // 菜单句柄
+    HACCEL hAccel;          // 加速键表句柄
+    HCURSOR hCursor;	    // 鼠标光标句柄
+    HICON hIcon;		    // 图标句柄
+    HMENU hSysMenu;         // 系统菜单句柄
+
+    HDC   privCDC;          // 私有 DC 句柄
+    INVRGN InvRgn;          // 控件的无效区域
+    PGCRINFO pGCRInfo;      // 控件的全局剪切区域
+    PZORDERNODE pZOrderNode;
+                            // Z 序节点
+                            // 仅对具有 WS_EX_CTRLASMAINWIN 扩展风格的控件有效
+
+    PCARETINFO pCaretInfo;  // 插入符消息
+
+    DWORD dwAddData;        // 控件附加数据
+    DWORD dwAddData2;       // 控件附加数据
+
+    int (*ControlProc) (HWND, int, WPARAM, LPARAM); // 控件消息处理过程
+
+    char* spCaption;         // 控件标题
+    int   id;                // 控件标识符，整数
+
+    SCROLLBARINFO vscroll;   // 垂直滚动条信息
+    SCROLLBARINFO hscroll;   // 水平滚动条信息
+
+    PMAINWIN pMainWin;       // 包含该控件的主窗口
+
+    struct _CONTROL* pParent;// 控件的父窗口
+
+    /*
+     * Child windows.
+     */
+    struct _CONTROL* children;
+                             // 控件的第一个子控件
+    struct _CONTROL* active;
+                             // 当前活动子控件
+    struct _CONTROL* old_under_pointer;
+                             // 老的鼠标鼠标所在子控件
+    /*
+     * 下面这些成员只对控件有效
+     */
+    struct _CONTROL* next;   // 下一个兄弟控件
+    struct _CONTROL* prev;   // 前一个兄弟控件
+
+    PCTRLCLASSINFO pcci;     // 指向控件所属控件类结构的指针
+
+} CONTROL;
+typedef CONTROL* PCONTROL;
+</pre></td></tr></table>
+
+<p>
+很显然，只要将控件的回调函数地址进行替换，就可以非常方便地对控件进行子类化操作。值得一提的是，主窗口的结构定义和控件数据结构定义基本上是相同的，只是在某些成员上有一些小小的差别。
+</p>
+<a name="5">
+<p><strong class="subhead">5  输入法模块的设计</strong></p>
+<p>
+输入法提供了将标准键盘输入翻译为适当语种的文字的能力。MiniGUI 中也包含有标准的中文简体输入法，包括全拼、五笔和智能拼音等等。MiniGUI 的输入法是一个相对独立的模块（称为 IME），它实际是一个特殊的主窗口。该主窗口将在启动之后，首先将自己注册为输入法窗口。这样，MiniGUI 的 desktop 就知道首先要将按键信息发送到这个主窗口之中，而不是当前的活动主窗口。当活动主窗口发生变化时，desktop 会通知输入法窗口当前的活动窗口。这样，当输入法窗口接收到按键消息并且翻译为适当的字符之后，就可以将其发送到当前的活动窗口。
+</p>
+
+<p>
+为了实现 desktop 和 IME 窗口之间的交互，MiniGUI 为输入法窗口定义了如下消息，当活动窗口发生变化时，MiniGUI 会向 IME 窗口发送这些消息：
+</p>
+<li>MSG_IME_SETTARGET：发送该消息设置输入法的目标活动窗口；</li>
+<li>MSG_IME_OPEN：发送该消息告诉输入法窗口，当前活动窗口是具有 WS_EX_IMECOMPOSE 扩展风格的窗口，所以应该显示输入法窗口。</li>
+<li>MSG_IME_CLOSE：发送该消息告诉输入法窗口，当前活动窗口不具有 WS_EX_IMECOMPOSE 扩展风格，所以应该隐藏输入法窗口。</li>
+<p>
+如果一个窗口要成为输入法窗口，则必须完成如下工作：
+</p>
+<ol>
+  <li>注册成为当前输入法；</li>
+  <li>处理 MSG_IME_SETTARGE 消息，并记录当前活动目标窗口；</li>
+  <li>翻译按键并将翻译后的结构通过 MSG_CHAR 消息发送到当前活动的目标窗口；</li>
+  <li>处理 MSG_IME_OPEN 和 MSG_IME_CLOSE 消息，在切换到需要输入法的活动窗口时自动显示输入法窗口。</li>
+</ol>
+<a name="6">
+<p><strong class="subhead">6  小结</strong></p>
+<p>
+本文重点讲述了 MiniGUI 中的窗口剪切处理算法。这是任何一个多窗口系统首先要解决的问题。然后，本文介绍了 MiniGUI 中控件类和控件的实现。最后介绍了 MiniGUI 中输入法窗口的设计思路。
+</p>
+
+<a name="7">
+<p><strong class="subhead">附：MiniGUI 的最新进展</strong></p>
+<p>
+2001 年元月 03 日，MiniGUI 的 0.9.98 版本发布。该版本包括一个我们专门针对 PDA 等嵌入式系统设计的 MiniGUI 版本，该版本称为 MiniGUI-Lite。下面是对 MiniGUI-Lite 简单介绍，将来我们还要撰文详细介绍 MiniGUI-Lite。
+</p>
+<p>
+大家都知道，MiniGUI 采用了基于线程的体系结构，并且建立了基于线程的消息传递和窗口管理功能。但是，在许多系统中，这种基于线程的结构并不是很好。这是因为一些众所周知的原因造成的－－Linux 线程，尽管可以提供最大程度上的数据共享，但却造成了系统体系结构的脆弱。如果某个线程因为非法的数据访问而终止运行，则整个进程都将受到影响。与线程结构相反的是采用传统的 UNIX IPC 机制建立窗口系统，即类似 X Window 的客户/服务器体系。这种体系结构有它的先天不足，主要是通常的 IPC 机制无法提供高效的数据复制，大量的 CPU 资源用于在各进程之间复制数据。在 PDA 等设备中，这种 CPU 资源的浪费将最终导致系统性能的降低以及设备耗电量的增加。
+</p>
+<p>
+为了解决 MiniGUI 版本因为线程而引入的一些问题，同时也为了让 MiniGUI更加适合于嵌入式系统，我们决定开发一个 MiniGUI Lite 版本。这个版本的开发目的是：
+</p>
+1. 保持与原先 MiniGUI 版本在源代码级 98% 以上的兼容。
+2. 不再使用 LinuxThreads。
+3. 可以同时运行多个基于 MiniGUI Lite 的应用程序，即多个进程，并且提供前后台进程的切换。
+<p>
+显然，要同时满足上述三个目的，如果采用传统的 C/S 结构对现有 MiniGUI 进行改造，应该不难实现。但前面提到的传统 C/S 结构的缺陷却无法避免。经过对 PDA 等嵌入式系统的分析，我们发现，某些 PDA 产品具有运行多个任务的能力，但同一时刻在屏幕上进行绘制的程序，一般不会超过两个。因此，只要确保将这两个进程的绘制相互隔离，就不需要采用复杂的 C/S 结构处理多个进程窗口之间的互相剪切。也就是说，在这种产品中，如果采用基于传统 C/S 结构的多窗口系统，实际是一种浪费。
+</p>
+<p>
+有了上述认识，我们对 MiniGUI-Lite 版本进行了如下简化设计：
+</p>
+1. 每个进程维护自己的主窗口 Z 序，同一进程创建的主窗口之间互相剪切。也就是说，除这个进程只有一个线程，只有一个消息循环之外，它与原有的 MiniGUI 版本之间没有任何区别。每个进程在进行屏幕绘制时，不需要考虑其他进程。
+2. 建立一个简单的客户/服务器体系，但确保最小化进程间的数据复制功能。因此，在服务器和客户之间传递的数据仅限于输入设备的输入数据，以及客户和服务器之间的某些请求和响应数据。
+3. 有一个服务器进程（mginit），它负责初始化一些输入设备，并且通过 UNIX Domain 套接字将输入设备的消息发送到前台的 MiniGUI Lite 客户进程。
+4. 服务器和客户被分别限定在屏幕的某两个不相交矩形内进行绘制，同一时刻，只能有一个客户及服务器进行屏幕绘制。其他客户可继续运行，但屏幕输入被屏蔽。服务器可以利用 API 接口将某个客户切换到前台。同时，服务器和客户之间采用信号和 System V 信号量进行同步。
+5. 服务器还采用 System V IPC 机制提供一些资源的共享，包括位图、图标、鼠标、字体等等，以便减少实际内存的消耗。
+<p>
+现在你可以使用 MiniGUI-Lite 一次运行不止一个 MiniGUI 应用程序。我们可以从一个称为 “mginit”的程序中启动其他 MiniGUI 程序。如果因为某种原因客户终止，服务器可以继续运行。在我们的发布版本中，有一个称为 mglite-exec 的软件包, 这个软件包里有一个 mginit 程序, 该程序建立了一个虚拟控制台窗口。我们可以从这个虚拟控制台的命令行启动该软件包中其他的程序，甚至可以通过 gdb 调试这些程序。
+</p>
+<p>
+我们可以在 MiniGUI-Lite 程序中创建多个窗口，但不能启动新的线程建立窗口。这是 MiniGUI-Lite 区别于 MiniGUI 原有版本的最大不同。除此之外，其他几乎所有的 API 都和 MiniGUI 原有版本是兼容的。因此。从 MiniGUI 原有版本向 MiniGUI-Lite 版本的移植是非常简单的。不信，请看 mglite-exec 包中的程序，其中所有的程序均来自 miniguiexec 包，而每个源文件的改动不超过 5 行。
+</p>
+
+
+<a name="resources">
+<p><strong class="subhead">相关资源</strong></p>
+	<ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+            <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+            <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+            <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">关于作者</strong>
+<br>魏永明（ymwei@minigui.org），男，27 岁，工学硕士，现任蓝点软件（深圳）有限公司北京研发中心技术主管。国内最有影响的自由软件项目之一－－ MiniGUI 的创始人以及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。
+</p>
+
+</body>
+</html>

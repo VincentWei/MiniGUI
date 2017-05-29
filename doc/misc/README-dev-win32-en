@@ -1,0 +1,192 @@
+            MiniGUI Development Package for Windows 
+
+Copyright (C) 2005 BEIJING FEYNMAN SOFTWARE TECHNOLOGY CO., LTD.
+
+What's This
+===========
+
+    This is a pre-compiled MiniGUI for Windows platform. It is based
+    on MiniGUI 1.6.2, and compiled on WindowsXP with Visual C++6.0.
+
+    You can develope MiniGUI programs by using this development package. 
+
+
+Features Included in this MiniGUI Development Package
+=====================================================
+
+    MiniGUI of this package:
+
+    * is configured as MiniGUI-Threads.
+    * is configured to use incore resource.
+    * is configured to use PC3D window style.
+    * includes NEWGAL engine: wvfb.
+    * includes IAL engine: wvfb.
+    * provides support for the following charsets:
+
+        o ISO8859-1 ~ ISO8859-15
+        o GB2312
+        o ShiftJIS
+
+    * includes the following device fonts:
+
+        o rbf-fixed-rrncnn-6-12-ISO8859-1
+        o rbf-fixed-rrncnn-12-12-GB2312.1980-0
+        o rbf-fixed-rrncnn-8-16-ISO8859-1
+        o rbf-fixed-rrncnn-16-16-GB2312.1980-0
+        o rbf-fixed-rrncnn-12-24-ISO8859-1
+        o rbf-fixed-rrncnn-24-24-GB2312.1980-0
+
+        o rbf-fixed-rrncnn-6-12-JISX0201-1
+        o rbf-fixed-rrncnn-7-14-JISX0201-1
+        o rbf-fixed-rrncnn-8-16-JISX0201-1
+
+        o rbf-gothic-rrncnn-12-12-JISX0208-1
+        o rbf-gothic-rrncnn-14-14-JISX0208-1
+        o rbf-gothic-rrncnn-16-16-JISX0208-1
+
+        o vbf-SansSerif-rrncnn-11-13-ISO8859-1
+        o vbf-Courier-rrncnn-8-13-ISO8859-1
+        o vbf-Symbol-rrncnn-13-14-ISO8859-1
+        o vbf-VGAROM-rrncnn-8-8-ISO8859-1
+        o vbf-Terminal-rrncnn-8-12-ISO8859-1
+        o vbf-System-rrncnn-14-16-ISO8859-1
+        o vbf-Fixed-rrncnn-8-15-ISO8859-1
+        o vbf-Helvetica-rrncnn-15-16-ISO8859-1
+        o vbf-Helvetica-rrncnn-18-21-ISO8859-1
+        o vbf-Helvetica-rrncnn-24-27-ISO8859-1
+
+     * creates three system logical fonts:
+
+        o rbf-fixed-12-ISO8859-1
+        o *-fixed-12-GB2312
+        o *-Helvetica-12-GB2312
+
+     * provides support for the following image file types:
+
+        o Windows BMP
+        o GIF
+
+     * includes the basic controls:
+
+        o Static
+        o Button
+        o Simple edit box
+        o Single-line edit box
+        o Multiple-line edit box
+        o ListBox
+        o ComboBox
+        o ProgressBar
+        o New toolbar
+        o MenuButton
+        o TrackBar
+        o PropertySheet
+        o ScrollView
+
+     * includes the advanced controls in MiniGUI extension library:
+
+        o ListView
+        o TreeView
+        o MonthCalendar
+        o SpinBox
+        o CoolBar
+        o Animation (and GIF89a supported)
+        o GridView
+        o IconView
+
+     * includes the SKIN APIs in MiniGUI extension library.
+
+
+Installation
+============
+
+    On your Windows PC box, extracts the rar ball, you will see 
+    three sub directorys: include, lib and helloworld, the MiniGUI 
+    header files are in the include directory, the MiniGUI library 
+    files are in the lib directory, the helloworld directory contains
+    MiniGUI helloword program.
+
+
+Usage
+=====
+
+    MiniGUI uses incore resources. The default configration is:
+
+        GAL engine: wvfb
+        IAL engine: wvfb
+        Display Mode: 640x480-16bpp
+    
+    After extracting the rar package, you can compile and run MiniGUI programs.
+
+    1. Run helloword program of MiniGUI
+
+        In the IDE of Visual C++, open the file of helloworld.dsw in
+        the helloworld directory. Compile and run it.
+
+        Before running the helloworld, you shoud run wvfb.exe program.
+ 
+Related Resources
+=================
+
+    The documents and samples source code of MiniGUI can be downloaded 
+    from our web site (http://www.fmsoft.cn/download/index.shtml):
+
+    * MiniGUI User Manual
+    * MiniGUI Programming Guide
+    * MiniGUI API Reference Manual 
+      (the online edition: http://www.fmsoft.cn/api_ref/index.html)
+
+    * mg-samples-1.6.x.tar.gz: The samples package.
+    * mde-1.6.x.tar.gz: The MiniGUI demostration package.
+
+
+License
+=======
+
+    Copyright (C) 2002~2005, Beijing Feynman Software Technology Co., Ltd.
+
+    The license is fit for MiniGUI Development Package (the Software) released
+    by Beijing Feynman Software Technology Co., Ltd. (Feynman Software).
+
+    The Software is released in binary format, including programs, libraries 
+    used by programs running on certain OS.
+
+    Feynman Software just authorizes you to demonstrate and test The Software. 
+    Other rights about The Software are all reserved. The indirect and direct 
+    commercial use of The Software are strictly prohibited.
+
+    All the programs, libraries and recourses included in this software 
+    are the portions of the software, and their copyright belongs to Feynman Software 
+    and the third party technology provider. You can not separate the programs, 
+    libraries and resources from the Software.
+
+    Feynman Software forbids users to adopt the reverse project technologies 
+    (reverse compiling, debugging) to the binary system programs and libraries.
+
+    The software just used in evaluation, Feynman Software does not provide 
+    any guarantee for it.
+
+
+===============================================================================
+
+
+BEIJING FEYNMAN SOFTWARE TECHNOLOGY CO., LTD.
+
+Web:
+    http://www.fmsoft.cn
+    http://www.minigui.com
+
+Address:
+    Room 501, Building D, The Westing House Apartment,
+    Number 12, Suzhou Street, Haidian District, Beijing, China 
+Zip Code: 100080
+
+Tel: 86-10-82873666/82873999
+Fax: 86-10-82873666/82873999/-88
+
+Tech Consultation: support@minigui.com
+Product Sales: sales@minigui.com
+Marketing: info@minigui.com
+Human Resource: hr@minigui.com
+
+==== The end ====
+

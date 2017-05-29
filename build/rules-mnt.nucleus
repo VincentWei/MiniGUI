@@ -1,0 +1,11 @@
+# rules for Nucleus-MNT
+
+TARGET_OS=nucleus
+
+DLL=0
+PREFIX=d:/cyglocal
+
+TARGET_DIR=d:/ATI/MNT
+INCS+=-I${TARGET_DIR}/plus
+
+include $(abs_top_srcdir)/build/rules.msvc

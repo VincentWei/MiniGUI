@@ -1,0 +1,142 @@
+
+注意
+====
+在使用本光盘中的文件之前，请您仔细阅读本文件中针对各个软件包的许可说明。
+
+从本光盘中复制或者读取由飞漫提供的软件或其他资源（以下统称“软件”），即表明
+您已阅读对应的许可说明及授权条款，并接受其中的法律条款。若不能接受，请立即
+停止复制，并退回产品。
+
+==============================================================================
+
+
+本光盘包含的内容
+================
+
+	minigui/1.6.x
+		MiniGUI 1.6.x 版本源代码、增值版资源包、MDE 演示程序包及《编程指南》示例程序包
+
+	minigui/docs
+		MiniGUI 1.6 《用户手册》、《编程指南》及《 API 参考手册》电子版。注意，
+		《API 参考手册》给出了三种格式：pdf、html 及 chm。
+
+	minigui/free-fonts
+		可免费使用的几款 RBF 字体
+		各字体的字体名称，请参阅对应目录下的 font.name 文件
+
+	deplibs
+		libfreetype、t1lib、SVGALib、LibJPEG 和 LibPNG 等第三方函数库以及 QVFB 工具
+
+	cross-tools
+		ARM, MIPS, PowerPC, M68K 等平台的交叉编译工具
+
+	uClinux-dist
+		uClinux 发行版
+
+	Xcopilot
+		Xcopilot 模拟器
+
+==============================================================================
+
+
+COPYING FOR MINIGUI
+===================
+
+    Copyright (C) 2002-2005, Beijing Feynman Software Technology Co., Ltd.
+    Copyright (C) 1998-2002, Wei Yongming
+    Portion copyright (C) 2000, 2001, Song Lixin, Zheng Xiang and others.
+
+    MiniGUI is free software; you can redistribute it and/or modify it under 
+    the terms of the GNU General Public License as published by the 
+    Free Software Foundation; either version 2 of the License, 
+    or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful, 
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+    See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License 
+    along with this library; if not, write to the Free Software Foundation, 
+    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+==============================================================================
+
+
+COPYING FOR MDE AND MG-SAMPLES
+==============================
+
+    Copyright (C) 2002-2005, Beijing Feynman Software Technology Co., Ltd.
+    Copyright (C) 2002, Wei Yongming
+
+    MDE is free software; you can redistribute it and/or modify it under 
+    the terms of the GNU General Public License as published by the 
+    Free Software Foundation; either version 2 of the License, 
+    or (at your option) any later version.
+
+    This software is distributed in the hope that it will be useful, 
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+    See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License 
+    along with this library; if not, write to the Free Software Foundation, 
+    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+==============================================================================
+
+其他
+====
+
+* MiniGUI 采用 GPL 条款发布，请参阅 COPYING 文件。
+* 专有系统或商业用户，请参阅 LICENSE.POLICY 或 LICENSE.POLICY.zh 文件。
+* MDE 采用 GPL 条款发布，请参阅 COPYING 文件。
+* MG-SAMPLES 采用 GPL 条款发布，请参阅 COPYING 文件。
+* 本光盘 deplibs 目录中的第三方函数库或工具采用 LGPL 和 GPL 条款发布，
+  请参阅各函数库或工具包中的 COPYING.LIB、COPYING.LESSER 或 COPYING 文件。
+
+==============================================================================
+
+
+针对获 MiniGUI 开发时商业授权用户的免责及担保条款
+===========================================
+
+MiniGUI 增值版是飞漫软件为专有或商用产品开发商提供的 MiniGUI 增值产品，
+按开发人员为基准授权。购买 MiniGUI 增值版的用户，可获得：
+
+a) 基于 MiniGUI 研发非 GPL 应用软件的授权。
+b) 在正式产品上市之前，向客户演示基于 MiniGUI 的非 GPL 应用软件，
+   或发布基于 MiniGUI 的非 GPL 应用软件演示版本。
+c) 三个月的 MiniGUI 应用软件开发技术支持（电子邮件为主，电话为辅）。
+d) 一年的免费升级及缺陷修正服务。
+
+----------------------------------------------------------------
+注意，在专有及商用产品（即非 GPL 软件）中使用免费下载的 MiniGUI，
+仍要支付运行时商业授权费用。
+----------------------------------------------------------------
+
+
+==============================================================================
+
+
+联系飞漫软件
+============
+
+公司名称：北京飞漫软件技术有限公司
+公司地址：北京海淀区苏州街 12 号西屋国际公寓 D 座 501 室
+邮政编码：100080
+
+开户行：招商银行北京万泉河支行
+帐号：6480136210001
+
+电话：010-82873666/3999
+传真：010-82573666/3999-88
+
+网址：http://www.minigui.com, http://www.fmsoft.cn
+产品销售：sales@minigui.com
+技术咨询：support@minigui.com
+
+更多飞漫产品，请访问 http://www.fmsoft.cn/product/cindex.shtml
+
+==============================================================================
+

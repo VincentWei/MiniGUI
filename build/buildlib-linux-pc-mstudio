@@ -1,0 +1,28 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+./configure \
+    $prefix_config \
+    --disable-static \
+    --with-targetname=mstudio \
+    --with-libsuffix=msd \
+    --enable-pcxvfb \
+    --disable-qvfbial \
+    --disable-consoleial \
+    --disable-dummyial \
+    --disable-autoial \
+    --disable-videodummy \
+    --disable-videoqvfb \
+    --disable-videofbcon \
+    --disable-videocommlcd \
+    --with-ttfsupport=ft2 \
+    --enable-qpfsupport \
+    --enable-upfsupport \
+    --enable-gb18030support \
+    --enable-unicodesupport \
+    --enable-aboutdlg \
+    --disable-savescreen \
+    --disable-splash \
+    --disable-screensaver \
+    --disable-watermark

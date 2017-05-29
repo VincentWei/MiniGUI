@@ -1,0 +1,110 @@
+c - WE_CAPTION             
+i - WE_INACTIVE_CAPTION    
+m - WE_MENU                
+n - WE_MESSAGEBOX          
+t - WE_TOOLTIP             
+b - WE_WND_BORDER          
+p - WE_CAPTION_BUTTON      
+s - WE_SCROLLBAR           
+w - WE_WINDOW              
+3 - WE_THREED_BODY         
+e - WE_SELECTED_ITEM       
+d - WE_DISABLED_ITEM       
+h - WE_HIGHLIGHT_ITEM      
+k - WE_DESKTOP             
+g - WE_SIGNIFICANT_ITEM    
+
+window style change: y
+
+
+/* Window caption */
+#define WE_FONT_CAPTION             (WE_CAPTION | WE_ATTR_TYPE_FONT)
+#define WE_METRICS_CAPTION          (WE_CAPTION | WE_ATTR_TYPE_METRICS)
+#define WE_FGC_ACTIVE_CAPTION       (WE_CAPTION | WE_ATTR_TYPE_FGC)
+#define WE_BGCA_ACTIVE_CAPTION      (WE_CAPTION | WE_ATTR_TYPE_BGCA)
+#define WE_BGCB_ACTIVE_CAPTION      (WE_CAPTION | WE_ATTR_TYPE_BGCB)
+
+
+/* Menu */
+#define WE_FONT_MENU                (WE_MENU | WE_ATTR_TYPE_FONT)
+#define WE_METRICS_MENU             (WE_MENU | WE_ATTR_TYPE_METRICS)
+#define WE_FGC_MENU                 (WE_MENU | WE_ATTR_TYPE_FGC)
+#define WE_BGC_MENU                 (WE_MENU | WE_ATTR_TYPE_BGCA)
+
+/* Message box */
+#define WE_FONT_MESSAGEBOX          (WE_MESSAGEBOX | WE_ATTR_TYPE_FONT)
+#define WE_FGC_MESSAGEBOX           (WE_MESSAGEBOX | WE_ATTR_TYPE_FGC)
+
+/* Tool tips */
+#define WE_FONT_TOOLTIP             (WE_TOOLTIP | WE_ATTR_TYPE_FONT)
+#define WE_FGC_TOOLTIP              (WE_TOOLTIP | WE_ATTR_TYPE_FGC)
+#define WE_BGC_TOOLTIP              (WE_TOOLTIP | WE_ATTR_TYPE_BGCA)
+
+/* Window border */
+#define WE_METRICS_WND_BORDER       (WE_WND_BORDER | WE_ATTR_TYPE_METRICS)
+#define WE_FGC_ACTIVE_WND_BORDER    (WE_WND_BORDER | WE_ATTR_TYPE_FGC)
+#define WE_FGC_INACTIVE_WND_BORDER  (WE_WND_BORDER | WE_ATTR_TYPE_BGCA)
+
+/* Caption button */
+#define WE_METRICS_CAPTION_BUTTON   (WE_CAPTION_BUTTON | WE_ATTR_TYPE_METRICS)
+
+/* Scroll bar */
+#define WE_METRICS_SCROLLBAR        (WE_SCROLLBAR | WE_ATTR_TYPE_METRICS)
+
+/* Inactive caption */
+#define WE_FGC_INACTIVE_CAPTION     (WE_INACTIVE_CAPTION | WE_ATTR_TYPE_FGC)
+#define WE_BGCA_INACTIVE_CAPTION    (WE_INACTIVE_CAPTION | WE_ATTR_TYPE_BGCA)
+#define WE_BGCB_INACTIVE_CAPTION    (WE_INACTIVE_CAPTION | WE_ATTR_TYPE_BGCB)
+
+/* Window */
+#define WE_FGC_WINDOW               (WE_WINDOW | WE_ATTR_TYPE_FGC)
+#define WE_BGC_WINDOW               (WE_WINDOW | WE_ATTR_TYPE_BGCA)
+
+/* 3d body */
+#define WE_FGC_THREED_BODY          (WE_THREED_BODY | WE_ATTR_TYPE_FGC)
+#define WE_MAINC_THREED_BODY        (WE_THREED_BODY | WE_ATTR_TYPE_BGCA)
+
+/* Selected items */
+#define WE_FGC_SELECTED_ITEM        (WE_SELECTED_ITEM | WE_ATTR_TYPE_FGC)
+#define WE_BGC_SELECTED_ITEM        (WE_SELECTED_ITEM | WE_ATTR_TYPE_BGCA)
+#define WE_BGC_SELECTED_LOSTFOCUS   (WE_SELECTED_ITEM | WE_ATTR_TYPE_BGCB)
+
+/* Invalidate items */
+#define WE_FGC_DISABLED_ITEM        (WE_DISABLED_ITEM | WE_ATTR_TYPE_FGC)
+#define WE_BGC_DISABLED_ITEM        (WE_DISABLED_ITEM | WE_ATTR_TYPE_BGCA)
+
+/* Highlight items */
+#define WE_FGC_HIGHLIGHT_ITEM       (WE_HIGHLIGHT_ITEM | WE_ATTR_TYPE_FGC)
+#define WE_BGC_HIGHLIGHT_ITEM       (WE_HIGHLIGHT_ITEM | WE_ATTR_TYPE_BGCA)
+
+/* Significant items */
+#define WE_FGC_SIGNIFICANT_ITEM       (WE_SIGNIFICANT_ITEM | WE_ATTR_TYPE_FGC)
+#define WE_BGC_SIGNIFICANT_ITEM       (WE_SIGNIFICANT_ITEM | WE_ATTR_TYPE_BGCA)
+
+/* Desktop */
+#define WE_BGC_DESKTOP              (WE_DESKTOP | WE_ATTR_TYPE_BGCA)
+for example c
+  c - fgc of caption
+  lshift + c -- BGCA of caption
+  rshift + c -- BGCB of caption
+
+  Lctrl + c -- metric of caption sub 
+  Rctrl + c -- metric of caption add
+  alt + c -- font of caption
+写个函数检查,如果不存在 返回-1
+
+
+test calc_color时，r%30==0时， 画三条线
+|(亮色)
+|（稍亮）
+|(主色)
+|(稍暗色)    
+|(暗色)
+
+一次画出多个不同颜色的3dbox, checkmark, checkbox, radio, arrow
+    left, right - 切换不同状态
+    up, down - 缩放
+
+剩余的一次画出，push button不同颜色画7个
+
+benchmark  display "push a start test"

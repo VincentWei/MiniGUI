@@ -1,0 +1,88 @@
+# Makefile for building the libminigui with GNU Make
+# Use: make -f makefile.ng
+
+TOPLIBALL = 1
+# have sub directories
+TOPLOOP = 1
+abs_top_srcdir=..
+
+MINIGUI_VER=3.0.10
+MINIGUILIB=libminigui-$(MINIGUI_VER)
+
+################################################################
+# specific defines
+
+COMM_LDADD=						\
+	libc/liblibc.$(LIBA)				\
+	misc/libmisc.$(LIBA)				\
+	control/libcontrol.$(LIBA)		\
+	ex_ctrl/libexctrl.$(LIBA)		\
+	font/libfont.$(LIBA)				\
+	font/in-core/libincore.$(LIBA)	\
+	ial/libial.$(LIBA)				\
+	gui/libgui.$(LIBA)				\
+	main/libmain.$(LIBA)				\
+	mybmp/libmybmp.$(LIBA)			\
+	kernel/libkernel.$(LIBA)			\
+	sysres/libsysres.$(LIBA)  \
+	sysres/bmp/libincorebmps.$(LIBA) \
+	sysres/cursor/libincorecursors.$(LIBA) \
+	sysres/font/libincorefonts.$(LIBA) \
+	sysres/icon/libincoreicons.$(LIBA)
+
+# if you use NEWGAL
+NEWGAL_LDADD=newgal/libnewgal.$(LIBA) newgal/svpxxosd/libvideo_svpxxosd.$(LIBA) newgal/commlcd/libvideo_commlcd.$(LIBA) newgal/dummy/libvideo_null.$(LIBA) newgal/wvfb/libvideo_wvfb.$(LIBA) newgdi/libnewgdi.$(LIBA) newgal/shadow/libvideo_shadow.$(LIBA)
+
+# else if you use OLDGAL
+# NEWGAL_LDADD=gal/libgal.$(LIBA) gal/native/libnative.$(LIBA) gdi/libgdi.$(LIBA)
+
+SUB_LDADD=$(COMM_LDADD) $(NEWGAL_LDADD)
+
+SUB_DIRS=$(dir $(SUB_LDADD))
+SUB_LDOBJS=$(addsuffix *.$(OBJ), $(SUB_DIRS))
+
+################################################################
+# includes common defines
+
+include ../rules.make
+
+################################################################
+# specific targets and commands
+
+ifeq (1, $(DLL))
+all :: $(MINIGUILIB).dll libminigui.$(LIBA)
+else
+all :: libminigui.$(LIBA)
+endif
+
+$(MINIGUILIB).dll : $(SUB_LDADD)
+	echo $(SUB_LDOBJS)
+	$(CC) -LD $(CRUNTIME) -Fe$(MINIGUILIB).dll $(SUB_LDOBJS) $(PTHREAD_LIBS) kernel32.lib shell32.lib user32.lib $(LDFLAGS)
+
+libminigui.$(LIBA) : $(SUB_LDADD)
+	$(AR) $(ARFLAGS) $(ARFLAGS_OUT)$@ $(SUB_LDOBJS)
+	$(RANLIB) $@
+
+$(SUB_LDADD) : 
+	$(MAKE) -C $(dir $@) -f makefile.ng
+
+cleanall : clean
+
+install::
+ifeq (1, $(DLL))
+	$(CP) $(MINIGUILIB).dll $(libdir)/$(MINIGUILIB).dll
+	$(CP) $(MINIGUILIB).lib $(libdir)/$(MINIGUILIB).lib
+endif
+	$(CP) libminigui.$(LIBA) $(libdir)/libminigui.$(LIBA)
+
+installdirs :: force
+	@-mkdir $(prefix)
+	@-mkdir $(exec_prefix)
+	@-mkdir $(libdir)
+
+uninstall :: force
+ifeq (1, $(DLL))
+	$(RM) $(libdir)/$(MINIGUILIB).dll
+endif
+	$(RM) $(libdir)/$(MINIGUILIB).$(LIBA)
+

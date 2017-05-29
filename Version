@@ -1,0 +1,9 @@
+Version 3.2.1 (the developing version of the official version 3.2)
+
+This release needs the following resource packages:
+
+    * minigui-res-3.0.10.tar.gz
+
+The latest samples package is:
+
+    * mg-samples-3.0.10.tar.gz

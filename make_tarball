@@ -1,0 +1,268 @@
+#!/bin/bash
+
+SOURCE_DIR=libminigui-3.0.10
+DEST_DIR=libminigui-3.0.10
+
+. .config
+
+if [ "$PACK_OS_LINUX" = "n" ]; then
+    DEST_DIR=libminigui-3.0.10
+fi
+
+[ -f ".config" ] || {
+    echo "Configuration file not found."
+    echo "Please run make menuconfig first."
+    exit 1
+}
+
+empty_files () {
+    local i
+
+    for i in $* ; do
+        echo "/* This file is not included for this release. */" > ${DEST_DIR}-${PACK_POSTFIX}/${i}
+    done
+    return 0
+}
+
+echo "Preparing the complete source tree..."
+[ -f "${SOURCE_DIR}.tar.gz" ] || {
+    echo "Make the complete tarball from SVN..."
+    make dist 1>/dev/null 2>/dev/null
+}
+rm ${SOURCE_DIR}-${PACK_POSTFIX}* -rf
+tar zxf ${SOURCE_DIR}.tar.gz
+mv $SOURCE_DIR ${DEST_DIR}-${PACK_POSTFIX}
+
+if [ "$PACK_OS_LINUX" = "n" ]; then
+    echo "Empty the files specific Linux and MiniGUI-Processes..."
+    empty_files src/client/*.[ch]
+    empty_files src/server/*.[ch]
+    empty_files src/kernel/sharedres.c
+    empty_files src/kernel/*-procs.[ch]
+    empty_files src/include/*-procs.h
+    empty_files src/include/client.h
+    empty_files src/include/server.h
+    empty_files src/include/sockio.h
+    empty_files src/include/sharedres.h
+    empty_files src/include/sockio.h 
+    empty_files src/include/drawsemop.h
+    empty_files build/buildlib-linux-*
+fi
+
+if [ "$PACK_OS_UCLINUX" = "n" ]; then
+    echo "Empty the files specific uClinux..."
+    empty_files build/buildlib-uclinux-*
+    if [ "$PACK_OS_DARWIN" = "n" ]; then
+        empty_files src/libc/sysvipc_*.[ch]
+    fi
+fi
+
+if [ "$PACK_OS_ECOS" = "n" ]; then
+    echo "Empty the files specific eCos..."
+    empty_files build/buildlib-ecos-*
+fi
+
+if [ "$PACK_OS_UCOSII" = "n" ]; then
+    echo "Empty the files specific uC/OS-II..."
+    empty_files include/ucos2_*.h include/mgdrv-ucosii.c
+    empty_files src/libc/ucos2_*.[ch]
+    empty_files build/buildlib-ucos2-*
+    empty_files build/config-ucosii-*.h
+    empty_files build/minigui_ads_prj_ucos2.tar.gz
+    empty_files build/rules*.ucosii
+fi
+
+if [ "$PACK_OS_VXWORKS" = "n" ]; then
+    echo "Empty the files specific VxWorks..."
+    empty_files include/vxworks_*.h
+    empty_files src/libc/vxworks_*.[ch]
+    empty_files build/config-vxworks-*.h
+    empty_files build/rules*.vxworks
+    empty_files src/ial/vxi386_input.c 
+    empty_files src/ial/vxppc_input.c
+    empty_files src/newgal/commlcd/vxworks_i386.c
+    empty_files src/newgal/commlcd/vxworks_ppc.c
+fi
+
+if [ "$PACK_OS_WIN32" = "n" ]; then
+    echo "Empty the files specific Win32..."
+    empty_files build/buildlib-win32*
+    empty_files build/config-win32*.h
+    empty_files build/config-mgdemo-win.h
+    empty_files build/*.msvc
+    empty_files build/*.dsp
+    empty_files build/*.dsw
+    empty_files build/pthreadVC1.dll
+    empty_files build/pthreadVC1.lib
+    empty_files include/win32_*.h
+    empty_files build/dirent.dll
+    empty_files build/dirent.lib
+    empty_files src/main/minigui-win32.c
+    empty_files src/newgal/commlcd/win_generic.c
+fi
+
+if [ "$PACK_OS_DARWIN" = "n" ]; then
+    echo "Empty the files specific OpenDarwin..."
+    if [ "$PACK_OS_UCLINUX" = "n" ]; then
+        empty_files src/libc/sysvipc_*.[ch]
+        empty_files build/buildlib-opendarwin
+    fi
+fi
+
+if [ "$PACK_OS_THREADX" = "n" ]; then
+    echo "Empty the files specific ThreadX..."
+    empty_files include/threadx_*.h include/threadx_*.c
+    empty_files src/libc/threadx_*.h src/libc/threadx_*.c
+    empty_files build/config-threadx-*.h
+    empty_files build/minigui_ads_prj_threadx.tar.gz
+fi
+
+if [ "$PACK_OS_NUCLEUS" = "n" ]; then
+    echo "Empty the files specific Nucleus..."
+    empty_files include/nucleus_*.h
+    empty_files src/libc/nucleus_*.[ch]
+    empty_files build/config-nucleus-*.h
+    empty_files build/rules-*.nucleus
+    empty_files build/minigui_ads_prj_nucleus.tar.gz
+fi
+
+if [ "$PACK_OS_OSE" = "n" ]; then
+    echo "Empty the files specific OSE..."
+    empty_files include/ose_*.h
+    empty_files src/libc/ose_*.[ch]
+    empty_files build/config-ose-*.h
+    empty_files build/rules*.ose
+    empty_files src/newgal/commlcd/ose_mx21.c
+fi
+
+if [ "$PACK_OS_PSOS" = "n" ]; then
+    echo "Empty the files specific pSOS..."
+    empty_files include/psos_*.h
+    empty_files src/libc/psos_*.[ch]
+    empty_files build/config-psos-*.h
+    empty_files build/rules*.psos
+fi
+
+if [ "$PACK_OWN_MALLOC" = "n" ]; then
+    echo "Empty the files specific own implementation of malloc..."
+    empty_files include/own_malloc.h
+    empty_files src/libc/malloc.c
+fi
+
+if [ "$PACK_OWN_STDIO" = "n" ]; then
+    echo "Empty the files specific own implementation of stdio functions..."
+    empty_files include/own_stdio.h
+    empty_files src/libc/defdev.c src/libc/stdioinlines.c
+    empty_files src/libc/fnprintf.c src/libc/fprintf.c src/libc/printf.c src/libc/vfnprintf.c src/libc/ieeefp.h
+    empty_files src/libc/snprintf.c src/libc/sprintf.c src/libc/vsnprintf.c src/libc/vfscanf.c 
+    empty_files src/libc/vsscanf.c src/libc/fscanf.c src/libc/sscanf.c src/libc/scanf.c
+fi
+
+if [ "$CONFIG_NEWGAL_DUMMY" = "n" ]; then
+    echo "Empty the files specific implementation of dummy NEWGAL engine..."
+    empty_files src/newgal/dummy/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_FBCON" = "n" ]; then
+    echo "Empty the files specific implementation of fbcon NEWGAL engine..."
+    empty_files src/newgal/fbcon/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_QVFB" = "n" ]; then
+    echo "Empty the files specific implementation of qvfb NEWGAL engine..."
+    empty_files src/newgal/qvfb/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_WVFB" = "n" ]; then
+    echo "Empty the files specific wvfb NEWGAL engine..."
+    empty_files src/newgal/wvfb/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_COMMONLCD" = "n" ]; then
+    echo "Empty the files specific CommonLCD NEWGAL engine..."
+    empty_files src/newgal/commlcd/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_SHADOW" = "n" ]; then
+    echo "Empty the files specific Shadow NEWGAL engine..."
+    empty_files src/newgal/shadow/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_MLSHADOW" = "n" ]; then
+    echo "Empty the files specific MLShadow NEWGAL engine..."
+    empty_files src/newgal/mlshadow/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_EM85XXYUV" = "n" ]; then
+    echo "Empty the files specific em85xxyuv NEWGAL engine..."
+    empty_files src/newgal/em85xxyuv/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_EM85XXOSD" = "n" ]; then
+    echo "Empty the files specific em85xxosd NEWGAL engine..."
+    empty_files src/newgal/em85xxosd/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_SVPXXOSD" = "n" ]; then
+    echo "Empty the files specific svpxxosd NEWGAL engine..."
+    empty_files src/newgal/svpxxosd/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_BF533" = "n" ]; then
+    echo "Empty the files specific bf533 NEWGAL engine..."
+    empty_files src/newgal/bf533/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_MB93493" = "n" ]; then
+    echo "Empty the files specific mb93493 NEWGAL engine..."
+    empty_files src/newgal/mb93493/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_UTPMC" = "n" ]; then
+    echo "Empty the files specific utpmc NEWGAL engine..."
+    empty_files src/newgal/utpmc/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_DFB" = "n" ]; then
+    echo "Empty the files specific DirectFB NEWGAL engine..."
+    empty_files src/newgal/dfb/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_EM86GFX" = "n" ]; then
+    echo "Empty the files specific EM86xx GFX NEWGAL engine..."
+    empty_files src/newgal/em86gfx/*.[ch]
+fi
+
+if [ "$CONFIG_NEWGAL_HI35XX" = "n" ]; then
+    echo "Empty the files specific HI35xx NEWGAL engine..."
+    empty_files src/newgal/hisi/*.[ch]
+fi
+
+if [ "$CONFIG_IAL_DUMMY" = "n" ]; then
+    echo "Empty the files specific implementation of dummy IAL engine..."
+fi
+
+if [ "$CONFIG_IAL_AUTO" = "n" ]; then
+    echo "Empty the files specific implementation of auto IAL engine..."
+fi
+
+if [ "$CONFIG_IAL_NATIVE" = "n" ]; then
+    echo "Empty the files specific implementation of Linux native IAL engine..."
+fi
+
+if [ "$CONFIG_IAL_IPAQ" = "n" ]; then
+    echo "Empty the files specific ipaq IAL engine..."
+    empty_files src/ial/ipaq.c src/ial/ipaq.h
+fi
+
+if [ "$CONFIG_IAL_COMMON" = "n" ]; then
+    echo "Empty the files specific common IAL engine..."
+    empty_files src/ial/comminput.c src/ial/comminput.h
+fi
+
+echo "Making the tarball..."
+tar czf ${DEST_DIR}-${PACK_POSTFIX}.tar.gz ${DEST_DIR}-${PACK_POSTFIX}
+
+echo "Done."
+exit 0
+

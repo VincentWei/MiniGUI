@@ -1,0 +1,271 @@
+            MiniGUI Development Package for Linux 
+
+Copyright (C) 2005 BEIJING FEYNMAN SOFTWARE TECHNOLOGY CO., LTD.
+
+What's This
+===========
+
+    This is a pre-compiled MiniGUI for Linux on i386 platform.
+    It is based on MiniGUI 1.6.2, and compiled on Red Hat Linux 9
+    with gcc 3.2.2 and glibc 2.3.2.
+
+    You can develope MiniGUI programs by using this development package. 
+
+
+Features Included in this MiniGUI Development Package
+=====================================================
+
+    MiniGUI of this package:
+
+    * is configured as MiniGUI-Threads.
+    * is configured to use incore resource.
+    * is configured to use PC3D window style.
+    * includes two NEWGAL engines: fbcon and qvfb.
+    * includes two IAL engines: console and qvfb.
+    * provides support for the following charsets:
+
+        o ISO8859-1 ~ ISO8859-15
+        o GB2312
+        o ShiftJIS
+
+    * includes the following device fonts:
+
+        o rbf-fixed-rrncnn-6-12-ISO8859-1
+        o rbf-fixed-rrncnn-12-12-GB2312.1980-0
+        o rbf-fixed-rrncnn-8-16-ISO8859-1
+        o rbf-fixed-rrncnn-16-16-GB2312.1980-0
+        o rbf-fixed-rrncnn-12-24-ISO8859-1
+        o rbf-fixed-rrncnn-24-24-GB2312.1980-0
+
+        o rbf-fixed-rrncnn-6-12-JISX0201-1
+        o rbf-fixed-rrncnn-7-14-JISX0201-1
+        o rbf-fixed-rrncnn-8-16-JISX0201-1
+
+        o rbf-gothic-rrncnn-12-12-JISX0208-1
+        o rbf-gothic-rrncnn-14-14-JISX0208-1
+        o rbf-gothic-rrncnn-16-16-JISX0208-1
+
+        o vbf-SansSerif-rrncnn-11-13-ISO8859-1
+        o vbf-Courier-rrncnn-8-13-ISO8859-1
+        o vbf-Symbol-rrncnn-13-14-ISO8859-1
+        o vbf-VGAROM-rrncnn-8-8-ISO8859-1
+        o vbf-Terminal-rrncnn-8-12-ISO8859-1
+        o vbf-System-rrncnn-14-16-ISO8859-1
+        o vbf-Fixed-rrncnn-8-15-ISO8859-1
+        o vbf-Helvetica-rrncnn-15-16-ISO8859-1
+        o vbf-Helvetica-rrncnn-18-21-ISO8859-1
+        o vbf-Helvetica-rrncnn-24-27-ISO8859-1
+
+     * creates three system logical fonts:
+
+        o rbf-fixed-12-ISO8859-1
+        o *-fixed-12-GB2312
+        o *-Helvetica-12-GB2312
+
+     * provides support for the following image file types:
+
+        o Windows BMP
+        o GIF
+        o JPG and PNG (through libjpeg and libpng respectively)
+
+     * includes the basic controls:
+
+        o Static
+        o Button
+        o Simple edit box
+        o Single-line edit box
+        o Multiple-line edit box
+        o ListBox
+        o ComboBox
+        o ProgressBar
+        o New toolbar
+        o MenuButton
+        o TrackBar
+        o PropertySheet
+        o ScrollView
+
+     * includes the advanced controls in MiniGUI extension library:
+
+        o ListView
+        o TreeView
+        o MonthCalendar
+        o SpinBox
+        o CoolBar
+        o Animation (and GIF89a supported)
+        o GridView
+        o IconView
+
+     * includes the SKIN APIs in MiniGUI extension library.
+
+     * includes the library of vcongui.
+
+
+Installation
+============
+
+    On your Linux PC box, as the super user, run the following command:
+
+        # rpm -ivh minigui-dev-1.6.2-1.i386.rpm
+
+    This command will install the header files of MiniGUI to:
+
+        /usr/include/minigui
+
+    and install the library files of MiniGUI to:
+
+        /usr/lib
+
+    The library files will be installed are:
+
+        libminigui-1.6.so.2.0.0
+        libminigui-1.6.so.2 (symbol link to libminigui-1.6.so.2.0.0)
+        libminigui.so (symbol link to libminigui-1.6.so.2)
+        libminigui.a
+        libminigui.la
+        libmgext-1.6.so.2.0.0
+        libmgext-1.6.so.2 (symbol link to libmgext-1.6.so.2.0.0)
+        libmgext.so (symbol link to libmgext-1.6.so.2)
+        libmgext.a
+        libmgext.la
+        libvcongui-1.6.so.2.0.0
+        libvcongui-1.6.so.2 (symbol link to libvcongui-1.6.so.2.0.0)
+        libvcongui.so (symbol link to libvcongui-1.6.so.2)
+        libvcongui.a
+        libvcongui.la
+
+    The run-time configuration file of MiniGUI (MiniGUI.cfg) will be 
+    installed to /usr/etc/. Because MiniGUI of this package configured
+    to use incore resource, this file won't be used, just for your reference.
+
+
+Usage
+=====
+
+    MiniGUI uses incore resources. The default configuration is:
+
+        GAL engine: qvfb
+        IAL engine: qvfb
+        Display Mode: 640x480-16bpp
+    
+    You can use shell environment varibles to overload the default configuration. 
+    If you want to run MiniGUI programs on Linux FrameBuffer console, you can 
+    specify the following environment varibles:
+
+        $ export MG_GAL_ENGINE=fbcon
+        $ export defaultmode=1024x768-16bpp
+        $ export ial_engine=console
+        $ export mdev=/dev/mouse    ; specify the mouse device
+        $ export mtype=IMPS2        ; specify the mouse protocol, using 'none'
+                                    ; if mouse is not present.
+    
+    If you want to run MiniGUI programs on qvfb but with a different display mode,
+    you can specify the following environment varibles:
+
+        $ export MG_GAL_ENGINE=qvfb
+        $ export defaultmode=320x240-16bpp
+        $ export ial_engine=qvfb
+
+    After installing the RPM package, you can compile and run MiniGUI programs.
+
+    1. Run helloword program of MiniGUI
+
+        $ gcc -o helloworld helloworld.c -lminigui -lpthread -lpng -ljpeg
+        $ ./helloworld
+
+        If you want to run helloworld in qvfb, you can use the following command:        
+
+        $ gal_engine=qvfb defaultmode=320x240-16bpp ial_engine=qvfb ./helloworld
+
+        If you want to run helloworld in Linux FrameBuffer console,
+        you can use the following command:        
+
+        $ gal_engine=fbcon defaultmode=800x600-16bpp \
+         ial_engine=console mdev=/dev/psaux mtype=IMPS2 ./helloworld
+
+    2. Run mde of MiniGUI
+    
+        You should download mde-1.6.x.tar.gz from our web site:
+
+        http://www.fmsoft.cn/download/index.shtml.
+
+        Before running mde, you should extract the tarball and compile it: 
+
+        1) Extract the tarball to a new directory by using `tar' command.
+
+        2) Run `./configure' and `make' to compile the mde. 
+
+        $ ./configure
+        $ make
+
+        3) Try to run mde. As an example, you can go to `mde-1.6.x/same/' to run `same':
+
+        $ cd same
+        $ ./same
+
+
+Related Resources
+=================
+
+    The documents and samples source code of MiniGUI can be downloaded 
+    from our web site (http://www.fmsoft.cn/download/index.shtml):
+
+    * MiniGUI User Manual
+    * MiniGUI Programming Guide
+    * MiniGUI API Reference Manual 
+      (the online edition: http://www.fmsoft.cn/api_ref/index.html)
+
+    * mg-samples-1.6.x.tar.gz: The samples package.
+    * mde-1.6.x.tar.gz: The MiniGUI demostration package.
+    * qvfb-1.0.tar.gz: The QT Virtual FrameBuffer package.
+
+License
+=======
+
+    Copyright (C) 2002~2005, Beijing Feynman Software Technology Co., Ltd.
+
+    The license is fit for MiniGUI Development Package (the Software) released
+    by Beijing Feynman Software Technology Co., Ltd. (Feynman Software).
+
+    The Software is released in binary format, including programs, libraries 
+    used by programs running on certain OS.
+
+    Feynman Software just authorizes you to demonstrate and test The Software. 
+    Other rights about The Software are all reserved. The indirect and direct 
+    commercial use of The Software are strictly prohibited.
+
+    All the programs, libraries and recourses included in this software 
+    are the portions of the software, and their copyright belongs to Feynman Software 
+    and the third party technology provider. You can not separate the programs, 
+    libraries and resources from the Software.
+
+    Feynman Software forbids users to adopt the reverse project technologies 
+    (reverse compiling, debugging) to the binary system programs and libraries.
+
+    The software just used in evaluation, Feynman Software does not provide 
+    any guarantee for it.
+
+
+===============================================================================
+
+
+BEIJING FEYNMAN SOFTWARE TECHNOLOGY CO., LTD.
+
+Web:
+    http://www.fmsoft.cn
+    http://www.minigui.com
+
+Address:
+    Room 501, Building D, The Westing House Apartment,
+    Number 12, Suzhou Street, Haidian District, Beijing, China 
+Zip Code: 100080
+
+Tel: 86-10-82873666/82873999
+Fax: 86-10-82873666/82873999/-88
+
+Tech Consultation: support@minigui.com
+Product Sales: sales@minigui.com
+Marketing: info@minigui.com
+Human Resource: hr@minigui.com
+
+==== The end ====
+

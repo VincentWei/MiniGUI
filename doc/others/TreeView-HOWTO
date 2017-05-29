@@ -1,0 +1,42 @@
+		        TreeView 控件之使用方法
+
+                                    作者: 郑怡然
+
+    Treeview 控件的风格和使用与Win32 SDK中的Treeview控件相似。
+
+    控件消息基本和Win32 SDK一样。控件数据结构,控件风格和消息定义见treeview.h中的注释。
+针对Treeview控件的操作函数很丰富，参见treeview.c中的注释，但操作接口还不完善，可以通过
+消息处理函数方便地添加。
+        
+
+一 窗口风格
+
+#define TVS_NOTIFY		当前选中条目改变时通知父窗口；
+#define TVS_WITHICON		是否有图标；
+#define TVS_ICONFORSELECT	图标用于表示是否选中还是表示是否已展开子项；
+#define TVS_FOCUS		是否获得焦点，控件自身使用，用户不要设置；
+#define TVS_SORT		是否需要排序。
+
+二 消息处理
+
+TVM_ADDITEM			增加条目（即节点），parent为插入节点的父节点，若parent为NULL，
+TVM_INSERTITEM			则插入节点的父节点是Root，pTVItemInfo指向插入节点内容；
+	wParam = (WPARAM) parent;		参数应是PTVITEM类型； 
+    	lParam = (LPARAM) pTVItemInfo; 		参数应是PTVITEMINFO类型；
+TVM_GETROOT			返回TreeView控件的根节点指针；			
+	wParam = 0; 
+	lParam = 0; 
+TVM_DELTREE			删除当前选中的节点及其所有子树，若当前选中节点是Root时，取消操作；
+	wParam = 0; 
+	lParam = 0; 
+TVM_FINDITEM			根据节点内容查找并返回节点指针，找不到则返回NULL；
+	wParam = 0;
+	lParam = (LPARAM) buffer; 		参数应是字符串指针 
+TVM_GETSELITEM			返回当前选中的节点指针,通过wParam参数返回；
+	wParam = (WPARAM) pItemSelected; 
+	lParam = 0; 
+TVM_CHANGESELTEXT		改变当前选中的节点的内容；
+	wParam = 0; 
+	lParam = (LPARAM) buffer; 		参数应是字符串指针; 
+	
+

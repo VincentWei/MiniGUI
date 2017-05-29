@@ -1,0 +1,21 @@
+abs_top_srcdir=../..
+
+SRC_FILES=          \
+    RLEaccel.c      \
+    blit.c          \
+    blit_0.c        \
+    blit_1.c        \
+    blit_A.c        \
+    blit_N.c        \
+    pixels.c        \
+    surface.c       \
+    stretch.c       \
+    video.c         \
+    newgal.c
+
+LIB_NAME=libnewgal
+
+INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
+
+include ../../rules.make
+

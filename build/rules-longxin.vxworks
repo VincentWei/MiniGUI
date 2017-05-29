@@ -1,0 +1,31 @@
+# rules for pc-vxworks 
+TARGET_OS=vxworks
+#FT1_INC_DIR=
+#FT2_INC_DIR=
+
+AS=
+CC=ccmips
+CXX=c++mips
+CPP=ccmips
+AR=armips
+RANLIB=ranlibmips
+MAKE=/usr/bin/make
+
+ARFLAGS=crus
+COFLAG=-c
+
+OBJ=o
+LIBA=a
+
+PREFIX=c:/cross/mipse
+#vxworks6.0
+#TARGET_DIR=C:/WindRiver/vxworks-6.0/target
+
+#vxworks5.5.1
+TARGET_DIR=D:/mipse/Tornado2.2/target
+
+INCS+=-I${TARGET_DIR}/h 
+
+#CFLAGS+=-g -mips3  -EL -D__LITTLE_ENDIAN__  -Wall -DTOOL_FAMILY=gnu -DTOOL=gnu -D_WRS_KERNEL -DMIPSEL -DCPU=MIPS64 
+
+CFLAGS+=-g -G 0 -mno-branch-likely -mips3 -EL -D__LITTLE_ENDIAN__ -fno-builtin -DMIPSEL -D__mips__ -D__MIPSEL__ -DCPU=MIPS64 -DTOOL_FAMILY=gnu -DTOOL=gnule

@@ -1,0 +1,40 @@
+Summary:MiniGUI Development Package for Linux
+Name:minigui-dev
+Version:1.6.2
+Release:1
+Vendor:Feynman Software
+Copyright:Share
+Group:Development/Libraries
+Source:libminigui-1.6.2.tar.gz
+BuildRoot:/var/tmp/minigui-build 
+
+#%define buildroot  /var/tmp/minigui-build
+
+%description
+ This is a MiniGUI Development Package for Linux, including header files and shared objects;
+
+%prep
+# prep start.
+#./configure --prefix=$RPM_BUILD_ROOT/usr/ --enable-incoreres 
+./build/buildlib-pc-rpm
+
+%build
+# build start.
+make
+
+%install
+# install start.
+rm -rf $RPM_BUILD_ROOT
+make install
+
+#%clean
+#rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)
+/usr/lib/
+/usr/include/minigui
+/usr/etc/
+
+
+%changelog

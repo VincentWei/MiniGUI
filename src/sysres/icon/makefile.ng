@@ -1,0 +1,25 @@
+
+abs_top_srcdir=../../..
+
+include Makefile.am
+SRC_FILES=	excalmatory-flat.ico.c \
+		folder.ico.c \
+				help-flat.ico.c \
+				warning-flat.ico.c \
+				excalmatory.ico.c \
+				fold-flat.ico.c \
+				help.ico.c \
+				textfile-flat.ico.c \
+				warning.ico.c \
+				failed-flat.ico.c \
+				fold.ico.c \
+				textfile.ico.c \
+				failed.ico.c \
+				form-flat.ico.c \
+				unfold-flat.ico.c \
+				folder-flat.ico.c \
+				form.ico.c \
+				unfold.ico.c
+
+include ../../../rules.make
+

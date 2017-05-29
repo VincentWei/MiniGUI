@@ -1,0 +1,628 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>
+<meta name="KEYWORDS" content="MiniGUI Embedded Linux Programming Guide"/>
+</head>
+
+<body bgcolor="#ffffff" marginheight="2" marginwidth="2" topmargin="2" leftmargin="2">
+<p><strong class="title">基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南（六）</strong><br>
+<strong class="subtitle">MiniGUI 提供的非 GUI/GDI 接口</strong>
+
+<p><a href="#author1">魏永明</a> (<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>)<br />
+自由撰稿人<br />
+2001 年 11 月</p>
+
+<!-- Start TOC -->
+
+<table width="150" border="0" cellspacing="0" cellpadding="3" align="right">
+	<tr><td><a href=#1>1 引言</a></td></tr>
+	<tr><td><a href=#2>2 MiniGUI-Lite 和 select 系统调用</a></td></tr>
+	<tr><td><a href=#3>3 MiniGUI-Lite 与进程间通讯</a></td></tr>
+	<tr><td><a href=#4>4 编写可移植代码</a></td></tr>
+	<tr><td><a href=#5>5 其他</a></td></tr>
+	<tr><td><a href=#6>6 小结</a></td></tr>
+	<tr><td><a href=#author1>关于作者</a></td></tr>
+</table>
+
+<em>本文讲述了 MiniGUI 为应用程序提供的非 GUI/GDI 接口，这些接口能够帮助应用程序更好地和操作系统交互，扩展应用程序功能，并提高应用程序的可移植性。内容主要涉及到如下几个方面：MiniGUI-Lite 和 select 系统调用；基于 UNIX Domain Socket 的进程间通讯；编写可移植性代码等。</em>
+
+<p><a name="1"><span class="atitle2">1  引言</span></a>
+<br />一般而言，GUI 系统的应用程序编程接口主要集中于窗口、消息队列、图形设备等相关方面。但因为 GUI 系统在处理系统事件时通常会提供自己的机制，而这些机制往往会和操作系统本身提供的机制不相兼容。比如，MiniGUI 提供了消息循环机制，而应用程序的结构一般是消息驱动的；也就是说，应用程序通过被动接收消息来工作。但很多情况下，应用程序需要主动监视某个系统事件，比如在 UNIX 操作系统中，可以通过 select 系统调用监听某个文件描述符上是否有可读数据。这样，如何将 MiniGUI 的消息队列机制和现有操作系统的其他机制融合在一起，就成了一个较为困难的问题。本文将讲述几种解决这一问题的方法。</p>
+<p>我们知道，MiniGUI-Lite 采用 UNIX Domain Socket 实现客户程序和服务器程序之间的交互。应用程序也可以利用这一机制，完成自己的通讯任务――客户向服务器提交请求，而服务器完成对客户的请求处理并应答。一方面，在 MiniGUI-Lite 的服务器程序中，你可以扩展这一机制，注册自己的请求处理函数，完成定制的请求/响应通讯任务。另一方面，MiniGUI-Lite 当中也提供了若干用来创建和操作 UNIX Domain Socket 的函数，任何 MiniGUI-Lite 的应用程序都可以建立 UNIX Domain Socket，并完成和其他 MiniGUI-Lite 应用程序之间的数据交换。本文将举例讲述如何利用 MiniGUI-Lite 提供的函数完成此类通讯任务。</p>
+<p>嵌入式 Linux 系统现在能够在许多不同架构的硬件平台上运行，MiniGUI 也能够在这些硬件平台上运行。但由于许多硬件平台具有和其他硬件平台不同的特性，比如说，常见的 CPU 是 Little Endian 的，而某些 CPU 则是 Big Endian 的。这要求我们在编写代码，尤其是文件 I/O 相关代码时，必须编写可移植代码，以便适合具有不同架构的平台。本文将描述 MiniGUI 为应用程序提供的可移植性函数及其用法。</p>
+<p>除了与上述内容相关的函数之外，MiniGUI 还提供了其他一些函数，本文最后部分将描述这些函数的用途和用法，包括配置文件读写以及定点数运算。</p>
+
+
+<p><a name="2"><span class="atitle2">2  MiniGUI-Lite和 select 系统调用</span></a>
+<br />我们知道，在 MiniGUI-Lite 之上运行的应用程序只有一个消息队列。应用程序在初始化之后，会建立一个消息循环，然后不停地从这个消息队列当中获得消息并处理，直到接收到 MSG_QUIT 消息为止。应用程序的窗口过程在处理消息时，要在处理完消息之后立即返回，以便有机会获得其他的消息并处理。现在，如果应用程序在处理某个消息时监听某个文件描述符而调用 select 系统调用，就有可能会出现问题――因为 select 系统调用可能会长时间阻塞，而由 MiniGUI-Lite 服务器发送给客户的事件得不到及时处理。这样，消息驱动的方式和 select 系统调用就难于很好地融合。在 MiniGUI-Threads 中，因为每个线程都有自己相应的消息队列，而系统消息队列是由单独运行的 desktop 线程管理的，所以任何一个应用程序建立的线程都可以长时间阻塞，从而可以调用类似 select 的系统调用。但在 MiniGUI-Lite 当中，如果要监听某个应用程序自己的文件描述符事件，必须进行恰当的处理，以避免长时间阻塞。</p>
+<p>在 MiniGUI-Lite 当中，有几种解决这一问题的办法：
+<ol class=n01>
+<li>在调用 select 系统调用时，传递超时值，保证 select 系统调用不会长时间阻塞。</li>
+<li>设置定时器，定时器到期时，利用 select 系统调用查看被监听的文件描述符。如果没有相应的事件发生，则立即返回，否则进行读写操作。</li>
+<li>利用 MiniGUI-Lite 提供的 RegisterListenFD 函数在系统中注册监听文件描述符，并在被监听的文件描述符上发生指定的事件时，向某个窗口发送 MSG_FDEVENT 消息。</li></ol></p>
+<p>由于前两种解决方法比较简单，这里我们重点讲述的第三种解决办法。MiniGUI-Lite 为应用程序提供了如下两个函数及一个宏：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#define MAX_NR_LISTEN_FD   5
+
+/* Return TRUE if all OK, and FALSE on error. */
+BOOL GUIAPI RegisterListenFD (int fd, int type, HWND hwnd, void* context);
+
+/* Return TRUE if all OK, and FALSE on error. */
+BOOL GUIAPI UnregisterListenFD (int fd);
+</code></pre></td></tr></table></p>
+<p><ul class=n01>
+<li>MAX_NR_LISTEN_FD 宏定义了系统能够监听的最多文件描述符数，默认定义为 5。
+<li>RegisterListenFD 函数在系统当中注册一个需要监听的文件描述符，并指定监听的事件类型（type 参数，可取 POLLIN、POLLOUT 或者 POLLERR），接收 MSG_FDEVENT 消息的窗口句柄以及一个上下文信息。
+<li>UnregisterListenFD 函数注销一个被注册的监听文件描述符。</ul></p>
+<p>在应用程序使用RegisterListenFD 函数注册了被监听的文件描述符之后，当指定的事件发生在该文件描述符上时，系统会将 MSG_FDEVENT 消息发送到指定的窗口，应用程序可在窗口过程中接收该消息并处理。MiniGUI 中的 libvcongui 就利用了上述函数监听来自主控伪终端上的可读事件，如下面的程序段所示（vcongui/vcongui.c）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+    ...
+
+    /* 注册主控伪终端伪监听文件描述符 */
+    RegisterListenFD (pConInfo->masterPty, POLLIN, hMainWnd, 0);
+
+    /* 进入消息循环 */
+    while (!pConInfo->terminate && GetMessage (&Msg, hMainWnd)) {
+        DispatchMessage (&Msg);
+    }
+    /* 注销监听文件描述符 */
+    UnregisterListenFD (pConInfo->masterPty);
+
+    ...
+
+/* 虚拟控制台的窗口过程 */
+static int VCOnGUIMainWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+{
+    PCONINFO pConInfo;
+
+    pConInfo = (PCONINFO)GetWindowAdditionalData (hWnd);
+    switch (message) {
+
+         ...
+
+       /* 接收到 MSG_FDEVENT 消息，则处理主控伪终端上的输入数据 */
+        case MSG_FDEVENT:
+            ReadMasterPty (pConInfo);
+        break;
+
+        ...
+    }
+
+    /* 调用默认窗口过程 */
+    if (pConInfo->DefWinProc)
+        return (*pConInfo->DefWinProc)(hWnd, message, wParam, lParam);
+    else
+        return DefaultMainWinProc (hWnd, message, wParam, lParam);
+}</code></pre></td></tr></table>
+在 3.2 节当中，我们还可以看到RegisterListenFD 函数的使用。显然，通过这种简单的注册监听文件描述符的接口，MiniGUI-Lite 程序能够方便地利用底层的消息机制完成对异步事件的处理。</p>
+
+<p><a name="3"><span class="atitle2">3  MiniGUI-Lite 与进程间通讯</span></a></p>
+<p><span class="atitle3">3.1  简单请求/应答处理</span>
+<br />我们知道，MiniGUI-Lite 利用了 UNIX Domain Socket 实现服务器和客户程序之间的通讯。为了实现客户和服务器之间的简单方便的通讯，MiniGUI-Lite 中定义了一种简单的请求/响应结构。客户程序通过指定的结构将请求发送到服务器，服务器处理请求并应答。在客户端，一个请求定义如下（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+typedef struct tagREQUEST {
+    int id;
+    const void* data;
+    size_t len_data;
+} REQUEST;
+typedef REQUEST* PREQUEST;
+</code></pre></td></tr></table></p>
+<p>其中，id 是用来标识请求类型的整型数，data 是发送给该请求的关联数据，len_data 则是数据的长度。客户在初始化 REQUEST 结构之后，就可以调用 cli_request 向服务器发送请求，并等待服务器的应答。该函数的原型如下。
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+/* send a request to server and wait reply */
+int cli_request (PREQUEST request, void* result, int len_rslt);
+</code></pre></td></tr></table></p>
+<p>服务器程序（即 mginit）会在自己的消息循环当中获得来自客户的请求，并进行处理，最终会将处理结果发送给客户。</p>
+<p>在上述这种简单的客户/服务器通讯中，客户和服务器必须就每个请求类型达成一致，也就是说，客户和服务器必须了解每种类型请求的数据含义并进行恰当的处理。</p>
+<p>MiniGUI-Lite 利用上述这种简单的通讯方法，实现了若干系统级的通讯任务：
+<ul class=n01>
+<li>鼠标光标的管理。鼠标光标是一个全局资源，当客户需要创建或者销毁鼠标光标，改变鼠标光标的形状、位置，显示或者隐藏鼠标时，就发送请求到服务器，服务器程序完成相应任务并将结果发送给客户。
+<li>层及活动客户管理。当客户查询层的信息，新建层，加入某个已有层，或者设置层中的活动客户时，通过该接口发送请求到服务器。
+<li>其他一些系统级的任务。比如在新的 GDI 接口中，服务器程序统一管理显示卡中可能用来建立内存 DC 的显示内存，当客户要申请建立在显示内存中的内存 DC 时，就会发送请求到服务器。
+</ul></p>
+<p>为了让应用程序也能够通过这种简单的方式实现客户和服务器之间的通讯，服务器程序可以注册一些定制的请求处理函数，然后客户就可以向服务器发送这些请求。为此，MiniGUI-Lite 提供了如下接口：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#define MAX_SYS_REQID           0x0010
+#define MAX_REQID               0x0018
+
+/* 
+ * Register user defined request handlers for server
+ * Note that user defined request id should larger than MAX_SYS_REQID
+ */
+typedef int (* REQ_HANDLER) (int cli, int clifd, void* buff, size_t len);
+BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler);
+REQ_HANDLER GUIAPI GetRequestHandler (int req_id);
+</code></pre></td></tr></table></p>
+<p>服务器可以通过调用RegisterRequestHandler 函数注册一些请求处理函数。注意请求处理函数的原型由REQ_HANDLER 定义。还要注意系统定义了MAX_SYS_REQID 和 MAX_REQID 这两个宏。MAX_REQID 是能够注册的最大请求 ID 号，而 MAX_SYS_REQID 是系统内部使用的最大的请求 ID 号，也就是说，通过RegisterRequestHandler 注册的请求 ID 号，必须大于 MAX_SYS_REQID 而小于或等于 MAX_REQID。</p>
+<p>作为示例，我们假设服务器替客户计算两个整数的和。客户发送两个整数给服务器，而服务器将两个整数的和发送给客户。下面的程序段在服务器程序中运行，在系统中注册了一个请求处理函数：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+typedef struct TEST_REQ
+{
+   int a, b;
+} TEST_REQ;
+
+static int send_reply (int clifd, void* reply, int len)
+{
+    MSG reply_msg = {HWND_INVALID, 0};
+
+    /* 发送一个空消息接口给客户，以便说明这是一个请求的应答 */
+    if (sock_write (clifd, &reply_msg, sizeof (MSG)) < 0)
+        return SOCKERR_IO;
+
+    /* 将结果发送给客户 */
+    if (sock_write (clifd, reply, len) < 0)
+        return SOCKERR_IO;
+
+    return SOCKERR_OK;
+}
+
+static int test_request (int cli, int clifd, void* buff, size_t len)
+{
+    int ret_value = 0;
+    TEST_REQ* test_req = (TEST_REQ*)buff;
+
+    ret_value = test_req.a + test_req.b;
+
+    return send_reply (clifd, &ret_value, sizeof (int));
+}
+
+...
+     RegisterRequestHandler (MAX_SYS_REQID + 1, test_request);
+...</code></pre></td></tr></table></p>
+<p>而客户程序可以通过如下的程序段向客户发送一个请求获得两个整数的和：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+        REQUEST req;
+        TEST_REQ test_req = {5, 10};
+        int ret_value;
+
+        req.id = MAX_SYS_REQID + 1;
+        req.data = &rest_req;
+        req.len_data = sizeof (TEST_REQ);
+
+        cli_request (&req, &ret_value, sizeof (int));
+        printf ("the returned value: %d\n", ret_value);    /* ret_value 的值应该是 15 */
+</code></pre></td></tr></table></p>
+<p>读者已经看到，通过这种简单的请求/应答技术，MiniGUI-Lite 客户程序和服务器程序之间可以建立一种非常方便的进程间通讯机制。但这种技术也有一些缺点，比如受到 MAX_REQID 大小的影响，通讯机制并不是非常灵活，而且请求只能发送给MiniGUI-Lite 的服务器程序（即 mginit）处理等等。</p>
+
+<p><span class="atitle3">3.2  复杂的 UNIX Domain Socket 封装</span>
+<br />为了解决上述简单请求/应答机制的不足，MiniGUI-Lite 也提供了经过封装的 UNIX Domain Socket 处理函数。这些函数的接口原型如下（include/minigui.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+/* Used by server to create a listen socket.
+ * Name is the name of listen socket.
+ * Please located the socket in /var/tmp directory. */
+
+/* Returns fd if all OK, -1 on error. */
+int serv_listen (const char* name);
+
+/* Wait for a client connection to arrive, and accept it.
+ * We also obtain the client's pid and user ID from the pathname
+ * that it must bind before calling us. */
+
+/* returns new fd if all OK, < 0 on error */
+int serv_accept (int listenfd, pid_t *pidptr, uid_t *uidptr);
+
+/* Used by clients to connect to a server.
+ * Name is the name of the listen socket.
+ * The created socket will located at the directory /var/tmp,
+ * and with name of '/var/tmp/xxxxx-c', where 'xxxxx' is the pid of client.
+ * and 'c' is a character to distinguish diferent projects.
+ * MiniGUI use 'a' as the project character.
+ */
+
+/* Returns fd if all OK, -1 on error. */
+int cli_conn (const char* name, char project);
+
+#define SOCKERR_IO          -1
+#define SOCKERR_CLOSED      -2
+#define SOCKERR_INVARG      -3
+#define SOCKERR_OK          0
+
+/* UNIX domain socket I/O functions. */
+
+/* Returns SOCKERR_OK if all OK, < 0 on error.*/
+int sock_write_t (int fd, const void* buff, int count, unsigned int timeout);
+int sock_read_t (int fd, void* buff, int count, unsigned int timeout);
+
+#define sock_write(fd, buff, count) sock_write_t(fd, buff, count, 0)
+#define sock_read(fd, buff, count) sock_read_t(fd, buff, count, 0)
+</code></pre></td></tr></table></p>
+<p>上述函数是 MiniGUI-Lite 用来建立系统内部使用的 UNIX Domain Socket 并进行数据传递的函数，是对基本套接字系统调用的封装。这些函数的功能描述如下：
+<ul class=n01>
+<li>serv_listen：服务器调用该函数建立一个监听套接字，并返回套接字文件描述符。建议将服务器监听套接字建立在 /var/tmp/ 目录下。
+<li>serv_accept：服务器调用该函数接受来自客户的连接请求。
+<li>cli_conn：客户调用该函数连接到服务器，其中 name 是客户的监听套接字。该函数为客户建立的套接字将保存在 /var/tmp/ 目录中，并且以 <pid>-c 的方式命名，其中 c 是用来区别不同套接字通讯用途的字母，由 project 参数指定。MiniGUI-Lite 内部使用了 'a'，所以由应用程序建立的套接字，应该使用除 'a' 之外的字母。
+<li>sock_write_t：在建立并连接之后，客户和服务器之间就可以使用 sock_write_t 函数和 sock_read_t 函数进行数据交换。sock_write_t 的参数和系统调用 write 类似，但可以传递进入一个超时参数，注意该参数以 10ms 为单位，为零时超时设置失效，且超时设置只在 mginit 程序中有效。
+<li>sock_read_t：sock_read_t 的参数和系统调用 read类似，但可以传递进入一个超时参数，注意该参数以 10ms 为单位，为零时超时设置失效，且超时设置只在 mginit 程序中有效。</ul></p>
+<p>下面的代码演示了作为服务器的程序如何利用上述函数建立一个监听套接字：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#define LISTEN_SOCKET    "/var/tmp/mysocket"
+
+static int listen_fd;
+
+BOOL listen_socket (HWND hwnd)
+{
+    if ((listen_fd = serv_listen (LISTEN_SOCKET)) < 0)
+        return FALSE;
+    return RegisterListenFD (fd, POLL_IN, hwnd, NULL);
+}</code></pre></td></tr></table></p>
+<p>当服务器接收到来自客户的连接请求是，服务器的 hwnd 窗口将接收到 MSG_FDEVENT 消息，这时，服务器可接受该连接请求：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+int MyWndProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message) {
+        
+        ...
+        
+        case MSG_FDEVENT:
+             if (LOWORD (wParam) == listen_fd) { /* 来自监听套接字 */
+                  pid_t pid;
+                  uid_t uid;
+                  int conn_fd;
+                  conn_fd = serv_accept (listen_fd, &pid, &uid);
+                  if (conn_fd >= 0) {
+                       RegisterListenFD (conn_fd, POLL_IN, hwnd, NULL);
+                  }
+             }
+             else { /* 来自已连接套接字 */
+                   int fd = LOWORD(wParam);
+                   /* 处理来自客户的数据 */
+                   sock_read_t (fd, ...);
+                   sock_write_t (fd, ....);
+             }
+        break;
+        
+        ...
+        
+    }
+}</code></pre></td></tr></table></p>
+<p>上面的代码中，服务器将连接得到的新文件描述符也注册为监听描述符，因此，在 MSG_FDEVENT 消息的处理中，应该判断导致 MSG_FDEVENT 消息的文件描述符类型，并做适当的处理。</p>
+<p>在客户端，当需要连接到服务器时，可通过如下代码：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+    int conn_fd;
+    
+    if ((conn_fd  = cli_conn (LISTEN_SOCKET, 'b')) >= 0) {
+        /* 向服务器发送请求 */
+        sock_write_t (fd, ....);
+        /* 获取来自服务器的处理结果 */
+        sock_read_t (fd, ....);
+    }</code></pre></td></tr></table></p>
+<p><a name="4"><span class="atitle2">4  编写可移植代码</span></a>
+<br />我们知道，许多嵌入式系统所使用的 CPU 具有和普通台式机 CPU 完全不同的构造和特点。但有了操作系统和高级语言，可以最大程度上将这些不同隐藏起来。只要利用高级语言编程，编译器和操作系统能够帮助程序员解决许多和 CPU 构造及特点相关的问题，从而节省程序开发时间，并提高程序开发效率。然而某些 CPU 特点却是应用程序开发人员所必须面对的，这其中就有如下几个需要特别注意的方面：
+<ul class=n01>
+<li>字节顺序。一般情况下，我们接触到的 CPU 在存放多字节的整数数据时，将低位字节存放在低地址单元中，比如常见的 Intel x86 系列 CPU。而某些 CPU 采用相反的字节顺序。比如在嵌入式系统中使用较为广泛的 PowerPC 就将低位字节存放在高地址单元中。前者叫 Little Endian 系统；而后者叫 Big Endian 系统。
+<li>在某些平台上的 Linux 内核，可能缺少某些高级系统调用，最常见的就是与虚拟内存机制相关的系统调用。在某些 CPU 上运行的 Linux 操作系统，因为 CPU 能力的限制，无法提供虚拟内存机制，基于虚拟内存实现的某些 IPC 机制就无法正常工作。比如在某些缺少 MMU 单元的 CPU 上，就无法提供 System V IPC 机制中的共享内存。
+</ul></p>
+<p>为了编写具有最广泛适应性的可移植代码，应用程序开发人员必须注意到这些不同，并且根据情况编写可移植代码。这里，我们将描述如何在 MiniGUI 应用程序中编写可移植代码。</p>
+<p><span class="atitle3">4.1  理解并使用 MiniGUI 的 Endian 读写函数
+</span>
+<br />为了解决上述的第一个问题，MiniGUI 提供了若干 Endian 相关的读写函数。这些函数可以划分为如下两类：
+<ul class=n01>
+<li>用来交换字节序的函数。包括ArchSwapLE16、ArchSwapBE16 等。
+<li>用来读写标准I/O 流的函数。包括MGUI_ReadLE16、MGUI_ReadBE16 等。</ul></p>
+<p>前一类用来将某个 16位、32 位或者 64 位整数从某个特定的字节序转换为系统私有（native）字节序。举例如下：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+    int fd, len_header;
+
+...
+
+    if (read (fd, &len_header, sizeof (int)) == -1)
+        goto error;
+#if MGUI_BYTEORDER == MGUI_BIG_ENDIAN
+    len_header = ArchSwap32 (len_header);	// 如果是 Big Endian 系统，则转换字节序
+#endif
+...
+</code></pre></td></tr></table></p>
+<p>在上面的程序段中，首先通过 read 系统调用从指定的文件描述符中读取一个整数值到 len_header 变量中。该文件中保存的整数值是 Little Endian 的，因此如果在 Big Endian 系统上使用这个整数值，就必须进行字节顺序交换。这里可以使用 ArchSwapLE32，将 Little Endian 的 32 位整数值转换为系统私有的字节序。也可以如上述程序段那样，只对 Big Endian 系统进行字节序转换，这时，只要利用 ArchSwap32 函数即可。</p>
+<p>MiniGUI 提供的用来转换字节序的函数（或者宏）如下：
+<ul class=n01>
+<li>ArchSwapLE16(X) 将指定的以 Little Endian 字节序存放的 16 位整数值转换为系统私有整数值。如果系统本身是 Little Endian 系统，则该函数不作任何工作，直接返回 X；如果系统本身是 Big Endian 系统，则调用 ArchSwap16 函数交换字节序。
+<li>ArchSwapLE32(X) 将指定的以 Little Endian 字节序存放的 32 位整数值转换为系统私有整数值。如果系统本身是 Little Endian 系统，则该函数不作任何工作，直接返回 X；如果系统本身是 Big Endian 系统，则调用 ArchSwap32 函数交换字节序。
+<li>ArchSwapBE16(X) 将指定的以 Big Endian 字节序存放的 16 位整数值转换为系统私有整数值。如果系统本身是 Big Endian 系统，则该函数不作任何工作，直接返回 X；如果系统本身是 Little Endian 系统，则调用 ArchSwap16 函数交换字节序。
+<li>ArchSwapBE32(X) 将指定的以 Big Endian 字节序存放的 32 位整数值转换为系统私有整数值。如果系统本身是 Big Endian 系统，则该函数不作任何工作，直接返回 X；如果系统本身是 Little Endian 系统，则调用 ArchSwap32 函数交换字节序。
+</ul></p>
+<p>MiniGUI 提供的第二类函数用来从标准 I/O 的文件对象中读写 Endian 整数值。如果要读取的文件是以 Little Endian 字节序存放的，则可以使用 MGUI_ReadLE16 和MGUI_ReadLE32 等函数读取整数值，这些函数将把读入的整数值转换为系统私有字节序，反之使用MGUI_ReadBE16 和MGUI_ReadBE32 函数。如果要写入的文件是以 Little Endian 字节序存放的，则可以使用 MGUI_WriteLE16 和MGUI_WriteLE32 等函数读取整数值，这些函数将把要写入的整数值从系统私有字节序转换为 Little Endian 字节序，然后写入文件，反之使用MGUI_WriteBE16 和MGUI_WriteBE32 函数。下面的代码段说明了上述函数的用法：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+    FILE* out;
+    int ount;
+...
+    MGUI_WriteLE32 (out, count);  // 以 Little Endian 字节序保存 count 到文件中。
+...
+</code></pre></td></tr></table></p>
+
+<p><span class="atitle3">4.2  利用条件编译编写可移植代码</span>
+<br />在涉及到可移植性问题的时候，有时我们能够方便地通过 4.1 中描述的方法进行函数封装，从而提供具有良好移植性的代码，但有时我们无法通过函数封装的方法提供可移植性代码。这时，恐怕只能使用条件编译了。下面的代码说明了如何使用条件编译的方法确保程序正常工作（该代码来自 MiniGUI src/kernel/sharedres.c）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+/* 如果系统不支持共享内存，则定义 _USE_MMAP
+#undef  _USE_MMAP 
+/* #define _USE_MMAP 1 */
+
+void *LoadSharedResource (void)
+{
+#ifndef _USE_MMAP
+    key_t shm_key;
+    void *memptr;
+    int shmid;
+#endif
+
+    /* 装载共享资源 */
+    ...
+
+#ifndef _USE_MMAP /* 获取共享内存对象 */
+    if ((shm_key = get_shm_key ()) == -1) {
+        goto error;
+    }
+    shmid = shmget (shm_key, mgSizeRes, SHM_PARAM | IPC_CREAT | IPC_EXCL); 
+    if (shmid == -1) { 
+        goto error;
+    } 
+
+    // Attach to the share memory. 
+    memptr = shmat (shmid, 0, 0);
+    if (memptr == (char*)-1) 
+        goto error;
+    else {
+        memcpy (memptr, mgSharedRes, mgSizeRes);
+        free (mgSharedRes);
+    }
+
+    if (shmctl (shmid, IPC_RMID, NULL) < 0) 
+        goto error;
+#endif
+
+    /* 打开文件 */
+    if ((lockfd = open (LOCKFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1)
+        goto error;
+
+#ifdef _USE_MMAP
+    /* 如果使用 mmap，就将共享资源写入文件 */
+    if (write (lockfd, mgSharedRes, mgSizeRes) < mgSizeRes)
+        goto error;
+    else
+    {
+        free(mgSharedRes);
+        mgSharedRes = mmap( 0, mgSizeRes, PROT_READ|PROT_WRITE, MAP_SHARED, lockfd, 0);
+    }
+#else
+    /* 否则将共享内存对象 ID 写入文件 */
+    if (write (lockfd, &shmid, sizeof (shmid)) < sizeof (shmid))
+        goto error;
+#endif
+
+    close (lockfd);
+
+#ifndef _USE_MMAP
+    mgSharedRes = memptr;
+    SHAREDRES_SHMID = shmid;
+#endif
+    SHAREDRES_SEMID = semid;
+
+    return mgSharedRes; 
+
+error:
+    perror ("LoadSharedResource"); 
+    return NULL;
+}</code></pre></td></tr></table></p>
+<p>上述程序段是 MiniGUI-Lite 服务器程序用来装载共享资源的。如果系统支持共享内存，则初始化共享内存对象，并将装载的共享资源关联到共享内存对象，然后将共享内存对象 ID 写入文件；如果系统不支持共享内存，则将初始化后的共享资源全部写入文件。在客户端，如果支持共享内存，则可以从文件中获得共享内存对象 ID，并直接关联到共享内存；如果不支持共享内存，则可以使用 mmap 系统调用，将文件映射到进程的地址空间。客户端的代码段如下：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+void* AttachSharedResource (void)
+{
+#ifndef _USE_MMAP
+    int shmid;
+#endif
+    int lockfd;
+    void* memptr;
+
+    if ((lockfd = open (LOCKFILE, O_RDONLY)) == -1)
+        goto error;
+
+#ifdef _USE_MMAP
+    /* 使用 mmap 将共享资源映射到进程地址空间 */
+    mgSizeRes = lseek (lockfd, 0, SEEK_END );
+    memptr = mmap( 0, mgSizeRes, PROT_READ, MAP_SHARED, lockfd, 0);
+#else
+    /* 否则获取共享内存对象 ID，并关联该共享内存 */
+    if (read (lockfd, &shmid, sizeof (shmid)) < sizeof (shmid))
+        goto error;
+    close (lockfd);
+
+    memptr = shmat (shmid, 0, SHM_RDONLY);
+#endif
+    if (memptr == (char*)-1) 
+        goto error;
+    return memptr;
+
+error:
+    perror ("AttachSharedResource"); 
+    return NULL;
+}</code></pre></td></tr></table></p>
+
+<p><a name="5"><span class="atitle2">5  其他</span></a></p>
+<p><span class="atitle3">5.1  读写配置文件</span>
+<br />MiniGUI 的配置文件，即 /etc/MiniGUI.cfg 文件的格式，采用了类似 Windows INI 文件的格式。这种文件格式非常简单，如下所示：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+[section-name1]
+key-name1=key-value1
+key-name2=key-value2
+
+[section-name2]
+key-name3=key-value3
+key-name4=key-value4
+</code></pre></td></tr></table></p>
+<p>这种配置文件中的参数以 section 分组，然后用 key=value 的形式指定参数及其值。应用程序也可以利用这种配置文件格式保存一些配置信息，为此，MiniGUI 提供了如下三个函数（include/minigui.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+int GUIAPI GetValueFromEtcFile (const char* pEtcFile, const char* pSection,const char* pKey, char* pValue, int iLen);
+int GUIAPI GetIntValueFromEtcFile (const char* pEtcFile, const char* pSection,const char* pKey, int* value);
+int GUIAPI SetValueToEtcFile (const char* pEtcFile, const char* pSection, const char* pKey, char* pValue);
+</code></pre></td></tr></table></p>
+<p>这三个函数的用途如下：
+<ul class="n01">
+	<li>GetValueFromEtcFile：从指定的配置文件当中获取指定的键值，键值以字符串形式返回。
+	<li>GetIntValueFromEtcFile：从指定的配置文件当中获取指定的整数型键值。该函数将获得的字符串转换为整数值返回（采用strtol 函数转换）。
+	<li>SetValueToEtcFile：该函数将给定的键值保存到指定的配置文件当中，如果配置文件不存在，则将新建配置文件。如果给定的键已存在，则将覆盖旧值。</ul></p>
+<p>假定某个配置文件记录了一些应用程序信息，并具有如下格式：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+[mginit]
+nr=8
+autostart=0
+
+[app0]
+path=../tools/
+name=vcongui
+layer=
+tip=Virtual&console&on&MiniGUI
+icon=res/konsole.gif
+
+[app1]
+path=../bomb/
+name=bomb
+layer=
+tip=Game&of&Minesweaper
+icon=res/kmines.gif
+
+[app2]
+path=../controlpanel/
+name=controlpanel
+layer=
+tip=Control&Panel
+icon=res/kcmx.gif
+</code></pre></td></tr></table></p>
+<p>其中的 [mginit] 段记录了应用程序个数（nr键），以及自动启动的应用程序索引（autostart键）。而 [appX] 段记录了每个应用程序的信息，包括该应用程序的路径、名称、图标等等。下面的代码演示了如何使用 MiniGU的配置文件函数获取这些信息（该代码段来自 mde 演示包中的 mginit 程序）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#define APP_INFO_FILE "mginit.rc"
+
+static BOOL get_app_info (void)
+{
+    int i;
+    APPITEM* item;
+
+    /* 获取应用程序个数信息 */
+    if (GetIntValueFromEtcFile (APP_INFO_FILE, "mginit", "nr", &app_info.nr_apps) != ETC_OK)
+        return FALSE;
+
+    if (app_info.nr_apps <= 0)
+        return FALSE;
+
+    /* 获取自动启动的应用程序索引 */
+    GetIntValueFromEtcFile (APP_INFO_FILE, "mginit", "autostart", &app_info.autostart);
+
+    if (app_info.autostart >= app_info.nr_apps || app_info.autostart < 0)
+        app_info.autostart = 0;
+
+    /* 分配应用程序信息结构 */
+    if ((app_info.app_items = (APPITEM*)calloc (app_info.nr_apps, sizeof (APPITEM))) == NULL) {
+        return FALSE;
+    }
+
+    /* 获取每个应用程序的路径、名称、图标等信息 */
+    item = app_info.app_items;
+    for (i = 0; i < app_info.nr_apps; i++, item++) {
+        char section [10];
+
+        sprintf (section, "app%d", i);
+        if (GetValueFromEtcFile (APP_INFO_FILE, section, "path", item->path, PATH_MAX) != ETC_OK)
+            goto error;
+
+        if (GetValueFromEtcFile (APP_INFO_FILE, section, "name", item->name, NAME_MAX) != ETC_OK)
+            goto error;
+
+        if (GetValueFromEtcFile (APP_INFO_FILE, section, "layer", item->layer, LEN_LAYER_NAME) != ETC_OK)
+            goto error;
+
+        if (GetValueFromEtcFile (APP_INFO_FILE, section, "tip", item->tip, TIP_MAX) != ETC_OK)
+            goto error;
+
+        strsubchr (item->tip, '&', ' ');
+
+        if (GetValueFromEtcFile (APP_INFO_FILE, section, "icon", item->bmp_path, PATH_MAX + NAME_MAX) != ETC_OK)
+            goto error;
+
+        if (LoadBitmap (HDC_SCREEN, &item->bmp, item->bmp_path) != ERR_BMP_OK)
+            goto error;
+
+        item->cdpath = TRUE;
+    }
+    return TRUE;
+
+error:
+    free_app_info ();
+    return FALSE;
+}</code></pre></td></tr></table></p>
+
+<p><span class="atitle3">5.2  定点数运算</span>
+<br />通常在进行数学运算时，我们采用浮点数表示实数，并利用 <math.h> 头文件中所声明的函数进行浮点数运算。我们知道，浮点数运算是一种非常耗时的运算过程。为了减少因为浮点数运算而带来的额外 CPU 指令，在一些三维图形库当中，通常会采用定点数来表示实数，并利用定点数进行运算，这样，将大大提高三维图形的运算速度。MiniGUI 也提供了一些定点数运算函数，分为如下几类：
+<ul class="n01">
+	<li>整数、浮点数和定点数之间的转换。利用 itofix 和 fixtoi 函数可实现整数和定点数之间的相互转换；利用 ftofix 和 fixtof 函数可实现浮点数和定点数之间的转换。
+	<li>定点数加、减、乘、除等基本运算。利用 fadd、fsub、fmul、fdiv、fsqrt等函数可实现定点数加、减、乘、除以及平方根运算。
+	<li>定点数的三角运算。利用 fcos、fsin、ftan、facos、fasin 等函数可求给定定点数的余弦、正弦、正切、反余弦、反正弦值。
+	<li>矩阵、向量等运算。矩阵、向量相关运算在三维图形中非常重要，限于篇幅，本文不会详细讲述这些运算，读者可参阅MiniGUI 的 include/fixedmath.h 头文件。
+</ul></p>
+<p>下面的代码段演示了定点数的用法，该程序段根据给定的三个点（pts[0]、pts[1]、pts[2]）画一个弧线，其中 pts[0] 作为圆心，pts[1] 是圆弧的起点，而 pts[2] 是圆弧终点和圆心连线上的一个点：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+void draw_arc (HDC hdc, POINT* pts)
+{
+            int sx = pts [0].x, sy = pts [0].y;
+            int dx = pts [1].x - sx, dy = pts [1].y - sy;
+            int r = sqrt (dx * dx * 1.0 + dy * dy * 1.0);
+            double cos_d = dx * 1.0 / r;
+            fixed cos_f = ftofix (cos_d);
+            fixed ang1 = facos (cos_f);
+            int r2;
+            fixed ang2;
+
+            if (dy > 0) {
+                ang1 = fsub (0, ang1);
+            }
+
+            dx = pts [2].x - sx;
+            dy = pts [2].y - sy;
+            r2 = sqrt (dx * dx * 1.0 + dy * dy * 1.0);
+            cos_d = dx * 1.0 / r2;
+            cos_f = ftofix (cos_d);
+            ang2 = facos (cos_f);
+            if (dy > 0) {
+                ang2 = fsub (0, ang2);
+            }
+
+            Arc (hdc, sx, sy, r, ang1, ang2);
+}</code></pre></td></tr></table></p>
+<p>上述程序的计算非常简单，步骤如下（该程序段来自 mde 演示程序包中的 painter/painter.c 程序）：
+<ol class="n01">
+	<li>根据 pts[0] 和 pts[1] 计算圆弧的半径，然后计算圆弧的起始偏角，即 ang1，使用了ftofix 函数和 facos 函数。
+	<li>计算 pts[2] 点和圆心连线的夹角，即 ang2，使用了 ftofix 和 facos 函数。
+	<li>调用 Arc 函数绘制圆弧。</ol></p>
+<p><a name="6"><span class="atitle2">6  小结</span></a>
+<br />本文讲述了 MiniGUI 为应用程序提供的一些非 GUI/GDI 的接口。这些接口中，某些是为了解决和操作系统的交互而设计的，以便 MiniGUI 应用程序能够更好地与操作系统提供的机制融合在一起；而某些提供了对 UNIX Domain Socket 良好封装的接口，可帮助应用程序方便进行进程间通讯或者扩展其功能；其他接口则专注于嵌入式系统的特殊性，为应用程序提供了可移植的文件 I/O 封装代码。在这些接口的帮助下，嵌入式系统开发人员可以编写功能强大而灵活的应用程序。</p>
+<!-- RESOURCES -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<p><a name="author1"><span class="atitle2">作者</span></a>
+<br>魏永明（ymwei@minigui.org），男，28 岁。1998 年毕业于清华大学精密仪器系，获工学硕士学位。国内最有影响的自由软件项目之一－－MiniGUI 的创始人及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA 信息技术协会 Linux 编程技术系列讲座的主讲人。</br>
+</td></tr></table>
+
+<!-- END PAPER BODY -->
+
+</body>
+</html>
+

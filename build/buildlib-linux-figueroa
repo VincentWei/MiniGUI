@@ -1,0 +1,38 @@
+#!/bin/sh
+
+#CFLAGS="-Wall -nostdinc -iwithprefix include -Wno-trigraphs -msoft-float -mlittle-endian -fno-strict-aliasing -fno-common -Os -fno-omit-frame-pointer -mapcs -mno-sched-prolog -D__LINUX_ARM_ARCH__=5 -march=armv4t -mtune=arm9tdmi -Uarm -DCPU=ARM926E -DTOOL_FAMILY=GNU -DTOOL=a9206 -DEXPORT_SYMTAB -I/opt/montavista/cee/devkit/arm/v4t_le/target/usr/include" \
+rm config.cache config.status -f
+
+CC=arm_v4t_le-gcc \
+LDFLAGS="-EL -L/opt/montavista/cee/devkit/arm/v4t_le/target/usr/lib" \
+CFLAGS="-I/opt/montavista/cee/devkit/arm/v4t_le/target/usr/include" \
+./configure --prefix=/opt/montavista/cee/devkit/arm/v4t_le/target/usr \
+    --build=i386-linux \
+    --host=arm-unknown-linux \
+    --target=arm-unknown-linux \
+    --enable-static \
+    --disable-shared \
+    --enable-incoreres \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --disable-libvcongui \
+    --disable-qvfbial \
+    --disable-dummyial \
+    --disable-nativeial \
+    --enable-figueroaial \
+    --enable-videofbcon \
+    --disable-videoqvfb \
+    --disable-videodummy \
+    --disable-cursor \
+    --disable-mousecalibrate \
+    --disable-pngsupport \
+    --disable-jpgsupport \
+    --disable-gifsupport 

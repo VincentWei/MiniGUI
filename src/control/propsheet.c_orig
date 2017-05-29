@@ -1,0 +1,525 @@
+// $Id: propsheet.c_orig 1507 2001-11-28 11:04:21Z kevin $
+//
+// propsheet.c: the Property Sheet (Tab) control.
+//
+// Copyright (C) 2001, Jiang Jun (kevin.j@263.net)
+//
+// Create date: 2001/11/20
+
+/*
+**  This library is free software; you can redistribute it and/or
+**  modify it under the terms of the GNU Library General Public
+**  License as published by the Free Software Foundation; either
+**  version 2 of the License, or (at your option) any later version.
+**
+**  This library is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+**  Library General Public License for more details.
+**
+**  You should have received a copy of the GNU Library General Public
+**  License along with this library; if not, write to the Free
+**  Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+**  MA 02111-1307, USA
+*/
+
+/*
+**  Alternatively, the contents of this file may be used under the terms 
+**  of the Mozilla Public License (the "MPL License") in which case the
+**  provisions of the MPL License are applicable instead of those above.
+*/
+
+//
+//
+// Modify records:
+//
+//  Who             When        Where       For What                Status
+//-----------------------------------------------------------------------------
+//
+//
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "common.h"
+#include "minigui.h"
+#include "gdi.h"
+#include "window.h"
+#include "control.h"
+#include "cliprect.h"
+#include "internals.h"
+#include "ctrlclass.h"
+
+#ifdef _CTRL_PROPSHEET
+
+#include "propsheet.h"
+#include "ctrlmisc.h"
+
+// #define KDEBUG 	1
+#undef KDEBUG
+
+static int gTitleHeight = 0, gPageWidth = 0;
+
+static int PropSheetCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+
+/**************************internal functions******************************/
+
+//show or hide a page
+static void ShowPage (PROPPAGE * page, int flag)
+{
+	int i;
+
+	for (i = 0; i < page->account; i++)	
+		ShowWindow (page->controls[i], flag);
+}
+
+//destroy a page
+static void DestroyPage (PROPPAGE * page)
+{
+	int i;
+
+	for (i = 0; i < page->account; i++)
+		DestroyWindow (page->controls[i]);
+	
+	free (page->controls);
+	free (page->title);
+}
+
+//change page title
+static BOOL SetPageTitle (PROPPAGE * page, char *ptr)
+{
+	int len = 0;
+	
+	if (ptr)
+		len = strlen (ptr);
+ 
+	if (len > strlen (page->title)) {
+		if ( NULL == (page->title = realloc(page->title, len)))
+			return FALSE;
+		memcpy (page->title, ptr, len);
+	}
+	return TRUE;
+}
+
+//create a new page
+static BOOL GUIAPI CreatePage (PROPPAGE * page, PDLGTEMPLATE pDlgTemplate, HWND hOwner, WNDPROC proc)
+{
+    int i, j, len = 0;
+    PCTRLDATA pCtrlData;
+    HWND hCtrl;
+
+    if (!pDlgTemplate->controls)
+        return FALSE;
+
+	page->account = pDlgTemplate->controlnr;
+
+	if ( (page->controls = malloc ( page->account * sizeof (HWND) ) ) == NULL )
+		return FALSE;
+
+	if ( (page->title = malloc (10)) == NULL )
+		return FALSE;
+
+	memset (page->title, 0, len + 1);
+	strcpy (page->title, "A Page");
+	page->proc = proc;
+
+    for (i = 0; i < pDlgTemplate->controlnr; i++) {
+        pCtrlData = pDlgTemplate->controls + i;
+        hCtrl = CreateWindowEx (pCtrlData->class_name,
+                              pCtrlData->caption,
+                              pCtrlData->dwStyle | WS_CHILD,
+                              pCtrlData->dwExStyle,
+                              pCtrlData->id,
+                              pCtrlData->x,
+                              pCtrlData->y + gTitleHeight,
+                              pCtrlData->w,
+                              pCtrlData->h,
+                              hOwner,
+                              pCtrlData->dwAddData);
+
+        if (hCtrl == HWND_INVALID) {
+			for (j = 0; j < i; j++) 
+				DestroyWindow (page->controls[j]);
+
+           	return FALSE;
+        }
+		page->controls[i] = hCtrl;
+    }
+
+    return TRUE;
+}
+
+BOOL RegisterPropSheetControl (void)
+{
+    WNDCLASS WndClass;
+
+    WndClass.spClassName = CTRL_PROPSHEET;
+    WndClass.dwStyle     = 0;
+    WndClass.hCursor     = GetSystemCursor (0);
+    WndClass.iBkColor    = PIXEL_lightgray;
+    WndClass.WinProc     = PropSheetCtrlProc;
+
+    return AddNewControlClass (&WndClass) == ERR_OK;
+}
+
+static int DefPSProc(HWND hwnd, int message, WPARAM wParam, LPARAM lParam);
+
+static int PropSheetCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+{
+    PCONTROL      pCtrl;
+    PPROPSHEETDATA pData;
+    DWORD         dwStyle;
+    
+   
+    pCtrl = Control (hwnd); 
+    dwStyle = pCtrl->dwStyle;
+
+    switch (message) {
+        case MSG_CREATE:
+        {
+    		RECT   rect;
+
+            if (!(pData = malloc (sizeof (PROPSHEETDATA)))) {
+                fprintf (stderr, "Create PropSheet control failure!\n");
+                return -1;
+            }
+
+            memset((char *)pData,'\0',sizeof(PROPSHEETDATA));
+            pData->wStateFlags = 0;
+            pData->count = 0;
+            pData->index = -1;
+            pCtrl->dwAddData2 = (DWORD)pData;
+
+            GetClientRect (hwnd, &rect);
+
+            gTitleHeight = GetMainWinMetrics (MWM_ICONY) + GetMainWinMetrics (MWM_BORDER) * 1 + 2;
+            gPageWidth = rect.right - rect.left;
+
+#ifdef KDEBUG
+            fprintf (stderr, "PSM:Destroy PropSheet control success pData=%x!\n", pData);
+#endif
+			break;
+		}
+
+        case MSG_DESTROY:
+	    {
+			int count;
+
+			pData = (PROPSHEETDATA *) pCtrl->dwAddData2;
+			count = pData->count;
+
+			while (count) {
+				DestroyPage (&pData->pages[count - 1]);
+				count --;
+			}
+
+            free ((void *)(pData));
+			pData = NULL;
+#ifdef KDEBUG
+            fprintf (stderr, "PSM:Destroy PropSheet control success!\n");
+#endif
+			break;
+		}
+
+		case PSM_SETACTIVEPAGE:					//Programmatically sets the active page.
+		{
+			pData = (PROPSHEETDATA *) pCtrl->dwAddData2;
+
+			if ( wParam >= 0 && wParam < pData->count ) {
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: SetActivePage from %d to %d!\n", pData->index, wParam);
+#endif
+				ShowPage ( &pData->pages[pData->index], SW_HIDE);
+				pData->index = wParam;
+				ShowPage ( &pData->pages[pData->index], SW_SHOW);
+			}
+		 	
+            InvalidateRect (hwnd, NULL, TRUE);
+
+			break;
+		}
+
+		case PSM_GETACTIVEINDEX: 				//Retrieves the index of the active page of the property sheet.
+		{
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+			
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: GetActiveIndex index=%d!\n", pData->index);
+#endif
+			return 	pData->index;
+		}
+
+		case PSM_GETPAGECOUNT:					//Retrieves the number of pages in the property sheet
+		{
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+			
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: GetPageCount count=%d!\n", pData->count);
+#endif
+			return 	pData->count;
+		}
+
+		case PSM_GETTITLELENGTH:
+		{
+			int len;
+
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+
+			if (wParam >= 0 && wParam < pData->count) 
+				len = strlen ((pData->pages[wParam]).title);
+			else 
+				len = -1;
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: GetTitleLength length=%d!\n", len);
+#endif
+
+			return len;
+		}
+
+		case PSM_GETTITLE:
+		{
+            char*   buffer = (char*)lParam;
+            int     len;
+
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+
+			if (wParam >= 0 && wParam < pData->count) {
+    	        len = strlen ((pData->pages[wParam]).title);
+    	        memcpy (buffer, (pData->pages[wParam]).title, len);
+        	    buffer [len] = '\0';
+
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: GetTitle title=%s!\n", buffer);
+#endif
+            	return len;
+			}
+			return -1;
+		}
+
+		case PSM_SETTITLE:
+		{
+			BOOL rc;
+            char*   buffer = (char*)lParam;
+
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+
+			if (wParam >= 0 && wParam < pData->count)
+				rc = SetPageTitle (&pData->pages[wParam], buffer);
+			else 
+				rc = FALSE;
+
+            InvalidateRect (hwnd, NULL, TRUE);
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: SetTitle title=%s\n", buffer);
+#endif
+			return rc;
+		}
+
+        case PSM_ADDPAGE:
+		{
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+
+			if ( 24 == pData->count ) //full
+				break;
+			
+			if (!CreatePage (&pData->pages[pData->count], (DLGTEMPLATE *)wParam, hwnd, (WNDPROC) lParam))
+				return -1;
+
+			ShowPage (&pData->pages[pData->count], SW_HIDE);
+			pData->count ++;
+			if (pData->index >= 0)
+				ShowPage (&pData->pages[pData->index], SW_HIDE);
+			pData->index ++;
+			ShowPage (&pData->pages[pData->index], SW_SHOW);
+		 	
+            InvalidateRect (hwnd, NULL, TRUE);
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: after AddPage count=%d index=%d\n", pData->count, pData->index);
+#endif
+			break;
+		}
+
+        case PSM_REMOVEPAGE:
+		{
+			int i = 0;
+			
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+	
+			if (wParam < 0 || wParam >= pData->count)
+				break;
+			
+			DestroyPage (&pData->pages[wParam]);
+
+			if (wParam != pData->count - 1) {
+				for ( i = wParam; i < pData->count - 1; i++) 
+					memcpy (&pData->pages[i], &pData->pages[i+1], sizeof(PROPPAGE));
+			}
+
+			if ( pData->index == pData->count - 1)
+				pData->index --;
+			
+			pData->count --;
+
+            InvalidateRect (hwnd, NULL, TRUE);
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: RemovePage count=%d index=%d\n", pData->count, pData->index);
+#endif
+			break;
+		}
+
+		case MSG_LBUTTONDOWN:
+		{
+			int x;
+			int y;
+			int num = -1;
+			int count;
+			int TitleWidth;
+			
+		   	x = LOSWORD(lParam);
+		   	y = HISWORD(lParam);
+			
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+			count = pData->count;
+
+			if (count <= 0)
+				break;
+
+			TitleWidth = gPageWidth / count;
+		
+			if (x >= 0 && x < gPageWidth && y >= 2 && y <= gTitleHeight) {
+				num = x / TitleWidth;
+				if (num <= pData->index)
+					SendMessage(hwnd, PSM_SETACTIVEPAGE, num, 0);
+
+				else if ( x > (pData->index + 1) * TitleWidth + gPageWidth % count) {
+					num = pData->index + (x - (pData->index + 1) * TitleWidth - gPageWidth % count) / TitleWidth + 1;
+					SendMessage(hwnd, PSM_SETACTIVEPAGE, num, 0);
+				}
+			}
+#ifdef KDEBUG
+            fprintf (stderr, "PSM: LButtonDown x=%d y=%d num=%d count=%d index=%d\n", x, y, num, pData->count, pData->index);
+#endif
+			break;
+		}
+
+        case MSG_NCPAINT:
+		{
+            HDC 	hdc;
+
+            if (wParam)
+                hdc = wParam;
+            else
+                hdc = GetDC (hwnd);
+
+            if (lParam)
+                ClipRectIntersect (hdc, (RECT*)lParam);
+
+            if (dwStyle & WS_BORDER)
+#ifdef _FLAT_WINDOW_STYLE
+                DrawFlatControlFrameEx (hdc, 0, 0,
+                                      pCtrl->right - pCtrl->left - 1,
+                                      pCtrl->bottom - pCtrl->top - 1,
+                                      PIXEL_invalid, 1, -1);
+#else
+                Draw3DDownFrame (hdc, 0, 0, 
+                                      pCtrl->right - pCtrl->left - 1, 
+                                      pCtrl->bottom - pCtrl->top - 1,
+                                      PIXEL_invalid);
+#endif
+            if (!wParam)
+                ReleaseDC (hdc);
+
+        	return 0;
+		}
+
+        case MSG_PAINT:
+        {
+            HDC 	hdc;
+			int 	TitleWidth;
+			int 	count = -1;
+			int 	i;
+			RECT 	TitleRect;
+			RECT 	DrawRect;
+			char *  buffer = NULL;
+
+			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
+
+			count = pData->count;
+
+			if (count <= 0)
+				break;
+
+			TitleWidth = gPageWidth / count;
+
+            hdc = BeginPaint (hwnd);
+			
+			for (i = 0; i < count; i++) {
+				buffer = (pData->pages[i]).title;
+				if (pData->index == i) { //draw active page
+					TitleRect.left  = TitleWidth * i;
+					TitleRect.top   = 0;
+					TitleRect.right = gPageWidth - TitleWidth * count + TitleWidth * (i + 1);
+					TitleRect.bottom = gTitleHeight;
+
+					MoveTo (hdc, TitleRect.left + 1, TitleRect.bottom);
+					SetPenColor (hdc, COLOR_lightwhite);
+					LineTo (hdc, TitleRect.left + 1, TitleRect.top);
+					LineTo (hdc, TitleRect.right - 1, TitleRect.top);
+					SetPenColor (hdc, COLOR_darkgray);
+					LineTo (hdc, TitleRect.right - 1, TitleRect.bottom);
+				}
+				else {	//draw other page
+					TitleRect.left  = TitleWidth * i;
+					TitleRect.top   = GetMainWinMetrics (MWM_BORDER);
+					TitleRect.right = TitleWidth * (i + 1);
+					TitleRect.bottom = gTitleHeight;
+
+					MoveTo (hdc, TitleRect.left + 1, TitleRect.bottom);
+					SetPenColor (hdc, COLOR_lightwhite);
+					LineTo (hdc, TitleRect.left + 1, TitleRect.top);
+					LineTo (hdc, TitleRect.right - 1, TitleRect.top);
+					SetPenColor (hdc, COLOR_darkgray);
+					LineTo (hdc, TitleRect.right - 1, TitleRect.bottom);
+					LineTo (hdc, TitleRect.left + 1, TitleRect.bottom);
+
+				}
+				SetTextColor (hdc, COLOR_black);
+				SetBkColor(hdc, COLOR_lightgray);
+
+				DrawRect.left   = TitleRect.left + GetMainWinMetrics (MWM_BORDER);
+				DrawRect.right  = TitleRect.right - GetMainWinMetrics (MWM_BORDER);
+				DrawRect.top    = TitleRect.top + GetMainWinMetrics (MWM_BORDER);
+				DrawRect.bottom = TitleRect.bottom + GetMainWinMetrics (MWM_BORDER);
+
+				DrawText (hdc, buffer, -1, &DrawRect, DT_CENTER|DT_SINGLELINE);
+			}
+            EndPaint (hwnd, hdc);
+        	break;
+        }
+
+		default:
+			break;
+	}
+    return DefPSProc (hwnd, message, wParam, lParam);
+}
+
+static int DefPSProc(HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+{
+	PROPPAGE *page = NULL;
+	PPROPSHEETDATA  pData;
+
+
+	pData = (PROPSHEETDATA *) Control(hwnd)->dwAddData2;
+
+	if (pData && pData->index >= 0) {
+		page = &(pData->pages[pData->index]);
+		if (page->proc)	{
+			return page->proc (hwnd, message, wParam, lParam);
+		}
+	}	
+
+    return DefaultControlProc (hwnd, message, wParam, lParam);
+}
+
+#endif /* _CTRL_PROPSHEET*/

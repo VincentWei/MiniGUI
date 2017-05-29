@@ -1,0 +1,33 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+./configure \
+    --with-style=fashion \
+    --disable-videofbcon \
+    --disable-videodummy \
+    --enable-videoutpmc \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --enable-dummyial \
+    --enable-autoial \
+    --enable-utpmcial \
+    --enable-incoreres \
+    --enable-rbfgb12 \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen
+

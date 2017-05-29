@@ -1,0 +1,781 @@
+#ifndef MGCONFIG_H
+#define MGCONFIG_H
+
+/* Major version of MiniGUI */
+#define MINIGUI_MAJOR_VERSION  @MINIGUI_MAJOR_VERSION@
+
+/* Minor version of MiniGUI */
+#define MINIGUI_MINOR_VERSION  @MINIGUI_MINOR_VERSION@
+
+/* Micro version of MiniGUI */
+#define MINIGUI_MICRO_VERSION  @MINIGUI_MICRO_VERSION@
+
+/* Define if build with debugging messages */
+#cmakedefine _DEBUG     1
+
+/* MiniGUI configure file name */
+#cmakedefine ETCFILENAME    "@ETCFILENAME@"
+
+/* MiniGUI library suffix */
+#cmakedefine _MGLIB_SUFFIX  "@_MGLIB_SUFFIX@"
+
+/* Define if use minigui_entry function in MiniGUI */
+#cmakedefine _USE_MINIGUIENTRY  1
+
+/* Define if the unit of timer is 10ms */
+#cmakedefine _MGTIMER_UNIT_10MS 1
+
+/* Define if insert a productid into the library file */
+#cmakedefine _MG_PRODUCTID      1
+
+/* Define if have math library */
+#cmakedefine _HAVE_MATH_LIB     1
+
+/* Define if build the mgeff support version */
+#cmakedefine _MG_MINIMALGDI    1
+
+/* Define to 1 if you have `alloca', as a function or macro. */
+#cmakedefine HAVE_ALLOCA    1
+
+/* Define to 1 if you have the ANSI C header files. */
+#cmakedefine STDC_HEADERS   1
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#cmakedefine TIME_WITH_SYS_TIME 1
+
+/*******/
+/* GAL */
+/*******/
+
+/* Define if include dummy NEWGAL engine*/
+#cmakedefine _MGGAL_DUMMY       1
+
+/* Define if include Qt Virtual FrameBuffer NEWGAL engine */
+#cmakedefine _MGGAL_QVFB        1
+
+/* Define if include FrameBuffer console NEWGAL engine */
+#cmakedefine _MGGAL_FBCON       1
+
+/* Define if include NEWGAL engine for DirectFB */
+#cmakedefine _MGGAL_DFB         1
+
+/* Define if include windows Virtual FrameBuffer NEWGAL engine */
+#cmakedefine _MGGAL_WVFB        1
+
+/* Define if include NEWGAL engine for Common LCD */
+#cmakedefine _MGGAL_COMMLCD     1
+
+/* Define if include Shadow NEWGAL engine */
+#cmakedefine _MGGAL_SHADOW      1
+
+/* Define if include MLShadow NEWGAL engine */
+#cmakedefine _MGGAL_MLSHADOW    1
+
+/* Define if include NEWGAL engine for EM85xx OSD */
+#cmakedefine _MGGAL_EM85XXOSD   1
+
+/* Define if include NEWGAL engine for EM85xx YUV */
+#cmakedefine _MGGAL_EM85XXYUV   1
+
+/* Define if include NEWGAL engine for EM86xx GFX */
+#cmakedefine _MGGAL_EM86GFX     1
+
+/* Define if include NEWGAL engine for SVPXX OSD */
+#cmakedefine _MGGAL_SVPXXOSD    1
+
+/* Define if include NEWGAL engine for BF533 OSD via SPI */
+#cmakedefine _MGGAL_BF533       1
+
+/* Define if include NEWGAL engine for mb93493 YUV FrameBuffer driver */
+#cmakedefine _MGGAL_MB93493     1
+
+/* Define if include NEWGAL engine for UTPMC */
+#cmakedefine _MGGAL_UTPMC       1
+
+/* Define if include nexus NEWGAL engine */
+#cmakedefine _MGGAL_NEXUS       1
+
+/* Define if include s3c6410 NEWGAL engine */
+#cmakedefine _MGGAL_S3C6410     1
+
+/* Define if include custom NEWGAL engine */
+#cmakedefine _MGGAL_CUSTOMGAL   1
+
+/* Define if include sigma8654 NEWGAL engine */
+#cmakedefine _MGGAL_SIGMA8654   1
+
+/* Define if include mstar NEWGAL engine */
+#cmakedefine _MGGAL_MSTAR       1
+
+/* Define if include PC Virtual FrameBuffer NEWGAL engine */
+#cmakedefine _MGGAL_PCXVFB      1
+
+/* Define if include RTOS Virtual FrameBuffer NEWGAL engine */
+#cmakedefine _MGGAL_RTOSXVFB    1
+
+/* Define if include Hi35XX Video NEWGAL engine */
+#cmakedefine _MGGAL_HI3510      1
+
+/* Define if include Hi35XX Video NEWGAL engine */
+#cmakedefine _MGGAL_HI3560      1
+
+/* Define if include Hi3560A Video NEWGAL engine */
+#cmakedefine _MGGAL_HI3560A     1
+
+/* ******* */
+/* CHARSET */
+/* ******* */
+
+/* Define if support Latin 2 charset */
+#cmakedefine _MGCHARSET_LATIN2      1
+
+/* Define if support Latin 3 charset */
+#cmakedefine _MGCHARSET_LATIN3      1
+
+/* Define if support Latin 4 charset */
+#cmakedefine _MGCHARSET_LATIN4      1
+
+/* Define if support Latin 5 charset */
+#cmakedefine _MGCHARSET_LATIN5      1
+
+/* Define if support Latin 6 charset */
+#cmakedefine _MGCHARSET_LATIN6      1
+
+/* Define if support Latin 7 charset */
+#cmakedefine _MGCHARSET_LATIN7      1
+
+/* Define if support Latin 8 charset */
+#cmakedefine _MGCHARSET_LATIN8      1
+
+/* Define if support Latin 9 charset */
+#cmakedefine _MGCHARSET_LATIN9      1
+
+/* Define if support Latin 10 charset */
+#cmakedefine _MGCHARSET_LATIN10     1
+
+/* Define if support Cyrillic charset */
+#cmakedefine _MGCHARSET_CYRILLIC    1
+
+/* Define if support Arabic charset */
+#cmakedefine _MGCHARSET_ARABIC      1
+
+/* Define if support Greek charset */
+#cmakedefine _MGCHARSET_GREEK       1
+
+/* Define if support Hebrew charset */
+#cmakedefine _MGCHARSET_HEBREW      1
+
+/* Define if support Thai charset */
+#cmakedefine _MGCHARSET_THAI        1
+
+/* Define if support GB2312 charset */
+#cmakedefine _MGCHARSET_GB          1
+
+/* Define if support GBK charset */
+#cmakedefine _MGCHARSET_GBK         1
+
+/* Define if support GB18030 charset */
+#cmakedefine _MGCHARSET_GB18030     1
+
+/* Define if support BIG5 charset */
+#cmakedefine _MGCHARSET_BIG5        1
+
+/* Define if support EUCKR charset */
+#cmakedefine _MGCHARSET_EUCKR       1
+
+/* Define if support EUCJP charset */
+#cmakedefine _MGCHARSET_EUCJP       1
+
+/* Define if support SHIFTJIS charset */
+#cmakedefine _MGCHARSET_SHIFTJIS    1
+
+/* Define if support UNICODE */
+#cmakedefine _MGCHARSET_UNICODE     1
+
+/* *********** */
+/* IAL DEFINES */
+/* *********** */
+
+/*Define if include IAL engine for customer's board */
+#cmakedefine _MGIAL_CUSTOM          1
+
+/*Define if include dlcustom engine for customer's board */
+#cmakedefine _MGIAL_DLCUSTOM        1
+
+/*Define if include IAL engine for net's board */
+#cmakedefine _MGIAL_NET             1
+
+/*Define if include IAL engine for Cisco touchpad */
+#cmakedefine _MGIAL_CISCO_TOUCHPAD  1
+
+/*Define if include IAL engine for MStar */
+#cmakedefine _MGIAL_MSTAR           1
+
+/*Define if include IAL engine for iPAQ H3600 */
+#cmakedefine _MGIAL_IPAQ_H3600      1
+
+/*Define if include IAL engine for Nexu */
+#cmakedefine _MGIAL_NEXUS           1
+
+/*Define if include IAL engine for iPAQ H5400 */
+#cmakedefine _MGIAL_IPAQ_H5400      1
+
+/*Define if include IAL engine for TSLIB */
+#cmakedefine _MGIAL_TSLIB           1
+
+/*Define if include the dummy IAL engine*/
+#cmakedefine _MGIAL_DUMMY           1
+
+/*Define if include the automatic IAL engine*/
+#cmakedefine _MGIAL_AUTO            1
+
+/*Define if include the random IAL engine*/
+#cmakedefine _MGIAL_RANDOM          1
+
+/*Define if include the common IAL engine*/
+#cmakedefine _MGIAL_COMM            1
+
+/*Define if include the QVFB IAL engine*/
+#cmakedefine _MGIAL_QVFB            1
+
+/*Define if include the QEMU IAL engine*/
+#cmakedefine _MGIAL_QEMU            1
+
+/*Define if include the WVFB IAL engine*/
+#cmakedefine _MGIAL_WVFB            1
+
+/*Define if include the JZ4740 IAL engine*/
+#cmakedefine _MGIAL_JZ4740          1
+
+/*Define if include the lide IAL engine*/
+#cmakedefine _MGIAL_LIDE            1
+
+/*Define if include the 2440 IAL engine*/
+#cmakedefine _MGIAL_2440            1
+
+/*Define if include the DAVINCI6446 IAL engine*/
+#cmakedefine _MGIAL_DAVINCI6446     1
+
+/*Define if include the DFB IAL engine*/
+#cmakedefine _MGIAL_DFB             1
+
+/*Define if include console (Linux console) IAL engine*/
+#cmakedefine _MGIAL_CONSOLE         1
+
+/* ******* */
+/* CONSOLE */
+/* ******* */
+
+/* Define if include PS2 mouse subdriver */
+#cmakedefine _MGCONSOLE_PS2        1
+
+/* Define if include IMPS2 mouse subdriver */
+#cmakedefine _MGCONSOLE_IMPS2      1
+
+/* Define if include MS mouse subdriver */
+#cmakedefine _MGCONSOLE_MS         1
+
+/* Define if include MS3 mouse subdriver */
+#cmakedefine _MGCONSOLE_MS3        1
+
+/* Define if include GPM mouse subdriver */
+#cmakedefine _MGCONSOLE_GPM        1
+
+/* Define if your Linux have text mode */
+#cmakedefine _MGCONSOLE_TEXTMODE   1
+
+/* **** */
+/* CTRL */
+/* **** */
+
+/* Define if include ANIMATION control */
+#cmakedefine _MGCTRL_ANIMATION      1
+
+/* Define if include BUTTON control */
+#cmakedefine _MGCTRL_BUTTON         1
+
+/* Define if include BIDISLEDIT control */
+#cmakedefine _MGCTRL_BIDISLEDIT     1
+
+/* Define if include COMBOBOX control */
+#cmakedefine _MGCTRL_COMBOBOX       1
+
+/* Define if include COOLBAR control */
+#cmakedefine _MGCTRL_COOLBAR        1
+
+/* Define if include GRIDVIEW control */
+#cmakedefine _MGCTRL_GRIDVIEW       1
+
+/* Define if include ICONVIEW control */
+#cmakedefine _MGCTRL_ICONVIEW       1
+
+/* Define if include LISTBOX control */
+#cmakedefine _MGCTRL_LISTBOX        1
+
+/* Define if include LISTVIEW control */
+#cmakedefine _MGCTRL_LISTVIEW       1
+
+/* Define if include MENUBUTTON control */
+#cmakedefine _MGCTRL_MENUBUTTON     1
+
+/* Define if include MONTHCAL control */
+#cmakedefine _MGCTRL_MONTHCAL       1
+
+/* Define if include NEWTOOLBAR control */
+#cmakedefine _MGCTRL_NEWTOOLBAR     1
+
+/* Define if include PROGRESSBAR control */
+#cmakedefine _MGCTRL_PROGRESSBAR    1
+
+/* Define if include PROPSHEET control */
+#cmakedefine _MGCTRL_PROPSHEET      1
+
+/* Define if include SCROLLBAR control */
+#cmakedefine _MGCTRL_SCROLLBAR      1
+
+/* Define if include SCROLLVIEW control */
+#cmakedefine _MGCTRL_SCROLLVIEW     1
+
+/* Define if include SLEDIT control */
+#cmakedefine _MGCTRL_SLEDIT         1
+
+/* Define if include SPINBOX control */
+#cmakedefine _MGCTRL_SPINBOX        1
+
+/* Define if include STATIC control */
+#cmakedefine _MGCTRL_STATIC         1
+
+/* Define if include TEXTEDIT control */
+#cmakedefine _MGCTRL_TEXTEDIT       1
+
+/* Define if include TRACKBAR control */
+#cmakedefine _MGCTRL_TRACKBAR       1
+
+/* Define if include TREEVIEW control */
+#cmakedefine _MGCTRL_TREEVIEW       1
+
+/* Define if include TREEVIEW_RDR control */
+#cmakedefine _MGCTRL_TREEVIEW_RDR   1
+
+/* Define if use _MGCTRL_TEXTEDIT_USE_NEW_IMPL */
+#cmakedefine _MGCTRL_TEXTEDIT_USE_NEW_IMPL    1
+
+/* **** */
+/* MISC */
+/* **** */
+
+/* Define if include About MiniGUI Dialog Box */
+#cmakedefine _MGMISC_ABOUTDLG       1
+
+/* Define if mouse button can do double click */
+#cmakedefine _MGMISC_DOUBLE_CLICK   1
+
+/* Define if include SaveBitmap function */
+#cmakedefine _MGMISC_SAVEBITMAP     1
+
+/* Define if include code for screenshots */
+#cmakedefine _MGMISC_SAVESCREEN     1
+
+/* **** */
+/* FONT */
+/* **** */
+
+/* Define if support Bitmap fonts */
+#cmakedefine _MGFONT_BMPF      1
+
+/* Define if support TrueType font based on FreeType2 */
+#cmakedefine _MGFONT_FT2       1
+
+/* Define if support QPF font */
+#cmakedefine _MGFONT_QPF       1
+
+/* Define if support raw bitmap fonts */
+#cmakedefine _MGFONT_RBF       1
+
+/* Define if support SEF scripteary font */
+#cmakedefine _MGFONT_SEF       1
+
+/* Define if support TrueType font */
+#cmakedefine _MGFONT_TTF       1
+
+/* Define if include ttf cache */
+#cmakedefine _MGFONT_TTF_CACHE 1
+
+/* Define if compile max ttf cahce size for 64k in KB */
+#cmakedefine _MGTTF_CACHE_SIZE @_MGTTF_CACHE_SIZE@
+
+/* Define if compile max ttf cahce number for 10 (default value) */
+#cmakedefine _MGMAX_TTF_CACHE  @_MGMAX_TTF_CACHE@
+
+/* Define if support UPF font */
+#cmakedefine _MGFONT_UPF       1
+
+/* Define if support var bitmap fonts */
+#cmakedefine _MGFONT_VBF       1
+
+/* **** */
+/* HAVE */
+/* **** */
+
+/* Define if include advanced 2D graphics APIs */
+#cmakedefine _MGHAVE_ADV_2DAPI      1
+
+/* Define if include clipboard support */
+#cmakedefine _MGHAVE_CLIPBOARD      1
+
+/* Define if include cursor support */
+#cmakedefine _MGHAVE_CURSOR         1
+
+/* Define if include fixed math routines */
+#cmakedefine _MGHAVE_FIXED_MATH     1
+
+/* Define if support menu */
+#cmakedefine _MGHAVE_MENU           1
+
+/* Define if include code for mouse calibration */
+#cmakedefine _MGHAVE_MOUSECALIBRATE 1
+
+/* Define if include messages' string names */
+#cmakedefine _MGHAVE_MSG_STRING     1
+
+/* Define if PCIAccess lib is available */
+#cmakedefine _MGHAVE_PCIACCESS      1
+
+/* Define if trace message dispatching of MiniGUI */
+#cmakedefine _MGHAVE_TRACE_MSG      1
+
+/* ***** */
+/* IMAGE */
+/* ***** */
+
+/* Define if support GIF bmp file format */
+#cmakedefine _MGIMAGE_GIF     1
+
+/* Define if support JPG bmp file format */
+#cmakedefine _MGIMAGE_JPG     1
+
+/* Define if support LBM bmp file format */
+#cmakedefine _MGIMAGE_LBM     1
+
+/* Define if support PCX bmp file format */
+#cmakedefine _MGIMAGE_PCX     1
+
+/* Define if support PNG bmp file format */
+#cmakedefine _MGIMAGE_PNG     1
+
+/* Define if support TGA bmp file format */
+#cmakedefine _MGIMAGE_TGA     1
+
+/* ********** */
+/* INCOREFONT */
+/* ********** */
+
+/* Define if include in-core font: Courier */
+#cmakedefine _MGINCOREFONT_COURIER          1
+
+/* Define if include in-core font: SansSerif */
+#cmakedefine _MGINCOREFONT_SANSSERIF        1
+
+/* Define if include in-core font: System */
+#cmakedefine _MGINCOREFONT_SYSTEM           1
+
+/* Define if include in-core UPF Times fonts */
+#cmakedefine _MGINCOREFONT_TIMES            1
+
+/* Define if include in-core FixedSys RBF for ISO8859-1 */
+#cmakedefine _MGINCORERBF_LATIN1_FIXEDSYS   1
+
+/* Define if include in-core Terminal RBF for ISO8859-1 */
+#cmakedefine _MGINCORERBF_LATIN1_TERMINAL   1
+
+/* Define if include in-core VGAOEM RBF for ISO8859-1 */
+#cmakedefine _MGINCORERBF_LATIN1_VGAOEM     1
+
+/* Define if build MiniGUI for no file I/O system (use in-core resources) */
+#cmakedefine _MGINCORE_RES                  1
+
+/* ************** */
+/* KEYBORADLAYOUT */
+/* ************** */
+
+/* Define if use the Arabic PC keyboard layout */
+#cmakedefine _MGKBDLAYOUT_ARABICPC  1
+
+/* Define if use the German keyboard layout */
+#cmakedefine _MGKBDLAYOUT_DE        1
+
+/* Define if use the German-Latin1 keyboard layout */
+#cmakedefine _MGKBDLAYOUT_DELATIN1  1
+
+/* Define if use the Spanish keyboard layout */
+#cmakedefine _MGKBDLAYOUT_ES        1
+
+/* Define if use the Spanish CP850 keyboard layout */
+#cmakedefine _MGKBDLAYOUT_ESCP850   1
+
+/* Define if use the French keyboard layout */
+#cmakedefine _MGKBDLAYOUT_FR        1
+
+/* Define if use the French keyboard layout */
+#cmakedefine _MGKBDLAYOUT_FRPC      1
+
+/* Define if use the Hebrew PC keyboard layout */
+#cmakedefine _MGKBDLAYOUT_HEBREWPC  1
+
+/* Define if use the Italian keyboard layout */
+#cmakedefine _MGKBDLAYOUT_IT        1
+
+/* ************************ */
+/* PROCS THREADS STANDALONE */
+/* ************************ */
+
+/* Define if build MiniGUI-Standalone */
+#cmakedefine _MGRM_STANDALONE   1
+
+/* Define if build MiniGUI-Standalone (back-compatibility definition) */
+#cmakedefine _STAND_ALONE       1
+
+/* Define if build MiniGUI-Standalone (back-compatibility definition) */
+#cmakedefine _LITE_VERSION      1
+
+/* Define if build MiniGUI-Processes */
+#cmakedefine _MGRM_PROCESSES    1
+
+/* Define if build MiniGUI-Threads */
+#cmakedefine _MGRM_THREADS      1
+
+/* ******* */
+/* USE_OWN */
+/* ******* */
+
+/* Define if use own implementation of malloc functions */
+#cmakedefine _MGUSE_OWN_MALLOC  1
+
+/* Define if use own implementation of pthread functions */
+#cmakedefine _MGUSE_OWN_PTHREAD 1
+
+/* Define if use own implementation of stdio functions */
+#cmakedefine _MGUSE_OWN_STDIO   1
+
+/* ****** */
+/* LF_RDR */
+/* ****** */
+
+/* Define if include flat Look and Feel */
+#cmakedefine _MGLF_RDR_FLAT     1
+/* Define if include skin Look and Feel */
+#cmakedefine _MGLF_RDR_SKIN     1
+
+/* ********** */
+/* FUNCTIONS  */
+/* ********** */
+
+/* Define to 1 if you have `alloca', as a function or macro. */
+#cmakedefine HAVE_ALLOCA        1
+
+/* Define to 1 if you have the `getpagesize' function. */
+#cmakedefine HAVE_GETPAGESIZE   1
+
+/* Define to 1 if you have a working `mmap' system call. */
+#cmakedefine HAVE_MMAP          1
+
+/* Define to 1 if you have the `time' function. */
+#cmakedefine HAVE_TIME          1
+
+/* Define to 1 if you have the `mktime' function. */
+#cmakedefine HAVE_MKTIME        1
+
+/* Define to 1 if you have the `localtime' function. */
+#cmakedefine HAVE_LOCALTIME     1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP        1
+
+/* Define to 1 if you have the `strcasecmp' function. */
+#cmakedefine HAVE_STRCASECMP    1
+
+/* Define to 1 if you have the `strncasecmp' function. */
+#cmakedefine HAVE_STRNCASECMP   1
+
+/* Define to 1 if you have the `strerror' function. */
+#cmakedefine HAVE_STRERROR      1
+
+/* Define to 1 if you have the `setlocale' function. */
+#cmakedefine HAVE_SETLOCALE     1
+
+/* Define to 1 if you have the `getpt' function. */
+#cmakedefine HAVE_GETPT         1
+
+/* Define to 1 if you have the `vprintf' function. */
+#cmakedefine HAVE_VPRINTF       1
+
+/* *********/
+/* OS NAME */
+/* *********/
+
+/* Define if compile for uClinux */
+#cmakedefine __uClinux__            1
+
+/* Define if compile for eCos */
+#cmakedefine __ECOS__               1
+
+/* Define if compile for non-UNIX like OS */
+#cmakedefine __NOUNIX__             1
+
+/* Define if compile for uC/OS-II */
+#cmakedefine __UCOSII__             1
+
+/*Define if compile for Winbond SWLinux */
+#cmakedefine __WINBOND_SWLINUX__    1
+
+/*Define if compile for VxWorks */
+#cmakedefine __VXWORKS__            1
+
+/*Define if compile for Cygwin platform */
+#cmakedefine __CYGWIN__             1
+
+/*Define if compile for Win32 platform */
+#cmakedefine WIN32                  1
+
+/*Define if compile for OpenDarwin */
+#cmakedefine __DARWIN__             1
+
+/*Define if compile for ThreadX */
+#cmakedefine __THREADX__            1
+
+/*Define if compile for Nucleus */
+#cmakedefine __NUCLEUS__            1
+
+/*Define if compile for OSE */
+#cmakedefine __OSE__                1
+
+/*Define if compile for pSOS */
+#cmakedefine __PSOS__               1
+
+/*Define if compile for Linux */
+#cmakedefine __LINUX__              1
+
+/*******************/
+/* WITH TARGETNAME */
+/*******************/
+/*Define for Philips STB810 target*/
+#cmakedefine __TARGET_STB810__      1
+
+/*Define for VirualFone ANVIL target*/
+#cmakedefine __TARGET_VFANVIL__     1
+
+/*Define for Monaco ANVIL target*/
+#cmakedefine __TARGET_MONACO__      1
+
+/*Define for OSE on mx21*/
+#cmakedefine __TARGET_MX21__        1
+
+/*Define for VxWorks on i386*/
+#cmakedefine __TARGET_VXI386__      1
+
+/*Define for VxWorks on PowerPC*/
+#cmakedefine __TARGET_PPC__         1
+
+/*Define for Blackfin run uClinux*/
+#cmakedefine __TARGET_BLACKFIN__    1
+
+/*Define for EPSON C33L05 (axLinux)*/
+#cmakedefine __TARGET_C33L05__      1
+
+/*Define for FMSoft's internal use*/
+#cmakedefine __TARGET_FMSOFT__      1
+
+/*Define for FMSoft's mStudio*/
+#cmakedefine __TARGET_MSTUDIO__     1
+
+/*Define for unknown target*/
+#cmakedefine __TARGET_UNKNOWN__     1
+
+/************** */
+/* HEADER FILES */
+/************** */
+
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
+*/
+#cmakedefine HAVE_ALLOCA_H      1
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#cmakedefine HAVE_DIRENT_H      1
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H       1
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H    1
+
+/* Define to 1 if you have the <locale.h> header file. */
+#cmakedefine HAVE_LOCALE_H      1
+
+/* Define to 1 if you have the <math.h> header file. */
+#cmakedefine HAVE_MATH_H        1
+
+/* Define to 1 if you have the <memory.h> header file. */
+#cmakedefine HAVE_MEMORY_H      1
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#cmakedefine HAVE_NDIR_H        1
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H      1
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H      1
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H     1
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine HAVE_STRING_H      1
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#cmakedefine HAVE_SYS_DIR_H     1
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#cmakedefine HAVE_SYS_NDIR_H    1
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine HAVE_SYS_STAT_H    1
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#cmakedefine HAVE_SYS_TIME_H    1
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H   1
+
+/* Define to 1 if you have the <termio.h> header file. */
+#cmakedefine HAVE_TERMIO_H      1
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine HAVE_UNISTD_H      1
+
+/* **************** */
+/* type definitions */
+/* **************** */
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#cmakedefine const
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+ *    calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#define inline __inline
+#endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#cmakedefine size_t
+
+#ifdef WIN32
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+#define snprintf _snprintf
+#endif
+
+#endif  /* MGCONFIG_H */

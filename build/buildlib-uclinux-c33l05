@@ -1,0 +1,49 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CC=c33-linux-elf-gcc \
+AR=c33-linux-elf-ar \
+RANLIB=c33-linux-elf-ranlib \
+CFLAGS="-g -O2 -fpic -Wall -Wstrict-prototypes -fno-strict-aliasing -mgda=0 -mdp=4 -D__linux__=1 -Dlinux=1 -D__linux=1 -D_uclinux_=1 -D_PTRDIFF_T -D__LITTLE_ENDIAN__ -I/usr/local/c33-linux/c33-axlinux/include" \
+LDFLAGS="-L/usr/local/c33-linux/c33-axlinux/lib" \
+./configure --prefix=/usr/local/c33-linux/c33-axlinux/ \
+    --build=i386-linux \
+    --host=arm-linux \
+    --target=arm-linux \
+    --disable-shared \
+    --with-targetname=c33l05 \
+    --with-style=fashion \
+    --with-osname=uclinux \
+    --enable-procs \
+    --enable-standalone \
+    --enable-incoreres \
+    --disable-micemoveable \
+    --disable-adv2dapi \
+    --enable-cursor \
+    --disable-textmode \
+    --disable-videoqvfb \
+    --disable-videofbcon \
+    --enable-videodummy \
+    --enable-videocommlcd \
+    --enable-dummyial \
+    --enable-autoial \
+    --enable-c33l05ial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-ctrlpgbar \
+    --disable-savescreen \
+    --disable-libvcongui

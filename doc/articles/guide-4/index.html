@@ -1,0 +1,503 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>
+<meta name="KEYWORDS" content="MiniGUI Embedded Linux Programming Guide"/>
+</head>
+
+<body bgcolor="#ffffff" marginheight="2" marginwidth="2" topmargin="2" leftmargin="2">
+<p><strong class="title">基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南（四）</strong><br>
+<strong class="subtitle">使用 GDI 函数</strong>
+
+<p><a href="#author1">魏永明</a> (<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>)<br />
+自由撰稿人<br />
+2001 年 8 月</p>
+
+<!-- Start TOC -->
+
+<table width="150" border="0" cellspacing="0" cellpadding="3" align="right">
+		<tr><td><a href=#1>引言</a></td></tr>
+		<tr><td><a href=#2>图形设备上下文</a></td></tr>
+		<tr><td><a href=#3>矩形操作和区域操作</a></td></tr>
+		<tr><td><a href=#4>基本绘图函数</a></td></tr>
+		<tr><td><a href=#5>位图操作函数</a></td></tr>
+		<tr><td><a href=#6>逻辑字体操作函数 </a></td></tr>
+		<tr><td><a href=#7>小结</a></td></tr>
+		<tr><td><a href=#author1>作者介绍</a></td></tr>
+</table>
+
+<!-- End TOC -->
+
+<em>本文讲述 MiniGUI 中 GDI 函数及其使用。主要包括：设备上下文的概念、获取和释放；矩形操作和区域操作；基本绘图函数；位图操作函数；逻辑字体操作函数等。</em>
+
+<p><a name="1"><span class="atitle2">1  引言</span></a>
+<br />GUI 系统的一个重要组成部分就是 GDI，即图形设备接口（Graphics Device Interface）。通过 GDI，GUI 程序就可以在计算机屏幕上，或者其他的显示设备上进行图形输出，包括基本绘图和文本输出。本文将详细描述 MiniGUI 中的 GDI 函数，并举例说明重要函数的用法。其中包括：DC 的概念、获取和释放；矩形操作和剪切域操作；基本绘图函数；位图操作函数；逻辑字体操作函数等。</p>
+<p><a name="2"><span class="atitle2">2  图形设备上下文</span></a>
+<br />在 MiniGUI 中，采用了在 Windows 和 X Window 中普遍采用的图形设备概念。每个图形设备定义了计算机显示屏幕上的一个矩形输出区域。在调用图形输出函数时，均要求指定经初始化的图形设备上下文（Device Context，DC），也称作"设备环境"。从程序员的角度看，一个经过初始化的图形设备上下文确定了其后进行图形输出的一些基本属性，并一直保持这些属性，直到被改变为止。这些属性包括：输出的线条颜色、填充颜色、字体颜色、字体形状等等。而从 GUI 系统角度来讲，一个图形设备上下文所代表的含义就要复杂得多，它起码应该包含如下内容：
+<ol class=n01>
+<li>该设备上下文本所在设备信息（显示模式、色彩深度、显存布局等等）；
+<li>该设备上下文所代表的窗口以及该窗口被其他窗口剪切的信息（在 MiniGUI 中，称作"全局剪切域"）；
+<li>该设备上下文的基本操作函数（点、直线、多边形、填充、块操作等），及其上下文信息；
+<li>由程序设定的局部信息（绘图属性、映射关系和局部剪切域等）。</ol></p>
+<p>所以，从程序员的角度看来，他所关心的仅仅是设备上下文本身的一小部分东西。</p>
+<p><span class="atitle3">2.1  设备上下文的获取和释放</span>
+<br />在 MiniGUI 中，所有绘图相关的函数均需要有一个设备上下文。设备上下文可通过 GetClientDC 和 ReleaseDC 获取和释放。由 GetDC 所获取的设备上下文是针对整个窗口的，而 GetClientDC 所获取的设备上下文是针对窗口客户区，也就是说，前一个函数获得的设备上下文，其坐标原点位于窗口左上角，输出被限定在窗口范围之内；后一个函数获得的设备上下文，其坐标原点位于窗口客户区左上角，输出被限定在窗口客户区范围之内。下面是这三个函数的原型说明（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 398 HDC GUIAPI GetDC (HWND hwnd);
+ 399 HDC GUIAPI GetClientDC (HWND hwnd);
+ 400 void GUIAPI ReleaseDC (HDC hdc);
+</code></pre></td></tr></table></p>
+<p>GetDC 和 GetClientDC 是从系统预留的若干个 DC 当中获得一个目前尚未使用的设备上下文。所以，应该注意如下两点：
+<ol class=n01>
+<li>在使用完成一个由 GetDC 返回的设备上下文之后，应该尽快调用 ReleaseDC 释放。
+<li>避免同时使用多个设备上下文，并避免在递归函数中调用 GetDC 和 GetClientDC。</ol></p>
+<p>为了方便程序编写，提高绘图效率，MiniGUI 还提供了建立私有设备上下文的函数，所建立的设备上下文在整个窗口生存期内有效，从而免除了获取和释放的过程。这些函数的原型如下：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 403 HDC GUIAPI CreatePrivateDC (HWND hwnd);
+ 404 HDC GUIAPI CreatePrivateClientDC (HWND hwnd);
+ 405 HDC GUIAPI GetPrivateClientDC (HWND hwnd);
+ 406 void GUIAPI DeletePrivateDC (HDC hdc);
+</code></pre></td></tr></table></p>
+<p>在建立主窗口时，如果主窗口的扩展风格中指定了 WS_EX_USEPRIVATEDC 风格，则 CreateMainWindow 函数会自动为该窗口的客户区建立私有设备上下文。通过 GetPrivateClientDC 函数，可以获得该设备上下文。对控件而言，如果控件类具有 CS_OWNDC 属性，则所有属于该控件类的控件将自动建立私有设备上下文。DeletePrivateDC 函数用来删除私有设备上下文。对上述两种情况，系统将在销毁窗口时自动调用 DeletePrivateDC 函数。
+</p>
+<p>另外一个获取和释放设备上下文的方法是通过 BeginPaint 和 EndPaint 函数。这两个函数只能在处理 MSG_PAINT 的消息中调用。MiniGUI 在 BeginPaint 函数中通过 GetClientDC 获取客户区设备上下文，然后将窗口当前的无效区域选择到窗口的剪切区域中；而 EndPaint 函数则清空窗口的无效区域，并释放设备上下文。这两个函数的原型如下（include/window.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 623 HDC GUIAPI BeginPaint(HWND hWnd);
+ 624 void GUIAPI EndPaint(HWND hWnd, HDC hdc);
+</code></pre></td></tr></table></p>
+<p>因为 BeginPaint 函数将窗口的无效区域选择到了设备上下文中，所以，可以通过一些必要的优化来提高 MSG_PAINT 消息的处理效率。比如，某个程序要在窗口客户区中填充若干矩形，就可以在 MSG_PAINT 函数中如下处理：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+MSG_PAINT:
+{
+	HDC hdc = BeginPaint (hWnd);
+
+	for (j = 0; j < 10; j ++) {
+		if (RectVisible  (hdc, rcs + j)) {
+			FillBox (hdc, rcs[j].left, rcs[j].top, rcs [j].right, rcs [j].bottom);
+		}
+	}
+
+	EndPaint (hWnd, hdc);
+	return 0;
+}
+</code></pre></td></tr></table>
+这样可以避免不必要的重绘操作，从而提高绘图效率。</p>
+<p><span class="atitle3">2.2  系统内存中的设备上下文</span>
+<br />MiniGUI 也提供了内存设备上下文的创建和销毁函数。利用内存设备上下文，可以在系统内存中建立一个类似显示内存的区域，然后在该区域中进行绘图操作，结束后再复制到显示内存中。这种绘图方法有许多好处，比如速度很快，减少直接操作显存造成的闪烁现象等等。不过，目前 MiniGUI 中只能建立和显示内存，也就是物理设备上下文一样的内存设备上下文。用来建立和销毁内存设备上下文的函数原型如下(include/gdi.h)：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 401 HDC GUIAPI CreateCompatibleDC (HDC hdc);
+ 402 void GUIAPI DeleteCompatibleDC (HDC hdc);
+</code></pre></td></tr></table></p>
+<p><span class="atitle3">2.3  屏幕设备上下文</span>
+<br />MiniGUI 在启动之后，就建立了一个全局的屏幕设备上下文。该 DC 是针对整个屏幕的，并且没有任何预先定义的剪切域。在某些应用程序中，可以直接使用该设备上下文进行绘图，将大大提高绘图效率。在 MiniGUI 中，屏幕设备上下文用 HDC_SCREEN 标识，不需要进行任何获取和释放操作。</p>
+<p><span class="atitle3">2.4  映射模式</span>
+<br />一个设备上下文被初始化之后，其坐标系原点通常是输出矩形的左上角，而 x 轴水平向左，y 轴垂直向下，并以象素为单位。这种坐标的映射模式标识为 MM_TEXT。MiniGUI 提供了一套函数，可以改变这种映射方式，包括对默认坐标系进行偏移、缩放等操作。这些函数的原型如下（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 453 int GUIAPI GetMapMode (HDC hdc);
+ 454 void GUIAPI GetViewportExt (HDC hdc, POINT* pPt);
+ 455 void GUIAPI GetViewportOrg (HDC hdc, POINT* pPt);
+ 456 void GUIAPI GetWindowExt (HDC hdc, POINT* pPt);
+ 457 void GUIAPI GetWindowOrg (HDC hdc, POINT* pPt);
+ 458 void GUIAPI SetMapMode (HDC hdc, int mapmode);
+ 459 void GUIAPI SetViewportExt (HDC hdc, POINT* pPt);
+ 460 void GUIAPI SetViewportOrg (HDC hdc, POINT* pPt);
+ 461 void GUIAPI SetWindowExt (HDC hdc, POINT* pPt);
+ 462 void GUIAPI SetWindowOrg (HDC hdc, POINT* pPt);
+</code></pre></td></tr></table></p>
+<p>GetMapMode 函数返回当前的映射模式，若不是 MM_TEXT 模式，则返回MM_ANISOTROPIC。SetMapMode 函数设置映射模式，MiniGUI 目前只支持两种映射模式，即MM_ANISOTROPIC 和 MM_TEXT。Get 函数组用来返回映射模式信息，包括偏移量、缩放比例等等，而 Set 函数组用来设置相应的映射信息。</p>
+<p>通常情况下，MiniGUI 的 GDI 函数所指定的坐标参数称为"逻辑坐标"，在绘制之前，首先要转化成"设备坐标"。当使用 MM_TEXT 映射模式时，逻辑坐标和设备坐标是等价的。LPtoDP 函数用来完成逻辑坐标到设备坐标的转换，DPtoLP 函数用来完成从设备坐标到逻辑坐标的转换。逻辑坐标和设备坐标的关系可从 LPtoDP 函数中看到（src/gdi/coor.c）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+  61 void GUIAPI LPtoDP(HDC hdc, POINT* pPt)
+  62 {
+  63     PDC pdc;
+  64 
+  65     pdc = dc_HDC2PDC(hdc);
+  66 
+  67     if (pdc->mapmode != MM_TEXT) {
+  68         pPt->x = (pPt->x - pdc->WindowOrig.x)
+  69              * pdc->ViewExtent.x / pdc->WindowExtent.x
+  70              + pdc->ViewOrig.x;
+  71 
+  72         pPt->y = (pPt->y - pdc->WindowOrig.y)
+  73              * pdc->ViewExtent.y / pdc->WindowExtent.y
+  74              + pdc->ViewOrig.y;
+  75     }
+  76 }
+  77 
+</code></pre></td></tr></table>
+另外，LPtoSP 函数和 SPtoLP 函数完成逻辑坐标和屏幕坐标之间的转换。</p>
+
+<p><a name="3"><span class="atitle2">3  矩形操作和区域操作</span></a>
+<br /><span class="atitle3">3.1  矩形操作</span>
+<br />在 MiniGUI 中，矩形是如下定义的（include/common.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 120 typedef struct tagRECT
+ 121 {
+ 122     int left;
+ 123     int top;
+ 124     int right;
+ 125     int bottom;
+ 126 } RECT;
+ 127 typedef RECT* PRECT;
+ 128 typedef RECT* LPRECT;
+</code></pre></td></tr></table></p>
+<p>简而言之，矩形就是用来表示屏幕上一个矩形区域的数据结构，定义了矩形左上角的 x, y 坐标（left 和 top）以及右下角的 x, y 坐标（right 和 bottom）。需要注意的是，MiniGUI 中的矩形，其右侧的边和下面的边是不属于该矩形的。例如，要表示屏幕上的一条扫描线，应该用
+<br /><code> RECT rc = {x, y, x + w + 1, y + 1}; </code><br />表示。其中 x 是扫描线的起点，y 是扫描线的垂直位置，w 是扫描线宽度。</p>
+<p>MiniGUI 提供了一组函数，可对 RECT 对象进行操作：
+<ul class=n01>
+<li>SetRect  对 RECT 对象的各个分量进行赋值；
+<li>SetRectEmpty  将 RECT 对象设置为空。MiniGUI 中的空矩形定义为高度或宽度为零的矩形；
+<li>IsRectEmpty  判断给定 RECT 对象是否为空。
+<li>NormalizeRect  对给定矩形进行正规化处理。MiniGUI 中的矩形，应该满足（right > left 并且 bottom > top）的条件。满足这一条件的矩形又称"正规化矩形"，该函数可以对任意矩形进行正规化处理。
+<li>CopyRect  复制矩形；
+<li>EqualRect  判断两个 RECT 对象是否相等，即两个 RECT 对象的各个分量相等；
+<li>IntersectRect  该函数求两个 RECT 对象之交集。若两个矩形根本不相交，则函数返回 FALSE，且结果矩形未定义；否则返回交矩形。
+<li>DoesIntersec  该函数仅仅判断两个矩形是否相交。
+<li>IsCovered  该函数判断 RECT 对象 A 是否全部覆盖 RECT 对象 B，即 RECT B 是 RECT A 的真子集。
+<li>UnionRect  该函数求两个矩形之并。如果两个矩形根本无法相并，则返回 FALSE。两个相并之后的矩形，其中所包含的任意点，应该属于两个相并矩形之一。
+<li>GetBoundRect  该函数求两个矩形的外包最小矩形。
+<li>SubstractRect  该函数从一个矩形中减去另外一个矩形。注意，两个矩形相减的结果可能生成 4 个不相交的矩形。该函数将返回结果矩形的个数以及差矩形。详细信息可参见"MiniGUI 体系结构之二――多窗口管理和控件及控件类"一文。
+<li>OffsetRect  该函数对给定的 RECT 对象进行平移处理。
+<li>InflateRect  该函数对给定的 RECT 对象进行膨胀处理。注意膨胀之后的矩形宽度和高度是给定膨胀值的两倍。
+<li>InflateRectToPt  该函数将给定的 RECT 对象膨胀到指定的点。
+<li>PtInRect  该函数判断给定的点是否位于指定的 RECT 对象中。</ul></p>
+<p><span class="atitle3">3.2  区域操作</span>
+<br />在 MiniGUI 中，区域定义为互不相交矩形的集合，在内部用链表形式表示。MiniGUI 的区域可以用来表示窗口的剪切域、无效区域、可见区域等等。在 MiniGUI 中，区域和剪切域的定义是一样的，剪切域定义如下（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+  76 // Clip Rect
+  77 typedef struct tagCLIPRECT
+  78 {
+  79     RECT rc;
+  80     struct tagCLIPRECT* next;
+  81 }CLIPRECT;
+  82 typedef CLIPRECT* PCLIPRECT;
+  83
+  84 // Clip Region
+  85 typedef struct tagCLIPRGN
+  86 {
+  87    RECT            rcBound;     // bound rect of clip region
+  88    PCLIPRECT       head;        // clip rect list head
+  89    PCLIPRECT       tail;        // clip rect list tail
+  90    PBLOCKHEAP      heap;        // heap of clip rect
+  91 } CLIPRGN;
+  92 typedef CLIPRGN* PCLIPRGN;
+</code></pre></td></tr></table></p>
+<p>每个剪切域对象有一个 BLOCKHEAP 成员。该成员是剪切域分配 RECT 对象的私有堆。在使用一个剪切域对象之前，首先应该建立一个 BLOCKHEAP 对象，并对剪切域对象进行初始化。如下所示：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+static BLOCKHEAP sg_MyFreeClipRectList;
+
+...
+
+    CLIPRGN my_region
+
+    InitFreeClipRectList (&sg_MyFreeClipRectList, 20);
+    InitClipRgn (&my_regioni, &sg_MyFreeClipRectList);
+</code></pre></td></tr></table>在实际使用当中，多个剪切域可以共享同一个 BLOCKHEAP 对象。</p>
+<p>在初始化剪切域对象之后，可以对剪切域进行如下操作：
+<ul class=n01>
+<li>SetClipRgn  该函数将剪切域设置为仅包含一个矩形的剪切域；
+<li>ClipRgnCopy  该函数复制剪切域；
+<li>ClipRgnIntersect  该函数求两个剪切域的交集；
+<li>GetClipRgnBoundRect  该函数求剪切域的外包最小矩形；
+<li>IsEmptyClipRgn 该函数判断剪切域是否为空，即是否包含剪切矩形；
+<li>EmptyClipRgn  该函数释放剪切域中的剪切矩形，并清空剪切域；
+<li>AddClipRect  该函数将一个剪切矩形追加到剪切域中。注意该操作并不判断该剪切域是否和剪切矩形相交。
+<li>IntersectClipRect  该函数求剪切区域和给定矩形相交的剪切区域。
+<li>SubtractClipRect  该函数从剪切区域中减去指定的矩形。</ul>
+矩形和区域的运算构成了窗口管理的主要算法，也是高级 GDI 函数的基本算法之一，在 GUI 编程中占有非常重要的地位。</p>
+
+<p><a name="4"><span class="atitle2">4  基本图形操作</span></a>
+<br /><span class="atitle3">4.1  基本绘图属性</span>
+<br />在了解基本绘图函数之前，我们首先了解一下基本绘图属性。在 MiniGUI 的目前版本中，绘图属性比较少，大体包括线条颜色、填充颜色、文本背景模式、文本颜色、TAB 键宽度等等。表 1 给出了这些属性的操作函数。</p>
+<p>表 1  基本绘图属性及其操作函数
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<tr><td>绘图属性</td><td>操作函数</td><td>受影响的 GDI 函数</td></tr>
+<tr><td>线条颜色</td><td>GetPenColor/SetPenColor</td><td>LineTo、Circle、Rectangle</td></tr>
+<tr><td>填充颜色</td><td>GetBrushColor/SetBrushColor</td><td>FillBox</td></tr>
+<tr><td>文本背景模式</td><td>GetBkMode/SetBkMode</td><td>TextOut、DrawText</td></tr>
+<tr><td>文本颜色</td><td>GetTextColor/SetTextColor</td><td>同上</td></tr>
+<tr><td>TAB 键宽度</td><td>GetTabStop/SetTabStop</td><td>同上</td></tr></table>
+MiniGUI 目前版本中还定义了刷子和笔的若干函数，这些函数是为将来兼容性而定义的，目前无用。</p>
+<p><span class="atitle3">4.2  基本绘图函数</span>
+<br />MiniGUI 中的基本绘图函数为点、线、圆、矩形、调色板操作等基本函数，原型定义如下（include/gdi.h，版本 1.0.06）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 433 // Palette support
+ 434 int GUIAPI GetPalette (HDC hdc, int start, int len, gal_color* cmap);
+ 435 int GUIAPI SetPalette (HDC hdc, int start, int len, gal_color* cmap);
+ 436 int GUIAPI SetColorfulPalette (HDC hdc);
+ 437
+ 438 // General drawing support
+ 439 void GUIAPI SetPixel (HDC hdc, int x, int y, gal_pixel c);
+ 440 void GUIAPI SetPixelRGB (HDC hdc, int x, int y, int r, int g, int b);
+ 441 gal_pixel GUIAPI GetPixel (HDC hdc, int x, int y);
+ 442 void GUIAPI GetPixelRGB (HDC hdc, int x, int y, int* r, int* g, int* b);
+ 443 gal_pixel GUIAPI RGB2Pixel (HDC hdc, int r, int g, int b);
+ 444 
+ 445 void GUIAPI LineTo (HDC hdc, int x, int y);
+ 446 void GUIAPI MoveTo (HDC hdc, int x, int y);
+ 447 
+ 448 void GUIAPI Circle (HDC hdc, int x, int y, int r);
+ 449 void GUIAPI Rectangle (HDC hdc, int x0, int y0, int x1, int y1);
+</code></pre></td></tr></table></p>
+<p>这里有两个基本的概念需要明确区分，即象素值和 RGB 值。RGB 是计算机中通过三原色的不同比例表示某种颜色的方法。通常，RGB 中的红、绿、蓝可取 0 ~ 255 当中的任意值，从而可以表示 255x255x255 种不同的颜色。而在显示内存当中，要显示在屏幕上的颜色并不是用 RGB 这种方式表示的，显存当中保存的其实是所有象素的象素值。象素值的范围根据显示模式的不同而变化。在 16 色显示模式下，象素值范围为 [0, 15]；而在 256 色模式下，象素值范围为 [0, 255]；在 16 位色模式下，象素值范围为 [0, 2^16 - 1]。通常我们所说显示模式是多少位色，就是指象素的位数。</p>
+<p>在 MiniGUI 中，设置某个象素点的颜色，既可以直接使用象素值（SetPixel），也可以间接通过 RGB 值来设置（SetPixelRGB），并且通过 RGB2Pixel 函数，可以将 RGB 值转换为象素值。</p>
+<p>调色板是低颜色位数的模式下（比如 256 色或者更少的颜色模式），用来建立有限的象素值和 RGB 对应关系的一个线性表。在 MiniGUI 当中，可以通过 SetPalette和 GetPalette 进行调色板的操作，而SetColorfulePalette 将调色板设置为默认的调色板。一般而言，在更高的颜色位数，比如 15 位色以上，因为象素值范围能够表达的颜色已经非常丰富了，加上存储的关系，就不再使用调色板建立象素值和 RGB 的对应关系，而使用更简单的方法建立 RGB 和实际象素之间的关系，如下所示（src/gal/native/native.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 174 /* Truecolor color conversion and extraction macros */
+ 175 /*
+ 176  * Conversion from RGB to gal_pixel
+ 177  */
+ 178 /* create 24 bit 8/8/8 format pixel (0x00RRGGBB) from RGB triplet*/
+ 179 #define RGB2PIXEL888(r,g,b)     \
+ 180         (((r) << 16) | ((g) << 8) | (b))
+ 181 
+ 182 /* create 16 bit 5/6/5 format pixel from RGB triplet */
+ 183 #define RGB2PIXEL565(r,g,b)     \
+ 184         ((((r) & 0xf8) << 8) | (((g) & 0xfc) << 3) | (((b) & 0xf8) >> 3))
+ 185 
+ 186 /* create 15 bit 5/5/5 format pixel from RGB triplet */
+ 187 #define RGB2PIXEL555(r,g,b)     \
+ 188         ((((r) & 0xf8) << 7) | (((g) & 0xf8) << 2) | (((b) & 0xf8) >> 3))
+ 189 
+ 190 /* create 8 bit 3/3/2 format pixel from RGB triplet*/
+ 191 #define RGB2PIXEL332(r,g,b)     \
+ 192         (((r) & 0xe0) | (((g) & 0xe0) >> 3) | (((b) & 0xc0) >> 6))
+</code></pre></td></tr></table>
+RGB2PIXEL888 将 [0, 255] 的 RGB 值转换为 24 位色的象素值；而 RGB2PIXEL565 转换为 16 位色的象素值；RGB2PIXEL555 和RGB2PIXEL332 分别转换为 15 位色和 8 位色。</p>
+<p><span class="atitle3">4.3  剪切域操作函数</span>
+<br />在利用设备上下文进行绘图时，还可以进行剪切处理。MiniGUI 提供了如下函数完成对指定设备上下文的剪切处理（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 468 // Clipping support
+ 469 void GUIAPI ExcludeClipRect (HDC hdc, int left, int top, 
+ 470                             int right, int bottom);
+ 471 void GUIAPI IncludeClipRect (HDC hdc, int left, int top, 
+ 472                               int right, int bottom);
+ 473 void GUIAPI ClipRectIntersect (HDC hdc, const RECT* prc);
+ 474 void GUIAPI SelectClipRect (HDC hdc, const RECT* prc);
+ 475 void GUIAPI SelectClipRegion (HDC hdc, const CLIPRGN* pRgn);
+ 476 void GUIAPI GetBoundsRect (HDC hdc, RECT* pRect);
+ 477 BOOL GUIAPI PtVisible (HDC hdc, const POINT* pPt);
+ 478 BOOL GUIAPI RectVisible (HDC hdc, const RECT* pRect);
+</code></pre></td></tr></table>
+ExcludeClipRect 从设备上下文的当前可见区域中排除给定的矩形区域,设备上下文的可见区域将缩小；IncludeClipRect 向当前设备上下文的可见区域中添加一个矩形区域，设备上下文的可见区域将扩大；ClipRectIntersect 将设备上下文的可见区域设置为已有区域和给定矩形区域的交集；SelectClipRect 将设备上下文的可见区域重置为一个矩形区域；SelectClipRegion 将设备上下文的可见区域设置为一个指定的区域；GetBoundsRect 获取当前可见区域的外包最小矩形；PtVisible 和 RectVisible 用来判断给定的点或者矩形是否可见，即是否全部或部分落在可见区域当中。</p>
+
+<p><a name="5"><span class="atitle2">5  位图操作函数</span></a>
+<br />在 MiniGUI 的 GDI 函数中，位图操作函数占有非常重要的地位。实际上，许多高级绘图操作函数均建立在位图操作函数之上，比如文本输出函数。MiniGUI 的主要位图操作函数如下所示（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 495 void GUIAPI FillBox (HDC hdc, int x, int y, int w, int h);
+ 496 void GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h,
+ 497                               PBITMAP pBitmap);
+ 498 void GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
+ 499                               int bw, int bh, PBITMAP pBitmap, int xo, int yo);
+ 500 
+ 501 void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh, 
+ 502                    HDC hddc, int dx, int dy, DWORD dwRop);
+ 503 void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh, 
+ 504                        HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);
+</code></pre></td></tr></table></p>
+<p>FillBox 用当前填充色填充矩形框；FillBoxWithBitmap 用设备相关位图对象填充矩形框，可以用来扩大或者缩小位图；FillBoxWithBitmapPart 用设备相关位图对象的部分填充矩形框，也可以扩大或缩小位图。BitBlt 函数用来实现两个不同设备上下文之间的显示内存复制。StretchBlt 则在 BitBlt 的基础上进行缩放操作。</p>
+<p>通过 MiniGUI 的 LoadBitmap 函数，可以将某种位图文件装载为 MiniGUI 设备相关的位图对象，即 BITMAP 对象。设备相关的位图指的是，位图当中包含的是与指定设备上下文的显示模式相匹配的象素值，而不是设备无关的位图信息。MiniGUI 目前可以用来装载BMP 文件、JPG 文件、GIF 文件以及 PCX、TGA 等格式的位图文件，而 LoadMyBitmap 函数则用来将位图文件装载成设备无关的位图对象。在 MiniGUI 中，设备相关的位图对象和设备无关的位图对象分别用 BITMAP 和 MYBITMAP 两种数据结构表示。相关函数的原型如下（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 666 int GUIAPI LoadMyBitmap (HDC hdc, PMYBITMAP pMyBitmap, RGB* pal, const char* spFileName);
+ 667 int GUIAPI LoadBitmap (HDC hdc, PBITMAP pBitmap, const char* spFileName);
+ 668 #ifdef _MGMISC_SAVEBITMAP
+ 669 int GUIAPI SaveBitmap (HDC hdc, PBITMAP pBitmap, const char* spFileName);
+ 670 #endif
+ 671 void GUIAPI UnloadBitmap (PBITMAP pBitmap);
+ 672 
+ 673 int GUIAPI ExpandMyBitmap (HDC hdc, const MYBITMAP* pMyBitmap, const RGB* pal, PBITMAP pBitmap);
+ 674 
+ 675 void GUIAPI ExpandMonoBitmap (HDC hdc, int w, int h, const BYTE* bits, int bits_flow, int pitch, 
+ 676                              BYTE* bitmap, int bg, int fg);
+ 677 void GUIAPI Expand16CBitmap (HDC hdc, int w, int h, const BYTE* bits, int bits_flow, int pitch,
+ 678                             BYTE* bitmap, const RGB* pal);
+ 679 void GUIAPI Expand256CBitmap (HDC hdc, int w, int h, const BYTE* bits, int bits_flow, int pitch,
+ 680                              BYTE* bitmap, const RGB* pal);
+ 681 void GUIAPI CompileRGBBitmap (HDC hdc, int w, int h, const BYTE* bits, int bits_flow, int pitch,
+ 682                              BYTE* bitmap, int rgb_order);
+ 683 
+ 684 void GUIAPI ReplaceBitmapColor (HDC hdc, PBITMAP pBitmap, int iOColor, int iNColor);
+</code></pre></td></tr></table></p>
+<p>上面的 Expand 函数组，用来将设备无关的位图转化为与指定设备上下文相关的位图对象。</p>
+<p>有关位图操作的详细使用方法，可见 mglite-exec 包中的 bitmaptest 示例程序。</p>
+
+<p><a name="6"><span class="atitle2">6  逻辑字体和文本输出函数</span></a>
+<br />MiniGUI 的逻辑字体功能强大，它包括了字符集、字体类型、风格、样式等等丰富的信息，不仅仅可以用来输出文本，而且可以用来分析多语种文本的结构。这在许多文本排版应用中非常有用。在使用 MiniGUI 的逻辑字体之前，首先要创建逻辑字体，并且将其选择到要使用这种逻辑字体进行文本输出的设备上下文当中。每个设备上下文的默认逻辑字体是系统字体，即用来显示菜单、标题的逻辑字体。你可以调用 CreateLogFont 和 CreateLogFontIndirect 两个函数来建立逻辑字体，并利用 SelectFont 函数将逻辑字体选择到指定的设备上下文中，在使用结束之后，用 DestroyLogFont 函数销毁逻辑字体。注意你不能销毁正被选中的逻辑字体。这几个函数的原型如下（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 555 PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family, 
+ 556         const char* charset, char weight, char slant, char set_width, 
+ 557         char spacing, char underline, char struckout, 
+ 558         int size, int rotation);
+ 559 PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT* logfont);
+ 560 void GUIAPI DestroyLogFont (PLOGFONT log_font);
+ 561 
+ 562 void GUIAPI GetLogFontInfo (HDC hdc, LOGFONT* log_font);
+ 563 
+ 564 #define SYSLOGFONT_DEFAULT          0
+ 565 PLOGFONT GUIAPI GetSystemFont (int font_id);
+ 566 
+ 567 PLOGFONT GUIAPI GetCurFont (HDC hdc);
+ 568 PLOGFONT GUIAPI SelectFont (HDC hdc, PLOGFONT log_font);
+</code></pre></td></tr></table></p>
+<p>GetSystemFont 函数返回默认的系统逻辑字体，GetCurFont 函数返回当前选中的逻辑字体。注意不要删除系统逻辑字体。下面的程序段建立了多个逻辑字体：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+    static LOGFONT  *logfont, *logfontgb12, *logfontbig24;
+
+            logfont = CreateLogFont (NULL, "SansSerif", "ISO8859-1", 
+                        FONT_WEIGHT_REGULAR, FONT_SLANT_ITALIC, FONT_SETWIDTH_NORMAL,
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE, 
+                        16, 0);
+            logfontgb12 = CreateLogFont (NULL, "song", "GB2312", 
+                        FONT_WEIGHT_REGULAR, FONT_SLANT_ROMAN, FONT_SETWIDTH_NORMAL,
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_LINE, FONT_STRUCKOUT_LINE, 
+                        12, 0);
+            logfontbig24 = CreateLogFont (NULL, "ming", "BIG5", 
+                        FONT_WEIGHT_REGULAR, FONT_SLANT_ROMAN, FONT_SETWIDTH_NORMAL,
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_LINE, FONT_STRUCKOUT_NONE, 
+                        24, 0);
+</code></pre></td></tr></table></p>
+<p>其中，第一个字体，即 logfont 是属于字符集 ISO8859-1 的字体，并且选用 SansSerif 体，大小为 16 象素高；logfontgb12 是属于字符集 GB2312 的字体，并选用 song 体（宋体），大小为 12 象素高；logfontbig24 是属于字符集 BIG5 的字体，并选用 ming 体（即明体）。</p>
+<p>在建立了逻辑字体之后，应用程序可以利用逻辑字体进行多语种混和文本的分析。这里的多语种混和文本是指，两个不相交字符集的文本组成的字符串，比如 GB2312 和 ISO8859-1，或者 BIG5 和 ISO8859-2，通常是多字符集和单字符集之间的混和。利用下面的函数，可以实现多语种混和文本的文本组成分析（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 570 // Text parse support
+ 571 int GUIAPI GetTextMCharInfo (PLOGFONT log_font, const char* mstr, int len, 
+ 572                 int* pos_chars);
+ 573 int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, int len, 
+ 574                 int* pos_words, WORDINFO* info_words);
+ 575 int GUIAPI GetFirstMCharLen (PLOGFONT log_font, const char* mstr, int len);
+ 576 int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
+ 577                             WORDINFO* word_info);
+</code></pre></td></tr></table></p>
+<p>GetTextMCharInfo 函数返回多语种混和文本中每个字符的字节位置。比如对"ABC汉语"字符串，该函数将在 pos_chars 中返回{0, 1, 2, 3, 5} 5 个值。GetTextWordInfo 函数则将分析多语种混和文本中每个单词的位置。对单字节字符集文本，单词以空格、TAB 键为分界，对多字节字符集文本，单词以单个字符为界。GetFirstMCharLen 函数返回第一个混和文本字符的字节长度。GetFirstWord 函数返回第一个混和文本单词的单词信息。</p>
+<p>以下函数可以用来计算逻辑字体的输出长度和高度信息（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 580 int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len, int max_extent, 
+ 581                 int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size);
+ 582 
+ 583 // Text output support
+ 584 int GUIAPI GetFontHeight (HDC hdc);
+ 585 int GUIAPI GetMaxFontWidth (HDC hdc);
+ 586 void GUIAPI GetTextExtent (HDC hdc, const char* spText, int len, SIZE* pSize);
+ 587 void GUIAPI GetTabbedTextExtent (HDC hdc, const char* spText, int len, SIZE* pSize);
+</code></pre></td></tr></table></p>
+<p>GetTextExtentPoint 函数计算在给定的输出宽度内输出多字节文本时（即输出的字符限制在一定的宽度当中），可输出的最大字符个数、每个字符所在的字节位置、每个字符的输出位置，以及实际的输出高度和宽度。GetFontHeight 和 GetMaxFontWidth 则返回逻辑字体的高度和最大字符宽度。GetTextExtent 计算文本的输出高度和宽度。GetTabbedTextExtent 函数返回格式化字符串的输出高度和宽度。</p>
+<p>以下函数用来输出文本（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+ 596 int GUIAPI TextOutLen (HDC hdc, int x, int y, const char* spText, int len);
+ 597 int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y, const char* spText, int len); 
+ 598 int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y, const char* spText, int nCount,
+ 599             int nTabPositions, int *pTabPositions, int nTabOrigin);
+ 600 void GUIAPI GetLastTextOutPos (HDC hdc, POINT* pt);
+ 601 
+ 602 // Compatiblity definitions
+ 603 #define TextOut(hdc, x, y, text)    TextOutLen (hdc, x, y, text, -1)
+ 604 #define TabbedTextOut(hdc, x, y, text)  TabbedTextOutLen (hdc, x, y, text, -1)
+
+ ...
+
+ 621 int GUIAPI DrawTextEx (HDC hdc, const char* pText, int nCount, 
+ 622                 RECT* pRect, int nIndent, UINT nFormat);
+</code></pre></td></tr></table></p>
+<p>TextOutLen 函数用来在给定位置输出指定长度的字符串，若长度为 -1，则字符串必须是以 '\0' 结尾的。TabbedTextOutLen 函数用来输出格式化字符串。TabbedTextOutEx 函数用来输出格式化字符串，但可以指定字符串中每个 TAB 键的位置。DrawText 是功能最复杂的输出函数，可以以不同的对齐方式在指定矩形内部输出文本。下面的程序段，就根据字符串所描述的那样，调用 DrawText 函数进行对齐文本输出：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+void OnModeDrawText (HDC hdc)
+{
+    RECT rc1, rc2, rc3, rc4;
+    const char* szBuff1 = "This is a good day. \n"
+            "这是利用 DrawText 绘制的文本, 使用字体 GB2312 Song 12. "
+            "文本垂直靠上, 水平居中";
+    const char* szBuff2 = "This is a good day. \n"
+            "这是利用 DrawText 绘制的文本, 使用字体 GB2312 Song 16. "
+            "文本垂直靠上, 水平靠右";
+    const char* szBuff3 = "单行文本垂直居中, 水平居中";
+    const char* szBuff4 = 
+            "这是利用 DrawTextEx 绘制的文本, 使用字体 GB2312 Song 16. "
+            "首行缩进值为 32. 文本垂直靠上, 水平靠左";
+
+    rc1.left = 1; rc1.top  = 1; rc1.right = 401; rc1.bottom = 101;
+    rc2.left = 0; rc2.top  = 110; rc2.right = 401; rc2.bottom = 351;
+    rc3.left = 0; rc3.top  = 361; rc3.right = 401; rc3.bottom = 451;
+    rc4.left = 0; rc4.top  = 461; rc4.right = 401; rc4.bottom = 551;
+
+    SetBkColor (hdc, COLOR_lightwhite);
+
+    Rectangle (hdc, rc1.left, rc1.top, rc1.right, rc1.bottom);
+    Rectangle (hdc, rc2.left, rc2.top, rc2.right, rc2.bottom);
+    Rectangle (hdc, rc3.left, rc3.top, rc3.right, rc3.bottom);
+    Rectangle (hdc, rc4.left, rc4.top, rc4.right, rc4.bottom);
+
+    InflateRect (&rc1, -1, -1);
+    InflateRect (&rc2, -1, -1);
+    InflateRect (&rc3, -1, -1);
+    InflateRect (&rc4, -1, -1);
+
+    SelectFont (hdc, logfontgb12);
+    DrawText (hdc, szBuff1, -1, &rc1, DT_NOCLIP | DT_CENTER | DT_WORDBREAK);
+
+    SelectFont (hdc, logfontgb16);
+    DrawText (hdc, szBuff2, -1, &rc2, DT_NOCLIP | DT_RIGHT | DT_WORDBREAK);
+
+    SelectFont (hdc, logfontgb24);
+    DrawText (hdc, szBuff3, -1, &rc3, DT_NOCLIP | DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+    SelectFont (hdc, logfontgb16);
+    DrawTextEx (hdc, szBuff4, -1, &rc4, 32, DT_NOCLIP | DT_LEFT | DT_WORDBREAK);
+}
+</code></pre></td></tr></table></p>
+<p>有关逻辑字体和文本输出的函数详细使用方法，可见 mglite-exec 包中的 fontest 示例程序。</p>
+<p><a name="7"><span class="atitle2">7  小结</span></a>
+<br />本文讲述了 MiniGUI 中接口最多也最复杂的 GDI 函数及其使用方法。其中包括：设备上下文的概念、获取和释放；矩形操作和区域操作；基本绘图函数；位图操作函数；逻辑字体操作函数等等。目前版本的 GDI 接口还有许多功能上的缺陷，我们将在下一个版本开发中着重进行改善。关于 MiniGUI 下一版本的开发计划，请参见本文附录。</p>
+<p><span class="atitle3">附录：MiniGUI 的最新开发计划</span>
+<br />MiniGUI 发展到今天，得到了许多用户的认可，使用它的人也越来越多了。目前，用户已经从国内发展到了国外。这说明 MiniGUI 当中的许多设计思想得到了认可，也大大激励了我们的开发热情。</p>
+<p>作为一个面向实时嵌入式系统的 GUI，MiniGUI 的 1.0.xx 版本基本能够满足许多嵌入式系统的应用需求。但这还远远不够，我们仍然需要进一步的开发，以便让 MiniGUI 在嵌入式 GUI 系统中达到领先地位。</p>
+<p>MiniGUI 发展到今天，得到了许多用户的认可，使用它的人也越来越多了。目前，用户已经从国内发展到了国外。这说明 MiniGUI 当中的许多设计思想得到了认可，也大大激励了我们的开发热情。</p>
+<p>作为一个面向实时嵌入式系统的 GUI，MiniGUI 的 1.0.xx 版本基本能够满足许多嵌入式系统的应用需求。但这还远远不够，我们仍然需要进一步的开发，以便让 MiniGUI 在嵌入式 GUI 系统中达到领先地位。</p>
+<p>我们已经开始了 MiniGUI 新版本开发（即 1.1.xx），对这个版本，有如下新的设想：
+<ol class=n01>
+<li>MiniGUI-Lite 的全局鼠标支持。目前的 MiniGUI-Lite 版本，鼠标的位置刷新是由鼠标所在客户或者服务器管理的。新版本中，将考虑由服务器统一管理。这个工作目前已经基本完成。
+<li>在 MiniGUI-Lite 中添加层（Layer）的概念和处理。在一次 MiniGUI-Lite 会话中，可以建立多个层。每个层中可以包含能够同时向屏幕输出的多个客户，而每一时刻，能够在屏幕上显示的层只有一个。对层而言，我们可以进行层的激活处理。激活的层，将显示在屏幕上，而其他层的绘图将被屏蔽。对层中客户的绘图屏蔽算法，将考虑使用不同于当前 MiniGUI-Lite 通过信号和信号量结合的方法，因为这种方法在多线程应用中，可能出现问题。
+<li>层中客户可以互相剪切。后建立的客户，将剪切先建立的客户矩形。为此，要为每个层建立一个共享内存的 IPC 对象，客户通过该对象访问当前层客户之间的重叠和覆盖情况，而且要建立一个面向层的信号量和 age 值，用来协调客户剪切矩形的变化。层的客户剪切矩形的变化，将影响各个客户所建立窗口的全局剪切区域，从而影响 DC 的可见区域。
+<li>一个层中客户之间形成的 Z 序是固定的。不过，如果按照 3 所描述的方法，其实 Z 序也是可以变化的。考虑到性能因素，客户在层中所占的显示矩形不能变化，也就是说，既不能改变大小，也不能移动。但能够改变 Z 序，即改变客户之间的互相层叠关系。
+<p>BTW：为什么要如此考虑？<br>通过上面的方法，可以将一组具有共同目标的客户放置在同一个层上。比如，层中可以有一个 vcongui 程序，用它可以调试其他的 MiniGUI 程序。再比如，在 VOD 等程序中，实时播放 VCD 的客户就可以嵌入到主控界面当中。而服务器将具有较少的 GUI 能力，仅仅提供一个任务栏，用来激活某个层，或者改变客户在一个层中的 Z 序。</p>
+<p>当然，这样安排对某些小屏幕的嵌入式应用来讲，比如 PDA，并不是非常适合，但对 STB、或者其他具有大屏幕的实时嵌入式系统来讲，将具有非常高的应用价值。</p>
+<li>底层图形引擎将进行非常重大的修改，这将影响到 MiniGUI-Threads 和 MiniGUI-Lite 两个版本。目前的 MiniGUI 图形引擎，因为受到历史原因的影响，有许多弊端。在新的版本中，我们将考虑类似 SDL 那样的设计方法，将底层图形设备抽象为一个内存对象，并考虑加速功能的实现。同时，我们还要实现许多尚未实现的图形功能，包括光栅操作、Alpha 混和、多边形支持、椭圆和弧线支持等等。
+<p>BTW：当前 GAL 的设计弊端<br>
+当前 GAL 的设计弊端主要是抽象层次太高，而且并没有在底层实现剪切域的直接支持。这是要在新版本中着重考虑改进的。新的剪切域算法，将考虑生成 x-y-banned 的剪切域，以便底层绘图函数能够直接利用剪切域进行设计绘图算法。</p>
+<li>将考虑在 MiniGUI-Lite 版本中实现对矢量字体的支持，同时增加 Cache 处理能力，以便提高矢量字体的渲染效率。
+<li>对窗口管理，在这次开发中将不作大的修改，主要将进行一些代码的清理工作。</ol></p>
+<p>以上是我们对新版本的一些想法，希望大家能够讨论，并请多提建议和意见。我们将考虑首先实现层，然后实现图形引擎的改进，最后实现矢量字体在 MiniGUI-Lite 当中的支持及优化。如果您对 MiniGUI 新版本的开发有兴趣，可以加入我们的邮件列表，详细信息请参见<a href="http://www.minigui.org/ctalk.shtml">http://www.minigui.org/ctalk.shtml</a>。</p>
+<!-- AUTHOR BIOS -->
+<!-- Make author heading singular or plural as needed -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<a name="author1"><span class="atitle2">关于作者</span></a>
+<br />魏永明（<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>），男，27 岁，工学硕士。国内最有影响的自由软件项目之一－－MiniGUI 的创始人及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。</td></tr></table>
+</td></tr></table>
+
+<!-- END PAPER BODY -->
+
+</body>
+</html>
+

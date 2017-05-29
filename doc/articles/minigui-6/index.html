@@ -1,0 +1,236 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>MiniGUI  Lite 版本的新改进</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+	<p><strong class="title">MiniGUI  Lite 版本的新改进</strong><br>
+	</p>
+		<p>Woody, 宋立新，魏永明<br>
+	MiniGUI 开发者<br>
+	2001/2/22 </p>
+	
+<!-- END title and author lines -->
+
+<!-- Editor #5: Begin Table of Contents -->
+	<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>目录:</b></font></td></tr><tr>
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="1" alt="" border="0"/></font></td>
+                                 
+                             </tr>
+                             <tr>
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="4" alt="" border="0"/></font></td></tr>
+                                      <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1">引言：为什么要开发Lite版本 </a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2">Lite版本简介</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3">Lite版本的设计</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4">Lite版本的一些实现细节</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4">总结语</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">资源</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author">有关作者</a></font></td></tr>
+                <tr><td bgcolor="#000000"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="137" height="3"/></font></td></tr>
+	</table></p>
+<!-- End Table of Contents -->
+
+<!-- comments #6: html content of the paper -->
+<p><em>MiniGUI从0.98开始推出Lite版本。Lite版本是MiniGUI迈向嵌入式应用重要的一步。在Lite版本中，我们使用了自己设计的引擎，抛弃了pthread库，从而使得MiniGUI能够轻装上阵，更稳定，更高效率，也更符合嵌入式系统应用。本文介绍了MiniGUI Lite版本的基于Unix IPC实现的多进程机制。并详细介绍了一些实现细节。</em></p>
+
+<a name="1"> 
+<p><strong class="subhead">1  引言：为什么要开发Lite版本</strong></p>
+<p>
+现在，大多数UNIX系统采用X 窗口系统作为图形用户界面，MS Windows 则采用 Microsoft公司自己设计的GUI系统。这两种GUI系统也代表着目前通用GUI系统的两种实现。比如，著名的自由软件MicroWindows就同时实现了类似于MS Windows的MicroWindows API 和类似于X Window的NanoX API。
+</p>
+<p>
+MiniGUI 原来就采用了类似于MS Windows的体系结构，并且建立了基于线程的消息传递和窗口管理机制。然而，它是基于POSIX 线程的，这种实现提供最大程度上的数据共享，但也同时造成MiniGUI体系结构上的脆弱。如果某个线程因为非法的数据访问而终止运行，则整个系统都将受到影响。
+</p>
+<p>
+另一种方法是采用UNIX进程间通信机制建立窗口系统，即类似 X Window 的客户/服务器体系。但是这种体系结构也有它的先天不足，主要是通常的 IPC 机制无法提供高效的数据复制，大量的 CPU 资源用于各进程之间复制数据。在 PDA 等设备中，这种 CPU 资源的浪费将最终导致系统性能的降低以及设备耗电量的增加。 
+</p>
+<p>
+为了解决以上各种问题，同时也为了让 MiniGUI更加适合于嵌入式系统，我们开发了MiniGUI Lite 版本。
+</p>
+
+<a name="2">
+<p><strong class="subhead">2  Lite版本简介</strong></p>
+<p>
+在MiniGUI Lite 版本中，我们可以同时运行多个 MiniGUI 应用程序。首先我们启动一个服务器程序 mginit，然后我们可以从中启动其他做为客户运行的 MiniGUI 应用程序。如果因为某种原因客户终止，服务器可以继续运行。mginit程序建立了一个虚拟控制台窗口。我们可以从这个虚拟控制台的命令行启动其他的程序，甚至可以通过 gdb 调试这些程序。 这大大方便了MiniGUI应用程序的调试。
+</p>
+<p>
+MiniGUI-Lite 区别于 MiniGUI 原有版本的最大不同在于我们可以在 MiniGUI-Lite 程序中创建多个窗口，但不能启动新的线程建立窗口。除此之外，其他几乎所有的 API 都和 MiniGUI 原有版本是兼容的。因此，从 MiniGUI 原有版本向 MiniGUI-Lite 版本的移植是非常简单的。象mglite-exec 包中的程序，其中所有的程序均来自 miniguiexec 包，而每个源文件的改动不超过 5 行。
+</p>
+<a name="3">
+<p><strong class="subhead">3  Lite版本的设计</strong></p>
+<p>
+设计之初，我们确定MiniGUI Lite 版本的开发目的：
+</p>
+<ol>
+  <li>保持与原先 MiniGUI 版本在源代码级 98% 以上的兼容。</li>
+  <li>不再使用 LinuxThreads。</li>
+  <li>可以同时运行多个基于 MiniGUI Lite 的应用程序，即多个进程，并且提供前后台进程的切换。</li>  
+</ol>
+<p>
+显然，要满足这三个设计目的，如果采用传统的 C/S 结构对现有 MiniGUI 进行改造，应该不难实现。但传统 C/S 结构的缺陷却无法避免。经过对 PDA 等嵌入式系统的分析，我们发现，某些 PDA 产品具有运行多个任务的能力，但同一时刻在屏幕上进行绘制的程序，一般不会超过两个。因此，只要确保将这两个进程的绘制相互隔离，就不需要采用复杂的 C/S 结构处理多个进程窗口之间的互相剪切。在这种产品中，如果采用基于传统 C/S 结构的多窗口系统，实际是一种浪费。
+</p>
+因此，我们对 MiniGUI-Lite 版本进行了如下简化设计：
+<p>
+<ol>
+  <li>每个进程维护自己的主窗口 Z 序，同一进程创建的主窗口之间互相剪切。也就是说，除了只有一个线程，只有一个消息循环之外，一个进程与原有的 MiniGUI 版本之间没有任何区别。每个进程在进行屏幕绘制时，不需要考虑其他进程。  </li>
+  <li>建立一个简单的客户/服务器体系，但确保最小化进程间的数据复制功能。因此，在服务器和客户之间传递的数据仅限于输入设备的输入数据，以及客户和服务器之间的某些请求和响应数据。 </li>
+  <li>有一个服务器进程（mginit），它负责初始化一些输入设备，并且通过 UNIX Domain 套接字将输入设备的消息发送到前台的 MiniGUI Lite 客户进程。</li>
+  <li>服务器和客户被分别限定在屏幕的某两个不相交矩形内进行绘制，同一时刻，只能有一个客户及服务器进行屏幕绘制。其他客户可继续运行，但屏幕输入被屏蔽。服务器可以利用 API 接口将某个客户切换到前台。同时，服务器和客户之间采用信号和 System V 信号量进行同步。</li>
+  <li>服务器还采用 System V IPC 机制提供一些资源的共享，包括位图、图标、鼠标、字体等等，以便减少实际内存的消耗。</li>
+</ol>
+<a name="4">
+<p><strong class="subhead">4  Lite版本的一些实现细节</strong></p>
+<strong>4.1  系统初始化</strong>
+<p>
+应用程序的入口点为main()函数，而MiniGUI应用程序的入口点为MiniGUIMain，在这两个入口点之间，是MiniGUI的初始化部分和结束部分。如图 1所示。
+</p>
+<p align="center">
+        <img src="image01.gif" border="0"><BR>
+图 1 MiniGUI应用程序流程
+</p>
+<p>
+在系统初始化时，MiniGUI区分两种情况：服务器（Server）和客户(Client)。针对这两种不同的情况，随后的各项操作均有不同的处理，这主要依据全局变量mgServer。由于仅仅根据名称判断是否为服务器，所以服务器的名字只能是"mginit"。
+InitGUI()是对MiniGUI进行初始化的函数，它主要负责：
+</p>
+<ol>
+<li>获取有关终端的信息。</li>
+<li>初始化图形抽象层。</li>
+<li>如果是服务器，则装入共享资源，若为客户则与共享资源建立连接。</li>
+<li>建立与窗口活动有关的运行环境。</li>
+<li>如果为服务器，则初始化事件驱动抽象层（IAL），如果为客户，则打开与服务器事件驱动器的通道。</li>
+<li>如果为服务器，则设定空闲处理为IdleHandler4Server,如果为客户，则设定空闲处理为IdleHandle4Client。</li>
+</ol>
+<p>
+流程如图 2(为突出重点，我们忽略了一些细节)：
+</p>
+<p align="center">
+        <img src="image02.gif" border="0"><BR>
+图 2 InitGUI流程
+</p>
+
+<strong>4.2  共享资源初始化</strong>
+<p>
+共享资源是客户服务器模型中的重要元素，它由服务器负责创建和释放，而提供所有客户程序共享的数据资源。它的初始化过程由图 3所示的调用流完成。
+</p>
+<p align="center">
+        <img src="image03.gif" border="0"><BR>
+图 3 InitGUI调用流
+</p>
+<p>
+如果是服务器，则初始化此结构，src/kernel/sharedres.c/LoadSharedResource（）负责完成这一任务，它的执行流如图 4所示：
+</p>
+<p align="center">
+        <img src="image04.gif" border="0"><BR>
+图 4 LoadSharedResource 流程
+</p>
+<p>
+对于客户，则只需要与此结构进行连接即可，它在src/kernel/sharedres.c/AttachSharedResource()实现，参见图 5：
+</p>
+<p align="center">
+        <img src="image05.gif" border="0"><BR>
+图 5 AttachSharedResource 流程
+</p>
+
+<strong>4.3  服务器客户通信连接初始化</strong>
+<p>
+在客户服务器模型的讨论中，我们还将详细的讨论服务器客户的通信机制,这里只给出初始化的调用关系。见图 6。
+</p>
+<p align="center">
+        <img src="image06.gif" border="0"><BR>
+图 6 通信连接的初始化
+</p>
+<p>
+ServerStartUp实现流程如图 7所示:
+</p>
+<p align="center">
+        <img src="image07.gif" border="0"><BR>
+图 7 ServerStartUp 流程
+</p>
+<p>
+ClientStartUp()实现如图 8所示:
+</p>
+<p align="center">
+        <img src="image08.gif" border="0"><BR>
+图 8 ClientStartUp流程
+</p>
+
+<strong>4.4  多进程模型</strong>
+<p>
+Lite版本是支持客户服务器（C/S）方式的多进程系统，在运行过程中有且仅有一个服务器程序在运行，它的全局变量mgServer被设为TRUE，其余的MiniGUI应用程序为客户，mgServer变量被设为FALSE。各个应用程序分别运行于各自不同的进程空间，如图 9所示：
+</p>
+<p align="center">
+        <img src="image09.gif" border="0"><BR>
+图 9 多进程模型
+</p>
+<p>
+目前的程序结构使每个加载的进程拥有一个自已的桌面模型及其消息队列,进程间的通信依靠以下所提到的进程通信模型来完成。
+</p>
+<strong>4.5  进程通信模型</strong>
+<p>
+这里我们所指的进程通信包括通过共享内存实现的数据交换和通过套接字实现的客户服务器通信模型。先看在MiniGUI中使用Socket的通信模型结构,如图 10：
+</p>
+<p align="center">
+        <img src="image10.gif" border="0"><BR>
+图 10 基于Socket 的通信模型
+</p>
+<p>
+下面再看看MiniGUI进程间的资源共享问题。见图 11。
+</p>
+<p align="center">
+        <img src="image11.gif" border="0"><BR>
+图 11 内存共享通信模型
+</p>
+
+<p>
+如上图所示，服务器负责装入共享资源，其中包括系统图标、位图、字体等，客户则通过AttachSharedResource()获取指向共享资源的指针，初始化一块共享内存及与使用已有共享内存的方法在前面的描述中已提到，在此不再赘述。
+</p>
+<strong>4.6  各进程之间的同步</strong>
+<p>
+这里所指的进程同步主要是指各进程绘制的同步，显然，同时不可能有两个进程向屏幕绘制。传统的GUI实现大多是只有一个进程负责绘制，而在我们Lite版本中，各进程负责自己的绘制。同时，我们的Lite 版本还支持虚屏切换，当我们切换出去的时候，谁也不能够向屏幕绘制。
+</p>
+<p>
+Lite 版本利用Unix 信号解决了绘制同步问题。系统定义了两个信号：SIG_SETSCR 和 SIG_DNTDRAW，它们其实是重定义了的信号SIGUNUSED和 SIGSTKFLT。每个进程都定义了两个变量dont_draw和cant_draw。
+</p>
+<p>
+服务器利用SIG_SETSCR和SIG_DNTDRAW来控制各客户程序谁有权对屏幕绘制，而不是自己全权代理。这也使得进程间通信量大大减少：当服务器希望一个客户程序不要向屏幕绘制时，就向它发送SIG_DNTDRAW信号，当让其绘制时，则发送SIG_SETSCR。从而实现了各进程间的屏幕绘制同步。
+</p>
+<p>
+当一个客户收到SIG_DNTDRAW时，将自己的变量dont_daw设置为ture,收到SIG_SETSCR时，则将dont_draw变量设置为false。另一个变量cant_draw则是给客户自己用的，比如，做剪切时，当它的剪切域为空集时，又比如，当进行虚屏切换时，当前的进程将自己的cant_draw变量设置为true。
+</p>
+<p>
+另外，如果一个客户正在绘图，我们只有等它画完后才能让其他进程得到这一权利。我们不需要知道谁在绘图，但我们要等到这一过程结束。Lite版本利用信号量机制解决了这一问题。在共享内存里保存着一个变量shmid，各进程利用它来实现各自的锁机制。这种机制有点类似于文件锁，不过要快许多。
+</p>
+<p>
+从而，利用信号量机制，Lite版本实现了多进程的绘制同步。服务器利用信号控制各客户，而各客户也充分合作。相关代码都在MiniGUI的系统库里实现。保证了系统的稳定运行。
+</p>
+<a name="5">
+<p><strong class="subhead">5  总结语</strong></p>
+<p>
+MiniGUI Lite版本试图在传统的基于线程的单体结构和C/S结构之间寻求一种效率和稳定性的折中，以便更加适合运行在PDA等小型嵌入式系统中。如今，MiniGUI Lite版本已经稳定地运行在一些PDA系统上，事实证明这种尝试是成功的。
+</p>
+<a name="resources">
+<p><strong class="subhead">相关资源</strong></p>
+	<ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+            <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+            <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+            <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">关于作者</strong>
+<br>宋立新（zjujoe@minigui.org），男，25 岁，工学硕士，MiniGUI开发人员。参与编写《操作系统：中文 Linux 》一书。
+</p>
+
+</body>
+</html>

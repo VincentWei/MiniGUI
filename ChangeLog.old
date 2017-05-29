@@ -1,0 +1,193 @@
+ver 0.3.06
+------------------------------------------------------------------------------
+WHEN    : 2000/07/27
+WHERE   : BluePoint (Beijing) R&D Center.
+WHAT    : Some enhancements in font support and ime input method.
+WHAT    : Add functions to support text parse.
+WHO     : Wei Yongming.
+
+ver 0.3.04
+------------------------------------------------------------------------------
+WHEN    : 2000/07/14
+WHERE   : BluePoint (Beijing) R&D Center.
+WHAT    : Logical fonts support.
+WHAT    : TextOut, TextOutEx, TabbedTextOut, TabbedTextOutEx, DrawText.
+WHAT    : Add `fontest' demo.
+WHO     : Wei Yongming.
+
+ver 0.3.02
+------------------------------------------------------------------------------
+WHEN    : 2000/07/06
+WHERE   : BluePoint (Beijing) R&D Center.
+WHAT    : New charset support module.
+WHAT    : default dti.c can be included into your source.
+WHAT    : Interfaces of LoadBitmap, LoadIcon has changed.
+WHO     : Wei Yongming.
+
+ver 0.3.00
+------------------------------------------------------------------------------
+WHEN    : 2000/06/26
+WHERE   : BluePoint (Beijing) R&D Center.
+WHAT	: Graphics abstract layer and input abstract layer.
+WHAT    : New font support module.
+WHO     : Wei Yongming.
+
+ver 0.2.32
+------------------------------------------------------------------------------
+WHEN    : 2000/04/22
+WHERE   : Beijing
+WHAT	: Merge EEOS support.
+WHAT	: Remove old shared libraries when installing.
+WHO     : Wei Yongming.
+
+ver 0.2.31
+------------------------------------------------------------------------------
+WHEN    : 2000/04/19
+WHERE   : Beijing
+WHAT	: Merge multiple font support.
+WHO     : Wei Yongming.
+
+ver 0.2.30
+------------------------------------------------------------------------------
+WHEN    : 2000/04/11
+WHERE   : Tsinghua Univ.
+WHAT    : Add a new section in MiniGUI.cfg
+WHAT	: Add a new compile time macro called PREDEFMODE
+WHAT	: Enhance some buttons
+WHO     : Wei Yongming.
+
+ver 0.2.28
+------------------------------------------------------------------------------
+WHEN    : 2000/02/22
+WHERE   : Tsinghua Univ.
+WHAT    : Add MSG_ACTIVEMENU message
+WHO     : Wei Yongming.
+
+ver 0.2.27
+------------------------------------------------------------------------------
+WHEN    : 2000/1/23
+WHERE   : Tsinghua Univ.
+WHAT    : Fix some bugs in RectVisible and PtVisible
+HWAT    : Fix bugs in Listbox control
+WHAT    : Fix bugs in Button control
+WAHT    : Capbility of Listbox enhanced -- add thumb dragging
+WHO     : Wei Yongming.
+
+ver 0.2.26
+------------------------------------------------------------------------------
+WHEN    : 1999/12/14
+WHERE   : Tsinghua Univ.
+WHAT    : Fixes some bugs in input methods.
+WHAT    : Configure utility of svgalib.
+WHAT    : Installation path change to /usr/local/lib
+WHO     : Wei Yongming.
+
+ver 0.2.24
+------------------------------------------------------------------------------
+WHEN    : 1999/11/14
+WHERE   : Tsinghua Univ.
+WHAT    : Some features added to listbox control.
+WHAT    : Add one configurable parameter to control the position of
+WHAT    :   background picture.
+WHAT    : Add SuspendGUI and ResumeGUI functions.
+WHAT    : Add MB_CANCELASBACK style for MessageBox.
+WHAT    : Add 'mywins' library.
+WHO     : Wei Yongming.
+
+ver 0.2.22
+------------------------------------------------------------------------------
+WHEN    : 1999/10/31
+WHERE   : Tsinghua Univ.
+WHAT    : Bug in SetCursorPos fixed.
+WHAT    : Add a hot-key Ctrl+Esc to ative the start menu.
+WHAT    : Bug in DrawText fixed.
+WHAT    : Bugs in progressbar control fixed.
+WHAT    : Rearragment some code.
+WHO     : Wei Yongming.
+
+ver 0.2.21
+------------------------------------------------------------------------------
+WHEN    : 1999/10/19
+WHERE   : Tsinghua Univ.
+WHAT    : Additional data support of listbox control.
+WHAT    : Add ExitGUISafely function.
+WHAT    : Makefile bugs fixed.
+WHO     : Wei Yongming.
+
+ver 0.2.20
+------------------------------------------------------------------------------
+WHEN    : 1999/10/14
+WHERE   : Tsinghua Univ.
+WHAT    : Rewrite make files, which can be used to install or uninstall MiniGUI.
+WHO     : Wei Yongming.
+
+ver 0.2.12
+------------------------------------------------------------------------------
+WHEN    : 1999/10/12
+WHERE   : Tsinghua Univ.
+WHAT    : Optimize the refresh of windows when changing z-order and scrolling.
+WHAT    : Bugs in DrawText function has been fixed.
+WHAT    : Add a special key handler. MiniGUI Applications can be terminated
+WHAT    :   when pressing Ctrl+Alt+Backspase key, like X Window.
+WHO     : Wei Yongming.
+
+ver 0.2.10
+------------------------------------------------------------------------------
+WHEN    : 1999/10/10
+WHERE   : Tsinghua Univ.
+WHAT    : Add function ChangCaretSize. Can be used to change caret's size on
+WHAT    :   the fly.
+WHAT    : Add function GetPrivateCDC to retrive the private client DC.
+WHO     : Wei Yongming.
+
+ver 0.2.08
+------------------------------------------------------------------------------
+WHEN    : 1999/10/05
+WHERE   : Tsinghua Univ.
+WHAT    : Add timer thread for no affecting some system call such as
+WHAT    :   select() and vm86() (When use VESA driver).
+WHAT    : Some code moved from interval timer signal handler to desktop.
+WHAT    : Add a flag (DONT_SWITCH_VT) to function vga_translatekeys of svgalib. 
+WHAT    :   This flag can be used to disable VT switch.
+WHAT    : Add SetWindowCursor function.
+WHAT    : Add GetOriginalTermIO function to support Virtual Console on MiniGUI.
+WHAT    : Add WS_EX_USEPRIVATECDC extended style to support private client DC.
+WHAT    :   For controls, use class style CS_OWNDC.
+WHO     : Wei Yongming.
+
+ver 0.2.06
+------------------------------------------------------------------------------
+WHEN    : 1999/9/29
+WHERE   : Tsinghua Univ.
+WHAT    : Remove collector thread, and Timer module move to desktop thread.
+WHO     : Wei Yongming.
+
+ver 0.2.04
+------------------------------------------------------------------------------
+WHEN    : 1999/9/22
+WHERE   : Tsinghua Univ.
+WHAT    : Fix bugs.
+WHO     : Wei Yongming.
+
+ver 0.2.03
+------------------------------------------------------------------------------
+WHEN    : 1999/9/21
+WHERE   : Tsinghua Univ.
+WHAT    : Add PostTerminateGUI function.
+WHAT    : Add a flag in the Makefile to exclude GIF & JPG support.
+WHO     : Wei Yongming.
+
+ver 0.2.02
+------------------------------------------------------------------------------
+WHEN    : 1999/9/20
+WHERE   : Tsinghua Univ.
+WHAT    : csvgalib 1.3.0 to 1.4.0, add ChangeLog and TODO files.
+WHO     : Wei Yongming.
+
+ver 0.2.00
+------------------------------------------------------------------------------
+WHEN    : 1999/9/19
+WHERE   : Tsinghua Univ.
+WHAT    : dlgtest demo program.
+WHO     : Wei Yongming.
+

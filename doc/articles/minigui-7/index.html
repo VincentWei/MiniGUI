@@ -1,0 +1,736 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>MiniGUI 体系结构之三</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+	<p><strong class="title">MiniGUI 体系结构之三</strong><br>
+	<strong class="subtitle">逻辑字体以及多字体和多字符集实现</strong></p>
+	
+	<p>魏永明<br>
+	蓝点软件（北京）研发中心技术主管<br>
+	2001/02/28</p>
+<!-- END title and author lines -->
+
+<!-- Editor #5: Begin Table of Contents -->
+	<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>Contents:</b></font></td></tr><tr>
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="1" alt="" border="0"/></font></td>
+                                 
+                             </tr>
+                             <tr>
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="4" alt="" border="0"/></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1">引言</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2">逻辑字体、设备字体以及字符集之间的关系</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3">MiniGUI 中的字符集支持</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4">MiniGUI 中的字体支持</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#5">小结</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">资源</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author">关于作者</a></font></td></tr>
+                <tr><td bgcolor="#000000"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="137" height="3"/></font></td></tr>
+	</table></p>
+<!-- End Table of Contents -->
+
+<!-- comments #6: html content of the paper -->
+<p><em>本文是 MiniGUI 体系结构系列文章的第三篇，重点介绍 MiniGUI 的逻辑字体支持，主要内容涉及 MiniGUI 中以面向对象技术为基础构建的多字体和多字符集支持，并举例说明了如何在 MiniGUI 中实现对新字符集和新字体的支持。</em></p>
+
+<a name="1">
+<p><strong class="subhead">1  引言</strong></p>
+<p>
+我们在介绍 MiniGUI 体系结构的第一篇文章中提到，MiniGUI 采用了面向对象的技术实现了 GAL、IAL 以及多字体和多字符集的支持。字体和字符集的支持，对任何一个 GUI 系统来讲都是不可缺少的。不过，各种 GUI 在实现多字体和多字符集的支持时，采用不同的策略。比如，对多字符集的支持，QT/Embedded采用 UNICODE 为基础实现，这种方法是目前比较常用的方法，是一种适合于通用系统的解决方案。然而，这种方法带来许多问题，其中最主要就是 UNICODE 和其他字符集之间的转换码表会大大增加 GUI 系统的尺寸。这对某些嵌入式系统来讲是不能接受的。
+</p>
+<p>
+MiniGUI 在内部并没有采用 UNICODE 为基础实现多字符集的支持。MiniGUI的策略是，对某个特定的字符集，在内部使用和该字符集完全一致的内码表示。然后，通过一系列抽象的接口，提供对某个特定字符集文本的一致分析接口。该接口既可以用于对字体模块，也可以用来实现多字节字符串的分析功能。如果要增加对某个字符集的支持，只需要实现该字符集的接口即可。到目前为止，MiniGUI 已经实现了 ISO8859-x 的单字节字符集支持，以及 GB2312、BIG5、EUCKR、UJIS 等多字节字符集的支持。
+</p>
+<p>
+和字符集类似，MiniGUI 也针对字体定义了一系列抽象接口，如果要增加对某种字体的支持，只需实现该字体类型的接口即可。到目前为止，MiniGUI 已经实现了对 RBF 和 VBF 字体（这是 MiniGUI 定义的两种光栅字体格式）、TrueType 和 Adobe Type1 字体等的支持。
+</p>
+<p>
+在多字体和多字符集的抽象接口之上，MiniGUI 通过逻辑字体为应用程序提供了一致的接口。
+</p>
+<p>
+本文重点介绍 MiniGUI 的逻辑字体、多字体和多字符集的实现，并以 EUCKR（韩文）字符集和 Adobe Type1 字体为例，说明如何在 MiniGUI 中实现一种新的字符集支持和新的字体类型支持。
+</p>
+
+<a name="2">
+<p><strong class="subhead">2  逻辑字体、设备字体以及字符集之间的关系</strong></p>
+<p>
+在 MiniGUI 中，每个逻辑字体至少由一个单字节的设备字体组成。设备字体是直接与底层字体相关联的数据结构。每个设备字体有一个操作集（即 font_ops），其中包含了 get_char_width、get_char_bitmap 等抽象接口。每个 MiniGUI 所支持的字体类型，比如等宽光栅字体（RBF）、变宽光栅字体（VBF）、TrueType 字体、Adobe Type1 字体等均对应一组字体操作集。通过这个字体操作集，我们就可以从相应的字体文件中获得某个字符的点阵（对光栅字体而言）或者轮廓（对矢量字体而言）。之后，MiniGUI 上层的绘图函数就可以将这些点阵输出到屏幕上，最终就可以看到显示在屏幕上的文字。
+</p>
+<p>
+图 1 给出了逻辑字体、设备字体以及字符集之间的关系。
+</p>
+
+<p align="center">
+       <IMG SRC="image01.gif" BORDER="0" ><BR>
+图 1  逻辑字体以及相关数据结构
+</p>
+
+<p>
+在设备字体结构中，还有一个字符集操作集（即 charset_ops），其中包含了 len_first_char、char_offset、len_first_substr 等抽象接口。每个 MiniGUI 所支持的字符集，比如 ISO8859-x、GB2312、BIG5 等字符集均对应一组字符集操作集。通过这个字符集操作集，我们就可以对某个多种字符集混合的字符串进行文本分析。比如在“ABC中文”这个字符串中，头三个字符是属于 ISO8859 的字符，而“中文”是属于 GB2312 的字符。通过调用这两个字符集操作集中的函数，我们就可以了解该字符串中哪些字符是属于 ISO8859 的字符，哪些字符是属于 GB2312 的字符，甚至可以进行更加复杂的分析。比如，MiniGUI 中的 GetFirstWord 函数可以从这种字符串中获得第一个单词。比如“ABC DEF 中文”字符串中的第一个单词是“ABC”，而第二个单词是“DEF”，第三个单词和第四个单词分别是“中”和“文”。该函数的实现如下：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
+                    WORDINFO* word_info)
+{
+    DEVFONT* sbc_devfont = log_font-&gt;sbc_devfont;
+    DEVFONT* mbc_devfont = log_font-&gt;mbc_devfont;
+
+    if (mbc_devfont) {
+        int mbc_pos;
+
+        mbc_pos = (*mbc_devfont-&gt;charset_ops-&gt;pos_first_char) (mstr, len);
+        if (mbc_pos == 0) {
+            len = (*mbc_devfont-&gt;charset_ops-&gt;len_first_substr) (mstr, len);
+
+            (*mbc_devfont-&gt;charset_ops-&gt;get_next_word) (mstr, len, word_info);
+            return word_info-&gt;len + word_info-&gt;nr_delimiters;
+        }
+        else if (mbc_pos &gt; 0)
+            len = mbc_pos;
+    }
+
+    (*sbc_devfont-&gt;charset_ops-&gt;get_next_word) (mstr, len, word_info);
+    return word_info-&gt;len + word_info-&gt;nr_delimiters;
+}
+</pre></td></tr></table>
+
+<p>
+该函数首先判断该逻辑字体是否包含多字节设备字体（mbc_devfont是否为空），如果是，则调用多字节字符集对应的操作函数 pos_first_char、len_first_substr、get_next_word 等函数获得第一个单词信息，并填充 word_info 结构。如果该逻辑字体只包含单字节设备字体，则直接调用单字节字符集对应的操作函数 get_next_word。一般而言，在 GetFirstWord 等函数中，我们首先要进行多字节字符集的某些判断，比如 pos_first_char 返回的是字符串中属于该字符集的第一个字符的位置。如果返回值不为零，表明第一个字符是单字节字符；如果为零，才会调用其他函数进行操作。
+</p>
+<p>
+有了这样的逻辑字体、设备字体和字符集结构定义，当我们需要新添加一种字符集或者字体支持时，只需按照我们的字体操作集和字符集操作集定义对应的新操作集结构即可，而对上层程序没有任何影响。
+</p>
+
+<a name="3">
+<p><strong class="subhead">3  MiniGUI 中的字符集支持</strong>
+<strong>3.1  字符集操作集</strong>
+<p>
+在 MiniGUI 中，每个特定的字符集由对应的字符集操作集来表示。字符集操作集的定义如下（include/gdi.h。前面的数字表示在该文件中的行数，下同）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 250 typedef struct _CHARSETOPS
+ 251 {
+ 252     int nr_chars;				// 该字符集中字符的个数
+ 253     int bytes_per_char;			// 每个字符的平均字节数
+ 254     int bytes_maxlen_char;		// 字符的最大字节数
+ 255     const char* name;			// 字符集名称
+ 256     char def_char [MAX_LEN_MCHAR];	// 默认字符
+ 257 
+ 258     int (*len_first_char) (const unsigned char* mstr, int mstrlen);
+ 259     int (*char_offset) (const unsigned char* mchar);
+ 260 
+ 261     int (*nr_chars_in_str) (const unsigned char* mstr, int mstrlen);
+ 262 
+ 263     int (*is_this_charset) (const unsigned char* charset);
+ 264 
+ 265     int (*len_first_substr) (const unsigned char* mstr, int mstrlen);
+ 266     const unsigned char* (*get_next_word) (const unsigned char* mstr, 
+ 267                 int strlen, WORDINFO* word_info);
+ 268 
+ 269     int (*pos_first_char) (const unsigned char* mstr, int mstrlen);
+ 270 
+ 271 #ifndef _LITE_VERSION
+ 272     unsigned short (*conv_to_uc16) (const unsigned char* mchar, int len);
+ 273 #endif /* !LITE_VERSION */
+ 274 } CHARSETOPS;
+</pre></td></tr></table>
+
+<p>
+其中，前几个字段（nr_chars、bytes_per_char、bytes_maxlen_char、name、def_char 等）表示了该字符集的一些基本信息，具体含义参见注释。这里需要对 bytes_maxlen_char 和 def_chat 作进一步解释：
+</p>
+
+<ul>
+    <li>bytes_maxlen_char 用来表示该字符集中字符的最长字节数。通常情况下，一个字符集中的每个字符的长度一般是定长的，但是也有许多例外，比如在 GB18303、UNICODE 等字符集中，字符的最长字节数可能超过 4 字节。</li>
+    <li>def_char 用来表示该字符集中的默认字符。该字段主要和字体配合使用。当某个针对该字符集的字体中缺少一些字符的定义时，就需要用默认字体替代这些缺少的字符。</li>
+</ul>
+
+<p>
+在上述字符集的操作集定义中，后几个字段定义为函数指针，它们均由逻辑字体接口用来进行文本分析：
+</p>
+<ul>
+    <li>len_first_char 返回多字节字符串中第一个属于该字符集的字符的长度。若不属于该字符集，则返回 0。</li>
+    <li>char_offset 返回某个字符在该字符集中的位置。该信息可以由设备字体使用，用来从一个字体文件中获取该字符对应的宽度或点阵。</li>
+    <li>nr_chars_in_str 计算字符串中属于该字符集的字符个数并返回。注意，传入的字符串必须均为该字符集字符。</li>
+    <li>is_this_charset 判断给定的用来表示字符集的名称是否指该字符集。因为对某种特定的字符集，其名称不一定和 name 字段所定义的名称匹配。比如，对 GB2312 字符集，就可能有 gb2312-1980.0、GB2312_80 等各种不同的名称。该函数可以帮助正确判断一个名称是否指该字符集。</li>
+    <li>len_first_substr 返回某个多字节字符串中属于该字符集的子字符串长度。如果第一个字符不属于该字符集，则返回为 0。</li>
+    <li>get_next_word 返回多字节字符串中属于该字符集的字符串中下一个单词的信息。对欧美语言来说，单词之间由空格、标点符号、制表符等相隔；对亚洲语言来说，单词通常定义为字符。</li>
+    <li>pos_first_char 该函数返回多字节字符串中属于该字符集的第一个字符的位置。</li>
+    <li>conv_to_uc16 该函数将某个属于该字符集的字符，转换为 UNICODE 的 16 位内码。该函数主要用来从 TrueType 字体中获得字符的轮廓信息。因为 TrueType 字体使用 UNICODE 定位字符，所以需要这个函数完成特定字符集内码到 UNICODE 内码的转换。由于 MiniGUI-Lite 版本尚不支持 TrueType 字体，所以该函数在 MiniGUI-Lite 版本中无需定义。</li>
+</ul>
+
+<p>
+在 src/font/charset.c 中，定义了系统支持的所有字符集操作集，并由函数 GetCharsetOps 返回某个字符集名称对应的字符集操作集（src/font/charset.c）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 716 static CHARSETOPS* Charsets [] =
+ 717 {
+ 718     &amp;CharsetOps_iso8859_1,
+ 719     &amp;CharsetOps_iso8859_5,
+ 720 #ifdef _GB_SUPPORT
+ 721     &amp;CharsetOps_gb2312,
+ 722 #endif
+ 723 #ifdef _BIG5_SUPPORT
+ 724     &amp;CharsetOps_big5,
+ 725 #endif
+ 726 #ifdef _EUCKR_SUPPORT
+ 727     &amp;CharsetOps_euckr,
+ 728 #endif
+ 729 #ifdef _UJIS_SUPPORT
+ 730     &amp;CharsetOps_ujis
+ 731 #endif
+ 732 };
+ 733 
+ 734 #define NR_CHARSETS     (sizeof(Charsets)/sizeof(CHARSETOPS*))
+ 735 
+ 736 CHARSETOPS* GetCharsetOps (const char* charset_name)
+ 737 {
+ 738     int i;
+ 739 
+ 740     for (i = 0; i &amp;lt; NR_CHARSETS; i++) {
+ 741         if ((*Charsets [i]-&amp;gt;is_this_charset) (charset_name) == 0)
+ 742             return Charsets [i];
+ 743     }
+ 744 
+ 745     return NULL;
+ 746 }
+ 747 
+</pre></td></tr></table>
+
+<strong>3.2  新字符集的实现举例</strong>
+<p>
+如果我们需要定义一种新的字符集支持时，只需在该文件中添加相应的操作集函数以及对应的操作集结构定义即可，比如，对 EUCKR 字符集的支持定义如下（src/font/charset.c）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 468 #ifdef _EUCKR_SUPPORT
+ 469 /************************* EUCKR Specific Operations ************************/
+ 470 static int euckr_len_first_char (const unsigned char* mstr, int len)
+ 471 {
+ 472     unsigned char ch1;
+ 473     unsigned char ch2;
+ 474 
+ 475     if (len &lt; 2) return 0;
+ 476 
+ 477     ch1 = mstr [0];
+ 478     if (ch1 == '\0')
+ 479         return 0;
+ 480 
+ 481     ch2 = mstr [1];
+ 482     if (ch1 &gt;= 0xA1 && ch1 &lt;= 0xFE && ch2 &gt;= 0xA1 && ch2 &lt;= 0xFE)
+ 483         return 2;
+ 484 
+ 485     return 0;
+ 486 }
+ 487 
+ 488 static int euckr_char_offset (const unsigned char* mchar)
+ 489 {
+ 490     if(mchar [0] &gt; 0xAD)
+ 491         return ((mchar [0] - 0xA4) * 94 + mchar [1] - 0xA1 - 0x8E);
+ 492     else
+ 493         return ((mchar [0] - 0xA1) * 94 + mchar [1] - 0xA1 - 0x8E);
+ 494 }
+ 495 
+ 496 static int euckr_is_this_charset (const unsigned char* charset)
+ 497 {
+ 498     int i;
+ 499     char name [LEN_FONT_NAME + 1];
+ 500 
+ 501     for (i = 0; i &lt; LEN_FONT_NAME + 1; i++) {
+ 502         if (charset [i] == '\0')
+ 503             break;
+ 504         name [i] = toupper (charset [i]);
+ 505     }
+ 506     name [i] = '\0';
+ 507 
+ 508     if (strstr (name, "EUCKR") )
+ 509         return 0;
+ 510 
+ 511     return 1;
+ 512 }
+ 513 
+ 514 static int euckr_len_first_substr (const unsigned char* mstr, int mstrlen)
+ 515 {
+ 516     unsigned char ch1;
+ 517     unsigned char ch2;
+ 518     int i, left;
+ 519     int sub_len = 0;
+ 520 
+ 521     left = mstrlen;
+ 522     for (i = 0; i &lt; mstrlen; i += 2) {
+ 523         if (left &lt; 2) return sub_len;
+ 524 
+ 525         ch1 = mstr [i];
+ 526         if (ch1 == '\0') return sub_len;
+ 527 
+ 528         ch2 = mstr [i + 1];
+ 529         if (ch1 &gt;= 0xA1 && ch1 &lt;= 0xFE && ch2 &gt;= 0xA1 && ch2 &lt;= 0xFE)
+ 530             sub_len += 2;
+ 531         else
+ 532             return sub_len;
+ 533 
+ 534         left -= 2;
+ 535     }
+ 536 
+ 537     return sub_len;
+ 538 }
+ 539 
+ 540 static int euckr_pos_first_char (const unsigned char* mstr, int mstrlen)
+ 541 {
+ 542     unsigned char ch1;
+ 543     unsigned char ch2;
+ 544     int i, left;
+ 545 
+ 546     i = 0;
+ 547     left = mstrlen;
+ 548     while (left) {
+ 549         if (left &lt; 2) return -1;
+ 550 
+ 551         ch1 = mstr [i];
+ 552         if (ch1 == '\0') return -1;
+ 553 
+ 554         ch2 = mstr [i + 1];
+ 555         if (ch1 &gt;= 0xA1 && ch1 &lt;= 0xFE && ch2 &gt;= 0xA1 && ch2 &lt;= 0xFE)
+ 556             return i;
+ 557 
+ 558         i += 1;
+ 559         left -= 1;
+ 560     }
+ 561 
+ 562     return -1;
+ 563 }
+ 564 
+ 565 #ifndef _LITE_VERSION
+ 566 static unsigned short euckr_conv_to_uc16 (const unsigned char* mchar, int len)
+ 567 {
+ 568     return '?';
+ 569 }
+ 570 #endif
+ 571 
+ 572 static CHARSETOPS CharsetOps_euckr = {
+ 573     8836,
+ 574     2,
+ 575     2,
+ 576     FONT_CHARSET_EUCKR,
+ 577     {'\xA1', '\xA1'},
+ 578     euckr_len_first_char,
+ 579     euckr_char_offset,
+ 580     db_nr_chars_in_str,
+ 581     euckr_is_this_charset,
+ 582     euckr_len_first_substr,
+ 583     db_get_next_word,
+ 584     euckr_pos_first_char,
+ 585 #ifndef _LITE_VERSION
+ 586     euckr_conv_to_uc16
+ 587 #endif
+ 588 };
+ 589 /************************* End of EUCKR *************************************/
+ 590 #endif  /* _EUCKR_SUPPORT */
+</pre></td></tr></table>
+
+<a name="4">
+<p><strong class="subhead">4  MiniGUI 中的字体支持</strong></p>
+
+<strong>4.1  设备字体</strong>
+<p>
+在 MiniGUI 中，设备字体定义如下（include/gdi.h）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 319 struct _DEVFONT
+ 320 {
+ 321     char             name [LEN_DEVFONT_NAME + 1];
+ 322     DWORD            style;
+ 323     FONTOPS*         font_ops;
+ 324     CHARSETOPS*      charset_ops;
+ 325     struct _DEVFONT* sbc_next;
+ 326     struct _DEVFONT* mbc_next;
+ 327     void*            data;
+ 328 };
+</pre></td></tr></table>
+
+<p>
+其中各字段说明如下：
+</p>
+    <li>name：该设备字体的名称。MiniGUI 中设备字体的名称格式如下：<br>
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+&lt;type&gt;-&lt;name&gt;-&lt;style&gt;-&lt;width&gt;-&lt;height&gt;-&lt;charset1[,charset2]&gt;
+</pre></td></tr></table>
+<br>其中每个域的含义如下：<br>
+    <ul>
+        <li>type：字体类型，比如RBF（MiniGUI 定义的等宽字体格式）、VBF（MiniGUI 定义的变宽字体格式）、TTF（TrueType 字体）等等。</li>
+        <li>name：名称，比如 Song、Hei、Times 等等。</li>
+        <li>style：该字体的样式，比如黑体、斜体等等。</li>
+        <li>width：该字体的宽度，对矢量字体来说，可取 0。</li>
+        <li>height：该字体的高度，对矢量字体来说，可取 0。</li>
+        <li>charset1, charset2：该字体适用的字符集名称。</li>
+    </ul>
+    <li>style：字体样式。</li>
+    <li>font_ops：设备字体对应的字体操作集。</li>
+    <li>charset_ops：设备字体对应的字符集操作集。</li>
+    <li>sbc_next、mbc_next：内部使用的链表维护字段。</li>
+    <li>data：该设备字体相关的内部数据。</li>
+</ul>
+
+<p>
+在 MiniGUI 启动时，将根据 MiniGUI.cfg 文件中的定义建立两个设备字体链表，分别为单字节设备字体链和多字节设备字体链。这两个链表将由 CreateLogFont 使用，通过查找和匹配，建立对应的逻辑字体。
+</p>
+
+<strong>4.2  逻辑字体</strong>
+<p>
+逻辑字体的定义如下（include/gdi.h）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 228 typedef struct _LOGFONT {
+ 229     char type [LEN_FONT_NAME + 1];
+ 230     char family [LEN_FONT_NAME + 1];
+ 231     char charset [LEN_FONT_NAME + 1];
+ 232     DWORD style;
+ 233     int size;
+ 234     int rotation;
+ 235     DEVFONT* sbc_devfont;
+ 236     DEVFONT* mbc_devfont;
+ 237 } LOGFONT;
+ 238 typedef LOGFONT*    PLOGFONT;
+</pre></td></tr></table>
+
+<p>
+显然，每个逻辑字体由最匹配该字体要求（大小、字符集、样式等）的两个设备字体（sbc_devfont和 mbc_devfong）组成，分别用来处理多字节字符串中的单字节字符和多字节字符。其中单字节设备字体是必不可少的。
+</p>
+<p>
+逻辑字体的匹配算法可参见 src/gdi/logfont.c 和src/font/devfont.c 文件。限于篇幅，不再赘述。
+</p>
+
+<strong>4.3  设备字体操作集</strong>
+<p>
+和字符集操作集一样，MiniGUI 中的设备字体操作集针对每种设备字体类型而定义，包括对这种设备字体的各种操作函数（include/gdi.h）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 276 typedef struct _FONTOPS
+ 277 {
+ 278     int (*get_char_width) (LOGFONT* logfont, DEVFONT* devfont, 
+ 279             const unsigned char* mchar, int len);
+ 280     int (*get_str_width) (LOGFONT* logfont, DEVFONT* devfont, 
+ 281             const unsigned char* mstr, int n, int cExtra);
+ 282     int (*get_ave_width) (LOGFONT* logfont, DEVFONT* devfont);
+ 283     int (*get_max_width) (LOGFONT* logfont, DEVFONT* devfont);
+ 284     int (*get_font_height) (LOGFONT* logfont, DEVFONT* devfont);
+ 285     int (*get_font_size) (LOGFONT* logfont, DEVFONT* devfont, int expect);
+ 286     int (*get_font_ascent) (LOGFONT* logfont, DEVFONT* devfont);
+ 287     int (*get_font_descent) (LOGFONT* logfont, DEVFONT* devfont);
+ 288 
+ 289 /* TODO */
+ 290 //    int (*get_font_ABC) (LOGFONT* logfont);
+ 291     
+ 292     size_t (*char_bitmap_size) (LOGFONT* logfont, DEVFONT* devfont, 
+ 293             const unsigned char* mchar, int len);
+ 294     size_t (*max_bitmap_size) (LOGFONT* logfont, DEVFONT* devfont);
+ 295     const void* (*get_char_bitmap) (LOGFONT* logfont, DEVFONT* devfont, 
+ 296             const unsigned char* mchar, int len);
+ 297     
+ 298     const void* (*get_char_pixmap) (LOGFONT* logfont, DEVFONT* devfont, 
+ 299             const unsigned char* mchar, int len, int* pitch);
+ 300          /* Can be NULL */
+ 301 
+ 302     void (*start_str_output) (LOGFONT* logfont, DEVFONT* devfont);
+ 303          /* Can be NULL */
+ 304     int (*get_char_bbox) (LOGFONT* logfont, DEVFONT* devfont,
+ 305             const unsigned char* mchar, int len,
+ 306             int* px, int* py, int* pwidth, int* pheight);
+ 307          /* Can be NULL */
+ 308     void (*get_char_advance) (LOGFONT* logfont, DEVFONT* devfont,
+ 309             int* px, int* py);
+ 310          /* Can be NULL */
+ 311 
+ 312     DEVFONT* (*new_instance) (LOGFONT* logfont, DEVFONT* devfont, 
+ 313             BOOL need_sbc_font);
+ 314          /* Can be NULL */
+ 315     void (*delete_instance) (DEVFONT* devfont);
+ 316          /* Can be NULL */
+ 317 } FONTOPS;
+</pre></td></tr></table>
+
+<p>
+比如，get_char_width 用来获得某个字符的宽度，而 get_char_bitmap 用来获得某个字符的位图信息等等。
+</p>
+<p>
+在 src/font/rawbitmap.c 和 src/font/varbitmap.c 文件中分别定义了对 RBF 和 VBF 两种字体的操作函数，比如对变宽光栅字体来讲（VBF），其 get_char_bitmap 定义如下（src/font/rawbitmap.c）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 155 static const void* get_char_bitmap (LOGFONT* logfont, DEVFONT* devfont,
+ 156             const unsigned char* mchar, int len)
+ 157 {
+ 158     int offset;
+ 159     unsigned char eff_char = *mchar;
+ 160     VBFINFO* vbf_info = VARFONT_INFO_P (devfont);
+ 161 
+ 162     if (*mchar &lt; vbf_info-&gt;first_char || *mchar &gt; vbf_info-&gt;last_char)
+ 163         eff_char = vbf_info-&gt;def_char;
+ 164 
+ 165     if (vbf_info-&gt;offset == NULL)
+ 166         offset = (((size_t)vbf_info-&gt;max_width + 7) &gt;&gt; 3) * vbf_info-&gt;height 
+ 167                     * (eff_char - vbf_info-&gt;first_char);
+ 168     else
+ 169         offset = vbf_info-&gt;offset [eff_char - vbf_info-&gt;first_char];
+ 170 
+ 171     return vbf_info-&gt;bits + offset;
+ 172 }
+</pre></td></tr></table>
+
+<p>
+其中，VARFONT_INFO_P 是一个宏，用来从设备字体的 data 字段中获得 VBFINFO 结构的指针。有了这个指针之后，该函数计算字符位图的偏移量最后返回字符的位图。
+</p>
+
+<strong>4.4  新设备字体的实现举例</strong>
+
+<p>
+这里以 Adobe Type1 字体的实现为例，说明如何在 MiniGUI 中实现一种新的设备字体。MiniGUI 借用了 T1Lib 函数库实现了对 Type1 字体的支持。
+</p>
+
+<p><b><i>4.4.1  Type1 字体简介</i></b></p>
+<p>
+Type1 矢量字体1格式由 Adobe 公司设计，并被该公司的ps标准支持。因此，它在Linux下也被支持得很好。它被 X和 ghostscript支持。一个典型的Type1字体包括一个afm(adobe font metric) 度量文件，一个外形文件，通常是一个pfb ( printer font binary) 或者 pfa (printer font ascii) 文件，外形文件包括所有的轮廓，而度量文件包含了所有的度量。比如紧排，连字等信息。
+</p>
+
+<p><b><i>4.4.2  T1Lib 简介</i></b></p>
+<p>
+T1Lib 是用 C 语言实现的一个库，它可以从 Adobe Type 1 字体生成位图。它可以使用X11R5 或者更新版本提供的光栅化工具的很多功能，但避免了其已知的缺点。当然，T1Lib完全可以在没有 X11 的环境下工作。T1Lib 可以被编译成静态或者动态库，从而可以方便地连接。
+</p>
+<p>
+这里是T1Lib 的一些特性：
+</p>
+
+<ul>
+    <li>字体通过运行时读取字库而被T1lib得知。即它是灵活可配置的。当然，它只支持Type 1字体。</li>
+    <li>字符或字符串只在需要时才被光栅化。</li>
+    <li>对字符串光栅化时支持字符间紧排，并且可以利用一个AFM文件提供紧排信息，如果没有这个文件，T1Lib可以直接生成这些信息，也可以将其输出到一个文件以备后用。</li>
+    <li>支持连字，连字是一个好的字体模型会提供的功能，目前，只有TEX和与其相关的软件包对连字支持得比较好。连字信息也包含在AFM文件里。</li>
+    <li>支持旋转和各种仿射变换。支持字体扩展，倾斜。</li>
+    <li>可以动态载入新的解码矢量。用新的解码矢量解析字体。</li>
+    <li>支持5灰度的低分辨率和17灰度的高分辨率的反走样。</li>
+    <li>字符串可以被添加下划线，上划线或者横线。</li>
+</ul>
+
+<p><b><i>4.4.3  Adobe Type1 字体支持的实现</i></b></p>
+<p>
+在 MiniGUI 设备字体定义中，有一个 data 字段可用来保存设备字体相关的数据结构。对 Type1 字体来讲，我们使用 TYPE1INFO和TYPE1INSTANCEINFO两个数据结构来存储这种设备字体的类信息和实例信息。
+</p>
+<p>
+1)  TYPE1INFO和TYPE1INSTANCEINFO 结构
+</p>
+<p>
+这两个结构的定义如下（src/font/type1.h）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+  22 typedef struct tagTYPE1GLYPHINFO {
+  23     int font_id;
+  24     //BBox      font_bbox;
+  25     //int       ave_width;
+  26     BOOL valid;
+  27 } TYPE1INFO, *PTYPE1INFO;
+  28 
+  29 typedef struct tagTYPE1INSTANCEINFO {
+  30     PTYPE1INFO  type1_info;
+  31     int         rotation;/*in tenthdegrees*/
+  32     T1_TMATRIX  * pmatrix;
+  33     int         size;
+  34     int         font_height;
+  35     int         font_ascent;
+  36     int         font_descent;
+  37 
+  38     int         max_width;
+  39     int         ave_width;
+  40 
+  41     double      csUnit2Pixel;
+  42     /* 
+  43      * last char or string's info
+  44      * T1_SetChar, T1_SetString, T1_AASetSting, T1_AASetString all return a static
+  45      * glyph pointer, we save the related infomation here for later use.
+  46      * */
+  47     char        last_bitmap_char;
+  48     char        last_pixmap_char;
+  49     char        * last_bitmap_str;
+  50     char        * last_pixmap_str;
+  51     int         last_ascent;
+  52     int         last_descent;
+  53     int         last_leftSideBearing;
+  54     int         last_rightSideBearing;
+  55     int         last_advanceX;
+  56     int         last_advanceY;
+  57     unsigned long       last_bpp;
+  58     char  *     last_bits;
+  59     
+  60 } TYPE1INSTANCEINFO, *PTYPE1INSTANCEINFO;
+  61 
+</pre></td></tr></table>
+  
+<p>
+如前面所说，TYPE1INFO和TYPE1INSTANCEINFO数据结构来存储设备字符的类信息和实例信息。初始华时，其实只是注册一个模板，此时利用TYPE1INFO记住其在 T1lib中的Font ID，这里valid用来说明该设备字体是否初始化完毕。
+</p>
+<p>
+当用户创建一逻辑字体时，如果用户选择的是Type1字体的某一种，就会调用 font_ops 的函数new_instance，该函数根据存在于 DevFont 的data的 TYPE1INFO 结构中的 id，以及用户提供的相关参数，构造一个TYPE1INSTANCEINFO类型的变量，并放入新的设备字体的私有数据data中。从而每个字体实例可以有自己的各种属性。如旋转度。
+</p>
+<p>
+前面各个字段的意义可以根据名字推测出来，从csUnix2Pixel 开始则是为了实现的方便和高效而自己定义的一些变量，后面解释函数实现时将会说明。last*系列函数主要起缓冲的作用。
+</p>
+<p>
+2)  InitType1Fonts 和 TermType1Fonts 函数
+</p>
+<p>
+这两个函数负责整个 Type 1 字体的初始化和终结。
+</p>
+<p>
+InitType1Fonts 的主要任务是：初始化T1lib，根据配置文件提供的信息，将各种字体注册到T1lib，并为每一个字体生成一个 DevFont 结构，注册到系统中去。该结构中包括的 font_ops， 是上层对Type 1字体各种操作的窗口。
+</p>
+<p>
+其实主要的处理功能在 T1lib 中，每次程序向 T1lib 注册一个字体，T1lib会返回一个 Font ID，以后利用该ID 向T1lib请求关于对应字体的某些服务。
+</p>
+<p>
+TermType1Fonts 则是注销 Type1 字体，关闭T1lib。
+</p>
+<p>
+InitType1Fonts 注册向系统注册了用来处理 Abode Type1 字体的字体操作集，定义如下（src/font/type1.c）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 780 static FONTOPS type1_font_ops = {
+ 781         get_char_width,
+ 782         get_str_width,
+ 783         get_ave_width,
+ 784         get_max_width,
+ 785         get_font_height,
+ 786         get_font_size,
+ 787         get_font_ascent,
+ 788         get_font_descent,
+ 789         char_bitmap_size,
+ 790         max_bitmap_size,
+ 791         get_char_bitmap,
+ 792         get_char_pixmap,
+ 793         start_str_output,
+ 794         get_char_bbox,
+ 795         get_char_advance,
+ 796         new_instance,
+ 797         delete_instance
+ 798};
+</pre></td></tr></table>
+
+<p>
+先说明一些基本概念。
+</p>
+
+<ul>
+    <li>ascent：描述某个字符在基准线上有多少扫描线。这里以像素为单位（下同）。</li>
+    <li>descent：描述某个字符在基准线下有多少扫描线。当字符的底线在基准线之下时，用负值来表示，所以整个字符的高度就是 ascent - descent。</li>
+    <li>leftSideBearing：某个字符从其原点到最左边像素点的水平距离，也可以称为该字符的left margin。</li>
+    <li>rightSideBearing：某个字符从其原点到最右边像素点的水平距离，也可以称为该字符的right margin。</li>
+    <li>advanceX：在某字符的图象被放置后，当前原点需要前进的水平距离。它通常比字符图像的宽度要大，因为两个字符之间存在一定的空白。由于该值对齐至像素，所以一些要求精确的内部计算不能用它，会累积误差。</li>
+    <li>advanceY：在某字符的图象被放置后，当前原点需要前进的竖直距离。</li>
+</ul>
+
+<p>
+这样，get_char_width、get_str_width、get_ave_width、get_max_width、get_font_height、get_font_size、get_font_ascent、get_font_descent、char_bitmap_size、max_bitmap_size、get_char_advance 等函数的功能就很明显了，它们其实就是取出字体的一些度量（Metrics）。其实，这些信息都是从T1lib内部取得，需要注意的是T1lib 内部使用 PS 单位，而MiniGUI使用的单位是pixel， 需要转换。以下以 get_char_bitmap 和 get_char_pixmap 等函数为例说明。
+</p>
+<p>
+3) get_char_bitmap 和 get_char_pixmap
+</p>
+<p>
+这两个函数是主要的光栅化函数。它们首先判断一下需要光栅化的字符是否刚刚被光栅化过，如果是，直接返回缓冲里的值。
+</p>
+<p>
+前面讲过，T1Lib 支持5灰度的低分辨率和17灰度的高分辨率的反走样。这里的get_char_bitmap返回普通的光栅化位图，而get_char_pixmap返回经过反走样后的像素位图。如果字体在初始化时调用
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+T1_AASetLevel (T1_AA_LOW)
+</pre></td></tr></table>
+
+<p>
+则这里使用5灰度像素，如果初始化时是调用：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+T1_AASetLevel (T1_AA_HIGH)
+</pre></td></tr></table>
+
+<p>
+则这里使用17灰度像素。
+</p>
+<p>
+这里使用的反走样其实很简单，就是先将字体放大，然后再取样缩小。低精度是放大四倍(2*2)，高精度则是放大16倍（4*4），灰度值则有n+1种。
+</p>
+<p>
+当然，为了提高性能，每次光栅化的结果都要被放到缓冲里，下次如果要光栅化相同的字符，并且方式相同，则可以大大地提高效率。
+</p>
+<p>
+4) start_str_output
+</p>
+<p>
+开始字符串输出时调用该函数。完成一些初始化工作。
+</p>
+<p>
+5) get_char_bbox
+</p>
+<p>
+给出当前原点值（*px，*py），调用该函数要求得到在字符被画出后的原点值（新的*px，*py），以及当前字符的宽度和高度。
+</p>
+<p>
+6) new_instance 和 delete_instance
+</p>
+<p>
+当用户创建一个新的逻辑字体时调用new_instance ，当用户删除一个逻辑字体时会调用delete_instance。
+</p>
+<p>
+new_instance 根据传给它的一些参数（size，rotation，font_id等）初始化一个TYPE1INSTANCEINFO类型的变量，并将其与新的设备字体关联，将该设备字体返回。以后上层就通过该设备字体得到字体实例相关的信息。
+</p>
+<p>
+delete_instance 则用来删除相关的数据结构。
+</p>
+
+<a name="5">
+<p><strong class="subhead">5  小结</strong></p>
+<p>
+面向对象技术在软件设计当中占有非常重要的地位，但面向对象并不是 C++ 等语言的专利。实际上，在诸如操作系统等系统软件当中，面向对象技术的使用是非常广泛的。利用 C 语言实现面向对象技术，不仅结构清晰，而且在执行效率等方面也有 C++ 等语言无法相比的优势。从本文描述的字体和字符集的实现当中我们可以看到，采用面向对象技术，将大大提高系统的灵活性和可扩展性。
+</p>
+<p>
+MiniGUI 作为一个面向实时嵌入式系统的图形用户界面支持系统，对其执行效率、可定制、可扩展等方面有非常高的要求。为了提高系统的灵活性和可扩展性，我们在一些关键模块当中使用了面向对象的技术。实践表明，面向对象的技术在 MiniGUI 中的运用是成功的。
+</p>
+
+<a name="resources">
+<p><strong class="subhead">资源</strong></p>
+	<ul>
+	  <li><b>字符集及字体</b></li>
+		  <ul>
+            <li><A HREF="http://czyborra.com/charsets/iso8859.html">ISO8859字符集及BDF字体</A>
+            <li><A HREF="http://www.oreilly.com/people/authors/lunde/cjk_inf.html">CJK 字符集信息大全</A>
+            <li><A HREF="http://www.neuroinformatik.ruhr-uni-bochum.de/ini/PEOPLE/rmz/t1lib/t1lib.html">T1Lib 库</A>
+		  </ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+            <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+            <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+            <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">关于作者</strong>
+<br> 魏永明（ymwei@minigui.org），男，27 岁，工学硕士，现任蓝点软件（深圳）有限公司北京研发中心技术主管。国内最有影响的自由软件项目之一－－ MiniGUI 的创始人以及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。
+</p>
+
+</body>
+</html>
+

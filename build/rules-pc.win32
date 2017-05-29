@@ -1,0 +1,9 @@
+# makefile.ng rules for Win32 PC
+
+TARGET_OS=win32
+
+DLL=1
+PREFIX=c:/usr
+
+include $(abs_top_srcdir)/build/rules.msvc
+

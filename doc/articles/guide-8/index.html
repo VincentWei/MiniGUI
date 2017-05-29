@@ -1,0 +1,292 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>
+<meta name="KEYWORDS" content="MiniGUI Embedded Linux Programming Guide"/>
+</head>
+
+<body bgcolor="#ffffff" marginheight="2" marginwidth="2" topmargin="2" leftmargin="2">
+<p><strong class="title">基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南（八）</strong><br>
+<strong class="subtitle">MiniGUI 和其他嵌入式 Linux 上的图形及图形用户界面系统</strong>
+
+<p><a href="#author1">魏永明</a> (<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>)<br />
+自由撰稿人<br />
+2001 年 11 月</p>
+
+<!-- Start TOC -->
+
+<table width="150" border="0" cellspacing="0" cellpadding="3" align="right">
+	<tr><td><a href=#1>1  Linux 图形领域的基础设施</a></td></tr>
+	<tr><td><a href=#2>2  Linux 图形领域的高级函数库</a></td></tr>
+	<tr><td><a href=#3>3  面向嵌入式 Linux 系统的图形用户界面</a></td></tr>
+	<tr><td><a href=#4>4  小结</a></td></tr>
+</table>
+
+<em>
+为了让读者对嵌入式 Linux 当中能够使用的图形及图形用户界面有个较为全面的认识，本文将为读者介绍一些嵌入式 Linux 系统中常见的图形及图形用户界面系统，并作为“基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南”系列的最后一篇文章。本文首先概述了 Linux 图形领域的基本设施，然后描述了一些可供嵌入式 Linux 系统使用的高级图形库以及图形用户界面支持系统，并大概比较了这些系统的优缺点。希望能对嵌入式 Linux 系统的开发有所帮助。
+</em>
+
+<p><a name="1"><span class="atitle2">1  Linux 图形领域的基础设施</span></a>
+<br>
+
+<p>
+本小节首先向读者描述 Linux 图形领域中常见的基础设施。之所以称为基础设施，是因为这些系统（或者函数库），一般作为其他高级图形或者图形应用程序的基本函数库。这些系统（或者函数库）包括：X Window、SVGALib、FrameBuffer 等等。
+</p>
+
+<p><a name="11"><span class="atitle3">1.1 X Window</span></a></p>
+
+<p>
+提起 Linux 上的图形，许多人首先想到的是 X Window。这一系统是目前类 UNIX 系统中处于控制地位的桌面图形系统。无疑，X Window 作为一个图形环境是成功的，它上面运行着包括 CAD建模工具和办公套件在内的大量应用程序。但必须看到的是，由于 X Window 在体系接口上的原因，限制了其对游戏、多媒体的支持能力。用户在 X Window 上运行 VCD 播放器，或者运行一些大型的三维游戏时，经常会发现同样的硬件配置，却不能获得和 Windows 操作系统一样的图形效果――即使使用了加速的 X Server，其效果也不能令人满意。另外，大型的应用程序（比如 Mozilla 浏览器）在 X Window 上运行时的响应能力，也相当不能令人满意。当然，这里有 Linux 内核在进程调度上的问题，也有 X Window 的原因。
+</p>
+
+<p>
+X Window 为了满足对游戏、多媒体等应用对图形加速能力的要求，提供了 DGA（直接图形访问）扩展，通过该扩展，应用程序可以在全屏模式下直接访问显示卡的帧缓冲区，并能够提供对某些加速功能的支持。
+</p>
+
+<p>
+Tiny-X是XServer在嵌入式系统的小巧实现，它由Xfree86 Core Team 的Keith Packard开发。它的目标是运行于小内存系统环境。典型的运行于X86 CPU 上的Tiny-X Server 尺寸接近（小于）1MB。
+</p>
+
+<p><a name="12"><span class="atitle3">1.2  SVGALib</span></a></p>
+
+<p>
+SVGALib 是 Linux 系统中最早出现的非 X 图形支持库。这个库从最初对标准 VGA 兼容芯片的支持开始，一直发展到对老式 SVGA 芯片的支持以及对现今流行的高级视频芯片的支持。它为用户提供了在控制台上进行图形编程的接口，使用户可以在 PC 兼容系统上方便地获得图形支持。但该系统有如下不足：
+</p>
+
+<ol>
+    <li>接口杂乱。SVGALib 从最初的 vgalib 发展而来，保留了老系统的许多接口，而这些接口却不能良好地迎合新显示芯片的图形能力。</li>
+    <li>未能较好地隐藏硬件细节。许多操作，不能自动使用显示芯片的加速能力支持。</li>
+    <li>可移植性差。SVGALib 目前只能运行在 x86 平台上，对其他平台的支持能力较差（Alpha 平台除外）。</li>
+    <li>发展缓慢，有被其他图形库取代的可能。SVGALib 作为一个老的图形支持库，目前的应用范围越来越小，尤其在 Linux 内核增加了 FrameBuffer 驱动支持之后，有逐渐被其他图形库替代的迹象。</li>
+    <li>对应用的支持能力较差。SVAGLib 作为一个图形库，对高级图形功能的支持，比如直线和曲线等等，却不能令人满意。尽管 SVGALib 有许多缺点，但 SVGALib 经常被其他图形库用来初始化特定芯片的显示模式，并获得映射到进程地址空间的线性显示内存首地址（即帧缓冲区），而其他的接口却很少用到。另外，SVGALib 中所包含的诸如键盘、鼠标和游戏杆的接口，也很少被其他应用程序所使用。</li>
+</ol>
+
+<p>
+因此，SVGALib 的使用越来越少，笔者也不建议用户使用这个图形库。当然，如果用户的显示卡只支持标准 VGA 模式，则 SVGALib 还是比较好的选择。
+</p>
+
+<p><a name="13"><span class="atitle3">1.3  FrameBuffer</span></a></p>
+
+<p>
+FrameBuffer 是出现在 2.2.xx 内核当中的一种驱动程序接口。这种接口将显示设备抽象为帧缓冲区。用户可以将它看成是显示内存的一个映像，将其映射到进程地址空间之后，就可以直接进行读写操作，而写操作可以立即反应在屏幕上。该驱动程序的设备文件一般是 /dev/fb0、/dev/fb1 等等。比如，假设现在的显示模式是 1024x768-8 位色，则可以通过如下的命令清空屏幕：
+</p>
+
+<p><table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+$ dd if=/dev/zero of=/dev/fb0 bs=1024 count=768
+</code></pre>
+</td></tr>
+</table></p>
+
+<p>
+在应用程序中，一般通过将 FrameBuffer 设备映射到进程地址空间的方式使用，比如下面的程序就打开 /dev/fb0 设备，并通过 mmap 系统调用进行地址映射，随后用 memset 将屏幕清空（这里假设显示模式是 1024x768-8 位色模式，线性内存模式）：
+</p>
+
+<p><table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+int fb;
+unsigned char* fb_mem;
+
+fb = open ("/dev/fb0", O_RDWR);
+fb_mem = mmap (NULL, 1024*768, PROT_READ|PROT_WRITE,MAP_SHARED,fb,0);
+
+memset (fb_mem, 0, 1024*768);
+</code></pre>
+</td></tr>
+</table></p>
+
+<p>
+FrameBuffer 设备还提供了若干 ioctl 命令，通过这些命令，可以获得显示设备的一些固定信息（比如显示内存大小）、与显示模式相关的可变信息（比如分辨率、象素结构、每扫描线的字节宽度），以及伪彩色模式下的调色板信息等等。
+</p>
+
+<p>
+通过 FrameBuffer 设备，还可以获得当前内核所支持的加速显示卡的类型（通过固定信息得到），这种类型通常是和特定显示芯片相关的。比如目前最新的内核（2.4.9）中，就包含有对 S3、Matrox、nVidia、3Dfx 等等流行显示芯片的加速支持。在获得了加速芯片类型之后，应用程序就可以将 PCI 设备的内存I/O（memio）映射到进程的地址空间。这些 memio 一般是用来控制显示卡的寄存器，通过对这些寄存器的操作，应用程序就可以控制特定显卡的加速功能。
+</p>
+
+<p>
+PCI 设备可以将自己的控制寄存器映射到物理内存空间，而后，对这些控制寄存器的访问，给变成了对物理内存的访问。因此，这些寄存器又被称为“memio”。一旦被映射到物理内存，Linux 的普通进程就可以通过 mmap 将这些内存 I/O 映射到进程地址空间，这样就可以直接访问这些寄存器了。
+</p>
+
+<p>
+当然，因为不同的显示芯片具有不同的加速能力，对memio 的使用和定义也各自不同，这时，就需要针对加速芯片的不同类型来编写实现不同的加速功能。比如大多数芯片都提供了对矩形填充的硬件加速支持，但不同的芯片实现方式不同，这时，就需要针对不同的芯片类型编写不同的用来完成填充矩形的函数。
+</p>
+
+<p>
+说到这里，读者可能已经意识到 FrameBuffer 只是一个提供显示内存和显示芯片寄存器从物理内存映射到进程地址空间中的设备。所以，对于应用程序而言，如果希望在 FrameBuffer 之上进行图形编程，还需要完成其他许多工作。举个例子来讲，FrameBuffer 就像一张画布，使用什么样子的画笔，如何画画，还需要你自己动手完成。
+</p>
+
+<p><a name="14"><span class="atitle3">1.4  LibGGI</span></a></p>
+
+<p>
+LibGGI 试图建立一个一般性的图形接口，而这个抽象接口连同相关的输入（鼠标、键盘、游戏杆等）抽象接口一起，可以方便地运行在 X Window、SVGALib、FrameBuffer 等等之上。建立在 LibGGI 之上的应用程序，不经重新编译，就可以在上述这些底层图形接口上运行。但不知何故，LibGGI 的发展几乎停滞。
+</p>
+
+
+<p><a name="2"><span class="atitle2">2  Linux 图形领域的高级函数库</span></a><br>
+
+<p><a name="21"><span class="atitle3">2.1 Xlib 及其他相关函数库</span></a></p>
+
+<p>
+在 X Window 系统中进行图形编程时，可以选择直接使用 Xlib。Xlib 实际是对底层 X 协议的封装，可通过该函数库进行一般的图形输出。如果你的 X Server 支持 DGA，则可以通过 DGA 扩展直接访问显示设备，从而获得加速支持。对一般用户而言，由于 Xlib 的接口太原始而且复杂，因此一般的图形程序选择其他高级一些的图形库作为基础。比如，GTK、QT 等等。这两个函数同时还是一些高级的图形用户界面支持函数库。由于种种原因，GTK、QT 等函数库存在有庞大、占用系统资源多的问题，不太适合在嵌入式系统中使用。这时，你可以选择使用 FLTK，这是一个轻量级的图形函数库，但它的主要功能集中在用户界面上，提供了较为丰富的控件集。
+</p>
+
+<p><a name="22"><span class="atitle3">2.2 SDL</span></a></p>
+
+<p>
+SDL（Simple DirectMedia Layer）是一个跨平台的多媒体游戏支持库。其中包含了对图形、声音、游戏杆、线程等等的支持，目前可以运行在许多平台上，其中包括 X Window、X Window with DGA、Linux FrameBuffer 控制台、Linux SVGALib，以及Windows DirectX、BeOS 等等。
+</p>
+
+<p>
+因为 SDL 专门为游戏和多媒体应用而设计开发，所以它对图形的支持非常优秀，尤其是高级图形能力，比如 Alpha 混和、透明处理、YUV 覆盖、Gamma 校正等等。而且在 SDL 环境中能够非常方便地加载支持 OpenGL 的 Mesa 库，从而提供对二维和三维图形的支持。
+</p>
+
+<p>
+可以说，SDL 是编写跨平台游戏和多媒体应用的最佳平台，也的确得到了广泛应用。相关信息，可参阅 http://www.libsdl.org。
+</p>
+
+<p><a name="23"><span class="atitle3">2.3 Allegro</span></a></p>
+
+<p>
+Allegro 是一个专门为 x86 平台设计的游戏图形库。最初的 Allegro 运行在 DOS 环境下，而目前可运行在 Linux FrameBuffe 控制台、Linux SVGALib、X Window 等系统上。Allegro 提供了一些丰富的图形功能，包括矩形填充和样条曲线生成等等，而且具有较好的三维图形显示能力。由于 Allegro 的许多关键代码是采用汇编编写的，所以该函数库具有运行速度快、资源占用少的特点。然而，Allegro 也存在如下缺点：
+</p>
+
+<ol>
+    <li>对线程的支持较差。Allegro 的许多函数是非线程安全的，不能同时在两个以上的线程中使用。</li>
+    <li>对硬件加速能力的支持不足，在设计上没有为硬件加速提供接口。</li>
+</ol>
+
+<p>
+有关 Allegro 的进一步信息，可参阅http://www.allegro.cc/。
+</p>
+
+<p><a name="24"><span class="atitle3">2.4 Mesa3D</span></a></p>
+
+<p>
+Mesa3D 是一个兼容 OpenGL 规范的开放源码函数库，是目前 Linux 上提供专业三维图形支持的惟一选择。Mesa3D 同时也是一个跨平台的函数库，能够运行在 X Window、X Window with DGA、BeOS、Linux SVGALib 等平台上。
+</p>
+
+<p>
+有关 Mesa3D 的进一步信息，可参阅 http://www.mesa3d.org/。
+</p>
+
+<p><a name="25"><span class="atitle3">2.5 DirectFB</span></a></p>
+
+<p>
+DirectFB 是专注于 Linux FrameBuffer 加速的一个图形库，并试图建立一个兼容 GTK 的嵌入式 GUI 系统。它以可装载函数库的形势提供对加速 FrameBuffer 驱动程序的支持。目前，该函数库正在开发之中（最新版本 0.9.97），详情可见 http://www.directfb.org/。
+</p>
+
+
+<p><a name="3"><span class="atitle2">3  面向嵌入式Linux 系统的图形用户界面</span></a><br>
+
+<p><a name="31"><span class="atitle3">3.1  MicoroWindows/NanoX</span></a></p>
+
+<p>
+MicroWindows（http://microwindows.censoft.com）是一个开放源码的项目，目前由美国 Century Software 公司主持开发。该项目的开发一度非常活跃，国内也有人参与了其中的开发，并编写了 GB2312 等字符集的支持。但在 Qt/Embedded 发布以来，该项目变得不太活跃，并长时间停留在 0.89Pre7 版本。可以说，以开放源码形势发展的 MicroWindows 项目，基本停滞。
+</p>
+
+<p>
+MicroWindows 是一个基于典型客户/服务器体系结构的 GUI 系统，基本分为三层。最底层是面向图形输出和键盘、鼠标或触摸屏的驱动程序；中间层提供底层硬件的抽象接口，并进行窗口管理；最高层分别提供兼容于 X Window 和 Windows CE（Win32 子集）的 API。
+</p>
+
+<p>
+该项目的主要特色在于提供了类似 X 的客户/服务器体系结构，并提供了相对完善的图形功能，包括一些高级的功能，比如 Alpha 混合，三维支持，TrueType 字体支持等。但需要注意的是，MicroWindows 的图形引擎存在许多问题，可以归纳如下：
+</p>
+
+<ol>
+    <li>无任何硬件加速能力。</li>
+    <li>图形引擎中存在许多低效算法，同时未经任何优化。比如在直线或者圆弧绘图函数中，存在低效的逐点判断剪切的问题。</li>
+    <li>代码质量较差。由于该项目缺少一个强有力的核心代码维护人员，因此代码质量参差不齐，影响整体系统稳定性。这也是 MicroWindows 长时间停留在 0.89Pre7 版本上的原因。</li>
+</ol>
+
+<p>
+MicroWindows 采用 MPL 条款发布（该条款基本类似 LGPL 条款）。
+</p>
+
+<p><a name="32"><span class="atitle3">3.2  OpenGUI</span></a></p>
+
+<p>
+OpenGUI（http://www.tutok.sk/fastgl/）在 Linux 系统上存在已经很长时间了。最初的名字叫 FastGL，只支持 256 色的线性显存模式，但目前也支持其他显示模式，并且支持多种操作系统平台，比如 MS-DOS、QNX 和 Linux 等等，不过目前只支持 x86 硬件平台。OpenGUI 也分为三层。最低层是由汇编编写的快速图形引擎；中间层提供了图形绘制 API，包括线条、矩形、圆弧等，并且兼容于 Borland 的 BGI API。第三层用 C++ 编写，提供了完整的 GUI 对象集。
+</p>
+
+<p>
+OpenGUI 采用 LGPL 条款发布。OpenGUI 比较适合于基于 x86 平台的实时系统，可移植性稍差，目前的发展也基本停滞。
+</p>
+
+<p><a name="33"><span class="atitle3">3.3  Qt/Embedded</span></a></p>
+
+<p>
+Qt/Embedded是著名的 Qt 库开发商 TrollTech（http://www.trolltech.com/）发布的面向嵌入式系统的 Qt 版本。因为 Qt 是 KDE 等项目使用的 GUI 支持库，所以有许多基于 Qt 的 X Window 程序可以非常方便地移植到 Qt/Embedded 版本上。因此，自从 Qt/Embedded 以 GPL 条款形势发布以来，就有大量的嵌入式 Linux 开发商转到了 Qt/Embedded 系统上。比如韩国的 Mizi 公司，台湾省的某些嵌入式 Linux 应用开发商等等。
+</p>
+
+<p>
+不过，在笔者看来，Qt/Embedded 还有一些问题值得开发者注意：
+</p>
+
+<ol>
+    <li>目前，该系统采用两种条款发布，其中包括 GPL 条款。对函数库使用 GPL 条款，意味着其上的应用需要遵循 GPL 条款。当然了，如果要开发商业程序，TrollTech 也允许你采用另外一个授权条款，这时，就必须向 TrollTech 交纳授权费用了。</li>
+    <li>Qt/Embedded 是一个 C++ 函数库，尽管 Qt/Embedded 声称可以裁剪到最少 630K，但这时的 Qt/Embedded 库已经基本上失去了使用价值。低的程序效率、大的资源消耗也对运行 Qt/Embedded 的硬件提出了更高的要求。</li>
+    <li>Qt/Embedded 库目前主要针对手持式信息终端，因为对硬件加速支持的匮乏，很难应用到对图形速度、功能和效率要求较高的嵌入式系统当中，比如机顶盒、游戏终端等等。</li>
+    <li>Qt/Embedded 提供的控件集风格沿用了 PC 风格，并不太适合许多手持设备的操作要求。</li>
+    <li>Qt/Embedded 的结构过于复杂，很难进行底层的扩充、定制和移植，尤其是那个用来实现 signal/slot 机制的著名的 moc 文件。</li>
+</ol>
+
+<p>
+因为上述这些原因，目前所见到的 Qt/Embedded 的运行环境，几乎是清一色基于 StrongARM 的 iPAQ。
+</p>
+
+<p><a name="34"><span class="atitle3">3.4  MiniGUI</span></a></p>
+
+<p>
+MiniGUI（http://www.minigui.org）是由笔者主持，并由许多自由软件开发人员支持的一个自由软件项目（遵循 LGPL 条款发布），其目标是为基于 Linux 的实时嵌入式系统提供一个轻量级的图形用户界面支持系统。该项目自 1998 年底开始到现在，已历经 3 年多的开发过程。到目前为止，已经非常成熟和稳定。目前，我们已经正式发布了稳定版本 1.0.9，并且开始了新版本系列的开发，即 MiniGUI Version 1.1.x，该系列的正式版也即将发布。
+</p>
+
+<p>
+在 MiniGUI 几年的发展过程中，有许多值得一提的技术创新点，正是由于这些技术上的创新，才使得 MiniGUI 更加适合实时嵌入式系统；而且 MiniGUI 的灵活性非常好，可以应用在包括手持设备、机顶盒、游戏终端等等在内的各种高端或者低端的嵌入式系统当中。这些技术创新包括：
+</p>
+
+<ol>
+    <li>图形抽象层。图形抽象层对顶层 API 基本没有影响，但大大方便了 MiniGUI 应用程序的移植、调试等工作。目前包含三个图形引擎，SVGALib、LibGGI 以及直接基于 Linux FrameBuffer 的 Native Engine，利用 LibGGI 时，可在 X Window 上运行 MiniGUI 应用程序，并可非常方便地进行调试。与图形抽象层相关的还有输入事件的抽象层。MiniGUI 现在已经被证明能够在基于 ARM、MIPS、StrongARM 以及 PowerPC 等的嵌入式系统上流畅运行。</li>
+    <li>多字体和多字符集支持。这部分通过设备上下文（DC）的逻辑字体（LOGFONT）实现，不管是字体类型还是字符集，都可以非常方便地进行扩充。应用程序在启动时，可切换系统字符集，比如 GB、BIG5、EUCKR、UJIS。利用 DrawText 等函数时，可通过指定字体而获得其他字符集支持。对于一个窗口来说，同时显示不同语种的文字是可能的。MiniGUI 的这种字符集支持不同于传统通过 UNICODE 实现的多字符集支持，这种实现更加适合于嵌入式系统。</li>
+    <li>两个不同架构的版本。最初的 MiniGUI 运行在 PThread 库之上，这个版本适合于功能单一的嵌入式系统，但存在系统健壮性不够的缺点。在 0.9.98 版本中，我们引入了 MiniGUI-Lite 版本，这个版本在提高系统健壮性的同时，通过一系列创新途径，避免了传统 C/S 结构的弱点，为功能复杂的嵌入式系统提供了一个高效、稳定的 GUI 系统。</li>
+</ol>
+
+<p>
+在 MiniGUI 1.1.0 版本的开发中，我们参照 SDL 和 Allegro 的图形部分，重新设计了图形抽象层，并增强了图形功能，同时增强了 MiniGUI-Lite 版本的某些特性。这些特性包括：
+</p>
+
+<ol>
+    <li>MiniGUI-Lite 支持层的概念。同一层可容纳多个能够同时显示的客户程序，并平铺在屏幕上显示。</li>
+    <li>新的 GAL 能够支持硬件加速能力，并能够充分使用显示内存；新 GAL 之上的新 GDI 接口得到进一步增强。新的 GDI 接口可以支持 Alpha 混和、透明位块传输、光栅操作、YUV覆盖、Gamma 校正，以及高级图形功能（椭圆、多边形、样条曲线）等等。</li>
+</ol>
+
+<p>
+MiniGUI 新版本在图形方面的增强和提高，将大大扩展它的应用领域，希望能够对嵌入式 Linux 上的多媒体应用、游戏开发提供支持。
+</p>
+
+<p>
+纵观嵌入式 Linux 系统上的各种图形系统方案，我们发现，许多图形系统（如 Qt/Embedded 和 MicoroWindows），只注重手持设备上的需求，却不太注重其他应用领域的需求，而其他许多需要图形支持的嵌入式 Linux 系统却需要许多独特的、高级的图形功能，而不仅仅是图形用户界面。为此，在接下来的开发中，我们还将在如下领域继续开发 MiniGUI：
+</p>
+
+<ol>
+    <li>提供运行在 MiniGUI 上的 JAVA 虚拟机 AWT 组件的实现。</li>
+    <li>提供 MiniGUI 上的 OpenGL 实现。</li>
+    <li>提供类 QT 控件集的 C++ 封装。</li>
+    <li>提供窗口/控件风格主题支持。</li>
+    <li>在 MiniGUI-Lite 当中增加对矢量字体的支持。</li>
+</ol>
+
+<p><a name="4"><span class="atitle2">4 小结</span></a><br>
+
+<p>
+综上所述，笔者认为在嵌入式 Linux 图形领域，还有许多有待开发人员仔细研究和解决的问题。MiniGUI 的新的发展，也正源于对这些需求的认识之上。我们也衷心希望能够有更多的自由软件开发人员加盟 MiniGUI 的开发，一同开发新的嵌入式 Linux 的图形系统。
+</p>
+
+<p><a name="author1"><span class="atitle2">作者</span></a>
+<br>魏永明（ymwei@minigui.org），男，28 岁。1998 年毕业于清华大学精密仪器系，获工学硕士学位。国内最有影响的自由软件项目之一－－MiniGUI 的创始人及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA 信息技术协会 Linux 编程技术系列讲座的主讲人。</br>
+
+<!-- END PAPER BODY -->
+
+</body>
+</html>
+

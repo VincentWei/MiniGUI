@@ -1,0 +1,82 @@
+#!/bin/bash
+
+rm config.cache config.status -f
+
+function config 
+{
+CC=armv4l-unknown-linux-gcc \
+./configure --prefix=/opt/host/armv4l/armv4l-unknown-linux \
+    --build=i386-linux \
+    --host=arm-unknown-linux \
+    --target=arm-unknown-linux \
+    --disable-debug \
+    --disable-static \
+    --disable-procs \
+    --disable-standalone \
+    --with-style=fashion \
+    --with-target=fbcon \
+    --enable-incoreres \
+    --enable-rbf16 \
+    --enable-rbf24 \
+    --enable-rbfgb12 \
+    --enable-rbfgb16 \
+    --enable-rbfgb24 \
+    --enable-fonthelv \
+    --enable-purefbgfx \
+    --enable-videoshadow \
+    --disable-videofbcon \
+    --disable-videoqvfb \
+    --disable-videodummy \
+    $rot_dir \
+    --enable-ipaqial \
+    --disable-qvfbial \
+    --disable-nativeial \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --enable-pngsupport \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-imegb2312 \
+    --disable-imegb2312pinyin \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-ext-fullgif \
+    --disable-dblclk
+}
+
+OPTIONS="320x240 240x320"
+select opt in $OPTIONS; do
+    if [ $opt = "320x240" ]; then
+        unset rot_dir
+        config
+        exit 0
+    elif [ $opt = "240x320" ]; then
+        echo Please select a model for your iPAQ.
+        OPTIONS="H3600 H3800 Quit"
+        select opt in $OPTIONS; do
+            if [ "$opt" = "Quit" ]; then
+                echo Quit...
+                exit 0
+            elif [ "$opt" = "H3600" ]; then
+                rot_dir="--enable-coortrans_cw"
+                config
+                exit 0
+            elif [ "$opt" = "H3800" ]; then
+                rot_dir="--enable-coortrans_ccw"
+                config
+                exit 0
+            else
+                echo Please select a model for your iPAQ.
+            fi
+        done
+    fi
+done

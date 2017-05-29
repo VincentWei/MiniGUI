@@ -1,0 +1,5 @@
+#!/bin/sh
+
+./configure \
+    --disable-static \
+    --enable-videofbcon

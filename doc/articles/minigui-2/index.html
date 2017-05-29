@@ -1,0 +1,519 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>编译、安装和配置</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+
+<p><strong class="title">面向实时嵌入式系统的图形用户界面支持系统――MiniGUI</strong><br> 
+	<strong class="subtitle">编译、安装和配置</strong></p> 
+	 
+	<p>魏永明<br> 
+	蓝点软件（北京）研发中心技术主管<br> 
+	2000/10/27</p> 
+ 
+<p>
+<table width="137" cellpadding="0" cellspacing="0" align="right" border="0"> 
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>Contents:</b></font></td></tr><tr> 
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td> 
+                                  
+                             </tr> 
+                             <tr> 
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td></tr> 
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1">Linux  
+                    </a></font><a href="#1"><font size="-2"> 下的软件维护和建立工具</font></a></td></tr>   
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2">MiniGUI  
+                    </a></font><a href="#2"><font size="-2"> 的依赖库</font></a></td></tr>   
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3"></a></font><a href="#3"><font size="-2">安装  
+                    </font><font size="-2" face="helvetica,helv,arial"> MiniGUI </font><font size="-2"> 的依赖库</font></a></td></tr>   
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4"></font><font size="-2">编译并安装  
+                    </font><font size="-2" face="helvetica,helv,arial"> MiniGUI</font></a></td></tr>   
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">MiniGUI  
+                    </a></font><a href="#resources"><font size="-2"> 的配置</font></a></td></tr>   
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author"></a></font><a href="#author"><font size="-2">作者</font></a></td></tr>   
+                <tr><td bgcolor="#000000"><font size="-3"></font></td></tr>   
+	</table>   
+   
+<p><em>对开放源码的自由软件来说，程序员得到的通常是源代码。在编译源代码并正确安装和配置的过程中，往往会涉及到许多工具和函数库，因此其过程经常显得有些繁复，从而也导致许多程序员望而生畏。本文重点介绍了 MiniGUI 的编译、安装和配置过程，解释了该过程中要使用的工具，并说明了 MiniGUI 的配置选项。本文可帮助程序员快速正确地安装和配置 MiniGUI。</em></p>    
+    
+<a name="1">    
+<p><strong class="subhead">1  Linux 下的软件维护和建立工具</strong>    
+<br>对开放源码的自由软件来说，程序员得到的通常是源代码。在编译源代码并正确安装和配置的过程中，往往会涉及到许多工具和函数库，因此其过程经常显得有些繁复。MiniGUI也不例外。为了说明 MiniGUI 的正确编译和安装过程，我们有必要首先了解 Linux 系统下用于软件维护和建立的工具。</p>    
+</P>
+ <br>1.1  make 和 makefile <br> 
+</P>
+ <br>make 是 Linux 下最常用的二进制程序、函数库的建立生成工具。make 运行时要根据当前目录下的 makefile 文件（一般是 Makefile），确定要生成什么样的二进制文件，以及对应的命令。我们还可以在 makefile 文件中建立要生成的目标与源代码之间的依赖关系，从而可以让 make 工具根据时间自动判断是否需要通过中间过程而生成最终目标。尽管通过 makefile 文件可以组织一个大的项目，但往往手工编写一个 makefile 文件并不是一件轻松的事情，并且在需要维护一个源代码的目录树时，makefile 文件的维护工作就会大大增加。为此，GNU 又开发了 Autoconfi/Automake 工具，可以用来自动生成 makefile 文件，并且能够检查系统的配置信息，从而帮助提供源代码的可移植性。 
+</P>
+ <br>1.2  Autoconf/Automake 
+</P>
+ <br>GNU 的 Autoconf 及 Automake 这两个软件实际是由若干 Shell 脚本组成的，它可以帮助程序员轻松产生 makefile 文件。现在的各种自由软件，如Apache、MySQL 等都是利用Autoconf,Automake 实现自动配置和编译的。MiniGUI 也采用了 Autoconf/Automake 接口。用户只要使用"./configure"、"make"、"make install" 就可以把程序编译并安裝到系统中。 
+ <br>为了更好地了解 Autoconf 和 Automake，我们需要对 makefile 作一简单回顾。Makefile 基本上就是"目标"（target）、"依赖性"（dependencies）和"动作"三者所组成的一系列规则。而 make 就是根据 makefile 文件的规则决定如何编译（compile）和连接 （link）程序或者其它动作。当然，make 可做的不只是编译和连接程序，例如 FreeBSD 的 port collection 中，Makefile还可以做到自动下载远程程序，解压缩（extract），打补丁 （patch），然后编译并安装到系统中。  
+ <br>Makefile 基本结构虽然很简单，但是妥善运用这些规则就可以变换出许多不同的花样。却也因为这样，许多人刚开始学写makefile 时会觉得没有规范可以遵循，每个人写出来的makefile都不大一样，不知道从哪里下手，而且常常会受到开发环境的限制，只要环境参数不同或者路径更改，可能 makefile 就得跟着修改。虽然有GNU Makefile Conventions （GNU Makefile惯例）制订出一些在进行 GNU 程序设计时编写 makefile 的一些标准和规范，但是其内容很长而且很复杂，并且经常作一些调整，为了减轻程序开发人员维护makefile 的负担，就出现了Automake。 
+ <br>利用Automake，编程者只需要写一些预先定义好的宏（macro），提交给Automake处理，就会产生一个可以供 Autoconf 使用的 Makefile.in文件。再配合使用 Autoconf产生的自动配置文件 configure 即可产生一份符合 GNU Makefile 惯例的 Makeifle 了。 
+ <br> 在开始使用 Automake 之前，首先确认你的系统安装有如下软件： 
+<UL>
+ <li> GNU Automake 
+
+ <li> GNU Autoconf 
+
+ <li> GNU m4 
+
+ <li> perl 
+
+ <li> GNU Libtool （如果你需要产生共享库）
+</UL>
+
+ <br>最好也使用 GNU C/C++ 编译器、GNU Make 以及其它 GNU 的工具程序来作为开发的环境，这些工具都是属于 GPL 的自由软件，不但免费而且功能强大。如果你是使用 Red Hat Linux，可以找到所有上述软件的 rpm 文件。
+
+  
+<br> 利用 configure 所产生的 Makefile文件有几个预先设定的目标可供使用，这里只对其中几个简述如下。
+<UL>
+<li> make all 产生设定的目标。只敲入make 也可以，此时会开始编译源代码，然后连接并产生执行文件。 
+
+<li> make clean 清除之前所编译的可执行文件及目标文件（*.o）。 
+
+<li>make distclean 除了清除可执行文件和目标文件以外，也把 configure 所产生的 Makefile 清除掉。 通常在发布软件前执行该命令。
+
+<li> make install 将程序安装到系统中，若源码编译成功，且执行结果正确，便可以把程序安装到系统预先设定的执行文件存放路径中，若用 bin_PROGRAMS 宏的话，程序会被安装到 /usr/local/bin下。
+
+<li> make dist 将程序和相关的文档包装为一个压缩文档以供发布。执行完在目录下会产生一个以PACKAGE-VERSION.tar.gz 为名称的文件。PACKAGE 和 VERSION 这两个参数是根据 configure.in 文中 AM_INIT_AUTOMAKE(PACKAGE, VERSION) 的定义。
+
+<li> make distcheck 和 make dist 类似，但是加入检查包装以后的压缩文件是否正常，这个目标除了把程序和相关文档包装成 tar.gz 文件外，还会自动把这个压缩文件解开，执行 configure，并执行 make all ，确认编译无错误以后，方显示这个 tar.gz 文件已经准备好并可以发布了。
+</UL>
+
+<br> 要注意的是，利用 Autoconf 及 Automake 所产生出來的软件套件是可以在没有安装 Autoconf 及 Automake 的环境使用的，因为 configure 是一个 shell script，它己被设计为可以在一般 Unix 的 sh 这个 shell 下执行。但是如果要修改 configure.in 及 Makefile.am 文件再产生新的 configure 及 Makefile.in 文件时就一定要有 Autoconf 及 Automake 了。
+</P>
+
+ <br>  1.3  ldd 和 ldconfig
+</P>
+<br>ldd 是用来检查可执行文件所需要的共享库。例如：
+
+</P>
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ ldd /bin/ls
+        libtermcap.so.2 =&gt; /lib/libtermcap.so.2 (0x4001c000)
+        libc.so.6 =&gt; /lib/libc.so.6 (0x40020000)
+        /lib/ld-linux.so.2 =&gt; /lib/ld-linux.so.2 (0x40000000)
+</pre></td></tr></table>    
+    
+<br>我们在 /bin/ls 程序上运行 ldd 命令，就可以检查该程序所使用的共享库。注意在 ldd 命令打印的结果中，“=&gt;”左边的表示该程序需要连接的共享库之 so 名称，右边表示由 Linux 的共享库系统找到的对应的共享库在文件系统中的具体位置。默认情况下，/etc/ld.so.conf 文件中包含有默认的共享库搜索路径，例如：
+
+</P>
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+/usr/X11R6/lib
+/usr/lib
+/usr/i486-linux-libc5/lib
+/usr/lib/qt-2.0.1/lib
+/usr/lib/qt-1.44/lib
+/usr/lib/qt-2.1.0/lib
+/usr/kerberos/lib
+/usr/lib/qt-1.45/lib
+</pre></td></tr></table> 
+
+<br>如果 ldd 没有找到对应的共享库文件的具体位置，可能是两种情况引起的：
+
+<OL>
+<li>共享库没有安装在该系统中；
+<li>共享库保存在 /etc/ld.so.conf 文件列出的搜索路径之外的位置。
+</OL>
+
+<br>通常情况下，许多开放源代码的程序或函数库都会默认将自己安装到 /usr/local 目录下的相应位置（/usr/local/bin 或 /usr/local/lib），以便与系统自身的程序或函数库相区别。而许多 Linux 系统的 /etc/ld.so.conf 文件中默认又不包含 /usr/local/lib。因此，往往会出现已经安装了共享库，但是却无法找到共享库的情况。这时，就应该检查 /etc/ld.so.conf 文件，如果其中缺少 /usr/local/lib 目录，就应该添加进去。
+
+<br>在修改了 /etc/ld.so.conf 文件或者在系统中安装了新的函数库之后，还要运行一个命令，即 ldconfig。该命令用来刷新系统的共享库缓存，即 /etc/ld.so.cache 文件。为了减少共享库系统的库搜索时间，共享库系统维护了一个共享库 so 名称的缓存文件。因此，在安装新的共享库之后，一定要运行 ldconfig 刷新该缓存。
+</P>
+
+<a name="2">    
+<p><strong class="subhead">2  MiniGUI 的依赖库</strong> 
+
+<br>为了正确安装 MiniGUI，需要了解 MiniGUI 的正常运行需要哪些函数库，也即 MiniGUI 的依赖库。在编译 MiniGUI 之前，首先要确保正确安装了所需的依赖库。
+</P>
+
+<br>2.1  LibGGI 或者 SVGALib
+</P>
+
+<br>这两个函数库可以为 MiniGUI 提供底层图形支持，我们称之为“图形引擎”。其中 SVGALib 是一个比较老的函数库，只提供对 Linux 控制台的支持；LibGGI 是一个比较新的图形函数库，提供了对 Linux 控制台、X Window 等的支持，并且接口相对简单。要正确使用 MiniGUI，需要安装 LibGGI 或者 SVGALib 的修订版。笔者建议安装 LibGGI，因为它提供了对 Linux 控制台和 X 的支持。在 Linux 下，建立在 LibGGI 之上的程序既可以运行在 Linux 控制台上，也可以运行在 X Window 上，从而可以提高程序的可移植性。并且对 MiniGUI 来说，如果能够运行在 X Window 上，就可以大大方便程序的调试。LibGGI 的另外一个好处就是在 Linux 控制台上，它可以运行在 Linux 2.2 内核所提供的 FrameBuffer 驱动程序之上，而不需要对显示芯片进行直接的硬件编程，因而也不需要超级用户权限去运行程序。这点和 SVGALib 不同，SVGALib 不支持 FrameBuffer，同时需要超级用户权限。
+<br>如果读者使用的是 Linux 内核 2.0.xx，就必须使用 SVGALib。这个函数库实际是两个库组成的，即 vga 和 vgagl。MiniGUI 使用的是 vgagl，该函数库在 vga 之上运行，提供了较好的图形函数。但是，我们不能使用标准的 SVGALib 函数库，因为该函数库和 Linux 上的 Pthread 函数库相冲突――它们均使用了 SIGUSR1 和 SIGUSR2 这两个由操作系统保留给应用程序的信号，从而会导致不可预料的结果。为此，我们对 SVGALib 进行了修改。读者应该使用经过我们修改的 SVGALib 函数库，该函数库同时提供了用于处理 GB2312 字体显示的函数。还要注意的是，标准 SVGALib 的 vgagl 库不提供对标准 VGA 16 色模式的支持，因此，如果要在 VGA 16 色模式下运行 MiniGUI，需要下载 vgagl4 函数库。
+<br>以上提到的函数库可以从如下 URL 处下载：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+ftp://ftp.minigui.org/pub/dep-libs/libggi-2.1beta2.0-20000316.tgz
+ftp://ftp.minigui.org/pub/dep-libs/ svgalib-1.4.0-hz.tar.gz
+ftp://ftp.minigui.org/pub/dep-libs/ vgagl4-0.1.0.tar.gz
+</pre></td></tr></table> 
+
+<br>也可以访问上述两个自由软件项目的站点：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+http://www.ggi-project.org
+http://www.svgalib.org
+</pre></td></tr></table> 
+
+</P>
+2.2  LibTTF 和 LibT1
+</P>
+
+<br>这两个函数库分别提供对 TrueType 字体和 Adobe Type1 字体的支持。对 MiniGUI 来说，这两个函数库是可选的。如果需要 TrueType 和 Adobe Type1 字体的支持，则需要首先安装这两个函数库，否则就不必安装。MiniGUI 的 configure 脚本可以自动检查系统中是否安装有这两个函数库，如果没有安装，则会取消对 TrueType 和 Adobe Type1 字体的支持。
+
+<br>现在的 Linux 发行版默认会安装 LibTTF（即 FreeType 库）。但是，需要注意的是 MiniGUI 所使用的 LibTTF 是 1.3.xx 版本的。如果已安装的 LibTTF 版本不同，则可能因为兼容性问题而无法正确编译 MiniGUI。因此，需要事先确认 LibTTF 的版本号，可通过
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ ls -l /usr/lib/libttf*
+</pre></td></tr></table> 
+
+<br>命令来检查已安装的 LibTTF 库的版本号，其中的共享库文件名中包含了该函数库的版本号。
+<br>以上提到的函数库可以从如下 URL 处下载：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+ftp://ftp.minigui.org/pub/minigui/freetype-1.3.1.tar.gz
+ftp://ftp.minigui.org/pub/minigui/t1lib-1.0.1.tar.gz
+</pre></td></tr></table> 
+
+</P>
+2.3  其他函数库
+</P>
+
+<br>其他 MiniGUI 所依赖的函数库包括 libjpeg，提供 POSIX 兼容线程支持的  LinuxThreads，用来分析命令参数的 popt 库等等。一般的 Linux 发行版中均已包含有这些函数库。
+</a>    
+    
+    
+<a name="3">    
+<p><strong class="subhead">3  安装 MiniGUI 的依赖库
+</strong>  
+<br>除 SVGALib 之外，上面提到的 MiniGUI 的依赖库提供有 automake/autoconf 接口，从而可以非常方便地编译并安装这些依赖库。其中 LibGGI 稍微有些例外，该函数库已经提供了一个批处理脚本，可以帮助你编译并安装 LibGGI 的所有函数库，其中包括用来处理输入（键盘、鼠标等）的 libgii，用来处理图形输出的 libggi 等。对 MiniGUI 来说，只需安装 libgii 和 libggi。在下载 libggi-2.1beta2.0-20000316.tgz 文件之后，运行
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ tar zxf libggi-2.1beta2.0-20000316.tgz
+</pre></td></tr></table> 
+
+<br>可解开该 tgz 包，并在当前目录中建立 degas 子目录。进入 degas/lib/ 目录，运行 ./buildall 脚本，就可以编译并安装 libgii、libggi 等函数库。注意应该以 root 身份运行 buildall 脚本。如果要单独编译某个函数库，可以进入相应的目录，然后按照正常的编译过程进行编译。比如，要重新编译 libggi，可运行如下命令：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ cd libggi
+$ ./autogen.sh
+$ ./configure
+$ make
+$ su -c  make install
+</pre></td></tr></table> 
+ <br>注意在编译 libggi 之前，首先要编译并安装 libgii 库。
+ <br>对 SVGALib 来说，只要解开软件包并运行 make 就可以编译并安装函数库。
+ <br>注意在安装完成每个函数库之后，要运行 ldconfig 命令更新共享库的搜索缓存，并确保将 /usr/local/lib 目录添加到 /etc/ld.so.conf 文件。
+   
+</a>    
+    
+   
+<a name="4">    
+<p><strong class="subhead">4  编译并安装 MiniGUI
+</strong>    
+<br>在安装好 MiniGUI 的上述依赖库之后，就可以编译并安装 MiniGUI 了。首先下载 MiniGUI 的三个 tgz 压缩包：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+ftp://ftp.minigui.org/pub/minigui/0.9.92/libminigui-0.9.92.tar.gz
+ftp://ftp.minigui.org/pub/minigui/0.9.92/miniguiapps-0.9.92.tar.gz
+ftp://ftp.minigui.org/pub/minigui/0.9.92/miniguiexec-0.9.92.tar.gz
+ftp://ftp.minigui.org/pub/minigui/0.9.92/miniguires-0.9.92.tar.gz
+</pre></td></tr></table> 
+
+<br>其中的libminigui-x.x.xx.tar.gz 是 MiniGUI 函数库本身。其中包含有三个函数库，即 libminigui、libmywins、和 libvcongui。miniguiapps-x.x.xx.tar.gz 是基于 MiniGUI 的应用程序软件包，目前包含两个游戏，即 bomb（扫雷）和 russia（俄罗斯方块），以及一个基于 MiniGUI 的 Linux 控制台仿真程序，即 vcongui，注意这些程序在安装到系统之后才能正常运行。miniguiexec-0.9.92.tar.gz 是基于 MiniGUI 的一些演示程序，不需要安装到系统中。miniguires-0.9.92.tar.gz 是 MiniGUI 程序要使用的一些资源，在运行任何基于 MiniGUI 的程序之前，要首先安装资源，其中包括位图、图标、鼠标等等。
+</P>
+
+4.1  编译并安装 libminigui
+</P>
+
+<br>用如下命令解开libminigui-x.x.xx.tar.gz 软件包（以下的实例均以 0.9.92 版，即 MiniGUI 最新版为例）：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ tar zxf libminigui-0.9.92.tar.gz
+</pre></td></tr></table> 
+
+<br>该命令将在当前目录建立 libminigui-0.9.92 目录。进入该目录，然后运行如下命令：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ cd libminigui-0.9.92
+$ ./autogen.sh
+</pre></td></tr></table> 
+
+<br>autogen.sh 是一个简单的脚本程序，该脚本将执行 automake 和 autoconf，并在当前目录生成 configure 脚本。
+<br>运行 ./configure --help脚本将给出如下一个可用的命令行参数清单，注意该命令的最后几行清单说明：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ ./configure -help
+......
+  --enable-debug          build with run-time debugging
+  --enable-tracemsg       trace messages of MiniGUI
+  --disable-svgalib       don't build the svgalib graphics engine
+  --disable-libggi        don't build the libggi graphics engine
+  --enable-allegro        build the allegro graphics engine
+  --enable-microwin       build the microwindows graphics engine
+  --enable-ep7211         build the ep7211 graphics engine
+  --enable-ads            build the ads graphics engine
+  --enable-gifjpg         build old GIF & JPG image support
+  --enable-fileid         include fileid in binary
+  --disable-rbfsupport    exclude raw bitmap font support
+  --disable-vbfsupport    exclude var bitmap font support
+  --disable-fontsansserif exclude incore font sansserif
+  --disable-fontcourier   exclude incore font courier
+  --disable-fontsymbol    exclude incore font symbol
+  --disable-fontvgas      exclude incore font vgas
+  --disable-ttfsupport    exclude truetype font support
+  --disable-type1support  exclude type1 font support
+  --disable-gbsupport     exclude GB2312-1980.0 charset (EUC) support
+  --disable-big5support   exclude Big5 charset (Big5) support
+  --enable-jissupport     include JIS charset support, not implemented
+  --disable-pcxsupport    exclude PCX file support
+  --disable-lbmsupport    exclude LBM/PBM file support
+  --disable-tgasupport    exclude TGA file support
+  --disable-gifsupport    exclude GIF file support
+  --disable-jpgsupport    exclude JPG file support
+  --enable-pngsupport     include PNG file support, not implemented
+</pre></td></tr></table> 
+
+<br>上面是这些参数我们在 configure 脚本中设置好的命令行参数，可以控制在编译好的 MiniGUI中包含什么的代码。比如，运行
+</P>
+
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ ./configure --disable-svgalib --disable-gifsupport --disable-ttfsupport
+</pre></td></tr></table> 
+   
+ <br> 就可以取消 MiniGUI 对 SVGALib、GIF 图形格式以及 TrueType 字体的支持。相反，如果运行
+</P>
+ 
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ ./configure --enable-svgalib
+</pre></td></tr></table> 
+
+ <br>则可以打开 MiniGUI 对 SVGALib 的支持。不带任何参数执行 ./configure 命令将按照默认选项生成 Makefile。
+ <br>根据自己的需求确定好 MiniGUI 库中要包含的功能特色之后，就可以运行类似上面的命令生成定制的 Makefile 文件。如果你不清楚某些选项的含义，可以简单地运行 ./configure 命令。
+ <br>如果运行 ./configure 命令的时候没有出现问题，就可以继续运行 make 和 make install 命令编译并安装 libminigui，注意要有 root 权限才能向系统中安装函数库：
+</P>
+ 
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ make
+$ su -c make install
+</pre></td></tr></table> 
+
+ <br>如果在运行 ./configure 命令时出现函数库检查错误，通常是 LibGGI 或者 SVGALib 函数库的检查错误，则说明你可能忘记安装第 2 小节中提到的依赖函数库了。需要注意的是，LibGGI 和 SVGALib 中只需安装一个即可。
+ <br>在一切正常之后，运行 ldconfig 命令刷新系统的共享库搜索缓存：
+</P>
+
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ su -c ldconfig
+</pre></td></tr></table> 
+</P>
+
+4.2  安装 miniguires
+</P>
+
+<br>MiniGUI 资源的安装比较简单，只需解开软件包并以 root 身份运行 make 命令，如下所示：
+</P>
+
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ tar zxf miniguires-0.9.92.tar.gz
+$ cd miniguires-0.9.92
+$ su -c make
+</pre></td></tr></table> 
+
+</P>
+4.3  编译并安装 miniguiapps
+</P>
+
+<br>编译和安装 miniguiapps 的过程与 libminigui 类似，所需命令如下：
+</P>
+
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ cd miniguiapps-0.9.92
+$ tar zxf miniguiapps-0.9.92.tar.gz
+$ ./autogen.sh
+$ ./configure
+$ make
+$ su -c make install
+</pre></td></tr></table> 
+
+<br>在正确执行上述命令之后，进入 bomb 目录，即可运行 bomb 示例程序。如果在运行过程中出现错误，首先可运行 ldd bomb 命令检查 Linux 是否正确找到 bomb 程序所需要的共享库，若没有找到，则需要检查是否设置了正确的共享库搜索路径并运行了 ldconfig 命令。若出现其他问题，请参阅第 5 小节“MiniGUI 的配置”。
+</P>
+
+4.4  编译 miniguiexec
+</P>
+
+<br>编译 miniguiexec 的过程与 libminigui 类似，只是这个软件包不需要安装到系统当中。所需命令如下：
+</P>
+
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+$ tar zxf miniguiexec-0.9.92.tar.gz
+$ cd miniguiexec-0.9.92
+$ ./autogen.sh
+$ ./configure
+$ make
+</pre></td></tr></table> 
+
+<br> 在正确编译结束之后，可进入 demos 目录运行其中的演示程序，比如 dlgtesst、edittest、fontest 等等。
+<br> 如果在运行过程中出现错误，首先可运行 ldd命令检查 Linux 是否正确找到演示程序所需要的共享库，若没有找到，则需要检查是否设置了正确的共享库搜索路径并运行了 ldconfig 命令。若出现其他问题，请参阅第 5 小节“MiniGUI 的配置”。
+
+<a name="5">    
+<p><strong class="subhead">5  MiniGUI 的配置</strong> 
+
+<br>不能正确运行 MiniGUI 应用程序的原因除编译和安装错误之外，还有另外一个常见原因是配置。其中的配置又与 MiniGUI 的底层图形引擎库相关。如果你使用 SVGALib 为图形引擎，则需要编辑 /etc/vga/libvga.config 文件；如果你使用 LibGGI 为图形引擎并在 Linux 控制台上运行 MiniGUI，则需要确保 Linux 内核中包含了 FrameBuffer 驱动程序。
+</P>
+
+5.1  与 SVGALib 相关的设置
+</P>
+
+<br>SVGALib 的相关配置保存在 /etc/vga/libvga.conf 文件中。你需要检查该文件，并正确设置如下参数：
+<OL>
+	<li>鼠标类型。需要制定正确的鼠标类型，SVGALib 默认的鼠标类型为 Microsoft，如果你的鼠标为 PS/2，则需要将 mouse 设置为 PS2。
+	<li>取消 SVGALib 的鼠标加速选项。将 mouse_accel_type 设置为 off。
+	<li>鼠标端口。将 mdev 设置为正确的鼠标设备。比如对 PS/2 鼠标来讲，需要将 mdev 设置为 /dev/psaux。
+	<li>设置正确的显示芯片。 /etc/vga/libvga.conf 中的 chipset 指定了显示芯片类型和型号，如果你的显示芯片没有列在其中，则可以试试将 chipset 设置为 VESA。VESA 指 VESA 兼容的显示芯片，SVGALib 将通过 VESA BIOS 接口操作显示卡。因为大多数显示卡都是 VESA BIOS 2.0 兼容的，所以将 chipset 设置为 VESA 可以得到较好的颜色深度和分辨率。
+</OL>
+
+<br>在将上述程序设置好之后，在试着运行 MiniGUI，如果还有问题，请发信到我们的邮件列表 minigui-devel@egroups.com 上说明你遇到的问题。
+</P>
+
+5.2  如何设置 FrameBuffer
+</P>
+
+<br>如果使用 LibGGI 作为 MiniGUI 的图形引擎，并且运行在 Linux 控制台上的话，则首先需要 Linux 内核中包含有 FrameBuffer 的驱动程序。许多发行版安装之后就默认运行在 FrameBuffer 的支持下，即图形模式之下，比如 BluePoint Linux 和 TurboLinux 6.x。但有可能 FrameBuffer 的显示模式并不适合于运行 MiniGUI。为此，你可以使用 fbset 命令修改显示模式。但是，某些 FrameBuffer 是不支持显示模式的修改的，比如 VESA FrameBuffer。如果你使用 VESA FrameBuffer，则可以通过编辑 Linux 的内核引导参数设置正确的显示模式。对 VESA FrameBuffer 驱动程序，可以如下编辑 /etc/lilo.conf 文件：
+<br>MiniGUI 资源的安装比较简单，只需解开软件包并以 root 身份运行 make 命令，如下所示：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+boot=/dev/hda
+map=/boot/map
+install=/boot/boot.b
+prompt
+timeout=10
+default=linux
+
+image=/boot/vmlinuz-2.2.14-5.0
+        label=linux
+        read-only
+        vga=0x0317
+        root=/dev/hda1
+</pre></td></tr></table> 
+
+<br>
+注意添加了 vga=0x0317 一行。该行右边以十六进制表示的数字是 VESA 的显示模式编号，下表给出了可用的 VESA 模式号：
+</P>
+
+ <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+ Colours   640x400 640x480 800x600 1024x768 1280x1024 1600x1200
+  --------+-----------------------------------------------------
+   4 bits |    ?       ?     0x302      ?        ?         ?
+   8 bits |  0x300   0x301   0x303    0x305    0x307     0x31C
+  15 bits |    ?     0x310   0x313    0x316    0x319     0x31D
+  16 bits |    ?     0x311   0x314    0x317    0x31A     0x31E
+  24 bits |    ?     0x312   0x315    0x318    0x31B     0x31F
+  32 bits |    ?       ?       ?        ?        ?         ?
+</pre></td></tr></table>
+
+<br>你应该根据自己的显示卡和显示器确定应该使用哪种显示模式。
+<br>在设置了正确的 /etc/lilo.conf 之后，运行 lilo 并重新启动计算机。如果一切正常，则 Linux 引导时，会在屏幕的左上方显示一个可爱的小企鹅。
+
+<br>其他关于 Linux FrameBuffer 的信息，可参阅 Framebuffer-HOWTO 文档。
+</P>
+
+5.3  /etc/MiniGUI.cfg
+</P>
+
+<br>/etc/MiniGUI.cfg 是 MiniGUI 的配置文件，在默认安装的情况下，基本不需要进行修改。因为该配置文件采用了非常简介的格式，所以修改起来也很容易。其格式如下：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+[section-name1]
+key-name1=key-value1
+key-name2=key-value2
+
+[section-name2]
+key-name3=key-value3
+key-name4=key-value4
+</pre></td></tr></table>
+
+<br>该配置文件中的参数以 section 分组，然后用 key=value 的形式指定参数及其值。下面介绍一些重要的段（section）。
+</P>
+
+5.3.1  system
+</P>
+
+<br>system 段中指定了 MiniGUI 要使用的图形引擎以及鼠标设备和类型，分别由 engine、mdev 和 mtype 键指定。因为 MiniGUI 库中可以同时包含多个图形引擎，通过 engine 可以指定要使用哪个图形引擎。mdev 和 mtype 分别用来指定鼠标设备和鼠标类型。
+</P>
+
+5.3.2  SVGALib 和 LibGGI
+</P>
+
+<br>这两个段分别用来设置与 SVGALib 和 LibGGI 相关的配置。目前只有 SVGALib 段中使用 defaultmode 定义 SVGALib 所使用的图形模式，LibGGI 段中没有参数。
+</P>
+
+5.3.2  systemfont
+</P>
+
+<br>systemfont 段定义了 MiniGUI 的系统字体，默认情况下不应作改动。font_number 指定了要装载的系统字体个数，然后用 name<nr> 和 fontfile<nr> 分别表示编号为 nr 的字体名称和字体文件所在路径。字体名的格式如下：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+&lt;type&gt;-&lt;name&gt;-&lt;style&gt;-&lt;width&gt;-&lt;height&gt;-&lt;charset1[,charset2]&gt;
+</pre></td></tr></table>
+
+<br>对于系统字体，你可以修改要装载的个数，但至少要装载字符集为 ISO8859-1 的字体。还可以修改系统字体的大小，比如，下面的 systemfont 就指定 MiniGUI使用 16 点阵的系统字体，并只装载了用于显示 ISO8859-1 字符集和 GB2312-80 字符集的字体：
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+[systemfont]
+font_number=2
+name0=rbf-song-rrncnn-8-16-ISO8859-1
+fontfile0=/usr/local/lib/minigui/fonts/8x16.bin
+name1=rbf-song-rrncnn-16-16-GB2312.1980-0
+fontfile1=/usr/local/lib/minigui/fonts/gb16song.bin
+</pre></td></tr></table>
+
+</P>
+5.3.3  rawbitmapfonts、varbitmapfonts、truetypefonts 和 t1fonts
+</P>
+
+<br>这些段用来指定要装载的其他字体信息。段中键的含义与 system 相同。在需要某种字体支持时，可以修改这些段指定相应的字体。
+</P>
+
+5.3.4 bitmapinfo 和 bgpicture
+</P>
+
+<br>bitmapinfo 段用来指定 MiniGUI 所使用的位图。有两个键可能需要修改一个是 bgpicture，一个是 logo。前者指定了 MiniGUI 的背景图片，后者指定了 MiniGUI 的徽标。另外，该段中重复定义了两组 arrowup、arrowupd 等键的值，分别用于系统字体取 12 点阵和 16 点阵的情况。在系统字体为 16 点阵时，将后面的一组设置移到前面就可以了。
+<br>bgpicture 段用来指定 MiniGUI 背景的位置，你可以选择其中给出的几个设置之一。
+<br>除上述段经常要修改之外，其他段基本上不需要作任何修改。
+<br>如果你在进行 MiniGUI 开发的过程中遇到困难，可以加入我们的邮件列表：
+<br>订阅：minigui-devel-subscribe@egroups.com
+<br>发信：minigui-devel@egroups.com
+<br>解除订阅：minigui-devel-unsubscribe@egroups.com
+</a>    
+    
+<a name="resources">
+<p><strong class="subhead">相关资源</strong></p>
+	<ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+                    <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+                    <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+                    <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">About the author</strong>
+<p>魏永明（<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>），男，26 岁，工学硕士，现任蓝点软件（深圳）有限公司北京研发中心技术主管。国内最有影响的自由软件项目之一－－ MiniGUI 的创始人以及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。</p>
+
+</body>
+</html>

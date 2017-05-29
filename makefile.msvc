@@ -1,0 +1,32 @@
+# Top makefile for building the MiniGUI DLLs/libs with Microsoft Visual C++ compiler
+#     and NMAKE
+# Use: nmake -f makefile.msvc [options]
+
+###############################################################################
+
+# This is the top project directory
+TOPPROJALL = 1
+
+# sub lib or install directories
+SUB_DIRS = src ext include
+
+###############################################################################
+
+# Includes the common make defines
+!INCLUDE build\Defs.win32
+!INCLUDE build\makedefs.msvc
+
+###############################################################################
+
+install::
+	$(CP) mgconfig.h $(includedir)\minigui\mgconfig.h
+
+installdirs : force
+	-mkdir $(prefix)
+	-mkdir $(includedir)
+	-mkdir $(includedir)\minigui
+	-mkdir $(libdir)
+
+mgconfig.h: $(CONFIGH)
+	$(CP) $(CONFIGH) mgconfig.h
+

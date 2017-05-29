@@ -1,0 +1,24 @@
+#!/bin/bash
+
+rm config.cache config.status -f
+
+CC=arm-linux-gcc \
+CFLAGS=-I/opt/armlinux/linux-2.4.13/include \
+./configure --prefix=/usr/local/arm/2.95.3/arm-linux/ \
+    --build=i386-linux \
+    --host=arm-unknown-linux \
+    --target=arm-unknown-linux \
+    --disable-cursor \
+    --disable-micemoveable \
+    --disable-videoqvfb \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --enable-skyeyeep7312ial \
+    --disable-latin9support \
+    --disable-big5support \
+    --disable-imegb2312 \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-dblclk
+

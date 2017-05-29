@@ -1,0 +1,41 @@
+# Makefile for building the libminigui headers with Microsoft Visual C++ 
+#     compiler and nmake
+# Use: nmake -f makefile.msvc install
+
+TOPINCALL=1
+
+################################################################
+SUBDIRS = ctrl
+
+# The directory where the include files will be installed
+libminiguiincludedir = $(includedir)/minigui
+
+# Which header files to install
+COMM_HDRS =     \
+    common.h endianrw.h fixedmath.h \
+    minigui.h gdi.h window.h control.h \
+    own_malloc.h  own_stdio.h \
+    vcongui.h xvfb.h\
+    dti.c 
+
+SUB_DIRS = $(SUBDIRS)
+
+################################################################
+# includes common defines
+
+!INCLUDE ..\build\Defs.win32
+!INCLUDE ..\build\makedefs.msvc
+
+################################################################
+# specific targets and commands
+
+install::
+	@for %d in ($(COMM_HDRS)) do $(CP) %d $(libminiguiincludedir)
+	@$(CP) ..\mgconfig.h $(libminiguiincludedir)
+
+installdirs : force
+	@-mkdir $(prefix)
+	@-mkdir $(includedir)
+	@-mkdir $(libminiguiincludedir)
+	@-mkdir $(libminiguiincludedir)\ctrl
+

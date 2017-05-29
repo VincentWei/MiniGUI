@@ -1,0 +1,44 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CC=armv4l-unknown-linux-gcc \
+./configure --prefix=/opt/host/armv4l/armv4l-unknown-linux/ \
+    --build=i386-linux \
+    --host=arm-unknown-linux \
+	--target=arm-unknown-linux \
+    --disable-shared \
+    --disable-procs \
+    --disable-standalone \
+    --with-style=fashion \
+    --enable-incoreres \
+    --enable-rbfgb12 \
+    --enable-rbf16 \
+    --enable-fonthelv \
+    --enable-videofbcon \
+    --disable-videoqvfb \
+    --disable-qvfbial \
+    --disable-videodummy \
+    --disable-videocommlcd \
+    --disable-micemoveable \
+    --enable-cursor \
+    --disable-textmode \
+    --disable-palm2ial \
+    --disable-dummyial \
+    --disable-nativeial \
+    --enable-hh2440ial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbsupport \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --enable-imegb2312 \
+    --enable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --enable-tinyscreen
+

@@ -1,0 +1,39 @@
+#!/bin/sh
+rm -f config.cache config.status
+CC=arm-elf-gcc \
+CFLAGS="-O2 -fomit-frame-pointer -I/opt/em85xx/kernelmodule -I/opt/em85xx/thirdparties/jpeg -I/opt/em85xx/thirdparties/png/include" \
+LDFLAGS="-Wl,-elf2flt="-s32768" -L/opt/em85xx/thirdparties/jpeg -L/opt/em85xx/thirdparties/png/lib" \
+./configure --prefix=/opt/em85xx/thirdparties/minigui/ \
+    --build=i686-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --with-osname=uclinux \
+    --enable-lite \
+    --enable-standalone \
+    --disable-shared \
+    --enable-incoreres \
+    --enable-cursor \
+    --enable-em85ial \
+    --disable-autoial \
+    --disable-qvfbial \
+    --enable-videoem85xxyuv \
+    --enable-videoem85xxosd \
+    --disable-vbfsupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbksupport \
+    --enable-rbfgb16 \
+    --enable-rbfgb24 \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-pngsupport \
+	--enable-jpgsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --enable-extskin \
+    --disable-adv2dapi \
+    --disable-savescreen

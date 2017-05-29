@@ -1,0 +1,20 @@
+阿拉伯文程序执行和测试文本说明：
+
+1.显示效果测试
+用法：./arabic_test [filename.txt] [fontname]
+example: ./arabic_test arabic_text_phonetics.txt Naskhibf12
+
+2.变形测试
+用法：./shape_test [text type]
+example: ./shape_test double
+
+3.组合测试
+用法：./combin_test [filename.text]
+example: ./combin_test phonetics-shadda-2.txt 
+
+4.测试文本说明：
+
+arabic_text_all.txt:一封信其中包含了大部分需要测试的内容。
+arabic_text_phonetics.txt:主要测音标
+arabic_text_no-phonetics.txt:与上一个字母相同只是去掉了音标
+arabic_text_longline.txt:主要可以测试不同字体显示的不同效果，如果用Naskhibf12字体则与gedit显示效果相近。

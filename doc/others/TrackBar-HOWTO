@@ -1,0 +1,98 @@
+
+		        Trackbar 控件之使用方法
+
+                                    作者: 郑怡然
+
+    Trackbar 控件的风格和使用与Win32 SDK中的Trackbar控件相似。
+可以用鼠标左键单击或拖动，也可以使用方向键，PageUp,PageDown,Home,End
+键控制。风格选择包括是否有边框（TBS_BORDER)，有文字标记(TBS_TIP)，
+是否竖直(TBS_VERTICAL)，滑块位置改变时是否通知父窗口(TBS_NOTIFY)等。
+    在应用程序中使用Trackbar控件，如果定义的控件窗口很小，控件中的
+滑块将按比例缩小，如果控件窗口很大，滑块也会按比例增大，但不会超过
+预先定义的最大高度(SliderMaxHeight)和宽度(SliderMaxWidth)，
+这些定义可以改变。滑块太小会影响外观。
+    文字标记风格只有在没有设置竖直风格时才有效，因为竖直时文字标记
+放哪儿都不好看。设置TBS_NOTIFY风格后，一旦滑块位置改变，控件会发通知
+消息给父窗口。
+    控件消息基本和Win32 SDK一样，都通过消息处理函数返回值取回单个
+数值参数，通过wParam取回单个指针参数,设置单个参数时用wParam变量，
+同时设置或取回两个参数时用wParam和lParam两个参数。而且minigui的
+其他控件也采取这样的方法。但我觉得最好都通过指针形式的参数返回数值，
+SendMessage的返回值应该只代表错误状态，这样逻辑比较清晰一些。
+    控件数据结构见trackbar.h，控件风格和消息定义见control.h中的
+相关部分。
+    增添了焦点框。
+    
+    		Trackbar Control Helpfile
+一 窗口风格
+
+#define	TBS_NOTIFY		一旦滑块位置改变,通知父窗口;
+#define TBS_VERTICAL		Trackbar竖直放置;
+#define TBS_BORDER		有一个边框,使Trackbar有3D效果;
+#define TBS_TIP			有文字标记,包括起始标记,结束标记和滑块当前位置值,
+				只有在没有设置TBS_VERTICAL时有效;
+#define TBS_FOCUS		标志本Trackbar获得焦点,控件自身使用，用户不要设置;
+#define TBS_DRAGGED		标志本Trackbar正在被拖动,控件自身使用，用户不要设置;
+#define TBS_MOUSEDOWN		标志本Trackbar可以被拖动,控件自身使用，用户不要设置;
+
+二 消息处理
+原则是通过消息处理函数返回值取回单个数值参数，通过wParam取回单个指针参数,
+设置单个参数时用wParam变量，同时设置或取回两个参数时用wParam和lParam两个参数。
+
+TBM_SETRANGE			设置滑块移动范围，即同时设置最大值和最小值；	
+	wParam = (WPARAM) nMax; 
+    	lParam = (LPARAM) nMin; 
+TBM_SETMIN			设置滑块移动范围的最小值；			
+	wParam = (WPARAM) nMin; 
+	lParam = 0; 
+TBM_GETMIN			返回滑块移动范围的最小值；
+	wParam = 0; 
+	lParam = 0; 
+TBM_SETMAX			设置滑块移动范围的最大值；
+	wParam = (WPARAM) nMax; 
+	lParam = 0; 
+TBM_GETMAX			返回滑块移动范围的最大值；
+	wParam = 0; 
+	lParam = 0; 
+TBM_SETPOS			设置滑块位置；
+	wParam = (WPARAM) nPos; 
+	lParam = 0; 
+TBM_GETPOS			返回滑块的当前位置值；
+	wParam = 0; 
+	lParam = 0; 
+TBM_SETLINESIZE			设置单击方向键时滑块移动的距离； 
+	wParam = (WPARAM) nLineSize; 
+	lParam = 0; 
+TBM_GETLINESIZE 		返回单击方向键时滑块移动的距离； 
+	wParam = 0; 
+	lParam = 0; 
+TBM_SETPAGESIZE 		设置单击PageDown，PageUp时滑块移动的距离；
+	wParam = (WPARAM) nPageSize; 
+	lParam = 0; 
+TBM_GETPAGESIZE 		返回单击PageDown，PageUp时滑块移动的距离；
+	wParam = 0; 
+	lParam = 0; 
+TBM_SETSTARTTIP			设置起始文字标记，即滑块移动范围最小值处的文字标记；
+	wParam = (WPARAM) psStartTip;		参数应是字符串指针
+	lParam = 0; 
+TBM_SETENDTIP			设置结束文字标记，即滑块移动范围最大值处的文字标记；
+	wParam = (WPARAM) psEndTip;		参数应是字符串指针 
+	lParam = 0; 
+TBM_GETTIP			取回文字标记；
+	wParam = (WPARAM) psStartTip;		参数应是字符串指针 
+	lParam = (LPARAM) psEndTip;		参数应是字符串指针 
+TBM_SETTICKFREQ			设置刻度重复频率，即隔多少距离画一个刻度；
+	wParam = (WPARAM) nTickFreq; 
+	lParam = 0; 
+TBM_GETTICKFREQ			返回刻度重复频率；
+	wParam = 0; 
+	lParam = 0; 
+	
+三 通知消息
+
+TBN_CHANGE			通知父窗口Trackbar的滑块位置发生改变;
+TBN_REACHMIN			通知父窗口Trackbar的滑块到达最小值,
+				父窗口在收到这个通知消息之前会收到TBN_CHANGE通知消息;
+TBN_REACHMAX			通知父窗口Trackbar的滑块到达最大值,
+				父窗口在收到这个通知消息之前会收到TBN_CHANGE通知消息。
+

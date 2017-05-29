@@ -1,0 +1,43 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+
+CC=bfin-uclinux-gcc \
+CFLAGS="-D__LITTLE_ENDIAN__ -O2 -g -Wall -D__linux__ -I/opt/uClinux/bfin-uclinux/bfin-uclinux/include/" \
+LDFLAGS="-Wl,-elf2flt  -L/opt/uClinux/bfin-uclinux/bfin-uclinux/lib/  -lc -lm -lpthread" \
+./configure --prefix=/opt/uClinux/bfin-uclinux/bfin-uclinux/ \
+    --build=i386-linux \
+    --host=arm-linux \
+    --target=arm-linux \
+    --disable-shared \
+    --with-style=classic \
+    --with-osname=uclinux \
+    --with-targetname=bfin \
+    --enable-incoreres \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-textmode \
+    --disable-videoqvfb \
+    --enable-videofbcon \
+    --disable-videodummy \
+    --disable-videocommlcd \
+    --enable-dummyial \
+    --disable-nativeial \
+	--disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-ctrlpgbar \
+    --disable-savescreen \
+    --disable-libvcongui

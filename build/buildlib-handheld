@@ -1,0 +1,20 @@
+#!/bin/sh
+#builds pc-version lib for handheld devices, such as iPAQ.
+
+./configure \
+    --disable-procs \
+    --with-style=flat \
+    --disable-micemoveable \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen

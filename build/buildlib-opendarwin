@@ -1,0 +1,23 @@
+#!/bin/sh
+
+rm -f config.cache config.status
+
+./configure \
+    --build=ppc-darwin \
+    --with-osname=darwin \
+    --enable-incoreres \
+    --disable-videofbcon \
+    --disable-videoqvfb \
+    --enable-videodummy \
+    --enable-dummyial \
+    --enable-autoial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-libvcongui

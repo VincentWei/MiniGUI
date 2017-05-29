@@ -1,0 +1,29 @@
+#!/bin/sh
+
+./configure --prefix=/projects/pda/minigui-mipsel-bin/ \
+    --disable-debug \
+    --disable-static \
+    --enable-purefbgfx \
+    --enable-videofbcon \
+    --enable-helioial \
+    --disable-nativeial \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-vbfsupport \
+    --with-style=flat \
+    --disable-movewindowbymouse \
+    --disable-cursor \
+    --disable-big5support \
+    --disable-imegb2312 \
+    --disable-imegb2312pinyin \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-ctrl-progressbar \
+    --disable-ctrl-trackbar \
+    --disable-extctrltreeview \
+    --disable-ext-fullgif \
+    --enable-tinyscreen

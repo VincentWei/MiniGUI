@@ -1,0 +1,24 @@
+
+# rules for ucosii on skyeye
+
+TARGET_OS=ucos2
+
+AS=
+CC=arm-elf-gcc
+CXX=arm-elf-g++
+CPP=arm-elf-gcc -E
+AR=ar
+RANLIB=ranlib
+MAKE=make
+
+ARFLAGS=cru
+
+# should be changed
+UCOSII_DIR=/opt/skyeye/ucosii4skyeye
+
+DEFS+=-D__TARGET_SKYEYE_ATMEL__ -DNDEBUG
+INCS+=-I${UCOSII_DIR}/kernel/ucos -I${UCOSII_DIR}/arch
+CFLAGS+=-pipe -fno-builtin -O2 -g -mapcs-32 -march=armv4 -mtune=arm7tdmi -mshort-load-bytes -msoft-float -Wall -Wstrict-prototypes -c
+#COFLAG=-o
+
+PREFIX=c:/cross

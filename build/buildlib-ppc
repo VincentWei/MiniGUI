@@ -1,0 +1,12 @@
+#!/bin/bash
+
+rm config.cache config.status -f
+
+CC=ppc_8xx-gcc \
+CFLAGS="$CFLAGS -I/opt/sinovee/ppc8xx-linux-2.0/target/usr/include -L/opt/sinovee/ppc8xx-linux-2.0/target/usr/lib" \
+./configure --prefix=/opt/sinovee/ppc8xx-linux-2.0/cdk/usr \
+    --build=i386-linux \
+    --host=ppc-linux \
+    --target=ppc-linux \
+    --enable-mpc823ial \
+    --disable-vbfsupport

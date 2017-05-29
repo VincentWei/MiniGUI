@@ -1,0 +1,18 @@
+# Makefile defines for building the MiniGUI DLL with Microsoft VC
+
+!INCLUDE ..\..\build\Defs.win32
+
+SRC_FILES = \
+	ial.c \
+	auto.c \
+	dummy.c \
+	svpxx.c \
+	wvfbial.c \
+	winial.c \
+	comminput.c
+
+LIB_NAME=libial
+
+INCLUDES = -I..\.. -I..\..\include -I..\include
+
+!INCLUDE ..\..\build\makedefs.msvc

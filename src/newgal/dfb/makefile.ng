@@ -1,0 +1,4 @@
+abs_top_srcdir=../../..
+include Makefile.am
+include ../../../rules.make
+

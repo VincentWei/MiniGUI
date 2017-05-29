@@ -1,0 +1,28 @@
+# rules for pc-vxworks 
+TARGET_OS=vxworks
+
+AS=
+CC=ccpentium
+CXX=c++pentium
+CPP=ccpentium
+AR=arpentium
+RANLIB=ranlibpentium
+MAKE=/usr/bin/make
+
+ARFLAGS=crus
+COFLAG=-c
+
+OBJ=o
+LIBA=a
+
+PREFIX=c:/cross
+#vxworks6.0
+#TARGET_DIR=C:/WindRiver/vxworks-6.0/target
+
+#vxworks5.5.1
+TARGET_DIR=C:/Tornado2.2x86/target
+
+INCS+=-I${TARGET_DIR}/h 
+
+CFLAGS+=-g -mcpu=pentium  -march=pentium -Wall -DTOOL_FAMILY=gnu -DTOOL=gnu -D_WRS_KERNEL -DCPU=PENTIUM
+

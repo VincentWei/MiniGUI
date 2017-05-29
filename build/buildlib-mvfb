@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+./configure --enable-pcxvfb --with-libsuffix=mvfb

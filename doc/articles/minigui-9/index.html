@@ -1,0 +1,577 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>MiniGUI 体系结构之四(二)</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+	<p><strong class="title">MiniGUI 体系结构之四</strong><br>
+	<strong class="subtitle">图形抽象层和输入抽象层及 Native Engine 的实现（二）</strong></p>
+
+	<p>魏永明<br>
+	蓝点软件（北京）研发中心技术主管<br>
+	2001/04/15</p>
+<!-- END title and author lines -->
+
+<!-- Editor #5: Begin Table of Contents -->
+	<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>Contents:</b></font></td></tr><tr>
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="1" alt="" border="0"/></font></td>
+                                 
+                             </tr>
+                             <tr>
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="4" alt="" border="0"/></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3">3  Native 图形引擎的实现</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4">4  Native 输入引擎的实现</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#5">5  特定嵌入式系统上图形引擎和输入引擎实现</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#5">6  小结</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">资源</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author">关于作者</a></font></td></tr>
+                <tr><td bgcolor="#000000"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="137" height="3"/></font></td></tr>
+	</table></p>
+<!-- End Table of Contents -->
+
+<!-- comments #6: html content of the paper -->
+<p><em>本文是 MiniGUI 体系结构系列文章的第四篇。图形抽象层（GAL）和输入抽象层（IAL）大大提高了 MiniGUI 的可移植性，并将底层图形设备和上层接口分离开来。这里将重点介绍 MiniGUI 的 GAL 和 IAL 接口，并以最新的 MiniGUI-Lite 版本为例，介绍基于 Linux FrameBuffer 的 Native 图形引擎的实现，以及特定嵌入式系统上输入引擎的实现。 </em></p>
+
+
+<p><i> （续第一部分） </i></p>
+
+<a name="3">
+<p><strong class="subhead">3  Native 图形引擎的实现</strong></p>
+
+<p>
+Native 图形引擎的图形驱动程序已经提供了基于Linux内核提供FrameBuffer之上的驱动，目前包括对线性 2 bpp、4bpp、8bpp和 16bpp 显示模式的支持。前面已经看到，GAL提供的接口函数大多数与图形相关，它们主要就是通过调用图形驱动程序来完成任务的。图形驱动程序屏蔽了底层驱动的细节，完成底层驱动相关的功能，而不是那么硬件相关的一些功能，如一些画圆，画线的GDI 函数。
+</p>
+<p>
+下面基于已经实现的基于FrameBuffer 的驱动程序，讲一些实现上的细节。首先列出的核心数据结构 SCREENDEVICE。这里主要是为了讲解方便，所以删除了一些次要的变量或者函数。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                              清单 5  Native 图形引擎的核心数据结构
+
+typedef struct _screendevice {
+	int	xres;		/* X screen res (real) */
+	int	yres;		/* Y screen res (real) */
+	int	planes;		/* # planes*/
+	int	bpp;		/* # bits per pixel*/
+	int	linelen;	/* line length in bytes for bpp 1,2,4,8, line length in pixels for bpp 16, 24, 32*/
+	int	size;		/* size of memory allocated*/
+	gfx_pixel gr_foreground;      /* current foreground color */
+	gfx_pixel gr_background;      /* current background color */
+	int 	gr_mode;
+	int	flags;		/* device flags*/
+	void *	addr;		/* address of memory allocated (memdc or fb)*/
+
+	PSD	(*Open)(PSD psd);
+	void	(*Close)(PSD psd);
+	void	(*SetPalette)(PSD psd,int first,int count,gfx_color *cmap);
+	void	(*GetPalette)(PSD psd,int first,int count,gfx_color *cmap);
+	PSD	(*AllocateMemGC)(PSD psd);
+	BOOL	(*MapMemGC)(PSD mempsd,int w,int h,int planes,int bpp, int linelen,int size,void *addr);
+	void	(*FreeMemGC)(PSD mempsd);
+	void	(*FillRect)(PSD psd,int x,int y,int w,int h,gfx_pixel c);
+	void 	 (*DrawPixel)(PSD psd, int x, int y, gfx_pixel c);
+	gfx_pixel (*ReadPixel)(PSD psd, int x, int y);
+	void 	(*DrawHLine)(PSD psd, int x, int y, int w, gfx_pixel c);
+	void	(*PutHLine) (GAL gal, int x, int y, int w, void* buf);
+	void	(*GetHLine) (GAL gal, int x, int y, int w, void* buf);
+	void 	(*DrawVLine)(PSD psd, int x, int y, int w, gfx_pixel c);
+	void	(*PutVLine) (GAL gal, int x, int y, int w, void* buf);
+	void	(*GetVLine) (GAL gal, int x, int y, int w, void* buf);
+	void (*Blit)(PSD dstpsd, int dstx, int dsty, int w, int h, PSD srcpsd, int srcx, int srcy);
+	void	(*PutBox)( GAL gal, int x, int y, int w, int h, void* buf );
+	void	(*GetBox)( GAL gal, int x, int y, int w, int h, void* buf );
+	void	(*PutBoxMask)( GAL gal, int x, int y, int w, int h, void *buf);
+	void 	(*CopyBox)(PSD psd,int x1, int y1, int w, int h, int x2, int y2);
+} SCREENDEVICE;
+</pre></td></tr></table>
+
+<p>
+上面PSD 是 SCREENDEVICE 的指针，GAL 是GAL 接口的数据结构。
+</p>
+<p>
+我们知道，图形显示有个显示模式的概念，一个像素可以用一位比特表示，也可以用2，4，8，15，16，24，32个比特表示，另外，VGA16标准模式使用平面图形模式，而VESA2.0使用的是线性图形模式。所以即使是同样基于Framebuffer 的驱动，不同的模式也要使用不同的驱动函数：画一个1比特的单色点和画一个24位的真彩点显然是不一样的。
+</p>
+<p>
+所以图形驱动程序使用了子驱动程序的概念来支持各种不同的显示模式，事实上，它们才是最终的功能函数。为了保持数据结构在层次上不至于很复杂，我们通过图形驱动程序的初始函数Open直接将子驱动程序的各功能函数赋到图形驱动程序的接口函数指针，从而初始化结束就使用一个简单的图形驱动接口。下面是子图形驱动程序接口（清单 6）。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                     清单 6  Native 图形引擎的子驱动程序接口
+
+typedef struct {
+	int	 (*Init)(PSD psd);
+	void 	 (*DrawPixel)(PSD psd, int x, int y, gfx_pixel c);
+	gfx_pixel (*ReadPixel)(PSD psd, int x, int y);
+	void 	(*DrawHLine)(PSD psd, int x, int y, int w, gfx_pixel c);
+	void	(*PutHLine) (GAL gal, int x, int y, int w, void* buf);
+	void	(*GetHLine) (GAL gal, int x, int y, int w, void* buf);
+	void 	(*DrawVLine)(PSD psd, int x, int y, int w, gfx_pixel c);
+	void	(*PutVLine) (GAL gal, int x, int y, int w, void* buf);
+	void	(*GetVLine) (GAL gal, int x, int y, int w, void* buf);
+	void (*Blit)(PSD dstpsd, int dstx, int dsty, int w, int h, PSD srcpsd, int srcx, int srcy);
+	void	(*PutBox)( GAL gal, int x, int y, int w, int h, void* buf );
+	void	(*GetBox)( GAL gal, int x, int y, int w, int h, void* buf );
+	void	(*PutBoxMask)( GAL gal, int x, int y, int w, int h, void *buf);
+	void 	(*CopyBox)(PSD psd,int x1, int y1, int w, int h, int x2, int y2);
+} SUBDRIVER, *PSUBDRIVER;
+</pre></td></tr></table>
+
+<p>
+可以看到，该接口中除了 Init 函数指针外，其他的函数指针都与图形驱动程序接口中的函数指针一样。这里的Init 函数主要用来完成图形驱动部分与显示模式相关的初始化任务。
+</p>
+<p>
+下面介绍SCREENDEVICE数据结构，这样基本上就可以清楚图形引擎了。
+</p>
+<p>
+一个SCREENDEVICE代表一个屏幕设备，它即可以对应物理屏幕设备，也可以对应一个内存屏幕设备，内存屏幕设备的存在主要是为了提高GDI 质量，比如我们先在内存生成一幅位图，再画到屏幕上，这样给用户的视觉效果就比较好。
+</p>
+<p>
+首先介绍几个变量。
+</p>
+<ul>
+    <li>xres 表示屏幕的宽 (以像素为单位)；</li>
+    <li>yres 表示屏幕的高 (以像素为单位)；</li>
+    <li>planes ：当处于平面显示模式时，planes 用于记录所使用的平面数，如平面模式相对的时线性模式，此时该变量没有意义。通常将其置为0。</li>
+    <li>bpp ：表示每个像素所使用的比特数，可以为1，2，4，8，15，16，24，32。</li>
+    <li>linelen ：对与1，2，4，8比特每像素模式，它表示一行像素使用的字节数，对于大于8比特每像素模式，它表示一行的像素总数。</li>
+    <li>size ：表示该显示模式下该设备使用的内存数。linelen 和 size 的存在主要是为了方便为内存屏幕设备分配内存。</li>
+    <li>gr_foreground 和 gr_background ：表示该内存屏幕的前景颜色和背景颜色，主要被一些GDI 函数使用。</li>
+    <li>gr_mode ：说明如何将像素画到屏幕上，可选值为：MODE_SET	MODE_XOR	MODE_OR	MODE_AND	MODE_MAX,比较常用的是MODE_SET和MODE_XOR</li>
+    <li>flags ：该屏幕设备的一些选项，比较重要的是 PSF_MEMORY 标志，表示该屏幕设备代表物理屏幕设备还是一个内存屏幕设备。</li>
+    <li>addr ：每个屏幕设备都有一块内存空间用来作为存储像素。addr 变量记录了这个空间的起始地址。</li>
+</ul>
+
+<p>
+下面介绍各接口函数：
+</p>
+<ul>
+    <li>Open，Close</li>
+<p>
+基本的初始化和终结函数。前面已经提到，在 Open 函数里要选择子图形驱动程序，将其实现的函数赋给本 PSD 结构的函数指针。这里我讲讲基于Frambebuffer 的图形引擎的初始化。
+</p>
+<p>
+fb_open 首先打开Framebuffer的设备文件 /dev/fb0，然后利用 ioctl 读出当前Framebuffer的各种信息。填充到PSD 结构中。并且根据这些信息选出子驱动程序。程序当前支持fbvga16，fblin16，fblin8，即VGA16 标准模式，VESA线性16位模式，VESA线性8位模式。然后将当前终端模式置于图形模式。并保存当前的一些系统信息如调色板信息。最后，系统利用mmap 将 /dev/fb0 映射到内存地址。以后程序访问 /dev/fb0 就像访问一个数组一样简单。当然，这是对线性模式而言的，如果是平面模式，问题要复杂的多。光从代码来看，平面模式的代码是线性模式的实现的将近一倍。后面的难点分析里将讲解这个问题。
+</p>
+    <li>SetPalette，GetPalette</li>
+<p>
+当使用8位或以下的图形模式时，要使用系统调色板。这里是调色板处理函数，它们和Windows API 中的概念类似，linux 系统利用 ioctl 提供了处理调色板的接口。
+</p>
+    <li>AllocateMemGC，MapMemGC，FreeMemGC</li>
+<p>
+前面屡次提到内存屏幕的概念，内存屏幕是一个伪屏幕，在对屏幕图形操作过程中，比如移动窗口，我们先生成一个内存屏幕，将物理屏幕的一个区域拷贝到内存屏幕，再拷贝到物理屏幕的新位置，这样就减少了屏幕直接拷贝的延时。AllocateMemGC 用于给内存屏幕分配空间，MapMemGC 做一些初始化工作，而FreeMemGC 则释放内存屏幕。
+</p>
+    <li>DrawPixel，ReadPixel，DrawHLine，DrawVLine，FillRect</li>
+<p>
+这些是底层图形函数。分别是画点，读点，画水平线，画竖直线，画一个实心矩形。之所以在底层实现这么多函数，是为了提高效率。图形函数支持多种画图模式，常用的有直接设置，亦或，Alpha混合模式，从而可以支持各种图形效果。
+</p>
+    <li>PutHLine，GetHLine，PutVLine，GetVLine，PutBox，GetBox，PutBoxMask</li>
+<p>
+Get* 函数用于从屏幕拷贝像素到一块内存区，而Put*函数用于将存放于内存区的像素画到屏幕上。PutBoxMask 与PutBox的唯一区别是要画的像素如果是白色，就不会被画到屏幕上，从而达到一种透明的效果。
+</p>
+<p>
+从上面可以看到，这些函数的第一个参数是GAL类型而不是PSD类型，这是因为它们需要GAL层的信息以便在函数内部实现剪切功能。之所以不和其他函数一样在上层实现剪切，是因为这里的剪切比较特殊。比如PutBox,
+</p>
+<p>
+在剪切输出域时，要同时剪切在缓冲中待输出的像素：超出剪切域的像素不应该被输出。所以，剪切已经不单纯是对线，矩形等GDI对象的剪切。对像素的剪切当然需要知道像素的格式，这些只是为底层所有，所以为了实现高效的剪切，我们选择在底层实现它们。这里所有的函数都有两个部分：先是剪切，再是读或者写像素。
+</p>
+    <li>Blit，CopyBox</li>
+<p>
+Blit 用于在不同的屏幕设备(物理的或者内存的)之间拷贝一块像素点，CopyBox则用于在同一屏幕上实现区域像素的拷贝。如果使用的是线性模式，Blit的实现非常简单，直接memcpy 就可以了，而CopyBox 为了防止覆盖问题，必须根据不同的情况，采用不同的拷贝方式，比如从底到顶底拷贝，当新老位置在同一水平位置并且重复时，则需要利用缓冲间接拷贝。如果使用平面显示模式，这里就比较复杂了。因为内存设备总是采用线性模式的，所以就要判断是物理设备还是内存设备，再分别处理。这也大大地增加了fbvga16实现的代码。
+</p>
+</ul>
+
+<a name="4">
+<p><strong class="subhead">4  Native 输入引擎的实现</strong></p>
+
+<strong>4.1  鼠标驱动程序</strong>
+<p>
+鼠标驱动程序非常简单，抽象意义上讲，初始化鼠标后，每次用户移动鼠标，就可以得到一个X 和 Y 方向上的位移值，驱动程序内部维护鼠标的当前位置，用户移动了鼠标后，当前位置被加上位移值，并通过上层Cursor支持，反映到屏幕上，用户就会认为鼠标被他正确地“移动”了。
+</p>
+<p>
+事实上，鼠标驱动程序的实现是利用内核或者其他驱动程序提供的接口来完成任务的。Linux 内核驱动程序使用设备文件对大多数硬件进行了抽象，比如，我们眼中的 ps/2 鼠标就是 /dev/psaux， 鼠标驱动程序接口如清单 7 所示。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                       清单 7  Native 输入引擎的鼠标驱动程序接口
+
+typedef struct _mousedevice {
+	int	(*Open)(void);
+	void	(*Close)(void);
+	int	(*GetButtonInfo)(void);
+	void	(*GetDefaultAccel)(int *pscale,int *pthresh);
+	int	(*Read)(int *dx,int *dy,int *dz,int *bp);
+	void (*Suspend)(void);
+	void (*Resume)(void);
+} MOUSEDEVICE;
+</pre></td></tr></table>
+
+<p>
+现在有各种各样的鼠标，例如ms 鼠标， ps/2 鼠标，总线鼠标，gpm 鼠标，它们的主要差别在于初始化和数据包格式上。
+</p>
+<p>
+例如，打开一个GPM 鼠标非常简单，只要将设备文件打开就可以了，当前终端被切换到图形模式时，GPM 服务程序就会把鼠标所有的位移信息放到设备文件中去。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+static int GPM_Open(void)
+{
+	mouse_fd = open(GPM_DEV_FILE, O_NONBLOCK);
+	if (mouse_fd &lt; 0)
+		return -1;
+	return mouse_fd;
+}
+</pre></td></tr></table>
+	
+<p>
+对于PS/2 鼠标，不但要打开它的设备文件，还要往该设备文件写入控制字符以使得鼠标能够开始工作。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+static int PS2_Open(void)
+{
+uint8 initdata_ps2[] = { PS2_DEFAULT, PS2_SCALE11, PS2_ENABLE };
+	mouse_fd = open(PS2_DEV_FILE, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	if (mouse_fd &lt; 0) 
+			return -1;
+	write(mouse_fd, initdata_ps2, sizeof(initdata_ps2));
+	return mouse_fd;
+}
+</pre></td></tr></table>
+	
+<p>
+各鼠标的数据包格式是不一样的。而且在读这些数据时，首先要根据内核驱动程序提供的格式读数据，还要注意同步：每次扫描到一个头，才能读后面相应的数据，象Microwindows由于没有同步，在某些情况下，鼠标就会不听“指挥”。	
+</p>
+<p>
+鼠标驱动程序中，还有一个“加速”的概念。程序内部用两个变量：scale 和thresh 来表示。当鼠标的位移超过 thresh 时，就会被放大 scale 倍。这样，最后的位移就是：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+		dx = thresh + (dx - thresh) * scale;
+		dy = thresh + (dy - thresh) * scale;
+</pre></td></tr></table>
+
+<p>
+	至此，mouse driver 基本上很清楚了，上面的接口函数中GetButtonInfo用来告诉调用者该鼠标支持那些button， suspend 和resume 函数是用来支持虚屏切换的，下面的键盘驱动程序也一样。
+</p>
+
+<strong>4.2  键盘驱动程序</strong>
+
+<p>
+在实现键盘驱动程序中遇到的第一个问题就是使用设备文件 /dev/tty还是 /dev/tty0。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+# echo 1 &gt; /dev/tty0
+# echo 1 &gt; /dev/tty
+</pre></td></tr></table>
+
+<p>
+结果都将把1 输入到当前终端上。另外，如果从伪终端上运行它们，则第一条指令会将 1 输出到控制台的当前终端，而第二条指令会把 1 输出到当前伪终端上。 从而 tty0 表示当前控制台终端，tty 表示当前终端（实际是当前进程控制终端的别名而已）。 
+</p>
+<p>
+tty0 的设备号是 4，0
+</p>
+<p>
+tty1 的设备号是 5， 0
+</p>
+<p>
+/dev/tty 是和进程的每一个终端联系起来的，/dev/tty 的驱动程序所做的只是把所有的请求送到合适的终端。
+</p>
+<p>
+缺省情况下，/dev/tty 是普通用户可读写的，而/dev/tty0 则只有超级用户能够读写，主要是基于这个原因，我们目前使用 /dev/tty 作为设备文件。后面所有有关终端处理的程序的都采用它作为当前终端文件，这样也可以和传统的 Unix 相兼容。
+</p>
+<p>
+键盘驱动程序接口如清单 8 所示。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                     清单 8  Native 输入引擎的键盘驱动程序接口
+
+typedef struct _kbddevice {
+	int  (*Open)(void);
+	void (*Close)(void);
+	void (*GetModifierInfo)(int *modifiers);
+	int  (*Read)(unsigned char *buf,int *modifiers);
+	void (*Suspend)(void);
+	void (*Resume)(void);
+} KBDDEVICE;
+</pre></td></tr></table>
+	
+<p>
+基本原理非常简单，初始化时打开 /dev/tty，以后就从该文件读出所有的数据。由于MiniGUI 需要捕获 KEY_DOWN 和 KEY_UP 消息，键盘被置于原始(raw)模式。这样，程序从 /dev/tty 中直接读出键盘的扫描码，比如用户按下A 键，就可以读到158，放下，又读到30。原始模式下，程序必须自己记下各键的状态，特别是shift，ctrl，alt，caps lock 等，所以程序维护一个数组，记录了所有键盘的状态。
+</p>
+<p>
+这里说明一下鼠标移动，按键等事件是如何被传送到上层消息队列的。MiniGUI工作在用户态，所以它不可能利用中断这种高效的机制。没有内核驱动程序的支持，它也很难利用信号等Unix系统的IPC机制。MiniGUI可以做到的就是看 /dev/tty， /dev/mouse 等文件是否有数据可以读。上层通过不断调用 GAL_WaitEvent 尝试读取这些文件。这也是线程Parser的主要任务。GAL_WaitEvent 主要利用了系统调用select 这一类Unix系统中地位仅次于ioctl的系统调用完成该功能。并将等待到的事件作为返回值返回。	
+</p>
+<p>
+至此介绍了键盘和鼠标的驱动程序，作为简单的输入设备，它们的驱动是非常简单的。事实上，它们的实现代码也比较少，就是在嵌入式系统中要使用的触摸屏，如果操作系统内核支持，其驱动程序也是非常简单的：它只不过是一种特殊的鼠标。
+</p>
+
+<a name="5">
+<p><strong class="subhead">5  特定嵌入式系统上图形引擎和输入引擎实现</strong></p>
+
+<p>
+如前所述，基于 Linux 的嵌入式系统，其内核一般具备对 FrameBuffer 的支持，从而可以利用已有的 Native 图形引擎。在 MiniGUI 代码中，可通过调整 src/gal/native/native.h 中的宏定义而定义函数库中是否包含特定的图形引擎驱动程序（清单 9）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                          清单 9  定义 Native 引擎的子驱动程序
+
+
+  16 /* define or undefine these macros 
+  17    to include or exclude specific fb driver.
+  18  */
+  19 #undef _FBLIN1_SUPPORT
+  20 // #define _FBLIN1_SUPPORT        1
+  21 
+  22 #undef _FBLIN2_SUPPORT
+  23 // #define _FBLIN2_SUPPORT        1
+  24 
+  22 #undef _FBLIN_2_SUPPORT
+  23 // #define _FBLIN_2_SUPPORT        1
+  24 
+  25 //#undef _FBLIN4_SUPPORT
+  26 #define _FBLIN4_SUPPORT        1
+  27 
+  28 // #undef _FBLIN8_SUPPORT
+  29 #define _FBLIN8_SUPPORT        1
+  30 
+  31 // #undef _FBLIN16_SUPPORT
+  32 #define _FBLIN16_SUPPORT       1
+  33 
+  34 #undef _FBLIN24_SUPPORT
+  35 // #define _FBLIN24_SUPPORT       1
+  36 
+  37 #undef _FBLIN32_SUPPORT
+  38 // #define _FBLIN32_SUPPORT       1
+  39 
+  40 #define HAVETEXTMODE    1       /* =0 for graphics only systems*/
+</pre></td></tr></table>
+
+<p>
+其中，HAVETEXTMODE 定义系统是否有文本模式，可将 MiniGUI 中用来关闭文本模式的代码屏蔽掉。_FBLIN_2_SUPPORT 和_FBLIN2_SUPPORT 分别用来定义 big endian 和 little endian  的 2bpp 驱动程序。
+</p>
+
+<p>
+对于输入引擎来说，情况就有些不同了。因为目前还没有统一的处理输出设备的接口，而且每个嵌入式系统的输入设备也各不相同，所以，我们通常要针对特定嵌入式系统重新输入引擎。下面的代码就是针对 ADS 基于 StrongARM 的嵌入式开发系统编写的输入引擎（清单 10）：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+           清单 10  为 ADS 公司基于 StrongARM 的嵌入式开发系统编写的输入引擎
+
+  30 
+  31 #include &lt;stdio.h&gt;
+  32 #include &lt;stdlib.h&gt;
+  33 #include &lt;string.h&gt;
+  34 #include &lt;unistd.h&gt;
+  35 #include &lt;sys/io.h&gt;
+  36 #include &lt;sys/ioctl.h&gt;
+  37 #include &lt;sys/poll.h&gt;
+  38 #include &lt;linux/kd.h&gt;
+  39 #include &lt;sys/types.h&gt;
+  40 #include &lt;sys/stat.h&gt;
+  41 #include &lt;fcntl.h&gt;
+  42 
+  43 #include "common.h"
+  44 #include "misc.h"
+  45 #include "ads_internal.h"
+  46 #include "ial.h"
+  47 #include "ads.h"
+  48 
+  49 #ifndef NR_KEYS
+  50 #define NR_KEYS         128
+  51 #endif
+  52 
+  53 static int ts;
+  54 static int mousex = 0;
+  55 static int mousey = 0;
+  56 static POS pos;
+  57 
+  58 static unsigned char state[NR_KEYS];
+  59 
+  60 /************************  Low Level Input Operations **********************/
+  61 /*
+  62  * Mouse operations -- Event
+  63  */
+  64 static int mouse_update(void)
+  65 {
+  66         return 0;
+  67 }
+  68 
+  69 static int mouse_getx(void)
+  70 {
+  71         return mousex;
+  72 }
+  73 
+  74 static int mouse_gety(void)
+  75 {
+  76         return mousey;
+  77 }
+  78 
+  79 static void mouse_setposition(int x, int y)
+  80 {
+  81 }
+  82 
+  83 static int mouse_getbutton(void)
+  84 {
+  85         return pos.b;
+  86 }
+  87 
+  88 static void mouse_setrange(int minx,int miny,int maxx,int maxy)
+  89 {
+  90 }
+  91 
+  92 static int keyboard_update(void)
+  93 {
+  94         return 0;
+  95 }
+  96 
+  97 static char * keyboard_getstate(void)
+  98 {
+  99         return (char *)state;
+ 100 }
+ 101 
+ 102 #ifdef _LITE_VERSION 
+ 103 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set  *except,
+ 104                 struct timeval *timeout)
+ 105 {
+ 106         fd_set rfds;
+ 107         int     e;
+ 108 
+ 109     if (!in) {
+ 110         in = &amp;rfds;
+ 111         FD_ZERO (in);
+ 112     }
+ 113 
+ 114         if (which &amp; IAL_MOUSEEVENT) {
+ 115                 FD_SET (ts, in);
+ 116         if (ts &gt; maxfd) maxfd = ts;
+ 117         }
+ 118 
+ 119         e = select (maxfd + 1, in, out, except, timeout) ;
+ 120 
+ 121         if (e &gt; 0) { 
+ 122                 if (ts &gt;= 0 &amp;&amp; FD_ISSET (ts, in))
+ 123                 {
+ 124             FD_CLR (ts, in);
+ 125                         read (ts, &amp;pos, sizeof (POS));  
+ 126                         if ( pos.x !=-1 &amp;&amp; pos.y !=-1) {
+ 127                                 mousex = pos.x;
+ 128                                 mousey = pos.y;
+ 129                         }
+ 130                         pos.b = ( pos.b &gt; 0 ? 4:0);
+ 131                         return IAL_MOUSEEVENT;
+ 132                 }
+ 133 
+ 134         } else if (e &lt; 0) {
+ 135                 return -1;
+ 136         }
+ 137         return 0;
+ 138 }
+ 139 #else
+ 140 static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
+ 141                 struct timeval *timeout)
+ 142 {
+ 143         struct pollfd ufd;
+ 144         if ( (which &amp; IAL_MOUSEEVENT) == IAL_MOUSEEVENT)
+ 145         {
+ 146                 ufd.fd     = ts;
+ 147                 ufd.events = POLLIN; 
+ 148                 if ( poll (&amp;ufd, 1, timeout) &gt; 0)
+ 149                 {
+ 150                         read (ts, &amp;pos, sizeof(POS));   
+ 151                         return IAL_MOUSEEVENT;
+ 152                 }
+ 153         }
+ 154         return 0;
+ 155 }
+ 156 #endif
+ 157 
+ 158 static void set_leds (unsigned int leds)
+ 159 {
+ 160 }
+ 161 
+ 162 BOOL InitADSInput (INPUT* input, const char* mdev, const char* mtype)
+ 163 {
+ 164         int i;
+ 165         
+ 166         ts = open ("/dev/ts", O_RDONLY);
+ 167     if ( ts &lt; 0 ) {
+ 168         fprintf (stderr, "IAL: Can not open touch screen!\n");
+ 169         return FALSE;
+ 170     }
+ 171 
+ 172         for(i = 0; i &lt; NR_KEYS; i++)
+ 173                 state[i] = 0;
+ 174 
+ 175     input-&gt;update_mouse = mouse_update;
+ 176     input-&gt;get_mouse_x = mouse_getx;
+ 177     input-&gt;get_mouse_y = mouse_gety;
+ 178     input-&gt;set_mouse_xy = mouse_setposition;
+ 179     input-&gt;get_mouse_button = mouse_getbutton;
+ 180     input-&gt;set_mouse_range = mouse_setrange;
+ 181 
+ 182     input-&gt;update_keyboard = keyboard_update;
+ 183     input-&gt;get_keyboard_state = keyboard_getstate;
+ 184     input-&gt;set_leds = set_leds;
+ 185 
+ 186     input-&gt;wait_event = wait_event;
+ 187         mousex = 0;
+ 188         mousey = 0;
+ 189     return TRUE;
+ 190 }
+ 191 
+ 192 void TermADSInput (void)
+ 193 {
+ 194         if ( ts &gt;= 0 )
+ 195                 close(ts);
+ 196 }
+ 197 
+</pre></td></tr></table>
+
+<p>
+在上述输入引擎中，完全忽略了键盘相关的函数实现，代码集中在对触摸屏的处理上。显然，输入引擎的编写并不是非常困难的。
+</p>
+
+
+<a name="6">
+<p><strong class="subhead">6  小结</strong></p>
+
+<p>
+本文详细介绍了 MiniGUI 的 GAL 和 IAL 接口，并以 Native 图形引擎和输入引擎为例，介绍了具体图形引擎和输入引擎的实现。当然，MiniGUI 目前的 GAL 和 IAL 接口还有许多不足之处，比如和上层的 GDI 耦合程度不高，从而对效率有些损失。在 MiniGUI 将来的开发中，我们将重新设计 GDI 以及底层的图形引擎接口，以便针对窗口系统进行优化。
+</p>
+
+<a name="resources">
+<p><strong class="subhead">资源</strong></p>
+	<ul>
+	  <li><b>Linux 图形相关资源</b></li>
+		  <ul>
+	        <LI><A HREF="http://www.ggi-project.org">GGI</a> - The GGI Project</LI>
+	        <LI><a href="http://www.svgalib.org">svgalib</a> - The Old Linux Console Graphics Library</LI>
+	        <LI><a href="http://www.devolution.com/~slouken/SDL/">SDL</a> - Simple DirectMedia Layer - linux, BeOS, DirectX ... <font color="#FF0000">very COOL</font></LI>
+	        <LI><a href="http://www.hut.fi/~hmallat/xfb/">xfb</a> - Linux Framebuffer Accelerator</LI>
+	        <LI><a href="http://www.tutok.sk/fastgl/">OpenGUI</a> - OpenGUI is a high-Level C/C++ graphics &amp; windowing library built upon a fast, low-level x86 asm graphics kernel. </LI>
+		  </ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+            <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+            <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+            <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">关于作者</strong>
+<br> 魏永明（ymwei@minigui.org），男，27 岁，工学硕士，现任蓝点软件（深圳）有限公司北京研发中心技术主管。国内最有影响的自由软件项目之一－－ MiniGUI 的创始人以及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。
+</p>
+
+</body>
+</html>

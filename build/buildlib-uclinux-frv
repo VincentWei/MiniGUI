@@ -1,0 +1,54 @@
+#!/bin/bash
+
+rm config.cache config.status -f
+
+CC=frv-uclinux-gcc \
+RANLIB=frv-uclinux-ranlib \
+./configure --prefix=/opt/frv_uclinux/target \
+    --build=i386-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --with-osname=uclinux \
+    --enable-debug \
+    --disable-procs \
+    --disable-standalone \
+    --with-style=fashion \
+    --enable-incoreres \
+    --enable-dummyial \
+    --enable-videodummy \
+    --enable-autoial \
+    --enable-abssigial \
+    --enable-rbfgb12 \
+    --disable-rbf16 \
+    --disable-rbf24 \
+    --disable-rbfgb16 \
+    --enable-fonthelv \
+    --enable-purefbgfx \
+    --enable-videomb93493 \
+    --disable-ipaqial \
+    --disable-nativeial \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-pngsupport \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-imegb2312 \
+    --disable-imegb2312pinyin \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-ext-fullgif \
+    --disable-micemoveable \
+    --disable-dblclk
+
+#    --enable-shared \
+#    --enable-static \
+#    --enable-rbfgb24 \

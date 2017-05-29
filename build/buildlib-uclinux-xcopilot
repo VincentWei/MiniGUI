@@ -1,0 +1,49 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the m68k-elf-tools already.
+#   2. Your uClinux distribution has been installed into the directory of '/opt/uClinux/uClinux-dist'.
+#   3. You configured the uClinux to use uClibc, and have configured uClibc to support pthread.
+#   4. You have made the uClinux distribution.
+#   5. You have made a symbol link of "uClibc" to the correct uClibc directory.
+#
+
+rm config.cache config.status -f
+
+CC=m68k-elf-gcc \
+#CFLAGS="-m68000 -Os -I/opt/uClinux/uClinux-dist/lib/uClibc/include -I/opt/uClinux/uClinux-dist/linux-2.4.x/include -fno-builtin -mid-shared-library -mshared-library-id=0 " \
+#LDFLAGS="-Wl,-elf2flt -Wl,-move-rodata -Wl,-shared-lib-id,0 -Wl,-elf2flt -Wl,-move-rodata -L/opt/uClinux/uClinux-dist/lib/uClibc/lib -Wl,-R,/opt/uClinux/uClinux-dist/lib/uClibc/libc.gdb -lc" \
+./configure --prefix=/opt/uclinux/uClinux-dist/minigui/m68k-elf/ \
+    --build=i386-linux \
+    --host=m68k-elf-linux \
+    --target=m68k-elf-linux \
+    --disable-shared \
+    --with-osname=uclinux \
+    --enable-procs \
+    --enable-standalone \
+    --disable-incoreres \
+    --with-style=flat \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-textmode \
+    --enable-dummyial \
+    --enable-mc68x328ial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --enable-tinyscreen

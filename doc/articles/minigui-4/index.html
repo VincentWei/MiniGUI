@@ -1,0 +1,620 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>体系结构概览</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+    <p><strong class="title">MiniGUI体系结构之一</strong><br>
+	<strong class="subtitle">体系结构概览</strong></p>
+	
+	<p>魏永明<br>
+	蓝点软件（北京）研发中心技术主管<br>
+	2000/12/02</p>
+
+<!-- Editor #5: Begin Table of Contents -->
+	<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>Contents:</b></font></td></tr><tr>
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td>
+                                 
+                             </tr>
+                             <tr>
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1">1 引言</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2">2 POSIX 线程</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3">3 基于 PThread 大微客户/服务器结构</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4">4 多线程通讯的关键数据结构——消息队列</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#5">5  面向对象技术在 MiniGUI 中的应用</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#5">6  在 MiniGUI 2.0 中的考虑</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">Resources</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author">About the author</a></font></td></tr>
+                <tr><td bgcolor="#000000"><font face="helvetica,helv,arial" size="-3"></font></td></tr>
+	</table></p>
+<!-- End Table of Contents -->
+
+<!-- comments #6: html content of the paper -->
+<p><em>为了帮助更多软件开发人员理解 MiniGUI及其编程，同时帮助更多的自由软件开发人员加入 MiniGUI 的开发，我们将撰写一系列文章介绍 MiniGUI 的体系结构。本文是系列文章的第一篇，将在整体上对 MiniGUI 的体系结构作一介绍。其中主要包括：线程的基本概念；基于 POSIX Thread 的微客户/服务器结构；用来同步微客户/服务器动作的关键数据结构――消息队列；面向对象技术在 MiniGUI 中的应用等等。最后，文章展望了我们计划在 MiniGUI 2.0 版开发中采用的体系结构。</em></p>
+
+<a name="1">
+<p><strong class="subhead">1  引言</strong></p>
+<p>
+到目前为止，MiniGUI 的最新发布版本是 0.9.96。我们将 0.9.xx 系列版本定位为 MiniGUI 1.0 版本的预览版。在 0.9.xx 版本足够稳定时，我们将发布 MiniGUI 1.0 版本，同时，目前的代码不会再进行重大调整。在 MiniGUI 1.0 版本发布之后，我们将立即着手开发 MiniGUI 2.0 版本。该版本预期将在体系结构上进行重大调整。为了吸引更多的自由软件程序员加入 MiniGUI 2.0 的开发，也为了更好地帮助 MiniGUI 程序员进行程序开发，我们将撰写一系列的文章介绍 MiniGUI 1.0 版本的体系结构，重点分析其中的一些缺点以及需要在 2.0 版本当中进行优化和改造的地方。介绍体系结构的文章计划如下：
+</p>
+<ol>
+  <li>
+    体系结构概览（本文）。将在整体上对 MiniGUI 1.0 的体系结构进行介绍。重点包括：线程的基本概念；多线程的微客户/服务器体系、多线程通讯的关键数据结构――消息队列；面向对象技术在 MiniGUI 中的应用等等。
+  </li>
+  <li>
+    MiniGUI 的多窗口管理。将介绍 MiniGUI 的多窗口机制以及相关的窗口类技术。其中涉及到窗口剪切处理和 Z 序，消息传递，控件类设计和输入法模块设计等等。
+  </li>
+  <li>
+    MiniGUI 的图形设备管理。重点介绍 MiniGUI 是如何处理窗口绘制的。其中主要包括图形上下文的概念，坐标映射，图形上下文的局部、全局和有效剪切域的概念等等。
+  </li>
+  <li>
+    图形抽象层和输入抽象层。图形抽象层（GAL）和输入抽象层（IAL）大大提高了 MiniGUI 的可移植性，并将底层图形设备和上层接口分离开来。这里将重点介绍 MiniGUI 的 GAL 和 IAL 接口，并以 EP7211 等嵌入式系统为例，说明如何将 MiniGUI 移植到新的嵌入式平台上。
+  </li>
+  <li>
+    多字体和多字符集支持。MiniGUI 采用逻辑字体实现多字体和多字符集处理。这一技术成功应用了面向对象技术，通过单一的逻辑接口，可以实现对各种字符集以及各种字体的支持。
+  </li>
+</ol>
+<a name="2">
+<p><strong class="subhead">2  POSIX 线程</strong></p>
+<p>
+MiniGUI 是一个基于线程的窗口系统。为了理解 MiniGUI 的体系结构，我们有必要首先对线程作一番了解。
+</p>
+<strong>2.1  什么是线程</strong>
+<p>
+线程通常被定义为一个进程中代码的不同执行路线。也就是说，一个进程中，可以有多个不同的代码路线在同时执行。例如，常见的字处理程序中，主线程处理用户输入，而其他并行运行的线程在必要时可在后台保存用户的文档。我们也可以说线程是“轻量级进程”。在 Linux 中，每个进程由五个基本的部分组成：代码、数据、栈、文件I/O 和信号表。因此，系统对进程的处理要花费更多的开支，尤其在进行进程调度和任务切换时。从这个意义上，我们可以将一般的进程理解为重量级进程。在重量级进程之间，如果需要共享信息，一般只能采用管道或者共享内存的方式实现。如果重量级进程通过 fork() 派生了子进程，则父子进程之间只有代码是共享的。
+</p>
+<p>
+而我们这里提到的线程，则通过共享一些基本部分而减轻了部分系统开支。通过共享这些基本组成部分，可以大大提高任务切换效率，同时数据的共享也不再困难――因为几乎所有的东西都可以共享。
+</p>
+<p>
+从实现方式上划分，线程有两种类型：“用户级线程”和“内核级线程”。
+</p>
+<p>
+用户线程指不需要内核支持而在用户程序中实现的线程，这种线程甚至在象 DOS 这样的操作系统中也可实现，但线程的调度需要用户程序完成，这有些类似 Windows 3.x 的协作式多任务。另外一种则需要内核的参与，由内核完成线程的调度。这两种模型各有其好处和缺点。用户线程不需要额外的内核开支，但是当一个线程因 I/O 而处于等待状态时，整个进程就会被调度程序切换为等待状态，其他线程得不到运行的机会；而内核线程则没有各个限制，但却占用了更多的系统开支。
+</p>
+<p>
+Linux 支持内核级的多线程，同时，也可以从 Internet 上下载一些 Linux 上的用户级的线程库。Linux 的内核线程和其他操作系统的内核实现不同，前者更好一些。大多数操作系统单独定义线程，从而增加了内核和调度程序的复杂性；而 Linux 则将线程定义为“执行上下文”，它实际只是进程的另外一个执行上下文而已。这样，Linux 内核只需区分进程，只需要一个进程/线程数组，而调度程序仍然是进程的调度程序。Linux 的 clone 系统调用可用来建立新的线程。
+</p>
+<strong>2.2  POSIX 线程</strong>
+<p>
+POSIX 标准定义了线程操作的 C 语言接口。我们可以将 POSIX 线程的接口划分如下：
+</p>
+<ul>
+  <li>
+    线程的建立和销毁。用来创建线程，取消线程，制造线程取消点等等。
+  </li>
+  <li>
+    互斥量操作接口。提供基本的共享对象互斥访问机制。
+  </li>
+  <li>
+    信号量操作接口。提供基本的基于信号量的同步机制。不能与 System V IPC 机制的信号量相混淆。
+  </li>
+  <li>
+    条件量操作接口。提供基本的基于条件量的同步机制。尽管信号量和条件量均可以划分为同步机制，但条件量比信号量更为灵活一些，比如可以进行广播，设置等待超时等等。但条件量的操作比较复杂。
+  </li>
+  <li>
+    信号操作接口。处理线程间的信号发送和线程信号掩码。
+  </li>
+  <li>
+    其他。包括线程局部存储、一次性函数等等。
+  </li>
+</ul>
+<p>
+目前，Linux 上兼容 POSIX 的线程库称为 LinuxThreads，它已经作为 glibc 的一部分而发布。这些函数的名称均以 pthread_ 开头（信号量操作函数以 sem_ 开头）。
+</p>
+<p>
+为了对线程有一些感性认识，我们在这里举两个例子。
+</p>
+<p>
+第一个例子在进入 main () 函数之后，调用 pthread_create 函数建立了另一个线程。pthread_create 的参数主要有两个，一个是新线程的入口函数（thread_entry），另一个是传递给入口函数的参数（data），而新线程的标识符通过引用参数返回（new_thread）。见清单 1。
+</p>
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+清单 1  新线程的创建
+
+void* thread_entry (void* data)
+{
+      ...    // do something.
+     return NULL;
+}
+
+int main (void)
+{
+
+    pthread_t  new_thread;
+    int data = 2;
+
+    pthread_create (&amp;new_thread, NULL, thread_entry, &amp;data);
+    pthread_join (new_thread, NULL);
+}
+</pre></td></tr></table>
+
+<p>
+main () 函数在建立了新线程之后，调用 pthread_join 函数等待新线程执行结束。pthread_join 类似进程级的 wait 系统调用。当所等待的线程执行结束之后，该函数返回。利用 pthread_join 可用来实现一些简单的线程同步。注意在上面的例子中，我们忽略了函数调用返回值的错误检查。
+</p>
+<p>
+第二个例子是利用信号量进行同步的两个线程。这里所使用的例子利用信号量解决了经典的“生产者/消费者”问题（清单 2）。我们首先解释信号量的基本概念。
+</p>
+<p>
+信号量的概念由 E. W. Dijkstra 于 1965 年首次提出。信号量实际是一个整数，进程（也可以是线程）在信号量上的操作分两种，一种称为 DOWN，而另外一种称为 UP。DOWN 操作的结果是让信号量的值减 1，UP 操作的结果是让信号量的值加 1。在进行实际的操作之前，进程首先检查信号量的当前值，如果当前值大于 0，则可以执行 DOWN 操作，否则进程休眠，等待其他进程在该信号量上的 UP 操作，因为其他进程的 UP 操作将让信号量的值增加，从而它的 DOWN 操作可以成功完成。某信号量在经过某个进程的成功操作之后，其他休眠在该信号量上的进程就有可能成功完成自己的操作，这时，系统负责检查休眠进程是否可以完成自己的操作。
+</p>
+<p>
+为了理解信号量，我们想象某机票定购系统。最初旅客在定票时，一般有足够的票数可以满足定票量。当剩余的机票数为 1，而某个旅客现在需要定两张票时，就无法满足该顾客的需求，这时售票小姐让这个旅客留下他的电话号码，如果其他人退票，就可以优先让这个旅客定票。如果最终有人退票，则售票小姐打电话通知上述要定两张票的旅客，这时，该旅客就能够定到自己的票。
+</p>
+<p>
+我们可以将旅客看成是进程，而定票可看成是信号量上的 DOWN 操作，退票可看成是信号量上的 UP 操作，而信号量的初始值为机票总数，售票小姐则相当于操作系统的信号量管理器，由她（操作系统）决定旅客（进程）能不能完成操作，并且在新的条件成熟时，负责通知（唤醒）登记的（休眠的）旅客（进程）。
+</p>
+<p>
+在操作系统中，信号量的最简单形式是一个整数，多个进程可检查并设置信号量的值。这种检查并设置操作是不可被中断的，也称为“原子”操作。检查并设置操作的结果是信号量的当前值和设置值相加的结果，该设置值可以是正值，也可以是负值。根据检查和设置操作的结果，进行操作的进程可能会进入休眠状态，而当其他进程完成自己的检查并设置操作后，由系统检查前一个休眠进程是否可以在新信号量值的条件下完成相应的检查和设置操作。这样，通过信号量，就可以协调多个进程的操作。
+</p>
+<p>
+信号量可用来实现所谓的“关键段”。关键段指同一时刻只能有一个进程执行其中代码的代码段。也可用信号量解决经典的“生产者/消费者”问题，“生产者/消费者”问题和上述的定票问题类似。这一问题可以描述如下：
+</p>
+<p>
+两个进程共享一个公共的、固定大小的缓冲区。其中的一个进程，即生产者，向缓冲区放入信息，另外一个进程，即消费者，从缓冲区中取走信息（该问题也可以一般化为 m 个生产者和 n 个消费者）。当生产者向缓冲区放入信息时，如果缓冲区是满的，则生产者进入休眠，而当消费者从缓冲区中拿走信息后，可唤醒生产者；当消费者从缓冲区中取信息时，如果缓冲区为空，则消费者进入休眠，而当生产者向缓冲区写入信息后，可唤醒消费者。
+</p>
+<p>
+清单 2 中的例子实际是“生产者/消费者”问题的线程版本。
+</p>
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+清单 2 利用信号量解决“生产者/消费者”问题
+
+/* The classic producer-consumer example, implemented with semaphores.
+   All integers between 0 and 9999 should be printed exactly twice,
+   once to the right of the arrow and once to the left. */
+
+#include &lt;stdio.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;semaphore.h&gt;
+
+#define BUFFER_SIZE 16
+
+/* Circular buffer of integers. */
+
+struct prodcons {
+  int buffer[BUFFER_SIZE];      /*  实际数据 */
+  int readpos, writepos;        /* 读取和写入的位置 */
+  sem_t sem_read;               /* 可读取的元素个数 */
+  sem_t sem_write;              /* 可写入的空位个数 */
+};
+
+
+/* 初始化缓冲区 */
+void init(struct prodcons * b)
+{
+  sem_init(&b-&gt;sem_write, 0, BUFFER_SIZE - 1);
+  sem_init(&b-&gt;sem_read, 0, 0);
+  b-&gt;readpos = 0;
+  b-&gt;writepos = 0;
+}
+
+
+/* 在缓冲区中保存一个整数  */
+void put(struct prodcons * b, int data)
+{
+  /* Wait until buffer is not full */
+  sem_wait(&b-&gt;sem_write);
+  /* Write the data and advance write pointer */
+  b-&gt;buffer[b-&gt;writepos] = data;
+  b-&gt;writepos++;
+  if (b-&gt;writepos &gt;= BUFFER_SIZE) b-&gt;writepos = 0;
+  /* Signal that the buffer contains one more element for reading */
+  sem_post(&b-&gt;sem_read);
+}
+
+/* 从缓冲区读取并删除数据  */
+int get(struct prodcons * b)
+{
+  int data;
+  /* Wait until buffer is not empty */
+  sem_wait(&b-&gt;sem_read);
+  /* Read the data and advance read pointer */
+  data = b-&gt;buffer[b-&gt;readpos];
+  b-&gt;readpos++;
+  if (b-&gt;readpos &gt;= BUFFER_SIZE) b-&gt;readpos = 0;
+  /* Signal that the buffer has now one more location for writing */
+  sem_post(&b-&gt;sem_write);
+  return data;
+}
+
+/* 测试程序: 一个线程插入 1 到 10000 的整数，另一个线程读取并打印。*/
+#define OVER (-1)
+
+struct prodcons buffer;
+
+void * producer(void * data)
+{
+  int n;
+  for (n = 0; n &lt; 10000; n++) {
+    printf("%d ---&gt;\n", n);
+    put(&amp;buffer, n);
+  }
+  put(&amp;buffer, OVER);
+  return NULL;
+}
+
+void * consumer(void * data)
+{
+  int d;
+  while (1) {
+    d = get(&amp;buffer);
+    if (d == OVER) break;
+    printf("---&gt; %d\n", d);
+  }
+  return NULL;
+}
+
+int main(void)
+{
+  pthread_t th_a, th_b;
+  void * retval;
+
+  init(&amp;buffer);
+
+  /* 建立生产者和消费者线程。*/
+  pthread_create(&amp;th_a, NULL, producer, 0);
+  pthread_create(&amp;th_b, NULL, consumer, 0);
+
+  /* 等待生产者和消费者结束。 */
+  pthread_join(th_a, &amp;retval);
+  pthread_join(th_b, &amp;retval);
+  return 0;
+}
+</pre></td></tr></table>
+
+<p>
+在清单 2 中，程序首先建立了两个线程分别扮演生产者和消费者的角色。生产者负责将 1 到 1000 的整数写入缓冲区，而消费者负责从同一个缓冲区中读取并删除由生产者写入的整数。因为生产者和消费者是两个同时运行的线程，并且要使用同一个缓冲区进行数据交换，因此必须利用一种机制进行同步。清单 2 中的程序就利用信号量实现了同步。
+</p>
+<p>
+起初程序初始化了两个信号量（init()函数），分别表示可读取的元素数目（sem_read）和可写入的空位个数（sem_write），并分别初始化为 0 和缓冲区大小减1。在生产者调用 put() 函数写入时，它首先对 sem_write 进行DOWN 操作（即 sem_wait 调用），看是否能够写入，如果此时 sem_write 信号量的值大于零，则 sem_wait 可以立即返回，否则生产者将在该 sem_write 信号量上等待。生产者在将数据写入之后，在 sem_read 信号量上进行 UP 操作（即sem_post调用）。此时如果有消费者等待在 sem_read 信号量上，则可以被系统唤醒而继续运行。消费者线程的操作恰恰相反，该线程调用 get() 函数时，首先在 sem_read 上进行 DOWN 操作，当读取数据并删除之后，在 sem_write 信号量上进行 UP 操作。
+</p>
+<p>
+通过上面的两个例子，读者可以对线程之间的互操作有一个大概了解。如果读者对 System V IPC 机制比较熟悉的话，也可以作一番比较。可以看到，多线程的最大好处是，除堆栈之外，几乎所有的数据均是共享的，因此线程间的通讯效率最高；但最大坏处是，因为共享所有数据，从而非常容易导致线程之间互相破坏数据。
+</p>
+<strong>2.3  MiniGUI 和多线程</strong>
+<p>
+MiniGUI 1.0 版本采用了多线程机制，也就是说，MiniGUI 以及运行在 MiniGUI 之上的所有应用程序均运行在同一个地址空间之内。比起其他基于进程的 GUI 系统来说，虽然缺少了地址保护，但运行效率却是最高的。
+</p>
+<a name="3">
+<p><strong class="subhead">3  基于 PThread 的微客户/服务器结构</strong></p>
+<strong>3.1  多线程的分层设计</strong>
+<p>
+从整体结构上看，MiniGUI 是分层设计的，层次结构见图 1。在最底层，GAL 和 IAL 提供底层图形接口以及鼠标和键盘的驱动；中间层是 MiniGUI 的核心层，其中包括了窗口系统必不可少的各个模块；最顶层是 API，即编程接口。
+</p>
+<p align="center">
+       <IMG SRC="image01.jpg" BORDER="0" ><BR>
+图 1  MiniGUI 的分层设计
+</p>
+<p>
+GAL 和 IAL 为 MiniGUI 提供了底层的 Linux 控制台或者 X Window 上的图形接口以及输入接口，而 Pthread 是用于提供内核级线程支持的 C 函数库。
+</p>
+<p>
+MiniGUI 本身运行在多线程模式下，它的许多模块都以单独的线程运行，同时，MiniGUI 还利用线程来支持多窗口。从本质上讲，每个线程有一个消息队列，消息队列是实现线程数据交换和同步的关键数据接口。一个线程向消息队列中发送消息，而另一个线程从这个消息队列中获取消息，同一个线程中创建的窗口可共享同一个消息队列。利用消息队列和多线程之间的同步机制，可以实现下面要讲到的微客户/服务器机制。
+</p>
+<p>
+多线程有其一定的好处，但不方便的是不同的线程共享了同一个地址空间，因此，客户线程可能会破坏系统服务器线程的数据，但有一个重要的优势是，由于共享地址空间，线程之间就没有额外的数据复制开销。
+</p>
+<p>
+由于 MiniGUI 是面向嵌入式或实时控制系统的，因此，这种应用环境下的应用程序往往具有单一的功能，从而使得采用多线程而非多进程模式实现图形界面有了一定的实际意义，也更加符合 MiniGUI 之“mini”的特色。
+</p>
+<strong>3.2  微客户/服务器结构</strong>
+<p>
+在多线程环境中，与多进程间的通讯机制类似，线程之间也有交互和同步的需求。比如，用来管理窗口的线程维持全局的窗口列表，而其他线程不能直接修改这些全局的数据结构，而必须依据“先来先服务”的原则，依次处理每个线程的请求，这就是一般性的客户/服务器模式。MiniGUI 利用线程之间的同步操作实现了客户线程和服务器线程之间的微客户/服务器机制，之所以这样命名，是因为客户和服务器是同一进程中的不同线程。
+</p>
+<p>
+微客户/服务器机制的核心实现主要集中在消息队列数据结构上。比如，MiniGUI 中的 desktop 微服务器管理窗口的创建和销毁。当一个线程要求 desktop 微服务器建立一个窗口时，该线程首先在 desktop 的消息队列中放置一条消息，然后进入休眠状态而等待 desktop 处理这一请求，当 desktop 处理完成当前任务之后，或正处于休眠状态时，它可以立即处理这一请求，请求处理完成时，desktop 将唤醒等待的线程，并返回一个处理结果。
+</p>
+<p>
+当 MiniGUI 在初始化全局数据结构以及各个模块之后，MiniGUI 要启动几个重要的微服务器，它们分别完成不同的系统任务：
+</p>
+<ul>
+  <li>
+    desktop 用于管理 MiniGUI 窗口中的所有主窗口，包括建立、销毁、显示、隐藏、修改 Z-order、获得输入焦点等等。
+  </li>
+  <li>
+    parsor 线程用来从 IAL中收集鼠标和键盘事件，并将收集到的事件转换为消息而邮寄给 desktop 服务器。
+  </li>
+  <li>
+    timer 线程用来触发定时器事件。该线程启动时首先设置 Linux 定时器，然后等待 desktop 线程的结束，即处于休眠状态。当接收到 SIGALRM 信号时，该线程处理该信号并向 desktop 服务器发送定时器消息。当 desktop 接收到定时器消息时，desktop 会查看当前窗口的定时器列表，如果某个定时器过期，则会向该定时器所属的窗口发送定时器消息。
+  </li>
+</ul>
+<a name="4">
+<p><strong class="subhead">4  多线程通讯的关键数据结构——消息队列</strong></p>
+<strong>4.1  消息和消息循环</strong>
+<p>
+在任何 GUI 系统中，均有事件或消息驱动的概念。在MiniGUI中，我们使用消息驱动作为应用程序的创建构架。
+</p>
+<p>
+在消息驱动的应用程序中，计算机外设发生的事件，例如键盘键的敲击、鼠标键的按击等，都由支持系统收集，将其以事先的约定格式翻译为特定的消息。应用程序一般包含有自己的消息队列，系统将消息发送到应用程序的消息队列中。应用程序可以建立一个循环，在这个循环中读取消息并处理消息，直到特定的消息传来为止。这样的循环称为消息循环。一般地，消息由代表消息的一个整型数和消息的附加参数组成。
+</p>
+<p>
+应用程序一般要提供一个处理消息的标准函数。在消息循环中，系统可以调用此函数，应用程序在此函数中处理相应的消息。
+</p>
+<p>
+图 2 是一个消息驱动的应用程序的简单构架示意。
+</p>
+<p align="center">
+       <IMG SRC="image02.gif" BORDER="0" ><BR>
+图 2  消息驱动的应用程序的简单构架
+</p>
+<p>
+MiniGUI 支持如下几种消息的传递机制。这些机制为多线程环境下的窗口间通讯提供了基本途径：
+</p>
+<ul>
+  <li>
+    通过 PostMessage 发送。消息发送到消息队列后立即返回。这种发送方式称为“邮寄”消息。如果消息队列中的邮寄消息缓冲区已满，则该函数返回错误值。
+  </li>
+  <li>
+    通过 PostSyncMessage 发送。该函数用来向不同于调用该函数的线程消息队列邮寄消息，并且只有该消息被处理之后，该函数才能返回，因此这种消息称为“同步消息”。
+  </li>
+  <li>
+    通过 SendMessage 发送。该函数可以向任意一个窗口发送消息，消息处理完成之后，该函数返回。如果目标窗口所在线程和调用线程是同一个线程，该函数直接调用窗口过程，如果	处于不同的线程，则利用 PostSyncMessage 函数发送同步消息。
+  </li>
+  <li>
+    通过 SendNotifyMessage 发送。该函数向指定的窗口发送通知消息，将消息放入消息队列后立即返回。由于这种消息和邮寄消息不同，是不允许丢失的，因此，系统以链表的形式处理这种消息。
+  </li>
+  <li>
+    通过 SendAsyncMessage 发送。利用该函数发送的消息称为“异步消息”，系统直接调用目标窗口的窗口过程。
+  </li>
+</ul>
+<p>
+读者可以联系我们在第1节中给出的“生产者/消费者”问题而想到一个简单的消息队列的实现，该消息队列可以简单地设计为一个类似清单 2 的循环队列。但是，GUI 系统中的消息队列并不能是一个简单的循环队列，它还要注意到如下一些问题：
+</p>
+<ul>
+  <li>
+    消息一般附带有相关的数据，这些数据对各种消息具有不同的含义，在多窗口环境，尤其是多进程环境下，消息数据的有效传递非常重要。
+  </li>
+  <li>
+    消息作为窗口间进行数据交换的一种方式，要提供多种传递机制。某些情况下，发送消息的窗口要等到这个消息处理完成之后，知道处理的结果之后才能继续执行；而有些情况下，发送消息的窗口只是简单地向接收消息的窗口通知某些事件的发生，一般发送出消息之后就返回。后一种情况类似于邮寄信件，所以通常称为邮寄消息。更有一种较为复杂的情况，就是等待一个可能长时间无法被处理的消息时，发送的消息的窗口设置一个超时值，以便能够在消息得不到及时处理的情况下能够恢复执行。
+  </li>
+  <li>
+    某些特殊消息的处理也需要注意，比如定时器。当某个定时器的频率很高，而处理这个定时器的窗口的反应速度又很慢，这时如果采用邮寄消息或者发送消息的方式，线性的循环队列最终就会塞满。
+  </li>
+  <li>
+    最后一个问题是消息优先级的问题。一般情况下，要考虑优先处理鼠标或键盘的输入消息，其次才是重绘和定时器等消息。
+  </li>
+  <li>
+    特殊消息的处理。由于窗口重绘消息的特殊性（通常比较花费时间），只有当程序将其他消息处理之后，才会处理重绘消息。并且只有存在窗口的无效区域的时候，才会通知程序处理窗口的重绘。
+  </li>
+</ul>
+<p>
+鉴于以上要特殊考虑的问题，MiniGUI 中的消息队列要比清单 2 中的循环队列复杂。参见清单 3。
+</p>
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+清单 3  MiniGUI 的消息队列定义
+
+typedef struct _MSGQUEUE
+{
+    DWORD dwState;              // 消息队列状态
+
+    pthread_mutex_t lock;       // 互斥锁
+    sem_t wait;                 // 等待信号量
+
+    PQMSG  pFirstNotifyMsg;     // 通知消息队列的头
+    PQMSG  pLastNotifyMsg;      // 通知消息队列的尾
+
+    PSYNCMSG pFirstSyncMsg;     // 同步消息队列的头
+    PSYNCMSG pLastSyncMsg;      // 同步消息队列的尾
+
+    MSG* msg;                   // 邮寄消息缓冲区
+    int len;                    // 邮寄消息缓冲区长度
+    int readpos, writepos;      // 邮寄消息缓冲区的当前读取和写入位置
+
+    /*
+     * One thread can only support eight timers.
+     * And number of all timers in a MiniGUI applicatoin is 16.
+     */
+    HWND TimerOwner[8];         // 定时器所有者
+    int  TimerID[8];            // 定时器标识符
+    BYTE TimerMask;             // 已使用的定时器掩码
+} MSGQUEUE;
+typedef MSGQUEUE* PMSGQUEUE;
+</pre></td></tr></table>
+
+<p>
+可以看出，在 MiniGUI 的消息队列定义中，只有邮寄消息的定义类似清单 2 中的线性循环队列。上面提到，通知消息类似邮寄消息，但该消息是不允许丢失的，因此，该消息通过链表形式实现。PMSG 结构的定义也很简单：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+typedef struct _QMSG
+{
+    MSG                 Msg;
+    struct _QMSG*       next;
+    BOOL                fromheap;
+}QMSG;
+typedef QMSG* PQMSG;
+</pre></td></tr></table>
+
+<p>
+用于同步消息传递的数据结构为 SYNCMSG，该结构在消息队列中也形成了一个链表，但该结构本身稍微复杂一些：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+typedef struct _SYNCMSG
+{
+    MSG              Msg;
+    int              retval;
+    sem_t            sem_handle;
+    struct _SYNCMSG* pNext;
+}SYNCMSG;
+typedef SYNCMSG* PSYNCMSG;
+</pre></td></tr></table>
+
+<p>
+可以看到，该结构中有一个信号量，该信号量就是用来通知同步消息的发送线程的。当接收并处理同步消息的线程处理该消息之后，将在 retval 成员中存放处理结果，然后通过 sem_handle 信号量唤醒同步消息的发送线程。
+</p>
+<p>
+在上述消息队列结构的定义中，还有两个分别用来实现互斥访问和同步的成员，即互斥锁 lock 和信号量 wait。互斥锁 lock 用来实现不同线程对消息队列的互斥访问，比如在获取邮寄消息时的操作如下：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+        pthread_mutex_lock (&amp;pMsgQueue-&gt;lock);
+        if (pMsgQueue-&gt;readpos != pMsgQueue-&gt;writepos) {
+
+            pMsgQueue-&gt;readpos++;
+            if (pMsgQueue-&gt;readpos &gt;= pMsgQueue-&gt;len) pMsgQueue-&gt;readpos = 0;
+
+            pthread_mutex_unlock (&amp;pMsgQueue-&gt;lock);
+            return 1;
+        }
+        else
+            pMsgQueue-&gt;dwState &amp;= ~QS_POSTMSG;
+
+        pthread_mutex_unlock (&amp;pMsgQueue-&gt;lock);
+</pre></td></tr></table>
+
+<p>
+信号量 wait 用来同步消息循环。一般来说，一个线程在建立窗口之后，要进入消息循环持续地从消息队列中获取消息（通过 GetMessage() 函数）。当消息队列中没有任何消息时，该线程将进入休眠状态，而当其他线程将消息邮寄或发送到该消息队列之后，将通过信号量 wait 唤醒该线程：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+    sem_getvalue (&amp;pMsgQueue-&gt;wait, &amp;sem_value);
+    if (sem_value == 0)
+        sem_post(&amp;pMsgQueue-&gt;wait);
+</pre></td></tr></table>
+
+<p>
+在 MiniGUI 的消息队列结构中，第一个成员是消息队列的状态字。该状态字通过标志位表示如下状态：
+</p>
+<ul>
+  <li>
+    消息队列中是否有邮寄消息；
+  </li>
+  <li>
+    消息队列中是否有通知消息；
+  </li>
+  <li>
+    消息队列中是否有同步消息；
+  </li>
+  <li>
+    消息队列中是否有退出消息；
+  </li>
+  <li>
+    消息队列中是否有重绘消息；
+  </li>
+  <li>
+    消息队列中是否有定时器消息。
+  </li>
+</ul>
+<p>
+通过这些标志，GetMessage() 可判断是否需要检查邮寄消息队列、通知消息链表和同步消息链表等等。同时，利用这些标志还可以处理上面提到的一些特殊消息。这里以定时器为例进行说明。
+</p>
+<p>
+在 MiniGUI 中，一个创建了窗口的线程一般拥有一个消息队列，使用该消息队列所有窗口，包括子窗口在内，一共可以建立 8 个定时器。这些定时器是否到期，体现在消息队列的状态字上――状态字的最低 8 位分别用来表示这 8 个定时器是否到期。消息队列中同时还有三个成员：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+    HWND TimerOwner[8];         // 定时器所有者
+    int  TimerID[8];            // 定时器标识符
+    BYTE TimerMask;             // 已使用的定时器掩码
+</pre></td></tr></table>
+
+<p>
+其中 TimerMask 表示当前有效的定时器，每位表示一个定时器；TimerID 表示这 8 个定时器的标识符（整数）；而 TimerOwner 则表示定时器的所有者（窗口句柄）。这种定时器的实现方法类似 Linux 内核中的信号实现。定时器是否有效以及是否到期均由二进制字节的一个位来表示。当 GetMessage 检查这些标志时发现有某个定时器到期才会获得一个定时器消息。也就是说，定时器消息是不排队的。这样就解决了排队时可能塞满消息队列的问题。
+</p>
+<a name="5">
+<p><strong class="subhead">5  面向对象技术在 MiniGUI 中的应用</strong></p>
+<strong>5.1  控件类和控件</strong>
+<p>
+MiniGUI 中的每个控件都属于某种子窗口类，是对应子窗口类的实例。这类似于面向对象技术中类和对象的关系。图 3 给出了 MiniGUI 中控件和控件类之间的关系。
+</p>
+<p align="center">
+       <IMG SRC="image03.gif" BORDER="0" ><BR>
+图 3  控件类和控件之间的关系
+</p>
+<p>
+每个控件的消息实际都是有该控件所属控件类的回调函数处理的，从而可以让每个属于统一控件类的控件均保持有相同的用户界面和处理行为。
+</p>
+<p>
+但是，如果我们在调用某个控件类的回调函数之前，首先调用自己定义的某个回调函数的话，我们就可以让该控件重载控件类的某些处理行为，从而让该控件一方面继承控件类的大部分处理行为，另一方面又具有自己的特殊行为。这实际就是面向对象中的继承和派生。比如，一般的编辑框会接收所有的键盘输入，当我们希望自己的编辑框只接收数字时，就可以用这种办法屏蔽非数字的字符输入。
+</p>
+<strong>5.2  GAL 和 IAL</strong>
+<p>
+在 MiniGUI 0.3.xx 的开发中，我们引入了图形和输入抽象层（Graphics and Input Abstract Layer，GAL 和 IAL）的概念。抽象层的概念类似 Linux 内核虚拟文件系统的概念。它定义了一组不依赖于任何特殊硬件的抽象接口，所有顶层的图形操作和输入处理都建立在抽象接口之上。而用于实现这一抽象接口的底层代码称为“图形引擎”或“输入引擎”，类似操作系统中的驱动程序。这实际是一种面向对象的程序结构。利用 GAL 和 IAL，MiniGUI 可以在许多图形引擎上运行，比如 SVGALib 和 LibGGI，并且可以非常方便地将 MiniGUI 移植到其他 POSIX 系统上，只需要根据我们的抽象层接口实现新的图形引擎即可。目前，我们已经编写了基于 SVGALib 和 LibGGI 的图形引擎。利用 LibGGI， MiniGUI 应用程序可以运行在 X Window 上，将大大方便应用程序的调试。我们目前正在进行 MiniGUI 私有图形引擎的设计开发。通过 MiniGUI 的私有图形引擎，我们可以最大程度地针对窗口系统对图形引擎进行优化，最终提高系统的图形性能和效率。
+</p>
+<p>
+GAL 和 IAL 的结构是一样的，我们这里只拿 GAL 作为实例说明面向对象技术的运用，参见图 4。
+</p>
+<p>
+系统维护一个已注册图形引擎数组，保存每个图形引擎数据结构的指针。系统利用一个指针保存当前使用的图形引擎。一般而言，系统中至少有两个图形引擎，一个是“哑”图形引擎，不进行任何实际的图形输出；一个是实际要使用的图形引擎，比如 LibGGI 或者 SVGALib。每个图形引擎的数据结构定义了该图形引擎的一些信息，比如标识符、属性等，更重要的是，它实现了 GAL 所定义的各个接口，包括初始化和终止、图形上下文管理、画点处理函数、画线处理函数、矩形框填充函数、调色板函数等等。
+</p>
+<p align="center">
+       <IMG SRC="image04.gif" BORDER="0" ><BR>
+图 4  GAL 结构
+</p>
+<p>
+如果在某个实际项目中所使用的图形硬件比较特殊，现有的图形引擎均不支持。这时，我们就可以安照 GAL 所定义的接口实现自己的图形引擎，并指定 MiniGUI 使用这种私有的图形引擎即可。这种软件技术实际就是面向对象多态性的具体体现。
+</p>
+<p>
+利用 GAL 和 IAL，大大提高了 MiniGUI 的可移植性，并且使得程序的开发和调试变得更加容易。我们可以在 X Window 上开发和调试自己的 MiniGUI 程序，通过重新编译就可以让 MiniGUI 应用程序运行在特殊的嵌入式硬件平台上。
+</p>
+<strong>5.3  字符集和字体支持</strong>
+<p>
+在成功引入 GAL 和 IAL 之后，我们又在处理字体和字符集的模块当中引入了逻辑字体的概念。逻辑字体是 MiniGUI 用来处理文本（包括文本输出和文本分析）的顶层接口。逻辑字体接口将各种不同的字体（比如宋体、黑体和揩体）和字体格式（比如等宽字体、变宽字体等光栅字体和 TrueType 等矢量字体），以及各种不同字符集（ISO-8859、GB2312、Big5、UNICODE等）综合了起来，从而可以通过统一的接口显示不同字符集的不同字体的文本，并且还可以分析各种字符集文本的组成，比如字符、单词等。在多字体和多字符集的支持中，我们也采用了面向对象的软件技术，使得添加新的字体支持和新的字符集支持非常方便。目前，MiniGUI 能够支持各种光栅字体和 TrueType、Adobe Type 1 等矢量字体，并能够支持 GB2312、Big5 等多字节字符集，UNICODE 的支持正在开发当中。
+</p>
+<p>
+相对 GAL 和 IAL 而言，MiniGUI 中的字符集和字体支持更加复杂，涉及到的内容也较多。前面提到，我们通过逻辑字体这一接口，实现了文字输出和文本分析两个功能。实际这两个功能是相互关联的。在进行文本输出时，尤其在处理多字节字符集，比如 GB2312 或者 Big5 时，首先要对文本进行分析，以便判断是否是一个属于该字符集的双字节字符。
+</p>
+<p>
+图 5 给出了逻辑字体、设备字体以及字符集之间的关系。
+</p>
+<p>
+<p align="center">
+       <IMG SRC="image05.gif" BORDER="0" ><BR>
+图 5  逻辑字体以及相关数据结构
+</p>
+<a name="6">
+<p><strong class="subhead">6  在 MiniGUI 2.0 中的考虑</strong></p>
+<p>
+尽管 MiniGUI 采用多线程机制实现了一个小巧、高效的窗口系统，但有很多理由希望 MiniGUI 能够采用多进程机制实现（尽管多进程机制可能带来通讯上的额外开支）：
+</p>
+<ul>
+  <li>
+    良好的地址保护。窗口本身的崩溃不会影响 MiniGUI 的运行，而目前的多线程机制无法提供地址保护。
+  </li>
+  <li>
+    信号处理上的问题。在多线程程序中，所有的多线程共享同一个信号处理方式，包括是否忽略、是否捕获等等。这对某些大型软件是很难接受的。
+  </li>
+  <li>
+    多线程程序对程序员要求较高。在编写多线程程序时，通常要考虑到函数的“线程安全”问题，即函数是否是可重入的，因此，我们通常不能使用全局或者静态变量。
+  </li>
+</ul>
+<p>
+鉴于上述需求，我们将在接下来的 MiniGUI 2.0 开发中，进行一些体系结构上的调整，其中最为重要的就是采用进程机制替代线程机制。
+</p>
+
+<a name="resources">
+<p><strong class="subhead">相关资源</strong></p>
+
+	<ul>
+	  <li><b>POSIX 及线程资源</b><br>有关 POSIX 线程的网络资源:</li>
+		  <ul>
+            <li><A HREF="http://pauillac.inria.fr/~xleroy/linuxthreads/">The LinuxThreads Library</A> [Xavier Leroy]
+            <li><A HREF="http://www.aa.net/~mtp/PCthreads.html">POSIX .1c and DCE Threads For Linux</A>
+            <li><A HREF="ftp://ftp.informatik.uni-erlangen.de/local/cip/mskuhn/misc/linux-posix.1b">A Vision for Linux 2.2 -- POSIX.1b Compatibility and Real-Time Support</A>
+            <li><A HREF="http://www.knosof.co.uk/posix.html">POSIX Related Web Sites</A>
+		  </ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+            <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+            <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+            <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">关于作者</strong>
+<br> 魏永明（ymwei@minigui.org），男，27 岁，工学硕士，现任蓝点软件（深圳）有限公司北京研发中心技术主管。国内最有影响的自由软件项目之一－－ MiniGUI 的创始人以及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。
+</p>
+
+</body>
+</html>
+

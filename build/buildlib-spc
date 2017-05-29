@@ -1,0 +1,36 @@
+#!/bin/bash
+
+rm config.cache config.status -f
+
+CC=armv4l-unknown-linux-gcc \
+./configure --prefix=/tftpboot/minigui \
+    --build=i386-linux \
+    --host=arm-unknown-linux \
+    --target=arm-unknown-linux \
+    --disable-debug \
+    --disable-static \
+    --enable-procs \
+    --with-style=fashion \
+    --disable-videoqvfb \
+    --disable-videodummy \
+    --enable-ucb1x00ial \
+    --disable-nativeial \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-imegb2312 \
+    --disable-imegb2312pinyin \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-ext-fullgif \
+    --disable-dblclk

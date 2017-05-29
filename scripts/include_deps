@@ -1,0 +1,15 @@
+# Read the .depend files, extract the dependencies for .h targets, convert
+# relative names to absolute and write the result to stdout.  It is part of
+# building the global .h dependency graph for kbuild 2.4.  KAO
+
+/^[^ 	]/		{ copy = 0; fn = "/error/"; }
+/^[^ 	][^ ]*\.h:/	{ copy = 1; fn = FILENAME; sub(/\.depend/, "", fn); }
+!copy			{ next; }
+			{
+			  indent = $0; sub(/[^ 	].*/, "", indent);
+			  if ($1 != "" && $1 !~ /^[@$\/\\]/) { $1 = fn $1 };
+			  if ($2 != "" && $2 !~ /^[@$\/\\]/) { $2 = fn $2 };
+			  $1 = $1;	# ensure $0 is rebuilt
+			  $0 = indent $0;
+			  print;
+			}

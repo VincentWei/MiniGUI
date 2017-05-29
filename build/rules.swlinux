@@ -1,0 +1,24 @@
+
+# winbond linux related parts
+
+TARGET_OS=swlinux
+
+AS=w89k-as
+CC=w89k-gcc
+CXX=w89k-c++
+CPP=
+AR=w89k-ar
+RANLIB=w89k-ranlib
+MAKE=make
+
+ARFLAGS=cru
+COFLAG=-o
+
+WINBOND_DIR=/usr/local/winbond-linux-kernel
+SWLINUX_DIR=/opt/winbond/workdir/
+
+DEFS+=-DNDEBUG -D__WINBOND_SWLINUX__
+INCS+=-I${SWLINUX_DIR}/sw_linux/include -I${WINBOND_DIR}/w89k/include 
+CFLAGS+=-Wall -Wstrict-prototypes -c
+
+PREFIX=c:/cross

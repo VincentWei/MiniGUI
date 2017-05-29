@@ -1,0 +1,46 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the arm-elf-tools already.
+#   2. Your uClinux distribution has been installed into the directory of '/opt/em85xx/'.
+#
+
+rm config.cache config.status -f
+
+CC=arm-uclibc-gcc \
+CFLAGS="-O2 -g -D__linux__ -I/uclinux/uClinux-2.4.x/include -I/uclinux/uClibc-0.9.19/include -fno-builtin -nostartfiles " \
+LDFLAGS="-Wall -elf2flt -static -L/uclinux/uClibc-0.9.19/lib -L/uclinux/uClinux-2.4.x/lib -lc" \
+./configure \
+    --prefix=/uclinux/minigui \
+    --build=i386-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --disable-shared \
+    --with-osname=uclinux \
+    --enable-incoreres \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-videoqvfb \
+    --enable-arm3000ial \
+    --enable-dummyial \
+    --enable-autoial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --disable-adv2dapi \
+    --enable-tinyscreen

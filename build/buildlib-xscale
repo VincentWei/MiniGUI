@@ -1,0 +1,33 @@
+#!/bin/sh
+rm -f config.cache config.status
+
+CC=arm-linux-gcc \
+./configure --prefix=/usr/local/arm-linux/arm-linux \
+    --build=i686-linux \
+    --host=arm-linux \
+    --target=arm-linux \
+    --with-osname=linux \
+    --enable-procs \
+    --enable-incoreres \
+    --enable-cursor \
+    --enable-evmv10ial \
+    --enable-videofbcon \
+    --disable-qvfbial \
+    --disable-vbfsupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --enable-extskin \
+    --disable-adv2dapi \
+    --enable-tinyscreen \
+    --disable-savescreen

@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>背景，发展及优势</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+	<p><strong class="title">面向实时嵌入式系统的图形用户界面支持系统――MiniGUI</strong><br>
+	<strong class="subtitle">背景，发展及优势</strong></p>
+	
+	<p>魏永明<br>
+	蓝点软件（北京）研发中心技术主管<br>
+	2000/10/27</p>
+
+<!-- Editor #5: Begin Table of Contents -->
+	<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>Contents:</b></font></td></tr><tr>
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td>
+                                 
+                             </tr>
+                             <tr>
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1">嵌入式 Linux 系统的 GUI 发展概况</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2">MiniGUI 的重要特色</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3">MiniGUI 近期开发情况</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#4">MiniGUI 的网络资源</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">Resources</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author">About the author</a></font></td></tr>
+                <tr><td bgcolor="#000000"><font face="helvetica,helv,arial" size="-3"></font></td></tr>
+	</table></p>
+<!-- End Table of Contents -->
+
+<!-- comments #6: html content of the paper -->
+<p><em>本文介绍面向实时嵌入式系统的图形用户界面――MiniGUI，其产生、发展及优势，并与其他面向嵌入式系统的 GUI 进行了比较，然后结合实例介绍了  MiniGUI 的一些重要功能和特色，最后，本文介绍了正在进行的 MiniGUI 的开发情况。</em></p>
+
+<a name="1">
+<p><strong class="subhead">嵌入式 Linux 系统的 GUI 发展概况</strong>
+<p>1.1  GUI 在嵌入式或实时系统中的地位
+<p>在常见的 PDA 等小型手持式设备上，由于硬件条件等的限制，我们看到的用户界面都非常简单，几乎看不到我们在 PC 机看到的华丽美观的 GUI 支持。但最近出现的 Palm 等手持式电脑或者在 Windows CE 等面向嵌入式系统的操作系统上，我们已经看到了完整的图形用户界面支持。随着手持式设备的硬件条件的提高，我们估计嵌入式系统对轻量级 GUI 的需求会越来越迫切。
+<p>近来的市场需求显示，越来越多的嵌入式系统，包括 PDA、机顶盒、DVD/VCD 播放机、WAP 手机等等系统均要求提供全功能的 Web 浏览器。这包括 HTML 4.0 的支持、JavaScript 的支持，甚至包括 Java 虚拟机的支持。而这一切均要求有一个高性能、高可靠的 GUI 的支持。
+<p>另外一个迫切需要轻量级 GUI 的系统是工业实时控制系统。这些系统一般建立在标准 PC 平台上，硬件条件相对嵌入式系统要好，但对实时性的要求非常高，并且比起嵌入式系统来说，对 GUI 的要求也更高。这些系统一般不希望建立在庞大累赘的、非常消耗系统资源的操作系统和 GUI 之上，比如 Windows 或 X Window。目前许多这类系统都建立在 DOS 等系统上，并且采用比较简单的手法实现 GUI。但是，在出现 Linux 系统之后，尤其在 RT-Linux 系统出现之后，许多工业控制系统开始采用 RT-Linux 作为操作系统，但 GUI 仍然是一个问题。关键是 X Window 太过庞大和臃肿。这样，这些系统对轻型 GUI 的需求更加突出。
+<p>但是，我们必须清楚的是，嵌入式系统往往是一种定制设备，它们对 GUI 的需求也各不相同。举个简单的例子，有的系统只要求一些图形功能，而有些系统要求完备的 GUI 支持。因此，GUI 也必须是可定制的。
+<p>综上所述，GUI 在嵌入式系统或者实时系统中的地位将越来越重要，这些系统对 GUI 的基本要求包括：
+<br>1．轻型、占用资源少。
+<br>2．高性能。
+<br>3．高可靠性。
+<br>4．可配置。
+<p>1.2  目前实时嵌入式系统 GUI 的实现方法
+<p>尽管实时嵌入式系统对 GUI 的需求越来越明显，但目前 GUI 的实现方法各有不同：
+<p>1．某些大型厂商有能力自己开发满足自身需要的 GUI 系统。
+<br>2．某些厂商没有将 GUI 作为一个软件层从应用程序中剥离，GUI 的支持逻辑由应用程序自己负责。
+<br>3．采用某些比较成熟的 GUI 系统，比如 MiniGUI 或者其他 GUI 系统。
+<p>在上述手段中，第 2 种方法是一种临时解决方案。利用这种手段编写的程序，无法将显示逻辑和数据处理逻辑划分开来，从而导致程序结构不好，不便于调试，并导致大量的代码重复。我们认为 GUI 是一种类似于操作系统的基础软件，这种软件系统应该遵循一定的标准，并且应该是开放源码的自由软件，从而可以让开放商集中精力开发自己的应用程序。目前看来，在 Linux 之上进行（实时）嵌入式系统开发的厂商，一般选择如下几种 GUI 系统：紧缩的 X Window 系统、MiniGUI、MicroWindows、OpenGUI、QT/Embedded 等，下面首先对这些系统进行简单介绍，并对它们的优缺点进行比较。
+<p>1.2.1  紧缩的 X Window 系统
+<p>众所周知，X Window 是 Linux 以及其他类 UNIX 系统的标准 GUI。X Window 系统采用标准的客户/服务器体系结构，具有可扩展性好、可移植性好等优点。但该系统的庞大、累赘和低效率也是大家所共知的。为了获得应用程序的可移植性，许多厂家都试图通过对 X Window 系统的紧缩开发，使之能够在嵌入式系统上运行。国外已经开发出了大小约为 800K 的 X 服务器。这对西方国家来说基本能够满足嵌入式系统的需求了。但该系统的源代码尚不开放，从而很难进行本地化开发。
+<p>1.2.2  MicroWindows
+<p>MicroWindows 是一个开放源码的项目，目前由美国一家公司在主持开发。该项目的开发非常活跃，国内也有人参与了其中的开发，并编写了 GB2312 等字符集的支持。该项目的主要特色在于提供了比较完善的图形功能，包括一些高级的功能，比如 Alpha 混合，三维支持，TrueType 字体支持等。但作为一个窗口系统，该项目提供的窗口处理功能还需要进一步完善，比如控件或构件的实现还很不完备，键盘和鼠标等的驱动还很不完善。值得一提的是，该项目的许多控件是从 MiniGUI 中移植过去的，扫雷游戏也是从 MiniGUI 中移植过去的。
+<p>该项目已经启动了一个开放源码的浏览器项目，该浏览器在 KDE kfm 提供的 HTML 解释器的基础上开发，目前能够解释一些简单的 HTML 页面。
+<p>1.2.3  OpenGUI
+<p>OpenGUI 在 Linux 系统上存在已经很长时间了。最初的名字叫 FastGL，只支持 256 的线性显存模式。但目前也支持其他显示模式。这个库是用 C++ 编写的，只提供 C++ 接口。
+<p>1.2.4  Qt/ Embedded
+<p>QT/Embedded 是著名的 QT 库开放商正在进行的面向嵌入式系统的 QT 版本。这个版本的主要特点是可移植性较好，许多基于 QT 的 X Window 程序可以非常方便地移植到嵌入式版本。但是该系统不是开放源码的，如果你要使用这个库，可能需要支付昂贵的授权费用。目前，已经有了 QT/Embedded 的演示版，预计明年初将出现 QT/Embedded 的正式发行版。
+<p>1.3  MiniGUI 简介
+<p>MiniGUI 是一种面向嵌入式系统或者实时系统的图形用户界面支持系统。它主要运行于 Linux 控制台，实际可以运行在任何一种具有 POSIX 线程支持的 POSIX 兼容系统上。MiniGUI 同时也是国内最早出现的几个自由软件项目之一。
+<p>MiniGUI 的主要特色有：
+<p>	遵循 LGPL 条款的纯自由软件。
+<br>	提供了完备的多窗口机制。这包括：
+<br>	多个单独线程中运行的多窗口。
+<br>	单个线程中主窗口的附属。
+<br>	对话框和预定义的控件类（按钮、单行和多行编辑框、列表框、进度条、工具栏等）。
+<br>	消息传递机制。
+<br>	多字符集和多字体支持，目前支持 ISO8859-1、GB2312、Big5 等字符集，并且支持各种光栅字体和 TrueType、Type 1 等矢量字体。
+<br>	全拼、五笔等汉字输入法支持。
+<br>	BMP、GIF、JPEG、PCX、TGA 等常见图像文件的支持。
+<br>	Windows 的资源文件支持，如位图、图标、光标等。
+<br>	插入符、定时器、加速键等。
+<br>	其他（Beep、ETC/INI 文件操作等）。
+<br>	小巧。包含全部功能的库文件大小为 300 K左右。
+<br>	可配置。可根据项目需求进行定制配置和编译。
+<br>	高稳定性和高性能。MiniGUI 已经在Linux 发行版安装程序、CNC 系统、蓝点嵌入式系统等关键应用程序中得到了实际的应用。
+<br>	可移植性好。目前，MiniGUI 可以在 X Window 和 Linux 控制台上运行。中科院 EEOS 开发组已经成功地将 MiniGUI 移植到了他们的 POSIX 兼容系统上。蓝点软件（北京）研发中心也已经成功地将 MiniGUI 移植到了两款基于 StrongARM 的嵌入式系统上。
+<p>1.4  各种面向实时嵌入式系统的 GUI 之比较
+<p>比较上述几个面向嵌入式系统的 GUI，我们认为目前比较成熟，同时得到最多开发人员认可的有紧缩的 X Window 系统、MiniGUI、MicroWindows 等系统。尽管紧缩的 X Window 系统其 X 服务器可以降低到 800K 的大小，但因为 X Window 系统的运行还需要其他程序和库的支持，包括 X 窗口管理器、XLib、建立在 XLib 之上的 GTK 和 QT 等函数库，因此，紧缩的X Window 系统在运行期间所占用的系统资源很多，加上中文显示和中文输入等本地化代码之后，系统的整体尺寸和运行时的资源消耗将进一步变大。因此，嵌入式系统的开发商往往将紧缩的 X Window 系统定位在机顶盒等对资源要求并不苛刻的嵌入式系统上。
+<p>MiniGUI 和 MicroWindows 均为自由软件，只是前者遵循 LGPL 条款，后者遵循 MPL 条款。这两个系统的技术路线也有所不同。MiniGUI 的策略是首先建立在比较成熟的图形引擎之上，比如 SVGALib 和 LibGGI，开发的重点在于窗口系统、图形接口之上；MicroWindows 目前的开发重点则在底层的图形引擎之上，窗口系统和图形接口方面的功能还比较欠缺。举个例子来说，MiniGUI 有一套用来支持多字符集和多编码的函数接口，可以支持各种常见的字符集，包括 GB、BIG5、UNICODE 等，而 MicroWindows 在多字符集的支持上尚没有统一接口。
+
+</p>
+
+<a name="2">
+<p><strong class="subhead">MiniGUI 的重要特色</strong>
+<p>2.1  设计目标：小巧和可配置
+<p>MiniGUI 最初是为了满足一个工业控制系统（计算机数控系统）的需求而设计和开发的。这个工业控制系统是清华大学为一台数控机床设计的计算机数控系统（CNC）。在比较 DOS、Windows 98、Windows NT、Linux 等系统之后，该项目组决定选择 RT-Linux 作为实时操作系统，以便满足 2ms 甚至更高的实时性。但是图形用户界面是一个问题，因为 X Window 不适合于实时控制系统，并且当时 X Window 系统的本地化也不尽人意。因此，决定自己开发一套图形用户界面支持系统。这就是 MiniGUI 产生的背景。显然，MiniGUI 一开始就针对实时系统而设计，因此，在设计之初就考虑到了小巧、高性能和高效率。目前，这个数控系统的开发已近尾声，MiniGUI 在其中担当了非常重要的角色。
+<p>在考虑到其他不同于数控系统的嵌入式系统时，为了满足千变万化的需求，必须要求 GUI 系统是可配置的。在 CNC 系统中得到成功应用之后，我们立即着手于 MiniGUI 可配置的设计。我们通过 Linux 下的 automake 和 autoconf 接口，实现了大量的编译配置选项，通过这些选项可指定 MiniGUI 库中包括哪些功能而同时不包括哪些功能。
+<p>因此，MiniGUI 是一个非常适合于工业控制实时系统以及嵌入式系统的可定制的、小巧的图形用户界面支持系统。
+<p>2.2  重要特色
+<p>2.2.1  多线程和多窗口
+<p>MiniGUI 中的窗口基本分四类，分别为主窗口、对话框、控件和主窗口中的子窗口。
+<p>MiniGUI 中的主窗口和 Windows 应用程序的主窗口概念类似，但有一些重要的不同，MiniGUI 中的每个主窗口及其附属主窗口对应于一个单独的线程，通过函数调用可建立主窗口以及对应的线程。每个线程有一个消息队列，属于同一线程的所有主窗口从这一消息队列中获取消息并由窗口过程（回调函数）进行处理。
+<p>VCOnGUI，即 Virtual Console On MiniGUI，是 MiniGUI 上的虚拟控制台，即运行在 MiniGUI 上的 Linux 控制台仿真器，见图 1。从图1可以看到，MiniGUI 应用程序能够同时创建多个窗口，并且运行在不同的线程。
+ <P ALIGN=CENTER>
+       <IMG SRC="image002.jpg" BORDER="0" ></P>
+<p ALIGN=CENTER>图 1  VConGUI -- MiniGUI 上的 Linux 控制台仿真器
+<p>2.2.2  对话框和标准控件
+<p>MiniGUI 中的对话框是一种特殊的窗口，对话框一般和控件一起使用，这两个概念和 Windows 或 X Window 中的相关概念是类似的。MiniGUI 支持的控件类型有：
+<p>	静态框：文本、图标或矩形框等。
+<p>	文本框：单行或多行的文本编辑框。
+<p>	按钮：单选钮、复选框和一般按钮等。
+<p>	列表框。
+<p>	进度条。
+<p>	工具栏。
+<p>HappyLinux 是国内某公司开发的中文 Linux 发行版，该发行版的安装程序就建立在 MiniGUI 之上。图 2 和图 3 是 HappyLinux 安装程序的典型屏幕。
+<P ALIGN=CENTER>
+         <IMG SRC="image004.jpg" BORDER="0" >
+         <IMG SRC="image006.jpg" BORDER="0" ></P>
+<p ALIGN=CENTER>图 2  HappyLinux 的软件包选择界面   图 3  HappyLinux 的分区界面
+<p>2.2.3  其他 GUI 元素
+<p>MiniGUI 还支持弹出式菜单、插入符、定时器、光标、快捷键等常见的 GUI 元素。图 4 和图 5 说明了其他 GUI 元素的应用情况。图 4 是 Bomb 游戏，是 Windows 扫雷游戏的克隆。图 5 是经典的俄罗斯方块游戏的 MiniGUI 版本，见图 5。
+<P ALIGN=CENTER>
+        <IMG SRC="image007.jpg" BORDER="0" >
+        <IMG SRC="image010.jpg" BORDER="0" ></P>
+<p ALIGN=CENTER>图 4  扫雷游戏的克隆：Bomb 游戏图     图 5  俄罗斯方块游戏的 MiniGUI 版本
+<p>2.2.4  消息和消息循环
+<p>在任何 GUI 系统中，均有事件或消息驱动的概念。在MiniGUI中，我们使用消息驱动作为应用程序的创建构架。
+<p>在消息驱动的应用程序中，计算机外设发生的事件，例如键盘键的敲击、鼠标键的按击等，都由支持系统收集，将其以事先的约定格式翻译为特定的消息。应用程序一般包含有自己的消息队列，系统将消息发送到应用程序的消息队列中。应用程序可以建立一个循环，在这个循环中读取消息并处理消息，直到特定的消息传来为止。这样的循环称为消息循环。一般地，消息由代表消息的一个整型数和消息的附加参数组成。
+<p>应用程序一般要提供一个处理消息的标准函数。在消息循环中，系统可以调用此函数，应用程序在此函数中处理相应的消息。
+<p>2.2.5  图形和输入抽象层
+<p>在 MiniGUI 0.3.xx 的开发中，我们引入了图形和输入抽象层（Graphics and Input Abstract Layer，GAL 和 IAL）的概念。抽象层的概念类似 Linux 内核虚拟文件系统的概念。它定义了一组不依赖于任何特殊硬件的抽象接口，所有顶层的图形操作和输入处理都建立在抽象接口之上。而用于实现这一抽象接口的底层代码称为"图形引擎"或"输入引擎"，类似操作系统中的驱动程序。这实际是一种面向对象的程序结构。利用 GAL 和 IAL，MiniGUI 可以在许多图形引擎上运行，比如 SVGALib 和 LibGGI，并且可以非常方便地将 MiniGUI 移植到其他 POSIX 系统上，只需要根据我们的抽象层接口实现新的图形引擎即可。目前，我们已经编写了基于 SVGALib 和 LibGGI 的图形引擎。利用 LibGGI， MiniGUI 应用程序可以运行在 X Window 上，将大大方便应用程序的调试。我们目前正在进行 MiniGUI 私有图形引擎的设计开发。通过 MiniGUI 的私有图形引擎，我们可以最大程度地针对窗口系统对图形引擎进行优化，最终提高系统的图形性能和效率。
+<p>GAL 和 IAL 的实现，大大提高了 MiniGUI 的可移植性。我们不需要对 MiniGUI 的上层代码进行丝毫修改，只需实现新的 GAL 和 IAL 引擎，就可以让 MiniGUI 运行在其他基于不同硬件的嵌入式 Linux 系统上。比如，蓝点公司在两周内就将 MiniGUI 移植到了基于 StrongARM 的两款嵌入式系统之上。图 6 就是蓝点公司开发的运行于 StrongARM 之上的智能信息家电产品。
+<P ALIGN=CENTER>
+        <IMG SRC="image012.jpg" BORDER="0">
+</p>
+<p ALIGN=CENTER>图 6  正在进行网上购物的蓝点信息家电客户端
+<p>2.2.6  多字体和多字符集支持
+<p>在成功引入 GAL 和 IAL 之后，我们又在处理字体和字符集的模块当中引入了逻辑字体的概念。逻辑字体是 MiniGUI 用来处理文本（包括文本输出和文本分析）的顶层接口。逻辑字体接口将各种不同的字体（比如宋体、黑体和揩体）和字体格式（比如等宽字体、变宽字体等光栅字体和 TrueType、Type1 等矢量字体），以及各种不同字符集（ISO-8859、GB2312、Big5、UNICODE等）综合了起来，从而可以通过统一的接口显示不同字符集的不同字体的文本，并且还可以分析各种字符集文本的组成，比如字符、单词等。在多字体和多字符集的支持中，我们也采用了面向对象的软件技术，使得添加新的字体支持和新的字符集支持非常方便。目前，MiniGUI 能够支持各种光栅字体和 TrueType、Type 1 等矢量字体，并能够支持 GB2312、Big5 等多字节字符集，UNICODE 的支持正在开发当中。有了这一技术，我们就可以在 MiniGUI 的同一窗口中显示属于不同字符集的、不同字体的文本。
+<p>图 7 给出了 MiniGUI 的高级字体支持功能。第一个界面采用 TTF 字体，以旋转方式输出"MiniGUI IS GREAT!"；第二个界面给出了多种字体文字的居中、右对齐等输出效果。
+<P ALIGN=CENTER>
+        <IMG SRC="image013.jpg" BORDER="0">
+        <IMG SRC="image016.jpg" BORDER="0">
+<p ALIGN=CENTER>图 7  MiniGUI 的高级字体支持
+
+<a name="3">
+<p>3  MiniGUI 近期开发情况
+<p>从 1998 年下半年开始 MiniGUI 的开发以后，就一直得到了来自 Internet 的自由软件程序员的鼓励和支持。到目前为止，国内外已经有多家嵌入式系统厂商开始在 MiniGUI 上开发其嵌入式产品，其中也包括清华大学、中科院等科研单位。因此可以说，MiniGUI 的开发已经从最初的孤军作战发展到包括企业、科研单位、个人在内的市集式开发模式，真正体现出了自由软件的强大生命力。目前，正在进行的 MiniGUI 开发包括：
+<p>1．针对 GUI 系统开发 MiniGUI 私有的图形引擎，以便进一步提高图形操作的性能，同时为添加高级的光栅操作函数打下基础。
+<br>2．在多窗口处理上进一步开发，以便完善现有的窗口机制。比如目前已进入测试状态的控件嵌套功能。
+<br>3．进一步开发 MiniGUI 上的控件，比如工具栏、高级列表框等。
+<br>4．提供基于传统 UNIX 系统 IPC 机制的客户/服务器体系，以便支持大型应用程序。
+<br>5．开发基于 MiniGUI 的 GPL 应用程序，比如小型字处理程序、电子邮件客户程序等。
+</p>
+
+<a name="resources">
+<p><strong class="subhead">MiniGUI 的网络资源</strong>
+<p>如果您对 MiniGUI 感兴趣，可参考如下信息获得您想要的资料，您也可以从FTP站点下载最新的 MiniGUI 完整源代码及资源文件。
+<br>如果您在利用 MiniGUI 进行开发的过程中遇到困难，请订阅我们的邮件列表。提问、解答或者发表您的高见。
+
+<p><strong class="subhead">相关资源</strong></p>
+	<ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+                    <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+                    <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+                    <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">About the author</strong>
+<p>魏永明（<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>），男，26 岁，工学硕士，现任蓝点软件（深圳）有限公司北京研发中心技术主管。国内最有影响的自由软件项目之一－－ MiniGUI 的创始人以及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。</p>
+
+</body>
+</html>
+

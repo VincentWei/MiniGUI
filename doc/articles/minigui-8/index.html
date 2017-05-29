@@ -1,0 +1,697 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>MiniGUI 体系结构之四(一)</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+	<p><strong class="title">MiniGUI 体系结构之四</strong><br>
+	<strong class="subtitle">图形抽象层和输入抽象层及 Native Engine 的实现（一）</strong></p>
+
+	<p>魏永明<br>
+	蓝点软件（北京）研发中心技术主管<br>
+	2001/04/15</p>
+<!-- END title and author lines -->
+
+<!-- Editor #5: Begin Table of Contents -->
+	<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>Contents:</b></font></td></tr><tr>
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="1" alt="" border="0"/></font></td>
+                                 
+                             </tr>
+                             <tr>
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="1" height="4" alt="" border="0"/></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1">1  引言</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2">2  MiniGUI 的 GAL 和 IAL 接口</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#resources">资源</a></font></td></tr>
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author">关于作者</a></font></td></tr>
+                <tr><td bgcolor="#000000"><font face="helvetica,helv,arial" size="-3"><img src="/developerWorks/i/c.gif" width="137" height="3"/></font></td></tr>
+	</table></p>
+<!-- End Table of Contents -->
+
+<!-- comments #6: html content of the paper -->
+<p><em>本文是 MiniGUI 体系结构系列文章的第四篇。图形抽象层（GAL）和输入抽象层（IAL）大大提高了 MiniGUI 的可移植性，并将底层图形设备和上层接口分离开来。这里将重点介绍 MiniGUI 的 GAL 和 IAL 接口，并以最新的 MiniGUI-Lite 版本为例，介绍基于 Linux FrameBuffer 的 Native 图形引擎的实现，以及特定嵌入式系统上输入引擎的实现。 </em></p>
+
+
+<a name="1">
+<p><strong class="subhead">1  引言</strong></p>
+
+<p>
+在 MiniGUI 0.3.xx 的开发中，我们引入了图形和输入抽象层（Graphics and Input Abstract Layer，GAL 和 IAL）的概念。抽象层的概念类似 Linux 内核虚拟文件系统的概念。它定义了一组不依赖于任何特殊硬件的抽象接口，所有顶层的图形操作和输入处理都建立在抽象接口之上。而用于实现这一抽象接口的底层代码称为“图形引擎”或“输入引擎”，类似操作系统中的驱动程序。这实际是一种面向对象的程序结构。利用 GAL 和 IAL，MiniGUI 可以在许多已有的图形函数库上运行，比如 SVGALib 和 LibGGI。并且可以非常方便地将 MiniGUI 移植到其他 POSIX 系统上，只需要根据我们的抽象层接口实现新的图形引擎即可。比如，在基于 Linux 的系统上，我们可以在 Linux FrameBuffer 驱动程序的基础上建立通用的 MiniGUI 图形引擎。实际上，包含在 MiniGUI 1.0.00 版本中的私有图形引擎（Native Engine）就是建立在 FrameBuffer 之上的图形引擎。一般而言，基于 Linux 的嵌入式系统均会提供 FrameBuffer 支持，这样私有图形引擎可以运行在一般的 PC 上，也可以运行在特定的嵌入式系统上。
+</p>
+
+<p>
+相比图形来讲，将 MiniGUI 的底层输入与上层相隔显得更为重要。在基于 Linux 的嵌入式系统中，图形引擎可以通过 FrameBuffer 而获得，而输入设备的处理却没有统一的接口。在 PC 上，我们通常使用键盘和鼠标，而在嵌入式系统上，可能只有触摸屏和为数不多的几个键。在这种情况下，提供一个抽象的输入层，就显得格外重要。
+</p>
+
+<p>
+本文将介绍 MiniGUI 的 GAL 和 IAL 接口，并介绍私有图形引擎和特定嵌入式系统下的输入引擎实现。
+</p>
+
+<a name="2">
+<p><strong class="subhead">2  MiniGUI 的 GAL 和 IAL 定义</strong></p>
+
+<p>
+GAL 和 IAL 的结构是类似的，我们以 GAL 为例说明 MiniGUI GAL 和 IAL 抽象层的结构。
+</p>
+
+<strong>2.1  GAL 和图形引擎</strong>
+
+<p>
+参见图 1。系统维护一个已注册图形引擎数组，保存每个图形引擎数据结构的指针。系统利用一个指针保存当前使用的图形引擎。一般而言，系统中至少有两个图形引擎，一个是“哑”图形引擎，不进行任何实际的图形输出；一个是实际要使用的图形引擎，比如 LibGGI 或者 SVGALib，或者 Native Engine。每个图形引擎的数据结构定义了该图形引擎的一些信息，比如标识符、属性等，更重要的是，它实现了 GAL 所定义的各个接口，包括初始化和终止、图形上下文管理、画点处理函数、画线处理函数、矩形框填充函数、调色板函数等等。 
+</p>
+
+<p align="center">
+       <IMG SRC="image01.gif" BORDER="0" ><BR>
+图1  GAL 和图形引擎
+</p>
+
+<p>
+如果在某个实际项目中所使用的图形硬件比较特殊，现有的图形引擎均不支持。这时，我们就可以安照 GAL 所定义的接口实现自己的图形引擎，并指定 MiniGUI 使用这种私有的图形引擎即可。这种软件技术实际就是面向对象多态性的具体体现。
+</p>
+<p>
+利用 GAL 和 IAL，大大提高了 MiniGUI 的可移植性，并且使得程序的开发和调试变得更加容易。我们可以在 X Window 上开发和调试自己的 MiniGUI 程序，通过重新编译就可以让 MiniGUI 应用程序运行在特殊的嵌入式硬件平台上。
+</p>
+<p>
+在代码实现上，MiniGUI 通过 GFX 数据结构来表示图形引擎，见清单 1。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                         清单 1   MiniGUI 中的图形引擎结构（src/include/gal.h）
+
+  55 typedef struct tagGFX
+  56 {
+  57     char*   id;
+  58 
+  59     // Initialization and termination
+  60     BOOL    (*initgfx) (struct tagGFX* gfx);
+  61     void    (*termgfx) (struct tagGFX* gfx);
+  62 
+  63     // Phisical graphics context
+  64     GAL_GC  phygc;
+  65     int     bytes_per_phypixel;
+  66     int     bits_per_phypixel;
+  67     int     width_phygc;
+  68     int     height_phygc;
+  69     int     colors_phygc;
+  70     BOOL    grayscale_screen;
+  71 
+  72     // GC properties
+  73     int     (*bytesperpixel) (GAL_GC gc);
+  74     int     (*bitsperpixel) (GAL_GC gc);
+  75     int     (*width) (GAL_GC gc);
+  76     int     (*height) (GAL_GC gc);
+  77     int     (*colors) (GAL_GC gc);
+  78 
+  79     // Allocation and release of graphics context
+  80     int     (*allocategc) (GAL_GC gc, int width, int height, int depth, 
+  81                 GAL_GC* newgc);
+  82     void    (*freegc) (GAL_GC gc);
+  83     void    (*setgc) (GAL_GC gc);
+  84 
+  85     // Clipping of graphics context
+  86     void    (*enableclipping) (GAL_GC gc);
+  87     void    (*disableclipping) (GAL_GC gc);
+  88     int     (*setclipping) (GAL_GC gc, int x1, int y1, int x2, int y2);
+  89     int     (*getclipping) (GAL_GC gc, int* x1, int* y1, int* x2, int* y2);
+  90 
+  91     // Background and foreground colors
+  92     int     (*getbgcolor) (GAL_GC gc, gal_pixel* color);
+  93     int     (*setbgcolor) (GAL_GC gc, gal_pixel color);
+  94     int     (*getfgcolor) (GAL_GC gc, gal_pixel* color);
+  95     int     (*setfgcolor) (GAL_GC gc, gal_pixel color);
+  96 
+  97     // Convertion between gal_color and gal_pixel
+  98     gal_pixel (*mapcolor) (GAL_GC gc, gal_color *color);
+  99     int     (*unmappixel) (GAL_GC gc, gal_pixel pixel, gal_color* color);
+ 100     int     (*packcolors) (GAL_GC gc, void* buf, gal_color* colors, int len);
+ 101     int     (*unpackpixels) (GAL_GC gc, void* buf, gal_color* colors, int len);
+ 102 
+ 103     // Palette operations
+ 104     int     (*getpalette) (GAL_GC gc, int s, int len, gal_color* cmap);
+ 105     int     (*setpalette) (GAL_GC gc, int s, int len, gal_color* cmap);
+ 106     int     (*setcolorfulpalette) (GAL_GC gc);
+ 107 
+ 108     // Box operations
+ 109     size_t  (*boxsize) (GAL_GC gc, int w, int h);
+ 110     int     (*fillbox) (GAL_GC gc, int x, int y, int w, int h, 
+ 111                 gal_pixel pixel);
+ 112     int     (*putbox) (GAL_GC gc, int x, int y, int w, int h, void* buf);
+ 113     int     (*getbox) (GAL_GC gc, int x, int y, int w, int h, void* buf);
+ 114     int     (*putboxmask) (GAL_GC gc, int x, int y, int w, int h, void* buf, gal_pixel cxx);
+ 115     int     (*putboxpart) (GAL_GC gc, int x, int y, int w, int h, int bw,
+ 116                 int bh, void* buf, int xo, int yo);
+ 117     int     (*putboxwithop) (GAL_GC gc, int x, int y, int w, int h, 
+ 118                 void* buf, int raster_op);
+ 119     int     (*scalebox) (GAL_GC gc, int sw, int sh, void* srcbuf,
+ 120                 int dw, int dh, void* dstbuf);
+ 121     
+ 122     int     (*copybox) (GAL_GC gc, int x, int y, int w, int h, int nx, int ny);
+ 123     int     (*crossblit) (GAL_GC src, int sx, int sy, int sw, int sh,
+ 124                 GAL_GC dst, int dx, int dy); 
+ 125 
+ 126     // Horizontal line operaions
+ 127     int     (*drawhline) (GAL_GC gc, int x, int y, int w, gal_pixel pixel);
+ 128     int     (*puthline)  (GAL_GC gc, int x, int y, int w, void* buf);
+ 129     int     (*gethline)  (GAL_GC gc, int x, int y, int w, void* buf);
+ 130 
+ 131     // Vertical line operations
+ 132     int     (*drawvline) (GAL_GC gc, int x, int y, int h, gal_pixel pixel);
+ 133     int     (*putvline)  (GAL_GC gc, int x, int y, int h, void* buf);
+ 134     int     (*getvline)  (GAL_GC gc, int x, int y, int h, void* buf);
+ 135 
+ 136     // Pixel operations
+ 137     int     (*drawpixel) (GAL_GC gc, int x, int y, gal_pixel pixel);
+ 138     int     (*putpixel) (GAL_GC gc, int x, int y, gal_pixel color);
+ 139     int     (*getpixel) (GAL_GC gc, int x, int y, gal_pixel* color);
+ 140 
+ 141     // Other drawing
+ 142     int     (*circle) (GAL_GC gc, int x, int y, int r, gal_pixel pixel);
+ 143     int     (*line) (GAL_GC gc, int x1, int y1, int x2, int y2, 
+ 144                 gal_pixel pixel);
+ 145     int     (*rectangle) (GAL_GC gc, int l, int t, int r, int b, 
+ 146                 gal_pixel pixel);
+ 147 
+ 148     // Simple Character output
+ 149     int     (*putchar) (GAL_GC gc, int x, int y, char c);
+ 150     int     (*putstr) (GAL_GC gc, int x, int y, const char* str);
+ 151     int     (*getcharsize) (GAL_GC gc, int* width, int* height);
+ 152     int     (*setputcharmode) (GAL_GC gc, int bkmode);
+ 153     int     (*setfontcolors) (GAL_GC gc, 
+ 154                 gal_pixel fg, gal_pixel bg);
+ 155 
+ 156     // Asynchronous mode support
+ 157     void (*flush) (GAL_GC gc);
+ 158     void (*flushregion) (GAL_GC gc, int x, int y, int w, int h);
+ 159 
+ 160     // Panic
+ 161     void (*panic) (int exitcode);
+ 162 
+ 163 } GFX;
+ 164 
+ 165 extern GFX* cur_gfx;
+</pre></td></tr></table>
+
+<p>
+系统启动之后，将根据配置寻找特定的图形引擎作为当前的图形引擎，并且对全局变量 cur_gfx 赋值。之后，当 MiniGUI 需要在屏幕上进行绘制之后，调用当前图形引擎的相应功能函数。比如，在画水平线时如下调用：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+(*cur_gfx-&gt;drawhline) (gc, x, y, w, pixel);
+</pre></td></tr></table>
+
+<p>
+为方便程序书写，我们还定义了如下 C 语言宏：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+ 167 #define PHYSICALGC              (cur_gfx-&gt;phygc)
+ 168 #define BYTESPERPHYPIXEL        (cur_gfx-&gt;bytes_per_phypixel)
+ 169 #define BITSPERPHYPIXEL         (cur_gfx-&gt;bits_per_phypixel)
+ 170 #define WIDTHOFPHYGC            (cur_gfx-&gt;width_phygc)
+ 171 #define HEIGHTOFPHYGC           (cur_gfx-&gt;height_phygc)
+ 172 #define COLORSOFPHYGC           (cur_gfx-&gt;colors_phygc)
+ 173 #define GRAYSCALESCREEN         (cur_gfx-&gt;grayscale_screen)
+ 174 
+ 175 #define GAL_BytesPerPixel       (*cur_gfx-&gt;bytesperpixel)
+ 176 #define GAL_BitsPerPixel        (*cur_gfx-&gt;bitsperpixel)
+ 177 #define GAL_Width               (*cur_gfx-&gt;width)
+ 178 #define GAL_Height              (*cur_gfx-&gt;height)
+ 179 #define GAL_Colors              (*cur_gfx-&gt;colors)
+ 180 
+ 181 #define GAL_InitGfx             (*cur_gfx-&gt;initgfx)
+ 182 #define GAL_TermGfx             (*cur_gfx-&gt;termgfx)
+ 183 
+ 184 #define GAL_AllocateGC          (*cur_gfx-&gt;allocategc)
+ 185 #define GAL_FreeGC              (*cur_gfx-&gt;freegc)
+ 186 
+ ...
+198 
+ 199 #define GAL_MapColor            (*cur_gfx-&gt;mapcolor)
+ 200 #define GAL_UnmapPixel          (*cur_gfx-&gt;unmappixel)
+ 201 #define GAL_PackColors          (*cur_gfx-&gt;packcolors)
+ 202 #define GAL_UnpackPixels        (*cur_gfx-&gt;unpackpixels)
+ 203 
+ ...
+ 208 #define GAL_BoxSize             (*cur_gfx-&gt;boxsize)
+ 209 #define GAL_FillBox             (*cur_gfx-&gt;fillbox)
+ 210 #define GAL_PutBox              (*cur_gfx-&gt;putbox)
+ 211 #define GAL_GetBox              (*cur_gfx-&gt;getbox)
+ 212 #define GAL_PutBoxMask          (*cur_gfx-&gt;putboxmask)
+ 213 #define GAL_PutBoxPart          (*cur_gfx-&gt;putboxpart)
+ 214 #define GAL_PubBoxWithOp        (*cur_gfx-&gt;putboxwithop)
+ 215 #define GAL_ScaleBox            (*cur_gfx-&gt;scalebox)
+ ...
+ 224 #define GAL_DrawVLine           (*cur_gfx-&gt;drawvline)
+ 225 #define GAL_PutVLine            (*cur_gfx-&gt;putvline)
+ 226 #define GAL_GetVLine            (*cur_gfx-&gt;getvline)
+</pre></td></tr></table>
+
+<p>
+这样，上述画线函数可以如下书写：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+GAL_DrawVLine (gc, x, y, w, pixel);
+</pre></td></tr></table>
+
+<p>
+显然，只要在系统初始化时能够根据设定对 cur_gfx 进行适当的赋值，MiniGUI 就能够在相应的图形引擎之上进行绘制。
+</p>
+
+<p>
+对底层图形引擎的调用，主要集中在 MiniGUI 的 GDI 函数中。比如，要绘制一条直线，MiniGUI 的 LineTo 函数定义如清单 2 所示：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                           清单 2   LineTo 函数（src/gdi/draw-lite.c）
+
+ 255 void GUIAPI LineTo (HDC hdc, int x, int y)
+ 256 {
+ 257     PCLIPRECT pClipRect;
+ 258     PDC pdc;
+ 259     RECT rcOutput;
+ 260     int startx, starty;
+ 261 
+ 262     pdc = dc_HDC2PDC(hdc);
+ 263 
+ 264     if (dc_IsGeneralHDC(hdc)) {
+ 265         if (!dc_GenerateECRgn (pdc, FALSE)) {
+ 266             return;
+ 267         }
+ 268     }
+ 269 
+ 270     // Transfer logical to device to screen here.
+ 271     startx = pdc-&gt;CurPenPos.x;
+ 272     starty = pdc-&gt;CurPenPos.y;
+ 273 
+ 274     // Move the current pen pos.
+ 275     pdc-&gt;CurPenPos.x = x;
+ 276     pdc-&gt;CurPenPos.y = y;
+ 277 
+ 278     coor_LP2SP(pdc, &amp;x, &amp;y);
+ 279     coor_LP2SP(pdc, &amp;startx, &amp;starty);
+ 280     rcOutput.left = startx - 1;
+ 281     rcOutput.top  = starty - 1;
+ 282     rcOutput.right = x + 1;
+ 283     rcOutput.bottom = y + 1;
+ 284     NormalizeRect(&amp;rcOutput);
+ 285 
+ 286     IntersectRect (&amp;rcOutput, &amp;rcOutput, &amp;pdc-&gt;ecrgn.rcBound);
+ 287     if( !dc_IsMemHDC(hdc) ) ShowCursorForGDI(FALSE, &amp;rcOutput);
+ 288 
+ 289     // set graphics context.
+ 290     GAL_SetGC (pdc-&gt;gc);
+ 291     GAL_SetFgColor (pdc-&gt;gc, pdc-&gt;pencolor);
+ 292 
+ 293     pClipRect = pdc-&gt;ecrgn.head;
+ 294     while(pClipRect)
+ 295     {
+ 296         if (DoesIntersect (&amp;rcOutput, &amp;pClipRect-&gt;rc)) {
+ 297             GAL_SetClipping (pdc-&gt;gc, pClipRect-&gt;rc.left, pClipRect-&gt;rc.top,
+ 298                     pClipRect-&gt;rc.right - 1, pClipRect-&gt;rc.bottom - 1);
+ 299 
+ 300             if(starty == y) {
+ 301                 if (startx &gt; x)
+ 302                     GAL_DrawHLine (pdc-&gt;gc, x, y, startx - x, pdc-&gt;pencolor);
+ 303                 else
+ 304                     GAL_DrawHLine (pdc-&gt;gc, startx, y, x - startx, pdc-&gt;pencolor);
+ 305             }
+ 306             else
+ 307                 GAL_Line (pdc-&gt;gc, startx, starty, x, y, pdc-&gt;pencolor);
+ 308         }
+ 309             
+ 310         pClipRect = pClipRect-&gt;next;
+ 311     }
+ 312 
+ 313     if (!dc_IsMemHDC (hdc)) ShowCursorForGDI (TRUE, &amp;rcOutput);
+ 314 }
+</pre></td></tr></table>
+
+<p>
+在 MiniGUI 的所有绘图函数中，要依次做如下几件事：
+</p>
+
+<ol>
+    <li>进行逻辑坐标到设备坐标的转换；</li>
+    <li>检查是否应该重新生成有效剪切域；</li>
+    <li>计算输出矩形，并判断是否隐藏鼠标；</li>
+    <li>由于底层引擎尚不支持剪切域，因此，对剪切域中的每个剪切矩形，调用底层绘图函数输出一次。</li>
+</ol>
+
+<p>
+在上面的四个步骤当中，第 3 步和第 4 步实际可以放到底层引擎当中，从而能够大大提高 MiniGUI 的绘图效率。不过，这种性能上的提高，对块输出，比如填充矩形、输出位图来讲，并不是非常明显。在将来的底层图形引擎当中，我们将针对上述两点，进行较大的优化以提高图形输出效率。
+</p>
+
+<strong>2.2  IAL 和输入引擎</strong>
+
+<p>
+如前所属，MiniGUI IAL 结构和 GAL 结构类似。在代码实现上，MiniGUI 通过 INPUT数据结构来表示输入引擎，见清单 3。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                         清单 3   MiniGUI 中的输入引擎结构（src/include/ial.h）
+
+  34 typedef struct tagINPUT
+  35 {
+  36     char*   id;
+  37 
+  38     // Initialization and termination
+  39     BOOL (*init_input) (struct tagINPUT *input, const char* mdev, const char* mtype);
+  40     void (*term_input) (void);
+  41 
+  42     // Mouse operations
+  43     int  (*update_mouse) (void);
+  44     int  (*get_mouse_x) (void);
+  45     int  (*get_mouse_y) (void);
+  46     void (*set_mouse_xy) (int x, int y);
+  47     int  (*get_mouse_button) (void);
+  48     void (*set_mouse_range) (int minx, int miny,int maxx,int maxy);
+  49 
+  50     // Keyboard operations
+  51     int  (*update_keyboard) (void);
+  52     char* (*get_keyboard_state) (void);
+  53         void (*suspend_keyboard) (void);
+  54         void (*resume_keyboard) (void);
+  55     void (*set_leds) (unsigned int leds);
+  56 
+  57     // Event
+  58 #ifdef _LITE_VERSION
+  59     int (*wait_event) (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
+  60             struct timeval *timeout);
+  61 #else
+  62     int (*wait_event) (int which, fd_set *in, fd_set *out, fd_set *except,
+  63             struct timeval *timeout);
+  64 #endif
+  65 }INPUT;
+  66 
+  67 extern INPUT* cur_input;
+</pre></td></tr></table>
+  
+<p>
+系统启动之后，将根据配置寻找特定的输入引擎作为当前的输入引擎，并且对全局变量 cur_input 赋值。
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+(*cur_gfx-&gt;drawhline) (gc, x, y, w, pixel);
+</pre></td></tr></table>
+
+<p>
+为方便程序书写，我们还定义了如下 C 语言宏：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+  69 #define IAL_InitInput           (*cur_input-&gt;init_input)
+  70 #define IAL_TermInput           (*cur_input-&gt;term_input)
+  71 #define IAL_UpdateMouse         (*cur_input-&gt;update_mouse)
+  72 #define IAL_GetMouseX           (*cur_input-&gt;get_mouse_x)
+  73 #define IAL_GetMouseY           (*cur_input-&gt;get_mouse_y)
+  74 #define IAL_SetMouseXY          (*cur_input-&gt;set_mouse_xy)
+  75 #define IAL_GetMouseButton      (*cur_input-&gt;get_mouse_button)
+  76 #define IAL_SetMouseRange      (*cur_input-&gt;set_mouse_range)
+  77 
+  78 #define IAL_UpdateKeyboard      (*cur_input-&gt;update_keyboard)
+  79 #define IAL_GetKeyboardState    (*cur_input-&gt;get_keyboard_state)
+  80 #define IAL_SuspendKeyboard             (*cur_input-&gt;suspend_keyboard)
+  81 #define IAL_ResumeKeyboard              (*cur_input-&gt;resume_keyboard)
+  82 #define IAL_SetLeds(leds)       if (cur_input-&gt;set_leds) (*cur_input-&gt;set_leds) (leds)
+  83 
+  84 #define IAL_WaitEvent           (*cur_input-&gt;wait_event)
+</pre></td></tr></table>
+
+<p>
+在 src/kernel/event.c 中，我们如下调用底层的输入引擎，从而将输入引擎的数据转换为 MiniGUI 上层能够理解的消息（以 MiniGUI-Lite 为例），见清单 4：
+</p>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
+                   清单 4   MiniGUI 对底层输入事件的处理
+
+ 172 #ifdef _LITE_VERSION
+ 173 BOOL GetLWEvent (int event, PLWEVENT lwe)
+ 174 {
+ 175     static LWEVENT old_lwe = {0, 0};
+ 176     unsigned int interval;
+ 177     int button;
+ 178     PMOUSEEVENT me = &amp;(lwe-&gt;data.me);
+ 179     PKEYEVENT ke = &amp;(lwe-&gt;data.ke);
+ 180     unsigned char* keystate;
+ 181     int i;
+ 182     int make;       /* 0 = release, 1 = presse */
+ 183 
+ 184     if (event == 0) {
+ 185         if (timer_counter &gt;= timeout_count) {
+ 186 
+ 187             timeout_count = timer_counter + repeat_threshold;
+ 188 
+ 189             // repeat last event
+ 190             if (old_lwe.type == LWETYPE_KEY 
+ 191                     &amp;&amp; old_lwe.data.ke.event == KE_KEYDOWN) {
+ 192                 memcpy (lwe, &amp;old_lwe, sizeof (LWEVENT));
+ 193                 lwe-&gt;data.ke.status |= KE_REPEATED;
+ 194                 return 1;
+ 195             }
+ 196 
+ 197             if (!(old_lwe.type == LWETYPE_MOUSE
+ 198                     &amp;&amp; (old_lwe.data.me.event == ME_LEFTDOWN ||
+ 199                         old_lwe.data.me.event == ME_RIGHTDOWN ||
+ 200                         old_lwe.data.me.event == ME_MIDDLEDOWN))) {
+ 201                 // reset delay time
+ 202                 timeout_count = timer_counter + timeout_threshold;
+ 203             }
+ 204 
+ 205             // reset delay time
+ 206             lwe-&gt;type = LWETYPE_TIMEOUT;
+ 207             lwe-&gt;count = timer_counter;
+ 208             return 1;
+ 209         }
+ 210         return 0;
+ 211     }
+ 212 
+ 213     timeout_count = timer_counter + timeout_threshold;
+ 214     // There was a event occurred.
+ 215     if (event &amp; IAL_MOUSEEVENT) {
+ 216         lwe-&gt;type = LWETYPE_MOUSE;
+ 217         if (RefreshCursor(&amp;me-&gt;x, &amp;me-&gt;y, &amp;button)) {
+ 218             me-&gt;event = ME_MOVED;
+ 219             time1 = 0;
+ 220             time2 = 0;
+ 221 
+ 222             if (oldbutton == button)
+ 223                 return 1;
+ 224         }
+ 225    
+ 226         if ( !(oldbutton &amp; IAL_MOUSE_LEFTBUTTON) &amp;&amp; 
+ 227               (button &amp; IAL_MOUSE_LEFTBUTTON) )
+ 228         {
+ 229             if (time1) {
+ 230                 interval = timer_counter - time1;
+ 231                 if (interval &lt;= dblclicktime)
+ 232                     me-&gt;event = ME_LEFTDBLCLICK;
+ 233                 else
+ 234                     me-&gt;event = ME_LEFTDOWN;
+ 235                 time1 = 0;
+ 236             }
+ 237             else {
+ 238                 time1 = timer_counter;
+ 239                 me-&gt;event = ME_LEFTDOWN;
+ 240             }
+ 241             goto mouseret;
+ 242         }
+ 243 
+ 244         if ( (oldbutton &amp; IAL_MOUSE_LEFTBUTTON) &amp;&amp; 
+ 245              !(button &amp; IAL_MOUSE_LEFTBUTTON) )
+ 246         {
+ 247             me-&gt;event = ME_LEFTUP;
+ 248             goto mouseret;
+ 249         }
+ 250 
+ 251         if ( !(oldbutton &amp; IAL_MOUSE_RIGHTBUTTON) &amp;&amp; 
+ 252               (button &amp; IAL_MOUSE_RIGHTBUTTON) )
+ 253         {
+ 254             if (time2) {
+ 255                 interval = timer_counter - time2;
+ 256                 if (interval &lt;= dblclicktime)
+ 257                     me-&gt;event = ME_RIGHTDBLCLICK;
+ 258                 else
+ 259                     me-&gt;event = ME_RIGHTDOWN;
+ 260                 time2 = 0;
+ 261             }
+ 262             else {
+ 263                 time2 = timer_counter;
+ 264                 me-&gt;event = ME_RIGHTDOWN;
+ 265             }
+ 266             goto mouseret;
+ 267         }
+ 268 
+ 269         if ( (oldbutton &amp; IAL_MOUSE_RIGHTBUTTON) &amp;&amp; 
+ 270             !(button &amp; IAL_MOUSE_RIGHTBUTTON) )
+ 271         {
+ 272             me-&gt;event = ME_RIGHTUP;
+ 273             goto mouseret;
+ 274         }
+ 275     }
+ 276 
+ 277     if(event &amp; IAL_KEYEVENT) {
+ 278         lwe-&gt;type = LWETYPE_KEY;
+ 279         keystate = IAL_GetKeyboardState ();
+ 280         for(i = 0; i &lt; NR_KEYS; i++) {
+ 281             if(!oldkeystate[i] &amp;&amp; keystate[i]) {
+ 282                  ke-&gt;event = KE_KEYDOWN;
+ 283                  ke-&gt;scancode = i;
+ 284                  olddownkey = i;
+ 285                  break;
+ 286             }
+ 287             if(oldkeystate[i] &amp;&amp; !keystate[i]) {
+ 288                  ke-&gt;event = KE_KEYUP;
+ 289                  ke-&gt;scancode = i;
+ 290                  break;
+ 291             }
+ 292         }
+ 293         if (i == NR_KEYS) {
+ 294             ke-&gt;event = KE_KEYDOWN;
+ 295             ke-&gt;scancode = olddownkey;
+ 296         }
+ 297         
+ 298         make = (ke-&gt;event == KE_KEYDOWN)?1:0;
+ 299 
+ 300         if (i != NR_KEYS) {
+ 301             unsigned leds;
+ 302 
+ 303             switch (ke-&gt;scancode) {
+ 304                 case SCANCODE_CAPSLOCK:
+ 305                     if (make &amp;&amp; caps_off) {
+ 306                         capslock = 1 - capslock;
+ 307                         leds = slock | (numlock &lt;&lt; 1) | (capslock &lt;&lt; 2);
+ 308                         IAL_SetLeds (leds);
+ 309                         status = (DWORD)leds &lt;&lt; 16;
+ 310                     }
+ 311                     caps_off = 1 - make;
+ 312                 break;
+ 313                     
+ 314                 case SCANCODE_NUMLOCK:
+ 315                     if (make &amp;&amp; num_off) {
+ 316                         numlock = 1 - numlock;
+ 317                         leds = slock | (numlock &lt;&lt; 1) | (capslock &lt;&lt; 2);
+ 318                         IAL_SetLeds (leds);
+ 319                         status = (DWORD)leds &lt;&lt; 16;
+ 320                     }
+ 321                     num_off = 1 - make;
+ 322                 break;
+ 323                 
+ 324                 case SCANCODE_SCROLLLOCK:
+ 325                     if (make &amp; slock_off) {
+ 326                         slock = 1 - slock;
+ 327                         leds = slock | (numlock &lt;&lt; 1) | (capslock &lt;&lt; 2);
+ 328                         IAL_SetLeds (leds);
+ 329                         status = (DWORD)leds &lt;&lt; 16;
+ 330                     }
+ 331                     slock_off = 1 - make;
+ 332                     break;
+ 333 
+ 334                 case SCANCODE_LEFTCONTROL:
+ 335                     control1 = make;
+ 336                     break;
+ 337                     
+ 338                 case SCANCODE_RIGHTCONTROL:
+ 339                     control2 = make;
+ 340                     break;
+ 341                     
+ 342                 case SCANCODE_LEFTSHIFT:
+ 343                     shift1 = make;
+ 344                     break;
+ 345                     
+ 346                 case SCANCODE_RIGHTSHIFT:
+ 347                     shift2 = make;
+ 348                     break;
+ 349                     
+ 350                 case SCANCODE_LEFTALT:
+ 351                     alt1 = make;
+ 352                     break;
+ 353 
+ 354                 case SCANCODE_RIGHTALT:
+ 355                     alt2 = make;
+ 356                     break;
+ 357                     
+ 358             }
+ 359 
+ 360             status &amp;= 0xFFFFF0C0;
+ 361 
+ 362             status |= (DWORD)((capslock &lt;&lt; 8) |
+ 363                              (numlock &lt;&lt; 7)   |
+ 364                              (slock &lt;&lt; 6)     |
+ 365                              (control1 &lt;&lt; 5)  |
+ 366                              (control2 &lt;&lt; 4)  |
+ 367                              (alt1 &lt;&lt; 3)      |
+ 368                              (alt2 &lt;&lt; 2)      |
+ 369                              (shift1 &lt;&lt; 1)    |
+ 370                              (shift2));
+ 371                              
+ 372             // Mouse button status
+ 373             if (oldbutton &amp; IAL_MOUSE_LEFTBUTTON)
+ 374                 status |= 0x00000100;
+ 375             else if (oldbutton &amp; IAL_MOUSE_RIGHTBUTTON)
+ 376                 status |= 0x00000200;
+ 377         }
+ 378         ke-&gt;status = status;
+ 379         SHAREDRES_SHIFTSTATUS = status;
+ 380         memcpy (oldkeystate, keystate, NR_KEYS);
+ 381         memcpy (&amp;old_lwe, lwe, sizeof (LWEVENT));
+ 382         return 1;
+ 383     } 
+ 384 
+ 385     old_lwe.type = 0;
+ 386     return 0;
+ 387 
+ 388 mouseret:
+ 389     status &amp;= 0xFFFFF0FF;
+ 390     oldbutton = button;
+ 391     if (oldbutton &amp; IAL_MOUSE_LEFTBUTTON)
+ 392         status |= 0x00000100;
+ 393     if (oldbutton &amp; IAL_MOUSE_RIGHTBUTTON)
+ 394         status |= 0x00000200;
+ 395     me-&gt;status = status;
+ 396     SHAREDRES_SHIFTSTATUS = status;
+ 397     memcpy (&amp;old_lwe, lwe, sizeof (LWEVENT));
+ 398     return 1;
+ 399 }
+#endif
+</pre></td></tr></table>
+
+<p>
+从这段代码中可以看出，对定点设备来讲，比如鼠标或者触摸屏，MiniGUI 能够自动识别移动信息，也能够自动识别用户的单击和双击事件。这样，底层引擎只需提供位置信息和当前的按键状态信息就可以了。对类似键盘的东西，MiniGUI 也能够自动进行重复处理。当一个按键按下一段时间之后，MiniGUI 将连续发送该按键的消息给上层处理。对特定的嵌入式系统来讲，可以将某些按键映射为 PC 的某些键盘键，上层只需处理这些键盘键消息的按下和释放即可。这样，嵌入式系统上的某些键的功能就可以在 PC 上进行模拟了。
+</p>
+
+<p><i>（待续）</i></p>
+
+<a name="resources">
+<p><strong class="subhead">资源</strong></p>
+	<ul>
+	  <li><b>Linux 图形相关资源</b></li>
+		  <ul>
+	        <LI><A HREF="http://www.ggi-project.org">GGI</a> - The GGI Project</LI>
+	        <LI><a href="http://www.svgalib.org">svgalib</a> - The Old Linux Console Graphics Library</LI>
+	        <LI><a href="http://www.devolution.com/~slouken/SDL/">SDL</a> - Simple DirectMedia Layer - linux, BeOS, DirectX ... <font color="#FF0000">very COOL</font></LI>
+	        <LI><a href="http://www.hut.fi/~hmallat/xfb/">xfb</a> - Linux Framebuffer Accelerator</LI>
+	        <LI><a href="http://www.tutok.sk/fastgl/">OpenGUI</a> - OpenGUI is a high-Level C/C++ graphics &amp; windowing library built upon a fast, low-level x86 asm graphics kernel. </LI>
+		  </ul>
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+            <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+            <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+            <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+
+<a name="author">
+<p><strong class="subhead">关于作者</strong>
+<br> 魏永明（ymwei@minigui.org），男，27 岁，工学硕士，现任蓝点软件（深圳）有限公司北京研发中心技术主管。国内最有影响的自由软件项目之一－－ MiniGUI 的创始人以及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。
+</p>
+
+</body>
+</html>

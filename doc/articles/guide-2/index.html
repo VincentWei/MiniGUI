@@ -1,0 +1,342 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>
+<meta name="KEYWORDS" content="[put paper-unique keywords here]"/>
+</head>
+
+<body bgcolor="#ffffff" marginheight="2" marginwidth="2" topmargin="2" leftmargin="2">
+<p><strong class="title">基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南（二）</strong><br>
+<strong class="subtitle">理解消息循环和窗口过程</strong>
+
+<p><a href="#author1">魏永明</a> (<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>)<br />
+自由撰稿人<br />
+2001 年 7 月</p>
+
+<!-- Start TOC -->
+
+<table width="150" border="0" cellspacing="0" cellpadding="3" align="right">
+	<tr><td><a href=#1>引言</a></td></tr>
+	<tr><td><a href=#2>消息和消息循环</a></td></tr>
+	<tr><td><a href=#3>几个重要的消息处理函数</a></td></tr>
+	<tr><td><a href=#4>MiniGUI-Threads 和 MiniGUI-Lite 在消息处理上的不同 </a></td></tr>
+	<tr><td><a href=#5>窗口的建立和销毁</a></td></tr>
+	<tr><td><a href=#6>几个重要消息</a></td></tr>
+	<tr><td><a href=#7>Hello, World</a></td></tr>
+	<tr><td><a href=#8>小结</a></td></tr>
+	<tr><td><a href=#author1>关于作者</a></td></tr>
+</table>
+
+<!-- End TOC -->
+
+<em>在利用 MiniGUI 开发应用程序之前，首先要理解的两个概念就是消息循环和窗口过程。消息循环是事件驱动的 GUI 编程之基础。而窗口则是图形用户界面的最基本交互元素。本文描述了 MiniGUI 中与消息相关的几个重要函数，也描述了 MiniGUI-Threads 和 MiniGUI-Lite 在消息循环实现上的几个不同。本文还讲述了在 MiniGUI 中的窗口建立和销毁过程，并解释了窗口过程的概念以及对一些重要消息的处理。</em>
+
+<p><a name="1"><span class="atitle2">引言</span></a>
+<br />我们知道，流行的 GUI 编程都有一个重要的概念与之相关，即"事件驱动编程"。事件驱动的含义就是，程序的流程不再是只有一个入口和若干个出口的串行执行线路；相反，程序会一直处于一个循环状态，在这个循环当中，程序从外部输入设备获取某些事件，比如用户的按键或者鼠标的移动，然后根据这些事件作出某种的响应，并完成一定的功能，这个循环直到程序接受到某个消息为止。"事件驱动"的底层设施，就是常说的"消息队列"和"消息循环"。本文将具体描述 MiniGUI 中用来处理消息的几个重要函数，并描述 MiniGUI-Threads 和 MiniGUI-Lite 在消息循环实现上的一些不同。</p>
+<p>窗口是 MiniGUI 当中最基本的 GUI 元素，一旦窗口建立之后，窗口就会从消息队列当中获取属于自己的消息，然后交由它的窗口过程进行处理。这些消息当中，有一些是基本的输入设备事件，而有一些则是与窗口管理相关的逻辑消息。本文将讲述 MiniGUI 中的窗口建立和销毁过程，并解释了窗口过程的概念以及对一些重要消息的处理。</p>
+
+<p><a name="2"><span class="atitle2">2  消息和消息循环</span></a>
+<br />在 MiniGUI 中，消息被如下定义（include/window.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+352 typedef struct _MSG
+ 353 {
+ 354     HWND             hwnd;
+ 355     int              message;
+ 356     WPARAM           wParam;
+ 357     LPARAM           lParam;
+ 358 #ifdef _LITE_VERSION
+ 359     unsigned int     time;
+ 360 #else
+ 361     struct timeval   time;
+ 362 #endif
+ 363     POINT            pt;
+ 364 #ifndef _LITE_VERSION
+ 365     void*            pAdd;
+ 366 #endif
+ 367 }MSG;
+ 368 typedef MSG* PMSG;
+</code></pre></td></tr></table></p>
+
+<p>一个消息由该消息所属的窗口（hwnd）、消息编号（message）、消息的 WPARAM 型参数（wParam）以及消息的 LPARAM 型参数（lParam）组成。消息的两个参数中包含了重要的内容。比如，对鼠标消息而言，lParam 中一般包含鼠标的位置信息，而 wParam 参数中则包含发生该消息时，对应的 SHIFT 键的状态信息等。对其他不同的消息类型来讲，wParam 和 lParam 也具有明确的定义。当然，用户也可以自定义消息，并定义消息的 wParam 和 lParam 意义。为了用户能够自定义消息，MiniGUI 定义了 MSG_USER 宏，可如下定义自己的消息：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#define MSG_MYMESSAGE1	(MSG_USER + 1)
+#define MSG_MYMESSAGE2	(MSG_USER + 2)
+</code></pre></td></tr></table>
+用户可以在自己的程序中使用自定义消息，并利用自定义消息传递数据。</p>
+
+<p>在理解消息之后，我们看消息循环。简而言之，消息循环就是一个循环体，在这个循环体中，程序利用 GetMessage 函数不停地从消息队列中获得消息，然后利用 DispatchMessage 函数将消息发送到指定的窗口，也就是调用指定窗口的窗口过程，并传递消息及其参数。典型的消息循环如下所示：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+while (GetMessage (&Msg, hMainWnd)) {
+       TranslateMessage (&Msg);
+       DispatchMessage (&Msg);
+}
+</code></pre></td></tr></table>
+如上所示，GetMessage 函数从 hMainWnd 窗口所属的消息队列当中获得消息，然后调用 TranslateMessage 函数将 MSG_KEYDOWN 和 MSG_KEYUP 消息翻译成 MSG_CHAR 消息，最后调用 DispatchMessage 函数将消息发送到指定的窗口。</p>
+<p>在 MiniGUI-Threads 版本中，每个建立有窗口的 GUI 线程有自己的消息队列，而且，所有属于同一线程的窗口共享同一个消息队列。因此，GetMessage 函数将获得所有与 hMainWnd 窗口在同一线程中的窗口的消息。</p>
+<p>而在 MiniGUI-Lite 版本中，只有一个消息队列，GetMessage 将从该消息队列当中获得所有的消息，而忽略 hMainWnd 参数。</p>
+<p><a name="3"><span class="atitle2">3  几个重要的消息处理函数</span></a>
+<br />除了上面提到的 GetMessage 和 TranslateMessage、DispatchMessage 函数以外，MiniGUI 支持如下几个消息处理函数。 </p>
+<p><b>PostMessage：</b>该函数将消息放到指定窗口的消息队列后立即返回。这种发送方式称为"邮寄"消息。如果消息队列中的邮寄消息缓冲区已满，则该函数返回错误值。在下一个消息循环中，由 GetMessage 函数获得这个消息之后，窗口才会处理该消息。PostMessage 一般用于发送一些非关键性的消息。比如在 MiniGUI 中，鼠标和键盘消息就是通过 PostMessage 函数发送的。</p>
+<p><b>SendMessage：</b>该函数和 PostMessage 函数不同，它在发送一条消息给指定窗口时，将等待该消息被处理之后才会返回。当需要知道某个消息的处理结果时，使用该函数发送消息，然后根据其返回值进行处理。在 MiniGUI-Threads 当中，如果发送消息的线程和接收消息的线程不是同一个线程，发送消息的线程将阻塞并等待另一个线程的处理结果，然后继续运行；否则，SendMessage 函数将直接调用接收消息窗口的窗口过程函数。MiniGUI-Lite 则和上面的第二种情况一样，直接调用接收消息窗口的窗口过程函数。
+</p>
+<p><b>SendNotifyMessage：</b>该函数和 PostMessage 消息类似，也是不等待消息被处理即返回。但和 PostMessage 消息不同，通过该函数发送的消息不会因为缓冲区满而丢失，因为系统采用链表的形式处理这种消息。通过该函数发送的消息一般称为"通知消息"，一般用来从控件向其父窗口发送通知消息。
+</p>
+<p><b>PostQuitMessage：</b>该消息在消息队列中设置一个 QS_QUIT 标志。GetMessage 在从指定消息队列中获取消息时，会检查该标志，如果有 QS_QUIT 标志，GetMessage 消息将返回 FALSE，从而可以利用该返回值终止消息循环。
+</p>
+<p><a name="4"><span class="atitle2">4  MiniGUI-Threads 和 MiniGUI-Lite 在消息处理上的不同</span></a>
+<br />表 1 总结了 MiniGUI-Threads 和 MiniGUI-Lite 在消息处理上的不同</p>
+
+<p>表 1  MiniGUI-Threads 和 MiniGUI-Lite 在消息处理上的不同
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><td>&nbsp;</td><td>MiniGUI-Threads</td><td>MiniGUI-Lite</td></tr>
+<tr><td>多消息队列</td><td>每个创建窗口的线程拥有独立的消息队列</td><td>只有一个消息队列。所有窗口共享一个消息队列。除非嵌套消息循环，否则一个程序中只有一个消息循环。</td></tr>
+<tr><td>内建多线程处理</td><td>是。可以自动处理跨线程的消息传递</td><td>不能。从一个线程向另外一个线程发送或者邮寄消息时，必须通过互斥处理保护消息队列。</td></tr>
+<tr><td>其他</td><td>可以利用 PostSyncMessage 函数跨线程发送消息，并等待消息的处理结果</td><td>不能使用 PostSyncMessage、SendAsynMessage 等消息。</td></tr></table></p>
+<p><a name="5"><span class="atitle2">5  窗口的建立和销毁</span></a></p>
+<p><span class="atitle3">5.1  窗口的建立</span>
+<br />我们知道，MiniGUI 的 API 类似 Win32 的 API。因此，窗口的建立过程和 Windows 程序基本类似。不过也有一些差别。首先我们回顾一下 Windows 应用程序的框架：
+<ol class=n01><li>在 WinMain () 中创建窗口，使用以下步骤：创建窗口类、登记窗口类、创建并显示窗口、启动消息循环。
+<li>在 WndProc () 中，负责对发到窗口中的各种消息进行响应。</ol>
+在 MiniGUI 中也同样要有这两个函数。不过稍微有点不同。程序的入口函数名字叫MiniGUIMain ()，它负责创建程序的主窗口。在建立主窗口之后，程序进入消息循环。</p>
+<p>在 Win32 程序中，在建立一个主窗口之前，程序首先要注册一个窗口类，然后创建一个属于该窗口类的主窗口。MiniGUI 却没有在主窗口中使用窗口类的概念。在 MiniGUI 程序中，首先初始化一个 MAINWINCREATE 结构，该结构中元素的含义是：
+<table border="0" cellspacing="0" cellpadding="5">
+<tr><td>CreateInfo.dwStyle：</td><td>窗口风格</td></tr>
+<tr><td>CreateInfo.spCaption：</td><td>窗口的标题</td></tr>
+<tr><td>CreateInfo.dwExStyle ：</td><td>窗口的附加风格</td></tr>
+<tr><td>CreateInfo.hMenu：</td><td>附加在窗口上的菜单句柄</td></tr>
+<tr><td>CreateInfo.hCursor：</td><td>在窗口中所使用的鼠标光标句柄</td></tr>
+<tr><td>CreateInfo.hIcon：</td><td>程序的图标</td></tr>
+<tr><td>CreateInfo.MainWindowProc：</td><td>该窗口的消息处理函数指针</td></tr>
+<tr><td>CreateInfo.lx：</td><td>窗口左上角相对屏幕的绝对横坐标，以象素点表示</td></tr>
+<tr><td>CreateInfo.ty：</td><td>窗口左上角相对屏幕的绝对纵坐标，以象素点表示</td></tr>
+<tr><td>CreateInfo.rx：</td><td>窗口的长，以象素点表示</td></tr>
+<tr><td>CreateInfo.by：</td><td>窗口的高，以象素点表示</td></tr>
+<tr><td>CreateInfo.iBkColor：</td><td>窗口背景颜色</td></tr>
+<tr><td>CreateInfo.dwAddData：</td><td>附带给窗口的一个 32 位值</td></tr>
+<tr><td>CreateInfo.hHosting：</td><td>窗口消息队列所属</td></tr></table></p>
+
+<p>其中有如下几点要特别说明：
+<ol class=n01><li>CreateInfo.dwAddData：在程序编制过程中，应该尽量减少静态变量，但是如何不使用静态变量而给窗口传递参数呢？这时可以使用这个域。该域是一个 32 位的值，因此可以把所有需要传递给窗口的参数编制成一个结构，而将结构的指针赋予该域。在窗口过程中，可以使用 GetWindowAdditionalData 函数获取该指针，从而获得所需要传递的参数。
+	<li>CreateInfo.hHosting：该域表示的是将要建立的主窗口使用哪个主窗口的消息队列。使用其他主窗口消息队列的主窗口，我们称为"被托管"的主窗口。当然，这只在 MiniGUI-Threads 版本中有效。
+	<li>MainWinProc 函数负责处理窗口消息。这个函数就是主窗口的"窗口过程"。窗口过程一般有四个入口参数，第一个是窗口句柄，第二个是消息类型，第三个和第四个是消息的两个参数。</ol></p>
+<p>在准备好MAINWINCREATE 结构之后，就可以调用 CreateMainWindow 函数建立主窗口了。在建立主窗口之后，典型的程序将进入消息循环。如下所示：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+int MiniGUIMain (int args, const char* arg[])
+{
+    MSG Msg;
+    MAINWINCREATE CreateInfo;
+    HWND hWnd;
+
+    // 初始化 MAINWINCREATE 结构
+    CreateInfo.dwStyle = WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | WS_CAPTION;
+    CreateInfo.spCaption= "MiniGUI step three";
+    CreateInfo.dwExStyle = WS_EX_NONE;
+    CreateInfo.hMenu = createmenu();
+    CreateInfo.hCursor = GetSystemCursor(0);
+    CreateInfo.hIcon = 0;
+    CreateInfo.MainWindowProc = MainWinProc;
+    CreateInfo.lx = 0;
+    CreateInfo.ty = 0;
+    CreateInfo.rx = 640;
+    CreateInfo.by = 480;
+    CreateInfo.iBkColor = COLOR_lightwhite;
+    CreateInfo.dwAddData = 0;
+    CreateInfo.hHosting = HWND_DESKTOP;
+
+    // 建立主窗口
+    hWnd = CreateMainWindow(&CreateInfo);
+    if (hWnd == HWND_INVALID)
+        return 0;
+
+    // 显示主窗口
+    ShowWindow (hWnd, SW_SHOWNORMAL);
+
+    //  进入消息循环
+    while (GetMessage(&Msg, hWnd)) {
+        TranslateMessage (&Msg);
+        DispatchMessage(&Msg);
+    }
+
+    MainWindowThreadCleanup (hWnd);
+    return 0;
+}
+</code></pre></td></tr></table>
+注意，和 Windows 程序不同的是，在退出消息循环之后，还要调用一个函数，即 MainWindowThreadCleaup 函数。该函数的工作是销毁主窗口的消息队列，一般在线程或者进程的最后调用。</p>
+
+<p><span class="atitle3">5.2  窗口的销毁</span>
+<br />要销毁一个主窗口，可以利用 DestroyMainWindow (hWnd) 函数。该函数将销毁主窗口，但不会销毁主窗口所使用的消息队列，而要使用MainWindowThreadCleaup 最终清除主窗口所使用的消息队列。</p>
+<p>一般而言，一个主窗口过程在接收到 MSG_CLOSE 消息之后会销毁主窗口，并调用 PostQuitMessage 消息终止消息循环。如下所示：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+case MSG_CLOSE:
+    // 销毁窗口使用的资源
+    DestroyLogFont (logfont1);
+    DestroyLogFont (logfont2);
+    DestroyLogFont (logfont3);
+    
+    // 销毁子窗口
+    DestroyWindow(hWndButton);
+    DestroyWindow(hWndEdit);
+    // 销毁主窗口
+    DestroyMainWindow (hWnd);
+    // 发送 MSG_QUIT 消息
+    PostQuitMessage(hWnd);
+    return 0;
+</code></pre></td></tr></table></p>
+<p><a name="6"><span class="atitle2">6  几个重要消息</span></a>
+<br />在窗口（包括主窗口和子窗口在内）的生存周期当中，有几个重要的消息需要仔细处理。下面描述这些消息的概念和典型处理。</p>
+
+<p><span class="atitle3">6.1  MSG_NCCREATE</span>
+<br />该消息在 MiniGUI 建立主窗口的过程中发送到窗口过程。lParam 中包含了由 CreateMainWindow 传递进入的 pCreateInfo 结构指针。您可以在该消息的处理过程中修改 pCreateInfo 结构中的某些值。</p>
+<p><span class="atitle3">6.2  MSG_SIZECHANGING</span>
+<br />该消息窗口尺寸发生变化时，或者建立窗口时发送到窗口过程，用来确定窗口大小。wParam 包含预期的窗口尺寸值，而 lParam 用来保存结果值。MiniGUI 的默认处理是，
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+case MSG_SIZECHANGING:
+	memcpy ((PRECT)lParam, (PRECT)wParam, sizeof (RECT));
+	return 0;
+</code></pre></td></tr></table></p>
+<p>你可以截获该消息的处理，从而让即将创建的窗口位于指定的位置，或者具有固定的大小，比如在 SPINBOX 控件中，就处理了该消息，使之具有固定的大小：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+case MSG_SIZECHANGING:
+{
+	const RECT* rcExpect = (const RECT*) wParam;
+	RECT* rcResult = (RECT*) lPraram;
+
+	rcResult->left = rcExpect->left;
+	rcResult->top = rcExpect->top;
+	rcResult->right = rcExpect->left +  _WIDTH;
+	rcResult->bottom = rcExpect->left +  _HEIGHT;
+	return 0;
+}
+</code></pre></td></tr></table></p>
+<p><span class="atitle3">6.3  MSG_CHANGESIZE</span>
+<br />在确立窗口大小之后，该消息被发送到窗口过程，用来通知确定之后的窗口大小。wParam 包含了窗口大小 RECT 的指针。注意应用程序应该将该消息传递给 MiniGUI 进行默认处理。</p>
+
+<p><span class="atitle3">6.4  MSG_SIZECHANGED</span>
+<br />该消息用来确定窗口客户区的大小，和 MSG_SIZECHANGING 消息类似。wParam 参数包含窗口大小信息，lParam 参数是用来保存窗口客户区大小的 RECT 指针，并且具有默认值。如果该消息的处理返回非零值，则将采用 lParam 当中包含的大小值作为客户区的大小；否则，将忽略该消息的处理。比如在 SPINBOX 控件中，就处理了该消息，并使客户区占具所有的窗口范围：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+case MSG_SIZECHANGED
+{
+	RECT* rcClient = (RECT*) lPraram;
+
+	rcClient->right = rcClient->left  +  _WIDTH;
+	rcClient->bottom = rcClient->top +  _HEIGHT;
+	return 0;
+}
+</code></pre></td></tr></table></p>
+<p><span class="atitle3">6.5  MSG_CREATE</span>
+<br />该消息在建立好的窗口成功添加到 MiniGUI 的窗口管理器之后发送到窗口过程。这时，应用程序可以在其中创建子窗口。如果该消息返回非零值，则将销毁新建的窗口。注意，在 MSG_NCCREATE 消息被发送时，窗口尚未正常建立，所以不能在 MSG_NCCREATE 消息中建立子窗口。</p>
+<p><span class="atitle3">6.6  MSG_PAINT</span>
+<br />该消息在需要进行窗口重绘时发送到窗口过程。MiniGUI 通过判断窗口是否含有无效区域来确定是否需要重绘。当窗口在初始显示、从隐藏状态变化为显示状态、从部分不可见到可见状态，或者应用程序调用 InvalidateRect 函数使某个矩形区域变成无效时，窗口将具有特定的无效区域。这时，MiniGUI 将在处理完所有的邮寄消息、通知消息之后处理无效区域，并向窗口过程发送 MSG_PAINT 消息。该消息的典型处理如下：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+case MSG_PAINT:
+{
+	HDC hdc;
+
+	hdc = BeginPaint (hWnd);
+
+	// 使用 hdc 绘制窗口
+	...
+
+	EndPaint (hWnd, hdc);
+	break;
+}
+</code></pre></td></tr></table></p>
+<p><span class="atitle3">6.7  MSG_DESTROY</span>
+<br />该消息在应用程序调用 DestroyMainWindow 或者 DestroyWindow 时发送到窗口过程当中，用来通知系统即将销毁一个窗口。如果该消息的处理返回非零值，则将取消销毁过程。</p>
+<p><a name="7"><span class="atitle2">7  Hello, World</span></a>
+<br />在这个小节当中，我们给出一个简单的示例程序，该程序在窗口中打印"Hello, world!"：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#include &lt;stdio.h>
+#include &lt;stdlib.h>
+#include &lt;string.h>
+
+#include &lt;minigui/common.h>
+#include &lt;minigui/minigui.h>
+#include &lt;minigui/gdi.h>
+#include &lt;minigui/window.h>
+
+static int HelloWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+{
+    HDC hdc;
+
+    switch (message) {
+        case MSG_PAINT:
+            hdc = BeginPaint (hWnd);
+            TextOut (hdc, 0, 0, "Hello, world!");
+            EndPaint (hWnd, hdc);
+        break;
+
+        case MSG_CLOSE:
+            DestroyMainWindow (hWnd);
+            PostQuitMessage (hWnd);
+        return 0;
+    }
+
+    return DefaultMainWinProc(hWnd, message, wParam, lParam);
+}
+
+static void InitCreateInfo (PMAINWINCREATE pCreateInfo)
+{
+    pCreateInfo->dwStyle = WS_CAPTION | WS_VISIBLE;
+    pCreateInfo->dwExStyle = 0;
+    pCreateInfo->spCaption = "Hello, world!" ;
+    pCreateInfo->hMenu = 0;
+    pCreateInfo->hCursor = GetSystemCursor (0);
+    pCreateInfo->hIcon = 0;
+    pCreateInfo->MainWindowProc = HelloWinProc;
+    pCreateInfo->lx = 0; 
+    pCreateInfo->ty = 0; 
+    pCreateInfo->rx = 320;
+    pCreateInfo->by = 240;
+    pCreateInfo->iBkColor = PIXEL_lightwhite; 
+    pCreateInfo->dwAddData = 0;
+    pCreateInfo->hHosting = HWND_DESKTOP;
+}
+
+int MiniGUIMain (int args, const char* arg[])
+{
+    MSG Msg;
+    MAINWINCREATE CreateInfo;
+    HWND hMainWnd;
+
+#ifdef _LITE_VERSION
+    SetDesktopRect (0, 0, 800, 600);
+#endif
+
+    InitCreateInfo (&CreateInfo);
+
+    hMainWnd = CreateMainWindow (&CreateInfo);
+    if (hMainWnd == HWND_INVALID)
+        return -1;
+
+    while (GetMessage (&Msg, hMainWnd)) {
+        DispatchMessage (&Msg);
+    }
+
+    MainWindowThreadCleanup (hMainWnd);
+    return 0;
+}
+</code></pre></td></tr></table>
+很显然，这是一个非常简单的程序。该程序使用了 MiniGUI 的默认过程来处理我们前面提到的许多消息，而仅仅处理了 MSG_PAINT 和 MSG_CLOSE 两条消息。当用户单击标题栏上的关闭按钮时，MiniGUI 将发送 MSG_CLOSE 到窗口过程。这时，应用程序就可以销毁窗口，并终止消息循环，最终退出程序。
+</p>
+<p><a name="8"><span class="atitle2">8  小结</span></a>
+<br />本文描述了 MiniGUI 中与消息相关的几个重要函数，并讲述了 MiniGUI-Threads 和 MiniGUI-Lite 在消息机制实现上的几个不同。本文还讲述了在 MiniGUI 中的窗口建立和销毁过程，并解释了窗口过程的概念以及一些重要消息的处理。最后，本文给出了一个简单的 MiniGUI 的示例程序，该程序建立窗口，并在其中打印"Hello, world!"。</p>
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<a name="author1"><span class="atitle2">关于作者</span></a>
+<br />魏永明（<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>），男，27 岁，工学硕士。国内最有影响的自由软件项目之一－－MiniGUI 的创始人及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。</td></tr></table>
+<!-- END PAPER BODY -->
+
+</body>
+</html>

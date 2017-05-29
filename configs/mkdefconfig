@@ -1,0 +1,51 @@
+#!/bin/bash
+# This script is used to make the default config file: defconfig.
+
+FEATURE_IN=feature.in
+DEFCONFIG=defconfig
+CONFIGURE_HELP=.config_help
+
+SAVEIFS=$IFS
+IFS==
+
+cd ../; \
+./configure --help > configs/$CONFIGURE_HELP; \
+cd -
+
+function check_def_yes () {
+  if grep "$1" $CONFIGURE_HELP | grep "<default=yes>" > /dev/null; then
+     return 0
+  else
+     return -1
+  fi
+}
+
+echo "# default config file, made by mkdefconfig" > $DEFCONFIG
+echo "" >> $DEFCONFIG
+
+if [ -s $FEATURE_IN ]; then
+  while read var_config feature
+  do
+
+    if [ "$feature" != "" ]; then
+      if check_def_yes $feature; then
+         echo $var_config=y >> $DEFCONFIG
+      else
+         echo $var_config=n >> $DEFCONFIG
+      fi
+    else
+         echo $var_config >> $DEFCONFIG
+    fi
+
+  done < $FEATURE_IN
+fi
+
+echo \
+"CONFIG_OS_LINUX=y
+CONFIG_COMPILER_X86=y
+CONFIG_LIBC_GLIBC=y" \
+>> $DEFCONFIG
+
+rm $CONFIGURE_HELP
+
+IFS=$SAVEIFS

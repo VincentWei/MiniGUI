@@ -1,0 +1,14 @@
+#!/bin/sh
+
+CFLAGS=-D__CYGWIN__ \
+./configure \
+    --enable-videodummy \
+    --disable-videoqvfb \
+    --enable-dummyial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-libvcongui \
+    --enable-incoreres \
+    --disable-pngsupport \
+    --disable-jpgsupport \
+    --disable-ttfsupport

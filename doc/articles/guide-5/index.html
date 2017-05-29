@@ -1,0 +1,347 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>
+<meta name="KEYWORDS" content="MiniGUI Embedded Linux Programming Guide"/>
+</head>
+
+<body bgcolor="#ffffff" marginheight="2" marginwidth="2" topmargin="2" leftmargin="2">
+<p><strong class="title">基于 Linux 和 MiniGUI 的嵌入式系统软件开发指南（五）</strong><br>
+<strong class="subtitle">MiniGUI 1.1.0 版本引入的新 GDI 功能和函数</strong>
+
+<p><a href="#author1">魏永明</a> (<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>)<br />
+自由撰稿人<br />
+2001 年 10 月</p>
+
+<!-- Start TOC -->
+
+<table width="150" border="0" cellspacing="0" cellpadding="3" align="right">
+	<tr><td><a href=#1>引言</a></td></tr>
+	<tr><td><a href=#2>新 GAL 和新 GDI 接口的设计目标</a></td></tr>
+	<tr><td><a href=#3>新的 GAL 接口特色</a></td></tr>
+	<tr><td><a href=#4>新的 GDI 接口</a></td></tr>
+	<tr><td><a href=#5>其他</a></td></tr>
+	<tr><td><a href=#6>小结</a></td></tr>
+	<tr><td><a href=#author1>关于作者</a></td></tr>
+</table>
+
+<!-- End TOC -->
+
+<em>本文向读者展现了 MiniGUI 的最新开发成果，即在 MiniGUI 1.1.0Pre4 版本中引入的新的 GAL 和新的 GDI 功能和接口。这些接口最终会出现在 MiniGUI 1.1.0 正式版本中。本文主要内容包括 GAL 和 GDI 的关系，新 GAL 引擎的接口特点，新 GDI 的功能增强以及接口应用范例等等。</em>
+
+<p><a name="1"><span class="atitle2">1  引言</span></a>
+<br />在本系列开发指南（四）中，我们详细讲解了 MiniGUI 的 GDI 函数及其使用。我们也曾提到，MiniGUI 现有的 GDI 函数和功能，尚不能对机顶盒、瘦客户机等高端嵌入式系统提供良好支持。因此，我们在 MiniGUI 1.1.0 版本的开发中，重点对 GAL 和 GDI 进行了大规模的改良，几乎重新编写了所有代码。这些新的接口和功能，首先出现在最近发布的 MiniGUI 1.1.0Pre4 版本中，为了帮助开发人员正确理解和使用这些功能，特撰文说明新 GAL 和新 GDI 的接口和功能。</p>
+<p><a name="2"><span class="atitle2">2  新 GAL 和新 GDI 接口的设计目标</span></a>
+<br />首先，MiniGUI 旧的 GDI 接口非常简单，其功能主要集中在位图和块操作上，例如 FillBox 函数、FillBoxWithBitmap 等等，而缺少对其他高级图形操作的支持，比如椭圆、圆弧、样条曲线等等。其次，旧的 GDI 接口还缺少基本的光栅操作功能。这里的光栅操作，指欲设定象素如何与屏幕上已有的象素进行运算。最基本的光栅操作功能是二进制的位操作，包括与、或、异或以及直接设置等等；高级的光栅操作包括透明处理和 Alpha 混和。这些 GDI 功能的缺乏，使得 MiniGUI 在机顶盒、瘦客户等系统中应用时，显得"力不从心"。再次，旧的 GDI 接口基本上没有考虑到任何硬件加速功能。我们大家都知道，显示卡自身提供的硬件加速功能，能够大大提高图形程序的运行速度，使得画面流畅而自然，如果 GUI 系统不能充分利用这些硬件特性的话，则图形处理能力将大打折扣。最后，旧的 GAL 设计存在抽象层次太高的问题，导致了 GAL 引擎臃肿，且重复代码很多，也不便于进行代码上的优化。</p>
+<p>综上所述，我们参照著名的跨平台游戏和多媒体函数库 SDL（Simple DirectMedia Layer）对 GAL 引擎结构进行了重新设计，并且重新实现了所有的 GDI 函数，使得新的 GDI 接口具备如下特性：
+<ul class=n01>
+<li>能够充分利用硬件特性，包括显示内存和硬件加速能力。
+<li>支持高级图形操作，包括基本光栅操作、透明处理和 Alpha 混和。
+<li>增强了剪切区域处理能力，有助于优化图形输出函数。
+<li>增强了原有的 BITMAP 接口，使之支持透明和 Alpha 通道。
+<li>充分利用嵌入式汇编代码进行代码优化。</ul></p>
+<p>下面将重点讲述新的 GAL 功能和新的 GDI 接口。</p>
+<p><a name="3"><span class="atitle2">3  新 GAL 功能特性</span></a>
+<br />新的 GAL 结构来自著名的跨平台游戏和多媒体库 SDL（Simple DirectMedia Layer）。目前提供了对 Linux FrameBuffer 的支持，计划在将来提供对 X、SVGALib 和 VGL（FreeBSD）等等图形库的支持。</p>
+<p><span class="atitle3">3.1  GAL 和 GDI 的关系</span>
+<br />大家都知道，MiniGUI 的 GAL 是一个图形抽象层，提供给上层 GDI 函数一些基础的功能和设施。在先前的设计中，GAL 可以看成是 GDI 图形驱动程序，许多图形操作函数，比如点、线、矩形填充、位图操作等等，均通过 GAL 的相应函数完成。这种设计的最大问题是无法对 GDI 进行扩展。比如要增加椭圆绘制函数，就需要在每个引擎当中实现椭圆的绘制函数。并且 GDI 管理的是剪切域，而 GAL 引擎却基于剪切矩形进行操作。这种方法也导致了 GDI 函数无法进行绘制优化。因此，在新的 GAL 和 GDI 接口设计中，我们将 GAL 的接口进行了限制，而将原有许多由 GAL 引擎完成的图形输出函数，提高到上层 GDI 函数中完成。GAL 和 GDI 的新的功能划分如下：
+<Ul class=n01>
+<li>GAL 负责对显示设备进行初始化，并管理显示内存的使用；
+<li>GAL 负责为上层 GDI 提供映射到进程地址空间的线性显示内存，以及诸如调色板等其他相关信息；
+<li>GAL 负责实现快速的位块操作，包括矩形填充和 Blitting 操作等，并且在可能的情况下，充分利用硬件加速功能；
+<li>GDI 函数实现高级图形功能，包括点、线、圆、椭圆、圆弧、样条曲线，以及更加高级的逻辑画笔和逻辑画刷，必要时调用 GAL 接口完成加速功能；
+<li>尽管某些显示卡也提供有对上述高级绘图功能的硬件支持，但考虑到其他因素，这些硬件加速功能不由 GAL 接口提供；而统统通过软件实现。</ul></p>
+<p>这样，GAL 主要实现的绘图功能限制在位块操作上，比如矩形填充和 Blitting 操作；而其他的高级图形功能，则全部由 GDI 函数实现。</p>
+<p><span class="atitle3">3.2  显示内存的有效利用</span>
+<br />新的 GAL 接口能够有效利用显示卡上的显示内存，并充分利用硬件加速功能。我们知道，现在显示卡一般具有 4M 以上的显示内存，而一般的显示模式下，不会占用所有的显示内存。比如在显示模式为 1204x768x32bpp 时，一屏象素所占用的内存为 3M，还有 1M 的内存可供应用程序使用。因此，新的 GAL 引擎能够管理这部分未被使用的显示内存，并分配给应用程序使用。这样，一方面可以节省系统内存的使用，另一方面，可以充分利用显示卡提供的加速功能，在显示内存的两个不同内存区域之间进行快速的位块操作，也就是常说的 Blitting。</p>
+<p><span class="atitle3">3.3  Blitting 操作</span>
+<br />在上层 GDI 接口在建立内存 DC 设备时，将首先在显示内存上分配内存，如果失败，才会考虑使用系统内存。这样，如果 GAL 引擎提供了硬件加速功能，两个不同 DC 设备之间的 Blitting 操作（即 GDI 函数 BitBlt），将以最快的速度运行。更进一步，如果硬件支持透明或 Alpha 混和功能，则透明的或者 Alpha 混和的 Blitting 操作也将以最快的速度运行。新的 GAL 接口能够根据底层引擎的加速能力自动利用这些硬件加速功能。目前支持的硬件加速能力主要有：矩形填充，普通的 Blitting 操作，透明、Alpha 混和的 Blitting 操作等。当然，如果硬件不支持这些加速功能，新的 GAL 接口也能够通过软件实现这些功能。目前通过 GAL 的 FrameBuffer 引擎提供上述硬件加速功能的显卡有：Matrox、3dfx 等。</p>
+<p>在通过软件实现透明或混和的 DC 间 Blitting 操作时，新的 GAL 接口利用了两种有效的优化措施：
+<Ul class=n01>
+<li>在 i386 平台上，充分利用嵌入式汇编代码进行优化处理；比如在处理 32 位色模式下的普通 Blitting 操作时，在利用普通的 C 库函数，即 memcpy 进行位块复制时，由于 memcpy 函数是以字节为单位进行复制的，从而无法利用 32 位 CPU 对 32 位字的处理能力，为此，可以使用嵌入式汇编，并以 32 位字为单位进行复制，这将大大提高 Bliting 操作的处理速度。
+<li>对源 DC 进行 RLE（Run Length Encoding）编码，从而对象素的处理数量最小化。RLE 可以看成是一种图象压缩算法，Windows BMP 文件就利用了这种算法。RLE 是按水平扫描线进行压缩编码处理的。在一条扫描线上，如果有大量相同的象素，则不会保存这些象素点，而是首先保存具有相同象素点的数目，然后保存这些象素点的值。这样，在进行透明或者混和的 Blitting 操作时，可以大大降低逐点运算带来的速度损失。但是，如果在最坏的情况下，比如所有水平扫描线上的象素点都具有和相邻点不同的象素值，则 RLE 编码反而会增加象素的存储空间（最坏的情况是原有空间的两倍），同时也会降低 Blitting 操作的速度。因此是否使用 RLE 编码，要根据情况而定。新的 GDI 接口在指定源 DC 的透明和 Alpha 通道值时，可以指定是否使用 RLE 编码。</ul></p>
+<p><span class="atitle3">3.4  有效分辨率</span>
+<br />新的 GAL 引擎可以设定一个不同于实际显示分辨率的有效分辨率。比如实际的显示分辨率是 1024x768，则可以在 /etc/MiniGUI.cfg 文件中指定比实际分辨率低的有效分辨率。这种特性有利于在 PC 上调试需要运行在较小分辨率系统上的应用程序。比如：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+[system]
+MG_GAL_ENGINE=native
+ial_engine=native
+
+[native]
+defaultmode=320x240x16
+</code></pre></td></tr></table></p>
+<p>其中在 defaultmode 当中指定了有效分辨率为 320x240，16 则表示颜色深度，即 16 位色，或者称为每象素的二进制位数。需要注意的是，对 VESA FramBuffer 设备，必须指定和当前颜色深度一致的颜色深度值。对其他的 FrameBuffer 设备，如果能够支持多种显示模式，则会根据 defaultmode 指定的模式设置当前分辨率。</p>
+<p><span class="atitle3">3.5  新 GAL 的限制</span>
+<br />需要注意的是，新的 GAL 结构只打算支持线性显示内存，并且只支持 8 位色以上的显示模式。如果要支持低于 8 位色的显示模式，则可以选择使用老的 GAL 和 GDI 接口。在配置 MiniGUI 的时候，你可以指定是否使用老的 GAL 和 GDI 接口。默认情况下的配置是使用新的 GAL 和 GDI 接口，需要使用老的 GAL 和 GDI 接口时，应进行如下的配置：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+./configure --disable-newgal
+</code></pre></td></tr></table></p>
+<p>另外，新的 GAL 接口支持 Gamma 校正和 YUV Overlay，但目前尚未在 GDI 接口中体现这些功能。在新的版本中，会逐步添加相应的 GDI 接口。</p>
+<p><a name="4"><span class="atitle2">4  新的 GDI 接口</span></a></p>
+<p><span class="atitle3">4.1  新的区域算法</span>
+<br />新的 GDI 采用了新的区域算法，即在 X Window 和其他 GUI 系统当中广泛使用的区域算法。这种区域称作"x-y-banned"区域，并且具有如下特点：
+<ul class=n01>
+<li>区域由互不相交的非空矩形组成；
+<li>区域又可以划分为若干互不相交的水平条带，每个水平条带中的矩形是等高，而且是上对齐的；或者说，这些矩形具有相同的高度，而且所有矩形的左上角 y 坐标相等。
+<li>区域中矩形的排列，首先是在 x 方向（在一个条带中）从左到右排列，然后按照 y 坐标从上到下排列。</ul></p>
+<p>在 GDI 函数进行绘图输出时，可以利用 x-y-banned 区域的特殊性质进行绘图的优化。在将来版本中添加的绘图函数，将充分利用这一特性进行绘图输出上的优化。</p>
+<p>新的 GDI 增加了如下接口，可用于剪切区域的运算（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y);
+BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect);
+
+BOOL GUIAPI IntersectRegion (CLIPRGN *dst, const CLIPRGN *src1, const CLIPRGN *src2);
+BOOL GUIAPI UnionRegion (PCLIPRGN dst, const CLIPRGN* src1, const CLIPRGN* src2);
+BOOL GUIAPI SubtractRegion (CLIPRGN* rgnD, const CLIPRGN* rgnM, const CLIPRGN* rgnS);
+BOOL GUIAPI XorRegion (CLIPRGN *dst, const CLIPRGN *src1, const CLIPRGN *src2);
+</code></pre></td></tr></table></p>
+<ul class=n01>
+<li>PtInRegion 函数可用来检查给定点是否位于给定的区域中。
+<li>RectInRegion 函数可用来检查给定矩形是否和给定区域相交。
+<li>IntersectRegion 函数对两个给定区域进行求交运算。
+<li>UnionRegion 函数可合并两个不同的区域，合并后的区域仍然是 x-y-banned 的区域。
+<li>SubstractRegion 函数从一个区域中减去另外一个区域。
+<li>XorRegion 函数对两个区域进行异或运算，其结果相当于 src1 减 src2 的结果 A 与 src2 减 src1 的结果 B 之间的交。</ul>
+<p>在 MiniGUI 1.1.0 版本正式发布时，我们将添加从多边形、椭圆或圆弧等封闭曲线中生成剪切域的 GDI 函数。这样，就可以实现将 GDI 输出限制在特殊封闭曲线的效果。</p>
+<p><span class="atitle3">4.2  光栅操作</span>
+<br />光栅操作是指在进行绘图输出时，如何将要输出的象素点和屏幕上已有的象素点进行运算。最典型的运算是下面要讲到的 Alpha 混和。这里的光栅操作特指二进制的位操作，包括与、或、异或和直接的设置（覆盖）等等。应用程序可以利用 SetRasterOperation/GetRasterOperation 函数设置或者获取当前的光栅操作。这两个函数的原型如下（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#define ROP_SET         0
+#define ROP_AND         1
+#define ROP_OR          2
+#define ROP_XOR         3
+
+int GUIAPI GetRasterOperation (HDC hdc);
+int GUIAPI SetRasterOperation (HDC hdc, int rop);
+</code></pre></td></tr></table>在设置了新的光栅操作之后，其后的一般图形输出将受到设定的光栅操作的影响，这些图形输出包括：SetPixel、LineTo、Circle、Rectangle、FillRect 和 FillCircle 等等。需要注意的是，新的 GDI 函数引入了一个新的矩形填充函数――FillRect。如上所述，FillRect 函数是受当前光栅操作影响的，而原先的 FillBox 函数则不受当前的光栅操作影响。这是因为 FillBox 函数会利用硬件加速功能实现矩形填充，并且该函数的填充速度要比 FillRect 函数快。</p>
+<p><span class="atitle3">4.3  内存 DC 和 BitBlt</span>
+<br />新的 GDI 函数增强了内存 DC 操作函数。GDI 函数在建立内存 DC 时，将调用 GAL 的相应接口。如前所述，GAL 将尽量把内存 DC 建立在显示卡的显示内存当中。这样，可以充分利用显示卡的硬件加速功能，实现显示内存中两个不同区域之间位块的快速移动、复制等等，包括透明处理和 Alpha 混和。应用程序可以建立一个具有逐点 Alpha 特性的内存 DC（每个点具有不同的 Alpha 值），也可以通过 SetMemDCAlpha 设置内存 DC 所有象素的 Alpha 值（或者称为"Alpha 通道"），然后利用 BitBlt 和 StretchBlt 函数实现 DC 之间的位块传送。应用程序还可以通过 SetMemDCColorKey 函数设置源 DC 的透明色，从而在进行 BitBlt 时跳过这些透明色。</p>
+<p>有关内存 DC 的 GDI 函数有（include/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#define MEMDC_FLAG_NONE         0x00000000          /* None. */
+#define MEMDC_FLAG_SWSURFACE    0x00000000          /* DC is in system memory */
+#define MEMDC_FLAG_HWSURFACE    0x00000001          /* DC is in video memory */
+#define MEMDC_FLAG_SRCCOLORKEY  0x00001000          /* Blit uses a source color key */
+#define MEMDC_FLAG_SRCALPHA     0x00010000          /* Blit uses source alpha blending */
+#define MEMDC_FLAG_RLEACCEL     0x00004000          /* Surface is RLE encoded */
+
+HDC GUIAPI CreateCompatibleDC (HDC hdc);
+HDC GUIAPI CreateMemDC (int width, int height, int depth, DWORD flags,
+                Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+BOOL GUIAPI ConvertMemDC (HDC mem_dc, HDC ref_dc, DWORD flags);
+BOOL GUIAPI SetMemDCAlpha (HDC mem_dc, DWORD flags, Uint8 alpha);
+BOOL GUIAPI SetMemDCColorKey (HDC mem_dc, DWORD flags, Uint32 color_key);
+void GUIAPI DeleteMemDC (HDC mem_dc);
+</code></pre></td></tr></table></p>
+<p>CreateCompatibleDC 函数创建一个和给定 DC 兼容的内存 DC。兼容的含义是指，新创建的内存 DC 的象素格式、宽度和高度与给定 DC 是相同的。利用这种方式建立的内存 DC 可以快速 Blit 到与之兼容的 DC 上。</p>
+<p>这里需要对象素格式做进一步解释。象素格式包含了颜色深度（即每象素点的二进制位数）、调色板或者象素点中 RGBA（红、绿、蓝、Alpha）四个分量的组成方式。其中的 Alpha 分量，可以理解为一个象素点的透明度，0 表示完全透明，255 表示完全不透明。在 MiniGUI 中，如果颜色深度低于 8，则 GAL 会默认创建一个调色板，并且可以调用 SetPalette 函数修改调色板。如果颜色深度高于 8，则通过四个变量分别指定象素点中 RGBA 分量所占的位。如果是建立兼容 DC，则兼容内存 DC 和给定 DC 具有一样的颜色深度，同时具有一样的调色板或者一样的 RGBA 分量组成方式。</p>
+<p>如果调用 CreateMemDC 函数，则可以指定新建内存 DC 的高度、宽度、颜色深度，以及必要的 RGBA 组成方式。在 MiniGUI 中，是通过各自在象素点中所占用的位掩码来表示 RGBA 四个分量的组成方式的。比如，如果要创建一个包含逐点 Alpha 信息的16 位内存 DC，则可以用每分量四个二进制位的方式分配 16 位的象素值，这样，RGBA 四个分量的掩码分别为：0x0000F000, 0x00000F00, 0x000000F0, 0x0000000F。</p>
+<p>ConvertMemDC 函数用来将一个任意的内存 DC 对象，根据给定的参考 DC 的象素格式进行转换，使得结果 DC 具有和参考 DC 一样的象素格式。这样，转换后的 DC 就能够快速 Blit 到与之兼容的 DC 上。</p>
+<p>SetMemDCAlpha 函数用来设定或者取消整个内存 DC 对象的 Alpha 通道值。我们还可以通过 MEMDC_FLAG_RLEACCEL 标志指定内存 DC 采用或者取消 RLE 编码方式。Alpha 通道值将作用在 DC 的所有象素点上。</p>
+<p>SetMemDCColorKey 函数用来设定或者取消整个内存 DC 对象的 ColorKey，即透明象素值。我们还可以通过 MEMDC_FLAG_RLEACCEL 标志指定内存 DC 采用或者取消 RLE 编码方式。</p>
+<p>内存 DC 和其他 DC 一样，也可以调用 GDI 的绘图函数向内存 DC 中进行任意的绘图输出，然后再 BitBlt 到其他 DC 中。下面的程序段演示了如何使用内存 DC 向窗口 DC 进行透明和 Alpha 混和的 Blitting 操作：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+   /* 逐点 Alpha 操作 */
+    mem_dc = CreateMemDC (400, 100, 16, MEMDC_FLAG_HWSURFACE | MEMDC_FLAG_SRCALPHA,
+                    0x0000F000, 0x00000F00, 0x000000F0, 0x0000000F);
+
+    /* 设置一个不透明的刷子并填充矩形 */
+    SetBrushColor (mem_dc, RGBA2Pixel (mem_dc, 0xFF, 0xFF, 0x00, 0xFF));
+    FillBox (mem_dc, 0, 0, 200, 50);
+
+    /* 设置一个 25%  透明的刷子并填充矩形 */
+    SetBrushColor (mem_dc, RGBA2Pixel (mem_dc, 0xFF, 0xFF, 0x00, 0x40));
+    FillBox (mem_dc, 200, 0, 200, 50);
+
+    /* 设置一个半透明的刷子并填充矩形 */
+    SetBrushColor (mem_dc, RGBA2Pixel (mem_dc, 0xFF, 0xFF, 0x00, 0x80));
+    FillBox (mem_dc, 0, 50, 200, 50);
+
+    /* 设置一个 75% 透明的刷子并填充矩形 */
+    SetBrushColor (mem_dc, RGBA2Pixel (mem_dc, 0xFF, 0xFF, 0x00, 0xC0));
+    FillBox (mem_dc, 200, 50, 200, 50);
+    SetBkMode (mem_dc, BM_TRANSPARENT);
+
+    /* 以半透明的象素点输出文字 */
+    SetTextColor (mem_dc, RGBA2Pixel (mem_dc, 0x00, 0x00, 0x00, 0x80));
+    TabbedTextOut (mem_dc, 0, 0, "Memory DC with alpha.\n"
+                                 "The source DC have alpha per-pixel.");
+
+    /* Blit 到窗口 DC 上 */
+    start_tick = GetTickCount ();
+    count = 100;
+    while (count--) {
+        BitBlt (mem_dc, 0, 0, 400, 100, hdc, rand () % 800, rand () % 800);
+    }
+    end_tick = GetTickCount ();
+    TellSpeed (hwnd, start_tick, end_tick, "Alpha Blit", 100);
+
+    /* 删除内存 DC */
+    DeleteMemDC (mem_dc);
+
+    /* 具有 Alpha 通道 的内存 DC：32 位，RGB 各占 8 位，无 Alpha 分量 */
+    mem_dc = CreateMemDC (400, 100, 32, MEMDC_FLAG_HWSURFACE | MEMDC_FLAG_SRCALPHA | MEMDC_FLAG_SRCCOLORKEY,
+                    0x00FF0000, 0x0000FF00, 0x000000FF, 0x00000000);
+
+    /* 输出填充矩形和文本到内存 DC 上 */
+    SetBrushColor (mem_dc, RGB2Pixel (mem_dc, 0xFF, 0xFF, 0x00));
+    FillBox (mem_dc, 0, 0, 400, 100);
+    SetBkMode (mem_dc, BM_TRANSPARENT);
+    SetTextColor (mem_dc, RGB2Pixel (mem_dc, 0x00, 0x00, 0xFF));
+    TabbedTextOut (mem_dc, 0, 0, "Memory DC with alpha.\n"
+                                 "The source DC have alpha per-surface.");
+
+    /* Blit 到窗口 DC 上 */
+    start_tick = GetTickCount ();
+    count = 100;
+    while (count--) {
+        /* 设置内存 DC 的 Alpha 通道 */
+        SetMemDCAlpha (mem_dc, MEMDC_FLAG_SRCALPHA | MEMDC_FLAG_RLEACCEL, rand () % 256);
+        BitBlt (mem_dc, 0, 0, 400, 100, hdc, rand () % 800, rand () % 800);
+    }
+    end_tick = GetTickCount ();
+    TellSpeed (hwnd, start_tick, end_tick, "Alpha Blit", 100);
+
+    /* 填充矩形区域， 并输出文字 */
+    FillBox (mem_dc, 0, 0, 400, 100);
+    SetBrushColor (mem_dc, RGB2Pixel (mem_dc, 0xFF, 0x00, 0xFF));
+    TabbedTextOut (mem_dc, 0, 0, "Memory DC with alpha and colorkey.\n"
+                                 "The source DC have alpha per-surface.\n"
+                                 "And the source DC have a colorkey, \n"
+                                 "and RLE accelerated.");
+
+    /* 设置内存 DC 的透明象素值 */
+    SetMemDCColorKey (mem_dc, MEMDC_FLAG_SRCCOLORKEY | MEMDC_FLAG_RLEACCEL, 
+                    RGB2Pixel (mem_dc, 0xFF, 0xFF, 0x00));
+    /* Blit 到窗口 DC 上 */
+    start_tick = GetTickCount ();
+    count = 100;
+    while (count--) {
+        BitBlt (mem_dc, 0, 0, 400, 100, hdc, rand () % 800, rand () % 800);
+        CHECK_MSG;
+    }
+    end_tick = GetTickCount ();
+    TellSpeed (hwnd, start_tick, end_tick, "Alpha and colorkey Blit", 100);
+
+    /* 删除内存 DC 对象 */
+    DeleteMemDC (mem_dc);
+</code></pre></td></tr></table></p><p><span class="atitle3">4.4  增强的 BITMAP 操作</span>
+<br />新的 GDI 函数增强了 BITMAP 结构，添加了对透明和 Alpha 通道的支持。通过设置 bmType、bmAlpha、bmColorkey 等成员，就可以使得 BITMAP 对象具有某些属性。然后可以利用 FillBoxWithBitmap/Part 函数将 BITMAP 对象绘制到某个 DC 上。你可以将 BITMAP 对象看成是在系统内存中建立的内存 DC 对象，只是不能向这种内存 DC 对象进行绘图输出。下面的示例程序从图象文件中装载一个位图对象，然后设置透明和 Alpha 通道值，最后使用 FillBoxWithBitmap 函数输出到窗口 DC 上：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+    int tox = 800, toy = 800;
+    int count;
+    BITMAP bitmap;
+    unsigned int start_tick, end_tick;
+
+    if (LoadBitmap (hdc, &bitmap, "res/icon.bmp"))
+        return;
+
+    bitmap.bmType = BMP_TYPE_ALPHACHANNEL;
+
+    /* 位图的 Alpha 混和 */
+    start_tick = GetTickCount ();
+    count = 1000;
+    while (count--) {
+        tox = rand() % 800;
+        toy = rand() % 800;
+
+        /* 设置随机 Alpha 通道值 */
+        bitmap.bmAlpha = rand() % 256;
+        /* 显示到窗口 DC 上 */
+        FillBoxWithBitmap (hdc, tox, toy, 0, 0, &bitmap);
+    }
+    end_tick = GetTickCount ();
+    TellSpeed (hwnd, start_tick, end_tick, "Alpha Blended Bitmap", 1000);
+
+    bitmap.bmType = BMP_TYPE_ALPHACHANNEL | BMP_TYPE_COLORKEY;
+    /*  取第一个象素点值，并设置为透明象素值 */
+    bitmap.bmColorKey = GetPixelInBitmap (&bitmap, 0, 0);
+
+    /* 透明及 Alpha 混和 */
+    start_tick = GetTickCount ();
+    count = 1000;
+    while (count--) {
+        tox = rand() % 800;
+        toy = rand() % 800;
+
+        /*  设置一个随机 Alpha 通道值 */
+        bitmap.bmAlpha = rand() % 256;
+        /* 显示到窗口 DC 上 */
+        FillBoxWithBitmap (hdc, tox, toy, 0, 0, &bitmap);
+    }
+    end_tick = GetTickCount ();
+    TellSpeed (hwnd, start_tick, end_tick, "Alpha Blended Transparent Bitmap", 1000);
+
+    UnloadBitmap (&bitmap);
+</code></pre></td></tr></table></p>
+<p>你也可以通过 CreateMemDCFromBitmap 函数将某个 BITMAP 对象转换成内存 DC 对象。该函数的原型如下（src/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, BITMAP* bmp);
+</code></pre></td></tr></table></p>
+<p>需要注意的是，从 BITMAP 对象创建的内存 DC 直接使用 BITMAP 对象中的 bmBits 所指向的内存，该内存存在于系统内存，而不是显示内存中。</p>
+<p>和 BITMAP 相关的 MYBITMAP 结构，新的 GDI 也做了一些增强。MYBITMAP 可以看成是设备无关的位图结构，你也可以利用 CreateMemDCFromMyBitmap 函数将一个 MYBITMAP 对象转换成内存 DC。该函数的原型如下（src/gdi.h）：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+<p>HDC GUIAPI CreateMemDCFromMyBitmap (HDC hdc, MYBITMAP* mybmp);</p>
+</code></pre></td></tr></table></p>
+<p>需要注意的是，许多 GAL 引擎不能对系统内存到显示内存的 BitBlt 操作提供硬件加速，所以，FillBoxWithBitmap 函数，以及从 BITMAP 对象或者 MYBITMAP 对象创建的内存 DC 无法通过硬件加速功能快速 BitBlt 到其他 DC 上。如果希望达到这样的效果，可以通过预先创建的建立于显示内存中的 DC 进行快速的 BitBlt 运算。</p>
+<p><span class="atitle3">4.5  新的 GDI 绘图函数</span>
+<br />除了光栅操作意外，还添加了一些有用的 GDI 绘图函数，包括 FillRect、FillCircle 等等，我们将在接下来的开发中，将继续添加诸如椭圆、圆弧、三次样条曲线、多边形填充等高级绘图函数。目前新增的 GDI 函数有：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+void GUIAPI FillRect (HDC hdc, int x, int y, int w, int h);
+void GUIAPI FillCircle (HDC hdc, int sx, int sy, int r);
+
+BOOL GUIAPI ScaleBitmap (BITMAP* dst, const BITMAP* src);
+
+BOOL GUIAPI GetBitmapFromDC (HDC hdc, int x, int y, int w, int h, BITMAP* bmp);
+
+gal_pixel GUIAPI GetPixelInBitmap (const BITMAP* bmp, int x, int y);
+BOOL GUIAPI SetPixelInBitmap (const BITMAP* bmp, int x, int y, gal_pixel pixel);
+</code></pre></td></tr></table></p>
+<ol class=n01>
+<li>FillRect 函数填充指定矩形，受当前光栅操作影响。
+<li>FillCircle 函数填充指定的圆，受当前光栅操作影响。
+<li>ScaleBitmap 函数将源 BITMAP 对象进行伸缩处理。
+<li>GetBitmapFromDC 函数将指定矩形范围内的象素复制到 BITMAP 对象中。
+<li>GetPixelInBitmap 函数获得 BITMAP 对象中指定位置的象素值。
+<li>SetPixelInBitmap 函数设置 BITMAP 对象中指定位置的象素值。</ol>
+<p><a name="5"><span class="atitle2">5  其他</span></a>
+<br />尽管在 1.1.0Pre4 以及其后版本对 MiniGUI 的 GAL 和 GDI 进行了大规模的改造，但在新版本中仍然可以利用老的 GAL 和 GDI 接口，从而提供对低端显示设备的支持。需要注意的是，虽然新 GDI API 当中的许多结构和函数具有相同的名称，但某些函数已经被重新定义。所以，在编写应用程序的时候，要特别注意这一点。比如：新的 mde 演示程序当中，就利用了在 &lt;minigui/config.h> 中定义的 _USE_NEWGAL 宏来判断是否使用新的 GAL 和 GDI 函数，如下所示：
+<table border="1" cellspacing="0" cellpadding="5" width="100%" bgcolor="#CCCCCC">
+<tr><td><pre><code>
+#include &lt;minigui/common.h>
+#include &lt;minigui/minigui.h>
+#include &lt;minigui/gdi.h>
+
+......
+#ifdef _USE_NEWGAL
+    SetRasterOperation (hdc, ROP_XOR);
+    FillRect (hdc, 0, 0, 200, 200);
+#else
+    /* Not implemented */
+#endif
+......</code></pre></td></tr></table></p>
+<p><a name="6"><span class="atitle2">6  小结</span></a>
+<br />本文重点介绍了在 MiniGUI 1.1.0 版本开发过程中新增的 GAL、GDI 功能和接口。新的 GAL 和 GDI重点针对高端图形应用进行了优化和功能增强，其中包括透明处理、Alpha 混和等高级特性，并且能够对硬件加速功能提供良好支持。本文分别就 GAL 和 GDI 的关系、GAL 的功能特性、GDI 的增强接口等方面较为全面地介绍了新的 GAL 和 GDI 接口。希望能够对程序开发有所帮助。</p>
+<!-- Make author heading singular or plural as needed -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<a name="author1"><span class="atitle2">关于作者</span></a>
+<br />魏永明（<a href="mailto:ymwei@minigui.org">ymwei@minigui.org</a>），男，27 岁，工学硕士。国内最有影响的自由软件项目之一－－MiniGUI 的创始人及主要开发人员。著有《Linux 实用教程》与《学用 Linux 与 Windows NT》，并主持翻译了《Red Hat Linux 奥秘》、《Linux 编程宝典》 等大量优秀的 Linux 技术著作。是清华大学 AKA Linux 编程技术系列讲座的主讲人。</td></tr></table>
+</td></tr></table>
+
+<!-- END PAPER BODY -->
+
+</body>
+</html>
+

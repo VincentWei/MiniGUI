@@ -1,0 +1,7 @@
+HOW TO RUN NET IAL CLIENT
+	
+The client.c is clinet procedural code side PC. you need to compile and run this procedure at PC.
+
+For example:
+gcc client.c -o client
+./client IP address

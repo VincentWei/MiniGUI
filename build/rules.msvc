@@ -1,0 +1,89 @@
+# Common makefile definitions for building MiniGUI with Microsoft VC 
+# and GNU Make on Win32 Platform
+# Also for nmake makefile.msvc
+
+# Flags that can be set on the nmake command line:
+#   DLL=1     compiling as a dll
+#   MCFLAGS={-ML|-MT|-MD} for defining the compilation model
+#     MCFLAGS=-MD (default)      Multi-threaded, dynamically linked - msvcrt.lib
+#     MCFLAGS=-MT                Multi-threaded, statically linked  - libcmt.lib
+#     MCFLAGS=-ML                Single-threaded, statically linked - libc.lib
+#   DEBUG=1   for compiling a debugging version
+#   PREFIX=Some\Directory       Base directory for installation
+#   CONFIGH=YourConfigHeader    for defining the config.h file to use
+#   LITE=1                      for minigui lite version
+
+ifndef DLL
+DLL=1
+endif
+
+ifndef DEBUG
+DEBUG=0
+endif
+
+ifndef MCFLAGS
+ifeq (0, $(DLL))
+MCFLAGS=-MT
+else
+MCFLAGS=-MD
+endif
+endif
+
+ifndef PREFIX
+PREFIX = c:/usr
+endif
+
+ifndef CONFIGH
+CONFIGH=build\config-win32.h
+endif
+
+# Debug builds shoud link with msvcrtd, release build with msvcrt.
+ifeq (0, $(DEBUG))
+# Full optimization:
+OPTIMIZE = -Ox
+CRUNTIME = $(MCFLAGS)
+# Line number debug info only
+DEBUGINFO = -Zd
+LINKDEBUG =
+else
+# Debugging:
+OPTIMIZE =
+CRUNTIME = $(MCFLAGS)d
+DEBUGINFO = -Zi
+LINKDEBUG = /debug
+endif
+
+LDFLAGS = /link /machine:ix86 $(LINKDEBUG)
+
+OBJ=obj
+
+######################################################################
+# Compiler to use.
+
+AS=
+CCOMPILER = cl
+CC = $(CCOMPILER) -GF $(CRUNTIME) -W3 -nologo
+CXX=$(CC)
+CPP=$(CC)
+
+AR=lib
+LD=link
+RANLIB=echo
+MAKE=make
+OBJ=obj
+LIBA=lib
+
+COFLAG=-c
+
+ARFLAGS=
+ARFLAGS_OUT= /out:
+
+######################################################################
+# The including makefile should define INCLUDES, DEFINES and
+# DEPCFLAGS.  INCLUDES are the includes related to the module being
+# built.  DEFINES similarly.
+
+CFLAGS += -GD -c
+
+######################################################################
+

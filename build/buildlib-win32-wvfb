@@ -1,0 +1,10 @@
+#!/bin/sh
+
+CFLAGS=-D__CYGWIN__ \
+./configure \
+    --enable-videowvfb \
+    --disable-videoqvfb \
+    --enable-wvfbial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-libvcongui

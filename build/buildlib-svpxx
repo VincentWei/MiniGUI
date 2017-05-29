@@ -1,0 +1,39 @@
+#!/bin/bash
+
+rm config.cache config.status -f
+
+./configure \
+    --with-osname=swlinux \
+    --disable-debug \
+    --enable-static \
+    --disable-procs \
+    --enable-incoreres \
+    --enable-videodummy \
+    --enable-videosvpxxosd \
+    --enable-autoial \
+    --enable-svpxxial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-imegb2312 \
+    --disable-imegb2312pinyin \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-ext-fullgif \
+    --disable-dblclk \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-videofbcon \
+    --disable-videoqvfb 

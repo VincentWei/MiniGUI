@@ -1,0 +1,108 @@
+# Makefile for building the libminigui DLL with Microsoft Visual C++ 
+#     compiler and nmake
+# Use: nmake -f makefile.msvc
+
+TOPLIBALL = 1
+
+################################################################
+# specific defines
+
+COMM_DIRS = libc misc main kernel sysres ial control font font\in-core \
+            gui mybmp
+
+COMM_LDADD=						\
+	libc\liblibc.lib			\
+	misc\libmisc.lib			\
+	control\libcontrol.lib		\
+	font\libfont.lib			\
+	font\in-core\libincore.lib	\
+	ial\libial.lib				\
+	gui\libgui.lib				\
+	main\libmain.lib			\
+	mybmp\libmybmp.lib			\
+	kernel\libkernel.lib		\
+	sysres\libsysres.lib
+
+#FIXME, *.obj is not so good, howto use .lib?
+COMM_LDOBJS=			\
+	libc\*.obj			\
+	misc\*.obj			\
+	control\*.obj       \
+	font\*.obj			\
+	font\in-core\*.obj	\
+	ial\*.obj           \
+	gui\*.obj			\
+	main\*.obj			\
+	mybmp\*.obj			\
+	kernel\*.obj		\
+	sysres\*.obj
+
+!if !defined(NEWGAL)
+NEWGAL=1
+!endif
+
+!if $(NEWGAL)
+NEWGAL_DIRS=newgal newgal\dummy newgal\commlcd newgal\wvfb newgdi
+NEWGAL_LDADD =  newgal\libnewgal.lib \
+				newgal\dummy\libvideo_null.lib \
+				newgal\commlcd\libvideo_commlcd.lib \
+				newgal\wvfb\libvideo_wvfb.lib \
+				newgdi\libnewgdi.lib
+NEWGAL_LDOBJS = \
+	newgal\*.obj		\
+	newgal\dummy\*.obj		\
+	newgal\commlcd\*.obj	\
+	newgal\wvfb\*.obj	\
+	newgdi\*.obj
+!else
+NEWGAL_DIRS=gal gal\native gdi
+NEWGAL_LDADD=gal\libgal.lib gal\native\libnative.lib gdi\libgdi.lib
+NEWGAL_LDOBJS=gal\*.obj gal\native\*.obj gdi\*.obj
+!endif
+
+INCLUDES = -FIbuild\msvc_recommended_pragmas.h -I.. -I..\include -I.\include -I.\include\control 
+#DEFINES = -DHAVE_CONFIG_H
+
+SUB_DIRS = $(COMM_DIRS) $(NEWGAL_DIRS)
+SUB_LDADD = $(COMM_LDADD) $(NEWGAL_LDADD)
+SUB_LDOBJS = $(COMM_LDOBJS) $(NEWGAL_LDOBJS)
+
+################################################################
+# includes common defines
+
+!INCLUDE ..\build\Defs.win32
+!INCLUDE ..\build\makedefs.msvc
+
+################################################################
+# specific targets and commands
+
+!if $(DLL)
+all :: $(MINIGUILIB).dll libminigui.lib
+!else
+all :: libminigui.lib
+!endif
+
+$(MINIGUILIB).dll : $(SUB_LDADD)
+	$(CC) -LD $(CRUNTIME) -Fe$(MINIGUILIB).dll $(SUB_LDOBJS) $(PTHREAD_LIBS) kernel32.lib shell32.lib user32.lib $(LDFLAGS)
+
+libminigui.lib : $(SUB_LDADD)
+	lib -out:libminigui.lib $(SUB_LDADD)
+
+install::
+!if $(DLL)
+	$(CP) $(MINIGUILIB).dll $(libdir)\$(MINIGUILIB).dll
+	$(CP) $(MINIGUILIB).lib $(libdir)\$(MINIGUILIB).lib
+!endif
+	$(CP) libminigui.lib $(libdir)\libminigui.lib
+
+installdirs : force
+	@-mkdir $(prefix)
+	@-mkdir $(exec_prefix)
+	@-mkdir $(libdir)
+
+uninstall : force
+!if $(DLL)
+	$(RM) $(libdir)\$(MINIGUILIB).dll
+!endif
+	$(RM) $(libdir)\$(MINIGUILIB).lib
+

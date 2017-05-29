@@ -1,0 +1,32 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CFLAGS="-g -O0" \
+./configure \
+    --disable-static \
+    --enable-procs \
+    --disable-standalone \
+    --with-style=fashion \
+    --enable-videofbcon \
+    --enable-videoqvfb \
+    --disable-videodummy \
+    --disable-dummyial \
+    --enable-nativeial \
+    --enable-qvfbial \
+    --enable-ads7846ial \
+    --enable-gbsupport \
+    --enable-gbksupport \
+    --disable-ttfsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+
+#    --disable-pngsupport \
+#    --disable-qpfsupport \
+#    --disable-type1support \
+#    --disable-latin9support \
+#    --disable-big5support \
+#    --disable-unicodesupport \
+#    --disable-savebitmap \
+#    --disable-aboutdlg \
+#    --disable-savescreen

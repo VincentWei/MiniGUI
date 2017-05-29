@@ -1,0 +1,228 @@
+#!/bin/bash
+
+
+# MiniGUI的版本
+MINIGUI_VERSION=3.0
+# 该发布的名称。
+RELEASE_VERSION=2
+
+curdir=`pwd`
+packagedir=adp-package-${MINIGUI_VERSION}.${RELEASE_VERSION}-procs
+tarballdir=adp-tarballs
+
+if test -d ${tarballdir} ; then
+ rm ${tarballdir}/* -f
+else
+mkdir ${tarballdir}
+fi
+
+
+#make distclean
+rm config.cache config.status -f
+
+./configure --prefix=${curdir}/$packagedir \
+    --enable-procs \
+    --disable-standalone \
+    --disable-videofbcon \
+    --enable-videoqvfb \
+    --disable-videodummy \
+    --disable-videocommlcd \
+    --enable-fixedmath \
+    --enable-micemoveable \
+    --disable-textmode \
+    --enable-rbfsupport \
+    --enable-rbfvgaoem \
+    --enable-rbfterminal \
+    --enable-rbffixedsys \
+    --enable-vbfsupport \
+    --enable-fontsserif \
+    --enable-fontcourier \
+    --enable-fontsystem \
+    --enable-upfsupport \
+    --enable-fontstimes \
+    --disable-qpfsupport \
+    --disable-sefsupport \
+    --disable-ttfcache \
+    --enable-bmpfsupport \
+    --enable-latin2support \
+    --enable-latin3support \
+    --enable-latin4support \
+    --enable-cyrillicsupport \
+    --enable-arabicsupport \
+    --enable-greeksupport \
+    --enable-hebrewsupport \
+    --enable-latin5support \
+    --enable-latin6support \
+    --enable-thaisupport \
+    --enable-latin7support \
+    --enable-latin8support \
+    --enable-latin9support \
+    --enable-latin10support \
+    --enable-gbsupport \
+    --enable-gbksupport \
+    --disable-gb18030support \
+    --enable-big5support \
+    --enable-euckrsupport \
+    --enable-eucjpsupport \
+    --enable-shiftjissupport \
+    --enable-unicodesupport \
+    --enable-savebitmap \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --enable-gifsupport \
+    --enable-jpgsupport \
+    --enable-pngsupport \
+    --enable-ctrlgridview \
+    --with-ttfsupport=ft2 \
+    --disable-dummyial \
+    --disable-autoial \
+    --enable-qvfbial 
+
+if ! test $? -eq 0 ; then
+    echo "configure error !"
+fi
+
+make && make install
+
+tar -zcvf ${tarballdir}/minigui-procs-adp-${MINIGUI_VERSION}.${RELEASE_VERSION}.tar.gz  ${packagedir}/
+
+rm -rf ${packagedir}/
+
+#make distclean
+rm config.cache config.status -f
+
+packagedir=adp-package-${MINIGUI_VERSION}.${RELEASE_VERSION}-ths
+
+./configure --prefix=${curdir}/$packagedir \
+    --disable-standalone \
+    --disable-videofbcon \
+    --enable-videoqvfb \
+    --disable-videodummy \
+    --disable-videocommlcd \
+    --enable-fixedmath \
+    --enable-micemoveable \
+    --disable-textmode \
+    --enable-rbfsupport \
+    --enable-rbfvgaoem \
+    --enable-rbfterminal \
+    --enable-rbffixedsys \
+    --enable-vbfsupport \
+    --enable-fontsserif \
+    --enable-fontcourier \
+    --enable-fontsystem \
+    --enable-upfsupport \
+    --enable-fontstimes \
+    --disable-qpfsupport \
+    --disable-sefsupport \
+    --disable-ttfcache \
+    --enable-bmpfsupport \
+    --enable-latin2support \
+    --enable-latin3support \
+    --enable-latin4support \
+    --enable-cyrillicsupport \
+    --enable-arabicsupport \
+    --enable-greeksupport \
+    --enable-hebrewsupport \
+    --enable-latin5support \
+    --enable-latin6support \
+    --enable-thaisupport \
+    --enable-latin7support \
+    --enable-latin8support \
+    --enable-latin9support \
+    --enable-latin10support \
+    --enable-gbsupport \
+    --enable-gbksupport \
+    --disable-gb18030support \
+    --enable-big5support \
+    --enable-euckrsupport \
+    --enable-eucjpsupport \
+    --enable-shiftjissupport \
+    --enable-unicodesupport \
+    --enable-savebitmap \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --enable-gifsupport \
+    --enable-jpgsupport \
+    --enable-pngsupport \
+    --enable-ctrlgridview \
+    --with-ttfsupport=ft2 \
+    --disable-dummyial \
+    --disable-autoial \
+    --enable-qvfbial 
+
+
+if ! test $? -eq 0 ; then
+    echo "configure error !"
+fi
+
+make && make install
+
+tar -zcvf ${tarballdir}/minigui-ths-adp-${MINIGUI_VERSION}.${RELEASE_VERSION}.tar.gz  ${packagedir}/
+
+cat >minigui-pc-linux-adp-build-conf <<EOF
+
+################ Following is the configuration of MiniGUI lib######################
+
+--disable-videofbcon      include FrameBuffer console NEWGAL engine
+--enable-videoqvfb        include Qt Virtual FrameBuffer NEWGAL engine
+--disable-videodummy      include dummy NEWGAL engine
+--disable-videocommlcd    include NEWGAL engine for Common LCD
+--disable-dummyial        build the Dummy IAL engine
+--disable-autoial         build the Automatic IAL engine
+--enable-qvfbial          build the QVFB IAL engine
+--enable-fixedmath        include fixed math routines
+--enable-micemoveable     user can move window by using mouse
+--disable-textmode        Linux system have console (text mode) on FrameBuffer
+--enable-rbfsupport       include raw bitmap font support
+--enable-rbfvgaoem        include incore RBF font of ISO8859-1 VGAOEM (8x8) font
+--enable-rbfterminal      include incore RBF font of ISO8859-1 Terminal (8x12) font
+--enable-rbffixedsys      include incore RBF font of ISO8859-1 FixedSys (8x15) font
+--enable-vbfsupport       include var bitmap font support
+--enable-fontsserif       include incore font SansSerif (11x13)
+--enable-fontcourier      include incore font Courier (8x13)
+--enable-fontsystem       include incore font System (14x16)
+--enable-upfsupport       build support for FMSOft's Unicode Prerendered Font (UPF)
+--enable-fontstimes       include incore font smooth Times (10x10)
+--disable-qpfsupport      build support for Qt Prerendered Font (QPF)
+--disable-sefsupport      build support for koxomo scripteasy (SEF)
+--disable-ttfcache        include ttf cache support
+--enable-bmpfsupport      build support for Bitmap Font (bmpf)
+--enable-latin2support    include East European (Latin 2, ISO-8859-2) charset support
+--enable-latin3support    include South European (Latin 3, ISO-8859-3) charset support
+--enable-latin4support    include North European (Latin 4, ISO-8859-4) charset support
+--enable-cyrillicsupport  include Cyrillic (ISO-8859-5) charset support
+--enable-arabicsupport    include Arabic (ISO-8859-6) charset support
+--enable-greeksupport     include Greek (ISO-8859-7) charset support
+--enable-hebrewsupport    include Hebrew (ISO-8859-8) charset support
+--enable-latin5support    include Turkish (Latin 5, ISO-8859-9) charset support
+--enable-latin6support    include Nordic, Latin 6, ISO-8859-10) charset support
+--enable-thaisupport      include Thai (ISO-8859-11) charset support
+--enable-latin7support    include Latin 7 (ISO-8859-13) charset support
+--enable-latin8support    include Latin 8 (ISO-8859-14) charset support
+--enable-latin9support    include Latin 9 (ISO-8859-15, West Extended) charset support
+--enable-latin10support   include Latin 10 (ISO-8859-16, Romanian) charset support
+--enable-gbsupport        include EUC encoding of GB2312 charset support
+--enable-gbksupport       include GBK charset support
+--disable-gb18030support  include GB18030-0 charset support
+--enable-big5support      include BIG5 charset support
+--enable-euckrsupport     include support for EUC encoding of KSC5636 and KSC5601 charsets
+--enable-eucjpsupport     include support for EUC encoding of JISX0201 and JISX0208 charsets
+--enable-shiftjissupport  include support for Shift-JIS encoding of JISX0201 and JISX0208 charsets
+--enable-unicodesupport   include UNICODE (ISO-10646-1 and UTF-8 encoding) support
+--enable-savebitmap       include SaveBitmap-related functions
+--disable-pcxsupport      include PCX file support
+--disable-lbmsupport      include LBM/PBM file support
+--disable-tgasupport      include TGA file support
+--enable-gifsupport       include GIF file support
+--enable-jpgsupport       include JPG file support
+--enable-pngsupport       include PNG file support
+--enable-ctrlgridview     include gridview contrl support
+--with-ttfsupport=ft2     support freetype 2
+EOF
+
+mv minigui-pc-linux-adp-build-conf   ${tarballdir}/
+
+rm -rf ${packagedir}/
+

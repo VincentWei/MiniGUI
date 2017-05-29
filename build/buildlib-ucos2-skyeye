@@ -1,0 +1,55 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the arm-elf-tools already.
+#   2. Modify the following viarible to meet your installation of skyeye.
+#
+
+UCOSII_SKYEYE=/opt/skyeye/ucosii4skyeye
+LINKER_SCRIPT=/opt/skyeye/ucosii4skyeye/samples/samples.lds
+
+rm config.cache config.status -f
+
+#    --enable-tracemsg \
+
+CC=arm-elf-gcc \
+CFLAGS="-D__TARGET_SKYEYE_ATMEL__ -I${UCOSII_SKYEYE}/kernel/ucos -I${UCOSII_SKYEYE}/arch -pipe -fno-builtin -O2 -g -mapcs-32 -march=armv4 -mtune=arm7tdmi -mshort-load-bytes -msoft-float" \
+LDFLAGS="-Wl,-elf2flt" \
+./configure --prefix=/usr/local/arm-elf \
+    --build=i386-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --with-osname=ucos2 \
+    --disable-shared \
+    --disable-procs \
+    --disable-standalone \
+    --enable-incoreres \
+    --enable-miniguientry \
+    --enable-ownpthread \
+    --disable-micemoveable \
+    --disable-cursor \
+	--disable-adv2dapi \
+    --disable-videofbcon \
+    --disable-videoqvfb \
+    --enable-videodummy \
+    --enable-dummyial \
+    --enable-autoial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --disable-libvcongui

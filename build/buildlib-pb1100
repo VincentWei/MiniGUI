@@ -1,0 +1,37 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CC=mips_fp_le-gcc \
+CFLAGS="$CFLAGS -I/opt/hardhat/previewkit/mips/fp_le/target/usr/include" \
+./configure --prefix=/opt/hardhat/previewkit/mips/fp_le/target/usr/local \
+    --build=i386-linux \
+    --host=mips-linux \
+    --target=mips-linux \
+    --enable-procs \
+    --disable-standalone \
+    --enable-incoreres \
+    --enable-rbf16 \
+    --enable-rbf24 \
+    --enable-rbfgb12 \
+    --enable-rbfgb16 \
+    --enable-rbfgb24 \
+    --enable-videofbcon \
+    --disable-videoqvfb \
+    --enable-dummyial \
+    --disable-qvfbial \
+    --enable-nativeial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --enable-gbsupport \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen
+

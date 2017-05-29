@@ -1,0 +1,31 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+./configure \
+    --disable-static \
+    --with-targetname=mgdesktop \
+    --with-style=fashion \
+    --enable-incoreres \
+    --enable-ttfsupport \
+    --enable-ttfcache \
+    --enable-qpfsupport \
+    --disable-type1support \
+    --enable-unicodesupport \
+    --enable-gbksupport \
+    --enable-big5support \
+    --enable-rbf16 \
+    --enable-rbf24 \
+    --enable-rbfgb24 \
+    --enable-rbfbig24 \
+    --enable-fontvgas \
+    --enable-fonthelv \
+    --disable-videodummy \
+    --disable-videocommlcd \
+    --disable-dummyial \
+    --disable-autoial \
+    --enable-aboutdlg \
+    --enable-imegb2312 \
+    --enable-imegb2312py \
+    --disable-savebitmap \
+    --disable-savescreen

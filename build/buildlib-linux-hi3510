@@ -1,0 +1,47 @@
+#!/bin/sh
+rm config.cache config.status -f
+
+RANLIB=arm-linux-ranlib \
+CC=arm-linux-gcc \
+CFLAGS="-O2 -I/opt/hisilicon/toolchains/sysroot-soft/usr/include/" \
+LDFLAGS="-L/opt/hisilicon/toolchains/sysroot-soft/usr/lib/" \
+./configure CFLAGS="-O2" --prefix=/opt/hisilicon/toolchains/sysroot-soft/usr \
+    --build=i386-linux \
+    --host=arm-linux \
+    --target=arm-linux \
+    --enable-procs \
+    --enable-rbfgb12 \
+    --enable-newgal \
+    --enable-fixedmath \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --enable-gbksupport \
+    --enable-big5support \
+    --enable-unicodesupport \
+    --enable-aboutdlg \
+    --disable-savescreen\
+    --enable-latin9support \
+    --enable-ctrlnewtoolbar \
+    --enable-ctrlmenubtn \
+    --enable-ctrltrackbar \
+    --enable-ctrlcombobox \
+    --enable-ctrlpropsheet \
+    --enable-ctrlscrollview \
+    --enable-ctrlscrolltext \
+    --enable-ctrltextedit \
+    --enable-extctrlmonthcal \
+    --enable-extctrltreeview \
+    --enable-extctrlspinbox \
+    --enable-extctrlcoolbar \
+    --enable-extctrllistview \
+    --enable-extctrlgrid \
+    --enable-extctrlanimation \
+    --enable-extctrliconview \
+    --enable-adv2dapi \
+    --enable-vbfsupport \
+    --enable-msgstr \
+    --disable-debug \
+    --enable-videohi3510 \
+    --enable-videohi3560 \
+    --enable-hi3510ial \
+    --enable-pngsupport

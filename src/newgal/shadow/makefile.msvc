@@ -1,0 +1,5 @@
+# Makefile defines for building the MiniGUI DLL with Microsoft VC
+
+!INCLUDE Makefile.am
+!INCLUDE ..\..\..\build\Defs.win32
+!INCLUDE ..\..\..\build\makedefs.msvc

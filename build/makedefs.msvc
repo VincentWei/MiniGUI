@@ -1,0 +1,249 @@
+# Common makefile definitions for building MiniGUI with Microsoft VC 
+# and nmake on Win32 Platform
+
+# Flags that can be set on the nmake command line:
+#   DLL=1     compiling as a dll
+#   MFLAGS={-ML|-MT|-MD} for defining the compilation model
+#     MFLAGS=-MD (default)      Multi-threaded, dynamically linked - msvcrt.lib
+#     MFLAGS=-MT                Multi-threaded, statically linked  - libcmt.lib
+#     MFLAGS=-ML                Single-threaded, statically linked - libc.lib
+#   DEBUG=1   for compiling a debugging version
+#   PREFIX=Some\Directory       Base directory for installation
+#   CONFIGH=YourConfigHeader    for defining the config.h file to use
+#   LITE=1                      for minigui lite version
+# Note that nmake command line flags are automatically passed to subdirectory
+# Makefiles. Therefore we don't need to pass them explicitly to subdirectory
+# Makefiles, but the subdirectory Makefiles need to have the same defaults.
+
+!if !defined(DLL)
+DLL=1
+!endif
+
+!if !defined(DEBUG)
+DEBUG=0
+!endif
+
+!if !defined(MFLAGS)
+!if !$(DLL)
+MFLAGS=-MT
+!else
+MFLAGS=-MD
+!endif
+!endif
+
+!if !defined(PREFIX)
+PREFIX = c:\usr
+!endif
+
+!if !defined(CONFIGH)
+CONFIGH=build\config-win32.h
+!endif
+
+# default is thread version
+!if !defined(LITE)
+LITE=0
+!endif
+
+!if !defined(NEWGAL)
+NEWGAL=1
+!endif
+
+# Directories used by "make install":
+prefix = $(PREFIX)
+exec_prefix = $(prefix)
+bindir = $(exec_prefix)\bin
+libdir = $(exec_prefix)\lib
+includedir = $(prefix)\include
+datadir = $(prefix)\share
+localedir = $(datadir)\locale
+mandir = $(datadir)\man
+docdir = $(datadir)\doc\minigui
+
+# The directory where the include files will be installed
+libminiguiincludedir = $(includedir)\minigui
+
+
+# Programs used by "make":
+CP = copy
+LN = copy
+RM = -del
+
+# Programs used by "make install":
+INSTALL = copy
+INSTALL_PROGRAM = copy
+INSTALL_DATA = copy
+
+# Debug builds shoud link with msvcrtd, release build with msvcrt.
+!if !$(DEBUG)
+# Full optimization:
+OPTIMIZE = -Ox
+CRUNTIME = $(MFLAGS)
+# Line number debug info only
+DEBUGINFO = -Zd
+LINKDEBUG =
+!else
+# Debugging:
+OPTIMIZE =
+CRUNTIME = $(MFLAGS)d
+DEBUGINFO = -Zi
+LINKDEBUG = /debug
+!endif
+
+LDFLAGS = /link /machine:ix86 $(LINKDEBUG)
+
+!IFNDEF DEPLIBDIR
+DEPLIBDIR=$(PREFIX)
+!ENDIF
+
+OBJ=obj
+
+# paths and version numbers
+#!INCLUDE Defs.win32
+
+######################################################################
+# CFLAGS and LIBS for the packages in Defs.win32.
+# In alphabetical order.
+
+#DIRENT_CFLAGS = -Ibuild\win32\dirent
+#DIRENT_LIBS = build\win32\dirent\dirent.lib
+
+# Don't know if Freetype2, FriBiDi and some others actually can be
+# built with MSVC, but one can produce an import library even if the
+# DLL was built with gcc.
+
+FREETYPE2_CFLAGS = -I $(FREETYPE2)\include
+FREETYPE2_LIBS = $(FREETYPE2)\obj\freetype-$(FREETYPE2_VER).lib
+
+JPEG_CFLAGS = -I $(JPEG)
+JPEG_LIBS = $(JPEG)\jpeg.lib
+
+OPENGL_CFLAGS = # None needed, headers bundled with the compiler
+OPENGL_LIBS = opengl32.lib lglu32.lib
+
+PNG_CFLAGS = -I $(DEPLIBDIR)
+PNG_LIBS = $(DEPLIBDIR)\lib\png.lib
+
+!ifndef NOTHREAD
+PTHREAD_CFLAGS = -I $(DEPLIBDIR)\include
+PTHREAD_LIBS = $(DEPLIBDIR)\lib\pthreadVC1.lib
+!else
+PTHREAD_CFLAGS =
+PTHREAD_LIBS =
+!endif
+
+TIFF_CFLAGS = -I $(TIFF)\libtiff
+# Use single import library for both libtiff DLL versions (with or
+# without LZW code). The user selects which DLL to use.
+TIFF_NOLZW_LIBS = $(TIFF)\libtiff\tiff.lib $(JPEG_LIBS) $(ZLIB_LIBS) user32.lib
+TIFF_LZW_LIBS = $(TIFF_NOLZW_LIBS)
+TIFF_LIBS = $(TIFF_NOLZW_LIBS)
+
+ZLIB_CFLAGS = -I $(ZLIB)
+ZLIB_LIBS = $(ZLIB)\zlib.lib
+
+!if defined(COMPILE_MGEXTLIB)
+MGEXT_CFLAGS = -D__MGEXT_LIB__
+!else
+MGEXT_CFLAGS =
+!endif
+
+!if $(LITE)
+MGMODE_CFLAGS = -D_MGRM_PROCESSES
+!else
+MGMODE_CFLAGS =
+!endif
+
+MG_PRE_DEFINES = -D__MINIGUI_LIB__ $(MGEXT_CFLAGS) $(MGMODE_CFLAGS)
+
+######################################################################
+# Compiler to use.
+
+CCOMPILER = cl
+CC = $(CCOMPILER) -GF $(CRUNTIME) -W3 -nologo
+
+######################################################################
+# The including makefile should define INCLUDES, DEFINES and
+# DEPCFLAGS.  INCLUDES are the includes related to the module being
+# built.  DEFINES similarly.
+
+!if defined(LOCAL_INC)
+INCLUDES = $(LOCAL_INC)
+!endif
+
+DEPLIBINC = -I $(DEPLIBDIR)\include
+CFLAGS = $(OPTIMIZE) $(DEBUGINFO) $(DEPLIBINC) $(INCLUDES) $(DEFINES) $(DEPCFLAGS)
+
+.c.i :
+	$(CC) $(CFLAGS) -E $< >$@
+
+.c.obj :
+	$(CC) $(CFLAGS) -GD -c $(MG_PRE_DEFINES) $<
+
+.cpp.obj :
+	$(CC) $(CFLAGS) -GD -c $(MG_PRE_DEFINES) $<
+
+!if defined(SRC_FILES)
+OBJ_FILES=$(SRC_FILES:.c=.obj)
+!endif
+######################################################################
+
+# The default target should be "all"
+default : all
+
+all :: makefile.msvc
+
+!if defined(TOPPROJALL)
+all :: config.h
+
+!endif
+
+# if sub lib dir, make a lib
+!if !defined(TOPLIBALL) && !defined(TOPPROJALL) && !defined(TOPINCALL) && !defined(SUBINC)
+all :: $(LIB_NAME).lib
+
+$(LIB_NAME).lib : $(OBJ_FILES)
+	@lib /nologo -out:$(LIB_NAME).lib $(OBJ_FILES)
+!endif
+
+# if not top project dir, del *.* when make clean
+!if !defined(TOPPROJALL) && !defined(TOPINCALL)
+clean::
+	@-del *.obj
+	@-del *.res
+	@-del *.i
+	@-del *.exe
+	@-del *.dll
+	@-del *.lib
+	@-del *.err
+	@-del *.map
+	@-del *.sym
+	@-del *.exp
+	@-del *.lk1
+	@-del *.mk1
+	@-del *.pdb
+	@-del *.ilk
+!endif
+
+# common sub target
+sub-one:
+	@cd $(THIS)
+	@$(MAKE) -nologo -f makefile.msvc $(TARGET)
+	@cd $(MAKEDIR)
+
+# common loop target
+loopall:
+	@for %d in ($(SUB_DIRS)) do $(MAKE) -nologo -f makefile.msvc sub-one THIS=%d TARGET=$(LOOPTARGET)
+
+!if defined(TOPLIBALL) || defined(TOPPROJALL) || defined(TOPINCALL)
+install::installdirs
+
+all clean install ::
+	@$(MAKE) -nologo -f makefile.msvc loopall LOOPTARGET=$@
+
+!else
+install :: force
+
+!endif
+
+force :
+

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CC=mipsel-linux-gcc \
+./configure --prefix=/usr/mipsel-linux \
+    --build=i386-linux \
+    --host=mipsel-linux \
+    --target=mipsel-linux \
+    --disable-debug \
+    --disable-static \
+    --enable-purefbgfx \
+    --enable-vr4181ial \
+    --disable-nativeial \
+    --disable-pcxsupport \
+    --disable-lbmsupport \
+    --disable-tgasupport \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-vbfsupport \
+    --disable-movewindowbymouse \
+    --disable-cursor \
+    --disable-imegb2312 \
+    --disable-imegb2312pinyin \
+    --disable-savebitmap \
+    --disable-savescreen \
+    --disable-aboutdlg \
+    --disable-ext-fullgif \
+    --enable-tinyscreen

@@ -1,0 +1,73 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the arm-elf-tools already.
+#   2. Your uClinux distribution has been installed into the directory of '/opt/em85xx/'.
+#
+
+rm config.cache config.status -f
+#项目名称
+PRO_NAME=mowei
+
+#编译链前缀
+CC_PREFIX_='sde-'
+CC_PREFIX='sde'
+
+#指定minigui的安装目录
+PREFIX=/home/hejia/work/$PRO_NAME/build
+
+#定义交叉编译链的路径
+CROSSTOOLPATH=/home/hejia/work/$PRO_NAME/crosstool/bin
+export PATH=$CROSSTOOLPATH:$PATH
+#export PATH
+
+#gcc的编译参数(按照实际情况修改)及编译minigui的配置参数
+BUILD=i686-pc-cygwin
+HOST=mips-unknown-elf
+TARGET=mips-unknown-elf
+
+ECOS_GLOBAL_CFLAGS="-DMV_TL=\${MV_TL} -DMV_SIM=\${MV_SIM} -g -mips32 -EL -msoft-float -Wall -Wpointer-arith -Wstrict-prototypes -Winline -Wundef -ffunction-sections -fdata-sections -fno-exceptions -G0"
+ECOS_GLOBAL_LDFLAGS="-EL -msoft-float -g -nostdlib -Wl,--gc-sections -Wl,-static"
+
+STRIP=${CC_PREFIX_}strip \
+RANLIB=${CC_PREFIX_}ranlib \
+LD=${CC_PREFIX_}rd \
+AS=${CC_PREFIX_}ls \
+AR=${CC_PREFIX_}ar \
+CXX=${CC_PREFIX_}g++ \
+CC=${CC_PREFIX_}gcc \
+CFLAGS="-I$CROSSTOOLPATH/../$CC_PREFIX/include -I${PREFIX}/include ${ECOS_GLOBAL_CFLAGS}" \
+CXXFLAGS="-I$CROSSTOOLPATH/../$CC_PREFIX/include -I${PREFIX}/include ${ECOS_GLOBAL_CFLAGS}" \
+LDFLAGS="-L$CROSSTOOLPATH/../$CC_PREFIX/lib -L${PREFIX}/lib -nostartfiles -nostdlib -L${PREFIX}/lib ${ECOS_GLOBAL_LDFLAGS} " \
+	./configure --prefix=${PREFIX} \
+    --build=$BUILD \
+    --host=$HOST \
+    --target=$TARGET \
+    --enable-miniguientry \
+    --with-osname=ecos \
+    --disable-procs \
+    --disable-standalone \
+    --enable-incoreres \
+    --disable-shared \
+    --disable-libvcongui \
+    --disable-cursor \
+    --enable-adv2dapi \
+    --enable-videocommlcd \
+    --enable-videoshadow \
+    --enable-ipaqial \
+    --enable-qpfsupport \
+    --enable-gbsupport \
+    --enable-unicodesupport \
+    --enable-gbksupport \
+    --enable-big5support \
+    --enable-consoleial=no \
+    --disable-qvfbial \
+    --enable-videoqvfb=no \
+    --disable-pcxvfb \
+    --enable-autoial \
+    --disable-videofbcon
+
+echo DONE;
+

@@ -1,0 +1,332 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html">
+   <META NAME="AUTHOR" CONTENT="Yongming Wei">
+   <META NAME="CREATED" CONTENT="20000413">
+   <TITLE>MiniGUI-Documentation</TITLE>
+</HEAD>
+
+<body bgcolor="#ffffff" text="#000000" link="#0000ff" vlink="#ff3366">
+
+<H1 align="center">MiniGUI Technology White Paper (Ver 0.1)</H1>
+<p align="right">
+Chen Lei (<A HREF="mailto://chenlei@minigui.org">chenlei@minigui.org</A>), Nov 11th 2000<br>
+Wei Yongming (<A HREF="mailto://ymwei@minigui.org">ymwei@minigui.org</A>), Nov 14th 2000
+</P>
+<H2>
+1 Introduction
+</H2>
+<h3>
+1.1  What is the MiniGUI
+</h3>
+<p>
+MiniGUI is a kind of GUI-supporting system for embedded systems or real time systems. It's mainly run on the Linux console. In fact, it can run on any kinds of POSIX-compliant system, which support POSIX threads. MiniGUI provides Win32-like APIs, and we can easily get the easy-to-use graphic interface. The basic component of MiniGUI is window. There are four types of MiniGUI windows, namely, main windows, dialog boxes, controls and sub-windows. The main window can either separately belongs to a thread or as the child window of other main window belonging to one thread together. We call the later form 'dependency' or 'hosting'. Every thread has a message-queue. The underlay of MiniGUI collects the events of hard devices and sends messages to windows. This is an event-driven mechanism.
+</p>
+<h3>
+1.2 Why Should We Use MiniGUI
+</h3>
+<p>
+Since there is a very critical environment in embedded systems, the GUI running on them must be as little as possible. The goal of MiniGUI is a compact GUI support system, therefore it can be widely used in embedded systems of industry fields or household fields. 
+</p>
+<h3>
+1.3 The Major Features of MiniGUI
+</h3>
+<ul>
+    <li>A LGPLed pure free software</li>
+    <li>Providing complete multi-window mechanism</li>
+    <li>Multi-window running on single threads</li>
+    <li>Dependencies of the main window in single thread</li>
+    <li>Providing predefined controls, namely, static, button, single-line-editor, multi-line-editor, list box, progress bar and toolbar</li>
+    <li>Dialog</li>
+    <li>Messaging between windows</li>
+    <li>Graphics Device Interface</li>
+    <li>Providing support for M$ Windows resource file, such as Bitmap, Icon, and Cursor</li>
+    <li>Caret</li>
+    <li>Timer</li>
+    <li>Accelerate keys</li>
+    <li>Providing support for multi-character set (ISO8859-1, GB2312, Big5 at present) and multi-fonts (any Raster Bitmap Fonts, TrueType Fonts, and Adobe Type1 Fonts at present)</li>
+    <li>Chinese Input method (Quanpin, Wubi, Intelligent Pinyin, etc.)</li>
+    <li>Supporting GIF, JPG, BMP, PCX pictures</li>
+    <li>Misc. (including Beep, ETC/INI file operations, etc)</li>
+</ul>
+<p>
+Also, as a GUI support system for real-time or embedded system, MiniGUI has important features as the following:
+</p>
+<ul>
+    <li><strong>Small Footprint.</strong> The full functional library size is 300KB</li>
+    <li><strong>Configurable.</strong> It can be configured and compiled according your needs</li>
+    <li><strong>Stable and High Efficiency.</strong> MiniGUI has been applied in many critical system, such as, the HappyLinux's setup program and some Computer Numeric Control (CNC) system</li>
+    <li><strong>Portability.</strong> By now, MiniGUI can run on X Window and the Linux console. The CIT EEOS develop group has successfully ported MiniGUI to their POSIX-compliant system. MiniGUI now can run some embedded systems made by Cirrus Logic and ADS, the later is based on Intel StrongARM.</li>
+</ul>
+<p>
+In the development of MiniGUI version 0.3.xx, we realized the following new features:
+</p>
+<ul>
+    <li><strong>Graphic Abstract Layer.</strong> The layer has almost no influence on the API, but it makes it easy greatly to port and debug. Currently, there are two graphic engines, namely SVGALib and LibGGI. When it using LibGGI, MiniGUI applications can run and debug on X window. Relationally there is a abstract layer of input events.</li>
+    <li><strong>Support for Multi-Fonts and Multi-Charsets Relies on The LOGFONT of DC (Device Context).</strong> Both multi-fonts and multi-charsets can be easily expanded. On starting, the application can shift between the system charsets, such as GB or BIG5. When using DrawText or TextOut functions, we can get other charsets by specifying font. It is possible that a window to show variant languages' fonts.</li>
+</ul>
+<h3>
+1.5  The Main Specifications of MiniGUI
+</h3>
+<h4>
+1.4.1 The Size of MiniGUI-Based Application
+</h4>
+<ul>
+    <li>Linux kernel: 300KB - 500KB (depending on system)</li>
+    <li>MiniGUI supporting libraries: 300KB - 400KB</li>
+    <li>MiniGUI resource  (fonts, bitmaps ,etc.):  800KB</li>
+    <li>Input method: 400KB</li>
+    <li>Applications: 1MB - 2MB (depending on system)</li>
+    <li>Totally: 2MB - 4MB. By reduce some features, it can be even compact.</li>
+</ul>
+<h4>
+1.4.2 Hardware Support in MiniGUI
+</h4>
+<p>
+The requirement of MiniGUI is mainly display devices. On standard PC, MiniGUI realizes the graphics by using SVGALib, and it can provide to the most extent compatibility by using VESA BIOS. But in the embed system, the display devices are usually special. We suggest to rewrite the underlay graphics device driver by implementing a graphics engine and an input engine which compliant to our GAL and IAL interface.
+</p>
+<h4>
+1.4.3 The Portability of MiniGUI
+</h4>
+<p>
+MiniGUI can be ported to any system that is POSIX-compliant and provides support for POSIX threads. Note that generally the underlay graphic interface is system specified. You are needed to rewrite it.
+</p>
+
+<h2>
+2  Goal and Major Features
+</h2>
+
+<h3>
+2.1  Goal: Compact and Configurable
+</h3>
+
+<p>
+Originally, MiniGUI is designed to fit the need of an industry Computer Numerical Control (CNC) system. The industry CNC system is designed by Tsinghua University for a machine tool. After comparing DOS, Windows 98, Windows NT and Linux, the team decided to choose RT-Linux in order to fit the responsibility of real-time of 2ms or even shorter. But the problem is the user interface.. X Window is not fit to real time control system, and at that time, the localization of X Window is not very fine. Thus they decided to develop a GUI by themselves. That is the reason of the invention of MiniGUI, accordingly, MiniGUI is very compact and highly efficient. At present, the industry control system is finished and MiniGUI plays a significant role in it.
+</p>
+<p>
+To fit the requirement of variant embedded systems, MiniGUI is designed to be configurable. With the help of Automake and Autoconf facilities in Linux, we realized a number of optional configurations.
+</p>
+
+<h3>
+2.2 Important Features of MiniGUI
+</h3>
+
+<h4>
+2.2.1 Multi-Thread and Multi-Window
+</h4>
+<p>
+There are four basic windows in MiniGUI, namely, main window, dialog, control and the child window.
+</p>
+<p>
+The main window in MiniGUI is similar to the application's main window in M$ Windows. But there are some important differences. Each main window in MiniGUI is a separate thread. We can create main window and the according thread. Each thread has a message queue, all main window belonging to one thread can get message from it and handle it with the window callback procedure.
+</p>
+
+<h4>
+2.2.2 Dialog and Standard Control
+</h4>
+<p>
+The dialog in MiniGUI is a special window, it works together with controls.
+</p>
+<p>
+The following are supported controls:
+</p>
+<ul>
+    <li>Static</li>
+    <li>Edit (single line and multi-line)</li>
+    <li>Button (radio button, check box and common button)</li>
+    <li>List box</li>
+    <li>Processing bar</li>
+    <li>Toolbar</li>
+</ul>
+
+<h4>
+2.2.3 Other GUI Elements
+</h4>
+<p>
+MiniGUI also supports some common GUI elements, such as, drop-down menu, caret, timer, cursor and accelerator.
+</p>
+
+<h4>
+2.2.4 Message and Message Loop
+</h4>
+<p>
+We use message driving as the skeleton for applications. In a message-driving application, the system collects the events of peripheral devices (e.g. keyboard and mouse) and translates them into predefined messages. Usually, a application has its own message queue and it can create a message loop to wait and handle specified message. 
+</p>
+
+<h4>
+2.2.5 Graphics and Input Abstract Layer
+</h4>
+<p>
+We added the conception of the GAL and IAL (Graphics and Input Abstract Layer). The abstract layer is similar to the VFS (Virtual file system) in Linux kernel. It defines a group of abstract operations that independent to any special hardware. All the graphic operations and input handles are based on it. With the help of GAL and IAL, MiniGUI can run smoothly on different graphic engines, such as, SVGALib and LibGGI. We have finished the graphic engine for SVGALib and LibGGI. Now we are developing our private graphic engine through which, we can eventually optimize efficiency of MiniGUI to most extent.
+</p>
+
+<h4>
+2.2.6 Multi-Font and Multi-Charset
+</h4>
+<p>
+We added the conception of logical font. It's the top level interface through which MiniGUI deal with texts (the text input and the text analysis). The logical font interface summarize all kinds of fonts (e.g., SongTi, HeiTi, and KaiTi, etc.) and charsets (ISO-8859, GB2312, Big5 and UNICODE, etc). Thus we can show different fonts in different charset in a uniform interface. This is an OOP technology. At present, MiniGUI can support any kind of raster font, vector font (e.g., TureType and Adobe Type1) and multi-charset (e.g., GB2312, Big5, etc.). 
+</p>
+
+<h3>
+2.3 The Architecture of MiniGUI
+</h3>
+<p>
+As <A HREF="images/Fig-01.jpg">Figure 1</A> shows that MiniGUI is constructed with several layers. The GAL and IAL provide the underlay graphic support and the input device driving. The middle layer is the kernel level of MiniGUI including many important modules for windowing system. And the top level is the APIs (Application programming interfaces).
+</p>
+
+<p>
+The GAL and IAL provide the bottom graphic and input interface, and PThread is a C library provide support to the kernel level thread. MiniGUI run under multi-thread mode. Many of its modules is run under threads. Its also support multi-window in thread mode. 
+</p>
+
+<p>
+As MiniGUI is designed for embed or real time system, the application on it usually has a single function. Thus multi-thread mode is more useful.
+</p>
+
+<p>
+In the multi-thread environment, similar to traditional UNIX IPC (Inter-Process Communication), there is need to communication and synchronize between threads. For example, the thread, which manages windows, maintains the global window list. While, other threads can not modify this list directly, they must obey the FIFO rule. This is commonly called client/server mode. MiniGUI realizes the 'Micro C/S' mode by the synchronize mechanism between threads. We call it 'Micro C/S' because the server and client here is different threads in one process not different processes.
+</p>
+
+<p>
+The key of this technique is the data structure of message. For example, the desktop micro-server manages the creation and destruction of windows. When a thread want desktop to create a window, first, it puts a message in the message queue of desktop, then turn to sleep to wait for desktop to handle the request. If desktop finishes current task or it is in sleeping state, it can handle this request immediately. When it complete, it will wake up the waiting thread and return it a result.
+</p>
+
+<h3>
+2.4 The OOP technique in MiniGUI
+</h3>
+
+<h4>
+2.4.1 Control Class and Control
+</h4>
+<p>
+Each control in MiniGUI belongs to certain window class. It is the instance of the according window class. This is similar to the conception of class and object in the OOP. On earth, each control's message is responded to the callback function of its control class. Thus every control belonging to same control class will keep uniform interface and operations. While, if we handle the message before it reach the default call back function, we can realize over loading. For example, the normal edit control can receive all the keyboard input, if we want it to just respond to number, we can mask the nonnumeric char. In fact this is the inheriting and deriving.
+</p>
+<h4>
+2.4.2  GAL and IAL
+</h4>
+<p>
+The system maintains a registered array of graphics engines to save data structure of each graphics engine. And the system uses a pointer to hold the currently used graphics engine. Usually, the system maintains at least two engines, one is a 'dumb' engine which does not do any actual output, another one is actually used by the system, for example, the LibGGI or the SVGALib. The data structure of graphics engine defines some information about this engine, namely, id, properties, etc. Note that it realizes the interfaces defined by the GAL, such as, initialization, termination, graphical context management, point-drawing function, line-drawing function, box-filling function, pallete function, etc.
+</p>
+<p>
+If the hardware adopted in certain project is a little abnormal and is not supported by the current engine, you can write your own engine with the interface according to the GAL and specify it in MiniGUI. In fact, this is the polymorphism of the OO technique.
+</p>
+<p>
+With the help of the GAL and IAL, we enhance the portability of MiniGUI greatly and make it easier to develop and debug. For example, we can develop and debug our MiniGUI applications on the X Window and run it on certain embedded hardware platform.
+</p>
+<h4>
+2.4.3  Multi-Font and Multi-Charset
+</h4>
+<p>
+Compared with the GAL and IAL, the multi-font and multi-charset is more complex. As referred above, we realize the output and analyzing of fonts. In fact, the two part interact with each other. When we output certain font, especially the multi-byte charset, namely, the GB2312 and the BIG5, we need to analyze the text in order to find out whether it is a double-byte char.
+</p>
+
+<h3>
+2.5 Typical Applications Based on MiniGUI
+</h3>
+
+<h4>
+2.5.1 The HappyLinux Installer
+</h4>
+<p>
+HappyLinux is a simplified Chinese Linux Distribution developed by a vendor. Its installer is based on MiniGUI. The source code is ported from the Red Hat Linux 6.0 setup. And we added some other feature to make the interface more user friendly, such as the on-line help as shown in <A HREF="images/Fig-02.jpg">Figure 2</A> and <A HREF="images/Fig-03.jpg">Figure 3</A>.
+</p>
+
+<h4>
+2.5.2 VACS-III System
+</h4>
+<p>
+The VACS-III (Virtual Axes Control System) is a CNC system run on RT-Linux. It is developed by the Dept. of Precision Instrument of Tsinghua University. It is also built on MiniGUI. As shown in <A HREF="images/Fig-04.jpg">Figure 4</A>.
+</p>
+
+<h4>
+2.5.3 Ehome
+</h4>
+<p>
+Ehome is an intelligent household appliance using Web technology. It can be used for network shopping and realty management. The client side is a simplified Web browser. <A HREF="images/Fig-05.jpg">Figure 5</A> shows the browser's interface framework and <A HREF="images/Fig-06.jpg">Figure 6</A> is the networking shopping interface of ehome.
+</p>
+
+<h4>
+2.5.4 Others
+</h4>
+<p>
+VConGUI is a virtual console On MiniGUI as shown in <A HREF="images/Fig-07.jpg">Figure 7</A>.
+</p>
+<p>
+Bomb is a clone of M$ Windows minesweeper as shown in <A HREF="images/Fig-08.jpg">Figure 8</A>.
+</p>
+<p>
+Russia Block is the MiniGUI version of the classic PC game as shown in <A HREF="images/Fig-09.jpg">Figure 9</A>.
+</p>
+
+<h4>
+2.5.5 Multi-Font Support of MiniGUI
+</h4>
+<p>
+<A HREF="images/Fig-10.jpg">Figure 10</A> shows the multi-font support of MiniGUI.
+</p>
+
+<h2>
+3  Some Important Algorithm of MiniGUI
+</h2>
+<p>
+The following is some important algorithm concerned with GUI support system.
+</p>
+<h3>
+3.1  Message Transfer
+</h3>
+<p>
+The messages or events transfer is the first problem that a GUI system faces.
+</p>
+<p>
+Commonly, a message has some kind of data associated with it. The data can have variant meaning according to message.
+</p>
+<p>
+As a way of communication between windows, we provides several mechanisms for message transfer. In some case, when a window send a message, it will not continue until result is returned. This is called 'sending message'. While, in other cases, a window may just want to notify the target window, and it will return as soon as it finishes notification. This is called 'posting message'. There is a more complex situation. When a window is waiting for a message which may be very slow to return, the window can set a timeout value when call the sending message function so that is can resume in the case the message it send can not be handled in time. We also must pay attention to some special messages, for example, the timer. When the frequency of a timer is very high, and the speed of the handle timer expiration is very slow. When we send or post a message for the timer, the message queue will be blocked at sooner or later. The last problem is the priority. As usual, we should first consider with the message of mouse or keyboard, and then the PAINT message and timer, etc.
+</p>
+
+<h3>
+3.2  The Graphic Context and the Coordinate Mapping
+</h3>
+
+<h4>
+3.2.1  Graphics Device Context
+</h4>
+<p>
+MiniGUI adopts the graphics device context (GDC) conception that is widely used in M$ Windows and X Window. Each graphics context defines a rectangle showed on the screen of computer. When we call graphics output functions, when must specify an initialized or an existing DC. Each graphic output is forced in the rectangle area specified in the DC. In a multi-window system, the output of each graphic device is clipped in order to avoid interacting with each other.
+</p>
+
+<h4>
+3.2.2  The Clipping Area
+</h4>
+<p>
+The clipping area is a defined area in the graphic device. Only the output within the clipping area is visible on the screen. At present, the clipping area of MiniGUI is defined as a list of no-intersected rectangles.
+</p>
+
+<h4>
+3.2.3  The Mapping Mode
+</h4>
+<p>
+The mapping mode rules how to map the output of special DC into the device coordinate. The original of the graphics device coordinate is defined as the left-top corner of the device rectangle. The X-axis increases to the right and the Y-axis increases to the downward. This is called the device coordinate.
+</p>
+<p>
+We can define our own logical coordinate through the mapping mode operating functions of the GDI module. The logical coordinate can be the vertical or horizontal reverse, scaling, or offset. Generally, the logical coordinate is the same as the device coordinate.
+</p>
+
+<h3>
+3.3  The Window Management
+</h3>
+<p>
+The window management is closely related to clipping. The key is the Z-order of the window. In fact, MiniGUI maintains two Z-orders, one of normal windows the other is of top-most windows.
+</p>
+
+<P ALIGN=CENTER>
+<FONT SIZE=2>
+Author: WEI Yongming (<A HREF="mailto:ymwei@minigui.org">ymwei@minigui.org</A>)
+<BR>
+Copyright (C) 2000, WEI Yongming
+</FONT>
+</P>
+
+</BODY>
+</HTML>
+

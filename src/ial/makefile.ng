@@ -1,0 +1,14 @@
+SRC_FILES = \
+	ial.c \
+	auto.c \
+	dummy.c \
+	comminput.c
+
+LIB_NAME=libial
+
+abs_top_srcdir=../..
+
+INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
+
+include ../../rules.make
+

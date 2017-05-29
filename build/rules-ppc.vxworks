@@ -1,0 +1,26 @@
+# rules for pc-vxworks 
+TARGET_OS=vxworks
+
+AS=
+CC=ccppc
+CXX=c++ppc
+CPP=ccppc
+AR=arppc
+RANLIB=ranlibppc
+MAKE=/usr/bin/make
+
+ARFLAGS=crus
+COFLAG=-c
+
+OBJ=o
+LIBA=a
+
+PREFIX=d:/cross
+
+TARGET_DIR=C:/Tornado2.2-powerpc/target
+
+INCS+=-I${TARGET_DIR}/h 
+
+CFLAGS+=-g -mcpu=405 -mstrict-align -fno-builtin -I. -I${INCS} -DCPU=PPC405 -DTOOL_FAMILY=gnu -DTOOL=gnu
+
+

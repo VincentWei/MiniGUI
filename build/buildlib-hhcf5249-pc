@@ -1,0 +1,38 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+./configure \
+    --with-osname=uclinux \
+    --with-style=classic \
+    --enable-procs \
+    --enable-standalone \
+    --enable-incoreres \
+    --disable-adv2dapi \
+    --disable-videofbcon \
+    --enable-videoqvfb \
+    --enable-videodummy \
+    --enable-videobf533 \
+    --disable-micemoveable \
+    --disable-cursor \
+    --enable-dummyial \
+    --enable-autoial \
+    --disable-nativeial \
+    --enable-qvfbial \
+    --enable-rbf16 \
+    --enable-rbfgb16 \
+    --enable-fonthelv \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen

@@ -1,0 +1,35 @@
+# Defs.win32 : Global defines for Win32 builds.
+#
+# This file is included by makefiles for both GNU Make (for cygwin/gcc
+# or mingw/gcc builds), and NMAKE (for MSVC builds).
+#
+# Please note that there are two (or three) ways to build the MiniGUI
+# libraries on Win32: Either using the same
+# auto*/configure mechanism to generate makefiles as on Unix, and
+# libtool to handle DLL creation. This currently only works for gcc,
+# and even then it is hellish to set up to work 100% correctly. For
+# people using that, this file is totally irrelevant.
+#
+# Or, use hand-written makefiles, either for MSVC (these are called
+# makefile.msvc), or for gcc (makefile.mingw).
+
+
+GLOBAL_DEFS_INCLUDED=1
+
+######################################################################
+# The version macros define what versions of libraries to use.
+
+MINIGUI_VER = 1.6
+MGEXT_VER = $(MINIGUI_VER)
+
+MINIGUILIB = libminigui-$(MINIGUI_VER)
+MGEXTLIB = libmgext-$(MGEXT_VER)
+
+FREETYPE2_VER = 1.0
+
+######################################################################
+# path defines
+
+
+######################################################################
+

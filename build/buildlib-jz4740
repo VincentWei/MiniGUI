@@ -1,0 +1,22 @@
+#! /bin/sh
+CFLAGS="-g -O2 -I/opt/mipseltools-gcc412-lnx26/mipsel-linux/include " \
+LDFLAGS="-L/opt/mipseltools-gcc412-lnx26/mipsel-linux/lib -lts " \
+AR=/opt/mipseltools-gcc412-lnx26/bin/mipsel-linux-ar \
+STRIP=/opt/mipseltools-gcc412-lnx26/bin/mipsel-linux-strip \
+RANLIB=/opt/mipseltools-gcc412-lnx26/bin/mipsel-linux-ranlib \
+NM=/opt/mipseltools-gcc412-lnx26/bin/mipsel-linux-nm \
+CC=/opt/mipseltools-gcc412-lnx26/bin/mipsel-linux-gcc \
+CPP=/opt/mipseltools-gcc412-lnx26/bin/mipsel-linux-cpp \
+./configure --prefix=/opt/jz4740 \
+        --build=i386-linux \
+        --host=mipsel-linux \
+        --target=mipsel-linux \
+        --enable-qpfsupport \
+        --disable-cursor \
+        --enable-jz4740ial \
+        --enable-evaluation \
+        --enable-productid
+        
+
+
+make -j2 && sudo make install    

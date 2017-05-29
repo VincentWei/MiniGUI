@@ -1,0 +1,63 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the GNU arm-elf-tools already.
+#   2. You have set ECOS_RESPOSITORY and PATH correctly.
+#   3. Modify the following variable for your cross-compilation environment.
+
+ECOS_DIR=/opt/ipaq_ecos/install
+
+ECOS_GLOBAL_CFLAGS="-ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -finit-priority"
+
+rm config.cache config.status -f
+
+CC=arm-elf-gcc \
+CFLAGS="-I${ECOS_DIR}/include -D__ECOS__ -D__NOUNIX__ -DUNIX=1 -mcpu=arm9 -Wall -g" \
+LDFLAGS="-nostdlib" \
+./configure --prefix=${ECOS_DIR} \
+    --build=i386-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --with-osname=ecos \
+    --with-style=fashion \
+    --disable-shared \
+    --disable-procs \
+    --disable-standalone \
+    --enable-incoreres \
+    --enable-rbfgb12 \
+    --enable-rbfgb16 \
+    --disable-rbfgb24 \
+    --enable-rbf16 \
+    --disable-rbf24 \
+    --enable-fonthelv \
+    --disable-videofbcon \
+    --disable-videoqvfb \
+    --enable-videodummy \
+    --disable-videocommlcd \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-textmode \
+    --disable-palm2ial \
+    --enable-dummyial \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbsupport \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --enable-tinyscreen \
+    --disable-libvcongui
+

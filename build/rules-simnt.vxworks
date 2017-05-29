@@ -1,0 +1,25 @@
+# rules for tornado
+
+TARGET_OS=vxworks
+
+AS=
+CC=ccsimpc
+CXX=cppsimpc
+CPP=ccsimpc
+AR=arsimpc
+RANLIB=ranlibsimpc
+MAKE=/usr/bin/make
+
+ARFLAGS=crus
+COFLAG=-c
+
+OBJ=o
+LIBA=a
+
+PREFIX=c:/cross
+TARGET_DIR=/cygdrive/c/Tornado2.2/target
+
+INCS+=-I${TARGET_DIR}/h
+
+CFLAGS+=-g -mpentium -fno-builtin -fno-defer-pop -Wall -DCPU=SIMNT -DTOOL_FAMILY=gnu -DTOOL=gnu -DRW_MULTI_THREAD
+

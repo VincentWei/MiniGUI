@@ -1,0 +1,69 @@
+# Makefile for building the libminigui headers with Microsoft Visual C++ 
+#     compiler and nmake
+# Use: nmake -f makefile.msvc install
+
+TOPINCALL=1
+TOPLOOP=1
+abs_top_srcdir=..
+
+################################################################
+
+SUBDIRS = ctrl
+
+# The directory where the include files will be installed
+libminiguiincludedir = $(includedir)/minigui
+
+# Which header files to install
+COMM_HDRS =     \
+    common.h endianrw.h fixedmath.h \
+    minigui.h gdi.h window.h control.h \
+    own_malloc.h  own_stdio.h \
+    xvfb.h customial.h \
+    dti.c 
+
+SUB_DIRS = $(SUBDIRS)
+
+################################################################
+# includes common defines
+
+include ../rules.make
+
+ifeq (ucos2, $(TARGET_OS))
+MGUSE_OWN_PTHREAD=1
+endif
+ifeq (threadx, $(TARGET_OS))
+MGUSE_OWN_PTHREAD=1
+endif
+ifeq (nucleus, $(TARGET_OS))
+MGUSE_OWN_PTHREAD=1
+endif
+ifeq (vxworks, $(TARGET_OS))
+MGUSE_OWN_PTHREAD=1
+endif
+ifeq (psos, $(TARGET_OS))
+MGUSE_OWN_PTHREAD=1
+endif
+ifeq (ose, $(TARGET_OS))
+MGUSE_OWN_PTHREAD=1
+MGUSE_OSE=1
+endif
+
+################################################################
+# specific targets and commands
+
+install::
+	@for i in $(COMM_HDRS); do $(CP) $$i $(libminiguiincludedir); done
+	@$(CP) ../mgconfig.h $(libminiguiincludedir)
+ifdef MGUSE_OWN_PTHREAD
+	$(CP) $(TARGET_OS)_semaphore.h $(includedir)/semaphore.h
+ifndef MGUSE_OSE
+	$(CP) $(TARGET_OS)_pthread.h $(includedir)/pthread.h
+endif
+endif
+
+installdirs : force
+	@-mkdir $(prefix)
+	@-mkdir $(includedir)
+	@-mkdir $(libminiguiincludedir)
+	@-mkdir $(libminiguiincludedir)/ctrl
+

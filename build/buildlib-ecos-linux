@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+# This is a configure script for eCos Linux synthetic.
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the GNU gcc already.
+#   2. You have set ECOS_RESPOSITORY and PATH correctly.
+#   3. Modify the following variable for your building environment.
+
+ECOS_DIR=/opt/ecoscvs/linux_install
+
+rm config.cache config.status -f
+
+CFLAGS="-I${ECOS_DIR}/include -finline-limit=7000 -Wall -Wpointer-arith -Wstrict-prototypes -Winline -Wundef -g -O2 -ffunction-sections -fdata-sections  -fno-exceptions " \
+LDFLAGS=" -g -nostdlib -Wl,--gc-sections -Wl,-static -L${ECOS_DIR}/lib -Ttarget.ld" \
+./configure --prefix=${ECOS_DIR} \
+    --build=i386-linux \
+    --host=i386-elf-linux \
+    --target=i386-elf-linux \
+    --with-osname=ecos \
+    --with-style=fashion \
+    --disable-shared \
+    --disable-procs \
+    --disable-standalone \
+    --enable-incoreres \
+    --disable-videofbcon \
+    --enable-videoqvfb \
+    --enable-videodummy \
+    --disable-videoshadow \
+    --disable-micemoveable \
+    --disable-clipboard \
+    --disable-textmode \
+    --enable-dummyial \
+    --disable-nativeial \
+    --enable-qvfbial \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-savebitmap \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --disable-libvcongui \
+    --disable-cursor \
+    --enable-adv2dapi \
+    --enable-miniguientry \
+    --enable-mousecalibrate \
+    --enable-ipaqial \
+    --enable-qpfsupport \
+    --enable-gbsupport \
+    --enable-unicodesupport \
+    --enable-gbksupport \
+    --enable-big5support \
+    --enable-tinyscreen \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-nativems3 \
+    --disable-nativems \
+    --disable-nativeegpm 

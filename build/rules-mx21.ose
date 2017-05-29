@@ -1,0 +1,24 @@
+# rules for pc-vxworks 
+TARGET_OS=ose
+
+AS=arm-elf-as
+CC=arm-elf-gcc
+CXX=arm-elf-c++
+CPP=arm-elf-c++
+AR=arm-elf-ar
+RANLIB=arm-elf-ranlib
+MAKE=/usr/bin/make
+
+ARFLAGS=crus
+COFLAG=-c
+
+OBJ=o
+LIBA=a
+
+PREFIX=c:/cross
+
+TARGET_DIR=C:/OSE/OSE5.1.1
+
+INCS+=-I${TARGET_DIR}/include -I${TARGET_DIR}/include/gcc -I${TARGET_DIR}/include/ose_spi
+
+CFLAGS+=-fno-common -march=armv4t -msoft-float -mthumb-interwork -Wall  -MD -MP -mstructure-size-boundary=8 -DOSARM -D__MINIGUI_LIB__ -DUSE_OWN_PTHREAD  -D__arm 

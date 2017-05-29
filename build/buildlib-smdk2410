@@ -1,0 +1,22 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+CC=armv4l-unknown-linux-gcc \
+./configure --prefix=/opt/host/armv4l/armv4l-unknown-linux \
+    --build=i386-linux \
+    --host=arm-unknown-linux \
+    --target=arm-unknown-linux \
+    --enable-procs \
+    --disable-qvfbial \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen \
+    --disable-libvcongui

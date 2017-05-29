@@ -1,0 +1,2 @@
+cp res/*.jpg /usr/local/lib/minigui/res/bmp/
+memprof test_res

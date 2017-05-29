@@ -1,0 +1,51 @@
+#!/bin/sh
+
+#
+# Please make sure that the following things are OK:
+#
+#   1. You have installed the arm-elf-tools already.
+#   2. Your uClinux distribution has been installed into the directory of '/opt/uClinux-dist/'.
+#      If not, please modify the definition of UCLINUX_DIR.
+#
+
+rm config.cache config.status -f
+
+UCLINUX_DIR=/opt/uClinux/uClinux-dist
+
+CC=arm-elf-gcc \
+CFLAGS="-O2 -g -fno-builtin -mapcs-32 -march=armv4 -mtune=arm7tdmi -mshort-load-bytes -msoft-float -I${UCLINUX_DIR}/uClibc/include -I${UCLINUX_DIR}/linux-2.4.x/include -nostartfiles " \
+LDFLAGS="-Wl,-elf2flt -L${UCLINUX_DIR}/uClibc/lib -L/${UCLINUX_DIR}/uClibc/libm -lc" \
+./configure --prefix=${UCLINUX_DIR}/arm-elf \
+    --build=i386-linux \
+    --host=arm-elf-linux \
+    --target=arm-elf-linux \
+    --disable-shared \
+    --with-osname=uclinux \
+    --with-style=fashion \
+    --disable-videofbcon \
+    --disable-videodummy \
+    --enable-videoutpmc \
+    --disable-nativeial \
+    --disable-qvfbial \
+    --enable-dummyial \
+    --enable-autoial \
+    --enable-utpmcial \
+    --enable-incoreres \
+    --enable-rbfgb12 \
+    --disable-micemoveable \
+    --disable-cursor \
+    --disable-qpfsupport \
+    --disable-ttfsupport \
+    --disable-type1support \
+    --disable-latin9support \
+    --disable-gbksupport \
+    --disable-big5support \
+    --disable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-imegb2312 \
+    --disable-imegb2312py \
+    --disable-aboutdlg \
+    --disable-savescreen
+

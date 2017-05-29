@@ -1,0 +1,202 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<title>循序渐进学习 MiniGUI 编程</title>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb_2312-80">
+<head>
+
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+
+<p><strong class="title">循序渐进学习 MiniGUI 编程</strong><br></p>
+	<p>耿岳<br>                                           
+	蓝点软件（北京）研发中心项目经理<br>                                           
+	2000/10/27</p>                                           
+
+<p><table width="137" cellpadding="0" cellspacing="0" align="right" border="0">                                           
+                <tr><td bgcolor="#cc6633" align="center"><font face="helvetica,helv,arial" size="-1" color="#ffffff"><b>Contents:</b></font></td></tr><tr>                                           
+                                 <td bgcolor="#000000" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td>                                           
+                                                                            
+                             </tr>                                           
+                             <tr>                                           
+                                 <td bgcolor="#ffffff" width="100%"><font face="helvetica,helv,arial" size="-3"></font></td></tr>                                           
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#1"></a></font><a href="#1"><font size="-2">如何创建窗口</font></a></td></tr>                                           
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#2"></a></font><a href="#2"><font size="-2">如何使用资源创建菜单和控件</font></a></td></tr>                                           
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#3"></a></font><a href="#3"><font size="-2">如何创建对话框，使用消息循环</font></a></td></tr>                                           
+                                                         
+                                                         
+                <tr><td><font size="-2" face="helvetica,helv,arial">&nbsp;<a href="#author"></a></font><a href="#author"><font size="-2">关于作者</font></a></td></tr>                                           
+                <tr><td bgcolor="#000000"><font size="-3"></font></td></tr>                                           
+	</table>                                           
+                                           
+<p><strong class="subhead">本文用到的源代码</strong></p>   
+<P>请首先下载并解开这些源代码</P>
+<ul>   
+		    <li></a><a href="step1.zip">step1 的源代码</a></li>   
+		    <li><a href="step2.zip">step2 的源代码</a></li>   
+		    <li><a href="step3.zip">step3 的源代码</a></li>   
+</ul>   
+
+<a name="1">                                           
+<p><strong class="subhead">Step 1：使用 MiniGUI 创建窗口</strong>                                           
+<br>首先回答一个问题：什么是 MiniGUI。简而言之，对用户来说，MiniGUI 就是在控制台上为用户提供一个图形接口，使用户能够利用它提供的函数创建图形界面程序。MiniGUI 占用非常少的系统资源，适用于嵌入式系统应用程序。                                        
+ <br>出于历史的原因，在开发 MiniGUI 的时候，模拟了 Windows 系统的某些机制，因此如果用户非常了解 Windows 应用程序的开发，则在使用 MiniGUI 的时候不会遇到任何困难。如果用户对 Windows 开发还处于一无所知的程度，那么最好先找一本 Windows 开发的参考资料（并非 MFC），只需要看完消息循环部分就足够了。因此在本文中，将对 MiniGUI 的运行机制不做过多的论述。                                     
+  <br>先来回顾一下 Windows 应用程序编制的过程：
+<OL>
+	<li>在 WinMain() 中创建窗口，使用以下步骤：创建窗口类、登记窗口类、创建并显示窗口、启动消息循环机制。                                
+	<li>在 WndProc（） 中，负责对发到窗口中的各种消息进行响应。                               
+</OL>
+
+  <br> 在 MiniGUI 中也同样要有这两个函数，并且步骤与函数基本与 Windows 开发一致。请进入 step1 目录，看 step1.c 文件。                              
+  <br> 在 MiniGUI 中，窗口主函数名字叫MiniGUIMain（），它负责创建程序的主窗口。在这个过程中，MiniGUI 使用MAINWINCREATE 结构把 Windows 中的创建窗口类和创建窗口风格合二为一。该结构中元素的含义是：                              
+                             
+<br>CreateInfo.dwStyle：			窗口风格                             
+<br>CreateInfo.spCaption：			窗口的标题                            
+<br>CreateInfo.dwExStyle ：		窗口的附加风格                            
+<br>CreateInfo.hMenu：			附加在窗口上的菜单句柄                            
+<br>CreateInfo.hCursor：			在窗口中所使用的光标句柄                             
+<br>CreateInfo.hIcon：				程序的图标                              
+<br>CreateInfo.MainWindowProc：	该窗口的消息处理函数指针                             
+<br>CreateInfo.lx：				窗口左上角相对屏幕的绝对横坐标，以象素点表示                              
+<br>CreateInfo.ty：				窗口左上角相对屏幕的绝对纵坐标，以象素点表示                             
+<br>CreateInfo.rx：				窗口的长，以象素点表示                          
+<br>CreateInfo.by：				窗口的高，以象素点表示                            
+<br>CreateInfo.iBkColor：			窗口背景颜色                         
+<br>CreateInfo.dwAddData：		附带给窗口的一个 32 位值                         
+<br>CreateInfo.hHosting：			窗口消息队列所属                         
+ <br>    其中有两点要特别说明：                       
+<OL>
+	<li>CreateInfo.dwAddData：在程序编制过程中，应该尽量减少静态变量，但是如何不使用静态变量而给窗口传递参数呢？这时可以使用这个域。该域是一个 32 位的值，因此可以把所有需要传递给窗口的参数编制成一个结构，而将结构的指针赋予该域。在窗口过程中，可以使用、函数获取该指针，从而获得所需要传递的参数。                       
+	<li>CreateInfo.hHosting：该域中的值表示窗口使用哪一个消息队列。系统中维护了多个消息队列，那么系统如何知道发给该窗口的消息从哪个消息队列中检索呢？就使用该参数。可以让多个窗口使用同一个消息队列。                      
+</OL>
+<br> 后面的过程与 Windows 编程没有任何区别，不再赘述。                      
+<br>MainWinProc 函数负责处理窗口消息。在这个例子中，将在窗口中画一个方框，然后在方框中用三种 True Type 字体写同一句话。请读者注意的是和 Windows 程序一样，字体也是系统资源，当退出应用程序的时候，不要忘记删除它们。                      
+  </p>
+
+</a>                                           
+                                           
+<a name="2">                                           
+<p><strong class="subhead">Setp 2：如何使用资源创建菜单和控件</strong>                                           
+<br>在使用 Windows 下的集成开发环境时，一般都提供一个资源编辑器，可以创建用户自己的菜单、对话框，并且用来布置对话框中控件的位置。最后将编辑好的资源保存在磁盘文件中，一般取名为 app-name.rc。但是在 MiniGUI 中，还没有开发出一个资源编辑器，因此用户不得不手工完成一切操作。目前 MiniGUI 正在做这方面的工作。                                          
+ <br>有兴趣的用户可以研究一下 Windows 资源文件。它是一个纯文本文件，定义了菜单的各个项目和控件的大小及 ID。MiniGUI 也基本按这个格式和思路来实现的。但是必须提醒读者的是：在 Windows 资源文件中，控件和对话框的大小是以系统字体为单位的，而在 MiniGUI 中，是以屏幕的象素点为单位的。                    
+在 Step2.c 文件中，要告诉读者如何创建自己的控件和菜单，在 Step3 中，再讲述如何创建对话框。                    
+  <br>在 Step2.c 文件中，要告诉读者如何创建自己的控件和菜单，在 Step3 中，再讲述如何创建对话框。                   
+ <br>2.1 创建菜单                    
+  <br>无论在 Windows 中还是在 MiniGUI 中，属于窗口的菜单都是由以下两个元素构成：                   
+   <br>1．	主菜单，它包含了菜单所占用的物理位置和其中的菜单项；                   
+    <br>2．	子菜单，当点击菜单项时弹出的菜单。                   
+     <br>当然子菜单还可以包含子菜单，此时它成为自己子菜单的主菜单了。在 MiniGUI 中就是按照上面的两个组成部分创建菜单的。                   
+</P>
+
+<table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td><pre>
+static HMENU createmenu ();
+{
+HMENU hmnu;
+MENUITEMINFO mii;
+	hmnu = CreateMenu();
+
+	memset (&mii, 0, sizeof(MENUITEMINFO));
+	mii.type        = MFT_STRING;
+	mii.id          = 100;
+	mii.typedata    = (DWORD)"File";
+	mii.hsubmenu    = createpmenufile ();
+	InsertMenuItem(hmnu, 0, TRUE, &mii);
+	………
+	………
+	return hmnu;
+}
+</pre></td></tr></table>    
+              
+<br> 首先使用 CreateMenu() 函数创建一个主菜单，然后用MENUITEMINFO 结构创建每一个菜单项。                  
+<br> MENUITEMINFO 是一个比较复杂的结构，其中用户经常用到的有如下几项：                  
+<br> mii.type：	菜单类型。常用的有MFT_STRING、MFT_BITMAP、MFT_SEPARATOR                  
+<br>mii.state：	菜单状态。0 表示激活，1 表示禁止                  
+<br>mii.id：		菜单 ID                  
+<br>mii.hsubmenu：	该菜单项对应子菜单句柄                  
+<br>mii.typedata：		显示的菜单项字符                  
+<br>当定义完各个域后，用 InsertMenuItem（）函数将菜单项插入。该函数的第一个参数指的是要插入的菜单句柄；第二个参数是该菜单项的序号；第三个参数是一个标志；第四个参数是MENUITEMINFO 结构指针。                  
+<br>而各个子菜单的创建过程与此类似，不同点在于：子菜单使用CreatePopupMenu (&mii) 函数创建，并且附带有一个MENUITEMINFO 结构指针的参数，指明菜单的第一项是什么。有兴趣的读者可以试着创建第二层子菜单。                  
+</p>
+
+<br>2.2  创建控件                  
+<br>在窗口中创建控件比创建菜单更加容易。只要响应 MSG_CREATE 函数即可。                  
+<br>控件一律使用 CreateWindow 函数创建。该函数的各个参数含义是：该控件的类型；控件上显示的字符；控件的风格；控件相对于所在窗口左上角的 x 坐标；控件相对于所在窗口左上角的 y 坐标；控件的宽；控件的高；父窗口句柄；附带的 32  位数据。创建完毕后，使用 ShowWindow() 函数显示。                 
+<br>读者可能对于 MiniGUI 所提供函数的各个参数还不甚了解，请参照 MiniGUI 源代码中的 include/window.h。                 
+<br>                 
+<br>
+</p>
+</a>                                           
+                                           
+<a name="3">                                           
+<p><strong class="subhead">Step3：如何创建对话框，使用消息循环</strong>                                           
+</p>
+<br>3.1  消息循环                                           
+   <br>如同 Windows 系统一样，MiniGUI 也是靠消息循环机制来完成各个作业的。当触发一个窗口消息后，系统将调用该窗口的消息处理函数来响应。step3.c 告诉读者是如何响应窗口控件消息和菜单消息的。               
+   <br>当点击菜单或者控件时，它们都向所在的父窗口发送 MSG_COMMAND 消息，其中消息结构中的wParam 参数指定的是该消息来自哪个控件或菜单项。在 step3.c 中，当点击按钮时，消息处理函数将调用InvalidateRect（）函数，该函数的作用是向 hwnd 指定的窗口发送 MSG_PAINT 消息，导致窗口重绘。               
+   <br>在 MSG_PAINT 消息处理中，将根据标志显示一副图片。               
+   <br>在响应菜单消息时，将弹出一个对话框。               
+</p>
+   <br>3.2  制作对话框               
+   <br>对话框是这样做的：               
+   <br>1．	创建对话框模板的各个域含义是：               
+   <br>DWORD   	dwStyle;         	// 对话框风格               
+   <br> DWORD   	dwExStyle;       // 对话框附加风格               
+   <br>int         	x, y, w, h;        	// 对话框位置和宽高，以象素点为单位               
+   <br>const char* 	caption;          // 对话框题目               
+   <br>HICON      hIcon;          	// 对话框图标句柄               
+   <br>HMENU     hMenu;         	// 对话框菜单句柄               
+   <br> int         	controlnr;        	// 对话框内控件的数目               
+   <br>PCTRLDATA controls;        	// 控件数组               
+   <br>DWORD     dwAddData;     	// 对话框附带的 32 位数据               
+   <br>2．	创建对话框内的控件数组：对话框内的控件的位置、类型和风格都由数组中的一个元素定义。               
+   <br>CTRLDATA 结构定义是：               
+   <br>  char*       	class_name;   	// 控件类               
+   <br> DWORD    	dwStyle;			// 控件风格               
+   <br>int         	x, y, w, h;      	// 控件位置和宽高，以象素点为单位               
+   <br>int         	id;             	// 控件 ID               
+   <br> const char* 	caption;         	// 控件上的文字               
+   <br>DWORD    	dwAddData;   	// 附带的 32 位数据               
+   <br>3．	创建窗口过程：与创建主窗口过程类似，不再赘述。               
+   <br>4．	响应消息，显示对话框：               
+   <br>DlgInitProgress.controls = CtrlInitProgress;	// 给对话框模板的控件数组域赋值                 
+   <br>DialogBoxIndirectParam (&DlgInitProgress, hWnd, DialogBoxProc, 0L); // 参数是：对话框模板、               
+<br>父窗口、窗口处理过程、附加 32 位 数据。               
+<br>经过以上过程，就可以显示出对话框了。               
+       </p>                                       
+</a>                                           
+                                           
+      <a name="resources">   
+<p><strong class="subhead">相关资源</strong></p>   
+	<ul>   
+	  <li><b>3个步骤的源代码</b><br>下面是本文提到的源代码</li>   
+		  <ul>   
+		    <li></a><a href="step1.zip">step1 的源代码</a></li>   
+		    <li><a href="step2.zip">step2 的源代码</a></li>   
+		    <li><a href="step3.zip">step3 的源代码</a></li>   
+		  </ul>   
+	  <li><b>MiniGUI 资源</b></li>
+		  <ul>
+		    <li><a href="http://www.minigui.org">MiniGUI 主页</a></li>
+		    <li><a href="ftp://ftp.minigui.org/pub/minigui">MiniGUI FTP 站点</a></li>
+		  </ul>
+	  <li><b>MiniGUI 邮件列表</b></li>
+		  <ul>
+                    <li>发信:<a href="mailto:minigui-devel@egroups.com">minigui-devel@egroups.com</a></li>
+                    <li>订阅:<a href="mailto:minigui-devel-subscribe@egroups.com">minigui-devel-subscribe@egroups.com</a></li>
+                    <li>解除订阅:<a href="mailto:minigui-devel-unsubscribe@egroups.com">minigui-devel-unsubscribe@egroups.com</a></li>
+		  </ul>
+	</ul>
+                                    
+                                          
+<a name="author">                                          
+<p><strong class="subhead">关于作者</strong>                                          
+<br>作者简介：        
+<br>耿岳 ，       
+男，        
+1998 年获清华大学工学硕士学位, 现任蓝点软件北京研发中心高级项目经理。曾翻译《Visual Basic 5 傻瓜》、《Linux 安全性》、《Linux 编程宝典》等著作。参与编写《操作系统：中文 Linux 》一书。        
+<br>E-mail:geng_yue@bj.bluepoint.com.cn 
+<br>
+</p>
+
+</body>
+</html>
