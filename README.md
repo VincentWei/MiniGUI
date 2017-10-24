@@ -13,6 +13,7 @@ A mature cross-platform windowing system and GUI system for IoT devices.
     6. If you have a problem
     7. A little FAQ
     8. Copying
+    9. Not free for commercial use
 
 
 ## INTRODUCTION
@@ -49,6 +50,13 @@ for the developers to develop application much easier:
 
     * mGPlus: A MiniGUI component which provides support for advanced graphics 
       functions like path, gradient, anti-aliase stretch, and color combination.
+
+    * mGNCS: This component provides a new control set for MiniGUI application. 
+      By using mGNCS, you can use miniStudio to develop MiniGUI application in 
+      WYSIWYG way. 
+
+    * mGEff: mGEff provides an animation framework for MiniGUI application. 
+      It also provides some popular UI/UE special effects.
 
 MiniGUI also is a free software project. In December 1998, the initiator of 
 FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public 
@@ -108,8 +116,8 @@ clients and the server.
 
 ## NEW FEATURES OF THIS VERSION
 
-For more information, please refer to ReleaesNotes-3.0.x.pdf file in 
-the product CD-ROM (in the 'docs/' directory).
+This version is 3.2.x under development; new features:
+
 
 
 ## HISTORY
@@ -214,17 +222,19 @@ A brief history description of the developement progress lay below:
         39) Oct., 2009:     MiniGUI official version 3.0.4 released.
         40) Jan., 2010:     MiniGUI official version 3.0.6 released.
         41) May., 2010:     MiniGUI official version 3.0.8 released.
-        42) May., 2010:     MiniGUI official version 3.2.0 released.
-        43) Oct., 2010:     MiniGUI official version 3.0.10 released.
+        42) Aug., 2010:     MiniGUI official version 3.0.10 released.
+        43) Oct., 2010:     MiniGUI official version 3.0.12 released.
+        44) Aug., 2017:     FMSoft opened the latest source code of MiniGUI under GPL 2.0.
+        45) Aug., 2017:     FMSoft opened the latest source code of mDolphin under Apache 2.0.
 
 
 ## ABOUT THE AUTHORS
 
-The original author of MiniGUI is Wei Yongming, and now MiniGUI is 
+The original author of MiniGUI is WEI Yongming, and now MiniGUI is 
 maintained by FMSoft. For more information, please browse 
 our home page:
 
-    http://www.minigui.com
+    http://www.fmsoft.cn
 
 The GPL'd versions and dependent libraries of MiniGUI can be found at:
 
@@ -235,9 +245,6 @@ The GPL'd versions and dependent libraries of MiniGUI can be found at:
 
 If you have any technical problem, advice or comment, please send 
 messages to consult@minigui.com.
-
-If you are interested in the commercial MiniGUI products and licensing, 
-please write to sales@minigui.com.  
 
 
 ## A LITTLE FAQ
@@ -269,4 +276,16 @@ A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
 ## COPYING
 
 Copyright (C) 2002~2017, Beijing FMSoft Technologies Co., Ltd.
+Copyright (C) 1998~2002, WEI Yongming
+
+## NOT FREE FOR COMMERCIAL USE
+
+MiniGUI and its components are licensed under the GPL license. 
+So any links about MiniGUI must follow GPL. If you cannot accept GPL, 
+you need to be licensed from FMSoft. If you wonder that if you need 
+the commercial license of MiniGUI, please refer to the LICENSE.POLICY file.
+
+We provide you the commercial license of MiniGUI according to the number 
+of the run-time binary copies of MiniGUI. If you are interested in 
+the commercial license of MiniGUI, please write to sales@minigui.com.  
 
