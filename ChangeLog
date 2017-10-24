@@ -1,5 +1,13 @@
 *******************************************************************************
-What's new in trunk:
+What's new (V3.2.2):
+10/24-2017
+CLEANUP: Remove some 'inline' definitions:
+	* GetIMEPos/SetIMEPos. 
+	* WndRect -> gui_WndRect. 
+	* WndClientRect -> gui_WndClientRect. 
+
+*******************************************************************************
+What's new (V3.2.1):
 
 12/06. CLEANUP #11: Merge differences from rel-3-0, and remove unnecessary
 files. svn merge -r 12913:13673 ../branches/rel-3-0 (wanzheng)
@@ -17,7 +25,6 @@ rel-3.0(dongjunjie)
 	* src/gui/window.c
 	* src/textedit/mtextedit.c
 	* src/textedit/mtextedit.h
-
 
 06/30. BUGFIXING: #4801 Fix a bug which introduce a absolute path check error
 in Windows (dongkai).

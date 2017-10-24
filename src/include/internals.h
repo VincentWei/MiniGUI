@@ -608,6 +608,9 @@ void mg_TerminateLFManager (void);
 char* gui_GetIconFile(const char* rdr_name, char* file, char* _szValue);
 BOOL gui_LoadIconRes(HDC hdc, const char* rdr_name, char* file);
 
+void gui_WndRect(HWND hWnd, PRECT prc);
+void gui_WndClientRect(HWND hWnd, PRECT prc);
+
 /* -------------------------------------------------------------------------- */
 
 #ifdef __cplusplus

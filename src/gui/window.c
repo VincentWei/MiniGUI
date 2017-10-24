@@ -3,10 +3,10 @@
  **
  ** window.c: The Window module.
  **
- ** Copyright (C) 2003 ~ 2008 Feynman Software.
+ ** Copyright (C) 2003 ~ 2017 FMSoft.
  ** Copyright (C) 1999 ~ 2002 Wei Yongming.
  **
- ** All rights reserved by Feynman Software.
+ ** All rights reserved.
  **
  ** Current maintainer: Wei Yongming.
  **
@@ -230,7 +230,7 @@ HWND GUIAPI GetWindowUnderCursor (void)
 
 HWND GUIAPI WindowFromPointEx (POINT pt, BOOL bRecursion)
 {
-	HWND hChild; 
+    HWND hChild; 
     HWND hParent = (HWND)gui_GetMainWindowPtrUnderPoint (pt.x, pt.y);
 
     if (hParent && bRecursion) {
@@ -250,8 +250,8 @@ HWND GUIAPI WindowFromPointEx (POINT pt, BOOL bRecursion)
 
         return IsWindow(hChild)?hChild:hParent;
     }
-	else
-		return hParent;
+    else
+         return hParent;
 
     return HWND_NULL;
 }
@@ -348,7 +348,8 @@ static int DefaultDTMouseMsgHandler (PMAINWIN pWin, int message,
     int cx, cy;
     PCONTROL pCtrl = NULL;
 
-	if(pWin->dwStyle & WS_DISABLED) return 0;
+    if (pWin->dwStyle & WS_DISABLED)
+        return 0;
 
     cx = x - pWin->cl;
     cy = y - pWin->ct;
@@ -652,10 +653,10 @@ void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
 
     /* calculate offset postion. */
     if (flags == HT_CLIENT){
-        WndClientRect ((HWND)pWin, &wnd_rc);
+        gui_WndClientRect ((HWND)pWin, &wnd_rc);
     }
     else {
-        WndRect ((HWND)pWin, &wnd_rc);
+        gui_WndRect ((HWND)pWin, &wnd_rc);
     }
 
     /* 1. clip_rc.left/clip_rc.top is real_rc update in the screen (coordinate relative
@@ -692,7 +693,7 @@ void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
             if ((child->dwStyle & WS_VISIBLE)
                     && DoesIntersect ((const RECT*)&child->left, &rc)) {
                 RECT rcTmp;
-                WndClientRect ((HWND)child, &rcTmp);
+                gui_WndClientRect ((HWND)child, &rcTmp);
                 ScreenToClient ((HWND)pWin->pMainWin, 
                         &rcTmp.left, &rcTmp.top);
                 ScreenToClient ((HWND)pWin->pMainWin, 
@@ -1992,6 +1993,62 @@ static int HittestOnNClient (PMAINWIN pWin, int x, int y)
     return info->we_rdr->hit_test ((HWND)pWin, x, y);
 }
 
+
+/************************** internal functions *********************************/
+void gui_WndRect(HWND hWnd, PRECT prc)
+{
+    PCONTROL pParent;
+    PCONTROL pCtrl;
+
+    pParent = pCtrl = (PCONTROL) hWnd;
+
+    if (hWnd == HWND_DESKTOP) {
+        *prc = g_rcScr;
+        return;
+    }
+
+    prc->left = pCtrl->left;
+    prc->top  = pCtrl->top;
+    prc->right = pCtrl->right;
+    prc->bottom = pCtrl->bottom;
+
+    /* dongjunjie 2009/7/9 main window and control as main window
+     * don't need offset
+     * */
+    if (pCtrl->WinType == TYPE_MAINWIN )
+        return ;
+
+    while ((pParent = pParent->pParent)) {
+        prc->left += pParent->cl;
+        prc->top  += pParent->ct;
+        prc->right += pParent->cl;
+        prc->bottom += pParent->ct;
+    }
+}
+
+void gui_WndClientRect(HWND hWnd, PRECT prc)
+{
+    PCONTROL pCtrl;
+    PCONTROL pParent;
+    pParent = pCtrl = (PCONTROL) hWnd;
+
+    if (hWnd == HWND_DESKTOP) {
+        *prc = g_rcScr;
+        return;
+    }
+
+    prc->left = pCtrl->cl;
+    prc->top  = pCtrl->ct;
+    prc->right = pCtrl->cr;
+    prc->bottom = pCtrl->cb;
+    while ((pParent = pParent->pParent)) {
+        prc->left += pParent->cl;
+        prc->top  += pParent->ct;
+        prc->right += pParent->cl;
+        prc->bottom += pParent->ct;
+    }
+}
+
 extern HWND __mg_ime_wnd;
 void gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
 {
@@ -2089,27 +2146,26 @@ static int DefaultPostMsgHandler(PMAINWIN pWin, int message,
             break;
 
         case MSG_HITTEST:
-            if (PtInRect((PRECT)(&(pWin->cl)), (int)wParam, (int)lParam) )
+            if (PtInRect((PRECT)(&(pWin->cl)), (int)wParam, (int)lParam))
                 return HT_CLIENT;
-            else
-			{
-				CONTROL * pCtrl;
-				if(pWin->WinType == TYPE_MAINWIN && ( pCtrl= (CONTROL*)(pWin->hFirstChildAsMainWin)) != NULL){
-					int x = (int)wParam;
-					int y = (int)lParam;
-					ScreenToClient((HWND)pCtrl->pParent,&x,&y);
+            else {
+                CONTROL * pCtrl;
+                if(pWin->WinType == TYPE_MAINWIN && ( pCtrl= (CONTROL*)(pWin->hFirstChildAsMainWin)) != NULL){
+                    int x = (int)wParam;
+                    int y = (int)lParam;
+                    ScreenToClient((HWND)pCtrl->pParent,&x,&y);
 
-					while(pCtrl){
-						if((pCtrl->dwStyle&WS_VISIBLE) && PtInRect((PRECT)&(pCtrl->cl),x, y))
-						{
-							return HT_CLIENT;
-						}
-						pCtrl = pCtrl->next_ctrl_as_main;
-					}
-				}
+                    while(pCtrl){
+                        if((pCtrl->dwStyle&WS_VISIBLE) && PtInRect((PRECT)&(pCtrl->cl),x, y))
+                        {
+                            return HT_CLIENT;
+                        }
+                        pCtrl = pCtrl->next_ctrl_as_main;
+                    }
+                }
                 return HittestOnNClient (pWin, 
                             (int)wParam, (int)lParam);
-			}
+            }
         break;
 
         case MSG_CHANGESIZE:
@@ -2265,11 +2321,11 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
         rdr->draw_caption_button ((HWND)pWin, hdc, 0, LFRDR_BTN_STATUS_NORMAL);
     else
         rdr->draw_caption_button ((HWND)pWin, hdc, 0, LFRDR_BTN_STATUS_INACTIVE);
-	
-	/*dongjunjie 09/07/09
-	 * If Border is Zero, but MainWindow style have caption
-	 * we should notify the secondaryDC
-	 * */
+    
+    /*dongjunjie 09/07/09
+     * If Border is Zero, but MainWindow style have caption
+     * we should notify the secondaryDC
+     * */
     if (pWin->pMainWin->secondaryDC) {
         draw_secondary_nc_area (pWin, rdr, hdc, HT_CAPTION);
     }
@@ -2918,49 +2974,49 @@ UPDATERGIN:
     /* FIXME: we use the invalid region of the window as the update region directly. */
     if (pRgnUpdate) {
         /* copy from window's invalidate region */
-		RECT rcClient;
-		RECT rc;
+        RECT rcClient;
+        RECT rc;
         CopyRegion (pRgnUpdate, &pWin->InvRgn.rgn);
-		/* FIXME: I have not the best idea to do this */
-		GetClientRect(hWnd, &rcClient);
-		rc = rcClient;	
-		if(dx > 0)
-			rc.right = rc.left + dx + 1;
-		else if(dx < 0)
-			rc.left = rc.right + dx - 1;
-		if(dx != 0)
-			AddClipRect(pRgnUpdate, &rc);
-		rc = rcClient;
-		if(dy > 0)
-			rc.bottom = rc.top + dy + 1;
-		else if(dy < 0)
-			rc.top = rc.bottom + dy - 1;
-		if(dy != 0)
-			AddClipRect(pRgnUpdate, &rc);
+        /* FIXME: I have not the best idea to do this */
+        GetClientRect(hWnd, &rcClient);
+        rc = rcClient;    
+        if(dx > 0)
+            rc.right = rc.left + dx + 1;
+        else if(dx < 0)
+            rc.left = rc.right + dx - 1;
+        if(dx != 0)
+            AddClipRect(pRgnUpdate, &rc);
+        rc = rcClient;
+        if(dy > 0)
+            rc.bottom = rc.top + dy + 1;
+        else if(dy < 0)
+            rc.top = rc.bottom + dy - 1;
+        if(dy != 0)
+            AddClipRect(pRgnUpdate, &rc);
     }
     if (prcUpdate) {
-		if(pRgnUpdate)
-			*prcUpdate = pRgnUpdate->rcBound;
-		else if(dx != 0 && dy != 0)
-			GetClientRect(hWnd, prcUpdate);
-		else if(dx != 0)
-		{
-			GetClientRect(hWnd, prcUpdate);
-			if(dx > 0)
-				prcUpdate->right = prcUpdate->left + dx + 1;
-			else
-				prcUpdate->left = prcUpdate->right + dx - 1;
-		}
-		else if(dy != 0)
-		{
-			GetClientRect(hWnd, prcUpdate);
-			if(dy > 0)
-				prcUpdate->bottom = prcUpdate->top + dx + 1;
-			else
-				prcUpdate->top = prcUpdate->bottom + dx - 1;
-		}
-		else
-        	*prcUpdate = pWin->InvRgn.rgn.rcBound;
+        if(pRgnUpdate)
+            *prcUpdate = pRgnUpdate->rcBound;
+        else if(dx != 0 && dy != 0)
+            GetClientRect(hWnd, prcUpdate);
+        else if(dx != 0)
+        {
+            GetClientRect(hWnd, prcUpdate);
+            if(dx > 0)
+                prcUpdate->right = prcUpdate->left + dx + 1;
+            else
+                prcUpdate->left = prcUpdate->right + dx - 1;
+        }
+        else if(dy != 0)
+        {
+            GetClientRect(hWnd, prcUpdate);
+            if(dy > 0)
+                prcUpdate->bottom = prcUpdate->top + dx + 1;
+            else
+                prcUpdate->top = prcUpdate->bottom + dx - 1;
+        }
+        else
+            *prcUpdate = pWin->InvRgn.rgn.rcBound;
     }
 
     return pWin->InvRgn.rgn.type;
@@ -3319,13 +3375,13 @@ BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
         return FALSE;
     }
 
-	//TO AVOID THE DEAD LOOP
-	if (!bPrevState 
-		&& ((pSBar->minPos == pSBar->maxPos) 
-			|| (pSBar->pageStep >= (pSBar->maxPos - pSBar->minPos)))) 
-	{
-		return FALSE;
-	}
+    //TO AVOID THE DEAD LOOP
+    if (!bPrevState 
+        && ((pSBar->minPos == pSBar->maxPos) 
+            || (pSBar->pageStep >= (pSBar->maxPos - pSBar->minPos)))) 
+    {
+        return FALSE;
+    }
 
     if (iSBar == SB_VERT)
         wndGetVScrollBarRect (pWin, &rcBar);
@@ -3338,15 +3394,15 @@ BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
     else
         pSBar->status |= SBS_HIDE;
 
-	//Hear , MSG_CHANGESIZE would call OnChangeSize
-	//OnChangeSize May be modify pSBar->status as 100
-	//( pSBar->status|=SBS_HIDE), when
-	// pSBar's pageStep >= max -min
-	// And Then, RecalcClientArea would be called,
-	// RecalcClientArea will send MSG_CHANGESIZE,
-	// In some controls, it will process MSG_CHANGESIZE
-	// and call ShowScrollBar too.
-	// Becareful the MSG_CHANGESIZE !!!
+    //Hear , MSG_CHANGESIZE would call OnChangeSize
+    //OnChangeSize May be modify pSBar->status as 100
+    //( pSBar->status|=SBS_HIDE), when
+    // pSBar's pageStep >= max -min
+    // And Then, RecalcClientArea would be called,
+    // RecalcClientArea will send MSG_CHANGESIZE,
+    // In some controls, it will process MSG_CHANGESIZE
+    // and call ShowScrollBar too.
+    // Becareful the MSG_CHANGESIZE !!!
     SendAsyncMessage (hWnd, MSG_CHANGESIZE, 0, 0);
 
     /* houhh 20081006, pSbar->status |= SBS_HIDE, Get rcBar is error.
@@ -3835,17 +3891,17 @@ void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
 
 #if 0
 #if 0
-	MSG Msg;
-	HWND hMainWnd;
+    MSG Msg;
+    HWND hMainWnd;
 
-	/* MSG_PAINT Must Use PostMessage. Becuse Only PostMessage can give a correct order
-	 * when processing MSG_PAINT message
-	 *
-	 * the Order of MSG_PAINT:
-	 * 	* The Parent Window Must Be Painted before Children
-	 * 	* The Previously created window must be Painted before afterwards created
-	 *
-	 * */
+    /* MSG_PAINT Must Use PostMessage. Becuse Only PostMessage can give a correct order
+     * when processing MSG_PAINT message
+     *
+     * the Order of MSG_PAINT:
+     *     * The Parent Window Must Be Painted before Children
+     *     * The Previously created window must be Painted before afterwards created
+     *
+     * */
     if (hWnd != HWND_DESKTOP) {
         PMAINWIN pWin;
 
@@ -3856,12 +3912,12 @@ void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
         SendMessage (hWnd, MSG_PAINT, 0, 0);
         
 #else
-	hMainWnd = GetMainWindowHandle(hWnd);
-	while(PeekMessageEx(&Msg, hMainWnd, MSG_PAINT, MSG_PAINT + 1 , FALSE, PM_REMOVE))
-	{
-		TranslateMessage(&Msg);
-		DispatchMessage(&Msg);
-	}
+    hMainWnd = GetMainWindowHandle(hWnd);
+    while(PeekMessageEx(&Msg, hMainWnd, MSG_PAINT, MSG_PAINT + 1 , FALSE, PM_REMOVE))
+    {
+        TranslateMessage(&Msg);
+        DispatchMessage(&Msg);
+    }
 #endif
 #else /* a new implementation only check the window and its children. */
     {
@@ -4629,75 +4685,75 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
 #define WIRM_ALL      (WIRM_PARENT | WIRM_CHILDREN | WIRM_SIBLING)
 static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int mark)
 {
-	PCONTROL pCtrl;
-	RECT     rcClient;
-	RECT     rcInv;
-	RECT     rcTemp;
-	PINVRGN  pInvRgn;	
+    PCONTROL pCtrl;
+    RECT     rcClient;
+    RECT     rcInv;
+    RECT     rcTemp;
+    PINVRGN  pInvRgn;    
 
 
-	pCtrl = (PCONTROL)hWnd;
+    pCtrl = (PCONTROL)hWnd;
 
 
-	//invalidate itself
-	rcClient.left = rcClient.top = 0;
-	rcClient.right = pCtrl->cr - pCtrl->cl;
-	rcClient.bottom = pCtrl->cb - pCtrl->ct;
+    //invalidate itself
+    rcClient.left = rcClient.top = 0;
+    rcClient.right = pCtrl->cr - pCtrl->cl;
+    rcClient.bottom = pCtrl->cb - pCtrl->ct;
 
-	pInvRgn = &pCtrl->InvRgn;
-	
-	if(!pInvRgn->frozen)
-	{
-		PCONTROL pNext;
+    pInvRgn = &pCtrl->InvRgn;
+    
+    if(!pInvRgn->frozen)
+    {
+        PCONTROL pNext;
 #ifdef _MGRM_THREADS
-		pthread_mutex_lock(&pInvRgn->lock);
+        pthread_mutex_lock(&pInvRgn->lock);
 #endif
         if (bEraseBkgnd)
         {
             pCtrl->Flags |= WF_ERASEBKGND;
         }
 
-		if(prc)
-		{
-			rcInv = *prc;
-			NormalizeRect(&rcInv);
-			if(IntersectRect(&rcInv, &rcInv, &rcClient))
-				AddClipRect(&pInvRgn->rgn, &rcInv);
-		}
-		else
-		{
-			rcInv = rcClient;
-			SetClipRgn(&pInvRgn->rgn, &rcInv);
-		}
+        if(prc)
+        {
+            rcInv = *prc;
+            NormalizeRect(&rcInv);
+            if(IntersectRect(&rcInv, &rcInv, &rcClient))
+                AddClipRect(&pInvRgn->rgn, &rcInv);
+        }
+        else
+        {
+            rcInv = rcClient;
+            SetClipRgn(&pInvRgn->rgn, &rcInv);
+        }
 
-		rcTemp = rcInv;
-		OffsetRect(&rcTemp, pCtrl->cl, pCtrl->ct);
+        rcTemp = rcInv;
+        OffsetRect(&rcTemp, pCtrl->cl, pCtrl->ct);
 
-		//subtract from next sibling controls
-		if(pCtrl->WinType==TYPE_CONTROL /*&& ( mark & WIRM_NEXT_SIBLING)*/)
-		{
-			for(pNext = pCtrl->next; pNext; pNext = pNext->next)
-			{
-				RECT rc;
-				if((pNext->dwStyle & WS_VISIBLE)
-					&& !(pNext->dwExStyle & WS_EX_TRANSPARENT)
-					&& IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->left))
-				{
-					OffsetRect(&rc, - pCtrl->cl, - pCtrl->ct );
-					SubtractClipRect(&pInvRgn->rgn, &rc);
-				}
-			}
-		}
+        //subtract from next sibling controls
+        if(pCtrl->WinType==TYPE_CONTROL /*&& ( mark & WIRM_NEXT_SIBLING)*/)
+        {
+            for(pNext = pCtrl->next; pNext; pNext = pNext->next)
+            {
+                RECT rc;
+                if((pNext->dwStyle & WS_VISIBLE)
+                    && !(pNext->dwExStyle & WS_EX_TRANSPARENT)
+                    && IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->left))
+                {
+                    OffsetRect(&rc, - pCtrl->cl, - pCtrl->ct );
+                    SubtractClipRect(&pInvRgn->rgn, &rc);
+                }
+            }
+        }
 #ifdef _MGRM_THREADS
-		pthread_mutex_unlock(&pInvRgn->lock);
+        pthread_mutex_unlock(&pInvRgn->lock);
 #endif
-	}
-	else
-	{
-		return FALSE;
-	}
+    }
+    else
+    {
+        return FALSE;
+    }
 
-	//invalidate parent 
+    //invalidate parent 
     if( (mark & WIRM_PARENT) 
             && (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
             && pCtrl->WinType != TYPE_MAINWIN
@@ -4709,76 +4765,76 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
         }
     }
 
-	//invalidate sibling
-	if(pCtrl->WinType==TYPE_CONTROL 
-		&& (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
-		&& !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)
-		&& (mark & WIRM_PREV_SIBLING))
-	{
-		PCONTROL   pPrev;
-		for(pPrev = pCtrl->prev; pPrev; pPrev = pPrev->prev)
-		{
-			RECT rc;
+    //invalidate sibling
+    if(pCtrl->WinType==TYPE_CONTROL 
+        && (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
+        && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)
+        && (mark & WIRM_PREV_SIBLING))
+    {
+        PCONTROL   pPrev;
+        for(pPrev = pCtrl->prev; pPrev; pPrev = pPrev->prev)
+        {
+            RECT rc;
 
-			if(!(pPrev->dwStyle & WS_VISIBLE))
-				continue;
+            if(!(pPrev->dwStyle & WS_VISIBLE))
+                continue;
 
-			if(IntersectRect(&rc, &rcTemp, (const RECT*)&pPrev->cl))
-			{
-				OffsetRect(&rc,  - pPrev->cl, - pPrev->ct);
-				_wndInvalidateRect((HWND)pPrev, &rc, bEraseBkgnd, WIRM_CHILDREN);
-			}
-		}
-	}
+            if(IntersectRect(&rc, &rcTemp, (const RECT*)&pPrev->cl))
+            {
+                OffsetRect(&rc,  - pPrev->cl, - pPrev->ct);
+                _wndInvalidateRect((HWND)pPrev, &rc, bEraseBkgnd, WIRM_CHILDREN);
+            }
+        }
+    }
 
-	if(pCtrl->WinType==TYPE_CONTROL 
-		&& !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)
-		&& (mark & WIRM_NEXT_SIBLING))
-	{
-		PCONTROL pNext;
-		for(pNext = pCtrl->next; pNext; pNext = pNext->next)
-		{
-			RECT rc;
-			if(!(pNext->dwStyle & WS_VISIBLE)
-				|| !(pNext->dwExStyle & WS_EX_TRANSPARENT))
-				continue;
+    if(pCtrl->WinType==TYPE_CONTROL 
+        && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)
+        && (mark & WIRM_NEXT_SIBLING))
+    {
+        PCONTROL pNext;
+        for(pNext = pCtrl->next; pNext; pNext = pNext->next)
+        {
+            RECT rc;
+            if(!(pNext->dwStyle & WS_VISIBLE)
+                || !(pNext->dwExStyle & WS_EX_TRANSPARENT))
+                continue;
 
-			if(IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->cl))
-			{
-				OffsetRect(&rc, - pNext->cl, - pNext->ct);
-				_wndInvalidateRect((HWND)pNext, &rc, bEraseBkgnd, WIRM_CHILDREN);
-			}
-		}
-	}
+            if(IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->cl))
+            {
+                OffsetRect(&rc, - pNext->cl, - pNext->ct);
+                _wndInvalidateRect((HWND)pNext, &rc, bEraseBkgnd, WIRM_CHILDREN);
+            }
+        }
+    }
 
-	
-	//check mark for invalidate children
-	if(mark & WIRM_CHILDREN)
-	{
-		PCONTROL pChild ;
-		RECT     rc;
+    
+    //check mark for invalidate children
+    if(mark & WIRM_CHILDREN)
+    {
+        PCONTROL pChild ;
+        RECT     rc;
 
-		
-		for(pChild = pCtrl->children; pChild; pChild = pChild->next)
-		{
-			if(!(pChild->dwStyle & WS_VISIBLE)
-				|| (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
-				continue;
-			
-			if(IntersectRect(&rc, &rcInv, (const RECT*)&pChild->cl))
-			{
-				OffsetRect(&rc, - pChild->cl, - pChild->ct);
-				_wndInvalidateRect((HWND)pChild, &rc, bEraseBkgnd, WIRM_CHILDREN);
-			}
-			if(IntersectRect(&rc, &rcInv, (const RECT*)&pChild->left))
-			{
-				OffsetRect(&rc, - pChild->left, - pChild->top);
-				SendAsyncMessage((HWND)pChild, MSG_NCPAINT, 0, (LPARAM)&rc);
-			}
-		}
-	}
+        
+        for(pChild = pCtrl->children; pChild; pChild = pChild->next)
+        {
+            if(!(pChild->dwStyle & WS_VISIBLE)
+                || (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
+                continue;
+            
+            if(IntersectRect(&rc, &rcInv, (const RECT*)&pChild->cl))
+            {
+                OffsetRect(&rc, - pChild->cl, - pChild->ct);
+                _wndInvalidateRect((HWND)pChild, &rc, bEraseBkgnd, WIRM_CHILDREN);
+            }
+            if(IntersectRect(&rc, &rcInv, (const RECT*)&pChild->left))
+            {
+                OffsetRect(&rc, - pChild->left, - pChild->top);
+                SendAsyncMessage((HWND)pChild, MSG_NCPAINT, 0, (LPARAM)&rc);
+            }
+        }
+    }
 
-	return TRUE;
+    return TRUE;
 
 }
 
@@ -4788,8 +4844,8 @@ BOOL GUIAPI InvalidateRect (HWND hWnd, const RECT* prc, BOOL bEraseBkgnd)
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
-	retval = _wndInvalidateRect(hWnd, prc, bEraseBkgnd, WIRM_ALL);
-	PostMessage (hWnd, MSG_PAINT, 0, (LPARAM)prc);
+    retval = _wndInvalidateRect(hWnd, prc, bEraseBkgnd, WIRM_ALL);
+    PostMessage (hWnd, MSG_PAINT, 0, (LPARAM)prc);
 
     return retval;
 }
@@ -4872,7 +4928,7 @@ HDC GUIAPI BeginPaint (HWND hWnd)
     HDC hdc;
     RECT rcInv;
     PCONTROL child;
-	BOOL fEraseBk;
+    BOOL fEraseBk;
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HDC_INVALID);
     pWin = MG_GET_WINDOW_PTR (hWnd);
@@ -4898,8 +4954,8 @@ HDC GUIAPI BeginPaint (HWND hWnd)
 #endif
     pInvRgn->frozen ++;
 
-	fEraseBk = pWin->Flags & WF_ERASEBKGND;
-	pWin->Flags = (pWin->Flags & ~WF_ERASEBKGND);
+    fEraseBk = pWin->Flags & WF_ERASEBKGND;
+    pWin->Flags = (pWin->Flags & ~WF_ERASEBKGND);
 
     SelectClipRegion (hdc, &pInvRgn->rgn);
     if (pWin->pMainWin->secondaryDC) {
@@ -4912,7 +4968,7 @@ HDC GUIAPI BeginPaint (HWND hWnd)
     else {
         CopyRect (&pWin->pMainWin->update_rc, &pInvRgn->rgn.rcBound);
     }
-	rcInv = pInvRgn->rgn.rcBound;
+    rcInv = pInvRgn->rgn.rcBound;
 
     EmptyClipRgn (&pInvRgn->rgn);
 
@@ -4921,8 +4977,8 @@ HDC GUIAPI BeginPaint (HWND hWnd)
     pthread_mutex_unlock (&pInvRgn->lock);
 #endif
 
-	if(!(pWin->dwStyle & WS_VISIBLE))
-		return hdc;
+    if(!(pWin->dwStyle & WS_VISIBLE))
+        return hdc;
 
     /* exclude the children area from the client */
     /*    if (pWin->dwExStyle & WS_EX_CLIPCHILDREN)*/ {
@@ -4935,33 +4991,33 @@ HDC GUIAPI BeginPaint (HWND hWnd)
             child = child->next;
         }
     }
-	//erase bkgnd
-	if(fEraseBk 
-			&& !(pWin->WinType == TYPE_CONTROL
-					&& !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
-					&& (pWin->dwExStyle & WS_EX_TRANSPARENT)
-				)
-		)
-		SendAsyncMessage(hWnd, MSG_ERASEBKGND, (WPARAM)hdc,0); //(LPARAM)&rcInv);
+    //erase bkgnd
+    if(fEraseBk 
+            && !(pWin->WinType == TYPE_CONTROL
+                    && !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
+                    && (pWin->dwExStyle & WS_EX_TRANSPARENT)
+                )
+        )
+        SendAsyncMessage(hWnd, MSG_ERASEBKGND, (WPARAM)hdc,0); //(LPARAM)&rcInv);
 
-	//repaint NC area of tranparent children 
-	for(child = (PCONTROL)pWin->hFirstChild; child; child = child->next)
-	{
-		RECT rcTemp;
-		if(!(pWin->dwExStyle & WS_EX_TRANSPARENT)
-			&& (!(child->dwStyle & WS_VISIBLE)
-				|| !(child->dwExStyle & WS_EX_TRANSPARENT)
-				|| ( child->dwExStyle & WS_EX_CTRLASMAINWIN)))
-			continue;
+    //repaint NC area of tranparent children 
+    for(child = (PCONTROL)pWin->hFirstChild; child; child = child->next)
+    {
+        RECT rcTemp;
+        if(!(pWin->dwExStyle & WS_EX_TRANSPARENT)
+            && (!(child->dwStyle & WS_VISIBLE)
+                || !(child->dwExStyle & WS_EX_TRANSPARENT)
+                || ( child->dwExStyle & WS_EX_CTRLASMAINWIN)))
+            continue;
 
-		if(IntersectRect(&rcTemp, &rcInv, (const RECT*)&child->left))
-		{
-			//draw NC
-			OffsetRect(&rcTemp, -child->left, -child->top);
-			SendAsyncMessage((HWND)child, MSG_NCPAINT, (WPARAM)0, (LPARAM)&rcTemp);
-		}
-		
-	}
+        if(IntersectRect(&rcTemp, &rcInv, (const RECT*)&child->left))
+        {
+            //draw NC
+            OffsetRect(&rcTemp, -child->left, -child->top);
+            SendAsyncMessage((HWND)child, MSG_NCPAINT, (WPARAM)0, (LPARAM)&rcTemp);
+        }
+        
+    }
 
     return hdc;
 }
@@ -5249,12 +5305,12 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
         goto error;
     }
 
-	//set ctrl as main
-	if(pNewCtrl->dwExStyle & WS_EX_CTRLASMAINWIN){
-		pNewCtrl->next_ctrl_as_main = (PCONTROL)pNewCtrl->pMainWin->hFirstChildAsMainWin;
-		pMainWin->hFirstChildAsMainWin = (HWND) pNewCtrl;
-	}
-	
+    //set ctrl as main
+    if(pNewCtrl->dwExStyle & WS_EX_CTRLASMAINWIN){
+        pNewCtrl->next_ctrl_as_main = (PCONTROL)pNewCtrl->pMainWin->hFirstChildAsMainWin;
+        pMainWin->hFirstChildAsMainWin = (HWND) pNewCtrl;
+    }
+    
     SendMessage ((HWND)pNewCtrl, MSG_SIZECHANGING, 
             (WPARAM)&rcExpect, (LPARAM)&pNewCtrl->left);
 
@@ -5344,7 +5400,7 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
     ThrowAwayMessages (hWnd);
 
     if (pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) {
-		PMAINWIN pMainWin;
+        PMAINWIN pMainWin;
         EmptyClipRgn (&pCtrl->pGCRInfo->crgn);
 #ifdef _MGRM_THREADS
         pthread_mutex_destroy (&pCtrl->pGCRInfo->lock);
@@ -5569,7 +5625,15 @@ int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info)
 #endif
 }
 
-inline int GUIAPI SetIMEPos (const POINT* pt)
+int GUIAPI GetIMEPos (POINT *pt)
+{
+    IME_TARGET_INFO info;
+    int ret = GetIMETargetInfo (&info);
+    *pt = info.ptCaret;
+    return ret;
+}
+
+int GUIAPI SetIMEPos (const POINT* pt)
 {
     IME_TARGET_INFO info;
     memset (&info, 0, sizeof(IME_TARGET_INFO));
@@ -5597,14 +5661,6 @@ int GUIAPI GetIMETargetInfo (IME_TARGET_INFO *info)
     return SendMessage (HWND_DESKTOP, 
             MSG_IME_GET_TARGET_INFO, 0, (LPARAM)info);
 #endif
-}
-
-inline int GUIAPI GetIMEPos (POINT *pt)
-{
-    IME_TARGET_INFO info;
-    int ret = GetIMETargetInfo (&info);
-    *pt = info.ptCaret;
-    return ret;
 }
 
 HICON GetWindowIcon (HWND hWnd)
@@ -6108,91 +6164,92 @@ BOOL GUIAPI GetWindowRegion (HWND hWnd, CLIPRGN* region)
 
 int GUIAPI GetWindowZOrder(HWND hWnd)
 {
-	PCONTROL pCtrl, pCtrlTmp;
-	int idx;
-	if(!IsWindow(hWnd))
-		return -1;
+    PCONTROL pCtrl, pCtrlTmp;
+    int idx;
+    if(!IsWindow(hWnd))
+        return -1;
 
-	if(IsMainWindow(hWnd))
-		return 0;
+    if(IsMainWindow(hWnd))
+        return 0;
 
-	pCtrl = (PCONTROL)hWnd;
+    pCtrl = (PCONTROL)hWnd;
 
-	pCtrlTmp = pCtrl->pParent->children;
-	
-	idx = 0;
-	while(pCtrlTmp && pCtrl != pCtrlTmp)
-	{
-		idx ++;
-		pCtrlTmp = pCtrlTmp->next;
-	}
+    pCtrlTmp = pCtrl->pParent->children;
+    
+    idx = 0;
+    while(pCtrlTmp && pCtrl != pCtrlTmp)
+    {
+        idx ++;
+        pCtrlTmp = pCtrlTmp->next;
+    }
 
-	return idx;
+    return idx;
 }
 
 int GUIAPI SetWindowZOrder(HWND hWnd, int zorder)
 {
-	int idx;
-	PCONTROL pCtrl, pCtrlTmp;
-	if(!IsWindow(hWnd))
-		return -1;
+    int idx;
+    PCONTROL pCtrl, pCtrlTmp;
+    if(!IsWindow(hWnd))
+        return -1;
 
-	if(IsMainWindow(hWnd))
-		return 0;
-	
-	pCtrl = (PCONTROL)hWnd;
+    if(IsMainWindow(hWnd))
+        return 0;
+    
+    pCtrl = (PCONTROL)hWnd;
 
-	pCtrlTmp = pCtrl->pParent->children;
+    pCtrlTmp = pCtrl->pParent->children;
 
-	idx = 0;
-	while(idx < zorder && pCtrlTmp && pCtrlTmp != pCtrl){
-		idx ++;
-		pCtrlTmp = pCtrlTmp->next;
-	}
+    idx = 0;
+    while(idx < zorder && pCtrlTmp && pCtrlTmp != pCtrl){
+        idx ++;
+        pCtrlTmp = pCtrlTmp->next;
+    }
 
-	if(idx < zorder) //Move Down
-	{
-		pCtrlTmp = pCtrlTmp->next;
-		if(pCtrlTmp && pCtrl == pCtrl->pParent->children)
-			pCtrl->pParent->children = pCtrl->next;
-		while(idx < zorder && pCtrlTmp)
-		{
-			//switch pCtrl and pCtrlTmp
-			pCtrl->next = pCtrlTmp->next;
-			pCtrlTmp->prev = pCtrl->prev;
-			pCtrl->prev = pCtrlTmp;
-			pCtrlTmp->next = pCtrl;
-			if(pCtrl->next)
-				pCtrl->next->prev = pCtrl;
-			if(pCtrlTmp->prev)
-				pCtrlTmp->prev->next = pCtrlTmp;
-			pCtrlTmp = pCtrl->next;
-		}
-	}
-	else if(pCtrlTmp && pCtrlTmp != pCtrl) // Move Up
-	{
-		PCONTROL prev;
-		do{
-			prev = pCtrl->prev;
-			if(prev == NULL)
-				break;
-			prev->next = pCtrl->next;
-			pCtrl->prev = prev->prev;
-			pCtrl->next = prev;
-			prev->prev = pCtrl;
-			if(pCtrl->prev)
-				pCtrl->prev->next = pCtrl;
-			if(prev->next)
-				prev->next->prev = prev;
-		}while(prev != pCtrlTmp);
-		if(pCtrlTmp == pCtrl->pParent->children)
-			pCtrl->pParent->children = pCtrl;
+    if(idx < zorder) //Move Down
+    {
+        pCtrlTmp = pCtrlTmp->next;
+        if(pCtrlTmp && pCtrl == pCtrl->pParent->children)
+            pCtrl->pParent->children = pCtrl->next;
+        while(idx < zorder && pCtrlTmp)
+        {
+            //switch pCtrl and pCtrlTmp
+            pCtrl->next = pCtrlTmp->next;
+            pCtrlTmp->prev = pCtrl->prev;
+            pCtrl->prev = pCtrlTmp;
+            pCtrlTmp->next = pCtrl;
+            if(pCtrl->next)
+                pCtrl->next->prev = pCtrl;
+            if(pCtrlTmp->prev)
+                pCtrlTmp->prev->next = pCtrlTmp;
+            pCtrlTmp = pCtrl->next;
+        }
+    }
+    else if(pCtrlTmp && pCtrlTmp != pCtrl) // Move Up
+    {
+        PCONTROL prev;
+        do{
+            prev = pCtrl->prev;
+            if(prev == NULL)
+                break;
+            prev->next = pCtrl->next;
+            pCtrl->prev = prev->prev;
+            pCtrl->next = prev;
+            prev->prev = pCtrl;
+            if(pCtrl->prev)
+                pCtrl->prev->next = pCtrl;
+            if(prev->next)
+                prev->next->prev = prev;
+        }while(prev != pCtrlTmp);
+        if(pCtrlTmp == pCtrl->pParent->children)
+            pCtrl->pParent->children = pCtrl;
 
-		if(prev == NULL)
-			return 0;
-	}
+        if(prev == NULL)
+            return 0;
+    }
 
-	return idx;
+    return idx;
 }
 
 #endif
+

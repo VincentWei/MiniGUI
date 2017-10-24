@@ -3,7 +3,7 @@ AC_PREREQ(2.52)
 
 dnl ========================================================================
 dnl Put the name and version of the package here
-AC_INIT([libminigui], [3.2.1])
+AC_INIT([libminigui], [3.2.2])
 AC_CONFIG_SRCDIR([src/main/main.c])
 
 dnl Set various version strings - taken gratefully from the SDL sources

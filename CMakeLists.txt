@@ -12,7 +12,7 @@ add_definitions (-D_GNU_SOURCE)
 # the version number.
 set (MINIGUI_MAJOR_VERSION 3)
 set (MINIGUI_MINOR_VERSION 2)
-set (MINIGUI_MICRO_VERSION 1)
+set (MINIGUI_MICRO_VERSION 2)
 
 set (MINIGUI_NAME "minigui")
 set (MGLIB_SUFFIX "")

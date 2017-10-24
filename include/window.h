@@ -7816,22 +7816,6 @@ MG_EXPORT int GUIAPI SetIMEStatus (int StatusCode, int Value);
 MG_EXPORT int GUIAPI GetIMETargetInfo (IME_TARGET_INFO *info);
 
 /**
- * \fn int GUIAPI GetIMEPos (POINT* pt)
- * \brief Retrives the position of the current IME window.
- *
- * This function retrives the position of the current IME window.
- *
- * \param pt The item to be retrived. The positon is 
- *        return by the current IME Window.
- *
- * \return The current IME window positon.
- *        ERR_IME_NOIMEWND if error occurred.
- *
- * \sa GetIMEPos
- */
-MG_EXPORT inline int GUIAPI GetIMEPos (POINT* pt);
-
-/**
  * \fn int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info)
  * \brief Sets the target info of the current IME window.
  *
@@ -7849,9 +7833,29 @@ MG_EXPORT inline int GUIAPI GetIMEPos (POINT* pt);
 MG_EXPORT int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info);
 
 /**
- * \fn inline int GUIAPI SetIMEPos (POINT* pt)
+ * \fn int GUIAPI GetIMEPos (POINT* pt)
+ * \brief Retrives the position of the current IME window.
+ *
+ * NOTE that this function is deprecated.
+ * 
+ * This function retrives the position of the current IME window.
+ *
+ * \param pt The item to be retrived. The positon is 
+ *        return by the current IME Window.
+ *
+ * \return The current IME window positon.
+ *        ERR_IME_NOIMEWND if error occurred.
+ *
+ * \sa GetIMEPos
+ */
+MG_EXPORT int GUIAPI GetIMEPos (POINT* pt);
+
+/**
+ * \fn int GUIAPI SetIMEPos (POINT* pt)
  * \brief Sets the position of the current IME window.
  *
+ * NOTE that this function is deprecated.
+ * 
  * This function sets the position of the current IME window.
  *
  * \param pt The set position value.
@@ -7863,7 +7867,7 @@ MG_EXPORT int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info);
  *
  * \sa SetIMEPos
  */
-MG_EXPORT inline int GUIAPI SetIMEPos(const POINT* pt);
+MG_EXPORT int GUIAPI SetIMEPos (const POINT* pt);
 
     /** @} end of ime_fns */
 

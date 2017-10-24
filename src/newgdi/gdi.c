@@ -87,63 +87,6 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient);
 static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref);
 static void dc_InitScreenDC (PDC pdc, GAL_Surface* surface);
 
-/************************** inline functions *********************************/
-inline void WndRect(HWND hWnd, PRECT prc)
-{
-    PCONTROL pParent;
-    PCONTROL pCtrl;
-
-    pParent = pCtrl = (PCONTROL) hWnd;
-
-    if (hWnd == HWND_DESKTOP) {
-        *prc = g_rcScr;
-        return;
-    }
-
-    prc->left = pCtrl->left;
-    prc->top  = pCtrl->top;
-    prc->right = pCtrl->right;
-    prc->bottom = pCtrl->bottom;
-
-	/*dongjunjie 2009/7/9 main window and control as main window
-	 * don't need offset
-	 * */
-	if(pCtrl->WinType == TYPE_MAINWIN )
-//		|| (pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN))
-		return ;
-
-
-    while ((pParent = pParent->pParent)) {
-        prc->left += pParent->cl;
-        prc->top  += pParent->ct;
-        prc->right += pParent->cl;
-        prc->bottom += pParent->ct;
-    }
-}
-
-inline void WndClientRect(HWND hWnd, PRECT prc)
-{
-    PCONTROL pCtrl;
-    PCONTROL pParent;
-    pParent = pCtrl = (PCONTROL) hWnd;
-
-    if (hWnd == HWND_DESKTOP) {
-        *prc = g_rcScr;
-        return;
-    }
-
-    prc->left = pCtrl->cl;
-    prc->top  = pCtrl->ct;
-    prc->right = pCtrl->cr;
-    prc->bottom = pCtrl->cb;
-    while ((pParent = pParent->pParent)) {
-        prc->left += pParent->cl;
-        prc->top  += pParent->ct;
-        prc->right += pParent->cl;
-        prc->bottom += pParent->ct;
-    }
-}
-
 static BOOL RestrictControlECRGNEx (RECT* minimal, 
         PCONTROL pCtrl, CLIPRGN * ergn)
 {
@@ -241,7 +184,7 @@ void mg_TerminateScreenDC (void)
     DESTROY_LOCK (&__mg_gdilock);
     DESTROY_LOCK (&dcslot);
     /* [2010/06/02] DongJunJie : fix a dead-lock bug of mgncs. */
-	DestroyFreeClipRectList (&__mg_FreeClipRectList);
+    DestroyFreeClipRectList (&__mg_FreeClipRectList);
 }
 
 #define INIT_SPECIFICAL_FONTS(etc_section) \
@@ -483,9 +426,9 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
          * update pdc->DevRC, and restrict the effective 
          */
         if (pdc->bIsClient)
-            WndClientRect (pdc->hwnd, &pdc->DevRC);
+            gui_WndClientRect (pdc->hwnd, &pdc->DevRC);
         else
-            WndRect (pdc->hwnd, &pdc->DevRC);
+            gui_WndRect (pdc->hwnd, &pdc->DevRC);
 
         /* copy local clipping region to effective clipping region. */
         ClipRgnCopy (&pdc->ecrgn, &pdc->lcrgn);
@@ -1783,9 +1726,9 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 
         pdc->bIsClient = bIsClient;
         if (bIsClient)
-            WndClientRect (pdc->hwnd, &pdc->DevRC);
+            gui_WndClientRect (pdc->hwnd, &pdc->DevRC);
         else
-            WndRect (pdc->hwnd, &pdc->DevRC);
+            gui_WndRect (pdc->hwnd, &pdc->DevRC);
 
         minimal = pdc->DevRC;
 
@@ -2109,9 +2052,9 @@ void GUIAPI ReleaseDC (HDC hDC)
             ClipRgnCopy (&pdc->ecrgn, &pdc->pGCRInfo->crgn);
 
             if (pdc->bIsClient)
-                WndClientRect (pdc->hwnd, &pdc->DevRC);
+                gui_WndClientRect (pdc->hwnd, &pdc->DevRC);
             else
-                WndRect (pdc->hwnd, &pdc->DevRC);
+                gui_WndRect (pdc->hwnd, &pdc->DevRC);
 
             minimal = pdc->DevRC;
 
@@ -2154,8 +2097,8 @@ static BOOL InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
     PDC pdc;
     PDC pdc_parent;
 
-	if(hdcDest == 0) return FALSE;
-	
+    if(hdcDest == 0) return FALSE;
+
     pdc_parent = dc_HDC2PDC (hdc);
     if (pdc_parent == NULL || pdc_parent->DataType != TYPE_HDC 
             || pdc_parent->DCType == TYPE_SCRDC)
@@ -2182,18 +2125,18 @@ static BOOL InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
     pdc->DevRC.top    = pdc_parent->DevRC.top + off_y;
     pdc->DevRC.right  = pdc->DevRC.left + width;
     pdc->DevRC.bottom = pdc->DevRC.top + height;
-	pdc->surface      = pdc_parent->surface;
-	pdc->pGCRInfo     = pdc_parent->pGCRInfo;
-	
-	dc_InitMemDCFrom(pdc, pdc_parent);
+    pdc->surface      = pdc_parent->surface;
+    pdc->pGCRInfo     = pdc_parent->pGCRInfo;
+    
+    dc_InitMemDCFrom(pdc, pdc_parent);
     /* should set after InitMemDC.*/
-	pdc->hwnd         = pdc_parent->hwnd;
+    pdc->hwnd         = pdc_parent->hwnd;
 
     CopyRegion (&pdc->lcrgn, &pdc_parent->lcrgn);
     CopyRegion (&pdc->ecrgn, &pdc_parent->ecrgn);
     IntersectClipRect (&pdc->ecrgn, &pdc->DevRC);
 
- 	return TRUE;
+     return TRUE;
 }
 
 /*
@@ -2244,12 +2187,12 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
 
     if (pdc == NULL) return HDC_INVALID;
 
-	if(!InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height))
-	{
-		pdc->inuse = FALSE;
-		return HDC_INVALID;
-	}
-	return (HDC)pdc;
+    if (!InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height))
+    {
+        pdc->inuse = FALSE;
+        return HDC_INVALID;
+    }
+    return (HDC)pdc;
 }
 
 HDC GUIAPI CreatePrivateDC(HWND hwnd)
@@ -2291,8 +2234,8 @@ HDC GUIAPI CreatePrivateClientDC(HWND hwnd)
 
 HDC GUIAPI CreatePrivateSubDC(HDC hdc, int off_x, int off_y, int width, int height)
 {
-	PDC pdc;
-	if(!(pdc = malloc(sizeof(DC)))) return HDC_INVALID;
+    PDC pdc;
+    if(!(pdc = malloc(sizeof(DC)))) return HDC_INVALID;
 
     InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pdc->lcrgn);
@@ -2302,12 +2245,12 @@ HDC GUIAPI CreatePrivateSubDC(HDC hdc, int off_x, int off_y, int width, int heig
     pdc->DataType = TYPE_HDC;
     pdc->DCType   = TYPE_GENDC;
 
-	if(!InitSubDC((HDC)pdc, hdc, off_x,off_y, width, height))
-	{
-		free(pdc);
-		return HDC_INVALID;
-	}
-	return (HDC)pdc;
+    if(!InitSubDC((HDC)pdc, hdc, off_x,off_y, width, height))
+    {
+        free(pdc);
+        return HDC_INVALID;
+    }
+    return (HDC)pdc;
 }
 
 void GUIAPI DeletePrivateDC(HDC hdc)
@@ -2667,14 +2610,14 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     /* SubDC is relative the parent_dc's (0,0). */
     if (client) {
         /* 1.get child client_rc relative to screen. */
-        WndClientRect (hwnd_child, &rc1);
+        gui_WndClientRect (hwnd_child, &rc1);
     }
     else {
         /* 2.get child window rc relative to screen.*/
-        WndRect (hwnd_child, &rc1);
+        gui_WndRect (hwnd_child, &rc1);
     }
     /* 3.parent window relative to screen.*/
-    WndRect (pdc_parent->hwnd, &rc2);
+    gui_WndRect (pdc_parent->hwnd, &rc2);
 
     /* 4.get the child's offset to the parent window rc.*/
     off_x = rc1.left - rc2.left;
@@ -3053,22 +2996,22 @@ HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
     PDC pdc_sub;
     GAL_Surface* surface;
     BYTE* sub_pixels;
-	int parent_width;
-	int parent_height;
+    int parent_width;
+    int parent_height;
  
     pdc_parent = dc_HDC2PDC (parent);
     if (pdc_parent->DCType != TYPE_MEMDC)
         return HDC_INVALID;
 
-	parent_width  = RECTW (pdc_parent->DevRC);
-	parent_height = RECTH (pdc_parent->DevRC);
+    parent_width  = RECTW (pdc_parent->DevRC);
+    parent_height = RECTH (pdc_parent->DevRC);
 
-	if (off_x < 0)  off_x = 0;
-	else if(off_x > parent_width)  off_x = parent_width;
-	if (off_y < 0)  off_y = 0;
-	else if(off_y > parent_height) off_y = parent_height;
-	if (width < 0)  width = 0;
-	if (height < 0) height = 0;
+    if (off_x < 0)  off_x = 0;
+    else if(off_x > parent_width)  off_x = parent_width;
+    if (off_y < 0)  off_y = 0;
+    else if(off_y > parent_height) off_y = parent_height;
+    if (width < 0)  width = 0;
+    if (height < 0) height = 0;
 
 
     if (off_x + width > pdc_parent->DevRC.right)

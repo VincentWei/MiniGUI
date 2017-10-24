@@ -3,7 +3,7 @@
 **
 ** dc.h: this head file declares all internal types and data of GDI module.
 **
-** Copyright (C) 2003 ~ 2007 Feynman Software.
+** Copyright (C) 2003 ~ 2017 FMSoft.
 ** Copyright (C) 1999 ~ 2002 Wei Yongming.
 **
 ** Create Date: 1999/xx/xx
@@ -217,16 +217,13 @@ struct tagDC
 extern DC __mg_screen_dc;
 extern DC __mg_screen_sys_dc;
 
-inline void WndRect(HWND hWnd, PRECT prc);
-inline void WndClientRect(HWND hWnd, PRECT prc);
-
 /* This function convert HDC to PDC. */
 static inline PDC dc_HDC2PDC (HDC hdc)
 {
     if (hdc == HDC_SCREEN_SYS) 
-		return &__mg_screen_sys_dc;
+      	return &__mg_screen_sys_dc;
     else if (hdc == HDC_SCREEN) 
-		return &__mg_screen_dc;
+      	return &__mg_screen_dc;
     return (PDC) hdc;
 }
 
