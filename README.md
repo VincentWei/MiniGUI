@@ -116,8 +116,7 @@ clients and the server.
 
 ## NEW FEATURES OF THIS VERSION
 
-This version is 3.2.x under development; new features:
-
+This version is 3.2.x under development.
 
 
 ## HISTORY
@@ -232,13 +231,10 @@ A brief history description of the developement progress lay below:
 
 The original author of MiniGUI is WEI Yongming, and now MiniGUI is 
 maintained by FMSoft. For more information, please browse 
-our home page:
+our home page: http://www.fmsoft.cn.
 
-    http://www.fmsoft.cn
-
-The GPL'd versions and dependent libraries of MiniGUI can be found at:
-
-    http://www.minigui.org
+The GPL'd versions and dependent libraries of MiniGUI can be found at: 
+http://www.minigui.org.
 
 
 ## IF YOU HAVE A PROBLEM
