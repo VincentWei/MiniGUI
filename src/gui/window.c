@@ -101,6 +101,12 @@ static void RecalcClientArea (HWND hWnd)
             DeleteSecondaryDC (hWnd);
             pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
 
+            if (pWin->secondaryDC == HDC_INVALID) {
+                /* remove the flag of WS_EX_AUTOSECONDARYDC */
+                pWin->dwExStyle = pWin->dwExStyle | WS_EX_AUTOSECONDARYDC;
+                pWin->secondaryDC = 0;
+            }
+
             /* update the privCDC of pWin and child window. */
             if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
                 PCONTROL pNext;
@@ -838,15 +844,21 @@ static void ShrinkScrollbarClipRect(HWND hWnd, HDC hdc, const WINDOWINFO *_info,
     memcpy(p_scrollbar_info_old, p_scrollbar_info_new, sizeof(scrollbar_info_bak));
 }
 
-static BOOL wndDrawNCButton (PMAINWIN pWin, int downCode, int status)
+#define wndDrawNCButton(pWin, downCode, status) wndDrawNCButtonEx(pWin, 0, downCode, status)
+
+static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
 {
-    HDC hdc;
+    BOOL fGetDC = FALSE;
     const WINDOWINFO  *info = GetWindowInfo ((HWND)pWin);
     static int _status =
         SBS_PRESSED_LTUP | SBS_PRESSED_BTDN | SBS_PRESSED_THUMB |
         SBS_HILITE_LTUP | SBS_HILITE_BTDN | SBS_HILITE_THUMB;
 
-    hdc = get_valid_dc (pWin, FALSE);
+	if(hdc == 0)
+	{
+		hdc = get_valid_dc (pWin, FALSE);
+		fGetDC = TRUE;
+	}
 
     switch (downCode) {
         case HT_ICON:
@@ -1077,7 +1089,8 @@ static BOOL wndDrawNCButton (PMAINWIN pWin, int downCode, int status)
         draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
     }
 
-    release_valid_dc (pWin, hdc);
+	if(fGetDC)
+	    release_valid_dc (pWin, hdc);
 
     pWin->hscroll.status &= ~_status;
     pWin->vscroll.status &= ~_status;
@@ -2331,11 +2344,11 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
     }
 
     if (!(pWin->hscroll.status & SBS_HIDE)) {
-        wndDrawNCButton (pWin, HT_HSCROLL, 0);
+        wndDrawNCButtonEx (pWin, hdc, HT_HSCROLL, 0);
     }
 
     if (!(pWin->vscroll.status & SBS_HIDE)) {
-        wndDrawNCButton (pWin, HT_VSCROLL, 0);
+        wndDrawNCButtonEx (pWin, hdc, HT_VSCROLL, 0);
     }
 
     if (rdr->draw_custom_hotspot)
@@ -2616,6 +2629,12 @@ int PreDefMainWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
         return DefaultControlMsgHandler(pWin, message, wParam, lParam);
     else if (message >= MSG_FIRSTSYSTEMMSG && message <= MSG_LASTSYSTEMMSG) 
         return DefaultSystemMsgHandler(pWin, message, wParam, lParam);
+#if (defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)) && defined(_MGRM_THREADS)
+    else if (message == MSG_CANCELSCREENSAVER) {
+        screensaver_hide();
+        SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
+    }
+#endif
 
     return 0;
 }
@@ -3937,6 +3956,35 @@ void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
         }
     }
 #endif
+}
+
+MG_EXPORT void GUIAPI UpdateInvalidRect (HWND hWnd, BOOL bErase);
+void GUIAPI UpdateInvalidRect (HWND hWnd, BOOL fErase)
+{
+    MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
+
+    if (fErase)
+        SendAsyncMessage (hWnd, MSG_CHANGESIZE, 0, 0);
+
+    SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
+
+    /* a new implementation only check the window and its children. */
+    {
+        PMAINWIN pWin, winStartToUpdate;
+
+        winStartToUpdate = pWin = (PMAINWIN) hWnd;
+        while (pWin != pWin->pMainWin) {
+            if ((pWin->dwExStyle & WS_EX_TRANSPARENT)) {
+                winStartToUpdate = (PMAINWIN) pWin->hParent;
+            }
+            pWin = (PMAINWIN) pWin->hParent;
+        }
+
+        while ((hWnd = kernel_CheckInvalidRegion (winStartToUpdate))) {
+            pWin = (PMAINWIN) hWnd;
+            SendMessage (hWnd, MSG_PAINT, 0, (LPARAM)(&pWin->InvRgn.rgn));
+        }
+    }
 }
 
 /*
@@ -5796,7 +5844,7 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
                     BITMAP* bmp = (BITMAP*)mask;
                     int x = ((p - bmp->bmBits)%bmp->bmPitch);
                     int y = ((p - bmp->bmBits)/bmp->bmPitch);
-                    int pitch = (bmp->bmWidth + 3) & (~3);
+                    int pitch = bmp->bmAlphaPitch;
                     sA = bmp->bmAlphaMask[y * pitch + x/bmp->bmBytesPerPixel];
                     DISEMBLE_RGB (p, bpp, pixfmt, pixel, sR, sG, sB); 
                 }

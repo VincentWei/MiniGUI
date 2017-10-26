@@ -1,12 +1,30 @@
+/**
+ * \file customial.h
+ * \author Wei Yongming <ymwei@minigui.org>
+ * \date 2007/06/06
+ * 
+ * This file is the head file for Custom IAL Engine.
+ *
+ \verbatim
+
+    Copyright (C) 2007-2012 FMSoft.
+
+    All rights reserved by FMSoft (http://www.fmsoft.cn).
+
+    This file is part of MiniGUI, a compact cross-platform Graphics 
+    User Interface (GUI) support system for real-time embedded systems.
+
+ \endverbatim
+ */
+
 /*
-** $Id: customial.h 11349 2009-03-02 05:00:43Z weiym $
-**
-** custom.h:. the head file for Custom IAL Engine.
-**
-** Copyright (C) 2007 ~ 2009 Feynman Software.
-**
-** Created by Wei YongMing, 2007/06/06
-*/
+ * $Id: customial.h 11349 2009-03-02 05:00:43Z weiym $
+ *
+ *             MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *                     pSOS, ThreadX, NuCleus, OSE, and Win32.
+ *
+ *             Copyright (C) 2007-2012 FMSoft.
+ */
 
 #ifndef GUI_IAL_CUSTOM_H
     #define GUI_IAL_CUSTOM_H

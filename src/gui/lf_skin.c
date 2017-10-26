@@ -316,13 +316,14 @@ static PBITMAP get_sub_bitmap (HDC hdc, const LFSKIN_BMPINFO *bmp_info)
     if (sub_bmp->bmType & BMP_TYPE_ALPHA_MASK) {
         pitch = ((w+3) & ~3);
         sub_bmp->bmAlphaMask = calloc(1, h * pitch);
+        sub_bmp->bmAlphaPitch = pitch;
         start_bits = full_bmp->bmAlphaMask
-            + h * bmp_info->idx_line * ((full_bmp->bmWidth+3)&~3)
+            + h * bmp_info->idx_line * full_bmp->bmAlphaPitch
             + w * bmp_info->idx_col;
 
         for (i = 0; i < h; i++) {
             memcpy (sub_bmp->bmAlphaMask + pitch*i, start_bits, w);
-            start_bits += ((full_bmp->bmWidth+3)&~3);
+            start_bits += full_bmp->bmAlphaPitch;
         }
     }
 
@@ -1851,8 +1852,11 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
             cap_h = get_window_caption(hWnd);
             we_area->left = 0;
             we_area->right = win_w;
-            we_area->top = 0;
-            we_area->bottom = we_area->top + cap_h/* + border*/;
+            if (win_info->dwStyle & WS_CAPTION)
+                we_area->top = 0;
+            else
+                we_area->top = border;
+            we_area->bottom = we_area->top + cap_h;
             return 0;
 
         case HT_CLOSEBUTTON:
@@ -1869,7 +1873,10 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
             menu_h = get_window_menubar(hWnd);
 
             we_area->left = border;
-            we_area->top = cap_h;
+            if (win_info->dwStyle & WS_CAPTION)
+                we_area->top = cap_h;
+            else
+                we_area->top = cap_h + border;
             we_area->right = win_w - border;
             we_area->bottom = we_area->top + menu_h;
             return 0;
@@ -1879,10 +1886,10 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
             cap_h = get_window_caption (hWnd);
             menu_h = get_window_menubar (hWnd);
 
-            if (IsControl(hWnd))
-                we_area->top = border + cap_h + menu_h;
+            if (win_info->dwStyle & WS_CAPTION)
+                we_area->top = cap_h + menu_h;
             else
-                we_area->top =/* border +*/ cap_h + menu_h;
+                we_area->top = border + cap_h + menu_h;
 
             we_area->bottom = win_h - border -
                 get_window_scrollbar(hWnd, FALSE);
@@ -2248,36 +2255,22 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
             bmp_info.flip    = FALSE;
             bmp_info.style   = LFSKIN_FILL_STRETCH;
 
-            if (border == 0) {
-                border += 3;
-            }
+            if (border == 0) border += 3;
 
             if (is_active)
                 bmp_info.idx_line = 0;
             else
                 bmp_info.idx_line = 1;
 
-            /************top*********************/
             if (win_info->dwStyle & WS_CAPTION)
                 cap_h = GetWindowElementAttr (hWnd, WE_METRICS_CAPTION);
-            else {
-                if (bitmaptop)
-                {
-                    bmp_info.bmp = bitmaptop;
-                    area.right = rect.right;
-                    area.left = rect.left;
-                    area.top = rect.top;
-                    area.bottom = area.top + border;
-                    draw_area_from_bitmap (hdc, &area, &bmp_info, FALSE);
-                }
-            }
 
             /*************left********************/
-            if (bitmapleft){
+            if (bitmapleft) {
                 bmp_info.bmp = bitmapleft;
                 area.left = rect.left;
                 if (win_info->dwStyle & WS_CAPTION)
-                    area.top = rect.top +/* border + */cap_h;
+                    area.top = rect.top + cap_h;
                 else
                     area.top = rect.top + border + cap_h;
                 area.right = area.left + border;
@@ -2285,21 +2278,40 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                 draw_area_from_bitmap (hdc, &area, &bmp_info, FALSE);
             }
             /*************right*******************/
-            if (bitmapright)
-            {
+            if (bitmapright) {
                 bmp_info.bmp = bitmapright;
                 area.right = rect.right;
-                area.left = area.right - border -1;
+                area.left = area.right - border;
                 if (win_info->dwStyle & WS_CAPTION)
-                    area.top = rect.top +/* border +*/ cap_h;
+                    area.top = rect.top + cap_h;
                 else
                     area.top = rect.top + border + cap_h;
                 area.bottom = rect.bottom - border;
                 draw_area_from_bitmap (hdc, &area, &bmp_info, FALSE);
             }
+
+            /************top*********************/
+            if (!(win_info->dwStyle & WS_CAPTION) && bitmaptop) {
+                    bmp_info.bmp = bitmaptop;
+
+                    bmp_info.nr_line = 2;
+                    bmp_info.nr_col  = 1;
+                    bmp_info.idx_col = 0;
+                    bmp_info.margin1 = 5;
+                    bmp_info.margin2 = 5;
+                    bmp_info.direct  = FALSE;
+                    bmp_info.flip    = FALSE;
+                    bmp_info.style   = LFSKIN_FILL_TILE;
+
+                    area.right = rect.right;
+                    area.left = rect.left;
+                    area.top = rect.top;
+                    area.bottom = area.top + border;
+                    draw_area_from_bitmap (hdc, &area, &bmp_info, FALSE);
+            }
+
            /************bottom*******************/
-            if (bitmapbottom)
-            {
+            if (bitmapbottom) {
                 bmp_info.bmp = bitmapbottom;
 
                 bmp_info.nr_line = 2;
@@ -2314,7 +2326,7 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                 area.right  = rect.right;
                 area.left   = rect.left;
                 area.bottom = rect.bottom;
-                area.top    = area.bottom - border - 1;
+                area.top    = area.bottom - border;
 
                 draw_area_from_bitmap (hdc, &area, &bmp_info, FALSE);
             }

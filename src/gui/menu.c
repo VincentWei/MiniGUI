@@ -3568,9 +3568,12 @@ static void mnuTrackMenuWithKey (PTRACKMENUINFO ptmi,
                 break;
                 
             case SCANCODE_ESCAPE:
-                if (pprevtmi)
+                if (pprevtmi) {
                     SendMessage (HWND_DESKTOP, 
                         MSG_ENDTRACKMENU, 0, (LPARAM)pcurtmi);
+                }else{
+                    SendMessage (HWND_DESKTOP, MSG_CLOSEMENU, 0, 1);
+                }
                 break;
 
             case SCANCODE_CURSORBLOCKLEFT:
@@ -3934,7 +3937,6 @@ static int mnuTrackMenuOnButtonDown (PTRACKMENUINFO ptmi,
     pcurtmi = mnuHitTestMenu (plast, x, y);
 
     if (pcurtmi == NULL) {      // close menu.
-    
         if (phead->pmb) {
             barItem = MenuBarHitTest (phead->hwnd, x, y);
             if (barItem == phead->barPos)

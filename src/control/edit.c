@@ -827,6 +827,28 @@ sleInsertText_refresh (HWND hWnd,
     return 0;
 }
 
+static int sleCaseText (char* txt, BOOL bupper)
+{
+    char *str;
+    char (*tocase)(char);
+
+    if (NULL == txt)
+        return -1;
+
+    if (bupper)
+        tocase = (char(*)(char))toupper;
+    else
+        tocase = (char(*)(char))tolower;
+
+    str = txt;
+    while (*str != '\0') {
+        str[0] = tocase(str[0]);
+        str ++;
+    }
+
+    return 0;
+}
+
 #ifdef _MGHAVE_CLIPBOARD
 static int sleInsertCbText (HWND hWnd, PSLEDITDATA sled)
 {
@@ -840,6 +862,13 @@ static int sleInsertCbText (HWND hWnd, PSLEDITDATA sled)
     inserting = GetClipBoardDataLen (CBNAME_TEXT);
     txtBuffer = ALLOCATE_LOCAL (inserting);
     GetClipBoardData (CBNAME_TEXT, txtBuffer, inserting);
+    txtBuffer[inserting]=0;
+
+    if (GetWindowStyle(hWnd) & ES_UPPERCASE) 
+        sleCaseText((char *)txtBuffer, TRUE);
+    else if (GetWindowStyle(hWnd) & ES_LOWERCASE) 
+        sleCaseText((char *)txtBuffer, FALSE);
+
     sleInsertText (hWnd, sled, (char *)txtBuffer, inserting);
     DEALLOCATE_LOCAL(txtBuffer);
 

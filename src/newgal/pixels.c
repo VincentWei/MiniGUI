@@ -628,8 +628,15 @@ int GAL_MapSurface (GAL_Surface *src, GAL_Surface *dst)
             break;
             default:
             /* BitField --> BitField */
-            if ( FORMAT_EQUAL(srcfmt, dstfmt) )
+            if (
+#ifdef _MGGAL_S3C6410
+                    (((src->flags & GAL_HWSURFACE) == GAL_HWSURFACE) && ((dst->flags & GAL_HWSURFACE) == GAL_HWSURFACE))
+                    ||
+#endif
+                    FORMAT_EQUAL(srcfmt, dstfmt)
+                ) {
                 map->identity = 1;
+            }
             break;
         }
         break;

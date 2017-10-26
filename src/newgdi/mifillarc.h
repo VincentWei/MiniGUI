@@ -175,7 +175,8 @@ typedef struct _miArcSlice {
 #define miFillInArcLower(slw) (((iny + dy) != 0) && \
 			       ((slw > 1) || (ine != inxk)))
 
-extern int miFreeArcCache (void* data, unsigned int id);
+/* extern int miFreeArcCache (void* data, unsigned int id); */
+extern void mg_miFreeArcCache (void);
 extern struct finalSpan *realAllocSpan (void);
 extern void miFillArcSetup (register miArc* arc, register miFillArcRec* info);
 extern void miFillArcDSetup (register miArc* arc, register miFillArcDRec* info);

@@ -12,29 +12,24 @@
 #ifndef GUI_IAL_H
 #define GUI_IAL_H
 
-
 #ifndef WIN32
-#ifndef HAVE_SYS_TIME_H
+#   ifndef HAVE_SYS_TIME_H
+#       define fd_set void
+#   else
 
-#define fd_set void
+#       ifdef __OSE__
+#           define fd_set void
+#       endif
 
-#else
-
-#ifdef __OSE__
-#define fd_set void
+#       ifndef __NONEED_FD_SET_TYPE
+#           include <unistd.h>
+#           include <sys/types.h>
+#           include <sys/time.h>
+#       endif
+#   endif
 #endif
 
-#ifndef __NONEED_FD_SET_TYPE
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#endif
-
-#endif
-#else
 #include "mgsock.h"
-#endif
-
 #include "misc.h"
 #include "gal.h"
 #include "customial.h"

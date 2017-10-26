@@ -147,38 +147,6 @@ int GUIAPI DialogBoxIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     int  retCode = IDCANCEL;
     MSG Msg;
 
-#if 0
-    HWND hFocus;
-    MAINWINCREATE CreateInfo;
-
-    if (pDlgTemplate->controlnr > 0 && !pDlgTemplate->controls)
-        return -1;
-
-    hOwner = GetMainWindowHandle (hOwner);
-
-    CreateInfo.dwReserved     = (DWORD)pDlgTemplate;
-    
-    CreateInfo.dwStyle        = pDlgTemplate->dwStyle & ~WS_VISIBLE;
-    CreateInfo.dwStyle        |= WS_DLGFRAME;
-    CreateInfo.dwExStyle      = pDlgTemplate->dwExStyle;
-    CreateInfo.spCaption      = pDlgTemplate->caption;
-    CreateInfo.hMenu          = pDlgTemplate->hMenu;
-    CreateInfo.hCursor        = GetSystemCursor (IDC_ARROW);
-    CreateInfo.hIcon          = pDlgTemplate->hIcon;
-    CreateInfo.MainWindowProc = DlgProc;
-    CreateInfo.lx             = pDlgTemplate->x;
-    CreateInfo.ty             = pDlgTemplate->y;
-    CreateInfo.rx             = pDlgTemplate->x + pDlgTemplate->w;
-    CreateInfo.by             = pDlgTemplate->y + pDlgTemplate->h;
-    CreateInfo.iBkColor       = 
-                    GetWindowElementPixel (hOwner, WE_MAINC_THREED_BODY);
-    CreateInfo.dwAddData      = (DWORD)pDlgTemplate->dwAddData;
-    CreateInfo.hHosting       = hOwner;
-    
-    hDlg = CreateMainWindowEx (&CreateInfo, 
-            werdr_name, we_attrs, window_name, layer_name);
-
-#endif
 	if(hOwner && hOwner != HWND_INVALID && hOwner != HWND_DESKTOP)
 		hOwner = GetMainWindowHandle(hOwner);
 
@@ -190,6 +158,9 @@ int GUIAPI DialogBoxIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     if (hDlg == HWND_INVALID)
         return -1;
 
+    //MiniGUI maybe change dialog owner in CreateMainWindow, so we 
+    //should update its owner by GetHosting.
+    hOwner = GetHosting (hDlg);
     SetWindowAdditionalData2 (hDlg, (DWORD)(&retCode));
 
     if (hOwner && hOwner != HWND_DESKTOP) {

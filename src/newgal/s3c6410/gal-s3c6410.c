@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/times.h>
 
 #include "common.h"
 #include "minigui.h"
@@ -41,6 +42,57 @@
 #else
 #   define ISSERVER (1)
 #endif
+
+int s3c6410_size_table[48] = {
+	290, /* speed: 4775 */
+	370, /* speed: 4688 */
+	220, /* speed: 5125 */
+	240, /* speed: 3925 */
+	210, /* speed: 3856 */
+	170, /* speed: 3968 */
+	170, /* speed: 3461 */
+	140, /* speed: 3861 */
+	130, /* speed: 3616 */
+	120, /* speed: 3413 */
+	110, /* speed: 3530 */
+	100, /* speed: 3584 */
+	90, /* speed: 3530 */
+	80, /* speed: 3664 */
+	90, /* speed: 3285 */
+	80, /* speed: 3552 */
+	80, /* speed: 3184 */
+	80, /* speed: 3088 */
+	70, /* speed: 3306 */
+	70, /* speed: 3200 */
+	70, /* speed: 3061 */
+	60, /* speed: 3280 */
+	60, /* speed: 3189 */
+	50, /* speed: 3733 */
+	70, /* speed: 2698 */
+	50, /* speed: 3296 */
+	40, /* speed: 3813 */
+	50, /* speed: 3194 */
+	50, /* speed: 3082 */
+	70, /* speed: 2330 */
+	40, /* speed: 3477 */
+	30, /* speed: 4458 */
+	50, /* speed: 2810 */
+	30, /* speed: 3957 */
+	40, /* speed: 3168 */
+	50, /* speed: 2656 */
+	40, /* speed: 3061 */
+	30, /* speed: 3658 */
+	30, /* speed: 3610 */
+	40, /* speed: 3061 */
+	30, /* speed: ? */
+	30, /* speed: ? */
+	30, /* speed: ? */
+	30, /* speed: ? */
+	20, /* speed: ? */
+	20, /* speed: ? */
+	20, /* speed: ? */
+	20, /* speed: ? */
+};
 
 /* Initialization/Query functions */
 static int S3C6410_VideoInit(_THIS, GAL_PixelFormat *vformat);
@@ -186,7 +238,7 @@ static int S3C6410_VideoInit(_THIS, GAL_PixelFormat *vformat)
         video_info->blit_fill = 0;
         video_info->blit_hw = 1;
         video_info->blit_hw_CC = 0;
-        video_info->blit_hw_A  = 0;
+        video_info->blit_hw_A  = 1;
     }
 
     return(0);
@@ -269,7 +321,71 @@ S3C6410_CheckHWBlit(_THIS, GAL_Surface * src, GAL_Surface * dst)
     return 0;
 }
 
-static void setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *param) {
+static unsigned int get_colormode(GAL_Surface *surface) {
+    GAL_PixelFormat *format = surface->format;
+    switch (format->BytesPerPixel) {
+        case 2:
+            if (1
+                    && format->Amask == 0x0000
+                    && format->Rmask == 0xF800
+                    && format->Gmask == 0x07E0
+                    && format->Bmask == 0x001F) {
+                return S3C_G2D_COLOR_RGB_565;
+            }else if (1
+                    && format->Rmask == 0x7C00
+                    && format->Gmask == 0x03E0
+                    && format->Bmask == 0x001F
+                    ) {
+                if ((surface->flags & GAL_SRCPIXELALPHA) && format->Amask == 0x8000){
+                    return S3C_G2D_COLOR_ARGB_1555;
+                }else{
+                    break;
+                }
+            }else if (1
+                    && format->Rmask == 0xF800
+                    && format->Gmask == 0x07C0
+                    && format->Bmask == 0x003E){
+                if ((surface->flags & GAL_SRCPIXELALPHA) && format->Amask == 0x0001) {
+                    return S3C_G2D_COLOR_RGBA_5551;
+                }else{
+                    break;
+                }
+            }else{
+                break;
+            }
+        case 4:
+            if (1
+                    && format->Rmask == 0x00FF0000
+                    && format->Gmask == 0x0000FF00
+                    && format->Bmask == 0x000000FF){
+                if ((surface->flags & GAL_SRCPIXELALPHA) && format->Amask == 0xFF000000) {
+                    return S3C_G2D_COLOR_ARGB_8888;
+                }else{
+                    return S3C_G2D_COLOR_XRGB_8888;
+                }
+            }else if (1
+                    && format->Rmask == 0xFF000000
+                    && format->Gmask == 0x00FF0000
+                    && format->Bmask == 0x0000FF00){
+                if ((surface->flags & GAL_SRCPIXELALPHA) && format->Amask == 0x000000FF) {
+                    return S3C_G2D_COLOR_RGBA_8888;
+                }else{
+                    return S3C_G2D_COLOR_RGBX_8888;
+                }
+            }else{
+                break;
+            }
+        default:
+            break;
+    }
+    fprintf(stderr, "Format(Bpp:%d A:%08x R:%08x G:%08x B:%08x) not supported\n",
+            format->BytesPerPixel, format->Amask, format->Rmask, format->Gmask, format->Bmask);
+    assert(0);
+    return (unsigned int)-1;
+}
+
+static int setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *param) 
+{
     param->src_base_addr = src->hwdata->addr_phy; //Base address of the source image	
     param->src_full_width = src->w; //source screen full width
     param->src_full_height = src->h; //source screen full heiht
@@ -277,6 +393,7 @@ static void setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *para
     param->src_start_y = 0;			//coordinate start y of source image
     param->src_work_width = 0;			//source image width for work
     param->src_work_height = 0;		//source image height for work
+    param->src_colormode = get_colormode(src);
 
     param->dst_base_addr = dst->hwdata->addr_phy;			//Base address of the destination image	
     param->dst_full_width = dst->w;			//destination screen full width
@@ -285,6 +402,14 @@ static void setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *para
     param->dst_start_y = 0;			//coordinate start y of destination screen
     param->dst_work_width = 0;			//destination screen width for work
     param->dst_work_height = 0;		//destination screen height for work
+    param->dst_colormode = get_colormode(dst);
+
+    // cos
+    if (param->dst_colormode == S3C_G2D_COLOR_ARGB_8888) {
+        param->dst_colormode = S3C_G2D_COLOR_XRGB_8888;
+    }else if (param->dst_colormode == S3C_G2D_COLOR_RGBA_8888) {
+        param->dst_colormode = S3C_G2D_COLOR_RGBX_8888;
+    }
 
     /* XXX: clip window */
     param->cw_x1 = 0;
@@ -295,32 +420,74 @@ static void setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *para
     param->color_val[G2D_BLACK] = 0;
     param->color_val[G2D_WHITE] = 0xffffffff;
     param->color_val[G2D_BLUE] = 0x77777777; // TODO:
-    param->bpp = RGB16;
 
-    param->alpha_mode = 0;			//true : enable, false : disable
+    param->alpha_mode = 0;
     param->alpha_val = 0;
+
     param->color_key_mode = 0;			//true : enable, false : disable
     param->color_key_val = 0;			//transparent color value
+
+    if ((src->flags & GAL_SRCPIXELALPHA)) {
+        param->alpha_mode |= S3C_G2D_ROP_REG_ABM_SRC_BITMAP;
+        //param->alpha_mode |= S3C_G2D_ROP_REG_ABM_NO_BLENDING;
+    }
+    if ((src->flags & GAL_SRCALPHA)) {
+        param->alpha_mode |= S3C_G2D_ROP_REG_ABM_REGISTER;
+        param->alpha_val = src->format->alpha;
+    }
+
+    if (param->src_colormode == (unsigned int)-1 || param->dst_colormode == (unsigned int)-1) {
+        return -1;
+    }else{
+        return 0;
+    }
 }
 
 static int
 S3C6410_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dstrect)
 {
+    int ret;
     s3c_g2d_params param;
     // TODO: alpha, alpha channel, colorkey
 
-    setup_param(src, dst, &param);
+    if (dstrect->w == 0 || dstrect->h == 0) {
+        return -1;
+    }
+
+    if (setup_param(src, dst, &param) < 0) {
+        return -1;
+    }
     param.src_start_x = srcrect->x;
     param.src_start_y = srcrect->y;
     param.src_work_width = srcrect->w;
     param.src_work_height = srcrect->h;
-
+    
     param.dst_start_x = dstrect->x;
     param.dst_start_y = dstrect->y;
     param.dst_work_width = dstrect->w;
     param.dst_work_height = dstrect->h;
 
-    return ioctl(src->hwdata->fd_g2d, S3C_G2D_ROTATOR_0, &param);
+    /* only for driver's bug */
+    param.src_work_width--;
+    param.src_work_height--;
+    param.dst_work_width--;
+    param.dst_work_height--;
+
+    clock_t start, end;
+    static int n;
+    static int t0;
+    start = times(NULL);
+    if (n++ == 0) {
+        t0 = start;
+    }
+    // printf("%d x %d = %d\n", srcrect->w, srcrect->h, srcrect->w * srcrect->h);
+    ret = ioctl (src->hwdata->fd_g2d, S3C_G2D_ROTATOR_0, &param);
+    end = times(NULL);
+    if (end - start >= 2) {
+        printf("[%d] %ld %ld ret=%d\n", n, end-t0, end-start, ret);
+        n = 0;
+    }
+    return ret;
 }
 
 #ifdef _MGRM_PROCESSES
@@ -328,7 +495,6 @@ static void S3C6410_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_H
     gal_vmblock_t *block;
 
     if (request->bucket == NULL) { /* alloc */
-        dbg();
         block = gal_vmbucket_alloc(&this->hidden->vmbucket, request->pitch, request->h);
         if (block) {
             reply->offset = block->offset;
@@ -338,8 +504,6 @@ static void S3C6410_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_H
             reply->bucket = NULL;
         }
     }else{ /* free */
-        dbg();
-        printf("on request free: %d, %d, %p\n", request->offset, request->pitch, request->bucket);
         if (request->offset != -1) {
             gal_vmbucket_free(&this->hidden->vmbucket, (gal_vmblock_t *)request->bucket);
         }
@@ -354,12 +518,24 @@ static int S3C6410_AllocHWSurface(_THIS, GAL_Surface *surface)
     struct GAL_PrivateVideoData *hidden = this->hidden;
     gal_vmblock_t *block;
 
-    if (surface->format->BytesPerPixel != 2){
-        surface->flags &= ~GAL_HWSURFACE;
-        return -1;
+    if (surface->w !=1 || surface->h != 1) { /* 1X1 is a reference DC */
+        int H = surface->h / 10;
+        if (H >= sizeof(s3c6410_size_table)/sizeof(s3c6410_size_table[0])) {
+            H = sizeof(s3c6410_size_table)/sizeof(s3c6410_size_table[0]) - 1;
+        }
+        if (surface->w/10 < s3c6410_size_table[H]) {
+            surface->flags &= ~GAL_HWSURFACE;
+            return -1;
+        }
     }
 
     if (ISSERVER) {
+        /* force 4-byte align */
+        if (surface->format->BytesPerPixel != 4) {
+            surface->w = (surface->w + 1) & ~1;
+            surface->pitch = surface->w * surface->format->BytesPerPixel;
+        }
+
         block = gal_vmbucket_alloc(&hidden->vmbucket, surface->pitch, surface->h);
         if (block) {
             offset = block->offset;
@@ -408,11 +584,9 @@ static void S3C6410_FreeHWSurface(_THIS, GAL_Surface *surface)
 
     if (hwdata->vmblock) {
         if (ISSERVER) {
-            dbg();
             gal_vmbucket_free(&hidden->vmbucket, hwdata->vmblock);
 #ifdef _MGRM_PROCESSES
         }else{
-            dbg();
             REQ_HWSURFACE request = {surface->w, surface->h, surface->pitch, -1, surface->hwdata->vmblock};
             REP_HWSURFACE reply = {0, 0};
 

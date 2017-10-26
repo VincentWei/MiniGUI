@@ -1,11 +1,9 @@
-AUTOMAKE_OPTIONS=foreign
-
 SUBDIRS = src 3rd-party include rtos etc m4 cmake build
 
 EXTRA_DIST = \
             GNUmakefile makefile.ng makefile.msvc rules.make \
             Version README INSTALL \
-            LICENSE.POLICY LICENSE.POLICY.zh   
+            COPYING LICENSE.POLICY
 			minigui.pc.in
 
 # The directory where the include files will be installed

@@ -291,7 +291,7 @@ void* GUIAPI GetOriginalTermIO (void)
     return &savedtermio;
 }
 
-static void segvsig_handler (int v)
+static void sig_handler (int v)
 {
     if (v == SIGSEGV) {
         kill (getpid(), SIGABRT); /* cause core dump */
@@ -306,7 +306,7 @@ static BOOL InstallSEGVHandler (void)
 {
     struct sigaction siga;
     
-    siga.sa_handler = segvsig_handler;
+    siga.sa_handler = sig_handler;
     siga.sa_flags = 0;
     
     memset (&siga.sa_mask, 0, sizeof (sigset_t));
@@ -521,8 +521,6 @@ void GUIAPI TerminateGUI (int not_used)
 {
     /* printf("Quit from MiniGUIMain()\n"); */
 
-    screensaver_destroy();
-
     __mg_enter_terminategui = 1;
 
     pthread_join (__mg_desktop, NULL);
@@ -556,6 +554,9 @@ void GUIAPI TerminateGUI (int not_used)
     mg_TerminateGDI ();
     mg_TerminateLFManager ();
     mg_TerminateGAL ();
+
+    extern void mg_miFreeArcCache (void);
+    mg_miFreeArcCache ();
 
     /* 
      * Restore original termio

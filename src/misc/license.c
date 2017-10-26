@@ -31,6 +31,24 @@
     defined(_MG_ENABLE_WATERMARK)
 BITMAP g_license_bitmaps[LICENSE_BITMAP_NR];
 
+#ifndef _MG_LICENSE_SCREENSAVER_TIMEOUT
+#define _MG_LICENSE_SCREENSAVER_TIMEOUT (10*100)
+#endif
+
+#ifndef _MG_LICENSE_SCREENSAVER_UPDATE_TIME
+#define _MG_LICENSE_SCREENSAVER_UPDATE_TIME (2*100)
+#endif
+
+/* step of splash */
+#ifndef _MG_LICENSE_SPLASH_STEP
+#define _MG_LICENSE_SPLASH_STEP (25)
+#endif
+
+/* one frame */
+#ifndef _MG_LICENSE_SPLASH_MSEC
+#define _MG_LICENSE_SPLASH_MSEC (40)
+#endif
+
 #if defined(_MG_ENABLE_SCREENSAVER) || \
     defined(_MG_ENABLE_WATERMARK)
 static int  s_tick_last_input;
@@ -120,14 +138,14 @@ static void watermark_init(void)
 #ifdef _MG_ENABLE_SCREENSAVER
 static int s_screensaver_node;
 
-static void screensaver_show(void)
+void screensaver_show(void)
 {
-    dskSetTopForEver(0,  s_screensaver_node, TRUE);
+    dskSetTopForEver(0, s_screensaver_node, TRUE);
 }
 
-static void screensaver_hide(void)
+void screensaver_hide(void)
 {
-    dskSetTopForEver(0,  s_screensaver_node, FALSE);
+    dskSetTopForEver(0, s_screensaver_node, FALSE);
 }
 
 void screensaver_create(void)
@@ -298,9 +316,12 @@ void splash_progress (void)
 void splash_delay (void)
 {
     int i;
-    for(i = 0; __mg_quiting_stage>0 && i < 10*5; i++) {
+
+    for (i = 0;
+        __mg_quiting_stage > 0 && i < _MG_LICENSE_SPLASH_STEP;
+        i++) {
         splash_progress();
-        __mg_os_time_delay(50);
+        __mg_os_time_delay (_MG_LICENSE_SPLASH_MSEC);
     }
 }
 
@@ -394,9 +415,11 @@ char *LICENSE_ENCRYPTED_CONST_STRING(unsigned char *src, int len){
 static unsigned char calc_sum(int len, const unsigned char *data) {
     unsigned char sum;
     int i;
+
     for (i=0, sum=0; i<len; ++i) {
         sum -= data[i];
     }
+
     return sum;
 }
 
@@ -417,10 +440,12 @@ static int my_decrypt(RC4_KEY *key, int in_len, unsigned char *in) {
 
         n = (in_len - i > FRAGMENT_SIZE - sizeof(unsigned char)) ? (FRAGMENT_SIZE - sizeof(unsigned char)) : (in_len - i);
         RC4(key, n, &in[i], &in[out_len]);
+
         if (calc_sum(n, &in[out_len]) != sum) {
             assert(0);
             return -1;
         }
+
         i += n;
         out_len += n;
     }
@@ -437,7 +462,7 @@ void license_create(void) {
         unsigned char *data;
         int len;
 #ifdef ENCRYPTED
-    RC4_KEY rc4key;
+        RC4_KEY rc4key;
 #endif
 
         data = (unsigned char *)malloc(__mg_splash_splash_inner_res[i].data_len);
@@ -472,22 +497,36 @@ void license_on_input(void)
 {
     s_tick_last_input = GetTickCount();
 
-    if (screensaver_running == TRUE){
+    if (screensaver_running == TRUE) {
         screensaver_running = FALSE;
-        screensaver_hide();
+
 #if defined(_MGRM_THREADS)
-        SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
-#elif defined(_MGRM_PROCESSES)
+        {
+            HWND activeWnd = GetActiveWindow();
+            if (activeWnd) {
+                SendNotifyMessage(activeWnd, MSG_CANCELSCREENSAVER, 0, 0);
+            } else {
+                screensaver_hide();
+                SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
+            }
+        }
+#else
+        screensaver_hide();
+#if defined(_MGRM_PROCESSES)
         dskRefreshAllClient (&g_rcScr);
 #elif defined(_MGRM_STANDALONE)
         SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
 #else
 #   error
 #endif
+
+#endif
+
     }
 }
 
-void license_on_timeout(void) {
+void license_on_timeout(void) 
+{
     static unsigned int old_tick_count;
     unsigned int current_tick_count;
 
@@ -499,16 +538,15 @@ void license_on_timeout(void) {
 
     current_tick_count = GetTickCount();
 
-    if (screensaver_running == TRUE)
-    {
+    if (screensaver_running == TRUE) {
         /* screensaver is running, update the picture */
-        if ((current_tick_count - old_tick_count) > 2 * 100) {
+        if ((current_tick_count - old_tick_count) > _MG_LICENSE_SCREENSAVER_UPDATE_TIME) {
             old_tick_count = current_tick_count;
             screensaver_update();
         }
     } else {
         /* screensaver is not running, show it */
-        if ((current_tick_count - s_tick_last_input) > 10 * 100) {
+        if ((current_tick_count - s_tick_last_input) > _MG_LICENSE_SCREENSAVER_TIMEOUT) {
             screensaver_running = TRUE;
             screensaver_show();
         }

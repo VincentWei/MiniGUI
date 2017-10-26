@@ -752,9 +752,13 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->image_type.width = logfont->size;
     ft_inst_info->image_type.height = logfont->size;
     ft_inst_info->image_type.face_id = (FTC_FaceID)ft_inst_info->ft_face_info;
+
+    /* houhh 20110304, AUTOHINT will be get more clear 
+     * and thin glyph. */
     ft_inst_info->image_type.flags = 
         FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP | 
-        FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL;
+        FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL |FT_LOAD_FORCE_AUTOHINT;
+        //FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL;
 
     /* if unmask non-cache and no rotation */
     if (!(logfont->style & FS_OTHER_TTFNOCACHE) && 

@@ -54,7 +54,6 @@ unsigned short font_GetBestScaleFactor (int height, int expect);
 /* Add for bitmap font interface */
 void font_DelSBDevFont (DEVFONT* dev_font);    
 void font_DelMBDevFont (DEVFONT* dev_font);
-void font_DelDevFont (const char* font_name);
 
 #ifdef _DEBUG
 void dbg_dumpDevFonts (void);

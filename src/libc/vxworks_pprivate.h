@@ -91,7 +91,7 @@ typedef struct
     struct pthread_cleanup_buffer *cancelbuffer; // stack of cleanup buffers
 
     // Per-thread data table pointer
-    void                **thread_data;
+    void                *thread_data[PTHREAD_KEYS_MAX];
 } pthread_info;
 
 

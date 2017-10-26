@@ -33,6 +33,8 @@
 #include "varbitmap.h"
 #include "misc.h"
 
+static void font_DelDevFont (const char* font_name);
+
 /**************************** Global data ************************************/
 static DEVFONT* sb_dev_font_head = NULL;
 static DEVFONT* mb_dev_font_head = NULL;
@@ -337,9 +339,9 @@ void font_DelMBDevFont (DEVFONT* dev_font)
   tmp = mb_dev_font_head;
   while (tmp != NULL) {
       if (tmp == dev_font) {
-	  if (prev != NULL)
+          if (prev != NULL)
               prev->next = tmp->next;
-	  else
+          else
               mb_dev_font_head = tmp->next;
 
           nr_mb_dev_fonts --;
@@ -616,6 +618,7 @@ BOOL font_TerminateIncoreFonts (void)
 }
 
 /* if font_name == NULL, delete all devfont */
+/*
 static void del_all_devfonts (void)
 {
     DEVFONT* tmp;
@@ -625,9 +628,9 @@ static void del_all_devfonts (void)
     head = sb_dev_font_head; 
 one_list:
     cur = head;
-    while (head) {
-        tmp = head;
-        head = tmp->next;
+    while (cur) {
+        tmp = cur;
+        cur = tmp->next;
 
         if (!tmp->relationship && tmp->need_unload)
             tmp->font_ops->unload_font_data (tmp->data);
@@ -644,6 +647,7 @@ one_list:
     nr_sb_dev_fonts = 0;
     nr_mb_dev_fonts = 0;
 }
+*/
 
 
 static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list) 
@@ -698,11 +702,11 @@ static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list
         sb_dev_font_head = head;
 }
 
-/*if font_name == NULL, delete all devfont*/
-void font_DelDevFont (const char* font_name)
+static void font_DelDevFont (const char* font_name)
 {
     if (font_name == NULL) {
-        del_all_devfonts ();
+        /*if font_name == NULL, delete all devfont*/
+        /*del_all_devfonts ();*/
         return;
     }
 

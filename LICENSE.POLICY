@@ -12,9 +12,8 @@ and if yours is also 100% GPL, then you never have to pay us
 for the licences. In all other instances, you are better served 
 by our commercial licence. Read the details below!
 
-
 Licensing
-========
+=========
 
 MiniGUI software is licensed under the GPL license. The formal terms 
 of the GPL license can be found in the GNU General Public License 
@@ -23,7 +22,7 @@ section of the MiniGUI User Manual, or the file named "COPYING".
 MiniGUI is also available under commercial non-GPL license. For pricing 
 and ordering information, visit our web page:
 
-    http://www.minigui.com/product/index.shtml
+    http://www.fmsoft.cn/
 
 
 1. Free use for those who are 100% GPL
@@ -61,17 +60,21 @@ a commercial license to the MiniGUI software in question.
 
 More specifically:
 
-    a) If you link MiniGUI in your non-GPL application, you need a commercial
+    a) If you want to use MiniGUI on an operating system which is not 
+       compatible with GPL (most commercial RTOSes, such as VxWorks and 
+       ThreadX), you need a commercial license for the MiniGUI library.
+
+    b) If you link MiniGUI in your non-GPL application, you need a commercial
        licence for the MiniGUI library. Using MiniGUI with non-GPL operating
        systems (proprietary OSes, like VxWorks, ThreadX, uC/OS-II) falls into 
        this situation. Linking MiniGUI with your non-GPL application and 
        proprietary libarires also falls into this situation.
 
-    b) If you use MiniGUI library within your organisation and you don't want 
+    c) If you use MiniGUI library within your organisation and you don't want 
        to risk it falling under the GPL license, you are welcome to purchase 
        a commercial license.
 
-    c) Many users opt for the commercial licence simply because under it 
+    d) Many users opt for the commercial licence simply because under it 
        FMSoft takes responsibility for its products. Under the GPL licence, 
        there are no warranties or representations from the 
        developer (i.e. from FMSoft).
@@ -126,8 +129,13 @@ If you have any questions on MiniGUI licensing, feel free to contact us:
 
     mailto: sales@minigui.com
 
+Patents
+=======
+
+MiniGUI is also protected by patents (200810111336.X and so on). 
+The owner of these patents is Beijing FMSoft technologies Co., Ltd..
 
 GPL = Gnu General Public License, http://www.gnu.org/copyleft/gpl.html 
 LGPL = GNU General Public License, http://www.gnu.org/copyleft/lgpl.html 
-FMSoft = Beijing FMSoft Technologies Co., Ltd., http://www.minigui.com
+FMSoft = Beijing FMSoft technologies Co., Ltd., http://www.fmsoft.cn
 

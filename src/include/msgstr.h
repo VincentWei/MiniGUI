@@ -35,9 +35,9 @@ const char *__mg_msgstr1 [] =
     "MSG_SYSKEYDOWN          ",     // 0x0013
     "MSG_SYSCHAR             ",     // 0x0014
     "MSG_SYSKEYUP            ",     // 0x0015
-    "MSG_KEYSYM              ",     // 0x0016
-    "MSG_KEYLONGPRESS        ",     // 0x0017
-    "MSG_KEYALWAYSPRESS      ",     // 0x0018
+    "MSG_KEYLONGPRESS        ",     // 0x0016
+    "MSG_KEYALWAYSPRESS      ",     // 0x0017
+    "MSG_KEYSYM              ",     // 0x0018
     "",                             // 0x0019
     "",                             // 0x001A
     "",                             // 0x001B
@@ -201,26 +201,26 @@ char * __mg_msgstr2 [] =
     "",                             // 0x00DB
     "",                             // 0x00DC
     "",                             // 0x00DD
-    "",                             // 0x00DE
-    "",                             // 0x00DF
     
-    "MSG_ERASEDESKTOP        ",     // 0x00E0
-    "MSG_PAINTDESKTOP        ",     // 0x00E1
-    "MSG_DT_LBUTTONDOWN      ",     // 0x00E2
-    "MSG_DT_LBUTTONUP        ",     // 0x00E3
-    "MSG_DT_LBUTTONDBLCLK    ",     // 0x00E4
-    "MSG_DT_MOUSEMOVE        ",     // 0x00E5
-    "MSG_DT_RBUTTONDOWN      ",     // 0x00E6
-    "MSG_DT_RBUTTONUP        ",     // 0x00E7
-    "MSG_DT_RBUTTONDBLCLK    ",     // 0x00E8
-    "",                             // 0x00E9
-    "MSG_DT_KEYDOWN          ",     // 0x00EA
-    "MSG_DT_CHAR             ",     // 0x00EB
-    "MSG_DT_KEYUP            ",     // 0x00EC
-    "MSG_DT_SYSKEYDOWN       ",     // 0x00ED
-    "MSG_DT_SYSCHAR          ",     // 0x00EE
-    "MSG_DT_SYSKEYUP         ",     // 0x00EF
-    
+    "MSG_ERASEDESKTOP        ",     // 0x00DE
+    "MSG_PAINTDESKTOP        ",     // 0x00DF
+    "MSG_DT_LBUTTONDOWN      ",     // 0x00E0
+    "MSG_DT_LBUTTONUP        ",     // 0x00E1
+    "MSG_DT_LBUTTONDBLCLK    ",     // 0x00E2
+    "MSG_DT_MOUSEMOVE        ",     // 0x00E3
+    "MSG_DT_RBUTTONDOWN      ",     // 0x00E4
+    "MSG_DT_RBUTTONUP        ",     // 0x00E5
+    "MSG_DT_RBUTTONDBLCLK    ",     // 0x00E6
+    "",                             // 0x00E7
+    "MSG_DT_KEYDOWN          ",     // 0x00E8
+    "MSG_DT_CHAR             ",     // 0x00E9
+    "MSG_DT_KEYUP            ",     // 0x00EA
+    "MSG_DT_SYSKEYDOWN       ",     // 0x00EB
+    "MSG_DT_SYSCHAR          ",     // 0x00EC
+    "MSG_DT_SYSKEYUP         ",     // 0x00ED
+    "MSG_DT_KEYLONGPRESS     ",     // 0x00EE
+    "MSG_DT_KEYALWAYSPRESS   ",     // 0x00EF
+
     "MSG_ADDNEWMAINWIN       ",     // 0x00F0
     "MSG_REMOVEMAINWIN       ",     // 0x00F1
     "MSG_MOVETOTOPMOST       ",     // 0x00F2 

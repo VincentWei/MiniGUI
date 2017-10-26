@@ -185,7 +185,7 @@ mainmenu_option next_comment
 comment 'Look and Feel options'
 choice 'LF reference' \
     "Skin                    CONFIG_LF_SKIN \
-     Flat                       CONFIG_LF_FLAT
+     Flat                       CONFIG_LF_FLAT " none
 
 endmenu
 

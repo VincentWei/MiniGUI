@@ -48,7 +48,7 @@
 static struct termios savedtermio;
 
 #define err_message(step, message) fprintf (stderr, "KERNEL>InitGUI (step %d): %s\n", step, message)
-static void segvsig_handler (int v)
+static void sig_handler (int v)
 {
     ;
 }
@@ -219,7 +219,7 @@ failure:
 
 #define err_message(step, message) fprintf (stderr, "KERNEL>InitGUI (step %d): %s\n", step, message)
 
-static void segvsig_handler (int v)
+static void sig_handler (int v)
 {
     if (v == SIGSEGV) {
 #ifdef WIN32
@@ -237,13 +237,13 @@ static void segvsig_handler (int v)
 static BOOL InstallSEGVHandler (void)
 {
 #ifdef WIN32
-	signal(SIGSEGV, segvsig_handler);
-	signal(SIGTERM, segvsig_handler);
-	signal(SIGINT, segvsig_handler);
+	signal(SIGSEGV, sig_handler);
+	signal(SIGTERM, sig_handler);
+	signal(SIGINT, sig_handler);
 #else
     struct sigaction siga;
     
-    siga.sa_handler = segvsig_handler;
+    siga.sa_handler = sig_handler;
     siga.sa_flags = 0;
     
     memset (&siga.sa_mask, 0, sizeof (sigset_t));
@@ -472,8 +472,6 @@ int InitGUI (int argc, const char* agr[])
 void TerminateGUI (int rcByGUI)
 {
     /* printf("Quit from MiniGUIMain()\n"); */
-
-    screensaver_destroy();
 
     DestroyDskMsgQueue ();
     mg_DestroyFreeQMSGList ();

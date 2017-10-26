@@ -1,5 +1,5 @@
 /*
-** $Id: auto.c 13674 2010-12-06 06:45:01Z wanzheng $
+** $Id: auto.c 13830 2017-10-26 05:27:43Z weiym $
 **
 ** auto.c: Automatic Input Engine
 ** 
@@ -108,8 +108,26 @@ static int get_auto_event(void)
     }
     else
     {
-        if (read(fd_script, &event, sizeof(event)) != sizeof(event))
-        {
+        int n_read = read (fd_script, &event, sizeof (event));
+
+        if (n_read != sizeof (event)) {
+            
+            if (errno != EAGAIN) {
+                /* reach EOF */
+                
+                char* loop = getenv ("MG_ENV_IAL_AUTO_REPLAY");
+
+                if (loop) {           /* try to replay */
+                    time_started = 0; /* reset time_started */
+                    lseek (fd_script, 0, SEEK_SET);
+                    
+                    n_read = read (fd_script, &event, sizeof(event));
+                    if (n_read == sizeof (event) ) {
+                        goto got;
+                    }
+                }
+            }
+
             if (errno != EAGAIN)
             {
                 close(fd_script);
@@ -136,6 +154,7 @@ got:
         event.u.mouse_event.y = ArchSwapLE32(event.u.mouse_event.y);
         event.u.mouse_event.buttons = ArchSwapLE32(event.u.mouse_event.buttons);
     }
+
     return 1;
 }
 

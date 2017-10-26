@@ -404,11 +404,25 @@ static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstre
     /* note: the alpha range is [0, 128] */
     if (dst->flags & GAL_SRCALPHA) {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_ALPHA_BLEND;
-        Command.Params.Blit.Context.GlobalAlpha = (dst->format->alpha+1)/2;
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ARGB8565_255 == st_bitmap->ColorType
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ALPHA8_255 == st_bitmap->ColorType
+                )
+            Command.Params.Blit.Context.GlobalAlpha = dst->format->alpha;
+        else
+            Command.Params.Blit.Context.GlobalAlpha = (dst->format->alpha+1)/2;
     }
     else {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_COPY;
-        Command.Params.Blit.Context.GlobalAlpha = 128;
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ARGB8565_255 == st_bitmap->ColorType
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ALPHA8_255 == st_bitmap->ColorType
+                )
+            Command.Params.Blit.Context.GlobalAlpha = 255;
+        else
+            Command.Params.Blit.Context.GlobalAlpha = 128;
     }
 
     /* set the fill color */
@@ -425,6 +439,14 @@ static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstre
             stgxobj_color.Value.ARGB1555.R     = color->r;
             stgxobj_color.Value.ARGB1555.G     = color->g;
             stgxobj_color.Value.ARGB1555.B     = color->b;
+            Command.Params.Blit.Context.AluMode = STBLIT_ALU_ALPHA_BLEND;
+            break;
+
+        case STGXOBJ_COLOR_TYPE_ARGB8888:
+            stgxobj_color.Value.ARGB8888.Alpha = color->a;
+            stgxobj_color.Value.ARGB8888.R     = color->r;
+            stgxobj_color.Value.ARGB8888.G     = color->g;
+            stgxobj_color.Value.ARGB8888.B     = color->b;
             Command.Params.Blit.Context.AluMode = STBLIT_ALU_ALPHA_BLEND;
             break;
 
@@ -593,7 +615,7 @@ static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
 
     /* set the colorkey */
     if (src->flags & GAL_SRCCOLORKEY) {
-        STAPI_Colorkey2ST(src->format->colorkey, src->hwdata->st_bitmap.ColorType, 
+        STAPI_Colorkey2ST(src->format->colorkey, src_st_bitmap->ColorType, 
                 STGXOBJ_COLOR_KEY_TYPE_RGB888, FALSE, &Command.Params.Blit.Context.ColorKey);
 	    Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_SRC;
     }
@@ -604,11 +626,25 @@ static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
     /* note: the alpha range is [0, 128] */
     if (src->flags & GAL_SRCALPHA) {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_ALPHA_BLEND;
-        Command.Params.Blit.Context.GlobalAlpha = (src->format->alpha+1)/2;
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == src_st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ARGB8565_255 == src_st_bitmap->ColorType
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == src_st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ALPHA8_255 == src_st_bitmap->ColorType
+                )
+            Command.Params.Blit.Context.GlobalAlpha = src->format->alpha;
+        else
+            Command.Params.Blit.Context.GlobalAlpha = (src->format->alpha+1)/2;
     }
     else {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_COPY;
-        Command.Params.Blit.Context.GlobalAlpha = 128;
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == src_st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ARGB8565_255 == src_st_bitmap->ColorType
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == src_st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ALPHA8_255 == src_st_bitmap->ColorType
+                )
+            Command.Params.Blit.Context.GlobalAlpha = 255;
+        else
+            Command.Params.Blit.Context.GlobalAlpha = 128;
     }
 
     /* set blit operation to blit */
@@ -906,6 +942,7 @@ static GAL_Surface *STGFB_SetVideoMode (_THIS, GAL_Surface *current,
             break;
 
   		case STGXOBJ_COLOR_TYPE_ARGB8888:
+  		case STGXOBJ_COLOR_TYPE_ARGB8888_255:
             depth = 32;
             Amask = 0xFF000000;
             Rmask = 0x00FF0000;

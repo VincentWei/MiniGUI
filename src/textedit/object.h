@@ -17,7 +17,7 @@ extern "C"{
 
 #ifdef __MINIGUI_LIB__
 #   define ncsInstanceOf _minigui_ncsInstanceOf
-#   define ncsParseConstrcutParams _minigui_ncsParseConstrcutParams
+#   define ncsParseConstructParams _minigui_ncsParseConstructParams
 #   define ncsSafeCast _minigui_ncsSafeCast
 #   define ncsSafeCastClass _minigui_ncsSafeCastClass
 #endif
@@ -427,7 +427,7 @@ MGNCS_EXPORT mObjectClass *ncsSafeCastClass(mObjectClass* clss, mObjectClass* ca
  */
 #define SAFE_CAST_CLASS(Clss, ClssCast) ((ClassType(ClssCast)*)(ncsSafeCastClass((mObjectClass*)Clss, (mObjectClass*)(void*)(&Class(ClssCast)))))
 
-int ncsParseConstrcutParams(va_list args, const char* signature, ...);
+int ncsParseConstructParams(va_list args, const char* signature, ...);
 
 
 /** @} end of global_object_funtions */

@@ -11,8 +11,8 @@ add_definitions (-D_GNU_SOURCE)
 
 # the version number.
 set (MINIGUI_MAJOR_VERSION 3)
-set (MINIGUI_MINOR_VERSION 2)
-set (MINIGUI_MICRO_VERSION 2)
+set (MINIGUI_MINOR_VERSION 0)
+set (MINIGUI_MICRO_VERSION 12)
 
 set (MINIGUI_NAME "minigui")
 set (MGLIB_SUFFIX "")
@@ -30,10 +30,13 @@ include (minigui-private)
 __find_threadslib (MINIGUI_LIBRARIES_LIST MINIGUI_INCLUDE_LIST)
 __find_mlib (have_libm MINIGUI_LIBRARIES_LIST MINIGUI_INCLUDE_LIST)
 ############## check static lib ################
-set (output_lib_type "Dynamic")
+mg_declare_option_and_set_value (_SHAREDLIB_OUTPUT output_sharedlib BOOL ON "whether output the shared lib")
+if (_SHAREDLIB_OUTPUT)
+    set (output_lib_type " Dynamic")
+endif (_SHAREDLIB_OUTPUT)
 mg_declare_option_and_set_value (_STATICLIB_OUTPUT output_staticlib BOOL OFF "whether output the static lib")
 if (_STATICLIB_OUTPUT)
-    set (output_lib_type "${output_lib_type} + Static")
+    set (output_lib_type "${output_lib_type} Static")
 endif(_STATICLIB_OUTPUT)
 
 ############## BASE ################
@@ -96,6 +99,16 @@ mg_declare_option_and_set_value (_MGGAL_CUSTOMGAL gal_custom    BOOL   OFF  "inc
 mg_declare_option_and_set_value (_MGGAL_SIGMA8654 gal_sigma8654 BOOL   OFF  "include sigma8654 NEWGAL engine")
 mg_declare_option_and_set_value (_MGGAL_MSTAR     gal_mstar     BOOL   OFF  "include mstar NEWGAL engine")
 mg_declare_option_and_set_value (_MGGAL_HI3560A   gal_hi3560a   BOOL   OFF  "include hi3560a NEWGAL engine")
+mg_declare_option_and_set_value (_MGGAL_GDL       gal_gdl       BOOL   OFF  "include gdl NEWGAL engine")
+mg_declare_option_and_set_value (_MGGAL_ST7167    gal_ST7167    BOOL   OFF  "include NEWGAL engine for st7167")
+mg_declare_option_and_set_value (_MGGAL_STGFB     gal_STGFB     BOOL   OFF  "include stgfb NEWGAL engine ST7105 ST7109")
+
+if (_MGGAL_STGFB)
+    add_definitions (-D_ST_OSLINUX)
+    add_definitions (-D_ST_7105)
+    add_definitions (-DARCHITECTURE_ST40)
+    add_definitions (-DDEFINED_BOOL)
+endif (_MGGAL_STGFB)
 
 # if rtosxvfb enable, pcxvfb must disable
 mg_declare_option (gal_rtosxvfb BOOL   OFF   "include RTOS Virtual FrameBuffer NEWGAL engine. Note: you must disable pcxvfb, if you want to enable rtosxvfb")
@@ -160,14 +173,22 @@ mg_declare_option (font_unicodesupport    BOOL    ON      "include UNICODE (ISO-
 mg_declare_option (with_fontttfsupport    STRING  "none"  "with_fontttfsupport=ft1/ft2/none")
 mg_declare_option (with_ft2includes       PATH    ""      "where the FreeType2 includes are")
 mg_declare_option (font_ttfenablecache    BOOL    OFF     "include ttf cache support")
-mg_declare_option (font_ttfcachesize      STRING  "64"    "font_ttfcachesize=64/128/256/512/1024")
+mg_declare_option (font_ttfcachesize      STRING  "256"   "font_ttfcachesize=64/128/256/512/1024")
 mg_declare_option (font_ttfcachenum       STRING  "10"    "font_ttfcachenum=10/20/40")
+mg_declare_option (font_ttfgrayadjust     BOOL    OFF      "adjust ttf font bitmap gray_value(range(0~255))")
+mg_declare_option (font_ttfgrayadjust_value STRING  "50"   "font_ttfcachesize range(0~255)")
 
 __find_freetype (with_fontttfsupport with_ft1includes with_ft2includes MINIGUI_LIBRARIES_LIST MINIGUI_INCLUDE_LIST)
 
 # mg_set_value (/* Define what to do */ IF with_fontttfsupport STREQUAL "none")
 mg_set_value (_MGFONT_TTF ON IF with_fontttfsupport STREQUAL "ft1")
 mg_set_value (_MGFONT_FT2 ON IF with_fontttfsupport STREQUAL "ft2")
+
+if (font_ttfgrayadjust)
+    mg_set_value (_MGFONT_TTF_GRAYADJUST ON)
+    set (_MGFONT_TTF_GRAYADJUST_VALUE ${font_ttfgrayadjust_value})
+    message (FATAL ${font_ttfgrayadjust_value})
+endif (font_ttfgrayadjust)
 
 if (with_fontttfsupport STREQUAL "none")
 else ()
@@ -318,7 +339,7 @@ elseif (with_osname STREQUAL "vxworks")
 elseif (with_osname STREQUAL "win32")
     mg_set_value (WIN32 ON)
     mg_set_value (__NOUNIX__ ON)
-    add_definitions(-D__NOUNIX__)
+    add_definitions (-D__NOUNIX__)
 elseif (with_osname STREQUAL "darwin")
     mg_set_value (__DARWIN__ ON)
 elseif (with_osname STREQUAL "threadx")
@@ -553,7 +574,18 @@ else ()
 endif (MGLIB_MVFB)
 
 # etc
-install (FILES "${etc_files}" DESTINATION etc)
+IF (WIN32)
+    set (RESPATH "$ENV{PREFIX}/share/minigui/res/")
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/etc/MiniGUI.cfg.win32.in"
+        "${PROJECT_BINARY_DIR}/etc/MiniGUI.cfg.win32"
+        )
+    install (FILES ${PROJECT_BINARY_DIR}/etc/MiniGUI.cfg.win32
+        DESTINATION etc
+        RENAME MiniGUI.cfg)
+ELSE()
+    install (FILES "${etc_files}" DESTINATION etc)
+ENDIF (WIN32)
 
 # include
 install (FILES  "${PROJECT_BINARY_DIR}/mgconfig.h"

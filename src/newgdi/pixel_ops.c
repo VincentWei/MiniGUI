@@ -215,9 +215,6 @@ void _dc_draw_hline_clip (void* context, int x1, int x2, int y)
     PCLIPRECT cliprect;
     int top, w;
 
-    if (y < 0 || y >= g_rcScr.bottom)
-        return;
-
     if (x1 == x2) {
         if (!(x1 % pdc->step))
             _dc_set_pixel_clip (pdc, x1, y);
@@ -485,9 +482,6 @@ void _dc_fill_hline_clip (void* context, int x1, int x2, int y)
     PDC pdc = (PDC)context;
     PCLIPRECT cliprect;
     int top, w;
-
-    if (y < 0 || y >= g_rcScr.bottom)
-        return;
 
     if (x1 > x2) {
         int tmp = x2;

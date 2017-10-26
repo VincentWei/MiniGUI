@@ -302,8 +302,6 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if (!IAL_UpdateMouse ())
             return 0;
 
-        license_on_input();
-
         lwe->type = LWETYPE_MOUSE;
         if (kernel_RefreshCursor(&me->x, &me->y, &button)) {
             me->event = ME_MOVED;
@@ -317,24 +315,23 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) && 
               (button & IAL_MOUSE_LEFTBUTTON) )
         {
-            if (time1) {
-                interval = __mg_timer_counter - time1;
-                if (interval <= dblclicktime)
-                    me->event = ME_LEFTDBLCLICK;
-                else
-                    me->event = ME_LEFTDOWN;
-                time1 = 0;
-            }
-            else {
-                time1 = __mg_timer_counter;
+            license_on_input();
+
+            interval = __mg_timer_counter - time1;
+            if (interval <= dblclicktime)
+                me->event = ME_LEFTDBLCLICK;
+            else
                 me->event = ME_LEFTDOWN;
-            }
+            time1 = __mg_timer_counter;
+
             goto mouseret;
         }
 
         if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) && 
              !(button & IAL_MOUSE_LEFTBUTTON) )
         {
+            license_on_input();
+
             me->event = ME_LEFTUP;
             goto mouseret;
         }
@@ -342,18 +339,13 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( !(oldbutton & IAL_MOUSE_RIGHTBUTTON) && 
               (button & IAL_MOUSE_RIGHTBUTTON) )
         {
-            if (time2) {
-                interval = __mg_timer_counter - time2;
-                if (interval <= dblclicktime)
-                    me->event = ME_RIGHTDBLCLICK;
-                else
-                    me->event = ME_RIGHTDOWN;
-                time2 = 0;
-            }
-            else {
-                time2 = __mg_timer_counter;
+            interval = __mg_timer_counter - time2;
+            if (interval <= dblclicktime)
+                me->event = ME_RIGHTDBLCLICK;
+            else
                 me->event = ME_RIGHTDOWN;
-            }
+            time2 = __mg_timer_counter;
+
             goto mouseret;
         }
 
@@ -572,15 +564,15 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
 
             return 1;
         }
+
         old_lwe.type = 0;
+
         return 0;
     }
 
     timeout_count = 0;
     /* There was an event occurred. */
     if (event & IAL_MOUSEEVENT) {
-        license_on_input();
-
         lwe->type = LWETYPE_MOUSE;
         if (kernel_RefreshCursor(&me->x, &me->y, &button)) {
 
@@ -596,24 +588,23 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) && 
               (button & IAL_MOUSE_LEFTBUTTON) )
         {
-            if (time1) {
-                interval = __mg_timer_counter - time1;
-                if (interval <= dblclicktime)
-                    me->event = ME_LEFTDBLCLICK;
-                else
-                    me->event = ME_LEFTDOWN;
-                time1 = 0;
-            }
-            else {
-                time1 = __mg_timer_counter;
+            license_on_input();
+
+            interval = __mg_timer_counter - time1;
+            if (interval <= dblclicktime)
+                me->event = ME_LEFTDBLCLICK;
+            else
                 me->event = ME_LEFTDOWN;
-            }
+            time1 = __mg_timer_counter;
+
             goto mouseret;
         }
 
         if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) && 
              !(button & IAL_MOUSE_LEFTBUTTON) )
         {
+            license_on_input();
+
             me->event = ME_LEFTUP;
             goto mouseret;
         }
@@ -621,18 +612,13 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( !(oldbutton & IAL_MOUSE_RIGHTBUTTON) && 
               (button & IAL_MOUSE_RIGHTBUTTON) )
         {
-            if (time2) {
-                interval = __mg_timer_counter - time2;
-                if (interval <= dblclicktime)
-                    me->event = ME_RIGHTDBLCLICK;
-                else
-                    me->event = ME_RIGHTDOWN;
-                time2 = 0;
-            }
-            else {
-                time2 = __mg_timer_counter;
+            interval = __mg_timer_counter - time2;
+            if (interval <= dblclicktime)
+                me->event = ME_RIGHTDBLCLICK;
+            else
                 me->event = ME_RIGHTDOWN;
-            }
+            time2 = __mg_timer_counter;
+            
             goto mouseret;
         }
 

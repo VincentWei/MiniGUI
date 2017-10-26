@@ -94,9 +94,9 @@ StaticControlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
             GetClientRect (hwnd, &rcClient);
             dwStyle = GetWindowStyle (hwnd);
             if (dwStyle & WS_DISABLED)
-                SetTextColor (hdc, GetWindowElementPixel (hwnd, WE_FGC_DISABLED_ITEM));
+                SetTextColor (hdc, GetWindowElementPixelEx (hwnd, hdc, WE_FGC_DISABLED_ITEM));
             else
-                SetTextColor (hdc, GetWindowElementPixel (hwnd, WE_FGC_WINDOW));
+                SetTextColor (hdc, GetWindowElementPixelEx (hwnd, hdc, WE_FGC_WINDOW));
 
 			// DK[11/01/2010]: For fix bug 4336
             switch (dwStyle & SS_TYPEMASK)

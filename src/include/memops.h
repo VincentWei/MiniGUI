@@ -54,10 +54,11 @@ do {							\
 	__asm__ __volatile__ (				\
 		"std\n\t"				\
 		"rep ; movsl\n\t"			\
+        "cld " \
 		: "=&c" (u0), "=&D" (u1), "=&S" (u2)	\
 		: "0" (n >> 2),				\
 		  "1" (dstp+(n-4)), "2" (srcp+(n-4))	\
-		: "memory" );				\
+		: "memory");				\
 	}						\
 	switch (n & 3) {				\
 		case 3: dstp[2] = srcp[2];		\

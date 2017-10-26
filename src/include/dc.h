@@ -572,8 +572,8 @@ leave_drawing:
 
 #endif // #if MGUI_BYTEORDER == MGUI_LIL_ENDIAN
 
-HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client);
-void ReleaseSecondarySubDC (HDC secondary_subdc);
+MG_EXPORT HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client);
+MG_EXPORT void ReleaseSecondarySubDC (HDC secondary_subdc);
 
 static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
 {

@@ -227,6 +227,7 @@ BOOL GUIAPI RectVisible (HDC hdc, const RECT* pRect)
 int GUIAPI GetClipBox (HDC hdc, RECT* clipbox)
 {
     PDC pdc;
+    RECT rc;
 
     pdc = dc_HDC2PDC (hdc);
 
@@ -237,6 +238,13 @@ int GUIAPI GetClipBox (HDC hdc, RECT* clipbox)
         SetRectEmpty(clipbox);
     else
         *clipbox = pdc->lcrgn.rcBound;
+
+    /* make the DevRC coordinate same as the lcrgn */
+    SetRect(&rc, 0, 0, pdc->DevRC.right, pdc->DevRC.bottom);
+    rc.right -= pdc->DevRC.left;
+    rc.bottom -= pdc->DevRC.top;
+    //IntersectRect(clipbox, clipbox, &pdc->DevRC);
+    IntersectRect(clipbox, clipbox, &rc);
 
     return pdc->lcrgn.type;
 }

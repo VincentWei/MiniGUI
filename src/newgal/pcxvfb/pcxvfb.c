@@ -39,6 +39,8 @@ typedef int key_t;
 #include <sys/un.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <errno.h>
+
 #else                    /* win32 */
 
 #include "pcxvfb-winfb.h"
@@ -269,6 +271,47 @@ VideoBootStrap PCXVFB_bootstrap = {
     PCXVFB_Available, PCXVFB_CreateDevice
 };
 
+#ifndef WIN32
+static int my_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout) {
+    struct timeval _tv, *tv;
+    struct timeval start, now;
+    int ret;
+
+    if (timeout) {
+        gettimeofday(&start, NULL);
+        memcpy(&_tv, timeout, sizeof(_tv));
+        tv = &_tv;
+    }else{
+        tv = NULL;
+    }
+
+    for (;;) {
+        ret = select(nfds, readfds, writefds, exceptfds, tv);
+        if (ret == -1 && errno == EINTR) {
+            if (timeout) {
+                gettimeofday(&now, NULL);
+                ret = (timeout->tv_sec * 1000000 + timeout->tv_usec)
+                    - ((now.tv_sec - start.tv_sec) * 1000000 + (now.tv_usec - start.tv_usec));
+                if (ret <= 0) {
+                    return 0; /* Timeout */
+                }else{
+                    _tv.tv_sec = ret / 1000000;
+                    _tv.tv_usec = ret % 1000000;
+                    continue;
+                }
+            }else{
+                continue;
+            }
+        }else{
+            return ret;
+        }
+    }
+
+    /* XXX: Never reach here */
+    return -1;
+}
+#endif
+
 static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 {
 	int i;
@@ -398,7 +441,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     char   socket_file [50];
 
     int    shmid;
-#ifndef _MGRM_THREADS
+#ifdef _MGRM_PROCESSES
     FILE  *fp;
 #endif
 
@@ -426,6 +469,9 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         }else if (pid > 0) {
             ;/* do nothing */
         }else {
+            if (setpgid(getpid(), 0) < 0) {
+                fprintf(stderr, "Warning: Failed to change the group id of the VFB process.\n");
+            }
 
             if (execl_pcxvfb() == ERR_CONFIG_FILE)
                 fprintf(stderr, "PCXVFB GAL: Reading configuration failure!\n");
@@ -437,10 +483,39 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         if (GetMgEtcIntValue ("qvfb", "display", &display) < 0)
             display = 0;
 
+        {
+            fd_set rset;
+            struct timeval tv;
+
+            FD_ZERO(&rset);
+            FD_SET(__mg_pcxvfb_server_sockfd, &rset);
+            tv.tv_sec = 2;
+            tv.tv_usec = 0;
+            if (my_select(__mg_pcxvfb_server_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
+                GAL_SetError ("NEWGAL>PCXVFB: Wait too long for CLIENT.\n");
+                close(__mg_pcxvfb_server_sockfd);
+                return -1;
+            }
+        }
         __mg_pcxvfb_client_sockfd = 
                 accept (__mg_pcxvfb_server_sockfd, 
                     (struct sockaddr *)&client_address, &client_len);
 
+        {
+            fd_set rset;
+            struct timeval tv;
+
+            FD_ZERO(&rset);
+            FD_SET(__mg_pcxvfb_client_sockfd, &rset);
+            tv.tv_sec = 2;
+            tv.tv_usec = 0;
+            if (my_select(__mg_pcxvfb_client_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
+                GAL_SetError ("NEWGAL>PCXVFB: Wait too long for SHMID.\n");
+                close(__mg_pcxvfb_client_sockfd);
+                close(__mg_pcxvfb_server_sockfd);
+                return -1;
+            }
+        }
         read(__mg_pcxvfb_client_sockfd, &shmid, sizeof(int));
 
         if (shmid != -1) {

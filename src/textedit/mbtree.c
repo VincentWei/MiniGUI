@@ -485,7 +485,7 @@ static mCommBTreeNode* _get_left_leaf(mCommBTreeNode *node)
 
 static void mCommBTreeLeafIterator_construct(mCommBTreeLeafIterator* self, va_list va)
 {
-	ncsParseConstrcutParams(va, "pp", &self->tree, &self->current);
+	ncsParseConstructParams(va, "pp", &self->tree, &self->current);
     _SUPER(mObject, self, construct, 0);
 
 	if(self->tree && !self->current)

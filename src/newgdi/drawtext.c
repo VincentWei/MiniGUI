@@ -480,13 +480,19 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
 
         line_len = __mg_substrlen (pdc->pLogFont, 
                 pText, nCount, '\n', &nr_delim_newline);
-        if(line_len == 0 || (nFormat & DT_SINGLELINE))
-            line_len = nCount;
-        pline = (const unsigned char*) pText;
 
+        /* line_len == 0 means the first char is '\n' */
+        if(nFormat & DT_SINGLELINE) {
+            line_len = nCount;
+        }
+        else if (line_len == 0) {
+            y += ctxt.line_height;
+            nLines += 1;
+        }
+
+        pline = (const unsigned char*) pText;
         nCount -= line_len + nr_delim_newline;
         pText = pText + line_len + nr_delim_newline;
-
 
         while(line_len){
             if (nLines == 0) {

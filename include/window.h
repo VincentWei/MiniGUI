@@ -7,10 +7,10 @@
  *
  \verbatim
 
-    Copyright (C) 2002-2009 Feynman Software.
+    Copyright (C) 2002-2012 FMSoft.
     Copyright (C) 1998-2002 Wei Yongming.
 
-    All rights reserved by Feynman Software.
+    All rights reserved by FMSoft (http://www.fmsoft.cn).
 
     This file is part of MiniGUI, a compact cross-platform Graphics 
     User Interface (GUI) support system for real-time embedded systems.
@@ -24,7 +24,7 @@
  *             MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
  *                     pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
- *             Copyright (C) 2002-2009 Feynman Software.
+ *             Copyright (C) 2002-2012 FMSoft.
  *             Copyright (C) 1998-2002 Wei Yongming.
  */
 
@@ -491,6 +491,27 @@ extern "C" {
  */
 #define MSG_SYSKEYUP        0x0015
 
+
+/* keyboard longpress supported */
+
+/**
+ * \def MSG_KEYLONGPRESS
+ * \brief A key is long pressed.
+ *
+ * This message is sent when a key is pressed exceed user-defined long 
+ * time value.
+ */
+#define MSG_KEYLONGPRESS    0x0016
+
+/**
+ * \def MSG_KEYALWAYSPRESS
+ * \brief A key is always pressed.
+ *
+ * This message is sent when a key is pressed to exceed user-defined
+ * always time value.
+ */
+#define MSG_KEYALWAYSPRESS  0x0017
+
 /**
  * \def MSG_KEYSYM
  * \brief A key symbol translated from MSG_KEYDOWN messages.
@@ -516,27 +537,7 @@ extern "C" {
  *
  * \sa MSG_SYSCHAR, TranslateMessage, key_defs
  */
-#define MSG_KEYSYM  0x0016
-
-/* keyboard longpress supported */
-
-/**
- * \def MSG_KEYLONGPRESS
- * \brief A key is long pressed.
- *
- * This message is sent when a key is pressed exceed user-defined long 
- * time value.
- */
-#define MSG_KEYLONGPRESS    0x0017
-
-/**
- * \def MSG_KEYALWAYSPRESS
- * \brief A key is always pressed.
- *
- * This message is sent when a key is pressed to exceed user-defined
- * always time value.
- */
-#define MSG_KEYALWAYSPRESS  0x0018
+#define MSG_KEYSYM  0x0018
 
 /**
  * \def DEF_LPRESS_TIME
@@ -1266,9 +1267,11 @@ extern unsigned int __mg_interval_time;
  *
  * \code
  * MSG_ERASEBKGND
+ * HDC hdc = (HDC)wParam;
  * const RECT* inv_rect = (const RECT*)lParam;
  * \endcode
  *
+ * \param hdc The device context.
  * \param inv_rect The pointer to a RECT structure contains the rectangle
  *        should be erase. The rectangle is in client coordinates system. 
  *        If it is NULL, the whole client area should be erased.
@@ -1293,6 +1296,17 @@ extern unsigned int __mg_interval_time;
 /**
  * \def MSG_NCPAINT
  * \brief Indicates that paints non-client area. 
+ *
+ * \code
+ * MSG_NCPAINT
+ * HDC hdc = (HDC)wParam;
+ * const RECT* inv_rect = (const RECT*)lParam;
+ * \endcode
+ *
+ * \param hdc The device context.
+ * \param inv_rect The pointer to a RECT structure contains the rectangle
+ *        should be paint. The rectangle is in client coordinates system. 
+ *        If it is NULL, the whole nc client area should be paint.
  */
 #define MSG_NCPAINT         0x00B2
 
@@ -1504,7 +1518,6 @@ extern unsigned int __mg_interval_time;
 #define MSG_DT_KEYUP        0x00EA
 
 #define MSG_DT_SYSKEYDOWN   0x00EB
-
 #define MSG_DT_SYSKEYUP     0x00ED
 
 #define MSG_DT_SYSCHAR      0x00EC

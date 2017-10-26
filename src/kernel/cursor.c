@@ -250,22 +250,22 @@ HCURSOR GUIAPI CreateCursor(int xhotspot, int yhotspot, int w, int h,
     if (colornum == 1) {
         ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch, 
                         pANDBits, MONOPITCH, w, h, MYBMP_FLOW_UP,
-                        RGB2Pixel (HDC_SCREEN_SYS, 0, 0, 0), 
-                        RGB2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF));
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF), 
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0xFF));
         ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, 
                         pXORBits, MONOPITCH,
                         w, h, MYBMP_FLOW_UP, 
-                        RGB2Pixel (HDC_SCREEN_SYS, 0, 0, 0), 
-                        RGB2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF));
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0x00), 
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0x00));
     }
     else if (colornum == 4) {
         ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch, 
                         pANDBits, MONOPITCH,
                         w, h, MYBMP_FLOW_UP, 
-                        RGB2Pixel (HDC_SCREEN_SYS, 0, 0, 0), 
-                        RGB2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF));
-        Expand16CBitmap (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, pXORBits, 
-                        MONOPITCH*4, w, h, MYBMP_FLOW_UP, NULL);
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF), 
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0xFF));
+        Expand16CBitmapEx (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, pXORBits, 
+                        MONOPITCH*4, w, h, MYBMP_FLOW_UP, NULL, FALSE, 0x00);
     }
 
     return (HCURSOR)pcsr;
@@ -501,12 +501,6 @@ static void showcursor (void)
     }
 #endif
 
-    /* restore alpha of the box */
-    if (__gal_screen->format->Amask) {
-        _dc_restore_alpha_in_bitmap (__gal_screen->format,
-                cursorbits, csrimgsize);
-    }
-
     csr_bmp.bmBits = cursorbits;
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
@@ -650,6 +644,7 @@ BOOL mg_InitCursor (void)
     __mg_cursor_x=0, __mg_cursor_y=0;
     oldx = -1, oldy=-1;
     memset(&cliprc,0,sizeof(RECT));
+#ifdef _MGHAVE_CURSOR
     oldboxleft = -100, oldboxtop = -100;
     nShowCount = 0;
     pCurCsr = NULL;
@@ -657,6 +652,7 @@ BOOL mg_InitCursor (void)
     csr_rect.x = csr_rect.y = 0;
     csr_rect.w = CURSORWIDTH;
     csr_rect.h = CURSORHEIGHT;
+#endif
     pthread_mutex_init (&__mg_mouselock, NULL);
 
 #ifdef _MGHAVE_CURSOR

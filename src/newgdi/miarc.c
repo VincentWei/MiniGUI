@@ -415,6 +415,21 @@ int miFreeArcCache (void* data, unsigned int id)
 }
 #endif
 
+void mg_miFreeArcCache (void){
+    int k;
+    arcCacheRec *cent;
+
+    for (k = CACHESIZE, cent = &arcCache[0]; --k >= 0; cent++) {
+        if (cent->spdata) {
+            cent->lrustamp = 0;
+            cent->lw = 0;
+            free(cent->spdata);
+            cent->spdata = NULL;
+        }
+    }
+    lrustamp = 0;
+}
+
 static void miComputeCircleSpans (int lw, miArc *parc, miArcSpanData *spdata)
 {
     register miArcSpan *span;
