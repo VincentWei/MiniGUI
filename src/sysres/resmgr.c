@@ -337,7 +337,7 @@ BOOL InitializeResManager(int hash_table_size)
 	pwd_res_path = strdup("./");
 
     //initialize paths
-#ifndef __NOUNIX__
+#if !defined(__NOUNIX__) || defined(WIN32)
     if ((p = getenv ("MG_RES_PATH"))) {
         int len = strlen(p);
         if (p[len-1] == '/') 
@@ -604,7 +604,7 @@ static char* get_res_file(const char* res_name, char* filename)
         sprintf(filename,"%s/%s", res_paths[i], res_name);
 #ifndef __VXWORKS__
         //in vxworks, don't support _access method.
-		if (_access(filename, 04) != -1)
+        if (_access(filename, 04) != -1)
 #endif
 #endif
         {

@@ -37,6 +37,7 @@ struct private_hwdata { /* for GAL_SURFACE */
     int fd_g2d;
 };
 
+extern int s3c6410_size_table[48];
 
 /******************************************************************
  * copy from g2d driver
@@ -58,7 +59,8 @@ typedef struct
 	u32	src_start_x;			//coordinate start x of source image
 	u32	src_start_y;			//coordinate start y of source image
 	u32	src_work_width;			//source image width for work
-	u32 	src_work_height;		//source image height for work
+	u32 src_work_height;		//source image height for work
+    u32 src_colormode;
 
 	u32	dst_base_addr;			//Base address of the destination image	
 	u32	dst_full_width;			//destination screen full width
@@ -66,14 +68,14 @@ typedef struct
 	u32	dst_start_x;			//coordinate start x of destination screen
 	u32	dst_start_y;			//coordinate start y of destination screen
 	u32	dst_work_width;			//destination screen width for work
-	u32 	dst_work_height;		//destination screen height for work
+	u32 dst_work_height;		//destination screen height for work
+    u32 dst_colormode;
 
 	// Coordinate (X, Y) of clipping window
 	u32 cw_x1, cw_y1;
 	u32 cw_x2, cw_y2;
 
 	u32 color_val[8];
-	G2D_COLOR_SPACE bpp;
 
 	u32	alpha_mode;			//true : enable, false : disable
 	u32	alpha_val;
@@ -88,6 +90,20 @@ typedef enum
 } G2D_COLOR;
 
 #define G2D_IOCTL_MAGIC 'G'
+
+#define S3C_G2D_COLOR_RGB_565               (0x0<<0)
+#define S3C_G2D_COLOR_RGBA_5551             (0x1<<0)
+#define S3C_G2D_COLOR_ARGB_1555             (0x2<<0)
+#define S3C_G2D_COLOR_RGBA_8888             (0x3<<0)
+#define S3C_G2D_COLOR_ARGB_8888             (0x4<<0)
+#define S3C_G2D_COLOR_XRGB_8888             (0x5<<0)
+#define S3C_G2D_COLOR_RGBX_8888             (0x6<<0)
+
+/* Alpha Blending Mode */
+#define S3C_G2D_ROP_REG_ABM_NO_BLENDING         (0<<10)
+#define S3C_G2D_ROP_REG_ABM_SRC_BITMAP          (1<<10)
+#define S3C_G2D_ROP_REG_ABM_REGISTER            (2<<10)
+#define S3C_G2D_ROP_REG_ABM_FADING          (4<<10)
 
 #define S3C_G2D_ROTATOR_0			_IO(G2D_IOCTL_MAGIC,0)
 #define S3C_G2D_ROTATOR_90			_IO(G2D_IOCTL_MAGIC,1)

@@ -14,6 +14,16 @@
 
 /******************* Internal data *******************************************/
 
+/* Internal window message. */
+#if (defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)) && defined(_MGRM_THREADS)
+#define MSG_CANCELSCREENSAVER   0x0201
+
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+__attribute__ ((visibility ("hidden"))) void screensaver_hide(void);
+#else
+void screensaver_hide(void);
+#endif
+#endif
 
 /* Internal use extended style. */
 #define WS_EX_MODALDISABLED     0x10000000L

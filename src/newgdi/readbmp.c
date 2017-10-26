@@ -64,6 +64,7 @@ BOOL GUIAPI InitBitmap (HDC hdc, Uint32 w, Uint32 h, Uint32 pitch, BYTE* bits,
     bmp->bmBitsPerPixel = pdc->surface->format->BitsPerPixel;
     bmp->bmBytesPerPixel = pdc->surface->format->BytesPerPixel;
     bmp->bmAlphaMask = NULL;
+    bmp->bmAlphaPitch = 0;
 
     return TRUE;
 }
@@ -86,7 +87,8 @@ BOOL GUIAPI InitBitmapPixelFormat (HDC hdc, PBITMAP bmp)
         }
 
         bmp->bmType |= BMP_TYPE_ALPHA_MASK;
-        bmp->bmAlphaMask = calloc(1, bmp->bmHeight * (bmp->bmWidth + 3) & (~3));
+        bmp->bmAlphaPitch = (bmp->bmWidth + 3) & (~3);
+        bmp->bmAlphaMask = calloc(1, bmp->bmHeight * bmp->bmAlphaPitch);
     }
     return TRUE;
 }
@@ -166,6 +168,7 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
 {
     int ret = ERR_BMP_OK;
     unsigned int size;
+    Uint32 alpha_pitch;
     PDC pdc;
 
     pdc = dc_HDC2PDC (hdc);
@@ -173,6 +176,7 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
     bmp->bmBitsPerPixel = pdc->surface->format->BitsPerPixel;
     bmp->bmBytesPerPixel = pdc->surface->format->BytesPerPixel;
     bmp->bmAlphaMask = NULL;
+    bmp->bmAlphaPitch = 0;
 
     size = GAL_GetBoxSize (pdc->surface, my_bmp->w, my_bmp->h, &bmp->bmPitch);
 
@@ -224,13 +228,15 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
         bmp->bmType |= BMP_TYPE_ALPHA;
         if (!device_has_alpha(hdc)) {
             bmp->bmType |= BMP_TYPE_ALPHA_MASK;
+            alpha_pitch = (bmp->bmWidth + 3) & (~3);
             
             if (alloc_all) {
-                size = bmp->bmHeight * ((bmp->bmWidth + 3) & (~3));
+                size = bmp->bmHeight * alpha_pitch;
             } else {
-                size = (bmp->bmWidth + 3) & (~3);
+                size = alpha_pitch;
             }
             bmp->bmAlphaMask = calloc(1, size);
+            bmp->bmAlphaPitch = alpha_pitch;
             
             if (bmp->bmAlphaMask == NULL) {
                 ret = ERR_BMP_MEM;
@@ -410,8 +416,7 @@ static void cb_load_bitmap_sl (void* context, MYBITMAP* my_bmp, int y)
     dst_bits = info->bmp->bmBits + info->bmp->bmPitch * y;
     
     if (info->bmp->bmType & BMP_TYPE_ALPHA_MASK) {
-        Uint32 alpha_pitch = (info->bmp->bmWidth +3) & (~3);
-        dst_alpha_mask= info->bmp->bmAlphaMask + alpha_pitch * y;
+        dst_alpha_mask= info->bmp->bmAlphaMask + info->bmp->bmAlphaPitch * y;
     } else {
         dst_alpha_mask = NULL;
     }

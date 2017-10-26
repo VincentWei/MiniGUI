@@ -7,10 +7,10 @@
  *
  \verbatim
 
-    Copyright (C) 2002-2009 Feynman Software.
+    Copyright (C) 2002-2012 FMSoft.
     Copyright (C) 1998-2002 Wei Yongming.
 
-    All rights reserved by Feynman Software.
+    All rights reserved by FMSoft (http://www.fmsoft.cn).
 
     This file is part of MiniGUI, a compact cross-platform Graphics 
     User Interface (GUI) support system for real-time embedded systems.
@@ -24,7 +24,7 @@
  *             MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
  *                     pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
- *             Copyright (C) 2002-2009 Feynman Software.
+ *             Copyright (C) 2002-2012 FMSoft.
  *             Copyright (C) 1998-2002 Wei Yongming.
  */
 
@@ -2311,7 +2311,7 @@ MG_EXPORT int GUIAPI SetRasterOperation (HDC hdc, int rop);
  *
  * \sa SetPalette
  */
-MG_EXPORT BOOL GUIAPI GetPalette (HDC hdc, int start, int len, GAL_Color* cmap);
+MG_EXPORT int GUIAPI GetPalette (HDC hdc, int start, int len, GAL_Color* cmap);
 
 /**
  * \fn BOOL GUIAPI SetPalette (HDC hdc, int start, int len, GAL_Color* cmap)
@@ -7419,6 +7419,9 @@ struct _BITMAP
     /*void*   bmAlphaPixelFormat;*/
     /** The Alpha Mask array of the bitmap */
     Uint8*  bmAlphaMask;
+
+    /** The Alpha Pitch of the bitmap */
+    Uint32  bmAlphaPitch;
 };
 
     /** @} end of bmp_struct */
@@ -8018,6 +8021,11 @@ MG_EXPORT void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch, 
                 Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg);
 				
+MG_EXPORT void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
+                const BYTE* my_bits, Uint32 my_pitch, 
+                Uint32 w, Uint32 h, DWORD flags, 
+                const RGB* pal, BYTE use_pal_alpha, BYTE alpha);
+
 /**
  * \fn void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
  *               const BYTE* my_bits, Uint32 my_pitch, 
@@ -8039,12 +8047,21 @@ MG_EXPORT void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
  *
  * \sa ExpandMonoBitmap, Expand256CBitmap
  */				
-MG_EXPORT void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+static inline void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
                 const BYTE* my_bits, Uint32 my_pitch, 
-                Uint32 w, Uint32 h, DWORD flags, const RGB* pal);
-				
+                Uint32 w, Uint32 h, DWORD flags, const RGB* pal)
+{
+    Expand16CBitmapEx (hdc, bits, pitch, my_bits, my_pitch, 
+                w, h, flags, pal, FALSE, 0xFF);
+}
+
+MG_EXPORT void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
+                const BYTE* my_bits, Uint32 my_pitch, 
+                Uint32 w, Uint32 h, DWORD flags, 
+                const RGB* pal, BYTE use_pal_alpha, BYTE alpha,
+                CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
 /**
- * \fn void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+ * \fn void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
  *               const BYTE* my_bits, Uint32 my_pitch, 
  *               Uint32 w, Uint32 h, DWORD flags, const RGB* pal, 
  *               CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
@@ -8067,10 +8084,14 @@ MG_EXPORT void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
  *
  * \sa ExpandMonoBitmap, Expand16CBitmap
  */	
-MG_EXPORT void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+static inline void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
                 const BYTE* my_bits, Uint32 my_pitch, 
-                Uint32 w, Uint32 h, DWORD flags, const RGB* pal, 
-                CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
+                Uint32 w, Uint32 h, DWORD flags, const RGB* pal,
+                CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
+{
+    Expand256CBitmapEx (hdc, bits, pitch, my_bits, my_pitch, 
+                w, h, flags, pal, FALSE, 0xFF, cb_draw, mybmp);
+}
 
 /**
  * \fn void GUIAPI CompileRGBABitmap (HDC hdc, BYTE* bits, Uint32 pitch, \
@@ -8125,9 +8146,21 @@ MG_EXPORT void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg, 
                 int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
-MG_EXPORT void GUIAPI ExpandPart16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, const BYTE* my_bits, 
-        Uint32 my_pitch, Uint32 w, Uint32 h, DWORD flags, const RGB* pal,
-        int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
+
+MG_EXPORT void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
+                const BYTE* my_bits, Uint32 my_pitch, 
+                Uint32 w, Uint32 h, DWORD flags, 
+                const RGB* pal, BYTE use_pal_alpha, BYTE alpha,
+                int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
+
+static inline void GUIAPI ExpandPart16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+                const BYTE* my_bits, Uint32 my_pitch, 
+                Uint32 w, Uint32 h, DWORD flags, const RGB* pal,
+                int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
+{
+    ExpandPart16CBitmapEx (hdc, bits, pitch, my_bits, my_pitch, 
+                w, h, flags, pal, FALSE, 0xFF, stepx, cb_draw, mybmp);
+}
 
 #endif
 

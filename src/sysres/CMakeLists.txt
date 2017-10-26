@@ -6,7 +6,12 @@ if (MG_MINIMALGDI)
             mgetc.c)
 else()
     list (APPEND sysres_sources
-            resource.c incoreres.c mgetc.c resmgr.c resmgr.h) 
+            resource.c incoreres.c resmgr.c resmgr.h) 
+    IF (WIN32)
+        LIST (APPEND sysres_sources mgetc_win32.c)
+    ELSE ()
+        LIST (APPEND sysres_sources mgetc.c)
+    ENDIF (WIN32)
 endif(MG_MINIMALGDI)
 
 mg_add_source_files(${sysres_sources})

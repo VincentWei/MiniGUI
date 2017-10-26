@@ -110,6 +110,10 @@ static void SHADOW_VideoQuit (_THIS);
 static int SHADOW_AllocHWSurface (_THIS, GAL_Surface *surface);
 static void SHADOW_FreeHWSurface (_THIS, GAL_Surface *surface);
 
+/* for task_do_update */
+static int run_flag = 0;
+static int end_flag = 0;
+
 #ifdef _MGRM_PROCESSES
 static int shmid;
 /* Down/up a semaphore uninterruptablly. */
@@ -446,8 +450,22 @@ static void* task_do_update (void* data)
 
     real_device = this->hidden->realfb_info->real_device;
 
-    while (_shadowfbheader) 
-    {  
+    /* waiting for __gal_screen */
+    for (;;) {
+        if (__gal_screen !=NULL) {
+            break;
+        }
+    }
+
+    for (;;) {
+        if (run_flag != 1) {
+            break;
+        }
+
+        if (_shadowfbheader == NULL) {
+            break;
+        }
+
         if (_shadowfbheader->dirty || _shadowfbheader->palette_changed) 
         {
 #ifdef _MGRM_PROCESSES
@@ -456,20 +474,18 @@ static void* task_do_update (void* data)
             pthread_mutex_lock (&this->hidden->update_lock);
 #endif
 
-            if (_shadowfbheader->palette_changed)
-            {
-                real_device->SetColors (real_device, _shadowfbheader->firstcolor, 
-                                _shadowfbheader->ncolors, 
-                                (GAL_Color*)((char*)_shadowfbheader + _shadowfbheader->palette_offset));
-                SetRect (&_shadowfbheader->dirty_rect, 0, 0, 
-                                _shadowfbheader->width, _shadowfbheader->height); 
-            }
+            if (real_device) {
+                if (_shadowfbheader->palette_changed) {
+                    real_device->SetColors (real_device, _shadowfbheader->firstcolor,
+                            _shadowfbheader->ncolors,
+                            (GAL_Color*)((char*)_shadowfbheader + _shadowfbheader->palette_offset));
+                    SetRect (&_shadowfbheader->dirty_rect, 0, 0,
+                            _shadowfbheader->width, _shadowfbheader->height); 
+                }
 
-            __mg_shadow_fb_ops->refresh (_shadowfbheader, 
-                    this->hidden->realfb_info, &(_shadowfbheader->dirty_rect));
+                __mg_shadow_fb_ops->refresh (_shadowfbheader,
+                        this->hidden->realfb_info, &(_shadowfbheader->dirty_rect));
 
-            if (real_device) 
-            {
                 if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
                     _get_dst_rect_cw (&qvfb_rect, &(_shadowfbheader->dirty_rect), 
                             this->hidden->realfb_info);
@@ -498,6 +514,7 @@ static void* task_do_update (void* data)
                 if (real_device->UpdateRects)
                     real_device->UpdateRects(real_device, 1, &dirty_rect);
             }
+
             SetRect (&_shadowfbheader->dirty_rect, 0, 0, 0, 0);
             _shadowfbheader->dirty = FALSE;
             _shadowfbheader->palette_changed = FALSE;
@@ -510,6 +527,9 @@ static void* task_do_update (void* data)
         }
         __mg_shadow_fb_ops->sleep ();
     }
+
+    end_flag = 1;
+
     return NULL;
 }
 
@@ -655,6 +675,10 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
 
     {
         pthread_attr_t new_attr;
+
+        run_flag = 1;
+        end_flag = 0;
+
         pthread_attr_init (&new_attr);
 #ifndef __LINUX__
         pthread_attr_setstacksize (&new_attr, 512);
@@ -671,8 +695,17 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
 
 static void SHADOW_VideoQuit (_THIS)
 {
-    _shadowfbheader->dirty = FALSE;
+    run_flag = 0;
+
+    /* waiting task_do_update end */
+    for (;;) {
+        if (end_flag != 0) {
+            break;
+        }
+    }
+
     if (_shadowfbheader) {
+        _shadowfbheader->dirty = FALSE;
         free(_shadowfbheader);
         _shadowfbheader = NULL;
     }
@@ -702,6 +735,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     size = 0;
     ret = 0;
 
+    printf ("SHADOW_SetVideoMode\n");
     if (mgIsServer) {
         ShadowFBHeader shadowfbheader;
 
@@ -818,6 +852,10 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
 
     if (mgIsServer) {
         pthread_attr_t new_attr;
+
+        run_flag = 1;
+        end_flag = 0;
+
         pthread_attr_init (&new_attr);
 #ifndef __LINUX__
         pthread_attr_setstacksize (&new_attr, 512);
@@ -826,12 +864,13 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         ret = pthread_create (&this->hidden->update_th, &new_attr, 
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
+
+        if (ret != 0) {
+            fprintf (stderr, "NEWGAL>SHADOW: Couldn't start updater\n");
+        }
     }
 
-    if (ret != 0) {
-        fprintf (stderr, "NEWGAL>SHADOW: Couldn't start updater\n");
-    }
-
+    printf ("SHADOW_SetVideoMode\n");
     /* We're done */
     return (current);
 }
@@ -839,6 +878,8 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
 static void SHADOW_VideoQuit (_THIS)
 {
     ShadowFBHeader* tmp;
+    union semun ignored;
+
     if (!mgIsServer){
         _shadowfbheader->dirty = FALSE;
         if (this->screen->pixels) {
@@ -847,8 +888,6 @@ static void SHADOW_VideoQuit (_THIS)
         }
     }
     else {
-        union semun ignored;
-
         tmp = _shadowfbheader;
         _shadowfbheader = NULL;
         shmdt (tmp);

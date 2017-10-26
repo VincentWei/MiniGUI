@@ -135,7 +135,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
 
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
-    FD_ZERO (&mg_rfdset);
+    mg_fd_zero (&mg_rfdset);
     mg_maxfd = 0;
 
 #ifndef _MGGAL_BF533
@@ -255,7 +255,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
                 break;
             }
 
-            if (temp && FD_ISSET (mg_listen_fds [i].fd, temp)) {
+            if (temp && mg_fd_isset (mg_listen_fds [i].fd, temp)) {
                 Msg.hwnd = (HWND)mg_listen_fds [i].hwnd;
                 Msg.wParam = MAKELONG (mg_listen_fds [i].fd, type);
                 Msg.lParam = (LPARAM)mg_listen_fds [i].context;

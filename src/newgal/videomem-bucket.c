@@ -5,25 +5,63 @@
 
 #include "videomem-bucket.h"
 
-//#define MY_DEBUG
 
-#ifdef MY_DEBUG
+/*#define GAL_VMBUCKET_DEBUG*/
+
+#define TEST_BIT(a, bit) ((a) & (bit))
+#define SET_BIT(a, bit) ((a) |= (bit))
+#define UNSET_BIT(a, bit) ((a) &= ~(bit))
+#define BLOCK_SIZE(block) ((block)->height * (block)->pitch)
+
+
+#ifdef GAL_VMBUCKET_DEBUG
 static void gal_vmbucket_print(const gal_vmbucket_t *bucket) {
     struct list_head *i;
+    int unused_total = 0;
+    int unused_max = 0;
+    int used_max = 0;
+    int used_total = 0;
+    char bit_flags[32] = "";
 
-    printf( "Bucket:\n"
+    printf( "\n---- GAL Video Memory Bucket -------\n"
             "  start=%p\n"
             "  size=%d\n",
             bucket->start, bucket->size);
     list_for_each(i, &bucket->block_head) {
         gal_vmblock_t *block = (gal_vmblock_t *)i;
+
+        if (TEST_BIT(block->flag, VMBLOCK_FLAG_USED)) {
+            used_total++;
+            used_max = used_max > (block->height * block->pitch) ? used_max : (block->height * block->pitch); 
+            sprintf(bit_flags, " ");
+        }
+        else {
+            unused_total++;
+            unused_max = unused_max > (block->height * block->pitch) ? unused_max : (block->height * block->pitch); 
+            sprintf(bit_flags, "\t\t");
+        }
+
         printf( "  block:\n"
-                "    offset=%d\n" 
-                "    height=%d\n"
-                "    pitch=%d\n"
-                "    flag=%d\n",
-                block->offset, block->height, block->pitch, block->flag);  
+                "    %soffset=%d\n" 
+                "    %sheight=%d\n"
+                "    %spitch=%d\n"
+                "    %sflag=%d\n"
+                "    %ssize=%d\n",
+                bit_flags, block->offset, 
+                bit_flags, block->height, 
+                bit_flags, block->pitch, 
+                bit_flags, block->flag,
+                bit_flags, block->height*block->pitch);  
     }
+
+    printf( "---------- Total Result -------------\n"
+            "unused: count=%d, max_block:%d\n"
+            "used  : count=%d, max_block:%d\n"
+            "total : count=%d\n"
+            "-------------------------------------\n\n",
+            unused_total, unused_max,
+            used_total, used_max,
+            unused_total+used_total);
 }
 #else
 #   define gal_vmbucket_print(x) /* NULL */
@@ -54,11 +92,6 @@ void gal_vmbucket_destroy(gal_vmbucket_t *bucket) {
     }
 }
 
-#define TEST_BIT(a, bit) ((a) & (bit))
-#define SET_BIT(a, bit) ((a) |= (bit))
-#define UNSET_BIT(a, bit) ((a) &= ~(bit))
-#define BLOCK_SIZE(block) ((block)->height * (block)->pitch)
-
 gal_vmblock_t *gal_vmbucket_alloc(gal_vmbucket_t *bucket, int pitch, int height) {
     struct list_head *i;
     int required_size = height * pitch;
@@ -85,6 +118,8 @@ gal_vmblock_t *gal_vmbucket_alloc(gal_vmbucket_t *bucket, int pitch, int height)
             return block;
         }
     }
+    fprintf(stderr, "videomem-bucket: Failed to alloc hardware surface(request_size=%d)\n", required_size);
+
     return NULL;
 }
 

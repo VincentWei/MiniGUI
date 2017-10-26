@@ -75,14 +75,8 @@ endif ()
 if (ZLIB_FOUND)
     include_directories ("${ZLIB_INCLUDE_DIR}")
 endif ()
-if (PNG_FOUND)
-    include_directories ("${PNG_INCLUDE_DIR}")
-endif ()
 if (JPEG_FOUND)
     include_directories ("${JPEG_INCLUDE_DIR}")
-endif ()
-if (FREETYPE_FOUND)
-    include_directories ("${FREETYPE_INCLUDE_DIR_ft2build}" "${FREETYPE_INCLUDE_DIR_freetype2}")
 endif ()
 
 # license picture
@@ -104,9 +98,38 @@ ENDIF (license_splash OR license_screensaver OR license_productid)
 # add minigui library
 set (MINIGUI_LIBNAME ${MINIGUI_NAME}_${MGLIB_SUFFIX})
 
-add_library (${MINIGUI_LIBNAME} SHARED ${_source_list_})
-set_target_properties (${MINIGUI_LIBNAME} PROPERTIES VERSION ${MINIGUI_VERSION} SOVERSION ${MINIGUI_SOVERSION})
-set_target_properties (${MINIGUI_LIBNAME} PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+################################# target ###################################
+# !!! to install dynamic library (.DLL) and import library (.lib)  !!!
+# !!! in WIN32 we should use                                       !!!
+# !!! *RUNTIME* and *ARCHIVE* to set the DESTINATION of the lib    !!!
+if (_SHAREDLIB_OUTPUT)
+    add_library (${MINIGUI_LIBNAME} SHARED ${_source_list_})
+    set_target_properties (${MINIGUI_LIBNAME} PROPERTIES VERSION ${MINIGUI_VERSION} SOVERSION ${MINIGUI_SOVERSION})
+    set_target_properties (${MINIGUI_LIBNAME} PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+    if (WIN32)
+        if (PTHREAD_FOUND)
+            target_link_libraries(${MINIGUI_LIBNAME} "${PTHREAD_LIBRARY}")
+        endif ()
+        if (ZLIB_FOUND)
+            target_link_libraries(${MINIGUI_LIBNAME} "${ZLIB_LIBRARY}")
+        endif ()
+        if (PNG_FOUND)
+            target_link_libraries(${MINIGUI_LIBNAME} ${PNG_LIBRARIES})
+        endif ()
+        if (JPEG_FOUND)
+            target_link_libraries(${MINIGUI_LIBNAME} "${JPEG_LIBRARY}")
+        endif ()
+        if (FREETYPE_FOUND)
+            target_link_libraries(${MINIGUI_LIBNAME} ${FREETYPE_LIBRARIES})
+        endif ()
+    endif (WIN32)
+
+    install (TARGETS ${MINIGUI_LIBNAME}
+        LIBRARY DESTINATION lib     # for .so  (dynamic library)
+        ARCHIVE DESTINATION lib     # for .lib (import library)
+        RUNTIME DESTINATION bin     # for .dll (dynamic library)
+        )
+endif (_SHAREDLIB_OUTPUT)
 
 if (_STATICLIB_OUTPUT)
     add_library (${MINIGUI_LIBNAME}_static ${_source_list_})
@@ -114,39 +137,8 @@ if (_STATICLIB_OUTPUT)
         set_target_properties (${MINIGUI_LIBNAME}_static PROPERTIES OUTPUT_NAME ${MINIGUI_LIBNAME})
     endif(NOT WIN32)
     set_target_properties (${MINIGUI_LIBNAME}_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-endif(_STATICLIB_OUTPUT)
 
-if (WIN32)
-    if (PTHREAD_FOUND)
-        target_link_libraries(${MINIGUI_LIBNAME} "${PTHREAD_LIBRARY}")
-    endif ()
-    if (ZLIB_FOUND)
-        target_link_libraries(${MINIGUI_LIBNAME} "${ZLIB_LIBRARY}")
-    endif ()
-    if (PNG_FOUND)
-        target_link_libraries(${MINIGUI_LIBNAME} "${PNG_LIBRARY}")
-    endif ()
-    if (JPEG_FOUND)
-        target_link_libraries(${MINIGUI_LIBNAME} "${JPEG_LIBRARY}")
-    endif ()
-    if (FREETYPE_FOUND)
-        target_link_libraries(${MINIGUI_LIBNAME} "${FREETYPE_LIBRARY}")
-    endif ()
-endif (WIN32)
-
-################################# target to install ###################################
-# !!! to install dynamic library (.DLL) and import library (.lib)  !!!
-# !!! in WIN32 we should use                                       !!!
-# !!! *RUNTIME* and *ARCHIVE* to set the DESTINATION of the lib    !!!
-install (TARGETS ${MINIGUI_LIBNAME}
-    DESTINATION lib     # for all below
-    #    LIBRARY DESTINATION lib     # for .so  (dynamic library)
-    #    RUNTIME DESTINATION lib     # for .DLL (dynamic library)
-    #    ARCHIVE DESTINATION lib     # for .lib (import library)
-    )
-
-if (_STATICLIB_OUTPUT)
     install (TARGETS ${MINIGUI_LIBNAME}_static
         ARCHIVE DESTINATION lib
         )
-endif (_STATICLIB_OUTPUT)
+endif(_STATICLIB_OUTPUT)

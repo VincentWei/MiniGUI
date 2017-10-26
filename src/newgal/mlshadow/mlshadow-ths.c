@@ -638,7 +638,7 @@ static void refresh_surface (_THIS, RECT* updaterect)
      * paint the cache surface to real surface...
      */ 
     if(this->hidden->swap_surface && !IsRectEmpty(&updatecache_rect)){
-        static int cc = 0;
+        //static int cc = 0;
         GAL_Rect rect = {0};
         rect.x = updatecache_rect.left;
         rect.y = updatecache_rect.top;

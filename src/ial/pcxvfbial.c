@@ -1,5 +1,5 @@
 /*
-** $Id: pcxvfbial.c 13674 2010-12-06 06:45:01Z wanzheng $
+** $Id: pcxvfbial.c 13830 2017-10-26 05:27:43Z weiym $
 **
 ** pcxvfb.c: Input Engine for PCX Virtual FrameBuffer
 ** 
@@ -34,21 +34,22 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#else
 #endif
 
 #include "minigui.h"
 #include "gdi.h"
 #include "window.h"
+#include "mgsock.h"
 
 #include "misc.h"
 #define __NONEED_FD_SET_TYPE
 #include "ial.h"
 #include "pcxvfb.h"
-#include "mgsock.h"
 #endif
 
 #include "license.h"
+
+#include "auto-protocol.h"
 
 #ifdef __ECOS__
 
@@ -95,6 +96,18 @@ static unsigned char read_mouse_result = 0;
 
 static unsigned char kbd_state [NR_KEYS];
 
+/* for ial record */
+#define IAL_RECORD_MANUAL_START
+
+static int record_fd = -1;
+static long long int record_time_start = 0;
+
+#ifdef IAL_RECORD_MANUAL_START
+#define IAL_RECORD_START_KEY	SCANCODE_F5
+
+static BOOL record_started = FALSE;
+#endif
+
 static void (*set_ime_text)(void*,const char*);
 static void *ime_text_callback_data;
 
@@ -122,9 +135,9 @@ void VFBSetCaption(const char* caption)
 
 	if(__mg_pcxvfb_client_sockfd == -1)
 		return ;
-    /*one XVFBCaptionEventData struct costs 8 bytes,
-     * change that '8' below if the struct is changed*/
-	FD_WRITE(__mg_pcxvfb_client_sockfd, ced, sizeof(int)*2+len);
+	/*one XVFBCaptionEventData struct costs 8 bytes,
+	 * change that '8' below if the struct is changed*/
+	mg_writesocket(__mg_pcxvfb_client_sockfd, ced, 8+len);
 }
 
 void VFBOpenIME(int bOpen)
@@ -136,7 +149,7 @@ void VFBOpenIME(int bOpen)
 
 	if(__mg_pcxvfb_client_sockfd == -1)
 		return ;
-	FD_WRITE(__mg_pcxvfb_client_sockfd, &ime, sizeof(ime));
+	mg_writesocket(__mg_pcxvfb_client_sockfd, &ime, sizeof(ime));
 }
 
 void VFBShowWindow(int show)
@@ -147,7 +160,7 @@ void VFBShowWindow(int show)
 	};
 	if(__mg_pcxvfb_client_sockfd == -1)
 		return ;
-	FD_WRITE(__mg_pcxvfb_client_sockfd, info, sizeof(info));
+	mg_writesocket(__mg_pcxvfb_client_sockfd, info, sizeof(info));
 }
 
 void VFBAtExit(void (*callback)(void))
@@ -209,19 +222,105 @@ static void default_cb(void *user_data, const char* str)
 
 /********************  Low Level Input Operations ******************/
 
+static BOOL if_record_ial ()
+{
+#ifdef WIN32
+    /* TODO: */
+    return FALSE;
+#else
+    return (record_fd >= 0);
+#endif
+}
+
+static long long int getcurtime()
+{
+#ifdef WIN32
+    /* TODO: */
+    return 0;
+#else    
+    struct timeval tv;
+    gettimeofday( &tv, NULL );
+    return (long long int)tv.tv_sec * 1000 + (long long int)tv.tv_usec / 1000;
+#endif
+}
+
+static void open_rec (const char* path)
+{
+#ifdef WIN32
+    /* TODO: */
+#else
+    record_fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+#endif
+}
+
+static void write_rec (const void* buf, size_t n)
+{
+#ifdef WIN32
+    /* TODO: */
+#else
+    write(record_fd, buf, n);
+#endif
+}
+
+static void flush_rec ()
+{
+#ifdef WIN32
+    /* TODO: */
+#else
+    fsync(record_fd);
+#endif
+}
+
+
+static void do_record(AUTO_IAL_INPUT_EVENT *event)
+{
+#define MAX_COUNT 50
+#define MAX_TIME 3000
+    static int record_count = 0;
+    static long long int record_last_time = 0;
+
+    if (! record_started) {
+        /* adjuge if recording should be started */
+        if (0 == event->type && IAL_RECORD_START_KEY == event->u.key_event.scancode) {
+            /* to start recording */
+            record_started = TRUE;
+        }
+        else {
+            /* do nothing */
+            return;
+        }
+    }
+
+#if MGUI_BYTEORDER == MGUI_BIG_ENDIAN
+    event->timestamp = ArchSwap64(event->timestamp);
+    if (event->type == 0)
+    {
+        event->u.key_event.scancode = ArchSwap32(event->u.key_event.scancode);
+        event->u.key_event.type = ArchSwap32(event->u.key_event.type);
+    }
+    else
+    {
+        event->u.mouse_event.x = ArchSwap32(event->u.mouse_event.x);
+        event->u.mouse_event.y = ArchSwap32(event->u.mouse_event.y);
+        event->u.mouse_event.buttons = ArchSwap32(event->u.mouse_event.buttons);
+    }
+    event->type = ArchSwap32(event->type);
+#endif
+    
+
+    write_rec (event, sizeof(*event));
+
+    if (record_count++ >= MAX_COUNT || (event->timestamp - record_last_time) >= MAX_TIME)
+    {
+        record_count = 0;
+        record_last_time = event->timestamp;
+        flush_rec ();
+    }
+}
+
 /*
  * Mouse operations -- Event
  */
-
-static int mouse_update (void)
-{
-    cur_retvalue = 0;
-#ifndef WIN32
-    return read_mouse_result;
-#else
-    return 1;
-#endif
-}
 
 static void mouse_getxy (int *x, int* y)
 {
@@ -235,7 +334,7 @@ static void mouse_setxy (int x, int y)
 
     if(__mg_pcxvfb_client_sockfd == -1)
 		return ;
-	FD_WRITE(__mg_pcxvfb_client_sockfd, &mouse_event, sizeof(XVFBEVENT));
+	mg_writesocket(__mg_pcxvfb_client_sockfd, &mouse_event, sizeof(XVFBEVENT));
 }
 
 static int mouse_getbutton (void)
@@ -251,6 +350,27 @@ static int mouse_getbutton (void)
 
     return buttons;
 }
+
+static int mouse_update (void)
+{
+    cur_retvalue = 0;
+#ifndef WIN32
+    
+    if (if_record_ial ()) {
+        AUTO_IAL_INPUT_EVENT event;
+        event.timestamp = getcurtime() - record_time_start;
+        event.type = 1;
+        mouse_getxy(&event.u.mouse_event.x, &event.u.mouse_event.y);
+        event.u.mouse_event.buttons = mouse_getbutton();
+        do_record(&event);
+    }
+
+    return read_mouse_result;
+#else
+    return 1;
+#endif
+}
+
 
 static int keyboard_update (void)
 {
@@ -277,6 +397,16 @@ static int keyboard_update (void)
 
     if (unicode == 0 && !press) {
         kbd_state [last] = 0;
+
+        if (if_record_ial ()) {
+            AUTO_IAL_INPUT_EVENT event;
+            event.timestamp = getcurtime() - record_time_start;
+            event.type = 0;
+            event.u.key_event.scancode = last;
+            event.u.key_event.type = press ? 1 : 0;
+            do_record(&event);
+        }
+
     }
     else {
         scancode = unicode;
@@ -284,6 +414,16 @@ static int keyboard_update (void)
         kbd_state [scancode] = press;
         if (press)
             last = scancode;
+
+        if (if_record_ial ()) {
+            AUTO_IAL_INPUT_EVENT event;
+            event.timestamp = getcurtime() - record_time_start;
+            event.type = 0;
+            event.u.key_event.scancode = scancode;
+            event.u.key_event.type = press ? 1 : 0;
+            do_record(&event);
+        }
+
     }
 
     return NR_KEYS;
@@ -299,7 +439,7 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
     int ret;
     int event_type;
 
-    if ((ret = FD_READ (fd, &event_type, sizeof(event_type))) <= 0)
+    if ((ret = mg_readsocket (fd, &event_type, sizeof(event_type))) <= 0)
     {
 #ifdef __NOUNIX__
         if (1) {
@@ -308,7 +448,13 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
 #endif
             ExitGUISafely (-1);
             return -1;
+
+#ifdef __NOUNIX__
         }
+#else
+        }
+#endif
+
     } else if(ret != sizeof(event_type)) {
         return -1;
     }
@@ -316,7 +462,7 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
     switch (event_type) {
         case MOUSE_TYPE:
             {
-                if (FD_READ (fd, &pcxvfb_event->data, sizeof(pcxvfb_event->data))
+                if (mg_readsocket (fd, &pcxvfb_event->data, sizeof(pcxvfb_event->data))
                         != sizeof(pcxvfb_event->data)) {
                     return -1;
                 }
@@ -333,7 +479,7 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
             } 
         case KB_TYPE:
             {
-                if (FD_READ (fd, &pcxvfb_event->data, sizeof(pcxvfb_event->data))
+                if (mg_readsocket (fd, &pcxvfb_event->data, sizeof(pcxvfb_event->data))
                         != sizeof(pcxvfb_event->data)) {
                     return -1;
                 }
@@ -345,13 +491,13 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
             {
 				int size;
 				unsigned char szBuff[1024];
-                if(FD_READ (fd, &size, sizeof(size)) != sizeof(size)) {
+                if(mg_readsocket (fd, &size, sizeof(size)) != sizeof(size)) {
                     return 0;
                 }
                 if(size <= 0) {
                     return 0;
                 }
-                if(FD_READ (fd, szBuff, size) == size) {
+                if(mg_readsocket (fd, szBuff, size) == size) {
                     /*
 					int i;
 					for (i = 0; i < size; ++i)
@@ -487,6 +633,24 @@ BOOL InitPCXVFBInput (INPUT* input, const char* mdev, const char* mtype)
     input->wait_event = wait_event;
 
     VFBSetIMETextCallback(default_cb, 0);
+
+    {
+        char path[PATH_MAX], *template;
+        template = getenv("MG_ENV_RECORD_IAL");
+        if (template)
+            {
+#if 0
+                snprintf(path, sizeof(path), "%s%ld", template, time(NULL));
+#else
+                snprintf(path, sizeof(path), "%s", template);
+#endif
+                path[sizeof(path)/sizeof(path[0])-1] = 0;
+
+                open_rec (path);
+                record_time_start = getcurtime();
+            }
+    }
+
 
     return TRUE;
 }

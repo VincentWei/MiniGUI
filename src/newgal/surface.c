@@ -68,6 +68,11 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
 
     surface->flags = GAL_SWSURFACE;
 
+    /* 2011-03-04 WanZheng,
+     * make it able to create a hardware surface
+     * with different color format against the screen surface
+     */
+#if 0
     if ( (flags & GAL_HWSURFACE) == GAL_HWSURFACE ) {
         depth = screen->format->BitsPerPixel;
         Rmask = screen->format->Rmask;
@@ -75,6 +80,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
         Bmask = screen->format->Bmask;
         Amask = screen->format->Amask;
     }
+#endif
     if (Amask){
         surface->flags |= GAL_SRCPIXELALPHA;
     }
@@ -495,11 +501,48 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
     } else {
         do_blit = src->map->sw_blit;
     }
+
+#ifdef _MGGAL_S3C6410
+    {
+        extern int s3c6410_size_table[48];
+        int H = src->h / 10;
+        if (H >= sizeof(s3c6410_size_table)/sizeof(s3c6410_size_table[0])) {
+            H = sizeof(s3c6410_size_table)/sizeof(s3c6410_size_table[0]) - 1;
+        }
+        if (src->w/10 < s3c6410_size_table[H]) {
+            do_blit = src->map->sw_blit;
+        }
+    }
+#endif
+
 #ifdef MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
     ret = own_overlapped_bitblit(do_blit, src, srcrect, dst, dstrect);
 #else
     ret = do_blit(src, srcrect, dst, dstrect);
 #endif
+
+#if 0
+    {
+        static int n_sw=0, n_hw=0;
+        if ((src->flags & GAL_HWACCEL) == GAL_HWACCEL)
+        {
+            n_hw ++;
+        }
+        else
+        {
+            n_sw ++;
+        }
+        printf("[%06u] hw/blit=%d/%d %c size=%dX%d src=(%d %d),%p dst=(%d %d),%p\n",
+                times(NULL) % 1000000,
+                n_hw, n_hw+n_sw,
+                do_blit == src->map->sw_blit ? 'S':'H',
+                srcrect->w, srcrect->h,
+                srcrect->x, srcrect->y, src,
+                dstrect->x, dstrect->y, dst
+              );
+    }
+#endif
+
     return ret;
 }
 
@@ -801,6 +844,7 @@ int GAL_GetBox (GAL_Surface *src, const GAL_Rect *rect, BITMAP* box)
     box->bmWidth = rect->w;
     box->bmHeight = rect->h;
     box->bmAlphaMask = NULL;
+    box->bmAlphaPitch = 0;
 
     dst_x = rect->x;
     dst_y = rect->y;
@@ -905,8 +949,8 @@ slow_copy:
 do {                                                            \
     int x = (srcrow - (box)->bmBits) % (box)->bmPitch;          \
     int y = (srcrow - (box)->bmBits) / (box)->bmPitch;          \
-    pitch = ((box)->bmWidth + 3) & ~3;                          \
-    row = (y * pitch) + (x / (box)->bmBytesPerPixel);           \
+    (pitch) = (box)->bmAlphaPitch;                              \
+    (row) = (y * (pitch)) + (x / (box)->bmBytesPerPixel);       \
 } while(0)
 
 static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w, Uint32 h, BITMAP* box)

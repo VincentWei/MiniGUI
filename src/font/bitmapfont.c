@@ -240,6 +240,7 @@ get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont,
         bmp->bmColorKey = 0;
         bmp->bmAlpha = 0;
         bmp->bmAlphaMask = NULL;
+        bmp->bmAlphaPitch = 0;
         bmp->bmBits   = def_glyph;
         bmp->bmWidth  = 0;
         bmp->bmHeight = 0;
@@ -264,6 +265,11 @@ get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont,
     bmp->bmBits = node->data->bmBits;
     bmp->bmBits += node->glyph_width * (glyph_value - node->min) * 
                     node->data->bmBytesPerPixel;
+
+    if(node->data->bmAlphaMask) {
+        bmp->bmAlphaMask  = node->data->bmAlphaMask + node->glyph_width * (glyph_value - node->min);
+        bmp->bmAlphaPitch = node->data->bmAlphaPitch;
+    }
 
     _MG_PRINTF ("FONT>Bitmap: bmp's bytes/pixel = %d\n", node->data->bmBytesPerPixel);
     _MG_PRINTF ("FONT>Bitmap: bmp->bmWidth = %d, bmp->bmHeight = %d.\n", bmp->bmWidth, 

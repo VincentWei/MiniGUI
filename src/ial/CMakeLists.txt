@@ -20,7 +20,7 @@ list(APPEND ial_sources
     2440.c 2440.h
     davinci6446.c davinci6446.h
     random.c random.h
-    pcxvfbial.c pcxvfb.h mgsock.c mgsock.h
+    pcxvfbial.c pcxvfb.h mgsock.c
     rtos_xvfb.c rtos_xvfb.h
     comminput.c comminput.h
     ipaq-h3600.c ipaq-h3600.h

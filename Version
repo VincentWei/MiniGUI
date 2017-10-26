@@ -1,9 +1,9 @@
-Version 3.2.2 (the official release)
+Version 3.0.13 (2017/10/26)
 
 This release needs the following resource packages:
 
-    * minigui-res-3.0.10.tar.gz
+    * minigui-res-3.0.12.tar.gz
 
 The latest samples package is:
 
-    * mg-samples-3.0.10.tar.gz
+    * mg-samples-3.0.13.tar.gz

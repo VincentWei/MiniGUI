@@ -83,6 +83,7 @@ BLOCKHEAP __mg_FreeClipRectList;
 
 /************************* static functions declaration **********************/
 static void dc_InitClipRgnInfo (void);
+static void dc_DeinitClipRgnInfo(void);
 static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient);
 static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref);
 static void dc_InitScreenDC (PDC pdc, GAL_Surface* surface);
@@ -180,6 +181,8 @@ void mg_TerminateScreenDC (void)
     SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
     if (__mg_screen_sys_dc.alpha_pixel_format)
         free (__mg_screen_sys_dc.alpha_pixel_format);
+
+    dc_DeinitClipRgnInfo();
 
     DESTROY_LOCK (&__mg_gdilock);
     DESTROY_LOCK (&dcslot);
@@ -395,6 +398,17 @@ static void dc_InitClipRgnInfo(void)
         InitClipRgn (&DCSlot[i].ecrgn, &__mg_FreeClipRectList);
     }
 }
+
+static void dc_DeinitClipRgnInfo(void)
+{
+    int i;
+
+    for (i=0; i<DCSLOTNUMBER; i++) {
+        EmptyClipRgn (&DCSlot[i].lcrgn);
+        EmptyClipRgn (&DCSlot[i].ecrgn);
+    }
+}
+
 
 /*
  * This function generates effective clip region from
@@ -2107,9 +2121,9 @@ static BOOL InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
     parent_width = RECTW (pdc_parent->DevRC);
     parent_height = RECTH (pdc_parent->DevRC);
 
-    if (off_x < 0 ) off_x = 0;
+    if (off_x < 0 && pdc_parent->DCType != TYPE_MEMDC) off_x = 0;
     else if(off_x > parent_width) off_x = parent_width;
-    if (off_y < 0) off_y = 0;
+    if (off_y < 0 && pdc_parent->DCType != TYPE_MEMDC) off_y = 0;
     else if(off_y > parent_height) off_y = parent_height;
     if (width < 0) width = 0;
     if (height < 0) height = 0;
@@ -2163,8 +2177,8 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
 
     parent_width = RECTW (pdc_parent->DevRC);
     parent_height = RECTH (pdc_parent->DevRC);
-    if (off_x < 0 || off_x  >=  parent_width 
-            || off_y < 0 || off_y >= parent_height || width <= 0 || height <= 0)
+    if ((off_x < 0 && pdc_parent->DCType != TYPE_MEMDC) || off_x  >=  parent_width 
+            || (off_y < 0 && pdc_parent->DCType != TYPE_MEMDC) || off_y >= parent_height || width <= 0 || height <= 0)
         return HDC_INVALID;
 
     if (off_x + width > parent_width)
@@ -2294,13 +2308,6 @@ HDC GUIAPI CreateSecondaryDC(HWND hwnd)
         hdc = CreateCompatibleDCEx (hdc_ref, 128, 128);
     }
     else {
-        /* houhh 20090522, max_value is g_rcScr.*/
-        if (width > RECTW(g_rcScr)) {
-            width = RECTW(g_rcScr);
-        }
-        if (height > RECTH(g_rcScr)) {
-            height = RECTW(g_rcScr);
-        }
         hdc = CreateCompatibleDCEx (hdc_ref, width, height);
     }
 
@@ -2640,8 +2647,10 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     pdc->pGCRInfo = NULL;
     pdc->oldage = 0;
 
+    EmptyClipRgn (&pdc->lcrgn);
     InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pdc->lcrgn);
+    EmptyClipRgn (&pdc->ecrgn);
     InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
     CopyRegion (&pdc->ecrgn, &pdc_parent->ecrgn);
 
@@ -2912,6 +2921,7 @@ HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height)
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
     SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect(&pmem_dc->lcrgn, &pmem_dc->DevRC);
     
     return (HDC)pmem_dc;
 }
@@ -2985,6 +2995,7 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     pmem_dc->DevRC.bottom = height;
 
     SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect(&pmem_dc->lcrgn, &pmem_dc->DevRC);
 
     return (HDC)pmem_dc;
 }
@@ -3459,14 +3470,8 @@ int GUIAPI SaveDC (HDC hdc)
                 sizeof (GAL_Color) * dc_state->pal.ncolors);
     }
 
-    if (dc_IsGeneralDC (pdc)) {
-        if (!ClipRgnCopy (&dc_state->lcrgn, &pdc->lcrgn))
-            goto fail;
-    }
-    else {
-        if (!ClipRgnCopy (&dc_state->lcrgn, &pdc->ecrgn))
-            goto fail;
-    }
+    if (!ClipRgnCopy (&dc_state->lcrgn, &pdc->lcrgn))
+        goto fail;
 
     GAL_GetRGBA (pdc->bkcolor, pdc->surface->format, 
                 &dc_state->bkcolor.r, &dc_state->bkcolor.g,
@@ -3568,13 +3573,8 @@ BOOL GUIAPI RestoreDC (HDC hdc, int saved_dc)
                 sizeof (GAL_Color) * dc_state->pal.ncolors);
     }
 
-    if (dc_IsGeneralDC (pdc)) {
-        EmptyClipRgn (&pdc->lcrgn);
-        pdc->lcrgn = dc_state->lcrgn;
-    } else {
-        EmptyClipRgn (&pdc->ecrgn);
-        pdc->ecrgn = dc_state->lcrgn;
-    }
+    EmptyClipRgn (&pdc->lcrgn);
+    pdc->lcrgn = dc_state->lcrgn;
     
     pdc->bkcolor = GAL_MapRGBA (pdc->surface->format, 
                 dc_state->bkcolor.r, dc_state->bkcolor.g,
@@ -3626,7 +3626,7 @@ BOOL GUIAPI RestoreDC (HDC hdc, int saved_dc)
         UNLOCK_GCRINFO (pdc);
     }
     else {
-        IntersectClipRect (&pdc->ecrgn, &pdc->DevRC);
+        dc_GenerateMemDCECRgn(pdc, TRUE);
     }
 
     dc_state_stack = dc_state->prev;

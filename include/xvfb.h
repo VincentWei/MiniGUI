@@ -1,16 +1,16 @@
 /**
  * \file xvfb.h
- * \author Feynman Software
+ * \author FMSoft
  * \date 2007/10/25
  * 
  * This file includes global and miscellaneous interfaces of xVFB for MiniGUI.
  *
  \verbatim
 
-    Copyright (C) 2002-2009 Feynman Software.
+    Copyright (C) 2002-2012 FMSoft.
     Copyright (C) 1998-2002 Wei Yongming.
 
-    All rights reserved by Feynman Software.
+    All rights reserved by FMSoft (http://www.fmsoft.cn).
 
     This file is part of MiniGUI, a compact cross-platform Graphics 
     User Interface (GUI) support system for real-time embedded systems.
@@ -24,7 +24,7 @@
  *             MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
  *                     pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
- *             Copyright (C) 2002-2009 Feynman Software.
+ *             Copyright (C) 2002-2012 FMSoft.
  *             Copyright (C) 1998-2002 Wei Yongming.
  */
 

@@ -1,17 +1,254 @@
 *******************************************************************************
-What's new (V3.2.2):
-10/24-2017
-CLEANUP: Remove some 'inline' definitions:
+What's new (trunk):
+
+10/26 CLEANUP: svn merge -r 13673:13828 ^/branches/rel-3-0
+
+10/24-2017 CLEANUP: Remove some 'inline' definitions:
 	* GetIMEPos/SetIMEPos. 
 	* WndRect -> gui_WndRect. 
 	* WndClientRect -> gui_WndClientRect. 
 
-*******************************************************************************
-What's new (V3.2.1):
-
 12/06. CLEANUP #11: Merge differences from rel-3-0, and remove unnecessary
 files. svn merge -r 12913:13673 ../branches/rel-3-0 (wanzheng)
 	* ... ...
+
+*******************************************************************************
+What's new in rel-3-0 branch (3.0.12 OR, 2010/12/03 ~ )
+
+07/29. ENHANCEMENT #11: Use Expand16CBitmapEx to contain the alpha component 
+for XorBits of cursor and reserve the alpha component of screen when showing
+cursor.
+	* src/kernel/cursor.c
+	* src/kernel/cursor-sa.c
+	* src/kernel/cursor-procs.c
+
+07/29. ENHANCEMENT #10: Implement Expand16CBitmapEx, Expand256CBitmapEx, and 
+ExpandPart16CBitmap APIs, and define inline stubs for the old APIs.
+	* include/gdi.h
+	* src/newgdi/bitmap.c
+
+07/21. BUGFIXING #?: Fix the question of dead lock by screensaver_hide. Now send 
+message to active window and let active window to hide screensaver. (xwyan)
+	* src/include/internals.h
+	* src/gui/window.c
+	* src/misc/license.c
+
+07/06. BUGFIXING #?: Add macro control for we_heap.(xwyan)
+	* src/gui/lf_manager.c
+
+06/14. BUGFIXING #5640: fix bug of double click of event(houhh)
+	* src/kernel/event.c
+
+05/25. BUGFIXING #5606: fix bug of selectAll of mTextEdit (wanzheng)
+	* src/textedit/mtextedit.c
+
+05/20. BUGFIXING #5560: fixed bug of calc window client rect error in
+calc_we_area().(houhh)
+	* src/mybmp/winbmp.c
+
+05/03. BUGFIXING #?: fixed bitmap BI_BITFIELDS format load problem.(humingming)
+	* src/mybmp/winbmp.c
+
+04/29. BUGFIXING #5534: fixed DrawText can't deal with the first char is '\n'.(humingming)
+	* src/newgdi/drawtext.c
+
+04/02. BUGFIXING #5527: Change MSG_KEYSYM/MSG_KEYLONGPRESS/MSG_KEYALWAYSPRESS
+define value, Modfiy error position of __mg_msgstr2(houhh).
+	* src/include/msgstr.h
+	* include/window.h
+
+04/01. BUGFIXING #?: Make GetClipBox rect coordinate correct.(humingming)
+	* src/newgdi/clip.c
+
+03/25. BUGFIXING #?: After dialog created, we should update local hOwner variable 
+in DialogBoxIndirectParamEx. It can be avoid to create many model dialogs when
+using HWND_DESKTOP as hOwner.(xwyan)
+	* src/gui/dialog.c
+
+03/22. BUGFIXING #?: Modify GetPalette() and fontGetTypeNameFromName()
+prototype. (houhh)
+	* src/include/fontname.h
+	* include/gdi.h
+
+03/15. BUGFIXING #?: GetBoundRect() can't deal with an empty rect correctly.
+(wanzheng)
+	* src/newgdi/rect.c
+
+03/07. BUGFIXING #?: Modify wndDrawNCButton to use input hdc when draw
+scrollbar. (houhh)
+	* src/gui/window.c
+	* include/window.h
+
+03/04. BUGFIXING #?: Add FT_LOAD_FORCE_AUTOHINT style for ft2 font enigne when
+open cache support. (houhh)
+	* src/font/freetype2.c
+
+03/04. ENHANCEMENT #9: Some enhancements for UXDemo. (CR department)
+	* 1) Eliminate accumulated error of timer.
+	  2) Add an API UpdateInvalidRect() to update the invalidate rect without
+	     calling InvalidateRect(NULL)
+	  3) Improve S3C6410 GAL
+	  4) Make it able to create a hardware surface with different color format
+	     from the screen surface. Attention, All GAL module are influenced.
+	  5) Initialize local-cutting-region (lcrgn) correctly when create a memory
+	     DC.
+	  6) Used GetWindowElementPixelEx to replace GetWindowElementPixel,
+	     specify dc.
+	* src/control/static.c
+	* src/gui/window.c
+	* src/kernel/timer.c
+	* src/newgal/pixels.c
+	* src/newgal/s3c6410/gal-s3c6410.c
+	* src/newgal/s3c6410/gal-s3c6410.h
+	* src/newgal/surface.c
+	* src/newgal/videomem-bucket.c
+	* src/newgdi/gdi.c
+	* src/sysres/font/_font_inner_res.c
+
+03/04. BUGFIXING #5408: GAL_revcpy should use 'cld' after using 'std'.(xwyan)
+	* src/include/memops.h
+
+03/02. BUGFIXING #5402: These is a mistake in del_all_devfonts(), and remove
+it in font_DelDevFont(). (xhmao)
+	* src/font/devfont.c
+	* src/include/devfont.h
+
+03/01. BUGFIXING #5423: remove the restrict of the DC's max size when use
+CreateSecondaryDC. (wangxubin)
+	* src/newgdi/gdi.c
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+	* src/gui/window.c
+
+03/01: BUGFIXING #?: Fix a memory leak issue on arcCache. (wanzheng)
+	* src/kernel/init.c
+	* src/newgdi/miarc.c
+	* src/newgdi/mifillarc.h
+
+02/25: ENHANCEMENT #8: Add _MGFONT_TTF_GRAYADJUST for ttf font to adjust the gray
+bitmap that return by font engine. (houhh)
+	* src/newgdi/glyph.c
+	* CMakeLists.txt
+	* cmake_mgconfig.h.in 
+
+02/21: ENHANCEMENT #7: Enhance PCXVFB IAL, add IAL_RECORD_MANUAL_START support,
+makes recording started after <F5> was pressed. (dengmin)
+	* src/ial/pcxvfbial.c
+
+02/18: ENHANCEMENT #6: Enhance AUTO IAL, let it replay IAL record automatically
+if environment value 'MG_ENV_IAL_AUTO_REPLY' is specified.
+(dengmin)
+	* src/ial/auto.c
+
+02/17: ENHANCEMENT #5: Enhance PCXVFB IAL, let MiniGUI can record IAL while
+using PCXVFB GAL engine. (dengmin)
+	* src/ial/pcxvfbial.c
+
+02/15. BUGFIXING#5401: Fix compiling error. (wanzheng)
+	* src/kernel/cursor.c
+
+01/21. BUGFIXING#5373: Fix the bug of copy text to ES_UPPERCASE or ES_LOWERCASE
+style edit control.(humingming)
+	* src/control/edit.c
+	* src/textedit/mtextedit.c
+
+01/19. BUGFIXING#?: Fix memory leak in ReleaseDC when do MAKE_REGION_INFINITE, we
+should EmptyClipRgn it before exit gui or reinit rgn.(houhh)
+	* src/newgdi/gdi.c
+
+01/12. ENHANCEMENT #?: Add missing options in CMakeLists.txt and configure.in.
+change the time of display splash to 1s. change the event of screensaver.(wangxubin)
+	* src/kernel/event.c
+	* src/misc/license.c
+	* src/newgal/CMakeLists.txt
+	* CMakeLists.txt
+	* configure.in
+
+01/11. BUGFIXING #?: Fix bug of core dump when MiniGUI uses Bitmap Font with alpha mask
+(ZhaolinHu)
+	* src/gui/caret.c
+	* src/gui/window.c
+	* src/gui/lf_skin.c
+	* src/font/bitmapfont.c
+	* src/newgal/surface.c
+	* src/newgdi/rotatebmp.c
+	* src/newgdi/readbmp.c
+	* src/newgdi/bitmap.c
+	* include/gdi.h
+
+01/11. BUGFIXING #?: Fix bug of using stack in vxworks.(xwyan)
+	* src/libc/vxworks_pprivate.h
+	* src/libc/vxworks_pthread.c
+
+01/07. ENHANCEMENT #4: Add mgetc_win32.c for Windows. (wanzheng)
+	* src/sysres/mgetc_win32.c
+	* src/sysres/CMakeLists.txt
+
+01/05. BUGFIXING #?: Fix bug of GetClipBox, Add IntersectRect with DevRC.(houhh)
+	* src/newgdi/clip.c
+
+01/05. BUGFIXING #5342: Fix bug of shadow engine, sometimes core dump
+in start and quit.(wangxubin)
+	* src/newgal/shadow/shadow.c
+
+01/05. CLEANUP #3: Update the description of MSG_ERASEBKGND. (wanzheng)
+	* include/window.h
+
+12/29. BUGFIXING #?: Fix bug of new textedit calc mulit-charset length not
+correct in some borad.(humingming)
+	* src/textedit/mtextedit.c
+
+12/28. CLEANUP #2: Resolve compiling issues on Windows. (wanzheng)
+
+12/23. BUGFIXING #?: Fix bug of GetSubDC, you can specify off_x/off_y < 0 if 
+dcType is memdc.(houhh)
+	* src/newgdi/gdi.c
+
+12/23. BUGFIXING #?: Fix bug of drawing and fill hline, can not limited in 
+screen area.(houhh)
+	* src/newgdi/pixel_ops.c
+	* _dc_draw_hline_clip, _dc_fill_hline_clip. 
+
+12/20: ENHANCEMENT #3: Enhance stgfb GAL support 32bit and 255 alpha pixel format.
+(humingming)
+	* src/newgal/stgfb/stgfb_video.c
+
+12/14: ENHANCEMENT #2: Enhance PCXVFB GAL engine, let MiniGUI quit if the VFB
+didn't come for a long time. (wanzheng)
+	* src/newgal/pcxvfb/pcxvfb.c
+
+12/14: BUGFIXING #5(new-bugzilla): Do not destroy the znode of screensaver
+until EndSession. (wanzheng)
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+	* src/kernel/init.c
+	* src/kernel/init-lite.c
+
+12/09: BUGFIXING #5340: Close Menu when ESCAPE pressed. (wanzheng)
+	* src/gui/menu.c
+
+12/09: ENHANCEMENT #1: PCXVFB GAL: Change the group id of the VFB process, so
+that we can interrupt the application when debugging. (wanzheng)
+	* src/kernel/init.c
+	* src/kernel/init-lite.c
+	* src/newgal/pcxvfb/pcxvfb.c
+
+12/07: CLEANUP #1: Corrected the spelling mistake `ncsParseConstrcutParams'.
+(wanzheng)
+	* src/textedit/mbtree.c
+	* src/textedit/mtextedit.c
+	* src/textedit/object.c
+	* src/textedit/object.h
+
+12/06: BUGFIXING #?: Fixed the bug of own_overlapped_bitblit. (humingming)
+	* src/newgal/surface.c
+
+*******************************************************************************
+What's new in this branch (3.0.10 OR, 2010/08/06 ~ 2010/12/03)
+
+12/01: BUGFIXING #5337: Fixed bug of RecalcScrollInfo when hide scrollar ,it
+should me call ShowScrollBar to hide. (houhh)
+	* src/gui/window.c
 
 07/28. BUGFIXING: region cause the minigui crash. CLIPRECT's next member can
 be NULL, but many functions didnot check it when they use the code like 

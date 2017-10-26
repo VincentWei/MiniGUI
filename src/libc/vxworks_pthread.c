@@ -276,7 +276,7 @@ int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
     if (pth_entry) {
         pthread_attr_t attr;
         struct sched_param schedparam;
-        struct _main_pth_entry_info entry_info;
+        static struct _main_pth_entry_info entry_info;
 
         entry_info.pth_entry = pth_entry; 
         entry_info.argc = argc; 
@@ -396,11 +396,60 @@ int pthread_create (pthread_t *thread,
         }
     }
 
-    nthread = (pthread_info *)stackbase;
+/* 
+ * For _STACK_GROWS_DOWN:
+ * 
+ *.CS
+ *     - HIGH MEMORY -
+ *  ---------------------
+ *  |                  |
+ *  |     WIND_TCB     |
+ *  |                  |
+ *  -------------------->--- pStackBase, pTcb
+ *  |//// 16 bytes ////| (16 bytes clobbered during objFree()
+ *  |                  |  in taskDestroy are not accounted for)
+ *  |                  |
+ *  |    TASK STACK    |
+ *  |                  |
+ *  |                  |
+ *  -------------------->--- pTaskMem
+ *     - LOW MEMORY -
+ *.CE
+ *
+ *
+ * For _STACK_GROWS_UP:
+ * 
+ *.CS
+ *     - HIGH MEMORY -
+ *  ---------------------
+ *  |                  |
+ *  |                  |
+ *  |    TASK STACK    |
+ *  |                  |
+ *  |                  |
+ *  -------------------->--- pStackBase
+ *  |                  |
+ *  |     WIND_TCB     |
+ *  |                  |
+ *  -------------------->--- pTcb
+ *  |//// 16 bytes ////| (16 bytes clobbered during objFree() of taskDestroy)
+ *  -------------------->--- pTaskMem
+ *     - LOW MEMORY -
+ *.CE
+ *
+ */
 
-    stackbase += sizeof(pthread_info);
-    stacksize -= sizeof(pthread_info);
-    
+#if (_STACK_DIR == _STACK_GROWS_DOWN)
+    stacksize -= (STACK_ROUND_DOWN(sizeof(pthread_info)));
+    stackbase += stacksize;
+    nthread = (pthread_info *)stackbase;
+#else
+    //16 bytes clobbered during objFree() in taskDestroy are not accounted for.
+    nthread = (pthread_info *)(stackbase + 16);
+    stackbase += STACK_ROUND_UP(16 + sizeof(pthread_info));
+    stacksize -= STACK_ROUND_UP(16 + sizeof(pthread_info));
+#endif
+
     thread_table [thread_next] = nthread;
 
     // Set new next index
@@ -426,7 +475,7 @@ int pthread_create (pthread_t *thread,
     nthread->cancelbuffer       = NULL;
     nthread->cancelpending      = FALSE;
 
-    nthread->thread_data        = NULL;
+    memset(nthread->thread_data, 0, PTHREAD_KEYS_MAX);
     
     /* Initialize the joiner event flag */
     nthread->joiner = semBCreate (SEM_Q_PRIORITY, SEM_FULL);
@@ -439,9 +488,8 @@ int pthread_create (pthread_t *thread,
 
     /* create the underlying VxWorks task */
     vx_ret = taskInit (&nthread->tcb, nthread->name, use_attr.schedparam.priority,
-                        0, /* options, FIXME */
-                        /* FIXME, stack down or up depends on the target architecture */
-                        stackbase+stacksize, stacksize, pthread_entry,
+                        VX_NO_STACK_FILL,
+                        stackbase, stacksize, pthread_entry,
                         (int)nthread, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     if (vx_ret == ERROR) {
@@ -1249,16 +1297,6 @@ int pthread_setspecific (pthread_key_t key, const void *pointer)
 
     self = pthread_self_info ();
 
-    if (self->thread_data == NULL) {
-        int i;
-        // Allocate the per-thread data table
-        self->thread_data = (void **)(self->stackmem + sizeof (pthread_info));
-
-        // Clear out all entries
-        for (i  = 0; i < PTHREAD_KEYS_MAX; i++)
-            self->thread_data[i] = NULL;
-    }
-    
     self->thread_data[key] = (void *)pointer;
     
     PTHREAD_RETURN (0);

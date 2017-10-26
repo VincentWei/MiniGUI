@@ -21,7 +21,7 @@ extern "C" {
 #define NR_LOOP_FOR_CHARSET 5
 
 int fontGetFontTypeFromName (const char* name);
-int fontGetTypeNameFromName (const char* name, char* type);
+BOOL fontGetTypeNameFromName (const char* name, char* type);
 int fontConvertFontType (const char* type);
 
 BOOL fontGetFamilyFromName (const char* name, char* family);

@@ -3,7 +3,7 @@ AC_PREREQ(2.52)
 
 dnl ========================================================================
 dnl Put the name and version of the package here
-AC_INIT([libminigui], [3.2.2])
+AC_INIT([libminigui], [3.0.13])
 AC_CONFIG_SRCDIR([src/main/main.c])
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -18,8 +18,8 @@ dnl Set various version strings - taken gratefully from the SDL sources
 # set MINIGUI_BINARY_AGE and MINIGUI_INTERFACE_AGE to 0.
 #
 MiniGUI_MAJOR_VERSION=3
-MiniGUI_MINOR_VERSION=2
-MiniGUI_MICRO_VERSION=1
+MiniGUI_MINOR_VERSION=0
+MiniGUI_MICRO_VERSION=13
 MiniGUI_INTERFACE_AGE=0
 MiniGUI_BINARY_AGE=0
 MiniGUI_VERSION=$MiniGUI_MAJOR_VERSION.$MiniGUI_MINOR_VERSION.$MiniGUI_MICRO_VERSION
@@ -47,7 +47,7 @@ AC_CANONICAL_SYSTEM
 
 dnl ========================================================================
 dnl Init automake
-AM_INIT_AUTOMAKE([foreign no-define])
+AM_INIT_AUTOMAKE([no-define])
 AC_CONFIG_HEADER(mgconfig.h)
 
 dnl ========================================================================
@@ -1141,8 +1141,8 @@ CheckST7167Video()
         if test x$video_st7167 = xyes; then
             AC_DEFINE(_MGGAL_ST7167, 1,
                 [Define if include NEWGAL engine for ST7167])
-            VIDEO_SUBDIRS="$VIDEO_SUBDIRS st7167"
-            VIDEO_DRIVERS="$VIDEO_DRIVERS st7167/libvideo_st7167.la"
+            VIDEO_SUBDIRS="$VIDEO_SUBDIRS dfb"
+            VIDEO_DRIVERS="$VIDEO_DRIVERS dfb/libvideo_st7167.la"
             LIBS="$LIBS -ldirectfb"
         fi
     fi
@@ -1410,7 +1410,6 @@ fi
 if test "x$build_dlcustom_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_DLCUSTOM, 1,
             [Define if include dlcustom engine for customer's board])
-
     SYSTEM_LIBS="$SYSTEM_LIBS -ldl"
 fi
 
@@ -1843,6 +1842,7 @@ fi
 if test "x$build_tslib_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_TSLIB, 1,
             [Define if include IAL engine for TSLIB])
+    SYSTEM_LIBS="$SYSTEM_LIBS -lts"
 fi
 
 if test "x$build_console_ial_engine" = "xyes"; then
@@ -2541,8 +2541,7 @@ echo "Going to generate license pictures ..."
 cd src/sysres/license/
 ./runme.sh $LICENSE_PICTURE > /dev/null
 if [[ $? -ne 0 ]]; then
-    echo "Fatal: failed to generate license pictures."
-    exit 1
+    echo "WARNING: failed to generate license pictures."
 else
     echo "Done."
 fi

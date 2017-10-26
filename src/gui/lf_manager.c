@@ -842,8 +842,10 @@ BOOL mg_InitLFManager (void)
         }
     }
 
+#ifdef WE_HEAP
     /** initialize window element block data heap.*/
     init_we_heap();
+#endif
 
     return TRUE;
 }
@@ -864,6 +866,8 @@ void mg_TerminateLFManager (void)
 #ifdef _MGRM_THREADS
         pthread_mutex_destroy (&gRendererMmutex);
 #endif
+#ifdef WE_HEAP
     destroy_we_heap ();
+#endif
 }
 

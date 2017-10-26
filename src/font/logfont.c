@@ -64,9 +64,18 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
         return INV_LOGFONT;
     }
 
-    if ((log_font = malloc (sizeof (LOGFONT))) == NULL)
+    /*
+     * fix "Invalid read of size 4" in mgncs
+     */
+    //if ((log_font = (malloc (sizeof (LOGFONT))) == NULL)
+    if ((log_font = (PLOGFONT)malloc (sizeof (FONT_RES))) == NULL)
         return INV_LOGFONT;
-    
+
+    /*
+     * fix "Invalid read of size 4" in mgncs
+     */
+    ((FONT_RES *)log_font)->key = -1;
+
     log_font->style = style;
 
     if (type) {

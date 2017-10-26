@@ -10,9 +10,9 @@
  *
  \verbatim
 
-    Copyright (C) 2008-2009 Feynman Software.
+    Copyright (C) 2008-2012 FMSoft.
 
-    All rights reserved by Feynman Software.
+    All rights reserved by FMSoft (http://www.fmsoft.cn).
 
     This file is part of MiniGUI, a compact cross-platform Graphics 
     User Interface (GUI) support system for real-time embedded systems.
@@ -21,14 +21,14 @@
  */
 
 /*
- * $Id: psos_pthread.h 7183 2007-05-16 08:19:34Z weiym $
+ * $Id: psos.h 7183 2007-05-16 08:19:34Z weiym $
  *
- * This is the pSOS+ header file (<psos.h>) written by Feynman Software.
+ * This is the pSOS+ header file (<psos.h>) written by FMSoft.
  *
  *             MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
  *                     pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
- *             Copyright (C) 2008-2009 Feynman Software.
+ *             Copyright (C) 2008-2012 FMSoft.
  */
 
 #ifndef _PSOS_H

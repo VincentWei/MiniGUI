@@ -2450,8 +2450,14 @@ static void _dc_bookgrey_scan_line (PDC pdc, int xpos, int ypos,
 
         for (x = 0; x < ctxt->bmp_w; x++) {
             b = *(ctxt->line_bits + x);
+#ifdef _MGFONT_TTF_GRAYADJUST
+            if (b != 0) b += _MGFONT_TTF_GRAYADJUST_VALUE;
+            if (b >= 255) b = 16;
+            else b >>= 4;
+#else
             if (b == 255) b = 16;
             else b >>= 4;
+#endif
 
             if (b == 0) continue;
 

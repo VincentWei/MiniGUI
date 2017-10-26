@@ -26,6 +26,7 @@
 
 #include "minigui.h"
 #include "ourhdr.h"
+#include "mgsock.h"
 
 LISTEN_FD mg_listen_fds [MAX_NR_LISTEN_FD];
 static fd_set _wfdset, _efdset;
@@ -52,23 +53,23 @@ BOOL GUIAPI RegisterListenFD (int fd, int type, HWND hwnd, void* context)
             mg_listen_fds [i].context = context;
             switch (type) {
             case POLLIN:
-                FD_SET (fd, &mg_rfdset);
+                mg_fd_set (fd, &mg_rfdset);
                 break;
 
             case POLLOUT:
                 if (mg_wfdset == NULL) {
                     mg_wfdset = &_wfdset;
-                    FD_ZERO (mg_wfdset);
+                    mg_fd_zero (mg_wfdset);
                 }
-                FD_SET (fd, mg_wfdset);
+                mg_fd_set (fd, mg_wfdset);
                 break;
 
             case POLLERR:
                 if (mg_efdset == NULL) {
                     mg_efdset = &_efdset;
-                    FD_ZERO (mg_efdset);
+                    mg_fd_zero (mg_efdset);
                 }
-                FD_SET (fd, mg_efdset);
+                mg_fd_set (fd, mg_efdset);
                 break;
             }
 
@@ -90,19 +91,19 @@ BOOL GUIAPI UnregisterListenFD (int fd)
             mg_listen_fds [i].fd = 0;
             switch (mg_listen_fds [i].type) {
             case POLLIN:
-                FD_CLR (fd, &mg_rfdset);
+                mg_fd_clr (fd, &mg_rfdset);
                 break;
 
             case POLLOUT:
                 if (mg_wfdset == NULL)
                     return FALSE;
-                FD_CLR (fd, mg_wfdset);
+                mg_fd_clr (fd, mg_wfdset);
                 break;
 
             case POLLERR:
                 if (mg_efdset == NULL)
                     return FALSE;
-                FD_CLR (fd, mg_efdset);
+                mg_fd_clr (fd, mg_efdset);
                 break;
             }
 

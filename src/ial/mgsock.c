@@ -50,4 +50,3 @@ void win_closesock(int s)
 }
 
 #endif /*WIN32*/
-

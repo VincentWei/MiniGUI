@@ -161,11 +161,17 @@ void GUIAPI GetBoundRect (PRECT pdrc,  const RECT* psrc1, const RECT* psrc2)
     NormalizeRect(&src1);
     NormalizeRect(&src2);
 
-    pdrc->left = (src1.left < src2.left) ? src1.left : src2.left;
-    pdrc->top  = (src1.top < src2.top) ? src1.top : src2.top;
-    pdrc->right = (src1.right > src2.right) ? src1.right : src2.right;
-    pdrc->bottom = (src1.bottom > src2.bottom) 
-                   ? src1.bottom : src2.bottom;
+    if (IsRectEmpty(&src1)) {
+        CopyRect(pdrc, &src2);
+    }else if (IsRectEmpty(&src2)) {
+        CopyRect(pdrc, &src1);
+    }else{
+        pdrc->left = (src1.left < src2.left) ? src1.left : src2.left;
+        pdrc->top  = (src1.top < src2.top) ? src1.top : src2.top;
+        pdrc->right = (src1.right > src2.right) ? src1.right : src2.right;
+        pdrc->bottom = (src1.bottom > src2.bottom) 
+            ? src1.bottom : src2.bottom;
+    }
 }
 
 int GUIAPI SubtractRect(RECT* rc, const RECT* psrc1, const RECT* psrc2)

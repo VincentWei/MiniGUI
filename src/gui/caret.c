@@ -47,6 +47,7 @@ BOOL GUIAPI CreateCaret (HWND hWnd, PBITMAP pBitmap, int nWidth, int nHeight)
         pWin->pCaretInfo->caret_bmp.bmWidth = nWidth;
         pWin->pCaretInfo->caret_bmp.bmHeight = nHeight;
         pWin->pCaretInfo->caret_bmp.bmAlphaMask = NULL;
+        pWin->pCaretInfo->caret_bmp.bmAlphaPitch = 0;
 
         pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen, 
                         nWidth, nHeight, &pWin->pCaretInfo->caret_bmp.bmPitch);

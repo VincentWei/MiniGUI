@@ -56,7 +56,7 @@ void win_PCXVFbUnlock (void)
 }
 
 
-static char *_map_file = "C:\\WVFBScreenMap-";
+static char *_map_file = "WVFBScreenMap-";
 
 static g_map_file[128];
 HANDLE g_map_file_handle;
@@ -120,15 +120,14 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
     listen((SOCKET)__mg_pcxvfb_server_sockfd, 3);
 
     memset (cmdline, 0, sizeof (cmdline));
-    //sprintf(cmdline,"wvfb %d %s %dx%d-%dbpp", pid, caption, width, height, depth);
+    /* sprintf(cmdline,"wvfb %d %s %dx%d-%dbpp", pid, caption, width, height, depth); */
     if (skin && skin[0]) {
         sprintf(cmdline,"%s %d %s %dx%d-%dbpp %s", execl_file, pid, caption, width, height, depth, skin);
     }else{
         sprintf(cmdline,"%s %d %s %dx%d-%dbpp", execl_file, pid, caption, width, height, depth);
     }
 
-    // start wvfb2.exe ......
-    //if (!CreateProcess(execl_file, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+    /* start wvfb2.exe ...... */
     if (!CreateProcess(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
         printf("cannot CreateProcess %s (%d).\n", execl_file, GetLastError());
         return 0;
@@ -140,7 +139,11 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
                 (struct sockaddr *)&c_addr, &client_len);
 
     datalen = pitch * height + color_num * sizeof(XVFBPalEntry) + sizeof(XVFBHeader);
-    sprintf(g_map_file, "%s-%d", _map_file, pid);
+    {
+        char tmp[MAX_PATH];
+        GetTempPath(sizeof(tmp)/sizeof(tmp[0]), tmp);
+        sprintf (g_map_file, "%s/%s-%d", tmp, _map_file, pid);
+    }
 
     g_map_file_handle = CreateFile(g_map_file,
             GENERIC_READ | GENERIC_WRITE,

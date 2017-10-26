@@ -39,6 +39,13 @@
 #include "drawsemop.h"
 #include "devfont.h"
 
+#ifndef _MG_ENABLE_SCREENSAVER
+#   define SERVER_HAS_NO_MAINWINDOW() (nr_of_all_znodes() == 0)
+#else
+    /* The screensaver occupys one znode */
+#   define SERVER_HAS_NO_MAINWINDOW() (nr_of_all_znodes() == 1)
+#endif
+#   define CLIENT_HAS_NO_MAINWINDOW() (znodes_of_this_client() == 0) 
 
 /******************************* global data *********************************/
 MSGQUEUE __mg_desktop_msg_queue;
@@ -1410,6 +1417,12 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     //pWin->dwExStyle = pWin->dwExStyle | WS_EX_AUTOSECONDARYDC;
     if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
         pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
+
+    if (pWin->secondaryDC == HDC_INVALID) {
+        /* remove the flag of WS_EX_AUTOSECONDARYDC */
+        pWin->dwExStyle = pWin->dwExStyle | WS_EX_AUTOSECONDARYDC;
+        pWin->secondaryDC = 0;
+    }
 
     /* Create private client dc. */
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
@@ -2961,13 +2974,7 @@ static int srvDesktopCommand (int id)
         unlock_zi_for_read (__mg_zorder_info);
     }
     else if (id == IDM_ENDSESSION) {
-        if (
-#ifdef _MG_ENABLE_SCREENSAVER
-                nr_of_all_znodes () <= 1 /* There is a window for screensaver */
-#else
-                nr_of_all_znodes () <= 0
-#endif
-           ){
+        if ( SERVER_HAS_NO_MAINWINDOW() ){
             ExitGUISafely (-1);
         }
     }
@@ -3082,7 +3089,7 @@ static int cliSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
             break;
 
         case MSG_ENDSESSION:
-            if (znodes_of_this_client () == 0) {
+            if (CLIENT_HAS_NO_MAINWINDOW()) {
                 PostQuitMessage (HWND_DESKTOP);
                 return 1;
             }
@@ -3392,13 +3399,9 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
             break;
 
         case MSG_ENDSESSION:
-            if (
-#ifdef _MG_ENABLE_SCREENSAVER
-                    nr_of_all_znodes () <= 1 /* There is a window for screensaver */
-#else
-                    nr_of_all_znodes () <= 0
-#endif
-               ) {
+            if (SERVER_HAS_NO_MAINWINDOW()) {
+                screensaver_destroy();
+
                 if (hDesktopDC) {
                     ReleaseDC (hDesktopDC);
                     hDesktopDC = 0;
@@ -3642,7 +3645,7 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 }
 
                 if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
-                        && (__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0) {
+                        && (mgIsServer ? SERVER_HAS_NO_MAINWINDOW() : CLIENT_HAS_NO_MAINWINDOW())) {
                     __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
                 }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
                     PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
@@ -3657,4 +3660,3 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 }
 
 #endif
-

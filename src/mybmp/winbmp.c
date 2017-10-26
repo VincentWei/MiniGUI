@@ -382,13 +382,18 @@ void * __mg_init_bmp (MG_RWops* fp, MYBITMAP * bmp, RGB * pal)
 
         MGUI_RWseek (fp, biSize - WININFOHEADERSIZE, SEEK_CUR);
         ncol = (fileheader.bfOffBits - biSize - 14) / 4;
-        read_bmicolors(ncol, pal, fp, 1);
+        
+        /* there only 1,4,8 bit read color panel data */
+        if (infoheader.biBitCount <= 8)
+            read_bmicolors(ncol, pal, fp, 1);
     }
     else if (biSize == OS2INFOHEADERSIZE) {
         if (read_os2_bminfoheader (fp, &infoheader) != 0)
             goto err;
         ncol = (fileheader.bfOffBits - 26) / 3;
-        read_bmicolors (ncol, pal, fp, 0);
+
+        if (infoheader.biBitCount <= 8)
+            read_bmicolors (ncol, pal, fp, 0);
     }
     else
         goto err;
@@ -436,7 +441,6 @@ int __mg_load_bmp(MG_RWops* fp, void* init_info, MYBITMAP *bmp, CB_ONE_SCANLINE 
 
     switch (info->biCompression) {
         case BI_BITFIELDS:
-            MGUI_RWseek (fp, -16, SEEK_CUR);
             info->rmask = fp_igetl(fp);
             info->gmask = fp_igetl(fp);
             info->bmask = fp_igetl(fp);
@@ -463,6 +467,7 @@ int __mg_load_bmp(MG_RWops* fp, void* init_info, MYBITMAP *bmp, CB_ONE_SCANLINE 
     bits = bmp->bits + (bmp->h - 1) * pitch;
     for (i = bmp->h - 1; i >= 0; i--, bits -= pitch) {
         switch (info->biCompression) {
+        case BI_BITFIELDS:
         case BI_RGB:
             if (info->biBitCount == 16)
                 read_16bit_image(fp, bits, bmp->pitch, bmp->w, info->gmask);

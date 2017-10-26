@@ -44,7 +44,7 @@ static void _get_bmpdata_on_scanline (BITMAP *dstbmp, const BITMAP *srcbmp,
                    fixed bmp_dx, fixed bmp_dy)    
 {
     int i = 0, loop;
-    int alpha_pitch = (srcbmp->bmWidth + 3) & ~3;
+    int alpha_pitch = srcbmp->bmAlphaPitch;
     
     dstbmp->bmWidth = (dc_rx) - (dc_lx) + 1;
     loop = dstbmp->bmWidth;
@@ -127,8 +127,13 @@ static void  _init_bitmap_buffer(BITMAP *dst, const BITMAP *src, int size)
 #endif
     if (src->bmType & BMP_TYPE_ALPHA_MASK) {
         dst->bmAlphaMask = calloc(1, size * sizeof(char));
+        dst->bmAlphaPitch = (size+3) & (~3);
     }
-    else dst->bmAlphaMask = NULL;
+    else
+    {
+        dst->bmAlphaMask = NULL;
+        dst->bmAlphaPitch = 0;
+    }
     dst->bmHeight = 1;
     dst->bmBits = malloc (size * src->bmBytesPerPixel); 
     dst->bmWidth = size;

@@ -407,6 +407,12 @@
 /* Define if compile max ttf cahce number for 10 (default value) */
 #cmakedefine _MGMAX_TTF_CACHE  @_MGMAX_TTF_CACHE@
 
+/* Define if include ttf grayadjust*/
+#cmakedefine _MGFONT_TTF_GRAYADJUST 1
+
+/* Define if ttf gray adjust value(50 default value) */
+#cmakedefine _MGFONT_TTF_GRAYADJUST_VALUE  @_MGFONT_TTF_GRAYADJUST_VALUE@
+
 /* Define if support UPF font */
 #cmakedefine _MGFONT_UPF       1
 

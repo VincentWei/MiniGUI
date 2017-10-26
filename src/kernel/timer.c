@@ -51,6 +51,16 @@ static pthread_mutex_t timerLock;
 #define TIMER_UNLOCK()
 #endif
 
+#ifdef _MGGAL_S3C6410
+#   define _MG_USE_BETTER_TIMER
+#endif /* __NOUNIX__ */
+
+#ifdef _MG_USE_BETTER_TIMER
+#include <sys/times.h>
+static clock_t g_timer_started;
+static clock_t g_last_tick;
+#endif
+
 /* timer action for minigui timers */
 static void __mg_timer_action (void *data)
 {
@@ -61,7 +71,11 @@ static void __mg_timer_action (void *data)
 #if defined(__uClinux__) && defined(_MGRM_STANDALONE)
     __mg_timer_counter += 10;
 #else
+#   ifdef _MG_USE_BETTER_TIMER
+    __mg_timer_counter = times(NULL) - g_timer_started;
+#   else /* _MG_USE_BETTER_TIMER */
     __mg_timer_counter ++;
+#   endif /* _MG_USE_BETTER_TIMER */
 #endif
 
 #endif
@@ -85,6 +99,11 @@ static OS_TIMER_ID __mg_os_timer = 0;
 static void* TimerEntry (void* data)
 {
     sem_post ((sem_t*)data);
+
+#ifdef _MG_USE_BETTER_TIMER
+    g_timer_started = times(NULL);
+    g_last_tick = 0;
+#endif /* _MG_USE_BETTER_TIMER */
 
     while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
         __mg_os_time_delay (10);
@@ -238,6 +257,13 @@ void mg_TerminateTimer (void)
 void mg_dispatch_timer_message (unsigned int inter)
 {
     int i;
+
+#ifdef _MG_USE_BETTER_TIMER
+    clock_t now = __mg_timer_counter;
+
+    inter = now - g_last_tick;
+    g_last_tick = now;
+#endif /* _MG_USE_BETTER_TIMER */
 
     TIMER_LOCK ();
 

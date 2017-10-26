@@ -1,5 +1,5 @@
 /*
-** $Id: dummy.c 11147 2008-11-19 10:08:31Z weiym $
+** $Id: dummy.c 13830 2017-10-26 05:27:43Z weiym $
 **
 ** dummy.c: The dummy IAL engine.
 ** 
@@ -71,10 +71,10 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
 
     if (!in) {
         in = &rfds;
-        FD_ZERO (in);
+        mg_fd_zero (in);
     }
 
-	e = select (maxfd + 1, in, out, except, timeout) ;
+	e = mg_select (maxfd + 1, in, out, except, timeout) ;
 
     if (e < 0) {
 		return -1;

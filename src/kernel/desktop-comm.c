@@ -186,6 +186,12 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
         pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
 
+    if (pWin->secondaryDC == HDC_INVALID) {
+        /* remove the flag of WS_EX_AUTOSECONDARYDC */
+        pWin->dwExStyle = pWin->dwExStyle | WS_EX_AUTOSECONDARYDC;
+        pWin->secondaryDC = 0;
+    }
+
     /* Create private client dc. */
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
         if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
@@ -1930,6 +1936,12 @@ void GUIAPI DesktopUpdateAllWindow(void)
 	SendMessage(HWND_DESKTOP, MSG_PAINT, 0, 0);
 }
 
+#ifndef _MG_ENABLE_SCREENSAVER
+#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0) 
+#else
+    /* The screensaver occupys one znode */
+#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1) 
+#endif
 
 int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 {
@@ -2048,11 +2060,14 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
         break;
 
         case MSG_ENDSESSION:
-            if ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0 
+            if (
+                    HAS_NO_MAINWINDOW()
 #ifdef _MGRM_THREADS
                     && __mg_enter_terminategui
 #endif
                     ) {
+                screensaver_destroy();
+
                 if (hDesktopDC) ReleaseDC (hDesktopDC);
                 hDesktopDC = 0;
 
@@ -2234,7 +2249,7 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 }
                 
                 if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
-                        && (__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0
+                        && HAS_NO_MAINWINDOW()
                         && __mg_enter_terminategui /* Let Desktop wait for MiniGUIMain() */
                         ) {
                     __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;

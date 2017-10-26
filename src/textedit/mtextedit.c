@@ -88,6 +88,9 @@ static int get_first_char_len(PLOGFONT plogfont, const char* str, int len)
     int l;
     if(len <= 0)
         return 0;
+    /*[humingming for bug 5344]: don't process like this,
+     * on some borad may case some problem */
+#if 0
     if(*str > 0) //is ascii code
     {
         return 1;
@@ -96,6 +99,10 @@ static int get_first_char_len(PLOGFONT plogfont, const char* str, int len)
     l = GetFirstMCharLen(plogfont, str, len);
     if(l <= 1)
         return 0;
+#endif
+    l = GetFirstMCharLen(plogfont, str, len);
+    if (l < 0)
+        return 1;
     return l;
 }
 
@@ -158,7 +165,7 @@ static void mTextBuffer_construct(mTextBuffer* self, va_list va)
     int len = 0;
 
     Class(mObject).construct((mObject*)self, 0);
-    ncsParseConstrcutParams(va, "si", &title, &len);
+    ncsParseConstructParams(va, "si", &title, &len);
 
     if(title)
     {
@@ -491,7 +498,7 @@ END_MINI_CLASS
 static void mTextIterator_construct(mTextIterator* self, va_list va)
 {
     Class(mObject).construct((mObject*)self, 0);
-    ncsParseConstrcutParams(va, "pi", &self->buffer, &self->index); 
+    ncsParseConstructParams(va, "pi", &self->buffer, &self->index); 
 }
 
 static void mTextIterator_nextChar(mTextIterator* self)
@@ -1715,7 +1722,7 @@ static void mTextLayout_construct(mTextLayout* self, va_list va)
 {
     Class(mCommBTree).construct((mCommBTree*)self, 0);
     
-    ncsParseConstrcutParams(va, "pp", &self->text_buffer, &self->context);
+    ncsParseConstructParams(va, "pp", &self->text_buffer, &self->context);
 
     self->old_height = -1;
 }
@@ -4589,15 +4596,27 @@ mTextEditor_onKeyDown(mTextEditor *self, int scancode, DWORD keyFlags)
                 return 0;
 
             if (bCtrl) {
-                int  inserting;
+                int inserting;
+                int begin_pos;
                 char *txtBuffer;
+                DWORD dwStyle = GetWindowStyle(self->hwnd);
 
                 inserting = GetClipBoardDataLen (CBNAME_TEXT);
                 if (inserting > 0) {
                     txtBuffer = FixStrAlloc (inserting);
                     GetClipBoardData (CBNAME_TEXT, txtBuffer, inserting);
 
+                    if(pTextLayout->sel_begin > pTextLayout->cursor)
+                        begin_pos = pTextLayout->cursor;
+                    else 
+                        begin_pos = pTextLayout->sel_begin;
+
                     _c(self)->insertText(self, txtBuffer, inserting);
+
+                    if(dwStyle & NCSS_TE_UPPERCASE)
+                        _c(pTextBuffer)->setCase(pTextBuffer, begin_pos, begin_pos+inserting, TRUE);
+                    else if(dwStyle & NCSS_TE_LOWERCASE)
+                        _c(pTextBuffer)->setCase(pTextBuffer, begin_pos, begin_pos+inserting, FALSE);
 
                     FreeFixStr(txtBuffer);
                 }
@@ -4805,6 +4824,8 @@ static int mTextEditor_getTextLen(mTextEditor *self)
 
 static void mTextEditor_onSetFocus(mTextEditor *self, HWND oldActiveWnd, int lParam)
 {
+    int text_len = 0;
+
     if (!self || self->hwnd == oldActiveWnd)
         return;
 
@@ -4813,11 +4834,8 @@ static void mTextEditor_onSetFocus(mTextEditor *self, HWND oldActiveWnd, int lPa
     ncsNotifyParent (self, NCSN_TE_SETFOCUS);
     InvalidateRect (self->hwnd, NULL, TRUE);
 
-    int text_len = 0;
-
 #ifdef _MGHAVE_TEXTEDITTITLE
     text_len = self->title_idx <= -1 ? 0: self->title_idx;
-    printf("title_idx:%d\n", text_len);
 #endif
 
     /*[bug5291]: when get focus don't auto move caret. 
@@ -5912,6 +5930,7 @@ static void _make_caret_visible(mTextEditor *self,
     BOOL refresh = FALSE;
 
     if (! mTextEditor_hasPainted(self)) {
+        pTextLayout->old_height = -1; /* Fix bug #5606 */
         return;
     }
 
