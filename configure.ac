@@ -1,10 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.52)
-
-dnl ========================================================================
-dnl Put the name and version of the package here
-AC_INIT([libminigui], [3.0.13])
-AC_CONFIG_SRCDIR([src/main/main.c])
+AC_PREREQ(2.60)
+AC_INIT(libminigui, 3.0.13)
+AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
 #
@@ -47,7 +44,8 @@ AC_CANONICAL_SYSTEM
 
 dnl ========================================================================
 dnl Init automake
-AM_INIT_AUTOMAKE([no-define])
+AM_INIT_AUTOMAKE
+
 AC_CONFIG_HEADER(mgconfig.h)
 
 dnl ========================================================================
