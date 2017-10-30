@@ -6,8 +6,6 @@
  ** Copyright (C) 2003 ~ 2017 FMSoft.
  ** Copyright (C) 1999 ~ 2002 Wei Yongming.
  **
- ** All rights reserved.
- **
  ** Current maintainer: Wei Yongming.
  **
  ** Create date: 1999.04.19
@@ -1630,7 +1628,6 @@ static int DefaultNCMouseMsgHandler(PMAINWIN pWin, int message,
                     moveCode = location;
                     hiliteCode = HT_UNKNOWN;
                     downWin  = pWin;
-
 
                     wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
                 }

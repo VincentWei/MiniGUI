@@ -1055,7 +1055,7 @@ int pthread_attr_setstacksize (pthread_attr_t *attr,
     if( stacksize < PTHREAD_STACK_MIN )
         PTHREAD_RETURN (EINVAL);
         
-    attr->stacksize_valid = 1;    
+    attr->stacksize_valid = 1;
     attr->stacksize = stacksize;
     
     PTHREAD_RETURN (0);
@@ -1118,6 +1118,9 @@ int pthread_setschedparam (pthread_t thread_id,
     thread->attr.schedparam = *param;
 
     vx_ret = taskPrioritySet (thread->task_id, param->priority);
+    // TODO
+    //vx_ret = tx_thread_preemption_change (thread->thread, param->preempt_threshold, &tmp);
+    //vx_ret = NU_Change_Time_Slice (thread->thread, param->time_slice);
 
     vx_ret = semGive (__vxpthread_mutex);
     

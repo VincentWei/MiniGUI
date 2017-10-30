@@ -43,9 +43,6 @@
 extern BOOL wndGetVScrollBarRect (const MAINWIN* pWin, RECT* rcVBar);
 extern BOOL wndGetHScrollBarRect (const MAINWIN* pWin, RECT* rcHBar);
 
-extern BOOL wndGetVScrollBarRect (const MAINWIN* pWin, RECT* rcVBar);
-extern BOOL wndGetHScrollBarRect (const MAINWIN* pWin, RECT* rcHBar);
-
 /* Bitmap info */
 typedef struct _LFSKIN_BMPINFO
 {

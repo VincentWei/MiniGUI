@@ -8995,25 +8995,6 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpi
         CB_COMP_SETHLINE comp_sethline, CB_COMP_PUTHLINE comp_puthline, void* user_comp_ctxt);
 
     /** @} end of gdi_fns */
-    
-    
-MG_EXPORT int GUIAPI GetTextMCharInfo (PLOGFONT log_font, const char* mstr, int len, 
-                int* pos_chars);
-MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, int len, 
-                int* pos_words, WORDINFO* info_words);
-MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font, const char* mstr, int len);
-MG_EXPORT int GUIAPI GetLastMCharLen (PLOGFONT log_font, const char* mstr, int len);
-MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
-                    WORDINFO* word_info);
-MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, 
-                const unsigned char* mchar, int n);
-MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
-MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
-                const unsigned char* mstr, int mstr_len, int n,
-                int* conved_mstr_len);
-MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
-                const void *wcs, int wcs_len, BOOL wc32, int n,
-                int* conved_wcs_len);
 
 #ifdef _MGGAL_HI3560
 

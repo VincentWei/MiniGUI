@@ -76,6 +76,8 @@ typedef int pthread_once_t;
 struct sched_param
 {
     unsigned int priority;
+    unsigned int preempt_threshold;
+    unsigned long time_slice;
 };
 
 /*-----------------------------------------------------------------------------

@@ -1,6 +1,8 @@
 *******************************************************************************
 What's new (trunk):
 
+10/30 CLEANUP: Merge differences from rel-3-0 mannually!
+
 10/26 CLEANUP: svn merge -r 13673:13828 ^/branches/rel-3-0
 
 10/24-2017 CLEANUP: Remove some 'inline' definitions:
@@ -249,6 +251,1114 @@ What's new in this branch (3.0.10 OR, 2010/08/06 ~ 2010/12/03)
 12/01: BUGFIXING #5337: Fixed bug of RecalcScrollInfo when hide scrollar ,it
 should me call ShowScrollBar to hide. (houhh)
 	* src/gui/window.c
+
+12/01: CLEANUP #9: Rename vmbucket_xxx to gal_vmbucket_xxx. (wanzheng)
+	* src/newgal/hisi/gal_hi3560a.c
+	* src/newgal/hisi/gal_hi3560a.h
+	* src/newgal/s3c6410/gal-s3c6410.c
+	* src/newgal/s3c6410/gal-s3c6410.h
+	* src/newgal/stgfb/stgfb_video.c
+	* src/newgal/stgfb/stgfb_video.h
+	* src/newgal/videomem-bucket.c
+	* src/newgal/videomem-bucket.h
+
+12/01: BUGFIXING #?: Resolve compiling issue for Windows. (wanzheng)
+	* src/ial/pcxvfbial.c
+	* src/kernel/init-lite.c
+
+11/30: BUGFIXING #5291: Fix the bug that edit is empty can't show caret.
+(humingming)
+	* src/texte/mtextedit.c
+
+11/29: CLEANUP #8: Tuning CMakeLists.txt for Windows. (wanzheng)
+	* CMakeLists.txt
+	* src/CMakeLists.txt
+
+11/29: BUGFIXING #5299: Fix the issues of quiting on Windows. (wanzheng)
+	* src/ial/pcxvfbial.c
+	* src/newgal/pcxvfb/pcxvfb-winfb.c
+
+11/27: BUGFIXING #5234: Fixed caret postion display error when move mouse
+to select text in edit control.(houhh)
+	* src/control/edit.c
+
+11/27: BUGFIXING #5318: Add set content width in add_icon_item 
+of iconview.(houhh)
+	* src/ex_ctrl/iconview.c
+
+11/26: BUGFIXING #?: Fixed compiling question in vxWorks(mipse).(xwyan)
+	* include/common.h
+
+11/26: ENHANCEMENT #?: Add stgfb GAL engine. (humingming)
+	* src/server/request.c
+	* src/newgal/sysvideo.h
+	* src/newgal/videomem-bucket.c
+	* src/newgal/video.c
+	* src/newgal/Makefile.am
+	* src/newgal/surface.c
+	* configure.in
+	* ++++++++ Add ++++++++++
+	* src/newgal/stgfb
+	* src/newgal/stgfb/stgfb_video.c
+	* src/newgal/stgfb/stgfb_video.h
+	* src/newgal/stgfb/Makefile.am
+	* src/newgal/stgfb/st_include
+	* src/newgal/stgfb/st_include/stblit_ioctl.h
+	* src/newgal/stgfb/st_include/stddefs.h
+	* src/newgal/stgfb/st_include/stcommon.h
+	* src/newgal/stgfb/st_include/stevt_ioctl.h
+	* src/newgal/stgfb/st_include/linuxwrapper.h
+	* src/newgal/stgfb/st_include/stblit.h
+	* src/newgal/stgfb/st_include/stlite.h
+	* src/newgal/stgfb/st_include/stevt.h
+	* src/newgal/stgfb/st_include/stgfb.h
+	* src/newgal/stgfb/st_include/stdevice.h
+	* src/newgal/stgfb/st_include/linuxcommon.h
+	* src/newgal/stgfb/st_include/stavmem.h
+	* src/newgal/stgfb/st_include/stlayer_ioctl.h
+	* src/newgal/stgfb/st_include/stgxobj.h
+	* src/newgal/stgfb/st_include/stlayer.h
+	* src/newgal/stgfb/st_include/stsys.h
+	* src/newgal/stgfb/st_include/layer_rev.h
+	* src/newgal/stgfb/st_include/stos.h
+
+11/26: ENHANCEMENT #?: Change CreateProcess called to support if
+user set simulation path. (houhh)
+	* src/newgal/pcxvfb/pcxvfb-winfb.c
+
+11/24: ENHANCEMENT #?: Add skin support for gvfb. (zouqizhi)
+	* src/newgal/pcxvfb/pcxvfb-winfb.h
+	* src/newgal/pcxvfb/pcxvfb.c
+	* src/newgal/pcxvfb/pcxvfb-winfb.c
+
+11/24: BUGFIXING #?: Tunning the semaphore definition file for vxworks.(xwyan)
+	* include/vxworks_semaphore.h
+	* include/common.h
+
+11/24: CLEANUP #7: Merge the modifications of textedit from mGNCS. And cleanup 
+the '\t' charactor in the source files by using ":retab" command. (wanzheng)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtextedit.h
+
+11/23: BUGFIXING #?: check makefile in non-linux system and make dist script.(xwyan) 
+	* makefile.ng
+	* src/control/makefile.ng
+	* src/control/Makefile.am
+	* src/kernel/makefile.ng
+	* src/kernel/Makefile.am
+	* src/makefile.ng
+	* src/mybmp/makefile.ng
+	* src/mybmp/Makefile.am
+	* src/gui/makefile.ng
+	* src/gui/Makefile.am
+	* src/main/makefile.ng
+	* src/main/Makefile.am
+	* src/sysres/makefile.ng
+	* src/sysres/resmgr.c
+	* src/sysres/icon/makefile.ng
+	* src/sysres/icon/Makefile.am
+	* src/sysres/font/makefile.ng
+	* src/sysres/font/Makefile.am
+	* src/sysres/Makefile.am
+	* src/sysres/cursor/makefile.ng
+	* src/sysres/cursor/Makefile.am
+	* src/sysres/bmp/makefile.ng
+	* src/sysres/bmp/Makefile.am
+	* src/textedit/makefile.ng
+	* src/textedit/Makefile.am
+	* src/misc/makefile.ng
+	* src/misc/Makefile.am
+	* src/ex_ctrl/makefile.ng
+	* src/ex_ctrl/Makefile.am
+	* src/ial/makefile.ng
+	* src/ial/dlcustom/Makefile.am
+	* src/ial/Makefile.am
+	* src/font/makefile.ng
+	* src/font/in-core/makefile.ng
+	* src/font/in-core/Makefile.am
+	* src/font/Makefile.am
+	* src/libc/makefile.ng
+	* src/libc/Makefile.am
+	* src/Makefile.am
+	* src/newgal/makefile.ng
+	* src/newgal/bf533/makefile.ng
+	* src/newgal/bf533/Makefile.am
+	* src/newgal/utpmc/makefile.ng
+	* src/newgal/utpmc/Makefile.am
+	* src/newgal/hisi/Makefile.am
+	* src/newgal/svpxxosd/makefile.ng
+	* src/newgal/svpxxosd/Makefile.am
+	* src/newgal/s3c6410/Makefile.am
+	* src/newgal/wvfb/makefile.ng
+	* src/newgal/wvfb/Makefile.am
+	* src/newgal/mb93493/makefile.ng
+	* src/newgal/mb93493/Makefile.am
+	* src/newgal/mlshadow/makefile.ng
+	* src/newgal/mlshadow/Makefile.am
+	* src/newgal/shadow/makefile.ng
+	* src/newgal/shadow/Makefile.am
+	* src/newgal/dummy/makefile.ng
+	* src/newgal/dummy/Makefile.am
+	* src/newgal/dfb/makefile.ng
+	* src/newgal/dfb/Makefile.am
+	* src/newgal/nexus/makefile.ng
+	* src/newgal/nexus/Makefile.am
+	* src/newgal/Makefile.am
+	* src/newgal/commlcd/makefile.ng
+	* src/newgal/commlcd/Makefile.am
+	* src/newgdi/makefile.ng
+	* src/newgdi/Makefile.am
+	* rules.make
+	* make_tarball
+	* include/makefile.ng
+	* include/ctrl/makefile.ng
+	* include/ctrl/Makefile.am
+	* configure.in
+	* ChangeLog
+	* configs/feature.in
+	* configs/defconfig
+	* configs/Configure.help
+	* configs/config.in
+	* build/rules-pc.vxworks
+	* build/rules-longxin.vxworks
+	* build/rules-mnt.nucleus
+	* build/rules-ppc.vxworks
+	* build/rules-pc.win32
+	* Makefile.am
+
+11/22: BUGFIXING #?: Add check for return value of CreateProcess.(houhh)
+	* src/newgal/pcxvfb/pcxvfb-winfb.c
+
+11/22: BUGFIXING #?: change execl to execlp.(xwyan)
+	* src/newgal/pcxvfb/pcxvfb.c
+
+11/20: TUNNING #11: Fix the policy of AlphaBlending in _PutBoxAlpha(),
+dA = sA + dA - ((sA * dA) >> 8). (wanzheng)
+	* src/newgal/surface.c
+
+11/20: BUGFIXING #5299: Let the threads quit in orders, and do not exit()
+directly in pcxvfb IAL. (wanzheng)
+	* src/ial/pcxvfbial.c
+	* src/include/internals.h
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+	* src/kernel/desktop-ths.c
+	* src/kernel/init.c
+	* src/kernel/init-lite.c
+	* src/kernel/message.c
+	* src/kernel/timer.c
+	* src/misc/license.c
+
+11/19: BUGFIXING #5314: Modify listview to reset nContX/nContY when content
+width or height change smaller than visible.(houhh)
+	* src/kernel/desktop.c
+
+11/18: BUGFIXING #5300: Change the zorder lock range in dskScrollWindow
+to avoid dead lock.(houhh)
+	* src/kernel/desktop.c
+
+11/17: BUGFIXING #5247: Initialize variables manually for timer.(xwyan)
+	* src/kernel/timer.c
+
+11/12: BUGFIXING #5291: Make textedit get focus don't auto move cursor.
+(humingming).
+	* src/textedit/mtextedit.c
+
+11/10: ENHANCEMENT ?: Add common dfb modules. (humingming).
+	* src/ial/dfb.c
+	* src/newgal/dfb/st7167_video.c  -- New Add
+	* src/newgal/dfb/st7167_video.h  -- New Add
+	* src/newgal/dfb/dfbvideo.c
+	* src/newgal/dfb/dfbvideo.h
+	* src/newgal/dfb/Makefile.am
+	* configure.in
+
+11/10: BUGFIXING #5206: Correct the path of icon for fashion renderer.
+(wanzheng).
+	* etc/MiniGUI.cfg
+
+11/09: BUGFIXING #5284: Fix bug of textedit scroll problem.(humingming)
+	* src/textedit/mtextedit.h
+	* src/textedit/mtextedit.c
+
+11/09: BUGFIXING #5282: Fix bug of control border, display focus border color
+whenever in foucs or not focus status.(houhh)
+	* src/gui/window.c
+
+11/09: BUGFIXING #5234: Fix bug of display problem edit control caret.(houhh)
+	* src/control/edit.c
+
+11/09: CLEANUP #6: Resolve compile issue for VxWorks. (wanzheng)
+	* src/ial/auto.c
+	* src/libc/vxworks_mutex.c
+	* src/makefile.ng
+
+11/08: BUGFIXING #?: Fixed the bug in windows(dongjunjie)
+	* src/font/qpf.h        -- Add the struct align at 8bytes
+	* src/kernel/desktop.c  -- the death lock bettwen lock_zi_for_read and get_valid_dc
+
+11/08: BUGFIXING #5247: Initialize variables manually for VxWorks.
+(author: xwyan and wangyang, commited by wanzheng)
+	* src/font/freetype2.c
+	* src/kernel/cursor.c
+	* src/kernel/init.c
+	* src/misc/clipboard.c
+	* src/misc/license.c
+	* src/sysres/resmgr.c
+
+11/04: BUGFIXING #5222: Fix bug of lf_flat scrollbar thumb draw
+incorrect.(humingming)
+	* src/gui/lf_flat.c
+
+11/04: BUGFIXING #5217: Fix bug of LoadBitmapFromFile load the gif that have
+application extension decode error.(humingming)
+	* src/mybmp/gif.c
+
+11/04: BUGFIXING #5225: Fix bug of load icon failed when treeview control
+register.(houhh)
+	* src/ex_ctrl/treeview.c
+
+11/03: BUGFIXING #5224: use _MG_PRINTF instead of fprintf in make_devfont func. 
+(ymwei)
+	* src/font/devfont.c
+
+11/02: BUGFIXING #5210: Fix bug of memory leak.(houhh)
+	* src/control/static_impl.h
+	* src/font/bitmapfont.c
+	* src/font/freetype2.c
+	* src/font/freetype.c
+	* src/newgdi/bitmap.c
+	* src/kernel/sharedres.c
+	* src/kernel/desktop.c
+	* src/newgal/fbcon/fbvideo.c
+	* src/newgal/hi3560aInit/hi3560a_init.c
+	* src/neagal/sigma8654/sigma8654.c
+
+11/02: BUGFIXING #5212: Fix bug of scrollbar control and system scroll.(houhh)
+	* src/gui/lf_skin.c
+	* src/control/scrollbar.c
+
+11/01: BUGFIXING #?: Revert MiniGUI.cfg to resolve the issue of system
+scrollbar. (wanzheng)
+	* etc/MiniGUI.cfg
+
+11/01: BUGFIXING #5212: Modify the value of `scrollbar' in MiniGUI.cfg.
+(wanzheng)
+	* etc/MiniGUI.cfg
+
+11/01: BUGFIXING #5213: Fix the bug that the screensaver znode doesn't be
+created the in stand-alone run mode. (wanzheng)
+	* src/gui/window.c
+
+10/30: BUGFIXING #5209: Fix hscroll bar if if do not response to 
+MSG_LBUTTONUP message, send it to vscroll bar. (houhh)
+	* src/gui/window.c
+
+10/30: BUGFIXING #5207: Fix ShowScrollBar that get scrollbar rect befor
+set scrollbar hide. (houhh)
+	* src/gui/window.c
+
+10/30: BUGFIXING #5205: Make cmake support the 'with_licensepicture'
+configuration option. (wanzheng)
+	* CMakeLists.txt
+	* src/CMakeLists.txt
+
+10/28: BUGFIXING #5168,#5170: Merged from mGNCS. (Modified by dongjunjie,
+merged by wanzheng)
+	* src/textedit/mtexteditbase.h
+	* src/textedit/mtextedit.c
+	* src/textedit/mtextedit.h
+
+10/27: BUGFIXING #?: Simplify MoveWindow() to avoid refresh issues. (wanzheng)
+	* src/gui/window.c
+
+10/27: BUGFIXING #5187: Fix bugs of scrollview custom draw. (houhh)
+	* src/control/scrollview.c
+
+10/26: BUGFIXING #5104,5174,5173,4983,7179: Fix bugs of listview. (houhh)
+	* src/ex_ctrl/listview.c
+	* src/control/scrolled.c
+
+10/26: BUGFIXING #5018: Resolve the bug that sometimes we treat NULLREGION as
+an INFINITE region. (wanzheng)
+	* src/include/cliprect.h
+	* src/kernel/desktop.c
+	* src/kernel/desktop-procs.c
+	* src/kernel/desktop-sa.c
+	* src/kernel/desktop-ths.c
+	* src/newgdi/clip.c
+	* src/newgdi/gdi.c
+	* src/newgdi/region.c
+
+10/26: BUGFIXING #5184 & 5185: fixed bug about textedit cursor display.
+(humingming)
+	* src/textedit/mtextedit.c
+
+10/26: BUGFIXING #5176: Resolve the 'multiple definition' issue of textedit.
+(wanzheng)
+	* src/textedit/mtextedit.c
+	* src/textedit/object.h
+
+10/24: ENHANCEMENT #24: Make it able to alter splash pictures by using
+'--with-licensepicture' configure option. (wanzheng)
+	* M ChangeLog
+	* M configure.in
+	* M src/sysres/license/runme.sh
+	* A src/sysres/license/pictures/common
+	* A src/sysres/license/pictures/common/01_fmsoft.png
+	* A src/sysres/license/pictures/common/02_feiman.png
+	* A src/sysres/license/pictures/common/03_progressbar.png
+	* A src/sysres/license/pictures/common/04_progressbar-bk.png
+	* A src/sysres/license/pictures/hybridos
+	* A src/sysres/license/pictures/hybridos/00_minigui.png
+	* A src/sysres/license/pictures/hybridos/01_fmsoft.png
+	* A src/sysres/license/pictures/hybridos/02_feiman.png
+	* A src/sysres/license/pictures/hybridos/03_progressbar.png
+	* A src/sysres/license/pictures/hybridos/04_progressbar-bk.png
+	* A src/sysres/license/pictures/mdolphin
+	* A src/sysres/license/pictures/mdolphin/00_minigui.png
+	* A src/sysres/license/pictures/mdolphin/01_fmsoft.png
+	* A src/sysres/license/pictures/mdolphin/02_feiman.png
+	* A src/sysres/license/pictures/mdolphin/03_progressbar.png
+	* A src/sysres/license/pictures/mdolphin/04_progressbar-bk.png
+	* A src/sysres/license/pictures/minigui
+	* A src/sysres/license/pictures/minigui/00_minigui.png
+	* A src/sysres/license/pictures/minigui/01_fmsoft.png
+	* A src/sysres/license/pictures/minigui/02_feiman.png
+	* A src/sysres/license/pictures/minigui/03_progressbar.png
+	* A src/sysres/license/pictures/minigui/04_progressbar-bk.png
+	* D src/sysres/license/c_files/00_minigui.dat.c
+	* D src/sysres/license/c_files/01_fmsoft.dat.c
+	* D src/sysres/license/c_files/02_feiman.dat.c
+	* D src/sysres/license/c_files/03_progressbar.dat.c
+	* D src/sysres/license/c_files/04_progressbar-bk.dat.c
+	* D src/sysres/license/c_files/key.c
+	* D src/sysres/license/c_files/_splash_inner_res.c
+	* D src/sysres/license/pictures/00_minigui.png
+	* D src/sysres/license/pictures/01_fmsoft.png
+	* D src/sysres/license/pictures/02_feiman.png
+	* D src/sysres/license/pictures/03_progressbar.png
+	* D src/sysres/license/pictures/04_progressbar-bk.png
+
+10/21: ENHANCEMENT #23: Add Intel CE3100 GAL based on GDL.(dongkai)
+	* src/newgal/gdl/gdl_video.c
+	* src/newgal/gdl/gdl_video.h
+
+10/19: BUGFIXING #5158: Fixed bug of caret color error. (humingming)
+	* src/control/edit_impl.h
+	* src/control/edit.c
+
+10/19: BUGFIXING #5083: Fixed bug of get_sub_bmp when bitmap has alpha
+info. (houhh)
+	* src/gui/lf_skin.c
+
+10/19: BUGFIXING #5060: Fixed bug of SetAutoRepeatMessage of mainwin scroll.(houhh)
+	* src/gui/keyboard.c
+
+10/19: BUGFIXING #5157: Fixed bug of TranslateMessage multi-thread problem.(humingming)
+	* src/gui/keyboard.c
+
+10/18. BUGFIXING #4987: Fixed scrollbar refresh question when treeview size
+changed.(xwyan)
+	* src/ex_ctrl/treeeview.c
+
+10/15: BUGFIXING #5140: Fixed bug of PAGEUP and PAGEDOWN cursor don't
+move.(humingming)
+	* src/textedit/mtextedit.c
+
+10/15: BUGFIXING #4979: Fixed bug of textlayout_reLayout when last delete line
+is only '\n'.(houhh)
+	* src/textedit/mtextedit.c
+
+10/15: BUGFIXING #?: Fixed a compiling issue when enable product id.
+(wanzheng)
+	* src/include/license.h
+
+10/15: BUGFIXING #5139: Fixed the bug that textedit MSG_SETTEXT don't limit by
+EM_LIMITTEXT set. (humingming)
+	* src/textedit/mtextedit.c
+
+10/15: BUGFIXING #4918: Fixed the bug that textedit count line overrange 1 when the
+title end with '\n'. (humingming)
+	* src/textedit/mtextedit.c
+
+10/14: BUGFIXING #5109: Fixed the bug that __mg_update_window() and
+_cb_refresh_znode() do not update control with WS_EX_CTRLASMAINWIN.(houhh)
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop.c
+
+10/14: BUGFIXING #4936: Fixed the bug that MiniGUI can't quit if close GVFB
+window while splashing. (wanzheng)
+	* src/ial/pcxvfbial.c
+
+10/14: BUGFIXING #5112: Create private CDC when the control has
+WS_EX_USEPRIVATECDC style. (ymwei)
+	* src/gui/window.c
+
+10/13: ENHANCEMENT #22: Modify all Makefile.am AM_CFLAGS to INCLUDES
+for cross compile(hisi).(zcyuan)
+
+10/13: BUGFIXING #?: Fixed an alignment issue of the QPF font engine. (by
+Wang Yulong, commited by wanzheng)
+	* src/font/qpf.h
+
+10/12: BUGFIXING #5004: Fixed the bug that scrolled will reset nContWidth
+when nVisibleWidth value changed.(houhh)
+	* src/control/scrolled.c
+
+10/11: CLEANUP #5: Merge the modifications on MLEdit control from mGNCS.
+(wanzheng)
+	* src/textedit/mtextedit.h
+	* src/textedit/mtextedit.c
+
+10/11: BUGFIXING #5117: Fixed the bug that combox edit's caret cannot lost
+focus, add some comment for MSG_SETFOCUS/MSG_KILLFOCUS. (houhh)
+	* src/gui/window.c
+	* include/window.h
+
+10/11: BUGFIXING #5116: Fixed the bug that scrollbar is not visible until
+refresh by force. (wanzheng)
+	* src/textedit/mtextedit.c
+
+10/11: BUGFIXING #5115: Fixed the bug that set the copy_len too large to get
+more that one line text when use EM_GETLINETEXT. (humingming)
+	* src/textedit/mtextedit.c
+
+09/30: BUGFIXING #?: Fixed the bug that the configure option
+`--with-ttfcachesize' didn't work correctly. (wanzheng)
+	* configure.in
+
+09/29: TUNNING #10: Install CMake modules to $PREFIX/share. (wanzheng)
+	* configure.in
+	* Makefile.am
+	* cmake/Makefile.am
+
+09/29: ENHANCEMENT #24: Add textedit message EM_GETPARAGRAPHLENGTHINMCHAR,
+EM_GETLINELENGTHINMCHAR, EM_GETLINETEXT and EM_GETLINELENGTH. (humingming)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtextedit.h
+	* include/ctrl/edit.h
+
+09/29: BUGFIXING #?: Fix compiling error for mGNCS which use mtextedit.c
+directly by copying mtextedit.c to its source tree. (wanzheng)
+	* src/textedit/mtextedit.c
+
+09/28: TUNNING #9: Adjust textedit the way of calculate title line content.
+(humingming)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtexteditbase.h
+	* src/textedit/mtextedit.h
+
+09/28: TUNNING #8: Remove warnings in auto.c. (ymwei)
+	* src/ial/auto.c
+
+09/28: BUGFIXING #?: Add -lpthread to minigui.pc if shadow or mlshadow GAL is
+enabled. And modify CMake scripts to support GAL shadow. (wanzheng)
+	* CMakeLists.txt
+	* configure.in
+	* src/newgal/shadow/CMakeLists.txt
+
+09/27: BUGFIXING #?: Add missing files for `make dist'. (wanzheng)
+	* clean_license.sh
+	* configure.in
+	* src/sysres/Makefile.am
+	* src/sysres/license/c_files/Makefile.am
+	* src/sysres/license/Makefile.am
+
+09/27: BUGFIXING #5028: make mTextLayoutNode count memeber unsigned int to int.
+(humingming)
+	* src/textedit/mtextedit.h
+
+09/27: ENHANCEMENT #23: Update mgetc.c by using the latest etc/MiniGUI.cfg.
+(wanzheng)
+	* src/ial/ial.c
+	* src/newgal/newgal.c
+	* src/sysres/mgetc.c
+
+09/27: BUGFIXING #5028 make set caret position correct.(humingming)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtexteditbase.h
+
+09/26: BUGFIXING #?: make MSG_NEWCTRLINSTANCE return valid value.(xwyan)
+	* src/kernel/desktop-comm.c(dskOnNewCtrlInstance)
+
+09/26: BUGFIXING #5037: Tunning the scrollbar show/hide policy of textedit: 
+auto show/hide scrollbar if ES_AUTOVSCROLL|ES_AUTOHSCROLL style is set,
+otherwise always show/hide scrollbar according to WS_VSCROLL|WS_HSCROLL
+styles. (wanzheng)
+	* include/ctrl/edit.h
+	* src/textedit/mtextedit.c
+
+09/25. BUGFIXING #?:Fix the bug GetNextMainWindow return the other procs's hwnd
+when call it. (maoxinghui)
+	* src/kernel/desktop-procs.c
+
+09/25. BUGFIXING #5026: Fix the bug of dskScrollMainWindow. (wangxubin)
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop.c
+	* src/kernel/desktop-procs.c
+
+09/21. BUGFIXING #5027: Fix the bug when use ScrollWindow control margin can't
+refresh. (humingming)
+	* src/control/scrolled.h
+	* src/textedit/mtextedit.c
+
+09/21. CLEANUP #4: Recover the modification between 13487:13491. (wanzheng)
+	* clean_license.sh
+	* Makefile.am
+	* src/control/scrollview.c
+	* src/gui/window.c
+	* src/include/license.h
+	* src/include/zorder.h
+	* src/kernel/desktop.c
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+	* src/kernel/zorder.c
+	* src/misc/license.c
+	* src/server/layer.c
+
+09/21. BUGFIXING #?: To release RC2, revert to revision 13487, and fix 
+a compiling error.  (wanzheng)
+	* src/kernel/desktop-comm.c
+	* src/kernel/zorder.c
+	* src/kernel/desktop.c
+	* src/kernel/desktop-procs.c
+	* src/control/scrollview.c
+	* src/include/zorder.h
+	* src/include/license.h
+	* src/gui/window.c
+	* src/misc/license.c
+	* src/server/layer.c
+	* clean_license.sh
+	* Makefile.am
+
+09/21. TUNNING #7: Disable CPU Type verification if __TARGET_UNKNOWN__ is
+defined. (wanzheng)
+	* src/gui/window.c
+	* src/include/license.h
+	* src/kernel/zorder.c
+	* src/misc/license.c
+
+09/21. BUGFIXING #?: Fix bug of GetNextMainWindow. (wanzheng)
+	* src/include/zorder.h
+	* src/kernel/desktop.c
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+	* src/kernel/zorder.c
+	* src/server/layer.c
+
+09/21. TUNNING #6: Remove a compiling warning of scrollview. (wanzheng)
+	* src/control/scrollview.c
+
+09/20. ENHANCEMENT #22: Modify all Makefile.am to support 
+make distcheck.(zcyuan)
+
+09/20. BUGFIXING #4992: Change to call _update_content_view() in
+MSG_SIZECHANGED, not in MSG_CSIZECHANGED.(houhh)
+	* src/textedit/mtextedit.c
+
+09/20. BUGFIXING #5025: Fixed mismatch bug of GetClientDC and ReleaseDC in
+TreeView(set_item_text). (xwyan)
+	* src/ex_ctrl/treeview.c
+
+09/20. ENHANCEMENT #21: Add script to clean license for 'make dist'. (zouqizhi)
+	* clean_license.sh
+
+09/20. BUGFIXING #5024: Fix the bug when click the space, caret don't the
+display on the last char position. (humingming)
+	* src/textedit/mtextedit.c
+
+09/20. BUGFIXING #4981: Find another way to solve this issue: don't flush in
+setText() if the textedit have not painted before. (wanzheng)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtextedit.h
+
+09/20. BUGFIXING #?: Fix bug of screensaver protected mechanism, Change it
+from window to zorder node.(houhh)
+	* src/misc/license.c
+	* src/kernel/desktop.c
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-proc.c
+
+09/20. BUGFIXING #4992: Fix the bug when in MSG_CREATE or MSG_INITDIALOG send
+message EM_GETLINECOUNT can not get the correct count. (humingming)
+	* src/textedit/mtextedit.c
+
+09/19. BUGFIXING #4981: Solve the flicker issue of the new textedit control
+when enable WS_EX_AUTOSECONDARY_DC. (wanzheng)
+	* src/textedit/mtextedit.c
+
+09/17. ENHANCEMENT #20: Add new textedit msg: EM_SETCARETPOSBYLINE,
+EM_GETCARETPOSBYLINE, EM_SETSELPOSBYLINE, EM_GETSELPOSBYLINE. (humingming)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtexteditbase.h
+	* src/textedit/mtextedit.h
+	* include/ctrl/edit.h
+
+09/17. BUGFIXING #?: Fixed a bug div 0. (dongjunjie)
+	* src/gui/window.c
+
+09/16. ENHANCEMENT #19: Add hi3560a newgal to CMakeLists.txt, and add hi3560a
+cpuid check. (zouqizhi)
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+	* src/misc/license.c
+	* src/ial/remoteial/netial_server.c
+	* src/ial/remoteial/Makefile
+	* CMakeLists.txt
+	* cmake_mgconfig.h.in
+	* configure.in
+
+09/14. BUGFIXING #4980: fixed the redraw problem of scrolled optimization.(humingming)
+	* src/control/scrollview.c
+	* src/control/scrolled.h
+	* src/ex_ctrl/iconview.c
+
+09/07. BUGFIXING #4980: fixed the bug when after delete scrollview item can't
+refresh the control.(humingming)
+	* src/control/scrollview.c
+
+09/07. BUGFIXING #4976: fixed the problem fashion render draw scrollbar's thumb
+framework bound.(humingming)
+	* src/gui/window.c
+
+09/07. BUGFIXING #4972: fixed the bug in record and replay input event.
+(wangxubin)
+	* src/ial/auto-protocol.h
+	* src/ial/qvfb.c
+	* src/ial/auto.c
+
+09/03. BUGFIXING #4971: fixed the bug that crash when quit, and fixed the bug
+that can't quit when APP doesn't handle MSG_CLOSE. (wanzheng)
+	* src/gui/window.c
+	* src/kernel/desktop-comm.c
+	* src/kernel/init.c
+	* src/kernel/init-lite.c
+	* src/kernel/message.c
+	* src/misc/license.c
+	* src/server/server.c
+
+09/02. BUGFIXING #4950: fixed the bug that the window's frame miss a pixel.
+	* src/gui/lf_classic.c
+
+09/02. ENHANCEMENT #18: add FindMiniGUI.cmake to find minigui with pkg-config
+in cmake project (ZhaolinHu)
+	* cmake/FindMiniGUI.cmake
+
+09/01. BUGFIXING #4950: fixed the bug that scrollbar's left arrow miss a
+point(maoxh)
+	* src/gui/lf_classic.c
+
+09/01. BUGFIXING #4968: fixed the bug of screensaver. When screensaver is
+exit, the edit input force is lost, this is a bug.(WangXuBin)
+	* src/misc/license.c
+
+09/01. BUGFIXING #4967: fixed the bug of screensaver. If input method is
+turn on, the screensaver is not disabled when user input the char.(WangXuBin)
+	* src/kernel/desktop-comm.c
+	* src/kernel/init.c
+	* src/kernel/event.c
+	* src/include/license.h
+	* src/misc/license.c
+	* src/ial/pcxvfbial.c
+	* src/server/server.c
+
+09/01. BUGFIXING #4969: fixed the bug of scrollbar thumb calculation. If the
+maxPos and minPos is too large in LFSCROLLBARINFO struct, the barLen cannot keep the same proportion
+with pageStep, and the barStart and curPos would not be the same proportion
+when the thumb at the end of scrollbar(dongjunjie)
+	* src/gui/window.c
+	* src/text/mtextedit.c
+
+09/01. BUGFIXING #4961: Deal with when _mgs_button_down_main_window was
+reset, but there real has a mouse up message. (humingming)
+	* src/kernel/desktop-comm.c
+
+08/30. BUGFIXING #4936: Fixed the bug that crash when quiting. (wanzheng)
+	* include/minigui.h
+	* src/ial/ial.c
+	* src/ial/pcxvfbial.c
+	* src/include/internals.h
+	* src/include/mgsock.h
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+	* src/kernel/event.c
+	* src/kernel/init.c
+	* src/kernel/init-lite.c
+	* src/kernel/timer.c
+	* src/misc/license.c
+	* src/server/server.c
+
+08/30. BUGFIXING #?: Make splash and screensave independent, and optimize the
+policy when generate key. (wanzheng)
+	* src/gui/window.c
+	* src/include/license.h
+	* src/kernel/desktop.c
+	* src/kernel/event.c
+	* src/kernel/message.c
+	* src/kernel/zorder.c
+	* src/sysres/license/c_files/00_minigui.dat.c
+	* src/sysres/license/c_files/01_fmsoft.dat.c
+	* src/sysres/license/c_files/02_feiman.dat.c
+	* src/sysres/license/c_files/03_progressbar.dat.c
+	* src/sysres/license/c_files/04_progressbar-bk.dat.c
+	* src/sysres/license/c_files/key.c
+	* src/sysres/license/c_files/_splash_inner_res.c
+	* src/sysres/license/genkey.sh
+	* src/sysres/license/runme.sh
+
+08/30. TUNNING# 5 : Change the policy of timeout and close msg of the 
+protected-screen window(houhh).
+	* src/kernel/desktop-comm.c
+	* src/kernel/init.c
+	* src/misc/license.c
+
+08/27. BUGFIXING#4954, Add the '\b' and DEL(ascii code 127) proccess in
+MSG_CHAR(dongjunjie)
+	* src/textedit/mtextedit.c
+
+08/27. TUNNING# 4 : merge new change of komoxo scripteasy font engine, add
+some font file, update the linux scripteasy.so(houhh).
+	* src/font/scripteasy.c
+	* src/font/se_minigui.h
+	* src/font/palette.h
+	* 3rd-party/scripteasy/test/*
+
+08/27. BUGFIXING#4952: Test ReadOnly flags when call Ctrl+V, and translate the
+case of text in mTextEditor_setText and mTextEditor_insertText when uppercase and
+lowercase flags are set(dongjunjie)
+	* src/textedit/mtextedit.c
+
+08/26. BUGFIXING #?: Fix IDM_CLOSEALLWIN if system menu, and do not show 
+screen procted window in system menu(houhh).
+	* src/misc/license.c
+	* src/kernel/desktop-comm.c
+	* src/kernel/desktop-procs.c
+
+08/26. CLEANUP #2: Remove warnings of new textedit implementation (ymwei).
+	* src/textedit/mtextedit.c
+
+08/25. TUNNING# 3 Restore komoxo scripteasy font engine support(houhh).
+	* src/font/scripteasy.c
+	* src/include/devfont.h
+	* src/newgdi/gdi.c
+
+08/25. BUGFIXING #?, add __mg_parsor check in mg_TerminateLWEvent(houhh).
+	* kernel/event.c
+
+08/25. BUGFIXING #4920, fix dskScrollWindow in _MGRM_PROCESS mode, reimplement
+OffsetRegionEx API, restore control listmodel code(houhh).
+	* src/control/listmodel.c
+	* src/kernel/desktop-procs.c
+	* src/newgdi/region.c
+
+08/25. BUGFIXING #4906,#4918,#4937, #4923(dongjunjie)
+	* src/textedit/mtextedit.c
+
+08/25. BUGFIXING #4924,#4929,#4930, add the NCSS_TE_TITLE flags
+support(dongjunjie)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtextedit.h
+
+08/25. BUGFIXING #4904,#4096,#4915,#4916,#4917,#4923,#4928 (dongjunjie)
+	* src/textedit/mtexteditbase.h
+	* src/textedit/mtextedit.h
+	* src/textedit/mtextedit.c
+
+08/24. BUGFIXING#? : function OffsetRegionEx When FreeClipRect, didnot remove
+the cliprect from the list of region(dongjunjie)
+	* src/newgdi/region.c
+
+08/24. TUNNING #2: rename _MG_MINIMALGRAF to _MG_MINIMALGDI (wanzheng)
+	* configure.in
+	* src/include/dc.h
+	* src/kernel/init-lite.c
+	* src/newgal/video.c
+	* src/newgdi/gdi.c
+	* src/newgdi/region.c
+	* src/sysres/mgetc.c
+
+08/20. BUGFIXING#4920: Change Viewport of ScrollView before InvalidateRect
+relative area(houhh).
+	* src/control/listmodel.c
+
+08/20. BUGFIXING#4907: Change SetFocusChild to send MSG_SETFOCUS/MSG_KILLFOCUS
+with lParam=1 to parent window, and change parent window do not Send 
+MSG_SETFOCUS/MSG_KILLFOCUS to children(houhh).
+	* src/gui/window.c
+
+08/19. ENHANCEMENT #17: merge CMakeLists.txt form dev-3-0-cmake (ZhaolinHu)
+	* src/kernel/CMakeLists.txt
+	* src/include/CMakeLists.txt
+	* src/standalone/CMakeLists.txt
+	* src/sysres/icon/CMakeLists.txt
+	* src/sysres/font/CMakeLists.txt
+	* src/sysres/CMakeLists.txt
+	* src/sysres/cursor/CMakeLists.txt
+	* src/sysres/bmp/CMakeLists.txt
+	* src/textedit/CMakeLists.txt
+	* src/misc/CMakeLists.txt
+	* src/ex_ctrl/CMakeLists.txt
+	* src/gal/CMakeLists.txt
+	* src/font/CMakeLists.txt
+	* src/server/CMakeLists.txt
+	* src/newgal/pcxvfb/CMakeLists.txt
+	* src/newgal/CMakeLists.txt
+	* src/newgdi/CMakeLists.txt
+	* src/CMakeLists.txt
+	* CMakeLists.txt
+	* include/common.h
+	* cmake_mgconfig.h.in
+
+08/19. BUGFIXING #?: Fix bug when click window cpation abort in thread mode
+and watermark switch. (humingming)
+	* src/kernel/desktop-comm.c
+	* src/sysres/license/c_files/_splash_inner_res.c
+
+08/19. ENHANCEMENT #16: Modify some configure.in marco, e.g: MG_MGEFFSUPPORT,
+MGHAVE_NEWTEXTEDIT and so on. (humingming)
+	* src/control/textedit.c
+	* src/kernel/Makefile.am
+	* src/sysres/Makefile.am
+	* src/standalone/Makefile.am
+	* src/textedit/mbtree.c
+	* src/textedit/mwidget.c
+	* src/textedit/mtextedit.c
+	* src/textedit/mtextedit.h
+	* src/misc/license.c
+	* src/misc/Makefile.am
+	* src/Makefile.am
+	* src/newgal/video.c
+	* src/newgdi/Makefile.am
+	* configure.in
+
+
+08/19. BUGFIXING #4903: Add a note in API description. (ymwei)
+	* include/minigui.h
+
+08/18. CLEANUP #1: Clean up the configure options. (ymwei)
+	* configure.in:
+		* mgeffsupport -> minimalgraf
+		* disable old TEXTEDIT control by default
+		* enbale new TEXTEDIT control by default
+		* enable ES_TITLE style of new TEXTEDIT control by default
+		* enable dummy and console IAL engines by default
+		* enable dlcustom IAL engines by default
+		* disable GPM mouse support by default
+		* disable qvfb IAL/GAL engines by default
+		* disable TREEVIEWRDR control by default
+
+08/18. TUNNING #1: Disable product-id support by default. (wanzheng)
+	* configure.in
+
+08/18. ENHANCEMENT #15: Add license management system, and merge the modifications
+for Windows and GUIBuilder from trunk.  (merge from dev-3-0-license[13111:13231],
+by houhuihua, humingming, wangxubin, wanzheng)
+	M       src/control/propsheet.c
+	M       src/control/newtoolbar.c
+	M       src/control/static.c
+	M       src/kernel/init-lite.c
+	M       src/kernel/desktop-comm.c
+	M       src/kernel/init.c
+	M       src/kernel/zorder.c
+	M       src/kernel/desktop.c
+	M       src/kernel/event.c
+	M       src/kernel/message.c
+	M       src/kernel/desktop-procs.c
+	M       src/include/internals.h
+	A  +    src/include/license.h
+	M       src/include/ial.h
+	M       src/gui/window.c
+	A  +    src/sysres/license
+	A  +    src/sysres/license/runme.sh
+	A  +    src/sysres/license/c_files
+	A  +    src/sysres/license/c_files/07_watermark-evaluation.dat.c
+	A  +    src/sysres/license/c_files/03_progressbar.dat.c
+	A  +    src/sysres/license/c_files/05_watermark-fmsoft.dat.c
+	A  +    src/sysres/license/c_files/01_fmsoft.dat.c
+	A  +    src/sysres/license/c_files/00_minigui.dat.c
+	A  +    src/sysres/license/c_files/02_feiman.dat.c
+	A  +    src/sysres/license/c_files/06_watermark-minigui.dat.c
+	A  +    src/sysres/license/c_files/key.c
+	A  +    src/sysres/license/c_files/04_progressbar-bk.dat.c
+	A  +    src/sysres/license/c_files/_splash_inner_res.c
+	A  +    src/sysres/license/cryptool
+	A  +    src/sysres/license/pictures
+	A  +    src/sysres/license/pictures/05_watermark-fmsoft.png
+	A  +    src/sysres/license/pictures/01_fmsoft.png
+	A  +    src/sysres/license/pictures/00_minigui.png
+	A  +    src/sysres/license/pictures/02_feiman.png
+	A  +    src/sysres/license/pictures/06_watermark-minigui.png
+	A  +    src/sysres/license/pictures/04_progressbar-bk.png
+	A  +    src/sysres/license/pictures/07_watermark-evaluation.png
+	A  +    src/sysres/license/pictures/03_progressbar.png
+	D       src/sysres/evaluation
+	D       src/sysres/evaluation/_eva_inner_res.c
+	D       src/sysres/evaluation/makefile.ng
+	D       src/sysres/evaluation/evb_1.png.c
+	D       src/sysres/evaluation/evb_2.png.c
+	D       src/sysres/evaluation/evb_3.png.c
+	D       src/sysres/evaluation/inner.sh
+	D       src/sysres/evaluation/evaluation
+	D       src/sysres/evaluation/evaluation/evb_1.png
+	D       src/sysres/evaluation/evaluation/evb_2.png
+	D       src/sysres/evaluation/evaluation/evb_3.png
+	D       src/sysres/evaluation/evaluation/p_up.png
+	D       src/sysres/evaluation/evaluation/up.png
+	D       src/sysres/evaluation/evaluation/p_down.png
+	D       src/sysres/evaluation/evaluation/down.png
+	D       src/sysres/evaluation/p_up.png.c
+	D       src/sysres/evaluation/up.png.c
+	D       src/sysres/evaluation/Makefile.am
+	D       src/sysres/evaluation/p_down.png.c
+	D       src/sysres/evaluation/down.png.c
+	D       src/sysres/evaluation/CMakeLists.txt
+	M       src/sysres/Makefile.am
+	M       src/sysres/incoreres.c
+	M       src/standalone/standalone.c
+	M       src/textedit/mtextedit.c
+	D       src/misc/evaluation.c
+	D       src/misc/product-id.c
+	D       src/misc/product-id.h
+	A  +    src/misc/license.c
+	M       src/misc/systext.c
+	M       src/misc/Makefile.am
+	A  +    src/misc/rc4.c
+	A  +    src/misc/rc4.h
+	M       src/ex_ctrl/iconview.c
+	M       src/ial/winial.c
+	M       src/font/freetype2.c
+	M       src/font/freetype2.h
+	M       src/font/upf.c
+	M       src/font/devfont.c
+	M       src/server/server.c
+	M       src/newgal/pcxvfb/pcxvfb-winfb.c
+	M       src/newgal/pcxvfb/pcxvfb.h
+	M       src/newgal/newgal.c
+	M       src/newgal/video.c
+	M       include/gdi.h
+	M       include/window.h
+	M       include/common.h
+	M       configure.in
+
+08/17. BUGFIXING #4894, Fixed the bug when select text close the ime window in
+sledit control. (humingming)
+	* src/control/edit.c
+
+08/13. BUGFIXING #4897, Fixed the bug get end_node in
+textlayout_relayout(dongjunjie)
+	* src/texteditor/mtextedit.c
+
+08/12. BUGFIXING #4850, Fixed Scrolled control flicker(houhh).
+	* control/scrolled.h
+	* control/scrolled.c
+
+08/11. ENHANCEMENT $14 Add CMakeLists.txt to root file and src file for cmake
+(ZhaolinHu)
+	*	src/kernel/CMakeLists.txt
+	*	src/control/CMakeLists.txt
+	*	src/image/CMakeLists.txt
+	*	src/include/CMakeLists.txt
+	*	src/main/CMakeLists.txt
+	*	src/gui/CMakeLists.txt
+	*	src/mybmp/CMakeLists.txt
+	*	src/standalone/CMakeLists.txt
+	*	src/sysres/CMakeLists.txt
+	*	src/textedit/CMakeLists.txt
+	*	src/misc/CMakeLists.txt
+	*	src/ex_ctrl/CMakeLists.txt
+	*	src/gal/CMakeLists.txt
+	*	src/gdi/CMakeLists.txt
+	*	src/ial/CMakeLists.txt
+	*	src/font/CMakeLists.txt
+	*	src/server/CMakeLists.txt
+	*	src/libc/CMakeLists.txt
+	*	src/ime/CMakeLists.txt
+	*	src/newgal/CMakeLists.txt
+	*	src/newgdi/CMakeLists.txt
+	*	src/CMakeLists.txt
+	*	src/client/CMakeLists.txt
+	*	CMakeLists.txt
+
+*******************************************************************************
+What's new in this branch (3.0.8 OR, 2010/05/06 ~ 2010/08/06)
+
+08/10. BUGFIXING #4887 #4888 the bug of texteditor. the textlayout_relayout
+has is not corrent.
+	* src/textedit/mtextedit.c
+
+08/10. BUGFIXING #4885 some veriables haven't been initialized before used
+(ZhaolinHu)
+	* src/newgdi/glyph.c
+
+08/06. BUGFIXING #4879 fixed Cursor position not fit with the
+font width bug when font with style FONT_WEIGHT_BOOK (XuBinWang)
+	* src/newgdi/glyph.c
+
+08/06. BUGFIXING #4872 didnot exclude the title text when
+mTextEditor_insertText(dongjunjie)
+	* src/textedit/mtextedit.c
+	* src/textedit/mtexteditbase.h
+
+08/06. BUGFIXING #4878 fixed upf bug when the font move in or out with 
+style FONT_WEIGHT_SUBPIXEL (ZhaolinHu)
+	* src/newgdi/glyph.c
+
+08/06. BUGFIXING #4873 fixed draw dot matrix font bug when it scale with
+style FONT_WEIGHT_REGULAR. (humingming)
+	* src/newgid/glyph.c
+
+08/05. BUGFIXING #4864 Treeview can not set item height.When font size is set 
+to a big value, the layout is not well organized.  (zhaochengzhang)
+	* src/ex_ctrl/treeview.c
+
+08/04. BUGFIXING #4860: make convert uncompatible pixel format bitmap 
+and dc correct. (humingming)
+	* src/gui/lf_common.c
+
+08/04. CLEANUP #? Fix some warning. (zouqizhi)
+	* src/gui/dialog.c
+	* src/textedit/mtextedit.c
+	* src/ex_ctrl/treeview.c
+
+08/04. ENHANCEMENT #13 Rename dynamic ial to 'dlcustom'. Add sample of
+libiale_custom.so. (zouqizhi)
+	* configure.in
+	* src/ial/ial.c
+	* src/ial/Makefile.am
+	* src/ial/dynamic-ial.c
+	* src/ial/dynamic-ial.h
+	* src/ial/dlcustom/Makefile.am
+	* src/ial/dlcustom/dlcustom.h
+	* src/ial/dlcustom/dlcustom.c
+	* src/ial/dlcustom/sample/Makefile
+	* src/ial/dlcustom/sample/iale_custom.c
+	* src/ial/dlcustom/sample/iale_custom.h
+
+08/04. BUGFIXING #4850: Solve the flicker issue of ScrollView control by
+shrink the clip rect. (wanzheng)
+	* src/gui/window.c
+
+08/03. BUGFIXING #4862 Fix function _glyph_move_to_pixel receives point value less
+than zero from  _dc_ft2subpixel_scan_line (ZhaolinHu)
+	* src/newgdi/glyph.c
+
+08/03. ENHANCEMENT #12 merge treeview.c form rel-2-0-4, previous treeview.c had
+moved to treeview_rdr.c (zouqizhi)
+	* src/gui/ctrlclass.c
+	* src/ex_ctrl/treeview_rdr.c
+	* src/ex_ctrl/Makefile.am
+	* src/ex_ctrl/treeview.c
+	* include/ctrl/treeview.h
+	* configure.in
+
+08/03. BUGFIXING #4861 Fix bug of MBS2WCSEx that make an error occurred when
+converting half of the mutil-bytes character.(dongkai)
+	* src/font/textops.c
+
+08/03. BUGFIXING #4866 Fix HFlipBitmap/VFlipBitmap flip error when bitmap have
+alpha_mask info. (houhh)
+	* src/newgdi/bitmap.c
 
 07/28. BUGFIXING: region cause the minigui crash. CLIPRECT's next member can
 be NULL, but many functions didnot check it when they use the code like 
@@ -615,6 +1725,14 @@ transparent control. (wanzheng)
 	* src/font/rawbitmap.c
 	* src/font/upf.c
 
+12/15. TUNNING #6: Remove "ENHANCEMENT #4" and tune the devfont selection when
+creating LOGFONT. (ymwei)
+	* src/font/varbitmap.c
+	* src/font/rawbitmap.c
+	* src/font/qpf.c
+	* src/font/upf.c
+	* src/font/devfont.c
+
 12/15. TUNNING #2: Tune the devfont selection when creating LOGFONT. (ymwei)
 	* src/font/devfont.c
 
@@ -676,6 +1794,10 @@ drag the track.(houhh)
 	* src/ial/netial/client/netial_ctrlwin.c
 	* src/ial/netial/client/netial_ctrlwin.h
 
+11/30. ENHANCEMENT #3: use zorder instead of alpha hole in Nexus GAL.
+(wanzheng)
+	* src/newgal/nexus/nexusvideo_pri.c
+
 11/29. BUGFIXING #?: Fix memory leak of timer and parsor threads. (ymwei via
 valgrind)
 	* src/kernel/init.c
@@ -723,6 +1845,32 @@ ARGB888->(A)RGB888 blending with pixel alpha. (ymwei)
 	* src/newgal/sysvideo.h
 	* src/newgal/Makefile.am
 	* configure.in
+11/26. BUGFIXING #?: do not create hardware surface in GAL_CreateRGBSurfaceFrom().
+It's a workaround for the bug that the bitmap can't be displayed in mPeer. (wanzheng)
+See also `10/15. ENHANCEMENT #28'
+	* src/newgal/surface.c
+
+11/26. ENHANCEMENT #2: add NexusPrivate_CreateMemDCFromPixels() to support BitBlt()
+from the `render plane' of flash-lite to the DC of a control. (wanzheng)
+	* src/newgal/nexus/*
+
+11/20. BUGFIXING #?: add MG_RES_PATH macro to replace resinfo.(houhh)
+	* src/font/freetype2.c
+
+11/12. ENHANCEMENT #1: modify the implement of radio button and check button,
+make it repaint caption only when the background was erased.(dongkai)
+	* src/control/button.c
+
+11/09. BUGFIXING #?: change the usage of DEVFONT's data member in freetype2
+font engine.(houhh)
+	* src/font/freetype2.c
+
+*******************************************************************************
+What's new in this version (3.0.4 OR, 2009/04/15 ~ 2009/10/31)
+
+10/30. TUNNING #2: Use kernel version to determine the mmap argument on uClinux.
+(ymwei)
+	* src/newgal/fbcon/fbvideo.c
 
 10/26. BUGFIXING #?: fix invalid pWin pointer operation after window 
 is destroyed in wndHandleCustomHotspot(). (houhh)
@@ -737,9 +1885,21 @@ function : don't process the Null Pointer, and send them to strncmp
 (dongjunjie)
 	* src/ex_ctrl/listview.c
 
+10/22. CLEANUP #3: Cleanup the warnings:
+	* src/control/listbox.c
+	* src/ex_ctrl/listview.c
+	* src/gui/lf_skin.c
+	* src/font/in-core/rbf_vgaoem_8x8.c
+	* src/font/in-core/rbf_terminal_8x12.c
+	* src/font/in-core/rbf_fixedsys_8x15.c
+	* src/newgal/pcxvfb/pcxvfb.c
+
 10/22. BUGFIXING #?: check the `speed' parameter of SetTimerEx(), set speed to
 1 if speed < 1. (wanzheng)
 	* src/kernel/timer.c
+
+10/18. ENHANCEMENT #29: Add dynamic-ial module. (wanzheng)
+	* src/ial/dynamic-ial.*
 
 10/15. CLEANUP #: Merge diffrences from rel-3-0.
 	* src/kernel/desktop-comm.c
@@ -753,6 +1913,20 @@ function : don't process the Null Pointer, and send them to strncmp
 	* include/window.h
 	* include/fixedmath.h
 	* etc/MiniGUI.cfg
+
+10/15. ENHANCEMENT #28: Optimize for the PNG bitmap with pixel alpha.(wanzheng)
+	[A] _PutBoxAlpha(): optimize for the ARGB32 format. (10X faster than the
+	normal method)
+	[B] GAL_CreateRGBSurfaceFrom(): Try to create a hardware surface,
+	this can make the hardware acceleration work when we blit the bitmap
+	onto the screen. (10X faster than [A])
+	* src/newgal/surface.c
+
+10/15. CLEANUP #2: Merge diffrences from the trunk.
+
+10/12. ENHANCEMENT #27: Make NexusGAL support pixel alpha blending.
+(wanzheng)
+	* src/newgal/nexus/*
 
 10/15. ENHANCMENT #?: Add two function for mstudio : SetWindowZOrder and
 GetWindowZOrder. Used by GUI Builder, PropSheet recreate page and
@@ -827,6 +2001,17 @@ SetCaretPos().(houhh)
 	* src/gui/caret.c
 	* include/window.h
 
+09/14. TUNNING #1: Modify the flat renderer implementation of control
+(propsheet, listview, and newtoolbar).(xwyan)
+	* src/control/propsheet.c
+	* src/control/static.c
+	* src/ex_ctrl/listview.c
+	* include/window.h
+	* src/control/newtoolbar_impl.h
+	* src/gui/lf_classic.c
+	* src/gui/lf_flat.c
+	* etc/MiniGUI.cfg
+
 09/14. BUGFIXING #?: fix bug when use MoveWindow to move control and 
 fPaint is FALSE; cleanup up old comments. (houhh)
 	* src/gui/window.c
@@ -888,15 +2073,19 @@ border area, it exclude error client area when window is control.(houhh)
 	* src/control/textedit_impl.h
 	* src/control/ctrlmisc.c
 
-08/05 BUGFIXING #?: fix bug of propsheet with PSS_SCROLLABLE and initializing 
+08/05. BUGFIXING #?: fix bug of propsheet with PSS_SCROLLABLE and initializing 
 zero window size.(xwyan)
 	* src/control/propsheet.c
 
-08/05 BUGFIXING #?: fix negative client size in OnChangeSize. It should be 
+08/05. BUGFIXING #?: fix negative client size in OnChangeSize. It should be 
 adjust calc_we_area implementation in window renderer.(xwyan)
 	* src/gui/window.c
 
-07/31 BUGFIXING #?: fix bug of lvDrawHeader/lvDrawheaderCustom/alvDrawSubItem
+08/03. ENHANCEMENT #21: Add JZ4740 IAL, the ial default close
+	* src/ial/jz4740.c
+	* src/ial/jz4740.h
+
+07/31. BUGFIXING #?: fix bug of lvDrawHeader/lvDrawheaderCustom/alvDrawSubItem
 in listview.(xwyan)
 	* src/ex_ctrl/listview.c
 
@@ -904,6 +2093,23 @@ in listview.(xwyan)
 closebox button(houhh).
 	* src/gui/lf_classic.c
 	* src/gui/lf_skin.c
+
+07/30. ENHANCEMENT #20: Add evaluation info dialog(interval 5 minites) 
+for EVALUATION version(houhh).
+	* src/misc/evaluation.c
+
+07/30. BUGFIXING #?: fix dskMoveWindow when hava none-regular top
+window(houhh).
+	* src/kernel/desktop.c
+
+07/30. ENHANCEMENT #19: Add watermark for EVALUATION version.
+(houhh)
+	* src/misc/evaluation.c
+	* src/kernel/desktop.c
+	* src/kernel/init.c
+	* src/kernel/init-lite.c
+	* src/server/server.c
+	* include/zorder.h
 
 07/30 BUGFIXING #?: fix bug of delete_page in propsheet.(xwyan)
 	* src/control/propsheet.c
@@ -922,6 +2128,12 @@ size changed when window's RECT is 0
 	* src/gui/lf_skin.c
 	* src/gui/lf_flat.c
 	* src/control/listbox.c
+
+07/28. ENHANCEMENT #17: Add product-id (wanzheng)
+	* src/misc/product-id.c
+	* src/misc/product-id.h
+	* src/misc/Makefile.am
+	* configure.in
 
 07/28. BUGFIXING #? : listview draw grid border
 	* src/ext_ctrl/listview.c
@@ -957,6 +2169,10 @@ directly. (dongjunjie)
 	* src/gui/lf_manager.c
 	* src/gui/lf_skin.c
 
+07/23. BUGFIXING #?: Fix compiling error for MoWei ECOS platform. (wanzheng)
+	* src/ial/qvfb.c
+	* src/ial/auto.c
+
 07/22. BUGFIXING #?: Change implementation of Str2Key to avoid error in some
 arch. (weiym)
 	* src/sysres/sysmgr.c
@@ -988,6 +2204,23 @@ control. (xwyan)
 07/20. BUGFIXING #?: RegisterResFromMem load mem resource faild, it is
 used error resource ext name. (houhh)
 	* src/sysres/resource.c
+
+07/19. ENHANCEMENT #13: Add acclerated NEWGAL driver for Silicon Motion
+graphics card by using libpciaccess. (ymwei)
+	* src/newgal/fbcon/fbvideo.h
+	* src/newgal/fbcon/fbvideo.c
+	* src/newgal/fbcon/compiler.h
+	* src/newgal/fbcon/pciinfo.h
+	* src/newgal/fbcon/pcivideo.[ch]
+	* src/newgal/fbcon/pci_smi.[ch] (for SMI graphics card)
+	* configure.in
+
+07/17. ENHANCEMENT #12: Record keyboard & mouse events in qvfb IAL, and 
+auto play them in auto IAL. (wanzheng)
+	* src/ial/qvfb.c
+	* src/ial/auto.c
+	* src/ial/auto-protocol.h
+	* src/ial/Makefile.am
 
 07/17. BUGFIXING #3714: After deleting the control with WS_EX_CTRLASMAINWIN in 
 window, clicking the non-client in window will causes coredump. (xwyan)

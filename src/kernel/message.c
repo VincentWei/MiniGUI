@@ -1262,8 +1262,8 @@ int SendSyncMessage (HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
         SyncMsg.sem_handle = &sync_msg;
     }
 #else
-        //The following DispatchMessage will need this function is reentrant function,
-        //so we must use unique semaphore.
+    //The following DispatchMessage will need this function is reentrant function,
+    //so we must use unique semaphore.
     thinfo = GetMsgQueueThisThread ();
     sem_init (&sync_msg, 0, 0);
     SyncMsg.sem_handle = &sync_msg;

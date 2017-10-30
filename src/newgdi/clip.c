@@ -130,11 +130,11 @@ void GUIAPI SelectClipRegion (HDC hdc, const CLIPRGN* pRgn)
     PDC pdc;
 
     pdc = dc_HDC2PDC (hdc);
-    if (pdc == NULL ){
+    if (pdc == NULL ) {
         return;
     }
 
-    if(pRgn == NULL){
+    if (pRgn == NULL) {
         MAKE_REGION_INFINITE(&pdc->lcrgn);
     }else{
         ClipRgnCopy (&pdc->lcrgn, pRgn);
@@ -165,7 +165,7 @@ int GUIAPI SelectClipRegionEx (HDC hdc, const CLIPRGN* pRgn, int fnMode)
         retval = XorRegion (&pdc->lcrgn, &pdc->lcrgn, pRgn);
         break;
     default:
-        if(pRgn == NULL){
+        if (pRgn == NULL) {
             MAKE_REGION_INFINITE(&pdc->lcrgn);
             retval = TRUE;
         }else{
