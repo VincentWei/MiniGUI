@@ -1,6 +1,12 @@
 *******************************************************************************
 What's new (trunk):
 
+10/30 BUGFIXING: Bad MG_PRINTF usage.
+
+10/30 BUGFIXING: Incorrect elif condition usage; incore rbf defonts are not 
+included correctly.
+	* src/font/devfont.c
+
 10/30 CLEANUP: Merge differences from rel-3-0 mannually!
 
 10/26 CLEANUP: svn merge -r 13673:13828 ^/branches/rel-3-0

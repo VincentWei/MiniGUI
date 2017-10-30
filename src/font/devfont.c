@@ -479,12 +479,12 @@ extern INCORE_RBFINFO __mgif_rbf_fixedsys_8x15;
 static INCORE_RBFINFO* incore_rbfonts [] = {
 #ifdef _MGINCORERBF_LATIN1_VGAOEM
     &__mgif_rbf_vgaoem_8x8,
-#elif defined _MGINCORERBF_LATIN1_TERMINAL
+#endif
+#ifdef _MGINCORERBF_LATIN1_TERMINAL
     &__mgif_rbf_terminal_8x12,
-#elif defined _MGINCORERBF_LATIN1_FIXEDSYS
+#endif
+#ifdef _MGINCORERBF_LATIN1_FIXEDSYS
     &__mgif_rbf_fixedsys_8x15,
-#else
-	NULL
 #endif
 };
 

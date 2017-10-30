@@ -49,7 +49,7 @@ BOOL gui_LoadIconRes(HDC hdc, const char* rdr_name, char* file)
     if (LoadResource(szValue, RES_TYPE_ICON, (DWORD)hdc) != NULL)
         return TRUE;
 
-    _MG_PRINTF(stderr, "SYSRES: can't get %s's value from section %s in etc.\n",
+    _MG_PRINTF ("SYSRES: can't get %s's value from section %s in etc.\n",
             file, rdr_name);
 
     return FALSE;

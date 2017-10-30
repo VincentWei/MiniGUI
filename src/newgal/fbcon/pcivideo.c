@@ -12,7 +12,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define _DEBUG
 #include "common.h"
 
 #ifdef _MGHAVE_PCIACCESS
