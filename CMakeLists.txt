@@ -14,7 +14,7 @@ set (MINIGUI_MAJOR_VERSION 3)
 set (MINIGUI_MINOR_VERSION 0)
 set (MINIGUI_MICRO_VERSION 13)
 
-set (MINIGUI_NAME "minigui")
+set (PROJECT_NICKNAME "minigui")
 set (MGLIB_SUFFIX "")
 set (MINIGUI_VERSION ${MINIGUI_MAJOR_VERSION}.${MINIGUI_MINOR_VERSION}.${MINIGUI_MICRO_VERSION})
 set (MINIGUI_SOVERSION ${MINIGUI_MAJOR_VERSION}) 
@@ -557,7 +557,7 @@ set (includedir "\${prefix}/include")
 set (MiniGUI_VERSION ${MINIGUI_VERSION})
 configure_file(
     "${PROJECT_SOURCE_DIR}/minigui.pc.in"
-    "${PROJECT_BINARY_DIR}/${MINIGUI_NAME}.pc")
+    "${PROJECT_BINARY_DIR}/${PROJECT_NICKNAME}.pc")
 # configure header file of mgconfig to pass the CMake settings
 # to the source code
 configure_file(
@@ -589,18 +589,18 @@ ENDIF (WIN32)
 
 # include
 install (FILES  "${PROJECT_BINARY_DIR}/mgconfig.h"
-    DESTINATION include/${MINIGUI_NAME}
+    DESTINATION include/${PROJECT_NICKNAME}
 )
 
 install (DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-    DESTINATION include/${MINIGUI_NAME}
+    DESTINATION include/${PROJECT_NICKNAME}
     FILES_MATCHING PATTERN "*.h"
                    PATTERN "*.c"
                    PATTERN ".svn" EXCLUDE
     )
 
 # pkgconfig
-install (FILES "${PROJECT_BINARY_DIR}/${MINIGUI_NAME}.pc"
+install (FILES "${PROJECT_BINARY_DIR}/${PROJECT_NICKNAME}.pc"
     DESTINATION lib/pkgconfig)
 
 # Cmake Modules
@@ -611,19 +611,7 @@ install (DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/"
                    PATTERN ".svn" EXCLUDE
                    )
 
-##################### make dist  packet binary #########################
-#set(CPACK_PACKAGE_VERSION_MAJOR ${MINIGUI_MAJOR_VERSION})
-#set(CPACK_PACKAGE_VERSION_MINOR ${MINIGUI_MINOR_VERSION})
-#set(CPACK_PACKAGE_VERSION_PATCH ${MINIGUI_MICRO_VERSION})
-#set(CPACK_GENERATOR "TBZ2")
-#set(CPACK_PACKAGE_FILE_NAME
-#      "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}-${with_osname}")
-#
-#include(CPack)
-#add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package)
-#set_target_properties (dist PROPERTIES OUTPUT_NAME ${CPACK_PACKAGE_FILE_NAME})
-
-##################### make dist  packet source #########################
+##################### make dist package source #########################
 set(CPACK_PACKAGE_VERSION_MAJOR ${MINIGUI_MAJOR_VERSION})
 set(CPACK_PACKAGE_VERSION_MINOR ${MINIGUI_MINOR_VERSION})
 set(CPACK_PACKAGE_VERSION_PATCH ${MINIGUI_MICRO_VERSION})
@@ -637,7 +625,7 @@ set(CPACK_SOURCE_IGNORE_FILES
       ${CPACK_SOURCE_IGNORE_FILES}")
 
 set(CPACK_SOURCE_PACKAGE_FILE_NAME
-    "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
+    "${PROJECT_NICKNAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME
     "${CPACK_SOURCE_PACKAGE_FILE_NAME}.${CPACK_PACKAGE_VERSION_PATCH}-${with_osname}")
 
