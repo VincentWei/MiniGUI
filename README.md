@@ -19,12 +19,12 @@ A mature cross-platform windowing system and GUI system for IoT devices.
 ## INTRODUCTION
     
 MiniGUI is a mature cross-platform windowing system and GUI (Graphics 
-User Interface) support system for real-time embedded systems. This 
-is version 3.2 released by FMSoft (http://www.minigui.com).
+User Interface) support system for embedded systems and IoT devices. This 
+is the mainline release of MiniGUI maintained by WEI Yongming.
 
 MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
 windowing and GUI support system, which is especially fit for 
-real-time embedded systems based-on Linux/uClinux, eCos, and other 
+embedded systems or IoT devices based-on Linux/uClinux, eCos, and other 
 tranditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II, 
 and OSE.
 
@@ -32,33 +32,35 @@ This is the MiniGUI core source tarball, which provides windowing
 and graphics interfaces as well as a lot of standard controls. 
 
 Besides MiniGUI core, FMSoft also provides some components
-for the developers to develop application much easier:
+for the developers to develop app much easier:
+
+    * mGPlus: A MiniGUI component which provides support for advanced graphics 
+      functions like path, gradient, anti-aliase stretch, and color combination.
+
+    * mGNCS: This component provides a new control set for MiniGUI app. 
+      By using mGNCS, you can use miniStudio to develop MiniGUI app in 
+      WYSIWYG way. 
+
+    * mGEff: mGEff provides an animation framework for MiniGUI app. 
+      It also provides some popular UI/UE special effects.
+
+There are also some legacy MiniGUI components:
 
     * mGi: An input method component for MiniGUI. This component provides
       some typical input methods (such as softkey, hand-writing, and predict
-      text input for mobile phone) for MiniGUI applications. 
+      text input for mobile phone) for MiniGUI apps. 
 
     * mGp: A printing component for MiniGUI. By using mGp, you can print
-      out the graphics created by MiniGUI application to general-purpose priters.
+      out the graphics created by MiniGUI app to general-purpose priters.
 
     * mG3d: A simple three-dimension component for MiniGUI. This component
-      provides a simple 3D API for application. You can use mG3d to create
+      provides a simple 3D API for app. You can use mG3d to create
       3D UI.
 
     * mGUtils: A MiniGUI component which contains miscellaneous utilities 
       like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
 
-    * mGPlus: A MiniGUI component which provides support for advanced graphics 
-      functions like path, gradient, anti-aliase stretch, and color combination.
-
-    * mGNCS: This component provides a new control set for MiniGUI application. 
-      By using mGNCS, you can use miniStudio to develop MiniGUI application in 
-      WYSIWYG way. 
-
-    * mGEff: mGEff provides an animation framework for MiniGUI application. 
-      It also provides some popular UI/UE special effects.
-
-MiniGUI also is a free software project. In December 1998, the initiator of 
+MiniGUI is a free software project. In December 1998, the initiator of 
 FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public 
 License (GPL). In September 2002, the core developers of 
 MiniGUI founded FMSoft and started the commercial marketing with 
@@ -87,8 +89,7 @@ You can configure and compile MiniGUI as one of three runtime modes:
       UNIX-like operating systems, like Linux.
 
     * `MiniGUI-Standalone': A single process version of MiniGUI. This mode
-      is useful for some systems which lack of PThread support, like some 
-      buggy uClinux systems.
+      is useful for some small systems, like uClinux or RTOSes.
 
 The original MiniGUI (version 1.0) run in MiniGUI-Threads mode.
 It is based on POSIX-compliant thread library. And this thread-based 
@@ -225,6 +226,7 @@ A brief history description of the developement progress lay below:
         43) Oct., 2010:     MiniGUI official version 3.0.12 released.
         44) Aug., 2017:     FMSoft opened the latest source code of MiniGUI under GPL 2.0.
         45) Aug., 2017:     FMSoft opened the latest source code of mDolphin under Apache 2.0.
+        46) Oct., 2017:     WEI Yongming resumed the development of MiniGUI.
 
 
 ## ABOUT THE AUTHORS
