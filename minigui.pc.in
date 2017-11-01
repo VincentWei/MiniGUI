@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: MiniGUI
 Description: A windowing system for embedded system.
-Version: @MiniGUI_VERSION@
+Version: @MINIGUI_VERSION@
 Requires:
 Libs: -L${libdir} -lminigui_@MGLIB_SUFFIX@ @MINIGUI_LIBRARIES_LIST@
 Libs.private:

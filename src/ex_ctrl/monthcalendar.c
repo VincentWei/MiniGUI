@@ -427,9 +427,9 @@ static void mcDrawDay (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay,
                                 int newday)
 {
     RECT rcPItemDay, rcItemDay;
-    PMCCOLORINFO pmcci;
+    // NUV PMCCOLORINFO pmcci;
     
-    pmcci = (PMCCOLORINFO) mc_data->dwClrData;
+    // NUV pmcci = (PMCCOLORINFO) mc_data->dwClrData;
     mcGetCurRect (prcMDay, &rcPItemDay, mc_data);
     mcUnHilightRect (hWnd, mc_data, hdc, &rcPItemDay, mc_data->cur_day);    
 
@@ -597,7 +597,7 @@ static void mcDrawCalendar (HWND hWnd, HDC hdc, PMONCALDDATA mc_data)
     RECT rcAML, rcAMR, rcAYL, rcAYR;
     DWORD dwStyle;
     PMCCOLORINFO pmcci;
-    UINT uFormat;
+    // NUV UINT uFormat;
     WINDOWINFO *info = (WINDOWINFO*)GetWindowInfo (hWnd);
     DWORD color;
 
@@ -640,7 +640,7 @@ static void mcDrawCalendar (HWND hWnd, HDC hdc, PMONCALDDATA mc_data)
             const char* pchMon;
             int oldcolor;
 
-            uFormat = DT_SINGLELINE | DT_CENTER | DT_VCENTER;
+            // NUV uFormat = DT_SINGLELINE | DT_CENTER | DT_VCENTER;
             if ((dwStyle & MCS_LANG) == MCS_CHN)
                 pchMon = chMon_C[mc_data->cur_month-1];
             else if ((dwStyle & MCS_LANG) == MCS_ENG_L)

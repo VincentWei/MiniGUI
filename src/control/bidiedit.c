@@ -409,7 +409,7 @@ static BOOL check_sel_edge(int* p, int* num, PBIDISLEDITDATA sled)
             return FALSE;
     }
 
-    if(!*num > 1) return TRUE;
+    if (!(*num > 1)) return TRUE;
     if(sled->selStart == p[0] && (sled->selEnd+1) == p[1]){
         p[1] -= 1;
     }
@@ -596,7 +596,9 @@ sleSetSel (HWND hWnd, PBIDISLEDITDATA sled, int sel_start, int sel_end)
  */
 static void set_caret_pos (HWND hWnd, PBIDISLEDITDATA sled, int x, BOOL bSel)
 {
+#ifdef _DEBUG
     int out_chars = 0;
+#endif
     int out_glyphs = 0;
     HDC hdc;
     SIZE txtsize;
@@ -606,15 +608,19 @@ static void set_caret_pos (HWND hWnd, PBIDISLEDITDATA sled, int x, BOOL bSel)
     sleWindowToContent (sled, &x);
 
     if (x - sled->startx <= 0) {
+#ifdef _DEBUG
         out_chars = 0;
+#endif
         txtsize.cx = 0;
     }
     else {
         out_glyphs = GetGlyphsExtentPoint (hdc, GLYPHS, GLYPHSLEN,
                                           x - sled->startx, &txtsize);
+#ifdef _DEBUG
         if(out_glyphs <= GLYPHSLEN){
             out_chars = get_glyph_text_index(sled, out_glyphs);
         }
+#endif
         _MG_PRINTF ("editPos=%d,out_chars=%d\n", out_glyphs, out_chars);
     }
     if (!bSel) {
@@ -2101,13 +2107,13 @@ static void
 esleft_input_char_refresh (HWND hWnd, 
         PBIDISLEDITDATA sled, char *charBuffer, int chars)
 {
-    int old_caretpos_x, cur_caretpos_x;
+    int old_caretpos_x;
     int old_sel_start, old_sel_end; 
     int old_sel_start_x, old_sel_end_x, cur_sel_start_x;
     RECT scroll_rc, refresh_rc;
     int scroll_len;
     int old_edit_pos_x, cur_edit_pos_x;
-    int old_nContX, cur_ncontx;
+    int old_nContX;
     //char_size is width of input chars; sel_size is width of the selected area 
     int char_size, sel_size;
     int glyphs_len_x;
@@ -2128,8 +2134,6 @@ esleft_input_char_refresh (HWND hWnd,
 
     calc_glyph_pos_cx(hWnd, sled, sled->editPos, &cur_edit_pos_x);
     calc_glyph_pos_cx(hWnd, sled, old_sel_start, &cur_sel_start_x);
-    cur_ncontx = sled->nContX;
-    cur_caretpos_x = get_caretpos_x(hWnd);
     char_size = cur_edit_pos_x - cur_sel_start_x;
     sel_size = abs(old_sel_start_x - old_sel_end_x);
 

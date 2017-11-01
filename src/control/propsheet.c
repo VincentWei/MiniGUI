@@ -310,8 +310,10 @@ scroll_tab_right (HWND hwnd, PCONTROL ctrl, PPROPSHEETDATA propsheet)
 
 static void scroll_tab_left (HWND hwnd, PCONTROL ctrl, PPROPSHEETDATA propsheet)
 {
+    /* not used vars
     PPROPPAGE page;
     page = propsheet->first_display_page;
+    */
 
     if (propsheet->active == propsheet->head) {
         return;

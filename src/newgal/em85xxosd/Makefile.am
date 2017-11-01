@@ -1,4 +1,4 @@
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
 			            -I$(abs_top_srcdir)/src/newgal/ -I/EM85xx_with_GUI/kernelmodule
 
 noinst_LTLIBRARIES = libvideo_em85xxosd.la

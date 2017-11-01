@@ -643,7 +643,7 @@ BOOL wndGetHScrollBarRect (const MAINWIN* pWin,
 void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc, 
         HDC real_dc, const RECT* rc, DWORD flags)
 {
-    PDC pdc_main, pdc_child;
+    PDC pdc_main;
     RECT wnd_rc, clip_rc, client_rc;
 
     if (!dc_IsVisible((PDC)secondary_dc))
@@ -653,7 +653,6 @@ void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
     }
 
     pdc_main  = dc_HDC2PDC(real_dc);
-    pdc_child = dc_HDC2PDC(secondary_dc);
 
     /* calculate offset postion. */
     if (flags == HT_CLIENT){
@@ -1554,7 +1553,6 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
 static int DefaultNCMouseMsgHandler(PMAINWIN pWin, int message, 
         int location, int x, int y)
 {
-    static PMAINWIN downWin  = NULL;
     static int downCode = HT_UNKNOWN;
     static int moveCode = HT_UNKNOWN;
     static int hiliteCode = HT_UNKNOWN;
@@ -1627,7 +1625,6 @@ static int DefaultNCMouseMsgHandler(PMAINWIN pWin, int message,
                     downCode = location;
                     moveCode = location;
                     hiliteCode = HT_UNKNOWN;
-                    downWin  = pWin;
 
                     wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
                 }
@@ -1704,7 +1701,6 @@ static int DefaultNCMouseMsgHandler(PMAINWIN pWin, int message,
             downCode = HT_UNKNOWN;
             moveCode = HT_UNKNOWN;
             hiliteCode = HT_UNKNOWN;
-            downWin  = NULL;
             break;
 
 #ifdef _MGHAVE_MENU
@@ -4147,11 +4143,10 @@ void GUIAPI ScreenToWindow (HWND hWnd, int* x, int* y)
 
 void GUIAPI WindowToClient (HWND hWnd, int* x, int* y)
 {
-    PCONTROL pParent;
     PCONTROL pCtrl;
 
     MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
-    pParent = pCtrl = MG_GET_CONTROL_PTR (hWnd);
+    pCtrl = MG_GET_CONTROL_PTR (hWnd);
 
     *x -= pCtrl->cl - pCtrl->left;
     *y -= pCtrl->ct - pCtrl->top;
@@ -4159,11 +4154,10 @@ void GUIAPI WindowToClient (HWND hWnd, int* x, int* y)
 
 void GUIAPI ClientToWindow (HWND hWnd, int* x, int* y)
 {
-    PCONTROL pParent;
     PCONTROL pCtrl;
 
     MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
-    pParent = pCtrl = MG_GET_CONTROL_PTR (hWnd);
+    pCtrl = MG_GET_CONTROL_PTR (hWnd);
 
     *x += pCtrl->cl - pCtrl->left;
     *y += pCtrl->ct - pCtrl->top;
@@ -5787,8 +5781,8 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
     int     w = 0, h = 0;
     BYTE*   bits = NULL;
     Uint32  transparent  = 0;
-    unsigned sA= 0;
-    unsigned sR, sG, sB;//, sA;
+    unsigned sA = 0;
+    unsigned sR, sG, sB;
 
     if (!mask) return NULL;
 

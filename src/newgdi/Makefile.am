@@ -1,4 +1,4 @@
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
 
 noinst_LTLIBRARIES = libnewgdi.la
 

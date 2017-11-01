@@ -1,5 +1,5 @@
 
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
             -I$(abs_top_srcdir)/src/sysres/ -I$(abs_top_srcdir)/src/font/
 
 noinst_LTLIBRARIES=libincorefonts.la

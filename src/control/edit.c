@@ -963,7 +963,6 @@ static void esright_backspace_refresh(HWND hWnd, PSLEDITDATA sled, int del)
                 scroll_rc.right = sled->rcVis.right;
                 old_caret_x = get_caretpos_x(hWnd);
 
-
                 sleInsertText_refresh (hWnd, sled, NULL, del);
                 edtSetCaretPos (hWnd, sled);
                 cur_caret_x = get_caretpos_x(hWnd);
@@ -1648,13 +1647,13 @@ static void
 esleft_input_char_refresh (HWND hWnd, 
         PSLEDITDATA sled, char *charBuffer, int chars)
 {
-    int old_caretpos_x, cur_caretpos_x;
+    int old_caretpos_x;
     int old_sel_start, old_sel_end; 
     int old_sel_start_x, old_sel_end_x, cur_sel_start_x;
     RECT scroll_rc, refresh_rc;
     int scroll_len;
     int old_edit_pos_x, cur_edit_pos_x;
-    int old_nContX, cur_ncontx;
+    int old_nContX;
     //char_size is width of input chars; sel_size is width of the selected area 
     int char_size, sel_size;
     int txtlen_x;
@@ -1675,8 +1674,13 @@ esleft_input_char_refresh (HWND hWnd,
 
     calc_charpos_cx(hWnd, sled, sled->editPos, &cur_edit_pos_x);
     calc_charpos_cx(hWnd, sled, old_sel_start, &cur_sel_start_x);
+
+    /* Not used var
+    int cur_caretpos_x, cur_ncontx;
     cur_ncontx = sled->nContX;
     cur_caretpos_x = get_caretpos_x(hWnd);
+    */
+
     char_size = cur_edit_pos_x - cur_sel_start_x;
     sel_size = abs(old_sel_start_x - old_sel_end_x);
 

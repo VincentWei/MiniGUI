@@ -1,4 +1,4 @@
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
 			            -I$(abs_top_srcdir)/src/newgal/
 
 SRC_FILES = hi3510_fbvideo.c gal_hi3560a.c hi3560_fbvideo.c pix_array.c tde.c

@@ -3069,7 +3069,7 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
 
     /** the menu item rect to be drawn*/
     RECT rect;
-    int inter;
+    // NUV int inter;
     int mioffx;
     int marginlx, marginrx;
     int offy;
@@ -3085,7 +3085,7 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
 
     if (pmi->type == TYPE_PPPMENU) return;
 
-    inter = LFRDR_INTERMENUITEMY;
+    // NUV inter = LFRDR_INTERMENUITEMY;
     mioffx = LFRDR_MENUITEMOFFX;
     marginlx = LFRDR_MENULEFTMARGIN;
     marginrx = LFRDR_MENURIGHTMARGIN;
@@ -3441,13 +3441,13 @@ static void cursor_block_down(PTRACKMENUINFO pcurtmi, PMENUITEM pcurmi)
 static void cursor_block_up(PTRACKMENUINFO pcurtmi, PMENUITEM pcurmi)
 {
     PMENUITEM pnewmi;
-    int y;
+    // NUV int y;
 
     if (pcurmi == NULL) return;
 
     pnewmi = mnuGetPrevMenuItem (pcurtmi, pcurmi);
 
-    y = get_menu_item_y_from_pstart(pcurtmi, pcurmi);
+    // NUV y = get_menu_item_y_from_pstart(pcurtmi, pcurmi);
 
     if (pcurtmi->rc.bottom > g_rcScr.bottom){
         if (pnewmi == mnuGetPrevMenuItem(pcurtmi, pcurtmi->pmi)){

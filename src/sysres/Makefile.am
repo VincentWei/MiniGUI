@@ -1,5 +1,5 @@
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
 
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
 SUBDIRS = bmp icon font cursor 
 if MG_ENABLE_SPLASH
 if	MG_ENABLE_SCREENSAVER

@@ -1,4 +1,4 @@
-INCLUDES = -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/control/ -I$(abs_top_srcdir)/src/include
+AM_CPPFLAGS = -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/control/ -I$(abs_top_srcdir)/src/include
 
 noinst_LTLIBRARIES = libexctrl.la
 

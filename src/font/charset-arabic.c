@@ -520,7 +520,7 @@ Glyph32 iso8859_6_char_glyph_value (const unsigned char* prev_mchar, int prev_le
     int char_index, prev_index;
     int final, initial, medial, ligature;
     int ignore;
-    char next_char = 0, prev_char = 0;
+    char next_char = 0; // NUV , prev_char = 0;
 
     /*ascii*/
     if(*mchar < 0x7f) return *mchar;
@@ -536,7 +536,7 @@ Glyph32 iso8859_6_char_glyph_value (const unsigned char* prev_mchar, int prev_le
     if(prev_mchar){
         prev_index = get_table_index(*prev_mchar);
         prev_affects_joining = ( prev_index >= 0 || is_char_transparent(*prev_mchar)) && (shape_info[prev_index].medial);
-        prev_char = *prev_mchar;
+        // NUV prev_char = *prev_mchar;
         /*houhh 20080505, check if ligature. */
         if(prev_affects_joining) {
             ligature = get_ligature(prev_mchar, prev_len, 1, &ignore);

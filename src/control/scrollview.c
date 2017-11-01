@@ -433,11 +433,13 @@ void scrollview_destroy (PSVDATA psvdata)
 int ScrollViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 {
     PSVDATA psvdata = NULL;
-    PSVLIST psvlist = NULL;
 
     if (message != MSG_CREATE) {
         psvdata = (PSVDATA) GetWindowAdditionalData2 (hWnd);
+        /* not used vars
+        PSVLIST psvlist = NULL;
         psvlist = &psvdata->svlist;
+        */
     }
 
     switch (message) {

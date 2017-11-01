@@ -1,7 +1,6 @@
-
 ## Makefile.am for MiniGUI using the framebuffer console video driver
 
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
 			            -I$(abs_top_srcdir)/src/newgal/
 
 noinst_LTLIBRARIES = libvideo_fbcon.la

@@ -56,12 +56,16 @@
 #      endif
 #    endif
 #  else
+#    undef PACKAGE
+#    undef VERSION
 #    undef PACKAGE_BUGREPORT
 #    undef PACKAGE_NAME
 #    undef PACKAGE_STRING
 #    undef PACKAGE_TARNAME
 #    undef PACKAGE_VERSION
 #    include "mgconfig.h"
+#    undef PACKAGE
+#    undef VERSION
 #    undef PACKAGE_BUGREPORT
 #    undef PACKAGE_NAME
 #    undef PACKAGE_STRING

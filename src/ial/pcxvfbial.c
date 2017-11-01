@@ -222,7 +222,7 @@ static void default_cb(void *user_data, const char* str)
 
 /********************  Low Level Input Operations ******************/
 
-static BOOL if_record_ial ()
+static BOOL if_record_ial (void)
 {
 #ifdef WIN32
     /* TODO: */
@@ -232,7 +232,7 @@ static BOOL if_record_ial ()
 #endif
 }
 
-static long long int getcurtime()
+static long long int getcurtime(void)
 {
 #ifdef WIN32
     /* TODO: */
@@ -262,7 +262,7 @@ static void write_rec (const void* buf, size_t n)
 #endif
 }
 
-static void flush_rec ()
+static void flush_rec (void)
 {
 #ifdef WIN32
     /* TODO: */

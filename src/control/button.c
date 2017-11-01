@@ -462,11 +462,13 @@ static void paint_content_focus(HDC hdc, PCONTROL pctrl, RECT* prc_cont)
     BOOL is_get_fmt = FALSE;
     gal_pixel old_pixel;
     RECT focus_rc;
-    int status, type;
     const WINDOW_ELEMENT_RENDERER* win_rdr;
 
+    /* Not used vars.
+    int status, type;
     status = BUTTON_STATUS (pctrl);
     type = BUTTON_TYPE (pctrl);
+    */
     win_rdr = GetWindowInfo((HWND)pctrl)->we_rdr;
     
     /*draw button content*/
@@ -592,16 +594,18 @@ static int ctrlst_rdrst[12] = {
 static void paint_check_radio_btn (HDC hdc, PCONTROL pctrl)
 {
     const WINDOW_ELEMENT_RENDERER* win_rdr;
-    gal_pixel text_pixel;
     int rdr_st;
 
     RECT rcClient;
     RECT rcContent;
     RECT rcBitmap;
 
-
     win_rdr = GetWindowInfo((HWND)pctrl)->we_rdr;
+
+    /* Not used vars
+    gal_pixel text_pixel;
     text_pixel = GetWindowElementPixelEx((HWND)pctrl, hdc, WE_FGC_WINDOW);
+    */
 
     rdr_st = ctrlst_rdrst [ BUTTON_STATUS (pctrl) &
                     (BST_POSE_MASK|BST_CHECK_MASK) ];

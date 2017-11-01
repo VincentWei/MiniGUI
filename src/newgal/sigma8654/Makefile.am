@@ -1,4 +1,4 @@
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
 			                        -I$(abs_top_srcdir)/src/newgal/
 
 noinst_LTLIBRARIES = libvideo_sigma8654.la

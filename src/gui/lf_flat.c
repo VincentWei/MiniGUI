@@ -603,7 +603,6 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
     int i, j, w, h, side_len, boundary;
     int box_l, box_t, box_r, box_b;
     int cross_l, cross_t, cross_r, cross_b;
-    int border_cut;
     gal_pixel color_pixel, pen_color_old, bru_color_old;
 
     if (pRect == NULL)
@@ -618,7 +617,6 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
 
     side_len = w>=h ? h : w;
     boundary = w>=h ? (w-h)>>1: (h-w)>>1;
-    border_cut = (side_len+1)>>3;
     
     color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color), 
                         GetBValue(color), GetAValue(color));
@@ -728,7 +726,6 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
     int i, j, w, h, side_len, boundary;
     int box_l, box_t, box_r, box_b;
     int hook_l, hook_t, hook_r, hook_b;
-    int border_cut;
     gal_pixel color_pixel, pen_color_old, bru_color_old;
     
     if (pRect == NULL)
@@ -743,7 +740,6 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
 
     side_len = w>=h ? h : w;
     boundary = w>=h ? (w-h)>>1: (h-w)>>1;
-    border_cut = (side_len+1)>>3;
 
     color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color), 
                         GetBValue(color), GetAValue(color));
@@ -2375,7 +2371,6 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     int font_h, font_offy;
     gal_pixel caption_active_bgc, caption_inact_bgc,
               text_active_color, text_inact_color,
-              border_color,
               old_brush_color, old_text_color; 
     PLOGFONT cap_font, old_font;
     const WINDOWINFO *win_info = NULL;
@@ -2407,15 +2402,11 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     {
         old_brush_color = SetBrushColor (hdc, caption_active_bgc);
         old_text_color = SetTextColor (hdc, text_active_color); 
-        border_color = GetWindowElementPixelEx
-            (hWnd, hdc, WE_FGC_ACTIVE_WND_BORDER);
     }
     else
     { 
         old_brush_color = SetBrushColor (hdc, caption_inact_bgc);
         old_text_color = SetTextColor(hdc,text_inact_color); 
-        border_color = GetWindowElementPixelEx
-            (hWnd, hdc, WE_FGC_INACTIVE_WND_BORDER);
     }
     
     /*Draw full background*/
@@ -2704,11 +2695,10 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
 {
     RECT rect;
     int sb_status = 0;
-    DWORD color_3d, fgc_3d, fgc_dis;
+    DWORD fgc_3d, fgc_dis;
     BOOL isCtrl = FALSE;    /** if TRUE it is scrollbar control else not */
     const WINDOWINFO  *info = GetWindowInfo (hWnd);
 
-    color_3d = GetWindowElementAttr(hWnd, WE_MAINC_THREED_BODY);
     fgc_3d = GetWindowElementAttr(hWnd, WE_FGC_THREED_BODY);
     fgc_dis = GetWindowElementAttr(hWnd, WE_FGC_DISABLED_ITEM);
     

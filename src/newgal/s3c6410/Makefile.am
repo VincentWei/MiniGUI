@@ -1,7 +1,7 @@
 
 ## Makefile.am for the S3C6410 video driver
 
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
 			            -I$(abs_top_srcdir)/src/newgal/
 
 noinst_LTLIBRARIES = libvideo_s3c6410.la

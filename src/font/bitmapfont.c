@@ -543,7 +543,8 @@ BOOL AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
             info->max_width = glyph_width;
 
         info->ave_width = (info->ave_width * info->node_cnt + glyph_width)/
-                        (++info->node_cnt);
+                        (info->node_cnt + 1);
+        info->node_cnt++;
     }    
     
     return TRUE;

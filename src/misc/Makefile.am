@@ -1,4 +1,4 @@
-INCLUDES = -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/include
+AM_CPPFLAGS = -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/include
 noinst_LTLIBRARIES = libmisc.la
 
 EXTRA_DIST= misc.c systext.c rwops.c endianrw.c nposix.c clipboard.c \

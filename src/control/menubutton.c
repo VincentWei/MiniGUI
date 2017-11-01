@@ -299,7 +299,7 @@ static PMBITEM mbRemoveItem (PMENUBTNDATA mb_data, int* pos)
 #else
 static PMBITEM mbRemoveItem (PMENUBTNDATA mb_data, int* pos)
 {
-    int index = 0, found = 0;
+    int index = 0;
     PMBITEM pmbi, prev;
 
     if (!mb_data->first_item)
@@ -319,7 +319,6 @@ static PMBITEM mbRemoveItem (PMENUBTNDATA mb_data, int* pos)
         pmbi = mb_data->first_item;
         while (pmbi->next) {
             if (*pos == index) {
-                found = 1;
                 break;
             }
 
@@ -328,7 +327,6 @@ static PMBITEM mbRemoveItem (PMENUBTNDATA mb_data, int* pos)
             index ++;
         }
 
-        //if (found == 1 || *pos == index) {
         if (*pos <= index) {
             prev->next = pmbi->next;
             return pmbi;
@@ -839,7 +837,7 @@ static int MenuButtonCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
                 fg_color = GetWindowElementAttr (hWnd, WE_FGC_WINDOW);
                 fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color), 
                                GetBValue(fg_color), GetAValue(fg_color));
-                SetTextColor (hdc, fg_color);
+                SetTextColor (hdc, fc);
                 DrawText (hdc, text, -1, &rcText, uFormat);
             }
         }

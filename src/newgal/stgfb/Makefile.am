@@ -2,7 +2,7 @@
 ## Makefile.am for the video driver on ST FrameBuffer
 
 TOP_DIR=../../..
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include \
 			            -I$(abs_top_srcdir)/src/newgal/ -I$(abs_top_srcdir)/src/newgal/stgfb/st_include
 
 

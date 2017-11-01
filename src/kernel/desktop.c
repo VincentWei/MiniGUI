@@ -2060,7 +2060,7 @@ int dskDestroyTopZOrderNode (int cli, int idx_znode)
 
 int dskSetTopForEver(int cli, int idx_znode, BOOL show)
 {
-    DWORD type;
+    // NUV DWORD type;
     ZORDERINFO* zi = _get_zorder_info (cli);
     ZORDERNODE* nodes;
 
@@ -2076,7 +2076,7 @@ int dskSetTopForEver(int cli, int idx_znode, BOOL show)
 #endif
 
     nodes = GET_ZORDERNODE(zi);
-    type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
+    // NUV type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
 
     /* lock zi for change */
     lock_zi_for_change (zi);

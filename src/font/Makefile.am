@@ -17,8 +17,8 @@ HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype.h freetype2.h qpf.h  \
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc
 
-INCLUDES = $(FT1_INC_DIR) $(FT2_INC_DIR)
-INCLUDES += -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
+AM_CPPFLAGS = $(FT1_INC_DIR) $(FT2_INC_DIR)
+AM_CPPFLAGS += -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
 
 libfont_la_SOURCES = $(SRC_FILES) $(HDR_FILES)
 

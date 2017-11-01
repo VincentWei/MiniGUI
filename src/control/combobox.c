@@ -84,11 +84,10 @@ static void ComboBoxDrawSpinButton (HWND hwnd, HDC hdc , int which, int status)
     PCOMBOBOXDATA pData;
     PCONTROL pCtrl;
     const WINDOWINFO *win_info;
-    DWORD main_3d, fg_3d;
+    DWORD fg_3d;
 	BOOL  bGetDC = FALSE;
 
-	if(hdc == 0)
-	{
+	if (hdc == 0) {
 		bGetDC = TRUE;
 		hdc = GetClientDC(hwnd);
 	}
@@ -97,8 +96,11 @@ static void ComboBoxDrawSpinButton (HWND hwnd, HDC hdc , int which, int status)
     win_info = GetWindowInfo(hwnd);
     pData = (PCOMBOBOXDATA)pCtrl->dwAddData2;
 
-    main_3d = GetWindowElementAttr(hwnd,WE_MAINC_THREED_BODY);
-    fg_3d = GetWindowElementAttr(hwnd,WE_FGC_THREED_BODY);
+    /* not used var
+    DWORD main_3d;
+    main_3d = GetWindowElementAttr(hwnd, WE_MAINC_THREED_BODY);
+    */
+    fg_3d = GetWindowElementAttr(hwnd, WE_FGC_THREED_BODY);
 
     if(which == 0)
         status = LFRDR_BTN_STATUS_NORMAL;

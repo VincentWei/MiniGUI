@@ -35,7 +35,7 @@ extern FONTOPS __mg_bitmap_font_ops;
 
 typedef struct _BMPFONTINFO
 {
-    char name[LEN_UNIDEVFONT_NAME]; /* font name */
+    char name[LEN_UNIDEVFONT_NAME + 1]; /* font name */
     int height;                 /* character height. */
     int ave_width;              /* average width of character */
     int max_width;              /* max width of character */
@@ -43,7 +43,7 @@ typedef struct _BMPFONTINFO
     GLYPHTREENODE* tree;        /* The pointer to glyph tree */
     int node_cnt;               /* The node count of AVL tree */
           
-} BMPFONTINFO;    
+} BMPFONTINFO;
 
 #ifdef __cplusplus
 }

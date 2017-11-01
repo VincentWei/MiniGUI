@@ -900,7 +900,6 @@ draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
     int i, w, h, side_len, boundary;
     int box_l, box_t, box_r, box_b;
     int hook_l, hook_t, hook_r, hook_b;
-    int border_cut;
     gal_pixel _pixel, old_pixel;
 
     if (!pRect)
@@ -917,7 +916,6 @@ draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
 
         side_len = w>h ? h : w;
         boundary = ABS(w-h)>>1;
-        border_cut = (side_len+1)>>3;
 
         _pixel = RGBA2Pixel (hdc, GetRValue(color),
                 GetGValue(color),
@@ -1824,13 +1822,11 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
     int cap_h;
     int menu_h;
     const WINDOWINFO* win_info = NULL;
-	const WINDOW_ELEMENT_RENDERER * rdr = NULL;
 
     int win_w = 0;
     int win_h = 0;
 
     win_info = GetWindowInfo (hWnd);
-	rdr  = win_info->we_rdr;
     win_w = win_info->right - win_info->left;
     win_h = win_info->bottom - win_info->top;
 
@@ -3182,7 +3178,7 @@ draw_tab (HWND hWnd, HDC hdc, RECT *pRect, char *title, DWORD color, int flag, H
     SIZE size;
     DWORD file;
     int eff_chars, eff_len;
-    int x, ty, by, text_extent;
+    int x, ty, text_extent;
     const BITMAP* bitmap;
     LFSKIN_BMPINFO bmp_info;
 
@@ -3208,15 +3204,12 @@ draw_tab (HWND hWnd, HDC hdc, RECT *pRect, char *title, DWORD color, int flag, H
         if (flag & LFRDR_TAB_BOTTOM) {
             bmp_info.flip = TRUE;
             ty -= 2;
-            by = pRect->bottom - 2;
         } else {
             ty += 2;
-            by = pRect->bottom;
         }
 
      } else {
         bmp_info.idx_line = 2;
-        by = pRect->bottom;
 
         if (flag & LFRDR_TAB_BOTTOM) {
             bmp_info.flip = TRUE;

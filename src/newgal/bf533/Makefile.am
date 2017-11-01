@@ -1,6 +1,6 @@
 ## Makefile.am for the bf533 video driver
 
-INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/newgal/
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/newgal/
 
 SRC_FILES =             \
     bf533video.c

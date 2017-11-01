@@ -314,9 +314,11 @@ static void alvDrawSubItem (HWND hWnd, PLVDATA plvdata,
     PLSTHDR ph;
     UINT text_format;
     int nItemHeight;
-    DWORD fg_color, bg_color;
+    DWORD bg_color, fg_color;
     gal_pixel bc, fc;
+#ifdef __TARGET_MSTUDIO__
     int index;
+#endif
 
     if ( !(psub = lvGetSubItemByCol(&pItem->subqueue, nCols)) )
         return;
@@ -326,32 +328,39 @@ static void alvDrawSubItem (HWND hWnd, PLVDATA plvdata,
     ph = lvGetHdrByCol (&plvdata->hdrqueue, nCols);
     LV_GET_SUBITEM_RECT(rcItem, nCols, rect);
 
+#ifdef __TARGET_MSTUDIO__
     index = scrollview_get_item_index(hWnd, (HSVITEM)pItem->addData);
+#endif
+
     if (!scrollview_is_item_hilight(hWnd, (HSVITEM)pItem->addData)) {
+
+        /* NUV
         fg_color = GetWindowElementAttr (hWnd, WE_FGC_WINDOW);
         fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color), 
                 GetBValue(fg_color), GetAValue(fg_color));
+        */
         SetTextColor (hdc, psub->nTextColor);
 
 #ifdef __TARGET_MSTUDIO__
         // for mStudio only
         bg_color = GetWindowElementAttr (hWnd, WE_LFFLAT_TAB_NRMLCLR);
-        if (bg_color != -1 && index%2 == 1) {
+        if (bg_color != -1 && index % 2 == 1) {
             SetBrushColor (hdc, DWORD2PIXEL(hdc, bg_color));
             FillBox (hdc, rect.left, rect.top, RECTW(rect), RECTH(rect));
         }
 #endif
     }
     else {
-        fg_color = GetWindowElementAttr (hWnd, WE_FGC_HIGHLIGHT_ITEM);
         bg_color = GetWindowElementAttr (hWnd, WE_BGC_HIGHLIGHT_ITEM);
         bc = RGBA2Pixel (hdc, GetRValue(bg_color), GetGValue(bg_color), 
                 GetBValue(bg_color), GetAValue(bg_color));
+
+        fg_color = GetWindowElementAttr (hWnd, WE_FGC_HIGHLIGHT_ITEM);
         fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color), 
                 GetBValue(fg_color), GetAValue(fg_color));
 
         SetBrushColor (hdc, bc);
-        SetTextColor (hdc, psub->nTextColor);
+        SetTextColor (hdc, fc);
         FillBox (hdc, rect.left, rect.top, RECTW(rect), RECTH(rect));
     }
 
@@ -459,7 +468,6 @@ static void lvDrawHeader (HWND hWnd, HDC hdc)
     PLSTHDR p1 = NULL;
     PLVDATA plvdata;
     RECT rcClient, rcButton;
-    DWORD flags = DF_3DBOX_NORMAL;
     UINT format;
     list_t *me;
     int item_w = 0;
@@ -475,8 +483,11 @@ static void lvDrawHeader (HWND hWnd, HDC hdc)
     plvdata = (PLVDATA) GetWindowAdditionalData2 (hWnd);
     GetClientRect (hWnd, &rcClient);
 
+    /* not used vars
+    DWORD flags = DF_3DBOX_NORMAL;
     if (LVSTATUS(hWnd) & LVST_HEADCLICK && LVSTATUS(hWnd) & LVST_INHEAD)
         flags = DF_3DBOX_PRESSED;
+    */
 
     SetBkMode (hdc, BM_TRANSPARENT);
 
@@ -1563,21 +1574,21 @@ static int ListViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
                 }
                 else if (LVSTATUS(hWnd) & LVST_ITEMDRAG && GetWindowStyle(hWnd) 
                         & LVS_UPNOTIFY) {
-                    HSVITEM hsvi;
-                    int idx;
+                    // NUV HSVITEM hsvi;
+                    // NUV int idx;
 
-                    idx = isInLVItem (mouseX, mouseY, NULL, plvdata, NULL);
-                    hsvi = scrollview_get_item_by_index (&plvdata->svdata, idx);
+                    // NUV idx = isInLVItem (mouseX, mouseY, NULL, plvdata, NULL);
+                    // NUV hsvi = scrollview_get_item_by_index (&plvdata->svdata, idx);
                     NotifyParent (hWnd, GetDlgCtrlID(hWnd), LVN_CLICKED);
-                    /* LVS_UPNOTIFY only affects LVN_CLICKED 
 
-                       if (hsvi && hsvi != scrollview_get_hilighted_item 
+                    /* LVS_UPNOTIFY only affects LVN_CLICKED 
+                    if (hsvi && hsvi != scrollview_get_hilighted_item 
                                             (&plvdata->svdata)) {
-                       if ( GetWindowStyle(hWnd) & LVS_UPNOTIFY ) {
-                       NotifyParent (hWnd, GetDlgCtrlID(hWnd), LVN_SELCHANGE);
-                       }
-                       }
-                       */
+                        if ( GetWindowStyle(hWnd) & LVS_UPNOTIFY ) {
+                            NotifyParent (hWnd, GetDlgCtrlID(hWnd), LVN_SELCHANGE);
+                        }
+                    }
+                    */
                 }
 
                 break;

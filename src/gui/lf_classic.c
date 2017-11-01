@@ -848,7 +848,7 @@ static void draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int 
 
     if(status & LFRDR_ARROW_NOFILL)
     {
-        old_pen_color = SetPenColor(hdc, RGBA2Pixel(hdc,GetRValue(color),
+        old_pen_color = SetPenColor(hdc, RGBA2Pixel(hdc, GetRValue(color),
                     GetGValue(color), GetBValue(color), GetAValue(color)));
         MoveTo(hdc, p1.x, p1.y);
         LineTo(hdc, p2.x, p2.y);
@@ -2374,8 +2374,6 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     const WINDOWINFO *win_info = NULL;
     RECT rect;
     RECT icon_rect = {0,0,0,0};
-    int  win_w;
-    int  border;
     int  ncbutton_w = 0;
     RECT rcTmp = {0};
 
@@ -2413,10 +2411,6 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     
     if (win_info->spCaption)
     {
-        border = get_window_border (hWnd, win_info->dwStyle, 
-                lf_get_win_type(hWnd));
-        win_w = win_info->right - win_info->left;
-
         SetBkMode(hdc, BM_TRANSPARENT);
         old_font = SelectFont(hdc, cap_font);
         font_h = GetFontHeight(hdc);

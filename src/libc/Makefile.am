@@ -1,4 +1,4 @@
-INCLUDES = -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/
+AM_CPPFLAGS = -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/
 
 noinst_LTLIBRARIES = liblibc.la
 

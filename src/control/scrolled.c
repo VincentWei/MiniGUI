@@ -277,19 +277,20 @@ int scrolled_content_to_visible (PSCRDATA pscrdata, int *x, int *y)
 /* recalc visible area and container area, then set scrollbar */
 void scrolled_recalc_areas (HWND hWnd, PSCRDATA pscrdata, int new_w, int new_h)
 {
-    int old_vw, old_vh;
-
     if (!pscrdata || new_w <= 0 || new_h <= 0)
         return;
 
-    old_vw = pscrdata->visibleWidth;
-    old_vh = pscrdata->visibleHeight;
     /* reset viewport as client - margin */
     pscrdata->visibleWidth = new_w;
     pscrdata->visibleHeight = new_h;
     scrolled_set_visible (hWnd, pscrdata);
 
 /*    
+    int old_vw, old_vh;
+
+    old_vw = pscrdata->visibleWidth;
+    old_vh = pscrdata->visibleHeight;
+
     if (pscrdata->nContWidth == old_vw) {
         pscrdata->nContWidth = pscrdata->visibleWidth;
         //should refresh the whole window

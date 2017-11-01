@@ -554,7 +554,6 @@ set (prefix ${CMAKE_INSTALL_PREFIX})
 set (exec_prefix "\${prefix}")
 set (libdir "\${exec_prefix}/lib")
 set (includedir "\${prefix}/include")
-set (MiniGUI_VERSION ${MINIGUI_VERSION})
 configure_file(
     "${PROJECT_SOURCE_DIR}/minigui.pc.in"
     "${PROJECT_BINARY_DIR}/${PROJECT_NICKNAME}.pc")

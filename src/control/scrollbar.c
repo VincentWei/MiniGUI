@@ -978,7 +978,6 @@ static int ScrollBarCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPar
             {
                 int pos = (int)wParam;
                 BOOL redraw = (BOOL)lParam;
-                int old_pos;
 		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 if (pos == data->curPos)
@@ -994,7 +993,6 @@ static int ScrollBarCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPar
                     pos = data->maxPos;
                 }
 
-                old_pos = data->curPos;
                 data->curPos = pos;
 
                 if (data->curPos == data->minPos)
