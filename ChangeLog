@@ -1,9 +1,13 @@
 *******************************************************************************
 What's new (trunk):
 
+11/01 CLEANUP: The autoconf/automake config scripts are cleaned up.
+
+11/01 CLEANUP: Remove a lot of compilation warnings (not used variables).
+
 10/30 BUGFIXING: Bad MG_PRINTF usage.
 
-10/30 BUGFIXING: Incorrect elif condition usage; incore rbf defonts are not 
+10/30 BUGFIXING: Incorrect elif condition usage; some incore rbf defonts are not 
 included correctly.
 	* src/font/devfont.c
 

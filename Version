@@ -1,8 +1,8 @@
-Version 3.0.13 (2017/10/26)
+Version 3.0.13 RC1 (2017/11/01)
 
 This release needs the following resource packages:
 
-    * minigui-res-3.0.12.tar.gz
+    * minigui-res-3.0.13.tar.gz
 
 The latest samples package is:
 
