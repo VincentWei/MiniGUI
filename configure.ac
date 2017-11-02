@@ -120,7 +120,7 @@ build_console_ms3="yes"
 build_console_gpm="no"
 build_text_mode="yes"
 
-build_dlcustom_ial_engine="yes"
+build_dlcustom_ial_engine="no"
 
 dnl the customized ial engine
 build_custom_ial_engine="no"
@@ -374,7 +374,7 @@ AC_ARG_ENABLE(customial,
 build_custom_ial_engine=$enableval)
 
 AC_ARG_ENABLE(dlcustomial,
-[  --enable-dlcustomial     build the dlcustom IAL engine <default=yes>],
+[  --enable-dlcustomial     build the dlcustom IAL engine <default=no>],
 build_dlcustom_ial_engine=$enableval)
 
 AC_ARG_ENABLE(netial,
@@ -537,7 +537,7 @@ case "$with_ttfsupport" in
     use_ttf_lib="ft1"
 dnl Check for FreeType1 library
     AC_CHECK_LIB(ttf, TT_FreeType_Version,
-            SYSTEM_LIBS="$SYSTEM_LIBS -lttf",
+            DEP_LIBS="$DEP_LIBS -lttf",
             use_ttf_lib="none")
 dnl ttf cache
     AC_ARG_ENABLE(ttfcache,
@@ -549,7 +549,7 @@ dnl ttf cache
     use_ttf_lib="ft2"
 dnl Check for FreeType2 library
     AC_CHECK_LIB(freetype, FT_Library_Version,
-        SYSTEM_LIBS="$SYSTEM_LIBS `freetype-config --libs`",
+        DEP_LIBS="$DEP_LIBS `freetype-config --libs`",
         use_ttf_lib="none")
 dnl ttf cache
     AC_ARG_ENABLE(ttfcache,
@@ -871,7 +871,7 @@ CheckFBCON()
 
             have_pciaccess="yes"
             AC_CHECK_LIB(pciaccess, pci_system_init,
-                SYSTEM_LIBS="$SYSTEM_LIBS -lpciaccess", have_pciaccess="no")
+                DEP_LIBS="$DEP_LIBS -lpciaccess", have_pciaccess="no")
 
             if test x$have_pciaccess = xyes; then
                 AC_DEFINE(_MGHAVE_PCIACCESS, 1,
@@ -970,7 +970,7 @@ CheckMLShadowVideo()
                 [Define if include MLShadow NEWGAL engine])
       VIDEO_SUBDIRS="$VIDEO_SUBDIRS mlshadow"
       VIDEO_DRIVERS="$VIDEO_DRIVERS mlshadow/libvideo_mlshadow.la"
-      SYSTEM_LIBS="$SYSTEM_LIBS -lpthread"
+      DEP_LIBS="$DEP_LIBS -lpthread"
     fi
 }
 
@@ -986,7 +986,7 @@ CheckShadowVideo()
                 [Define if include Shadow NEWGAL engine])
       VIDEO_SUBDIRS="$VIDEO_SUBDIRS shadow"
       VIDEO_DRIVERS="$VIDEO_DRIVERS shadow/libvideo_shadow.la"
-      SYSTEM_LIBS="$SYSTEM_LIBS -lpthread"
+      DEP_LIBS="$DEP_LIBS -lpthread"
     fi
 }
 
@@ -1264,7 +1264,7 @@ CheckNexusVideo()
                 [Define if include nexus NEWGAL engine])
       VIDEO_SUBDIRS="$VIDEO_SUBDIRS nexus"
       VIDEO_DRIVERS="$VIDEO_DRIVERS nexus/libvideo_nexus.la"
-      SYSTEM_LIBS="$SYSTEM_LIBS -lnexus -lpthread -lm -lz"
+      DEP_LIBS="$DEP_LIBS -lnexus -lpthread -lm -lz"
     fi
 }
 
@@ -1375,14 +1375,14 @@ fi
 dnl Check for JPEG library.
 if test "x$build_jpg_support" != "xno"; then
     AC_CHECK_LIB(jpeg, jpeg_std_error,
-        SYSTEM_LIBS="$SYSTEM_LIBS -ljpeg",
+        DEP_LIBS="$DEP_LIBS -ljpeg",
         build_jpg_support=no, -lm)
 fi
 
 dnl Check for PNG library.
 if test "x$build_png_support" != "xno"; then
     AC_CHECK_LIB(png, png_check_sig,
-        SYSTEM_LIBS="$SYSTEM_LIBS -lpng",
+        DEP_LIBS="$DEP_LIBS -lpng",
         build_png_support=no, -lz -lm)
 fi
 
@@ -1408,11 +1408,11 @@ fi
 if test "x$build_dlcustom_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_DLCUSTOM, 1,
             [Define if include dlcustom engine for customer's board])
-    SYSTEM_LIBS="$SYSTEM_LIBS -ldl"
+    DEP_LIBS="$DEP_LIBS -ldl"
 fi
 
 if test "x$build_sef_support" = "xyes"; then
-    SYSTEM_LIBS="$SYSTEM_LIBS -lscripteasy"
+    DEP_LIBS="$DEP_LIBS -lscripteasy"
 fi
 
 if test "x$build_net_ial_engine" = "xyes"; then
@@ -1690,7 +1690,7 @@ if test "x$incore_res" = "xyes"; then
 fi
 
 no_math="no"
-AC_CHECK_LIB(m, pow, SYSTEM_LIBS="$SYSTEM_LIBS -lm", no_math="yes")
+AC_CHECK_LIB(m, pow, DEP_LIBS="$DEP_LIBS -lm", no_math="yes")
 
 if test "x$no_math" = "xno"; then
     AC_DEFINE(_HAVE_MATH_LIB, 1,
@@ -1814,7 +1814,7 @@ fi
 if test "x$build_cisco_touchpad_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_CISCO_TOUCHPAD, 1,
             [Define if include IAL engine for Cisco touchpad])
-    SYSTEM_LIBS="$SYSTEM_LIBS -lhid -lusb -lusb-1.0"
+    DEP_LIBS="$DEP_LIBS -lhid -lusb -lusb-1.0"
 fi
 
 if test "x$build_mstar_ial_engine" = "xyes"; then
@@ -1840,7 +1840,7 @@ fi
 if test "x$build_tslib_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_TSLIB, 1,
             [Define if include IAL engine for TSLIB])
-    SYSTEM_LIBS="$SYSTEM_LIBS -lts"
+    DEP_LIBS="$DEP_LIBS -lts"
 fi
 
 if test "x$build_console_ial_engine" = "xyes"; then
@@ -2429,19 +2429,16 @@ CFLAGS="$CFLAGS -D_GNU_SOURCE"
 CFLAGS="$CFLAGS -D_GNU_SOURCE"
 
 if test "x$have_pthreads" = "xyes"; then
-    SYSTEM_LIBS="$SYSTEM_LIBS -lpthread"
+    DEP_LIBS="$DEP_LIBS -lpthread"
 fi
-MINIGUI_LIBRARIES_LIST="$SYSTEM_LIBS"
-MINIGUI_INCLUDE_LIST="$FT2_INC_DIR"
 
 dnl ========================================================================
 dnl Write output
 
 AC_SUBST(VIDEO_SUBDIRS)
 AC_SUBST(VIDEO_DRIVERS)
-AC_SUBST(SYSTEM_LIBS)
-AC_SUBST(MINIGUI_LIBRARIES_LIST)
-AC_SUBST(MINIGUI_INCLUDE_LIST)
+AC_SUBST(DEP_LIBS)
+
 AM_CONDITIONAL(MGRM_PROCESSES, test "x$procs_version" = "xyes")
 AM_CONDITIONAL(MGRM_STANDALONE, test "x$stand_alone" = "xyes")
 AM_CONDITIONAL(MGIAL_CONSOLE, test "x$build_console_ial_engine" = "xyes")
