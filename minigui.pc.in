@@ -4,9 +4,9 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: MiniGUI
-Description: A windowing system for embedded system.
+Description: A mature cross-platform windowing system and GUI system for embedded and IoT devices.
 Version: @MINIGUI_VERSION@
 Requires:
-Libs: -L${libdir} -lminigui_@MGLIB_SUFFIX@ @MINIGUI_LIBRARIES_LIST@
+Libs: -L${libdir} -lminigui_@MGLIB_SUFFIX@ @DEP_LIBS@
 Libs.private:
-Cflags: -I${includedir} @MINIGUI_INCLUDE_LIST@
+Cflags: -I${includedir}
