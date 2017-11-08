@@ -120,9 +120,8 @@ build_console_ms3="yes"
 build_console_gpm="no"
 build_text_mode="yes"
 
-build_dlcustom_ial_engine="no"
-
 dnl the customized ial engine
+build_dlcustom_ial_engine="no"
 build_custom_ial_engine="no"
 build_comm_ial_engine="no"
 
@@ -245,13 +244,13 @@ build_ctrl_animation="yes"
 build_ctrl_scrollbar="yes"
 use_new_textedit_impl="yes"
 
-enable_pc_xvfb="yes"
-enable_rtos_xvfb="no"
-
 enable_video_dummy="yes"
+enable_video_pc_xvfb="yes"
+enable_video_rtos_xvfb="no"
 enable_video_qvfb="no"
 enable_video_wvfb="no"
 enable_video_dfb="no"
+enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
 
 enable_video_fbcon="yes"
@@ -273,57 +272,23 @@ enable_video_s3c6410="no"
 enable_video_sigma8654="no"
 enable_video_mstar="no"
 enable_video_custom="no"
-#enable_video_st7167="no"
-build_videost7167="no"
 
 dnl settings for license management
 build_productid="no"
 build_splash="yes"
 build_screensaver="yes"
 
-AC_ARG_ENABLE(videost7167,
-[  --enable-videost7167         include st7167 platform dfb video driver <default=no>],
-build_videost7167=$enableval)
+AC_ARG_ENABLE(debug,
+[  --enable-debug           build with debugging messages <default=no>],
+use_debug=$enableval)
 
-AC_ARG_ENABLE(adv2dapi,
-[  --enable-adv2dapi            include advanced 2D graphics APIs <default=yes>],
-build_adv2dapi=$enableval)
+AC_ARG_ENABLE(tracemsg,
+[  --enable-tracemsg        trace messages of MiniGUI <default=no>],
+trace_message=$enableval)
 
-AC_ARG_ENABLE(minimalgdi,
-[  --enable-minimalgdi         build a minimal GDI library only <default=no>],
-build_minimalgdi=$enableval)
-
-AC_ARG_ENABLE(productid,
-[  --enable-productid           insert a productid into the library file <default=no>],
-build_productid=$enableval)
-
-AC_ARG_ENABLE(splash,
-[  --enable-splash              enable splash <default=yes>],
-build_splash=$enableval)
-
-AC_ARG_ENABLE(screensaver,
-[  --enable-screensaver         enable screensaver <default=yes>],
-build_screensaver=$enableval)
-
-AC_ARG_ENABLE(flatlf,
-[  --enable-flatlf          include flat Look and Feel renderer <default=yes>],
-with_flat_lf=$enableval)
-
-AC_ARG_ENABLE(skinlf,
-[  --enable-skinlf          include skin Look and Feel renderer <default=yes>],
-with_skin_lf=$enableval)
-
-AC_ARG_ENABLE(ownmalloc,
-[  --enable-ownmalloc       use own implementation of malloc functions <default=no>],
-use_own_malloc=$enableval)
-
-AC_ARG_ENABLE(ownstdio,
-[  --enable-ownstdio        use own implementation of stdio functions <default=no>],
-use_own_stdio=$enableval)
-
-AC_ARG_ENABLE(ownpthread,
-[  --enable-ownpthread      use own implementation of pthread functions <default=no>],
-use_own_pthread=$enableval)
+AC_ARG_ENABLE(msgstr,
+[  --enable-msgstr          include symbol name of message <default=no>],
+message_string=$enableval)
 
 AC_ARG_ENABLE(procs,
 [  --enable-procs           build MiniGUI-Processes version <default=no>],
@@ -345,18 +310,6 @@ AC_ARG_ENABLE(fixedmath,
 [  --enable-fixedmath       include fixed math routines <default=yes>],
 fixed_math=$enableval)
 
-AC_ARG_ENABLE(debug,
-[  --enable-debug           build with debugging messages <default=no>],
-use_debug=$enableval)
-
-AC_ARG_ENABLE(tracemsg,
-[  --enable-tracemsg        trace messages of MiniGUI <default=no>],
-trace_message=$enableval)
-
-AC_ARG_ENABLE(msgstr,
-[  --enable-msgstr          include symbol name of message <default=no>],
-message_string=$enableval)
-
 AC_ARG_ENABLE(dblclk,
 [  --enable-dblclk          mouse button can do double click <default=yes>],
 double_click=$enableval)
@@ -369,8 +322,48 @@ AC_ARG_ENABLE(clipboard,
 [  --enable-clipboard       include clipboard support <default=yes>],
 build_clipboard=$enableval)
 
+AC_ARG_ENABLE(ownstdio,
+[  --enable-ownstdio        use own implementation of stdio functions <default=no>],
+use_own_stdio=$enableval)
+
+AC_ARG_ENABLE(ownmalloc,
+[  --enable-ownmalloc       use own implementation of malloc functions <default=no>],
+use_own_malloc=$enableval)
+
+AC_ARG_ENABLE(ownpthread,
+[  --enable-ownpthread      use own implementation of pthread functions <default=no>],
+use_own_pthread=$enableval)
+
+AC_ARG_ENABLE(adv2dapi,
+[  --enable-adv2dapi        include advanced 2D graphics APIs <default=yes>],
+build_adv2dapi=$enableval)
+
+AC_ARG_ENABLE(minimalgdi,
+[  --enable-minimalgdi      build a minimal GDI library only <default=no>],
+build_minimalgdi=$enableval)
+
+AC_ARG_ENABLE(productid,
+[  --enable-productid       insert a productid into the library file <default=no>],
+build_productid=$enableval)
+
+AC_ARG_ENABLE(splash,
+[  --enable-splash          enable splash <default=yes>],
+build_splash=$enableval)
+
+AC_ARG_ENABLE(screensaver,
+[  --enable-screensaver     enable screensaver <default=yes>],
+build_screensaver=$enableval)
+
+AC_ARG_ENABLE(flatlf,
+[  --enable-flatlf          include flat Look and Feel renderer <default=yes>],
+with_flat_lf=$enableval)
+
+AC_ARG_ENABLE(skinlf,
+[  --enable-skinlf          include skin Look and Feel renderer <default=yes>],
+with_skin_lf=$enableval)
+
 AC_ARG_ENABLE(customial,
-[  --enable-customial       build the IAL engine for customer's board <default=no>],
+[  --enable-customial       build the customer IAL engine <default=no>],
 build_custom_ial_engine=$enableval)
 
 AC_ARG_ENABLE(dlcustomial,
@@ -382,11 +375,11 @@ AC_ARG_ENABLE(netial,
 build_net_ial_engine=$enableval)
 
 AC_ARG_ENABLE(cisco_touchpad_ial,
-[  --enable-cisco_touchpad_ial    build the IAL engine for Cisco Touchpad <default=no>],
+[  --enable-cisco_touchpad_ial	build the IAL engine for Cisco Touchpad <default=no>],
 build_cisco_touchpad_ial_engine=$enableval)
 
 AC_ARG_ENABLE(mstar_ial,
-[  --enable-mstar_ial    build the IAL engine for MStar <default=no>],
+[  --enable-mstar_ial       build the IAL engine for MStar <default=no>],
 build_mstar_ial_engine=$enableval)
 
 AC_ARG_ENABLE(ipaqh3600ial,
@@ -434,11 +427,11 @@ AC_ARG_ENABLE(wvfbial,
 build_wvfb_ial_engine=$enableval)
 
 AC_ARG_ENABLE(jz4740ial,
-[  --enable-jz4740ial         build the JZ4740 IAL engine <default=no>],
+[  --enable-jz4740ial       build the JZ4740 IAL engine <default=no>],
 build_jz4740_ial_engine=$enableval)
 
 AC_ARG_ENABLE(lide,
-[  --enable-lide              build the lide IAL engine <default=no>],
+[  --enable-lide            build the lide IAL engine <default=no>],
 build_lide_ial_engine=$enableval)
 
 AC_ARG_ENABLE(2440ial,
@@ -446,35 +439,35 @@ AC_ARG_ENABLE(2440ial,
 build_2440_ial_engine=$enableval)
 
 AC_ARG_ENABLE(davinci6446ial,
-[  --enable-davinci6446ial         build the DAVINCI6446 IAL engine <default=no>],
+[  --enable-davinci6446ial  build the DAVINCI6446 IAL engine <default=no>],
 build_davinci6446_ial_engine=$enableval)
 
 AC_ARG_ENABLE(dfbial,
-[  --enable-dfbial         build the DFB IAL engine <default=no>],
+[  --enable-dfbial          build the DFB IAL engine <default=no>],
 build_dfb_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleial,
-[  --enable-consoleial       build the console (Linux console) IAL engine <default=yes>],
+[  --enable-consoleial      build the console (Linux console) IAL engine <default=yes>],
 build_console_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleps2,
-[  --enable-consoleps2       build the console engine subdriver for PS2 mouse <default=yes>],
+[  --enable-consoleps2      build the console engine subdriver for PS2 mouse <default=yes>],
 build_console_ps2=$enableval)
 
 AC_ARG_ENABLE(consoleimps2,
-[  --enable-consoleimps2     build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=yes>],
+[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=yes>],
 build_console_imps2=$enableval)
 
 AC_ARG_ENABLE(consolems,
-[  --enable-consolems        build the console engine subdirver for old MS serial mouse <default=yes>],
+[  --enable-consolems       build the console engine subdirver for old MS serial mouse <default=yes>],
 build_console_ms=$enableval)
 
 AC_ARG_ENABLE(consolems3,
-[  --enable-consolems3       build the console engine subdirver for MS3 mouse <default=yes>],
+[  --enable-consolems3      build the console engine subdirver for MS3 mouse <default=yes>],
 build_console_ms3=$enableval)
 
 AC_ARG_ENABLE(consolegpm,
-[  --enable-consolegpm       build the console engine subdirver for GPM daemon <default=no>],
+[  --enable-consolegpm      build the console engine subdirver for GPM daemon <default=no>],
 build_console_gpm=$enableval)
 
 AC_ARG_ENABLE(textmode,
@@ -514,7 +507,7 @@ AC_ARG_ENABLE(fontsystem,
 build_incorefont_system=$enableval)
 
 AC_ARG_ENABLE(upfsupport,
-[  --enable-upfsupport      build support for FMSOft's Unicode Prerendered Font (UPF) <default=yes>],
+[  --enable-upfsupport      build support for FMSOft Unicode Prerendered Font (UPF) <default=yes>],
 build_upf_support=$enableval)
 
 AC_ARG_ENABLE(fonttimes,
@@ -530,7 +523,7 @@ AC_ARG_ENABLE(sefsupport,
 build_sef_support=$enableval)
 
 AC_ARG_WITH(ttfsupport,
-   [  --with-ttfsupport=ft1/ft2/none])
+[  --with-ttfsupport=ft1/ft2/none   How to support TrueType font (FreeType 1/FreeType 2/None) <default=none>],
 
 case "$with_ttfsupport" in
   ft1)
@@ -559,7 +552,7 @@ dnl ttf cache
   *)
     use_ttf_lib="none"
     ;;
-esac
+esac)
 
 AC_ARG_ENABLE(bmpfsupport,
 [  --enable-bmpfsupport     build support for Bitmap Font (bmpf) <default=yes>],
@@ -901,22 +894,22 @@ CheckQVFB()
 dnl Check X Virtual FrameBuffer
 CheckXVFB()
 {
-    AC_ARG_ENABLE(rtosxvfb,
-[  --enable-rtosxvfb        include RTOS Virtual FrameBuffer NEWGAL engine <default=no>. Note: you must disable pcxvfb, if you want to enable rtosxvfb],
-    enable_rtos_xvfb=$enableval)
+    AC_ARG_ENABLE(videortosxvfb,
+[  --enable-videortosxvfb   include RTOS Virtual FrameBuffer NEWGAL engine <default=no>. Note: you must disable pcxvfb, if you want to enable rtosxvfb],
+    enable_video_rtos_xvfb=$enableval)
 
-    AC_ARG_ENABLE(pcxvfb,
-[  --enable-pcxvfb          include PC Virtual FrameBuffer NEWGAL engine, such as qvfb, mvfb, gvfb or wvfb <default=yes>],
-    enable_pc_xvfb=$enableval)
+    AC_ARG_ENABLE(videopcxvfb,
+[  --enable-videopcxvfb     include PC Virtual FrameBuffer NEWGAL engine, such as qvfb, mvfb, gvfb or wvfb <default=yes>],
+    enable_video_pc_xvfb=$enableval)
 
-	if test "x$enable_pc_xvfb" = "xyes"; then
+	if test "x$enable_video_pc_xvfb" = "xyes"; then
 dnl	CheckPCXVFB
         AC_DEFINE(_MGGAL_PCXVFB, 1,
                 [Define if include PC Virtual FrameBuffer NEWGAL engine])
         VIDEO_SUBDIRS="$VIDEO_SUBDIRS pcxvfb"
         VIDEO_DRIVERS="$VIDEO_DRIVERS pcxvfb/libvideo_pcxvfb.la"
 	else 	
-		if test "x$enable_rtos_xvfb" = "xyes"; then
+		if test "x$enable_video_rtos_xvfb" = "xyes"; then
 dnl	CheckRTOSXVFB
         AC_DEFINE(_MGGAL_RTOSXVFB, 1,
                 [Define if include RTOS Virtual FrameBuffer NEWGAL engine])
@@ -931,7 +924,7 @@ dnl Check Windows Virtual FrameBuffer
 CheckWVFB()
 {
     AC_ARG_ENABLE(videowvfb,
-[  --enable-videowvfb       include windows Virtual FrameBuffer NEWGAL engine <default=no>],
+[  --enable-videowvfb       include Windows Virtual FrameBuffer NEWGAL engine <default=no>],
     enable_video_wvfb=$enableval)
 
     if test "x$enable_video_wvfb" = "xyes"; then
@@ -1115,33 +1108,16 @@ CheckDirectFBVideo()
             VIDEO_SUBDIRS="$VIDEO_SUBDIRS dfb"
             VIDEO_DRIVERS="$VIDEO_DRIVERS dfb/libvideo_dfb.la"
             LIBS="$LIBS -ldirectfb"
-        fi
-    fi
-}
 
-dnl Set up the video driver for ST7167.
-CheckST7167Video()
-{
-    AC_ARG_ENABLE(videost7167,
-[  --enable-videost7167        include NEWGAL engine for ST7167 <default=no>],
-    enable_video_st7167=$enableval)
+            dnl Set up the video driver for ST7167.
+            AC_ARG_ENABLE(videost7167,
+[  --enable-videost7167     include NEWGAL engine for ST7167 on DirectFB <default=no>],
+    enable_video_dfb_st7167=$enableval)
 
-    if test x$enable_video_st7167 = xyes; then
-        AC_MSG_CHECKING(for DirectFB support)
-        video_st1767=no
-        AC_TRY_COMPILE([
-         #include <directfb.h>
-        ],[
-        ],[
-        video_st7167=yes
-        ])
-        AC_MSG_RESULT($video_st7167)
-        if test x$video_st7167 = xyes; then
-            AC_DEFINE(_MGGAL_ST7167, 1,
-                [Define if include NEWGAL engine for ST7167])
-            VIDEO_SUBDIRS="$VIDEO_SUBDIRS dfb"
-            VIDEO_DRIVERS="$VIDEO_DRIVERS dfb/libvideo_st7167.la"
-            LIBS="$LIBS -ldirectfb"
+            if test x$enable_video_dfb_st7167 = xyes; then
+                AC_DEFINE(_MGGAL_DFB_ST7167, 1,
+                    [Define if include ST7167 subdriver for NEWGAL engine of DirectFB])
+            fi
         fi
     fi
 }
@@ -1150,7 +1126,7 @@ dnl Set up the video driver for STGFB(ST7105,ST7109,ST7167 native ioctl).
 CheckSTGFBVideo()
 {
     AC_ARG_ENABLE(videostgfb,
-[  --enable-videostgfb        include NEWGAL engine for STGFB <default=no>],
+[  --enable-videostgfb      include NEWGAL engine for STGFB <default=no>],
     enable_video_stgfb=$enableval)
 
     if test "x$enable_video_stgfb" = "xyes"; then
@@ -1183,7 +1159,7 @@ dnl Check HI3560A video driver
 CheckHI3560AVideo()
 {
     AC_ARG_ENABLE(videohi3560a,
-[  --enable-videohi3560a     include Hi3560A Video  NEWGAL engine <default=no>],
+[  --enable-videohi3560a    include Hi3560A Video  NEWGAL engine <default=no>],
     enable_video_hi3560a=$enableval)
 
     if test "x$enable_video_hi3560a" = "xyes"; then
@@ -1198,7 +1174,7 @@ dnl Check Intel GDL video driver
 CheckGDLVideo()
 {
     AC_ARG_ENABLE(videogdl,
-[  --enable-videogdl     include GDL Video  NEWGAL engine <default=no>],
+[  --enable-videogdl        include GDL Video NEWGAL engine <default=no>],
     enable_video_gdl=$enableval)
 
     if test "x$enable_video_gdl" = "xyes"; then
@@ -1213,7 +1189,7 @@ dnl Set up the sigma video driver.
 CheckSigmaVideo()
 {
     AC_ARG_ENABLE(videosigma8654,
-                  [  --enable-videosigma8654     include sigma8654 NEWGAL engine <default=no>],
+[  --enable-videosigma8654  include sigma8654 NEWGAL engine <default=no>],
                   enable_video_sigma8654=$enableval)
 
     if test "x$enable_video_sigma8654" = "xyes"; then
@@ -1228,7 +1204,7 @@ dnl Set up the mstar video driver.
 CheckMStarVideo()
 {
     AC_ARG_ENABLE(videomstar,
-                  [  --enable-videomstar     include mstar NEWGAL engine <default=no>],
+[  --enable-videomstar      include mstar NEWGAL engine <default=no>],
                   enable_video_mstar=$enableval)
 
     if test "x$enable_video_mstar" = "xyes"; then
@@ -1243,7 +1219,7 @@ dnl Set up the custom video driver.
 CheckCustomVideo()
 {
     AC_ARG_ENABLE(videocustom,
-                  [  --enable-videocustom include custom NEWGAL engine <default=no>],
+[  --enable-videocustom     include custom NEWGAL engine <default=no>],
                   enable_video_custom=$enableval)
 
     if test "x$enable_video_custom" = "xyes"; then
@@ -1270,38 +1246,36 @@ CheckNexusVideo()
 
 
 AC_ARG_WITH(nexus-includedir,
-            [  --with-nexus-includedir=DIR     Where to find header files of nexus library ],
-            [ case "$withval" in
-                    yes|no)
-                            AC_MSG_WARN([--with-nexus-includedir called without argument - will use default])
-                            ;;
-                    * )
-                            NEXUS_INCLUDEDIR="$withval"
-                            AC_SUBST(NEXUS_INCLUDEDIR)
-                            ;;
-                    esac
-            ]
+[  --with-nexus-includedir=DIR  Where to find header files of nexus library ],
+[ case "$withval" in
+    yes|no)
+        AC_MSG_WARN([--with-nexus-includedir called without argument - will use default])
+       ;;
+    * )
+        NEXUS_INCLUDEDIR="$withval"
+        AC_SUBST(NEXUS_INCLUDEDIR)
+        ;;
+esac ]
 )
 
 AC_ARG_WITH(nexus-libdir,
-            [  --with-nexus-libdir=DIR     Where to find .so files of nexus library ],
-            [ case "$withval" in
-                    yes|no)
-                            AC_MSG_WARN([--with-nexus-libdir called without argument - will use default])
-                            ;;
-                    * )
-                            NEXUS_LIBDIR="$withval"
-                            AC_SUBST(NEXUS_LIBDIR)
-                            ;;
-                    esac
-            ]
+[  --with-nexus-libdir=DIR      Where to find .so files of nexus library ],
+[ case "$withval" in
+    yes|no)
+        AC_MSG_WARN([--with-nexus-libdir called without argument - will use default])
+        ;;
+    * )
+        NEXUS_LIBDIR="$withval"
+        AC_SUBST(NEXUS_LIBDIR)
+        ;;
+esac ]
 )
 
 dnl Set up the s3c6410 video driver.
 CheckS3C6410Video()
 {
     AC_ARG_ENABLE(videos3c6410,
-[  --enable-videos3c6410      include s3c6410 NEWGAL engine <default=no>],
+[  --enable-videos3c6410    include s3c6410 NEWGAL engine <default=no>],
     enable_video_s3c6410=$enableval)
 
     if test "x$enable_video_s3c6410" = "xyes"; then
@@ -1345,9 +1319,10 @@ dnl Checks NewGAL Engine.
   CheckGDLVideo
   CheckNexusVideo
   CheckS3C6410Video
-  CheckCustomVideo
   CheckSigmaVideo
   CheckMStarVideo
+  CheckST7167Video
+  CheckCustomVideo
 }
 
 dnl ========================================================================
@@ -1401,13 +1376,11 @@ dnl ========================================================================
 dnl Finally add some flags
 
 if test "x$build_custom_ial_engine" = "xyes"; then
-    AC_DEFINE(_MGIAL_CUSTOM, 1,
-            [Define if include IAL engine for customer's board])
+    AC_DEFINE(_MGIAL_CUSTOM, 1, [Define if include IAL engine for customer board])
 fi
 
 if test "x$build_dlcustom_ial_engine" = "xyes"; then
-    AC_DEFINE(_MGIAL_DLCUSTOM, 1,
-            [Define if include dlcustom engine for customer's board])
+    AC_DEFINE(_MGIAL_DLCUSTOM, 1, [Define if include dlcustom IAL engine])
     DEP_LIBS="$DEP_LIBS -ldl"
 fi
 
@@ -1417,8 +1390,34 @@ fi
 
 if test "x$build_net_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_NET, 1,
-            [Define if include IAL engine for net's board])
+            [Define if include IAL engine for net])
 fi
+
+AC_ARG_WITH(libsuffix,
+[  --with-libsuffix=ARG     Configure the suffix of MiniGUI library name.])
+
+case "$with_libsuffix" in
+    mvfb)
+        conf="mvfb.cfg"
+        MGLIB_SUFFIX="mvfb"
+    ;;
+    "")
+        conf="MiniGUI.cfg"
+        if test "x$procs_version" = "xyes"; then
+            if test "x$stand_alone" = "xyes"; then
+                MGLIB_SUFFIX="sa"
+            else
+                MGLIB_SUFFIX="procs"
+            fi
+        else
+            MGLIB_SUFFIX="ths"
+        fi
+    ;;
+    *)
+        conf="MiniGUI.cfg"
+        MGLIB_SUFFIX="$withval"
+    ;;
+esac
 
 AC_ARG_WITH(osname,
    [  --with-osname=linux/uclinux/ecos/ucos2/swlinux/vxworks/win32/darwin/threadx/cygwin/nucleus/ose/psos])
@@ -1526,10 +1525,18 @@ case "$with_licensepicture" in
 esac
 
 AC_ARG_WITH(targetname,
-  [  --with-targetname=unknown/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/fmsoft/mstudio/
-   S3C6410/S3C2440/S3C2410/hi3560a])
+  [  --with-targetname=unknown/customer/fmsoft/mstudio/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
+                        S3C6410/S3C2440/S3C2410/hi3560a     Define the target board name])
 
 case "$with_targetname" in
+  fmsoft)
+    AC_DEFINE(__TARGET_FMSOFT__, 1,
+	    [Define for FMSoft internal use])
+   ;;
+  mstudio)
+    AC_DEFINE(__TARGET_MSTUDIO__, 1,
+	    [Define for FMSoft miniStudio])
+   ;;
   stb810)
     AC_DEFINE(__TARGET_STB810__, 1,
             [Define for Philips STB810 target])
@@ -1562,14 +1569,6 @@ case "$with_targetname" in
     AC_DEFINE(__TARGET_C33L05__, 1,
 	    [Define for EPSON C33L05 (axLinux)])
    ;;
-  fmsoft)
-    AC_DEFINE(__TARGET_FMSOFT__, 1,
-	    [Define for FMSoft's internal use])
-   ;;
-  mstudio)
-    AC_DEFINE(__TARGET_MSTUDIO__, 1,
-	    [Define for FMSoft's mStudio])
-   ;;
   S3C6410)
     CFLAGS="$CFLAGS -D_WITH_TARGET_S3C6410"
    ;;
@@ -1582,10 +1581,6 @@ case "$with_targetname" in
   hi3560a)
     CFLAGS="$CFLAGS -D_WITH_TARGET_HI3560A"
    ;;
-  mstudio)
-    AC_DEFINE(__TARGET_MSTUDIO__, 1,
-	    [Define for FMSoft's mStudio])
-   ;; 
   *)
     with_targetname="unknown"
     CFLAGS="$CFLAGS -D_WITH_TARGET_NONE"
@@ -1646,34 +1641,8 @@ else
   CFLAGS="$CFLAGS -D_REENTRANT"
 fi
 
-AC_ARG_WITH(libsuffix,
-  [  --with-libsuffix=ARG    Configure the suffix of MiniGUI library name.])
-
-case "$with_libsuffix" in
-    mvfb)
-        conf="mvfb.cfg"
-        MGLIB_SUFFIX="mvfb"
-    ;;
-    "")
-        conf="MiniGUI.cfg"
-        if test "x$procs_version" = "xyes"; then
-            if test "x$stand_alone" = "xyes"; then
-                MGLIB_SUFFIX="sa"
-            else
-                MGLIB_SUFFIX="procs"
-            fi
-        else
-            MGLIB_SUFFIX="ths"
-        fi
-    ;;
-    *)
-        conf="MiniGUI.cfg"
-        MGLIB_SUFFIX="$withval"
-    ;;
-esac
-
 if test "x$incore_res" = "xno"; then
-AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
+    AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
 fi
 
 AC_SUBST(MGLIB_SUFFIX)
@@ -1706,11 +1675,6 @@ if test "x$build_adv2dapi" = "xyes"; then
         [Define if include advanced 2D graphics APIs])
 fi
 
-if test "x$build_videost7167" = "xyes"; then
-    AC_DEFINE(_MGGAL_ST7167, 1,
-        [Define if include st7167 platform video dirver])
-fi
-
 if test "x$fixed_math" = "xyes"; then
     AC_DEFINE(_MGHAVE_FIXED_MATH, 1,
             [Define if include fixed math routines])
@@ -1730,7 +1694,7 @@ fi
 
 if test "x$message_string" = "xyes"; then
     AC_DEFINE(_MGHAVE_MSG_STRING, 1,
-            [Define if include messages' string names])
+            [Define if include message string names])
 fi
 
 AC_DEFINE(_MGTIMER_UNIT_10MS, 1,

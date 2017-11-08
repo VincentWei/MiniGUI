@@ -10,7 +10,7 @@
 **
 */
 
-#ifdef _MGGAL_ST7167
+#ifdef _MGGAL_DFB_ST7167
 
 #ifndef _GAL_st7167video_h
 #define _GAL_st7167video_h
@@ -29,5 +29,5 @@ int mgChangeDeviceCallback(GAL_VideoDevice*);
 
 #endif /* _GAL_st7167video_h */
 
-#endif /* _MGGAL_ST7167 */
+#endif /* _MGGAL_DFB_ST7167 */
 

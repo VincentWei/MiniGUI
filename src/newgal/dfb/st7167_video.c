@@ -22,7 +22,7 @@
 #include "sysvideo.h"
 #include "pixels_c.h"
 
-#ifdef _MGGAL_ST7167
+#ifdef _MGGAL_DFB_ST7167
 
 #include <linux/fb.h>
 #include <directfb.h>
@@ -60,5 +60,5 @@ int mgChangeDeviceCallback (GAL_VideoDevice* device)
     return 0;
 }
 
-#endif /* _MGGAL_ST7167 */
+#endif /* _MGGAL_DFB_ST7167 */
 
