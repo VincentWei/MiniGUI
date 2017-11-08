@@ -555,8 +555,10 @@ void GUIAPI TerminateGUI (int not_used)
     mg_TerminateLFManager ();
     mg_TerminateGAL ();
 
+#ifdef _MGHAVE_ADV_2DAPI
     extern void mg_miFreeArcCache (void);
     mg_miFreeArcCache ();
+#endif
 
     /* 
      * Restore original termio
