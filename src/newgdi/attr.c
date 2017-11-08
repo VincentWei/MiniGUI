@@ -10,6 +10,9 @@
 ** Create date: 2000/06/12, derived from original gdi.c
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"

@@ -2,9 +2,10 @@
 /*    loadkeys --mktable defkeymap.map > defkeymap.c          */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "common.h"
 
-//?
 #include "minigui.h"
 #include "gdi.h"
 #include "window.h"

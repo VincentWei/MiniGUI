@@ -655,6 +655,8 @@ BOOL GUIAPI TranslateKeyMsgToChar (int message, WPARAM wParam, LPARAM lParam, WO
     return FALSE; 
 }
 
+#ifdef _MGCHARSET_UNICODE
+
 static UChar32 utf8_to_wc (const unsigned char* mstr, int* utf8_len)
 {
     UChar32 wc = *((unsigned char *)(mstr++));
@@ -761,3 +763,4 @@ int GUIAPI ToAscii (UINT keycode, const BYTE* kbd_state,
     return 0;
 }
 
+#endif
