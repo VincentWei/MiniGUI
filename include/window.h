@@ -2667,11 +2667,18 @@ MG_EXPORT int GUIAPI PostQuitMessage (HWND hWnd);
  */
 MG_EXPORT BOOL GUIAPI SetKeyboardLayout (const char* kbd_layout);
 
+#ifdef _MGCHARSET_UNICODE
+
+#include <stddef.h>
+#include <stdlib.h>
+
 MG_EXPORT int GUIAPI ToUnicode (UINT keycode, const BYTE* kbd_state, 
         wchar_t* wcs, int wcs_len, const char* kbd_layout);
 
 MG_EXPORT int GUIAPI ToAscii (UINT keycode, const BYTE* kbd_state, 
         WORD* ch, const char* kbd_layout);
+
+#endif /* _MGCHARSET_UNICODE */
 
 /**
  * \fn BOOL TranslateMessage (PMSG pMsg)
