@@ -164,28 +164,28 @@ build_ttfcache_support="no"
 build_bmpf_support="yes"
 
 dnl Charset related options
-build_latin2_support="yes"
-build_latin3_support="yes"
-build_latin4_support="yes"
-build_cyrillic_support="yes"
-build_arabic_support="yes"
-build_greek_support="yes"
-build_hebrew_support="yes"
-build_latin5_support="yes"
-build_latin6_support="yes"
-build_thai_support="yes"
-build_latin7_support="yes"
-build_latin8_support="yes"
+build_latin2_support="no"
+build_latin3_support="no"
+build_latin4_support="no"
+build_cyrillic_support="no"
+build_arabic_support="no"
+build_greek_support="no"
+build_hebrew_support="no"
+build_latin5_support="no"
+build_latin6_support="no"
+build_thai_support="no"
+build_latin7_support="no"
+build_latin8_support="no"
 build_latin9_support="yes"
-build_latin10_support="yes"
+build_latin10_support="no"
 
 build_gb_support="yes"
 build_gbk_support="yes"
 build_gb18030_support="no"
-build_big5_support="yes"
-build_euckr_support="yes"
-build_eucjp_support="yes"
-build_shiftjis_support="yes"
+build_big5_support="no"
+build_euckr_support="no"
+build_eucjp_support="no"
+build_shiftjis_support="no"
 
 build_unicode_support="yes"
 
@@ -222,7 +222,7 @@ dnl Control related options
 build_ctrl_static="yes"
 build_ctrl_button="yes"
 build_ctrl_sledit="yes"
-build_ctrl_bidisledit="yes"
+build_ctrl_bidisledit="no"
 build_ctrl_listbox="yes"
 build_ctrl_progressbar="yes"
 build_ctrl_newtoolbar="yes"
@@ -524,8 +524,7 @@ build_sef_support=$enableval)
 
 AC_ARG_WITH(ttfsupport,
 [  --with-ttfsupport=ft1/ft2/none   How to support TrueType font (FreeType 1/FreeType 2/None) <default=none>],
-
-case "$with_ttfsupport" in
+[ case "$with_ttfsupport" in
   ft1)
     use_ttf_lib="ft1"
 dnl Check for FreeType1 library
@@ -552,46 +551,47 @@ dnl ttf cache
   *)
     use_ttf_lib="none"
     ;;
-esac)
+esac ]
+)
 
 AC_ARG_ENABLE(bmpfsupport,
 [  --enable-bmpfsupport     build support for Bitmap Font (bmpf) <default=yes>],
 build_bmpf_support=$enableval)
 
 AC_ARG_ENABLE(latin2support,
-[  --enable-latin2support   include East European (Latin 2, ISO8859-2) charset support <default=yes>],
+[  --enable-latin2support   include East European (Latin 2, ISO8859-2) charset support <default=no>],
 build_latin2_support=$enableval)
 
 AC_ARG_ENABLE(latin3support,
-[  --enable-latin3support   include South European (Latin 3, ISO8859-3) charset support <default=yes>],
+[  --enable-latin3support   include South European (Latin 3, ISO8859-3) charset support <default=no>],
 build_latin3_support=$enableval)
 
 AC_ARG_ENABLE(latin4support,
-[  --enable-latin4support   include North European (Latin 4, ISO8859-4) charset support <default=yes>],
+[  --enable-latin4support   include North European (Latin 4, ISO8859-4) charset support <default=no>],
 build_latin4_support=$enableval)
 
 AC_ARG_ENABLE(cyrillicsupport,
-[  --enable-cyrillicsupport include Cyrillic (ISO8859-5) charset support <default=yes>],
+[  --enable-cyrillicsupport include Cyrillic (ISO8859-5) charset support <default=no>],
 build_cyrillic_support=$enableval)
 
 AC_ARG_ENABLE(arabicsupport,
-[  --enable-arabicsupport   include Arabic (ISO8859-6) charset support <default=yes>],
+[  --enable-arabicsupport   include Arabic (ISO8859-6) charset support <default=no>],
 build_arabic_support=$enableval)
 
 AC_ARG_ENABLE(greeksupport,
-[  --enable-greeksupport    include Greek (ISO8859-7) charset support <default=yes>],
+[  --enable-greeksupport    include Greek (ISO8859-7) charset support <default=no>],
 build_greek_support=$enableval)
 
 AC_ARG_ENABLE(hebrewsupport,
-[  --enable-hebrewsupport   include Hebrew (ISO8859-8) charset support <default=yes>],
+[  --enable-hebrewsupport   include Hebrew (ISO8859-8) charset support <default=no>],
 build_hebrew_support=$enableval)
 
 AC_ARG_ENABLE(latin5support,
-[  --enable-latin5support   include Turkish (Latin 5, ISO8859-9) charset support <default=yes>],
+[  --enable-latin5support   include Turkish (Latin 5, ISO8859-9) charset support <default=no>],
 build_latin5_support=$enableval)
 
 AC_ARG_ENABLE(latin6support,
-[  --enable-latin6support   include Nordic, Latin 6, ISO8859-10) charset support <default=yes>],
+[  --enable-latin6support   include Nordic, Latin 6, ISO8859-10) charset support <default=no>],
 build_latin6_support=$enableval)
 
 AC_ARG_ENABLE(thaisupport,
@@ -599,11 +599,11 @@ AC_ARG_ENABLE(thaisupport,
 build_thai_support=$enableval)
 
 AC_ARG_ENABLE(latin7support,
-[  --enable-latin7support   include Latin 7 (ISO8859-13) charset support <default=yes>],
+[  --enable-latin7support   include Latin 7 (ISO8859-13) charset support <default=no>],
 build_latin7_support=$enableval)
 
 AC_ARG_ENABLE(latin8support,
-[  --enable-latin8support   include Latin 8 (ISO8859-14) charset support <default=yes>],
+[  --enable-latin8support   include Latin 8 (ISO8859-14) charset support <default=no>],
 build_latin8_support=$enableval)
 
 AC_ARG_ENABLE(latin9support,
@@ -611,7 +611,7 @@ AC_ARG_ENABLE(latin9support,
 build_latin9_support=$enableval)
 
 AC_ARG_ENABLE(latin10support,
-[  --enable-latin10support  include Latin 10 (ISO8859-16, Romanian) charset support <default=yes>],
+[  --enable-latin10support  include Latin 10 (ISO8859-16, Romanian) charset support <default=no>],
 build_latin10_support=$enableval)
 
 AC_ARG_ENABLE(gbsupport,
@@ -627,19 +627,19 @@ AC_ARG_ENABLE(gb18030support,
 build_gb18030_support=$enableval)
 
 AC_ARG_ENABLE(big5support,
-[  --enable-big5support     include BIG5 charset support <default=yes>],
+[  --enable-big5support     include BIG5 charset support <default=no>],
 build_big5_support=$enableval)
 
 AC_ARG_ENABLE(euckrsupport,
-[  --enable-euckrsupport    include support for EUC encoding of KSC5636 and KSC5601 charsets <default=yes>],
+[  --enable-euckrsupport    include support for EUC encoding of KSC5636 and KSC5601 charsets <default=no>],
 build_euckr_support=$enableval)
 
 AC_ARG_ENABLE(eucjpsupport,
-[  --enable-eucjpsupport    include support for EUC encoding of JISX0201 and JISX0208 charsets <default=yes>],
+[  --enable-eucjpsupport    include support for EUC encoding of JISX0201 and JISX0208 charsets <default=no>],
 build_eucjp_support=$enableval)
 
 AC_ARG_ENABLE(shiftjissupport,
-[  --enable-shiftjissupport include support for Shift-JIS encoding of JISX0201 and JISX0208 charsets <default=yes>],
+[  --enable-shiftjissupport include support for Shift-JIS encoding of JISX0201 and JISX0208 charsets <default=no>],
 build_shiftjis_support=$enableval)
 
 AC_ARG_ENABLE(unicodesupport,
@@ -739,7 +739,7 @@ AC_ARG_ENABLE(ctrlsledit,
 build_ctrl_sledit=$enableval)
 
 AC_ARG_ENABLE(ctrlbidisledit,
-[  --enable-ctrlbidisledit  include Single-Line BIDI EDIT control <default=yes>],
+[  --enable-ctrlbidisledit  include Single-Line BIDI EDIT control <default=no>],
 build_ctrl_bidisledit=$enableval)
 
 AC_ARG_ENABLE(ctrllistbox,
@@ -807,7 +807,7 @@ AC_ARG_ENABLE(ctrliconview,
 build_ctrl_iconview=$enableval)
 
 AC_ARG_ENABLE(ctrlgridview,
-[  --enable-ctrlgridview    include GRIDVIEW control(test) <default=no>],
+[  --enable-ctrlgridview    include GRIDVIEW control (test) <default=no>],
 build_ctrl_gridview=$enableval)
 
 AC_ARG_ENABLE(ctrlanimation,
@@ -815,7 +815,7 @@ AC_ARG_ENABLE(ctrlanimation,
 build_ctrl_animation=$enableval)
 
 AC_ARG_ENABLE(ctrlscrollbar,
-[  --enable-ctrlscrollbar   include SCROLLBAR control and GIF87a/GIF89a support <default=yes>],
+[  --enable-ctrlscrollbar   include SCROLLBAR control <default=yes>],
 build_ctrl_scrollbar=$enableval)
 
 dnl enable new textedit
@@ -894,13 +894,13 @@ CheckQVFB()
 dnl Check X Virtual FrameBuffer
 CheckXVFB()
 {
-    AC_ARG_ENABLE(videortosxvfb,
-[  --enable-videortosxvfb   include RTOS Virtual FrameBuffer NEWGAL engine <default=no>. Note: you must disable pcxvfb, if you want to enable rtosxvfb],
-    enable_video_rtos_xvfb=$enableval)
-
     AC_ARG_ENABLE(videopcxvfb,
 [  --enable-videopcxvfb     include PC Virtual FrameBuffer NEWGAL engine, such as qvfb, mvfb, gvfb or wvfb <default=yes>],
     enable_video_pc_xvfb=$enableval)
+
+    AC_ARG_ENABLE(videortosxvfb,
+[  --enable-videortosxvfb   include RTOS Virtual FrameBuffer NEWGAL engine <default=no>. Please disable pcxvfb to enable rtosxvfb],
+    enable_video_rtos_xvfb=$enableval)
 
 	if test "x$enable_video_pc_xvfb" = "xyes"; then
 dnl	CheckPCXVFB
@@ -1321,7 +1321,6 @@ dnl Checks NewGAL Engine.
   CheckS3C6410Video
   CheckSigmaVideo
   CheckMStarVideo
-  CheckST7167Video
   CheckCustomVideo
 }
 
