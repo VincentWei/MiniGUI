@@ -61,7 +61,6 @@ config-nucleus-mnt.h                     \
 config-nucleus-monaco.h                  \
 config-threadx-vfanvil.h                 \
 config-threadx-null.h                	 \
-config-win32.h                           \
 config-mgdemo-win.h                      \
 config-psos-standalone.h                 \
 config-psos-threads.h                    \
@@ -82,13 +81,5 @@ rules-mx21.ose                           \
 minigui_ads_prj_threadx.tar.gz			 \
 minigui_ads_prj_nucleus.tar.gz			 \
 minigui_ads_prj_ucos2.tar.gz			 \
-pthreadVC1.dll							 \
-pthreadVC1.lib							 \
-dirent.dll								 \
-dirent.lib								 \
-Defs.win32                               \
-Defs-mgext.win32                         \
-makedefs.msvc                            \
-minigui-win32.dsp                        \
-minigui-win32.dsw
+win32
 

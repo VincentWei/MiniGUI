@@ -507,7 +507,7 @@ AC_ARG_ENABLE(fontsystem,
 build_incorefont_system=$enableval)
 
 AC_ARG_ENABLE(upfsupport,
-[  --enable-upfsupport      build support for FMSOft Unicode Prerendered Font (UPF) <default=yes>],
+[  --enable-upfsupport      build support for FMSoft Unicode Prerendered Font (UPF) <default=yes>],
 build_upf_support=$enableval)
 
 AC_ARG_ENABLE(fonttimes,
