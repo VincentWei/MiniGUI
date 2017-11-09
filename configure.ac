@@ -223,26 +223,26 @@ build_ctrl_static="yes"
 build_ctrl_button="yes"
 build_ctrl_sledit="yes"
 build_ctrl_bidisledit="no"
+build_ctrl_textedit_new="yes"
 build_ctrl_listbox="yes"
 build_ctrl_progressbar="yes"
-build_ctrl_newtoolbar="yes"
-build_ctrl_menubutton="yes"
-build_ctrl_trackbar="yes"
 build_ctrl_combobox="yes"
 build_ctrl_propsheet="yes"
-build_ctrl_scrollview="yes"
+build_ctrl_trackbar="no"
+build_ctrl_scrollbar="no"
+build_ctrl_newtoolbar="no"
+build_ctrl_menubutton="no"
+build_ctrl_scrollview="no"
 build_ctrl_textedit="no"
-build_ctrl_monthcal="yes"
-build_ctrl_treeview="yes"
+build_ctrl_monthcal="no"
+build_ctrl_treeview="no"
 build_ctrl_treeview_rdr="no"
-build_ctrl_spinbox="yes"
-build_ctrl_coolbar="yes"
-build_ctrl_listview="yes"
-build_ctrl_iconview="yes"
+build_ctrl_spinbox="no"
+build_ctrl_coolbar="no"
+build_ctrl_listview="no"
+build_ctrl_iconview="no"
 build_ctrl_gridview="no"
 build_ctrl_animation="yes"
-build_ctrl_scrollbar="yes"
-use_new_textedit_impl="yes"
 
 enable_video_dummy="yes"
 enable_video_pc_xvfb="yes"
@@ -742,6 +742,11 @@ AC_ARG_ENABLE(ctrlbidisledit,
 [  --enable-ctrlbidisledit  include Single-Line BIDI EDIT control <default=no>],
 build_ctrl_bidisledit=$enableval)
 
+dnl enable new textedit
+AC_ARG_ENABLE(newtextedit,
+[  --enable-ctrlnewtextedit include the new implementation of TEXTEDIT control <default=yes>],
+build_ctrl_textedit_new=$enableval)
+
 AC_ARG_ENABLE(ctrllistbox,
 [  --enable-ctrllistbox     include LISTBOX control <default=yes>],
 build_ctrl_listbox=$enableval)
@@ -749,18 +754,6 @@ build_ctrl_listbox=$enableval)
 AC_ARG_ENABLE(ctrlpgbar,
 [  --enable-ctrlpgbar       include PROGRESSBAR control <default=yes>],
 build_ctrl_progressbar=$enableval)
-
-AC_ARG_ENABLE(ctrlnewtoolbar,
-[  --enable-ctrlnewtoolbar  include NEWTOOLBAR control <default=yes>],
-build_ctrl_newtoolbar=$enableval)
-
-AC_ARG_ENABLE(ctrlmenubtn,
-[  --enable-ctrlmenubtn     include MENUBUTTON control <default=yes>],
-build_ctrl_menubutton=$enableval)
-
-AC_ARG_ENABLE(ctrltrackbar,
-[  --enable-ctrltrackbar    include TRACKBAR control <default=yes>],
-build_ctrl_trackbar=$enableval)
 
 AC_ARG_ENABLE(ctrlcombobox,
 [  --enable-ctrlcombobox    include COMBOBOX control <default=yes>],
@@ -770,8 +763,24 @@ AC_ARG_ENABLE(ctrlpropsheet,
 [  --enable-ctrlpropsheet   include PROPSHEET control <default=yes>],
 build_ctrl_propsheet=$enableval)
 
+AC_ARG_ENABLE(ctrltrackbar,
+[  --enable-ctrltrackbar    include TRACKBAR control <default=no>],
+build_ctrl_trackbar=$enableval)
+
+AC_ARG_ENABLE(ctrlscrollbar,
+[  --enable-ctrlscrollbar   include SCROLLBAR control <default=no>],
+build_ctrl_scrollbar=$enableval)
+
+AC_ARG_ENABLE(ctrlnewtoolbar,
+[  --enable-ctrlnewtoolbar  include NEWTOOLBAR control <default=no>],
+build_ctrl_newtoolbar=$enableval)
+
+AC_ARG_ENABLE(ctrlmenubtn,
+[  --enable-ctrlmenubtn     include MENUBUTTON control <default=no>],
+build_ctrl_menubutton=$enableval)
+
 AC_ARG_ENABLE(ctrlscrollview,
-[  --enable-ctrlscrollview  include SCROLLVIEW and SCROLLWINDOW controls <default=yes>],
+[  --enable-ctrlscrollview  include SCROLLVIEW and SCROLLWINDOW controls <default=no>],
 build_ctrl_scrollview=$enableval)
 
 AC_ARG_ENABLE(ctrltextedit,
@@ -779,11 +788,11 @@ AC_ARG_ENABLE(ctrltextedit,
 build_ctrl_textedit=$enableval)
 
 AC_ARG_ENABLE(ctrlmonthcal,
-[  --enable-ctrlmonthcal    include MONTHCALENDAR control <default=yes>],
+[  --enable-ctrlmonthcal    include MONTHCALENDAR control <default=no>],
 build_ctrl_monthcal=$enableval)
 
 AC_ARG_ENABLE(ctrltreeview,
-[  --enable-ctrltreeview    include TREEVIEW control <default=yes>],
+[  --enable-ctrltreeview    include TREEVIEW control <default=no>],
 build_ctrl_treeview=$enableval)
 
 AC_ARG_ENABLE(ctrltreeview-rdr,
@@ -791,19 +800,19 @@ AC_ARG_ENABLE(ctrltreeview-rdr,
 build_ctrl_treeview_rdr=$enableval)
 
 AC_ARG_ENABLE(ctrlspinbox,
-[  --enable-ctrlspinbox     include SPINBOX control <default=yes>],
+[  --enable-ctrlspinbox     include SPINBOX control <default=no>],
 build_ctrl_spinbox=$enableval)
 
 AC_ARG_ENABLE(ctrlcoolbar,
-[  --enable-ctrlcoolbar     include COOLBAR control <default=yes>],
+[  --enable-ctrlcoolbar     include COOLBAR control <default=no>],
 build_ctrl_coolbar=$enableval)
 
 AC_ARG_ENABLE(ctrllistview,
-[  --enable-ctrllistview    include LISTVIEW control <default=yes>],
+[  --enable-ctrllistview    include LISTVIEW control <default=no>],
 build_ctrl_listview=$enableval)
 
 AC_ARG_ENABLE(ctrliconview,
-[  --enable-ctrliconview    include ICONVIEW control <default=yes>],
+[  --enable-ctrliconview    include ICONVIEW control <default=no>],
 build_ctrl_iconview=$enableval)
 
 AC_ARG_ENABLE(ctrlgridview,
@@ -813,15 +822,6 @@ build_ctrl_gridview=$enableval)
 AC_ARG_ENABLE(ctrlanimation,
 [  --enable-ctrlanimation   include ANIMATION control and GIF87a/GIF89a support <default=yes>],
 build_ctrl_animation=$enableval)
-
-AC_ARG_ENABLE(ctrlscrollbar,
-[  --enable-ctrlscrollbar   include SCROLLBAR control <default=yes>],
-build_ctrl_scrollbar=$enableval)
-
-dnl enable new textedit
-AC_ARG_ENABLE(newtextedit,
-[  --enable-newtextedit     include the new implementation of TEXTEDIT control <default=yes>],
-use_new_textedit_impl=$enableval)
 
 dnl Set up the Null video driver.
 CheckDummyVideo()
@@ -2272,21 +2272,6 @@ if test "x$build_ctrl_progressbar" = "xyes"; then
             [Define if include PROGRESSBAR control])
 fi
 
-if test "x$build_ctrl_newtoolbar" = "xyes"; then
-    AC_DEFINE(_MGCTRL_NEWTOOLBAR, 1,
-            [Define if include NEWTOOLBAR control])
-fi
-
-if test "x$build_ctrl_menubutton" = "xyes"; then
-    AC_DEFINE(_MGCTRL_MENUBUTTON, 1,
-            [Define if include MENUBUTTON control])
-fi
-
-if test "x$build_ctrl_trackbar" = "xyes"; then
-    AC_DEFINE(_MGCTRL_TRACKBAR, 1,
-            [Define if include TRACKBAR control])
-fi
-
 if test "x$build_ctrl_combobox" = "xyes"; then
     AC_DEFINE(_MGCTRL_COMBOBOX, 1,
             [Define if include COMBOBOX control])
@@ -2295,6 +2280,26 @@ fi
 if test "x$build_ctrl_propsheet" = "xyes"; then
     AC_DEFINE(_MGCTRL_PROPSHEET, 1,
             [Define if include PROPSHEET control])
+fi
+
+if test "x$build_ctrl_trackbar" = "xyes"; then
+    AC_DEFINE(_MGCTRL_TRACKBAR, 1,
+            [Define if include TRACKBAR control])
+fi
+
+if test "x$build_ctrl_scrollbar" = "xyes"; then
+    AC_DEFINE(_MGCTRL_SCROLLBAR, 1,
+            [Define if include SCROLLBAR control])
+fi
+
+if test "x$build_ctrl_newtoolbar" = "xyes"; then
+    AC_DEFINE(_MGCTRL_NEWTOOLBAR, 1,
+            [Define if include NEWTOOLBAR control])
+fi
+
+if test "x$build_ctrl_menubutton" = "xyes"; then
+    AC_DEFINE(_MGCTRL_MENUBUTTON, 1,
+            [Define if include MENUBUTTON control])
 fi
 
 if test "x$build_ctrl_scrollview" = "xyes"; then
@@ -2352,12 +2357,7 @@ if test "x$build_ctrl_animation" = "xyes"; then
             [Define if include ANIMATION control])
 fi
 
-if test "x$build_ctrl_scrollbar" = "xyes"; then
-    AC_DEFINE(_MGCTRL_SCROLLBAR, 1,
-            [Define if include SCROLLBAR control])
-fi
-
-if test "x$use_new_textedit_impl" = "xyes"; then
+if test "x$build_ctrl_textedit_new" = "xyes"; then
     AC_DEFINE(_MGCTRL_TEXTEDIT, 1,
             [Define if include TEXTEDIT control])
 	AC_DEFINE(_MGCTRL_TEXTEDIT_USE_NEW_IMPL, 1,
