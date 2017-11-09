@@ -27,15 +27,8 @@
     --disable-aboutdlg \
     --disable-savescreen \
     --disable-mousecalibrate \
-    --disable-ctrlmonthcal \
-    --disable-ctrltreeview \
-    --disable-ctrlspinbox \
-    --disable-ctrlcoolbar \
-    --disable-ctrllistview \
-    --disable-ctrliconview \
-    --disable-ctrlgridview \
     --disable-ctrlanimation \
-    --disable-newtextedit \
+    --disable-ctrlnewtextedit \
     --disable-consoleps2 \
     --disable-consoleimps2 \
     --disable-consolems \
