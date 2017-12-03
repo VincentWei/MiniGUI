@@ -541,7 +541,7 @@ dnl ttf cache
     use_ttf_lib="ft2"
 dnl Check for FreeType2 library
     AC_CHECK_LIB(freetype, FT_Library_Version,
-        DEP_LIBS="$DEP_LIBS `freetype-config --libs`",
+        DEP_LIBS="$DEP_LIBS -lfreetype -lz -lpng12",
         use_ttf_lib="none")
 dnl ttf cache
     AC_ARG_ENABLE(ttfcache,
