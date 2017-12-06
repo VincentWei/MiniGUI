@@ -286,6 +286,7 @@ A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
 ## COPYING
 
 Copyright (C) 2002~2017, Beijing FMSoft Technologies Co., Ltd.
+
 Copyright (C) 1998~2002, WEI Yongming
 
 ## NOT FREE FOR COMMERCIAL USE
