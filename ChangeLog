@@ -1,6 +1,8 @@
 *******************************************************************************
 What's new (trunk):
 
+12/06 CLEANUP: 3.0.13 OR.
+
 11/01 CLEANUP: The autoconf/automake config scripts are cleaned up.
 
 11/01 CLEANUP: Remove a lot of compilation warnings (not used variables).
