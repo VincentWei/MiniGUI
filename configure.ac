@@ -228,8 +228,8 @@ build_ctrl_listbox="yes"
 build_ctrl_progressbar="yes"
 build_ctrl_combobox="yes"
 build_ctrl_propsheet="yes"
-build_ctrl_trackbar="no"
-build_ctrl_scrollbar="no"
+build_ctrl_trackbar="yes"
+build_ctrl_scrollbar="yes"
 build_ctrl_newtoolbar="no"
 build_ctrl_menubutton="no"
 build_ctrl_scrollview="no"
@@ -2493,14 +2493,14 @@ dnl scripts/Makefile
 dnl scripts/lxdialog/Makefile
 dnl build/Makefile
 
-# generate license pictures
-echo
-echo "Going to generate license pictures ..."
-cd src/sysres/license/
-./runme.sh $LICENSE_PICTURE > /dev/null
-if [[ $? -ne 0 ]]; then
-    echo "WARNING: failed to generate license pictures."
-else
-    echo "Done."
-fi
+dnl generate license pictures
+dnl echo
+dnl echo "Going to generate license pictures ..."
+dnl cd src/sysres/license/
+dnl ./runme.sh $LICENSE_PICTURE > /dev/null
+dnl if [[ $? -ne 0 ]]; then
+dnl    echo "WARNING: failed to generate license pictures."
+dnl else
+dnl    echo "Done."
+dnl fi
 
