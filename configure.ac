@@ -230,8 +230,8 @@ build_ctrl_combobox="yes"
 build_ctrl_propsheet="yes"
 build_ctrl_trackbar="yes"
 build_ctrl_scrollbar="yes"
-build_ctrl_newtoolbar="no"
-build_ctrl_menubutton="no"
+build_ctrl_newtoolbar="yes"
+build_ctrl_menubutton="yes"
 build_ctrl_scrollview="no"
 build_ctrl_textedit="no"
 build_ctrl_monthcal="no"
@@ -772,11 +772,11 @@ AC_ARG_ENABLE(ctrlscrollbar,
 build_ctrl_scrollbar=$enableval)
 
 AC_ARG_ENABLE(ctrlnewtoolbar,
-[  --enable-ctrlnewtoolbar  include NEWTOOLBAR control <default=no>],
+[  --enable-ctrlnewtoolbar  include NEWTOOLBAR control <default=yes>],
 build_ctrl_newtoolbar=$enableval)
 
 AC_ARG_ENABLE(ctrlmenubtn,
-[  --enable-ctrlmenubtn     include MENUBUTTON control <default=no>],
+[  --enable-ctrlmenubtn     include MENUBUTTON control <default=yes>],
 build_ctrl_menubutton=$enableval)
 
 AC_ARG_ENABLE(ctrlscrollview,
