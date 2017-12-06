@@ -45,19 +45,19 @@ for the developers to develop app much easier:
 
 There are also some legacy MiniGUI components:
 
-   * mGi: An input method component for MiniGUI. This component provides
-     some typical input methods (such as softkey, hand-writing, and predict
-     text input for mobile phone) for MiniGUI apps. 
+  * mGi: An input method component for MiniGUI. This component provides
+    some typical input methods (such as softkey, hand-writing, and predict
+    text input for mobile phone) for MiniGUI apps. 
 
-   * mGp: A printing component for MiniGUI. By using mGp, you can print
-     out the graphics created by MiniGUI app to general-purpose priters.
+  * mGp: A printing component for MiniGUI. By using mGp, you can print
+    out the graphics created by MiniGUI app to general-purpose priters.
 
-   * mG3d: A simple three-dimension component for MiniGUI. This component
-     provides a simple 3D API for app. You can use mG3d to create
-     3D UI.
+  * mG3d: A simple three-dimension component for MiniGUI. This component
+    provides a simple 3D API for app. You can use mG3d to create
+    3D UI.
 
-   * mGUtils: A MiniGUI component which contains miscellaneous utilities 
-     like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
+  * mGUtils: A MiniGUI component which contains miscellaneous utilities 
+    like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
 
 MiniGUI is a free software project. In December 1998, the initiator of 
 FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public 
@@ -66,9 +66,30 @@ MiniGUI founded FMSoft and started the commercial marketing with
 the free software. By now, FMSoft still continues to release MiniGUI 
 as a free software project.
 
-You can download the source of GPL'd MiniGUI versions from the site:
+You can download the source code tarball of MiniGUI and the dependent libraries
+from the download zone of the site:
 
     http://www.minigui.com
+
+FMSoft also releases some open source apps for MiniGUI on the site above, 
+for examples:
+
+  * mDolphin, licensed under Apache 2.0, is a full-featured 
+    WEB/WAP browser, which is developed based on the open source browser 
+    core WebKit and uses MiniGUI as its underlying graphics support system.
+
+  * mGallery, licensed under Apache 2.0, intends to 
+    provide a total solution for PMP (Portable Multimedia Player), 
+    which uses MiniGUI as the graphics platform.
+
+  * mSpider, licensed under GPL 3.0, intends to provide a 
+    light-weight MiniGUI-based web browser (HTML 3.2 and part JavaScript)
+
+  * mEagle, licensed under GPL 3.0, is an embedded GIS development platform 
+    which addresses the needs of map browse, query, analysis, etc
+
+FMSoft releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
+You can also download it from the official site of MiniGUI:
 
 
 ## THE RUNTIME MODES OF MINIGUI
@@ -228,9 +249,6 @@ A brief history description of the developement progress lay below:
 The original author of MiniGUI is WEI Yongming, and now MiniGUI is 
 maintained by FMSoft. For more information, please browse 
 our home page: http://www.fmsoft.cn.
-
-The GPL'd versions and dependent libraries of MiniGUI can be found at: 
-http://www.minigui.org.
 
 
 ## IF YOU HAVE A PROBLEM
