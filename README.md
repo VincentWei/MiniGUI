@@ -244,9 +244,9 @@ A brief history description of the development progress lay below:
   41) May., 2010:     MiniGUI official version 3.0.8 released.
   42) Aug., 2010:     MiniGUI official version 3.0.10 released.
   43) Oct., 2010:     MiniGUI official version 3.0.12 released.
-  44) Aug., 2017:     FMSoft opened the latest source code of MiniGUI under GPL 2.0.
-  45) Aug., 2017:     FMSoft opened the latest source code of mDolphin under Apache 2.0.
-  46) Oct., 2017:     WEI Yongming resumed the development of MiniGUI.
+  44) Aug., 2017:     FMSoft released the latest source code of MiniGUI under GPL 3.0.
+  45) Aug., 2017:     FMSoft released the latest source code of mDolphin under Apache 2.0.
+  46) Dec., 2017:     FMSoft updated MiniGUI and miniStudio for latest Linux distributions.
 
 
 ## ABOUT THE AUTHORS
