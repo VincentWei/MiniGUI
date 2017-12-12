@@ -21,10 +21,13 @@ MiniGUI is a mature cross-platform windowing system and GUI (Graphics
 User Interface) support system for embedded systems and IoT devices. This 
 is the mainline release of MiniGUI maintained by WEI Yongming.
 
+MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
+use.
+
 MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
 windowing and GUI support system, which is especially fit for 
 embedded systems or IoT devices based-on Linux/uClinux, eCos, and other 
-tranditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II, 
+traditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II, 
 and OSE.
 
 This is the MiniGUI core source tarball, which provides windowing 
@@ -43,21 +46,21 @@ for the developers to develop app much easier:
   * mGEff: mGEff provides an animation framework for MiniGUI app. 
      It also provides some popular UI/UE special effects.
 
-There are also some legacy MiniGUI components:
-
   * mGi: An input method component for MiniGUI. This component provides
     some typical input methods (such as softkey, hand-writing, and predict
     text input for mobile phone) for MiniGUI apps. 
 
-  * mGp: A printing component for MiniGUI. By using mGp, you can print
-    out the graphics created by MiniGUI app to general-purpose priters.
-
-  * mG3d: A simple three-dimension component for MiniGUI. This component
-    provides a simple 3D API for app. You can use mG3d to create
-    3D UI.
-
   * mGUtils: A MiniGUI component which contains miscellaneous utilities 
     like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
+
+There are also some legacy MiniGUI components:
+
+  * mGp: A printing component for MiniGUI. By using mGp, you can print
+    out the graphics created by MiniGUI app to general-purpose printers.
+
+  * mG3d: A simple three-dimension component for MiniGUI. This component
+    provides a simple 3D API for app. You can use mG3d to create simple
+    3D UI.
 
 MiniGUI is a free software project. In December 1998, the initiator of 
 FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public 
@@ -88,27 +91,32 @@ for examples:
   * mEagle, licensed under GPL 3.0, is an embedded GIS development platform 
     which addresses the needs of map browse, query, analysis, etc
 
+FMSoft had created the public repositories for MiniGUI core, MiniGUI 
+components, and other open source apps on GitHub. You can visit them on:
+
+https://github.com/VincentWei 
+
 FMSoft releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
-You can also download it from the official site of MiniGUI:
+You can also download it from the official site of MiniGUI.
 
 
 ## THE RUNTIME MODES OF MINIGUI
 
 You can configure and compile MiniGUI as one of three runtime modes:
 
-  * `MiniGUI-Threads': A program running on MiniGUI-Threads can create
+  * 'MiniGUI-Threads': A program running on MiniGUI-Threads can create
     multiple cascaded windows in different threads, and all the windows
     belong to a single process. MiniGUI-Threads is fit for some real-time
     systems on Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX, 
     and OSE.
 
-  * `MiniGUI-Processes': A program running on MiniGUI-Processes is 
+  * 'MiniGUI-Processes': A program running on MiniGUI-Processes is 
     an independent process, which can also create multiple windows. 
     MiniGUI-Processes is fit for some complex embedded systems, such as 
     PDAs, Thin-Clients or STBs. This mode is only useful for full-featured 
     UNIX-like operating systems, like Linux.
 
-  * `MiniGUI-Standalone': A single process version of MiniGUI. This mode
+  * 'MiniGUI-Standalone': A single process version of MiniGUI. This mode
     is useful for some small systems, like uClinux or RTOSes.
 
 The original MiniGUI (version 1.0) run in MiniGUI-Threads mode.
@@ -151,7 +159,7 @@ In version 1.0.00, we designed MiniGUI-Lite, which was more fit for
 some complex embedded systems, such as PDAs, Thin-Clients, or STBs. 
 MiniGUI-Lite made the embedded systems more stable and efficient. 
 The version 1.0.00 provided the native fbcon engine based on Linux 
-FrameBuffer device directly as well. 
+frame buffer device directly as well. 
 
 In the development of version 1.1.00, we re-wrote the GAL and GDI 
 interfaces, and provided some advanced video features, such as raster 
@@ -166,19 +174,16 @@ objects, and can be used to render advanced graphics objects.
 In the development of version 2.0.x, we developed MiniGUI-Processes.
 
 In the development of version 3.0.x, we introduced Look & Feel Renderer,
-BIDI text support, No-rectagular window, double-buffer window, and
-other main featuers.
+BIDI text support, Non-rectangular window, double-buffer window, and
+other main features.
 
-In the development of version 3.2.x, we enhanced MiniGUI to support Gtk+ 
-v2.16.x smoothly.
-
-A brief history description of the developement progress lay below:
+A brief history description of the development progress lay below:
 
   0)  1994 ~ 1996:    MiniGUI DOS version.
   1)  Dec, 1998:      Began to write.
   2)  Apr, 1999:      The skeleton of MiniGUI, windowing sub-system 
           and basic graphics device interfaces.
-  3)  May, 1999:      Timer, menu, and the sekleton of control sub-system.
+  3)  May, 1999:      Timer, menu, and the skeleton of control sub-system.
   4)  Jun, 1999:      Chinese input method (by Kang Xiaoning).
   5)  July, 1999:     GIF and JPG loading support (by LI Zhuo).
   6)  Aug, 1999:      Some standard controls (Portion by Zhao Jianghua).
@@ -261,8 +266,8 @@ messages to consult@minigui.com.
 
 Q: Is GPL'd MiniGUI free for commercial use?
 
-A: Simply no. FMSoft release some versions of MiniGUI under
-   GPL license. It is free for those who are 100% GPL and those who 
+A: Simply no. FMSoft releases MiniGUI under GPLv3 license. 
+   It is free for those who are 100% GPL and those who 
    never copy, modify and distribute MiniGUI. But if you want to use 
    these GPL'd versions for commerce, you should get the commercial 
    license from FMSoft first.
