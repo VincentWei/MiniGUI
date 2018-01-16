@@ -82,6 +82,7 @@ dnl ========================================================================
 dnl User selectable options
 
 dnl System wide options
+devel_mode="no"
 use_debug="no"
 trace_message="no"
 message_string="no"
@@ -277,6 +278,10 @@ dnl settings for license management
 build_productid="no"
 build_splash="yes"
 build_screensaver="yes"
+
+AC_ARG_ENABLE(develmode,
+[  --enable-develmode       developer mode <default=no>],
+devel_mode=$enableval)
 
 AC_ARG_ENABLE(debug,
 [  --enable-debug           build with debugging messages <default=no>],
@@ -1677,6 +1682,12 @@ fi
 if test "x$fixed_math" = "xyes"; then
     AC_DEFINE(_MGHAVE_FIXED_MATH, 1,
             [Define if include fixed math routines])
+fi
+
+if test "x$devel_mode" = "xyes"; then
+    use_debug="yes"
+    trace_message="yes"
+    CFLAGS="$CFLAGS -Werror"
 fi
 
 if test "x$use_debug" = "xyes"; then
