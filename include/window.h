@@ -4893,15 +4893,15 @@ extern MG_EXPORT HWND __mg_hwnd_desktop;
  * \def HWND_NULL
  * \brief Null window handle.
  */
-#define HWND_NULL           0
+#define HWND_NULL           (HWND)0
 
 /**
  * \def HWND_INVALID
  * \brief Invalid window handle.
  */
-#define HWND_INVALID        0xFFFFFFFF
+#define HWND_INVALID        (HWND)UINT_PTR_MAX
 
-#define HWND_OTHERPROC      0xFFFFFFFE
+#define HWND_OTHERPROC      (HWND)UINT_PTR_MAX
 
 /**
  * Structure defines a main window.
@@ -8426,10 +8426,10 @@ typedef struct _MENUITEMINFO {
     PBITMAP             checkedbmp;
 
     /** The private data attached to the menu item */
-    DWORD               itemdata; 
+    DWORD           itemdata; 
 
     /** The data of this menu item, used to pass the string or the pointer to the BITMAP object of the menu item */
-    DWORD               typedata;
+    DWORD           typedata;
 
     /** 
      * Used by \a GetMenuItemInfo function to indicate the maximal length 
@@ -9056,7 +9056,7 @@ typedef struct _CTRLDATA
     /** Control caption */
     const char* caption;                
     /** Additional data */
-    DWORD       dwAddData;              
+    DWORD   dwAddData;              
     /** Control extended style */
     DWORD       dwExStyle;              
 

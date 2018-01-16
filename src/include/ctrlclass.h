@@ -29,7 +29,7 @@ typedef struct _CTRLCLASSINFO
     int (*ControlProc)(HWND, int, WPARAM, LPARAM);
                                 // control procedure.
 
-    DWORD dwAddData;            // the additional data.
+    DWORD dwAddData;        // the additional data.
 
     int nUseCount;              // use count.
     struct _CTRLCLASSINFO*  next;

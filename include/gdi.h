@@ -1090,19 +1090,19 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * \note MiniGUI does not do any clipping operation for this DC, 
  *       so use this DC may make a mess of other windows. 
  */
-#define HDC_SCREEN          0
+#define HDC_SCREEN          (HDC)0
 
 /* 
  * This is a system screen DC create for MiniGUI internal usage, for example,
  * menu and z-order operations
  */
-#define HDC_SCREEN_SYS      1
+#define HDC_SCREEN_SYS      (HDC)1
 
 /**
  * \def HDC_INVALID
  * \brief Indicates an invalid handle to device context.
  */
-#define HDC_INVALID         0xFFFFFFFF
+#define HDC_INVALID         (HDC)UINT_PTR_MAX
 
 #define GDCAP_COLORNUM      0
 #define GDCAP_HPIXEL        1

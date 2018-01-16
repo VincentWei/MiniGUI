@@ -271,7 +271,7 @@ unsigned short font_GetBestScaleFactor (int height, int expect)
 { \
     devfont = head; \
     while (devfont) { \
-        fprintf (stderr, "  %d: %s, charsetname: %s, style: %#lx\n",  \
+        fprintf (stderr, "  %d: %s, charsetname: %s, style: %#x\n",  \
                 count,  \
                 devfont->name, devfont->charset_ops->name, devfont->style); \
             devfont = devfont->next; \

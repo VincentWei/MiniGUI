@@ -256,6 +256,20 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
      * @{
      */
 
+
+#if defined(_WIN64)
+#  define SIZEOF_PTR   8
+#elif defined(__LP64__)
+#  define SIZEOF_PTR   8
+#else
+#  define SIZEOF_PTR   4
+#endif
+/**
+ * \var PVOID
+ * \brief A type definition for a pointer to any type.
+ */
+typedef void *PVOID;
+
 /**
  * \var typedef int BOOL
  * \brief A type definition for boolean value.
@@ -265,6 +279,7 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
 typedef int BOOL;
 #endif
 #endif
+
 /**
  * \def FALSE
  * \brief FALSE value, defined as 0 by MiniGUI.
@@ -318,55 +333,55 @@ typedef int BOOL;
      */
 
 /**
- * \var typedef unsigned int GHANDLE
+ * \var GHANDLE
  * \brief General handle.
  */
-typedef unsigned int GHANDLE;
+typedef PVOID GHANDLE;
 /**
- * \var typedef unsigned int HWND
+ * \var HWND
  * \brief Handle to main window or control.
  */
-typedef unsigned int HWND;
+typedef GHANDLE HWND;
 /**
- * \var typedef unsigned int HDC
+ * \var HDC
  * \brief Handle to device context.
  */
-typedef unsigned int HDC;
+typedef GHANDLE HDC;
 /**
- * \var typedef unsigned int HPALETTE
+ * \var HPALETTE
  * \brief Handle to a logical palette.
  */
-typedef unsigned int HPALETTE;
+typedef GHANDLE HPALETTE;
 /**
- * \var typedef unsigned int HCURSOR
+ * \var HCURSOR
  * \brief Handle to cursor.
  */
-typedef unsigned int HCURSOR;
+typedef GHANDLE HCURSOR;
 /**
- * \var typedef unsigned int HICON
+ * \var HICON
  * \brief Handle to icon.
  */
-typedef unsigned int HICON;
+typedef GHANDLE HICON;
 /**
- * \var typedef unsigned int HMENU
+ * \var HMENU
  * \brief Handle to menu.
  */
-typedef unsigned int HMENU;
+typedef GHANDLE HMENU;
 /**
- * \var typedef unsigned int HACCEL
+ * \var HACCEL
  * \brief Handle to accelarator.
  */
-typedef unsigned int HACCEL;
+typedef GHANDLE HACCEL;
 /**
- * \var typedef unsigned int HDLG
+ * \var HDLG
  * \brief Handle to dialog box, same as HWND.
  */
-typedef unsigned int HDLG;
+typedef GHANDLE HDLG;
 /**
- * \var typedef unsigned int HHOOK
+ * \var HHOOK
  * \brief Handle to keyboard or mouse event hook.
  */
-typedef unsigned int HHOOK;
+typedef GHANDLE HHOOK;
 
     /** @} end of handles */
 
@@ -376,73 +391,158 @@ typedef unsigned int HHOOK;
      */
 
 /**
- * \var typedef unsigned char BYTE
- * \brief A type definition for unsigned character (byte).
+ * \var BYTE
+ * \brief A type definition for an 8-bit unsigned character (byte).
  */
-#ifndef _HAVE_TYPE_BYTE
 typedef unsigned char   BYTE;
-#endif
+
 /**
- * \var typedef signed char SBYTE
- * \brief A type definition for signed character.
+ * \var SBYTE
+ * \brief A type definition for an 8-bit signed character.
  */
 typedef signed char     SBYTE;
 
 /**
- * \var typedef unsigned short WORD 
- * \brief A type definition for unsigned short integer (word).
+ * \var WORD_HPTR
+ * \brief An unsigned int (word) type in half pointer precision. 
  */
-#ifndef _HAVE_TYPE_WORD
-typedef unsigned short  WORD;
+#if defined(_WIN64)
+typedef unsigned int WORD_HPTR;
+#elif defined(__LP64__)
+typedef unsigned int WORD_HPTR;
+#else
+typedef unsigned short WORD_HPTR;
 #endif
 
 /**
- * \var typedef signed short SWORD 
- * \brief A type definition for signed short integer.
+ * \var SWORD_HPTR
+ * \brief An signed int type in half pointer precision. 
  */
-typedef signed short    SWORD;
-
-/**
- * \var typedef unsigned long DWORD
- * \brief A type definition for unsigned long integer (double word).
- */
-#ifndef _HAVE_TYPE_DWORD
-typedef unsigned long   DWORD;
+#if defined(_WIN64)
+typedef signed int SWORD_HPTR;
+#elif defined(__LP64__)
+typedef signed int SWORD_HPTR;
+#else
+typedef signed short SWORD_HPTR;
 #endif
 
 /**
- * \var typedef signed long SDWORD
- * \brief A type definition for signed long integer.
+ * \var WORD 
+ * \brief A type definition for an unsigned integer (word).
  */
-typedef signed long     SDWORD;
+typedef WORD_HPTR WORD;
 
 /**
- * \var typedef unsigned int UINT
+ * \var SWORD 
+ * \brief A type definition for a signed integer.
+ */
+typedef SWORD_HPTR SWORD;
+
+/**
+ * \var WORD16
+ * \brief A type definition for a 16-bit unsigned integer (word).
+ */
+typedef unsigned short WORD16;
+
+/**
+ * \var SWORD16
+ * \brief A type definition for a 16-bit signed integer.
+ */
+typedef signed short SWORD16;
+
+/**
+ * \var DWORD_PTR
+ * \brief An unsigned long type for pointer precision. 
+ *
+ * Commonly used for general 32-bit parameters that have been extended 
+ * to 64 bits in 64-bit platform.
+ */
+#if defined(_WIN64)
+typedef unsigned __int64 DWORD_PTR;
+#elif defined(__LP64__)
+typedef unsigned long DWORD_PTR;
+#else
+typedef unsigned int DWORD_PTR;
+#endif
+
+/**
+ * \var DWORD
+ * \brief A unsigned long type definition for pointer precision.
+ */
+typedef DWORD_PTR DWORD;
+
+/**
+ * \var DWORD32
+ * \brief A type definition for a 32-bit unsigned integer.
+ */
+typedef unsigned short DWORD32;
+
+/**
+ * \var SDWORD32
+ * \brief A type definition for a 32-bit signed integer.
+ */
+typedef signed short SDWORD32;
+
+/**
+ * \var UINT
  * \brief A type definition for unsigned integer.
  */
-#ifndef _HAVE_TYPE_UINT
-typedef unsigned int    UINT;
+typedef unsigned int UINT;
+
+/**
+ * \var INT_PTR
+ * \brief A signed integer type for pointer precision.
+ */
+#if defined(_WIN64)
+typedef __int64 INT_PTR;
+#elif defined(__LP64__)
+typedef long INT_PTR;
+#else
+typedef int INT_PTR;
 #endif
 
 /**
- * \var typedef long LONG
+ * \var UINT_PTR
+ * \brief A unsigned integer type for pointer precision.
+ */
+#if defined(_WIN64)
+typedef unsigned __int64 UINT_PTR;
+#elif defined(__LP64__)
+typedef unsigned long UINT_PTR;
+#else
+typedef unsigned int UINT_PTR;
+#endif
+
+#if SIZEOF_PTR == 8
+#  define INT_PTR_MIN        (-9223372036854775807L-1)  
+#  define INT_PTR_MAX        (9223372036854775807L)  
+#  define UINT_PTR_MAX       (18446744073709551615UL)  
+#else  
+#  error 64bit arrives 32bit.
+#  define INT_PTR_MIN        (-2147483647-1)  
+#  define INT_PTR_MAX        (2147483647)  
+#  define UINT_PTR_MAX       (4294967295U)  
+#endif  
+
+/**
+ * \var typedef LONG
  * \brief A type definition for long integer.
  */
 #ifndef _HAVE_TYPE_LONG
-typedef long            LONG;
+typedef long LONG;
 #endif
 
 /**
- * \var typedef unsigned int WPARAM
+ * \var WPARAM
  * \brief A type definition for the first message paramter.
  */
-typedef unsigned int    WPARAM;
+typedef UINT_PTR WPARAM;
 
 /**
- * \var typedef unsigned long LPARAM
+ * \var LPARAM
  * \brief A type definition for the second message paramter.
  */
-typedef unsigned long   LPARAM;
+typedef UINT_PTR LPARAM;
 
 /**
  * \def LOBYTE(w)
