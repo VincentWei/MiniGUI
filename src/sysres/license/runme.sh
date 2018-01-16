@@ -17,11 +17,11 @@ fi
 
 #RC4KEY=`echo -n $RANDOM | md5sum | awk '{print $1}'`
 #RC4KEY=`awk 'BEGIN {srand();for (i=1;i<=16;i++) printf("%02x",int(256*rand()))}'`
-RC4KEY=`./genkey.sh | awk '{print $1}'`
-echo "KEY: $RC4KEY"
-echo
+#RC4KEY=`./genkey.sh | awk '{print $1}'`
+#echo "KEY: $RC4KEY"
+#echo
 
-TMPRC4KEY=`echo -n $RC4KEY | awk '{for(i=1;i<=32;i+=2) {print "0x"substr($1,i,2)}}'`
+#TMPRC4KEY=`echo -n $RC4KEY | awk '{for(i=1;i<=32;i+=2) {print "0x"substr($1,i,2)}}'`
 #echo $TMPRC4KEY
 
 #
@@ -37,7 +37,8 @@ for src in $LIST; do
     dst=$DAT_DIR/$dst
 
     echo "$src --> $dst"
-    $CRYPTOOL -e $src $dst $RC4KEY
+#    $CRYPTOOL -e $src $dst $RC4KEY
+    cp $src $dst
 done
 
 cd $OLDPWD
@@ -49,12 +50,12 @@ cd $OLDPWD
 mkdir $C_DIR > /dev/null 2>&1
 
 # key.c
-CRC4KEY=`echo -n $TMPRC4KEY | sed "s/ /,/g"`
+#CRC4KEY=`echo -n $TMPRC4KEY | sed "s/ /,/g"`
 #echo $CRC4KEY
-echo "MG_LOCAL unsigned char splash_crypto_key[16] = {" > $C_DIR/key.c
-echo "    "$CRC4KEY >> $C_DIR/key.c
-echo "};" >> $C_DIR/key.c
-echo "" >> $C_DIR/key.c
+#echo "MG_LOCAL unsigned char splash_crypto_key[16] = {" > $C_DIR/key.c
+#echo "    "$CRC4KEY >> $C_DIR/key.c
+#echo "};" >> $C_DIR/key.c
+#echo "" >> $C_DIR/key.c
 
 cd $DAT_DIR; find . -name \*.dat | sed "s/^\.\/*//g" | sort > ../res.lst; cd ..
 

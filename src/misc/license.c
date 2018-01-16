@@ -394,7 +394,9 @@ char *LICENSE_ENCRYPTED_CONST_STRING(unsigned char *src, int len){
     defined(_MG_ENABLE_SCREENSAVER) || \
     defined(_MG_ENABLE_WATERMARK)
 
-#define ENCRYPTED
+/* disable cryptool */
+#undef ENCRYPTED
+
 #ifdef ENCRYPTED
 #   include "../sysres/license/c_files/key.c"
 #endif
