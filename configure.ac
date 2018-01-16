@@ -277,7 +277,7 @@ enable_video_custom="no"
 dnl settings for license management
 build_productid="no"
 build_splash="yes"
-build_screensaver="yes"
+build_screensaver="no"
 
 AC_ARG_ENABLE(develmode,
 [  --enable-develmode       developer mode <default=no>],
@@ -356,7 +356,7 @@ AC_ARG_ENABLE(splash,
 build_splash=$enableval)
 
 AC_ARG_ENABLE(screensaver,
-[  --enable-screensaver     enable screensaver <default=yes>],
+[  --enable-screensaver     enable screensaver <default=no>],
 build_screensaver=$enableval)
 
 AC_ARG_ENABLE(flatlf,
@@ -1517,16 +1517,16 @@ case "$with_osname" in
     ;;
 esac
 
-AC_ARG_WITH(licensepicture,
-  [  --with-licensepicture=minigui/mdolphin/hybridos])
-case "$with_licensepicture" in
-    minigui|mdolphin|hybridos)
-        LICENSE_PICTURE=$with_licensepicture
-        ;;
-    *)
-        LICENSE_PICTURE=minigui
-        ;;
-esac
+dnl AC_ARG_WITH(licensepicture,
+dnl   [  --with-licensepicture=minigui/mdolphin/hybridos])
+dnl case "$with_licensepicture" in
+dnl     minigui|mdolphin|hybridos)
+dnl         LICENSE_PICTURE=$with_licensepicture
+dnl         ;;
+dnl     *)
+dnl         LICENSE_PICTURE=minigui
+dnl         ;;
+dnl esac
 
 AC_ARG_WITH(targetname,
   [  --with-targetname=unknown/customer/fmsoft/mstudio/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
