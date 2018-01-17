@@ -1314,7 +1314,7 @@ static void listview_destroy (HWND hWnd, PLVDATA plvdata)
 
 #define RETURN_DIRECT    return DefaultControlProc(hWnd, message, wParam, lParam)
 
-static int ListViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PLVDATA plvdata = NULL;
 

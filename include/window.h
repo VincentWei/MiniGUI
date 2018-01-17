@@ -2165,15 +2165,15 @@ typedef struct _DRAGINFO {
 typedef struct _MSG
 {
     /** The handle to the window which receives this message. */
-    HWND             hwnd;
+    HWND            hwnd;
     /** The message identifier. */
-    int              message;
+    UINT            message;
     /** The first parameter of the message (32-bit integer). */
-    WPARAM           wParam;
+    WPARAM          wParam;
     /** The second parameter of the message (32-bit integer). */
-    LPARAM           lParam;
-    /** Time*/
-    unsigned int     time;
+    LPARAM          lParam;
+    /** Time */
+    ULONG           time;
 #ifdef _MGRM_THREADS
     /** Addtional data*/
     void*            pAdd;
@@ -2217,7 +2217,7 @@ typedef MSG* PMSG;
 
 /**
  * \fn BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, \
- *               int iMsgFilterMin, int iMsgFilterMax, \
+ *               UINT nMsgFilterMin, UINT nMsgFilterMax, \
  *               BOOL bWait, UINT uRemoveMsg)
  * \brief Peeks a message from the message queue of a main window.
  *
@@ -2226,8 +2226,8 @@ typedef MSG* PMSG;
  *
  * \param pMsg Pointer to the result message.
  * \param hWnd The handle to the window.
- * \param iMsgFilterMin The min identifier of the message that should be peeked.
- * \param iMsgFilterMax The max identifier of the message that should be peeked.
+ * \param nMsgFilterMin The min identifier of the message that should be peeked.
+ * \param nMsgFilterMax The max identifier of the message that should be peeked.
  * \param bWait Whether to wait for a message.
  * \param uRemoveMsg Whether remove the message from the message queue.
  *      Should be the following values:
@@ -2243,7 +2243,7 @@ typedef MSG* PMSG;
  * \sa GetMessage, PeekPostMessage, HavePendingMessage, PostMessage
  */               
 MG_EXPORT BOOL GUIAPI PeekMessageEx (PMSG pMsg, HWND hWnd, 
-                int iMsgFilterMin, int iMsgFilterMax, 
+                UINT nMsgFilterMin, UINT nMsgFilterMax, 
                 BOOL bWait, UINT uRemoveMsg);
 
 /**
@@ -2305,7 +2305,7 @@ MG_EXPORT BOOL GUIAPI HavePendingMessage (HWND hMainWnd);
 
 /**
  * \fn BOOL PeekMessage (PMSG pMsg, HWND hWnd, \
- *               int iMsgFilterMin, int iMsgFilterMax, UINT uRemoveMsg)
+ *               UINT nMsgFilterMin, UINT nMsgFilterMax, UINT uRemoveMsg)
  * \brief Peeks a message from the message queue of a main window
  *
  * This functions peek a message from the message queue of the window \a hWnd 
@@ -2314,8 +2314,8 @@ MG_EXPORT BOOL GUIAPI HavePendingMessage (HWND hMainWnd);
  *
  * \param pMsg Pointer to the result message.
  * \param hWnd The handle to the window.
- * \param iMsgFilterMin The min identifier of the message that should be peeked.
- * \param iMsgFilterMax The max identifier of the message that should be peeked.
+ * \param nMsgFilterMin The min identifier of the message that should be peeked.
+ * \param nMsgFilterMax The max identifier of the message that should be peeked.
  * \param uRemoveMsg Whether remove the message from the message queue.
  *      Should be the following values:
  *      - PM_NOREMOVE\n
@@ -2329,16 +2329,16 @@ MG_EXPORT BOOL GUIAPI HavePendingMessage (HWND hMainWnd);
  *
  * \sa GetMessage, PeekPostMessage, HavePendingMessage, PostMessage
  */               
-static inline BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin, 
-                         int iMsgFilterMax, UINT uRemoveMsg)
+static inline BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, 
+                         UINT nMsgFilterMax, UINT uRemoveMsg)
 {
-    return PeekMessageEx (pMsg, hWnd, iMsgFilterMin, iMsgFilterMax, 
+    return PeekMessageEx (pMsg, hWnd, nMsgFilterMin, nMsgFilterMax, 
                            FALSE, uRemoveMsg);
 }
 
 /**
  * \fn BOOL PeekPostMessage (PMSG pMsg, HWND hWnd, \
-                int iMsgFilterMin, int iMsgFilterMax, UINT uRemoveMsg)
+                UINT nMsgFilterMin, UINT nMsgFilterMax, UINT uRemoveMsg)
  * \brief Peeks a post message from the message queue of a main window
  *
  * This functions peek a message from the message queue of the window \a hWnd 
@@ -2347,8 +2347,8 @@ static inline BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin,
  *
  * \param pMsg Pointer to the result message.
  * \param hWnd The handle to the window.
- * \param iMsgFilterMin The min identifier of the message that should be peeked.
- * \param iMsgFilterMax The max identifier of the message that should be peeked.
+ * \param nMsgFilterMin The min identifier of the message that should be peeked.
+ * \param nMsgFilterMax The max identifier of the message that should be peeked.
  * \param uRemoveMsg Whether remove the message from the message queue.
  *      Should be the following values:
  *      - PM_NOREMOVE\n
@@ -2362,11 +2362,11 @@ static inline BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin,
  *
  * \sa GetMessage, PeekMessage, HavePendingMessage, PostMessage
  */               
-MG_EXPORT BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin, 
-                int iMsgFilterMax, UINT uRemoveMsg);
+MG_EXPORT BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, 
+                UINT nMsgFilterMax, UINT uRemoveMsg);
 
 /**
- * \fn int PostMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+ * \fn int PostMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Posts a message into the message queue of a window and returns 
  * immediatly.
  *
@@ -2374,7 +2374,7 @@ MG_EXPORT BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin,
  * and returns immediately.
  *
  * \param hWnd The handle to the window.
- * \param iMsg The identifier of the message.
+ * \param nMsg The identifier of the message.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  *
@@ -2386,29 +2386,29 @@ MG_EXPORT BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin,
  *
  * \sa SendMessage
  */               
-MG_EXPORT int GUIAPI PostMessage (HWND hWnd, int iMsg, 
+MG_EXPORT int GUIAPI PostMessage (HWND hWnd, UINT nMsg, 
                 WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn int SendMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+ * \fn LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Sends a message to a window.
  *
  * This function sends a message to the window \a hWnd, and will return 
  * until the message-handling process returns.
  *
  * \param hWnd The handle to the window.
- * \param iMsg The identifier of the message.
+ * \param nMsg The identifier of the message.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  * \return The return value of the message handler.
  *
  * \sa PostMessage
  */
-MG_EXPORT int GUIAPI SendMessage (HWND hWnd, int iMsg, 
+MG_EXPORT LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, 
                 WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn void GUIAPI SetAutoRepeatMessage (HWND hwnd, int msg, \
+ * \fn void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg, \
             WPARAM wParam, LPARAM lParam)
  * \brief Sets the auto-repeat message.
  *
@@ -2422,7 +2422,7 @@ MG_EXPORT int GUIAPI SendMessage (HWND hWnd, int iMsg,
  * \param wParam The first parameter of the auto-repeat message.
  * \param lParam The second parameter of the auto-repeat message.
  */
-MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, int msg, 
+MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg, 
                 WPARAM wParam, LPARAM lParam);
 
 #ifndef _MGRM_THREADS
@@ -2475,13 +2475,13 @@ MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, int msg,
 int GUIAPI Send2Client (MSG* msg, int cli);
 
 /**
- * \fn BOOL Send2TopMostClients (int iMsg, WPARAM wParam, LPARAM lParam)
+ * \fn BOOL Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Sends a message to all clients in the topmost layer.
  *
- * This function sends the message specified by (\a iMsg, \a wParam, \a lParam) 
+ * This function sends the message specified by (\a nMsg, \a wParam, \a lParam) 
  * to all clients in the topmost layer.
  *
- * \param iMsg The message identifier.
+ * \param nMsg The message identifier.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  * \return TRUE on success, FALSE on error.
@@ -2493,18 +2493,18 @@ int GUIAPI Send2Client (MSG* msg, int cli);
  *
  * \sa Send2Client, Send2ActiveWindow
  */
-BOOL GUIAPI Send2TopMostClients (int iMsg, WPARAM wParam, LPARAM lParam);
+BOOL GUIAPI Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 /**
  * \fn BOOL Send2ActiveWindow (const MG_Layer* layer, \
-                 int iMsg, WPARAM wParam, LPARAM lParam);
+                 UINT nMsg, WPARAM wParam, LPARAM lParam);
  * \brief Sends a message to the active window in layer.
  *
- * This function sends the message specified by (\a iMsg, \a wParam, \a lParam) 
+ * This function sends the message specified by (\a nMsg, \a wParam, \a lParam) 
  * to the current active window in the specific layer (\a layer).
  *
  * \param layer The pointer to the layer.
- * \param iMsg The message identifier.
+ * \param nMsg The message identifier.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  *
@@ -2516,25 +2516,25 @@ BOOL GUIAPI Send2TopMostClients (int iMsg, WPARAM wParam, LPARAM lParam);
  * \sa Send2Client
  */
 BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer, 
-                 int iMsg, WPARAM wParam, LPARAM lParam);
+                 UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 #endif /* _MGRM_PROCESSES */
 
 #else /* !_MGRM_THREADS */
 
 /**
- * \fn int PostSyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+ * \fn LRESULT PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Posts a synchronical message to a window which is in different thread.
  *
  * This function posts the synchronical message specified by 
- * (\a iMsg, \a wParam, \a lParam) to the window \a hWnd which 
+ * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd which 
  * is in different thread. This function will return until 
  * the message is handled by the window procedure.
  *
  * \note The destination window must belong to other thread.
  *
  * \param hWnd The handle to the window.
- * \param iMsg The message identifier.
+ * \param nMsg The message identifier.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  *
@@ -2542,19 +2542,19 @@ BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
  *
  * \sa SendMessage
  */
-MG_EXPORT int GUIAPI PostSyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn int SendAsyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+ * \fn LRESULT SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Sends an asynchronical message to a window.
  *
  * This function sends the asynchronical message specified by 
- * (\a iMsg, \a wParam, \a lParam) to the window \a hWnd 
+ * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd 
  * which is in different thread. This function calls 
  * the window procedure immediately, so it is very dangerous.
  *
  * \param hWnd The handle to the window.
- * \param iMsg The message identifier.
+ * \param nMsg The message identifier.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  *
@@ -2564,20 +2564,20 @@ MG_EXPORT int GUIAPI PostSyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM
  *
  * \sa PostSyncMessage
  */
-MG_EXPORT int GUIAPI SendAsyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam);
+MG_EXPORT int GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
 /**
- * \fn int SendNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+ * \fn int SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Sends a notification message to a window.
  *
  * This function sends the notification message specified by 
- * (\a iMsg, \a wParam, \a lParam) to the window \a hWnd. This function 
+ * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd. This function 
  * puts the notication message in the message queue and then returns 
  * immediately.
  *
  * \param hWnd The handle to the window.
- * \param iMsg The message identifier.
+ * \param nMsg The message identifier.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  *
@@ -2585,23 +2585,23 @@ MG_EXPORT int GUIAPI SendAsyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARA
  *
  * \sa SendMessage, PostMessage
  */
-MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam);
+MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn int BroadcastMessage (int iMsg, WPARAM wParam, LPARAM lParam)
+ * \fn int BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Broadcasts a message to all main window on the desktop.
  *
- * This function posts the message specified by (\a iMsg, \a wParam, \a lParam)
+ * This function posts the message specified by (\a nMsg, \a wParam, \a lParam)
  * to all the main windows on the desktop.
  *
- * \param iMsg The message identifier.
+ * \param nMsg The message identifier.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  * \return 0 if all OK, < 0 on error.
  *
  * \sa PostMessage
  */
-MG_EXPORT int GUIAPI BroadcastMessage (int iMsg, WPARAM wParam, LPARAM lParam);
+MG_EXPORT int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 /**
  * \fn int PostQuitMessage (HWND hWnd)
@@ -2799,22 +2799,22 @@ MG_EXPORT const char* GUIAPI Message2Str (int message);
 
 /**
  * \fn void GUIAPI PrintMessage (FILE* fp, HWND hWnd, \
-                int iMsg, WPARAM wParam, LPARAM lParam)
+                UINT nMsg, WPARAM wParam, LPARAM lParam)
  * \brief Prints a message in readable string form to a stdio stream.
  *
- * This function prints the message specified by (\a iMsg, \a wParam, \a lParam)
+ * This function prints the message specified by (\a nMsg, \a wParam, \a lParam)
  * in readable string form to the stdio stream \a fp.
  *
  * \param fp The pointer to the FILE object.
  * \param hWnd The target window of the message.
- * \param iMsg The message identifier.
+ * \param nMsg The message identifier.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  *
  * \sa Message2Str
  */
 MG_EXPORT void GUIAPI PrintMessage (FILE* fp, HWND hWnd, 
-                int iMsg, WPARAM wParam, LPARAM lParam);
+                UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 #endif
 
@@ -4879,7 +4879,7 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
  * \var typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM)
  * \brief Type of the window callback procedure.
  */
-typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM);
+typedef LRESULT (* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 
 extern MG_EXPORT HWND __mg_hwnd_desktop;
 
@@ -4899,9 +4899,9 @@ extern MG_EXPORT HWND __mg_hwnd_desktop;
  * \def HWND_INVALID
  * \brief Invalid window handle.
  */
-#define HWND_INVALID        (HWND)UINT_PTR_MAX
+#define HWND_INVALID        (HWND)-1
 
-#define HWND_OTHERPROC      (HWND)UINT_PTR_MAX
+#define HWND_OTHERPROC      (HWND)-1
 
 /**
  * Structure defines a main window.
@@ -4930,7 +4930,7 @@ typedef struct _MAINWINCREATE
     HWND  hHosting;
 
     /** The window callback procedure */
-    int (*MainWindowProc)(HWND, int, WPARAM, LPARAM);
+    LRESULT (*MainWindowProc)(HWND, UINT, WPARAM, LPARAM);
 
     /** The position of the main window in the screen coordinates */
     int lx, ty, rx, by;
@@ -5139,17 +5139,17 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN* region);
  */
 BOOL GUIAPI GetWindowRegion (HWND hWnd, CLIPRGN* region);
 
-int GUIAPI PreDefMainWinProc (HWND hWnd, int message, 
+LRESULT GUIAPI PreDefMainWinProc (HWND hWnd, UINT message, 
                 WPARAM wParam, LPARAM lParam);
 
-int GUIAPI PreDefDialogProc (HWND hWnd, 
-                int message, WPARAM wParam, LPARAM lParam);
+LRESULT GUIAPI PreDefDialogProc (HWND hWnd, 
+                UINT message, WPARAM wParam, LPARAM lParam);
 
-int GUIAPI PreDefControlProc (HWND hWnd, int message, 
+LRESULT GUIAPI PreDefControlProc (HWND hWnd, UINT message, 
                 WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn int DefaultWindowProc (HWND hWnd, int message, \
+ * \fn LRESULT DefaultWindowProc (HWND hWnd, UINT message, \
                 WPARAM wParam, LPARAM lParam)
  * \brief The default window callback procedure.
  *
@@ -5165,7 +5165,7 @@ int GUIAPI PreDefControlProc (HWND hWnd, int message,
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
  */
-MG_EXPORT int GUIAPI DefaultWindowProc (HWND hWnd, int message, 
+MG_EXPORT LRESULT GUIAPI DefaultWindowProc (HWND hWnd, UINT message, 
                 WPARAM wParam, LPARAM lParam);
 
 /**
@@ -6734,13 +6734,13 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
  * \brief Get window element color.
  */
 #define GetWindowElementColor(iItem)   \
-        GetWindowElementPixelEx(HWND_NULL, -1, iItem)
+        GetWindowElementPixelEx(HWND_NULL, (HDC)-1, iItem)
 
 #define GetWindowElementColorEx(hWnd, iItem)   \
-        GetWindowElementPixelEx(hWnd, -1, iItem)
+        GetWindowElementPixelEx(hWnd, (HDC)-1, iItem)
 
 #define GetWindowElementPixel(hWnd, iItem)   \
-        GetWindowElementPixelEx(hWnd, -1, iItem)
+        GetWindowElementPixelEx(hWnd, (HDC)-1, iItem)
 
     /** @} end of window_general_fns */
 
@@ -7289,7 +7289,7 @@ typedef struct _WNDCLASS
     int     iBkColor;
 
     /** Window callback procedure of all instances of this window class */
-    int     (*WinProc) (HWND, int, WPARAM, LPARAM);
+    LRESULT (*WinProc) (HWND, UINT, WPARAM, LPARAM);
 
     /** The private additional data associated with this window class */
     DWORD dwAddData;
@@ -8426,10 +8426,10 @@ typedef struct _MENUITEMINFO {
     PBITMAP             checkedbmp;
 
     /** The private data attached to the menu item */
-    DWORD           itemdata; 
+    DWORD               itemdata; 
 
     /** The data of this menu item, used to pass the string or the pointer to the BITMAP object of the menu item */
-    DWORD           typedata;
+    DWORD               typedata;
 
     /** 
      * Used by \a GetMenuItemInfo function to indicate the maximal length 
@@ -9056,7 +9056,7 @@ typedef struct _CTRLDATA
     /** Control caption */
     const char* caption;                
     /** Additional data */
-    DWORD   dwAddData;              
+    DWORD       dwAddData;              
     /** Control extended style */
     DWORD       dwExStyle;              
 
@@ -9431,8 +9431,8 @@ MG_EXPORT HWND GUIAPI GetNextDlgGroupItem (HWND hDlg,
 MG_EXPORT HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious);
 
 /**
- * \fn int GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, \
- *               int message, WPARAM wParam, LPARAM lParam)
+ * \fn LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, \
+ *               UINT message, WPARAM wParam, LPARAM lParam)
  * \brief Sends a message to the specified control in a dialog box.
  *
  * This function sends a message specified by (\a message, \a wParam, \a lParam)
@@ -9449,8 +9449,8 @@ MG_EXPORT HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious);
  *
  * \sa SendMessage, GetDlgItem
  */
-MG_EXPORT int GUIAPI SendDlgItemMessage ( HWND hDlg, int nIDDlgItem, 
-                int message, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, 
+                UINT message, WPARAM wParam, LPARAM lParam);
 
 /**
  * \fn BOOL GUIAPI SetDlgItemInt (HWND hDlg, int nIDDlgItem, \

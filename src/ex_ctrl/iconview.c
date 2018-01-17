@@ -466,8 +466,7 @@ void iconview_destroy (IconviewData* pivdata)
     ivlist_reset_content (hivwnd, &pivdata->ivlist);
 }
 
-static int 
-IconViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     IconviewData* pivdata = NULL;
     IconviewList* pivlist = NULL;

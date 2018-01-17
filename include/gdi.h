@@ -1102,7 +1102,7 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * \def HDC_INVALID
  * \brief Indicates an invalid handle to device context.
  */
-#define HDC_INVALID         (HDC)UINT_PTR_MAX
+#define HDC_INVALID         (HDC)-1
 
 #define GDCAP_COLORNUM      0
 #define GDCAP_HPIXEL        1
@@ -2853,7 +2853,7 @@ static inline DWORD Pixel2DWORD (HDC hdc, gal_pixel pixel)
 #define PIXEL2DWORD(hdc, pixel) Pixel2DWORD(hdc, pixel)
 
 /**
- * \fn gal_pixel DWORD2PIXEL (HDC hdc, DWORD dword)
+ * \fn gal_pixel DWORD2Pixel (HDC hdc, DWORD dword)
  * \brief An inline function to convert DWORD color to gal_pixel.
  *
  * This function converts a color in DWORD to pixel value.
@@ -2862,7 +2862,7 @@ static inline DWORD Pixel2DWORD (HDC hdc, gal_pixel pixel)
  * \param dword The color value in DWORD.
  * \return The converted pixel value.
  */
-static inline gal_pixel DWORD2PIXEL (HDC hdc, DWORD dword)
+static inline gal_pixel DWORD2Pixel (HDC hdc, DWORD dword)
 {
     return RGBA2Pixel (hdc, 
             GetRValue(dword), GetGValue(dword),

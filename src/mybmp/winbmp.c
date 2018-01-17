@@ -354,7 +354,7 @@ typedef struct {
     unsigned long  biHeight;
     unsigned short biBitCount;
     unsigned long  biCompression;
-    DWORD rmask, gmask, bmask;
+    unsigned long  rmask, gmask, bmask;
 } init_info_t;
 
 void * __mg_init_bmp (MG_RWops* fp, MYBITMAP * bmp, RGB * pal)
@@ -609,14 +609,14 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
     WINBMPINFOHEADER bmih;
 
     memset (&bmfh, 0, sizeof (BITMAPFILEHEADER));
-    bmfh.bfType         = MAKEWORD ('B', 'M');
+    bmfh.bfType         = MAKEWORD16 ('B', 'M');
     bmfh.bfReserved1    = 0;
     bmfh.bfReserved2    = 0;
 
     memset (&bmih, 0, sizeof (WINBMPINFOHEADER));
-    bmih.biSize         = (DWORD)(WININFOHEADERSIZE);
-    bmih.biWidth        = (DWORD)(bmp->w);
-    bmih.biHeight       = (DWORD)(bmp->h);
+    bmih.biSize         = (unsigned long)(WININFOHEADERSIZE);
+    bmih.biWidth        = (unsigned long)(bmp->w);
+    bmih.biHeight       = (unsigned long)(bmp->h);
     bmih.biPlanes       = 1;
     bmih.biCompression  = BI_RGB;
 
@@ -641,23 +641,23 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
             bmih.biClrUsed      = 16L;
             bmih.biClrImportant = 16L;
 
-            MGUI_RWwrite (fp, &bmfh.bfType, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfSize, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD), 1);
+            MGUI_RWwrite (fp, &bmfh.bfType, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfSize, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD32), 1);
             
-            MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biWidth, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biHeight, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biPlanes, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmih.biBitCount, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmih.biCompression, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biSizeImage, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biXPelsPerMeter, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biYPelsPerMeter, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biClrUsed, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD), 1);
+            MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biWidth, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biHeight, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biPlanes, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmih.biBitCount, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmih.biCompression, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biSizeImage, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biXPelsPerMeter, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biYPelsPerMeter, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biClrUsed, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD32), 1);
 
             for (i = 0; i < 16; i++) {
                 RGBQUAD rgbquad;
@@ -692,23 +692,23 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
             bmih.biClrUsed      = 256;
             bmih.biClrImportant = 256;
 
-            MGUI_RWwrite (fp, &bmfh.bfType, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfSize, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD), 1);
+            MGUI_RWwrite (fp, &bmfh.bfType, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfSize, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD32), 1);
 
-            MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biWidth, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biHeight, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biPlanes, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmih.biBitCount, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmih.biCompression, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biSizeImage, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biXPelsPerMeter, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biYPelsPerMeter, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biClrUsed, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD), 1);
+            MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biWidth, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biHeight, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biPlanes, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmih.biBitCount, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmih.biCompression, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biSizeImage, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biXPelsPerMeter, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biYPelsPerMeter, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biClrUsed, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD32), 1);
             
             for (i = 0; i < 256; i++) {
                 RGBQUAD rgbquad;
@@ -740,23 +740,23 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
             bmfh.bfSize         = bmfh.bfOffBits + bmih.biSizeImage;
             bmih.biBitCount     = 24;
 
-            MGUI_RWwrite (fp, &bmfh.bfType, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfSize, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD), 1);
+            MGUI_RWwrite (fp, &bmfh.bfType, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfSize, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD32), 1);
             
-            MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biWidth, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biHeight, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biPlanes, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmih.biBitCount, sizeof (WORD), 1);
-            MGUI_RWwrite (fp, &bmih.biCompression, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biSizeImage, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biXPelsPerMeter, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biYPelsPerMeter, sizeof (LONG), 1);
-            MGUI_RWwrite (fp, &bmih.biClrUsed, sizeof (DWORD), 1);
-            MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD), 1);
+            MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biWidth, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biHeight, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biPlanes, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmih.biBitCount, sizeof (WORD16), 1);
+            MGUI_RWwrite (fp, &bmih.biCompression, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biSizeImage, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biXPelsPerMeter, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biYPelsPerMeter, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biClrUsed, sizeof (DWORD32), 1);
+            MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD32), 1);
 
             for (i = bmp->h - 1; i >= 0; i--) {
                 bmpGetHighCScanline (bmp->bits + i * bmp->pitch, scanline, 

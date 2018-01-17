@@ -134,10 +134,12 @@ void VFBSetCaption(const char* caption)
 	strcpy(ced->buff,caption);
 
 	if(__mg_pcxvfb_client_sockfd == -1)
-		return ;
+		return;
 	/*one XVFBCaptionEventData struct costs 8 bytes,
 	 * change that '8' below if the struct is changed*/
-	mg_writesocket(__mg_pcxvfb_client_sockfd, ced, 8+len);
+	if (mg_writesocket(__mg_pcxvfb_client_sockfd, ced, 8+len) < (8+len)) {
+        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling VFBSetCaption.\n");
+    }
 }
 
 void VFBOpenIME(int bOpen)
@@ -148,8 +150,11 @@ void VFBOpenIME(int bOpen)
 	};
 
 	if(__mg_pcxvfb_client_sockfd == -1)
-		return ;
-	mg_writesocket(__mg_pcxvfb_client_sockfd, &ime, sizeof(ime));
+		return;
+
+	if (mg_writesocket(__mg_pcxvfb_client_sockfd, &ime, sizeof(ime)) < sizeof(ime)) {
+        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling VFBOpenIME.\n");
+    }
 }
 
 void VFBShowWindow(int show)
@@ -159,8 +164,11 @@ void VFBShowWindow(int show)
 			show
 	};
 	if(__mg_pcxvfb_client_sockfd == -1)
-		return ;
-	mg_writesocket(__mg_pcxvfb_client_sockfd, info, sizeof(info));
+		return;
+
+	if (mg_writesocket(__mg_pcxvfb_client_sockfd, info, sizeof(info)) < sizeof(info)) {
+        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling VFBShowWindow.\n");
+    }
 }
 
 void VFBAtExit(void (*callback)(void))
@@ -258,7 +266,9 @@ static void write_rec (const void* buf, size_t n)
 #ifdef WIN32
     /* TODO: */
 #else
-    write(record_fd, buf, n);
+    if (write(record_fd, buf, n) < n) {
+        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling write_rec.\n");
+    }
 #endif
 }
 
@@ -333,8 +343,11 @@ static void mouse_setxy (int x, int y)
     int mouse_event[3] = {MOUSE_TYPE, x, y};
 
     if(__mg_pcxvfb_client_sockfd == -1)
-		return ;
-	mg_writesocket(__mg_pcxvfb_client_sockfd, &mouse_event, sizeof(XVFBEVENT));
+		return;
+
+	if (mg_writesocket (__mg_pcxvfb_client_sockfd, &mouse_event, sizeof(XVFBEVENT)) < sizeof(XVFBEVENT)) {
+        _MG_PRINTF ("IAL>PCXVFB: error occurred when setting mouse position.\n");
+    }
 }
 
 static int mouse_getbutton (void)

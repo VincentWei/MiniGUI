@@ -650,14 +650,14 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel2[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color 
                         (c2, LFRDR_3DBOX_COLOR_LIGHTER, 220)); 
-                pixel[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[1] = DWORD2Pixel (hdc, gradient_color 
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100)); 
 
-                pixel2[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100));
-                pixel2[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 200));
 #endif
                 break; 
@@ -676,14 +676,14 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel2[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                            (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color 
                         (c2, LFRDR_3DBOX_COLOR_LIGHTER, 200)); 
-                pixel[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[1] = DWORD2Pixel (hdc, gradient_color 
                         (c1, LFRDR_3DBOX_COLOR_DARKER, 100)); 
 
-                pixel2[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
                         (c1, LFRDR_3DBOX_COLOR_DARKER, 100)); 
-                pixel2[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
                 break;
@@ -702,14 +702,14 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel2[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color 
                         (c2, LFRDR_3DBOX_COLOR_LIGHTER, 250)); 
-                pixel[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[1] = DWORD2Pixel (hdc, gradient_color 
                         (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10)); 
 
-                pixel2[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
                         (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10)); 
-                pixel2[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 150));
 #endif
                 break;
@@ -907,7 +907,7 @@ static void draw_normal_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -932,8 +932,8 @@ static void draw_hilite_item
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
     pixels[2] = pixels[0];
 #if 0
-    pixels[0] = DWORD2PIXEL (hdc, color);
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, color);
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 120));
     pixels[2] = pixels[0];
 #endif
@@ -981,7 +981,7 @@ static void draw_disabled_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -990,7 +990,7 @@ static void draw_significant_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -999,7 +999,7 @@ static void draw_normal_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1028,10 +1028,10 @@ static void draw_hilite_menu_item
     pixels[2] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
 #if 0 
-    pixels[1] = DWORD2PIXEL (hdc, color);
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, color);
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 240));
-    pixels[2] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[2] = DWORD2Pixel (hdc, gradient_color 
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
     ptn = mGPlusCreateLinearPattern (*pRect, 
@@ -1062,7 +1062,7 @@ static void draw_hilite_menu_item
     r = pRect->right;
     b = pRect->bottom;
 
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (color, LFRDR_3DBOX_COLOR_DARKER, 140));
     SetPenColor(hdc, pixels[0]); 
     --r;
@@ -1079,7 +1079,7 @@ static void draw_disabled_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1140,13 +1140,13 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
             downpixel[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                            (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-            uppixel[0] = DWORD2PIXEL (hdc, gradient_color (tmpcolor,
+            uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 250));
-            uppixel[1] = DWORD2PIXEL (hdc, gradient_color (tmpcolor, 
+            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
                         LFRDR_3DBOX_COLOR_LIGHTER, 70));
-            downpixel[0] = DWORD2PIXEL (hdc, gradient_color (c1,
+            downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 50));
-            downpixel[1] = DWORD2PIXEL (hdc, gradient_color (c1,
+            downpixel[1] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 150));
 #endif
         }
@@ -1159,8 +1159,8 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
             uppixel[0] = uppixel[1];
             downpixel[0] = downpixel[1] = uppixel[0];
 #if 0
-            uppixel[0] = uppixel[1] = DWORD2PIXEL (hdc, tmpcolor);
-            downpixel[0] = downpixel[1] = DWORD2PIXEL (hdc, tmpcolor);
+            uppixel[0] = uppixel[1] = DWORD2Pixel (hdc, tmpcolor);
+            downpixel[0] = downpixel[1] = DWORD2Pixel (hdc, tmpcolor);
 #endif
         }
         else {
@@ -1183,13 +1183,13 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
             downpixel[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                            (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0 
-            uppixel[0] = DWORD2PIXEL (hdc, gradient_color (tmpcolor,
+            uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 200));
-            uppixel[1] = DWORD2PIXEL (hdc, gradient_color (tmpcolor, 
+            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
                         LFRDR_3DBOX_COLOR_LIGHTER, 70));
-            downpixel[0] = DWORD2PIXEL (hdc, gradient_color (c1,
+            downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 50));
-            downpixel[1] = DWORD2PIXEL (hdc, gradient_color (c1,
+            downpixel[1] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 150));
 #endif
         }
@@ -1208,13 +1208,13 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
             downpixel[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                            (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-            uppixel[0] = DWORD2PIXEL (hdc, gradient_color (tmpcolor,
+            uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 250));
-            uppixel[1] = DWORD2PIXEL (hdc, gradient_color (tmpcolor, 
+            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
                         LFRDR_3DBOX_COLOR_LIGHTER, 70));
-            downpixel[0] = DWORD2PIXEL (hdc, gradient_color (c1,
+            downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 90));
-            downpixel[1] = DWORD2PIXEL (hdc, gradient_color (c1,
+            downpixel[1] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 180));
 #endif
         }
@@ -1225,8 +1225,8 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
             uppixel[0] = uppixel[1];
             downpixel[0] = downpixel[1] = uppixel[0];
 #if 0
-            uppixel[0] = uppixel[1] = DWORD2PIXEL (hdc, tmpcolor);
-            downpixel[0] = downpixel[1] = DWORD2PIXEL (hdc, tmpcolor);
+            uppixel[0] = uppixel[1] = DWORD2Pixel (hdc, tmpcolor);
+            downpixel[0] = downpixel[1] = DWORD2Pixel (hdc, tmpcolor);
 #endif
         }
         else
@@ -1248,13 +1248,13 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
         downpixel[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                        (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-        uppixel[0] = DWORD2PIXEL (hdc, gradient_color (tmpcolor,
+        uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                     LFRDR_3DBOX_COLOR_LIGHTER, 250));
-        uppixel[1] = DWORD2PIXEL (hdc, gradient_color (tmpcolor, 
+        uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
                     LFRDR_3DBOX_COLOR_LIGHTER, 70));
-        downpixel[0] = DWORD2PIXEL (hdc, gradient_color (c1,
+        downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                     LFRDR_3DBOX_COLOR_LIGHTER, 50));
-        downpixel[1] = DWORD2PIXEL (hdc, gradient_color (c1,
+        downpixel[1] = DWORD2Pixel (hdc, gradient_color (c1,
                     LFRDR_3DBOX_COLOR_LIGHTER, 150));
 #endif
     }
@@ -1315,7 +1315,7 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
     mGPlusFreeColorPattern (ptn);
 
     //draw border top
-    SetPenColor(hdc, DWORD2PIXEL(hdc, c1));
+    SetPenColor(hdc, DWORD2Pixel(hdc, c1));
     MoveTo(hdc, frRect.left + corner, frRect.top);
     LineTo(hdc, frRect.right - corner, frRect.top);
     LineTo(hdc, frRect.right, frRect.top+corner);
@@ -1407,7 +1407,7 @@ _draw_radio_button (HWND hWnd, HDC hdc,
 
     box_r = box_l + bmp_w;
     box_b = box_t + bmp_h;
-    bgc = DWORD2PIXEL (hdc, GetWindowElementAttr (hWnd, WE_BGC_WINDOW));
+    bgc = DWORD2Pixel (hdc, GetWindowElementAttr (hWnd, WE_BGC_WINDOW));
     //bgc = PIXEL_red;
 
     /** left-top  corner */
@@ -2355,21 +2355,21 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                 || win_info->dwStyle & WS_THICKFRAME)
         {
             /** left and top border */
-            SetPenColor(hdc, DWORD2PIXEL (hdc, c1));
+            SetPenColor(hdc, DWORD2Pixel (hdc, c1));
             MoveTo(hdc, l, b);
             LineTo(hdc, l, t);
             LineTo(hdc, r - 1, t);
             for(i = 1; i < 4 && i < border + 3; i++)
             {
                 c2 = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 30);
-                SetPenColor(hdc, DWORD2PIXEL (hdc, c2));
+                SetPenColor(hdc, DWORD2Pixel (hdc, c2));
                 MoveTo(hdc, l+i, b-i);
                 LineTo(hdc, l+i, t+i);
                 LineTo(hdc, r+i - 1, t+i);
             }
 
             c2 = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 30);
-            SetPenColor(hdc, DWORD2PIXEL (hdc, c2));
+            SetPenColor(hdc, DWORD2Pixel (hdc, c2));
             for(;i < border+3; i++)
             {
                 MoveTo(hdc, l+i, b-i);
@@ -2382,14 +2382,14 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
             for(i = 0; i < 3 && i < border + 3; i++)
             {
                 c2 = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 80);
-                SetPenColor(hdc, DWORD2PIXEL (hdc, c2));
+                SetPenColor(hdc, DWORD2Pixel (hdc, c2));
                 MoveTo(hdc, l+i + 1, b-i);
                 LineTo(hdc, r-i, b-i);
                 LineTo(hdc, r-i, t+i);
             }
 
             c2 = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 80);
-            SetPenColor(hdc, DWORD2PIXEL (hdc, c2));
+            SetPenColor(hdc, DWORD2Pixel (hdc, c2));
             for(;i < border+3; i++)
             {
                 MoveTo(hdc, l+i + 1, b-i);
@@ -2399,7 +2399,7 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
         }
         else if(win_info->dwStyle & WS_THINFRAME)
         {
-            SetPenColor(hdc, DWORD2PIXEL (hdc, c1));
+            SetPenColor(hdc, DWORD2Pixel (hdc, c1));
             for(i = 0; i < border; i++)
             {
                 Rectangle(hdc, rect.left+i, rect.top+i,
@@ -2413,7 +2413,7 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                 || win_info->dwStyle & WS_THICKFRAME
                 || win_info->dwStyle & WS_THINFRAME)    
         {
-            SetPenColor(hdc, DWORD2PIXEL (hdc, c2));
+            SetPenColor(hdc, DWORD2Pixel (hdc, c2));
             Rectangle(hdc, rect.left, rect.top,
                     rect.right-1, rect.bottom-1);
         }
@@ -2485,8 +2485,8 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     pixels[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-    pixels[1] = DWORD2PIXEL (hdc, ca);
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, ca);
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (ca, LFRDR_3DBOX_COLOR_LIGHTER, 180));
 #endif
     ptn = mGPlusCreateLinearPattern (rect, 
@@ -2522,9 +2522,9 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     }
 
 #if 0
-    pixels[1] = DWORD2PIXEL (hdc, 
+    pixels[1] = DWORD2Pixel (hdc, 
         gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 60));
-    pixels[0] = DWORD2PIXEL (hdc, 
+    pixels[0] = DWORD2Pixel (hdc, 
         gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #endif
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 80);
@@ -2558,9 +2558,9 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     /** draw the first dark line */
 #if 0
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40));
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 65));
 #endif
     
@@ -2576,7 +2576,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     rect_line.right = rect_line.left + rcTmp.left - 10 - (rect.bottom - rect.top) - 10;
     rect_line.bottom = rect_line.top + 1;
    
-    SetPenColor (hdc, DWORD2PIXEL (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40)));
+    SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40)));
     MoveTo (hdc, rect_line.left, rect_line.top);
     LineTo (hdc, rect_line.right - 10, rect_line.top);
     
@@ -2606,9 +2606,9 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     rect_line.bottom = rect_line.top + 1;
     rect_line.right = rect_line.left + rcTmp.left - 10 - 20;
 #if 0
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_DARKER, 100));
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_DARKER, 50));
 #endif
 
@@ -2619,7 +2619,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
     
-    SetPenColor (hdc, DWORD2PIXEL (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 100)));
+    SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 100)));
     MoveTo (hdc, rect_line.left, rect_line.top);
     LineTo (hdc, rect_line.right - 10, rect_line.top);
 
@@ -2643,9 +2643,9 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     /** draw the third light line */
 #if 0 
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 100));
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 70));
 #endif
 
@@ -2662,7 +2662,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     rect_line.right = rect_line.left + rcTmp.left - 10 - (rect.bottom - rect.top) - 10;
     rect_line.bottom = rect_line.top + 1;
 
-    SetPenColor (hdc, DWORD2PIXEL (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 100)));
+    SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 100)));
     MoveTo (hdc, rect_line.left, rect_line.top);
     LineTo (hdc, rect_line.right - 10, rect_line.top);
 
@@ -2693,9 +2693,9 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     rect_line.right = rect_line.left + rcTmp.left - 10 - 20;
     /** FIXE ME */
 #if 0 
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40));
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (cb, LFRDR_3DBOX_COLOR_DARKER, 55));
 #else 
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40);
@@ -2704,16 +2704,16 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 55);
     pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-//    pixel = DWORD2PIXEL (hdc, gradient_color 
+//    pixel = DWORD2Pixel (hdc, gradient_color 
 //            (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40));
 #endif
-    SetPenColor (hdc, DWORD2PIXEL (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40)));
+    SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40)));
     MoveTo (hdc, rect_line.left, rect_line.top);
     LineTo (hdc, rect_line.right - 10, rect_line.top);
 
     rect_line.left = rect_line.right - 10;
 
-    //pixels[1] = DWORD2PIXEL (hdc, cb);
+    //pixels[1] = DWORD2Pixel (hdc, cb);
 
     ptn = mGPlusCreateLinearPattern (rect_line, 
             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
@@ -2915,7 +2915,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                     return;
                 if(status & LFRDR_BTN_STATUS_PRESSED){
 #if 0
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50));
 #endif
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50);
@@ -2924,7 +2924,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else if(status & LFRDR_BTN_STATUS_HILITE){
 #if 0
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #endif
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80);
@@ -2933,7 +2933,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else {
 #if 0
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10));
 #endif
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10);
@@ -2941,7 +2941,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
                 }
 #if 0
-                pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixels[0] = DWORD2Pixel (hdc, gradient_color 
                         (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250));
 #endif
 
@@ -3022,7 +3022,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                     return;
                 if(status & LFRDR_BTN_STATUS_PRESSED){
 #if 0 
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             //(cap_c, LFRDR_3DBOX_COLOR_DARKER, 90));
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50));
 #else
@@ -3033,7 +3033,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else if(status & LFRDR_BTN_STATUS_HILITE){
 #if 0 
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             //(cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 30));
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #else
@@ -3044,7 +3044,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else {
 #if 0 
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             //(cap_c, LFRDR_3DBOX_COLOR_DARKER, 30));
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10));
 #else
@@ -3055,7 +3055,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
 
 #if 0 
-                pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixels[0] = DWORD2Pixel (hdc, gradient_color 
                         (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250));
 #else
                 
@@ -3131,7 +3131,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 
                 if(status & LFRDR_BTN_STATUS_PRESSED){
 #if 0
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50));
 #else
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50);
@@ -3141,7 +3141,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else if(status & LFRDR_BTN_STATUS_HILITE){
 #if 0
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #else
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80);
@@ -3151,7 +3151,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else {
 #if 0
-                    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10));
 #else
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10);
@@ -3160,7 +3160,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 #endif
                 }
 #if 0
-                pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixels[0] = DWORD2Pixel (hdc, gradient_color 
                         (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250));
 #else
                 pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250);
@@ -3391,14 +3391,14 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
             { 
                 if (!isCtrl || !(info->dwStyle & SBS_NOSHAFT))
                 { 
-                    SetPenColor(hdc, DWORD2PIXEL (hdc, gradient_color (fgc_dis, 
+                    SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis, 
                                     LFRDR_3DBOX_COLOR_DARKER, 10)));
                     Rectangle(hdc, rect.left, rect.top, rect.right-1, 
                             rect.bottom-1);
 #if 0
-                    pixel[0] = DWORD2PIXEL (hdc, gradient_color (bgc, 
+                    pixel[0] = DWORD2Pixel (hdc, gradient_color (bgc, 
                                 LFRDR_3DBOX_COLOR_LIGHTER, 20));
-                    pixel[1] = DWORD2PIXEL (hdc, gradient_color (bgc,
+                    pixel[1] = DWORD2Pixel (hdc, gradient_color (bgc,
                                 LFRDR_3DBOX_COLOR_LIGHTER, 220));
 #endif
                     conver_pixel = gradient_color (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 20);
@@ -3434,7 +3434,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
             {
                 if (!isCtrl || !(info->dwStyle & SBS_NOSHAFT))
                 { 
-                    SetPenColor(hdc, DWORD2PIXEL (hdc, gradient_color (fgc_dis, 
+                    SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis, 
                                     LFRDR_3DBOX_COLOR_DARKER, 10)));
                     Rectangle(hdc, rect.left, rect.top, rect.right-1, rect.bottom-1);
                     conver_pixel = gradient_color (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 20);
@@ -3444,9 +3444,9 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     pixel[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                                (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
 #if 0
-                    pixel[1] = DWORD2PIXEL (hdc, gradient_color (bgc, 
+                    pixel[1] = DWORD2Pixel (hdc, gradient_color (bgc, 
                                 LFRDR_3DBOX_COLOR_LIGHTER, 20));
-                    pixel[0] = DWORD2PIXEL (hdc, gradient_color (bgc,
+                    pixel[0] = DWORD2Pixel (hdc, gradient_color (bgc,
                                 LFRDR_3DBOX_COLOR_LIGHTER, 200));
 #endif
                     rect.top++; rect.left++;
@@ -3516,7 +3516,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
         case HT_SB_HTHUMB:
             { 
                 //draw left and right sides
-                SetPenColor (hdc, DWORD2PIXEL (hdc, gradient_color (fgc_dis,
+                SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis,
                                 LFRDR_3DBOX_COLOR_DARKER, 10)));
                 MoveTo (hdc, rect.left, rect.top+1);
                 LineTo (hdc, rect.left, rect.bottom-2);
@@ -3537,14 +3537,14 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 pixel2[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                             (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
 #if 0 
-                pixel[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_3d, LFRDR_3DBOX_COLOR_LIGHTER, 250)); 
-                pixel[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[1] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
 
-                pixel2[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
-                pixel2[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
                 rect1.top = rect.top + 1;
@@ -3630,7 +3630,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
         case HT_SB_VTHUMB: 
             {
                 //draw top and bottom sides
-                SetPenColor(hdc, DWORD2PIXEL (hdc, gradient_color 
+                SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color 
                             (fgc_3d, LFRDR_3DBOX_COLOR_DARKER, 10)));
                 MoveTo (hdc, rect.left+1, rect.top);
                 LineTo (hdc, rect.right-2, rect.top);
@@ -3651,16 +3651,16 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 pixel2[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                             (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_3d, LFRDR_3DBOX_COLOR_LIGHTER, 250)); 
-                pixel[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel[1] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
                         //(fgc_dis, LFRDR_3DBOX_COLOR_DARKER, 20)); 
 
-                pixel2[0] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
                         //(fgc_dis, LFRDR_3DBOX_COLOR_DARKER, 20));
-                pixel2[1] = DWORD2PIXEL (hdc, gradient_color 
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
                 rect1.top = rect.top + 1;
@@ -3740,7 +3740,7 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
     }
 
     bgc = GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY);
-    //pixels[0] = DWORD2PIXEL (hdc, bgc);
+    //pixels[0] = DWORD2Pixel (hdc, bgc);
     conver_pixel = bgc;
     pixels[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
@@ -3751,7 +3751,7 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
     pixels[2] = pixels[0];
 #if 0 
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 20));
     pixels[2] = pixels[0];
 #endif
@@ -3938,9 +3938,9 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     gal_pixel pixel_dst;
     gal_pixel pixel_org;
 #if 0
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (bgc, LFRDR_3DBOX_COLOR_DARKER, 60));
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 90));
 #endif
 
@@ -4005,9 +4005,9 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     --rect.right;
     --rect.bottom;
 #if 0
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (bgc, LFRDR_3DBOX_COLOR_DARKER, 40));
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
 
@@ -4185,8 +4185,8 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     POINT point;
     gal_pixel pixel_dst;
     gal_pixel pixel_org;
-    pixels[1] = DWORD2PIXEL (hdc, color);
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, color);
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 200));
     ptn = mGPlusCreateLinearPattern (*rect, 
             MGPLUS_GRADIENT_LINEAR_VERTICAL,
@@ -4236,11 +4236,11 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     /* pc3d style & flat & grap */
     if (flag & LFRDR_TAB_BOTTOM) {
         /* left and bottom */
-        SetPenColor(hdc, DWORD2PIXEL (hdc, light_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, light_c)); 
         MoveTo (hdc, rect->left, ty);
         LineTo (hdc, rect->left, by - 3 );
         if (flag & LFRDR_TAB_ACTIVE) {
-            SetPenColor(hdc, DWORD2PIXEL (hdc, c1)); 
+            SetPenColor(hdc, DWORD2Pixel (hdc, c1)); 
             MoveTo (hdc, rect->left + 2, by - 1);
             LineTo (hdc, rect->right - 4, by - 1);
             MoveTo (hdc, rect->left + 1, by - 2);
@@ -4248,28 +4248,28 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
             MoveTo (hdc, rect->left , by - 3);
             LineTo (hdc, rect->right - 2, by - 3);
         } else {
-            SetPenColor(hdc, DWORD2PIXEL (hdc, darker_c)); 
+            SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
             MoveTo (hdc, rect->left + 2, by - 1);
             LineTo (hdc, rect->right - 4, by - 1);
             MoveTo (hdc, rect->left + 1, by - 2);
             LineTo (hdc, rect->left + 1, by - 2);
         }
         /*right*/
-        SetPenColor(hdc, DWORD2PIXEL (hdc, darkest_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c)); 
         MoveTo (hdc, rect->right - 2, by - 3);
         LineTo (hdc, rect->right - 2, ty);
         MoveTo (hdc, rect->right - 3, by - 2 );
         LineTo (hdc, rect->right - 3, by - 2);
-        SetPenColor(hdc, DWORD2PIXEL (hdc, darker_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
         MoveTo (hdc, rect->right - 3, by -3);
         LineTo (hdc, rect->right - 3, ty);
     } else {
         /*left and top */
-        SetPenColor(hdc, DWORD2PIXEL (hdc, light_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, light_c)); 
         MoveTo (hdc, rect->left, by - 1);
         LineTo (hdc, rect->left, ty + 2);
         if (flag & LFRDR_TAB_ACTIVE) {
-            SetPenColor(hdc, DWORD2PIXEL (hdc, c1)); 
+            SetPenColor(hdc, DWORD2Pixel (hdc, c1)); 
             MoveTo (hdc, rect->left , ty+2);
             LineTo (hdc, rect->right - 2, ty+2);
             MoveTo (hdc, rect->left + 1, ty+1);
@@ -4283,12 +4283,12 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
             LineTo (hdc, rect->left + 1, ty + 1);
         }
         /*right*/
-        SetPenColor(hdc, DWORD2PIXEL (hdc, darkest_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c)); 
         MoveTo (hdc, rect->right - 2, ty + 2 );
         LineTo (hdc, rect->right - 2, by - 2);
         MoveTo (hdc, rect->right - 3, ty + 1 );
         LineTo (hdc, rect->right - 3, ty + 1);
-        SetPenColor(hdc, DWORD2PIXEL (hdc, darker_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
         MoveTo (hdc, rect->right - 3, ty + 2 );
         LineTo (hdc, rect->right - 3, by - 2);
     }
@@ -4308,7 +4308,7 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     }
         
     /* draw the TEXT */
-    SetBkColor (hdc, DWORD2PIXEL (hdc, color)); 
+    SetBkColor (hdc, DWORD2Pixel (hdc, color)); 
     text_extent -= 4;
     eff_len = GetTextExtentPoint (hdc, title, strlen(title), 
                   text_extent, &eff_chars, NULL, NULL, &size);
@@ -4348,8 +4348,8 @@ draw_progress (HWND hWnd, HDC hdc,
     c2 = GetWindowElementAttr (hWnd, WE_BGCB_ACTIVE_CAPTION);
 
 #if 0
-    bkpixel[0] = DWORD2PIXEL (hdc, c1);
-    bkpixel[1] = DWORD2PIXEL (hdc, gradient_color (bkpixel[0], 
+    bkpixel[0] = DWORD2Pixel (hdc, c1);
+    bkpixel[1] = DWORD2Pixel (hdc, gradient_color (bkpixel[0], 
                 LFRDR_3DBOX_COLOR_LIGHTER, 120));
 #endif
 
@@ -4391,9 +4391,9 @@ draw_progress (HWND hWnd, HDC hdc,
     nNowPart = ndiv_progress.quot;
 
 #if 0
-    pixel[1] = DWORD2PIXEL (hdc, gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER,
+    pixel[1] = DWORD2Pixel (hdc, gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER,
                 50));
-    pixel[0] = DWORD2PIXEL (hdc, gradient_color (gradient_color 
+    pixel[0] = DWORD2Pixel (hdc, gradient_color (gradient_color 
                 (c2, LFRDR_3DBOX_COLOR_LIGHTER, 80), LFRDR_3DBOX_COLOR_LIGHTER,
                 250));
 #endif
@@ -4475,9 +4475,9 @@ static void draw_header (HWND hWnd, HDC hdc, const RECT *pRect, DWORD color)
     pixels[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
 #if 0 
-    pixels[1] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color 
             (color, LFRDR_3DBOX_COLOR_DARKER, 60));
-    pixels[0] = DWORD2PIXEL (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color 
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 120));
 #endif
     ptn = mGPlusCreateLinearPattern (*pRect, 

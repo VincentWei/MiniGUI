@@ -102,7 +102,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     log_font->sbc_scale = 1;
     log_font->mbc_scale = 1;
 
-    _MG_PRINTF ("FONT>LogFont: requested info: type: %s, family: %s, style: %x, charset: %s, size: %d.\n",
+    _MG_PRINTF ("FONT>LogFont: requested info: type: %s, family: %s, style: %lx, charset: %s, size: %d.\n",
                     log_font->type, log_font->family, log_font->style, log_font->charset,
                     log_font->size);
 
@@ -223,7 +223,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
             log_font->style &= ~FS_FLIP_HORZVERT;
     }
 
-    _MG_PRINTF ("FONT>LogFont: created info: type: %s, family: %s, style: %x, charset: %s, size: %d.\n",
+    _MG_PRINTF ("FONT>LogFont: created info: type: %s, family: %s, style: %lx, charset: %s, size: %d.\n",
                     log_font->type, log_font->family, log_font->style, log_font->charset,
                     log_font->size);
 

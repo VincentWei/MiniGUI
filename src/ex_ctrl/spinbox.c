@@ -185,8 +185,8 @@ OnDownArrow (HWND hWnd, PSPINDATA pData, int id, DWORD dwStyle, DWORD wParam)
     }
 }
 
-static int 
-SpinCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT
+SpinCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PSPINDATA pData = (PSPINDATA) GetWindowAdditionalData2 (hWnd);
 

@@ -47,7 +47,7 @@
 /** minimum height of checkmark */
 #define LFRDR_LB_CHECKBMP_MIN   6
 
-static int ListboxCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT ListboxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterListboxControl (void)
 {
@@ -850,7 +850,7 @@ static void lstSetScrollInfo (HWND hwnd, PLISTBOXDATA pData, BOOL fRedraw)
     lstSetHScrollInfo (hwnd, pData, fRedraw);
 }
 
-static int ListboxCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT ListboxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC             hdc;
     PCONTROL        pCtrl;

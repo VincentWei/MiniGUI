@@ -185,7 +185,7 @@ void scrollwnd_reset_content (HWND hWnd, PSWDATA pswdata)
 
 /* --------------------------------------------------------------------------------- */
 
-int ScrollWndCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT ScrollWndCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PSWDATA pswdata = NULL;
 

@@ -99,12 +99,16 @@ static int EVENT_Open (const char *device)
                 *s++ = *p++;
             }
             *s = 0;
+
+            mknod (guess_device, S_IFCHR | 0x660, makedev (13, 64+id));
+#if 0
             {
                 char cmd[1024];
                 sprintf(cmd, "mknod %s c 13 %d > /dev/null 2>&1", guess_device, 64+id);
                 fprintf(stderr, "%s\n", cmd);
                 system(cmd);
             }
+#endif
             break;
         }
         fclose(fp);

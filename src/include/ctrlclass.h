@@ -26,10 +26,10 @@ typedef struct _CTRLCLASSINFO
     HCURSOR   hCursor;          // control cursor
     int       iBkColor;         // control background color.
     
-    int (*ControlProc)(HWND, int, WPARAM, LPARAM);
+    LRESULT (*ControlProc)(HWND, UINT, WPARAM, LPARAM);
                                 // control procedure.
 
-    DWORD dwAddData;        // the additional data.
+    DWORD dwAddData;            // the additional data.
 
     int nUseCount;              // use count.
     struct _CTRLCLASSINFO*  next;
@@ -85,7 +85,7 @@ typedef struct tagCONTROL
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
 
-    int (*ControlProc) (HWND, int, WPARAM, LPARAM);
+    LRESULT (*ControlProc) (HWND, UINT, WPARAM, LPARAM);
 
     PMAINWIN pMainWin;       // the main window that contains this control.
 

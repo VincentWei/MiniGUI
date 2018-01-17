@@ -31,7 +31,9 @@ typedef struct strbuffer_s
 #if 1
   #define te_alloc                         malloc
   #define te_free                          free
-  #define te_realloc(ptr, size, cpysize)   realloc(ptr, size)
+static inline void* te_realloc (void* ptr, size_t size, size_t cpysize) {
+    return realloc (ptr, size);
+}
 #else
   #define te_alloc                         FixStrAlloc
   #define te_free                          FixStrFree

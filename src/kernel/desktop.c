@@ -1017,7 +1017,10 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
 static int srvForceCloseMenu (int cli)
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
-    int i, ret = 0, cli_trackmenu;
+    int i, ret = 0;
+#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+    int cli_trackmenu;
+#endif
     ZORDERNODE* menu_nodes;
     ZORDERNODE* win_nodes;
     RECT rc_bound;
@@ -1047,7 +1050,9 @@ static int srvForceCloseMenu (int cli)
         win_nodes [0].flags |= ZOF_REFERENCE;
     }
 
+#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
     cli_trackmenu = zi->cli_trackmenu;
+#endif
     zi->cli_trackmenu = -1;
     zi->nr_popupmenus = 0;
 
@@ -1234,7 +1239,7 @@ post_msg_by_znode_p (const ZORDERINFO* zi, const ZORDERNODE* znode,
     return ret;
 }
 
-static int dskSetActiveZOrderNode (int cli, int idx_znode)
+static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
 {
     int old_active = 0;
     ZORDERINFO* zi = _get_zorder_info(cli);
@@ -1243,14 +1248,14 @@ static int dskSetActiveZOrderNode (int cli, int idx_znode)
 
     if (idx_znode > zi->max_nr_globals 
                     + zi->max_nr_topmosts + zi->max_nr_normals) {
-        return (int)HWND_INVALID;
+        return HWND_INVALID;
     }
 
     nodes = GET_ZORDERNODE(zi);
 
     if ((__mg_ime_wnd && __mg_ime_wnd == nodes [idx_znode].main_win) ||
                     nodes [idx_znode].flags & ZOF_TF_TOOLWIN)
-        return (int)HWND_INVALID;
+        return HWND_INVALID;
 
 #ifdef _MGHAVE_MENU
     if (zi->cli_trackmenu >= 0)
@@ -1291,7 +1296,7 @@ static int dskSetActiveZOrderNode (int cli, int idx_znode)
         post_msg_by_znode_p (zi, nodes + old_active, 
                         MSG_ACTIVE, FALSE, 0);
         post_msg_by_znode_p (zi, nodes + old_active, 
-                        MSG_KILLFOCUS, new_hwnd, 0);
+                        MSG_KILLFOCUS, (WPARAM)new_hwnd, 0);
     }
 
     if (idx_znode) {
@@ -1300,7 +1305,7 @@ static int dskSetActiveZOrderNode (int cli, int idx_znode)
         post_msg_by_znode_p (zi, nodes + idx_znode, 
                         MSG_ACTIVE, TRUE, 0);
         post_msg_by_znode_p (zi, nodes + idx_znode, 
-                        MSG_SETFOCUS, old_hwnd, 0);
+                        MSG_SETFOCUS, (WPARAM)old_hwnd, 0);
     }
 
     return old_hwnd;

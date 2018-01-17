@@ -430,7 +430,7 @@ void scrollview_destroy (PSVDATA psvdata)
 }
 
 /* --------------------------------------------------------------------------------- */
-int ScrollViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT ScrollViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PSVDATA psvdata = NULL;
 

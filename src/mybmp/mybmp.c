@@ -138,7 +138,7 @@ int bmp_ComputePitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round)
         bytespp = 4;
     }
 
-    /* rows are DWORD right aligned */
+    /* rows are DWORD32 right aligned */
     if (does_round)
         *pitch = (linesize + 3) & -4;
     else

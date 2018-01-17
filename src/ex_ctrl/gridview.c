@@ -1583,7 +1583,7 @@ void GridDataModalArray_delete_modal(gvGridDataModal* modal)
 // }}}
 
 
-static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     gvGridViewData* view = NULL;
     if (message != MSG_CREATE)

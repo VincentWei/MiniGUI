@@ -27,7 +27,7 @@
 
 static HWND sg_AboutWnd = 0;
 
-static int AboutWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     RECT    rcClient;
 

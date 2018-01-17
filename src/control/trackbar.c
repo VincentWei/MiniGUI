@@ -185,7 +185,7 @@ static int NormalizeMousePos (HWND hwnd, TRACKBARDATA* pData, int mousepos)
     return (int)((pData->nMax - pData->nMin) * pos / (float)len + 0.5) + pData->nMin;
 }
 
-static int TrackBarCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PCONTROL      pCtrl;
     TRACKBARDATA* pData;

@@ -93,23 +93,25 @@ Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
 HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
 {
     FILE* fp;
-    WORD wTemp;
+    WORD16 wTemp;
     int  w, h, xhot, yhot, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
+#if 0
+    DWORD32 size;
+#endif
+    DWORD32 offset, imagesize, imagew, imageh;
     BYTE* image;
     HCURSOR csr = 0;
     
     if( !(fp = fopen(filename, "rb")) ) return 0;
 
-    fseek(fp, sizeof(WORD), SEEK_SET);
+    fseek(fp, sizeof(WORD16), SEEK_SET);
 
     /* the cbType of struct CURSORDIR. */
     wTemp = MGUI_ReadLE16FP (fp);
     if(wTemp != 2) goto error;
 
     /* skip the cdCount of struct CURSORDIR, we always use the first cursor. */
-    fseek(fp, sizeof(WORD), SEEK_CUR);
+    fseek(fp, sizeof(WORD16), SEEK_CUR);
     
     /* cursor info, read the members of struct CURSORDIRENTRY. */
     w = fgetc (fp);  /* the width of first cursor. */
@@ -120,14 +122,22 @@ HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
     xhot = wTemp;
     wTemp = MGUI_ReadLE16FP (fp);
     yhot = wTemp;
+#if 0
     size = MGUI_ReadLE32FP (fp);
+#else
+    fseek (fp, sizeof(DWORD32), SEEK_CUR); /* skip size. */
+#endif
     offset = MGUI_ReadLE32FP (fp);
 
     /* read the cursor image info. */
     fseek(fp, offset, SEEK_SET);
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip the biSize member. */
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biSize member. */
     imagew = MGUI_ReadLE32FP (fp);
     imageh = MGUI_ReadLE32FP (fp);
+    if (imagew > 32 || imageh > 32) {
+        goto error;
+    }
+
     /* check the biPlanes member; */
     wTemp = MGUI_ReadLE16FP (fp);
     if(wTemp != 1) goto error;
@@ -135,18 +145,21 @@ HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
     wTemp = MGUI_ReadLE16FP (fp);
     if(wTemp > 4) goto error;
     colornum = (int)wTemp;
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip the biCompression members. */
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biCompression members. */
     imagesize = MGUI_ReadLE32FP (fp);
 
     /* skip the rest members and the color table. */
-    fseek(fp, sizeof(DWORD)*4 + sizeof(BYTE)*(4<<colornum), SEEK_CUR);
+    fseek(fp, sizeof(DWORD32)*4 + sizeof(BYTE)*(4<<colornum), SEEK_CUR);
     
     /* allocate memory for image. */
-    if ((image = (BYTE*)ALLOCATE_LOCAL (imagesize)) == NULL)
+    if ((image = (BYTE*)ALLOCATE_LOCAL (imagesize)) == NULL) {
         goto error;
+    }
 
     /* read image */
-    fread (image, imagesize, 1, fp);
+    if (fread (image, imagesize, 1, fp) < imagesize) {
+        goto error;
+    }
     
     csr = CreateCursor(xhot, yhot, w, h, 
                         image + (imagesize - MONOSIZE), image, colornum);
@@ -161,18 +174,20 @@ error:
 HCURSOR GUIAPI LoadCursorFromMem (const void* area)
 {
     const Uint8* p = (Uint8*)area;
-    WORD wTemp;
+    WORD16 wTemp;
 
     int  w, h, xhot, yhot, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
+#if 0
+    DWORD32 size;
+#endif
+    DWORD32 offset, imagesize, imagew, imageh;
     
-    p += sizeof (WORD);
+    p += sizeof (WORD16);
     wTemp = MGUI_ReadLE16Mem (&p);
     if(wTemp != 2) goto error;
 
     /* skip the cdCount of struct CURSORDIR, we always use the first cursor. */
-    p += sizeof (WORD);
+    p += sizeof (WORD16);
     
     /* cursor info, read the members of struct CURSORDIRENTRY. */
     w = *p++;  /* the width of first cursor. */
@@ -184,16 +199,23 @@ HCURSOR GUIAPI LoadCursorFromMem (const void* area)
     p += sizeof(BYTE)*2;
     xhot = MGUI_ReadLE16Mem (&p);
     yhot = MGUI_ReadLE16Mem (&p);
+#if 0
     size = MGUI_ReadLE32Mem (&p);
+#else
+    p += sizeof(DWORD32); /* skip size. */
+#endif
     offset = MGUI_ReadLE32Mem (&p);
 
     /* read the cursor image info. */
     p = (Uint8*)area + offset;
 
     /* skip the biSize member. */
-    p += sizeof (DWORD);    
+    p += sizeof (DWORD32);    
     imagew = MGUI_ReadLE32Mem (&p);
     imageh = MGUI_ReadLE32Mem (&p);
+    if (imagew > 32 || imageh > 32) {
+        goto error;
+    }
 
     /* check the biPlanes member; */
     wTemp = MGUI_ReadLE16Mem (&p);
@@ -205,11 +227,11 @@ HCURSOR GUIAPI LoadCursorFromMem (const void* area)
     colornum = wTemp;
 
     /* skip the biCompression members. */
-    p += sizeof (DWORD);    
+    p += sizeof (DWORD32);    
     imagesize = MGUI_ReadLE32Mem (&p);
 
     /* skip the rest members and the color table. */
-    p += sizeof(DWORD)*4 + sizeof(BYTE)*(4<<colornum);
+    p += sizeof(DWORD32)*4 + sizeof(BYTE)*(4<<colornum);
     
     return CreateCursor (xhot, yhot, w, h, 
                         p + (imagesize - MONOSIZE), p, colornum);

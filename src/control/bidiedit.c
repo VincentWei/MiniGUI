@@ -43,7 +43,7 @@
 
 static void set_line_width (HWND hWnd, PBIDISLEDITDATA sled);
 static void mySetCaretPos (HWND hWnd, PBIDISLEDITDATA sled, int x);
-static int SLEditCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void sledit_refresh_caret (HWND hWnd, PBIDISLEDITDATA sled, BOOL bInited);
 
 #define check_caret() \
@@ -2316,8 +2316,8 @@ static int sledit_reset_text (HWND hWnd, PBIDISLEDITDATA sled, char* str)
     return 0;
 }
 
-static int 
-SLEditCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT
+SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {   
     DWORD       dwStyle;
     HDC         hdc;

@@ -125,7 +125,7 @@ void* DesktopMain (void* data)
         int iRet = 0;
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s: hWnd: %#x, wP: %#x, lP: %#lx. %s\n",
+        fprintf (stderr, "Message, %s: hWnd: %p, wP: %#lx, lP: %#lx. %s\n",
             Message2Str (Msg.message),
             Msg.hwnd,
             Msg.wParam,

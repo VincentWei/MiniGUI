@@ -390,11 +390,11 @@ BOOL GUIAPI HavePendingMessage (HWND hWnd)
     return HavePendingMessageEx (hWnd, FALSE);
 }
 
-int GUIAPI BroadcastMessage (int iMsg, WPARAM wParam, LPARAM lParam)
+int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     MSG msg;
     
-    msg.message = iMsg;
+    msg.message = nMsg;
     msg.wParam = wParam;
     msg.lParam = lParam;
 
@@ -419,10 +419,10 @@ const char* GUIAPI Message2Str (int message)
 }
 
 void GUIAPI PrintMessage (FILE* fp, HWND hWnd, 
-                int iMsg, WPARAM wParam, LPARAM lParam)
+                UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
-    fprintf (fp, "Message %s: hWnd: %#x, wP: %x, lP: %lx.\n",
-             Message2Str (iMsg), hWnd, wParam, lParam);
+    fprintf (fp, "Message %s: hWnd: %p, wP: %lx, lP: %lx.\n",
+             Message2Str (nMsg), hWnd, wParam, lParam);
 }
 
 #endif
@@ -445,11 +445,11 @@ static inline void CheckCapturedMouseMessage (PMSG pMsg)
 }
 
 #define IS_MSG_WANTED(message) \
-        ( (iMsgFilterMin <= 0 && iMsgFilterMax <= 0) || \
-          (iMsgFilterMin > 0 && iMsgFilterMax >= iMsgFilterMin && \
-           message >= iMsgFilterMin && message <= iMsgFilterMax) )
+        ( (nMsgFilterMin <= 0 && nMsgFilterMax <= 0) || \
+          (nMsgFilterMin > 0 && nMsgFilterMax >= nMsgFilterMin && \
+           message >= nMsgFilterMin && message <= nMsgFilterMax) )
 
-BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, int iMsgFilterMin, int iMsgFilterMax, 
+BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax, 
                           BOOL bWait, UINT uRemoveMsg)
 {
     PMSGQUEUE pMsgQueue;
@@ -725,10 +725,10 @@ int GUIAPI GetMessage (PMSG pMsg, HWND hWnd)
     return PeekMessageEx (pMsg, hWnd, 0, 0, TRUE, PM_REMOVE);
 }
 
-BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin, 
-                         int iMsgFilterMax, UINT uRemoveMsg)
+BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, 
+                         UINT nMsgFilterMax, UINT uRemoveMsg)
 {
-    return PeekMessageEx (pMsg, hWnd, iMsgFilterMin, iMsgFilterMax, 
+    return PeekMessageEx (pMsg, hWnd, nMsgFilterMin, nMsgFilterMax, 
                            FALSE, uRemoveMsg);
 }
 */
@@ -806,8 +806,8 @@ getit:
     return TRUE;
 }
 
-BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin, 
-                        int iMsgFilterMax, UINT uRemoveMsg)
+BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, 
+                        UINT nMsgFilterMax, UINT uRemoveMsg)
 {
     PMSGQUEUE pMsgQueue;
     PMSG pPostMsg;
@@ -826,10 +826,10 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin,
         if (pMsgQueue->readpos != pMsgQueue->writepos) {
 
             pPostMsg = pMsgQueue->msg + pMsgQueue->readpos;
-            if (iMsgFilterMin == 0 && iMsgFilterMax == 0)
+            if (nMsgFilterMin == 0 && nMsgFilterMax == 0)
                 *pMsg = *pPostMsg;
-            else if (pPostMsg->message <= iMsgFilterMax &&
-                    pPostMsg->message >= iMsgFilterMin)
+            else if (pPostMsg->message <= nMsgFilterMax &&
+                    pPostMsg->message >= nMsgFilterMin)
                 *pMsg = *pPostMsg;
             else {
                 UNLOCK_MSGQ (pMsgQueue);
@@ -858,7 +858,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, int iMsgFilterMin,
     return FALSE;
 }
 
-int GUIAPI SendMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
 
@@ -866,18 +866,18 @@ int GUIAPI SendMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
 
 #ifdef _MGRM_THREADS
     if (!BE_THIS_THREAD(hWnd))
-        return SendSyncMessage (hWnd, iMsg, wParam, lParam);
+        return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
     
     if ( !(WndProc = GetWndProc(hWnd)) )
         return ERR_INV_HWND;
 
-    return (*WndProc)(hWnd, iMsg, wParam, lParam);
+    return (*WndProc)(hWnd, nMsg, wParam, lParam);
 
 }
 
 /* houhh 20090619, send notify message to topmost of queue.*/
-int SendTopNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     PMSGQUEUE pMsgQueue;
     PQMSG pqmsg;
@@ -893,7 +893,7 @@ int SendTopNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
 
     /* queue the notification message. */
     pqmsg->Msg.hwnd = hWnd;
-    pqmsg->Msg.message = iMsg;
+    pqmsg->Msg.message = nMsg;
     pqmsg->Msg.wParam = wParam;
     pqmsg->Msg.lParam = lParam;
     pqmsg->next = NULL;
@@ -917,7 +917,7 @@ int SendTopNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
     return ERR_OK;
 }
 
-int GUIAPI SendNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     PMSGQUEUE pMsgQueue;
     PQMSG pqmsg;
@@ -933,7 +933,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
 
     /* queue the notification message. */
     pqmsg->Msg.hwnd = hWnd;
-    pqmsg->Msg.message = iMsg;
+    pqmsg->Msg.message = nMsg;
     pqmsg->Msg.wParam = wParam;
     pqmsg->Msg.lParam = lParam;
     pqmsg->next = NULL;
@@ -957,7 +957,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
     return ERR_OK;
 }
 
-int GUIAPI PostMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+int GUIAPI PostMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     PMSGQUEUE pMsgQueue;
     MSG msg;
@@ -965,7 +965,7 @@ int GUIAPI PostMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
     if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
         return ERR_INV_HWND;
 
-    if (iMsg == MSG_PAINT) {
+    if (nMsg == MSG_PAINT) {
         LOCK_MSGQ (pMsgQueue);
         pMsgQueue->dwState |= QS_PAINT;
         UNLOCK_MSGQ (pMsgQueue);
@@ -977,7 +977,7 @@ int GUIAPI PostMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
     }
 
     msg.hwnd = hWnd;
-    msg.message = iMsg;
+    msg.message = nMsg;
     msg.wParam = wParam;
     msg.lParam = lParam;
 
@@ -1028,7 +1028,7 @@ int GUIAPI DispatchMessage (PMSG pMsg)
     LICENSE_MODIFY_MESSAGE(pMsg);
 
 #ifdef _MGHAVE_TRACE_MSG
-    fprintf (stderr, "Message, %s: hWnd: %x, wP: %x, lP: %lx. %s\n",
+    fprintf (stderr, "Message, %s: hWnd: %p, wP: %lx, lP: %lx. %s\n",
         Message2Str (pMsg->message),
         pMsg->hwnd,
         pMsg->wParam,
@@ -1241,7 +1241,7 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
 #else
 
 /* send a synchronous message to a window in a different thread */
-int SendSyncMessage (HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
+LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     PMSGQUEUE pMsgQueue, thinfo = NULL;
     SYNCMSG SyncMsg;
@@ -1342,7 +1342,7 @@ int SendSyncMessage (HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
     return SyncMsg.retval;
 }
 
-int GUIAPI PostSyncMessage (HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
     if (BE_THIS_THREAD(hWnd))
@@ -1351,7 +1351,7 @@ int GUIAPI PostSyncMessage (HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
     return SendSyncMessage (hWnd, msg, wParam, lParam);
 }
 
-int GUIAPI SendAsyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
+int GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
     
@@ -1360,7 +1360,7 @@ int GUIAPI SendAsyncMessage (HWND hWnd, int iMsg, WPARAM wParam, LPARAM lParam)
     if ( !(WndProc = GetWndProc(hWnd)) )
         return -1;
 
-    return (*WndProc)(hWnd, iMsg, wParam, lParam);
+    return (*WndProc)(hWnd, nMsg, wParam, lParam);
 }
 
 #endif /* !LITE_VERSION */

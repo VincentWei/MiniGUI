@@ -3025,7 +3025,7 @@ static void init_bufdc (HWND hWnd, PTEDATA ptedata)
     ReleaseDC(hdc);
 }
 
-static int TextEditCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT TextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PTEDATA ptedata = NULL;
 

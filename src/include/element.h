@@ -21,8 +21,8 @@ extern "C" {
 typedef struct _wnd_element_data
 {
     list_t      list;       /* list pointer */
-    Uint32      id;       /* the item type */
-    Uint32      data;       /* the data of the item */
+    UINT        id;         /* the item type */
+    DWORD       data;       /* the data of the item */
 } WND_ELEMENT_DATA;
 
 #define WED_OK              0

@@ -229,23 +229,23 @@ HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,
 static HCURSOR srvLoadCursorFromFile (const char* filename)
 {
     FILE* fp;
-    WORD wTemp;
+    WORD16 wTemp;
     int ret = 0;
     int  w, h, xhot, yhot, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
+    DWORD32 size, offset;
+    DWORD32 imagesize, imagew, imageh;
     BYTE* image;
     
     if( !(fp = fopen(filename, "rb")) ) return 0;
 
-    fseek(fp, sizeof(WORD), SEEK_SET);
+    fseek(fp, sizeof(WORD16), SEEK_SET);
 
     /* the cbType of struct CURSORDIR. */
     wTemp = MGUI_ReadLE16FP (fp);
     if(wTemp != 2) goto error;
 
     /* skip the cdCount of struct CURSORDIR, we always use the first cursor. */
-    fseek(fp, sizeof(WORD), SEEK_CUR);
+    fseek(fp, sizeof(WORD16), SEEK_CUR);
     
     /* cursor info, read the members of struct CURSORDIRENTRY. */
     w = fgetc (fp);  /* the width of first cursor. */
@@ -261,7 +261,7 @@ static HCURSOR srvLoadCursorFromFile (const char* filename)
 
     /* read the cursor image info. */
     fseek(fp, offset, SEEK_SET);
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip biSize member. */
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip biSize member. */
     imagew = MGUI_ReadLE32FP (fp);
     imageh = MGUI_ReadLE32FP (fp);
     /* check the biPlanes member; */
@@ -271,11 +271,11 @@ static HCURSOR srvLoadCursorFromFile (const char* filename)
     wTemp = MGUI_ReadLE16FP (fp);
     if(wTemp > 4) goto error;
     colornum = (int)wTemp;
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip the biCompression members. */
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biCompression members. */
     imagesize = MGUI_ReadLE32FP (fp);
 
     /* skip the rest members and the color table. */
-    fseek(fp, sizeof(DWORD)*4 + sizeof(BYTE)*(4<<colornum), SEEK_CUR);
+    fseek(fp, sizeof(DWORD32)*4 + sizeof(BYTE)*(4<<colornum), SEEK_CUR);
     
     /* allocate memory for image. */
     if ((image = (BYTE*)ALLOCATE_LOCAL (imagesize)) == NULL)
@@ -316,18 +316,18 @@ HCURSOR GUIAPI LoadCursorFromFile (const char* filename)
 HCURSOR GUIAPI LoadCursorFromMem (const void* area)
 {
     const Uint8* p = (Uint8*)area;
-    WORD wTemp;
+    WORD16 wTemp;
 
     int  w, h, xhot, yhot, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
+    DWORD32 size, offset;
+    DWORD32 imagesize, imagew, imageh;
     
-    p += sizeof (WORD);
+    p += sizeof (WORD16);
     wTemp = MGUI_ReadLE16Mem (&p);
     if(wTemp != 2) goto error;
 
     /* skip the cdCount of struct CURSORDIR, we always use the first cursor. */
-    p += sizeof (WORD);
+    p += sizeof (WORD16);
     
     /* cursor info, read the members of struct CURSORDIRENTRY. */
     w = *p++;  /* the width of first cursor. */
@@ -346,7 +346,7 @@ HCURSOR GUIAPI LoadCursorFromMem (const void* area)
     p = (Uint8*)area + offset;
 
     /* skip the biSize member. */
-    p += sizeof (DWORD);    
+    p += sizeof (DWORD32);    
     imagew = MGUI_ReadLE32Mem (&p);
     imageh = MGUI_ReadLE32Mem (&p);
 
@@ -360,11 +360,11 @@ HCURSOR GUIAPI LoadCursorFromMem (const void* area)
     colornum = wTemp;
 
     /* skip the biCompression members. */
-    p += sizeof (DWORD);    
+    p += sizeof (DWORD32);    
     imagesize = MGUI_ReadLE32Mem (&p);
 
     /* skip the rest members and the color table. */
-    p += sizeof(DWORD)*4 + sizeof(BYTE)*(4<<colornum);
+    p += sizeof(DWORD32)*4 + sizeof(BYTE)*(4<<colornum);
     
     return CreateCursor (xhot, yhot, w, h, 
                         p + (imagesize - MONOSIZE), p, colornum);

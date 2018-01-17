@@ -40,7 +40,7 @@
 #define MARGIN_HORZ         5
 #define MARGIN_V_VERT       5
 #endif
-static int NewToolbarCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterNewToolbarControl (void)
 {
@@ -87,8 +87,8 @@ static void draw_left_right_line_vert (HWND hwnd, HDC hdc, RECT *rc)
     lighter_dword = pWin->we_rdr->calc_3dbox_color 
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2PIXEL (hdc, darker_dword);
-    lighter_pixel = DWORD2PIXEL (hdc, lighter_dword);
+    darker_pixel = DWORD2Pixel (hdc, darker_dword);
+    lighter_pixel = DWORD2Pixel (hdc, lighter_dword);
 
     rc->bottom -= 1;
     rc->right -= 1;
@@ -182,8 +182,8 @@ static void draw_separator_vert (HWND hwnd, HDC hdc, int l, int t, NTBCTRLDATA *
     lighter_dword = pWin->we_rdr->calc_3dbox_color 
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2PIXEL (hdc, darker_dword);
-    lighter_pixel = DWORD2PIXEL (hdc, lighter_dword);
+    darker_pixel = DWORD2Pixel (hdc, darker_dword);
+    lighter_pixel = DWORD2Pixel (hdc, lighter_dword);
 
     pta.x = l;
     pta.y = t + 1;
@@ -230,7 +230,7 @@ static void draw_checked_item_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
             bgc_dword = pWin->we_rdr->calc_3dbox_color 
                 (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
 
-            bgc_pixel = DWORD2PIXEL (hdc, bgc_dword);
+            bgc_pixel = DWORD2Pixel (hdc, bgc_dword);
 
             pta.x = l; pta.y = t;
             ptb.x = l; ptb.y = b;
@@ -446,8 +446,8 @@ static void draw_top_bottom_line_horz (HWND hwnd, HDC hdc, RECT *rc)
     lighter_dword = pWin->we_rdr->calc_3dbox_color 
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2PIXEL (hdc, darker_dword);
-    lighter_pixel = DWORD2PIXEL (hdc, lighter_dword);
+    darker_pixel = DWORD2Pixel (hdc, darker_dword);
+    lighter_pixel = DWORD2Pixel (hdc, lighter_dword);
 
     rc->bottom -= 1;
     rc->right -= 1;
@@ -506,8 +506,8 @@ static void draw_separator_horz (HWND hwnd, HDC hdc, int l, int t, NTBITEM *it)
     lighter_dword = pWin->we_rdr->calc_3dbox_color 
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2PIXEL (hdc, darker_dword);
-    lighter_pixel = DWORD2PIXEL (hdc, lighter_dword);
+    darker_pixel = DWORD2Pixel (hdc, darker_dword);
+    lighter_pixel = DWORD2Pixel (hdc, lighter_dword);
 
     pta.x = l + 1;
     pta.y = t;
@@ -568,7 +568,7 @@ static void draw_checked_item_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
             bgc_dword = pWin->we_rdr->calc_3dbox_color 
                 (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
 
-            bgc_pixel = DWORD2PIXEL (hdc, bgc_dword);
+            bgc_pixel = DWORD2Pixel (hdc, bgc_dword);
 
             pta.x = l; pta.y = t;
             ptb.x = l; ptb.y = b;
@@ -1255,7 +1255,7 @@ static void ShowCurItemHintText (HWND hWnd, NTBCTRLDATA *ntb_data , NTBITEM * pi
     }
 }
 
-static int NewToolbarCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PCONTROL myself;
     PNTBCTRLDATA ntb_data;

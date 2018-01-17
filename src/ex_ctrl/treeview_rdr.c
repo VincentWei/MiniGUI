@@ -36,7 +36,7 @@
 #define TV_ICONGAP          3
 #define TV_IDENT            4
 
-static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterTreeViewRdrControl (void)
 {
@@ -785,7 +785,7 @@ static int set_item_text (HWND hwnd, PTVDATA pData, PTVITEM item, const char* te
     return 0;
 }
 
-static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PTVDATA pData = NULL;
     DWORD dwStyle;

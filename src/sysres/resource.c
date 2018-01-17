@@ -211,12 +211,12 @@ void TermRendererSystemIcon (HICON *small_icon,
 
 HICON GUIAPI GetLargeSystemIconEx (HWND hWnd, int iItem)
 {
-    return GetWindowElementAttr (hWnd, WE_ATTR_TYPE_LARGEICON | iItem);
+    return (HICON)GetWindowElementAttr (hWnd, WE_ATTR_TYPE_LARGEICON | iItem);
 }
 
 HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem)
 {
-    return GetWindowElementAttr (hWnd, WE_ATTR_TYPE_SMALLICON | iItem);
+    return (HICON)GetWindowElementAttr (hWnd, WE_ATTR_TYPE_SMALLICON | iItem);
 }
 
 HICON GUIAPI LoadSystemIcon (const char* szItemName, int which)

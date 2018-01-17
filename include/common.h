@@ -36,42 +36,43 @@
  */
 
 #ifndef _MGUI_COMMON_H
+
 #define _MGUI_COMMON_H
 
 #ifndef MINIGUI_MAJOR_VERSION
-#  ifdef __MINIGUI_LIB__
-#    ifdef _FOR_DATANG
-#      ifdef WIN32
-#        include <config-win32/mgconfig.h>
-#      elif defined (__THREADX__)
-#        include "config-threadx/mgconfig.h"
-#      elif defined (__NUCLEUS__)
-#        include "config-nucleus/mgconfig.h"
-#      endif
-#    else
-#      if  defined(__CMAKE_PROJECT__) || defined(WIN32)
-#        include "mgconfig.h"
-#      else
-#        include "../mgconfig.h"
-#      endif
-#    endif
-#  else
-#    undef PACKAGE
-#    undef VERSION
-#    undef PACKAGE_BUGREPORT
-#    undef PACKAGE_NAME
-#    undef PACKAGE_STRING
-#    undef PACKAGE_TARNAME
-#    undef PACKAGE_VERSION
-#    include "mgconfig.h"
-#    undef PACKAGE
-#    undef VERSION
-#    undef PACKAGE_BUGREPORT
-#    undef PACKAGE_NAME
-#    undef PACKAGE_STRING
-#    undef PACKAGE_TARNAME
-#    undef PACKAGE_VERSION
-#  endif
+#   ifdef __MINIGUI_LIB__
+#       ifdef _FOR_DATANG
+#           ifdef WIN32
+#               include <config-win32/mgconfig.h>
+#           elif defined (__THREADX__)
+#               include "config-threadx/mgconfig.h"
+#           elif defined (__NUCLEUS__)
+#               include "config-nucleus/mgconfig.h"
+#           endif
+#       else
+#           if  defined(__CMAKE_PROJECT__) || defined(WIN32)
+#               include "mgconfig.h"
+#           else
+#               include "../mgconfig.h"
+#           endif
+#       endif
+#   else
+#       undef PACKAGE
+#       undef VERSION
+#       undef PACKAGE_BUGREPORT
+#       undef PACKAGE_NAME
+#       undef PACKAGE_STRING
+#       undef PACKAGE_TARNAME
+#       undef PACKAGE_VERSION
+#       include "mgconfig.h"
+#       undef PACKAGE
+#       undef VERSION
+#       undef PACKAGE_BUGREPORT
+#       undef PACKAGE_NAME
+#       undef PACKAGE_STRING
+#       undef PACKAGE_TARNAME
+#       undef PACKAGE_VERSION
+#   endif
 #endif
 
     /**
@@ -145,15 +146,15 @@ typedef signed int      Sint32;
 
 /* Figure out how to support 64-bit datatypes */
 #if !defined(__STRICT_ANSI__)
-#if defined(__GNUC__)
-#define MGUI_HAS_64BIT_TYPE	long long
-#endif
-#if defined(__CC_ARM)
-#define MGUI_HAS_64BIT_TYPE	long long
-#endif
-#if defined(_MSC_VER)
-#define MGUI_HAS_64BIT_TYPE __int64
-#endif
+#   if defined(__GNUC__)
+#       define MGUI_HAS_64BIT_TYPE	long long
+#   endif
+#   if defined(__CC_ARM)
+#       define MGUI_HAS_64BIT_TYPE	long long
+#   endif
+#   if defined(_MSC_VER)
+#       define MGUI_HAS_64BIT_TYPE __int64
+#   endif
 #endif /* !__STRICT_ANSI__ */
 
 /* The 64-bit datatype isn't supported on all platforms */
@@ -237,16 +238,16 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
  *
  * to write endianness independent code.
  */
-#if  defined(__i386__) || defined(__ia64__) || \
-    (defined(__alpha__) || defined(__alpha)) || \
-     defined(__arm__) || \
-    (defined(__CC_ARM) && !defined(__BIG_ENDIAN)) || \
-    (defined(__mips__) && defined(__MIPSEL__)) || \
-     defined(__LITTLE_ENDIAN__) || \
-    defined(WIN32)
-#define MGUI_BYTEORDER   MGUI_LIL_ENDIAN
+#if  defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || defined(__amd64) || \
+        (defined(__alpha__) || defined(__alpha)) || \
+        defined(__arm__) || \
+        (defined(__CC_ARM) && !defined(__BIG_ENDIAN)) || \
+        (defined(__mips__) && defined(__MIPSEL__)) || \
+        defined(__LITTLE_ENDIAN__) || \
+        defined(WIN32)
+#   define MGUI_BYTEORDER   MGUI_LIL_ENDIAN
 #else
-#define MGUI_BYTEORDER   MGUI_BIG_ENDIAN
+#   define MGUI_BYTEORDER   MGUI_BIG_ENDIAN
 #endif
 
     /** @} end of endian_info */
@@ -257,13 +258,6 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
      */
 
 
-#if defined(_WIN64)
-#  define SIZEOF_PTR   8
-#elif defined(__LP64__)
-#  define SIZEOF_PTR   8
-#else
-#  define SIZEOF_PTR   4
-#endif
 /**
  * \var PVOID
  * \brief A type definition for a pointer to any type.
@@ -274,10 +268,8 @@ typedef void *PVOID;
  * \var typedef int BOOL
  * \brief A type definition for boolean value.
  */
-#ifndef _HAVE_TYPE_BOOL
 #ifndef BOOL
 typedef int BOOL;
-#endif
 #endif
 
 /**
@@ -403,6 +395,51 @@ typedef unsigned char   BYTE;
 typedef signed char     SBYTE;
 
 /**
+ * \var SIZEOF_PTR
+ * \brief The size of a pointer. 4 for 32-bit and 8 for 64-bit.
+ */
+/**
+ * \var SIZEOF_HPTR
+ * \brief The size of a half or pointer. 2 for 32-bit and 4 for 64-bit.
+ */
+#if defined(_WIN64)
+#   define SIZEOF_PTR   8
+#   define SIZEOF_HPTR  4
+#elif defined(__LP64__)
+#   define SIZEOF_PTR   8
+#   define SIZEOF_HPTR  4
+#else
+#   define SIZEOF_PTR   4
+#   define SIZEOF_HPTR  2
+#endif
+
+#if SIZEOF_PTR == 8
+#   define NR_BITS_BYTE      (16)
+#   define NR_BITS_WORD      (32)
+#   define NR_BITS_DWORD     (64)
+
+#   define BITMASK_BYTE      (0xFFFF)
+#   define BITMASK_WORD      (0xFFFFFFFF)
+#   define BITMASK_DWORD     (0xFFFFFFFFFFFFFFFF)
+
+#   define INT_PTR_MIN       (-9223372036854775807L-1)
+#   define INT_PTR_MAX       (9223372036854775807L)
+#   define UINT_PTR_MAX      (18446744073709551615UL)
+#else  
+#   define NR_BITS_BYTE      (8)
+#   define NR_BITS_WORD      (16)
+#   define NR_BITS_DWORD     (32)
+
+#   define BITMASK_BYTE      (0xFF)
+#   define BITMASK_WORD      (0xFFFF)
+#   define BITMASK_DWORD     (0xFFFFFFFF)
+
+#   define INT_PTR_MIN       (-2147483647-1)
+#   define INT_PTR_MAX       (2147483647)
+#   define UINT_PTR_MAX      (4294967295U)
+#endif  
+
+/**
  * \var WORD_HPTR
  * \brief An unsigned int (word) type in half pointer precision. 
  */
@@ -451,6 +488,24 @@ typedef unsigned short WORD16;
 typedef signed short SWORD16;
 
 /**
+ * \var LONG_PTR
+ * \brief A signed long type for pointer precision. 
+ */
+#if defined(_WIN64)
+typedef __int64 LONG_PTR;
+#elif defined(__LP64__)
+typedef long LONG_PTR;
+#else
+typedef int LONG_PTR;
+#endif
+
+/**
+ * \var LRESULT
+ * \brief Signed result of message processing.
+ */
+typedef LONG_PTR LRESULT;
+
+/**
  * \var DWORD_PTR
  * \brief An unsigned long type for pointer precision. 
  *
@@ -475,13 +530,13 @@ typedef DWORD_PTR DWORD;
  * \var DWORD32
  * \brief A type definition for a 32-bit unsigned integer.
  */
-typedef unsigned short DWORD32;
+typedef unsigned int DWORD32;
 
 /**
  * \var SDWORD32
  * \brief A type definition for a 32-bit signed integer.
  */
-typedef signed short SDWORD32;
+typedef signed int SDWORD32;
 
 /**
  * \var UINT
@@ -513,24 +568,17 @@ typedef unsigned long UINT_PTR;
 typedef unsigned int UINT_PTR;
 #endif
 
-#if SIZEOF_PTR == 8
-#  define INT_PTR_MIN        (-9223372036854775807L-1)  
-#  define INT_PTR_MAX        (9223372036854775807L)  
-#  define UINT_PTR_MAX       (18446744073709551615UL)  
-#else  
-#  error 64bit arrives 32bit.
-#  define INT_PTR_MIN        (-2147483647-1)  
-#  define INT_PTR_MAX        (2147483647)  
-#  define UINT_PTR_MAX       (4294967295U)  
-#endif  
-
 /**
  * \var typedef LONG
  * \brief A type definition for long integer.
  */
-#ifndef _HAVE_TYPE_LONG
 typedef long LONG;
-#endif
+
+/**
+ * \var ULONG
+ * \brief A type definition for unsigned long integer.
+ */
+typedef unsigned long ULONG;
 
 /**
  * \var WPARAM
@@ -551,19 +599,46 @@ typedef UINT_PTR LPARAM;
  * \sa MAKEWORD
  */
 #define LOBYTE(w)           ((BYTE)(w))
+
 /**
  * \def HIBYTE(w)
  * \brief Returns the high byte of the word \a w.
  *
  * \sa MAKEWORD
  */
-#define HIBYTE(w)           ((BYTE)(((WORD)(w) >> 8) & 0xFF))
+#define HIBYTE(w)           ((BYTE)(((WORD)(w) >> NR_BITS_BYTE) & BITMASK_BYTE))
 
 /**
  * \def MAKEWORD(low, high)
  * \brief Makes a word from \a low byte and \a high byte.
+ *
+ * \sa MAKEWORD16
  */
-#define MAKEWORD(low, high) ((WORD)(((BYTE)(low)) | (((WORD)((BYTE)(high))) << 8)))
+#define MAKEWORD(low, high) ((WORD)(((BYTE)(low)) | (((WORD)((BYTE)(high))) << NR_BITS_BYTE)))
+
+/**
+ * \def LOBYTE_WORD16(w)
+ * \brief Returns the low byte of the 16-bit word \a w.
+ *
+ * \sa MAKEWORD16
+ */
+#define LOBYTE_WORD16(w)           ((BYTE)(w))
+
+/**
+ * \def HIBYTE_WORD16(w)
+ * \brief Returns the high byte of the 16-bit word \a w.
+ *
+ * \sa MAKEWORD16
+ */
+#define HIBYTE_WORD16(w)           ((BYTE)(((WORD16)(w) >> 8) & 0xFF))
+
+/**
+ * \def MAKEWORD16(low, high)
+ * \brief Makes a 16-bit word from \a low byte and \a high byte.
+ *
+ * \sa MAKEWORD
+ */
+#define MAKEWORD16(low, high) ((WORD16)(((BYTE)(low)) | (((WORD16)((BYTE)(high))) << 8)))
 
 /**
  * \def LOWORD(l)
@@ -578,7 +653,7 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MAKELONG
  */
-#define HIWORD(l)           ((WORD)((((DWORD)(l)) >> 16) & 0xFFFF))
+#define HIWORD(l)           ((WORD)((((DWORD)(l)) >> NR_BITS_WORD) & BITMASK_WORD))
 
 /**
  * \def LOSWORD(l)
@@ -593,13 +668,19 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MAKELONG
  */
-#define HISWORD(l)          ((SWORD)((((DWORD)(l)) >> 16) & 0xFFFF))
+#define HISWORD(l)          ((SWORD)((((DWORD)(l)) >> NR_BITS_WORD) & BITMASK_WORD))
 
 /**
  * \def MAKELONG(low, high)
  * \brief Makes a double word from \a low word and \a high word.
  */
-#define MAKELONG(low, high) ((DWORD)(((WORD)(low)) | (((DWORD)((WORD)(high))) << 16)))
+#define MAKELONG(low, high) ((DWORD)(((WORD)(low)) | (((DWORD)((WORD)(high))) << NR_BITS_WORD)))
+
+/**
+ * \var typedef DWORD RGBCOLOR
+ * \brief A type definition for a RGB color.
+ */
+typedef DWORD32 RGBCOLOR;
 
 /**
  * \def GetRValue(rgba)
@@ -618,7 +699,7 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MakeRGBA, MakeRGB
  */
-#define GetGValue(rgba)      ((BYTE)(((DWORD)(rgba)) >> 8))
+#define GetGValue(rgba)      ((BYTE)(((DWORD32)(rgba)) >> 8))
 /**
  * \def GetBValue(rgba)
  * \brief Gets the blue component from a RGBA triple value \a rgba.
@@ -627,7 +708,7 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MakeRGBA, MakeRGB
  */
-#define GetBValue(rgba)      ((BYTE)((DWORD)(rgba) >> 16))
+#define GetBValue(rgba)      ((BYTE)((DWORD32)(rgba) >> 16))
 /**
  * \def GetAValue(rgba)
  * \brief Gets the alpha component from a RGBA triple value \a rgba.
@@ -636,7 +717,7 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MakeRGBA, MakeRGB
  */
-#define GetAValue(rgba)      ((BYTE)((DWORD)(rgba) >> 24))
+#define GetAValue(rgba)      ((BYTE)((DWORD32)(rgba) >> 24))
 
 /**
  * \def MakeRGBA(r, g, b, a)
@@ -648,8 +729,8 @@ typedef UINT_PTR LPARAM;
  *
  * \sa GetRValue, GetGValue, GetBValue, GetAValue
  */
-#define MakeRGBA(r, g, b, a)    (((DWORD)((BYTE)(r))) | ((DWORD)((BYTE)(g)) << 8) \
-                | ((DWORD)((BYTE)(b)) << 16) | ((DWORD)((BYTE)(a)) << 24))
+#define MakeRGBA(r, g, b, a)    (((DWORD32)((BYTE)(r))) | ((DWORD32)((BYTE)(g)) << 8) \
+                | ((DWORD32)((BYTE)(b)) << 16) | ((DWORD32)((BYTE)(a)) << 24))
 
 /**
  * \def MakeRGB(r, g, b)
@@ -660,14 +741,8 @@ typedef UINT_PTR LPARAM;
  *
  * \sa GetRValue, GetGValue, GetBValue
  */
-#define MakeRGB(r, g, b)    (((DWORD)((BYTE)(r))) | ((DWORD)((BYTE)(g)) << 8) \
-                | ((DWORD)((BYTE)(b)) << 16))
-
-/**
- * \var typedef DWORD RGBCOLOR
- * \brief A type definition for a RGB color.
- */
-typedef DWORD RGBCOLOR;
+#define MakeRGB(r, g, b)    (((DWORD32)((BYTE)(r))) | ((DWORD32)((BYTE)(g)) << 8) \
+                | ((DWORD32)((BYTE)(b)) << 16))
 
 /**
  * A rectangle defined by coordinates of corners.
@@ -1523,11 +1598,11 @@ typedef struct _GAL_Rect {
 #endif
 
 #ifndef PATH_MAX
-    #define PATH_MAX    256
+#   define PATH_MAX    256
 #endif
 
 #ifndef NAME_MAX
-    #define NAME_MAX    64
+#   define NAME_MAX    64
 #endif
 
 
@@ -1546,7 +1621,7 @@ typedef struct _GAL_Rect {
  * \note This definition is an alias of NAME_MAX
  */
 #ifndef MAX_NAME
-#define MAX_NAME        NAME_MAX
+#   define MAX_NAME        NAME_MAX
 #endif
 
     /** @} end of misc_macros */
@@ -1866,35 +1941,35 @@ int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
 #include <errno.h>
 
 #ifndef ESRCH
-# define ESRCH      3
+#   define ESRCH      3
 #endif
 
 #ifndef EAGAIN
-# define EAGAIN     11
+#   define EAGAIN     11
 #endif
 
 #ifndef ENOMEM
-# define ENOMEM     12
+#   define ENOMEM     12
 #endif
 
 #ifndef EBUSY
-# define EBUSY      16
+#   define EBUSY      16
 #endif
 
 #ifndef EINVAL
-# define EINVAL     22
+#   define EINVAL     22
 #endif
 
 #ifndef EDEADLK
-# define EDEADLK    35
+#   define EDEADLK    35
 #endif
 
 #ifndef ENOSYS
-# define ENOSYS     38
+#   define ENOSYS     38
 #endif
 
 #ifndef ENOTSUP
-# define ENOTSUP    95
+#   define ENOTSUP    95
 #endif
 
 #ifdef __VXWORKS__
@@ -1962,36 +2037,39 @@ int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
 #ifdef __MINIGUI_LIB__
 
 #ifdef __UCOSII__
-  #include "ucos2_pthread.h"
-  #include "ucos2_semaphore.h"
+#   include "ucos2_pthread.h"
+#   include "ucos2_semaphore.h"
 #elif defined (__THREADX__)
-  #include "threadx_pthread.h"
-  #include "threadx_semaphore.h"
+#   include "threadx_pthread.h"
+#   include "threadx_semaphore.h"
 #elif defined (__NUCLEUS__)
-  #include "nucleus_pthread.h"
-  #include "nucleus_semaphore.h"
+#   include "nucleus_pthread.h"
+#   include "nucleus_semaphore.h"
 #elif defined (__VXWORKS__)
-  #include "vxworks_pthread.h"
-  #ifdef _MGUSE_OWN_SEMAPHORE
-    #include "vxworks_semaphore.h"
-  #else
-    #include "semaphore.h"
-  #endif
+#   include "vxworks_pthread.h"
+#   ifdef _MGUSE_OWN_SEMAPHORE
+#       include "vxworks_semaphore.h"
+#   else
+#       include "semaphore.h"
+#   endif
 #elif defined (__OSE__)
-  #include "pthread.h"
-  #include "ose_semaphore.h"
+#   include "pthread.h"
+#   include "ose_semaphore.h"
 #elif defined (__PSOS__)
-  #include "psos_pthread.h"
-  #include "psos_semaphore.h"
+#   include "psos_pthread.h"
+#   include "psos_semaphore.h"
 #elif defined (WIN32)
-  #include "win32_pthread.h"
-  #include "win32_semaphore.h"
+#   include "win32_pthread.h"
+#   include "win32_semaphore.h"
 #else
-#error No own pthread implementation for this OS!
+#   error No own pthread implementation for this OS!
 #endif
+
 #else
-#include <pthread.h>
-#include <semaphore.h>
+
+#   include <pthread.h>
+#   include <semaphore.h>
+
 #endif /* __MINIGUI_LIB__ */
 
 #else /* _MGUSE_OWN_PTHREAD */

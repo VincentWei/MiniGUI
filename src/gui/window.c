@@ -52,7 +52,7 @@ static void RecalcScrollInfo (PMAINWIN pWin, BOOL bIsHBar);
 /* this message will auto-repeat when MSG_IDLE received */
 static MSG sg_repeat_msg = {0, 0, 0, 0};
 
-void GUIAPI SetAutoRepeatMessage (HWND hwnd, int msg, 
+void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg, 
         WPARAM wParam, LPARAM lParam)
 {
     PMAINWIN pWin = (PMAINWIN)hwnd;
@@ -345,7 +345,7 @@ void __mg_reset_mainwin_capture_info (PCONTROL ctrl)
     }
 }
 
-static int DefaultDTMouseMsgHandler (PMAINWIN pWin, int message, 
+static LRESULT DefaultDTMouseMsgHandler (PMAINWIN pWin, UINT message, 
         WPARAM flags, int x, int y)
 {
     int hc_mainwin = HT_UNKNOWN;
@@ -440,7 +440,7 @@ static int DefaultDTMouseMsgHandler (PMAINWIN pWin, int message,
     return 0;
 }
 
-static int DefaultMouseMsgHandler (PMAINWIN pWin, int message, 
+static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message, 
         WPARAM flags, int x, int y)
 {
     static PMAINWIN __mgs_captured_win = NULL;
@@ -1550,7 +1550,7 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
 }
 
 /* this function is CONTROL safe. */
-static int DefaultNCMouseMsgHandler(PMAINWIN pWin, int message, 
+static LRESULT DefaultNCMouseMsgHandler(PMAINWIN pWin, UINT message, 
         int location, int x, int y)
 {
     static int downCode = HT_UNKNOWN;
@@ -1726,7 +1726,7 @@ static int DefaultNCMouseMsgHandler(PMAINWIN pWin, int message,
     return 0;
 }
 
-static int DefaultKeyMsgHandler (PMAINWIN pWin, int message, 
+static LRESULT DefaultKeyMsgHandler (PMAINWIN pWin, UINT message, 
         WPARAM wParam, LPARAM lParam)
 {
     /*
@@ -1764,7 +1764,7 @@ static int DefaultKeyMsgHandler (PMAINWIN pWin, int message,
     return 0;
 }
 
-static int DefaultCreateMsgHandler(PMAINWIN pWin, int message, 
+static LRESULT DefaultCreateMsgHandler(PMAINWIN pWin, UINT message, 
         WPARAM wParam, LPARAM lParam)
 {
 
@@ -2099,7 +2099,7 @@ void gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
 #endif
 }
 
-static int DefaultPostMsgHandler(PMAINWIN pWin, int message,
+static LRESULT DefaultPostMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
     switch (message)
@@ -2392,7 +2392,7 @@ static void wndActiveMainWindow (PMAINWIN pWin, BOOL fActive)
     release_valid_dc (pWin, hdc);
 }
 
-static int DefaultPaintMsgHandler(PMAINWIN pWin, int message,
+static LRESULT DefaultPaintMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
     switch( message )
@@ -2430,7 +2430,7 @@ static int DefaultPaintMsgHandler(PMAINWIN pWin, int message,
     return 0;
 }
 
-static int DefaultControlMsgHandler(PMAINWIN pWin, int message,
+static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
@@ -2543,7 +2543,7 @@ static int DefaultControlMsgHandler(PMAINWIN pWin, int message,
     return 0;
 }
 
-static int DefaultSessionMsgHandler(PMAINWIN pWin, int message,
+static LRESULT DefaultSessionMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
 
@@ -2558,7 +2558,7 @@ static int DefaultSessionMsgHandler(PMAINWIN pWin, int message,
     return 0;
 }
 
-static int DefaultSystemMsgHandler(PMAINWIN pWin, int message, 
+static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message, 
         WPARAM wParam, LPARAM lParam)
 {
 
@@ -2595,7 +2595,7 @@ static int DefaultSystemMsgHandler(PMAINWIN pWin, int message,
  ** This default main window call-back procedure
  ** also implemented for control.
  */
-int PreDefMainWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT PreDefMainWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PMAINWIN pWin = (PMAINWIN)hWnd;
 
@@ -2632,7 +2632,7 @@ int PreDefMainWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int PreDefControlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT PreDefControlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if (message == MSG_SETTEXT)
         return 0;
@@ -2651,7 +2651,7 @@ int PreDefControlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
     return DefaultMainWinProc (hWnd, message, wParam, lParam);
 }
 
-int DefaultWindowProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if (IsMainWindow(hWnd)) {
         return DefaultMainWinProc (hWnd, message, wParam, lParam);
@@ -2735,7 +2735,7 @@ HWND GUIAPI SetActiveWindow (HWND hMainWnd)
     if (!MG_IS_NORMAL_WINDOW(hMainWnd) || !IsMainWindow (hMainWnd))
         return HWND_INVALID;
 
-    return SendMessage (HWND_DESKTOP, 
+    return (HWND)SendMessage (HWND_DESKTOP, 
             MSG_SETACTIVEMAIN, (WPARAM)hMainWnd, 0);
 }
 
@@ -3494,7 +3494,7 @@ void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
     if (!MG_IS_DESTROYED_WINDOW (hMainWnd)) {
 #ifdef _DEBUG
         fprintf (stderr, "GUI>Window: Unexpected calling of "
-                "(MainWindowThreadCleanup); Window (%x) "
+                "(MainWindowThreadCleanup); Window (%p) "
                 "not destroyed yet!\n",
                 hMainWnd);
 #endif
@@ -4268,7 +4268,7 @@ HCURSOR GUIAPI SetWindowCursor (HWND hWnd, HCURSOR hNewCursor)
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if (pWin->WinType == TYPE_MAINWIN)
-        return SendMessage (HWND_DESKTOP, 
+        return (HCURSOR)SendMessage (HWND_DESKTOP, 
                 MSG_SETWINCURSOR, (WPARAM)hWnd, (LPARAM)hNewCursor);
     else if (pWin->WinType == TYPE_CONTROL) {
         HCURSOR old = pWin->hCursor;
@@ -5838,9 +5838,11 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
                     int pitch = bmp->bmAlphaPitch;
                     sA = bmp->bmAlphaMask[y * pitch + x/bmp->bmBytesPerPixel];
                     DISEMBLE_RGB (p, bpp, pixfmt, pixel, sR, sG, sB); 
+                    sR += sG + sB; /* suspend the warning */
                 }
                 else {
                     DISEMBLE_RGBA (p, bpp, pixfmt, pixel, sR, sG, sB, sA);
+                    sR += sG + sB; /* suspend the warning */
                 }
             }
             else {

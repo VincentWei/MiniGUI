@@ -46,7 +46,7 @@ static HICON icon_fold, icon_unfold;
 #define FGC_HILIGHT_NORMAL WE_FGC_HIGHLIGHT_ITEM
 #define FGC_CONTROL_NORMAL WE_FGC_WINDOW
 
-static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterTreeViewControl (void)
 {
@@ -803,7 +803,7 @@ static int set_item_text (HWND hwnd, PTVDATA pData, PTVITEM item, const char* te
     return 0;
 }
 
-static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PTVDATA pData = NULL;
     DWORD dwStyle;

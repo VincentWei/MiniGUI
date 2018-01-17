@@ -83,7 +83,7 @@
 
 #define BUTTON_OFFSET  1
 
-static int ButtonCtrlProc (HWND hWnd, int uMsg, WPARAM wParam, LPARAM lParam);
+static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 static void btnGetRects (PCONTROL pctrl, RECT* prcClient, 
                                     RECT* prcContent, 
                                     RECT* prcBitmap);
@@ -652,7 +652,7 @@ static inline BOOL mouse_in_client(LPARAM lParam, PCONTROL pctrl)
     return (PtInRect ((PRECT) &(pctrl->cl), x, y));
 }
 
-static int ButtonCtrlProc (HWND hWnd, int uMsg, WPARAM wParam, LPARAM lParam)
+static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     HDC         hdc;
     PCONTROL    pctrl;

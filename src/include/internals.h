@@ -162,7 +162,7 @@ typedef MSGQUEUE* PMSGQUEUE;
 typedef struct _SYNCMSG
 {
     MSG              Msg;
-    int              retval;
+    LRESULT          retval;
     sem_t*           sem_handle;
     struct _SYNCMSG* pNext;
 }SYNCMSG;
@@ -338,7 +338,7 @@ typedef struct _MAINWIN
     DWORD dwAddData;    // the additional data.
     DWORD dwAddData2;   // the second addtional data.
 
-    int (*MainWindowProc)(HWND, int, WPARAM, LPARAM);
+    LRESULT (*MainWindowProc)(HWND, UINT, WPARAM, LPARAM);
                            // the address of main window procedure.
 
     struct _MAINWIN* pMainWin;
@@ -482,10 +482,10 @@ extern PTRACKMENUINFO __mg_ptmi;
 extern PMAINWIN __mg_dsk_win;
 extern HWND __mg_hwnd_desktop;
 
-extern int DesktopWinProc (HWND hWnd, 
-                int message, WPARAM wParam, LPARAM lParam);
-extern int SendSyncMessage (HWND hWnd, int msg, WPARAM wParam, LPARAM lParam);
-
+extern LRESULT DesktopWinProc (HWND hWnd, 
+                UINT message, WPARAM wParam, LPARAM lParam);
+extern LRESULT SendSyncMessage (HWND hWnd, 
+                UINT msg, WPARAM wParam, LPARAM lParam);
 
 #ifndef _MGRM_THREADS
     extern unsigned int __mg_csrimgsize;
