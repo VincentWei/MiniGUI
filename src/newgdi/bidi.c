@@ -364,11 +364,16 @@ static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
     int prev_len = 0;
     const unsigned char* prev_mchar = NULL;
     int i = 0;
-    int limit_width = -1, line_width = 0;
+    int line_width = 0;
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
+
+#if 0
+    int limit_width = -1;
     if(if_break){
         limit_width = ctxt->max_extent;
     }
+#endif
+
     while (left_bytes > 0){
         if(mbc_devfont){
             len_cur_char = mbc_devfont->charset_ops->len_first_char

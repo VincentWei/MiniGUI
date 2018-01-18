@@ -56,12 +56,13 @@ static ClassType(clss) * clss##ClassConstructor(ClassType(clss)* _class); \
 ClassType(clss) Class(clss) = { (PClassConstructor)clss##ClassConstructor }; \
 static const char* clss##_type_name = #clss; \
 static ClassType(clss) * clss##ClassConstructor(ClassType(clss)* _class) { \
-	unsigned short * _pintfOffset;                                         \
+	unsigned short * _pintfOffset = NULL; \
+	_pintfOffset = (PVOID)((UINT_PTR)_pintfOffset ^ 0); /* prevent unused-but-set-variable warning */ \
 	_class = (ClassType(clss)*)((PClassConstructor)(Class(superCls).classConstructor))((mObjectClass*)_class); \
+	_pintfOffset = &_class->intfOffset; \
 	_class->super = &Class(superCls); \
 	_class->typeName = clss##_type_name; \
-	_class->objSize = sizeof(clss);      \
-	_pintfOffset = &_class->intfOffset;
+	_class->objSize = sizeof(clss);
 
 #define END_MINI_CLASS return _class; }
 
@@ -126,9 +127,9 @@ static ClassType(clss) * clss##ClassConstructor(ClassType(clss)* _class) { \
 	struct _##Interface { Interface##VTable *_vtable; };
 
 #define IMPLEMENT(Clss,Interface) \
-	_class->_##Interface##_obj_offset = (unsigned int)(void*)&(((Clss*)0)->Interface##_); \
+	_class->_##Interface##_obj_offset = (UINT_PTR)(void*)&(((Clss*)0)->Interface##_); \
 	_class->_##Interface##_next_offset = 0;                                                \
-	*_pintfOffset =  (unsigned short)(unsigned int)(void*)&(((ClassType(Clss)*)0)->_##Interface##_obj_offset); \
+	*_pintfOffset =  (unsigned short)(UINT_PTR)(void*)&(((ClassType(Clss)*)0)->_##Interface##_obj_offset); \
 	_pintfOffset = &_class->_##Interface##_next_offset;
 
 #define INTERFACE_CAST(Interface, pobj)  \
@@ -266,12 +267,18 @@ MGNCS_EXPORT mObject* mgInitObjectArgs(mObject* pobj, mObjectClass* _class, ...)
 #define INIT_OBJ(Clss, pobj)  INIT_OBJEX(Clss, pobj, 0)
 #define INIT_OBJV(Clss, pobj, ...) ((Clss* )initObjectArgs((mObject*)((void*)(pobj)), \
                 (mObjectClass*)((void*)(&(Class(Clss)))), ##__VA_ARGS__))
+
+/*
+** the implementation of GET_ARG_COUNT is bad, because some systems
+** define va_list as a pointer, and others define it as an array of 
+** pointers (of length 1).
 static inline int MGGET_ARG_COUNT(va_list va)
 {
 	union {
 		va_list va;
 		DWORD   dva;
-	}_va;
+	} _va;
+
 	_va.va = va;
 	if(_va.dva == 0)
 		return 0;
@@ -282,6 +289,8 @@ static inline int MGGET_ARG_COUNT(va_list va)
     return 1;
 }
 #define GET_ARG_COUNT MGGET_ARG_COUNT
+*/
+
 #define UNIT_OBJ(pobj)  (_c(pobj)->destroy(pobj))
 
 

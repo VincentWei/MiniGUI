@@ -207,8 +207,13 @@ int ncsParseConstructParams(va_list args, const char* signature, ...)
 	int argc;
 	int i;
 
+    /*
+    ** the implementation of GET_ARG_COUNT is bad, because some systems
+    ** define va_list as a pointer, and others define it as an array of 
+    ** pointers (of length 1).
 	if(GET_ARG_COUNT(args) <= 0)
 		return 0;
+    */
 
 	argc = va_arg(args, int);
     if(argc <= 0)
@@ -226,11 +231,11 @@ int ncsParseConstructParams(va_list args, const char* signature, ...)
 			break;
 		case 'f': //float
 
-/* FIXME gcc says:
- *  warning: 'float' is promoted to 'double' when passed through '...'
- *  warning: (so you should pass 'double' not 'float' to 'va_arg')
- *  note: if this code is reached, the program will abort.
- */
+            /* FIXME gcc says:
+            **  warning: 'float' is promoted to 'double' when passed through '...'
+            **  warning: (so you should pass 'double' not 'float' to 'va_arg')
+            **  note: if this code is reached, the program will abort.
+            */
 			*(va_arg(params, float*)) = va_arg(args, double);
 			break;
 		case 'i': //integer

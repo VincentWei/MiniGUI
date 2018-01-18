@@ -149,7 +149,7 @@ static void _parallelogram_map(HDC hdc, const BITMAP *bmp, fixed sx[4],
     int right_index;
 
     /* Loop variables. */
-    int index, i, y;
+    int index, i;
 
     /* Coordinates in bmp ordered as top-right-bottom-left. */
     fixed corner_dc_x[4], corner_dc_y[4];
@@ -329,7 +329,9 @@ static void _parallelogram_map(HDC hdc, const BITMAP *bmp, fixed sx[4],
     }
 
     fill_info.dst_rect.h = 1;
-    y = 0;
+#if 0
+    int y = 0;
+#endif
     while (1) {
         if (scanline > MIN(dc_maxh, fixtoi(bottom_dc_y)))
             break;

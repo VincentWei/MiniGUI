@@ -608,7 +608,7 @@ static void _dc_draw_pixel_span_set_2 (COMP_CTXT* comp_ctxt, int w)
                     | (Uint16)comp_ctxt->cur_pixel);
             Uint32 * dest32;
             int count;
-            if ((Uint32)comp_ctxt->cur_dst & 3) // Ensure 4-byte alignment.
+            if ((UINT_PTR)comp_ctxt->cur_dst & 3) // Ensure 4-byte alignment.
             {
                 *dest16++ = (Uint16)comp_ctxt->cur_pixel;
                 --w;

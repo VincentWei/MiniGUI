@@ -432,7 +432,7 @@ static int mTextBuffer_find(mTextBuffer* self, int start,
     if(start >= self->char_len)
         return -1;
 
-    if((int)str == TI_LINERETURN || (int) str == TI_EOF)
+    if((INT_PTR)str == TI_LINERETURN || (INT_PTR)str == TI_EOF)
     {
         pos = findnstr(self->buffer + start, self->char_len - start, "\n", 1);
     }
@@ -1155,13 +1155,10 @@ static void textlayout_updateselection(mTextLayout* self)
             && self->old_height != self->new_height)
     {
         int max;
-        int min;
         if(self->old_height > self->new_height)
         {
-            min = self->new_height;
             max = self->old_height;
         }else{
-            min = self->old_height;
             max = self->new_height;
         }
 
@@ -1367,7 +1364,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
 {
     mTextLayoutNodeSearchInfo searchInfo;
     mTextLayoutNode           *begin_node=NULL, *end_node = NULL;
-    int                       begin_index, end_index;
+    int                       begin_index;
     ITextIterator*            txtit;
     mCommBTreeLeafIterator    node_it;
     BOOL                      bHeightChanged = FALSE; /* Very important for unequal height*/
@@ -1393,7 +1390,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
     if(begin_node == NULL)
     {
         end_node = begin_node = textlayout_get_last_node(self, FALSE);
-        end_index = begin_index = textlayout_get_str_count(self);
+        begin_index = textlayout_get_str_count(self);
     }
     else
     {
@@ -6405,7 +6402,6 @@ static int mTextEditor_wndProc(mTextEditor *self, int message, WPARAM wParam, LP
 static void mTextEditor_setTitle(mTextEditor* self, const char* buff, int len)
 {
     //repalce
-    int old_title_idx;
     int slen ;
 
     if(!(GetWindowStyle(self->hwnd) & NCSS_TE_TITLE))
@@ -6417,7 +6413,6 @@ static void mTextEditor_setTitle(mTextEditor* self, const char* buff, int len)
     if(len <= 0)
         len = -1;
 
-    old_title_idx = self->title_idx;
     _c(pTextBuffer)->replace(pTextBuffer, 0, self->title_idx, buff, len);
     if(buff == NULL || len <= 0)
     {
@@ -6555,7 +6550,7 @@ static void init_textedit(void)
 }
 
 /*======== The following is textedit control implementation. =========*/
-static int mTextEditCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT mTextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     mTextEditor *self = NULL;
 
@@ -6565,7 +6560,7 @@ static int mTextEditCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPar
     switch(message)
     {
         case MSG_CREATE:
-            if (!(self = NEWEX(mTextEditor, hWnd)))
+            if (!(self = NEWEX(mTextEditor, (DWORD)hWnd)))
                 return -1;
 
             SetWindowAdditionalData2 (hWnd, (DWORD)self);

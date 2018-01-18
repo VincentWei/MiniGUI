@@ -55,7 +55,7 @@ static int FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
 
     /* Execute the fill command */
     tdfx_wait(6);
-    tdfx_out32(DSTBASE, (Uint32)dst_base);
+    tdfx_out32(DSTBASE, (UINT_PTR)dst_base);
     tdfx_out32(DSTFORMAT, format);
     tdfx_out32(COLORFORE, color);
     tdfx_out32(COMMAND_2D, COMMAND_2D_FILLRECT);
@@ -73,7 +73,7 @@ static int HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
     GAL_VideoDevice *this = current_video;
     int bpp;
     Uint32 src_format;
-    Uint32 dst_format;
+    /* Uint32 dst_format; */
     char *src_base;
     char *dst_base;
     int srcX, srcY;
@@ -89,7 +89,7 @@ static int HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
     src_format = src->pitch | ((bpp+((bpp==8) ? 0 : 8)) << 13);
     dst_base = (char *)((char *)dst->pixels - mapped_mem);
     bpp = dst->format->BitsPerPixel;
-    dst_format = dst->pitch | ((bpp+((bpp==8) ? 0 : 8)) << 13);
+    /* dst_format = dst->pitch | ((bpp+((bpp==8) ? 0 : 8)) << 13); */
 
     srcX = srcrect->x;
     srcY = srcrect->y;
@@ -120,9 +120,9 @@ static int HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
         use_colorkey = 0;
     }
     tdfx_wait(9);
-    tdfx_out32(SRCBASE, (Uint32)src_base);
+    tdfx_out32(SRCBASE, (UINT_PTR)src_base);
     tdfx_out32(SRCFORMAT, src_format);
-    tdfx_out32(DSTBASE, (Uint32)dst_base);
+    tdfx_out32(DSTBASE, (UINT_PTR)dst_base);
     tdfx_out32(DSTFORMAT, src_format);
     tdfx_out32(COMMAND_2D, blitop);
     tdfx_out32(COMMANDEXTRA_2D, use_colorkey);

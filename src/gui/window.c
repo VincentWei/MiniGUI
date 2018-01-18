@@ -5838,12 +5838,11 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
                     int pitch = bmp->bmAlphaPitch;
                     sA = bmp->bmAlphaMask[y * pitch + x/bmp->bmBytesPerPixel];
                     DISEMBLE_RGB (p, bpp, pixfmt, pixel, sR, sG, sB); 
-                    sR += sG + sB; /* suspend the warning */
                 }
                 else {
                     DISEMBLE_RGBA (p, bpp, pixfmt, pixel, sR, sG, sB, sA);
-                    sR += sG + sB; /* suspend the warning */
                 }
+                sR ^= sG & sB; /* prevent unused-but-set-variable warning */
             }
             else {
                 pixel = bits [y * ((MYBITMAP*)mask)->pitch + x];

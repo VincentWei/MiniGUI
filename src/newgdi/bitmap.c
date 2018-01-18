@@ -2486,14 +2486,14 @@ void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, const BYTE
     Uint32 x, y;
     BYTE *dst, *dst_line;
     const BYTE *src, *src_line;
-    int index, bpp;
+    int index;
+    //int bpp;
     Uint32 pixel;
     BYTE byte = 0;
     int  bnum,continum,i;
 
-
     pdc = dc_HDC2PDC(hdc);
-    bpp = GAL_BytesPerPixel (pdc->surface);
+    // bpp = GAL_BytesPerPixel (pdc->surface);
 
     dst_line = bits;
     if (flags & MYBMP_FLOW_UP)
@@ -2945,7 +2945,6 @@ void GUIAPI HFlipBitmap (BITMAP* bmp, unsigned char* inter_buff)
 void GUIAPI VFlipBitmap (BITMAP* bmp, unsigned char* inter_buff)
 {
     int y;
-    int bpp;
     unsigned char* sline, *dline;
     
     if (bmp->bmType & BMP_TYPE_ALPHA_MASK) {
@@ -2967,7 +2966,6 @@ void GUIAPI VFlipBitmap (BITMAP* bmp, unsigned char* inter_buff)
         free(alpha_inter_buff);
     }
 
-    bpp = bmp->bmBytesPerPixel;
     sline = bmp->bmBits;
     dline = bmp->bmBits + bmp->bmPitch * bmp->bmHeight;
 

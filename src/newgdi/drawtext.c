@@ -289,7 +289,7 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
                 int glyph_type)
 {
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
-    int adv_x, adv_y;
+    int adv_x = 0, adv_y = 0;
     BBOX bbox;
     int bkmode;
 

@@ -516,7 +516,13 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
                 return -1;
             }
         }
-        read(__mg_pcxvfb_client_sockfd, &shmid, sizeof(int));
+
+        if (read(__mg_pcxvfb_client_sockfd, &shmid, sizeof(int)) < sizeof (int)) {
+            GAL_SetError ("NEWGAL>PCXVFB: read error from client socket.\n");
+            close (__mg_pcxvfb_client_sockfd);
+            close (__mg_pcxvfb_server_sockfd);
+            return -1;
+        }
 
         if (shmid != -1) {
             data->shmrgn = (unsigned char *)shmat (shmid, 0, 0);
@@ -548,7 +554,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 #endif
 #endif //end of os (windows, cygwin, linux)
 
-    if ((int)data->shmrgn == -1 || data->shmrgn == NULL) {
+    if ((INT_PTR)data->shmrgn == -1 || data->shmrgn == NULL) {
         GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to "
                 "virtual FrameBuffer server.\n");
         return -1;

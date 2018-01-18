@@ -925,13 +925,7 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
         int width, int height, int depth,
         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
 {
-    GAL_Surface *screen, *surface;
-
-    if (this) {
-        screen = this->screen;
-    } else {
-        screen = NULL;
-    }
+    GAL_Surface *surface;
 
     surface = (GAL_Surface *)malloc(sizeof(*surface));
 
