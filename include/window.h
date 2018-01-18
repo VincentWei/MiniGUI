@@ -2564,7 +2564,7 @@ MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, L
  *
  * \sa PostSyncMessage
  */
-MG_EXPORT int GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
 /**
@@ -2728,7 +2728,7 @@ MG_EXPORT BOOL GUIAPI TranslateKeyMsgToChar (int message,
                 WPARAM wParam, LPARAM lParam, WORD *ch);
 
 /**
- * \fn int DispatchMessage (PMSG pMsg)
+ * \fn LRESULT DispatchMessage (PMSG pMsg)
  * \brief Dispatches a message to the window's callback procedure.
  *
  * This function dispatches the message pointed to by \a pMsg to the
@@ -2743,7 +2743,7 @@ MG_EXPORT BOOL GUIAPI TranslateKeyMsgToChar (int message,
  *
  * \include getmessage.c
  */
-MG_EXPORT int GUIAPI DispatchMessage (PMSG pMsg);
+MG_EXPORT LRESULT GUIAPI DispatchMessage (PMSG pMsg);
 
 /**
  * \fn int ThrowAwayMessages (HWND pMainWnd)

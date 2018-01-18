@@ -1885,8 +1885,10 @@ int init_minigui_printf (int (*output_char) (int ch),
 #if defined(__GNUC__)
 #ifdef _DEBUG
 #   define _MG_PRINTF(fmt...) fprintf (stderr, fmt)
+#   define _DBG_PRINTF(fmt...) fprintf (stdout, fmt)
 #else
 #   define _MG_PRINTF(fmt...)
+#   define _DBG_PRINTF(fmt...)
 #endif
 #else /* __GNUC__ */
 #include <stdio.h>

@@ -2761,7 +2761,7 @@ HWND GUIAPI SetCapture (HWND hWnd)
 
 HWND GUIAPI GetCapture (void)
 {
-    return (HWND) SendMessage (HWND_DESKTOP, MSG_GETCAPTURE, 0, 0);
+    return (HWND)SendMessage (HWND_DESKTOP, MSG_GETCAPTURE, 0, 0);
 }
 
 void GUIAPI ReleaseCapture (void)

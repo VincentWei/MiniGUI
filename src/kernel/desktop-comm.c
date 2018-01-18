@@ -870,7 +870,6 @@ static HWND DesktopSetCapture (HWND hwnd)
 
     hTemp = __mg_capture_wnd;
     __mg_capture_wnd = hwnd;
-
     return hTemp;
 }
 

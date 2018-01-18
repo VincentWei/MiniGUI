@@ -135,12 +135,6 @@ static void* AboutDialogThread (void* data)
     ShowWindow (hMainWnd, SW_SHOWNORMAL);
 
     while (GetMessage(&Msg, hMainWnd)) {
-        printf ("AboutDialogBox Message, %s: hWnd: %p, wP: %lx, lP: %lx.\n",
-            Message2Str (Msg.message),
-            Msg.hwnd,
-            Msg.wParam,
-            Msg.lParam);
- 
         DispatchMessage(&Msg);
     }
 

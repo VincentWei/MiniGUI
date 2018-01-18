@@ -941,8 +941,9 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         case MSG_LBUTTONDOWN:
             if (GetCapture () == hWnd)
                 break;
+
             SetCapture (hWnd);
-                
+
             BUTTON_STATUS(pctrl) |= BST_FOCUS;
             change_status_from_pose(pctrl, BST_PUSHED, TRUE, TRUE);
         break;

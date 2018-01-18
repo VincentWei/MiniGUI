@@ -1018,13 +1018,13 @@ int GUIAPI PostQuitMessage (HWND hWnd)
 
 #include "license.h"
 
-int GUIAPI DispatchMessage (PMSG pMsg)
+LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 {
     WNDPROC WndProc;
 #ifdef _MGRM_THREADS
     PSYNCMSG pSyncMsg;
 #endif
-    int iRet;
+    LRESULT lRet;
 
     LICENSE_MODIFY_MESSAGE(pMsg);
 
@@ -1059,23 +1059,23 @@ int GUIAPI DispatchMessage (PMSG pMsg)
     if (!(WndProc = GetWndProc (pMsg->hwnd)))
         return -1;
 
-    iRet = (*WndProc)(pMsg->hwnd, pMsg->message, pMsg->wParam, pMsg->lParam);
+    lRet = WndProc (pMsg->hwnd, pMsg->message, pMsg->wParam, pMsg->lParam);
 
 #ifdef _MGRM_THREADS
     /* this is a sync message. */
     if (pMsg->pAdd) {
         pSyncMsg = (PSYNCMSG)pMsg->pAdd;
-        pSyncMsg->retval = iRet;
+        pSyncMsg->retval = lRet;
         sem_post (pSyncMsg->sem_handle);
     }
 #endif
 
 #ifdef _MGHAVE_TRACE_MSG
-    fprintf (stderr, "Message, %s done, return value: %x\n",
-        Message2Str (pMsg->message), iRet);
+    fprintf (stderr, "Message, %s done, return value: %lx\n",
+        Message2Str (pMsg->message), lRet);
 #endif
 
-    return iRet;
+    return lRet;
 }
 
 /* define this to print debug info of ThrowAwayMessages */
@@ -1352,16 +1352,16 @@ LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
     return SendSyncMessage (hWnd, msg, wParam, lParam);
 }
 
-int GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
     
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
 
-    if ( !(WndProc = GetWndProc(hWnd)) )
+    if (!(WndProc = GetWndProc(hWnd)))
         return -1;
 
-    return (*WndProc)(hWnd, nMsg, wParam, lParam);
+    return WndProc (hWnd, nMsg, wParam, lParam);
 }
 
 #endif /* !LITE_VERSION */

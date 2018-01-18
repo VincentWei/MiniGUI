@@ -122,7 +122,7 @@ void* DesktopMain (void* data)
 
     /* process messages of desktop thread */
     while (GetMessage(&Msg, HWND_DESKTOP)) {
-        int iRet = 0;
+        LRESULT lRet = 0;
 
 #ifdef _MGHAVE_TRACE_MSG
         fprintf (stderr, "Message, %s: hWnd: %p, wP: %#lx, lP: %#lx. %s\n",
@@ -133,19 +133,19 @@ void* DesktopMain (void* data)
             Msg.pAdd?"Sync":"Normal");
 #endif
 
-        iRet = DesktopWinProc (HWND_DESKTOP, 
+        lRet = DesktopWinProc (HWND_DESKTOP, 
                         Msg.message, Msg.wParam, Msg.lParam);
 
         if (Msg.pAdd) /* this is a sync message. */
         {
             PSYNCMSG pSyncMsg = (PSYNCMSG)(Msg.pAdd);
-            pSyncMsg->retval = iRet;
+            pSyncMsg->retval = lRet;
             sem_post(pSyncMsg->sem_handle);
         }
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s done, return value: %#x\n",
-            Message2Str (Msg.message), iRet);
+        fprintf (stderr, "Message, %s done, return value: %lx\n",
+            Message2Str (Msg.message), lRet);
 #endif
     }
 
