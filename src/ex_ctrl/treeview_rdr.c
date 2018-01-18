@@ -854,7 +854,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
         case TVM_GETROOT:
             pData = (PTVDATA) GetWindowAdditionalData2 (hwnd);
-            return (int) pData->root;
+            return (LRESULT)pData->root;
             break;
 
         case TVM_SEARCHITEM:
@@ -873,7 +873,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     return 0;
 
                 matched = findStringDepthFirst (pData, root, text);
-                return (int)matched;
+                return (LRESULT)matched;
             }
 
         case TVM_FINDCHILD:
@@ -892,12 +892,12 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     return 0;
 
                 matched = findStringInChildren (pData, item, text);
-                return (int)matched;
+                return (LRESULT)matched;
             }
 
         case TVM_GETSELITEM:
             pData = (PTVDATA) GetWindowAdditionalData2 (hwnd);
-            return (int)pData->pItemSelected;
+            return (LRESULT)pData->pItemSelected;
 
         case TVM_SETSELITEM:
             {
@@ -938,7 +938,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 }
 #endif
 
-                return (int)old_sel;
+                return (LRESULT)old_sel;
             }
 
         case TVM_GETRELATEDITEM:
@@ -953,13 +953,13 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
                 switch (related) {
                     case TVIR_PARENT:
-                        return (int)item->parent;
+                        return (LRESULT)item->parent;
                     case TVIR_FIRSTCHILD:
-                        return (int)item->child;
+                        return (LRESULT)item->child;
                     case TVIR_NEXTSIBLING:
-                        return (int)item->next;
+                        return (LRESULT)item->next;
                     case TVIR_PREVSIBLING:
-                        return (int)getPrev (pData, item);
+                        return (LRESULT)getPrev (pData, item);
                 }
 
                 return 0;
@@ -1120,8 +1120,8 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 }
 #endif
                 if (pData->dwStyle & TVS_WITHICON) {
-                    newItem->hIconFold = (DWORD) pTVItemInfo->hIconFold;
-                    newItem->hIconUnfold = (DWORD) pTVItemInfo->hIconUnfold;
+                    newItem->hIconFold = (HICON) pTVItemInfo->hIconFold;
+                    newItem->hIconUnfold = (HICON) pTVItemInfo->hIconUnfold;
                 } 
                 else {
                     newItem->hIconFold = 0L;
@@ -1137,7 +1137,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 tvSetVScrollInfo (hwnd, pData, TRUE);
                 tvSetHScrollInfo (hwnd, pData, TRUE);
                 InvalidateRect (hwnd, NULL, TRUE);
-                return (int) newItem;    
+                return (LRESULT)newItem;    
             }
 
         case MSG_KEYDOWN:

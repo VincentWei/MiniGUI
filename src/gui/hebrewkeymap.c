@@ -162,9 +162,6 @@ static ushort *key_maps[MAX_NR_KEYMAPS] = {
 	ctrl_alt_map,0 
 };
 
-static unsigned int keymap_count = 64;
-
-
 /*
  * Philosophy: most people do not define more strings, but they who do
  * often want quite a lot of string space. So, we statically allocate

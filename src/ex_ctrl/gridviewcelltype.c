@@ -59,7 +59,7 @@ static inline void GridCell_get_ctrl_rect(gvGridCellData* cell, gvGridViewData* 
 
 // Editor Proc {{{
 
-static int GridCell_EditDefaultProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT GridCell_EditDefaultProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     GridCellEditData* editdata
             = (GridCellEditData*)GetWindowAdditionalData(hWnd);
@@ -78,7 +78,7 @@ static int GridCell_EditDefaultProc(HWND hWnd, int message, WPARAM wParam, LPARA
     return editdata->old_proc(hWnd, message, wParam, lParam);
 }
 
-static int GridCell_EditBgColorProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT GridCell_EditBgColorProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     GridCellEditData* editdata
             = (GridCellEditData*)GetWindowAdditionalData(hWnd);
@@ -138,7 +138,7 @@ static void GridCell_SelectionNotify(HWND hWnd, int id, int nc, DWORD add_data)
     switch(nc)
     {
     case CBN_DROPDOWN:
-        if (editdata->view->hEdit != -1)
+        if (editdata->view->hEdit != HWND_INVALID)
         {
             if (editdata->view->hEdit != hWnd)
             {
@@ -321,7 +321,7 @@ double GridCellTypeNull_get_double_value(gvGridCellData* cell, int row, int col)
 
 HWND GridCellTypeNull_get_control(gvGridCellData* cell, gvGridViewData* view, int row, int col)
 {
-    return (HWND)-1;
+    return HWND_INVALID;
 }
 
 void GridCellTypeNull_get_format(gvGridCellData* cell, HWND hWnd, HDC hdc, GridCellFormat* format)
@@ -350,7 +350,7 @@ int GridCellTypeNull_draw(gvGridCellData* cell, gvGridViewData* view,
         is_highlight = FALSE;
 
     ctrl = cell->func->get_control(cell, view, row, col);
-    if(ctrl != -1)
+    if(ctrl != HWND_INVALID)
     {
         RECT r;
         GetWindowRect(ctrl, &r);
@@ -887,12 +887,12 @@ HWND GridCellTypeText_create_edit_ctrl(gvGridViewData* view, gvGridCellData* cel
     if(real_cell == NULL || real_cell != cell)
         is_default = TRUE;
     if(cell == NULL)
-        return -1;
+        return HWND_INVALID;
     if( cell->style & GVS_MULTLINE )
         ctrl_type = CTRL_MLEDIT;
     else
         ctrl_type = CTRL_SLEDIT;
-    if(view->hEdit != -1)
+    if(view->hEdit != HWND_INVALID)
     {
         editdata = (GridCellEditData*)GetWindowAdditionalData(view->hEdit);
         editdata->commit = FALSE;
@@ -903,7 +903,7 @@ HWND GridCellTypeText_create_edit_ctrl(gvGridViewData* view, gvGridCellData* cel
                 WS_CHILD|WS_VISIBLE, col,
                 rect->left, rect->top, RECTWP(rect), RECTHP(rect),
                 view->hCtrl, 0);
-    if(view->hEdit != -1)
+    if(view->hEdit != HWND_INVALID)
     {
         editdata = calloc(1, sizeof(GridCellEditData));
         editdata->view = view;
@@ -922,7 +922,7 @@ int GridCellTypeText_begin_edit(gvGridCellData* cell, gvGridViewData* view,
                                         int row, int col, RECT* rect)
 {
     RECT r;
-    HWND hEdit = -1;
+    HWND hEdit = HWND_INVALID;
     int len;
     char* text;
     if( gvGridCell_is_readonly(cell) )
@@ -933,7 +933,7 @@ int GridCellTypeText_begin_edit(gvGridCellData* cell, gvGridViewData* view,
     GridCell_get_ctrl_rect(cell, view, row, col, rect, &r);
     hEdit = GridCellTypeText_create_edit_ctrl(view, cell, row, col, &r, text);
     free(text);
-    if (hEdit != -1)
+    if (hEdit != HWND_INVALID)
         SetFocusChild(hEdit);
     return 0;
 }
@@ -945,7 +945,7 @@ int GridCellTypeText_end_edit(gvGridCellData* cell, gvGridViewData* view, int ro
     gvGridCellData tmp_cell;
     gvGridCellData* p_cell = cell;
     GridCellEditData* editdata;
-    if(view->hEdit == -1)
+    if(view->hEdit == HWND_INVALID)
         return -1;
     editdata = (GridCellEditData*)GetWindowAdditionalData(hEdit);
     if(editdata->commit)
@@ -965,7 +965,7 @@ int GridCellTypeText_end_edit(gvGridCellData* cell, gvGridViewData* view, int ro
         free(buf);
     }
     DestroyWindow(hEdit);
-    view->hEdit = -1;
+    view->hEdit = HWND_INVALID;
     free(editdata);
     InvalidateRect(view->hCtrl, NULL, FALSE);
     return 0;
@@ -1179,7 +1179,7 @@ int GridCellTypeCheckBox_init(gvGridCellData* cell)
     memset(cell, 0, sizeof(gvGridCellData));
     cell->celltype = GV_TYPE_CHECKBOX;
     cell->func = gvGridCellTypeCheckBox;
-    cell->data.checkbox.handle = -1;
+    cell->data.checkbox.handle = HWND_INVALID;
     return 0;
 }
 
@@ -1244,7 +1244,7 @@ int GridCellTypeCheckBox_merge(gvGridCellData* cell, gvGridCellData* data)
 int GridCellTypeCheckBox_copy(gvGridCellData* to, gvGridCellData* from)
 {
     memcpy(to, from, sizeof(gvGridCellData));
-    to->data.checkbox.handle = -1;
+    to->data.checkbox.handle = HWND_INVALID;
     to->data.checkbox.dirty = FALSE;
     if(from->data.checkbox.text != NULL)
         to->data.checkbox.text = strdup(from->data.checkbox.text);
@@ -1318,8 +1318,8 @@ HWND GridCellTypeCheckBox_create_checkbox_ctrl(gvGridViewData* view, gvGridCellD
     HWND ctrl;
     GridCellEditData* editdata = NULL;
     if(cell == NULL)
-        return -1;
-    if(cell->data.checkbox.handle != -1)
+        return HWND_INVALID;
+    if(cell->data.checkbox.handle != HWND_INVALID)
         return cell->data.checkbox.handle;
     ctrl = CreateWindow(CTRL_BUTTON,
                 text,
@@ -1327,10 +1327,10 @@ HWND GridCellTypeCheckBox_create_checkbox_ctrl(gvGridViewData* view, gvGridCellD
                 row*0x10000+col,
                 rect->left, rect->top, RECTWP(rect), RECTHP(rect),
                 view->hCtrl, 0);
-    if(ctrl == -1)
+    if(ctrl == HWND_INVALID)
     {
-        cell->data.checkbox.handle = -1;
-        return -1;
+        cell->data.checkbox.handle = HWND_INVALID;
+        return HWND_INVALID;
     }
     cell->data.checkbox.handle = ctrl;
     editdata = calloc(1, sizeof(GridCellEditData));
@@ -1360,7 +1360,7 @@ int GridCellTypeCheckBox_draw_content(gvGridCellData* cell, gvGridViewData* view
     if(EqualRect(&r_bound, &view->cells_rect))
     {
         int checked = cell->data.checkbox.checked?BST_CHECKED:BST_UNCHECKED;
-        if(ctrl == -1)
+        if(ctrl == HWND_INVALID)
         {
             char* text = cell->data.checkbox.text;
             if(text == NULL)
@@ -1383,11 +1383,11 @@ int GridCellTypeCheckBox_invisible_draw(gvGridCellData* cell, gvGridViewData* vi
                                     HDC hdc, int row, int col, RECT* rect)
 {
     HWND ctrl = cell->data.checkbox.handle;
-    if(ctrl != -1)
+    if(ctrl != HWND_INVALID)
     {
         GridCellEditData* editdata = (GridCellEditData*)GetWindowAdditionalData(ctrl);
         DestroyWindow(ctrl);
-        cell->data.checkbox.handle = -1;
+        cell->data.checkbox.handle = HWND_INVALID;
         free(editdata);
     }
     return 0;
@@ -1407,7 +1407,7 @@ int GridCellTypeCheckBox_end_edit(gvGridCellData* cell, gvGridViewData* view, in
     if(cell == NULL)
         return -1;
     ctrl = cell->data.checkbox.handle;
-    if (ctrl == -1)
+    if (ctrl == HWND_INVALID)
         return -1;
     editdata = (GridCellEditData*)GetWindowAdditionalData(ctrl);
     if(editdata->commit)
@@ -1430,12 +1430,12 @@ int GridCellTypeCheckBox_on_destroy(gvGridCellData* cell)
         free(cell->data.checkbox.text);
         cell->data.checkbox.text = NULL;
     }
-    if(cell->data.checkbox.handle != -1)
+    if(cell->data.checkbox.handle != HWND_INVALID)
     {
         HWND ctrl = cell->data.checkbox.handle;
         GridCellEditData* editdata = (GridCellEditData*)GetWindowAdditionalData(ctrl);
         DestroyWindow(ctrl);
-        cell->data.checkbox.handle = -1;
+        cell->data.checkbox.handle = HWND_INVALID;
         free(editdata);
     }
     return 0;
@@ -1450,7 +1450,7 @@ int GridCellTypeSelection_init(gvGridCellData* cell)
     memset(cell, 0, sizeof(gvGridCellData));
     cell->celltype = GV_TYPE_SELECTION;
     cell->func = gvGridCellTypeSelection;
-    cell->data.selection.handle = -1;
+    cell->data.selection.handle = HWND_INVALID;
     return 0;
 }
 
@@ -1514,7 +1514,7 @@ int GridCellTypeSelection_merge(gvGridCellData* cell, gvGridCellData* data)
 int GridCellTypeSelection_copy(gvGridCellData* to, gvGridCellData* from)
 {
     memcpy(to, from, sizeof(gvGridCellData));
-    to->data.selection.handle = -1;
+    to->data.selection.handle = HWND_INVALID;
     to->data.selection.dirty = FALSE;
     if(from->data.selection.text != NULL)
         to->data.selection.text = strdup(from->data.selection.text);
@@ -1590,8 +1590,8 @@ HWND GridCellTypeSelection_create_selection_ctrl(gvGridViewData* view, gvGridCel
     char *tmp = NULL;
         
     if(cell == NULL)
-        return -1;
-    if(cell->data.selection.handle != -1)
+        return HWND_INVALID;
+    if(cell->data.selection.handle != HWND_INVALID)
         return cell->data.selection.handle;
 
     ctrl = CreateWindow(CTRL_COMBOBOX,
@@ -1601,9 +1601,9 @@ HWND GridCellTypeSelection_create_selection_ctrl(gvGridViewData* view, gvGridCel
                 rect->left, rect->top, RECTWP(rect), RECTHP(rect),
                 view->hCtrl, 0);
 
-    if(ctrl == -1) {
-        cell->data.selection.handle = -1;
-        return -1;
+    if(ctrl == HWND_INVALID) {
+        cell->data.selection.handle = HWND_INVALID;
+        return HWND_INVALID;
     }
 
     do {
@@ -1645,7 +1645,7 @@ int GridCellTypeSelection_draw_content(gvGridCellData* cell, gvGridViewData* vie
     GetBoundRect(&r_bound, &r, &view->cells_rect);
     if(EqualRect(&r_bound, &view->cells_rect))
     {
-        if(ctrl == -1)
+        if(ctrl == HWND_INVALID)
         {
             char* text = cell->data.selection.text;
             if(text == NULL)
@@ -1666,11 +1666,11 @@ int GridCellTypeSelection_invisible_draw(gvGridCellData* cell, gvGridViewData* v
                                     HDC hdc, int row, int col, RECT* rect)
 {
     HWND ctrl = cell->data.selection.handle;
-    if(ctrl != -1)
+    if(ctrl != HWND_INVALID)
     {
         GridCellEditData* editdata = (GridCellEditData*)GetWindowAdditionalData(ctrl);
         DestroyWindow(ctrl);
-        cell->data.selection.handle = -1;
+        cell->data.selection.handle = HWND_INVALID;
         free(editdata);
     }
     return 0;
@@ -1690,7 +1690,7 @@ int GridCellTypeSelection_end_edit(gvGridCellData* cell, gvGridViewData* view, i
     if(cell == NULL)
         return -1;
     ctrl = cell->data.selection.handle;
-    if(ctrl == -1)
+    if(ctrl == HWND_INVALID)
         return -1;
     editdata = (GridCellEditData*)GetWindowAdditionalData(ctrl);
     index = SendMessage(ctrl, CB_GETCURSEL, 0, 0);
@@ -1702,7 +1702,7 @@ int GridCellTypeSelection_end_edit(gvGridCellData* cell, gvGridViewData* view, i
     else
         cell->data.selection.cur_index = 0;
     if(view->hEdit == ctrl)
-        view->hEdit = -1;
+        view->hEdit = HWND_INVALID;
     return 0;
 }
 
@@ -1713,12 +1713,12 @@ int GridCellTypeSelection_on_destroy(gvGridCellData* cell)
         free(cell->data.selection.text);
         cell->data.selection.text = NULL;
     }
-    if(cell->data.selection.handle != -1)
+    if(cell->data.selection.handle != HWND_INVALID)
     {
         HWND ctrl = cell->data.selection.handle;
         GridCellEditData* editdata = (GridCellEditData*)GetWindowAdditionalData(ctrl);
         DestroyWindow(ctrl);
-        cell->data.selection.handle = -1;
+        cell->data.selection.handle = HWND_INVALID;
         free(editdata);
     }
     return 0;

@@ -1687,6 +1687,62 @@ fi
 if test "x$devel_mode" = "xyes"; then
     use_debug="yes"
     trace_message="yes"
+
+    build_auto_ial_engine="yes"
+    build_random_ial_engine="yes"
+    build_net_ial_engine="yes"
+
+    build_qpf_support="yes"
+    use_ttf_lib="ft2"
+
+    build_latin2_support="yes"
+    build_latin3_support="yes"
+    build_latin4_support="yes"
+    build_cyrillic_support="yes"
+    build_arabic_support="yes"
+    build_greek_support="yes"
+    build_hebrew_support="yes"
+    build_latin5_support="yes"
+    build_latin6_support="yes"
+    build_thai_support="yes"
+    build_latin7_support="yes"
+    build_latin8_support="yes"
+    build_latin10_support="yes"
+
+    build_gb18030_support="yes"
+    build_big5_support="yes"
+    build_euckr_support="yes"
+    build_eucjp_support="yes"
+    build_shiftjis_support="yes"
+
+    use_kbd_hebrewpc="yes"
+    use_kbd_arabicpc="yes"
+    use_kbd_frpc="yes"
+    use_kbd_fr="yes"
+    use_kbd_de="yes"
+    use_kbd_delatin1="yes"
+    use_kbd_it="yes"
+    use_kbd_es="yes"
+    use_kbd_escp850="yes"
+
+    build_ctrl_bidisledit="yes"
+    build_ctrl_textedit="yes"
+    build_ctrl_monthcal="yes"
+    build_ctrl_treeview="yes"
+    build_ctrl_treeview_rdr="yes"
+    build_ctrl_spinbox="yes"
+    build_ctrl_coolbar="yes"
+    build_ctrl_listview="yes"
+    build_ctrl_iconview="yes"
+    build_ctrl_gridview="yes"
+
+    enable_video_commlcd="yes"
+    enable_video_shadow="yes"
+    enable_video_mlshadow="yes"
+    enable_video_custom="yes"
+
+    build_screensaver="yes"
+
     CFLAGS="$CFLAGS -Werror"
 fi
 

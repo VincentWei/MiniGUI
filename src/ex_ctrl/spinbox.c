@@ -295,7 +295,7 @@ SpinCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 0;
 
         case SPM_GETTARGET:
-            return pData->hTarget;
+            return (LRESULT)pData->hTarget;
 
         case MSG_NCPAINT:
             return 0;

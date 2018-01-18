@@ -1724,17 +1724,17 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 }
                 else if (pprev) {
                     ptmp = lvGetLastChild (plvdata, pprev);
-                    hsvi = ptmp->addData;
+                    hsvi = (HICON)ptmp->addData;
                     pnew->addData = (DWORD) scrollview_add_item (hWnd, 
                             &plvdata->svdata, hsvi, &svii, &nItem);
                 }
                 else {
-                    hsvi = parent->addData;
+                    hsvi = (HICON)parent->addData;
                     pnew->addData = (DWORD) scrollview_add_item (hWnd, 
                             &plvdata->svdata, hsvi, &svii, &nItem);
                 }
 
-                return (int)pnew;
+                return (LRESULT)pnew;
             }
 
         case LVM_GETITEM:
@@ -1770,7 +1770,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
                 hsvi = scrollview_get_hilighted_item (&plvdata->svdata);
                 pi = LV_GET_ITEM (hsvi);
-                return (int)pi;
+                return (LRESULT)pi;
             }
 
         case LVM_GETRELATEDITEM:
@@ -1781,16 +1781,16 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                     return 0;
 
                 if (wParam == LVIR_PARENT) {
-                    return (int)pi->parent;
+                    return (LRESULT)pi->parent;
                 }
                 else if (wParam == LVIR_FIRSTCHILD) {
-                    return (int)pi->child;
+                    return (LRESULT)pi->child;
                 }
                 else if (wParam == LVIR_NEXTSIBLING) {
-                    return (int)pi->next;
+                    return (LRESULT)pi->next;
                 }
                 else if (wParam == LVIR_PREVSIBLING) {
-                    return (int)lvGetPrevSib(plvdata, pi);
+                    return (LRESULT)lvGetPrevSib(plvdata, pi);
                 }
                 return 0;
             }
@@ -1918,7 +1918,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             }
         case LVM_FINDITEM:
             {
-                return (int)lvFindItem(plvdata, (PITEMDATA)wParam, (PLVFINDINFO)lParam);
+                return (LRESULT)lvFindItem(plvdata, (PITEMDATA)wParam, (PLVFINDINFO)lParam);
             }
         case LVM_DELITEM:
             {
