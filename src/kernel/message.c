@@ -1017,6 +1017,7 @@ int GUIAPI PostQuitMessage (HWND hWnd)
 }
 
 #include "license.h"
+
 int GUIAPI DispatchMessage (PMSG pMsg)
 {
     WNDPROC WndProc;

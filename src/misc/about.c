@@ -41,24 +41,23 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
                                 (RECTW(rcClient) - 80)>>1, 
                                 rcClient.bottom - 40, 
                                 80, 24, hWnd, 0);
-        break;
+            break;
         
         case MSG_COMMAND:
             if (LOWORD (wParam) == IDOK && HIWORD (wParam) == BN_CLICKED)
                 PostMessage (hWnd, MSG_CLOSE, 0, 0);
-        break;
+            break;
        
         case MSG_KEYDOWN:
             if (LOWORD (wParam) == SCANCODE_ESCAPE)
                 PostMessage (hWnd, MSG_CLOSE, 0, 0);
-        break;
+            break;
 
         case MSG_PAINT:
         {
             HDC hdc;
             
             hdc = BeginPaint (hWnd);
-            
             GetClientRect (hWnd, &rcClient);
             rcClient.top = 30;
             rcClient.bottom -= 50;
@@ -68,18 +67,17 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
             SetBkMode (hdc, BM_TRANSPARENT);
             DrawText (hdc, 
                     "MiniGUI -- a mature cross-platform windowing system "
-                    "and GUI support system for real-time embedded devices.\n\n"
-                    "Copyright (C) 2002 ~ 2010 FMSoft Co., Ltd.",
+                    "and GUI support system for embedded or IoT devices.\n\n"
+                    "Copyright (C) 2002 ~ 2018 FMSoft Co., Ltd.",
                     -1, &rcClient, DT_WORDBREAK | DT_CENTER);
 
             EndPaint (hWnd, hdc);
+            return 0;
         }
-        return 0;
 
         case MSG_CLOSE:
-            DestroyAllControls (hWnd);
-            DestroyMainWindow (hWnd);
             sg_AboutWnd = 0;
+            DestroyAllControls (hWnd);
 #ifdef _MGRM_THREADS
             PostQuitMessage (hWnd);
 #endif
@@ -136,10 +134,17 @@ static void* AboutDialogThread (void* data)
 
     ShowWindow (hMainWnd, SW_SHOWNORMAL);
 
-    while( GetMessage(&Msg, hMainWnd) ) {
+    while (GetMessage(&Msg, hMainWnd)) {
+        printf ("AboutDialogBox Message, %s: hWnd: %p, wP: %lx, lP: %lx.\n",
+            Message2Str (Msg.message),
+            Msg.hwnd,
+            Msg.wParam,
+            Msg.lParam);
+ 
         DispatchMessage(&Msg);
     }
 
+    DestroyMainWindow (hMainWnd);
     MainWindowThreadCleanup(hMainWnd);
     return NULL;
 }
