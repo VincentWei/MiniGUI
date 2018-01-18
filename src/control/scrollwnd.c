@@ -220,7 +220,7 @@ static LRESULT ScrollWndCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM
     }
 
     case SVM_GETCTRL:
-        return GetDlgItem (pswdata->hContainer, wParam);
+        return (LRESULT)GetDlgItem (pswdata->hContainer, wParam);
 
     case SVM_RESETCONTENT:
         scrollwnd_reset_content (hWnd, pswdata);
@@ -231,7 +231,7 @@ static LRESULT ScrollWndCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM
         return 0;
 
     case SVM_GETFOCUSCHILD:
-        return (int)GetFocus (pswdata->hContainer);
+        return (LRESULT)GetFocus (pswdata->hContainer);
 
     }/* end switch */
 
@@ -285,8 +285,8 @@ static void container_destroy (HWND hWnd, PCONTDATA pcontdata)
 
 /* ---------------------------------------------------------------------------- */
 
-int GUIAPI 
-DefaultContainerProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI 
+DefaultContainerProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PCONTDATA pcontdata = NULL;
 

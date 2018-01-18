@@ -822,10 +822,11 @@ BOOL mg_InitLFManager (void)
 
     /** be sure to success initializing default renderer */
     rdr = wnd_lf_info[0].wnd_rdr;
-    if (NULL == rdr)   return FALSE;
+    if (NULL == rdr) 
+        return FALSE;
 
     if (rdr->init && 0 != rdr->init (rdr)) {
-        _MG_PRINTF ("GUI>InitLFM: fail to initialize default renderer's private info.\n");
+        _MG_PRINTF ("GUI>InitLFM: failed to initialize default renderer's private info.\n");
         return FALSE;
     }
 

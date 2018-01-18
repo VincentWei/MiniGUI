@@ -111,7 +111,7 @@ Uint16 MGUI_ReadLE16FP (FILE *src)
     size_t size;
 
 	size = fread (&value, (sizeof value), 1, src);
-    if (size < sizeof (value))
+    if (size < 1)
         return -1;
 
 	return (ArchSwapLE16(value));
@@ -123,7 +123,7 @@ Uint32 MGUI_ReadLE32FP (FILE *src)
 	size_t size;
 
     size = fread(&value, (sizeof value), 1, src);
-    if (size < sizeof (value))
+    if (size < 1)
         return -1;
 
 	return (ArchSwapLE32(value));

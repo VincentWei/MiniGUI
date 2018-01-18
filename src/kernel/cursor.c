@@ -102,13 +102,17 @@ HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
     BYTE* image;
     HCURSOR csr = 0;
     
-    if( !(fp = fopen(filename, "rb")) ) return 0;
+    if (!(fp = fopen(filename, "rb")))
+        return 0;
 
     fseek(fp, sizeof(WORD16), SEEK_SET);
 
     /* the cbType of struct CURSORDIR. */
     wTemp = MGUI_ReadLE16FP (fp);
-    if(wTemp != 2) goto error;
+    if(wTemp != 2) {
+        _MG_PRINTF ("LoadCursorFromFile: bad file type: %d\n", wTemp);
+        goto error;
+    }
 
     /* skip the cdCount of struct CURSORDIR, we always use the first cursor. */
     fseek(fp, sizeof(WORD16), SEEK_CUR);
@@ -116,7 +120,11 @@ HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
     /* cursor info, read the members of struct CURSORDIRENTRY. */
     w = fgetc (fp);  /* the width of first cursor. */
     h = fgetc (fp);  /* the height of first cursor. */
-    if(w != CURSORWIDTH || h != CURSORHEIGHT) goto error;
+    if (w != CURSORWIDTH || h != CURSORHEIGHT) {
+        _MG_PRINTF ("LoadCursorFromFile: bad first cursor width (%d) and height (%d)\n", w, h);
+        goto error;
+    }
+
     fseek(fp, sizeof(BYTE)*2, SEEK_CUR); /* skip bColorCount and bReserved. */
     wTemp = MGUI_ReadLE16FP (fp);
     xhot = wTemp;
@@ -134,16 +142,25 @@ HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
     fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biSize member. */
     imagew = MGUI_ReadLE32FP (fp);
     imageh = MGUI_ReadLE32FP (fp);
-    if (imagew > 32 || imageh > 32) {
+    if (imagew != CURSORWIDTH || imageh != (CURSORHEIGHT*2)) {
+        _MG_PRINTF ("LoadCursorFromFile: bad cursor image width (%d) and height (%d)\n", imagew, imageh);
         goto error;
     }
 
     /* check the biPlanes member; */
     wTemp = MGUI_ReadLE16FP (fp);
-    if(wTemp != 1) goto error;
+    if (wTemp != 1) {
+        _MG_PRINTF ("LoadCursorFromFile: bad planes (%d)\n", wTemp);
+        goto error;
+    }
+
     /* check the biBitCount member; */
     wTemp = MGUI_ReadLE16FP (fp);
-    if(wTemp > 4) goto error;
+    if (wTemp > 4) {
+        _MG_PRINTF ("LoadCursorFromFile: bad bit count (%d)\n", wTemp);
+        goto error;
+    }
+
     colornum = (int)wTemp;
     fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biCompression members. */
     imagesize = MGUI_ReadLE32FP (fp);
@@ -153,20 +170,25 @@ HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
     
     /* allocate memory for image. */
     if ((image = (BYTE*)ALLOCATE_LOCAL (imagesize)) == NULL) {
+        _MG_PRINTF ("LoadCursorFromFile: error when allocating memory for image (%d)\n", imagesize);
         goto error;
     }
 
     /* read image */
-    if (fread (image, imagesize, 1, fp) < imagesize) {
+    if (fread (image, 1, imagesize, fp) < imagesize) {
+        _MG_PRINTF ("LoadCursorFromFile: error when reading data from file\n");
         goto error;
     }
     
-    csr = CreateCursor(xhot, yhot, w, h, 
+    csr = CreateCursor (xhot, yhot, w, h, 
                         image + (imagesize - MONOSIZE), image, colornum);
 
     DEALLOCATE_LOCAL (image);
+    fclose (fp);
+    return csr;
 
 error:
+    _MG_PRINTF ("LoadCursorFromFile: failed when loading cursor from %s\n", filename);
     fclose (fp);
     return csr;
 }
@@ -237,6 +259,7 @@ HCURSOR GUIAPI LoadCursorFromMem (const void* area)
                         p + (imagesize - MONOSIZE), p, colornum);
 
 error:
+    _MG_PRINTF ("LoadCursorFromMem: failed when loading cursor from %p\n", area);
     return 0;
 }
 

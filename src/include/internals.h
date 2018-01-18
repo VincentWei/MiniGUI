@@ -293,10 +293,6 @@ typedef struct _MAINWIN
     /*
      * These fields are similiar with CONTROL struct.
      */
-    unsigned char DataType;     // the data type.
-    unsigned char WinType;      // the window type.
-	unsigned short Flags;       // special runtime flags, such EraseBkGnd flags
-
     int left, top;      // the position and size of main window.
     int right, bottom;
 
@@ -363,9 +359,17 @@ typedef struct _MAINWIN
      */
     struct _wnd_element_data* wed;
     
+    /* 
+     * some internal fields
+     * VM[2018-01-18]: Move these fields from header to here to compatible with WINDOWINFO
+     */
+    unsigned char DataType;     // the data type.
+    unsigned char WinType;      // the window type.
+	unsigned short Flags;       // special runtime flags, such EraseBkGnd flags
+
     /*
-     * Main Window hosting. 
      * The following members are only implemented for main window.
+     * Main Window hosting. 
      */
     struct _MAINWIN* pHosting;
                         // the hosting main window.

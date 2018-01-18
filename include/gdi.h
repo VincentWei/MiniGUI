@@ -7,7 +7,7 @@
  *
  \verbatim
 
-    Copyright (C) 2002-2012 FMSoft.
+    Copyright (C) 2002-2018 FMSoft.
     Copyright (C) 1998-2002 Wei Yongming.
 
     All rights reserved by FMSoft (http://www.fmsoft.cn).
@@ -8891,11 +8891,11 @@ MG_EXPORT void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
  * 
  */   
 typedef struct _COMP_CTXT {
-    /** the step of current pixel operations. */
-    int step;
-
     /** the pointer to the destination */
     gal_uint8* cur_dst;
+
+    /** The user context passed to SetUserCompositionOps */
+    void* user_comp_ctxt;
 
     /** the pixel value shoulb be skipped (the color key) */
     gal_pixel skip_pixel;
@@ -8903,8 +8903,8 @@ typedef struct _COMP_CTXT {
     /** the current pixel value for setpixel and setpixels operation */
     gal_pixel cur_pixel;
 
-    /** The user context passed to SetUserCompositionOps */
-    void* user_comp_ctxt;
+    /** the step of current pixel operations. */
+    int step;
 } COMP_CTXT;
 
 /*

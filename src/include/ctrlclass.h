@@ -42,10 +42,6 @@ typedef struct tagCONTROL
     /*
      * These fields are similiar with MAINWIN struct.
      */
-    unsigned char DataType;         // the data type
-    unsigned char WinType;          // the window type
-	unsigned short Flags;           // speical runtime flags, such EraseBkGnd flags
-
     int left, top;          // the position of control in main window's
     int right, bottom;      // client area.
 
@@ -110,6 +106,14 @@ typedef struct tagCONTROL
      */
     struct _wnd_element_data* wed;
     
+    /*
+     * some internal fields
+     * VM[2018-01-18]: Move these fields from header to here to compatible with WINDOWINFO
+     */
+    unsigned char DataType;         // the data type
+    unsigned char WinType;          // the window type
+	unsigned short Flags;           // speical runtime flags, such EraseBkGnd flags
+
     /*
      * The following members are only implemented for control.
      */

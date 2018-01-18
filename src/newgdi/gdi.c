@@ -591,7 +591,6 @@ static void _dc_draw_pixel_span_set_1 (COMP_CTXT* comp_ctxt, int w)
 static void _dc_draw_pixel_span_set_2 (COMP_CTXT* comp_ctxt, int w)
 {
     int step = comp_ctxt->step;
-//    printf("w=%d, %X\t", w, comp_ctxt->cur_pixel);
     if (comp_ctxt->cur_pixel != 0 || comp_ctxt->step != 1) {
         Uint16 * dest16 = (Uint16 *)comp_ctxt->cur_dst;
         if (w < 5 || step != 1)

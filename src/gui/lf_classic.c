@@ -374,7 +374,6 @@ static int init (PWERENDERER renderer)
 
     renderer->private_info = NULL;
 
-
     return 0;
 }
 

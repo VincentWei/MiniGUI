@@ -63,7 +63,8 @@ typedef struct GAL_Surface {
     GAL_PixelFormat *format;            /* Read-only */
     void *video;                        /* Read-only */
     int w, h;                           /* Read-only */
-    Uint32 pitch;                       /* Read-only */
+    /* VW[2018-01-18]: For 64b, use signed int instead of Uint32 for pitch. */
+    int pitch;                          /* Read-only */
     void *pixels;                       /* Read-write */
     int offset;                         /* Private */
 

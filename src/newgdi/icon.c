@@ -206,7 +206,7 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
         goto error;
 
     /* read image*/
-    if (fread (image, imagesize, 1, fp) < imagesize) {
+    if (fread (image, 1, imagesize, fp) < imagesize) {
         goto error_free;
     }
 

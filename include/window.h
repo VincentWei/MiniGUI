@@ -4118,7 +4118,7 @@ typedef struct _WINDOWINFO
  */
 static inline const WINDOWINFO* GUIAPI GetWindowInfo (HWND hWnd)
 {
-    return (WINDOWINFO*)((unsigned char*)hWnd + 2*sizeof (short));
+    return (WINDOWINFO*)hWnd;
 }
 
 /** 

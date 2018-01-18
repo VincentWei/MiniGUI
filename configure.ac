@@ -1727,6 +1727,7 @@ if test "x$devel_mode" = "xyes"; then
 
     build_ctrl_bidisledit="yes"
     build_ctrl_textedit="yes"
+    build_ctrl_scrollview="yes"
     build_ctrl_monthcal="yes"
     build_ctrl_treeview="yes"
     build_ctrl_treeview_rdr="yes"
@@ -1744,6 +1745,15 @@ if test "x$devel_mode" = "xyes"; then
     build_screensaver="yes"
 
     CFLAGS="$CFLAGS -Werror"
+fi
+
+dnl Depedencies
+if test "x$build_ctrl_treeview" = "xyes"; then
+    build_ctrl_scrollview="yes"
+fi
+
+if test "x$build_ctrl_treeview_rdr" = "xyes"; then
+    build_ctrl_scrollview="yes"
 fi
 
 if test "x$use_debug" = "xyes"; then

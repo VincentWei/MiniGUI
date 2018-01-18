@@ -4747,20 +4747,17 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
 #ifdef _MGRM_THREADS
         pthread_mutex_lock(&pInvRgn->lock);
 #endif
-        if (bEraseBkgnd)
-        {
+        if (bEraseBkgnd) {
             pCtrl->Flags |= WF_ERASEBKGND;
         }
 
-        if(prc)
-        {
+        if(prc) {
             rcInv = *prc;
             NormalizeRect(&rcInv);
             if(IntersectRect(&rcInv, &rcInv, &rcClient))
                 AddClipRect(&pInvRgn->rgn, &rcInv);
         }
-        else
-        {
+        else {
             rcInv = rcClient;
             SetClipRgn(&pInvRgn->rgn, &rcInv);
         }
@@ -4769,7 +4766,7 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
         OffsetRect(&rcTemp, pCtrl->cl, pCtrl->ct);
 
         //subtract from next sibling controls
-        if(pCtrl->WinType==TYPE_CONTROL /*&& ( mark & WIRM_NEXT_SIBLING)*/)
+        if(pCtrl->WinType == TYPE_CONTROL /*&& ( mark & WIRM_NEXT_SIBLING)*/)
         {
             for(pNext = pCtrl->next; pNext; pNext = pNext->next)
             {

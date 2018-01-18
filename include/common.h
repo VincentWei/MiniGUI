@@ -8,7 +8,7 @@
  *
  \verbatim
 
-    Copyright (C) 2002-2012 FMSoft.
+    Copyright (C) 2002-2018 FMSoft.
     Copyright (C) 1998-2002 Wei Yongming.
 
     All rights reserved by FMSoft (http://www.fmsoft.cn).
@@ -238,7 +238,7 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
  *
  * to write endianness independent code.
  */
-#if  defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || defined(__amd64) || \
+#if defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || defined(__amd64) || \
         (defined(__alpha__) || defined(__alpha)) || \
         defined(__arm__) || \
         (defined(__CC_ARM) && !defined(__BIG_ENDIAN)) || \
