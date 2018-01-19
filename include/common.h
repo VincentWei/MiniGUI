@@ -1883,17 +1883,26 @@ int init_minigui_printf (int (*output_char) (int ch),
 #endif /* _MGUSE_OWN_STDIO */
 
 #if defined(__GNUC__)
-#ifdef _DEBUG
-#   define _MG_PRINTF(fmt...) fprintf (stderr, fmt)
-#   define _DBG_PRINTF(fmt...) fprintf (stdout, fmt)
-#else
-#   define _MG_PRINTF(fmt...)
-#   define _DBG_PRINTF(fmt...)
-#endif
+#   define _ERR_PRINTF(fmt...) fprintf (stderr, fmt)
+#   ifdef _DEBUG
+#       define _MG_PRINTF(fmt...) fprintf (stderr, fmt)
+#       define _DBG_PRINTF(fmt...) fprintf (stdout, fmt)
+#   else
+#       define _MG_PRINTF(fmt...)
+#       define _DBG_PRINTF(fmt...)
+#   endif
 #else /* __GNUC__ */
 #include <stdio.h>
 #include <stdarg.h>
 
+static inline void _ERR_PRINTF(const char* fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    va_end(ap);
+}
 static inline void _MG_PRINTF(const char* fmt, ...)
 {
 #ifdef _DEBUG
@@ -1901,6 +1910,17 @@ static inline void _MG_PRINTF(const char* fmt, ...)
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
+    va_end(ap);
+#endif
+}
+
+static inline void _DBG_PRINTF(const char* fmt, ...)
+{
+#ifdef _DEBUG
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    fprintf(stdout, "\n");
     va_end(ap);
 #endif
 }

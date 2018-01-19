@@ -2443,7 +2443,7 @@ MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
 #define CLIENT_ACTIVE            -4
 
 /**
- * \fn int Send2Client (MSG* msg, int cli)
+ * \fn int Send2Client (const MSG* msg, int cli)
  * \brief Sends a message to a client.
  *
  * This function sends a message to the specified client \a cli.
@@ -2472,7 +2472,7 @@ MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
  *
  * \sa Send2TopMostClients, Send2ActiveWindow
  */
-int GUIAPI Send2Client (MSG* msg, int cli);
+int GUIAPI Send2Client (const MSG* msg, int cli);
 
 /**
  * \fn BOOL Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam)

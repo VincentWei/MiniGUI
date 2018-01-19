@@ -78,6 +78,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         case MSG_CLOSE:
             sg_AboutWnd = 0;
             DestroyAllControls (hWnd);
+            DestroyMainWindow (hWnd);
 #ifdef _MGRM_THREADS
             PostQuitMessage (hWnd);
 #endif
@@ -138,7 +139,6 @@ static void* AboutDialogThread (void* data)
         DispatchMessage(&Msg);
     }
 
-    DestroyMainWindow (hMainWnd);
     MainWindowThreadCleanup(hMainWnd);
     return NULL;
 }

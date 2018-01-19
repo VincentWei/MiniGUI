@@ -170,7 +170,7 @@ static int create_cursor (int cli, int clifd, void* buff, size_t len)
 
 static int copy_cursor (int cli, int clifd, void* buff, size_t len)
 {
-    HCURSOR hcsr = CopyCursor ((HCURSOR)*(int*)buff);
+    HCURSOR hcsr = CopyCursor ((HCURSOR)*(intptr_t*)buff);
 #ifdef _MGHAVE_CURSOR
     if (hcsr) {
         add_global_res (cli, (void*) hcsr, (void*)hcsr, NULL);
@@ -338,22 +338,22 @@ ret:
 
 static int zorder_op (int cli, int clifd, void* buff, size_t len)
 {
-    int ret_value;
+    intptr_t ret_value;
     ZORDEROPINFO* info = (ZORDEROPINFO*)buff;
 
     ret_value = __mg_do_zorder_operation (cli, info);
 
-    return ServerSendReply (clifd, &ret_value, sizeof (int));
+    return ServerSendReply (clifd, &ret_value, sizeof (intptr_t));
 }
 
 static int change_zorder_maskrect (int cli, int clifd, void* buff, size_t len)
 {
-    int ret_value;
+    intptr_t ret_value;
     ZORDERMASKRECTOPINFO* info = (ZORDERMASKRECTOPINFO *)buff;
     info->rc = (RECT4MASK*)(buff + sizeof (ZORDERMASKRECTOPINFO));
     ret_value = __mg_do_zorder_maskrect_operation (cli, info);
 
-    return ServerSendReply (clifd, &ret_value, sizeof (int));
+    return ServerSendReply (clifd, &ret_value, sizeof (intptr_t));
 }
 #ifdef _MGGAL_SIGMA8654
 extern int Sigma8654_ServerOnGetSurface(REQ_SIGMA8654_GETSURFACE *request, REP_SIGMA8654_GETSURFACE *reply);

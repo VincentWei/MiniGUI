@@ -62,9 +62,9 @@ void log_sys(const char *, ...);
 #endif
 
 typedef struct listen_fd {
-    int fd;
-    int hwnd;
     int type;
+    int fd;
+    void* hwnd;
     void* context;
 } LISTEN_FD;
 

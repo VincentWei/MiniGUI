@@ -18,7 +18,7 @@ libkernel_la_SOURCES = timer.c \
 endif
 # hash.c
 
-EXTRA_DIST= desktop.c desktop-comm.c makefile.ng makefile.msvc
+EXTRA_DIST= desktop.c desktop-comm.c cursor-comm.c makefile.ng makefile.msvc
 
 # for makefile.ng and makefile.msvc
 LIB_NAME = libkernel

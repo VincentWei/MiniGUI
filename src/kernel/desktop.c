@@ -2558,8 +2558,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         nodes [idx_znode].age ++;
 
 #if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
-        if (cli == 0
-                || (DWORD)mgClients [cli].layer == SHAREDRES_TOPMOST_LAYER) {
+        if (cli == 0 || mgClients [cli].layer == SHAREDRES_TOPMOST_LAYER) {
 #endif
             /* Copy window content to new postion */
             InitClipRgn (&bblt_rgn, &sg_FreeClipRectList);

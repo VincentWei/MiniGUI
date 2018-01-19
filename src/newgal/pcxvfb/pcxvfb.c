@@ -156,11 +156,10 @@ static int execl_pcxvfb(void)
 	skin[0] = '\0';
 	GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
 	
-
-	fprintf(stderr,"start-qvfb :%s pcxvfb %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
+	_MG_PRINTF ("IAL>PCXVFB: start-qvfb :%s pcxvfb %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
 
     if (execlp(execl_file, "pcxvfb", ch_pid, window_caption, mode, skin, NULL) < 0) {
-        fprintf(stderr, "execlp error!!\n");
+        _MG_PRINTF ("IAL>PCXVFB: failed to start the virtual frame buffer process!\n");
     }
 
     return 0;
@@ -400,14 +399,12 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     
     //shm_init_lock(getpid());
 
-    if ((pid = fork()) < 0) 
-    {
-        fprintf(stderr, "fork() error in pcxvfb\n");
+    if ((pid = fork()) < 0) {
+        _MG_PRINTF ("NEWGAL>PCXVFB: fork() error.\n");
     }
-    else if (pid == 0) 
-    {
+    else if (pid == 0) {
         if (execl_pcxvfb() == ERR_CONFIG_FILE)
-            fprintf(stderr, "PCXVFB GAL: Reading configuration failure!\n");
+            _MG_PRINTF ("NEWGAL>PCXVFB: failed to read configuration failure.\n");
 
         perror ("execl");
         _exit (1);
@@ -431,7 +428,6 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 		close(fd);
 #else //-----------------linux----------------------
 
-    int    display;
     pid_t  pid;
 
     int    server_len;
@@ -465,23 +461,20 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         shm_init_lock(getpid());
 
         if ((pid = fork()) < 0) {
-            fprintf(stderr, "fork() error in pcxvfb\n");
-        }else if (pid > 0) {
+            GAL_SetError ("NEWGAL>PCXVFB: Error occurred when calling fork().\n");
+        } else if (pid > 0) {
             ;/* do nothing */
-        }else {
+        } else {
             if (setpgid(getpid(), 0) < 0) {
-                fprintf(stderr, "Warning: Failed to change the group id of the VFB process.\n");
+                GAL_SetError ("NEWGAL>PCXVFB: Failed to change the group id of the XVFB process.\n");
             }
 
             if (execl_pcxvfb() == ERR_CONFIG_FILE)
-                fprintf(stderr, "PCXVFB GAL: Reading configuration failure!\n");
+                GAL_SetError ("NEWGAL>PCXVFB: Reading configuration failure!\n");
 
             perror ("execl");
             _exit (1);
         }
-
-        if (GetMgEtcIntValue ("qvfb", "display", &display) < 0)
-            display = 0;
 
         {
             fd_set rset;
@@ -527,24 +520,32 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         if (shmid != -1) {
             data->shmrgn = (unsigned char *)shmat (shmid, 0, 0);
 #ifdef _MGRM_PROCESSES
-            fp = fopen("/tmp/.pcxvfb_tmp", "w+");
+            fp = fopen("/var/tmp/.pcxvfb_tmp", "w+");
             if (fp == NULL) {
-                fprintf(stderr, "mgServer can't open file /tmp/.pcxvfb_tmp\n");
+                GAL_SetError ("NEWGAL>PCXVFB: mgServer can't open file /var/tmp/.pcxvfb_tmp\n");
                 return -1;
             }
-            fwrite(&shmid, sizeof(int), 1, fp);
+
+            fwrite (&shmid, sizeof(int), 1, fp);
             fclose(fp);
 #endif
         }
 
 #if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
-    } else {
-        fp = fopen("/tmp/.pcxvfb_tmp", "r");
+    }
+    else {
+        fp = fopen ("/var/tmp/.pcxvfb_tmp", "r");
         if (fp == NULL) {
-            fprintf(stderr, "minigui can't open file /tmp/.pcxvfb_tmp\n");
+            GAL_SetError ("NEWGAL>PCXVFB: can't open file /var/tmp/.pcxvfb_tmp\n");
             return -1;
         }
-        fread(&shmid, sizeof(int), 1, fp);
+
+        if (fread(&shmid, sizeof(int), 1, fp) < 1) {
+            GAL_SetError ("NEWGAL>PCXVFB: can't read from /var/tmp/.pcxvfb_tmp\n");
+            fclose (fp);
+            return -1;
+        }
+
         fclose(fp);
 
         if (shmid != -1) {
@@ -555,8 +556,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 #endif //end of os (windows, cygwin, linux)
 
     if ((INT_PTR)data->shmrgn == -1 || data->shmrgn == NULL) {
-        GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to "
-                "virtual FrameBuffer server.\n");
+        GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to virtual frame buffer server.\n");
         return -1;
     }
     
@@ -597,8 +597,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             vformat->Bmask = data->hdr->Bmask;
             break;
         default:
-            GAL_SetError ("NEWGAL>PCXQVFB: Not supported depth: %d, " 
-                    "please try to use Shadow NEWGAL engine with targetname qvfb.\n",
+            GAL_SetError ("NEWGAL>PCXVFB: Not supported depth: %d, " 
+                    "please try to use Shadow NEWGAL engine with targetname pc_xvfb.\n",
                     vformat->BitsPerPixel);
             return -1;
     }

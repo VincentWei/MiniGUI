@@ -144,6 +144,7 @@ typedef struct ZorderOpInfo
     HWND    main_win;
     RECT    rc;
     RECT    rcA;
+    int     location;
     char    caption[MAX_CAPTION_LEN + 1];
 } ZORDEROPINFO;
 

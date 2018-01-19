@@ -28,6 +28,7 @@
 #include "timer.h"
 
 #ifdef _MGRM_PROCESSES
+#include "ourhdr.h"
 #include "client.h"
 #include "sharedres.h"
 #endif

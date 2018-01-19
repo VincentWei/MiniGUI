@@ -89,7 +89,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     zi->active_win = 0;
 
     zi->cli_trackmenu = -1;
-    zi->ptmi_in_cli = -1;
+    zi->ptmi_in_cli = HWND_INVALID;
 
     zi->zi_semid = SHAREDRES_SEMID_LAYER;
 

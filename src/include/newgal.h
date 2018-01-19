@@ -31,8 +31,8 @@ extern "C" {
 #define GAL_LIL_ENDIAN  MGUI_LIL_ENDIAN
 #define GAL_BIG_ENDIAN  MGUI_BIG_ENDIAN
 
-#define GAL_OutOfMemory()   fprintf (stderr, "Out of memory\n")
-#define GAL_SetError        printf
+#define GAL_OutOfMemory()   _ERR_PRINTF("NEWGAL: Out of memory\n")
+#define GAL_SetError        _ERR_PRINTF
 #define GAL_ClearError()
 
 /* Transparency definitions: These define alpha as the opacity of a surface */
