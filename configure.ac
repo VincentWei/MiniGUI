@@ -86,8 +86,11 @@ devel_mode="no"
 use_debug="no"
 trace_message="no"
 message_string="no"
-procs_version="no"
+
+runtime_mode="ths"
+
 stand_alone="no"
+
 incore_res="no"
 use_miniguientry="no"
 fixed_math="yes"
@@ -295,9 +298,9 @@ AC_ARG_ENABLE(msgstr,
 [  --enable-msgstr          include symbol name of message <default=no>],
 message_string=$enableval)
 
-AC_ARG_ENABLE(procs,
-[  --enable-procs           build MiniGUI-Processes version <default=no>],
-procs_version=$enableval)
+AC_ARG_WITH(runmode,
+[  --with-runmode=ths/procs/sa  the MiniGUI runtime mode <default=ths>],
+runtime_mode=$withval)
 
 AC_ARG_ENABLE(standalone,
 [  --enable-standalone      build MiniGUI-Standalone version <default=no>],
@@ -1294,12 +1297,6 @@ CheckS3C6410Video()
 dnl ========================================================================
 dnl Checks for option-specific libraries and headers.
 
-if test "x$procs_version" = "xyes"; then
-  use_threads="no"
-else
-  use_threads="yes"
-fi
-
 dnl Checks NewGAL Engine.
 {
   CheckDummyVideo
@@ -1331,25 +1328,6 @@ dnl Checks NewGAL Engine.
 
 dnl ========================================================================
 dnl Checks for libraries.
-
-have_pthreads=no
-if test "x$use_threads" != "xno"; then
-  AC_MSG_CHECKING(for pthread library)
-  TMP_SAVE_LIBS=$LIBS
-  AC_TRY_LINK([
-#include "confdefs.h"
-#define __C_ASM_H /* fix for retarded Digital Unix headers */
-#include <pthread.h>],[
-void foo(void)
-{
-pthread_exit (0);
-}
-],
-    have_pthreads=yes
-    AC_MSG_RESULT(yes),
-    AC_MSG_RESULT(no))
-    LIBS=$TMP_SAVE_LIBS
-fi
 
 dnl Check for JPEG library.
 if test "x$build_jpg_support" != "xno"; then
@@ -1407,15 +1385,17 @@ case "$with_libsuffix" in
     ;;
     "")
         conf="MiniGUI.cfg"
-        if test "x$procs_version" = "xyes"; then
-            if test "x$stand_alone" = "xyes"; then
+        case "$runtime_mode" in
+            sa)
                 MGLIB_SUFFIX="sa"
-            else
+            ;;
+            procs)
                 MGLIB_SUFFIX="procs"
-            fi
-        else
-            MGLIB_SUFFIX="ths"
-        fi
+            ;;
+            *)
+                MGLIB_SUFFIX="ths"
+            ;;
+        esac
     ;;
     *)
         conf="MiniGUI.cfg"
@@ -1621,29 +1601,27 @@ fi
 
 CFLAGS="$CFLAGS -D__MINIGUI_LIB__"
 
-if test "x$stand_alone" = "xyes"; then
-    procs_version="yes"
-fi
-
-if test "x$procs_version" = "xyes"; then
-    if test "x$stand_alone" = "xyes"; then
+case "$runtime_mode" in
+    sa)
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
         AC_DEFINE(_STAND_ALONE, 1,
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
-    else
+    ;;
+    procs)
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Processes (back-compatibility definition)])
-    fi
-else
-  AC_DEFINE(_MGRM_THREADS, 1,
+    ;;
+    *)
+        AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
-  CFLAGS="$CFLAGS -D_REENTRANT"
-fi
+        CFLAGS="$CFLAGS -D_REENTRANT"
+    ;;
+esac
 
 if test "x$incore_res" = "xno"; then
     AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
@@ -2459,28 +2437,26 @@ if test "x$build_productid" = "xyes"; then
             [Define if insert a productid into the library file])
 fi
 
+dnl ========================================================================
+dnl Write output
+
+# define _GNU_SOURCE for pthread_rwlock_t
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+
 if test "$ac_cv_prog_gcc" = "yes"; then
     CFLAGS="$CFLAGS -Wall -Wstrict-prototypes -pipe"
 fi
 
-# define _GNU_SOURCE for pthread_rwlock_t
-CFLAGS="$CFLAGS -D_GNU_SOURCE"
-# define _GNU_SOURCE for pthread_rwlock_t
-CFLAGS="$CFLAGS -D_GNU_SOURCE"
-
-if test "x$have_pthreads" = "xyes"; then
+if test "$runtime_mode" = "ths"; then
     DEP_LIBS="$DEP_LIBS -lpthread"
 fi
-
-dnl ========================================================================
-dnl Write output
 
 AC_SUBST(VIDEO_SUBDIRS)
 AC_SUBST(VIDEO_DRIVERS)
 AC_SUBST(DEP_LIBS)
 
-AM_CONDITIONAL(MGRM_PROCESSES, test "x$procs_version" = "xyes")
-AM_CONDITIONAL(MGRM_STANDALONE, test "x$stand_alone" = "xyes")
+AM_CONDITIONAL(MGRM_PROCESSES, test "x$runtime_mode" = "xprocs")
+AM_CONDITIONAL(MGRM_STANDALONE, test "x$runtime_mode" = "xsa")
 AM_CONDITIONAL(MGIAL_CONSOLE, test "x$build_console_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_NEXUS, test "x$build_nexus_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_DLCUSTOM, test "x$build_dlcustom_ial_engine" = "xyes")
@@ -2494,8 +2470,6 @@ AM_CONDITIONAL(MGLIB_MVFB, test "x$with_libsuffix" = "xmvfb")
 AM_CONDITIONAL(MG_MINIMALGDI, test "x$build_minimalgdi" = "xyes")
 AM_CONDITIONAL(MG_ENABLE_SPLASH, test "x$build_splash" = "xyes")
 AM_CONDITIONAL(MG_ENABLE_SCREENSAVER, test "x$build_screensaver" = "xyes")
-#AM_CONDITIONAL(MGPLUS_FONT_SEF, test "x$build_sef_support" = "xyes")
-
 
 AC_OUTPUT(
 minigui.pc
