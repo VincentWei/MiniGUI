@@ -163,7 +163,7 @@ build_incorefont_times="yes"
 
 build_sef_support="no"
 build_qpf_support="no"
-use_ttf_lib="none"
+use_ttf_lib="ft2"
 build_ttfcache_support="no"
 build_bmpf_support="yes"
 
@@ -532,35 +532,11 @@ build_sef_support=$enableval)
 
 AC_ARG_WITH(ttfsupport,
 [  --with-ttfsupport=ft1/ft2/none   How to support TrueType font (FreeType 1/FreeType 2/None) <default=none>],
-[ case "$with_ttfsupport" in
-  ft1)
-    use_ttf_lib="ft1"
-dnl Check for FreeType1 library
-    AC_CHECK_LIB(ttf, TT_FreeType_Version,
-            DEP_LIBS="$DEP_LIBS -lttf",
-            use_ttf_lib="none")
-dnl ttf cache
-    AC_ARG_ENABLE(ttfcache,
-    [  --enable-ttfcache        include ttf cache support <default=no>],
-    build_ttfcache_support=$enableval)
-    ;;
+use_ttf_lib=$withval)
 
-  ft2)
-    use_ttf_lib="ft2"
-dnl Check for FreeType2 library
-    AC_CHECK_LIB(freetype, FT_Library_Version,
-        DEP_LIBS="$DEP_LIBS -lfreetype -lz -lpng12",
-        use_ttf_lib="none")
-dnl ttf cache
-    AC_ARG_ENABLE(ttfcache,
-    [  --enable-ttfcache        include ttf cache support <default=no>],
-    build_ttfcache_support=$enableval)
-    ;;
-  *)
-    use_ttf_lib="none"
-    ;;
-esac ]
-)
+AC_ARG_ENABLE(ttfcache,
+[  --enable-ttfcache        include ttf cache support <default=no>],
+build_ttfcache_support=$enableval)
 
 AC_ARG_ENABLE(bmpfsupport,
 [  --enable-bmpfsupport     build support for Bitmap Font (bmpf) <default=yes>],
@@ -1611,15 +1587,15 @@ case "$runtime_mode" in
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
     ;;
     ths)
+        AC_DEFINE(_MGRM_THREADS, 1,
+            [Define if build MiniGUI-Threads])
+        CFLAGS="$CFLAGS -D_REENTRANT"
+    ;;
+    procs)
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Processes (back-compatibility definition)])
-    ;;
-    procs)
-        AC_DEFINE(_MGRM_THREADS, 1,
-            [Define if build MiniGUI-Threads])
-        CFLAGS="$CFLAGS -D_REENTRANT"
     ;;
 esac
 
@@ -1671,7 +1647,6 @@ if test "x$devel_mode" = "xyes"; then
     build_net_ial_engine="yes"
 
     build_qpf_support="yes"
-    use_ttf_lib="ft2"
 
     build_latin2_support="yes"
     build_latin3_support="yes"
@@ -1977,6 +1952,22 @@ if test "x$build_upf_support" = "xyes"; then
     fi
 fi
 
+dnl Check FreeType lib
+case "$use_ttf_lib" in
+  ft1)
+dnl Check for FreeType1 library
+    AC_CHECK_LIB(ttf, TT_FreeType_Version,
+            DEP_LIBS="$DEP_LIBS -lttf",
+            use_ttf_lib="none")
+    ;;
+  ft2)
+dnl Check for FreeType2 library
+    AC_CHECK_LIB(freetype, FT_Library_Version,
+        DEP_LIBS="$DEP_LIBS -lfreetype -lz -lpng12",
+        use_ttf_lib="none")
+    ;;
+esac
+
 dnl Dealing with TTF cache size 
 case "$use_ttf_lib" in
     ft1|ft2)
@@ -2067,7 +2058,7 @@ case "$use_ttf_lib" in
                [  --with-ft2-includes=DIR    where the FreeType2 includes are])
 
         if test "x$with_ft2_includes" = "x"; then
-            FT2_INC_DIR="`freetype-config --cflags`"
+            FT2_INC_DIR="-I/usr/include/freetype2"
         else
             FT2_INC_DIR="-I$with_ft2_includes"
         fi
