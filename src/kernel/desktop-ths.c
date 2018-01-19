@@ -125,11 +125,11 @@ void* DesktopMain (void* data)
         LRESULT lRet = 0;
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s: hWnd: %p, wP: %#lx, lP: %#lx. %s\n",
+        fprintf (stderr, "Message, %s: hWnd: %p, wP: %p, lP: %p. %s\n",
             Message2Str (Msg.message),
             Msg.hwnd,
-            Msg.wParam,
-            Msg.lParam,
+            (PVOID)Msg.wParam,
+            (PVOID)Msg.lParam,
             Msg.pAdd?"Sync":"Normal");
 #endif
 
@@ -144,8 +144,8 @@ void* DesktopMain (void* data)
         }
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s done, return value: %lx\n",
-            Message2Str (Msg.message), lRet);
+        fprintf (stderr, "Message, %s done, return value: %p\n",
+            Message2Str (Msg.message), (PVOID)lRet);
 #endif
     }
 

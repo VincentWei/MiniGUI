@@ -421,8 +421,8 @@ const char* GUIAPI Message2Str (int message)
 void GUIAPI PrintMessage (FILE* fp, HWND hWnd, 
                 UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
-    fprintf (fp, "Message %s: hWnd: %p, wP: %lx, lP: %lx.\n",
-             Message2Str (nMsg), hWnd, wParam, lParam);
+    fprintf (fp, "Message %s: hWnd: %p, wP: %p, lP: %p.\n",
+             Message2Str (nMsg), hWnd, (PVOID)wParam, (PVOID)lParam);
 }
 
 #endif
@@ -1029,11 +1029,11 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
     LICENSE_MODIFY_MESSAGE(pMsg);
 
 #ifdef _MGHAVE_TRACE_MSG
-    fprintf (stderr, "Message, %s: hWnd: %p, wP: %lx, lP: %lx. %s\n",
+    fprintf (stderr, "Message, %s: hWnd: %p, wP: %p, lP: %p. %s\n",
         Message2Str (pMsg->message),
         pMsg->hwnd,
-        pMsg->wParam,
-        pMsg->lParam,
+        (PVOID)pMsg->wParam,
+        (PVOID)pMsg->lParam,
         SYNMSGNAME);
 #endif
 
@@ -1071,8 +1071,8 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 #endif
 
 #ifdef _MGHAVE_TRACE_MSG
-    fprintf (stderr, "Message, %s done, return value: %lx\n",
-        Message2Str (pMsg->message), lRet);
+    fprintf (stderr, "Message, %s done, return value: %p\n",
+        Message2Str (pMsg->message), (PVOID)lRet);
 #endif
 
     return lRet;

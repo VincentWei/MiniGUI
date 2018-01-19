@@ -87,7 +87,7 @@ use_debug="no"
 trace_message="no"
 message_string="no"
 
-runtime_mode="ths"
+runtime_mode="procs"
 
 stand_alone="no"
 
@@ -299,7 +299,7 @@ AC_ARG_ENABLE(msgstr,
 message_string=$enableval)
 
 AC_ARG_WITH(runmode,
-[  --with-runmode=ths/procs/sa  the MiniGUI runtime mode <default=ths>],
+[  --with-runmode=procs/ths/sa  the MiniGUI runtime mode <default=procs>],
 runtime_mode=$withval)
 
 AC_ARG_ENABLE(standalone,
@@ -1389,11 +1389,11 @@ case "$with_libsuffix" in
             sa)
                 MGLIB_SUFFIX="sa"
             ;;
-            procs)
-                MGLIB_SUFFIX="procs"
+            ths)
+                MGLIB_SUFFIX="ths"
             ;;
             *)
-                MGLIB_SUFFIX="ths"
+                MGLIB_SUFFIX="procs"
             ;;
         esac
     ;;
@@ -1610,13 +1610,13 @@ case "$runtime_mode" in
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
     ;;
-    procs)
+    ths)
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Processes (back-compatibility definition)])
     ;;
-    *)
+    procs)
         AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
         CFLAGS="$CFLAGS -D_REENTRANT"
@@ -2449,7 +2449,7 @@ if test "$ac_cv_prog_gcc" = "yes"; then
     CFLAGS="$CFLAGS -Wall -Wstrict-prototypes -pipe"
 fi
 
-if test "$runtime_mode" = "ths"; then
+if test "x$runtime_mode" = "xths"; then
     DEP_LIBS="$DEP_LIBS -lpthread"
 fi
 

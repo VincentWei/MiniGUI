@@ -2466,7 +2466,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         unsigned char charBuffer [3];
         int chars;
 
-        _MG_PRINTF("get char-----------------char----%lx\n", wParam);
+        _MG_PRINTF("get char-----------------char----%p\n", (PVOID)wParam);
 
         if (wParam == 127) // BS
             wParam = '\b';

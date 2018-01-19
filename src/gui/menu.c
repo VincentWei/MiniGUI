@@ -1199,12 +1199,12 @@ void mnuDumpMenuItem (PMENUITEM pmi)
     printf ("\tmenu state:      %#x\n", pmi->mnustate);
     printf ("\tmenu id:         %d\n", pmi->id);
     printf ("\tchecked bitmap:  0x%p\n", pmi->checkedbmp);
-    printf ("\tunchecked bitmap: 0x%p\n", pmi->uncheckedbmp);
-    printf ("\titem data:       %lu\n", pmi->itemdata);
+    printf ("\tunchecked bitmap:0x%p\n", pmi->uncheckedbmp);
+    printf ("\titem data:       %p\n", (PVOID)pmi->itemdata);
     if (pmi->mnutype == MFT_STRING)
         printf ("\tstring:         %s\n", (char*)pmi->typedata);
     else
-        printf ("\ttype data:      %lu\n", pmi->typedata);
+        printf ("\ttype data:      %p\n", (PVOID)pmi->typedata);
     printf ("\tnext item:       0x%p\n", pmi->next);
     
     if (pmi->submenu) {

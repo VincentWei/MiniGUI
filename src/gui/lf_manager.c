@@ -600,7 +600,7 @@ void dump_window_element_data (HWND hwnd)
                 break;
 
             case WE_ATTR_TYPE_COLOR: 
-                _MG_PRINTF ("\tcolor in list: %lx.\n", wed->data); 
+                _MG_PRINTF ("\tcolor in list: %p.\n", (PVOID)wed->data); 
         }
     }
     _MG_PRINTF ("GUI>DumpWED: Done\n");

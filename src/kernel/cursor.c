@@ -93,12 +93,12 @@ Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
 
 HCURSOR GUIAPI LoadCursorFromFile (const char* filename)
 {
-    return __mgLoadCursorFromFile (filename);
+    return load_cursor_from_file (filename);
 }
 
 HCURSOR GUIAPI LoadCursorFromMem (const void* area)
 {
-    return __mgLoadCursorFromMem (area);
+    return load_cursor_from_mem (area);
 }
 
 static BITMAP csr_bmp = {
