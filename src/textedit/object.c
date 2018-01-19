@@ -13,6 +13,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 #include "common.h"
 #include "minigui.h"
@@ -202,6 +203,7 @@ BOOL ncsInstanceOf(mObject *object, mObjectClass* clss)
 
 static inline int _va_check (va_list va)
 {
+#if 0
 	union {
 		va_list va;
 		DWORD   dva;
@@ -215,6 +217,16 @@ static inline int _va_check (va_list va)
 		return 0;
 
     return 1;
+#else
+    intptr_t zero = 0;
+    size_t n = sizeof (intptr_t);
+
+    if (sizeof (va_list) < n) {
+        n = sizeof (va_list);
+    }
+
+    return memcmp (&zero, &va, n);
+#endif
 }
 
 int ncsParseConstructParams(va_list args, const char* signature, ...)
