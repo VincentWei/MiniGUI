@@ -200,6 +200,22 @@ BOOL ncsInstanceOf(mObject *object, mObjectClass* clss)
 	return objClss != NULL;
 }
 
+static inline int _va_check (va_list va)
+{
+	union {
+		va_list va;
+		DWORD   dva;
+	} _va;
+
+    if (va == 0)
+        return 0;
+
+	va_copy (_va.va, va);
+	if(_va.dva == 0)
+		return 0;
+
+    return 1;
+}
 
 int ncsParseConstructParams(va_list args, const char* signature, ...)
 {
@@ -214,6 +230,8 @@ int ncsParseConstructParams(va_list args, const char* signature, ...)
 	if(GET_ARG_COUNT(args) <= 0)
 		return 0;
     */
+    if (_va_check (args) == 0)
+        return 0;
 
 	argc = va_arg(args, int);
     if(argc <= 0)
