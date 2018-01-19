@@ -2055,6 +2055,7 @@ case "$use_ttf_lib" in
             FT1_INC_DIR="-I$with_ft1_includes"
         fi
 
+        DEP_LIBS="$DEP_LIBS -lttf"
         AC_SUBST(FT1_INC_DIR)
     ;;
     ft2)
@@ -2071,6 +2072,7 @@ case "$use_ttf_lib" in
             FT2_INC_DIR="-I$with_ft2_includes"
         fi
 
+        DEP_LIBS="$DEP_LIBS -lfreetype"
         AC_SUBST(FT2_INC_DIR)
     ;;
 esac
