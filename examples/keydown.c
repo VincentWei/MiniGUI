@@ -3,7 +3,7 @@
  * This example trys to handle the event when the user
  * presses <C> key as the <Ctrl> key is down.
  */
-int MyWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT MyWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
         case MSG_KEYDOWN:

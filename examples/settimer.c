@@ -1,7 +1,7 @@
 /*
  * A typical handling of timer.
  */
-int FlyingGUIWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT FlyingGUIWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
         case MSG_CREATE:

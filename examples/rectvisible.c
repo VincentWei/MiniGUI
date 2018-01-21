@@ -1,7 +1,7 @@
 /*
  * Use RectVisible to optimize the repaint of the window.
  */
-MSG_PAINT:
+case MSG_PAINT:
 {
 	HDC hdc = BeginPaint (hWnd);
 

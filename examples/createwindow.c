@@ -9,7 +9,7 @@
 #define IDC_EDIT1       130
 #define IDC_EDIT2       140
 
-int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT ControlTestWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
         static HWND hStaticWnd1, hStaticWnd2, hButton1, hButton2, hEdit1, hEdit2;
         switch (message) {
