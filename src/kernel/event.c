@@ -54,9 +54,9 @@ static int repeatusec;
 static int dblclicktime;
 
 #ifndef _MGRM_THREADS
-static unsigned int timeout_threshold;
-static unsigned int repeat_threshold;
-static unsigned int timeout_count;
+static DWORD timeout_threshold;
+static DWORD repeat_threshold;
+static DWORD timeout_count;
 #endif
 
 static void GetDblclickTime(void)
@@ -100,11 +100,11 @@ static void GetTimeout (void)
 
 /* Mouse event parameters. */
 static int oldbutton = 0;
-static unsigned int time1;
-static unsigned int time2;
+static DWORD time1;
+static DWORD time2;
 
 /* Key event parameters. */
-static unsigned int ke_time;
+static DWORD ke_time;
 #ifndef _MGRM_PROCESSES
 static unsigned char oldkeystate [MGUI_NR_KEYS + 1];
 #endif
@@ -180,15 +180,15 @@ static void ResetKeyEvent(void)
  * default long pressed and always pressed value
  * The default long press handling disabled at startup.
  */
-unsigned int __mg_key_longpress_time = 0;
-unsigned int __mg_key_alwayspress_time = DEF_APRESS_TIME;
-unsigned int __mg_interval_time = DEF_INTERVAL_TIME;
+DWORD __mg_key_longpress_time = 0;
+DWORD __mg_key_alwayspress_time = DEF_APRESS_TIME;
+DWORD __mg_interval_time = DEF_INTERVAL_TIME;
 
-static void treat_longpress (PKEYEVENT ke, unsigned int interval)
+static void treat_longpress (PKEYEVENT ke, DWORD interval)
 {
-    static unsigned int starttime;
+    static DWORD starttime;
     static int flag1 = 0, flag2 = 1; /*flag1: longpress flags*/
-    unsigned int maxctime;
+    DWORD maxctime;
 
     maxctime = (__mg_key_longpress_time < __mg_key_alwayspress_time)
             ? __mg_key_longpress_time : __mg_key_alwayspress_time;
@@ -256,12 +256,12 @@ static void treat_longpress (PKEYEVENT ke, unsigned int interval)
 BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
 {
     static LWEVENT old_lwe = {0, 0};
-    unsigned int interval;
-    int button;
+    DWORD interval;
     PMOUSEEVENT me = &(lwe->data.me);
     PKEYEVENT ke = &(lwe->data.ke);
     const char* keystate;
     int i;
+    int button;
     int make;       /* 0 = release, 1 = presse */
 
     if (event == 0) {
@@ -516,7 +516,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
     static LWEVENT old_lwe = {0, 0};
 
     int nr_keys = 0;
-    unsigned int interval;
+    DWORD interval;
     int button;
     PMOUSEEVENT me = &(lwe->data.me);
     PKEYEVENT ke = &(lwe->data.ke);

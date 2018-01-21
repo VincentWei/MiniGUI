@@ -2198,10 +2198,10 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case MSG_TIMER:      // per 0.01s
         {
-            static UINT uCounter = 0;
+            static DWORD uCounter = 0;
 #ifndef _MGRM_THREADS
-            static UINT blink_counter = 0;
-            static UINT sg_old_counter = 0;
+            static DWORD blink_counter = 0;
+            static DWORD sg_old_counter = 0;
 
             if (sg_old_counter == 0)
                 sg_old_counter = __mg_timer_counter;

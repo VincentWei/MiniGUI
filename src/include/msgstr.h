@@ -3,7 +3,7 @@
 **
 ** msgstr.h: the text name of all messages.
 **
-** Copyright (C) 2003 ~ 2007 Feynman Software.
+** Copyright (C) 2003 ~ 2018 FMSoft
 ** Copyright (C) 1999 ~ 2002 Wei Yongming.
 **
 ** Create date: 1999/01/03
@@ -201,9 +201,9 @@ char * __mg_msgstr2 [] =
     "",                             // 0x00DB
     "",                             // 0x00DC
     "",                             // 0x00DD
-    
     "MSG_ERASEDESKTOP        ",     // 0x00DE
     "MSG_PAINTDESKTOP        ",     // 0x00DF
+
     "MSG_DT_LBUTTONDOWN      ",     // 0x00E0
     "MSG_DT_LBUTTONUP        ",     // 0x00E1
     "MSG_DT_LBUTTONDBLCLK    ",     // 0x00E2
@@ -237,6 +237,7 @@ char * __mg_msgstr2 [] =
     "MSG_SCROLLMAINWIN       ",     // 0x00FD
     "MSG_CARET_CREATE        ",     // 0x00FE
     "MSG_CARET_DESTROY       ",     // 0x00FF
+
     "MSG_ENABLEMAINWIN       ",     // 0x0100
     "MSG_ISENABLED           ",     // 0x0101
     "MSG_SETWINCURSOR",             // 0x0102
@@ -284,7 +285,8 @@ char * __mg_msgstr3 [] =
     "",                             // 0x0136
     "",                             // 0x0137
     "",                             // 0x0138
-    "",                             // 0x0139 "",                             // 0x013A
+    "",                             // 0x0139
+    "",                             // 0x013A
     "",                             // 0x013B
     "",                             // 0x013C
     "",                             // 0x013D

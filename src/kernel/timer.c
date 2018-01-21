@@ -54,7 +54,7 @@ static pthread_mutex_t timerLock;
 
 #ifdef _MGGAL_S3C6410
 #   define _MG_USE_BETTER_TIMER
-#endif /* __NOUNIX__ */
+#endif /* _MGGAL_S3C6410 */
 
 #ifdef _MG_USE_BETTER_TIMER
 #include <sys/times.h>
@@ -255,7 +255,7 @@ void mg_TerminateTimer (void)
 }
 
 /************************* Functions run in desktop thread *******************/
-void mg_dispatch_timer_message (unsigned int inter)
+void mg_dispatch_timer_message (DWORD inter)
 {
     int i;
 

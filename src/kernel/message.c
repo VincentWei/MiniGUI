@@ -1029,12 +1029,11 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
     LICENSE_MODIFY_MESSAGE(pMsg);
 
 #ifdef _MGHAVE_TRACE_MSG
-    fprintf (stderr, "Message, %s: hWnd: %p, wP: %p, lP: %p. %s\n",
-        Message2Str (pMsg->message),
-        pMsg->hwnd,
-        (PVOID)pMsg->wParam,
-        (PVOID)pMsg->lParam,
-        SYNMSGNAME);
+    if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
+        fprintf (stderr, "Message %u (%s): hWnd: %p, wP: %p, lP: %p. %s\n",
+            pMsg->message, Message2Str (pMsg->message),
+            pMsg->hwnd, (PVOID)pMsg->wParam, (PVOID)pMsg->lParam, SYNMSGNAME);
+    }
 #endif
 
     if (pMsg->hwnd == HWND_INVALID) {
@@ -1047,8 +1046,10 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 #endif
         
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message have been thrown away: %s\n",
-            Message2Str (pMsg->message));
+        if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
+            fprintf (stderr, "Message %u (%s) has been thrown away.\n",
+                pMsg->message, Message2Str (pMsg->message));
+        }
 #endif
         return -1;
     }
@@ -1071,8 +1072,10 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 #endif
 
 #ifdef _MGHAVE_TRACE_MSG
-    fprintf (stderr, "Message, %s done, return value: %p\n",
-        Message2Str (pMsg->message), (PVOID)lRet);
+    if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
+        fprintf (stderr, "Message %u (%s) done, return value: %p\n",
+            pMsg->message, Message2Str (pMsg->message), (PVOID)lRet);
+    }
 #endif
 
     return lRet;

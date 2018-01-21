@@ -125,12 +125,12 @@ void* DesktopMain (void* data)
         LRESULT lRet = 0;
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s: hWnd: %p, wP: %p, lP: %p. %s\n",
-            Message2Str (Msg.message),
-            Msg.hwnd,
-            (PVOID)Msg.wParam,
-            (PVOID)Msg.lParam,
-            Msg.pAdd?"Sync":"Normal");
+        if (Msg.message != MSG_TIMEOUT && Msg.message != MSG_TIMER) {
+            fprintf (stderr, "Message %u (%s): hWnd: HWND_DESKTOP, wP: %p, lP: %p, tick: %u; %s\n",
+                Msg.message, Message2Str (Msg.message),
+                (PVOID)Msg.wParam, (PVOID)Msg.lParam, (UINT)Msg.time,
+                Msg.pAdd?"Sync":"Normal");
+        }
 #endif
 
         lRet = DesktopWinProc (HWND_DESKTOP, 
@@ -144,8 +144,10 @@ void* DesktopMain (void* data)
         }
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s done, return value: %p\n",
-            Message2Str (Msg.message), (PVOID)lRet);
+        if (Msg.message != MSG_TIMEOUT && Msg.message != MSG_TIMER) {
+            fprintf (stderr, "Message %u (%s) done, return value: %p\n",
+                Msg.message, Message2Str (Msg.message), (PVOID)lRet);
+        }
 #endif
     }
 

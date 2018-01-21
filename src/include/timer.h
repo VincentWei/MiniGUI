@@ -33,7 +33,7 @@ typedef TIMER* PTIMER;
 
 BOOL mg_InitTimer (void);
 void mg_TerminateTimer (void);
-void mg_dispatch_timer_message (unsigned int inter);
+void mg_dispatch_timer_message (DWORD inter);
 void mg_remove_timers_by_msg_queue (const MSGQUEUE* msg_que);
 
 TIMER* __mg_get_timer (int slot);

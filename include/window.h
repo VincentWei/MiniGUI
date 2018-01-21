@@ -561,9 +561,9 @@ extern "C" {
  */
 #define DEF_INTERVAL_TIME   200
 
-extern unsigned int __mg_key_longpress_time;
-extern unsigned int __mg_key_alwayspress_time;
-extern unsigned int __mg_interval_time;
+extern DWORD __mg_key_longpress_time;
+extern DWORD __mg_key_alwayspress_time;
+extern DWORD __mg_interval_time;
 
 /**
  * \def SetKeyLongPressTime(time)

@@ -38,8 +38,8 @@
 #include "menu.h"
 #include "ourhdr.h"
 
-extern unsigned int __mg_timer_counter;
-static unsigned int old_timer_counter = 0;
+extern DWORD __mg_timer_counter;
+static DWORD old_timer_counter = 0;
 
 static SRVEVTHOOK srv_evt_hook = NULL;
 
