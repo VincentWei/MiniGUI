@@ -1585,17 +1585,20 @@ case "$runtime_mode" in
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
+        MINIGUI_RUNMODE="sa"
     ;;
     ths)
         AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
         CFLAGS="$CFLAGS -D_REENTRANT"
+        MINIGUI_RUNMODE="ths"
     ;;
-    procs)
+    *)
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Processes (back-compatibility definition)])
+        MINIGUI_RUNMODE="procs"
     ;;
 esac
 
@@ -2451,6 +2454,7 @@ fi
 AC_SUBST(VIDEO_SUBDIRS)
 AC_SUBST(VIDEO_DRIVERS)
 AC_SUBST(DEP_LIBS)
+AC_SUBST(MINIGUI_RUNMODE)
 
 AM_CONDITIONAL(MGRM_PROCESSES, test "x$runtime_mode" = "xprocs")
 AM_CONDITIONAL(MGRM_STANDALONE, test "x$runtime_mode" = "xsa")
