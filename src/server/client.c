@@ -34,7 +34,7 @@
 
 #define    NALLOC       4        /* #Client structs to alloc/realloc for */
 
-extern unsigned int __mg_timer_counter;
+extern DWORD __mg_timer_counter;
 
 MG_Client* mgClients = NULL;
 int mgClientSize = 0;

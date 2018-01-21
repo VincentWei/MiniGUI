@@ -2173,7 +2173,7 @@ typedef struct _MSG
     /** The second parameter of the message (32-bit integer). */
     LPARAM          lParam;
     /** Time */
-    ULONG           time;
+    DWORD           time;
 #ifdef _MGRM_THREADS
     /** Addtional data*/
     void*            pAdd;
@@ -4893,15 +4893,15 @@ extern MG_EXPORT HWND __mg_hwnd_desktop;
  * \def HWND_NULL
  * \brief Null window handle.
  */
-#define HWND_NULL           (HWND)0
+#define HWND_NULL           ((HWND)0)
 
 /**
  * \def HWND_INVALID
  * \brief Invalid window handle.
  */
-#define HWND_INVALID        (HWND)-1
+#define HWND_INVALID        ((HWND)-1)
 
-#define HWND_OTHERPROC      (HWND)-1
+#define HWND_OTHERPROC      ((HWND)-1)
 
 /**
  * Structure defines a main window.
@@ -7544,7 +7544,7 @@ MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
      */
 
 /**
- * \var typedef BOOL (* TIMERPROC)(HWND, int, DWORD)
+ * \var typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD)
  * \brief Type of the timer callback procedure.
  *
  * This is the prototype of the callback procedure of a timer created by SetTimerEx.
@@ -7554,11 +7554,14 @@ MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
  * by MiniGUI automatically. This can be used to implement a one-shot timer.
  *
  * \sa SetTimerEx
+ *
+ * \note The prototype had changed since MiniGUI v3.2; the old one:
+ *      BOOL (* TIMERPROC)(HWND, int, unsigned int)
  */
-typedef BOOL (* TIMERPROC)(HWND, int, DWORD);
+typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
 
 /**
- * \fn BOOL GUIAPI SetTimerEx (HWND hWnd, int id, unsigned int speed, \
+ * \fn BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed, \
  *              TIMERPROC timer_proc)
  * \brief Creates a timer with the specified timeout value.
  *
@@ -7586,11 +7589,14 @@ typedef BOOL (* TIMERPROC)(HWND, int, DWORD);
  * \note You should set, reset, and kill a timer in the same thread if your
  *       MiniGUI is configured as MiniGUI-Threads.
  *
+ * \note The prototype had changed since MiniGUI v3.2; the old one:
+ *      BOOL GUIAPI SetTimerEx (HWND hWnd, int id, unsigned int speed, TIMERPROC timer_proc);
+ *
  * Example:
  *
  * \include settimer.c
  */
-MG_EXPORT BOOL GUIAPI SetTimerEx (HWND hWnd, int id, unsigned int speed, 
+MG_EXPORT BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed, 
                 TIMERPROC timer_proc);
 
 /**
@@ -7603,23 +7609,26 @@ MG_EXPORT BOOL GUIAPI SetTimerEx (HWND hWnd, int id, unsigned int speed,
                 SetTimerEx(hwnd, id, speed, NULL)
 
 /**
- * \fn int GUIAPI KillTimer (HWND hWnd, int id)
+ * \fn int GUIAPI KillTimer (HWND hWnd, LINT id)
  * \brief Destroys a timer.
  *
  * This function destroys the specified timer \a id.
  *
  * \param hWnd The window owns the timer.
- * \param id The identifier of the timer. If \a id equals or is less than 0, 
+ * \param id The identifier of the timer. If \a id equals 0, 
  *        this function will kill all timers in the system.
  *
  * \return The number of actually killed timer.
  *
  * \sa SetTimer
+ *
+ * \note The prototype had changed since MiniGUI v3.2; the old one:
+ *      int GUIAPI KillTimer (HWND hWnd, int id)
  */
-MG_EXPORT int GUIAPI KillTimer (HWND hWnd, int id);
+MG_EXPORT int GUIAPI KillTimer (HWND hWnd, LINT id);
 
 /**
- * \fn BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed, \
+ * \fn BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed, \
  *              TIMERPROC timer_proc)
  * \brief Adjusts a timer with a different timeout value or different
  *        timer callback procedure.
@@ -7630,14 +7639,17 @@ MG_EXPORT int GUIAPI KillTimer (HWND hWnd, int id);
  * \param id The identifier of the timer.
  * \param speed The new timeout value.
  * \param timer_proc The new timer callback procedure. If \a timer_proc
- *        is 0xFFFFFFFF, the setting of timer callback procedure will
- *        not changed.
+ *        is INV_PTR, the setting of timer callback procedure will
+ *        not change.
  *
  * \return TRUE on success, FALSE on error.
  *
  * \sa SetTimerEx
+ *
+ * \note The prototype had changed since MiniGUI v3.2; the old one:
+ *      BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed, TIMERPROC timer_proc)
  */
-MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed,
+MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
                 TIMERPROC timer_proc);
 
 /**
@@ -7647,10 +7659,10 @@ MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed,
  * \sa ResetTimerEx
  */
 #define ResetTimer(hwnd, id, speed) \
-                ResetTimerEx(hwnd, id, speed, (TIMERPROC)0xFFFFFFFF)
+                ResetTimerEx(hwnd, id, speed, (TIMERPROC)INV_PTR)
 
 /**
- * \fn unsigned int GUIAPI GetTickCount (void)
+ * \fn DWORD GUIAPI GetTickCount (void)
  * \brief Retrieves the tick counts that have elapsed since MiniGUI was started.
  *
  * This function retrieves the tick counts that have elapsed since MiniGUI 
@@ -7658,11 +7670,14 @@ MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed,
  * for a general Linux box, the returned tick count value is in unit of 10ms.
  *
  * \return The tick counts value that have elapsed since MiniGUI was started.
+ *
+ * \note The prototype had changed since MiniGUI v3.2; The old one:
+ *      unsinged int GUIAPI GetTickCount (void);
  */
-MG_EXPORT unsigned int GUIAPI GetTickCount (void);
+MG_EXPORT DWORD GUIAPI GetTickCount (void);
 
 /**
- * \fn BOOL GUIAPI IsTimerInstalled (HWND hWnd, int id)
+ * \fn BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
  * \brief Determines whether a timer is installed.
  *
  * This function determines whether a timer with identifier \a id of 
@@ -7674,8 +7689,11 @@ MG_EXPORT unsigned int GUIAPI GetTickCount (void);
  * \return TRUE for installed, otherwise FALSE. 
  *
  * \sa SetTimer, HaveFreeTimer
+ *
+ * \note The prototype had changed since MiniGUI v3.2; the old one:
+ *      BOOL GUIAPI IsTimerInstalled (HWND hWnd, int id)
  */
-MG_EXPORT BOOL GUIAPI IsTimerInstalled (HWND hWnd, int id);
+MG_EXPORT BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id);
 
 /**
  * \fn BOOL GUIAPI HaveFreeTimer (void)

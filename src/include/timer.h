@@ -20,14 +20,14 @@ extern "C" {
 #define USEC_10MS       10000
 
 typedef struct _timer {
-    HWND    hWnd;
-    int     id;
-    unsigned int speed;
-    unsigned int count;
+    HWND        hWnd;
+    LINT        id;
+    DWORD       speed;
+    UINT_PTR    count;
 
-    TIMERPROC proc;
-    unsigned int tick_count;
-    PMSGQUEUE msg_queue;
+    TIMERPROC   proc;
+    UINT_PTR    tick_count;
+    PMSGQUEUE   msg_queue;
 } TIMER;
 typedef TIMER* PTIMER;
 

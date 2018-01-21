@@ -235,8 +235,8 @@ static void check_live (void)
 
 BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
 {
-    static unsigned int old_timer;
-    static int repeat_timeout = TIMEOUT_START_REPEAT;
+    static DWORD old_timer;
+    static long repeat_timeout = TIMEOUT_START_REPEAT;
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;

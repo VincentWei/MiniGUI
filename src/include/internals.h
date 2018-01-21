@@ -35,7 +35,7 @@ void screensaver_hide(void);
  */
 #define WS_EX_CTRLASMAINWIN     0x20000000L
 
-#define DEF_NR_TIMERS       32
+#define DEF_NR_TIMERS           NR_BITS_DWORD
 
 #if defined (__NOUNIX__) || defined (__uClinux__)
   #define DEF_MSGQUEUE_LEN    16
@@ -475,7 +475,7 @@ PGCRINFO kernel_GetGCRgnInfo (HWND hWnd);
 /* internal variables */
 typedef struct _TRACKMENUINFO* PTRACKMENUINFO;
 
-extern unsigned int __mg_timer_counter;
+extern DWORD __mg_timer_counter;
 
 extern HWND __mg_capture_wnd;
 extern HWND __mg_ime_wnd;

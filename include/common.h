@@ -299,22 +299,22 @@ typedef int BOOL;
 #   endif
 #endif
 
+/**
+ * \def INV_PTR
+ * \brief A value indicates an invalid non-null pointer.
+ */
+#define INV_PTR                ((void *)-1)
+
 #define GUIAPI
 
 #if !defined(__NODLL__) && (defined (WIN32) || defined (__NUCLEUS_MNT__))
-  #if defined(__MINIGUI_LIB__) && !defined(__MGEXT_LIB__)
-  #define MG_EXPORT       __declspec(dllexport)
-  #else
-  #define MG_EXPORT       __declspec(dllimport) 
-  #endif
-  #if defined(__MGEXT_LIB__)
-  #define MGEXT_EXPORT    __declspec(dllexport)
-  #else
-  #define MGEXT_EXPORT    __declspec(dllimport) 
-  #endif
+#   if defined(__MINIGUI_LIB__)
+#       define MG_EXPORT       __declspec(dllexport)
+#   else
+#       define MG_EXPORT       __declspec(dllimport) 
+#   endif
 #else
-  #define MG_EXPORT
-  #define MGEXT_EXPORT
+#   define MG_EXPORT
 #endif
 
     /** @} end of simple_types */
@@ -498,6 +498,12 @@ typedef long LONG_PTR;
 #else
 typedef int LONG_PTR;
 #endif
+
+/**
+ * \var LINT
+ * \brief Signed integer which has pointer precision.
+ */
+typedef LONG_PTR LINT;
 
 /**
  * \var LRESULT

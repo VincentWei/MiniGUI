@@ -1696,8 +1696,6 @@ if test "x$devel_mode" = "xyes"; then
     enable_video_custom="yes"
 
     build_screensaver="yes"
-
-    CFLAGS="$CFLAGS -Werror"
 fi
 
 dnl Depedencies
@@ -2433,11 +2431,17 @@ fi
 dnl ========================================================================
 dnl Write output
 
-# define _GNU_SOURCE for pthread_rwlock_t
+dnl define _GNU_SOURCE for pthread_rwlock_t
 CFLAGS="$CFLAGS -D_GNU_SOURCE"
 
+if test "x$devel_mode" = "xyes"; then
+    if test "$ac_cv_prog_gcc" = "yes"; then
+        CPPFLAGS="$CPPFLAGS -Wall -Werror"
+    fi
+fi
+
 if test "$ac_cv_prog_gcc" = "yes"; then
-    CFLAGS="$CFLAGS -Wall -Wstrict-prototypes -pipe"
+    CFLAGS="$CFLAGS -Wstrict-prototypes -pipe"
 fi
 
 if test "x$runtime_mode" = "xths"; then
