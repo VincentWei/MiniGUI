@@ -237,9 +237,9 @@ build_ctrl_textedit="no"
 build_ctrl_monthcal="no"
 build_ctrl_treeview="no"
 build_ctrl_treeview_rdr="no"
-build_ctrl_spinbox="no"
+build_ctrl_spinbox="yes"
 build_ctrl_coolbar="no"
-build_ctrl_listview="no"
+build_ctrl_listview="yes"
 build_ctrl_iconview="no"
 build_ctrl_gridview="no"
 build_ctrl_animation="yes"
@@ -800,7 +800,7 @@ AC_ARG_ENABLE(ctrltreeview-rdr,
 build_ctrl_treeview_rdr=$enableval)
 
 AC_ARG_ENABLE(ctrlspinbox,
-[  --enable-ctrlspinbox     include SPINBOX control <default=no>],
+[  --enable-ctrlspinbox     include SPINBOX control <default=yes>],
 build_ctrl_spinbox=$enableval)
 
 AC_ARG_ENABLE(ctrlcoolbar,
@@ -808,7 +808,7 @@ AC_ARG_ENABLE(ctrlcoolbar,
 build_ctrl_coolbar=$enableval)
 
 AC_ARG_ENABLE(ctrllistview,
-[  --enable-ctrllistview    include LISTVIEW control <default=no>],
+[  --enable-ctrllistview    include LISTVIEW control <default=yes>],
 build_ctrl_listview=$enableval)
 
 AC_ARG_ENABLE(ctrliconview,
