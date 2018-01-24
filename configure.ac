@@ -241,9 +241,9 @@ build_ctrl_textedit="no"
 build_ctrl_monthcal="no"
 build_ctrl_treeview="no"
 build_ctrl_treeview_rdr="no"
-build_ctrl_spinbox="no"
+build_ctrl_spinbox="yes"
 build_ctrl_coolbar="no"
-build_ctrl_listview="no"
+build_ctrl_listview="yes"
 build_ctrl_iconview="no"
 build_ctrl_gridview="no"
 build_ctrl_animation="yes"
@@ -2444,7 +2444,7 @@ if test "x$devel_mode" = "xyes"; then
 fi
 
 if test "$ac_cv_prog_gcc" = "yes"; then
-    CFLAGS="$CFLAGS -Wstrict-prototypes -pipe"
+    CFLAGS="$CFLAGS -O2 -Wstrict-prototypes -pipe"
 fi
 
 if test "x$runtime_mode" = "xths"; then
