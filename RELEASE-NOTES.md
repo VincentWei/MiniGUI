@@ -164,7 +164,7 @@ We add some new options for autoconf script (`configure`):
 
   * `--enable-develmode`: You should use this option to define `_DEBUG` macro,
     enable `-Wall -Werror` option, and enable all features of MiniGUI,
-    if you a MiniGUI developer. 
+    if you were a MiniGUI developer. 
 
 ## Version 3.0.13
 
