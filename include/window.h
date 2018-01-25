@@ -2168,9 +2168,9 @@ typedef struct _MSG
     HWND            hwnd;
     /** The message identifier. */
     UINT            message;
-    /** The first parameter of the message (32-bit integer). */
+    /** The first parameter of the message (a unsigned integer with pointer precision). */
     WPARAM          wParam;
-    /** The second parameter of the message (32-bit integer). */
+    /** The second parameter of the message (a unsigned integer with pointer precision). */
     LPARAM          lParam;
     /** Time */
     DWORD           time;
@@ -4270,7 +4270,7 @@ MG_EXPORT gal_pixel GUIAPI GetWindowElementPixelEx (HWND hwnd,
         HDC hdc, int we_attr_id);
 
 /**
- * \fn const WINDOW_ELEMENT_RENDERER* \
+ * \fn WINDOW_ELEMENT_RENDERER* 
                  GUIAPI GetWindowRendererFromName (const char* name)
  * \brief Get window renderer from name.
  * 
@@ -4280,8 +4280,11 @@ MG_EXPORT gal_pixel GUIAPI GetWindowElementPixelEx (HWND hwnd,
  * which is case-insensitive.
  *
  * \return The handle to the window renderer for success, NULL for failure.
+ *
+ * \note The prototype had changed since MiniGUI v3.2; the old one returns
+ *      a const value.
  */
-MG_EXPORT const WINDOW_ELEMENT_RENDERER* 
+MG_EXPORT WINDOW_ELEMENT_RENDERER* 
     GUIAPI GetWindowRendererFromName (const char* name);
 
 /**
@@ -4312,14 +4315,17 @@ MG_EXPORT BOOL GUIAPI AddWindowElementRenderer (const char* name,
 MG_EXPORT BOOL GUIAPI RemoveWindowElementRenderer (const char* name);
 
 /**
- * \fn const WINDOW_ELEMENT_RENDERER* GUIAPI GetDefaultWindowElementRenderer (void)
+ * \fn WINDOW_ELEMENT_RENDERER* GUIAPI GetDefaultWindowElementRenderer (void)
  * \brief Get the default window renderer. 
  * 
  * This function gets the default window renderer in MiniGUI. 
  *
  * \return the pointer to the default renderer.
+ *
+ * \note The prototype had changed since MiniGUI v3.2; the old one returns
+ *      a const value.
  */
-MG_EXPORT const WINDOW_ELEMENT_RENDERER* 
+MG_EXPORT WINDOW_ELEMENT_RENDERER* 
         GUIAPI GetDefaultWindowElementRenderer (void);
 
 /**

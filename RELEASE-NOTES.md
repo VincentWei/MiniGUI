@@ -10,39 +10,160 @@ MiniGUI apps. Please report any bugs and incompatibilities in
 
 ### What's new in this version
 
-  * Support for 64-bit platform. The definitions of some types and APIs
-    changed. 
+  * Support for 64-bit platform. Note that the definitions of some types 
+    and APIs changed. 
   * Eliminate all compilation warnings.
 
 ### Type changes
 
-  1. Handle types. All handle types, including `GHANDLE`, `HWND`, `HDC`, and so on,
-     are now defined as aliases of `PVOID` (`typedef void* PVOID`). 
-     You may need to check your code to reflect this change. 
+#### Changes of handle types
 
-  2. Integer types:
-     * The type of `DWORD` now has the pointer precision. That is,
-     the size of `DWORD` will be 4 bytes on 32-bit platform, and 8 bytes on 
-     64-bit platform. 
+All handle types, including `GHANDLE`, `HWND`, `HDC`, etc.,
+are now defined as aliases of `PVOID` (`typedef void* PVOID`). 
+You may need to check your code to reflect this change. 
 
-     * Similarly, `WPARAM` and `LPARAM` are now have the pointer precision.
+#### Changes of integer types.
 
-     * `WORD` and `SWORD` has a half of pointer precision. The size of these 
-        two types is 2 bytes on 32-bit platform, and 4 bytes on 64-bit platform.
+The type of `DWORD` now has the pointer precision. That is,
+the size of `DWORD` will be 4 bytes on 32-bit platform, and 8 bytes on 
+64-bit platform. 
 
-  3. New integer types:
-     * `DWORD32` and `SWORD32`: We introduce `DWORD32` and `SWORD32` types, which have
-       the size of 4 bytes on both 32-bit and 64-bit platforms. You should use these
-       types when reading/writing 32-bit integer from a binary files for the
-       portibility. Of course, you can still use Uint8, Uint16, Uint32, and Uint64 types.
+Similarly, `WPARAM` and `LPARAM` are now have the pointer precision.
 
-     * `LRESULT`: this type is defined for window callback procedure, and it has
-       the pointer precision.
+`WORD` and `SWORD` has a half of pointer precision. The size of these 
+two types is 2 bytes on 32-bit platform, and 4 bytes on 64-bit platform.
 
+RGBCOLOR now is defined as an aliase of DWORD32.
+
+Note that the type of BYTE always has the size of 8-bit on both 
+32-bit and 64-bit platforms.
+
+#### New integer types:
+
+`DWORD32` and `SDWORD32`. We introduce `DWORD32` and `SDWORD32` types, 
+which have the size of 4 bytes on both 32-bit and 64-bit platforms. 
+You should use these types when reading/writing 32-bit integers from 
+a binary files for the portibility. Of course, you can also use 
+Uint32 or Sint32 types.
+
+`WORD16` and `SWORD16`. Similarly, we introduce `WORD16` and `SWORD16` types,
+which have the size of 2 bytes on both 32-bit and 64-bit platforms. 
+You should use these types when reading/writing 16-bit integers from 
+a binary file for the portibility. Of course, you can also use 
+Uint16 or SUint16 types.
+
+`LRESULT` is defined for window callback procedure, and it has
+the pointer precision.
+
+`LINT` is a new integer type with pointer precision.
 
 ### API changes
 
+#### Integer macros
+
+`MAKEWORD16`: this new macro makes a 16-bit word by using two bytes.
+Meanwhile, `MAKEWORD` makes a 16-bit word on 32-bit platform, and a 32-bit
+word on 64-bit platform.
+
+`LOBYTE_WORD16` and `HIBYTE_WORD16`: these two new macros get the low byte
+and the high byte in a 16-bit word respectively.
+
+Note that `MAKELONG` macro always makes a DWORD integer, which has the pointer
+precision.
+
+Note that 'MakeRGB` and `MakeRGBA` macros always make DWORD32 integers. 
+In contract, GetRValue, GetRValue, GetBValue, GetAValue always get Red, 
+green, blue, and alpha components from a DWORD32 integer respectively.
+
+Note that you should use (-1) instead of 0xFFFFFFFF for invalid values.
+
+#### Structure and functions
+
+The main changes in structure and functions:
+
+ * We now use a `UINT` instead of an `int` integer for the message identifier.
+    This is not a very important change.
+
+ * We now use a `DWORD` integer for the time tick count. Meanwhile, you can
+    create 64 timers on 64-bit platform.
+
+ * We now use a `LRESULT` integer for the return value of a window callback
+    procedure. Now it is safe to return a pointer from the callback procedure
+    on 64-bit platform. This is a very important change, and it will break the 
+    source compatibilty of your code. You should check the source code (use
+    gcc option `-Wall`) carefully.
+
+ * We now use a `LINT` integer for the identifier of a timer. So you can pass
+    a pointer as the identifier of the timer on 64-bit platform. mGNCS uses 
+    MiniGUI timer in this manner.
+
+As a result, the strcuture `MSG` and all message-related functions changed.
+For example, the prototype of `SendMessage` changed from
+
+    int SendMessage (HWND hWnd, int nMsg, WPARAM wParam, LPARAM lParam)
+    
+to
+
+    LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+
+Furthermore, the structure and functions to register window class, 
+create main window, and create dialog box changed. For example, the prototype 
+of `WNDPROC` changed from
+
+    typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM)
+
+to
+
+    typedef LRESULT (* WNDPROC)(HWND, UINT, WPARAM, LPARAM)
+
+Therefore, the prototype of `DefaultWindowProc` changed from
+
+    int DefaultWindowProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+
+to
+
+    LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+
+All main window procedures, control class procedures, and dialog box procedures
+defined by your app should change the implementation to reflect the change above.
+
+The prototype of `GetTickCount` changed from
+
+    unsigned int GetTickCount (void)
+
+to
+
+    DWORD GetTickCount (void);
+
+And the prototye of `TIMERPROC` changed from
+
+    typedef BOOL (* TIMERPROC)(HWND, int, DWORD)
+
+to
+
+    typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD)
+
+In additio, we correct the bad or wrong definitions of some APIs:
+
+  1. `DWORD2PIXEL` to 'DWORD2Pixel`. The old one has a bad name.
+  2. `GetWindowRendererFromName`: The return type changes from 
+    `const WINDOW_ELEMENT_RENDERER*` to `WINDOW_ELEMENT_RENDERER*`.
+    So you can overload some methods directly of a renderer.
+  3. `GetDefaultWindowElementRenderer`: The return type changes from 
+    `const WINDOW_ELEMENT_RENDERER*` to `WINDOW_ELEMENT_RENDERER*`.
+    So you can overload some methods directly of the default renderer.
+
 ### Configuration option changes
+
+We add some new options for autoconf script (`configure`):
+
+  * --with-runmode: Now you can use this option to specify the runtime
+    mode of MiniGUI. The old enable options for runmode were removed.
+    Note that MiniGUI-Processes now is the default runmode.
+
+  * --enable-develmode: You should use this option to define `_DEBUG` macro,
+    enable `-Wall -Werror` option, and enable all features of MiniGUI,
+    if you a MiniGUI developer. 
 
 ## Version 3.0.13
 

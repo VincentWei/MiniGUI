@@ -59,8 +59,7 @@ static LFINFO wnd_lf_info [MAX_NR_RENDERERS] =
 /** The default renderer */
 WINDOW_ELEMENT_RENDERER * __mg_def_renderer = &__mg_wnd_rdr_classic;
 
-const WINDOW_ELEMENT_RENDERER* 
-GUIAPI GetWindowRendererFromName (const char* name)
+WINDOW_ELEMENT_RENDERER* GUIAPI GetWindowRendererFromName (const char* name)
 {
     int i;
     if (NULL == name)
@@ -177,7 +176,7 @@ BOOL GUIAPI RemoveWindowElementRenderer (const char* name)
     return TRUE;
 }
 
-const WINDOW_ELEMENT_RENDERER * GUIAPI GetDefaultWindowElementRenderer (void)
+WINDOW_ELEMENT_RENDERER * GUIAPI GetDefaultWindowElementRenderer (void)
 {
     return __mg_def_renderer;
 }

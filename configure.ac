@@ -1643,7 +1643,8 @@ fi
 
 if test "x$devel_mode" = "xyes"; then
     use_debug="yes"
-    trace_message="yes"
+    message_string="yes"
+    trace_message="no"
 
     build_auto_ial_engine="yes"
     build_random_ial_engine="yes"
