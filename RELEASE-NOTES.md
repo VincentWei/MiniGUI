@@ -1,5 +1,49 @@
 # Release Notes
 
+## Version 3.2.0
+
+The MiniGUI development team announces the availability of MiniGUI 3.2.0.
+All users of MiniGUI are recommended strongly to use this version for new
+MiniGUI apps. Please report any bugs and incompatibilities in
+
+    https://github.com/VincentWei/minigui. 
+
+### What's new in this version
+
+  * Support for 64-bit platform. The definitions of some types and APIs
+    changed. 
+  * Eliminate all compilation warnings.
+
+### Type changes
+
+  1. Handle types. All handle types, including `GHANDLE`, `HWND`, `HDC`, and so on,
+     are now defined as aliases of `PVOID` (`typedef void* PVOID`). 
+     You may need to check your code to reflect this change. 
+
+  2. Integer types:
+     * The type of `DWORD` now has the pointer precision. That is,
+     the size of `DWORD` will be 4 bytes on 32-bit platform, and 8 bytes on 
+     64-bit platform. 
+
+     * Similarly, `WPARAM` and `LPARAM` are now have the pointer precision.
+
+     * `WORD` and `SWORD` has a half of pointer precision. The size of these 
+        two types is 2 bytes on 32-bit platform, and 4 bytes on 64-bit platform.
+
+  3. New integer types:
+     * `DWORD32` and `SWORD32`: We introduce `DWORD32` and `SWORD32` types, which have
+       the size of 4 bytes on both 32-bit and 64-bit platforms. You should use these
+       types when reading/writing 32-bit integer from a binary files for the
+       portibility. Of course, you can still use Uint8, Uint16, Uint32, and Uint64 types.
+
+     * `LRESULT`: this type is defined for window callback procedure, and it has
+       the pointer precision.
+
+
+### API changes
+
+### Configuration option changes
+
 ## Version 3.0.13
 
 The MiniGUI development team announces the availability of MiniGUI 3.0.13.

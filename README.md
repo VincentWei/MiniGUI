@@ -6,6 +6,7 @@ A mature cross-platform windowing system and GUI system for embedded and IoT dev
 ## TABLE OF CONTENTS
 
   1. Introduction
+  1. New features in version 3.2.x
   1. The runtime modes of MiniGUI
   1. History
   1. About the authors
@@ -18,20 +19,21 @@ A mature cross-platform windowing system and GUI system for embedded and IoT dev
 ## INTRODUCTION
     
 MiniGUI is a mature cross-platform windowing system and GUI (Graphics 
-User Interface) support system for embedded systems and IoT devices. This 
-is the mainline release of MiniGUI maintained by WEI Yongming.
+User Interface) support system for embedded systems and smart IoT devices.
+This is the version 3.2.x of MiniGUI maintained by WEI Yongming 
+(Vincent Wei, https://github.com/VincentWei).
 
 MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
 use.
 
 MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
 windowing and GUI support system, which is especially fit for 
-embedded systems or IoT devices based-on Linux/uClinux, eCos, and other 
+embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other 
 traditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II, 
 and OSE.
 
 This is the MiniGUI core source tarball, which provides windowing 
-and graphics interfaces as well as a lot of standard controls. 
+and graphics interfaces as well as a lot of standard controls (tookit). 
 
 Besides MiniGUI core, FMSoft also provides some components
 for the developers to develop app much easier:
@@ -96,9 +98,22 @@ components, and other open source apps on GitHub. You can visit them on:
 
 https://github.com/VincentWei 
 
-FMSoft releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
+FMSoft also releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
 You can also download it from the official site of MiniGUI.
 
+http://www.minigui.com/en/download
+
+
+## NEW FEATURES IN VERSION 3.2.x
+
+We introduce some new features in MiniGUI Version 3.2.x:
+
+  * The support for 64-bit platform. Note that some APIs have changed
+    to support 64-bit platform. For more information, please refer to
+    RELEASE-NOTES.md file.
+
+Because of the changes of some APIs, we recommended strongly that you 
+use this version for new projects.
 
 ## THE RUNTIME MODES OF MINIGUI
 
@@ -182,7 +197,7 @@ A brief history description of the development progress lay below:
   0)  1994 ~ 1996:    MiniGUI DOS version.
   1)  Dec, 1998:      Began to write.
   2)  Apr, 1999:      The skeleton of MiniGUI, windowing sub-system 
-          and basic graphics device interfaces.
+      and basic graphics device interfaces.
   3)  May, 1999:      Timer, menu, and the skeleton of control sub-system.
   4)  Jun, 1999:      Chinese input method (by Kang Xiaoning).
   5)  July, 1999:     GIF and JPG loading support (by LI Zhuo).
@@ -191,43 +206,33 @@ A brief history description of the development progress lay below:
   8)  Sep, 1999:      Snapshot of screen or window.
   9)  Jan., 2000:     VCOnGUI (Virtual Console on MiniGUI) version 0.2.02.
   10) Mar., 2000:     Linux distribution installer based-on MiniGUI for 
-          HappyLinux 1.0.
+      HappyLinux 1.0.
   11) Jun., 2000:     Began to develop version 1.0.xx.
   12) Sep., 2000:     MiniGUI version 0.3.06 released.
   13) Oct., 2000:     MiniGUI version 0.9.00 released. 
   14) Nov., 2000:     MiniGUI version 0.9.96 released. 
   15) Jan., 2001:     MiniGUI version 0.9.98 released. You can build 
-          MiniGUI-Lite from this version.
+      MiniGUI-Lite from this version.
   16) Jan., 2001:     MiniGUI version 1.0.00Beta1 released.
   17) Feb., 2001:     MiniGUI version 1.0.00Pre1 released.
   18) Apr., 2001:     MiniGUI version 1.0.00 released (2001/04/16).
   18) Sep., 2001:     MiniGUI version 1.1.0Pre1 released (2001/09/12).
   19) Sep., 2001:     MiniGUI version 1.0.9 released (2001/09/17), 
-          this will be the last version of
-          source branch 1.0.x. 
+      this will be the last version of source branch 1.0.x. 
   20) Oct., 2001:     MiniGUI version 1.1.0Pre4 released (2001/10/22). 
-          This version have new GAL and GDI interfaces.
-  21) Mar., 2002:     MiniGUI official version 1.1.0 released 
-          (2002/03/08). 
-          MiniGUI API Reference documentation 
-          version 0.9 released.
-  22) Mar., 2002:     MiniGUI API Reference documentation 
-          version 1.0 released.
-  23) Apr., 2002:     MiniGUI the new stable version 1.2.0 released 
-          (2002/04/11). 
+      This version have new GAL and GDI interfaces.
+  21) Mar., 2002:     MiniGUI official version 1.1.0 released (2002/03/08). 
+      MiniGUI API Reference documentation version 0.9 released.
+  22) Mar., 2002:     MiniGUI API Reference documentation version 1.0 released.
+  23) Apr., 2002:     MiniGUI the new stable version 1.2.0 released (2002/04/11). 
   24) Sep., 2002:     The main developers of MiniGUI founded a 
-          new software corporation: Beijing FMSoft 
-          Technology Co., Ltd.. And the development and 
-          maintenance of MiniGUI changes from 
-          loosely-knit team to business organization.
-  25) Mar., 2003:     MiniGUI official version 1.2.5 released 
-          (2003/03/23).
-  25) May., 2003:     MiniGUI official version 1.2.6 released 
-          (2003/05/18).
-  26) Sep., 2003:     MiniGUI official version 1.3.1 released 
-          (2003/09/11).
-  27) Jan., 2004:     MiniGUI official version 1.5.1 released 
-          (2004/01/18).
+      new software corporation: Beijing FMSoft Technology Co., Ltd.. 
+      And the development and maintenance of MiniGUI changes from 
+      loosely-knit team to business organization.
+  25) Mar., 2003:     MiniGUI official version 1.2.5 released (2003/03/23).
+  25) May., 2003:     MiniGUI official version 1.2.6 released (2003/05/18).
+  26) Sep., 2003:     MiniGUI official version 1.3.1 released (2003/09/11).
+  27) Jan., 2004:     MiniGUI official version 1.5.1 released (2004/01/18).
   28) Feb., 2004:     MiniGUI tested on eCos and uC/OS-II.
   29) Jun., 2004:     MiniGUI tested on VxWorks.
   30) Jan., 2005:     MiniGUI tested on ThreadX and pSOS.
@@ -247,6 +252,7 @@ A brief history description of the development progress lay below:
   44) Aug., 2017:     FMSoft released the latest source code of MiniGUI under GPL 3.0.
   45) Aug., 2017:     FMSoft released the latest source code of mDolphin under Apache 2.0.
   46) Dec., 2017:     FMSoft updated MiniGUI and miniStudio for latest Linux distributions.
+  47) Feb., 2018:     FMSoft released MiniGUI version 3.2.
 
 
 ## ABOUT THE AUTHORS
