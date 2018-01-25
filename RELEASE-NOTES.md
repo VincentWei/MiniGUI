@@ -33,24 +33,24 @@ Similarly, `WPARAM` and `LPARAM` are now have the pointer precision.
 `WORD` and `SWORD` has a half of pointer precision. The size of these 
 two types is 2 bytes on 32-bit platform, and 4 bytes on 64-bit platform.
 
-RGBCOLOR now is defined as an aliase of DWORD32.
+`RGBCOLOR` now is defined as an aliase of `DWORD32` (see below).
 
-Note that the type of BYTE always has the size of 8-bit on both 
+Note that the type of `BYTE` always has the size of 8-bit on both 
 32-bit and 64-bit platforms.
 
 #### New integer types:
 
-`DWORD32` and `SDWORD32`. We introduce `DWORD32` and `SDWORD32` types, 
+We introduce `DWORD32` and `SDWORD32` types, 
 which have the size of 4 bytes on both 32-bit and 64-bit platforms. 
 You should use these types when reading/writing 32-bit integers from 
 a binary files for the portibility. Of course, you can also use 
-Uint32 or Sint32 types.
+`Uint32` or `Sint32` types.
 
-`WORD16` and `SWORD16`. Similarly, we introduce `WORD16` and `SWORD16` types,
+Similarly, we introduce `WORD16` and `SWORD16` types,
 which have the size of 2 bytes on both 32-bit and 64-bit platforms. 
 You should use these types when reading/writing 16-bit integers from 
 a binary file for the portibility. Of course, you can also use 
-Uint16 or SUint16 types.
+`Uint16` or `SUint16` types.
 
 `LRESULT` is defined for window callback procedure, and it has
 the pointer precision.
@@ -75,7 +75,8 @@ Note that 'MakeRGB` and `MakeRGBA` macros always make DWORD32 integers.
 In contract, GetRValue, GetRValue, GetBValue, GetAValue always get Red, 
 green, blue, and alpha components from a DWORD32 integer respectively.
 
-Note that you should use (-1) instead of 0xFFFFFFFF for invalid values.
+Note that you should use `(-1)` instead of `0xFFFFFFFF` for invalid 
+pointer-type values for good portability.
 
 #### Structure and functions
 
@@ -157,11 +158,11 @@ In additio, we correct the bad or wrong definitions of some APIs:
 
 We add some new options for autoconf script (`configure`):
 
-  * --with-runmode: Now you can use this option to specify the runtime
+  * `--with-runmode`: Now you can use this option to specify the runtime
     mode of MiniGUI. The old enable options for runmode were removed.
     Note that MiniGUI-Processes now is the default runmode.
 
-  * --enable-develmode: You should use this option to define `_DEBUG` macro,
+  * `--enable-develmode`: You should use this option to define `_DEBUG` macro,
     enable `-Wall -Werror` option, and enable all features of MiniGUI,
     if you a MiniGUI developer. 
 
