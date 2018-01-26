@@ -14,7 +14,7 @@
     ...
 
 /* The window procedure. */
-static int VCOnGUIMainWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT VCOnGUIMainWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PCONINFO pConInfo;
 

@@ -28,7 +28,7 @@
 
 #define _ID_TIMER   100
 
-static int ToolTipWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT ToolTipWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static int iBorder;
     switch (message) {
@@ -253,7 +253,7 @@ DefaultPageProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             IncludeWindowStyle (hNewDef, BS_DEFPUSHBUTTON);
             InvalidateRect (hNewDef, NULL, TRUE);
 
-            return (int)hOldDef;
+            return (LRESULT)hOldDef;
         }
         break;
     }

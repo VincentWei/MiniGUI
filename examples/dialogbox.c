@@ -2,7 +2,7 @@
  * The following code defines the dialog box callback procedure
  * and displays the dialog box by calling DialogBoxIndirectParam function.
  */
-static int InitDialogBoxProc (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT InitDialogBoxProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
     case MSG_INITDIALOG:

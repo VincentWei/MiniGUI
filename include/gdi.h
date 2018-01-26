@@ -7,7 +7,7 @@
  *
  \verbatim
 
-    Copyright (C) 2002-2012 FMSoft.
+    Copyright (C) 2002-2018 FMSoft.
     Copyright (C) 1998-2002 Wei Yongming.
 
     All rights reserved by FMSoft (http://www.fmsoft.cn).
@@ -1090,19 +1090,19 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * \note MiniGUI does not do any clipping operation for this DC, 
  *       so use this DC may make a mess of other windows. 
  */
-#define HDC_SCREEN          0
+#define HDC_SCREEN          ((HDC)0)
 
 /* 
  * This is a system screen DC create for MiniGUI internal usage, for example,
  * menu and z-order operations
  */
-#define HDC_SCREEN_SYS      1
+#define HDC_SCREEN_SYS      ((HDC)1)
 
 /**
  * \def HDC_INVALID
  * \brief Indicates an invalid handle to device context.
  */
-#define HDC_INVALID         0xFFFFFFFF
+#define HDC_INVALID         ((HDC)-1)
 
 #define GDCAP_COLORNUM      0
 #define GDCAP_HPIXEL        1
@@ -2853,7 +2853,7 @@ static inline DWORD Pixel2DWORD (HDC hdc, gal_pixel pixel)
 #define PIXEL2DWORD(hdc, pixel) Pixel2DWORD(hdc, pixel)
 
 /**
- * \fn gal_pixel DWORD2PIXEL (HDC hdc, DWORD dword)
+ * \fn gal_pixel DWORD2Pixel (HDC hdc, DWORD dword)
  * \brief An inline function to convert DWORD color to gal_pixel.
  *
  * This function converts a color in DWORD to pixel value.
@@ -2862,7 +2862,7 @@ static inline DWORD Pixel2DWORD (HDC hdc, gal_pixel pixel)
  * \param dword The color value in DWORD.
  * \return The converted pixel value.
  */
-static inline gal_pixel DWORD2PIXEL (HDC hdc, DWORD dword)
+static inline gal_pixel DWORD2Pixel (HDC hdc, DWORD dword)
 {
     return RGBA2Pixel (hdc, 
             GetRValue(dword), GetGValue(dword),
@@ -8891,11 +8891,11 @@ MG_EXPORT void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
  * 
  */   
 typedef struct _COMP_CTXT {
-    /** the step of current pixel operations. */
-    int step;
-
     /** the pointer to the destination */
     gal_uint8* cur_dst;
+
+    /** The user context passed to SetUserCompositionOps */
+    void* user_comp_ctxt;
 
     /** the pixel value shoulb be skipped (the color key) */
     gal_pixel skip_pixel;
@@ -8903,8 +8903,8 @@ typedef struct _COMP_CTXT {
     /** the current pixel value for setpixel and setpixels operation */
     gal_pixel cur_pixel;
 
-    /** The user context passed to SetUserCompositionOps */
-    void* user_comp_ctxt;
+    /** the step of current pixel operations. */
+    int step;
 } COMP_CTXT;
 
 /*

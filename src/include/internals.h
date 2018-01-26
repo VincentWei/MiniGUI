@@ -35,7 +35,7 @@ void screensaver_hide(void);
  */
 #define WS_EX_CTRLASMAINWIN     0x20000000L
 
-#define DEF_NR_TIMERS       32
+#define DEF_NR_TIMERS           NR_BITS_DWORD
 
 #if defined (__NOUNIX__) || defined (__uClinux__)
   #define DEF_MSGQUEUE_LEN    16
@@ -162,7 +162,7 @@ typedef MSGQUEUE* PMSGQUEUE;
 typedef struct _SYNCMSG
 {
     MSG              Msg;
-    int              retval;
+    LRESULT          retval;
     sem_t*           sem_handle;
     struct _SYNCMSG* pNext;
 }SYNCMSG;
@@ -293,10 +293,6 @@ typedef struct _MAINWIN
     /*
      * These fields are similiar with CONTROL struct.
      */
-    unsigned char DataType;     // the data type.
-    unsigned char WinType;      // the window type.
-	unsigned short Flags;       // special runtime flags, such EraseBkGnd flags
-
     int left, top;      // the position and size of main window.
     int right, bottom;
 
@@ -338,7 +334,7 @@ typedef struct _MAINWIN
     DWORD dwAddData;    // the additional data.
     DWORD dwAddData2;   // the second addtional data.
 
-    int (*MainWindowProc)(HWND, int, WPARAM, LPARAM);
+    LRESULT (*MainWindowProc)(HWND, UINT, WPARAM, LPARAM);
                            // the address of main window procedure.
 
     struct _MAINWIN* pMainWin;
@@ -363,9 +359,17 @@ typedef struct _MAINWIN
      */
     struct _wnd_element_data* wed;
     
+    /* 
+     * some internal fields
+     * VM[2018-01-18]: Move these fields from header to here to compatible with WINDOWINFO
+     */
+    unsigned char DataType;     // the data type.
+    unsigned char WinType;      // the window type.
+	unsigned short Flags;       // special runtime flags, such EraseBkGnd flags
+
     /*
-     * Main Window hosting. 
      * The following members are only implemented for main window.
+     * Main Window hosting. 
      */
     struct _MAINWIN* pHosting;
                         // the hosting main window.
@@ -471,7 +475,7 @@ PGCRINFO kernel_GetGCRgnInfo (HWND hWnd);
 /* internal variables */
 typedef struct _TRACKMENUINFO* PTRACKMENUINFO;
 
-extern unsigned int __mg_timer_counter;
+extern DWORD __mg_timer_counter;
 
 extern HWND __mg_capture_wnd;
 extern HWND __mg_ime_wnd;
@@ -482,10 +486,10 @@ extern PTRACKMENUINFO __mg_ptmi;
 extern PMAINWIN __mg_dsk_win;
 extern HWND __mg_hwnd_desktop;
 
-extern int DesktopWinProc (HWND hWnd, 
-                int message, WPARAM wParam, LPARAM lParam);
-extern int SendSyncMessage (HWND hWnd, int msg, WPARAM wParam, LPARAM lParam);
-
+extern LRESULT DesktopWinProc (HWND hWnd, 
+                UINT message, WPARAM wParam, LPARAM lParam);
+extern LRESULT SendSyncMessage (HWND hWnd, 
+                UINT msg, WPARAM wParam, LPARAM lParam);
 
 #ifndef _MGRM_THREADS
     extern unsigned int __mg_csrimgsize;

@@ -721,7 +721,7 @@ static int HandleSpecialKey (int scancode)
     return 0;
 }
 
-static int KeyMessageHandler (int message, int scancode, DWORD status)
+static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
 {
     static int mg_altdown = 0;
     static int mg_modal = 0;
@@ -870,11 +870,10 @@ static HWND DesktopSetCapture (HWND hwnd)
 
     hTemp = __mg_capture_wnd;
     __mg_capture_wnd = hwnd;
-
     return hTemp;
 }
 
-static int MouseMessageHandler (int message, WPARAM flags, int x, int y)
+static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
 {
     PMAINWIN pUnderPointer;
     PMAINWIN pCtrlPtrIn;
@@ -1209,7 +1208,7 @@ static int dskCancelDragWindow (PMAINWIN pWin)
     if (_dd_info.hwnd == 0 || _dd_info.hwnd != (HWND)pWin)
         return -1;
 
-    _dd_info.hwnd = -1;
+    _dd_info.hwnd = (HWND)-1;
     unlock_zorder_info ();
     SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
    // SetDefaultCursor (GetSystemCursor (IDC_ARROW));
@@ -1300,9 +1299,9 @@ static int do_drag_drop_window (int msg, int x, int y)
     return 1;
 }
 
-static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
+static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
 {
-    int iRet = 0;
+    LRESULT lRet = 0;
 
     /* cancel the current drag and drop operation */
     do_drag_drop_window (message, 0, 0);
@@ -1346,8 +1345,7 @@ static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
                 dskForceCloseMenu ();
 #endif
             dskHideMainWindow (pWin);
-            __mg_reset_desktop_capture_info (pWin);
-
+            __mg_reset_desktop_capture_info (pWin); 
             return 0;
 
         case MSG_MOVEMAINWIN:
@@ -1359,17 +1357,17 @@ static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
             return 0;
 
         case MSG_GETACTIVEMAIN:
-            return (int)dskGetActiveWindow();
+            return (LRESULT)dskGetActiveWindow();
         
         case MSG_SETACTIVEMAIN:
-            iRet = (int)dskSetActiveWindow (pWin);
-            return iRet;
+            lRet = (LRESULT)dskSetActiveWindow (pWin);
+            return lRet;
 
         case MSG_GETCAPTURE:
-            return (int)__mg_capture_wnd;
+            return (LRESULT)__mg_capture_wnd;
 
         case MSG_SETCAPTURE:
-            return (int)DesktopSetCapture ((HWND)pWin);
+            return (LRESULT)DesktopSetCapture ((HWND)pWin);
  
 #ifdef _MGHAVE_MENU
         case MSG_TRACKPOPUPMENU:
@@ -1383,8 +1381,8 @@ static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
 #endif
 
         case MSG_SCROLLMAINWIN:
-            iRet = dskScrollMainWindow (pWin, (PSCROLLWINDOWINFO)lParam);
-            return iRet;
+            lRet = dskScrollMainWindow (pWin, (PSCROLLWINDOWINFO)lParam);
+            return lRet;
 
         case MSG_CARET_CREATE:
             sg_hCaretWnd = (HWND)pWin;
@@ -1407,7 +1405,7 @@ static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
             HCURSOR old = pWin->hCursor;
 
             pWin->hCursor = (HCURSOR)lParam;
-            return old;
+            return (LRESULT)old;
         }
 
         case MSG_GETNEXTMAINWIN:
@@ -1431,8 +1429,9 @@ static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
                         last_type = ZOF_TYPE_NORMAL;
                         slot = __mg_zorder_info->first_normal;
                         continue;
-                    }else{
-                        return HWND_NULL;
+                    }
+                    else {
+                        return (LRESULT)HWND_NULL;
                     }
                 }
 
@@ -1444,7 +1443,7 @@ static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
                     slot = nodes[slot].next;
                     continue;
                 }else{
-                    return hWnd;
+                    return (LRESULT)hWnd;
                 }
             }
             break;
@@ -1476,7 +1475,7 @@ static int WindowMessageHandler(int message, PMAINWIN pWin, LPARAM lParam)
             return dskCancelDragWindow (pWin);
    }
 
-   return iRet;
+   return lRet;
 }
 
 #define IDM_REDRAWBG    MINID_RESERVED
@@ -1943,7 +1942,7 @@ void GUIAPI DesktopUpdateAllWindow(void)
 #   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1) 
 #endif
 
-int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static HDC hDesktopDC;
     int flags, x, y;
@@ -1965,7 +1964,7 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             static int n = 1;
             char buffer[20];
 
-            sprintf (buffer, "%x-%d.bmp", (lParam & KS_CTRL)?
+            sprintf (buffer, "%p-%d.bmp", (lParam & KS_CTRL)?
                                     (HWND)active_mainwnd:
                                     0, n);
             if (SaveMainWindowContent ((lParam & KS_CTRL)?
@@ -2132,17 +2131,17 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             return dskOnRemoveCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
         
         case MSG_GETCTRLCLASSINFO:
-            return (int)gui_GetControlClassInfo ((const char*)lParam);
+            return (LRESULT)gui_GetControlClassInfo ((const char*)lParam);
 
         case MSG_CTRLCLASSDATAOP:
-            return (int)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
+            return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
             
         case MSG_REGISTERKEYHOOK:
-            return (int)dskRegisterKeyHook ((void*)wParam, 
+            return (LRESULT)dskRegisterKeyHook ((void*)wParam, 
                             (MSGHOOK)lParam);
 
         case MSG_REGISTERMOUSEHOOK:
-            return (int)dskRegisterMouseHook ((void*)wParam, 
+            return (LRESULT)dskRegisterMouseHook ((void*)wParam, 
                             (MSGHOOK)lParam);
 
         case MSG_IME_REGISTER:
@@ -2199,10 +2198,10 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 
         case MSG_TIMER:      // per 0.01s
         {
-            static UINT uCounter = 0;
+            static DWORD uCounter = 0;
 #ifndef _MGRM_THREADS
-            static UINT blink_counter = 0;
-            static UINT sg_old_counter = 0;
+            static DWORD blink_counter = 0;
+            static DWORD sg_old_counter = 0;
 
             if (sg_old_counter == 0)
                 sg_old_counter = __mg_timer_counter;

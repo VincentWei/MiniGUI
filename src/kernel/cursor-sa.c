@@ -58,132 +58,16 @@ static int nShowCount = 0;
 static PCURSOR pCurCsr = NULL;
 
 /* Cursor creating and destroying. */
+#include "cursor-comm.c"
+
 HCURSOR GUIAPI LoadCursorFromFile(const char* filename)
 {
-    FILE* fp;
-    WORD wTemp;
-    int  w, h, xhot, yhot, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
-    BYTE* image;
-    HCURSOR csr = 0;
-    
-    if( !(fp = fopen(filename, "rb")) ) return 0;
-
-    fseek(fp, sizeof(WORD), SEEK_SET);
-
-    /* the cbType of struct CURSORDIR. */
-    wTemp = MGUI_ReadLE16FP (fp);
-    if(wTemp != 2) goto error;
-
-    /* skip the cdCount of struct CURSORDIR, we always use the first cursor. */
-    fseek(fp, sizeof(WORD), SEEK_CUR);
-    
-    /* cursor info, read the members of struct CURSORDIRENTRY. */
-    w = fgetc (fp);  /* the width of first cursor. */
-    h = fgetc (fp);  /* the height of first cursor. */
-    if(w != CURSORWIDTH || h != CURSORHEIGHT) goto error;
-    fseek(fp, sizeof(BYTE)*2, SEEK_CUR); /* skip bColorCount and bReserved. */
-    wTemp = MGUI_ReadLE16FP (fp);
-    xhot = wTemp;
-    wTemp = MGUI_ReadLE16FP (fp);
-    yhot = wTemp;
-    size = MGUI_ReadLE32FP (fp);
-    offset = MGUI_ReadLE32FP (fp);
-
-    /* read the cursor image info. */
-    fseek(fp, offset, SEEK_SET);
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip the biSize member. */
-    imagew = MGUI_ReadLE32FP (fp);
-    imageh = MGUI_ReadLE32FP (fp);
-    /* check the biPlanes member; */
-    wTemp = MGUI_ReadLE16FP (fp);
-    if(wTemp != 1) goto error;
-    /* check the biBitCount member; */
-    wTemp = MGUI_ReadLE16FP (fp);
-    if(wTemp > 4) goto error;
-    colornum = (int)wTemp;
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip the biCompression members. */
-    imagesize = MGUI_ReadLE32FP (fp);
-
-    /* skip the rest members and the color table. */
-    fseek(fp, sizeof(DWORD)*4 + sizeof(BYTE)*(4<<colornum), SEEK_CUR);
-    
-    /* allocate memory for image. */
-    if ((image = (BYTE*)ALLOCATE_LOCAL (imagesize)) == NULL)
-        goto error;
-
-    /* read image */
-    fread (image, imagesize, 1, fp);
-    
-    csr = CreateCursor(xhot, yhot, w, h, 
-                        image + (imagesize - MONOSIZE), image, colornum);
-
-    DEALLOCATE_LOCAL (image);
-
-error:
-    fclose (fp);
-    return csr;
+    return load_cursor_from_file (filename);
 }
 
 HCURSOR GUIAPI LoadCursorFromMem (const void* area)
 {
-    const Uint8* p = (Uint8*)area;
-    WORD wTemp;
-
-    int  w, h, xhot, yhot, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
-    
-    p += sizeof (WORD);
-    wTemp = MGUI_ReadLE16Mem (&p);
-    if(wTemp != 2) goto error;
-
-    /* skip the cdCount of struct CURSORDIR, we always use the first cursor. */
-    p += sizeof (WORD);
-    
-    /* cursor info, read the members of struct CURSORDIRENTRY. */
-    w = *p++;  /* the width of first cursor. */
-    h = *p++;  /* the height of first cursor. */
-    if (w != CURSORWIDTH || h != CURSORHEIGHT)
-        goto error;
-
-    /* skip the bColorCount and bReserved. */
-    p += sizeof(BYTE)*2;
-    xhot = MGUI_ReadLE16Mem (&p);
-    yhot = MGUI_ReadLE16Mem (&p);
-    size = MGUI_ReadLE32Mem (&p);
-    offset = MGUI_ReadLE32Mem (&p);
-
-    /* read the cursor image info. */
-    p = (Uint8*)area + offset;
-
-    /* skip the biSize member. */
-    p += sizeof (DWORD);    
-    imagew = MGUI_ReadLE32Mem (&p);
-    imageh = MGUI_ReadLE32Mem (&p);
-
-    /* check the biPlanes member; */
-    wTemp = MGUI_ReadLE16Mem (&p);
-    if (wTemp != 1) goto error;
-
-    /* check the biBitCount member; */
-    wTemp = MGUI_ReadLE16Mem (&p);
-    if (wTemp > 4) goto error;
-    colornum = wTemp;
-
-    /* skip the biCompression members. */
-    p += sizeof (DWORD);    
-    imagesize = MGUI_ReadLE32Mem (&p);
-
-    /* skip the rest members and the color table. */
-    p += sizeof(DWORD)*4 + sizeof(BYTE)*(4<<colornum);
-    
-    return CreateCursor (xhot, yhot, w, h, 
-                        p + (imagesize - MONOSIZE), p, colornum);
-
-error:
-    return 0;
+    return load_cursor_from_mem (area);
 }
 
 static BITMAP csr_bmp = {

@@ -109,18 +109,18 @@ static void read_bmicolors_m (int ncols, RGB *pal, const Uint8 *p)
 HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
 {
     FILE* fp;
-    WORD wTemp;
+    WORD16 wTemp;
     BYTE bTemp;
     int  w, h, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
+    DWORD32 offset;
+    DWORD32 imagesize;
     BYTE* image;
     HICON icon = 0;
     RGB pal[256];
     
-    if( !(fp = fopen(filename, "rb")) ) return 0;
+    if (!(fp = fopen (filename, "rb"))) return 0;
 
-    fseek(fp, sizeof(WORD), SEEK_SET);
+    fseek (fp, sizeof (WORD16), SEEK_SET);
 
     /* the cbType of struct ICONDIR.*/
     wTemp = MGUI_ReadLE16FP (fp);
@@ -151,14 +151,25 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
     wTemp = MGUI_ReadLE16FP (fp);   /* the wBitCount*/
     if(wTemp > 8) goto error;
 
+#if 0
+    DWORD32 size;
     size = MGUI_ReadLE32FP (fp);
+#else
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the wSize member.*/
+#endif
     offset = MGUI_ReadLE32FP (fp);
 
     /* read the cursor image info. */
     fseek(fp, offset, SEEK_SET);
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip the biSize member.*/
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biSize member.*/
+#if 0
+    DWORD32 imagew, imageh;
     imagew = MGUI_ReadLE32FP (fp);
     imageh = MGUI_ReadLE32FP (fp);
+#else
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biWidth member.*/
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biHeight member.*/
+#endif
 
     /* check the biPlanes member;*/
     wTemp = MGUI_ReadLE16FP (fp);
@@ -169,7 +180,7 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
     if(wTemp > 8) goto error;
 
     colornum = (int)wTemp;
-    fseek(fp, sizeof(DWORD), SEEK_CUR); /* skip the biCompression members.*/
+    fseek(fp, sizeof(DWORD32), SEEK_CUR); /* skip the biCompression members.*/
 
     if (colornum == 1)
         imagesize = align_32_bits(w>>3) * h;
@@ -179,10 +190,10 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
         imagesize = align_32_bits(w) * h;
 
     imagesize += align_32_bits(w>>3) * h;
-    fseek(fp, sizeof(DWORD), SEEK_CUR);
+    fseek(fp, sizeof(DWORD32), SEEK_CUR);
 
     /* skip the rest members and the color table.*/
-    fseek(fp, sizeof(DWORD)*4, SEEK_CUR);
+    fseek(fp, sizeof(DWORD32)*4, SEEK_CUR);
     read_bmicolors_f (1 << colornum, pal, fp);
     
     /* allocate memory for image.*/
@@ -195,12 +206,15 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
         goto error;
 
     /* read image*/
-    fread (image, imagesize, 1, fp);
+    if (fread (image, 1, imagesize, fp) < imagesize) {
+        goto error_free;
+    }
 
     icon = CreateIconEx (hdc, w, h, 
                    image + (imagesize - (align_32_bits(w>>3) * h)), image, 
                    colornum, pal);
 
+error_free:
 #ifndef HAVE_ALLOCA
     free (image);
 #endif
@@ -213,15 +227,15 @@ error:
 HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
 {
     const Uint8* p = (Uint8*)area;
-    WORD wTemp;
+    WORD16 wTemp;
     BYTE bTemp;
 
     int  w, h, colornum;
-    DWORD size, offset;
-    DWORD imagesize, imagew, imageh;
+    DWORD32 offset;
+    DWORD32 imagesize;
     RGB pal[256];
     
-    p += sizeof (WORD);
+    p += sizeof (WORD16);
 
     /* the cbType of struct ICONDIR.*/
     wTemp = MGUI_ReadLE16Mem (&p);
@@ -252,15 +266,25 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     if (wTemp != 0 && wTemp != 1) goto error;
     wTemp = MGUI_ReadLE16Mem (&p);   /* the wBitCount */
     if (wTemp > 8) goto error;
+#if 0
+    DWORD32 size;
     size = MGUI_ReadLE32Mem (&p);
+#else
+    p += sizeof(DWORD32); 
+#endif
     offset = MGUI_ReadLE32Mem (&p);
 
     /* read the cursor image info. */
     p = (Uint8*)area + offset;
     /* skip the biSize member. */
-    p += sizeof(DWORD); 
+    p += sizeof(DWORD32); 
+#if 0
+    DWORD32 imagew, imageh;
     imagew = MGUI_ReadLE32Mem (&p);
     imageh = MGUI_ReadLE32Mem (&p);
+#else
+    p += sizeof(DWORD32); 
+#endif
     /* check the biPlanes member; */
     wTemp = MGUI_ReadLE16Mem (&p);
     if (wTemp != 1) goto error;
@@ -269,7 +293,7 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     if (wTemp > 8) goto error;
     colornum = (int)wTemp;
     /* skip the biCompression members. */
-    p += sizeof (DWORD);
+    p += sizeof (DWORD32);
 
     if (colornum == 1)
         imagesize = align_32_bits(w>>3) * h;
@@ -279,10 +303,10 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
         imagesize = align_32_bits(w) * h;
 
     imagesize += align_32_bits(w>>3) * h;
-    p += sizeof (DWORD);
+    p += sizeof (DWORD32);
 
     /* skip the rest members and the color table. */
-    p += sizeof(DWORD)*4;
+    p += sizeof(DWORD32)*4;
     read_bmicolors_m (1 << colornum, pal, p);
     p += sizeof(BYTE)*(4<<colornum);
     
@@ -299,11 +323,9 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pAndBits,
 {
     PDC pdc;
     PICON picon;
-    int bpp;
     Uint32 image_size;
 
     pdc = dc_HDC2PDC (hdc);
-    bpp = GAL_BytesPerPixel (pdc->surface);
     
     if( (w%16) != 0 || (h%16) != 0 ) return 0;
 

@@ -1374,19 +1374,23 @@ static void miWideDashSegment (PDC pdc, SpanDataPtr spanData, int* pDashOffset, 
     double          saveK = 0.0;
     BOOL            first = TRUE;
     double          lcenterx, lcentery, rcenterx = 0.0, rcentery = 0.0;
-    gal_pixel       fgPixel, bgPixel;
     
     dx = x2 - x1;
     dy = y2 - y1;
     dashIndex = *pDashIndex;
     pDash = pdc->dash_list;
     dashRemain = pDash[dashIndex] - *pDashOffset;
+
+#if 0
+    gal_pixel       fgPixel;
+    gal_pixel       bgPixel;
+
     fgPixel = pdc->pencolor;
     bgPixel = pdc->bkcolor;
-
     if (pdc->brush_type == BT_OPAQUE_STIPPLED || pdc->brush_type == BT_TILED) {
         bgPixel = fgPixel;
     }
+#endif
 
     l = ((double) pdc->pen_width) / 2.0;
     if (dx == 0) {

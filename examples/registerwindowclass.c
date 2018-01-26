@@ -3,8 +3,7 @@
 #define MSG_SET_STEP_INFO   (MSG_USER + 1)
 #define MSG_SET_CURR_STEP   (MSG_USER + 2)
 
-static int StepControlProc (HWND hwnd, 
-                int message, WPARAM wParam, LPARAM lParam)
+static LRESULT StepControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
     HELPWININFO* info;

@@ -1199,12 +1199,12 @@ void mnuDumpMenuItem (PMENUITEM pmi)
     printf ("\tmenu state:      %#x\n", pmi->mnustate);
     printf ("\tmenu id:         %d\n", pmi->id);
     printf ("\tchecked bitmap:  0x%p\n", pmi->checkedbmp);
-    printf ("\tunchecked bitmap: 0x%p\n", pmi->uncheckedbmp);
-    printf ("\titem data:       %lu\n", pmi->itemdata);
+    printf ("\tunchecked bitmap:0x%p\n", pmi->uncheckedbmp);
+    printf ("\titem data:       %p\n", (PVOID)pmi->itemdata);
     if (pmi->mnutype == MFT_STRING)
         printf ("\tstring:         %s\n", (char*)pmi->typedata);
     else
-        printf ("\ttype data:      %lu\n", pmi->typedata);
+        printf ("\ttype data:      %p\n", (PVOID)pmi->typedata);
     printf ("\tnext item:       0x%p\n", pmi->next);
     
     if (pmi->submenu) {
@@ -1344,7 +1344,7 @@ static void mnuDrawMenuBarItem (HWND hwnd, HDC hdc, PMENUITEM pmi,
         return;
 
     if (!pWin->we_rdr) {
-        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %x\n", (int)pWin);
+        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 
@@ -1408,8 +1408,8 @@ static void mnuDrawMenuBarItem (HWND hwnd, HDC hdc, PMENUITEM pmi,
         lighter_dword = pWin->we_rdr->calc_3dbox_color 
             (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-        darker_pixel = DWORD2PIXEL (hdc, darker_dword);
-        lighter_pixel = DWORD2PIXEL (hdc, lighter_dword);
+        darker_pixel = DWORD2Pixel (hdc, darker_dword);
+        lighter_pixel = DWORD2Pixel (hdc, lighter_dword);
 
         if (rect.top < rect.bottom - 2)
         {
@@ -1991,7 +1991,7 @@ static int mnuDrawMenuPic (HWND hwnd, HDC hdc, RECT* rect,
 
     if (!pWin->we_rdr) 
     {
-        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %x\n", (int)pWin);
+        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
 
@@ -2242,7 +2242,7 @@ static void draw_bottom_scroll_button(PTRACKMENUINFO ptmi)
 
     if (!pWin->we_rdr)
     {
-        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %x\n", (int)pWin);
+        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 
@@ -2283,7 +2283,7 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
 
     if (!pWin->we_rdr)
     {
-        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %x\n", (int)pWin);
+        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
 
@@ -2331,8 +2331,8 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
     lighter_dword = pWin->we_rdr->calc_3dbox_color 
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2PIXEL (HDC_SCREEN_SYS, darker_dword);
-    lighter_pixel = DWORD2PIXEL (HDC_SCREEN_SYS, lighter_dword);
+    darker_pixel = DWORD2Pixel (HDC_SCREEN_SYS, darker_dword);
+    lighter_pixel = DWORD2Pixel (HDC_SCREEN_SYS, lighter_dword);
 
     if ((ptmi->rc.bottom > g_rcScr.bottom) 
             && ((ptmi->rc.bottom - ptmi->rc.top) > g_rcScr.bottom)){
@@ -2604,7 +2604,7 @@ static void draw_top_scroll_button(PTRACKMENUINFO ptmi)
 
     if (!pWin->we_rdr)
     {
-        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %x\n", (int)pWin);
+        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 
@@ -2648,7 +2648,7 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
 
     if (!pWin->we_rdr)
     {
-        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %x\n", (int)pWin);
+        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
 
@@ -2668,8 +2668,8 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
     lighter_dword = pWin->we_rdr->calc_3dbox_color 
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2PIXEL (HDC_SCREEN_SYS, darker_dword);
-    lighter_pixel = DWORD2PIXEL (HDC_SCREEN_SYS, lighter_dword);
+    darker_pixel = DWORD2Pixel (HDC_SCREEN_SYS, darker_dword);
+    lighter_pixel = DWORD2Pixel (HDC_SCREEN_SYS, lighter_dword);
 
     h = get_start_to_end_height(ptmi);
     if ( (h + ptmi->top_scroll_rc.bottom) <= ptmi->bottom_scroll_rc.bottom){
@@ -3079,7 +3079,7 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
 
     if (!pWin->we_rdr)
     {
-        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %x\n", (int)pWin);
+        _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 

@@ -31,8 +31,8 @@ extern "C" {
 #define GAL_LIL_ENDIAN  MGUI_LIL_ENDIAN
 #define GAL_BIG_ENDIAN  MGUI_BIG_ENDIAN
 
-#define GAL_OutOfMemory()   fprintf (stderr, "Out of memory\n")
-#define GAL_SetError        printf
+#define GAL_OutOfMemory()   _ERR_PRINTF("NEWGAL: Out of memory\n")
+#define GAL_SetError        _ERR_PRINTF
 #define GAL_ClearError()
 
 /* Transparency definitions: These define alpha as the opacity of a surface */
@@ -63,7 +63,8 @@ typedef struct GAL_Surface {
     GAL_PixelFormat *format;            /* Read-only */
     void *video;                        /* Read-only */
     int w, h;                           /* Read-only */
-    Uint32 pitch;                       /* Read-only */
+    /* VW[2018-01-18]: For 64b, use signed int instead of Uint32 for pitch. */
+    int pitch;                          /* Read-only */
     void *pixels;                       /* Read-write */
     int offset;                         /* Private */
 

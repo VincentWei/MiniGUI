@@ -1,4 +1,4 @@
-static int DepInfoBoxProc (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT DepInfoBoxProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     struct _DepInfo *info;
    

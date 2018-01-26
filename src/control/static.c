@@ -31,8 +31,8 @@
 
 #include "static_impl.h"
 
-static int 
-StaticControlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT
+StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     RECT        rcClient;
     HDC         hdc;

@@ -56,15 +56,14 @@ void __mg_remove_client (int cli, int clifd);
 
 int __mg_handle_request (int clifd, int req_id, int cli);
 
-int __mg_send2client (MSG* msg, MG_Client* client);
+int __mg_send2client (const MSG* msg, MG_Client* client);
 void __mg_set_active_client (MG_Client* client);
 
 void __mg_start_server_desktop (void);
 int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode, 
                 int message, WPARAM wParam, LPARAM lParam);
-int __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info);
-int __mg_do_zorder_maskrect_operation (int cli, 
-        const ZORDERMASKRECTOPINFO* info);
+intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info);
+intptr_t __mg_do_zorder_maskrect_operation (int cli, const ZORDERMASKRECTOPINFO* info);
 int __mg_remove_all_znodes_of_client (int cli);
 
 int __mg_handle_normal_mouse_move (const ZORDERINFO* zi, int x, int y);

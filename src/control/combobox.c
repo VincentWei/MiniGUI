@@ -47,7 +47,7 @@
 #define DEC_BOX 2
 static int mouse_old = 0;
 
-static int ComboBoxCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT ComboBoxCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterComboBoxControl (void)
 {
@@ -64,7 +64,7 @@ BOOL RegisterComboBoxControl (void)
     return AddNewControlClass (&WndClass) == ERR_OK;
 }
 
-static int AutoSpinEditBoxProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT AutoSpinEditBoxProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     WNDPROC old_edit_proc;
 
@@ -315,7 +315,7 @@ static void OnSizeChanged (PCONTROL pCtrl, DWORD dwStyle, const RECT* rcClient)
     }
 }
 
-static int ComboBoxCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PCONTROL      pCtrl   = gui_Control (hwnd);
     PCOMBOBOXDATA pData   = (PCOMBOBOXDATA)pCtrl->dwAddData2;

@@ -186,11 +186,12 @@ struct tagDC
 
     /* === context information. ============================================= */
     /* DK[01/22/10]:This segment is binary compatible with _COMP_CTXT struct */
-    int step;
-    gal_uint8* cur_dst;
-    gal_pixel skip_pixel;
-    gal_pixel cur_pixel;
-    void * user_comp_ctxt;
+    /* VW[01/18/18]:Adjust the fields sequence for 64-bit to ensure 8-byte alignment */
+    gal_uint8*  cur_dst;
+    void*       user_comp_ctxt;
+    gal_pixel   skip_pixel;
+    gal_pixel   cur_pixel;
+    int         step;
     /* ====================================================================== */
 
     CLIPRECT* cur_ban;
@@ -212,7 +213,7 @@ struct tagDC
     CB_BITMAP_SCALER_FUNC bitmap_scaler;
 };
 
-#define PDC_TO_COMP_CTXT(pdc) ((COMP_CTXT* )(&pdc->step))
+#define PDC_TO_COMP_CTXT(pdc) ((COMP_CTXT* )(&pdc->cur_dst))
 
 extern DC __mg_screen_dc;
 extern DC __mg_screen_sys_dc;

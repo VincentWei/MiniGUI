@@ -911,7 +911,7 @@ static BOOL gridview_is_pt_in_control(gvGridViewData* view, int x, int y)
     if(cell != NULL)
     {
         HWND ctrl = cell->func->get_control(cell, view, row, col);
-        if(ctrl != -1 && gridview_is_pt_in_hwnd_rect(view->hCtrl, ctrl, x, y))
+        if(ctrl != HWND_INVALID && gridview_is_pt_in_hwnd_rect(view->hCtrl, ctrl, x, y))
             return TRUE;
     }
     return FALSE;
@@ -1293,7 +1293,7 @@ static int gridview_init(HWND hWnd, GRIDVIEWDATA* data)
     // set window handles
     view->ctrl_id = GetDlgCtrlID(hWnd);
     view->hCtrl = hWnd;
-    view->hEdit = -1;
+    view->hEdit = HWND_INVALID;
     //initialize modal
     view->modal = GridDataModalArray_new_modal(data->nr_rows, data->nr_cols);
     //set table properties
@@ -1583,7 +1583,7 @@ void GridDataModalArray_delete_modal(gvGridDataModal* modal)
 // }}}
 
 
-static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     gvGridViewData* view = NULL;
     if (message != MSG_CREATE)
@@ -1616,7 +1616,7 @@ static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
             int row, col;
             HDC hdc = BeginPaint(hWnd);
 
-            if(view->hEdit != -1)
+            if(view->hEdit != HWND_INVALID)
             {
                 RECT r;
                 GetWindowRect(view->hEdit, &r);
@@ -1689,7 +1689,7 @@ static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
             int x = LOSWORD (lParam);
             int y = HISWORD (lParam);
         
-            if(view->hEdit != -1)
+            if(view->hEdit != HWND_INVALID)
             {
                 int row, col;
                 if(!gridview_is_pt_in_hwnd_rect(view->hCtrl, view->hEdit, x, y))
@@ -1749,7 +1749,7 @@ static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
                 ScreenToClient(hWnd, &x, &y);
                 ReleaseCapture();
             }
-            else if(view->hEdit != -1)
+            else if(view->hEdit != HWND_INVALID)
                 break;
 
             switch(view->mouse_status)
@@ -1786,7 +1786,7 @@ static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
             int y = HISWORD (lParam);
             
             GetClientRect(hWnd, &rect);
-            if(view->hEdit != -1)
+            if(view->hEdit != HWND_INVALID)
                 break;
             is_capture = (GetCapture() == hWnd);
             if (is_capture) {
@@ -1827,7 +1827,7 @@ static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
 // MiniGUI key Messages {{{
         case MSG_KEYDOWN:
         {
-            if(view->hEdit != -1)
+            if(view->hEdit != HWND_INVALID)
                 return DefaultControlProc(hWnd, message, wParam, lParam);
             else
             {
@@ -1971,7 +1971,7 @@ static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
             RECT rect;
             if(view->current_row > 0 && view->current_col > 0)
             {
-                if (view->hEdit == -1 && isalnum(wParam))
+                if (view->hEdit == HWND_INVALID && isalnum(wParam))
                 {
                     get_cell_rect(view, view->current_row, view->current_col, &rect);
                     gridview_make_rect_visible(view, &rect);
@@ -1987,13 +1987,13 @@ static int GridViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPara
 // MiniGUI scroll Messages {{{
         case MSG_HSCROLL:
         {
-            if (view->hEdit != -1)
+            if (view->hEdit != HWND_INVALID)
                 SendMessage(view->hEdit, MSG_KEYDOWN, SCANCODE_ENTER, 0);
             break;
         }
         case MSG_VSCROLL:
         {
-            if (view->hEdit != -1)
+            if (view->hEdit != HWND_INVALID)
                 SendMessage(view->hEdit, MSG_KEYDOWN, SCANCODE_ENTER, 0);
             break;
         }

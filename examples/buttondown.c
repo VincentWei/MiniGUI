@@ -3,7 +3,7 @@
  * This example trys to handle the event when the user presses 
  * left button and right button of the mouse at the same time.
  */
-int MyWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT MyWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
         case MSG_LBUTTONDOWN:

@@ -72,7 +72,7 @@
 #define MCCLR_DF_WEEKCAPTBK     GetWindowElementPixel(hWnd, WE_BGC_HIGHLIGHT_ITEM)
 #define MCCLR_DF_WEEKCAPTTEXT   GetWindowElementPixel(hWnd, WE_FGC_HIGHLIGHT_ITEM)
 
-static int MonthCalendarCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterMonthCalendarControl (void)
 {
@@ -866,7 +866,7 @@ static void mcKeyOperations (HWND hWnd, PMONCALDDATA mc_data, WPARAM wParam)
 
 /********************************************************************************/
 
-static int MonthCalendarCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
     PMONCALDDATA    mc_data = NULL;

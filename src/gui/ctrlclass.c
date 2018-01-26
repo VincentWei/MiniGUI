@@ -527,7 +527,7 @@ BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle)
 void mnuDumpCtrlClassInfo (PCTRLCLASSINFO cci)
 {
     printf ("\tClass Name:             %s\n", cci->name);
-    printf ("\tClass Cursor:           %x\n", cci->hCursor);
+    printf ("\tClass Cursor:           %p\n", cci->hCursor);
     printf ("\tClass Background color: %d\n", cci->iBkColor);
     printf ("\tClass Control Proc:     %p\n", cci->ControlProc);
     printf ("\tClass Use Count:        %d\n", cci->nUseCount);

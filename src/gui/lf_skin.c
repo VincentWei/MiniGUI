@@ -1164,7 +1164,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1173,7 +1173,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1182,7 +1182,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1191,7 +1191,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1200,7 +1200,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1209,7 +1209,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1218,7 +1218,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -3233,7 +3233,7 @@ draw_tab (HWND hWnd, HDC hdc, RECT *pRect, char *title, DWORD color, int flag, H
     }
 
     /* draw the TEXT */
-    //SetBkColor (hdc, DWORD2PIXEL (hdc, color));
+    //SetBkColor (hdc, DWORD2Pixel (hdc, color));
     SetBkMode (hdc, BM_TRANSPARENT);
     text_extent -= 4;
     eff_len = GetTextExtentPoint (hdc, title, strlen(title),

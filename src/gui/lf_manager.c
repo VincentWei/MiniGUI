@@ -59,8 +59,7 @@ static LFINFO wnd_lf_info [MAX_NR_RENDERERS] =
 /** The default renderer */
 WINDOW_ELEMENT_RENDERER * __mg_def_renderer = &__mg_wnd_rdr_classic;
 
-const WINDOW_ELEMENT_RENDERER* 
-GUIAPI GetWindowRendererFromName (const char* name)
+WINDOW_ELEMENT_RENDERER* GUIAPI GetWindowRendererFromName (const char* name)
 {
     int i;
     if (NULL == name)
@@ -177,7 +176,7 @@ BOOL GUIAPI RemoveWindowElementRenderer (const char* name)
     return TRUE;
 }
 
-const WINDOW_ELEMENT_RENDERER * GUIAPI GetDefaultWindowElementRenderer (void)
+WINDOW_ELEMENT_RENDERER * GUIAPI GetDefaultWindowElementRenderer (void)
 {
     return __mg_def_renderer;
 }
@@ -600,7 +599,7 @@ void dump_window_element_data (HWND hwnd)
                 break;
 
             case WE_ATTR_TYPE_COLOR: 
-                _MG_PRINTF ("\tcolor in list: %x.\n", wed->data); 
+                _MG_PRINTF ("\tcolor in list: %p.\n", (PVOID)wed->data); 
         }
     }
     _MG_PRINTF ("GUI>DumpWED: Done\n");
@@ -636,7 +635,7 @@ DWORD GUIAPI SetWindowElementAttr (HWND hwnd, int we_attr_id, DWORD we_attr)
 
             case WE_ATTR_TYPE_COLOR: {
                 int color_index = (we_attr_id & WE_ATTR_TYPE_COLOR_MASK) >> 8;
-                old_data = __mg_def_renderer->we_colors[index][color_index];
+                old_data = (DWORD)__mg_def_renderer->we_colors[index][color_index];
                 __mg_def_renderer->we_colors[index][color_index] = we_attr;
                 return old_data;
             }
@@ -644,8 +643,8 @@ DWORD GUIAPI SetWindowElementAttr (HWND hwnd, int we_attr_id, DWORD we_attr)
             case WE_ATTR_TYPE_ICON:
             {
                 int icon_idx = (we_attr_id & WE_ATTR_TYPE_ICON_MASK) >> 8;
-                old_data = __mg_def_renderer->we_icon [icon_idx][index];
-                __mg_def_renderer->we_icon [icon_idx][index] = we_attr;
+                old_data = (DWORD)__mg_def_renderer->we_icon [icon_idx][index];
+                __mg_def_renderer->we_icon [icon_idx][index] = (HICON)we_attr;
                 return old_data;
             }
 
@@ -711,7 +710,7 @@ GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
     b = GetBValue (data);
     a = GetAValue (data);
 
-    if (hdc == -1) {
+    if (hdc == HDC_INVALID) {
         if (hwnd == HWND_NULL || hwnd == HWND_DESKTOP)
             pixel = RGBA2Pixel (HDC_SCREEN, r, g, b, a);
         else {
@@ -822,10 +821,11 @@ BOOL mg_InitLFManager (void)
 
     /** be sure to success initializing default renderer */
     rdr = wnd_lf_info[0].wnd_rdr;
-    if (NULL == rdr)   return FALSE;
+    if (NULL == rdr) 
+        return FALSE;
 
     if (rdr->init && 0 != rdr->init (rdr)) {
-        _MG_PRINTF ("GUI>InitLFM: fail to initialize default renderer's private info.\n");
+        _MG_PRINTF ("GUI>InitLFM: failed to initialize default renderer's private info.\n");
         return FALSE;
     }
 

@@ -325,7 +325,7 @@ int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
     return 0;
 }
 
-static int ScrollBarCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PSCROLLBARDATA data;
     PCONTROL pCtrl;

@@ -31,7 +31,7 @@
 
 #define ITEMBARWIDTH    8
 
-static int CoolBarCtrlProc (HWND hWnd, int uMsg, WPARAM wParam, LPARAM lParam);
+static LRESULT CoolBarCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterCoolBarControl (void)
 {
@@ -317,7 +317,7 @@ static void set_item_rect (HWND hwnd, PCOOLBARCTRL TbarData, COOLBARITEMDATA* pt
     ptemp->hinty = ptemp->RcTitle.bottom;
 }
 
-static int CoolBarCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC              hdc;
     PCOOLBARCTRL     TbarData;

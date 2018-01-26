@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 3.0.13)
+AC_INIT(libminigui, 3.2.0)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -15,8 +15,8 @@ dnl Set various version strings - taken gratefully from the SDL sources
 # set MINIGUI_BINARY_AGE and MINIGUI_INTERFACE_AGE to 0.
 #
 MINIGUI_MAJOR_VERSION=3
-MINIGUI_MINOR_VERSION=0
-MINIGUI_MICRO_VERSION=13
+MINIGUI_MINOR_VERSION=2
+MINIGUI_MICRO_VERSION=0
 MINIGUI_INTERFACE_AGE=0
 MINIGUI_BINARY_AGE=0
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
@@ -82,11 +82,15 @@ dnl ========================================================================
 dnl User selectable options
 
 dnl System wide options
+devel_mode="no"
 use_debug="no"
 trace_message="no"
 message_string="no"
-procs_version="no"
+
+runtime_mode="procs"
+
 stand_alone="no"
+
 incore_res="no"
 use_miniguientry="no"
 fixed_math="yes"
@@ -159,7 +163,7 @@ build_incorefont_times="yes"
 
 build_sef_support="no"
 build_qpf_support="no"
-use_ttf_lib="none"
+use_ttf_lib="ft2"
 build_ttfcache_support="no"
 build_bmpf_support="yes"
 
@@ -278,6 +282,10 @@ build_productid="no"
 build_splash="yes"
 build_screensaver="no"
 
+AC_ARG_ENABLE(develmode,
+[  --enable-develmode       developer mode <default=no>],
+devel_mode=$enableval)
+
 AC_ARG_ENABLE(debug,
 [  --enable-debug           build with debugging messages <default=no>],
 use_debug=$enableval)
@@ -290,9 +298,9 @@ AC_ARG_ENABLE(msgstr,
 [  --enable-msgstr          include symbol name of message <default=no>],
 message_string=$enableval)
 
-AC_ARG_ENABLE(procs,
-[  --enable-procs           build MiniGUI-Processes version <default=no>],
-procs_version=$enableval)
+AC_ARG_WITH(runmode,
+[  --with-runmode=procs/ths/sa  the MiniGUI runtime mode <default=procs>],
+runtime_mode=$withval)
 
 AC_ARG_ENABLE(standalone,
 [  --enable-standalone      build MiniGUI-Standalone version <default=no>],
@@ -524,35 +532,11 @@ build_sef_support=$enableval)
 
 AC_ARG_WITH(ttfsupport,
 [  --with-ttfsupport=ft1/ft2/none   How to support TrueType font (FreeType 1/FreeType 2/None) <default=none>],
-[ case "$with_ttfsupport" in
-  ft1)
-    use_ttf_lib="ft1"
-dnl Check for FreeType1 library
-    AC_CHECK_LIB(ttf, TT_FreeType_Version,
-            DEP_LIBS="$DEP_LIBS -lttf",
-            use_ttf_lib="none")
-dnl ttf cache
-    AC_ARG_ENABLE(ttfcache,
-    [  --enable-ttfcache        include ttf cache support <default=no>],
-    build_ttfcache_support=$enableval)
-    ;;
+use_ttf_lib=$withval)
 
-  ft2)
-    use_ttf_lib="ft2"
-dnl Check for FreeType2 library
-    AC_CHECK_LIB(freetype, FT_Library_Version,
-        DEP_LIBS="$DEP_LIBS -lfreetype -lz -lpng12",
-        use_ttf_lib="none")
-dnl ttf cache
-    AC_ARG_ENABLE(ttfcache,
-    [  --enable-ttfcache        include ttf cache support <default=no>],
-    build_ttfcache_support=$enableval)
-    ;;
-  *)
-    use_ttf_lib="none"
-    ;;
-esac ]
-)
+AC_ARG_ENABLE(ttfcache,
+[  --enable-ttfcache        include ttf cache support <default=no>],
+build_ttfcache_support=$enableval)
 
 AC_ARG_ENABLE(bmpfsupport,
 [  --enable-bmpfsupport     build support for Bitmap Font (bmpf) <default=yes>],
@@ -1289,12 +1273,6 @@ CheckS3C6410Video()
 dnl ========================================================================
 dnl Checks for option-specific libraries and headers.
 
-if test "x$procs_version" = "xyes"; then
-  use_threads="no"
-else
-  use_threads="yes"
-fi
-
 dnl Checks NewGAL Engine.
 {
   CheckDummyVideo
@@ -1326,25 +1304,6 @@ dnl Checks NewGAL Engine.
 
 dnl ========================================================================
 dnl Checks for libraries.
-
-have_pthreads=no
-if test "x$use_threads" != "xno"; then
-  AC_MSG_CHECKING(for pthread library)
-  TMP_SAVE_LIBS=$LIBS
-  AC_TRY_LINK([
-#include "confdefs.h"
-#define __C_ASM_H /* fix for retarded Digital Unix headers */
-#include <pthread.h>],[
-void foo(void)
-{
-pthread_exit (0);
-}
-],
-    have_pthreads=yes
-    AC_MSG_RESULT(yes),
-    AC_MSG_RESULT(no))
-    LIBS=$TMP_SAVE_LIBS
-fi
 
 dnl Check for JPEG library.
 if test "x$build_jpg_support" != "xno"; then
@@ -1402,15 +1361,17 @@ case "$with_libsuffix" in
     ;;
     "")
         conf="MiniGUI.cfg"
-        if test "x$procs_version" = "xyes"; then
-            if test "x$stand_alone" = "xyes"; then
+        case "$runtime_mode" in
+            sa)
                 MGLIB_SUFFIX="sa"
-            else
+            ;;
+            ths)
+                MGLIB_SUFFIX="ths"
+            ;;
+            *)
                 MGLIB_SUFFIX="procs"
-            fi
-        else
-            MGLIB_SUFFIX="ths"
-        fi
+            ;;
+        esac
     ;;
     *)
         conf="MiniGUI.cfg"
@@ -1616,29 +1577,30 @@ fi
 
 CFLAGS="$CFLAGS -D__MINIGUI_LIB__"
 
-if test "x$stand_alone" = "xyes"; then
-    procs_version="yes"
-fi
-
-if test "x$procs_version" = "xyes"; then
-    if test "x$stand_alone" = "xyes"; then
+case "$runtime_mode" in
+    sa)
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
         AC_DEFINE(_STAND_ALONE, 1,
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Standalone (back-compatibility definition)])
-    else
+        MINIGUI_RUNMODE="sa"
+    ;;
+    ths)
+        AC_DEFINE(_MGRM_THREADS, 1,
+            [Define if build MiniGUI-Threads])
+        CFLAGS="$CFLAGS -D_REENTRANT"
+        MINIGUI_RUNMODE="ths"
+    ;;
+    *)
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         AC_DEFINE(_LITE_VERSION, 1,
             [Define if build MiniGUI-Processes (back-compatibility definition)])
-    fi
-else
-  AC_DEFINE(_MGRM_THREADS, 1,
-            [Define if build MiniGUI-Threads])
-  CFLAGS="$CFLAGS -D_REENTRANT"
-fi
+        MINIGUI_RUNMODE="procs"
+    ;;
+esac
 
 if test "x$incore_res" = "xno"; then
     AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
@@ -1677,6 +1639,76 @@ fi
 if test "x$fixed_math" = "xyes"; then
     AC_DEFINE(_MGHAVE_FIXED_MATH, 1,
             [Define if include fixed math routines])
+fi
+
+if test "x$devel_mode" = "xyes"; then
+    use_debug="yes"
+    message_string="yes"
+    trace_message="no"
+
+    build_auto_ial_engine="yes"
+    build_random_ial_engine="yes"
+    build_net_ial_engine="yes"
+
+    build_qpf_support="yes"
+
+    build_latin2_support="yes"
+    build_latin3_support="yes"
+    build_latin4_support="yes"
+    build_cyrillic_support="yes"
+    build_arabic_support="yes"
+    build_greek_support="yes"
+    build_hebrew_support="yes"
+    build_latin5_support="yes"
+    build_latin6_support="yes"
+    build_thai_support="yes"
+    build_latin7_support="yes"
+    build_latin8_support="yes"
+    build_latin10_support="yes"
+
+    build_gb18030_support="yes"
+    build_big5_support="yes"
+    build_euckr_support="yes"
+    build_eucjp_support="yes"
+    build_shiftjis_support="yes"
+
+    use_kbd_hebrewpc="yes"
+    use_kbd_arabicpc="yes"
+    use_kbd_frpc="yes"
+    use_kbd_fr="yes"
+    use_kbd_de="yes"
+    use_kbd_delatin1="yes"
+    use_kbd_it="yes"
+    use_kbd_es="yes"
+    use_kbd_escp850="yes"
+
+    build_ctrl_bidisledit="yes"
+    build_ctrl_textedit="yes"
+    build_ctrl_scrollview="yes"
+    build_ctrl_monthcal="yes"
+    build_ctrl_treeview="yes"
+    build_ctrl_treeview_rdr="yes"
+    build_ctrl_spinbox="yes"
+    build_ctrl_coolbar="yes"
+    build_ctrl_listview="yes"
+    build_ctrl_iconview="yes"
+    build_ctrl_gridview="yes"
+
+    enable_video_commlcd="yes"
+    enable_video_shadow="yes"
+    enable_video_mlshadow="yes"
+    enable_video_custom="yes"
+
+    build_screensaver="yes"
+fi
+
+dnl Depedencies
+if test "x$build_ctrl_treeview" = "xyes"; then
+    build_ctrl_scrollview="yes"
+fi
+
+if test "x$build_ctrl_treeview_rdr" = "xyes"; then
+    build_ctrl_scrollview="yes"
 fi
 
 if test "x$use_debug" = "xyes"; then
@@ -1922,6 +1954,22 @@ if test "x$build_upf_support" = "xyes"; then
     fi
 fi
 
+dnl Check FreeType lib
+case "$use_ttf_lib" in
+  ft1)
+dnl Check for FreeType1 library
+    AC_CHECK_LIB(ttf, TT_FreeType_Version,
+            DEP_LIBS="$DEP_LIBS -lttf",
+            use_ttf_lib="none")
+    ;;
+  ft2)
+dnl Check for FreeType2 library
+    AC_CHECK_LIB(freetype, FT_Library_Version,
+        DEP_LIBS="$DEP_LIBS -lfreetype -lz -lpng12",
+        use_ttf_lib="none")
+    ;;
+esac
+
 dnl Dealing with TTF cache size 
 case "$use_ttf_lib" in
     ft1|ft2)
@@ -2000,6 +2048,7 @@ case "$use_ttf_lib" in
             FT1_INC_DIR="-I$with_ft1_includes"
         fi
 
+        DEP_LIBS="$DEP_LIBS -lttf"
         AC_SUBST(FT1_INC_DIR)
     ;;
     ft2)
@@ -2011,11 +2060,12 @@ case "$use_ttf_lib" in
                [  --with-ft2-includes=DIR    where the FreeType2 includes are])
 
         if test "x$with_ft2_includes" = "x"; then
-            FT2_INC_DIR="`freetype-config --cflags`"
+            FT2_INC_DIR="-I/usr/include/freetype2"
         else
             FT2_INC_DIR="-I$with_ft2_includes"
         fi
 
+        DEP_LIBS="$DEP_LIBS -lfreetype"
         AC_SUBST(FT2_INC_DIR)
     ;;
 esac
@@ -2382,28 +2432,33 @@ if test "x$build_productid" = "xyes"; then
             [Define if insert a productid into the library file])
 fi
 
-if test "$ac_cv_prog_gcc" = "yes"; then
-    CFLAGS="$CFLAGS -Wall -Wstrict-prototypes -pipe"
-fi
-
-# define _GNU_SOURCE for pthread_rwlock_t
-CFLAGS="$CFLAGS -D_GNU_SOURCE"
-# define _GNU_SOURCE for pthread_rwlock_t
-CFLAGS="$CFLAGS -D_GNU_SOURCE"
-
-if test "x$have_pthreads" = "xyes"; then
-    DEP_LIBS="$DEP_LIBS -lpthread"
-fi
-
 dnl ========================================================================
 dnl Write output
+
+dnl define _GNU_SOURCE for pthread_rwlock_t
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+
+if test "x$devel_mode" = "xyes"; then
+    if test "$ac_cv_prog_gcc" = "yes"; then
+        CPPFLAGS="$CPPFLAGS -Wall -Werror"
+    fi
+fi
+
+if test "$ac_cv_prog_gcc" = "yes"; then
+    CFLAGS="$CFLAGS -O2 -Wstrict-prototypes -pipe"
+fi
+
+if test "x$runtime_mode" = "xths"; then
+    DEP_LIBS="$DEP_LIBS -lpthread"
+fi
 
 AC_SUBST(VIDEO_SUBDIRS)
 AC_SUBST(VIDEO_DRIVERS)
 AC_SUBST(DEP_LIBS)
+AC_SUBST(MINIGUI_RUNMODE)
 
-AM_CONDITIONAL(MGRM_PROCESSES, test "x$procs_version" = "xyes")
-AM_CONDITIONAL(MGRM_STANDALONE, test "x$stand_alone" = "xyes")
+AM_CONDITIONAL(MGRM_PROCESSES, test "x$runtime_mode" = "xprocs")
+AM_CONDITIONAL(MGRM_STANDALONE, test "x$runtime_mode" = "xsa")
 AM_CONDITIONAL(MGIAL_CONSOLE, test "x$build_console_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_NEXUS, test "x$build_nexus_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_DLCUSTOM, test "x$build_dlcustom_ial_engine" = "xyes")
@@ -2417,8 +2472,6 @@ AM_CONDITIONAL(MGLIB_MVFB, test "x$with_libsuffix" = "xmvfb")
 AM_CONDITIONAL(MG_MINIMALGDI, test "x$build_minimalgdi" = "xyes")
 AM_CONDITIONAL(MG_ENABLE_SPLASH, test "x$build_splash" = "xyes")
 AM_CONDITIONAL(MG_ENABLE_SCREENSAVER, test "x$build_screensaver" = "xyes")
-#AM_CONDITIONAL(MGPLUS_FONT_SEF, test "x$build_sef_support" = "xyes")
-
 
 AC_OUTPUT(
 minigui.pc

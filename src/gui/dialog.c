@@ -120,7 +120,7 @@ HWND GUIAPI CreateMainWindowIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
         hFocus = (HWND)pCtrl;
     }
 #endif
-    if (SendMessage (hMainWin, MSG_INITDIALOG, hFocus, lParam)) {
+    if (SendMessage (hMainWin, MSG_INITDIALOG, (WPARAM)hFocus, lParam)) {
         if (hFocus)
             SetFocus (hFocus);
     }
@@ -215,7 +215,7 @@ BOOL GUIAPI EndDialog (HWND hDlg, int endCode)
     return TRUE;
 }
 
-int GUIAPI PreDefDialogProc (HWND hWnd, int message, 
+LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message, 
                 WPARAM wParam, LPARAM lParam)
 {
     HWND hCurFocus;
@@ -285,7 +285,7 @@ int GUIAPI PreDefDialogProc (HWND hWnd, int message,
             IncludeWindowStyle (hNewDef, BS_DEFPUSHBUTTON);
             InvalidateRect (hNewDef, NULL, TRUE);
 
-            return (int)hOldDef;
+            return (LRESULT)hOldDef;
         }
         break;
     }
@@ -628,8 +628,8 @@ HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
     return hCtl;
 }
 
-int GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, 
-            int message, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, 
+            UINT message, WPARAM wParam, LPARAM lParam)
 {
     HWND hCtrl;
 
@@ -772,7 +772,7 @@ int GUIAPI IsDlgButtonChecked (HWND hDlg, int idButton)
 }
 
 #ifdef _MGCTRL_STATIC
-static int MsgBoxProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT MsgBoxProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
     case MSG_INITDIALOG:
@@ -1077,14 +1077,14 @@ int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
 
         if (IsTiny) {
             if (id_icon != -1) {
-                CtrlData [i].dwAddData = GetSmallSystemIcon (id_icon);
+                CtrlData [i].dwAddData = (DWORD)GetSmallSystemIcon (id_icon);
             }
             rcIcon.right  = 16;
             rcIcon.bottom = 16;
         }
         else {
             if (id_icon != -1) {
-                CtrlData [i].dwAddData = GetLargeSystemIcon (id_icon);
+                CtrlData [i].dwAddData = (DWORD)GetLargeSystemIcon (id_icon);
                 MsgBoxData.hIcon       = GetSmallSystemIcon (id_icon);
             }
             rcIcon.right  = 32;

@@ -3,7 +3,7 @@
 **
 ** timer.c: The Timer module for MiniGUI-Threads.
 **
-** Copyright (C) 2003 ~ 2008 Feynman Software.
+** Copyright (C) 2003 ~ 2018 Feynman Software.
 ** Copyright (C) 1999 ~ 2002 Wei Yongming.
 **
 ** All rights reserved by Feynman Software.
@@ -28,6 +28,7 @@
 #include "timer.h"
 
 #ifdef _MGRM_PROCESSES
+#include "ourhdr.h"
 #include "client.h"
 #include "sharedres.h"
 #endif
@@ -38,7 +39,7 @@
 #define TIMER_ERR_SYS(text)
 #endif
 
-unsigned int __mg_timer_counter = 0;
+DWORD __mg_timer_counter = 0;
 static TIMER *timerstr[DEF_NR_TIMERS];
 
 #ifdef _MGRM_THREADS
@@ -53,7 +54,7 @@ static pthread_mutex_t timerLock;
 
 #ifdef _MGGAL_S3C6410
 #   define _MG_USE_BETTER_TIMER
-#endif /* __NOUNIX__ */
+#endif /* _MGGAL_S3C6410 */
 
 #ifdef _MG_USE_BETTER_TIMER
 #include <sys/times.h>
@@ -254,7 +255,7 @@ void mg_TerminateTimer (void)
 }
 
 /************************* Functions run in desktop thread *******************/
-void mg_dispatch_timer_message (unsigned int inter)
+void mg_dispatch_timer_message (DWORD inter)
 {
     int i;
 
@@ -350,15 +351,17 @@ void __mg_move_timer_last (TIMER* timer, int slot)
 }
 #endif
 
-BOOL GUIAPI SetTimerEx (HWND hWnd, int id, unsigned int speed, 
+BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed, 
                 TIMERPROC timer_proc)
 {
     int i;
-    PMSGQUEUE pMsgQueue;
     int slot = -1;
+    PMSGQUEUE pMsgQueue;
 
-    if (speed <= 0)
-    {
+    if (id == 0)
+        return FALSE;
+
+    if (speed == 0) {
         speed = 1;
     }
 
@@ -466,8 +469,8 @@ void mg_remove_timers_by_msg_queue (const MSGQUEUE* msg_que)
     TIMER_UNLOCK ();
 }
 
-/* If id <= 0, clear all timers of the window */
-int GUIAPI KillTimer (HWND hWnd, int id)
+/* If id == 0, clear all timers of the window */
+int GUIAPI KillTimer (HWND hWnd, LINT id)
 {
     int i;
     PMSGQUEUE pMsgQueue;
@@ -484,13 +487,13 @@ int GUIAPI KillTimer (HWND hWnd, int id)
 
     for (i = 0; i < DEF_NR_TIMERS; i++) {
         if ((timerstr [i] && timerstr [i]->hWnd == hWnd) && 
-                        (id <= 0 || timerstr [i]->id == id)) {
+                        (id == 0 || timerstr [i]->id == id)) {
             RemoveMsgQueueTimerFlag (pMsgQueue, i);
             free (timerstr[i]);
             timerstr [i] = NULL;
             killed ++;
 
-            if (id > 0) break;
+            if (id) break;
         }
     }
 
@@ -503,11 +506,14 @@ int GUIAPI KillTimer (HWND hWnd, int id)
     return killed;
 }
 
-BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed, 
+BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed, 
                 TIMERPROC timer_proc)
 {
     int i;
     PMSGQUEUE pMsgQueue;
+
+    if (id == 0)
+        return FALSE;
 
 #ifdef _MGRM_THREADS
     if (!(pMsgQueue = GetMsgQueueThisThread ()))
@@ -518,13 +524,13 @@ BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed,
 
     TIMER_LOCK ();
 
-    for (i=0; i<DEF_NR_TIMERS; i++) {
+    for (i = 0; i < DEF_NR_TIMERS; i++) {
       if (timerstr[i] && timerstr[i]->hWnd == hWnd && timerstr[i]->id == id) {
         /* Should clear old timer flags */
         RemoveMsgQueueTimerFlag (pMsgQueue, i);
         timerstr[i]->speed = speed;
         timerstr[i]->count = 0;
-        if (timer_proc != (TIMERPROC)0xFFFFFFFF)
+        if (timer_proc != (TIMERPROC)INV_PTR)
             timerstr[i]->proc = timer_proc;
         timerstr[i]->tick_count = 0;
 
@@ -537,13 +543,16 @@ BOOL GUIAPI ResetTimerEx (HWND hWnd, int id, unsigned int speed,
     return FALSE;
 }
 
-BOOL GUIAPI IsTimerInstalled (HWND hWnd, int id)
+BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
 {
     int i;
 
+    if (id == 0)
+        return FALSE;
+
     TIMER_LOCK ();
 
-    for (i=0; i<DEF_NR_TIMERS; i++) {
+    for (i = 0; i < DEF_NR_TIMERS; i++) {
         if ( timerstr[i] != NULL ) {
             if ( timerstr[i]->hWnd == hWnd && timerstr[i]->id == id) {
                 TIMER_UNLOCK ();
@@ -569,7 +578,7 @@ BOOL GUIAPI HaveFreeTimer (void)
     return FALSE;
 }
 
-unsigned int GUIAPI GetTickCount (void)
+DWORD GUIAPI GetTickCount (void)
 {
 #ifdef _MGRM_PROCESSES
     return SHAREDRES_TIMER_COUNTER;

@@ -49,7 +49,6 @@ typedef struct
 static int mousex = 0;
 static int mousey = 0;
 static ts_EVENT ts_event;
-static unsigned char state [NR_KEYS];
 
 static int port = 8800;
 
@@ -60,7 +59,7 @@ static struct sockaddr_in sin;
 static struct sockaddr_in pin;
 static int sock_descriptor;
 static int temp_sock_descriptor;
-static int address_size;
+static unsigned int address_size;
 static int n = 0;
 static MOUSE_EVENT *mouse_event;
 static char event_buf[100];

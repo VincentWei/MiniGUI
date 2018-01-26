@@ -366,12 +366,14 @@ int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
                 int nTabs, int *pTabPos, int nTabOrig, POINT* cur_pos)
 {
     TABBEDTEXTOUTEX_CTXT ctxt;
-    DEVFONT* sbc_devfont;
-    DEVFONT* mbc_devfont;
     int nr_delim_newline = 0, line_len = 0;
 
+#if 0
+    DEVFONT* sbc_devfont;
+    DEVFONT* mbc_devfont;
     sbc_devfont = pdc->pLogFont->sbc_devfont;
     mbc_devfont = pdc->pLogFont->mbc_devfont;
+#endif
 
     ctxt.pdc = pdc;
     ctxt.start_x = x;

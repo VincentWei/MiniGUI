@@ -94,7 +94,9 @@ static int PS2_Open(const char* mdev)
             return -1;
     }
     else {
-        write (mouse_fd, initdata_ps2, sizeof(initdata_ps2));
+        if (write (mouse_fd, initdata_ps2, sizeof(initdata_ps2)) < sizeof(initdata_ps2)) {
+            return -1;
+        }
     }
 
     return mouse_fd;

@@ -409,27 +409,27 @@ int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
         return 0;
 
     case SVM_SETITEMDRAW:
-        return (int)mglist_set_itemdraw (mglst, (SVITEM_DRAWFUNC)lParam);
+        return (LRESULT)mglist_set_itemdraw (mglst, (SVITEM_DRAWFUNC)lParam);
 
     case SVM_SETITEMINIT:
     {
         SVITEM_INITFUNC old_pfn;
         old_pfn = mglst->iop.initItem;
         mglst->iop.initItem = (SVITEM_INITFUNC)lParam;
-        return (int)old_pfn;
+        return (LRESULT)old_pfn;
     }
     case SVM_SETITEMDESTROY:
     {
         SVITEM_DESTROYFUNC old_pfn;
         old_pfn = mglst->iop.destroyItem;
         mglst->iop.destroyItem = (SVITEM_DESTROYFUNC)lParam;
-        return (int)old_pfn;
+        return (LRESULT)old_pfn;
     }
 
     case SVM_GETITEMADDDATA:
     {
         if (lParam)
-            return mglist_get_item_adddata(lParam);
+            return mglist_get_item_adddata((HITEM)lParam);
         else {
             HITEM hitem = (HITEM)mglist_getitem_byindex(mglst, wParam);
             return mglist_get_item_adddata(hitem);
@@ -523,7 +523,7 @@ int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
     {
         SVITEM_CMP oldcmp = mglst->itemCmp;
         mglst->itemCmp = (SVITEM_CMP)lParam;
-        return (int)oldcmp;
+        return (LRESULT)oldcmp;
     }
 
     case SVM_SORTITEMS:

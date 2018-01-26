@@ -1210,9 +1210,8 @@ static int RLEColorkeySurface(GAL_Surface *surface)
         Uint8 *rlebuf, *dst;
         int maxn;
         int y;
-        Uint8 *srcbuf, *curbuf, *lastline;
+        Uint8 *srcbuf, *lastline;
         int maxsize = 0;
-        int skip, run;
         int bpp = surface->format->BytesPerPixel;
         getpix_func getpix;
         Uint32 ckey, rgbmask;
@@ -1246,9 +1245,7 @@ static int RLEColorkeySurface(GAL_Surface *surface)
 
         /* Set up the conversion */
         srcbuf = (Uint8 *)surface->pixels+surface->offset;
-        curbuf = srcbuf;
         maxn = bpp == 4 ? 65535 : 255;
-        skip = run = 0;
         dst = rlebuf;
         rgbmask = ~surface->format->Amask;
         ckey = surface->format->colorkey & rgbmask;

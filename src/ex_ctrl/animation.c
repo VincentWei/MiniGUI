@@ -25,7 +25,7 @@
 #include "ctrlclass.h"
 #include "ctrl/animation.h"
 
-static int AnimationCtrlProc (HWND hwnd, int uMsg, WPARAM wParam, LPARAM lParam);
+static LRESULT AnimationCtrlProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterAnimationControl (void)
 {
@@ -266,7 +266,7 @@ static void setup_anim_mem_dc (HWND hwnd, ANIMATIONINFO* anim_info)
     ReleaseDC (hdc);
 }
 
-static int AnimationCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT AnimationCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     ANIMATIONINFO* anim_info = (ANIMATIONINFO*)GetWindowAdditionalData2 (hwnd);
 
@@ -362,11 +362,11 @@ static int AnimationCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPar
               //SetTimer (hwnd, ID_TIMER, anim_info->anim->time_unit);
               SetTimer (hwnd, ID_TIMER, 1);
           }
-          return (int)old;
+          return (LRESULT)old;
       }
       
     case ANM_GETANIMATION:
-        return (int)anim_info->anim;
+        return (LRESULT)anim_info->anim;
         
     case ANM_STARTPLAY: {
      
@@ -407,8 +407,8 @@ static int AnimationCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPar
         NotifyParent (hwnd, GetDlgCtrlID (hwnd), ANNC_CLICKED);
         break;
         
-        default:
-            break;
+    default:
+        break;
     }
     
     return DefaultControlProc (hwnd, message, wParam, lParam);

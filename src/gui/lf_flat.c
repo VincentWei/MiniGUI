@@ -540,7 +540,7 @@ static void draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
             pRect->right - 1, pRect->bottom - 1);
 
     if (flag & LFRDR_3DBOX_FILLED) {
-        SetBrushColor(hdc, DWORD2PIXEL (hdc, color)); 
+        SetBrushColor(hdc, DWORD2Pixel (hdc, color)); 
         FillBox(hdc,  pRect->left + 1, 
                 pRect->top + 1,
                 RECTWP(pRect) - 2, 
@@ -567,7 +567,7 @@ static void draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
     if (w < 6 || h < 6)
         return;
 
-    color_pixel = DWORD2PIXEL (hdc, color); 
+    color_pixel = DWORD2Pixel (hdc, color); 
 
     radius = w>h ? (h>>1)-1 : (w>>1)-1;
     center_x = pRect->left + (w>>1);
@@ -1101,7 +1101,7 @@ static void draw_normal_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1110,7 +1110,7 @@ static void draw_hilite_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1119,7 +1119,7 @@ static void draw_disabled_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1128,7 +1128,7 @@ static void draw_significant_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1137,7 +1137,7 @@ static void draw_normal_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1146,7 +1146,7 @@ static void draw_hilite_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -1155,7 +1155,7 @@ static void draw_disabled_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
-    old_bc = SetBrushColor (hdc, DWORD2PIXEL (hdc, color));
+    old_bc = SetBrushColor (hdc, DWORD2Pixel (hdc, color));
     FillBox (hdc, pRect->left, pRect->top, RECTWP (pRect), RECTHP (pRect));
     SetBrushColor (hdc, old_bc);
 }
@@ -3164,7 +3164,7 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     //fill background
     if (!(flag & LFRDR_TAB_ACTIVE)) {
         bkColor = GetWindowElementAttr(hWnd, WE_LFFLAT_TAB_NRMLCLR);
-        oldColor = SetBrushColor(hdc, DWORD2PIXEL(hdc, bkColor));
+        oldColor = SetBrushColor(hdc, DWORD2Pixel(hdc, bkColor));
     }
     else {
         //for active
@@ -3243,7 +3243,7 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
         
     if (title) {
         /* draw the TEXT */
-        SetBkColor (hdc, DWORD2PIXEL (hdc, color)); 
+        SetBkColor (hdc, DWORD2Pixel (hdc, color)); 
         SetBkMode (hdc, BM_TRANSPARENT);
         SetRect(&rc, x+offset, ty, rect->right - offset, by);
         DrawText(hdc, title, -1, &rc, DT_SINGLELINE | DT_VCENTER);

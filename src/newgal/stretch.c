@@ -157,7 +157,6 @@ int GAL_SoftStretch(GAL_Surface *src, GAL_Rect *srcrect,
                     GAL_Surface *dst, GAL_Rect *dstrect)
 {
 	int pos, inc;
-	int dst_width;
 	int dst_maxrow;
 	int src_row, dst_row;
 	Uint8 *srcp = NULL;
@@ -209,7 +208,6 @@ int GAL_SoftStretch(GAL_Surface *src, GAL_Rect *srcrect,
 	inc = (srcrect->h << 16) / dstrect->h;
 	src_row = srcrect->y;
 	dst_row = dstrect->y;
-	dst_width = dstrect->w*bpp;
 
 #ifdef USE_ASM_STRETCH
 	/* Write the opcodes for this stretch */

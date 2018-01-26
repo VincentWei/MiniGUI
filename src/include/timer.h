@@ -20,20 +20,20 @@ extern "C" {
 #define USEC_10MS       10000
 
 typedef struct _timer {
-    HWND    hWnd;
-    int     id;
-    unsigned int speed;
-    unsigned int count;
+    HWND        hWnd;
+    LINT        id;
+    DWORD       speed;
+    UINT_PTR    count;
 
-    TIMERPROC proc;
-    unsigned int tick_count;
-    PMSGQUEUE msg_queue;
+    TIMERPROC   proc;
+    UINT_PTR    tick_count;
+    PMSGQUEUE   msg_queue;
 } TIMER;
 typedef TIMER* PTIMER;
 
 BOOL mg_InitTimer (void);
 void mg_TerminateTimer (void);
-void mg_dispatch_timer_message (unsigned int inter);
+void mg_dispatch_timer_message (DWORD inter);
 void mg_remove_timers_by_msg_queue (const MSGQUEUE* msg_que);
 
 TIMER* __mg_get_timer (int slot);

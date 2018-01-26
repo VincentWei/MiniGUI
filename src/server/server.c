@@ -41,7 +41,7 @@
 #include "drawsemop.h"
 #include "license.h"
 
-extern unsigned int __mg_timer_counter;
+extern DWORD __mg_timer_counter;
 
 ON_NEW_DEL_CLIENT OnNewDelClient = NULL;
 

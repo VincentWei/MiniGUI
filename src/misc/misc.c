@@ -54,46 +54,46 @@ void __mg_rewind (FILE *fp);
 
 int my_fputs (const char *s, FILE *stream)
 {
-	int len = strlen (s);
-	int ret = 0;
-	
-	ret = fwrite (s, 1, len, stream);	
-	if (ret != len)
-		return EOF;
-	else
-		return ret;
+    int len = strlen (s);
+    int ret = 0;
+    
+    ret = fwrite (s, 1, len, stream);    
+    if (ret != len)
+        return EOF;
+    else
+        return ret;
 }
 
 char * my_fgets (char *s, int size, FILE *stream)
 {
-	int c;
-	int count = 0;
+    int c;
+    int count = 0;
 
-	while (!feof (stream)) {
-		if (fread (&c, 1, 1, stream) != 1) {
-			if (count == 0) 
-				return NULL;
-			else {
-				 s[count] = '\0';
-				 return s;
-			}
-		}
-		
-		if (c == EOF || (char)c == '\r' ||(char)c == '\n') {
-			s [count++] = (char)c;
-			s [count++] = '\0';
-			return s;
-		}
-		else
-			s[count++] = (char)c;
-	}
-	if (!count)
-		return NULL;
-	else
-	{
-		s[count] = '\0';
-		return s;
-	}	
+    while (!feof (stream)) {
+        if (fread (&c, 1, 1, stream) != 1) {
+            if (count == 0) 
+                return NULL;
+            else {
+                 s[count] = '\0';
+                 return s;
+            }
+        }
+        
+        if (c == EOF || (char)c == '\r' ||(char)c == '\n') {
+            s [count++] = (char)c;
+            s [count++] = '\0';
+            return s;
+        }
+        else
+            s[count++] = (char)c;
+    }
+    if (!count)
+        return NULL;
+    else
+    {
+        s[count] = '\0';
+        return s;
+    }    
 }
 #endif
 ///////////////////////////////
@@ -127,7 +127,10 @@ static BOOL LookForEtcFile (void)
     }
  
 
-    getcwd (etcfile, MAX_PATH);
+    if (getcwd (etcfile, MAX_PATH) == NULL) {
+        return FALSE;
+    }
+
     strcat (etcfile, "/");
     strcat (etcfile, ETCFILENAME);
     if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
@@ -151,41 +154,41 @@ static BOOL LookForEtcFile (void)
         }
     }
 
-	strcpy (etcfile, "/usr/local/etc/" ETCFILENAME);
-	if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
-			==  ETC_OK) {
-		strcpy (ETCFILEPATH, etcfile);
-		return TRUE;
-	}
+    strcpy (etcfile, "/usr/local/etc/" ETCFILENAME);
+    if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
+            ==  ETC_OK) {
+        strcpy (ETCFILEPATH, etcfile);
+        return TRUE;
+    }
 
-	strcpy (etcfile, "/etc/" ETCFILENAME);
-	if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
-			==  ETC_OK) {
-		strcpy (ETCFILEPATH, etcfile);
-		return TRUE;
-	}
+    strcpy (etcfile, "/etc/" ETCFILENAME);
+    if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
+            ==  ETC_OK) {
+        strcpy (ETCFILEPATH, etcfile);
+        return TRUE;
+    }
 
-	return FALSE;
+    return FALSE;
 
 #elif defined(WIN32)
-	sprintf(etcfile, "c:\\windows\\%s", ETCFILENAME);
+    sprintf(etcfile, "c:\\windows\\%s", ETCFILENAME);
     if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
                     ==  ETC_OK) {
         strcpy (ETCFILEPATH, etcfile);
         return TRUE;
     }
 
-	sprintf(etcfile, "c:\\%s", ETCFILENAME);
+    sprintf(etcfile, "c:\\%s", ETCFILENAME);
     if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
                     ==  ETC_OK) {
         strcpy (ETCFILEPATH, etcfile);
         return TRUE;
     }
-	return FALSE;
+    return FALSE;
 #elif defined(__THREADX__)
-	char etcpath[MAX_PATH]= "/flash/fhas2-cfg/";
-	strcpy (etcfile, etcpath);
-	strcat (etcfile, ETCFILENAME);
+    char etcpath[MAX_PATH]= "/flash/fhas2-cfg/";
+    strcpy (etcfile, etcpath);
+    strcat (etcfile, ETCFILENAME);
 #endif
     
     if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) 
@@ -207,7 +210,7 @@ BOOL mg_InitMgEtc (void)
         return FALSE;
     }
     
-	if (hMgEtc)
+    if (hMgEtc)
         return TRUE;
 
     if ( !(hMgEtc = LoadEtcFile (ETCFILEPATH)) )
@@ -1070,7 +1073,7 @@ GHANDLE GUIAPI FindSectionInEtc (GHANDLE hEtc,
     /* not found */
     if (bCreateNew) {
         if (petc->sect_nr_alloc <= 0)
-            return ETC_READONLYOBJ;
+            return (GHANDLE) ETC_READONLYOBJ;
 
         if (empty_section >= 0) {
             psect = petc->sections + empty_section;
@@ -1314,7 +1317,7 @@ void mswin_ping(void);
 void GUIAPI Ping(void)
 {
 #ifdef WIN32
-	mswin_ping();
+    mswin_ping();
 #else
     putchar ('\a');
     fflush (stdout);

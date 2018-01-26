@@ -591,7 +591,6 @@ static void _dc_draw_pixel_span_set_1 (COMP_CTXT* comp_ctxt, int w)
 static void _dc_draw_pixel_span_set_2 (COMP_CTXT* comp_ctxt, int w)
 {
     int step = comp_ctxt->step;
-//    printf("w=%d, %X\t", w, comp_ctxt->cur_pixel);
     if (comp_ctxt->cur_pixel != 0 || comp_ctxt->step != 1) {
         Uint16 * dest16 = (Uint16 *)comp_ctxt->cur_dst;
         if (w < 5 || step != 1)
@@ -608,7 +607,7 @@ static void _dc_draw_pixel_span_set_2 (COMP_CTXT* comp_ctxt, int w)
                     | (Uint16)comp_ctxt->cur_pixel);
             Uint32 * dest32;
             int count;
-            if ((Uint32)comp_ctxt->cur_dst & 3) // Ensure 4-byte alignment.
+            if ((UINT_PTR)comp_ctxt->cur_dst & 3) // Ensure 4-byte alignment.
             {
                 *dest16++ = (Uint16)comp_ctxt->cur_pixel;
                 --w;

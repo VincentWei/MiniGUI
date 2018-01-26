@@ -470,16 +470,24 @@ int AddResPath(const char* paths)
 
 int SetResPath(const char* path)
 {
-    if(path == NULL)
-        //ERR_RETV(RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "param path is null");
+    if(path == NULL) {
+#ifdef _DEBUG
+        ERR_RETV (RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "param path is null");
+#else
         return RES_RET_INVALID_PARAM;
+#endif
+    }
 
     //test path is valid directory
 #if  !defined(__NOUNIX__) && !defined(WIN32)
     struct stat buf;
-    if(stat(path, &buf) != 0 || !S_ISDIR(buf.st_mode))
-        //ERR_RETV(RES_RET_INVALID_PARAM,RES_RET_INVALID_PARAM, "param path (%s) is not a valid directory", path);
+    if(stat(path, &buf) != 0 || !S_ISDIR(buf.st_mode)) {
+#   ifdef _DEBUG
+        ERR_RETV (RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "param path (%s) is not a valid directory", path);
+#   else
         return RES_RET_INVALID_PARAM;
+#endif
+    }
 #endif
 
     if(usr_res_path != NULL)
@@ -493,9 +501,13 @@ int SetResPath(const char* path)
 int AddInnerRes(INNER_RES* inner_res, int count, BOOL bcopy)
 {
     int i;
-    if(inner_res == NULL || count <= 0)
-        //ERR_RETV(RES_RET_INVALID_PARAM,RES_RET_INVALID_PARAM,"param inner_res is null or count is less zero");
+    if (inner_res == NULL || count <= 0) {
+#ifdef _DEBUG
+        ERR_RETV (RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "param inner_res is null or count is less zero");
+#else
         return RES_RET_INVALID_PARAM;
+#endif
+    }
 
     RES_LOCK();
 
@@ -535,13 +547,23 @@ int AddSharedRes(const char* shared_name)
 int RegisterResType(int type, RES_TYPE_OPS* ops)
 {
     RES_TYPE_INFO *info;
-    if((type >= 0 && type < RES_TYPE_USER))
-        //ERR_RETV(RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "cannot register a predefined type(%d)", type);
+    if ((type >= 0 && type < RES_TYPE_USER)) {
+#ifdef _DEBUG
+        ERR_RETV(RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "cannot register a predefined type(%d)", type);
+#else
         return RES_RET_INVALID_PARAM;
+#endif
+    }
 
-    if(type >= RES_TYPE_USER_MAX || ops == NULL)
-        //ERR_RETV(RES_RET_INVALID_PARAM,RES_RET_INVALID_PARAM, "cannot register a null ops(%p) or type(%d) is invalid(type must be in %d-%d)", ops, type, RES_TYPE_USER, RES_TYPE_USER_MAX-1);
+    if (type >= RES_TYPE_USER_MAX || ops == NULL) {
+#ifdef _DEBUG
+        ERR_RETV(RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM,
+                "cannot register a null ops(%p) or type(%d) is invalid(type must be in %d-%d)",
+                ops, type, RES_TYPE_USER, RES_TYPE_USER_MAX-1);
+#else
         return RES_RET_INVALID_PARAM;
+#endif
+    }
 
     RES_LOCK();
     if((info = get_res_type_info(type)))
@@ -560,9 +582,13 @@ int RegisterResType(int type, RES_TYPE_OPS* ops)
 
 int UnregisterResType(int type)
 {
-    if(type >= 0 && type < RES_TYPE_USER)
-        //ERR_RETV(RES_RET_INVALID_PARAM,RES_RET_INVALID_PARAM, "cannot unregister predefined type(%d)", type);
+    if(type >= 0 && type < RES_TYPE_USER) {
+#ifdef _DEBUG
+        ERR_RETV (RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "cannot unregister predefined type(%d)", type);
+#else
         return RES_RET_INVALID_PARAM;
+#endif
+    }
 
     RES_LOCK();
     delete_user_type(type);
@@ -646,9 +672,13 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     void *data = NULL;
     char szfilename[MAX_PATH+1]={0};
 
-    if(res_name == NULL)
-        //ERR_RETV(NULL, NULL, "param res_name is NULL");
+    if (res_name == NULL) {
+#ifdef _DEBUG
+        ERR_RETV (NULL, type, "param res_name is NULL");
+#else
         return NULL;
+#endif
+    }
 
     RES_LOCK();
     key = Str2Key(res_name);
@@ -656,24 +686,33 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     entry = get_entry(&hash_table, key, TRUE);
     if(entry == NULL){
         RES_UNLOCK();
-        //ERR_RETV(NULL, NULL, "%s is not exists", res_name);
+#ifdef _DEBUG
+        ERR_RETV(NULL, type, "%s is not exists", res_name);
+#else
         return NULL;
+#endif
     }
 
     ti = get_res_type_info(type);
 
     if(ti == NULL){
         RES_UNLOCK();
-        //ERR_RETV(NULL, NULL, "type(%d) is invalid", type);
+#ifdef _DEBUG
+        ERR_RETV (NULL, type, "type(%d) is invalid", type);
+#else
         return NULL;
+#endif
     }
 
     if(!IsUsed(entry) || entry->type == RES_TYPE_INVALID)
         entry->type = type;
     else if(entry->type != type){
         RES_UNLOCK();
-        //ERR_RETV(NULL, NULL, "type is not match(resource\' type:%d != type:%d)", entry->type, type);
+#ifdef _DEBUG
+        ERR_RETV (NULL, type, "type is not match(resource\' type:%d != type:%d)", entry->type, type);
+#else
         return NULL;
+#endif
     }
 
     if(!IsUsed(entry)) //try load entry from file
@@ -709,17 +748,25 @@ void* GetResource(RES_KEY key)
 {
     RES_ENTRY * entry;
 
-    if(key == RES_KEY_INVALID)
-        //ERR_RETV(NULL, NULL, "key(%x) is invalid", key);
+    if(key == RES_KEY_INVALID) {
+#ifdef _DEBUG
+        ERR_RETV (NULL, -1, "key(%x) is invalid", key);
+#else
         return NULL;
+#endif
+    }
 
     RES_LOCK();
     entry = get_entry(&hash_table, key, FALSE);
     RES_UNLOCK();
 
-    if(entry == NULL || entry->data == NULL)
-        //ERR_RETV(NULL, NULL, "data is not exist");
+    if (entry == NULL || entry->data == NULL) {
+#ifdef _DEBUG
+        ERR_RETV (NULL, -1, "data is not exist");
+#else
         return NULL;
+#endif
+    }
 
     return entry->data;
 }
@@ -731,9 +778,13 @@ int AddResRef(RES_KEY key)
     RES_LOCK();
     entry = get_entry(&hash_table, key,FALSE);
     RES_UNLOCK();
-    if(entry == NULL)
-        //ERR_RETV(-1, -1, "resouce is not exist(key=%x)", key);
+    if (entry == NULL) {
+#ifdef _DEBUG
+        ERR_RETV (-1, -1, "resouce is not exist(key=%x)", key);
+#else
         return -1;
+#endif
+    }
     return ++entry->refcnt ;
 }
 
@@ -789,7 +840,7 @@ RES_KEY Str2Key (const char* str)
 #ifdef _DEBUG
 static void res_error(int type, const char* funcname, const char* strinfo, ... )
 {
-    char szformat[256]="\0";
+    char strbuff [256];
     static const char* errinfo[]={
         "invalid param",
         "key is not exits",
@@ -799,18 +850,16 @@ static void res_error(int type, const char* funcname, const char* strinfo, ... )
         "not implement",
         "res is in used"
     };
+    va_list va;
 
-    if(szformat){
-        va_list va;
-        va_start(va, strinfo);
-        vsprintf(szformat, strinfo, va);
-    }
+    va_start (va, strinfo);
+    vsnprintf (strbuff, 255, strinfo, va);
 
     fprintf (stderr, "SYSRES: (@%s)%s(ret %d): %s\n",
             funcname?funcname:"<>",
             type>=1&&type<=RES_RET_INUSED?errinfo[type-1]:"",
             type,
-            szformat);
+            strbuff);
 }
 #endif
 

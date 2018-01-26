@@ -78,7 +78,9 @@ static int IMPS2_Open (const char* mdev)
             return -1;
     }
     else {
-        write (mouse_fd, IMPS2_Param, sizeof (IMPS2_Param));
+        if (write (mouse_fd, IMPS2_Param, sizeof (IMPS2_Param)) < sizeof (IMPS2_Param)) {
+            return -1;
+        }
     }
 
     return mouse_fd;

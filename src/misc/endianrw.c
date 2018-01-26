@@ -102,34 +102,42 @@ int MGUI_WriteLE64 (MG_RWops *dst, Uint64 value)
 int MGUI_WriteBE64 (MG_RWops *dst, Uint64 value)
 {
 	value = ArchSwapBE64(value);
-	return(MGUI_RWwrite(dst, &value, (sizeof value), 1));
+	return (MGUI_RWwrite(dst, &value, (sizeof value), 1));
 }
 
 Uint16 MGUI_ReadLE16FP (FILE *src)
 {
 	Uint16 value;
+    size_t size;
 
-	fread (&value, (sizeof value), 1, src);
-	return(ArchSwapLE16(value));
+	size = fread (&value, (sizeof value), 1, src);
+    if (size < 1)
+        return -1;
+
+	return (ArchSwapLE16(value));
 }
 
 Uint32 MGUI_ReadLE32FP (FILE *src)
 {
 	Uint32 value;
+	size_t size;
 
-	fread(&value, (sizeof value), 1, src);
-	return(ArchSwapLE32(value));
+    size = fread(&value, (sizeof value), 1, src);
+    if (size < 1)
+        return -1;
+
+	return (ArchSwapLE32(value));
 }
 
 int MGUI_WriteLE16FP (FILE *dst, Uint16 value)
 {
 	value = ArchSwapLE16(value);
-	return(fwrite (&value, (sizeof value), 1, dst));
+	return (fwrite (&value, (sizeof value), 1, dst));
 }
 
 int MGUI_WriteLE32FP (FILE *dst, Uint32 value)
 {
 	value = ArchSwapLE32(value);
-	return(fwrite (&value, (sizeof value), 1, dst));
+	return (fwrite (&value, (sizeof value), 1, dst));
 }
 

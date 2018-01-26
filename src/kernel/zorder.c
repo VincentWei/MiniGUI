@@ -120,7 +120,7 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     __mg_zorder_info->active_win = 0;
 
     __mg_zorder_info->cli_trackmenu = -1;
-    __mg_zorder_info->ptmi_in_cli = -1;
+    __mg_zorder_info->ptmi_in_cli = (HWND)-1;
 
     /* Set zorder node usage map. */
     memset (__mg_zorder_info + 1, 0xFF, SIZE_USAGE_BMP);

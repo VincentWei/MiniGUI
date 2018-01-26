@@ -46,7 +46,7 @@ static HICON icon_fold, icon_unfold;
 #define FGC_HILIGHT_NORMAL WE_FGC_HIGHLIGHT_ITEM
 #define FGC_CONTROL_NORMAL WE_FGC_WINDOW
 
-static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterTreeViewControl (void)
 {
@@ -803,7 +803,7 @@ static int set_item_text (HWND hwnd, PTVDATA pData, PTVITEM item, const char* te
     return 0;
 }
 
-static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PTVDATA pData = NULL;
     DWORD dwStyle;
@@ -873,7 +873,7 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
 
         case TVM_GETROOT:
             pData = (PTVDATA) GetWindowAdditionalData2 (hwnd);
-            return (int) pData->root;
+            return (LRESULT) pData->root;
             break;
 
         case TVM_SEARCHITEM:
@@ -892,7 +892,7 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
                     return 0;
 
                 matched = findStringDepthFirst (pData, root, text);
-                return (int)matched;
+                return (LRESULT)matched;
             }
 
         case TVM_FINDCHILD:
@@ -911,12 +911,12 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
                     return 0;
 
                 matched = findStringInChildren (pData, item, text);
-                return (int)matched;
+                return (LRESULT)matched;
             }
 
         case TVM_GETSELITEM:
             pData = (PTVDATA) GetWindowAdditionalData2 (hwnd);
-            return (int)pData->pItemSelected;
+            return (LRESULT)pData->pItemSelected;
 
         case TVM_SETSELITEM:
             {
@@ -957,7 +957,7 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
                 }
 #endif
 
-                return (int)old_sel;
+                return (LRESULT)old_sel;
             }
 
         case TVM_GETRELATEDITEM:
@@ -972,13 +972,13 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
 
                 switch (related) {
                     case TVIR_PARENT:
-                        return (int)item->parent;
+                        return (LRESULT)item->parent;
                     case TVIR_FIRSTCHILD:
-                        return (int)item->child;
+                        return (LRESULT)item->child;
                     case TVIR_NEXTSIBLING:
-                        return (int)item->next;
+                        return (LRESULT)item->next;
                     case TVIR_PREVSIBLING:
-                        return (int)getPrev (pData, item);
+                        return (LRESULT)getPrev (pData, item);
                 }
 
                 return 0;
@@ -1108,9 +1108,9 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
                     if (pTVItemInfo->text == NULL || pTVItemInfo->text[0] == '\0')
                         pTVItemInfo->text = " ";
                     if (pTVItemInfo->hIconFold == 0)
-                        pTVItemInfo->hIconFold = (DWORD) ICON_FOLD;
+                        pTVItemInfo->hIconFold = (HICON) ICON_FOLD;
                     if (pTVItemInfo->hIconUnfold == 0)
-                        pTVItemInfo->hIconUnfold = (DWORD) ICON_UNFOLD;
+                        pTVItemInfo->hIconUnfold = (HICON) ICON_UNFOLD;
                 }
                 else {
                     return 0;
@@ -1141,8 +1141,8 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
                 }
 #endif
                 if (pData->dwStyle & TVS_WITHICON) {
-                    newItem->hIconFold = (DWORD) pTVItemInfo->hIconFold;
-                    newItem->hIconUnfold = (DWORD) pTVItemInfo->hIconUnfold;
+                    newItem->hIconFold = (HICON) pTVItemInfo->hIconFold;
+                    newItem->hIconUnfold = (HICON) pTVItemInfo->hIconUnfold;
                 } 
                 else {
                     newItem->hIconFold = 0L;
@@ -1158,7 +1158,7 @@ static int TreeViewCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPara
                 tvSetVScrollInfo (hwnd, pData, TRUE);
                 tvSetHScrollInfo (hwnd, pData, TRUE);
                 InvalidateRect (hwnd, NULL, TRUE);
-                return (int) newItem;    
+                return (LRESULT) newItem;    
             }
 
         case MSG_KEYDOWN:

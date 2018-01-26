@@ -1,7 +1,7 @@
 /* $Id: miarc.c 12871 2010-05-07 06:13:42Z wanzheng $ */
 /***********************************************************
 
-Copyright (C) 2005 ~ 2007  Feynman Software
+Copyright (C) 2005 ~ 2018  FMSoft
 
 Copyright 1987, 1998  The Open Group
 
@@ -1465,7 +1465,6 @@ static int miGetArcPts (SppArcPtr parc, int cpt, SppPointPtr *ppPts)
                 xc, yc;     /* the center point */
     int         count, i;
     SppPointPtr poly;
-    POINT last;             /* last point on integer boundaries */
 
     /* The spec says that positive angles indicate counterclockwise motion.
      * Given our coordinate system (with 0,0 in the upper left corner), 
@@ -1512,8 +1511,12 @@ static int miGetArcPts (SppArcPtr parc, int cpt, SppPointPtr *ppPts)
 
     poly[cpt].x = (xc + x0);
     poly[cpt].y = (yc + y0);
+
+#if 0
+    POINT last;             /* last point on integer boundaries */
     last.x = ROUNDTOINT( poly[cpt + 1].x = (xc + x1) );
     last.y = ROUNDTOINT( poly[cpt + 1].y = (yc + y1) );
+#endif
 
     for(i = 2; i < count; i++)
     {

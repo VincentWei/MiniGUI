@@ -14,7 +14,7 @@ BOOL listen_socket (HWND hwnd)
  * the window hwnd will receive a MSG_FDEVENT message.
  * Now the server can accept the request.
  */
-int MyWndProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT MyWndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
         

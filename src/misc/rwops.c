@@ -277,8 +277,8 @@ MG_RWops *MGUI_RWFromMem(void *mem, int size)
         rwops->eof   = mem_eof;
         rwops->hidden.mem.base = (Uint8 *)mem;
         rwops->hidden.mem.here = rwops->hidden.mem.base;
-        if ((0xFFFFFFFF - (Uint32)mem) < size)
-            rwops->hidden.mem.stop = (void*)0xFFFFFFFF;
+        if ((UINT_PTR_MAX - (UINT_PTR)mem) < size)
+            rwops->hidden.mem.stop = (void*)UINT_PTR_MAX;
         else
             rwops->hidden.mem.stop = rwops->hidden.mem.base+size;
 
@@ -299,8 +299,8 @@ void MGUI_InitMemRW (MG_RWops* area, void *mem, int size)
     area->eof   = mem_eof;
     area->hidden.mem.base = (Uint8 *)mem;
     area->hidden.mem.here = area->hidden.mem.base;
-    if ((0xFFFFFFFF - (Uint32)mem) < size)
-        area->hidden.mem.stop = (void*)0xFFFFFFFF;
+    if ((UINT_PTR_MAX - (UINT_PTR)mem) < size)
+        area->hidden.mem.stop = (void*)UINT_PTR_MAX;
     else
         area->hidden.mem.stop = area->hidden.mem.base+size;
 

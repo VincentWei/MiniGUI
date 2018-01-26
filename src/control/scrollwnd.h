@@ -50,8 +50,6 @@ typedef struct _swdata
 } SWDATA;
 typedef SWDATA *PSWDATA;
 
-
-int     ScrollWndCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
 int     scrollwnd_init (HWND hWnd, PSWDATA psv);
 void    scrollwnd_destroy (PSWDATA pswdata);
 void    scrollwnd_hscroll (HWND hWnd, PSWDATA pswdata, WPARAM wParam, LPARAM lParam);

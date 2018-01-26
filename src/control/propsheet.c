@@ -43,9 +43,8 @@
 #define WEC_TAB_LIGHT           32
 #define TAB_MARGIN 8
 
-static int 
-PropSheetCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
-
+static LRESULT
+PropSheetCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL RegisterPropSheetControl (void)
 {
@@ -112,7 +111,7 @@ static void show_hide_page (PPROPPAGE page, int show_cmd)
     ShowWindow (page->hwnd, show_cmd);
 
     focus = GetNextDlgTabItem (page->hwnd, (HWND)0, 0);
-    if (SendMessage (page->hwnd, MSG_SHOWPAGE, focus, show_cmd) && 
+    if (SendMessage (page->hwnd, MSG_SHOWPAGE, (WPARAM)focus, show_cmd) && 
         show_cmd == SW_SHOW) {
         if (focus) {
             SetFocus (focus);
@@ -628,7 +627,7 @@ static void draw_propsheet (HWND hwnd, HDC hdc, PCONTROL ctrl,
             scrollbtn_left = propsheet->head_rc.right - get_metrics (MWM_SB_WIDTH);
     }
 
-    old_brush_c = SetBrushColor (hdc, DWORD2PIXEL (hdc, main_c));
+    old_brush_c = SetBrushColor (hdc, DWORD2Pixel (hdc, main_c));
     while (page) {
         if (((ctrl->dwStyle & 0x0fL) == PSS_SCROLLABLE) && propsheet->overload == TRUE)
             if (((title_rc.right + page->width > scrollbtn_left) || (page->width == 0))
@@ -674,7 +673,7 @@ static void draw_propsheet (HWND hwnd, HDC hdc, PCONTROL ctrl,
          propsheet->overload == TRUE)  
         draw_scroll_button (hwnd, hdc, &title_rc, propsheet, ctrl->dwStyle);
 
-    SetBrushColor (hdc, DWORD2PIXEL(hdc, old_brush_c));
+    SetBrushColor (hdc, DWORD2Pixel(hdc, old_brush_c));
 }
 
 static int insert_new_page_normal_style (HWND hwnd, PPROPSHEETDATA propsheet, 
@@ -919,8 +918,8 @@ static BOOL delete_page (HWND hwnd, PCONTROL ctrl, PPROPSHEETDATA propsheet,
 
 
 /* window procedure of the property sheet. */
-static int 
-PropSheetCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT
+PropSheetCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PCONTROL      ctrl;
     PPROPSHEETDATA propsheet;
@@ -1046,8 +1045,7 @@ PropSheetCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
     }
 
     case PSM_GETACTIVEPAGE: {
-        return (propsheet->active) ? 
-          propsheet->active->hwnd : HWND_INVALID;
+        return (LRESULT)((propsheet->active) ?  propsheet->active->hwnd : HWND_INVALID);
     }
 
     case PSM_GETPAGE: {
@@ -1055,19 +1053,19 @@ PropSheetCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
         PPROPPAGE page = propsheet->head;
         while (page) {
             if (index == wParam) {
-                return page->hwnd;
+                return (LRESULT)page->hwnd;
             }
             index ++;
             page = page->next;
         }
-        return HWND_INVALID;
+        return (LRESULT)HWND_INVALID;
     }
         
     case PSM_GETPAGEINDEX: {
         int index = 0;
         PPROPPAGE page = propsheet->head;
         while (page) {
-            if (page->hwnd == wParam) {
+            if (page->hwnd == (HWND)wParam) {
                 return index;
             }
             index ++;

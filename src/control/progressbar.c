@@ -67,8 +67,8 @@ pbarOnNewPos (const CONTROL* pCtrl,
     InvalidateRect ((HWND)pCtrl, NULL, FALSE);
 }
 
-static int 
-ProgressBarCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT
+ProgressBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC           hdc;
     PCONTROL      pCtrl;

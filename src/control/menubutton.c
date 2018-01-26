@@ -40,7 +40,7 @@
 
 #define _INTER_BARTEXT   4
 
-static int MenuButtonCtrlProc (HWND hWnd, int message, WPARAM wParam, 
+static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, 
                 LPARAM lParam);
 
 BOOL RegisterMenuButtonControl (void)
@@ -453,7 +453,7 @@ error:
     return 0;
 }
 
-static int MenuButtonCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PMENUBTNDATA mb_data;
     WINDOWINFO  *wnd_info;

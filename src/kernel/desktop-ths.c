@@ -122,30 +122,32 @@ void* DesktopMain (void* data)
 
     /* process messages of desktop thread */
     while (GetMessage(&Msg, HWND_DESKTOP)) {
-        int iRet = 0;
+        LRESULT lRet = 0;
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s: hWnd: %#x, wP: %#x, lP: %#lx. %s\n",
-            Message2Str (Msg.message),
-            Msg.hwnd,
-            Msg.wParam,
-            Msg.lParam,
-            Msg.pAdd?"Sync":"Normal");
+        if (Msg.message != MSG_TIMEOUT && Msg.message != MSG_TIMER) {
+            fprintf (stderr, "Message %u (%s): hWnd: HWND_DESKTOP, wP: %p, lP: %p, tick: %u; %s\n",
+                Msg.message, Message2Str (Msg.message),
+                (PVOID)Msg.wParam, (PVOID)Msg.lParam, (UINT)Msg.time,
+                Msg.pAdd?"Sync":"Normal");
+        }
 #endif
 
-        iRet = DesktopWinProc (HWND_DESKTOP, 
+        lRet = DesktopWinProc (HWND_DESKTOP, 
                         Msg.message, Msg.wParam, Msg.lParam);
 
         if (Msg.pAdd) /* this is a sync message. */
         {
             PSYNCMSG pSyncMsg = (PSYNCMSG)(Msg.pAdd);
-            pSyncMsg->retval = iRet;
+            pSyncMsg->retval = lRet;
             sem_post(pSyncMsg->sem_handle);
         }
 
 #ifdef _MGHAVE_TRACE_MSG
-        fprintf (stderr, "Message, %s done, return value: %#x\n",
-            Message2Str (Msg.message), iRet);
+        if (Msg.message != MSG_TIMEOUT && Msg.message != MSG_TIMER) {
+            fprintf (stderr, "Message %u (%s) done, return value: %p\n",
+                Msg.message, Message2Str (Msg.message), (PVOID)lRet);
+        }
 #endif
     }
 

@@ -99,7 +99,7 @@ static int FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
                        NEO_BC0_SRC_IS_FG    |
                        NEO_BC3_SKIP_MAPPING |  0x0c0000;
 
-    neo2200->dstStart = (Uint32) dst_base +
+    neo2200->dstStart = (UINT_PTR) dst_base +
                         (rect->y * dst->pitch) + 
                         (rect->x * dst->format->BytesPerPixel);
 

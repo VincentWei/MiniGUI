@@ -43,8 +43,8 @@ typedef struct tagG_RES {
 
     GHANDLE topmost_layer;
 
-    unsigned int timer_counter;
-    unsigned int tick_on_locksem;
+    DWORD timer_counter;
+    DWORD tick_on_locksem;
     struct timeval timeout;
     struct termios savedtermio;
 #ifdef _MGRM_PROCESSES

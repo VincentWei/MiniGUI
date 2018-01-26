@@ -3,7 +3,7 @@
 **
 ** desktop-procs.c: The desktop procedures for MiniGUI-Processes
 **
-** Copyright (C) 2002 ~ 2008 Feynman Software.
+** Copyright (C) 2002 ~ 2018 FMSoft
 **
 ** Current maintainer: Wei Yongming.
 **
@@ -278,9 +278,9 @@ void __mg_start_client_desktop (void)
     SendMessage (HWND_DESKTOP, MSG_STARTSESSION, 0, 0);
 }
 
-static int cliAllocZOrderNode (PMAINWIN pWin)
+static intptr_t cliAllocZOrderNode (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -304,15 +304,15 @@ static int cliAllocZOrderNode (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliFreeZOrderNode (PMAINWIN pWin)
+static intptr_t cliFreeZOrderNode (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -323,15 +323,15 @@ static int cliFreeZOrderNode (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliMove2Top (PMAINWIN pWin)
+static intptr_t cliMove2Top (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -342,15 +342,15 @@ static int cliMove2Top (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliShowWindow (PMAINWIN pWin)
+static intptr_t cliShowWindow (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -361,15 +361,15 @@ static int cliShowWindow (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliHideWindow (PMAINWIN pWin)
+static intptr_t cliHideWindow (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -380,15 +380,15 @@ static int cliHideWindow (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliMoveWindow (PMAINWIN pWin, const RECT* rcWin)
+static intptr_t cliMoveWindow (PMAINWIN pWin, const RECT* rcWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -400,15 +400,15 @@ static int cliMoveWindow (PMAINWIN pWin, const RECT* rcWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliSetActiveWindow (PMAINWIN pWin)
+static intptr_t cliSetActiveWindow (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -419,16 +419,16 @@ static int cliSetActiveWindow (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
 #ifdef _MGHAVE_MENU
-static int cliStartTrackPopupMenu (PTRACKMENUINFO ptmi)
+static intptr_t cliStartTrackPopupMenu (PTRACKMENUINFO ptmi)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -440,15 +440,15 @@ static int cliStartTrackPopupMenu (PTRACKMENUINFO ptmi)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliEndTrackPopupMenu (PTRACKMENUINFO ptmi)
+static intptr_t cliEndTrackPopupMenu (PTRACKMENUINFO ptmi)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -460,15 +460,15 @@ static int cliEndTrackPopupMenu (PTRACKMENUINFO ptmi)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliForceCloseMenu (void)
+static intptr_t cliForceCloseMenu (void)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -478,16 +478,16 @@ static int cliForceCloseMenu (void)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 #endif
 
-static int cliEnableWindow (PMAINWIN pWin, int flags)
+static intptr_t cliEnableWindow (PMAINWIN pWin, int flags)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -499,21 +499,21 @@ static int cliEnableWindow (PMAINWIN pWin, int flags)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
+static intptr_t cliStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
     info.id_op = ID_ZOOP_STARTDRAG;
     info.idx_znode = pWin->idx_znode;
-    info.hwnd = (HWND)drag_info->location;
+    info.location = drag_info->location;
     info.rc.left = drag_info->init_x;
     info.rc.top = drag_info->init_y;
 
@@ -521,15 +521,15 @@ static int cliStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliCancelDragWindow (PMAINWIN pWin)
+static intptr_t cliCancelDragWindow (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -540,15 +540,15 @@ static int cliCancelDragWindow (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (int)) < 0)
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
 
     return ret;
 }
 
-static int cliChangeCaption (PMAINWIN pWin)
+static intptr_t cliChangeCaption (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
 
@@ -565,7 +565,7 @@ static int cliChangeCaption (PMAINWIN pWin)
     req.id = REQID_ZORDEROP;
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
-    if ((ret = ClientRequest (&req, &ret, sizeof (int))) < 0) {
+    if ((ret = ClientRequest (&req, &ret, sizeof (intptr_t))) < 0) {
         return -1;
     }
 
@@ -588,9 +588,9 @@ void __mg_start_server_desktop (void)
     SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
 }
 
-static int cliAllocZOrderMaskRect (HWND pWin, const RECT4MASK* rc, int nr_rc)
+static intptr_t cliAllocZOrderMaskRect (HWND pWin, const RECT4MASK* rc, int nr_rc)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDERMASKRECTOPINFO info;
 
@@ -607,16 +607,16 @@ static int cliAllocZOrderMaskRect (HWND pWin, const RECT4MASK* rc, int nr_rc)
     req.len_data = sizeof (info); 
 
     if ((ret = ClientRequestEx (&req, rc, sizeof(RECT4MASK)*nr_rc, 
-                &ret, sizeof (int))) < 0) {
+                &ret, sizeof (intptr_t))) < 0) {
         return -1;
     }
 
     return ret;
 }
 
-static int cliFreeZOrderMaskRect (PMAINWIN pWin)
+static intptr_t cliFreeZOrderMaskRect (PMAINWIN pWin)
 {
-    int ret;
+    intptr_t ret;
     REQUEST req;
     ZORDERMASKRECTOPINFO info;
 
@@ -628,7 +628,7 @@ static int cliFreeZOrderMaskRect (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof(ZORDERMASKRECTOPINFO);
 
-    if ((ret = ClientRequest (&req, &ret, sizeof (int))) < 0) {
+    if ((ret = ClientRequest (&req, &ret, sizeof (intptr_t))) < 0) {
         return -1;
     }
     return ret;
@@ -680,7 +680,7 @@ static BOOL _cb_update_cli_znode (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* znode)
 {
     RECT rcInv;
-    int cli = (int)context;
+    int cli = (int)(intptr_t)context;
 
     if (znode->cli == cli && znode->flags & ZOF_VISIBLE && znode->fortestinghwnd) {
        MSG msg = {znode->fortestinghwnd, MSG_UPDATECLIWIN, 0, 0, __mg_timer_counter};
@@ -706,20 +706,20 @@ void __mg_check_dirty_znode (int cli)
 {
     ZORDERINFO* zi = (ZORDERINFO *)get_zi_from_client (cli);
 
-    do_for_all_znodes ((void*)cli, zi, 
+    do_for_all_znodes ((void*)(intptr_t)cli, zi, 
                     _cb_update_cli_znode, ZT_TOPMOST | ZT_NORMAL);
 
     mgClients [cli].has_dirty = FALSE;
 }
 
-static int srvSetActiveWindow (int cli, int idx_znode)
+static intptr_t srvSetActiveWindow (int cli, int idx_znode)
 {
-    int ret = dskSetActiveZOrderNode (cli, idx_znode);
+    HWND hRet = dskSetActiveZOrderNode (cli, idx_znode);
 
-    if ((ret != HWND_INVALID) && OnZNodeOperation)
+    if ((hRet != HWND_INVALID) && OnZNodeOperation)
         OnZNodeOperation (ZNOP_SETACTIVE, cli, idx_znode);
 
-    return ret;
+    return (intptr_t)hRet;
 }
 
 static int srvFreeZOrderNode (int cli, int idx_znode)
@@ -1024,10 +1024,10 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
     return 0;
 }
 
-int __mg_do_zorder_maskrect_operation (int cli,
+intptr_t __mg_do_zorder_maskrect_operation (int cli,
         const ZORDERMASKRECTOPINFO* info)
 {
-    int ret = -1;
+    intptr_t ret = -1;
     
     switch (info->id_op) {
         case ID_ZOOP_MASKRECT_SET:
@@ -1042,9 +1042,9 @@ int __mg_do_zorder_maskrect_operation (int cli,
     return ret;
 }
 
-int __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info)
+intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info)
 {
-    int ret = -1;
+    intptr_t ret = -1;
     
     switch (info->id_op) {
         case ID_ZOOP_ALLOC:
@@ -1084,7 +1084,7 @@ int __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info)
             ret = srvEnableWindow (cli, info->idx_znode, info->flags);
             break;
         case ID_ZOOP_STARTDRAG:
-            ret = srvStartDragWindow (cli, info->idx_znode, (int)info->hwnd,
+            ret = srvStartDragWindow (cli, info->idx_znode, info->location,
                             info->rc.left, info->rc.top);
             break;
         case ID_ZOOP_CANCELDRAG:
@@ -1131,7 +1131,7 @@ static BOOL _cb_intersect_rc_no_cli (void* context,
 static BOOL _cb_update_rc_nocli (void* context, 
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
-    int cli = (int)context;
+    int cli = (int)(intptr_t)context;
 
     if (node->flags & ZOF_VISIBLE && node->cli != cli &&
                     //SubtractClipRect (&sg_UpdateRgn, &node->rc)) {
@@ -1169,7 +1169,7 @@ int __mg_remove_all_znodes_of_client (int cli)
         SetClipRgn (&sg_UpdateRgn, &rc_bound);
 
         /* check influenced window zorder nodes */
-        do_for_all_znodes ((void*)cli, zi, _cb_update_rc_nocli, ZT_ALL);
+        do_for_all_znodes ((void*)(intptr_t)cli, zi, _cb_update_rc_nocli, ZT_ALL);
 
         if (SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
             nodes [0].age ++;
@@ -2038,7 +2038,7 @@ static int dskChangeCaption (PMAINWIN pWin)
         return cliChangeCaption (pWin);
 }
 
-static int dskWindowMessageHandler (int message, PMAINWIN pWin, LPARAM lParam)
+static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lParam)
 {
     switch (message) {
         case MSG_ADDNEWMAINWIN:
@@ -2068,16 +2068,16 @@ static int dskWindowMessageHandler (int message, PMAINWIN pWin, LPARAM lParam)
             break;
 
         case MSG_GETACTIVEMAIN:
-            return (int)dskGetActiveWindow (NULL);
+            return (LRESULT)dskGetActiveWindow (NULL);
         
         case MSG_SETACTIVEMAIN:
-            return (int)dskSetActiveWindow (pWin);
+            return (LRESULT)dskSetActiveWindow (pWin);
 
         case MSG_GETCAPTURE:
-            return (int)dskGetCaptureWindow ();
+            return (LRESULT)dskGetCaptureWindow ();
 
         case MSG_SETCAPTURE:
-            return (int)dskSetCaptureWindow (pWin);
+            return (LRESULT)dskSetCaptureWindow (pWin);
  
 #ifdef _MGHAVE_MENU
         case MSG_TRACKPOPUPMENU:
@@ -2116,11 +2116,11 @@ static int dskWindowMessageHandler (int message, PMAINWIN pWin, LPARAM lParam)
                 HCURSOR old = pWin->hCursor;
 
                 pWin->hCursor = (HCURSOR)lParam;
-                return old;
+                return (LRESULT)old;
             }
 
         case MSG_GETNEXTMAINWIN:
-            return (int)dskGetNextMainWindow (pWin);
+            return (LRESULT)dskGetNextMainWindow (pWin);
 
         case MSG_SHOWGLOBALCTRL:
             {
@@ -2375,7 +2375,7 @@ int __mg_handle_normal_mouse_move (const ZORDERINFO* zi, int x, int y)
     ZORDERNODE* nodes = GET_ZORDERNODE(zi);
 
     static int old_slot, old_cli;
-    static int old_hwnd;
+    static HWND old_hwnd;
     int cur_slot;
     int cur_cli = 0;
 
@@ -3236,7 +3236,7 @@ static void srvSaveScreen (BOOL active)
         rcActive = g_rcScr;
     }
 
-    sprintf (buffer, "%d-%x-%d.bmp", cliActive, hwndActive, n);
+    sprintf (buffer, "%d-%p-%d.bmp", cliActive, hwndActive, n);
     if (SaveScreenRectContent (&rcActive, buffer)) {
         Ping ();
         n ++;
@@ -3461,7 +3461,7 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
 }
 
 
-int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     int flags, x, y;
 
@@ -3597,10 +3597,10 @@ int DesktopWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             return dskOnRemoveCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
 
         case MSG_GETCTRLCLASSINFO:
-            return (int)gui_GetControlClassInfo ((const char*)lParam);
+            return (LRESULT)gui_GetControlClassInfo ((const char*)lParam);
 
         case MSG_CTRLCLASSDATAOP:
-            return (int)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
+            return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
 
         case MSG_IME_REGISTER:
             if (mgIsServer)

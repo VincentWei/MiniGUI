@@ -3,15 +3,13 @@
 **
 ** scrollview.h: header file of ScrollView control.
 **
-** Copyright (C) 2004 ~ 2007 Feynman Software.
+** Copyright (C) 2004 ~ 2018 FMSoft
 */
 
 #ifndef _SCROLLVIEW_IMPL_H_
 #define _SCROLLVIEW_IMPL_H_
 
-
 #include "listmodel.h"
-
 
 #ifdef __cplusplus
 extern "C"
@@ -81,7 +79,8 @@ typedef SVDATA *PSVDATA;
 
 /* ------------------------- external api -------------------------- */
 
-MG_EXPORT int     ScrollViewCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT ScrollViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 MG_EXPORT int     scrollview_init               (HWND hWnd, PSVDATA psv);
 MG_EXPORT void    scrollview_destroy            (PSVDATA psvdata);
 MG_EXPORT HSVITEM scrollview_add_item           (HWND hWnd, PSVDATA psvdata, HSVITEM hsvi, PSVITEMINFO pii, int *idx);

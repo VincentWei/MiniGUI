@@ -70,7 +70,7 @@ extern "C" {
 /** Default container window procedure 
  * \sa DefaultDialogProc 
  */
-MG_EXPORT int GUIAPI DefaultContainerProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT GUIAPI DefaultContainerProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 /** Scrollview item object, use this handle to access a scrollview item */
 typedef GHANDLE HSVITEM;

@@ -34,7 +34,7 @@
 
 #define    NALLOC       4        /* #Client structs to alloc/realloc for */
 
-extern unsigned int __mg_timer_counter;
+extern DWORD __mg_timer_counter;
 
 MG_Client* mgClients = NULL;
 int mgClientSize = 0;
@@ -42,8 +42,8 @@ int mgClientSize = 0;
 #define off_pointer(p,off)                  \
         do {                                \
             if (p) {                        \
-                unsigned int tmp;           \
-                tmp = (unsigned int)p;      \
+                intptr_t tmp;           \
+                tmp = (intptr_t)p;      \
                 tmp += off;                 \
                 p = (void*)tmp;             \
             }                               \
@@ -190,7 +190,7 @@ void __mg_remove_client (int cli, int clifd)
     close (clifd);
 }
 
-int __mg_send2client (MSG* msg, MG_Client* client)
+int __mg_send2client (const MSG* msg, MG_Client* client)
 {
     int ret;
 
@@ -243,7 +243,7 @@ void __mg_set_active_client (MG_Client* client)
 }
 
 /* send message to client(s) */
-int GUIAPI Send2Client (MSG* msg, int cli)
+int GUIAPI Send2Client (const MSG* msg, int cli)
 {
 	
     int i, n;
@@ -296,9 +296,9 @@ int GUIAPI Send2Client (MSG* msg, int cli)
     return SOCKERR_OK;
 }
 
-BOOL GUIAPI Send2TopMostClients (int iMsg, WPARAM wParam, LPARAM lParam)
+BOOL GUIAPI Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
-    MSG msg = {0, iMsg, wParam, lParam, __mg_timer_counter};
+    MSG msg = {0, nMsg, wParam, lParam, __mg_timer_counter};
 
     if (!mgIsServer)
         return FALSE;
@@ -310,7 +310,7 @@ BOOL GUIAPI Send2TopMostClients (int iMsg, WPARAM wParam, LPARAM lParam)
 }
 
 BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer, 
-                int iMsg, WPARAM wParam, LPARAM lParam)
+                UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     int active_win;
 
@@ -322,7 +322,7 @@ BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
         return FALSE;
 
     if (__mg_post_msg_by_znode (layer->zorder_info, 
-                            active_win, iMsg, wParam, lParam) > 0)
+                            active_win, nMsg, wParam, lParam) > 0)
         return TRUE;
 
     return FALSE;

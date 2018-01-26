@@ -43,7 +43,7 @@
 
 static void set_line_width (HWND hWnd, PSLEDITDATA sled);
 static void mySetCaretPos (HWND hWnd, PSLEDITDATA sled, int x);
-static int SLEditCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+static LRESULT SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void sledit_refresh_caret (HWND hWnd, PSLEDITDATA sled, BOOL bInited);
 static BOOL make_charpos_visible (HWND hWnd, PSLEDITDATA sled, int charPos, int *cx);
 
@@ -1897,8 +1897,8 @@ sledit_insert_text (HWND hWnd, PSLEDITDATA sled, const char* newtext, int len)
     return 0;
 }
 
-static int 
-SLEditCtrlProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT
+SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {   
     DWORD       dwStyle;
     HDC         hdc;
