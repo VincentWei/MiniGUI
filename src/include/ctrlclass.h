@@ -12,7 +12,8 @@
 #ifndef GUI_CTRLCLASS_H
     #define GUI_CTRLCLASS_H
 
-#define MAXLEN_CLASSNAME    15
+#define MAXLEN_CLASSNAME    31
+
 typedef struct _CTRLCLASSINFO
 {
     char      name[MAXLEN_CLASSNAME + 1];

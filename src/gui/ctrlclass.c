@@ -385,7 +385,7 @@ int AddNewControlClass (PWNDCLASS pWndClass)
     char szClassName [MAXLEN_CLASSNAME + 2];
     int i=0;
 
-    strncpy (szClassName, pWndClass->spClassName, MAXLEN_CLASSNAME + 1);
+    strncpy (szClassName, pWndClass->spClassName, MAXLEN_CLASSNAME);
 
     if (!isalpha ((int)szClassName[0])) return ERR_CTRLCLASS_INVNAME;
     
