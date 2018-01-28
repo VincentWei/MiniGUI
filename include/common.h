@@ -40,6 +40,13 @@
 #define _MGUI_COMMON_H
 
 #ifndef MINIGUI_MAJOR_VERSION
+#   undef PACKAGE
+#   undef VERSION
+#   undef PACKAGE_BUGREPORT
+#   undef PACKAGE_NAME
+#   undef PACKAGE_STRING
+#   undef PACKAGE_TARNAME
+#   undef PACKAGE_VERSION
 #   ifdef __MINIGUI_LIB__
 #       ifdef _FOR_DATANG
 #           ifdef WIN32
@@ -57,23 +64,17 @@
 #           endif
 #       endif
 #   else
-#       undef PACKAGE
-#       undef VERSION
-#       undef PACKAGE_BUGREPORT
-#       undef PACKAGE_NAME
-#       undef PACKAGE_STRING
-#       undef PACKAGE_TARNAME
-#       undef PACKAGE_VERSION
 #       include "mgconfig.h"
-#       undef PACKAGE
-#       undef VERSION
-#       undef PACKAGE_BUGREPORT
-#       undef PACKAGE_NAME
-#       undef PACKAGE_STRING
-#       undef PACKAGE_TARNAME
-#       undef PACKAGE_VERSION
 #   endif
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <assert.h>
 
     /**
      * \defgroup macros_types Macros and data types commonly used
@@ -1898,8 +1899,6 @@ int init_minigui_printf (int (*output_char) (int ch),
 #       define _DBG_PRINTF(fmt...)
 #   endif
 #else /* __GNUC__ */
-#include <stdio.h>
-#include <stdarg.h>
 
 static inline void _ERR_PRINTF(const char* fmt, ...)
 {
@@ -1965,8 +1964,6 @@ static inline void _DBG_PRINTF(const char* fmt, ...)
 int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []), 
                 int argc, const char* argv[], 
                 char* stack_base, unsigned int stack_size);
-
-#include <errno.h>
 
 #ifndef ESRCH
 #   define ESRCH      3

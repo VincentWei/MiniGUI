@@ -83,7 +83,6 @@ dnl User selectable options
 
 dnl System wide options
 devel_mode="no"
-use_debug="no"
 trace_message="no"
 message_string="no"
 
@@ -285,10 +284,6 @@ build_screensaver="no"
 AC_ARG_ENABLE(develmode,
 [  --enable-develmode       developer mode <default=no>],
 devel_mode=$enableval)
-
-AC_ARG_ENABLE(debug,
-[  --enable-debug           build with debugging messages <default=no>],
-use_debug=$enableval)
 
 AC_ARG_ENABLE(tracemsg,
 [  --enable-tracemsg        trace messages of MiniGUI <default=no>],
@@ -1642,7 +1637,6 @@ if test "x$fixed_math" = "xyes"; then
 fi
 
 if test "x$devel_mode" = "xyes"; then
-    use_debug="yes"
     message_string="yes"
     trace_message="no"
 
@@ -1698,8 +1692,6 @@ if test "x$devel_mode" = "xyes"; then
     enable_video_shadow="yes"
     enable_video_mlshadow="yes"
     enable_video_custom="yes"
-
-    build_screensaver="yes"
 fi
 
 dnl Depedencies
@@ -1709,11 +1701,6 @@ fi
 
 if test "x$build_ctrl_treeview_rdr" = "xyes"; then
     build_ctrl_scrollview="yes"
-fi
-
-if test "x$use_debug" = "xyes"; then
-    AC_DEFINE(_DEBUG, 1,
-            [Define if build with debugging messages])
 fi
 
 if test "x$trace_message" = "xyes"; then
@@ -2439,9 +2426,12 @@ dnl define _GNU_SOURCE for pthread_rwlock_t
 CFLAGS="$CFLAGS -D_GNU_SOURCE"
 
 if test "x$devel_mode" = "xyes"; then
+    CPPFLAGS="$CPPFLAGS -D_DEBUG"
     if test "$ac_cv_prog_gcc" = "yes"; then
         CPPFLAGS="$CPPFLAGS -Wall -Werror"
     fi
+else
+    CPPFLAGS="$CPPFLAGS -DNDEBUG"
 fi
 
 if test "$ac_cv_prog_gcc" = "yes"; then

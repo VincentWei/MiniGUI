@@ -696,8 +696,8 @@ GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
     HDC dc;
     gal_pixel pixel;
    
-    if ((we_attr_id & WE_ATTR_TYPE_MASK)!=WE_ATTR_TYPE_COLOR) {
-        _MG_PRINTF ("GUI: Can't get color. ID is invalid.\n");
+    if ((we_attr_id & WE_ATTR_TYPE_MASK) != WE_ATTR_TYPE_COLOR) {
+        _MG_PRINTF ("GUI: Can't get color; invalid attr id: %x.\n", we_attr_id);
         return -1;
     }
 
