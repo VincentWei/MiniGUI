@@ -116,7 +116,10 @@ This instruction assumes that you are using Ubuntu Linux.
 
 ### Prerequisites
 
- * Building tools: autoconf
+You can run `apt install <package_name>` to install the software on Ubuntu Linux.
+
+ * Building tools:
+    * autoconf
  * Dependent libraries (all are optional):
     * libjpeg64-dev
     * libpng12-dev
