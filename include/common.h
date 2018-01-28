@@ -524,7 +524,7 @@ typedef unsigned __int64 DWORD_PTR;
 #elif defined(__LP64__)
 typedef unsigned long DWORD_PTR;
 #else
-typedef unsigned int DWORD_PTR;
+typedef unsigned long DWORD_PTR;
 #endif
 
 /**
@@ -572,7 +572,7 @@ typedef unsigned __int64 UINT_PTR;
 #elif defined(__LP64__)
 typedef unsigned long UINT_PTR;
 #else
-typedef unsigned int UINT_PTR;
+typedef unsigned long UINT_PTR;
 #endif
 
 /**
