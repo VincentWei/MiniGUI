@@ -18,7 +18,7 @@ A mature cross-platform windowing system and GUI system for embedded and IoT dev
 
 ## INTRODUCTION
     
-MiniGUI is a mature cross-platform windowing system and GUI (Graphics 
+MiniGUI is a mature cross-platform windowing system and a GUI (Graphics 
 User Interface) support system for embedded systems and smart IoT devices.
 This is the version 3.2.x of MiniGUI maintained by WEI Yongming 
 (Vincent Wei, https://github.com/VincentWei).
@@ -32,30 +32,35 @@ embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
 traditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II, 
 and OSE.
 
-This is the MiniGUI core source tarball, which provides windowing 
+This is the MiniGUI core source tree, which provides windowing 
 and graphics interfaces as well as a lot of standard controls (tookit). 
 
 Besides MiniGUI core, FMSoft also provides some components
 for the developers to develop app much easier:
 
+  * mGUtils: A MiniGUI component which contains miscellaneous utilities 
+    like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
+
   * mGPlus: A MiniGUI component which provides support for advanced graphics 
     functions like path, gradient, anti-aliase stretch, and color combination.
+
+  * mGEff: mGEff provides an animation framework for MiniGUI app. 
+     It also provides some popular UI/UE special effects.
 
   * mGNCS: This component provides a new control set for MiniGUI app. 
     By using mGNCS, you can use miniStudio to develop MiniGUI app in 
     WYSIWYG way. 
 
-  * mGEff: mGEff provides an animation framework for MiniGUI app. 
-     It also provides some popular UI/UE special effects.
+  * mGNCS4Touch: This component provides some new controls, which are 
+    compliant to the new control API spec of mGNCS, for devices with 
+    a touch screen.
+
+There are also some legacy MiniGUI components. We will not maintain these
+components for MiniGUI core v3.2:
 
   * mGi: An input method component for MiniGUI. This component provides
     some typical input methods (such as softkey, hand-writing, and predict
     text input for mobile phone) for MiniGUI apps. 
-
-  * mGUtils: A MiniGUI component which contains miscellaneous utilities 
-    like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
-
-There are also some legacy MiniGUI components:
 
   * mGp: A printing component for MiniGUI. By using mGp, you can print
     out the graphics created by MiniGUI app to general-purpose printers.
@@ -102,6 +107,34 @@ FMSoft also releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a sharew
 You can also download it from the official site of MiniGUI.
 
 http://www.minigui.com/en/download
+
+
+## A BRIEF BUILDING INSTRUCTION
+
+This instruction assumes that you are using Ubuntu Linux.
+
+### Prerequisites
+
+ * Building tools: autoconf
+ * Dependent libraries (all are optional):
+    * libjpeg64-dev
+    * libpng12-dev
+    * libfreetype6-dev
+
+### Building
+
+MiniGUI core uses GNU autoconf/automake scripts to configure and build the project.
+
+Run
+
+    $ ./configure; make; sudo make install
+
+to configure, make, and install the headers and the libraries. 
+
+MiniGUI core also provides some configuration options to customize the features.
+For more information, please run
+
+    $ ./configure --help
 
 
 ## NEW FEATURES IN VERSION 3.2.x
@@ -273,10 +306,9 @@ messages to consult@minigui.com.
 Q: Is GPL'd MiniGUI free for commercial use?
 
 A: Simply no. FMSoft releases MiniGUI under GPLv3 license. 
-   It is free for those who are 100% GPL and those who 
-   never copy, modify and distribute MiniGUI. But if you want to use 
-   these GPL'd versions for commerce, you should get the commercial 
-   license from FMSoft first.
+   It is free for those who are 100% GPL and those who never copy, modify 
+   and distribute MiniGUI. But if you want to use these GPL'd versions 
+   for commerce, you should get the commercial license from FMSoft first.
 
 Q: Which operating system does MiniGUI support?
 
@@ -286,19 +318,13 @@ A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS,
 
 Q: Which architecture does MiniGUI support?
 
-A: Intel x86, ARM (ARM7/AMR9/StrongARM/xScale), PowerPC, MIPS, 
-   DragonBall, ColdFire, Blackfin, and so on.
+A: x86 32/64-bit, ARM 32/64-bit (Cortex A7, Cortex A9, ARM7/AMR9/StrongARM/xScale),
+   PowerPC, MIPS, DragonBall, ColdFire, Blackfin, and so on.
 
 Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?
 
 A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD. 
 
-
-## COPYING
-
-Copyright (C) 2002~2017, Beijing FMSoft Technologies Co., Ltd.
-
-Copyright (C) 1998~2002, WEI Yongming
 
 ## NOT FREE FOR COMMERCIAL USE
 
@@ -310,4 +336,36 @@ the commercial license of MiniGUI, please refer to the LICENSE.POLICY file.
 We provide you the commercial license of MiniGUI according to the number 
 of the run-time binary copies of MiniGUI. If you are interested in 
 the commercial license of MiniGUI, please write to sales@minigui.com.  
+
+
+## COPYING
+
+Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+
+Copyright (C) 1998~2002, WEI Yongming
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Or,
+
+As this program is a library, any link to this program must follow
+GNU General Public License version 3 (GPLv3). If you cannot accept
+GPLv3, you need to be licensed from FMSoft.
+
+If you have got a commercial license of this program, please use it
+under the terms and conditions of the commercial license.
+
+For more information about the commercial license, please refer to
+<http://www.minigui.com/en/about/licensing-policy/>.
 
