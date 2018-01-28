@@ -404,7 +404,7 @@ int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
 #ifdef _MGHAVE_MSG_STRING
 #include "msgstr.h"
 
-const char* GUIAPI Message2Str (int message)
+const char* GUIAPI Message2Str (UINT message)
 {
     if (message >= 0x0000 && message <= 0x006F)
         return __mg_msgstr1 [message];

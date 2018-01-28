@@ -2782,7 +2782,7 @@ MG_EXPORT BOOL GUIAPI EmptyMessageQueue (HWND hWnd);
 #ifdef _MGHAVE_MSG_STRING
 
 /**
- * \fn const char* GUIAPI Message2Str (int message)
+ * \fn const char* GUIAPI Message2Str (UINT message)
  * \brief Translates a message identifier to the message string.
  *
  * This function returns the message string of the message identifier \a message.
@@ -2795,7 +2795,7 @@ MG_EXPORT BOOL GUIAPI EmptyMessageQueue (HWND hWnd);
  *
  * \sa PrintMessage
  */
-MG_EXPORT const char* GUIAPI Message2Str (int message);
+MG_EXPORT const char* GUIAPI Message2Str (UINT message);
 
 /**
  * \fn void GUIAPI PrintMessage (FILE* fp, HWND hWnd, \
@@ -2841,12 +2841,12 @@ MG_EXPORT void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
 
 /**
  * \var typedef int (* MSGHOOK)(void* context, HWND dst_wnd, \
- *                int msg, WPARAM wparam, LPARAM lparam)
+ *                UINT msg, WPARAM wparam, LPARAM lparam)
  *
  * \brief Type of message hook function.
  */
 typedef int (* MSGHOOK)(void* context, HWND dst_wnd, 
-                int msg, WPARAM wparam, LPARAM lparam);
+                UINT msg, WPARAM wparam, LPARAM lparam);
 
 /**
  * Structure defines a message hook.

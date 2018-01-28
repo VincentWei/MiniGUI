@@ -672,7 +672,7 @@ static MSGHOOK dskRegisterMouseHook (void* context, MSGHOOK hook)
     return old_hook;
 }
 
-static int dskHandleKeyHooks (HWND dst_wnd, int message, 
+static int dskHandleKeyHooks (HWND dst_wnd, UINT message, 
                 WPARAM wParam, LPARAM lParam)
 {
     int ret = HOOK_GOON;
@@ -684,7 +684,7 @@ static int dskHandleKeyHooks (HWND dst_wnd, int message,
     return ret;
 }
 
-static int dskHandleMouseHooks (HWND dst_wnd, int message, 
+static int dskHandleMouseHooks (HWND dst_wnd, UINT message, 
                 WPARAM wParam, LPARAM lParam)
 {
     int ret = HOOK_GOON;
@@ -1215,7 +1215,7 @@ static int dskCancelDragWindow (PMAINWIN pWin)
     return 0;
 }
 
-static int do_drag_drop_window (int msg, int x, int y)
+static int do_drag_drop_window (UINT msg, int x, int y)
 {
     if (_dd_info.hwnd == 0)
         return 0;
