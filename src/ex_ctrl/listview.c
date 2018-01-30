@@ -345,7 +345,7 @@ static void alvDrawSubItem (HWND hWnd, PLVDATA plvdata,
         // for mStudio only
         bg_color = GetWindowElementAttr (hWnd, WE_LFFLAT_TAB_NRMLCLR);
         if (bg_color != -1 && index % 2 == 1) {
-            SetBrushColor (hdc, DWORD2PIXEL(hdc, bg_color));
+            SetBrushColor (hdc, DWORD2Pixel (hdc, bg_color));
             FillBox (hdc, rect.left, rect.top, RECTW(rect), RECTH(rect));
         }
 #endif
