@@ -540,6 +540,27 @@ typedef DWORD_PTR DWORD;
 typedef unsigned int DWORD32;
 
 /**
+ * \var SDWORD_PTR
+ * \brief A signed long type for pointer precision. 
+ *
+ * Commonly used for general 32-bit parameters that have been extended 
+ * to 64 bits in 64-bit platform.
+ */
+#if defined(_WIN64)
+typedef signed __int64 SDWORD_PTR;
+#elif defined(__LP64__)
+typedef signed long SDWORD_PTR;
+#else
+typedef signed long SDWORD_PTR;
+#endif
+
+/**
+ * \var SDWORD
+ * \brief A signed long type definition for pointer precision.
+ */
+typedef SDWORD_PTR SDWORD;
+
+/**
  * \var SDWORD32
  * \brief A type definition for a 32-bit signed integer.
  */
