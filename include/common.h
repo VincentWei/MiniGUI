@@ -518,7 +518,7 @@ typedef __int64 LONG_PTR;
 #elif defined(__LP64__)
 typedef long LONG_PTR;
 #else
-typedef int LONG_PTR;
+typedef long LONG_PTR;
 #endif
 
 /**
