@@ -1,22 +1,46 @@
 /**
  * \file endianrw.h
- * \author Wei Yongming <ymwei@minigui.org>
+ * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
  * 
- *  This file includes functions for reading and writing data 
- *  from general sources, such as file, memory, etc., and also
- *  includes functions for reading and writing endian-specific 
- *  values.
+ * \brief This file includes functions for reading and writing data 
+ *        from general sources, such as file, memory, etc., and also
+ *        includes functions for reading and writing endian-specific 
+ *        values.
  *
  \verbatim
 
-    Copyright (C) 2002-2012 FMSoft.
-    Copyright (C) 1998-2002 Wei Yongming.
+    This file is part of MiniGUI, a mature cross-platform windowing 
+    and Graphics User Interface (GUI) support system for embedded systems
+    and smart IoT devices.
 
-    All rights reserved by FMSoft.
+    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 1998~2002, WEI Yongming
 
-    This file is part of MiniGUI, a compact cross-platform Graphics 
-    User Interface (GUI) support system for real-time embedded systems.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Or,
+
+    As this program is a library, any link to this program must follow
+    GNU General Public License version 3 (GPLv3). If you cannot accept
+    GPLv3, you need to be licensed from FMSoft.
+
+    If you have got a commercial license of this program, please use it
+    under the terms and conditions of the commercial license.
+
+    For more information about the commercial license, please refer to
+    <http://www.minigui.com/en/about/licensing-policy/>.
 
  \endverbatim
  */
@@ -24,13 +48,10 @@
 /*
  * $Id: endianrw.h 11349 2009-03-02 05:00:43Z weiym $
  * 
- *             MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
- *                     pSOS, ThreadX, NuCleus, OSE, and Win32.
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
- *             Copyright (C) 2002-2012 FMSoft.
- *             Copyright (C) 1998-2002 Wei Yongming.
- *
- *             The idea comes from LGPL'ed SDL by Sam Lantinga.
+ *      The idea comes from LGPL'ed SDL by Sam Lantinga.
  */
 
 #ifndef _MGUI_ENDIAN_RW_H

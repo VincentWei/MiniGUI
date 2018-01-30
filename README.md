@@ -327,7 +327,7 @@ A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS,
 
 Q: Which architecture does MiniGUI support?
 
-A: x86 32/64-bit, ARM 32/64-bit (Cortex A7, Cortex A9, ARM7/AMR9/StrongARM/xScale),
+A: x86 32/64-bit, ARM 32/64-bit (e.g., ARMv7 and ARM Cortex-A7),
    PowerPC, MIPS, DragonBall, ColdFire, Blackfin, and so on.
 
 Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?
