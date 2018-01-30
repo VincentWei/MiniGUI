@@ -2546,4 +2546,3 @@ dnl    echo "WARNING: failed to generate license pictures."
 dnl else
 dnl    echo "Done."
 dnl fi
-
