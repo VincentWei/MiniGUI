@@ -68,22 +68,22 @@ word on 64-bit platform.
 `LOBYTE_WORD16` and `HIBYTE_WORD16`: these two new macros get the low byte
 and the high byte in a 16-bit word respectively.
 
-Note that `MAKELONG` macro always makes a DWORD integer, which has pointer
+Note that `MAKELONG` macro always makes a `DWORD` integer, which has pointer
 precision.
 
-Note that 'MakeRGB` and `MakeRGBA` macros always make DWORD32 integers. 
-In contract, GetRValue, GetRValue, GetBValue, GetAValue always get Red, 
-green, blue, and alpha components from a DWORD32 integer respectively.
+Note that `MakeRGB` and `MakeRGBA` macros always make `DWORD32` integers. 
+In contract, `GetRValue`, `GetRValue`, `GetBValue`, `GetAValue` always 
+get red, green, blue, and alpha components from a `DWORD32` integer 
+respectively.
 
 Note that you should use `(-1)` instead of `0xFFFFFFFF` for the invalid 
-pointer-type value for good portability.
+integer or pointer type value for good portability.
 
 #### Structure and functions
 
 The main changes in structure and functions:
 
  * We now use a `UINT` instead of an `int` integer for the message identifier.
-    This is not a very important change.
 
  * We now use a `DWORD` integer for the time tick count. Meanwhile, you can
     create 64 timers on 64-bit platform.
@@ -98,9 +98,9 @@ The main changes in structure and functions:
     a pointer as the identifier of the timer on 64-bit platform. mGNCS uses 
     MiniGUI timer in this manner.
 
- * We now use a `LINT` integer for the identifier of a control/widget and menu
-    item. So you can pass a pointer as the identifier of the timer on 64-bit 
-    platform. mGNCS works in this manner.
+ * We now use a `LINT` integer for the identifier of a control/widget and a
+    menu item. So you can pass a pointer as the identifier of the timer on 
+    64-bit platform. mGNCS works in this manner.
 
 ##### Message
 
