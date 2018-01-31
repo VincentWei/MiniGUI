@@ -195,7 +195,7 @@ MG_EXPORT void DestroyToolTipWin (HWND hwnd);
  * \param code The notification code.
  * \param add_data The additional data of the notification.
  *
- * \note TODO
+ * \note The type of \a id change from int to LINT since v3.2.
  *
  * \sa SetNotificationCallback
  */

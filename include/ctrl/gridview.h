@@ -624,7 +624,6 @@ typedef struct _GRIDCELLDATA
  */
 #define  GRIDM_DELDEPENDENCE    0xF220
 
-/*TODO messages for query dependence */
 /**
  * \def GRIDM_ENDCELLEDIT
  * \brief This message is used inside minigui.
