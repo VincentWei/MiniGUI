@@ -120,7 +120,7 @@ static LRESULT GridCell_EditBgColorProc(HWND hWnd, UINT message, WPARAM wParam, 
 
 // Edit Ctrl Notify Callback {{{
 
-static void GridCell_CheckBoxNotify(HWND hWnd, int id, int nc, DWORD add_data)
+static void GridCell_CheckBoxNotify(HWND hWnd, LINT id, int nc, DWORD add_data)
 {
     GridCellEditData* editdata = (GridCellEditData*)GetWindowAdditionalData(hWnd);
     switch(nc)
@@ -132,7 +132,7 @@ static void GridCell_CheckBoxNotify(HWND hWnd, int id, int nc, DWORD add_data)
     return;
 }
 
-static void GridCell_SelectionNotify(HWND hWnd, int id, int nc, DWORD add_data)
+static void GridCell_SelectionNotify(HWND hWnd, LINT id, int nc, DWORD add_data)
 {
     GridCellEditData* editdata = (GridCellEditData*)GetWindowAdditionalData(hWnd);
     switch(nc)

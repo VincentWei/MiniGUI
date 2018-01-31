@@ -302,7 +302,8 @@ typedef struct _MAINWIN
     DWORD dwStyle;      // the styles of main window.
     DWORD dwExStyle;    // the extended styles of main window.
     
-    int iBkColor;       // the background color.
+    gal_pixel iFgColor; // the foreground color.
+    gal_pixel iBkColor; // the background color.
     HMENU hMenu;        // handle of menu.
     HACCEL hAccel;      // handle of accelerator table.
     HCURSOR hCursor;    // handle of cursor.
@@ -311,7 +312,7 @@ typedef struct _MAINWIN
     PLOGFONT pLogFont;  // pointer to logical font.
 
     char* spCaption;    // the caption of main window.
-    int   id;           // the identifier of main window.
+    LINT   id;          // the identifier of main window.
 
     LFSCROLLBARINFO vscroll;
                         // the vertical scroll bar information.

@@ -422,7 +422,7 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
     return DefaultMainWinProc (hWnd, message, wParam, lParam);
 }
 
-int GUIAPI GetDlgCtrlID (HWND hwndCtl)
+LINT GUIAPI GetDlgCtrlID (HWND hwndCtl)
 {
     PCONTROL pCtrl = (PCONTROL)hwndCtl;
 
@@ -433,7 +433,7 @@ int GUIAPI GetDlgCtrlID (HWND hwndCtl)
     return -1;
 }
 
-HWND GUIAPI GetDlgItem (HWND hDlg, int nIDDlgItem)
+HWND GUIAPI GetDlgItem (HWND hDlg, LINT nIDDlgItem)
 {
     PCONTROL pCtrl;
     PMAINWIN pMainWin = (PMAINWIN)hDlg;
@@ -628,7 +628,7 @@ HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
     return hCtl;
 }
 
-LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, 
+LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem, 
             UINT message, WPARAM wParam, LPARAM lParam)
 {
     HWND hCtrl;
@@ -641,7 +641,7 @@ LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem,
     return -1;
 }
 
-UINT GUIAPI GetDlgItemInt (HWND hDlg, int nIDDlgItem, BOOL *lpTranslated,
+UINT GUIAPI GetDlgItemInt (HWND hDlg, LINT nIDDlgItem, BOOL *lpTranslated,
                     BOOL bSigned)
 {
     HWND hCtrl;
@@ -670,7 +670,7 @@ error:
     return 0;
 }
 
-BOOL GUIAPI SetDlgItemInt (HWND hDlg, int nIDDlgItem, UINT uValue, 
+BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, UINT uValue, 
                     BOOL bSigned)
 {
     HWND hCtrl;
@@ -688,7 +688,7 @@ BOOL GUIAPI SetDlgItemInt (HWND hDlg, int nIDDlgItem, UINT uValue,
     return SendMessage (hCtrl, MSG_SETTEXT, 0, (LPARAM)buffer) == 0;
 }
 
-int GUIAPI GetDlgItemText (HWND hDlg, int nIDDlgItem, char* lpString, 
+int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, char* lpString, 
                     int nMaxCount)
 {
     HWND hCtrl;
@@ -700,7 +700,7 @@ int GUIAPI GetDlgItemText (HWND hDlg, int nIDDlgItem, char* lpString,
             MSG_GETTEXT, (WPARAM)nMaxCount, (LPARAM)lpString);
 }
 
-char* GUIAPI GetDlgItemText2 (HWND hDlg, int id, int* lenPtr)
+char* GUIAPI GetDlgItemText2 (HWND hDlg, LINT id, int* lenPtr)
 {
     int len;
     char* buff;
@@ -721,7 +721,7 @@ char* GUIAPI GetDlgItemText2 (HWND hDlg, int id, int* lenPtr)
     return buff;
 }
 
-BOOL GUIAPI SetDlgItemText (HWND hDlg, int nIDDlgItem, const char* lpString)
+BOOL GUIAPI SetDlgItemText (HWND hDlg, LINT nIDDlgItem, const char* lpString)
 {
     HWND hCtrl;
 
@@ -733,7 +733,7 @@ BOOL GUIAPI SetDlgItemText (HWND hDlg, int nIDDlgItem, const char* lpString)
 }
 
 #ifdef _MGCTRL_BUTTON
-void GUIAPI CheckDlgButton (HWND hDlg, int nIDDlgItem, int nCheck)
+void GUIAPI CheckDlgButton (HWND hDlg, LINT nIDDlgItem, int nCheck)
 {
     HWND hCtrl;
     int DlgCode;
@@ -751,7 +751,7 @@ void GUIAPI CheckDlgButton (HWND hDlg, int nIDDlgItem, int nCheck)
 }
 
 void GUIAPI CheckRadioButton (HWND hDlg, 
-                int idFirstButton, int idLastButton, int idCheckButton)
+                LINT idFirstButton, LINT idLastButton, LINT idCheckButton)
 {
     HWND hCtrl;
 
@@ -761,7 +761,7 @@ void GUIAPI CheckRadioButton (HWND hDlg,
     SendMessage (hCtrl, BM_SETCHECK, BST_CHECKED, 0L);
 }
 
-int GUIAPI IsDlgButtonChecked (HWND hDlg, int idButton)
+int GUIAPI IsDlgButtonChecked (HWND hDlg, LINT idButton)
 {
     HWND hCtrl;
 

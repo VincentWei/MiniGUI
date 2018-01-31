@@ -5155,7 +5155,7 @@ static void set_control_renderer (PCONTROL pCtrl, const char* werdr_name)
 
 HWND GUIAPI CreateWindowEx2 (const char* spClassName, 
         const char* spCaption, DWORD dwStyle, DWORD dwExStyle, 
-        int id, int x, int y, int w, int h, HWND hParentWnd, 
+        LINT id, int x, int y, int w, int h, HWND hParentWnd, 
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs, 
         DWORD dwAddData)
 {

@@ -324,7 +324,7 @@ HMENU GUIAPI CreateSystemMenu (HWND hwnd, DWORD dwStyle)
 }
 
 static BOOL mnuInsertMenuItem (PMENUITEM pmi, PMENUITEM pnewmi,
-                int item, BOOL flag)
+                LINT item, BOOL flag)
 {
     PMENUITEM ptmpmi;
     int index;
@@ -375,7 +375,7 @@ static BOOL mnuInsertMenuItem (PMENUITEM pmi, PMENUITEM pnewmi,
     return FALSE;
 }
 
-int GUIAPI InsertMenuItem (HMENU hmnu, int item, 
+int GUIAPI InsertMenuItem (HMENU hmnu, LINT item, 
                             UINT flag, PMENUITEMINFO pmii)
 {
     PMENUBAR pmb;
@@ -533,7 +533,7 @@ static void mnuDeleteMenuItem (PMENUITEM pmi)
     FreeMenuItem (pmi);
 }
 
-static PMENUITEM mnuRemoveMenuItem (PMENUITEM phead, int item, BOOL flag)
+static PMENUITEM mnuRemoveMenuItem (PMENUITEM phead, LINT item, BOOL flag)
 {
     int index;
     PMENUITEM pmi, ptmpmi;
@@ -595,7 +595,7 @@ static PMENUITEM mnuRemoveMenuItem (PMENUITEM phead, int item, BOOL flag)
     return phead;
 }
 
-int GUIAPI RemoveMenu (HMENU hmnu, int item, UINT flags)
+int GUIAPI RemoveMenu (HMENU hmnu, LINT item, UINT flags)
 {
     PMENUBAR pmb;
     PMENUITEM pmi;
@@ -619,7 +619,7 @@ int GUIAPI RemoveMenu (HMENU hmnu, int item, UINT flags)
     return 0;
 }
 
-static PMENUITEM mnuDeleteMenu (PMENUITEM phead, int item, BOOL flag)
+static PMENUITEM mnuDeleteMenu (PMENUITEM phead, LINT item, BOOL flag)
 {
     int index;
     PMENUITEM pmi, ptmpmi;
@@ -673,7 +673,7 @@ static PMENUITEM mnuDeleteMenu (PMENUITEM phead, int item, BOOL flag)
     return phead;
 }
 
-int GUIAPI DeleteMenu (HMENU hmnu, int item, UINT flags)
+int GUIAPI DeleteMenu (HMENU hmnu, LINT item, UINT flags)
 {
     PMENUBAR pmb;
     PMENUITEM pmi;
@@ -767,7 +767,7 @@ int GUIAPI GetMenuItemCount (HMENU hmnu)
     return count;
 }
 
-static PMENUITEM mnuGetMenuItem (HMENU hmnu, int item, BOOL flag)
+static PMENUITEM mnuGetMenuItem (HMENU hmnu, LINT item, BOOL flag)
 {
     PMENUBAR pmb;
     PMENUITEM pmi;
@@ -924,7 +924,7 @@ HMENU GUIAPI GetSubMenu (HMENU hmnu, int pos)
     return 0;
 }
 
-int GUIAPI GetMenuItemInfo (HMENU hmnu, int item, 
+int GUIAPI GetMenuItemInfo (HMENU hmnu, LINT item, 
                             UINT flag, PMENUITEMINFO pmii)
 {
     PMENUITEM pmi;
@@ -981,7 +981,7 @@ int GUIAPI GetMenuItemInfo (HMENU hmnu, int item,
     return 0;
 }
 
-int GUIAPI SetMenuItemInfo (HMENU hmnu, int item, 
+int GUIAPI SetMenuItemInfo (HMENU hmnu, LINT item, 
                             UINT flag, PMENUITEMINFO pmii)
 {
     PMENUITEM pmi;
@@ -1093,7 +1093,7 @@ int GUIAPI SetMenuItemInfo (HMENU hmnu, int item,
     return 0;
 }
 
-UINT GUIAPI EnableMenuItem (HMENU hmnu, int item, UINT flags)
+UINT GUIAPI EnableMenuItem (HMENU hmnu, LINT item, UINT flags)
 {
     PMENUITEM pmi;
     UINT prevstate = 0xFFFFFFFF; 
@@ -1108,8 +1108,8 @@ UINT GUIAPI EnableMenuItem (HMENU hmnu, int item, UINT flags)
     return prevstate;
 }
 
-int GUIAPI CheckMenuRadioItem (HMENU hmnu, int first, int last, 
-                            int checkitem, UINT flags)
+int GUIAPI CheckMenuRadioItem (HMENU hmnu, LINT first, LINT last, 
+                            LINT checkitem, UINT flags)
 {
     PMENUITEM pmi;
     int index;
@@ -1157,7 +1157,7 @@ int GUIAPI CheckMenuRadioItem (HMENU hmnu, int first, int last,
     return 0;
 }
 
-int GUIAPI SetMenuItemBitmaps (HMENU hmnu, int item, UINT flags, 
+int GUIAPI SetMenuItemBitmaps (HMENU hmnu, LINT item, UINT flags, 
                             PBITMAP hBmpUnchecked, PBITMAP hBmpChecked)
 {
     PMENUITEM pmi;
@@ -1197,7 +1197,7 @@ void mnuDumpMenuItem (PMENUITEM pmi)
     printf ("\tdata type:       %d\n", pmi->type);
     printf ("\tmenu type:       %#x\n", pmi->mnutype);
     printf ("\tmenu state:      %#x\n", pmi->mnustate);
-    printf ("\tmenu id:         %d\n", pmi->id);
+    printf ("\tmenu id:         %ld\n", pmi->id);
     printf ("\tchecked bitmap:  0x%p\n", pmi->checkedbmp);
     printf ("\tunchecked bitmap:0x%p\n", pmi->uncheckedbmp);
     printf ("\titem data:       %p\n", (PVOID)pmi->itemdata);

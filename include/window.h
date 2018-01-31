@@ -1629,6 +1629,8 @@ typedef struct _DRAGINFO {
  * \param code The notification code.
  * \param hwnd The handle to the control.
  *
+ * \note TODO
+ *
  * \sa NotifyParentEx
  */
 #define MSG_COMMAND         0x0120
@@ -4096,8 +4098,10 @@ typedef struct _WINDOWINFO
     /** The extended styles of window.*/
     DWORD dwExStyle;
 
+    /** The foreground color (not used).*/
+    gal_pixel iFgColor; 
     /** The background color.*/
-    int iBkColor; 
+    gal_pixel iBkColor; 
     /** The handle of menu.*/
     HMENU hMenu; 
     /** The handle of accelerator table.*/
@@ -4113,8 +4117,10 @@ typedef struct _WINDOWINFO
 
     /** The caption of window.*/
     char* spCaption; 
-    /** The identifier of window.*/
-    int   id;    
+    /** The identifier of window.
+      * TODO
+      */
+    LINT   id;
 
     /** The vertical scrollbar information.*/
     LFSCROLLBARINFO vscroll;
@@ -4962,7 +4968,7 @@ typedef struct _MAINWINCREATE
     int lx, ty, rx, by;
 
     /** The pixel value of background color of the main window */
-    int iBkColor;
+    gal_pixel iBkColor;
 
     /** The first private data associated with the main window */
     DWORD dwAddData;
@@ -7312,7 +7318,7 @@ typedef struct _WNDCLASS
     HCURSOR hCursor;
 
     /** Background color pixel value of all instances of this window class */
-    int     iBkColor;
+    gal_pixel iBkColor;
 
     /** Window callback procedure of all instances of this window class */
     LRESULT (*WinProc) (HWND, UINT, WPARAM, LPARAM);
@@ -7417,8 +7423,8 @@ MG_EXPORT BOOL GUIAPI SetWindowClassInfo (const WNDCLASS* pWndClass);
 
 /**
  * \fn HWND GUIAPI CreateWindowEx2 (const char* spClassName, \
- *                const char* spCaption, DWORD dwStyle, DWORD dwExStyle, \
- *               int id, int x, int y, int w, int h, HWND hParentWnd, \
+ *               const char* spCaption, DWORD dwStyle, DWORD dwExStyle, \
+ *               LINT id, int x, int y, int w, int h, HWND hParentWnd, \
  *               const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs, \
  *               DWORD dwAddData)
  * \brief Creates a child window with extended style, renderer and 
@@ -7454,14 +7460,14 @@ MG_EXPORT BOOL GUIAPI SetWindowClassInfo (const WNDCLASS* pWndClass);
  */
 MG_EXPORT HWND GUIAPI CreateWindowEx2 (const char* spClassName, 
         const char* spCaption, DWORD dwStyle, DWORD dwExStyle, 
-        int id, int x, int y, int w, int h, HWND hParentWnd, 
+        LINT id, int x, int y, int w, int h, HWND hParentWnd, 
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs, 
         DWORD dwAddData);
 
 /**
  * \fn HWND GUIAPI CreateWindowEx (const char* spClassName, 
                  const char* spCaption, DWORD dwStyle, DWORD dwExStyle,
-                 int id, int x, int y, int w, int h, HWND hParentWnd,
+                 LINT id, int x, int y, int w, int h, HWND hParentWnd,
                  DWORD dwAddData)
  * \brief A shortcut version of CreateWindowEx2.
  *
@@ -7472,7 +7478,7 @@ MG_EXPORT HWND GUIAPI CreateWindowEx2 (const char* spClassName,
  */
 static inline HWND GUIAPI CreateWindowEx (const char* spClassName, 
                 const char* spCaption, DWORD dwStyle, DWORD dwExStyle, 
-                int id, int x, int y, int w, int h, HWND hParentWnd, 
+                LINT id, int x, int y, int w, int h, HWND hParentWnd, 
                 DWORD dwAddData)
 {
     return CreateWindowEx2 (spClassName, spCaption, dwStyle, dwExStyle, 
@@ -7494,7 +7500,7 @@ static inline HWND GUIAPI CreateWindowEx (const char* spClassName,
 MG_EXPORT BOOL GUIAPI DestroyWindow (HWND hWnd);
 
 /**
- * \var typedef void (* NOTIFPROC)(HWND hwnd, int id, int nc, DWORD add_data)
+ * \var typedef void (* NOTIFPROC)(HWND hwnd, LINT id, int nc, DWORD add_data)
  * \brief Type of the notification callback procedure.
  *
  * This is the function type of Notification Callback Procedure.
@@ -7502,9 +7508,11 @@ MG_EXPORT BOOL GUIAPI DestroyWindow (HWND hWnd);
  * when a notification occurred the control will call this callback
  * procedure.
  *
+ * \note TODO
+ *
  * \sa SetNotificationCallback
  */
-typedef void (* NOTIFPROC) (HWND hwnd, int id, int nc, DWORD add_data);
+typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
 
 /**
  * \fn NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd, \
@@ -8457,8 +8465,10 @@ typedef struct _MENUITEMINFO {
      */
     UINT                state;
 
-    /** The identifier of the menu item */
-    int                 id;
+    /** The identifier of the menu item.
+      * \note TODO
+      */
+    LINT                 id;
 
     /** The handle to the sub-menu if this menu contains a sub menu */
     HMENU               hsubmenu;
@@ -8529,7 +8539,7 @@ MG_EXPORT HMENU GUIAPI CreatePopupMenu ( PMENUITEMINFO pmii);
 MG_EXPORT HMENU GUIAPI CreateSystemMenu (HWND hwnd, DWORD dwStyle);
 
 /**
- * \fn int GUIAPI InsertMenuItem (HMENU hmnu, int item, \
+ * \fn int GUIAPI InsertMenuItem (HMENU hmnu, LINT item, \
  *                UINT flag, PMENUITEMINFO pmii)
  * \brief Inserts a new menu item at the specified position in a menu.
  *
@@ -8552,13 +8562,15 @@ MG_EXPORT HMENU GUIAPI CreateSystemMenu (HWND hwnd, DWORD dwStyle);
  * \retval ERR_RES_ALLOCATION Can not allocate new menu item.
  * \retval ERR_INVALID_HMENU \a hmnu is an invalid menu.
  *
+ * \note TODO
+ *
  * \sa RemoveMenu, MENUITEMINFO
  */
-MG_EXPORT int GUIAPI InsertMenuItem (HMENU hmnu, int item, 
+MG_EXPORT int GUIAPI InsertMenuItem (HMENU hmnu, LINT item, 
                             UINT flag, PMENUITEMINFO pmii);
 
 /**
- * \fn int GUIAPI RemoveMenu (HMENU hmnu, int item, UINT flag)
+ * \fn int GUIAPI RemoveMenu (HMENU hmnu, LINT item, UINT flag)
  * \brief Deletes a menu item or detaches a submenu from the specified menu.
  *
  * This function deletes a menu item or detaches a submenu from the specified 
@@ -8579,12 +8591,14 @@ MG_EXPORT int GUIAPI InsertMenuItem (HMENU hmnu, int item,
  * \retval ERR_INVALID_HANDLE \a hmnu is not a handle to menu.
  * \retval ERR_INVALID_HMENU \a hmnu is an invalid menu.
  *
+ * \note TODO
+ *
  * \sa InsertMenuItem, DeleteMenu
  */
-MG_EXPORT int GUIAPI RemoveMenu (HMENU hmnu, int item, UINT flag);
+MG_EXPORT int GUIAPI RemoveMenu (HMENU hmnu, LINT item, UINT flag);
 
 /**
- * \fn int GUIAPI DeleteMenu (HMENU hmnu, int item, UINT flag)
+ * \fn int GUIAPI DeleteMenu (HMENU hmnu, LINT item, UINT flag)
  * \brief Deletes an item from the specified menu.
  *
  * This function deletes an item from the specified menu \a hmnu.
@@ -8604,9 +8618,11 @@ MG_EXPORT int GUIAPI RemoveMenu (HMENU hmnu, int item, UINT flag);
  * \retval ERR_INVALID_HANDLE \a hmnu is not a handle to menu.
  * \retval ERR_INVALID_HMENU \a hmnu is an invalid menu.
  *
+ * \note TODO
+ *
  * \sa InsertMenuItem, RemoveMenu
  */
-MG_EXPORT int GUIAPI DeleteMenu (HMENU hmnu, int item, UINT flag);
+MG_EXPORT int GUIAPI DeleteMenu (HMENU hmnu, LINT item, UINT flag);
 
 /**
  * \fn int GUIAPI DestroyMenu (HMENU hmnu)
@@ -8821,7 +8837,7 @@ MG_EXPORT int GUIAPI GetMenuItemCount (HMENU hmnu);
 MG_EXPORT int GUIAPI GetMenuItemID (HMENU hmnu, int pos); 
 
 /**
- * \fn int GUIAPI GetMenuItemInfo (HMENU hmnu, int item, \
+ * \fn int GUIAPI GetMenuItemInfo (HMENU hmnu, LINT item, \
  *               UINT flag, PMENUITEMINFO pmii)
  * \brief Retrieves information about a menu item.
  *
@@ -8841,14 +8857,16 @@ MG_EXPORT int GUIAPI GetMenuItemID (HMENU hmnu, int pos);
  *
  * \return The function returns 0 for success, non-zero for failure.
  *
+ * \note TODO
+ *
  * \sa SetMenuItemInfo, MENUITEMINFO
  */
-MG_EXPORT int GUIAPI GetMenuItemInfo (HMENU hmnu, int item, 
+MG_EXPORT int GUIAPI GetMenuItemInfo (HMENU hmnu, LINT item, 
                             UINT flag, PMENUITEMINFO pmii);
 
 /*Reserved*/
 int GUIAPI GetMenuItemRect (HWND hwnd, HMENU hmnu, 
-                int item, PRECT prc);
+                LINT item, PRECT prc);
 
 /**
  * \fn HMENU GUIAPI GetPopupSubMenu (HMENU hpppmnu)
@@ -8917,7 +8935,7 @@ MG_EXPORT HMENU GUIAPI GetSubMenu (HMENU hmnu, int pos);
 MG_EXPORT HMENU GUIAPI GetSystemMenu (HWND hwnd, BOOL flag);
 
 /**
- * \fn UINT GUIAPI EnableMenuItem (HMENU hmnu, int item, UINT flag)
+ * \fn UINT GUIAPI EnableMenuItem (HMENU hmnu, LINT item, UINT flag)
  * \brief Enables, disables, or grays the specified menu item.
  *
  * This function enables, disables, or grays the specified menu item.
@@ -8933,13 +8951,15 @@ MG_EXPORT HMENU GUIAPI GetSystemMenu (HWND hwnd, BOOL flag);
  * \return The return value specifies the previous state of the menu item.
  * If the menu item does not exist, the return value is -1.
  *
+ * \note TODO
+ *
  * \sa GetMenuItemInfo
  */
-MG_EXPORT UINT GUIAPI EnableMenuItem (HMENU hmnu, int item, UINT flag);
+MG_EXPORT UINT GUIAPI EnableMenuItem (HMENU hmnu, LINT item, UINT flag);
 
 /**
- * \fn int GUIAPI CheckMenuRadioItem (HMENU hmnu, int first, int last, \
- *               int checkitem, UINT flag)
+ * \fn LINT GUIAPI CheckMenuRadioItem (HMENU hmnu, LINT first, LINT last, \
+ *               LINT checkitem, UINT flag)
  * \brief Checks a specified menu item and makes it a radio item.
  *
  * This function checks a specified menu item and makes it a radio item. 
@@ -8958,13 +8978,15 @@ MG_EXPORT UINT GUIAPI EnableMenuItem (HMENU hmnu, int item, UINT flag);
  *
  * \return The function returns 0 for success, non-zero for failure.
  *
+ * \note TODO
+ *
  * \sa SetMenuItemInfo, MENUITEMINFO
  */
-MG_EXPORT int GUIAPI CheckMenuRadioItem (HMENU hmnu, int first, int last, 
-                            int checkitem, UINT flag);
+MG_EXPORT int GUIAPI CheckMenuRadioItem (HMENU hmnu, LINT first, LINT last, 
+                            LINT checkitem, UINT flag);
 
 /**
- * \fn int GUIAPI SetMenuItemBitmaps (HMENU hmnu, int item, \
+ * \fn int GUIAPI SetMenuItemBitmaps (HMENU hmnu, LINT item, \
  *                UINT flag, PBITMAP hBmpUnchecked, PBITMAP hBmpChecked)
  * \brief Associates the specified bitmap with a menu item.
  *
@@ -8984,13 +9006,15 @@ MG_EXPORT int GUIAPI CheckMenuRadioItem (HMENU hmnu, int first, int last,
  *
  * \return The function returns 0 for success, non-zero for failure.
  *
+ * \note TODO
+ *
  * \sa SetMenuItemInfo, MENUITEMINFO
  */
-MG_EXPORT int GUIAPI SetMenuItemBitmaps (HMENU hmnu, int item, UINT flag, 
+MG_EXPORT int GUIAPI SetMenuItemBitmaps (HMENU hmnu, LINT item, UINT flag, 
                             PBITMAP hBmpUnchecked, PBITMAP hBmpChecked);
 
 /**
- * \fn int GUIAPI SetMenuItemInfo (HMENU hmnu, int item, \
+ * \fn int GUIAPI SetMenuItemInfo (HMENU hmnu, LINT item, \
  *               UINT flag, PMENUITEMINFO pmii)
  * \brief Changes information about a menu item.
  *
@@ -9008,9 +9032,11 @@ MG_EXPORT int GUIAPI SetMenuItemBitmaps (HMENU hmnu, int item, UINT flag,
  *
  * \return The function returns 0 for success, non-zero for failure.
  *
+ * \note TODO
+ *
  * \sa GetMenuItemInfo, MENUITEMINFO
  */
-MG_EXPORT int GUIAPI SetMenuItemInfo (HMENU hmnu, int item, 
+MG_EXPORT int GUIAPI SetMenuItemInfo (HMENU hmnu, LINT item, 
                             UINT flag, PMENUITEMINFO pmii);
 
     /** @} end of menu_fns */
@@ -9095,8 +9121,10 @@ typedef struct _CTRLDATA
     DWORD       dwStyle;                
     /** Control position in dialog */
     int         x, y, w, h;             
-    /** Control identifier */
-    int         id;                     
+    /** Control identifier
+      * \note TODO
+      */
+    LINT         id;                     
     /** Control caption */
     const char* caption;                
     /** Additional data */
@@ -9329,7 +9357,7 @@ MG_EXPORT void GUIAPI DestroyAllControls (HWND hWnd);
 MG_EXPORT HWND GUIAPI GetDlgDefPushButton (HWND hWnd);
 
 /**
- * \fn int GUIAPI GetDlgCtrlID (HWND hwndCtl)
+ * \fn LINT GUIAPI GetDlgCtrlID (HWND hwndCtl)
  * \brief Gets the integer identifier of a control.
  *
  * This function gets the integer identifier of the control \a hwndCtl.
@@ -9338,12 +9366,14 @@ MG_EXPORT HWND GUIAPI GetDlgDefPushButton (HWND hWnd);
  *
  * \return The identifier of the control, -1 for error.
  *
+ * \note TODO
+ *
  * \sa GetDlgItem
  */
-MG_EXPORT int GUIAPI GetDlgCtrlID (HWND hwndCtl);
+MG_EXPORT LINT GUIAPI GetDlgCtrlID (HWND hwndCtl);
 
 /**
- * \fn HWND GUIAPI GetDlgItem (HWND hDlg, int nIDDlgItem)
+ * \fn HWND GUIAPI GetDlgItem (HWND hDlg, LINT nIDDlgItem)
  * \brief Retrives the handle to a control in a dialog box.
  *
  * This function retrives the handle to a control, whose identifier is 
@@ -9352,12 +9382,14 @@ MG_EXPORT int GUIAPI GetDlgCtrlID (HWND hwndCtl);
  * \param hDlg The handle to the dialog box.
  * \param nIDDlgItem The identifier of the control.
  *
+ * \note TODO
+ *
  * \return The handle to the control, zero for not found.
  */
-MG_EXPORT HWND GUIAPI GetDlgItem (HWND hDlg, int nIDDlgItem);
+MG_EXPORT HWND GUIAPI GetDlgItem (HWND hDlg, LINT nIDDlgItem);
 
 /**
- * \fn UINT GUIAPI GetDlgItemInt (HWND hDlg, int nIDDlgItem, \
+ * \fn UINT GUIAPI GetDlgItemInt (HWND hDlg, LINT nIDDlgItem, \
  *               BOOL *lpTranslated, BOOL bSigned)
  * \brief Translates the text of a control in a dialog box into an integer 
  *        value.
@@ -9384,13 +9416,15 @@ MG_EXPORT HWND GUIAPI GetDlgItem (HWND hDlg, int nIDDlgItem);
  *  - [+|-][1-9][0-9]*\n
  *    Will be read in base 10.
  *
+ * \note TODO
+ *
  * \sa GetDlgItemText, SetDlgItemInt
  */
-MG_EXPORT UINT GUIAPI GetDlgItemInt (HWND hDlg, int nIDDlgItem, 
+MG_EXPORT UINT GUIAPI GetDlgItemInt (HWND hDlg, LINT nIDDlgItem, 
                 BOOL *lpTranslated, BOOL bSigned);
 
 /**
- * \fn int GUIAPI GetDlgItemText (HWND hDlg, int nIDDlgItem, \
+ * \fn int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, \
  *               char* lpString, int nMaxCount)
  * \brief Retrieves the title or text associated with a control in a dialog box.
  *
@@ -9407,13 +9441,15 @@ MG_EXPORT UINT GUIAPI GetDlgItemInt (HWND hDlg, int nIDDlgItem,
  *
  * \note The buffer should at least have size of (\a nMaxCount + 1).
  *
+ * \note TODO
+ *
  * \sa GetDlgItemInt, GetDlgItemText2
  */
-MG_EXPORT int GUIAPI GetDlgItemText (HWND hDlg, int nIDDlgItem, 
+MG_EXPORT int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, 
                 char* lpString, int nMaxCount);
 
 /**
- * \fn char* GUIAPI GetDlgItemText2 (HWND hDlg, int id, int* lenPtr)
+ * \fn char* GUIAPI GetDlgItemText2 (HWND hDlg, LINT id, int* lenPtr)
  * \brief Retrieves the title or text associated with a control in a dialog box.
  *
  * This function is similiar as \a GetDlgItemText function,
@@ -9428,9 +9464,11 @@ MG_EXPORT int GUIAPI GetDlgItemText (HWND hDlg, int nIDDlgItem,
  *
  * \return The pointer to the allocated buffer.
  *
+ * \note TODO
+ *
  * \sa GetDlgItemText
  */
-MG_EXPORT char* GUIAPI GetDlgItemText2 (HWND hDlg, int id, int* lenPtr);
+MG_EXPORT char* GUIAPI GetDlgItemText2 (HWND hDlg, LINT id, int* lenPtr);
 
 /**
  * \fn HWND GUIAPI GetNextDlgGroupItem (HWND hDlg, \
@@ -9475,7 +9513,7 @@ MG_EXPORT HWND GUIAPI GetNextDlgGroupItem (HWND hDlg,
 MG_EXPORT HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious);
 
 /**
- * \fn LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, \
+ * \fn LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem, \
  *               UINT message, WPARAM wParam, LPARAM lParam)
  * \brief Sends a message to the specified control in a dialog box.
  *
@@ -9491,13 +9529,15 @@ MG_EXPORT HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious);
  *
  * \return The return value of the message handler.
  *
+ * \note TODO
+ *
  * \sa SendMessage, GetDlgItem
  */
-MG_EXPORT LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem, 
+MG_EXPORT LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem, 
                 UINT message, WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn BOOL GUIAPI SetDlgItemInt (HWND hDlg, int nIDDlgItem, \
+ * \fn BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, \
  *               UINT uValue, BOOL bSigned)
  * \brief Sets the text of a control in a dialog box to the string 
  *        representation of a specified integer value.
@@ -9514,9 +9554,11 @@ MG_EXPORT LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, int nIDDlgItem,
  *
  * \return TRUE on success, FALSE on error.
  *
+ * \note TODO
+ *
  * \sa GetDlgItemInt, SetDlgItemText
  */
-MG_EXPORT BOOL GUIAPI SetDlgItemInt (HWND hDlg, int nIDDlgItem, 
+MG_EXPORT BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, 
                 UINT uValue, BOOL bSigned);
 
 /**
@@ -9534,15 +9576,17 @@ MG_EXPORT BOOL GUIAPI SetDlgItemInt (HWND hDlg, int nIDDlgItem,
  *
  * \return TRUE on success, FALSE on error.
  *
+ * \note TODO
+ *
  * \sa GetDlgItemText, SetDlgItemInt
  */
-MG_EXPORT BOOL GUIAPI SetDlgItemText (HWND hDlg, int nIDDlgItem, 
+MG_EXPORT BOOL GUIAPI SetDlgItemText (HWND hDlg, LINT nIDDlgItem, 
                 const char* lpString);
 
 #ifdef _MGCTRL_BUTTON
 
 /**
- * \fn void GUIAPI CheckDlgButton (HWND hDlg, int nIDDlgItem, int nCheck)
+ * \fn void GUIAPI CheckDlgButton (HWND hDlg, LINT nIDDlgItem, int nCheck)
  * \brief Changes the check status of a button control.
  *
  * This function changes the check status of the button control whose 
@@ -9561,13 +9605,15 @@ MG_EXPORT BOOL GUIAPI SetDlgItemText (HWND hDlg, int nIDDlgItem,
  *          - BST_INDETERMINATE\n
  *            The button is in indeterminate state.
  *
+ * \note TODO
+ *
  * \sa CheckRadioButton, IsDlgButtonChecked
  */
-MG_EXPORT void GUIAPI CheckDlgButton (HWND hDlg, int nIDDlgItem, int nCheck);
+MG_EXPORT void GUIAPI CheckDlgButton (HWND hDlg, LINT nIDDlgItem, int nCheck);
 
 /**
  * \fn void GUIAPI CheckRadioButton (HWND hDlg, \
- *               int idFirstButton, int idLastButton, int idCheckButton)
+ *               LINT idFirstButton, LINT idLastButton, LINT idCheckButton)
  * \brief Adds a check mark to (checks) a specified radio button in a group 
  *        and removes a check mark from (clears) all other radio buttons in 
  *        the group.
@@ -9581,13 +9627,15 @@ MG_EXPORT void GUIAPI CheckDlgButton (HWND hDlg, int nIDDlgItem, int nCheck);
  * \param idLastButton The identifier of the last control in the group.
  * \param idCheckButton The identifier of the control to be checked.
  *
+ * \note TODO
+ *
  * \sa CheckDlgButton
  */
 MG_EXPORT void GUIAPI CheckRadioButton (HWND hDlg, 
-                int idFirstButton, int idLastButton, int idCheckButton);
+                LINT idFirstButton, LINT idLastButton, LINT idCheckButton);
 
 /**
- * \fn int GUIAPI IsDlgButtonChecked (HWND hDlg, int idButton)
+ * \fn int GUIAPI IsDlgButtonChecked (HWND hDlg, LINT idButton)
  * \brief Determines whether a button control has a check mark next to it or 
  *        whether a three-state button control is grayed, checked, or neither.
  *
@@ -9609,9 +9657,11 @@ MG_EXPORT void GUIAPI CheckRadioButton (HWND hDlg,
  *          - BST_INDETERMINATE\n
  *            The button is in indeterminate state.
  *
+ * \note TODO
+ *
  * \sa CheckDlgButton
  */
-MG_EXPORT int  GUIAPI IsDlgButtonChecked (HWND hDlg, int idButton); 
+MG_EXPORT int  GUIAPI IsDlgButtonChecked (HWND hDlg, LINT idButton); 
 #endif
 
      /** @} end of dialog_fns */

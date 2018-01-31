@@ -200,7 +200,7 @@ void GUIAPI DisabledTextOutEx (HDC hdc, HWND hwnd, int x, int y, const char* szT
     TextOut (hdc, x, y, szText);
 }
 
-void GUIAPI NotifyParentEx (HWND hwnd, int id, int code, DWORD add_data)
+void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
 {
     NOTIFPROC notif_proc;
 
@@ -218,8 +218,7 @@ void GUIAPI NotifyParentEx (HWND hwnd, int id, int code, DWORD add_data)
     }
 }
 
-int GUIAPI 
-DefaultPageProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HWND hCurFocus;
 

@@ -25,7 +25,9 @@ typedef struct _CTRLCLASSINFO
     DWORD     dwExStyle;        // Default control extended styles.
 
     HCURSOR   hCursor;          // control cursor
-    int       iBkColor;         // control background color.
+
+    gal_pixel iFgColor;         // control foreground color.
+    gal_pixel iBkColor;         // control background color.
     
     LRESULT (*ControlProc)(HWND, UINT, WPARAM, LPARAM);
                                 // control procedure.
@@ -52,7 +54,8 @@ typedef struct tagCONTROL
     DWORD dwStyle;          // the styles of child window.
     DWORD dwExStyle;        // the extended styles of child window.
 
-    int iBkColor;		    // the background color.
+    gal_pixel iFgColor;     // control foreground color.
+    gal_pixel iBkColor;		// control background color.
     HMENU hMenu;		    // handle of menu.
     HACCEL hAccel;          // handle of accelerator table.
     HCURSOR hCursor;	    // handle of cursor.
@@ -61,7 +64,7 @@ typedef struct tagCONTROL
     PLOGFONT pLogFont;      // pointer to logical font.
 
     char* spCaption;         // the caption of control.
-    int   id;                // the identifier of child window.
+    LINT  id;                // the identifier of child window.
 
     LFSCROLLBARINFO vscroll;   // the vertical scroll bar information.
     LFSCROLLBARINFO hscroll;   // the horizital scroll bar information.

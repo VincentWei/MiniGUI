@@ -25,7 +25,7 @@ typedef struct _MENUITEM {
     short               type;
     UINT                mnutype;
     UINT                mnustate;
-    int                 id;
+    LINT                id;
     PBITMAP             uncheckedbmp;
     PBITMAP             checkedbmp;
     DWORD               itemdata;
@@ -41,8 +41,7 @@ typedef struct _MENUBAR
     short               category;       // category of data.
     short               type;           // type of data.
     HWND                hwnd;           // owner.
-    int                 hilitedItem;    // hilited item.
-//    UINT                hiliteFlag;     // hilite flag.
+    LINT                hilitedItem;    // hilited item.
     PMENUITEM           head;           // head of menu item list
 } MENUBAR;
 typedef MENUBAR* PMENUBAR;

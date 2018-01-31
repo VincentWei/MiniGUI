@@ -151,7 +151,7 @@ MG_EXPORT void ResetToolTipWin (HWND hwnd, int x, int y,
 MG_EXPORT void DestroyToolTipWin (HWND hwnd);
 
 /**
- * \fn void GUIAPI NotifyParentEx (HWND hwnd, int id, int code, DWORD add_data)
+ * \fn void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
  * \brief Sends a notification message to the parent.
  *
  * By default, the notification from a control will be sent to its parent
@@ -174,9 +174,11 @@ MG_EXPORT void DestroyToolTipWin (HWND hwnd);
  * \param code The notification code.
  * \param add_data The additional data of the notification.
  *
+ * \note TODO
+ *
  * \sa SetNotificationCallback
  */
-MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, int id, int code, DWORD add_data);
+MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data);
 
 /**
  * \def NotifyParent(hwnd, id, code)
@@ -207,8 +209,7 @@ MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, int id, int code, DWORD add_dat
  */
 typedef int (*STRCMP) (const char* s1, const char* s2, size_t n);
 
-MG_EXPORT int GUIAPI 
-DefaultPageProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     /** @} end of misc_fns */
 
