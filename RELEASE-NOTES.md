@@ -98,11 +98,11 @@ The main changes in structure and functions:
     a pointer as the identifier of the timer on 64-bit platform. mGNCS uses 
     MiniGUI timer in this manner.
 
- * We now use a `LINT` integer for the identifier of a control/widget. So 
-    you can pass a pointer as the identifier of the timer on 64-bit platform. 
-    mGNCS works in this manner.
+ * We now use a `LINT` integer for the identifier of a control/widget and menu
+    item. So you can pass a pointer as the identifier of the timer on 64-bit 
+    platform. mGNCS works in this manner.
 
-1. Message APIs
+##### Message
 
 As a result, the strcuture `MSG` and all message-related functions changed.
 For example, the prototype of `SendMessage` changed from
@@ -113,7 +113,7 @@ to
 
     LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 
-1. Window Callback Procedure 
+##### Window callback procedure 
 
 Furthermore, the structure and functions to register window class, 
 create main window, and create dialog box changed. For example, the prototype 
@@ -136,7 +136,11 @@ to
 All main window procedures, control class procedures, and dialog box procedures
 defined by your app should change the implementation to reflect the changes above.
 
-The type of identifiers of controls and menu items changed from `int` to `LINT`.
+*IMPORTANT NOTE*
+
+Do not cast the result returned by a window procedure to `int` on 64-bit platform.
+
+##### Notification callback procedure
 
 The type of notification callback changes from:
 
@@ -146,7 +150,7 @@ to
 
     typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
 
-IMPORTANT NOTE:
+*IMPORTANT NOTE*
 
 If you use `MSG_COMMAND` message to handle the notification sent from children
 controls, you should make sure the identifier is small enough on 64-bit 
@@ -165,7 +169,7 @@ Therefore, we recommend strongly that you use a `NOTIFYPOROC` callback to
 handle the notification sent from controls. To do this, please call 
 `SetNotificationCallback` function to set the notification callback function.
 
-1. Time and timer
+##### Time and timer
 
 The prototype of `GetTickCount` changed from
 
@@ -183,7 +187,7 @@ to
 
     typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD)
 
-1. Miscellaneous
+##### Miscellaneous
 
 In addition, we correct the bad or wrong definitions of some APIs:
 
