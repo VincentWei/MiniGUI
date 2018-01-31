@@ -12,7 +12,7 @@ MiniGUI apps. Please report any bugs and incompatibilities in
 
   * Support for 64-bit platform. Note that the definitions of some types 
     and APIs changed. 
-  * Eliminate all compilation warnings.
+  * Compliant to the latest GCC, and eliminate all compilation warnings.
 
 ### Type changes
 
@@ -24,11 +24,11 @@ You may need to check your code to reflect this change.
 
 #### Changes of integer types.
 
-The type of `DWORD` now has the pointer precision. That is,
+The type of `DWORD` now has pointer precision. That is,
 the size of `DWORD` will be 4 bytes on 32-bit platform, and 8 bytes on 
 64-bit platform. 
 
-Similarly, `WPARAM` and `LPARAM` are now have the pointer precision.
+Similarly, `WPARAM` and `LPARAM` now have pointer precision.
 
 `WORD` and `SWORD` has a half of pointer precision. The size of these 
 two types is 2 bytes on 32-bit platform, and 4 bytes on 64-bit platform.
@@ -53,7 +53,7 @@ a binary file for the portability. Of course, you can also use
 `Uint16` or `SUint16` types.
 
 `LRESULT` is defined for window callback procedure, and it has
-the pointer precision.
+pointer precision.
 
 `LINT` is a new integer type with pointer precision.
 
@@ -68,7 +68,7 @@ word on 64-bit platform.
 `LOBYTE_WORD16` and `HIBYTE_WORD16`: these two new macros get the low byte
 and the high byte in a 16-bit word respectively.
 
-Note that `MAKELONG` macro always makes a DWORD integer, which has the pointer
+Note that `MAKELONG` macro always makes a DWORD integer, which has pointer
 precision.
 
 Note that 'MakeRGB` and `MakeRGBA` macros always make DWORD32 integers. 
