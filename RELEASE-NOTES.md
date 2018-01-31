@@ -98,6 +98,12 @@ The main changes in structure and functions:
     a pointer as the identifier of the timer on 64-bit platform. mGNCS uses 
     MiniGUI timer in this manner.
 
+ * We now use a `LINT` integer for the identifier of a control/widget. So 
+    you can pass a pointer as the identifier of the timer on 64-bit platform. 
+    mGNCS works in this manner.
+
+1. Message APIs
+
 As a result, the strcuture `MSG` and all message-related functions changed.
 For example, the prototype of `SendMessage` changed from
 
@@ -106,6 +112,8 @@ For example, the prototype of `SendMessage` changed from
 to
 
     LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+
+1. Window Callback Procedure 
 
 Furthermore, the structure and functions to register window class, 
 create main window, and create dialog box changed. For example, the prototype 
@@ -126,7 +134,38 @@ to
     LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 All main window procedures, control class procedures, and dialog box procedures
-defined by your app should change the implementation to reflect the change above.
+defined by your app should change the implementation to reflect the changes above.
+
+The type of identifiers of controls and menu items changed from `int` to `LINT`.
+
+The type of notification callback changes from:
+
+    typedef void (* NOTIFPROC) (HWND hwnd, int id, int nc, DWORD add_data);
+
+to
+
+    typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
+
+IMPORTANT NOTE:
+
+If you use `MSG_COMMAND` message to handle the notification sent from children
+controls, you should make sure the identifier is small enough on 64-bit 
+platform. Because MiniGUI packs the identifier and the notification code 
+in the `WPARAM` parameter:
+
+    MSG_COMMAND
+    int id = LOWORD(wParam);
+    int code = HIWORD(wParam);
+    HWND hwnd = (HWND)lParam;
+
+The code above will not work on 64-bit if you use a pointer as the identifier
+of the control.
+
+Therefore, we recommend strongly that you use a `NOTIFYPOROC` callback to 
+handle the notification sent from controls. To do this, please call 
+`SetNotificationCallback` function to set the notification callback function.
+
+1. Time and timer
 
 The prototype of `GetTickCount` changed from
 
@@ -144,13 +183,15 @@ to
 
     typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD)
 
-In additio, we correct the bad or wrong definitions of some APIs:
+1. Miscellaneous
 
-  1. `DWORD2PIXEL` to `DWORD2Pixel`. The old one has a bad name.
-  2. `GetWindowRendererFromName`: The return type changes from 
+In addition, we correct the bad or wrong definitions of some APIs:
+
+  * `DWORD2PIXEL` to `DWORD2Pixel`. The old one has a bad name.
+  * `GetWindowRendererFromName`: The return type changes from 
     `const WINDOW_ELEMENT_RENDERER*` to `WINDOW_ELEMENT_RENDERER*`.
     So you can overload some methods directly of a renderer.
-  3. `GetDefaultWindowElementRenderer`: The return type changes from 
+  * `GetDefaultWindowElementRenderer`: The return type changes from 
     `const WINDOW_ELEMENT_RENDERER*` to `WINDOW_ELEMENT_RENDERER*`.
     So you can overload some methods directly of the default renderer.
 
