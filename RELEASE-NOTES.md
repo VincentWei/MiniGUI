@@ -134,11 +134,13 @@ to
     LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 All main window procedures, control class procedures, and dialog box procedures
-defined by your app should change the implementation to reflect the changes above.
+defined by your app should change the implementation to reflect the changes
+above.
 
-*IMPORTANT NOTE*
+_IMPORTANT NOTE_
 
-Do not cast the result returned by a window procedure to `int` on 64-bit platform.
+Do not cast the result returned by a window procedure to `int` on 64-bit
+platform, unless you know what your are doing.
 
 ##### Notification callback procedure
 
@@ -150,7 +152,7 @@ to
 
     typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
 
-*IMPORTANT NOTE*
+_IMPORTANT NOTE_
 
 If you use `MSG_COMMAND` message to handle the notification sent from children
 controls, you should make sure the identifier is small enough on 64-bit 
