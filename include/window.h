@@ -8825,7 +8825,7 @@ MG_EXPORT BOOL GUIAPI HiliteMenuBarItem (HWND hwnd, int pos, UINT flag);
 MG_EXPORT int GUIAPI GetMenuItemCount (HMENU hmnu);
 
 /**
- * \fn int GUIAPI GetMenuItemID (HMENU hmnu, int pos)
+ * \fn LINT GUIAPI GetMenuItemID (HMENU hmnu, int pos)
  * \brief Retrieves the menu item identifier of a menu item at specified 
  *        position in a menu.
  *
@@ -8837,10 +8837,11 @@ MG_EXPORT int GUIAPI GetMenuItemCount (HMENU hmnu);
  *        first item is 0.
  *
  * \return The identifier of the items in the menu.
+ * \note The type of return value changed from int to LINT since v3.2.
  *
  * \sa GetMenuItemInfo
  */
-MG_EXPORT int GUIAPI GetMenuItemID (HMENU hmnu, int pos); 
+MG_EXPORT LINT GUIAPI GetMenuItemID (HMENU hmnu, int pos); 
 
 /**
  * \fn int GUIAPI GetMenuItemInfo (HMENU hmnu, LINT item, \

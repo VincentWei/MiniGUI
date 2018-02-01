@@ -809,7 +809,7 @@ static PMENUITEM mnuGetMenuItem (HMENU hmnu, LINT item, BOOL flag)
     return NULL; 
 }
 
-int GUIAPI GetMenuItemID (HMENU hmnu, int pos)
+LINT GUIAPI GetMenuItemID (HMENU hmnu, int pos)
 {
     PMENUBAR pmb;
     PMENUITEM pmi;
