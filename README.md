@@ -6,13 +6,14 @@ A mature cross-platform windowing system and GUI system for embedded and IoT dev
 ## TABLE OF CONTENTS
 
   1. Introduction
+  1. A brief building instruction
   1. The runtime modes of MiniGUI
   1. History
   1. About the authors
   1. If you have a problem
   1. A little FAQ
-  1. Copying
   1. Not free for commercial use
+  1. Copying
 
 
 ## INTRODUCTION
@@ -53,14 +54,14 @@ for the developers to develop app much easier:
   * mGUtils: A MiniGUI component which contains miscellaneous utilities 
     like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
 
+  * mG3d: A simple three-dimension component for MiniGUI. This component
+    provides a simple 3D API for app. You can use mG3d to create simple
+    3D UI.
+
 There are also some legacy MiniGUI components:
 
   * mGp: A printing component for MiniGUI. By using mGp, you can print
     out the graphics created by MiniGUI app to general-purpose printers.
-
-  * mG3d: A simple three-dimension component for MiniGUI. This component
-    provides a simple 3D API for app. You can use mG3d to create simple
-    3D UI.
 
 MiniGUI is a free software project. In December 1998, the initiator of 
 FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public 
@@ -98,6 +99,42 @@ https://github.com/VincentWei
 
 FMSoft releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
 You can also download it from the official site of MiniGUI.
+
+
+## A BRIEF BUILDING INSTRUCTION
+
+This instruction assumes that you are using Ubuntu Linux.
+
+### Prerequisites
+
+You can run `apt install <package_name>` to install the software on Ubuntu Linux.
+
+ * Building tools:
+    * autoconf
+ * Dependent libraries (all are optional):
+    * libjpeg64-dev
+    * libpng12-dev
+    * libfreetype6-dev
+
+### Building
+
+MiniGUI core uses GNU autoconf/automake scripts to configure and build the project.
+
+Run
+
+    $ ./configure; make; sudo make install
+
+to configure, make, and install the headers and the libraries. If there is not
+`configure` file, please run
+
+    $ ./autogen.sh
+
+to generate the script.
+
+MiniGUI core also provides some configuration options to customize the features.
+For more information, please run
+
+    $ ./configure --help
 
 
 ## THE RUNTIME MODES OF MINIGUI
@@ -288,12 +325,6 @@ Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?
 A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD. 
 
 
-## COPYING
-
-Copyright (C) 2002~2017, Beijing FMSoft Technologies Co., Ltd.
-
-Copyright (C) 1998~2002, WEI Yongming
-
 ## NOT FREE FOR COMMERCIAL USE
 
 MiniGUI and its components are licensed under the GPL license. 
@@ -304,4 +335,35 @@ the commercial license of MiniGUI, please refer to the LICENSE.POLICY file.
 We provide you the commercial license of MiniGUI according to the number 
 of the run-time binary copies of MiniGUI. If you are interested in 
 the commercial license of MiniGUI, please write to sales@minigui.com.  
+
+
+## COPYING
+
+    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 1998~2002, WEI Yongming
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Or,
+
+    As this program is a library, any link to this program must follow
+    GNU General Public License version 3 (GPLv3). If you cannot accept
+    GPLv3, you need to be licensed from FMSoft.
+
+    If you have got a commercial license of this program, please use it
+    under the terms and conditions of the commercial license.
+
+    For more information about the commercial license, please refer to
+    <http://www.minigui.com/en/about/licensing-policy/>.
 
