@@ -423,7 +423,8 @@ static int keyboard_update (void)
     }
     else {
         scancode = unicode;
-        //printf ("scancode = %d\n", scancode);
+        _MG_PRINTF ("IAL>PCXVFB: get a key state change (%s): scancode = %d\n",
+                press?"pressed":"released", scancode);
         kbd_state [scancode] = press;
         if (press)
             last = scancode;

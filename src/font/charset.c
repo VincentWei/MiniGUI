@@ -3718,8 +3718,8 @@ static int utf16le_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     if (wc < 0x10000) {
-        mchar [0] = LOBYTE (wc);
-        mchar [1] = HIBYTE (wc);
+        mchar [0] = LOBYTE_WORD16 (wc);
+        mchar [1] = HIBYTE_WORD16 (wc);
         return 2;
     }
 
@@ -3730,10 +3730,10 @@ static int utf16le_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     w1 |= (wc >> 10);
     w2 |= (wc & 0x03FF);
 
-    mchar [0] = LOBYTE (w1);
-    mchar [1] = HIBYTE (w1);
-    mchar [2] = LOBYTE (w2);
-    mchar [3] = HIBYTE (w2);
+    mchar [0] = LOBYTE_WORD16 (w1);
+    mchar [1] = HIBYTE_WORD16 (w1);
+    mchar [2] = LOBYTE_WORD16 (w2);
+    mchar [3] = HIBYTE_WORD16 (w2);
     return 4;
 }
 
@@ -3944,8 +3944,8 @@ static int utf16be_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     if (wc < 0x10000) {
-        mchar [1] = LOBYTE (wc);
-        mchar [0] = HIBYTE (wc);
+        mchar [1] = LOBYTE_WORD16 (wc);
+        mchar [0] = HIBYTE_WORD16 (wc);
         return 2;
     }
 
@@ -3956,10 +3956,10 @@ static int utf16be_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     w1 |= (wc >> 10);
     w2 |= (wc & 0x03FF);
 
-    mchar [1] = LOBYTE (w1);
-    mchar [0] = HIBYTE (w1);
-    mchar [3] = LOBYTE (w2);
-    mchar [2] = HIBYTE (w2);
+    mchar [1] = LOBYTE_WORD16 (w1);
+    mchar [0] = HIBYTE_WORD16 (w1);
+    mchar [3] = LOBYTE_WORD16 (w2);
+    mchar [2] = HIBYTE_WORD16 (w2);
     return 4;
 }
 

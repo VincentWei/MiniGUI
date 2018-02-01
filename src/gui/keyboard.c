@@ -396,7 +396,7 @@ static void handle_scancode_on_keydown (int scancode, key_info* kinfo)
     key_map = __mg_key_maps [shift_final];
     if (key_map != NULL) {
         keysym = key_map [scancode];
-        kinfo->type = HIBYTE (keysym);
+        kinfo->type = HIBYTE_WORD16 (keysym);
 
         if (kinfo->type >= 0xf0) {
             kinfo->type -= 0xf0;
@@ -406,7 +406,7 @@ static void handle_scancode_on_keydown (int scancode, key_info* kinfo)
                     if (key_map)
                       keysym = key_map [scancode];
 
-                    kinfo->type =HIBYTE(keysym);
+                    kinfo->type = HIBYTE_WORD16 (keysym);
                     /*Now, the kinfo->type maybe changed to KT_ARABIC_COMPOSE.
                      * So we have to deal with this situation */
                     if(kinfo->type >= 0xf0){
@@ -423,7 +423,7 @@ static void handle_scancode_on_keydown (int scancode, key_info* kinfo)
                     key_map = __mg_key_maps[shift_final ^(1<<KG_SHIFT)];
                     if (key_map)
                       keysym = key_map [scancode];
-                    kinfo->type =HIBYTE(keysym);
+                    kinfo->type = HIBYTE_WORD16 (keysym);
 
                     if(kinfo->type >= 0xf0){
                         kinfo->type -= 0xf0;
@@ -457,7 +457,7 @@ static void handle_scancode_on_keyup (int scancode, key_info* kinfo)
     key_map = __mg_key_maps [shift_final];
     if (key_map != NULL) {
         keysym = key_map [scancode];
-        kinfo->type = HIBYTE (keysym);
+        kinfo->type = HIBYTE_WORD16 (keysym);
 
         if (kinfo->type >= 0xf0) {
             kinfo->type -= 0xf0;
