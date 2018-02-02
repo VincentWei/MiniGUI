@@ -5369,7 +5369,7 @@ MG_EXPORT BOOL GUIAPI IsWindowEnabled (HWND hWnd);
 MG_EXPORT BOOL GUIAPI GetClientRect(HWND hWnd, PRECT prc);
 
 /**
- * \fn int GUIAPI GetWindowBkColor (HWND hWnd)
+ * \fn gal_pixel GUIAPI GetWindowBkColor (HWND hWnd)
  * \brief Returns the current background color of a window.
  *
  * This function returns the pixel value of the current background color of 
@@ -5379,12 +5379,14 @@ MG_EXPORT BOOL GUIAPI GetClientRect(HWND hWnd, PRECT prc);
  *
  * \return The pixel value of the background color.
  *
+ * \note The type of return value changed from int to gal_pixel since v3.2.
+ *
  * \sa SetWindowBkColor
  */
-MG_EXPORT int GUIAPI GetWindowBkColor (HWND hWnd);
+MG_EXPORT gal_pixel GUIAPI GetWindowBkColor (HWND hWnd);
 
 /**
- * \fn int GUIAPI SetWindowBkColor (HWND hWnd, int new_bkcolor)
+ * \fn gal_pixel GUIAPI SetWindowBkColor (HWND hWnd, gal_pixel new_bkcolor)
  * \brief Sets the background color of a window.
  *
  * This function sets the background color of the specified window \a hWnd
@@ -5396,9 +5398,12 @@ MG_EXPORT int GUIAPI GetWindowBkColor (HWND hWnd);
  * \param new_bkcolor The pixel value of the new background color.
  * \return The pixel value of the old background color.
  *
+ * \note The type of return value and \a new_bkcolor changed from int to 
+ *       gal_pixel since v3.2.
+ *
  * \sa GetWindowBkColor
  */
-MG_EXPORT int GUIAPI SetWindowBkColor (HWND hWnd, int new_bkcolor);
+MG_EXPORT gal_pixel GUIAPI SetWindowBkColor (HWND hWnd, gal_pixel new_bkcolor);
 
 /**
  * \fn PLOGFONT GUIAPI GetWindowFont (HWND hWnd)

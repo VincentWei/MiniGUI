@@ -4196,7 +4196,7 @@ BOOL GUIAPI GetClientRect (HWND hWnd, PRECT prc)
 }
 
 /******************** main window and control styles support *****************/
-int GUIAPI GetWindowBkColor (HWND hWnd)
+gal_pixel GUIAPI GetWindowBkColor (HWND hWnd)
 {
     PMAINWIN pWin = (PMAINWIN)hWnd;
 
@@ -4205,9 +4205,9 @@ int GUIAPI GetWindowBkColor (HWND hWnd)
     return pWin->iBkColor;
 }
 
-int GUIAPI SetWindowBkColor (HWND hWnd, int new_bkcolor)
+gal_pixel GUIAPI SetWindowBkColor (HWND hWnd, gal_pixel new_bkcolor)
 {
-    int old_bkcolor;
+    gal_pixel old_bkcolor;
     PMAINWIN pWin;
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), PIXEL_invalid);
