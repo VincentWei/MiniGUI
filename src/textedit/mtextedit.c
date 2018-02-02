@@ -4327,8 +4327,8 @@ static int mTextEditor_onChar(mTextEditor *self, int asciiCode, DWORD keyFlags)
         return 0;
     }
   
-    ch [0] = LOBYTE (asciiCode);
-    ch [1] = HIBYTE (asciiCode);
+    ch [0] = LOBYTE_WORD16 (asciiCode);
+    ch [1] = HIBYTE_WORD16 (asciiCode);
     ch [2] = (0x0ff0000 & asciiCode) >> 16;
     if (ch[2]) {
         chlen = 3;

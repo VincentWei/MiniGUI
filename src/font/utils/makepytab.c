@@ -62,7 +62,7 @@ static void output_gbhz_py_tab (void)
         int j;
         GBHZ_PINYIN* p = gbhz_py_tab + i;
 
-        printf ("\t{0x%04X /* %c%c */, 0, {", p->encoding, HIBYTE (p->encoding), LOBYTE (p->encoding));
+        printf ("\t{0x%04X /* %c%c */, 0, {", p->encoding, HIBYTE_WORD16 (p->encoding), LOBYTE_WORD16 (p->encoding));
         for (j = 0; j < MAX_NR_PINYIN; j++) {
             int no_py, tone;
             if (p->pinyin [j] == 0)

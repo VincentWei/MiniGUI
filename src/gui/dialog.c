@@ -816,9 +816,9 @@ static LRESULT MsgBoxProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
     {
         int id = 0;
         
-        if (HIBYTE (wParam))
+        if (HIBYTE_WORD16 (wParam))
             break;
-        switch (LOBYTE (wParam)) {
+        switch (LOBYTE_WORD16 (wParam)) {
         case 'Y':
         case 'y':
             id = IDYES;
