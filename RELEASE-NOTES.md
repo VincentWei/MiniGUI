@@ -104,7 +104,7 @@ The main changes in structure and functions:
 
 ##### Message
 
-As a result, the strcuture `MSG` and all message-related functions changed.
+The strcuture `MSG` and all message-related functions changed.
 For example, the prototype of `SendMessage` changed from
 
     int SendMessage (HWND hWnd, int nMsg, WPARAM wParam, LPARAM lParam)
@@ -112,6 +112,19 @@ For example, the prototype of `SendMessage` changed from
 to
 
     LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+
+_IMPORTANT NOTE_
+
+For best portability, you should use `LOBYTE_WORD16` and `HIBYTE_WORD16`
+to get the bytes of a character when you extract the bytes from `WPARAM` 
+parameter of a `MSG_CHAR` message:
+
+    MSG_CHAR
+    WORD16 ch = (WORD16)wParam;
+    DWORD key_flags = (DWORD)lParam;
+    byte0 = LOBYTE_WORD16 (ch);
+    byte1 = HIBYTE_WORD16 (ch);
+
 
 ##### Window callback procedure 
 

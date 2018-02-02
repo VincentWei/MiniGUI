@@ -420,11 +420,11 @@ extern "C" {
  *
  * \code
  * MSG_CHAR
- * int ch = (int)wParam;
+ * WORD16 ch = (WORD16)wParam;
  * DWORD key_flags = (DWORD)lParam;
  * \endcode
  *
- * \param ch The ASCII code of the pressed key.
+ * \param ch The EUC code of the pressed key.
  * \param key_flags The shift key status when this message occurred.
  *
  * \note Please use \a LOBYTE_WORD16 and \a HIBYTE_WORD16 to get the bytes
