@@ -61,15 +61,16 @@ pointer precision.
 
 #### Integer macros
 
+`MAKEWPARAM`: this new macro makes a WPARAM value by using four bytes.
+On the contrary, `FIRSTBYTE`, `SECONDBYTE`, `THIRDBYTE`, and `FOURTH` 
+macros get the four bytes from a `WPARAM` or a `Uint32` value.
+
 `MAKEWORD16`: this new macro makes a 16-bit word by using two bytes.
 Meanwhile, `MAKEWORD` makes a 16-bit word on 32-bit platform, and a 32-bit
 word on 64-bit platform.
 
-`LOBYTE_WORD16` and `HIBYTE_WORD16`: these two new macros get the low byte
-and the high byte in a 16-bit word respectively.
-
 Note that `MAKELONG` macro always makes a `DWORD` integer, which has pointer
-precision.
+precision. Meanwhile, `MAKELONG32` macro makes a `Uint32` integer.
 
 Note that `MakeRGB` and `MakeRGBA` macros always make `DWORD32` integers. 
 In contract, `GetRValue`, `GetRValue`, `GetBValue`, `GetAValue` always 
@@ -115,16 +116,16 @@ to
 
 _IMPORTANT NOTE_
 
-For best portability, you should use `LOBYTE_WORD16` and `HIBYTE_WORD16`
+For best portability, you should use `FIRSTBYTE` to `FOURTHBYTE` macros
 to get the bytes of a character when you extract the bytes from `WPARAM` 
 parameter of a `MSG_CHAR` message:
 
     MSG_CHAR
-    WORD16 ch = (WORD16)wParam;
-    DWORD key_flags = (DWORD)lParam;
-    byte0 = LOBYTE_WORD16 (ch);
-    byte1 = HIBYTE_WORD16 (ch);
-
+    unsigned char ch_buff [4];
+    unsigned char ch_buff [0] = FIRSTBYTE(wParam);
+    unsigned char ch_buff [1] = SECONDBYTE(wParam);
+    unsigned char ch_buff [2] = THIRDBYTE(wParam);
+    unsigned char ch_buff [3] = FOURTHBYTE(wParam);
 
 ##### Window callback procedure 
 

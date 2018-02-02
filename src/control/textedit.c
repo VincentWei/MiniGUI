@@ -1990,7 +1990,7 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
 static void teOnChar (HWND hWnd, PTEDATA ptedata, WPARAM wParam)
 {
     int chlen;
-    unsigned char ch[3];
+    unsigned char ch[4];
     TextNode *node;
     TextMark *mark;
     TextDoc *txtdoc;
@@ -2004,11 +2004,15 @@ static void teOnChar (HWND hWnd, PTEDATA ptedata, WPARAM wParam)
         return;
     }
 
-    ch [0] = LOBYTE_WORD16 (wParam);
-    ch [1] = HIBYTE_WORD16 (wParam);
-    ch [2] = (0x0ff0000 & wParam) >> 16;
+    ch [0] = FIRSTBYTE (wParam);
+    ch [1] = SECONDBYTE (wParam);
+    ch [2] = THIRDBYTE (wParam);
+    ch [3] = FOURTHBYTE (wParam);
 
-    if (ch[2]) {
+    if (ch[3]) {
+        chlen = 4;
+    }
+    else if (ch[2]) {
         chlen = 3;
     }
     else if (ch[1]) {
@@ -3213,6 +3217,10 @@ static LRESULT TextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 } /* end switch keydown */
                 break;
             }
+
+        case MSG_UTF8CHAR:
+            _ERR_PRINTF ("CONTROL>EDIT: MSG_UTF8CHAR is not implemented.\n");
+            break;
 
         case MSG_CHAR:
             if (wParam == 127) /* BS */

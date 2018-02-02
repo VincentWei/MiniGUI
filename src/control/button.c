@@ -816,12 +816,12 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         break;
         
         case MSG_CHAR:
-            if (HIBYTE_WORD16 (wParam)==0 && BUTTON_IS_CHECKBTN (pctrl)) {
+            if (HIBYTE (wParam)==0 && BUTTON_IS_CHECKBTN (pctrl)) {
                 int old_check = BUTTON_GET_CHECK(pctrl);
                 
-                if (LOBYTE_WORD16(wParam) == '+' || LOBYTE_WORD16(wParam) == '=')
+                if (LOBYTE(wParam) == '+' || LOBYTE(wParam) == '=')
                     BUTTON_SET_CHECK(pctrl, BST_CHECKED);
-                else if (LOBYTE_WORD16(wParam) == '-')
+                else if (LOBYTE(wParam) == '-')
                     BUTTON_SET_CHECK(pctrl, BST_UNCHECKED);
                     
                 if (old_check != BUTTON_GET_CHECK(pctrl))

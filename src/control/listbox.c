@@ -1885,10 +1885,10 @@ static LRESULT ListboxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             int newTop;
             PLISTBOXITEM plbi;
 
-            if (HIBYTE_WORD16 (wParam))
+            if (HIBYTE (wParam))
                 break;
            
-            head [0] = LOBYTE_WORD16 (wParam);
+            head [0] = LOBYTE (wParam);
             head [1] = '\0';
 
             pData = (PLISTBOXDATA)pCtrl->dwAddData2;

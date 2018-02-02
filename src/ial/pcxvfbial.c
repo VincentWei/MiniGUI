@@ -138,7 +138,7 @@ void VFBSetCaption(const char* caption)
 	/*one XVFBCaptionEventData struct costs 8 bytes,
 	 * change that '8' below if the struct is changed*/
 	if (mg_writesocket(__mg_pcxvfb_client_sockfd, ced, 8+len) < (8+len)) {
-        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling VFBSetCaption.\n");
+        _ERR_PRINTF ("IAL>PCXVFB: error occurred when calling VFBSetCaption.\n");
     }
 }
 
@@ -153,7 +153,7 @@ void VFBOpenIME(int bOpen)
 		return;
 
 	if (mg_writesocket(__mg_pcxvfb_client_sockfd, &ime, sizeof(ime)) < sizeof(ime)) {
-        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling VFBOpenIME.\n");
+        _ERR_PRINTF ("IAL>PCXVFB: error occurred when calling VFBOpenIME.\n");
     }
 }
 
@@ -167,7 +167,7 @@ void VFBShowWindow(int show)
 		return;
 
 	if (mg_writesocket(__mg_pcxvfb_client_sockfd, info, sizeof(info)) < sizeof(info)) {
-        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling VFBShowWindow.\n");
+        _ERR_PRINTF ("IAL>PCXVFB: error occurred when calling VFBShowWindow.\n");
     }
 }
 
@@ -267,7 +267,7 @@ static void write_rec (const void* buf, size_t n)
     /* TODO: */
 #else
     if (write(record_fd, buf, n) < n) {
-        _MG_PRINTF ("IAL>PCXVFB: error occurred when calling write_rec.\n");
+        _ERR_PRINTF ("IAL>PCXVFB: error occurred when calling write_rec.\n");
     }
 #endif
 }
@@ -346,7 +346,7 @@ static void mouse_setxy (int x, int y)
 		return;
 
 	if (mg_writesocket (__mg_pcxvfb_client_sockfd, &mouse_event, sizeof(XVFBEVENT)) < sizeof(XVFBEVENT)) {
-        _MG_PRINTF ("IAL>PCXVFB: error occurred when setting mouse position.\n");
+        _ERR_PRINTF ("IAL>PCXVFB: error occurred when setting mouse position.\n");
     }
 }
 
@@ -423,7 +423,7 @@ static int keyboard_update (void)
     }
     else {
         scancode = unicode;
-        _MG_PRINTF ("IAL>PCXVFB: get a key state change (%s): scancode = %d\n",
+        _DBG_PRINTF ("IAL>PCXVFB: get a key state change (%s): scancode = %d\n",
                 press?"pressed":"released", scancode);
         kbd_state [scancode] = press;
         if (press)

@@ -38,7 +38,7 @@ const char *__mg_msgstr1 [] =
     "MSG_KEYLONGPRESS        ",     // 0x0016
     "MSG_KEYALWAYSPRESS      ",     // 0x0017
     "MSG_KEYSYM              ",     // 0x0018
-    "",                             // 0x0019
+    "MSG_UTF8CHAR            ",     // 0x0019
     "",                             // 0x001A
     "",                             // 0x001B
     "",                             // 0x001C

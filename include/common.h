@@ -436,11 +436,11 @@ typedef signed char     SBYTE;
 #endif
 
 #if SIZEOF_PTR == 8
-#   define NR_BITS_BYTE      (16)
+#   define NR_BITS_BYTE      (8)
 #   define NR_BITS_WORD      (32)
 #   define NR_BITS_DWORD     (64)
 
-#   define BITMASK_BYTE      (0xFFFF)
+#   define BITMASK_BYTE      (0xFF)
 #   define BITMASK_WORD      (0xFFFFFFFF)
 #   define BITMASK_DWORD     (0xFFFFFFFFFFFFFFFF)
 
@@ -661,33 +661,63 @@ typedef UINT_PTR LPARAM;
  * \def MAKEWORD(low, high)
  * \brief Makes a word from \a low byte and \a high byte.
  *
- * \sa MAKEWORD16
+ * \sa LOBYTE, HIBYTE
  */
 #define MAKEWORD(low, high) ((WORD)(((BYTE)(low)) | (((WORD)((BYTE)(high))) << NR_BITS_BYTE)))
-
-/**
- * \def LOBYTE_WORD16(w)
- * \brief Returns the low byte of the 16-bit word \a w.
- *
- * \sa MAKEWORD16
- */
-#define LOBYTE_WORD16(w)           ((BYTE)(w))
-
-/**
- * \def HIBYTE_WORD16(w)
- * \brief Returns the high byte of the 16-bit word \a w.
- *
- * \sa MAKEWORD16
- */
-#define HIBYTE_WORD16(w)           ((BYTE)(((WORD16)(w) >> 8) & 0xFF))
 
 /**
  * \def MAKEWORD16(low, high)
  * \brief Makes a 16-bit word from \a low byte and \a high byte.
  *
- * \sa MAKEWORD
+ * \sa LOBYTE, HIBYTE
  */
 #define MAKEWORD16(low, high) ((WORD16)(((BYTE)(low)) | (((WORD16)((BYTE)(high))) << 8)))
+
+/**
+ * \def MAKEWPARAM(first, second, third, fourth)
+ * \brief Makes a WPARAM value with four bytes.
+ *
+ * \sa MAKEWORD, FIRSTBYTE, SECONDBYTE, THIRDBYTE, FOURTHBYTE
+ */
+#define MAKEWPARAM(first, second, third, fourth) \
+    ((WPARAM)( \
+        ((BYTE)(first)) | \
+        (((WPARAM)((BYTE)(second))) << 8) | \
+        (((WPARAM)((BYTE)(third))) << 16) | \
+        (((WPARAM)((BYTE)(fourth))) << 24) \
+    ))
+
+/**
+ * \def FIRSTBYTE(w)
+ * \brief Returns the first byte of the WPARAM \a w.
+ *
+ * \sa MAKEWPARAM
+ */
+#define FIRSTBYTE(w)        ((BYTE)(w))
+
+/**
+ * \def SECONDBYTE(w)
+ * \brief Returns the second byte of the WPARAM \a w.
+ *
+ * \sa MAKEWPARAM
+ */
+#define SECONDBYTE(w)        ((BYTE)(((DWORD32)(w)) >> 8))
+
+/**
+ * \def THIRDBYTE(w)
+ * \brief Returns the third byte of the WPARAM \a w.
+ *
+ * \sa MAKEWPARAM
+ */
+#define THIRDBYTE(w)        ((BYTE)(((DWORD32)(w)) >> 16))
+
+/**
+ * \def FOURTHBYTE(w)
+ * \brief Returns the fourth byte of the WPARAM \a w.
+ *
+ * \sa MAKEWPARAM
+ */
+#define FOURTHBYTE(w)        ((BYTE)(((DWORD32)(w)) >> 24))
 
 /**
  * \def LOWORD(l)
