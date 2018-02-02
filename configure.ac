@@ -83,6 +83,7 @@ dnl User selectable options
 
 dnl System wide options
 devel_mode="no"
+detail_debug="no"
 trace_message="no"
 message_string="no"
 
@@ -284,6 +285,10 @@ build_screensaver="no"
 AC_ARG_ENABLE(develmode,
 [  --enable-develmode       developer mode <default=no>],
 devel_mode=$enableval)
+
+AC_ARG_ENABLE(detaildebug,
+[  --enable-detaildebug     detailed debug info <default=no>],
+detail_debug=$enableval)
 
 AC_ARG_ENABLE(tracemsg,
 [  --enable-tracemsg        trace messages of MiniGUI <default=no>],
@@ -1638,7 +1643,9 @@ fi
 
 if test "x$devel_mode" = "xyes"; then
     message_string="yes"
-    trace_message="no"
+    if test "x$detail_debug" = "xyes"; then
+        trace_message="yes"
+    fi
 
     build_auto_ial_engine="yes"
     build_random_ial_engine="yes"
@@ -2426,7 +2433,11 @@ dnl define _GNU_SOURCE for pthread_rwlock_t
 CFLAGS="$CFLAGS -D_GNU_SOURCE"
 
 if test "x$devel_mode" = "xyes"; then
-    CPPFLAGS="$CPPFLAGS -DDEBUG -D_DEBUG"
+    CPPFLAGS="$CPPFLAGS -D_DEBUG"
+    if test "x$detail_debug" = "xyes"; then
+        CPPFLAGS="$CPPFLAGS -DDEBUG"
+    fi
+
     if test "$ac_cv_prog_gcc" = "yes"; then
         CPPFLAGS="$CPPFLAGS -Wall -Werror"
     fi

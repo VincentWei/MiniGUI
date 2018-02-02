@@ -62,7 +62,7 @@ static void output_gbhz_py_tab (void)
         int j;
         GBHZ_PINYIN* p = gbhz_py_tab + i;
 
-        printf ("\t{0x%04X /* %c%c */, 0, {", p->encoding, HIBYTE (p->encoding), LOBYTE (p->encoding));
+        printf ("\t{0x%04X /* %c%c */, 0, {", p->encoding, HIBYTE_WORD16 (p->encoding), LOBYTE_WORD16 (p->encoding));
         for (j = 0; j < MAX_NR_PINYIN; j++) {
             int no_py, tone;
             if (p->pinyin [j] == 0)
@@ -113,7 +113,7 @@ static int set_gbhz_pinyin (unsigned char ch1, unsigned char ch2, unsigned short
 
     p = gbhz_py_tab + index;
 
-    p->encoding = MAKEWORD (ch2, ch1);
+    p->encoding = MAKEWORD16 (ch2, ch1);
     for (i = 0; i < MAX_NR_PINYIN; i++) {
         if (p->pinyin [i] == 0) {
             p->pinyin [i] = no_py;

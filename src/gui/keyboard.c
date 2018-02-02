@@ -406,7 +406,7 @@ static void handle_scancode_on_keydown (int scancode, key_info* kinfo)
                     if (key_map)
                       keysym = key_map [scancode];
 
-                    kinfo->type =HIBYTE(keysym);
+                    kinfo->type = HIBYTE (keysym);
                     /*Now, the kinfo->type maybe changed to KT_ARABIC_COMPOSE.
                      * So we have to deal with this situation */
                     if(kinfo->type >= 0xf0){
@@ -423,7 +423,7 @@ static void handle_scancode_on_keydown (int scancode, key_info* kinfo)
                     key_map = __mg_key_maps[shift_final ^(1<<KG_SHIFT)];
                     if (key_map)
                       keysym = key_map [scancode];
-                    kinfo->type =HIBYTE(keysym);
+                    kinfo->type = HIBYTE (keysym);
 
                     if(kinfo->type >= 0xf0){
                         kinfo->type -= 0xf0;
@@ -559,13 +559,13 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, __mg_kinfo.buff[0], pMsg->lParam);
     }
     else if (__mg_kinfo.pos == 2 && arabic_compose_flag) {
-        /*
+#if 0
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, 
-                MAKEWORD (__mg_kinfo.buff[0], __mg_kinfo.buff[1]), 
-                pMsg->lParam);
-                */
+                MAKEWPARAM (__mg_kinfo.buff[0], __mg_kinfo.buff[1], 0, 0), pMsg->lParam);
+#else
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, __mg_kinfo.buff[0], pMsg->lParam);
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, __mg_kinfo.buff[1], pMsg->lParam);
+#endif
         arabic_compose_flag =0;
     }
     else {
@@ -610,13 +610,13 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, kinfo.buff[0], pMsg->lParam);
     }
     else if (kinfo.pos == 2 && arabic_compose_flag) {
-        /*
+#if 0
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, 
-                MAKEWORD (__mg_kinfo.buff[0], __mg_kinfo.buff[1]), 
-                pMsg->lParam);
-                */
+                MAKEWPARAM (__mg_kinfo.buff[0], __mg_kinfo.buff[1], 0, 0), pMsg->lParam);
+#else
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, kinfo.buff[0], pMsg->lParam);
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, kinfo.buff[1], pMsg->lParam);
+#endif
         arabic_compose_flag =0;
     }
     else {

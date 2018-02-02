@@ -420,12 +420,20 @@ extern "C" {
  *
  * \code
  * MSG_CHAR
- * int ch = (int)wParam;
+ * unsigned char ch_buff [4];
+ * unsigned char ch_buff [0] = FIRSTBYTE(wParam);
+ * unsigned char ch_buff [1] = SECONDBYTE(wParam);
+ * unsigned char ch_buff [2] = THIRDBYTE(wParam);
+ * unsigned char ch_buff [3] = FOURTHBYTE(wParam);
  * DWORD key_flags = (DWORD)lParam;
  * \endcode
  *
- * \param ch The ASCII code of the pressed key.
+ * \param ch_buff The buffer to store the bytes of the character.
  * \param key_flags The shift key status when this message occurred.
+ *
+ * \note Please use \a FIRSTBYTE ~ \a FOURTHBYTE to get the bytes
+ *       if the character is a multi-byte character. Use MSG_UTF8CHAR
+ *       to handle the characters encoded in UTF-8.
  *
  * \sa MSG_SYSCHAR, TranslateMessage, key_defs
  */
@@ -557,7 +565,31 @@ extern "C" {
  *
  * \sa MSG_SYSCHAR, TranslateMessage, key_defs
  */
-#define MSG_KEYSYM  0x0018
+#define MSG_KEYSYM          0x0018
+
+/**
+ * \def MSG_UTF8CHAR
+ * \brief A character translated from MSG_KEYDOWN message.
+ *
+ * This message generally sent by a IME window to the current active window.
+ * The chararcter will be encoded in UTF-8.
+ *
+ * \code
+ * MSG_UTF8CHAR
+ * unsigned char ch_utf8 [6];
+ * unsigned char ch_utf8 [0] = FIRSTBYTE(wParam);
+ * unsigned char ch_utf8 [1] = SECONDBYTE(wParam);
+ * unsigned char ch_utf8 [2] = THIRDBYTE(wParam);
+ * unsigned char ch_utf8 [3] = FOURTHBYTE(wParam);
+ * unsigned char ch_utf8 [4] = FIRSTBYTE(lParam);
+ * unsigned char ch_utf8 [5] = SECONDBYTE(lParam);
+ * \endcode
+ *
+ * \param ch_utf8 The buffer to save the character in UTF-8.
+ *
+ * \sa MSG_CHAR, key_defs
+ */
+#define MSG_UTF8CHAR        0x0019
 
 /**
  * \def DEF_LPRESS_TIME

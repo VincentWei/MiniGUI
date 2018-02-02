@@ -1348,7 +1348,7 @@ void __mg_ime_writemsg (BYTE *buffer, int len, LPARAM lParam, BOOL bDByte)
 
     if (bDByte) {
         for (i=0; i<len; i+=2) {
-            wDByte = MAKEWORD (buffer[i], buffer[i+1]);
+            wDByte = MAKEWORD16 (buffer[i], buffer[i+1]);
             if (sg_hTargetWnd)
                 PostMessage (sg_hTargetWnd, MSG_CHAR, wDByte, 0);
 #if defined(_LITE_VERSION) && !defined(_STAND_ALONE)

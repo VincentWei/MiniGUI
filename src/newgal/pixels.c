@@ -360,12 +360,12 @@ Uint32 GAL_MapRGB(GAL_PixelFormat *format, Uint8 r, Uint8 g, Uint8 b)
                | (b >> format->Bloss) << format->Bshift
                | format->Amask;
 #ifdef _NEWGAL_SWAP16
-                pixv = (pixv & 0xFFFF0000) | ArchSwap16((unsigned short)pixv);
+        pixv = (pixv & 0xFFFF0000) | ArchSwap16((unsigned short)pixv);
 #endif
 #if defined(_EM86_IAL) || defined (_EM85_IAL)
-                if (pixv == 0) pixv ++;
+        if (pixv == 0) pixv ++;
 #endif
-                return pixv;
+        return pixv;
     } else {
         if (format->DitheredPalette)
             return GAL_FindDitheredColor (format->BitsPerPixel, r, g, b);
@@ -378,14 +378,14 @@ Uint32 GAL_MapRGB(GAL_PixelFormat *format, Uint8 r, Uint8 g, Uint8 b)
 Uint32 GAL_MapRGBA(GAL_PixelFormat *format, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
     if ( format->palette == NULL ) {
-                Uint32 pixv = (r >> format->Rloss) << format->Rshift
+        Uint32 pixv = (r >> format->Rloss) << format->Rshift
             | (g >> format->Gloss) << format->Gshift
             | (b >> format->Bloss) << format->Bshift
             | ((a >> format->Aloss) << format->Ashift & format->Amask);
 #ifdef _NEWGAL_SWAP16
-                pixv = (pixv & 0xFFFF0000) | ArchSwap16((unsigned short)pixv);
+        pixv = (pixv & 0xFFFF0000) | ArchSwap16((unsigned short)pixv);
 #endif
-                return pixv;
+        return pixv;
     } else {
         if (format->DitheredPalette)
             return GAL_FindDitheredColor (format->BitsPerPixel, r, g, b);

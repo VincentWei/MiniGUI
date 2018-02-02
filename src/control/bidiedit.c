@@ -2463,29 +2463,33 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case MSG_CHAR:
     {
-        unsigned char charBuffer [3];
+        unsigned char charBuffer [4];
         int chars;
 
         _MG_PRINTF("get char-----------------char----%p\n", (PVOID)wParam);
 
-        if (wParam == 127) // BS
-            wParam = '\b';
-
         if (dwStyle & ES_READONLY)
             return 0;
-            
-        charBuffer [0] = LOBYTE (wParam);
-        charBuffer [1] = HIBYTE (wParam);
-        charBuffer [2] = (0x00ff0000 & wParam) >> 16;
 
-        if (charBuffer [2]) {
+        charBuffer [0] = FIRSTBYTE (wParam);
+        charBuffer [1] = SECONDBYTE (wParam);
+        charBuffer [2] = THIRDBYTE (wParam);
+        charBuffer [3] = FOURTHBYTE (wParam);
+
+        if (charBuffer [3]) {
+            chars = 4;
+        }
+        else if (charBuffer [2]) {
             chars = 3;
         }
-        else if (HIBYTE (wParam)) {
+        else if (charBuffer [1]) {
             chars = 2;
         }
         else {
             chars = 1;
+
+            if (charBuffer [0] == 127) // BS
+                charBuffer [0] = '\b';
 
             if (dwStyle & ES_UPPERCASE) {
                 charBuffer [0] = toupper (charBuffer[0]);

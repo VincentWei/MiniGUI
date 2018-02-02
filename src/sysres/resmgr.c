@@ -830,7 +830,7 @@ RES_KEY Str2Key (const char* str)
     l = (strlen(str)+1) / 2;
 
     for (i=0; i<l; i++) {
-        unsigned short w = MAKEWORD(str[i<<1], str[(i<<1)+1]);
+        Uint16 w = MAKEWORD(str[i<<1], str[(i<<1)+1]);
         ret ^= (w<<(i&0x0f));
     }
 
