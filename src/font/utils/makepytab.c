@@ -113,7 +113,7 @@ static int set_gbhz_pinyin (unsigned char ch1, unsigned char ch2, unsigned short
 
     p = gbhz_py_tab + index;
 
-    p->encoding = MAKEWORD (ch2, ch1);
+    p->encoding = MAKEWORD16 (ch2, ch1);
     for (i = 0; i < MAX_NR_PINYIN; i++) {
         if (p->pinyin [i] == 0) {
             p->pinyin [i] = no_py;

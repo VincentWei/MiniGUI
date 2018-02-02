@@ -70,14 +70,14 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
     char caption[64] = "wvfb";
     char cmdline[512];
     STARTUPINFO si;
-    WORD wVersionRequested;
+    WORD16 wVersionRequested;
     WSADATA wsaData;
     struct sockaddr_in ser_addr;
     struct sockaddr_in c_addr;
     int client_len;
 
     // Initial for the socket ......
-    wVersionRequested = MAKEWORD(2, 2);
+    wVersionRequested = MAKEWORD16 (2, 2);
     if (0 != WSAStartup(wVersionRequested, &wsaData)) 
     {
         return NULL;

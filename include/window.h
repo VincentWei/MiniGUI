@@ -427,6 +427,9 @@ extern "C" {
  * \param ch The ASCII code of the pressed key.
  * \param key_flags The shift key status when this message occurred.
  *
+ * \note Please use \a LOBYTE_WORD16 and \a HIBYTE_WORD16 to get the bytes
+ *       if the character is a two-byte character. 
+ *
  * \sa MSG_SYSCHAR, TranslateMessage, key_defs
  */
 #define MSG_CHAR            0x0011

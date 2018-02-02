@@ -561,7 +561,7 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
     else if (__mg_kinfo.pos == 2 && arabic_compose_flag) {
         /*
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, 
-                MAKEWORD (__mg_kinfo.buff[0], __mg_kinfo.buff[1]), 
+                MAKEWORD16 (__mg_kinfo.buff[0], __mg_kinfo.buff[1]), 
                 pMsg->lParam);
                 */
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, __mg_kinfo.buff[0], pMsg->lParam);
@@ -571,7 +571,7 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
     else {
         for (i = 0; i < __mg_kinfo.pos; i++)
             SendNotifyMessage (pMsg->hwnd, MSG_KEYSYM, 
-                        MAKEWORD (__mg_kinfo.buff[i], i), pMsg->lParam);
+                        MAKEWORD16 (__mg_kinfo.buff[i], i), pMsg->lParam);
     }
 
     return FALSE; 
@@ -612,7 +612,7 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
     else if (kinfo.pos == 2 && arabic_compose_flag) {
         /*
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, 
-                MAKEWORD (__mg_kinfo.buff[0], __mg_kinfo.buff[1]), 
+                MAKEWORD16 (__mg_kinfo.buff[0], __mg_kinfo.buff[1]), 
                 pMsg->lParam);
                 */
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, kinfo.buff[0], pMsg->lParam);

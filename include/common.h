@@ -720,8 +720,16 @@ typedef UINT_PTR LPARAM;
 #define HISWORD(l)          ((SWORD)((((DWORD)(l)) >> NR_BITS_WORD) & BITMASK_WORD))
 
 /**
+ * \def MAKELONG32(low, high)
+ * \brief Makes a 32-bit double word from \a low word and \a high word which are both in 16-bit.
+ * \sa MAKELONG
+ */
+#define MAKELONG32(low, high) ((DWORD32)(((WORD16)(low)) | (((DWORD32)((WORD16)(high))) << 16)))
+
+/**
  * \def MAKELONG(low, high)
- * \brief Makes a double word from \a low word and \a high word.
+ * \brief Makes a double word with pointer precision from \a low word and \a high word.
+ * \sa MAKELONG32
  */
 #define MAKELONG(low, high) ((DWORD)(((WORD)(low)) | (((DWORD)((WORD)(high))) << NR_BITS_WORD)))
 
@@ -1934,8 +1942,12 @@ int init_minigui_printf (int (*output_char) (int ch),
 #if defined(__GNUC__)
 #   define _ERR_PRINTF(fmt...) fprintf (stderr, fmt)
 #   ifdef _DEBUG
-#       define _MG_PRINTF(fmt...) fprintf (stderr, fmt)
-#       define _DBG_PRINTF(fmt...) fprintf (stdout, fmt)
+#       define _MG_PRINTF(fmt...) fprintf (stdout, fmt)
+#       ifdef DEBUG
+#           define _DBG_PRINTF(fmt...) fprintf (stdout, fmt)
+#       else
+#           define _DBG_PRINTF(fmt...)
+#       endif
 #   else
 #       define _MG_PRINTF(fmt...)
 #       define _DBG_PRINTF(fmt...)
@@ -1952,7 +1964,18 @@ static inline void _ERR_PRINTF(const char* fmt, ...)
 }
 static inline void _MG_PRINTF(const char* fmt, ...)
 {
-#ifdef _DEBUG
+#ifdef DEBUG
+    va_list ap;
+    va_start (ap, fmt);
+    vfprintf (stdout, fmt, ap);
+    fprintf (stdout, "\n");
+    va_end (ap);
+#endif
+}
+
+static inline void _DBG_PRINTF(const char* fmt, ...)
+{
+#if defined(DEBUG) && defined(_DEBUG)
     va_list ap;
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
@@ -1960,18 +1983,7 @@ static inline void _MG_PRINTF(const char* fmt, ...)
     va_end(ap);
 #endif
 }
-
-static inline void _DBG_PRINTF(const char* fmt, ...)
-{
-#ifdef _DEBUG
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stdout, fmt, ap);
-    fprintf(stdout, "\n");
-    va_end(ap);
-#endif
-}
-#endif /* __GNUC__ */
+#endif /* !__GNUC__ */
 
 #ifdef _MGRM_THREADS
 

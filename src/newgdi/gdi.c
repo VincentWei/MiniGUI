@@ -677,8 +677,8 @@ static void  _dc_draw_pixel_span_and_1 (COMP_CTXT* comp_ctxt, int w)
 #ifdef ASM_memandset4
     if (comp_ctxt->step == 1 && !((Uint32)row & 3) 
             && !(w & 3) && (w > 3)) {
-        Uint16 _w = MAKEWORD (comp_ctxt->cur_pixel, comp_ctxt->cur_pixel);
-        Uint32 _u = MAKELONG (_w, _w);
+        Uint16 _w = MAKEWORD16 (comp_ctxt->cur_pixel, comp_ctxt->cur_pixel);
+        Uint32 _u = MAKELONG32 (_w, _w);
         ASM_memandset4 (row, _u, w >> 2);
         return;
     }
@@ -751,8 +751,8 @@ static void  _dc_draw_pixel_span_or_1 (COMP_CTXT* comp_ctxt, int w)
 #ifdef ASM_memorset4
     if (comp_ctxt->step == 1 && !((Uint32)row & 3) 
             && !(w & 3) && (w > 3)) {
-        Uint16 _w = MAKEWORD (comp_ctxt->cur_pixel, comp_ctxt->cur_pixel);
-        Uint32 _u = MAKELONG (_w, _w);
+        Uint16 _w = MAKEWORD16 (comp_ctxt->cur_pixel, comp_ctxt->cur_pixel);
+        Uint32 _u = MAKELONG32 (_w, _w);
         ASM_memorset4 (row, _u, w >> 2);
         return;
     }
@@ -826,8 +826,8 @@ static void  _dc_draw_pixel_span_xor_1 (COMP_CTXT* comp_ctxt, int w)
 #ifdef ASM_memxorset4
     if (comp_ctxt->step == 1 && !((Uint32)comp_ctxt->cur_dst & 3) 
             && !(w & 3) && (w > 3)) {
-        Uint16 _w = MAKEWORD (comp_ctxt->cur_pixel, comp_ctxt->cur_pixel);
-        Uint32 _u = MAKELONG (_w, _w);
+        Uint16 _w = MAKEWORD16 (comp_ctxt->cur_pixel, comp_ctxt->cur_pixel);
+        Uint32 _u = MAKELONG32 (_w, _w);
         ASM_memxorset4 (comp_ctxt->cur_dst, _u, w >> 2);
         return;
     }
