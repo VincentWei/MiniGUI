@@ -1,18 +1,16 @@
-Licensing Policy for GPL'd MiniGUI versions
+# Licensing Policy for GPL'd MiniGUI versions
 
 By now, FMSoft releases MiniGUI versions under GPLv3 license. 
 This is the licensing policy for the GPL'd MiniGUI versions.
 
-In Brief
-========
+## In Brief
 
 This is our licensing policy in brief: Our software is 100% GPL, 
 and if yours is also 100% GPL, then you never have to pay us 
 for the licences. In all other instances, you are better served 
 by our commercial licence. Read the details below!
 
-Licensing
-=========
+## Licensing
 
 MiniGUI software is licensed under the GPL license. The formal terms 
 of the GPL license can be found in the GNU General Public License 
@@ -42,13 +40,13 @@ irrespective of whether your application is under GPL license or not.
 
 More specifically:
 
-    * Modifying - You are allowed to modify MiniGUI source code any way 
-                  you like. If you distribute the modified version, all 
-                  changes, all interface code and all code that connects 
-                  directly or indirectly to the interface code fall under GPL.
+  * Modifying - You are allowed to modify MiniGUI source code any way 
+    you like. If you distribute the modified version, all 
+    changes, all interface code and all code that connects 
+    directly or indirectly to the interface code fall under GPL.
 
-    * Copying - You are allowed to copy MiniGUI binaries and source code, 
-                but when you do so, the copies will fall under the GPL.
+  * Copying - You are allowed to copy MiniGUI binaries and source code, 
+    but when you do so, the copies will fall under the GPL.
 
 
 3. Commercial use for everyone else
@@ -59,24 +57,24 @@ a commercial license to the MiniGUI software in question.
 
 More specifically:
 
-    a) If you want to use MiniGUI on an operating system which is not 
-       compatible with GPL (most commercial RTOSes, such as VxWorks and 
-       ThreadX), you need a commercial license for the MiniGUI library.
+  * If you want to use MiniGUI on an operating system which is not 
+    compatible with GPL (most commercial RTOSes, such as VxWorks and 
+    ThreadX), you need a commercial license for the MiniGUI library.
 
-    b) If you link MiniGUI in your non-GPL application, you need a commercial
-       licence for the MiniGUI library. Using MiniGUI with non-GPL operating
-       systems (proprietary OSes, like VxWorks, ThreadX, uC/OS-II) falls into 
-       this situation. Linking MiniGUI with your non-GPL application and 
-       proprietary libarires also falls into this situation.
+  * If you link MiniGUI in your non-GPL application, you need a commercial
+    licence for the MiniGUI library. Using MiniGUI with non-GPL operating
+    systems (proprietary OSes, like VxWorks, ThreadX, uC/OS-II) falls into 
+    this situation. Linking MiniGUI with your non-GPL application and 
+    proprietary libarires also falls into this situation.
 
-    c) If you use MiniGUI library within your organisation and you don't want 
-       to risk it falling under the GPL license, you are welcome to purchase 
-       a commercial license.
+  * If you use MiniGUI library within your organisation and you don't want 
+    to risk it falling under the GPL license, you are welcome to purchase 
+    a commercial license.
 
-    d) Many users opt for the commercial licence simply because under it 
-       FMSoft takes responsibility for its products. Under the GPL licence, 
-       there are no warranties or representations from the 
-       developer (i.e. from FMSoft).
+  * Many users opt for the commercial licence simply because under it 
+    FMSoft takes responsibility for its products. Under the GPL licence, 
+    there are no warranties or representations from the 
+    developer (i.e. from FMSoft).
 
 
 4. Exceptions and free commercial licences
@@ -113,16 +111,14 @@ sell our commercial licences at prices well under the industry average,
 and this is without compromising our own profitability. 
 
 
-Older Versions
-==============
+## Older Versions
 
 Note that older versions of the MiniGUI are using the lesser GPL license
 (LGPL). See the documentation for the specific version for more 
 information.
 
 
-When in doubt
-=============
+## When in doubt
 
 If you have any questions on MiniGUI licensing, feel free to contact us:
 
