@@ -1,7 +1,12 @@
-# Licensing Policy for GPL'd MiniGUI versions
+# Licensing Policy for GPLed MiniGUI versions
 
 By now, FMSoft releases MiniGUI versions under GPLv3 license. 
-This is the licensing policy for the GPL'd MiniGUI versions.
+This is the licensing policy for the GPLed MiniGUI versions.
+
+Note that in this file, "MiniGUI" means MiniGUI core, mGi, 
+mGp, mG3d, mGPlus, mGEff, mGNCS, mGNCS4Touch, and other
+MiniGUI components and/or tools which will be released 
+under GPL in the future.
 
 ## In Brief
 
@@ -123,6 +128,8 @@ information.
 If you have any questions on MiniGUI licensing, feel free to contact us:
 
     mailto: sales@minigui.com
+
+----
 
   * GPL = Gnu General Public License, http://www.gnu.org/copyleft/gpl.html 
   * LGPL = GNU General Public License, http://www.gnu.org/copyleft/lgpl.html 

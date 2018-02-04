@@ -1,7 +1,11 @@
-# MiniGUI GPL 版 本 的 授 权 策 略
+# MiniGUI GPL 版本的授权策略
 
-目前，飞漫软件遵循 GPL 授权条款发布 MiniGUI。本文档描述
-用户使用这些 GPL 版本时应该遵循的授权策略。
+目前，飞漫软件遵循 GPL 条款发布 MiniGUI 及其组件。本文档描述飞漫软件针对
+商业用户的 MiniGUI 及其组件授权策略。
+
+注：本文所指 MiniGUI，包含了 MiniGUI 核心库以及 mGi、mGp、mG3d、mGEff、
+mGPlus、mGNCS、mGNCS4Touch 以及其他在未来可能以 GPL 条款发布的 MiniGUI
+组件或工具。
 
 ## 简介
 
@@ -18,10 +22,10 @@
 ## 授权详解
 
 自 MiniGUI V1.3.0 起，我们遵循 GNU General Public License 许可证（简称 GPL）
-发布 MiniGUI。该条款的原文可见和 MiniGUI 源代码一同发布的 COPYING 文件。
-相比早期版本使用的 LGPL（GNU Lesser General Public License）许可证，
-GPL 所定义的条款要严格的多，更能有效维护自由软件的权益，避免自由软件成为
-专有系统的一部分。有关 GPL 许可证的解释及适用，可参阅 GNU 官方网站上的
+发布 MiniGUI。该条款的原文可见和 MiniGUI 源代码一同发布的 COPYING 或者
+LICENSE 文件。相比早期版本使用的 LGPL（GNU Lesser General Public License）
+许可证， GPL 所定义的条款要严格的多，更能有效维护自由软件的权益，避免自由
+软件成为专有系统的一部分。有关 GPL 许可证的解释及适用，可参阅 GNU 官方网站上的
 相关网页：
 
     http://www.gnu.org/licenses/licenses.html
@@ -167,6 +171,7 @@ GPL 许可证条款，您也不必购买 MiniGUI 的商业授权。
 
     mailto: sales@minigui.com
 
+----
 
   * GPL = GNU General Public License, http://www.gnu.org/copyleft/gpl.html 
   * LGPL = GNU General Public License, http://www.gnu.org/copyleft/lgpl.html 
