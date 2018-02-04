@@ -1,8 +1,7 @@
 Licensing Policy for GPL'd MiniGUI versions
 
-By now, FMSoft releases some MiniGUI versions under
-GPL license. This is the licensing policy for the GPL'd MiniGUI
-versions.
+By now, FMSoft releases MiniGUI versions under GPLv3 license. 
+This is the licensing policy for the GPL'd MiniGUI versions.
 
 In Brief
 ========
@@ -17,13 +16,13 @@ Licensing
 
 MiniGUI software is licensed under the GPL license. The formal terms 
 of the GPL license can be found in the GNU General Public License 
-section of the MiniGUI User Manual, or the file named "COPYING".
+section of the MiniGUI User Manual, or the file named "LICENSE" or
+"COPYING".
 
 MiniGUI is also available under commercial non-GPL license. For pricing 
 and ordering information, visit our web page:
 
     http://www.fmsoft.cn/
-
 
 1. Free use for those who are 100% GPL
 
@@ -128,12 +127,6 @@ When in doubt
 If you have any questions on MiniGUI licensing, feel free to contact us:
 
     mailto: sales@minigui.com
-
-Patents
-=======
-
-MiniGUI is also protected by patents (200810111336.X and so on). 
-The owner of these patents is Beijing FMSoft technologies Co., Ltd..
 
 GPL = Gnu General Public License, http://www.gnu.org/copyleft/gpl.html 
 LGPL = GNU General Public License, http://www.gnu.org/copyleft/lgpl.html 
