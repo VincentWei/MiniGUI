@@ -340,7 +340,7 @@ A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
 MiniGUI and its components are licensed under the GPL license. 
 So any links about MiniGUI must follow GPL. If you cannot accept GPL, 
 you need to be licensed from FMSoft. If you wonder that if you need 
-the commercial license of MiniGUI, please refer to the LICENSE.POLICY file.
+the commercial license of MiniGUI, please refer to the LICENSE-POLICY file.
 
 We provide you the commercial license of MiniGUI according to the number 
 of the run-time binary copies of MiniGUI. If you are interested in 
