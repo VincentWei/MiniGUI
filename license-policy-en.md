@@ -124,7 +124,7 @@ If you have any questions on MiniGUI licensing, feel free to contact us:
 
     mailto: sales@minigui.com
 
-GPL = Gnu General Public License, http://www.gnu.org/copyleft/gpl.html 
-LGPL = GNU General Public License, http://www.gnu.org/copyleft/lgpl.html 
-FMSoft = Beijing FMSoft technologies Co., Ltd., http://www.fmsoft.cn
+  * GPL = Gnu General Public License, http://www.gnu.org/copyleft/gpl.html 
+  * LGPL = GNU General Public License, http://www.gnu.org/copyleft/lgpl.html 
+  * FMSoft = Beijing FMSoft technologies Co., Ltd., http://www.fmsoft.cn
 
