@@ -1,17 +1,42 @@
 /*
-** $Id: newtoolbar.c 12128 2009-09-22 02:34:14Z xwyan $
-**
+ *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   and Graphics User Interface (GUI) support system for embedded systems
+ *   and smart IoT devices.
+ * 
+ *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 1998~2002, WEI Yongming
+ * 
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ * 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ * 
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ *   Or,
+ * 
+ *   As this program is a library, any link to this program must follow
+ *   GNU General Public License version 3 (GPLv3). If you cannot accept
+ *   GPLv3, you need to be licensed from FMSoft.
+ * 
+ *   If you have got a commercial license of this program, please use it
+ *   under the terms and conditions of the commercial license.
+ * 
+ *   For more information about the commercial license, please refer to
+ *   <http://www.minigui.com/en/about/licensing-policy/>.
+ */
+/*
 ** newtoolbar.c: the new-toolbar control module.
 **
 ** This control is a substitute of old ToolBar control.
 ** New application should use the NewToolBar control
 ** instead of ToolBar control.
-**
-** Copyright (C) 2003 ~ 2008 Feynman Software.
-**
-** All rights reserved by Feynman Software.
-**
-** Current maintainer: Wang Xiaogang
 **
 ** Create date: 2003/04/24
 */
