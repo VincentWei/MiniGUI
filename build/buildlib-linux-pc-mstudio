@@ -25,4 +25,29 @@ rm config.cache config.status -f
     --disable-savescreen \
     --disable-splash \
     --disable-screensaver \
+    --with-runmode=ths \
+    --enable-ctrlstatic \
+    --enable-ctrlbutton \
+    --enable-ctrlsledit \
+    --enable-ctrlbidisledit \
+    --enable-ctrlnewtextedit \
+    --enable-ctrllistbox \
+    --enable-ctrlpgbar \
+    --enable-ctrlcombobox \
+    --enable-ctrlpropsheet \
+    --enable-ctrltrackbar \
+    --enable-ctrlscrollbar \
+    --enable-ctrlnewtoolbar \
+    --enable-ctrlmenubtn \
+    --enable-ctrlscrollview \
+    --enable-ctrltextedit \
+    --enable-ctrlmonthcal \
+    --enable-ctrltreeview \
+    --enable-ctrltreeview-rdr \
+    --enable-ctrlspinbox \
+    --enable-ctrlcoolbar \
+    --enable-ctrllistview \
+    --enable-ctrliconview \
+    --enable-ctrlgridview \
+    --enable-ctrlanimation \
     --disable-watermark
