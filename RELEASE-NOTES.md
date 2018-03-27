@@ -280,19 +280,45 @@ report any bugs and incompatibilities in
   * Append non-rectangle window support.
   * Append support of double buffer of maindow.
   * Support for Look and Feel (LF) concept.
-  * Remove SKIN interfaces of MGExt library.
+  * Remove SKIN interfaces of MGExt library, move MGExt library and vcongui into mGUtils component.
   * Newly added bitmap font.
   * Developing interfaces of desktop for MiniGUI. 
   * Support direct draw to DC for higher efficiency.
   * Enhancement of resource management
   * Enhancement of controls: Support of independent scrollbar and transparent control.
-  * Enhancement of font and character set.
+  * Enhancement of font and character set, support bidi text support.
   * Enhancement of zoom of picture
   
 
 ### API changes
 
   * [NEW] ScaleBitmapEx: a bilinear interpolation algorithm which is better than the original.
+  * [NEW] GetWindowInfo: get New structure WINDOWINFO.
+  * [NEW] CreateMainWindowEx: enhance of CreeateMainWindow, compatiable with CreeateMainWindow.
+  * [NEW] CreateWindowEx2：enhance of CreateWindowEx2, compatiable with CreateWindowEx2. 
+  * [NEW] DialogBoxIndirectParamEx: new create dialog.
+  * [NEW] CreateMainWindowIndirectParamEx:new create dialog.
+  * [NEW] GetWindowRendererFromName: get LF renderer by name
+  * [NEW] AddWindowElementRenderer:  append a LF renderer to MiniGU
+  * [NEW] RemoveWindowElementRenderer: delete a LF renderer from MiniG
+  * [NEW] GetDefaultWindowElementRenderer: get default LF renderer
+  * [NEW] SetDefaultWindowElementRenderer: set default LF renderer
+  * [NEW] SetWindowElementRenderer: set a LF renderer for one window’s render
+  * [NEW] SetWindowElementAttr: set window’s attributes.
+  * [NEW] GetWindowElementAttr: get window’s attributes value
+  * [NEW] CreateBMPDevFont: create an bitmap device font.
+  * [NEW] AddGlyphsToBMPFont: add an bitmap font glyph.
+  * [NEW] DestroyBMPFont: destroy bitmap device font.
+  * [NEW] SetCustomDesktopOperationSet: set the custom desktop operation set. 
+  * [NEW] DesktopUpdateAllWindow:  refresh all windows on the desktop.
+  * [NEW] PopupDesktopMenu: pop up a menu on the desktop
+  * [NEW] GetTextAlign: get the current text-alignment flags of a DC.
+  * [NEW] SetTextAlign: set text-alignment flags of a DC.
+  * [NEW] SetWindowMask: set non-rectangle window mask rect.
+  * [NEW] SetWindowRegion: set non-rectangle window  visible region
+  * [NEW] LockDCEx: support for directly read and write the pixels in a DC.
+  * [NEW] CreateSecondaryDC: Creates a secondary window DC of a window. 
+  * [NEW] SetSecondaryDC:set a window's secondary DC and the callback for double buffer window.
+        
+        
   
-  
-
