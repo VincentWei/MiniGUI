@@ -265,4 +265,34 @@ report any bugs and incompatibilities in
   * [ADJUST] WindowFromPoint: normal function -> inline function.
   * [ADJUST] ChildWindowFromPoint: normal function -> inline function.
   * [ADJUST] ScrollWindow: normal function -> inline function.
+  
+  
+  ## Version 3.0.2
+
+The MiniGUI development team announces the availability of MiniGUI 3.0.2.
+All users of MiniGUI are encouraged to test this version carefully, and 
+report any bugs and incompatibilities in
+
+    https://github.com/VincentWei/minigui. 
+
+### What's new in this version
+
+  * Append non-rectangle window support.
+  * Append support of double buffer of maindow.
+  * Support for Look and Feel (LF) concept.
+  * Remove SKIN interfaces of MGExt library.
+  * Newly added bitmap font.
+  * Developing interfaces of desktop for MiniGUI. 
+  * Support direct draw to DC for higher efficiency.
+  * Enhancement of resource management
+  * Enhancement of controls: Support of independent scrollbar and transparent control.
+  * Enhancement of font and character set.
+  * Enhancement of zoom of picture
+  
+
+### API changes
+
+  * [NEW] ScaleBitmapEx: a bilinear interpolation algorithm which is better than the original.
+  
+  
 
