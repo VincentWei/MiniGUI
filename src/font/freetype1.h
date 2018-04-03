@@ -32,7 +32,7 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
-** freetype.h: TrueType font support based on FreeType.
+** freetype1.h: TrueType font support based on FreeType V1.3.x.
 **
 ** Created by WEI Yongming, 2000/8/21
 */

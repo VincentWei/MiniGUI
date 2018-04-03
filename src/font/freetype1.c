@@ -32,7 +32,7 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
-** freetype.c: TrueType font support based on FreeType 1.3.1.
+** freetype1.c: TrueType font support based on FreeType 1.3.1.
 ** 
 ** Create date: 2000/08/21
 */
@@ -53,7 +53,7 @@
 
 #if defined(_MGFONT_TTF) && !defined(_MGFONT_FT2)
 
-#include "freetype.h"
+#include "freetype1.h"
 
 #if TT_FREETYPE_MAJOR != 1 | TT_FREETYPE_MINOR < 3
     #error "You must link with freetype lib version 1.3.x +, and not freetype 2. \
