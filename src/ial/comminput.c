@@ -53,6 +53,9 @@
 #define COMM_MOUSEINPUT    0x01
 #define COMM_KBINPUT       0x02
 
+#define COMM_MOUSELBUTTON  0x01
+#define COMM_MOUSERBUTTON  0x04
+
 /* ----------------------------------------------------------------------- */
 // OS input driver or application must implement these input functions
 // hardware must be initialized before this engine can be used.
@@ -83,9 +86,9 @@ static void mouse_getxy (int *x, int* y)
 static int mouse_getbutton (void)
 {
     int button = 0;
-    if (MOUSEBUTTON & 0x01)
+    if (MOUSEBUTTON == COMM_MOUSELBUTTON)
     	button |= IAL_MOUSE_LEFTBUTTON;
-    else if (MOUSEBUTTON & 0x04)
+    else if (MOUSEBUTTON == COMM_MOUSERBUTTON)
     	button |= IAL_MOUSE_RIGHTBUTTON;
 
     MOUSEBUTTON = 0;
@@ -113,16 +116,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     retvalue = __comminput_wait_for_input ();
     
     if (retvalue & COMM_MOUSEINPUT) {
-        short x, y, button;
-
-        __comminput_ts_getdata (&x, &y, &button);
-        if (1) {
-            MOUSEX = x;
-            MOUSEY = y;
-        }
-
-        //MOUSEBUTTON = (button ? 4 : 0);
-        MOUSEBUTTON = button;
+        __comminput_ts_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON);
         retvalue = IAL_MOUSEEVENT;
     }
     else if (retvalue & COMM_KBINPUT) {
