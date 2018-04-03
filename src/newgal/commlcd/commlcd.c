@@ -39,6 +39,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include "common.h"
 #include "minigui.h"
@@ -81,17 +83,17 @@ static void* task_do_update (void* data)
     _THIS;
     this = data;
 
-    while (1) {
+    do {
         pthread_mutex_lock (&this->hidden->update_lock);
         if (this->hidden->dirty) {
-            __mg_commlcd_ops.update (&this->hidden->ditry_rect);
+            __mg_commlcd_ops.update (&this->hidden->rc_dirty);
 
-            SetRect (&this->hidden->ditry_rect, 0, 0, 0, 0);
+            SetRect (&this->hidden->rc_dirty, 0, 0, 0, 0);
             this->hidden->dirty = FALSE;
         }
         pthread_mutex_unlock (&this->hidden->update_lock);
-        usleep (50*1000) /* 50 ms */
-    }
+        usleep (50*1000); /* 50 ms */
+    } while (1);
 
     return NULL;
 }
@@ -234,7 +236,7 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
 
         pthread_attr_init (&new_attr);
         pthread_attr_setdetachstate (&new_attr, PTHREAD_CREATE_DETACHED);
-        ret = pthread_create (&this->hidden->update_th, &new_attr, 
+        pthread_create (&this->hidden->update_th, &new_attr, 
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
     }
