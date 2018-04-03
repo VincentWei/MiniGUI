@@ -4606,9 +4606,6 @@ MG_EXPORT int GUIAPI GetClipRegion (HDC hdc, CLIPRGN* cliprgn);
  * \note If BITMAP's bmPitch is zero or bmBits is NULL, it will be malloc bmBits
  * internal, you need init the BITMAP surely(such as \a InitBitmap) or 
  * memset(bmp, 0, sizeof(BITMAP)). 
- * \code
- * void GUIAPI SaveScreenBox (int x, int y, int w, int h, void* vbuf)
- * \endcode
  *
  * \sa FillBoxWithBitmap, bmp_struct
  */
