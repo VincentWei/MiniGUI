@@ -89,6 +89,7 @@ struct commlcd_ops __mg_commlcd_ops = {
     a_init,
     a_getinfo,
     NULL,
+    NULL,
     NULL
 };
 

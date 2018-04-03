@@ -63,7 +63,8 @@ struct commlcd_ops __mg_commlcd_ops = {
     wvfb_drv_lcd_init,
     wvfb_drv_lcd_getinfo,
     NULL,
-    wvfb_drv_setclut 
+    wvfb_drv_setclut,
+    NULL
 };
 
 #endif /* WIN32 && __TARGET_WVFB__ */

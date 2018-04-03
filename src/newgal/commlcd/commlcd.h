@@ -49,6 +49,11 @@ extern "C" {
 struct GAL_PrivateVideoData {
     int w, h, pitch;
     void *fb;
+
+    int dirty;
+    RECT rc_dirty;
+    pthread_t update_th;
+    pthread_mutex_t update_lock;
 };
 
 /* The pixel format defined by depth */
@@ -76,6 +81,8 @@ struct commlcd_ops {
     int (*release) (void);
     /* return value: number set, zero on error */
     int (*setclut) (int firstcolor, int ncolors, GAL_Color *colors);
+    /* return value: number set, zero on error */
+    int (*update) (const RECT* rc_dirty);
 };
 
 extern struct commlcd_ops __mg_commlcd_ops;

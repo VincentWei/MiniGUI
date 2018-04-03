@@ -99,10 +99,11 @@ static int a_release(void)
 }
 
 struct lcd_ops __mg_commlcd_ops = {
-        a_init,
-        a_getinfo,
-        a_release,
-        NULL
+    a_init,
+    a_getinfo,
+    a_release,
+    NULL,
+    NULL
 };
 
 #endif /* __VXWORKS__ && __TARGET_PPC__ */

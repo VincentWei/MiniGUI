@@ -229,7 +229,8 @@ struct commlcd_ops __mg_commlcd_ops = {
     L2F50113T00_open,
     L2F50113T00_getscreeninfo,
     L2F50113T00_close,
-    L2F50113T00_setpalette
+    L2F50113T00_setpalette,
+    NULL
 };
 
 #endif /* __TARGET_C33L05__ */

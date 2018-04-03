@@ -76,7 +76,60 @@ static void COMMLCD_DeleteDevice(GAL_VideoDevice *device)
     free (device);
 }
 
-static GAL_VideoDevice *COMMLCD_CreateDevice(int devindex)
+static void* task_do_update (void* data)
+{
+    _THIS;
+    this = data;
+
+    while (1) {
+        pthread_mutex_lock (&this->hidden->update_lock);
+        if (this->hidden->dirty) {
+            __mg_commlcd_ops.update (&this->hidden->ditry_rect);
+
+            SetRect (&this->hidden->ditry_rect, 0, 0, 0, 0);
+            this->hidden->dirty = FALSE;
+        }
+        pthread_mutex_unlock (&this->hidden->update_lock);
+        usleep (50*1000) /* 50 ms */
+    }
+
+    return NULL;
+}
+
+static void COMMLCD_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
+{
+    int i;
+    RECT bound;
+
+    if (__mg_commlcd_ops.update == NULL) {
+        return;
+    }
+
+    pthread_mutex_lock (&this->hidden->update_lock);
+
+    bound = this->hidden->rc_dirty;
+    for (i = 0; i < numrects; i++) {
+        RECT rc;
+        SetRect (&rc, rects[i].x, rects[i].y, 
+                rects[i].x + rects[i].w, rects[i].y + rects[i].h);
+        if (IsRectEmpty (&bound))
+            bound = rc;
+        else
+            GetBoundRect (&bound, &bound, &rc);
+    }
+
+    if (!IsRectEmpty (&bound)) {
+        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+            this->hidden->rc_dirty = bound;
+            this->hidden->dirty = TRUE;
+        }
+    }
+
+    pthread_mutex_unlock (&this->hidden->update_lock);
+    return;
+}
+
+static GAL_VideoDevice *COMMLCD_CreateDevice (int devindex)
 {
     GAL_VideoDevice *device;
 
@@ -111,6 +164,7 @@ static GAL_VideoDevice *COMMLCD_CreateDevice(int devindex)
     device->SetHWColorKey = NULL;
     device->SetHWAlpha = NULL;
     device->FreeHWSurface = COMMLCD_FreeHWSurface;
+    device->UpdateRects = COMMLCD_UpdateRects;
     
     device->free = COMMLCD_DeleteDevice;
     return device;
@@ -175,14 +229,28 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = this->hidden->pitch;
     current->pixels = this->hidden->fb;
 
+    if (__mg_commlcd_ops.update) {
+        pthread_attr_t new_attr;
+
+        pthread_attr_init (&new_attr);
+        pthread_attr_setdetachstate (&new_attr, PTHREAD_CREATE_DETACHED);
+        ret = pthread_create (&this->hidden->update_th, &new_attr, 
+                        task_do_update, this);
+        pthread_attr_destroy (&new_attr);
+    }
+
     /* We're done */
     return current;
 }
 
-static void COMMLCD_VideoQuit(_THIS)
+static void COMMLCD_VideoQuit (_THIS)
 {
     if (this->screen && this->screen->pixels) {
         this->screen->pixels = NULL;
+    }
+
+    if (__mg_commlcd_ops.update) {
+        /* quit the update task */
     }
 
     if (__mg_commlcd_ops.release)
@@ -194,7 +262,7 @@ static void COMMLCD_VideoQuit(_THIS)
 static GAL_Rect **COMMLCD_ListModes (_THIS, GAL_PixelFormat *format, 
                 Uint32 flags)
 {
-        return (GAL_Rect **) -1;
+    return (GAL_Rect **) -1;
 }
 
 /* We don't actually allow hardware surfaces other than the main one */

@@ -112,14 +112,15 @@ static int a_setclut (int firstcolor, int ncolors, GAL_Color *colors)
 #endif
 
 struct lcd_ops __mg_commlcd_ops = {
-        a_init,
-        a_getinfo,
-        NULL,
+    a_init,
+    a_getinfo,
+    NULL,
     #ifndef _VESA_SUPPORT    
-        a_setclut
+        a_setclut,
     #else
-        NULL
+        NULL,
     #endif
+    NULL
 };
 
 #endif /* __VXWORKS__ && __TARGET_VXI386__ */

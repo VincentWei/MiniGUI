@@ -55,14 +55,15 @@
 extern int __commlcd_drv_init (void);
 extern int __commlcd_drv_getinfo (struct commlcd_info *li);
 extern int __commlcd_drv_release (void);
-extern int __commlcd_drv_setclut (int firstcolor, 
-            int ncolors, GAL_Color *colors);
+extern int __commlcd_drv_setclut (int firstcolor, int ncolors, GAL_Color *colors);
+extern int __commlcd_drv_update (const RECT* rc_dirty);
 
 struct commlcd_ops __mg_commlcd_ops = {
     __commlcd_drv_init,
     __commlcd_drv_getinfo,
     __commlcd_drv_release,
-    __commlcd_drv_setclut
+    __commlcd_drv_setclut,
+    __commlcd_drv_update
 };
 
 #endif
