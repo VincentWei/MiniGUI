@@ -68,7 +68,7 @@ extern void __comminput_deinit (void);
 
 /* ----------------------------------------------------------------------- */
 
-static int MOUSEX = 0, MOUSEY = 0, MOUSEBUTTON = 0;
+static short MOUSEX = 0, MOUSEY = 0, MOUSEBUTTON = 0;
 static short KEYCODE = 0, KEYSTATUS = 0;
 
 /************************  Low Level Input Operations **********************/
