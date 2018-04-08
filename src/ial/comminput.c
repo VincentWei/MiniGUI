@@ -108,7 +108,7 @@ static const char* keyboard_getstate (void)
     return (const char*)kbd_state;
 }
 
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
+static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
 {
     int retvalue;
