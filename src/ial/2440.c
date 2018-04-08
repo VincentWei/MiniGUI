@@ -169,8 +169,6 @@ BOOL Init2440Input (INPUT* input, const char* mdev, const char* mtype)
         return FALSE;
     }
 
-    printf ("In 2410 engine\n");
-
     input->update_mouse = mouse_update;
     input->get_mouse_xy = mouse_getxy;
     input->set_mouse_xy = NULL;

@@ -199,6 +199,8 @@ static int COMMLCD_VideoInit(_THIS, GAL_PixelFormat *vformat)
 static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
+    Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
+
     struct commlcd_info li;	
     if (__mg_commlcd_ops.getinfo (&li)) {
         fprintf (stderr, "NEWGAL>COMMLCD: "
@@ -213,7 +215,6 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
 
     memset (li.fb, 0, li.rlen * height);
 
-    Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
     if (li.type == COMMLCD_TRUE_BGR565) {
         Bmask = 0xF800;
         Gmask = 0x07E0;
