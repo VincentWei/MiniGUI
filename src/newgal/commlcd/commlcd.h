@@ -64,6 +64,9 @@ struct GAL_PrivateVideoData {
 #define COMMLCD_TRUE_RGB888      4
 #define COMMLCD_TRUE_RGB0888     5
 
+#define COMMLCD_TRUE_BGR565      6
+#define COMMLCD_TRUE_BGR888      7
+
 struct commlcd_info {
     short height, width;  // Size of the screen
     short bpp;            // Depth (bits-per-pixel)

@@ -213,8 +213,20 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
 
     memset (li.fb, 0, li.rlen * height);
 
+    Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
+    if (li.type == COMMLCD_TRUE_BGR565) {
+        Bmask = 0xF800;
+        Gmask = 0x07E0;
+        Rmask = 0x001F;
+    }
+    else if (li.type == COMMLCD_TRUE_BGR888) {
+        Bmask = 0xFF0000;
+        Gmask = 0x00FF00;
+        Rmask = 0x0000FF;
+    }
+
     /* Allocate the new pixel format for the screen */
-    if (!GAL_ReallocFormat (current, li.bpp, 0, 0, 0, 0)) {
+    if (!GAL_ReallocFormat (current, li.bpp, Rmask, Gmask, Bmask, Amask)) {
         if (__mg_commlcd_ops.release)
             __mg_commlcd_ops.release ();
 
