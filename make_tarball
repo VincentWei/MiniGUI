@@ -1,12 +1,13 @@
 #!/bin/bash
 
-SOURCE_DIR=libminigui-3.0.13
-DEST_DIR=libminigui-3.0.13
+VERSION=3.2.0
+SOURCE_DIR=libminigui-$VERSION
+DEST_DIR=libminigui-$VERSION
 
 . .config
 
 if [ "$PACK_OS_LINUX" = "n" ]; then
-    DEST_DIR=libminigui-3.0.13
+    DEST_DIR=libminigui-$VERSION
 fi
 
 [ -f ".config" ] || {

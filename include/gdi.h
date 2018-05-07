@@ -3277,7 +3277,7 @@ MG_EXPORT BOOL GUIAPI FloodFillGenerator (void* context,
 #define BITMAP_SCALER_BILINEAR  1         
 
 /**
- * \fn int GUIAPI SetBitmapScalerType (HDC hdc,  int scaler_type);
+ * \fn int GUIAPI SetBitmapScalerType (HDC hdc, int scaler_type);
  *
  * \brief set bitmap scaler algorithm callback of DC according by scaler_type.
  *
@@ -3292,7 +3292,7 @@ MG_EXPORT BOOL GUIAPI FloodFillGenerator (void* context,
  * \sa BitmapDDAScaler, BitmapBinearScaler
  */
 
-MG_EXPORT int GUIAPI SetBitmapScalerType (HDC hdc,  int scaler_type);
+MG_EXPORT int GUIAPI SetBitmapScalerType (HDC hdc, int scaler_type);
 
 /**
  * \fn void GUIAPI MoveTo (HDC hdc, int x, int y)
@@ -4407,8 +4407,7 @@ MG_EXPORT void GUIAPI SelectClipRect (HDC hdc, const RECT* prc);
 #define RGN_XOR         0x04
 
 /**
- * \fn int GUIAPI SelectClipRegionEx (HDC hdc, const CLIPRGN* pRgn, 
-                int fnMode)
+ * \fn int GUIAPI SelectClipRegionEx (HDC hdc, const CLIPRGN* pRgn, int fnMode)
  * \brief Combines the specified region with the current clipping 
  *        region using the specified mode.
  *
@@ -4427,7 +4426,7 @@ MG_EXPORT void GUIAPI SelectClipRect (HDC hdc, const RECT* prc);
  * \param hdc Handle to the device context.
  * \param pRgn Pointer to the region to be selected. This handle can 
  *        only be NULL when the RGN_COPY mode is specified.
- * \param Specifies the operation to be performed. It must be one of 
+ * \param fnMode Specifies the operation to be performed. It must be one of 
  *        the following values:
  *
  *        - RGN_AND\n
@@ -4453,10 +4452,10 @@ MG_EXPORT void GUIAPI SelectClipRect (HDC hdc, const RECT* prc);
  * \return The return value specifies the new clipping region's complexity; 
  *         it can be one of the following values.
  *
- * \retvalue NULLREGION     Region is empty.
- * \retvalue SIMPLEREGION   Region is a single rectangle.
- * \retvalue COMPLEXREGION  Region is more than one rectangle.
- * \retvalue -1             An error occurred.
+ * \retval NULLREGION     Region is empty.
+ * \retval SIMPLEREGION   Region is a single rectangle.
+ * \retval COMPLEXREGION  Region is more than one rectangle.
+ * \retval -1             An error occurred.
  *
  * \sa SelectClipRect, SelectClipRegion, GetClipRegion, region_fns
  */
@@ -4492,10 +4491,10 @@ MG_EXPORT void GUIAPI SelectClipRegion (HDC hdc, const CLIPRGN* pRgn);
  * \return The return value specifies the new clipping region's complexity; 
  *         it can be one of the following values.
  *
- * \retvalue NULLREGION     Region is empty.
- * \retvalue SIMPLEREGION   Region is a single rectangle.
- * \retvalue COMPLEXREGION  Region is more than one rectangle.
- * \retvalue -1             An error occurred.
+ * \retval NULLREGION     Region is empty.
+ * \retval SIMPLEREGION   Region is a single rectangle.
+ * \retval COMPLEXREGION  Region is more than one rectangle.
+ * \retval -1             An error occurred.
  *
  * \sa SelectClipRegion
  */
@@ -4555,7 +4554,7 @@ MG_EXPORT BOOL GUIAPI RectVisible (HDC hdc, const RECT* pRect);
 MG_EXPORT int GUIAPI GetClipBox (HDC hdc, RECT* clipbox);
 
 /**
- * \fn int GetClipRgn (HDC hdc, CLIPRGN* cliprgn)
+ * \fn int GetClipRegion (HDC hdc, CLIPRGN* cliprgn)
  * \brief Gets the current clipping region of a DC.
  *
  * This function gets the current clipping region 
@@ -7674,6 +7673,26 @@ MG_EXPORT int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP pBitmap,
  * \sa LoadBitmapEx
  */
 MG_EXPORT void GUIAPI UnloadBitmap (PBITMAP pBitmap);
+
+/**
+ * \fn int GUIAPI SetBitmapKeyColor (HDC hdc, PBITMAP bmp,
+ *              Uint8 r, Uint8 g, Uint8 b)
+ * \brief Set the bitmap color key.
+ *
+ * This function set the bitmap member bmColorKey with the param r,g,b and
+ * set the BMP_TYPE_COLORKEY flag.
+ *
+ * \param hdc The device context.
+ * \param bmp Point of the bitmap which to set color key.
+ * \param r The red componets of RGB color.
+ * \param g The green componets of RGB color.
+ * \param b The blue componets of RGB color.
+ *
+ * \return ERR_BMP_OK for success, ERR_BMP_UNKNOWN_TYPE for error.
+ *
+ * /sa SetMemDCColorKey
+ */
+MG_EXPORT int GUIAPI SetBitmapKeyColor (HDC hdc, PBITMAP bmp, Uint8 r, Uint8 g, Uint8 b);
 
 /**
  * \fn void GUIAPI ReplaceBitmapColor (HDC hdc, PBITMAP pBitmap, \
