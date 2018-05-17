@@ -155,11 +155,11 @@ DEFINE_COPY_ROW(copy_row4, Uint32)
 #endif /* USE_ASM_STRETCH */
 
 /* The ASM code doesn't handle 24-bpp stretch blits */
-void copy_row3(Uint8 *src, int src_w, Uint8 *dst, int dst_w)
+static void copy_row3(Uint8 *src, int src_w, Uint8 *dst, int dst_w)
 {
 	int i;
 	int pos, inc;
-	Uint8 pixel[3];
+	Uint8 pixel[3] = {};
 
 	pos = 0x10000;
 	inc = (src_w << 16) / dst_w;
