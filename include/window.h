@@ -4578,7 +4578,7 @@ MG_EXPORT BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name,
 MG_EXPORT void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name, 
         const char* id);
 
-/* define the key of resouce */
+/* define the key of resource */
 typedef unsigned long RES_KEY;
 #define RES_KEY_INVALID 0
 
@@ -4598,13 +4598,13 @@ typedef struct _INNER_RES {
     void* additional;
 } INNER_RES;
 
-/* the type of resouce */
+/* the type of resource */
 enum emResType{
     RES_TYPE_INVALID = 0xFF,
 
     /* All kinds of image supported by MiniGUI
      * such as png, jpeg, bmp and so on
-     * This type will make LoadResouce return a
+     * This type will make LoadResource return a
      * PBITMAP pointer
      */
     RES_TYPE_IMAGE = 0,
@@ -4660,7 +4660,7 @@ enum emResType{
     RES_TYPE_USER_MAX = 0x7F
 };
 
-/* the return value of LoadResouce with type RES_TYPE_MEM_RES */
+/* the return value of LoadResource with type RES_TYPE_MEM_RES */
 typedef struct _MEM_RES {
     Uint8 *data;
     int data_len;
@@ -4674,24 +4674,24 @@ typedef struct _FONT_RES {
 /* the original source of resource 
  * depend on the values, the res manager
  * would select corrent loader to
- * load resouce form disk or mem
+ * load resource form disk or mem
  */
 
 #define REF_SRC_NOTYPE 0x00
 
-/* indicate that the resouce is stored in disk */
+/* indicate that the resource is stored in disk */
 #define REF_SRC_FILE 0x01
 
-/* indicate that the resouce is stored in memory*/
+/* indicate that the resource is stored in memory*/
 #define REF_SRC_INNER 0x02
 
-/* indicate that the resouce is stored in shared memory*/
+/* indicate that the resource is stored in shared memory*/
 #define REF_SRC_SHARED 0x03
 
 /* indicate that the resource is stored in outside( NOT SUPPORTED) */
 #define REF_SRC_OUTSIDE 0x04
 
-/* indicate that the resouce is stored in a stream object (NOT SUPPORTED) */
+/* indicate that the resource is stored in a stream object (NOT SUPPORTED) */
 #define REF_SRC_STREAM 0x05
 
 /* indicate that the resource is create by MiniGUI */
@@ -4699,29 +4699,29 @@ typedef struct _FONT_RES {
 
 /* the RESOUCE type for loadding */
 typedef struct _RESOURCE {
-    void* data; // store the pointer of cached resouce
+    void* data; // store the pointer of cached resource
     union {
         void* src;
         INNER_RES* inner;
         char* file;
-    } source; // indicate the stored format of resouce
+    } source; // indicate the stored format of resource
 } RESOURCE;
 
-/* The operations of one type of resouce */
+/* The operations of one type of resource */
 typedef struct _RES_TYPE_OPS {
     /* To get a resource
-     * return the buffered resouce pointer
-     * param res the in and out param of resouce.
+     * return the buffered resource pointer
+     * param res the in and out param of resource.
      * param src_type, one of REF_SRC_XXX
      * param usr_param
      * */
     void* (*get_res_data)(RESOURCE* res, int src_type, DWORD usr_param);
-    /* To unload a buffered resouce
+    /* To unload a buffered resource
      */
     void (*unload)(RESOURCE* res, int src_type);
 } RES_TYPE_OPS;
 
-/* Return value and error code of resouce manager */
+/* Return value and error code of resource manager */
 enum emResReturn {
     RES_RET_OK = 0,
     RES_RET_INVALID_PARAM,
@@ -4735,11 +4735,11 @@ enum emResReturn {
 
 /**
  * \fn int SetResPath (const char* path);
- * \brief Set user's resouce path into the search paths of resouce manager.
+ * \brief Set user's resource path into the search paths of resource manager.
  *
- * If you set this value, resouce mamanger will try to find a resource in the path.
+ * If you set this value, resource mamanger will try to find a resource in the path.
  *
- * \param path The path which store the resouces. It can be an absolute path or relative path.
+ * \param path The path which store the resources. It can be an absolute path or relative path.
  *
  * \return RES_RET_OK for success or error code.
  *
@@ -4749,12 +4749,12 @@ MG_EXPORT int SetResPath (const char* path);
 /**
  * \fn int AddInnerRes (INNER_RES* inner_res, int count, BOOL copy)
  * \brief Add some incore resource into the resource manager in order to 
- * call LoadResouce to get those resource.
+ * call LoadResource to get those resource.
  *
- * \param inner_res The pointer to the incore resouce.
+ * \param inner_res The pointer to the incore resource.
  * \param count The bytes count of inner_res.
- * \param copy TRUE indicate that resouce manager will copy the value of 
- *        inner_res array, otherwise, resouce manager just save the 
+ * \param copy TRUE indicate that resource manager will copy the value of 
+ *        inner_res array, otherwise, resource manager just save the 
  *        pointer to inner_res.
  *
  * \return RES_RET_OK for success or error code.
@@ -4769,10 +4769,10 @@ MG_EXPORT int AddSharedRes (const char* shared_name);
 /**
  * \fn int RegisterResType (int type, RES_TYPE_OPS* ops)
  * \brief Register a new user-defined type into resource manager, 
- * so that the LoadResouce can load the special resouce automatically.
+ * so that the LoadResource can load the special resource automatically.
  *
  * \param type The user-defined type. It must >=RES_TYPE_USER and <RES_TYPE_USER_MAX
- * \param ops the operations of the resouce.
+ * \param ops the operations of the resource.
  *
  * \return RES_RET_OK for success or error code
  *
@@ -4794,15 +4794,15 @@ MG_EXPORT int UnregisterResType (int type);
 
 /**
  * \fn void* LoadResource (const char* res_name, int type, DWORD usr_param)
- * \brief Load a resouce from disk or memory. 
+ * \brief Load a resource from disk or memory. 
  *
- * This function loads a resource from disk or memory. If the resouce is loaded, 
+ * This function loads a resource from disk or memory. If the resource is loaded, 
  * it will return the buffered one and increase the reference count. This 
  * function will try to find a loader for the resource first according to 
  * \a type.
  *
- * \param res_name The resouce name. If res_name is an absolute path 
- *        (the leading character is '/'), it will load resouce from disk directly,
+ * \param res_name The resource name. If res_name is an absolute path 
+ *        (the leading character is '/'), it will load resource from disk directly,
  *        else it will:
  *         - step 1) try to find the resource in loaded buffer.
  *         - step 2) if step 1 failed, try to load from incore memory.
@@ -4825,54 +4825,54 @@ MG_EXPORT int UnregisterResType (int type);
  * \param usr_param The param pass to RES_TYPE_OPS.get_res_data. For resource type 
  *        RES_TYPE_IMAGE and RES_TYPE_ICON, it must be a handle to DC.
  *
- * \return The pointer of resouce, see the parameter type.
+ * \return The pointer of resource, see the parameter type.
  *
- * \sa enum emResType, MEM_RES, SetResPath, AddInnerRes, RegisterResType, GetResouce
+ * \sa enum emResType, MEM_RES, SetResPath, AddInnerRes, RegisterResType, GetResource
  */
 MG_EXPORT void* LoadResource (const char* res_name, int type, DWORD usr_param);
 
 /**
  * \fn void* GetResource (RES_KEY key);
- * \brief Retrive and return a buffered resouce by the key.
+ * \brief Retrive and return a buffered resource by the key.
  *
- *  You should call LoadResouce firstly, and then call GetResouce when you need it.
- *  Note that GetResouce will not increase the reference count automatically.
+ *  You should call LoadResource firstly, and then call GetResource when you need it.
+ *  Note that GetResource will not increase the reference count automatically.
  *
- * \param key The key of the resouce.
+ * \param key The key of the resource (use Str2Key(res_name) to get the key).
  *
- * \return the pointer to the resouce; NULL if the resource does not exist.
+ * \return the pointer to the resource; NULL if the resource does not exist.
  *
- * \sa LoadResouce, Str2Key
+ * \sa LoadResource, Str2Key
  */
 MG_EXPORT void* GetResource (RES_KEY key);
 
 /**
  * \fn int AddResRef(RES_KEY key);
  *
- * \brief Increase the reference count of a buffered resouce.
+ * \brief Increase the reference count of a buffered resource.
  *
- *  When you get a resouce, you should call this function to ensure that
- *  the resouce can not be unloaded when you still use it. 
- *  This function must be called after LoadResouce.
+ *  When you get a resource, you should call this function to ensure that
+ *  the resource can not be unloaded when you still use it. 
+ *  This function must be called after LoadResource.
  *
- *  \param key The key of resouce (use Str2Key(res_name) to get the key).
+ *  \param key The key of resource (use Str2Key(res_name) to get the key).
  *
- *  \return The reference count; -1 if the resouce does not exist.
+ *  \return The reference count; -1 if the resource does not exist.
  *
- * \sa LoadResouce, GetResouce, ReleaseRes, Str2Key
+ * \sa LoadResource, GetResource, ReleaseRes, Str2Key
  */
 MG_EXPORT int AddResRef (RES_KEY key);
 
 /**
  * \fn int ReleaseRes (RES_KEY key);
- * \brief Release the buffered resouce. It will decrease the reference count of 
- * the resouce. If the reference count is less then 0, the resource will be released.
+ * \brief Release the buffered resource. It will decrease the reference count of 
+ * the resource. If the reference count is less then 0, the resource will be released.
  *
- * \param key The key of the resouce (use Str2Key(res_name) to get the key).
+ * \param key The key of the resource (use Str2Key(res_name) to get the key).
  *
- * \return The reference count; -1 if the resouce does not exist.
+ * \return The reference count; -1 if the resource does not exist.
  *
- * \sa LoadResouce, GetResouce, AddResRef, Str2Key
+ * \sa LoadResource, GetResource, AddResRef, Str2Key
  */
 MG_EXPORT int ReleaseRes (RES_KEY key);
 
@@ -4897,13 +4897,13 @@ MG_EXPORT int ReleaseRes (RES_KEY key);
 /**
  * \fn RES_KEY Str2Key (const char* str);
  * \brief Translate a string to an unsigned long (RES_KEY), which is used to 
- * find a resouce in the resource manager.
+ * find a resource in the resource manager.
  *
- * \param str The name of resouce. Normaly, it's a path and filename of the resouce.
+ * \param str The name of resource. Normaly, it's a path and filename of the resource.
  *
  * \return The key. 
  *
- * \sa GetResouce, AddResRef, ReleaseRes
+ * \sa GetResource, AddResRef, ReleaseRes
  */
 MG_EXPORT RES_KEY Str2Key (const char* str);
 
