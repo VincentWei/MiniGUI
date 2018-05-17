@@ -242,7 +242,7 @@ MG_EXPORT XVFBHeader* GUIAPI xVFBAllocVirtualFrameBuffer (int width, int height,
 MG_EXPORT void GUIAPI xVFBFreeVirtualFrameBuffer (XVFBHeader* buf);
 
 /**
- * \fn int xVFBNotifyNewEvent (const void* xvfb_event_buffer, XVFBEVENT* event)
+ * \fn void* GUIAPI xVFBCreateEventBuffer (int nr_events)
  * \brief create event circular buffer.
  * \param nr_events capability of the event buffer
  * \return the address of event circular buffer.

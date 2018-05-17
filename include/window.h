@@ -3243,7 +3243,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \def WS_EX_AUTOSECONDARYDC
  * \brief The window creates its own secondary device context automatically.
  *
- * \sa CreateSencondaryDC
+ * \sa CreateSecondaryDC
  */
 #define WS_EX_AUTOSECONDARYDC   0x00001000L
 
@@ -4334,8 +4334,7 @@ MG_EXPORT gal_pixel GUIAPI GetWindowElementPixelEx (HWND hwnd,
         HDC hdc, int we_attr_id);
 
 /**
- * \fn WINDOW_ELEMENT_RENDERER* 
-                 GUIAPI GetWindowRendererFromName (const char* name)
+ * \fn WINDOW_ELEMENT_RENDERER* GUIAPI GetWindowRendererFromName (const char* name)
  * \brief Get window renderer from name.
  * 
  * \param name The renderer name.
@@ -4343,7 +4342,7 @@ MG_EXPORT gal_pixel GUIAPI GetWindowElementPixelEx (HWND hwnd,
  * This function gets window renderer from the specified name \a name, 
  * which is case-insensitive.
  *
- * \return The handle to the window renderer for success, NULL for failure.
+ * \return The pointer to the window renderer for success, NULL for failure.
  *
  * \note The prototype had changed since MiniGUI v3.2; the old one returns
  *      a const value.
@@ -5298,6 +5297,8 @@ extern MG_EXPORT WNDPROC __mg_def_proc[3];
 MG_EXPORT void GUIAPI DumpWindow (FILE* fp, HWND hWnd);
 #endif /* _DEBUG */
 
+    /** @} end of window_create_fns */
+
     /**
      * \defgroup window_general_fns General window operations
      * @{
@@ -5820,7 +5821,7 @@ MG_EXPORT BOOL GUIAPI InvalidateRect (HWND hWnd,
  *        The region is assumed to have client coordinates. If this 
  *        parameter is NULL, the entire client area is added to the 
  *        update region.
- * \param bEraseBkgnd Specifies whether the background within the 
+ * \param bErase Specifies whether the background within the 
  *        update region should be erased when the update region is processed. 
  *        If this parameter is TRUE, the background is erased. If the 
  *        parameter is FALSE, the background remains unchanged.
@@ -5959,10 +5960,10 @@ MG_EXPORT BOOL GUIAPI GetUpdateRect (HWND hWnd, RECT* update_rect);
  *        of the window.
  *
  * \return The region type.
- * \retvalue NULLREGION     Region is empty.
- * \retvalue SIMPLEREGION   Region is a single rectangle.
- * \retvalue COMPLEXREGION  Region is more than one rectangle.
- * \retvalue -1             An error occurred.
+ * \retval NULLREGION     Region is empty.
+ * \retval SIMPLEREGION   Region is a single rectangle.
+ * \retval COMPLEXREGION  Region is more than one rectangle.
+ * \retval -1             An error occurred.
  *
  * \sa GetUpdateRect
  */
@@ -9889,30 +9890,10 @@ MG_EXPORT int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
  */
 MG_EXPORT void GUIAPI MessageBeep (DWORD dwBeep);
 
-/**
- * \fn int GUIAPI SetBitmapKeyColor (HDC hdc, PBITMAP bmp,
- *              Uint8 r, Uint8 g, Uint8 b)
- * \brief Set the bitmap color key.
- *
- * This function set the bitmap member bmColorKey with the param r,g,b and
- * set the BMP_TYPE_COLORKEY flag.
- *
- * \param hdc The device context.
- * \param bmp Point of the bitmap which to set color key.
- * \param r The red componets of RGB color.
- * \param g The green componets of RGB color.
- * \param b The blue componets of RGB color.
- *
- * \return ERR_BMP_OK for success, ERR_BMP_UNKNOWN_TYPE for error.
- *
- * /sa SetMemDCColorKey
- */
-MG_EXPORT int GUIAPI SetBitmapKeyColor (HDC hdc, PBITMAP bmp, Uint8 r, Uint8 g, Uint8 b);
-
-    /** @} end of dialog_fns */
+    /** @} end of msgbox_fns */
     /** @} end of window_fns */
-
     /** @} end of fns */
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
