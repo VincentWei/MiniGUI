@@ -78,9 +78,9 @@ static pthread_mutex_t timerLock;
 #define TIMER_UNLOCK()
 #endif
 
-#ifdef _MGGAL_S3C6410
+#ifdef __LINUX__
 #   define _MG_USE_BETTER_TIMER
-#endif /* _MGGAL_S3C6410 */
+#endif /* __LINUX__ */
 
 #ifdef _MG_USE_BETTER_TIMER
 #include <sys/times.h>
@@ -298,16 +298,14 @@ void mg_dispatch_timer_message (DWORD inter)
         if (timerstr[i] && timerstr[i]->msg_queue) {
             timerstr[i]->count += inter;
             if (timerstr[i]->count >= timerstr[i]->speed) {
-                if (timerstr[i]->tick_count == 0)
 #ifdef _MGRM_PROCESSES
-                    timerstr[i]->tick_count = SHAREDRES_TIMER_COUNTER;
+                timerstr[i]->tick_count = SHAREDRES_TIMER_COUNTER;
 #else
-                    timerstr[i]->tick_count = __mg_timer_counter;
+                timerstr[i]->tick_count = __mg_timer_counter;
 #endif
                 /* setting timer flag is simple, we do not need to lock msgq,
                    or else we may encounter dead lock here */ 
                 SetMsgQueueTimerFlag (timerstr[i]->msg_queue, i);
-                
                 timerstr[i]->count -= timerstr[i]->speed;
             }
         }
@@ -469,7 +467,7 @@ void __mg_remove_timer (TIMER* timer, int slot)
     TIMER_LOCK ();
 
     if (timer && timer->msg_queue && timerstr[slot] == timer) {
-        /* The following code is already called in message.c...
+        /* The following code is already moved to message.c...
          * timer->msg_queue->TimerMask &= ~(0x01 << slot);
          */
         free (timerstr[slot]);

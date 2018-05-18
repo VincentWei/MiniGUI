@@ -486,12 +486,17 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax
 
 #ifdef _MGRM_THREADS
     if (!(pMsgQueue = GetMsgQueueThisThread ()))
-            return FALSE;
+        return FALSE;
 #else
     pMsgQueue = __mg_dsk_msg_queue;
 #endif
 
     memset (pMsg, 0, sizeof(MSG));
+#ifdef _MGRM_PROCESSES
+    pMsg->time = SHAREDRES_TIMER_COUNTER;
+#else
+    pMsg->time = __mg_timer_counter;
+#endif
 
 checkagain:
 
@@ -670,7 +675,8 @@ checkagain:
         /* get the first expired timer slot */
         slot = pMsgQueue->FirstTimerSlot;
         do {
-            if (pMsgQueue->TimerMask & (0x01 << slot))
+            DWORD dwTest = 0x01;
+            if (pMsgQueue->TimerMask & (dwTest << slot))
                 break;
 
             slot ++;
@@ -685,11 +691,8 @@ checkagain:
         pMsgQueue->FirstTimerSlot %= DEF_NR_TIMERS;
 
         if ((timer = __mg_get_timer (slot))) {
-
-            unsigned int tick_count = timer->tick_count;
-
-            timer->tick_count = 0;
-            pMsgQueue->TimerMask &= ~(0x01 << slot);
+            DWORD dwTest = 0x01;
+            pMsgQueue->TimerMask &= ~(dwTest << slot);
 
             if (timer->proc) {
                 BOOL ret_timer_proc;
@@ -699,7 +702,7 @@ checkagain:
 
                 /* calling the timer callback procedure */
                 ret_timer_proc = timer->proc (timer->hWnd, 
-                        timer->id, tick_count);
+                        timer->id, timer->tick_count);
 
                 /* lock the message queue again */
                 LOCK_MSGQ (pMsgQueue);
@@ -715,7 +718,7 @@ checkagain:
                 pMsg->message = MSG_TIMER;
                 pMsg->hwnd = timer->hWnd;
                 pMsg->wParam = timer->id;
-                pMsg->lParam = tick_count;
+                pMsg->lParam = timer->tick_count;
                 SET_PADD (NULL);
 
                 UNLOCK_MSGQ (pMsgQueue);
@@ -1221,7 +1224,8 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
 
     /* clear timer message flags of this window */
     for (slot = 0; slot < DEF_NR_TIMERS; slot++) {
-        if (pMsgQueue->TimerMask & (0x01 << slot)) {
+        DWORD dwTest = 0x01;
+        if (pMsgQueue->TimerMask & (dwTest << slot)) {
             HWND timer_wnd = __mg_get_timer_hwnd (slot);
             if (timer_wnd == hWnd 
                     || gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd){
