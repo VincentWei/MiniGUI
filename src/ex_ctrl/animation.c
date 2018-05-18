@@ -244,7 +244,7 @@ static void next_frame (HWND hwnd, ANIMATIONINFO* anim_info)
         anim_info->current = anim_info->anim->frames;
     } else {
         if (anim_info->current->next == NULL 
-            && (GetWindowStyle (hwnd) & ANS_AUTOLOOP)) {
+                && (GetWindowStyle (hwnd) & ANS_AUTOLOOP)) {
             anim_info->current = anim_info->anim->frames;
         } else {
             anim_info->current = anim_info->current->next;
@@ -254,8 +254,10 @@ static void next_frame (HWND hwnd, ANIMATIONINFO* anim_info)
     if (current) {
         anim_treat_frame_disposal (anim_info, current->prev);
         draw_frame (anim_info->mem_dc, current);
-        //InvalidateRect (hwnd, NULL, FALSE);
-        InvalidateRect (hwnd, NULL, TRUE);
+        InvalidateRect (hwnd, NULL, FALSE);
+    }
+    else {
+        NotifyParent (hwnd, GetDlgCtrlID (hwnd), ANNC_NOFRAME);
     }
 }
 
@@ -275,11 +277,16 @@ static void setup_anim_mem_dc (HWND hwnd, ANIMATIONINFO* anim_info)
     anim_info->mem_dc = CreateCompatibleDCEx (hdc, 
                     anim_info->anim->width, anim_info->anim->height);
 
-    if (hwnd != HWND_NULL) {
-        bk_pixel = GetWindowElementPixel (hwnd, WE_BGC_WINDOW);
+    if (GetWindowStyle (hwnd) & ANS_WINBGC) {
+        if (hwnd != HWND_NULL) {
+            bk_pixel = GetWindowElementPixel (hwnd, WE_BGC_WINDOW);
+        }
+        else {
+            bk_pixel = GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP);
+        }
     }
     else {
-        bk_pixel = GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP);
+        RGB2Pixels (anim_info->mem_dc, &anim_info->anim->bk, &bk_pixel, 1);
     }
 
     if (GetWindowExStyle(hwnd) & WS_EX_TRANSPARENT) {
@@ -302,7 +309,7 @@ static LRESULT AnimationCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     switch (message) {   
     case MSG_CREATE:
         if (!HaveFreeTimer ()) {
-            _MG_PRINTF ("EX_CTRL>Animation: no free timer is available!\n");
+            _ERR_PRINTF ("EX_CTRL>Animation: no free timer is available!\n");
             return -1;
         }
         anim_info = (ANIMATIONINFO*) calloc (1, sizeof (ANIMATIONINFO));
@@ -323,6 +330,7 @@ static LRESULT AnimationCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         break;
         
     case MSG_TIMER:
+        _MG_PRINTF ("Animation: Timer: %lu\n", lParam);
         if(anim_info->anim == NULL)
             return 0;
         if (anim_info->status == ANIM_STATUS_PLAY) {
@@ -356,7 +364,7 @@ static LRESULT AnimationCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         hdc = BeginPaint (hwnd);
         
         if (RECTW (rc_anim) == anim_info->anim->width
-            && RECTH (rc_anim) == anim_info->anim->height) {
+                && RECTH (rc_anim) == anim_info->anim->height) {
             BitBlt (anim_info->mem_dc, 0, 0, 0, 0, hdc, 0, 0, 0);
         } else {
             StretchBlt (anim_info->mem_dc, 0, 0, 
@@ -388,8 +396,7 @@ static LRESULT AnimationCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               setup_anim_mem_dc(hwnd, anim_info);
               next_frame(hwnd, anim_info);
               anim_info->elapsed_10ms = 0;
-              //SetTimer (hwnd, ID_TIMER, anim_info->anim->time_unit);
-              SetTimer (hwnd, ID_TIMER, 1);
+              SetTimer (hwnd, ID_TIMER, anim_info->anim->time_unit);
           }
           return (LRESULT)old;
       }
@@ -425,7 +432,7 @@ static LRESULT AnimationCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             next_frame (hwnd, anim_info); //back to the first frame
             anim_info->elapsed_10ms = 0;
             InvalidateRect (hwnd, NULL, FALSE);
-            }
+        }
         return 0;
         
     case MSG_LBUTTONDBLCLK:

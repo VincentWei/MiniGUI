@@ -238,6 +238,12 @@ MG_EXPORT void DestroyAnimation (ANIMATION* anim, BOOL free_it);
  */
 #define ANS_FITTOANI                    0x0004L
 
+/**
+ * \def ANS_WINBGC 
+ * \brief Use the background color of the window.
+ */
+#define ANS_WINBGC                      0x0010L
+
     /** @} end of mgext_ctrl_animation_styles */
 
     /**
@@ -355,6 +361,12 @@ MG_EXPORT void DestroyAnimation (ANIMATION* anim, BOOL free_it);
  * \brief Indicates the user has double clicked the control
  */
 #define ANNC_DBLCLK          2
+
+/**
+ * \def ANNC_NOFRAME
+ * \brief Indicates that there is no frame to play.
+ */
+#define ANNC_NOFRAME         3
 
     /** @} end of mgext_ctrl_animation_ncs */
 
