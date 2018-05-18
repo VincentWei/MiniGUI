@@ -266,8 +266,6 @@ GetSystemBitmapEx (const char* rdr_name, const char* id)
         return NULL;
     }
 
-    _MG_PRINTF ("SYSRES: GetValue = %s.\n", file);    
-
     return LoadBitmapFromRes(HDC_SCREEN, file);
 
 }
@@ -276,8 +274,7 @@ const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
 {
     const WINDOWINFO* win_info;
 
-    if (hWnd == HWND_NULL)
-    {		
+    if (hWnd == HWND_NULL) {		
 		return NULL;//SystemBitmap + id;
     }
     
