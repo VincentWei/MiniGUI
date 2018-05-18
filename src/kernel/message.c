@@ -675,8 +675,7 @@ checkagain:
         /* get the first expired timer slot */
         slot = pMsgQueue->FirstTimerSlot;
         do {
-            DWORD dwTest = 0x01;
-            if (pMsgQueue->TimerMask & (dwTest << slot))
+            if (pMsgQueue->TimerMask & (0x01UL << slot))
                 break;
 
             slot ++;
@@ -691,8 +690,7 @@ checkagain:
         pMsgQueue->FirstTimerSlot %= DEF_NR_TIMERS;
 
         if ((timer = __mg_get_timer (slot))) {
-            DWORD dwTest = 0x01;
-            pMsgQueue->TimerMask &= ~(dwTest << slot);
+            pMsgQueue->TimerMask &= ~(0x01UL << slot);
 
             if (timer->proc) {
                 BOOL ret_timer_proc;
@@ -1224,8 +1222,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
 
     /* clear timer message flags of this window */
     for (slot = 0; slot < DEF_NR_TIMERS; slot++) {
-        DWORD dwTest = 0x01;
-        if (pMsgQueue->TimerMask & (dwTest << slot)) {
+        if (pMsgQueue->TimerMask & (0x01UL << slot)) {
             HWND timer_wnd = __mg_get_timer_hwnd (slot);
             if (timer_wnd == hWnd 
                     || gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd){
