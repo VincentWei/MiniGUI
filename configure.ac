@@ -1958,7 +1958,7 @@ dnl Check for FreeType1 library
   ft2)
 dnl Check for FreeType2 library
     AC_CHECK_LIB(freetype, FT_Library_Version,
-        DEP_LIBS="$DEP_LIBS -lfreetype -lz -lpng12",
+        DEP_LIBS="$DEP_LIBS -lfreetype",
         use_ttf_lib="none")
     ;;
 esac
@@ -2041,7 +2041,6 @@ case "$use_ttf_lib" in
             FT1_INC_DIR="-I$with_ft1_includes"
         fi
 
-        DEP_LIBS="$DEP_LIBS -lttf"
         AC_SUBST(FT1_INC_DIR)
     ;;
     ft2)
@@ -2058,7 +2057,6 @@ case "$use_ttf_lib" in
             FT2_INC_DIR="-I$with_ft2_includes"
         fi
 
-        DEP_LIBS="$DEP_LIBS -lfreetype"
         AC_SUBST(FT2_INC_DIR)
     ;;
 esac
