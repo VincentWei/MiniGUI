@@ -498,6 +498,11 @@ int AddResPath(const char* paths)
 
 #endif
 
+const char* GetResPath (void)
+{
+    return usr_res_path;
+}
+
 int SetResPath(const char* path)
 {
     if(path == NULL) {

@@ -4733,6 +4733,19 @@ enum emResReturn {
 };
 
 /**
+ * \fn const char* GetResPath (void)
+ * \brief Get the currrent user's resource path.
+ *
+ * \param path The path which store the resources. It can be an absolute path or relative path.
+ *
+ * \return the user's resource path; NULL if have not been set.
+ *
+ * \sa SetResPath
+ *
+ **/
+MG_EXPORT const char* GetResPath (void);
+
+/**
  * \fn int SetResPath (const char* path);
  * \brief Set user's resource path into the search paths of resource manager.
  *
@@ -4741,6 +4754,8 @@ enum emResReturn {
  * \param path The path which store the resources. It can be an absolute path or relative path.
  *
  * \return RES_RET_OK for success or error code.
+ *
+ * \sa GetResPath
  *
  **/
 MG_EXPORT int SetResPath (const char* path);
