@@ -485,8 +485,10 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax
         return FALSE;
 
 #ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ()))
+    if (!(pMsgQueue = GetMsgQueueThisThread ())) {
+        _MG_PRINTF ("Kernel>message: no message queue.\n");
         return FALSE;
+    }
 #else
     pMsgQueue = __mg_dsk_msg_queue;
 #endif

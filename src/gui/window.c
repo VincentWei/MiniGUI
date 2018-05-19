@@ -3529,6 +3529,7 @@ void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
 #ifdef _MGRM_THREADS
     if (pWin->pHosting == NULL) {
         mg_FreeMsgQueueThisThread ();
+        _MG_PRINTF ("GUI>Window: Message queure is freed: %p (%s)\n", pWin, pWin->spCaption);
     }
 #endif
 

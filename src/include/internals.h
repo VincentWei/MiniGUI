@@ -599,7 +599,7 @@ static inline MSGQUEUE* GetMsgQueueThisThread (void)
     pMsgQueue = (MSGQUEUE*) pthread_getspecific (__mg_threadinfo_key);
 #ifdef __VXWORKS__
     if (pMsgQueue == (void *)-1) {
-	return NULL;
+        return NULL;
     }
 #endif
     return pMsgQueue;
