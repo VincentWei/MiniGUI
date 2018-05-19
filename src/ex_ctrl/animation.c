@@ -330,7 +330,6 @@ static LRESULT AnimationCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         break;
         
     case MSG_TIMER:
-        _MG_PRINTF ("Animation: Timer: %lu\n", lParam);
         if(anim_info->anim == NULL)
             return 0;
         if (anim_info->status == ANIM_STATUS_PLAY) {
