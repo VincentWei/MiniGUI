@@ -400,12 +400,9 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     FT_Glyph_Get_CBox (ft_inst_info->glyph, ft_glyph_bbox_pixels, &bbox);
 
-    /* houhh 20100712, will be display glyph with stain point. */
-#if 0
     //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
     if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE))
         bbox.xMax += 2;
-#endif
 
     /* We just save the BBOX :). */
     memcpy (&ft_inst_info->bbox, &bbox, sizeof(FT_BBox));
@@ -763,10 +760,9 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->max_width = size->metrics.x_ppem;
     ft_inst_info->ave_width = ft_inst_info->max_width;
 
-    ft_inst_info->height = (size->metrics.height + 0x20)>>6;
-    ft_inst_info->ascent = (size->metrics.ascender + 0x20)>>6;
-
-    ft_inst_info->descent = (abs(size->metrics.descender + 0x20))>>6;
+    ft_inst_info->height = (size->metrics.height)>>6;
+    ft_inst_info->ascent = (size->metrics.ascender)>>6;
+    ft_inst_info->descent = (abs(size->metrics.descender))>>6;
     ft_inst_info->height = ft_inst_info->ascent + ft_inst_info->descent;
 
 #ifdef _MGFONT_TTF_CACHE
