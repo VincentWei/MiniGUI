@@ -2057,8 +2057,8 @@ static inline void _ERR_PRINTF(const char* fmt, ...)
     va_start (ap, fmt);
     TCS_BOLD_RED (stderr);
     vfprintf (stderr, fmt, ap);
-    fprintf (stderr, "\n");
     TCS_NONE (stderr);
+    fprintf (stderr, "\n");
     va_end (ap);
 }
 static inline void _MG_PRINTF(const char* fmt, ...)
@@ -2068,8 +2068,8 @@ static inline void _MG_PRINTF(const char* fmt, ...)
     va_start (ap, fmt);
     TCS_GREEN (stdout);
     vfprintf (stdout, fmt, ap);
-    fprintf (stdout, "\n");
     TCS_NONE (stdout);
+    fprintf (stdout, "\n");
     va_end (ap);
 #endif
 }
@@ -2081,8 +2081,8 @@ static inline void _DBG_PRINTF(const char* fmt, ...)
     va_start (ap, fmt);
     TCS_YELLOW (stderr);
     vfprintf (stderr, fmt, ap);
-    fprintf (stderr, "\n");
     TCS_NONE (stderr);
+    fprintf (stderr, "\n");
     va_end (ap);
 #endif
 }
