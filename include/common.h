@@ -1748,13 +1748,12 @@ struct tm {
 #define fseek	tp_fseek
 #define feof	tp_feof
 
-
 #undef assert 
 #define _HAVE_ASSERT 1 
 
-#define assert(e) do {              \
-                         e;      \
-                     } while(0);  
+#define assert(e) do {          \
+                         e;     \
+                     } while (0)  
 
 #undef stdin
 #undef stdout
@@ -1969,12 +1968,80 @@ int init_minigui_printf (int (*output_char) (int ch),
 
 #endif /* _MGUSE_OWN_STDIO */
 
+#ifdef __LINUX__
+    #define TCS_NONE(fp)            fprintf (fp, "\e[0m")
+    #define TCS_BLACK(fp)           fprintf (fp, "\e[0;30m")
+    #define TCS_BOLD_BLACK(fp)      fprintf (fp, "\e[1;30m")
+    #define TCS_RED(fp)             fprintf (fp, "\e[0;31m")
+    #define TCS_BOLD_RED(fp)        fprintf (fp, "\e[1;31m")
+    #define TCS_GREEN(fp)           fprintf (fp, "\e[0;32m")
+    #define TCS_BOLD_GREEN(fp)      fprintf (fp, "\e[1;32m")
+    #define TCS_BROWN(fp)           fprintf (fp, "\e[0;33m")
+    #define TCS_YELLOW(fp)          fprintf (fp, "\e[1;33m")
+    #define TCS_BLUE(fp)            fprintf (fp, "\e[0;34m")
+    #define TCS_BOLD_BLUE(fp)       fprintf (fp, "\e[1;34m")
+    #define TCS_PURPLE(fp)          fprintf (fp, "\e[0;35m")
+    #define TCS_BOLD_PURPLE(fp)     fprintf (fp, "\e[1;35m")
+    #define TCS_CYAN(fp)            fprintf (fp, "\e[0;36m")
+    #define TCS_BOLD_CYAN(fp)       fprintf (fp, "\e[1;36m")
+    #define TCS_GRAY(fp)            fprintf (fp, "\e[0;37m")
+    #define TCS_WHITE(fp)           fprintf (fp, "\e[1;37m")
+    #define TCS_BOLD(fp)            fprintf (fp, "\e[1m")
+    #define TCS_UNDERLINE(fp)       fprintf (fp, "\e[4m")
+    #define TCS_BLINK(fp)           fprintf (fp, "\e[5m")
+    #define TCS_REVERSE(fp)         fprintf (fp, "\e[7m")
+    #define TCS_HIDE(fp)            fprintf (fp, "\e[8m")
+    #define TCS_CLEAR(fp)           fprintf (fp, "\e[2J")
+    #define TCS_CLRLINE(fp)         fprintf (fp, "\e[1K\r")
+#else
+    #define TCS_NONE(fp)
+    #define TCS_BLACK(fp)
+    #define TCS_BOLD_BLACK(fp)
+    #define TCS_RED(fp)
+    #define TCS_BOLD_RED(fp)
+    #define TCS_GREEN(fp)
+    #define TCS_BOLD_GREEN(fp)
+    #define TCS_BROWN(fp)
+    #define TCS_YELLOW(fp)
+    #define TCS_BLUE(fp)
+    #define TCS_BOLD_BLUE(fp)
+    #define TCS_PURPLE(fp)
+    #define TCS_BOLD_PURPLE(fp)
+    #define TCS_CYAN(fp)
+    #define TCS_BOLD_CYAN(fp)
+    #define TCS_GRAY(fp)
+    #define TCS_WHITE(fp)
+    #define TCS_BOLD(fp)
+    #define TCS_UNDERLINE(fp)
+    #define TCS_BLINK(fp)
+    #define TCS_REVERSE(fp)
+    #define TCS_HIDE(fp)
+    #define TCS_CLEAR(fp)
+    #define TCS_CLRLINE(fp)
+#endif
+
 #if defined(__GNUC__)
-#   define _ERR_PRINTF(fmt...) fprintf (stderr, fmt)
+#   define _ERR_PRINTF(fmt...)      \
+        do {                        \
+            TCS_BOLD_RED (stderr);  \
+            fprintf (stderr, fmt);  \
+            TCS_NONE (stderr);      \
+        } while (0)
 #   ifdef _DEBUG
-#       define _MG_PRINTF(fmt...) fprintf (stdout, fmt)
+#       define _MG_PRINTF(fmt...)   \
+        do {                        \
+            TCS_GREEN (stdout);     \
+            fprintf (stdout, fmt);  \
+            TCS_NONE (stdout);      \
+        } while (0)
+        
 #       ifdef DEBUG
-#           define _DBG_PRINTF(fmt...) fprintf (stdout, fmt)
+#           define _DBG_PRINTF(fmt...)  \
+        do {                            \
+            TCS_YELLOW (stderr);        \
+            fprintf (stderr, fmt);      \
+            TCS_NONE (stderr);          \
+        } while (0)
 #       else
 #           define _DBG_PRINTF(fmt...)
 #       endif
@@ -1987,18 +2054,22 @@ int init_minigui_printf (int (*output_char) (int ch),
 static inline void _ERR_PRINTF(const char* fmt, ...)
 {
     va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    va_end(ap);
+    va_start (ap, fmt);
+    TCS_BOLD_RED (stderr);
+    vfprintf (stderr, fmt, ap);
+    fprintf (stderr, "\n");
+    TCS_NONE (stderr);
+    va_end (ap);
 }
 static inline void _MG_PRINTF(const char* fmt, ...)
 {
 #ifdef DEBUG
     va_list ap;
     va_start (ap, fmt);
+    TCS_GREEN (stdout);
     vfprintf (stdout, fmt, ap);
     fprintf (stdout, "\n");
+    TCS_NONE (stdout);
     va_end (ap);
 #endif
 }
@@ -2007,10 +2078,12 @@ static inline void _DBG_PRINTF(const char* fmt, ...)
 {
 #if defined(DEBUG) && defined(_DEBUG)
     va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    va_end(ap);
+    va_start (ap, fmt);
+    TCS_YELLOW (stderr);
+    vfprintf (stderr, fmt, ap);
+    fprintf (stderr, "\n");
+    TCS_NONE (stderr);
+    va_end (ap);
 #endif
 }
 #endif /* !__GNUC__ */

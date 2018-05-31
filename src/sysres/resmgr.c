@@ -104,6 +104,7 @@ static inline void res_error(int type, const char* funcname, const char* strinfo
 #ifdef WIN32
 
 #else
+
 #define ERR_RETV(ret, type, ...)  do{ res_error((int)type, __FUNCTION__, __VA_ARGS__); return (ret); } while(0)
 
 #define ERR_RET(type, ...)  do{ res_error((int)type, __FUNCTION__, __VA_ARGS__); return ; } while(0)
@@ -380,8 +381,7 @@ BOOL InitializeResManager(int hash_table_size)
 #endif
     {
         //step 2: get from MiniGUI.cfg
-        if(GetMgEtcValue("resinfo", "respath", szpath, sizeof(szpath)-1) == ETC_OK)
-        {
+        if(GetMgEtcValue("resinfo", "respath", szpath, sizeof(szpath)-1) == ETC_OK) {
             cfg_res_path = strdup(szpath);
         }
     }
@@ -658,9 +658,7 @@ static char* get_res_file(const char* res_name, char* filename)
 #ifndef __NOUNIX__
         struct stat buf;
         sprintf(filename,"%s/%s", res_paths[i], res_name);
-        if(stat(filename, &buf) == 0
-            && !S_ISDIR(buf.st_mode)
-            && (buf.st_mode&S_IRUSR))
+        if(stat(filename, &buf) == 0 && !S_ISDIR(buf.st_mode) && (buf.st_mode&S_IRUSR))
 #else
         sprintf(filename,"%s/%s", res_paths[i], res_name);
 #ifndef __VXWORKS__
@@ -890,7 +888,7 @@ static void res_error(int type, const char* funcname, const char* strinfo, ... )
     va_start (va, strinfo);
     vsnprintf (strbuff, 255, strinfo, va);
 
-    fprintf (stderr, "SYSRES: (@%s)%s(ret %d): %s\n",
+    _ERR_PRINTF ("SYSRES: (@%s)%s(ret %d): %s\n",
             funcname?funcname:"<>",
             type>=1&&type<=RES_RET_INUSED?errinfo[type-1]:"",
             type,
