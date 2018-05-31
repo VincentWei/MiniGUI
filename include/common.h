@@ -2030,9 +2030,9 @@ int init_minigui_printf (int (*output_char) (int ch),
 #   ifdef _DEBUG
 #       define _MG_PRINTF(fmt...)   \
         do {                        \
-            TCS_GREEN (stdout);     \
-            fprintf (stdout, fmt);  \
-            TCS_NONE (stdout);      \
+            TCS_GREEN (stderr);     \
+            fprintf (stderr, fmt);  \
+            TCS_NONE (stderr);      \
         } while (0)
         
 #       ifdef DEBUG
@@ -2058,7 +2058,6 @@ static inline void _ERR_PRINTF(const char* fmt, ...)
     TCS_BOLD_RED (stderr);
     vfprintf (stderr, fmt, ap);
     TCS_NONE (stderr);
-    fprintf (stderr, "\n");
     va_end (ap);
 }
 static inline void _MG_PRINTF(const char* fmt, ...)
@@ -2066,10 +2065,9 @@ static inline void _MG_PRINTF(const char* fmt, ...)
 #ifdef DEBUG
     va_list ap;
     va_start (ap, fmt);
-    TCS_GREEN (stdout);
-    vfprintf (stdout, fmt, ap);
-    TCS_NONE (stdout);
-    fprintf (stdout, "\n");
+    TCS_GREEN (stderr);
+    vfprintf (stderr, fmt, ap);
+    TCS_NONE (stderr);
     va_end (ap);
 #endif
 }
@@ -2082,7 +2080,6 @@ static inline void _DBG_PRINTF(const char* fmt, ...)
     TCS_YELLOW (stderr);
     vfprintf (stderr, fmt, ap);
     TCS_NONE (stderr);
-    fprintf (stderr, "\n");
     va_end (ap);
 #endif
 }
