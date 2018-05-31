@@ -400,9 +400,11 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     FT_Glyph_Get_CBox (ft_inst_info->glyph, ft_glyph_bbox_pixels, &bbox);
 
+#if 0
     //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
     if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE))
         bbox.xMax += 2;
+#endif
 
     /* We just save the BBOX :). */
     memcpy (&ft_inst_info->bbox, &bbox, sizeof(FT_BBox));
