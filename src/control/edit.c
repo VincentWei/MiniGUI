@@ -1569,7 +1569,6 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
     break;
 
 
-    /*
     case SCANCODE_BACKSPACE:
     {
         int del;
@@ -1584,8 +1583,6 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
         sleInsertText (hWnd, sled, NULL, del);
     }
     break;
-    */
-
 
     case SCANCODE_A:
     {

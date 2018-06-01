@@ -552,7 +552,9 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
             /* convert to the start point on baseline. */
             _gdi_get_baseline_point(pdc, &ctxt.x, &ctxt.y);
 
-            if(nFormat & DT_CENTER){
+            if (nFormat & DT_CENTER){
+                BOOL old_set = ctxt.only_extent;
+
                 /* only get text extent.*/
                 ctxt.only_extent = TRUE;
                 _gdi_reorder_text_break (pdc, pline, line_len, 
@@ -564,7 +566,7 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
                 x = rcDraw.left + ((RECTW (rcDraw) - ctxt.advance) >> 1);
                 ctxt.x = x + line_x;
                 ctxt.advance = 0;
-                ctxt.only_extent = FALSE;
+                ctxt.only_extent = old_set;
                 if((nFormat & DT_CALCRECT) && (pRect->left > ctxt.x))
                     pRect->left = ctxt.x;
                 _gdi_reorder_text_break (pdc, pline, line_len, 
