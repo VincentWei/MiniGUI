@@ -277,9 +277,6 @@ get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont,
         return 1;
     }
 
-    _MG_PRINTF ("FONT>Bitmap: node->min = %d, node->max = %d \n", 
-                node->min, node->max);
-    
     bmp->bmType = node->data->bmType;
     bmp->bmBitsPerPixel = node->data->bmBitsPerPixel;
     bmp->bmBytesPerPixel = node->data->bmBytesPerPixel;
@@ -296,9 +293,6 @@ get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont,
         bmp->bmAlphaPitch = node->data->bmAlphaPitch;
     }
 
-    _MG_PRINTF ("FONT>Bitmap: bmp's bytes/pixel = %d\n", node->data->bmBytesPerPixel);
-    _MG_PRINTF ("FONT>Bitmap: bmp->bmWidth = %d, bmp->bmHeight = %d.\n", bmp->bmWidth, 
-                bmp->bmHeight);
     return 1;
 }
 
@@ -409,7 +403,7 @@ build_bmpfont_info (const char *bmpfont_name, const BITMAP* glyph_bmp,
     /* set height */
     if ((bmpfont_info->height 
          = fontGetHeightFromName (bmpfont_name)) == -1) {
-        _MG_PRINTF ("FONT>Bitmap: Invalid font name (height): %s.\n",
+        _ERR_PRINTF ("FONT>Bitmap: Invalid font name (height): %s.\n",
                  bmpfont_name);
         goto error_load;
     }
@@ -424,7 +418,7 @@ build_bmpfont_info (const char *bmpfont_name, const BITMAP* glyph_bmp,
         bmpfont_info->tree = (GLYPHTREENODE *) calloc (1, 
                                 sizeof (GLYPHTREENODE));
         if (!bmpfont_info->tree) {
-            _MG_PRINTF ("FONT>Bitmap: fail to calloc memory space for root.\n");
+            _ERR_PRINTF ("FONT>Bitmap: fail to calloc memory space for root.\n");
             goto error_load;
         }        
     }
@@ -439,7 +433,7 @@ build_bmpfont_info (const char *bmpfont_name, const BITMAP* glyph_bmp,
     return bmpfont_info;
     
 error_load:
-    _MG_PRINTF ("FONT>Bitmap: Error in building Bitmap Font Info!\n");
+    _ERR_PRINTF ("FONT>Bitmap: Error in building Bitmap Font Info!\n");
     
     free (bmpfont_info);
     bmpfont_info = NULL;
@@ -469,8 +463,6 @@ static int set_devfont_style (char* name, char style)
 }
 
 
-
-
 /************************/
 DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
         const char* start_mchar, int nr_glyphs, int glyph_width)
@@ -482,13 +474,13 @@ DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
     int offset;
 
     if (!fontGetCharsetFromName (bmpfont_name, charset)) {
-        _MG_PRINTF ("FONT>Bitmap: Invalid font name (charset): %s.\n", 
+        _ERR_PRINTF ("FONT>Bitmap: Invalid font name (charset): %s.\n", 
                  bmpfont_name);
         goto error_create;
     }    
 
     if ((charset_ops = GetCharsetOpsEx (charset)) == NULL) {
-        _MG_PRINTF ("FONT>Bitmap: Not supported charset: %s.\n", charset);
+        _ERR_PRINTF ("FONT>Bitmap: Not supported charset: %s.\n", charset);
         goto error_create;
     }
 
@@ -534,7 +526,7 @@ DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
     return bitmapfont_dev_font;
     
 error_create:
-    _MG_PRINTF ("FONT>Bitmap: Error in creating bitmap font!\n");    
+    _ERR_PRINTF ("FONT>Bitmap: Error in creating bitmap font!\n");    
     free (bitmapfont_dev_font);
     bitmapfont_dev_font = NULL;
     return NULL;    
