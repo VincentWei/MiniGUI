@@ -140,9 +140,6 @@ static BYTE* get_raster_bitmap_buffer (size_t size)
 {
     if (size <= rb_buf_size) return rb_buffer;
     rb_buf_size = ((size + 31) >> 5) << 5;
-#if 0
-    fprintf (stderr, "buf_size: %d.\n", rb_buf_size);
-#endif
     rb_buffer = realloc (rb_buffer, rb_buf_size);
     memset(rb_buffer, 0, rb_buf_size);
     return rb_buffer;
@@ -294,7 +291,7 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     FT_Glyph ft_glyph_tmp;
 
     if (get_cached_face (ft_inst_info, face)) {
-        _MG_PRINTF ("FONT>FT2: can't access font file %p\n", ft_face_info);
+        _MG_PRINTF ("FONT>FT2: can't access font file %p\n", face);
         return 0;
     }
 
@@ -400,7 +397,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     FT_Glyph_Get_CBox (ft_inst_info->glyph, ft_glyph_bbox_pixels, &bbox);
 
-#if 0
+#if 1
     //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
     if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE))
         bbox.xMax += 2;
@@ -421,7 +418,6 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
         TTFCACHEINFO * pcache;
         TTFCACHEINFO cache_info = {0};
-        int ret;
         int datasize;
         int size = 0;
 
@@ -441,9 +437,8 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
                         cache_info.unicode, sizeof(TTFCACHEINFO) + size, size, 
                         ft_inst_info->cache));
 
-            ret = __mg_ttc_write(ft_inst_info->cache, 
+            __mg_ttc_write(ft_inst_info->cache, 
                     &cache_info, sizeof(TTFCACHEINFO) + size);
-            DP(("__mg_ttc_write() return %d\n", ret));
         }
     }
 #endif
@@ -545,7 +540,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         }
     }
     
-    /* access bitmap content by type changing */
+    /* access bitmap content by typecasting */
     glyph_bitmap = (FT_BitmapGlyph) ft_inst_info->glyph;
     source = &glyph_bitmap->bitmap;
     
@@ -561,7 +556,6 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 #ifdef _MGFONT_TTF_CACHE
     if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
         TTFCACHEINFO * pcache;
-        int ret;
         int datasize;
         int size = source->rows * (*pitch);
 
@@ -582,9 +576,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                         cache_info.unicode, sizeof(TTFCACHEINFO) + size, size, 
                         ft_inst_info->cache));
 
-            ret = __mg_ttc_write(ft_inst_info->cache, 
+            __mg_ttc_write(ft_inst_info->cache, 
                     &cache_info, sizeof(TTFCACHEINFO) + size);
-            DP(("__mg_ttc_write() return %d\n", ret));
 
         }
         else {
@@ -1055,7 +1048,7 @@ error_ftc_manager:
     return TRUE;
 
 error_library:
-    fprintf (stderr, "FONT>FT2: Could not initialise FreeType 2 library\n");
+    _ERR_PRINTF ("FONT>FT2: Could not initialise FreeType 2 library\n");
     FT_Done_FreeType (ft_library);
 
     return FALSE;

@@ -1626,9 +1626,6 @@ BOOL GUIAPI HiliteMenuBarItem (HWND hwnd, int pos, UINT flags)
 
     if (!pmi) return FALSE;
 
-    _MG_PRINTF ("GUI>Menu: HiliteMenuBarItem.top=%d, bottom=%d\n", 
-                rc.top, rc.bottom);
-
     if (pmi->mnutype == MFT_SEPARATOR)
         return TRUE; 
 
@@ -1782,8 +1779,6 @@ void DrawMenuBarHelper (const MAINWIN* pWin, HDC hdc, const RECT* pClipRect)
     h -= menubar_offy << 1;
     if (h < 0)
         h = 0;
-    _MG_PRINTF ("GUI>Menu: DrawMenuBarHelpler. top= %d, bottom= %d\n", 
-                y, y + h);
 
     inter = LFRDR_INTERMENUITEMX;
     pmi = pmb->head;
@@ -2013,8 +2008,7 @@ static int mnuDrawMenuPic (HWND hwnd, HDC hdc, RECT* rect,
     pWin = (PMAINWIN) hwnd;
     if (NULL == pWin) return -1;
 
-    if (!pWin->we_rdr) 
-    {
+    if (!pWin->we_rdr) {
         _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
@@ -2159,11 +2153,6 @@ static int DrawMenuPic (HWND hwnd, HDC hdc, int x, int y,
             mp_type = LFRDR_MENU_PIC_MARK;
     }
 
-    _MG_PRINTF ("GUI>Menu: render menu item. rect (%d, %d, %d, %d)"
-            "rect_height = %d, item_h = %d\n",
-            mp_rect.left, mp_rect.top, mp_rect.right, mp_rect.bottom, 
-            mp_height, pmi->h);
-
     mnuDrawMenuPic (hwnd, hdc, &mp_rect, mp_type, pmi->mnustate);
     return 0;
 }
@@ -2264,8 +2253,7 @@ static void draw_bottom_scroll_button(PTRACKMENUINFO ptmi)
     pWin = (PMAINWIN) ptmi->hwnd;
     if (NULL == pWin) return;
 
-    if (!pWin->we_rdr)
-    {
+    if (!pWin->we_rdr) {
         _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return;
     }
@@ -2305,8 +2293,7 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
     pWin = (PMAINWIN) ptmi->hwnd;
     if (NULL == pWin) return -1;
 
-    if (!pWin->we_rdr)
-    {
+    if (!pWin->we_rdr) {
         _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
@@ -2626,8 +2613,7 @@ static void draw_top_scroll_button(PTRACKMENUINFO ptmi)
     pWin = (PMAINWIN) ptmi->hwnd;
     if (NULL == pWin) return;
 
-    if (!pWin->we_rdr)
-    {
+    if (!pWin->we_rdr) {
         _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return;
     }
@@ -2670,8 +2656,7 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
     pWin = (PMAINWIN) ptmi->hwnd;
     if (NULL == pWin) return -1;
 
-    if (!pWin->we_rdr)
-    {
+    if (!pWin->we_rdr) {
         _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
@@ -3101,8 +3086,7 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
     pWin = (PMAINWIN) hwnd;
     if (NULL == pWin) return;
 
-    if (!pWin->we_rdr)
-    {
+    if (!pWin->we_rdr) {
         _MG_PRINTF ("GUI>Menu: LFRDR is NULL for window: %p\n", pWin);
         return;
     }

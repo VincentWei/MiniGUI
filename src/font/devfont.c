@@ -295,7 +295,7 @@ unsigned short font_GetBestScaleFactor (int height, int expect)
 { \
     devfont = head; \
     while (devfont) { \
-        fprintf (stderr, "  %d: %s, charsetname: %s, style: %p\n",  \
+        _DBG_PRINTF ("  %d: %s, charsetname: %s, style: %p\n",  \
                 count,  \
                 devfont->name, devfont->charset_ops->name, (PVOID)devfont->style); \
             devfont = devfont->next; \
@@ -308,13 +308,13 @@ void dbg_dumpDevFonts (void)
     int         count = 0;
     DEVFONT*    devfont;
 
-    fprintf (stderr, "============= SBDevFonts ============\n");
+    _DBG_PRINTF ("============= SBDevFonts ============\n");
     PRINT_DEVFONTS (sb_dev_font_head, devfont, count);
-    fprintf (stderr, "========== End of SBDevFonts =========\n");
+    _DBG_PRINTF ("========== End of SBDevFonts =========\n");
 
-    fprintf (stderr, "\n============= MBDevFonts ============\n");
+    _DBG_PRINTF ("\n============= MBDevFonts ============\n");
     PRINT_DEVFONTS (mb_dev_font_head, devfont, count);
-    fprintf (stderr, "========== End of MBDevFonts =========\n");
+    _DBG_PRINTF ("========== End of MBDevFonts =========\n");
 }
 #endif
 
@@ -845,12 +845,12 @@ BOOL GUIAPI InitVectorialFonts (void)
     {
 #if defined (_MGFONT_TTF) || defined (_MGFONT_FT2)
         if (!font_InitFreetypeLibrary ()) {
-            fprintf (stderr, "FONT>DevFont: Can not init freetype library!\n");
+            _ERR_PRINTF ("FONT>DevFont: Can not init freetype library!\n");
             return FALSE;
         }
 
         if (!font_InitSpecificalFonts (FONT_ETC_SECTION_NAME_TTF)) {
-            fprintf (stderr, "FONT>DevFont: Can not init TrueType fonts!\n");
+            _ERR_PRINTF ("FONT>DevFont: Can not init TrueType fonts!\n");
             return FALSE;
         }
 #endif

@@ -134,7 +134,7 @@ BOOL mg_InitSysFont (void)
                 goto error_load;
             }
 
-            _MG_PRINTF ("FONT>SysFont: system font %d: %s-%s-%d-%s\n", 
+            _DBG_PRINTF ("FONT>SysFont: system font %d: %s-%s-%d-%s\n", 
                     i, type, family, height, charset);
 
             if (i == 0 && GetCharsetOps (charset)->bytes_maxlen_char > 1) {

@@ -350,7 +350,7 @@ static void* load_font_data (const char* fontname, const char* filename)
     version [VBF_LEN_VERSION_INFO] = '\0'; 
 
     if (strcmp (version, VBF_VERSION3) != 0) {
-        fprintf (stderr, "FONT>VBF: Error on loading vbf: %s, version: %s,"
+        _ERR_PRINTF ("FONT>VBF: Error on loading vbf: %s, version: %s,"
                          " invalid version.\n", filename, version);
         goto error;
     }

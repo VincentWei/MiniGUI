@@ -82,7 +82,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     // is supported charset?
     if (GetCharsetOps (charset) == NULL) {
-        _MG_PRINTF ("FONT>LogFont: Not supprted charset: %s.\n", charset);
+        _ERR_PRINTF ("FONT>LogFont: Not supprted charset: %s.\n", charset);
         return INV_LOGFONT;
     }
 
@@ -124,7 +124,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     log_font->sbc_scale = 1;
     log_font->mbc_scale = 1;
 
-    _MG_PRINTF ("FONT>LogFont: requested info: type: %s, family: %s, style: %p, charset: %s, size: %d.\n",
+    _DBG_PRINTF ("FONT>LogFont: requested info: type: %s, family: %s, style: %p, charset: %s, size: %d.\n",
                     log_font->type, log_font->family, (PVOID)log_font->style, log_font->charset,
                     log_font->size);
 
@@ -245,7 +245,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
             log_font->style &= ~FS_FLIP_HORZVERT;
     }
 
-    _MG_PRINTF ("FONT>LogFont: created info: type: %s, family: %s, style: %p, charset: %s, size: %d.\n",
+    _DBG_PRINTF ("FONT>LogFont: created info: type: %s, family: %s, style: %p, charset: %s, size: %d.\n",
                     log_font->type, log_font->family, (PVOID)log_font->style, log_font->charset,
                     log_font->size);
 

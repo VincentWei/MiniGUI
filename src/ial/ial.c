@@ -256,10 +256,10 @@ int mg_InitIAL (void)
     }
    
     if (__mg_cur_input == NULL) {
-        fprintf (stderr, "IAL: Does not find the request engine: %s.\n", engine);
+        _ERR_PRINTF ("IAL: Does not find the request engine: %s.\n", engine);
         if (NR_INPUTS) {
             __mg_cur_input = inputs;
-            fprintf (stderr, "IAL: Use the first engine: %s\n", __mg_cur_input->id);
+            _MG_PRINTF ("IAL: Use the first engine: %s\n", __mg_cur_input->id);
         }
         else
             return ERR_NO_MATCH;
@@ -268,13 +268,11 @@ int mg_InitIAL (void)
     strcpy (__mg_cur_input->mdev, mdev);
 
     if (!IAL_InitInput (__mg_cur_input, mdev, mtype)) {
-        fprintf (stderr, "IAL: Init IAL engine failure.\n");
+        _ERR_PRINTF ("IAL: Init IAL engine failure.\n");
         return ERR_INPUT_ENGINE;
     }
 
-#ifdef _DEBUG
-    fprintf (stderr, "IAL: Use %s engine.\n", __mg_cur_input->id);
-#endif
+    _DBG_PRINTF ("IAL: Use %s engine.\n", __mg_cur_input->id);
 
     return 0;
 }
