@@ -378,12 +378,15 @@ static void prepare_bitmap (PDC pdc, int w, int h)
     char_bmp.bmBits = char_bits;
 
     if (size <= char_bits_size) {
-        return;
+        goto done;
     }
     char_bits_size = ((size + 31) >> 5) << 5;
 
     char_bits = realloc(char_bmp.bmBits, char_bits_size);    
     char_bmp.bmBits = char_bits;
+
+done:
+    memset (char_bmp.bmBits, 0, char_bits_size);
 }
 
 static Uint32 allocated_size = 0;
