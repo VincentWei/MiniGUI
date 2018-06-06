@@ -164,7 +164,7 @@ build_incorefont_times="yes"
 build_sef_support="no"
 build_qpf_support="no"
 use_ttf_lib="ft2"
-build_ttfcache_support="no"
+build_ttfcache_support="yes"
 build_bmpf_support="yes"
 
 dnl Charset related options
