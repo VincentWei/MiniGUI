@@ -55,6 +55,10 @@
 #include "ctrlclass.h"
 #include "timer.h"
 
+#ifdef _MGRM_PROCESSES
+#include "sharedres.h"
+#endif
+
 #include "license.h"
 #ifdef _MG_ENABLE_LICENSE
 #   include "../sysres/license/c_files/02_feiman.dat.c"
