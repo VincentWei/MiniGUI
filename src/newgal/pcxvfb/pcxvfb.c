@@ -144,20 +144,18 @@ static int execl_pcxvfb(void)
     char execl_file[EXECL_FILENAME_LEN + 1];
     char window_caption[WINDOW_CAPTION_LEN + 1];
     char mode [LEN_MODE + 1];
-    char ch_pid[10];
+    char ch_pid[32];
 	char skin[256];
     int i;
 #if defined (WIN32) || !defined(__NOUNIX__)
 	char* env_value;
 #endif
 
-    if (GetMgEtcValue ("pc_xvfb", "exec_file", 
-                execl_file, EXECL_FILENAME_LEN) < 0)
+    if (GetMgEtcValue ("pc_xvfb", "exec_file", execl_file, EXECL_FILENAME_LEN) < 0)
         return ERR_CONFIG_FILE;
     execl_file[EXECL_FILENAME_LEN] = '\0';
 
-    if (GetMgEtcValue ("pc_xvfb", "window_caption", 
-                window_caption, WINDOW_CAPTION_LEN) < 0)
+    if (GetMgEtcValue ("pc_xvfb", "window_caption", window_caption, WINDOW_CAPTION_LEN) < 0)
         return ERR_CONFIG_FILE;
     window_caption[WINDOW_CAPTION_LEN] = '\0';
 
@@ -174,10 +172,8 @@ static int execl_pcxvfb(void)
 
     mode[LEN_MODE] = '\0';
 
-    for(i=0;i<LEN_MODE;i++)
-    {
+    for (i=0; i<LEN_MODE; i++) {
         mode[i]=tolower(mode[i]);
-        //printf("%c\n",mode[i]);
     }
 
     sprintf(ch_pid, "%d", getppid());
@@ -185,10 +181,10 @@ static int execl_pcxvfb(void)
 	skin[0] = '\0';
 	GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
 	
-	_MG_PRINTF ("IAL>PCXVFB: start-qvfb :%s pcxvfb %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
+	_MG_PRINTF ("NEWGAL>PCXVFB: %s %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
 
-    if (execlp(execl_file, "pcxvfb", ch_pid, window_caption, mode, skin, NULL) < 0) {
-        _MG_PRINTF ("IAL>PCXVFB: failed to start the virtual frame buffer process!\n");
+    if (execlp (execl_file, "pcxvfb", ch_pid, window_caption, mode, skin, NULL) < 0) {
+        _ERR_PRINTF ("NEWGAL>PCXVFB: failed to start the virtual frame buffer process!\n");
     }
 
     return 0;
@@ -498,8 +494,9 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
                 GAL_SetError ("NEWGAL>PCXVFB: Failed to change the group id of the XVFB process.\n");
             }
 
-            if (execl_pcxvfb() == ERR_CONFIG_FILE)
+            if (execl_pcxvfb() == ERR_CONFIG_FILE) {
                 GAL_SetError ("NEWGAL>PCXVFB: Reading configuration failure!\n");
+            }
 
             perror ("execl");
             _exit (1);
