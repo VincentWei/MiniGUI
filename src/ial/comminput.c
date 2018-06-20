@@ -114,21 +114,25 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     int retvalue;
 
     retvalue = __comminput_wait_for_input ();
-    
-    if (retvalue & COMM_MOUSEINPUT) {
-        __comminput_ts_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON);
-        retvalue = IAL_MOUSEEVENT;
-    }
-    else if (retvalue & COMM_KBINPUT) {
-        __comminput_kb_getdata (&KEYCODE, &KEYSTATUS);
+
+    if (retvalue > 0) {
+        if (retvalue & COMM_MOUSEINPUT) {
+            __comminput_ts_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON);
+            retvalue = IAL_MOUSEEVENT;
+        }
+        else if (retvalue & COMM_KBINPUT) {
+            __comminput_kb_getdata (&KEYCODE, &KEYSTATUS);
 
 #if defined (__THREADX__) && defined (__TARGET_VFANVIL__)
-        	if (kbd_state[KEYCODE] == KEYSTATUS)
-        		return -1;
+        	    if (kbd_state[KEYCODE] == KEYSTATUS)
+        		    return -1;
 #endif
-        retvalue = IAL_KEYEVENT;
+            retvalue = IAL_KEYEVENT;
+        }
+        else
+            retvalue = -1;
     }
-    else {
+    else if (retvalue < 0)
         retvalue = -1;
     }
         
