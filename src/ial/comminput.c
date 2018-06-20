@@ -63,7 +63,7 @@
 extern int __comminput_init (void);
 extern int __comminput_ts_getdata (short *x, short *y, short *button);
 extern int __comminput_kb_getdata (short *key, short *status);
-extern int __comminput_wait_for_input (void);
+extern int __comminput_wait_for_input (struct timeval *timeout);
 extern void __comminput_deinit (void);
 
 /* ----------------------------------------------------------------------- */
@@ -113,7 +113,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
 {
     int retvalue;
 
-    retvalue = __comminput_wait_for_input ();
+    retvalue = __comminput_wait_for_input (timeout);
 
     if (retvalue > 0) {
         if (retvalue & COMM_MOUSEINPUT) {
@@ -132,7 +132,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
         else
             retvalue = -1;
     }
-    else if (retvalue < 0)
+    else if (retvalue < 0) {
         retvalue = -1;
     }
         
