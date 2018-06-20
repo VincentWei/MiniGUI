@@ -130,7 +130,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
                     retvalue = -1;
                 }
 
-                kbd_state[KEYCODE] == KEYSTATUS;
+                kbd_state[KEYCODE] = KEYSTATUS;
                 retvalue = IAL_KEYEVENT;
             }
             else
