@@ -87,9 +87,9 @@ static int mouse_getbutton (void)
 {
     int button = 0;
     if (MOUSEBUTTON == COMM_MOUSELBUTTON)
-    	button |= IAL_MOUSE_LEFTBUTTON;
+        button |= IAL_MOUSE_LEFTBUTTON;
     else if (MOUSEBUTTON == COMM_MOUSERBUTTON)
-    	button |= IAL_MOUSE_RIGHTBUTTON;
+        button |= IAL_MOUSE_RIGHTBUTTON;
 
     MOUSEBUTTON = 0;
     return button;
@@ -99,7 +99,9 @@ static unsigned char kbd_state [NR_KEYS];
 
 static int keyboard_update (void)
 {
-    kbd_state[KEYCODE] = KEYSTATUS;
+    if (KEYCODE == 0)
+        return 0;
+
     return KEYCODE + 1;
 }
 
@@ -117,17 +119,22 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
 
     if (retvalue > 0) {
         if (retvalue & COMM_MOUSEINPUT) {
-            __comminput_ts_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON);
-            retvalue = IAL_MOUSEEVENT;
+            if (__comminput_ts_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON) == 0)
+                retvalue = IAL_MOUSEEVENT;
+            else
+                retvalue = -1;
         }
         else if (retvalue & COMM_KBINPUT) {
-            __comminput_kb_getdata (&KEYCODE, &KEYSTATUS);
+            if (__comminput_kb_getdata (&KEYCODE, &KEYSTATUS) == 0) {
+                if (kbd_state[KEYCODE] == KEYSTATUS) {
+                    retvalue = -1;
+                }
 
-#if defined (__THREADX__) && defined (__TARGET_VFANVIL__)
-        	    if (kbd_state[KEYCODE] == KEYSTATUS)
-        		    return -1;
-#endif
-            retvalue = IAL_KEYEVENT;
+                kbd_state[KEYCODE] == KEYSTATUS;
+                retvalue = IAL_KEYEVENT;
+            }
+            else
+                retvalue = -1;
         }
         else
             retvalue = -1;
