@@ -267,7 +267,7 @@ report any bugs and incompatibilities in
   * [ADJUST] ScrollWindow: normal function -> inline function.
   
   
-  ## Version 3.0.2
+## Version 3.0.2
 
 The MiniGUI development team announces the availability of MiniGUI 3.0.2.
 All users of MiniGUI are encouraged to test this version carefully, and 
@@ -319,6 +319,3 @@ report any bugs and incompatibilities in
   * [NEW] LockDCEx: support for directly read and write the pixels in a DC.
   * [NEW] CreateSecondaryDC: Creates a secondary window DC of a window. 
   * [NEW] SetSecondaryDC:set a window's secondary DC and the callback for double buffer window.
-        
-        
-  

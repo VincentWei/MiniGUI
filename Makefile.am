@@ -5,7 +5,7 @@ EXTRA_DIST = \
             GNUmakefile makefile.ng makefile.msvc rules.make \
             Version INSTALL LICENSE \
             README.md RELEASE-NOTES.md \
-            license-policy-en.md license-policy-zh.md 
+            LICENSE-POLICY-en.md LICENSE-POLICY-zh.md 
 
 # The directory where the include files will be installed
 libminiguiincludedir = $(includedir)/minigui

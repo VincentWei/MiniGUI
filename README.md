@@ -1,6 +1,6 @@
 # MiniGUI
 
-A mature cross-platform windowing system and GUI system for embedded and IoT devices.
+A mature and proven cross-platform GUI system for embedded and smart IoT devices.
 
 
 ## TABLE OF CONTENTS
