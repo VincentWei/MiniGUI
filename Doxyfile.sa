@@ -32,7 +32,7 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "MiniGUI API Reference"
+PROJECT_NAME           = "MiniGUI API Reference (MiniGUI-Standalone)"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -2056,7 +2056,7 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = _MGRM_PROCESSES \
+PREDEFINED             = _MGRM_STANDALONE \
                          __GNUC__ \
                          __LITTLE_ENDIAN__ \
                          MINIGUI_MAJOR_VERSION \

@@ -14,7 +14,7 @@ libminiguiincludedir = $(includedir)/minigui
 libminiguiinclude_HEADERS = mgconfig.h
 
 docs:
-	doxygen Doxyfile
+	doxygen Doxyfile.procs Doxyfile.ths Doxyfile.sa
 
 dist-nolicense: dist
 	./clean_license.sh $(DIST_ARCHIVES)
