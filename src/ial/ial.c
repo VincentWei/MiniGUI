@@ -114,6 +114,9 @@
 #ifdef _MGIAL_DFB
     #include "dfb.h"
 #endif
+#ifdef _MGIAL_USVFB
+    #include "usvfbinput.h"
+#endif
 
 #define LEN_ENGINE_NAME        16
 #define LEN_MTYPE_NAME         16
@@ -189,6 +192,9 @@ static INPUT inputs [] =
 #endif
 #ifdef _MGIAL_DFB
     {"dfb", InitDFBInput, TermDFBInput},
+#endif
+#ifdef _MGIAL_USVFB
+    {"usvfb", InitUSVFBInput, TermUSVFBInput},
 #endif
 /* ... end of general IAL engines */
 };
