@@ -64,25 +64,20 @@ extern INT32 lcd_graphic_overlay_display(UINT32 image_buf_addr, UINT32 image_wid
 
 static int a_init (void)
 {
- //   lcd_init (16);
-//    MV_TRACE(FLASH, "FILE=%s.........LINE=%d\n", __FILE__, __LINE__);
     toppoly_init();
     lcd_graphic_overlay_display(0xe40000, 320, 240, 0, 0, 0);
-    //MV_TRACE(FLASH, "FILE=%s.........LINE=%d\n", __FILE__, __LINE__);
     return 0; 
 }
 
-static int a_getinfo (struct commlcd_info *li)
+static int a_getinfo (struct commlcd_info *li, int width, int height, int bpp)
 {
-   // lcd_getinfo ((struct lcd_info*) li);
-  //  MV_TRACE(FLASH, "FILE=%s.........LINE=%d\n", __FILE__, __LINE__);
    li->height = 240;
    li->width = 320;
    li->bpp = 32;
    li->rlen = 320 * 32 / 8;
    li->fb = 0xe40000;
    li->type = COMMLCD_TRUE_RGB0888;
-    return 0;
+   return 0;
 }
 
 struct commlcd_ops __mg_commlcd_ops = {

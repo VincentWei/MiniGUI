@@ -87,7 +87,7 @@ static int a_init (void)
     return 0; 
 }
 
-static int a_getinfo (struct commlcd_info *li)
+static int a_getinfo (struct commlcd_info *li, int width, int height, int bpp)
 {
     struct FbdevQuery *fbinfo;
     union SIGNAL *lcdsig = alloc(sizeof(struct FbdevQuery), FBDEV_QUERY_REQUEST);

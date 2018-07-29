@@ -67,7 +67,7 @@ static int a_init (void)
     return 0; 
 }
 
-static int a_getinfo (struct lcd_info *li)
+static int a_getinfo (struct lcd_info *li, int width, int height, int bpp)
 {
     UGL_MODE_INFO modeInfo;
 
@@ -115,11 +115,11 @@ struct lcd_ops __mg_commlcd_ops = {
     a_init,
     a_getinfo,
     NULL,
-    #ifndef _VESA_SUPPORT    
-        a_setclut,
-    #else
-        NULL,
-    #endif
+#ifndef _VESA_SUPPORT    
+    a_setclut,
+#else
+    NULL,
+#endif
     NULL
 };
 

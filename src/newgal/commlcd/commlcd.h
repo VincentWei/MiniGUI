@@ -59,27 +59,28 @@ struct GAL_PrivateVideoData {
 /* The pixel format defined by depth */
 #define COMMLCD_PSEUDO_RGB332    1
 #define COMMLCD_TRUE_RGB555      2
-
 #define COMMLCD_TRUE_RGB565      3
 #define COMMLCD_TRUE_RGB888      4
 #define COMMLCD_TRUE_RGB0888     5
-
-#define COMMLCD_TRUE_BGR565      6
-#define COMMLCD_TRUE_BGR888      7
+#define COMMLCD_TRUE_ARGB1555    6
+#define COMMLCD_TRUE_ARGB8888    7
 
 struct commlcd_info {
-    short height, width;  // Size of the screen
+    short height;         // vertical resolution of the screen
+    short width;          // horinzontal resolution of the screen
     short bpp;            // Depth (bits-per-pixel)
     short type;           // Pixel type
     short rlen;           // Length of one scan line in bytes
     void  *fb;            // Frame buffer
+
+    short async_update;   // update asynchronously or synchronously. 0 for synchronously; others for asynchronously.
 };
 
 struct commlcd_ops {
     /* return value: zero for OK */
     int (*init) (void);
     /* return value: zero for OK */
-    int (*getinfo) (struct commlcd_info *li);
+    int (*getinfo) (struct commlcd_info *li, int width, int height, int bpp);
     /* return value: zero for OK */
     int (*release) (void);
     /* return value: number set, zero on error */

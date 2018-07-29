@@ -107,6 +107,20 @@ static void COMMLCD_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
         return;
     }
 
+    if (this->hidden->update_th == 0) {
+        /* sync update */
+        for (i = 0; i < numrects; i++) {
+            RECT rc;
+            SetRect (&rc, rects[i].x, rects[i].y, 
+                    rects[i].x + rects[i].w, rects[i].y + rects[i].h);
+            if (!IsRectEmpty (&rc)) {
+                __mg_commlcd_ops.update (&rc);
+            }
+        }
+
+        return;
+    }
+
     pthread_mutex_lock (&this->hidden->update_lock);
 
     bound = this->hidden->rc_dirty;
@@ -200,9 +214,10 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
     Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
-
     struct commlcd_info li;	
-    if (__mg_commlcd_ops.getinfo (&li)) {
+    memset (&li, 0, sizeof (struct commlcd_info));
+
+    if (__mg_commlcd_ops.getinfo (&li, width, height, bpp)) {
         fprintf (stderr, "NEWGAL>COMMLCD: "
                 "Couldn't get the LCD information\n");
         return NULL;
@@ -216,6 +231,11 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
     memset (li.fb, 0, li.rlen * height);
 
     switch (li.type) {
+    case COMMLCD_PSEUDO_RGB332:
+        Rmask = 0xE0;
+        Gmask = 0x1C;
+        Bmask = 0x03;
+        break;
     case COMMLCD_TRUE_RGB555:
         Rmask = 0x7C00;
         Gmask = 0x03E0;
@@ -226,15 +246,23 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         Gmask = 0x07E0;
         Bmask = 0x001F;
         break;
-    case COMMLCD_TRUE_BGR565:
-        Rmask = 0x001F;
-        Gmask = 0x07E0;
-        Bmask = 0xF800;
+    case COMMLCD_TRUE_RGB888:
+    case COMMLCD_TRUE_RGB0888:
+        Rmask = 0x00FF0000;
+        Gmask = 0x0000FF00;
+        Bmask = 0x000000FF;
         break;
-    case COMMLCD_TRUE_BGR888:
-        Bmask = 0xFF0000;
-        Gmask = 0x00FF00;
-        Rmask = 0x0000FF;
+    case COMMLCD_TRUE_ARGB1555:
+        Amask = 0x8000;
+        Rmask = 0x7C00;
+        Gmask = 0x03E0;
+        Bmask = 0x001F;
+        break;
+    case COMMLCD_TRUE_ARGB8888:
+        Amask = 0xFF000000;
+        Rmask = 0x00FF0000;
+        Gmask = 0x0000FF00;
+        Bmask = 0x000000FF;
         break;
     }
 
@@ -256,7 +284,7 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = this->hidden->pitch;
     current->pixels = this->hidden->fb;
 
-    if (__mg_commlcd_ops.update) {
+    if (li.async_update && __mg_commlcd_ops.update) {
         pthread_attr_t new_attr;
 
         pthread_attr_init (&new_attr);
@@ -264,6 +292,10 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         pthread_create (&this->hidden->update_th, &new_attr, 
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
+        pthread_mutex_init(&this->hidden->update_lock, NULL)
+    }
+    else {
+        this->hidden->update_th = 0;
     }
 
     /* We're done */

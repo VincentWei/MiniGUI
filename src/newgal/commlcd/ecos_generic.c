@@ -61,9 +61,18 @@ static int a_init (void)
     return 0; 
 }
 
-static int a_getinfo (struct commlcd_info *li)
+static int a_getinfo (struct commlcd_info *li, int width, int height, int bpp)
 {
-    lcd_getinfo ((struct lcd_info*) li);
+    struct lcd_info ecos_lcd_info;
+
+    lcd_getinfo (&ecos_lcd_info);
+
+    li->height = ecos_lcd_info.height;
+    li->width = ecos_lcd_info.width;
+    li->fb = ecos_lcd_info.fb;
+    li->bpp = ecos_lcd_info.bpp;
+    li->rlen = ecos_lcd_info.rlen;
+    li->async_update = 0;
     return 0;
 }
 

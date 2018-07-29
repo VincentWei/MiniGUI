@@ -68,7 +68,7 @@ static int a_init (void)
     return 0; 
 }
 
-static int a_getinfo (struct lcd_info *li)
+static int a_getinfo (struct lcd_info *li, int width, int height, int bpp)
 {
     UGL_MODE_INFO modeInfo;
 

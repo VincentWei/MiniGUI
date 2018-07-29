@@ -53,17 +53,27 @@
 extern int wvfb_drv_lcd_init (void);
 extern int wvfb_drv_lcd_getinfo (struct commlcd_info *li); 
 
-static int wvfb_drv_setclut (int firstcolor, int ncolors, GAL_Color *colors)
+static int a_init (void)
+{
+    return wvfb_drv_lcd_init ();
+}
+
+static int a_getinfo (struct commlcd_info *li, int width, int height, int bpp)
+{
+    return wvfb_drv_lcd_getinfo (li);
+}
+
+static int a_setclut (int firstcolor, int ncolors, GAL_Color *colors)
 {
     /* do nothing of note. */
     return 1;
 }
 
 struct commlcd_ops __mg_commlcd_ops = {
-    wvfb_drv_lcd_init,
-    wvfb_drv_lcd_getinfo,
+    a_init,
+    a_getinfo,
     NULL,
-    wvfb_drv_setclut,
+    a_setclut,
     NULL
 };
 

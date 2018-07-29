@@ -201,7 +201,7 @@ static int L2F50113T00_open (void)
     return 0;
 }
 
-static int L2F50113T00_getscreeninfo (struct commlcd_info *li)
+static int L2F50113T00_getscreeninfo (struct commlcd_info *li, int width, int height, int bpp)
 {
     li->type = COMMLCD_TRUE_RGB565;
     li->height = SCREEN_HEIGHT;
@@ -209,6 +209,7 @@ static int L2F50113T00_getscreeninfo (struct commlcd_info *li)
     li->fb = (void*)VRAM_ADDR_1;
     li->bpp = LCD_BPP;
     li->rlen = SCREEN_WIDTH * LCD_BPP_UNIT;
+    li->async_update = 0;
 
     return 0;
 }
