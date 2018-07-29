@@ -8,7 +8,7 @@ noinst_LTLIBRARIES = libnewgal.la
 SUBDIRS = @VIDEO_SUBDIRS@
 DIST_SUBDIRS = dummy fbcon qvfb wvfb em85xxyuv em85xxosd svpxxosd bf533 utpmc \
 			   mb93493 commlcd shadow mlshadow dfb em86gfx hisi rtos_xvfb pcxvfb \
-			   nexus s3c6410 sigma8654 mstar gdl stgfb
+			   nexus s3c6410 sigma8654 mstar gdl stgfb usvfb
 # x11 dga vgl svga ggi aalib
 
 EXTRA_DIST=makefile.ng makefile.msvc

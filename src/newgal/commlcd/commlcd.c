@@ -292,7 +292,7 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         pthread_create (&this->hidden->update_th, &new_attr, 
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
-        pthread_mutex_init(&this->hidden->update_lock, NULL)
+        pthread_mutex_init (&this->hidden->update_lock, NULL);
     }
     else {
         this->hidden->update_th = 0;

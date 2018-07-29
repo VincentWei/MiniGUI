@@ -253,6 +253,7 @@ enable_video_pc_xvfb="yes"
 enable_video_rtos_xvfb="no"
 enable_video_qvfb="no"
 enable_video_wvfb="no"
+enable_video_usvfb="no"
 enable_video_dfb="no"
 enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
@@ -908,7 +909,7 @@ dnl Check Windows Virtual FrameBuffer
 CheckWVFB()
 {
     AC_ARG_ENABLE(videowvfb,
-[  --enable-videowvfb       include Windows Virtual FrameBuffer NEWGAL engine <default=no>],
+[  --enable-videowvfb       include Windows Virtual Frame Buffer NEWGAL engine <default=no>],
     enable_video_wvfb=$enableval)
 
     if test "x$enable_video_wvfb" = "xyes"; then
@@ -917,6 +918,23 @@ CheckWVFB()
         VIDEO_SUBDIRS="$VIDEO_SUBDIRS wvfb"
         VIDEO_DRIVERS="$VIDEO_DRIVERS wvfb/libvideo_wvfb.la"
         dnl AC_DEFINE(_WVFB_IAL, 1, [Define if include wvfb ial support])
+    fi
+}
+
+dnl Set up the UnixSocket virtual Frame Buffer video driver.
+CheckUSVFB()
+{
+    AC_ARG_ENABLE(videousvfb,
+[  --enable-videousvfb    include NEWGAL/IAL engines for UnixSocket Virtual Frame Buffer <default=no>],
+    enable_video_usvfb=$enableval)
+
+    if test "x$enable_video_usvfb" = "xyes"; then
+      AC_DEFINE(_MGIAL_USVFB, 1,
+                [Define if include IAL engine for UnixSocket Virtual Frame Buffer])
+      AC_DEFINE(_MGGAL_USVFB, 1,
+                [Define if include NEWGAL engine for UnixSocket Virtual Frame Buffer])
+      VIDEO_SUBDIRS="$VIDEO_SUBDIRS usvfb"
+      VIDEO_DRIVERS="$VIDEO_DRIVERS usvfb/libvideo_usvfb.la"
     fi
 }
 
@@ -1280,6 +1298,7 @@ dnl Checks NewGAL Engine.
   CheckQVFB
   CheckXVFB
   CheckWVFB
+  CheckUSVFB
   CheckCOMMLCD
   CheckShadowVideo
   CheckMLShadowVideo
@@ -2505,6 +2524,7 @@ src/newgal/sigma8654/Makefile
 src/newgal/mstar/Makefile
 src/newgal/gdl/Makefile
 src/newgal/stgfb/Makefile
+src/newgal/usvfb/Makefile
 src/ial/Makefile
 src/ial/native/Makefile
 src/ial/netial/Makefile
