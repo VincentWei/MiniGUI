@@ -183,11 +183,14 @@ static int a_getinfo (struct _vfb_info *li, int width, int height, int bpp)
     int retval = 0;
     struct _frame_header header;
 
-    if (width > 1024 || height > 768 || bpp != 16 || bpp != 32) {
+    if (width <= 0 || width > 1024 || height <= 0 || height > 768
+            || (bpp != 16 && bpp != 32)) {
         retval = 1;
         goto error;
     }
 
+    _lcd_info.width = width;
+    _lcd_info.height = height;
     if (bpp == 16) {
         _lcd_info.type = USVFB_TRUE_RGB565;
         _lcd_info.rlen = (_lcd_info.width * 2 + 3)/4*4;
@@ -201,7 +204,7 @@ static int a_getinfo (struct _vfb_info *li, int width, int height, int bpp)
 
     _lcd_info.fb = calloc (height * _lcd_info.rlen, sizeof (char));
     if (_lcd_info.fb == NULL) {
-        retval = 1;
+        retval = 2;
         goto error;
     }
 
@@ -210,7 +213,7 @@ static int a_getinfo (struct _vfb_info *li, int width, int height, int bpp)
     n = write (__mg_usvfb_fd, &header, sizeof (struct _frame_header));
     n += write (__mg_usvfb_fd, &_lcd_info, sizeof (struct _vfb_info));
     if (n != sizeof (struct _frame_header) + header.payload_len) {
-        retval = 2;
+        retval = 3;
         goto error;
     }
 
@@ -379,7 +382,7 @@ static GAL_VideoDevice *USVFB_CreateDevice (int devindex)
 }
 
 VideoBootStrap USVFB_bootstrap = {
-    USVFBVID_DRIVER_NAME, "Common LCD video driver",
+    USVFBVID_DRIVER_NAME, "UnixSocket Virtial Frame Buffer video driver",
     USVFB_Available, USVFB_CreateDevice
 };
 
@@ -424,11 +427,12 @@ static GAL_Surface *USVFB_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
     Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
+    int retval;
     struct _vfb_info li;	
     memset (&li, 0, sizeof (struct _vfb_info));
 
-    if (a_getinfo (&li, width, height, bpp)) {
-        _ERR_PRINTF ("NEWGAL>USVFB: Couldn't get the VFB information\n");
+    if ((retval = a_getinfo (&li, width, height, bpp))) {
+        _ERR_PRINTF ("NEWGAL>USVFB: Couldn't get the VFB information: %d (%d, %d, %d)\n", retval, width, height, bpp);
         return NULL;
     }
 
