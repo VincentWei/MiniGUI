@@ -125,7 +125,7 @@ struct _frame_header {
 };
 
 int __mg_usvfb_fd = -1;
-static struct _vfb_info _lcd_info;
+static struct _vfb_info _vfb_info;
 
 static int a_init (void)
 {
@@ -189,21 +189,21 @@ static int a_getinfo (struct _vfb_info *li, int width, int height, int bpp)
         goto error;
     }
 
-    _lcd_info.width = width;
-    _lcd_info.height = height;
+    _vfb_info.width = width;
+    _vfb_info.height = height;
     if (bpp == 16) {
-        _lcd_info.type = USVFB_TRUE_RGB565;
-        _lcd_info.rlen = (_lcd_info.width * 2 + 3)/4*4;
-        _lcd_info.bpp = 16;
+        _vfb_info.type = USVFB_TRUE_RGB565;
+        _vfb_info.rlen = (_vfb_info.width * 2 + 3)/4*4;
+        _vfb_info.bpp = 16;
     }
     else {
-        _lcd_info.type = USVFB_TRUE_RGB0888;
-        _lcd_info.rlen = (_lcd_info.width * 4 + 3)/4*4;
-        _lcd_info.bpp = 32;
+        _vfb_info.type = USVFB_TRUE_RGB0888;
+        _vfb_info.rlen = (_vfb_info.width * 4 + 3)/4*4;
+        _vfb_info.bpp = 32;
     }
 
-    _lcd_info.fb = calloc (height * _lcd_info.rlen, sizeof (char));
-    if (_lcd_info.fb == NULL) {
+    _vfb_info.fb = calloc (height * _vfb_info.rlen, sizeof (char));
+    if (_vfb_info.fb == NULL) {
         retval = 2;
         goto error;
     }
@@ -211,14 +211,14 @@ static int a_getinfo (struct _vfb_info *li, int width, int height, int bpp)
     header.type = FT_VFBINFO;
     header.payload_len = sizeof (struct _vfb_info);
     n = write (__mg_usvfb_fd, &header, sizeof (struct _frame_header));
-    n += write (__mg_usvfb_fd, &_lcd_info, sizeof (struct _vfb_info));
+    n += write (__mg_usvfb_fd, &_vfb_info, sizeof (struct _vfb_info));
     if (n != sizeof (struct _frame_header) + header.payload_len) {
         retval = 3;
         goto error;
     }
 
-    _lcd_info.async_update = 0;
-    memcpy (li, &_lcd_info, sizeof (struct _vfb_info));
+    _vfb_info.async_update = 0;
+    memcpy (li, &_vfb_info, sizeof (struct _vfb_info));
     return retval;
 
 error:
@@ -240,13 +240,13 @@ static int a_update (const RECT* rc_dirty)
     dirty_w = RECTWP (rc_dirty);
     dirty_h = RECTHP (rc_dirty);
 
-    if (dirty_w < 0 || rc_dirty->left < 0 || (rc_dirty->left + dirty_w) > _lcd_info.width
-            || dirty_h < 0 || rc_dirty->top < 0 || (rc_dirty->top + dirty_h) > _lcd_info.height) {
+    if (dirty_w < 0 || rc_dirty->left < 0 || (rc_dirty->left + dirty_w) > _vfb_info.width
+            || dirty_h < 0 || rc_dirty->top < 0 || (rc_dirty->top + dirty_h) > _vfb_info.height) {
         return 1;
     }
 
     Bpp = 2;
-    if (_lcd_info.bpp == 32)
+    if (_vfb_info.bpp == 32)
         Bpp = 4;
 
     bytes = dirty_w * dirty_h * Bpp;
@@ -257,11 +257,11 @@ static int a_update (const RECT* rc_dirty)
     n = write (__mg_usvfb_fd, &header, sizeof (struct _frame_header));
     n += write (__mg_usvfb_fd, rc_dirty, sizeof (RECT));
 
-    pixels = _lcd_info.fb + _lcd_info.rlen * rc_dirty->top + rc_dirty->left * Bpp;
+    pixels = _vfb_info.fb + _vfb_info.rlen * rc_dirty->top + rc_dirty->left * Bpp;
     for (i = 0; i < dirty_h; i++) {
         n += write (__mg_usvfb_fd, pixels, dirty_w * Bpp);
 
-        pixels += _lcd_info.rlen;
+        pixels += _vfb_info.rlen;
     }
 
     if (n != header.payload_len) {
@@ -273,7 +273,7 @@ static int a_update (const RECT* rc_dirty)
 
 static int a_release (void)
 {
-    free (_lcd_info.fb);
+    free (_vfb_info.fb);
     close (__mg_usvfb_fd);
 
     return 0;
