@@ -56,18 +56,143 @@
 #define USVFB_MOUSELBUTTON  0x01
 #define USVFB_MOUSERBUTTON  0x04
 
-/* ----------------------------------------------------------------------- */
-// OS input driver or application must implement these input functions
-// hardware must be initialized before this engine can be used.
-
-extern int __comminput_init (void);
-extern int __comminput_ts_getdata (short *x, short *y, short *button);
-extern int __comminput_kb_getdata (short *key, short *status);
-extern int __comminput_wait_for_input (struct timeval *timeout);
-extern void __comminput_deinit (void);
+extern int __mg_usvfb_fd; // defined in USVFB NEWGAL engine.
 
 /* ----------------------------------------------------------------------- */
+#define FT_VFBINFO      10
+#define FT_PING         11
+#define FT_PONG         12
+#define FT_EVENT        13
+#define FT_DIRTYPIXELS  14
 
+struct _frame_header {
+    int type;
+    size_t payload_len;
+    unsigned char payload[0];
+};
+
+#define EVENT_NULL          0
+#define EVENT_MOUSEMOVE     1
+#define EVENT_LBUTTONDOWN   2
+#define EVENT_LBUTTONUP     3
+
+#define EVENT_KEYDOWN       11
+#define EVENT_KEYUP         12
+
+struct _remote_event {
+    int type;
+    int value1;
+    int value2;
+};
+
+static struct _remote_event _last_event;
+
+/* return 0 when there is really a touch event */
+static int my_ts_getdata (short *x, short *y, short *button)
+{
+    switch (_last_event.type) {
+    case EVENT_MOUSEMOVE:
+        *x = _last_event.value1;
+        *y = _last_event.value2;
+        break;
+
+    case EVENT_LBUTTONDOWN:
+        *button = USVFB_MOUSELBUTTON;
+        break;
+
+    case EVENT_LBUTTONUP:
+        *button = 0;
+        break;
+
+    default:
+        return -1;
+    }
+
+    memset (&_last_event, 0, sizeof (struct _remote_event));
+    return 0;
+}
+
+/* return 0 when there is really a key event */
+static int my_kb_getdata (short *key, short *status)
+{
+    switch (_last_event.type) {
+    case EVENT_KEYDOWN:
+        *key = (short)_last_event.value1;
+        *status = 1;
+        break;
+
+    case EVENT_KEYUP:
+        *key = (short)_last_event.value1;
+        *status = 0;
+        break;
+
+    default:
+        return -1;
+    }
+
+    memset (&_last_event, 0, sizeof (struct _remote_event));
+    return 0;
+}
+
+static int my_wait_for_input (struct timeval *timeout)
+{
+    fd_set rfds;
+    int retval;
+    int event_flag = 0;
+
+    FD_ZERO (&rfds);
+    FD_SET (__mg_usvfb_fd, &rfds);
+
+    retval = select (__mg_usvfb_fd + 1, &rfds, NULL, NULL, timeout);
+
+    if (retval > 0 && FD_ISSET (__mg_usvfb_fd, &rfds)) {
+        ssize_t n;
+        struct _frame_header header;
+
+        n = read (__mg_usvfb_fd, &header, sizeof (struct _frame_header));
+        if (n != sizeof (struct _frame_header)) {
+            _ERR_PRINTF ("my_wait_for_input: error on reading event: %ld\n", n);
+        }
+        switch (header.type) {
+        case FT_PING:
+            header.type = FT_PONG;
+            header.payload_len = 0;
+            n = write (__mg_usvfb_fd, &header, sizeof (struct _frame_header));
+            break;
+
+        case FT_EVENT: {
+            if (header.payload_len != sizeof (struct _remote_event)) {
+                _ERR_PRINTF ("my_wait_for_input: payload length does not matched the data type: %lu.\n", header.payload_len);
+                break;
+            }
+
+            n = read (__mg_usvfb_fd, &_last_event, sizeof (struct _remote_event));
+            switch (_last_event.type) {
+            case EVENT_MOUSEMOVE:
+            case EVENT_LBUTTONDOWN:
+            case EVENT_LBUTTONUP:
+                event_flag |= USVFB_MOUSEINPUT;
+                break;
+            case EVENT_KEYDOWN:
+            case EVENT_KEYUP:
+                event_flag |= USVFB_KBINPUT;
+                break;
+            }
+            break;
+        }
+        default:
+            _ERR_PRINTF ("my_wait_for_input: FT_PING or FT_EVENT expected, but got type %d.\n", header.type);
+            break;
+        }
+    }
+    else if (retval < 0) {
+        event_flag = -1;
+    }
+
+    return event_flag;
+}
+
+/* ----------------------------------------------------------------------- */
 static short MOUSEX = 0, MOUSEY = 0, MOUSEBUTTON = 0;
 static short KEYCODE = 0, KEYSTATUS = 0;
 
@@ -115,17 +240,17 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
 {
     int retvalue;
 
-    retvalue = __comminput_wait_for_input (timeout);
+    retvalue = my_wait_for_input (timeout);
 
     if (retvalue > 0) {
         if (retvalue & USVFB_MOUSEINPUT) {
-            if (__comminput_ts_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON) == 0)
+            if (my_ts_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON) == 0)
                 retvalue = IAL_MOUSEEVENT;
             else
                 retvalue = -1;
         }
         else if (retvalue & USVFB_KBINPUT) {
-            if (__comminput_kb_getdata (&KEYCODE, &KEYSTATUS) == 0) {
+            if (my_kb_getdata (&KEYCODE, &KEYSTATUS) == 0) {
                 if (kbd_state[KEYCODE] == KEYSTATUS) {
                     retvalue = -1;
                 }
@@ -150,7 +275,7 @@ BOOL InitUSVFBInput (INPUT* input, const char* mdev, const char* mtype)
 {
     /* input hardware should be initialized before this function is called */
 
-    if (__comminput_init ())
+    if (__mg_usvfb_fd < 0)
         return FALSE;
 
     input->update_mouse = mouse_update;
@@ -174,7 +299,6 @@ BOOL InitUSVFBInput (INPUT* input, const char* mdev, const char* mtype)
 
 void TermUSVFBInput (void)
 {
-    __comminput_deinit ();
 }
 
 #endif /* _MGIAL_USVFB */

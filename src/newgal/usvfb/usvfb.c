@@ -124,7 +124,7 @@ struct _frame_header {
     unsigned char payload[0];
 };
 
-int __mg_usvfb_fd;
+int __mg_usvfb_fd = -1;
 static struct _vfb_info _lcd_info;
 
 static int a_init (void)
