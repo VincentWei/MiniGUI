@@ -97,10 +97,14 @@ static int my_ts_getdata (short *x, short *y, short *button)
         break;
 
     case EVENT_LBUTTONDOWN:
+        *x = _last_event.value1;
+        *y = _last_event.value2;
         *button = USVFB_MOUSELBUTTON;
         break;
 
     case EVENT_LBUTTONUP:
+        *x = _last_event.value1;
+        *y = _last_event.value2;
         *button = 0;
         break;
 
@@ -222,7 +226,6 @@ static int mouse_getbutton (void)
     else if (MOUSEBUTTON == USVFB_MOUSERBUTTON)
         button |= IAL_MOUSE_RIGHTBUTTON;
 
-    MOUSEBUTTON = 0;
     return button;
 }
 
