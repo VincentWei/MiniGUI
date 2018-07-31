@@ -150,9 +150,15 @@ static int my_wait_for_input (struct timeval *timeout)
         struct _frame_header header;
 
         n = read (__mg_usvfb_fd, &header, sizeof (struct _frame_header));
-        if (n != sizeof (struct _frame_header)) {
-            _ERR_PRINTF ("my_wait_for_input: error on reading event: %ld\n", n);
+        if (n == 0) {
+            _ERR_PRINTF ("my_wait_for_input: socket closed; exit...\n");
+            exit (1);
         }
+        else if (n != sizeof (struct _frame_header)) {
+            _ERR_PRINTF ("my_wait_for_input: socket IO error: %d\n", errno);
+            return -1;
+        }
+
         switch (header.type) {
         case FT_PING:
             header.type = FT_PONG;
