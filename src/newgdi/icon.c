@@ -311,7 +311,8 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     imagew = MGUI_ReadLE32Mem (&p);
     imageh = MGUI_ReadLE32Mem (&p);
 #else
-    p += sizeof(DWORD32); 
+    p += sizeof(DWORD32);
+    p += sizeof(DWORD32);
 #endif
     /* check the biPlanes member; */
     wTemp = MGUI_ReadLE16Mem (&p);

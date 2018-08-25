@@ -397,7 +397,7 @@ build_bmpfont_info (const char *bmpfont_name, const BITMAP* glyph_bmp,
         return NULL;
 
     /* set name */
-    strncpy (bmpfont_info->name , bmpfont_name, LEN_UNIDEVFONT_NAME);
+    strncpy (bmpfont_info->name, bmpfont_name, LEN_UNIDEVFONT_NAME);
     bmpfont_info->name [LEN_UNIDEVFONT_NAME] = '\0';
 
     /* set height */

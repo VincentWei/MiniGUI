@@ -3556,7 +3556,8 @@ static void destroy_dc_state (DCSTATE* dc_state, BOOL empty_crgn)
 {
     if (empty_crgn)
         EmptyClipRgn (&dc_state->lcrgn);
-    free (dc_state->pal.colors);
+    if (dc_state->pal.colors)
+        free (dc_state->pal.colors);
     free (dc_state);
 }
 
