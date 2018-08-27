@@ -197,7 +197,7 @@ extern "C" {
 
 /* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
    1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
-#define BIDI_DIR_TO_LEVEL(dir) ((BidiLevel)(dir & 1))
+#define BIDI_DIR_TO_LEVEL(dir) ((BYTE)(dir & 1))
 
 /* Is right to left? */
 #define BIDI_IS_RTL(p)      ((p) & BIDI_MASK_RTL)
@@ -251,31 +251,28 @@ extern "C" {
 #define BIDI_NUMBER_TO_RTL(p) \
         (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
 
-#ifdef MAIN_CAP_TEST
-typedef char    BidiChar;
-#else
-typedef int     BidiChar;
-#endif
-typedef int     BidiCharType;
-typedef char    BidiLevel;
-typedef int     BidiStrIndex;
-typedef struct  _TYPERUN  TYPERUN;
+typedef Uint32 BidiCharType;
+typedef struct _TYPERUN TYPERUN;
+
+typedef struct _BIDICHAR_MIRROR_MAP {
+    Glyph32 glyph;
+    Glyph32 mirrored;
+} BIDICHAR_MIRROR_MAP;
 
 typedef void (*CB_DO_REORDER) (void* context, int len, int pos);
 
-int bidi_glyph_type(const char* charset_name, Glyph32 glyph_value);
+Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len);
 
-Glyph32* bidi_str_reorder (const char* charset_name, Glyph32* glyphs,
-        int len);
+Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, 
+        int len, GLYPHMAPINFO* map);
 
-void bidi_get_embeddlevels(const char* charset_name, Glyph32* glyphs, 
-        BidiStrIndex len, Uint8* embedding_level_list, Uint8 type);
+void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops, Glyph32* glyphs, 
+        int len, Uint8* embedding_level_list, Uint8 type);
 
-Glyph32* bidi_index_reorder (const char* charset_name, Glyph32* glyphs, 
+Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, 
         int len, int* index_map);
 
-Glyph32* bidi_map_reorder (const char* charset_name, Glyph32* glyphs, 
-        int len, GLYPHMAPINFO* map);
+BidiCharType __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len);
 
 #ifdef __cplusplus
 }

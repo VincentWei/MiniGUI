@@ -117,63 +117,63 @@ static inline long get_opened_file_size (FILE* fp)
 /** The character set operation structure. */
 struct _CHARSETOPS
 {
-	/** The character number of the character set. */
+    /** The character number of the character set. */
     int nr_chars;
 
-	/** The byte number of the max length character. */
+    /** The byte number of the max length character. */
     int bytes_maxlen_char;
 
-	/** The name of the character set. */
+    /** The name of the character set. */
     const char* name;
 
-	/** Default character. */
+    /** Default character. */
     Glyph32 def_glyph_value;
 
-	/** The method to get the length of the first character function. */
+    /** The method to get the length of the first character function. */
     int (*len_first_char) (const unsigned char* mstr, int mstrlen);
 
-	/** The method to get character offset function. */
+    /** The method to get character offset function. */
     Glyph32 (*char_glyph_value) (const unsigned char* pre_mchar, int pre_len,
                 const unsigned char* cur_mchar, int cur_len);
 
     /** The method to get the require shape type glyph value. */
     Glyph32 (*glyph_shape) (const unsigned char* cur_mchar, int cur_len, int shape_type);
 
-	/** The method to get the type of one glyph. */
-    unsigned int (*bidi_glyph_type) (Glyph32 glyph_value);
-
-	/** The method to get the type of one glyph. */
+    /** The method to get the type of one glyph. */
     unsigned int (*glyph_type) (Glyph32 glyph_value);
 
-	/** The method to get character number in the string function. */
+    /** The method to get character number in the string function. */
     int (*nr_chars_in_str) (const unsigned char* mstr, int mstrlen);
 
-	/** The method to judge the \a charset is belong to the character set
-	 *  function.
-	 */
+    /** The method to judge the \a charset is belong to the character set
+     *  function.
+     */
     int (*is_this_charset) (const unsigned char* charset);
 
-	/** The method to get  the length of the first substring. */
+    /** The method to get  the length of the first substring. */
     int (*len_first_substr) (const unsigned char* mstr, int mstrlen);
 
-	/** The method to get next word in the specitied length string function. */
+    /** The method to get next word in the specitied length string function. */
     const unsigned char* (*get_next_word) (const unsigned char* mstr, 
                 int strlen, WORDINFO* word_info);
 
-	/** The method to get the position of the first character in the
-	 *  specified length string function.
-	 */
+    /** The method to get the position of the first character in the
+     *  specified length string function.
+     */
     int (*pos_first_char) (const unsigned char* mstr, int mstrlen);
 
-	 /** reorder bidi string specified length function.
-	 */
-    Glyph32* (*bidi_reorder) (Glyph32* glyphs, int len);
+    /** The method to get the type of one glyph. */
+    unsigned int (*bidi_glyph_type) (Glyph32 glyph_value);
+
+    /** Get mirrored glyph
+     */
+    BOOL (*bidi_mirror_glyph) (Glyph32 glyph, Glyph32* mirrored);
 
 #ifdef _MGCHARSET_UNICODE
-	/** The method to convert \a mchar to 32 bit UNICODE function. */
+    /** The method to convert \a mchar to 32 bit UNICODE function. */
     UChar32 (*conv_to_uc32) (Glyph32 glyph_value);
 
-	/** The method to convert \a wc to multily byte character function. */
+    /** The method to convert \a wc to multily byte character function. */
     int (*conv_from_uc32) (UChar32 wc, unsigned char* mchar);
 #endif /* _UNICODE_SUPPORT */
 };

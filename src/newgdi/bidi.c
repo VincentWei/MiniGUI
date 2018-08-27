@@ -471,11 +471,10 @@ Glyph32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
     DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
     Glyph32 *logical_glyphs = NULL;
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_reorder) {
-        logical_glyphs = _gdi_get_glyphs_string(pdc, text, text_len,
-                nr_glyphs);
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
+        logical_glyphs = _gdi_get_glyphs_string (pdc, text, text_len, nr_glyphs);
         if (*nr_glyphs > 0)
-            mbc_devfont->charset_ops->bidi_reorder (logical_glyphs, *nr_glyphs);
+            __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, logical_glyphs, *nr_glyphs);
     }
 
     return logical_glyphs;
@@ -494,13 +493,13 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
         int nr_glyphs = 0;
         Glyph32 *logical_glyphs = NULL;
 
-        if(mbc_devfont->charset_ops->bidi_reorder){
+        if (mbc_devfont->charset_ops->bidi_glyph_type) {
 
-            logical_glyphs = _gdi_bidi_reorder(pdc, text, text_len, &nr_glyphs);
+            logical_glyphs = _gdi_bidi_reorder (pdc, text, text_len, &nr_glyphs);
             if(!logical_glyphs || nr_glyphs <= 0) 
                 return 0;
 
-            i = _gdi_output_visual_glyphs(pdc, logical_glyphs, nr_glyphs, 
+            i = _gdi_output_visual_glyphs (pdc, logical_glyphs, nr_glyphs, 
                     direction, cb_one_glyph, context);
         }
         else if(!direction){ 
@@ -872,11 +871,11 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
         int nr_glyphs = text_len;
         Glyph32 *logical_glyphs = NULL;
 
-        if(mbc_devfont->charset_ops->bidi_reorder){
+        if (mbc_devfont->charset_ops->bidi_glyph_type){
 
             logical_glyphs = _gdi_get_glyphs_string_break(pdc, text, text_len,
                     &nr_glyphs, context);
-            mbc_devfont->charset_ops->bidi_reorder(logical_glyphs, nr_glyphs);
+            __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, logical_glyphs, nr_glyphs);
 
             if(!logical_glyphs) 
                 return 0;
@@ -1012,11 +1011,11 @@ int  GUIAPI BIDIGetTextVisualGlyphs(
     nr_glyphs = BIDIGetTextLogicalGlyphs(log_font, text, text_len,
             glyphs, glyphs_map);
 
-    if(mbc_devfont && mbc_devfont->charset_ops->bidi_reorder){
-        bidi_map_reorder(mbc_devfont->charset_ops->name, *glyphs, 
+    if(mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type){
+        __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops, *glyphs, 
                 nr_glyphs, *glyphs_map);
 
-        mbc_devfont->charset_ops->bidi_reorder(*glyphs, nr_glyphs);
+        __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, *glyphs, nr_glyphs);
     }
     return nr_glyphs;
 }
@@ -1040,13 +1039,13 @@ Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs(
 {
     DEVFONT* mbc_devfont = log_font->mbc_devfont;
     
-    if(mbc_devfont && mbc_devfont->charset_ops->bidi_reorder){
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
         /* get the visual glyphs map from the logical glyphs map. */
         if(glyphs_map){
-            bidi_map_reorder((const char*)mbc_devfont->charset_ops->name,
+            __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops,
                     glyphs, nr_glyphs, glyphs_map);
         }
-        mbc_devfont->charset_ops->bidi_reorder(glyphs, nr_glyphs);
+        __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, glyphs, nr_glyphs);
     }
 
     return glyphs;
@@ -1441,8 +1440,8 @@ void GUIAPI GetTextRangesLog2Vis(
 
     *nr_ranges = 0;
     /* it is not bidi string. */
-    if(!log_font->mbc_devfont || (log_font->mbc_devfont && 
-                !log_font->mbc_devfont->charset_ops->bidi_reorder)){
+    if (!log_font->mbc_devfont || (log_font->mbc_devfont && 
+                !log_font->mbc_devfont->charset_ops->bidi_glyph_type)) {
         *ranges = NULL;
         return;
     }
@@ -1535,8 +1534,8 @@ void GUIAPI BIDIGetLogicalEmbeddLevels(
     if(*embedding_level_list == NULL)
         *embedding_level_list = malloc(nr_glyphs * sizeof (Uint8));
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_reorder) {
-        bidi_get_embeddlevels(mbc_devfont->charset_ops->name, glyphs, nr_glyphs,
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
+        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops, glyphs, nr_glyphs,
                 *embedding_level_list, 0);
     }
     else{
@@ -1567,8 +1566,8 @@ void GUIAPI BIDIGetVisualEmbeddLevels(
     if(*embedding_level_list == NULL)
         *embedding_level_list = malloc(nr_glyphs * sizeof (Uint8));
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_reorder) {
-        bidi_get_embeddlevels(mbc_devfont->charset_ops->name, glyphs, nr_glyphs,
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
+        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops, glyphs, nr_glyphs,
                 *embedding_level_list, 1);
     }
     else{

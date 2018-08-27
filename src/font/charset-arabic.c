@@ -468,13 +468,127 @@ static unsigned int iso8859_6_glyph_type (Glyph32 glyph_value)
     return ch_type;
 }
 
+static BidiCharType __mg_iso8859_68x_type[] = {
+    /*0x00~0x0f*/ 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_SS,  BIDI_TYPE_BS,  BIDI_TYPE_SS, 
+    BIDI_TYPE_WS,  BIDI_TYPE_BS,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
+
+    /*0x10~0x1f*/  
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_SS,
+
+    /*0x20~0x2f*/  
+    BIDI_TYPE_WS,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ET, 
+    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ES, 
+    BIDI_TYPE_CS,  BIDI_TYPE_ES,  BIDI_TYPE_CS,  BIDI_TYPE_CS,
+
+    /*0x30~0x3f*/  
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_CS,  BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+
+    /*0x40~0x4f*/  
+    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+
+    /*0x50~0x6f*/  
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+    /*0x60~0x6f*/  
+    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+
+    /*0x70~0x7f*/  
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
+
+    /*0x80~0x8f*/  
+    BIDI_TYPE_ON,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+   
+    /*0x90~0x9f*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+
+    /*0xa0~0xaf*/  
+    BIDI_TYPE_WS,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_ON, 
+    BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM,
+    BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM,
+
+    /*0xb0~0xbf*/  
+    BIDI_TYPE_BN,  BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_AN, 
+    BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_AN, 
+    BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_CS,  BIDI_TYPE_CS, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_CS,
+
+    /*0xc0~0xcf*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+
+    /*0xd0~0xdf*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+
+    /*0xe0~0xef*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_ON, 
+
+    /*0xf0~0xff*/
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_ON, 
+
+    /*0x100~0x10f*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+
+    /*0x110~0x11f*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+
+    /*0x120~0x12f*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+
+    /*0x130~0x133*/  
+    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
+};
+
 static unsigned int iso8859_6_bidi_glyph_type (Glyph32 glyph_value)
 {
-    unsigned int ch_type = BIDI_TYPE_AL;
-
-    ch_type = bidi_glyph_type(FONT_CHARSET_ISO8859_6, glyph_value);
-
-    return ch_type;
+    return __mg_iso8859_68x_type [REAL_GLYPH(glyph_value)];
 }
 
 static int get_table_index(Uint8 c)
@@ -652,13 +766,6 @@ static const unsigned char* iso8859_6_get_next_word (const unsigned char* mstr,
     //return sb_get_next_word(mstr, mstrlen, word_info);
 }
 
-static Glyph32* iso8859_6_bidi_str_reorder (Glyph32* glyphs, int len)
-{
-
-    return bidi_str_reorder (FONT_CHARSET_ISO8859_6, glyphs, len);
-}
-
-
 /*if cur_len>1, search ligature shape, 
  * else search letter or phonetic symbol shape*/
 static Glyph32 iso8859_6_glyph_shape (const unsigned char* cur_mchar, 
@@ -714,6 +821,26 @@ static Glyph32 iso8859_6_glyph_shape (const unsigned char* cur_mchar,
     return glyph_value;
 }
 
+static const BIDICHAR_MIRROR_MAP __mg_iso8859_68x_mirror_table [] =
+{
+    {0x0028, 0x0029},
+    {0x0029, 0x0028},
+    {0x003C, 0x003E},
+    {0x003E, 0x003C},
+    {0x005B, 0x005D},
+    {0x005D, 0x005B},
+    {0x007B, 0x007D},
+    {0x007D, 0x007B},
+//  {0x00AB, 0x00BB},
+//  {0x00BB, 0x00AB}
+};
+
+static BOOL iso8859_6_bidi_mirror_glyph (Glyph32 glyph, Glyph32* mirrored)
+{
+    return get_mirror_glyph (__mg_iso8859_68x_mirror_table,
+            TABLESIZE (__mg_iso8859_68x_mirror_table), glyph, mirrored);
+}
+
 static CHARSETOPS CharsetOps_iso8859_6 = {
     256,
     3,
@@ -722,14 +849,14 @@ static CHARSETOPS CharsetOps_iso8859_6 = {
     iso8859_6_len_first_char,
     iso8859_6_char_glyph_value,
     iso8859_6_glyph_shape,
-    iso8859_6_bidi_glyph_type,
     iso8859_6_glyph_type,
     sb_nr_chars_in_str,
     iso8859_6_is_this_charset,
     sb_len_first_substr,
     iso8859_6_get_next_word,
     sb_pos_first_char,
-    iso8859_6_bidi_str_reorder, 
+    iso8859_6_bidi_mirror_glyph,
+    iso8859_6_bidi_glyph_type,
 #ifdef _MGCHARSET_UNICODE
     iso8859_6_conv_to_uc32,
     iso8859_6_conv_from_uc32
@@ -751,6 +878,5 @@ int test_glyph_value (int char_index, Glyph32 glyph_value)
     return 0;
 }
 #endif
-
 
 #endif /* _ARABIC */

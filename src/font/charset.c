@@ -222,13 +222,13 @@ static CHARSETOPS CharsetOps_ascii = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     ascii_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     ascii_conv_to_uc32,
@@ -285,13 +285,13 @@ static CHARSETOPS CharsetOps_iso8859_1 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_1_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_1_conv_to_uc32,
@@ -396,13 +396,13 @@ static CHARSETOPS CharsetOps_iso8859_2 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_2_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_2_conv_to_uc32,
@@ -508,13 +508,13 @@ static CHARSETOPS CharsetOps_iso8859_3 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_3_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_3_conv_to_uc32,
@@ -622,13 +622,13 @@ static CHARSETOPS CharsetOps_iso8859_4 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_4_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_4_conv_to_uc32,
@@ -716,13 +716,13 @@ static CHARSETOPS CharsetOps_iso8859_5 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_5_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_5_conv_to_uc32,
@@ -731,6 +731,53 @@ static CHARSETOPS CharsetOps_iso8859_5 = {
 };
 
 #endif /* _CYRILLIC */
+
+#if defined (_MGCHARSET_HEBREW) || defined (_MGCHARSET_ARABIC) || defined (_MGCHARSET_UNICODE)
+
+#include "bidi.h"
+
+static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 glyph, Glyph32* mirrored)
+{
+    int pos, step;
+    BOOL found = FALSE;
+    BOOL is_mbc;
+
+    pos = step = (n / 2) + 1;
+
+    is_mbc = IS_MBC_GLYPH(glyph);
+    glyph = REAL_GLYPH(glyph);
+
+    while (step > 1) {
+        Glyph32 cmp_glyph = map[pos].glyph;
+        step = (step + 1) / 2;
+
+        if (cmp_glyph < glyph) {
+            pos += step;
+            if (pos > n - 1)
+                pos = n - 1;
+        }
+        else if (cmp_glyph > glyph) {
+            pos -= step;
+            if (pos < 0)
+                pos = 0;
+        }
+        else
+            break;
+    }
+
+    found = map[pos].glyph == glyph;
+
+    if (mirrored){
+        *mirrored = found ? map[pos].mirrored : glyph;
+        /* use the same mbc font for mirror char. */
+        if(is_mbc)
+            *mirrored = SET_MBC_GLYPH(*mirrored);
+    }
+
+    return found;
+}
+
+#endif /* definede (_MGCHARSET_HEBREW) || defined (_MGCHARSET_ARABIC) || defined (_MGCHARSET_UNICODE) */
 
 /* houhh 20080123 */
 #ifdef _MGCHARSET_ARABIC
@@ -822,13 +869,13 @@ static CHARSETOPS CharsetOps_iso8859_7 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_7_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_7_conv_to_uc32,
@@ -839,8 +886,6 @@ static CHARSETOPS CharsetOps_iso8859_7 = {
 #endif /* _GREEK */
 
 #ifdef _MGCHARSET_HEBREW
-
-#include "bidi.h"
 
 /************************* ISO8859-8 Specific Operations **********************/
 static int iso8859_8_is_this_charset (const unsigned char* charset)
@@ -904,19 +949,128 @@ static const unsigned char* iso8859_8_get_next_word (const unsigned char* mstr,
 
     //return sb_get_next_word(mstr, mstrlen, word_info);
 }
-static Glyph32* iso8859_8_bidi_str_reorder (Glyph32* glyphs, int len)
-{
 
-    return bidi_str_reorder (FONT_CHARSET_ISO8859_8, glyphs, len);
-}
+static BidiCharType __mg_iso8859_8_type[] = {
+    /*0x00~0x0f*/ 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_SS,  BIDI_TYPE_BS,  BIDI_TYPE_SS, 
+    BIDI_TYPE_WS,  BIDI_TYPE_BS,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
+
+    /*0x10~0x1f*/  
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_SS,
+
+    /*0x20~0x2f*/  
+    BIDI_TYPE_WS,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ET, 
+    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ES, 
+    BIDI_TYPE_CS,  BIDI_TYPE_ES,  BIDI_TYPE_CS,  BIDI_TYPE_CS,
+
+    /*0x30~0x3f*/  
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_CS,  BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+
+    /*0x40~0x4f*/  
+    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+
+    /*0x50~0x6f*/  
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+    /*0x60~0x6f*/  
+    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+
+    /*0x70~0x7f*/  
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
+
+    /*0x80~0x8f*/  
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+   
+    /*0x90~0x9f*/  
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+
+    /*0xa0~0xaf*/  
+    BIDI_TYPE_CS,  BIDI_TYPE_BN,  BIDI_TYPE_ET,  BIDI_TYPE_ET,
+    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+    BIDI_TYPE_ON,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_ON,
+
+    /*0xb0~0xbf*/  
+    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
+    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_ON,  BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_EN,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
+
+    /*0xc0~0xcf*/  
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+
+    /*0xd0~0xdf*/  
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_ON, 
+
+    /*0xe0~0xef*/  
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_ON, 
+
+    /*0xf0~0xff*/
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
+    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_BN, 
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+};
 
 static unsigned int iso8859_8_bidi_glyph_type (Glyph32 glyph_value)
 {
-    unsigned int ch_type = BIDI_TYPE_AL;
+    return __mg_iso8859_8_type [REAL_GLYPH(glyph_value)];
+}
 
-    ch_type = bidi_glyph_type(FONT_CHARSET_ISO8859_8, glyph_value);
+static const BIDICHAR_MIRROR_MAP __mg_iso8859_8_mirror_table [] =
+{
+    {0x0028, 0x0029},
+    {0x0029, 0x0028},
+    {0x003C, 0x003E},
+    {0x003E, 0x003C},
+    {0x005B, 0x005D},
+    {0x005D, 0x005B},
+    {0x007B, 0x007D},
+    {0x007D, 0x007B},
+//  {0x00AB, 0x00BB},
+//  {0x00BB, 0x00AB}
+};
 
-    return ch_type;
+static BOOL iso8859_8_bidi_mirror_glyph (Glyph32 glyph, Glyph32* mirrored)
+{
+    return get_mirror_glyph (__mg_iso8859_8_mirror_table,
+            TABLESIZE (__mg_iso8859_8_mirror_table), glyph, mirrored);
 }
 
 #ifdef _MGCHARSET_UNICODE
@@ -982,14 +1136,14 @@ static CHARSETOPS CharsetOps_iso8859_8 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    iso8859_8_bidi_glyph_type,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_8_is_this_charset,
     sb_len_first_substr,
     iso8859_8_get_next_word,
     sb_pos_first_char,
-    iso8859_8_bidi_str_reorder,
+    iso8859_8_bidi_glyph_type,
+    iso8859_8_bidi_mirror_glyph,
 #ifdef _MGCHARSET_UNICODE
     iso8859_8_conv_to_uc32,
     iso8859_8_conv_from_uc32
@@ -1083,13 +1237,13 @@ static CHARSETOPS CharsetOps_iso8859_9 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_9_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_9_conv_to_uc32,
@@ -1196,13 +1350,13 @@ static CHARSETOPS CharsetOps_iso8859_10 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_10_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_10_conv_to_uc32,
@@ -1308,13 +1462,13 @@ static CHARSETOPS CharsetOps_iso8859_11 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_11_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_11_conv_to_uc32,
@@ -1420,13 +1574,13 @@ static CHARSETOPS CharsetOps_iso8859_13 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_13_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_13_conv_to_uc32,
@@ -1532,13 +1686,13 @@ static CHARSETOPS CharsetOps_iso8859_14 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_14_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_14_conv_to_uc32,
@@ -1643,13 +1797,13 @@ static CHARSETOPS CharsetOps_iso8859_15 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_15_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_15_conv_to_uc32,
@@ -1793,13 +1947,13 @@ static CHARSETOPS CharsetOps_iso8859_16 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     iso8859_16_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     iso8859_16_conv_to_uc32,
@@ -1990,13 +2144,13 @@ static CHARSETOPS CharsetOps_gb2312_0 = {
     gb2312_0_len_first_char,
     gb2312_0_char_glyph_value,
     NULL,
-    NULL,
     mb_glyph_type,
     db_nr_chars_in_str,
     gb2312_0_is_this_charset,
     gb2312_0_len_first_substr,
     db_get_next_word,
     gb2312_0_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     gb2312_0_conv_to_uc32,
@@ -2148,13 +2302,13 @@ static CHARSETOPS CharsetOps_gbk = {
     gbk_len_first_char,
     gbk_char_glyph_value,
     NULL,
-    NULL,
     mb_glyph_type,
     db_nr_chars_in_str,
     gbk_is_this_charset,
     gbk_len_first_substr,
     db_get_next_word,
     gbk_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     gbk_conv_to_uc32,
@@ -2414,13 +2568,13 @@ static CHARSETOPS CharsetOps_gb18030_0 = {
     gb18030_0_len_first_char,
     gb18030_0_char_glyph_value,
     NULL,
-    NULL,
     mb_glyph_type,
     gb18030_0_nr_chars_in_str,
     gb18030_0_is_this_charset,
     gb18030_0_len_first_substr,
     gb18030_0_get_next_word,
     gb18030_0_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     gb18030_0_conv_to_uc32,
@@ -2571,13 +2725,13 @@ static CHARSETOPS CharsetOps_big5 = {
     big5_len_first_char,
     big5_char_glyph_value,
     NULL,
-    NULL,
     mb_glyph_type,
     db_nr_chars_in_str,
     big5_is_this_charset,
     big5_len_first_substr,
     db_get_next_word,
     big5_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     big5_conv_to_uc32,
@@ -2717,13 +2871,13 @@ static CHARSETOPS CharsetOps_ksc5601_0 = {
     ksc5601_0_len_first_char,
     ksc5601_0_char_glyph_value,
     NULL,
-    NULL,
     mb_glyph_type,
     db_nr_chars_in_str,
     ksc5601_0_is_this_charset,
     ksc5601_0_len_first_substr,
     db_get_next_word,
     ksc5601_0_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     ksc5601_0_conv_to_uc32,
@@ -2842,13 +2996,13 @@ static CHARSETOPS CharsetOps_jisx0201_0 = {
     jisx0201_0_len_first_char,
     jisx0201_0_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     jisx0201_0_nr_chars_in_str,
     jisx0201_0_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     jisx0201_0_conv_to_uc32,
@@ -2985,13 +3139,13 @@ static CHARSETOPS CharsetOps_jisx0208_0 = {
     jisx0208_0_len_first_char,
     jisx0208_0_char_glyph_value,
     NULL,
-    NULL,
     mb_glyph_type,
     db_nr_chars_in_str,
     jisx0208_0_is_this_charset,
     jisx0208_0_len_first_substr,
     db_get_next_word,
     jisx0208_0_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     jisx0208_0_conv_to_uc32,
@@ -3070,13 +3224,13 @@ static CHARSETOPS CharsetOps_jisx0201_1 = {
     sb_len_first_char,
     sb_char_glyph_value,
     NULL,
-    NULL,
     sb_glyph_type,
     sb_nr_chars_in_str,
     jisx0201_1_is_this_charset,
     sb_len_first_substr,
     sb_get_next_word,
     sb_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     jisx0201_1_conv_to_uc32,
@@ -3241,13 +3395,13 @@ static CHARSETOPS CharsetOps_jisx0208_1 = {
     jisx0208_1_len_first_char,
     jisx0208_1_char_glyph_value,
     NULL,
-    NULL,
     mb_glyph_type,
     db_nr_chars_in_str,
     jisx0208_1_is_this_charset,
     jisx0208_1_len_first_substr,
     db_get_next_word,
     jisx0208_1_pos_first_char,
+    NULL,
     NULL,
 #ifdef _MGCHARSET_UNICODE
     jisx0208_1_conv_to_uc32,
@@ -3324,14 +3478,48 @@ static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar,  int pre_l
           ? TTYPE_PART1 ((Char) >> 8, (Char) & 0xff) \
           : G_UNICODE_UNASSIGNED)
 
+#include "unicode-bidi-tables.h"
+
+static unsigned int unicode_bidi_glyph_type (Glyph32 glyph_value)
+{
+    Glyph32 glyph_first = 0;
+    Glyph32 glyph_last = (Glyph32)TABLESIZE (__mg_unicode_bidi_char_type_map);
+    Glyph32 glyph_mid;
+
+    while (glyph_last >= glyph_first) {
+        glyph_mid = (glyph_first + glyph_last)/2;
+
+        if ((__mg_unicode_bidi_char_type_map[glyph_mid].glyph <= glyph_value)
+                && ((__mg_unicode_bidi_char_type_map[glyph_mid].glyph + __mg_unicode_bidi_char_type_map[glyph_mid].count) > glyph_value)) {
+            return __mg_unicode_bidi_char_type_map[glyph_mid].type;
+        }
+
+        if (glyph_value >= (__mg_unicode_bidi_char_type_map[glyph_mid].glyph + __mg_unicode_bidi_char_type_map[glyph_mid].count)) {
+            glyph_first = glyph_mid + 1;
+        }
+        else {
+            if (glyph_value < __mg_unicode_bidi_char_type_map[glyph_mid].glyph)
+                glyph_last = glyph_mid - 1;
+            else
+                glyph_last = glyph_mid;
+        }
+    }
+
+    return BIDI_TYPE_LTR;
+}
+
+static BOOL unicode_bidi_mirror_glyph (Glyph32 glyph, Glyph32* mirrored)
+{
+    return get_mirror_glyph (__mg_unicode_mirror_table,
+            TABLESIZE (__mg_unicode_mirror_table), glyph, mirrored);
+}
+
 static unsigned int utf8_glyph_type (Glyph32 glyph_value)
 {
     if (glyph_value < 0x80) {
         return sb_glyph_type (glyph_value);
     }
     else {
-        /* TODO: get the subtype of the char */
-        //ch_type = MCHAR_TYPE_GENERIC;
         return UNICODE_TYPE (glyph_value);
     }
 }
@@ -3529,14 +3717,14 @@ static CHARSETOPS CharsetOps_utf8 = {
     utf8_len_first_char,
     utf8_char_glyph_value,
     NULL,
-    NULL,
     utf8_glyph_type,
     utf8_nr_chars_in_str,
     utf8_is_this_charset,
     utf8_len_first_substr,
     utf8_get_next_word,
     utf8_pos_first_char,
-    NULL,
+    unicode_bidi_glyph_type,
+    unicode_bidi_mirror_glyph,
     NULL,
     utf8_conv_from_uc32,
 };
@@ -3769,14 +3957,14 @@ static CHARSETOPS CharsetOps_utf16le = {
     utf16le_len_first_char,
     utf16le_char_glyph_value,
     NULL,
-    NULL,
     utf16_glyph_type,
     utf16le_nr_chars_in_str,
     utf16le_is_this_charset,
     utf16le_len_first_substr,
     utf16le_get_next_word,
     utf16le_pos_first_char,
-    NULL,
+    unicode_bidi_glyph_type,
+    unicode_bidi_mirror_glyph,
     NULL,
     utf16le_conv_from_uc32
 };
@@ -3995,14 +4183,14 @@ static CHARSETOPS CharsetOps_utf16be = {
     utf16be_len_first_char,
     utf16be_char_glyph_value,
     NULL,
-    NULL,
     utf16_glyph_type,
     utf16be_nr_chars_in_str,
     utf16be_is_this_charset,
     utf16be_len_first_substr,
     utf16be_get_next_word,
     utf16be_pos_first_char,
-    NULL,
+    unicode_bidi_glyph_type,
+    unicode_bidi_mirror_glyph,
     NULL,
     utf16be_conv_from_uc32
 };

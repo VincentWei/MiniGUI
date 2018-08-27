@@ -42,18 +42,11 @@
 #include <ctype.h>
 #include <assert.h>
 
-#ifndef MAIN_CAP_TEST
-   #include "common.h"
-   #include "minigui.h"
-   #include "gdi.h"
-#endif
+#include "common.h"
+#include "minigui.h"
+#include "gdi.h"
 
-#ifdef MAIN_CAP_TEST
-   typedef int   BOOL;
-   #define TRUE  1
-   #define FALSE 0
-#endif
-
+#include "devfont.h"
 #include "bidi.h"
 
 #define BIDI_MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -70,227 +63,10 @@ struct _TYPERUN
     struct _TYPERUN *prev;
     struct _TYPERUN *next;
 
-    BidiCharType type;      /*  char type. */
-    BidiStrIndex pos, len;  /*  run start position、run len.*/
-    BidiLevel level;        /*  Embedding level. */
+    BidiCharType type;  /*  char type. */
+    int pos, len;       /*  run start position、run len.*/
+    BYTE level;         /*  Embedding level. */
 };
-
-BidiCharType __mg_iso8859_68x_type[] = {
-    /*0x00~0x0f*/ 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_SS,  BIDI_TYPE_BS,  BIDI_TYPE_SS, 
-    BIDI_TYPE_WS,  BIDI_TYPE_BS,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
-
-    /*0x10~0x1f*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_SS,
-
-    /*0x20~0x2f*/  
-    BIDI_TYPE_WS,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ET, 
-    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ES, 
-    BIDI_TYPE_CS,  BIDI_TYPE_ES,  BIDI_TYPE_CS,  BIDI_TYPE_CS,
-
-    /*0x30~0x3f*/  
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_CS,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
-
-    /*0x40~0x4f*/  
-    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-
-    /*0x50~0x6f*/  
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
-    /*0x60~0x6f*/  
-    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-
-    /*0x70~0x7f*/  
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
-
-    /*0x80~0x8f*/  
-    BIDI_TYPE_ON,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-   
-    /*0x90~0x9f*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-
-    /*0xa0~0xaf*/  
-    BIDI_TYPE_WS,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_ON, 
-    BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM,
-    BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM, BIDI_TYPE_NSM,
-
-    /*0xb0~0xbf*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_AN, 
-    BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_AN, 
-    BIDI_TYPE_AN,  BIDI_TYPE_AN,  BIDI_TYPE_CS,  BIDI_TYPE_CS, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_CS,
-
-    /*0xc0~0xcf*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-
-    /*0xd0~0xdf*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-
-    /*0xe0~0xef*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_ON, 
-
-    /*0xf0~0xff*/
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_ON, 
-
-    /*0x100~0x10f*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-
-    /*0x110~0x11f*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-
-    /*0x120~0x12f*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-
-    /*0x130~0x133*/  
-    BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL, 
-};
-
-BidiCharType __mg_iso8859_8_type[] = {
-    /*0x00~0x0f*/ 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_SS,  BIDI_TYPE_BS,  BIDI_TYPE_SS, 
-    BIDI_TYPE_WS,  BIDI_TYPE_BS,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
-
-    /*0x10~0x1f*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_SS,
-
-    /*0x20~0x2f*/  
-    BIDI_TYPE_WS,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ET, 
-    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ES, 
-    BIDI_TYPE_CS,  BIDI_TYPE_ES,  BIDI_TYPE_CS,  BIDI_TYPE_CS,
-
-    /*0x30~0x3f*/  
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_CS,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
-
-    /*0x40~0x4f*/  
-    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-
-    /*0x50~0x6f*/  
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
-    /*0x60~0x6f*/  
-    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-
-    /*0x70~0x7f*/  
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
-
-    /*0x80~0x8f*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-   
-    /*0x90~0x9f*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-
-    /*0xa0~0xaf*/  
-    BIDI_TYPE_CS,  BIDI_TYPE_BN,  BIDI_TYPE_ET,  BIDI_TYPE_ET,
-    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
-    BIDI_TYPE_ON,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_ON,
-
-    /*0xb0~0xbf*/  
-    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
-    BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_ON,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_EN,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
-
-    /*0xc0~0xcf*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-
-    /*0xd0~0xdf*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_ON, 
-
-    /*0xe0~0xef*/  
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_ON, 
-
-    /*0xf0~0xff*/
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL, 
-    BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_RTL,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-};
-
 
 #ifdef BIDI_DEBUG
 
@@ -319,7 +95,7 @@ static void print_resolved_levels(TYPERUN *pp)
 {
     fprintf(stderr, "   Levels: ");
     while(pp){
-        BidiStrIndex i;
+        int i;
         for(i = 0; i < LEN (pp); i++)
             fprintf(stderr, "%c", bidi_level[(int)LEVEL(pp)]);
         pp = pp->next;
@@ -332,7 +108,7 @@ static void print_resolved_types(TYPERUN *pp)
     fprintf(stderr, "   Types: ");
     while(pp)
     {
-        BidiStrIndex i;
+        int i;
         for(i = 0; i < LEN (pp); i++)
             fprintf(stderr, "%c", bidi_type_name(pp->type));
         pp = pp->next;
@@ -357,14 +133,33 @@ static void print_run_types(TYPERUN *pp)
     fprintf (stderr, "\n");
 } 
 
-#endif
-
-BidiCharType* ptype_table = NULL;
-
-static int get_glyph_type(Glyph32 glyph)
+static void print_hexstr(Glyph32* str, int len, BOOL reorder_state)
 {
-    return ptype_table[REAL_GLYPH(glyph)];
+    int m = 0;
+
+    DBGLOG("\n====================================================\n");
+    if(!reorder_state)
+        DBGLOG("Reorder one line start.\n");
+    else
+        DBGLOG("Reorder one line end.\n");
+
+    DBGLOG("   ");
+    for(m = 0; m < len; m++){
+        if(m && !(m%16)) DBGLOG("\n   ");
+        DBGLOG2("0x%02x ", (unsigned char)str[m]);
+    }
+    DBGLOG("\n====================================================\n");
+
 }
+
+#else /* BIDI_DEBUG */
+
+inline static void print_hexstr(Glyph32* str, int len, BOOL reorder_state)
+{
+    return;
+}
+
+#endif /* !BIDI_DEBUG */
 
 static void free_typerun_list (TYPERUN *type_rl_list)
 {
@@ -423,11 +218,11 @@ static void compact_neutrals (TYPERUN *list)
         (p) = (q);	        \
     } while (0)
 
-static TYPERUN* get_runtype_link(Glyph32* glyphs, BidiStrIndex len)
+static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
 {
     int type = 0;
     TYPERUN *list, *last, *link;
-    BidiStrIndex i;
+    int i;
 
     /* Add the starting link */
     list = calloc(1, sizeof(TYPERUN));
@@ -436,7 +231,7 @@ static TYPERUN* get_runtype_link(Glyph32* glyphs, BidiStrIndex len)
     last = list;
 
     for (i = 0; i < len; i++){
-        if ((type = get_glyph_type(glyphs[i])) != last->type){
+        if ((type = charset_ops->bidi_glyph_type (glyphs[i])) != last->type){
             link = calloc(1, sizeof(TYPERUN));
             link->type = type;
             link->pos = i;
@@ -456,7 +251,7 @@ static TYPERUN* get_runtype_link(Glyph32* glyphs, BidiStrIndex len)
 
 
 /* 1.Find base level */
-static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, BidiCharType* pbase_dir, BidiLevel* pbase_level)
+static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, BidiCharType* pbase_dir, BYTE* pbase_level)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
     DBGLOG("\n1:Finding the base level\n");
@@ -603,11 +398,9 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, BidiCharType base_dir)
     compact_neutrals (type_rl_list);
 
 #ifdef BIDI_DEBUG
-    if (bidi_debug){
-        print_run_types(type_rl_list);
-        print_resolved_levels (type_rl_list);
-        print_resolved_types (type_rl_list);
-    }
+    print_run_types(type_rl_list);
+    print_resolved_levels (type_rl_list);
+    print_resolved_types (type_rl_list);
 #endif
 
 }
@@ -639,11 +432,9 @@ static void bidi_resolveNeutrals(TYPERUN **ptype_rl_list, BidiCharType base_bir)
     }
     compact_list (type_rl_list);
 #ifdef BIDI_DEBUG
-    if (bidi_debug){
-        print_run_types(type_rl_list);
-        print_resolved_levels (type_rl_list);
-        print_resolved_types (type_rl_list);
-    }
+    print_run_types(type_rl_list);
+    print_resolved_levels (type_rl_list);
+    print_resolved_types (type_rl_list);
 #endif
 }
 
@@ -673,79 +464,16 @@ static int bidi_resolveImplicit(TYPERUN **ptype_rl_list, int base_level)
     }
     compact_list (type_rl_list);
 #ifdef BIDI_DEBUG
-    if (bidi_debug){
-        print_run_types(type_rl_list);
-        print_resolved_levels (type_rl_list);
-        print_resolved_types (type_rl_list);
-    }
+    print_run_types(type_rl_list);
+    print_resolved_levels (type_rl_list);
+    print_resolved_types (type_rl_list);
 #endif
     return max_level;
 }
 
-typedef struct _BIDIMIRROR
-{
-    BidiChar ch, mirrored_ch;
-}BIDIMIRROR;
-
-static const BIDIMIRROR BidiMirroredChars[] =
-{
-    {0x0028, 0x0029},
-    {0x0029, 0x0028},
-    {0x003C, 0x003E},
-    {0x003E, 0x003C},
-    {0x005B, 0x005D},
-    {0x005D, 0x005B},
-    {0x007B, 0x007D},
-    {0x007D, 0x007B},
-//  {0x00AB, 0x00BB},
-//  {0x00BB, 0x00AB}
-};
-
-const int __mg_n_bidi_mirrored_chars = sizeof(BidiMirroredChars)/(sizeof(BIDIMIRROR));
-
-static BOOL bidi_get_mirror_char (BidiChar ch, BidiChar *mirrored_ch)
-{
-    int pos, step;
-    BOOL found;
-    BOOL is_mbc;
-
-    pos = step = (__mg_n_bidi_mirrored_chars / 2) + 1;
-
-    is_mbc = IS_MBC_GLYPH(ch);
-    ch = REAL_GLYPH(ch);
-
-    while (step > 1) {
-        BidiChar cmp_ch = BidiMirroredChars[pos].ch;
-        step = (step + 1) / 2;
-
-        if (cmp_ch < ch) {
-            pos += step;
-            if (pos > __mg_n_bidi_mirrored_chars - 1)
-                pos = __mg_n_bidi_mirrored_chars - 1;
-        }
-        else if (cmp_ch > ch) {
-            pos -= step;
-            if (pos < 0)
-                pos = 0;
-        }
-        else
-            break;
-    }
-    found = BidiMirroredChars[pos].ch == ch;
-
-    if (mirrored_ch){
-        *mirrored_ch = found ? BidiMirroredChars[pos].mirrored_ch : ch;
-        /* use the same mbc font for mirror char. */
-        if(is_mbc)
-            *mirrored_ch = SET_MBC_GLYPH(*mirrored_ch);
-    }
-
-    return found;
-}
-
 /* 6.Resolving Mirrored Char. */
 static void 
-bidi_resolveMirrorChar(Glyph32* glyphs, BidiStrIndex len, 
+bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len, 
         TYPERUN **ptype_rl_list, int base_level)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
@@ -755,23 +483,23 @@ bidi_resolveMirrorChar(Glyph32* glyphs, BidiStrIndex len,
     for (pp = type_rl_list->next; pp->next; pp = pp->next) {
         if (pp->level & 1)
         {
-            BidiStrIndex i;
+            int i;
             for (i = POS (pp); i < POS (pp) + LEN (pp); i++)
             {
-                BidiChar mirrored_ch;
-                if (bidi_get_mirror_char(glyphs[i], &mirrored_ch))
+                Glyph32 mirrored_ch;
+                if (charset_ops->bidi_mirror_glyph && charset_ops->bidi_mirror_glyph (glyphs[i], &mirrored_ch))
                     glyphs[i] = mirrored_ch;
             }
         }
     } 
-   DBGLOG ("  Mirroring, Done\n");
 
+    DBGLOG ("  Mirroring, Done\n");
 }
 
-static void bidi_map_reverse (void* context, BidiStrIndex len, int pos)
+static void bidi_map_reverse (void* context, int len, int pos)
 {
     GLYPHMAPINFO* str = (GLYPHMAPINFO*)context + pos;
-    BidiStrIndex i;
+    int i;
     for (i = 0; i < len / 2; i++)
     {
         GLYPHMAPINFO tmp = str[i];
@@ -780,10 +508,10 @@ static void bidi_map_reverse (void* context, BidiStrIndex len, int pos)
     }
 }
 
-static void bidi_index_reverse (void* context, BidiStrIndex len, int pos)
+static void bidi_index_reverse (void* context, int len, int pos)
 {
     char* str = (char*)context + pos;
-    BidiStrIndex i;
+    int i;
     for (i = 0; i < len / 2; i++)
     {
         char tmp = str[i];
@@ -792,27 +520,27 @@ static void bidi_index_reverse (void* context, BidiStrIndex len, int pos)
     }
 }
 
-static void bidi_string_reverse (void* context, BidiStrIndex len, int pos)
+static void bidi_string_reverse (void* context, int len, int pos)
 {
-    BidiChar* str = (BidiChar*)context + pos;
-    BidiStrIndex i;
+    Glyph32* str = (Glyph32*)context + pos;
+    int i;
     for (i = 0; i < len / 2; i++)
     {
-        BidiChar tmp = str[i];
+        Glyph32 tmp = str[i];
         str[i] = str[len - 1 - i];
         str[len - 1 - i] = tmp;
     }
 }
 
-static void bidi_resolve_string(Glyph32* glyphs, BidiStrIndex len,
-        TYPERUN **ptype_rl_list, BidiLevel *pmax_level)
+static void bidi_resolve_string (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
+        TYPERUN **ptype_rl_list, BYTE *pmax_level)
 {
-    BidiLevel base_level = 0;
+    BYTE base_level = 0;
     BidiCharType base_dir = BIDI_TYPE_L;
     TYPERUN *type_rl_list = NULL;
 
     /* split the text to some runs. */
-    type_rl_list = get_runtype_link(glyphs, len);
+    type_rl_list = get_runtype_link (charset_ops, glyphs, len);
 
     /* 1.Find base level */
     bidi_resolveParagraphs(&type_rl_list, &base_dir, &base_level);
@@ -830,60 +558,13 @@ static void bidi_resolve_string(Glyph32* glyphs, BidiStrIndex len,
     *pmax_level = bidi_resolveImplicit(&type_rl_list, base_level);
 
     /* 6.Resolving Mirrored Char. */
-    bidi_resolveMirrorChar(glyphs, len, &type_rl_list, base_level);
+    bidi_resolveMirrorChar (charset_ops, glyphs, len, &type_rl_list, base_level);
 
     *ptype_rl_list = type_rl_list;
 }
 
-BidiCharType bidi_str_base_dir(Glyph32* glyphs, BidiStrIndex len)
-{
-    BidiLevel base_level = 0;
-    BidiCharType base_dir = BIDI_TYPE_L;
-    TYPERUN *type_rl_list = NULL;
-
-    /* split the text to some runs. */
-    type_rl_list = get_runtype_link(glyphs, len);
-
-    /* 1.Find base level */
-    bidi_resolveParagraphs(&type_rl_list, &base_dir, &base_level);
-
-    /* free typerun list.*/
-    free_typerun_list(type_rl_list);
-
-    return base_dir;
-}
-
-static void print_hexstr(Glyph32* str, int len, BOOL reorder_state)
-{
-    int m = 0;
-
-    DBGLOG("\n====================================================\n");
-    if(!reorder_state)
-        DBGLOG("Reorder one line start.\n");
-    else
-        DBGLOG("Reorder one line end.\n");
-
-    DBGLOG("   ");
-    for(m = 0; m < len; m++){
-        if(m && !(m%16)) DBGLOG("\n   ");
-        DBGLOG2("0x%02x ", (unsigned char)str[m]);
-    }
-    DBGLOG("\n====================================================\n");
-
-}
-
-static void bidi_set_typetable(const char* charset_name)
-{
-#ifndef MAIN_CAP_TEST
-    if (strcmp (charset_name, FONT_CHARSET_ISO8859_6) == 0)
-        ptype_table = __mg_iso8859_68x_type;
-    else if (strcmp (charset_name, FONT_CHARSET_ISO8859_8) == 0)
-        ptype_table = __mg_iso8859_8_type;
-#endif
-}
-
-static void bidi_reorder_cb(void* context, BidiStrIndex len,
-        TYPERUN **ptype_rl_list, BidiLevel max_level, CB_DO_REORDER cb)
+static void bidi_reorder_cb (void* context, int len,
+        TYPERUN **ptype_rl_list, BYTE max_level, CB_DO_REORDER cb)
 {
     int i = 0;
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
@@ -895,7 +576,7 @@ static void bidi_reorder_cb(void* context, BidiStrIndex len,
         for (pp = type_rl_list->next; pp->next; pp = pp->next){
             if (LEVEL (pp) >= i){
                 /* Find all stretches that are >= i.*/
-                BidiStrIndex len = LEN(pp), pos = POS(pp);
+                int len = LEN(pp), pos = POS(pp);
                 TYPERUN *pp1 = pp->next;
                 while (pp1->next && LEVEL(pp1) >= i){
                     len += LEN(pp1);
@@ -909,27 +590,21 @@ static void bidi_reorder_cb(void* context, BidiStrIndex len,
     DBGLOG("\nReordering, Done\n");
 }
 
-void bidi_get_embeddlevels(const char* charset_name, Glyph32* glyphs, BidiStrIndex len,
+void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
         Uint8* embedding_level_list, Uint8 type)
 {
     int i = 0;
-    BidiLevel max_level = 1;
+    BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL, *pp;
-
-#ifdef BIDI_DEBUG
-    bidi_debug = TRUE;
-#endif
-
-    bidi_set_typetable(charset_name);
 
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string(glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
 
     /* type = 0, get the logical embedding level; else visual level.*/
     for (pp = type_rl_list->next; pp->next; pp = pp->next){
-        BidiStrIndex pos = POS (pp), len = LEN (pp);
+        int pos = POS (pp), len = LEN (pp);
         for(i = 0; i < len; i++)
             embedding_level_list[pos + i] = LEVEL(pp);
     }
@@ -944,26 +619,20 @@ void bidi_get_embeddlevels(const char* charset_name, Glyph32* glyphs, BidiStrInd
     print_hexstr(glyphs, len, TRUE);
 }
 
-Glyph32* bidi_map_reorder (const char* charset_name, Glyph32* glyphs, 
+Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, 
         int len, GLYPHMAPINFO* map)
 {
-    BidiLevel max_level = 1;
+    BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
     TYPERUN *node_p = NULL;
     int i;
     int run_pos;
     int run_len;
 
-#ifdef BIDI_DEBUG
-    bidi_debug = TRUE;
-#endif
-
-    bidi_set_typetable(charset_name);
-
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string(glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
 
     for (node_p=type_rl_list->next; node_p->next; 
             node_p=node_p->next)
@@ -988,22 +657,16 @@ Glyph32* bidi_map_reorder (const char* charset_name, Glyph32* glyphs,
     return glyphs;
 }
 
-Glyph32* bidi_index_reorder (const char* charset_name, Glyph32* glyphs, 
+Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, 
         int len, int* index_map)
 {
-    BidiLevel max_level = 1;
+    BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
-
-#ifdef BIDI_DEBUG
-    bidi_debug = TRUE;
-#endif
-
-    bidi_set_typetable(charset_name);
 
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string(glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
 
     bidi_reorder_cb(index_map, len, &type_rl_list, max_level,
             bidi_string_reverse);
@@ -1016,101 +679,41 @@ Glyph32* bidi_index_reorder (const char* charset_name, Glyph32* glyphs,
     return glyphs;
 }
 
-int bidi_glyph_type(const char* charset_name, Glyph32 glyph_value)
+Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
 {
-    bidi_set_typetable(charset_name);
-    return ptype_table[REAL_GLYPH(glyph_value)];
-}
-
-Glyph32* bidi_str_reorder (const char* charset_name, Glyph32* glyphs, int len)
-{
-    BidiLevel max_level = 1;
+    BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
-
-#ifdef BIDI_DEBUG
-    bidi_debug = TRUE;
-#endif
-
-    bidi_set_typetable(charset_name);
 
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string(glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
 
-    bidi_reorder_cb(glyphs, len, &type_rl_list, max_level,
-            bidi_string_reverse);
+    bidi_reorder_cb (glyphs, len, &type_rl_list, max_level, bidi_string_reverse);
+
+    /* free typerun list.*/
+    free_typerun_list (type_rl_list);
+
+    print_hexstr (glyphs, len, TRUE);
+
+    return glyphs;
+}
+
+BidiCharType __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
+{
+    BYTE base_level = 0;
+    BidiCharType base_dir = BIDI_TYPE_L;
+    TYPERUN *type_rl_list = NULL;
+
+    /* split the text to some runs. */
+    type_rl_list = get_runtype_link (charset_ops, glyphs, len);
+
+    /* 1.Find base level */
+    bidi_resolveParagraphs(&type_rl_list, &base_dir, &base_level);
 
     /* free typerun list.*/
     free_typerun_list(type_rl_list);
 
-    print_hexstr(glyphs, len, TRUE);
-
-    
-    return glyphs;
+    return base_dir;
 }
-
-#ifdef MAIN_CAP_TEST
-
-/* test bidi reorder alone, use the CapRTLType.*/
-// gcc charset-bidi.c -DMAIN_CAP_TEST -g -o charset-bidi -lminigui_ths -lm -ljpeg -lz -lpng -lpthread
-
-#define LRE 0
-#define RLE 0
-#define PDF 0
-#define RLO 0
-#define LRO 0
-
-#define LTR BIDI_TYPE_LTR 
-#define AL  BIDI_TYPE_AL 
-#define RTL BIDI_TYPE_RTL 
-#define WS  BIDI_TYPE_WS 
-#define ON  BIDI_TYPE_ON 
-#define EN  BIDI_TYPE_EN 
-#define AN  BIDI_TYPE_AN 
-#define ET  BIDI_TYPE_ET 
-#define ES  BIDI_TYPE_ES 
-#define SS  BIDI_TYPE_SS 
-#define CS  BIDI_TYPE_CS 
-#define BS  BIDI_TYPE_BS 
-#define NSM BIDI_TYPE_NSM 
-
-static BidiCharType CapRTLTypes[] = {
-    /* *INDENT-OFF* */
-    ON, ON, ON, ON, LTR,RTL,ON, ON, ON, ON, ON, ON, ON, BS, RLO,RLE, /* 00-0f */
-    LRO,LRE,PDF,WS, ON, ON, ON, ON, ON, ON, ON, ON, ON, ON, ON, ON,  /* 10-1f */
-    WS, ON, ON, ON, ET, ON, ON, ON, ON, ON, ON, ET, CS, ON, ES, ES,  /* 20-2f */
-    EN, EN, EN, EN, EN, EN, AN, AN, AN, AN, CS, ON, ON, ON, ON, ON,  /* 30-3f */
-    RTL,AL, AL, AL, AL, AL, AL, RTL,RTL,RTL,RTL,RTL,RTL,RTL,RTL,RTL, /* 40-4f */
-    RTL,RTL,RTL,RTL,RTL,RTL,RTL,RTL,RTL,RTL,RTL,ON, BS, ON, ON, ON,  /* 50-5f */
-    NSM,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR, /* 60-6f */
-    LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,LTR,ON, SS, ON, WS, ON,  /* 70-7f */
-    /* *INDENT-ON* */
-};
-
-int main(int args, const char* argv[])
-{
-    int i = 0;
-    BidiCharType base_dir = 0;
-    Glyph32* visual_glyphs = NULL;
-    //char bidi_str_n[] = "this is only a test ARABIC.";
-    char bidi_str_n[] = "ARABIC this is only a test.";
-
-    /* open debug.*/
-    bidi_debug = TRUE;
-
-    ptype_table = CapRTLTypes;
-    visual_glyphs = bidi_str_reorder((Glyph32*)bidi_str_n, strlen(bidi_str_n));
-    if(base_dir%2){
-        fprintf(stderr, "%s===>%s\n", bidi_str_n, visual_glyphs);
-    }
-    else{
-        /* output right align. */
-        fprintf(stderr, "%s===>               %s\n", bidi_str_n, visual_glyphs);
-    }
-
-    return 0;
-}
-
-#endif
 
