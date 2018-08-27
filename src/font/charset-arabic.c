@@ -855,8 +855,8 @@ static CHARSETOPS CharsetOps_iso8859_6 = {
     sb_len_first_substr,
     iso8859_6_get_next_word,
     sb_pos_first_char,
-    iso8859_6_bidi_mirror_glyph,
     iso8859_6_bidi_glyph_type,
+    iso8859_6_bidi_mirror_glyph,
 #ifdef _MGCHARSET_UNICODE
     iso8859_6_conv_to_uc32,
     iso8859_6_conv_from_uc32

@@ -7432,8 +7432,10 @@ struct _BITMAP
     /** The bits of the bitmap */
     Uint8*  bmBits;
 
-    /** The private pixel format */
-    /*void*   bmAlphaPixelFormat;*/
+    /* Obsolte.
+     The private pixel format
+    void*   bmAlphaPixelFormat; */
+
     /** The Alpha Mask array of the bitmap */
     Uint8*  bmAlphaMask;
 

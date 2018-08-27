@@ -378,15 +378,12 @@ static void prepare_bitmap (PDC pdc, int w, int h)
     char_bmp.bmBits = char_bits;
 
     if (size <= char_bits_size) {
-        goto done;
+        return;
     }
     char_bits_size = ((size + 31) >> 5) << 5;
 
     char_bits = realloc(char_bmp.bmBits, char_bits_size);    
     char_bmp.bmBits = char_bits;
-
-done:
-    memset (char_bmp.bmBits, 0, char_bits_size);
 }
 
 static Uint32 allocated_size = 0;
@@ -1181,7 +1178,6 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
             dist_buf[0].b = sub_val;
 
             dist_buf[0].a = 255;
-
     }
     else
     {
@@ -1821,12 +1817,10 @@ static BOOL get_subpixel_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     unsigned short scale;
     int data_pitch = 0;
     const BYTE* data = NULL;
-    int font_height;
     bold = 0;
 
     logfont = pdc->pLogFont;
     devfont = SELECT_DEVFONT (logfont, glyph_value);
-    font_height = (devfont->font_ops->get_font_height) (logfont, devfont);
 
 #ifdef _MGFONT_FT2
     if (ft2IsFreeTypeDevfont (devfont) &&
@@ -2926,7 +2920,7 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
         _glyph_move_to_pixel (pdc, x+xpos, ypos);
         pixel = _mem_get_pixel(pdc->cur_dst, GAL_BytesPerPixel (pdc->surface));
 
-            GAL_GetRGB (pixel, pdc->surface->format, &rgba_cur.r,
+        GAL_GetRGB (pixel, pdc->surface->format, &rgba_cur.r,
                     &rgba_cur.g, &rgba_cur.b);
 
 #define C_ALPHA(p, Cs, Cd)          \
@@ -2936,19 +2930,19 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
                 Cd = sub_val >> 8;      \
             }
 
-            C_ALPHA(bits, rgba_fg.r, rgba_cur.r);
-            C_ALPHA(bits, rgba_fg.g, rgba_cur.g);
-            C_ALPHA(bits, rgba_fg.b, rgba_cur.b);
+        C_ALPHA(bits, rgba_fg.r, rgba_cur.r);
+        C_ALPHA(bits, rgba_fg.g, rgba_cur.g);
+        C_ALPHA(bits, rgba_fg.b, rgba_cur.b);
 
 #undef C_ALPHA
 
-            pdc->cur_pixel = GAL_MapRGB (pdc->surface->format, rgba_cur.r,
+        pdc->cur_pixel = GAL_MapRGB (pdc->surface->format, rgba_cur.r,
                     rgba_cur.g, rgba_cur.b);
 
-            if (pdc->cur_pixel != pixel) {
-                _glyph_draw_pixel (pdc,
-                        x+xpos, ypos, pdc->cur_pixel);
-            }
+        if (pdc->cur_pixel != pixel) {
+            _glyph_draw_pixel (pdc,
+                    x+xpos, ypos, pdc->cur_pixel);
+        }
     }
 
 nodraw_ret:
