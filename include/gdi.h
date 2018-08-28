@@ -2009,20 +2009,26 @@ MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
 
 #define DC_ATTR_TEXT_ALIGN      10
 
+#define DC_ATTR_BIDI_ENABLED        11
+#define DC_ATTR_BIDI_FIRSTCH_TYPE   12
+    #define BIDI_CHAR_TYPE_INIT     0
+    #define BIDI_CHAR_TYPE_LTR      1
+    #define BIDI_CHAR_TYPE_RTL      2
+
 #ifdef _MGHAVE_ADV_2DAPI
 
-#define DC_ATTR_PEN_TYPE        11
-#define DC_ATTR_PEN_CAP_STYLE   12
-#define DC_ATTR_PEN_JOIN_STYLE  13
-#define DC_ATTR_PEN_WIDTH       14
+#define DC_ATTR_PEN_TYPE        13
+#define DC_ATTR_PEN_CAP_STYLE   14
+#define DC_ATTR_PEN_JOIN_STYLE  15
+#define DC_ATTR_PEN_WIDTH       16
 
-#define DC_ATTR_BRUSH_TYPE      15
+#define DC_ATTR_BRUSH_TYPE      17
 
-#define NR_DC_ATTRS             16
+#define NR_DC_ATTRS             18
 
 #else
 
-#define NR_DC_ATTRS             11
+#define NR_DC_ATTRS             13
 
 #endif
 
@@ -2064,9 +2070,12 @@ MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
  *        Spacing bellow line for the DC.
  *      - DC_ATTR_MAP_MODE\n
  *        mode of a DC.
-  *      - DC_ATTR_TEXT_ALIGN\n
+ *      - DC_ATTR_TEXT_ALIGN\n
  *        Text-alignment flags of a DC.
- *
+ *      - DC_ATTR_BIDI_ENABLED\n
+ *        Is BIDI enabled.
+ *      - DC_ATTR_BIDI_FIRSTCH_TYPE\n
+ *        The first character type, on of BIDI_CHAR_TYPE_INIT, BIDI_CHAR_TYPE_LTR, or BIDI_CHAR_TYPE_RTL.
  * \return The attribute value.
  *
  * \sa SetDCAttr
@@ -7008,7 +7017,15 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
  * \sa GetTextAlign
  */
 #define SetTextAlign(hdc, ta_flags)        \
-                SetDCAttr (hdc, DC_ATTR_TEXT_ALIGN, (DWORD)ta_flags)
+            SetDCAttr (hdc, DC_ATTR_TEXT_ALIGN, (DWORD)ta_flags)
+
+#define GetBIDIFlag(hdc)            GetDCAttr (hdc, DC_ATTR_BIDI_ENABLED)
+#define SetBIDIFlag(hdc, bidi)              \
+            SetDCAttr (hdc, DC_ATTR_BIDI_ENABLED, (DWORD)bidi)
+
+#define GetBIDIFirstChType(hdc)     GetDCAttr (hdc, DC_ATTR_BIDI_FIRSTCH_TYPE)
+#define SetBIDIFirstChType(hdc, type)       \
+            SetDCAttr (hdc, DC_ATTR_BIDI_FIRSTCH_TYPE, (DWORD)type)
 
 /**
  * \fn int GUIAPI TextOutLen (HDC hdc, int x, int y, \
