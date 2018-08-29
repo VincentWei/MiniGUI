@@ -950,7 +950,7 @@ static const unsigned char* iso8859_8_get_next_word (const unsigned char* mstr,
     //return sb_get_next_word(mstr, mstrlen, word_info);
 }
 
-static BidiCharType __mg_iso8859_8_type[] = {
+static Uint32 __mg_iso8859_8_type[] = {
     /*0x00~0x0f*/ 
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 

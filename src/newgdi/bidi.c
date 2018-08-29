@@ -940,24 +940,30 @@ int  GUIAPI BIDIGetTextLogicalGlyphs(
 {
     int i = 0;
     int left_bytes = text_len;
+    int nr_chars;
     int prev_len = 0, len_cur_char = 0;
     const char* prev_mchar = NULL;
     Glyph32  glyph_value = INV_GLYPH_VALUE;
     Glyph32* glyph_string = NULL;
     GLYPHMAPINFO* map = NULL;
 
-    if(glyphs && *glyphs == NULL){
-        *glyphs = malloc(text_len * sizeof (Glyph32));
-        memset(*glyphs, 0, text_len * sizeof(Glyph32));
+    /* use the actual characters count for optimized memory usage. */
+    nr_chars = GetTextMCharInfo (log_font, text, text_len, NULL);
+
+    if (glyphs && *glyphs == NULL){
+        *glyphs = malloc (nr_chars * sizeof (Glyph32));
+        memset (*glyphs, 0, nr_chars * sizeof(Glyph32));
     }
 
     if(glyphs_map && *glyphs_map == NULL){
-        *glyphs_map = malloc(text_len * sizeof (GLYPHMAPINFO));
-        memset(*glyphs_map, 0, text_len * sizeof(GLYPHMAPINFO));
+        *glyphs_map = malloc (nr_chars * sizeof (GLYPHMAPINFO));
+        memset (*glyphs_map, 0, nr_chars * sizeof(GLYPHMAPINFO));
     }
-    if(glyphs)     glyph_string = *glyphs;
-    if(glyphs_map) map = *glyphs_map;
-    if(!map && !glyph_string) return 0;
+
+    if (glyphs)     glyph_string = *glyphs;
+    if (glyphs_map) map = *glyphs_map;
+    if (!map && !glyph_string)
+        return 0;
 
     while (left_bytes > 0){
         len_cur_char = GetFirstMCharLen(log_font, text, left_bytes);
@@ -979,6 +985,7 @@ int  GUIAPI BIDIGetTextLogicalGlyphs(
 
         i ++;
     }
+
     return i;
 }
 

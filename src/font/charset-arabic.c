@@ -468,7 +468,7 @@ static unsigned int iso8859_6_glyph_type (Glyph32 glyph_value)
     return ch_type;
 }
 
-static BidiCharType __mg_iso8859_68x_type[] = {
+static Uint32 __mg_iso8859_68x_type[] = {
     /*0x00~0x0f*/ 
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
