@@ -258,7 +258,6 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
 {
     int i;
     unsigned char magic[5];
-    Uint16 magic_db;
 
     /* This struct contains the JPEG decompression parameters
      * and pointers to working space 
@@ -273,17 +272,8 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     if (magic[0] != 0xFF || magic[1] != 0xD8)
         goto err;        /* not JPEG image*/
 
-    magic_db = MGUI_ReadLE16 (fp);
-    MGUI_RWread (fp, magic, 2, 1);
 
-    MGUI_RWread (fp, magic, 4, 1);
-    magic [4] = '\0';
-    if (magic_db != 0xDBFF 
-                    && strncmp((char*)magic, "JFIF", 4) != 0 
-                    && strncmp((char*)magic, "Exif", 4) != 0)
-        goto err;        /* not JPEG image*/
-
-    MGUI_RWseek (fp, -10, SEEK_CUR);
+    MGUI_RWseek (fp, 0, SEEK_SET);
 
     /* Step 1: allocate and initialize JPEG decompression object */
     cinfo = calloc (1, sizeof(struct jpeg_decompress_struct));
@@ -318,7 +308,10 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     my_jpeg_data_src (cinfo, fp);
 
     /* Step 3: read file parameters with jpeg_read_header() */
-    jpeg_read_header (cinfo, TRUE);
+    if(JPEG_HEADER_OK != jpeg_read_header (cinfo, TRUE))
+    {
+    	longjmp (jerr->setjmp_buffer, 1);
+    }
 
     /* Step 4: set parameters for decompression */
     cinfo->out_color_space = (mybmp->flags & MYBMP_LOAD_GRAYSCALE) ? JCS_GRAYSCALE: JCS_RGB;
@@ -456,24 +449,65 @@ int __mg_load_jpg (MG_RWops* fp, void* init_info, MYBITMAP *my_bmp,
 BOOL __mg_check_jpg (MG_RWops* fp)
 {
     unsigned char magic [5];
-    Uint16 magic_db;
 
     if (!MGUI_RWread (fp, magic, 2, 1))
         return FALSE;        /* not JPEG image*/
     if (magic[0] != 0xFF || magic[1] != 0xD8)
         return FALSE;        /* not JPEG image*/
 
-    magic_db = MGUI_ReadLE16 (fp);
-    MGUI_RWread (fp, magic, 2, 1);
+    MGUI_RWseek (fp, 0, SEEK_SET);
 
-    MGUI_RWread (fp, magic, 4, 1);
-    magic [4] = '\0';
-    if (magic_db != 0xDBFF 
-                    && strncmp((char*)magic, "JFIF", 4) != 0 
-                    && strncmp((char*)magic, "Exif", 4) != 0)
-        return FALSE;        /* not JPEG image*/
+    /* This struct contains the JPEG decompression parameters
+     * and pointers to working space
+     * (which is allocated as needed by the JPEG library).
+     */
+    struct jpeg_decompress_struct *cinfo;
+    struct my_error_mgr *jerr;
+    jpeg_init_info_t* init_info;
 
-    return TRUE;
+    /* Step 1: allocate and initialize JPEG decompression object */
+    cinfo = calloc (1, sizeof(struct jpeg_decompress_struct));
+    jerr = calloc (1, sizeof(struct my_error_mgr));
+    init_info = calloc (1, sizeof(jpeg_init_info_t));
+
+    if (cinfo == NULL || jerr == NULL || init_info == NULL)
+        return FALSE;
+
+    /* We set up the normal JPEG error routines first. */
+    cinfo->err = jpeg_std_error (&jerr->pub);
+    jerr->pub.error_exit = my_error_exit;
+
+
+    /* return value*/
+    BOOL ret = TRUE;
+
+    /* Establish the setjmp return context for my_error_exit to use. */
+    if (setjmp (jerr->setjmp_buffer))
+    {
+        /* If we get here, the JPEG code has signaled an error */
+        ret = FALSE;
+        goto end;
+    }
+
+    /* Now we can initialize the JPEG decompression object. */
+    jpeg_create_decompress (cinfo);
+    init_info->dec_started = 0;
+
+    /* Step 2: specify data source */
+    my_jpeg_data_src (cinfo, fp);
+
+    /* Step 3: read file parameters with jpeg_read_header() */
+    if(JPEG_HEADER_OK != jpeg_read_header (cinfo, TRUE))
+    {
+    	longjmp (jerr->setjmp_buffer, 1);
+    }
+
+end:
+    jpeg_destroy_decompress (cinfo);
+    free (init_info);
+    free (jerr);
+    free (cinfo);
+    return ret;
 }
 
 #endif /* _MGIMAGE_JPG */
