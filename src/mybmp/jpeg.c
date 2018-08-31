@@ -273,11 +273,11 @@ static void my_error_exit (j_common_ptr cinfo)
  * Reads a 16-bit big endian integer from a MG_RWops object.
  * return TRUE if sucess,or FALSE if the read failed.
  */
-static BOOL read_be16 (MG_RWops *fp,Uint16 *value)
+static BOOL read_be16 (MG_RWops *fp, Uint16 *value)
 {
-    if(-1 == MGUI_RWread(fp, value, (sizeof *value), 1))
+    if(-1 == MGUI_RWread (fp, value, (sizeof *value), 1))
         return FALSE;
-    *value = (ArchSwapBE16(*value));
+    *value = (ArchSwapBE16 (*value));
     return TRUE;
 }
 
@@ -294,7 +294,7 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     struct my_error_mgr *jerr;
     jpeg_init_info_t* init_info;
 
-    if(!read_be16(fp,&soi_marker) || JMK_SOI != soi_marker )
+    if (!read_be16(fp,&soi_marker) || JMK_SOI != soi_marker)
     	goto err; /* not JPEG image*/
 
     MGUI_RWseek (fp, 0, SEEK_SET);
@@ -477,40 +477,50 @@ int __mg_load_jpg (MG_RWops* fp, void* init_info, MYBITMAP *my_bmp,
  */
 BOOL __mg_check_jpg (MG_RWops* fp)
 {
-    for(Uint16 jpeg_marker;read_be16(fp,&jpeg_marker) /* read JPEG marker */;){
+    Uint16 jpeg_marker;
+    for (; read_be16 (fp, &jpeg_marker) /* read JPEG marker */;) {
         /* payload length of current marker */
         Uint16 payload = 1; /* set 1 for default, mean that current marker followed by payload bytes*/
-        switch(jpeg_marker)
-        {
+        switch (jpeg_marker) {
         case JMK_SOI:
             payload = 0; /* no payload */
             break;
+
         case JMK_SOF0:
         case JMK_SOF2:
             return TRUE; /* JPEG image*/
+
         case JMK_DHT:
         case JMK_DQT:
         case JMK_DRI:
         case JMK_SOS:
         case JMK_COM:
             break;
+
         case JMK_EOI:
             return FALSE; /* not JPEG image*/
+
         default:
-            if((0XFFF8 & jpeg_marker) == JMK_RST_mask){
+            if ((0XFFF8 & jpeg_marker) == JMK_RST_mask) {
                 payload = 0; /* RST0~7(FFD0~FFD7),no payload */
-            }else if((0XFFF0 & jpeg_marker) == JMK_APP_mask){
+            }
+            else if ((0XFFF0 & jpeg_marker) == JMK_APP_mask) {
                 /* APP0~APP15,do nothing */
-            }else
+            }
+            else
                 return FALSE; /* not JPEG image*/
+
+            break;
         }
-        if(payload){
+
+        if (payload) {
             /*read payload length and skip next marker */
-            if(!read_be16(fp,&payload))
+            if (!read_be16 (fp, &payload))
                 return FALSE; /* not JPEG image*/
-            MGUI_RWseek (fp, payload- sizeof(payload), SEEK_CUR);
+            MGUI_RWseek (fp, payload - sizeof(payload), SEEK_CUR);
         }
     }
+
     return FALSE; /* not JPEG image*/
 }
 
