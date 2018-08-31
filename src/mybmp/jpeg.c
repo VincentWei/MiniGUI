@@ -254,11 +254,37 @@ static void my_error_exit (j_common_ptr cinfo)
     longjmp (myerr->setjmp_buffer, 1);
 }
 
+/*
+ * Common JPEG markers
+ * see also https://en.wikipedia.org/wiki/JPEG
+ * */
+#define JMK_SOI         0xFFD8     /* Start Of Image */
+#define JMK_SOF0        0xFFC0     /* Start Of Frame (baseline DCT) */
+#define JMK_SOF2        0xFFC2     /* Start Of Frame (progressive DCT) */
+#define JMK_DHT         0xFFC4     /* Define Huffman Table(s) */
+#define JMK_DQT         0xFFDB     /* Define Quantization Table(s) */
+#define JMK_DRI         0xFFDD     /* Define Restart Interval */
+#define JMK_SOS         0xFFDA     /* Start Of Scan */
+#define JMK_RST_mask    0xFFD0     /* mask of Restart */
+#define JMK_APP_mask    0xFFE0     /* mask of Application-specific */
+#define JMK_COM         0xFFFE     /* Comment */
+#define JMK_EOI         0xFFD9     /* End Of Image */
+/**
+ * Reads a 16-bit big endian integer from a MG_RWops object.
+ * return TRUE if sucess,or FALSE if the read failed.
+ */
+static BOOL read_be16 (MG_RWops *fp,Uint16 *value)
+{
+    if(-1 == MGUI_RWread(fp, value, (sizeof *value), 1))
+        return FALSE;
+    *value = (ArchSwapBE16(*value));
+    return TRUE;
+}
+
 void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
 {
     int i;
-    unsigned char magic[5];
-    Uint16 magic_db;
+    Uint16 soi_marker;
 
     /* This struct contains the JPEG decompression parameters
      * and pointers to working space 
@@ -268,22 +294,10 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     struct my_error_mgr *jerr;
     jpeg_init_info_t* init_info;
 
-    if (!MGUI_RWread (fp, magic, 2, 1))
-        goto err;        /* not JPEG image*/
-    if (magic[0] != 0xFF || magic[1] != 0xD8)
-        goto err;        /* not JPEG image*/
+    if(!read_be16(fp,&soi_marker) || JMK_SOI != soi_marker )
+    	goto err; /* not JPEG image*/
 
-    magic_db = MGUI_ReadLE16 (fp);
-    MGUI_RWread (fp, magic, 2, 1);
-
-    MGUI_RWread (fp, magic, 4, 1);
-    magic [4] = '\0';
-    if (magic_db != 0xDBFF 
-                    && strncmp((char*)magic, "JFIF", 4) != 0 
-                    && strncmp((char*)magic, "Exif", 4) != 0)
-        goto err;        /* not JPEG image*/
-
-    MGUI_RWseek (fp, -10, SEEK_CUR);
+    MGUI_RWseek (fp, 0, SEEK_SET);
 
     /* Step 1: allocate and initialize JPEG decompression object */
     cinfo = calloc (1, sizeof(struct jpeg_decompress_struct));
@@ -318,7 +332,10 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     my_jpeg_data_src (cinfo, fp);
 
     /* Step 3: read file parameters with jpeg_read_header() */
-    jpeg_read_header (cinfo, TRUE);
+    if(JPEG_HEADER_OK != jpeg_read_header (cinfo, TRUE))
+    {
+    	longjmp (jerr->setjmp_buffer, 1);
+    }
 
     /* Step 4: set parameters for decompression */
     cinfo->out_color_space = (mybmp->flags & MYBMP_LOAD_GRAYSCALE) ? JCS_GRAYSCALE: JCS_RGB;
@@ -453,27 +470,48 @@ int __mg_load_jpg (MG_RWops* fp, void* init_info, MYBITMAP *my_bmp,
     return ERR_BMP_OK;
 }
 
+
+/**
+ * loop read JPEG marker from MG_RWops object,until reach SOF0 or SOF2.
+ * return TRUE if match JPEG image format,or FALSE if the read failed or not JPEG image
+ */
 BOOL __mg_check_jpg (MG_RWops* fp)
 {
-    unsigned char magic [5];
-    Uint16 magic_db;
-
-    if (!MGUI_RWread (fp, magic, 2, 1))
-        return FALSE;        /* not JPEG image*/
-    if (magic[0] != 0xFF || magic[1] != 0xD8)
-        return FALSE;        /* not JPEG image*/
-
-    magic_db = MGUI_ReadLE16 (fp);
-    MGUI_RWread (fp, magic, 2, 1);
-
-    MGUI_RWread (fp, magic, 4, 1);
-    magic [4] = '\0';
-    if (magic_db != 0xDBFF 
-                    && strncmp((char*)magic, "JFIF", 4) != 0 
-                    && strncmp((char*)magic, "Exif", 4) != 0)
-        return FALSE;        /* not JPEG image*/
-
-    return TRUE;
+    for(Uint16 jpeg_marker;read_be16(fp,&jpeg_marker) /* read JPEG marker */;){
+        /* payload length of current marker */
+        Uint16 payload = 1; /* set 1 for default, mean that current marker followed by payload bytes*/
+        switch(jpeg_marker)
+        {
+        case JMK_SOI:
+            payload = 0; /* no payload */
+            break;
+        case JMK_SOF0:
+        case JMK_SOF2:
+            return TRUE; /* JPEG image*/
+        case JMK_DHT:
+        case JMK_DQT:
+        case JMK_DRI:
+        case JMK_SOS:
+        case JMK_COM:
+            break;
+        case JMK_EOI:
+            return FALSE; /* not JPEG image*/
+        default:
+            if((0XFFF8 & jpeg_marker) == JMK_RST_mask){
+                payload = 0; /* RST0~7(FFD0~FFD7),no payload */
+            }else if((0XFFF0 & jpeg_marker) == JMK_APP_mask){
+                /* APP0~APP15,do nothing */
+            }else
+                return FALSE; /* not JPEG image*/
+        }
+        if(payload){
+            /*read payload length and skip next marker */
+            if(!read_be16(fp,&payload))
+                return FALSE; /* not JPEG image*/
+            MGUI_RWseek (fp, payload- sizeof(payload), SEEK_CUR);
+        }
+    }
+    return FALSE; /* not JPEG image*/
 }
 
 #endif /* _MGIMAGE_JPG */
