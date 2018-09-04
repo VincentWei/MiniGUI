@@ -36,6 +36,9 @@
 ** 
 ** Current maintainer: Wei Yongming
 **
+** 2018-09-4
+**      Merge pull request from 10km (https://github.com/10km): __mg_save_jpg.
+**
 ** Create date: 2000/08/29
 */
 
@@ -531,10 +534,11 @@ typedef BYTE* (*MYBITMAP_get_pixel_row)(unsigned int cinfo,MYBITMAP* mybmp,RGB* 
 static BYTE* MYBITMAP_get_pixel_row_pal16(unsigned int next_scanline,
                        MYBITMAP* mybmp,RGB* pal,BYTE* linebuffer)
 {
+    int i, j, end_i;
 
     BYTE* bits = mybmp->bits + mybmp->pitch * next_scanline;
-    RGB rgb0,rgb1;
-    for (int i = 0, j = 0, end_i = (mybmp->w + 1) >> 1; i < end_i; ++i) {
+    RGB rgb0, rgb1;
+    for (i = 0, j = 0, end_i = (mybmp->w + 1) >> 1; i < end_i; ++i) {
 
         rgb0 = pal[ (bits[ i ] & 0XF0) >> 4 ];
         rgb1 = pal[  bits[ i ] & 0X0F ];
@@ -549,14 +553,16 @@ static BYTE* MYBITMAP_get_pixel_row_pal16(unsigned int next_scanline,
     return linebuffer;
 
 }
+
 // convert index(256) color pixel line to RGB
 static BYTE* MYBITMAP_get_pixel_row_pal256(unsigned int next_scanline,
                        MYBITMAP* mybmp,RGB* pal,BYTE* linebuffer)
 {
-
+    int i, j;
     BYTE* bits = mybmp->bits + mybmp->pitch * next_scanline;
     RGB rgb;
-    for (int i = 0, j = 0; i < mybmp->w; i++) {
+
+    for (i = 0, j = 0; i < mybmp->w; i++) {
 
         rgb = pal [bits[i] ];
 
@@ -580,17 +586,16 @@ static BYTE* MYBITMAP_get_pixel_row_pal256(unsigned int next_scanline,
 static BYTE* MYBITMAP_get_pixel_row_RGB565(unsigned int next_scanline,
                        MYBITMAP* mybmp,RGB* pal,BYTE* linebuffer)
 {
-
+    int i, j;
     Uint16* bits = (Uint16*)(mybmp->bits + mybmp->pitch * next_scanline);
 
-    for (int i = 0, j = 0; i < mybmp->w; i++) {
-
+    for (i = 0, j = 0; i < mybmp->w; i++) {
         RGB_FROM_RGB565(bits[i], linebuffer[ j ++ ], linebuffer[ j ++ ], linebuffer[ j ++ ])
-
     }
     return linebuffer;
 
 }
+
 // convert RGB pixel line to RGB
 static BYTE* MYBITMAP_get_pixel_row_RGB(unsigned int next_scanline,
         MYBITMAP* mybmp,RGB* pal,BYTE* linebuffer)
@@ -602,9 +607,10 @@ static BYTE* MYBITMAP_get_pixel_row_RGB(unsigned int next_scanline,
 static BYTE* MYBITMAP_get_pixel_row_BGR(unsigned int next_scanline,
         MYBITMAP* mybmp,RGB* pal,BYTE* linebuffer)
 {
+    int i, end_i;
     BYTE* bits = mybmp->bits + mybmp->pitch * next_scanline;
 
-    for (int i = 0, end_i = mybmp->w * 3; i < end_i; i += 3) {
+    for (i = 0, end_i = mybmp->w * 3; i < end_i; i += 3) {
         linebuffer[ i     ] = bits[ i + 2 ];
         linebuffer[ i + 1 ] = bits[ i + 1 ];
         linebuffer[ i + 2 ] = bits[ i     ];
@@ -621,6 +627,7 @@ static BYTE* MYBITMAP_get_pixel_row_BGR(unsigned int next_scanline,
 static BYTE* MYBITMAP_get_pixel_row_RGBA(unsigned int next_scanline,
         MYBITMAP* mybmp,RGB* pal,BYTE* linebuffer)
 {
+    int i, j;
     RGB* bits = (RGB*)(mybmp->bits + mybmp->pitch * next_scanline);
     RGB pixel;
     RGB bgcolor = {
@@ -629,7 +636,8 @@ static BYTE* MYBITMAP_get_pixel_row_RGBA(unsigned int next_scanline,
              _MGIMAGE_JPG_RGBA_BGCOLOR        & 0xFF,/* blue */
             0x00                                     /* alpha,no used */
     };
-    for (int i = 0,j = 0; i < mybmp->w; i++, j += 3) {
+
+    for (i = 0, j = 0; i < mybmp->w; i++, j += 3) {
         pixel = bits[i];
         /* alpha composite,
          * C = Cx * ALPHAx + (1 - ALPHAx) * Cbg
@@ -656,27 +664,24 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
     JSAMPROW linebuffer = NULL;
     JSAMPROW row_pointer[1];
     MYBITMAP_get_pixel_row get_row;
+    int mybmp_type;
     int retcode = ERR_BMP_CANT_SAVE;
 
     /* Step 1: Allocate and initialize JPEG compression object */
     cinfo = calloc (1, sizeof(struct jpeg_compress_struct));
-
-    if(NULL == cinfo)
-    {
+    if (NULL == cinfo) {
         fprintf(stderr, "__fl_save_jpg allocation error!\n");
         return ERR_BMP_MEM;
     }
     jpeg_create_compress(cinfo);
 
     /* Step 2: Allocate and initialize my_error_mgr object by jpeg_memory_mgr,and init  */
-    jerr = cinfo->mem->alloc_small((j_common_ptr) cinfo, JPOOL_IMAGE,sizeof(struct my_error_mgr));
-
-    if(NULL == jerr)
-    {
+    jerr = cinfo->mem->alloc_small ((j_common_ptr) cinfo, JPOOL_IMAGE, sizeof(struct my_error_mgr));
+    if (NULL == jerr) {
         retcode = ERR_BMP_MEM;
         goto do_finally;
     }
-    memset(jerr,0,sizeof(struct my_error_mgr));
+    memset (jerr, 0, sizeof(struct my_error_mgr));
 
     /* We set up the normal JPEG error routines first. */
     cinfo->err = jpeg_std_error (&jerr->pub);
@@ -689,11 +694,11 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
     }
     /* not supported RWAREA_TYPE_MEM type,
      * because the MEM type object can not dynamic allocate memory,so it's not safe  */
-    if(RWAREA_TYPE_STDIO != fp->type )
-    {
+    if(RWAREA_TYPE_STDIO != fp->type) {
         fprintf(stderr, "unsupported type of MG_RWops,only support RWAREA_TYPE_STDIO so far\n");
         longjmp (jerr->setjmp_buffer, 1);
     }
+
     /* Step 3: specify data source */
     jpeg_stdio_dest(cinfo, fp->hidden.stdio.fp);
 
@@ -718,10 +723,9 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
     jpeg_set_quality(cinfo, _MGIMAGE_JPG_SAVE_QUALITY, TRUE);
 #endif
 
-    int mybmp_type = mybmp->flags & MYBMP_TYPE_MASK;
+    mybmp_type = mybmp->flags & MYBMP_TYPE_MASK;
 
-    switch(mybmp->depth)
-    {
+    switch(mybmp->depth) {
     case 4:
         get_row = MYBITMAP_get_pixel_row_pal16;
         break;
@@ -744,25 +748,21 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
         fprintf(stderr, "invalid MYBITMAP.depth = %d\n",mybmp->depth);
         longjmp (jerr->setjmp_buffer, 1);
         break;
-
     }
 
-    if(mybmp->depth <= 8 && NULL == pal)
-    {
+    if (mybmp->depth <= 8 && NULL == pal) {
         fprintf(stderr, "the 'pal' argument must not be NULL for index color space\n");
         longjmp (jerr->setjmp_buffer, 1);
     }
 
-    if(24 == mybmp->depth && MYBMP_TYPE_RGB == mybmp_type)
-    {
+    if (24 == mybmp->depth && MYBMP_TYPE_RGB == mybmp_type) {
         /*
          * do nothing while RGB type,
          * the MYBITMAP_get_pixel_row function will return address in MYBITMAP.bits data directly,
          * without using line buffer
          * */
     }
-    else
-    {
+    else {
         /* Allocate one-row buffer for color space conversion(4 byte alignment)  */
         linebuffer = (JSAMPROW)cinfo->mem->alloc_large
             ((j_common_ptr) cinfo, JPOOL_IMAGE,
@@ -774,6 +774,7 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
             longjmp (jerr->setjmp_buffer, 1);
         }
     }
+
     /* Step 5: scan and compress line data */
     jpeg_start_compress(cinfo, TRUE);
     while (cinfo->next_scanline < cinfo->image_height) {
@@ -784,6 +785,7 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
 
     jpeg_finish_compress(cinfo);
     retcode = ERR_BMP_OK;
+
 do_finally:
     /* clean up the JPEG object, free the objects and return. */
     jpeg_destroy_compress (cinfo);
