@@ -114,6 +114,7 @@ BOOL __mg_check_gif (MG_RWops* fp);
 void* __mg_init_jpg (MG_RWops* fp, MYBITMAP *jpg, RGB *pal);
 int __mg_load_jpg (MG_RWops* fp, void* init_info, MYBITMAP *jpg, CB_ONE_SCANLINE cb, void* context);
 void __mg_cleanup_jpg (void* init_info);
+int __mg_save_jpg (MG_RWops* fp, MYBITMAP* bmp, RGB* pal);
 BOOL __mg_check_jpg (MG_RWops* fp);
 #endif
 
