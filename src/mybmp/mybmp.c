@@ -80,8 +80,8 @@ static BITMAP_TYPE_INFO bitmap_types [MAX_BITMAP_TYPES] =
    { "gif", __mg_init_gif, __mg_load_gif, __mg_cleanup_gif, NULL, __mg_check_gif },
 #endif
 #ifdef _MGIMAGE_JPG
-   { "jpg", __mg_init_jpg, __mg_load_jpg, __mg_cleanup_jpg, NULL, __mg_check_jpg },
-   { "jpeg", __mg_init_jpg, __mg_load_jpg, __mg_cleanup_jpg, NULL, __mg_check_jpg },
+   { "jpg", __mg_init_jpg, __mg_load_jpg, __mg_cleanup_jpg, __mg_save_jpg, __mg_check_jpg },
+   { "jpeg", __mg_init_jpg, __mg_load_jpg, __mg_cleanup_jpg, __mg_save_jpg, __mg_check_jpg },
 #endif
 #ifdef _MGIMAGE_PNG
    { "png", __mg_init_png, __mg_load_png, __mg_cleanup_png, NULL, __mg_check_png },
