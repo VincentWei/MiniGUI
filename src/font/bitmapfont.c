@@ -66,7 +66,7 @@ static int def_glyph_width = 8;
 
 /* default bitmap glyph */
 static unsigned char def_glyph [] = {0};
-#define DEFGLYPHWIDTH    8;
+#define DEFGLYPHWIDTH    8
 
 /*** tree ops ***/
 
@@ -595,10 +595,9 @@ void DestroyBMPFont (DEVFONT* dev_font)
     return;
 }
 
-#ifdef _DEBUG
+#if 0
 
-static int
-print_tree_struct ( GLYPHTREENODE *node)
+static int print_tree_struct ( GLYPHTREENODE *node)
 {
 
     if (node == NULL)
@@ -621,8 +620,7 @@ print_tree_struct ( GLYPHTREENODE *node)
     return 0;
 }
 
-
-void dump_tree (DEVFONT *dev_font)
+static void dump_tree (DEVFONT *dev_font)
 {
     if (dev_font == NULL ||
         dev_font->data == NULL ||
@@ -636,7 +634,7 @@ void dump_tree (DEVFONT *dev_font)
     _MG_PRINTF ("\n");
 }
 
-int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n)
+static int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n)
 {
     GLYPHTREENODE *p;
     int offset;
@@ -659,7 +657,7 @@ int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n)
     return 0;
 }
 
-void destroy_avl_tree (DEVFONT *dev_font)
+static void destroy_avl_tree (DEVFONT *dev_font)
 {
     if (dev_font && ((BMPFONTINFO *)dev_font->data)->tree != NULL) {
         
@@ -670,7 +668,7 @@ void destroy_avl_tree (DEVFONT *dev_font)
     }
 }
 
-void draw_root_bmp (HDC hdc, DEVFONT *dev_font)
+static void draw_root_bmp (HDC hdc, DEVFONT *dev_font)
 {
     GLYPHTREENODE *root = ((BMPFONTINFO *)dev_font->data)->tree;
 
@@ -681,7 +679,7 @@ void draw_root_bmp (HDC hdc, DEVFONT *dev_font)
     FillBoxWithBitmap (hdc, 0, 400, 0, 0, root->data);
 }
 
-#endif  /* End of _DEBUG */
+#endif
 
 #endif  /* End of _MGFONT_BMPF */
 

@@ -8551,24 +8551,6 @@ MG_EXPORT BOOL GUIAPI AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
  */
 MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
 
-#ifdef _DEBUG
-/*
- * Dump avl tree info
- */
-void dump_tree (DEVFONT *dev_font);
-
-/*
- * look up a node in bitmap font avl tree.
- */ 
-int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n);
-
-/*
- * destroy bitmap font avl tree.
- */ 
-void destroy_avl_tree (DEVFONT *dev_font);
-
-#endif /* end of _DEBUG */
-
 #endif /* end of _MGFONT_BMPF */ 
 
      /**
