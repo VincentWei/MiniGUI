@@ -462,10 +462,9 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
     /* set size to zero first */
     size->cx = size->cy = 0;
 
-    /* FIXME: use HDC property for BIDI enable or not
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_reorder)
+    /* This function does not support BIDI */
+    if (mbc_devfont && pdc->bidi_flag && mbc_devfont->charset_ops->bidi_glyph_type)
         return -1;
-    */
 
     _gdi_start_new_line(pdc);
 

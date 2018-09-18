@@ -63,14 +63,14 @@ struct _TYPERUN
     struct _TYPERUN *prev;
     struct _TYPERUN *next;
 
-    BidiCharType type;  /*  char type. */
+    Uint32 type;  /*  char type. */
     int pos, len;       /*  run start position、run len.*/
     BYTE level;         /*  Embedding level. */
 };
 
 #ifdef BIDI_DEBUG
 
-static char bidi_type_name(BidiCharType c)
+static char bidi_type_name(Uint32 c)
 {
     switch (c){
         case BIDI_TYPE_LTR: return 'L';
@@ -251,7 +251,7 @@ static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Glyph32* glyphs
 
 
 /* 1.Find base level */
-static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, BidiCharType* pbase_dir, BYTE* pbase_level)
+static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, Uint32* pbase_dir, BYTE* pbase_level)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
     DBGLOG("\n1:Finding the base level\n");
@@ -273,7 +273,7 @@ static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, BidiCharType* pbase_
 
 /* 2.Resolving Explicit levels.
  *   now nothing need to do.*/
-static void bidi_resolveExplicit (TYPERUN **ptype_rl_list, BidiCharType base_dir)
+static void bidi_resolveExplicit (TYPERUN **ptype_rl_list, Uint32 base_dir)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
     DBGLOG("\n2:Resolving weak types\n");
@@ -286,10 +286,10 @@ static void bidi_resolveExplicit (TYPERUN **ptype_rl_list, BidiCharType base_dir
 }
 
 /* 3.Resolving weak types */
-static void bidi_resolveWeak(TYPERUN **ptype_rl_list, BidiCharType base_dir) 
+static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir) 
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
-    BidiCharType last_strong, prev_type_org;
+    Uint32 last_strong, prev_type_org;
     BOOL w4;
 
     DBGLOG("\n3:Resolving weak types\n");
@@ -297,7 +297,7 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, BidiCharType base_dir)
 
     for (pp = type_rl_list->next; pp->next; pp = pp->next)
     {
-        BidiCharType prev_type, this_type, next_type;
+        Uint32 prev_type, this_type, next_type;
 
         prev_type = TYPE(pp->prev);
         this_type = TYPE(pp);
@@ -338,7 +338,7 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, BidiCharType base_dir)
 
     for (pp = type_rl_list->next; pp->next; pp = pp->next)
     {
-        BidiCharType prev_type, this_type, next_type;
+        Uint32 prev_type, this_type, next_type;
 
         prev_type = TYPE(pp->prev);
         this_type = TYPE(pp);
@@ -409,13 +409,13 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, BidiCharType base_dir)
 #define BIDI_EMBEDDING_DIR(list) BIDI_LEVEL_TO_DIR(LEVEL(list))
 
 /* 4.Resolving Neutral Types */
-static void bidi_resolveNeutrals(TYPERUN **ptype_rl_list, BidiCharType base_bir)
+static void bidi_resolveNeutrals(TYPERUN **ptype_rl_list, Uint32 base_bir)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
     DBGLOG ("\n4:Resolving neutral types\n");
     for (pp = type_rl_list->next; pp->next; pp = pp->next)
     {
-        BidiCharType prev_type, this_type, next_type;
+        Uint32 prev_type, this_type, next_type;
 
         prev_type = TYPE(pp->prev);
         this_type = TYPE(pp);
@@ -446,7 +446,7 @@ static int bidi_resolveImplicit(TYPERUN **ptype_rl_list, int base_level)
     DBGLOG ("\n5:Resolving implicit levels\n");
 
     for (pp = type_rl_list->next; pp->next; pp = pp->next){
-        BidiCharType this_type;
+        Uint32 this_type;
         int level;
 
         this_type = TYPE(pp);
@@ -536,7 +536,7 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops, Glyph32* glyphs,
         TYPERUN **ptype_rl_list, BYTE *pmax_level)
 {
     BYTE base_level = 0;
-    BidiCharType base_dir = BIDI_TYPE_L;
+    Uint32 base_dir = BIDI_TYPE_L;
     TYPERUN *type_rl_list = NULL;
 
     /* split the text to some runs. */
@@ -699,10 +699,10 @@ Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops, Glyph3
     return glyphs;
 }
 
-BidiCharType __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
+Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
 {
     BYTE base_level = 0;
-    BidiCharType base_dir = BIDI_TYPE_L;
+    Uint32 base_dir = BIDI_TYPE_L;
     TYPERUN *type_rl_list = NULL;
 
     /* split the text to some runs. */
@@ -715,5 +715,16 @@ BidiCharType __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops, Glyp
     free_typerun_list(type_rl_list);
 
     return base_dir;
+}
+
+BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value, Uint32 *bidi_type)
+{
+    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+
+    if (mbc_devfont == NULL || mbc_devfont->charset_ops->bidi_glyph_type == NULL)
+        return FALSE;
+
+    *bidi_type = mbc_devfont->charset_ops->bidi_glyph_type (glyph_value);
+    return TRUE;
 }
 

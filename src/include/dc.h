@@ -166,6 +166,9 @@ struct tagDC
 
     int ta_flags;   /* Text alignment flags */
 
+    int bidi_flag;  /* BIDI enable flag */
+    int bidi_firstch_type;  /* BIDI first char type */
+
 #ifdef _MGHAVE_ADV_2DAPI
     /* pen attributes */
     int pen_type;

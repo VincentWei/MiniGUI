@@ -42,9 +42,9 @@
 
 typedef struct _bidichar_type_map
 {
-    BidiCharType    type;       // Type of Unicode characters
-    Glyph32         glyph;      // Starting index of Unicode character
-    Uint8           count;      // Total number of Unicode characters of same type starting from glyphn
+    Uint32    type;       // Type of Unicode characters
+    Glyph32   glyph;      // Starting index of Unicode character
+    Uint8     count;      // Total number of Unicode characters of same type starting from glyphn
 } BIDICHAR_TYPE_MAP;
 
 static const BIDICHAR_TYPE_MAP __mg_unicode_bidi_char_type_map []=

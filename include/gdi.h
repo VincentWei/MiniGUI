@@ -2009,20 +2009,26 @@ MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
 
 #define DC_ATTR_TEXT_ALIGN      10
 
+#define DC_ATTR_BIDI_ENABLED        11
+#define DC_ATTR_BIDI_FIRSTCH_TYPE   12
+    #define BIDI_CHAR_TYPE_INIT     0
+    #define BIDI_CHAR_TYPE_LTR      1
+    #define BIDI_CHAR_TYPE_RTL      2
+
 #ifdef _MGHAVE_ADV_2DAPI
 
-#define DC_ATTR_PEN_TYPE        11
-#define DC_ATTR_PEN_CAP_STYLE   12
-#define DC_ATTR_PEN_JOIN_STYLE  13
-#define DC_ATTR_PEN_WIDTH       14
+#define DC_ATTR_PEN_TYPE        13
+#define DC_ATTR_PEN_CAP_STYLE   14
+#define DC_ATTR_PEN_JOIN_STYLE  15
+#define DC_ATTR_PEN_WIDTH       16
 
-#define DC_ATTR_BRUSH_TYPE      15
+#define DC_ATTR_BRUSH_TYPE      17
 
-#define NR_DC_ATTRS             16
+#define NR_DC_ATTRS             18
 
 #else
 
-#define NR_DC_ATTRS             11
+#define NR_DC_ATTRS             13
 
 #endif
 
@@ -2064,9 +2070,12 @@ MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
  *        Spacing bellow line for the DC.
  *      - DC_ATTR_MAP_MODE\n
  *        mode of a DC.
-  *      - DC_ATTR_TEXT_ALIGN\n
+ *      - DC_ATTR_TEXT_ALIGN\n
  *        Text-alignment flags of a DC.
- *
+ *      - DC_ATTR_BIDI_ENABLED\n
+ *        Is BIDI enabled.
+ *      - DC_ATTR_BIDI_FIRSTCH_TYPE\n
+ *        The first character type, on of BIDI_CHAR_TYPE_INIT, BIDI_CHAR_TYPE_LTR, or BIDI_CHAR_TYPE_RTL.
  * \return The attribute value.
  *
  * \sa SetDCAttr
@@ -7008,7 +7017,15 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
  * \sa GetTextAlign
  */
 #define SetTextAlign(hdc, ta_flags)        \
-                SetDCAttr (hdc, DC_ATTR_TEXT_ALIGN, (DWORD)ta_flags)
+            SetDCAttr (hdc, DC_ATTR_TEXT_ALIGN, (DWORD)ta_flags)
+
+#define GetBIDIFlag(hdc)            GetDCAttr (hdc, DC_ATTR_BIDI_ENABLED)
+#define SetBIDIFlag(hdc, bidi)              \
+            SetDCAttr (hdc, DC_ATTR_BIDI_ENABLED, (DWORD)bidi)
+
+#define GetBIDIFirstChType(hdc)     GetDCAttr (hdc, DC_ATTR_BIDI_FIRSTCH_TYPE)
+#define SetBIDIFirstChType(hdc, type)       \
+            SetDCAttr (hdc, DC_ATTR_BIDI_FIRSTCH_TYPE, (DWORD)type)
 
 /**
  * \fn int GUIAPI TextOutLen (HDC hdc, int x, int y, \
@@ -8534,24 +8551,6 @@ MG_EXPORT BOOL GUIAPI AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
  */
 MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
 
-#ifdef _DEBUG
-/*
- * Dump avl tree info
- */
-void dump_tree (DEVFONT *dev_font);
-
-/*
- * look up a node in bitmap font avl tree.
- */ 
-int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n);
-
-/*
- * destroy bitmap font avl tree.
- */ 
-void destroy_avl_tree (DEVFONT *dev_font);
-
-#endif /* end of _DEBUG */
-
 #endif /* end of _MGFONT_BMPF */ 
 
      /**
@@ -8809,6 +8808,200 @@ MG_EXPORT int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs,
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs,
         int nr_glyphs, int max_extent, SIZE* size);
+
+/* 
+ * Define some bit masks, that character types are based on, each one has
+ * only one bit on.
+ */
+
+#define BIDI_MASK_RTL       0x00000001L	/* Is right to left */
+#define BIDI_MASK_ARABIC    0x00000002L	/* Is arabic */
+
+/* Each char can be only one of the three following. */
+#define BIDI_MASK_STRONG    0x00000010L	/* Is strong */
+#define BIDI_MASK_WEAK	    0x00000020L	/* Is weak */
+#define BIDI_MASK_NEUTRAL	0x00000040L	/* Is neutral */
+#define BIDI_MASK_SENTINEL	0x00000080L	/* Is sentinel: SOT, EOT */
+
+/* Each char can be only one of the five following. */
+#define BIDI_MASK_LETTER	0x00000100L	/* Is letter: L, R, AL */
+#define BIDI_MASK_NUMBER	0x00000200L	/* Is number: EN, AN */
+#define BIDI_MASK_NUMSEPTER	0x00000400L	/* Is number separator or terminator: ES, ET, CS */
+#define BIDI_MASK_SPACE	    0x00000800L	/* Is space: BN, BS, SS, WS */
+#define BIDI_MASK_EXPLICIT	0x00001000L	/* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
+
+/* Can be on only if BIDI_MASK_SPACE is also on. */
+#define BIDI_MASK_SEPARATOR	0x00002000L	/* Is test separator: BS, SS */
+/* Can be on only if BIDI_MASK_EXPLICIT is also on. */
+#define BIDI_MASK_OVERRIDE	0x00004000L	/* Is explicit override: LRO, RLO */
+
+#define BIDI_MASK_ES		0x00010000L
+#define BIDI_MASK_ET		0x00020000L
+#define BIDI_MASK_CS		0x00040000L
+
+#define BIDI_MASK_NSM       0x00080000L
+#define BIDI_MASK_BN		0x00100000L
+
+#define BIDI_MASK_BS		0x00200000L
+#define BIDI_MASK_SS		0x00400000L
+#define BIDI_MASK_WS		0x00800000L
+
+/*
+ * Define values for Bidi char type
+ */
+
+/* Strong left to right */
+#define BIDI_TYPE_LTR	(BIDI_MASK_STRONG + BIDI_MASK_LETTER)
+
+/* Right to left characters */
+#define BIDI_TYPE_RTL	(BIDI_MASK_STRONG + BIDI_MASK_LETTER \
+                         + BIDI_MASK_RTL)
+
+/* Arabic characters */
+#define BIDI_TYPE_AL	(BIDI_MASK_STRONG + BIDI_MASK_LETTER \
+                        + BIDI_MASK_RTL  + BIDI_MASK_ARABIC)
+
+/* Left-To-Right embedding */
+#define BIDI_TYPE_LRE	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT)
+
+/* Right-To-Left embedding */
+#define BIDI_TYPE_RLE	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+                        + BIDI_MASK_RTL)
+
+/* Left-To-Right override */
+#define BIDI_TYPE_LRO	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+                        + BIDI_MASK_OVERRIDE)
+
+/* Right-To-Left override */
+#define BIDI_TYPE_RLO	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+                        + BIDI_MASK_RTL + BIDI_MASK_OVERRIDE)
+
+/* Pop directional override */
+#define BIDI_TYPE_PDF	(BIDI_MASK_WEAK + BIDI_MASK_EXPLICIT)
+
+/* European digit */
+#define BIDI_TYPE_EN	(BIDI_MASK_WEAK + BIDI_MASK_NUMBER)
+
+/* Arabic digit */
+#define BIDI_TYPE_AN	(BIDI_MASK_WEAK + BIDI_MASK_NUMBER \
+                        + BIDI_MASK_ARABIC)
+
+/* European number separator */
+#define BIDI_TYPE_ES	(BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+                        + BIDI_MASK_ES)
+
+/* European number terminator */
+#define BIDI_TYPE_ET	(BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+                        + BIDI_MASK_ET)
+
+/* Common Separator */
+#define BIDI_TYPE_CS	(BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+                        + BIDI_MASK_CS)
+
+/* Non spacing mark */
+#define BIDI_TYPE_NSM	(BIDI_MASK_WEAK + BIDI_MASK_NSM)
+
+/* Boundary neutral */
+#define BIDI_TYPE_BN	(BIDI_MASK_WEAK + BIDI_MASK_SPACE \
+                        + BIDI_MASK_BN)
+
+/* Block separator */
+#define BIDI_TYPE_BS	(BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+                        + BIDI_MASK_SEPARATOR + BIDI_MASK_BS)
+
+/* Segment separator */
+#define BIDI_TYPE_SS	(BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+                        + BIDI_MASK_SEPARATOR + BIDI_MASK_SS)
+/* Whitespace */
+#define BIDI_TYPE_WS	(BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+                        + BIDI_MASK_WS)
+
+/* Other Neutral */
+#define BIDI_TYPE_ON	(BIDI_MASK_NEUTRAL)
+
+/* The following are used to identify the paragraph direction,
+   types L, R, N are not used internally anymore, and recommended to use
+   LTR, RTL and ON instead, didn't removed because of compatability. */
+
+#define BIDI_TYPE_L		(BIDI_TYPE_LTR)
+#define BIDI_TYPE_R		(BIDI_TYPE_RTL)
+#define BIDI_TYPE_N		(BIDI_TYPE_ON)
+/* Weak left to right */
+#define BIDI_TYPE_WL	(BIDI_MASK_WEAK)
+/* Weak right to left */
+#define BIDI_TYPE_WR	(BIDI_MASK_WEAK + BIDI_MASK_RTL)
+
+/* The following are only used internally */
+
+/* Start of text */
+#define BIDI_TYPE_SOT	(BIDI_MASK_SENTINEL)
+/* End of text */
+#define BIDI_TYPE_EOT	(BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
+
+/* Is private-use value? */
+#define BIDI_TYPE_PRIVATE(p)	((p) < 0)
+
+/* Return the direction of the level number, BIDI_TYPE_LTR for even and
+   BIDI_TYPE_RTL for odds. */
+#define BIDI_LEVEL_TO_DIR(lev) (BIDI_TYPE_LTR | (lev & 1))
+
+/* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
+   1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
+#define BIDI_DIR_TO_LEVEL(dir) ((BYTE)(dir & 1))
+
+/* Is right to left? */
+#define BIDI_IS_RTL(p)      ((p) & BIDI_MASK_RTL)
+/* Is arabic? */
+#define BIDI_IS_ARABIC(p)   ((p) & BIDI_MASK_ARABIC)
+
+/* Is strong? */
+#define BIDI_IS_STRONG(p)   ((p) & BIDI_MASK_STRONG)
+/* Is weak? */
+#define BIDI_IS_WEAK(p)     ((p) & BIDI_MASK_WEAK)
+/* Is neutral? */
+#define BIDI_IS_NEUTRAL(p)  ((p) & BIDI_MASK_NEUTRAL)
+/* Is sentinel? */
+#define BIDI_IS_SENTINEL(p) ((p) & BIDI_MASK_SENTINEL)
+
+/* Is letter: L, R, AL? */
+#define BIDI_IS_LETTER(p)   ((p) & BIDI_MASK_LETTER)
+/* Is number: EN, AN? */
+#define BIDI_IS_NUMBER(p)   ((p) & BIDI_MASK_NUMBER)
+/* Is number separator or terminator: ES, ET, CS? */
+#define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
+	((p) & BIDI_MASK_NUMSEPTER)
+
+/* Is space: BN, BS, SS, WS? */
+#define BIDI_IS_SPACE(p)    ((p) & BIDI_MASK_SPACE)
+/* Is explicit mark: LRE, RLE, LRO, RLO, PDF? */
+#define BIDI_IS_EXPLICIT(p) ((p) & BIDI_MASK_EXPLICIT)
+
+/* Is test separator: BS, SS? */
+#define BIDI_IS_SEPARATOR(p) ((p) & BIDI_MASK_SEPARATOR)
+
+/* Is explicit override: LRO, RLO? */
+#define BIDI_IS_OVERRIDE(p) ((p) & BIDI_MASK_OVERRIDE)
+
+/* Some more: */
+
+/* Is left to right letter: LTR? */
+#define BIDI_IS_LTR_LETTER(p) \
+	((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) == BIDI_MASK_LETTER)
+
+/* Is right to left letter: RTL, AL? */
+#define BIDI_IS_RTL_LETTER(p) \
+	((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) \
+	== (BIDI_MASK_LETTER | BIDI_MASK_RTL))
+
+/* Is ES or CS: ES, CS? */
+#define BIDI_IS_ES_OR_CS(p) \
+	((p) & (BIDI_MASK_ES | BIDI_MASK_CS))
+
+/* Change numbers: EN, AN to RTL. */
+#define BIDI_NUMBER_TO_RTL(p) \
+        (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
+
+MG_EXPORT GUIAPI BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value, Uint32 *bidi_type);
 
 /** \fn int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font, \
         const char* text, int text_len, Glyph32** glyphs, \
