@@ -42,9 +42,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef WIN32
-#   include <assert.h>
-#endif
 
 #include "common.h"
 #include "gdi.h"
@@ -176,7 +173,7 @@ static void get_transparent_info (png_structp png_ptr, png_infop info_ptr,
 }
 #endif
 
-void * __mg_init_png(MG_RWops * fp, MYBITMAP * mybmp, RGB * pal)
+void* __mg_init_png(MG_RWops * fp, MYBITMAP * mybmp, RGB * pal)
 {
     int rc;
     png_structpp png_ptr;
@@ -187,10 +184,11 @@ void * __mg_init_png(MG_RWops * fp, MYBITMAP * mybmp, RGB * pal)
     double screen_gamma;
     png_init_info_t * png_data = NULL;
 
-
     png_data = (png_init_info_t *)malloc(sizeof(png_init_info_t));
-    if (!png_data)
+    if (!png_data) {
+        _ERR_PRINTF ("__mg_init_png: failed to allocate memory for png_init_info_t\n");
         return NULL;
+    }
 
     png_ptr = &png_data->png_ptr;
     info_ptr = &png_data->info_ptr;
@@ -202,6 +200,7 @@ void * __mg_init_png(MG_RWops * fp, MYBITMAP * mybmp, RGB * pal)
         case _PNG_MEM_ALLOC:
         case _PNG_LIB_ERROR:
         default:
+            _ERR_PRINTF ("__mg_init_png: failed to call readpng_init: %d\n", rc);
             goto err;
         }
     }
@@ -221,28 +220,21 @@ void * __mg_init_png(MG_RWops * fp, MYBITMAP * mybmp, RGB * pal)
         png_set_packing(*png_ptr);
 
     /* Expand grayscale images to the full 8 bits from 1, 2, or 4 bits/pixel */
-	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {
-#ifdef WIN32
-        assert(0); /* XXX: */
-#else
+	if ((color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+            && bit_depth < 8) {
         png_set_gray_1_2_4_to_8(*png_ptr);
-#endif
 	}
 
     /* Expand paletted colors into true RGB triplets */
     if (color_type == PNG_COLOR_TYPE_PALETTE)
         png_set_palette_to_rgb(*png_ptr);
-    else if (color_type == PNG_COLOR_TYPE_GRAY)
+    else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
         png_set_gray_to_rgb(*png_ptr);
 
     if (png_get_valid(*png_ptr, *info_ptr, PNG_INFO_tRNS)) {
-#if 0
-        get_transparent_info(*png_ptr, *info_ptr, bit_depth, color_type, mybmp);
-#else
         png_set_tRNS_to_alpha (*png_ptr);
         mybmp->flags |= MYBMP_FLOW_DOWN | MYBMP_ALPHA | MYBMP_TYPE_RGBA;
         color_type = PNG_COLOR_TYPE_RGBA;
-#endif
     }
 
     if (color_type & PNG_COLOR_MASK_ALPHA) {
@@ -268,15 +260,19 @@ void * __mg_init_png(MG_RWops * fp, MYBITMAP * mybmp, RGB * pal)
     mybmp->depth = (*info_ptr)->pixel_depth;
     if (mybmp->depth == 24)
         mybmp->flags |= MYBMP_RGBSIZE_3;
-    else
+    else if (mybmp->depth == 32)
         mybmp->flags |= MYBMP_RGBSIZE_4;
+    else {
+        _ERR_PRINTF ("__mg_init_png: bad pixel_depth: %d\n", mybmp->depth);
+        goto err;
+    }
     
     mybmp->pitch = png_get_rowbytes (*png_ptr, *info_ptr);
 
     return png_data;
 
 err:
-    fprintf(stderr, "__mg_init_png error!\n");
+    _ERR_PRINTF ("__mg_init_png error!\n");
     free (png_data);
     return NULL;
 }
