@@ -1032,7 +1032,9 @@ BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
         if (xo != 0 || yo != 0) {
             part.bmBits += part.bmPitch * yo + 
                     xo * GAL_BytesPerPixel (pdc->surface);
-            part.bmAlphaMask += yo * part.bmAlphaPitch + xo;
+            if (part.bmType & BMP_TYPE_ALPHA_MASK) {
+                part.bmAlphaMask += yo * part.bmAlphaPitch + xo;
+            }
         }
         _dc_fillbox_bmp_clip (pdc, &rect, &part);
     }
