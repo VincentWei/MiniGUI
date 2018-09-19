@@ -120,7 +120,7 @@ static int shm_init_lock(key_t key)
     
     semid = semget(key,1,IPC_CREAT|0666);
     if(semid==-1){
-        printf("create semaphoreerror\n");
+        _ERR_PRINTF ("NEWGAL>PCXVFB: Failed to create semaphore.\n");
         exit(-1);
     }
     sem.val=1;
@@ -145,10 +145,10 @@ static int execl_pcxvfb(void)
     char window_caption[WINDOW_CAPTION_LEN + 1];
     char mode [LEN_MODE + 1];
     char ch_pid[32];
-	char skin[256];
+    char skin[256];
     int i;
 #if defined (WIN32) || !defined(__NOUNIX__)
-	char* env_value;
+    char* env_value;
 #endif
 
     if (GetMgEtcValue ("pc_xvfb", "exec_file", execl_file, EXECL_FILENAME_LEN) < 0)
@@ -178,10 +178,10 @@ static int execl_pcxvfb(void)
 
     sprintf(ch_pid, "%d", getppid());
 
-	skin[0] = '\0';
-	GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
-	
-	_MG_PRINTF ("NEWGAL>PCXVFB: %s %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
+    skin[0] = '\0';
+    GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
+    
+    _DBG_PRINTF ("NEWGAL>PCXVFB: %s %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
 
     if (execlp (execl_file, "pcxvfb", ch_pid, window_caption, mode, skin, NULL) < 0) {
         _ERR_PRINTF ("NEWGAL>PCXVFB: failed to start the virtual frame buffer process!\n");
@@ -338,15 +338,15 @@ static int my_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 
 static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 {
-	int i;
-	char* env_value;
-	char execl_file[EXECL_FILENAME_LEN + 1];
-	char window_caption[WINDOW_CAPTION_LEN + 1];
-	char mode [LEN_MODE + 1];
-	struct GAL_PrivateVideoData* data = this->hidden;
+    int i;
+    char* env_value;
+    char execl_file[EXECL_FILENAME_LEN + 1];
+    char window_caption[WINDOW_CAPTION_LEN + 1];
+    char mode [LEN_MODE + 1];
+    struct GAL_PrivateVideoData* data = this->hidden;
 #ifdef WIN32 //-----------win32----------------
-	char etc_param[128];
-	char skin[256];
+    char etc_param[128];
+    char skin[256];
 #endif
     
     if (GetMgEtcValue ("pc_xvfb", "exec_file", 
@@ -389,8 +389,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     char mapFile[128];
     int  w, h, d, pitch, dataSize, color_num;
     int fd;
-		struct sockaddr_in srv_addr;
-		struct sockaddr_in clt_addr;
+        struct sockaddr_in srv_addr;
+        struct sockaddr_in clt_addr;
 
     w = atoi(mode);
     h = atoi(strchr(mode, 'x')+1);
@@ -401,11 +401,11 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     } else {
         pitch = ((w * d + 31) / 32) * 4;
     }
-	
-		if(d <= 8)
-		  color_num = 1 << d;
-		else
-			color_num = 0;
+    
+    if(d <= 8)
+        color_num = 1 << d;
+    else
+        color_num = 0;
 
     dataSize = pitch * h + sizeof(XVFBHeader) + color_num * sizeof(XVFBPalEntry);
     
@@ -443,14 +443,14 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     fd = open (mapFile, O_RDWR);
 
     if (fd < 0){
-        printf("open file %s error.\n",mapFile);
+        _ERR_PRINTF ("NEWGAL>PCXVFB: open file %s error.\n", mapFile);
         return NULL;
     }
 
     data->shmrgn = (unsigned char *)mmap(NULL, dataSize, 
             PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
             
-		close(fd);
+        close(fd);
 #else //-----------------linux----------------------
 
     pid_t  pid;
@@ -709,22 +709,22 @@ static int PCXVFB_SetColors(_THIS, int firstcolor,
 static void PCXVFB_VideoQuit (_THIS)
 {
 #ifdef WIN32 // windows
-	win_PCXVFbClose ();
+    win_PCXVFbClose ();
 #elif defined (__CYGWIN__) // cygwin
-	int fd;
-	char mapFile[128];
-	struct stat sb;
-	sprintf(mapFile,"%s-%d", preMapFile, getpid());
-	fd = open(mapFile, O_RDONLY);
-	fstat (fd, &sb);
-	int size = sb.st_size;
-	munmap(this->hidden->shmrgn, size);
-	close(fd);
-	remove(mapFile);
-	semctl(semid,0,IPC_RMID);
-#else		// linux
-	shmdt (this->hidden->shmrgn);
-	semctl(semid,0,IPC_RMID);
+    int fd;
+    char mapFile[128];
+    struct stat sb;
+    sprintf(mapFile,"%s-%d", preMapFile, getpid());
+    fd = open(mapFile, O_RDONLY);
+    fstat (fd, &sb);
+    int size = sb.st_size;
+    munmap(this->hidden->shmrgn, size);
+    close(fd);
+    remove(mapFile);
+    semctl(semid,0,IPC_RMID);
+#else        // linux
+    shmdt (this->hidden->shmrgn);
+    semctl(semid,0,IPC_RMID);
 #endif
 }
 
