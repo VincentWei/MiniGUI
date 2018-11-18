@@ -2020,70 +2020,36 @@ int init_minigui_printf (int (*output_char) (int ch),
     #define TCS_CLRLINE(fp)
 #endif
 
-#if defined(__GNUC__)
-#   define _ERR_PRINTF(fmt...)      \
-        do {                        \
-            TCS_BOLD_RED (stderr);  \
-            fprintf (stderr, fmt);  \
-            TCS_NONE (stderr);      \
-        } while (0)
-#   ifdef _DEBUG
-#       define _MG_PRINTF(fmt...)   \
-        do {                        \
-            TCS_GREEN (stderr);     \
-            fprintf (stderr, fmt);  \
-            TCS_NONE (stderr);      \
-        } while (0)
+#define _ERR_PRINTF(fmt, ...)                   \
+    do {                                        \
+        TCS_RED (stderr);                       \
+        fprintf (stderr, fmt, ##__VA_ARGS__);   \
+        TCS_NONE (stderr);                      \
+    } while (0)
+
+#ifdef _DEBUG
+# define _MG_PRINTF(fmt, ...)                 \
+    do {                                        \
+        TCS_GREEN (stdout);                     \
+        fprintf (stdout, fmt, ##__VA_ARGS__);   \
+        TCS_NONE (stdout);                      \
+    } while (0)
         
-#       ifdef DEBUG
-#           define _DBG_PRINTF(fmt...)  \
-        do {                            \
-            TCS_YELLOW (stderr);        \
-            fprintf (stderr, fmt);      \
-            TCS_NONE (stderr);          \
-        } while (0)
-#       else
-#           define _DBG_PRINTF(fmt...)
-#       endif
-#   else
-#       define _MG_PRINTF(fmt...)
-#       define _DBG_PRINTF(fmt...)
-#   endif
-#else /* __GNUC__ */
-
-static inline void _ERR_PRINTF(const char* fmt, ...)
-{
-    va_list ap;
-    va_start (ap, fmt);
-    TCS_BOLD_RED (stderr);
-    vfprintf (stderr, fmt, ap);
-    TCS_NONE (stderr);
-    va_end (ap);
-}
-static inline void _MG_PRINTF(const char* fmt, ...)
-{
-#ifdef DEBUG
-    va_list ap;
-    va_start (ap, fmt);
-    TCS_GREEN (stderr);
-    vfprintf (stderr, fmt, ap);
-    TCS_NONE (stderr);
-    va_end (ap);
+# ifdef DEBUG
+#       define _DBG_PRINTF(fmt, ...)            \
+    do {                                        \
+        TCS_YELLOW (stderr);                    \
+        fprintf (stderr, fmt, ##__VA_ARGS__);   \
+        fprintf (stderr, "\n");                 \
+        TCS_NONE (stderr);                      \
+    } while (0)
+# else
+#       define _DBG_PRINTF(fmt, ...)
+# endif
+#else
+#   define _MG_PRINTF(fmt, ...)
+#   define _DBG_PRINTF(fmt, ...)
 #endif
-}
-
-static inline void _DBG_PRINTF(const char* fmt, ...)
-{
-#if defined(DEBUG) && defined(_DEBUG)
-    va_list ap;
-    va_start (ap, fmt);
-    TCS_YELLOW (stderr);
-    vfprintf (stderr, fmt, ap);
-    TCS_NONE (stderr);
-    va_end (ap);
-#endif
-}
-#endif /* !__GNUC__ */
 
 #ifdef _MGRM_THREADS
 
