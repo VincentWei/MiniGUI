@@ -1733,6 +1733,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 
     pdc->mapmode = MM_TEXT;
     pdc->ta_flags = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+    pdc->bidi_flags = 0;
 
     pdc->ViewOrig.x = pdc->ViewOrig.y = 0;
     pdc->ViewExtent.x = pdc->ViewExtent.y = 1;
@@ -1828,7 +1829,7 @@ static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref)
 
     /* copy attributes from reference DC */
     memcpy (&pdc->bkcolor, &pdc_ref->bkcolor, 
-                sizeof (gal_pixel)*4 + sizeof (int)*7);
+                sizeof (gal_pixel)*4 + sizeof (int)*8);
 #ifdef _MGHAVE_ADV_2DAPI
     memcpy (&pdc->pen_type, &pdc_ref->pen_type, 
                 (sizeof(int)*7) + sizeof(POINT) + (sizeof (void*)*3));
@@ -1894,6 +1895,7 @@ static void dc_InitScreenDC (PDC pdc, GAL_Surface *surface)
 
     pdc->mapmode = MM_TEXT;
     pdc->ta_flags = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+    pdc->bidi_flags = 0;
 
     pdc->ViewOrig.x = pdc->ViewOrig.y = 0;
     pdc->ViewExtent.x = pdc->ViewExtent.y = 1;
@@ -3425,8 +3427,8 @@ HWND GUIAPI WindowFromDC (HDC hdc)
 typedef struct _DCSTATE
 {
     GAL_Color bkcolor, pencolor, brushcolor, textcolor;
-    /* bkmode, tabstop, cExtra, alExtra, blExtra, mapmode, ta_flags */
-    char attrs_g1 [sizeof(int)*7];
+    /* bkmode, tabstop, cExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags */
+    char attrs_g1 [sizeof(int)*8];
 
 #ifdef _MGHAVE_ADV_2DAPI
     /* 
