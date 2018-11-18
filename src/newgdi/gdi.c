@@ -1827,7 +1827,10 @@ static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref)
     memset (pdc->gray_pixels, 0, sizeof (pdc->gray_pixels));
     memset (pdc->filter_pixels, 0, sizeof (pdc->filter_pixels));
 
-    /* copy attributes from reference DC */
+    /* copy attributes from reference DC
+     * gal_pixel bkcolor, pencolor, brushcolor, textcolor;
+     * int bkmode, tabstop, cExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags;
+     */
     memcpy (&pdc->bkcolor, &pdc_ref->bkcolor, 
                 sizeof (gal_pixel)*4 + sizeof (int)*8);
 #ifdef _MGHAVE_ADV_2DAPI

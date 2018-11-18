@@ -2062,10 +2062,8 @@ MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
  *        mode of a DC.
  *      - DC_ATTR_TEXT_ALIGN\n
  *        Text-alignment flags of a DC.
- *      - DC_ATTR_BIDI_ENABLED\n
- *        Is BIDI enabled.
- *      - DC_ATTR_BIDI_FIRSTCH_TYPE\n
- *        The first character type, on of BIDI_CHAR_TYPE_INIT, BIDI_CHAR_TYPE_LTR, or BIDI_CHAR_TYPE_RTL.
+ *      - DC_ATTR_BIDI_FLAGS\n
+ *        BIDI flags.
  * \return The attribute value.
  *
  * \sa SetDCAttr
@@ -7013,7 +7011,7 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
             GetDCAttr (hdc, DC_ATTR_BIDI_FLAGS)
 
 #define SetBIDIFlags(hdc, bidi_flags)       \
-            SetDCAttr (hdc, DC_ATTR_BIDI_FLAGS, (DWORD)bidi)
+            SetDCAttr (hdc, DC_ATTR_BIDI_FLAGS, (DWORD)bidi_flags)
 
 /**
  * \fn int GUIAPI TextOutLen (HDC hdc, int x, int y, \
