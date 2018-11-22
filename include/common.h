@@ -2040,7 +2040,6 @@ int init_minigui_printf (int (*output_char) (int ch),
     do {                                        \
         TCS_YELLOW (stderr);                    \
         fprintf (stderr, fmt, ##__VA_ARGS__);   \
-        fprintf (stderr, "\n");                 \
         TCS_NONE (stderr);                      \
     } while (0)
 # else
