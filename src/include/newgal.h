@@ -45,10 +45,6 @@
 
 #include "gdi.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
 #define DISABLE_THREADS
 #define GAL_mutex       int
 
@@ -66,6 +62,20 @@ extern "C" {
 /* Transparency definitions: These define alpha as the opacity of a surface */
 #define GAL_ALPHA_OPAQUE        255
 #define GAL_ALPHA_TRANSPARENT   0
+
+#if defined (__NOUNIX__) || defined (__uClinux__)
+  #define SIZE_UPDATERECTHEAP 16
+#else
+ #ifndef _MGRM_THREADS
+  #define SIZE_UPDATERECTHEAP 32
+ #else
+  #define SIZE_UPDATERECTHEAP 64
+ #endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 /*
  * Allocate a pixel format structure and fill it according to the given info.
@@ -101,6 +111,11 @@ typedef struct GAL_Surface {
 
     /* clipping information */
     GAL_Rect clip_rect;                 /* Read-only */
+
+#ifdef _MGUSE_SYNC_UPDATE
+    /* update region */
+    CLIPRGN update_region;              /* Read-only */
+#endif
 
     /* info for fast blit mapping to other surfaces */
     struct GAL_BlitMap *map;             /* Private */
@@ -295,6 +310,11 @@ extern void GAL_UpdateRects
                 (GAL_Surface *screen, int numrects, GAL_Rect *rects);
 extern void GAL_UpdateRect
                 (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h);
+
+#ifdef _MGUSE_SYNC_UPDATE
+extern BLOCKHEAP __mg_free_update_region_list;
+extern BOOL GAL_SyncUpdate (GAL_Surface *screen);
+#endif
 
 #if 0
 /*

@@ -78,9 +78,9 @@ void screensaver_hide(void);
   #define SIZE_QMSG_HEAP      16
  #else
   #define DEF_MSGQUEUE_LEN    16     /* default message queue length */
-  #define SIZE_CLIPRECTHEAP   128
-  #define SIZE_INVRECTHEAP    128
-  #define SIZE_QMSG_HEAP      8
+  #define SIZE_CLIPRECTHEAP   32
+  #define SIZE_INVRECTHEAP    64
+  #define SIZE_QMSG_HEAP      16
  #endif
 #endif
 

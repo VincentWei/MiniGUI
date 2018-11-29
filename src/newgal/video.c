@@ -149,6 +149,10 @@ static VideoBootStrap *bootstrap[] = {
 
 GAL_VideoDevice *current_video = NULL;
 
+#ifdef _MGUSE_SYNC_UPDATE
+BLOCKHEAP __mg_free_update_region_list;
+#endif
+
 /* Various local functions */
 int GAL_VideoInit(const char *driver_name, Uint32 flags);
 void GAL_VideoQuit(void);
@@ -205,6 +209,10 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
     GAL_VideoDevice *video;
     GAL_PixelFormat vformat;
     Uint32 video_flags;
+
+#ifdef _MGUSE_SYNC_UPDATE
+    InitFreeClipRectList (&__mg_free_update_region_list, SIZE_UPDATERECTHEAP);
+#endif
 
     /* Check to make sure we don't overwrite 'current_video' */
     if ( current_video != NULL ) {
@@ -671,24 +679,24 @@ GAL_Surface *GAL_DisplayFormatAlpha(GAL_Surface *surface)
 /*
  * Update a specific portion of the physical screen
  */
-void GAL_UpdateRect(GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h)
+void GAL_UpdateRect (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h)
 {
-    GAL_VideoDevice *video = (GAL_VideoDevice *) screen->video;
+    GAL_VideoDevice *video = (GAL_VideoDevice *)screen->video;
     if (!video)
         return;
 
-    if ( screen && (video->UpdateRects ||video->UpdateSurfaceRects)) {
+    if (screen && (video->UpdateRects || video->UpdateSurfaceRects)) {
         GAL_Rect rect;
 
         /* Perform some checking */
-        if ( w == 0 )
+        if (w == 0)
             w = screen->w;
-        if ( h == 0 )
+        if (h == 0)
             h = screen->h;
 
-        if ( (int)(x+w) > screen->w ) 
+        if ((int)(x+w) > screen->w) 
             w = screen->w - x;
-        if ( (int)(y+h) > screen->h )
+        if ((int)(y+h) > screen->h)
             h = screen->h - x;
 
         /* Fill the rectangle */
@@ -696,24 +704,115 @@ void GAL_UpdateRect(GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h)
         rect.y = y;
         rect.w = w;
         rect.h = h;
-        GAL_UpdateRects(screen, 1, &rect);
+        GAL_UpdateRects (screen, 1, &rect);
     }
 }
+
+#ifdef _MGUSE_SYNC_UPDATE
 
 void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
 {
-    GAL_VideoDevice *this =(GAL_VideoDevice *) screen->video;
+    int i;
+    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
 
-    if (this->info.mlt_surfaces == 0){
-        if (this && this->UpdateRects)
-            this->UpdateRects(this, numrects, rects);
+    if (this == NULL)
+        return;
+
+    if (this->info.mlt_surfaces == 0 && this->UpdateRects == NULL) {
+        return;
     }
-    else{
-        if(this && this->UpdateSurfaceRects){
-            this->UpdateSurfaceRects(this, screen, numrects, rects);
+    else if (this->UpdateSurfaceRects) {
+        return;
+    }
+
+    for (i = 0; i < numrects; i++) {
+        RECT rc;
+        rc.left   = rects[i].x;
+        rc.top    = rects[i].y;
+        rc.right  = rects[i].x + rects[i].w;
+        rc.bottom = rects[i].y + rects[i].h;
+        AddClipRect (&screen->update_region, &rc);
+    }
+}
+
+static int convert_region_to_rects (const CLIPRGN * rgn, GAL_Rect *rects, int max_nr)
+{
+    int nr = 0;
+    PCLIPRECT clip_rect = rgn->head;
+    RECT left_rc;
+
+    while (clip_rect && ((nr + 1) < max_nr)) {
+        rects [nr].x = clip_rect->rc.left;
+        rects [nr].y = clip_rect->rc.top;
+        rects [nr].w = clip_rect->rc.right - clip_rect->rc.left;
+        rects [nr].h = clip_rect->rc.bottom - clip_rect->rc.top;
+
+        nr++;
+        clip_rect = clip_rect->next;
+    }
+
+    if (clip_rect == NULL) {
+        return nr;
+    }
+
+    SetRect (&left_rc, 0, 0, 0, 0);
+    while (clip_rect) {
+        UnionRect (&left_rc, &left_rc, &clip_rect->rc);
+        clip_rect = clip_rect->next;
+    }
+
+    rects [nr].x = left_rc.left;
+    rects [nr].y = left_rc.top;
+    rects [nr].w = left_rc.right - left_rc.left;
+    rects [nr].h = left_rc.bottom - left_rc.top;
+
+    nr++;
+
+    return nr;
+}
+
+BOOL GAL_SyncUpdate (GAL_Surface *screen)
+{
+    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
+    GAL_Rect rects[8];
+    int numrects;
+
+    if (this == NULL)
+        return FALSE;
+
+    numrects = convert_region_to_rects (&screen->update_region, rects, 8);
+    if (numrects <= 0)
+        return FALSE;
+
+    if (this->info.mlt_surfaces == 0 && this->UpdateRects) {
+        this->UpdateRects (this, numrects, rects);
+    }
+    else if (this->UpdateSurfaceRects) {
+        this->UpdateSurfaceRects (this, screen, numrects, rects);
+    }
+
+    EmptyClipRgn (&screen->update_region);
+    return TRUE;
+}
+
+#else
+
+void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
+{
+    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
+
+    if (this->info.mlt_surfaces == 0) {
+        if (this && this->UpdateRects)
+            this->UpdateRects (this, numrects, rects);
+    }
+    else {
+        if (this && this->UpdateSurfaceRects) {
+            this->UpdateSurfaceRects (this, screen, numrects, rects);
         }
     }
 }
+
+#endif /* _MGUSE_SYNC_UPDATE */
 
 static void SetPalette_logical(GAL_Surface *screen, GAL_Color *colors,
         int firstcolor, int ncolors)
@@ -878,9 +977,14 @@ void GAL_VideoQuit (void)
             free(video->physpal);
             video->physpal = NULL;
         }
+
         /* Finish cleaning up video subsystem */
         video->free(this);
         current_video = NULL;
+
+#ifdef _MGUSE_SYNC_UPDATE
+	    DestroyFreeClipRectList (&__mg_free_update_region_list);
+#endif
     }
     return;
 }
@@ -984,6 +1088,11 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     surface->map = NULL;
     surface->format_version = 0;
     GAL_SetClipRect(surface, NULL);
+
+#ifdef _MGUSE_SYNC_UPDATE
+    /* Initialize update region */
+    InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
+#endif
 
     /* Allocate an empty mapping */
     surface->map = GAL_AllocBlitMap();
@@ -1185,7 +1294,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode)
     video = GAL_GetVideo(driver_name);
 
     if (video == NULL) {
-        fprintf (stderr, "NEWGAL: Does not find the slave video engine: %s.\n", 
+        _DBG_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n", 
                         driver_name);
         return NULL;
     }
@@ -1194,7 +1303,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode)
     memset(&vformat, 0, sizeof(vformat));
 
     if ( video->VideoInit(video, &vformat) < 0 ) {
-        fprintf (stderr, "NEWGAL: Can not init the slave video engine: %s.\n", 
+        _DBG_PRINTF ("NEWGAL: Can not init the slave video engine: %s.\n", 
                         driver_name);
         gal_SlaveVideoQuit (video->screen);
         return NULL;
@@ -1203,7 +1312,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode)
     surface = Slave_CreateSurface (video, 0, 0, vformat.BitsPerPixel,
             vformat.Rmask, vformat.Gmask, vformat.Bmask, 0);
     if (!surface) {
-        fprintf (stderr, "NEWGAL: Create slave video surface failure.\n");
+        _DBG_PRINTF ("NEWGAL: Create slave video surface failure.\n");
         return NULL;
     }
 
@@ -1214,8 +1323,9 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode)
 
     if (!(Slave_SetVideoMode(video, surface, w, h, depth, GAL_HWPALETTE))) {
         gal_SlaveVideoQuit (video->screen);
-        fprintf (stderr, "NEWGAL: Set video mode failure.\n");
+        _DBG_PRINTF ("NEWGAL: Set video mode failure.\n");
         return NULL;
     }
     return surface;
 }
+

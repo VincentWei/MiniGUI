@@ -3687,3 +3687,19 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpi
     return old_rop;
 }
 
+MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc)
+{
+#ifdef _MGUSE_SYNC_UPDATE
+    BOOL rc;
+    PDC pdc = dc_HDC2PDC (hdc);
+
+    LOCK (&__mg_gdilock);
+    rc = GAL_SyncUpdate (pdc->surface);
+    UNLOCK (&__mg_gdilock);
+
+    return rc;
+#else
+    return FALSE;
+#endif
+}
+

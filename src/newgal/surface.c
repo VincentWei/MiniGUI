@@ -126,6 +126,11 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     surface->format_version = 0;
     GAL_SetClipRect(surface, NULL);
 
+#ifdef _MGUSE_SYNC_UPDATE
+    /* Initialize update region */
+    InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
+#endif
+
     /* Get the pixels */
     if ( surface->w && surface->h ) {
         if ( ((flags&GAL_HWSURFACE) == GAL_SWSURFACE) || 
@@ -1737,9 +1742,15 @@ void GAL_FreeSurface (GAL_Surface *surface)
         (current_video && (surface == GAL_VideoSurface))) {
         return;
     }
-    if ( --surface->refcount > 0 ) {
+
+    if (--surface->refcount > 0) {
         return;
     }
+
+#ifdef _MGUSE_SYNC_UPDATE
+    EmptyClipRgn (&surface->update_region);
+#endif
+
     if ( (surface->flags & GAL_RLEACCEL) == GAL_RLEACCEL ) {
             GAL_UnRLESurface(surface, 0);
     }

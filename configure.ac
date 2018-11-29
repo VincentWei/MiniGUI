@@ -102,6 +102,7 @@ use_own_malloc="no"
 use_own_pthread="no"
 
 build_adv2dapi="yes"
+build_syncupdate="no"
 build_minimalgdi="no"
 
 dnl Options for look and feel renderer
@@ -346,6 +347,10 @@ use_own_pthread=$enableval)
 AC_ARG_ENABLE(adv2dapi,
 [  --enable-adv2dapi        include advanced 2D graphics APIs <default=yes>],
 build_adv2dapi=$enableval)
+
+AC_ARG_ENABLE(syncupdate,
+[  --enable-syncupdate      include implementation of SyncUpdateDC <default=yes>],
+build_syncupdate=$enableval)
 
 AC_ARG_ENABLE(minimalgdi,
 [  --enable-minimalgdi      build a minimal GDI library only <default=no>],
@@ -1653,6 +1658,11 @@ fi
 if test "x$build_adv2dapi" = "xyes"; then
     AC_DEFINE(_MGHAVE_ADV_2DAPI, 1,
         [Define if include advanced 2D graphics APIs])
+fi
+
+if test "x$build_syncupdate" = "xyes"; then
+    AC_DEFINE(_MGUSE_SYNC_UPDATE, 1,
+        [Define if include implementation of SyncUpdateDC])
 fi
 
 if test "x$fixed_math" = "xyes"; then

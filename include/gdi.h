@@ -1983,6 +1983,20 @@ MG_EXPORT void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc);
  */
 MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
 
+/**
+ * \fn BOOL GUIAPI SyncUpdateDC (HDC hdc)
+ * \brief Synchronize the update rectangles of the surface corresponding to hdc to screen.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return TRUE when there are rectangles to be synchronized and updated.
+ *      FALSE when _MGUSE_SYNC_UPDATE is not defined, hdc is a memory DC,
+ *      or it is not necessory to update.
+ *
+ * \note This function only works when _MGUSE_SYNC_UPDATE defined.
+ */
+MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc);
+
     /** @} end of dc_fns */
 
     /**
