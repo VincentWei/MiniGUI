@@ -11,26 +11,18 @@ Please report any bugs and incompatibilities in
 ### What's new in this version
 
 * ENHANCEMENTS:
-
   1. New API: SyncUpdateDC (). You can use this function to synchronize 
     the update rectangles of a surface to screen, if the surface
-    represents the shadow frame buffer of the screen.
-
-    configure option: --enable-syncupdate
-    macro: _MGUSE_SYNC_UPDATE
-
+    represents the shadow frame buffer of the screen. 
+        configure option: --enable-syncupdate
+        macro: _MGUSE_SYNC_UPDATE
   1. Use different colors for the output of `_DBG_PRINTF` and `_ERR_PRINTF`.
-
   1. add `__mg_save_jpg` function for storing MYBITMAP as JPEG file (10km).
-
   1. modified logic for checking JPEG format (10km).
-
   1. Support BIDI for UNICODE charsets and cleanup the implementation.
     * New API: GetGlyphBIDIType
     * BIDI flag for DC attribute.
-
   1. Enhance commlcd engint to support more pixel type and synchronously update.
-
   1. Add USVFB IAL engine and NEWGAL engine for web display server.
 
 * BUGFIXING:
