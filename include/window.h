@@ -5339,6 +5339,22 @@ MG_EXPORT void GUIAPI DumpWindow (FILE* fp, HWND hWnd);
 MG_EXPORT void GUIAPI UpdateWindow (HWND hWnd, BOOL bErase);
 
 /**
+ * \fn void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL bErase)
+ * \brief Updates the invalid client areas in a window.
+ *
+ * This function updates the client areas specified by \a hWnd.
+ * It will redraw the invalid client area of the window, and 
+ * if \b bErase is TRUE, the client area will be erased by using 
+ * background color.
+ *
+ * \param hWnd The handle to the window.
+ * \param bErase Indicates whether to erase the client area of the window.
+ *
+ * \sa UpdateWindow
+ */
+MG_EXPORT void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL bErase);
+
+/**
  * \fn BOOL GUIAPI ShowWindow (HWND hWnd, int iCmdShow)
  * \brief Shows or hides a window.
  *

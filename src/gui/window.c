@@ -3977,8 +3977,7 @@ void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
 #endif
 }
 
-MG_EXPORT void GUIAPI UpdateInvalidRect (HWND hWnd, BOOL bErase);
-void GUIAPI UpdateInvalidRect (HWND hWnd, BOOL fErase)
+void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL fErase)
 {
     MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
 
