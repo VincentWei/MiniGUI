@@ -482,7 +482,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
                 (struct sockaddr *)&server_address, server_len);
         listen(__mg_pcxvfb_server_sockfd, 5);
         client_len = sizeof(client_address);
-        
+
         shm_init_lock(getpid());
 
         if ((pid = fork()) < 0) {

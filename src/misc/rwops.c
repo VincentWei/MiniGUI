@@ -287,7 +287,7 @@ MG_RWops *MGUI_RWFromFP(FILE *fp, int autoclose)
     return(rwops);
 }
 
-MG_RWops *MGUI_RWFromMem(void *mem, int size)
+MG_RWops *MGUI_RWFromMem(void *mem, size_t size)
 {
     MG_RWops *rwops;
 
@@ -313,7 +313,7 @@ MG_RWops *MGUI_RWFromMem(void *mem, int size)
     return(rwops);
 }
 
-void MGUI_InitMemRW (MG_RWops* area, void *mem, int size)
+void MGUI_InitMemRW (MG_RWops* area, void *mem, size_t size)
 {
     area->seek = mem_seek;
     area->read = mem_read;
@@ -361,5 +361,4 @@ int MGUI_RWgetc (MG_RWops* area)
 
     return c;
 }
-
 

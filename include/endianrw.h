@@ -204,7 +204,7 @@ MG_EXPORT MG_RWops* MGUI_RWFromFP(FILE *fp, int autoclose);
  *
  * \sa MG_RWops, MGUI_FreeRW
  */
-MG_EXPORT MG_RWops* MGUI_RWFromMem(void *mem, int size);
+MG_EXPORT MG_RWops* MGUI_RWFromMem(void *mem, size_t size);
 
 /**
  * \fn void MGUI_InitMemRW (MG_RWops* area, void *mem, int size)
@@ -221,7 +221,7 @@ MG_EXPORT MG_RWops* MGUI_RWFromMem(void *mem, int size);
  *
  * \sa MG_RWops, MGUI_FreeRW, MGUI_RWFromMem
  */
-MG_EXPORT void MGUI_InitMemRW (MG_RWops* area, void *mem, int size);
+MG_EXPORT void MGUI_InitMemRW (MG_RWops* area, void *mem, size_t size);
 
 /**
  * \fn MG_RWops* MGUI_AllocRW(void)
