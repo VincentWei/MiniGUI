@@ -447,7 +447,7 @@ typedef signed char     SBYTE;
 #   define INT_PTR_MIN       (-9223372036854775807L-1)
 #   define INT_PTR_MAX       (9223372036854775807L)
 #   define UINT_PTR_MAX      (18446744073709551615UL)
-#else  
+#else
 #   define NR_BITS_BYTE      (8)
 #   define NR_BITS_WORD      (16)
 #   define NR_BITS_DWORD     (32)
@@ -459,7 +459,7 @@ typedef signed char     SBYTE;
 #   define INT_PTR_MIN       (-2147483647-1)
 #   define INT_PTR_MAX       (2147483647)
 #   define UINT_PTR_MAX      (4294967295U)
-#endif  
+#endif
 
 /**
  * \var WORD_HPTR
@@ -2028,13 +2028,12 @@ int init_minigui_printf (int (*output_char) (int ch),
     } while (0)
 
 #ifdef _DEBUG
-# define _MG_PRINTF(fmt, ...)                 \
+# define _MG_PRINTF(fmt, ...)                   \
     do {                                        \
         TCS_GREEN (stdout);                     \
         fprintf (stdout, fmt, ##__VA_ARGS__);   \
         TCS_NONE (stdout);                      \
     } while (0)
-        
 # ifdef DEBUG
 #       define _DBG_PRINTF(fmt, ...)            \
     do {                                        \
