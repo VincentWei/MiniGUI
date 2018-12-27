@@ -587,6 +587,27 @@ typedef SDWORD_PTR SDWORD;
  */
 typedef signed int SDWORD32;
 
+#if SIZEOF_PTR == 8
+typedef unsigned short  QDWORD;
+#define QDWORD_SHIFT    16
+#else
+typedef unsigned char   QDWORD;
+#define QDWORD_SHIFT    8
+#endif
+
+#define MAKEDWORD(q1, q2, q3, q4) \
+    ((DWORD)( \
+        (((DWORD)(QDWORD)(q1))) | \
+        (((DWORD)((QDWORD)(q2))) << QDWORD_SHIFT) | \
+        (((DWORD)((QDWORD)(q3))) << (QDWORD_SHIFT*2)) | \
+        (((DWORD)((QDWORD)(q4))) << (QDWORD_SHIFT*3)) \
+    ))
+
+#define FIRST_QDWORD(dw)    ((QDWORD)(((DWORD)(dw))))
+#define SECOND_QDWORD(dw)   ((QDWORD)((((DWORD)(dw)) >> QDWORD_SHIFT)))
+#define THIRD_QDWORD(dw)    ((QDWORD)((((DWORD)(dw)) >> (QDWORD_SHIFT*2))))
+#define FOURTH_QDWORD(dw)   ((QDWORD)((((DWORD)(dw)) >> (QDWORD_SHIFT*3))))
+
 /**
  * \var UINT
  * \brief A type definition for unsigned integer.

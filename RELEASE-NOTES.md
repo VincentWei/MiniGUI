@@ -26,6 +26,14 @@ Please report any bugs and incompatibilities in
     * New DC attribute: BIDI flag.
   1. Enhance commlcd engint to support more pixel type and synchronously update.
   1. New USVFB IAL engine and NEWGAL engine for web display server.
+  1. New type: `QDWORD` for a quauter of DWORD. This type is 16-bit long on
+64-bit architecture, and 8-bit long on 32-bit.
+  1. New macros for QDWORD:
+    * `MAKEDWORD`: Make a DWROD from four QDWORDs.
+    * `FIRST_QDWORD`: get the first (LSB) QDWORD from a DWORD.
+    * `SECOND_QDWORD`: get the second (LSB) QDWORD from a DWORD.
+    * `THIRD_QDWORD`: get the third (LSB) QDWORD from a DWORD.
+    * `FOURTH_QDWORD`: get the fourth (LSB) QDWORD from a DWORD.
 
 * BUGFIXING:
   1. handle `PNG_COLOR_TYPE_GRAY_ALPHA` color type of PNG files.
