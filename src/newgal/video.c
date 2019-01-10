@@ -1283,7 +1283,7 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
     return surface;
 }
 
-GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode)
+GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int dpi)
 {
     GAL_Surface* surface; 
     GAL_VideoDevice *video;
@@ -1326,6 +1326,12 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode)
         _DBG_PRINTF ("NEWGAL: Set video mode failure.\n");
         return NULL;
     }
+
+    if (dpi < GDCAP_DPI_MINIMAL)
+        surface->dpi = GDCAP_DPI_MINIMAL;
+    else
+        surface->dpi = dpi;
+
     return surface;
 }
 

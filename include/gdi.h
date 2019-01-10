@@ -1138,6 +1138,9 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
 #define GDCAP_BMASK         10
 #define GDCAP_AMASK         11
 #define GDCAP_PITCH         12
+#define GDCAP_DPI           13
+    #define GDCAP_DPI_DEFAULT   96
+    #define GDCAP_DPI_MINIMAL   36
 
 /**
  * \fn unsigned int GUIAPI GetGDCapability (HDC hdc, int iItem)
@@ -1181,6 +1184,8 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  *    Tell \a GetGDCapability to return the pixel alpha color mask for the DC.
  *  - GDCAP_PITCH\n
  *    Tell \a GetGDCapability to return the pitch (the bytes of one scan line) of the DC.
+ *  - GDCAP_DPI\n
+ *    Tell \a GetGDCapability to return the DPI (the dots per inch) of the DC.
  *
  * \return The capbility.
  */
@@ -7635,7 +7640,7 @@ MG_EXPORT BOOL GUIAPI mlsGetSlaveScreenInfo (HDC dc_mls, DWORD mask, int* offset
  *
  * This function is used to enable or diable a MLShadow slave screen. 
  * After creating a slave screen by  \a InitSlaveScreen successfully, its
- * default status is diabled. 
+ * default status is disabled. 
  *
  * \param dc_mls The handle of MLShadow slave screen.
  * \param enable Whether to enable the MLShadow slave screen.
@@ -7650,7 +7655,7 @@ MG_EXPORT BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable);
 #define ERR_BMP_UNKNOWN_TYPE    -2
 #define ERR_BMP_CANT_READ       -3
 #define ERR_BMP_CANT_SAVE       -4
-#define ERR_BMP_NOT_SUPPORTED   -5   
+#define ERR_BMP_NOT_SUPPORTED   -5
 #define ERR_BMP_MEM             -6
 #define ERR_BMP_LOAD            -7
 #define ERR_BMP_FILEIO          -8
@@ -7977,15 +7982,31 @@ MG_EXPORT BOOL GUIAPI InitBitmap (HDC hdc, Uint32 w, Uint32 h, Uint32 pitch,
                 BYTE* bits, PBITMAP bmp);
 
 /**
- * \fn HDC GUIAPI InitSlaveScreen (const char* name, const char* mode)
+ * \fn HDC GUIAPI InitSlaveScreenEx (const char* name, const char* mode, int dpi)
  * \brief Initializes slave screen.
- * 
+ *
  * \param name The gal engine name.
  * \param mode The display mode. For example : 640x480-16bpp. 
+ * \param dpi  The resolution of screen, should be a value larger than GDCAP_DPI_MINIMAL (36).
+ *
  * \return Valid handle on success, HDC_INVALID on failure. 
  *
  */
-MG_EXPORT HDC GUIAPI InitSlaveScreen (const char* name, const char* mode);
+MG_EXPORT HDC GUIAPI InitSlaveScreenEx (const char* name, const char* mode, int dpi);
+
+/**
+ * \fn HDC GUIAPI InitSlaveScreen (const char* name, const char* mode)
+ * \brief Initializes slave screen.
+ *
+ * \param name The gal engine name.
+ * \param mode The display mode. For example : 640x480-16bpp.
+ *
+ * \return Valid handle on success, HDC_INVALID on failure.
+ */
+inline HDC InitSlaveScreen (const char* name, const char* mode)
+{
+    return InitSlaveScreenEx(name, mode, GDCAP_DPI_DEFAULT);
+}
 
 /**
  * \fn void TerminateSlaveScreen (HDC hdc)

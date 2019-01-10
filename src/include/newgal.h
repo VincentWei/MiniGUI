@@ -103,6 +103,7 @@ typedef struct GAL_Surface {
     int w, h;                           /* Read-only */
     /* VW[2018-01-18]: For 64b, use signed int instead of Uint32 for pitch. */
     int pitch;                          /* Read-only */
+    int dpi;                            /* Read-only */
     void *pixels;                       /* Read-write */
     int offset;                         /* Private */
 
@@ -191,7 +192,8 @@ extern int GAL_VideoInit (const char *driver_name, Uint32 flags);
 extern void GAL_VideoQuit (void);
 
 extern void gal_SlaveVideoQuit (GAL_Surface * surface);
-extern GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode);
+extern GAL_Surface *gal_SlaveVideoInit(const char* driver_name,
+        const char* mode, int dpi);
 
 /* This function fills the given character buffer with the name of the
  * video driver, and returns a pointer to it if the video driver has

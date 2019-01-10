@@ -11,6 +11,11 @@ Please report any bugs and incompatibilities in
 ### What's new in this version
 
 * ENHANCEMENTS:
+  1. Add a new key `dpi` for NEWGAL engine to define the DPI of the screen. 
+     If it is absent, use 96 as the default DPI.
+  1. Add an item for `GetGDCapability` to return DPI of the DC.
+  1. New API `InitSlaveScreenEx` to specify the DPI of slave screen. 
+     Define `InitSlaveScreen` as an inline function calling `InitSlaveScreenEx`.
   1. New API: `SyncUpdateDC`. You can use this function to synchronize 
     the update rectangles of a surface to screen, if the surface
     represents the shadow frame buffer of the screen. 

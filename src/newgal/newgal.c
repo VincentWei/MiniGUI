@@ -147,6 +147,11 @@ int mg_InitGAL (void)
     }
 #endif
 
+    if (GetMgEtcIntValue (engine, "dpi", &__gal_screen->dpi) < 0)
+        __gal_screen->dpi = GDCAP_DPI_DEFAULT;
+    else if (__gal_screen->dpi < GDCAP_DPI_MINIMAL)
+        __gal_screen->dpi = GDCAP_DPI_MINIMAL;
+
     for (i = 0; i < 17; i++) {
         SysPixelIndex [i] = GAL_MapRGB (__gal_screen->format, 
                         SysPixelColor [i].r, 

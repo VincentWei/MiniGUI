@@ -121,6 +121,8 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     surface->pitch = GAL_CalculatePitch(surface);
     surface->pixels = NULL;
     surface->offset = 0;
+    // for off-screen surface, DPI always be the default value
+    surface->dpi = GDCAP_DPI_DEFAULT;
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;

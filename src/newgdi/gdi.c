@@ -402,6 +402,10 @@ unsigned int GUIAPI GetGDCapability (HDC hdc, int iItem)
         case GDCAP_MAXY:
             iret = RECTH (pdc->DevRC) - 1;
             break;
+
+        case GDCAP_DPI:
+            iret = pdc->surface->dpi;
+            break;
     }
 
     UNLOCK(&__mg_gdilock);
@@ -3369,7 +3373,7 @@ void GUIAPI DeleteMemDC (HDC hdc)
     free (pmem_dc);
 }
 
-HDC GUIAPI InitSlaveScreen (const char* name, const char* mode)
+HDC GUIAPI InitSlaveScreenEx (const char* name, const char* mode, int dpi)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface = NULL;
@@ -3378,7 +3382,7 @@ HDC GUIAPI InitSlaveScreen (const char* name, const char* mode)
     if (!(pmem_dc = malloc (sizeof(DC))))
         return HDC_INVALID;
 
-    if ((surface = gal_SlaveVideoInit(name, mode))) {
+    if ((surface = gal_SlaveVideoInit(name, mode, dpi))) {
         dc_InitScreenDC (pmem_dc, surface); 
         return (HDC)pmem_dc;
     }
