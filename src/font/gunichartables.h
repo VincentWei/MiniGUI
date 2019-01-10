@@ -47,7 +47,7 @@
 
 #define G_UNICODE_LAST_PAGE_PART1 762
 
-static const char type_data[][256] = {
+static const unsigned char type_data[][256] = {
   { /* page 0, index 0 */
     G_UNICODE_CONTROL, G_UNICODE_CONTROL, G_UNICODE_CONTROL, 
     G_UNICODE_CONTROL, G_UNICODE_CONTROL, G_UNICODE_CONTROL, 

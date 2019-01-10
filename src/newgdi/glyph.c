@@ -108,7 +108,7 @@ Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
 }
 
 Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar, 
-        int mchar_len, SHAPETYPE shape_type)
+        int mchar_len, GLYPHSHAPETYPE shape_type)
 {
     int len_cur_char;
 
@@ -211,6 +211,16 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     /*get glyph type*/
     if (glyph_info->mask & GLYPH_INFO_TYPE)
         glyph_info->glyph_type = devfont->charset_ops->glyph_type (glyph_value);
+
+    /*get glyph type*/
+    if (glyph_info->mask & GLYPH_INFO_BIDI_TYPE) {
+        if (devfont->charset_ops->bidi_glyph_type) {
+            glyph_info->bidi_glyph_type = devfont->charset_ops->bidi_glyph_type (glyph_value);
+        }
+        else {
+            glyph_info->bidi_glyph_type = BIDI_TYPE_INVALID;
+        }
+    }
 
     glyph_info->advance_x = 0;
     glyph_info->advance_y = 0;

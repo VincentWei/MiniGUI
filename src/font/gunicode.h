@@ -39,6 +39,7 @@
 /* These are the possible character classifications.
  * See http://www.unicode.org/Public/UNIDATA/UCD.html#General_Category_Values
  */
+#if 0 /* VincentWei: Moved to gid.h */
 typedef enum
 {
   G_UNICODE_CONTROL,
@@ -72,6 +73,7 @@ typedef enum
   G_UNICODE_PARAGRAPH_SEPARATOR,
   G_UNICODE_SPACE_SEPARATOR
 } GUnicodeType;
+#endif /* VincentWei: Moved to gid.h */
 
 /* These are the possible line break classifications.
  * Note that new types may be added in the future.
@@ -177,7 +179,7 @@ typedef enum
   G_UNICODE_SCRIPT_LINEAR_B,           /* Linb */
   G_UNICODE_SCRIPT_TAI_LE,             /* Tale */
   G_UNICODE_SCRIPT_UGARITIC,           /* Ugar */
-      
+
   /* Unicode-4.1 additions */
   G_UNICODE_SCRIPT_NEW_TAI_LUE,        /* Talu */
   G_UNICODE_SCRIPT_BUGINESE,           /* Bugi */

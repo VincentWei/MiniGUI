@@ -3464,7 +3464,7 @@ static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar,  int pre_l
     return wc;
 }
 
-#include "gunicode.h"
+//#include "gunicode.h"
 #include "gunichartables.h"
 
 #define TTYPE_PART1(Page, Char) \

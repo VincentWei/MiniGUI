@@ -39,6 +39,9 @@ Please report any bugs and incompatibilities in
   1. handle `PNG_COLOR_TYPE_GRAY_ALPHA` color type of PNG files.
   1. Fix a bug to free a null pointer (ReleaseDC).
 
+* TUNNING:
+  1. Tune GLYPHINFO structure and GetGlyphInfo to return BIDI glyph type.
+
 ## Version 3.2.0
 
 The MiniGUI development team announces the availability of MiniGUI 3.2.0.

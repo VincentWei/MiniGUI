@@ -5804,6 +5804,40 @@ typedef int    UChar32;
 #define MCHAR_TYPE_KATAKANA         0x00A2
 #define MCHAR_TYPE_CJK              0x00A3
 
+/* These are the basic UNICODE character classifications.
+ * See http://www.unicode.org/Public/UNIDATA/UCD.html#General_Category_Values
+ */
+#define G_UNICODE_CONTROL               0x00B0
+#define G_UNICODE_FORMAT                0x00B1
+#define G_UNICODE_UNASSIGNED            0x00B2
+#define G_UNICODE_PRIVATE_USE           0x00B3
+#define G_UNICODE_SURROGATE             0x00B4
+#define G_UNICODE_LOWERCASE_LETTER      0x00B5
+#define G_UNICODE_MODIFIER_LETTER       0x00B6
+#define G_UNICODE_OTHER_LETTER          0x00B7
+#define G_UNICODE_TITLECASE_LETTER      0x00B8
+#define G_UNICODE_UPPERCASE_LETTER      0x00B9
+#define G_UNICODE_COMBINING_MARK        0x00BA
+#define G_UNICODE_ENCLOSING_MARK        0x00BB
+#define G_UNICODE_NON_SPACING_MARK      0x00BC
+#define G_UNICODE_DECIMAL_NUMBER        0x00BD
+#define G_UNICODE_LETTER_NUMBER         0x00BE
+#define G_UNICODE_OTHER_NUMBER          0x00BF
+#define G_UNICODE_CONNECT_PUNCTUATION   0x00C0
+#define G_UNICODE_DASH_PUNCTUATION      0x00C1
+#define G_UNICODE_CLOSE_PUNCTUATION     0x00C2
+#define G_UNICODE_FINAL_PUNCTUATION     0x00C3
+#define G_UNICODE_INITIAL_PUNCTUATION   0x00C4
+#define G_UNICODE_OTHER_PUNCTUATION     0x00C5
+#define G_UNICODE_OPEN_PUNCTUATION      0x00C6
+#define G_UNICODE_CURRENCY_SYMBOL       0x00C7
+#define G_UNICODE_MODIFIER_SYMBOL       0x00C8
+#define G_UNICODE_MATH_SYMBOL           0x00C9
+#define G_UNICODE_OTHER_SYMBOL          0x00CA
+#define G_UNICODE_LINE_SEPARATOR        0x00CB
+#define G_UNICODE_PARAGRAPH_SEPARATOR   0x00CC
+#define G_UNICODE_SPACE_SEPARATOR       0x00CD
+
 struct _FONTOPS;
 struct _CHARSETOPS;
 
@@ -8611,74 +8645,14 @@ typedef int Glyph32;
     (plogfont)->sbc_devfont)
 
 /**
- * \var typedef enum SHAPETYPE
- * \brief Data type of enum.
- */
-typedef enum {
-    GLYPH_ISOLATED,
-    GLYPH_FINAL,
-    GLYPH_INITIAL,
-    GLYPH_MEDIAL
-}SHAPETYPE;
-
-/**
  * \var typedef struct  _GLYPHMAPINFO GLYPHMAPINFO
  * \brief Data type of struct _GLYPHMAPINFO.
  */
-typedef struct _GLYPHMAPINFO{
+typedef struct _GLYPHMAPINFO {
     int byte_index;
     int char_len;
     BOOL is_rtol;
-}GLYPHMAPINFO;
-
-
-#define GLYPH_INFO_TYPE      1
-#define GLYPH_INFO_METRICS   2
-#define GLYPH_INFO_BMP       4
-
-/*the type of glyph bitmap*/
-#define GLYPHBMP_TYPE_MONO      0
-#define GLYPHBMP_TYPE_GREY      1
-#define GLYPHBMP_TYPE_SUBPIXEL  2
-#define GLYPHBMP_TYPE_PRERENDER 3
-
-/*the glyph info structure. */
-/**
- * \var typedef struct  _GLYPHINFO GLYPHINFO
- * \brief Data type of struct _GLYPHINFO.
- */
-typedef struct _GLYPHINFO
-{
-    /** mask indicate if the glyph_type, metrics, or bitmap infomation is valid*/
-    char mask;
-    /** type of glyph*/
-    char glyph_type;
-    /** type of glyph bitmap*/
-    char bmp_type;
-
-    Uint8 padding;
-
-    /** the size of the devfont*/
-    int height;
-    /** the descent of the devfont*/
-    int descent;
-
-    /** The advance value of the glyph. */
-    int advance_x, advance_y;
-    /** The bounding box of the glyph. */
-    int bbox_x, bbox_y;
-    int bbox_w, bbox_h;
-
-    /** The size of the glyph bitmap. */
-    size_t bmp_size;
-    /* The pitch of the glyph bitmap. */
-    int bmp_pitch;
-    /** The pointer to the buffer of glyph bitmap bits. */
-    const unsigned char* bits;
-
-    /** the prerender bitmap */
-    BITMAP prbitmap;
-} GLYPHINFO;
+} GLYPHMAPINFO;
 
 /** 
  * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar, \
@@ -8696,9 +8670,20 @@ typedef struct _GLYPHINFO
 MG_EXPORT Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len);
 
+/**
+ * \var typedef enum GLYPHSHAPETYPE
+ * \brief Data type of enum.
+ */
+typedef enum {
+    GLYPH_ISOLATED,
+    GLYPH_FINAL,
+    GLYPH_INITIAL,
+    GLYPH_MEDIAL
+} GLYPHSHAPETYPE;
+
 /** 
  * \fn Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar, \
- *         int mchar_len, SHAPETYPE shape_type)
+ *         int mchar_len, GLYPHSHAPETYPE shape_type)
  * \brief Get the glyph shape of a character.
  *
  * \param logfont The logical font.
@@ -8709,7 +8694,7 @@ MG_EXPORT Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
  * \return The multi-byte character's glyph shape value.
  */
 MG_EXPORT Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
-        int mchar_len, SHAPETYPE shape_type);
+        int mchar_len, GLYPHSHAPETYPE shape_type);
 
 /** 
  * \fn int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value, \
@@ -8753,6 +8738,71 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
  */
 MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyph_string, 
         int len, int* adv_x, int* adv_y);
+
+#define GLYPH_INFO_TYPE         0x01
+#define GLYPH_INFO_BIDI_TYPE    0x02
+#define GLYPH_INFO_METRICS      0x04
+#define GLYPH_INFO_BMP          0x10
+
+/*the type of glyph bitmap*/
+#define GLYPHBMP_TYPE_MONO      0x00
+#define GLYPHBMP_TYPE_GREY      0x01
+#define GLYPHBMP_TYPE_SUBPIXEL  0x02
+#define GLYPHBMP_TYPE_PRERENDER 0x03
+
+/**
+ * \var typedef struct  _GLYPHINFO GLYPHINFO
+ * \brief Data type of struct _GLYPHINFO.
+ */
+typedef struct _GLYPHINFO
+{
+    /**
+     * The mask indicates if you want to get glyph type info, metrics,
+     * or bitmap infomation you want. Or'ed with the following values:
+     * - GLYPH_INFO_TYPE
+     * - GLYPH_INFO_BIDI_TYPE
+     * - GLYPH_INFO_METRICS
+     * - GLYPH_INFO_BMP
+     */
+    unsigned char mask;
+
+    /** The basic glyph type */
+    unsigned int glyph_type;
+
+    /** The BIDI glyph type */
+    unsigned int bidi_glyph_type;
+
+    /** The height of the glyph */
+    int height;
+    /** the descent of the glyph */
+    int descent;
+    /** The advance measure of the glyph. */
+    int advance_x, advance_y;
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y;
+    int bbox_w, bbox_h;
+
+    /**
+     * The type of glyph bitmap, one of the following values:
+     * - GLYPHBMP_TYPE_MONO
+     * - GLYPHBMP_TYPE_PRERENDER
+     * - GLYPHBMP_TYPE_SUBPIXEL
+     * - GLYPHBMP_TYPE_PRERENDER
+     */
+    unsigned char bmp_type;
+    /** The size of the glyph bitmap. */
+    size_t bmp_size;
+    /* The pitch of the glyph bitmap. */
+    int bmp_pitch;
+    /** The pointer to the buffer of glyph bitmap bits. */
+    const unsigned char* bits;
+
+    /**
+     * The prerender bitmap object.
+     * It is only valid if bmp_type is GLYPHBMP_TYPE_PRERENDER
+     */
+    BITMAP prbitmap;
+} GLYPHINFO;
 
 /** 
  * \fn int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value, \
@@ -8813,6 +8863,8 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs,
  * Define some bit masks, that character types are based on, each one has
  * only one bit on.
  */
+
+#define BIDI_TYPE_INVALID   0x00000000L
 
 #define BIDI_MASK_RTL       0x00000001L	/* Is right to left */
 #define BIDI_MASK_ARABIC    0x00000002L	/* Is arabic */
