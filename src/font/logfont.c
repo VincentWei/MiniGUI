@@ -227,7 +227,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     /* reset style of logfont */
     /* remove HORZVERT style if weight is subpixel */
-    if (log_font->style & FS_WEIGHT_SUBPIXEL) {
+    if ((log_font->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL) {
         log_font->style &= ~FS_FLIP_HORZVERT;
         log_font->style &= ~FS_SLANT_ITALIC;
     }

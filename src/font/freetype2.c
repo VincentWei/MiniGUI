@@ -55,8 +55,7 @@
 
 #include "freetype2.h"
 
-#define IS_SUBPIXEL(logfont) \
-   (((logfont)->style & FS_WEIGHT_MASK) == FS_WEIGHT_SUBPIXEL) 
+#define IS_SUBPIXEL(logfont) ((logfont)->style & FS_OTHER_SUBPIXEL)
 
 #ifdef TTF_DBG
 static int bbox_nohit = 0;
@@ -200,7 +199,7 @@ print_bitmap_grey (void* buffer, int width, int rows, int pitch)
 
 static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
 {
-    if (logfont->style & FS_WEIGHT_SUBPIXEL)
+    if (logfont->style & FS_OTHER_SUBPIXEL)
         return DEVFONTGLYPHTYPE_SUBPIXEL;
     else if (logfont->style & FS_WEIGHT_BOOK)
         return DEVFONTGLYPHTYPE_GREYBMP;

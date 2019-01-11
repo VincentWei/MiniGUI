@@ -5459,24 +5459,26 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 
 #define FONT_WEIGHT_NIL             '\0'
 #define FONT_WEIGHT_ALL             '*'
-#define FONT_WEIGHT_BLACK           'c'
-#define FONT_WEIGHT_BOLD            'b'
-#define FONT_WEIGHT_BOOK            'k'
-#define FONT_WEIGHT_DEMIBOLD        'd'
+#define FONT_WEIGHT_THIN            't'
+#define FONT_WEIGHT_EXTRA_LIGHT     'e'
 #define FONT_WEIGHT_LIGHT           'l'
-#define FONT_WEIGHT_MEDIUM          'm'
 #define FONT_WEIGHT_REGULAR         'r'
-#define FONT_WEIGHT_SUBPIXEL        's'
+#define FONT_WEIGHT_MEDIUM          'm'
+#define FONT_WEIGHT_DEMIBOLD        'd'
+#define FONT_WEIGHT_BOLD            'b'
+#define FONT_WEIGHT_EXTRA_BOLD      'x'
+#define FONT_WEIGHT_BLACK           'c'
 
 #define FS_WEIGHT_MASK              0x000000FF
-#define FS_WEIGHT_BLACK             0x00000001
-#define FS_WEIGHT_BOLD              0x00000002
-#define FS_WEIGHT_BOOK              0x00000004
-#define FS_WEIGHT_DEMIBOLD          0x00000006 /* BOOK | BOLD */
-#define FS_WEIGHT_LIGHT             0x00000010
-#define FS_WEIGHT_MEDIUM            0x00000020
-#define FS_WEIGHT_SUBPIXEL          0x00000040
+#define FS_WEIGHT_THIN              0x00000010
+#define FS_WEIGHT_EXTRA_LIGHT       0x00000011
+#define FS_WEIGHT_LIGHT             0x00000012
 #define FS_WEIGHT_REGULAR           0x00000000
+#define FS_WEIGHT_MEDIUM            0x00000020
+#define FS_WEIGHT_DEMIBOLD          0x00000021
+#define FS_WEIGHT_EXTRA_BOLD        0x00000022
+#define FS_WEIGHT_BOLD              0x00000023
+#define FS_WEIGHT_BLACK             0x00000024
 
 #define FONT_SLANT_NIL              '\0'
 #define FONT_SLANT_ALL              '*'
@@ -5490,9 +5492,10 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_SLANT_ROMAN              0x00000000
 
 #define FONT_FLIP_NIL               '\0'
-#define FONT_FLIP_HORZ              'H'
-#define FONT_FLIP_VERT              'V'
-#define FONT_FLIP_HORZVERT          'T'
+#define FONT_FLIP_HORZ              'h'
+#define FONT_FLIP_VERT              'v'
+#define FONT_FLIP_HORZVERT          't'
+#define FONT_FLIP_NONE              'n'
 
 #define FS_FLIP_MASK                0x0000F000
 #define FS_FLIP_HORZ                0x00001000
@@ -5500,20 +5503,68 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_FLIP_HORZVERT            0x00003000 /* HORZ | VERT */
 
 #define FONT_OTHER_NIL              '\0'
-#define FONT_OTHER_AUTOSCALE        'S'
-#define FONT_OTHER_TTFNOCACHE       'N'
-#define FONT_OTHER_TTFKERN          'K'
-#define FONT_OTHER_TTFNOCACHEKERN   'R'
-#define FONT_OTHER_LCDPORTRAIT      'P'
-#define FONT_OTHER_LCDPORTRAITKERN  'Q'
+#define FONT_OTHER_AUTOSCALE        's'
+#define FONT_OTHER_TTFNOCACHE       'n'
+#define FONT_OTHER_TTFKERN          'k'
+#define FONT_OTHER_TTFNOCACHEKERN   'r'
+#define FONT_OTHER_LCDPORTRAIT      'p'
+#define FONT_OTHER_LCDPORTRAITKERN  'q'
 
 #define FS_OTHER_MASK               0x00FF0000
 #define FS_OTHER_AUTOSCALE          0x00010000
 #define FS_OTHER_TTFNOCACHE         0x00020000
 #define FS_OTHER_TTFKERN            0x00040000
-#define FS_OTHER_TTFNOCACHEKERN     0x00060000 /* KERN | NOCACHE */
 #define FS_OTHER_LCDPORTRAIT        0x00100000
-#define FS_OTHER_LCDPORTRAITKERN    0x00140000
+#define FS_OTHER_TTFNOCACHEKERN     0x00060000 /* KERN | NOCACHE */
+#define FS_OTHER_LCDPORTRAITKERN    0x00140000 /* KERN | PORTRAIT */
+
+#define FONT_DECORATE_NIL           '\0'
+#define FONT_DECORATE_NONE          'n'
+#define FONT_DECORATE_UNDERLINE     'u'
+#define FONT_DECORATE_STRUCKOUT     's'
+#define FONT_DECORATE_BOTH          'b'
+
+#define FS_DECORATE_MASK            0x0F000000
+#define FS_DECORATE_UNDERLINE       0x01000000
+#define FS_DECORATE_STRUCKOUT       0x02000000
+#define FS_DECORATE_BOTH            0x03000000
+
+#define FONT_RENDER_NIL             '\0'
+#define FONT_RENDER_MONO            'n'
+#define FONT_RENDER_GREY            'g'
+#define FONT_RENDER_SUBPIXEL        's'
+
+#define FS_RENDER_MASK              0xF0000000
+#define FS_RENDER_MONO              0x00000000
+#define FS_RENDER_GREY              0x10000000
+#define FS_RENDER_SUBPIXEL          0x20000000
+
+/* deprecated since v3.2.1, use FS_RENDER_XXX/FONT_RENDER_XXX instead */
+#define FONT_WEIGHT_SUBPIXEL        's'
+#define FONT_WEIGHT_BOOK            'k'
+
+/* deprecated since v3.2.1, use FS_DECORATE_XXX/FONT_DECORATE_XXX instead */
+#define FONT_UNDERLINE_NIL          '\0'
+#define FONT_UNDERLINE_ALL          '*'
+#define FONT_UNDERLINE_LINE         'u'
+#define FONT_UNDERLINE_NONE         'n'
+#define FONT_STRUCKOUT_NIL          '\0'
+#define FONT_STRUCKOUT_ALL          '*'
+#define FONT_STRUCKOUT_LINE         's'
+#define FONT_STRUCKOUT_NONE         'n'
+
+/*
+#define FS_WEIGHT_SUBPIXEL          0x00000000
+#define FS_WEIGHT_BOOK              0x00000000
+
+#define FS_UNDERLINE_MASK           0x00000000
+#define FS_UNDERLINE_LINE           0x00000000
+#define FS_UNDERLINE_NONE           0x00000000
+
+#define FS_STRUCKOUT_MASK           0x00000000
+#define FS_STRUCKOUT_LINE           0x00000000
+#define FS_STRUCKOUT_NONE           0x00000000
+*/
 
 /* 
  * Backward compatiblilty definitions. 
@@ -5549,24 +5600,6 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_SPACING_PROPORTIONAL     0x00020000
 #define FS_SPACING_CHARCELL         0x00000000
 */
-
-#define FONT_UNDERLINE_NIL          '\0'
-#define FONT_UNDERLINE_ALL          '*'
-#define FONT_UNDERLINE_LINE         'u'
-#define FONT_UNDERLINE_NONE         'n'
-
-#define FS_UNDERLINE_MASK           0x00F00000
-#define FS_UNDERLINE_LINE           0x00100000
-#define FS_UNDERLINE_NONE           0x00000000
-
-#define FONT_STRUCKOUT_NIL          '\0'
-#define FONT_STRUCKOUT_ALL          '*'
-#define FONT_STRUCKOUT_LINE         's'
-#define FONT_STRUCKOUT_NONE         'n'
-
-#define FS_STRUCKOUT_MASK           0x0F000000
-#define FS_STRUCKOUT_LINE           0x01000000
-#define FS_STRUCKOUT_NONE           0x00000000
 
 #define FONT_TYPE_NAME_LEN          3
 #define FONT_TYPE_NAME_BITMAP_RAW   "rbf"

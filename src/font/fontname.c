@@ -131,21 +131,24 @@ DWORD fontConvertStyle (const char* style_part)
 {
     DWORD style = 0;
 
+    style &= ~FS_WEIGHT_MASK;
     switch (style_part [0]) {
     case FONT_WEIGHT_BLACK:
         style |= FS_WEIGHT_BLACK;
         break;
+    case FONT_WEIGHT_EXTRA_BOLD:
+        style |= FS_WEIGHT_EXTRA_BOLD;
+        break;
     case FONT_WEIGHT_BOLD:
         style |= FS_WEIGHT_BOLD;
         break;
+    /* deprecated since v3.2.1
     case FONT_WEIGHT_BOOK:
         style |= FS_WEIGHT_BOOK;
         break;
+    */
     case FONT_WEIGHT_DEMIBOLD:
         style |= FS_WEIGHT_DEMIBOLD;
-        break;
-    case FONT_WEIGHT_LIGHT:
-        style |= FS_WEIGHT_LIGHT;
         break;
     case FONT_WEIGHT_MEDIUM:
         style |= FS_WEIGHT_MEDIUM;
@@ -153,16 +156,28 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_WEIGHT_REGULAR:
         style |= FS_WEIGHT_REGULAR;
         break;
-	case FONT_WEIGHT_SUBPIXEL:
-		style |= FS_WEIGHT_SUBPIXEL;
-		break;
+    case FONT_WEIGHT_LIGHT:
+        style |= FS_WEIGHT_LIGHT;
+        break;
+    case FONT_WEIGHT_EXTRA_LIGHT:
+        style |= FS_WEIGHT_EXTRA_LIGHT;
+        break;
+    case FONT_WEIGHT_THIN:
+        style |= FS_WEIGHT_THIN;
+        break;
+    /* deprecated since v3.2.1
+    case FONT_WEIGHT_SUBPIXEL:
+        style |= FS_WEIGHT_SUBPIXEL;
+        break;
     case FONT_WEIGHT_ALL:
         style |= FS_WEIGHT_MASK;
-		break;
+        break;
+    */
     default:
-        return 0xFFFFFFFF;
+        break;
     }
 
+    style &= ~FS_SLANT_MASK;
     switch (style_part [1]) {
     case FONT_SLANT_ITALIC:
         style |= FS_SLANT_ITALIC;
@@ -180,6 +195,7 @@ DWORD fontConvertStyle (const char* style_part)
         return 0xFFFFFFFF;
     }
 
+    style &= ~FS_FLIP_MASK;
     switch (style_part [2]) {
     case FONT_FLIP_HORZ:
         style |= FS_FLIP_HORZ;
@@ -194,6 +210,7 @@ DWORD fontConvertStyle (const char* style_part)
         break;
     }
 
+    style &= ~FS_OTHER_MASK;
     switch (style_part [3]) {
     case FONT_OTHER_AUTOSCALE:
         style |= FS_OTHER_AUTOSCALE;
@@ -217,6 +234,39 @@ DWORD fontConvertStyle (const char* style_part)
         break;
     }
 
+    style &= ~FS_DECORATE_MASK;
+    switch (style_part [4]) {
+    case FONT_DECORATE_NONE:
+        break;
+    case FONT_DECORATE_UNDERLINE:
+        style |= FS_DECORATE_UNDERLINE;
+        break;
+    case FONT_DECORATE_STRUCKOUT:
+        style |= FS_DECORATE_STRUCKOUT;
+        break;
+    case FONT_DECORATE_BOTH:
+        style |= FS_DECORATE_BOTH;
+        break;
+    default:
+        break;
+    }
+
+    style &= ~FS_RENDER_MASK;
+    switch (style_part [5]) {
+    case FONT_RENDER_MONO:
+        style |= FS_RENDER_MONO;
+        break;
+    case FONT_RENDER_GREY:
+        style |= FS_RENDER_GREY;
+        break;
+    case FONT_RENDER_SUBPIXEL:
+        style |= FS_RENDER_SUBPIXEL;
+        break;
+    default:
+        break;
+    }
+
+    /* deprecated since v3.2.1
     switch (style_part [4]) {
     case FONT_UNDERLINE_LINE:
         style |= FS_UNDERLINE_LINE;
@@ -244,6 +294,7 @@ DWORD fontConvertStyle (const char* style_part)
     default:
         return 0xFFFFFFFF;
     }
+    */
 
     return style;
 }

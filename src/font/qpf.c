@@ -482,9 +482,12 @@ static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont,
                BOOL need_sbc_font)
 {
     if (QPFONT_INFO_P (devfont)->fm->flags & FLAG_MODE_SMOOTH) {
-        logfont->style &= ~FS_WEIGHT_SUBPIXEL;
-        logfont->style |=  FS_WEIGHT_BOOK;
-        logfont->style &= ~FS_WEIGHT_LIGHT;
+        logfont->style &= ~FS_RENDER_MASK;
+        logfont->style |=  FS_RENDER_GREY;
+    }
+    else {
+        logfont->style &= ~FS_RENDER_MASK;
+        logfont->style |=  FS_RENDER_MONO;
     }
 
     return devfont;
