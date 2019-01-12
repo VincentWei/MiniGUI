@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -67,7 +67,7 @@ static inline int get_rotation (LOGFONT* logfont,
 }
 
 /************************** Exported functions ******************************/
-static PLOGFONT gdiCreateLogFont (const char* type, const char* family, 
+static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     const char* charset, DWORD style, int size, int rotation)
 {
     PLOGFONT log_font;
@@ -158,7 +158,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     log_font->sbc_devfont = sbc_devfont;
     log_font->mbc_devfont = mbc_devfont;
 
-    /* 
+    /*
      * Adjust the logical font information
      */
 
@@ -188,18 +188,18 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     /*reset charset name of logfont*/
     if (log_font->mbc_devfont) {
-        strncpy (log_font->charset, 
+        strncpy (log_font->charset,
             log_font->mbc_devfont->charset_ops->name, LEN_FONT_NAME);
         log_font->charset [LEN_FONT_NAME] = '\0';
     }
     else {
-        strncpy (log_font->charset, 
+        strncpy (log_font->charset,
             log_font->sbc_devfont->charset_ops->name, LEN_FONT_NAME);
         log_font->charset [LEN_FONT_NAME] = '\0';
     }
 
     /*reset ascent of logfont*/
-    sbc_value = log_font->sbc_devfont->font_ops->get_font_ascent (log_font, 
+    sbc_value = log_font->sbc_devfont->font_ops->get_font_ascent (log_font,
                     log_font->sbc_devfont);
     if (log_font->mbc_devfont) {
         mbc_value = log_font->mbc_devfont->font_ops->get_font_ascent (log_font,
@@ -211,7 +211,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     }
 
     /*reset descent of logfont*/
-    sbc_value = log_font->sbc_devfont->font_ops->get_font_descent (log_font, 
+    sbc_value = log_font->sbc_devfont->font_ops->get_font_descent (log_font,
                     log_font->sbc_devfont);
     if (log_font->mbc_devfont) {
         mbc_value = log_font->mbc_devfont->font_ops->get_font_descent (log_font,
@@ -233,13 +233,13 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     }
 
     /* remove HORZVERT style if the glyph bmptype is subpixel */
-    glyph_bmptype = log_font->sbc_devfont->font_ops->get_glyph_type 
+    glyph_bmptype = log_font->sbc_devfont->font_ops->get_glyph_type
                 (log_font, log_font->sbc_devfont) & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
     if (glyph_bmptype == GLYPHBMP_TYPE_SUBPIXEL) {
         log_font->style &= ~FS_FLIP_HORZVERT;
     }
     else if (log_font->mbc_devfont) {
-        glyph_bmptype = log_font->mbc_devfont->font_ops->get_glyph_type 
+        glyph_bmptype = log_font->mbc_devfont->font_ops->get_glyph_type
                     (log_font, log_font->mbc_devfont) & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
         if (glyph_bmptype == GLYPHBMP_TYPE_SUBPIXEL)
             log_font->style &= ~FS_FLIP_HORZVERT;
@@ -261,7 +261,7 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *logfont)
 
     if ((font = malloc (sizeof (LOGFONT))) == NULL)
         return INV_LOGFONT;
-    
+
     memcpy (font, logfont, sizeof(LOGFONT));
 
     sbc_devfont = logfont->sbc_devfont;
@@ -282,8 +282,8 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *logfont)
     return font;
 }
 
-PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family, 
-    const char* charset, char weight, char slant, char flip, 
+PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
+    const char* charset, char weight, char slant, char flip,
     char other, char underline, char struckout, int size, int rotation)
 {
     char style_name [7];
@@ -291,10 +291,42 @@ PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
     style_name[1] = slant;
     style_name[2] = flip;
     style_name[3] = other;
-    style_name[4] = underline;
-    style_name[5] = struckout;
+    if (underline == FONT_UNDERLINE_LINE) {
+        if (struckout == FONT_STRUCKOUT_LINE) {
+            style_name[4] = FONT_DECORATE_BOTH;
+        }
+        else {
+            style_name[4] = FONT_DECORATE_UNDERLINE;
+        }
+    }
+    else {
+        if (struckout == FONT_STRUCKOUT_LINE) {
+            style_name[4] = FONT_DECORATE_STRUCKOUT;
+        }
+        else {
+            style_name[4] = FONT_DECORATE_NONE;
+        }
+    }
+    style_name[5] = FONT_RENDER_ANY;
     style_name[6] = 0;
-    
+
+    return gdiCreateLogFont (type, family, charset, fontConvertStyle (style_name), size, rotation);
+}
+
+PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
+        const char* charset, char weight, char slant, char flip,
+        char other, char decoration, char rendering,
+        int size, int rotation)
+{
+    char style_name [7];
+    style_name[0] = weight;
+    style_name[1] = slant;
+    style_name[2] = flip;
+    style_name[3] = other;
+    style_name[4] = decoration;
+    style_name[5] = rendering;
+    style_name[6] = 0;
+
     return gdiCreateLogFont (type, family, charset, fontConvertStyle (style_name), size, rotation);
 }
 
@@ -339,13 +371,13 @@ void GUIAPI GetLogFontInfo (HDC hdc, LOGFONT* log_font)
 void GUIAPI GetFontMetrics (LOGFONT* log_font, FONTMETRICS* font_metrics)
 {
     int sbc_value, mbc_value;
-    
+
     if (!log_font) return;
     if (!font_metrics) return;
 
     font_metrics->font_height = log_font->size;
 
-    sbc_value = log_font->sbc_devfont->font_ops->get_font_ascent (log_font, 
+    sbc_value = log_font->sbc_devfont->font_ops->get_font_ascent (log_font,
                     log_font->sbc_devfont);
     if (log_font->mbc_devfont) {
         mbc_value = log_font->mbc_devfont->font_ops->get_font_ascent (log_font,
@@ -358,10 +390,10 @@ void GUIAPI GetFontMetrics (LOGFONT* log_font, FONTMETRICS* font_metrics)
 
     font_metrics->descent = font_metrics->font_height - font_metrics->ascent;
 
-    sbc_value = log_font->sbc_devfont->font_ops->get_max_width (log_font, 
+    sbc_value = log_font->sbc_devfont->font_ops->get_max_width (log_font,
                     log_font->sbc_devfont);
     if (log_font->mbc_devfont) {
-        mbc_value = log_font->mbc_devfont->font_ops->get_max_width (log_font, 
+        mbc_value = log_font->mbc_devfont->font_ops->get_max_width (log_font,
                         log_font->mbc_devfont);
         font_metrics->max_width = MAX (sbc_value, mbc_value);
     }
@@ -369,10 +401,10 @@ void GUIAPI GetFontMetrics (LOGFONT* log_font, FONTMETRICS* font_metrics)
         font_metrics->max_width = sbc_value;
     }
 
-    sbc_value = log_font->sbc_devfont->font_ops->get_ave_width (log_font, 
+    sbc_value = log_font->sbc_devfont->font_ops->get_ave_width (log_font,
                     log_font->sbc_devfont);
     if (log_font->mbc_devfont) {
-        mbc_value = log_font->mbc_devfont->font_ops->get_ave_width (log_font, 
+        mbc_value = log_font->mbc_devfont->font_ops->get_ave_width (log_font,
                         log_font->mbc_devfont);
         font_metrics->ave_width = mbc_value;
     }
@@ -382,8 +414,8 @@ void GUIAPI GetFontMetrics (LOGFONT* log_font, FONTMETRICS* font_metrics)
 }
 
 #if 0
-void GUIAPI GetGlyphBitmap (LOGFONT* log_font, 
-                const unsigned char* mchar, int mchar_len, 
+void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
+                const unsigned char* mchar, int mchar_len,
                 GLYPHBITMAP* glyph_bitmap)
 {
     DEVFONT* sbc_devfont;
@@ -412,7 +444,7 @@ void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
     else {
         devfont = sbc_devfont;
     }
-    glyph_value = devfont->charset_ops->char_glyph_value(NULL, 0, mchar, mchar_len); 
+    glyph_value = devfont->charset_ops->char_glyph_value(NULL, 0, mchar, mchar_len);
 
     if (devfont->font_ops->get_glyph_bbox) {
         glyph_bitmap->bbox_x = 0;
@@ -427,11 +459,11 @@ void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
         glyph_bitmap->bbox_x = 0;
         glyph_bitmap->bbox_w = 0;
 
-        glyph_bitmap->bbox_y = devfont->font_ops->get_font_descent (log_font, 
+        glyph_bitmap->bbox_y = devfont->font_ops->get_font_descent (log_font,
                         devfont);
-        devfont->font_ops->get_glyph_advance (log_font, 
+        devfont->font_ops->get_glyph_advance (log_font,
                         devfont, glyph_value, &glyph_bitmap->bbox_w, 0);
-        glyph_bitmap->bbox_h = devfont->font_ops->get_font_height (log_font, 
+        glyph_bitmap->bbox_h = devfont->font_ops->get_font_height (log_font,
                         devfont);
     }
 
@@ -440,8 +472,8 @@ void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
         glyph_bitmap->advance_y = 0;
         if (devfont->font_ops->start_str_output)
             devfont->font_ops->start_str_output (log_font, devfont);
-        devfont->font_ops->get_glyph_advance (log_font, devfont, 
-                        glyph_value, 
+        devfont->font_ops->get_glyph_advance (log_font, devfont,
+                        glyph_value,
                         &glyph_bitmap->advance_x, &glyph_bitmap->advance_y);
     }
     else {
@@ -465,7 +497,7 @@ void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
 
     glyph_bitmap->bmp_size = glyph_bitmap->bmp_pitch * glyph_bitmap->bbox_h;
 
-    glyph_bitmap->bits = devfont->font_ops->get_glyph_monobitmap (log_font, 
+    glyph_bitmap->bits = devfont->font_ops->get_glyph_monobitmap (log_font,
                     devfont, glyph_value, NULL);
 }
 

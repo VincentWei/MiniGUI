@@ -256,6 +256,9 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_RENDER_MONO:
         style |= FS_RENDER_MONO;
         break;
+    case FONT_RENDER_OUTLINE:
+        style |= FS_RENDER_OUTLINE;
+        break;
     case FONT_RENDER_GREY:
         style |= FS_RENDER_GREY;
         break;
@@ -263,6 +266,7 @@ DWORD fontConvertStyle (const char* style_part)
         style |= FS_RENDER_SUBPIXEL;
         break;
     default:
+        style |= FS_RENDER_MONO;
         break;
     }
 

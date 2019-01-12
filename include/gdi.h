@@ -5459,6 +5459,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 
 #define FONT_WEIGHT_NIL             '\0'
 #define FONT_WEIGHT_ALL             '*'
+#define FONT_WEIGHT_ANY             '*'
 #define FONT_WEIGHT_THIN            't'
 #define FONT_WEIGHT_EXTRA_LIGHT     'e'
 #define FONT_WEIGHT_LIGHT           'l'
@@ -5530,28 +5531,21 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_DECORATE_BOTH            0x03000000
 
 #define FONT_RENDER_NIL             '\0'
+#define FONT_RENDER_ANY             '*'
 #define FONT_RENDER_MONO            'n'
+#define FONT_RENDER_OUTLINE         'o'
 #define FONT_RENDER_GREY            'g'
 #define FONT_RENDER_SUBPIXEL        's'
 
 #define FS_RENDER_MASK              0xF0000000
 #define FS_RENDER_MONO              0x00000000
-#define FS_RENDER_GREY              0x10000000
-#define FS_RENDER_SUBPIXEL          0x20000000
+#define FS_RENDER_OUTLINE           0x10000000
+#define FS_RENDER_GREY              0x20000000
+#define FS_RENDER_SUBPIXEL          0x30000000
 
 /* deprecated since v3.2.1, use FS_RENDER_XXX/FONT_RENDER_XXX instead */
 #define FONT_WEIGHT_SUBPIXEL        's'
 #define FONT_WEIGHT_BOOK            'k'
-
-/* deprecated since v3.2.1, use FS_DECORATE_XXX/FONT_DECORATE_XXX instead */
-#define FONT_UNDERLINE_NIL          '\0'
-#define FONT_UNDERLINE_ALL          '*'
-#define FONT_UNDERLINE_LINE         'u'
-#define FONT_UNDERLINE_NONE         'n'
-#define FONT_STRUCKOUT_NIL          '\0'
-#define FONT_STRUCKOUT_ALL          '*'
-#define FONT_STRUCKOUT_LINE         's'
-#define FONT_STRUCKOUT_NONE         'n'
 
 /*
 #define FS_WEIGHT_SUBPIXEL          0x00000000
@@ -5566,7 +5560,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_STRUCKOUT_NONE           0x00000000
 */
 
-/* 
+/*
  * Backward compatiblilty definitions. 
  * All FONT_SETWIDTH_* and FONT_SPACING_* types will 
  * be treated as FONT_FLIP_NIL and FONT_OTHER_NIL respectively. 
@@ -5600,6 +5594,16 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_SPACING_PROPORTIONAL     0x00020000
 #define FS_SPACING_CHARCELL         0x00000000
 */
+
+#define FONT_UNDERLINE_NIL          '\0'
+#define FONT_UNDERLINE_ALL          '*'
+#define FONT_UNDERLINE_LINE         'u'
+#define FONT_UNDERLINE_NONE         'n'
+
+#define FONT_STRUCKOUT_NIL          '\0'
+#define FONT_STRUCKOUT_ALL          '*'
+#define FONT_STRUCKOUT_LINE         's'
+#define FONT_STRUCKOUT_NONE         'n'
 
 #define FONT_TYPE_NAME_LEN          3
 #define FONT_TYPE_NAME_BITMAP_RAW   "rbf"
@@ -6074,14 +6078,24 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  * \param weight The weight of the logical font, can be one of the values:
  *      - FONT_WEIGHT_ALL\n
  *        Any one.
- *      - FONT_WEIGHT_REGULAR\n
- *        Regular font.
- *      - FONT_WEIGHT_BOLD\n
- *        Bold font.
- *      - FONT_WEIGHT_BOOK\n
- *        Anti-aliase font.
+ *      - FONT_WEIGHT_THIN\n
+ *        Thin.
+ *      - FONT_WEIGHT_EXTRA_LIGHT\n
+ *        Extra light (Ultra light).
  *      - FONT_WEIGHT_LIGHT\n
- *        Draw the glyph border with the background color.
+ *        Light.
+ *      - FONT_WEIGHT_REGULAR\n
+ *        Regular (normal).
+ *      - FONT_WEIGHT_MEDIUM\n
+ *        Medium.
+ *      - FONT_WEIGHT_DEMIBOLD\n
+ *        Semi Bold (Demi Bold).
+ *      - FONT_WEIGHT_BOLD\n
+ *        Bold.
+ *      - FONT_WEIGHT_EXTRA_BOLD\n
+ *        Extra bold (Ultra Bold).
+ *      - FONT_WEIGHT_BLACK\n
+ *        Black (Heavy).
  * \param slant The slant of the logical font, can be one of the values:
  *      - FONT_SLANT_ALL\n
  *        Any one.
@@ -6111,10 +6125,10 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        When using TrueType font, kern the glyph and do not use cache.
  *      - FONT_OTHER_LCDPORTRAIT\n
  *        When using TrueType font and sub-pixels smoothing strategy, 
- *        set lcd portrait and do not use kern the glyph.
+ *        set LCD portrait and do not kern the glyph.
  *      - FONT_OTHER_LCDPORTRAITKERN\n
  *        When using TrueType font and sub-pixels smoothing strategy, 
- *        set lcd portrait and use kern the glyph.
+ *        set LCD portrait and kern the glyph.
  * \param underline The underline of the logical font, can be one of the values:
  *      - FONT_UNDERLINE_ALL\n
  *        Any one.
@@ -6148,6 +6162,132 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
 MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family, 
         const char* charset, char weight, char slant, char flip, 
         char other, char underline, char struckout, 
+        int size, int rotation);
+
+/**
+ * \fn PLOGFONT GUIAPI CreateLogFontEx (const char* type, \
+                const char* family, const char* charset, char weight, \
+                char slant, char flip, char other, char decoration, \
+                char rendering, int size, int rotation)
+ * \brief Creates a logical font.
+ *
+ * This function creates a logical font. 
+ *
+ * \param type The type of the logical font, can be one of the values:
+ *      - FONT_TYPE_NAME_BITMAP_RAW\n
+ *        Creates a logical font by using raw bitmap device font, i.e. 
+ *        mono-space bitmap font.
+ *      - FONT_TYPE_NAME_BITMAP_VAR\n
+ *        Creates a logical font by using var-width bitmap device font.
+ *      - FONT_TYPE_NAME_BITMAP_QPF\n
+ *        Creates a logical font by using qpf device font.
+ *      - FONT_TYPE_NAME_BITMAP_BMP\n
+ *        Creates a logical font by using bitmap font.
+ *      - FONT_TYPE_NAME_SCALE_TTF\n
+ *        Creates a logical font by using scalable TrueType device font.
+ *      - FONT_TYPE_NAME_SCALE_T1F\n
+ *        Creates a logical font by using scalable Adobe Type1 device font.
+ *      - FONT_TYPE_NAME_ALL\n
+ *        Creates a logical font by using any type device font.
+ * \param family The family of the logical font, such as "Courier", 
+ *        "Helvetica", and so on.
+ * \param charset The charset of the logical font. You can specify a 
+ *        sigle-byte charset like "ISO8859-1", or a multi-byte charset 
+ *        like "GB2312-0".
+ * \param weight The weight of the logical font, can be one of the values:
+ *      - FONT_WEIGHT_ANY\n
+ *        Any one.
+ *      - FONT_WEIGHT_THIN\n
+ *        Thin.
+ *      - FONT_WEIGHT_EXTRA_LIGHT\n
+ *        Extra light (Ultra light).
+ *      - FONT_WEIGHT_LIGHT\n
+ *        Light.
+ *      - FONT_WEIGHT_REGULAR\n
+ *        Regular (normal).
+ *      - FONT_WEIGHT_MEDIUM\n
+ *        Medium.
+ *      - FONT_WEIGHT_DEMIBOLD\n
+ *        Semi Bold (Demi Bold).
+ *      - FONT_WEIGHT_BOLD\n
+ *        Bold.
+ *      - FONT_WEIGHT_EXTRA_BOLD\n
+ *        Extra bold (Ultra Bold).
+ *      - FONT_WEIGHT_BLACK\n
+ *        Black (Heavy).
+ * \param slant The slant of the logical font, can be one of the values:
+ *      - FONT_SLANT_ALL\n
+ *        Any one.
+ *      - FONT_SLANT_ROMAN\n
+ *        Regular font.
+ *      - FONT_SLANT_ITALIC\n
+ *        Italic font.
+ * \param flip Does flip the glyph of the font, can be one of the following values:
+ *      - FONT_FLIP_NIL\n
+ *        Do not flip the glyph.
+ *      - FONT_FLIP_HORZ\n
+ *        Flip the glyph horizontally .
+ *      - FONT_FLIP_VERT\n
+ *        Flip the glyph vertically.
+ *      - FONT_FLIP_HORZVERT\n
+ *        Flip the glyph horizontally and vertically.
+ * \param other Other rendering features, can be one of the following values:
+ *      - FONT_OTHER_NIL\n
+ *        Not specified.
+ *      - FONT_OTHER_AUTOSCALE\n
+ *        Auto scale the bitmap glyph to match the desired font size.
+ *      - FONT_OTHER_TTFNOCACHE\n
+ *        Do not use cache when using TrueType font.
+ *      - FONT_OTHER_TTFKERN\n
+ *        Kern the glyph when using TrueType font.
+ *      - FONT_OTHER_TTFNOCACHEKERN\n
+ *        When using TrueType font, kern the glyph and do not use cache.
+ *      - FONT_OTHER_LCDPORTRAIT\n
+ *        When using TrueType font and sub-pixels smoothing strategy, 
+ *        set lcd portrait and do not use kern the glyph.
+ *      - FONT_OTHER_LCDPORTRAITKERN\n
+ *        When using TrueType font and sub-pixels smoothing strategy, 
+ *        set lcd portrait and use kern the glyph.
+ * \param decoration The decoration (underline and/or struckout line) 
+          of the logical font, can be one of the values:
+ *      - FONT_DECORATE_NONE\n
+ *        Without underline and struckout line.
+ *      - FONT_DECORATE_UNDERLINE\n
+ *        With underline.
+ *      - FONT_DECORATE_STRUCKOUT\n
+ *        With struckout line.
+ *      - FONT_DECORATE_BOTH\n
+ *        With both underline and struckout line.
+ * \param rendering The rendering type of the logical font, can be one of 
+ *        the values:
+ *      - FONT_RENDER_ANY\n
+ *        Any one (not specified).
+ *      - FONT_RENDER_MONO\n
+ *        Use a monochromatic bitmap.
+ *      - FONT_RENDER_OUTLINE\n
+ *        Render the glyph with an outline.
+ *      - FONT_RENDER_GREY\n
+ *        Render the glyph by using a gray bitmap.
+ *      - FONT_RENDER_SUBPIXEL\n
+ *        Use subpixel rendering method (TrueType only).
+ * \param size The size, i.e. the height, of the logical font. Note that 
+ *        the size of the created logical font may be different from the 
+ *        size expected.
+ * \param rotation The rotation of the logical font, it is in units of 
+ *        tenth degrees. Note that you can specify rotation only for 
+ *        TrueType and Adobe Type1 fonts.
+ * \return The pointer to the logical font created, NULL on error.
+ *
+ * \sa CreateLogFontIndirect, CreateLogFontByName, SelectFont
+ *
+ * Example:
+ *
+ * \include createlogfontex.c
+ *
+ */
+MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family, 
+        const char* charset, char weight, char slant, char flip, 
+        char other, char decoration, char rendering, 
         int size, int rotation);
 
 /**

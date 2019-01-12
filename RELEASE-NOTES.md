@@ -1,12 +1,79 @@
 # Release Notes
 
+## Version 3.4.0
+
+The MiniGUI development team announces the availability of MiniGUI 3.4.0.
+All users of MiniGUI are recommended strongly to use this version.
+Please report any bugs and incompatibilities in
+
+    https://github.com/VincentWei/minigui
+
+### What's new in this version
+
+#### Redesigned the style of logical fonts
+
+The styles of LOGFONT changed.
+
+* Add new rendering style:
+  1. `FS_RENDER_ANY`: Not specified
+  1. `FS_RENDER_MONO`:
+  1. `FS_RENDER_OUTLINE`:
+  1. `FS_RENDER_GREY`:
+  1. `FS_RENDER_SUBPIXEL`:
+* Remove some bad style definitions:
+  1. `FS_WEIGHT_BOOK`, use `FS_RENDER_GREY` instead.
+  1. `FS_WEIGHT_LIGHT`, use `FS_RENDER_OUTLINE` instead.
+* Introduced the new weight styles:
+  1. `FONT_WEIGHT_ANY`: Not specified
+  1. `FONT_WEIGHT_THIN`:
+  1. `FONT_WEIGHT_EXTRA_LIGHT`:
+  1. `FONT_WEIGHT_LIGHT`:
+  1. `FONT_WEIGHT_REGULAR`:
+  1. `FONT_WEIGHT_MEDIUM`:
+  1. `FONT_WEIGHT_DEMIBOLD`:
+  1. `FONT_WEIGHT_BOLD`:
+  1. `FONT_WEIGHT_EXTRA_BOLD`:
+  1. `FONT_WEIGHT_BLACK`:
+* Introduce the new decoration styles:
+  1. `FONT_DECORATE_ANY`:
+  1. `FONT_DECORATE_NONE`:
+  1. `FONT_DECORATE_UNDERLINE`:
+  1. `FONT_DECORATE_STRUCKOUT`:
+  1. `FONT_DECORATE_BOTH`:
+
+* Replace `FONT_UNDERLINE_LINE` and `FONT_STRUCKOUT_LINE` with 
+
+For the back-compatibility, you can still use `CreateLogFont` to
+create a new LOGFONT. However, the `FS_WEIGHT_BOOK` and `FS_WEIGHT_LIGHT`
+will be ignored, and the rendering type will be set as `FS_RENDER_ANY`.
+
+For new app, you should use the new function `CreateLogFontEx` to
+create a LOGFONT.
+
+You can still use `CreateLogFontByName` to create a new LOGFONT.
+But the style string in the font name changed from
+
+    <weight><slant><flipping><other><underline><struckout>
+
+to
+
+    <weight><slant><flipping><other><decoration><rendering>
+
+Obviously, `<underline>` and `<struckout>` are merged to `<decoration>`
+in order to keep the styel string is still 6-character long.
+
+Now, if you want to use the rendering style SUPIXEL for a TTF font,
+please define the font name in the following way:
+
+    ttf-Courier-rrncns-*-16-UTF-8
+
 ## Version 3.2.1
 
 The MiniGUI development team announces the availability of MiniGUI 3.2.1.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui. 
+    https://github.com/VincentWei/minigui
 
 ### What's new in this version
 

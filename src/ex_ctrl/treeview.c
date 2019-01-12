@@ -1458,7 +1458,6 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 rctop = rc.top;
 
                 if (mouseX <= right && mouseX >= left && (p != pData->pItemSelected) ) {
-					PLOGFONT logfont;
                     c = getCountFromItem (pData, pData->pItemSelected);
                     c = c - pData->nItemTop - 1;
                     if (c < 0)
@@ -1471,12 +1470,15 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                         rc.top += TV_BORDER;
                     rc.bottom = rc.top + pData->nItemHeight;
 
-                    /*bugfix: 4864, zhaochengzhang*/
+                    /* VincentWei: do not depend on logfont style
+                    PLOGFONT logfont;
+                    //bugfix: 4864, zhaochengzhang
                     logfont = GetWindowFont(hwnd);
                     if (logfont->style & (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)) {
                         rc.left--; rc.top--;
                         rc.right++; rc.bottom++;
                     }
+                    */
                     InvalidateRect (hwnd, &rc, TRUE);
 
                     rc.top = rctop + (count - pData->nItemTop - 1) * pData->nItemHeight;
@@ -1484,17 +1486,18 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                         rc.top += TV_BORDER;
                     rc.bottom = rc.top + pData->nItemHeight;
 
-                    /*bugfix: 4864 zhaochengzhang*/
+                    /* VincentWei: do not depend on logfont style
+                    //bugfix: 4864 zhaochengzhang
                     if (logfont->style & (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)) {
                         rc.left--; rc.top--;
                         rc.right++; rc.bottom++;
-                    } 
+                    }
+                    */
                     InvalidateRect (hwnd, &rc, TRUE);
                     NotifyParent (hwnd, pData->id, TVN_CLICKED);
                 }
 
                 if (mouseX <= left + h && mouseX >= left) {
-					PLOGFONT logfont;
                     if (p->child == NULL)
                         break;
 
@@ -1518,13 +1521,16 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     tvSetVScrollInfo (hwnd, pData, TRUE);
                     tvSetHScrollInfo (hwnd, pData, TRUE);
                     rc.bottom = rcClient.bottom;
-                    
-                    /*bugfix: 4864 zhaochengzhang*/
+
+                    /* VincentWei: do not depend on the logfont style
+                    PLOGFONT logfont;
+                    //bugfix: 4864 zhaochengzhang
                     logfont = GetWindowFont(hwnd);
                     if (logfont->style & (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)) { 
                         rc.left--; rc.top--;
                         rc.right++; rc.bottom++;
                     }
+                    */
                     InvalidateRect (hwnd, &rc, TRUE);
                     NotifyParent (hwnd, pData->id, TVN_CLICKED);
                 }

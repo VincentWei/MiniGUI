@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** freetype2.c: TrueType font support based on FreeType 2.
-** 
+**
 ** Create date: 2002/01/18
 */
 
@@ -55,7 +55,7 @@
 
 #include "freetype2.h"
 
-#define IS_SUBPIXEL(logfont) ((logfont)->style & FS_OTHER_SUBPIXEL)
+#define IS_SUBPIXEL(logfont) (((logfont)->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL)
 
 #ifdef TTF_DBG
 static int bbox_nohit = 0;
@@ -155,14 +155,14 @@ static void free_raster_bitmap_buffer (void)
 /*************** TrueType on FreeType font operations ************************/
 
 #ifdef DEBUG_GLYPH_DATA
-static void 
+static void
 print_bitmap(char* bits, int width, int height, int pitch)
 {
     int y = 0;
     int x = 0;
     char* p_line_head;
     char* p_cur_char;
-    
+
     for (y = 0, p_line_head = bits; y < height; y++)
     {
         for (x = 0; x < width; x++)
@@ -174,12 +174,12 @@ print_bitmap(char* bits, int width, int height, int pitch)
                 printf(". ");
         }
         printf("\n");
-        
+
         p_line_head += pitch;
     }
 }
 
-static void 
+static void
 print_bitmap_grey (void* buffer, int width, int rows, int pitch)
 {
     int     i;
@@ -199,36 +199,40 @@ print_bitmap_grey (void* buffer, int width, int rows, int pitch)
 
 static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
 {
-    if (logfont->style & FS_OTHER_SUBPIXEL)
+    switch (logfont->style & FS_RENDER_MASK) {
+    case FS_RENDER_SUBPIXEL:
         return DEVFONTGLYPHTYPE_SUBPIXEL;
-    else if (logfont->style & FS_WEIGHT_BOOK)
+    case FS_RENDER_GREY:
         return DEVFONTGLYPHTYPE_GREYBMP;
+    default:
+        break;
+    }
 
     return DEVFONTGLYPHTYPE_MONOBMP;
 }
 
-static int 
+static int
 get_ave_width (LOGFONT* logfont, DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
     return ft_inst_info->ave_width;
 }
 
-static int 
+static int
 get_max_width (LOGFONT* logfont, DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
     return ft_inst_info->max_width;
 }
 
-static int 
+static int
 get_font_height (LOGFONT* logfont, DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
     return ft_inst_info->height;
 }
 
-static int 
+static int
 get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
 {
     unsigned short scale = 1;
@@ -236,22 +240,22 @@ get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
     return expect;
 }
 
-static int 
+static int
 get_font_ascent (LOGFONT* logfont, DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
     return ft_inst_info->ascent;
 }
 
-static int 
+static int
 get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
     return ft_inst_info->descent;
 }
 
-static int 
-load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face, 
+static int
+load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
         FT_ULong uni_char, int glyph_type)
 {
 #ifndef _MGFONT_TTF_CACHE
@@ -322,12 +326,12 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
 
 /* call this function before getting the bitmap/pixmap of the char
  * to get the bbox of the char */
-static int 
-get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, 
-                const Glyph32 glyph_value, 
+static int
+get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
+                const Glyph32 glyph_value,
                 int* px, int* py, int* pwidth, int* pheight)
 {
-   
+
     FT_BBox         bbox;
     FT_Face         face;
     FT_UInt         uni_char;
@@ -356,7 +360,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
             if (pwidth)  *pwidth  = cache_info->bbox.xMax - cache_info->bbox.xMin;
             if (pheight) *pheight = cache_info->bbox.yMax - cache_info->bbox.yMin;
-            if (px)      *px += cache_info->bbox.xMin; 
+            if (px)      *px += cache_info->bbox.xMin;
             if (py)      *py -= cache_info->bbox.yMax;
 
             if (px)
@@ -367,9 +371,9 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         DP(("\nBBOX Non - Hit! %d, %d\n", bbox_nohit++, uni_char));
     }
 
-#endif   
+#endif
 
-    if (load_or_search_glyph (ft_inst_info, &face, uni_char, 
+    if (load_or_search_glyph (ft_inst_info, &face, uni_char,
                 get_glyph_type(logfont, devfont))) {
         _MG_PRINTF ("FONT>FT2: load_or_search_glyph error in freetype2\n");
         return 0;
@@ -378,7 +382,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     if (ft_inst_info->use_kerning) {
         /* get kerning. */
         if (ft_inst_info->prev_index && ft_inst_info->cur_index) {
-            int error = FT_Get_Kerning (face, 
+            int error = FT_Get_Kerning (face,
                     ft_inst_info->prev_index, ft_inst_info->cur_index,
                     FT_KERNING_DEFAULT, &(ft_inst_info->delta));
 
@@ -404,7 +408,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     /* We just save the BBOX :). */
     memcpy (&ft_inst_info->bbox, &bbox, sizeof(FT_BBox));
-    memcpy (&ft_inst_info->advance, &ft_inst_info->glyph->advance, 
+    memcpy (&ft_inst_info->advance, &ft_inst_info->glyph->advance,
             sizeof(FT_Vector));
 
     FT_Done_Glyph (ft_inst_info->glyph);
@@ -432,11 +436,11 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
             cache_info.bitmap  = NULL;
             cache_info.pitch   = 0;
             cache_info.flag    = FALSE;
-            DP(("Should Write %d to cache length = %d, bitmap size = %d, cache = %p\n", 
-                        cache_info.unicode, sizeof(TTFCACHEINFO) + size, size, 
+            DP(("Should Write %d to cache length = %d, bitmap size = %d, cache = %p\n",
+                        cache_info.unicode, sizeof(TTFCACHEINFO) + size, size,
                         ft_inst_info->cache));
 
-            __mg_ttc_write(ft_inst_info->cache, 
+            __mg_ttc_write(ft_inst_info->cache,
                     &cache_info, sizeof(TTFCACHEINFO) + size);
         }
     }
@@ -444,19 +448,19 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     if (pwidth)  *pwidth = bbox.xMax - bbox.xMin;
     if (pheight) *pheight = bbox.yMax - bbox.yMin;
-    if (px)      *px += bbox.xMin; 
+    if (px)      *px += bbox.xMin;
     if (py)      *py -= bbox.yMax;
 
     return (int)(bbox.xMax - bbox.xMin);
 }
 
 /* press double-byte align to byte align.*/
-static void 
+static void
 press_bitmap (void* buffer, int width, int rows, int pitch)
 {
     unsigned char*   src_pos;
     unsigned char*   dest_pos;
-	int     i;
+    int     i;
     int     dest_pitch = (width + 7) >> 3;
 
     if (dest_pitch == pitch)
@@ -473,22 +477,22 @@ press_bitmap (void* buffer, int width, int rows, int pitch)
 }
 
 
-/* call this function to get the bitmap/pixmap of the char */ 
-static const void* 
-char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont, 
-        const Glyph32 glyph_value, int* pitch, BOOL is_grey) 
+/* call this function to get the bitmap/pixmap of the char */
+static const void*
+char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
+        const Glyph32 glyph_value, int* pitch, BOOL is_grey)
 {
     FT_BitmapGlyph  glyph_bitmap;
     FT_Bitmap*      source;
     FT_UInt         uni_char;
     FT_Face         face;
     BYTE*           buffer = NULL;
-	FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
+    FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
     /*because: lock in draw_one_glyph*/
     if (IS_SUBPIXEL(logfont))
         FT_Library_SetLcdFilter(ft_library, ft_inst_info->ft_lcdfilter);
-    
+
     if(devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
@@ -498,10 +502,10 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
         TTFCACHEINFO *cacheinfo;
         int datasize;
-    
+
         cacheinfo = __mg_ttc_search(ft_inst_info->cache,
                         uni_char, &datasize);
-        
+
         if (cacheinfo != NULL && cacheinfo->flag == TRUE) {
             DP(("Bitmap Hit!! %d\n", bitmap_hit++));
             if (pitch)
@@ -511,9 +515,9 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         }
         DP(("Bitmap Non hit %d, %d\n", bitmap_nohit++, uni_char));
     }
-#endif 
-    
-    if (load_or_search_glyph (ft_inst_info, &face, uni_char, 
+#endif
+
+    if (load_or_search_glyph (ft_inst_info, &face, uni_char,
                 get_glyph_type(logfont, devfont))) {
         _MG_PRINTF ("FONT>FT2: load_or_search_glyph failed in freetype2\n");
         return NULL;
@@ -523,14 +527,14 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     if (ft_inst_info->glyph->format != ft_glyph_format_bitmap) {
         if (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE &&
             IS_SUBPIXEL(logfont) && is_grey) {
-            if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph), 
+            if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
                         FT_RENDER_MODE_LCD, NULL, 1)) {
                 _MG_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
                 return NULL;
             }
         }
         else {
-            if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph), 
+            if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
                         is_grey? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO,
                         NULL, 1)) {
                 _MG_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
@@ -538,16 +542,16 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             }
         }
     }
-    
+
     /* access bitmap content by typecasting */
     glyph_bitmap = (FT_BitmapGlyph) ft_inst_info->glyph;
     source = &glyph_bitmap->bitmap;
-    
+
     if (pitch)
         *pitch = source->pitch;
 
     if (!is_grey) {
-        press_bitmap(source->buffer, 
+        press_bitmap(source->buffer,
             source->width, source->rows, source->pitch);
         *pitch = (source->width + 7) >> 3;
     }
@@ -571,11 +575,11 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             cache_info.bitmap  = source->buffer;
             cache_info.pitch   = *pitch;
             cache_info.flag    = TRUE;
-            DP(("Should Write %d to cache length = %d, bitmap size = %d, cache = %p\n", 
-                        cache_info.unicode, sizeof(TTFCACHEINFO) + size, size, 
+            DP(("Should Write %d to cache length = %d, bitmap size = %d, cache = %p\n",
+                        cache_info.unicode, sizeof(TTFCACHEINFO) + size, size,
                         ft_inst_info->cache));
 
-            __mg_ttc_write(ft_inst_info->cache, 
+            __mg_ttc_write(ft_inst_info->cache,
                     &cache_info, sizeof(TTFCACHEINFO) + size);
 
         }
@@ -595,28 +599,28 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     memcpy(buffer, source->buffer, source->rows * source->pitch);
 
     FT_Done_Glyph (ft_inst_info->glyph);
-    
+
     return buffer;
 }
 
-static const void* 
+static const void*
 get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
         const Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
     if (scale) *scale = 1;
     return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, FALSE);
 }
-static const void* 
-get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont, 
-            const Glyph32 glyph_value, int* pitch, 
+static const void*
+get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
+            const Glyph32 glyph_value, int* pitch,
             unsigned short* scale)
 {
     if (scale) *scale = 1;
-    return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, TRUE); 
+    return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, TRUE);
 }
 
 /* call this function before output a string */
-static void 
+static void
 start_str_output (LOGFONT* logfont, DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
@@ -632,14 +636,14 @@ start_str_output (LOGFONT* logfont, DEVFONT* devfont)
 /* call this function after getting the bitmap/pixmap of the char
  * to get the advance of the char */
 static int
-get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont, 
+get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     const Glyph32 glyph_value, int* px, int* py)
 {
-	FT_Fixed advance;
+    FT_Fixed advance;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
 
-    if (ft_inst_info->use_kerning 
+    if (ft_inst_info->use_kerning
             && ft_inst_info->prev_index && ft_inst_info->cur_index) {
         if (ft_inst_info->is_index_old) {
             if (px)
@@ -665,16 +669,16 @@ static int make_hash_key(unsigned short data)
 }
 #endif
 
-static DEVFONT* 
+static DEVFONT*
 new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
 {
-	float           angle;
+    float           angle;
     FT_Face         face;
     FT_Size         size;
     FTINSTANCEINFO* ft_inst_info = NULL;
     DEVFONT*        new_devfont = NULL;
     FT2_DATA*       ft_data = NULL;
-	FTFACEINFO*     ft_face_info = FT_FACE_INFO_P (devfont);
+    FTFACEINFO*     ft_face_info = FT_FACE_INFO_P (devfont);
 
     if ((new_devfont = calloc (1, sizeof (DEVFONT))) == NULL)
         goto out;
@@ -731,7 +735,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
 
     if (FT_Set_Pixel_Sizes (face, logfont->size, 0))
         goto out_size;
-    
+
     ft_inst_info->rotation = logfont->rotation; /* in tenthdegrees */
     angle = ft_inst_info->rotation * M_PI / 1800;
 
@@ -747,10 +751,10 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
         ft_inst_info->matrix.xx = ft_inst_info->matrix.yy;
         ft_inst_info->matrix.xy = -ft_inst_info->matrix.yx;
     }
-    
+
     ft_inst_info->use_kerning = 0;
-    ft_inst_info->use_kerning = FT_HAS_KERNING(face); 
-    
+    ft_inst_info->use_kerning = FT_HAS_KERNING(face);
+
     ft_inst_info->max_width = size->metrics.x_ppem;
     ft_inst_info->ave_width = ft_inst_info->max_width;
 
@@ -765,54 +769,70 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->image_type.height = logfont->size;
     ft_inst_info->image_type.face_id = (FTC_FaceID)ft_inst_info->ft_face_info;
 
-    /* houhh 20110304, AUTOHINT will be get more clear 
+    /* houhh 20110304, AUTOHINT will be get more clear
      * and thin glyph. */
-    ft_inst_info->image_type.flags = 
-        FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP | 
+    ft_inst_info->image_type.flags =
+        FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP |
         FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL |FT_LOAD_FORCE_AUTOHINT;
         //FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL;
 
     /* if unmask non-cache and no rotation */
-    if (!(logfont->style & FS_OTHER_TTFNOCACHE) && 
+    if (!(logfont->style & FS_OTHER_TTFNOCACHE) &&
         (ft_inst_info->rotation == 0)) {
-        
-        HCACHE hCache = __mg_ttc_is_exist(logfont->family, logfont->charset, 
+
+        HCACHE hCache = __mg_ttc_is_exist(logfont->family, logfont->charset,
                                    logfont->style, logfont->size);
         DP(("__mg_ttc_is_exist() return %p\n", hCache));
         /* No this style's cache */
         if (hCache == 0) {
-            int pitch = 0, nblk, col, blksize, rows = ft_inst_info->height;
-                     
-            if (((logfont->style & 0x0000000F) == FS_WEIGHT_BOOK) 
+            int nblk, col, blksize, rows = ft_inst_info->height;
+
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+            int pitch = 0;
+            if (((logfont->style & 0x0000000F) == FS_WEIGHT_BOOK)
                     || ((logfont->style & 0x0000000F) == FS_WEIGHT_DEMIBOLD)
                     || ((logfont->style & 0x0000000FF) == FS_WEIGHT_SUBPIXEL)) {
                 pitch = 1;
             }
-            
+
             if (!pitch) {
                 col = (ft_inst_info->max_width + 7) >> 3;
             } else {
                 col = (ft_inst_info->max_width + 3) & -4;
             }
-            
+
+#else
+            if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_MONO) {
+                col = (ft_inst_info->max_width + 7) >> 3;
+            }
+            else {
+                col = (ft_inst_info->max_width + 3) & -4;
+            }
+#endif
+
             blksize = col * rows;
 
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
             if ((logfont->style & 0x0000000FF) == FS_WEIGHT_SUBPIXEL)
                 blksize *= 3;
+#else
+            if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL)
+                blksize *= 3;
+#endif
 
             blksize += sizeof(TTFCACHEINFO);
-            
-            DP(("BITMAP Space = %d, Whole Space = %d\n", 
+
+            DP(("BITMAP Space = %d, Whole Space = %d\n",
                 blksize - sizeof(TTFCACHEINFO), blksize));
-            
+
             blksize = (blksize + 3) & -4;
             nblk = ( _MGTTF_CACHE_SIZE * 1024 )/ blksize;
             DP(("[Before New a Cache], col = %d, row = %d, blksize = %d, "
-                "blksize(bitmap) = %d, nblk = %d\n", 
+                "blksize(bitmap) = %d, nblk = %d\n",
                 rows, col, blksize, blksize-sizeof(TTFCACHEINFO), nblk));
-            
-            ft_inst_info->cache =  __mg_ttc_create(logfont->family, logfont->charset, 
-                                        logfont->style, logfont->size, nblk , blksize , 
+
+            ft_inst_info->cache =  __mg_ttc_create(logfont->family, logfont->charset,
+                                        logfont->style, logfont->size, nblk , blksize ,
                                         _TTF_HASH_NDIR, make_hash_key);
             DP(("__mg_ttc_create() return %p\n", ft_inst_info->cache));
         } else {
@@ -846,7 +866,7 @@ out:
     return NULL;
 }
 
-static void 
+static void
 delete_instance (DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
@@ -855,7 +875,7 @@ delete_instance (DEVFONT* devfont)
     if (ft_inst_info->cache) {
         __mg_ttc_release(ft_inst_info->cache);
     }
-#endif 
+#endif
 
     free (ft_inst_info);
     free (devfont->data);
@@ -866,13 +886,13 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
 {
     FT_Face         face;
     FT_UInt         uni_char;
-	FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
-    
+    FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
+
     if(devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uni_char = glyph_value;
-    
+
 #ifndef _MGFONT_TTF_CACHE
     face = ft_inst_info->ft_face_info->face;
     if(0 == FT_Get_Char_Index (face, uni_char))
@@ -936,7 +956,7 @@ static void* load_font_data (const char* font_name, const char *file_name)
     for (i = 0; i < face->num_charmaps; i++) {
         charmap = face->charmaps [i];
 
-        if (((charmap->platform_id == TT_PLATFORM_MICROSOFT) 
+        if (((charmap->platform_id == TT_PLATFORM_MICROSOFT)
                     && (charmap->encoding_id == TT_MS_ID_UNICODE_CS))
                 || ((charmap->platform_id == TT_PLATFORM_APPLE_UNICODE)
                     && (charmap->encoding_id == TT_APPLE_ID_DEFAULT))) {
@@ -979,7 +999,7 @@ static void unload_font_data (void* data)
     free (ft_data);
 }
 
-static void 
+static void
 ShowErr (const char*  message , int error)
 {
     _MG_PRINTF ("FONT>FT2: %s\n  error = 0x%04x\n", message, error );
@@ -1042,7 +1062,7 @@ BOOL font_InitFreetypeLibrary (void)
     return TRUE;
 
 error_ftc_manager:
-    FTC_Manager_Done (ft_cache_manager); 
+    FTC_Manager_Done (ft_cache_manager);
 #endif
     return TRUE;
 
@@ -1072,29 +1092,29 @@ void font_TermFreetypeLibrary (void)
 FONTOPS __mg_ttf_ops = {
     get_glyph_type,
     get_ave_width,
-    get_max_width,  
+    get_max_width,
     get_font_height,
-    get_font_size, 
+    get_font_size,
     get_font_ascent,
     get_font_descent,
 
     is_glyph_existed,
     get_glyph_advance,
-    get_glyph_bbox,    
+    get_glyph_bbox,
 
-    get_glyph_monobitmap, 
-    get_glyph_greybitmap,    
+    get_glyph_monobitmap,
+    get_glyph_greybitmap,
     NULL,
 
     start_str_output,
-    new_instance,    
+    new_instance,
     delete_instance,
     is_rotatable,
     load_font_data,
     unload_font_data
 };
 
-BOOL 
+BOOL
 ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
 {
     BOOL        rv = FALSE;
@@ -1102,7 +1122,7 @@ ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
 
     if (IS_SUBPIXEL(logfont)) {
         if (filter >= MG_SMOOTH_MAX)
-            filter = MG_SMOOTH_DEFAULT; 
+            filter = MG_SMOOTH_DEFAULT;
         devfont = logfont->sbc_devfont;
         if (devfont && devfont->font_ops == &__mg_ttf_ops) {
             FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
@@ -1118,22 +1138,28 @@ ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
         }
 
         /* remove subpixel style if filter is none */
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
         if (filter == MG_SMOOTH_NONE) {
             logfont->style &= ~FS_WEIGHT_SUBPIXEL;
         }
+#else
+        if (filter == MG_SMOOTH_NONE) {
+            logfont->style &= ~FS_RENDER_MASK;
+        }
+#endif
     }
 
     return rv;
 }
 
-int 
+int
 ft2GetLcdFilter (DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
     return ft_inst_info->ft_lcdfilter;
 }
 
-int 
+int
 ft2IsFreeTypeDevfont (DEVFONT* devfont)
 {
     if (devfont && devfont->font_ops == &__mg_ttf_ops)

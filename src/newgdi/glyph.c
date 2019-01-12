@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** glyph.c: Low level glyph routines.
-** 
+**
 ** Create date: 2008/02/02
 */
 
@@ -57,9 +57,7 @@
 #include "fixedmath.h"
 #include "glyph.h"
 
-#define FS_WEIGHT_BOOK_LIGHT    (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)
-
-#define DRAW_SCANLINE 
+#define DRAW_SCANLINE
 
 #define EDGE_ALPHA      64
 #define ALL_WGHT        32
@@ -76,7 +74,7 @@ int ft2IsFreeTypeDevfont (DEVFONT* devfont);
 int ftIsFreeTypeDevfont (DEVFONT* devfont);
 #endif
 
-Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar, 
+Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len)
 {
     int len_cur_char;
@@ -107,7 +105,7 @@ Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
     return glyph_value;
 }
 
-Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar, 
+Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
         int mchar_len, GLYPHSHAPETYPE shape_type)
 {
     int len_cur_char;
@@ -148,7 +146,7 @@ Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
     return glyph_value;
 }
 
-int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value, 
+int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         int* adv_x, int* adv_y)
 {
     int advance;
@@ -173,8 +171,8 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         /* convert to the start point on baseline. */
         _gdi_get_baseline_point (pdc, &x, &y);
 
-        advance = _gdi_draw_one_glyph (pdc, glyph_value, 
-                (pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+        advance = _gdi_draw_one_glyph (pdc, glyph_value,
+                (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                 x, y, &my_adv_x, &my_adv_y);
 
         if (adv_x) *adv_x = my_adv_x;
@@ -198,7 +196,7 @@ static BOOL is_font_support_bmptype (LOGFONT* logfont, DEVFONT* devfont,
 }
 #endif
 
-int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value, 
+int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         GLYPHINFO* glyph_info)
 {
     int advance = 0;
@@ -263,17 +261,17 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
 
             case GLYPHBMP_TYPE_GREY:
                     glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
-                            logfont, devfont, glyph_value, 
+                            logfont, devfont, glyph_value,
                             &glyph_info->bmp_pitch, NULL);
-                    glyph_info->bmp_size = 
+                    glyph_info->bmp_size =
                         glyph_info->bmp_pitch * glyph_info->bbox_h;
                 break;
 
             case GLYPHBMP_TYPE_SUBPIXEL:
                     glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
-                            logfont, devfont, glyph_value, 
+                            logfont, devfont, glyph_value,
                             &glyph_info->bmp_pitch, NULL);
-                    glyph_info->bmp_size = 
+                    glyph_info->bmp_size =
                         glyph_info->bmp_pitch * glyph_info->bbox_h;
                 break;
 
@@ -287,14 +285,14 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     return advance;
 }
 
-void GUIAPI inline GetGlyphBitmap (LOGFONT* logfont, const char* mchar, 
+void GUIAPI inline GetGlyphBitmap (LOGFONT* logfont, const char* mchar,
         int mchar_len, GLYPHBITMAP* glyph_bitmap)
 {
     GLYPHINFO glyph_info;
     Glyph32 glyph_value = INV_GLYPH_VALUE;
 
     memset(&glyph_info, 0, sizeof(GLYPHINFO));
-    glyph_value = GetGlyphValue(logfont, (const char*)mchar, 
+    glyph_value = GetGlyphValue(logfont, (const char*)mchar,
             mchar_len, NULL, 0);
 
     glyph_info.mask = GLYPH_INFO_METRICS | GLYPH_INFO_BMP;
@@ -316,25 +314,25 @@ void GUIAPI inline GetGlyphBitmap (LOGFONT* logfont, const char* mchar,
     glyph_bitmap->bits = glyph_info.bits;
 }
 
-static int  mult (fixed op1, fixed op2) 
-{ 
+static int  mult (fixed op1, fixed op2)
+{
     long s = op2;
     if(s < 0)
         op2 = -op2;
     {
-        long op1_hi = (op1 >> 16)& 0xffff; 
-        long op1_lo = op1 & 0xffff; 
-        long op2_hi = (op2 >> 16)& 0xffff; 
-        long op2_lo = op2 & 0xffff; 
+        long op1_hi = (op1 >> 16)& 0xffff;
+        long op1_lo = op1 & 0xffff;
+        long op2_hi = (op2 >> 16)& 0xffff;
+        long op2_lo = op2 & 0xffff;
         long cross_prod = op1_lo * op2_hi + op1_hi * op2_lo;
-        long prod_hi = op1_hi * op2_hi + ((cross_prod >> 16) & 0xffff); 
-        long prod_lo = op1_lo * op2_lo + ((cross_prod << 16) & 0xffff0000); 
+        long prod_hi = op1_hi * op2_hi + ((cross_prod >> 16) & 0xffff);
+        long prod_lo = op1_lo * op2_lo + ((cross_prod << 16) & 0xffff0000);
 
         prod_hi +=((prod_lo& 0x80000000)>>31);
         if(s <0)
             prod_hi =-prod_hi;
 
-        return (int)prod_hi; 
+        return (int)prod_hi;
     }
 }
 
@@ -392,7 +390,7 @@ static void prepare_bitmap (PDC pdc, int w, int h)
     }
     char_bits_size = ((size + 31) >> 5) << 5;
 
-    char_bits = realloc(char_bmp.bmBits, char_bits_size);    
+    char_bits = realloc(char_bmp.bmBits, char_bits_size);
     char_bmp.bmBits = char_bits;
 }
 
@@ -417,7 +415,7 @@ static BYTE* do_low_pass_filtering (PDC pdc)
         return NULL;
     }
 
-    curr_sline = char_bmp.bmBits; 
+    curr_sline = char_bmp.bmBits;
     next_sline = curr_sline + char_bmp.bmPitch;
     dst_line = filtered_bits;
     dst_pixel = dst_line;;
@@ -441,7 +439,7 @@ static BYTE* do_low_pass_filtering (PDC pdc)
             if (next_sline [x]) weight += 3;
         }
 
-        dst_pixel = _mem_set_pixel (dst_pixel, 
+        dst_pixel = _mem_set_pixel (dst_pixel,
                         bpp, pdc->filter_pixels [weight]);
     }
 
@@ -460,9 +458,9 @@ static BYTE* do_low_pass_filtering (PDC pdc)
             weight = 0;
 
             /*
-             * For the first pixel per line, 
+             * For the first pixel per line,
              * set the background and foreground color directly.
-             */ 
+             */
             if (curr_sline [x]) {
                 weight = 16;
             }
@@ -500,7 +498,7 @@ static BYTE* do_low_pass_filtering (PDC pdc)
             }
 
             /* set destination pixel according to the weight */
-            dst_pixel = _mem_set_pixel (dst_pixel, 
+            dst_pixel = _mem_set_pixel (dst_pixel,
                             bpp, pdc->filter_pixels [weight]);
         }
 
@@ -530,7 +528,7 @@ static BYTE* do_low_pass_filtering (PDC pdc)
             if (prev_sline [x]) weight += 3;
         }
 
-        dst_pixel = _mem_set_pixel (dst_pixel, 
+        dst_pixel = _mem_set_pixel (dst_pixel,
                         bpp, pdc->filter_pixels [weight]);
     }
 
@@ -564,8 +562,8 @@ static BYTE* do_inflate_filtering (PDC pdc)
         if (curr_sline [x]) {
             pixel = pdc->filter_pixels [2];
         }
-        else if ((x > 0 && curr_sline [x - 1]) || 
-                        (x < char_bmp.bmWidth - 1 && curr_sline [x + 1]) || 
+        else if ((x > 0 && curr_sline [x - 1]) ||
+                        (x < char_bmp.bmWidth - 1 && curr_sline [x + 1]) ||
                         next_sline [x])
             pixel = pdc->filter_pixels [1];
         else
@@ -586,7 +584,7 @@ static BYTE* do_inflate_filtering (PDC pdc)
             if (curr_sline [x]) {
                 pixel = pdc->filter_pixels [2];
             }
-            else if ((x > 0 && curr_sline [x - 1]) || 
+            else if ((x > 0 && curr_sline [x - 1]) ||
                             (x < char_bmp.bmWidth - 1 && curr_sline [x + 1]) ||
                             prev_sline [x] || next_sline [x]) {
                 pixel = pdc->filter_pixels [1];
@@ -608,8 +606,8 @@ static BYTE* do_inflate_filtering (PDC pdc)
         if (curr_sline [x]) {
             pixel = pdc->filter_pixels [2];
         }
-        else if ((x > 0 && curr_sline [x - 1]) || 
-                        (x < char_bmp.bmWidth - 1 && curr_sline [x + 1]) || 
+        else if ((x > 0 && curr_sline [x - 1]) ||
+                        (x < char_bmp.bmWidth - 1 && curr_sline [x + 1]) ||
                         prev_sline [x])
             pixel = pdc->filter_pixels [1];
         else
@@ -621,8 +619,8 @@ static BYTE* do_inflate_filtering (PDC pdc)
     return filtered_bits;
 }
 
-static void expand_char_pixmap (PDC pdc, int w, int h, const BYTE* bits, 
-            BYTE* expanded, int bold, int italic, int cols, 
+static void expand_char_pixmap (PDC pdc, int w, int h, const BYTE* bits,
+            BYTE* expanded, int bold, int italic, int cols,
             unsigned short scale)
 {
     int x, y, w_loop;
@@ -670,7 +668,7 @@ static void expand_char_pixmap (PDC pdc, int w, int h, const BYTE* bits,
             for (x = 0; x < (w + bold + italic); x ++) {
                 dst [x] = pdc->gray_pixels [0];
             }
-            
+
             if (italic)
                 dst += ((h - y) >> 1);
 
@@ -678,7 +676,7 @@ static void expand_char_pixmap (PDC pdc, int w, int h, const BYTE* bits,
 
 
                 b = *(bits+x);
-                
+
                 if (b == 255) b = 16;
                 else b >>= 4;
 
@@ -739,7 +737,7 @@ static void expand_char_pixmap (PDC pdc, int w, int h, const BYTE* bits,
                     _mem_set_pixel (expanded, 3, pdc->gray_pixels [b]);
 #endif
                 }
-                
+
             }
 
             for (s_loop = 0; s_loop < (scale - 1); s_loop++) {
@@ -788,8 +786,8 @@ static void expand_char_pixmap (PDC pdc, int w, int h, const BYTE* bits,
     }
 }
 
-static void expand_char_bitmap (int w, int h, 
-            const BYTE* bits, int bits_pitch, int bpp, BYTE* expanded, 
+static void expand_char_bitmap (int w, int h,
+            const BYTE* bits, int bits_pitch, int bpp, BYTE* expanded,
             int bg, int fg, int bold, int italic)
 {
     int x, y;
@@ -832,7 +830,7 @@ static void expand_char_bitmap (int w, int h,
             for (x = 0; x < (w + bold + italic) << 1; x += 2) {
                 *(Uint16 *) (expanded + x) = bg;
             }
-            
+
             if (italic)
                 expanded += ((h - y) >> 1) << 1;
             for (x = 0; x < w; x++) {
@@ -886,7 +884,7 @@ static void expand_char_bitmap (int w, int h,
 #endif
                     }
                 }
-                
+
                 expanded += 3;
             }
             line += char_bmp.bmPitch;
@@ -922,8 +920,8 @@ static void expand_char_bitmap (int w, int h,
     }
 }
 
-static void expand_char_bitmap_scale (int w, int h, 
-            const BYTE* bits, int bits_pitch, int bpp, BYTE* expanded, 
+static void expand_char_bitmap_scale (int w, int h,
+            const BYTE* bits, int bits_pitch, int bpp, BYTE* expanded,
             int bg, int fg, int bold, int italic, unsigned short scale)
 {
     int x, y, w_loop, b = 0;
@@ -1096,12 +1094,12 @@ static void expand_char_bitmap_scale (int w, int h,
 }
 
 
-static void expand_char_bitmap_to_rgba_scale (int w, int h, 
-            const BYTE* bits, int bits_pitch, RGB* expanded, 
+static void expand_char_bitmap_to_rgba_scale (int w, int h,
+            const BYTE* bits, int bits_pitch, RGB* expanded,
             RGB fg, int bold, int italic, unsigned short scale)
 {
-    int x; 
-    int y; 
+    int x;
+    int y;
     int font_w;
     int font_h;
     int font_x;
@@ -1118,11 +1116,11 @@ static void expand_char_bitmap_to_rgba_scale (int w, int h,
 
     /*expand font_h line*/
     for (font_y = 0; font_y < font_h; font_y++) {
-        
+
         y = font_y * scale;
         line_head_bits = (BYTE*)bits + bits_pitch * font_y;
-        
- 
+
+
         /*expand a font line*/
         for ( ; y < (font_y+1)* scale; y++) {
             if (italic)
@@ -1156,7 +1154,7 @@ static void expand_char_bitmap_to_rgba_scale (int w, int h,
 
 #define ADJUST_SUBPEXIL_WIEGHT
 #ifdef ADJUST_SUBPEXIL_WIEGHT
-static void do_subpixel_line(RGB* dist_buf, RGB* pre_line, 
+static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         RGB* cur_line, RGB* next_line, int w, RGB rgba_fg)
 {
     int x;
@@ -1229,7 +1227,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
     for (x=1; x<w-1; x++)
     {
         weight = 0;
-        if (cur_line[x].a == 0) 
+        if (cur_line[x].a == 0)
         {
             if (cur_line[x-1].a != 0)
                 weight += NEIGHBOR_WGHT;
@@ -1263,7 +1261,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         else
         {
             sub_val = cur_line[ x ].r * (ALL_WGHT-ROUND_WGHT);
-            
+
             sub_val += cur_line[x-1].r * NEIGHBOR_WGHT;
             sub_val += cur_line[x+1].r * NEIGHBOR_WGHT;
             sub_val += pre_line[ x ].r * NEIGHBOR_WGHT;
@@ -1279,7 +1277,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
 
 
             sub_val = cur_line[ x ].g * (ALL_WGHT-ROUND_WGHT);
-            
+
             sub_val += cur_line[x-1].g * NEIGHBOR_WGHT;
             sub_val += cur_line[x+1].g * NEIGHBOR_WGHT;
             sub_val += pre_line[ x ].g * NEIGHBOR_WGHT;
@@ -1295,7 +1293,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
 
 
             sub_val = cur_line[ x ].b * (ALL_WGHT-ROUND_WGHT);
-            
+
             sub_val += cur_line[x-1].b * NEIGHBOR_WGHT;
             sub_val += cur_line[x+1].b * NEIGHBOR_WGHT;
             sub_val += pre_line[ x ].b * NEIGHBOR_WGHT;
@@ -1314,7 +1312,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
     }
 
     weight = 0;
-    if (cur_line[x].a == 0) 
+    if (cur_line[x].a == 0)
     {
         if (cur_line[x-1].a != 0)
             weight += NEIGHBOR_WGHT;
@@ -1351,7 +1349,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         sub_val += next_line[x-1].r * NEAR_WGHT;
 
         dist_buf[x].r = sub_val/ALL_WGHT;
-        
+
         sub_val = cur_line[x].g * (ALL_WGHT-ROUND_WGHT+ NEIGHBOR_WGHT + 2*NEAR_WGHT);
         sub_val += cur_line[x-1].g * NEIGHBOR_WGHT;
         sub_val += pre_line[x].g * NEIGHBOR_WGHT;
@@ -1361,7 +1359,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         sub_val += next_line[x-1].g * NEAR_WGHT;
 
         dist_buf[x].g = sub_val/ALL_WGHT;
-        
+
         sub_val = cur_line[x].b * (ALL_WGHT-ROUND_WGHT+ NEIGHBOR_WGHT + 2*NEAR_WGHT);
         sub_val += cur_line[x-1].b * NEIGHBOR_WGHT;
         sub_val += pre_line[x].b * NEIGHBOR_WGHT;
@@ -1378,7 +1376,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
 
 #else /* ADJUST_SUBPEXIL_WIEGHT */
 
-static void do_subpixel_line(RGB* dist_buf, RGB* pre_line, 
+static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         RGB* cur_line, RGB* next_line, int w, RGB rgba_fg)
 {
     int x;
@@ -1452,7 +1450,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
     for (x=1; x<w-1; x++)
     {
         weight = 0;
-        if (cur_line[x].a == 0) 
+        if (cur_line[x].a == 0)
         {
             if (cur_line[x-1].a != 0)
                 weight += 3;
@@ -1487,7 +1485,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         else
         {
             sub_val = cur_line[ x ].r << 4;
-            
+
             sub_val += cur_line[x-1].r * 3;
             sub_val += cur_line[x+1].r * 3;
             sub_val += pre_line[ x ].r * 3;
@@ -1503,7 +1501,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
 
 
             sub_val = cur_line[ x ].g << 4 ;
-            
+
             sub_val += cur_line[x-1].g * 3;
             sub_val += cur_line[x+1].g * 3;
             sub_val += pre_line[ x ].g * 3;
@@ -1519,7 +1517,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
 
 
             sub_val = cur_line[ x ].b << 4;
-            
+
             sub_val += cur_line[x-1].b * 3;
             sub_val += cur_line[x+1].b * 3;
             sub_val += pre_line[ x ].b * 3;
@@ -1541,7 +1539,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
 
 
     weight = 0;
-    if (cur_line[x].a == 0) 
+    if (cur_line[x].a == 0)
     {
         if (cur_line[x-1].a != 0)
             weight += 3;
@@ -1578,7 +1576,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         sub_val += next_line[x-1].r;
 
         dist_buf[x].r = sub_val >> 5;
-        
+
         sub_val = cur_line[x].g * 21;
         sub_val += cur_line[x-1].g * 3;
         sub_val += pre_line[x].g * 3;
@@ -1588,7 +1586,7 @@ static void do_subpixel_line(RGB* dist_buf, RGB* pre_line,
         sub_val += next_line[x-1].g;
 
         dist_buf[x].g = sub_val >> 5;
-        
+
         sub_val = cur_line[x].b * 21;
         sub_val += cur_line[x-1].b * 3;
         sub_val += pre_line[x].b * 3;
@@ -1609,12 +1607,12 @@ static void do_subpixel_filter (RGB* rgba_buf, int w, int h, RGB rgba_fg)
 {
     RGB* cur_dist_buf = rgba_buf+ w * h;
     RGB* pre_dist_buf = cur_dist_buf + w;
-    
+
     RGB* pre_src_line;
     RGB* cur_src_line;
     RGB* next_src_line;
     RGB* tmp;
-    
+
     int y;
 
     /* the first line */
@@ -1622,7 +1620,7 @@ static void do_subpixel_filter (RGB* rgba_buf, int w, int h, RGB rgba_fg)
     cur_src_line = rgba_buf;
     next_src_line = rgba_buf + w;
 
-    do_subpixel_line(pre_dist_buf, pre_src_line, cur_src_line, 
+    do_subpixel_line(pre_dist_buf, pre_src_line, cur_src_line,
         next_src_line, w, rgba_fg);
 
     /* inner point */
@@ -1631,10 +1629,10 @@ static void do_subpixel_filter (RGB* rgba_buf, int w, int h, RGB rgba_fg)
         pre_src_line = cur_src_line;
         cur_src_line = next_src_line;
         next_src_line += w;
-        
-        do_subpixel_line(cur_dist_buf, pre_src_line, cur_src_line, 
+
+        do_subpixel_line(cur_dist_buf, pre_src_line, cur_src_line,
             next_src_line, w, rgba_fg);
-        
+
         /*save result of pre_line*/
         memcpy(pre_src_line, pre_dist_buf, w*4);
 
@@ -1648,17 +1646,17 @@ static void do_subpixel_filter (RGB* rgba_buf, int w, int h, RGB rgba_fg)
     pre_src_line = cur_src_line;
     cur_src_line = next_src_line;
     /*next_src_line is itself*/
-    do_subpixel_line (cur_dist_buf, pre_src_line, cur_src_line, 
+    do_subpixel_line (cur_dist_buf, pre_src_line, cur_src_line,
             next_src_line, w, rgba_fg);
-    
+
     memcpy(pre_src_line, pre_dist_buf, w*4);
     memcpy(cur_src_line, cur_dist_buf, w*4);
 }
 
 #ifdef _MGFONT_FT2
-static void expand_subpixel_freetype (int w, int h, 
-                const BYTE* ft_a_buf, int ft_a_pitch, 
-                RGB* rgba_buf, RGB rgba_fg, int bold, int italic) 
+static void expand_subpixel_freetype (int w, int h,
+                const BYTE* ft_a_buf, int ft_a_pitch,
+                RGB* rgba_buf, RGB rgba_fg, int bold, int italic)
 {
     int x;
     int y;
@@ -1671,7 +1669,7 @@ static void expand_subpixel_freetype (int w, int h,
     for (y=0; y<h; y++)
     {
         sub_a_cur = ft_a_buf + y * ft_a_pitch;
-        
+
         rgba_cur = rgba_buf + y * w;
         if (italic)
         {
@@ -1728,8 +1726,8 @@ static void expand_subpixel_freetype (int w, int h,
 
 #endif /* _MGFONT_FT2 */
 
-static void* expand_bkbmp_to_rgba (PDC pdc, DEVFONT* devfont,  
-            BITMAP* bk_bmp, const BYTE* bits, 
+static void* expand_bkbmp_to_rgba (PDC pdc, DEVFONT* devfont,
+            BITMAP* bk_bmp, const BYTE* bits,
             int pitch, int bold, int italic, unsigned short scale)
 {
     static RGB* rgba_buf = NULL;
@@ -1782,25 +1780,25 @@ static void* expand_bkbmp_to_rgba (PDC pdc, DEVFONT* devfont,
     }
 
     /* expand char to rgba_buf; */
-    GAL_GetRGBA (pdc->textcolor, pdc->surface->format, &(rgba_fg.r), 
+    GAL_GetRGBA (pdc->textcolor, pdc->surface->format, &(rgba_fg.r),
             &(rgba_fg.g), &(rgba_fg.b), &(rgba_fg.a));
     rgba_fg.a = 255;
 
 #ifdef _MGFONT_FT2
     if (ft2IsFreeTypeDevfont (devfont) &&
             ft2GetLcdFilter (devfont) != 0) {
-        expand_subpixel_freetype (w, h, bits, pitch, rgba_buf, rgba_fg, 
+        expand_subpixel_freetype (w, h, bits, pitch, rgba_buf, rgba_fg,
                 bold, italic);
     }
-    else 
+    else
 #endif
     {
-        expand_char_bitmap_to_rgba_scale (w, h, bits, pitch, rgba_buf, rgba_fg, 
+        expand_char_bitmap_to_rgba_scale (w, h, bits, pitch, rgba_buf, rgba_fg,
                 bold, italic, scale);
         /*draw rgba_fg to old rgba*/
         do_subpixel_filter (rgba_buf, w, h, rgba_fg);
     }
-    
+
     /*change old_rgba_buf to dc format*/
     for (y=0; y<h; y++)
     {
@@ -1819,7 +1817,7 @@ static void* expand_bkbmp_to_rgba (PDC pdc, DEVFONT* devfont,
 }
 
 //*******************************************************{
-static BOOL get_subpixel_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size, 
+static BOOL get_subpixel_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         GAL_Rect* fg_gal_rc, int bold, int italic)
 {
     LOGFONT* logfont;
@@ -1837,14 +1835,14 @@ static BOOL get_subpixel_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
             ft2GetLcdFilter (devfont) &&
             *devfont->font_ops->get_glyph_greybitmap) {
         /* the returned bits will be the subpixled pixmap */
-        data = (*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont, 
+        data = (*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont,
                 REAL_GLYPH(glyph_value), &data_pitch, &scale);
     }
 #endif
 
     if (data == NULL)
     {
-        data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
+        data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont,
                 REAL_GLYPH(glyph_value), &data_pitch, &scale);
     }
 
@@ -1854,20 +1852,20 @@ static BOOL get_subpixel_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     GAL_GetBox (pdc->surface, fg_gal_rc, &char_bmp);
 
     if (logfont->style & FS_FLIP_HORZ) {
-        HFlipBitmap (&char_bmp,char_bmp.bmBits + 
+        HFlipBitmap (&char_bmp,char_bmp.bmBits +
                 char_bmp.bmPitch * char_bmp.bmHeight);
     }
     if (logfont->style & FS_FLIP_VERT) {
-        VFlipBitmap (&char_bmp, char_bmp.bmBits + 
+        VFlipBitmap (&char_bmp, char_bmp.bmBits +
                 char_bmp.bmPitch * char_bmp.bmHeight);
     }
 
-    expand_bkbmp_to_rgba (pdc, devfont, &char_bmp, (const BYTE*)data , 
+    expand_bkbmp_to_rgba (pdc, devfont, &char_bmp, (const BYTE*)data ,
             data_pitch, bold, italic, scale);
     return TRUE;
 }
 
-static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size, 
+static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         int bold, int italic)
 {
     LOGFONT* logfont;
@@ -1878,7 +1876,7 @@ static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     int bpp;
     gal_pixel bgcolor;
     gal_pixel fgcolor;
-    
+
 
     const BYTE* data;
 
@@ -1890,13 +1888,13 @@ static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
     /*get preybitmap and expand*/
     if (devfont->font_ops->get_glyph_greybitmap) {
-        data = (*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont, 
+        data = (*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont,
                 REAL_GLYPH(glyph_value), &data_pitch, &scale);
     }
 
     if (data)
     {
-#if 1 
+#if 1
         if (pdc->bkmode == BM_TRANSPARENT) {
 #endif
             if (pdc->alpha_pixel_format && pdc->rop == ROP_SET) {
@@ -1910,24 +1908,24 @@ static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
                 char_bmp.bmColorKey = pdc->gray_pixels [0];
                 bgcolor = pdc->gray_pixels [0];
             }
-#if 1 
+#if 1
         }
-        else  
+        else
         {
             /*FIXME can be delete ? */
             char_bmp.bmType = BMP_TYPE_COLORKEY;
             char_bmp.bmColorKey = bgcolor;
         }
-#endif 
+#endif
 
         /* draw data to char_bmp.bmBits by pdc->gray_pixels*/
-        expand_char_pixmap (pdc, bbx_size->cx, bbx_size->cy, data, char_bmp.bmBits, 
+        expand_char_pixmap (pdc, bbx_size->cx, bbx_size->cy, data, char_bmp.bmBits,
                 bold, italic, data_pitch, scale);
 
         return TRUE;
     }
 
-    data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
+    data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont,
             REAL_GLYPH(glyph_value), &data_pitch, &scale);
 
     if (data == NULL)
@@ -1948,7 +1946,7 @@ static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         bpp = GAL_BytesPerPixel (pdc->surface);
         char_bmp.bmType = BMP_TYPE_COLORKEY;
 
-        if (bgcolor == fgcolor) 
+        if (bgcolor == fgcolor)
             bgcolor ^= 1;
 
         char_bmp.bmColorKey = bgcolor;
@@ -1960,7 +1958,7 @@ static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     }
     else {
         expand_char_bitmap_scale (bbx_size->cx, bbx_size->cy, data, data_pitch, bpp,
-                char_bmp.bmBits, bgcolor, fgcolor, 
+                char_bmp.bmBits, bgcolor, fgcolor,
                 bold, italic, scale);
     }
 
@@ -1970,7 +1968,7 @@ static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 }
 
 
-static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size, 
+static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         GAL_Rect* fg_rect, int bold, int italic)
 {
     LOGFONT* logfont;
@@ -1981,7 +1979,7 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     gal_pixel bgcolor;
     gal_pixel fgcolor;
     int bpp;
-    
+
     const BYTE* data;
 
     logfont = pdc->pLogFont;
@@ -1990,7 +1988,7 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
     data = NULL;
 
-    data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
+    data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont,
             REAL_GLYPH(glyph_value), &pitch, &scale);
 
     if (data == NULL)
@@ -2007,13 +2005,13 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         if (scale < 2)
         {
             expand_char_bitmap (bbx_size->cx, bbx_size->cy, data, pitch, 1,
-                    char_bmp.bmBits + char_bmp.bmPitch + 1, 
+                    char_bmp.bmBits + char_bmp.bmPitch + 1,
                     0, 1, bold, italic);
         }
         else
         {
             expand_char_bitmap_scale (bbx_size->cx, bbx_size->cy, data, pitch, 1,
-                    char_bmp.bmBits + char_bmp.bmPitch + 1, 
+                    char_bmp.bmBits + char_bmp.bmPitch + 1,
                     0, 1, bold, italic, scale);
         }
 
@@ -2025,7 +2023,7 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
         /*FIXME not need to set pdc->rc_output*/
         //InflateRect (&pdc->rc_output, 1, 1);
-        
+
         fg_rect->x --; fg_rect->y --;
         fg_rect->w += 2; fg_rect->h += 2;
         return TRUE;
@@ -2037,7 +2035,7 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         bgcolor = pdc->bkcolor;
         char_bmp.bmType = BMP_TYPE_COLORKEY;
 
-        if (bgcolor == fgcolor) 
+        if (bgcolor == fgcolor)
             bgcolor ^= 1;
 
         char_bmp.bmColorKey = bgcolor;
@@ -2049,7 +2047,7 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         }
         else {
             expand_char_bitmap_scale (bbx_size->cx, bbx_size->cy, data, pitch, bpp,
-                    char_bmp.bmBits, bgcolor, fgcolor, 
+                    char_bmp.bmBits, bgcolor, fgcolor,
                     bold, italic, scale);
         }
 
@@ -2058,7 +2056,7 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
 }
 
-static BOOL get_regular_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size, 
+static BOOL get_regular_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
         int bold, int italic)
 {
     LOGFONT* logfont;
@@ -2069,7 +2067,7 @@ static BOOL get_regular_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     gal_pixel bgcolor = pdc->bkcolor;
     gal_pixel fgcolor = pdc->textcolor;
     int bpp = GAL_BytesPerPixel (pdc->surface);
-    
+
     const BYTE* data;
 
     logfont = pdc->pLogFont;
@@ -2078,7 +2076,7 @@ static BOOL get_regular_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
     data = NULL;
 
-    data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
+    data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont,
             REAL_GLYPH(glyph_value), &pitch, &scale);
 
     if (!data)
@@ -2086,7 +2084,7 @@ static BOOL get_regular_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
     char_bmp.bmType = BMP_TYPE_COLORKEY;
 
-    if (bgcolor == fgcolor) 
+    if (bgcolor == fgcolor)
     {
         bgcolor ^= 1;
     }
@@ -2098,7 +2096,7 @@ static BOOL get_regular_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     }
     else {
         expand_char_bitmap_scale (bbx_size->cx, bbx_size->cy, data, pitch, bpp,
-                char_bmp.bmBits, bgcolor, fgcolor, 
+                char_bmp.bmBits, bgcolor, fgcolor,
                 bold, italic, scale);
     }
     return TRUE;
@@ -2171,7 +2169,7 @@ static BOOL _prepare_pre_rdr_bmp (PDC pdc, int w, int h)
     size = GAL_GetBoxSize (pdc->surface, w, h, &pitch);
     if (size > _pre_rdr_bits_size) {
         size = ((size + 31) >> 5) << 5;
-        _pre_rdr_bits = realloc (_pre_rdr_bits, size);    
+        _pre_rdr_bits = realloc (_pre_rdr_bits, size);
         if (_pre_rdr_bits == NULL)
             return FALSE;
         _pre_rdr_bits_size = size;
@@ -2418,7 +2416,7 @@ static void _glyph_blend_pixels (PDC pdc, int x, int y, gal_pixel pixel, int w)
     }
 }
 
-static void _dc_bmpfont_scan_line (PDC pdc, int xpos, int ypos, 
+static void _dc_bmpfont_scan_line (PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
 #if 1
@@ -2442,7 +2440,7 @@ static void _dc_bmpfont_scan_line (PDC pdc, int xpos, int ypos,
 #endif
 }
 
-static inline int get_italic_offx (PDC pdc, int glyph_italic, 
+static inline int get_italic_offx (PDC pdc, int glyph_italic,
             int glyph_ascent, int glyph_line, int glyph_adavnce)
 {
     int offx;
@@ -2464,7 +2462,7 @@ static inline int get_italic_offx (PDC pdc, int glyph_italic,
     return offx;
 }
 
-static void _dc_bookgrey_scan_line (PDC pdc, int xpos, int ypos, 
+static void _dc_bookgrey_scan_line (PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
     int x = 0;
@@ -2478,7 +2476,7 @@ static void _dc_bookgrey_scan_line (PDC pdc, int xpos, int ypos,
         }
 
         off_x = get_italic_offx (pdc, ctxt->glyph_italic,
-                        ctxt->glyph_ascent, ctxt->glyph_line, 
+                        ctxt->glyph_ascent, ctxt->glyph_line,
                         ctxt->glyph_advance);
 
         for (x = 0; x < ctxt->bmp_w; x++) {
@@ -2496,12 +2494,12 @@ static void _dc_bookgrey_scan_line (PDC pdc, int xpos, int ypos,
 
             if (pdc->alpha_pixel_format && pdc->bkmode == BM_TRANSPARENT) {
                 /* pdc->gray_pixels -- alpha(0-max) */
-                _glyph_blend_pixel (pdc, 
+                _glyph_blend_pixel (pdc,
                         x + off_x + xpos, ypos, pdc->gray_pixels [b]);
             }
             else {
                 /* pdc->gray_pixels -- from bkcolor to textcolor */
-                _glyph_draw_pixel (pdc, 
+                _glyph_draw_pixel (pdc,
                         x + off_x + xpos, ypos, pdc->gray_pixels [b]);
             }
         }
@@ -2523,9 +2521,9 @@ static void _dc_bookgrey_scan_line (PDC pdc, int xpos, int ypos,
                         continue;
 
                     off_x = get_italic_offx (pdc, ctxt->glyph_italic,
-                                ctxt->glyph_ascent, ctxt->glyph_line + i, 
+                                ctxt->glyph_ascent, ctxt->glyph_line + i,
                                 ctxt->glyph_advance);
-                    _glyph_blend_pixels (pdc, 
+                    _glyph_blend_pixels (pdc,
                             x * scale + off_x + xpos, ypos + i, pdc->gray_pixels [b], scale);
                 }
             }
@@ -2535,9 +2533,9 @@ static void _dc_bookgrey_scan_line (PDC pdc, int xpos, int ypos,
                         continue;
 
                     off_x = get_italic_offx (pdc, ctxt->glyph_italic,
-                                ctxt->glyph_ascent, ctxt->glyph_line + i, 
+                                ctxt->glyph_ascent, ctxt->glyph_line + i,
                                 ctxt->glyph_advance);
-                    _glyph_draw_pixels (pdc, 
+                    _glyph_draw_pixels (pdc,
                             x * scale + off_x + xpos, ypos + i, pdc->gray_pixels [b], scale);
                 }
             }
@@ -2550,7 +2548,7 @@ nodraw_ret:
     ctxt->glyph_line += ctxt->bmp_scale;
 }
 
-static void _dc_book_scan_line (PDC pdc, int xpos, int ypos, 
+static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
     int x = 0;
@@ -2567,7 +2565,7 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
     xpos += get_italic_offx (pdc, ctxt->glyph_italic,
         ctxt->glyph_ascent, ctxt->glyph_line, ctxt->glyph_advance);
 
-    curr_sline = ctxt->line_bits; 
+    curr_sline = ctxt->line_bits;
     next_sline = curr_sline + ctxt->bmp_pitch;
     prev_sline = ctxt->prev_bits;
 
@@ -2577,8 +2575,8 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
         for (x = 0; x < ctxt->bmp_w; x++) {
             if (x % 8 == 0){
                 if (x > 0) {
-                    b_up = *(curr_sline-1); 
-                    n_b_up = *(next_sline-1); 
+                    b_up = *(curr_sline-1);
+                    n_b_up = *(next_sline-1);
                 }
 
                 b   = *curr_sline++;
@@ -2588,12 +2586,12 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
                 n_b_down = b;
             }
             else if (x % 8 == 7) {
-                b_up = b; n_b_up = n_b; 
+                b_up = b; n_b_up = n_b;
                 b_down = *curr_sline; n_b_down = *curr_sline;
             }
             else {
-                b_down = b_up = b;  
-                n_b_down = n_b_up = n_b;  
+                b_down = b_up = b;
+                n_b_down = n_b_up = n_b;
             }
 
             /* filter the first line */
@@ -2608,18 +2606,18 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
             }
 
             if (weight)
-                _glyph_blend_pixel (pdc, 
+                _glyph_blend_pixel (pdc,
                     x + xpos, ypos, pdc->filter_pixels [weight]);
         }
 
         _dc_which_region_ban (pdc, ypos+1);
-        curr_sline = ctxt->line_bits; 
+        curr_sline = ctxt->line_bits;
         next_sline = curr_sline + ctxt->bmp_pitch;
         for (x = 0; x < ctxt->bmp_w; x++) {
             if (x % 8 == 0){
                 if (x > 0) {
-                    b_up = *(curr_sline-1); 
-                    n_b_up = *(next_sline-1); 
+                    b_up = *(curr_sline-1);
+                    n_b_up = *(next_sline-1);
                 }
 
                 b   = *curr_sline++;
@@ -2629,12 +2627,12 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
                 n_b_down = b;
             }
             else if (x % 8 == 7) {
-                b_up = b; n_b_up = n_b; 
+                b_up = b; n_b_up = n_b;
                 b_down = *curr_sline; n_b_down = *curr_sline;
             }
             else {
-                b_down = b_up = b;  
-                n_b_down = n_b_up = n_b;  
+                b_down = b_up = b;
+                n_b_down = n_b_up = n_b;
             }
 
             weight = 0;
@@ -2654,7 +2652,7 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
             }
 
             if (weight)
-                _glyph_blend_pixel (pdc, 
+                _glyph_blend_pixel (pdc,
                     x + xpos, ypos + 1, pdc->filter_pixels [weight]);
         }
         /* set the next scanline position.*/
@@ -2666,8 +2664,8 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
             weight = 0;
             if (x % 8 == 0){
                 if (x > 0) {
-                    b_up = *(curr_sline-1); 
-                    p_b_up = *(prev_sline-1); 
+                    b_up = *(curr_sline-1);
+                    p_b_up = *(prev_sline-1);
                 }
                 b   = *curr_sline++;
                 p_b = *prev_sline++;
@@ -2675,12 +2673,12 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
                 p_b_down = b;
             }
             else if (x % 8 == 7) {
-                b_up = b; p_b_up = p_b; 
+                b_up = b; p_b_up = p_b;
                 b_down = *curr_sline; p_b_down = *curr_sline;
             }
             else {
-                b_down = b_up = b;  
-                p_b_down = p_b_up = p_b;  
+                b_down = b_up = b;
+                p_b_down = p_b_up = p_b;
             }
 
             if (BITS(b)) {
@@ -2722,18 +2720,18 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
         for (x = 0; x < ctxt->bmp_w; x++) {
             if (x % 8 == 0){
                 if (x > 0) {
-                    b_up   = *(curr_sline-1); 
-                    n_b_up = *(next_sline-1); 
-                    p_b_up = *(prev_sline-1); 
+                    b_up   = *(curr_sline-1);
+                    n_b_up = *(next_sline-1);
+                    p_b_up = *(prev_sline-1);
                 }
 
                 b   = *curr_sline++;
                 n_b = *next_sline++;
                 p_b = *prev_sline++;
 
-                b_down   = b; 
-                n_b_down = n_b; 
-                p_b_down = p_b; 
+                b_down   = b;
+                n_b_down = n_b;
+                p_b_down = p_b;
             }
             else if (x % 8 == 7) {
                 b_up   = b;   b_down   = *curr_sline;
@@ -2741,9 +2739,9 @@ static void _dc_book_scan_line (PDC pdc, int xpos, int ypos,
                 n_b_up = n_b; n_b_down = *next_sline;
             }
             else {
-                b_down   = b_up   = b;  
-                n_b_down = n_b_up = n_b;  
-                p_b_down = p_b_up = p_b;  
+                b_down   = b_up   = b;
+                n_b_down = n_b_up = n_b;
+                p_b_down = p_b_up = p_b;
             }
 
             weight = 0;
@@ -2792,7 +2790,7 @@ nodraw_ret:
     ctxt->glyph_line++;
 }
 
-static void do_light_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt, 
+static void do_light_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
         BYTE* c_line, BYTE* p_line, BYTE* n_line)
 {
     int x = 0;
@@ -2807,7 +2805,7 @@ static void do_light_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
      * filter_pixels[1].*/
     for (x = 0; x < ctxt->bmp_w; x++) {
         if (x % 8 == 0){
-            if (x > 0 && c_line) b_up = *(c_line-1); 
+            if (x > 0 && c_line) b_up = *(c_line-1);
             else b_up = 0;
 
             if (c_line) {
@@ -2822,7 +2820,7 @@ static void do_light_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
             if (c_line) b_down = *c_line;
         }
         else {
-           b_down = b_up = b;  
+           b_down = b_up = b;
         }
 
         if (BITS(b)) {
@@ -2849,7 +2847,7 @@ static void do_light_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
     }
 }
 
-static void _dc_light_scan_line(PDC pdc, int xpos, int ypos, 
+static void _dc_light_scan_line(PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
     BYTE *curr_sline, *prev_sline, *next_sline;
@@ -2862,27 +2860,27 @@ static void _dc_light_scan_line(PDC pdc, int xpos, int ypos,
     xpos += get_italic_offx (pdc, ctxt->glyph_italic,
         ctxt->glyph_ascent, ctxt->glyph_line, ctxt->glyph_advance);
 
-    curr_sline = ctxt->line_bits; 
+    curr_sline = ctxt->line_bits;
     next_sline = curr_sline + ctxt->bmp_pitch;
     prev_sline = ctxt->prev_bits;
 
     if (ctxt->glyph_line == 0) {
         next_sline = curr_sline;
 
-        do_light_line (pdc, xpos, ypos, ctxt, 
+        do_light_line (pdc, xpos, ypos, ctxt,
                 NULL, NULL, next_sline);
-        
+
         /* move ypos to next_line.*/
         ctxt->fg_rc->y++;
         next_sline = curr_sline + ctxt->bmp_pitch;
 
         _dc_which_region_ban(pdc, ypos+1);
-        do_light_line(pdc, xpos, ypos+1, ctxt, 
+        do_light_line(pdc, xpos, ypos+1, ctxt,
                 curr_sline, NULL, next_sline);
     }
     else if (ctxt->glyph_line == ctxt->bmp_h - 1) {
 
-        do_light_line(pdc, xpos, ypos, ctxt, 
+        do_light_line(pdc, xpos, ypos, ctxt,
                 curr_sline, prev_sline, NULL);
 
         /* move ypos to next_line.*/
@@ -2890,11 +2888,11 @@ static void _dc_light_scan_line(PDC pdc, int xpos, int ypos,
         ypos++;
         prev_sline = curr_sline;
 
-        do_light_line(pdc, xpos, ypos, ctxt, 
+        do_light_line(pdc, xpos, ypos, ctxt,
                 NULL, prev_sline, NULL);
     }
     else {
-        do_light_line(pdc, xpos, ypos, ctxt, 
+        do_light_line(pdc, xpos, ypos, ctxt,
                 curr_sline, prev_sline, next_sline);
     }
 
@@ -2903,7 +2901,7 @@ nodraw_ret:
 }
 
 #ifdef _MGFONT_FT2
-static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos, 
+static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
     Uint32 sub_val;
@@ -3011,39 +3009,39 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
     if (!BITS(b)) {
         weight = 0;
 
-        if (NEXTBITS(b)) 
+        if (NEXTBITS(b))
             weight += NEIGHBOR_WGHT;
-        if (BITS(p_b)) 
+        if (BITS(p_b))
             weight += NEIGHBOR_WGHT;
-        if (BITS(n_b)) 
+        if (BITS(n_b))
             weight += NEIGHBOR_WGHT;
 
-        if (NEXTBITS(p_b)) 
+        if (NEXTBITS(p_b))
             weight += NEAR_WGHT;
-        if (NEXTBITS(n_b)) 
+        if (NEXTBITS(n_b))
             weight += NEAR_WGHT;
-        
+
         rgba_cur = _curr_bk[x];
         CALCPIXEL(rgba_cur, rgba_fg);
-        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r, 
+        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r,
                 rgba_cur.g, rgba_cur.b);
         _glyph_draw_pixel (pdc,
             x + xpos, ypos, pdc->cur_pixel);
     }
     else {
-        if (!BITS(b)) 
+        if (!BITS(b))
             rgba_cur = _curr_bk[x];
-        if (!NEXTBITS(b)) 
+        if (!NEXTBITS(b))
             rgba_cur_n = _curr_bk[x+1];
 
-        if (!BITS(p_b)) 
+        if (!BITS(p_b))
             rgba_prev = _prev_bk[x];
-        if (!NEXTBITS(p_b)) 
+        if (!NEXTBITS(p_b))
             rgba_prev_n = _prev_bk[x+1];
 
-        if (!BITS(n_b)) 
+        if (!BITS(n_b))
             rgba_next = _next_bk[x];
-        if (!NEXTBITS(n_b)) 
+        if (!NEXTBITS(n_b))
             rgba_next_n = _next_bk[x+1];
 
 #define C_WEIGHT2(c) sub_val = \
@@ -3058,7 +3056,7 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
         C_WEIGHT2(r);
         C_WEIGHT2(g);
         C_WEIGHT2(b);
-        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r, 
+        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r,
                 rgba_cur.g, rgba_cur.b);
         _glyph_draw_pixel (pdc,
             x + xpos, ypos, pdc->cur_pixel);
@@ -3066,9 +3064,9 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
 
     for (x = 1; x < (ctxt->bmp_w-1); x++) {
         if (x % 8 == 0){
-            b_up   = *(curr_line-1); 
-            p_b_up = *(prev_line-1); 
-            n_b_up = *(next_line-1); 
+            b_up   = *(curr_line-1);
+            p_b_up = *(prev_line-1);
+            n_b_up = *(next_line-1);
 
             b   = *curr_line++;
             n_b = *next_line++;
@@ -3084,7 +3082,7 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
             n_b_up = n_b; n_b_down = *next_line;
         }
         else {
-           b_down   = b_up   = b;  
+           b_down   = b_up   = b;
            p_b_down = p_b_up = p_b;
            n_b_down = n_b_up = n_b;
         }
@@ -3113,48 +3111,48 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
 
             rgba_cur = _curr_bk[x];
             CALCPIXEL(rgba_cur, rgba_fg);
-            pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r, 
+            pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r,
                     rgba_cur.g, rgba_cur.b);
             _glyph_draw_pixel (pdc,
                 x + xpos, ypos, pdc->cur_pixel);
         }
         else {
-            if (!BITS(b)) 
+            if (!BITS(b))
                 rgba_cur = _curr_bk[x];
             else
                 rgba_cur = rgba_fg;
 
-            if (!EXPREVBITS(b_up, x-1)) 
+            if (!EXPREVBITS(b_up, x-1))
                 rgba_cur_p = _curr_bk[x-1];
             else
                 rgba_cur_p = rgba_fg;
-            if (!EXNEXTBITS(b_down, x+1)) 
+            if (!EXNEXTBITS(b_down, x+1))
                 rgba_cur_n = _curr_bk[x+1];
             else
                 rgba_cur_n = rgba_fg;
 
-            if (!BITS(p_b)) 
+            if (!BITS(p_b))
                 rgba_prev = _prev_bk[x];
             else
                 rgba_prev = rgba_fg;
-            if (!EXPREVBITS(p_b_up, x-1)) 
+            if (!EXPREVBITS(p_b_up, x-1))
                 rgba_prev_p = _prev_bk[x-1];
             else
                 rgba_prev_p = rgba_fg;
-            if (!EXNEXTBITS(p_b_down, x+1)) 
+            if (!EXNEXTBITS(p_b_down, x+1))
                 rgba_prev_n = _prev_bk[x+1];
             else
                 rgba_prev_n = rgba_fg;
 
-            if (!BITS(n_b)) 
+            if (!BITS(n_b))
                 rgba_next = _next_bk[x];
             else
                 rgba_next = rgba_fg;
-            if (!EXPREVBITS(n_b_up, x-1)) 
+            if (!EXPREVBITS(n_b_up, x-1))
                 rgba_next_p = _next_bk[x-1];
             else
                 rgba_next_p = rgba_fg;
-            if (!EXNEXTBITS(n_b_down, x+1)) 
+            if (!EXNEXTBITS(n_b_down, x+1))
                 rgba_next_n = _next_bk[x+1];
             else
                 rgba_next_n = rgba_fg;
@@ -3176,7 +3174,7 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
             C_WEIGHT3(b);
 
             rgba_cur.a = 255;
-            pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r, 
+            pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r,
                     rgba_cur.g, rgba_cur.b);
             _glyph_draw_pixel (pdc,
                 x + xpos, ypos, pdc->cur_pixel);
@@ -3190,51 +3188,51 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
     }
     if (!BITS(b)) {
         weight = 0;
-        if (PREVBITS(b)) 
+        if (PREVBITS(b))
             weight += NEIGHBOR_WGHT;
-        if (BITS(p_b)) 
+        if (BITS(p_b))
             weight += NEIGHBOR_WGHT;
-        if (BITS(n_b)) 
+        if (BITS(n_b))
             weight += NEIGHBOR_WGHT;
 
-        if (PREVBITS(p_b)) 
+        if (PREVBITS(p_b))
             weight += NEAR_WGHT;
-        if (PREVBITS(n_b)) 
+        if (PREVBITS(n_b))
             weight += NEAR_WGHT;
 
         rgba_cur = _curr_bk[0];
         CALCPIXEL(rgba_cur, rgba_fg);
-        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r, 
+        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r,
                 rgba_cur.g, rgba_cur.b);
         _glyph_draw_pixel (pdc,
             x + xpos, ypos, pdc->cur_pixel);
     }
     else{
-        if (!BITS(b)) 
+        if (!BITS(b))
             rgba_cur = _curr_bk[x];
         else
             rgba_cur = rgba_fg;
 
-        if (!PREVBITS(b)) 
+        if (!PREVBITS(b))
             rgba_cur_p = _curr_bk[x-1];
         else
             rgba_cur_p = rgba_fg;
 
-        if (!BITS(p_b)) 
+        if (!BITS(p_b))
             rgba_prev = _prev_bk[x];
         else
             rgba_prev = rgba_fg;
-        if (!PREVBITS(p_b)) 
+        if (!PREVBITS(p_b))
             rgba_prev_p = _prev_bk[x-1];
         else
             rgba_prev_p = rgba_fg;
 
-        if (!BITS(n_b)) 
+        if (!BITS(n_b))
             rgba_next = _next_bk[x];
         else
             rgba_next = rgba_fg;
 
-        if (!PREVBITS(n_b)) 
+        if (!PREVBITS(n_b))
             rgba_next_p = _next_bk[x-1];
         else
             rgba_next_p = rgba_fg;
@@ -3251,14 +3249,14 @@ static void do_subpixel_line(PDC pdc, int xpos, int ypos, SCANLINE_CTXT* ctxt,
         C_WEIGHT4(g);
         C_WEIGHT4(b);
         rgba_cur.a = 255;
-        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r, 
+        pdc->cur_pixel = GAL_MapRGB(pdc->surface->format, rgba_cur.r,
                 rgba_cur.g, rgba_cur.b);
         _glyph_draw_pixel (pdc,
             x + xpos, ypos, pdc->cur_pixel);
     }
 }
 
-static void _dc_subpixel_scan_line(PDC pdc, int xpos, int ypos, 
+static void _dc_subpixel_scan_line(PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
     BYTE *curr_line, *prev_line, *next_line;
@@ -3302,23 +3300,23 @@ static void _dc_subpixel_scan_line(PDC pdc, int xpos, int ypos,
     GAL_GetRGBA (pdc->textcolor, pdc->surface->format, &rgba_fg.r,
             &rgba_fg.g, &rgba_fg.b, &rgba_fg.a);
 
-    curr_line = ctxt->line_bits; 
+    curr_line = ctxt->line_bits;
     next_line = curr_line + ctxt->bmp_pitch;
     prev_line = ctxt->prev_bits;
 
     /* note: restore pointer for realloc (_prev_bk...).*/
     if(ctxt->glyph_line == 0) {
-        do_subpixel_line(pdc, xpos, ypos, ctxt, 
+        do_subpixel_line(pdc, xpos, ypos, ctxt,
                 curr_line, curr_line, next_line, rgba_fg);
         _prev_bk = p;
     }
     else if(ctxt->glyph_line == ctxt->bmp_h-1) {
-        do_subpixel_line(pdc, xpos, ypos, ctxt, 
+        do_subpixel_line(pdc, xpos, ypos, ctxt,
                 curr_line, prev_line, curr_line, rgba_fg);
         _next_bk = p;
     }
     else {
-        do_subpixel_line(pdc, xpos, ypos, ctxt, 
+        do_subpixel_line(pdc, xpos, ypos, ctxt,
                 curr_line, prev_line, next_line, rgba_fg);
     }
 
@@ -3362,7 +3360,7 @@ static inline BOOL _get_bit_runlength (const BYTE* line, int offset, int *runlen
 
 #if 0
 /* used for horizontal flip */
-static void _dc_regular_scan_line_slow (PDC pdc, int xpos, int ypos, 
+static void _dc_regular_scan_line_slow (PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
     int x = 0;
@@ -3416,7 +3414,7 @@ static void _dc_regular_scan_line_slow (PDC pdc, int xpos, int ypos,
 }
 #endif
 
-static void _dc_regular_scan_line (PDC pdc, int xpos, int ypos, 
+static void _dc_regular_scan_line (PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
     int x = 0, runlength, w = ctxt->bmp_w;
@@ -3455,7 +3453,7 @@ static void _dc_regular_scan_line (PDC pdc, int xpos, int ypos,
                     off_x = get_italic_offx (pdc, ctxt->glyph_italic,
                             ctxt->glyph_ascent, ctxt->glyph_line + i, ctxt->glyph_advance);
                     _glyph_draw_pixels (pdc,
-                        x*scale + off_x + xpos, ypos + i, 
+                        x*scale + off_x + xpos, ypos + i,
                         pdc->textcolor, scale * runlength);
                 }
             }
@@ -3527,7 +3525,7 @@ static BYTE* _gdi_expand_scale_bits (const BYTE* src_bits, SIZE* size, int pitch
     const BYTE* src_line;
     int scaled_pitch = (size->cx + 7) / 8;
     int i, j, w = size->cx / scale, h = size->cy / scale;
-    
+
     _prepare_scaled_bits (scaled_pitch * (size->cy + 1));
     if (_scaled_bits == NULL)
         return NULL;
@@ -3690,7 +3688,7 @@ static BYTE* _gdi_flip_bitmap_vert (BYTE* src_bits, const SIZE* size, int pitch)
     return _scaled_bits;
 }
 
-static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value, 
+static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
         SIZE* bbox, int bold, GLYPH_CTXT* ctxt)
 {
     int pitch = 0;
@@ -3702,6 +3700,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
     DWORD glyph_type = devfont->font_ops->get_glyph_type (logfont, devfont);
     switch (glyph_type & DEVFONTGLYPHTYPE_MASK_BMPTYPE) {
         case GLYPHBMP_TYPE_MONO:
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
             if (logfont->style & FS_WEIGHT_BOOK) {
                 if (pdc->alpha_pixel_format)
                     ctxt->cb = _dc_book_scan_line;
@@ -3713,12 +3712,29 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
             else if (logfont->style & FS_WEIGHT_SUBPIXEL) {
                 ctxt->cb = _dc_subpixel_scan_line;
             }
+#else
+            switch (logfont->style & FS_RENDER_MASK) {
+            case FS_RENDER_GREY:
+                if (pdc->alpha_pixel_format)
+                    ctxt->cb = _dc_book_scan_line;
+                break;
+
+            case FS_RENDER_OUTLINE:
+                if (pdc->textcolor != pdc->bkcolor)
+                    ctxt->cb = _dc_light_scan_line;
+                break;
+
+            case FS_RENDER_SUBPIXEL:
+                ctxt->cb = _dc_subpixel_scan_line;
+                break;
+            }
+#endif
 
             if (!ctxt->cb) {
                 ctxt->cb = _dc_regular_scan_line;
             }
 
-            data = (BYTE*)(*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
+            data = (BYTE*)(*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont,
                     REAL_GLYPH(glyph_value), &pitch, &scale);
 
             if (data == NULL)
@@ -3752,7 +3768,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
         case GLYPHBMP_TYPE_GREY:
             /* get preybitmap */
             if (devfont->font_ops->get_glyph_greybitmap) {
-                data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont, 
+                data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont,
                         REAL_GLYPH (glyph_value), &pitch, &scale);
                 ctxt->cb = _dc_bookgrey_scan_line;
                 if (data && scale > 1) {
@@ -3774,7 +3790,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
                     ft2GetLcdFilter (devfont) &&
                     *devfont->font_ops->get_glyph_greybitmap) {
                 /* the returned bits will be the subpixled pixmap */
-                data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont, 
+                data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont,
                         REAL_GLYPH(glyph_value), &pitch, &scale);
                 ctxt->cb = _dc_ft2subpixel_scan_line;
             }
@@ -3793,15 +3809,15 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
                 if ((logfont->style & FS_FLIP_HORZ) ||
                         (logfont->style & FS_FLIP_VERT)) {
 
-                    _prepare_pre_rdr_bmp (pdc, 
+                    _prepare_pre_rdr_bmp (pdc,
                         glyph_bmp->bmWidth, glyph_bmp->bmHeight + 1);
 
                     if (logfont->style & FS_FLIP_HORZ) {
-                        HFlipBitmap (glyph_bmp, glyph_bmp->bmBits 
+                        HFlipBitmap (glyph_bmp, glyph_bmp->bmBits
                                 + glyph_bmp->bmPitch * glyph_bmp->bmHeight);
                     }
                     if (logfont->style & FS_FLIP_VERT) {
-                        VFlipBitmap (glyph_bmp, glyph_bmp->bmBits 
+                        VFlipBitmap (glyph_bmp, glyph_bmp->bmBits
                                 + glyph_bmp->bmPitch * glyph_bmp->bmHeight);
                     }
                 }
@@ -3811,7 +3827,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
             }
             break;
     }
-    
+
     if (!data || !ctxt->cb)
         return FALSE;
 
@@ -3848,7 +3864,7 @@ static BOOL _gdi_ifneed_draw_glyph (PDC pdc, GLYPH_CTXT* ctxt, const GAL_Rect* f
     cliprect    = pdc->ecrgn.head;
     while (cliprect) {
         if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)) {
-            if (EqualRect(&glyph_rc, &eff_rc) || 
+            if (EqualRect(&glyph_rc, &eff_rc) ||
                     IsCovered(&glyph_rc, &eff_rc)){
                 _noneed_clip = TRUE;
                 has_inter   = TRUE;
@@ -3868,8 +3884,8 @@ static BOOL _gdi_ifneed_draw_glyph (PDC pdc, GLYPH_CTXT* ctxt, const GAL_Rect* f
     return TRUE;
 }
 
-static inline void _gdi_direct_fillglyph (PDC pdc, Glyph32 glyph_value, 
-        GAL_Rect* fg_gal_rc, SIZE* bbox, 
+static inline void _gdi_direct_fillglyph (PDC pdc, Glyph32 glyph_value,
+        GAL_Rect* fg_gal_rc, SIZE* bbox,
         int glyph_ascent, int glyph_advance, int italic, int bold)
 {
     BOOL exist = FALSE;
@@ -3925,18 +3941,18 @@ static inline void _gdi_direct_fillglyph (PDC pdc, Glyph32 glyph_value,
  * the line direction is from (x1, y1) to (x2, y2),
  * plus advance is the distance from (*parallel_x1,*parallel_y1) to (x1,y1),advance is along direction
  * rotation 90 degree from line direction in counter-clockwise
- * (*parallel_x1,*parallel_y1) is the point at the parallel line reponse to (x1,y1),the line from 
+ * (*parallel_x1,*parallel_y1) is the point at the parallel line reponse to (x1,y1),the line from
  * (*parallel_x1,*parallel_y1) to (x1,y1) is vertical relative to line from (x1,y1) to (x2,y2)
  * (*parallel_x2,*parallel_y2) is the point at the parallel line reponse to (x2,y2)
  */
-void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, int advance, int* parallel_x1, 
+void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, int advance, int* parallel_x1,
         int* parallel_y1, int* parallel_x2, int* parallel_y2, PDC pdc)
 {
     int adv_x, adv_y;
 
-    adv_x =CAL_VEC_X2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600 
+    adv_x =CAL_VEC_X2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
             *256/3600);
-    adv_y =CAL_VEC_Y2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600 
+    adv_y =CAL_VEC_Y2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
             *256 /3600);
 
     *parallel_x1 =x1 +adv_x;
@@ -3950,27 +3966,27 @@ void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, int advance, int
 void _gdi_get_glyph_box_vertices (int x1, int y1, int x2, int y2, POINT* pts, PDC pdc)
 {
     int  adv_x, adv_y;
-            
-    adv_x =CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600 
+
+    adv_x =CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
                 +3600)%3600*256/3600);
-    adv_y =CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600 
+    adv_y =CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
                 +3600)%3600 *256 /3600);
-                            
+
     pts[0].x  = x1+adv_x;
     pts[0].y  = y1-adv_y;
-                                                
+
     pts[1].x =x2 +adv_x;
     pts[1].y =y2 -adv_y;
-                                            
-                                            
-    adv_x =CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600 
+
+
+    adv_x =CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
                 +3600)%3600 * 256 / 3600);
-    adv_y =CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600 
+    adv_y =CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
                 +3600)%3600 * 256 / 3600);
-                                                            
+
     pts[3].x  = x1+adv_x;
     pts[3].y  = y1-adv_y;
-                                                                                
+
     pts[2].x =x2 +adv_x;
     pts[2].y =y2 -adv_y;
 }
@@ -3992,35 +4008,35 @@ void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
         /* TODO: calculate a point on the baseline */
 
         int adv_x, adv_y;
-                        
+
         if ((pdc->ta_flags & TA_Y_MASK) == TA_TOP) {
-            adv_x =CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation 
+            adv_x =CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation
                             +2700)%3600+3600)%3600 * 256 / 3600);
-            adv_y =CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation 
+            adv_y =CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation
                             +2700)%3600+3600)%3600 * 256 / 3600);
             *x +=adv_x;
             *y -=adv_y;
         }
         else if ((pdc->ta_flags & TA_Y_MASK) == TA_BOTTOM) {
-            adv_x =CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation 
+            adv_x =CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation
                             +900)%3600+3600)%3600 * 256 / 3600);
-            adv_y =CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation 
+            adv_y =CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation
                             +900)%3600+3600)%3600 * 256 / 3600);
             *x +=adv_x;
             *y -=adv_y;
         }
         /*
         int x1 = *x;
-        int y1 = *y; 
+        int y1 = *y;
         int x2 = /x1 + 1000 * fixtoi();
         int y2;
 
         if ((pdc->ta_flags & TA_Y_MASK) == TA_TOP) {
-            _gdi_get_point_at_parallel (x1, y1, x2, y2, 
+            _gdi_get_point_at_parallel (x1, y1, x2, y2,
                     -pdc->pLogFont->ascent, x1, x, y);
         }
         else if ((pdc->ta_flags & TA_Y_MASK) == TA_BOTTOM) {
-            _gdi_get_point_at_parallel (x1, y1, x2, y2, 
+            _gdi_get_point_at_parallel (x1, y1, x2, y2,
                     pdc->pLogFont->descent, x1, x, y);
         }
         */
@@ -4042,7 +4058,7 @@ static inline BOOL _gdi_glyph_if_need_lock(DEVFONT* devfont)
 }
 #endif
 
-int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value, 
+int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
             BOOL direction, int x, int y, int* adv_x, int* adv_y, BBOX* bbox)
 {
     int bold = 0;
@@ -4075,9 +4091,9 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
     devfont->font_ops->get_glyph_bbox (logfont, devfont,
             REAL_GLYPH(glyph_value), &bbox_x, &bbox_y, &bbox_w, &bbox_h);
 
-    if (logfont->style & FS_WEIGHT_BOLD 
+    if (logfont->style & FS_WEIGHT_BOLD
             && !(devfont->style & FS_WEIGHT_BOLD)
-            && ((devfont->font_ops->get_glyph_type (logfont, devfont) 
+            && ((devfont->font_ops->get_glyph_type (logfont, devfont)
                     & DEVFONTGLYPHTYPE_MASK_BMPTYPE)
                 == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
@@ -4091,7 +4107,7 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
         bbox->h = bbox_h;
     }
 
-    adv_len = devfont->font_ops->get_glyph_advance (logfont, devfont, 
+    adv_len = devfont->font_ops->get_glyph_advance (logfont, devfont,
             REAL_GLYPH(glyph_value), &tmp_x, &tmp_y);
 
 #ifdef _MGRM_THREADS
@@ -4113,9 +4129,11 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
         if (adv_y) *adv_y = y - tmp_y;
     }
 
-    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont) 
+    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+#define FS_WEIGHT_BOOK_LIGHT    (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)
 
     if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
         if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
@@ -4123,6 +4141,17 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
             advance += 1;
         }
     }
+#else
+    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
+        switch (logfont->style & FS_RENDER_MASK) {
+        case FS_RENDER_GREY:
+        case FS_RENDER_OUTLINE:
+            if (adv_x) *adv_x  += 1;
+            advance += 1;
+            break;
+        }
+    }
+#endif
 
     //return adv_len + bold + pdc->cExtra;
     return adv_len + bold + pdc->cExtra + advance;
@@ -4133,13 +4162,13 @@ void  _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL direct
 {
     int  delta_x, delta_y;
     int  rotation;
-                            
+
     rotation =pdc->pLogFont->rotation;
     rotation =(rotation%3600 +3600)%3600;
-                     
-    if(advance <0) advance =-advance;    
+
+    if(advance <0) advance =-advance;
     *next_x =pre_x;
-    *next_y =pre_y;    
+    *next_y =pre_y;
     switch(rotation){
         case 0:
         {
@@ -4178,7 +4207,7 @@ void  _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL direct
             }
         }
     }
-                                                    
+
     delta_x =CAL_VEC_X2(advance,rotation * 256 / 3600);
     delta_y =CAL_VEC_Y2(advance,rotation * 256 / 3600);
 
@@ -4198,7 +4227,7 @@ void  _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL direct
     fixcos (fixdiv (itofix(degree), ftofix(62.831852)))
 
 
-int _gdi_get_null_glyph_advance (PDC pdc, int advance, BOOL direction, 
+int _gdi_get_null_glyph_advance (PDC pdc, int advance, BOOL direction,
         int x, int y, int* adv_x, int* adv_y)
 {
     _gdi_get_next_point_online (x,y,advance,direction,pdc,adv_x,adv_y);
@@ -4214,7 +4243,7 @@ int _gdi_get_null_glyph_advance (PDC pdc, int advance, BOOL direction,
 #define ITALIC_RECT 1
 #define ROTATE_RECT 2
 
-static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1, 
+static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
         POINT* area, GAL_Rect* gal_rc, int* flag)
 {
     int h = pdc->pLogFont->size;
@@ -4239,7 +4268,7 @@ static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
             break;
 
         case ROTATE_RECT:
-            _gdi_get_glyph_box_vertices (x0, y0, x1, y1, 
+            _gdi_get_glyph_box_vertices (x0, y0, x1, y1,
                      area, pdc);
             break;
     }
@@ -4270,7 +4299,7 @@ static void inline draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int f
                         for (i=0; i<h; i++)
                         {
                             italic_x = x+(i>>1);
-                            _dc_draw_hline_clip (pdc, italic_x, 
+                            _dc_draw_hline_clip (pdc, italic_x,
                                     italic_x+w-1, y+i);
                         }
                         break;
@@ -4278,7 +4307,7 @@ static void inline draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int f
                         for (i=0; i<h; i++)
                         {
                             italic_x = x+((h-i)>>1);
-                            _dc_draw_hline_clip (pdc, italic_x, 
+                            _dc_draw_hline_clip (pdc, italic_x,
                                     italic_x+w-1, y+i);
                         }
                 }
@@ -4286,7 +4315,7 @@ static void inline draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int f
             break;
 
         case ROTATE_RECT:
-            MonotoneVerticalPolygonGenerator (pdc, area, 
+            MonotoneVerticalPolygonGenerator (pdc, area,
                     4, _dc_draw_hline_clip);
             break;
 
@@ -4338,7 +4367,7 @@ static void make_back_rect(RECT* rc_back, POINT* area, GAL_Rect* gal_rc, int fla
 
 }
 
-void _gdi_calc_glyphs_size_from_two_points (PDC pdc, int x0, int y0, 
+void _gdi_calc_glyphs_size_from_two_points (PDC pdc, int x0, int y0,
         int x1, int y1, SIZE* size)
 {
     POINT area[4];
@@ -4368,10 +4397,10 @@ int _gdi_draw_null_glyph (PDC pdc, int advance, BOOL direction,
         return advance;
 
     if (direction)
-        make_back_area(pdc, x, y, x+*adv_x, y+*adv_y, 
+        make_back_area(pdc, x, y, x+*adv_x, y+*adv_y,
                 area, &gal_rc, &flag);
     else
-        make_back_area(pdc, x+*adv_x, y+*adv_y, x, y, 
+        make_back_area(pdc, x+*adv_x, y+*adv_y, x, y,
                 area, &gal_rc, &flag);
 
     make_back_rect(&rc_back, area, &gal_rc, flag);
@@ -4425,7 +4454,11 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
     }
 
     pdc->cur_pixel = pdc->textcolor;
+#if 0 // VincentWei: use FS_DECORATE_XXX instead (3.4.0)
     if (logfont->style & FS_UNDERLINE_LINE) {
+#else
+    if (logfont->style & FS_DECORATE_UNDERLINE) {
+#endif
         if (logfont->style & FS_FLIP_VERT) {
             _gdi_get_point_at_parallel(x1, y1, x2, y2, h-(descent<<1), \
                      &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
@@ -4455,10 +4488,10 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
         cliprect = pdc->ecrgn.head;
         while (cliprect) {
             if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)
-                    && LineClipper (&eff_rc, &draw_x1, &draw_y1, 
+                    && LineClipper (&eff_rc, &draw_x1, &draw_y1,
                         &draw_x2, &draw_y2)) {
                 pdc->move_to (pdc, draw_x1, draw_y1);
-                LineGenerator (pdc, draw_x1, draw_y1, draw_x2, draw_y2, 
+                LineGenerator (pdc, draw_x1, draw_y1, draw_x2, draw_y2,
                         _dc_set_pixel_noclip);
             }
             else
@@ -4467,9 +4500,13 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
                     pdc->rc_output.right, pdc->rc_output.bottom);
             cliprect = cliprect->next;
         }
-    } 
+    }
 
+#if 0 // VincentWei: use FS_DECORATE_XXX instead (3.4.0)
     if (logfont->style & FS_STRUCKOUT_LINE) {
+#else
+    if (logfont->style & FS_DECORATE_STRUCKOUT) {
+#endif
         if (logfont->style & FS_FLIP_VERT) {
             _gdi_get_point_at_parallel(x1, y1, x2, y2, (h >>1)-descent +1, \
                      &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
@@ -4488,10 +4525,10 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
         cliprect = pdc->ecrgn.head;
         while (cliprect) {
             if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)
-                    && LineClipper (&eff_rc, &draw_x1, &draw_y1, 
+                    && LineClipper (&eff_rc, &draw_x1, &draw_y1,
                         &draw_x2, &draw_y2)) {
                 pdc->move_to (pdc, draw_x1, draw_y1);
-                LineGenerator (pdc, draw_x1, draw_y1, draw_x2, draw_y2, 
+                LineGenerator (pdc, draw_x1, draw_y1, draw_x2, draw_y2,
                         _dc_set_pixel_noclip);
             }
             cliprect = cliprect->next;
@@ -4516,7 +4553,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     RECT rc_tmp;
     RECT rc_back;
     BOOL need_rc_back = FALSE;
-#ifndef DRAW_SCANLINE 
+#ifndef DRAW_SCANLINE
     BOOL is_draw_glyph = TRUE;
 #endif
 
@@ -4531,16 +4568,16 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     y += pdc->alExtra;
 
     rc_tmp = pdc->rc_output;
-    advance = _gdi_get_glyph_advance (pdc, glyph_value, direction, 
+    advance = _gdi_get_glyph_advance (pdc, glyph_value, direction,
             x, y, adv_x, adv_y, &bbox);
 
     logfont = pdc->pLogFont;
     devfont = SELECT_DEVFONT (logfont, glyph_value);
 
-    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont) 
+    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
-    if ((logfont->style & FS_WEIGHT_BOLD) 
+    if ((logfont->style & FS_WEIGHT_BOLD)
             && !(devfont->style & FS_WEIGHT_BOLD)
             && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
@@ -4553,14 +4590,21 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
 
     fg_gal_rc.x = bbox.x;
     fg_gal_rc.y = bbox.y;
-    fg_gal_rc.w = bbox.w + italic; 
+    fg_gal_rc.w = bbox.w + italic;
     fg_gal_rc.h = bbox.h;
 
-    if ( pdc->bkmode != BM_TRANSPARENT 
-         || logfont->style & FS_UNDERLINE_LINE 
-         || logfont->style & FS_STRUCKOUT_LINE ) 
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+    if ( pdc->bkmode != BM_TRANSPARENT
+         || logfont->style & FS_UNDERLINE_LINE
+         || logfont->style & FS_STRUCKOUT_LINE )
+#else
+    if (pdc->bkmode != BM_TRANSPARENT
+         || logfont->style & FS_DECORATE_UNDERLINE
+         || logfont->style & FS_DECORATE_STRUCKOUT)
+#endif
         need_rc_back = TRUE;
 
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
     if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
         if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
             fg_gal_rc.x--; fg_gal_rc.y--;
@@ -4569,21 +4613,36 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
 //            advance += 1;
         }
     }
+#else
+    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
+            && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
+        fg_gal_rc.x--; fg_gal_rc.y--;
+        fg_gal_rc.w += 2; fg_gal_rc.h += 2;
+    }
+#endif
 
     if (need_rc_back) {
         if (direction)
-            make_back_area(pdc, x, y, x+*adv_x, y+*adv_y, 
+            make_back_area(pdc, x, y, x+*adv_x, y+*adv_y,
                     area, &bg_gal_rc, &flag);
         else
-            make_back_area(pdc, x+*adv_x, y+*adv_y, x, y, 
+            make_back_area(pdc, x+*adv_x, y+*adv_y, x, y,
                     area, &bg_gal_rc, &flag);
 
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
         if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
             if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
                 bg_gal_rc.x--; bg_gal_rc.y--;
                 bg_gal_rc.w += 2; bg_gal_rc.h += 2;
             }
         }
+#else
+    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
+            && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
+        fg_gal_rc.x--; fg_gal_rc.y--;
+        fg_gal_rc.w += 2; fg_gal_rc.h += 2;
+    }
+#endif
 
         make_back_rect(&rc_back, area, &bg_gal_rc, flag);
     }
@@ -4622,7 +4681,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
         draw_back_area (pdc, area, &bg_gal_rc, flag);
     }
 
-#ifdef DRAW_SCANLINE 
+#ifdef DRAW_SCANLINE
 
     /* bbox is the real glyph pixels on one scan-line. */
     bbx_size.cx = bbox.w;
@@ -4640,7 +4699,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
 
 #else /* DRAW_SCANLINE */
 
-    if (devfont->font_ops->get_glyph_prbitmap != NULL) 
+    if (devfont->font_ops->get_glyph_prbitmap != NULL)
     {
         if(!(devfont->font_ops->get_glyph_prbitmap) (logfont, devfont,
                     REAL_GLYPH(glyph_value), &char_bmp)){
@@ -4653,6 +4712,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
         bbx_size.cx = bbox.w;
         bbx_size.cy = bbox.h;
 
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
         if (logfont->style & FS_WEIGHT_BOOK) {
             if(! get_book_bmp(pdc, glyph_value, &bbx_size, bold, italic))
                 is_draw_glyph = FALSE;
@@ -4662,7 +4722,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
                 is_draw_glyph = FALSE;
         }
         else if ((logfont->style & FS_WEIGHT_MASK) == FS_WEIGHT_SUBPIXEL) {
-            if (! get_subpixel_bmp (pdc, glyph_value, &bbx_size, 
+            if (! get_subpixel_bmp (pdc, glyph_value, &bbx_size,
                         &fg_gal_rc, bold, italic))
                 is_draw_glyph = FALSE;
         }
@@ -4670,24 +4730,48 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             if(! get_regular_bmp (pdc, glyph_value, &bbx_size, bold, italic))
                 is_draw_glyph = FALSE;
         }
+#else
+        switch (logfont->style & FS_RENDER_MASK) {
+        case FS_RENDER_GREY:
+            if (!get_book_bmp(pdc, glyph_value, &bbx_size, bold, italic))
+                is_draw_glyph = FALSE;
+            break;
 
+        case FS_RENDER_OUTLINE:
+            if (!get_light_bmp (pdc, glyph_value, &bbx_size,  &fg_gal_rc, bold, italic))
+                is_draw_glyph = FALSE;
+            break;
+
+        case FS_RENDER_SUBPIXEL:
+            if (!get_subpixel_bmp (pdc, glyph_value, &bbx_size,
+                        &fg_gal_rc, bold, italic))
+                is_draw_glyph = FALSE;
+            break;
+
+        default:
+            if (!get_regular_bmp (pdc, glyph_value, &bbx_size, bold, italic))
+                is_draw_glyph = FALSE;
+            break;
+        }
+#endif
     }
+
     if (is_draw_glyph) {
         /*draw glyph bitmap*/
         pdc->cur_pixel = pdc->textcolor;
         pdc->skip_pixel = pdc->bkcolor;
 
         if (char_bmp.bmBits) {
-            /* 
+            /*
              * To optimize:
              * the flip should do when expand bitmap/pixmap.
              */
             if (logfont->style & FS_FLIP_HORZ) {
-                HFlipBitmap (&char_bmp, char_bmp.bmBits + 
+                HFlipBitmap (&char_bmp, char_bmp.bmBits +
                         char_bmp.bmPitch * char_bmp.bmHeight);
             }
             if (logfont->style & FS_FLIP_VERT) {
-                VFlipBitmap (&char_bmp, char_bmp.bmBits + 
+                VFlipBitmap (&char_bmp, char_bmp.bmBits +
                         char_bmp.bmPitch * char_bmp.bmHeight);
             }
 
