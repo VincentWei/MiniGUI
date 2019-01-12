@@ -199,6 +199,12 @@ print_bitmap_grey (void* buffer, int width, int rows, int pitch)
 
 static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
 {
+#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+    if (logfont->style & FS_WEIGHT_SUBPIXEL)
+        return DEVFONTGLYPHTYPE_SUBPIXEL;
+    else if (logfont->style & FS_WEIGHT_BOOK)
+        return DEVFONTGLYPHTYPE_GREYBMP;
+#else
     switch (logfont->style & FS_RENDER_MASK) {
     case FS_RENDER_SUBPIXEL:
         return DEVFONTGLYPHTYPE_SUBPIXEL;
@@ -207,6 +213,7 @@ static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
     default:
         break;
     }
+#endif
 
     return DEVFONTGLYPHTYPE_MONOBMP;
 }
