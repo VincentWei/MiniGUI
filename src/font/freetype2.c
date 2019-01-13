@@ -617,6 +617,7 @@ get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     if (scale) *scale = 1;
     return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, FALSE);
 }
+
 static const void*
 get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
             const Glyph32 glyph_value, int* pitch,
@@ -736,7 +737,6 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     if (FT_New_Size (face, &size))
         goto out;
 
-
     if (FT_Activate_Size (size))
         goto out_size;
 
@@ -788,7 +788,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
         (ft_inst_info->rotation == 0)) {
 
         HCACHE hCache = __mg_ttc_is_exist(logfont->family, logfont->charset,
-                                   logfont->style, logfont->size);
+                        logfont->style, logfont->size, logfont->rotation);
         DP(("__mg_ttc_is_exist() return %p\n", hCache));
         /* No this style's cache */
         if (hCache == 0) {
@@ -838,9 +838,11 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
                 "blksize(bitmap) = %d, nblk = %d\n",
                 rows, col, blksize, blksize-sizeof(TTFCACHEINFO), nblk));
 
-            ft_inst_info->cache =  __mg_ttc_create(logfont->family, logfont->charset,
-                                        logfont->style, logfont->size, nblk , blksize ,
-                                        _TTF_HASH_NDIR, make_hash_key);
+            ft_inst_info->cache = __mg_ttc_create(logfont->family,
+                logfont->charset, logfont->style, logfont->size,
+                logfont->rotation, nblk , blksize, _TTF_HASH_NDIR,
+                make_hash_key);
+
             DP(("__mg_ttc_create() return %p\n", ft_inst_info->cache));
         } else {
             ft_inst_info->cache = hCache;
@@ -855,12 +857,28 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->size = size;
 #endif
 
-    //According to face information, change the style information for logical font.
+    // According to face information, change the style information for logical font.
     if (face->style_flags & FT_STYLE_FLAG_ITALIC)
         new_devfont->style |= FS_SLANT_ITALIC;
 
+#if 0 // VincentWei: use TT_OS2 table data here
     if (face->style_flags & FT_STYLE_FLAG_BOLD)
         new_devfont->style |= FS_WEIGHT_BOLD;
+#else
+    {
+        TT_OS2* tt_os2 = (TT_OS2*)FT_Get_Sfnt_Table (face, FT_SFNT_OS2);
+        unsigned int weight_style = FS_WEIGHT_REGULAR;
+        if (tt_os2->usWeightClass >= 100 && tt_os2->usWeightClass <= 900) {
+            weight_style = (tt_os2->usWeightClass/100 * 10);
+        }
+        else {
+            _DBG_PRINTF("FreeType2: Unknown tt_os2->usWeightClass: %u\n", tt_os2->usWeightClass);
+        }
+
+        new_devfont->style &= ~FS_WEIGHT_MASK;
+        new_devfont->style |= weight_style;
+    }
+#endif
 
     return new_devfont;
 

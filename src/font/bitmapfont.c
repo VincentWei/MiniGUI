@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -71,7 +71,7 @@ static unsigned char def_glyph [] = {0};
 /*** tree ops ***/
 
 /*
-* rebalance the tree. 
+* rebalance the tree.
 */
 static int rebalance (GLYPHTREENODE **root, int *l, int *m)
 {
@@ -79,7 +79,7 @@ static int rebalance (GLYPHTREENODE **root, int *l, int *m)
         int ll, lm, ml, mm;
         *l = rebalance (&(*root)->left, &ll, &lm);
         *m = rebalance (&(*root)->right, &ml, &mm);
-        
+
         if ( (*root)->right ) {
             if ( *l + ml + 1 < mm ) {
                 /* Shift less-ward */
@@ -101,13 +101,13 @@ static int rebalance (GLYPHTREENODE **root, int *l, int *m)
                 b->right = c;
             }
         }
-        
+
         return 1 + *l + *m;
-    } 
+    }
     else {
         *l = *m = 0;
         return 0;
-    }    
+    }
 }
 
 /*
@@ -116,22 +116,22 @@ static int rebalance (GLYPHTREENODE **root, int *l, int *m)
 static void insert (GLYPHTREENODE *root, int min, int max,
                     int glyph_width, BITMAP *bmp)
 {
-    
+
     if (max < root->min) {
         if (!root->left) {
             root->left = (GLYPHTREENODE *) calloc (sizeof (GLYPHTREENODE), 1);
-            root->left->min = min;  
+            root->left->min = min;
             root->left->max = max;
         }
-        
+
         insert (root->left, min, max, glyph_width, bmp);
         return;
     }
     else if (min > root->max) {
         if (!root->right) {
-            root->right = (GLYPHTREENODE *) calloc (sizeof (GLYPHTREENODE), 
+            root->right = (GLYPHTREENODE *) calloc (sizeof (GLYPHTREENODE),
                                 1);
-            root->right->min = min; 
+            root->right->min = min;
             root->right->max = max;
         }
 
@@ -142,10 +142,10 @@ static void insert (GLYPHTREENODE *root, int min, int max,
              max == root->max &&
              root->nr_glyphs == 0) {
         root->data = bmp;
-        root->nr_glyphs = max - min + 1; 
+        root->nr_glyphs = max - min + 1;
         root->glyph_width = glyph_width;
     }
-    
+
     return;
 }
 
@@ -153,7 +153,7 @@ static void insert (GLYPHTREENODE *root, int min, int max,
 static GLYPHTREENODE *look_up (GLYPHTREENODE *root, int offset)
 {
   GLYPHTREENODE *p;
-  
+
   for (p = root; p; )
     {
       if (offset < p->min)
@@ -163,7 +163,7 @@ static GLYPHTREENODE *look_up (GLYPHTREENODE *root, int offset)
       else  /* found */
         return p;
     }
-    
+
     return NULL;
 }
 
@@ -184,7 +184,7 @@ static void destroy (GLYPHTREENODE *root)
             p->left = q->right;
             q->right = p;
         }
-  
+
     return;
 }
 
@@ -228,12 +228,12 @@ static int get_font_ascent (LOGFONT* logfont, DEVFONT* devfont)
     else if (height >= 10)
         return height - 1;
 
-    return height;    
+    return height;
 }
 
 static int get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 {
-    int height = ((BMPFONTINFO *)devfont->data)->height;    
+    int height = ((BMPFONTINFO *)devfont->data)->height;
 
     if (height >= 40)
         return 6;
@@ -244,11 +244,11 @@ static int get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
     else if (height >= 10)
         return 1;
 
-    return 0;    
+    return 0;
 }
 
 static int
-get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont, 
+get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont,
                     Glyph32 glyph_value, BITMAP *bmp)
 {
     GLYPHTREENODE *node = NULL;
@@ -283,9 +283,9 @@ get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont,
     bmp->bmColorKey = node->data->bmColorKey;
     bmp->bmWidth = node->glyph_width;
     bmp->bmHeight = bmpfont_info->height;
-    bmp->bmPitch = node->data->bmPitch;   
+    bmp->bmPitch = node->data->bmPitch;
     bmp->bmBits = node->data->bmBits;
-    bmp->bmBits += node->glyph_width * (glyph_value - node->min) * 
+    bmp->bmBits += node->glyph_width * (glyph_value - node->min) *
                     node->data->bmBytesPerPixel;
 
     if(node->data->bmAlphaMask) {
@@ -307,14 +307,14 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
         return FALSE;
 
     node = look_up (root, glyph_value);
-    if (node == NULL) 
+    if (node == NULL)
         return FALSE;
     else
         return TRUE;
-    
+
 }
 
-static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont, 
+static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
                 Glyph32 glyph_value, int* px, int* py)
 {
     GLYPHTREENODE *node = NULL;
@@ -344,7 +344,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     if (py)
         *py -= get_font_ascent (logfont, devfont);
- 
+
     node = look_up (root, glyph_value);
     if (node == NULL) {
         if (pwidth)
@@ -390,8 +390,8 @@ static BMPFONTINFO *
 build_bmpfont_info (const char *bmpfont_name, const BITMAP* glyph_bmp,
                   int offset, int nr_glyphs, int glyph_width)
 {
-    
-    BMPFONTINFO *bmpfont_info = (BMPFONTINFO *)calloc (1, 
+
+    BMPFONTINFO *bmpfont_info = (BMPFONTINFO *)calloc (1,
                                 sizeof(BMPFONTINFO));
     if (!bmpfont_info)
         return NULL;
@@ -401,13 +401,12 @@ build_bmpfont_info (const char *bmpfont_name, const BITMAP* glyph_bmp,
     bmpfont_info->name [LEN_UNIDEVFONT_NAME] = '\0';
 
     /* set height */
-    if ((bmpfont_info->height 
+    if ((bmpfont_info->height
          = fontGetHeightFromName (bmpfont_name)) == -1) {
         _ERR_PRINTF ("FONT>Bitmap: Invalid font name (height): %s.\n",
                  bmpfont_name);
         goto error_load;
     }
-
 
     bmpfont_info->ave_width = glyph_width;
     bmpfont_info->max_width = glyph_width;
@@ -415,32 +414,33 @@ build_bmpfont_info (const char *bmpfont_name, const BITMAP* glyph_bmp,
 
     /* set tree root */
     if (!bmpfont_info->tree) {
-        bmpfont_info->tree = (GLYPHTREENODE *) calloc (1, 
+        bmpfont_info->tree = (GLYPHTREENODE *) calloc (1,
                                 sizeof (GLYPHTREENODE));
         if (!bmpfont_info->tree) {
             _ERR_PRINTF ("FONT>Bitmap: fail to calloc memory space for root.\n");
             goto error_load;
-        }        
+        }
     }
 
     bmpfont_info->tree->min = offset;
     bmpfont_info->tree->max = offset + nr_glyphs - 1;
     bmpfont_info->tree->nr_glyphs = nr_glyphs;
     bmpfont_info->tree->glyph_width = glyph_width;
-    bmpfont_info->tree->data = (void *)glyph_bmp;    
-   
- 
+    bmpfont_info->tree->data = (void *)glyph_bmp;
+
+
     return bmpfont_info;
-    
+
 error_load:
     _ERR_PRINTF ("FONT>Bitmap: Error in building Bitmap Font Info!\n");
-    
+
     free (bmpfont_info);
     bmpfont_info = NULL;
-    
+
     return NULL;
 }
 
+#if 0 // VincentWei: bad implementation
 static int set_devfont_style (char* name, char style)
 {
     int i;
@@ -461,7 +461,7 @@ static int set_devfont_style (char* name, char style)
 
     return 1;
 }
-
+#endif
 
 /************************/
 DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
@@ -474,10 +474,10 @@ DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
     int offset;
 
     if (!fontGetCharsetFromName (bmpfont_name, charset)) {
-        _ERR_PRINTF ("FONT>Bitmap: Invalid font name (charset): %s.\n", 
+        _ERR_PRINTF ("FONT>Bitmap: Invalid font name (charset): %s.\n",
                  bmpfont_name);
         goto error_create;
-    }    
+    }
 
     if ((charset_ops = GetCharsetOpsEx (charset)) == NULL) {
         _ERR_PRINTF ("FONT>Bitmap: Not supported charset: %s.\n", charset);
@@ -485,30 +485,32 @@ DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
     }
 
     offset = (charset_ops->char_glyph_value) (NULL, 0,
-                (const unsigned char*) start_mchar, 0);      
-    
+                (const unsigned char*) start_mchar, 0);
+
     bmpfont_info = build_bmpfont_info (bmpfont_name, glyph_bmp,
                                        offset, nr_glyphs,
                                        glyph_width);
     if (bmpfont_info == NULL)
         return NULL;
 
-    bitmapfont_dev_font = (DEVFONT *)calloc (1, sizeof (DEVFONT));    
+    bitmapfont_dev_font = (DEVFONT *)calloc (1, sizeof (DEVFONT));
     if (bitmapfont_dev_font == NULL) {
         free(bmpfont_info);
         free (bitmapfont_dev_font);
         return NULL;
     }
 
-/*
- * Set device name and add BOLD & ITALIC style 
- */
-    strncpy (bitmapfont_dev_font->name ,bmpfont_name, LEN_UNIDEVFONT_NAME);
+    /*
+     * Set device name
+     */
+    strncpy (bitmapfont_dev_font->name, bmpfont_name, LEN_UNIDEVFONT_NAME);
 
+#if 0 // VincentWei: bad implementation
     if (!set_devfont_style (bitmapfont_dev_font->name, FONT_WEIGHT_BOLD))
-        return NULL; 
+        return NULL;
     if (!set_devfont_style (bitmapfont_dev_font->name, FONT_SLANT_ITALIC))
-        return NULL; 
+        return NULL;
+#endif
 
     bitmapfont_dev_font->name [LEN_UNIDEVFONT_NAME] = '\0';
     bitmapfont_dev_font->style = fontConvertStyle (bitmapfont_dev_font->name);
@@ -517,22 +519,22 @@ DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
     bitmapfont_dev_font->data = bmpfont_info;
 
 
-    if (bitmapfont_dev_font->charset_ops->bytes_maxlen_char > 1) 
+    if (bitmapfont_dev_font->charset_ops->bytes_maxlen_char > 1)
         font_AddMBDevFont (bitmapfont_dev_font);
-    else 
+    else
         font_AddSBDevFont (bitmapfont_dev_font);
-             
+
 
     return bitmapfont_dev_font;
-    
+
 error_create:
-    _ERR_PRINTF ("FONT>Bitmap: Error in creating bitmap font!\n");    
+    _ERR_PRINTF ("FONT>Bitmap: Error in creating bitmap font!\n");
     free (bitmapfont_dev_font);
     bitmapfont_dev_font = NULL;
-    return NULL;    
+    return NULL;
 }
 
-BOOL AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp, 
+BOOL AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
         const char* start_mchar, int nr_glyphs, int glyph_width)
 {
     int offset;
@@ -540,7 +542,7 @@ BOOL AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
     int m = 0;
     BMPFONTINFO *info = (BMPFONTINFO *)dev_font->data;
     GLYPHTREENODE *root = info->tree;
-  
+
     if (!dev_font || !root)
         return FALSE;
 
@@ -551,7 +553,7 @@ BOOL AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
     if (look_up (root, offset) == NULL) {
         insert (root, offset, (offset + nr_glyphs - 1 ),
                 glyph_width, glyph_bmp);
-        
+
         /* rebalance tree. 'root' can't be carried into rebalance */
         rebalance (&(((BMPFONTINFO *)dev_font->data)->tree), &l, &m);
 
@@ -562,8 +564,8 @@ BOOL AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
         info->ave_width = (info->ave_width * info->node_cnt + glyph_width)/
                         (info->node_cnt + 1);
         info->node_cnt++;
-    }    
-    
+    }
+
     return TRUE;
 }
 
@@ -577,7 +579,7 @@ void DestroyBMPFont (DEVFONT* dev_font)
         destroy (((BMPFONTINFO *)dev_font->data)->tree);
         ((BMPFONTINFO *)dev_font->data)->tree = NULL;
     }
-    
+
     /* free bitmap font info*/
     if (dev_font->data != NULL) {
         free(dev_font->data);
@@ -585,13 +587,13 @@ void DestroyBMPFont (DEVFONT* dev_font)
     }
 
     /*delete dev_font from device font linked list and free dev_fonts*/
-    if (dev_font->charset_ops->bytes_maxlen_char > 1) 
+    if (dev_font->charset_ops->bytes_maxlen_char > 1)
         font_DelMBDevFont (dev_font);
-    else 
+    else
         font_DelSBDevFont (dev_font);
-    
+
     dev_font = NULL;
-    
+
     return;
 }
 
@@ -602,19 +604,19 @@ static int print_tree_struct ( GLYPHTREENODE *node)
 
     if (node == NULL)
         return 0;
-    
+
     _MG_PRINTF ("%d", node->min);
     if (node->left != NULL || node->right != NULL)
     {
         _MG_PRINTF ("(");
-        
+
         print_tree_struct (node->left);
         if (node->right != NULL)
         {
             _MG_PRINTF (",");
             print_tree_struct (node->right);
         }
-        
+
         _MG_PRINTF (")");
     }
     return 0;
@@ -629,7 +631,7 @@ static void dump_tree (DEVFONT *dev_font)
         _MG_PRINTF ("the tree is empty.\n");
         return;
     }
-    
+
     print_tree_struct (((BMPFONTINFO *)dev_font->data)->tree);
     _MG_PRINTF ("\n");
 }
@@ -642,7 +644,7 @@ static int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n)
     offset = (*dev_font->charset_ops->char_glyph_value) (NULL, 0,
                 (const unsigned char*)start_mchar, n);
     offset += n;
-    
+
     p = look_up (((BMPFONTINFO *)dev_font->data)->tree, offset);
     if (p == NULL) {
         _MG_PRINTF ("Find nothing. \n");
@@ -651,19 +653,19 @@ static int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n)
     else {
         _MG_PRINTF ("Found %s+%d \n", start_mchar, n);
         return 1;
-        
+
     }
-    
+
     return 0;
 }
 
 static void destroy_avl_tree (DEVFONT *dev_font)
 {
     if (dev_font && ((BMPFONTINFO *)dev_font->data)->tree != NULL) {
-        
+
         destroy (((BMPFONTINFO *)dev_font->data)->tree);
         ((BMPFONTINFO *)dev_font->data)->tree = NULL;
-        
+
         _MG_PRINTF ("Succeed to destroy avl tree.\n");
     }
 }

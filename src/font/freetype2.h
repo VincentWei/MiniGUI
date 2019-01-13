@@ -54,6 +54,7 @@ extern "C" {
 #include FT_CACHE_MANAGER_H
 #include FT_TRIGONOMETRY_H
 #include FT_IMAGE_H
+#include FT_TRUETYPE_TABLES_H
 
 #if 0
 #define _MGFONT_TTF_CACHE 1
@@ -124,19 +125,20 @@ typedef struct tagTTFCACHEINFO {
     void        *bitmap;
 } TTFCACHEINFO, *PTTFCACHEINFO;
 
-extern HCACHE __mg_ttc_create(char *family, char *charset, DWORD style, int size, 
-      int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey);
+extern HCACHE __mg_ttc_create(char *family, char *charset,
+        DWORD style, int size, int rotation,
+        int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey);
 extern int __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size);
 extern void __mg_ttc_release(HCACHE hCache);
 extern int __mg_ttc_sys_init(int maxCache, int cacheSize);
 extern void __mg_ttc_sys_deinit(void);
-extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache, 
+extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache,
                unsigned short unicode, int *size);
-extern HCACHE __mg_ttc_is_exist(char *family, char *charset, 
-               DWORD style, int size);
+extern HCACHE __mg_ttc_is_exist(char *family, char *charset,
+               DWORD style, int size, int rotation);
 extern void __mg_ttc_refer(HCACHE hCache);
 
-#endif 
+#endif
 
 #undef TTF_DBG
 

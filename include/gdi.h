@@ -5471,15 +5471,16 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_WEIGHT_BLACK           'c'
 
 #define FS_WEIGHT_MASK              0x000000FF
-#define FS_WEIGHT_THIN              0x00000010
-#define FS_WEIGHT_EXTRA_LIGHT       0x00000011
-#define FS_WEIGHT_LIGHT             0x00000012
-#define FS_WEIGHT_REGULAR           0x00000000
-#define FS_WEIGHT_MEDIUM            0x00000020
-#define FS_WEIGHT_DEMIBOLD          0x00000021
-#define FS_WEIGHT_EXTRA_BOLD        0x00000022
-#define FS_WEIGHT_BOLD              0x00000023
-#define FS_WEIGHT_BLACK             0x00000024
+#define FS_WEIGHT_ANY               0
+#define FS_WEIGHT_THIN              10
+#define FS_WEIGHT_EXTRA_LIGHT       20
+#define FS_WEIGHT_LIGHT             30
+#define FS_WEIGHT_REGULAR           40
+#define FS_WEIGHT_MEDIUM            50
+#define FS_WEIGHT_DEMIBOLD          60
+#define FS_WEIGHT_EXTRA_BOLD        70
+#define FS_WEIGHT_BOLD              80
+#define FS_WEIGHT_BLACK             90
 
 #define FONT_SLANT_NIL              '\0'
 #define FONT_SLANT_ALL              '*'
@@ -5655,72 +5656,72 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
  * \def FONT_CHARSET_GB1988_0
  * \brief EUC encoding of GB1988 charset, treat as ISO8859-1.
  */
-#define FONT_CHARSET_GB1988_0       "GB1988-0"      
+#define FONT_CHARSET_GB1988_0       "GB1988-0"
 
 /**
  * \def FONT_CHARSET_GB2312_0
  * \brief EUC encoding of GB2312 charset.
  */
-#define FONT_CHARSET_GB2312_0       "GB2312-0"      
+#define FONT_CHARSET_GB2312_0       "GB2312-0"
 #define FONT_CHARSET_GBK            "GBK"
 
 /**
  * \def FONT_CHARSET_GB18030_0
  * \brief EUC encoding of GB18030 charset.
  */
-#define FONT_CHARSET_GB18030_0      "GB18030-0"     
+#define FONT_CHARSET_GB18030_0      "GB18030-0"
 #define FONT_CHARSET_BIG5           "BIG5"
 
 /**
  * \def FONT_CHARSET_EUCTW
  * \brief EUC encoding of CNS11643 charset, not supported.
  */
-#define FONT_CHARSET_EUCTW          "EUC-TW"        
+#define FONT_CHARSET_EUCTW          "EUC-TW"
 #define FONT_CHARSET_EUCKR          "EUC-KR"
 
 /**
  * \def FONT_CHARSET_KSC5636_0
  * \brief EUC encoding of KSC5636 charset, treat as ISO8859-1.
  */
-#define FONT_CHARSET_KSC5636_0      "KSC5636-0"     
+#define FONT_CHARSET_KSC5636_0      "KSC5636-0"
 
 /**
  * \def FONT_CHARSET_KSC5601_0
  * \brief EUC encoding of KSC5601 charset.
  */
-#define FONT_CHARSET_KSC5601_0      "KSC5601-0"     
+#define FONT_CHARSET_KSC5601_0      "KSC5601-0"
 #define FONT_CHARSET_EUCJP          "EUC-JP"
 
 /**
  * \def FONT_CHARSET_JISX0201_0
  * \brief EUC encoding of JISX0201 charset.
  */
-#define FONT_CHARSET_JISX0201_0     "JISX0201-0"    
+#define FONT_CHARSET_JISX0201_0     "JISX0201-0"
 
 /**
  * \def FONT_CHARSET_JISX0208_0
  * \brief EUC encoding of JISX0208 charset.
  */
-#define FONT_CHARSET_JISX0208_0     "JISX0208-0"    
+#define FONT_CHARSET_JISX0208_0     "JISX0208-0"
 #define FONT_CHARSET_SHIFTJIS       "SHIFT-JIS"
 
 /**
  * \def FONT_CHARSET_JISX0201_1
  * \brief Shift-JIS encoding of JISX0201 charset
  */
-#define FONT_CHARSET_JISX0201_1     "JISX0201-1"    
+#define FONT_CHARSET_JISX0201_1     "JISX0201-1"
 
 /**
  * \def FONT_CHARSET_JISX0208_1
  * \brief Shift-JIS encoding of JISX0208 charset.
  */
-#define FONT_CHARSET_JISX0208_1     "JISX0208-1"    
+#define FONT_CHARSET_JISX0208_1     "JISX0208-1"
 
 /**
  * \def FONT_CHARSET_ISO_10646_1
  * \brief UCS-2 encoding of UNICODE.
  */
-#define FONT_CHARSET_ISO_10646_1    "ISO-10646-1"   
+#define FONT_CHARSET_ISO_10646_1    "ISO-10646-1"
 
 /**
  * \def FONT_CHARSET_UTF8

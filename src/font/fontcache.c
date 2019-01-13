@@ -58,25 +58,22 @@
 #include "freetype2.h"
 #endif
 
-
-typedef struct _MemBlk
-{
+typedef struct _MemBlk {
     void *data;
     int len;
     struct _MemBlk *hashPrev;
     struct _MemBlk *hashNext;
     struct _MemBlk *lruPrev;
     struct _MemBlk *lruNext;
-}MemBlk;
+} MemBlk;
 
 typedef MemBlk LruQueueDummyHead;
 typedef MemBlk HashQueueDummyHead;
 
 /* hash directory array in every cache */
-typedef struct _HashDirectory
-{
+typedef struct _HashDirectory {
     HashQueueDummyHead hashHead;
-}HashDirectory;
+} HashDirectory;
 
 /* The structure is description of Cache
    blkSize : the size of each block in cache(in byte)
@@ -88,14 +85,14 @@ typedef struct _HashDirectory
    *hashDir : the hash directory pointer
    lruQueueDummyHead : head node of lru queue
    makeHashKeyFunc : the function which make hash key */
-typedef struct cache
-{
+typedef struct cache {
     /* Information about font */
     char family[LEN_FONT_NAME + 1];
     // VincentWei: no need to check charset for TrueType
     //char charset[LEN_FONT_NAME + 1];
-    DWORD render_style; // render style
+    int render_style; // render style
     int fontsize;
+    int rotation;
 
     int refers;
     int blkSize;
@@ -106,7 +103,7 @@ typedef struct cache
     HashDirectory *hashDir;
     LruQueueDummyHead lruQueueDummyHead;
     MakeHashKeyFunc makeHashKeyFunc;
-}cache_t;
+} cache_t;
 
 /* Least-Recently-Used-Order
    global cache LRU queue */
@@ -127,8 +124,7 @@ typedef struct _CacheQueueNode
    cacheSize : each cache's size(in BYTE and
                everyone has the same size!)
    nCache : how many cache Now!! */
-struct _CacheSystem
-{
+struct _CacheSystem {
     CacheQueueNode queueDummyHead;
 
     int maxCache;
@@ -461,12 +457,13 @@ __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
 
 /* create a cache for a font instance.
    nblk : how many block in the cache.
-   blks  ize : each block's size
+   blksize : each block's size
    ndir : how many hash entries in the cache
    makeHashKey : the function which make the hash key */
 HCACHE
-__mg_ttc_create(char *family, char *charset, DWORD style, int size,
-    int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey)
+__mg_ttc_create(char *family, char *charset,
+        DWORD style, int size, int rotation,
+        int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey)
 {
     CacheQueueNode *temp;
     if (family == NULL || /* charset == NULL || */makeHashKey == NULL) {
@@ -487,6 +484,7 @@ __mg_ttc_create(char *family, char *charset, DWORD style, int size,
     //strncpy(temp->cache.charset, charset, LEN_FONT_NAME);
     temp->cache.render_style = (style & FS_RENDER_MASK);
     temp->cache.fontsize = size;
+    temp->cache.rotation = rotation;
     temp->cache.blkSize = blksize;
     temp->cache.nBlk = nblk;
     temp->cache.nDir = ndir;
@@ -577,7 +575,8 @@ __mg_ttc_sys_deinit(void)
 
 
 HCACHE
-__mg_ttc_is_exist(char *family, char *charset, DWORD style, int size)
+__mg_ttc_is_exist(char *family, char *charset,
+        DWORD style, int size, int rotation)
 {
     CacheQueueNode *p;
 
@@ -615,6 +614,7 @@ __mg_ttc_is_exist(char *family, char *charset, DWORD style, int size)
                 && strncmp(p->cache.charset, charset, LEN_FONT_NAME) == 0
 #endif
                 && p->cache.fontsize == size
+                && p->cache.rotation == rotation
                 && (style & FS_RENDER_MASK) == p->cache.render_style) {
             return (HCACHE) p;
         }

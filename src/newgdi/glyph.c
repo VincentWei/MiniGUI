@@ -220,31 +220,21 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         }
     }
 
-    glyph_info->advance_x = 0;
-    glyph_info->advance_y = 0;
-    glyph_info->bbox_x = 0;
-    glyph_info->bbox_y = 0;
-
-    devfont->font_ops->get_glyph_bbox (logfont, devfont, glyph_value,
-            &glyph_info->bbox_x, &glyph_info->bbox_y,
-            &glyph_info->bbox_w, &glyph_info->bbox_h);
-
-    /* get the glyph advance info.*/
-    advance = devfont->font_ops->get_glyph_advance(logfont, devfont,
-            glyph_value, &glyph_info->advance_x, &glyph_info->advance_y);
-
-    if (logfont->style & FS_WEIGHT_BOLD) {
-        advance++;
-        glyph_info->advance_x++;
-    }
-
-    /*get height and descent of devfont*/
-    if (glyph_info->mask & GLYPH_INFO_METRICS)
-    {
+    /* get metrics of the glyph */
+    if (glyph_info->mask & GLYPH_INFO_METRICS) {
         glyph_info->height = devfont->font_ops->get_font_height
             (logfont, devfont);
         glyph_info->descent = devfont->font_ops->get_font_descent
             (logfont, devfont);
+
+        glyph_info->advance_x = 0;
+        glyph_info->advance_y = 0;
+        glyph_info->bbox_x = 0;
+        glyph_info->bbox_y = 0;
+
+        _font_get_glyph_advance (logfont, devfont, glyph_value, TRUE,
+            0, 0, 0, &glyph_info->advance_x, &glyph_info->advance_x,
+            (BBOX*)(&glyph_info->bbox_x));
     }
 
     if (glyph_info->mask & GLYPH_INFO_BMP) {
@@ -4058,8 +4048,9 @@ static inline BOOL _gdi_glyph_if_need_lock(DEVFONT* devfont)
 }
 #endif
 
-int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
-            BOOL direction, int x, int y, int* adv_x, int* adv_y, BBOX* bbox)
+int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
+        Glyph32 glyph_value, BOOL direction, int ch_extra,
+        int x, int y, int* adv_x, int* adv_y, BBOX* bbox)
 {
     int bold = 0;
     int tmp_x = x;
@@ -4067,8 +4058,6 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
     int adv_len;
     int bbox_x = 0, bbox_y = 0;
     int bbox_w = 0, bbox_h = 0;
-    LOGFONT* logfont = pdc->pLogFont;
-    DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
 
     int advance = 0;
     int glyph_bmptype;
@@ -4076,6 +4065,9 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
 #ifdef _MGRM_THREADS
     BOOL lock = _gdi_glyph_if_need_lock(devfont);
 #endif
+
+    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
+            & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
     bbox_x = x;
     bbox_y = y;
@@ -4086,16 +4078,17 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
     if (lock) LOCK (&__mg_gdilock);
 #endif
 
-    /*in freetype get_glyph_bbox loads glyph, so we must get_glyph_bbox
-     * before get_glyph_advance, get_glyph_monobitmap....*/
+    /* in freetype get_glyph_bbox loads glyph, so we must get_glyph_bbox
+     * before get_glyph_advance, get_glyph_monobitmap....
+     */
     devfont->font_ops->get_glyph_bbox (logfont, devfont,
             REAL_GLYPH(glyph_value), &bbox_x, &bbox_y, &bbox_w, &bbox_h);
 
-    if (logfont->style & FS_WEIGHT_BOLD
-            && !(devfont->style & FS_WEIGHT_BOLD)
-            && ((devfont->font_ops->get_glyph_type (logfont, devfont)
-                    & DEVFONTGLYPHTYPE_MASK_BMPTYPE)
-                == DEVFONTGLYPHTYPE_MONOBMP)) {
+    // VincentWei: only use auto bold when the weight of devfont does not
+    // match the weight of logfont.
+    if ((logfont->style & FS_WEIGHT_MASK) > FS_WEIGHT_MEDIUM
+            && (devfont->style & FS_WEIGHT_MASK) < FS_WEIGHT_DEMIBOLD
+            && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
         bbox_w += bold;
     }
@@ -4114,34 +4107,21 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
     if (lock) UNLOCK (&__mg_gdilock);
 #endif
 
-    if (!direction){
-        if (bbox) bbox->x -= (bold + pdc->cExtra + adv_len);
+    if (!direction) {
+        if (bbox) bbox->x -= (bold + ch_extra + adv_len);
     }
 
     if (direction) {
-        tmp_x += bold + pdc->cExtra;
+        tmp_x += bold + ch_extra;
         if (adv_x) *adv_x = tmp_x - x;
         if (adv_y) *adv_y = tmp_y - y;
     }
     else {
-        tmp_x -= bold + pdc->cExtra;
+        tmp_x -= bold + ch_extra;
         if (adv_x) *adv_x = x - tmp_x;
         if (adv_y) *adv_y = y - tmp_y;
     }
 
-    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
-            & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
-
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-#define FS_WEIGHT_BOOK_LIGHT    (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)
-
-    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
-        if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
-            if (adv_x) *adv_x  += 1;
-            advance += 1;
-        }
-    }
-#else
     if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
         switch (logfont->style & FS_RENDER_MASK) {
         case FS_RENDER_GREY:
@@ -4151,12 +4131,9 @@ int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
             break;
         }
     }
-#endif
 
-    //return adv_len + bold + pdc->cExtra;
-    return adv_len + bold + pdc->cExtra + advance;
+    return adv_len + bold + ch_extra + advance;
 }
-
 
 void  _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL direction, PDC pdc, int *next_x, int *next_y)
 {
@@ -4249,7 +4226,7 @@ static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
     int h = pdc->pLogFont->size;
     int ascent = pdc->pLogFont->ascent;
 
-    if(pdc->pLogFont->rotation)
+    if (pdc->pLogFont->rotation)
         *flag = ROTATE_RECT;
     else if (pdc->pLogFont->style & FS_SLANT_ITALIC &&
         !(pdc->pLogFont->sbc_devfont->style & FS_SLANT_ITALIC))
@@ -4577,8 +4554,10 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
-    if ((logfont->style & FS_WEIGHT_BOLD)
-            && !(devfont->style & FS_WEIGHT_BOLD)
+    // VincentWei: only use auto bold when the weight of devfont does not
+    // match the weight of logfont.
+    if ((logfont->style & FS_WEIGHT_MASK) > FS_WEIGHT_MEDIUM
+            && (devfont->style & FS_WEIGHT_MASK) < FS_WEIGHT_DEMIBOLD
             && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
     }

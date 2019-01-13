@@ -61,8 +61,20 @@ typedef struct _BBOX
     int w, h;
 } BBOX;
 
-int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value, 
-            BOOL direction, int x, int y, int* adv_x, int* adv_y, BBOX* bbox);
+int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
+        Glyph32 glyph_value, BOOL direction, int ch_extra,
+        int x, int y, int* adv_x, int* adv_y, BBOX* bbox);
+
+static inline int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
+            BOOL direction, int x, int y, int* adv_x, int* adv_y, BBOX* bbox)
+{
+    LOGFONT* logfont = pdc->pLogFont;
+    DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
+    glyph_value = REAL_GLYPH (glyph_value);
+
+    return _font_get_glyph_advance (logfont, devfont, glyph_value,
+        direction, pdc->cExtra, x, y, adv_x, adv_y, bbox);
+}
 
 int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             int x, int y, int* adv_x, int* adv_y);

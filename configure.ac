@@ -537,7 +537,7 @@ AC_ARG_ENABLE(sefsupport,
 build_sef_support=$enableval)
 
 AC_ARG_WITH(ttfsupport,
-[  --with-ttfsupport=ft1/ft2/none   How to support TrueType font (FreeType 1/FreeType 2/None) <default=none>],
+[  --with-ttfsupport=ft2/none   How to support TrueType font (FreeType 2 or None) <default=ft2>],
 use_ttf_lib=$withval)
 
 AC_ARG_ENABLE(ttfcache,
@@ -1978,17 +1978,20 @@ fi
 
 dnl Check FreeType lib
 case "$use_ttf_lib" in
+  ft2)
+dnl Check for FreeType2 library
+    AC_CHECK_LIB(freetype, FT_Library_Version,
+        DEP_LIBS="$DEP_LIBS -lfreetype",
+        use_ttf_lib="none")
+    ;;
   ft1)
 dnl Check for FreeType1 library
     AC_CHECK_LIB(ttf, TT_FreeType_Version,
             DEP_LIBS="$DEP_LIBS -lttf",
             use_ttf_lib="none")
     ;;
-  ft2)
-dnl Check for FreeType2 library
-    AC_CHECK_LIB(freetype, FT_Library_Version,
-        DEP_LIBS="$DEP_LIBS -lfreetype",
-        use_ttf_lib="none")
+  *)
+    use_ttf_lib="none"
     ;;
 esac
 

@@ -174,6 +174,7 @@ DWORD fontConvertStyle (const char* style_part)
         break;
     */
     default:
+        style |= FS_WEIGHT_ANY;
         break;
     }
 

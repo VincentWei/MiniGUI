@@ -10,7 +10,7 @@ Please report any bugs and incompatibilities in
 
 ### What's new in this version
 
-#### Redesigned the style of logical fonts
+#### Tunning the logical font APIs
 
 The styles of LOGFONT changed.
 
@@ -34,14 +34,13 @@ The styles of LOGFONT changed.
   1. `FONT_WEIGHT_BOLD`:
   1. `FONT_WEIGHT_EXTRA_BOLD`:
   1. `FONT_WEIGHT_BLACK`:
-* Introduce the new decoration styles:
+* Introduce the new decoration styles and replace 
+`FONT_UNDERLINE_LINE` and `FONT_STRUCKOUT_LINE` with them:
   1. `FONT_DECORATE_ANY`:
   1. `FONT_DECORATE_NONE`:
   1. `FONT_DECORATE_UNDERLINE`:
   1. `FONT_DECORATE_STRUCKOUT`:
   1. `FONT_DECORATE_BOTH`:
-
-* Replace `FONT_UNDERLINE_LINE` and `FONT_STRUCKOUT_LINE` with 
 
 For the back-compatibility, you can still use `CreateLogFont` to
 create a new LOGFONT. However, the `FS_WEIGHT_BOOK` and `FS_WEIGHT_LIGHT`
@@ -66,6 +65,13 @@ Now, if you want to use the rendering style SUPIXEL for a TTF font,
 please define the font name in the following way:
 
     ttf-Courier-rrncns-*-16-UTF-8
+
+#### Changes of font rendering manners
+
+
+#### Others
+
+* Support for FreeType1 removed.
 
 ## Version 3.2.1
 
