@@ -5505,8 +5505,9 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_FLIP_HORZVERT            0x00003000 /* HORZ | VERT */
 
 #define FONT_OTHER_NIL              '\0'
+#define FONT_OTHER_NONE             'n'
 #define FONT_OTHER_AUTOSCALE        's'
-#define FONT_OTHER_TTFNOCACHE       'n'
+#define FONT_OTHER_TTFNOCACHE       'c'
 #define FONT_OTHER_TTFKERN          'k'
 #define FONT_OTHER_TTFNOCACHEKERN   'r'
 #define FONT_OTHER_LCDPORTRAIT      'p'

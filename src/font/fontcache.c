@@ -618,6 +618,8 @@ __mg_ttc_is_exist(char *family, char *charset,
                 && (style & FS_RENDER_MASK) == p->cache.render_style) {
             return (HCACHE) p;
         }
+
+        p = p->nextCache;
     }
 #endif
 

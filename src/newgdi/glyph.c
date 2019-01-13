@@ -167,7 +167,7 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         advance = 0;
     }
     else {
-		int my_adv_x, my_adv_y;
+        int my_adv_x, my_adv_y;
         /* convert to the start point on baseline. */
         _gdi_get_baseline_point (pdc, &x, &y);
 
@@ -2961,8 +2961,8 @@ nodraw_ret:
 
 #define GET_RGBA(Cs, x, y)                  \
 {                                           \
-	unsigned char dR,dG,dB,dA;              \
-	gal_pixel tmppixel;                     \
+    unsigned char dR,dG,dB,dA;              \
+    gal_pixel tmppixel;                     \
     MOVETOPIXEL(x, y);                      \
     DISEMBLE_RGBA (pdc->cur_dst,            \
         pdc->surface->format->BytesPerPixel,\
@@ -3732,7 +3732,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
 
             if (scale > 1 && ctxt->cb != _dc_regular_scan_line) {
                 data = _gdi_expand_scale_bits (data, bbox, pitch, bold, scale);
-                /* note: pitch is modify. */
+                /* note: pitch is modified. */
                 pitch = (bbox->cx + 7) / 8;
             }
             else if (bold) {
