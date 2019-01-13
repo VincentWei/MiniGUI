@@ -2928,7 +2928,7 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
         GAL_GetRGB (pixel, pdc->surface->format, &rgba_cur.r,
                     &rgba_cur.g, &rgba_cur.b);
 
-#define C_ALPHA(p, Cs, Cd)          \
+#define C_ALPHA(p, Cs, Cd)              \
             if (*p++) {                 \
                 fg_alpha = *(p-1) + 1;  \
                 sub_val  = Cs * fg_alpha + Cd * (256-fg_alpha); \
