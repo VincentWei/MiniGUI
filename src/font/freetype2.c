@@ -555,7 +555,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         *pitch = (source->width + 7) >> 3;
     }
 #else
-    *pitch = (source->width + 7) >> 3;
+    *pitch = source->pitch;
 #endif
 
 #ifdef _MGFONT_TTF_CACHE
