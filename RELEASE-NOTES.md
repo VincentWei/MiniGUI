@@ -43,6 +43,8 @@ Please report any bugs and incompatibilities in
 * BUGFIXING:
   1. handle `PNG_COLOR_TYPE_GRAY_ALPHA` color type of PNG files.
   1. Fix a bug to free a null pointer (ReleaseDC).
+  1. No need to make the pitch of FT2 monobitmap is single-byte aligned. 
+     This bug may generate dirty dots for monobitmap glyph from TTF.
 
 * TUNNING:
   1. Tune GLYPHINFO structure and GetGlyphInfo to return BIDI glyph type.
