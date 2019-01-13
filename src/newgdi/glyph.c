@@ -2915,6 +2915,13 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
             bits += 3;
             continue;
         }
+
+        // VincentWei: skip null pixel
+        if (bits[0] == 0 && bits[1] == 0 && bits[2] == 0) {
+            bits += 3;
+            continue;
+        }
+
         _glyph_move_to_pixel (pdc, x+xpos, ypos);
         pixel = _mem_get_pixel(pdc->cur_dst, GAL_BytesPerPixel (pdc->surface));
 
