@@ -59,7 +59,7 @@ to
     <weight><slant><flipping><other><decoration><rendering>
 
 Obviously, `<underline>` and `<struckout>` are merged to `<decoration>`
-in order to keep the styel string is still 6-character long.
+in order to keep the style string is still 6-character long.
 
 Now, if you want to use the rendering style SUPIXEL for a TTF font,
 please define the font name in the following way:

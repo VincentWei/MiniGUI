@@ -4572,7 +4572,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     fg_gal_rc.w = bbox.w + italic;
     fg_gal_rc.h = bbox.h;
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+#if 0 // VincentWei: use FS_DECORATE_XXXX instead (3.4.0)
     if ( pdc->bkmode != BM_TRANSPARENT
          || logfont->style & FS_UNDERLINE_LINE
          || logfont->style & FS_STRUCKOUT_LINE )
@@ -4616,11 +4616,11 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             }
         }
 #else
-    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
-            && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
-        fg_gal_rc.x--; fg_gal_rc.y--;
-        fg_gal_rc.w += 2; fg_gal_rc.h += 2;
-    }
+        if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
+                && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
+            bg_gal_rc.x--; bg_gal_rc.y--;
+            bg_gal_rc.w += 2; bg_gal_rc.h += 2;
+        }
 #endif
 
         make_back_rect(&rc_back, area, &bg_gal_rc, flag);
