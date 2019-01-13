@@ -45,6 +45,8 @@ Please report any bugs and incompatibilities in
   1. Fix a bug to free a null pointer (ReleaseDC).
   1. No need to make the pitch of FT2 monobitmap is single-byte aligned. 
      This bug may generate dirty dots for monobitmap glyph from TTF.
+  1. Skip null pixels for SUBPIXEL glyphs. This bug will always show background 
+     pixels of one SUBPIXEL glyph.
 
 * TUNNING:
   1. Tune GLYPHINFO structure and GetGlyphInfo to return BIDI glyph type.
