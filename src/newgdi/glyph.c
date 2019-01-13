@@ -3647,6 +3647,52 @@ static BYTE* _gdi_flip_greybitmap_horz (BYTE* src_bits, const SIZE* size, int pi
     return _scaled_bits;
 }
 
+static BYTE* _gdi_flip_subpixels_horz (BYTE* src_bits, const SIZE* size, int pitch)
+{
+    BYTE* dst_line;
+    const BYTE* src_line;
+    int i, j;
+    BYTE* inter_line;
+
+    src_line = src_bits;
+    if (src_bits != _scaled_bits) {
+        _prepare_scaled_bits (pitch * (size->cy + 1));
+        if (_scaled_bits == NULL)
+            return NULL;
+
+        inter_line = NULL;
+        dst_line = _scaled_bits;
+    }
+    else {
+        inter_line = src_bits + (pitch * size->cy);
+        dst_line = src_bits;
+    }
+
+    src_line = src_bits;
+    dst_line = _scaled_bits;
+    for (i = 0; i < size->cy; i ++) {
+        const BYTE* test_line;
+        if (inter_line) {
+            memcpy (inter_line, src_line, pitch);
+            test_line = inter_line;
+        }
+        else {
+            test_line = src_line;
+        }
+
+        for (j = 0; j < size->cx; j++) {
+            dst_line [j*3+0] = test_line [(size->cx - j - 1)*3+0];
+            dst_line [j*3+1] = test_line [(size->cx - j - 1)*3+1];
+            dst_line [j*3+2] = test_line [(size->cx - j - 1)*3+2];
+        }
+
+        dst_line += pitch;
+        src_line += pitch;
+    }
+
+    return _scaled_bits;
+}
+
 static BYTE* _gdi_flip_bitmap_vert (BYTE* src_bits, const SIZE* size, int pitch)
 {
     BYTE* dst_line;
@@ -3790,6 +3836,12 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
                 data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont,
                         REAL_GLYPH(glyph_value), &pitch, &scale);
                 ctxt->cb = _dc_ft2subpixel_scan_line;
+
+                /* flip the subpixeled pixmap */
+                if (logfont->style & FS_FLIP_HORZ)
+                    data = _gdi_flip_subpixels_horz (data, bbox, pitch);
+                if (logfont->style & FS_FLIP_VERT)
+                    data = _gdi_flip_bitmap_vert (data, bbox, pitch);
             }
 #endif
             break;

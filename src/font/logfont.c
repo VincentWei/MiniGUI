@@ -74,7 +74,6 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     int sbc_value, mbc_value = 0;
     char dev_family [LEN_FONT_NAME + 1];
     DEVFONT* sbc_devfont, *mbc_devfont;
-    DWORD glyph_bmptype;
 
     // is valid style?
     if (style == 0xFFFFFFFF)
@@ -225,6 +224,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     /*reset size of logfont*/
     log_font->size = log_font->ascent + log_font->descent;
 
+#if 0 // VincentWei: support fillping for subpixel renderer
     /* reset style of logfont */
     /* remove HORZVERT style if weight is subpixel */
     if ((log_font->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL) {
@@ -233,6 +233,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     }
 
     /* remove HORZVERT style if the glyph bmptype is subpixel */
+    DWORD glyph_bmptype;
     glyph_bmptype = log_font->sbc_devfont->font_ops->get_glyph_type
                 (log_font, log_font->sbc_devfont) & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
     if (glyph_bmptype == GLYPHBMP_TYPE_SUBPIXEL) {
@@ -244,6 +245,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
         if (glyph_bmptype == GLYPHBMP_TYPE_SUBPIXEL)
             log_font->style &= ~FS_FLIP_HORZVERT;
     }
+#endif
 
     _DBG_PRINTF ("FONT>LogFont: created info: type: %s, family: %s, style: %p, charset: %s, size: %d.\n",
                     log_font->type, log_font->family, (PVOID)log_font->style, log_font->charset,
