@@ -451,6 +451,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     return (int)(bbox.xMax - bbox.xMin);
 }
 
+#if 0 // VincentWei: bad implementation
 /* press double-byte align to byte align.*/
 static void 
 press_bitmap (void* buffer, int width, int rows, int pitch)
@@ -472,7 +473,7 @@ press_bitmap (void* buffer, int width, int rows, int pitch)
         dest_pos += dest_pitch;
     }
 }
-
+#endif
 
 /* call this function to get the bitmap/pixmap of the char */ 
 static const void* 
@@ -547,11 +548,15 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     if (pitch)
         *pitch = source->pitch;
 
+#if 0 // VincentWei: bad implementation
     if (!is_grey) {
         press_bitmap(source->buffer, 
             source->width, source->rows, source->pitch);
         *pitch = (source->width + 7) >> 3;
     }
+#else
+    *pitch = (source->width + 7) >> 3;
+#endif
 
 #ifdef _MGFONT_TTF_CACHE
     if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
