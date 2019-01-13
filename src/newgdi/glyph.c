@@ -4657,6 +4657,9 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
         fg_gal_rc.x--; fg_gal_rc.y--;
         fg_gal_rc.w += 2; fg_gal_rc.h += 2;
     }
+    else if (glyph_bmptype == DEVFONTGLYPHTYPE_SUBPIXEL) {
+        fg_gal_rc.w += 2;
+    }
 #endif
 
     if (need_rc_back) {
@@ -4680,8 +4683,10 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             bg_gal_rc.x--; bg_gal_rc.y--;
             bg_gal_rc.w += 2; bg_gal_rc.h += 2;
         }
+        else if (glyph_bmptype == DEVFONTGLYPHTYPE_SUBPIXEL) {
+            bg_gal_rc.w += 2;
+        }
 #endif
-
         make_back_rect(&rc_back, area, &bg_gal_rc, flag);
     }
 

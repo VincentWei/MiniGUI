@@ -185,8 +185,6 @@ struct _CHARSETOPS
 
 #define DEVFONTGLYPHTYPE_MASK_BMPTYPE   0x0F
 
-#define DEVFONTGLYPHTYPE_OUTLINE        0x10
-
 /** The font operation structure. */
 struct _FONTOPS
 {

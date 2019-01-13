@@ -377,7 +377,6 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         }
         DP(("\nBBOX Non - Hit! %d, %d\n", bbox_nohit++, uni_char));
     }
-
 #endif
 
     if (load_or_search_glyph (ft_inst_info, &face, uni_char,
@@ -409,8 +408,9 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
 #if 1
     //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
-    if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE))
+    if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)) {
         bbox.xMax += 2;
+    }
 #endif
 
     /* We just save the BBOX :). */
