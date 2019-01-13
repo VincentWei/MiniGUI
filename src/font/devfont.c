@@ -191,16 +191,33 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
         dev_font = dev_font->next;
     }
 
-    if (matched_font) {
-#ifndef HAVE_ALLOCA
-        FreeFixStr ((char*)match_bits);
-#endif
+    if (matched_font)
+        goto matched;
 
-        matched_font->font_ops->get_font_size (log_font, matched_font,
-                log_font->size);
+    /* try to match without style */
+    min_error = FONT_MAX_SIZE;
+    matched_font = NULL;
+    dev_font = list_head;
+    for (i = 0; i < list_len; i++) {
+        int error;
+        if ((match_bits [i] & MATCHED_TYPE)
+                && (match_bits [i] & MATCHED_FAMILY)
+                && (match_bits [i] & MATCHED_CHARSET)) {
+            error = log_font->size -
+                (*dev_font->font_ops->get_font_size) (log_font, dev_font,
+                        log_font->size);
+            error = ABS (error);
+            if (min_error >= error) {   /* use >=, make the later has a higher priority */
+                min_error = error;
+                matched_font = dev_font;
+            }
+        }
 
-        return matched_font;
+        dev_font = dev_font->next;
     }
+
+    if (matched_font)
+        goto matched;
 
     min_error = FONT_MAX_SIZE;
     dev_font = list_head;
@@ -217,6 +234,8 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
         }
         dev_font = dev_font->next;
     }
+
+matched:
 
 #ifndef HAVE_ALLOCA
     FreeFixStr ((char*)match_bits);
