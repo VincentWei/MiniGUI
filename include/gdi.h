@@ -5470,6 +5470,12 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_WEIGHT_EXTRA_BOLD      'x'
 #define FONT_WEIGHT_BLACK           'c'
 
+/* Backward compatiblilty definitions.
+ * deprecated since v3.4.0, use FS_RENDER_XXX/FONT_RENDER_XXX instead
+ */
+#define FONT_WEIGHT_SUBPIXEL        's'
+#define FONT_WEIGHT_BOOK            'k'
+
 #define FS_WEIGHT_MASK              0x000000FF
 #define FS_WEIGHT_ANY               0
 #define FS_WEIGHT_THIN              10
@@ -5510,6 +5516,8 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_OTHER_TTFNOCACHE       'c'
 #define FONT_OTHER_TTFKERN          'k'
 #define FONT_OTHER_TTFNOCACHEKERN   'r'
+
+/* Backward compatiblilty definitions; deprecated since v3.4.0 */
 #define FONT_OTHER_LCDPORTRAIT      'p'
 #define FONT_OTHER_LCDPORTRAITKERN  'q'
 
@@ -5517,9 +5525,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_OTHER_AUTOSCALE          0x00010000
 #define FS_OTHER_TTFNOCACHE         0x00020000
 #define FS_OTHER_TTFKERN            0x00040000
-#define FS_OTHER_LCDPORTRAIT        0x00100000
 #define FS_OTHER_TTFNOCACHEKERN     0x00060000 /* KERN | NOCACHE */
-#define FS_OTHER_LCDPORTRAITKERN    0x00140000 /* KERN | PORTRAIT */
 
 #define FONT_DECORATE_NIL           '\0'
 #define FONT_DECORATE_NONE          'n'
@@ -5545,23 +5551,6 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_RENDER_GREY              0x20000000
 #define FS_RENDER_SUBPIXEL          0x30000000
 
-/* deprecated since v3.2.1, use FS_RENDER_XXX/FONT_RENDER_XXX instead */
-#define FONT_WEIGHT_SUBPIXEL        's'
-#define FONT_WEIGHT_BOOK            'k'
-
-/*
-#define FS_WEIGHT_SUBPIXEL          0x00000000
-#define FS_WEIGHT_BOOK              0x00000000
-
-#define FS_UNDERLINE_MASK           0x00000000
-#define FS_UNDERLINE_LINE           0x00000000
-#define FS_UNDERLINE_NONE           0x00000000
-
-#define FS_STRUCKOUT_MASK           0x00000000
-#define FS_STRUCKOUT_LINE           0x00000000
-#define FS_STRUCKOUT_NONE           0x00000000
-*/
-
 /*
  * Backward compatiblilty definitions. 
  * All FONT_SETWIDTH_* and FONT_SPACING_* types will 
@@ -5575,27 +5564,11 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_SETWIDTH_NORMAL        'n'
 #define FONT_SETWIDTH_TTFNOCACHE    'w'
 
-/*
-#define FS_SETWIDTH_MASK            0x0000F000
-#define FS_SETWIDTH_BOLD            0x00001000
-#define FS_SETWIDTH_CONDENSED       0x00002000
-#define FS_SETWIDTH_SEMICONDENSED   0x00004000
-#define FS_SETWIDTH_TTFNOCACHE      0x00008000
-#define FS_SETWIDTH_NORMAL          0x00000000
-*/
-
 #define FONT_SPACING_NIL            '\0'
 #define FONT_SPACING_ALL            '*'
 #define FONT_SPACING_MONOSPACING    'm'
 #define FONT_SPACING_PROPORTIONAL   'p'
 #define FONT_SPACING_CHARCELL       'c'
-
-/*
-#define FS_SPACING_MASK             0x000F0000
-#define FS_SPACING_MONOSPACING      0x00010000
-#define FS_SPACING_PROPORTIONAL     0x00020000
-#define FS_SPACING_CHARCELL         0x00000000
-*/
 
 #define FONT_UNDERLINE_NIL          '\0'
 #define FONT_UNDERLINE_ALL          '*'
@@ -6098,6 +6071,10 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        Extra bold (Ultra Bold).
  *      - FONT_WEIGHT_BLACK\n
  *        Black (Heavy).
+ *      - FONT_WEIGHT_BOOK\n
+ *        For backforward compatibility only, same as FONT_WEIGHT_REGULAR and FONT_RENDER_GREY.
+ *      - FONT_WEIGHT_SUBPIXEL\n
+ *        For backforward compatibility only, same as FONT_WEIGHT_REGULAR and FONT_RENDER_SUBPIXEL.
  * \param slant The slant of the logical font, can be one of the values:
  *      - FONT_SLANT_ALL\n
  *        Any one.

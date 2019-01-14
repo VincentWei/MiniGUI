@@ -20,20 +20,20 @@ The styles of LOGFONT changed.
   1. `FS_RENDER_OUTLINE`:
   1. `FS_RENDER_GREY`:
   1. `FS_RENDER_SUBPIXEL`:
-* Remove some bad style definitions:
-  1. `FS_WEIGHT_BOOK`, use `FS_RENDER_GREY` instead.
-  1. `FS_WEIGHT_LIGHT`, use `FS_RENDER_OUTLINE` instead.
-* Introduced the new weight styles:
+* Some bad style definitions are deprecated:
+  1. `FS_WEIGHT_BOOK`; use `FS_RENDER_GREY` instead.
+  1. `FS_WEIGHT_SUBPIXEL`; use `FS_RENDER_SUBPIXEL` instead.
+* Introduced or redefined the weight styles to follow OpenType specification:
   1. `FONT_WEIGHT_ANY`: Not specified
-  1. `FONT_WEIGHT_THIN`:
-  1. `FONT_WEIGHT_EXTRA_LIGHT`:
-  1. `FONT_WEIGHT_LIGHT`:
-  1. `FONT_WEIGHT_REGULAR`:
-  1. `FONT_WEIGHT_MEDIUM`:
-  1. `FONT_WEIGHT_DEMIBOLD`:
-  1. `FONT_WEIGHT_BOLD`:
-  1. `FONT_WEIGHT_EXTRA_BOLD`:
-  1. `FONT_WEIGHT_BLACK`:
+  1. `FONT_WEIGHT_THIN`: Thin.
+  1. `FONT_WEIGHT_EXTRA_LIGHT`: Extra light (Ultra Light).
+  1. `FONT_WEIGHT_LIGHT`: Light.
+  1. `FONT_WEIGHT_REGULAR`: Regular (Normal).
+  1. `FONT_WEIGHT_MEDIUM`: Medium.
+  1. `FONT_WEIGHT_DEMIBOLD`: Demi Bold (Semi Bold)
+  1. `FONT_WEIGHT_BOLD`: Bold.
+  1. `FONT_WEIGHT_EXTRA_BOLD`: Extra Bold (Ultra Bold).
+  1. `FONT_WEIGHT_BLACK`: Black (Heavy).
 * Introduce the new decoration styles and replace 
 `FONT_UNDERLINE_LINE` and `FONT_STRUCKOUT_LINE` with them:
   1. `FONT_DECORATE_ANY`:
@@ -41,13 +41,17 @@ The styles of LOGFONT changed.
   1. `FONT_DECORATE_UNDERLINE`:
   1. `FONT_DECORATE_STRUCKOUT`:
   1. `FONT_DECORATE_BOTH`:
+* The following style are deprecated:
+  1. `FONT_OTHER_LCDPORTRAIT`
+  1. `FONT_OTHER_LCDPORTRAITKERN`
 
-For the back-compatibility, you can still use `CreateLogFont` to
-create a new LOGFONT. However, the `FS_WEIGHT_BOOK` and `FS_WEIGHT_LIGHT`
-will be ignored, and the rendering type will be set as `FS_RENDER_ANY`.
+For a new app, you should use the new function `CreateLogFontEx` to
+create a LOGFONT, and specify the weight and rendering method of the glyph.
 
-For new app, you should use the new function `CreateLogFontEx` to
-create a LOGFONT.
+For the back-compatibility, you can still use `CreateLogFont` to create a new
+LOGFONT. However, `FS_WEIGHT_BOOK` will be treated `FS_WEIGHT_REGULAR` and
+`FS_RENDER_GREY`, while `FS_WEIGHT_SUBPIXEL` will be treated
+`FS_WEIGHT_REGULAR` and `FS_RENDER_SUBPIXEL`.
 
 You can still use `CreateLogFontByName` to create a new LOGFONT.
 But the style string in the font name changed from
@@ -58,10 +62,10 @@ to
 
     <weight><slant><flipping><other><decoration><rendering>
 
-Obviously, `<underline>` and `<struckout>` are merged to `<decoration>`
+Note that `<underline>` and `<struckout>` are merged to `<decoration>`
 in order to keep the style string is still 6-character long.
 
-Now, if you want to use the rendering style SUPIXEL for a TTF font,
+Consequently, if you want to use the rendering method SUPIXEL for a TTF font,
 please define the font name in the following way:
 
     ttf-Courier-rrncns-*-16-UTF-8

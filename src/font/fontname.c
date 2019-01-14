@@ -225,12 +225,6 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_OTHER_TTFNOCACHEKERN:
         style |= FS_OTHER_TTFNOCACHEKERN;
         break;
-    case FONT_OTHER_LCDPORTRAIT:
-        style |= FS_OTHER_LCDPORTRAIT;
-        break;
-    case FONT_OTHER_LCDPORTRAITKERN:
-        style |= FS_OTHER_LCDPORTRAITKERN;
-        break;
     default:
         break;
     }

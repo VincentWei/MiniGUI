@@ -293,6 +293,17 @@ PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
     style_name[1] = slant;
     style_name[2] = flip;
     style_name[3] = other;
+    style_name[5] = FONT_RENDER_ANY;
+
+    if (weight == FONT_WEIGHT_BOOK) {
+        style_name[0] = FONT_WEIGHT_REGULAR;
+        style_name[5] = FONT_RENDER_GREY;
+    }
+    else if (weight == FONT_WEIGHT_SUBPIXEL) {
+        style_name[0] = FONT_WEIGHT_REGULAR;
+        style_name[5] = FONT_RENDER_SUBPIXEL;
+    }
+
     if (underline == FONT_UNDERLINE_LINE) {
         if (struckout == FONT_STRUCKOUT_LINE) {
             style_name[4] = FONT_DECORATE_BOTH;
@@ -309,7 +320,7 @@ PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
             style_name[4] = FONT_DECORATE_NONE;
         }
     }
-    style_name[5] = FONT_RENDER_ANY;
+
     style_name[6] = 0;
 
     return gdiCreateLogFont (type, family, charset, fontConvertStyle (style_name), size, rotation);
