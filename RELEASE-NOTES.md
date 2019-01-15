@@ -6,19 +6,19 @@ The MiniGUI development team announces the availability of MiniGUI 3.2.2.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui. 
+    https://github.com/VincentWei/minigui
 
 ### What's new in this version
 
 * ENHANCEMENTS:
-  1. Add a new key `dpi` for NEWGAL engine to define the DPI of the screen. 
+  1. Add a new key `dpi` for NEWGAL engine to define the DPI of the screen.
      If it is absent, use 96 as the default DPI.
   1. Add an item for `GetGDCapability` to return DPI of the DC.
-  1. New API `InitSlaveScreenEx` to specify the DPI of slave screen. 
+  1. New API `InitSlaveScreenEx` to specify the DPI of slave screen.
      Define `InitSlaveScreen` as an inline function calling `InitSlaveScreenEx`.
-  1. New API: `SyncUpdateDC`. You can use this function to synchronize 
+  1. New API: `SyncUpdateDC`. You can use this function to synchronize
     the update rectangles of a surface to screen, if the surface
-    represents the shadow frame buffer of the screen. 
+    represents the shadow frame buffer of the screen.
     * configure option: `--enable-syncupdate`
     * macro: `_MGUSE_SYNC_UPDATE`
   1. New API: `UpdateInvalidClient`. You can use this function to update
@@ -43,9 +43,9 @@ Please report any bugs and incompatibilities in
 * BUGFIXING:
   1. handle `PNG_COLOR_TYPE_GRAY_ALPHA` color type of PNG files.
   1. Fix a bug to free a null pointer (ReleaseDC).
-  1. No need to make the pitch of FT2 monobitmap is single-byte aligned. 
+  1. No need to make the pitch of FT2 monobitmap is single-byte aligned.
      This bug may generate dirty dots for monobitmap glyph from TTF.
-  1. Skip null pixels for SUBPIXEL glyphs. This bug will always show background 
+  1. Skip null pixels for SUBPIXEL glyphs. This bug will always show background
      pixels of one SUBPIXEL glyph.
   1. Fix the bug of wrong bounding box handling for SUBPIXEL rendering of glyph.
 
@@ -58,12 +58,12 @@ The MiniGUI development team announces the availability of MiniGUI 3.2.0.
 All users of MiniGUI are recommended strongly to use this version for new
 MiniGUI apps. Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui. 
+    https://github.com/VincentWei/minigui
 
 ### What's new in this version
 
-  * Support for 64-bit platform. Note that the definitions of some types 
-    and APIs changed. 
+  * Support for 64-bit platform. Note that the definitions of some types
+    and APIs changed.
   * Compliant to the latest GCC, and eliminate all compilation warnings.
 
 ### Type changes
@@ -71,37 +71,37 @@ MiniGUI apps. Please report any bugs and incompatibilities in
 #### Changes of handle types
 
 All handle types, including `GHANDLE`, `HWND`, `HDC`, etc.,
-are now defined as aliases of `PVOID` (`typedef void* PVOID`). 
-You may need to check your code to reflect this change. 
+are now defined as aliases of `PVOID` (`typedef void* PVOID`).
+You may need to check your code to reflect this change.
 
 #### Changes of integer types.
 
 The type of `DWORD` now has pointer precision. That is,
-the size of `DWORD` will be 4 bytes on 32-bit platform, and 8 bytes on 
-64-bit platform. 
+the size of `DWORD` will be 4 bytes on 32-bit platform, and 8 bytes on
+64-bit platform.
 
 Similarly, `WPARAM` and `LPARAM` now have pointer precision.
 
-`WORD` and `SWORD` has a half of pointer precision. The size of these 
+`WORD` and `SWORD` has a half of pointer precision. The size of these
 two types is 2 bytes on 32-bit platform, and 4 bytes on 64-bit platform.
 
 `RGBCOLOR` now is defined as an alias of `DWORD32` (see below).
 
-Note that the type of `BYTE` always has the size of 8-bit on both 
+Note that the type of `BYTE` always has the size of 8-bit on both
 32-bit and 64-bit platforms.
 
 #### New integer types:
 
-We introduce `DWORD32` and `SDWORD32` types, 
-which have the size of 4 bytes on both 32-bit and 64-bit platforms. 
-You should use these types when reading/writing 32-bit integers from 
-a binary files for the portability. Of course, you can also use 
+We introduce `DWORD32` and `SDWORD32` types,
+which have the size of 4 bytes on both 32-bit and 64-bit platforms.
+You should use these types when reading/writing 32-bit integers from
+a binary files for the portability. Of course, you can also use
 `Uint32` or `Sint32` types.
 
 Similarly, we introduce `WORD16` and `SWORD16` types,
-which have the size of 2 bytes on both 32-bit and 64-bit platforms. 
-You should use these types when reading/writing 16-bit integers from 
-a binary file for the portability. Of course, you can also use 
+which have the size of 2 bytes on both 32-bit and 64-bit platforms.
+You should use these types when reading/writing 16-bit integers from
+a binary file for the portability. Of course, you can also use
 `Uint16` or `SUint16` types.
 
 `LRESULT` is defined for window callback procedure, and it has
@@ -114,7 +114,7 @@ pointer precision.
 #### Integer macros
 
 `MAKEWPARAM`: this new macro makes a WPARAM value by using four bytes.
-On the contrary, `FIRSTBYTE`, `SECONDBYTE`, `THIRDBYTE`, and `FOURTH` 
+On the contrary, `FIRSTBYTE`, `SECONDBYTE`, `THIRDBYTE`, and `FOURTH`
 macros get the four bytes from a `WPARAM` or a `Uint32` value.
 
 `MAKEWORD16`: this new macro makes a 16-bit word by using two bytes.
@@ -124,12 +124,12 @@ word on 64-bit platform.
 Note that `MAKELONG` macro always makes a `DWORD` integer, which has pointer
 precision. Meanwhile, `MAKELONG32` macro makes a `Uint32` integer.
 
-Note that `MakeRGB` and `MakeRGBA` macros always make `DWORD32` integers. 
-In contract, `GetRValue`, `GetRValue`, `GetBValue`, `GetAValue` always 
-get red, green, blue, and alpha components from a `DWORD32` integer 
+Note that `MakeRGB` and `MakeRGBA` macros always make `DWORD32` integers.
+In contract, `GetRValue`, `GetRValue`, `GetBValue`, `GetAValue` always
+get red, green, blue, and alpha components from a `DWORD32` integer
 respectively.
 
-Note that you should use `(-1)` instead of `0xFFFFFFFF` for the invalid 
+Note that you should use `(-1)` instead of `0xFFFFFFFF` for the invalid
 integer or pointer type value for good portability.
 
 #### Structure and functions
@@ -143,16 +143,16 @@ The main changes in structure and functions:
 
  * We now use a `LRESULT` integer for the return value of a window callback
     procedure. Now it is safe to return a pointer from the callback procedure
-    on 64-bit platform. This is a very important change, and it will break the 
+    on 64-bit platform. This is a very important change, and it will break the
     source compatibilty of your code. You should check the source code (use
     gcc option `-Wall`) carefully.
 
  * We now use a `LINT` integer for the identifier of a timer. So you can pass
-    a pointer as the identifier of the timer on 64-bit platform. mGNCS uses 
+    a pointer as the identifier of the timer on 64-bit platform. mGNCS uses
     MiniGUI timer in this manner.
 
  * We now use a `LINT` integer for the identifier of a control/widget and a
-    menu item. So you can pass a pointer as the identifier of the timer on 
+    menu item. So you can pass a pointer as the identifier of the timer on
     64-bit platform. mGNCS works in this manner.
 
 ##### Message
@@ -161,7 +161,7 @@ The strcuture `MSG` and all message-related functions changed.
 For example, the prototype of `SendMessage` changed from
 
     int SendMessage (HWND hWnd, int nMsg, WPARAM wParam, LPARAM lParam)
-    
+
 to
 
     LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
@@ -169,7 +169,7 @@ to
 _IMPORTANT NOTE_
 
 For best portability, you should use `FIRSTBYTE` to `FOURTHBYTE` macros
-to get the bytes of a character when you extract the bytes from `WPARAM` 
+to get the bytes of a character when you extract the bytes from `WPARAM`
 parameter of a `MSG_CHAR` message:
 
     MSG_CHAR
@@ -179,10 +179,10 @@ parameter of a `MSG_CHAR` message:
     unsigned char ch_buff [2] = THIRDBYTE(wParam);
     unsigned char ch_buff [3] = FOURTHBYTE(wParam);
 
-##### Window callback procedure 
+##### Window callback procedure
 
-Furthermore, the structure and functions to register window class, 
-create main window, and create dialog box changed. For example, the prototype 
+Furthermore, the structure and functions to register window class,
+create main window, and create dialog box changed. For example, the prototype
 of `WNDPROC` changed from
 
     typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM)
@@ -221,8 +221,8 @@ to
 _IMPORTANT NOTE_
 
 If you use `MSG_COMMAND` message to handle the notification sent from children
-controls, you should make sure the identifier is small enough on 64-bit 
-platform. Because MiniGUI packs the identifier and the notification code 
+controls, you should make sure the identifier is small enough on 64-bit
+platform. Because MiniGUI packs the identifier and the notification code
 in the `WPARAM` parameter:
 
     MSG_COMMAND
@@ -233,8 +233,8 @@ in the `WPARAM` parameter:
 The code above will not work on 64-bit if you use a pointer as the identifier
 of the control.
 
-Therefore, we recommend strongly that you use a `NOTIFYPOROC` callback to 
-handle the notification sent from controls. To do this, please call 
+Therefore, we recommend strongly that you use a `NOTIFYPOROC` callback to
+handle the notification sent from controls. To do this, please call
 `SetNotificationCallback` function to set the notification callback function.
 
 ##### Time and timer
@@ -260,10 +260,10 @@ to
 In addition, we correct the bad or wrong definitions of some APIs:
 
   * `DWORD2PIXEL` to `DWORD2Pixel`. The old one has a bad name.
-  * `GetWindowRendererFromName`: The return type changes from 
+  * `GetWindowRendererFromName`: The return type changes from
     `const WINDOW_ELEMENT_RENDERER*` to `WINDOW_ELEMENT_RENDERER*`.
     So you can overload some methods directly of a renderer.
-  * `GetDefaultWindowElementRenderer`: The return type changes from 
+  * `GetDefaultWindowElementRenderer`: The return type changes from
     `const WINDOW_ELEMENT_RENDERER*` to `WINDOW_ELEMENT_RENDERER*`.
     So you can overload some methods directly of the default renderer.
 
@@ -277,15 +277,15 @@ We add some new options for autoconf script (`configure`):
 
   * `--enable-develmode`: You should use this option to define `_DEBUG` macro,
     enable `-Wall -Werror` option, and enable all features of MiniGUI,
-    if you were a MiniGUI developer. 
+    if you were a MiniGUI developer.
 
 ## Version 3.0.13
 
 The MiniGUI development team announces the availability of MiniGUI 3.0.13.
-All users of MiniGUI are encouraged to test this version carefully, and 
+All users of MiniGUI are encouraged to test this version carefully, and
 report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui. 
+    https://github.com/VincentWei/minigui.
 
 ### What's new in this version
 
@@ -293,7 +293,7 @@ report any bugs and incompatibilities in
   * The autoconf/automake config scripts are cleaned up.
   * Remove most of compilation warnings (not used variables).
   * Remove some inline function definitions, especially GetIMEPos/SetIMEPos.
-  * Fix some bugs. 
+  * Fix some bugs.
 
 ### API changes
 
@@ -302,12 +302,12 @@ report any bugs and incompatibilities in
   * [NEW] ToUnicode/ToAscii: Converts the key code between Unicode and ASCII.
   * [NEW] GetWindowRegion: The function obtains a copy of the window region of a window.
   * [NEW] InvalidateRegion: Invalidates the client area within the specified region.
-  * [NEW] ValidateRect: Validates the client area within a rectangle by removing the 
+  * [NEW] ValidateRect: Validates the client area within a rectangle by removing the
             rectangle from the update region of the specified window.
-  * [NEW] ValidateRegion: Validates the client area within a region by removing the 
+  * [NEW] ValidateRegion: Validates the client area within a region by removing the
             region from the current update region of the specified window.
   * [NEW] GetUpdateRegion: Copy the update region of a window to a region.
-  * [NEW] AdjustWindowRectEx: Calculates the required size of the window rectangle 
+  * [NEW] AdjustWindowRectEx: Calculates the required size of the window rectangle
             based on the desired size of the client rectangle.
   * [NEW] WindowFromPointEx: Retrieves a handle to the window that contains the specified point.
   * [NEW] ChildWindowFromPointEx: Retrieves a handle to the child window that contains the
@@ -317,15 +317,15 @@ report any bugs and incompatibilities in
   * [ADJUST] WindowFromPoint: normal function -> inline function.
   * [ADJUST] ChildWindowFromPoint: normal function -> inline function.
   * [ADJUST] ScrollWindow: normal function -> inline function.
-  
-  
+
+
 ## Version 3.0.2
 
 The MiniGUI development team announces the availability of MiniGUI 3.0.2.
-All users of MiniGUI are encouraged to test this version carefully, and 
+All users of MiniGUI are encouraged to test this version carefully, and
 report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui. 
+    https://github.com/VincentWei/minigui.
 
 ### What's new in this version
 
@@ -334,20 +334,20 @@ report any bugs and incompatibilities in
   * Support for Look and Feel (LF) concept.
   * Remove SKIN interfaces of MGExt library, move MGExt library and vcongui into mGUtils component.
   * Newly added bitmap font.
-  * Developing interfaces of desktop for MiniGUI. 
+  * Developing interfaces of desktop for MiniGUI.
   * Support direct draw to DC for higher efficiency.
   * Enhancement of resource management
   * Enhancement of controls: Support of independent scrollbar and transparent control.
   * Enhancement of font and character set, support bidi text support.
   * Enhancement of zoom of picture
-  
+
 
 ### API changes
 
   * [NEW] ScaleBitmapEx: a bilinear interpolation algorithm which is better than the original.
   * [NEW] GetWindowInfo: get New structure WINDOWINFO.
   * [NEW] CreateMainWindowEx: enhance of CreeateMainWindow, compatiable with CreeateMainWindow.
-  * [NEW] CreateWindowEx2：enhance of CreateWindowEx2, compatiable with CreateWindowEx2. 
+  * [NEW] CreateWindowEx2：enhance of CreateWindowEx2, compatiable with CreateWindowEx2.
   * [NEW] DialogBoxIndirectParamEx: new create dialog.
   * [NEW] CreateMainWindowIndirectParamEx:new create dialog.
   * [NEW] GetWindowRendererFromName: get LF renderer by name
@@ -361,7 +361,7 @@ report any bugs and incompatibilities in
   * [NEW] CreateBMPDevFont: create an bitmap device font.
   * [NEW] AddGlyphsToBMPFont: add an bitmap font glyph.
   * [NEW] DestroyBMPFont: destroy bitmap device font.
-  * [NEW] SetCustomDesktopOperationSet: set the custom desktop operation set. 
+  * [NEW] SetCustomDesktopOperationSet: set the custom desktop operation set.
   * [NEW] DesktopUpdateAllWindow:  refresh all windows on the desktop.
   * [NEW] PopupDesktopMenu: pop up a menu on the desktop
   * [NEW] GetTextAlign: get the current text-alignment flags of a DC.
@@ -369,5 +369,5 @@ report any bugs and incompatibilities in
   * [NEW] SetWindowMask: set non-rectangle window mask rect.
   * [NEW] SetWindowRegion: set non-rectangle window  visible region
   * [NEW] LockDCEx: support for directly read and write the pixels in a DC.
-  * [NEW] CreateSecondaryDC: Creates a secondary window DC of a window. 
+  * [NEW] CreateSecondaryDC: Creates a secondary window DC of a window.
   * [NEW] SetSecondaryDC:set a window's secondary DC and the callback for double buffer window.
