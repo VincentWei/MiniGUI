@@ -1,8 +1,8 @@
 # Release Notes
 
-## Version 3.2.1
+## Version 3.2.2
 
-The MiniGUI development team announces the availability of MiniGUI 3.2.1.
+The MiniGUI development team announces the availability of MiniGUI 3.2.2.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 

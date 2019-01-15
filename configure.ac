@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 3.2.0)
+AC_INIT(libminigui, 3.2.2)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -16,7 +16,7 @@ dnl Set various version strings - taken gratefully from the SDL sources
 #
 MINIGUI_MAJOR_VERSION=3
 MINIGUI_MINOR_VERSION=2
-MINIGUI_MICRO_VERSION=1
+MINIGUI_MICRO_VERSION=2
 MINIGUI_INTERFACE_AGE=0
 MINIGUI_BINARY_AGE=1
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
