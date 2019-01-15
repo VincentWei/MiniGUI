@@ -47,6 +47,7 @@ Please report any bugs and incompatibilities in
      This bug may generate dirty dots for monobitmap glyph from TTF.
   1. Skip null pixels for SUBPIXEL glyphs. This bug will always show background 
      pixels of one SUBPIXEL glyph.
+  1. Fix the bug of wrong bounding box handling for SUBPIXEL rendering of glyph.
 
 * TUNNING:
   1. Tune GLYPHINFO structure and GetGlyphInfo to return BIDI glyph type.
