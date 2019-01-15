@@ -2021,24 +2021,25 @@ MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc);
 
 #define DC_ATTR_TAB_STOP        5
 #define DC_ATTR_CHAR_EXTRA      6
-#define DC_ATTR_ALINE_EXTRA     7
-#define DC_ATTR_BLINE_EXTRA     8
+#define DC_ATTR_WORD_EXTRA      7
+#define DC_ATTR_ALINE_EXTRA     8
+#define DC_ATTR_BLINE_EXTRA     9
 
-#define DC_ATTR_MAP_MODE        9
+#define DC_ATTR_MAP_MODE        10
 
-#define DC_ATTR_TEXT_ALIGN      10
+#define DC_ATTR_TEXT_ALIGN      11
 
-#define DC_ATTR_BIDI_FLAGS      11
+#define DC_ATTR_BIDI_FLAGS      12
 
 #ifdef _MGHAVE_ADV_2DAPI
-# define DC_ATTR_PEN_TYPE        12
-# define DC_ATTR_PEN_CAP_STYLE   13
-# define DC_ATTR_PEN_JOIN_STYLE  14
-# define DC_ATTR_PEN_WIDTH       15
-# define DC_ATTR_BRUSH_TYPE      16
-# define NR_DC_ATTRS             17
+# define DC_ATTR_PEN_TYPE        13
+# define DC_ATTR_PEN_CAP_STYLE   14
+# define DC_ATTR_PEN_JOIN_STYLE  15
+# define DC_ATTR_PEN_WIDTH       16
+# define DC_ATTR_BRUSH_TYPE      17
+# define NR_DC_ATTRS             18
 #else   /* _MGHAVE_ADV_2DAPI */
-# define NR_DC_ATTRS             12
+# define NR_DC_ATTRS             13
 #endif  /* !_MGHAVE_ADV_2DAPI */
 
 
@@ -2072,7 +2073,9 @@ MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc);
  *      - DC_ATTR_TAB_STOP\n
  *        Tabstop width.
  *      - DC_ATTR_CHAR_EXTRA\n
- *        Intercharacter spacing for the DC.
+ *        Inter-character spacing for the DC.
+ *      - DC_ATTR_WORD_EXTRA\n
+ *        Inter-word spacing for the DC.
  *      - DC_ATTR_ALINE_EXTRA\n
  *        Spacing above line for the DC.
  *      - DC_ATTR_BLINE_EXTRA\n
@@ -5935,52 +5938,6 @@ typedef struct _FONTMETRICS
 MG_EXPORT void GUIAPI GetFontMetrics (LOGFONT* log_font, 
                 FONTMETRICS* font_metrics);
 
-/** The glyph bitmap structure. */
-typedef struct _GLYPHBITMAP
-{
-    /** The bounding box of the glyph. */
-    int bbox_x, bbox_y, bbox_w, bbox_h;
-    /** The advance value of the glyph. */
-    int advance_x, advance_y;
-
-    /** The size of the glyph bitmap. */
-    size_t bmp_size;
-    /** The pitch of the glyph bitmap. */
-    int bmp_pitch;
-    /** The pointer to the buffer of glyph bitmap bits. */
-    const unsigned char* bits;
-} GLYPHBITMAP;
-
-/**
- * \fn void GUIAPI GetGlyphBitmap (LOGFONT* log_font, \
-                const char* mchar, int mchar_len, \
-                GLYPHBITMAP* glyph_bitmap)
- * \brief Gets the glyph bitmap information when uses a logical font to 
- *        output a character.
- *
- * This function gets the glyph bitmap of one multi-byte character
- * (specified by \a mchar and \a mchar_len) and returns the bitmap information
- * through \a font_bitmap when using \a log_font to render the character.
- *
- * \param log_font The logical font used to render the character.
- * \param mchar The pointer to the multi-byte character.
- * \param mchar_len The length of the multi-byte character.
- * \param glyph_bitmap The buffer receives the glyph bitmap information.
- * \return None.
- *
- * Example:
- * \code
- *      GLYPHBITMAP glyph_bitmap = {0};
- *
- *      GetGlyphBitmap (log_font, "A", 1, &glyph_bitmap);
- * \endcode
- *
- * \sa GetFontMetrics, GLYPHBITMAP
- */
-MG_EXPORT void GUIAPI GetGlyphBitmap (LOGFONT* log_font, 
-                const char* mchar, int mchar_len, 
-                GLYPHBITMAP* glyph_bitmap);
-
 #ifndef _MGRM_THREADS
 
 /**
@@ -7036,11 +6993,19 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
 
 /**
  * \def GetTextCharacterExtra(hdc)
- * \brief Retrieves the current intercharacter spacing for the DC.
+ * \brief Retrieves the current inter-character spacing for the DC.
  * 
  * \sa SetTextCharacterExtra
  */
 #define GetTextCharacterExtra(hdc)  GetDCAttr (hdc, DC_ATTR_CHAR_EXTRA)
+
+/**
+ * \def GetTextWordExtra(hdc)
+ * \brief Retrieves the current inter-word spacing for the DC.
+ * 
+ * \sa SetTextWordExtra
+ */
+#define GetTextWordExtra(hdc)  GetDCAttr (hdc, DC_ATTR_WORD_EXTRA)
 
 /**
  * \def GetTextAboveLineExtra(hdc)
@@ -7060,13 +7025,23 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
 
 /**
  * \def SetTextCharacterExtra(hdc, extra)
- * \brief Sets the intercharacter spacing for the DC and returns 
+ * \brief Sets the inter-character spacing for the DC and returns 
  *        the old spacing value.
  * 
  * \sa GetTextCharacterExtra
  */
 #define SetTextCharacterExtra(hdc, extra)       \
                 SetDCAttr (hdc, DC_ATTR_CHAR_EXTRA, (DWORD) extra)
+
+/**
+ * \def SetTextWordExtra(hdc, extra)
+ * \brief Sets the inter-word spacing for the DC and returns 
+ *        the old spacing value.
+ * 
+ * \sa GetTextWordExtra
+ */
+#define SetTextWordExtra(hdc, extra)       \
+                SetDCAttr (hdc, DC_ATTR_WORD_EXTRA, (DWORD) extra)
 
 /**
  * \def SetTextAboveLineExtra(hdc, extra)
@@ -7578,13 +7553,8 @@ struct _MYBITMAP
 #define BMP_TYPE_ALPHA          0x02
 #define BMP_TYPE_ALPHACHANNEL   0x04
 #define BMP_TYPE_COLORKEY       0x10
-
 #define BMP_TYPE_ALPHA_MASK     0x20
-#define BMP_TYPE_PRIV_PIXEL     0x00
-
-#ifdef _FOR_MONOBITMAP
-  #define BMP_TYPE_MONOKEY      0x40
-#endif
+#define BMP_TYPE_REPLACEKEY     0x40
 
 /** Expanded device-dependent bitmap structure. */
 struct _BITMAP
@@ -7616,7 +7586,10 @@ struct _BITMAP
      *  - BMP_TYPE_COLORKEY\n
      *    The \a bmColorKey is a valid color key value.
      *  - BMP_TYPE_ALPHA_MASK\n
-     *    The bitmap have a private Alpha Mask array.
+     *    The \a bmAlphaMask and \a bmAlphaPitch are valid.
+     *  - BMP_TYPE_REPLACEKEY\n
+     *    The \a bmColorRep is valid. Any pixel which is equal to \a bmColorKey will
+     *    be replaced by \a bmColorRep.
      */
     Uint8   bmType;
     /** The bits per piexel. */
@@ -7627,9 +7600,8 @@ struct _BITMAP
     Uint8   bmAlpha;
     /** The color key value. */
     Uint32  bmColorKey;
-#ifdef _FOR_MONOBITMAP
+    /** The pixel value used to replace the color key. */
     Uint32  bmColorRep;
-#endif
 
     /** The width of the bitmap */
     Uint32  bmWidth;
@@ -7644,10 +7616,10 @@ struct _BITMAP
      The private pixel format
     void*   bmAlphaPixelFormat; */
 
-    /** The Alpha Mask array of the bitmap */
+    /** The Alpha mask of the bitmap */
     Uint8*  bmAlphaMask;
 
-    /** The Alpha Pitch of the bitmap */
+    /** The pitch of the Alpha mask */
     Uint32  bmAlphaPitch;
 };
 
@@ -8843,9 +8815,69 @@ typedef struct _GLYPHMAPINFO {
 MG_EXPORT Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len);
 
+/** The glyph bitmap structure. */
+typedef struct _GLYPHBITMAP
+{
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y, bbox_w, bbox_h;
+    /** The advance measure of the glyph. */
+    int advance_x, advance_y;
+
+    /**
+     * The type of glyph bitmap, one of the following values:
+     * - GLYPHBMP_TYPE_MONO
+     * - GLYPHBMP_TYPE_PRERENDER
+     * - GLYPHBMP_TYPE_SUBPIXEL
+     * - GLYPHBMP_TYPE_PRERENDER
+     */
+    int bmp_type;
+    /** The size of the glyph bitmap. */
+    unsigned int bmp_size;
+    /* The pitch of the glyph bitmap. */
+    int bmp_pitch;
+    /** The pointer to the buffer of glyph bitmap bits. */
+    const unsigned char* bits;
+
+    /**
+     * The prerender bitmap object.
+     * It is only valid if bmp_type is GLYPHBMP_TYPE_PRERENDER
+     */
+    BITMAP prbitmap;
+} GLYPHBITMAP;
+
+/**
+ * \fn void GUIAPI GetGlyphBitmap (LOGFONT* log_font, \
+                const char* mchar, int mchar_len, \
+                GLYPHBITMAP* glyph_bitmap)
+ * \brief Gets the glyph bitmap information when using a logical font to
+ *        output a character.
+ *
+ * This function gets the glyph bitmap of one multi-byte character
+ * (specified by \a mchar and \a mchar_len) and returns the bitmap information
+ * through \a font_bitmap when using \a log_font to render the character.
+ *
+ * \param log_font The logical font used to render the character.
+ * \param mchar The pointer to the multi-byte character.
+ * \param mchar_len The length of the multi-byte character.
+ * \param glyph_bitmap The buffer receives the glyph bitmap information.
+ * \return None.
+ *
+ * Example:
+ * \code
+ *      GLYPHBITMAP glyph_bitmap = {0};
+ *
+ *      GetGlyphBitmap (log_font, "A", 1, &glyph_bitmap);
+ * \endcode
+ *
+ * \sa GetFontMetrics, GLYPHBITMAP, GetGlyphInfo
+ */
+MG_EXPORT void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
+                const char* mchar, int mchar_len,
+                GLYPHBITMAP* glyph_bitmap);
+
 /**
  * \var typedef enum GLYPHSHAPETYPE
- * \brief Data type of enum.
+ * \brief Glyph shape type.
  */
 typedef enum {
     GLYPH_ISOLATED,
@@ -8892,25 +8924,26 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 
 /*
  * \fn int GUIAPI DrawGlyphString (HDC hdc, int x, int y, \
- *      Glyph32* glyph_string, int len, int* adv_x, int* adv_y);
+ *      Glyph32* glyphs, int nr_glyphs, int* adv_x, int* adv_y);
  * \brief Draw a glyph string.
  *
  * This function draws a glyph string to the specific postion of a DC.
+ * Note that this function will ignore all breaks in the glyph string.
  *
  * \param hdc The device context.
  * \param x The output start x position.
  * \param y The output start y position.
- * \param glyph_string The pointer to the glyph string.
- * \param len The length of the glyph string.
- * \param adv_x The pointer used to return the advance in x-coordinate of 
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The number of glyphs which will be draw.
+ * \param adv_x The pointer used to return the advance in x-coordinate of
  *        the glyph string, can be NULL.
- * \param adv_y The pointer used to return the advance in y-coordinate of 
+ * \param adv_y The pointer used to return the advance in y-coordinate of
  *        the glyph string, can be NULL.
  *
  * \return The advance on baseline.
  */
-MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyph_string, 
-        int len, int* adv_x, int* adv_y);
+MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
+        int nr_glyphs, int* adv_x, int* adv_y);
 
 #define GLYPH_INFO_TYPE         0x01
 #define GLYPH_INFO_BIDI_TYPE    0x02
@@ -8927,8 +8960,7 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyph_stri
  * \var typedef struct  _GLYPHINFO GLYPHINFO
  * \brief Data type of struct _GLYPHINFO.
  */
-typedef struct _GLYPHINFO
-{
+typedef struct _GLYPHINFO {
     /**
      * The mask indicates if you want to get glyph type info, metrics,
      * or bitmap infomation you want. Or'ed with the following values:
@@ -8937,7 +8969,7 @@ typedef struct _GLYPHINFO
      * - GLYPH_INFO_METRICS
      * - GLYPH_INFO_BMP
      */
-    unsigned char mask;
+    unsigned int mask;
 
     /** The basic glyph type */
     unsigned int glyph_type;
@@ -8945,15 +8977,17 @@ typedef struct _GLYPHINFO
     /** The BIDI glyph type */
     unsigned int bidi_glyph_type;
 
+#if 0 // VincentWei: removed since 3.4.0
     /** The height of the glyph */
     int height;
     /** the descent of the glyph */
     int descent;
+#endif
+
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y, bbox_w, bbox_h;
     /** The advance measure of the glyph. */
     int advance_x, advance_y;
-    /** The bounding box of the glyph. */
-    int bbox_x, bbox_y;
-    int bbox_w, bbox_h;
 
     /**
      * The type of glyph bitmap, one of the following values:
@@ -8962,9 +8996,9 @@ typedef struct _GLYPHINFO
      * - GLYPHBMP_TYPE_SUBPIXEL
      * - GLYPHBMP_TYPE_PRERENDER
      */
-    unsigned char bmp_type;
+    int bmp_type;
     /** The size of the glyph bitmap. */
-    size_t bmp_size;
+    unsigned int bmp_size;
     /* The pitch of the glyph bitmap. */
     int bmp_pitch;
     /** The pointer to the buffer of glyph bitmap bits. */
@@ -9002,24 +9036,26 @@ MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
  *         SIZE* size)
  * \brief Get visual extent value of a glyph string.
  *
- * This function gets the extent value of a glyph string on a DC.
+ * This function gets the extent value of a glyph string on a DC. Note that
+ * this function will ignore all breaks in the glyph string.
  *
  * \param hdc The device context.
- * \param glyphs Input glyph string, input.
- * \param nr_glyphs Input glyph string len, input.
- * \param size Ouput the fit glyph's extent value, Output.
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The length of the glyph string.
+ * \param size The buffer restoring the extents of the glyph strings.
  *
  * \return The extent of the glyph string.
  */
-MG_EXPORT int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs, 
+MG_EXPORT int GUIAPI GetGlyphsExtent (HDC hdc, Glyph32* glyphs, int nr_glyphs,
         SIZE* size);
 
 /** 
- * \fn int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs, \
+ * \fn int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs, \
  *         int nr_glyphs, int max_extent, SIZE* size)
  * \brief Get the visual extent value of a glyph string.
  *
  * This function gets the visual extent value of a glpyh string.
+ * Note that this function ignore all breaks in the glyph string.
  *
  * \param hdc The device context.
  * \param glyphs The pointer to the glyph string.
@@ -9028,9 +9064,209 @@ MG_EXPORT int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs,
  * \param size The real extent of all visual glyphs in the glyph string.
  *
  * \return The the index of the last glyph which can be fit to the extent.
+ *
+ * \sa GetGlyphsExtentPointEx
  */
-MG_EXPORT int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs,
+MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
         int nr_glyphs, int max_extent, SIZE* size);
+
+/**
+ * \var typedef struct _LINEEXTINFO LINEEXTINFO
+ * \brief Data type of struct _LINEEXTINFO.
+ */
+typedef struct _LINEEXTINFO {
+    /** Line height */
+    int height;
+    /** Line width */
+    int width;
+    /** The font ascent */
+    int ascent;
+    /** Number of total space glyphs which are not collapsed */
+    int nr_spaces;
+} LINEEXTINFO;
+
+/**
+ * \var typedef struct  _GLYPHEXTINFO GLYPHEXTINFO
+ * \brief Data type of struct _GLYPHEXTINFO.
+ */
+typedef struct _GLYPHEXTINFO {
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y, bbox_w, bbox_h;
+    /** The advance values of the glyph. */
+    int advance_x, advance_y;
+} GLYPHEXTINFO;
+
+#define GRF_WORD_BREAK_MASK             0x0000000F
+#define GRF_WORD_BREAK_NORMAL           0x00000000
+#define GRF_WORD_BREAK_KEEP_ALL         0x00000001
+#define GRF_WORD_BREAK_BREAK_ALL        0x00000002
+
+#define GRF_OVERFLOW_WRAP_MASK          0x000000F0
+#define GRF_OVERFLOW_WRAP_NORMAL        0x00000000
+#define GRF_OVERFLOW_WRAP_BREAK_WORD    0x00000010
+#define GRF_OVERFLOW_WRAP_ANYWHERE      0x00000020
+
+#define GRF_LINE_BREAK_MASK             0x00000F00
+#define GRF_LINE_BREAK_NORMAL           0x00000000
+#define GRF_LINE_BREAK_AUTO             0x00000100
+#define GRF_LINE_BREAK_LOOSE            0x00000200
+#define GRF_LINE_BREAK_STRICT           0x00000300
+#define GRF_LINE_BREAK_ANYWHERE         0x00000400
+
+#define GRF_LETTER_DIRECTION_MASK       0x0000F000
+#define GRF_LETTER_DIRECTION_LTR        0x00000000
+#define GRF_LETTER_DIRECTION_RTL        0x00001000
+#define GRF_LETTER_DIRECTION_UTB        0x00002000
+#define GRF_LETTER_DIRECTION_BTU        0x00003000
+
+#define GRF_LINE_DIRECTION_MASK         0x000F0000
+#define GRF_LINE_DIRECTION_UTB          0x00000000
+#define GRF_LINE_DIRECTION_BTU          0x00010000
+#define GRF_LINE_DIRECTION_LTR          0x00020000
+#define GRF_LINE_DIRECTION_RTL          0x00030000
+
+#define GRF_ALIGN_MASK                  0x00F00000
+#define GRF_ALIGN_LEFT                  0x00000000
+#define GRF_ALGIN_RIGHT                 0x00100000
+#define GRF_ALGIN_TOP                   0x00200000
+#define GRF_ALGIN_BOTTOM                0x00300000
+#define GRF_ALGIN_JUSTIFY               0x00400000
+
+/**
+ * The white space rule for \a GetGlyphsExtentPointEx.
+ */
+typedef enum {
+    /**
+     * This value direct \a GetGlyphsExtentPointEx
+     * collapses sequences of white space into a single character.
+     */
+    WS_NORMAL,
+
+    /**
+     * This value prevents \a GetGlyphsExtentPointEx from collapsing
+     * sequences of white space. Segment breaks such as line feeds are
+     * preserved as forced line breaks. Lines only break at forced line breaks;
+     * content that does not fit within the block container overflows it.
+     */
+    WS_PRE,
+
+    /**
+     * Like WS_NORMAL, this value collapses white spaces; but like WS_PRE,
+     * it does not allow wrapping.
+     */
+    WS_NOWRAP,
+
+    /**
+     * Like WS_PRE, this value preserves white space; but like WS_NORMAL,
+     * it allows wrapping.
+     */
+    WS_PRE_WRAP,
+
+    /**
+     * The behavior is identical to that of WS_PRE_WRAP, except that:
+     *  - Any sequence of preserved white space always takes up space,
+     *      including at the end of the line.
+     *  - A line breaking opportunity exists after every preserved
+     *      white space glyph, including between white space characters.
+     */
+    WS_BREAK_SPACES,
+
+    /**
+     * Like WS_NORMAL, this value collapses consecutive spaces and
+     * allows wrapping, but preserves segment breaks in the source
+     * as forced line breaks.
+     */
+    WS_PRE_LINE,
+} WhiteSpaceRule;
+
+/**
+ * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
+ *          const Glyph32* glyphs, int nr_glyphs,
+ *          DWORD render_flags, int letter_spacing, int word_spacing,
+ *          WhiteSpaceRule white_space, int tab_size,
+ *          int max_extent,
+ *          LINEEXTINFO* line_ext_info, GLYPHEXTINFO* glyph_ext_info, POINT* pts)
+ * \brief Get the visual extent info of a glyph string.
+ *
+ * This function gets the visual extent information of a glyph string which can
+ * fit a line with the specified maximal extent.
+ *
+ * \param logfont The logfont used to parse the string.
+ * \param x The x-position of first glyph.
+ * \param y The y-position of first glyph.
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The number of the glyphs.
+ * \param render_flags The render flags. It determines the following things:
+ *          - Whether to stop if the glyph string overflows the max extent;
+ *          - The direction of the glyphs and lines;
+ *          - Whether to adjust the glyph postion for alignment of justify.
+ *        The flags can be OR'ed by one word-break value, one overflow-wrap value,
+ *        one line-break value, one letter-direction value, and one
+ *        alignment value:
+ *          - GRF_WORD_BREAK_NORMAL\n
+ *          - GRF_WORD_BREAK_KEEP_ALL\n
+ *          - GRF_WORD_BREAK_BREAK_ALL\n
+ *          - GRF_OVERFLOW_WRAP_NORMAL\n
+ *          - GRF_OVERFLOW_WRAP_BREAK_WORD\n
+ *          - GRF_OVERFLOW_WRAP_ANYWHERE\n
+ *          - GRF_LINE_BREAK_NORMAL\n
+ *          - GRF_LINE_BREAK_AUTO\n
+ *          - GRF_LINE_BREAK_LOOSE\n
+ *          - GRF_LINE_BREAK_STRICT\n
+ *          - GRF_LINE_BREAK_ANYWHERE\n
+ *          - GRF_LETTER_DIRECTION_LTR\n
+ *          - GRF_LETTER_DIRECTION_RTL\n
+ *          - GRF_ALIGN_LEFT\n
+ *          - GRF_ALIGN_RIGHT\n
+ *          - GRF_ALIGN_JUSTIFY\n
+ * \param letter_spacing This parameter specifies additional spacing
+ *          (commonly called tracking) between adjacent glyphs.
+ * \param word_spacing This parameter specifies additional spacing between words.
+ * \param white_space The white space rule. This parameter specifies two things:
+ *          - whether and how white space inside the element is collapsed.
+ *          - whether lines may wrap at unforced soft wrap opportunities.
+ * \param tab_size The tab size used to render preserved tab characters.
+ * \param max_extent The maximal output extent value. No limit when it is < 0.
+ * \param line_ext_info The buffer to store the line extent info; can be NULL.
+ * \param glyph_ext_info The buffer to store the extent info of every glyphs which is
+ *          fit into the max extent; can be NULL.
+ * \param pts The positions of every glyphs which is fit into the max extent; can be NULL.
+ *          Note that a collapsed white spaces will has the same position as the previous
+ *          glyph.
+ *
+ * \return The index of the last glyph which can be fit to the extent. The extent info
+ *          of every glyphs which are fit in the max_extent will be returned through
+ *          \a glyph_ext_info if it was not NULL, and the line extent info will
+ *          be returned through \a lien_ext_info if it was not NULL.
+ *
+ * \sa GLYPHEXTINFO, WhiteSpaceRule, DrawGlyphStringEx
+ */
+MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
+        const Glyph32* glyphs, int nr_glyphs,
+        DWORD break_flags, int letter_spacing, int word_spacing,
+        WhiteSpaceRule white_space, int tab_size,
+        int max_extent,
+        LINEEXTINFO* line_ext_info, GLYPHEXTINFO* glyph_ext_info, POINT* pts);
+
+/*
+ * \fn int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
+ *          const POINT* pts)
+ * \brief Draw a glyph string at the specified positions.
+ *
+ * This function draws a glyph string to the specific positions of a DC.
+ *
+ * \param hdc The device context.
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The number of the glyphs should be drawn.
+ * \param pts The buffer holds the position of every glyph. If it is NULL,
+ *        the manner of this function will be same as \a DrawGlyphString.
+ *
+ * \sa GLYPHEXTINFO, WhiteSpaceRule
+ *
+ * \return The advance on baseline.
+ */
+MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
+        const POINT* pts);
 
 /* 
  * Define some bit masks, that character types are based on, each one has

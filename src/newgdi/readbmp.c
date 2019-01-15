@@ -110,7 +110,6 @@ BOOL GUIAPI InitBitmapPixelFormat (HDC hdc, PBITMAP bmp)
     if (bmp->bmType & BMP_TYPE_ALPHA) {
         if (device_has_alpha(hdc) || bmp->bmBitsPerPixel <= 8) {
             bmp->bmType &= ~BMP_TYPE_ALPHA_MASK;
-            bmp->bmType &= ~BMP_TYPE_PRIV_PIXEL;
             return TRUE;
         }
 
@@ -1262,7 +1261,6 @@ int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal
             }
 
             //bmp->bmType |= BMP_TYPE_ALPHA;
-            //bmp->bmType |= BMP_TYPE_PRIV_PIXEL;
         }
         else { /* for bpp <= 8, just strip alpha */
             AlphaPixelFormat = pdc->surface->format;

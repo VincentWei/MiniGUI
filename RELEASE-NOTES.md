@@ -70,12 +70,32 @@ please define the font name in the following way:
 
     ttf-Courier-rrncns-*-16-UTF-8
 
-#### Changes of font rendering manners
+#### Changed APIs
 
+* The fields `height` and `descent` have been removed from GLYPHINFO struct.
+One should get the font metrics information by calling `GetFontMetrics` function
+if you want to get the height and descent data of one font.
+
+* More fields added for GLYPHBITMAP struct in order to return the rasterized
+glyph bitmap information.
+
+#### New APIs
+
+* `GetGlyphsExtentPointEx` function gets the visual extent information
+of a glyph string which can fit in a line with the specified maximal extent.
+
+* `DrawGlyphStringEx` function draws a glyph string to the specific
+positions of a DC.
 
 #### Others
 
 * Support for FreeType1 removed.
+
+### Other Changes
+
+* A new BITMAP type: `BMP_TYPE_REPLACEKEY`. When `bmType` of a BITMAP object
+has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
+`bmColorRep`.
 
 ## Version 3.2.1
 

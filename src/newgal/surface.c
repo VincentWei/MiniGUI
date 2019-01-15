@@ -1415,7 +1415,6 @@ static int _PutBoxKey (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w, U
             dstrow += dst->pitch;
         }
     }
-#ifndef _FOR_MONOBITMAP
     else while ( h-- ) {
         dstpixels = dstrow;
         srcpixels = srcrow;
@@ -1426,29 +1425,7 @@ static int _PutBoxKey (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w, U
             unsigned sG;
             unsigned sB;
             RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-            if ( pixel != ckey ) {
-                RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
-                ASSEMBLE_RGBA (dstpixels, bpp, dstfmt, sR, sG, sB, alpha);
-            }
-            dstpixels += bpp;
-            srcpixels += bpp;
-        },
-        w);
-        srcrow += box->bmPitch;
-        dstrow += dst->pitch;
-    }
-#else
-    else while ( h-- ) {
-        dstpixels = dstrow;
-        srcpixels = srcrow;
-        DUFFS_LOOP(
-        {
-            Uint32 pixel;
-            unsigned sR;
-            unsigned sG;
-            unsigned sB;
-            RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-            if (pixel != ckey || ( pixel == ckey && box->bmType & BMP_TYPE_MONOKEY) ) {
+            if (pixel != ckey || (pixel == ckey && box->bmType & BMP_TYPE_REPLACEKEY)) {
                 if (pixel == ckey)
                     pixel = box->bmColorRep;
                 RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
@@ -1461,7 +1438,6 @@ static int _PutBoxKey (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w, U
         srcrow += box->bmPitch;
         dstrow += dst->pitch;
     }
-#endif
 
     return 0;
 }
@@ -1929,76 +1905,26 @@ BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
 BYTE*  gal_PutPixelKey (GAL_Surface* dst, BYTE* dstrow,  
             Uint32 pixel, MYBITMAP_CONTXT* mybmp)
 {
-    //BYTE* dstpixels = dstrow;
-    //BYTE* srcpixels = srcrow;
     Uint32 ckey = mybmp->colorKey;
     GAL_PixelFormat *dstfmt = dst->format;
     int bpp = dstfmt->BytesPerPixel;
     unsigned alpha = dstfmt->Amask ? GAL_ALPHA_OPAQUE : 0;
 
     if (bpp == 1) {
-        //while (h--) {
-            //unsigned int i;
-            //dstpixels = dstrow;
-            //srcpixels = srcrow;
-            //for (i = 0; i < w; i++) {
-                if (pixel != ckey)
-                    *dstrow = pixel;
-                dstrow += bpp;
-                //srcpixels += bpp;
-            //}
-            //srcrow += box->bmPitch;
-            //dstrow += dst->pitch;
-        //}
+        if (pixel != ckey)
+            *dstrow = pixel;
+        dstrow += bpp;
     }
-#ifndef _FOR_MONOBITMAP
-    else /*while ( h-- )*/ {
-        //dstpixels = dstrow;
-        //srcpixels = srcrow;
-        //DUFFS_LOOP(
-        {
-            //Uint32 pixel;
-            unsigned sR;
-            unsigned sG;
-            unsigned sB;
-            //RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-            if ( pixel != ckey ) {
-                RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
-                ASSEMBLE_RGBA (dstrow, bpp, dstfmt, sR, sG, sB, alpha);
-            }
-            dstrow += bpp;
-            //srcpixels += bpp;
-        }//,
-        //w);
-        //srcrow += box->bmPitch;
-        //dstrow += dst->pitch;
+    else {
+        unsigned sR;
+        unsigned sG;
+        unsigned sB;
+        if (pixel != ckey) {
+            RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
+            ASSEMBLE_RGBA (dstrow, bpp, dstfmt, sR, sG, sB, alpha);
+        }
+        dstrow += bpp;
     }
-#else
-    else /*while ( h-- )*/ {
-        //dstpixels = dstrow;
-        //srcpixels = srcrow;
-        //DUFFS_LOOP(
-        {
-            //Uint32 pixel;
-            unsigned sR;
-            unsigned sG;
-            unsigned sB;
-            //RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-            //here,the MYBITMAP has no BMP_TYPE_MONOKEY,need to fixed
-            if (pixel != ckey || ( pixel == ckey && mybmp->mybmp->flag & BMP_TYPE_MONOKEY) ) {
-                if (pixel == ckey)
-                    pixel ^=1 ;
-                RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
-                ASSEMBLE_RGBA (dstrow, bpp, dstfmt, sR, sG, sB, alpha);
-            }
-            dstrow += bpp;
-            //srcpixels += bpp;
-        }//,
-        //w);
-        //srcrow += box->bmPitch;
-        //dstrow += dst->pitch;
-    }
-#endif
 
     return dstrow;
 }
