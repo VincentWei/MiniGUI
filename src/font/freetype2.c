@@ -406,12 +406,11 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     FT_Glyph_Get_CBox (ft_inst_info->glyph, ft_glyph_bbox_pixels, &bbox);
 
-#if 1
     //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
     if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)) {
-        bbox.xMax += 2;
+        bbox.xMin -= 1;
+        bbox.xMax += 1;
     }
-#endif
 
     /* We just save the BBOX :). */
     memcpy (&ft_inst_info->bbox, &bbox, sizeof(FT_BBox));
@@ -654,7 +653,6 @@ get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 {
     FT_Fixed advance;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
-
 
     if (ft_inst_info->use_kerning
             && ft_inst_info->prev_index && ft_inst_info->cur_index) {

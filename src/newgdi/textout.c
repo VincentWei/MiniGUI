@@ -171,7 +171,7 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value, int glyph_type)
     if (glyph_type == MCHAR_TYPE_ZEROWIDTH) {
         adv_x = adv_y = 0;
     }
-    else if (glyph_type == MCHAR_TYPE_VOWEL){
+    else if (glyph_type == MCHAR_TYPE_VOWEL) {
         if (!ctxt->only_extent)
         {
             bkmode = ctxt->pdc->bkmode;

@@ -2861,36 +2861,16 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     fg_gal_rc.w = bbox.w + italic;
     fg_gal_rc.h = bbox.h;
 
-#if 0 // VincentWei: use FS_DECORATE_XXXX instead (3.4.0)
-    if ( pdc->bkmode != BM_TRANSPARENT
-         || logfont->style & FS_UNDERLINE_LINE
-         || logfont->style & FS_STRUCKOUT_LINE )
-#else
     if (pdc->bkmode != BM_TRANSPARENT
          || logfont->style & FS_DECORATE_UNDERLINE
          || logfont->style & FS_DECORATE_STRUCKOUT)
-#endif
         need_rc_back = TRUE;
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
-        if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
-            fg_gal_rc.x--; fg_gal_rc.y--;
-            fg_gal_rc.w += 2; fg_gal_rc.h += 2;
-//            *adv_x  += 1;
-//            advance += 1;
-        }
-    }
-#else
     if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
             && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
         fg_gal_rc.x--; fg_gal_rc.y--;
         fg_gal_rc.w += 2; fg_gal_rc.h += 2;
     }
-    else if (glyph_bmptype == DEVFONTGLYPHTYPE_SUBPIXEL) {
-        fg_gal_rc.w += 2;
-    }
-#endif
 
     if (need_rc_back) {
         if (direction)
@@ -2900,23 +2880,11 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             make_back_area(pdc, x+*adv_x, y+*adv_y, x, y,
                     area, &bg_gal_rc, &flag);
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-        if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
-            if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
-                bg_gal_rc.x--; bg_gal_rc.y--;
-                bg_gal_rc.w += 2; bg_gal_rc.h += 2;
-            }
-        }
-#else
         if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
                 && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
             bg_gal_rc.x--; bg_gal_rc.y--;
             bg_gal_rc.w += 2; bg_gal_rc.h += 2;
         }
-        else if (glyph_bmptype == DEVFONTGLYPHTYPE_SUBPIXEL) {
-            bg_gal_rc.w += 2;
-        }
-#endif
         make_back_rect(&rc_back, area, &bg_gal_rc, flag);
     }
 
@@ -2938,7 +2906,6 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
         goto end;
     }
 
-
 #ifndef _MGRM_THREADS
     if (CHECK_DRAWING (pdc)) goto end;
 #endif
@@ -2948,7 +2915,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     pdc->step = 1;
     pdc->cur_ban = NULL;
 
-    /*draw back ground */
+    /* draw back ground */
     if (pdc->bkmode != BM_TRANSPARENT) {
         pdc->cur_pixel = pdc->bkcolor;
         draw_back_area (pdc, area, &bg_gal_rc, flag);
@@ -2958,13 +2925,8 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     bbx_size.cx = bbox.w;
     bbx_size.cy = bbox.h;
 
-    {
-        int glyph_ascent = y - bbox.y;
-        //int glyph_descent = bbox.y + bbox.h - y;
-
-        _gdi_direct_fillglyph (pdc, glyph_value, &fg_gal_rc, &bbx_size,
-            glyph_ascent, advance, italic, bold);
-    }
+    _gdi_direct_fillglyph (pdc, glyph_value, &fg_gal_rc, &bbx_size,
+            y - bbox.y, advance, italic, bold);
 
     draw_glyph_lines (pdc, x, y, x + *adv_x, y + *adv_y);
 
