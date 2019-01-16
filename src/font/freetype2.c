@@ -64,15 +64,29 @@ static int bitmap_nohit = 0;
 static int bitmap_hit = 0;
 #endif
 
-typedef struct _FT2_DATA{
+typedef struct _FT2_DATA {
     FTFACEINFO*     ft_face_info;
     FTINSTANCEINFO* ft_inst_info;
-}FT2_DATA;
+} FT2_DATA;
 
 #define FT_FACE_INFO_P(devfont) ((FTFACEINFO*)(((FT2_DATA*)(devfont->data))->ft_face_info));
 #define FT_INST_INFO_P(devfont) ((FTINSTANCEINFO*)(((FT2_DATA*)(devfont->data))->ft_inst_info));
 
 static FT_Library       ft_library = NULL;
+
+#ifdef _MGRM_THREADS
+    static pthread_mutex_t ft_lock;
+#   define FT_INIT_LOCK(lock, attr)   pthread_mutex_init(lock, attr)
+#   define FT_LOCK(lock)              pthread_mutex_lock(lock)
+#   define FT_UNLOCK(lock)            pthread_mutex_unlock(lock)
+#   define FT_DESTROY_LOCK(lock)      pthread_mutex_destroy(lock)
+#else
+#   define FT_INIT_LOCK(lock, attr)
+#   define FT_LOCK(lock)
+#   define FT_UNLOCK(lock)
+#   define FT_DESTROY_LOCK(lock)
+#endif
+
 #ifdef _MGFONT_TTF_CACHE
 static FTC_Manager      ft_cache_manager = NULL;
 static FTC_CMapCache    ft_cmap_cache = NULL;
@@ -265,6 +279,8 @@ static int
 load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
         FT_ULong uni_char, int glyph_type)
 {
+    /* no need to lock/unlock in this function */
+
 #ifndef _MGFONT_TTF_CACHE
     FTFACEINFO*     ft_face_info = ft_inst_info->ft_face_info;
     int ft_load_flags = FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
@@ -347,10 +363,12 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     bbox.xMin = bbox.yMin = 32000;
     bbox.xMax = bbox.yMax = -32000;
 
-    if(devfont->charset_ops->conv_to_uc32)
+    if (devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uni_char = glyph_value;
+
+    FT_LOCK(&ft_lock);
 
     /* Search cache by unicode !*/
 #ifdef _MGFONT_TTF_CACHE
@@ -373,6 +391,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
             if (px)
                 *px += (cache_info->delta.x >> 6);
 
+            FT_UNLOCK(&ft_lock);
             return (int)(cache_info->bbox.xMax - cache_info->bbox.xMin);
         }
         DP(("\nBBOX Non - Hit! %d, %d\n", bbox_nohit++, uni_char));
@@ -381,8 +400,8 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     if (load_or_search_glyph (ft_inst_info, &face, uni_char,
                 get_glyph_type(logfont, devfont))) {
-        _MG_PRINTF ("FONT>FT2: load_or_search_glyph error in freetype2\n");
-        return 0;
+        _ERR_PRINTF ("FONT>FT2: load_or_search_glyph error in freetype2\n");
+        goto error;
     }
 
     if (ft_inst_info->use_kerning) {
@@ -420,7 +439,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     FT_Done_Glyph (ft_inst_info->glyph);
 
     if (bbox.xMin > bbox.xMax) {
-        return 0;
+        goto error;
     }
 
 #ifdef _MGFONT_TTF_CACHE
@@ -457,7 +476,12 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     if (px)      *px += bbox.xMin;
     if (py)      *py -= bbox.yMax;
 
+    FT_UNLOCK(&ft_lock);
     return (int)(bbox.xMax - bbox.xMin);
+
+error:
+    FT_UNLOCK(&ft_lock);
+    return 0;
 }
 
 #if 0 // VincentWei: Bad implementation
@@ -496,11 +520,12 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     BYTE*           buffer = NULL;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
-    /*because: lock in draw_one_glyph*/
+    FT_LOCK(&ft_lock);
+
     if (IS_SUBPIXEL(logfont))
         FT_Library_SetLcdFilter(ft_library, ft_inst_info->ft_lcdfilter);
 
-    if(devfont->charset_ops->conv_to_uc32)
+    if (devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uni_char = glyph_value;
@@ -518,16 +543,18 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             if (pitch)
                 *pitch = cacheinfo->pitch;
 
+            FT_UNLOCK(&ft_lock);
             return cacheinfo->bitmap;
         }
+
         DP(("Bitmap Non hit %d, %d\n", bitmap_nohit++, uni_char));
     }
 #endif
 
     if (load_or_search_glyph (ft_inst_info, &face, uni_char,
                 get_glyph_type(logfont, devfont))) {
-        _MG_PRINTF ("FONT>FT2: load_or_search_glyph failed in freetype2\n");
-        return NULL;
+        _ERR_PRINTF ("FONT>FT2: load_or_search_glyph failed in freetype2\n");
+        goto error;
     }
 
     /*convert to a bitmap (default render mode + destroy old or not)*/
@@ -536,16 +563,16 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             IS_SUBPIXEL(logfont) && is_grey) {
             if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
                         FT_RENDER_MODE_LCD, NULL, 1)) {
-                _MG_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
-                return NULL;
+                _ERR_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
+                goto error;
             }
         }
         else {
             if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
                         is_grey? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO,
                         NULL, 1)) {
-                _MG_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
-                return NULL;
+                _ERR_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
+                goto error;
             }
         }
     }
@@ -556,16 +583,6 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
     if (pitch)
         *pitch = source->pitch;
-
-#if 0 // VincentWei: Bad implementation
-    if (!is_grey) {
-        press_bitmap(source->buffer,
-            source->width, source->rows, source->pitch);
-        *pitch = (source->width + 7) >> 3;
-    }
-#else
-    *pitch = source->pitch;
-#endif
 
 #ifdef _MGFONT_TTF_CACHE
     if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
@@ -600,7 +617,9 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                 memcpy(pcache->bitmap, source->buffer, size);
                 pcache->flag = TRUE;
             }
+
             FT_Done_Glyph (ft_inst_info->glyph);
+            FT_UNLOCK(&ft_lock);
             return pcache->bitmap;
         }
     }
@@ -610,8 +629,12 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     memcpy(buffer, source->buffer, source->rows * source->pitch);
 
     FT_Done_Glyph (ft_inst_info->glyph);
-
+    FT_UNLOCK(&ft_lock);
     return buffer;
+
+error:
+    FT_UNLOCK(&ft_lock);
+    return NULL;
 }
 
 static const void*
@@ -724,21 +747,22 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
         ft_inst_info->ft_lcdfilter = FT_LCD_FILTER_NONE;
     }
 
+    FT_LOCK(&ft_lock);
+
 #ifdef _MGFONT_TTF_CACHE
     if (FTC_Manager_LookupFace (ft_cache_manager,
                   (FTC_FaceID)ft_face_info, &face)) {
         /* can't access the font file. do not render anything */
         _MG_PRINTF ("FONT>FT2: can't access font file %p\n", ft_face_info);
-        return 0;
+        goto out_lock;
     }
-
 #else
     face = ft_face_info->face;
 #endif
 
     /* Create instance */
     if (FT_New_Size (face, &size))
-        goto out;
+        goto out_lock;
 
     if (FT_Activate_Size (size))
         goto out_size;
@@ -797,38 +821,17 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
         if (hCache == 0) {
             int nblk, col, blksize, rows = ft_inst_info->height;
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-            int pitch = 0;
-            if (((logfont->style & 0x0000000F) == FS_WEIGHT_BOOK)
-                    || ((logfont->style & 0x0000000F) == FS_WEIGHT_DEMIBOLD)
-                    || ((logfont->style & 0x0000000FF) == FS_WEIGHT_SUBPIXEL)) {
-                pitch = 1;
-            }
-
-            if (!pitch) {
-                col = (ft_inst_info->max_width + 7) >> 3;
-            } else {
-                col = (ft_inst_info->max_width + 3) & -4;
-            }
-
-#else
             if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_MONO) {
                 col = (ft_inst_info->max_width + 7) >> 3;
             }
             else {
                 col = (ft_inst_info->max_width + 3) & -4;
             }
-#endif
 
             blksize = col * rows;
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-            if ((logfont->style & 0x0000000FF) == FS_WEIGHT_SUBPIXEL)
-                blksize *= 3;
-#else
             if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL)
                 blksize *= 3;
-#endif
 
             blksize += sizeof(TTFCACHEINFO);
 
@@ -883,12 +886,17 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     }
 #endif
 
+    FT_UNLOCK(&ft_lock);
     return new_devfont;
 
 out_size:
     FT_Done_Size (size);
 
+out_lock:
+    FT_UNLOCK(&ft_lock);
+
 out:
+    free (ft_data);
     free (ft_inst_info);
     free (new_devfont);
     return NULL;
@@ -900,9 +908,13 @@ delete_instance (DEVFONT* devfont)
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
 #ifdef _MGFONT_TTF_CACHE
+    FT_LOCK(&ft_lock);
+
     if (ft_inst_info->cache) {
         __mg_ttc_release(ft_inst_info->cache);
     }
+
+    FT_UNLOCK(&ft_lock);
 #endif
 
     free (ft_inst_info);
@@ -916,31 +928,38 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     FT_UInt         uni_char;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
-    if(devfont->charset_ops->conv_to_uc32)
+    if (devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uni_char = glyph_value;
 
+    FT_LOCK(&ft_lock);
+
 #ifndef _MGFONT_TTF_CACHE
     face = ft_inst_info->ft_face_info->face;
-    if(0 == FT_Get_Char_Index (face, uni_char))
-        return FALSE;
-    else
+    if (0 == FT_Get_Char_Index (face, uni_char))
+        goto error;
+    else {
+        FT_UNLOCK(&ft_lock);
         return TRUE;
+    }
+
 #else
     if (get_cached_face (ft_inst_info, &face)) {
         _MG_PRINTF ("FONT>FT2: can't access cached face %p\n", ft_inst_info->ft_face_info);
-        return FALSE;
+        goto error;
     }
 
-    if(0 == FTC_CMapCache_Lookup (ft_cmap_cache,
-                            (FTC_FaceID) (ft_inst_info->image_type.face_id),
-                            ft_inst_info->ft_face_info->cmap_index,
-                            uni_char))
-        return FALSE;
-    else
-        return TRUE;
+    if (0 == FTC_CMapCache_Lookup (ft_cmap_cache,
+            (FTC_FaceID) (ft_inst_info->image_type.face_id),
+            ft_inst_info->ft_face_info->cmap_index, uni_char)) {
+        goto error;
+    }
 #endif
+
+error:
+    FT_UNLOCK(&ft_lock);
+    return FALSE;
 }
 
 static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
@@ -957,6 +976,8 @@ static void* load_font_data (const char* font_name, const char *file_name)
     FT_CharMap  charmap;
     FTFACEINFO* ft_face_info = (FTFACEINFO*) calloc (1, sizeof(FTFACEINFO));
     FT2_DATA*   ft_data = (FT2_DATA*) calloc(1, sizeof(FTFACEINFO));
+
+    FT_LOCK(&ft_lock);
 
 #ifdef _MGFONT_TTF_CACHE
     strcpy (ft_face_info->filepathname, file_name);
@@ -1008,9 +1029,11 @@ static void* load_font_data (const char* font_name, const char *file_name)
 
     ft_data->ft_face_info = ft_face_info;
 
+    FT_UNLOCK(&ft_lock);
     return ft_data;
 
 error:
+    FT_UNLOCK(&ft_lock);
     free (ft_data);
     free (ft_face_info);
     return NULL;
@@ -1027,10 +1050,9 @@ static void unload_font_data (void* data)
     free (ft_data);
 }
 
-static void
-ShowErr (const char*  message , int error)
+static void ShowErr (const char*  message , int error)
 {
-    _MG_PRINTF ("FONT>FT2: %s\n  error = 0x%04x\n", message, error );
+    _ERR_PRINTF ("FONT>FT2: %s\n  error = 0x%04x\n", message, error );
 }
 
 
@@ -1053,6 +1075,8 @@ BOOL font_InitFreetypeLibrary (void)
         ShowErr ("could not initialize FreeType 2 library", error);
         goto error_library;
     }
+
+    FT_INIT_LOCK(&ft_lock, NULL);
 
     /* Init freetype2 cache manager */
 #ifdef _MGFONT_TTF_CACHE
@@ -1092,12 +1116,14 @@ BOOL font_InitFreetypeLibrary (void)
 error_ftc_manager:
     FTC_Manager_Done (ft_cache_manager);
 #endif
+
     return TRUE;
 
 error_library:
     _ERR_PRINTF ("FONT>FT2: Could not initialise FreeType 2 library\n");
-    FT_Done_FreeType (ft_library);
 
+    FT_DESTROY_LOCK(&ft_lock);
+    FT_Done_FreeType (ft_library);
     return FALSE;
 }
 
@@ -1113,6 +1139,8 @@ void font_TermFreetypeLibrary (void)
 
     if (ft_library)
         FT_Done_FreeType (ft_library);
+
+    FT_DESTROY_LOCK(&ft_lock);
 }
 
 

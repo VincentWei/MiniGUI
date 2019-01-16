@@ -2325,21 +2325,6 @@ void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
     }
 }
 
-#ifdef _MGRM_THREADS
-static inline BOOL _gdi_glyph_if_need_lock(DEVFONT* devfont)
-{
-    BOOL lock = FALSE;
-#ifdef _MGFONT_FT2
-    lock |= ft2IsFreeTypeDevfont(devfont);
-#endif
-#ifdef _MGFONT_TTF
-    lock |= ftIsFreeTypeDevfont(devfont);
-#endif
-
-    return lock;
-}
-#endif
-
 int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
         Glyph32 glyph_value, BOOL direction, int ch_extra,
         int x, int y, int* adv_x, int* adv_y, BBOX* bbox)
@@ -2354,21 +2339,11 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     int advance = 0;
     int glyph_bmptype;
 
-#ifdef _MGRM_THREADS
-    BOOL lock = _gdi_glyph_if_need_lock(devfont);
-#endif
-
     glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
     bbox_x = x;
     bbox_y = y;
-
-    /* houhh 20091225, noneed to lock for MiniGUI-Process, All App MainWindow
-     * is run only in one thread and no desktop thread).*/
-#ifdef _MGRM_THREADS
-    if (lock) LOCK (&__mg_gdilock);
-#endif
 
     /* in freetype get_glyph_bbox loads glyph, so we must get_glyph_bbox
      * before get_glyph_advance, get_glyph_monobitmap....
@@ -2394,10 +2369,6 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 
     adv_len = devfont->font_ops->get_glyph_advance (logfont, devfont,
             REAL_GLYPH(glyph_value), &tmp_x, &tmp_y);
-
-#ifdef _MGRM_THREADS
-    if (lock) UNLOCK (&__mg_gdilock);
-#endif
 
     if (!direction) {
         if (bbox) bbox->x -= (bold + ch_extra + adv_len);
