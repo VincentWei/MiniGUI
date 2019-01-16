@@ -4369,29 +4369,29 @@ BOOL IsCompatibleCharset (const char* charset, CHARSETOPS* ops)
 
 #ifdef _MGCHARSET_UNICODE
 
-BOOL GUIAPI IsGlyphAlnum(Glyph32 g)
+BOOL GUIAPI IsUCharAlnum(UChar32 uc)
 {
-    return ISALDIGIT(TYPE(REAL_GLYPH(g)));
+    return ISALDIGIT(TYPE(REAL_GLYPH(uc)));
 }
 
-BOOL GUIAPI IsGlyphAlpha(Glyph32 g)
+BOOL GUIAPI IsUCharAlpha(UChar32 uc)
 {
-    return ISALPHA (TYPE(REAL_GLYPH(g)));
+    return ISALPHA (TYPE(REAL_GLYPH(uc)));
 }
 
-BOOL GUIAPI IsGlyphControl(Glyph32 g)
+BOOL GUIAPI IsUCharControl(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(g)) == G_UNICODE_CONTROL;
+    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_CONTROL;
 }
 
-BOOL GUIAPI IsGlyphDigit(Glyph32 g)
+BOOL GUIAPI IsUCharDigit(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(g)) == G_UNICODE_DECIMAL_NUMBER;
+    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_DECIMAL_NUMBER;
 }
 
-BOOL GUIAPI IsGlyphGraph(Glyph32 g)
+BOOL GUIAPI IsUCharGraph(UChar32 uc)
 {
-    return !IS (TYPE(REAL_GLYPH(g)),
+    return !IS (TYPE(REAL_GLYPH(uc)),
             OR (G_UNICODE_CONTROL,
             OR (G_UNICODE_FORMAT,
             OR (G_UNICODE_UNASSIGNED,
@@ -4400,14 +4400,14 @@ BOOL GUIAPI IsGlyphGraph(Glyph32 g)
             0))))));
 }
 
-BOOL GUIAPI IsGlyphLowercase(Glyph32 g)
+BOOL GUIAPI IsUCharLowercase(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(g)) == G_UNICODE_LOWERCASE_LETTER;
+    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_LOWERCASE_LETTER;
 }
 
-BOOL GUIAPI IsGlyphPrint(Glyph32 g)
+BOOL GUIAPI IsUCharPrint(UChar32 uc)
 {
-    return !IS (TYPE(REAL_GLYPH(g)),
+    return !IS (TYPE(REAL_GLYPH(uc)),
             OR (G_UNICODE_CONTROL,
             OR (G_UNICODE_FORMAT,
             OR (G_UNICODE_UNASSIGNED,
@@ -4415,14 +4415,14 @@ BOOL GUIAPI IsGlyphPrint(Glyph32 g)
             0)))));
 }
 
-BOOL GUIAPI IsGlyphUppercase(Glyph32 g)
+BOOL GUIAPI IsUCharUppercase(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(g)) == G_UNICODE_UPPERCASE_LETTER;
+    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_UPPERCASE_LETTER;
 }
 
-BOOL GUIAPI IsGlyphPunct(Glyph32 g)
+BOOL GUIAPI IsUCharPunct(UChar32 uc)
 {
-    return IS (TYPE(REAL_GLYPH(g)),
+    return IS (TYPE(REAL_GLYPH(uc)),
             OR (G_UNICODE_CONNECT_PUNCTUATION,
             OR (G_UNICODE_DASH_PUNCTUATION,
             OR (G_UNICODE_CLOSE_PUNCTUATION,
@@ -4437,9 +4437,9 @@ BOOL GUIAPI IsGlyphPunct(Glyph32 g)
             0))))))))))));
 }
 
-BOOL GUIAPI IsGlyphSpace(Glyph32 g)
+BOOL GUIAPI IsUCharSpace(UChar32 uc)
 {
-    switch (REAL_GLYPH(g)) {
+    switch (REAL_GLYPH(uc)) {
     /* special-case these since Unicode thinks they are not spaces */
     case '\t':
     case '\n':
@@ -4448,7 +4448,7 @@ BOOL GUIAPI IsGlyphSpace(Glyph32 g)
         return TRUE;
 
     default: {
-        if (IS (TYPE(REAL_GLYPH(g)),
+        if (IS (TYPE(REAL_GLYPH(uc)),
                OR (G_UNICODE_SPACE_SEPARATOR,
                OR (G_UNICODE_LINE_SEPARATOR,
                OR (G_UNICODE_PARAGRAPH_SEPARATOR,
@@ -4461,15 +4461,15 @@ BOOL GUIAPI IsGlyphSpace(Glyph32 g)
     return FALSE;
 }
 
-BOOL GUIAPI IsGlyphMark(Glyph32 g)
+BOOL GUIAPI IsUCharMark(UChar32 uc)
 {
-    return ISMARK (TYPE(REAL_GLYPH(g)));
+    return ISMARK (TYPE(REAL_GLYPH(uc)));
 }
 
-BOOL GUIAPI IsGlyphTitle(Glyph32 g)
+BOOL GUIAPI IsUCharTitle(UChar32 uc)
 {
     unsigned int i;
-    Glyph32 glyph_value = REAL_GLYPH(g);
+    UChar32 glyph_value = REAL_GLYPH(uc);
 
     for (i = 0; i < TABLESIZE (title_table); ++i) {
         if (title_table[i][0] == glyph_value) {
@@ -4480,25 +4480,25 @@ BOOL GUIAPI IsGlyphTitle(Glyph32 g)
     return FALSE;
 }
 
-BOOL GUIAPI IsGlyphXDigit(Glyph32 g)
+BOOL GUIAPI IsUCharXDigit(UChar32 uc)
 {
-    Glyph32 glyph_value = REAL_GLYPH(g);
+    UChar32 glyph_value = REAL_GLYPH(uc);
     return ((glyph_value >= 'a' && glyph_value <= 'f')
             || (glyph_value >= 'A' && glyph_value <= 'F')
             || (TYPE(glyph_value) == G_UNICODE_DECIMAL_NUMBER));
 }
 
-BOOL GUIAPI IsGlyphDefined(Glyph32 g)
+BOOL GUIAPI IsUCharDefined(UChar32 uc)
 {
-    return !IS (TYPE(REAL_GLYPH(g)),
+    return !IS (TYPE(REAL_GLYPH(uc)),
               OR (G_UNICODE_UNASSIGNED,
               OR (G_UNICODE_SURROGATE,
              0)));
 }
 
-BOOL GUIAPI IsGlyphZeroWidth(Glyph32 g)
+BOOL GUIAPI IsUCharZeroWidth(UChar32 uc)
 {
-    Glyph32 glyph_value = REAL_GLYPH(g);
+    UChar32 glyph_value = REAL_GLYPH(uc);
     if (glyph_value != 0x00AD && ISZEROWIDTHTYPE (TYPE(glyph_value)))
         return TRUE;
     else if ((glyph_value >= 0x1160 && glyph_value < 0x1200)
@@ -4510,7 +4510,7 @@ BOOL GUIAPI IsGlyphZeroWidth(Glyph32 g)
 
 #define G_WIDTH_TABLE_MIDPOINT (TABLESIZE (g_unicode_width_table_wide) / 2)
 
-static inline BOOL g_unichar_iswide_bsearch (Glyph32 ch)
+static inline BOOL g_unichar_iswide_bsearch (UChar32 ch)
 {
   unsigned int lower = 0;
   unsigned int upper = TABLESIZE (g_unicode_width_table_wide) - 1;
@@ -4532,40 +4532,40 @@ static inline BOOL g_unichar_iswide_bsearch (Glyph32 ch)
   return FALSE;
 }
 
-BOOL GUIAPI IsGlyphWide(Glyph32 g)
+BOOL GUIAPI IsUCharWide(UChar32 uc)
 {
-    g = REAL_GLYPH(g);
-    if (g < g_unicode_width_table_wide[0].start)
+    uc = REAL_GLYPH(uc);
+    if (uc < g_unicode_width_table_wide[0].start)
         return FALSE;
     else
-        return g_unichar_iswide_bsearch (g);
+        return g_unichar_iswide_bsearch (uc);
 }
 
 static int interval_compare (const void *key, const void *elt)
 {
-    Glyph32 g = (Glyph32)((intptr_t)key);
+    UChar32 uc = (UChar32)((intptr_t)key);
     struct Interval *interval = (struct Interval *)elt;
 
-    if (g < interval->start)
+    if (uc < interval->start)
         return -1;
-    if (g > interval->end)
+    if (uc > interval->end)
         return +1;
 
     return 0;
 }
 
-BOOL GUIAPI IsGlyphWideCJK (Glyph32 g)
+BOOL GUIAPI IsUCharWideCJK (UChar32 uc)
 {
-    g = REAL_GLYPH(g);
-    if (IsGlyphWide(g))
+    uc = REAL_GLYPH(uc);
+    if (IsUCharWide(uc))
         return TRUE;
 
     /* bsearch() is declared attribute(nonnull(1)) so we can't validly search
      * for a NULL key */
-    if (g == 0)
+    if (uc == 0)
         return FALSE;
 
-    if (bsearch((void*)((intptr_t)g),
+    if (bsearch((void*)((intptr_t)uc),
                 g_unicode_width_table_ambiguous,
                 TABLESIZE (g_unicode_width_table_ambiguous),
                 sizeof g_unicode_width_table_ambiguous[0],
@@ -4578,46 +4578,46 @@ BOOL GUIAPI IsGlyphWideCJK (Glyph32 g)
 /**
  * Converts a character to uppercase.
  */
-Glyph32 GlyphToUpper (Glyph32 g)
+UChar32 UCharToUpper (UChar32 uc)
 {
     int t;
 
-    g = REAL_GLYPH(g);
-    t = TYPE (g);
+    uc = REAL_GLYPH(uc);
+    t = TYPE (uc);
     if (t == G_UNICODE_LOWERCASE_LETTER) {
-        Glyph32 val = ATTTABLE (g >> 8, g & 0xff);
+        UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
             val = utf8_char_glyph_value (NULL, 0, p, -1);
         }
-        /* Some lowercase letters, e.g., U+000AA, FEMININE ORDINAL INDICATOR,
+        /* Some lowercase letters, e.uc., U+000AA, FEMININE ORDINAL INDICATOR,
          * do not have an uppercase equivalent, in which case val will be
          * zero. 
          */
-        return val ? val : g;
+        return val ? val : uc;
     }
     else if (t == G_UNICODE_TITLECASE_LETTER) {
         unsigned int i;
         for (i = 0; i < TABLESIZE (title_table); ++i) {
-            if (title_table[i][0] == g)
-                return title_table[i][1] ? title_table[i][1] : g;
+            if (title_table[i][0] == uc)
+                return title_table[i][1] ? title_table[i][1] : uc;
         }
     }
 
-    return g;
+    return uc;
 }
 
 /**
  * Converts a character to lower case.
  */
-Glyph32 GUIAPI GlyphToLower (Glyph32 g)
+UChar32 GUIAPI UCharToLower (UChar32 uc)
 {
     int t;
 
-    g = REAL_GLYPH(g);
-    t = TYPE (g);
+    uc = REAL_GLYPH(uc);
+    t = TYPE (uc);
     if (t == G_UNICODE_UPPERCASE_LETTER) {
-        Glyph32 val = ATTTABLE (g >> 8, g & 0xff);
+        UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
             return utf8_char_glyph_value (NULL, 0, p, -1);
@@ -4625,37 +4625,37 @@ Glyph32 GUIAPI GlyphToLower (Glyph32 g)
         else {
             /* Not all uppercase letters are guaranteed to have a lowercase
              * equivalent.  If this is the case, val will be zero. */
-            return val ? val : g;
+            return val ? val : uc;
         }
     }
     else if (t == G_UNICODE_TITLECASE_LETTER) {
         unsigned int i;
         for (i = 0; i < TABLESIZE (title_table); ++i) {
-            if (title_table[i][0] == g)
+            if (title_table[i][0] == uc)
                 return title_table[i][2];
         }
     }
-    return g;
+    return uc;
 }
 
 /**
  * Converts a glyph to the titlecase.
  */
-Glyph32 GUIAPI GlyphToTitle (Glyph32 g)
+UChar32 GUIAPI UCharToTitle (UChar32 uc)
 {
     unsigned int i;
 
-    g = REAL_GLYPH(g);
+    uc = REAL_GLYPH(uc);
     for (i = 0; i < TABLESIZE (title_table); ++i) {
-        if (title_table[i][0] == g || title_table[i][1] == g
-                || title_table[i][2] == g)
+        if (title_table[i][0] == uc || title_table[i][1] == uc
+                || title_table[i][2] == uc)
             return title_table[i][0];
     }
 
-    if (TYPE (g) == G_UNICODE_LOWERCASE_LETTER)
-        return GlyphToUpper (g);
+    if (TYPE (uc) == G_UNICODE_LOWERCASE_LETTER)
+        return UCharToUpper (uc);
 
-    return g;
+    return uc;
 }
 
 #endif /* _MGCHARSET_UNICODE */

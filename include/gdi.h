@@ -6912,39 +6912,39 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
             n, NULL)
 
 /** The function determines whether a glyph is alphanumeric. */
-MG_EXPORT BOOL GUIAPI IsGlyphAlnum(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharAlnum(UChar32 uc);
 
 /** The function determines whether a character is alphabetic (i.e. a letter). */
-MG_EXPORT BOOL GUIAPI IsGlyphAlpha(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharAlpha(UChar32 uc);
 
 /** The function determines whether a character is a control character. */
-MG_EXPORT BOOL GUIAPI IsGlyphControl(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharControl(UChar32 uc);
 
 /** The function determines whether a character is numeric (i.e. a digit). */
-MG_EXPORT BOOL GUIAPI IsGlyphDigit(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharDigit(UChar32 uc);
 
 /** The function determines whether a character is printable and not a space */
-MG_EXPORT BOOL GUIAPI IsGlyphGraph(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharGraph(UChar32 uc);
 
 /** The function determines whether a character is a lowercase letter. */
-MG_EXPORT BOOL GUIAPI IsGlyphLowercase(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharLowercase(UChar32 uc);
 
 /** The function determines whether a character is printable. */
-MG_EXPORT BOOL GUIAPI IsGlyphPrint(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharPrint(UChar32 uc);
 
 /** The function determines whether a character is a uppercase letter. */
-MG_EXPORT BOOL GUIAPI IsGlyphUppercase(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharUppercase(UChar32 uc);
 
 /** The function determines whether a character is punctuation or a symbol. */
-MG_EXPORT BOOL GUIAPI IsGlyphPunct(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharPunct(UChar32 uc);
 
 /** The function determines whether a character is a space, tab, or line separator
  * (newline, carriage return, etc.). */
-MG_EXPORT BOOL GUIAPI IsGlyphSpace(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharSpace(UChar32 uc);
 
 /** The function determines whether a character is a mark (non-spacing mark,
  * combining mark, or enclosing mark in Unicode speak). */
-MG_EXPORT BOOL GUIAPI IsGlyphMark(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharMark(UChar32 uc);
 
 /** The function determines if a character is titlecase. Some characters in
  * Unicode which are composites, such as the DZ digraph
@@ -6952,19 +6952,19 @@ MG_EXPORT BOOL GUIAPI IsGlyphMark(Glyph32 g);
  * form is used at the beginning of a word where only the
  * first letter is capitalized. The titlecase form of the DZ
  * digraph is U+01F2 LATIN CAPITAL LETTTER D WITH SMALL LETTER Z. */
-MG_EXPORT BOOL GUIAPI IsGlyphTitle(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharTitle(UChar32 uc);
 
 /** The function determines if a character is a hexidecimal digit. */
-MG_EXPORT BOOL GUIAPI IsGlyphXDigit(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharXDigit(UChar32 uc);
 
 /** The function determines if a given character is assigned in the Unicode standard. */
-MG_EXPORT BOOL GUIAPI IsGlyphDefined(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharDefined(UChar32 uc);
 
 /** The function determines if a given character typically takes zero width when rendered. */
-MG_EXPORT BOOL GUIAPI IsGlyphZeroWidth(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharZeroWidth(UChar32 uc);
 
 /** The function determines if a character is typically rendered in a double-width cell. */
-MG_EXPORT BOOL GUIAPI IsGlyphWide(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharWide(UChar32 uc);
 
 /**
  * The function determines if a character is typically rendered in a double-width
@@ -6974,16 +6974,16 @@ MG_EXPORT BOOL GUIAPI IsGlyphWide(Glyph32 g);
  * [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)
  * for details.
  */
-MG_EXPORT BOOL GUIAPI IsGlyphWideCJK(Glyph32 g);
+MG_EXPORT BOOL GUIAPI IsUCharWideCJK(UChar32 uc);
 
 /** Converts a character to uppercase.  */
-MG_EXPORT Glyph32 GlyphToUpper (Glyph32 g);
+MG_EXPORT UChar32 UCharToUpper (UChar32 uc);
 
 /** Converts a character to lower case. */
-MG_EXPORT Glyph32 GUIAPI GlyphToLower (Glyph32 g);
+MG_EXPORT UChar32 GUIAPI UCharToLower (UChar32 uc);
 
 /** Converts a glyph to the titlecase. */
-MG_EXPORT Glyph32 GUIAPI GlyphToTitle (Glyph32 g);
+MG_EXPORT UChar32 GUIAPI UCharToTitle (UChar32 uc);
 
 #endif /* _MGCHARSET_UNICODE */
 
