@@ -58,11 +58,7 @@
 #include "fontname.h"
 
 #define UPFONT_INFO_P(devfont) ((UPFINFO*)(devfont->data))
-#if 0
-static void* load_font_data (char* font_name, char* file_name
-        char* real_font_name)
-#endif
-static void* load_font_data (const char* font_name, const char* file_name)
+static void* load_font_data (DEVFONT* devfont, const char* font_name, const char* file_name)
 {
     FILE* fp = NULL;
     UPFV1_FILE_HEADER * filehead;
@@ -136,7 +132,7 @@ error:
     return NULL;
 }
 
-static void unload_font_data (void* data)
+static void unload_font_data (DEVFONT* devfont, void* data)
 {
 #ifdef HAVE_MMAP
     munmap (((UPFINFO*) data)->root_dir, ((UPFINFO*) data)->file_size);

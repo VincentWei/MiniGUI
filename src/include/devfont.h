@@ -251,11 +251,10 @@ struct _FONTOPS
      * FIXME real_fontname: return real name in file by a char point 
      **/
     //void* (*load_font_data) (char* fontname, char* filename, char* real_fontname);
-    void* (*load_font_data) (const char* fontname, const char* filename);
+    void* (*load_font_data) (DEVFONT* devfont, const char* fontname, const char* filename);
 
     /** The method to unload data of a devfont*/
-    void (*unload_font_data) (void* data);
-
+    void (*unload_font_data) (DEVFONT* devfont, void* data);
 };
 
 typedef struct {

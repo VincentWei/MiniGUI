@@ -327,7 +327,7 @@ static void swap_intdata (Uint32* data, int num)
 }
 #endif
 
-static void* load_font_data (const char* fontname, const char* filename)
+static void* load_font_data (DEVFONT* devfont, const char* fontname, const char* filename)
 {
     FILE* fp = NULL;
 
@@ -441,7 +441,7 @@ error:
     return NULL;
 }
 
-static void unload_font_data (void* data)
+static void unload_font_data (DEVFONT* devfont, void* data)
 {
     VBFINFO* info = (VBFINFO*) data;
 #ifdef HAVE_MMAP

@@ -17,10 +17,9 @@ The styles of LOGFONT changed.
 * Add new rendering style:
   1. `FS_RENDER_ANY`: Not specified
   1. `FS_RENDER_MONO`:
-  1. `FS_RENDER_OUTLINE`:
   1. `FS_RENDER_GREY`:
   1. `FS_RENDER_SUBPIXEL`:
-* Some bad style definitions are deprecated:
+* Some old styles are deprecated:
   1. `FS_WEIGHT_BOOK`; use `FS_RENDER_GREY` instead.
   1. `FS_WEIGHT_SUBPIXEL`; use `FS_RENDER_SUBPIXEL` instead.
 * Introduced or redefined the weight styles to follow OpenType specification:
@@ -36,11 +35,13 @@ The styles of LOGFONT changed.
   1. `FONT_WEIGHT_BLACK`: Black (Heavy).
 * Introduce the new decoration styles and replace 
 `FONT_UNDERLINE_LINE` and `FONT_STRUCKOUT_LINE` with them:
-  1. `FONT_DECORATE_ANY`:
-  1. `FONT_DECORATE_NONE`:
-  1. `FONT_DECORATE_UNDERLINE`:
-  1. `FONT_DECORATE_STRUCKOUT`:
-  1. `FONT_DECORATE_BOTH`:
+  1. `FONT_DECORATE_ANY`: Not specified.
+  1. `FONT_DECORATE_NONE`: None.
+  1. `FONT_DECORATE_UNDERLINE`: glyphs are underscored.
+  1. `FONT_DECORATE_STRUCKOUT`: glyphs are overstruck.
+  1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE` and `FONT_DECORATE_STRUCKOUT`.
+  1. `FONT_DECORATE_REVERSE`: Reversed for future. Glyphs have their foreground and background reversed.
+  1. `FONT_DECORATE_OUTLINE`: Outline (hollow) glyphs.
 * The following style are deprecated:
   1. `FONT_OTHER_LCDPORTRAIT`
   1. `FONT_OTHER_LCDPORTRAITKERN`
@@ -76,8 +77,9 @@ please define the font name in the following way:
 One should get the font metrics information by calling `GetFontMetrics` function
 if you want to get the height and descent data of one font.
 
-* More fields added for GLYPHBITMAP struct in order to return the rasterized
+* More fields added for GLYPHBITMAP struct in order to return the completed rasterized
 glyph bitmap information.
+* Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming spec.
 
 #### New APIs
 

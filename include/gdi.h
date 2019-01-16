@@ -5534,25 +5534,26 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_DECORATE_NONE          'n'
 #define FONT_DECORATE_UNDERLINE     'u'
 #define FONT_DECORATE_STRUCKOUT     's'
-#define FONT_DECORATE_BOTH          'b'
+#define FONT_DECORATE_REVERSE       'r'
+#define FONT_DECORATE_OUTLINE       'o'
+#define FONT_DECORATE_US            'U' /* UNDERLINE | STRUCKOUT */
 
 #define FS_DECORATE_MASK            0x0F000000
 #define FS_DECORATE_UNDERLINE       0x01000000
 #define FS_DECORATE_STRUCKOUT       0x02000000
-#define FS_DECORATE_BOTH            0x03000000
+#define FS_DECORATE_REVERSE         0x04000000
+#define FS_DECORATE_OUTLINE         0x08000000
 
 #define FONT_RENDER_NIL             '\0'
 #define FONT_RENDER_ANY             '*'
 #define FONT_RENDER_MONO            'n'
-#define FONT_RENDER_OUTLINE         'o'
 #define FONT_RENDER_GREY            'g'
 #define FONT_RENDER_SUBPIXEL        's'
 
 #define FS_RENDER_MASK              0xF0000000
 #define FS_RENDER_MONO              0x00000000
-#define FS_RENDER_OUTLINE           0x10000000
-#define FS_RENDER_GREY              0x20000000
-#define FS_RENDER_SUBPIXEL          0x30000000
+#define FS_RENDER_GREY              0x10000000
+#define FS_RENDER_SUBPIXEL          0x20000000
 
 /*
  * Backward compatiblilty definitions. 
@@ -6327,15 +6328,13 @@ MG_EXPORT PLOGFONT GUIAPI SelectFont (HDC hdc, PLOGFONT log_font);
  */
 MG_EXPORT const DEVFONT* GUIAPI GetNextDevFont (const DEVFONT* dev_font);
 
- 
 #ifdef _MGFONT_FT2
 
 /**
  * List of values to identify various types of LCD filters,
  * Note a freetype2 specific definition.
  */
-typedef enum
-{
+typedef enum {
     /** equal to FT_LCD_FILTER_NONE    */
     MG_SMOOTH_NONE = 0,
     /** equal to FT_LCD_FILTER_DEFAULT */
@@ -6346,10 +6345,10 @@ typedef enum
     MG_SMOOTH_LEGACY = 16,
     /** equal to FT_LCD_FILTER_MAX */
     MG_SMOOTH_MAX    /*do not remove*/
-} mg_FT_LcdFilter;
+} FT2LCDFilter;
 
 /**
- * \fn BOOL ft2SetLcdFilter(LOGFONT* logfont, mg_FT_LcdFilter filter) 
+ * \fn BOOL ft2SetLcdFilter(LOGFONT* logfont, FT2LCDFilter filter) 
  *
  * \brief Set freetype2 smooth mode.
  *
@@ -6357,13 +6356,13 @@ typedef enum
  *
  * \param logfont The logical font.
  *
- * \param filter The handle font smooth mode, it must be a value of mg_FT_LcdFilter.
+ * \param filter The handle font smooth mode, it must be a value of FT2LCDFilter.
  *
  * \return TRUE on success, otherwise FALSE.
  *
- * \sa mg_FT_LcdFilter 
+ * \sa FT2LCDFilter 
  */
-MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter);
+MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter);
 
 #endif
 
@@ -8826,7 +8825,7 @@ typedef struct _GLYPHBITMAP
     /**
      * The type of glyph bitmap, one of the following values:
      * - GLYPHBMP_TYPE_MONO
-     * - GLYPHBMP_TYPE_PRERENDER
+     * - GLYPHBMP_TYPE_GREY
      * - GLYPHBMP_TYPE_SUBPIXEL
      * - GLYPHBMP_TYPE_PRERENDER
      */
@@ -8950,10 +8949,29 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
 #define GLYPH_INFO_METRICS      0x04
 #define GLYPH_INFO_BMP          0x10
 
-/*the type of glyph bitmap*/
+/**
+ * The type of glyph bitmap: monochrome
+ */
 #define GLYPHBMP_TYPE_MONO      0x00
+
+/**
+ * The type of glyph bitmap: grey (8-bit)
+ */
 #define GLYPHBMP_TYPE_GREY      0x01
+
+/**
+ * The type of glyph bitmap: grey (4-bit)
+ */
+#define GLYPHBMP_TYPE_GREY4b    0x02
+
+/**
+ * The type of glyph bitmap: subpixel
+ */
 #define GLYPHBMP_TYPE_SUBPIXEL  0x02
+
+/**
+ * The type of glyph bitmap: pre-rendered BITMAP object
+ */
 #define GLYPHBMP_TYPE_PRERENDER 0x03
 
 /**

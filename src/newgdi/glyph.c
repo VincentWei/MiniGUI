@@ -1978,35 +1978,17 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
     DWORD glyph_type = devfont->font_ops->get_glyph_type (logfont, devfont);
     switch (glyph_type & DEVFONTGLYPHTYPE_MASK_BMPTYPE) {
         case GLYPHBMP_TYPE_MONO:
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-            if (logfont->style & FS_WEIGHT_BOOK) {
+            if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY) {
                 if (pdc->alpha_pixel_format)
                     ctxt->cb = _dc_book_scan_line;
             }
-            else if (logfont->style & FS_WEIGHT_LIGHT) {
+            else if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL) {
+                ctxt->cb = _dc_subpixel_scan_line;
+            }
+            else if (logfont->style & FS_DECORATE_OUTLINE) {
                 if (pdc->textcolor != pdc->bkcolor)
                     ctxt->cb = _dc_light_scan_line;
             }
-            else if (logfont->style & FS_WEIGHT_SUBPIXEL) {
-                ctxt->cb = _dc_subpixel_scan_line;
-            }
-#else
-            switch (logfont->style & FS_RENDER_MASK) {
-            case FS_RENDER_GREY:
-                if (pdc->alpha_pixel_format)
-                    ctxt->cb = _dc_book_scan_line;
-                break;
-
-            case FS_RENDER_OUTLINE:
-                if (pdc->textcolor != pdc->bkcolor)
-                    ctxt->cb = _dc_light_scan_line;
-                break;
-
-            case FS_RENDER_SUBPIXEL:
-                ctxt->cb = _dc_subpixel_scan_line;
-                break;
-            }
-#endif
 
             if (!ctxt->cb) {
                 ctxt->cb = _dc_regular_scan_line;
@@ -2386,12 +2368,10 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     }
 
     if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
-        switch (logfont->style & FS_RENDER_MASK) {
-        case FS_RENDER_GREY:
-        case FS_RENDER_OUTLINE:
+        if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY ||
+            (logfont->style & FS_DECORATE_OUTLINE)) {
             if (adv_x) *adv_x  += 1;
             advance += 1;
-            break;
         }
     }
 
@@ -2838,7 +2818,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
         need_rc_back = TRUE;
 
     if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
-            && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
+            && (logfont->style & FS_DECORATE_OUTLINE)) {
         fg_gal_rc.x--; fg_gal_rc.y--;
         fg_gal_rc.w += 2; fg_gal_rc.h += 2;
     }
@@ -2852,7 +2832,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
                     area, &bg_gal_rc, &flag);
 
         if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
-                && (logfont->style & FS_RENDER_MASK) == FS_RENDER_OUTLINE) {
+                && (logfont->style & FS_DECORATE_OUTLINE)) {
             bg_gal_rc.x--; bg_gal_rc.y--;
             bg_gal_rc.w += 2; bg_gal_rc.h += 2;
         }

@@ -863,29 +863,6 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->size = size;
 #endif
 
-    // According to face information, change the style information for logical font.
-    if (face->style_flags & FT_STYLE_FLAG_ITALIC)
-        new_devfont->style |= FS_SLANT_ITALIC;
-
-#if 0 // VincentWei: use TT_OS2 table data here
-    if (face->style_flags & FT_STYLE_FLAG_BOLD)
-        new_devfont->style |= FS_WEIGHT_BOLD;
-#else
-    {
-        TT_OS2* tt_os2 = (TT_OS2*)FT_Get_Sfnt_Table (face, FT_SFNT_OS2);
-        unsigned int weight_style = FS_WEIGHT_REGULAR;
-        if (tt_os2->usWeightClass >= 100 && tt_os2->usWeightClass <= 900) {
-            weight_style = (tt_os2->usWeightClass/100 * 10);
-        }
-        else {
-            _DBG_PRINTF("FreeType2: Unknown tt_os2->usWeightClass: %u\n", tt_os2->usWeightClass);
-        }
-
-        new_devfont->style &= ~FS_WEIGHT_MASK;
-        new_devfont->style |= weight_style;
-    }
-#endif
-
     FT_UNLOCK(&ft_lock);
     return new_devfont;
 
@@ -968,7 +945,7 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 }
 
 /************************ Create/Destroy FreeType font ***********************/
-static void* load_font_data (const char* font_name, const char *file_name)
+static void* load_font_data (DEVFONT* devfont, const char* font_name, const char *file_name)
 {
     int         i;
     FT_Error    error;
@@ -1029,6 +1006,40 @@ static void* load_font_data (const char* font_name, const char *file_name)
 
     ft_data->ft_face_info = ft_face_info;
 
+    if (devfont) {
+        // According to OS/2 table information,
+        // change the style information for dev font.
+
+        TT_OS2* tt_os2 = (TT_OS2*)FT_Get_Sfnt_Table (face, FT_SFNT_OS2);
+        unsigned int weight_style = FS_WEIGHT_REGULAR;
+        if (tt_os2->usWeightClass >= 100 && tt_os2->usWeightClass <= 900) {
+            weight_style = (tt_os2->usWeightClass/100 * 10);
+        }
+        else {
+            _DBG_PRINTF("FreeType2: Unknown tt_os2->usWeightClass: %u\n",
+            tt_os2->usWeightClass);
+        }
+
+        devfont->style &= ~FS_WEIGHT_MASK;
+        devfont->style |= weight_style;
+
+        devfont->style &= ~FS_SLANT_MASK;
+        if (tt_os2->fsSelection & (0x01 << 9)) // OBLIQUE
+            devfont->style |= FS_SLANT_OBLIQUE;
+        else if (tt_os2->fsSelection & 0x01) // ITALIC
+            devfont->style |= FS_SLANT_ITALIC;
+
+        devfont->style &= ~FS_DECORATE_MASK;
+        if (tt_os2->fsSelection & (0x01 << 1)) // UNDERSCORE
+            devfont->style |= FS_DECORATE_UNDERLINE;
+        if (tt_os2->fsSelection & (0x01 << 2)) // NEGATIVE
+            devfont->style |= FS_DECORATE_REVERSE;
+        if (tt_os2->fsSelection & (0x01 << 3)) // OUTLINED (HOLLOW)
+            devfont->style |= FS_DECORATE_OUTLINE;
+        if (tt_os2->fsSelection & (0x01 << 4)) // STRIKEOUT
+            devfont->style |= FS_DECORATE_STRUCKOUT;
+    }
+
     FT_UNLOCK(&ft_lock);
     return ft_data;
 
@@ -1039,7 +1050,7 @@ error:
     return NULL;
 }
 
-static void unload_font_data (void* data)
+static void unload_font_data (DEVFONT* devfont, void* data)
 {
     FT2_DATA* ft_data = (FT2_DATA*)data;
 #ifndef _MGFONT_TTF_CACHE
@@ -1171,7 +1182,7 @@ FONTOPS __mg_ttf_ops = {
 };
 
 BOOL
-ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
+ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter)
 {
     BOOL        rv = FALSE;
     DEVFONT*    devfont;
@@ -1201,6 +1212,7 @@ ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
 #else
         if (filter == MG_SMOOTH_NONE) {
             logfont->style &= ~FS_RENDER_MASK;
+            logfont->style |= FS_RENDER_MONO;
         }
 #endif
     }

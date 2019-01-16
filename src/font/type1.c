@@ -79,7 +79,7 @@ static encstruct default_enc;
 
 #define CHARSPACEUNIT2PIXEL(x)  (x/1000)
 
-static void* load_font_data (const char* font_name, const char* file_name)
+static void* load_font_data (DEVFONT* devfont, const char* font_name, const char* file_name)
 {
     int j;
 	int font_id;
@@ -109,7 +109,7 @@ error:
     return NULL;
 }
 
-static void unload_font_data (void* data)
+static void unload_font_data (DEVFONT* devfont, void* data)
 {
     free (data);
 }

@@ -306,7 +306,7 @@ PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
 
     if (underline == FONT_UNDERLINE_LINE) {
         if (struckout == FONT_STRUCKOUT_LINE) {
-            style_name[4] = FONT_DECORATE_BOTH;
+            style_name[4] = FONT_DECORATE_US;
         }
         else {
             style_name[4] = FONT_DECORATE_UNDERLINE;

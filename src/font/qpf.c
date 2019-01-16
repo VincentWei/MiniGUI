@@ -154,7 +154,7 @@ static void clear_glyph_tree (QPF_GLYPHTREE* tree)
     free (tree->more);
 }
 
-static void* load_font_data (const char* font_name, const char* file_name)
+static void* load_font_data (DEVFONT* devfont, const char* font_name, const char* file_name)
 {
     FILE* fp = NULL;
     uchar* data;
@@ -222,7 +222,7 @@ error:
     return NULL;
 }
 
-static void unload_font_data (void* data)
+static void unload_font_data (DEVFONT* devfont, void* data)
 {
     QPFINFO* qpf_info = (QPFINFO*)data;
 

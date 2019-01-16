@@ -65,7 +65,7 @@ static TT_Engine ttf_engine;        /* The ONLY freetype engine */
 static BYTE virtual_palette [] = {0, 32, 64, 128, 255};
 
 /************************ Create/Destroy FreeType font ***********************/
-static void* load_font_data (const char* font_name, const char *file_name)
+static void* load_font_data (DEVFONT* devfont, const char* font_name, const char *file_name)
 {
     unsigned short      i, n;
     unsigned short      platform, encoding;
@@ -144,7 +144,7 @@ error_after_create_info:
     return NULL;
 }
 
-static void unload_font_data (void* data)
+static void unload_font_data (DEVFONT* devfont, void* data)
 {
     TTFINSTANCEINFO* ttf_inst_info = (TTFINSTANCEINFO*)data;
     TTFGLYPHINFO* ttf_glyph_info = ttf_inst_info->ttf_glyph_info;

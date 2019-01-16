@@ -239,8 +239,15 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_DECORATE_STRUCKOUT:
         style |= FS_DECORATE_STRUCKOUT;
         break;
-    case FONT_DECORATE_BOTH:
-        style |= FS_DECORATE_BOTH;
+    case FONT_DECORATE_REVERSE:
+        style |= FS_DECORATE_REVERSE;
+        break;
+    case FONT_DECORATE_OUTLINE:
+        style |= FS_DECORATE_OUTLINE;
+        break;
+    case FONT_DECORATE_US:
+        style |= FS_DECORATE_UNDERLINE;
+        style |= FS_DECORATE_STRUCKOUT;
         break;
     default:
         break;
@@ -250,9 +257,6 @@ DWORD fontConvertStyle (const char* style_part)
     switch (style_part [5]) {
     case FONT_RENDER_MONO:
         style |= FS_RENDER_MONO;
-        break;
-    case FONT_RENDER_OUTLINE:
-        style |= FS_RENDER_OUTLINE;
         break;
     case FONT_RENDER_GREY:
         style |= FS_RENDER_GREY;

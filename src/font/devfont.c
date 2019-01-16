@@ -440,10 +440,11 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
     devfont->charset_ops = charset_ops;
 
     if (is_filename) {
-        devfont->data = devfont->font_ops->load_font_data (font_name, data);
+        devfont->data = devfont->font_ops->load_font_data (devfont,
+                font_name, data);
 
         if (devfont->data == NULL) {
-            _MG_PRINTF ("FONT>DevFont: error in loading font %s from %s file.\n",
+            _MG_PRINTF ("FONT>DevFont: error in loading font %s from %s file\n",
                 font_name, (const char*) data);
             free (devfont);
             return NULL;
@@ -679,7 +680,7 @@ one_list:
         cur = tmp->next;
 
         if (!tmp->relationship && tmp->need_unload)
-            tmp->font_ops->unload_font_data (tmp->data);
+            tmp->font_ops->unload_font_data (tmp, tmp->data);
         free (tmp);
     }
 
@@ -717,7 +718,7 @@ static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list
         if (strcmp (cur->name, font_name) == 0) {
             /*unload cur->data*/
             if (!cur->relationship && cur->need_unload)
-                cur->font_ops->unload_font_data (cur->data);
+                cur->font_ops->unload_font_data (cur, cur->data);
 
             if (cur == head) {
                 cur = cur->next;

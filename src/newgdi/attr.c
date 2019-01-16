@@ -162,37 +162,6 @@ static void make_gray_pixels (PDC pdc)
 
 static void make_filter_pixels (PDC pdc)
 {
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-    if (pdc->pLogFont->style & FS_WEIGHT_BOOK) {
-        int i;
-        Uint8 r, g, b, a;
-
-        if (make_alpha_pixel_format (pdc))
-            return;
-
-        GAL_GetRGB (pdc->textcolor, pdc->surface->format, &r, &g, &b);
-
-        a = 0;
-        for (i = 0; i < 16; i++) {
-            pdc->filter_pixels [i] = GAL_MapRGBA (pdc->alpha_pixel_format,
-                            r, g, b, a);
-            a += 16;
-        }
-
-        pdc->filter_pixels [16] = GAL_MapRGBA (pdc->alpha_pixel_format,
-                        r, g, b, 255);
-
-    }
-    else if (pdc->pLogFont->style & FS_WEIGHT_LIGHT) {
-        gal_pixel trans = pdc->bkcolor ^ 1;
-        if (trans == pdc->textcolor)
-            trans = pdc->bkcolor ^ 3;
-
-        pdc->filter_pixels [0] = trans;
-        pdc->filter_pixels [1] = pdc->bkcolor;
-        pdc->filter_pixels [2] = pdc->textcolor;
-    }
-#else
     switch (pdc->pLogFont->style & FS_RENDER_MASK) {
     case FS_RENDER_GREY: {
         int i;
@@ -215,21 +184,21 @@ static void make_filter_pixels (PDC pdc)
         break;
     }
 
-    case FS_RENDER_OUTLINE: {
-        gal_pixel trans = pdc->bkcolor ^ 1;
-        if (trans == pdc->textcolor)
-            trans = pdc->bkcolor ^ 3;
+    case FS_RENDER_MONO:
+        if (pdc->pLogFont->style & FS_DECORATE_OUTLINE) {
+            gal_pixel trans = pdc->bkcolor ^ 1;
+            if (trans == pdc->textcolor)
+                trans = pdc->bkcolor ^ 3;
 
-        pdc->filter_pixels [0] = trans;
-        pdc->filter_pixels [1] = pdc->bkcolor;
-        pdc->filter_pixels [2] = pdc->textcolor;
+            pdc->filter_pixels [0] = trans;
+            pdc->filter_pixels [1] = pdc->bkcolor;
+            pdc->filter_pixels [2] = pdc->textcolor;
+        }
         break;
-    }
 
     default:
         break;
     }
-#endif
 }
 
 Uint32 GUIAPI SetDCAttr (HDC hdc, int attr, Uint32 value)
