@@ -123,8 +123,8 @@ Please report any bugs and incompatibilities in
   1. New API: `UpdateInvalidClient`. You can use this function to update
     the invalid client region of a window instantly.
   1. Use different colors for the output of `_DBG_PRINTF` and `_ERR_PRINTF`.
-  1. Add `__mg_save_jpg` function for storing MYBITMAP as JPEG file (10km).
-  1. Modified logic for checking JPEG format (10km).
+  1. Add `__mg_save_jpg` function for storing MYBITMAP as JPEG file (@10km).
+  1. Modified logic for checking JPEG format (@10km).
   1. Support BIDI for UNICODE charsets and cleanup the implementation.
     * New API: `GetGlyphBIDIType` to get the glyph type in BIDI.
     * New DC attribute: BIDI flag.
