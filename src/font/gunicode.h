@@ -73,7 +73,6 @@ typedef enum
   G_UNICODE_PARAGRAPH_SEPARATOR,
   G_UNICODE_SPACE_SEPARATOR
 } GUnicodeType;
-#endif /* VincentWei: Moved to gid.h */
 
 /* These are the possible line break classifications.
  * Note that new types may be added in the future.
@@ -119,6 +118,7 @@ typedef enum
   G_UNICODE_BREAK_HANGUL_LV_SYLLABLE,
   G_UNICODE_BREAK_HANGUL_LVT_SYLLABLE
 } GUnicodeBreakType;
+#endif /* VincentWei: Moved to gid.h */
 
 typedef enum 
 {                         /* ISO 15924 code */

@@ -5828,36 +5828,85 @@ typedef int    UChar32;
 /* These are the basic UNICODE character classifications.
  * See http://www.unicode.org/Public/UNIDATA/UCD.html#General_Category_Values
  */
-#define G_UNICODE_CONTROL               0x00B0
-#define G_UNICODE_FORMAT                0x00B1
-#define G_UNICODE_UNASSIGNED            0x00B2
-#define G_UNICODE_PRIVATE_USE           0x00B3
-#define G_UNICODE_SURROGATE             0x00B4
-#define G_UNICODE_LOWERCASE_LETTER      0x00B5
-#define G_UNICODE_MODIFIER_LETTER       0x00B6
-#define G_UNICODE_OTHER_LETTER          0x00B7
-#define G_UNICODE_TITLECASE_LETTER      0x00B8
-#define G_UNICODE_UPPERCASE_LETTER      0x00B9
-#define G_UNICODE_COMBINING_MARK        0x00BA
-#define G_UNICODE_ENCLOSING_MARK        0x00BB
-#define G_UNICODE_NON_SPACING_MARK      0x00BC
-#define G_UNICODE_DECIMAL_NUMBER        0x00BD
-#define G_UNICODE_LETTER_NUMBER         0x00BE
-#define G_UNICODE_OTHER_NUMBER          0x00BF
-#define G_UNICODE_CONNECT_PUNCTUATION   0x00C0
-#define G_UNICODE_DASH_PUNCTUATION      0x00C1
-#define G_UNICODE_CLOSE_PUNCTUATION     0x00C2
-#define G_UNICODE_FINAL_PUNCTUATION     0x00C3
-#define G_UNICODE_INITIAL_PUNCTUATION   0x00C4
-#define G_UNICODE_OTHER_PUNCTUATION     0x00C5
-#define G_UNICODE_OPEN_PUNCTUATION      0x00C6
-#define G_UNICODE_CURRENCY_SYMBOL       0x00C7
-#define G_UNICODE_MODIFIER_SYMBOL       0x00C8
-#define G_UNICODE_MATH_SYMBOL           0x00C9
-#define G_UNICODE_OTHER_SYMBOL          0x00CA
-#define G_UNICODE_LINE_SEPARATOR        0x00CB
-#define G_UNICODE_PARAGRAPH_SEPARATOR   0x00CC
-#define G_UNICODE_SPACE_SEPARATOR       0x00CD
+#define G_UNICODE_CONTROL               0x00
+#define G_UNICODE_FORMAT                0x01
+#define G_UNICODE_UNASSIGNED            0x02
+#define G_UNICODE_PRIVATE_USE           0x03
+#define G_UNICODE_SURROGATE             0x04
+#define G_UNICODE_LOWERCASE_LETTER      0x05
+#define G_UNICODE_MODIFIER_LETTER       0x06
+#define G_UNICODE_OTHER_LETTER          0x07
+#define G_UNICODE_TITLECASE_LETTER      0x08
+#define G_UNICODE_UPPERCASE_LETTER      0x09
+#define G_UNICODE_SPACING_MARK          0x0A
+#define G_UNICODE_ENCLOSING_MARK        0x0B
+#define G_UNICODE_NON_SPACING_MARK      0x0C
+#define G_UNICODE_DECIMAL_NUMBER        0x0D
+#define G_UNICODE_LETTER_NUMBER         0x0E
+#define G_UNICODE_OTHER_NUMBER          0x0F
+#define G_UNICODE_CONNECT_PUNCTUATION   0x10
+#define G_UNICODE_DASH_PUNCTUATION      0x11
+#define G_UNICODE_CLOSE_PUNCTUATION     0x12
+#define G_UNICODE_FINAL_PUNCTUATION     0x13
+#define G_UNICODE_INITIAL_PUNCTUATION   0x14
+#define G_UNICODE_OTHER_PUNCTUATION     0x15
+#define G_UNICODE_OPEN_PUNCTUATION      0x16
+#define G_UNICODE_CURRENCY_SYMBOL       0x17
+#define G_UNICODE_MODIFIER_SYMBOL       0x18
+#define G_UNICODE_MATH_SYMBOL           0x19
+#define G_UNICODE_OTHER_SYMBOL          0x1A
+#define G_UNICODE_LINE_SEPARATOR        0x1B
+#define G_UNICODE_PARAGRAPH_SEPARATOR   0x1C
+#define G_UNICODE_SPACE_SEPARATOR       0x1D
+
+/* These are the possible line break classifications.
+ * Note that new types may be added in the future.
+ * Implementations may regard unknown values like G_UNICODE_BREAK_UNKNOWN
+ * See http://www.unicode.org/unicode/reports/tr14/
+ */
+#define G_UNICODE_BREAK_MANDATORY           0x00
+#define G_UNICODE_BREAK_CARRIAGE_RETURN     0x01
+#define G_UNICODE_BREAK_LINE_FEED           0x02
+#define G_UNICODE_BREAK_COMBINING_MARK      0x03
+#define G_UNICODE_BREAK_SURROGATE           0x04
+#define G_UNICODE_BREAK_ZERO_WIDTH_SPACE    0x05
+#define G_UNICODE_BREAK_INSEPARABLE         0x06
+#define G_UNICODE_BREAK_NON_BREAKING_GLUE   0x07
+#define G_UNICODE_BREAK_CONTINGENT          0x08
+#define G_UNICODE_BREAK_SPACE               0x09
+#define G_UNICODE_BREAK_AFTER               0x0A
+#define G_UNICODE_BREAK_BEFORE              0x0B
+#define G_UNICODE_BREAK_BEFORE_AND_AFTER    0x0C
+#define G_UNICODE_BREAK_HYPHEN              0x0D
+#define G_UNICODE_BREAK_NON_STARTER         0x0E
+#define G_UNICODE_BREAK_OPEN_PUNCTUATION    0x0F
+#define G_UNICODE_BREAK_CLOSE_PUNCTUATION   0x10
+#define G_UNICODE_BREAK_QUOTATION           0x11
+#define G_UNICODE_BREAK_EXCLAMATION         0x12
+#define G_UNICODE_BREAK_IDEOGRAPHIC         0x13
+#define G_UNICODE_BREAK_NUMERIC             0x14
+#define G_UNICODE_BREAK_INFIX_SEPARATOR     0x15
+#define G_UNICODE_BREAK_SYMBOL              0x16
+#define G_UNICODE_BREAK_ALPHABETIC          0x17
+#define G_UNICODE_BREAK_PREFIX              0x18
+#define G_UNICODE_BREAK_POSTFIX             0x19
+#define G_UNICODE_BREAK_COMPLEX_CONTEXT     0x1A
+#define G_UNICODE_BREAK_AMBIGUOUS           0x1B
+#define G_UNICODE_BREAK_UNKNOWN             0x1C
+#define G_UNICODE_BREAK_NEXT_LINE           0x1D
+#define G_UNICODE_BREAK_WORD_JOINER         0x1E
+#define G_UNICODE_BREAK_HANGUL_L_JAMO       0x1F
+#define G_UNICODE_BREAK_HANGUL_V_JAMO       0x20
+#define G_UNICODE_BREAK_HANGUL_T_JAMO       0x21
+#define G_UNICODE_BREAK_HANGUL_LV_SYLLABLE  0x22
+#define G_UNICODE_BREAK_HANGUL_LVT_SYLLABLE 0x23
+#define G_UNICODE_BREAK_CLOSE_PARANTHESIS               0x24
+#define G_UNICODE_BREAK_CONDITIONAL_JAPANESE_STARTER    0x25
+#define G_UNICODE_BREAK_HEBREW_LETTER       0x26
+#define G_UNICODE_BREAK_REGIONAL_INDICATOR  0x27
+#define G_UNICODE_BREAK_EMOJI_BASE          0x28
+#define G_UNICODE_BREAK_EMOJI_MODIFIER      0x29
+#define G_UNICODE_BREAK_ZERO_WIDTH_JOINER   0x2A
 
 struct _FONTOPS;
 struct _CHARSETOPS;
@@ -8949,30 +8998,61 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
 #define GLYPH_INFO_METRICS      0x04
 #define GLYPH_INFO_BMP          0x10
 
-/**
- * The type of glyph bitmap: monochrome
- */
+/** The type of glyph bitmap: monochrome */
 #define GLYPHBMP_TYPE_MONO      0x00
-
-/**
- * The type of glyph bitmap: grey (8-bit)
- */
+/** The type of glyph bitmap: grey (8-bit) */
 #define GLYPHBMP_TYPE_GREY      0x01
-
-/**
- * The type of glyph bitmap: grey (4-bit)
- */
+/** The type of glyph bitmap: grey (4-bit) */
 #define GLYPHBMP_TYPE_GREY4b    0x02
-
-/**
- * The type of glyph bitmap: subpixel
- */
+/** The type of glyph bitmap: subpixel */
 #define GLYPHBMP_TYPE_SUBPIXEL  0x02
-
-/**
- * The type of glyph bitmap: pre-rendered BITMAP object
- */
+/** The type of glyph bitmap: pre-rendered BITMAP object */
 #define GLYPHBMP_TYPE_PRERENDER 0x03
+
+/** The bits mask for glyph type */
+#define GLYPHTYPE_BASIC_MASK        0x000000FF
+/** The bits mask for break type */
+#define GLYPHTYPE_BREAK_MASK        0x0000FF00
+
+/** The bit determines whether a glyph is alphanumeric. */
+#define GLYPHTYPE_ATTR_ISALNUM      0x00010000
+/** The bit determines whether a character is alphabetic (i.e. a letter). */
+#define GLYPHTYPE_ATTR_ISALPHA      0x00020000
+/** The bit determines whether a character is a control character. */
+#define GLYPHTYPE_ATTR_ISCONTROL    0x00040000
+/** The bit determines whether a character is numeric (i.e. a digit). */
+#define GLYPHTYPE_ATTR_ISDIGIT      0x00080000
+/** The bit determines whether a character is printable and not a space */
+#define GLYPHTYPE_ATTR_ISGRAPH      0x00100000
+/** The bit determines whether a character is a lowercase letter. */
+#define GLYPHTYPE_ATTR_ISLOWER      0x00200000
+/** The bit determines whether a character is printable. */
+#define GLYPHTYPE_ATTR_ISPRINT      0x00400000
+/** The bit determines whether a character is a uppercase letter. */
+#define GLYPHTYPE_ATTR_ISUPPER      0x00800000
+/** The bit determines whether a character is punctuation or a symbol. */
+#define GLYPHTYPE_ATTR_ISPUNCT      0x01000000
+/** The bit determines whether a character is a space, tab, or line separator
+ * (newline, carriage return, etc.). */
+#define GLYPHTYPE_ATTR_ISSPACE      0x02000000
+/** The bit determines whether a character is a mark (non-spacing mark,
+ * combining mark, or enclosing mark in Unicode speak). */
+#define GLYPHTYPE_ATTR_ISMARK       0x04000000
+/** The bit determines if a character is titlecase. Some characters in
+ * Unicode which are composites, such as the DZ digraph
+ * have three case variants instead of just two. The titlecase
+ * form is used at the beginning of a word where only the
+ * first letter is capitalized. The titlecase form of the DZ
+ * digraph is U+01F2 LATIN CAPITAL LETTTER D WITH SMALL LETTER Z. */
+#define GLYPHTYPE_ATTR_ISTITLE      0x08000000
+/** The bit determines if a character is a hexidecimal digit. */
+#define GLYPHTYPE_ATTR_ISXDIGIT     0x10000000
+/** The bit determines if a given character is assigned in the Unicode standard. */
+#define GLYPHTYPE_ATTR_ISDEFINED    0x20000000
+/** The bit determines if a given character typically takes zero width when rendered. */
+#define GLYPHTYPE_ATTR_ISZEROWIDTH  0x40000000
+/** The bit determines if a character is typically rendered in a double-width cell. */
+#define GLYPHTYPE_ATTR_ISWIDE       0x80000000
 
 /**
  * \var typedef struct  _GLYPHINFO GLYPHINFO
@@ -8989,7 +9069,7 @@ typedef struct _GLYPHINFO {
      */
     unsigned int mask;
 
-    /** The basic glyph type */
+    /** The glyph type */
     unsigned int glyph_type;
 
     /** The BIDI glyph type */

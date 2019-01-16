@@ -3466,17 +3466,177 @@ static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar,  int pre_l
 
 //#include "gunicode.h"
 #include "gunichartables.h"
+#include "gunibreak.h"
+
+#define ATTR_TABLE(Page) (((Page) <= G_UNICODE_LAST_PAGE_PART1) \
+                          ? attr_table_part1[Page] \
+                          : attr_table_part2[(Page) - 0xe00])
+
+#define ATTTABLE(Page, Char) \
+  ((ATTR_TABLE(Page) == G_UNICODE_MAX_TABLE_INDEX) ? 0 : (attr_data[ATTR_TABLE(Page)][Char]))
 
 #define TTYPE_PART1(Page, Char) \
-      ((type_table_part1[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
-          ? (type_table_part1[Page] - G_UNICODE_MAX_TABLE_INDEX) \
-          : (type_data[type_table_part1[Page]][Char]))
+  ((type_table_part1[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
+   ? (type_table_part1[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+   : (type_data[type_table_part1[Page]][Char]))
 
+#define TTYPE_PART2(Page, Char) \
+  ((type_table_part2[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
+   ? (type_table_part2[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+   : (type_data[type_table_part2[Page]][Char]))
 
-#define UNICODE_TYPE(Char) \
-      (((Char) <= G_UNICODE_LAST_CHAR_PART1) \
-          ? TTYPE_PART1 ((Char) >> 8, (Char) & 0xff) \
-          : G_UNICODE_UNASSIGNED)
+#define TYPE(Char) \
+  (((Char) <= G_UNICODE_LAST_CHAR_PART1) \
+   ? TTYPE_PART1 ((Char) >> 8, (Char) & 0xff) \
+   : (((Char) >= 0xe0000 && (Char) <= G_UNICODE_LAST_CHAR) \
+      ? TTYPE_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
+      : G_UNICODE_UNASSIGNED))
+
+#define IS(Type, Class) (((unsigned int)1 << (Type)) & (Class))
+#define OR(Type, Rest)  (((unsigned int)1 << (Type)) | (Rest))
+
+#define ISALPHA(Type)   IS ((Type),             \
+                OR (G_UNICODE_LOWERCASE_LETTER, \
+                OR (G_UNICODE_UPPERCASE_LETTER, \
+                OR (G_UNICODE_TITLECASE_LETTER, \
+                OR (G_UNICODE_MODIFIER_LETTER,  \
+                OR (G_UNICODE_OTHER_LETTER,     0))))))
+
+#define ISALDIGIT(Type) IS ((Type),             \
+                OR (G_UNICODE_DECIMAL_NUMBER,   \
+                OR (G_UNICODE_LETTER_NUMBER,    \
+                OR (G_UNICODE_OTHER_NUMBER,     \
+                OR (G_UNICODE_LOWERCASE_LETTER, \
+                OR (G_UNICODE_UPPERCASE_LETTER, \
+                OR (G_UNICODE_TITLECASE_LETTER, \
+                OR (G_UNICODE_MODIFIER_LETTER,  \
+                OR (G_UNICODE_OTHER_LETTER,     0)))))))))
+
+#define ISMARK(Type)    IS ((Type),             \
+                OR (G_UNICODE_NON_SPACING_MARK, \
+                OR (G_UNICODE_SPACING_MARK, \
+                OR (G_UNICODE_ENCLOSING_MARK,   0))))
+
+#define ISZEROWIDTHTYPE(Type)   IS ((Type),         \
+                OR (G_UNICODE_NON_SPACING_MARK, \
+                OR (G_UNICODE_ENCLOSING_MARK,   \
+                OR (G_UNICODE_FORMAT,       0))))
+
+#define TPROP_PART1(Page, Char) \
+  ((break_property_table_part1[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
+   ? (break_property_table_part1[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+   : (break_property_data[break_property_table_part1[Page]][Char]))
+
+#define TPROP_PART2(Page, Char) \
+  ((break_property_table_part2[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
+   ? (break_property_table_part2[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+   : (break_property_data[break_property_table_part2[Page]][Char]))
+
+#define PROP(Char) \
+  (((Char) <= G_UNICODE_LAST_CHAR_PART1) \
+   ? TPROP_PART1 ((Char) >> 8, (Char) & 0xff) \
+   : (((Char) >= 0xe0000 && (Char) <= G_UNICODE_LAST_CHAR) \
+      ? TPROP_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
+      : G_UNICODE_BREAK_UNKNOWN))
+
+static unsigned int unicode_glyph_type (Glyph32 glyph_value)
+{
+    unsigned int basic_type = TYPE(glyph_value);
+    unsigned int break_type = PROP(glyph_value);
+    unsigned int type = basic_type | (break_type << 8);
+    unsigned int i;
+
+    if (ISALDIGIT (basic_type))
+        type |= GLYPHTYPE_ATTR_ISALNUM;
+    if (ISALPHA (basic_type))
+        type |= GLYPHTYPE_ATTR_ISALPHA;
+    if (basic_type == G_UNICODE_CONTROL)
+        type |= GLYPHTYPE_ATTR_ISCONTROL;
+    if (basic_type == G_UNICODE_DECIMAL_NUMBER);
+        type |= GLYPHTYPE_ATTR_ISDIGIT;
+    if (!IS (basic_type,
+            OR (G_UNICODE_CONTROL,
+            OR (G_UNICODE_FORMAT,
+            OR (G_UNICODE_UNASSIGNED,
+            OR (G_UNICODE_SURROGATE,
+            OR (G_UNICODE_SPACE_SEPARATOR,
+            0)))))))
+        type |= GLYPHTYPE_ATTR_ISGRAPH;
+    if (basic_type == G_UNICODE_LOWERCASE_LETTER)
+        type |= GLYPHTYPE_ATTR_ISLOWER;
+    if (basic_type == G_UNICODE_UPPERCASE_LETTER)
+        type |= GLYPHTYPE_ATTR_ISUPPER;
+    if (!IS (basic_type,
+            OR (G_UNICODE_CONTROL,
+            OR (G_UNICODE_FORMAT,
+            OR (G_UNICODE_UNASSIGNED,
+            OR (G_UNICODE_SURROGATE,
+            0))))))
+        type |= GLYPHTYPE_ATTR_ISPRINT;
+    if (IS (basic_type,
+            OR (G_UNICODE_CONNECT_PUNCTUATION,
+            OR (G_UNICODE_DASH_PUNCTUATION,
+            OR (G_UNICODE_CLOSE_PUNCTUATION,
+            OR (G_UNICODE_FINAL_PUNCTUATION,
+            OR (G_UNICODE_INITIAL_PUNCTUATION,
+            OR (G_UNICODE_OTHER_PUNCTUATION,
+            OR (G_UNICODE_OPEN_PUNCTUATION,
+            OR (G_UNICODE_CURRENCY_SYMBOL,
+            OR (G_UNICODE_MODIFIER_SYMBOL,
+            OR (G_UNICODE_MATH_SYMBOL,
+            OR (G_UNICODE_OTHER_SYMBOL,
+            0)))))))))))))
+        type |= GLYPHTYPE_ATTR_ISPUNCT;
+
+    switch (glyph_value) {
+    /* special-case these since Unicode thinks they are not spaces */
+    case '\t':
+    case '\n':
+    case '\r':
+    case '\f':
+        type |= GLYPHTYPE_ATTR_ISSPACE;
+        break;
+
+    default: {
+        if (IS (basic_type,
+               OR (G_UNICODE_SPACE_SEPARATOR,
+               OR (G_UNICODE_LINE_SEPARATOR,
+               OR (G_UNICODE_PARAGRAPH_SEPARATOR,
+                0)))))
+            type |= GLYPHTYPE_ATTR_ISSPACE;
+        }
+        break;
+    }
+
+    for (i = 0; i < TABLESIZE (title_table); ++i) {
+        if (title_table[i][0] == glyph_value) {
+            type |= GLYPHTYPE_ATTR_ISTITLE;
+            break;
+        }
+    }
+
+    if (ISMARK (basic_type))
+        type |= GLYPHTYPE_ATTR_ISMARK;
+
+    if ((glyph_value >= 'a' && glyph_value <= 'f')
+            || (glyph_value >= 'A' && glyph_value <= 'F')
+            || (basic_type == G_UNICODE_DECIMAL_NUMBER))
+        type |= GLYPHTYPE_ATTR_ISXDIGIT;
+
+    if (!IS (basic_type,
+              OR (G_UNICODE_UNASSIGNED,
+              OR (G_UNICODE_SURROGATE,
+             0))))
+        type |= GLYPHTYPE_ATTR_ISDEFINED;
+
+    if (glyph_value != 0x00AD && ISZEROWIDTHTYPE (basic_type))
+        type |= GLYPHTYPE_ATTR_ISZEROWIDTH;
+    else if ((glyph_value >= 0x1160 && glyph_value < 0x1200)
+            || glyph_value == 0x200B)
+        type |= GLYPHTYPE_ATTR_ISZEROWIDTH;
+
+    return type;
+}
 
 #include "unicode-bidi-tables.h"
 
@@ -3512,16 +3672,6 @@ static BOOL unicode_bidi_mirror_glyph (Glyph32 glyph, Glyph32* mirrored)
 {
     return get_mirror_glyph (__mg_unicode_mirror_table,
             TABLESIZE (__mg_unicode_mirror_table), glyph, mirrored);
-}
-
-static unsigned int utf8_glyph_type (Glyph32 glyph_value)
-{
-    if (glyph_value < 0x80) {
-        return sb_glyph_type (glyph_value);
-    }
-    else {
-        return UNICODE_TYPE (glyph_value);
-    }
 }
 
 static int utf8_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
@@ -3717,7 +3867,7 @@ static CHARSETOPS CharsetOps_utf8 = {
     utf8_len_first_char,
     utf8_char_glyph_value,
     NULL,
-    utf8_glyph_type,
+    unicode_glyph_type,
     utf8_nr_chars_in_str,
     utf8_is_this_charset,
     utf8_len_first_substr,
@@ -3772,20 +3922,6 @@ static Glyph32 utf16le_char_glyph_value (const unsigned char* pre_mchar,
     wc += 0x10000;
 
     return wc;
-}
-
-static unsigned int utf16_glyph_type (Glyph32 glyph_value)
-{
-    if (glyph_value == 0xFEFF) {
-        return MCHAR_TYPE_ZEROWIDTH;
-    }
-    else if (glyph_value < 0x80) {
-        return sb_glyph_type (glyph_value);
-    }
-    else {
-        /* TODO: get the subtype of the char */
-        return UNICODE_TYPE (glyph_value);
-    }
 }
 
 static int utf16le_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
@@ -3957,7 +4093,7 @@ static CHARSETOPS CharsetOps_utf16le = {
     utf16le_len_first_char,
     utf16le_char_glyph_value,
     NULL,
-    utf16_glyph_type,
+    unicode_glyph_type,
     utf16le_nr_chars_in_str,
     utf16le_is_this_charset,
     utf16le_len_first_substr,
@@ -4183,7 +4319,7 @@ static CHARSETOPS CharsetOps_utf16be = {
     utf16be_len_first_char,
     utf16be_char_glyph_value,
     NULL,
-    utf16_glyph_type,
+    unicode_glyph_type,
     utf16be_nr_chars_in_str,
     utf16be_is_this_charset,
     utf16be_len_first_substr,
