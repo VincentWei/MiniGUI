@@ -14,12 +14,12 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
               region.c generators.c polygon.c flood.c \
               advapi.c midash.c mispans.c miwideline.c \
               mifillarc.c mifpolycon.c miarc.c rotatebmp.c \
-			  text.c glyph.c bidi.c \
-			  textout.c tabbedtextout.c drawtext.c 
+              text.c glyph.c bidi.c glyph-css.c \
+              textout.c tabbedtextout.c drawtext.c
 endif
 
 HDR_FILES = drawtext.h mi.h midc.h mistruct.h miwideline.h \
-            pixel_ops.h mifillarc.h mispans.h polygon.h mifpoly.h 
+            pixel_ops.h mifillarc.h mispans.h polygon.h mifpoly.h
 
 libnewgdi_la_SOURCES = $(SRC_FILES) $(HDR_FILES)
 

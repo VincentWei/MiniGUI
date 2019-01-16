@@ -9278,6 +9278,51 @@ typedef enum {
 } WhiteSpaceRule;
 
 /**
+ * The character transformation rule for \a GetGlyphsByRules.
+ */
+typedef enum {
+    CT_NONE,
+    CT_CAPITALIZE,
+    CT_UPPERCASE,
+    CT_LOWERCASE,
+    CT_FULL_WIDTH,
+    CT_FULL_SIZE_KANA,
+} CharTransformRule;
+
+/**
+ * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
+ *          WhiteSpaceRule white_space, CharTransformRule trans_rule,
+ *          Glyph32** glyphs, int* nr_glyphs);
+ * \brief Calculate the glyph string under the specified white space and
+ *        transformation rule.
+ *
+ * This function calculates and allocates the glyph string from a multi-byte
+ * string under the specified white space rule \a white_space and transformation
+ * rule.
+ *
+ * The function will return if it encounters any hard line break or the null character.
+ * The hard line break will be included in the returned glyphs if there was one.
+ *
+ * \param logfont The logfont used to parse the string.
+ * \param mstr The pointer to the multi-byte string.
+ * \param mstr_len The length of \a mstr in bytes.
+ * \param white_space The white space rule. This parameter specifies two things:
+ *          - whether and how white space inside the string is collapsed.
+ *          - whether lines may wrap at unforced soft wrap opportunities.
+ * \param trans_rule The character transformation rule.
+ * \param glyphs The pointer to a buffer to store the address of the
+ *        allocated glyph string.
+ * \param nr_glyphs The buffer to store the number of the allocated glyphs.
+ *
+ * \return The number of the bytes consumed in \a mstr.
+ *
+ * \sa WhiteSpaceRule, CharTransformRule, DrawGlyphStringEx
+ */
+MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
+            WhiteSpaceRule white_space, CharTransformRule trans_rule,
+            Glyph32** glyphs, int* nr_glyphs);
+
+/**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *          const Glyph32* glyphs, int nr_glyphs,
  *          DWORD render_flags, int letter_spacing, int word_spacing,
