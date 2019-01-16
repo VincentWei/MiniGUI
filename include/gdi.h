@@ -6752,6 +6752,8 @@ MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font,
 MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font, 
                 const char* mstr, int len, WORDINFO* word_info);
 
+typedef int Glyph32;
+
 #ifdef _MGCHARSET_UNICODE
 
 #include <stddef.h>
@@ -6908,6 +6910,80 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
 #define WCS2MBS(log_font, dest, wcs, wcs_len, n) \
             WCS2MBSEx (log_font, dest, wcs, wcs_len, sizeof (wchar_t) == 4, \
             n, NULL)
+
+/** The function determines whether a glyph is alphanumeric. */
+MG_EXPORT BOOL GUIAPI IsGlyphAlnum(Glyph32 g);
+
+/** The function determines whether a character is alphabetic (i.e. a letter). */
+MG_EXPORT BOOL GUIAPI IsGlyphAlpha(Glyph32 g);
+
+/** The function determines whether a character is a control character. */
+MG_EXPORT BOOL GUIAPI IsGlyphControl(Glyph32 g);
+
+/** The function determines whether a character is numeric (i.e. a digit). */
+MG_EXPORT BOOL GUIAPI IsGlyphDigit(Glyph32 g);
+
+/** The function determines whether a character is printable and not a space */
+MG_EXPORT BOOL GUIAPI IsGlyphGraph(Glyph32 g);
+
+/** The function determines whether a character is a lowercase letter. */
+MG_EXPORT BOOL GUIAPI IsGlyphLowercase(Glyph32 g);
+
+/** The function determines whether a character is printable. */
+MG_EXPORT BOOL GUIAPI IsGlyphPrint(Glyph32 g);
+
+/** The function determines whether a character is a uppercase letter. */
+MG_EXPORT BOOL GUIAPI IsGlyphUppercase(Glyph32 g);
+
+/** The function determines whether a character is punctuation or a symbol. */
+MG_EXPORT BOOL GUIAPI IsGlyphPunct(Glyph32 g);
+
+/** The function determines whether a character is a space, tab, or line separator
+ * (newline, carriage return, etc.). */
+MG_EXPORT BOOL GUIAPI IsGlyphSpace(Glyph32 g);
+
+/** The function determines whether a character is a mark (non-spacing mark,
+ * combining mark, or enclosing mark in Unicode speak). */
+MG_EXPORT BOOL GUIAPI IsGlyphMark(Glyph32 g);
+
+/** The function determines if a character is titlecase. Some characters in
+ * Unicode which are composites, such as the DZ digraph
+ * have three case variants instead of just two. The titlecase
+ * form is used at the beginning of a word where only the
+ * first letter is capitalized. The titlecase form of the DZ
+ * digraph is U+01F2 LATIN CAPITAL LETTTER D WITH SMALL LETTER Z. */
+MG_EXPORT BOOL GUIAPI IsGlyphTitle(Glyph32 g);
+
+/** The function determines if a character is a hexidecimal digit. */
+MG_EXPORT BOOL GUIAPI IsGlyphXDigit(Glyph32 g);
+
+/** The function determines if a given character is assigned in the Unicode standard. */
+MG_EXPORT BOOL GUIAPI IsGlyphDefined(Glyph32 g);
+
+/** The function determines if a given character typically takes zero width when rendered. */
+MG_EXPORT BOOL GUIAPI IsGlyphZeroWidth(Glyph32 g);
+
+/** The function determines if a character is typically rendered in a double-width cell. */
+MG_EXPORT BOOL GUIAPI IsGlyphWide(Glyph32 g);
+
+/**
+ * The function determines if a character is typically rendered in a double-width
+ * cell under legacy East Asian locales.  If a character is wide according to
+ * g_unichar_iswide(), then it is also reported wide with this function, but
+ * the converse is not necessarily true. See the
+ * [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)
+ * for details.
+ */
+MG_EXPORT BOOL GUIAPI IsGlyphWideCJK(Glyph32 g);
+
+/** Converts a character to uppercase.  */
+MG_EXPORT Glyph32 GlyphToUpper (Glyph32 g);
+
+/** Converts a character to lower case. */
+MG_EXPORT Glyph32 GUIAPI GlyphToLower (Glyph32 g);
+
+/** Converts a glyph to the titlecase. */
+MG_EXPORT Glyph32 GUIAPI GlyphToTitle (Glyph32 g);
 
 #endif /* _MGCHARSET_UNICODE */
 
@@ -8793,7 +8869,6 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
      *
      * @{
      */
-typedef int Glyph32;
 /**
  * \def INV_GLYPH_VALUE 
  */
@@ -9010,49 +9085,9 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
 #define GLYPHBMP_TYPE_PRERENDER 0x03
 
 /** The bits mask for glyph type */
-#define GLYPHTYPE_BASIC_MASK        0x000000FF
+#define GLYPHTYPE_BASIC_MASK        0x00FF
 /** The bits mask for break type */
-#define GLYPHTYPE_BREAK_MASK        0x0000FF00
-
-/** The bit determines whether a glyph is alphanumeric. */
-#define GLYPHTYPE_ATTR_ISALNUM      0x00010000
-/** The bit determines whether a character is alphabetic (i.e. a letter). */
-#define GLYPHTYPE_ATTR_ISALPHA      0x00020000
-/** The bit determines whether a character is a control character. */
-#define GLYPHTYPE_ATTR_ISCONTROL    0x00040000
-/** The bit determines whether a character is numeric (i.e. a digit). */
-#define GLYPHTYPE_ATTR_ISDIGIT      0x00080000
-/** The bit determines whether a character is printable and not a space */
-#define GLYPHTYPE_ATTR_ISGRAPH      0x00100000
-/** The bit determines whether a character is a lowercase letter. */
-#define GLYPHTYPE_ATTR_ISLOWER      0x00200000
-/** The bit determines whether a character is printable. */
-#define GLYPHTYPE_ATTR_ISPRINT      0x00400000
-/** The bit determines whether a character is a uppercase letter. */
-#define GLYPHTYPE_ATTR_ISUPPER      0x00800000
-/** The bit determines whether a character is punctuation or a symbol. */
-#define GLYPHTYPE_ATTR_ISPUNCT      0x01000000
-/** The bit determines whether a character is a space, tab, or line separator
- * (newline, carriage return, etc.). */
-#define GLYPHTYPE_ATTR_ISSPACE      0x02000000
-/** The bit determines whether a character is a mark (non-spacing mark,
- * combining mark, or enclosing mark in Unicode speak). */
-#define GLYPHTYPE_ATTR_ISMARK       0x04000000
-/** The bit determines if a character is titlecase. Some characters in
- * Unicode which are composites, such as the DZ digraph
- * have three case variants instead of just two. The titlecase
- * form is used at the beginning of a word where only the
- * first letter is capitalized. The titlecase form of the DZ
- * digraph is U+01F2 LATIN CAPITAL LETTTER D WITH SMALL LETTER Z. */
-#define GLYPHTYPE_ATTR_ISTITLE      0x08000000
-/** The bit determines if a character is a hexidecimal digit. */
-#define GLYPHTYPE_ATTR_ISXDIGIT     0x10000000
-/** The bit determines if a given character is assigned in the Unicode standard. */
-#define GLYPHTYPE_ATTR_ISDEFINED    0x20000000
-/** The bit determines if a given character typically takes zero width when rendered. */
-#define GLYPHTYPE_ATTR_ISZEROWIDTH  0x40000000
-/** The bit determines if a character is typically rendered in a double-width cell. */
-#define GLYPHTYPE_ATTR_ISWIDE       0x80000000
+#define GLYPHTYPE_BREAK_MASK        0xFF00
 
 /**
  * \var typedef struct  _GLYPHINFO GLYPHINFO

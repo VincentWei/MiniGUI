@@ -17585,15 +17585,13 @@ static const unsigned int title_table[][3] = {
   { 0x1ffc, 0x0000, 0x1ff3 }
 };
 
-#if 0
-
 /* Table of special cases for case conversion; each record contains
  * First, the best single character mapping to lowercase if Lu, 
  * and to uppercase if Ll, followed by the output mapping for the two cases 
  * other than the case of the codepoint, in the order [Ll],[Lu],[Lt],
  * encoded in UTF-8, separated and terminated by a null character.
  */
-static const char special_case_table[] = {
+static const unsigned char special_case_table[] = {
  "\x00\x53\x53\x00\x53\x73\0" /* offset 0 */
  "\x69\x69\xcc\x87\x00\xc4\xb0\0" /* offset 7 */
  "\x00\x46\x46\x00\x46\x66\0" /* offset 15 */
@@ -17699,7 +17697,7 @@ static const char special_case_table[] = {
  "\x00\xce\xa9\xcd\x82\xce\x99\x00\xce\xa9\xcd\x82\xcd\x85\0" /* offset 1156 */
 };
 
-
+#if 0
 /* Table of casefolding cases that can't be derived by lowercasing
  */
 static const struct {
@@ -17961,6 +17959,7 @@ static const struct {
   { 0xfb16, "\xd5\xbe\xd5\xb6" },
   { 0xfb17, "\xd5\xb4\xd5\xad" },
 };
+#endif // not used
 
 struct Interval
 {
@@ -18257,7 +18256,5 @@ static const struct Interval g_unicode_width_table_ambiguous[] = {
 {0xF0000, 0xFFFFD},
 {0x100000, 0x10FFFD},
 };
-
-#endif /* not used */
 
 #endif /* CHARTABLES_H */
