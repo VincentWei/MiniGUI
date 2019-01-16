@@ -68,9 +68,6 @@
 int ft2GetLcdFilter (DEVFONT* devfont);
 int ft2IsFreeTypeDevfont (DEVFONT* devfont);
 #endif
-#ifdef _MGFONT_TTF
-int ftIsFreeTypeDevfont (DEVFONT* devfont);
-#endif
 
 Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len)
@@ -2371,7 +2368,7 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     return adv_len + bold + ch_extra + advance;
 }
 
-void  _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL direction, PDC pdc, int *next_x, int *next_y)
+void _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL direction, PDC pdc, int *next_x, int *next_y)
 {
     int  delta_x, delta_y;
     int  rotation;
@@ -2487,7 +2484,7 @@ static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
     }
 }
 
-static void inline draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int flag)
+static void draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int flag)
 {
     int x = gal_rc->x;
     int y = gal_rc->y;
@@ -2497,45 +2494,41 @@ static void inline draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int f
     int font_style = pdc->pLogFont->style;
     int italic_x;
 
-    switch (flag)
-    {
-        case ROMAN_RECT:
-            _dc_fillbox_clip (pdc, gal_rc);
-            break;
+    switch (flag) {
+    case ROMAN_RECT:
+        _dc_fillbox_clip (pdc, gal_rc);
+        break;
 
-        case ITALIC_RECT:
+    case ITALIC_RECT: {
+        switch (font_style & FS_FLIP_MASK) {
+        case FS_FLIP_HORZ:
+        case FS_FLIP_VERT:
+            for (i=0; i<h; i++)
             {
-                switch (font_style & FS_FLIP_MASK)
-                {
-                    case FS_FLIP_HORZ:
-                    case FS_FLIP_VERT:
-                        for (i=0; i<h; i++)
-                        {
-                            italic_x = x+(i>>1);
-                            _dc_draw_hline_clip (pdc, italic_x,
-                                    italic_x+w-1, y+i);
-                        }
-                        break;
-                    default:
-                        for (i=0; i<h; i++)
-                        {
-                            italic_x = x+((h-i)>>1);
-                            _dc_draw_hline_clip (pdc, italic_x,
-                                    italic_x+w-1, y+i);
-                        }
-                }
+                italic_x = x+(i>>1);
+                _dc_draw_hline_clip (pdc, italic_x,
+                        italic_x+w-1, y+i);
             }
             break;
-
-        case ROTATE_RECT:
-            MonotoneVerticalPolygonGenerator (pdc, area,
-                    4, _dc_draw_hline_clip);
-            break;
-
         default:
-            _MG_PRINTF ("NEWGDI>Glyph: NO WAY\n");
+            for (i=0; i<h; i++) {
+                italic_x = x+((h-i)>>1);
+                _dc_draw_hline_clip (pdc, italic_x,
+                        italic_x+w-1, y+i);
+            }
+        }
+        break;
     }
 
+    case ROTATE_RECT:
+        MonotoneVerticalPolygonGenerator (pdc, area,
+                4, _dc_draw_hline_clip);
+        break;
+
+    default:
+        _MG_PRINTF ("NEWGDI>Glyph: NO WAY\n");
+        break;
+    }
 }
 
 static void make_back_rect(RECT* rc_back, POINT* area, GAL_Rect* gal_rc, int flag)
