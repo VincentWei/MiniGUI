@@ -40,8 +40,8 @@ The styles of LOGFONT changed.
   1. `FONT_DECORATE_UNDERLINE`: glyphs are underscored.
   1. `FONT_DECORATE_STRUCKOUT`: glyphs are overstruck.
   1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE` and `FONT_DECORATE_STRUCKOUT`.
-  1. `FONT_DECORATE_REVERSE`: Reversed for future. Glyphs have their foreground and background reversed.
   1. `FONT_DECORATE_OUTLINE`: Outline (hollow) glyphs.
+  1. `FONT_DECORATE_REVERSE`: Reverved for future. Glyphs have their foreground and background reversed.
 * The following style are deprecated:
   1. `FONT_OTHER_LCDPORTRAIT`
   1. `FONT_OTHER_LCDPORTRAITKERN`
@@ -77,9 +77,10 @@ please define the font name in the following way:
 One should get the font metrics information by calling `GetFontMetrics` function
 if you want to get the height and descent data of one font.
 
-* More fields added for GLYPHBITMAP struct in order to return the completed rasterized
-glyph bitmap information.
-* Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming spec.
+* More fields added for GLYPHBITMAP struct in order to return the completed
+rasterized glyph bitmap information.
+* Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming
+rules.
 
 #### New APIs
 
@@ -92,6 +93,10 @@ positions of a DC.
 #### Others
 
 * Support for FreeType1 removed.
+
+You should always use FreeType2 to support vector fonts, such as TrueType
+fonts (TTF), TrueType collections (TTC), OpenType fonts (OTF, both TrueType
+and CFF variants), OpenType collections (OTC), and Type 1 fonts (PFA and PFB).
 
 ### Other Changes
 
