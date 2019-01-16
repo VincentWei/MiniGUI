@@ -96,7 +96,7 @@ static FTC_ImageCache   ft_image_cache = NULL;
 static FTC_SBitCache    ft_sbit_cache = NULL;
 #endif
 
-/*find cached face, by FTC_Manager_LookupSize.
+/* find cached face, by FTC_Manager_LookupSize.
  * The size setting is image_type,
  * when getting glyph by FTC_Manager_LookupSize*/
 static FT_Error
@@ -141,6 +141,7 @@ my_face_requester (FTC_FaceID  face_id,
     return error;
 }
 #endif
+
 #ifndef M_PI
 #define M_PI        3.14159265358979323846
 #endif
@@ -213,12 +214,6 @@ print_bitmap_grey (void* buffer, int width, int rows, int pitch)
 
 static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
 {
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-    if (logfont->style & FS_WEIGHT_SUBPIXEL)
-        return DEVFONTGLYPHTYPE_SUBPIXEL;
-    else if (logfont->style & FS_WEIGHT_BOOK)
-        return DEVFONTGLYPHTYPE_GREYBMP;
-#else
     switch (logfont->style & FS_RENDER_MASK) {
     case FS_RENDER_SUBPIXEL:
         return DEVFONTGLYPHTYPE_SUBPIXEL;
@@ -227,7 +222,6 @@ static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
     default:
         break;
     }
-#endif
 
     return DEVFONTGLYPHTYPE_MONOBMP;
 }
@@ -312,7 +306,7 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
         return -1;
     }
 
-#else
+#else /* !_MGFONT_TTF_CACHE */
 
     FT_Glyph ft_glyph_tmp;
 
@@ -339,7 +333,8 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
         _MG_PRINTF ("FONT>FT2: can't copy glyph from cache.\n");
         return -1;
     }
-#endif
+
+#endif /* _MGFONT_TTF_CACHE */
 
     if (ft_inst_info->rotation)
         FT_Glyph_Transform (ft_inst_info->glyph, &ft_inst_info->matrix, NULL);
@@ -370,8 +365,8 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
     FT_LOCK(&ft_lock);
 
-    /* Search cache by unicode !*/
 #ifdef _MGFONT_TTF_CACHE
+    /* Search cache by unicode !*/
     if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
         TTFCACHEINFO *cache_info;
         int datasize;
@@ -396,7 +391,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         }
         DP(("\nBBOX Non - Hit! %d, %d\n", bbox_nohit++, uni_char));
     }
-#endif
+#endif /* _MGFONT_TTF_CACHE */
 
     if (load_or_search_glyph (ft_inst_info, &face, uni_char,
                 get_glyph_type(logfont, devfont))) {
@@ -484,30 +479,6 @@ error:
     return 0;
 }
 
-#if 0 // VincentWei: Bad implementation
-/* press double-byte align to byte align.*/
-static void
-press_bitmap (void* buffer, int width, int rows, int pitch)
-{
-    unsigned char*   src_pos;
-    unsigned char*   dest_pos;
-    int     i;
-    int     dest_pitch = (width + 7) >> 3;
-
-    if (dest_pitch == pitch)
-        return;
-
-    src_pos = (unsigned char*)buffer + pitch;
-    dest_pos = (unsigned char*)buffer + dest_pitch;
-
-    for (i = 1; i < rows; i++) {
-        memmove (dest_pos, src_pos, dest_pitch);
-        src_pos += pitch;
-        dest_pos += dest_pitch;
-    }
-}
-#endif
-
 /* call this function to get the bitmap/pixmap of the char */
 static const void*
 char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
@@ -549,7 +520,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
         DP(("Bitmap Non hit %d, %d\n", bitmap_nohit++, uni_char));
     }
-#endif
+#endif /* _MGFONT_TTF_CACHE */
 
     if (load_or_search_glyph (ft_inst_info, &face, uni_char,
                 get_glyph_type(logfont, devfont))) {
@@ -623,7 +594,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             return pcache->bitmap;
         }
     }
-#endif
+#endif /* _MGFONT_TTF_CACHE */
 
     buffer = get_raster_bitmap_buffer (source->rows * source->pitch);
     memcpy(buffer, source->buffer, source->rows * source->pitch);
@@ -697,7 +668,7 @@ get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 #ifdef _MGFONT_TTF_CACHE
-static int make_hash_key(unsigned short data)
+static inline int make_hash_key(unsigned short data)
 {
     return ((int)data % 37);
 }
@@ -859,7 +830,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     }
 
     FT_Done_Size (size);
-#else
+#else /* _MGFONT_TTF_CACHE */
     ft_inst_info->size = size;
 #endif
 
@@ -892,7 +863,7 @@ delete_instance (DEVFONT* devfont)
     }
 
     FT_UNLOCK(&ft_lock);
-#endif
+#endif /* _MGFONT_TTF_CACHE */
 
     free (ft_inst_info);
     free (devfont->data);
@@ -921,7 +892,8 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
         return TRUE;
     }
 
-#else
+#else /* !_MGFONT_TTF_CACHE */
+
     if (get_cached_face (ft_inst_info, &face)) {
         _MG_PRINTF ("FONT>FT2: can't access cached face %p\n", ft_inst_info->ft_face_info);
         goto error;
@@ -932,7 +904,8 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
             ft_inst_info->ft_face_info->cmap_index, uni_char)) {
         goto error;
     }
-#endif
+
+#endif /* _MGFONT_TTF_CACHE */
 
 error:
     FT_UNLOCK(&ft_lock);
@@ -1089,8 +1062,8 @@ BOOL font_InitFreetypeLibrary (void)
 
     FT_INIT_LOCK(&ft_lock, NULL);
 
-    /* Init freetype2 cache manager */
 #ifdef _MGFONT_TTF_CACHE
+    /* Init freetype2 cache manager */
     error = FTC_Manager_New (ft_library, 0, 0, 0,
                  my_face_requester, 0, &ft_cache_manager);
     if (error) {
@@ -1117,6 +1090,7 @@ BOOL font_InitFreetypeLibrary (void)
         goto error_ftc_manager;
     }
 #endif
+
     if (__mg_ttc_sys_init (_MGMAX_TTF_CACHE, _MGTTF_CACHE_SIZE * 1024)) {
         _MG_PRINTF ("FONT>FT2: init ttf cache sys failed\n");
         goto error_library;
@@ -1126,7 +1100,7 @@ BOOL font_InitFreetypeLibrary (void)
 
 error_ftc_manager:
     FTC_Manager_Done (ft_cache_manager);
-#endif
+#endif /* _MGFONT_TTF_CACHE */
 
     return TRUE;
 
@@ -1153,7 +1127,6 @@ void font_TermFreetypeLibrary (void)
 
     FT_DESTROY_LOCK(&ft_lock);
 }
-
 
 /**************************** Global data ************************************/
 FONTOPS __mg_ttf_ops = {
@@ -1205,16 +1178,10 @@ ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter)
         }
 
         /* remove subpixel style if filter is none */
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
-        if (filter == MG_SMOOTH_NONE) {
-            logfont->style &= ~FS_WEIGHT_SUBPIXEL;
-        }
-#else
         if (filter == MG_SMOOTH_NONE) {
             logfont->style &= ~FS_RENDER_MASK;
             logfont->style |= FS_RENDER_MONO;
         }
-#endif
     }
 
     return rv;
