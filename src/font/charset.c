@@ -4371,27 +4371,27 @@ BOOL IsCompatibleCharset (const char* charset, CHARSETOPS* ops)
 
 BOOL GUIAPI IsUCharAlnum(UChar32 uc)
 {
-    return ISALDIGIT(TYPE(REAL_GLYPH(uc)));
+    return ISALDIGIT(TYPE(uc));
 }
 
 BOOL GUIAPI IsUCharAlpha(UChar32 uc)
 {
-    return ISALPHA (TYPE(REAL_GLYPH(uc)));
+    return ISALPHA (TYPE(uc));
 }
 
 BOOL GUIAPI IsUCharControl(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_CONTROL;
+    return TYPE(uc) == G_UNICODE_CONTROL;
 }
 
 BOOL GUIAPI IsUCharDigit(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_DECIMAL_NUMBER;
+    return TYPE(uc) == G_UNICODE_DECIMAL_NUMBER;
 }
 
 BOOL GUIAPI IsUCharGraph(UChar32 uc)
 {
-    return !IS (TYPE(REAL_GLYPH(uc)),
+    return !IS (TYPE(uc),
             OR (G_UNICODE_CONTROL,
             OR (G_UNICODE_FORMAT,
             OR (G_UNICODE_UNASSIGNED,
@@ -4402,12 +4402,12 @@ BOOL GUIAPI IsUCharGraph(UChar32 uc)
 
 BOOL GUIAPI IsUCharLowercase(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_LOWERCASE_LETTER;
+    return TYPE(uc) == G_UNICODE_LOWERCASE_LETTER;
 }
 
 BOOL GUIAPI IsUCharPrint(UChar32 uc)
 {
-    return !IS (TYPE(REAL_GLYPH(uc)),
+    return !IS (TYPE(uc),
             OR (G_UNICODE_CONTROL,
             OR (G_UNICODE_FORMAT,
             OR (G_UNICODE_UNASSIGNED,
@@ -4417,12 +4417,12 @@ BOOL GUIAPI IsUCharPrint(UChar32 uc)
 
 BOOL GUIAPI IsUCharUppercase(UChar32 uc)
 {
-    return TYPE(REAL_GLYPH(uc)) == G_UNICODE_UPPERCASE_LETTER;
+    return TYPE(uc) == G_UNICODE_UPPERCASE_LETTER;
 }
 
 BOOL GUIAPI IsUCharPunct(UChar32 uc)
 {
-    return IS (TYPE(REAL_GLYPH(uc)),
+    return IS (TYPE(uc),
             OR (G_UNICODE_CONNECT_PUNCTUATION,
             OR (G_UNICODE_DASH_PUNCTUATION,
             OR (G_UNICODE_CLOSE_PUNCTUATION,
@@ -4439,7 +4439,7 @@ BOOL GUIAPI IsUCharPunct(UChar32 uc)
 
 BOOL GUIAPI IsUCharSpace(UChar32 uc)
 {
-    switch (REAL_GLYPH(uc)) {
+    switch (uc) {
     /* special-case these since Unicode thinks they are not spaces */
     case '\t':
     case '\n':
@@ -4448,7 +4448,7 @@ BOOL GUIAPI IsUCharSpace(UChar32 uc)
         return TRUE;
 
     default: {
-        if (IS (TYPE(REAL_GLYPH(uc)),
+        if (IS (TYPE(uc),
                OR (G_UNICODE_SPACE_SEPARATOR,
                OR (G_UNICODE_LINE_SEPARATOR,
                OR (G_UNICODE_PARAGRAPH_SEPARATOR,
@@ -4463,16 +4463,15 @@ BOOL GUIAPI IsUCharSpace(UChar32 uc)
 
 BOOL GUIAPI IsUCharMark(UChar32 uc)
 {
-    return ISMARK (TYPE(REAL_GLYPH(uc)));
+    return ISMARK (TYPE(uc));
 }
 
 BOOL GUIAPI IsUCharTitle(UChar32 uc)
 {
     unsigned int i;
-    UChar32 glyph_value = REAL_GLYPH(uc);
 
     for (i = 0; i < TABLESIZE (title_table); ++i) {
-        if (title_table[i][0] == glyph_value) {
+        if (title_table[i][0] == uc) {
             return TRUE;
         }
     }
@@ -4482,15 +4481,14 @@ BOOL GUIAPI IsUCharTitle(UChar32 uc)
 
 BOOL GUIAPI IsUCharXDigit(UChar32 uc)
 {
-    UChar32 glyph_value = REAL_GLYPH(uc);
-    return ((glyph_value >= 'a' && glyph_value <= 'f')
-            || (glyph_value >= 'A' && glyph_value <= 'F')
-            || (TYPE(glyph_value) == G_UNICODE_DECIMAL_NUMBER));
+    return ((uc >= 'a' && uc <= 'f')
+            || (uc >= 'A' && uc <= 'F')
+            || (TYPE(uc) == G_UNICODE_DECIMAL_NUMBER));
 }
 
 BOOL GUIAPI IsUCharDefined(UChar32 uc)
 {
-    return !IS (TYPE(REAL_GLYPH(uc)),
+    return !IS (TYPE(uc),
               OR (G_UNICODE_UNASSIGNED,
               OR (G_UNICODE_SURROGATE,
              0)));
@@ -4498,11 +4496,10 @@ BOOL GUIAPI IsUCharDefined(UChar32 uc)
 
 BOOL GUIAPI IsUCharZeroWidth(UChar32 uc)
 {
-    UChar32 glyph_value = REAL_GLYPH(uc);
-    if (glyph_value != 0x00AD && ISZEROWIDTHTYPE (TYPE(glyph_value)))
+    if (uc != 0x00AD && ISZEROWIDTHTYPE (TYPE(uc)))
         return TRUE;
-    else if ((glyph_value >= 0x1160 && glyph_value < 0x1200)
-            || glyph_value == 0x200B)
+    else if ((uc >= 0x1160 && uc < 0x1200)
+            || uc == 0x200B)
         return TRUE;
 
     return FALSE;
@@ -4534,7 +4531,6 @@ static inline BOOL g_unichar_iswide_bsearch (UChar32 ch)
 
 BOOL GUIAPI IsUCharWide(UChar32 uc)
 {
-    uc = REAL_GLYPH(uc);
     if (uc < g_unicode_width_table_wide[0].start)
         return FALSE;
     else
@@ -4556,7 +4552,6 @@ static int interval_compare (const void *key, const void *elt)
 
 BOOL GUIAPI IsUCharWideCJK (UChar32 uc)
 {
-    uc = REAL_GLYPH(uc);
     if (IsUCharWide(uc))
         return TRUE;
 
@@ -4580,10 +4575,7 @@ BOOL GUIAPI IsUCharWideCJK (UChar32 uc)
  */
 UChar32 UCharToUpper (UChar32 uc)
 {
-    int t;
-
-    uc = REAL_GLYPH(uc);
-    t = TYPE (uc);
+    int t = TYPE (uc);
     if (t == G_UNICODE_LOWERCASE_LETTER) {
         UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
@@ -4612,10 +4604,7 @@ UChar32 UCharToUpper (UChar32 uc)
  */
 UChar32 GUIAPI UCharToLower (UChar32 uc)
 {
-    int t;
-
-    uc = REAL_GLYPH(uc);
-    t = TYPE (uc);
+    int t = TYPE (uc);
     if (t == G_UNICODE_UPPERCASE_LETTER) {
         UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
@@ -4644,8 +4633,6 @@ UChar32 GUIAPI UCharToLower (UChar32 uc)
 UChar32 GUIAPI UCharToTitle (UChar32 uc)
 {
     unsigned int i;
-
-    uc = REAL_GLYPH(uc);
     for (i = 0; i < TABLESIZE (title_table); ++i) {
         if (title_table[i][0] == uc || title_table[i][1] == uc
                 || title_table[i][2] == uc)

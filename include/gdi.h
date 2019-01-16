@@ -6752,8 +6752,6 @@ MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font,
 MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font, 
                 const char* mstr, int len, WORDINFO* word_info);
 
-typedef int Glyph32;
-
 #ifdef _MGCHARSET_UNICODE
 
 #include <stddef.h>
@@ -8869,6 +8867,9 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
      *
      * @{
      */
+
+typedef int Glyph32;
+
 /**
  * \def INV_GLYPH_VALUE 
  */
@@ -8896,8 +8897,15 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
  *
  * \param glyph glyph value 
  */
-#define REAL_GLYPH(glyph)    ((glyph) & 0x7FFFFFFF)
+#define REAL_GLYPH(glyph)   ((glyph) & 0x7FFFFFFF)
 
+/**
+ * \def GLYPH2UCHAR(glyph)
+ * \brief get real glyph value from a glyph
+ *
+ * \param glyph glyph value 
+ */
+#define GLYPH2UCHAR(glyph)  ((glyph) & 0x7FFFFFFF)
 
 /**
  * \def SELECT_DEVFONT(plogfont, glyph)
