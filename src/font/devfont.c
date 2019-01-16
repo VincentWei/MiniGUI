@@ -168,45 +168,30 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
         i ++;
     }
 
-    min_error = FONT_MAX_SIZE;
+    min_error = (FONT_MAX_SIZE << 16) + 0xFFFF;
     matched_font = NULL;
     dev_font = list_head;
     for (i = 0; i < list_len; i++) {
-        int error;
-        if ((match_bits [i] & MATCHED_TYPE)
-                && (match_bits [i] & MATCHED_FAMILY)
-                && (match_bits [i] & MATCHED_CHARSET)
-                && (match_bits [i] & MATCHED_WEIGHT)
-                /* && (match_bits [i] & MATCHED_SLANT)*/) {
-            error = log_font->size -
-                (*dev_font->font_ops->get_font_size) (log_font, dev_font,
-                        log_font->size);
-            error = ABS (error);
-            if (min_error >= error) {   /* use >=, make the later has a higher priority */
-                min_error = error;
-                matched_font = dev_font;
-            }
-        }
-
-        dev_font = dev_font->next;
-    }
-
-    if (matched_font)
-        goto matched;
-
-    /* try to match without style */
-    min_error = FONT_MAX_SIZE;
-    matched_font = NULL;
-    dev_font = list_head;
-    for (i = 0; i < list_len; i++) {
-        int error;
         if ((match_bits [i] & MATCHED_TYPE)
                 && (match_bits [i] & MATCHED_FAMILY)
                 && (match_bits [i] & MATCHED_CHARSET)) {
-            error = log_font->size -
+
+            int error, size_error, weight_error, slant_error;
+
+            size_error = log_font->size -
                 (*dev_font->font_ops->get_font_size) (log_font, dev_font,
                         log_font->size);
-            error = ABS (error);
+            size_error = ABS (size_error);
+
+            weight_error = (log_font->style & FS_WEIGHT_MASK) -
+                (dev_font->style & FS_WEIGHT_MASK);
+            weight_error = ABS (weight_error);
+
+            slant_error = (log_font->style & FS_SLANT_MASK) -
+                (dev_font->style & FS_SLANT_MASK);
+            slant_error = ABS (slant_error);
+
+            error = (size_error << 16) + slant_error + weight_error;
             if (min_error >= error) {   /* use >=, make the later has a higher priority */
                 min_error = error;
                 matched_font = dev_font;
