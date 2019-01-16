@@ -220,13 +220,6 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
 
     /* get metrics of the glyph */
     if (glyph_info->mask & GLYPH_INFO_METRICS) {
-#if 0 // VincentWei: removed since 3.4.0
-        glyph_info->height = devfont->font_ops->get_font_height
-            (logfont, devfont);
-        glyph_info->descent = devfont->font_ops->get_font_descent
-            (logfont, devfont);
-#endif
-
         glyph_info->advance_x = 0;
         glyph_info->advance_y = 0;
         glyph_info->bbox_x = 0;
@@ -2674,11 +2667,7 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
     }
 
     pdc->cur_pixel = pdc->textcolor;
-#if 0 // VincentWei: use FS_DECORATE_XXX instead (3.4.0)
-    if (logfont->style & FS_UNDERLINE_LINE) {
-#else
     if (logfont->style & FS_DECORATE_UNDERLINE) {
-#endif
         if (logfont->style & FS_FLIP_VERT) {
             _gdi_get_point_at_parallel(x1, y1, x2, y2, h-(descent<<1), \
                      &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
@@ -2722,11 +2711,7 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
         }
     }
 
-#if 0 // VincentWei: use FS_DECORATE_XXX instead (3.4.0)
-    if (logfont->style & FS_STRUCKOUT_LINE) {
-#else
     if (logfont->style & FS_DECORATE_STRUCKOUT) {
-#endif
         if (logfont->style & FS_FLIP_VERT) {
             _gdi_get_point_at_parallel(x1, y1, x2, y2, (h >>1)-descent +1, \
                      &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
@@ -2754,7 +2739,6 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
             cliprect = cliprect->next;
         }
     }
-
 }
 
 int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
@@ -2897,8 +2881,8 @@ int _gdi_get_italic_added_width (LOGFONT* logfont)
     else {
         return 0;
     }
-
 }
+
 void _gdi_start_new_line (PDC pdc)
 {
     DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
