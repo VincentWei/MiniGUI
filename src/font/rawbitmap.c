@@ -204,13 +204,13 @@ static int get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
     int bitmap_size;
-    Glyph32 glyph_tmp = glyph_value;
 
-    if (glyph_tmp >= RBFONT_INFO_P (devfont)->nr_glyphs)
-        glyph_tmp = devfont->charset_ops->def_glyph_value;
+    glyph_value = REAL_GLYPH(glyph_value);
+    if (glyph_value >= RBFONT_INFO_P (devfont)->nr_glyphs)
+        glyph_value = devfont->charset_ops->def_glyph_value;
 
     bitmap_size = ((RBFONT_INFO_P (devfont)->width + 7) >> 3) 
                 * RBFONT_INFO_P (devfont)->height; 
@@ -220,12 +220,13 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     if (scale)
         *scale = GET_DEVFONT_SCALE (logfont, devfont);
 
-    return RBFONT_INFO_P (devfont)->data + bitmap_size * glyph_tmp;
+    return RBFONT_INFO_P (devfont)->data + bitmap_size * glyph_value;
 }
 
 static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, 
         Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value > RBFONT_INFO_P(devfont)->nr_glyphs)
         return FALSE;
     else

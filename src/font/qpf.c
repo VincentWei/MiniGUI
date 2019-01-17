@@ -329,12 +329,13 @@ static int get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
     unsigned int uc16;
     QPF_GLYPH* glyph;
 
-    if(devfont->charset_ops->conv_to_uc32)
+    glyph_value = REAL_GLYPH(glyph_value);
+    if (devfont->charset_ops->conv_to_uc32)
         uc16 = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uc16 = glyph_value;
@@ -370,6 +371,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
     unsigned int uc16;
     QPF_GLYPH* glyph;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (scale)
         *scale = GET_DEVFONT_SCALE (logfont, devfont);
 
@@ -400,6 +402,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     QPF_GLYPH* glyph;
     unsigned short scale = GET_DEVFONT_SCALE (logfont, devfont);
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if(devfont->charset_ops->conv_to_uc32)
         uc16 = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
@@ -452,6 +455,7 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     QPF_GLYPH* glyph;
     int advance;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if(devfont->charset_ops->conv_to_uc32)
         uc16 = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
@@ -498,6 +502,7 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     unsigned int uc16;
     QPF_GLYPH* glyph;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if(devfont->charset_ops->conv_to_uc32)
         uc16 = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else

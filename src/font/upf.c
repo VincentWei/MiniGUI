@@ -275,12 +275,13 @@ print_bitmap(char* bits, int width, int height, int pitch)
 #endif
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-        const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+        Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
     unsigned int uc16;
     UPFGLYPH* glyph;
     Uint8   * p_upf;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE
@@ -328,6 +329,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
     UPFGLYPH* glyph;
     Uint8   * p_upf;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
     if (scale)
@@ -369,6 +371,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     unsigned short scale = GET_DEVFONT_SCALE (logfont, devfont);
     Uint8   * p_upf;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE
@@ -426,6 +429,7 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     Uint8   * p_upf;
     int advance;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE
@@ -485,6 +489,7 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     UPFGLYPH* glyph;
     Uint8   * p_upf;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE

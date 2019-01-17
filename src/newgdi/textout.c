@@ -112,7 +112,7 @@ static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int glyp
     int adv_x, adv_y;
     int bkmode;
 
-    if (check_zero_width(glyph_value, glyph_type)) {
+    if (check_zero_width(glyph_type)) {
         adv_x = adv_y = 0;
     }
     else if (check_vowel(glyph_type)) {
@@ -168,7 +168,7 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value, unsigned int glyph_t
     int adv_x, adv_y;
     int bkmode;
 
-    if (check_zero_width (glyph_value, glyph_type)) {
+    if (check_zero_width (glyph_type)) {
         adv_x = adv_y = 0;
     }
     else if (check_vowel(glyph_type)) {
@@ -334,7 +334,7 @@ static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int
     //BBOX bbox;
     int bkmode = ctxt->pdc->bkmode;
 
-    if (check_zero_width(glyph_value, glyph_type)) {
+    if (check_zero_width(glyph_type)) {
         adv_x = adv_y = 0;
     }
     else if (check_vowel(glyph_type)) {

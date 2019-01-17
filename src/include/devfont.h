@@ -89,29 +89,9 @@ void dbg_dumpDevFonts (void);
 
 #define INV_GLYPH_VALUE    -1
 
-static inline BOOL check_zero_width(Glyph32 g, unsigned int t)
+static inline BOOL check_zero_width(unsigned int t)
 {
-    unsigned int mchar_type = t & GLYPHTYPE_MCHAR_MASK;
-
-    if (mchar_type) {
-        if (mchar_type == MCHAR_TYPE_ZEROWIDTH
-                || (mchar_type & MCHAR_TYPE_NOSPACING_MARK))
-            return TRUE;
-        else
-            return FALSE;
-    }
-
-    t = (t & GLYPHTYPE_BASIC_MASK) >> 16;
-    if (g != 0x00AD
-            && (t == UCHAR_TYPE_NON_SPACING_MARK
-                || t == UCHAR_TYPE_ENCLOSING_MARK
-                || t == UCHAR_TYPE_FORMAT))
-        return TRUE;
-    else if ((g >= 0x1160 && g < 0x1200)
-            || g == 0x200B)
-        return TRUE;
-
-    return FALSE;
+    return (t & GLYPHTYPE_MCHAR_MASK) == MCHAR_TYPE_ZEROWIDTH;
 }
 
 static inline BOOL check_vowel(unsigned int t)
@@ -252,11 +232,11 @@ struct _FONTOPS
 
     /** The method to get mono-bitmap function. */
     const void* (*get_glyph_monobitmap) (LOGFONT* logfont, DEVFONT* devfont, 
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale);
+            Glyph32 glyph_value, int* pitch, unsigned short* scale);
 
     /** The method to get grey bitmap, pitch and scale function */
     const void* (*get_glyph_greybitmap) (LOGFONT* logfont, DEVFONT* devfont, 
-            const Glyph32 galph_value, int* pitch, unsigned short* scale);
+            Glyph32 galph_value, int* pitch, unsigned short* scale);
 
     /** The method to get the pre-rendered bitmap of one glyph. */
     int (*get_glyph_prbitmap) (LOGFONT* logfont, DEVFONT* devfont, 

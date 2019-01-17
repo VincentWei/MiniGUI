@@ -334,6 +334,7 @@ static int get_glyph_width (LOGFONT* logfont, DEVFONT* devfont,
     SeLogFont   selogfont;
     int         width;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
         wc = (*devfont->charset_ops->conv_to_uc32)(glyph_value);
     else
@@ -440,6 +441,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
     printf("in get_glyph_greybitmap....\n");
 #endif
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
         wc = (*devfont->charset_ops->conv_to_uc32)(glyph_value);
     else
@@ -466,7 +468,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
     seunichar16 wc;
     SeLogFont   selogfont;
@@ -476,6 +478,7 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     printf("in get_char_bitmap....\n");
 #endif
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
         wc = (*devfont->charset_ops->conv_to_uc32)(glyph_value);
     else
@@ -505,6 +508,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     if(px == 0 && py == 0 && pwidth == 0 && pheight == 0)
         return 1;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
         wc = (*devfont->charset_ops->conv_to_uc32)(glyph_value);
     else
@@ -534,6 +538,7 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     SeLogFont   selogfont;
     int x = *px;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
         wc = (*devfont->charset_ops->conv_to_uc32)(glyph_value);
     else
@@ -558,6 +563,7 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     int uni_char;
     int x, y, width, height;
     
+    glyph_value = REAL_GLYPH(glyph_value);
     if(devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else

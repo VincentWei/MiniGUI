@@ -111,6 +111,7 @@ static int get_ch_width (LOGFONT* logfont, DEVFONT* devfont,
     if (vbf_info->bits_offset == NULL)
         return vbf_info->max_width * scale;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     return vbf_info->advance_x [glyph_value - vbf_info->first_glyph] * scale;
 }
 
@@ -165,6 +166,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     VBFINFO* vbf_info = VARFONT_INFO_P (devfont);
     unsigned short scale = GET_DEVFONT_SCALE (logfont, devfont);
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < vbf_info->first_glyph || glyph_value > vbf_info->last_glyph)
         glyph_value = vbf_info->def_glyph;
 
@@ -225,6 +227,7 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     int advance;
     VBFINFO* vbf_info = VARFONT_INFO_P (devfont);
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < vbf_info->first_glyph || glyph_value > vbf_info->last_glyph)
         glyph_value = vbf_info->def_glyph;
 
@@ -234,10 +237,10 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
     int offset;
-    Glyph32 eff_value = glyph_value;
+    Glyph32 eff_value;
     Glyph32 first_value;
     Glyph32 last_value;
     VBFINFO* vbf_info = VARFONT_INFO_P (devfont);
@@ -245,6 +248,8 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     first_value = vbf_info->first_glyph;
     last_value = vbf_info->last_glyph;
 
+    glyph_value = REAL_GLYPH(glyph_value);
+    eff_value = glyph_value;
     if (glyph_value < first_value || glyph_value > last_value)
         eff_value = vbf_info->def_glyph;
 
@@ -296,12 +301,13 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
 {
     Glyph32 first_value;
     Glyph32 last_value;
-    
+
     VBFINFO* vbf_info = VARFONT_INFO_P (devfont);
 
     first_value = vbf_info->first_glyph;
     last_value = vbf_info->last_glyph;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < first_value || glyph_value > last_value)
         return FALSE;
     else

@@ -3574,9 +3574,11 @@ static unsigned int unicode_glyph_type (Glyph32 glyph_value)
         basic_type = TYPE(glyph_value);
         break_type = PROP(glyph_value);
 
-        if (ISZEROWIDTHTYPE(basic_type)) {
+        if (glyph_value != 0x00AD && ISZEROWIDTHTYPE (basic_type))
             mchar_type = MCHAR_TYPE_ZEROWIDTH;
-        }
+        else if ((glyph_value >= 0x1160 && glyph_value < 0x1200)
+                || glyph_value == 0x200B)
+            mchar_type = MCHAR_TYPE_ZEROWIDTH;
     }
 
     return (break_type << 24) | (basic_type << 16) | mchar_type;

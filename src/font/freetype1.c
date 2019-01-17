@@ -294,7 +294,7 @@ static void start_str_output (LOGFONT* logfont, DEVFONT* devfont)
 /* call this function before getting the bitmap/pixmap of the char
  * to get the bbox of the char */
 static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
-                const Glyph32 glyph_value,
+                Glyph32 glyph_value,
                 int* px, int* py, int* pwidth, int* pheight)
 {
     TT_UShort uni_char;
@@ -304,6 +304,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     TT_Glyph_Metrics metrics;
     TT_BBox     bbox;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     TTFINSTANCEINFO* ttf_inst_info = TTF_INST_INFO_P (devfont);
     TTFGLYPHINFO* ttf_glyph_info = ttf_inst_info->ttf_glyph_info;
 
@@ -440,12 +441,13 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 /* call this function to get the bitmap/pixmap of the char */
 static const void*
 char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
-                const Glyph32 glyph_value, int* pitch, BOOL is_grey)
+                Glyph32 glyph_value, int* pitch, BOOL is_grey)
 {
     TT_Raster_Map Raster;
     TT_Error error;
     TTFINSTANCEINFO* ttf_inst_info = TTF_INST_INFO_P (devfont);
 
+    glyph_value = REAL_GLYPH(glyph_value);
     /* now allocate the raster bitmap */
     Raster.rows = ttf_inst_info->cur_height;
     Raster.width = ttf_inst_info->cur_width;
@@ -538,15 +540,17 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (scale) *scale = 1;
     return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, FALSE);
 }
 
 static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (scale) *scale = 1;
     return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, TRUE);
 }
@@ -554,12 +558,13 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
 /* call this function after getting the bitmap/pixmap of the char
  * to get the advance of the char */
 static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* px, int* py)
+            Glyph32 glyph_value, int* px, int* py)
 {
     TT_Pos vec_x, vec_y;
     TTFINSTANCEINFO* ttf_inst_info = TTF_INST_INFO_P (devfont);
     TTFGLYPHINFO* ttf_glyph_info = TTF_GLYPH_INFO_P (devfont);
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (ttf_inst_info->rotation) {
         vec_x = ttf_inst_info->cur_advance;
         vec_y = 0;
@@ -754,6 +759,7 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     TTFINSTANCEINFO* ttf_inst_info = TTF_INST_INFO_P (devfont);
     TTFGLYPHINFO* ttf_glyph_info = ttf_inst_info->ttf_glyph_info;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if(devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else

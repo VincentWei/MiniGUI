@@ -149,14 +149,13 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 
     PDC pdc = dc_HDC2PDC(hdc);
     DEVFONT* devfont = SELECT_DEVFONT(pdc->pLogFont, glyph_value);
-    glyph_value = REAL_GLYPH (glyph_value);
 
     /* Transfer logical to device to screen here. */
     coor_LP2SP (pdc, &x, &y);
     pdc->rc_output = pdc->DevRC;
 
     glyph_type = devfont->charset_ops->glyph_type (glyph_value);
-    if (check_zero_width(glyph_value, glyph_type)) {
+    if (check_zero_width(glyph_type)) {
         if (adv_x) *adv_x = 0;
         if (adv_y) *adv_y = 0;
         advance = 0;

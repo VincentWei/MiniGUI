@@ -117,11 +117,9 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
 static int inline get_glyph_type (LOGFONT* logfont, Glyph32 glyph_value)
 {
     if (IS_MBC_GLYPH (glyph_value))
-        return logfont->mbc_devfont->charset_ops->glyph_type
-            (REAL_GLYPH (glyph_value));
+        return logfont->mbc_devfont->charset_ops->glyph_type(glyph_value);
     else
-        return logfont->sbc_devfont->charset_ops->glyph_type
-            (glyph_value);
+        return logfont->sbc_devfont->charset_ops->glyph_type(glyph_value);
 }
 
 static int inline get_glyph_advance_in_dc (PDC pdc, Glyph32 glyph_value)
@@ -421,11 +419,9 @@ static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
 
 do_glyph:
         if (IS_MBC_GLYPH (glyph_value))
-            glyph_type = mbc_devfont->charset_ops->glyph_type 
-                (REAL_GLYPH (glyph_value));
+            glyph_type = mbc_devfont->charset_ops->glyph_type (glyph_value);
         else
-            glyph_type = sbc_devfont->charset_ops->glyph_type 
-                (glyph_value);
+            glyph_type = sbc_devfont->charset_ops->glyph_type (glyph_value);
 
         if(if_break){
             DRAWTEXTEX2_CTXT _txt;
@@ -1082,22 +1078,19 @@ int GUIAPI GetGlyphsExtentPoint(
     size->cy = 0;
 
     while(i < nr_glyphs){
-        Glyph32 rg;
         devfont = SELECT_DEVFONT(log_font, glyphs[i]);
-        rg = REAL_GLYPH(glyphs[i]);
-        glyph_type = devfont->charset_ops->glyph_type(rg);
+        glyph_type = devfont->charset_ops->glyph_type(glyphs[i]);
 
-        if (check_zero_width (rg, glyph_type)) {
+        if (check_zero_width (glyph_type)) {
             adv_x = adv_y = 0;
         }
         else {
             advance += _gdi_get_glyph_advance (pdc, glyphs[i],
                     (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     0, 0, &adv_x, &adv_y, NULL);
-
         }
 
-        if(max_extent > 0 && advance > max_extent)
+        if (max_extent > 0 && advance > max_extent)
             break;
 
         size->cx += adv_x;
@@ -1137,12 +1130,10 @@ int GUIAPI GetGlyphsExtent(
     size->cx = 0;
     size->cy = 0;
     while (i < nr_glyphs) {
-        Glyph32 rg;
-        rg = REAL_GLYPH(glyphs[i]);
         devfont = SELECT_DEVFONT(log_font, glyphs[i]);
-        glyph_type = devfont->charset_ops->glyph_type(rg);
+        glyph_type = devfont->charset_ops->glyph_type(glyphs[i]);
 
-        if (check_zero_width (rg, glyph_type)) {
+        if (check_zero_width (glyph_type)) {
             adv_x = adv_y = 0;
         }
         else {

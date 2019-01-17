@@ -346,7 +346,7 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
  * to get the bbox of the char */
 static int
 get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
-                const Glyph32 glyph_value,
+                Glyph32 glyph_value,
                 int* px, int* py, int* pwidth, int* pheight)
 {
 
@@ -358,6 +358,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     bbox.xMin = bbox.yMin = 32000;
     bbox.xMax = bbox.yMax = -32000;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
@@ -482,7 +483,7 @@ error:
 /* call this function to get the bitmap/pixmap of the char */
 static const void*
 char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
-        const Glyph32 glyph_value, int* pitch, BOOL is_grey)
+        Glyph32 glyph_value, int* pitch, BOOL is_grey)
 {
     FT_BitmapGlyph  glyph_bitmap;
     FT_Bitmap*      source;
@@ -490,6 +491,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     FT_Face         face;
     BYTE*           buffer = NULL;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
+
+    glyph_value = REAL_GLYPH(glyph_value);
 
     FT_LOCK(&ft_lock);
 
@@ -610,17 +613,19 @@ error:
 
 static const void*
 get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-        const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+        Glyph32 glyph_value, int* pitch, unsigned short* scale)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (scale) *scale = 1;
     return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, FALSE);
 }
 
 static const void*
 get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch,
+            Glyph32 glyph_value, int* pitch,
             unsigned short* scale)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (scale) *scale = 1;
     return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, TRUE);
 }
@@ -643,11 +648,12 @@ start_str_output (LOGFONT* logfont, DEVFONT* devfont)
  * to get the advance of the char */
 static int
 get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
-    const Glyph32 glyph_value, int* px, int* py)
+    Glyph32 glyph_value, int* px, int* py)
 {
     FT_Fixed advance;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (ft_inst_info->use_kerning
             && ft_inst_info->prev_index && ft_inst_info->cur_index) {
         if (ft_inst_info->is_index_old) {
@@ -876,6 +882,7 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     FT_UInt         uni_char;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
