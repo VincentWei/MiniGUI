@@ -2,7 +2,7 @@ SUBDIRS = in-core
 
 noinst_LTLIBRARIES = libfont.la
 
-SRC_FILES = charset.c charset-arabic.c charset-bidi.c \
+SRC_FILES = charset.c charset-arabic.c charset-bidi.c unicode-comp.c \
             sysfont.c logfont.c devfont.c fontname.c \
             rawbitmap.c varbitmap.c qpf.c upf.c \
             fontcache.c freetype2.c font-engines.c\
@@ -12,7 +12,8 @@ SRC_FILES = charset.c charset-arabic.c charset-bidi.c \
             bitmapfont.c scripteasy.c
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
-            upf.h bitmapfont.h gunichartables.h gunibreak.h unicode-bidi-tables.h
+            upf.h bitmapfont.h unicode-bidi-tables.h \
+            unicode-tables.h unicode-break.h unicode-decomp.h unicode-comp.h
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc

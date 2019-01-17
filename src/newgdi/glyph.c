@@ -141,6 +141,19 @@ Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
     return glyph_value;
 }
 
+BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 gv,
+        Glyph32* mirrored)
+{
+    *mirrored = INV_GLYPH_VALUE;
+
+    DEVFONT* devfont = SELECT_DEVFONT(logfont, gv);
+    if (devfont->charset_ops->bidi_mirror_glyph) {
+        return devfont->charset_ops->bidi_mirror_glyph(gv, mirrored);
+    }
+
+    return FALSE;
+}
+
 int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         int* adv_x, int* adv_y)
 {
@@ -176,24 +189,30 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
     return advance;
 }
 
+unsigned int GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value)
+{
+    /* get the relative device font */
+    DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
+    glyph_value = REAL_GLYPH (glyph_value);
+    return devfont->charset_ops->glyph_type (glyph_value);
+}
+
 int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         GLYPHINFO* glyph_info)
 {
-    int advance = 0;
-    int pitch = 0;
-
-    /* get the relative device font*/
+    /* get the relative device font */
     DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
     glyph_value = REAL_GLYPH (glyph_value);
 
-    /*get glyph type*/
+    /* get glyph type */
     if (glyph_info->mask & GLYPH_INFO_TYPE)
         glyph_info->glyph_type = devfont->charset_ops->glyph_type (glyph_value);
 
-    /*get glyph type*/
+    /* get glyph type */
     if (glyph_info->mask & GLYPH_INFO_BIDI_TYPE) {
         if (devfont->charset_ops->bidi_glyph_type) {
-            glyph_info->bidi_glyph_type = devfont->charset_ops->bidi_glyph_type (glyph_value);
+            glyph_info->bidi_glyph_type
+                = devfont->charset_ops->bidi_glyph_type (glyph_value);
         }
         else {
             glyph_info->bidi_glyph_type = BIDI_TYPE_INVALID;
@@ -212,6 +231,7 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
             (BBOX*)(&glyph_info->bbox_x));
     }
 
+    /* get glyph bitmap info */
     if (glyph_info->mask & GLYPH_INFO_BMP) {
         DWORD bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont);
         glyph_info->bmp_type = bmptype & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
@@ -219,9 +239,8 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         switch (glyph_info->bmp_type) {
         case GLYPHBMP_TYPE_MONO:
             glyph_info->bits = devfont->font_ops->get_glyph_monobitmap (
-                    logfont, devfont, glyph_value, &pitch, NULL);
-            glyph_info->bmp_pitch = pitch;
-            glyph_info->bmp_size = pitch * glyph_info->bbox_h;
+                logfont, devfont, glyph_value, &glyph_info->bmp_pitch, NULL);
+            glyph_info->bmp_size = glyph_info->bmp_pitch * glyph_info->bbox_h;
             break;
 
         case GLYPHBMP_TYPE_GREY:
@@ -247,7 +266,7 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         }
     }
 
-    return advance;
+    return 0;
 }
 
 void GUIAPI GetGlyphBitmap (LOGFONT* logfont, const char* mchar,
@@ -272,7 +291,7 @@ void GUIAPI GetGlyphBitmap (LOGFONT* logfont, const char* mchar,
 static int mult (fixed op1, fixed op2)
 {
     long s = op2;
-    if(s < 0)
+    if (s < 0)
         op2 = -op2;
     {
         long op1_hi = (op1 >> 16)& 0xffff;
@@ -283,9 +302,9 @@ static int mult (fixed op1, fixed op2)
         long prod_hi = op1_hi * op2_hi + ((cross_prod >> 16) & 0xffff);
         long prod_lo = op1_lo * op2_lo + ((cross_prod << 16) & 0xffff0000);
 
-        prod_hi +=((prod_lo& 0x80000000)>>31);
-        if(s <0)
-            prod_hi =-prod_hi;
+        prod_hi += ((prod_lo& 0x80000000)>>31);
+        if (s < 0)
+            prod_hi = -prod_hi;
 
         return (int)prod_hi;
     }

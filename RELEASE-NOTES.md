@@ -10,6 +10,8 @@ Please report any bugs and incompatibilities in
 
 ### What's new in this version
 
+In this version, we mainly enhanced and tuned the APIs of font rendering.
+
 #### Tunning the logical font APIs
 
 The styles of LOGFONT changed.
@@ -67,7 +69,7 @@ Note that `<underline>` and `<struckout>` are merged to `<decoration>`
 in order to keep the style string is still 6-character long.
 
 Consequently, if you want to use the rendering method SUPIXEL for a TTF font,
-please define the font name in the following way:
+please define the logical font name in the following way:
 
     ttf-Courier-rrncns-*-16-UTF-8
 
@@ -77,8 +79,8 @@ Moreover, the family name of a DEVFONT supports aliases since 3.4.0:
 
 for example:
 
-    ttf-Arial,Sans serif-rrncnn-8-16-ISO8859-1,UTF-8
-    ttf-Courier,Monospace-rrncnn-8-16-ISO8859-1,UTF-8
+    ttf-Arial,Sans Serif-rrncnn-8-16-ISO8859-1,UTF-8
+    ttf-Courier,Monospace,Serif-rrncnn-8-16-ISO8859-1,UTF-8
 
 Note that the length of one DEVFONT name can not exceed 255 bytes.
 
@@ -90,10 +92,19 @@ if you want to get the height and descent data of one font.
 
 * More fields added for GLYPHBITMAP struct in order to return the completed
 rasterized glyph bitmap information.
+
+* `GetGlyphInfo` now can return the basic glyph type and break type of a
+UNICODE character. If the glyph is an ASCII character, the old `MCHAR_TYPE`
+can also be returned.
+
 * Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming
 rules.
 
 #### New APIs
+
+* `GetGlyphsByRules` function calculates and allocates the glyph string from
+a multi-byte string under the specified white space rule and transformation
+rule.
 
 * `GetGlyphsExtentPointEx` function gets the visual extent information
 of a glyph string which can fit in a line with the specified maximal extent.

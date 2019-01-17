@@ -6966,6 +6966,33 @@ MG_EXPORT UChar32 GUIAPI UCharToLower (UChar32 uc);
 /** Converts a glyph to the titlecase. */
 MG_EXPORT UChar32 GUIAPI UCharToTitle (UChar32 uc);
 
+/** Determines the canonical combining class of a Unicode character.*/
+MG_EXPORT int GUIAPI UCharCombiningClass (UChar32 uc);
+
+/**
+ * Computes the canonical ordering of a string in-place.
+ * This rearranges decomposed characters in the string
+ * according to their combining classes. 
+ * See the Unicode manual for more information.
+ */
+MG_EXPORT void GUIAPI UCharCanonicalOrdering (UChar32 *string, int len);
+
+/** Performs a single decomposition step of the Unicode canonical decomposition algorithm. */
+MG_EXPORT BOOL GUIAPI UCharCompose (UChar32 a, UChar32 b, UChar32 *ch);
+
+/** Performs a single composition step of the Unicode canonical composition algorithm. */
+MG_EXPORT BOOL GUIAPI UCharDecompose (UChar32 ch, UChar32 *a, UChar32 *b);
+
+/**
+ * Computes the canonical or compatibility decomposition of a
+ * Unicode character.
+ *
+ * For compatibility decomposition, pass TRUE for \a compat;
+ * for canonical decomposition pass FALSE for \a compat.
+ */
+MG_EXPORT int GUIAPI UCharFullyDecompose (UChar32  ch, BOOL compat,
+        UChar32 *result, int result_len);
+
 #endif /* _MGCHARSET_UNICODE */
 
 /**
@@ -9016,6 +9043,21 @@ typedef enum {
 MG_EXPORT Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
         int mchar_len, GLYPHSHAPETYPE shape_type);
 
+/**
+ * \fn BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 glyph,
+ *      Glyph32* mirrored)
+ * \brief Get the mirror glyph if possible.
+ *
+ * \param logfont The logical font.
+ * \param glyph The glyph value.
+ * \param mirrored The buffer to store the mirrored glyph if \a glyph
+ *      has a mirrored glyph.
+ *
+ * \return TRUE if success, FALSE on failure.
+ */
+MG_EXPORT BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 glyph,
+        Glyph32* mirrored);
+
 /** 
  * \fn int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value, \
  *         int* adv_x, int* adv_y)
@@ -9060,6 +9102,21 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
         int nr_glyphs, int* adv_x, int* adv_y);
 
+/**
+ * \fn Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value)
+ * \brief Retriev the basic type of a glyph.
+ *
+ * This function retrieves the basic type of a glyph.
+ *
+ * \param logfont The logical font.
+ * \param glyph_value The glyph value.
+ *
+ * \return The basic type of the specified glyph.
+ *
+ * \sa GetGlyphInfo, GetGlyphBIDIType
+ */
+MG_EXPORT Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value);
+
 #define GLYPH_INFO_TYPE         0x01
 #define GLYPH_INFO_BIDI_TYPE    0x02
 #define GLYPH_INFO_METRICS      0x04
@@ -9096,13 +9153,13 @@ typedef struct _GLYPHINFO {
      * - GLYPH_INFO_METRICS
      * - GLYPH_INFO_BMP
      */
-    unsigned int mask;
+    Uint32 mask;
 
     /** The glyph type */
-    unsigned int glyph_type;
+    Uint32 glyph_type;
 
     /** The BIDI glyph type */
-    unsigned int bidi_glyph_type;
+    Uint32 bidi_glyph_type;
 
 #if 0 // VincentWei: removed since 3.4.0
     /** The height of the glyph */
@@ -9138,7 +9195,7 @@ typedef struct _GLYPHINFO {
     BITMAP prbitmap;
 } GLYPHINFO;
 
-/** 
+/**
  * \fn int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value, \
  *         GLYPHINFO* glyph_info)
  * \brief Retriev the information of a glyph.
@@ -9151,7 +9208,7 @@ typedef struct _GLYPHINFO {
  *
  * \note You must set glyph_info->mask to indicate what you want.
  *
- * \return The advance of the glyph string on baseline.
+ * \return 0 if success, otherwise on failure.
  *
  * \sa GLYPHINFO
  */
@@ -9634,9 +9691,26 @@ MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_g
 #define BIDI_NUMBER_TO_RTL(p) \
         (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
 
-MG_EXPORT GUIAPI BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value, Uint32 *bidi_type);
+/**
+ * \fn BOOL GUIAPI GetGlyphBIDIType (LOGFONT* logfont,
+ *      Glyph32 glyph_value, Uint32 *bidi_type)
+ * \brief Retriev the BIDI type of a glyph.
+ *
+ * This function retrieves the BIDI type of a glyph.
+ *
+ * \param logfont The logical font.
+ * \param glyph_value The glyph value.
+ * \param bidi_type The buffer storing the BIDI type of the glyph.
+ *
+ * \return TRUE if success, FALSE on failure.
+ *
+ * \sa GetGlyphInfo, GetGlyphType
+ */
+MG_EXPORT BOOL GUIAPI GetGlyphBIDIType (LOGFONT* log_font,
+        Glyph32 glyph_value, Uint32 *bidi_type);
 
-/** \fn int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font, \
+/**
+ * \fn int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font, \
         const char* text, int text_len, Glyph32** glyphs, \
         GLYPHMAPINFO** glyphs_map)
  * \brief Get logical glyphs string of the text.

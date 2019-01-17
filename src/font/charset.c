@@ -3486,9 +3486,8 @@ static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar, int pre_le
     return wc;
 }
 
-//#include "gunicode.h"
-#include "gunichartables.h"
-#include "gunibreak.h"
+#include "unicode-tables.h"
+#include "unicode-break.h"
 
 #define ATTR_TABLE(Page) (((Page) <= UCHAR_TYPE_LAST_PAGE_PART1) \
                           ? attr_table_part1[Page] \
