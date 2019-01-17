@@ -70,13 +70,13 @@
 
 typedef struct _CHARSET
 {
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
     struct _CHARSET* next;
 }CHARSET;
 
 typedef struct _FAMILY
 {
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
     CHARSET chset_head;
     struct _FAMILY* next;
 }FAMILY;
@@ -98,8 +98,8 @@ static FAMILY* find_insert_family (FAMILY* head, const char* fami_name)
     }
 
     cur = (FAMILY*)malloc(sizeof(*cur));
-    strncpy (cur->name, fami_name, LEN_FONT_NAME);
-    cur->name [LEN_FONT_NAME] = '\0';
+    strncpy (cur->name, fami_name, LEN_LOGFONT_NAME_FIELD);
+    cur->name [LEN_LOGFONT_NAME_FIELD] = '\0';
     cur->chset_head.next = NULL;
     cur->next = NULL;
 
@@ -133,8 +133,8 @@ static void insert_chset (FAMILY* fami, const char* chset_name)
     }
 
     cur = (CHARSET*)malloc(sizeof(*cur));
-    strncpy (cur->name, chset_name, LEN_FONT_NAME);
-    cur->name [LEN_FONT_NAME] = '\0';
+    strncpy (cur->name, chset_name, LEN_LOGFONT_NAME_FIELD);
+    cur->name [LEN_LOGFONT_NAME_FIELD] = '\0';
     cur->next = NULL;
 
     pre->next = cur;
@@ -416,7 +416,7 @@ static void insert_strings (HWND hWnd, char** strs, int str_num)
 
 static int fresh_chset_list (HWND hWnd)
 {
-    char str_buffer [LEN_FONT_NAME + 1];
+    char str_buffer [LEN_LOGFONT_NAME_FIELD + 1];
     HWND fami_lb;
     HWND chset_lb;
     int cur_sel;
@@ -455,7 +455,7 @@ static int fresh_chset_list (HWND hWnd)
 static int insert_listboxs (HWND hWnd)
 {
     FAMILY* fami_cur = ((FAMILY*)GetWindowAdditionalData(hWnd))->next;
-    char str_buffer [LEN_FONT_NAME + 1];
+    char str_buffer [LEN_LOGFONT_NAME_FIELD + 1];
     int i;
     HWND hctrl;
 
@@ -496,8 +496,8 @@ static int insert_listboxs (HWND hWnd)
 
 static LOGFONT* create_sel_font(HWND hWnd)
 {
-    char family [LEN_FONT_NAME +1];
-    char chset [LEN_FONT_NAME +1];
+    char family [LEN_LOGFONT_NAME_FIELD +1];
+    char chset [LEN_LOGFONT_NAME_FIELD +1];
     char weight;
     char slant;
     char flip;

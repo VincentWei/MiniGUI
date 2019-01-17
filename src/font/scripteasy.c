@@ -113,7 +113,7 @@ static BOOL load_fonts(void)
     se_dev_fonts = calloc (font_table_size, sizeof (DEVFONT));
 
     for (i = 0; i < font_table_size; i++) {
-        char        charset[LEN_FONT_NAME + 1];
+        char        charset[LEN_LOGFONT_NAME_FIELD + 1];
         CHARSETOPS  *charset_ops;
         const char  *font_name;
         int         font_id;
@@ -158,7 +158,7 @@ static BOOL load_fonts(void)
         if ((nr_charsets = charsetGetCharsetsNumber (charsets)) > 1) {
             int j;
             for (j = 1; j < nr_charsets; j++) {
-                char charset [LEN_FONT_NAME + 1];
+                char charset [LEN_LOGFONT_NAME_FIELD + 1];
                 CHARSETOPS* charset_ops;
                 DEVFONT* new_devfont;
 

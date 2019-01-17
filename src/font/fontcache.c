@@ -87,9 +87,9 @@ typedef struct _HashDirectory {
    makeHashKeyFunc : the function which make hash key */
 typedef struct cache {
     /* Information about font */
-    char family[LEN_FONT_NAME + 1];
+    char family[LEN_LOGFONT_NAME_FIELD + 1];
     // VincentWei: no need to check charset for TrueType
-    //char charset[LEN_FONT_NAME + 1];
+    //char charset[LEN_LOGFONT_NAME_FIELD + 1];
     int render_style; // render style
     int fontsize;
     int rotation;
@@ -480,8 +480,8 @@ __mg_ttc_create(char *family, char *charset,
         return (HCACHE)(0);
     }
 
-    strncpy(temp->cache.family, family, LEN_FONT_NAME);
-    //strncpy(temp->cache.charset, charset, LEN_FONT_NAME);
+    strncpy(temp->cache.family, family, LEN_LOGFONT_NAME_FIELD);
+    //strncpy(temp->cache.charset, charset, LEN_LOGFONT_NAME_FIELD);
     temp->cache.render_style = (style & FS_RENDER_MASK);
     temp->cache.fontsize = size;
     temp->cache.rotation = rotation;
@@ -588,8 +588,8 @@ __mg_ttc_is_exist(char *family, char *charset,
     /* If can not match font name*/
     p = __mg_globalCache.queueDummyHead.nextCache;
     while (p != &__mg_globalCache.queueDummyHead) {
-        if (strncmp(p->cache.family, family, LEN_FONT_NAME) == 0) {
-            if (strncmp(p->cache.charset, charset, LEN_FONT_NAME) == 0) {
+        if (strncmp(p->cache.family, family, LEN_LOGFONT_NAME_FIELD) == 0) {
+            if (strncmp(p->cache.charset, charset, LEN_LOGFONT_NAME_FIELD) == 0) {
                 if (p->cache.fontsize == size) {
                     int s = style & 0x000000FF;
                     if ((s == FS_WEIGHT_BOOK || s == FS_WEIGHT_DEMIBOLD || s == FS_WEIGHT_SUBPIXEL) &&
@@ -609,9 +609,9 @@ __mg_ttc_is_exist(char *family, char *charset,
 #else
     p = __mg_globalCache.queueDummyHead.nextCache;
     while (p != &__mg_globalCache.queueDummyHead) {
-        if (strncmp(p->cache.family, family, LEN_FONT_NAME) == 0
+        if (strncmp(p->cache.family, family, LEN_LOGFONT_NAME_FIELD) == 0
 #if 0 // VincentWei: do not need to check charset.
-                && strncmp(p->cache.charset, charset, LEN_FONT_NAME) == 0
+                && strncmp(p->cache.charset, charset, LEN_LOGFONT_NAME_FIELD) == 0
 #endif
                 && p->cache.fontsize == size
                 && p->cache.rotation == rotation

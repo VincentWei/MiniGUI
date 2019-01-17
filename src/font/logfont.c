@@ -72,7 +72,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 {
     PLOGFONT log_font;
     int sbc_value, mbc_value = 0;
-    char dev_family [LEN_FONT_NAME + 1];
+    char dev_family [LEN_LOGFONT_NAME_FIELD + 1];
     DEVFONT* sbc_devfont, *mbc_devfont;
 
     // is valid style?
@@ -100,17 +100,17 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     log_font->style = style;
 
     if (type) {
-        strncpy (log_font->type, type, LEN_FONT_NAME);
-        log_font->type [LEN_FONT_NAME] = '\0';
+        strncpy (log_font->type, type, LEN_LOGFONT_NAME_FIELD);
+        log_font->type [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
     else
         strcpy (log_font->type, FONT_TYPE_NAME_ALL);
 
-    strncpy (log_font->family, family, LEN_FONT_NAME);
-    log_font->family [LEN_FONT_NAME] = '\0';
+    strncpy (log_font->family, family, LEN_LOGFONT_NAME_FIELD);
+    log_font->family [LEN_LOGFONT_NAME_FIELD] = '\0';
 
-    strncpy (log_font->charset, charset, LEN_FONT_NAME);
-    log_font->charset [LEN_FONT_NAME] = '\0';
+    strncpy (log_font->charset, charset, LEN_LOGFONT_NAME_FIELD);
+    log_font->charset [LEN_LOGFONT_NAME_FIELD] = '\0';
 
     if (size > FONT_MAX_SIZE)
         log_font->size = FONT_MAX_SIZE;
@@ -164,37 +164,37 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     /*reset type name of logfont*/
     if (log_font->mbc_devfont) {
         fontGetTypeNameFromName (log_font->mbc_devfont->name, dev_family);
-        strncpy (log_font->type, dev_family, LEN_FONT_NAME);
-        log_font->type[LEN_FONT_NAME] = '\0';
+        strncpy (log_font->type, dev_family, LEN_LOGFONT_NAME_FIELD);
+        log_font->type[LEN_LOGFONT_NAME_FIELD] = '\0';
     }
     else {
         fontGetTypeNameFromName (log_font->sbc_devfont->name, dev_family);
-        strncpy (log_font->type, dev_family, LEN_FONT_NAME);
-        log_font->type[LEN_FONT_NAME] = '\0';
+        strncpy (log_font->type, dev_family, LEN_LOGFONT_NAME_FIELD);
+        log_font->type[LEN_LOGFONT_NAME_FIELD] = '\0';
     }
 
     /*reset family name of logfont*/
     if (log_font->mbc_devfont) {
         fontGetFamilyFromName (log_font->mbc_devfont->name, dev_family);
-        strncpy (log_font->family, dev_family, LEN_FONT_NAME);
-        log_font->family [LEN_FONT_NAME] = '\0';
+        strncpy (log_font->family, dev_family, LEN_LOGFONT_NAME_FIELD);
+        log_font->family [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
     else {
         fontGetFamilyFromName (log_font->sbc_devfont->name, dev_family);
-        strncpy (log_font->family, dev_family, LEN_FONT_NAME);
-        log_font->family [LEN_FONT_NAME] = '\0';
+        strncpy (log_font->family, dev_family, LEN_LOGFONT_NAME_FIELD);
+        log_font->family [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
 
     /*reset charset name of logfont*/
     if (log_font->mbc_devfont) {
         strncpy (log_font->charset,
-            log_font->mbc_devfont->charset_ops->name, LEN_FONT_NAME);
-        log_font->charset [LEN_FONT_NAME] = '\0';
+            log_font->mbc_devfont->charset_ops->name, LEN_LOGFONT_NAME_FIELD);
+        log_font->charset [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
     else {
         strncpy (log_font->charset,
-            log_font->sbc_devfont->charset_ops->name, LEN_FONT_NAME);
-        log_font->charset [LEN_FONT_NAME] = '\0';
+            log_font->sbc_devfont->charset_ops->name, LEN_LOGFONT_NAME_FIELD);
+        log_font->charset [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
 
     /*reset ascent of logfont*/
@@ -345,9 +345,9 @@ PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
 
 PLOGFONT GUIAPI CreateLogFontByName (const char* font_name)
 {
-    char type[LEN_FONT_NAME + 1];
-    char family[LEN_FONT_NAME + 1];
-    char charset[LEN_FONT_NAME + 1];
+    char type[LEN_LOGFONT_NAME_FIELD + 1];
+    char family[LEN_LOGFONT_NAME_FIELD + 1];
+    char charset[LEN_LOGFONT_NAME_FIELD + 1];
     DWORD style;
     int height;
 

@@ -94,9 +94,9 @@ static const SHAPEINFO shape_info[SHAPENUMBER] = {
 static int iso8859_6_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);

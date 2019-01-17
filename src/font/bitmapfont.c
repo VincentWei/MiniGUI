@@ -469,7 +469,7 @@ DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
 {
     DEVFONT* bitmapfont_dev_font = NULL;
     CHARSETOPS* charset_ops;
-    char charset[LEN_FONT_NAME + 1];
+    char charset[LEN_LOGFONT_NAME_FIELD + 1];
     BMPFONTINFO *bmpfont_info;
     int offset;
 

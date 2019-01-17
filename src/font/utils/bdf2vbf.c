@@ -197,13 +197,13 @@ static BOOL  get_font_propt(FILE* fp, char* family, char* font_rrncnn, char* cha
         /*FAMILY_NAME*/
         if (strcmp (line_buf, "FAMILY_NAME") == 0)
         {
-            if (strlen(body) > LEN_FONT_NAME)
+            if (strlen(body) > LEN_LOGFONT_NAME_FIELD)
             {
                 fprintf(stderr, "the FAMILY_NAME is too long, "
-                        "please truncation it to less than %d\n", LEN_FONT_NAME-2);
+                        "please truncation it to less than %d\n", LEN_LOGFONT_NAME_FIELD-2);
                 return FALSE;
             }
-            strncpy (family, body, LEN_FONT_NAME);
+            strncpy (family, body, LEN_LOGFONT_NAME_FIELD);
         }
         else if (strcmp (line_buf, "WEIGHT_NAME") == 0)
             set_rrncnn (font_rrncnn, SET_WEIGHT_POS, body);
@@ -216,7 +216,7 @@ static BOOL  get_font_propt(FILE* fp, char* family, char* font_rrncnn, char* cha
             
         /*FIXME must inorder*/
         else if (strcmp (line_buf, "CHARSET_REGISTRY") == 0)
-            strncpy (charset, body, LEN_FONT_NAME);
+            strncpy (charset, body, LEN_LOGFONT_NAME_FIELD);
         else if (strcmp (line_buf, "CHARSET_ENCODING") == 0)
         {
             if (body[0] != '-')
@@ -494,8 +494,8 @@ typedef struct _FONT_PROPT {
 } FONT_PROPT;
 
 char font_name [LEN_UNIDEVFONT_NAME];
-char family [LEN_FONT_NAME];
-char charset [LEN_FONT_NAME];
+char family [LEN_LOGFONT_NAME_FIELD];
+char charset [LEN_LOGFONT_NAME_FIELD];
 char new_file_name [LEN_UNIDEVFONT_NAME+5];
 
 #define MAKE_HEADER(header, glyph_num)\

@@ -180,9 +180,9 @@ static const unsigned char* sb_get_next_word (const unsigned char* mstr,
 static int ascii_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -242,10 +242,10 @@ static CHARSETOPS CharsetOps_ascii = {
 static int iso8859_1_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
     char* sub_enc;
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -308,9 +308,9 @@ static CHARSETOPS CharsetOps_iso8859_1 = {
 static int iso8859_2_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -422,9 +422,9 @@ static CHARSETOPS CharsetOps_iso8859_2 = {
 static int iso8859_3_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -535,9 +535,9 @@ static CHARSETOPS CharsetOps_iso8859_3 = {
 static int iso8859_4_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -650,9 +650,9 @@ static CHARSETOPS CharsetOps_iso8859_4 = {
 static int iso8859_5_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -799,9 +799,9 @@ static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 gly
 static int iso8859_7_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -901,9 +901,9 @@ static CHARSETOPS CharsetOps_iso8859_7 = {
 static int iso8859_8_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -1170,9 +1170,9 @@ static CHARSETOPS CharsetOps_iso8859_8 = {
 static int iso8859_9_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -1272,9 +1272,9 @@ static CHARSETOPS CharsetOps_iso8859_9 = {
 static int iso8859_10_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -1386,9 +1386,9 @@ static CHARSETOPS CharsetOps_iso8859_10 = {
 static int iso8859_11_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -1499,9 +1499,9 @@ static CHARSETOPS CharsetOps_iso8859_11 = {
 static int iso8859_13_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -1612,9 +1612,9 @@ static CHARSETOPS CharsetOps_iso8859_13 = {
 static int iso8859_14_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -1725,9 +1725,9 @@ static CHARSETOPS CharsetOps_iso8859_14 = {
 static int iso8859_15_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -1836,9 +1836,9 @@ static CHARSETOPS CharsetOps_iso8859_15 = {
 static int iso8859_16_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -2059,9 +2059,9 @@ static Glyph32 gb2312_0_char_glyph_value (const unsigned char* pre_mchar,
 static int gb2312_0_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -2214,9 +2214,9 @@ static Glyph32 gbk_char_glyph_value (const unsigned char* pre_mchar,  int pre_le
 static int gbk_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -2390,9 +2390,9 @@ static Glyph32 gb18030_0_char_glyph_value (const unsigned char* pre_mchar,
 static int gb18030_0_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -2638,9 +2638,9 @@ static Glyph32 big5_char_glyph_value (const unsigned char* pre_mchar,  int pre_l
 static int big5_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -2798,9 +2798,9 @@ static Glyph32 ksc5601_0_char_glyph_value (const unsigned char* pre_mchar,
 static int ksc5601_0_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -2970,9 +2970,9 @@ static int jisx0201_0_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
 static int jisx0201_0_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -3065,9 +3065,9 @@ static Glyph32 jisx0208_0_char_glyph_value (const unsigned char* pre_mchar,
 static int jisx0208_0_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -3183,9 +3183,9 @@ static CHARSETOPS CharsetOps_jisx0208_0 = {
 static int jisx0201_1_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -3320,9 +3320,9 @@ static Glyph32 jisx0208_1_char_glyph_value (const unsigned char* pre_mchar,
 static int jisx0208_1_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -3642,9 +3642,9 @@ static int utf8_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
 static int utf8_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -3892,9 +3892,9 @@ static int utf16le_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
 static int utf16le_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -4118,9 +4118,9 @@ static int utf16be_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
 static int utf16be_is_this_charset (const unsigned char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);
@@ -4375,9 +4375,9 @@ CHARSETOPS* GetCharsetOps (const char* charset)
 CHARSETOPS* GetCharsetOpsEx (const char* charset)
 {
     int i;
-    char name [LEN_FONT_NAME + 1];
+    char name [LEN_LOGFONT_NAME_FIELD + 1];
 
-    for (i = 0; i < LEN_FONT_NAME + 1; i++) {
+    for (i = 0; i < LEN_LOGFONT_NAME_FIELD + 1; i++) {
         if (charset [i] == '\0')
             break;
         name [i] = toupper (charset [i]);

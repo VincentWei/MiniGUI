@@ -124,7 +124,6 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
     dev_font = list_head;
     while (dev_font) {
         int type_req;
-        char family [LEN_FONT_NAME + 1];
         int weight_req = log_font->style & FS_WEIGHT_MASK;
         int weight_cur = dev_font->style & FS_WEIGHT_MASK;
 
@@ -139,10 +138,17 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
             match_bits [i] |= MATCHED_TYPE;
 
         /* does match this family? */
+#if 0   // since 3.4.0
+        char family [LEN_LOGFONT_NAME_FIELD + 1];
         fontGetFamilyFromName (dev_font->name, family);
         if (strcasecmp (family, log_font->family) == 0) {
             match_bits [i] |= MATCHED_FAMILY;
         }
+#else
+        if (fontDoesMatchFamily(dev_font->name, log_font->family)) {
+            match_bits [i] |= MATCHED_FAMILY;
+        }
+#endif
 
         /* does match this charset */
         if (IsCompatibleCharset (req_charset, dev_font->charset_ops)) {
@@ -238,7 +244,7 @@ DEVFONT* font_GetMatchedSBDevFont (LOGFONT* log_font)
 
     if (GetCharsetOps (log_font->charset)->bytes_maxlen_char > 1) {
         /*mbc logfont --- sbc devfont*/
-        char sysfont_charset [LEN_FONT_NAME + 1];
+        char sysfont_charset [LEN_LOGFONT_NAME_FIELD + 1];
         fontGetCharsetFromName (g_SysLogFont[0]->sbc_devfont->name, sysfont_charset);
         matched_devfont = get_matched_devfont (log_font, sb_dev_font_head,
                 nr_sb_dev_fonts, sysfont_charset);
@@ -351,26 +357,26 @@ void dbg_dumpDevFonts (void)
  */
 void font_DelSBDevFont (DEVFONT* dev_font)
 {
-  DEVFONT *tmp, *prev = NULL;
+    DEVFONT *tmp, *prev = NULL;
 
-  tmp = sb_dev_font_head;
-  while (tmp != NULL) {
-      if (tmp == dev_font) {
-      if (prev != NULL)
-              prev->next = tmp->next;
-      else
-              sb_dev_font_head = tmp->next;
+    tmp = sb_dev_font_head;
+    while (tmp != NULL) {
+        if (tmp == dev_font) {
+            if (prev != NULL)
+                prev->next = tmp->next;
+            else
+                sb_dev_font_head = tmp->next;
 
-          nr_sb_dev_fonts --;
+            nr_sb_dev_fonts --;
 
-      break;
-      }
+            break;
+        }
 
-      prev = tmp;
-      tmp = prev->next;
-  }
+        prev = tmp;
+        tmp = prev->next;
+    }
 
-  return;
+    return;
 }
 
 /*
@@ -392,7 +398,7 @@ void font_DelMBDevFont (DEVFONT* dev_font)
 
           nr_mb_dev_fonts --;
 
-      break;
+          break;
       }
       prev = tmp;
       tmp = prev->next;
@@ -407,7 +413,7 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
     FONTOPS_INFO* fontops_info = __mg_fontops_infos;
     DEVFONT* devfont;
     CHARSETOPS* charset_ops;
-    char charset [LEN_FONT_NAME + 1];
+    char charset [LEN_LOGFONT_NAME_FIELD + 1];
 
     /*find the FONTOPS and LOADER*/
     while (fontops_info->type) {
@@ -473,7 +479,7 @@ static void add_relating_devfonts_to_list (DEVFONT* related_devfont)
 {
     DEVFONT* sub_devfont;
 
-    char charset [LEN_FONT_NAME + 1];
+    char charset [LEN_LOGFONT_NAME_FIELD + 1];
     char charsets [LEN_UNIDEVFONT_NAME + 1];
     int nr_charsets;
 

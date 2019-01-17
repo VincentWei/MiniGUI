@@ -706,7 +706,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
 
     /* copy CharsetOps */
     if (need_sbc_font && devfont->charset_ops->bytes_maxlen_char > 1) {
-        char charset [LEN_FONT_NAME + 1];
+        char charset [LEN_LOGFONT_NAME_FIELD + 1];
 
         fontGetCompatibleCharsetFromName (devfont->name, charset);
         new_devfont->charset_ops = GetCharsetOps (charset);

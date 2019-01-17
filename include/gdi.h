@@ -5456,9 +5456,9 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
      */
 
 /* Font-related structures */
-#define LEN_FONT_NAME               31
-#define LEN_DEVFONT_NAME            79
-#define LEN_UNIDEVFONT_NAME         127
+#define LEN_LOGFONT_NAME_FIELD      31
+#define LEN_UNIDEVFONT_NAME         255
+#define LEN_DEVFONT_NAME            LEN_UNIDEVFONT_NAME
 
 #define FONT_WEIGHT_NIL             '\0'
 #define FONT_WEIGHT_ALL             '*'
@@ -5728,11 +5728,11 @@ typedef struct _DEVFONT DEVFONT;
 /** The logical font structure. */
 typedef struct _LOGFONT {
     /** The type of the logical font. */
-    char type [LEN_FONT_NAME + 1];
+    char type [LEN_LOGFONT_NAME_FIELD + 1];
     /** The family name of the logical font. */
-    char family [LEN_FONT_NAME + 1];
+    char family [LEN_LOGFONT_NAME_FIELD + 1];
     /** The charset of the logical font. */
-    char charset [LEN_FONT_NAME + 1];
+    char charset [LEN_LOGFONT_NAME_FIELD + 1];
     /** The styles of the logical font. */
     DWORD style;
     /** The size of the logical font. */
@@ -5888,11 +5888,20 @@ struct _CHARSETOPS;
 typedef struct _FONTOPS FONTOPS;
 typedef struct _CHARSETOPS CHARSETOPS;
 
-/* charops fontops devont structure is  here. */
+/* charops fontops devont structure is here. */
 /** The device font structure. */
 struct _DEVFONT
 {
-    /** The device font name. */
+    /**
+      * The device font name.
+      * The family name supports aliases since 3.4.0:
+      *
+      *     <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charsets>
+      *
+      * for example:
+      *
+      *     ttf-courier,monospace-rrncnn-8-16-ISO8859-1,UTF-8
+      */
     char             name [LEN_UNIDEVFONT_NAME + 1];
 
     /** The styles of the device font. */

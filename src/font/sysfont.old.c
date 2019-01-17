@@ -86,7 +86,7 @@ BOOL mg_InitSysFont (void)
 
     for (i = 0; i < nr_fonts; i++) {
         char key [11];
-        char charset [LEN_FONT_NAME + 1];
+        char charset [LEN_LOGFONT_NAME_FIELD + 1];
         char file [MAX_PATH + 1];
 
         sprintf (key, "name%d", i);

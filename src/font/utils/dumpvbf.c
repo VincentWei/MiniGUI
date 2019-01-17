@@ -54,7 +54,7 @@ typedef int BOOL;
 #define TRUE    1
 #define FALSE   0
 
-#define LEN_FONT_NAME               23
+#define LEN_LOGFONT_NAME_FIELD               23
 #define LEN_DEVFONT_NAME            79
 
 extern VBFINFO extern_vbfinfo;
@@ -64,8 +64,8 @@ extern VBFINFO extern_vbfinfo;
 BOOL dumpVBF (VBFINFO* vbf, char* file)
 {
     FILE* fp;
-    char family [LEN_FONT_NAME + 1];
-    char style [LEN_FONT_NAME + 1];
+    char family [LEN_LOGFONT_NAME_FIELD + 1];
+    char style [LEN_LOGFONT_NAME_FIELD + 1];
     int len_offsets;
     int len_widths;
     int len_header;

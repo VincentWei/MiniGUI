@@ -239,9 +239,9 @@ int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
  496 static int euckr_is_this_charset (const unsigned char* charset)
  497 {
  498     int i;
- 499     char name [LEN_FONT_NAME + 1];
+ 499     char name [LEN_LOGFONT_NAME_FIELD + 1];
  500 
- 501     for (i = 0; i &lt; LEN_FONT_NAME + 1; i++) {
+ 501     for (i = 0; i &lt; LEN_LOGFONT_NAME_FIELD + 1; i++) {
  502         if (charset [i] == '\0')
  503             break;
  504         name [i] = toupper (charset [i]);
@@ -388,9 +388,9 @@ int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
 
 <table border="0" cellpadding="0" class="code-sample" width="100%"><tr><td> <pre>
  228 typedef struct _LOGFONT {
- 229     char type [LEN_FONT_NAME + 1];
- 230     char family [LEN_FONT_NAME + 1];
- 231     char charset [LEN_FONT_NAME + 1];
+ 229     char type [LEN_LOGFONT_NAME_FIELD + 1];
+ 230     char family [LEN_LOGFONT_NAME_FIELD + 1];
+ 231     char charset [LEN_LOGFONT_NAME_FIELD + 1];
  232     DWORD style;
  233     int size;
  234     int rotation;

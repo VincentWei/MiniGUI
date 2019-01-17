@@ -102,10 +102,10 @@ BOOL mg_InitSysFont (void)
 
     for (i = 0; i < nr_fonts; i++) {
         char key [11];
-        char type [LEN_FONT_NAME + 1];
-        char family [LEN_FONT_NAME + 1];
-        char style [LEN_FONT_NAME + 1];
-        char charset [LEN_FONT_NAME + 1];
+        char type [LEN_LOGFONT_NAME_FIELD + 1];
+        char family [LEN_LOGFONT_NAME_FIELD + 1];
+        char style [LEN_LOGFONT_NAME_FIELD + 1];
+        char charset [LEN_LOGFONT_NAME_FIELD + 1];
         char font_name [LEN_DEVFONT_NAME + 1];
         int  height;
         int  j = 0, need = 0;

@@ -53,6 +53,7 @@ BOOL fontGetTypeNameFromName (const char* name, char* type);
 int fontConvertFontType (const char* type);
 
 BOOL fontGetFamilyFromName (const char* name, char* family);
+BOOL fontDoesMatchFamily (const char* name, const char* family);
 
 BOOL fontCopyStyleFromName (const char* name, char* style);
 DWORD fontGetStyleFromName (const char* name);

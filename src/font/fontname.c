@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "common.h"
 #include "minigui.h"
@@ -96,7 +97,7 @@ BOOL fontGetTypeNameFromName (const char* name, char* type)
 
 int fontGetFontTypeFromName (const char* name)
 {
-    char type [LEN_FONT_NAME + 1];
+    char type [LEN_LOGFONT_NAME_FIELD + 1];
 
     if (!fontGetTypeNameFromName (name, type))
         return -1;
@@ -114,8 +115,8 @@ BOOL fontGetFamilyFromName (const char* name, char* family)
     if (*(++family_part) == '\0')
         return FALSE;
 
-    while (family_part [i] && i <= LEN_FONT_NAME) {
-        if (family_part [i] == '-') {
+    while (family_part [i] && i <= LEN_LOGFONT_NAME_FIELD) {
+        if (family_part [i] == '-' || family_part [i] == ',') {
             family [i] = '\0';
             break;
         }
@@ -125,6 +126,59 @@ BOOL fontGetFamilyFromName (const char* name, char* family)
     }
 
     return TRUE;
+}
+
+static BOOL get_family_part_lower (const char* name, char* family)
+{
+    int i = 0;
+    const char* family_part;
+
+    if ((family_part = strchr (name, '-')) == NULL)
+        return FALSE;
+    if (*(++family_part) == '\0')
+        return FALSE;
+
+    while (family_part [i] && i <= LEN_UNIDEVFONT_NAME) {
+        if (family_part [i] == '-') {
+            family [i] = '\0';
+            break;
+        }
+
+        family [i] = tolower(family_part [i]);
+        i++;
+    }
+
+    return TRUE;
+}
+
+/* devfont family specification:
+ * family[,alias]...
+ */
+BOOL fontDoesMatchFamily (const char* name, const char* family)
+{
+    char family_part[LEN_UNIDEVFONT_NAME + 2];
+    char family_request[LEN_LOGFONT_NAME_FIELD + 2];
+    int i = 0;
+
+    if (!get_family_part_lower(name, family_part)) {
+        return FALSE;
+    }
+
+    // add ',' to the tail
+    family_part[strlen(family_part)] = ',';
+
+    // lowercase for family_request
+    strncpy(family_request, family, LEN_LOGFONT_NAME_FIELD);
+    while (family_request[i]) {
+        family_request[i] = tolower(family_request[i]);
+        i++;
+    }
+
+    // add ',' to the tail
+    family_request[strlen(family_request)] = ',';
+
+    // try "<family_request>,"
+    return strstr(family_part, family_request) != NULL;
 }
 
 DWORD fontConvertStyle (const char* style_part)
@@ -345,7 +399,7 @@ int fontGetWidthFromName (const char* name)
 {
     int i;
     const char* width_part = name;
-    char width [LEN_FONT_NAME + 1];
+    char width [LEN_LOGFONT_NAME_FIELD + 1];
 
     for (i = 0; i < NR_LOOP_FOR_WIDTH; i++) {
         if ((width_part = strchr (width_part, '-')) == NULL)
@@ -376,7 +430,7 @@ int fontGetHeightFromName (const char* name)
 {
     int i;
     const char* height_part = name;
-    char height [LEN_FONT_NAME + 1];
+    char height [LEN_LOGFONT_NAME_FIELD + 1];
 
     for (i = 0; i < NR_LOOP_FOR_HEIGHT; i++) {
         if ((height_part = strchr (height_part, '-')) == NULL)
@@ -423,8 +477,8 @@ BOOL fontGetCharsetFromName (const char* name, char* charset)
         return TRUE;
     }
 
-    strncpy (charset, charset_part, LEN_FONT_NAME);
-    charset [LEN_FONT_NAME] = '\0';
+    strncpy (charset, charset_part, LEN_LOGFONT_NAME_FIELD);
+    charset [LEN_LOGFONT_NAME_FIELD] = '\0';
     return TRUE;
 }
 
@@ -446,8 +500,8 @@ BOOL fontGetCompatibleCharsetFromName (const char* name, char* charset)
     if (*(++charset_part) == '\0')
         return FALSE;
 
-    strncpy (charset, charset_part, LEN_FONT_NAME);
-    charset [LEN_FONT_NAME] = '\0';
+    strncpy (charset, charset_part, LEN_LOGFONT_NAME_FIELD);
+    charset [LEN_LOGFONT_NAME_FIELD] = '\0';
     return TRUE;
 }
 
@@ -505,8 +559,8 @@ BOOL charsetGetSpecificCharset (const char* charsets, int _index, char* charset)
         return TRUE;
     }
 
-    strncpy (charset, charsets, LEN_FONT_NAME);
-    charset [LEN_FONT_NAME] = '\0';
+    strncpy (charset, charsets, LEN_LOGFONT_NAME_FIELD);
+    charset [LEN_LOGFONT_NAME_FIELD] = '\0';
     return TRUE;
 }
 
