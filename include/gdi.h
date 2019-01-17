@@ -5458,6 +5458,8 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 /* Font-related structures */
 #define LEN_LOGFONT_NAME_FIELD      31
 #define LEN_UNIDEVFONT_NAME         255
+
+#define LEN_FONT_NAME               LEN_LOGFONT_NAME_FIELD
 #define LEN_DEVFONT_NAME            LEN_UNIDEVFONT_NAME
 
 #define FONT_WEIGHT_NIL             '\0'
