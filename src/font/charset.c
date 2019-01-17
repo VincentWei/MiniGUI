@@ -60,13 +60,14 @@ static int sb_len_first_char (const unsigned char* mstr, int len)
 static Glyph32 sb_char_glyph_value (const unsigned char* pre_mchar,  int pre_len, 
                 const unsigned char* cur_mchar, int cur_len)
 {
-    return (int)(*cur_mchar);
+    return (Glyph32)(*cur_mchar);
 }
 
 static unsigned int sb_glyph_type (Glyph32 glyph_value)
 {
     unsigned int ch_type = MCHAR_TYPE_UNKNOWN;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     switch (glyph_value) {
         case '\0':
             ch_type = MCHAR_TYPE_NUL;
@@ -197,6 +198,7 @@ static int ascii_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 ascii_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 128)
         return glyph_value;
     else
@@ -263,6 +265,7 @@ static int iso8859_1_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 iso8859_1_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     return glyph_value;
 }
 
@@ -362,6 +365,7 @@ static unsigned short iso8859_2_unicode_map [] =
 
 static UChar32 iso8859_2_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
@@ -475,6 +479,7 @@ static unsigned short iso8859_3_unicode_map [] =
 
 static UChar32 iso8859_3_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
@@ -587,6 +592,7 @@ static unsigned short iso8859_4_unicode_map [] =
 
 static UChar32 iso8859_4_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
@@ -665,6 +671,8 @@ static int iso8859_5_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 iso8859_5_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
+
     if (glyph_value < 0xA1)
         return glyph_value;
    
@@ -743,11 +751,9 @@ static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 gly
 
     pos = step = (n / 2) + 1;
 
-#if 0 // VincentWei: caller should handle MBC flag in glyph
     BOOL is_mbc;
     is_mbc = IS_MBC_GLYPH(glyph);
     glyph = REAL_GLYPH(glyph);
-#endif
 
     while (step > 1) {
         Glyph32 cmp_glyph = map[pos].glyph;
@@ -772,11 +778,9 @@ static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 gly
     if (mirrored){
         *mirrored = found ? map[pos].mirrored : glyph;
 
-#if 0 // VincentWei: caller should handle MBC flag in glyph
         /* use the same mbc font for mirror char. */
         if(is_mbc)
             *mirrored = SET_MBC_GLYPH(*mirrored);
-#endif
     }
 
     return found;
@@ -830,6 +834,7 @@ static unsigned short iso8859_7_unicode_map [] =
 
 static UChar32 iso8859_7_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value >= 0xBE && glyph_value <= 0xFE) {
         return glyph_value - 0xBE + 0x038E;
     }
@@ -1055,6 +1060,7 @@ static Uint32 __mg_iso8859_8_type[] = {
 
 static unsigned int iso8859_8_bidi_glyph_type (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     return __mg_iso8859_8_type [glyph_value];
 }
 
@@ -1081,6 +1087,7 @@ static BOOL iso8859_8_bidi_mirror_glyph (Glyph32 glyph, Glyph32* mirrored)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 iso8859_8_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value >= 0xE0 && glyph_value <= 0xFA) {
         return  glyph_value - 0xE0 + 0x05D0;
     }
@@ -1135,7 +1142,7 @@ static int iso8859_8_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
 
 static CHARSETOPS CharsetOps_iso8859_8 = {
     256,
-    2,
+    1,
     FONT_CHARSET_ISO8859_8,
     0,
     sb_len_first_char,
@@ -1184,6 +1191,7 @@ static int iso8859_9_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 iso8859_9_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     switch (glyph_value) {
         case 0xD0:
                 return 0x011E;
@@ -1321,6 +1329,7 @@ static unsigned short iso8859_10_unicode_map [] =
 
 static UChar32 iso8859_10_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
@@ -1434,6 +1443,7 @@ static unsigned short iso8859_11_unicode_map [] =
 
 static UChar32 iso8859_11_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
@@ -1546,6 +1556,7 @@ static unsigned short iso8859_13_unicode_map [] =
 
 static UChar32 iso8859_13_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
@@ -1658,6 +1669,7 @@ static unsigned short iso8859_14_unicode_map [] =
 
 static UChar32 iso8859_14_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
@@ -1734,6 +1746,7 @@ static int iso8859_15_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 iso8859_15_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     switch (glyph_value) {
         case 0xA4:
             return 0x20AC;  /* EURO SIGN */
@@ -1844,6 +1857,7 @@ static int iso8859_16_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 iso8859_16_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     switch (glyph_value) {
         case 0xA1: return 0x0104;
         case 0xA2: return 0x0105;
@@ -2117,7 +2131,7 @@ static int gb2312_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 gb2312_0_conv_to_uc32 (Glyph32 glyph_value)
 {
-    return (UChar32)__mg_gbunicode_map [glyph_value];
+    return (UChar32)__mg_gbunicode_map [REAL_GLYPH(glyph_value)];
 }
 
 const unsigned char* __mg_map_uc16_to_gb (unsigned short uc16);
@@ -2275,8 +2289,7 @@ static int gbk_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 gbk_conv_to_uc32 (Glyph32 glyph_value)
 {
-
-    return (UChar32)__mg_gbkunicode_map[glyph_value];
+    return (UChar32)__mg_gbkunicode_map[REAL_GLYPH(glyph_value)];
 }
 
 const unsigned char* __mg_map_uc16_to_gbk (unsigned short uc16);
@@ -2520,6 +2533,8 @@ static const unsigned char* gb18030_0_get_next_word (const unsigned char* mstr,
 #ifdef _MGCHARSET_UNICODE
 static UChar32 gb18030_0_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
+
     /* from 0x90308130 to 0xE3329A35 */
     if (glyph_value > 63611) {
         int m1, n1, m2, n2, m3, n3;
@@ -2694,7 +2709,7 @@ static int big5_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 big5_conv_to_uc32 (Glyph32 glyph_value)
 {
-    unsigned short ucs_code = __mg_big5_unicode_map [glyph_value];
+    unsigned short ucs_code = __mg_big5_unicode_map [REAL_GLYPH(glyph_value)];
 
     if (ucs_code == 0)
         return '?';
@@ -2853,7 +2868,7 @@ static int ksc5601_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 ksc5601_0_conv_to_uc32 (Glyph32 glyph_value)
 {
-    unsigned short ucs_code = __mg_ksc5601_0_unicode_map [glyph_value];
+    unsigned short ucs_code = __mg_ksc5601_0_unicode_map [REAL_GLYPH(glyph_value)];
 
     if (ucs_code == 0)
         return '?';
@@ -2974,6 +2989,7 @@ static int jisx0201_0_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 jisx0201_0_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
 
     if (glyph_value >= 0xA1 && glyph_value <= 0xDF)
         return 0xFF61 + glyph_value - 0xA1;
@@ -3121,7 +3137,7 @@ static UChar32 jisx0208_0_conv_to_uc32 (Glyph32 glyph_value)
 {
     unsigned short ucs_code;
 
-    ucs_code = __mg_jisx0208_0_unicode_map [glyph_value];
+    ucs_code = __mg_jisx0208_0_unicode_map [REAL_GLYPH(glyph_value)];
 
     if (ucs_code == 0)
         return '?';
@@ -3186,6 +3202,7 @@ static int jisx0201_1_is_this_charset (const unsigned char* charset)
 #ifdef _MGCHARSET_UNICODE
 static UChar32 jisx0201_1_conv_to_uc32 (Glyph32 glyph_value)
 {
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value >= 0xA1 && glyph_value <= 0xDF)
         return 0xFF61 + glyph_value - 0xA1;
     else if (glyph_value == 0x5C)
@@ -3377,7 +3394,7 @@ static UChar32 jisx0208_1_conv_to_uc32 (Glyph32 glyph_value)
 {
     unsigned short ucs_code;
 
-    ucs_code  = __mg_jisx0208_1_unicode_map [glyph_value];
+    ucs_code  = __mg_jisx0208_1_unicode_map [REAL_GLYPH(glyph_value)];
 
     if (ucs_code == 0)
         return '?';
@@ -3549,6 +3566,7 @@ static unsigned int unicode_glyph_type (Glyph32 glyph_value)
     unsigned int mchar_type = MCHAR_TYPE_UNKNOWN;
     unsigned int basic_type = 0, break_type = 0;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0x80) {
         mchar_type = sb_glyph_type(glyph_value);
     }
@@ -3572,6 +3590,7 @@ static unsigned int unicode_bidi_glyph_type (Glyph32 glyph_value)
     Glyph32 glyph_last = (Glyph32)TABLESIZE (__mg_unicode_bidi_char_type_map);
     Glyph32 glyph_mid;
 
+    glyph_value = REAL_GLYPH(glyph_value);
     while (glyph_last >= glyph_first) {
         glyph_mid = (glyph_first + glyph_last)/2;
 

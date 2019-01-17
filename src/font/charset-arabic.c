@@ -843,7 +843,7 @@ static BOOL iso8859_6_bidi_mirror_glyph (Glyph32 glyph, Glyph32* mirrored)
 
 static CHARSETOPS CharsetOps_iso8859_6 = {
     256,
-    3,
+    1,
     FONT_CHARSET_ISO8859_6,
     0,
     iso8859_6_len_first_char,
