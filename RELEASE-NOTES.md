@@ -71,6 +71,17 @@ please define the font name in the following way:
 
     ttf-Courier-rrncns-*-16-UTF-8
 
+Moreover, the family name of a DEVFONT supports aliases since 3.4.0:
+
+    <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charsets>
+
+for example:
+
+    ttf-Arial,Sans serif-rrncnn-8-16-ISO8859-1,UTF-8
+    ttf-Courier,Monospace-rrncnn-8-16-ISO8859-1,UTF-8
+
+Note that the length of one DEVFONT name can not exceed 255 bytes.
+
 #### Changed APIs
 
 * The fields `height` and `descent` have been removed from GLYPHINFO struct.
