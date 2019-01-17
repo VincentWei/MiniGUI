@@ -190,7 +190,7 @@ static void destroy (GLYPHTREENODE *root)
 
 /*** device font ops ***/
 
-static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
+static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     return DEVFONTGLYPHTYPE_PRERDRBMP;
 }
@@ -365,7 +365,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
 /**************************** Global data ************************************/
 FONTOPS __mg_bitmap_font_ops = {
-    get_glyph_type,
+    get_glyph_bmptype,
     get_ave_width,
     get_max_width,
     get_font_height,

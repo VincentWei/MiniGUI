@@ -212,7 +212,7 @@ print_bitmap_grey (void* buffer, int width, int rows, int pitch)
 }
 #endif
 
-static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
+static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     switch (logfont->style & FS_RENDER_MASK) {
     case FS_RENDER_SUBPIXEL:
@@ -394,7 +394,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 #endif /* _MGFONT_TTF_CACHE */
 
     if (load_or_search_glyph (ft_inst_info, &face, uni_char,
-                get_glyph_type(logfont, devfont))) {
+                get_glyph_bmptype(logfont, devfont))) {
         _ERR_PRINTF ("FONT>FT2: load_or_search_glyph error in freetype2\n");
         goto error;
     }
@@ -523,7 +523,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 #endif /* _MGFONT_TTF_CACHE */
 
     if (load_or_search_glyph (ft_inst_info, &face, uni_char,
-                get_glyph_type(logfont, devfont))) {
+                get_glyph_bmptype(logfont, devfont))) {
         _ERR_PRINTF ("FONT>FT2: load_or_search_glyph failed in freetype2\n");
         goto error;
     }
@@ -1130,7 +1130,7 @@ void font_TermFreetypeLibrary (void)
 
 /**************************** Global data ************************************/
 FONTOPS __mg_ttf_ops = {
-    get_glyph_type,
+    get_glyph_bmptype,
     get_ave_width,
     get_max_width,
     get_font_height,

@@ -1,42 +1,42 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** freetype1.c: TrueType font support based on FreeType 1.3.1.
-** 
+**
 ** Create date: 2000/08/21
 */
- 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -122,7 +122,7 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
         _MG_PRINTF ("FONT>FT1: no unicode map table\n");
         goto error_after_create_face;
     }
-    
+
     ttf_glyph_info->first_char = TT_CharMap_First (ttf_glyph_info->char_map, NULL);
     ttf_glyph_info->last_char = TT_CharMap_Last (ttf_glyph_info->char_map, NULL);
     ttf_glyph_info->last_glyph_index
@@ -181,7 +181,7 @@ static void free_raster_bitmap_buffer (void)
 
 /************************ Init/Term of FreeType fonts ************************/
 /*************** TrueType on FreeType font operations ************************/
-static TT_UShort 
+static TT_UShort
 Get_Glyph_Width (TTFINSTANCEINFO* ttf_inst_info, TT_UShort glyph_index)
 {
     TT_F26Dot6  xmin, xmax;
@@ -189,11 +189,11 @@ Get_Glyph_Width (TTFINSTANCEINFO* ttf_inst_info, TT_UShort glyph_index)
     TT_BBox     bbox;
     TTFGLYPHINFO* ttf_glyph_info = ttf_inst_info->ttf_glyph_info;
 
-    if (TT_Load_Glyph (ttf_inst_info->instance, 
-            ttf_glyph_info->glyph, glyph_index, 
+    if (TT_Load_Glyph (ttf_inst_info->instance,
+            ttf_glyph_info->glyph, glyph_index,
             TTLOAD_DEFAULT) != TT_Err_Ok) {
         /* Try to load default glyph: index 0 */
-        if (TT_Load_Glyph (ttf_inst_info->instance, 
+        if (TT_Load_Glyph (ttf_inst_info->instance,
                 ttf_glyph_info->glyph, 0, TTLOAD_DEFAULT) != TT_Err_Ok) {
             return 0;
         }
@@ -221,11 +221,11 @@ compute_kernval (TTFINSTANCEINFO* ttf_inst_info)
     TTFGLYPHINFO* ttf_glyph_info = ttf_inst_info->ttf_glyph_info;
     int nPairs = ttf_glyph_info->directory.tables->t.kern0.nPairs;
     TT_Kern_0_Pair *pair = ttf_glyph_info->directory.tables->t.kern0.pairs;
-    
+
     if (ttf_inst_info->last_glyph_code != -1) {
         while ((pair->left != ttf_inst_info->last_glyph_code)
                && (pair->right != ttf_inst_info->cur_glyph_code)) {
-            
+
             pair++;
             i++;
             if (i == nPairs)
@@ -243,7 +243,7 @@ compute_kernval (TTFINSTANCEINFO* ttf_inst_info)
     return kernval;
 }
 
-static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
+static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     if (logfont->style & FS_WEIGHT_BOOK)
         return DEVFONTGLYPHTYPE_GREYBMP;
@@ -293,8 +293,8 @@ static void start_str_output (LOGFONT* logfont, DEVFONT* devfont)
 
 /* call this function before getting the bitmap/pixmap of the char
  * to get the bbox of the char */
-static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, 
-                const Glyph32 glyph_value, 
+static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
+                const Glyph32 glyph_value,
                 int* px, int* py, int* pwidth, int* pheight)
 {
     TT_UShort uni_char;
@@ -307,9 +307,9 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     TTFINSTANCEINFO* ttf_inst_info = TTF_INST_INFO_P (devfont);
     TTFGLYPHINFO* ttf_glyph_info = ttf_inst_info->ttf_glyph_info;
 
-    if (px) x = *px; 
+    if (px) x = *px;
     if (py) y = *py;
-    
+
     if(devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
@@ -317,28 +317,28 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
 #ifdef _MGFONT_TTF_CACHE
     ttf_inst_info->cur_unicode = uni_char;
-#endif 
-    
+#endif
+
     /* Search cache by unicode !*/
 #ifdef _MGFONT_TTF_CACHE
-   //if (px && py && pwidth && pheight && 
+   //if (px && py && pwidth && pheight &&
    if (ttf_inst_info->cache && (ttf_inst_info->rotation == 0)) {
        TTFCACHEINFO *cache_info;
        int datasize;
        cache_info = __mg_ttc_search(ttf_inst_info->cache,
                                     uni_char, &datasize);
-       
+
        if (cache_info != NULL) {
            TT_F26Dot6 _x, _y, _xmin, _ymin, _xmax, _ymax;
-           
+
            memcpy(&ttf_inst_info->cur_unicode,
                   cache_info, sizeof(TTFCACHEINFO)-sizeof(void*));
-           
+
            DP(("\nBBOX Hit!!\n"));
            if (px) {
-               _x = *px; 
+               _x = *px;
                _x -= (ttf_inst_info->cur_vec_x & -64) >> 6;
-               if ((logfont->style & FS_OTHER_TTFKERN) && 
+               if ((logfont->style & FS_OTHER_TTFKERN) &&
                        ttf_glyph_info->can_kern) {
                    _x += compute_kernval (ttf_inst_info) / 64;
                }
@@ -352,26 +352,26 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
            _ymin = (ttf_inst_info->cur_bbox.yMin & -64) >> 6;
            _xmax = ((ttf_inst_info->cur_bbox.xMax + 63) & -64) >> 6;
            _ymax = ((ttf_inst_info->cur_bbox.yMax + 63) & -64) >> 6;
-           
+
            ttf_inst_info->cur_xmin = (ttf_inst_info->cur_bbox.xMin & -64);
            ttf_inst_info->cur_ymin = (ttf_inst_info->cur_bbox.yMin & -64);
            ttf_inst_info->cur_width = _xmax - _xmin;
            ttf_inst_info->cur_height = _ymax - _ymin;
-           
+
            if (pwidth)  *pwidth = (int)(_xmax - _xmin);
            if (pheight) *pheight = (int)(_ymax - _ymin);
            if (px)      *px = (int)(_x + _xmin);
            if (py)      *py = (int)(_y - _ymax);
-     
+
            return (int)(_xmax - _xmin);
        }
        DP(("\nBBOX Non - Hit!\n"));
    }
-#endif   
-   
-   ttf_inst_info->cur_glyph_code 
+#endif
+
+   ttf_inst_info->cur_glyph_code
      = TT_Char_Index (ttf_glyph_info->char_map, uni_char);
-   
+
    vec_x = 0;
 #if 0
    vec_y = ttf_inst_info->ascent << 6;
@@ -379,11 +379,11 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
    vec_y = 0;
 #endif
     TT_Transform_Vector (&vec_x, &vec_y, &ttf_inst_info->matrix);
-    
+
     x -= (vec_x & -64) >> 6;
     y += ((vec_y + 63) & -64) >> 6;
-    
-    if (TT_Load_Glyph (ttf_inst_info->instance, ttf_glyph_info->glyph, 
+
+    if (TT_Load_Glyph (ttf_inst_info->instance, ttf_glyph_info->glyph,
             ttf_inst_info->cur_glyph_code, TTLOAD_DEFAULT) != TT_Err_Ok)
         return 0;
 
@@ -394,7 +394,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     if (ttf_inst_info->rotation) {
         TT_Transform_Outline (&ttf_inst_info->cur_outline, &ttf_inst_info->matrix);
     }
-    
+
     if ((logfont->style & FS_OTHER_TTFKERN) && ttf_glyph_info->can_kern) {
         if (ttf_inst_info->rotation) {
             vec_x = compute_kernval (ttf_inst_info);
@@ -406,16 +406,16 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         } else
             x += compute_kernval (ttf_inst_info) / 64;
     }
-    
+
     /* we begin by grid-fitting the bounding box */
     TT_Get_Outline_BBox (&ttf_inst_info->cur_outline, &bbox);
-    
+
 #ifdef _MGFONT_TTF_CACHE
     /* We just save the BBOX :) */
     memcpy(&ttf_inst_info->cur_bbox, &bbox, sizeof(TT_BBox));
     ttf_inst_info->cur_vec_x = vec_x;
     ttf_inst_info->cur_vec_y = vec_y;
-#endif 
+#endif
 
     xmin = (bbox.xMin & -64) >> 6;
     ymin = (bbox.yMin & -64) >> 6;
@@ -437,10 +437,10 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 
-/* call this function to get the bitmap/pixmap of the char */ 
-static const void* 
-char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont, 
-                const Glyph32 glyph_value, int* pitch, BOOL is_grey) 
+/* call this function to get the bitmap/pixmap of the char */
+static const void*
+char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
+                const Glyph32 glyph_value, int* pitch, BOOL is_grey)
 {
     TT_Raster_Map Raster;
     TT_Error error;
@@ -449,7 +449,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     /* now allocate the raster bitmap */
     Raster.rows = ttf_inst_info->cur_height;
     Raster.width = ttf_inst_info->cur_width;
-    DP(("Raster.rows = %d, Raster.width = %d\n", 
+    DP(("Raster.rows = %d, Raster.width = %d\n",
         Raster.rows, Raster.width));
     //if (!pitch) {
     if (!is_grey) {
@@ -458,37 +458,37 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         *pitch = Raster.cols = (Raster.width + 3) & -4;  /* pad to 32-bits */
     }
     Raster.flow = TT_Flow_Down;
-   
+
     Raster.size = Raster.rows * Raster.cols;
     Raster.bitmap = get_raster_bitmap_buffer (Raster.size);
     memset (Raster.bitmap, 0, Raster.size);
-    
-    DP(("Raster.size = %d, Raster.rows = %d, Raster.width = %d, Raster.cols = %d\n", 
+
+    DP(("Raster.size = %d, Raster.rows = %d, Raster.width = %d, Raster.cols = %d\n",
         Raster.size, Raster.rows, Raster.width, Raster.cols));
-    
+
 #ifdef _MGFONT_TTF_CACHE
     if (ttf_inst_info->cache && (ttf_inst_info->rotation == 0)) {
-        
+
         TTFCACHEINFO *cacheinfo;
         int datasize;
-    
+
         cacheinfo = __mg_ttc_search(ttf_inst_info->cache,
                         ttf_inst_info->cur_unicode, &datasize);
-        
+
         if (cacheinfo != NULL) {
-                                    
+
             memcpy(Raster.bitmap, cacheinfo->bitmap, Raster.size);
-            
+
             DP(("Bitmap Hit!! Read Data %d, %d\n", Raster.size, datasize));
-            
+
             ttf_inst_info->last_glyph_code = -1;
             ttf_inst_info->last_pen_pos = -1;
-            
+
             return Raster.bitmap;
         }
         DP(("Bitmap Non hit\n"));
     }
-#endif 
+#endif
 
     /* now render the glyph in the small bitmap/pixmap */
 
@@ -498,42 +498,42 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     /* This is why we _did_ grid-fit the bounding box, especially xmin  */
     /* and ymin.                                                        */
     if (!is_grey) {
-        TT_Translate_Outline (&ttf_inst_info->cur_outline, 
+        TT_Translate_Outline (&ttf_inst_info->cur_outline,
                 -ttf_inst_info->cur_xmin, -ttf_inst_info->cur_ymin);
         if ((error = TT_Get_Outline_Bitmap (ttf_engine, &ttf_inst_info->cur_outline,
                 &Raster)))
             return NULL;
     }
     else {
-        TT_Translate_Outline (&ttf_inst_info->cur_outline, 
+        TT_Translate_Outline (&ttf_inst_info->cur_outline,
                 -ttf_inst_info->cur_xmin, -ttf_inst_info->cur_ymin);
 
-        if ((error = TT_Get_Outline_Pixmap (ttf_engine, &ttf_inst_info->cur_outline, 
+        if ((error = TT_Get_Outline_Pixmap (ttf_engine, &ttf_inst_info->cur_outline,
                 &Raster)))
             return NULL;
     }
 
-    
+
 #ifdef _MGFONT_TTF_CACHE
     if (ttf_inst_info->cache && (ttf_inst_info->rotation == 0)) {
         TTFCACHEINFO cache_info;
         int ret;
-        
-        memcpy(&cache_info, &ttf_inst_info->cur_unicode, 
+
+        memcpy(&cache_info, &ttf_inst_info->cur_unicode,
                sizeof(TTFCACHEINFO) - sizeof(void*));
-        
+
         cache_info.bitmap = Raster.bitmap;
-        
-        DP(("Should Write to cache length =  %d, cache = %p\n", 
-            sizeof(TTFCACHEINFO) + Raster.size, 
+
+        DP(("Should Write to cache length =  %d, cache = %p\n",
+            sizeof(TTFCACHEINFO) + Raster.size,
             ttf_inst_info->cache));
-        
-        ret = __mg_ttc_write(ttf_inst_info->cache, 
+
+        ret = __mg_ttc_write(ttf_inst_info->cache,
                    &cache_info, sizeof(TTFCACHEINFO) + Raster.size);
         DP(("__mg_ttc_write() return %d\n", ret));
     }
 #endif
-    
+
     return Raster.bitmap;
 }
 
@@ -553,7 +553,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
 
 /* call this function after getting the bitmap/pixmap of the char
  * to get the advance of the char */
-static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont, 
+static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
             const Glyph32 glyph_value, int* px, int* py)
 {
     TT_Pos vec_x, vec_y;
@@ -589,7 +589,7 @@ static int make_hash_key(unsigned short data)
 }
 #endif
 
-static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont, 
+static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont,
                               BOOL need_sbc_font)
 {
     TTFGLYPHINFO* ttf_glyph_info = TTF_GLYPH_INFO_P (devfont);
@@ -603,26 +603,26 @@ static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont,
 #ifdef _MGFONT_TTF_CACHE
     HCACHE hCache = 0;
 #endif
-    
+
     DP(("New a log Font logfont->type = %s, logfont->family = %s, "
-        "logfont->charset = %s logfont->style = %d, logfont->size = %d\n", 
+        "logfont->charset = %s logfont->style = %d, logfont->size = %d\n",
         logfont->type, logfont->family, logfont->charset,
         logfont->style, logfont->size));
-    
+
     if ((new_devfont = calloc (1, sizeof (DEVFONT))) == NULL)
         goto out;
-    
+
     if ((ttf_inst_info = calloc (1, sizeof (TTFINSTANCEINFO))) == NULL)
         goto out;
-    
+
     if ((widths = calloc (256, sizeof (unsigned short))) == NULL)
         goto out;
 
     memcpy (new_devfont, devfont, sizeof (DEVFONT));
-    
+
     if (need_sbc_font && devfont->charset_ops->bytes_maxlen_char > 1) {
         char charset [LEN_FONT_NAME + 1];
-        
+
         fontGetCompatibleCharsetFromName (devfont->name, charset);
         new_devfont->charset_ops = GetCharsetOpsEx (charset);
     }
@@ -638,11 +638,11 @@ static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont,
     /* Set the instance resolution */
     if (TT_Set_Instance_Resolutions (ttf_inst_info->instance, 96, 96) != TT_Err_Ok)
         goto out;
-    
+
     /* We want real pixel sizes ... not points ...*/
     TT_Set_Instance_PixelSizes (ttf_inst_info->instance, logfont->size,
                                 logfont->size, logfont->size * 64);
-    
+
     /* reset kerning*/
     ttf_inst_info->last_glyph_code = -1;
     ttf_inst_info->last_pen_pos = -1;
@@ -658,14 +658,14 @@ static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont,
     ttf_inst_info->matrix.yx = (TT_Fixed) (sin (angle) * (1 << 16));
     ttf_inst_info->matrix.xx = ttf_inst_info->matrix.yy;
     ttf_inst_info->matrix.xy = -ttf_inst_info->matrix.yx;
-    
+
     /* Fill up the info fields */
     TT_Get_Face_Properties (ttf_glyph_info->face, &properties);
     TT_Get_Instance_Metrics(ttf_inst_info->instance, &imetrics);
 
     ttf_inst_info->max_width = ((properties.horizontal->xMax_Extent * \
                             imetrics.x_scale)/0x10000) >> 6;
-    
+
 
     ttf_inst_info->ascent = (((properties.horizontal->Ascender * \
                             imetrics.y_scale)/0x10000) >> 6);
@@ -678,41 +678,41 @@ static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont,
 
 #ifdef _MGFONT_TTF_CACHE
     /* if unmask non-cache and no rotation */
-    if (!(logfont->style & FS_OTHER_TTFNOCACHE) && 
+    if (!(logfont->style & FS_OTHER_TTFNOCACHE) &&
         (ttf_inst_info->rotation == 0)) {
-        
-        hCache = __mg_ttc_is_exist(logfont->family, logfont->charset, 
+
+        hCache = __mg_ttc_is_exist(logfont->family, logfont->charset,
                                    logfont->style, logfont->size);
         DP(("__mg_ttc_is_exist() return %p\n", hCache));
         /* No this style's cache */
         if (hCache == 0) {
             int pitch = 0, nblk, col, blksize, rows = ttf_inst_info->height;
-                     
-            if (((logfont->style & 0x0000000F) == FS_WEIGHT_BOOK) || 
+
+            if (((logfont->style & 0x0000000F) == FS_WEIGHT_BOOK) ||
                 ((logfont->style & 0x0000000F) == FS_WEIGHT_DEMIBOLD)) {
                 pitch = 1;
             }
-            
+
             if (!pitch) {
                 col = (ttf_inst_info->max_width + 7) >> 3;
             } else {
                 col = (ttf_inst_info->max_width + 3) & -4;
             }
-            
+
             blksize = col * rows;
             blksize += sizeof(TTFCACHEINFO);
-            
-            DP(("BITMAP Space = %d, Whole Space = %d\n", 
+
+            DP(("BITMAP Space = %d, Whole Space = %d\n",
                 blksize - sizeof(TTFCACHEINFO), blksize));
-            
+
             blksize = (blksize + 3) & -4;
             nblk = ( _MGTTF_CACHE_SIZE * 1024 )/ blksize;
             DP(("[Before New a Cache], col = %d, row = %d, blksize = %d, "
-                "blksize(bitmap) = %d, nblk = %d\n", 
+                "blksize(bitmap) = %d, nblk = %d\n",
                 rows, col, blksize, blksize-sizeof(TTFCACHEINFO), nblk));
-            
-            ttf_inst_info->cache =  __mg_ttc_create(logfont->family, logfont->charset, 
-                                        logfont->style, logfont->size, nblk , blksize , 
+
+            ttf_inst_info->cache =  __mg_ttc_create(logfont->family, logfont->charset,
+                                        logfont->style, logfont->size, nblk , blksize ,
                                         _TTF_HASH_NDIR, make_hash_key);
             DP(("__mg_ttc_create() return %p\n", ttf_inst_info->cache));
         } else {
@@ -741,7 +741,7 @@ static void delete_instance (DEVFONT* devfont)
     if (ttf_inst_info->cache) {
         __mg_ttc_release(ttf_inst_info->cache);
     }
-#endif 
+#endif
     TT_Done_Instance (ttf_inst_info->instance);
     free (ttf_inst_info->widths);
     free (ttf_inst_info);
@@ -753,12 +753,12 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     TT_UShort uni_char;
     TTFINSTANCEINFO* ttf_inst_info = TTF_INST_INFO_P (devfont);
     TTFGLYPHINFO* ttf_glyph_info = ttf_inst_info->ttf_glyph_info;
-    
+
     if(devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uni_char = glyph_value;
-    
+
      if(0 == TT_Char_Index (ttf_glyph_info->char_map, uni_char))
          return FALSE;
      else
@@ -771,9 +771,9 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 }
 /**************************** Global data ************************************/
 FONTOPS __mg_ttf_ops = {
-    get_glyph_type,
+    get_glyph_bmptype,
     get_ave_width,
-    get_max_width,  
+    get_max_width,
     get_font_height,
     get_font_size,
     get_font_ascent,
@@ -801,7 +801,7 @@ BOOL font_InitFreetypeLibrary (void)
     if (TT_Init_FreeType (&ttf_engine) != TT_Err_Ok) {
         return FALSE;
     }
- 
+
     TT_Set_Raster_Gray_Palette (ttf_engine, virtual_palette);
 
     /* Init kerning extension */
@@ -815,7 +815,7 @@ BOOL font_InitFreetypeLibrary (void)
         goto error_library;
     }
 #endif
-    
+
     return TRUE;
 
 error_library:
@@ -834,7 +834,7 @@ void font_TermFreetypeLibrary (void)
 #endif
 }
 
-int 
+int
 ftIsFreeTypeDevfont (DEVFONT* devfont)
 {
     if (devfont && devfont->font_ops == &__mg_ttf_ops)

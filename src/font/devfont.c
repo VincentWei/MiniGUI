@@ -153,7 +153,7 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
         if (weight_req == FS_WEIGHT_ANY || weight_req == weight_cur) {
             match_bits [i] |= MATCHED_WEIGHT;
         }
-        else if (dev_font->font_ops->get_glyph_type(log_font, dev_font)
+        else if (dev_font->font_ops->get_glyph_bmptype(log_font, dev_font)
                     == DEVFONTGLYPHTYPE_MONOBMP
                 && weight_req > FS_WEIGHT_DEMIBOLD
                 && weight_cur < FS_WEIGHT_MEDIUM) {

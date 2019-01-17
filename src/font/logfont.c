@@ -234,13 +234,13 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     /* remove HORZVERT style if the glyph bmptype is subpixel */
     DWORD glyph_bmptype;
-    glyph_bmptype = log_font->sbc_devfont->font_ops->get_glyph_type
+    glyph_bmptype = log_font->sbc_devfont->font_ops->get_glyph_bmptype
                 (log_font, log_font->sbc_devfont) & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
     if (glyph_bmptype == GLYPHBMP_TYPE_SUBPIXEL) {
         log_font->style &= ~FS_FLIP_HORZVERT;
     }
     else if (log_font->mbc_devfont) {
-        glyph_bmptype = log_font->mbc_devfont->font_ops->get_glyph_type
+        glyph_bmptype = log_font->mbc_devfont->font_ops->get_glyph_bmptype
                     (log_font, log_font->mbc_devfont) & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
         if (glyph_bmptype == GLYPHBMP_TYPE_SUBPIXEL)
             log_font->style &= ~FS_FLIP_HORZVERT;

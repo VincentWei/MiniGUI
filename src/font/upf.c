@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -91,7 +91,7 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
     upf_info->file_size = file_size;
 
 #ifdef HAVE_MMAP
-    upf_info->root_dir =  mmap( 0, file_size, PROT_READ, 
+    upf_info->root_dir =  mmap( 0, file_size, PROT_READ,
             MAP_SHARED, fileno(fp), 0 );
 
     if (!upf_info->root_dir || upf_info->root_dir == MAP_FAILED)
@@ -114,7 +114,7 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
 #endif
         goto error;
     }
-    
+
 #if 0
     if (real_font_name) {
         strncpy (real_font_name, filehead->font_name, LEN_DEVFONT_NAME_MAX);
@@ -143,7 +143,7 @@ static void unload_font_data (DEVFONT* devfont, void* data)
     free (((UPFINFO*) data));
 }
 
-static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
+static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     Uint8* p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
@@ -156,15 +156,15 @@ static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
 static int get_ave_width (LOGFONT* logfont, DEVFONT* devfont)
 {
     UPFV1_FILE_HEADER * p_upf;
-    
+
     p_upf = (UPFV1_FILE_HEADER *)UPFONT_INFO_P (devfont)->root_dir;
     return p_upf->width * GET_DEVFONT_SCALE (logfont, devfont);
-    
+
 }
 static int get_max_width (LOGFONT* logfont, DEVFONT* devfont)
 {
     UPFV1_FILE_HEADER * p_upf;
-    
+
     p_upf = (UPFV1_FILE_HEADER *)UPFONT_INFO_P (devfont)->root_dir;
     return p_upf->max_width * GET_DEVFONT_SCALE (logfont, devfont);
 }
@@ -172,7 +172,7 @@ static int get_max_width (LOGFONT* logfont, DEVFONT* devfont)
 static int get_font_height (LOGFONT* logfont, DEVFONT* devfont)
 {
     UPFV1_FILE_HEADER * p_upf;
-    
+
     p_upf = (UPFV1_FILE_HEADER *)UPFONT_INFO_P (devfont)->root_dir;
     return (p_upf->ascent + p_upf->descent) * GET_DEVFONT_SCALE (logfont, devfont);
 }
@@ -182,7 +182,7 @@ static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
     UPFV1_FILE_HEADER * p_upf;
     int       height;
     unsigned short scale = 1;
-    
+
     p_upf = (UPFV1_FILE_HEADER *)UPFONT_INFO_P (devfont)->root_dir;
 #if 0
     height = p_upf->ascent + p_upf->descent;
@@ -193,7 +193,7 @@ static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
 
     if (logfont->style & FS_OTHER_AUTOSCALE)
         scale = font_GetBestScaleFactor (height, expect);
-    
+
     SET_DEVFONT_SCALE (logfont, devfont, scale);
 
     return height * scale;
@@ -202,7 +202,7 @@ static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
 static int get_font_ascent (LOGFONT* logfont, DEVFONT* devfont)
 {
     UPFV1_FILE_HEADER * p_upf;
-    
+
     p_upf = (UPFV1_FILE_HEADER *)UPFONT_INFO_P (devfont)->root_dir;
     return p_upf->ascent * GET_DEVFONT_SCALE (logfont, devfont);
 }
@@ -210,7 +210,7 @@ static int get_font_ascent (LOGFONT* logfont, DEVFONT* devfont)
 static int get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 {
     UPFV1_FILE_HEADER * p_upf;
-    
+
     p_upf = (UPFV1_FILE_HEADER *)UPFONT_INFO_P (devfont)->root_dir;
     return p_upf->descent * GET_DEVFONT_SCALE (logfont, devfont);
 }
@@ -245,14 +245,14 @@ static unsigned char def_smooth_bitmap [] =
 };
 
 #if 0
-static void 
+static void
 print_bitmap(char* bits, int width, int height, int pitch)
 {
     int y = 0;
     int x = 0;
     char* p_line_head;
     char* p_cur_char;
-    
+
     printf ("width = %d\n", width);
     printf ("height = %d\n", height);
     printf ("pitch = %d\n", pitch);
@@ -268,7 +268,7 @@ print_bitmap(char* bits, int width, int height, int pitch)
                 printf(". ");
         }
         printf("\n");
-        
+
         p_line_head += pitch;
     }
 }
@@ -280,7 +280,7 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     unsigned int uc16;
     UPFGLYPH* glyph;
     Uint8   * p_upf;
-    
+
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE
@@ -327,7 +327,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
     unsigned int uc16;
     UPFGLYPH* glyph;
     Uint8   * p_upf;
-    
+
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
     if (scale)
@@ -360,15 +360,15 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
 
 }
 
-static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, 
-                Glyph32 glyph_value, 
+static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
+                Glyph32 glyph_value,
                 int* px, int* py, int* pwidth, int* pheight)
 {
     unsigned int uc16;
     UPFGLYPH* glyph;
     unsigned short scale = GET_DEVFONT_SCALE (logfont, devfont);
     Uint8   * p_upf;
-    
+
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE
@@ -418,14 +418,14 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     return glyph->width * scale;
 }
 
-static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont, 
+static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
                 Glyph32 glyph_value, int* px, int* py)
 {
     unsigned int uc16;
     UPFGLYPH* glyph;
     Uint8   * p_upf;
     int advance;
-    
+
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE
@@ -460,7 +460,7 @@ static DEVFONT* new_instance (LOGFONT* logfont, DEVFONT* devfont,
                BOOL need_sbc_font)
 {
     Uint8   * p_upf;
-    
+
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
     /*if the devfont is a gray bitmap font,
@@ -484,7 +484,7 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     unsigned int uc16;
     UPFGLYPH* glyph;
     Uint8   * p_upf;
-    
+
     p_upf = (Uint8 *)UPFONT_INFO_P (devfont)->root_dir;
 
 #ifdef _MGCHARSET_UNICODE
@@ -513,7 +513,7 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 }
 
 FONTOPS __mg_upf_ops = {
-    get_glyph_type,
+    get_glyph_bmptype,
     get_ave_width,
     get_max_width,
     get_font_height,

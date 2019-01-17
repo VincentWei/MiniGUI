@@ -149,14 +149,14 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 
     PDC pdc = dc_HDC2PDC(hdc);
     DEVFONT* devfont = SELECT_DEVFONT(pdc->pLogFont, glyph_value);
+    glyph_value = REAL_GLYPH (glyph_value);
 
     /* Transfer logical to device to screen here. */
     coor_LP2SP (pdc, &x, &y);
     pdc->rc_output = pdc->DevRC;
 
     glyph_type = devfont->charset_ops->glyph_type (glyph_value);
-
-    if (glyph_type == MCHAR_TYPE_ZEROWIDTH) {
+    if (check_zero_width(glyph_value, glyph_type)) {
         if (adv_x) *adv_x = 0;
         if (adv_y) *adv_y = 0;
         advance = 0;
@@ -176,20 +176,6 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 
     return advance;
 }
-
-#if 0
-static BOOL is_font_support_bmptype (LOGFONT* logfont, DEVFONT* devfont,
-        int bmptype)
-{
-    DWORD glyph_type = devfont->font_ops->get_glyph_type (logfont, devfont);
-    glyph_type &= DEVFONTGLYPHTYPE_MASK_BMPTYPE;
-
-    if (glyph_type == bmptype)
-        return TRUE;
-
-    return FALSE;
-}
-#endif
 
 int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         GLYPHINFO* glyph_info)
@@ -228,37 +214,37 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     }
 
     if (glyph_info->mask & GLYPH_INFO_BMP) {
-        DWORD glyph_type = devfont->font_ops->get_glyph_type (logfont, devfont);
-        glyph_info->bmp_type = glyph_type & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
+        DWORD bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont);
+        glyph_info->bmp_type = bmptype & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
         switch (glyph_info->bmp_type) {
-            case GLYPHBMP_TYPE_MONO:
-                    glyph_info->bits = devfont->font_ops->get_glyph_monobitmap (
-                            logfont, devfont, glyph_value, &pitch, NULL);
-                    glyph_info->bmp_pitch = pitch;
-                    glyph_info->bmp_size = pitch * glyph_info->bbox_h;
-                break;
+        case GLYPHBMP_TYPE_MONO:
+            glyph_info->bits = devfont->font_ops->get_glyph_monobitmap (
+                    logfont, devfont, glyph_value, &pitch, NULL);
+            glyph_info->bmp_pitch = pitch;
+            glyph_info->bmp_size = pitch * glyph_info->bbox_h;
+            break;
 
-            case GLYPHBMP_TYPE_GREY:
-                    glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
-                            logfont, devfont, glyph_value,
-                            &glyph_info->bmp_pitch, NULL);
-                    glyph_info->bmp_size =
-                        glyph_info->bmp_pitch * glyph_info->bbox_h;
-                break;
+        case GLYPHBMP_TYPE_GREY:
+            glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
+                    logfont, devfont, glyph_value,
+                    &glyph_info->bmp_pitch, NULL);
+            glyph_info->bmp_size =
+                glyph_info->bmp_pitch * glyph_info->bbox_h;
+            break;
 
-            case GLYPHBMP_TYPE_SUBPIXEL:
-                    glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
-                            logfont, devfont, glyph_value,
-                            &glyph_info->bmp_pitch, NULL);
-                    glyph_info->bmp_size =
-                        glyph_info->bmp_pitch * glyph_info->bbox_h;
-                break;
+        case GLYPHBMP_TYPE_SUBPIXEL:
+            glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
+                    logfont, devfont, glyph_value,
+                    &glyph_info->bmp_pitch, NULL);
+            glyph_info->bmp_size =
+                glyph_info->bmp_pitch * glyph_info->bbox_h;
+            break;
 
-            case GLYPHBMP_TYPE_PRERENDER:
-                    devfont->font_ops->get_glyph_prbitmap (logfont,
-                            devfont, glyph_value, &glyph_info->prbitmap);
-                break;
+        case GLYPHBMP_TYPE_PRERENDER:
+            devfont->font_ops->get_glyph_prbitmap (logfont,
+                    devfont, glyph_value, &glyph_info->prbitmap);
+            break;
         }
     }
 
@@ -1964,124 +1950,125 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
     BYTE* data = NULL;
     PLOGFONT logfont = pdc->pLogFont;
     DEVFONT* devfont = SELECT_DEVFONT(pdc->pLogFont, glyph_value);
+    glyph_value = REAL_GLYPH(glyph_value);
 
-    DWORD glyph_type = devfont->font_ops->get_glyph_type (logfont, devfont);
-    switch (glyph_type & DEVFONTGLYPHTYPE_MASK_BMPTYPE) {
-        case GLYPHBMP_TYPE_MONO:
-            if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY) {
-                if (pdc->alpha_pixel_format)
-                    ctxt->cb = _dc_book_scan_line;
-            }
-            else if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL) {
-                ctxt->cb = _dc_subpixel_scan_line;
-            }
-            else if (logfont->style & FS_DECORATE_OUTLINE) {
-                if (pdc->textcolor != pdc->bkcolor)
-                    ctxt->cb = _dc_light_scan_line;
-            }
+    DWORD bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont);
+    switch (bmptype & DEVFONTGLYPHTYPE_MASK_BMPTYPE) {
+    case GLYPHBMP_TYPE_MONO:
+        if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY) {
+            if (pdc->alpha_pixel_format)
+                ctxt->cb = _dc_book_scan_line;
+        }
+        else if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL) {
+            ctxt->cb = _dc_subpixel_scan_line;
+        }
+        else if (logfont->style & FS_DECORATE_OUTLINE) {
+            if (pdc->textcolor != pdc->bkcolor)
+                ctxt->cb = _dc_light_scan_line;
+        }
 
-            if (!ctxt->cb) {
-                ctxt->cb = _dc_regular_scan_line;
-            }
+        if (!ctxt->cb) {
+            ctxt->cb = _dc_regular_scan_line;
+        }
 
-            data = (BYTE*)(*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont,
-                    REAL_GLYPH(glyph_value), &pitch, &scale);
+        data = (BYTE*)(*devfont->font_ops->get_glyph_monobitmap) (logfont,
+                devfont, glyph_value, &pitch, &scale);
 
-            if (data == NULL)
-                break;
+        if (data == NULL)
+            break;
 
-            if (scale > 1 && ctxt->cb != _dc_regular_scan_line) {
-                data = _gdi_expand_scale_bits (data, bbox, pitch, bold, scale);
-                /* note: pitch is modified. */
-                pitch = (bbox->cx + 7) / 8;
-            }
-            else if (bold) {
-                data = _gdi_expand_bold_bits (data, bbox, &pitch, scale);
+        if (scale > 1 && ctxt->cb != _dc_regular_scan_line) {
+            data = _gdi_expand_scale_bits (data, bbox, pitch, bold, scale);
+            /* note: pitch is modified. */
+            pitch = (bbox->cx + 7) / 8;
+        }
+        else if (bold) {
+            data = _gdi_expand_bold_bits (data, bbox, &pitch, scale);
+            bbox->cx = bbox->cx / scale;
+            bbox->cy = bbox->cy / scale;
+        }
+        else if (scale > 1 && (ctxt->cb == _dc_regular_scan_line)) {
+            bbox->cx = bbox->cx / scale;
+            bbox->cy = bbox->cy / scale;
+        }
+
+        if (data == NULL)
+            break;
+
+        /* flip the monobitmap */
+        if (logfont->style & FS_FLIP_HORZ)
+            data = _gdi_flip_monobitmap_horz (data, bbox, pitch);
+        if (logfont->style & FS_FLIP_VERT)
+            data = _gdi_flip_bitmap_vert (data, bbox, pitch);
+        break;
+
+    case GLYPHBMP_TYPE_GREY:
+        /* get preybitmap */
+        if (devfont->font_ops->get_glyph_greybitmap) {
+            data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont,
+                    devfont, glyph_value, &pitch, &scale);
+            ctxt->cb = _dc_bookgrey_scan_line;
+            if (data && scale > 1) {
                 bbox->cx = bbox->cx / scale;
                 bbox->cy = bbox->cy / scale;
             }
-            else if (scale > 1 && (ctxt->cb == _dc_regular_scan_line)) {
-                bbox->cx = bbox->cx / scale;
-                bbox->cy = bbox->cy / scale;
-            }
+        }
 
-            if (data == NULL)
-                break;
+        /* flip the greybitmap */
+        if (logfont->style & FS_FLIP_HORZ)
+            data = _gdi_flip_greybitmap_horz (data, bbox, pitch);
+        if (logfont->style & FS_FLIP_VERT)
+            data = _gdi_flip_bitmap_vert (data, bbox, pitch);
+        break;
 
-            /* flip the monobitmap */
-            if (logfont->style & FS_FLIP_HORZ)
-                data = _gdi_flip_monobitmap_horz (data, bbox, pitch);
-            if (logfont->style & FS_FLIP_VERT)
-                data = _gdi_flip_bitmap_vert (data, bbox, pitch);
-            break;
-
-        case GLYPHBMP_TYPE_GREY:
-            /* get preybitmap */
-            if (devfont->font_ops->get_glyph_greybitmap) {
-                data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont,
-                        REAL_GLYPH (glyph_value), &pitch, &scale);
-                ctxt->cb = _dc_bookgrey_scan_line;
-                if (data && scale > 1) {
-                    bbox->cx = bbox->cx / scale;
-                    bbox->cy = bbox->cy / scale;
-                }
-            }
-
-            /* flip the greybitmap */
-            if (logfont->style & FS_FLIP_HORZ)
-                data = _gdi_flip_greybitmap_horz (data, bbox, pitch);
-            if (logfont->style & FS_FLIP_VERT)
-                data = _gdi_flip_bitmap_vert (data, bbox, pitch);
-            break;
-
-        case GLYPHBMP_TYPE_SUBPIXEL:
+    case GLYPHBMP_TYPE_SUBPIXEL:
 #ifdef _MGFONT_FT2
-            if (ft2IsFreeTypeDevfont (devfont) &&
-                    ft2GetLcdFilter (devfont) &&
-                    *devfont->font_ops->get_glyph_greybitmap) {
-                /* the returned bits will be the subpixled pixmap */
-                data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont, devfont,
-                        REAL_GLYPH(glyph_value), &pitch, &scale);
-                ctxt->cb = _dc_ft2subpixel_scan_line;
+        if (ft2IsFreeTypeDevfont (devfont) &&
+                ft2GetLcdFilter (devfont) &&
+                *devfont->font_ops->get_glyph_greybitmap) {
+            /* the returned bits will be the subpixled pixmap */
+            data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont,
+                    devfont, glyph_value, &pitch, &scale);
+            ctxt->cb = _dc_ft2subpixel_scan_line;
 
-                /* flip the subpixeled pixmap */
-                if (logfont->style & FS_FLIP_HORZ)
-                    data = _gdi_flip_subpixels_horz (data, bbox, pitch);
-                if (logfont->style & FS_FLIP_VERT)
-                    data = _gdi_flip_bitmap_vert (data, bbox, pitch);
-            }
+            /* flip the subpixeled pixmap */
+            if (logfont->style & FS_FLIP_HORZ)
+                data = _gdi_flip_subpixels_horz (data, bbox, pitch);
+            if (logfont->style & FS_FLIP_VERT)
+                data = _gdi_flip_bitmap_vert (data, bbox, pitch);
+        }
 #endif
-            break;
+        break;
 
-        case GLYPHBMP_TYPE_PRERENDER:
-            if (devfont->font_ops->get_glyph_prbitmap != NULL) {
-                PBITMAP glyph_bmp = &_pre_rdr_bmp;
-                if (!(devfont->font_ops->get_glyph_prbitmap) (logfont, devfont,
-                            REAL_GLYPH(glyph_value), glyph_bmp)){
-                    return FALSE;
-                }
-
-                /* FLIP for pre-rendered bitmap glyph. */
-                if ((logfont->style & FS_FLIP_HORZ) ||
-                        (logfont->style & FS_FLIP_VERT)) {
-
-                    _prepare_pre_rdr_bmp (pdc,
-                        glyph_bmp->bmWidth, glyph_bmp->bmHeight + 1);
-
-                    if (logfont->style & FS_FLIP_HORZ) {
-                        HFlipBitmap (glyph_bmp, glyph_bmp->bmBits
-                                + glyph_bmp->bmPitch * glyph_bmp->bmHeight);
-                    }
-                    if (logfont->style & FS_FLIP_VERT) {
-                        VFlipBitmap (glyph_bmp, glyph_bmp->bmBits
-                                + glyph_bmp->bmPitch * glyph_bmp->bmHeight);
-                    }
-                }
-
-                data = (BYTE*)glyph_bmp;
-                ctxt->cb = _dc_bmpfont_scan_line;
+    case GLYPHBMP_TYPE_PRERENDER:
+        if (devfont->font_ops->get_glyph_prbitmap != NULL) {
+            PBITMAP glyph_bmp = &_pre_rdr_bmp;
+            if (!(devfont->font_ops->get_glyph_prbitmap) (logfont, devfont,
+                        glyph_value, glyph_bmp)) {
+                return FALSE;
             }
-            break;
+
+            /* FLIP for pre-rendered bitmap glyph. */
+            if ((logfont->style & FS_FLIP_HORZ) ||
+                    (logfont->style & FS_FLIP_VERT)) {
+
+                _prepare_pre_rdr_bmp (pdc,
+                    glyph_bmp->bmWidth, glyph_bmp->bmHeight + 1);
+
+                if (logfont->style & FS_FLIP_HORZ) {
+                    HFlipBitmap (glyph_bmp, glyph_bmp->bmBits
+                            + glyph_bmp->bmPitch * glyph_bmp->bmHeight);
+                }
+                if (logfont->style & FS_FLIP_VERT) {
+                    VFlipBitmap (glyph_bmp, glyph_bmp->bmBits
+                            + glyph_bmp->bmPitch * glyph_bmp->bmHeight);
+                }
+            }
+
+            data = (BYTE*)glyph_bmp;
+            ctxt->cb = _dc_bmpfont_scan_line;
+        }
+        break;
     }
 
     if (!data || !ctxt->cb)
@@ -2311,7 +2298,7 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     int advance = 0;
     int glyph_bmptype;
 
-    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
+    glyph_bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
     bbox_x = x;
@@ -2768,7 +2755,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     logfont = pdc->pLogFont;
     devfont = SELECT_DEVFONT (logfont, glyph_value);
 
-    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
+    glyph_bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
     // VincentWei: only use auto bold when the weight of devfont does not

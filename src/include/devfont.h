@@ -80,15 +80,44 @@ DEVFONT* font_GetMatchedMBDevFont (LOGFONT* log_font);
 unsigned short font_GetBestScaleFactor (int height, int expect);
 
 /* Add for bitmap font interface */
-void font_DelSBDevFont (DEVFONT* dev_font);    
+void font_DelSBDevFont (DEVFONT* dev_font);
 void font_DelMBDevFont (DEVFONT* dev_font);
 
 #ifdef _DEBUG
 void dbg_dumpDevFonts (void);
 #endif
 
-/* A type definition for an glyph value */
 #define INV_GLYPH_VALUE    -1
+
+static inline BOOL check_zero_width(Glyph32 g, unsigned int t)
+{
+    unsigned int mchar_type = t & GLYPHTYPE_MCHAR_MASK;
+
+    if (mchar_type) {
+        if (mchar_type == MCHAR_TYPE_ZEROWIDTH
+                || (mchar_type & MCHAR_TYPE_NOSPACING_MARK))
+            return TRUE;
+        else
+            return FALSE;
+    }
+
+    t = (t & GLYPHTYPE_BASIC_MASK) >> 16;
+    if (g != 0x00AD
+            && (t == UCHAR_TYPE_NON_SPACING_MARK
+                || t == UCHAR_TYPE_ENCLOSING_MARK
+                || t == UCHAR_TYPE_FORMAT))
+        return TRUE;
+    else if ((g >= 0x1160 && g < 0x1200)
+            || g == 0x200B)
+        return TRUE;
+
+    return FALSE;
+}
+
+static inline BOOL check_vowel(unsigned int t)
+{
+    return ((t & GLYPHTYPE_MCHAR_MASK) == MCHAR_TYPE_VOWEL);
+}
 
 static inline long get_file_size (const char* filename)
 {
@@ -188,8 +217,8 @@ struct _CHARSETOPS
 /** The font operation structure. */
 struct _FONTOPS
 {
-    /** The method to get the glyph type . */
-    DWORD (*get_glyph_type) (LOGFONT* logfont, DEVFONT* devfont);
+    /** The method to get the glyph bitmap type . */
+    DWORD (*get_glyph_bmptype) (LOGFONT* logfont, DEVFONT* devfont);
 
     /** The method to get average width function. */
     int (*get_ave_width) (LOGFONT* logfont, DEVFONT* devfont);

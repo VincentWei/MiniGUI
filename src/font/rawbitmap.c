@@ -139,7 +139,7 @@ static void unload_font_data (DEVFONT* devfont, void* data)
 
 /*************** Raw bitmap font operations *********************************/
 
-static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
+static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     return DEVFONTGLYPHTYPE_MONOBMP;
 }
@@ -264,7 +264,7 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 
 /**************************** Global data ************************************/
 FONTOPS __mg_rbf_ops = {
-    get_glyph_type,
+    get_glyph_bmptype,
     get_ave_width,
     get_ave_width,  // max_width same as ave_width
     get_font_height,

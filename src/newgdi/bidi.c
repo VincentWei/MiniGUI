@@ -114,13 +114,13 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
     return logical_glyphs;
 }
 
-static  int inline get_glyph_type (LOGFONT* logfont, Glyph32 glyph_value)
+static int inline get_glyph_type (LOGFONT* logfont, Glyph32 glyph_value)
 {
     if (IS_MBC_GLYPH (glyph_value))
-        return logfont->mbc_devfont->charset_ops->glyph_type 
+        return logfont->mbc_devfont->charset_ops->glyph_type
             (REAL_GLYPH (glyph_value));
     else
-        return logfont->sbc_devfont->charset_ops->glyph_type 
+        return logfont->sbc_devfont->charset_ops->glyph_type
             (glyph_value);
 }
 
@@ -137,7 +137,7 @@ static int jump_vowels_ltr (PDC pdc, Glyph32* glyphs, int glyph_num, int* bigges
     int cur_advance = 0;
     for (i=0; i<glyph_num; i++)
     {
-        if (get_glyph_type (pdc->pLogFont, glyphs[i]) != MCHAR_TYPE_VOWEL) 
+        if (!check_vowel(get_glyph_type (pdc->pLogFont, glyphs[i])))
             return i;
         cur_advance = get_glyph_advance_in_dc (pdc, glyphs[i]);
         if (cur_advance > max_advance)
@@ -238,15 +238,12 @@ static int output_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
     pdc->ta_flags = (old_text_align & ~TA_RIGHT) | TA_LEFT;
     pdc->bkmode = BM_TRANSPARENT;
     *outed_num = 0;
-    for (i=0; i<left_num; i++)
-    {
+    for (i=0; i<left_num; i++) {
         glyph_value = *end_glyph--;
         glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
 
-        if (glyph_type == MCHAR_TYPE_VOWEL) 
-        {
-            if (cb_one_glyph(context, glyph_value, glyph_type))
-            {
+        if (check_vowel(glyph_type)) {
+            if (cb_one_glyph(context, glyph_value, glyph_type)) {
                 (*outed_num) ++;
             }
         }
@@ -271,7 +268,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
     int old_text_align = pdc->ta_flags;
 
     *outed_num = 0;
-    if (get_glyph_type (pdc->pLogFont, *end_glyph) != MCHAR_TYPE_VOWEL)
+    if (!check_vowel(get_glyph_type (pdc->pLogFont, *end_glyph)))
         return 0;
 
     pdc->ta_flags = (old_text_align & ~TA_RIGHT) | TA_LEFT;
@@ -280,7 +277,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
         glyph_value = end_glyph [-i];
         glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
 
-        if (glyph_type != MCHAR_TYPE_VOWEL) 
+        if (!check_vowel(glyph_type))
             break;
 
         cur_advance = get_glyph_advance_in_dc (pdc, glyph_value);
@@ -553,7 +550,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
     return i;
 }
 
-static Glyph32* 
+static Glyph32*
 _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
         int text_len, int* nr_glyphs, void* context)
 {
@@ -592,14 +589,14 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
 
             glyph_type = (*mbc_devfont->charset_ops->glyph_type)
                 (glyph_value);
-            if(!(glyph_type & MCHAR_TYPE_NOSPACING_MARK)){
+            if (!(glyph_type & MCHAR_TYPE_NOSPACING_MARK)){
                 prev_mchar = text;
             }
             else{
                 prev_len += len_cur_char;
             }
 
-            line_width += _gdi_get_glyph_advance (pdc, logical_glyphs[i-1], 
+            line_width += _gdi_get_glyph_advance (pdc, logical_glyphs[i-1],
                     TRUE, 0, 0, NULL, NULL, &bbox);
             left_bytes -= len_cur_char;
             text += len_cur_char;
@@ -612,10 +609,8 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
                 glyph_value = sbc_devfont->charset_ops->char_glyph_value
                     (NULL, 0, text, left_bytes);
                 logical_glyphs[i++] = glyph_value;
-                
                 line_width += _gdi_get_glyph_advance (pdc, logical_glyphs[i-1], 
                         TRUE, 0, 0, NULL, NULL, &bbox);
-                
                 left_bytes -= len_cur_char;
                 text += len_cur_char;
             }
@@ -1087,17 +1082,16 @@ int GUIAPI GetGlyphsExtentPoint(
     size->cy = 0;
 
     while(i < nr_glyphs){
+        Glyph32 rg;
         devfont = SELECT_DEVFONT(log_font, glyphs[i]);
-        glyph_type = devfont->charset_ops->glyph_type
-            (glyphs[i]);
+        rg = REAL_GLYPH(glyphs[i]);
+        glyph_type = devfont->charset_ops->glyph_type(rg);
 
-
-        if (glyph_type == MCHAR_TYPE_ZEROWIDTH 
-                || (glyph_type & MCHAR_TYPE_NOSPACING_MARK)) {
+        if (check_zero_width (rg, glyph_type)) {
             adv_x = adv_y = 0;
         }
         else {
-            advance += _gdi_get_glyph_advance (pdc, glyphs[i], 
+            advance += _gdi_get_glyph_advance (pdc, glyphs[i],
                     (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     0, 0, &adv_x, &adv_y, NULL);
 
@@ -1111,10 +1105,8 @@ int GUIAPI GetGlyphsExtentPoint(
         i ++;
     }
 
-
-    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0, 
+    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
             size->cx, size->cy, size);
-
 
     return i;
 }
@@ -1144,17 +1136,17 @@ int GUIAPI GetGlyphsExtent(
 
     size->cx = 0;
     size->cy = 0;
-    while(i < nr_glyphs){
+    while (i < nr_glyphs) {
+        Glyph32 rg;
+        rg = REAL_GLYPH(glyphs[i]);
         devfont = SELECT_DEVFONT(log_font, glyphs[i]);
-        glyph_type = devfont->charset_ops->glyph_type
-            (glyphs[i]);
+        glyph_type = devfont->charset_ops->glyph_type(rg);
 
-        if (glyph_type == MCHAR_TYPE_ZEROWIDTH 
-                || (glyph_type & MCHAR_TYPE_NOSPACING_MARK)) {
+        if (check_zero_width (rg, glyph_type)) {
             adv_x = adv_y = 0;
         }
         else {
-            advance += _gdi_get_glyph_advance (pdc, glyphs[i], 
+            advance += _gdi_get_glyph_advance (pdc, glyphs[i],
                     (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     0, 0, &adv_x, &adv_y, NULL);
         }
@@ -1163,7 +1155,7 @@ int GUIAPI GetGlyphsExtent(
         i ++;
     }
 
-    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0, 
+    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
             size->cx, size->cy, size);
 
     return advance;

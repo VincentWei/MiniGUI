@@ -740,12 +740,14 @@ static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 gly
 {
     int pos, step;
     BOOL found = FALSE;
-    BOOL is_mbc;
 
     pos = step = (n / 2) + 1;
 
+#if 0 // VincentWei: caller should handle MBC flag in glyph
+    BOOL is_mbc;
     is_mbc = IS_MBC_GLYPH(glyph);
     glyph = REAL_GLYPH(glyph);
+#endif
 
     while (step > 1) {
         Glyph32 cmp_glyph = map[pos].glyph;
@@ -769,9 +771,12 @@ static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 gly
 
     if (mirrored){
         *mirrored = found ? map[pos].mirrored : glyph;
+
+#if 0 // VincentWei: caller should handle MBC flag in glyph
         /* use the same mbc font for mirror char. */
         if(is_mbc)
             *mirrored = SET_MBC_GLYPH(*mirrored);
+#endif
     }
 
     return found;
@@ -1050,7 +1055,7 @@ static Uint32 __mg_iso8859_8_type[] = {
 
 static unsigned int iso8859_8_bidi_glyph_type (Glyph32 glyph_value)
 {
-    return __mg_iso8859_8_type [REAL_GLYPH(glyph_value)];
+    return __mg_iso8859_8_type [glyph_value];
 }
 
 static const BIDICHAR_MIRROR_MAP __mg_iso8859_8_mirror_table [] =
@@ -3468,82 +3473,95 @@ static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar, int pre_le
 #include "gunichartables.h"
 #include "gunibreak.h"
 
-#define ATTR_TABLE(Page) (((Page) <= G_UNICODE_LAST_PAGE_PART1) \
+#define ATTR_TABLE(Page) (((Page) <= UCHAR_TYPE_LAST_PAGE_PART1) \
                           ? attr_table_part1[Page] \
                           : attr_table_part2[(Page) - 0xe00])
 
 #define ATTTABLE(Page, Char) \
-  ((ATTR_TABLE(Page) == G_UNICODE_MAX_TABLE_INDEX) ? 0 : (attr_data[ATTR_TABLE(Page)][Char]))
+  ((ATTR_TABLE(Page) == UCHAR_TYPE_MAX_TABLE_INDEX) ? 0 : (attr_data[ATTR_TABLE(Page)][Char]))
 
 #define TTYPE_PART1(Page, Char) \
-  ((type_table_part1[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
-   ? (type_table_part1[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+  ((type_table_part1[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
+   ? (type_table_part1[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
    : (type_data[type_table_part1[Page]][Char]))
 
 #define TTYPE_PART2(Page, Char) \
-  ((type_table_part2[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
-   ? (type_table_part2[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+  ((type_table_part2[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
+   ? (type_table_part2[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
    : (type_data[type_table_part2[Page]][Char]))
 
 #define TYPE(Char) \
-  (((Char) <= G_UNICODE_LAST_CHAR_PART1) \
+  (((Char) <= UCHAR_TYPE_LAST_CHAR_PART1) \
    ? TTYPE_PART1 ((Char) >> 8, (Char) & 0xff) \
-   : (((Char) >= 0xe0000 && (Char) <= G_UNICODE_LAST_CHAR) \
+   : (((Char) >= 0xe0000 && (Char) <= UCHAR_TYPE_LAST_CHAR) \
       ? TTYPE_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
-      : G_UNICODE_UNASSIGNED))
+      : UCHAR_TYPE_UNASSIGNED))
 
 #define IS(Type, Class) (((unsigned int)1 << (Type)) & (Class))
 #define OR(Type, Rest)  (((unsigned int)1 << (Type)) | (Rest))
 
 #define ISALPHA(Type)   IS ((Type),             \
-                OR (G_UNICODE_LOWERCASE_LETTER, \
-                OR (G_UNICODE_UPPERCASE_LETTER, \
-                OR (G_UNICODE_TITLECASE_LETTER, \
-                OR (G_UNICODE_MODIFIER_LETTER,  \
-                OR (G_UNICODE_OTHER_LETTER,     0))))))
+                OR (UCHAR_TYPE_LOWERCASE_LETTER, \
+                OR (UCHAR_TYPE_UPPERCASE_LETTER, \
+                OR (UCHAR_TYPE_TITLECASE_LETTER, \
+                OR (UCHAR_TYPE_MODIFIER_LETTER,  \
+                OR (UCHAR_TYPE_OTHER_LETTER,     0))))))
 
 #define ISALDIGIT(Type) IS ((Type),             \
-                OR (G_UNICODE_DECIMAL_NUMBER,   \
-                OR (G_UNICODE_LETTER_NUMBER,    \
-                OR (G_UNICODE_OTHER_NUMBER,     \
-                OR (G_UNICODE_LOWERCASE_LETTER, \
-                OR (G_UNICODE_UPPERCASE_LETTER, \
-                OR (G_UNICODE_TITLECASE_LETTER, \
-                OR (G_UNICODE_MODIFIER_LETTER,  \
-                OR (G_UNICODE_OTHER_LETTER,     0)))))))))
+                OR (UCHAR_TYPE_DECIMAL_NUMBER,   \
+                OR (UCHAR_TYPE_LETTER_NUMBER,    \
+                OR (UCHAR_TYPE_OTHER_NUMBER,     \
+                OR (UCHAR_TYPE_LOWERCASE_LETTER, \
+                OR (UCHAR_TYPE_UPPERCASE_LETTER, \
+                OR (UCHAR_TYPE_TITLECASE_LETTER, \
+                OR (UCHAR_TYPE_MODIFIER_LETTER,  \
+                OR (UCHAR_TYPE_OTHER_LETTER,     0)))))))))
 
 #define ISMARK(Type)    IS ((Type),             \
-                OR (G_UNICODE_NON_SPACING_MARK, \
-                OR (G_UNICODE_SPACING_MARK, \
-                OR (G_UNICODE_ENCLOSING_MARK,   0))))
+                OR (UCHAR_TYPE_NON_SPACING_MARK, \
+                OR (UCHAR_TYPE_SPACING_MARK, \
+                OR (UCHAR_TYPE_ENCLOSING_MARK,   0))))
 
 #define ISZEROWIDTHTYPE(Type)   IS ((Type),         \
-                OR (G_UNICODE_NON_SPACING_MARK, \
-                OR (G_UNICODE_ENCLOSING_MARK,   \
-                OR (G_UNICODE_FORMAT,       0))))
+                OR (UCHAR_TYPE_NON_SPACING_MARK, \
+                OR (UCHAR_TYPE_ENCLOSING_MARK,   \
+                OR (UCHAR_TYPE_FORMAT,       0))))
 
 #define TPROP_PART1(Page, Char) \
-  ((break_property_table_part1[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
-   ? (break_property_table_part1[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+  ((break_property_table_part1[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
+   ? (break_property_table_part1[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
    : (break_property_data[break_property_table_part1[Page]][Char]))
 
 #define TPROP_PART2(Page, Char) \
-  ((break_property_table_part2[Page] >= G_UNICODE_MAX_TABLE_INDEX) \
-   ? (break_property_table_part2[Page] - G_UNICODE_MAX_TABLE_INDEX) \
+  ((break_property_table_part2[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
+   ? (break_property_table_part2[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
    : (break_property_data[break_property_table_part2[Page]][Char]))
 
 #define PROP(Char) \
-  (((Char) <= G_UNICODE_LAST_CHAR_PART1) \
+  (((Char) <= UCHAR_TYPE_LAST_CHAR_PART1) \
    ? TPROP_PART1 ((Char) >> 8, (Char) & 0xff) \
-   : (((Char) >= 0xe0000 && (Char) <= G_UNICODE_LAST_CHAR) \
+   : (((Char) >= 0xe0000 && (Char) <= UCHAR_TYPE_LAST_CHAR) \
       ? TPROP_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
-      : G_UNICODE_BREAK_UNKNOWN))
+      : UCHAR_BREAK_UNKNOWN))
 
 static unsigned int unicode_glyph_type (Glyph32 glyph_value)
 {
-    unsigned int basic_type = TYPE(glyph_value);
-    unsigned int break_type = PROP(glyph_value);
-    return basic_type | (break_type << 8);
+    unsigned int mchar_type = MCHAR_TYPE_UNKNOWN;
+    unsigned int basic_type = 0, break_type = 0;
+
+    if (glyph_value < 0x80) {
+        mchar_type = sb_glyph_type(glyph_value);
+    }
+    else {
+        basic_type = TYPE(glyph_value);
+        break_type = PROP(glyph_value);
+
+        if (ISZEROWIDTHTYPE(basic_type)) {
+            mchar_type = MCHAR_TYPE_ZEROWIDTH;
+        }
+    }
+
+    return (break_type << 24) | (basic_type << 16) | mchar_type;
 }
 
 #include "unicode-bidi-tables.h"
@@ -4381,59 +4399,59 @@ BOOL GUIAPI IsUCharAlpha(UChar32 uc)
 
 BOOL GUIAPI IsUCharControl(UChar32 uc)
 {
-    return TYPE(uc) == G_UNICODE_CONTROL;
+    return TYPE(uc) == UCHAR_TYPE_CONTROL;
 }
 
 BOOL GUIAPI IsUCharDigit(UChar32 uc)
 {
-    return TYPE(uc) == G_UNICODE_DECIMAL_NUMBER;
+    return TYPE(uc) == UCHAR_TYPE_DECIMAL_NUMBER;
 }
 
 BOOL GUIAPI IsUCharGraph(UChar32 uc)
 {
     return !IS (TYPE(uc),
-            OR (G_UNICODE_CONTROL,
-            OR (G_UNICODE_FORMAT,
-            OR (G_UNICODE_UNASSIGNED,
-            OR (G_UNICODE_SURROGATE,
-            OR (G_UNICODE_SPACE_SEPARATOR,
+            OR (UCHAR_TYPE_CONTROL,
+            OR (UCHAR_TYPE_FORMAT,
+            OR (UCHAR_TYPE_UNASSIGNED,
+            OR (UCHAR_TYPE_SURROGATE,
+            OR (UCHAR_TYPE_SPACE_SEPARATOR,
             0))))));
 }
 
 BOOL GUIAPI IsUCharLowercase(UChar32 uc)
 {
-    return TYPE(uc) == G_UNICODE_LOWERCASE_LETTER;
+    return TYPE(uc) == UCHAR_TYPE_LOWERCASE_LETTER;
 }
 
 BOOL GUIAPI IsUCharPrint(UChar32 uc)
 {
     return !IS (TYPE(uc),
-            OR (G_UNICODE_CONTROL,
-            OR (G_UNICODE_FORMAT,
-            OR (G_UNICODE_UNASSIGNED,
-            OR (G_UNICODE_SURROGATE,
+            OR (UCHAR_TYPE_CONTROL,
+            OR (UCHAR_TYPE_FORMAT,
+            OR (UCHAR_TYPE_UNASSIGNED,
+            OR (UCHAR_TYPE_SURROGATE,
             0)))));
 }
 
 BOOL GUIAPI IsUCharUppercase(UChar32 uc)
 {
-    return TYPE(uc) == G_UNICODE_UPPERCASE_LETTER;
+    return TYPE(uc) == UCHAR_TYPE_UPPERCASE_LETTER;
 }
 
 BOOL GUIAPI IsUCharPunct(UChar32 uc)
 {
     return IS (TYPE(uc),
-            OR (G_UNICODE_CONNECT_PUNCTUATION,
-            OR (G_UNICODE_DASH_PUNCTUATION,
-            OR (G_UNICODE_CLOSE_PUNCTUATION,
-            OR (G_UNICODE_FINAL_PUNCTUATION,
-            OR (G_UNICODE_INITIAL_PUNCTUATION,
-            OR (G_UNICODE_OTHER_PUNCTUATION,
-            OR (G_UNICODE_OPEN_PUNCTUATION,
-            OR (G_UNICODE_CURRENCY_SYMBOL,
-            OR (G_UNICODE_MODIFIER_SYMBOL,
-            OR (G_UNICODE_MATH_SYMBOL,
-            OR (G_UNICODE_OTHER_SYMBOL,
+            OR (UCHAR_TYPE_CONNECT_PUNCTUATION,
+            OR (UCHAR_TYPE_DASH_PUNCTUATION,
+            OR (UCHAR_TYPE_CLOSE_PUNCTUATION,
+            OR (UCHAR_TYPE_FINAL_PUNCTUATION,
+            OR (UCHAR_TYPE_INITIAL_PUNCTUATION,
+            OR (UCHAR_TYPE_OTHER_PUNCTUATION,
+            OR (UCHAR_TYPE_OPEN_PUNCTUATION,
+            OR (UCHAR_TYPE_CURRENCY_SYMBOL,
+            OR (UCHAR_TYPE_MODIFIER_SYMBOL,
+            OR (UCHAR_TYPE_MATH_SYMBOL,
+            OR (UCHAR_TYPE_OTHER_SYMBOL,
             0))))))))))));
 }
 
@@ -4449,9 +4467,9 @@ BOOL GUIAPI IsUCharSpace(UChar32 uc)
 
     default: {
         if (IS (TYPE(uc),
-               OR (G_UNICODE_SPACE_SEPARATOR,
-               OR (G_UNICODE_LINE_SEPARATOR,
-               OR (G_UNICODE_PARAGRAPH_SEPARATOR,
+               OR (UCHAR_TYPE_SPACE_SEPARATOR,
+               OR (UCHAR_TYPE_LINE_SEPARATOR,
+               OR (UCHAR_TYPE_PARAGRAPH_SEPARATOR,
                 0)))))
             return TRUE;
         }
@@ -4483,14 +4501,14 @@ BOOL GUIAPI IsUCharXDigit(UChar32 uc)
 {
     return ((uc >= 'a' && uc <= 'f')
             || (uc >= 'A' && uc <= 'F')
-            || (TYPE(uc) == G_UNICODE_DECIMAL_NUMBER));
+            || (TYPE(uc) == UCHAR_TYPE_DECIMAL_NUMBER));
 }
 
 BOOL GUIAPI IsUCharDefined(UChar32 uc)
 {
     return !IS (TYPE(uc),
-              OR (G_UNICODE_UNASSIGNED,
-              OR (G_UNICODE_SURROGATE,
+              OR (UCHAR_TYPE_UNASSIGNED,
+              OR (UCHAR_TYPE_SURROGATE,
              0)));
 }
 
@@ -4576,7 +4594,7 @@ BOOL GUIAPI IsUCharWideCJK (UChar32 uc)
 UChar32 UCharToUpper (UChar32 uc)
 {
     int t = TYPE (uc);
-    if (t == G_UNICODE_LOWERCASE_LETTER) {
+    if (t == UCHAR_TYPE_LOWERCASE_LETTER) {
         UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
@@ -4588,7 +4606,7 @@ UChar32 UCharToUpper (UChar32 uc)
          */
         return val ? val : uc;
     }
-    else if (t == G_UNICODE_TITLECASE_LETTER) {
+    else if (t == UCHAR_TYPE_TITLECASE_LETTER) {
         unsigned int i;
         for (i = 0; i < TABLESIZE (title_table); ++i) {
             if (title_table[i][0] == uc)
@@ -4605,7 +4623,7 @@ UChar32 UCharToUpper (UChar32 uc)
 UChar32 GUIAPI UCharToLower (UChar32 uc)
 {
     int t = TYPE (uc);
-    if (t == G_UNICODE_UPPERCASE_LETTER) {
+    if (t == UCHAR_TYPE_UPPERCASE_LETTER) {
         UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
@@ -4617,7 +4635,7 @@ UChar32 GUIAPI UCharToLower (UChar32 uc)
             return val ? val : uc;
         }
     }
-    else if (t == G_UNICODE_TITLECASE_LETTER) {
+    else if (t == UCHAR_TYPE_TITLECASE_LETTER) {
         unsigned int i;
         for (i = 0; i < TABLESIZE (title_table); ++i) {
             if (title_table[i][0] == uc)
@@ -4639,7 +4657,7 @@ UChar32 GUIAPI UCharToTitle (UChar32 uc)
             return title_table[i][0];
     }
 
-    if (TYPE (uc) == G_UNICODE_LOWERCASE_LETTER)
+    if (TYPE (uc) == UCHAR_TYPE_LOWERCASE_LETTER)
         return UCharToUpper (uc);
 
     return uc;

@@ -5775,8 +5775,12 @@ typedef struct _WORDINFO WORDINFO;
 typedef unsigned short  UChar16;
 typedef int    UChar32;
 
-#define MCHAR_TYPE_UNKNOWN          0xFFFF
-#define MCHAR_TYPE_NUL              0x0000
+#define MCHAR_TYPE_NOSPACING_MARK   0x0001
+#define MCHAR_TYPE_ABOVE_MARK       0x0002
+#define MCHAR_TYPE_BELLOW_MARK      0x0004
+
+#define MCHAR_TYPE_UNKNOWN          0x0000
+#define MCHAR_TYPE_NUL              (0x0000 | MCHAR_TYPE_NOSPACING_MARK)
 #define MCHAR_TYPE_CTRL1            0x0100
 #define MCHAR_TYPE_BEL              0x0200
 #define MCHAR_TYPE_BS               0x0300
@@ -5789,124 +5793,94 @@ typedef int    UChar32;
 #define MCHAR_TYPE_SPACE            0x0A00
 #define MCHAR_TYPE_ZEROWIDTH        0x0B00
 #define MCHAR_TYPE_GENERIC          0x0C00
-#define MCHAR_TYPE_NOSPACING_MARK   0x0001
-#define MCHAR_TYPE_LIGATURE         (MCHAR_TYPE_NOSPACING_MARK |0x0D00)
-#define MCHAR_TYPE_VOWEL            (MCHAR_TYPE_NOSPACING_MARK |0x0E00)
-#define MCHAR_TYPE_VOWEL_ABOVE      (MCHAR_TYPE_VOWEL |0x0002)
-#define MCHAR_TYPE_VOWEL_BELLOW     (MCHAR_TYPE_VOWEL |0x0004)
 
-#define MCHAR_TYPE_ASCII            0x0080
-#define MCHAR_TYPE_LATIN1           0x0081
-#define MCHAR_TYPE_LATIN2           0x0082
-#define MCHAR_TYPE_LATIN3           0x0083
-#define MCHAR_TYPE_LATIN4           0x0084
-#define MCHAR_TYPE_LATIN5           0x0085
-#define MCHAR_TYPE_LATIN6           0x0086
-#define MCHAR_TYPE_LATIN7           0x0087
-#define MCHAR_TYPE_LATIN8           0x0088
-#define MCHAR_TYPE_LATIN9           0x0089
-#define MCHAR_TYPE_LATIN10          0x008A
-#define MCHAR_TYPE_CYRILLIC         0x008B
-#define MCHAR_TYPE_ARABIC           0x008C
-#define MCHAR_TYPE_GREEK            0x008D
-#define MCHAR_TYPE_HEBREW           0x008E
-#define MCHAR_TYPE_THAI             0x008F
-
-#define MCHAR_TYPE_DIGIT            0x0091
-#define MCHAR_TYPE_SYMBOL_PUNCT     0x0092
-#define MCHAR_TYPE_SYMBOL_MATH      0x0093
-#define MCHAR_TYPE_SYMBOL_OTHER     0x0094
-#define MCHAR_TYPE_FW_DIGIT         0x0095
-#define MCHAR_TYPE_FW_SYM_PUNCT     0x0096
-#define MCHAR_TYPE_FW_SYM_MATH      0x0097
-#define MCHAR_TYPE_FW_SYM_OTHER     0x0098
-
-#define MCHAR_TYPE_HANGUL           0x00A1
-#define MCHAR_TYPE_KATAKANA         0x00A2
-#define MCHAR_TYPE_CJK              0x00A3
+#define MCHAR_TYPE_LIGATURE         (0x0D00 | MCHAR_TYPE_NOSPACING_MARK)
+#define MCHAR_TYPE_VOWEL            (0x0E00 | MCHAR_TYPE_NOSPACING_MARK)
+#define MCHAR_TYPE_VOWEL_ABOVE      (MCHAR_TYPE_VOWEL | MCHAR_TYPE_ABOVE_MARK)
+#define MCHAR_TYPE_VOWEL_BELLOW     (MCHAR_TYPE_VOWEL | MCHAR_TYPE_BELLOW_MARK)
 
 /* These are the basic UNICODE character classifications.
  * See http://www.unicode.org/Public/UNIDATA/UCD.html#General_Category_Values
  */
-#define G_UNICODE_CONTROL               0x00
-#define G_UNICODE_FORMAT                0x01
-#define G_UNICODE_UNASSIGNED            0x02
-#define G_UNICODE_PRIVATE_USE           0x03
-#define G_UNICODE_SURROGATE             0x04
-#define G_UNICODE_LOWERCASE_LETTER      0x05
-#define G_UNICODE_MODIFIER_LETTER       0x06
-#define G_UNICODE_OTHER_LETTER          0x07
-#define G_UNICODE_TITLECASE_LETTER      0x08
-#define G_UNICODE_UPPERCASE_LETTER      0x09
-#define G_UNICODE_SPACING_MARK          0x0A
-#define G_UNICODE_ENCLOSING_MARK        0x0B
-#define G_UNICODE_NON_SPACING_MARK      0x0C
-#define G_UNICODE_DECIMAL_NUMBER        0x0D
-#define G_UNICODE_LETTER_NUMBER         0x0E
-#define G_UNICODE_OTHER_NUMBER          0x0F
-#define G_UNICODE_CONNECT_PUNCTUATION   0x10
-#define G_UNICODE_DASH_PUNCTUATION      0x11
-#define G_UNICODE_CLOSE_PUNCTUATION     0x12
-#define G_UNICODE_FINAL_PUNCTUATION     0x13
-#define G_UNICODE_INITIAL_PUNCTUATION   0x14
-#define G_UNICODE_OTHER_PUNCTUATION     0x15
-#define G_UNICODE_OPEN_PUNCTUATION      0x16
-#define G_UNICODE_CURRENCY_SYMBOL       0x17
-#define G_UNICODE_MODIFIER_SYMBOL       0x18
-#define G_UNICODE_MATH_SYMBOL           0x19
-#define G_UNICODE_OTHER_SYMBOL          0x1A
-#define G_UNICODE_LINE_SEPARATOR        0x1B
-#define G_UNICODE_PARAGRAPH_SEPARATOR   0x1C
-#define G_UNICODE_SPACE_SEPARATOR       0x1D
+#define UCHAR_TYPE_CONTROL               0x00
+#define UCHAR_TYPE_FORMAT                0x01
+#define UCHAR_TYPE_UNASSIGNED            0x02
+#define UCHAR_TYPE_PRIVATE_USE           0x03
+#define UCHAR_TYPE_SURROGATE             0x04
+#define UCHAR_TYPE_LOWERCASE_LETTER      0x05
+#define UCHAR_TYPE_MODIFIER_LETTER       0x06
+#define UCHAR_TYPE_OTHER_LETTER          0x07
+#define UCHAR_TYPE_TITLECASE_LETTER      0x08
+#define UCHAR_TYPE_UPPERCASE_LETTER      0x09
+#define UCHAR_TYPE_SPACING_MARK          0x0A
+#define UCHAR_TYPE_ENCLOSING_MARK        0x0B
+#define UCHAR_TYPE_NON_SPACING_MARK      0x0C
+#define UCHAR_TYPE_DECIMAL_NUMBER        0x0D
+#define UCHAR_TYPE_LETTER_NUMBER         0x0E
+#define UCHAR_TYPE_OTHER_NUMBER          0x0F
+#define UCHAR_TYPE_CONNECT_PUNCTUATION   0x10
+#define UCHAR_TYPE_DASH_PUNCTUATION      0x11
+#define UCHAR_TYPE_CLOSE_PUNCTUATION     0x12
+#define UCHAR_TYPE_FINAL_PUNCTUATION     0x13
+#define UCHAR_TYPE_INITIAL_PUNCTUATION   0x14
+#define UCHAR_TYPE_OTHER_PUNCTUATION     0x15
+#define UCHAR_TYPE_OPEN_PUNCTUATION      0x16
+#define UCHAR_TYPE_CURRENCY_SYMBOL       0x17
+#define UCHAR_TYPE_MODIFIER_SYMBOL       0x18
+#define UCHAR_TYPE_MATH_SYMBOL           0x19
+#define UCHAR_TYPE_OTHER_SYMBOL          0x1A
+#define UCHAR_TYPE_LINE_SEPARATOR        0x1B
+#define UCHAR_TYPE_PARAGRAPH_SEPARATOR   0x1C
+#define UCHAR_TYPE_SPACE_SEPARATOR       0x1D
 
 /* These are the possible line break classifications.
  * Note that new types may be added in the future.
- * Implementations may regard unknown values like G_UNICODE_BREAK_UNKNOWN
+ * Implementations may regard unknown values like UCHAR_BREAK_UNKNOWN
  * See http://www.unicode.org/unicode/reports/tr14/
  */
-#define G_UNICODE_BREAK_MANDATORY           0x00
-#define G_UNICODE_BREAK_CARRIAGE_RETURN     0x01
-#define G_UNICODE_BREAK_LINE_FEED           0x02
-#define G_UNICODE_BREAK_COMBINING_MARK      0x03
-#define G_UNICODE_BREAK_SURROGATE           0x04
-#define G_UNICODE_BREAK_ZERO_WIDTH_SPACE    0x05
-#define G_UNICODE_BREAK_INSEPARABLE         0x06
-#define G_UNICODE_BREAK_NON_BREAKING_GLUE   0x07
-#define G_UNICODE_BREAK_CONTINGENT          0x08
-#define G_UNICODE_BREAK_SPACE               0x09
-#define G_UNICODE_BREAK_AFTER               0x0A
-#define G_UNICODE_BREAK_BEFORE              0x0B
-#define G_UNICODE_BREAK_BEFORE_AND_AFTER    0x0C
-#define G_UNICODE_BREAK_HYPHEN              0x0D
-#define G_UNICODE_BREAK_NON_STARTER         0x0E
-#define G_UNICODE_BREAK_OPEN_PUNCTUATION    0x0F
-#define G_UNICODE_BREAK_CLOSE_PUNCTUATION   0x10
-#define G_UNICODE_BREAK_QUOTATION           0x11
-#define G_UNICODE_BREAK_EXCLAMATION         0x12
-#define G_UNICODE_BREAK_IDEOGRAPHIC         0x13
-#define G_UNICODE_BREAK_NUMERIC             0x14
-#define G_UNICODE_BREAK_INFIX_SEPARATOR     0x15
-#define G_UNICODE_BREAK_SYMBOL              0x16
-#define G_UNICODE_BREAK_ALPHABETIC          0x17
-#define G_UNICODE_BREAK_PREFIX              0x18
-#define G_UNICODE_BREAK_POSTFIX             0x19
-#define G_UNICODE_BREAK_COMPLEX_CONTEXT     0x1A
-#define G_UNICODE_BREAK_AMBIGUOUS           0x1B
-#define G_UNICODE_BREAK_UNKNOWN             0x1C
-#define G_UNICODE_BREAK_NEXT_LINE           0x1D
-#define G_UNICODE_BREAK_WORD_JOINER         0x1E
-#define G_UNICODE_BREAK_HANGUL_L_JAMO       0x1F
-#define G_UNICODE_BREAK_HANGUL_V_JAMO       0x20
-#define G_UNICODE_BREAK_HANGUL_T_JAMO       0x21
-#define G_UNICODE_BREAK_HANGUL_LV_SYLLABLE  0x22
-#define G_UNICODE_BREAK_HANGUL_LVT_SYLLABLE 0x23
-#define G_UNICODE_BREAK_CLOSE_PARANTHESIS               0x24
-#define G_UNICODE_BREAK_CONDITIONAL_JAPANESE_STARTER    0x25
-#define G_UNICODE_BREAK_HEBREW_LETTER       0x26
-#define G_UNICODE_BREAK_REGIONAL_INDICATOR  0x27
-#define G_UNICODE_BREAK_EMOJI_BASE          0x28
-#define G_UNICODE_BREAK_EMOJI_MODIFIER      0x29
-#define G_UNICODE_BREAK_ZERO_WIDTH_JOINER   0x2A
+#define UCHAR_BREAK_MANDATORY           0x00
+#define UCHAR_BREAK_CARRIAGE_RETURN     0x01
+#define UCHAR_BREAK_LINE_FEED           0x02
+#define UCHAR_BREAK_COMBINING_MARK      0x03
+#define UCHAR_BREAK_SURROGATE           0x04
+#define UCHAR_BREAK_ZERO_WIDTH_SPACE    0x05
+#define UCHAR_BREAK_INSEPARABLE         0x06
+#define UCHAR_BREAK_NON_BREAKING_GLUE   0x07
+#define UCHAR_BREAK_CONTINGENT          0x08
+#define UCHAR_BREAK_SPACE               0x09
+#define UCHAR_BREAK_AFTER               0x0A
+#define UCHAR_BREAK_BEFORE              0x0B
+#define UCHAR_BREAK_BEFORE_AND_AFTER    0x0C
+#define UCHAR_BREAK_HYPHEN              0x0D
+#define UCHAR_BREAK_NON_STARTER         0x0E
+#define UCHAR_BREAK_OPEN_PUNCTUATION    0x0F
+#define UCHAR_BREAK_CLOSE_PUNCTUATION   0x10
+#define UCHAR_BREAK_QUOTATION           0x11
+#define UCHAR_BREAK_EXCLAMATION         0x12
+#define UCHAR_BREAK_IDEOGRAPHIC         0x13
+#define UCHAR_BREAK_NUMERIC             0x14
+#define UCHAR_BREAK_INFIX_SEPARATOR     0x15
+#define UCHAR_BREAK_SYMBOL              0x16
+#define UCHAR_BREAK_ALPHABETIC          0x17
+#define UCHAR_BREAK_PREFIX              0x18
+#define UCHAR_BREAK_POSTFIX             0x19
+#define UCHAR_BREAK_COMPLEX_CONTEXT     0x1A
+#define UCHAR_BREAK_AMBIGUOUS           0x1B
+#define UCHAR_BREAK_UNKNOWN             0x1C
+#define UCHAR_BREAK_NEXT_LINE           0x1D
+#define UCHAR_BREAK_WORD_JOINER         0x1E
+#define UCHAR_BREAK_HANGUL_L_JAMO       0x1F
+#define UCHAR_BREAK_HANGUL_V_JAMO       0x20
+#define UCHAR_BREAK_HANGUL_T_JAMO       0x21
+#define UCHAR_BREAK_HANGUL_LV_SYLLABLE  0x22
+#define UCHAR_BREAK_HANGUL_LVT_SYLLABLE 0x23
+#define UCHAR_BREAK_CLOSE_PARANTHESIS               0x24
+#define UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER    0x25
+#define UCHAR_BREAK_HEBREW_LETTER       0x26
+#define UCHAR_BREAK_REGIONAL_INDICATOR  0x27
+#define UCHAR_BREAK_EMOJI_BASE          0x28
+#define UCHAR_BREAK_EMOJI_MODIFIER      0x29
+#define UCHAR_BREAK_ZERO_WIDTH_JOINER   0x2A
 
 struct _FONTOPS;
 struct _CHARSETOPS;
@@ -8901,9 +8875,10 @@ typedef int Glyph32;
 
 /**
  * \def GLYPH2UCHAR(glyph)
- * \brief get real glyph value from a glyph
+ * \brief get real glyph value from a glyph.
+ * Only valid for UNICODE.
  *
- * \param glyph glyph value 
+ * \param glyph glyph value.
  */
 #define GLYPH2UCHAR(glyph)  ((glyph) & 0x7FFFFFFF)
 
@@ -9092,10 +9067,12 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
 /** The type of glyph bitmap: pre-rendered BITMAP object */
 #define GLYPHBMP_TYPE_PRERENDER 0x03
 
-/** The bits mask for glyph type */
-#define GLYPHTYPE_BASIC_MASK        0x00FF
-/** The bits mask for break type */
-#define GLYPHTYPE_BREAK_MASK        0xFF00
+/** The bits mask of glyph type for multi-byte character */
+#define GLYPHTYPE_MCHAR_MASK        0x0000FFFF
+/** The bits mask of glyph type for unicode charachter */
+#define GLYPHTYPE_BASIC_MASK        0x00FF0000
+/** The bits mask of break type for unicode charachter */
+#define GLYPHTYPE_BREAK_MASK        0xFF000000
 
 /**
  * \var typedef struct  _GLYPHINFO GLYPHINFO

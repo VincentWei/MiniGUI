@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** tabbedtextout.c: Implementaion of TabbedTextOut and related functions.
-** 
+**
 ** Create date: 2008/02/01
 */
 
@@ -56,14 +56,14 @@
 
 #ifdef _MGCHARSET_UNICODE
 extern size_t __mg_strlen (PLOGFONT log_font, const char* mstr);
-extern char* __mg_strnchr (PLOGFONT log_font, const char* s, 
+extern char* __mg_strnchr (PLOGFONT log_font, const char* s,
                 size_t n, int c, int* cl);
-extern int __mg_substrlen (PLOGFONT log_font, const char* text, int len, 
+extern int __mg_substrlen (PLOGFONT log_font, const char* text, int len,
                 int delimiter, int* nr_delim);
 
 static inline BOOL is_utf16_logfont (PDC pdc)
 {
-    DEVFONT* mbc_devfont; 
+    DEVFONT* mbc_devfont;
     mbc_devfont = pdc->pLogFont->mbc_devfont;
     if (mbc_devfont && strstr (mbc_devfont->charset_ops->name, "UTF-16")) {
         return TRUE;
@@ -79,14 +79,14 @@ static inline size_t __mg_strlen (PLOGFONT log_font, const char* mstr)
     return strlen (mstr);
 }
 
-static inline char* __mg_strnchr (PLOGFONT logfont, const char* s, 
+static inline char* __mg_strnchr (PLOGFONT logfont, const char* s,
                 size_t n, int c, int* cl)
 {
     *cl = 1;
     return strnchr (s, n, c);
 }
 
-static inline int __mg_substrlen (PLOGFONT logfont, const char* text, int len, 
+static inline int __mg_substrlen (PLOGFONT logfont, const char* text, int len,
                 int delimiter, int* nr_delim)
 {
     return substrlen (text, len, delimiter, nr_delim);
@@ -109,21 +109,21 @@ typedef struct _TABBEDTEXTOUT_CTXT
     int tab_width;
     int line_height;
 
-    int x, y; 
+    int x, y;
     int advance;
 
     BOOL only_extent;
 } TABBEDTEXTOUT_CTXT;
 
-static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value, 
-                int glyph_type)
+static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
+                unsigned int glyph_type)
 {
     TABBEDTEXTOUT_CTXT* ctxt = (TABBEDTEXTOUT_CTXT*)context;
     int adv_x, adv_y;
     BBOX bbox;
     int bkmode = ctxt->pdc->bkmode;
 
-    switch (glyph_type) {
+    switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
@@ -131,38 +131,40 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
         case MCHAR_TYPE_HT:
             _gdi_start_new_line (ctxt->pdc);
             if (ctxt->only_extent) {
-                ctxt->advance += _gdi_get_null_glyph_advance (ctxt->pdc, 
-                    ctxt->tab_width, 
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+                ctxt->advance += _gdi_get_null_glyph_advance (ctxt->pdc,
+                    ctxt->tab_width,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
             }
             else {
-                ctxt->advance += _gdi_draw_null_glyph (ctxt->pdc, 
-                    ctxt->tab_width, 
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+                ctxt->advance += _gdi_draw_null_glyph (ctxt->pdc,
+                    ctxt->tab_width,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
             }
             break;
+
         case MCHAR_TYPE_VOWEL:
             if (!ctxt->only_extent) {
                 //ctxt->pdc->bkmode = BM_TRANSPARENT;
-                _gdi_draw_one_glyph (ctxt->pdc, glyph_value, 
-                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+                _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                         ctxt->x, ctxt->y, &adv_x, &adv_y);
                 ctxt->pdc->bkmode = bkmode;
             }
             adv_x = adv_y = 0;
             break;
+
         default:
             if (ctxt->only_extent) {
-                ctxt->advance += _gdi_get_glyph_advance (ctxt->pdc, 
-                    glyph_value, 
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+                ctxt->advance += _gdi_get_glyph_advance (ctxt->pdc,
+                    glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y, &bbox);
             }
             else {
-                ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value, 
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+                ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
             }
             break;
@@ -184,23 +186,23 @@ typedef struct _TABBEDTEXTOUTEX_CTXT
 
     /* para for tab. */
     int tab_width;
-    int nr_tab; 
+    int nr_tab;
     int nTabs, nTabOrig;
-    int *pTabPos; 
+    int *pTabPos;
 
     /* para for current char. */
-    int x, y; 
+    int x, y;
     int advance;
 } TABBEDTEXTOUTEX_CTXT;
 
-static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value, 
-                int glyph_type)
+static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
+                unsigned int glyph_type)
 {
     TABBEDTEXTOUTEX_CTXT* ctxt = (TABBEDTEXTOUTEX_CTXT*)context;
     int adv_x, adv_y;
     int tab_pos  = ctxt->nTabOrig;
 
-    switch (glyph_type) {
+    switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
@@ -215,22 +217,23 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
             else {
                 tab_pos += (ctxt->nr_tab >= ctxt->nTabs) ? ctxt->tab_width : ctxt->pTabPos[ctxt->nr_tab++];
             }
-            _gdi_draw_null_glyph (ctxt->pdc, tab_pos - ctxt->advance, 
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+            _gdi_draw_null_glyph (ctxt->pdc, tab_pos - ctxt->advance,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
 
             ctxt->advance  = tab_pos;
             ctxt->nTabOrig = tab_pos;
             break;
+
         case MCHAR_TYPE_VOWEL:
-            _gdi_draw_one_glyph (ctxt->pdc, glyph_value, 
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+            _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
             adv_x = adv_y = 0;
             break;
         default:
-            ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value, 
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+            ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
             break;
     }
@@ -241,13 +244,13 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
     return TRUE;
 }
 
-int _gdi_tabbed_text_out (PDC pdc, int x, int y, 
+int _gdi_tabbed_text_out (PDC pdc, int x, int y,
                 const unsigned char* text, int len, int tab_width,
-                BOOL only_extent, POINT* cur_pos, SIZE* size) 
+                BOOL only_extent, POINT* cur_pos, SIZE* size)
 {
     TABBEDTEXTOUT_CTXT ctxt;
     int nr_delim_newline = 0, line_len = 0;
-    
+
     ctxt.pdc = pdc;
     ctxt.start_x = x;
     ctxt.start_y = y;
@@ -266,7 +269,7 @@ int _gdi_tabbed_text_out (PDC pdc, int x, int y,
         pdc->rc_output = pdc->DevRC;
 
     while (len > 0) {
-        line_len = __mg_substrlen (pdc->pLogFont, 
+        line_len = __mg_substrlen (pdc->pLogFont,
                 (const char*)text, len, '\n', &nr_delim_newline);
 
         ctxt.x = ctxt.start_x;
@@ -274,8 +277,8 @@ int _gdi_tabbed_text_out (PDC pdc, int x, int y,
 
         if(nr_delim_newline){
             _gdi_start_new_line (pdc);
-            _gdi_reorder_text (pdc, text, line_len, 
-                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+            _gdi_reorder_text (pdc, text, line_len,
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     cb_tabbedtextout, &ctxt);
             if (ctxt.max_advance < ctxt.advance) {
                 ctxt.max_advance = ctxt.advance;
@@ -289,8 +292,8 @@ int _gdi_tabbed_text_out (PDC pdc, int x, int y,
         else{
             /* output the final line. */
             _gdi_start_new_line (pdc);
-            _gdi_reorder_text (pdc, text, len, 
-                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+            _gdi_reorder_text (pdc, text, len,
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     cb_tabbedtextout, &ctxt);
 
             if (ctxt.max_advance < ctxt.advance) {
@@ -316,8 +319,8 @@ int _gdi_tabbed_text_out (PDC pdc, int x, int y,
     return ctxt.max_advance;
 }
 
-int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y, 
-                const char* spText, int len) 
+int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y,
+                const char* spText, int len)
 {
     PDC pdc;
     int advance;
@@ -329,7 +332,7 @@ int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y,
     if (len < 0) len = __mg_strlen (pdc->pLogFont, spText);
     if (len == 0) return 0;
 
-    tab_width = pdc->pLogFont->sbc_devfont->font_ops->get_ave_width 
+    tab_width = pdc->pLogFont->sbc_devfont->font_ops->get_ave_width
             (pdc->pLogFont, pdc->pLogFont->sbc_devfont) * pdc->tabstop;
 
     /* override start point by current text position */
@@ -344,7 +347,7 @@ int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y,
     /* convert to the start point on baseline. */
     _gdi_get_baseline_point (pdc, &x, &y);
 
-    advance = _gdi_tabbed_text_out (pdc, x, y, (const unsigned char*) spText, 
+    advance = _gdi_tabbed_text_out (pdc, x, y, (const unsigned char*) spText,
                     len, tab_width, FALSE, &cur_pos, NULL);
 
     coor_SP2LP (pdc, &cur_pos.x, &cur_pos.y);
@@ -354,7 +357,7 @@ int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y,
     return advance;
 }
 
-int GUIAPI GetTabbedTextExtent (HDC hdc, const char* spText, int len, 
+int GUIAPI GetTabbedTextExtent (HDC hdc, const char* spText, int len,
                 SIZE* pSize)
 {
     PDC pdc;
@@ -376,10 +379,10 @@ int GUIAPI GetTabbedTextExtent (HDC hdc, const char* spText, int len,
         return 0;
     }
 
-    tab_width = pdc->pLogFont->sbc_devfont->font_ops->get_ave_width 
+    tab_width = pdc->pLogFont->sbc_devfont->font_ops->get_ave_width
             (pdc->pLogFont, pdc->pLogFont->sbc_devfont) * pdc->tabstop;
 
-    advance = _gdi_tabbed_text_out (pdc, 0, 0, (const unsigned char*) spText, 
+    advance = _gdi_tabbed_text_out (pdc, 0, 0, (const unsigned char*) spText,
                     len, tab_width, TRUE, NULL, &size);
 
     if (pSize) *pSize = size;
@@ -387,7 +390,7 @@ int GUIAPI GetTabbedTextExtent (HDC hdc, const char* spText, int len,
     return advance;
 }
 
-int _gdi_tabbedex_text_out (PDC pdc, int x, int y, 
+int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
                 const unsigned char* text, int len, int tab_width,
                 int nTabs, int *pTabPos, int nTabOrig, POINT* cur_pos)
 {
@@ -417,11 +420,11 @@ int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
     ctxt.nTabOrig = nTabOrig;
     ctxt.pTabPos = pTabPos;
     ctxt.nr_tab = 0;
-    
+
     pdc->rc_output = pdc->DevRC;
 
     while (len > 0) {
-        line_len = __mg_substrlen (pdc->pLogFont, 
+        line_len = __mg_substrlen (pdc->pLogFont,
                 (const char*)text, len, '\n', &nr_delim_newline);
 
         ctxt.x = ctxt.start_x;
@@ -432,8 +435,8 @@ int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
 
         if(nr_delim_newline){
             _gdi_start_new_line (pdc);
-            _gdi_reorder_text (pdc, text, line_len, 
-                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+            _gdi_reorder_text (pdc, text, line_len,
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     cb_tabbedtextoutex, &ctxt);
             if (ctxt.max_advance < ctxt.advance) {
                 ctxt.max_advance = ctxt.advance;
@@ -445,8 +448,8 @@ int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
         else{
             /* output the final line. */
             _gdi_start_new_line (pdc);
-            _gdi_reorder_text (pdc, text, len, 
-                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT, 
+            _gdi_reorder_text (pdc, text, len,
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     cb_tabbedtextoutex, &ctxt);
 
             if (ctxt.max_advance < ctxt.advance) {
@@ -500,7 +503,7 @@ int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y, const char* spText,
     /* convert to the start point on baseline. */
     _gdi_get_baseline_point (pdc, &x, &y);
 
-    advance = _gdi_tabbedex_text_out (pdc, x, y, (const unsigned char*) spText, 
+    advance = _gdi_tabbedex_text_out (pdc, x, y, (const unsigned char*) spText,
                     nCount, def_tab, nTabs, pTabPos, nTabOrig, &cur_pos);
 
     coor_SP2LP (pdc, &cur_pos.x, &cur_pos.y);
@@ -510,8 +513,8 @@ int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y, const char* spText,
     return advance;
 }
 
-int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text, 
-                int len, int max_extent, 
+int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
+                int len, int max_extent,
                 int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
 {
     PDC pdc = dc_HDC2PDC (hdc);
@@ -538,7 +541,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
     tab_width = sbc_devfont->font_ops->get_ave_width (log_font, sbc_devfont)
                     * pdc->tabstop;
     line_height = log_font->size + pdc->alExtra + pdc->blExtra;
-	size->cy = line_height;
+    size->cy = line_height;
 
     while (left_bytes > 0) {
         if (pos_chars)
@@ -550,13 +553,13 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
         len_cur_char = 0;
 
         if (mbc_devfont)
-            len_cur_char = mbc_devfont->charset_ops->len_first_char 
+            len_cur_char = mbc_devfont->charset_ops->len_first_char
                                 ((const unsigned char*)text, left_bytes);
 
         if (len_cur_char > 0)
             devfont = mbc_devfont;
         else {
-            len_cur_char = sbc_devfont->charset_ops->len_first_char 
+            len_cur_char = sbc_devfont->charset_ops->len_first_char
                                 ((const unsigned char*)text, left_bytes);
             if (len_cur_char > 0)
                 devfont = sbc_devfont;
@@ -572,7 +575,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
             if(devfont == mbc_devfont)
                 glyph_value |= 0x80000000;
 
-            switch (glyph_type) {
+            switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
                 case MCHAR_TYPE_ZEROWIDTH:
                 case MCHAR_TYPE_VOWEL:
                     break;
@@ -591,8 +594,8 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                     break;
 
                 default:
-                   last_line_width  += _gdi_get_glyph_advance (pdc, glyph_value, 
-                        (pdc->ta_flags & TA_X_MASK) == TA_LEFT, 
+                   last_line_width  += _gdi_get_glyph_advance (pdc, glyph_value,
+                        (pdc->ta_flags & TA_X_MASK) == TA_LEFT,
                         0, 0, NULL, NULL, NULL);
                     last_line_width += pdc->cExtra;
                     break;

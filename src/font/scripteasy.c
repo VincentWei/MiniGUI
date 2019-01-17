@@ -364,7 +364,7 @@ static int get_max_width (LOGFONT* logfont, DEVFONT* devfont)
     return logfont->size;
 }
 
-static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
+static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     if (logfont->style & FS_WEIGHT_BOOK)
         return DEVFONTGLYPHTYPE_GREYBMP;
@@ -577,7 +577,7 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 
 /**************************** Global data ************************************/
 static FONTOPS scripteasy_font_ops = {
-    get_glyph_type,
+    get_glyph_bmptype,
     get_ave_width,
     get_max_width,
     get_font_height,

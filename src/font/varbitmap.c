@@ -96,7 +96,7 @@ typedef struct _FONT_PROPT {
     int def_glyph; 
 } FONT_PROPT;
 
-static DWORD get_glyph_type (LOGFONT* logfont, DEVFONT* devfont)
+static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     return DEVFONTGLYPHTYPE_MONOBMP;
 }
@@ -456,7 +456,7 @@ static void unload_font_data (DEVFONT* devfont, void* data)
 }
 
 FONTOPS __mg_vbf_ops = {
-    get_glyph_type,
+    get_glyph_bmptype,
     get_ave_width,
     get_max_width,
     get_font_height,
