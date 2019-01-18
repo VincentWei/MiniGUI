@@ -5777,6 +5777,58 @@ typedef struct _WORDINFO WORDINFO;
 typedef Uint16 Uchar16;
 typedef Uint32 Uchar32;
 
+    /**
+     * \defgroup char_types Character types
+     *
+     * MiniGUI uses a Uint32 value to store the type information of a character.
+     *
+     * MiniGUI uses the lower 16-bit integer for the type of a multi-byte character.
+     * The definition macros have MCHAR_TYPE as the prefix.
+     *
+     * For a UNICODE character, MiniGUI uses the high 16-bit for the
+     * basic UNICODE character classifications and the possible line break
+     * classifications. The low byte for the basic type, and high byte for
+     * the break type.
+     *
+     * @{
+     */
+
+/**
+ * \def GLYPHTYPE_MCHAR_MASK
+ * \brief The bits mask of glyph type for multi-byte character
+ */
+#define GLYPHTYPE_MCHAR_MASK        0x0000FFFF
+
+/**
+ * \def EXTRACT_MCHAR_TYPE(t)
+ * \brief Extracts multi-byte character type
+ */
+#define EXTRACT_MCHAR_TYPE(t)       ((t) & GLYPHTYPE_MCHAR_MASK)
+
+/**
+ * \def GLYPHTYPE_BASIC_MASK
+ * \brief The bits mask of glyph type for unicode charachter
+ */
+#define GLYPHTYPE_BASIC_MASK        0x00FF0000
+
+/**
+ * \def EXTRACT_BASIC_TYPE(t)
+ * \brief Extracts the basic UNICODE character type
+ */
+#define EXTRACT_BASIC_TYPE(t)       (((t) & GLYPHTYPE_BASIC_MASK) >> 16)
+
+/**
+ * \def GLYPHTYPE_BREAK_MASK
+ * \brief The bits mask of break type for UNICODE charachter
+ */
+#define GLYPHTYPE_BREAK_MASK        0xFF000000
+
+/**
+ * \def EXTRACT_BREAK_TYPE(t)
+ * \brief Extracts the break type of a UNICODE character
+ */
+#define EXTRACT_BREAK_TYPE(t)       (((t) & GLYPHTYPE_BREAK_MASK) >> 24)
+
 #define MCHAR_TYPE_NOSPACING_MARK   0x0001
 #define MCHAR_TYPE_ABOVE_MARK       0x0002
 #define MCHAR_TYPE_BELLOW_MARK      0x0004
@@ -5801,9 +5853,6 @@ typedef Uint32 Uchar32;
 #define MCHAR_TYPE_VOWEL_ABOVE      (MCHAR_TYPE_VOWEL | MCHAR_TYPE_ABOVE_MARK)
 #define MCHAR_TYPE_VOWEL_BELLOW     (MCHAR_TYPE_VOWEL | MCHAR_TYPE_BELLOW_MARK)
 
-/* These are the basic UNICODE character classifications.
- * See http://www.unicode.org/Public/UNIDATA/UCD.html#General_Category_Values
- */
 #define UCHAR_TYPE_CONTROL               0x00
 #define UCHAR_TYPE_FORMAT                0x01
 #define UCHAR_TYPE_UNASSIGNED            0x02
@@ -5835,11 +5884,6 @@ typedef Uint32 Uchar32;
 #define UCHAR_TYPE_PARAGRAPH_SEPARATOR   0x1C
 #define UCHAR_TYPE_SPACE_SEPARATOR       0x1D
 
-/* These are the possible line break classifications.
- * Note that new types may be added in the future.
- * Implementations may regard unknown values like UCHAR_BREAK_UNKNOWN
- * See http://www.unicode.org/unicode/reports/tr14/
- */
 #define UCHAR_BREAK_MANDATORY           0x00
 #define UCHAR_BREAK_CARRIAGE_RETURN     0x01
 #define UCHAR_BREAK_LINE_FEED           0x02
@@ -5883,6 +5927,8 @@ typedef Uint32 Uchar32;
 #define UCHAR_BREAK_EMOJI_BASE          0x28
 #define UCHAR_BREAK_EMOJI_MODIFIER      0x29
 #define UCHAR_BREAK_ZERO_WIDTH_JOINER   0x2A
+
+    /** @} end of char_types */
 
 struct _FONTOPS;
 struct _CHARSETOPS;
@@ -9125,9 +9171,9 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
  * \param logfont The logical font.
  * \param glyph_value The glyph value.
  *
- * \return The basic type of the specified glyph.
+ * \return The type of the specified glyph.
  *
- * \sa GetGlyphInfo, GetGlyphBIDIType
+ * \sa GetGlyphInfo, GetGlyphBIDIType, char_types
  */
 MG_EXPORT Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value);
 
@@ -9146,13 +9192,6 @@ MG_EXPORT Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value);
 #define GLYPHBMP_TYPE_SUBPIXEL  0x02
 /** The type of glyph bitmap: pre-rendered BITMAP object */
 #define GLYPHBMP_TYPE_PRERENDER 0x03
-
-/** The bits mask of glyph type for multi-byte character */
-#define GLYPHTYPE_MCHAR_MASK        0x0000FFFF
-/** The bits mask of glyph type for unicode charachter */
-#define GLYPHTYPE_BASIC_MASK        0x00FF0000
-/** The bits mask of break type for unicode charachter */
-#define GLYPHTYPE_BREAK_MASK        0xFF000000
 
 /**
  * \var typedef struct  _GLYPHINFO GLYPHINFO
@@ -9268,69 +9307,145 @@ MG_EXPORT int GUIAPI GetGlyphsExtent (HDC hdc, Glyph32* glyphs, int nr_glyphs,
 MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
         int nr_glyphs, int max_extent, SIZE* size);
 
-/**
- * The white space rule for \a GetGlyphsByRules and \a GetGlyphsExtentPointEx.
- */
-typedef enum {
     /**
-     * This value direct \a GetGlyphsExtentPointEx
-     * collapses sequences of white space into a single character.
+     * \defgroup white_space_rule White Space Rules
+     *
+     *  The white space rule indicates \a GetGlyphsByRules and
+     *  \a GetGlyphsExtentPointEx
+     *
+     *      - whether and how white space inside the string is collapsed.
+     *      - whether lines may wrap at unforced soft wrap opportunities.
+     * @{
      */
-    WS_NORMAL,
-
-    /**
-     * This value prevents \a GetGlyphsExtentPointEx from collapsing
-     * sequences of white space. Segment breaks such as line feeds are
-     * preserved as forced line breaks. Lines only break at forced line breaks;
-     * content that does not fit within the block container overflows it.
-     */
-    WS_PRE,
-
-    /**
-     * Like WS_NORMAL, this value collapses white spaces; but like WS_PRE,
-     * it does not allow wrapping.
-     */
-    WS_NOWRAP,
-
-    /**
-     * Like WS_PRE, this value preserves white space; but like WS_NORMAL,
-     * it allows wrapping.
-     */
-    WS_PRE_WRAP,
-
-    /**
-     * The behavior is identical to that of WS_PRE_WRAP, except that:
-     *  - Any sequence of preserved white space always takes up space,
-     *      including at the end of the line.
-     *  - A line breaking opportunity exists after every preserved
-     *      white space glyph, including between white space characters.
-     */
-    WS_BREAK_SPACES,
-
-    /**
-     * Like WS_NORMAL, this value collapses consecutive spaces and
-     * allows wrapping, but preserves segment breaks in the source
-     * as forced line breaks.
-     */
-    WS_PRE_LINE,
-} WhiteSpaceRule;
 
 /**
- * The character transformation rule for \a GetGlyphsByRules.
+ * \def WSR_NORMAL
+ *
+ * \brief This value directs \a GetGlyphsExtentPointEx
+ * collapses sequences of white space into a single character.
  */
-typedef enum {
-    CT_NONE,
-    CT_CAPITALIZE,
-    CT_UPPERCASE,
-    CT_LOWERCASE,
-    CT_FULL_WIDTH       = 0x10,
-    CT_FULL_SIZE_KANA   = 0x20,
-} CharTransformRule;
+#define WSR_NORMAL          0x01
+
+/**
+ * \def WSR_PRE
+ *
+ * \brief This value prevents \a GetGlyphsExtentPointEx from collapsing
+ * sequences of white space. Segment breaks such as line feeds are
+ * preserved as forced line breaks. Lines only break at forced line breaks;
+ * content that does not fit within the block container overflows it.
+ */
+#define WSR_PRE             0x02
+
+/**
+ * \def WSR_NOWRAP
+ *
+ * \brief Like \a WS_NORMAL, this value collapses white spaces; but like WS_PRE,
+ * it does not allow wrapping.
+ */
+#define WSR_NOWRAP          0x03
+
+/**
+ * \def WSR_PRE_WRAP
+ *
+ * \brief Like \a WS_PRE, this value preserves white space; but like WS_NORMAL,
+ * it allows wrapping.
+ */
+#define WSR_PRE_WRAP        0x04
+
+/**
+ * \def WSR_BREAK_SPACES
+ *
+ * \brief
+ * The behavior is identical to that of WS_PRE_WRAP, except that:
+ *  - Any sequence of preserved white space always takes up space,
+ *      including at the end of the line.
+ *  - A line breaking opportunity exists after every preserved
+ *      white space glyph, including between white space characters.
+ */
+#define WSR_BREAK_SPACES    0x05
+
+/**
+ * \def WSR_PRE_LINE
+ *
+ * \brief Like WS_NORMAL, this value collapses consecutive spaces and
+ * allows wrapping, but preserves segment breaks in the source
+ * as forced line breaks.
+ */
+#define WSR_PRE_LINE        0x06
+
+    /** @} end of white_space_rule */
+
+    /**
+     * \defgroup char_transform_rule Character Transformation Rule
+     *
+     *  The character transformation rule indicates how \a GetGlyphsByRules
+     *  transforms text for styling purposes; can be
+     *
+     *      - CTR_NONE,
+     *      - or one of CTR_CAPITALIZE, CTR_UPPERCASE, and CTR_LOWERCASE,
+     *      - and OR'ed with CTR_ FULL_WIDTH and/or CTR_FULL_SIZE_KANA
+     *
+     * @{
+     */
+
+/**
+ * \def CTR_NONE
+ *
+ * \brief No effects.
+ */
+#define CTR_NONE            0x00000000
+
+#define CTR_CASE_MASK       0x0000000F
+
+/**
+ * \def CTR_CAPITALIZE
+ *
+ * \brief Puts the first typographic letter unit of each word,
+ * if lowercase, in titlecase; other characters are unaffected.
+ */
+#define CTR_CAPITALIZE      0x00000001
+
+/**
+ * \def CTR_UPPERCASE
+ *
+ * \brief Puts all letters in uppercase.
+ */
+#define CTR_UPPERCASE       0x00000002
+
+/**
+ * \def CTR_LOWERCASE
+ *
+ * \brief Puts all letters in lowercase.
+ */
+#define CTR_LOWERCASE       0x00000003
+
+/**
+ * \def CTR_FULL_WIDTH
+ *
+ * \brief Puts all typographic character units in fullwidth form.
+ * If a character does not have a corresponding fullwidth form,
+ * it is left as is. This value is typically used to typeset
+ * Latin letters and digits as if they were ideographic characters.
+ */
+#define CTR_FULL_WIDTH      0x00000010
+
+/**
+ * \def CTR_FULL_SIZE_KANA
+ *
+ * \brief Converts all small Kana characters to the equivalent
+ * full-size Kana. This value is typically used for ruby annotation
+ * text, where authors may want all small Kana to be drawn as large
+ * Kana to compensate for legibility issues at the small font sizes
+ * typically used in ruby.
+ */
+#define CTR_FULL_SIZE_KANA  0x00000020
+
+    /** @} end of char_transform_rule */
 
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  *          const char* mstr, int mstr_len,
- *          WhiteSpaceRule ws_rule, CharTransformRule trans_rule,
+ *          Uint32 ws_rule, Uint32 trans_rule,
  *          Glyph32** glyphs, int* nr_glyphs);
  * \brief Calculate the glyph string under the specified white space and
  *        transformation rule.
@@ -9345,22 +9460,34 @@ typedef enum {
  * \param logfont The logfont used to parse the string.
  * \param mstr The pointer to the multi-byte string.
  * \param mstr_len The length of \a mstr in bytes.
- * \param ws_rule The white space rule. This parameter specifies two things:
- *          - whether and how white space inside the string is collapsed.
- *          - whether lines may wrap at unforced soft wrap opportunities.
- * \param trans_rule The character transformation rule.
+ * \param ws_rule The white space rule; see \a white_space_rule.
+ * \param trans_rule The character transformation rule. See \a char_transform_rule.
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
  *
  * \return The number of the bytes consumed in \a mstr.
  *
- * \sa WhiteSpaceRule, CharTransformRule, DrawGlyphStringEx
+ * \sa DrawGlyphStringEx, white_space_rule, char_transform_rule
  */
 MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
             const char* mstr, int mstr_len,
-            WhiteSpaceRule ws_rule, CharTransformRule trans_rule,
+            Uint32 ws_rule, Uint32 trans_rule,
             Glyph32** glyphs, int* nr_glyphs);
+
+    /**
+     * \defgroup glyph_render_flags Glyph Rendering Flags
+     *
+     * The glyph rendering flags indicates \a GetGlyphsExtentPointEx
+     *      - Whether and how to break if the glyph string overflows the max extent;
+     *      - The direction of the glyphs;
+     *      - The writing mode (horizontal or vertical) and text orientation;
+     *      - The hyphenation handling method;
+     *      - The BIDI methods;
+     *      - The hanging punctation method;
+     *      - Whether and how to adjust the glyph postion for alignment of justify.
+     * @{
+     */
 
 #define GRF_WORD_BREAK_MASK             0x00000003
 #define GRF_WORD_BREAK_NORMAL           0x00000000
@@ -9430,6 +9557,8 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 #define GRF_HYPHENS_MANUAL              0x40000000
 #define GRF_HYPHENS_AUTO                0x80000000
 
+    /** @} end of glyph_render_flags */
+
 /**
  * \var typedef struct  _GLYPHEXTINFO GLYPHEXTINFO
  * \brief Data type of struct _GLYPHEXTINFO.
@@ -9444,7 +9573,7 @@ typedef struct _GLYPHEXTINFO {
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *          const Glyph32* glyphs, int nr_glyphs,
- *          DWORD32 render_flags, WhiteSpaceRule ws_rule,
+ *          Uint32 render_flags, Uint32 ws_rule,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts)
  * \brief Get the visual extent info of a glyph string.
@@ -9457,37 +9586,11 @@ typedef struct _GLYPHEXTINFO {
  * \param y The y-position of first glyph.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The number of the glyphs.
- * \param render_flags The render flags. It determines the following things:
- *          - Whether and how to break if the glyph string overflows the max extent;
- *          - The direction of the glyphs and lines;
- *          - The writing mode (horizontal or vertical) and text orientation;
- *          - The hyphenation handling method;
- *          - The BIDI methods.
- *          - The hanging punctation method;
- *          - Whether and how to adjust the glyph postion for alignment of justify.
- *        The flags can be OR'ed by the following values:
- *          - GRF_WORD_BREAK_NORMAL\n
- *          - GRF_WORD_BREAK_KEEP_ALL\n
- *          - GRF_WORD_BREAK_BREAK_ALL\n
- *          - GRF_OVERFLOW_WRAP_NORMAL\n
- *          - GRF_OVERFLOW_WRAP_BREAK_WORD\n
- *          - GRF_OVERFLOW_WRAP_ANYWHERE\n
- *          - GRF_LINE_BREAK_NORMAL\n
- *          - GRF_LINE_BREAK_AUTO\n
- *          - GRF_LINE_BREAK_LOOSE\n
- *          - GRF_LINE_BREAK_STRICT\n
- *          - GRF_LINE_BREAK_ANYWHERE\n
- *          - GRF_DIRECTION_LTR\n
- *          - GRF_DIRECTION_RTL\n
- *          - GRF_ALIGN_LEFT\n
- *          - GRF_ALIGN_RIGHT\n
- *          - GRF_ALIGN_JUSTIFY\n
+ * \param render_flags The render flags; see \a glyph_render_flags.
+ * \param ws_rule The white space rule; see \a white_space_rule.
  * \param letter_spacing This parameter specifies additional spacing
  *          (commonly called tracking) between adjacent glyphs.
  * \param word_spacing This parameter specifies additional spacing between words.
- * \param ws_rule The white space rule. This parameter specifies two things:
- *          - whether and how white space inside the element is collapsed.
- *          - whether lines may wrap at unforced soft wrap opportunities.
  * \param tab_size The tab size used to render preserved tab characters.
  * \param max_extent The maximal output extent value. No limit when it is < 0.
  * \param line_size The buffer to store the line extent info; can be NULL.
@@ -9500,11 +9603,11 @@ typedef struct _GLYPHEXTINFO {
  *          \a glyph_ext_info if it was not NULL, and the line extent info will
  *          be returned through \a lien_size if it was not NULL.
  *
- * \sa GLYPHEXTINFO, WhiteSpaceRule, DrawGlyphStringEx
+ * \sa GLYPHEXTINFO, DrawGlyphStringEx, glyph_render_flags, white_space_rule
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, int nr_glyphs,
-        Uint32 render_flags, WhiteSpaceRule ws_rule,
+        Uint32 render_flags, Uint32 ws_rule,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts);
 
@@ -9521,7 +9624,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
  * \param pts The buffer holds the position of every glyph. If it is NULL,
  *        the manner of this function will be same as \a DrawGlyphString.
  *
- * \sa GLYPHEXTINFO, WhiteSpaceRule
+ * \sa GetGlyphsExtentPointEx
  *
  * \return The advance on baseline.
  */
@@ -9533,134 +9636,197 @@ MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
  * only one bit on.
  */
 
-#define BIDI_TYPE_INVALID   0x00000000L
+#define BIDI_TYPE_INVALID       0x00000000L
 
-#define BIDI_MASK_RTL       0x00000001L	/* Is right to left */
-#define BIDI_MASK_ARABIC    0x00000002L	/* Is arabic */
+#define BIDI_MASK_RTL           0x00000001L    /* Is right to left */
+#define BIDI_MASK_ARABIC        0x00000002L    /* Is arabic */
 
 /* Each char can be only one of the three following. */
-#define BIDI_MASK_STRONG    0x00000010L	/* Is strong */
-#define BIDI_MASK_WEAK	    0x00000020L	/* Is weak */
-#define BIDI_MASK_NEUTRAL	0x00000040L	/* Is neutral */
-#define BIDI_MASK_SENTINEL	0x00000080L	/* Is sentinel: SOT, EOT */
+#define BIDI_MASK_STRONG        0x00000010L    /* Is strong */
+#define BIDI_MASK_WEAK          0x00000020L    /* Is weak */
+#define BIDI_MASK_NEUTRAL       0x00000040L    /* Is neutral */
+#define BIDI_MASK_SENTINEL      0x00000080L    /* Is sentinel: SOT, EOT */
 
 /* Each char can be only one of the five following. */
-#define BIDI_MASK_LETTER	0x00000100L	/* Is letter: L, R, AL */
-#define BIDI_MASK_NUMBER	0x00000200L	/* Is number: EN, AN */
-#define BIDI_MASK_NUMSEPTER	0x00000400L	/* Is number separator or terminator: ES, ET, CS */
-#define BIDI_MASK_SPACE	    0x00000800L	/* Is space: BN, BS, SS, WS */
-#define BIDI_MASK_EXPLICIT	0x00001000L	/* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
+#define BIDI_MASK_LETTER        0x00000100L    /* Is letter: L, R, AL */
+#define BIDI_MASK_NUMBER        0x00000200L    /* Is number: EN, AN */
+#define BIDI_MASK_NUMSEPTER     0x00000400L    /* Is number separator or terminator: ES, ET, CS */
+#define BIDI_MASK_SPACE         0x00000800L    /* Is space: BN, BS, SS, WS */
+#define BIDI_MASK_EXPLICIT      0x00001000L    /* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
 
 /* Can be on only if BIDI_MASK_SPACE is also on. */
-#define BIDI_MASK_SEPARATOR	0x00002000L	/* Is test separator: BS, SS */
+#define BIDI_MASK_SEPARATOR     0x00002000L    /* Is test separator: BS, SS */
 /* Can be on only if BIDI_MASK_EXPLICIT is also on. */
-#define BIDI_MASK_OVERRIDE	0x00004000L	/* Is explicit override: LRO, RLO */
+#define BIDI_MASK_OVERRIDE      0x00004000L    /* Is explicit override: LRO, RLO */
 
-#define BIDI_MASK_ES		0x00010000L
-#define BIDI_MASK_ET		0x00020000L
-#define BIDI_MASK_CS		0x00040000L
+#define BIDI_MASK_ES            0x00010000L
+#define BIDI_MASK_ET            0x00020000L
+#define BIDI_MASK_CS            0x00040000L
 
-#define BIDI_MASK_NSM       0x00080000L
-#define BIDI_MASK_BN		0x00100000L
+#define BIDI_MASK_NSM           0x00080000L
+#define BIDI_MASK_BN            0x00100000L
 
-#define BIDI_MASK_BS		0x00200000L
-#define BIDI_MASK_SS		0x00400000L
-#define BIDI_MASK_WS		0x00800000L
+#define BIDI_MASK_BS            0x00200000L
+#define BIDI_MASK_SS            0x00400000L
+#define BIDI_MASK_WS            0x00800000L
 
-/*
- * Define values for Bidi char type
+    /**
+     * \defgroup glyph_bidi_types Glyph BIDI types
+     *
+     * Values for BIDI glyph type.
+     *
+     * @{
+     */
+
+/**
+ * \def BIDI_TYPE_LTR
+ * \brief Strong left to right
  */
+#define BIDI_TYPE_LTR    (BIDI_MASK_STRONG + BIDI_MASK_LETTER)
 
-/* Strong left to right */
-#define BIDI_TYPE_LTR	(BIDI_MASK_STRONG + BIDI_MASK_LETTER)
-
-/* Right to left characters */
-#define BIDI_TYPE_RTL	(BIDI_MASK_STRONG + BIDI_MASK_LETTER \
+/**
+ * \def BIDI_TYPE_RTL
+ * \brief Right to left characters
+ */
+#define BIDI_TYPE_RTL    (BIDI_MASK_STRONG + BIDI_MASK_LETTER \
                          + BIDI_MASK_RTL)
 
-/* Arabic characters */
-#define BIDI_TYPE_AL	(BIDI_MASK_STRONG + BIDI_MASK_LETTER \
+/**
+ * \def BIDI_TYPE_AL
+ * \brief Arabic characters
+ */
+#define BIDI_TYPE_AL    (BIDI_MASK_STRONG + BIDI_MASK_LETTER \
                         + BIDI_MASK_RTL  + BIDI_MASK_ARABIC)
 
-/* Left-To-Right embedding */
-#define BIDI_TYPE_LRE	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT)
+/**
+ * \def BIDI_TYPE_LRE
+ * \brief Left-To-Right embedding
+ */
+#define BIDI_TYPE_LRE    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT)
 
-/* Right-To-Left embedding */
-#define BIDI_TYPE_RLE	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+/**
+ * \def BIDI_TYPE_RLE
+ * \brief Right-To-Left embedding
+ */
+#define BIDI_TYPE_RLE    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
                         + BIDI_MASK_RTL)
 
-/* Left-To-Right override */
-#define BIDI_TYPE_LRO	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+/**
+ * \def BIDI_TYPE_LRO
+ * \brief Left-To-Right override
+ */
+#define BIDI_TYPE_LRO    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
                         + BIDI_MASK_OVERRIDE)
 
-/* Right-To-Left override */
-#define BIDI_TYPE_RLO	(BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+/**
+ * \def BIDI_TYPE_RLO
+ * \brief Right-To-Left override
+ */
+#define BIDI_TYPE_RLO    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
                         + BIDI_MASK_RTL + BIDI_MASK_OVERRIDE)
 
-/* Pop directional override */
-#define BIDI_TYPE_PDF	(BIDI_MASK_WEAK + BIDI_MASK_EXPLICIT)
+/**
+ * \def BIDI_TYPE_PDF
+ * \brief Pop directional override
+ */
+#define BIDI_TYPE_PDF    (BIDI_MASK_WEAK + BIDI_MASK_EXPLICIT)
 
-/* European digit */
-#define BIDI_TYPE_EN	(BIDI_MASK_WEAK + BIDI_MASK_NUMBER)
+/**
+ * \def BIDI_TYPE_EN
+ * \brief European digit
+ */
+#define BIDI_TYPE_EN    (BIDI_MASK_WEAK + BIDI_MASK_NUMBER)
 
-/* Arabic digit */
-#define BIDI_TYPE_AN	(BIDI_MASK_WEAK + BIDI_MASK_NUMBER \
+/**
+ * \def BIDI_TYPE_AN
+ * \brief Arabic digit
+ */
+#define BIDI_TYPE_AN    (BIDI_MASK_WEAK + BIDI_MASK_NUMBER \
                         + BIDI_MASK_ARABIC)
 
-/* European number separator */
-#define BIDI_TYPE_ES	(BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+/**
+ * \def BIDI_TYPE_ES
+ * \brief European number separator
+ */
+#define BIDI_TYPE_ES    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
                         + BIDI_MASK_ES)
 
-/* European number terminator */
-#define BIDI_TYPE_ET	(BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+/**
+ * \def BIDI_TYPE_ET
+ * \brief European number terminator
+ */
+#define BIDI_TYPE_ET    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
                         + BIDI_MASK_ET)
 
-/* Common Separator */
-#define BIDI_TYPE_CS	(BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+/**
+ * \def BIDI_TYPE_CS
+ * \brief Common Separator
+ */
+#define BIDI_TYPE_CS    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
                         + BIDI_MASK_CS)
 
-/* Non spacing mark */
-#define BIDI_TYPE_NSM	(BIDI_MASK_WEAK + BIDI_MASK_NSM)
+/**
+ * \def BIDI_TYPE_NSM
+ * \brief Non spacing mark
+ */
+#define BIDI_TYPE_NSM    (BIDI_MASK_WEAK + BIDI_MASK_NSM)
 
-/* Boundary neutral */
-#define BIDI_TYPE_BN	(BIDI_MASK_WEAK + BIDI_MASK_SPACE \
+/**
+ * \def BIDI_TYPE_BN
+ * \brief Boundary neutral
+ */
+#define BIDI_TYPE_BN    (BIDI_MASK_WEAK + BIDI_MASK_SPACE \
                         + BIDI_MASK_BN)
 
-/* Block separator */
-#define BIDI_TYPE_BS	(BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+/**
+ * \def BIDI_TYPE_BS
+ * \brief Block separator
+ */
+#define BIDI_TYPE_BS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
                         + BIDI_MASK_SEPARATOR + BIDI_MASK_BS)
 
-/* Segment separator */
-#define BIDI_TYPE_SS	(BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+/**
+ * \def BIDI_TYPE_SS
+ * \brief Segment separator
+ */
+#define BIDI_TYPE_SS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
                         + BIDI_MASK_SEPARATOR + BIDI_MASK_SS)
-/* Whitespace */
-#define BIDI_TYPE_WS	(BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+/**
+ * \def BIDI_TYPE_WS
+ * \brief Whitespace
+ */
+#define BIDI_TYPE_WS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
                         + BIDI_MASK_WS)
 
-/* Other Neutral */
-#define BIDI_TYPE_ON	(BIDI_MASK_NEUTRAL)
+/**
+ * \def BIDI_TYPE_ON
+ * \brief Other Neutral
+ */
+#define BIDI_TYPE_ON    (BIDI_MASK_NEUTRAL)
+
+    /** @} end of glyph_bidi_types */
 
 /* The following are used to identify the paragraph direction,
    types L, R, N are not used internally anymore, and recommended to use
    LTR, RTL and ON instead, didn't removed because of compatability. */
 
-#define BIDI_TYPE_L		(BIDI_TYPE_LTR)
-#define BIDI_TYPE_R		(BIDI_TYPE_RTL)
-#define BIDI_TYPE_N		(BIDI_TYPE_ON)
+#define BIDI_TYPE_L        (BIDI_TYPE_LTR)
+#define BIDI_TYPE_R        (BIDI_TYPE_RTL)
+#define BIDI_TYPE_N        (BIDI_TYPE_ON)
 /* Weak left to right */
-#define BIDI_TYPE_WL	(BIDI_MASK_WEAK)
+#define BIDI_TYPE_WL    (BIDI_MASK_WEAK)
 /* Weak right to left */
-#define BIDI_TYPE_WR	(BIDI_MASK_WEAK + BIDI_MASK_RTL)
+#define BIDI_TYPE_WR    (BIDI_MASK_WEAK + BIDI_MASK_RTL)
 
 /* The following are only used internally */
 
 /* Start of text */
-#define BIDI_TYPE_SOT	(BIDI_MASK_SENTINEL)
+#define BIDI_TYPE_SOT    (BIDI_MASK_SENTINEL)
 /* End of text */
-#define BIDI_TYPE_EOT	(BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
+#define BIDI_TYPE_EOT    (BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
 
 /* Is private-use value? */
-#define BIDI_TYPE_PRIVATE(p)	((p) < 0)
+#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
 
 /* Return the direction of the level number, BIDI_TYPE_LTR for even and
    BIDI_TYPE_RTL for odds. */
@@ -9690,7 +9856,7 @@ MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
 #define BIDI_IS_NUMBER(p)   ((p) & BIDI_MASK_NUMBER)
 /* Is number separator or terminator: ES, ET, CS? */
 #define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
-	((p) & BIDI_MASK_NUMSEPTER)
+    ((p) & BIDI_MASK_NUMSEPTER)
 
 /* Is space: BN, BS, SS, WS? */
 #define BIDI_IS_SPACE(p)    ((p) & BIDI_MASK_SPACE)
@@ -9707,16 +9873,16 @@ MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
 
 /* Is left to right letter: LTR? */
 #define BIDI_IS_LTR_LETTER(p) \
-	((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) == BIDI_MASK_LETTER)
+    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) == BIDI_MASK_LETTER)
 
 /* Is right to left letter: RTL, AL? */
 #define BIDI_IS_RTL_LETTER(p) \
-	((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) \
-	== (BIDI_MASK_LETTER | BIDI_MASK_RTL))
+    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) \
+    == (BIDI_MASK_LETTER | BIDI_MASK_RTL))
 
 /* Is ES or CS: ES, CS? */
 #define BIDI_IS_ES_OR_CS(p) \
-	((p) & (BIDI_MASK_ES | BIDI_MASK_CS))
+    ((p) & (BIDI_MASK_ES | BIDI_MASK_CS))
 
 /* Change numbers: EN, AN to RTL. */
 #define BIDI_NUMBER_TO_RTL(p) \

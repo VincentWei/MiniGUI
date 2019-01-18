@@ -65,7 +65,7 @@
 #include "glyph.h"
 
 int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
-            WhiteSpaceRule white_space, CharTransformRule trans_rule,
+            Uint32 ws_rule, Uint32 trans_rule,
             Glyph32** glyphs, int* nr_glyphs)
 {
     return 0;
@@ -73,8 +73,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
 int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, int nr_glyphs,
-        Uint32 reander_flags, WhiteSpaceRule ws_rule,
-         int letter_spacing, int word_spacing, int tab_size, int max_extent,
+        Uint32 reander_flags, Uint32 ws_rule,
+        int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts)
 {
     return 0;
