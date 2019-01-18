@@ -1036,10 +1036,10 @@ Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs(
         GLYPHMAPINFO* glyphs_map)
 {
     DEVFONT* mbc_devfont = log_font->mbc_devfont;
-    
+
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
         /* get the visual glyphs map from the logical glyphs map. */
-        if(glyphs_map){
+        if (glyphs_map) {
             __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops,
                     glyphs, nr_glyphs, glyphs_map);
         }

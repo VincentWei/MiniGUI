@@ -2,12 +2,12 @@
  * \file gdi.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  * \brief This file includes graphics device interfaces (GDI) of MiniGUI.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -45,7 +45,7 @@
 /*
  * $Id: gdi.h 13674 2010-12-06 06:45:01Z wanzheng $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -70,7 +70,7 @@ extern "C" {
  * \var gal_pixel SysPixelIndex []
  * \brief The pre-defined system pixel values.
  *
- * MiniGUI defines some system pixel values when initializing 
+ * MiniGUI defines some system pixel values when initializing
  * graphics sub-system. You can access the arrary to get the
  * system pixel values, or just use the following macros:
  *
@@ -157,7 +157,7 @@ extern const MG_EXPORT RGB SysPixelColor [];
  * \brief Dark red.
  * \sa SysPixelIndex
  */
-#define PIXEL_darkred       SysPixelIndex[4] 
+#define PIXEL_darkred       SysPixelIndex[4]
 
 /**
  * \def PIXEL_darkmagenta
@@ -171,18 +171,18 @@ extern const MG_EXPORT RGB SysPixelColor [];
  * \brief Dark yellow.
  * \sa SysPixelIndex
  */
-#define PIXEL_darkyellow    SysPixelIndex[6] 
+#define PIXEL_darkyellow    SysPixelIndex[6]
 
 /**
  * \def PIXEL_darkgray
  * \brief Dark gray.
  * \sa SysPixelIndex
  */
-#define PIXEL_darkgray      SysPixelIndex[7] 
+#define PIXEL_darkgray      SysPixelIndex[7]
 
 /**
  * \def PIXEL_lightgray
- * \brief Light gray. 
+ * \brief Light gray.
  * \sa SysPixelIndex
  */
 #define PIXEL_lightgray     SysPixelIndex[8]
@@ -378,7 +378,7 @@ extern const MG_EXPORT RGB SysPixelColor [];
      * MiniGUI maintains some private block data heaps to allocate
      * data blocks which have fixed size, such as the clipping rectangles
      * in a region. By using the private heap, we can avoiding calling
-     * \a malloc and \a free function frequently, so will have a slight 
+     * \a malloc and \a free function frequently, so will have a slight
      * performance enhancement.
      *
      * @{
@@ -426,15 +426,15 @@ typedef BLOCKHEAP* PBLOCKHEAP;
  * \brief Initializes a private block data heap.
  *
  * This function initializes a block data heap pointed to by \a heap.
- * It will allocate the buffer used by the heap from system heap by using 
- * \a malloc(3). Initially, the heap has \a heap_size blocks free, and each 
+ * It will allocate the buffer used by the heap from system heap by using
+ * \a malloc(3). Initially, the heap has \a heap_size blocks free, and each
  * is \a bd_size bytes long.
  *
  * \param heap The pointer to the heap structure.
  * \param bd_size The size of one block in bytes.
  * \param heap_size The size of the heap in blocks.
  *
- * \return \a heap->heap will contains a valid pointer on success, 
+ * \return \a heap->heap will contains a valid pointer on success,
  *         NULL on error.
  *
  * \note This function does not return anything. You should check the \a heap
@@ -442,14 +442,14 @@ typedef BLOCKHEAP* PBLOCKHEAP;
  *
  * \sa BLOCKHEAP
  */
-MG_EXPORT extern void InitBlockDataHeap (PBLOCKHEAP heap, 
+MG_EXPORT extern void InitBlockDataHeap (PBLOCKHEAP heap,
                 size_t bd_size, size_t heap_size);
 
 /**
  * \fn void* BlockDataAlloc (PBLOCKHEAP heap)
  * \brief Allocates a data block from private heap.
  *
- * This function allocates a data block from an initialized 
+ * This function allocates a data block from an initialized
  * block data heap. The allocated block will have the size of \a heap->bd_size.
  * If there is no free block in the heap, this function will try to allocate
  * the block from the system heap by using \a malloc(3) function.
@@ -466,9 +466,9 @@ MG_EXPORT extern void* BlockDataAlloc (PBLOCKHEAP heap);
  * \fn void BlockDataFree (PBLOCKHEAP heap, void* data)
  * \brief Frees an allocated data block.
  *
- * This function frees the specified data block pointed to by \a data to 
- * the heap \a heap. If the block was allocated by using \a malloc function, 
- * this function will free the element by using \a free(3) function. 
+ * This function frees the specified data block pointed to by \a data to
+ * the heap \a heap. If the block was allocated by using \a malloc function,
+ * this function will free the element by using \a free(3) function.
  *
  * \param heap The pointer to the heap.
  * \param data The pointer to the element to be freed.
@@ -520,7 +520,7 @@ struct _MYBITMAP;
 typedef struct _MYBITMAP MYBITMAP;
 
 /**
- * \var typedef struct _MYBITMAP* PMYBITMAP 
+ * \var typedef struct _MYBITMAP* PMYBITMAP
  * \brief Data type of pointer to a struct _MYBITMAP
  * \sa MYBITMAP _MYBITMAP
  */
@@ -530,9 +530,9 @@ typedef struct _MYBITMAP* PMYBITMAP;
    /**
     * \defgroup region_fns Region operations
     *
-    * A Region is simply an area, as the name implies, and is implemented as 
-    * a "y-x-banded" array of rectangles. To explain: Each Region is made up 
-    * of a certain number of rectangles sorted by y coordinate first, 
+    * A Region is simply an area, as the name implies, and is implemented as
+    * a "y-x-banded" array of rectangles. To explain: Each Region is made up
+    * of a certain number of rectangles sorted by y coordinate first,
     * and then by x coordinate.
     *
     * Furthermore, the rectangles are banded such that every rectangle with a
@@ -547,10 +547,10 @@ typedef struct _MYBITMAP* PMYBITMAP;
     * horizontal area as possible. E.g. no two rectangles in a band are allowed
     * to touch.
     *
-    * Whenever possible, bands will be merged together to cover a greater 
-    * vertical distance (and thus reduce the number of rectangles). Two bands 
-    * can be merged only if the bottom of one touches the top of the other and 
-    * they have rectangles in the same places (of the same width, of course). 
+    * Whenever possible, bands will be merged together to cover a greater
+    * vertical distance (and thus reduce the number of rectangles). Two bands
+    * can be merged only if the bottom of one touches the top of the other and
+    * they have rectangles in the same places (of the same width, of course).
     * This maintains the y-x-banding that's so nice to have...
     *
     * Example:
@@ -633,13 +633,13 @@ typedef CLIPRGN* PCLIPRGN;
 
 /**
  * \def InitFreeClipRectList(heap, size)
- * \brief Initializes the private block data heap used to allocate 
+ * \brief Initializes the private block data heap used to allocate
  * clipping rectangles.
  *
  * \param heap The pointer to a BLOCKHEAP structure.
  * \param size The size of the heap.
- * 
- * \note This macro is defined to call \a InitBlockDataHeap function 
+ *
+ * \note This macro is defined to call \a InitBlockDataHeap function
  *       with \a bd_size set to \a sizeof(CLIPRECT).
  *
  * \sa InitBlockDataHeap
@@ -652,7 +652,7 @@ typedef CLIPRGN* PCLIPRGN;
  * \brief Allocates a clipping rectangles from the private block data heap.
  *
  * \param heap The pointer to the initialized BLOCKHEAP structure.
- * 
+ *
  * \note This macro is defined to call \a BlockDataAlloc function.
  *
  * \sa BlockDataAlloc
@@ -661,12 +661,12 @@ typedef CLIPRGN* PCLIPRGN;
 
 /**
  * \def FreeClipRect(heap, cr)
- * \brief Frees a clipping rectangle which is allocated from the private 
+ * \brief Frees a clipping rectangle which is allocated from the private
  *        block data heap.
  *
  * \param heap The pointer to the initialized BLOCKHEAP structure.
  * \param cr The pointer to the clipping rectangle to be freed.
- * 
+ *
  * \note This macro is defined to call \a BlockDataFree function.
  *
  * \sa BlockDataFree
@@ -675,11 +675,11 @@ typedef CLIPRGN* PCLIPRGN;
 
 /**
  * \def DestroyFreeClipRectList(heap)
- * \brief Destroys the private block data heap used to allocate clipping 
+ * \brief Destroys the private block data heap used to allocate clipping
  *        rectangles.
  *
  * \param heap The pointer to the BLOCKHEAP structure.
- * 
+ *
  * \note This macro is defined to call \a DestroyBlockDataHeap function.
  *
  * \sa DestroyBlockDataHeap
@@ -691,7 +691,7 @@ typedef CLIPRGN* PCLIPRGN;
  * \brief Initializes a clipping region.
  *
  * Before intializing a clipping region, you should initialize a private
- * block data heap first. The region operations, such as \a UnionRegion 
+ * block data heap first. The region operations, such as \a UnionRegion
  * function, will allocate/free the clipping rectangles from/to the heap.
  * This function will set the \a heap field of \a pRgn to be \a pFreeList,
  * and empty the region.
@@ -747,8 +747,8 @@ MG_EXPORT void GUIAPI DestroyClipRgn (PCLIPRGN pRgn);
  * \fn BOOL GUIAPI ClipRgnCopy (PCLIPRGN pDstRgn, const CLIPRGN* pSrcRgn)
  * \brief Copies one region to another.
  *
- * This function copies the region pointed to by \a pSrcRgn to the region 
- * pointed to by \a pDstRgn. 
+ * This function copies the region pointed to by \a pSrcRgn to the region
+ * pointed to by \a pDstRgn.
  *
  * \param pDstRgn The destination region.
  * \param pSrcRgn The source region.
@@ -766,8 +766,8 @@ MG_EXPORT BOOL GUIAPI ClipRgnCopy (PCLIPRGN pDstRgn, const CLIPRGN* pSrcRgn);
                 const CLIPRGN* pRgn1, const CLIPRGN* pRgn2)
  * \brief Intersects two region.
  *
- * This function gets the intersection of two regions pointed to by \a pRgn1 
- * and \a pRgn2 respectively and puts the result to the region pointed to 
+ * This function gets the intersection of two regions pointed to by \a pRgn1
+ * and \a pRgn2 respectively and puts the result to the region pointed to
  * by \a pRstRgn.
  *
  * \param pRstRgn The intersected result region.
@@ -776,7 +776,7 @@ MG_EXPORT BOOL GUIAPI ClipRgnCopy (PCLIPRGN pDstRgn, const CLIPRGN* pSrcRgn);
  *
  * \return TRUE on success, otherwise FALSE.
  *
- * \note If \a pRgn1 does not intersected with \a pRgn2, the result region 
+ * \note If \a pRgn1 does not intersected with \a pRgn2, the result region
  *       will be a emgty region.
  *
  * \sa EmptyClipRgn, ClipRgnCopy, UnionRegion, SubtractRegion, XorRegion
@@ -787,8 +787,8 @@ MG_EXPORT BOOL GUIAPI ClipRgnIntersect (PCLIPRGN pRstRgn,
 /**
  * \fn void GUIAPI GetClipRgnBoundRect (PCLIPRGN pRgn, PRECT pRect)
  * \brief Gets the bounding rectangle of a region.
- * 
- * This function gets the bounding rect of the region pointed to by \a pRgn, 
+ *
+ * This function gets the bounding rect of the region pointed to by \a pRgn,
  * and returns the rect in the rect pointed to by \a pRect.
  *
  * \param pRgn The pointer to the region.
@@ -802,7 +802,7 @@ MG_EXPORT void GUIAPI GetClipRgnBoundRect (PCLIPRGN pRgn, PRECT pRect);
  * \fn BOOL GUIAPI SetClipRgn (PCLIPRGN pRgn, const RECT* pRect)
  * \brief Sets a region to contain only one rect.
  *
- * This function sets the region \a pRgn to contain only a rect pointed to 
+ * This function sets the region \a pRgn to contain only a rect pointed to
  * by \a pRect.
  *
  * \param pRgn The pointer to the region.
@@ -820,7 +820,7 @@ MG_EXPORT BOOL GUIAPI SetClipRgn (PCLIPRGN pRgn, const RECT* pRect);
  * \fn BOOL GUIAPI IsEmptyClipRgn (const CLIPRGN* pRgn)
  * \brief Determines whether a region is an empty region.
  *
- * This function determines whether the region pointed to by \a pRgn is 
+ * This function determines whether the region pointed to by \a pRgn is
  * an empty region.
  *
  * \param pRgn The pointer to the region.
@@ -850,7 +850,7 @@ MG_EXPORT BOOL GUIAPI AddClipRect (PCLIPRGN pRgn, const RECT* pRect);
  * \fn BOOL GUIAPI IntersectClipRect (PCLIPRGN pRgn, const RECT* pRect)
  * \brief Intersects a rectangle with a region.
  *
- * This function intersects the region pointed to by \a pRgn with a 
+ * This function intersects the region pointed to by \a pRgn with a
  * rect pointed to by \a pRect.
  *
  * \param pRgn The pointer to the region.
@@ -866,7 +866,7 @@ MG_EXPORT BOOL GUIAPI IntersectClipRect (PCLIPRGN pRgn, const RECT* pRect);
  * \fn BOOL GUIAPI SubtractClipRect (PCLIPRGN pRgn, const RECT* pRect)
  * \brief Subtracts a rectangle from a region.
  *
- * This function subtracts a rect pointed to by \a pRect from the region 
+ * This function subtracts a rect pointed to by \a pRect from the region
  * pointed to by \a pRgn.
  *
  * \param pRgn The pointer to the region.
@@ -882,7 +882,7 @@ MG_EXPORT BOOL GUIAPI SubtractClipRect (PCLIPRGN pRgn, const RECT* pRect);
  * \fn BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y)
  * \brief Determines whether a point is in a region.
  *
- * This function determines whether a point \a (x,y) is in the region pointed 
+ * This function determines whether a point \a (x,y) is in the region pointed
  * to by \a region.
  *
  * \param region The pointer to the region.
@@ -899,7 +899,7 @@ MG_EXPORT BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y);
  * \fn BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect)
  * \brief Determines whether a rectangle is intersected with a region.
  *
- * This function determines whether the rect \a rect is intersected with 
+ * This function determines whether the rect \a rect is intersected with
  * the region pointed to by \a region.
  *
  * \param region The pointer to the region.
@@ -916,12 +916,12 @@ MG_EXPORT BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect);
                             const RECT *rcScroll, int x, int y)
  * \brief Offsets the region in the specified window's scroll area.
  *
- * This function offsets a given region pointed to by region in the specified 
+ * This function offsets a given region pointed to by region in the specified
  * window's scroll area.
  *
  * \param region The pointer to the region.
- * \param rcClient The client area which the region belongs to. 
- * \param rcScroll The rectangle of the area in which the region will be offset. 
+ * \param rcClient The client area which the region belongs to.
+ * \param rcScroll The rectangle of the area in which the region will be offset.
  * \param x x,y: Offsets on x and y coodinates.
  * \param y x,y: Offsets on x and y coodinates.
  *
@@ -947,7 +947,7 @@ MG_EXPORT void GUIAPI OffsetRegion (PCLIPRGN region, int x, int y);
                 const CLIPRGN* src1, const CLIPRGN* src2)
  * \brief Unions two regions.
  *
- * This function unions two regions pointed to by \a src1 and \a src2 
+ * This function unions two regions pointed to by \a src1 and \a src2
  * respectively and puts the result to the region pointed to by \a dst.
  *
  * \param dst The pointer to the result region.
@@ -958,7 +958,7 @@ MG_EXPORT void GUIAPI OffsetRegion (PCLIPRGN region, int x, int y);
  *
  * \sa SubtractRegion, XorRegion
  */
-MG_EXPORT BOOL GUIAPI UnionRegion (PCLIPRGN dst, 
+MG_EXPORT BOOL GUIAPI UnionRegion (PCLIPRGN dst,
                 const CLIPRGN* src1, const CLIPRGN* src2);
 
 /**
@@ -976,7 +976,7 @@ MG_EXPORT BOOL GUIAPI UnionRegion (PCLIPRGN dst,
  *
  * \sa UnionRegion, XorRegion
  */
-MG_EXPORT BOOL GUIAPI SubtractRegion (CLIPRGN* rgnD, 
+MG_EXPORT BOOL GUIAPI SubtractRegion (CLIPRGN* rgnD,
                 const CLIPRGN* rgnM, const CLIPRGN* rgnS);
 
 /**
@@ -995,7 +995,7 @@ MG_EXPORT BOOL GUIAPI SubtractRegion (CLIPRGN* rgnD,
  *
  * \sa UnionRegion, SubtractRegion
  */
-MG_EXPORT BOOL GUIAPI XorRegion (CLIPRGN *dst, 
+MG_EXPORT BOOL GUIAPI XorRegion (CLIPRGN *dst,
                 const CLIPRGN *src1, const CLIPRGN *src2);
 
 /**
@@ -1048,7 +1048,7 @@ MG_EXPORT BOOL GUIAPI InitCircleRegion (PCLIPRGN dst, int x, int y, int r);
  *
  * \sa InitCircleRegion, InitPolygonRegion
  */
-MG_EXPORT BOOL GUIAPI InitEllipseRegion (PCLIPRGN dst, 
+MG_EXPORT BOOL GUIAPI InitEllipseRegion (PCLIPRGN dst,
                 int x, int y, int rx, int ry);
 
 /**
@@ -1063,7 +1063,7 @@ MG_EXPORT BOOL GUIAPI InitEllipseRegion (PCLIPRGN dst,
  *
  * \sa InitCircleRegion, InitEllipseRegion
  */
-MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst, 
+MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
                 const POINT* pts, int vertices);
 
     /** @} end of region_fns */
@@ -1075,19 +1075,19 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
      * DC represents a rectangle area on the actual screen or a virtual screen
      * created in memory. We call the rectangle area as "surface" of the DC.
      *
-     * You can call a GDI function and pass a DC to the function to 
+     * You can call a GDI function and pass a DC to the function to
      * draw lines, circles, or text. Commonly, you should call a function
      * like \a GetClientDC or \a CreateCompatibleDC to get or create a
-     * DC, then call GDI functions to draw objects, e.g. \a MoveTo and 
-     * \a LineTo. After finishing drawing, you should call \a ReleaseDC or 
+     * DC, then call GDI functions to draw objects, e.g. \a MoveTo and
+     * \a LineTo. After finishing drawing, you should call \a ReleaseDC or
      * \a DeleteMemDC function to release or destroy the DC.
      *
      * MiniGUI reserved an global DC called \a HDC_SCREEN. You can
      * use this DC directly without getting/creating or releasing/destroying.
      *
      * For main windows or controls, MiniGUI will send a MSG_PAINT message to
-     * the window when the whole or part of window area have been invalidated. 
-     * You should call \a BegainPaint function to get the DC, then repaint 
+     * the window when the whole or part of window area have been invalidated.
+     * You should call \a BegainPaint function to get the DC, then repaint
      * the window, and call \a EndPaint function to release the DC at the last.
      *
      * Example:
@@ -1101,19 +1101,19 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * \def HDC_SCREEN
  * \brief Handle to the device context of the whole screen.
  *
- * This DC is a special one. MiniGUI uses it to draw popup menus and 
- * other global objects. You can also use this DC to draw lines or text on 
+ * This DC is a special one. MiniGUI uses it to draw popup menus and
+ * other global objects. You can also use this DC to draw lines or text on
  * the screen directly, and there is no need to get or release it.
  *
  * If you do not want to create any main window, but you want to draw on
  * the screen, you can use this DC.
  *
- * \note MiniGUI does not do any clipping operation for this DC, 
- *       so use this DC may make a mess of other windows. 
+ * \note MiniGUI does not do any clipping operation for this DC,
+ *       so use this DC may make a mess of other windows.
  */
 #define HDC_SCREEN          ((HDC)0)
 
-/* 
+/*
  * This is a system screen DC create for MiniGUI internal usage, for example,
  * menu and z-order operations
  */
@@ -1146,16 +1146,16 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * \fn unsigned int GUIAPI GetGDCapability (HDC hdc, int iItem)
  * \brief Returns a capability of a DC.
  *
- * This function returns the capability of the specified item \a iItem of 
+ * This function returns the capability of the specified item \a iItem of
  * the DC \a hdc.
  *
  * \param hdc The handle to the DC.
- * \param iItem An integer presents the capablity, can be one of the 
+ * \param iItem An integer presents the capablity, can be one of the
  *        following values:
  *
  *  - GDCAP_COLORNUM\n
- *    Tell \a GetGDCapability to return the colors number of the DC. 
- *    Note the for a DC with 32-bit depth, the function will return 
+ *    Tell \a GetGDCapability to return the colors number of the DC.
+ *    Note the for a DC with 32-bit depth, the function will return
  *    0xFFFFFFFF, not 0x100000000.
  *  - GDCAP_HPIXEL\n
  *    Tell \a GetGCapability to return the horizontal resolution of the DC.
@@ -1166,13 +1166,13 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  *  - GDCAP_MAXY\n
  *    Tell \a GetGDCapability to return the maximal visible y value of the DC.
  *  - GDCAP_DEPTH\n
- *    Tell \a GetGDCapability to return the color depth of the DC. 
+ *    Tell \a GetGDCapability to return the color depth of the DC.
  *    The returned value can be 1, 4, 8, 15, 16, 24, or 32.
  *  - GDCAP_BITSPP\n
- *    Tell \a GetGDCapability to return the bits number for storing a pixle 
+ *    Tell \a GetGDCapability to return the bits number for storing a pixle
  *    in the DC.
  *  - GDCAP_BPP\n
- *    Tell \a GetGDCapability to return the bytes number for storing a pixle 
+ *    Tell \a GetGDCapability to return the bytes number for storing a pixle
  *    in the DC.
  *  - GDCAP_RMASK\n
  *    Tell \a GetGDCapability to return the pixel red color mask for the DC.
@@ -1195,9 +1195,9 @@ MG_EXPORT unsigned int GUIAPI GetGDCapability (HDC hdc, int iItem);
  * \fn HDC GUIAPI GetDC (HWND hwnd)
  * \brief Gets a window DC of a window.
  *
- * This function gets a window DC of the specified \a hwnd, and returns 
- * the handle to the DC. MiniGUI will try to return an unused DC from the 
- * internal DC pool, rather than allocate a new one from the system heap. 
+ * This function gets a window DC of the specified \a hwnd, and returns
+ * the handle to the DC. MiniGUI will try to return an unused DC from the
+ * internal DC pool, rather than allocate a new one from the system heap.
  * Thus, you should release the DC when you finish drawing as soon as possible.
  *
  * \param hwnd The handle to the window.
@@ -1214,9 +1214,9 @@ MG_EXPORT HDC GUIAPI GetDC (HWND hwnd);
  * \fn HDC GUIAPI GetClientDC (HWND hwnd)
  * \brief Gets a client DC of a window.
  *
- * This function gets a client DC of the specified \a hwnd, and returns the 
- * handle to the DC. MiniGUI will try to return an unused DC from the 
- * internal DC pool, rather than allocate a new one from the system heap. 
+ * This function gets a client DC of the specified \a hwnd, and returns the
+ * handle to the DC. MiniGUI will try to return an unused DC from the
+ * internal DC pool, rather than allocate a new one from the system heap.
  * Thus, you should release the DC when you finish drawing as soon as possible.
  *
  * \param hwnd The handle to the window.
@@ -1232,17 +1232,17 @@ MG_EXPORT HDC GUIAPI GetClientDC (HWND hwnd);
 /**
  * \fn HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, \
                 int width, int height)
- * \brief This function gets a sub DC which is compliant to the specified 
+ * \brief This function gets a sub DC which is compliant to the specified
  *        client DC.
  *
- * This function creates a sub client DC, which is restricted in the specified 
- * rectangle and compliant to the specified client DC \a hdc. Note that you 
+ * This function creates a sub client DC, which is restricted in the specified
+ * rectangle and compliant to the specified client DC \a hdc. Note that you
  * should release the returned dc by calling \a ReleaseDC.
  *
  * \param hdc The handle to the parent client DC.
- * \param off_x The x-coordinate of the sub DC in the parent DC (in device 
+ * \param off_x The x-coordinate of the sub DC in the parent DC (in device
  *              coordinate system).
- * \param off_y The y-coordinate of the sub DC in the parent DC (in device 
+ * \param off_y The y-coordinate of the sub DC in the parent DC (in device
  *              coordinate system).
  * \param width The expected width of the sub DC.
  * \param height The expected height of the sub DC.
@@ -1271,7 +1271,7 @@ MG_EXPORT void GUIAPI ReleaseDC (HDC hdc);
  * \fn HWND GUIAPI WindowFromDC (HDC hdc)
  * \brief Get the window handle from DC.
  *
- * This function returns the handle to a window according to the handle 
+ * This function returns the handle to a window according to the handle
  * to DC of the window.
  *
  * \param hdc The handle to the DC.
@@ -1286,18 +1286,18 @@ MG_EXPORT HWND GUIAPI WindowFromDC (HDC hdc);
  * \fn int GUIAPI SaveDC (HDC hdc)
  * \brief Saves the current state of a device context.
  *
- * This function saves the current state of the specified device context (DC) 
- * by copying data describing selected objects and graphic modes (such as 
- * pen, brush, palette, font, pen, region, drawing mode, and mapping mode) 
+ * This function saves the current state of the specified device context (DC)
+ * by copying data describing selected objects and graphic modes (such as
+ * pen, brush, palette, font, pen, region, drawing mode, and mapping mode)
  * to a context stack.
- * 
+ *
  * \param hdc The handle to the DC whose state is to be saved.
  *
- * \return If the function succeeds, the return value identifies the saved 
- *         state. If the function fails, the return value is zero. 
+ * \return If the function succeeds, the return value identifies the saved
+ *         state. If the function fails, the return value is zero.
  *
- * \note This function can be used any number of times to save any number 
- *       of instances of the DC state. A saved state can be restored by using 
+ * \note This function can be used any number of times to save any number
+ *       of instances of the DC state. A saved state can be restored by using
  *       the \a RestoreDC function.
  *
  * \sa RestoreDC
@@ -1308,24 +1308,24 @@ MG_EXPORT int GUIAPI SaveDC (HDC hdc);
  * \fn BOOL GUIAPI RestoreDC (HDC hdc, int saved_dc)
  * \brief Restores a device context (DC) to the specified state.
  *
- * This function restores a device context (DC) to the specified state. 
- * The DC is restored by popping state information off a stack created 
- * by earlier calls to the \a SaveDC function. 
- * 
+ * This function restores a device context (DC) to the specified state.
+ * The DC is restored by popping state information off a stack created
+ * by earlier calls to the \a SaveDC function.
+ *
  * \param hdc The handle to the DC.
- * \param saved_dc Specifies the saved state to be restored. If this 
- *        parameter is positive, saved_dc represents a specific instance 
- *        of the state to be restored. If this parameter is negative, 
- *        saved_dc represents an instance relative to the current state. 
- *        For example, -1 restores the most recently saved state. 
+ * \param saved_dc Specifies the saved state to be restored. If this
+ *        parameter is positive, saved_dc represents a specific instance
+ *        of the state to be restored. If this parameter is negative,
+ *        saved_dc represents an instance relative to the current state.
+ *        For example, -1 restores the most recently saved state.
  *
- * \return If the function succeeds, the return value is nonzero. If the 
- *         function fails, the return value is zero. 
+ * \return If the function succeeds, the return value is nonzero. If the
+ *         function fails, the return value is zero.
  *
- * \note The stack can contain the state information for several instances 
- *       of the DC. If the state specified by the specified parameter is 
+ * \note The stack can contain the state information for several instances
+ *       of the DC. If the state specified by the specified parameter is
  *       not at the top of the stack, RestoreDC deletes all state information
- *       between the top of the stack and the specified instance. 
+ *       between the top of the stack and the specified instance.
  *
  * \sa SaveDC
  */
@@ -1341,19 +1341,19 @@ MG_EXPORT BOOL GUIAPI RestoreDC (HDC hdc, int saved_dc);
 
 /**
  * \fn HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height)
- * \brief Creates a memory DC which is compatible with the specified 
+ * \brief Creates a memory DC which is compatible with the specified
  *        reference DC.
  *
- * This function creates a memory DC which have the same pixel format as the 
- * specified reference DC \a hdc. The same pixel format means that the memory 
- * DC will have the same pixel depth, the same RGB composition, or the same 
- * palette as the reference DC. Note that the memdc will have the same DC 
+ * This function creates a memory DC which have the same pixel format as the
+ * specified reference DC \a hdc. The same pixel format means that the memory
+ * DC will have the same pixel depth, the same RGB composition, or the same
+ * palette as the reference DC. Note that the memdc will have the same DC
  * attributes as the reference DC.
  *
  * \param hdc The handle to the reference DC.
- * \param width The expected width of the result memory DC. If it is zero, 
+ * \param width The expected width of the result memory DC. If it is zero,
  *        the width will be equal to the width of the reference DC.
- * \param height The expected height of the result memory DC. If it is zero, 
+ * \param height The expected height of the result memory DC. If it is zero,
  *        the height will be equal to the height of the reference DC.
  * \return The handle to the memory DC, HDC_INVALID indicates an error.
  *
@@ -1379,11 +1379,11 @@ MG_EXPORT BOOL GUIAPI IsCompatibleDC (HDC hdc1, HDC hdc2);
 
 /**
  * \fn HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags, \
- Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask, 
+ Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask,
  void* bits, int pitch)
  * \brief Creates a memory DC.
  *
- * This function creates a memory DC which have the specified flags and 
+ * This function creates a memory DC which have the specified flags and
  * pixel format, and uses the pre-allocated buffer as the surface if \a bits
  * is not NULL.
  *
@@ -1399,7 +1399,7 @@ MG_EXPORT BOOL GUIAPI IsCompatibleDC (HDC hdc1, HDC hdc2);
  *   - MEMDC_FLAG_SRCCOLORKEY\n
  *     The created memory DC will use a source color key to blit to other DC.
  *   - MEMDC_FLAG_SRCALPHA\n
- *     The created memory DC will use a source alpha blending to blit to 
+ *     The created memory DC will use a source alpha blending to blit to
  *     other DC.
  *   - MEMDC_FLAG_RLEACCEL\n
  *     The memory DC will be RLE encoded.
@@ -1417,11 +1417,11 @@ MG_EXPORT BOOL GUIAPI IsCompatibleDC (HDC hdc1, HDC hdc2);
  *
  * \note If you pass a pre-allocated surface buffer to this function, MiniGUI
  *       will not free the buffer when you delete the memdc by calling DeleteMemDC.
- * 
+ *
  * \sa CreateMemDC, CreateMemDCFromBitmap, CreateMemDCFromMyBitmap, CreateCompatibleDCEx
  */
 MG_EXPORT HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
-        Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask, 
+        Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask,
         void* bits, int pitch);
 
 /**
@@ -1429,7 +1429,7 @@ MG_EXPORT HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flag
  Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
  * \brief Creates a memory DC.
  *
- * This function creates a memory DC which have the specified flags and 
+ * This function creates a memory DC which have the specified flags and
  * pixel format.
  *
  * \param width The expected width of the result memory DC.
@@ -1444,7 +1444,7 @@ MG_EXPORT HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flag
  *   - MEMDC_FLAG_SRCCOLORKEY\n
  *     The created memory DC will use a source color key to blit to other DC.
  *   - MEMDC_FLAG_SRCALPHA\n
- *     The created memory DC will use a source alpha blending to blit to 
+ *     The created memory DC will use a source alpha blending to blit to
  *     other DC.
  *   - MEMDC_FLAG_RLEACCEL\n
  *     The memory DC will be RLE encoded.
@@ -1488,15 +1488,15 @@ static inline HDC GUIAPI CreateMemDC (int width, int height, int depth, DWORD fl
  *
  * \sa CreateMemDC
  */
-MG_EXPORT HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y, 
+MG_EXPORT HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
                 int width, int height, BOOL comp_to_parent);
 
 /**
  * \fn HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, const BITMAP* bmp)
  * \brief Creates a memory DC from a reference DC and a BITMAP object.
  *
- * This function creates a memory DC compatible with the specified DC, 
- * and use the bits of the BITMAP object as the surface of the memory DC. 
+ * This function creates a memory DC compatible with the specified DC,
+ * and use the bits of the BITMAP object as the surface of the memory DC.
  * The created memory DC will have the same geometry as the BITMAP object.
  *
  * \param hdc The reference DC.
@@ -1514,7 +1514,7 @@ MG_EXPORT HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, const BITMAP* bmp);
  *
  * This function creates a memory DC which have the same
  * pixel format as the MYBITMAP object \a my_bmp, and use the bits of
- * the MYBITMAP object as the surface of the memory DC. The created memory DC 
+ * the MYBITMAP object as the surface of the memory DC. The created memory DC
  * will have the same geometry as the MYBITMAP object. If the depth of \a my_bmp
  * is 8-bit, the function will use \a pal to initialize the palette of
  * the memory DC.
@@ -1541,13 +1541,13 @@ MG_EXPORT HDC GUIAPI CreateMemDCFromMyBitmap (const MYBITMAP* my_bmp, const RGB*
  *
  * This function converts a memory DC \a mem_dc in order to
  * let it have the same pixel format as the reference DC \a ref_dc.
- * This function will try to create a new surface for \a mem_dc, 
- * and then copies and maps the surface of \a ref_dc to it so the blit of 
- * the converted memory DC will be as fast as possible. 
+ * This function will try to create a new surface for \a mem_dc,
+ * and then copies and maps the surface of \a ref_dc to it so the blit of
+ * the converted memory DC will be as fast as possible.
  *
- * The \a flags parameter has the same semantics as \a CreateMemDC. 
+ * The \a flags parameter has the same semantics as \a CreateMemDC.
  * You can also pass MEMDC_FLAG_RLEACCEL in the flags parameter and
- * MiniGUI will try to RLE accelerate colorkey and alpha blits in the 
+ * MiniGUI will try to RLE accelerate colorkey and alpha blits in the
  * resulting memory DC.
  *
  * \param mem_dc The device context to be converted.
@@ -1565,21 +1565,21 @@ MG_EXPORT BOOL GUIAPI ConvertMemDC (HDC mem_dc, HDC ref_dc, DWORD flags);
  * \brief Sets the alpha value for the entire surface of a DC, as opposed to
  *        using the alpha component of each pixel.
  *
- * This function sets the alpha value for the entire surface of the DC 
- * \a mem_dc, as opposed to using the alpha component of each pixel. 
- * This value measures the range of transparency of the surface, 0 being 
- * completely transparent to 255 being completely opaque. An \a alpha value 
- * of 255 causes blits to be opaque, the source pixels copied to the 
- * destination (the default). Note that per-surface alpha can be combined 
+ * This function sets the alpha value for the entire surface of the DC
+ * \a mem_dc, as opposed to using the alpha component of each pixel.
+ * This value measures the range of transparency of the surface, 0 being
+ * completely transparent to 255 being completely opaque. An \a alpha value
+ * of 255 causes blits to be opaque, the source pixels copied to the
+ * destination (the default). Note that per-surface alpha can be combined
  * with colorkey transparency.
- * 
+ *
  * If \a flags is 0, alpha blending is disabled for the surface.
- * If \a flags is MEMDC_FLAG_SRCALPHA, alpha blending is enabled for the 
- * surface. OR'ing the flag with MEMDC_FLAG_RLEACCEL requests RLE acceleration 
- * for the surface; if MEMDC_FLAG_RLEACCEL is not specified, the RLE 
+ * If \a flags is MEMDC_FLAG_SRCALPHA, alpha blending is enabled for the
+ * surface. OR'ing the flag with MEMDC_FLAG_RLEACCEL requests RLE acceleration
+ * for the surface; if MEMDC_FLAG_RLEACCEL is not specified, the RLE
  * acceleration will be removed.
- * If \a flags is MEMDC_FLAG_SRCPIXELALPHA, per-pixel alpha blending is enabled 
- * for the surface. 
+ * If \a flags is MEMDC_FLAG_SRCPIXELALPHA, per-pixel alpha blending is enabled
+ * for the surface.
  *
  * \param mem_dc The device context.
  * \param flags The alpha value specific memory DC flags.
@@ -1588,18 +1588,18 @@ MG_EXPORT BOOL GUIAPI ConvertMemDC (HDC mem_dc, HDC ref_dc, DWORD flags);
  * \return TRUE on success, otherwise FALSE.
  *
  * \sa SetMemDCColorKey
- */ 
+ */
 MG_EXPORT BOOL GUIAPI SetMemDCAlpha (HDC mem_dc, DWORD flags, Uint8 alpha);
 
 /**
  * \fn BOOL GUIAPI SetMemDCColorKey (HDC mem_dc, DWORD flags, Uint32 color_key)
  * \brief Sets the color key (transparent pixel) of a memory DC.
  *
- * This function sets the color key (transparent pixel) of the memory DC 
- * \a mem_dc. If \a flags is MEMDC_FLAG_SRCCOLORKEY (optionally OR'ed with 
- * MEMDC_FLAG_RLEACCEL), \a color_key will be the transparent pixel in the 
- * source DC of a blit. MEMDC_FLAG_RLEACCEL requests RLE acceleration for 
- * the source of the DC if present, and removes RLE acceleration if absent. 
+ * This function sets the color key (transparent pixel) of the memory DC
+ * \a mem_dc. If \a flags is MEMDC_FLAG_SRCCOLORKEY (optionally OR'ed with
+ * MEMDC_FLAG_RLEACCEL), \a color_key will be the transparent pixel in the
+ * source DC of a blit. MEMDC_FLAG_RLEACCEL requests RLE acceleration for
+ * the source of the DC if present, and removes RLE acceleration if absent.
  * If \a flags is 0, this function clears any current color key.
  *
  * \param mem_dc The device context.
@@ -1610,15 +1610,15 @@ MG_EXPORT BOOL GUIAPI SetMemDCAlpha (HDC mem_dc, DWORD flags, Uint8 alpha);
  *
  * \sa SetMemDCAlpha
  */
-MG_EXPORT BOOL GUIAPI SetMemDCColorKey (HDC mem_dc, DWORD flags, 
+MG_EXPORT BOOL GUIAPI SetMemDCColorKey (HDC mem_dc, DWORD flags,
                 Uint32 color_key);
 
 /**
  * \fn void GUIAPI DeleteMemDC (HDC mem_dc)
  * \brief Deletes a memory DC.
  *
- * This function deletes the memory DC \a mem_dc, and frees the surface of 
- * the DC. For the memory DC created from BITMAP object or MYBITMAP object, 
+ * This function deletes the memory DC \a mem_dc, and frees the surface of
+ * the DC. For the memory DC created from BITMAP object or MYBITMAP object,
  * the bits used by the surface of the DC will be reserved.
  *
  * \param mem_dc The device context to be deleted.
@@ -1631,7 +1631,7 @@ MG_EXPORT void GUIAPI DeleteMemDC (HDC mem_dc);
  * \def CreateCompatibleDC(hdc)
  * \brief Creates a memory DC which is compatible with a given DC.
  *
- * This function creates a memory DC fully compatible with the reference 
+ * This function creates a memory DC fully compatible with the reference
  * DC \a hdc, including pixel format and geomatry.
  *
  * \param hdc The reference DC.
@@ -1658,30 +1658,30 @@ MG_EXPORT void GUIAPI DeleteMemDC (HDC mem_dc);
                 int* width, int* height, int* pitch)
  * \brief Locks a dc to get direct access to pixels in the DC.
  *
- * Calling this function will try to lock the DC \a hdc to directly access 
- * the pixels of the DC. You should tell this function the rectangle to be 
- * accessed, and the function will return the requested \a width, \a height 
- * and \a pitch of the DC. The access beyond requested width and height 
- * will be invalid. 
+ * Calling this function will try to lock the DC \a hdc to directly access
+ * the pixels of the DC. You should tell this function the rectangle to be
+ * accessed, and the function will return the requested \a width, \a height
+ * and \a pitch of the DC. The access beyond requested width and height
+ * will be invalid.
  *
- * Locking a DC which uses screen surface will lock some global objects, 
- * such as mouse cursor, and so on. All GDI calls of other threads 
- * (in MiniGUI-Threads) or other process (in MiniGUI-Processes) will be blocked 
- * as well. So you should call \a UnlockDC to unlock the DC as soon as 
- * possible, and should not call any system function in the duration of 
+ * Locking a DC which uses screen surface will lock some global objects,
+ * such as mouse cursor, and so on. All GDI calls of other threads
+ * (in MiniGUI-Threads) or other process (in MiniGUI-Processes) will be blocked
+ * as well. So you should call \a UnlockDC to unlock the DC as soon as
+ * possible, and should not call any system function in the duration of
  * locking the DC.
  *
  * \param hdc The handle to the device context.
- * \param rw_rc The rectangle in device coordinate system to be accessed 
+ * \param rw_rc The rectangle in device coordinate system to be accessed
  *        in the DC.
- * \param width The width of the effective rectangle can access will be 
+ * \param width The width of the effective rectangle can access will be
  *        returned through this pointer.
- * \param height The height of the effective rectangle can access will be 
+ * \param height The height of the effective rectangle can access will be
  *        returned through this pointer.
- * \param pitch The pitch of the scan line of the DC will be returned 
- *        through this pointer. Pitch means the length of the scan line 
+ * \param pitch The pitch of the scan line of the DC will be returned
+ *        through this pointer. Pitch means the length of the scan line
  *        in bytes.
- * \return The bits pointer to the upper-left corner of the requested 
+ * \return The bits pointer to the upper-left corner of the requested
  *        rectangle, NULL on error.
  *
  * \sa UnlockDC, LockDCEx
@@ -1690,7 +1690,7 @@ MG_EXPORT void GUIAPI DeleteMemDC (HDC mem_dc);
  *
  * \include lockdc.c
  */
-MG_EXPORT Uint8* GUIAPI LockDC (HDC hdc, const RECT* rw_rc, 
+MG_EXPORT Uint8* GUIAPI LockDC (HDC hdc, const RECT* rw_rc,
                 int* width, int* height, int* pitch);
 
 /**
@@ -1720,25 +1720,25 @@ typedef void (* CB_DIRECT_DRAW_RECT) (HDC hdc, Uint8 * pixels,
  *
  * This function fill \a region by function \a cb that directly accesses
  * pixels in a DC.
- * This function is used to draw region more effiently. The function that 
- * lock __mg_gdilock should not be invoked any more after invoking this 
- * function, or else it will cause deadlock. UnlockDC should be invoked 
+ * This function is used to draw region more effiently. The function that
+ * lock __mg_gdilock should not be invoked any more after invoking this
+ * function, or else it will cause deadlock. UnlockDC should be invoked
  * after invoking this function that will call back CB_DIRECT_DRAW_RECT,
  * other process could not draw any more until the DC has been unlocked.
  *
  * \param hdc the device context.
  * \param region the visible region to draw.
- * \param context the context provided by application, which is as a 
+ * \param context the context provided by application, which is as a
  *           parameter of \a cb.
- * \param cb the direct draw function that directly accesses pixels 
- *           which should be implemented by application. if cb is NULL, 
+ * \param cb the direct draw function that directly accesses pixels
+ *           which should be implemented by application. if cb is NULL,
  *           the region will be filled by current brush color.
- *        
+ *
  * \return if LockDCEx success return TRUE, else return FALSE;
  *
  * \sa UnlockDC, LockDC
- */               
-MG_EXPORT BOOL GUIAPI LockDCEx (HDC hdc, const PCLIPRGN region, 
+ */
+MG_EXPORT BOOL GUIAPI LockDCEx (HDC hdc, const PCLIPRGN region,
         void* context, CB_DIRECT_DRAW_RECT cb);
 
 /**
@@ -1755,12 +1755,12 @@ MG_EXPORT void GUIAPI UnlockDC (HDC hdc);
  * \fn HDC GUIAPI CreatePrivateDC (HWND hwnd)
  * \brief Creates a private window DC of a window.
  *
- * This function creates a private window DC of the window \a hwnd and 
+ * This function creates a private window DC of the window \a hwnd and
  * returns the handle to the DC.
  *
- * When you calling \a CreatePrivateDC function to create a private DC, 
- * MiniGUI will create the DC in the system heap, rather than allocate one 
- * from the DC pool. Thus, you can keep up the private DC in the life cycle 
+ * When you calling \a CreatePrivateDC function to create a private DC,
+ * MiniGUI will create the DC in the system heap, rather than allocate one
+ * from the DC pool. Thus, you can keep up the private DC in the life cycle
  * of the window, and are not needed to release it for using by other windows.
  *
  * \param hwnd The handle to the window.
@@ -1775,13 +1775,13 @@ MG_EXPORT HDC GUIAPI CreatePrivateDC (HWND hwnd);
  * \fn HDC GUIAPI CreatePrivateClientDC (HWND hwnd)
  * \brief Creates a private client DC of a window.
  *
- * This function creates a private client DC of the window \a hwnd 
+ * This function creates a private client DC of the window \a hwnd
  * and returns the handle to the DC.
  *
- * When you calling \a CreatePrivateClientDC function to create a private 
- * client DC, MiniGUI will create the DC in the system heap, rather than 
- * allocate one from the DC pool. Thus, you can keep up the DC in the life 
- * cycle of the window, and are not needed to release it for using by 
+ * When you calling \a CreatePrivateClientDC function to create a private
+ * client DC, MiniGUI will create the DC in the system heap, rather than
+ * allocate one from the DC pool. Thus, you can keep up the DC in the life
+ * cycle of the window, and are not needed to release it for using by
  * other windows.
  *
  * \param hwnd The handle to the window.
@@ -1797,13 +1797,13 @@ MG_EXPORT HDC GUIAPI CreatePrivateClientDC (HWND hwnd);
  *         int width, int height)
  * \brief Creates a private SubDC of a window.
  *
- * This function creates a private SubDC of the DC and returns the handle 
+ * This function creates a private SubDC of the DC and returns the handle
  * of the SubDC.
  *
- * When you calling \a CreatePrivateSubDC function to create a private 
- * Sub DC, MiniGUI will create the DC in the system heap, rather than 
- * allocate one from the DC pool. Thus, you can keep up the DC in the life 
- * cycle of the window, and are not needed to release it for using by 
+ * When you calling \a CreatePrivateSubDC function to create a private
+ * Sub DC, MiniGUI will create the DC in the system heap, rather than
+ * allocate one from the DC pool. Thus, you can keep up the DC in the life
+ * cycle of the window, and are not needed to release it for using by
  * other windows.
  *
  * \param hdc   The handle of the DC.
@@ -1825,15 +1825,15 @@ HDC GUIAPI CreatePrivateSubDC(HDC hdc, int off_x, int off_y,
  * \fn HDC GUIAPI GetPrivateClientDC (HWND hwnd)
  * \brief Returns the private client DC of a window.
  *
- * This function returns the private client DC of the window \a hwnd which 
+ * This function returns the private client DC of the window \a hwnd which
  * have extended style \a WS_EX_USEPRIVATECDC.
  *
  * When a main window have the extended style \a WS_EX_USEPRIVATECDC, or a
- * control class have the style \a CS_OWNDC, MiniGUI will create a private 
- * client DC for this window in the creation progress of the window, and 
- * destroy the DC when you destroy the window, and use this private client DC 
- * in default message handlers. So there will be some improvments on 
- * drawing/repaint performance. You can alos call this function to get the 
+ * control class have the style \a CS_OWNDC, MiniGUI will create a private
+ * client DC for this window in the creation progress of the window, and
+ * destroy the DC when you destroy the window, and use this private client DC
+ * in default message handlers. So there will be some improvments on
+ * drawing/repaint performance. You can alos call this function to get the
  * private client DC, and use it to draw anything in your window.
  *
  * \param hwnd The handle to the window.
@@ -1846,7 +1846,7 @@ MG_EXPORT HDC GUIAPI GetPrivateClientDC (HWND hwnd);
 
 /**
  * \fn void GUIAPI DeletePrivateDC (HDC hdc)
- * \brief Deletes the DC returned by \a CreatePrivateDC or 
+ * \brief Deletes the DC returned by \a CreatePrivateDC or
  *        \a CreatePrivateClientDC or \a CreatePrivateSubDC.
  *
  * \param hdc The handle to the DC.
@@ -1859,16 +1859,16 @@ MG_EXPORT void GUIAPI DeletePrivateDC (HDC hdc);
  * \fn HDC GUIAPI CreateSecondaryDC (HWND hwnd)
  * \brief Creates a secondary window DC of a window.
  *
- * This function creates a secondary DC for the main window \a hwnd and 
+ * This function creates a secondary DC for the main window \a hwnd and
  * returns the handle to the secondary DC.
  *
- * When you calling \a CreateSecondaryDC function, MiniGUI will create a 
+ * When you calling \a CreateSecondaryDC function, MiniGUI will create a
  * memory DC which is compatible with HDC_SCREEN.
- * 
- * When a main window have the extended style \a WS_EX_AUTOSECONDARYDC, 
- * MiniGUI will create a Secondary DC for this main window in the creation 
- * progress of the main window, and destroy the DC when you destroy the 
- * window. MiniGUI will use this Secondary DC and its sub DCs to render 
+ *
+ * When a main window have the extended style \a WS_EX_AUTOSECONDARYDC,
+ * MiniGUI will create a Secondary DC for this main window in the creation
+ * progress of the main window, and destroy the DC when you destroy the
+ * window. MiniGUI will use this Secondary DC and its sub DCs to render
  * the window content and childen.
  *
  * \param hwnd The handle to the window.
@@ -1892,9 +1892,9 @@ MG_EXPORT HDC GUIAPI CreateSecondaryDC (HWND hwnd);
  * \param real_rc        The rectangle relative to real_dc.
  * \param main_update_dc The rectangle relative to main window.
  *
- * \return The update result. 
+ * \return The update result.
  */
-typedef int (* ON_UPDATE_SECONDARYDC)(HWND hwnd, HDC secondary_dc, 
+typedef int (* ON_UPDATE_SECONDARYDC)(HWND hwnd, HDC secondary_dc,
         HDC real_dc, const RECT* secondary_rc, const RECT* real_rc,
         const RECT* main_update_rc);
 
@@ -1904,14 +1904,14 @@ typedef int (* ON_UPDATE_SECONDARYDC)(HWND hwnd, HDC secondary_dc,
 /**
  * \fn HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc, \
                    ON_UPDATE_SECONDARYDC on_update_secondarydc)
- * \brief Set a window's secondary DC and the callback procedure for the secondary 
+ * \brief Set a window's secondary DC and the callback procedure for the secondary
  *        DC update.
  *
- * This function set the secondary DC of the main window \a hwnd and returns 
+ * This function set the secondary DC of the main window \a hwnd and returns
  * the handle to the old seconadary DC.
  *
  * \param hwnd The handle to the main window.
- * \param secondary_dc The secondary DC which will be the new secondary DC of the 
+ * \param secondary_dc The secondary DC which will be the new secondary DC of the
  *        main window.
  * \param on_update_secondarydc The callback procedure for the secondary DC update.
  *        You can pass one of two sepcial values:
@@ -1921,12 +1921,12 @@ typedef int (* ON_UPDATE_SECONDARYDC)(HWND hwnd, HDC secondary_dc,
  *          - ON_UPDSECDC_DONOTHING\n
  *            No any operation occures.
  *
- * \return The handle to the old secondary DC, HDC_SCREEN indicates the main 
+ * \return The handle to the old secondary DC, HDC_SCREEN indicates the main
  *         window has no secondary DC before calling this function.
  *
  * \sa DeleteSecondaryDC
  */
-MG_EXPORT HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc, 
+MG_EXPORT HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc,
         ON_UPDATE_SECONDARYDC on_update_secondarydc);
 
 /**
@@ -1934,13 +1934,13 @@ MG_EXPORT HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc,
  * \brief Retrives and returns the secondary DC of a specific window.
  *
  * This function retrives and returns the secondary DC of the window \a hwnd.
- * 
- * When a main window have the secondary DC, MiniGUI will use this secondary DC and 
+ *
+ * When a main window have the secondary DC, MiniGUI will use this secondary DC and
  * its sub DCs to render the content of the window and its children.
  *
  * \param hwnd The handle to the window.
  *
- * \return The handle to the secondary DC, HDC_SCREEN indicates that 
+ * \return The handle to the secondary DC, HDC_SCREEN indicates that
  *         the window has no secondary DC.
  *
  * \sa ReleaseSecondaryDC, SetSecondaryDC
@@ -1952,13 +1952,13 @@ MG_EXPORT HDC GUIAPI GetSecondaryDC (HWND hwnd);
  * \brief Retrives and returns the client secondary DC of a specific window.
  *
  * This function retrives and returns the client secondary DC of the main window \a hwnd.
- * 
- * When a main window have the secondary DC, MiniGUI will use this secondary DC and 
+ *
+ * When a main window have the secondary DC, MiniGUI will use this secondary DC and
  * its sub DCs to render the content of the window and its children.
  *
  * \param hwnd The handle to the main window.
  *
- * \return The handle to the client secondary DC, HDC_SCREEN indicates that 
+ * \return The handle to the client secondary DC, HDC_SCREEN indicates that
  *         the main window has no secondary DC.
  *
  * \sa ReleaseSecondaryDC, SetSecondaryDC
@@ -2126,9 +2126,9 @@ MG_EXPORT Uint32 GUIAPI SetDCAttr (HDC hdc, int attr, Uint32 value);
  * \return The background mode of the DC \a hdc.
  *
  * \retval BM_TRANSPARENT
- *         Indicate that reserve the background untouched when drawing text. 
+ *         Indicate that reserve the background untouched when drawing text.
  * \retval BM_OPAQUE
- *         Indicate that erase the background with background color when 
+ *         Indicate that erase the background with background color when
  *         drawing text.
  *
  * \sa GetDCAttr, SetBkMode
@@ -2200,9 +2200,9 @@ MG_EXPORT Uint32 GUIAPI SetDCAttr (HDC hdc, int attr, Uint32 value);
  * \param mode The new background mode, be can one of the following values:
  *
  *      - BM_TRANSPARENT\n
- *        Indicate that reserve the background untouched when drawing text. 
+ *        Indicate that reserve the background untouched when drawing text.
  *      - BM_OPAQUE\n
- *        Indicate that erase the background with background color when 
+ *        Indicate that erase the background with background color when
  *        drawing text.
  *
  * \return The old background mode of the DC \a hdc.
@@ -2296,7 +2296,7 @@ MG_EXPORT Uint32 GUIAPI SetDCAttr (HDC hdc, int attr, Uint32 value);
   * \retval ROP_COMP_USER
  *         User defined color composition operations.
  *
- * \sa SetRasterOperation, SetUserCompositionOps 
+ * \sa SetRasterOperation, SetUserCompositionOps
  */
 MG_EXPORT int GUIAPI GetRasterOperation (HDC hdc);
 
@@ -2304,7 +2304,7 @@ MG_EXPORT int GUIAPI GetRasterOperation (HDC hdc);
  * \fn int GUIAPI SetRasterOperation (HDC hdc, int rop)
  * \brief Sets the raster operation of a DC to a new value.
  *
- * This function sets the raster operation of the DC \a hdc to the new 
+ * This function sets the raster operation of the DC \a hdc to the new
  * value \a rop.
  *
  * \param hdc The device context.
@@ -2325,7 +2325,7 @@ MG_EXPORT int GUIAPI GetRasterOperation (HDC hdc);
  *
  * \return The old raster operation of the DC \a hdc.
  *
- * \sa GetRasterOperation, SetUserCompositionOps 
+ * \sa GetRasterOperation, SetUserCompositionOps
  */
 MG_EXPORT int GUIAPI SetRasterOperation (HDC hdc, int rop);
 
@@ -2388,7 +2388,7 @@ MG_EXPORT BOOL GUIAPI SetColorfulPalette (HDC hdc);
  *
  * This function creates a logical palette from a palette entry \a pal.
  *
- * \param pal The Pointer to a GAL_Palette structure that contains information 
+ * \param pal The Pointer to a GAL_Palette structure that contains information
  *        about the colors in the logical palette..
  *
  * \return Handle to the logical palette on success, otherwise 0.
@@ -2399,7 +2399,7 @@ MG_EXPORT HPALETTE GUIAPI CreatePalette (GAL_Palette* pal);
 
 /**
  * \fn BOOL GUIAPI SelectPalette (HDC hdc, HPALETTE hpal, BOOL reserved)
- * 
+ *
  * \brief Selects a palette for a DC.
  *
  * This function the palette \a hpal to be the palette of the DC \a hdc.
@@ -2417,20 +2417,20 @@ MG_EXPORT BOOL GUIAPI SelectPalette (HDC hdc, HPALETTE hpal, BOOL reserved);
 /**
  * \fn BOOL GUIAPI RealizePalette (HDC hdc)
  *
- * \brief This function maps palette entries from the current 
+ * \brief This function maps palette entries from the current
  *        logical palette to the system palette.
  *
- * RealizePalette modifies the palette for the device associated 
+ * RealizePalette modifies the palette for the device associated
  * with the specified device context.
  *
- * If the device context is a display DC, the physical palette 
- * for that device is modified.  RealizePalette will return 
+ * If the device context is a display DC, the physical palette
+ * for that device is modified.  RealizePalette will return
  * FALSE if the hdc does not have a settable palette.
  *
  * If the device context is a memory DC, this function will return
  * FALSE and do nothing.
  *
- * \param hdc Handle to the device context into which a logical 
+ * \param hdc Handle to the device context into which a logical
  *        palette has been selected.
  *
  * \return TRUE on success, otherwise FALSE.
@@ -2490,7 +2490,7 @@ MG_EXPORT HPALETTE GUIAPI GetDefaultPalette (void);
  *
  * \sa GetPalette
  */
-MG_EXPORT int GUIAPI GetPaletteEntries (HPALETTE hpal, 
+MG_EXPORT int GUIAPI GetPaletteEntries (HPALETTE hpal,
                 int start, int len, GAL_Color* cmap);
 
 /**
@@ -2509,11 +2509,11 @@ MG_EXPORT int GUIAPI GetPaletteEntries (HPALETTE hpal,
  *
  * \sa SetPalette
  */
-MG_EXPORT int GUIAPI SetPaletteEntries (HPALETTE hpal, 
+MG_EXPORT int GUIAPI SetPaletteEntries (HPALETTE hpal,
                 int start, int len, GAL_Color* cmap);
 
 /**
- * \fn UINT GUIAPI GetNearestPaletteIndex (HPALETTE hpal, 
+ * \fn UINT GUIAPI GetNearestPaletteIndex (HPALETTE hpal,
                 Uint8 red, Uint8 green, Uint8 blue)
  * \brief Gets the nearest palette index in the logical palette for a
  *        spefici color.
@@ -2530,16 +2530,16 @@ MG_EXPORT int GUIAPI SetPaletteEntries (HPALETTE hpal,
  *
  * \sa GetNearestColor
  */
-MG_EXPORT UINT GUIAPI GetNearestPaletteIndex (HPALETTE hpal, 
+MG_EXPORT UINT GUIAPI GetNearestPaletteIndex (HPALETTE hpal,
                 Uint8 red, Uint8 green, Uint8 blue);
 
 /**
- * \fn RGBCOLOR GUIAPI GetNearestColor (HDC hdc, 
+ * \fn RGBCOLOR GUIAPI GetNearestColor (HDC hdc,
                 Uint8 red, Uint8 green, Uint8 blue)
  * \brief Gets the nearest color compliant to a DC for a spefici color.
  *
  * This function gets the nearest color compliant to the DC \a hdc
- * for the specific color (red, green, blue). 
+ * for the specific color (red, green, blue).
  *
  * \param hdc The handle to the device context.
  * \param red The red component value of the color.
@@ -2550,7 +2550,7 @@ MG_EXPORT UINT GUIAPI GetNearestPaletteIndex (HPALETTE hpal,
  *
  * \sa GetNearestPaletteIndex
  */
-MG_EXPORT RGBCOLOR GUIAPI GetNearestColor (HDC hdc, 
+MG_EXPORT RGBCOLOR GUIAPI GetNearestColor (HDC hdc,
                 Uint8 red, Uint8 green, Uint8 blue);
 
     /** @} end of pal_fns */
@@ -2562,10 +2562,10 @@ MG_EXPORT RGBCOLOR GUIAPI GetNearestColor (HDC hdc,
 
 /**
  * \fn void GUIAPI SetPixel (HDC hdc, int x, int y, gal_pixel pixel)
- * \brief Sets the pixel with a new pixel value at the specified position 
+ * \brief Sets the pixel with a new pixel value at the specified position
  *        on a DC.
  *
- * This function sets the pixel with a pixel value \a pixel at the specified 
+ * This function sets the pixel with a pixel value \a pixel at the specified
  * position \a (x,y) on the DC \a hdc. You can the pre-defined standard system
  * pixel values.
  *
@@ -2583,7 +2583,7 @@ MG_EXPORT void GUIAPI SetPixel (HDC hdc, int x, int y, gal_pixel pixel);
                 Uint8 r, Uint8 g, Uint8 b)
  * \brief Sets the pixel by a RGB triple at the specified position on a DC.
  *
- * This function sets the pixel with a RGB triple \a (r,g,b) at the specified 
+ * This function sets the pixel with a RGB triple \a (r,g,b) at the specified
  * position \a (x,y) on the DC \a hdc.
  *
  * \param hdc The device context.
@@ -2596,7 +2596,7 @@ MG_EXPORT void GUIAPI SetPixel (HDC hdc, int x, int y, gal_pixel pixel);
  *
  * \sa GetPixel, RGB2Pixel
  */
-MG_EXPORT gal_pixel GUIAPI SetPixelRGB (HDC hdc, int x, int y, 
+MG_EXPORT gal_pixel GUIAPI SetPixelRGB (HDC hdc, int x, int y,
                 Uint8 r, Uint8 g, Uint8 b);
 
 /**
@@ -2604,7 +2604,7 @@ MG_EXPORT gal_pixel GUIAPI SetPixelRGB (HDC hdc, int x, int y,
                 Uint8 r, Uint8 g, Uint8 b, Uint8 a)
  * \brief Sets the pixel by a RGBA quarter at the specified position on a DC.
  *
- * This function sets the pixel with a RGBA quarter \a (r,g,b,a) at the 
+ * This function sets the pixel with a RGBA quarter \a (r,g,b,a) at the
  * specified position \a (x,y) on the DC \a hdc.
  *
  * \param hdc The device context.
@@ -2619,14 +2619,14 @@ MG_EXPORT gal_pixel GUIAPI SetPixelRGB (HDC hdc, int x, int y,
  *
  * \sa GetPixel, RGBA2Pixel
  */
-MG_EXPORT gal_pixel GUIAPI SetPixelRGBA (HDC hdc, int x, int y, 
+MG_EXPORT gal_pixel GUIAPI SetPixelRGBA (HDC hdc, int x, int y,
                 Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 
 /**
  * \fn gal_pixel GUIAPI GetPixel (HDC hdc, int x, int y)
  * \brief Gets the pixel value at the specified position on a DC.
  *
- * This function gets the pixel value at the specified position \a (x,y) on 
+ * This function gets the pixel value at the specified position \a (x,y) on
  * the DC \a hdc.
  *
  * \param hdc The device context.
@@ -2644,51 +2644,51 @@ MG_EXPORT gal_pixel GUIAPI GetPixel (HDC hdc, int x, int y);
                 Uint8* r, Uint8* g, Uint8* b)
  * \brief Gets the pixel value at the specified position on a DC in RGB triple.
  *
- * This function gets the pixel value at the specified position \a (x,y) 
+ * This function gets the pixel value at the specified position \a (x,y)
  * on the DC \a hdc in RGB triple.
  *
  * \param hdc The device context.
  * \param x x,y: The pixel position.
  * \param y x,y: The pixel position.
- * \param r The red component of the pixel will be returned through 
+ * \param r The red component of the pixel will be returned through
  *          this pointer.
- * \param g The green component of the pixel will be returned through 
+ * \param g The green component of the pixel will be returned through
  *          this pointer.
- * \param b The blue component of the pixel will be returned through 
+ * \param b The blue component of the pixel will be returned through
  *          this pointer.
  * \return The pixel value.
  *
  * \sa SetPixelRGB
  */
-MG_EXPORT gal_pixel GUIAPI GetPixelRGB (HDC hdc, int x, int y, 
+MG_EXPORT gal_pixel GUIAPI GetPixelRGB (HDC hdc, int x, int y,
                 Uint8* r, Uint8* g, Uint8* b);
 
 /**
  * \fn gal_pixel GUIAPI GetPixelRGBA (HDC hdc, int x, int y, \
                 Uint8* r, Uint8* g, Uint8* b, Uint8* a)
- * \brief Gets the pixel value at the specified position on a DC in 
+ * \brief Gets the pixel value at the specified position on a DC in
  *        RGBA quarter.
  *
- * This function gets the pixel value at the specified position \a (x,y) on 
+ * This function gets the pixel value at the specified position \a (x,y) on
  * the DC \a hdc in RGBA quarter.
  *
  * \param hdc The device context.
  * \param x x,y: The pixel position.
  * \param y x,y: The pixel position.
- * \param r The red component of the pixel will be returned through 
+ * \param r The red component of the pixel will be returned through
  *        this pointers.
- * \param g The green component of the pixel will be returned through 
+ * \param g The green component of the pixel will be returned through
  *        this pointers.
- * \param b The blue component of the pixel will be returned through 
+ * \param b The blue component of the pixel will be returned through
  *        this pointers.
- * \param a The alpha component of the pixel will be returned through 
+ * \param a The alpha component of the pixel will be returned through
  *        this pointers.
  *
  * \return The pixel value.
  *
  * \sa SetPixelRGBA
  */
-MG_EXPORT gal_pixel GUIAPI GetPixelRGBA (HDC hdc, int x, int y, 
+MG_EXPORT gal_pixel GUIAPI GetPixelRGBA (HDC hdc, int x, int y,
                 Uint8* r, Uint8* g, Uint8* b, Uint8* a);
 
 /**
@@ -2705,14 +2705,14 @@ MG_EXPORT gal_pixel GUIAPI GetPixelRGBA (HDC hdc, int x, int y,
  *
  * \sa Pixel2RGBAs
  */
-MG_EXPORT void GUIAPI RGBA2Pixels (HDC hdc, const RGB* rgbs, 
+MG_EXPORT void GUIAPI RGBA2Pixels (HDC hdc, const RGB* rgbs,
                 gal_pixel* pixels, int count);
 
 /**
  * \fn gal_pixel GUIAPI RGBA2Pixel (HDC hdc, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
  * \brief Gets the pixel value from a color in RGBA quarter under a DC.
  *
- * This function gets the pixel value from the RGB quarter \a (r,g,b,a) 
+ * This function gets the pixel value from the RGB quarter \a (r,g,b,a)
  * under the DC \a hdc.
  *
  * \param hdc The device context.
@@ -2726,7 +2726,7 @@ MG_EXPORT void GUIAPI RGBA2Pixels (HDC hdc, const RGB* rgbs,
  *
  * \sa RGBA2Pixels, Pixel2RGBA
  */
-static inline gal_pixel RGBA2Pixel (HDC hdc, 
+static inline gal_pixel RGBA2Pixel (HDC hdc,
                 Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
     RGB rgb = {r, g, b, a};
@@ -2740,7 +2740,7 @@ static inline gal_pixel RGBA2Pixel (HDC hdc,
  * \fn void GUIAPI RGB2Pixels (HDC hdc, const RGB* rgbs, gal_pixel* pixels, int count)
  * \brief Gets the pixel values from a color array in RGB triple under a DC.
  *
- * This function gets the pixel values from the RGB triple array \a rgbs under 
+ * This function gets the pixel values from the RGB triple array \a rgbs under
  * the DC \a hdc.
  *
  * \param hdc The device context.
@@ -2750,14 +2750,14 @@ static inline gal_pixel RGBA2Pixel (HDC hdc,
  *
  * \sa Pixel2RGBs
  */
-MG_EXPORT void GUIAPI RGB2Pixels (HDC hdc, const RGB* rgbs, 
+MG_EXPORT void GUIAPI RGB2Pixels (HDC hdc, const RGB* rgbs,
                 gal_pixel* pixels, int count);
 
 /**
  * \fn gal_pixel GUIAPI RGB2Pixel (HDC hdc, Uint8 r, Uint8 g, Uint8 b)
  * \brief Gets the pixel value from a color in RGB triple under a DC.
  *
- * This function gets the pixel value from the RGB triple \a (r,g,b) under 
+ * This function gets the pixel value from the RGB triple \a (r,g,b) under
  * the DC \a hdc.
  *
  * \param hdc The device context.
@@ -2793,7 +2793,7 @@ static inline gal_pixel RGB2Pixel (HDC hdc, Uint8 r, Uint8 g, Uint8 b)
  *
  * \sa RGB2Pixels
  */
-MG_EXPORT void GUIAPI Pixel2RGBs (HDC hdc, const gal_pixel* pixels, 
+MG_EXPORT void GUIAPI Pixel2RGBs (HDC hdc, const gal_pixel* pixels,
                 RGB* rgbs, int count);
 
 /**
@@ -2801,23 +2801,23 @@ MG_EXPORT void GUIAPI Pixel2RGBs (HDC hdc, const gal_pixel* pixels,
                 Uint8* r, Uint8* g, Uint8* b)
  * \brief Gets the color in RGB triple from a pixel value under a DC.
  *
- * This function gets the color in RGB triple from the pixel value \a pixel 
+ * This function gets the color in RGB triple from the pixel value \a pixel
  * under the DC \a hdc.
  *
  * \param hdc The device context.
  * \param pixel The pixel value.
- * \param r The red component of the pixel will be returned through 
+ * \param r The red component of the pixel will be returned through
  *        this pointer.
- * \param g The green component of the pixel will be returned through 
+ * \param g The green component of the pixel will be returned through
  *        this pointer.
- * \param b The blue component of the pixel will be returned through 
+ * \param b The blue component of the pixel will be returned through
  *        this pointer.
  *
  * \note This function is implemented as an inline to RGB2Pixels.
  *
  * \sa Pixel2RGBs, RGB2Pixel
  */
-static inline void Pixel2RGB (HDC hdc, gal_pixel pixel, 
+static inline void Pixel2RGB (HDC hdc, gal_pixel pixel,
                 Uint8* r, Uint8* g, Uint8* b)
 {
     RGB rgb;
@@ -2839,7 +2839,7 @@ static inline void Pixel2RGB (HDC hdc, gal_pixel pixel,
  *
  * \sa RGB2Pixels
  */
-MG_EXPORT void GUIAPI Pixel2RGBAs (HDC hdc, const gal_pixel* pixels, 
+MG_EXPORT void GUIAPI Pixel2RGBAs (HDC hdc, const gal_pixel* pixels,
                 RGB* rgbs, int count);
 
 /**
@@ -2847,25 +2847,25 @@ MG_EXPORT void GUIAPI Pixel2RGBAs (HDC hdc, const gal_pixel* pixels,
                 Uint8* r, Uint8* g, Uint8* b, Uint8* a)
  * \brief Gets the color in RGBA quarter from a pixel value under a DC.
  *
- * This function gets the color in RGBA quarter from the pixel value \a pixel 
+ * This function gets the color in RGBA quarter from the pixel value \a pixel
  * under the DC \a hdc.
  *
  * \param hdc The device context.
  * \param pixel The pixel value.
- * \param r The red component of the pixel will be returned through 
+ * \param r The red component of the pixel will be returned through
  *        this pointer.
- * \param g The green component of the pixel will be returned through 
+ * \param g The green component of the pixel will be returned through
  *        this pointer.
- * \param b The blue component of the pixel will be returned through 
+ * \param b The blue component of the pixel will be returned through
  *        this pointer.
- * \param a The alpha component of the pixel will be returned through 
+ * \param a The alpha component of the pixel will be returned through
  *        this pointer.
  *
  * \note This function is implemented as an inline to RGBA2Pixels.
  *
  * \sa RGBA2Pixels, RGB2Pixel
  */
-static inline void Pixel2RGBA (HDC hdc, gal_pixel pixel, 
+static inline void Pixel2RGBA (HDC hdc, gal_pixel pixel,
                 Uint8* r, Uint8* g, Uint8* b, Uint8* a)
 {
     RGB rgb;
@@ -2904,7 +2904,7 @@ static inline DWORD Pixel2DWORD (HDC hdc, gal_pixel pixel)
  */
 static inline gal_pixel DWORD2Pixel (HDC hdc, DWORD dword)
 {
-    return RGBA2Pixel (hdc, 
+    return RGBA2Pixel (hdc,
             GetRValue(dword), GetGValue(dword),
             GetBValue(dword), GetAValue(dword));
 }
@@ -2913,17 +2913,17 @@ static inline gal_pixel DWORD2Pixel (HDC hdc, DWORD dword)
  * \fn void GUIAPI FocusRect (HDC hdc, int x0, int y0, int x1, int y1)
  * \brief Draws a focus rectangle.
  *
- * This function uses XOR mode to draw the focus rectangle on the device 
- * context, i.e. calling this function then calling this function with same 
- * arguments again will erase the focus rectangle and restore the pixels 
+ * This function uses XOR mode to draw the focus rectangle on the device
+ * context, i.e. calling this function then calling this function with same
+ * arguments again will erase the focus rectangle and restore the pixels
  * before the first call.
- * 
+ *
  * \param hdc The device context.
  * \param x0 x0,y0: The coordinates of upper-left corner of the rectangle.
  * \param y0 x0,y0: The coordinates of upper-left corner of the rectangle.
  * \param x1 x1,y1: The corrdinates of lower-right corner of the rectangle.
  * \param y1 x1,y1: The corrdinates of lower-right corner of the rectangle.
- * 
+ *
  * \sa DrawHVDotLine
  */
 MG_EXPORT void GUIAPI FocusRect (HDC hdc, int x0, int y0, int x1, int y1);
@@ -2988,8 +2988,8 @@ MG_EXPORT void GUIAPI DrawHVDotLine (HDC hdc, int x, int y, int w_h, BOOL H_V);
                 int *_x0, int *_y0, int *_x1, int *_y1)
  * \brief The line clipper using Cohen-Sutherland algorithm.
  *
- * This function clips a line from \a (*_x0,*_y0) to \a (*_x1, *_y1) 
- * with the specified clipping rectangle pointed to by \a cliprc. 
+ * This function clips a line from \a (*_x0,*_y0) to \a (*_x1, *_y1)
+ * with the specified clipping rectangle pointed to by \a cliprc.
  * Then return the clipped line throught the pointers \a (_x0, _y0, _x1, _y1).
  *
  * It is modified to do pixel-perfect clipping. This means that it
@@ -2998,10 +2998,10 @@ MG_EXPORT void GUIAPI DrawHVDotLine (HDC hdc, int x, int y, int w_h, BOOL H_V);
  *
  * \param cliprc The Pointer to the clipping rectangle.
  * \param _x0 _x0,_y0: The pointers contains the start point of the line.
- *        The start point after clipping will be returned through them 
+ *        The start point after clipping will be returned through them
  *        as well as.
  * \param _y0 _x0,_y0: The pointers contains the start point of the line.
- *        The start point after clipping will be returned through them 
+ *        The start point after clipping will be returned through them
  *        as well as.
  * \param _x1 _x1,_y1: The pointers contains the end point of the line.
  *        The end point after clipping will be returned through them as well as.
@@ -3012,7 +3012,7 @@ MG_EXPORT void GUIAPI DrawHVDotLine (HDC hdc, int x, int y, int w_h, BOOL H_V);
  *
  * \sa LineGenerator
  */
-MG_EXPORT BOOL GUIAPI LineClipper (const RECT* cliprc, 
+MG_EXPORT BOOL GUIAPI LineClipper (const RECT* cliprc,
                 int *_x0, int *_y0, int *_x1, int *_y1);
 
 /**
@@ -3026,10 +3026,10 @@ typedef void (* CB_LINE) (void* context, int stepx, int stepy);
                 int x1, int y1, int x2, int y2, CB_LINE cb)
  * \brief A line generator based-on Breshenham algorithm.
  *
- * This is a Breshenham line generator. When it generates a new point on the 
- * line, it will call the callback \a cb and pass the context \a context and 
- * the step values on x-coordinate and y-coodinate since the last point. 
- * The first generated point always be the start point you passed to this 
+ * This is a Breshenham line generator. When it generates a new point on the
+ * line, it will call the callback \a cb and pass the context \a context and
+ * the step values on x-coordinate and y-coodinate since the last point.
+ * The first generated point always be the start point you passed to this
  * function. Thus, the first step values passed to \a cb will be (0,0).
  *
  * MiniGUI implements \a LineTo function by using this generator.
@@ -3043,7 +3043,7 @@ typedef void (* CB_LINE) (void* context, int stepx, int stepy);
  *
  * \sa LineTo, LineClipper, CB_LINE
  */
-MG_EXPORT void GUIAPI LineGenerator (void* context, 
+MG_EXPORT void GUIAPI LineGenerator (void* context,
                 int x1, int y1, int x2, int y2, CB_LINE cb);
 
 /**
@@ -3057,14 +3057,14 @@ typedef void (* CB_CIRCLE) (void* context, int x1, int x2, int y);
                 int sx, int sy, int r, CB_CIRCLE cb)
  * \brief A circle generator.
  *
- * This is a general circle generator, it will generate two points on the 
- * same horizontal scan line at every turn. When it generates the points on 
+ * This is a general circle generator, it will generate two points on the
+ * same horizontal scan line at every turn. When it generates the points on
  * the circle, it will call the callback \a cb and pass the context \a context,
- * the y-coordinate of the scan line, the x-coordinate of the left point on 
- * the scan line, and the x-coordinate of the right point. Note that in some 
+ * the y-coordinate of the scan line, the x-coordinate of the left point on
+ * the scan line, and the x-coordinate of the right point. Note that in some
  * cases, the left point and the right point will be the same.
  *
- * MiniGUI implements \a Circle, \a FillCircle and \a InitCircleRegion 
+ * MiniGUI implements \a Circle, \a FillCircle and \a InitCircleRegion
  * functions by using this generator.
  *
  * \param context The context, will be passed to the callback \a cb.
@@ -3079,7 +3079,7 @@ typedef void (* CB_CIRCLE) (void* context, int x1, int x2, int y);
  *
  * \include circlegenerator.c
  */
-MG_EXPORT void GUIAPI CircleGenerator (void* context, 
+MG_EXPORT void GUIAPI CircleGenerator (void* context,
                 int sx, int sy, int r, CB_CIRCLE cb);
 
 /**
@@ -3093,14 +3093,14 @@ typedef void (* CB_ELLIPSE) (void* context, int x1, int x2, int y);
                 int sx, int sy, int rx, int ry, CB_ELLIPSE cb)
  * \brief An ellipse generator.
  *
- * This is a general ellipse generator, it will generate two points on the same 
- * horizontal scan line at every turn. When it generates the points on the 
- * ellipse, it will call the callback \a cb and pass the context \a context, 
- * the y-coordinate of the scan line, the x-coordinate of the left point on 
- * the scan line, and the x-coordinate of the right point. Note that in some 
+ * This is a general ellipse generator, it will generate two points on the same
+ * horizontal scan line at every turn. When it generates the points on the
+ * ellipse, it will call the callback \a cb and pass the context \a context,
+ * the y-coordinate of the scan line, the x-coordinate of the left point on
+ * the scan line, and the x-coordinate of the right point. Note that in some
  * cases, the left point and the right point will be the same.
  *
- * MiniGUI implements \a Ellipse, \a FillEllipse, and \a InitEllipseRegion 
+ * MiniGUI implements \a Ellipse, \a FillEllipse, and \a InitEllipseRegion
  * functions by using this generator.
  *
  * \param context The context, will be passed to the callback \a cb.
@@ -3112,7 +3112,7 @@ typedef void (* CB_ELLIPSE) (void* context, int x1, int x2, int y);
  *
  * \sa Ellipse, FillEllipse, InitEllipseRegion, CB_CIRCLE
  */
-MG_EXPORT void GUIAPI EllipseGenerator (void* context, 
+MG_EXPORT void GUIAPI EllipseGenerator (void* context,
                 int sx, int sy, int rx, int ry, CB_ELLIPSE cb);
 
 /**
@@ -3127,7 +3127,7 @@ typedef void (* CB_ARC) (void* context, int x, int y);
  * \brief An arc generator.
  *
  * This is a general arc generator. When it generates a point on the arc,
- * it will call the callback \a cb and pass the context \a context, the 
+ * it will call the callback \a cb and pass the context \a context, the
  * coordinates of the point.
  *
  * MiniGUI implements \a CircleArc function by using this generator.
@@ -3136,15 +3136,15 @@ typedef void (* CB_ARC) (void* context, int x, int y);
  * \param sx sx,sy: The center of the arc.
  * \param sy sx,sy: The center of the arc.
  * \param r The radius of the arc.
- * \param ang1 The start angle of the arc, relative to the 3 o'clock position, 
+ * \param ang1 The start angle of the arc, relative to the 3 o'clock position,
  *        counter-clockwise, in 1/64ths of a degree.
- * \param ang2 The end angle of the arc, relative to angle1, in 1/64ths of 
+ * \param ang2 The end angle of the arc, relative to angle1, in 1/64ths of
  *        a degree.
  * \param cb The arc generator callback.
  *
  * \sa CircleArc, CB_ARC
  */
-MG_EXPORT void GUIAPI CircleArcGenerator (void* context, 
+MG_EXPORT void GUIAPI CircleArcGenerator (void* context,
                 int sx, int sy, int r, int ang1, int ang2, CB_ARC cb);
 
 /**
@@ -3164,26 +3164,26 @@ typedef void (* CB_POLYGON) (void* context, int x1, int x2, int y);
  * that is, every horizontal line drawn through the polygon at any point
  * would cross exactly two active edges (neither horizontal lines
  * nor zero-length edges count as active edges; both are acceptable
- * anywhere in the polygon). Right & left edges may cross (polygons may 
- * be nonsimple).  Polygons that are not convex according to this definition 
+ * anywhere in the polygon). Right & left edges may cross (polygons may
+ * be nonsimple).  Polygons that are not convex according to this definition
  * won't be drawn properly.
  *
  * You can call \a PolygonIsMonotoneVertical function to check one polygon is
  * monotone vertical or not.
  *
- * This function will generate two points on the same horizontal scan line at 
- * every turn.  When it generates the points on the polygon, it will call 
- * the callback \a cb and pass the context \a context, the y-coordinate of 
- * the scan line, the x-coordinate of the left point on the scan line, and 
- * the x-coordinate of the right point. Note that in some cases, the left 
+ * This function will generate two points on the same horizontal scan line at
+ * every turn.  When it generates the points on the polygon, it will call
+ * the callback \a cb and pass the context \a context, the y-coordinate of
+ * the scan line, the x-coordinate of the left point on the scan line, and
+ * the x-coordinate of the right point. Note that in some cases, the left
  * point and the right point will be the same.
  *
- * MiniGUI implements \a FillPolygon and \a InitPolygonRegion functions 
+ * MiniGUI implements \a FillPolygon and \a InitPolygonRegion functions
  * by using this generator.
  *
  * \param context The context, will be passed to the callback \a cb.
  * \param pts The pointer to the vertex array of the polygon.
- * \param vertices The number of the vertices, i.e. the size of the vertex 
+ * \param vertices The number of the vertices, i.e. the size of the vertex
  *        array.
  * \param cb The polygon generator callback.
  *
@@ -3191,7 +3191,7 @@ typedef void (* CB_POLYGON) (void* context, int x1, int x2, int y);
  *
  * \sa FillPolygon, InitPolygonRegion, PolygonIsMonotoneVertical, CB_CIRCLE
  */
-MG_EXPORT BOOL GUIAPI MonotoneVerticalPolygonGenerator (void* context, 
+MG_EXPORT BOOL GUIAPI MonotoneVerticalPolygonGenerator (void* context,
                 const POINT* pts, int vertices, CB_POLYGON cb);
 
 /**
@@ -3201,17 +3201,17 @@ MG_EXPORT BOOL GUIAPI MonotoneVerticalPolygonGenerator (void* context,
  * This function checks if the given polygon is monotone vertical.
  *
  * \param pts The pointer to the vertex array of the polygon.
- * \param vertices The number of the vertices, i.e. the size of the vertex 
+ * \param vertices The number of the vertices, i.e. the size of the vertex
  *        array.
  *
  * \return TRUE if it is monotonoe vertical, otherwise FALSE.
  *
- * \note To make sure a polygon is monotone vertical, the polygon must be a 
+ * \note To make sure a polygon is monotone vertical, the polygon must be a
  *       closed one, that is, the pts[0] must be equal to the pts[vertices-1].
  *
  * \sa MonotoneVerticalPolygonGenerator
  */
-MG_EXPORT BOOL GUIAPI PolygonIsMonotoneVertical (const POINT* pts, 
+MG_EXPORT BOOL GUIAPI PolygonIsMonotoneVertical (const POINT* pts,
                 int vertices);
 
 /**
@@ -3221,35 +3221,35 @@ MG_EXPORT BOOL GUIAPI PolygonIsMonotoneVertical (const POINT* pts,
  *
  * This is a general polygon generator.
  *
- * This function will generate two points on the same horizontal scan line 
- * at every turn.  When it generates the points on the polygon, it will 
- * call the callback \a cb and pass the context \a context, the y-coordinate 
- * of the scan line, the x-coordinate of the left point on the scan line, 
- * and the x-coordinate of the right point. Note that in some cases, the 
+ * This function will generate two points on the same horizontal scan line
+ * at every turn.  When it generates the points on the polygon, it will
+ * call the callback \a cb and pass the context \a context, the y-coordinate
+ * of the scan line, the x-coordinate of the left point on the scan line,
+ * and the x-coordinate of the right point. Note that in some cases, the
  * left point and the right point will be the same.
  *
- * MiniGUI implements \a FillPolygon and \a InitPolygonRegion functions 
+ * MiniGUI implements \a FillPolygon and \a InitPolygonRegion functions
  * by using this generator.
  *
  * \param context The context, will be passed to the callback \a cb.
  * \param pts The pointer to the vertex array of the polygon.
- * \param vertices The number of the vertices, i.e. the size of the 
+ * \param vertices The number of the vertices, i.e. the size of the
  *        vertex array.
  * \param cb The polygon generator callback.
  * \param rc_output The limit RECT for Polygon ScanLines ranges .
  *
  * \sa FillPolygon, InitPolygonRegion, CB_CIRCLE
  */
-MG_EXPORT BOOL GUIAPI PolygonGeneratorEx (void* context, 
+MG_EXPORT BOOL GUIAPI PolygonGeneratorEx (void* context,
                 const POINT* pts, int vertices, CB_POLYGON cb, RECT* rc_output);
 /**
  * \def PolygonGenerator(context, pts, vertices, cb)
  * \brief This is a general polygon generator.
  *
- * Defined as a macro calling \a PolygonGeneratorEx passing 
+ * Defined as a macro calling \a PolygonGeneratorEx passing
  * and \a rc_output as NULL.
  *
- * \sa PolygonGeneratorEx 
+ * \sa PolygonGeneratorEx
  */
 #define PolygonGenerator(context, pts, vertices, cb)          \
                 PolygonGeneratorEx(context, pts, vertices, cb, NULL)
@@ -3280,34 +3280,34 @@ typedef void (* CB_FLOOD_FILL) (void* context, int x1, int x2, int y);
  * \param src_rc The filling bounding rectangle.
  * \param x x,y: The start filling point.
  * \param y x,y: The start filling point.
- * \param cb_equal_pixel The callback to check the pixel is equal with 
+ * \param cb_equal_pixel The callback to check the pixel is equal with
  *        the start point or not.
  * \param cb_flood_fill The callback to fill a scan line.
  *
  * \sa FloodFill, CB_EQUAL_PIXEL, CB_FLOOD_FILL
  */
-MG_EXPORT BOOL GUIAPI FloodFillGenerator (void* context, 
-                const RECT* src_rc, int x, int y, 
+MG_EXPORT BOOL GUIAPI FloodFillGenerator (void* context,
+                const RECT* src_rc, int x, int y,
                 CB_EQUAL_PIXEL cb_equal_pixel, CB_FLOOD_FILL cb_flood_fill);
 
 /* DDA algorithm */
 #define BITMAP_SCALER_DDA       0
 /* Bilinear interpolation algorithm */
-#define BITMAP_SCALER_BILINEAR  1         
+#define BITMAP_SCALER_BILINEAR  1
 
 /**
  * \fn int GUIAPI SetBitmapScalerType (HDC hdc, int scaler_type);
  *
  * \brief set bitmap scaler algorithm callback of DC according by scaler_type.
  *
- * This function is a set general bitmap scaler type that is DDA or Bilinear 
- interpolation algorithm. 
+ * This function is a set general bitmap scaler type that is DDA or Bilinear
+ interpolation algorithm.
  * MiniGUI implements StretchBlt functions by using this scaler.
  *
  * \param hdc The device context.
- * \param scaler_type The type of scaler algorithm, BITMAP_SCALER_DDA 
+ * \param scaler_type The type of scaler algorithm, BITMAP_SCALER_DDA
  *                    or BITMAP_SCALER_BILINEAR.
- *  
+ *
  * \sa BitmapDDAScaler, BitmapBinearScaler
  */
 
@@ -3361,7 +3361,7 @@ MG_EXPORT void GUIAPI LineTo (HDC hdc, int x, int y);
  */
 MG_EXPORT void GUIAPI Rectangle (HDC hdc, int x0, int y0, int x1, int y1);
 
-/** 
+/**
  * \fn void GUIAPI PolyLineTo (HDC hdc, const POINT* pts, int vertices)
  * \brief Draws a polyline.
  *
@@ -3377,13 +3377,13 @@ MG_EXPORT void GUIAPI Rectangle (HDC hdc, int x0, int y0, int x1, int y1);
  */
 MG_EXPORT void GUIAPI PolyLineTo (HDC hdc, const POINT* pts, int vertices);
 
-/** 
+/**
  * \fn void GUIAPI SplineTo (HDC hdc, const POINT* pts)
  * \brief Draws a bezier spline.
  *
  * This function draws a bezier spline by using \a MoveTo and \a LineTo.
  * The current pen position after calling this function will be the
- * last control point of the spline. Note that the number of the 
+ * last control point of the spline. Note that the number of the
  * control points should always be 4.
  *
  * \param hdc The device context.
@@ -3399,7 +3399,7 @@ MG_EXPORT void GUIAPI SplineTo (HDC hdc, const POINT* pts);
  *
  * This function draws a circle with the zero pen on the DC \a hdc.
  * The center of the circle is at \a (sx, sy), and the radius is \a r.
- * 
+ *
  * \param hdc The device context.
  * \param sx sx,sy: The center of the circle.
  * \param sy sx,sy: The center of the circle.
@@ -3413,10 +3413,10 @@ MG_EXPORT void GUIAPI Circle (HDC hdc, int sx, int sy, int r);
  * \fn void GUIAPI Ellipse (HDC hdc, int sx, int sy, int rx, int ry)
  * \brief Draws a ellipse.
  *
- * This function draws an ellipse with the zero pen on the DC \a hdc. 
- * The center of the ellipse is at \a (sx, sy), the x-coordinate radius is 
+ * This function draws an ellipse with the zero pen on the DC \a hdc.
+ * The center of the ellipse is at \a (sx, sy), the x-coordinate radius is
  * \a rx, and the y-coordinate radius is \a ry.
- * 
+ *
  * \param hdc The device context.
  * \param sx sx,sy: The center of the ellipse.
  * \param sy sx,sy: The center of the ellipse.
@@ -3432,30 +3432,30 @@ MG_EXPORT void GUIAPI Ellipse (HDC hdc, int sx, int sy, int rx, int ry);
                 int ang1, int ang2)
  * \brief Draws an arc.
  *
- * This function draws an arc with the zero pen on the DC \a hdc. 
+ * This function draws an arc with the zero pen on the DC \a hdc.
  * The center of the arc is at \a (sx, sy), the radius is \a r,
- * and the radians of start angle and end angle are \a ang1 and \a ang2 
+ * and the radians of start angle and end angle are \a ang1 and \a ang2
  * respectively.
- * 
+ *
  * \param hdc The device context.
  * \param sx sx,sy: The center of the arc.
  * \param sy sx,sy: The center of the arc.
  * \param r The radius of the arc.
- * \param ang1 The start angle of the arc, relative to the 3 o'clock position, 
+ * \param ang1 The start angle of the arc, relative to the 3 o'clock position,
  *        counter-clockwise, in 1/64ths of a degree.
- * \param ang2 The end angle of the arc, relative to angle1, 
+ * \param ang2 The end angle of the arc, relative to angle1,
  *        in 1/64ths of a degree.
  *
  * \sa CircleArcGenerator, fixed_math_fns, dc_attrs
  */
-MG_EXPORT void GUIAPI CircleArc (HDC hdc, int sx, int sy, int r, 
+MG_EXPORT void GUIAPI CircleArc (HDC hdc, int sx, int sy, int r,
                 int ang1, int ang2);
 
 /**
  * \fn void GUIAPI FillBox (HDC hdc, int x, int y, int w, int h)
  * \brief Fills a rectangle box.
  *
- * This function fills a box with the current brush in the DC \a hdc. 
+ * This function fills a box with the current brush in the DC \a hdc.
  *
  * \param hdc The device context.
  * \param x x,y: The coorinates of the upper-left corner of the box.
@@ -3471,7 +3471,7 @@ MG_EXPORT void GUIAPI FillBox (HDC hdc, int x, int y, int w, int h);
  * \fn void GUIAPI FillCircle (HDC hdc, int sx, int sy, int r)
  * \brief Fills a circle.
  *
- * This function fills a circle with the current brush in the DC \a hdc. 
+ * This function fills a circle with the current brush in the DC \a hdc.
  *
  * \param hdc The device context.
  * \param sx sx,sy: The center of the circle.
@@ -3486,8 +3486,8 @@ MG_EXPORT void GUIAPI FillCircle (HDC hdc, int sx, int sy, int r);
  * \fn void GUIAPI FillEllipse (HDC hdc, int sx, int sy, int rx, int ry)
  * \brief Fills an ellipse.
  *
- * This function fills an ellipse with the current brush in the DC \a hdc. 
- * Note that MiniGUI only defined the color property for the brush objects 
+ * This function fills an ellipse with the current brush in the DC \a hdc.
+ * Note that MiniGUI only defined the color property for the brush objects
  * so far.
  *
  * \param hdc The device context.
@@ -3504,11 +3504,11 @@ MG_EXPORT void GUIAPI FillEllipse (HDC hdc, int sx, int sy, int rx, int ry);
  * \fn BOOL GUIAPI FillPolygon (HDC hdc, const POINT* pts, int vertices)
  * \brief Fills an polygon.
  *
- * This function fills a polygon with the current brush in the DC \a hdc. 
+ * This function fills a polygon with the current brush in the DC \a hdc.
  *
  * \param hdc The device context.
  * \param pts The pointer to the vertex array of the polygon.
- * \param vertices The number of the vertices, i.e. the size of the 
+ * \param vertices The number of the vertices, i.e. the size of the
  *        vertex array.
  *
  * \sa PolygonGenerator, dc_attrs
@@ -3519,7 +3519,7 @@ MG_EXPORT BOOL GUIAPI FillPolygon (HDC hdc, const POINT* pts, int vertices);
  * \fn BOOL GUIAPI FloodFill (HDC hdc, int x, int y)
  * \brief Fills an enclosed area starting at point \a (x,y).
  *
- * This function fills an enclosed area staring at point \a (x,y), and 
+ * This function fills an enclosed area staring at point \a (x,y), and
  * stops when encountering a pixel different from the start point.
  *
  * \param hdc The device context.
@@ -3542,20 +3542,20 @@ MG_EXPORT BOOL GUIAPI FloodFill (HDC hdc, int x, int y);
  */
 typedef enum
 {
-  /** 
-   * The solid pen. 
+  /**
+   * The solid pen.
    * We call the solid pen with zero wide as "zero pen".
    */
   PT_SOLID,
-  /** 
-   * The on/off dash pen, even segments are drawn; 
+  /**
+   * The on/off dash pen, even segments are drawn;
    * odd segments are not drawn.
    */
   PT_ON_OFF_DASH,
   /**
-   * The double dash pen, even segments are normally. 
-   * Odd segments are drawn in the brush color if 
-   * the brush type is BT_SOLID, or in the brush color 
+   * The double dash pen, even segments are normally.
+   * Odd segments are drawn in the brush color if
+   * the brush type is BT_SOLID, or in the brush color
    * masked by the stipple if the brush type is BT_STIPPLED.
    */
   PT_DOUBLE_DASH,
@@ -3589,11 +3589,11 @@ typedef enum
 /**
  * \fn void SetPenDashes (HDC hdc, int dash_offset, \
                 const unsigned char* dash_list, int n)
- * \brief Sets the way dashed-lines are drawn. 
+ * \brief Sets the way dashed-lines are drawn.
  *
- * Sets the way dashed-lines are drawn. Lines will be drawn with 
- * alternating on and off segments of the lengths specified in dash_list. 
- * The manner in which the on and off segments are drawn is determined by 
+ * Sets the way dashed-lines are drawn. Lines will be drawn with
+ * alternating on and off segments of the lengths specified in dash_list.
+ * The manner in which the on and off segments are drawn is determined by
  * the pen type of the DC.  (This can be changed with SetPenType function.)
  *
  * \param hdc The device context.
@@ -3605,7 +3605,7 @@ typedef enum
  *
  * \sa SetPenType
  */
-MG_EXPORT void GUIAPI SetPenDashes (HDC hdc, int dash_offset, 
+MG_EXPORT void GUIAPI SetPenDashes (HDC hdc, int dash_offset,
                 const unsigned char* dash_list, int n);
 
 /**
@@ -3614,17 +3614,17 @@ MG_EXPORT void GUIAPI SetPenDashes (HDC hdc, int dash_offset,
 typedef enum
 {
   /**
-   * The ends of the lines are drawn squared off 
+   * The ends of the lines are drawn squared off
    * and extending to the coordinates of the end point.
    */
   PT_CAP_BUTT,
   /**
-   * The ends of the lines are drawn as semicircles with 
+   * The ends of the lines are drawn as semicircles with
    * the diameter equal to the line width and centered at the end point.
    */
   PT_CAP_ROUND,
   /**
-   * The ends of the lines are drawn squared off and 
+   * The ends of the lines are drawn squared off and
    * extending half the width of the line beyond the end point.
    */
   PT_CAP_PROJECTING
@@ -3669,7 +3669,7 @@ typedef enum
    */
   PT_JOIN_ROUND,
   /**
-   * The sides of the two lines are joined by a straight line 
+   * The sides of the two lines are joined by a straight line
    * which makes an equal angle with each line.
    */
   PT_JOIN_BEVEL
@@ -3742,16 +3742,16 @@ typedef enum
    */
   BT_TILED,
   /**
-   * Draw using the stipple bitmap. 
-   * Pixels corresponding to bits in the stipple bitmap that are set 
-   * will be drawn in the brush color; pixels corresponding to bits 
+   * Draw using the stipple bitmap.
+   * Pixels corresponding to bits in the stipple bitmap that are set
+   * will be drawn in the brush color; pixels corresponding to bits
    * that are not set will be left untouched.
    */
   BT_STIPPLED,
   /**
-   * Draw using the stipple bitmap. 
-   * Pixels corresponding to bits in the stipple bitmap that are set 
-   * will be drawn in the brush color; pixels corresponding to bits 
+   * Draw using the stipple bitmap.
+   * Pixels corresponding to bits in the stipple bitmap that are set
+   * will be drawn in the brush color; pixels corresponding to bits
    * that are not set will be drawn with the background color.
    */
   BT_OPAQUE_STIPPLED
@@ -3803,7 +3803,7 @@ typedef struct _STIPPLE
 /**
  * \fn void GUIAPI SetBrushInfo (HDC hdc, \
                 const BITMAP* tile, const STIPPLE* stipple)
- * \brief Set the tile or stipple with the DC. 
+ * \brief Set the tile or stipple with the DC.
  *
  * \param hdc The device context.
  * \param tile The tile bitmap.
@@ -3811,17 +3811,17 @@ typedef struct _STIPPLE
  *
  * \sa SetBrushInfo
  */
-MG_EXPORT void GUIAPI SetBrushInfo (HDC hdc, 
+MG_EXPORT void GUIAPI SetBrushInfo (HDC hdc,
                 const BITMAP* tile, const STIPPLE* stipple);
 
 /**
  * \fn void GUIAPI SetBrushOrigin (HDC hdc, int x, int y)
- * \brief Set the origin when using tiles or stipples with the DC. 
+ * \brief Set the origin when using tiles or stipples with the DC.
  *
- * Set the origin when using tiles or stipples with the DC. 
- * The tile or stipple will be aligned such that the upper left corner 
+ * Set the origin when using tiles or stipples with the DC.
+ * The tile or stipple will be aligned such that the upper left corner
  * of the tile or stipple will coincide with this point.
- * 
+ *
  * \param hdc The device context.
  * \param x The x-coordinate of the origin.
  * \param y The y-coordinate of the origin.
@@ -3834,9 +3834,9 @@ MG_EXPORT void GUIAPI SetBrushOrigin (HDC hdc, int x, int y);
  * \fn void GUIAPI LineEx (HDC hdc, int x1, int y1, int x2, int y2)
  * \brief Draws a line with the current pen in the DC \a hdc.
  *
- * This function draws a line with the current pen in the DC \a hdc. 
+ * This function draws a line with the current pen in the DC \a hdc.
  * The line draws from \a (x1, y1) to \a (x2, y2).
- * 
+ *
  * \param hdc The device context.
  * \param x1 x1,y1: The start point of the line.
  * \param y1 x1,y1: The start point of the line.
@@ -3854,25 +3854,25 @@ MG_EXPORT void GUIAPI LineEx (HDC hdc, int x1, int y1, int x2, int y2);
                 int ang1, int ang2)
  * \brief Draws an arc with the current pen in a DC.
  *
- * This function draws an arc with the current pen in the DC \a hdc. 
- * The coordinates of the upper-left corner of the bounding rectanglecenter of 
+ * This function draws an arc with the current pen in the DC \a hdc.
+ * The coordinates of the upper-left corner of the bounding rectanglecenter of
  * the arc is \a (x, y), the bounding box of the arc is \a width wide
- * and \a height high, and the degree of start angle and end angle are \a ang1 
+ * and \a height high, and the degree of start angle and end angle are \a ang1
  * and \a ang2 respectively.
- * 
+ *
  * \param hdc The device context.
  * \param x The x coordinate of the left edge of the bounding rectangle.
  * \param y The y coordinate of the left edge of the bounding rectangle.
  * \param width The width of the bounding box of the arc.
  * \param height The height of the bounding box of the arc.
- * \param ang1 The start angle of the arc, relative to the 3 o'clock position, 
+ * \param ang1 The start angle of the arc, relative to the 3 o'clock position,
  *        counter-clockwise, in 1/64ths of a degree.
- * \param ang2 The end angle of the arc, relative to angle1, 
+ * \param ang2 The end angle of the arc, relative to angle1,
  *        in 1/64ths of a degree.
  *
  * \sa dc_attrs
  */
-MG_EXPORT void GUIAPI ArcEx (HDC hdc, int x, int y, int width, int height, 
+MG_EXPORT void GUIAPI ArcEx (HDC hdc, int x, int y, int width, int height,
                 int ang1, int ang2);
 
 /**
@@ -3880,10 +3880,10 @@ MG_EXPORT void GUIAPI ArcEx (HDC hdc, int x, int y, int width, int height,
                 int ang1, int ang2)
  * \brief Fills an arc with the current brush in a DC.
  *
- * This function fills an arc with the current brush in the DC \a hdc. 
- * The coordinates of the upper-left corner of the bounding rectanglecenter of 
+ * This function fills an arc with the current brush in the DC \a hdc.
+ * The coordinates of the upper-left corner of the bounding rectanglecenter of
  * the arc is \a (x, y), the bounding box of the arc is \a width wide
- * and \a height high, and the degree of start angle and end angle are \a ang1 
+ * and \a height high, and the degree of start angle and end angle are \a ang1
  * and \a ang2 respectively.
  *
  * \param hdc The device context.
@@ -3891,14 +3891,14 @@ MG_EXPORT void GUIAPI ArcEx (HDC hdc, int x, int y, int width, int height,
  * \param y The y coordinate of the left edge of the bounding rectangle.
  * \param width The width of the bounding box of the arc.
  * \param height The height of the bounding box of the arc.
- * \param ang1 The start angle of the arc, relative to the 3 o'clock position, 
+ * \param ang1 The start angle of the arc, relative to the 3 o'clock position,
  *        counter-clockwise, in 1/64ths of a degree.
- * \param ang2 The end angle of the arc, relative to angle1, 
+ * \param ang2 The end angle of the arc, relative to angle1,
  *        in 1/64ths of a degree.
  *
  * \sa ArcEx, dc_attrs
  */
-MG_EXPORT void GUIAPI FillArcEx (HDC hdc, int x, int y, int width, int height, 
+MG_EXPORT void GUIAPI FillArcEx (HDC hdc, int x, int y, int width, int height,
                 int ang1, int ang2);
 
 /**
@@ -3911,7 +3911,7 @@ MG_EXPORT void GUIAPI FillArcEx (HDC hdc, int x, int y, int width, int height,
  * \param pts The pointer to the vertex array of the polyline.
  * \param nr_pts The number of the vertices.
  *
- * \sa LineEx 
+ * \sa LineEx
  */
 MG_EXPORT void GUIAPI PolyLineEx (HDC hdc, const POINT* pts, int nr_pts);
 
@@ -3931,11 +3931,11 @@ typedef struct _ARC
     int height;
 
     /**
-     * The start angle of the arc, relative to the 3 o'clock position, 
+     * The start angle of the arc, relative to the 3 o'clock position,
      * counter-clockwise, in 1/64ths of a degree.
      */
     int angle1;
-    /** 
+    /**
      * The end angle of the arc, relative to angle1, in 1/64ths of a degree.
      */
     int angle2;
@@ -3973,7 +3973,7 @@ MG_EXPORT void GUIAPI PolyFillArcEx (HDC hdc, const ARC* arcs, int nr_arcs);
  * \fn BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int rw, int rh)
  * \brief Draw and fill a rectangle with rounded corners in a DC.
  *
- * This function draws a rectangle with rounded corners. The rectangle is outlined by using 
+ * This function draws a rectangle with rounded corners. The rectangle is outlined by using
  * the current pen and filled by using the current brush in the DC \a hdc.
  *
  * \param hdc The device context.
@@ -3999,21 +3999,21 @@ MG_EXPORT BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int cw
     /**
      * \defgroup map_fns Mapping Operations
      *
-     * The mapping mode defines the unit of measure used to transform 
-     * page-space units into device-space units, and also defines 
-     * the orientation of the device's x and y axes. 
+     * The mapping mode defines the unit of measure used to transform
+     * page-space units into device-space units, and also defines
+     * the orientation of the device's x and y axes.
      *
-     * So far, MiniGUI support only two mapping mode: 
+     * So far, MiniGUI support only two mapping mode:
      *
      *      - MM_TEXT\n
-     *        Each logical unit is mapped to on device pixel. 
+     *        Each logical unit is mapped to on device pixel.
      *        Positive x is to the right; positive y is down.
      *      - MM_ANISOTROPIC\n
-     *        Logical units are mapped to arbitrary units with arbitrarily 
-     *        scaled axes; Use \a SetWindowExt and \a SetViewportExt functions 
+     *        Logical units are mapped to arbitrary units with arbitrarily
+     *        scaled axes; Use \a SetWindowExt and \a SetViewportExt functions
      *        to specify the units, orientation, and scaling required.
      *
-     * The following formula shows the math involved in converting a point 
+     * The following formula shows the math involved in converting a point
      * from page space to device space:
      *
      * \code
@@ -4029,11 +4029,11 @@ MG_EXPORT BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int cw
      *      - WE    window x-extent
      *      - VE    viewport x-extent
      *
-     * The same equation with y replacing x transforms the y component of 
-     * a point. The formula first offsets the point from its coordinate origin. 
-     * This value, no longer biased by the  origin, is then scaled into 
-     * the destination coordinate system by the ratio of the extents. 
-     * Finally, the scaled value is offset by the destination origin to 
+     * The same equation with y replacing x transforms the y component of
+     * a point. The formula first offsets the point from its coordinate origin.
+     * This value, no longer biased by the  origin, is then scaled into
+     * the destination coordinate system by the ratio of the extents.
+     * Finally, the scaled value is offset by the destination origin to
      * its final mapping.
      *
      * @{
@@ -4046,13 +4046,13 @@ MG_EXPORT BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int cw
  * \def GetMapMode(hdc)
  * \brief Retrieves the current mapping mode of a DC.
  *
- * This function retrieves the current mapping mode of the DC \a hdc. 
+ * This function retrieves the current mapping mode of the DC \a hdc.
  *
  * So far, MiniGUI support two mapping modes: MM_TEXT and MM_ANISOTROPIC.
  *
  * \param hdc The device context.
  *
- * \return The current mapping mode, can be either \a MM_TEXT or 
+ * \return The current mapping mode, can be either \a MM_TEXT or
  *         \a MM_ANISOTROPIC.
  *
  * \sa SetWindowExt, SetViewportExt, SetMapMode
@@ -4068,7 +4068,7 @@ MG_EXPORT BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int cw
  * So far, MiniGUI support two mapping modes: MM_TEXT and MM_ANISOTROPIC.
  *
  * \param hdc The device context.
- * \param mapmode The new mapping mode, should be either \a MM_TEXT or 
+ * \param mapmode The new mapping mode, should be either \a MM_TEXT or
  *        \a MM_ANISOTROPIC.
  * \return The old mapping mode, either \a MM_TEXT or \a MM_ANISOTROPIC.
  *
@@ -4081,11 +4081,11 @@ MG_EXPORT BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int cw
  * \fn void GUIAPI GetDCLCS (HDC hdc, int which, POINT* pt)
  * \brief Retrieves mapping parameters of a device context.
  *
- * This function retrieves mapping paramters of the specified device context 
+ * This function retrieves mapping paramters of the specified device context
  * \a hdc when the mapping mode is not \a MM_TEXT.
  *
  * \param hdc The device context.
- * \param which Which parameter you want to retrieve, can be one of 
+ * \param which Which parameter you want to retrieve, can be one of
  *        the following values:
  *
  *      - DC_LCS_VORG\n
@@ -4096,9 +4096,9 @@ MG_EXPORT BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int cw
  *        Retrieves the x-coordinates and y-coordinates of the window origin.
  *      - DC_LCS_WEXT\n
  *        Retrieves the x-extents and y-extents of the window.
- *        
+ *
  * \param pt The coordinates or extents will be returned through this buffer.
- * 
+ *
  * \sa GetMapMode, SetMapMode, SetDCLCS
  */
 MG_EXPORT void GUIAPI GetDCLCS (HDC hdc, int which, POINT* pt);
@@ -4111,7 +4111,7 @@ MG_EXPORT void GUIAPI GetDCLCS (HDC hdc, int which, POINT* pt);
  * when the mapping mode is not \a MM_TEXT.
  *
  * \param hdc The device context.
- * \param which Which parameter you want to retrieve, can be one of 
+ * \param which Which parameter you want to retrieve, can be one of
  *        the following values:
  *
  *      - DC_LCS_VORG\n
@@ -4122,9 +4122,9 @@ MG_EXPORT void GUIAPI GetDCLCS (HDC hdc, int which, POINT* pt);
  *        Sets the x-coordinates and y-coordinates of the window origin.
  *      - DC_LCS_WEXT\n
  *        Sets the x-extents and y-extents of the window.
- *        
+ *
  * \param pt The coordinates or extents will be set.
- * 
+ *
  * \sa GetMapMode, SetMapMode, GetDCLCS
  */
 MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
@@ -4137,10 +4137,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def GetViewportOrg(hdc, pPt)
- * \brief Retrieves the x-coordinates and y-coordinates of the viewport 
+ * \brief Retrieves the x-coordinates and y-coordinates of the viewport
  *        origin for a device context.
  *
- * This function retrieves the x-coordinates and y-coordinates of 
+ * This function retrieves the x-coordinates and y-coordinates of
  * the viewport origin of the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4152,10 +4152,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def GetViewportExt(hdc, pPt)
- * \brief Retrieves the x-extents and y-extents of the current viewport for 
+ * \brief Retrieves the x-extents and y-extents of the current viewport for
  *        a device context.
  *
- * This function retrieves the x-extents and y-extens of the current viewport of 
+ * This function retrieves the x-extents and y-extens of the current viewport of
  * the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4167,10 +4167,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def GetWindowOrg(hdc, pPt)
- * \brief Retrieves the x-coordinates and y-coordinates of the window for 
+ * \brief Retrieves the x-coordinates and y-coordinates of the window for
  *        a device context.
  *
- * This function retrieves the x-coordinates and y-coordinates of 
+ * This function retrieves the x-coordinates and y-coordinates of
  * the window origin of the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4182,10 +4182,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def GetWindowExt(hdc, pPt)
- * \brief Retrieves the x-extents and y-extents of the current window for 
+ * \brief Retrieves the x-extents and y-extents of the current window for
  *        a device context.
  *
- * This function retrieves the x-extents and y-extens of the current window of 
+ * This function retrieves the x-extents and y-extens of the current window of
  * the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4197,10 +4197,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def SetViewportOrg(hdc, pPt)
- * \brief Sets the x-coordinates and y-coordinates of the viewport origin for 
+ * \brief Sets the x-coordinates and y-coordinates of the viewport origin for
  *        a device context.
  *
- * This function sets the x-coordinates and y-coordinates of 
+ * This function sets the x-coordinates and y-coordinates of
  * the viewport origin of the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4212,10 +4212,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def SetViewportExt(hdc, pPt)
- * \brief Sets the x-extents and y-extents of the current viewport for 
+ * \brief Sets the x-extents and y-extents of the current viewport for
  *        a device context.
  *
- * This function sets the x-extents and y-extens of the current viewport of 
+ * This function sets the x-extents and y-extens of the current viewport of
  * the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4227,10 +4227,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def SetWindowOrg(hdc, pPt)
- * \brief Sets the x-coordinates and y-coordinates of the window for 
+ * \brief Sets the x-coordinates and y-coordinates of the window for
  *        a device context.
  *
- * This function sets the x-coordinates and y-coordinates of 
+ * This function sets the x-coordinates and y-coordinates of
  * the window origin of the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4242,10 +4242,10 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 
 /**
  * \def SetWindowExt(hdc, pPt)
- * \brief Sets the x-extents and y-extents of the current window for 
+ * \brief Sets the x-extents and y-extents of the current window for
  *        a device context.
  *
- * This function sets the x-extents and y-extens of the current window of 
+ * This function sets the x-extents and y-extens of the current window of
  * the specified device context \a hdc.
  *
  * \param hdc The device context.
@@ -4258,15 +4258,15 @@ MG_EXPORT void GUIAPI SetDCLCS (HDC hdc, int which, const POINT* pt);
 /**
  * \fn void GUIAPI DPtoLP (HDC hdc, POINT* pPt)
  * \brief Converts device coordinates into logical coordinates.
- * 
- * This function converts device coordinates into logical coordinates 
+ *
+ * This function converts device coordinates into logical coordinates
  * in the device context \a hdc.
  *
- * The conversion depends on the mapping mode of the display context, 
- * the settings of the origins and extents for the window and viewport. 
- * The x-coordinate and y-coordinate contained in struct \a pPt will be 
+ * The conversion depends on the mapping mode of the display context,
+ * the settings of the origins and extents for the window and viewport.
+ * The x-coordinate and y-coordinate contained in struct \a pPt will be
  * transformed.
- * 
+ *
  * \param hdc The device context.
  * \param pPt The coordinates to be converted, and the transformed coordinates
  *        will be contained in this buffer after the function returns.
@@ -4279,15 +4279,15 @@ MG_EXPORT void GUIAPI DPtoLP (HDC hdc, POINT* pPt);
 /**
  * \fn void GUIAPI LPtoDP (HDC hdc, POINT* pPt)
  * \brief Converts logical coordinates into device coordinates.
- * 
- * This function converts logical coordinates into device coordinates 
+ *
+ * This function converts logical coordinates into device coordinates
  * in the device context \a hdc.
  *
- * The conversion depends on the mapping mode of the display context, 
+ * The conversion depends on the mapping mode of the display context,
  * the settings of the origins and extents for the window and viewport.
- * The x-coordinate and y-coordinate contained in struct \a pPt will be 
+ * The x-coordinate and y-coordinate contained in struct \a pPt will be
  * transformed.
- * 
+ *
  * \param hdc The device context.
  * \param pPt The coordinates to be converted, and the transformed coordinates
  *        will be contained in this buffer after the function returns.
@@ -4299,15 +4299,15 @@ MG_EXPORT void GUIAPI LPtoDP (HDC hdc, POINT* pPt);
 /**
  * \fn void GUIAPI SPtoLP (HDC hdc, POINT* pPt)
  * \brief Converts screen coordinates into logical coordinates.
- * 
- * This function converts screen coordinates into logical coordinates 
+ *
+ * This function converts screen coordinates into logical coordinates
  * in the device context \a hdc.
  *
- * The conversion depends on the mapping mode of the display context, 
- * the settings of the origins and extents for the window and viewport. 
- * The x-coordinate and y-coordinate contained in struct \a pPt will be 
+ * The conversion depends on the mapping mode of the display context,
+ * the settings of the origins and extents for the window and viewport.
+ * The x-coordinate and y-coordinate contained in struct \a pPt will be
  * transformed.
- * 
+ *
  * \param hdc The device context.
  * \param pPt The coordinates to be converted, and the transformed coordinates
  *        will be contained in this buffer after the function returns.
@@ -4320,15 +4320,15 @@ MG_EXPORT void GUIAPI SPtoLP(HDC hdc, POINT* pPt);
 /**
  * \fn void GUIAPI LPtoSP (HDC hdc, POINT* pPt)
  * \brief Converts logical coordinates into screen coordinates.
- * 
- * This function converts logical coordinates into screen coordinates 
+ *
+ * This function converts logical coordinates into screen coordinates
  * in the device context \a hdc.
  *
- * The conversion depends on the mapping mode of the display context, 
- * the settings of the origins and extents for the window and viewport. 
- * The x-coordinate and y-coordinate contained in struct \a pPt will be 
+ * The conversion depends on the mapping mode of the display context,
+ * the settings of the origins and extents for the window and viewport.
+ * The x-coordinate and y-coordinate contained in struct \a pPt will be
  * transformed.
- * 
+ *
  * \param hdc The device context.
  * \param pPt The coordinates to be converted, and the transformed coordinates
  *        will be contained in this buffer after the function returns.
@@ -4346,10 +4346,10 @@ MG_EXPORT void GUIAPI LPtoSP(HDC hdc, POINT* pPt);
 
 /**
  * \fn void GUIAPI ExcludeClipRect (HDC hdc, const RECT* prc)
- * \brief Excludes the specified rectangle from the current visible region of 
+ * \brief Excludes the specified rectangle from the current visible region of
  *        a DC.
  *
- * This function excludes the specified rect \a prc from the current visible 
+ * This function excludes the specified rect \a prc from the current visible
  * region of the device context \a hdc.
  *
  * \param hdc The device context.
@@ -4361,10 +4361,10 @@ MG_EXPORT void GUIAPI ExcludeClipRect (HDC hdc, const RECT* prc);
 
 /**
  * \fn void GUIAPI IncludeClipRect (HDC hdc, const RECT* prc)
- * \brief Includes the specified rectangle to the current visible region of 
+ * \brief Includes the specified rectangle to the current visible region of
  *        a DC.
  *
- * This function includes the specified rectangle \a prc to the current 
+ * This function includes the specified rectangle \a prc to the current
  * visible region of the device context \a hdc.
  *
  * \param hdc The device context.
@@ -4377,9 +4377,9 @@ MG_EXPORT void GUIAPI IncludeClipRect (HDC hdc, const RECT* prc);
 /**
  * \fn BOOL GUIAPI PtVisible (HDC hdc, int x, int y)
  * \brief Checks whether a point is visible.
- * 
+ *
  * This function checks whether the point specified by \a (x,y) is visible, i.e.
- * it is within the current visible clipping region of the device context 
+ * it is within the current visible clipping region of the device context
  * \a hdc.
  *
  * \param hdc The device context.
@@ -4395,26 +4395,26 @@ MG_EXPORT BOOL GUIAPI PtVisible (HDC hdc, int x, int y);
  * \fn void GUIAPI ClipRectIntersect (HDC hdc, const RECT* prc)
  * \brief Intersects the specified rectangle with the visible region of the DC.
  *
- * This function intersects the specified rectangle \a prc with the visible 
+ * This function intersects the specified rectangle \a prc with the visible
  * region of the device context \a hdc.
  *
  * \param hdc The device context.
  * \param prc Pointer to the rectangle.
- * 
+ *
  * \sa IncludeClipRect, ExcludeClipRect, region_fns
  */
 MG_EXPORT void GUIAPI ClipRectIntersect (HDC hdc, const RECT* prc);
 
 /**
  * \fn void GUIAPI SelectClipRect (HDC hdc, const RECT* prc)
- * \brief Sets the visible region of a DC to be a rectangle. 
+ * \brief Sets the visible region of a DC to be a rectangle.
  *
- * This function sets the visible region of the device context \a hdc 
+ * This function sets the visible region of the device context \a hdc
  * to the rectangle pointed to by \a prc.
  *
  * \param hdc The device context.
  * \param prc Pointer to the rectangle.
- * 
+ *
  * \sa SelectClipRegion, region_fns
  */
 MG_EXPORT void GUIAPI SelectClipRect (HDC hdc, const RECT* prc);
@@ -4427,48 +4427,48 @@ MG_EXPORT void GUIAPI SelectClipRect (HDC hdc, const RECT* prc);
 
 /**
  * \fn int GUIAPI SelectClipRegionEx (HDC hdc, const CLIPRGN* pRgn, int fnMode)
- * \brief Combines the specified region with the current clipping 
+ * \brief Combines the specified region with the current clipping
  *        region using the specified mode.
  *
- * This function combines the specified region with the current 
+ * This function combines the specified region with the current
  * clipping region using the specified mode.
  *
- * If an error occurs when this function is called, the previous 
+ * If an error occurs when this function is called, the previous
  * clipping region for the specified device context is not affected.
  *
- * The SelectClipRegionEx function assumes that the coordinates 
+ * The SelectClipRegionEx function assumes that the coordinates
  * for the specified region are specified in device units.
  *
- * Only a copy of the region identified by the pRgn parameter is used. 
+ * Only a copy of the region identified by the pRgn parameter is used.
  * The region itself can be reused after this call or it can be deleted.
  *
  * \param hdc Handle to the device context.
- * \param pRgn Pointer to the region to be selected. This handle can 
+ * \param pRgn Pointer to the region to be selected. This handle can
  *        only be NULL when the RGN_COPY mode is specified.
- * \param fnMode Specifies the operation to be performed. It must be one of 
+ * \param fnMode Specifies the operation to be performed. It must be one of
  *        the following values:
  *
  *        - RGN_AND\n
- *          The new clipping region combines the overlapping areas of 
+ *          The new clipping region combines the overlapping areas of
  *          the current clipping region and the region identified by pRgn.
  *        - RGN_COPY\n
- *          The new clipping region is a copy of the region identified 
- *          by pRgn. This is identical to SelectClipRegion. If the 
- *          region identified by pRgn is NULL, the new clipping region 
- *          is the default clipping region (the default clipping region 
+ *          The new clipping region is a copy of the region identified
+ *          by pRgn. This is identical to SelectClipRegion. If the
+ *          region identified by pRgn is NULL, the new clipping region
+ *          is the default clipping region (the default clipping region
  *          is a null region).
  *        - RGN_DIFF\n
- *          The new clipping region combines the areas of the current 
- *          clipping region with those areas excluded from the region 
+ *          The new clipping region combines the areas of the current
+ *          clipping region with those areas excluded from the region
  *          identified by hrgn.
  *        - RGN_OR\n
- *          The new clipping region combines the current clipping region 
+ *          The new clipping region combines the current clipping region
  *          and the region identified by hrgn.
  *        - RGN_XOR\n
- *          The new clipping region combines the current clipping region 
+ *          The new clipping region combines the current clipping region
  *          and the region identified by hrgn but excludes any overlapping areas.
  *
- * \return The return value specifies the new clipping region's complexity; 
+ * \return The return value specifies the new clipping region's complexity;
  *         it can be one of the following values.
  *
  * \retval NULLREGION     Region is empty.
@@ -4478,36 +4478,36 @@ MG_EXPORT void GUIAPI SelectClipRect (HDC hdc, const RECT* prc);
  *
  * \sa SelectClipRect, SelectClipRegion, GetClipRegion, region_fns
  */
-MG_EXPORT int GUIAPI SelectClipRegionEx (HDC hdc, const CLIPRGN* pRgn, 
+MG_EXPORT int GUIAPI SelectClipRegionEx (HDC hdc, const CLIPRGN* pRgn,
                 int fnMode);
 
 /**
  * \fn void GUIAPI SelectClipRegion (HDC hdc, const CLIPRGN* pRgn)
- * \brief Sets the visible region of a DC to be a region. 
+ * \brief Sets the visible region of a DC to be a region.
  *
- * This function sets the visible region of the device context \a hdc 
+ * This function sets the visible region of the device context \a hdc
  * to the region pointed to by \a pRgn.
  *
  * \param hdc The device context.
  * \param pRgn Pointer to the region.
- * 
+ *
  * \sa SelectClipRect, GetClipRegion, region_fns
  */
 MG_EXPORT void GUIAPI SelectClipRegion (HDC hdc, const CLIPRGN* pRgn);
 
 /**
  * \fn int GUIAPI OffsetClipRegion (HDC hdc, int off_x, int off_y)
- * \brief Moves the clipping region of a device context by the 
+ * \brief Moves the clipping region of a device context by the
  *        specified offsets.
  *
- * This function moves the clipping region of a device context \a hdc by 
+ * This function moves the clipping region of a device context \a hdc by
  * the specified offsets (off_x, off_y).
  *
  * \param hdc Handle to the device context.
  * \param off_x Specifies the number of device units to move left or right.
  * \param off_y pecifies the number of device units to move up or down.
- * 
- * \return The return value specifies the new clipping region's complexity; 
+ *
+ * \return The return value specifies the new clipping region's complexity;
  *         it can be one of the following values.
  *
  * \retval NULLREGION     Region is empty.
@@ -4523,7 +4523,7 @@ MG_EXPORT int GUIAPI OffsetClipRegion (HDC hdc, int nXOffset, int nYOffset);
  * \fn void GUIAPI GetBoundsRect (HDC hdc, RECT* pRect)
  * \brief Retrieves the bounding rectangle of the current visible region of a DC.
  *
- * This function retrieves the bounding rectangle of the current visible region 
+ * This function retrieves the bounding rectangle of the current visible region
  * of the specified device context \a hdc, and returned through \a pRect.
  *
  * \param hdc The device context.
@@ -4537,8 +4537,8 @@ MG_EXPORT void GUIAPI GetBoundsRect (HDC hdc, RECT* pRect);
  * \fn BOOL GUIAPI RectVisible (HDC hdc, const RECT* pRect)
  * \brief Checks whether the specified rectangle is visible.
  *
- * This function checks whether the rectangle pointed to by \a pRect is 
- * visible, i.e. it is intersected with the current visible region of the 
+ * This function checks whether the rectangle pointed to by \a pRect is
+ * visible, i.e. it is intersected with the current visible region of the
  * device context \a hdc.
  *
  * \param hdc The device context.
@@ -4556,13 +4556,13 @@ MG_EXPORT BOOL GUIAPI RectVisible (HDC hdc, const RECT* pRect);
  * \fn int GetClipBox (HDC hdc, RECT* clipbox)
  * \brief Retrieves the bounding rectangle of the current clipping region of a DC.
  *
- * This function retrieves the bounding rectangle of the current clipping region 
+ * This function retrieves the bounding rectangle of the current clipping region
  * of the specified device context \a hdc, and returned through \a clipbox.
  *
  * \param hdc The device context.
  * \param clipbox The bounding rectangle will be returned through this buffer.
  *
- * \return -1 for error, else the type of clipping region, can be one of 
+ * \return -1 for error, else the type of clipping region, can be one of
  *        the following values:
  *   - NULLREGION\n     A null region.
  *   - SIMPLEREGION\n   A simple region.
@@ -4576,13 +4576,13 @@ MG_EXPORT int GUIAPI GetClipBox (HDC hdc, RECT* clipbox);
  * \fn int GetClipRegion (HDC hdc, CLIPRGN* cliprgn)
  * \brief Gets the current clipping region of a DC.
  *
- * This function gets the current clipping region 
+ * This function gets the current clipping region
  * of the specified device context \a hdc, and returned through \a cliprgn.
  *
  * \param hdc The device context.
  * \param cliprgn The clipping region will be returned through this buffer.
  *
- * \return -1 for error, else the type of clipping region, can be one of 
+ * \return -1 for error, else the type of clipping region, can be one of
  *        the following values:
  *   - NULLREGION\n     A null region.
  *   - SIMPLEREGION\n   A simple region.
@@ -4607,11 +4607,11 @@ MG_EXPORT int GUIAPI GetClipRegion (HDC hdc, CLIPRGN* cliprgn);
 /**
  * \fn BOOL GUIAPI GetBitmapFromDC (HDC hdc, \
                 int x, int y, int w, int h, BITMAP* bmp)
- * \brief Gets image box on a DC and saves it into a BITMAP object. 
+ * \brief Gets image box on a DC and saves it into a BITMAP object.
  *
  * This function gets image box on the specified device context \a hdc,
- * and saves the image bits into the BITMAP object pointed to by \a bmp. 
- * The image box begins at \a (x,y), and is \a w wide and \a h high. 
+ * and saves the image bits into the BITMAP object pointed to by \a bmp.
+ * The image box begins at \a (x,y), and is \a w wide and \a h high.
  * You must make sure that \a bmp->bits is big enough to store the image.
  *
  * \param hdc The device context.
@@ -4622,12 +4622,12 @@ MG_EXPORT int GUIAPI GetClipRegion (HDC hdc, CLIPRGN* cliprgn);
  * \param bmp The pointer to the BITMAP object.
  *
  * \note If BITMAP's bmPitch is zero or bmBits is NULL, it will be malloc bmBits
- * internal, you need init the BITMAP surely(such as \a InitBitmap) or 
- * memset(bmp, 0, sizeof(BITMAP)). 
+ * internal, you need init the BITMAP surely(such as \a InitBitmap) or
+ * memset(bmp, 0, sizeof(BITMAP)).
  *
  * \sa FillBoxWithBitmap, bmp_struct
  */
-MG_EXPORT BOOL GUIAPI GetBitmapFromDC (HDC hdc, 
+MG_EXPORT BOOL GUIAPI GetBitmapFromDC (HDC hdc,
                 int x, int y, int w, int h, BITMAP* bmp);
 
 /**
@@ -4635,32 +4635,32 @@ MG_EXPORT BOOL GUIAPI GetBitmapFromDC (HDC hdc,
                 int x, int y, int w, int h, const BITMAP *bmp)
  * \brief Fills a box with a BITMAP object.
  *
- * This function fills a box with a BITMAP object pointed to by \a bmp. 
- * \a (x,y) is the upper-left corner of the box, and \a w, \a h are 
- * the width and the height of the box respectively. 
+ * This function fills a box with a BITMAP object pointed to by \a bmp.
+ * \a (x,y) is the upper-left corner of the box, and \a w, \a h are
+ * the width and the height of the box respectively.
  *
- * This function will scale the bitmap when necessary; that is, when 
- * the width or the height of the box is not equal to the with or 
+ * This function will scale the bitmap when necessary; that is, when
+ * the width or the height of the box is not equal to the with or
  * the height of the BITMAP object.
  *
  * \param hdc The device context.
  * \param x The x coordinate of the upper-left corner of the box.
  * \param y The y coordinate of the upper-left corner of the box.
  * \param w The width of the box. Can be zero, means the width
- *        or the height will be equal to the width or the height of 
+ *        or the height will be equal to the width or the height of
  *        the BITMAP object.
  * \param h The height of the box. Can be zero, means the width
- *        or the height will be equal to the width or the height of 
+ *        or the height will be equal to the width or the height of
  *        the BITMAP object.
  * \param bmp The pointer to the BITMAP object.
  * \return TRUE on success, otherwise FALSE.
  *
- * \note You can specify the alpha value or the color key of the BITMAP object, 
- *       and the current raster operation was set by \a SetRasterOperation for 
- *       the DC will override the alpha value of color key if ROP is not ROP_SET.  
+ * \note You can specify the alpha value or the color key of the BITMAP object,
+ *       and the current raster operation was set by \a SetRasterOperation for
+ *       the DC will override the alpha value of color key if ROP is not ROP_SET.
  *
- * \note If the bitmap has BMP_TYPE_RLE, the target \a w and \a h will 
- *       be ignored. That is, the scale of the bitmap is not supported 
+ * \note If the bitmap has BMP_TYPE_RLE, the target \a w and \a h will
+ *       be ignored. That is, the scale of the bitmap is not supported
  *       for RLE encoded bitmap.
  *
  * \sa FillBoxWithBitmapPart, GetBitmapFromDC, bmp_load_fns
@@ -4674,54 +4674,54 @@ MG_EXPORT BOOL GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h,
                 int bw, int bh, const BITMAP* bmp, int xo, int yo)
  * \brief Fills a box with a part of a bitmap oject.
  *
- * This function fills a box with a part of a bitmap object pointed to by 
- * \a bmp. \a (x,y) is the upper-left corner of the box, and \a w, \a h are 
- * the width and the height of the box respectively. \a (xo, yo) is the 
- * start position of the part box in the bitmap relative to upper-left 
- * corner of the bitmap, and \a bw, \a bh are the width and the height of 
- * the full bitmap expected. 
+ * This function fills a box with a part of a bitmap object pointed to by
+ * \a bmp. \a (x,y) is the upper-left corner of the box, and \a w, \a h are
+ * the width and the height of the box respectively. \a (xo, yo) is the
+ * start position of the part box in the bitmap relative to upper-left
+ * corner of the bitmap, and \a bw, \a bh are the width and the height of
+ * the full bitmap expected.
  *
- * If \a bw or \a bh is less than or equal to zero, this function will use 
- * the original width and height of the bitmap, else it will scale 
- * the BITMAP object when necessary; that is, when bw or bh 
+ * If \a bw or \a bh is less than or equal to zero, this function will use
+ * the original width and height of the bitmap, else it will scale
+ * the BITMAP object when necessary; that is, when bw or bh
  * is not equal to the width or the height of the BITMAP object.
  *
  * \param hdc The device context.
  * \param x The x coordinate of the upper-left corner of the box.
  * \param y The y coordinate of the upper-left corner of the box.
- * \param w The width of the box. 
- * \param h The height of the box. 
- * \param bw The width of the full bitmap expected. 
- *        Can be zero, means the width or the height will be equal to 
+ * \param w The width of the box.
+ * \param h The height of the box.
+ * \param bw The width of the full bitmap expected.
+ *        Can be zero, means the width or the height will be equal to
  *        the width or the height of the BITMAP object.
- * \param bh The height of the full bitmap expected. 
- *        Can be zero, means the width or the height will be equal to 
+ * \param bh The height of the full bitmap expected.
+ *        Can be zero, means the width or the height will be equal to
  *        the width or the height of the BITMAP object.
- * \param xo xo,yo: The start position of the part box in the bitmap 
+ * \param xo xo,yo: The start position of the part box in the bitmap
  *        relative to upper-left corner of the BITMAP object.
- * \param yo xo,yo: The start position of the part box in the bitmap 
+ * \param yo xo,yo: The start position of the part box in the bitmap
  *        relative to upper-left corner of the BITMAP object.
  * \param bmp The pointer to the BITMAP object.
  * \return TRUE on success, otherwise FALSE.
  *
- * \note 1: You can specify the alpha value or the color key of the BITMAP 
- *          object, and the current raster operation was set by 
- *          \a SetRasterOperation for the DC will override the alpha 
- *          value or the color key if ROP is not ROP_SET. 
+ * \note 1: You can specify the alpha value or the color key of the BITMAP
+ *          object, and the current raster operation was set by
+ *          \a SetRasterOperation for the DC will override the alpha
+ *          value or the color key if ROP is not ROP_SET.
  * \note 2: xo/yo must be greater zero and (xo + w) < bw, (yo + h) < bh.
  *          else with fill nothing.
  *
  * \note 3: xo/yo must be multiply scale factor when bitmap scaled.
  *
- * \note 4: if bw or bh is not equal to he width or the height of the 
- *          BITMAP object, it will be scale bitmap, but fill box is 
+ * \note 4: if bw or bh is not equal to he width or the height of the
+ *          BITMAP object, it will be scale bitmap, but fill box is
  *          also (0, 0, w,h).
  *
  * \note The RLE encoded bitmap is not supported by this function so far.
  *
  * \sa FillBoxWithBitmap, GetBitmapFromDC, bmp_struct
  */
-MG_EXPORT BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, 
+MG_EXPORT BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc,
                 int x, int y, int w, int h,
                 int bw, int bh, const BITMAP* bmp, int xo, int yo);
 
@@ -4743,40 +4743,40 @@ MG_EXPORT BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc,
  * \param bmp_y The visible part's top of bitmap
  * \param bmp_w The visible part's width of bitmap
  * \param bmp_h The visible part's height of bitmap
- * 
+ *
  * \sa FillBoxWidthBitmapPart
  */
 
-MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y, 
-                int box_w, int box_h, const BITMAP* pbmp, int bmp_x, int bmp_y, 
+MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
+                int box_w, int box_h, const BITMAP* pbmp, int bmp_x, int bmp_y,
                 int bmp_w, int bmp_h);
 
 /**
  * \fn void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh, \
                 HDC hddc, int dx, int dy, DWORD dwRop)
- * \brief Performs a bit-block transfer from a device context into 
+ * \brief Performs a bit-block transfer from a device context into
  *        another device context.
  *
- * This function performs a bit-block transfer of the color data cooresponding 
- * to a rectangle of pixels from the specified source device context \a hsdc 
- * into a destination device context \a hddc. \a (sx,sy,sw,sh) specifies the 
- * rectangle in the source DC, and \a (dx,dy) specifies the position of the 
- * rectangle in the destination DC. Note that the size of the two rectangles 
+ * This function performs a bit-block transfer of the color data cooresponding
+ * to a rectangle of pixels from the specified source device context \a hsdc
+ * into a destination device context \a hddc. \a (sx,sy,sw,sh) specifies the
+ * rectangle in the source DC, and \a (dx,dy) specifies the position of the
+ * rectangle in the destination DC. Note that the size of the two rectangles
  * are identical.
  *
  * Note that all coordinates should be in the device space.
  *
  * \param hsdc The source device context.
- * \param sx The x coordinate of the upper-left corner of the rectangle 
+ * \param sx The x coordinate of the upper-left corner of the rectangle
  *        in the source DC.
- * \param sy The y coordinate of the upper-left corner of the rectangle 
+ * \param sy The y coordinate of the upper-left corner of the rectangle
  *        in the source DC.
  * \param sw The width of the source rectangle.
  * \param sh The height of the source rectangle.
  * \param hddc The destination device context \a hddc.
- * \param dx The x coordinate of the upper-left corner of the rectangle 
+ * \param dx The x coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
- * \param dy The y coordinate of the upper-left corner of the rectangle 
+ * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
  * \param dwRop The raster operation, currently ignored.
  *
@@ -4784,32 +4784,32 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
  *
  * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey
  */
-MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh, 
+MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, DWORD dwRop);
 
 /**
  * \fn void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh, \
                 HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
- * \brief Copies a bitmap from a source rectangle into a destination 
+ * \brief Copies a bitmap from a source rectangle into a destination
  *        rectangle, streches the bitmap if necessary.
  *
- * This function copies a bitmap from a source rectangle into a destination 
- * rectangle, streching or compressing the bitmap to fit the dimension of 
- * the destination rectangle, if necessary. This function is similar with 
- * \sa BitBlt function except the former scaling the bitmap.  \a (dw,dh) 
+ * This function copies a bitmap from a source rectangle into a destination
+ * rectangle, streching or compressing the bitmap to fit the dimension of
+ * the destination rectangle, if necessary. This function is similar with
+ * \sa BitBlt function except the former scaling the bitmap.  \a (dw,dh)
  * specifies the size of the destination rectangle.
- * 
+ *
  * \param hsdc The source device context.
- * \param sx The x coordinate of the upper-left corner of the rectangle 
+ * \param sx The x coordinate of the upper-left corner of the rectangle
  *        in the source DC.
- * \param sy The y coordinate of the upper-left corner of the rectangle 
+ * \param sy The y coordinate of the upper-left corner of the rectangle
  *        in the source DC.
  * \param sw The width of the source rectangle.
  * \param sh The height of the source rectangle.
  * \param hddc The destination device context \a hddc.
- * \param dx The x coordinate of the upper-left corner of the rectangle 
+ * \param dx The x coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
- * \param dy The y coordinate of the upper-left corner of the rectangle 
+ * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
  * \param dw The width of the destination rectangle.
  * \param dh The height of the destination rectangle.
@@ -4820,12 +4820,12 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  *
  * \note The source DC and dest DC must compatible, else will do nothing.
  *
- * \note The alpha and color key settings of the source DC will not come 
+ * \note The alpha and color key settings of the source DC will not come
  *       into play.
- * 
+ *
  * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey
  */
-MG_EXPORT void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh, 
+MG_EXPORT void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);
 
 /**
@@ -4835,19 +4835,19 @@ MG_EXPORT void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  *        algorithm.
  *
  * This function scales a BITMAP object \a src into another BITMAO object \a dst
- * by specify algorithm. The source rectangle and the destination rectangle 
+ * by specify algorithm. The source rectangle and the destination rectangle
  * both are defined in the BITMAP objects.
  *
  * \param dst The destination BITMAP object.
  * \param src The srouce BITMAP object.
- * \param ref_dc The device context of Bitmap's relative device dc. 
+ * \param ref_dc The device context of Bitmap's relative device dc.
  * \return TRUE on success, otherwise FALSE.
  *
  * \note you should init the dst Bitmap first, such as bmPitch and bmBits.
  *
  * \sa FillBoxWithBitmap, StretchBlt, bmp_struct
  */
-MG_EXPORT BOOL GUIAPI ScaleBitmapEx (BITMAP* dst, const BITMAP* src, 
+MG_EXPORT BOOL GUIAPI ScaleBitmapEx (BITMAP* dst, const BITMAP* src,
         HDC ref_dc);
 
 #define ScaleBitmap(dst, src) ScaleBitmapEx(dst, src, HDC_SCREEN)
@@ -4856,13 +4856,13 @@ MG_EXPORT BOOL GUIAPI ScaleBitmapEx (BITMAP* dst, const BITMAP* src,
  * \fn gal_pixel GUIAPI GetPixelInBitmapEx (const BITMAP* bmp, int x, int y, Uint8* alpha)
  * \brief Returns the pixel value in a BITMAP object.
  *
- * This function returns the pixel value and alpha at the position \a (x,y) in 
+ * This function returns the pixel value and alpha at the position \a (x,y) in
  * the BITMAP object \a bmp.
  *
  * \param bmp The BITMAP object.
- * \param x x,y: The position of the pixel in the bitmap relative to 
+ * \param x x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
- * \param y x,y: The position of the pixel in the bitmap relative to 
+ * \param y x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
  * \param alpha The point to alpha of position (x, y).
  * \return The pixel value, if the position is out of the bitmap,
@@ -4879,13 +4879,13 @@ MG_EXPORT gal_pixel GUIAPI GetPixelInBitmapEx (const BITMAP* bmp, int x, int y, 
  * \fn static inline gal_pixel GUIAPI GetPixelInBitmap (const BITMAP* bmp, int x, int y)
  * \brief Returns the pixel value in a BITMAP object.
  *
- * This function returns the pixel value at the position \a (x,y) in 
+ * This function returns the pixel value at the position \a (x,y) in
  * the BITMAP object \a bmp.
  *
  * \param bmp The BITMAP object.
- * \param x x,y: The position of the pixel in the bitmap relative to 
+ * \param x x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
- * \param y x,y: The position of the pixel in the bitmap relative to 
+ * \param y x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
  * \return The pixel value, if the position is out of the bitmap,
  *         zero returned.
@@ -4902,18 +4902,18 @@ static inline gal_pixel GUIAPI GetPixelInBitmap (const BITMAP* bmp, int x, int y
                 int x, int y, gal_pixel pixel, Uint8* alpha)
  * \brief Sets pixel and alpha value in a BITMAP object.
  *
- * This function sets the pixel and alpha value  at the position \a (x,y) in 
+ * This function sets the pixel and alpha value  at the position \a (x,y) in
  * the BITMAP object \a bmp.
  *
  * \param bmp The BITMAP object.
- * \param x x,y: The position of the pixel in the bitmap relative to 
+ * \param x x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
- * \param y x,y: The position of the pixel in the bitmap relative to 
+ * \param y x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
  * \param pixel The pixel value.
  * \param alpha The point to alpha of position (x, y).
  *
- * \return TRUE on success. If the position is out of the bitmap, 
+ * \return TRUE on success. If the position is out of the bitmap,
  *         FALSE returned.
  *
  * \note if the bitmap with BMP_TYPE_ALPHA_MASK flag, the alpha value will
@@ -4921,7 +4921,7 @@ static inline gal_pixel GUIAPI GetPixelInBitmap (const BITMAP* bmp, int x, int y
  *
  * \sa GetPixelInBitmap, bmp_struct
  */
-MG_EXPORT BOOL GUIAPI SetPixelInBitmapEx (const BITMAP* bmp, 
+MG_EXPORT BOOL GUIAPI SetPixelInBitmapEx (const BITMAP* bmp,
                 int x, int y, gal_pixel pixel, const Uint8* alpha);
 
 /**
@@ -4929,17 +4929,17 @@ MG_EXPORT BOOL GUIAPI SetPixelInBitmapEx (const BITMAP* bmp,
                 int x, int y, gal_pixel pixel)
  * \brief Sets pixel value in a BITMAP object.
  *
- * This function sets the pixel value at the position \a (x,y) in 
+ * This function sets the pixel value at the position \a (x,y) in
  * the BITMAP object \a bmp.
  *
  * \param bmp The BITMAP object.
- * \param x x,y: The position of the pixel in the bitmap relative to 
+ * \param x x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
- * \param y x,y: The position of the pixel in the bitmap relative to 
+ * \param y x,y: The position of the pixel in the bitmap relative to
  *        the upper-left corner of the bitmap.
  * \param pixel The pixel value.
  *
- * \return TRUE on success. If the position is out of the bitmap, 
+ * \return TRUE on success. If the position is out of the bitmap,
  *         FALSE returned.
  *
  * \sa GetPixelInBitmap, bmp_struct
@@ -4957,8 +4957,8 @@ static inline BOOL GUIAPI SetPixelInBitmap (const BITMAP* bmp,
                 const char* filename)
  * \brief Saves content of a rectangle in the screen to a file.
  *
- * This function saves the content of the rect \a rc to the image 
- * file \a filename. MiniGUI uses the extension name of the file to 
+ * This function saves the content of the rect \a rc to the image
+ * file \a filename. MiniGUI uses the extension name of the file to
  * determine the format of the image file.
  *
  * \param rc The RECT object defined the rectangle in the screen.
@@ -4970,15 +4970,15 @@ static inline BOOL GUIAPI SetPixelInBitmap (const BITMAP* bmp,
  *
  * \sa bmp_load_fns
  */
-MG_EXPORT BOOL GUIAPI SaveScreenRectContent (const RECT* rcWin, 
+MG_EXPORT BOOL GUIAPI SaveScreenRectContent (const RECT* rcWin,
                 const char* filename);
 
 /**
  * \fn BOOL GUIAPI SaveMainWindowContent (HWND hWnd, const char* filename)
  * \brief Saves content of a main window to a file.
  *
- * This function saves the content of the main window \a hWnd to the image 
- * file \a filename. MiniGUI uses the extension name of the file to 
+ * This function saves the content of the main window \a hWnd to the image
+ * file \a filename. MiniGUI uses the extension name of the file to
  * determine the format of the image file.
  *
  * \param hWnd Handle to the main window.
@@ -5004,11 +5004,11 @@ MG_EXPORT BOOL GUIAPI SaveMainWindowContent (HWND hWnd, const char* filename);
  * \fn HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
  * \brief Loads an icon from a Windows ICO file.
  *
- * This function loads an icon from a Windows ICO file named \a filename 
- * and creates an icon object. This function can load mono-,16-color and 
- * 256-color icons.Some Windows ICO file contain two icons in different 
- * sizes. You can tell this function to load which icon though \a which, 
- * 0 for the first icon, and 1 for the second icon. Generally, the later 
+ * This function loads an icon from a Windows ICO file named \a filename
+ * and creates an icon object. This function can load mono-,16-color and
+ * 256-color icons.Some Windows ICO file contain two icons in different
+ * sizes. You can tell this function to load which icon though \a which,
+ * 0 for the first icon, and 1 for the second icon. Generally, the later
  * icon is the larger icon.
  * \param hdc The device context.
  * \param filename The file name of the ICO file.
@@ -5017,7 +5017,7 @@ MG_EXPORT BOOL GUIAPI SaveMainWindowContent (HWND hWnd, const char* filename);
  *
  * \sa CreateIconEx
  */
-MG_EXPORT HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, 
+MG_EXPORT HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename,
                 int which);
 
 /**
@@ -5026,9 +5026,9 @@ MG_EXPORT HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename,
  *
  * This function loads an icon from a memroy area pointed to by \a area.
  * The memory area has the same layout as the M$ Windows ICO file.
- * This function can load mono- ,16-color and 256-color icons. 
- * Some Windows ICO file contain two icons in different sizes. You can tell 
- * this function to load which icon though \a which, 0 for the first icon, 
+ * This function can load mono- ,16-color and 256-color icons.
+ * Some Windows ICO file contain two icons in different sizes. You can tell
+ * this function to load which icon though \a which, 0 for the first icon,
  * and 1 for the second icon. Generally, the later icon is the larger icon.
  *
  * \param hdc The device context.
@@ -5046,11 +5046,11 @@ MG_EXPORT HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which);
                 const RGB* pal)
  * \brief Creates an icon object from the memory.
  *
- * This function creates an icon from memory data rather than icon file. 
- * \a w and \a h are the width and the height of the icon respectively. 
- * \a pANDBits and \a pXORBits are AND bitmask and XOR bitmask of the icon. 
+ * This function creates an icon from memory data rather than icon file.
+ * \a w and \a h are the width and the height of the icon respectively.
+ * \a pANDBits and \a pXORBits are AND bitmask and XOR bitmask of the icon.
  * MiniGUI currently support mono-color cursor 256-color icon and 16-color icon,
- * \a colornum specifies the cursor's color depth. For mono-color, it should 
+ * \a colornum specifies the cursor's color depth. For mono-color, it should
  * be 1, and for 16-color cursor, it should be 4.
  *
  * \param hdc The device context.
@@ -5059,13 +5059,13 @@ MG_EXPORT HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which);
  * \param AndBits The pointer to the AND bits of the icon.
  * \param XorBits The pointer to the XOR bits of the icon.
  * \param colornum The bit-per-pixel of XOR bits.
- * \param pal The palette of icon. 
+ * \param pal The palette of icon.
  * \return The handle to the icon object, zero means error occurred.
  *
  * \sa LoadIconFromFile
  */
-MG_EXPORT HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, 
-                const BYTE* AndBits, const BYTE* XorBits, int colornum, 
+MG_EXPORT HICON GUIAPI CreateIconEx (HDC hdc, int w, int h,
+                const BYTE* AndBits, const BYTE* XorBits, int colornum,
                 const RGB* pal);
 /**
  * \def CreateIcon
@@ -5108,7 +5108,7 @@ MG_EXPORT BOOL GUIAPI GetIconSize (HICON hicon, int* w, int* h);
                 int x, int y, int w, int h, HICON hicon)
  * \brief Draws an icon into a box.
  *
- * This function draws an icon object \a hicon into a box specified by 
+ * This function draws an icon object \a hicon into a box specified by
  * \a (x,y,w,h).
  *
  * \param hdc The device context.
@@ -5120,7 +5120,7 @@ MG_EXPORT BOOL GUIAPI GetIconSize (HICON hicon, int* w, int* h);
  *
  * \sa CreateIconEx, LoadIconFromFile
  */
-MG_EXPORT void GUIAPI DrawIcon (HDC hdc, 
+MG_EXPORT void GUIAPI DrawIcon (HDC hdc,
                 int x, int y, int w, int h, HICON hicon);
 
     /** @} end of icon_fns */
@@ -5146,7 +5146,7 @@ MG_EXPORT void GUIAPI DrawIcon (HDC hdc,
  */
 static inline void SetRect (RECT* prc, int left, int top, int right, int bottom)
 {
-    (prc)->left = left; (prc)->top = top; 
+    (prc)->left = left; (prc)->top = top;
     (prc)->right = right; (prc)->bottom = bottom;
 }
 
@@ -5154,9 +5154,9 @@ static inline void SetRect (RECT* prc, int left, int top, int right, int bottom)
  * \fn void SetRectEmpty (RECT* prc)
  * \brief Empties a rectangle.
  *
- * This function empties the rectangle pointed to by \a prc. 
- * An empty rectangle in MiniGUI is a rectangle whose width and height both 
- * are zero. This function will sets all coordinates of the rectangle to 
+ * This function empties the rectangle pointed to by \a prc.
+ * An empty rectangle in MiniGUI is a rectangle whose width and height both
+ * are zero. This function will sets all coordinates of the rectangle to
  * be zero.
  *
  * \param prc The pointer to the rectangle.
@@ -5172,7 +5172,7 @@ static inline void SetRectEmpty (RECT* prc)
  * \fn void CopyRect (RECT* pdrc, const RECT* psrc)
  * \brief Copies one rectangle to another.
  *
- * This function copies the coordinates of the source rectangle 
+ * This function copies the coordinates of the source rectangle
  * pointed to by \a psrc to the destination rectangle pointed to by \a pdrc.
  *
  * \param pdrc The pointer to the destination rectangle.
@@ -5190,8 +5190,8 @@ static inline void CopyRect (RECT* pdrc, const RECT* psrc)
  * \fn void OffsetRect (RECT* prc, int x, int y)
  * \brief Moves a rectangle by offsets.
  *
- * This function moves the specified rectangle by the specified offsets. 
- * \a x and \a y specify the amount to move the rectangle left/right or up/down 
+ * This function moves the specified rectangle by the specified offsets.
+ * \a x and \a y specify the amount to move the rectangle left/right or up/down
  * respectively. \a x must be a negative value to move the rectangle to
  * the left, and \a y must be a negative value to move the rectangle up.
  *
@@ -5210,10 +5210,10 @@ static inline void OffsetRect (RECT* prc, int x, int y)
  * \fn void InflateRect (RECT* prc, int cx, int cy)
  * \brief Increases or decreases the width and height of an rectangle.
  *
- * This function increases or decreases the width and height of 
- * the specified rectangle \a prc. This function adds \a cx units 
- * to the left and right ends of the rectangle and \a cy units to the 
- * top and bottom. the \a cx and \a cy are signed values; positive values 
+ * This function increases or decreases the width and height of
+ * the specified rectangle \a prc. This function adds \a cx units
+ * to the left and right ends of the rectangle and \a cy units to the
+ * top and bottom. the \a cx and \a cy are signed values; positive values
  * increases the width and height, and negative values decreases them.
  *
  * \param prc The pointer to the rectangle.
@@ -5224,7 +5224,7 @@ static inline void OffsetRect (RECT* prc, int x, int y)
  */
 static inline void InflateRect (RECT* prc, int cx, int cy)
 {
-    (prc)->left -= cx; (prc)->top -= cy; 
+    (prc)->left -= cx; (prc)->top -= cy;
     (prc)->right += cx; (prc)->bottom += cy;
 }
 
@@ -5232,7 +5232,7 @@ static inline void InflateRect (RECT* prc, int cx, int cy)
  * \fn void InflateRectToPt (RECT* prc, int x, int y)
  * \brief Inflates a rectangle to contain a point.
  *
- * This function inflates the rectangle \a prc to contain the specified 
+ * This function inflates the rectangle \a prc to contain the specified
  * point \a (x,y).
  *
  * \param prc The pointer to the rectangle.
@@ -5243,7 +5243,7 @@ static inline void InflateRect (RECT* prc, int cx, int cy)
  */
 static inline void InflateRectToPt (RECT* prc, int x, int y)
 {
-    if ((x) < (prc)->left) (prc)->left = (x); 
+    if ((x) < (prc)->left) (prc)->left = (x);
     if ((y) < (prc)->top) (prc)->top = (y);
     if ((x) > (prc)->right) (prc)->right = (x);
     if ((y) > (prc)->bottom) (prc)->bottom = (y);
@@ -5253,11 +5253,11 @@ static inline void InflateRectToPt (RECT* prc, int x, int y)
  * \fn BOOL PtInRect(const RECT* prc, int x, int y)
  * \brief Determines whether a point lies within an rectangle.
  *
- * This function determines whether the specified point \a (x,y) lies within 
+ * This function determines whether the specified point \a (x,y) lies within
  * the specified rectangle \a prc.
  *
- * A point is within a rectangle if it lies on the left or top side or is 
- * within all four sides. A point on the right or bottom side is considered 
+ * A point is within a rectangle if it lies on the left or top side or is
+ * within all four sides. A point on the right or bottom side is considered
  * outside the rectangle.
  *
  * \param prc The pointer to the rectangle.
@@ -5275,8 +5275,8 @@ static inline BOOL PtInRect(const RECT* prc, int x, int y)
  * \fn BOOL GUIAPI IsRectEmpty (const RECT* prc)
  * \brief Determines whether an rectangle is empty.
  *
- * This function determines whether the specified rectangle \a prc is empty. 
- * An empty rectangle is one that has no area; that is, the coordinates 
+ * This function determines whether the specified rectangle \a prc is empty.
+ * An empty rectangle is one that has no area; that is, the coordinates
  * of the right side is equal to the coordinate of the left side, or the
  * coordinates of the bottom side is equal to the coordinate of the top side.
  *
@@ -5289,8 +5289,8 @@ MG_EXPORT BOOL GUIAPI IsRectEmpty (const RECT* prc);
  * \fn BOOL GUIAPI EqualRect (const RECT* prc1, const RECT* prc2)
  * \brief Determines whether two rectangles are equal.
  *
- * This function determines whether the two specified rectangles 
- * (\a prc1 and \a prc2) are equal by comparing the coordinates of 
+ * This function determines whether the two specified rectangles
+ * (\a prc1 and \a prc2) are equal by comparing the coordinates of
  * the upper-left and lower-right corners.
  *
  * \param prc1 The pointers to the first rectangles.
@@ -5303,7 +5303,7 @@ MG_EXPORT BOOL GUIAPI EqualRect (const RECT* prc1, const RECT* prc2);
  * \fn void GUIAPI NormalizeRect (RECT* pRect)
  * \brief Normalizes a rectangle.
  *
- * This function normalizes the rectangle pointed to by \a prc 
+ * This function normalizes the rectangle pointed to by \a prc
  * so that both the height and width are positive.
  *
  * \param pRect The pointer to the rectangle.
@@ -5315,11 +5315,11 @@ MG_EXPORT void GUIAPI NormalizeRect (RECT* pRect);
                 const RECT* psrc1, const RECT* psrc2)
  * \brief Calculates the intersection of two rectangles.
  *
- * This function calculates the intersection of two source rectangles 
- * (\a psrc1 and \a psrc2) and places the coordinates of the intersection 
- * rectangle into the destination rectangle pointed to by \a pdrc. 
- * If the source rectangles do not intersect, and empty rectangle 
- * (in which all coordinates are set to zero) is placed into the destination 
+ * This function calculates the intersection of two source rectangles
+ * (\a psrc1 and \a psrc2) and places the coordinates of the intersection
+ * rectangle into the destination rectangle pointed to by \a pdrc.
+ * If the source rectangles do not intersect, and empty rectangle
+ * (in which all coordinates are set to zero) is placed into the destination
  * rectangle.
  *
  * \param pdrc The pointer to the destination rectangle.
@@ -5330,20 +5330,20 @@ MG_EXPORT void GUIAPI NormalizeRect (RECT* pRect);
  *
  * \sa DoesIntersect, IsCovered
  */
-MG_EXPORT BOOL GUIAPI IntersectRect (RECT* pdrc, 
+MG_EXPORT BOOL GUIAPI IntersectRect (RECT* pdrc,
                 const RECT* psrc1, const RECT* psrc2);
 
 /**
  * \fn BOOL GUIAPI IsCovered (const RECT* prc1, const RECT* prc2)
  * \brief Determines whether one rectangle is covered by another.
  *
- * This function determines whether one rectangle (\a prc1) 
+ * This function determines whether one rectangle (\a prc1)
  * is covered by another rectangle (\a prc2).
  *
  * \param prc1 The first rectangles.
  * \param prc2 The second rectangles.
  *
- * \return TRUE if the first rectangle is covered by the second, 
+ * \return TRUE if the first rectangle is covered by the second,
  *         otherwise FALSE.
  *
  * \sa DoesIntersect
@@ -5354,7 +5354,7 @@ MG_EXPORT BOOL GUIAPI IsCovered (const RECT* prc1, const RECT* prc2);
  * \fn BOOL GUIAPI DoesIntersect (const RECT* psrc1, const RECT* psrc2)
  * \brief Determines whether two rectangles intersect.
  *
- * This function determines whether two rectangles (\a psrc1 and \a psrc2) 
+ * This function determines whether two rectangles (\a psrc1 and \a psrc2)
  * intersect.
  *
  * \param psrc1 The first source rectangles.
@@ -5369,20 +5369,20 @@ MG_EXPORT BOOL GUIAPI DoesIntersect (const RECT* psrc1, const RECT* psrc2);
  * \fn BOOL GUIAPI UnionRect (RECT* pdrc, const RECT* psrc1, const RECT* psrc2)
  * \brief Unions two source rectangles.
  *
- * This function creates the union (\a pdrc) of two rectangles 
- * (\a psrc1 and \a psrc2), if the source rectangles are border upon and 
+ * This function creates the union (\a pdrc) of two rectangles
+ * (\a psrc1 and \a psrc2), if the source rectangles are border upon and
  * not stagger.
  *
  * \param pdrc The unioned rectangle.
  * \param psrc1 The first source rectangles.
  * \param psrc2 The second source rectangles.
  *
- * \return TRUE if the source rectangles are border upon and not stagger, 
+ * \return TRUE if the source rectangles are border upon and not stagger,
  *         otherwise FALSE.
  *
  * \sa GetBoundRect
  */
-MG_EXPORT BOOL GUIAPI UnionRect (RECT* pdrc, 
+MG_EXPORT BOOL GUIAPI UnionRect (RECT* pdrc,
                 const RECT* psrc1, const RECT* psrc2);
 
 /**
@@ -5390,8 +5390,8 @@ MG_EXPORT BOOL GUIAPI UnionRect (RECT* pdrc,
                 const RECT* psrc1, const RECT* psrc2)
  * \brief Gets the bound rectangle of two source rectangles.
  *
- * This function creates the bound rect (\a pdrc) of two rectangles 
- * (\a psrc1 and \a prsrc2). The bound rect is the smallest rectangle 
+ * This function creates the bound rect (\a pdrc) of two rectangles
+ * (\a psrc1 and \a prsrc2). The bound rect is the smallest rectangle
  * that contains both source rectangles.
  *
  * \param pdrc The destination rectangle.
@@ -5400,16 +5400,16 @@ MG_EXPORT BOOL GUIAPI UnionRect (RECT* pdrc,
  *
  * \sa UnionRect
  */
-MG_EXPORT void GUIAPI GetBoundRect (PRECT pdrc, 
+MG_EXPORT void GUIAPI GetBoundRect (PRECT pdrc,
                 const RECT* psrc1, const RECT* psrc2);
 
 /**
  * \fn int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc2)
  * \brief Obtains the rectangles when substracting one rectangle from another.
  *
- * This function obtains the rectangles substracting the rectangle \a psrc1 
- * from the other \a psrc2. \a rc should be an array of RECT struct, and 
- * may contain at most four rectangles. This function returns 
+ * This function obtains the rectangles substracting the rectangle \a psrc1
+ * from the other \a psrc2. \a rc should be an array of RECT struct, and
+ * may contain at most four rectangles. This function returns
  * the number of result rectangles.
  *
  * \param rc The pointer to the resule rectangle array.
@@ -5447,9 +5447,9 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
     /**
      * \defgroup font_fns Logical font operations
      *
-     * MiniGUI uses logical font to render text in a DC. You can 
-     * create a logical font by using \a CreateLogFont and select it 
-     * into a DC by using \a SelectFont, then you can use this logical 
+     * MiniGUI uses logical font to render text in a DC. You can
+     * create a logical font by using \a CreateLogFont and select it
+     * into a DC by using \a SelectFont, then you can use this logical
      * font to render text by using \a TextOutLen or \a DrawTextEx.
      *
      * @{
@@ -5558,9 +5558,9 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_RENDER_SUBPIXEL          0x20000000
 
 /*
- * Backward compatiblilty definitions. 
- * All FONT_SETWIDTH_* and FONT_SPACING_* types will 
- * be treated as FONT_FLIP_NIL and FONT_OTHER_NIL respectively. 
+ * Backward compatiblilty definitions.
+ * All FONT_SETWIDTH_* and FONT_SPACING_* types will
+ * be treated as FONT_FLIP_NIL and FONT_OTHER_NIL respectively.
  */
 #define FONT_SETWIDTH_NIL           '\0'
 #define FONT_SETWIDTH_ALL           '*'
@@ -5970,7 +5970,7 @@ typedef struct _FONTMETRICS
  *
  * \sa GetGlyphBitmap, FONTMETRICS
  */
-MG_EXPORT void GUIAPI GetFontMetrics (LOGFONT* log_font, 
+MG_EXPORT void GUIAPI GetFontMetrics (LOGFONT* log_font,
                 FONTMETRICS* font_metrics);
 
 #ifndef _MGRM_THREADS
@@ -5979,16 +5979,16 @@ MG_EXPORT void GUIAPI GetFontMetrics (LOGFONT* log_font,
  * \fn BOOL GUIAPI InitVectorialFonts (void)
  * \brief Initializes vectorial font renderer.
  *
- * This function initializes vectorial font renderer for MiniGUI-Processes 
- * application. For the performance reason, MiniGUI-Processes does not load 
- * vetorical fonts, such as TrueType or Adobe Type1, at startup. If you 
- * want to render text in vectorial fonts, you must call this function 
+ * This function initializes vectorial font renderer for MiniGUI-Processes
+ * application. For the performance reason, MiniGUI-Processes does not load
+ * vetorical fonts, such as TrueType or Adobe Type1, at startup. If you
+ * want to render text in vectorial fonts, you must call this function
  * to initialize TrueType and Type1 font renderer.
  *
  * \return TRUE on success, FALSE on error.
  *
- * \note Only defined for non-threads runmode. If your MiniGUI configured as 
- * MiniGUI-Threads, no need to initialize TrueType and Type1 font 
+ * \note Only defined for non-threads runmode. If your MiniGUI configured as
+ * MiniGUI-Threads, no need to initialize TrueType and Type1 font
  * renderer explicitly.
  *
  * \sa TermVectorialFonts
@@ -6001,10 +6001,10 @@ MG_EXPORT BOOL GUIAPI InitVectorialFonts (void);
  * \brief Terminates vectorial font renderer.
  *
  * This function terminates the vectorial font renderer.
- * When you are done with vectorial fonts, you should call this function to 
+ * When you are done with vectorial fonts, you should call this function to
  * unload the vectorial fonts to save memory.
  *
- * \note Only defined for non-threads runmode. 
+ * \note Only defined for non-threads runmode.
  *
  * \sa InitVectorialFonts
  */
@@ -6019,11 +6019,11 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
                 char struckout, int size, int rotation)
  * \brief Creates a logical font.
  *
- * This function creates a logical font. 
+ * This function creates a logical font.
  *
  * \param type The type of the logical font, can be one of the values:
  *      - FONT_TYPE_NAME_BITMAP_RAW\n
- *        Creates a logical font by using raw bitmap device font, i.e. 
+ *        Creates a logical font by using raw bitmap device font, i.e.
  *        mono-space bitmap font.
  *      - FONT_TYPE_NAME_BITMAP_VAR\n
  *        Creates a logical font by using var-width bitmap device font.
@@ -6037,10 +6037,10 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        Creates a logical font by using scalable Adobe Type1 device font.
  *      - FONT_TYPE_NAME_ALL\n
  *        Creates a logical font by using any type device font.
- * \param family The family of the logical font, such as "Courier", 
+ * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on.
- * \param charset The charset of the logical font. You can specify a 
- *        sigle-byte charset like "ISO8859-1", or a multi-byte charset 
+ * \param charset The charset of the logical font. You can specify a
+ *        sigle-byte charset like "ISO8859-1", or a multi-byte charset
  *        like "GB2312-0".
  * \param weight The weight of the logical font, can be one of the values:
  *      - FONT_WEIGHT_ALL\n
@@ -6095,10 +6095,10 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *      - FONT_OTHER_TTFNOCACHEKERN\n
  *        When using TrueType font, kern the glyph and do not use cache.
  *      - FONT_OTHER_LCDPORTRAIT\n
- *        When using TrueType font and sub-pixels smoothing strategy, 
+ *        When using TrueType font and sub-pixels smoothing strategy,
  *        set LCD portrait and do not kern the glyph.
  *      - FONT_OTHER_LCDPORTRAITKERN\n
- *        When using TrueType font and sub-pixels smoothing strategy, 
+ *        When using TrueType font and sub-pixels smoothing strategy,
  *        set LCD portrait and kern the glyph.
  * \param underline The underline of the logical font, can be one of the values:
  *      - FONT_UNDERLINE_ALL\n
@@ -6107,7 +6107,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        With underline.
  *      - FONT_UNDERLINE_NONE\n
  *        Without underline.
- * \param struckout The struckout line of the logical font, can be one of 
+ * \param struckout The struckout line of the logical font, can be one of
  *        the values:
  *      - FONT_STRUCKOUT_ALL\n
  *        Any one.
@@ -6115,11 +6115,11 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        With struckout line.
  *      - FONT_STRUCKOUT_NONE\n
  *        Without struckout line.
- * \param size The size, i.e. the height, of the logical font. Note that 
- *        the size of the created logical font may be different from the 
+ * \param size The size, i.e. the height, of the logical font. Note that
+ *        the size of the created logical font may be different from the
  *        size expected.
- * \param rotation The rotation of the logical font, it is in units of 
- *        tenth degrees. Note that you can specify rotation only for 
+ * \param rotation The rotation of the logical font, it is in units of
+ *        tenth degrees. Note that you can specify rotation only for
  *        TrueType and Adobe Type1 fonts.
  * \return The pointer to the logical font created, NULL on error.
  *
@@ -6130,9 +6130,9 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  * \include createlogfont.c
  *
  */
-MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family, 
-        const char* charset, char weight, char slant, char flip, 
-        char other, char underline, char struckout, 
+MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
+        const char* charset, char weight, char slant, char flip,
+        char other, char underline, char struckout,
         int size, int rotation);
 
 /**
@@ -6142,11 +6142,11 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
                 char rendering, int size, int rotation)
  * \brief Creates a logical font.
  *
- * This function creates a logical font. 
+ * This function creates a logical font.
  *
  * \param type The type of the logical font, can be one of the values:
  *      - FONT_TYPE_NAME_BITMAP_RAW\n
- *        Creates a logical font by using raw bitmap device font, i.e. 
+ *        Creates a logical font by using raw bitmap device font, i.e.
  *        mono-space bitmap font.
  *      - FONT_TYPE_NAME_BITMAP_VAR\n
  *        Creates a logical font by using var-width bitmap device font.
@@ -6160,10 +6160,10 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *        Creates a logical font by using scalable Adobe Type1 device font.
  *      - FONT_TYPE_NAME_ALL\n
  *        Creates a logical font by using any type device font.
- * \param family The family of the logical font, such as "Courier", 
+ * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on.
- * \param charset The charset of the logical font. You can specify a 
- *        sigle-byte charset like "ISO8859-1", or a multi-byte charset 
+ * \param charset The charset of the logical font. You can specify a
+ *        sigle-byte charset like "ISO8859-1", or a multi-byte charset
  *        like "GB2312-0".
  * \param weight The weight of the logical font, can be one of the values:
  *      - FONT_WEIGHT_ANY\n
@@ -6214,12 +6214,12 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *      - FONT_OTHER_TTFNOCACHEKERN\n
  *        When using TrueType font, kern the glyph and do not use cache.
  *      - FONT_OTHER_LCDPORTRAIT\n
- *        When using TrueType font and sub-pixels smoothing strategy, 
+ *        When using TrueType font and sub-pixels smoothing strategy,
  *        set lcd portrait and do not use kern the glyph.
  *      - FONT_OTHER_LCDPORTRAITKERN\n
- *        When using TrueType font and sub-pixels smoothing strategy, 
+ *        When using TrueType font and sub-pixels smoothing strategy,
  *        set lcd portrait and use kern the glyph.
- * \param decoration The decoration (underline and/or struckout line) 
+ * \param decoration The decoration (underline and/or struckout line)
           of the logical font, can be one of the values:
  *      - FONT_DECORATE_NONE\n
  *        Without underline and struckout line.
@@ -6229,7 +6229,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *        With struckout line.
  *      - FONT_DECORATE_BOTH\n
  *        With both underline and struckout line.
- * \param rendering The rendering type of the logical font, can be one of 
+ * \param rendering The rendering type of the logical font, can be one of
  *        the values:
  *      - FONT_RENDER_ANY\n
  *        Any one (not specified).
@@ -6241,11 +6241,11 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *        Render the glyph by using a gray bitmap.
  *      - FONT_RENDER_SUBPIXEL\n
  *        Use subpixel rendering method (TrueType only).
- * \param size The size, i.e. the height, of the logical font. Note that 
- *        the size of the created logical font may be different from the 
+ * \param size The size, i.e. the height, of the logical font. Note that
+ *        the size of the created logical font may be different from the
  *        size expected.
- * \param rotation The rotation of the logical font, it is in units of 
- *        tenth degrees. Note that you can specify rotation only for 
+ * \param rotation The rotation of the logical font, it is in units of
+ *        tenth degrees. Note that you can specify rotation only for
  *        TrueType and Adobe Type1 fonts.
  * \return The pointer to the logical font created, NULL on error.
  *
@@ -6256,16 +6256,16 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  * \include createlogfontex.c
  *
  */
-MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family, 
-        const char* charset, char weight, char slant, char flip, 
-        char other, char decoration, char rendering, 
+MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
+        const char* charset, char weight, char slant, char flip,
+        char other, char decoration, char rendering,
         int size, int rotation);
 
 /**
  * \fn PLOGFONT GUIAPI CreateLogFontByName (const char* font_name)
  * \brief Creates a logical font by a font name.
  *
- * This function creates a logical font by a font name specified by 
+ * This function creates a logical font by a font name specified by
  * \a font_name.
  *
  * \param font_name The name of the font.
@@ -6309,7 +6309,7 @@ MG_EXPORT void GUIAPI DestroyLogFont (PLOGFONT log_font);
  * and copies to the LOGFONT structure pointed to by \a log_font.
  *
  * \param hdc The device context.
- * \param log_font The pointer to the LOGFONT structure to save the logical 
+ * \param log_font The pointer to the LOGFONT structure to save the logical
  *        font info.
  *
  * \sa GetCurFont
@@ -6320,7 +6320,7 @@ MG_EXPORT void GUIAPI GetLogFontInfo (HDC hdc, LOGFONT* log_font);
  * \fn PLOGFONT GUIAPI GetCurFont (HDC hdc)
  * \brief Gets the pointer to the current logical font of a DC.
  *
- * This function returns the pointer to the current logical font selected to 
+ * This function returns the pointer to the current logical font selected to
  * the DC \a hdc.
  *
  * \param hdc The device context.
@@ -6334,7 +6334,7 @@ MG_EXPORT PLOGFONT GUIAPI GetCurFont (HDC hdc);
  * \fn PLOGFONT GUIAPI SelectFont (HDC hdc, PLOGFONT log_font)
  * \brief Selects a logical font into a DC.
  *
- * This function selects the specified logical font \a log_font into the 
+ * This function selects the specified logical font \a log_font into the
  * device context \a hdc.
  *
  * \param hdc The device context.
@@ -6382,7 +6382,7 @@ typedef enum {
 } FT2LCDFilter;
 
 /**
- * \fn BOOL ft2SetLcdFilter(LOGFONT* logfont, FT2LCDFilter filter) 
+ * \fn BOOL ft2SetLcdFilter(LOGFONT* logfont, FT2LCDFilter filter)
  *
  * \brief Set freetype2 smooth mode.
  *
@@ -6394,7 +6394,7 @@ typedef enum {
  *
  * \return TRUE on success, otherwise FALSE.
  *
- * \sa FT2LCDFilter 
+ * \sa FT2LCDFilter
  */
 MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter);
 
@@ -6417,7 +6417,7 @@ MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter);
  *
  * \sa GetNextDevFont, DestroyDynamicDevFont
  */
-MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name, 
+MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name,
         const char *file_name);
 
 /**
@@ -6427,7 +6427,7 @@ MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name,
  * \param devfont The double pointer to DEVFONT structure. Note that the pointer
  *        must be the double pointer to device font loaded by LoadDevFontFromFile.
  *
- * \sa LoadDevFontFromFile 
+ * \sa LoadDevFontFromFile
  */
 MG_EXPORT void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont);
 #endif
@@ -6438,10 +6438,10 @@ MG_EXPORT void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont);
      * \defgroup system_font System charset and font operations
      *
      * MiniGUI creates a few system fonts to draw menu text, window caption, or
-     * other general items. MiniGUI at least creates two system fonts: one 
-     * mono-space logical font for single-byte charset, and one mono-space 
-     * logical font for multi-byte charset. For the multi-byte charset, 
-     * the width of one multi-byte character should be equal to the width of 
+     * other general items. MiniGUI at least creates two system fonts: one
+     * mono-space logical font for single-byte charset, and one mono-space
+     * logical font for multi-byte charset. For the multi-byte charset,
+     * the width of one multi-byte character should be equal to the width of
      * two single-byte characters.
      *
      * @{
@@ -6454,7 +6454,7 @@ MG_EXPORT void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont);
 
 /**
  * \def SYSLOGFONT_WCHAR_DEF
- * \sa GetSystemFont 
+ * \sa GetSystemFont
  */
 #define SYSLOGFONT_WCHAR_DEF        1
 
@@ -6491,10 +6491,10 @@ extern MG_EXPORT PLOGFONT g_SysLogFont [];
  * \fn PLOGFONT GUIAPI GetSystemFont (int font_id)
  * \brief Gets the system logical font through an font identifier.
  *
- * This function returns the system logical font through the font 
+ * This function returns the system logical font through the font
  * identifier \a font_id.
  *
- * \param font_id The identifier of a system font, can be one of 
+ * \param font_id The identifier of a system font, can be one of
  *        the following values:
  *      - SYSLOGFONT_DEFAULT\n
  *        The default system logical font in single-byte charset, must be rbf.
@@ -6522,12 +6522,12 @@ static inline PLOGFONT GUIAPI GetSystemFont (int font_id)
  * \fn int GUIAPI GetSysFontMaxWidth (int font_id)
  * \brief Gets the maximal width of a single-byte character of a system font.
  *
- * This function returns the maximal width of a single-byte character of 
+ * This function returns the maximal width of a single-byte character of
  * one system font.
  *
  * \param font_id The identifier of a system font.
  *
- * \return The maximal width of single-byte character of the default 
+ * \return The maximal width of single-byte character of the default
  *         system font.
  *
  * \sa GetSystemFont
@@ -6538,12 +6538,12 @@ MG_EXPORT int GUIAPI GetSysFontMaxWidth (int font_id);
  * \fn int GUIAPI GetSysFontAveWidth (int font_id)
  * \brief Gets the average width of a single-byte character of a system font.
  *
- * This function returns the average width of a single-byte character of 
+ * This function returns the average width of a single-byte character of
  * one system font.
  *
  * \param font_id The identifier of a system font.
  *
- * \return The average width of single-byte character of the default 
+ * \return The average width of single-byte character of the default
  *         system font.
  *
  * \sa GetSystemFont
@@ -6554,7 +6554,7 @@ MG_EXPORT int GUIAPI GetSysFontAveWidth (int font_id);
  * \fn int GUIAPI GetSysFontHeight (int font_id)
  * \brief Gets the height of a single-byte character of a system font.
  *
- * This function returns the height of a single-byte character of one 
+ * This function returns the height of a single-byte character of one
  * system font.
  *
  * \param font_id The identifier of a system font.
@@ -6570,13 +6570,13 @@ MG_EXPORT int GUIAPI GetSysFontHeight (int font_id);
  * \brief Gets the current system charset.
  *
  * This function gets the current system charset and returns the charset name.
- * By default, the system charset is ISO8859-1 (for single-byte charset) or 
- * GB2312.1980-0 (for wide charset), but you can change it by modifying 
- * \a MiniGUI.cfg. 
+ * By default, the system charset is ISO8859-1 (for single-byte charset) or
+ * GB2312.1980-0 (for wide charset), but you can change it by modifying
+ * \a MiniGUI.cfg.
  *
  * \param wchar Whether to retrieve the wide charset supported currently.
  * \return The read-only buffer of charset name. If you pass \a wchar TRUE,
- *         This function may return NULL, if there is not any wide 
+ *         This function may return NULL, if there is not any wide
  *         charset supported.
  */
 MG_EXPORT const char* GUIAPI GetSysCharset (BOOL wchar);
@@ -6585,10 +6585,10 @@ MG_EXPORT const char* GUIAPI GetSysCharset (BOOL wchar);
  * \fn int GUIAPI GetSysCharHeight (void)
  * \brief Gets the height of a character of the default system font.
  *
- * This function returns the height of a character of the system default font. 
+ * This function returns the height of a character of the system default font.
  * MiniGUI uses mono-space font as the default system font.
  *
- * Normally, the width of one multi-byte character is equal to 
+ * Normally, the width of one multi-byte character is equal to
  * the width of two single-byte character when using the default system font.
  *
  * \return The character height of the default system font.
@@ -6601,9 +6601,9 @@ MG_EXPORT int GUIAPI GetSysCharHeight (void);
  * \fn int GUIAPI GetSysCharWidth (void)
  * \brief Gets the width of a single-byte character of the default system font.
  *
- * This function returns the width of a single-byte character of the 
- * default system font. MiniGUI uses mono-space font as the default 
- * system font, but you can specify a different font to output text 
+ * This function returns the width of a single-byte character of the
+ * default system font. MiniGUI uses mono-space font as the default
+ * system font, but you can specify a different font to output text
  * in windows of MiniGUI.
  *
  * \return The width of single-byte character of the default system font.
@@ -6616,7 +6616,7 @@ MG_EXPORT int GUIAPI GetSysCharWidth (void);
  * \fn int GUIAPI GetSysCCharWidth (void)
  * \brief Gets the width of a multi-byte character of the default system font.
  *
- * This function returns the width of a multi-byte character of the default 
+ * This function returns the width of a multi-byte character of the default
  * system font. MiniGUI uses mono-space font as the system default font.
  *
  * \return The width of multi-byte character of the default system font.
@@ -6653,21 +6653,21 @@ struct _WORDINFO
                 const char* mstr, int len, int* pos_chars)
  * \brief Retrieves positions of multi-byte characters in a string.
  *
- * This function retrieves position of multi-byte characters in 
- * the string \a mstr which is \a len bytes long. It returns the positions 
+ * This function retrieves position of multi-byte characters in
+ * the string \a mstr which is \a len bytes long. It returns the positions
  * of characters in the string in an integer array pointed to by \a pos_chars.
  *
  * \param log_font The logical font used to parse the multi-byte string.
  * \param mstr The multi-byte string.
  * \param len The length of the string.
- * \param pos_chars The position of characters will be returned through 
+ * \param pos_chars The position of characters will be returned through
  *        this array if it is not NULL.
  *
  * \return The number of characters in the multi-byte string.
  *
  * \sa GetTextWordInfo
  */
-MG_EXPORT int GUIAPI GetTextMCharInfo (PLOGFONT log_font, 
+MG_EXPORT int GUIAPI GetTextMCharInfo (PLOGFONT log_font,
                 const char* mstr, int len, int* pos_chars);
 
 /**
@@ -6675,25 +6675,25 @@ MG_EXPORT int GUIAPI GetTextMCharInfo (PLOGFONT log_font,
                 int len, int* pos_words, WORDINFO* info_words)
  * \brief Retrieves information of multi-byte words in a string.
  *
- * This function retrieves information of multi-byte words in the string 
- * \a mstr which is \a len bytes long. It returns the positions of words 
- * in the string in an integer array pointed to by \a pos_words if the 
- * pointer is not NULL. This function also returns the information of words 
- * in a WORDINFO struct array pointed to by \a info_words when the pointer 
+ * This function retrieves information of multi-byte words in the string
+ * \a mstr which is \a len bytes long. It returns the positions of words
+ * in the string in an integer array pointed to by \a pos_words if the
+ * pointer is not NULL. This function also returns the information of words
+ * in a WORDINFO struct array pointed to by \a info_words when the pointer
  * is not NULL.
  *
  * \param log_font The logical font used to parse the multi-byte string.
  * \param mstr The multi-byte string.
  * \param len The length of the string.
- * \param pos_words The position of words will be returned through 
+ * \param pos_words The position of words will be returned through
  *        this array if it is not NULL.
- * \param info_words The words' information will be returned through 
+ * \param info_words The words' information will be returned through
  *        this array if it is not NULL.
  * \return The number of words in the multi-byte string.
  *
  * \sa GetTextMCharInfo, WORDINFO
  */
-MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, 
+MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr,
                 int len, int* pos_words, WORDINFO* info_words);
 
 /**
@@ -6701,7 +6701,7 @@ MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr,
                 const char* mstr, int len)
  * \brief Retrieves the length of the first multi-byte character in a string.
  *
- * This function retrieves and returns the length of the first multi-byte 
+ * This function retrieves and returns the length of the first multi-byte
  * character in the string \a mstr which is \a len bytes long.
  *
  * \param log_font The logical font used to parse the multi-byte string.
@@ -6711,7 +6711,7 @@ MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr,
  *
  * \sa GetFirstWord
  */
-MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font, 
+MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font,
                 const char* mstr, int len);
 
 /**
@@ -6719,22 +6719,22 @@ MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font,
                 const char* mstr, int len, WORDINFO* word_info)
  * \brief Retrieves the length and info of the first multi-byte word in a string.
  *
- * This function retrieves the information of the first multi-byte character 
- * in the string \a mstr which is \a len bytes long, and returns it through 
- * \a word_info. It also returns the full length of the word including 
+ * This function retrieves the information of the first multi-byte character
+ * in the string \a mstr which is \a len bytes long, and returns it through
+ * \a word_info. It also returns the full length of the word including
  * the delimiters after the word.
  *
  * \param log_font The logical font used to parse the multi-byte string.
  * \param mstr The multi-byte string.
  * \param len The length of the string.
- * \param word_info The pointer to a WORDINFO structure used to return 
+ * \param word_info The pointer to a WORDINFO structure used to return
  *        the word information.
  *
  * \return The length of the first multi-byte word.
  *
  * \sa GetFirstMCharLen, WORDINFO
  */
-MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font, 
+MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font,
                 const char* mstr, int len, WORDINFO* word_info);
 
 #ifdef _MGCHARSET_UNICODE
@@ -6746,18 +6746,18 @@ MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font,
  * \fn int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, \
  *              const unsigned char* mstr, int n)
  *
- * \brief Converts a multibyte character to a wide character in UCS 
- *        according to the charset/encoding of the logical font. 
+ * \brief Converts a multibyte character to a wide character in UCS
+ *        according to the charset/encoding of the logical font.
  *
  * \param log_font The logical font.
  * \param dest The buffer used to store the wide character; can be NULL.
- * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE 
+ * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE
  *        for 16-bit long.
  * \param mstr The pointer to the multi-byte character.
  * \param n The length of the multi-byte character.
  *
  * \return If mchar is not NULL, the function returns the number of consumed
- *        bytes starting at mchar, or 0 if s points to a null byte, 
+ *        bytes starting at mchar, or 0 if s points to a null byte,
  *        or -1 upon  failure.
  *
  * \sa WC2MBEx, mbtowc
@@ -6777,19 +6777,19 @@ MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
 /**
  * \fn int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc)
  *
- * \brief Converts a wide character in UCS to a multibyte character 
- *        according to the charset/encoding of the logical font. 
+ * \brief Converts a wide character in UCS to a multibyte character
+ *        according to the charset/encoding of the logical font.
  *
  * \param log_font The logical font.
  * \param s The buffer used to store the converted multibyte characters.
  * \param wc The wide character.
  *
  * \return If s is not NULL, the function returns the number of bytes that
- *        have been written to the byte array at s. If wc can not be 
- *        represented as a multibyte sequence (according to 
+ *        have been written to the byte array at s. If wc can not be
+ *        represented as a multibyte sequence (according to
  *        the current logfont),  -1 is returned.
  *
- * \sa WC2MB, mbtowc 
+ * \sa WC2MB, mbtowc
  */
 MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
 
@@ -6807,18 +6807,18 @@ MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
  *               const unsigned char* mstr, int mstr_len, int n, \
  *               int* conved_mstr_len)
  *
- * \brief Converts a multibyte string to a wide character string in 
- *        UC16 according to the charset/encoding of the logical font. 
+ * \brief Converts a multibyte string to a wide character string in
+ *        UC16 according to the charset/encoding of the logical font.
  *
- * This function is a MiniGUI version of ISO/ANSI mbstowcs function. 
- * It converts a multibyte string to a wide character string in UC16. 
- * The behaviour of mbstowcs depends on the LC_CTYPE category of the 
- * current locale, while MBS2WCS depends on the charset/encoding of 
+ * This function is a MiniGUI version of ISO/ANSI mbstowcs function.
+ * It converts a multibyte string to a wide character string in UC16.
+ * The behaviour of mbstowcs depends on the LC_CTYPE category of the
+ * current locale, while MBS2WCS depends on the charset/encoding of
  * MiniGUI logical font.
  *
  * \param log_font The logical font.
  * \param dest The buffer used to store the converted wide character string.
- * \param wc32 Whether the unicode char is 32-bit long. TRUE for yes, FALSE 
+ * \param wc32 Whether the unicode char is 32-bit long. TRUE for yes, FALSE
  *        for 16-bit long.
  * \param mstr The pointer to multibyte string.
  * \param mstr_len The length of the multibyte string in bytes.
@@ -6827,15 +6827,15 @@ MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
  *        converted correctly in bytes will be returned through this pointer,
  *        can be NULL.
  *
- * \return The function returns the number of wide characters 
- *         that make up the converted part of the wide character string, 
- *         not including the terminating null wide character. 
+ * \return The function returns the number of wide characters
+ *         that make up the converted part of the wide character string,
+ *         not including the terminating null wide character.
  *         If an invalid multibyte sequence was encountered, -1 is returned.
  *
  * \sa WCS2MBSEx, mbstowcs, mbsrtowcs
  */
 MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
-                const unsigned char* mstr, int mstr_len, int n, 
+                const unsigned char* mstr, int mstr_len, int n,
                 int* conved_mstr_len);
 
 /**
@@ -6853,29 +6853,29 @@ MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
  *               const void *wcs, int wcs_len, BOOL wc32, int n, \
  *               int* conved_wcs_len)
  *
- * \brief Converts a wide character string in UC16 to a multibyte 
+ * \brief Converts a wide character string in UC16 to a multibyte
  *        string according to the charset/encoding of the logical font.
  *
- * This function is a MiniGUI version of ISO/ANSI wcstombs function. 
- * It converts a wide character string in UC16 to a multibyte string. 
- * The behaviour of wcstombs depends on the LC_CTYPE category of the 
- * current locale, while WCS2MBS depends on the charset/encoding of 
+ * This function is a MiniGUI version of ISO/ANSI wcstombs function.
+ * It converts a wide character string in UC16 to a multibyte string.
+ * The behaviour of wcstombs depends on the LC_CTYPE category of the
+ * current locale, while WCS2MBS depends on the charset/encoding of
  * MiniGUI logical font.
  *
  * \param log_font The logical font.
  * \param dest The buffer used to store the converted multibyte string.
  * \param wcs The pointer to the wide character string.
  * \param wcs_len The number of the wide characters in wcs.
- * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE 
+ * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE
  *        for 16-bit long.
  * \param n The length of the dest in bytes.
- * \param conved_wcs_len The number of the wide characters which are 
+ * \param conved_wcs_len The number of the wide characters which are
  *        converted correctly will be returned through this pointer, can
  *        be NULL.
  *
- * \return The function returns the number of bytes that make up the 
- *         converted part of multibyte sequence, not including the 
- *         terminating null byte. If a wide character was encountered 
+ * \return The function returns the number of bytes that make up the
+ *         converted part of multibyte sequence, not including the
+ *         terminating null byte. If a wide character was encountered
  *         which could not be converted, -1 is returned.
  *
  * \sa MBS2WCSEx, wcstombs, wcsrtombs
@@ -6974,7 +6974,7 @@ MG_EXPORT int GUIAPI UCharCombiningClass (UChar32 uc);
 /**
  * Computes the canonical ordering of a string in-place.
  * This rearranges decomposed characters in the string
- * according to their combining classes. 
+ * according to their combining classes.
  * See the Unicode manual for more information.
  */
 MG_EXPORT void GUIAPI UCharCanonicalOrdering (UChar32 *string, int len);
@@ -7001,35 +7001,35 @@ MG_EXPORT int GUIAPI UCharFullyDecompose (UChar32  ch, BOOL compat,
  * \fn int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len, \
                 int max_extent, int* fit_chars, int* pos_chars,  \
                 int* dx_chars, SIZE* size)
- * \brief Computes the extent of a string when output the string in a 
+ * \brief Computes the extent of a string when output the string in a
  *        limited space.
  *
- * This function computes the extent of the specified string of text \a text 
- * which is \a len bytes long when output the text in a limited space 
- * (\a max_extent wide). If \a pos_chars and \a dx_chars are not NULL, 
- * this function will return the positions of each character in the text, 
- * and the output position of each character.  This function returns the 
- * text extent in a SIZE struct pointed to by \a size, and the width of 
+ * This function computes the extent of the specified string of text \a text
+ * which is \a len bytes long when output the text in a limited space
+ * (\a max_extent wide). If \a pos_chars and \a dx_chars are not NULL,
+ * this function will return the positions of each character in the text,
+ * and the output position of each character.  This function returns the
+ * text extent in a SIZE struct pointed to by \a size, and the width of
  * text as return value.
- * 
+ *
  * \param hdc The device context.
  * \param text The multi-byte string.
  * \param len The length of the string.
  * \param max_extent The width of the limited space.
  * \param fit_chars The number of the characters actually outputed.
- * \param pos_chars The positions of each character in the text will be 
+ * \param pos_chars The positions of each character in the text will be
  *        returned through this pointer.
- * \param dx_chars The output positions of each character in the text will be 
+ * \param dx_chars The output positions of each character in the text will be
  *        returned through this pointer.
- * \param size The output extent of the text in the limited space will be 
+ * \param size The output extent of the text in the limited space will be
  *        returned through this pointer.
  *
  * \return The number of the characters which can be fit to the limited space.
  *
  * \sa GetFirstMCharLen, GetFirstWord
  */
-MG_EXPORT int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len, 
-                int max_extent, int* fit_chars, int* pos_chars, 
+MG_EXPORT int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
+                int max_extent, int* fit_chars, int* pos_chars,
                 int* dx_chars, SIZE* size);
 
 /**
@@ -7037,11 +7037,11 @@ MG_EXPORT int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
                 const char* text, int len, int max_extent, \
                 int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
  *
- * \brief Computes the extent of a string when output the formatted string 
+ * \brief Computes the extent of a string when output the formatted string
  *        in a limited space.
  */
-MG_EXPORT int GUIAPI GetTabbedTextExtentPoint (HDC hdc, 
-                const char* text, int len, int max_extent, 
+MG_EXPORT int GUIAPI GetTabbedTextExtentPoint (HDC hdc,
+                const char* text, int len, int max_extent,
                 int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size);
 
     /** @} end of text_parse_fns */
@@ -7055,7 +7055,7 @@ MG_EXPORT int GUIAPI GetTabbedTextExtentPoint (HDC hdc,
  * \fn int GUIAPI GetFontHeight (HDC hdc)
  * \brief Retrieves the height of the current logical font in a DC.
  *
- * This function retrieves the height of the current logical font in 
+ * This function retrieves the height of the current logical font in
  * the DC \a hdc.
  *
  * \param hdc The device context.
@@ -7067,10 +7067,10 @@ MG_EXPORT int GUIAPI GetFontHeight (HDC hdc);
 
 /**
  * \fn int GUIAPI GetMaxFontWidth (HDC hdc)
- * \brief Retrieves the maximal character width of the current logical font 
+ * \brief Retrieves the maximal character width of the current logical font
  *        in a DC.
  *
- * This function retrieves the maximal character width of the current 
+ * This function retrieves the maximal character width of the current
  * logical font in the DC \a hdc.
  *
  * \param hdc The device context.
@@ -7086,8 +7086,8 @@ MG_EXPORT int GUIAPI GetMaxFontWidth (HDC hdc);
                 const char* spText, int len, SIZE* pSize)
  * \brief Computes the output extent of a string of text.
  *
- * This function computes the output extent of the text (\a spText) with 
- * length of \a len. This function returns the extent in a SIZE struct 
+ * This function computes the output extent of the text (\a spText) with
+ * length of \a len. This function returns the extent in a SIZE struct
  * pointed to by \a pSize and the width of text as the return value.
  *
  * \param hdc The device context.
@@ -7099,7 +7099,7 @@ MG_EXPORT int GUIAPI GetMaxFontWidth (HDC hdc);
  *
  * \sa GetTabbedTextExtent
  */
-MG_EXPORT int GUIAPI GetTextExtent (HDC hdc, 
+MG_EXPORT int GUIAPI GetTextExtent (HDC hdc,
                 const char* spText, int len, SIZE* pSize);
 
 /**
@@ -7107,10 +7107,10 @@ MG_EXPORT int GUIAPI GetTextExtent (HDC hdc,
                 const char* spText, int len, SIZE* pSize)
  * \brief Computes the output extent of a formatted text.
  *
- * This function computes the output extent of the formatted text (\a spText) 
- * with length of \a len. This function returns the extent in a SIZE struct 
- * pointed to by \a pSize and the width of text as the return value. 
- * The output extent will be affected by the default tab size if there are 
+ * This function computes the output extent of the formatted text (\a spText)
+ * with length of \a len. This function returns the extent in a SIZE struct
+ * pointed to by \a pSize and the width of text as the return value.
+ * The output extent will be affected by the default tab size if there are
  * some TAB characters in the text.
  *
  * \param hdc The device context.
@@ -7122,13 +7122,13 @@ MG_EXPORT int GUIAPI GetTextExtent (HDC hdc,
  *
  * \sa GetTextExtent
  */
-MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc, 
+MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
                 const char* spText, int len, SIZE* pSize);
 
 /**
  * \def GetTextCharacterExtra(hdc)
  * \brief Retrieves the current inter-character spacing for the DC.
- * 
+ *
  * \sa SetTextCharacterExtra
  */
 #define GetTextCharacterExtra(hdc)  GetDCAttr (hdc, DC_ATTR_CHAR_EXTRA)
@@ -7136,7 +7136,7 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
 /**
  * \def GetTextWordExtra(hdc)
  * \brief Retrieves the current inter-word spacing for the DC.
- * 
+ *
  * \sa SetTextWordExtra
  */
 #define GetTextWordExtra(hdc)  GetDCAttr (hdc, DC_ATTR_WORD_EXTRA)
@@ -7159,9 +7159,9 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
 
 /**
  * \def SetTextCharacterExtra(hdc, extra)
- * \brief Sets the inter-character spacing for the DC and returns 
+ * \brief Sets the inter-character spacing for the DC and returns
  *        the old spacing value.
- * 
+ *
  * \sa GetTextCharacterExtra
  */
 #define SetTextCharacterExtra(hdc, extra)       \
@@ -7169,9 +7169,9 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
 
 /**
  * \def SetTextWordExtra(hdc, extra)
- * \brief Sets the inter-word spacing for the DC and returns 
+ * \brief Sets the inter-word spacing for the DC and returns
  *        the old spacing value.
- * 
+ *
  * \sa GetTextWordExtra
  */
 #define SetTextWordExtra(hdc, extra)       \
@@ -7218,42 +7218,42 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
  * \return The return value is one or more of the following values:
  *
  *  - TA_TOP\n
- *      Specifies alignment of the x-axis and the top of the bounding 
+ *      Specifies alignment of the x-axis and the top of the bounding
  *      rectangle.
  *  - TA_BASELINE\n
- *      Specifies alignment of the x-axis and the baseline of the chosen font 
+ *      Specifies alignment of the x-axis and the baseline of the chosen font
  *      within the bounding rectangle.
  *  - TA_BOTTOM\n
- *      Specifies alignment of the x-axis and the bottom of the bounding 
+ *      Specifies alignment of the x-axis and the bottom of the bounding
  *      rectangle.
  *  - TA_LEFT\n
- *      Specifies alignment of the y-axis and the left side of the bounding 
+ *      Specifies alignment of the y-axis and the left side of the bounding
  *      rectangle.
  *  - TA_RIGHT\n
- *      Specifies alignment of the y-axis and the right side of the bounding 
+ *      Specifies alignment of the y-axis and the right side of the bounding
  *      rectangle.
  *  - TA_CENTER\n
- *      Specifies alignment of the y-axis and the center of the bounding 
- *      rectangle. Note that MiniGUI does not support TA_CENTER so far. 
+ *      Specifies alignment of the y-axis and the center of the bounding
+ *      rectangle. Note that MiniGUI does not support TA_CENTER so far.
  *  - TA_NOUPDATECP\n
  *      Specifies that the current position is not updated.
  *  - TA_UPDATECP\n
  *      Specifies that the current position is updated.
  *
  * \note The text-alignment flags determine how the TextOut, TabbedTextOut,
- * and TabbedTextOutEx functions align a string of text in relation to 
- * the string's starting point. The text-alignment flags are not 
- * necessarily single-bit flags and may be equal to 0. To test whether a 
+ * and TabbedTextOutEx functions align a string of text in relation to
+ * the string's starting point. The text-alignment flags are not
+ * necessarily single-bit flags and may be equal to 0. To test whether a
  * flag is set, an application should follow these steps:
  *
- * 1. Apply the bitwise OR operator to the flag and its related flags, 
+ * 1. Apply the bitwise OR operator to the flag and its related flags,
  *    grouped as follows:
  *
  *  - TA_LEFT, TA_RIGHT, TA_CENTER (TA_X_MASK) \n
  *  - TA_BASELINE, TA_BOTTOM, and TA_TOP (TA_Y_MASK) \n
  *  - TA_NOUPDATECP and TA_UPDATECP (TA_CP_MASK) \n
  *
- * 2. Apply the bitwise-AND operator to the result and the return value of 
+ * 2. Apply the bitwise-AND operator to the result and the return value of
  *    GetTextAlign.
  *
  * 3. Test for the equality of this result and the flag.
@@ -7267,22 +7267,22 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
  * \brief Sets text-alignment flags of a DC.
  *
  * \param hdc The device context.
- * \param ta_flags The flags specify the relationship between a point and a 
- * rectangle that bounds the text. The point can be either the current 
- * position or coordinates specified by a text-output function. The rectangle 
- * that bounds the text is defined by the adjacent character cells in the text 
- * string. The ta_flags parameter can be one or more flags from the following 
- * three categories. Choose only one flag from each category. 
+ * \param ta_flags The flags specify the relationship between a point and a
+ * rectangle that bounds the text. The point can be either the current
+ * position or coordinates specified by a text-output function. The rectangle
+ * that bounds the text is defined by the adjacent character cells in the text
+ * string. The ta_flags parameter can be one or more flags from the following
+ * three categories. Choose only one flag from each category.
  *
  * The first category affects text alignment in the x-direction:
  *  - TA_LEFT\n
- *      Aligns the point with the left side of the bounding rectangle. 
+ *      Aligns the point with the left side of the bounding rectangle.
  *      This is the default setting.
  *  - TA_RIGHT\n
  *      Aligns the point with the right side of the bounding rectangle.
  *  - TA_CENTER\n
  *      Aligns the point with the horizontal center of the bounding rectangle.
- *      Note that MiniGUI does not support TA_CENTER so far. 
+ *      Note that MiniGUI does not support TA_CENTER so far.
  *
  * The second category affects text alignment in the y-direction:
  *  - TA_BASELINE\n
@@ -7290,30 +7290,30 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
  *  - TA_BOTTOM\n
  *      Aligns the point with the bottom of the bounding rectangle.
  *  - TA_TOP\n
- *      Aligns the point with the top of the bounding rectangle. 
+ *      Aligns the point with the top of the bounding rectangle.
  *      This is the default setting.
  *
- * The third category determines whether the current position is 
+ * The third category determines whether the current position is
  * updated when text is written:
  *  - TA_NOUPDATECP\n
- *      Does not update the current position after each call to a 
+ *      Does not update the current position after each call to a
  *      text-output function. This is the default setting.
  *  - TA_UPDATECP\n
- *      Updates the current x-position after each call to a text-output 
- *      function. The new position is at the right side of the bounding 
- *      rectangle for the text.  When this flag is set, the coordinates 
+ *      Updates the current x-position after each call to a text-output
+ *      function. The new position is at the right side of the bounding
+ *      rectangle for the text.  When this flag is set, the coordinates
  *      specified in calls to the TextOut function are ignored.
  *
- * \return The previous text-alignment setting, if successful. 
- *      The low-order word contains the horizontal setting and the 
+ * \return The previous text-alignment setting, if successful.
+ *      The low-order word contains the horizontal setting and the
  *      high-order word contains the vertical setting; otherwise 0.
  *
- * \note The TextOut, TabbedTextOut, and TabbedTextOutEx functions 
- * use these flags when positioning a string of text on a DC. 
- * The flags specify the relationship between a specific point 
- * and a rectangle that bounds the text. The coordinates of this point 
- * are passed as parameters to the TextOut function. The rectangle that 
- * bounds the text is formed by the adjacent character cells in the 
+ * \note The TextOut, TabbedTextOut, and TabbedTextOutEx functions
+ * use these flags when positioning a string of text on a DC.
+ * The flags specify the relationship between a specific point
+ * and a rectangle that bounds the text. The coordinates of this point
+ * are passed as parameters to the TextOut function. The rectangle that
+ * bounds the text is formed by the adjacent character cells in the
  * text string.
  *
  * \sa GetTextAlign
@@ -7332,20 +7332,20 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
                 const char* spText, int len)
  * \brief Outputs a string of text.
  *
- * This function outputs the text \a spText with length of \a len at a (x,y). 
+ * This function outputs the text \a spText with length of \a len at a (x,y).
  * This function returns the width of text.
  *
  * \param hdc The device context.
  * \param x x,y: The output start position.
  * \param y x,y: The output start position.
  * \param spText The string of the text.
- * \param len The length of the text. If it is less than 0, MiniGUI will 
+ * \param len The length of the text. If it is less than 0, MiniGUI will
  *        treat it as a null-terminated string.
  * \return The output width of the text.
  *
  * \sa TabbedTextOutLen
  */
-MG_EXPORT int GUIAPI TextOutLen (HDC hdc, int x, int y, 
+MG_EXPORT int GUIAPI TextOutLen (HDC hdc, int x, int y,
                 const char* spText, int len);
 
 
@@ -7362,15 +7362,15 @@ MG_EXPORT int GUIAPI TextOutLen (HDC hdc, int x, int y,
  * \param x x,y: The output start position.
  * \param y x,y: The output start position.
  * \param mtext The string of the text.
- * \param len The length of the text. If it is less than 0, MiniGUI will 
+ * \param len The length of the text. If it is less than 0, MiniGUI will
  *        treat it as a null-terminated string.
- * \param max_extent The max extent of output text. 
+ * \param max_extent The max extent of output text.
  *
  * \return The output width of the text.
  *
  * \sa TextOutLen
  */
-MG_EXPORT int GUIAPI TextOutOmitted (HDC hdc, int x, int y, 
+MG_EXPORT int GUIAPI TextOutOmitted (HDC hdc, int x, int y,
                 const char *mtext, int len, int max_extent);
 
 /**
@@ -7378,42 +7378,42 @@ MG_EXPORT int GUIAPI TextOutOmitted (HDC hdc, int x, int y,
                 const char* spText, int len)
  * \brief Outputs a formatted text.
  *
- * This function outputs the formatted text \a spText with length of \a len 
- * at \a (x,y). This function returns the width of text. The output will start 
- * a new line if there is a line feed character '\n' in the text. The output 
- * will be affected by the default tab size if there are some TAB characters 
+ * This function outputs the formatted text \a spText with length of \a len
+ * at \a (x,y). This function returns the width of text. The output will start
+ * a new line if there is a line feed character '\n' in the text. The output
+ * will be affected by the default tab size if there are some TAB characters
  * in the text.
  *
  * \param hdc The device context.
  * \param x x,y: The output start position.
  * \param y x,y: The output start position.
  * \param spText The formatted text.
- * \param len The length of the text. If it is less than 0, MiniGUI will 
+ * \param len The length of the text. If it is less than 0, MiniGUI will
  *        treat it as a null-terminated string.
  * \return The output width of the text.
  *
  * \sa TextOutLen
  */
-MG_EXPORT int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y, 
-                const char* spText, int len); 
+MG_EXPORT int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y,
+                const char* spText, int len);
 
 /**
  * \fn int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y, \
                 const char* spText, int nCount, int nTabPositions, \
                 int *pTabPositions, int nTabOrigin)
- * \brief Writes a character string at a specified location, expanding tabs 
+ * \brief Writes a character string at a specified location, expanding tabs
  *        to the values specified in an anrry of tab-stop positions.
  *
- * This function writes the string \a spText with length of \a nCount at 
- * a specified locations, expanding tabs to the value spcified in the 
- * array \a pTabPositions of tab-stop positions. The output will start 
+ * This function writes the string \a spText with length of \a nCount at
+ * a specified locations, expanding tabs to the value spcified in the
+ * array \a pTabPositions of tab-stop positions. The output will start
  * a new line if there is a line feed character '\n' in the text.
  *
  * \param hdc The device context.
  * \param x x,y: The output start position.
  * \param y x,y: The output start position.
  * \param spText The formatted text.
- * \param nCount The length of the text. If it is less than 0, MiniGUI will 
+ * \param nCount The length of the text. If it is less than 0, MiniGUI will
  *        treat it as a null-terminated string.
  * \param nTabPositions The length of the array of the tab-stop positions.
  * \param pTabPositions The array of the tab-stop positions.
@@ -7423,8 +7423,8 @@ MG_EXPORT int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y,
  *
  * \sa TabbedTextOutLen
  */
-MG_EXPORT int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y, 
-                const char* spText, int nCount, 
+MG_EXPORT int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y,
+                const char* spText, int nCount,
                 int nTabPositions, int *pTabPositions, int nTabOrigin);
 
 /**
@@ -7432,7 +7432,7 @@ MG_EXPORT int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y,
  * \brief Retrieves the last text output position.
  *
  * \param hdc The device context.
- * \param pt The last text output position will be returned through 
+ * \param pt The last text output position will be returned through
  *        this pointer.
  *
  */
@@ -7479,7 +7479,7 @@ MG_EXPORT void GUIAPI GetLastTextOutPos (HDC hdc, POINT* pt);
  * First line information of DrawTextEx2
  */
 typedef struct _DTFIRSTLINE
-{   
+{
     /** The number of the characters of first line in bytes. */
     int nr_chars;
     /** The output x-coordinate of the fist line. */
@@ -7498,18 +7498,18 @@ typedef struct _DTFIRSTLINE
                 DTFIRSTLINE* firstline)
  * \brief Draws a formatted text in a rectangle.
  *
- * This function draws formatted text (\a pText) in the specified rectangle 
- * (\a pRect). It formats the text according to the specified method 
- * (through \a nFormat, including expanding tabs, justifying characters, 
- * breaking lines, and so forth). 
+ * This function draws formatted text (\a pText) in the specified rectangle
+ * (\a pRect). It formats the text according to the specified method
+ * (through \a nFormat, including expanding tabs, justifying characters,
+ * breaking lines, and so forth).
  *
  * \param hdc The device context.
  * \param pText The formatted text.
- * \param nCount The length of the text. If it is less than 0, MiniGUI will 
+ * \param nCount The length of the text. If it is less than 0, MiniGUI will
  *        treat it as a null-terminated string.
  * \param pRect The output rectangle.
  * \param nIndent The indent value of the first line.
- * \param nFormat The methods used to format the text. MiniGUI support 
+ * \param nFormat The methods used to format the text. MiniGUI support
  *        the following method to format text so far:
  *
  *  - DT_TOP\n
@@ -7523,40 +7523,40 @@ typedef struct _DTFIRSTLINE
  *  - DT_VCENTER\n
  *    Centers text vertically (single line only).
  *  - DT_BOTTOM\n
- *    Justify the text to the bottom of the rectangle. This value must be 
+ *    Justify the text to the bottom of the rectangle. This value must be
  *    combined with DT_SINGLELINE.
  *  - DT_WORDBREAK\n
- *    Break words. Lines are automatically broken between words if a word 
- *    would extend past the edge of the rectangle specified by the the pRect 
+ *    Break words. Lines are automatically broken between words if a word
+ *    would extend past the edge of the rectangle specified by the the pRect
  *    parameter. A carriage return or linefeed also breaks the line.
  *  - DT_CHARBREAK\n
- *    Break characters. Lines are automatically broken between characters 
- *    if a character would extend past the edge of the rectangle specified 
- *    by the the pRect parameter. A carriage return or linefeed also 
+ *    Break characters. Lines are automatically broken between characters
+ *    if a character would extend past the edge of the rectangle specified
+ *    by the the pRect parameter. A carriage return or linefeed also
  *    breaks the line. DT_CHARBREAK will override DT_WORDBREAK.
  *  - DT_SINGLELINE\n
- *    Display text on the single line only. Carriage returns and linefeeds 
+ *    Display text on the single line only. Carriage returns and linefeeds
  *    do not break the line.
  *  - DT_EXPANDTABS\n
  *    Expands tab characters. The default number of character per tab is eight.
  *  - DT_TABSTOP\n
- *    Set tab stops. Bits 15-8 (high-order byte of the low-order word) of 
- *    the \a uForma parameter specify the number of characters for each tab. 
+ *    Set tab stops. Bits 15-8 (high-order byte of the low-order word) of
+ *    the \a uForma parameter specify the number of characters for each tab.
  *    The default number of characters per tab is eight.
  *  - DT_NOCLIP\n
- *    Draws without clipping. \a DrawText is somewhat faster when DT_NOCLIP is 
+ *    Draws without clipping. \a DrawText is somewhat faster when DT_NOCLIP is
  *    used.
  *  - DT_CALCRECT\n
- *    Determines the width and the height of the rectangle. If there are 
+ *    Determines the width and the height of the rectangle. If there are
  *    multiple lines of text, \a DrawText uses the width of the rectangle
- *    pointed to by the \a lpRect parameter and extends the base of the 
- *    rectangle to bound the last line of text. If there is only one line of 
- *    text, \a DrawText modifies the right side of the rectangle so that it 
- *    bounds the last character in the line. In either case, \a DrawText 
+ *    pointed to by the \a lpRect parameter and extends the base of the
+ *    rectangle to bound the last line of text. If there is only one line of
+ *    text, \a DrawText modifies the right side of the rectangle so that it
+ *    bounds the last character in the line. In either case, \a DrawText
  *    returns the height of the formatted text but does not draw the text.
  *
- * \param firstline If not null, DrawTextEx2 will only calculate the first 
- *        line will be output in the rectangle, and return the number of 
+ * \param firstline If not null, DrawTextEx2 will only calculate the first
+ *        line will be output in the rectangle, and return the number of
  *        the characters and the output width.
  *
  * \return The output height of the formatted text.
@@ -7567,14 +7567,14 @@ typedef struct _DTFIRSTLINE
  *
  * \include drawtext.c
  */
-MG_EXPORT int GUIAPI DrawTextEx2 (HDC hdc, const char* pText, int nCount, 
+MG_EXPORT int GUIAPI DrawTextEx2 (HDC hdc, const char* pText, int nCount,
                 RECT* pRect, int nIndent, UINT nFormat, DTFIRSTLINE *firstline);
 
 /**
  * \def DrawText(hdc, text, n, rc, format)
  * \brief Draws a formatted text in a rectangle.
  *
- * Defined as a macro calling \a DrawTextEx2 passing \a nIndent as 0 
+ * Defined as a macro calling \a DrawTextEx2 passing \a nIndent as 0
  * and \a firstline as NULL.
  *
  * \sa DrawTextEx2
@@ -7597,7 +7597,7 @@ MG_EXPORT int GUIAPI DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     /**
      * \defgroup bmp_struct Bitmap structure
      *
-     * MiniGUI uses a MYBITMAP structure to represent a device-independent 
+     * MiniGUI uses a MYBITMAP structure to represent a device-independent
      * bitmap, and BITMAP structure to represent a device-dependent bitmap.
      *
      * @{
@@ -7699,7 +7699,7 @@ struct _BITMAP
      *    A nomal bitmap, without alpha and color key.
      *  - BMP_TYPE_RLE\n
      *    A RLE (run-length-encode) encoded bitmap.
-     *    The encoding translates the pixel data to a stream of segments of 
+     *    The encoding translates the pixel data to a stream of segments of
      *    the form
      *
      *      \<skip\> \<run\> \<data\>
@@ -7787,33 +7787,33 @@ typedef void (* CB_ONE_SCANLINE) (void* context, MYBITMAP* my_bmp, int y);
             BOOL (*check) (MG_RWops* fp))
  * \brief Registers a bitmap file loader, saver, and checker.
  *
- * This function registers a new bitmap file loader, saver, and checker. 
- * You should pass the extension of the bitmap files, the functions to 
- * init, load, and cleanup this type of bitmap file, the function to save, 
+ * This function registers a new bitmap file loader, saver, and checker.
+ * You should pass the extension of the bitmap files, the functions to
+ * init, load, and cleanup this type of bitmap file, the function to save,
  * and the function to check the type.
  *
- * \param ext The extension name of the type of bitmap file, like "jpg" 
+ * \param ext The extension name of the type of bitmap file, like "jpg"
  *        or "gif".
- * \param init The routine to init the MYBITMAP object (bmp). 
- *        This routine fills the MYBITMAP structure and get the pallete 
- *        if needed. It will return the init_info for the following load 
+ * \param init The routine to init the MYBITMAP object (bmp).
+ *        This routine fills the MYBITMAP structure and get the pallete
+ *        if needed. It will return the init_info for the following load
  *        routine.
  * \param load The routine to load the scanlines of the bitmap file.
- *        This routine will load the initialized MYBITMAP object (bmp) from the 
- *        data source (fp). It will call the scanline loaded callback (cb) by 
- *        passing through the context (context), the MYBITMAP object (bmp), 
+ *        This routine will load the initialized MYBITMAP object (bmp) from the
+ *        data source (fp). It will call the scanline loaded callback (cb) by
+ *        passing through the context (context), the MYBITMAP object (bmp),
  *        and the index of the scanline.
  * \param cleanup The cleanup routine.
  * \param save The saver of the bitmap file, can be NULL.
  * \param check The checker of the bitmap file.
  * \return TRUE on success, FALSE on error.
  *
- * \sa CheckBitmapType, InitMyBitmapSL, LoadMyBitmapSL, CleanupMyBitmapSL, 
+ * \sa CheckBitmapType, InitMyBitmapSL, LoadMyBitmapSL, CleanupMyBitmapSL,
  *     general_rw_fns
  */
 MG_EXPORT BOOL GUIAPI RegisterBitmapFileType (const char *ext,
             void* (*init) (MG_RWops* fp, MYBITMAP *my_bmp, RGB *pal),
-            int (*load) (MG_RWops* fp, void* init_info, MYBITMAP *my_bmp, 
+            int (*load) (MG_RWops* fp, void* init_info, MYBITMAP *my_bmp,
                     CB_ONE_SCANLINE cb, void* context),
             void (*cleanup) (void* init_info),
             int (*save) (MG_RWops* fp, MYBITMAP *my_bmp, RGB *pal),
@@ -7822,13 +7822,13 @@ MG_EXPORT BOOL GUIAPI RegisterBitmapFileType (const char *ext,
 /**
  * \fn const char* GUIAPI CheckBitmapType (MG_RWops* fp)
  * \brief Checks the type of the bitmap in a data source.
- * 
+ *
  * This function checks the type of the bitmap in the data source \a fp,
  * and returns the extension of this type of bitmap file.
  *
  * \param fp The pointer to the data source.
  *
- * \return The extension of the type of bitmap file. 
+ * \return The extension of the type of bitmap file.
  *         NULL for not recongnized bitmap type.
  *
  * \sa RegisterBitmapFileType
@@ -7836,21 +7836,21 @@ MG_EXPORT BOOL GUIAPI RegisterBitmapFileType (const char *ext,
 
 MG_EXPORT const char* GUIAPI CheckBitmapType (MG_RWops* fp);
 
-/** 
- * This function is used to set attributes of MLShadow slave screen. 
- * After creating a slave screen by  \a InitSlaveScreen successfully, you  
- * should call this function to set its attributes. When blend_flags is 
+/**
+ * This function is used to set attributes of MLShadow slave screen.
+ * After creating a slave screen by  \a InitSlaveScreen successfully, you
+ * should call this function to set its attributes. When blend_flags is
  * MLS_INFOMASK_ALL, it will set all attributes of slave screen.
  *
  * \param dc_mls The handle to the slave screen.
  * \param mask The attributes mask, can be or'ed values of the following mask:
- * 
+ *
  *   - MLS_INFOMASK_OFFSET\n
  *     Set x and y offset value of slave screen.
  *
  *   - MLS_INFOMASK_BLEND\n
  *     Set blend mode of slave screen.
- *  
+ *
  *   - MLS_INFOMASK_ZORDER\n
  *     Set z_order value of slave screen.
  *
@@ -7877,7 +7877,7 @@ MG_EXPORT const char* GUIAPI CheckBitmapType (MG_RWops* fp);
  * \return TRUE on success, FALSE on error.
  */
 
-#define MLS_BLENDMODE_NONE           0x00 
+#define MLS_BLENDMODE_NONE           0x00
 #define MLS_BLENDMODE_COLORKEY       0x01
 #define MLS_BLENDMODE_ALPHA          0x02
 
@@ -7887,7 +7887,7 @@ MG_EXPORT const char* GUIAPI CheckBitmapType (MG_RWops* fp);
 #define MLS_INFOMASK_ALL             0x07
 #define MLS_INFOMASK_ENABLE          0x08
 
-MG_EXPORT BOOL GUIAPI mlsSetSlaveScreenInfo (HDC dc_mls, DWORD mask, int offset_x, int offset_y, 
+MG_EXPORT BOOL GUIAPI mlsSetSlaveScreenInfo (HDC dc_mls, DWORD mask, int offset_x, int offset_y,
         DWORD blend_flags, gal_pixel color_key, int alpha, int z_order);
 
 MG_EXPORT BOOL GUIAPI mlsGetSlaveScreenInfo (HDC dc_mls, DWORD mask, int* offset_x, int* offset_y,
@@ -7896,9 +7896,9 @@ MG_EXPORT BOOL GUIAPI mlsGetSlaveScreenInfo (HDC dc_mls, DWORD mask, int* offset
  * \fn BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable)
  * \brief Enable or Disable a MLShadow slave screen.
  *
- * This function is used to enable or diable a MLShadow slave screen. 
+ * This function is used to enable or diable a MLShadow slave screen.
  * After creating a slave screen by  \a InitSlaveScreen successfully, its
- * default status is disabled. 
+ * default status is disabled.
  *
  * \param dc_mls The handle of MLShadow slave screen.
  * \param enable Whether to enable the MLShadow slave screen.
@@ -7923,9 +7923,9 @@ MG_EXPORT BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable);
  * \fn int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP pBitmap, \
                 MG_RWops* area, const char* ext)
  * \brief Loads a device-dependent bitmap from a general data source.
- * 
+ *
  * This function loads a device-dependent bitmap from the data source \a area.
- * 
+ *
  * \param hdc The device context.
  * \param pBitmap The pointer to the BITMAP object.
  * \param area The data source.
@@ -7946,7 +7946,7 @@ MG_EXPORT BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable);
  *
  * \sa LoadBitmapFromFile, LoadBitmapFromMem
  */
-MG_EXPORT int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP pBitmap, 
+MG_EXPORT int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP pBitmap,
                 MG_RWops* area, const char* ext);
 
 /**
@@ -7956,7 +7956,7 @@ MG_EXPORT int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP pBitmap,
  *
  * \sa LoadBitmapEx
  */
-MG_EXPORT int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP pBitmap, 
+MG_EXPORT int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP pBitmap,
                 const char* spFileName);
 
 /**
@@ -7974,7 +7974,7 @@ MG_EXPORT int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP pBitmap,
  *
  * \sa LoadBitmapEx
  */
-MG_EXPORT int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP pBitmap, 
+MG_EXPORT int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP pBitmap,
                 const void* mem, int size, const char* ext);
 
 /**
@@ -8015,7 +8015,7 @@ MG_EXPORT int GUIAPI SetBitmapKeyColor (HDC hdc, PBITMAP bmp, Uint8 r, Uint8 g, 
                 gal_pixel iOColor, gal_pixel iNColor)
  * \brief Replaces a specific pixels in a bitmap with another pixel.
  *
- * This function replaces the specific pixels with value \a iOColor with 
+ * This function replaces the specific pixels with value \a iOColor with
  * the other pixel value \a iNcolor in the bitmap \a pBitmap.
  *
  * \param hdc The device context.
@@ -8024,7 +8024,7 @@ MG_EXPORT int GUIAPI SetBitmapKeyColor (HDC hdc, PBITMAP bmp, Uint8 r, Uint8 g, 
  * \param iNColor The pixel value of the new color.
  *
  */
-MG_EXPORT void GUIAPI ReplaceBitmapColor (HDC hdc, PBITMAP pBitmap, 
+MG_EXPORT void GUIAPI ReplaceBitmapColor (HDC hdc, PBITMAP pBitmap,
                 gal_pixel iOColor, gal_pixel iNColor);
 
 /**
@@ -8054,7 +8054,7 @@ MG_EXPORT void GUIAPI VFlipBitmap (BITMAP* bmp, unsigned char* inter_buff);
                 const char* ext, MYBITMAP* my_bmp, RGB* pal)
  * \brief Initializes scanline loader of the MYBITMAP object from a data source.
  *
- * This function initializes scanline loader of the MYBITMAP object from 
+ * This function initializes scanline loader of the MYBITMAP object from
  * a data source.
  *
  * \param area The data source.
@@ -8062,12 +8062,12 @@ MG_EXPORT void GUIAPI VFlipBitmap (BITMAP* bmp, unsigned char* inter_buff);
  * \param my_bmp The pointer to the MYBITMAP object.
  * \param pal The palette will be returned.
  *
- * \return The initialized information which should be passed to 
+ * \return The initialized information which should be passed to
  *         LoadMyBitmapSL function, and NULL on error.
  *
  * \sa LoadMyBitmapEx, LoadMyBitmapSL, CleanupMyBitmapSL
  */
-MG_EXPORT void* GUIAPI InitMyBitmapSL (MG_RWops* area, 
+MG_EXPORT void* GUIAPI InitMyBitmapSL (MG_RWops* area,
                 const char* ext, MYBITMAP* my_bmp, RGB* pal);
 
 /**
@@ -8075,11 +8075,11 @@ MG_EXPORT void* GUIAPI InitMyBitmapSL (MG_RWops* area,
                 MYBITMAP* my_bmp, CB_ONE_SCANLINE cb, void* context)
  * \brief Loads MYBITMAP scanlines from a data source one by one.
  *
- * This function loads MYBITMAP scanlines from the data source \a area 
+ * This function loads MYBITMAP scanlines from the data source \a area
  * one by one.
  *
  * \param area The data source.
- * \param load_info The initialized information retured by 
+ * \param load_info The initialized information retured by
  *        InitMyBitmapSL function.
  * \param my_bmp The pointer to the MYBITMAP object.
  * \param cb The callback to inform one scanline loaded. It can be NULL.
@@ -8088,7 +8088,7 @@ MG_EXPORT void* GUIAPI InitMyBitmapSL (MG_RWops* area,
  *
  * \sa LoadMyBitmapEx, InitMyBitmapSL, CleanupMyBitmapSL
  */
-MG_EXPORT int GUIAPI LoadMyBitmapSL (MG_RWops* area, void* load_info, 
+MG_EXPORT int GUIAPI LoadMyBitmapSL (MG_RWops* area, void* load_info,
                 MYBITMAP* my_bmp, CB_ONE_SCANLINE cb, void* context);
 
 /**
@@ -8098,7 +8098,7 @@ MG_EXPORT int GUIAPI LoadMyBitmapSL (MG_RWops* area, void* load_info,
  * This function cleanups the scanline loader.
  *
  * \param my_bmp The pointer to the MYBITMAP object.
- * \param load_info The initialized information retured by InitMyBitmapSL 
+ * \param load_info The initialized information retured by InitMyBitmapSL
  *        function.
  *
  * \return 0 on success, less than 0 on error.
@@ -8122,7 +8122,7 @@ MG_EXPORT int GUIAPI CleanupMyBitmapSL (MYBITMAP* my_bmp, void* load_info);
  *
  * \sa LoadBitmapEx
  */
-MG_EXPORT int GUIAPI LoadMyBitmapEx (PMYBITMAP my_bmp, RGB* pal, 
+MG_EXPORT int GUIAPI LoadMyBitmapEx (PMYBITMAP my_bmp, RGB* pal,
                 MG_RWops* area, const char* ext);
 
 /**
@@ -8132,7 +8132,7 @@ MG_EXPORT int GUIAPI LoadMyBitmapEx (PMYBITMAP my_bmp, RGB* pal,
  *
  * \sa LoadMyBitmapEx
  */
-MG_EXPORT int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal, 
+MG_EXPORT int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal,
                 const char* file_name);
 
 /**
@@ -8158,7 +8158,7 @@ MG_EXPORT int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal,
  *
  * \sa LoadMyBitmapEx, MYBITMAP
  */
-MG_EXPORT int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal, 
+MG_EXPORT int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal,
                 const void* mem, int size, const char* ext);
 
 /**
@@ -8180,8 +8180,8 @@ MG_EXPORT void GUIAPI UnloadMyBitmap (PMYBITMAP my_bmp);
  * \fn int GUIAPI SaveMyBitmapToFile (PMYBITMAP my_bmp, RGB* pal, \
                 const char* spFileName)
  * \brief Saves a MYBITMAP object to a bitmap file.
- * 
- * This function saves the MYBITMAP object \a my_bmp to the bitmap file 
+ *
+ * This function saves the MYBITMAP object \a my_bmp to the bitmap file
  * named \a spFileName.
  *
  * \param my_bmp The MYBITMAP object.
@@ -8192,15 +8192,15 @@ MG_EXPORT void GUIAPI UnloadMyBitmap (PMYBITMAP my_bmp);
  *
  * \sa SaveBitmapToFile
  */
-MG_EXPORT int GUIAPI SaveMyBitmapToFile (PMYBITMAP my_bmp, RGB* pal, 
+MG_EXPORT int GUIAPI SaveMyBitmapToFile (PMYBITMAP my_bmp, RGB* pal,
                 const char* spFileName);
 
 /**
  * \fn int GUIAPI SaveBitmapToFile (HDC hdc, PBITMAP pBitmap, \
                 const char* spFileName)
  * \brief Saves a BITMAP object to a bitmap file.
- * 
- * This function saves the BITMAP object \a pBitmap to the bitmap file 
+ *
+ * This function saves the BITMAP object \a pBitmap to the bitmap file
  * named \a spFileName.
  *
  * \param hdc The device context.
@@ -8210,9 +8210,9 @@ MG_EXPORT int GUIAPI SaveMyBitmapToFile (PMYBITMAP my_bmp, RGB* pal,
  *
  * \sa SaveMyBitmapToFile
  */
-MG_EXPORT int GUIAPI SaveBitmapToFile (HDC hdc, PBITMAP pBitmap, 
+MG_EXPORT int GUIAPI SaveBitmapToFile (HDC hdc, PBITMAP pBitmap,
                 const char* spFileName);
-#define SaveBitmap  SaveBitmapToFile 
+#define SaveBitmap  SaveBitmapToFile
 #endif
 
 /**
@@ -8221,7 +8221,7 @@ MG_EXPORT int GUIAPI SaveBitmapToFile (HDC hdc, PBITMAP pBitmap,
  * \brief Initializes a BITMAP object as a normal bitmap.
  *
  * This function initializes the bitmap pointed to by \a bmp as a normal bitmap.
- * It sets the bitmap structure fields, and allocates the bits if \a bits 
+ * It sets the bitmap structure fields, and allocates the bits if \a bits
  * is NULL.
  *
  * \param hdc The device context.
@@ -8236,7 +8236,7 @@ MG_EXPORT int GUIAPI SaveBitmapToFile (HDC hdc, PBITMAP pBitmap,
  *
  * \sa InitBitmapPixelFormat, UnloadBitmap, bmp_struct
  */
-MG_EXPORT BOOL GUIAPI InitBitmap (HDC hdc, Uint32 w, Uint32 h, Uint32 pitch, 
+MG_EXPORT BOOL GUIAPI InitBitmap (HDC hdc, Uint32 w, Uint32 h, Uint32 pitch,
                 BYTE* bits, PBITMAP bmp);
 
 /**
@@ -8244,10 +8244,10 @@ MG_EXPORT BOOL GUIAPI InitBitmap (HDC hdc, Uint32 w, Uint32 h, Uint32 pitch,
  * \brief Initializes slave screen.
  *
  * \param name The gal engine name.
- * \param mode The display mode. For example : 640x480-16bpp. 
+ * \param mode The display mode. For example : 640x480-16bpp.
  * \param dpi  The resolution of screen, should be a value larger than GDCAP_DPI_MINIMAL (36).
  *
- * \return Valid handle on success, HDC_INVALID on failure. 
+ * \return Valid handle on success, HDC_INVALID on failure.
  *
  */
 MG_EXPORT HDC GUIAPI InitSlaveScreenEx (const char* name, const char* mode, int dpi);
@@ -8269,7 +8269,7 @@ inline HDC InitSlaveScreen (const char* name, const char* mode)
 /**
  * \fn void TerminateSlaveScreen (HDC hdc)
  * \brief Terminates slave screen.
- * 
+ *
  * \param hdc The slave device context.
  *
  */
@@ -8278,9 +8278,9 @@ MG_EXPORT void GUIAPI TerminateSlaveScreen (HDC hdc);
  * \fn BOOL GUIAPI InitBitmapPixelFormat (HDC hdc, PBITMAP bmp)
  * \brief Initializes the bitmap pixel format information of a BITMAP object.
  *
- * This function initializes the bitmap pixel format information of the 
- * BITMAP object pointed to by \a bmp. This includes \a bmBitsPerPixel 
- * and \a bmBytesPerPixel fields, and the private pixel format if the 
+ * This function initializes the bitmap pixel format information of the
+ * BITMAP object pointed to by \a bmp. This includes \a bmBitsPerPixel
+ * and \a bmBytesPerPixel fields, and the private pixel format if the
  * bitmap is a bitmap with alpha.
  *
  * \param hdc The device context.
@@ -8295,7 +8295,7 @@ MG_EXPORT BOOL GUIAPI InitBitmapPixelFormat (HDC hdc, PBITMAP bmp);
  * \fn void GUIAPI DeleteBitmapAlphaPixel (PBITMAP bmp)
  * \brief Deletes the bitmap alpha pixel format information of a BITMAP object.
  *
- * This function deletes the bitmap alpha pixel format information of 
+ * This function deletes the bitmap alpha pixel format information of
  * the BITMAP object \a bmp.
  *
  * \sa InitBitmapPixelFormat
@@ -8310,7 +8310,7 @@ typedef struct GAL_PixelFormat {
     Uint8  BytesPerPixel;
     /* The flag indicating dithered palette */
     Uint8  DitheredPalette;
-    /* The flag indicating the Most Significant Bits (MSB) 
+    /* The flag indicating the Most Significant Bits (MSB)
      * is left when depth is less than 8. */
     Uint8  MSBLeft;
 
@@ -8361,14 +8361,14 @@ typedef BYTE* (* CB_DRAW_PIXEL) (HDC hdc, MYBITMAP_CONTXT* mybmp, Uint32 pixel, 
  * \param frame The frame of the MYBITMAP object.
  * \return 0 on success, non-zero on error.
  */
-MG_EXPORT int GUIAPI ExpandMyBitmap (HDC hdc, PBITMAP bmp, 
+MG_EXPORT int GUIAPI ExpandMyBitmap (HDC hdc, PBITMAP bmp,
                 const MYBITMAP* my_bmp, const RGB* pal, int frame);
 
 /**
- * \fn void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
- *               const BYTE* my_bits, Uint32 my_pitch, 
+ * \fn void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+ *               const BYTE* my_bits, Uint32 my_pitch,
  *               Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg)
- *				
+ *
  * \brief Convert a mono color MYBITMAP pixel data to a BITMAP pixel data.
  *
  * This function compile a MYBITMAP pixel data to a BITMAP pixel data.
@@ -8386,20 +8386,20 @@ MG_EXPORT int GUIAPI ExpandMyBitmap (HDC hdc, PBITMAP bmp,
  *
  * \sa Expand16CBitmap, Expand256CBitmap
  */
-MG_EXPORT void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
+MG_EXPORT void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg);
-				
-MG_EXPORT void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
-                Uint32 w, Uint32 h, DWORD flags, 
+
+MG_EXPORT void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
+                Uint32 w, Uint32 h, DWORD flags,
                 const RGB* pal, BYTE use_pal_alpha, BYTE alpha);
 
 /**
- * \fn void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
- *               const BYTE* my_bits, Uint32 my_pitch, 
+ * \fn void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+ *               const BYTE* my_bits, Uint32 my_pitch,
  *               Uint32 w, Uint32 h, DWORD flags, const RGB* pal)
- *				
+ *
  * \brief Convert a 16 color MYBITMAP pixel data to a BITMAP pixel data.
  *
  * This function compile a 16 color  MYBITMAP pixel data to a BITMAP pixel data.
@@ -8415,26 +8415,26 @@ MG_EXPORT void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
  * \param pal The Palette of the MYBITMAP object.
  *
  * \sa ExpandMonoBitmap, Expand256CBitmap
- */				
-static inline void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
+ */
+static inline void GUIAPI Expand16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, const RGB* pal)
 {
-    Expand16CBitmapEx (hdc, bits, pitch, my_bits, my_pitch, 
+    Expand16CBitmapEx (hdc, bits, pitch, my_bits, my_pitch,
                 w, h, flags, pal, FALSE, 0xFF);
 }
 
-MG_EXPORT void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
-                Uint32 w, Uint32 h, DWORD flags, 
+MG_EXPORT void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
+                Uint32 w, Uint32 h, DWORD flags,
                 const RGB* pal, BYTE use_pal_alpha, BYTE alpha,
                 CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
 /**
- * \fn void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
- *               const BYTE* my_bits, Uint32 my_pitch, 
- *               Uint32 w, Uint32 h, DWORD flags, const RGB* pal, 
+ * \fn void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+ *               const BYTE* my_bits, Uint32 my_pitch,
+ *               Uint32 w, Uint32 h, DWORD flags, const RGB* pal,
  *               CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
- *				
+ *
  * \brief Convert a 256 color MYBITMAP pixel data to a BITMAP pixel data.
  *
  * This function compile a 256 color MYBITMAP pixel data to a BITMAP pixel data.
@@ -8452,13 +8452,13 @@ MG_EXPORT void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
  * \param mybmp The context of cb_draw.
  *
  * \sa ExpandMonoBitmap, Expand16CBitmap
- */	
-static inline void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
+ */
+static inline void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, const RGB* pal,
                 CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
 {
-    Expand256CBitmapEx (hdc, bits, pitch, my_bits, my_pitch, 
+    Expand256CBitmapEx (hdc, bits, pitch, my_bits, my_pitch,
                 w, h, flags, pal, FALSE, 0xFF, cb_draw, mybmp);
 }
 
@@ -8485,16 +8485,16 @@ static inline void GUIAPI Expand256CBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
  *
  * \sa CompileRGBABitmapEx
  */
-MG_EXPORT void GUIAPI CompileRGBABitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
-                Uint32 w, Uint32 h, DWORD flags, void* pixel_format, 
+MG_EXPORT void GUIAPI CompileRGBABitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
+                Uint32 w, Uint32 h, DWORD flags, void* pixel_format,
                 CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
 
 /**
  * \fn void GUIAPI CompileRGBABitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, \
  *              const BYTE* my_bits, Uint32 my_pitch, \
  *              Uint32 w, Uint32 h, DWORD flags, void* pixel_format, \
- *              CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp, 
+ *              CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp,
  *              BYTE* alpha_mask);
  * \brief Compile a MYBITMAP pixel data to a BITMAP pixel data.
  *
@@ -8511,37 +8511,37 @@ MG_EXPORT void GUIAPI CompileRGBABitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
 #ifdef _FILL_MYBITMAP
 MG_EXPORT int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal);
 
-MG_EXPORT void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+MG_EXPORT void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
-                Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg, 
+                Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg,
                 int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
 
-MG_EXPORT void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
-                Uint32 w, Uint32 h, DWORD flags, 
+MG_EXPORT void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
+                Uint32 w, Uint32 h, DWORD flags,
                 const RGB* pal, BYTE use_pal_alpha, BYTE alpha,
                 int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp);
 
-static inline void GUIAPI ExpandPart16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
-                const BYTE* my_bits, Uint32 my_pitch, 
+static inline void GUIAPI ExpandPart16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
+                const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, const RGB* pal,
                 int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
 {
-    ExpandPart16CBitmapEx (hdc, bits, pitch, my_bits, my_pitch, 
+    ExpandPart16CBitmapEx (hdc, bits, pitch, my_bits, my_pitch,
                 w, h, flags, pal, FALSE, 0xFF, stepx, cb_draw, mybmp);
 }
 
 #endif
 
-#define CompileRGBBitmap CompileRGBABitmap 
+#define CompileRGBBitmap CompileRGBABitmap
 
 /**
  * \fn int GUIAPI PaintImageEx (HDC hdc, int x, int y, \
                 MG_RWops* area, const char* ext);
  * \brief Paints an image from data source on device directly.
- * 
+ *
  * This function paints an image from data source onto device directly.
- * 
+ *
  * \param hdc The device context.
  * \param x (x,y), the paint position on device.
  * \param y (x,y), the paint position on device.
@@ -8563,7 +8563,7 @@ static inline void GUIAPI ExpandPart16CBitmap (HDC hdc, BYTE* bits, Uint32 pitch
  *
  * \sa PaintImageFromFile, PaintImageFromMem
  */
-MG_EXPORT int GUIAPI PaintImageEx (HDC hdc, int x, int y, 
+MG_EXPORT int GUIAPI PaintImageEx (HDC hdc, int x, int y,
                 MG_RWops* area, const char* ext);
 
 /**
@@ -8580,7 +8580,7 @@ MG_EXPORT int GUIAPI PaintImageEx (HDC hdc, int x, int y,
  *
  * \sa PaintImageEx
  */
-MG_EXPORT int GUIAPI PaintImageFromFile (HDC hdc, int x, int y, 
+MG_EXPORT int GUIAPI PaintImageFromFile (HDC hdc, int x, int y,
                 const char* spFileName);
 
 /**
@@ -8599,17 +8599,17 @@ MG_EXPORT int GUIAPI PaintImageFromFile (HDC hdc, int x, int y,
  *
  * \sa PaintImageEx
  */
-MG_EXPORT int GUIAPI PaintImageFromMem (HDC hdc, int x, int y, 
+MG_EXPORT int GUIAPI PaintImageFromMem (HDC hdc, int x, int y,
                 const void* mem, int size, const char* ext);
 
 /**
  * \fn int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h, \
                 MG_RWops* area, const char* ext);
  * \brief Paints an image from data source on device directly.
- * 
+ *
  * This function paints an image from data source onto device directly with
  * stretch.
- * 
+ *
  * \param hdc The device context.
  * \param x (x,y), the paint position on device.
  * \param y (x,y), the paint position on device.
@@ -8633,7 +8633,7 @@ MG_EXPORT int GUIAPI PaintImageFromMem (HDC hdc, int x, int y,
  *
  * \sa PaintImageFromFile, PaintImageFromMem
  */
-MG_EXPORT int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h, 
+MG_EXPORT int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h,
                 MG_RWops* area, const char* ext);
 
 /**
@@ -8652,7 +8652,7 @@ MG_EXPORT int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h,
  *
  * \sa StretchPaintImageEx
  */
-MG_EXPORT int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y, 
+MG_EXPORT int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y,
                 int w, int h, const char* spFileName);
 
 /**
@@ -8673,7 +8673,7 @@ MG_EXPORT int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y,
  *
  * \sa StretchPaintImageEx
  */
-MG_EXPORT int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y, 
+MG_EXPORT int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y,
                 int w, int h, const void* mem, int size, const char* ext);
 
 #ifdef _MGHAVE_FIXED_MATH
@@ -8688,36 +8688,36 @@ MG_EXPORT int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y,
  * \param bmp The pointer of Bitmap object.
  * \param lx (lx,ty), the x coordinate of top left corner.
  * \param ty (lx,ty), the y coordinate of top left corner.
- * \param angle The specified rotated angle around its center. 
+ * \param angle The specified rotated angle around its center.
  *              It must be in 1/64ths of a degree.
  *
  * \sa PivotScaledBitmapFlip
  */
-MG_EXPORT void GUIAPI RotateBitmap (HDC hdc, const BITMAP *bmp, 
+MG_EXPORT void GUIAPI RotateBitmap (HDC hdc, const BITMAP *bmp,
                 int lx, int ty, int angle);
 
 /**
  * \fn void GUIAPI  RotateBitmapVFlip (HDC hdc, const BITMAP *bmp, \
                 int lx, int ty, int angle)
  *
- * \brief Flips vertically and rotates a bitmap object. 
+ * \brief Flips vertically and rotates a bitmap object.
  *
  * This function flips vertically before rotating the bitmap pointed to \a bmp.
  *
  * \sa RotateBitmap
  */
-MG_EXPORT void GUIAPI RotateBitmapVFlip (HDC hdc, const BITMAP *bmp, 
+MG_EXPORT void GUIAPI RotateBitmapVFlip (HDC hdc, const BITMAP *bmp,
                 int lx, int ty, int angle);
 
 /**
  * \fn void GUIAPI  RotateBitmapHFlip (HDC hdc, const BITMAP *bmp, int lx, \
                int ty, int angle)
  *
- * \brief Flips horizontally and rotates a bitmap object. 
+ * \brief Flips horizontally and rotates a bitmap object.
  *
  * \sa RotateBitmap
  */
-MG_EXPORT void GUIAPI RotateBitmapHFlip (HDC hdc, const BITMAP *bmp, 
+MG_EXPORT void GUIAPI RotateBitmapHFlip (HDC hdc, const BITMAP *bmp,
                 int lx, int ty, int angle);
 
 /**
@@ -8728,68 +8728,68 @@ MG_EXPORT void GUIAPI RotateBitmapHFlip (HDC hdc, const BITMAP *bmp,
  *
  * \sa RotateBitmap
  */
-MG_EXPORT void GUIAPI RotateScaledBitmap (HDC hdc, const BITMAP *bmp, 
+MG_EXPORT void GUIAPI RotateScaledBitmap (HDC hdc, const BITMAP *bmp,
                 int lx, int ty, int angle, int w, int h);
 
 /**
  * \fn void GUIAPI  RotateScaledBitmapVFlip (HDC hdc, const BITMAP *bmp, \
                 int lx, int ty, int angle, int w, int h)
 
- * \brief Flip vertically, rotates, stretch or shrinks a bitmap object. 
+ * \brief Flip vertically, rotates, stretch or shrinks a bitmap object.
  *
- * This function is similar to RotateScaledBitmap() expect that it flips the 
- *        bitmap vertically first. 
+ * This function is similar to RotateScaledBitmap() expect that it flips the
+ *        bitmap vertically first.
  *
  * \sa RotateScaledBitmap()
  */
-MG_EXPORT void GUIAPI RotateScaledBitmapVFlip (HDC hdc, const BITMAP *bmp, 
+MG_EXPORT void GUIAPI RotateScaledBitmapVFlip (HDC hdc, const BITMAP *bmp,
                 int lx, int ty, int angle, int w, int h);
 
 /**
  * \fn void GUIAPI  RotateScaledBitmapHFlip (HDC hdc, const BITMAP *bmp, \
                 int lx, int ty, int angle, int w, int h)
  *
- * \brief Flip horizontaly, rotates, stretch or shrinks a bitmap object. 
+ * \brief Flip horizontaly, rotates, stretch or shrinks a bitmap object.
  *
- * This function is similar to RotateScaledBitmap() expect that it flips the 
- *        bitmap horizontally first. 
+ * This function is similar to RotateScaledBitmap() expect that it flips the
+ *        bitmap horizontally first.
  *
  * \sa RotateScaledBitmap()
  */
-MG_EXPORT void GUIAPI RotateScaledBitmapHFlip (HDC hdc, const BITMAP *bmp, 
+MG_EXPORT void GUIAPI RotateScaledBitmapHFlip (HDC hdc, const BITMAP *bmp,
                 int lx, int ty, int angle, int w, int h);
 
 /**
  * \fn void GUIAPI PivotBitmap(HDC hdc, const BITMAP *bmp, \
             int x, int y, int cx, int cy, int angle)
  *
- * \brief Pivot a bitmap object.  
+ * \brief Pivot a bitmap object.
  *
- * This function aligns the point in the bitmap given by (cx, cy) to (x, y) 
+ * This function aligns the point in the bitmap given by (cx, cy) to (x, y)
  * in device context, then rotates around this point.
  *
  * \sa PivotScaledBitmapFlip
  */
-MG_EXPORT void GUIAPI PivotBitmap(HDC hdc, const BITMAP *bmp, 
+MG_EXPORT void GUIAPI PivotBitmap(HDC hdc, const BITMAP *bmp,
                 int lx, int ty, int cx, int cy, int angle);
 
 /**
  * \fn void GUIAPI PivotScaledBitmapFlip (HDC hdc, const BITMAP *bmp, \
  *               fixed x, fixed y, fixed cx, fixed cy, int angle, fixed scale_x, \
  *               fixed scale_y, BOOL h_flip, BOOL v_flip)
- * \brief Rotates, stretches or shrinks, flips a bitmap object. 
+ * \brief Rotates, stretches or shrinks, flips a bitmap object.
  *
- *  This function flips the bitmap vertically if \a v_flip is TRUE, flips the 
- *  bitmap horizontally if \a h_flip is TRUE first. Then stretches or shrinks 
+ *  This function flips the bitmap vertically if \a v_flip is TRUE, flips the
+ *  bitmap horizontally if \a h_flip is TRUE first. Then stretches or shrinks
  *  the bitmap according to \a scale and  aligns the point in the bitmap given
- *  by (cx, cy) to (x, y) in device context, Finally rotates specified angle 
+ *  by (cx, cy) to (x, y) in device context, Finally rotates specified angle
  *  pointed to \a angle in 1/64ths of a degree around this point (cx, cy).
  *
  * \param hdc The device context.
  * \param bmp The pointer of BITMAP object.
  * \param x (x,y) The x coordinate of a point in fixed point on dc.
  * \param y (x,y) The y coordinate of a point in fixed point on dc.
- * \param cx (cx,cy) The x coordinate of a point in fixed point on the bitmap. 
+ * \param cx (cx,cy) The x coordinate of a point in fixed point on the bitmap.
  * \param cy (cx,cy) The y coordinate of a point in fixed point on the bitmap.
  * \param angle The specified rotated angle around its center.
  * \param scale_x The ratio of width of stretching or shrinking the bitmap
@@ -8799,8 +8799,8 @@ MG_EXPORT void GUIAPI PivotBitmap(HDC hdc, const BITMAP *bmp,
  * \param h_flip The flags of fliping horizontally.
  * \param v_flip The flags of fliping vertically.
  */
-MG_EXPORT void GUIAPI PivotScaledBitmapFlip (HDC hdc, const BITMAP *bmp, 
-                fixed x, fixed y, fixed cx, fixed cy, int angle, fixed scale_x, 
+MG_EXPORT void GUIAPI PivotScaledBitmapFlip (HDC hdc, const BITMAP *bmp,
+                fixed x, fixed y, fixed cx, fixed cy, int angle, fixed scale_x,
                 fixed scale_y, BOOL h_flip, BOOL v_flip);
 
 #endif /*_MGHAVE_FIXED_MATH*/
@@ -8864,7 +8864,7 @@ MG_EXPORT BOOL GUIAPI AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
  */
 MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
 
-#endif /* end of _MGFONT_BMPF */ 
+#endif /* end of _MGFONT_BMPF */
 
      /**
      * \addtogroup gdi_fns GDI functions
@@ -8883,7 +8883,7 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
 typedef int Glyph32;
 
 /**
- * \def INV_GLYPH_VALUE 
+ * \def INV_GLYPH_VALUE
  */
 #define INV_GLYPH_VALUE    -1
 
@@ -8899,7 +8899,7 @@ typedef int Glyph32;
  * \def SET_MBC_GLYPH(glyph)
  * \brief set the glyph with multibyte mask
  *
- * \param glyph glyph value 
+ * \param glyph glyph value
  */
 #define SET_MBC_GLYPH(glyph) ((glyph) | 0x80000000)
 
@@ -8907,7 +8907,7 @@ typedef int Glyph32;
  * \def REAL_GLYPH(glyph)
  * \brief get real glyph value from a glyph
  *
- * \param glyph glyph value 
+ * \param glyph glyph value
  */
 #define REAL_GLYPH(glyph)   ((glyph) & 0x7FFFFFFF)
 
@@ -8943,7 +8943,7 @@ typedef struct _GLYPHMAPINFO {
     BOOL is_rtol;
 } GLYPHMAPINFO;
 
-/** 
+/**
  * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar, \
  *         int mchar_len, const char* pre_mchar, int pre_len)
  * \brief Get the glyph value of a multi-byte character.
@@ -9030,7 +9030,7 @@ typedef enum {
     GLYPH_MEDIAL
 } GLYPHSHAPETYPE;
 
-/** 
+/**
  * \fn Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar, \
  *         int mchar_len, GLYPHSHAPETYPE shape_type)
  * \brief Get the glyph shape of a character.
@@ -9060,7 +9060,7 @@ MG_EXPORT Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
 MG_EXPORT BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 glyph,
         Glyph32* mirrored);
 
-/** 
+/**
  * \fn int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value, \
  *         int* adv_x, int* adv_y)
  * \brief Draw a glyph.
@@ -9071,9 +9071,9 @@ MG_EXPORT BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 glyph,
  * \param x The output start x position.
  * \param y The output start y position.
  * \param glyph_value The glyph value.
- * \param adv_x The pointer used to return the advance in x-coordinate of 
+ * \param adv_x The pointer used to return the advance in x-coordinate of
  *        the glyph, can be NULL.
- * \param adv_y The pointer used to return the advance in y-coordinate of 
+ * \param adv_y The pointer used to return the advance in y-coordinate of
  *        the glyph, can be NULL.
  *
  * \return The advance on baseline.
@@ -9217,7 +9217,7 @@ typedef struct _GLYPHINFO {
 MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         GLYPHINFO* glyph_info);
 
-/** 
+/**
  * \fn int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs, \
  *         SIZE* size)
  * \brief Get visual extent value of a glyph string.
@@ -9235,7 +9235,7 @@ MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
 MG_EXPORT int GUIAPI GetGlyphsExtent (HDC hdc, Glyph32* glyphs, int nr_glyphs,
         SIZE* size);
 
-/** 
+/**
  * \fn int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs, \
  *         int nr_glyphs, int max_extent, SIZE* size)
  * \brief Get the visual extent value of a glyph string.
@@ -9257,69 +9257,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
         int nr_glyphs, int max_extent, SIZE* size);
 
 /**
- * \var typedef struct _LINEEXTINFO LINEEXTINFO
- * \brief Data type of struct _LINEEXTINFO.
- */
-typedef struct _LINEEXTINFO {
-    /** Line height */
-    int height;
-    /** Line width */
-    int width;
-    /** The font ascent */
-    int ascent;
-    /** Number of total space glyphs which are not collapsed */
-    int nr_spaces;
-} LINEEXTINFO;
-
-/**
- * \var typedef struct  _GLYPHEXTINFO GLYPHEXTINFO
- * \brief Data type of struct _GLYPHEXTINFO.
- */
-typedef struct _GLYPHEXTINFO {
-    /** The bounding box of the glyph. */
-    int bbox_x, bbox_y, bbox_w, bbox_h;
-    /** The advance values of the glyph. */
-    int advance_x, advance_y;
-} GLYPHEXTINFO;
-
-#define GRF_WORD_BREAK_MASK             0x0000000F
-#define GRF_WORD_BREAK_NORMAL           0x00000000
-#define GRF_WORD_BREAK_KEEP_ALL         0x00000001
-#define GRF_WORD_BREAK_BREAK_ALL        0x00000002
-
-#define GRF_OVERFLOW_WRAP_MASK          0x000000F0
-#define GRF_OVERFLOW_WRAP_NORMAL        0x00000000
-#define GRF_OVERFLOW_WRAP_BREAK_WORD    0x00000010
-#define GRF_OVERFLOW_WRAP_ANYWHERE      0x00000020
-
-#define GRF_LINE_BREAK_MASK             0x00000F00
-#define GRF_LINE_BREAK_NORMAL           0x00000000
-#define GRF_LINE_BREAK_AUTO             0x00000100
-#define GRF_LINE_BREAK_LOOSE            0x00000200
-#define GRF_LINE_BREAK_STRICT           0x00000300
-#define GRF_LINE_BREAK_ANYWHERE         0x00000400
-
-#define GRF_LETTER_DIRECTION_MASK       0x0000F000
-#define GRF_LETTER_DIRECTION_LTR        0x00000000
-#define GRF_LETTER_DIRECTION_RTL        0x00001000
-#define GRF_LETTER_DIRECTION_UTB        0x00002000
-#define GRF_LETTER_DIRECTION_BTU        0x00003000
-
-#define GRF_LINE_DIRECTION_MASK         0x000F0000
-#define GRF_LINE_DIRECTION_UTB          0x00000000
-#define GRF_LINE_DIRECTION_BTU          0x00010000
-#define GRF_LINE_DIRECTION_LTR          0x00020000
-#define GRF_LINE_DIRECTION_RTL          0x00030000
-
-#define GRF_ALIGN_MASK                  0x00F00000
-#define GRF_ALIGN_LEFT                  0x00000000
-#define GRF_ALGIN_RIGHT                 0x00100000
-#define GRF_ALGIN_TOP                   0x00200000
-#define GRF_ALGIN_BOTTOM                0x00300000
-#define GRF_ALGIN_JUSTIFY               0x00400000
-
-/**
- * The white space rule for \a GetGlyphsExtentPointEx.
+ * The white space rule for \a GetGlyphsByRules and \a GetGlyphsExtentPointEx.
  */
 typedef enum {
     /**
@@ -9378,14 +9316,15 @@ typedef enum {
 } CharTransformRule;
 
 /**
- * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
- *          WhiteSpaceRule white_space, CharTransformRule trans_rule,
+ * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
+ *          const char* mstr, int mstr_len,
+ *          WhiteSpaceRule ws_rule, CharTransformRule trans_rule,
  *          Glyph32** glyphs, int* nr_glyphs);
  * \brief Calculate the glyph string under the specified white space and
  *        transformation rule.
  *
  * This function calculates and allocates the glyph string from a multi-byte
- * string under the specified white space rule \a white_space and transformation
+ * string under the specified white space rule \a ws_rule and transformation
  * rule.
  *
  * The function will return if it encounters any hard line break or the null character.
@@ -9394,7 +9333,7 @@ typedef enum {
  * \param logfont The logfont used to parse the string.
  * \param mstr The pointer to the multi-byte string.
  * \param mstr_len The length of \a mstr in bytes.
- * \param white_space The white space rule. This parameter specifies two things:
+ * \param ws_rule The white space rule. This parameter specifies two things:
  *          - whether and how white space inside the string is collapsed.
  *          - whether lines may wrap at unforced soft wrap opportunities.
  * \param trans_rule The character transformation rule.
@@ -9406,17 +9345,96 @@ typedef enum {
  *
  * \sa WhiteSpaceRule, CharTransformRule, DrawGlyphStringEx
  */
-MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
-            WhiteSpaceRule white_space, CharTransformRule trans_rule,
+MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
+            const char* mstr, int mstr_len,
+            WhiteSpaceRule ws_rule, CharTransformRule trans_rule,
             Glyph32** glyphs, int* nr_glyphs);
+
+#define GRF_WORD_BREAK_MASK             0x00000003
+#define GRF_WORD_BREAK_NORMAL           0x00000000
+#define GRF_WORD_BREAK_KEEP_ALL         0x00000001
+#define GRF_WORD_BREAK_BREAK_ALL        0x00000002
+
+#define GRF_OVERFLOW_WRAP_MASK          0x0000000C
+#define GRF_OVERFLOW_WRAP_NORMAL        0x00000000
+#define GRF_OVERFLOW_WRAP_BREAK_WORD    0x00000004
+#define GRF_OVERFLOW_WRAP_ANYWHERE      0x00000008
+
+#define GRF_LINE_BREAK_MASK             0x000000F0
+#define GRF_LINE_BREAK_NORMAL           0x00000000
+#define GRF_LINE_BREAK_AUTO             0x00000010
+#define GRF_LINE_BREAK_LOOSE            0x00000020
+#define GRF_LINE_BREAK_STRICT           0x00000030
+#define GRF_LINE_BREAK_ANYWHERE         0x00000040
+
+#define GRF_HANGING_PUNC_MASK           0x00000F00
+#define GRF_HANGING_PUNC_NONE           0x00000000
+#define GRF_HANGING_PUNC_FIRST          0x00000100
+#define GRF_HANGING_PUNC_FORCE_END      0x00000200
+#define GRF_HANGING_PUNC_ALLOW_END      0x00000300
+#define GRF_HANGING_PUNC_LAST           0x00000400
+
+#define GRF_DIRECTION_MASK              0x00003000
+#define GRF_DIRECTION_LTR               0x00000000
+#define GRF_DIRECTION_RTL               0x00001000
+
+#define GRF_WRITING_MODE_MASK           0x0000C000
+#define GRF_WRITING_MODE_HORIZONTAL_TB  0x00000000
+#define GRF_WRITING_MODE_VERTICAL_RL    0x00004000
+#define GRF_WRITING_MODE_VERTICAL_LR    0x00008000
+
+#define GRF_TEXT_ORIENTATIO_MASK        0x00030000
+#define GRF_TEXT_ORIENTATIO_MIXED       0x00000000
+#define GRF_TEXT_ORIENTATIO_UPRIGHT     0x00010000
+#define GRF_TEXT_ORIENTATIO_SIDEWAYS    0x00020000
+
+#define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
+#define GRF_TEXT_COMBINE_UPRIGHT_NONE   0x00000000
+#define GRF_TEXT_COMBINE_UPRIGHT_ALL    0x00040000
+
+#define GRF_BIDI_MASK                   0x00F00000
+#define GRF_BIDI_NORMAL                 0x00000000
+#define GRF_BIDI_EMBED                  0x00100000
+#define GRF_BIDI_ISOLATE                0x00200000
+#define GRF_BIDI_BIDI_OVERRIDE          0x00300000
+#define GRF_BIDI_ISOLATE_OVERRIDE       0x00400000
+#define GRF_BIDI_PLAINTEXT              0x00500000
+
+#define GRF_ALIGN_MASK                  0x0F000000
+#define GRF_ALIGN_LEFT                  0x00000000
+#define GRF_ALGIN_RIGHT                 0x01000000
+#define GRF_ALGIN_TOP                   0x02000000
+#define GRF_ALGIN_BOTTOM                0x03000000
+#define GRF_ALGIN_JUSTIFY               0x04000000
+
+#define GRF_TEXT_JUSTIFY_MASK           0x30000000
+#define GRF_TEXT_JUSTIFY_AUTO           0x00000000
+#define GRF_TEXT_JUSTIFY_NONE           0x10000000
+#define GRF_TEXT_JUSTIFY_INTER_WORD     0x20000000
+#define GRF_TEXT_JUSTIFY_INTER_CHAR     0x30000000
+
+#define GRF_HYPHENS_MASK                0xC0000000
+#define GRF_HYPHENS_NONE                0x00000000
+#define GRF_HYPHENS_MANUAL              0x40000000
+#define GRF_HYPHENS_AUTO                0x80000000
+
+/**
+ * \var typedef struct  _GLYPHEXTINFO GLYPHEXTINFO
+ * \brief Data type of struct _GLYPHEXTINFO.
+ */
+typedef struct _GLYPHEXTINFO {
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y, bbox_w, bbox_h;
+    /** The advance values of the glyph. */
+    int advance_x, advance_y;
+} GLYPHEXTINFO;
 
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *          const Glyph32* glyphs, int nr_glyphs,
- *          DWORD render_flags, int letter_spacing, int word_spacing,
- *          WhiteSpaceRule white_space, int tab_size,
- *          int max_extent,
- *          LINEEXTINFO* line_ext_info, GLYPHEXTINFO* glyph_ext_info, POINT* pts)
+ *          DWORD32 render_flags, WhiteSpaceRule ws_rule,
+ *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
+ *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts)
  * \brief Get the visual extent info of a glyph string.
  *
  * This function gets the visual extent information of a glyph string which can
@@ -9428,12 +9446,14 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int ms
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The number of the glyphs.
  * \param render_flags The render flags. It determines the following things:
- *          - Whether to stop if the glyph string overflows the max extent;
+ *          - Whether and how to break if the glyph string overflows the max extent;
  *          - The direction of the glyphs and lines;
- *          - Whether to adjust the glyph postion for alignment of justify.
- *        The flags can be OR'ed by one word-break value, one overflow-wrap value,
- *        one line-break value, one letter-direction value, and one
- *        alignment value:
+ *          - The writing mode (horizontal or vertical) and text orientation;
+ *          - The hyphenation handling method;
+ *          - The BIDI methods.
+ *          - The hanging punctation method;
+ *          - Whether and how to adjust the glyph postion for alignment of justify.
+ *        The flags can be OR'ed by the following values:
  *          - GRF_WORD_BREAK_NORMAL\n
  *          - GRF_WORD_BREAK_KEEP_ALL\n
  *          - GRF_WORD_BREAK_BREAK_ALL\n
@@ -9445,43 +9465,40 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int ms
  *          - GRF_LINE_BREAK_LOOSE\n
  *          - GRF_LINE_BREAK_STRICT\n
  *          - GRF_LINE_BREAK_ANYWHERE\n
- *          - GRF_LETTER_DIRECTION_LTR\n
- *          - GRF_LETTER_DIRECTION_RTL\n
+ *          - GRF_DIRECTION_LTR\n
+ *          - GRF_DIRECTION_RTL\n
  *          - GRF_ALIGN_LEFT\n
  *          - GRF_ALIGN_RIGHT\n
  *          - GRF_ALIGN_JUSTIFY\n
  * \param letter_spacing This parameter specifies additional spacing
  *          (commonly called tracking) between adjacent glyphs.
  * \param word_spacing This parameter specifies additional spacing between words.
- * \param white_space The white space rule. This parameter specifies two things:
+ * \param ws_rule The white space rule. This parameter specifies two things:
  *          - whether and how white space inside the element is collapsed.
  *          - whether lines may wrap at unforced soft wrap opportunities.
  * \param tab_size The tab size used to render preserved tab characters.
  * \param max_extent The maximal output extent value. No limit when it is < 0.
- * \param line_ext_info The buffer to store the line extent info; can be NULL.
+ * \param line_size The buffer to store the line extent info; can be NULL.
  * \param glyph_ext_info The buffer to store the extent info of every glyphs which is
  *          fit into the max extent; can be NULL.
  * \param pts The positions of every glyphs which is fit into the max extent; can be NULL.
- *          Note that a collapsed white spaces will has the same position as the previous
- *          glyph.
  *
- * \return The index of the last glyph which can be fit to the extent. The extent info
+ * \return The number of glyphs which can be fit to the maximal extent. The extent info
  *          of every glyphs which are fit in the max_extent will be returned through
  *          \a glyph_ext_info if it was not NULL, and the line extent info will
- *          be returned through \a lien_ext_info if it was not NULL.
+ *          be returned through \a lien_size if it was not NULL.
  *
  * \sa GLYPHEXTINFO, WhiteSpaceRule, DrawGlyphStringEx
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, int nr_glyphs,
-        DWORD break_flags, int letter_spacing, int word_spacing,
-        WhiteSpaceRule white_space, int tab_size,
-        int max_extent,
-        LINEEXTINFO* line_ext_info, GLYPHEXTINFO* glyph_ext_info, POINT* pts);
+        Uint32 render_flags, WhiteSpaceRule ws_rule,
+        int letter_spacing, int word_spacing, int tab_size, int max_extent,
+        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts);
 
 /*
- * \fn int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
- *          const POINT* pts)
+ * \fn int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
+ *          int nr_glyphs, const POINT* pts)
  * \brief Draw a glyph string at the specified positions.
  *
  * This function draws a glyph string to the specific positions of a DC.
@@ -9496,10 +9513,10 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
  *
  * \return The advance on baseline.
  */
-MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
-        const POINT* pts);
+MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
+        int nr_glyphs, const POINT* pts);
 
-/* 
+/*
  * Define some bit masks, that character types are based on, each one has
  * only one bit on.
  */
@@ -9721,44 +9738,44 @@ MG_EXPORT BOOL GUIAPI GetGlyphBIDIType (LOGFONT* log_font,
  * \param text The logical text string.
  * \param text_len The lenght of the logical text string in bytes.
  * \param glyphs The pointer to the logical glyph string.
- * \param glyphs_map The position map from the logical glyphs string to 
+ * \param glyphs_map The position map from the logical glyphs string to
  *        the logical text.
  *
  * \return The length of the logical glyph string.
  *
  * \sa GLYPHMAPINFO
  */
-MG_EXPORT int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font, 
-        const char* text, int text_len, Glyph32** glyphs, 
+MG_EXPORT int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font,
+        const char* text, int text_len, Glyph32** glyphs,
         GLYPHMAPINFO** glyphs_map);
 
-/** \fn int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font, \
-        const char* text, int text_len, Glyph32** glyphs, \
+/** \fn int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
+        const char* text, int text_len, Glyph32** glyphs,
         GLYPHMAPINFO** glyphs_map)
- * \brief Get visual glyphs and glyph_map info relative with logical 
- *        string byte index. 
+ * \brief Get visual glyphs and glyph_map info relative with logical
+ *        string byte index.
  *
  * \param log_font The logical font.
  * \param text The logical text string.
  * \param text_len The length of the logical text string in bytes.
  * \param glyphs The pointer to the visual glyph string.
- * \param glyphs_map The position map from visual glyphs string to 
+ * \param glyphs_map The position map from visual glyphs string to
  *        the logical text.
  *
  * \return The length of the visual glyph string.
  */
-MG_EXPORT int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font, 
-        const char* text, int text_len, Glyph32** glyphs, 
+MG_EXPORT int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
+        const char* text, int text_len, Glyph32** glyphs,
         GLYPHMAPINFO** glyphs_map);
 
 /** \fn Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font, \
  *         Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map)
  * \brief Reorder the logical glyphs string to visual glyphs string.
  *
- * This function reorders the logical glyphs string to visual 
- * glyphs string. If \a glyphs_map is not NULL, get the visual 
+ * This function reorders the logical glyphs string to visual
+ * glyphs string. If \a glyphs_map is not NULL, get the visual
  * glyphs map info.
- * 
+ *
  * \param log_font The logical font.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The length of the glyph string.
@@ -9770,7 +9787,7 @@ MG_EXPORT int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
 MG_EXPORT Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
         Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map);
 
-/** 
+/**
  * \fn void GUIAPI GetTextRangesLog2Vis (LOGFONT* log_font, char* text, \
         int text_len, int start_index, int end_index, int** ranges, \
         int* nr_ranges)
@@ -9786,11 +9803,11 @@ MG_EXPORT Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
  *
  * \return None.
  */
-MG_EXPORT void GUIAPI GetTextRangesLog2Vis (LOGFONT* log_font, char* text, 
-        int text_len, int start_index, int end_index, int** ranges, 
+MG_EXPORT void GUIAPI GetTextRangesLog2Vis (LOGFONT* log_font, char* text,
+        int text_len, int start_index, int end_index, int** ranges,
         int* nr_ranges);
 
-/** 
+/**
  * \fn void GUIAPI BIDIGetLogicalEmbeddLevels (LOGFONT* log_font, \
         Glyph32*  glyphs, int nr_glyphs, Uint8** embedding_level_list)
  * \brief Get the logical embedding levels for the logical glyph string
@@ -9804,13 +9821,13 @@ MG_EXPORT void GUIAPI GetTextRangesLog2Vis (LOGFONT* log_font, char* text,
  *
  * \return None.
  */
-MG_EXPORT void GUIAPI BIDIGetLogicalEmbeddLevels (LOGFONT* log_font, 
+MG_EXPORT void GUIAPI BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
         Glyph32*  glyphs, int nr_glyphs, Uint8** embedding_level_list);
 
-/** 
+/**
  * \fn void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font, \
         Glyph32* glyphs, int nr_glyphs, Uint8**  embedding_level_list)
- * \brief Get the visual embedding levels for the given logical glyph 
+ * \brief Get the visual embedding levels for the given logical glyph
  *        string, then you can get the edge for visual glyphs.
  *
  * \param log_font  The logical font.
@@ -9820,7 +9837,7 @@ MG_EXPORT void GUIAPI BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
  *
  * \return void.
  */
-MG_EXPORT void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font, 
+MG_EXPORT void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
         Glyph32* glyphs, int nr_glyphs, Uint8**  embedding_level_list);
 
     /** @} end of glyph */
@@ -9829,8 +9846,8 @@ MG_EXPORT void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
  * \brief The context information of user defined color composition operators.
  *
  * \sa SetUserCompositionOps
- * 
- */   
+ *
+ */
 typedef struct _COMP_CTXT {
     /** the pointer to the destination */
     gal_uint8* cur_dst;
@@ -9867,7 +9884,7 @@ typedef struct _COMPOSITE_CTXT {
     int comp_mode;
     const int *far_bkmode;
     const int *far_step;
-    const gal_pixel *far_skip_pixel; 
+    const gal_pixel *far_skip_pixel;
 } COMPOSITE_CTXT;
 
 /*
@@ -9904,7 +9921,7 @@ typedef void (*CB_COMP_SETHLINE) (COMP_CTXT* comp_ctxt, int w);
  * \var typedef void (*CB_COMP_PUTHLINE) (COMP_CTXT* comp_ctxt, gal_uint8* src, int w)
  * \brief The prototype of the user defined color composition puthline.
  *
- * This operator puts the pixels in \a src to a horizital line on the \a cur_dst 
+ * This operator puts the pixels in \a src to a horizital line on the \a cur_dst
  * defined in \a comp_ctxt, totally \a w pixels.
  *
  * \sa SetUserCompositionOps, COMP_CTXT
@@ -9912,7 +9929,7 @@ typedef void (*CB_COMP_SETHLINE) (COMP_CTXT* comp_ctxt, int w);
 typedef void (*CB_COMP_PUTHLINE) (COMP_CTXT* comp_ctxt, gal_uint8* src, int bkmode, int w);
 
 /**
- * \fn int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpixel, 
+ * \fn int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpixel,
  * CB_COMP_SETPIXELS comp_setpixels, CB_COMP_PUTLINE comp_putline, void* user_ctxt)
  * \brief Set user defined color composition operators.
  *
@@ -9924,7 +9941,7 @@ typedef void (*CB_COMP_PUTHLINE) (COMP_CTXT* comp_ctxt, gal_uint8* src, int bkmo
  * \param comp_setpixels The user defined setpixels operator, which will be called
  *        when MiniGUI sets a consecutive pixels in one scanline of the DC.
  * \param comp_comp_putline The user defined putline operator, which will be called
- *        when MiniGUI sets a consecutive pixels in one scanline of the DC by 
+ *        when MiniGUI sets a consecutive pixels in one scanline of the DC by
  *        using an array of source pixels.
  * \param user_ctxt The context which will be passed to the user defined operators.
  *
@@ -9932,7 +9949,7 @@ typedef void (*CB_COMP_PUTHLINE) (COMP_CTXT* comp_ctxt, gal_uint8* src, int bkmo
  *
  * \sa GetRasterOperation, SetRasterOperation, COMP_CTXT
  * */
-MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpixel, 
+MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpixel,
         CB_COMP_SETHLINE comp_sethline, CB_COMP_PUTHLINE comp_puthline, void* user_comp_ctxt);
 
     /** @} end of gdi_fns */
@@ -9948,15 +9965,15 @@ MG_EXPORT int hi3560SetScreenAttr (Uint8 siAttr, void* pValue);
 
 #endif /* _MGGAL_HI3560 */
 
-MG_EXPORT int GUIAPI GetTextMCharInfo (PLOGFONT log_font, const char* mstr, int len, 
+MG_EXPORT int GUIAPI GetTextMCharInfo (PLOGFONT log_font, const char* mstr, int len,
                 int* pos_chars);
-MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, int len, 
+MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, int len,
                 int* pos_words, WORDINFO* info_words);
 MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font, const char* mstr, int len);
 MG_EXPORT int GUIAPI GetLastMCharLen (PLOGFONT log_font, const char* mstr, int len);
 MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
                     WORDINFO* word_info);
-MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, 
+MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
                 const unsigned char* mchar, int n);
 MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
 MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
