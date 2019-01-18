@@ -4794,6 +4794,7 @@ Uchar32 GUIAPI UCharToFullSizeKana (Uchar32 uc)
     return uc;
 }
 
+#if 0 // VincentWei: use kana_small_to_full_size_table instead
 static const struct UCharMap kana_full_size_to_small_table [] = {
     { /*あ*/ 0x3041, /*ぁ*/ 0x3041},
     { /*い*/ 0x3043, /*ぃ*/ 0x3043},
@@ -4864,6 +4865,33 @@ Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc)
             lower = mid + 1;
         else
             return kana_full_size_to_small_table[mid].other;
+
+        mid = (lower + upper) / 2;
+
+    } while (lower <= upper);
+
+    return uc;
+}
+#endif // VincentWei: use kana_small_to_full_size_table instead
+
+/** Converts a glyph to small Kana. */
+Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc)
+{
+    unsigned int lower = 0;
+    unsigned int upper = TABLESIZE (kana_small_to_full_size_table) - 1;
+    int mid = TABLESIZE (kana_small_to_full_size_table) / 2;
+
+    if (uc < kana_small_to_full_size_table[lower].other
+            || uc < kana_small_to_full_size_table[upper].other)
+        return uc;
+
+    do {
+        if (uc < kana_small_to_full_size_table[mid].other)
+            upper = mid - 1;
+        else if (uc > kana_small_to_full_size_table[mid].other)
+            lower = mid + 1;
+        else
+            return kana_small_to_full_size_table[mid].one;
 
         mid = (lower + upper) / 2;
 
