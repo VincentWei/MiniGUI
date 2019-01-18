@@ -80,7 +80,7 @@ Moreover, the family name of a DEVFONT supports aliases since 3.4.0:
 for example:
 
     ttf-Arial,Sans Serif-rrncnn-8-16-ISO8859-1,UTF-8
-    ttf-Courier,Monospace,Serif-rrncnn-8-16-ISO8859-1,UTF-8
+    ttf-courier,monospace,serif-rrncnn-8-16-ISO8859-1,UTF-8
 
 Note that the length of one DEVFONT name can not exceed 255 bytes.
 
@@ -99,6 +99,11 @@ can also be returned.
 
 * Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming
 rules.
+
+* Rename `UChar32` to `Uchar32` and `UChar16` to `Uchar16` in order to
+avoid the conflict with typedef of UChar32 in 'unicode/umachine.h'.
+
+* Redefine `Uchar32` and `Glyph32` as `Uint32` instead of `int`.
 
 #### New APIs
 
