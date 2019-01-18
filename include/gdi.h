@@ -6968,6 +6968,18 @@ MG_EXPORT UChar32 GUIAPI UCharToLower (UChar32 uc);
 /** Converts a glyph to the titlecase. */
 MG_EXPORT UChar32 GUIAPI UCharToTitle (UChar32 uc);
 
+/** Converts a glyph to full-width. */
+MG_EXPORT UChar32 GUIAPI UCharToFullWidth (UChar32 uc);
+
+/** Converts a glyph to single-width. */
+MG_EXPORT UChar32 GUIAPI UCharToSingleWidth (UChar32 uc);
+
+/** Converts a glyph to full-size Kana. */
+MG_EXPORT UChar32 GUIAPI UCharToFullSizeKana (UChar32 uc);
+
+/** Converts a glyph to small Kana. */
+MG_EXPORT UChar32 GUIAPI UCharToSmallKana (UChar32 uc);
+
 /** Determines the canonical combining class of a Unicode character.*/
 MG_EXPORT int GUIAPI UCharCombiningClass (UChar32 uc);
 
@@ -9311,8 +9323,8 @@ typedef enum {
     CT_CAPITALIZE,
     CT_UPPERCASE,
     CT_LOWERCASE,
-    CT_FULL_WIDTH,
-    CT_FULL_SIZE_KANA,
+    CT_FULL_WIDTH       = 0x10,
+    CT_FULL_SIZE_KANA   = 0x20,
 } CharTransformRule;
 
 /**
