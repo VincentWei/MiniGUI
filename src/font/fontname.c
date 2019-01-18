@@ -156,16 +156,20 @@ static BOOL get_family_part_lower (const char* name, char* family)
  */
 BOOL fontDoesMatchFamily (const char* name, const char* family)
 {
+    // make sure there is a redundant space for the tail character.
     char family_part[LEN_UNIDEVFONT_NAME + 2];
     char family_request[LEN_LOGFONT_NAME_FIELD + 2];
     int i = 0;
+    size_t len;
 
     if (!get_family_part_lower(name, family_part)) {
         return FALSE;
     }
 
     // add ',' to the tail
-    family_part[strlen(family_part)] = ',';
+    len = strlen(family_part);
+    family_part[len] = ',';
+    family_part[len + 1] = '\0';
 
     // lowercase for family_request
     strncpy(family_request, family, LEN_LOGFONT_NAME_FIELD);
@@ -175,9 +179,11 @@ BOOL fontDoesMatchFamily (const char* name, const char* family)
     }
 
     // add ',' to the tail
-    family_request[strlen(family_request)] = ',';
+    len = strlen(family_request);
+    family_request[len] = ',';
+    family_request[len + 1] = '\0';
 
-    // try "<family_request>,"
+    // try to match "<family_request>,"
     return strstr(family_part, family_request) != NULL;
 }
 
