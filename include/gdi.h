@@ -5774,8 +5774,8 @@ typedef struct _WORDINFO WORDINFO;
 
 #define MAX_LEN_MCHAR               6
 
-typedef unsigned short  UChar16;
-typedef int    UChar32;
+typedef Uint16 UChar16;
+typedef Uint32 UChar32;
 
 #define MCHAR_TYPE_NOSPACING_MARK   0x0001
 #define MCHAR_TYPE_ABOVE_MARK       0x0002
@@ -8880,7 +8880,7 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
      * @{
      */
 
-typedef int Glyph32;
+typedef Uint32 Glyph32;
 
 /**
  * \def INV_GLYPH_VALUE

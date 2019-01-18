@@ -128,7 +128,7 @@ static int inline get_glyph_advance_in_dc (PDC pdc, Glyph32 glyph_value)
 }
 
 
-static int jump_vowels_ltr (PDC pdc, Glyph32* glyphs, int glyph_num, int* biggest_vowel)
+static int jump_vowels_ltr (PDC pdc, Glyph32* glyphs, int glyph_num, Glyph32* biggest_vowel)
 {
     int i = 0;
     int max_advance = 0;

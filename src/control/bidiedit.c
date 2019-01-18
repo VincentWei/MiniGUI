@@ -475,7 +475,7 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
     int startx = 0;
     int* ranges = NULL;
     int  nr_ranges = 0;
-    int* glyph_string = GLYPHS;
+    Glyph32* glyph_string = GLYPHS;
     int  i = 0;
     int* p = NULL;
    

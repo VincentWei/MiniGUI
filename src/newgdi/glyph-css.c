@@ -36,7 +36,12 @@
 ** glyph-css.c: The implementation of APIs which conform to the specifiction
 ** of CSS 3
 **
-** Create date: 2019/01/16
+** Reference:
+**
+**  https://www.w3.org/TR/css-text-3/
+**  https://www.w3.org/TR/css-writing-modes-3/
+**
+** Create by WEI Yongming at 2019/01/16
 */
 
 #include <stdio.h>

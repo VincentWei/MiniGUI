@@ -45,14 +45,13 @@ extern  "C" {
 #endif
 
 typedef struct _GLYPHBUF
-{   
-    GLYPHMAPINFO* glyph_map;     /* glyph info array */ 
-    int*  glyphs;                /* glyph array  */
+{
+    GLYPHMAPINFO* glyph_map;     /* glyph info array */
+    Glyph32* glyphs;             /* glyph array  */
     int   glyphs_len;            /* glyph array len or buffer used size */
-        
     int   blocksize;             /* block size, a block is an allocate unit */
-    int   glyphs_buffsize;       /* glyph string buffer size */        
-    int   glyphmap_buffsize;     /* glyph map buffer size */        
+    int   glyphs_buffsize;       /* glyph string buffer size */
+    int   glyphmap_buffsize;     /* glyph map buffer size */
 } GLYPHBUF;
 
 typedef struct tagBIDISLEDITDATA
@@ -95,7 +94,7 @@ static inline void*
 glyphbuf_alloc (GLYPHBUF* glyph_buff, int len, int block_size)
 {
     glyph_buff->glyphs_buffsize = (len + (block_size - len % block_size))
-                                     * sizeof (int);
+                                     * sizeof (Glyph32);
     glyph_buff->glyphs = malloc (glyph_buff->glyphs_buffsize);
 
     glyph_buff->glyphmap_buffsize = (len + (block_size - len % block_size)) 
@@ -122,7 +121,7 @@ static inline void* glyphbuf_realloc (GLYPHBUF *glyph_buff, int len)
         len * sizeof(int) < glyph_buff->glyphs_buffsize - glyph_buff->blocksize)    {
         /* realloc glyph string mem */
         glyph_buff->glyphs_buffsize = (len + (glyph_buff->blocksize - 
-                            len % glyph_buff->blocksize))* sizeof(int);
+                            len % glyph_buff->blocksize))* sizeof(Glyph32);
         glyph_buff->glyphs = realloc (glyph_buff->glyphs, 
                                 glyph_buff->glyphs_buffsize);
 
