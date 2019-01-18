@@ -3566,19 +3566,25 @@ static unsigned int unicode_glyph_type (Glyph32 glyph_value)
     unsigned int basic_type = 0, break_type = 0;
 
     glyph_value = REAL_GLYPH(glyph_value);
-    if (glyph_value < 0x80) {
-        mchar_type = sb_glyph_type(glyph_value);
-    }
-    else {
-        basic_type = TYPE(glyph_value);
-        break_type = PROP(glyph_value);
 
-        if (glyph_value != 0x00AD && ISZEROWIDTHTYPE (basic_type))
-            mchar_type = MCHAR_TYPE_ZEROWIDTH;
-        else if ((glyph_value >= 0x1160 && glyph_value < 0x1200)
-                || glyph_value == 0x200B)
-            mchar_type = MCHAR_TYPE_ZEROWIDTH;
-    }
+    basic_type = TYPE(glyph_value);
+    break_type = PROP(glyph_value);
+
+    if (glyph_value < 0x80)
+        mchar_type = sb_glyph_type(glyph_value);
+    else if (break_type == UCHAR_BREAK_CARRIAGE_RETURN)
+        mchar_type = MCHAR_TYPE_CR;
+    else if (break_type == UCHAR_BREAK_LINE_FEED)
+        mchar_type = MCHAR_TYPE_LF;
+    else if (break_type == UCHAR_BREAK_NEXT_LINE)
+        mchar_type = MCHAR_TYPE_LF;
+    else if (break_type == UCHAR_BREAK_SPACE)
+        mchar_type = MCHAR_TYPE_SPACE;
+    else if (glyph_value != 0x00AD && ISZEROWIDTHTYPE (basic_type))
+        mchar_type = MCHAR_TYPE_ZEROWIDTH;
+    else if ((glyph_value >= 0x1160 && glyph_value < 0x1200)
+            || glyph_value == 0x200B)
+        mchar_type = MCHAR_TYPE_ZEROWIDTH;
 
     return (break_type << 24) | (basic_type << 16) | mchar_type;
 }

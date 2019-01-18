@@ -5835,16 +5835,27 @@ typedef Uint32 Uchar32;
 
 #define MCHAR_TYPE_UNKNOWN          0x0000
 #define MCHAR_TYPE_NUL              (0x0000 | MCHAR_TYPE_NOSPACING_MARK)
+/** Control character (group 1) */
 #define MCHAR_TYPE_CTRL1            0x0100
+/** Bell */
 #define MCHAR_TYPE_BEL              0x0200
+/** Backspace */
 #define MCHAR_TYPE_BS               0x0300
+/** Horinzontal Tab */
 #define MCHAR_TYPE_HT               0x0400
+/** Line Feed */
 #define MCHAR_TYPE_LF               0x0500
+/** Vertical Tab */
 #define MCHAR_TYPE_VT               0x0600
+/** Form Feed */
 #define MCHAR_TYPE_FF               0x0700
+/** Carriage Return */
 #define MCHAR_TYPE_CR               0x0800
+/** Control character (group 2) */
 #define MCHAR_TYPE_CTRL2            0x0900
+/** Space */
 #define MCHAR_TYPE_SPACE            0x0A00
+/** Zero width character */
 #define MCHAR_TYPE_ZEROWIDTH        0x0B00
 #define MCHAR_TYPE_GENERIC          0x0C00
 
@@ -5853,79 +5864,152 @@ typedef Uint32 Uchar32;
 #define MCHAR_TYPE_VOWEL_ABOVE      (MCHAR_TYPE_VOWEL | MCHAR_TYPE_ABOVE_MARK)
 #define MCHAR_TYPE_VOWEL_BELLOW     (MCHAR_TYPE_VOWEL | MCHAR_TYPE_BELLOW_MARK)
 
+/** General category "Other, Control" (Cc) */
 #define UCHAR_TYPE_CONTROL               0x00
+/** General category "Other, Format" (Cf) */
 #define UCHAR_TYPE_FORMAT                0x01
+/** General category "Other, Not Assigned" (Cn) */
 #define UCHAR_TYPE_UNASSIGNED            0x02
+/** General category "Other, Private Use" (Co) */
 #define UCHAR_TYPE_PRIVATE_USE           0x03
+/** General category "Other, Surrogate" (Cs) */
 #define UCHAR_TYPE_SURROGATE             0x04
+/**  General category "Letter, Lowercase" (Ll) */
 #define UCHAR_TYPE_LOWERCASE_LETTER      0x05
+/** General category "Letter, Modifier" (Lm) */
 #define UCHAR_TYPE_MODIFIER_LETTER       0x06
+/** General category "Letter, Other" (Lo) */
 #define UCHAR_TYPE_OTHER_LETTER          0x07
+/** General category "Letter, Titlecase" (Lt) */
 #define UCHAR_TYPE_TITLECASE_LETTER      0x08
+/** General category "Letter, Uppercase" (Lu) */
 #define UCHAR_TYPE_UPPERCASE_LETTER      0x09
+/** General category "Mark, Spacing" (Mc) */
 #define UCHAR_TYPE_SPACING_MARK          0x0A
+/** General category "Mark, Enclosing" (Me) */
 #define UCHAR_TYPE_ENCLOSING_MARK        0x0B
+/** General category "Mark, Nonspacing" (Mn) */
 #define UCHAR_TYPE_NON_SPACING_MARK      0x0C
+/** General category "Number, Decimal Digit" (Nd) */
 #define UCHAR_TYPE_DECIMAL_NUMBER        0x0D
+/** General category "Number, Letter" (Nl) */
 #define UCHAR_TYPE_LETTER_NUMBER         0x0E
+/** General category "Number, Other" (No) */
 #define UCHAR_TYPE_OTHER_NUMBER          0x0F
+/** General category "Punctuation, Connector" (Pc) */
 #define UCHAR_TYPE_CONNECT_PUNCTUATION   0x10
+/** General category "Punctuation, Dash" (Pd) */
 #define UCHAR_TYPE_DASH_PUNCTUATION      0x11
+/** General category "Punctuation, Close" (Pe) */
 #define UCHAR_TYPE_CLOSE_PUNCTUATION     0x12
+/** General category "Punctuation, Final quote" (Pf) */
 #define UCHAR_TYPE_FINAL_PUNCTUATION     0x13
+/** General category "Punctuation, Initial quote" (Pi) */
 #define UCHAR_TYPE_INITIAL_PUNCTUATION   0x14
+/** General category "Punctuation, Other" (Po) */
 #define UCHAR_TYPE_OTHER_PUNCTUATION     0x15
+/** General category "Punctuation, Open" (Ps) */
 #define UCHAR_TYPE_OPEN_PUNCTUATION      0x16
+/** General category "Symbol, Currency" (Sc) */
 #define UCHAR_TYPE_CURRENCY_SYMBOL       0x17
+/** General category "Symbol, Modifier" (Sk) */
 #define UCHAR_TYPE_MODIFIER_SYMBOL       0x18
+/** General category "Symbol, Math" (Sm) */
 #define UCHAR_TYPE_MATH_SYMBOL           0x19
+/** General category "Symbol, Other" (So) */
 #define UCHAR_TYPE_OTHER_SYMBOL          0x1A
+/** General category "Separator, Line" (Zl) */
 #define UCHAR_TYPE_LINE_SEPARATOR        0x1B
+/** General category "Separator, Paragraph" (Zp) */
 #define UCHAR_TYPE_PARAGRAPH_SEPARATOR   0x1C
+/** General category "Separator, Space" (Zs) */
 #define UCHAR_TYPE_SPACE_SEPARATOR       0x1D
 
+/** Mandatory Break (BK) */
 #define UCHAR_BREAK_MANDATORY           0x00
+/** Carriage Return (CR) */
 #define UCHAR_BREAK_CARRIAGE_RETURN     0x01
+/** Line Feed (LF) */
 #define UCHAR_BREAK_LINE_FEED           0x02
+/** Attached Characters and Combining Marks (CM) */
 #define UCHAR_BREAK_COMBINING_MARK      0x03
+/** Surrogates (SG) */
 #define UCHAR_BREAK_SURROGATE           0x04
+/** Zero Width Space (ZW) */
 #define UCHAR_BREAK_ZERO_WIDTH_SPACE    0x05
+/** Inseparable (IN) */
 #define UCHAR_BREAK_INSEPARABLE         0x06
+/** Non-breaking ("Glue") (GL) */
 #define UCHAR_BREAK_NON_BREAKING_GLUE   0x07
+/** Contingent Break Opportunity (CB) */
 #define UCHAR_BREAK_CONTINGENT          0x08
+/** Space (SP) */
 #define UCHAR_BREAK_SPACE               0x09
+/**  Break Opportunity After (BA) */
 #define UCHAR_BREAK_AFTER               0x0A
+/** Break Opportunity Before (BB) */
 #define UCHAR_BREAK_BEFORE              0x0B
+/** Break Opportunity Before and After (B2) */
 #define UCHAR_BREAK_BEFORE_AND_AFTER    0x0C
+/** Hyphen (HY) */
 #define UCHAR_BREAK_HYPHEN              0x0D
+/** Nonstarter (NS) */
 #define UCHAR_BREAK_NON_STARTER         0x0E
+/** Opening Punctuation (OP) */
 #define UCHAR_BREAK_OPEN_PUNCTUATION    0x0F
+/** Closing Punctuation (CL) */
 #define UCHAR_BREAK_CLOSE_PUNCTUATION   0x10
+/** Ambiguous Quotation (QU) */
 #define UCHAR_BREAK_QUOTATION           0x11
+/** Exclamation/Interrogation (EX) */
 #define UCHAR_BREAK_EXCLAMATION         0x12
+/** Ideographic (ID) */
 #define UCHAR_BREAK_IDEOGRAPHIC         0x13
+/** Numeric (NU) */
 #define UCHAR_BREAK_NUMERIC             0x14
+/** Infix Separator (Numeric) (IS) */
 #define UCHAR_BREAK_INFIX_SEPARATOR     0x15
+/** Symbols Allowing Break After (SY) */
 #define UCHAR_BREAK_SYMBOL              0x16
+/** Ordinary Alphabetic and Symbol Characters (AL) */
 #define UCHAR_BREAK_ALPHABETIC          0x17
+/** Prefix (Numeric) (PR) */
 #define UCHAR_BREAK_PREFIX              0x18
+/** Postfix (Numeric) (PO) */
 #define UCHAR_BREAK_POSTFIX             0x19
+/** Complex Content Dependent (South East Asian) (SA) */
 #define UCHAR_BREAK_COMPLEX_CONTEXT     0x1A
+/**  Ambiguous (Alphabetic or Ideographic) (AI) */
 #define UCHAR_BREAK_AMBIGUOUS           0x1B
+/** Unknown (XX) */
 #define UCHAR_BREAK_UNKNOWN             0x1C
+/** Next Line (NL) */
 #define UCHAR_BREAK_NEXT_LINE           0x1D
+/** Word Joiner (WJ) */
 #define UCHAR_BREAK_WORD_JOINER         0x1E
+/** Hangul L Jamo (JL) */
 #define UCHAR_BREAK_HANGUL_L_JAMO       0x1F
+/** Hangul V Jamo (JV) */
 #define UCHAR_BREAK_HANGUL_V_JAMO       0x20
+/** Hangul T Jamo (JT) */
 #define UCHAR_BREAK_HANGUL_T_JAMO       0x21
+/** Hangul LV Syllable (H2) */
 #define UCHAR_BREAK_HANGUL_LV_SYLLABLE  0x22
+/** Hangul LVT Syllable (H3) */
 #define UCHAR_BREAK_HANGUL_LVT_SYLLABLE 0x23
+/** Closing Parenthesis (CP). */
 #define UCHAR_BREAK_CLOSE_PARANTHESIS               0x24
+/** onditional Japanese Starter (CJ) */
 #define UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER    0x25
+/** Hebrew Letter (HL) */
 #define UCHAR_BREAK_HEBREW_LETTER       0x26
+/** Regional Indicator (RI) */
 #define UCHAR_BREAK_REGIONAL_INDICATOR  0x27
+/** Emoji Base (EB). */
 #define UCHAR_BREAK_EMOJI_BASE          0x28
+/** Emoji Modifier (EM). */
 #define UCHAR_BREAK_EMOJI_MODIFIER      0x29
+/** Zero Width Joiner (ZWJ) */
 #define UCHAR_BREAK_ZERO_WIDTH_JOINER   0x2A
 
     /** @} end of char_types */
