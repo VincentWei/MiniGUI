@@ -4761,7 +4761,7 @@ create_skin_main_window_ex:
 	* ext/skin/skin.c
 
 05/16. ENHANCEMENT #8: Support for UTF-16LE and UTF-16BE charsets/encodings.
-	* Change the definition of UChar32 to 'int'.
+	* Change the definition of Uchar32 to 'int'.
 		* include/gdi.h
 
 05/16. ENHANCEMENT #11: Support for FreeType2.

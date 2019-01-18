@@ -63,7 +63,7 @@
          ? CC_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
          : 0))
 
-int UCharCombiningClass (UChar32 uc)
+int UCharCombiningClass (Uchar32 uc)
 {
     return COMBINING_CLASS (uc);
 }
@@ -79,7 +79,7 @@ int UCharCombiningClass (UChar32 uc)
 #define NCount (VCount * TCount)
 #define SCount (LCount * NCount)
 
-void UCharCanonicalOrdering (UChar32 *string, int len)
+void UCharCanonicalOrdering (Uchar32 *string, int len)
 {
     int i;
     int swap = 1;
@@ -98,7 +98,7 @@ void UCharCanonicalOrdering (UChar32 *string, int len)
                 /* Percolate item leftward through string.  */
                 for (j = i + 1; j > 0; --j)
                 {
-                    UChar32 t;
+                    Uchar32 t;
                     if (COMBINING_CLASS (string[j - 1]) <= next)
                         break;
                     t = string[j];
@@ -119,7 +119,7 @@ void UCharCanonicalOrdering (UChar32 *string, int len)
  * r should be null or have sufficient space. Calling with r == NULL will
  * only calculate the result_len; however, a buffer with space for three
  * characters will always be big enough. */
-static void decompose_hangul (UChar32 s, UChar32 *r, int *result_len)
+static void decompose_hangul (Uchar32 s, Uchar32 *r, int *result_len)
 {
     int SIndex = s - SBase;
     int TIndex = SIndex % TCount;
@@ -141,7 +141,7 @@ static void decompose_hangul (UChar32 s, UChar32 *r, int *result_len)
 }
 
 /* returns a pointer to a null-terminated UTF-8 string */
-static const unsigned char * find_decomposition (UChar32 ch, BOOL compat)
+static const unsigned char * find_decomposition (Uchar32 ch, BOOL compat)
 {
     int start = 0;
     int end = TABLESIZE (decomp_table);
@@ -179,7 +179,7 @@ static const unsigned char * find_decomposition (UChar32 ch, BOOL compat)
 }
 
 /* L,V => LV and LV,T => LVT  */
-static BOOL combine_hangul (UChar32 a, UChar32 b, UChar32 *result)
+static BOOL combine_hangul (Uchar32 a, Uchar32 b, Uchar32 *result)
 {
     int LIndex = a - LBase;
     int SIndex = a - SBase;
@@ -209,7 +209,7 @@ static BOOL combine_hangul (UChar32 a, UChar32 b, UChar32 *result)
 #define COMPOSE_INDEX(Char) \
     (((Char >> 8) > (COMPOSE_TABLE_LAST)) ? 0 : CI((Char) >> 8, (Char) & 0xff))
 
-static BOOL combine (UChar32  a, UChar32  b, UChar32 *result)
+static BOOL combine (Uchar32  a, Uchar32  b, Uchar32 *result)
 {
     unsigned short index_a, index_b;
 
@@ -245,7 +245,7 @@ static BOOL combine (UChar32  a, UChar32  b, UChar32 *result)
     if (index_a >= COMPOSE_FIRST_START && index_a < COMPOSE_FIRST_SINGLE_START &&
             index_b >= COMPOSE_SECOND_START && index_b < COMPOSE_SECOND_SINGLE_START)
     {
-        UChar32 res = compose_array[index_a - COMPOSE_FIRST_START][index_b - COMPOSE_SECOND_START];
+        Uchar32 res = compose_array[index_a - COMPOSE_FIRST_START][index_b - COMPOSE_SECOND_START];
 
         if (res)
         {
@@ -257,7 +257,7 @@ static BOOL combine (UChar32  a, UChar32  b, UChar32 *result)
     return FALSE;
 }
 
-static BOOL decompose_hangul_step (UChar32  ch, UChar32 *a, UChar32 *b)
+static BOOL decompose_hangul_step (Uchar32  ch, Uchar32 *a, Uchar32 *b)
 {
     int SIndex, TIndex;
 
@@ -281,7 +281,7 @@ static BOOL decompose_hangul_step (UChar32  ch, UChar32 *a, UChar32 *b)
     return TRUE;
 }
 
-BOOL UCharDecompose (UChar32 ch, UChar32 *a, UChar32 *b)
+BOOL UCharDecompose (Uchar32 ch, Uchar32 *a, Uchar32 *b)
 {
     int start = 0;
     int end = TABLESIZE (decomp_step_table);
@@ -318,7 +318,7 @@ BOOL UCharDecompose (UChar32 ch, UChar32 *a, UChar32 *b)
     return FALSE;
 }
 
-BOOL UCharCompose (UChar32 a, UChar32 b, UChar32 *ch)
+BOOL UCharCompose (Uchar32 a, Uchar32 b, Uchar32 *ch)
 {
     if (combine (a, b, ch))
         return TRUE;
@@ -382,15 +382,15 @@ for ((Count) = 1; (Count) < (Len); ++(Count))           \
     (Result) |= ((Chars)[(Count)] & 0x3f);              \
 }
 
-static UChar32 utf8_to_uchar32 (const unsigned char *p)
+static Uchar32 utf8_to_uchar32 (const unsigned char *p)
 {
     int i, mask = 0, len;
-    UChar32 result;
+    Uchar32 result;
     unsigned char c = (unsigned char) *p;
 
     UTF8_COMPUTE (c, mask, len);
     if (len == -1)
-        return (UChar32)-1;
+        return (Uchar32)-1;
     UTF8_GET (result, p, i, mask, len);
 
     return result;
@@ -447,7 +447,7 @@ static int utf8_strlen (const unsigned char *p, int max)
     return len;
 }
 
-int UCharFullyDecompose (UChar32  ch, BOOL compat, UChar32 *result, int result_len)
+int UCharFullyDecompose (Uchar32  ch, BOOL compat, Uchar32 *result, int result_len)
 {
     const unsigned char *decomp;
     const unsigned char *p;
@@ -455,7 +455,7 @@ int UCharFullyDecompose (UChar32  ch, BOOL compat, UChar32 *result, int result_l
     /* Hangul syllable */
     if (ch >= SBase && ch < SBase + SCount) {
         int len, i;
-        UChar32 buffer[3];
+        Uchar32 buffer[3];
         decompose_hangul (ch, result ? buffer : NULL, &len);
         if (result)
             for (i = 0; i < len && i < result_len; i++)

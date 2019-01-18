@@ -174,7 +174,7 @@ static unsigned short iso8859_68x_unicode_map [] =
     0xFEF7, 0xFEF8, 0xFEF9, 0xFEFA, /*0x130~0x133*/
 };
 
-static UChar32 iso8859_6_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_6_conv_to_uc32 (Glyph32 glyph_value)
 {
     if (glyph_value < 0x81)
         return (Glyph32) (glyph_value);
@@ -184,7 +184,7 @@ static UChar32 iso8859_6_conv_to_uc32 (Glyph32 glyph_value)
         return 0xFFFF;
 }
 
-static int iso8859_6_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_6_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     switch (wc) {
         case 0x060C:

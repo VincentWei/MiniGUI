@@ -681,9 +681,9 @@ BOOL GUIAPI TranslateKeyMsgToChar (int message, WPARAM wParam, LPARAM lParam, WO
 
 #ifdef _MGCHARSET_UNICODE
 
-static UChar32 utf8_to_wc (const unsigned char* mstr, int* utf8_len)
+static Uchar32 utf8_to_wc (const unsigned char* mstr, int* utf8_len)
 {
-    UChar32 wc = *((unsigned char *)(mstr++));
+    Uchar32 wc = *((unsigned char *)(mstr++));
     int n, t;
 
     *utf8_len = 1;

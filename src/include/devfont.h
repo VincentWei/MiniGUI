@@ -180,10 +180,10 @@ struct _CHARSETOPS
 
 #ifdef _MGCHARSET_UNICODE
     /** The method to convert \a mchar to 32 bit UNICODE function. */
-    UChar32 (*conv_to_uc32) (Glyph32 glyph_value);
+    Uchar32 (*conv_to_uc32) (Glyph32 glyph_value);
 
     /** The method to convert \a wc to multily byte character function. */
-    int (*conv_from_uc32) (UChar32 wc, unsigned char* mchar);
+    int (*conv_from_uc32) (Uchar32 wc, unsigned char* mchar);
 #endif /* _UNICODE_SUPPORT */
 };
 

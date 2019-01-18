@@ -196,7 +196,7 @@ static int ascii_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 ascii_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 ascii_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 128)
@@ -205,7 +205,7 @@ static UChar32 ascii_conv_to_uc32 (Glyph32 glyph_value)
         return '?';
 }
 
-static int ascii_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int ascii_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     if (wc < 128) {
         *mchar = (unsigned char) wc;
@@ -263,13 +263,13 @@ static int iso8859_1_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 iso8859_1_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_1_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     return glyph_value;
 }
 
-static int iso8859_1_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_1_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     if (wc < 256) {
         *mchar = (unsigned char) wc;
@@ -363,16 +363,16 @@ static unsigned short iso8859_2_unicode_map [] =
     0x00FD, 0x0163, 0x02D9
 };
 
-static UChar32 iso8859_2_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_2_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
-        return (UChar32) iso8859_2_unicode_map [glyph_value - 0xA1];
+        return (Uchar32) iso8859_2_unicode_map [glyph_value - 0xA1];
 }
 
-static int iso8859_2_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_2_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -382,7 +382,7 @@ static int iso8859_2_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_2_unicode_map); i++) {
-        if (((UChar32)iso8859_2_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_2_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -477,16 +477,16 @@ static unsigned short iso8859_3_unicode_map [] =
     0x015D, 0x02D9
 };
 
-static UChar32 iso8859_3_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_3_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
-        return (UChar32) iso8859_3_unicode_map [glyph_value - 0xA1];
+        return (Uchar32) iso8859_3_unicode_map [glyph_value - 0xA1];
 }
 
-static int iso8859_3_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_3_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -496,7 +496,7 @@ static int iso8859_3_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_3_unicode_map); i++) {
-        if (((UChar32)iso8859_3_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_3_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -590,17 +590,17 @@ static unsigned short iso8859_4_unicode_map [] =
     0x016B, 0x02D9
 };
 
-static UChar32 iso8859_4_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_4_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
-        return (UChar32) iso8859_4_unicode_map [glyph_value - 0xA1];
+        return (Uchar32) iso8859_4_unicode_map [glyph_value - 0xA1];
    
 }
 
-static int iso8859_4_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_4_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -610,7 +610,7 @@ static int iso8859_4_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_4_unicode_map); i++) {
-        if (((UChar32)iso8859_4_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_4_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -669,7 +669,7 @@ static int iso8859_5_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 iso8859_5_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_5_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
 
@@ -688,7 +688,7 @@ static UChar32 iso8859_5_conv_to_uc32 (Glyph32 glyph_value)
     return glyph_value + (0x0401 - 0xA1);
 }
 
-static int iso8859_5_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_5_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     if (wc < 0xA1) {
         *mchar = (unsigned char) wc;
@@ -832,21 +832,21 @@ static unsigned short iso8859_7_unicode_map [] =
     0x038C, 0x00BD
 };
 
-static UChar32 iso8859_7_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_7_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value >= 0xBE && glyph_value <= 0xFE) {
         return glyph_value - 0xBE + 0x038E;
     }
     else if (glyph_value >= 0xA1 && glyph_value <= 0xBD) {
-        return (UChar32)iso8859_7_unicode_map [glyph_value - 0xA1];
+        return (Uchar32)iso8859_7_unicode_map [glyph_value - 0xA1];
     }
     else {
         return glyph_value;
     }
 }
 
-static int iso8859_7_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_7_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -861,7 +861,7 @@ static int iso8859_7_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_7_unicode_map); i++) {
-        if (((UChar32)iso8859_7_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_7_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -1085,7 +1085,7 @@ static BOOL iso8859_8_bidi_mirror_glyph (Glyph32 glyph, Glyph32* mirrored)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 iso8859_8_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_8_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value >= 0xE0 && glyph_value <= 0xFA) {
@@ -1108,7 +1108,7 @@ static UChar32 iso8859_8_conv_to_uc32 (Glyph32 glyph_value)
     }
 }
 
-static int iso8859_8_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_8_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
 
     switch (wc) {
@@ -1189,7 +1189,7 @@ static int iso8859_9_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 iso8859_9_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_9_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     switch (glyph_value) {
@@ -1210,7 +1210,7 @@ static UChar32 iso8859_9_conv_to_uc32 (Glyph32 glyph_value)
     return glyph_value;
 }
 
-static int iso8859_9_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_9_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     switch (wc) {
         case 0x011E:
@@ -1327,16 +1327,16 @@ static unsigned short iso8859_10_unicode_map [] =
     0x00FE, 0x0138
 };
 
-static UChar32 iso8859_10_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_10_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
-        return (UChar32)iso8859_10_unicode_map [glyph_value - 0xA1];
+        return (Uchar32)iso8859_10_unicode_map [glyph_value - 0xA1];
 }
 
-static int iso8859_10_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_10_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -1346,7 +1346,7 @@ static int iso8859_10_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_10_unicode_map); i++) {
-        if (((UChar32)iso8859_10_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_10_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -1441,16 +1441,16 @@ static unsigned short iso8859_11_unicode_map [] =
     0x00FE, 0x00FF
 };
 
-static UChar32 iso8859_11_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_11_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
-        return (UChar32) iso8859_11_unicode_map [glyph_value - 0xA1];
+        return (Uchar32) iso8859_11_unicode_map [glyph_value - 0xA1];
 }
 
-static int iso8859_11_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_11_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -1460,7 +1460,7 @@ static int iso8859_11_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_11_unicode_map); i++) {
-        if (((UChar32)iso8859_11_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_11_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -1554,16 +1554,16 @@ static unsigned short iso8859_13_unicode_map [] =
     0x017E, 0x2019
 };
 
-static UChar32 iso8859_13_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_13_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
-        return (UChar32) iso8859_13_unicode_map [glyph_value - 0xA1];
+        return (Uchar32) iso8859_13_unicode_map [glyph_value - 0xA1];
 }
 
-static int iso8859_13_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_13_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -1573,7 +1573,7 @@ static int iso8859_13_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_13_unicode_map); i++) {
-        if (((UChar32)iso8859_13_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_13_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -1667,16 +1667,16 @@ static unsigned short iso8859_14_unicode_map [] =
     0x0177, 0x00FF
 };
 
-static UChar32 iso8859_14_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_14_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value < 0xA1)
         return glyph_value;
     else
-        return (UChar32) iso8859_14_unicode_map [glyph_value - 0xA1];
+        return (Uchar32) iso8859_14_unicode_map [glyph_value - 0xA1];
 }
 
-static int iso8859_14_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_14_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int i;
 
@@ -1686,7 +1686,7 @@ static int iso8859_14_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
     }
 
     for (i = 0; i < TABLESIZE (iso8859_14_unicode_map); i++) {
-        if (((UChar32)iso8859_14_unicode_map [i]) == wc) {
+        if (((Uchar32)iso8859_14_unicode_map [i]) == wc) {
             *mchar = 0xA1 + i;
             return 1;
         }
@@ -1744,7 +1744,7 @@ static int iso8859_15_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 iso8859_15_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_15_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     switch (glyph_value) {
@@ -1769,7 +1769,7 @@ static UChar32 iso8859_15_conv_to_uc32 (Glyph32 glyph_value)
     }
 }
 
-static int iso8859_15_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_15_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     switch (wc) {
         case 0x20AC:  /* EURO SIGN */
@@ -1855,7 +1855,7 @@ static int iso8859_16_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 iso8859_16_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 iso8859_16_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     switch (glyph_value) {
@@ -1904,7 +1904,7 @@ static UChar32 iso8859_16_conv_to_uc32 (Glyph32 glyph_value)
     return glyph_value;
 }
 
-static int iso8859_16_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int iso8859_16_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     switch (wc) {
         case 0x0104: *mchar = 0xA1; return 1;
@@ -2129,14 +2129,14 @@ static int gb2312_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 gb2312_0_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 gb2312_0_conv_to_uc32 (Glyph32 glyph_value)
 {
-    return (UChar32)__mg_gbunicode_map [REAL_GLYPH(glyph_value)];
+    return (Uchar32)__mg_gbunicode_map [REAL_GLYPH(glyph_value)];
 }
 
 const unsigned char* __mg_map_uc16_to_gb (unsigned short uc16);
 
-static int gb2312_0_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int gb2312_0_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     const unsigned char* got;
 
@@ -2287,13 +2287,13 @@ static int gbk_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 gbk_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 gbk_conv_to_uc32 (Glyph32 glyph_value)
 {
-    return (UChar32)__mg_gbkunicode_map[REAL_GLYPH(glyph_value)];
+    return (Uchar32)__mg_gbkunicode_map[REAL_GLYPH(glyph_value)];
 }
 
 const unsigned char* __mg_map_uc16_to_gbk (unsigned short uc16);
-static int gbk_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int gbk_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     const unsigned char* got;
 
@@ -2531,7 +2531,7 @@ static const unsigned char* gb18030_0_get_next_word (const unsigned char* mstr,
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 gb18030_0_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 gb18030_0_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
 
@@ -2550,17 +2550,17 @@ static UChar32 gb18030_0_conv_to_uc32 (Glyph32 glyph_value)
                 (m2 * 1260) + (m3 * 10) + n3 + 65536;
     }
 
-    return (UChar32)__mg_gb18030_0_unicode_map [glyph_value];
+    return (Uchar32)__mg_gb18030_0_unicode_map [glyph_value];
 }
 
 int __mg_map_ucs_to_gb18030 (int wc, unsigned char* mchar);
-static int gb18030_0_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int gb18030_0_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     if (wc > 0x10FFFF)
         return 0;
     else if (wc >= 0x10000 && wc <= 0x10FFFF) {
         /* from 0x10000 - 0x10FFFF */
-        UChar32 m1, n1, m2, n2, m3, n3;
+        Uchar32 m1, n1, m2, n2, m3, n3;
         m1 = (wc - 65536) / 12600;
         n1 = (wc - 65536) % 12600;
         m2 = n1 / 1260;
@@ -2707,7 +2707,7 @@ static int big5_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 big5_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 big5_conv_to_uc32 (Glyph32 glyph_value)
 {
     unsigned short ucs_code = __mg_big5_unicode_map [REAL_GLYPH(glyph_value)];
 
@@ -2718,7 +2718,7 @@ static UChar32 big5_conv_to_uc32 (Glyph32 glyph_value)
 }
 
 const unsigned char* __mg_map_uc16_to_big5 (unsigned short uc16);
-static int big5_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int big5_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     const unsigned char* got;
 
@@ -2866,7 +2866,7 @@ static int ksc5601_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 ksc5601_0_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 ksc5601_0_conv_to_uc32 (Glyph32 glyph_value)
 {
     unsigned short ucs_code = __mg_ksc5601_0_unicode_map [REAL_GLYPH(glyph_value)];
 
@@ -2876,7 +2876,7 @@ static UChar32 ksc5601_0_conv_to_uc32 (Glyph32 glyph_value)
     return ucs_code;
 }
 
-static int ksc5601_0_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int ksc5601_0_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     /* TODO */
     return 0;
@@ -2987,7 +2987,7 @@ static int jisx0201_0_is_this_charset (const unsigned char* charset)
 
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 jisx0201_0_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 jisx0201_0_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
 
@@ -3002,7 +3002,7 @@ static UChar32 jisx0201_0_conv_to_uc32 (Glyph32 glyph_value)
 
 }
 
-static int jisx0201_0_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int jisx0201_0_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     /* TODO */
     return 0;
@@ -3133,7 +3133,7 @@ static int jisx0208_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 jisx0208_0_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 jisx0208_0_conv_to_uc32 (Glyph32 glyph_value)
 {
     unsigned short ucs_code;
 
@@ -3145,7 +3145,7 @@ static UChar32 jisx0208_0_conv_to_uc32 (Glyph32 glyph_value)
     return ucs_code;
 }
 
-static int jisx0208_0_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int jisx0208_0_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     /* TODO */
     return 0;
@@ -3200,7 +3200,7 @@ static int jisx0201_1_is_this_charset (const unsigned char* charset)
 
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 jisx0201_1_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 jisx0201_1_conv_to_uc32 (Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value >= 0xA1 && glyph_value <= 0xDF)
@@ -3213,7 +3213,7 @@ static UChar32 jisx0201_1_conv_to_uc32 (Glyph32 glyph_value)
     return glyph_value;
 }
 
-static int jisx0201_1_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int jisx0201_1_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     if (wc < 0xA1) {
         *mchar = (unsigned char)wc;
@@ -3390,7 +3390,7 @@ static int jisx0208_1_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static UChar32 jisx0208_1_conv_to_uc32 (Glyph32 glyph_value)
+static Uchar32 jisx0208_1_conv_to_uc32 (Glyph32 glyph_value)
 {
     unsigned short ucs_code;
 
@@ -3402,7 +3402,7 @@ static UChar32 jisx0208_1_conv_to_uc32 (Glyph32 glyph_value)
     return ucs_code;
 }
 
-static int jisx0208_1_conv_from_uc32 (UChar32 wc, unsigned char *mchar)
+static int jisx0208_1_conv_from_uc32 (Uchar32 wc, unsigned char *mchar)
 {
     /* TODO */
     return 0;
@@ -3467,7 +3467,7 @@ static int utf8_len_first_char (const unsigned char* mstr, int len)
 static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar, int pre_len,
                 const unsigned char* cur_mchar, int cur_len)
 {
-    UChar32 wc = *((unsigned char *)(cur_mchar++));
+    Uchar32 wc = *((unsigned char *)(cur_mchar++));
     int n, t;
 
     if (wc & 0x80) {
@@ -3680,7 +3680,7 @@ static const unsigned char* utf8_get_next_word (const unsigned char* mstr,
 {
     const unsigned char* mchar = mstr;
     int ch_len;
-    UChar32 wc;
+    Uchar32 wc;
 
     word_info->len = 0;
     word_info->delimiter = '\0';
@@ -3758,7 +3758,7 @@ static int utf8_pos_first_char (const unsigned char* mstr, int mstrlen)
     return -1;
 }
 
-static int utf8_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int utf8_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
     int first, len;
 
@@ -3828,7 +3828,7 @@ static CHARSETOPS CharsetOps_utf8 = {
 /************************* UTF-16LE Specific Operations ***********************/
 static int utf16le_len_first_char (const unsigned char* mstr, int len)
 {
-    UChar16 w1, w2;
+    Uchar16 w1, w2;
 
     if (len < 2)
         return 0;
@@ -3852,8 +3852,8 @@ static int utf16le_len_first_char (const unsigned char* mstr, int len)
 static Glyph32 utf16le_char_glyph_value (const unsigned char* pre_mchar, 
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
-    UChar16 w1, w2;
-    UChar32 wc;
+    Uchar16 w1, w2;
+    Uchar32 wc;
 
     w1 = MAKEWORD16 (cur_mchar[0], cur_mchar[1]);
 
@@ -3929,7 +3929,7 @@ static const unsigned char* utf16le_get_next_word (const unsigned char* mstr,
                 int mstrlen, WORDINFO* word_info)
 {
     const unsigned char* mchar = mstr;
-    UChar32 wc;
+    Uchar32 wc;
     int ch_len;
 
     word_info->len = 0;
@@ -4003,9 +4003,9 @@ static int utf16le_pos_first_char (const unsigned char* mstr, int mstrlen)
     return -1;
 }
 
-static int utf16le_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int utf16le_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
-    UChar16 w1, w2;
+    Uchar16 w1, w2;
 
     if (wc > 0x10FFFF) {
         return 0;
@@ -4054,7 +4054,7 @@ static CHARSETOPS CharsetOps_utf16le = {
 /************************* UTF-16BE Specific Operations ***********************/
 static int utf16be_len_first_char (const unsigned char* mstr, int len)
 {
-    UChar16 w1, w2;
+    Uchar16 w1, w2;
 
     if (len < 2)
         return 0;
@@ -4078,8 +4078,8 @@ static int utf16be_len_first_char (const unsigned char* mstr, int len)
 static Glyph32 utf16be_char_glyph_value (const unsigned char* pre_mchar, 
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
-    UChar16 w1, w2;
-    UChar32 wc;
+    Uchar16 w1, w2;
+    Uchar32 wc;
 
     w1 = MAKEWORD16 (cur_mchar[1], cur_mchar[0]);
 
@@ -4155,7 +4155,7 @@ static const unsigned char* utf16be_get_next_word (const unsigned char* mstr,
                 int mstrlen, WORDINFO* word_info)
 {
     const unsigned char* mchar = mstr;
-    UChar32 wc;
+    Uchar32 wc;
     int ch_len;
 
     word_info->len = 0;
@@ -4229,9 +4229,9 @@ static int utf16be_pos_first_char (const unsigned char* mstr, int mstrlen)
     return -1;
 }
 
-static int utf16be_conv_from_uc32 (UChar32 wc, unsigned char* mchar)
+static int utf16be_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 {
-    UChar16 w1, w2;
+    Uchar16 w1, w2;
 
     if (wc > 0x10FFFF) {
         return 0;
@@ -4407,27 +4407,27 @@ BOOL IsCompatibleCharset (const char* charset, CHARSETOPS* ops)
 
 #ifdef _MGCHARSET_UNICODE
 
-BOOL GUIAPI IsUCharAlnum(UChar32 uc)
+BOOL GUIAPI IsUCharAlnum(Uchar32 uc)
 {
     return ISALDIGIT(TYPE(uc));
 }
 
-BOOL GUIAPI IsUCharAlpha(UChar32 uc)
+BOOL GUIAPI IsUCharAlpha(Uchar32 uc)
 {
     return ISALPHA (TYPE(uc));
 }
 
-BOOL GUIAPI IsUCharControl(UChar32 uc)
+BOOL GUIAPI IsUCharControl(Uchar32 uc)
 {
     return TYPE(uc) == UCHAR_TYPE_CONTROL;
 }
 
-BOOL GUIAPI IsUCharDigit(UChar32 uc)
+BOOL GUIAPI IsUCharDigit(Uchar32 uc)
 {
     return TYPE(uc) == UCHAR_TYPE_DECIMAL_NUMBER;
 }
 
-BOOL GUIAPI IsUCharGraph(UChar32 uc)
+BOOL GUIAPI IsUCharGraph(Uchar32 uc)
 {
     return !IS (TYPE(uc),
             OR (UCHAR_TYPE_CONTROL,
@@ -4438,12 +4438,12 @@ BOOL GUIAPI IsUCharGraph(UChar32 uc)
             0))))));
 }
 
-BOOL GUIAPI IsUCharLowercase(UChar32 uc)
+BOOL GUIAPI IsUCharLowercase(Uchar32 uc)
 {
     return TYPE(uc) == UCHAR_TYPE_LOWERCASE_LETTER;
 }
 
-BOOL GUIAPI IsUCharPrint(UChar32 uc)
+BOOL GUIAPI IsUCharPrint(Uchar32 uc)
 {
     return !IS (TYPE(uc),
             OR (UCHAR_TYPE_CONTROL,
@@ -4453,12 +4453,12 @@ BOOL GUIAPI IsUCharPrint(UChar32 uc)
             0)))));
 }
 
-BOOL GUIAPI IsUCharUppercase(UChar32 uc)
+BOOL GUIAPI IsUCharUppercase(Uchar32 uc)
 {
     return TYPE(uc) == UCHAR_TYPE_UPPERCASE_LETTER;
 }
 
-BOOL GUIAPI IsUCharPunct(UChar32 uc)
+BOOL GUIAPI IsUCharPunct(Uchar32 uc)
 {
     return IS (TYPE(uc),
             OR (UCHAR_TYPE_CONNECT_PUNCTUATION,
@@ -4475,7 +4475,7 @@ BOOL GUIAPI IsUCharPunct(UChar32 uc)
             0))))))))))));
 }
 
-BOOL GUIAPI IsUCharSpace(UChar32 uc)
+BOOL GUIAPI IsUCharSpace(Uchar32 uc)
 {
     switch (uc) {
     /* special-case these since Unicode thinks they are not spaces */
@@ -4499,12 +4499,12 @@ BOOL GUIAPI IsUCharSpace(UChar32 uc)
     return FALSE;
 }
 
-BOOL GUIAPI IsUCharMark(UChar32 uc)
+BOOL GUIAPI IsUCharMark(Uchar32 uc)
 {
     return ISMARK (TYPE(uc));
 }
 
-BOOL GUIAPI IsUCharTitle(UChar32 uc)
+BOOL GUIAPI IsUCharTitle(Uchar32 uc)
 {
     unsigned int i;
 
@@ -4517,14 +4517,14 @@ BOOL GUIAPI IsUCharTitle(UChar32 uc)
     return FALSE;
 }
 
-BOOL GUIAPI IsUCharXDigit(UChar32 uc)
+BOOL GUIAPI IsUCharXDigit(Uchar32 uc)
 {
     return ((uc >= 'a' && uc <= 'f')
             || (uc >= 'A' && uc <= 'F')
             || (TYPE(uc) == UCHAR_TYPE_DECIMAL_NUMBER));
 }
 
-BOOL GUIAPI IsUCharDefined(UChar32 uc)
+BOOL GUIAPI IsUCharDefined(Uchar32 uc)
 {
     return !IS (TYPE(uc),
               OR (UCHAR_TYPE_UNASSIGNED,
@@ -4532,7 +4532,7 @@ BOOL GUIAPI IsUCharDefined(UChar32 uc)
              0)));
 }
 
-BOOL GUIAPI IsUCharZeroWidth(UChar32 uc)
+BOOL GUIAPI IsUCharZeroWidth(Uchar32 uc)
 {
     if (uc != 0x00AD && ISZEROWIDTHTYPE (TYPE(uc)))
         return TRUE;
@@ -4543,7 +4543,7 @@ BOOL GUIAPI IsUCharZeroWidth(UChar32 uc)
     return FALSE;
 }
 
-static inline BOOL g_unichar_iswide_bsearch (UChar32 ch)
+static inline BOOL g_unichar_iswide_bsearch (Uchar32 ch)
 {
     unsigned int lower = 0;
     unsigned int upper = TABLESIZE (g_unicode_width_table_wide) - 1;
@@ -4564,7 +4564,7 @@ static inline BOOL g_unichar_iswide_bsearch (UChar32 ch)
     return FALSE;
 }
 
-BOOL GUIAPI IsUCharWide(UChar32 uc)
+BOOL GUIAPI IsUCharWide(Uchar32 uc)
 {
     if (uc < g_unicode_width_table_wide[0].start)
         return FALSE;
@@ -4574,7 +4574,7 @@ BOOL GUIAPI IsUCharWide(UChar32 uc)
 
 static int interval_compare (const void *key, const void *elt)
 {
-    UChar32 uc = (UChar32)((intptr_t)key);
+    Uchar32 uc = (Uchar32)((intptr_t)key);
     struct Interval *interval = (struct Interval *)elt;
 
     if (uc < interval->start)
@@ -4585,7 +4585,7 @@ static int interval_compare (const void *key, const void *elt)
     return 0;
 }
 
-BOOL GUIAPI IsUCharWideCJK (UChar32 uc)
+BOOL GUIAPI IsUCharWideCJK (Uchar32 uc)
 {
     if (IsUCharWide(uc))
         return TRUE;
@@ -4608,11 +4608,11 @@ BOOL GUIAPI IsUCharWideCJK (UChar32 uc)
 /**
  * Converts a character to uppercase.
  */
-UChar32 UCharToUpper (UChar32 uc)
+Uchar32 UCharToUpper (Uchar32 uc)
 {
     int t = TYPE (uc);
     if (t == UCHAR_TYPE_LOWERCASE_LETTER) {
-        UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
+        Uchar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
             val = utf8_char_glyph_value (NULL, 0, p, -1);
@@ -4637,11 +4637,11 @@ UChar32 UCharToUpper (UChar32 uc)
 /**
  * Converts a character to lower case.
  */
-UChar32 GUIAPI UCharToLower (UChar32 uc)
+Uchar32 GUIAPI UCharToLower (Uchar32 uc)
 {
     int t = TYPE (uc);
     if (t == UCHAR_TYPE_UPPERCASE_LETTER) {
-        UChar32 val = ATTTABLE (uc >> 8, uc & 0xff);
+        Uchar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
             return utf8_char_glyph_value (NULL, 0, p, -1);
@@ -4665,7 +4665,7 @@ UChar32 GUIAPI UCharToLower (UChar32 uc)
 /**
  * Converts a glyph to the titlecase.
  */
-UChar32 GUIAPI UCharToTitle (UChar32 uc)
+Uchar32 GUIAPI UCharToTitle (Uchar32 uc)
 {
     unsigned int i;
     for (i = 0; i < TABLESIZE (title_table); ++i) {
@@ -4681,7 +4681,7 @@ UChar32 GUIAPI UCharToTitle (UChar32 uc)
 }
 
 /** Converts a glyph to full-width. */
-UChar32 GUIAPI UCharToFullWidth (UChar32 uc)
+Uchar32 GUIAPI UCharToFullWidth (Uchar32 uc)
 {
     if (uc == 0x20)
         return 0x3000;
@@ -4694,7 +4694,7 @@ UChar32 GUIAPI UCharToFullWidth (UChar32 uc)
 }
 
 /** Converts a glyph to single-width. */
-UChar32 GUIAPI UCharToSingleWidth (UChar32 uc)
+Uchar32 GUIAPI UCharToSingleWidth (Uchar32 uc)
 {
     if (uc == 0x3000)
         return 0x20;
@@ -4707,7 +4707,7 @@ UChar32 GUIAPI UCharToSingleWidth (UChar32 uc)
 }
 
 struct UCharMap {
-    UChar32 one, other;
+    Uchar32 one, other;
 };
 
 static const struct UCharMap kana_small_to_full_size_table [] = {
@@ -4763,7 +4763,7 @@ static const struct UCharMap kana_small_to_full_size_table [] = {
 };
 
 /** Converts a glyph to full-size Kana. */
-UChar32 GUIAPI UCharToFullSizeKana (UChar32 uc)
+Uchar32 GUIAPI UCharToFullSizeKana (Uchar32 uc)
 {
     unsigned int lower = 0;
     unsigned int upper = TABLESIZE (kana_small_to_full_size_table) - 1;
@@ -4841,7 +4841,7 @@ static const struct UCharMap kana_full_size_to_small_table [] = {
 };
 
 /** Converts a glyph to small Kana. */
-UChar32 GUIAPI UCharToSmallKana (UChar32 uc)
+Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc)
 {
     unsigned int lower = 0;
     unsigned int upper = TABLESIZE (kana_full_size_to_small_table) - 1;

@@ -5774,8 +5774,8 @@ typedef struct _WORDINFO WORDINFO;
 
 #define MAX_LEN_MCHAR               6
 
-typedef Uint16 UChar16;
-typedef Uint32 UChar32;
+typedef Uint16 Uchar16;
+typedef Uint32 Uchar32;
 
 #define MCHAR_TYPE_NOSPACING_MARK   0x0001
 #define MCHAR_TYPE_ABOVE_MARK       0x0002
@@ -6775,7 +6775,7 @@ MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
                    MB2WCEx (log_font, dest, sizeof(wchar_t) == 4, mstr, n)
 
 /**
- * \fn int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc)
+ * \fn int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc)
  *
  * \brief Converts a wide character in UCS to a multibyte character
  *        according to the charset/encoding of the logical font.
@@ -6791,7 +6791,7 @@ MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
  *
  * \sa WC2MB, mbtowc
  */
-MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
+MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc);
 
 /**
  * \def WC2MB(log_font, dest, mstr, n)
@@ -6800,7 +6800,7 @@ MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
  * \sa WC2MBEx
  */
 #define WC2MB(log_font, s, wc) \
-                   WC2MBEx (log_font, s, (UChar32)wc)
+                   WC2MBEx (log_font, s, (Uchar32)wc)
 
 /**
  * \fn int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32, \
@@ -6895,39 +6895,39 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
             n, NULL)
 
 /** The function determines whether a glyph is alphanumeric. */
-MG_EXPORT BOOL GUIAPI IsUCharAlnum(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharAlnum(Uchar32 uc);
 
 /** The function determines whether a character is alphabetic (i.e. a letter). */
-MG_EXPORT BOOL GUIAPI IsUCharAlpha(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharAlpha(Uchar32 uc);
 
 /** The function determines whether a character is a control character. */
-MG_EXPORT BOOL GUIAPI IsUCharControl(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharControl(Uchar32 uc);
 
 /** The function determines whether a character is numeric (i.e. a digit). */
-MG_EXPORT BOOL GUIAPI IsUCharDigit(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharDigit(Uchar32 uc);
 
 /** The function determines whether a character is printable and not a space */
-MG_EXPORT BOOL GUIAPI IsUCharGraph(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharGraph(Uchar32 uc);
 
 /** The function determines whether a character is a lowercase letter. */
-MG_EXPORT BOOL GUIAPI IsUCharLowercase(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharLowercase(Uchar32 uc);
 
 /** The function determines whether a character is printable. */
-MG_EXPORT BOOL GUIAPI IsUCharPrint(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharPrint(Uchar32 uc);
 
 /** The function determines whether a character is a uppercase letter. */
-MG_EXPORT BOOL GUIAPI IsUCharUppercase(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharUppercase(Uchar32 uc);
 
 /** The function determines whether a character is punctuation or a symbol. */
-MG_EXPORT BOOL GUIAPI IsUCharPunct(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharPunct(Uchar32 uc);
 
 /** The function determines whether a character is a space, tab, or line separator
  * (newline, carriage return, etc.). */
-MG_EXPORT BOOL GUIAPI IsUCharSpace(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharSpace(Uchar32 uc);
 
 /** The function determines whether a character is a mark (non-spacing mark,
  * combining mark, or enclosing mark in Unicode speak). */
-MG_EXPORT BOOL GUIAPI IsUCharMark(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharMark(Uchar32 uc);
 
 /** The function determines if a character is titlecase. Some characters in
  * Unicode which are composites, such as the DZ digraph
@@ -6935,19 +6935,19 @@ MG_EXPORT BOOL GUIAPI IsUCharMark(UChar32 uc);
  * form is used at the beginning of a word where only the
  * first letter is capitalized. The titlecase form of the DZ
  * digraph is U+01F2 LATIN CAPITAL LETTTER D WITH SMALL LETTER Z. */
-MG_EXPORT BOOL GUIAPI IsUCharTitle(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharTitle(Uchar32 uc);
 
 /** The function determines if a character is a hexidecimal digit. */
-MG_EXPORT BOOL GUIAPI IsUCharXDigit(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharXDigit(Uchar32 uc);
 
 /** The function determines if a given character is assigned in the Unicode standard. */
-MG_EXPORT BOOL GUIAPI IsUCharDefined(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharDefined(Uchar32 uc);
 
 /** The function determines if a given character typically takes zero width when rendered. */
-MG_EXPORT BOOL GUIAPI IsUCharZeroWidth(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharZeroWidth(Uchar32 uc);
 
 /** The function determines if a character is typically rendered in a double-width cell. */
-MG_EXPORT BOOL GUIAPI IsUCharWide(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharWide(Uchar32 uc);
 
 /**
  * The function determines if a character is typically rendered in a double-width
@@ -6957,31 +6957,31 @@ MG_EXPORT BOOL GUIAPI IsUCharWide(UChar32 uc);
  * [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)
  * for details.
  */
-MG_EXPORT BOOL GUIAPI IsUCharWideCJK(UChar32 uc);
+MG_EXPORT BOOL GUIAPI IsUCharWideCJK(Uchar32 uc);
 
 /** Converts a character to uppercase.  */
-MG_EXPORT UChar32 UCharToUpper (UChar32 uc);
+MG_EXPORT Uchar32 UCharToUpper (Uchar32 uc);
 
 /** Converts a character to lower case. */
-MG_EXPORT UChar32 GUIAPI UCharToLower (UChar32 uc);
+MG_EXPORT Uchar32 GUIAPI UCharToLower (Uchar32 uc);
 
 /** Converts a glyph to the titlecase. */
-MG_EXPORT UChar32 GUIAPI UCharToTitle (UChar32 uc);
+MG_EXPORT Uchar32 GUIAPI UCharToTitle (Uchar32 uc);
 
 /** Converts a glyph to full-width. */
-MG_EXPORT UChar32 GUIAPI UCharToFullWidth (UChar32 uc);
+MG_EXPORT Uchar32 GUIAPI UCharToFullWidth (Uchar32 uc);
 
 /** Converts a glyph to single-width. */
-MG_EXPORT UChar32 GUIAPI UCharToSingleWidth (UChar32 uc);
+MG_EXPORT Uchar32 GUIAPI UCharToSingleWidth (Uchar32 uc);
 
 /** Converts a glyph to full-size Kana. */
-MG_EXPORT UChar32 GUIAPI UCharToFullSizeKana (UChar32 uc);
+MG_EXPORT Uchar32 GUIAPI UCharToFullSizeKana (Uchar32 uc);
 
 /** Converts a glyph to small Kana. */
-MG_EXPORT UChar32 GUIAPI UCharToSmallKana (UChar32 uc);
+MG_EXPORT Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc);
 
 /** Determines the canonical combining class of a Unicode character.*/
-MG_EXPORT int GUIAPI UCharCombiningClass (UChar32 uc);
+MG_EXPORT int GUIAPI UCharCombiningClass (Uchar32 uc);
 
 /**
  * Computes the canonical ordering of a string in-place.
@@ -6989,13 +6989,13 @@ MG_EXPORT int GUIAPI UCharCombiningClass (UChar32 uc);
  * according to their combining classes.
  * See the Unicode manual for more information.
  */
-MG_EXPORT void GUIAPI UCharCanonicalOrdering (UChar32 *string, int len);
+MG_EXPORT void GUIAPI UCharCanonicalOrdering (Uchar32 *string, int len);
 
 /** Performs a single decomposition step of the Unicode canonical decomposition algorithm. */
-MG_EXPORT BOOL GUIAPI UCharCompose (UChar32 a, UChar32 b, UChar32 *ch);
+MG_EXPORT BOOL GUIAPI UCharCompose (Uchar32 a, Uchar32 b, Uchar32 *ch);
 
 /** Performs a single composition step of the Unicode canonical composition algorithm. */
-MG_EXPORT BOOL GUIAPI UCharDecompose (UChar32 ch, UChar32 *a, UChar32 *b);
+MG_EXPORT BOOL GUIAPI UCharDecompose (Uchar32 ch, Uchar32 *a, Uchar32 *b);
 
 /**
  * Computes the canonical or compatibility decomposition of a
@@ -7004,8 +7004,8 @@ MG_EXPORT BOOL GUIAPI UCharDecompose (UChar32 ch, UChar32 *a, UChar32 *b);
  * For compatibility decomposition, pass TRUE for \a compat;
  * for canonical decomposition pass FALSE for \a compat.
  */
-MG_EXPORT int GUIAPI UCharFullyDecompose (UChar32  ch, BOOL compat,
-        UChar32 *result, int result_len);
+MG_EXPORT int GUIAPI UCharFullyDecompose (Uchar32  ch, BOOL compat,
+        Uchar32 *result, int result_len);
 
 #endif /* _MGCHARSET_UNICODE */
 
@@ -9987,7 +9987,7 @@ MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
                     WORDINFO* word_info);
 MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
                 const unsigned char* mchar, int n);
-MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, UChar32 wc);
+MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc);
 MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
                 const unsigned char* mstr, int mstr_len, int n,
                 int* conved_mstr_len);
