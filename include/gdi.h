@@ -6624,7 +6624,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        size expected.
  * \param rotation The rotation of the logical font, it is in units of
  *        tenth degrees. Note that you can specify rotation only for
- *        TrueType and Adobe Type1 fonts.
+ *        vector fonts (use FreeType2 font engine).
  * \return The pointer to the logical font created, NULL on error.
  *
  * \sa CreateLogFontIndirect, CreateLogFontByName, SelectFont

@@ -72,7 +72,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 {
     PLOGFONT log_font;
     int sbc_value, mbc_value = 0;
-    char dev_family [LEN_LOGFONT_NAME_FIELD + 1];
+    char dev_name_field [LEN_LOGFONT_NAME_FIELD + 1];
     DEVFONT* sbc_devfont, *mbc_devfont;
 
     // is valid style?
@@ -138,8 +138,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     /*check if sbc_devfont and mbc_devfont support rotation*/
     if (get_rotation(log_font, sbc_devfont, rotation) == rotation
-            && (!mbc_devfont ||
-            get_rotation(log_font, mbc_devfont, rotation) == rotation))
+            && (!mbc_devfont || get_rotation(log_font, mbc_devfont, rotation) == rotation))
         log_font->rotation = rotation;
     else
         log_font->rotation = 0;
@@ -163,25 +162,25 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     /*reset type name of logfont*/
     if (log_font->mbc_devfont) {
-        fontGetTypeNameFromName (log_font->mbc_devfont->name, dev_family);
-        strncpy (log_font->type, dev_family, LEN_LOGFONT_NAME_FIELD);
+        fontGetTypeNameFromName (log_font->mbc_devfont->name, dev_name_field);
+        strncpy (log_font->type, dev_name_field, LEN_LOGFONT_NAME_FIELD);
         log_font->type[LEN_LOGFONT_NAME_FIELD] = '\0';
     }
     else {
-        fontGetTypeNameFromName (log_font->sbc_devfont->name, dev_family);
-        strncpy (log_font->type, dev_family, LEN_LOGFONT_NAME_FIELD);
+        fontGetTypeNameFromName (log_font->sbc_devfont->name, dev_name_field);
+        strncpy (log_font->type, dev_name_field, LEN_LOGFONT_NAME_FIELD);
         log_font->type[LEN_LOGFONT_NAME_FIELD] = '\0';
     }
 
     /*reset family name of logfont*/
     if (log_font->mbc_devfont) {
-        fontGetFamilyFromName (log_font->mbc_devfont->name, dev_family);
-        strncpy (log_font->family, dev_family, LEN_LOGFONT_NAME_FIELD);
+        fontGetFamilyFromName (log_font->mbc_devfont->name, dev_name_field);
+        strncpy (log_font->family, dev_name_field, LEN_LOGFONT_NAME_FIELD);
         log_font->family [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
     else {
-        fontGetFamilyFromName (log_font->sbc_devfont->name, dev_family);
-        strncpy (log_font->family, dev_family, LEN_LOGFONT_NAME_FIELD);
+        fontGetFamilyFromName (log_font->sbc_devfont->name, dev_name_field);
+        strncpy (log_font->family, dev_name_field, LEN_LOGFONT_NAME_FIELD);
         log_font->family [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
 
@@ -261,10 +260,14 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *logfont)
 
     if (!logfont) return NULL;
 
-    if ((font = malloc (sizeof (LOGFONT))) == NULL)
+    // VincentWei: make sure the logfont has the key for resource manager.
+    //if ((font = malloc (sizeof (LOGFONT))) == NULL)
+    if ((font = (PLOGFONT)malloc (sizeof (FONT_RES))) == NULL)
         return INV_LOGFONT;
 
+    // VincentWei: make sure the logfont has an invalid key for resource manager.
     memcpy (font, logfont, sizeof(LOGFONT));
+    ((FONT_RES *)font)->key = -1;
 
     sbc_devfont = logfont->sbc_devfont;
     if (sbc_devfont->font_ops->new_instance)
