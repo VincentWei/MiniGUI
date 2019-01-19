@@ -117,6 +117,9 @@ of a glyph string which can fit in a line with the specified maximal extent.
 * `DrawGlyphStringEx` function draws a glyph string to the specific
 positions of a DC.
 
+* `CreateLogFontIndirectEx` creates a new LOGFONT by using the value of
+an existed LOGFONT but with a new rotation value.
+
 #### Others
 
 * Support for FreeType1 removed.
