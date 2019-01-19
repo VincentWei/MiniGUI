@@ -5787,7 +5787,7 @@ typedef Uint32 Uchar32;
      *
      * For a UNICODE character, MiniGUI uses the high 16-bit for the
      * basic UNICODE character classifications and the possible line break
-     * classifications. The low byte for the basic type, and high byte for
+     * classifications. The low byte for the basic type, and the high byte for
      * the break type.
      *
      * @{
@@ -5864,153 +5864,527 @@ typedef Uint32 Uchar32;
 #define MCHAR_TYPE_VOWEL_ABOVE      (MCHAR_TYPE_VOWEL | MCHAR_TYPE_ABOVE_MARK)
 #define MCHAR_TYPE_VOWEL_BELLOW     (MCHAR_TYPE_VOWEL | MCHAR_TYPE_BELLOW_MARK)
 
-/** General category "Other, Control" (Cc) */
-#define UCHAR_TYPE_CONTROL               0x00
-/** General category "Other, Format" (Cf) */
-#define UCHAR_TYPE_FORMAT                0x01
-/** General category "Other, Not Assigned" (Cn) */
-#define UCHAR_TYPE_UNASSIGNED            0x02
-/** General category "Other, Private Use" (Co) */
-#define UCHAR_TYPE_PRIVATE_USE           0x03
-/** General category "Other, Surrogate" (Cs) */
-#define UCHAR_TYPE_SURROGATE             0x04
-/**  General category "Letter, Lowercase" (Ll) */
-#define UCHAR_TYPE_LOWERCASE_LETTER      0x05
-/** General category "Letter, Modifier" (Lm) */
-#define UCHAR_TYPE_MODIFIER_LETTER       0x06
-/** General category "Letter, Other" (Lo) */
-#define UCHAR_TYPE_OTHER_LETTER          0x07
-/** General category "Letter, Titlecase" (Lt) */
-#define UCHAR_TYPE_TITLECASE_LETTER      0x08
-/** General category "Letter, Uppercase" (Lu) */
-#define UCHAR_TYPE_UPPERCASE_LETTER      0x09
-/** General category "Mark, Spacing" (Mc) */
-#define UCHAR_TYPE_SPACING_MARK          0x0A
-/** General category "Mark, Enclosing" (Me) */
-#define UCHAR_TYPE_ENCLOSING_MARK        0x0B
-/** General category "Mark, Nonspacing" (Mn) */
-#define UCHAR_TYPE_NON_SPACING_MARK      0x0C
-/** General category "Number, Decimal Digit" (Nd) */
-#define UCHAR_TYPE_DECIMAL_NUMBER        0x0D
-/** General category "Number, Letter" (Nl) */
-#define UCHAR_TYPE_LETTER_NUMBER         0x0E
-/** General category "Number, Other" (No) */
-#define UCHAR_TYPE_OTHER_NUMBER          0x0F
-/** General category "Punctuation, Connector" (Pc) */
-#define UCHAR_TYPE_CONNECT_PUNCTUATION   0x10
-/** General category "Punctuation, Dash" (Pd) */
-#define UCHAR_TYPE_DASH_PUNCTUATION      0x11
-/** General category "Punctuation, Close" (Pe) */
-#define UCHAR_TYPE_CLOSE_PUNCTUATION     0x12
-/** General category "Punctuation, Final quote" (Pf) */
-#define UCHAR_TYPE_FINAL_PUNCTUATION     0x13
-/** General category "Punctuation, Initial quote" (Pi) */
-#define UCHAR_TYPE_INITIAL_PUNCTUATION   0x14
-/** General category "Punctuation, Other" (Po) */
-#define UCHAR_TYPE_OTHER_PUNCTUATION     0x15
-/** General category "Punctuation, Open" (Ps) */
-#define UCHAR_TYPE_OPEN_PUNCTUATION      0x16
-/** General category "Symbol, Currency" (Sc) */
-#define UCHAR_TYPE_CURRENCY_SYMBOL       0x17
-/** General category "Symbol, Modifier" (Sk) */
-#define UCHAR_TYPE_MODIFIER_SYMBOL       0x18
-/** General category "Symbol, Math" (Sm) */
-#define UCHAR_TYPE_MATH_SYMBOL           0x19
-/** General category "Symbol, Other" (So) */
-#define UCHAR_TYPE_OTHER_SYMBOL          0x1A
-/** General category "Separator, Line" (Zl) */
-#define UCHAR_TYPE_LINE_SEPARATOR        0x1B
-/** General category "Separator, Paragraph" (Zp) */
-#define UCHAR_TYPE_PARAGRAPH_SEPARATOR   0x1C
-/** General category "Separator, Space" (Zs) */
-#define UCHAR_TYPE_SPACE_SEPARATOR       0x1D
+/**
+ * UCharBasicType: basic type of a UNICODE character.
+ *
+ * @UCHAR_TYPE_CONTROL: General category "Other, Control" (Cc)
+ * @UCHAR_TYPE_FORMAT: General category "Other, Format" (Cf)
+ * @UCHAR_TYPE_UNASSIGNED: General category "Other, Not Assigned" (Cn)
+ * @UCHAR_TYPE_PRIVATE_USE: General category "Other, Private Use" (Co)
+ * @UCHAR_TYPE_SURROGATE: General category "Other, Surrogate" (Cs)
+ * @UCHAR_TYPE_LOWERCASE_LETTER: General category "Letter, Lowercase" (Ll)
+ * @UCHAR_TYPE_MODIFIER_LETTER: General category "Letter, Modifier" (Lm)
+ * @UCHAR_TYPE_OTHER_LETTER: General category "Letter, Other" (Lo)
+ * @UCHAR_TYPE_TITLECASE_LETTER: General category "Letter, Titlecase" (Lt)
+ * @UCHAR_TYPE_UPPERCASE_LETTER: General category "Letter, Uppercase" (Lu)
+ * @UCHAR_TYPE_SPACING_MARK: General category "Mark, Spacing" (Mc)
+ * @UCHAR_TYPE_ENCLOSING_MARK: General category "Mark, Enclosing" (Me)
+ * @UCHAR_TYPE_NON_SPACING_MARK: General category "Mark, Nonspacing" (Mn)
+ * @UCHAR_TYPE_DECIMAL_NUMBER: General category "Number, Decimal Digit" (Nd)
+ * @UCHAR_TYPE_LETTER_NUMBER: General category "Number, Letter" (Nl)
+ * @UCHAR_TYPE_OTHER_NUMBER: General category "Number, Other" (No)
+ * @UCHAR_TYPE_CONNECT_PUNCTUATION: General category "Punctuation, Connector" (Pc)
+ * @UCHAR_TYPE_DASH_PUNCTUATION: General category "Punctuation, Dash" (Pd)
+ * @UCHAR_TYPE_CLOSE_PUNCTUATION: General category "Punctuation, Close" (Pe)
+ * @UCHAR_TYPE_FINAL_PUNCTUATION: General category "Punctuation, Final quote" (Pf)
+ * @UCHAR_TYPE_INITIAL_PUNCTUATION: General category "Punctuation, Initial quote" (Pi)
+ * @UCHAR_TYPE_OTHER_PUNCTUATION: General category "Punctuation, Other" (Po)
+ * @UCHAR_TYPE_OPEN_PUNCTUATION: General category "Punctuation, Open" (Ps)
+ * @UCHAR_TYPE_CURRENCY_SYMBOL: General category "Symbol, Currency" (Sc)
+ * @UCHAR_TYPE_MODIFIER_SYMBOL: General category "Symbol, Modifier" (Sk)
+ * @UCHAR_TYPE_MATH_SYMBOL: General category "Symbol, Math" (Sm)
+ * @UCHAR_TYPE_OTHER_SYMBOL: General category "Symbol, Other" (So)
+ * @UCHAR_TYPE_LINE_SEPARATOR: General category "Separator, Line" (Zl)
+ * @UCHAR_TYPE_PARAGRAPH_SEPARATOR: General category "Separator, Paragraph" (Zp)
+ * @UCHAR_TYPE_SPACE_SEPARATOR: General category "Separator, Space" (Zs)
+ *
+ * These are the possible character classifications from the
+ * Unicode specification.
+ * See [Unicode Character Database](http://www.unicode.org/reports/tr44/#General_Category_Values).
+ */
+typedef enum {
+    UCHAR_TYPE_CONTROL,
+    UCHAR_TYPE_FORMAT,
+    UCHAR_TYPE_UNASSIGNED,
+    UCHAR_TYPE_PRIVATE_USE,
+    UCHAR_TYPE_SURROGATE,
+    UCHAR_TYPE_LOWERCASE_LETTER,
+    UCHAR_TYPE_MODIFIER_LETTER,
+    UCHAR_TYPE_OTHER_LETTER,
+    UCHAR_TYPE_TITLECASE_LETTER,
+    UCHAR_TYPE_UPPERCASE_LETTER,
+    UCHAR_TYPE_SPACING_MARK,
+    UCHAR_TYPE_ENCLOSING_MARK,
+    UCHAR_TYPE_NON_SPACING_MARK,
+    UCHAR_TYPE_DECIMAL_NUMBER,
+    UCHAR_TYPE_LETTER_NUMBER,
+    UCHAR_TYPE_OTHER_NUMBER,
+    UCHAR_TYPE_CONNECT_PUNCTUATION,
+    UCHAR_TYPE_DASH_PUNCTUATION,
+    UCHAR_TYPE_CLOSE_PUNCTUATION,
+    UCHAR_TYPE_FINAL_PUNCTUATION,
+    UCHAR_TYPE_INITIAL_PUNCTUATION,
+    UCHAR_TYPE_OTHER_PUNCTUATION,
+    UCHAR_TYPE_OPEN_PUNCTUATION,
+    UCHAR_TYPE_CURRENCY_SYMBOL,
+    UCHAR_TYPE_MODIFIER_SYMBOL,
+    UCHAR_TYPE_MATH_SYMBOL,
+    UCHAR_TYPE_OTHER_SYMBOL,
+    UCHAR_TYPE_LINE_SEPARATOR,
+    UCHAR_TYPE_PARAGRAPH_SEPARATOR,
+    UCHAR_TYPE_SPACE_SEPARATOR
+} UCharBasicType;
 
-/** Mandatory Break (BK) */
-#define UCHAR_BREAK_MANDATORY           0x00
-/** Carriage Return (CR) */
-#define UCHAR_BREAK_CARRIAGE_RETURN     0x01
-/** Line Feed (LF) */
-#define UCHAR_BREAK_LINE_FEED           0x02
-/** Attached Characters and Combining Marks (CM) */
-#define UCHAR_BREAK_COMBINING_MARK      0x03
-/** Surrogates (SG) */
-#define UCHAR_BREAK_SURROGATE           0x04
-/** Zero Width Space (ZW) */
-#define UCHAR_BREAK_ZERO_WIDTH_SPACE    0x05
-/** Inseparable (IN) */
-#define UCHAR_BREAK_INSEPARABLE         0x06
-/** Non-breaking ("Glue") (GL) */
-#define UCHAR_BREAK_NON_BREAKING_GLUE   0x07
-/** Contingent Break Opportunity (CB) */
-#define UCHAR_BREAK_CONTINGENT          0x08
-/** Space (SP) */
-#define UCHAR_BREAK_SPACE               0x09
-/**  Break Opportunity After (BA) */
-#define UCHAR_BREAK_AFTER               0x0A
-/** Break Opportunity Before (BB) */
-#define UCHAR_BREAK_BEFORE              0x0B
-/** Break Opportunity Before and After (B2) */
-#define UCHAR_BREAK_BEFORE_AND_AFTER    0x0C
-/** Hyphen (HY) */
-#define UCHAR_BREAK_HYPHEN              0x0D
-/** Nonstarter (NS) */
-#define UCHAR_BREAK_NON_STARTER         0x0E
-/** Opening Punctuation (OP) */
-#define UCHAR_BREAK_OPEN_PUNCTUATION    0x0F
-/** Closing Punctuation (CL) */
-#define UCHAR_BREAK_CLOSE_PUNCTUATION   0x10
-/** Ambiguous Quotation (QU) */
-#define UCHAR_BREAK_QUOTATION           0x11
-/** Exclamation/Interrogation (EX) */
-#define UCHAR_BREAK_EXCLAMATION         0x12
-/** Ideographic (ID) */
-#define UCHAR_BREAK_IDEOGRAPHIC         0x13
-/** Numeric (NU) */
-#define UCHAR_BREAK_NUMERIC             0x14
-/** Infix Separator (Numeric) (IS) */
-#define UCHAR_BREAK_INFIX_SEPARATOR     0x15
-/** Symbols Allowing Break After (SY) */
-#define UCHAR_BREAK_SYMBOL              0x16
-/** Ordinary Alphabetic and Symbol Characters (AL) */
-#define UCHAR_BREAK_ALPHABETIC          0x17
-/** Prefix (Numeric) (PR) */
-#define UCHAR_BREAK_PREFIX              0x18
-/** Postfix (Numeric) (PO) */
-#define UCHAR_BREAK_POSTFIX             0x19
-/** Complex Content Dependent (South East Asian) (SA) */
-#define UCHAR_BREAK_COMPLEX_CONTEXT     0x1A
-/**  Ambiguous (Alphabetic or Ideographic) (AI) */
-#define UCHAR_BREAK_AMBIGUOUS           0x1B
-/** Unknown (XX) */
-#define UCHAR_BREAK_UNKNOWN             0x1C
-/** Next Line (NL) */
-#define UCHAR_BREAK_NEXT_LINE           0x1D
-/** Word Joiner (WJ) */
-#define UCHAR_BREAK_WORD_JOINER         0x1E
-/** Hangul L Jamo (JL) */
-#define UCHAR_BREAK_HANGUL_L_JAMO       0x1F
-/** Hangul V Jamo (JV) */
-#define UCHAR_BREAK_HANGUL_V_JAMO       0x20
-/** Hangul T Jamo (JT) */
-#define UCHAR_BREAK_HANGUL_T_JAMO       0x21
-/** Hangul LV Syllable (H2) */
-#define UCHAR_BREAK_HANGUL_LV_SYLLABLE  0x22
-/** Hangul LVT Syllable (H3) */
-#define UCHAR_BREAK_HANGUL_LVT_SYLLABLE 0x23
-/** Closing Parenthesis (CP). */
-#define UCHAR_BREAK_CLOSE_PARANTHESIS               0x24
-/** onditional Japanese Starter (CJ) */
-#define UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER    0x25
-/** Hebrew Letter (HL) */
-#define UCHAR_BREAK_HEBREW_LETTER       0x26
-/** Regional Indicator (RI) */
-#define UCHAR_BREAK_REGIONAL_INDICATOR  0x27
-/** Emoji Base (EB). */
-#define UCHAR_BREAK_EMOJI_BASE          0x28
-/** Emoji Modifier (EM). */
-#define UCHAR_BREAK_EMOJI_MODIFIER      0x29
-/** Zero Width Joiner (ZWJ) */
-#define UCHAR_BREAK_ZERO_WIDTH_JOINER   0x2A
+/**
+ * UCharBreakType: The break type of a UNICODE character.
+ *
+ * @UCHAR_BREAK_MANDATORY: Mandatory Break (BK)
+ * @UCHAR_BREAK_CARRIAGE_RETURN: Carriage Return (CR)
+ * @UCHAR_BREAK_LINE_FEED: Line Feed (LF)
+ * @UCHAR_BREAK_COMBINING_MARK: Attached Characters and Combining Marks (CM)
+ * @UCHAR_BREAK_SURROGATE: Surrogates (SG)
+ * @UCHAR_BREAK_ZERO_WIDTH_SPACE: Zero Width Space (ZW)
+ * @UCHAR_BREAK_INSEPARABLE: Inseparable (IN)
+ * @UCHAR_BREAK_NON_BREAKING_GLUE: Non-breaking ("Glue") (GL)
+ * @UCHAR_BREAK_CONTINGENT: Contingent Break Opportunity (CB)
+ * @UCHAR_BREAK_SPACE: Space (SP)
+ * @UCHAR_BREAK_AFTER: Break Opportunity After (BA)
+ * @UCHAR_BREAK_BEFORE: Break Opportunity Before (BB)
+ * @UCHAR_BREAK_BEFORE_AND_AFTER: Break Opportunity Before and After (B2)
+ * @UCHAR_BREAK_HYPHEN: Hyphen (HY)
+ * @UCHAR_BREAK_NON_STARTER: Nonstarter (NS)
+ * @UCHAR_BREAK_OPEN_PUNCTUATION: Opening Punctuation (OP)
+ * @UCHAR_BREAK_CLOSE_PUNCTUATION: Closing Punctuation (CL)
+ * @UCHAR_BREAK_QUOTATION: Ambiguous Quotation (QU)
+ * @UCHAR_BREAK_EXCLAMATION: Exclamation/Interrogation (EX)
+ * @UCHAR_BREAK_IDEOGRAPHIC: Ideographic (ID)
+ * @UCHAR_BREAK_NUMERIC: Numeric (NU)
+ * @UCHAR_BREAK_INFIX_SEPARATOR: Infix Separator (Numeric) (IS)
+ * @UCHAR_BREAK_SYMBOL: Symbols Allowing Break After (SY)
+ * @UCHAR_BREAK_ALPHABETIC: Ordinary Alphabetic and Symbol Characters (AL)
+ * @UCHAR_BREAK_PREFIX: Prefix (Numeric) (PR)
+ * @UCHAR_BREAK_POSTFIX: Postfix (Numeric) (PO)
+ * @UCHAR_BREAK_COMPLEX_CONTEXT: Complex Content Dependent (South East Asian) (SA)
+ * @UCHAR_BREAK_AMBIGUOUS: Ambiguous (Alphabetic or Ideographic) (AI)
+ * @UCHAR_BREAK_UNKNOWN: Unknown (XX)
+ * @UCHAR_BREAK_NEXT_LINE: Next Line (NL)
+ * @UCHAR_BREAK_WORD_JOINER: Word Joiner (WJ)
+ * @UCHAR_BREAK_HANGUL_L_JAMO: Hangul L Jamo (JL)
+ * @UCHAR_BREAK_HANGUL_V_JAMO: Hangul V Jamo (JV)
+ * @UCHAR_BREAK_HANGUL_T_JAMO: Hangul T Jamo (JT)
+ * @UCHAR_BREAK_HANGUL_LV_SYLLABLE: Hangul LV Syllable (H2)
+ * @UCHAR_BREAK_HANGUL_LVT_SYLLABLE: Hangul LVT Syllable (H3)
+ * @UCHAR_BREAK_CLOSE_PARANTHESIS: Closing Parenthesis (CP). Since 2.28
+ * @UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER: Conditional Japanese Starter (CJ). Since: 2.32
+ * @UCHAR_BREAK_HEBREW_LETTER: Hebrew Letter (HL). Since: 2.32
+ * @UCHAR_BREAK_REGIONAL_INDICATOR: Regional Indicator (RI). Since: 2.36
+ * @UCHAR_BREAK_EMOJI_BASE: Emoji Base (EB). Since: 2.50
+ * @UCHAR_BREAK_EMOJI_MODIFIER: Emoji Modifier (EM). Since: 2.50
+ * @UCHAR_BREAK_ZERO_WIDTH_JOINER: Zero Width Joiner (ZWJ). Since: 2.50
+ *
+ * These are the possible line break classifications.
+ *
+ * Since new unicode versions may add new types here, applications should be ready 
+ * to handle unknown values. They may be regarded as %UCHAR_BREAK_UNKNOWN.
+ *
+ * See [Unicode Line Breaking Algorithm](http://www.unicode.org/unicode/reports/tr14/).
+ */
+typedef enum {
+    UCHAR_BREAK_MANDATORY,
+    UCHAR_BREAK_CARRIAGE_RETURN,
+    UCHAR_BREAK_LINE_FEED,
+    UCHAR_BREAK_COMBINING_MARK,
+    UCHAR_BREAK_SURROGATE,
+    UCHAR_BREAK_ZERO_WIDTH_SPACE,
+    UCHAR_BREAK_INSEPARABLE,
+    UCHAR_BREAK_NON_BREAKING_GLUE,
+    UCHAR_BREAK_CONTINGENT,
+    UCHAR_BREAK_SPACE,
+    UCHAR_BREAK_AFTER,
+    UCHAR_BREAK_BEFORE,
+    UCHAR_BREAK_BEFORE_AND_AFTER,
+    UCHAR_BREAK_HYPHEN,
+    UCHAR_BREAK_NON_STARTER,
+    UCHAR_BREAK_OPEN_PUNCTUATION,
+    UCHAR_BREAK_CLOSE_PUNCTUATION,
+    UCHAR_BREAK_QUOTATION,
+    UCHAR_BREAK_EXCLAMATION,
+    UCHAR_BREAK_IDEOGRAPHIC,
+    UCHAR_BREAK_NUMERIC,
+    UCHAR_BREAK_INFIX_SEPARATOR,
+    UCHAR_BREAK_SYMBOL,
+    UCHAR_BREAK_ALPHABETIC,
+    UCHAR_BREAK_PREFIX,
+    UCHAR_BREAK_POSTFIX,
+    UCHAR_BREAK_COMPLEX_CONTEXT,
+    UCHAR_BREAK_AMBIGUOUS,
+    UCHAR_BREAK_UNKNOWN,
+    UCHAR_BREAK_NEXT_LINE,
+    UCHAR_BREAK_WORD_JOINER,
+    UCHAR_BREAK_HANGUL_L_JAMO,
+    UCHAR_BREAK_HANGUL_V_JAMO,
+    UCHAR_BREAK_HANGUL_T_JAMO,
+    UCHAR_BREAK_HANGUL_LV_SYLLABLE,
+    UCHAR_BREAK_HANGUL_LVT_SYLLABLE,
+    UCHAR_BREAK_CLOSE_PARANTHESIS,
+    UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER,
+    UCHAR_BREAK_HEBREW_LETTER,
+    UCHAR_BREAK_REGIONAL_INDICATOR,
+    UCHAR_BREAK_EMOJI_BASE,
+    UCHAR_BREAK_EMOJI_MODIFIER,
+    UCHAR_BREAK_ZERO_WIDTH_JOINER
+} UCharBreakType;
+
+/**
+ * UCharScriptType: The script type of a UNICODE character.
+ *
+ * @UCHAR_SCRIPT_INVALID_CODE:
+ *                           a value never returned from UCharGetScript()
+ * @UCHAR_SCRIPT_COMMON:     a character used by multiple different scripts
+ * @UCHAR_SCRIPT_INHERITED:  a mark glyph that takes its script from the
+ *                           base glyph to which it is attached
+ * @UCHAR_SCRIPT_ARABIC:     Arabic
+ * @UCHAR_SCRIPT_ARMENIAN:   Armenian
+ * @UCHAR_SCRIPT_BENGALI:    Bengali
+ * @UCHAR_SCRIPT_BOPOMOFO:   Bopomofo
+ * @UCHAR_SCRIPT_CHEROKEE:   Cherokee
+ * @UCHAR_SCRIPT_COPTIC:     Coptic
+ * @UCHAR_SCRIPT_CYRILLIC:   Cyrillic
+ * @UCHAR_SCRIPT_DESERET:    Deseret
+ * @UCHAR_SCRIPT_DEVANAGARI: Devanagari
+ * @UCHAR_SCRIPT_ETHIOPIC:   Ethiopic
+ * @UCHAR_SCRIPT_GEORGIAN:   Georgian
+ * @UCHAR_SCRIPT_GOTHIC:     Gothic
+ * @UCHAR_SCRIPT_GREEK:      Greek
+ * @UCHAR_SCRIPT_GUJARATI:   Gujarati
+ * @UCHAR_SCRIPT_GURMUKHI:   Gurmukhi
+ * @UCHAR_SCRIPT_HAN:        Han
+ * @UCHAR_SCRIPT_HANGUL:     Hangul
+ * @UCHAR_SCRIPT_HEBREW:     Hebrew
+ * @UCHAR_SCRIPT_HIRAGANA:   Hiragana
+ * @UCHAR_SCRIPT_KANNADA:    Kannada
+ * @UCHAR_SCRIPT_KATAKANA:   Katakana
+ * @UCHAR_SCRIPT_KHMER:      Khmer
+ * @UCHAR_SCRIPT_LAO:        Lao
+ * @UCHAR_SCRIPT_LATIN:      Latin
+ * @UCHAR_SCRIPT_MALAYALAM:  Malayalam
+ * @UCHAR_SCRIPT_MONGOLIAN:  Mongolian
+ * @UCHAR_SCRIPT_MYANMAR:    Myanmar
+ * @UCHAR_SCRIPT_OGHAM:      Ogham
+ * @UCHAR_SCRIPT_OLD_ITALIC: Old Italic
+ * @UCHAR_SCRIPT_ORIYA:      Oriya
+ * @UCHAR_SCRIPT_RUNIC:      Runic
+ * @UCHAR_SCRIPT_SINHALA:    Sinhala
+ * @UCHAR_SCRIPT_SYRIAC:     Syriac
+ * @UCHAR_SCRIPT_TAMIL:      Tamil
+ * @UCHAR_SCRIPT_TELUGU:     Telugu
+ * @UCHAR_SCRIPT_THAANA:     Thaana
+ * @UCHAR_SCRIPT_THAI:       Thai
+ * @UCHAR_SCRIPT_TIBETAN:    Tibetan
+ * @UCHAR_SCRIPT_CANADIAN_ABORIGINAL:
+ *                               Canadian Aboriginal
+ * @UCHAR_SCRIPT_YI:         Yi
+ * @UCHAR_SCRIPT_TAGALOG:    Tagalog
+ * @UCHAR_SCRIPT_HANUNOO:    Hanunoo
+ * @UCHAR_SCRIPT_BUHID:      Buhid
+ * @UCHAR_SCRIPT_TAGBANWA:   Tagbanwa
+ * @UCHAR_SCRIPT_BRAILLE:    Braille
+ * @UCHAR_SCRIPT_CYPRIOT:    Cypriot
+ * @UCHAR_SCRIPT_LIMBU:      Limbu
+ * @UCHAR_SCRIPT_OSMANYA:    Osmanya
+ * @UCHAR_SCRIPT_SHAVIAN:    Shavian
+ * @UCHAR_SCRIPT_LINEAR_B:   Linear B
+ * @UCHAR_SCRIPT_TAI_LE:     Tai Le
+ * @UCHAR_SCRIPT_UGARITIC:   Ugaritic
+ * @UCHAR_SCRIPT_NEW_TAI_LUE:
+ *                               New Tai Lue
+ * @UCHAR_SCRIPT_BUGINESE:   Buginese
+ * @UCHAR_SCRIPT_GLAGOLITIC: Glagolitic
+ * @UCHAR_SCRIPT_TIFINAGH:   Tifinagh
+ * @UCHAR_SCRIPT_SYLOTI_NAGRI:
+ *                               Syloti Nagri
+ * @UCHAR_SCRIPT_OLD_PERSIAN:
+ *                               Old Persian
+ * @UCHAR_SCRIPT_KHAROSHTHI: Kharoshthi
+ * @UCHAR_SCRIPT_UNKNOWN:    an unassigned code point
+ * @UCHAR_SCRIPT_BALINESE:   Balinese
+ * @UCHAR_SCRIPT_CUNEIFORM:  Cuneiform
+ * @UCHAR_SCRIPT_PHOENICIAN: Phoenician
+ * @UCHAR_SCRIPT_PHAGS_PA:   Phags-pa
+ * @UCHAR_SCRIPT_NKO:        N'Ko
+ * @UCHAR_SCRIPT_KAYAH_LI:   Kayah Li. Since 2.16.3
+ * @UCHAR_SCRIPT_LEPCHA:     Lepcha. Since 2.16.3
+ * @UCHAR_SCRIPT_REJANG:     Rejang. Since 2.16.3
+ * @UCHAR_SCRIPT_SUNDANESE:  Sundanese. Since 2.16.3
+ * @UCHAR_SCRIPT_SAURASHTRA: Saurashtra. Since 2.16.3
+ * @UCHAR_SCRIPT_CHAM:       Cham. Since 2.16.3
+ * @UCHAR_SCRIPT_OL_CHIKI:   Ol Chiki. Since 2.16.3
+ * @UCHAR_SCRIPT_VAI:        Vai. Since 2.16.3
+ * @UCHAR_SCRIPT_CARIAN:     Carian. Since 2.16.3
+ * @UCHAR_SCRIPT_LYCIAN:     Lycian. Since 2.16.3
+ * @UCHAR_SCRIPT_LYDIAN:     Lydian. Since 2.16.3
+ * @UCHAR_SCRIPT_AVESTAN:    Avestan. Since 2.26
+ * @UCHAR_SCRIPT_BAMUM:      Bamum. Since 2.26
+ * @UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS:
+ *                               Egyptian Hieroglpyhs. Since 2.26
+ * @UCHAR_SCRIPT_IMPERIAL_ARAMAIC:
+ *                               Imperial Aramaic. Since 2.26
+ * @UCHAR_SCRIPT_INSCRIPTIONAL_PAHLAVI:
+ *                               Inscriptional Pahlavi. Since 2.26
+ * @UCHAR_SCRIPT_INSCRIPTIONAL_PARTHIAN:
+ *                               Inscriptional Parthian. Since 2.26
+ * @UCHAR_SCRIPT_JAVANESE:   Javanese. Since 2.26
+ * @UCHAR_SCRIPT_KAITHI:     Kaithi. Since 2.26
+ * @UCHAR_SCRIPT_LISU:       Lisu. Since 2.26
+ * @UCHAR_SCRIPT_MEETEI_MAYEK:
+ *                               Meetei Mayek. Since 2.26
+ * @UCHAR_SCRIPT_OLD_SOUTH_ARABIAN:
+ *                               Old South Arabian. Since 2.26
+ * @UCHAR_SCRIPT_OLD_TURKIC: Old Turkic. Since 2.28
+ * @UCHAR_SCRIPT_SAMARITAN:  Samaritan. Since 2.26
+ * @UCHAR_SCRIPT_TAI_THAM:   Tai Tham. Since 2.26
+ * @UCHAR_SCRIPT_TAI_VIET:   Tai Viet. Since 2.26
+ * @UCHAR_SCRIPT_BATAK:      Batak. Since 2.28
+ * @UCHAR_SCRIPT_BRAHMI:     Brahmi. Since 2.28
+ * @UCHAR_SCRIPT_MANDAIC:    Mandaic. Since 2.28
+ * @UCHAR_SCRIPT_CHAKMA:               Chakma. Since: 2.32
+ * @UCHAR_SCRIPT_MEROITIC_CURSIVE:     Meroitic Cursive. Since: 2.32
+ * @UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS: Meroitic Hieroglyphs. Since: 2.32
+ * @UCHAR_SCRIPT_MIAO:                 Miao. Since: 2.32
+ * @UCHAR_SCRIPT_SHARADA:              Sharada. Since: 2.32
+ * @UCHAR_SCRIPT_SORA_SOMPENG:         Sora Sompeng. Since: 2.32
+ * @UCHAR_SCRIPT_TAKRI:                Takri. Since: 2.32
+ * @UCHAR_SCRIPT_BASSA_VAH:            Bassa. Since: 2.42
+ * @UCHAR_SCRIPT_CAUCASIAN_ALBANIAN:   Caucasian Albanian. Since: 2.42
+ * @UCHAR_SCRIPT_DUPLOYAN:             Duployan. Since: 2.42
+ * @UCHAR_SCRIPT_ELBASAN:              Elbasan. Since: 2.42
+ * @UCHAR_SCRIPT_GRANTHA:              Grantha. Since: 2.42
+ * @UCHAR_SCRIPT_KHOJKI:               Kjohki. Since: 2.42
+ * @UCHAR_SCRIPT_KHUDAWADI:            Khudawadi, Sindhi. Since: 2.42
+ * @UCHAR_SCRIPT_LINEAR_A:             Linear A. Since: 2.42
+ * @UCHAR_SCRIPT_MAHAJANI:             Mahajani. Since: 2.42
+ * @UCHAR_SCRIPT_MANICHAEAN:           Manichaean. Since: 2.42
+ * @UCHAR_SCRIPT_MENDE_KIKAKUI:        Mende Kikakui. Since: 2.42
+ * @UCHAR_SCRIPT_MODI:                 Modi. Since: 2.42
+ * @UCHAR_SCRIPT_MRO:                  Mro. Since: 2.42
+ * @UCHAR_SCRIPT_NABATAEAN:            Nabataean. Since: 2.42
+ * @UCHAR_SCRIPT_OLD_NORTH_ARABIAN:    Old North Arabian. Since: 2.42
+ * @UCHAR_SCRIPT_OLD_PERMIC:           Old Permic. Since: 2.42
+ * @UCHAR_SCRIPT_PAHAWH_HMONG:         Pahawh Hmong. Since: 2.42
+ * @UCHAR_SCRIPT_PALMYRENE:            Palmyrene. Since: 2.42
+ * @UCHAR_SCRIPT_PAU_CIN_HAU:          Pau Cin Hau. Since: 2.42
+ * @UCHAR_SCRIPT_PSALTER_PAHLAVI:      Psalter Pahlavi. Since: 2.42
+ * @UCHAR_SCRIPT_SIDDHAM:              Siddham. Since: 2.42
+ * @UCHAR_SCRIPT_TIRHUTA:              Tirhuta. Since: 2.42
+ * @UCHAR_SCRIPT_WARANG_CITI:          Warang Citi. Since: 2.42
+ * @UCHAR_SCRIPT_AHOM:                 Ahom. Since: 2.48
+ * @UCHAR_SCRIPT_ANATOLIAN_HIEROGLYPHS: Anatolian Hieroglyphs. Since: 2.48
+ * @UCHAR_SCRIPT_HATRAN:               Hatran. Since: 2.48
+ * @UCHAR_SCRIPT_MULTANI:              Multani. Since: 2.48
+ * @UCHAR_SCRIPT_OLD_HUNGARIAN:        Old Hungarian. Since: 2.48
+ * @UCHAR_SCRIPT_SIGNWRITING:          Signwriting. Since: 2.48
+ * @UCHAR_SCRIPT_ADLAM:                Adlam. Since: 2.50
+ * @UCHAR_SCRIPT_BHAIKSUKI:            Bhaiksuki. Since: 2.50
+ * @UCHAR_SCRIPT_MARCHEN:              Marchen. Since: 2.50
+ * @UCHAR_SCRIPT_NEWA:                 Newa. Since: 2.50
+ * @UCHAR_SCRIPT_OSAGE:                Osage. Since: 2.50
+ * @UCHAR_SCRIPT_TANGUT:               Tangut. Since: 2.50
+ * @UCHAR_SCRIPT_MASARAM_GONDI:        Masaram Gondi. Since: 2.54
+ * @UCHAR_SCRIPT_NUSHU:                Nushu. Since: 2.54
+ * @UCHAR_SCRIPT_SOYOMBO:              Soyombo. Since: 2.54
+ * @UCHAR_SCRIPT_ZANABAZAR_SQUARE:     Zanabazar Square. Since: 2.54
+ * @UCHAR_SCRIPT_DOGRA:                Dogra. Since: 2.58
+ * @UCHAR_SCRIPT_GUNJALA_GONDI:        Gunjala Gondi. Since: 2.58
+ * @UCHAR_SCRIPT_HANIFI_ROHINGYA:      Hanifi Rohingya. Since: 2.58
+ * @UCHAR_SCRIPT_MAKASAR:              Makasar. Since: 2.58
+ * @UCHAR_SCRIPT_MEDEFAIDRIN:          Medefaidrin. Since: 2.58
+ * @UCHAR_SCRIPT_OLD_SOGDIAN:          Old Sogdian. Since: 2.58
+ * @UCHAR_SCRIPT_SOGDIAN:              Sogdian. Since: 2.58
+ *
+ * This enumeration identifies different writing
+ * systems. The values correspond to the names as defined in the
+ * Unicode standard.
+ *
+ * Note that new types may be added in the future. Applications
+ * should be ready to handle unknown values.
+ * See [Unicode Standard Annex #24: Script names](http://www.unicode.org/reports/tr24/).
+ */
+typedef enum {
+    UCHAR_SCRIPT_INVALID_CODE = -1,
+    UCHAR_SCRIPT_COMMON       = 0,   /* Zyyy */
+    UCHAR_SCRIPT_INHERITED,          /* Zinh (Qaai) */
+    UCHAR_SCRIPT_ARABIC,             /* Arab */
+    UCHAR_SCRIPT_ARMENIAN,           /* Armn */
+    UCHAR_SCRIPT_BENGALI,            /* Beng */
+    UCHAR_SCRIPT_BOPOMOFO,           /* Bopo */
+    UCHAR_SCRIPT_CHEROKEE,           /* Cher */
+    UCHAR_SCRIPT_COPTIC,             /* Copt (Qaac) */
+    UCHAR_SCRIPT_CYRILLIC,           /* Cyrl (Cyrs) */
+    UCHAR_SCRIPT_DESERET,            /* Dsrt */
+    UCHAR_SCRIPT_DEVANAGARI,         /* Deva */
+    UCHAR_SCRIPT_ETHIOPIC,           /* Ethi */
+    UCHAR_SCRIPT_GEORGIAN,           /* Geor (Geon, Geoa) */
+    UCHAR_SCRIPT_GOTHIC,             /* Goth */
+    UCHAR_SCRIPT_GREEK,              /* Grek */
+    UCHAR_SCRIPT_GUJARATI,           /* Gujr */
+    UCHAR_SCRIPT_GURMUKHI,           /* Guru */
+    UCHAR_SCRIPT_HAN,                /* Hani */
+    UCHAR_SCRIPT_HANGUL,             /* Hang */
+    UCHAR_SCRIPT_HEBREW,             /* Hebr */
+    UCHAR_SCRIPT_HIRAGANA,           /* Hira */
+    UCHAR_SCRIPT_KANNADA,            /* Knda */
+    UCHAR_SCRIPT_KATAKANA,           /* Kana */
+    UCHAR_SCRIPT_KHMER,              /* Khmr */
+    UCHAR_SCRIPT_LAO,                /* Laoo */
+    UCHAR_SCRIPT_LATIN,              /* Latn (Latf, Latg) */
+    UCHAR_SCRIPT_MALAYALAM,          /* Mlym */
+    UCHAR_SCRIPT_MONGOLIAN,          /* Mong */
+    UCHAR_SCRIPT_MYANMAR,            /* Mymr */
+    UCHAR_SCRIPT_OGHAM,              /* Ogam */
+    UCHAR_SCRIPT_OLD_ITALIC,         /* Ital */
+    UCHAR_SCRIPT_ORIYA,              /* Orya */
+    UCHAR_SCRIPT_RUNIC,              /* Runr */
+    UCHAR_SCRIPT_SINHALA,            /* Sinh */
+    UCHAR_SCRIPT_SYRIAC,             /* Syrc (Syrj, Syrn, Syre) */
+    UCHAR_SCRIPT_TAMIL,              /* Taml */
+    UCHAR_SCRIPT_TELUGU,             /* Telu */
+    UCHAR_SCRIPT_THAANA,             /* Thaa */
+    UCHAR_SCRIPT_THAI,               /* Thai */
+    UCHAR_SCRIPT_TIBETAN,            /* Tibt */
+    UCHAR_SCRIPT_CANADIAN_ABORIGINAL, /* Cans */
+    UCHAR_SCRIPT_YI,                 /* Yiii */
+    UCHAR_SCRIPT_TAGALOG,            /* Tglg */
+    UCHAR_SCRIPT_HANUNOO,            /* Hano */
+    UCHAR_SCRIPT_BUHID,              /* Buhd */
+    UCHAR_SCRIPT_TAGBANWA,           /* Tagb */
+
+    /* Unicode-4.0 additions */
+    UCHAR_SCRIPT_BRAILLE,            /* Brai */
+    UCHAR_SCRIPT_CYPRIOT,            /* Cprt */
+    UCHAR_SCRIPT_LIMBU,              /* Limb */
+    UCHAR_SCRIPT_OSMANYA,            /* Osma */
+    UCHAR_SCRIPT_SHAVIAN,            /* Shaw */
+    UCHAR_SCRIPT_LINEAR_B,           /* Linb */
+    UCHAR_SCRIPT_TAI_LE,             /* Tale */
+    UCHAR_SCRIPT_UGARITIC,           /* Ugar */
+
+    /* Unicode-4.1 additions */
+    UCHAR_SCRIPT_NEW_TAI_LUE,        /* Talu */
+    UCHAR_SCRIPT_BUGINESE,           /* Bugi */
+    UCHAR_SCRIPT_GLAGOLITIC,         /* Glag */
+    UCHAR_SCRIPT_TIFINAGH,           /* Tfng */
+    UCHAR_SCRIPT_SYLOTI_NAGRI,       /* Sylo */
+    UCHAR_SCRIPT_OLD_PERSIAN,        /* Xpeo */
+    UCHAR_SCRIPT_KHAROSHTHI,         /* Khar */
+
+    /* Unicode-5.0 additions */
+    UCHAR_SCRIPT_UNKNOWN,            /* Zzzz */
+    UCHAR_SCRIPT_BALINESE,           /* Bali */
+    UCHAR_SCRIPT_CUNEIFORM,          /* Xsux */
+    UCHAR_SCRIPT_PHOENICIAN,         /* Phnx */
+    UCHAR_SCRIPT_PHAGS_PA,           /* Phag */
+    UCHAR_SCRIPT_NKO,                /* Nkoo */
+
+    /* Unicode-5.1 additions */
+    UCHAR_SCRIPT_KAYAH_LI,           /* Kali */
+    UCHAR_SCRIPT_LEPCHA,             /* Lepc */
+    UCHAR_SCRIPT_REJANG,             /* Rjng */
+    UCHAR_SCRIPT_SUNDANESE,          /* Sund */
+    UCHAR_SCRIPT_SAURASHTRA,         /* Saur */
+    UCHAR_SCRIPT_CHAM,               /* Cham */
+    UCHAR_SCRIPT_OL_CHIKI,           /* Olck */
+    UCHAR_SCRIPT_VAI,                /* Vaii */
+    UCHAR_SCRIPT_CARIAN,             /* Cari */
+    UCHAR_SCRIPT_LYCIAN,             /* Lyci */
+    UCHAR_SCRIPT_LYDIAN,             /* Lydi */
+
+    /* Unicode-5.2 additions */
+    UCHAR_SCRIPT_AVESTAN,                /* Avst */
+    UCHAR_SCRIPT_BAMUM,                  /* Bamu */
+    UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS,   /* Egyp */
+    UCHAR_SCRIPT_IMPERIAL_ARAMAIC,       /* Armi */
+    UCHAR_SCRIPT_INSCRIPTIONAL_PAHLAVI,  /* Phli */
+    UCHAR_SCRIPT_INSCRIPTIONAL_PARTHIAN, /* Prti */
+    UCHAR_SCRIPT_JAVANESE,               /* Java */
+    UCHAR_SCRIPT_KAITHI,                 /* Kthi */
+    UCHAR_SCRIPT_LISU,                   /* Lisu */
+    UCHAR_SCRIPT_MEETEI_MAYEK,           /* Mtei */
+    UCHAR_SCRIPT_OLD_SOUTH_ARABIAN,      /* Sarb */
+    UCHAR_SCRIPT_OLD_TURKIC,             /* Orkh */
+    UCHAR_SCRIPT_SAMARITAN,              /* Samr */
+    UCHAR_SCRIPT_TAI_THAM,               /* Lana */
+    UCHAR_SCRIPT_TAI_VIET,               /* Tavt */
+
+    /* Unicode-6.0 additions */
+    UCHAR_SCRIPT_BATAK,                  /* Batk */
+    UCHAR_SCRIPT_BRAHMI,                 /* Brah */
+    UCHAR_SCRIPT_MANDAIC,                /* Mand */
+
+    /* Unicode-6.1 additions */
+    UCHAR_SCRIPT_CHAKMA,                 /* Cakm */
+    UCHAR_SCRIPT_MEROITIC_CURSIVE,       /* Merc */
+    UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS,   /* Mero */
+    UCHAR_SCRIPT_MIAO,                   /* Plrd */
+    UCHAR_SCRIPT_SHARADA,                /* Shrd */
+    UCHAR_SCRIPT_SORA_SOMPENG,           /* Sora */
+    UCHAR_SCRIPT_TAKRI,                  /* Takr */
+
+    /* Unicode 7.0 additions */
+    UCHAR_SCRIPT_BASSA_VAH,              /* Bass */
+    UCHAR_SCRIPT_CAUCASIAN_ALBANIAN,     /* Aghb */
+    UCHAR_SCRIPT_DUPLOYAN,               /* Dupl */
+    UCHAR_SCRIPT_ELBASAN,                /* Elba */
+    UCHAR_SCRIPT_GRANTHA,                /* Gran */
+    UCHAR_SCRIPT_KHOJKI,                 /* Khoj */
+    UCHAR_SCRIPT_KHUDAWADI,              /* Sind */
+    UCHAR_SCRIPT_LINEAR_A,               /* Lina */
+    UCHAR_SCRIPT_MAHAJANI,               /* Mahj */
+    UCHAR_SCRIPT_MANICHAEAN,             /* Manu */
+    UCHAR_SCRIPT_MENDE_KIKAKUI,          /* Mend */
+    UCHAR_SCRIPT_MODI,                   /* Modi */
+    UCHAR_SCRIPT_MRO,                    /* Mroo */
+    UCHAR_SCRIPT_NABATAEAN,              /* Nbat */
+    UCHAR_SCRIPT_OLD_NORTH_ARABIAN,      /* Narb */
+    UCHAR_SCRIPT_OLD_PERMIC,             /* Perm */
+    UCHAR_SCRIPT_PAHAWH_HMONG,           /* Hmng */
+    UCHAR_SCRIPT_PALMYRENE,              /* Palm */
+    UCHAR_SCRIPT_PAU_CIN_HAU,            /* Pauc */
+    UCHAR_SCRIPT_PSALTER_PAHLAVI,        /* Phlp */
+    UCHAR_SCRIPT_SIDDHAM,                /* Sidd */
+    UCHAR_SCRIPT_TIRHUTA,                /* Tirh */
+    UCHAR_SCRIPT_WARANG_CITI,            /* Wara */
+
+    /* Unicode 8.0 additions */
+    UCHAR_SCRIPT_AHOM,                   /* Ahom */
+    UCHAR_SCRIPT_ANATOLIAN_HIEROGLYPHS,  /* Hluw */
+    UCHAR_SCRIPT_HATRAN,                 /* Hatr */
+    UCHAR_SCRIPT_MULTANI,                /* Mult */
+    UCHAR_SCRIPT_OLD_HUNGARIAN,          /* Hung */
+    UCHAR_SCRIPT_SIGNWRITING,            /* Sgnw */
+
+    /* Unicode 9.0 additions */
+    UCHAR_SCRIPT_ADLAM,                  /* Adlm */
+    UCHAR_SCRIPT_BHAIKSUKI,              /* Bhks */
+    UCHAR_SCRIPT_MARCHEN,                /* Marc */
+    UCHAR_SCRIPT_NEWA,                   /* Newa */
+    UCHAR_SCRIPT_OSAGE,                  /* Osge */
+    UCHAR_SCRIPT_TANGUT,                 /* Tang */
+
+    /* Unicode 10.0 additions */
+    UCHAR_SCRIPT_MASARAM_GONDI,          /* Gonm */
+    UCHAR_SCRIPT_NUSHU,                  /* Nshu */
+    UCHAR_SCRIPT_SOYOMBO,                /* Soyo */
+    UCHAR_SCRIPT_ZANABAZAR_SQUARE,       /* Zanb */
+
+    /* Unicode 11.0 additions */
+    UCHAR_SCRIPT_DOGRA,                  /* Dogr */
+    UCHAR_SCRIPT_GUNJALA_GONDI,          /* Gong */
+    UCHAR_SCRIPT_HANIFI_ROHINGYA,        /* Rohg */
+    UCHAR_SCRIPT_MAKASAR,                /* Maka */
+    UCHAR_SCRIPT_MEDEFAIDRIN,            /* Medf */
+    UCHAR_SCRIPT_OLD_SOGDIAN,            /* Sogo */
+    UCHAR_SCRIPT_SOGDIAN,                /* Sogd */
+} UCharScriptType;
 
     /** @} end of char_types */
 
@@ -7136,6 +7510,88 @@ MG_EXPORT BOOL GUIAPI UCharDecompose (Uchar32 ch, Uchar32 *a, Uchar32 *b);
  */
 MG_EXPORT int GUIAPI UCharFullyDecompose (Uchar32  ch, BOOL compat,
         Uchar32 *result, int result_len);
+
+/**
+ * UCharGetScriptType:
+ * @ch: a Unicode character
+ *
+ * Looks up the script code for a particular character (as defined
+ * by Unicode Standard Annex \#24). No check is made for @ch being a
+ * valid Unicode character; if you pass in invalid character, the
+ * result is undefined.
+ *
+ * Returns: the script code for the UNICODE character.
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT int GUIAPI UCharGetScriptType (Uchar32 ch);
+
+/**
+ * UCharScriptTypeToISO15924:
+ * @script: a Unicode script
+ *
+ * Looks up the ISO 15924 code for @script.  ISO 15924 assigns four-letter
+ * codes to scripts.  For example, the code for Arabic is 'Arab'.  The
+ * four letter codes are encoded as a @Uint32 by this function in a
+ * big-endian fashion.  That is, the code returned for Arabic is
+ * 0x41726162 (0x41 is ASCII code for 'A', 0x72 is ASCII code for 'r', etc).
+ *
+ * See
+ * [Codes for the representation of names of scripts](http://unicode.org/iso15924/codelists.html)
+ * for details.
+ *
+ * Returns: the ISO 15924 code for @script, encoded as an integer,
+ *   of zero if @script is %UCHAR_SCRIPT_INVALID_CODE or
+ *   ISO 15924 code 'Zzzz' (script code for UNKNOWN) if @script is not understood.
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT Uint32 GUIAPI UCharScriptTypeToISO15924 (int script);
+
+/**
+ * UCharScriptTypeFromISO15924:
+ * @iso15924: an encoded Unicode script code in ISO15924
+ *
+ * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
+ * codes to scripts.  For example, the code for Arabic is 'Arab'.
+ * This function accepts four letter codes encoded as a @Uint32 in a
+ * big-endian fashion.  That is, the code expected for Arabic is
+ * 0x41726162 (0x41 is ASCII code for 'A', 0x72 is ASCII code for 'r', etc).
+ *
+ * See
+ * [Codes for the representation of names of scripts](http://unicode.org/iso15924/codelists.html)
+ * for details.
+ *
+ * Returns: the Unicode script for @iso15924, or
+ *   of %UCHAR_SCRIPT_INVALID_CODE if @iso15924 is zero and
+ *   %UCHAR_SCRIPT_UNKNOWN if @iso15924 is unknown.
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924);
+
+/**
+ * UCharScriptTypeFromISO15924Code:
+ * @iso15924: a Unicode script type code in ISO15924
+ *
+ * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
+ * codes to scripts.  For example, the code for Arabic is 'Arab'.
+ *
+ * See
+ * [Codes for the representation of names of scripts](http://unicode.org/iso15924/codelists.html)
+ * for details.
+ *
+ * Returns: the Unicode script for @iso15924, or
+ *   of %UCHAR_SCRIPT_INVALID_CODE if @iso15924 is zero and
+ *   %UCHAR_SCRIPT_UNKNOWN if @iso15924 is unknown.
+ *
+ * Since: 3.4.0
+ */
+static inline int GUIAPI UCharScriptTypeFromISO15924Code (const char* iso15924)
+{
+    return UCharScriptTypeFromISO15924(MAKEDWORD32(iso15924[3],
+            iso15924[2], iso15924[1], iso15924[0]));
+}
 
 #endif /* _MGCHARSET_UNICODE */
 
@@ -9248,9 +9704,9 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
 
 /**
  * \fn Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value)
- * \brief Retriev the basic type of a glyph.
+ * \brief Retrieve the basic type and break type of a glyph.
  *
- * This function retrieves the basic type of a glyph.
+ * This function retrieves the basic type and break type of a glyph.
  *
  * \param logfont The logical font.
  * \param glyph_value The glyph value.
@@ -9390,6 +9846,346 @@ MG_EXPORT int GUIAPI GetGlyphsExtent (HDC hdc, Glyph32* glyphs, int nr_glyphs,
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
         int nr_glyphs, int max_extent, SIZE* size);
+
+#ifdef _MGCHARSET_UNICODE
+
+    /**
+     * \defgroup language_code Language Code
+     *
+     *  The language code specifies the content lanuage for \a GetGlyphsByRules and
+     *  \a GetGlyphsExtentPointEx.
+     *
+     * @{
+     */
+
+/**
+ * The language code.
+ */
+typedef enum {
+    /** Unknown language code */
+    LANGCODE_unknown = -1,
+    /** Language code for Afar */
+    LANGCODE_aa = 0,
+    /** Language code for Abkhazian */
+    LANGCODE_ab,
+    /** Language code for Afrikaans */
+    LANGCODE_af,
+    /** Language code for Amharic */
+    LANGCODE_am,
+    /** Language code for Arabic */
+    LANGCODE_ar,
+    /** Language code for Assamese */
+    LANGCODE_as,
+    /** Language code for Aymara */
+    LANGCODE_ay,
+    /** Language code for Azerbaijani */
+    LANGCODE_az,
+    /** Language code for Bashkir */
+    LANGCODE_ba,
+    /** Language code for Byelorussian */
+    LANGCODE_be,
+    /** Language code for Bulgarian */
+    LANGCODE_bg,
+    /** Language code for Bihari */
+    LANGCODE_bh,
+    /** Language code for Bislama */
+    LANGCODE_bi,
+    /** Language code for Bengali */
+    LANGCODE_bn,
+    /** Language code for Tibetan */
+    LANGCODE_bo,
+    /** Language code for Breton */
+    LANGCODE_br,
+    /** Language code for Catalan */
+    LANGCODE_ca,
+    /** Language code for Corsican */
+    LANGCODE_co,
+    /** Language code for Czech */
+    LANGCODE_cs,
+    /** Language code for Welch */
+    LANGCODE_cy,
+    /** Language code for Danish */
+    LANGCODE_da,
+    /** Language code for German */
+    LANGCODE_de,
+    /** Language code for Bhutani */
+    LANGCODE_dz,
+    /** Language code for Greek */
+    LANGCODE_el,
+    /** Language code for English */
+    LANGCODE_en,
+    /** Language code for Esperanto */
+    LANGCODE_eo,
+    /** Language code for Spanish */
+    LANGCODE_es,
+    /** Language code for Estonian */
+    LANGCODE_et,
+    /** Language code for Basque */
+    LANGCODE_eu,
+    /** Language code for Persian */
+    LANGCODE_fa,
+    /** Language code for Finnish */
+    LANGCODE_fi,
+    /** Language code for Fiji */
+    LANGCODE_fj,
+    /** Language code for Faeroese */
+    LANGCODE_fo,
+    /** Language code for French */
+    LANGCODE_fr,
+    /** Language code for Frisian */
+    LANGCODE_fy,
+    /** Language code for Irish */
+    LANGCODE_ga,
+    /** Language code for Scots Gaelic */
+    LANGCODE_gd,
+    /** Language code for Galician */
+    LANGCODE_gl,
+    /** Language code for Guarani */
+    LANGCODE_gn,
+    /** Language code for Gujarati */
+    LANGCODE_gu,
+    /** Language code for Hausa */
+    LANGCODE_ha,
+    /** Language code for Hindi */
+    LANGCODE_hi,
+    /** Language code for Hebrew */
+    LANGCODE_he,
+    /** Language code for Croatian */
+    LANGCODE_hr,
+    /** Language code for Hungarian */
+    LANGCODE_hu,
+    /** Language code for Armenian */
+    LANGCODE_hy,
+    /** Language code for Interlingua */
+    LANGCODE_ia,
+    /** Language code for Indonesian */
+    LANGCODE_id,
+    /** Language code for Interlingue */
+    LANGCODE_ie,
+    /** Language code for Inupiak */
+    LANGCODE_ik,
+    /** Language code for former Indonesian */
+    LANGCODE_in,
+    /** Language code for Icelandic */
+    LANGCODE_is,
+    /** Language code for Italian */
+    LANGCODE_it,
+    /** Language code for Inuktitut (Eskimo) */
+    LANGCODE_iu,
+    /** Language code for former Hebrew */
+    LANGCODE_iw,
+    /** Language code for Japanese */
+    LANGCODE_ja,
+    /** Language code for former Yiddish */
+    LANGCODE_ji,
+    /** Language code for Javanese */
+    LANGCODE_jw,
+    /** Language code for Georgian */
+    LANGCODE_ka,
+    /** Language code for Kazakh */
+    LANGCODE_kk,
+    /** Language code for Greenlandic */
+    LANGCODE_kl,
+    /** Language code for Cambodian */
+    LANGCODE_km,
+    /** Language code for Kannada */
+    LANGCODE_kn,
+    /** Language code for Korean */
+    LANGCODE_ko,
+    /** Language code for Kashmiri */
+    LANGCODE_ks,
+    /** Language code for Kurdish */
+    LANGCODE_ku,
+    /** Language code for Kirghiz */
+    LANGCODE_ky,
+    /** Language code for Latin */
+    LANGCODE_la,
+    /** Language code for Lingala */
+    LANGCODE_ln,
+    /** Language code for Laothian */
+    LANGCODE_lo,
+    /** Language code for Lithuanian */
+    LANGCODE_lt,
+    /** Language code for Latvian, Lettish */
+    LANGCODE_lv,
+    /** Language code for Malagasy */
+    LANGCODE_mg,
+    /** Language code for Maori */
+    LANGCODE_mi,
+    /** Language code for Macedonian */
+    LANGCODE_mk,
+    /** Language code for Malayalam */
+    LANGCODE_ml,
+    /** Language code for Mongolian */
+    LANGCODE_mn,
+    /** Language code for Moldavian */
+    LANGCODE_mo,
+    /** Language code for Marathi */
+    LANGCODE_mr,
+    /** Language code for Malay */
+    LANGCODE_ms,
+    /** Language code for Maltese */
+    LANGCODE_mt,
+    /** Language code for Burmese */
+    LANGCODE_my,
+    /** Language code for Nauru */
+    LANGCODE_na,
+    /** Language code for Nepali */
+    LANGCODE_ne,
+    /** Language code for Dutch */
+    LANGCODE_nl,
+    /** Language code for Norwegian */
+    LANGCODE_no,
+    /** Language code for Occitan */
+    LANGCODE_oc,
+    /** Language code for (Afan) Oromo */
+    LANGCODE_om,
+    /** Language code for Oriya */
+    LANGCODE_or,
+    /** Language code for Punjabi */
+    LANGCODE_pa,
+    /** Language code for Polish */
+    LANGCODE_pl,
+    /** Language code for Pashto, Pushto */
+    LANGCODE_ps,
+    /** Language code for Portuguese */
+    LANGCODE_pt,
+    /** Language code for Quechua */
+    LANGCODE_qu,
+    /** Language code for Rhaeto-Romance */
+    LANGCODE_rm,
+    /** Language code for Kirundi */
+    LANGCODE_rn,
+    /** Language code for Romanian */
+    LANGCODE_ro,
+    /** Language code for Russian */
+    LANGCODE_ru,
+    /** Language code for Kinyarwanda */
+    LANGCODE_rw,
+    /** Language code for Sanskrit */
+    LANGCODE_sa,
+    /** Language code for Sindhi */
+    LANGCODE_sd,
+    /** Language code for Sangro */
+    LANGCODE_sg,
+    /** Language code for Serbo-Croatian */
+    LANGCODE_sh,
+    /** Language code for Singhalese */
+    LANGCODE_si,
+    /** Language code for Slovak */
+    LANGCODE_sk,
+    /** Language code for Slovenian */
+    LANGCODE_sl,
+    /** Language code for Samoan */
+    LANGCODE_sm,
+    /** Language code for Shona */
+    LANGCODE_sn,
+    /** Language code for Somali */
+    LANGCODE_so,
+    /** Language code for Albanian */
+    LANGCODE_sq,
+    /** Language code for Serbian */
+    LANGCODE_sr,
+    /** Language code for Siswati */
+    LANGCODE_ss,
+    /** Language code for Sesotho */
+    LANGCODE_st,
+    /** Language code for Sudanese */
+    LANGCODE_su,
+    /** Language code for Swedish */
+    LANGCODE_sv,
+    /** Language code for Swahili */
+    LANGCODE_sw,
+    /** Language code for Tamil */
+    LANGCODE_ta,
+    /** Language code for Tegulu */
+    LANGCODE_te,
+    /** Language code for Tajik */
+    LANGCODE_tg,
+    /** Language code for Thai */
+    LANGCODE_th,
+    /** Language code for Tigrinya */
+    LANGCODE_ti,
+    /** Language code for Turkmen */
+    LANGCODE_tk,
+    /** Language code for Tagalog */
+    LANGCODE_tl,
+    /** Language code for Setswana */
+    LANGCODE_tn,
+    /** Language code for Tonga */
+    LANGCODE_to,
+    /** Language code for Turkish */
+    LANGCODE_tr,
+    /** Language code for Tsonga */
+    LANGCODE_ts,
+    /** Language code for Tatar */
+    LANGCODE_tt,
+    /** Language code for Twi */
+    LANGCODE_tw,
+    /** Language code for Uigur */
+    LANGCODE_ug,
+    /** Language code for Ukrainian */
+    LANGCODE_uk,
+    /** Language code for Urdu */
+    LANGCODE_ur,
+    /** Language code for Uzbek */
+    LANGCODE_uz,
+    /** Language code for Vietnamese */
+    LANGCODE_vi,
+    /** Language code for Volapuk */
+    LANGCODE_vo,
+    /** Language code for Wolof */
+    LANGCODE_wo,
+    /** Language code for Xhosa */
+    LANGCODE_xh,
+    /** Language code for Yiddish */
+    LANGCODE_yi,
+    /** Language code for Yoruba */
+    LANGCODE_yo,
+    /** Language code for Zhuang */
+    LANGCODE_za,
+    /** Language code for Chinese */
+    LANGCODE_zh,
+    /** Language code for Zulu */
+    LANGCODE_zu,
+} LanguageCode;
+
+/**
+ * LanuageCodeFromISO639s1:
+ * @iso639_1: An encoded language code in ISO639-1.
+ *
+ * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
+ * codes to languages.  For example, the code for Arabic is 'ar'.
+ * This function accepts two letter codes encoded as a @Uint16 in a
+ * big-endian fashion.  That is, the code expected for Arabic is
+ * 0x6172 (0x61 is ASCII code for 'a', 0x72 is ASCII code for 'r', etc).
+ *
+ * Returns: the language code for @iso639_1, or
+ *   of %LANGCODE_unknown if @iso639_1 is invalid.
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT int GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
+
+/**
+ * LanguageCodeFromISO639s1Code:
+ * @iso639_1: A language code in ISO639-1.
+ *
+ * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
+ * codes to languages.  For example, the code for Arabic is 'ar'.
+ *
+ * Returns: the language code for @iso639_1, or
+ *   of %LANGCODE_unknown if @iso639_1 is invalid.
+ *
+ * Since: 3.4.0
+ */
+static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
+{
+    return LanguageCodeFromISO639s1(MAKEWORD16(iso639_1[1],
+            iso639_1[0]));
+}
+
+    /** @} end of language_code */
 
     /**
      * \defgroup white_space_rule White Space Rules
@@ -9540,6 +10336,8 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
  *
  * The function will return if it encounters any hard line break or the null character.
  * The hard line break will be included in the returned glyphs if there was one.
+ *
+ * Note that you are responsible for freeing the glyph string allocated by this function.
  *
  * \param logfont The logfont used to parse the string.
  * \param mstr The pointer to the multi-byte string.
@@ -9714,6 +10512,8 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
  */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
         int nr_glyphs, const POINT* pts);
+
+#endif /* _MGCHARSET_UNICODE */
 
 /*
  * Define some bit masks, that character types are based on, each one has
@@ -10211,8 +11011,11 @@ typedef void (*CB_COMP_PUTHLINE) (COMP_CTXT* comp_ctxt, gal_uint8* src, int bkmo
  *
  * \sa GetRasterOperation, SetRasterOperation, COMP_CTXT
  * */
-MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpixel,
-        CB_COMP_SETHLINE comp_sethline, CB_COMP_PUTHLINE comp_puthline, void* user_comp_ctxt);
+MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
+        CB_COMP_SETPIXEL comp_setpixel,
+        CB_COMP_SETHLINE comp_sethline,
+        CB_COMP_PUTHLINE comp_puthline,
+        void* user_comp_ctxt);
 
     /** @} end of gdi_fns */
 
@@ -10226,24 +11029,6 @@ MG_EXPORT void* hi3560GetFBAddress (void);
 MG_EXPORT int hi3560SetScreenAttr (Uint8 siAttr, void* pValue);
 
 #endif /* _MGGAL_HI3560 */
-
-MG_EXPORT int GUIAPI GetTextMCharInfo (PLOGFONT log_font, const char* mstr, int len,
-                int* pos_chars);
-MG_EXPORT int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, int len,
-                int* pos_words, WORDINFO* info_words);
-MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font, const char* mstr, int len);
-MG_EXPORT int GUIAPI GetLastMCharLen (PLOGFONT log_font, const char* mstr, int len);
-MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
-                    WORDINFO* word_info);
-MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
-                const unsigned char* mchar, int n);
-MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc);
-MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
-                const unsigned char* mstr, int mstr_len, int n,
-                int* conved_mstr_len);
-MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
-                const void *wcs, int wcs_len, BOOL wc32, int n,
-                int* conved_wcs_len);
 
 #ifdef __cplusplus
 }
