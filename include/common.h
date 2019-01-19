@@ -2,13 +2,13 @@
  * \file common.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
- * \brief This file includes macro definitions and typedefs that commonly used 
+ *
+ * \brief This file includes macro definitions and typedefs that commonly used
  *        by MiniGUI.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -46,10 +46,10 @@
 /*
  * $Id: common.h 13674 2010-12-06 06:45:01Z wanzheng $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
- *      The definitions of some data types and byte order macros 
+ *      The definitions of some data types and byte order macros
  *      borrowed from LGPL'ed SDL by Sam Lantinga.
  *
  *      Fix point math routines come from Allegro (a gift software)
@@ -109,11 +109,11 @@
 
 /**
  * \def _VERSION_CODE(major, minor, micro)
- * \brief A macro that returns the version code from \a major, \a minor 
+ * \brief A macro that returns the version code from \a major, \a minor
  * and \a micro version number.
  *
- * MiniGUI uses this macro to evaluate the version code of current MiniGUI 
- * library installed in your system, and define it to _MINIGUI_VERSION_CODE. 
+ * MiniGUI uses this macro to evaluate the version code of current MiniGUI
+ * library installed in your system, and define it to _MINIGUI_VERSION_CODE.
  *
  * \sa _MINIGUI_VERSION_CODE
  */
@@ -333,7 +333,7 @@ typedef int BOOL;
 #   if defined(__MINIGUI_LIB__)
 #       define MG_EXPORT       __declspec(dllexport)
 #   else
-#       define MG_EXPORT       __declspec(dllimport) 
+#       define MG_EXPORT       __declspec(dllimport)
 #   endif
 #else
 #   define MG_EXPORT
@@ -463,7 +463,7 @@ typedef signed char     SBYTE;
 
 /**
  * \var WORD_HPTR
- * \brief An unsigned int (word) type in half pointer precision. 
+ * \brief An unsigned int (word) type in half pointer precision.
  */
 #if defined(_WIN64)
 typedef unsigned int WORD_HPTR;
@@ -475,7 +475,7 @@ typedef unsigned short WORD_HPTR;
 
 /**
  * \var SWORD_HPTR
- * \brief An signed int type in half pointer precision. 
+ * \brief An signed int type in half pointer precision.
  */
 #if defined(_WIN64)
 typedef signed int SWORD_HPTR;
@@ -486,13 +486,13 @@ typedef signed short SWORD_HPTR;
 #endif
 
 /**
- * \var WORD 
+ * \var WORD
  * \brief A type definition for an unsigned integer (word).
  */
 typedef WORD_HPTR WORD;
 
 /**
- * \var SWORD 
+ * \var SWORD
  * \brief A type definition for a signed integer.
  */
 typedef SWORD_HPTR SWORD;
@@ -511,7 +511,7 @@ typedef signed short SWORD16;
 
 /**
  * \var LONG_PTR
- * \brief A signed long type for pointer precision. 
+ * \brief A signed long type for pointer precision.
  */
 #if defined(_WIN64)
 typedef __int64 LONG_PTR;
@@ -535,9 +535,9 @@ typedef LONG_PTR LRESULT;
 
 /**
  * \var DWORD_PTR
- * \brief An unsigned long type for pointer precision. 
+ * \brief An unsigned long type for pointer precision.
  *
- * Commonly used for general 32-bit parameters that have been extended 
+ * Commonly used for general 32-bit parameters that have been extended
  * to 64 bits in 64-bit platform.
  */
 #if defined(_WIN64)
@@ -562,9 +562,9 @@ typedef unsigned int DWORD32;
 
 /**
  * \var SDWORD_PTR
- * \brief A signed long type for pointer precision. 
+ * \brief A signed long type for pointer precision.
  *
- * Commonly used for general 32-bit parameters that have been extended 
+ * Commonly used for general 32-bit parameters that have been extended
  * to 64 bits in 64-bit platform.
  */
 #if defined(_WIN64)
@@ -843,7 +843,7 @@ typedef DWORD32 RGBCOLOR;
 
 /**
  * \def MakeRGBA(r, g, b, a)
- * \brief Makes a RGBA triple value from red \a r, green \a g, 
+ * \brief Makes a RGBA triple value from red \a r, green \a g,
  *        blue \a b and alpha \a components.
  *
  * \note The red, green, blue and alpha components are all ranged from 0 to 255,
@@ -967,7 +967,7 @@ typedef struct _RGB
      */
     BYTE b;
     /**
-     * Reserved for alignment, maybe used for the alpha component of a RGB triple. 
+     * Reserved for alignment, maybe used for the alpha component of a RGB triple.
      */
     BYTE a;
 } RGB;
@@ -976,7 +976,7 @@ typedef struct _RGB
  * \var typedef RGB* PRGB
  * \brief Data type of the pointer to a RGB.
  *
- * \sa RGB 
+ * \sa RGB
  */
 typedef RGB* PRGB;
 
@@ -1043,7 +1043,7 @@ typedef signed int      gal_sint;
 typedef unsigned int    gal_uint;
 
 /**
- * \var typedef Uint32 gal_pixel 
+ * \var typedef Uint32 gal_pixel
  * \brief Data type of pixel value
  */
 typedef Uint32          gal_pixel;
@@ -1101,7 +1101,7 @@ typedef struct _GAL_Palette
 
 /**
  * A rectangle defined by upper-left coordinates and width/height.
- * \sa RECT 
+ * \sa RECT
  */
 typedef struct _GAL_Rect {
     /**
@@ -1127,11 +1127,11 @@ typedef struct _GAL_Rect {
  *
  * The number of MiniGUI keys is defined to 255 by default. This means that
  * MiniGUI can destinguish 255 different keys with each has an unique scan code.
- * The scan codes below 129 are defined for PC keyboard by default. 
- * If your system has a large amount of keys, you can define the scan code of 
- * keys ranged from 1 to 255 in your IAL engine. And your application will 
- * receive a MSG_KEYDOWN and MSG_KEYUP messages when a key pressed and 
- * released, and the wParam of the messages will be defined to be equal to 
+ * The scan codes below 129 are defined for PC keyboard by default.
+ * If your system has a large amount of keys, you can define the scan code of
+ * keys ranged from 1 to 255 in your IAL engine. And your application will
+ * receive a MSG_KEYDOWN and MSG_KEYUP messages when a key pressed and
+ * released, and the wParam of the messages will be defined to be equal to
  * the scan code of the key.
  *
  * \sa NR_KEYS, SCANCODE_USER
@@ -1140,11 +1140,11 @@ typedef struct _GAL_Rect {
 
 /**
  * \def NR_KEYS
- * \brief The number of keys defined by Linux operating system. 
+ * \brief The number of keys defined by Linux operating system.
  *
  * For a PC box, NR_KEYS is defined to 128 by default. You can define
- * some input events from an input device other than keyboard, e.g. 
- * your remote controller, as key events with different scan codes from 
+ * some input events from an input device other than keyboard, e.g.
+ * your remote controller, as key events with different scan codes from
  * those of PC's. MiniGUI can support 255 keys, and the constant
  * is defined by MGUI_NR_KEYS.
  *
@@ -1319,7 +1319,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_REPEATED
- * \brief This status indicate that the key down message is an 
+ * \brief This status indicate that the key down message is an
  *        auto-repeated one.
  *
  * You can test the status by AND'ed with lParam of the message, like below:
@@ -1341,7 +1341,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_CAPTURED
- * \brief This status indicate that the mouse is captured by a window when 
+ * \brief This status indicate that the mouse is captured by a window when
  * the mouse message posted.
  *
  * You can test the status by AND'ed with wParam of the message, like below:
@@ -1371,7 +1371,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_CAPSLOCK
- * \brief This status indicate that the CapsLock key was locked when 
+ * \brief This status indicate that the CapsLock key was locked when
  * the key or mouse message posted to the window.
  *
  * You can test the status by AND'ed with lParam of the message, like below
@@ -1393,7 +1393,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_NUMLOCK
- * \brief This status indicate that the NumLock key was locked when 
+ * \brief This status indicate that the NumLock key was locked when
  * the key or mouse message posted to the window.
  *
  * \sa key_msgs
@@ -1429,7 +1429,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_CTRL
- * \brief This status indicate that either the left-Ctrl key or the right-Ctrl key 
+ * \brief This status indicate that either the left-Ctrl key or the right-Ctrl key
  * was pressed when the key or mouse message posted to the window.
  *
  * \sa key_msgs
@@ -1456,7 +1456,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_ALT
- * \brief This status indicate that either the left-Alt key or the right-Alt key 
+ * \brief This status indicate that either the left-Alt key or the right-Alt key
  * was pressed when the key or mouse message posted to the window.
  *
  * \sa key_msgs
@@ -1483,7 +1483,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_SHIFT
- * \brief This status indicate that either the left-Shift key or the right-Shift key 
+ * \brief This status indicate that either the left-Shift key or the right-Shift key
  * was pressed when the key or mouse message posted to the window.
  *
  * \sa key_msgs
@@ -1498,7 +1498,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_LEFTBUTTON
- * \brief This status indicate that left button was pressed when 
+ * \brief This status indicate that left button was pressed when
  * the key or mouse message posted to the window.
  *
  * \sa key_msgs
@@ -1507,7 +1507,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_RIGHTBUTTON
- * \brief This status indicate that right button was pressed when 
+ * \brief This status indicate that right button was pressed when
  * the key or mouse message posted to the window.
  *
  * \sa key_msgs
@@ -1516,7 +1516,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_MIDDLBUTTON
- * \brief This status indicate that middle button was pressed when 
+ * \brief This status indicate that middle button was pressed when
  * the key or mouse message posted to the window.
  *
  * \sa key_msgs
@@ -1549,37 +1549,37 @@ typedef struct _GAL_Rect {
 
 /**
  * \def ERR_QUEUE_FULL
- * \brief Return value queue is full error. 
+ * \brief Return value queue is full error.
  */
 #define ERR_QUEUE_FULL          -2
 
 /**
  * \def ERR_INVALID_HANDLE
- * \brief Return value invalid handle error. 
+ * \brief Return value invalid handle error.
  */
 #define ERR_INVALID_HANDLE      -3
 
 /**
  * \def ERR_INVALID_HMENU
- * \brief Return value invalid menu handle error. 
+ * \brief Return value invalid menu handle error.
  */
 #define ERR_INVALID_HMENU       -4
 
 /**
  * \def ERR_INVALID_POS
- * \brief Return value invalid postion error. 
+ * \brief Return value invalid postion error.
  */
 #define ERR_INVALID_POS         -5
 
 /**
  * \def ERR_INVALID_ID
- * \brief Return value invalid id error. 
+ * \brief Return value invalid id error.
  */
 #define ERR_INVALID_ID          -6
 
 /**
  * \def ERR_RES_ALLOCATION
- * \brief Return value allocation resource error . 
+ * \brief Return value allocation resource error .
  */
 #define ERR_RES_ALLOCATION      -7
 
@@ -1603,7 +1603,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def ERR_CTRLCLASS_INUSE
- * \brief Return value inuse control class error. 
+ * \brief Return value inuse control class error.
  */
 #define ERR_CTRLCLASS_INUSE     -11
 
@@ -1663,7 +1663,7 @@ typedef struct _GAL_Rect {
 
 /**
  * \def ERR_INPUT_ENGINE
- * \brief Return value input engine error. 
+ * \brief Return value input engine error.
  */
 #define ERR_INPUT_ENGINE        -21
 
@@ -1783,12 +1783,12 @@ struct tm {
 #define fseek	tp_fseek
 #define feof	tp_feof
 
-#undef assert 
-#define _HAVE_ASSERT 1 
+#undef assert
+#define _HAVE_ASSERT 1
 
 #define assert(e) do {          \
                          e;     \
-                     } while (0)  
+                     } while (0)
 
 #undef stdin
 #undef stdout
@@ -1825,13 +1825,13 @@ MG_EXPORT int strncasecmp(const char *s1, const char *s2, unsigned int n);
 
 #ifdef _MGUSE_OWN_MALLOC
 
-/** 
+/**
  * \fn int init_minigui_malloc (unsigned char* heap, unsigned int heap_size, \
                 int (*lock_heap) (void), int (*unlock_heap) (void))
  * \brief Initialize MiniGUI's own heap system.
  *
  * MiniGUI implements a heap system which is compatbile with ANIS C. When you
- * RTOS does not provide a re-entriable malloc implementation, you can use MiniGUI's 
+ * RTOS does not provide a re-entriable malloc implementation, you can use MiniGUI's
  * heap system.
  *
  * Before using MiniGUI's own heap system, you should provide a memory range to be
@@ -1844,7 +1844,7 @@ MG_EXPORT int strncasecmp(const char *s1, const char *s2, unsigned int n);
  *
  * \return Zero on success, non-zero on error.
  */
-int init_minigui_malloc (unsigned char* heap, unsigned int heap_size, 
+int init_minigui_malloc (unsigned char* heap, unsigned int heap_size,
                 int (*lock_heap) (void), int (*unlock_heap) (void));
 
 #define USE_DL_PREFIX
@@ -1890,7 +1890,7 @@ int init_minigui_malloc (unsigned char* heap, unsigned int heap_size,
  *
  * \return Zero no success, non-zero on error.
  */
-int init_minigui_printf (int (*output_char) (int ch), 
+int init_minigui_printf (int (*output_char) (int ch),
                 int (*input_char) (void));
 
 #if defined (__UCOSII__) || defined (__VXWORKS__) || defined (__NUCLEUS__) || defined (__PSOS__)
@@ -2099,7 +2099,7 @@ int init_minigui_printf (int (*output_char) (int ch),
  *
  * This function initializes MiniGUI's own POSIX Threads system.
  * If pth_entry is not NULL, this function will create a detached pthread
- * as the main pthread, and call pth_entry with the arguments passed to 
+ * as the main pthread, and call pth_entry with the arguments passed to
  * this function.
  *
  * Note for pSOS, this function will ignore the stack_base, cause pSOS kernel
@@ -2114,8 +2114,8 @@ int init_minigui_printf (int (*output_char) (int ch),
  *
  * \return Zero on success, non-zero on error.
  */
-int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []), 
-                int argc, const char* argv[], 
+int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
+                int argc, const char* argv[],
                 char* stack_base, unsigned int stack_size);
 
 #ifndef ESRCH
@@ -2275,17 +2275,17 @@ int _sysvipc_mutex_sem_term (void);
 #define pthread_mutex_t _sysvipc_pthread_mutex_t
 #define pthread_mutexattr_t _sysvipc_pthread_mutexattr_t
 
-#define pthread_mutexattr_init _sysvipc_pthread_mutexattr_init 
-#define pthread_mutexattr_destroy _sysvipc_pthread_mutexattr_destroy 
-#define pthread_mutexattr_settype _sysvipc_pthread_mutexattr_settype 
+#define pthread_mutexattr_init _sysvipc_pthread_mutexattr_init
+#define pthread_mutexattr_destroy _sysvipc_pthread_mutexattr_destroy
+#define pthread_mutexattr_settype _sysvipc_pthread_mutexattr_settype
 #define pthread_mutexattr_gettype _sysvipc_pthread_mutexattr_gettype
 
-#define pthread_init _sysvipc_pthread_init 
-#define pthread_mutex_init _sysvipc_pthread_mutex_init 
+#define pthread_init _sysvipc_pthread_init
+#define pthread_mutex_init _sysvipc_pthread_mutex_init
 #define pthread_mutex_destroy _sysvipc_pthread_mutex_destroy
-#define pthread_mutex_lock _sysvipc_pthread_mutex_lock 
-#define pthread_mutex_trylock _sysvipc_pthread_mutex_trylock 
-#define pthread_mutex_unlock _sysvipc_pthread_mutex_unlock 
+#define pthread_mutex_lock _sysvipc_pthread_mutex_lock
+#define pthread_mutex_trylock _sysvipc_pthread_mutex_trylock
+#define pthread_mutex_unlock _sysvipc_pthread_mutex_unlock
 
 typedef struct
 {

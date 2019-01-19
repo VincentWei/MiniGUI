@@ -8882,7 +8882,7 @@ MG_EXPORT HDC GUIAPI InitSlaveScreenEx (const char* name, const char* mode, int 
  *
  * \return Valid handle on success, HDC_INVALID on failure.
  */
-inline HDC InitSlaveScreen (const char* name, const char* mode)
+static inline HDC InitSlaveScreen (const char* name, const char* mode)
 {
     return InitSlaveScreenEx(name, mode, GDCAP_DPI_DEFAULT);
 }
