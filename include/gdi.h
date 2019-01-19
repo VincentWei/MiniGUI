@@ -10598,13 +10598,14 @@ MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y
 #endif /* _MGCHARSET_UNICODE */
 
 /*
- * \fn int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
+ * \fn BOOL GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
  *          int nr_glyphs, const GLYPHPOSORT* pos_orts,
  *          PLOGFONT logfont_sideways)
- * \brief Draw a glyph string at the specified positions.
+ * \brief Draw a glyph string at the specified positions
+ *        in different orientations.
  *
  * This function draws a glyph string to the specific positions
- * and orientations of a DC.
+ * in different orientations on a DC \a hdc.
  *
  * \param hdc The device context.
  * \param glyphs The pointer to the glyph string.
@@ -10617,6 +10618,8 @@ MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y
  *        \a GetGlyphsExtentPointEx. If it NULL, the orientation
  *        of the glyphs will be ignored.
  *
+ * \return TRUE on success, otherwise FALSE.
+ *
  * \note You are responsible to destroy the sideways LOGFONT object
  *       when it is no longer useful.
  *
@@ -10624,8 +10627,6 @@ MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y
  *      be the same as used by GetGlyphsExtentPointEx.
  *
  * \sa GetGlyphsExtentPointEx
- *
- * \return The advance on baseline.
  */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
         int nr_glyphs, const GLYPHPOSORT* pos_orts,

@@ -85,9 +85,9 @@ PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
 
 #endif /*  _MGCHARSET_UNICODE */
 
-int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
+BOOL GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
         const GLYPHPOSORT* pos_orts, PLOGFONT logfont_sideways)
 {
-    return 0;
+    return TRUE;
 }
 
