@@ -10346,22 +10346,37 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /** @} end of char_transform_rule */
 
 /**
+ * The break opportunity code
+ */
+typedef enum {
+    BOV_MANDATORY_AFTER,
+    BOV_MANDATORY_BEFORE,
+    BOV_ALLOWED_AFTER,
+    BOV_ALLOWED_BEFORE,
+    BOV_NOT_ALLOWED_AFTER,
+    BOV_NOT_ALLOWED_BEFORE,
+} BreakOpportunityCode;
+
+/**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  *          const char* mstr, int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint32 space_rule, Uint32 trans_rule,
- *          Glyph32** glyphs, int* nr_glyphs);
+ *          Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs);
  * \brief Calculate the glyph string under the specified white space and
  *        transformation rule.
  *
- * This function calculates and allocates the glyph string from a multi-byte
- * string under the specified white space rule \a space_rule and transformation
- * rule.
+ * This function calculates and allocates the glyph string and the break
+ * opportunities of the glyphs from a multi-byte string under the specified
+ * content language \a content_language, writing system \a writing_system,
+ * white space rule \a space_rule, and transformation rule \a trans_rule.
  *
- * The function will return if it encounters any hard line break or the null character.
- * The hard line break will be included in the returned glyphs if there was one.
+ * The function will return if it encounters any hard line break or the null
+ * character. The hard line break will be included in the returned glyphs if
+ * there was one.
  *
- * Note that you are responsible for freeing the glyph string allocated by this function.
+ * Note that you are responsible for freeing the glyph string and the
+ * break opportunities array allocated by this function.
  *
  * \param logfont The logfont used to parse the string.
  * \param mstr The pointer to the multi-byte string.
@@ -10369,9 +10384,25 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
  * \param space_rule The white space rule; see \a white_space_rule.
- * \param trans_rule The character transformation rule. See \a char_transform_rule.
+ * \param trans_rule The character transformation rule.
+ *        See \a char_transform_rule.
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
+ * \param break_opps The pointer to a Uint8 buffer to store
+ *        the break opportunities array of the glpyhs; can be NULL.
+ *        Every glyph will have one of the break opportunity values as below:
+ *          - BOV_MANDATORY_AFTER\n
+ *            Mandatory break after the glyph.
+ *          - BOV_MANDATORY_BEFORE\n
+ *            Mandatory break before the glyph.
+ *          - BOV_ALLOWED_AFTER\n
+ *            Break allowed after the glyph.
+ *          - BOV_ALLOWED_BEFORE\n
+ *            Break allowed before the glyph.
+ *          - BOV_NOT_ALLOWED_AFTER\n
+ *            No break allowed after the glyph.
+ *          - BOV_NOT_ALLOWED_BEFORE\n
+ *            No break allowed before the glyph.
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
  *
  * \return The number of the bytes consumed in \a mstr.
@@ -10384,7 +10415,7 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
             const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint32 space_rule, Uint32 trans_rule,
-            Glyph32** glyphs, int* nr_glyphs);
+            Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs);
 
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags
@@ -10508,8 +10539,7 @@ typedef struct _GLYPHPOSORT
 
 /**
  * \fn PLOGFONT GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
- *          const Glyph32* glyphs, int nr_glyphs,
- *          LanguageCode content_language, UCharScriptType writing_system,
+ *          const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
  *          Uint32 render_flags, Uint32 space_rule,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
@@ -10523,9 +10553,8 @@ typedef struct _GLYPHPOSORT
  * \param x The x-position of first glyph.
  * \param y The y-position of first glyph.
  * \param glyphs The pointer to the glyph string.
+ * \param break_opps The pointer to the break opportunities array of the glpyhs.
  * \param nr_glyphs The number of the glyphs.
- * \param content_language The content lanuage identifier.
- * \param writing_system The writing system (script) identifier.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param space_rule The white space rule; see \a white_space_rule.
  * \param letter_spacing This parameter specifies additional spacing
@@ -10560,8 +10589,7 @@ typedef struct _GLYPHPOSORT
  * \sa GLYPHEXTINFO, DrawGlyphStringEx, glyph_render_flags, white_space_rule
  */
 MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
-        const Glyph32* glyphs, int nr_glyphs,
-        LanguageCode content_language, UCharScriptType writing_system,
+        const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
         Uint32 render_flags, Uint32 space_rule,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
