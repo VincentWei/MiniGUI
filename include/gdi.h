@@ -10349,13 +10349,13 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  *          const char* mstr, int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
- *          Uint32 ws_rule, Uint32 trans_rule,
+ *          Uint32 space_rule, Uint32 trans_rule,
  *          Glyph32** glyphs, int* nr_glyphs);
  * \brief Calculate the glyph string under the specified white space and
  *        transformation rule.
  *
  * This function calculates and allocates the glyph string from a multi-byte
- * string under the specified white space rule \a ws_rule and transformation
+ * string under the specified white space rule \a space_rule and transformation
  * rule.
  *
  * The function will return if it encounters any hard line break or the null character.
@@ -10368,7 +10368,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \param mstr_len The length of \a mstr in bytes.
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
- * \param ws_rule The white space rule; see \a white_space_rule.
+ * \param space_rule The white space rule; see \a white_space_rule.
  * \param trans_rule The character transformation rule. See \a char_transform_rule.
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
@@ -10383,7 +10383,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
             const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
-            Uint32 ws_rule, Uint32 trans_rule,
+            Uint32 space_rule, Uint32 trans_rule,
             Glyph32** glyphs, int* nr_glyphs);
 
     /**
@@ -10507,12 +10507,13 @@ typedef struct _GLYPHPOSORT
 } GLYPHPOSORT;
 
 /**
- * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
+ * \fn PLOGFONT GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *          const Glyph32* glyphs, int nr_glyphs,
  *          LanguageCode content_language, UCharScriptType writing_system,
- *          Uint32 render_flags, Uint32 ws_rule,
+ *          Uint32 render_flags, Uint32 space_rule,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
- *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts)
+ *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
+ *          int* nr_to_fit)
  * \brief Get the visual extent info of a glyph string.
  *
  * This function gets the visual extent information of a glyph string which can
@@ -10526,39 +10527,52 @@ typedef struct _GLYPHPOSORT
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
  * \param render_flags The render flags; see \a glyph_render_flags.
- * \param ws_rule The white space rule; see \a white_space_rule.
+ * \param space_rule The white space rule; see \a white_space_rule.
  * \param letter_spacing This parameter specifies additional spacing
  *          (commonly called tracking) between adjacent glyphs.
  * \param word_spacing This parameter specifies additional spacing between words.
  * \param tab_size The tab size used to render preserved tab characters.
  * \param max_extent The maximal output extent value. No limit when it is < 0.
  * \param line_size The buffer to store the line extent info; can be NULL.
- * \param glyph_ext_info The buffer to store the extent info of every glyphs which is
- *          fit into the max extent; can be NULL.
- * \param pos_orts The positions and orientations of every glyph which is fit
-            into the max extent; can be NULL.
+ * \param glyph_ext_info The buffer to store the extent info of all glyphs
+ *          which can fit in the max extent; can be NULL.
+ * \param pos_orts The buffer to store the positions and orientations of
+ *          all glyphs which can fit in the max extent; can be NULL.
+ * \param nr_to_fit The buffer to store the number of glyphs which can be fit
+ *          to the maximal extent.
  *
- * \return The number of glyphs which can be fit to the maximal extent. The extent info
- *          of every glyphs which are fit in the max_extent will be returned through
- *          \a glyph_ext_info if it was not NULL, and the line extent info will
- *          be returned through \a lien_size if it was not NULL.
+ * \return The LOGFONT object to render the sideways glyphs if there was one;
+ *          otherwize NULL.
+ *          The number of the glyphs which can be fit to the maximal extent
+ *          will be returned through \a nr_to_fit.
+ *          The extent info of every glyphs which are fit in the max_extent will
+ *          be returned through \a glyph_ext_info if it was not NULL, and the
+ *          line extent info will be returned through \a line_size
+ *          if it was not NULL.
  *
  * \note Only available when support for UNICODE is enabled.
  *
+ * \note The LOGFONT object \a logfont should have the rotation be zero.
+ *
+ * \note You are responsible to destroy the sideways LOGFONT object
+ *       when it is no longer useful.
+ *
  * \sa GLYPHEXTINFO, DrawGlyphStringEx, glyph_render_flags, white_space_rule
  */
-MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
+MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, int nr_glyphs,
         LanguageCode content_language, UCharScriptType writing_system,
-        Uint32 render_flags, Uint32 ws_rule,
+        Uint32 render_flags, Uint32 space_rule,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts);
+        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
+        int* nr_to_fit);
 
 #endif /* _MGCHARSET_UNICODE */
 
 /*
  * \fn int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
- *          int nr_glyphs, const GLYPHPOSORT* pos_orts)
+ *          int nr_glyphs, const GLYPHPOSORT* pos_orts,
+ *          PLOGFONT logfont_sideways)
  * \brief Draw a glyph string at the specified positions.
  *
  * This function draws a glyph string to the specific positions
@@ -10570,13 +10584,24 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
  * \param pos_orts The buffer holds the position and the orientations
  *        of every glyph. If it is NULL, the manner of this function
  *        will be same as \a DrawGlyphString.
+ * \param logfont_sideways The LOGFONT object to render the sideways
+ *        glyphs. It should be the LOGFONT object returned by
+ *        \a GetGlyphsExtentPointEx. If it NULL, the orientation
+ *        of the glyphs will be ignored.
+ *
+ * \note You are responsible to destroy the sideways LOGFONT object
+ *       when it is no longer useful.
+ *
+ * \note The LOGFONT object selected into the DC \a hdc should
+ *      be the same as used by GetGlyphsExtentPointEx.
  *
  * \sa GetGlyphsExtentPointEx
  *
  * \return The advance on baseline.
  */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
-        int nr_glyphs, const GLYPHPOSORT* pos_orts);
+        int nr_glyphs, const GLYPHPOSORT* pos_orts,
+        PLOGFONT logfont_sideways);
 
 /*
  * Define some bit masks, that character types are based on, each one has

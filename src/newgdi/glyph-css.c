@@ -67,26 +67,27 @@
 #ifdef _MGCHARSET_UNICODE
 int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
-            Uint32 ws_rule, Uint32 trans_rule,
+            Uint32 space_rule, Uint32 trans_rule,
             Glyph32** glyphs, int* nr_glyphs)
 {
     return 0;
 }
 
-int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
+PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
             const Glyph32* glyphs, int nr_glyphs,
             LanguageCode content_language, UCharScriptType writing_system,
-            Uint32 reander_flags, Uint32 ws_rule,
+            Uint32 reander_flags, Uint32 space_rule,
             int letter_spacing, int word_spacing, int tab_size, int max_extent,
-            SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts)
+            SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
+            int* nr_to_fit)
 {
-    return 0;
+    return NULL;
 }
 
 #endif /*  _MGCHARSET_UNICODE */
 
 int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
-        const GLYPHPOSORT* pos_orts)
+        const GLYPHPOSORT* pos_orts, PLOGFONT logfont_sideways)
 {
     return 0;
 }
