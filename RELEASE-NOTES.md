@@ -75,7 +75,7 @@ please define the logical font name in the following way:
 
 Moreover, the family name of a DEVFONT supports aliases since 3.4.0:
 
-    <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charsets>
+    <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charset[,charset]*>
 
 for example:
 
