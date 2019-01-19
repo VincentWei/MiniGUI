@@ -212,7 +212,7 @@ clients and the server.
 
 ## HISTORY
 
-About ten years have pasted since MiniGUI was initially created at
+21 years have pasted since MiniGUI was initially created at
 the end of 1998, and now it becomes much reliable and stable.
 During the past years, many remarkable changes have taken place in
 the MiniGUI project.
