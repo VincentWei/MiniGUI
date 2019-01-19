@@ -259,10 +259,14 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *logfont)
 
     if (!logfont) return NULL;
 
-    if ((font = malloc (sizeof (LOGFONT))) == NULL)
+    // VincentWei: make sure the logfont has the key for resource manager.
+    //if ((font = malloc (sizeof (LOGFONT))) == NULL)
+    if ((font = (PLOGFONT)malloc (sizeof (FONT_RES))) == NULL)
         return INV_LOGFONT;
-    
+
+    // VincentWei: make sure the logfont has an invalid key for resource manager.
     memcpy (font, logfont, sizeof(LOGFONT));
+    ((FONT_RES *)font)->key = -1;
 
     sbc_devfont = logfont->sbc_devfont;
     if (sbc_devfont->font_ops->new_instance)
