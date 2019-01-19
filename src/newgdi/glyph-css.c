@@ -64,7 +64,9 @@
 #include "fixedmath.h"
 #include "glyph.h"
 
+#ifdef _MGCHARSET_UNICODE
 int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
+            LanguageCode content_language, UCharScriptType writing_system,
             Uint32 ws_rule, Uint32 trans_rule,
             Glyph32** glyphs, int* nr_glyphs)
 {
@@ -72,16 +74,19 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 }
 
 int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
-        const Glyph32* glyphs, int nr_glyphs,
-        Uint32 reander_flags, Uint32 ws_rule,
-        int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts)
+            const Glyph32* glyphs, int nr_glyphs,
+            LanguageCode content_language, UCharScriptType writing_system,
+            Uint32 reander_flags, Uint32 ws_rule,
+            int letter_spacing, int word_spacing, int tab_size, int max_extent,
+            SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts)
 {
     return 0;
 }
 
+#endif /*  _MGCHARSET_UNICODE */
+
 int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs, int nr_glyphs,
-        const POINT* pts)
+        const GLYPHPOSORT* pos_orts)
 {
     return 0;
 }

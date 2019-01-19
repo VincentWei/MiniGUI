@@ -10325,6 +10325,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  *          const char* mstr, int mstr_len,
+ *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint32 ws_rule, Uint32 trans_rule,
  *          Glyph32** glyphs, int* nr_glyphs);
  * \brief Calculate the glyph string under the specified white space and
@@ -10342,6 +10343,8 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \param logfont The logfont used to parse the string.
  * \param mstr The pointer to the multi-byte string.
  * \param mstr_len The length of \a mstr in bytes.
+ * \param content_language The content lanuage identifier.
+ * \param writing_system The writing system (script) identifier.
  * \param ws_rule The white space rule; see \a white_space_rule.
  * \param trans_rule The character transformation rule. See \a char_transform_rule.
  * \param glyphs The pointer to a buffer to store the address of the
@@ -10350,10 +10353,13 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *
  * \return The number of the bytes consumed in \a mstr.
  *
+ * \note Only available when support for UNICODE is enabled.
+ *
  * \sa DrawGlyphStringEx, white_space_rule, char_transform_rule
  */
 MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
             const char* mstr, int mstr_len,
+            LanguageCode content_language, UCharScriptType writing_system,
             Uint32 ws_rule, Uint32 trans_rule,
             Glyph32** glyphs, int* nr_glyphs);
 
@@ -10442,8 +10448,7 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
     /** @} end of glyph_render_flags */
 
 /**
- * \var typedef struct  _GLYPHEXTINFO GLYPHEXTINFO
- * \brief Data type of struct _GLYPHEXTINFO.
+ * The glyph extent information.
  */
 typedef struct _GLYPHEXTINFO {
     /** The bounding box of the glyph. */
@@ -10452,12 +10457,39 @@ typedef struct _GLYPHEXTINFO {
     int advance_x, advance_y;
 } GLYPHEXTINFO;
 
+#define GLYPH_ORIENTATION_UPRIGHT       0
+#define GLYPH_ORIENTATION_SIDEWAYS      1
+
+/**
+ * The glyph position and orientation information.
+ */
+typedef struct _GLYPHPOSORT
+{
+    /**
+     * The x coordinate of the glyph position.
+     */
+    int x;
+    /**
+     * The y coordinate of the glyph position.
+     */
+    int y;
+    /**
+     * The orientation of the glyph; can be one of the following values:
+     *  - GLYPH_ORIENTATION_UPRIGHT\n
+     *      the glyph is in the standard horizontal orientation.
+     *  - GLYPH_ORIENTATION_SIDEWAYS\n
+     *      the glyph rotates 90° clockwise from horizontal.
+     */
+    int ort;
+} GLYPHPOSORT;
+
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *          const Glyph32* glyphs, int nr_glyphs,
+ *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint32 render_flags, Uint32 ws_rule,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
- *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts)
+ *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts)
  * \brief Get the visual extent info of a glyph string.
  *
  * This function gets the visual extent information of a glyph string which can
@@ -10468,6 +10500,8 @@ typedef struct _GLYPHEXTINFO {
  * \param y The y-position of first glyph.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The number of the glyphs.
+ * \param content_language The content lanuage identifier.
+ * \param writing_system The writing system (script) identifier.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param ws_rule The white space rule; see \a white_space_rule.
  * \param letter_spacing This parameter specifies additional spacing
@@ -10478,42 +10512,48 @@ typedef struct _GLYPHEXTINFO {
  * \param line_size The buffer to store the line extent info; can be NULL.
  * \param glyph_ext_info The buffer to store the extent info of every glyphs which is
  *          fit into the max extent; can be NULL.
- * \param pts The positions of every glyphs which is fit into the max extent; can be NULL.
+ * \param pos_orts The positions and orientations of every glyph which is fit
+            into the max extent; can be NULL.
  *
  * \return The number of glyphs which can be fit to the maximal extent. The extent info
  *          of every glyphs which are fit in the max_extent will be returned through
  *          \a glyph_ext_info if it was not NULL, and the line extent info will
  *          be returned through \a lien_size if it was not NULL.
  *
+ * \note Only available when support for UNICODE is enabled.
+ *
  * \sa GLYPHEXTINFO, DrawGlyphStringEx, glyph_render_flags, white_space_rule
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, int nr_glyphs,
+        LanguageCode content_language, UCharScriptType writing_system,
         Uint32 render_flags, Uint32 ws_rule,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, POINT* pts);
+        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts);
+
+#endif /* _MGCHARSET_UNICODE */
 
 /*
  * \fn int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
- *          int nr_glyphs, const POINT* pts)
+ *          int nr_glyphs, const GLYPHPOSORT* pos_orts)
  * \brief Draw a glyph string at the specified positions.
  *
- * This function draws a glyph string to the specific positions of a DC.
+ * This function draws a glyph string to the specific positions
+ * and orientations of a DC.
  *
  * \param hdc The device context.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The number of the glyphs should be drawn.
- * \param pts The buffer holds the position of every glyph. If it is NULL,
- *        the manner of this function will be same as \a DrawGlyphString.
+ * \param pos_orts The buffer holds the position and the orientations
+ *        of every glyph. If it is NULL, the manner of this function
+ *        will be same as \a DrawGlyphString.
  *
  * \sa GetGlyphsExtentPointEx
  *
  * \return The advance on baseline.
  */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
-        int nr_glyphs, const POINT* pts);
-
-#endif /* _MGCHARSET_UNICODE */
+        int nr_glyphs, const GLYPHPOSORT* pos_orts);
 
 /*
  * Define some bit masks, that character types are based on, each one has
