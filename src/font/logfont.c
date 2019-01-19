@@ -136,7 +136,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
         return INV_LOGFONT;
     }
 
-    /*check if sbc_devfont and mbc_devfont support rotation*/
+    /* check if sbc_devfont and mbc_devfont support rotation */
     if (get_rotation(log_font, sbc_devfont, rotation) == rotation
             && (!mbc_devfont || get_rotation(log_font, mbc_devfont, rotation) == rotation))
         log_font->rotation = rotation;
@@ -285,6 +285,50 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *logfont)
     font->mbc_devfont = mbc_devfont;
 
     return font;
+}
+
+PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT *logfont, int rotation)
+{
+    PLOGFONT newfont;
+    DEVFONT* sbc_devfont, *mbc_devfont;
+
+    if (!logfont) return NULL;
+
+    // VincentWei: make sure the logfont has the key for resource manager.
+    if ((newfont = (PLOGFONT)malloc (sizeof (FONT_RES))) == NULL)
+        return INV_LOGFONT;
+
+    // VincentWei: make sure the logfont has an invalid key for resource manager.
+    memcpy (newfont, logfont, sizeof(LOGFONT));
+    ((FONT_RES *)newfont)->key = -1;
+
+    sbc_devfont = logfont->sbc_devfont;
+    mbc_devfont = logfont->mbc_devfont;
+
+    newfont->rotation = rotation;
+    if (logfont->rotation == 0 && rotation != 0) {
+        /* check if sbc_devfont and mbc_devfont support rotation */
+        if (get_rotation(newfont, sbc_devfont, rotation) == rotation
+                && (!mbc_devfont || get_rotation(newfont, mbc_devfont, rotation) == rotation))
+            newfont->rotation = rotation;
+        else
+            newfont->rotation = 0;
+    }
+
+    if (sbc_devfont->font_ops->new_instance)
+        sbc_devfont = (*sbc_devfont->font_ops->new_instance) (newfont, sbc_devfont, TRUE);
+    if (sbc_devfont == NULL) {
+        free (newfont);
+        return INV_LOGFONT;
+    }
+
+    if (mbc_devfont && mbc_devfont->font_ops->new_instance)
+        mbc_devfont = (*mbc_devfont->font_ops->new_instance) (newfont, mbc_devfont, FALSE);
+
+    newfont->sbc_devfont = sbc_devfont;
+    newfont->mbc_devfont = mbc_devfont;
+
+    return newfont;
 }
 
 PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,

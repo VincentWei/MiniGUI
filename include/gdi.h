@@ -6794,6 +6794,29 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontByName (const char* font_name);
 MG_EXPORT PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT* logfont);
 
 /**
+ * \fn PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT* logfont, int rotation)
+ * \brief Creates a new logical font indirectly from a LOGFONT structure with
+ * a rotation degrees.
+ *
+ * This function creates a new logical font from information in the LOGFONT object
+ * \a logfont and the new rotation value \a rotation.
+ *
+ * Since 3.4.0.
+ *
+ * \param logfont The pointer to the reference logical font structure.
+ * \param rotation The rotation of the logical font, it is in units of
+ *        tenth degrees. Note that you can specify rotation only for
+ *        vector fonts (use FreeType2 font engine).
+ *
+ * \return The pointer to the logical font created, NULL on error.
+ *        If \a rotation is not zero and the devfonts of the \a logfont
+ *        does not support rotation, it returns NULL.
+ *
+ * \sa CreateLogFont, CreateLogFontIndirect, SelectFont
+ */
+MG_EXPORT PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT* logfont, int rotation);
+
+/**
  * \fn void GUIAPI DestroyLogFont (PLOGFONT log_font)
  * \brief Destroys a logical font.
  *
