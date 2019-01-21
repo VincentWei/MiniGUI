@@ -65,12 +65,110 @@
 #include "glyph.h"
 
 #ifdef _MGCHARSET_UNICODE
+
+#define MIN_LEN_GLYPHS      4
+#define INC_LEN_GLYPHS      4
+
 int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint32 space_rule, Uint32 trans_rule,
             Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs)
 {
+    Glyph32* gs = NULL;
+    Uint8* bs = NULL;
+    int len_buff;
+    int n = 0;
+    int ret = 0;
+
+    DEVFONT* sbc_devfont  = logfont->sbc_devfont;
+    DEVFONT* mbc_devfont = logfont->mbc_devfont;
+
+    // TODO: validate length and devfonts are in UNICODE charset.
+    if (mstr_len == 0)
+        return 0;
+
+    // pre-allocate buffers
+    len_buff = mstr_len >> 1;
+    if (len_buff < MIN_LEN_GLYPHS)
+        len_buff = MIN_LEN_GLYPHS;
+
+    gs = (Glyph32*)malloc(sizeof(Glyph32) * len_buff);
+    bs = (Uint8*)malloc(sizeof(Uint8) * len_buff);
+    if (gs == NULL || bs == NULL)
+        goto error;
+
+    while (mstr_len > 0 && *mstr != '\0') {
+        int mchar_len;
+        Glyph32  g = INV_GLYPH_VALUE;
+
+        if (mbc_devfont) {
+            mchar_len = mbc_devfont->charset_ops->len_first_char
+                ((const unsigned char*)mstr, mstr_len);
+
+            if (mchar_len > 0) {
+                g = mbc_devfont->charset_ops->char_glyph_value
+                    (NULL, 0, (Uint8*)mstr, mchar_len);
+                g = SET_MBC_GLYPH(g);
+            }
+            else {
+                goto badchar;
+            }
+        }
+        else {
+            mchar_len = sbc_devfont->charset_ops->len_first_char
+                ((const unsigned char*)mstr, mstr_len);
+
+            if (mchar_len > 0) {
+                g = sbc_devfont->charset_ops->char_glyph_value
+                    (NULL, 0, (Uint8*)mstr, mchar_len);
+            }
+            else {
+                goto badchar;
+            }
+        }
+
+        gs[n] = g;
+        bs[n] = BOV_UNKNOWN;
+
+        // Line Breaking Algorithm goes here
+
+        // check and realloc buffers
+        n++;
+        if (n == len_buff) {
+            len_buff += INC_LEN_GLYPHS;
+            gs = (Glyph32*)realloc(gs, sizeof(Glyph32) * len_buff);
+            bs = (Uint8*)realloc(bs, sizeof(Uint8) * len_buff);
+            if (gs == NULL || bs == NULL)
+                goto error;
+        }
+
+        mstr_len -= mchar_len;
+        mstr += mchar_len;
+        ret += mchar_len;
+    }
+
+    *glyphs = gs;
+    *break_oppos = bs;
+    *nr_glyphs = n;
     return 0;
+
+error:
+    if (gs) free(gs);
+    if (bs) free(bs);
+    return 0;
+
+badchar:
+    if (n == 0) {
+        if (gs) free(gs);
+        if (bs) free(bs);
+    }
+    else {
+        *glyphs = gs;
+        *break_oppos = bs;
+        *nr_glyphs = n;
+    }
+
+    return ret;
 }
 
 PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,

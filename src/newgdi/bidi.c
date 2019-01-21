@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** textout.c: Hight level textout drawing.
-** 
+**
 ** Current maintainer: houhuihua.
 **
 ** Create date: 2008/02/01
@@ -147,7 +147,7 @@ static int jump_vowels_ltr (PDC pdc, Glyph32* glyphs, int glyph_num, Glyph32* bi
     return glyph_num;
 }
 
-static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs, 
+static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs,
     int nr_glyphs, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int i = 0;
@@ -164,12 +164,12 @@ static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs,
 
     while (i < nr_glyphs) {
         /*jump vowels*/
-        vowel_num = jump_vowels_ltr (pdc, visual_glyphs, 
+        vowel_num = jump_vowels_ltr (pdc, visual_glyphs,
                 nr_glyphs-i, &biggest_vowel);
 
         visual_glyphs += vowel_num;
 
-        /*output the letter after vowels, 
+        /*output the letter after vowels,
          * the letter is the owner of jumped vowels
          * if there is a letter on the vowel's right*/
         if (vowel_num < nr_glyphs - i)
@@ -314,7 +314,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
     return left_num;
 }
 
-static int output_visual_glyphs_rtl (PDC pdc, Glyph32* visual_glyphs, 
+static int output_visual_glyphs_rtl (PDC pdc, Glyph32* visual_glyphs,
     int nr_glyphs, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int cur = nr_glyphs - 1;
@@ -357,22 +357,22 @@ static int output_visual_glyphs_rtl (PDC pdc, Glyph32* visual_glyphs,
     return outed_glyph_num;
 }
 
-int _gdi_output_visual_glyphs(PDC pdc, Glyph32* visual_glyphs, 
+int _gdi_output_visual_glyphs(PDC pdc, Glyph32* visual_glyphs,
     int nr_glyphs, BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     /* call cb_one_glyph to show text. */
     if (!direction) { /* right to left.*/
-        return  output_visual_glyphs_rtl (pdc, visual_glyphs, 
+        return  output_visual_glyphs_rtl (pdc, visual_glyphs,
                 nr_glyphs, cb_one_glyph, context);
     }
     else {
-        return  output_visual_glyphs_ltr (pdc, visual_glyphs, 
+        return  output_visual_glyphs_ltr (pdc, visual_glyphs,
                 nr_glyphs, cb_one_glyph, context);
     }
 
 }
 
-static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text, 
+static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context,
         BOOL if_break, BOOL if_draw)
 {
@@ -435,7 +435,7 @@ do_glyph:
             if (!cb_one_glyph(&_txt, glyph_value, glyph_type)){
                 break;
             }
-            line_width += _txt.advance; 
+            line_width += _txt.advance;
             if(line_width > ctxt->max_extent){
                 break;
             }
@@ -473,7 +473,7 @@ Glyph32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
     return logical_glyphs;
 }
 
-int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len, 
+int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                 BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int i = 0;
@@ -489,23 +489,23 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
         if (mbc_devfont->charset_ops->bidi_glyph_type) {
 
             logical_glyphs = _gdi_bidi_reorder (pdc, text, text_len, &nr_glyphs);
-            if(!logical_glyphs || nr_glyphs <= 0) 
+            if(!logical_glyphs || nr_glyphs <= 0)
                 return 0;
 
-            i = _gdi_output_visual_glyphs (pdc, logical_glyphs, nr_glyphs, 
+            i = _gdi_output_visual_glyphs (pdc, logical_glyphs, nr_glyphs,
                     direction, cb_one_glyph, context);
         }
-        else if(!direction){ 
-            /* not need reorder glyphs, right to left, should alloc 
+        else if(!direction){
+            /* not need reorder glyphs, right to left, should alloc
              * glyphs range. */
             logical_glyphs = _gdi_get_glyphs_string(pdc, text, text_len,
                     &nr_glyphs);
             if(!logical_glyphs || nr_glyphs <= 0) return 0;
 
-            i = _gdi_output_visual_glyphs(pdc, logical_glyphs, nr_glyphs, 
+            i = _gdi_output_visual_glyphs(pdc, logical_glyphs, nr_glyphs,
                     direction, cb_one_glyph, context);
         }
-        else{ 
+        else{
             /* not need reorder glyphs, output left to right.*/
             i = _gdi_output_glyphs_direct(pdc, text, text_len,
                     cb_one_glyph, context, FALSE, TRUE);
@@ -522,7 +522,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                     (NULL, 0, text + i, 1)))
                     return (text_len-i-1);
 
-                glyph_type = sbc_devfont->charset_ops->glyph_type 
+                glyph_type = sbc_devfont->charset_ops->glyph_type
                     (glyph_value);
 
                 if(!cb_one_glyph (context, glyph_value, glyph_type))
@@ -535,7 +535,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                     (NULL, 0, text + i, 1)))
                     return i;
 
-                glyph_type = sbc_devfont->charset_ops->glyph_type 
+                glyph_type = sbc_devfont->charset_ops->glyph_type
                     (glyph_value);
 
                 if(!cb_one_glyph (context, glyph_value, glyph_type))
@@ -605,7 +605,7 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
                 glyph_value = sbc_devfont->charset_ops->char_glyph_value
                     (NULL, 0, text, left_bytes);
                 logical_glyphs[i++] = glyph_value;
-                line_width += _gdi_get_glyph_advance (pdc, logical_glyphs[i-1], 
+                line_width += _gdi_get_glyph_advance (pdc, logical_glyphs[i-1],
                         TRUE, 0, 0, NULL, NULL, &bbox);
                 left_bytes -= len_cur_char;
                 text += len_cur_char;
@@ -625,13 +625,13 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
 }
 
 
-static int _gdi_get_nextword_width (PDC pdc, const unsigned char* pText, 
+static int _gdi_get_nextword_width (PDC pdc, const unsigned char* pText,
                 int nCount, int* nChars, void* context)
 {
     SIZE size;
     DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
     DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
-    WORDINFO word_info = {0}; 
+    WORDINFO word_info = {0};
 
     *nChars = 0;
     if (nCount == 0) return 0;
@@ -639,13 +639,13 @@ static int _gdi_get_nextword_width (PDC pdc, const unsigned char* pText,
     if (mbc_devfont) {
         int mbc_pos, sub_len;
 
-        mbc_pos = (*mbc_devfont->charset_ops->pos_first_char) 
+        mbc_pos = (*mbc_devfont->charset_ops->pos_first_char)
                 ((const unsigned char*)pText, nCount);
         if (mbc_pos == 0) {
-            sub_len = (*mbc_devfont->charset_ops->len_first_substr) 
+            sub_len = (*mbc_devfont->charset_ops->len_first_substr)
                     ((const unsigned char*)pText, nCount);
 
-            (*mbc_devfont->charset_ops->get_next_word) 
+            (*mbc_devfont->charset_ops->get_next_word)
                     ((const unsigned char*)pText, sub_len, &word_info);
 
             if (word_info.len == 0) {
@@ -658,7 +658,7 @@ static int _gdi_get_nextword_width (PDC pdc, const unsigned char* pText,
     }
 
     if (word_info.len == 0)
-        (*sbc_devfont->charset_ops->get_next_word) 
+        (*sbc_devfont->charset_ops->get_next_word)
             ((const unsigned char*)pText, nCount, &word_info);
 
     _gdi_get_drawtext_extent (pdc, pText, word_info.len, context, &size);
@@ -669,7 +669,7 @@ static int _gdi_get_nextword_width (PDC pdc, const unsigned char* pText,
     return size.cx - _gdi_get_italic_added_width (pdc->pLogFont);
 }
 
-static void  
+static void
 _gdi_get_glyphs_string_pos_wordbreak(PDC pdc, const unsigned char* text,
         int text_len, int* nr_glyphs, void* context)
 {
@@ -681,11 +681,11 @@ _gdi_get_glyphs_string_pos_wordbreak(PDC pdc, const unsigned char* text,
     int wordLen = 0;
 
     while (left_bytes > 0){
-        line_width += _gdi_get_nextword_width (pdc, text, left_bytes, 
+        line_width += _gdi_get_nextword_width (pdc, text, left_bytes,
                 &wordLen, context);
         if(line_width > ctxt->max_extent){
             if(ctxt->nCount == 0){
-                Glyph32* logical_glyphs = 
+                Glyph32* logical_glyphs =
                     _gdi_get_glyphs_string_charbreak(pdc, text,
                         text_len, nr_glyphs, ctxt);
                 if(logical_glyphs) free(logical_glyphs);
@@ -695,18 +695,18 @@ _gdi_get_glyphs_string_pos_wordbreak(PDC pdc, const unsigned char* text,
 
         if(wordLen == 0){
             SIZE size;
-            len_cur_char = GetFirstMCharLen (pdc->pLogFont, 
+            len_cur_char = GetFirstMCharLen (pdc->pLogFont,
                     (const char*)(text + wordLen), left_bytes);
-            line_width += _gdi_get_drawtext_extent (pdc, text + wordLen, len_cur_char, 
+            line_width += _gdi_get_drawtext_extent (pdc, text + wordLen, len_cur_char,
                     context, &size);
 #if 0
             /* wangjian fixed bug 3002, 2008-8-29.*/
             if (*(const unsigned char*)(text) == '\t')
                 line_width += ctxt->tab_width;
-            else 
+            else
                 line_width += size.cx;
 #endif
-            
+
             if(line_width > ctxt->max_extent){
                 break;
             }
@@ -720,14 +720,14 @@ _gdi_get_glyphs_string_pos_wordbreak(PDC pdc, const unsigned char* text,
     }
 }
 
-static Glyph32* 
+static Glyph32*
 _gdi_get_glyphs_string_wordbreak(PDC pdc, const unsigned char* text,
         int text_len, int* nr_glyphs, void* context)
 {
     DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
     Glyph32 *logical_glyphs = NULL;
-    
+
     if (mbc_devfont) {
         _gdi_get_glyphs_string_pos_wordbreak(pdc, text,
                 text_len, nr_glyphs, context);
@@ -752,8 +752,8 @@ static Glyph32* _gdi_get_glyphs_string_break(PDC pdc, const unsigned char* text,
     }
 }
 
-static int 
-_gdi_output_glyphs_direct_break(PDC pdc, const unsigned char* text, 
+static int
+_gdi_output_glyphs_direct_break(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
@@ -784,7 +784,7 @@ static void _gdi_get_glyphs_string_sbc_rtol_wordbreak(PDC pdc,
     int wordLen = 0;
 
     while (left_bytes > 0){
-        line_width += _gdi_get_nextword_width (pdc, text, left_bytes, 
+        line_width += _gdi_get_nextword_width (pdc, text, left_bytes,
                 &wordLen, context);
         if(line_width > ctxt->max_extent){
             if (0 == ctxt->nCount && ctxt->max_extent > 0) {
@@ -795,9 +795,9 @@ static void _gdi_get_glyphs_string_sbc_rtol_wordbreak(PDC pdc,
 
         if(wordLen == 0){
             SIZE size;
-            len_cur_char = GetFirstMCharLen (pdc->pLogFont, 
+            len_cur_char = GetFirstMCharLen (pdc->pLogFont,
                     (const char*)(text + wordLen), left_bytes);
-            _gdi_get_drawtext_extent (pdc, text + wordLen, len_cur_char, 
+            _gdi_get_drawtext_extent (pdc, text + wordLen, len_cur_char,
                     context, &size);
             line_width += size.cx;
             if(line_width > ctxt->max_extent){
@@ -814,7 +814,7 @@ static void _gdi_get_glyphs_string_sbc_rtol_wordbreak(PDC pdc,
 }
 
 static int
-_gdi_output_glyphs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text, 
+_gdi_output_glyphs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
@@ -843,7 +843,7 @@ _gdi_output_glyphs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
         glyph_value = sbc_devfont->charset_ops->char_glyph_value
             (NULL, 0, text + i, 1);
 
-        glyph_type = sbc_devfont->charset_ops->glyph_type 
+        glyph_type = sbc_devfont->charset_ops->glyph_type
             (glyph_value);
 
         if(!cb_one_glyph (context, glyph_value, glyph_type))
@@ -868,23 +868,23 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
                     &nr_glyphs, context);
             __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, logical_glyphs, nr_glyphs);
 
-            if(!logical_glyphs) 
+            if(!logical_glyphs)
                 return 0;
 
-            i = _gdi_output_visual_glyphs(pdc, logical_glyphs, nr_glyphs, 
+            i = _gdi_output_visual_glyphs(pdc, logical_glyphs, nr_glyphs,
                     direction, cb_one_glyph, context);
         }
-        /* not need reorder glyphs, right to left, should 
+        /* not need reorder glyphs, right to left, should
          * alloc glyphs range. */
-        else if(!direction){ 
+        else if(!direction){
             logical_glyphs = _gdi_get_glyphs_string_break(pdc, text, text_len,
                     &nr_glyphs, context);
             if(!logical_glyphs) return 0;
-            i = _gdi_output_visual_glyphs(pdc, logical_glyphs, nr_glyphs, 
+            i = _gdi_output_visual_glyphs(pdc, logical_glyphs, nr_glyphs,
                     direction, cb_one_glyph, context);
         }
         /* not need reorder glyphs, output left to right.*/
-        else { 
+        else {
             i = _gdi_output_glyphs_direct_break(pdc, text, text_len,
                     cb_one_glyph, context);
         }
@@ -894,11 +894,11 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
         }
     }
     else{
-        /* note: follow sbc_devfont surpport not need to 
+        /* note: follow sbc_devfont surpport not need to
          * alloc mem for glyphs.*/
-        if (!direction) { 
+        if (!direction) {
             /* right to left, reverse text.*/
-            i = _gdi_output_glyphs_direct_sbc_rtol_break(pdc, text, 
+            i = _gdi_output_glyphs_direct_sbc_rtol_break(pdc, text,
                     text_len, cb_one_glyph, context);
         }
         else {
@@ -912,7 +912,7 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
 /* \bref: Get the logical glyph string and the glyphs map table, if
  * caller not malloc space for glyphs or glyphs_map, it will malloc
  * space inner.
- * 
+ *
  * \param  LOGFONT* log_font: The logical font.
  * \param  unsigned char* text: Input logical string, input.
  * \param  int text_len: Input logical string len, input.
@@ -923,10 +923,10 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
  * \param  int        : return logical glyph string len, output.
  */
 int  GUIAPI BIDIGetTextLogicalGlyphs(
-        LOGFONT*       log_font, 
+        LOGFONT*       log_font,
         const char*    text,
-        int            text_len, 
-        Glyph32**      glyphs, 
+        int            text_len,
+        Glyph32**      glyphs,
         GLYPHMAPINFO** glyphs_map)
 {
     int i = 0;
@@ -983,12 +983,12 @@ int  GUIAPI BIDIGetTextLogicalGlyphs(
 /* \bref: Get the visual glyph string and the glyphs map table, if
  * caller not malloc space for glyphs or glyphs_map, it will malloc
  * space inner.
- * 
+ *
  * \param  LOGFONT*   log_font: The logical font.
  * \param  unsigned char* text: Input logical string, input.
  * \param  int        text_len: Input logical string len, input.
  * \param  Glyph32**    glyphs: visual glyph string, input/output.
- * \param  GLYPHMAPINFO* glyph_map: position mapping from Visual glyphs 
+ * \param  GLYPHMAPINFO* glyph_map: position mapping from Visual glyphs
  * string to Logical text, output.
  *
  * \param  return int : return visual glyph string len, output.
@@ -996,7 +996,7 @@ int  GUIAPI BIDIGetTextLogicalGlyphs(
 int  GUIAPI BIDIGetTextVisualGlyphs(
         LOGFONT*       log_font,
         const char*    text,
-        int            text_len, 
+        int            text_len,
         Glyph32**      glyphs,
         GLYPHMAPINFO** glyphs_map)
 {
@@ -1010,7 +1010,7 @@ int  GUIAPI BIDIGetTextVisualGlyphs(
             glyphs, glyphs_map);
 
     if(mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type){
-        __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops, *glyphs, 
+        __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops, *glyphs,
                 nr_glyphs, *glyphs_map);
 
         __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, *glyphs, nr_glyphs);
@@ -1020,7 +1020,7 @@ int  GUIAPI BIDIGetTextVisualGlyphs(
 
 /* bref: reorder the logical glyphs string to visual glyphs string.
  * if glyphs_map not NULL, get the visual glyphs map info.
- * 
+ *
  * \param  LOGFONT* log_font: The logical font.
  * \param  Glyph32* glyphs: visual glyph string, Input.
  * \param  int      nr_glyphs: glyph string len, Input.
@@ -1060,10 +1060,10 @@ Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs(
  * \param  return   int return the fit glyph's visual_glyph_index.
  */
 int GUIAPI GetGlyphsExtentPoint(
-        HDC      hdc, 
+        HDC      hdc,
         Glyph32* glyphs,
-        int      nr_glyphs, 
-        int      max_extent, 
+        int      nr_glyphs,
+        int      max_extent,
         SIZE*    size)
 {
     int i = 0;
@@ -1071,7 +1071,7 @@ int GUIAPI GetGlyphsExtentPoint(
     int adv_x, adv_y;
     PDC pdc = dc_HDC2PDC(hdc);
     PLOGFONT log_font = pdc->pLogFont;
-    DEVFONT* devfont = NULL; 
+    DEVFONT* devfont = NULL;
     int glyph_type = 0;
 
     size->cx = 0;
@@ -1113,9 +1113,9 @@ int GUIAPI GetGlyphsExtentPoint(
  * \return int: return the nr_glyphs glyph_string extent.
  */
 int GUIAPI GetGlyphsExtent(
-        HDC      hdc, 
-        Glyph32* glyphs, 
-        int      nr_glyphs, 
+        HDC      hdc,
+        Glyph32* glyphs,
+        int      nr_glyphs,
         SIZE*    size)
 {
     int i = 0;
@@ -1208,7 +1208,7 @@ static int* generate_ranges(PLOGFONT log_font, Glyph32* log_glyphs,
     m = 0;
     p[m++] = l_start_index;
     for(i = l_start_index; i <= l_end_index; i++){
-        if((i+1) <= l_end_index 
+        if((i+1) <= l_end_index
                 && embedding_level_list[i] != embedding_level_list[i+1]){
             if(m > (max_ranges-2)) {
                 max_ranges += DEF_RANGES*2;
@@ -1228,7 +1228,7 @@ static int* generate_ranges(PLOGFONT log_font, Glyph32* log_glyphs,
 
     v_map = l_map;
     BIDILogGlyphs2VisGlyphs (log_font, log_glyphs,
-                nr_glyphs, v_map);   
+                nr_glyphs, v_map);
 
     *nr_ranges = m;
 
@@ -1303,7 +1303,7 @@ static void computer_ranges(int* p, int* nr_ranges)
         }
     }
     for(j = 1; j < m; j+=2){
-        if((j+1) < m && p[j] && p[j+1] 
+        if((j+1) < m && p[j] && p[j+1]
                 && (p[j] == p[j+1] || p[j]+1 == p[j+1])){
             memcpy(p+j, p+j+2, (m-j-1)*sizeof(int));
             memset(p+m-2, 0, 2 * sizeof(int));
@@ -1323,11 +1323,11 @@ static void computer_ranges(int* p, int* nr_ranges)
 
 void GUIAPI GetTextRangesLog2VisTest(
         LOGFONT* log_font,
-        char*    text, 
-        int      text_len, 
-        int      start_index, 
-        int      end_index, 
-        int**    ranges, 
+        char*    text,
+        int      text_len,
+        int      start_index,
+        int      end_index,
+        int**    ranges,
         int*     nr_ranges)
 {
     int m = 0, i = 0;
@@ -1343,13 +1343,13 @@ void GUIAPI GetTextRangesLog2VisTest(
                 &start_index, &end_index)){
         return;
     }
-    
+
     nr_glyphs = BIDIGetTextLogicalGlyphs(log_font, text, text_len,
             &l_glyphs, &l_map);
 
     v_map = l_map;
     BIDILogGlyphs2VisGlyphs (log_font, l_glyphs,
-        nr_glyphs, v_map);   
+        nr_glyphs, v_map);
 
     /* get all the logical ranges in the same language.
      * default malloc 5 ranges.*/
@@ -1399,14 +1399,14 @@ void GUIAPI GetTextRangesLog2VisTest(
 }
 
 /*
- * \param  bref: Get a list of visual ranges corresponding to a given 
+ * \param  bref: Get a list of visual ranges corresponding to a given
  * logical range.
  *
  * \param  text:        Input logical text string, Input.
  * \param  text_len:    Input logical text string len, Input.
  * \param  start_index: Input Start byte index of the logical range, Input.
  * \param  end_index: Input Ending byte index of the logical range, Input.
- * \param  ranges:    Output location to store a pointer to an array of 
+ * \param  ranges:    Output location to store a pointer to an array of
  * arranges, Output
  * \param  nr_ranges: Output The number of ranges stored in ranges, Output
  *
@@ -1414,11 +1414,11 @@ void GUIAPI GetTextRangesLog2VisTest(
  */
 void GUIAPI GetTextRangesLog2Vis(
         LOGFONT* log_font,
-        char*    text, 
-        int      text_len, 
-        int      start_index, 
-        int      end_index, 
-        int**    ranges, 
+        char*    text,
+        int      text_len,
+        int      start_index,
+        int      end_index,
+        int**    ranges,
         int*     nr_ranges)
 {
     int  i = 0;
@@ -1430,7 +1430,7 @@ void GUIAPI GetTextRangesLog2Vis(
 
     *nr_ranges = 0;
     /* it is not bidi string. */
-    if (!log_font->mbc_devfont || (log_font->mbc_devfont && 
+    if (!log_font->mbc_devfont || (log_font->mbc_devfont &&
                 !log_font->mbc_devfont->charset_ops->bidi_glyph_type)) {
         *ranges = NULL;
         return;
@@ -1457,7 +1457,7 @@ void GUIAPI GetTextRangesLog2Vis(
                 &start_index, &end_index)){
         return;
     }
-    
+
     nr_glyphs = BIDIGetTextLogicalGlyphs(log_font, text, text_len,
             &l_glyphs, &l_map);
 
@@ -1513,7 +1513,7 @@ void GUIAPI GetTextRangesLog2Vis(
  * \param  return void.
  */
 void GUIAPI BIDIGetLogicalEmbeddLevels(
-        LOGFONT*  log_font, 
+        LOGFONT*  log_font,
         Glyph32*  glyphs,
         int       nr_glyphs,
         Uint8**   embedding_level_list)
@@ -1539,13 +1539,13 @@ void GUIAPI BIDIGetLogicalEmbeddLevels(
  * \param  LOGFONT*  log_font: The logical font.
  * \param  Glyph32*  glyphs: Input logical glyph string, input.
  * \param  int       nr_glyphs: Input logical string len, input.
- * \param  Uint8     *embedding_level_list: embedding level logical 
+ * \param  Uint8     *embedding_level_list: embedding level logical
  * to visual, output.
  *
  * \param  return void.
  */
 void GUIAPI BIDIGetVisualEmbeddLevels(
-        LOGFONT* log_font, 
+        LOGFONT* log_font,
         Glyph32* glyphs,
         int      nr_glyphs,
         Uint8**  embedding_level_list)

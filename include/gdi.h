@@ -10361,6 +10361,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * The break opportunity code
  */
 typedef enum {
+    BOV_UNKNOWN,
     BOV_MANDATORY_AFTER,
     BOV_MANDATORY_BEFORE,
     BOV_ALLOWED_AFTER,
@@ -10371,7 +10372,7 @@ typedef enum {
 
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
- *          const char* mstr, int mstr_len,
+ *          const char* mstr, unsigned int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint32 space_rule, Uint32 trans_rule,
  *          Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs);
@@ -10422,7 +10423,7 @@ typedef enum {
  *            No break allowed before the glyph.
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
  *
- * \return The number of the bytes consumed in \a mstr.
+ * \return The number of the bytes consumed in \a mstr; zero on error.
  *
  * \note Only available when support for UNICODE is enabled.
  *
@@ -10649,7 +10650,7 @@ MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y
  *
  * \sa GetGlyphsExtentPointEx
  */
-MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
+MG_EXPORT BOOL GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
         int nr_glyphs, const GLYPHPOSORT* pos_orts,
         PLOGFONT logfont_sideways);
 
