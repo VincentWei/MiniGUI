@@ -7421,7 +7421,19 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
             WCS2MBSEx (log_font, dest, wcs, wcs_len, sizeof (wchar_t) == 4, \
             n, NULL)
 
-/** The function determines whether a glyph is alphanumeric. */
+/** The function determines the general category (basic type) of a UNICODE character. */
+MG_EXPORT int GUIAPI UCharGetType(Uchar32 uc);
+
+/** The function determines the break property of a UNICODE character. */
+MG_EXPORT int GUIAPI UCharGetBreak(Uchar32 uc);
+
+/** The function determines the BIDI type of a UNICODE character. */
+MG_EXPORT unsigned int GUIAPI UCharGetBIDIType(Uchar32 uc);
+
+/** The function returns the mirror character of a UNICODE character. */
+MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
+
+/** The function determines whether a character is alphanumeric. */
 MG_EXPORT BOOL GUIAPI IsUCharAlnum(Uchar32 uc);
 
 /** The function determines whether a character is alphabetic (i.e. a letter). */
@@ -10371,6 +10383,11 @@ typedef enum {
  * content language \a content_language, writing system \a writing_system,
  * white space rule \a space_rule, and transformation rule \a trans_rule.
  *
+ * The implementation of this function conforms to UNICODE LINE BREAKING
+ * ALGORITHM:
+ *
+ *      https://www.unicode.org/reports/tr14/tr14-39.html
+ *
  * The function will return if it encounters any hard line break or the null
  * character. The hard line break will be included in the returned glyphs if
  * there was one.
@@ -10528,13 +10545,17 @@ typedef struct _GLYPHPOSORT
      */
     int y;
     /**
+     * Whether suppress the glyph.
+     */
+    unsigned char suppressed:1;
+    /**
      * The orientation of the glyph; can be one of the following values:
      *  - GLYPH_ORIENTATION_UPRIGHT\n
      *      the glyph is in the standard horizontal orientation.
      *  - GLYPH_ORIENTATION_SIDEWAYS\n
      *      the glyph rotates 90° clockwise from horizontal.
      */
-    int ort;
+    unsigned char ort:2;
 } GLYPHPOSORT;
 
 /**

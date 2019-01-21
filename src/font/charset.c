@@ -4413,6 +4413,29 @@ BOOL IsCompatibleCharset (const char* charset, CHARSETOPS* ops)
 
 #ifdef _MGCHARSET_UNICODE
 
+int GUIAPI UCharGetType(Uchar32 uc)
+{
+    return TYPE(uc);
+}
+
+/** The function determines the break type of a UNICODE character. */
+int GUIAPI UCharGetBreak(Uchar32 uc)
+{
+    return PROP(uc);
+}
+
+/** The function determines the BIDI type of a UNICODE character. */
+unsigned int GUIAPI UCharGetBIDIType(Uchar32 uc)
+{
+    return unicode_bidi_glyph_type(uc);
+}
+
+/** The function returns the mirror character of a UNICODE character. */
+BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored)
+{
+    return unicode_bidi_mirror_glyph (uc, mirrored);
+}
+
 BOOL GUIAPI IsUCharAlnum(Uchar32 uc)
 {
     return ISALDIGIT(TYPE(uc));
