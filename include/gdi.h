@@ -7422,10 +7422,10 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
             n, NULL)
 
 /** The function determines the general category (basic type) of a UNICODE character. */
-MG_EXPORT int GUIAPI UCharGetType(Uchar32 uc);
+MG_EXPORT UCharBasicType GUIAPI UCharGetType(Uchar32 uc);
 
 /** The function determines the break property of a UNICODE character. */
-MG_EXPORT int GUIAPI UCharGetBreak(Uchar32 uc);
+MG_EXPORT UCharBreakType GUIAPI UCharGetBreak(Uchar32 uc);
 
 /** The function determines the BIDI type of a UNICODE character. */
 MG_EXPORT unsigned int GUIAPI UCharGetBIDIType(Uchar32 uc);
@@ -10254,16 +10254,16 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_NOWRAP
  *
- * \brief Like \a WS_NORMAL, this value collapses white spaces; but like WS_PRE,
- * it does not allow wrapping.
+ * \brief Like \a WSR_NORMAL, this value collapses white spaces; but like
+ * \a WSR_PRE, it does not allow wrapping.
  */
 #define WSR_NOWRAP          0x03
 
 /**
  * \def WSR_PRE_WRAP
  *
- * \brief Like \a WS_PRE, this value preserves white space; but like WS_NORMAL,
- * it allows wrapping.
+ * \brief Like \a WSR_PRE, this value preserves white space; but like
+ * \a WSR_NORMAL, it allows wrapping.
  */
 #define WSR_PRE_WRAP        0x04
 
@@ -10271,7 +10271,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \def WSR_BREAK_SPACES
  *
  * \brief
- * The behavior is identical to that of WS_PRE_WRAP, except that:
+ * The behavior is identical to that of \a WSR_PRE_WRAP, except that:
  *  - Any sequence of preserved white space always takes up space,
  *      including at the end of the line.
  *  - A line breaking opportunity exists after every preserved

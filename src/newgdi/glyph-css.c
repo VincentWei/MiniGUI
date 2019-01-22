@@ -69,6 +69,108 @@
 #define MIN_LEN_GLYPHS      4
 #define INC_LEN_GLYPHS      4
 
+static int get_next_glyph(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32* g, Uchar32* uc)
+{
+    int mchar_len = 0;
+
+    if (mbc_devfont) {
+        mchar_len = mbc_devfont->charset_ops->len_first_char
+            ((const unsigned char*)mstr, mstr_len);
+
+        if (mchar_len > 0) {
+            *g = mbc_devfont->charset_ops->char_glyph_value
+                (NULL, 0, (Uint8*)mstr, mchar_len);
+            *g = SET_MBC_GLYPH(*g);
+
+            if (mbc_devfont->charset_ops->conv_to_uc32)
+                *uc = mbc_devfont->charset_ops->conv_to_uc32(*g);
+            else
+                *uc = GLYPH2UCHAR(*g);
+        }
+    }
+
+    if (*g == INV_GLYPH_VALUE) {
+        mchar_len = sbc_devfont->charset_ops->len_first_char
+            ((const unsigned char*)mstr, mstr_len);
+
+        if (mchar_len > 0) {
+            *g = sbc_devfont->charset_ops->char_glyph_value
+                (NULL, 0, (Uint8*)mstr, mchar_len);
+            if (sbc_devfont->charset_ops->conv_to_uc32)
+                *uc = sbc_devfont->charset_ops->conv_to_uc32(*g);
+            else
+                *uc = GLYPH2UCHAR(*g);
+        }
+    }
+
+    return mchar_len;
+}
+
+static UCharBreakType resolve_line_breaking_class(
+        LanguageCode content_language, UCharScriptType writing_system,
+        UCharBasicType gc, UCharBreakType bt)
+{
+    /*
+     * TODO: according to the content language and the writing system
+     * to resolve AI, CB, CJ, SA, SG, and XX into other line breaking classes.
+     */
+
+    // default handling.
+    switch (bt) {
+    case UCHAR_BREAK_AMBIGUOUS:
+    case UCHAR_BREAK_SURROGATE:
+    case UCHAR_BREAK_UNKNOWN:
+        bt = UCHAR_BREAK_ALPHABETIC;
+        break;
+
+    case UCHAR_BREAK_COMPLEX_CONTEXT:
+        if (gc == UCHAR_TYPE_NON_SPACING_MARK
+                || gc == UCHAR_TYPE_SPACING_MARK) {
+            bt = UCHAR_BREAK_COMBINING_MARK;
+        }
+        else {
+            bt = UCHAR_BREAK_ALPHABETIC;
+        }
+        break;
+
+    case UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER:
+        bt = UCHAR_BREAK_NON_STARTER;
+        break;
+
+    default:
+        break;
+    }
+
+    return bt;
+}
+
+static int collapse_space(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len)
+{
+    UCharBreakType bt;
+    int cosumed = 0;
+
+    do {
+        int mchar_len;
+        Glyph32 g;
+        Uchar32 uc;
+
+        mchar_len = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                        &g, &uc);
+        if (mchar_len == 0)
+            break;
+
+        mstr += mchar_len;
+        mstr_len -= mchar_len;
+        cosumed += mchar_len;
+
+        bt = UCharGetBreak(uc);
+    } while (bt == UCHAR_BREAK_SPACE);
+
+    return cosumed;
+}
+
 int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint32 space_rule, Uint32 trans_rule,
@@ -78,12 +180,14 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
     Uint8* bs = NULL;
     int len_buff;
     int n = 0;
-    int ret = 0;
+    int cosumed = 0;
 
     DEVFONT* sbc_devfont  = logfont->sbc_devfont;
     DEVFONT* mbc_devfont = logfont->mbc_devfont;
 
-    // TODO: validate length and devfonts are in UNICODE charset.
+    *glyphs = NULL;
+    *break_oppos = NULL;
+    *nr_glyphs = 0;
     if (mstr_len == 0)
         return 0;
 
@@ -98,41 +202,48 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         goto error;
 
     while (mstr_len > 0 && *mstr != '\0') {
+        Glyph32 g = INV_GLYPH_VALUE;
+        Uchar32 uc = 0;
         int mchar_len;
-        Glyph32  g = INV_GLYPH_VALUE;
+        UCharBasicType gc;
+        UCharBreakType bt;
 
-        if (mbc_devfont) {
-            mchar_len = mbc_devfont->charset_ops->len_first_char
-                ((const unsigned char*)mstr, mstr_len);
+        mchar_len = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                        &g, &uc);
+        if (mchar_len == 0)
+            break;
 
-            if (mchar_len > 0) {
-                g = mbc_devfont->charset_ops->char_glyph_value
-                    (NULL, 0, (Uint8*)mstr, mchar_len);
-                g = SET_MBC_GLYPH(g);
-            }
-            else {
-                goto badchar;
-            }
+        gc = UCharGetType(uc);
+        bt = UCharGetBreak(uc);
+
+        // CSS: collapses space acoording to space rule
+        if ((space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP)
+                && bt == UCHAR_BREAK_SPACE) {
+            mchar_len += collapse_space(mbc_devfont, sbc_devfont, mstr,
+                mstr_len);
         }
-        else {
-            mchar_len = sbc_devfont->charset_ops->len_first_char
-                ((const unsigned char*)mstr, mstr_len);
 
-            if (mchar_len > 0) {
-                g = sbc_devfont->charset_ops->char_glyph_value
-                    (NULL, 0, (Uint8*)mstr, mchar_len);
-            }
-            else {
-                goto badchar;
-            }
-        }
+        mstr_len -= mchar_len;
+        mstr += mchar_len;
+        cosumed += mchar_len;
 
         gs[n] = g;
         bs[n] = BOV_UNKNOWN;
 
-        // Line Breaking Algorithm goes here
+        if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP) {
+            // only break at forced line breaks.
+        }
+        else {
+            /* Complete Line Breaking Algorithm goes here */
 
-        // check and realloc buffers
+            // LB1: Resolve line breaking classes
+            bt = resolve_line_breaking_class(content_language, writing_system,
+                    gc, bt);
+
+            // mark all breaking opportunities
+        }
+
+        /* check and realloc buffers */
         n++;
         if (n == len_buff) {
             len_buff += INC_LEN_GLYPHS;
@@ -142,22 +253,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 goto error;
         }
 
-        mstr_len -= mchar_len;
-        mstr += mchar_len;
-        ret += mchar_len;
     }
 
-    *glyphs = gs;
-    *break_oppos = bs;
-    *nr_glyphs = n;
-    return 0;
-
-error:
-    if (gs) free(gs);
-    if (bs) free(bs);
-    return 0;
-
-badchar:
     if (n == 0) {
         if (gs) free(gs);
         if (bs) free(bs);
@@ -168,7 +265,12 @@ badchar:
         *nr_glyphs = n;
     }
 
-    return ret;
+    return cosumed;
+
+error:
+    if (gs) free(gs);
+    if (bs) free(bs);
+    return 0;
 }
 
 PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,

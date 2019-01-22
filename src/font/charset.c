@@ -597,7 +597,6 @@ static Uchar32 iso8859_4_conv_to_uc32 (Glyph32 glyph_value)
         return glyph_value;
     else
         return (Uchar32) iso8859_4_unicode_map [glyph_value - 0xA1];
-   
 }
 
 static int iso8859_4_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
@@ -4413,15 +4412,15 @@ BOOL IsCompatibleCharset (const char* charset, CHARSETOPS* ops)
 
 #ifdef _MGCHARSET_UNICODE
 
-int GUIAPI UCharGetType(Uchar32 uc)
+UCharBasicType GUIAPI UCharGetType(Uchar32 uc)
 {
-    return TYPE(uc);
+    return (UCharBasicType)TYPE(uc);
 }
 
 /** The function determines the break type of a UNICODE character. */
-int GUIAPI UCharGetBreak(Uchar32 uc)
+UCharBreakType GUIAPI UCharGetBreak(Uchar32 uc)
 {
-    return PROP(uc);
+    return (UCharBreakType)PROP(uc);
 }
 
 /** The function determines the BIDI type of a UNICODE character. */
