@@ -10365,18 +10365,6 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 #define BOV_AFTER_MANDATORY     0x10
 #define BOV_AFTER_ALLOWED       0x20
 
-typedef enum {
-    BOV_UNKNOWN,
-    BOV_MANDATORY_AFTER,
-    BOV_MANDATORY_BEFORE,
-    BOV_ALLOWED_AFTER,
-    BOV_ALLOWED_BEFORE,
-    BOV_ALLOWED_BOTH,
-    BOV_NOT_ALLOWED_AFTER,
-    BOV_NOT_ALLOWED_BEFORE,
-    BOV_NOT_ALLOWED_BOTH,
-} BreakOpportunityCode;
-
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  *          const char* mstr, unsigned int mstr_len,
@@ -10415,19 +10403,20 @@ typedef enum {
  *        allocated glyph string.
  * \param break_opps The pointer to a Uint8 buffer to store
  *        the break opportunities array of the glpyhs; can be NULL.
- *        Every glyph will have one of the break opportunity values as below:
- *          - BOV_MANDATORY_AFTER\n
- *            Mandatory break after the glyph.
- *          - BOV_MANDATORY_BEFORE\n
+ *        Every glyph will have OR'ed value of BOV_BEFORE_XXX and BOV_AFTER_XXX
+ *        values::
+ *          - BOV_BEFORE_MANDATORY\n
  *            Mandatory break before the glyph.
- *          - BOV_ALLOWED_AFTER\n
- *            Break allowed after the glyph.
- *          - BOV_ALLOWED_BEFORE\n
- *            Break allowed before the glyph.
- *          - BOV_NOT_ALLOWED_AFTER\n
- *            No break allowed after the glyph.
- *          - BOV_NOT_ALLOWED_BEFORE\n
+ *          - BOV_BEFORE_NOTALLOWED\n
  *            No break allowed before the glyph.
+ *          - BOV_BEFORE_ALLOWED\n
+ *            Break allowed before the glyph.
+ *          - BOV_AFTER_MANDATORY\n
+ *            Mandatory break after the glyph.
+ *          - BOV_AFTER_ALLOWED\n
+ *            Break allowed after the glyph.
+ *          - BOV_AFTER_NOTALLOWED\n
+ *            No break allowed after the glyph.
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
  *
  * \return The number of the bytes consumed in \a mstr; zero on error.

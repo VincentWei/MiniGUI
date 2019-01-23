@@ -202,7 +202,20 @@ static BOOL is_next_glyph_zw(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
     return FALSE;
 }
 
-static int is_next_glyph_cm_or_zwj(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+static int is_next_glyph_sp(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32* gv, Uchar32* uc)
+{
+    int mclen;
+
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0 && UCharGetBreak(*uc) == UCHAR_BREAK_SPACE)
+        return mclen;
+
+    return 0;
+}
+
+static int is_next_glyph_cm_zwj(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
     const char* mstr, int mstr_len, Glyph32* gv, Uchar32* uc)
 {
     int mclen;
@@ -213,7 +226,233 @@ static int is_next_glyph_cm_or_zwj(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
         UCharBreakType bt = UCharGetBreak(*uc);
         if (bt == UCHAR_BREAK_COMBINING_MARK
                 || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_gl(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32* gv, Uchar32* uc)
+{
+    int mclen;
+
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_NON_BREAKING_GLUE)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_hy_or_ba(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_HYPHEN
+                || bt == UCHAR_BREAK_AFTER)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_hl(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0 && UCharGetBreak(*uc) == UCHAR_BREAK_HEBREW_LETTER) {
         return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_in(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0 && UCharGetBreak(*uc) == UCHAR_BREAK_INSEPARABLE) {
+        return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_nu(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0 && UCharGetBreak(*uc) == UCHAR_BREAK_NUMERIC) {
+        return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_al_hl(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_HEBREW_LETTER || bt == UCHAR_BREAK_ALPHABETIC)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_pr_po(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_PREFIX || bt == UCHAR_BREAK_POSTFIX)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_id_eb_em(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_IDEOGRAPHIC
+                || bt == UCHAR_BREAK_EMOJI_BASE
+                || bt == UCHAR_BREAK_EMOJI_MODIFIER)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_po(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0 && UCharGetBreak(*uc) == UCHAR_BREAK_POSTFIX) {
+        return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_pr(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0 && UCharGetBreak(*uc) == UCHAR_BREAK_PREFIX) {
+        return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_op(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0 && UCharGetBreak(*uc) == UCHAR_BREAK_OPEN_PUNCTUATION) {
+        return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_jl_jv_jt_h2_h3(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_HANGUL_L_JAMO
+                || bt == UCHAR_BREAK_HANGUL_V_JAMO
+                || bt == UCHAR_BREAK_HANGUL_T_JAMO
+                || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE
+                || bt == UCHAR_BREAK_HANGUL_LVT_SYLLABLE)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_jl_jv_h2_h3(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_HANGUL_L_JAMO
+                || bt == UCHAR_BREAK_HANGUL_V_JAMO
+                || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE
+                || bt == UCHAR_BREAK_HANGUL_LVT_SYLLABLE)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_jv_jt(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_HANGUL_V_JAMO
+                || bt == UCHAR_BREAK_HANGUL_T_JAMO)
+            return mclen;
+    }
+
+    return 0;
+}
+
+static int is_next_glyph_jt(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    int mclen;
+    mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    gv, uc);
+    if (mclen > 0) {
+        UCharBreakType bt = UCharGetBreak(*uc);
+        if (bt == UCHAR_BREAK_HANGUL_T_JAMO)
+            return mclen;
     }
 
     return 0;
@@ -269,14 +508,96 @@ static int check_subsequent_cm_or_zwj(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont
     Glyph32 gv;
     Uchar32 uc;
 
-    while ((mclen = is_next_glyph_cm_or_zwj(mbc_devfont, sbc_devfont,
+    while ((mclen = is_next_glyph_cm_zwj(mbc_devfont, sbc_devfont,
         mstr, mstr_len, &gv, &uc)) > 0) {
 
         // FIXME: CM/ZWJ should have the same break class as
         // its base character.
-        gbinfo_push_back(gbinfo, gv, BOV_NOT_ALLOWED_BEFORE);
+        gbinfo_push_back(gbinfo, gv, BOV_BEFORE_NOTALLOWED);
 
         cosumed += mclen;
+    }
+
+    return cosumed;
+}
+
+static int check_subsequent_sp(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, struct glyph_break_info* gbinfo)
+{
+    int cosumed = 0;
+    int mclen;
+    Glyph32 gv;
+    Uchar32 uc;
+
+    while ((mclen = is_next_glyph_sp(mbc_devfont, sbc_devfont,
+        mstr, mstr_len, &gv, &uc)) > 0) {
+
+        gbinfo_push_back(gbinfo, gv, BOV_AFTER_NOTALLOWED);
+        cosumed += mclen;
+    }
+
+    return cosumed;
+}
+
+static int is_subsequent_sps_and_end_bt(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, UCharBreakType end_bt)
+{
+    Glyph32 gv;
+    Uchar32 uc;
+    int mclen;
+
+    while (mstr_len > 0 && *mstr != '\0') {
+        mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    &gv, &uc);
+        if (mclen > 0) {
+            UCharBreakType bt = UCharGetBreak(uc);
+            if (bt == UCHAR_BREAK_SPACE) {
+                mstr += mclen;
+                mstr_len -= mclen;
+                continue;
+            }
+            else if (bt == end_bt) {
+                return TRUE;
+            }
+        }
+
+        break;
+    }
+
+    return FALSE;
+}
+
+static int check_subsequent_sps_and_end_bt(DEVFONT* mbc_devfont, DEVFONT* sbc_devfont,
+    const char* mstr, int mstr_len, UCharBreakType end_bt,
+    struct glyph_break_info* gbinfo)
+{
+    int cosumed = 0;
+    int mclen;
+    Glyph32 gv;
+    Uchar32 uc;
+
+    while (mstr_len > 0 && *mstr != '\0') {
+        mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
+                    &gv, &uc);
+        if (mclen > 0) {
+            UCharBreakType bt = UCharGetBreak(uc);
+            if (bt == UCHAR_BREAK_SPACE) {
+                mstr += mclen;
+                mstr_len -= mclen;
+                cosumed += mclen;
+
+                gbinfo_push_back(gbinfo, gv,
+                    BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED);
+                continue;
+            }
+            else if (bt == end_bt) {
+                cosumed += mclen;
+
+                gbinfo_push_back(gbinfo, gv, BOV_BEFORE_NOTALLOWED);
+            }
+        }
+
+        break;
     }
 
     return cosumed;
@@ -308,11 +629,10 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         int mclen;
         UCharBasicType gc;
         UCharBreakType bt;
+        Uint8 bo = 0;
 
         Glyph32 next_gv;
         Uchar32 next_uc;
-        UCharBasicType next_gc;
-        UCharBreakType next_bt;
         int next_mclen;
 
         mclen = get_next_glyph(mbc_devfont, sbc_devfont, mstr, mstr_len,
@@ -335,9 +655,10 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         bt = resolve_line_breaking_class(content_language, writing_system,
                 gc, bt);
 
+        /* Start and end of text */
         // LB2 Never break at the start of text.
         if (gbinfo.n == 0) {
-            Uint8 bo = BOV_BEFORE_NOTALLOWED;
+            bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
         }
@@ -345,10 +666,12 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         else if (*mstr == '\0') {
             break;
         }
+
+        /* Mandatory breaks */
         // LB4 Always break after hard line breaks
         // LB6 Do not break before hard line breaks.
         else if (bt == UCHAR_BREAK_MANDATORY) {
-            Uint8 bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
+            bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
         }
@@ -358,7 +681,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         else if (bt == UCHAR_BREAK_CARRIAGE_RETURN) {
             mclen += collapse_line_feed(mbc_devfont, sbc_devfont, mstr,
                     mstr_len);
-            Uint8 bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
+            bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
         }
@@ -367,13 +690,16 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // LB6 Do not break before hard line breaks.
         else if (bt == UCHAR_BREAK_LINE_FEED
                 || bt == UCHAR_BREAK_NEXT_LINE) {
-            Uint8 bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
+            bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
         }
+
+        /* Explicit breaks and non-breaks */
         // LB7: Do not break before spaces or zero width space.
-        else if (bt == UCHAR_BREAK_SPACE) {
-            Uint8 bo = BOV_BEFORE_NOTALLOWED;
+        else if (bt == UCHAR_BREAK_SPACE
+                || bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
+            bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
 
@@ -385,45 +711,36 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         }
         // LB7: Do not break before spaces or zero width space.
         else if (bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
-            Uint8 bo = BOV_BEFORE_NOTALLOWED;
+            bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
         }
         // LB8: Break before any character following a zero-width space,
         // even if one or more spaces intervene.
         else if (is_next_glyph_zw(mbc_devfont, sbc_devfont, mstr, mstr_len)) {
-            Uint8 bo = BOV_BEFORE_MANDATORY;
+            bo = BOV_BEFORE_MANDATORY;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
         }
         // LB8a Do not break between a zero width joiner and an ideograph,
         // emoji base or emoji modifier.
-        else if (bt == UCHAR_BREAK_ZERO_WIDTH_JOINER) {
-            next_mclen = get_next_glyph(mbc_devfont, sbc_devfont,
-                            mstr, mstr_len, &next_gv, &next_uc);
-            Uint8 bo;
+        else if (bt == UCHAR_BREAK_ZERO_WIDTH_JOINER
+                && (next_mclen = is_next_glyph_id_eb_em(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
 
-            if (next_mclen > 0) {
-                next_gc = UCharGetType(next_uc);
-                next_bt = UCharGetBreak(next_uc);
-                next_bt = resolve_line_breaking_class(content_language,
-                        writing_system, next_gc, next_bt);
-                if (next_bt == UCHAR_BREAK_IDEOGRAPHIC
-                        || next_bt == UCHAR_BREAK_EMOJI_BASE
-                        || next_bt == UCHAR_BREAK_EMOJI_MODIFIER) {
+            mclen += next_mclen;
 
-                    mclen += next_mclen;
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
 
-                    bo = BOV_AFTER_NOTALLOWED;
-                    if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                        goto error;
-
-                    bo = BOV_BEFORE_NOTALLOWED;
-                    if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
-                        goto error;
-                }
-            }
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
         }
+
+        /* Combining marks */
         // LB9: Do not break a combining character sequence;
         // treat it as if it has the line breaking class of
         // the base character in all of the following rules.
@@ -434,10 +751,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 && bt != UCHAR_BREAK_NEXT_LINE
                 && bt != UCHAR_BREAK_SPACE
                 && bt != UCHAR_BREAK_ZERO_WIDTH_SPACE
-                && (next_mclen = is_next_glyph_cm_or_zwj(mbc_devfont,
+                && (next_mclen = is_next_glyph_cm_zwj(mbc_devfont,
                     sbc_devfont, mstr, mstr_len, &next_gv, &next_uc)) > 0) {
-            Uint8 bo;
-
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
@@ -452,8 +767,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             // For any possible subsequent CM/ZWJ characters.
             mclen += check_subsequent_cm_or_zwj(mbc_devfont,
-                    sbc_devfont, mstr + next_mclen, mstr_len - next_mclen,
-                    &gbinfo);
+                    sbc_devfont, mstr + mclen + next_mclen,
+                    mstr_len - mclen - next_mclen, &gbinfo);
 
         }
         // LB10 Treat any remaining combining mark or ZWJ as AL.
@@ -461,13 +776,614 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER) {
             bt = UCHAR_BREAK_ALPHABETIC;
         }
+
+        /* Word joiner */
         // LB11 Do not break before or after Word joiner
         // and related characters.
         else if (bt == UCHAR_BREAK_WORD_JOINER) {
-            Uint8 bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED;
+            bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
                 goto error;
         }
+        // LB12 Do not break after NBSP and related characters.
+        else if (bt == UCHAR_BREAK_NON_BREAKING_GLUE) {
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+        }
+
+        /* Non-breaking characters */
+        // LB12a Do not break before NBSP and related characters,
+        // except after spaces and hyphens.
+        if (bt != UCHAR_BREAK_SPACE
+                && bt != UCHAR_BREAK_AFTER
+                && bt != UCHAR_BREAK_HYPHEN
+                && (next_mclen = is_next_glyph_gl(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo |= BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+
+        /* Opening and closing */
+        // LB13 Do not break before ‘]’ or ‘!’ or ‘;’ or ‘/’, even after spaces.
+        if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
+                || bt == UCHAR_BREAK_CLOSE_PARANTHESIS
+                || bt == UCHAR_BREAK_EXCLAMATION
+                || bt == UCHAR_BREAK_INFIX_SEPARATOR
+                || bt == UCHAR_BREAK_SYMBOL) {
+            bo |= BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+        }
+        // LB14 Do not break after ‘[’, even after spaces.
+        else if (bt == UCHAR_BREAK_OPEN_PUNCTUATION) {
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            // For any possible subsequent space.
+            mclen += check_subsequent_sp(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &gbinfo);
+        }
+        // LB15 Do not break within ‘”[’, even with intervening spaces.
+        else if (bt == UCHAR_BREAK_QUOTATION
+                && (is_subsequent_sps_and_end_bt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    UCHAR_BREAK_OPEN_PUNCTUATION))) {
+
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            // For subsequent spaces and OP.
+            mclen += check_subsequent_sps_and_end_bt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    UCHAR_BREAK_OPEN_PUNCTUATION,
+                    &gbinfo);
+        }
+        // LB16 Do not break between closing punctuation and a nonstarter
+        // (lb=NS), even with intervening spaces.
+        else if ((bt == UCHAR_BREAK_CLOSE_PUNCTUATION
+                    || bt == UCHAR_BREAK_CLOSE_PARANTHESIS)
+                && (is_subsequent_sps_and_end_bt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    UCHAR_BREAK_NON_STARTER))) {
+
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            // For subsequent spaces and NS.
+            mclen += check_subsequent_sps_and_end_bt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    UCHAR_BREAK_NON_STARTER,
+                    &gbinfo);
+        }
+        // LB17 Do not break within ‘——’, even with intervening spaces.
+        else if (bt == UCHAR_BREAK_BEFORE_AND_AFTER
+                && (is_subsequent_sps_and_end_bt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    UCHAR_BREAK_BEFORE_AND_AFTER))) {
+
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            // For subsequent spaces and B2.
+            mclen += check_subsequent_sps_and_end_bt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    UCHAR_BREAK_BEFORE_AND_AFTER,
+                    &gbinfo);
+        }
+
+        /* Spaces */
+        // LB18 Break after spaces.
+        if (bt == UCHAR_BREAK_SPACE) {
+            bo |= BOV_AFTER_ALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+        }
+
+        /* Special case rules */
+        // LB19 Do not break before or after quotation marks, such as ‘ ” ’.
+        if (bt == UCHAR_BREAK_QUOTATION) {
+            bo |= BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_CONTINGENT) {
+            bo |= BOV_BEFORE_ALLOWED | BOV_AFTER_ALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+        }
+        // LB21 Do not break before hyphen-minus, other hyphens,
+        // fixed-width spaces, small kana, and other non-starters,
+        // or after acute accents.
+        else if (bt == UCHAR_BREAK_AFTER
+                || bt == UCHAR_BREAK_HYPHEN
+                || bt == UCHAR_BREAK_NON_STARTER) {
+            bo |= BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_BEFORE) {
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+        }
+        // LB21a Don't break after Hebrew + Hyphen.
+        else if (bt == UCHAR_BREAK_HEBREW_LETTER
+                && (next_mclen = is_next_glyph_hy_or_ba(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo |= BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        // LB21b Don’t break between Solidus and Hebrew letters.
+        else if (bt == UCHAR_BREAK_SYMBOL
+                && (next_mclen = is_next_glyph_hl(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        // LB22 Do not break between two ellipses, or between letters,
+        // numbers or exclamations and ellipsis.
+        else if ((bt == UCHAR_BREAK_HEBREW_LETTER
+                    || bt == UCHAR_BREAK_ALPHABETIC
+                    || bt == UCHAR_BREAK_EXCLAMATION
+                    || bt == UCHAR_BREAK_IDEOGRAPHIC
+                    || bt == UCHAR_BREAK_EMOJI_BASE
+                    || bt == UCHAR_BREAK_EMOJI_MODIFIER
+                    || bt == UCHAR_BREAK_INSEPARABLE
+                    || bt == UCHAR_BREAK_NUMERIC)
+                && (next_mclen = is_next_glyph_in(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+
+        /* Numbers */
+        // LB23 Do not break between digits and letters.
+        if ((bt == UCHAR_BREAK_HEBREW_LETTER
+                    || bt == UCHAR_BREAK_ALPHABETIC)
+                && (next_mclen = is_next_glyph_nu(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_NUMERIC
+                && (next_mclen = is_next_glyph_al_hl(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        // LB23a Do not break between numeric prefixes and ideographs,
+        // or between ideographs and numeric postfixes.
+        else if (bt == UCHAR_BREAK_PREFIX
+                && (next_mclen = is_next_glyph_id_eb_em(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if ((bt == UCHAR_BREAK_IDEOGRAPHIC
+                    || bt == UCHAR_BREAK_EMOJI_BASE
+                    || bt == UCHAR_BREAK_EMOJI_MODIFIER)
+                && (next_mclen = is_next_glyph_po(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        // LB24 Do not break between numeric prefix/postfix and letters,
+        // or between letters and prefix/postfix.
+        else if ((bt == UCHAR_BREAK_PREFIX
+                    || bt == UCHAR_BREAK_POSTFIX)
+                && (next_mclen = is_next_glyph_al_hl(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if ((bt == UCHAR_BREAK_ALPHABETIC
+                    || bt == UCHAR_BREAK_HEBREW_LETTER)
+                && (next_mclen = is_next_glyph_pr_po(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        // LB25 Do not break between the following pairs of classes
+        // relevant to numbers
+        else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
+                && (next_mclen = is_next_glyph_po(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
+                && (next_mclen = is_next_glyph_po(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
+                && (next_mclen = is_next_glyph_pr(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
+                && (next_mclen = is_next_glyph_pr(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_NUMERIC
+                && (next_mclen = is_next_glyph_pr(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_NUMERIC
+                && (next_mclen = is_next_glyph_pr(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_POSTFIX
+                && (next_mclen = is_next_glyph_op(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_POSTFIX
+                && (next_mclen = is_next_glyph_nu(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_PREFIX
+                && (next_mclen = is_next_glyph_op(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_PREFIX
+                && (next_mclen = is_next_glyph_nu(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_HYPHEN
+                && (next_mclen = is_next_glyph_nu(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_INFIX_SEPARATOR
+                && (next_mclen = is_next_glyph_nu(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_NUMERIC
+                && (next_mclen = is_next_glyph_nu(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_SYMBOL
+                && (next_mclen = is_next_glyph_nu(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+
+        /* Korean syllable blocks */
+        // LB26 Do not break a Korean syllable.
+        else if (bt == UCHAR_BREAK_HANGUL_L_JAMO
+                && (next_mclen = is_next_glyph_jl_jv_h2_h3(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if ((bt == UCHAR_BREAK_HANGUL_V_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE)
+                && (next_mclen = is_next_glyph_jv_jt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if ((bt == UCHAR_BREAK_HANGUL_T_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE)
+                && (next_mclen = is_next_glyph_jt(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        // LB27 Treat a Korean Syllable Block the same as ID.
+        else if ((bt == UCHAR_BREAK_HANGUL_L_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_V_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_T_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE
+                    || bt == UCHAR_BREAK_HANGUL_LVT_SYLLABLE)
+                && (next_mclen = is_next_glyph_in(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if ((bt == UCHAR_BREAK_HANGUL_L_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_V_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_T_JAMO
+                    || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE
+                    || bt == UCHAR_BREAK_HANGUL_LVT_SYLLABLE)
+                && (next_mclen = is_next_glyph_po(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_PREFIX
+                && (next_mclen = is_next_glyph_jl_jv_jt_h2_h3(mbc_devfont,
+                    sbc_devfont, mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+                goto error;
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+
+        /* Finally, join alphabetic letters into words
+           and break everything else. */
+
+        // LB28 Do not break between alphabetics (“at”).
+
+        // LB29 Do not break between numeric punctuation
+        // and alphabetics (“e.g.”).
+
+        // LB30 Do not break between letters, numbers, or ordinary symbols and
+        // opening or closing parentheses.
+
+        // LB30a Break between two regional indicator symbols if and only if
+        // there are an even number of regional indicators preceding the
+        // position of the break.
+
+        // LB30b Do not break between an emoji base and an emoji modifier.
+
+        // LB31 Break everywhere else.
 
         mstr_len -= mclen;
         mstr += mclen;
