@@ -5974,18 +5974,18 @@ typedef enum {
  * @UCHAR_BREAK_HANGUL_T_JAMO: Hangul T Jamo (JT)
  * @UCHAR_BREAK_HANGUL_LV_SYLLABLE: Hangul LV Syllable (H2)
  * @UCHAR_BREAK_HANGUL_LVT_SYLLABLE: Hangul LVT Syllable (H3)
- * @UCHAR_BREAK_CLOSE_PARANTHESIS: Closing Parenthesis (CP). Since 2.28
- * @UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER: Conditional Japanese Starter (CJ). Since: 2.32
- * @UCHAR_BREAK_HEBREW_LETTER: Hebrew Letter (HL). Since: 2.32
- * @UCHAR_BREAK_REGIONAL_INDICATOR: Regional Indicator (RI). Since: 2.36
- * @UCHAR_BREAK_EMOJI_BASE: Emoji Base (EB). Since: 2.50
- * @UCHAR_BREAK_EMOJI_MODIFIER: Emoji Modifier (EM). Since: 2.50
- * @UCHAR_BREAK_ZERO_WIDTH_JOINER: Zero Width Joiner (ZWJ). Since: 2.50
+ * @UCHAR_BREAK_CLOSE_PARANTHESIS: Closing Parenthesis (CP).
+ * @UCHAR_BREAK_CONDITIONAL_JAPANESE_STARTER: Conditional Japanese Starter (CJ).
+ * @UCHAR_BREAK_HEBREW_LETTER: Hebrew Letter (HL).
+ * @UCHAR_BREAK_REGIONAL_INDICATOR: Regional Indicator (RI).
+ * @UCHAR_BREAK_EMOJI_BASE: Emoji Base (EB).
+ * @UCHAR_BREAK_EMOJI_MODIFIER: Emoji Modifier (EM).
+ * @UCHAR_BREAK_ZERO_WIDTH_JOINER: Zero Width Joiner (ZWJ).
  *
  * These are the possible line break classifications.
  *
- * Since new unicode versions may add new types here, applications should be ready 
- * to handle unknown values. They may be regarded as %UCHAR_BREAK_UNKNOWN.
+ * Since new unicode versions may add new types here, applications should be
+ * ready to handle unknown values. They may be regarded as %UCHAR_BREAK_UNKNOWN.
  *
  * See [Unicode Line Breaking Algorithm](http://www.unicode.org/unicode/reports/tr14/).
  */
@@ -6112,94 +6112,88 @@ typedef enum {
  * @UCHAR_SCRIPT_PHOENICIAN: Phoenician
  * @UCHAR_SCRIPT_PHAGS_PA:   Phags-pa
  * @UCHAR_SCRIPT_NKO:        N'Ko
- * @UCHAR_SCRIPT_KAYAH_LI:   Kayah Li. Since 2.16.3
- * @UCHAR_SCRIPT_LEPCHA:     Lepcha. Since 2.16.3
- * @UCHAR_SCRIPT_REJANG:     Rejang. Since 2.16.3
- * @UCHAR_SCRIPT_SUNDANESE:  Sundanese. Since 2.16.3
- * @UCHAR_SCRIPT_SAURASHTRA: Saurashtra. Since 2.16.3
- * @UCHAR_SCRIPT_CHAM:       Cham. Since 2.16.3
- * @UCHAR_SCRIPT_OL_CHIKI:   Ol Chiki. Since 2.16.3
- * @UCHAR_SCRIPT_VAI:        Vai. Since 2.16.3
- * @UCHAR_SCRIPT_CARIAN:     Carian. Since 2.16.3
- * @UCHAR_SCRIPT_LYCIAN:     Lycian. Since 2.16.3
- * @UCHAR_SCRIPT_LYDIAN:     Lydian. Since 2.16.3
- * @UCHAR_SCRIPT_AVESTAN:    Avestan. Since 2.26
- * @UCHAR_SCRIPT_BAMUM:      Bamum. Since 2.26
- * @UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS:
- *                               Egyptian Hieroglpyhs. Since 2.26
- * @UCHAR_SCRIPT_IMPERIAL_ARAMAIC:
- *                               Imperial Aramaic. Since 2.26
- * @UCHAR_SCRIPT_INSCRIPTIONAL_PAHLAVI:
- *                               Inscriptional Pahlavi. Since 2.26
- * @UCHAR_SCRIPT_INSCRIPTIONAL_PARTHIAN:
- *                               Inscriptional Parthian. Since 2.26
- * @UCHAR_SCRIPT_JAVANESE:   Javanese. Since 2.26
- * @UCHAR_SCRIPT_KAITHI:     Kaithi. Since 2.26
- * @UCHAR_SCRIPT_LISU:       Lisu. Since 2.26
- * @UCHAR_SCRIPT_MEETEI_MAYEK:
- *                               Meetei Mayek. Since 2.26
- * @UCHAR_SCRIPT_OLD_SOUTH_ARABIAN:
- *                               Old South Arabian. Since 2.26
- * @UCHAR_SCRIPT_OLD_TURKIC: Old Turkic. Since 2.28
- * @UCHAR_SCRIPT_SAMARITAN:  Samaritan. Since 2.26
- * @UCHAR_SCRIPT_TAI_THAM:   Tai Tham. Since 2.26
- * @UCHAR_SCRIPT_TAI_VIET:   Tai Viet. Since 2.26
- * @UCHAR_SCRIPT_BATAK:      Batak. Since 2.28
- * @UCHAR_SCRIPT_BRAHMI:     Brahmi. Since 2.28
- * @UCHAR_SCRIPT_MANDAIC:    Mandaic. Since 2.28
- * @UCHAR_SCRIPT_CHAKMA:               Chakma. Since: 2.32
- * @UCHAR_SCRIPT_MEROITIC_CURSIVE:     Meroitic Cursive. Since: 2.32
- * @UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS: Meroitic Hieroglyphs. Since: 2.32
- * @UCHAR_SCRIPT_MIAO:                 Miao. Since: 2.32
- * @UCHAR_SCRIPT_SHARADA:              Sharada. Since: 2.32
- * @UCHAR_SCRIPT_SORA_SOMPENG:         Sora Sompeng. Since: 2.32
- * @UCHAR_SCRIPT_TAKRI:                Takri. Since: 2.32
- * @UCHAR_SCRIPT_BASSA_VAH:            Bassa. Since: 2.42
- * @UCHAR_SCRIPT_CAUCASIAN_ALBANIAN:   Caucasian Albanian. Since: 2.42
- * @UCHAR_SCRIPT_DUPLOYAN:             Duployan. Since: 2.42
- * @UCHAR_SCRIPT_ELBASAN:              Elbasan. Since: 2.42
- * @UCHAR_SCRIPT_GRANTHA:              Grantha. Since: 2.42
- * @UCHAR_SCRIPT_KHOJKI:               Kjohki. Since: 2.42
- * @UCHAR_SCRIPT_KHUDAWADI:            Khudawadi, Sindhi. Since: 2.42
- * @UCHAR_SCRIPT_LINEAR_A:             Linear A. Since: 2.42
- * @UCHAR_SCRIPT_MAHAJANI:             Mahajani. Since: 2.42
- * @UCHAR_SCRIPT_MANICHAEAN:           Manichaean. Since: 2.42
- * @UCHAR_SCRIPT_MENDE_KIKAKUI:        Mende Kikakui. Since: 2.42
- * @UCHAR_SCRIPT_MODI:                 Modi. Since: 2.42
- * @UCHAR_SCRIPT_MRO:                  Mro. Since: 2.42
- * @UCHAR_SCRIPT_NABATAEAN:            Nabataean. Since: 2.42
- * @UCHAR_SCRIPT_OLD_NORTH_ARABIAN:    Old North Arabian. Since: 2.42
- * @UCHAR_SCRIPT_OLD_PERMIC:           Old Permic. Since: 2.42
- * @UCHAR_SCRIPT_PAHAWH_HMONG:         Pahawh Hmong. Since: 2.42
- * @UCHAR_SCRIPT_PALMYRENE:            Palmyrene. Since: 2.42
- * @UCHAR_SCRIPT_PAU_CIN_HAU:          Pau Cin Hau. Since: 2.42
- * @UCHAR_SCRIPT_PSALTER_PAHLAVI:      Psalter Pahlavi. Since: 2.42
- * @UCHAR_SCRIPT_SIDDHAM:              Siddham. Since: 2.42
- * @UCHAR_SCRIPT_TIRHUTA:              Tirhuta. Since: 2.42
- * @UCHAR_SCRIPT_WARANG_CITI:          Warang Citi. Since: 2.42
- * @UCHAR_SCRIPT_AHOM:                 Ahom. Since: 2.48
- * @UCHAR_SCRIPT_ANATOLIAN_HIEROGLYPHS: Anatolian Hieroglyphs. Since: 2.48
- * @UCHAR_SCRIPT_HATRAN:               Hatran. Since: 2.48
- * @UCHAR_SCRIPT_MULTANI:              Multani. Since: 2.48
- * @UCHAR_SCRIPT_OLD_HUNGARIAN:        Old Hungarian. Since: 2.48
- * @UCHAR_SCRIPT_SIGNWRITING:          Signwriting. Since: 2.48
- * @UCHAR_SCRIPT_ADLAM:                Adlam. Since: 2.50
- * @UCHAR_SCRIPT_BHAIKSUKI:            Bhaiksuki. Since: 2.50
- * @UCHAR_SCRIPT_MARCHEN:              Marchen. Since: 2.50
- * @UCHAR_SCRIPT_NEWA:                 Newa. Since: 2.50
- * @UCHAR_SCRIPT_OSAGE:                Osage. Since: 2.50
- * @UCHAR_SCRIPT_TANGUT:               Tangut. Since: 2.50
- * @UCHAR_SCRIPT_MASARAM_GONDI:        Masaram Gondi. Since: 2.54
- * @UCHAR_SCRIPT_NUSHU:                Nushu. Since: 2.54
- * @UCHAR_SCRIPT_SOYOMBO:              Soyombo. Since: 2.54
- * @UCHAR_SCRIPT_ZANABAZAR_SQUARE:     Zanabazar Square. Since: 2.54
- * @UCHAR_SCRIPT_DOGRA:                Dogra. Since: 2.58
- * @UCHAR_SCRIPT_GUNJALA_GONDI:        Gunjala Gondi. Since: 2.58
- * @UCHAR_SCRIPT_HANIFI_ROHINGYA:      Hanifi Rohingya. Since: 2.58
- * @UCHAR_SCRIPT_MAKASAR:              Makasar. Since: 2.58
- * @UCHAR_SCRIPT_MEDEFAIDRIN:          Medefaidrin. Since: 2.58
- * @UCHAR_SCRIPT_OLD_SOGDIAN:          Old Sogdian. Since: 2.58
- * @UCHAR_SCRIPT_SOGDIAN:              Sogdian. Since: 2.58
+ * @UCHAR_SCRIPT_KAYAH_LI:   Kayah Li.
+ * @UCHAR_SCRIPT_LEPCHA:     Lepcha.
+ * @UCHAR_SCRIPT_REJANG:     Rejang.
+ * @UCHAR_SCRIPT_SUNDANESE:  Sundanese.
+ * @UCHAR_SCRIPT_SAURASHTRA: Saurashtra.
+ * @UCHAR_SCRIPT_CHAM:       Cham.
+ * @UCHAR_SCRIPT_OL_CHIKI:   Ol Chiki.
+ * @UCHAR_SCRIPT_VAI:        Vai.
+ * @UCHAR_SCRIPT_CARIAN:     Carian.
+ * @UCHAR_SCRIPT_LYCIAN:     Lycian.
+ * @UCHAR_SCRIPT_LYDIAN:     Lydian.
+ * @UCHAR_SCRIPT_AVESTAN:    Avestan.
+ * @UCHAR_SCRIPT_BAMUM:      Bamum.
+ * @UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS: Egyptian Hieroglpyhs.
+ * @UCHAR_SCRIPT_IMPERIAL_ARAMAIC: Imperial Aramaic.
+ * @UCHAR_SCRIPT_INSCRIPTIONAL_PAHLAVI: Inscriptional Pahlavi.
+ * @UCHAR_SCRIPT_INSCRIPTIONAL_PARTHIAN: Inscriptional Parthian.
+ * @UCHAR_SCRIPT_JAVANESE:   Javanese.
+ * @UCHAR_SCRIPT_KAITHI:     Kaithi.
+ * @UCHAR_SCRIPT_LISU:       Lisu.
+ * @UCHAR_SCRIPT_MEETEI_MAYEK: Meetei Mayek.
+ * @UCHAR_SCRIPT_OLD_SOUTH_ARABIAN: Old South Arabian.
+ * @UCHAR_SCRIPT_OLD_TURKIC: Old Turkic.
+ * @UCHAR_SCRIPT_SAMARITAN:  Samaritan.
+ * @UCHAR_SCRIPT_TAI_THAM:   Tai Tham.
+ * @UCHAR_SCRIPT_TAI_VIET:   Tai Viet.
+ * @UCHAR_SCRIPT_BATAK:      Batak.
+ * @UCHAR_SCRIPT_BRAHMI:     Brahmi.
+ * @UCHAR_SCRIPT_MANDAIC:    Mandaic.
+ * @UCHAR_SCRIPT_CHAKMA:     Chakma.
+ * @UCHAR_SCRIPT_MEROITIC_CURSIVE:     Meroitic Cursive.
+ * @UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS: Meroitic Hieroglyphs.
+ * @UCHAR_SCRIPT_MIAO:                 Miao.
+ * @UCHAR_SCRIPT_SHARADA:              Sharada.
+ * @UCHAR_SCRIPT_SORA_SOMPENG:         Sora Sompeng.
+ * @UCHAR_SCRIPT_TAKRI:                Takri.
+ * @UCHAR_SCRIPT_BASSA_VAH:            Bassa.
+ * @UCHAR_SCRIPT_CAUCASIAN_ALBANIAN:   Caucasian Albanian.
+ * @UCHAR_SCRIPT_DUPLOYAN:             Duployan.
+ * @UCHAR_SCRIPT_ELBASAN:              Elbasan.
+ * @UCHAR_SCRIPT_GRANTHA:              Grantha.
+ * @UCHAR_SCRIPT_KHOJKI:               Kjohki.
+ * @UCHAR_SCRIPT_KHUDAWADI:            Khudawadi, Sindhi.
+ * @UCHAR_SCRIPT_LINEAR_A:             Linear A.
+ * @UCHAR_SCRIPT_MAHAJANI:             Mahajani.
+ * @UCHAR_SCRIPT_MANICHAEAN:           Manichaean.
+ * @UCHAR_SCRIPT_MENDE_KIKAKUI:        Mende Kikakui.
+ * @UCHAR_SCRIPT_MODI:                 Modi.
+ * @UCHAR_SCRIPT_MRO:                  Mro.
+ * @UCHAR_SCRIPT_NABATAEAN:            Nabataean.
+ * @UCHAR_SCRIPT_OLD_NORTH_ARABIAN:    Old North Arabian.
+ * @UCHAR_SCRIPT_OLD_PERMIC:           Old Permic.
+ * @UCHAR_SCRIPT_PAHAWH_HMONG:         Pahawh Hmong.
+ * @UCHAR_SCRIPT_PALMYRENE:            Palmyrene.
+ * @UCHAR_SCRIPT_PAU_CIN_HAU:          Pau Cin Hau.
+ * @UCHAR_SCRIPT_PSALTER_PAHLAVI:      Psalter Pahlavi.
+ * @UCHAR_SCRIPT_SIDDHAM:              Siddham.
+ * @UCHAR_SCRIPT_TIRHUTA:              Tirhuta.
+ * @UCHAR_SCRIPT_WARANG_CITI:          Warang Citi.
+ * @UCHAR_SCRIPT_AHOM:                 Ahom.
+ * @UCHAR_SCRIPT_ANATOLIAN_HIEROGLYPHS: Anatolian Hieroglyphs.
+ * @UCHAR_SCRIPT_HATRAN:               Hatran.
+ * @UCHAR_SCRIPT_MULTANI:              Multani.
+ * @UCHAR_SCRIPT_OLD_HUNGARIAN:        Old Hungarian.
+ * @UCHAR_SCRIPT_SIGNWRITING:          Signwriting.
+ * @UCHAR_SCRIPT_ADLAM:                Adlam.
+ * @UCHAR_SCRIPT_BHAIKSUKI:            Bhaiksuki.
+ * @UCHAR_SCRIPT_MARCHEN:              Marchen.
+ * @UCHAR_SCRIPT_NEWA:                 Newa.
+ * @UCHAR_SCRIPT_OSAGE:                Osage.
+ * @UCHAR_SCRIPT_TANGUT:               Tangut.
+ * @UCHAR_SCRIPT_MASARAM_GONDI:        Masaram Gondi.
+ * @UCHAR_SCRIPT_NUSHU:                Nushu.
+ * @UCHAR_SCRIPT_SOYOMBO:              Soyombo.
+ * @UCHAR_SCRIPT_ZANABAZAR_SQUARE:     Zanabazar Square.
+ * @UCHAR_SCRIPT_DOGRA:                Dogra.
+ * @UCHAR_SCRIPT_GUNJALA_GONDI:        Gunjala Gondi.
+ * @UCHAR_SCRIPT_HANIFI_ROHINGYA:      Hanifi Rohingya.
+ * @UCHAR_SCRIPT_MAKASAR:              Makasar.
+ * @UCHAR_SCRIPT_MEDEFAIDRIN:          Medefaidrin.
+ * @UCHAR_SCRIPT_OLD_SOGDIAN:          Old Sogdian.
+ * @UCHAR_SCRIPT_SOGDIAN:              Sogdian.
  *
  * This enumeration identifies different writing
  * systems. The values correspond to the names as defined in the
@@ -10360,14 +10354,27 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * The break opportunity code
  */
+#define BOV_BEFORE_MASK         0xF0
+#define BOV_AFTER_MASK          0x0F
+
+#define BOV_BEFORE_NOTALLOWED   0x00
+#define BOV_BEFORE_MANDATORY    0x10
+#define BOV_BEFORE_ALLOWED      0x20
+
+#define BOV_AFTER_NOTALLOWED    0x00
+#define BOV_AFTER_MANDATORY     0x10
+#define BOV_AFTER_ALLOWED       0x20
+
 typedef enum {
     BOV_UNKNOWN,
     BOV_MANDATORY_AFTER,
     BOV_MANDATORY_BEFORE,
     BOV_ALLOWED_AFTER,
     BOV_ALLOWED_BEFORE,
+    BOV_ALLOWED_BOTH,
     BOV_NOT_ALLOWED_AFTER,
     BOV_NOT_ALLOWED_BEFORE,
+    BOV_NOT_ALLOWED_BOTH,
 } BreakOpportunityCode;
 
 /**
