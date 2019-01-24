@@ -10358,26 +10358,15 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * The break opportunity code
  */
-#define BOV_BEFORE_MASK             0xF0
-#define BOV_AFTER_MASK              0x0F
+#define BOV_UNKNOWN          0x00
+#define BOV_SET_FLAG         0x08
+#define BOV_MANDATORY_FLAG   0x04
+#define BOV_BREAK_FLAG       0x01
 
-#define BOV_BEFORE_UNKNOWN          0x00
-#define BOV_BEFORE_SET_FLAG         0x80
-#define BOV_BEFORE_MANDATORY_FLAG   0x40
-#define BOV_BEFORE_BREAK_FLAG       0x10
-#define BOV_BEFORE_NOTALLOWED   (BOV_BEFORE_SET_FLAG | 0x00)
-#define BOV_BEFORE_ALLOWED      (BOV_BEFORE_SET_FLAG | BOV_BEFORE_BREAK_FLAG)
-#define BOV_BEFORE_MANDATORY \
-    (BOV_BEFORE_SET_FLAG | BOV_BEFORE_MANDATORY_FLAG | BOV_BEFORE_BREAK_FLAG)
-
-#define BOV_AFTER_UNKNOWN           0x00
-#define BOV_AFTER_SET_FLAG          0x08
-#define BOV_AFTER_MANDATORY_FLAG    0x04
-#define BOV_AFTER_BREAK_FLAG        0x01
-#define BOV_AFTER_NOTALLOWED    (BOV_AFTER_SET_FLAG | 0x00)
-#define BOV_AFTER_ALLOWED       (BOV_AFTER_SET_FLAG | BOV_AFTER_BREAK_FLAG)
-#define BOV_AFTER_MANDATORY \
-    (BOV_AFTER_SET_FLAG | BOV_AFTER_MANDATORY_FLAG | BOV_AFTER_BREAK_FLAG)
+#define BOV_NOTALLOWED   (BOV_SET_FLAG | 0x00)
+#define BOV_ALLOWED      (BOV_SET_FLAG | BOV_BREAK_FLAG)
+#define BOV_MANDATORY \
+    (BOV_SET_FLAG | BOV_MANDATORY_FLAG | BOV_BREAK_FLAG)
 
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
@@ -10417,20 +10406,16 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *        allocated glyph string.
  * \param break_opps The pointer to a Uint8 buffer to store
  *        the break opportunities array of the glpyhs; can be NULL.
- *        Every glyph will have OR'ed value of BOV_BEFORE_XXX and BOV_AFTER_XXX
- *        values::
- *          - BOV_BEFORE_MANDATORY\n
- *            Mandatory break before the glyph.
- *          - BOV_BEFORE_NOTALLOWED\n
+ *        Note that the length of this array is always one longer than
+ *        glyphs array. The first unit of the array stores the before
+ *        break opportunity of the first glyph, and the others store
+ *        the after break opportunities of all gyphs.
+ *        The break opportunity can be one of the following values:
+ *          - BOV_MANDATORY\n
+ *            Mandatory break.
+ *          - BOV_NOTALLOWED\n
  *            No break allowed before the glyph.
- *          - BOV_BEFORE_ALLOWED\n
- *            Break allowed before the glyph.
- *          - BOV_AFTER_MANDATORY\n
- *            Mandatory break after the glyph.
- *          - BOV_AFTER_ALLOWED\n
- *            Break allowed after the glyph.
- *          - BOV_AFTER_NOTALLOWED\n
- *            No break allowed after the glyph.
+ *          - BOV_ALLOWED\n
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
  *
  * \return The number of the bytes consumed in \a mstr; zero on error.
