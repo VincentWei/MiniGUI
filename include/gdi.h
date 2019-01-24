@@ -10357,13 +10357,15 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 #define BOV_BEFORE_MASK         0xF0
 #define BOV_AFTER_MASK          0x0F
 
-#define BOV_BEFORE_NOTALLOWED   0x00
-#define BOV_BEFORE_MANDATORY    0x10
-#define BOV_BEFORE_ALLOWED      0x20
+#define BOV_BEFORE_UNKNOWN      0x00
+#define BOV_BEFORE_NOTALLOWED   0x80
+#define BOV_BEFORE_ALLOWED      0x90
+#define BOV_BEFORE_MANDATORY    0xB0
 
-#define BOV_AFTER_NOTALLOWED    0x00
-#define BOV_AFTER_MANDATORY     0x10
-#define BOV_AFTER_ALLOWED       0x20
+#define BOV_AFTER_UNKNOWN       0x00
+#define BOV_AFTER_NOTALLOWED    0x08
+#define BOV_AFTER_ALLOWED       0x09
+#define BOV_AFTER_MANDATORY     0x0B
 
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
