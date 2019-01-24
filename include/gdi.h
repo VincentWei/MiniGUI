@@ -10270,6 +10270,10 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *      including at the end of the line.
  *  - A line breaking opportunity exists after every preserved
  *      white space glyph, including between white space characters.
+ *
+ * When white space rule is specified to be WSR_BREAK_SPACES, the manner
+ * of \a GetGlyphsByRules and \a GetGlyphsExtentPointEx will conform
+ * to UNICODE LINE BREAKING ALGORITHM.
  */
 #define WSR_BREAK_SPACES    0x05
 
@@ -10354,18 +10358,26 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * The break opportunity code
  */
-#define BOV_BEFORE_MASK         0xF0
-#define BOV_AFTER_MASK          0x0F
+#define BOV_BEFORE_MASK             0xF0
+#define BOV_AFTER_MASK              0x0F
 
-#define BOV_BEFORE_UNKNOWN      0x00
-#define BOV_BEFORE_NOTALLOWED   0x80
-#define BOV_BEFORE_ALLOWED      0x90
-#define BOV_BEFORE_MANDATORY    0xB0
+#define BOV_BEFORE_UNKNOWN          0x00
+#define BOV_BEFORE_SET_FLAG         0x80
+#define BOV_BEFORE_MANDATORY_FLAG   0x40
+#define BOV_BEFORE_BREAK_FLAG       0x10
+#define BOV_BEFORE_NOTALLOWED   (BOV_BEFORE_SET_FLAG | 0x00)
+#define BOV_BEFORE_ALLOWED      (BOV_BEFORE_SET_FLAG | BOV_BEFORE_BREAK_FLAG)
+#define BOV_BEFORE_MANDATORY \
+    (BOV_BEFORE_SET_FLAG | BOV_BEFORE_MANDATORY_FLAG | BOV_BEFORE_BREAK_FLAG)
 
-#define BOV_AFTER_UNKNOWN       0x00
-#define BOV_AFTER_NOTALLOWED    0x08
-#define BOV_AFTER_ALLOWED       0x09
-#define BOV_AFTER_MANDATORY     0x0B
+#define BOV_AFTER_UNKNOWN           0x00
+#define BOV_AFTER_SET_FLAG          0x08
+#define BOV_AFTER_MANDATORY_FLAG    0x04
+#define BOV_AFTER_BREAK_FLAG        0x01
+#define BOV_AFTER_NOTALLOWED    (BOV_AFTER_SET_FLAG | 0x00)
+#define BOV_AFTER_ALLOWED       (BOV_AFTER_SET_FLAG | BOV_AFTER_BREAK_FLAG)
+#define BOV_AFTER_MANDATORY \
+    (BOV_AFTER_SET_FLAG | BOV_AFTER_MANDATORY_FLAG | BOV_AFTER_BREAK_FLAG)
 
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,

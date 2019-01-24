@@ -68,14 +68,20 @@
 
 #define MIN_LEN_GLYPHS      4
 #define INC_LEN_GLYPHS      4
+#define UCHAR_BREAK_UNSET   -1
+
+#define UCHAR_SPACE         0x0020
+#define UCHAR_TAB           0x0009
 
 struct glyph_break_info {
     DEVFONT* mbc_devfont;
     DEVFONT* sbc_devfont;
-    int      len_buff;
-    int      n;
     Glyph32* gs;
     Uint8*   bs;
+
+    int      len_buff;
+    int      n;
+    int      base_bt;
 };
 
 static int gbinfo_init(struct glyph_break_info* gbinfo, int size)
@@ -220,13 +226,13 @@ static UCharBreakType resolve_line_breaking_class(
 static int collapse_space(struct glyph_break_info* gbinfo,
     const char* mstr, int mstr_len)
 {
+    Uchar32 uc;
     UCharBreakType bt;
     int cosumed = 0;
 
     do {
         int mclen;
         Glyph32 gv;
-        Uchar32 uc;
 
         mclen = get_next_glyph(gbinfo, mstr, mstr_len,
                         &gv, &uc);
@@ -238,7 +244,7 @@ static int collapse_space(struct glyph_break_info* gbinfo,
         cosumed += mclen;
 
         bt = UCharGetBreak(uc);
-    } while (bt == UCHAR_BREAK_SPACE);
+    } while (bt == UCHAR_BREAK_SPACE || uc == UCHAR_TAB);
 
     return cosumed;
 }
@@ -259,19 +265,37 @@ static int collapse_line_feed(struct glyph_break_info* gbinfo,
     return cosumed;
 }
 
-static BOOL is_next_glyph_zw(struct glyph_break_info* gbinfo,
+static int check_glyphs_following_zw(struct glyph_break_info* gbinfo,
     const char* mstr, int mstr_len)
 {
-    int mclen;
-    Glyph32 gv;
-    Uchar32 uc;
+    int cosumed = 0;
 
-    mclen = get_next_glyph(gbinfo, mstr, mstr_len,
-                    &gv, &uc);
-    if (mclen > 0 && UCharGetBreak(uc) == UCHAR_BREAK_ZERO_WIDTH_SPACE)
-        return TRUE;
+    do {
+        int mclen;
+        Glyph32 gv;
+        Uchar32 uc;
 
-    return FALSE;
+        mclen = get_next_glyph(gbinfo, mstr, mstr_len,
+                        &gv, &uc);
+        if (mclen > 0) {
+            mstr += mclen;
+            mstr_len -= mclen;
+            cosumed += mclen;
+
+            if (UCharGetBreak(uc) == UCHAR_BREAK_SPACE) {
+                gbinfo_push_back(gbinfo, gv, BOV_BEFORE_NOTALLOWED);
+            }
+            else {
+                gbinfo_push_back(gbinfo, gv, BOV_BEFORE_MANDATORY);
+                break;
+            }
+        }
+        else
+            break;
+
+    } while (TRUE);
+
+    return cosumed;
 }
 
 static int is_next_glyph_bt(struct glyph_break_info* gbinfo,
@@ -508,6 +532,22 @@ static int is_next_glyph_al_hl_nu(struct glyph_break_info* gbinfo,
     return 0;
 }
 
+#if 0
+static BOOL is_next_glyph_zw(struct glyph_break_info* gbinfo,
+    const char* mstr, int mstr_len)
+{
+    int mclen;
+    Glyph32 gv;
+    Uchar32 uc;
+
+    mclen = get_next_glyph(gbinfo, mstr, mstr_len,
+                    &gv, &uc);
+    if (mclen > 0 && UCharGetBreak(uc) == UCHAR_BREAK_ZERO_WIDTH_SPACE)
+        return TRUE;
+
+    return FALSE;
+}
+
 static int check_subsequent_cm_or_zwj(struct glyph_break_info* gbinfo,
     const char* mstr, int mstr_len)
 {
@@ -528,6 +568,7 @@ static int check_subsequent_cm_or_zwj(struct glyph_break_info* gbinfo,
 
     return cosumed;
 }
+#endif
 
 static int check_subsequent_sp(struct glyph_break_info* gbinfo,
     const char* mstr, int mstr_len)
@@ -537,9 +578,7 @@ static int check_subsequent_sp(struct glyph_break_info* gbinfo,
     Glyph32 gv;
     Uchar32 uc;
 
-    while ((mclen = is_next_glyph_sp(gbinfo,
-        mstr, mstr_len, &gv, &uc)) > 0) {
-
+    while ((mclen = is_next_glyph_sp(gbinfo, mstr, mstr_len, &gv, &uc)) > 0) {
         gbinfo_push_back(gbinfo, gv, BOV_AFTER_NOTALLOWED);
         cosumed += mclen;
     }
@@ -592,14 +631,12 @@ static int check_subsequent_sps_and_end_bt(struct glyph_break_info* gbinfo,
                 mstr += mclen;
                 mstr_len -= mclen;
                 cosumed += mclen;
-
                 gbinfo_push_back(gbinfo, gv,
                     BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED);
                 continue;
             }
             else if (bt == end_bt) {
                 cosumed += mclen;
-
                 gbinfo_push_back(gbinfo, gv, BOV_BEFORE_NOTALLOWED);
             }
         }
@@ -680,10 +717,11 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
     gbinfo.mbc_devfont = logfont->mbc_devfont;
     gbinfo.sbc_devfont = logfont->sbc_devfont;
-    gbinfo.len_buff = 0;
-    gbinfo.n = 0;
     gbinfo.gs = NULL;
     gbinfo.bs = NULL;
+    gbinfo.len_buff = 0;
+    gbinfo.n = 0;
+    gbinfo.base_bt = UCHAR_BREAK_UNSET;
 
     *glyphs = NULL;
     *break_oppos = NULL;
@@ -700,13 +738,13 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         Glyph32 gv;
         Uchar32 uc;
         int mclen;
-        UCharBasicType gc;
         UCharBreakType bt;
-        Uint8 bo = 0;
+        Uint8 bo = BOV_BEFORE_UNKNOWN | BOV_AFTER_UNKNOWN;
 
         Glyph32 next_gv;
         Uchar32 next_uc;
         int next_mclen;
+        int idx_curr_glyph;
 
         mclen = get_next_glyph(&gbinfo, mstr, mstr_len, &gv, &uc);
         if (mclen == 0) {
@@ -714,25 +752,41 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             break;
         }
 
-        if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP) {
-            // TODO: only break at forced line breaks.
-        }
-        else {
-            // mark all breaking opportunities
+        if ((space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP
+                || space_rule == WSR_PRE_LINE) && uc == UCHAR_TAB) {
+            // Every tab is converted to a space (U+0020).
+            uc = UCHAR_SPACE;
+            if (IS_MBC_GLYPH(gv))
+                gv = SET_MBC_GLYPH(UCHAR_SPACE);
+            else
+                gv = UCHAR_SPACE;
         }
 
+        // Only break at forced line breaks.
+        if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP)
+            // Set the default breaking manner is not allowed.
+            bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED;
+        else
+            // Set the default breaking manner is not set.
+            bo = BOV_BEFORE_UNKNOWN | BOV_AFTER_UNKNOWN;
+
+        if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
+            goto error;
+        idx_curr_glyph = gbinfo.n - 1;
+
+        /*
+         * UNICODE LINE BREAKING ALGORITHM
+         */
+
         // LB1 Resolve line breaking class
-        gc = UCharGetType(uc);
-        bt = UCharGetBreak(uc);
         bt = resolve_line_breaking_class(content_language, writing_system,
-                gc, bt);
+                UCharGetType(uc), UCharGetBreak(uc));
 
         /* Start and end of text */
         // LB2 Never break at the start of text.
         if (gbinfo.n == 0) {
             bo = BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         // LB3 Always break at the end of text.
         else if (*mstr == '\0') {
@@ -742,59 +796,66 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         /* Mandatory breaks */
         // LB4 Always break after hard line breaks
         // LB6 Do not break before hard line breaks.
-        else if (bt == UCHAR_BREAK_MANDATORY) {
-            bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+        if (bt == UCHAR_BREAK_MANDATORY) {
+            bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_MANDATORY;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         // LB5 Treat CR followed by LF, as well as CR, LF,
         // and NL as hard line breaks.
         // LB6 Do not break before hard line breaks.
         else if (bt == UCHAR_BREAK_CARRIAGE_RETURN) {
             mclen += collapse_line_feed(&gbinfo, mstr, mstr_len);
-            bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+
+            if (space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP)
+                // Collapse new lines
+                bo = BOV_BEFORE_NOTALLOWED;
+            else
+                bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_MANDATORY;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         // LB5 Treat CR followed by LF, as well as CR, LF,
         // and NL as hard line breaks.
         // LB6 Do not break before hard line breaks.
         else if (bt == UCHAR_BREAK_LINE_FEED
                 || bt == UCHAR_BREAK_NEXT_LINE) {
-            bo = BOV_AFTER_MANDATORY | BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+
+            if (space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP)
+                // Collapse new lines
+                bo = BOV_BEFORE_NOTALLOWED;
+            else
+                bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_MANDATORY;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
 
         /* Explicit breaks and non-breaks */
         // LB7: Do not break before spaces or zero width space.
-        else if (bt == UCHAR_BREAK_SPACE
+        if (bt == UCHAR_BREAK_SPACE
                 || bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
             bo = BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             if (space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP) {
                 // CSS: collapses space according to space rule
                 mclen += collapse_space(&gbinfo, mstr, mstr_len);
             }
         }
-        // LB7: Do not break before spaces or zero width space.
-        else if (bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
-            bo = BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
-        }
+
         // LB8: Break before any character following a zero-width space,
         // even if one or more spaces intervene.
-        else if (is_next_glyph_zw(&gbinfo, mstr, mstr_len)) {
-            bo = BOV_BEFORE_MANDATORY;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+        if (bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
+            mclen += check_glyphs_following_zw(&gbinfo,
+                    mstr + mclen, mstr_len - mclen);
         }
+
+        // Only break at forced line breaks.
+        if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP) {
+            // ignore the following breaking rules.
+            goto next_glyph;
+        }
+
         // LB8a Do not break between a zero width joiner and an ideograph,
         // emoji base or emoji modifier.
-        else if (bt == UCHAR_BREAK_ZERO_WIDTH_JOINER
+        if (bt == UCHAR_BREAK_ZERO_WIDTH_JOINER
                 && (next_mclen = is_next_glyph_id_eb_em(&gbinfo,
                     mstr + mclen, mstr_len - mclen,
                     &next_gv, &next_uc)) > 0) {
@@ -802,8 +863,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -815,31 +875,30 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // treat it as if it has the line breaking class of
         // the base character in all of the following rules.
         // Treat ZWJ as if it were CM.
+        // CM/ZWJ should have the same break class as
+        // its base character.
+        if ((bt == UCHAR_BREAK_COMBINING_MARK
+                    || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)
+                && gbinfo.base_bt != UCHAR_BREAK_UNSET) {
+            bt = gbinfo.base_bt;
+        }
         else if (bt != UCHAR_BREAK_MANDATORY
                 && bt != UCHAR_BREAK_CARRIAGE_RETURN
                 && bt != UCHAR_BREAK_LINE_FEED
                 && bt != UCHAR_BREAK_NEXT_LINE
                 && bt != UCHAR_BREAK_SPACE
                 && bt != UCHAR_BREAK_ZERO_WIDTH_SPACE
-                && (next_mclen = is_next_glyph_cm_zwj(&gbinfo,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
-            mclen += next_mclen;
-
+                && (is_next_glyph_cm_zwj(&gbinfo,
+                    mstr + mclen, mstr_len - mclen, &next_gv, &next_uc)) > 0) {
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
-            // FIXME: CM/ZWJ should have the same break class as
+            // CM/ZWJ should have the same break class as
             // its base character.
-            bo = BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
-                goto error;
-
-            // For any possible subsequent CM/ZWJ characters.
-            mclen += check_subsequent_cm_or_zwj(&gbinfo,
-                    mstr + mclen + next_mclen,
-                    mstr_len - mclen - next_mclen);
-
+            gbinfo.base_bt = bt;
+        }
+        else if (gbinfo.base_bt != UCHAR_BREAK_UNSET) {
+            gbinfo.base_bt = UCHAR_BREAK_UNSET;
         }
         // LB10 Treat any remaining combining mark or ZWJ as AL.
         else if (bt == UCHAR_BREAK_COMBINING_MARK
@@ -850,16 +909,14 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         /* Word joiner */
         // LB11 Do not break before or after Word joiner
         // and related characters.
-        else if (bt == UCHAR_BREAK_WORD_JOINER) {
+        if (bt == UCHAR_BREAK_WORD_JOINER) {
             bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         // LB12 Do not break after NBSP and related characters.
         else if (bt == UCHAR_BREAK_NON_BREAKING_GLUE) {
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
 
         /* Non-breaking characters */
@@ -873,11 +930,10 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     &next_gv, &next_uc)) > 0) {
             mclen += next_mclen;
 
-            bo |= BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
-            bo |= BOV_BEFORE_NOTALLOWED;
+            bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
                 goto error;
         }
@@ -889,15 +945,13 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 || bt == UCHAR_BREAK_EXCLAMATION
                 || bt == UCHAR_BREAK_INFIX_SEPARATOR
                 || bt == UCHAR_BREAK_SYMBOL) {
-            bo |= BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_BEFORE_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         // LB14 Do not break after ‘[’, even after spaces.
         else if (bt == UCHAR_BREAK_OPEN_PUNCTUATION) {
-            bo |= BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             // For any possible subsequent space.
             mclen += check_subsequent_sp(&gbinfo,
@@ -909,9 +963,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr + mclen, mstr_len - mclen,
                     UCHAR_BREAK_OPEN_PUNCTUATION))) {
 
-            bo |= BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             // For subsequent spaces and OP.
             mclen += check_subsequent_sps_and_end_bt(&gbinfo,
@@ -926,9 +979,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr + mclen, mstr_len - mclen,
                     UCHAR_BREAK_NON_STARTER))) {
 
-            bo |= BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             // For subsequent spaces and NS.
             mclen += check_subsequent_sps_and_end_bt(&gbinfo,
@@ -941,9 +993,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr + mclen, mstr_len - mclen,
                     UCHAR_BREAK_BEFORE_AND_AFTER))) {
 
-            bo |= BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             // For subsequent spaces and B2.
             mclen += check_subsequent_sps_and_end_bt(&gbinfo,
@@ -954,22 +1005,19 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         /* Spaces */
         // LB18 Break after spaces.
         if (bt == UCHAR_BREAK_SPACE) {
-            bo |= BOV_AFTER_ALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_ALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
 
         /* Special case rules */
         // LB19 Do not break before or after quotation marks, such as ‘ ” ’.
         if (bt == UCHAR_BREAK_QUOTATION) {
-            bo |= BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_BEFORE_NOTALLOWED | BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         else if (bt == UCHAR_BREAK_CONTINGENT) {
-            bo |= BOV_BEFORE_ALLOWED | BOV_AFTER_ALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_BEFORE_ALLOWED | BOV_AFTER_ALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         // LB21 Do not break before hyphen-minus, other hyphens,
         // fixed-width spaces, small kana, and other non-starters,
@@ -977,14 +1025,12 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         else if (bt == UCHAR_BREAK_AFTER
                 || bt == UCHAR_BREAK_HYPHEN
                 || bt == UCHAR_BREAK_NON_STARTER) {
-            bo |= BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_BEFORE_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         else if (bt == UCHAR_BREAK_BEFORE) {
-            bo |= BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
         }
         // LB21a Don't break after Hebrew + Hyphen.
         else if (bt == UCHAR_BREAK_HEBREW_LETTER
@@ -993,11 +1039,10 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     &next_gv, &next_uc)) > 0) {
             mclen += next_mclen;
 
-            bo |= BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
-            bo |= BOV_AFTER_NOTALLOWED;
+            bo = BOV_AFTER_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
                 goto error;
         }
@@ -1009,8 +1054,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1032,8 +1076,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1050,8 +1093,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1064,8 +1106,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1080,8 +1121,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1096,8 +1136,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1113,8 +1152,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1128,8 +1166,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1144,22 +1181,33 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
                 goto error;
         }
         else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
+                && (next_mclen = is_next_glyph_pr(&gbinfo,
+                    mstr + mclen, mstr_len - mclen,
+                    &next_gv, &next_uc)) > 0) {
+            mclen += next_mclen;
+
+            bo = BOV_AFTER_NOTALLOWED;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
+
+            bo = BOV_BEFORE_NOTALLOWED;
+            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
+                goto error;
+        }
+        else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
                 && (next_mclen = is_next_glyph_po(&gbinfo,
                     mstr + mclen, mstr_len - mclen,
                     &next_gv, &next_uc)) > 0) {
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1172,22 +1220,20 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
                 goto error;
         }
-        else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
-                && (next_mclen = is_next_glyph_pr(&gbinfo,
+        else if (bt == UCHAR_BREAK_NUMERIC
+                && (next_mclen = is_next_glyph_po(&gbinfo,
                     mstr + mclen, mstr_len - mclen,
                     &next_gv, &next_uc)) > 0) {
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1200,22 +1246,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
-
-            bo = BOV_BEFORE_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
-                goto error;
-        }
-        else if (bt == UCHAR_BREAK_NUMERIC
-                && (next_mclen = is_next_glyph_pr(&gbinfo,
-                    mstr + mclen, mstr_len - mclen,
-                    &next_gv, &next_uc)) > 0) {
-            mclen += next_mclen;
-
-            bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1228,8 +1259,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1242,8 +1272,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1256,8 +1285,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1270,8 +1298,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1284,8 +1311,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1298,8 +1324,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1312,8 +1337,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1326,8 +1350,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1343,8 +1366,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1358,8 +1380,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1373,8 +1394,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1392,8 +1412,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1410,8 +1429,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1424,8 +1442,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1444,8 +1461,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1461,8 +1477,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1480,8 +1495,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1494,8 +1508,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
@@ -1505,7 +1518,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // LB30a Break between two regional indicator symbols if and only if
         // there are an even number of regional indicators preceding the
         // position of the break.
-        if (gbinfo.n == 0 && bt == UCHAR_BREAK_REGIONAL_INDICATOR
+        if (bt == UCHAR_BREAK_REGIONAL_INDICATOR
                 && is_even_nubmer_of_subsequent_ri(&gbinfo,
                     mstr - mclen, mstr_len + mclen)) {
             mclen = check_even_nubmer_of_subsequent_ri(&gbinfo,
@@ -1516,8 +1529,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr + mclen, mstr_len - mclen)) {
 
             bo = BOV_BEFORE_UNKNOWN | BOV_AFTER_ALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             mclen += check_even_nubmer_of_subsequent_ri(&gbinfo,
                 mstr + mclen, mstr_len - mclen);
@@ -1531,36 +1543,42 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             mclen += next_mclen;
 
             bo = BOV_AFTER_NOTALLOWED;
-            if (gbinfo_push_back(&gbinfo, gv, bo) == 0)
-                goto error;
+            gbinfo_change_bt(&gbinfo, idx_curr_glyph, bo);
 
             bo = BOV_BEFORE_NOTALLOWED;
             if (gbinfo_push_back(&gbinfo, next_gv, bo) == 0)
                 goto error;
         }
 
-        // LB31 Break everywhere else.
-
+next_glyph:
         mstr_len -= mclen;
         mstr += mclen;
         cosumed += mclen;
 
         // Return if we got any BK!
-        if ((gbinfo.bs[gbinfo.n] & BOV_AFTER_MASK) == BOV_AFTER_MANDATORY) {
+        if ((gbinfo.bs[gbinfo.n - 1] & BOV_AFTER_MASK) == BOV_AFTER_MANDATORY) {
             break;
         }
     }
 
-    if (gbinfo.n == 0) {
-        if (gbinfo.gs) free(gbinfo.gs);
-        if (gbinfo.bs) free(gbinfo.bs);
-        return 0;
-    }
-    else {
+    if (gbinfo.n > 0) {
+        // LB31 Break everywhere else.
+        int n = 0;
+        for (n = 0; n < gbinfo.n; n++) {
+            if ((gbinfo.bs[n] & BOV_BEFORE_MASK) == BOV_BEFORE_UNKNOWN) {
+                gbinfo_change_bt(&gbinfo, n, BOV_BEFORE_ALLOWED);
+            }
+            if ((gbinfo.bs[n] & BOV_AFTER_MASK) == BOV_AFTER_UNKNOWN) {
+                gbinfo_change_bt(&gbinfo, n, BOV_AFTER_ALLOWED);
+            }
+        }
+
         *glyphs = gbinfo.gs;
         *break_oppos = gbinfo.bs;
         *nr_glyphs = gbinfo.n;
     }
+    else
+        goto error;
 
     return cosumed;
 
