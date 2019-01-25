@@ -156,11 +156,15 @@ static BOOL gbctxt_change_bt_last(struct glyph_break_ctxt* gbctxt,
     if (gbctxt->n < 1)
         return FALSE;
 
-    if (gbctxt->bs[gbctxt->n - 1] & BOV_MANDATORY_FLAG) {
+    if (gbctxt->bs[gbctxt->n - 1] == BOV_UNKNOWN) {
+         gbctxt->bs[gbctxt->n - 1] = bt;
+         gbctxt->od[gbctxt->n - 1] = gbctxt->curr_od;
+    }
+    else if (gbctxt->bs[gbctxt->n - 1] & BOV_MANDATORY_FLAG) {
         _DBG_PRINTF("%s: ignore the change: old one is mandatory\n",
             __FUNCTION__);
     }
-    else if (gbctxt->curr_od < gbctxt->od[gbctxt->n - 1]) {
+    else if (gbctxt->curr_od <= gbctxt->od[gbctxt->n - 1]) {
         _DBG_PRINTF("%s: changed: curr_od(%d), org_od(%d)\n",
             __FUNCTION__, gbctxt->curr_od, gbctxt->od[gbctxt->n - 1]);
          gbctxt->bs[gbctxt->n - 1] = bt;
@@ -182,12 +186,18 @@ static BOOL gbctxt_change_bt_before_last(struct glyph_break_ctxt* gbctxt,
         return FALSE;
     }
 
+#if 0
     // do not apply this bt to the char before last one
     if (gbctxt->base_bt != UCHAR_BREAK_UNSET) {
         return FALSE;
     }
+#endif
 
-    if (gbctxt->bs[gbctxt->n - 2] & BOV_MANDATORY_FLAG) {
+    if (gbctxt->bs[gbctxt->n - 2] == BOV_UNKNOWN) {
+         gbctxt->bs[gbctxt->n - 2] = bt;
+         gbctxt->od[gbctxt->n - 2] = gbctxt->curr_od;
+    }
+    else if (gbctxt->bs[gbctxt->n - 2] & BOV_MANDATORY_FLAG) {
         _DBG_PRINTF("%s: ignore the change: old one is mandatory\n",
             __FUNCTION__);
     }
@@ -200,7 +210,7 @@ static BOOL gbctxt_change_bt_before_last(struct glyph_break_ctxt* gbctxt,
         _DBG_PRINTF("%s: ignore the change\n", __FUNCTION__);
     }
 #endif
-    else if (gbctxt->curr_od < gbctxt->od[gbctxt->n - 2]) {
+    else if (gbctxt->curr_od <= gbctxt->od[gbctxt->n - 2]) {
         _DBG_PRINTF("%s: changed: curr_od(%d), org_od(%d)\n",
             __FUNCTION__, gbctxt->curr_od, gbctxt->od[gbctxt->n - 2]);
          gbctxt->bs[gbctxt->n - 2] = bt;
@@ -213,6 +223,7 @@ static BOOL gbctxt_change_bt_before_last(struct glyph_break_ctxt* gbctxt,
     return TRUE;
 }
 
+#if 0
 static BOOL gbctxt_change_bt_before_last_sp(struct glyph_break_ctxt* gbctxt,
         Uint8 bt)
 {
@@ -239,6 +250,7 @@ static BOOL gbctxt_change_bt_before_last_sp(struct glyph_break_ctxt* gbctxt,
 
     return TRUE;
 }
+#endif
 
 static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
     const char* mstr, int mstr_len, Glyph32* gv, Uchar32* uc)
@@ -313,6 +325,16 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
         bt = UCHAR_BREAK_NON_STARTER;
         break;
 
+    case UCHAR_BREAK_COMBINING_MARK:
+    case UCHAR_BREAK_ZERO_WIDTH_JOINER:
+        if (gbctxt->base_bt != UCHAR_BREAK_UNSET) {
+            _DBG_PRINTF ("CM as if it has the line breaking class of the base character(%d)\n", gbctxt->base_bt);
+            // CM/ZWJ should have the same break class as
+            // its base character.
+            bt = gbctxt->base_bt;
+        }
+        break;
+
     default:
         break;
     }
@@ -346,22 +368,6 @@ static int collapse_space(struct glyph_break_ctxt* gbctxt,
     return cosumed;
 }
 
-static int collapse_line_feed(struct glyph_break_ctxt* gbctxt,
-    const char* mstr, int mstr_len)
-{
-    int cosumed = 0;
-    int mclen;
-    Glyph32 gv;
-    Uchar32 uc;
-
-    mclen = get_next_glyph(gbctxt, mstr, mstr_len,
-                    &gv, &uc);
-    if (mclen > 0 && resolve_lbc(gbctxt, uc) == UCHAR_BREAK_LINE_FEED)
-        cosumed = mclen;
-
-    return cosumed;
-}
-
 static int check_glyphs_following_zw(struct glyph_break_ctxt* gbctxt,
     const char* mstr, int mstr_len)
 {
@@ -377,9 +383,10 @@ static int check_glyphs_following_zw(struct glyph_break_ctxt* gbctxt,
         if (mclen > 0) {
             mstr += mclen;
             mstr_len -= mclen;
-            cosumed += mclen;
 
             if (resolve_lbc(gbctxt, uc) == UCHAR_BREAK_SPACE) {
+                cosumed += mclen;
+                gbctxt_change_bt_last(gbctxt, BOV_NOTALLOWED);
                 gbctxt_push_back(gbctxt, gv, BOV_NOTALLOWED);
             }
             else {
@@ -406,6 +413,13 @@ static int is_next_glyph_bt(struct glyph_break_ctxt* gbctxt,
         return mclen;
 
     return 0;
+}
+
+static inline int is_next_glyph_lf(struct glyph_break_ctxt* gbctxt,
+    const char* mstr, int mstr_len, Glyph32* gv, Uchar32* uc)
+{
+    return is_next_glyph_bt(gbctxt, mstr, mstr_len, gv, uc,
+            UCHAR_BREAK_LINE_FEED);
 }
 
 static inline int is_next_glyph_sp(struct glyph_break_ctxt* gbctxt,
@@ -485,7 +499,7 @@ static int is_next_glyph_cm_zwj(struct glyph_break_ctxt* gbctxt,
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = UCharGetBreak(*uc);
         if (bt == UCHAR_BREAK_COMBINING_MARK
                 || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)
             return mclen;
@@ -643,8 +657,9 @@ static BOOL is_next_glyph_zw(struct glyph_break_ctxt* gbctxt,
 
     return FALSE;
 }
+#endif
 
-static int check_subsequent_cm_or_zwj(struct glyph_break_ctxt* gbctxt,
+static int check_subsequent_cm_zwj(struct glyph_break_ctxt* gbctxt,
     const char* mstr, int mstr_len)
 {
     int cosumed = 0;
@@ -652,19 +667,20 @@ static int check_subsequent_cm_or_zwj(struct glyph_break_ctxt* gbctxt,
     Glyph32 gv;
     Uchar32 uc;
 
-    while ((mclen = is_next_glyph_cm_zwj(gbctxt,
-        mstr, mstr_len, &gv, &uc)) > 0) {
+    while ((mclen = is_next_glyph_cm_zwj(gbctxt, mstr, mstr_len,
+            &gv, &uc)) > 0) {
 
         // FIXME: CM/ZWJ should have the same break class as
         // its base character.
-        gbctxt_push_back(gbctxt, gv, BOV_BEFORE_NOTALLOWED);
+        gbctxt_push_back(gbctxt, gv, BOV_NOTALLOWED);
 
+        mstr += mclen;
+        mstr_len -= mclen;
         cosumed += mclen;
     }
 
     return cosumed;
 }
-#endif
 
 static int check_subsequent_sp(struct glyph_break_ctxt* gbctxt,
     const char* mstr, int mstr_len)
@@ -721,10 +737,10 @@ static int check_subsequent_sps_and_end_bt(struct glyph_break_ctxt* gbctxt,
     Uchar32 uc;
 
     while (mstr_len > 0 && *mstr != '\0') {
-        mclen = get_next_glyph(gbctxt, mstr, mstr_len,
-                    &gv, &uc);
+        mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
         if (mclen > 0) {
             UCharBreakType bt = resolve_lbc(gbctxt, uc);
+            _DBG_PRINTF("%s: %04X (%d)\n", __FUNCTION__, uc, bt);
             if (bt == UCHAR_BREAK_SPACE) {
                 mstr += mclen;
                 mstr_len -= mclen;
@@ -744,6 +760,34 @@ static int check_subsequent_sps_and_end_bt(struct glyph_break_ctxt* gbctxt,
     return cosumed;
 }
 
+static BOOL is_odd_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
+        const char* mstr, int mstr_len)
+{
+    int nr = 0;
+    int mclen;
+    Glyph32 gv;
+    Uchar32 uc;
+
+    while (mstr_len > 0 && *mstr != '\0') {
+        mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
+        mstr += mclen;
+        mstr_len -= mclen;
+
+        if (mclen > 0 && resolve_lbc(gbctxt, uc)
+                    == UCHAR_BREAK_REGIONAL_INDICATOR) {
+            nr++;
+            continue;
+        }
+        else
+            break;
+    }
+
+    if (nr > 0 && nr % 2 != 0)
+        return TRUE;
+
+    return FALSE;
+}
+
 static BOOL is_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         const char* mstr, int mstr_len)
 {
@@ -754,9 +798,11 @@ static BOOL is_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 
     while (mstr_len > 0 && *mstr != '\0') {
         mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
+        mstr += mclen;
         mstr_len -= mclen;
 
-        if (mclen > 0 && resolve_lbc(gbctxt, uc) == UCHAR_BREAK_REGIONAL_INDICATOR) {
+        if (mclen > 0 && resolve_lbc(gbctxt, uc)
+                    == UCHAR_BREAK_REGIONAL_INDICATOR) {
             nr++;
             continue;
         }
@@ -770,10 +816,9 @@ static BOOL is_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
     return FALSE;
 }
 
-static int check_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
+static int check_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         const char* mstr, int mstr_len)
 {
-    int nr = 0;
     int cosumed = 0;
     int mclen;
     Glyph32 gv;
@@ -781,12 +826,11 @@ static int check_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 
     while (mstr_len > 0 && *mstr != '\0') {
         mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
-        if (mclen > 0
-                && resolve_lbc(gbctxt, uc) == UCHAR_BREAK_REGIONAL_INDICATOR) {
+        if (mclen > 0 && resolve_lbc(gbctxt, uc)
+                    == UCHAR_BREAK_REGIONAL_INDICATOR) {
             mstr += mclen;
             mstr_len -= mclen;
             cosumed += mclen;
-            nr++;
 
             gbctxt_push_back(gbctxt, gv, BOV_NOTALLOWED);
             continue;
@@ -850,6 +894,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         }
         mstr += mclen;
         mstr_len -= mclen;
+        cosumed += mclen;
+
+        gbctxt.base_bt = UCHAR_BREAK_UNSET;
 
         _DBG_PRINTF ("Got a glyph: %04X\n", uc);
 
@@ -914,26 +961,34 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // LB5 Treat CR followed by LF, as well as CR, LF,
         // and NL as hard line breaks.
         // LB6 Do not break before hard line breaks.
-        else if (bt == UCHAR_BREAK_CARRIAGE_RETURN) {
-            next_mclen = collapse_line_feed(&gbctxt, mstr, mstr_len);
-
-            if (col_sp)
-                // Collapse new lines
-                bo = BOV_NOTALLOWED;
-            else
-                bo = BOV_MANDATORY;
-
+        else if (bt == UCHAR_BREAK_CARRIAGE_RETURN
+                && (next_mclen = is_next_glyph_lf(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.\n");
             gbctxt.curr_od = LB5;
-            gbctxt_change_bt_last(&gbctxt, bo);
+            gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+
             _DBG_PRINTF ("LB6 Do not break before hard line breaks\n");
             gbctxt.curr_od = LB6;
             gbctxt_change_bt_before_last(&gbctxt, BOV_NOTALLOWED);
+
+            if (space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP) {
+                // Collapse new lines
+            }
+            else {
+                if (col_sp)
+                    bo = BOV_NOTALLOWED;
+                else
+                    bo = BOV_MANDATORY;
+                if (gbctxt_push_back(&gbctxt, next_gv, bo) == 0)
+                    goto error;
+            }
         }
         // LB5 Treat CR followed by LF, as well as CR, LF,
         // and NL as hard line breaks.
         // LB6 Do not break before hard line breaks.
-        else if (bt == UCHAR_BREAK_LINE_FEED
+        else if (bt == UCHAR_BREAK_CARRIAGE_RETURN
+                || bt == UCHAR_BREAK_LINE_FEED
                 || bt == UCHAR_BREAK_NEXT_LINE) {
 
             if (col_sp)
@@ -965,16 +1020,18 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
         // LB8: Break before any character following a zero-width space,
         // even if one or more spaces intervene.
-        else if (bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
+        if (bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
             _DBG_PRINTF ("LB8: Break before any character following a zero-width space...\n");
-            gbctxt.curr_od = LB8;
-            gbctxt_change_bt_last(&gbctxt, BOV_ALLOWED);
             if (col_sp) {
                 // CSS: collapses space according to space rule
                 next_mclen = collapse_space(&gbctxt, mstr, mstr_len);
             }
             else {
-                next_mclen = check_glyphs_following_zw(&gbctxt, mstr, mstr_len);
+                gbctxt.curr_od = LB8;
+                next_mclen = check_glyphs_following_zw(&gbctxt,
+                    mstr, mstr_len);
+                gbctxt_change_bt_last(&gbctxt, BOV_ALLOWED);
+                goto next_glyph;
             }
         }
 
@@ -1002,7 +1059,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // Treat ZWJ as if it were CM.
         // CM/ZWJ should have the same break class as
         // its base character.
-        else if (bt != UCHAR_BREAK_MANDATORY
+        if (bt != UCHAR_BREAK_MANDATORY
                 && bt != UCHAR_BREAK_CARRIAGE_RETURN
                 && bt != UCHAR_BREAK_LINE_FEED
                 && bt != UCHAR_BREAK_NEXT_LINE
@@ -1015,24 +1072,36 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             gbctxt.curr_od = LB9;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
 
-            // CM/ZWJ should have the same break class as
-            // its base character.
+            // LB10 Treat any remaining combining mark or ZWJ as AL.
+            if ((bt == UCHAR_BREAK_COMBINING_MARK
+                    || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)) {
+                bt = UCHAR_BREAK_ALPHABETIC;
+            }
+
             gbctxt.base_bt = bt;
-            goto next_glyph;
+            next_mclen = check_subsequent_cm_zwj(&gbctxt, mstr, mstr_len);
+            gbctxt_change_bt_last(&gbctxt, BOV_UNKNOWN);
+
+            mstr += next_mclen;
+            mstr_len -= next_mclen;
+            next_mclen = 0;
+
+            gbctxt.base_bt = UCHAR_BREAK_UNSET;
         }
+        // LB10 Treat any remaining combining mark or ZWJ as AL.
+        else if ((bt == UCHAR_BREAK_COMBINING_MARK
+                    || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)) {
+            _DBG_PRINTF ("LB10 Treat any remaining combining mark or ZWJ as AL\n");
+            bt = UCHAR_BREAK_ALPHABETIC;
+        }
+#if 0
         else if ((bt == UCHAR_BREAK_COMBINING_MARK
                     || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)
                 && gbctxt.base_bt != UCHAR_BREAK_UNSET) {
             _DBG_PRINTF ("LB9 CM/ZWJ should have the same break class as its base character\n");
             bt = gbctxt.base_bt;
         }
-        // LB10 Treat any remaining combining mark or ZWJ as AL.
-        else if ((bt == UCHAR_BREAK_COMBINING_MARK
-                    || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)
-                && gbctxt.base_bt == UCHAR_BREAK_UNSET) {
-            _DBG_PRINTF ("LB10 Treat any remaining combining mark or ZWJ as AL\n");
-            bt = UCHAR_BREAK_ALPHABETIC;
-        }
+#endif
 
         /* Word joiner */
         // LB11 Do not break before or after Word joiner
@@ -1066,14 +1135,14 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
         /* Opening and closing */
         // LB13 Do not break before ‘]’ or ‘!’ or ‘;’ or ‘/’, even after spaces.
-        else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
+        if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
                 || bt == UCHAR_BREAK_CLOSE_PARANTHESIS
                 || bt == UCHAR_BREAK_EXCLAMATION
                 || bt == UCHAR_BREAK_INFIX_SEPARATOR
                 || bt == UCHAR_BREAK_SYMBOL) {
             _DBG_PRINTF ("LB13 Do not break before ‘]’ or ‘!’ or ‘;’ or ‘/’, even after spaces\n");
             gbctxt.curr_od = LB13;
-            gbctxt_change_bt_before_last_sp(&gbctxt, BOV_NOTALLOWED);
+            gbctxt_change_bt_before_last(&gbctxt, BOV_NOTALLOWED);
         }
         // LB14 Do not break after ‘[’, even after spaces.
         else if (bt == UCHAR_BREAK_OPEN_PUNCTUATION) {
@@ -1263,102 +1332,131 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         }
         // LB25 Do not break between the following pairs of classes
         // relevant to numbers
-        else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
-                && is_next_glyph_po(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+        if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
+                && (next_mclen = is_next_glyph_po(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.1 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
-                && is_next_glyph_pr(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_pr(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.2 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
-                && is_next_glyph_po(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_po(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             gbctxt.curr_od = LB25;
             _DBG_PRINTF ("LB25.3 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
-                && is_next_glyph_pr(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_pr(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.4 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_NUMERIC
-                && is_next_glyph_po(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_po(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.5 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_NUMERIC
-                && is_next_glyph_pr(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_pr(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.6 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_POSTFIX
-                && is_next_glyph_op(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_op(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             gbctxt.curr_od = LB25;
             _DBG_PRINTF ("LB25.7 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_POSTFIX
-                && is_next_glyph_nu(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_nu(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             gbctxt.curr_od = LB25;
             _DBG_PRINTF ("LB25.8 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_PREFIX
-                && is_next_glyph_op(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_op(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             gbctxt.curr_od = LB25;
             _DBG_PRINTF ("LB25.9 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_PREFIX
-                && is_next_glyph_nu(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_nu(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.a Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_HYPHEN
-                && is_next_glyph_nu(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_nu(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.b Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_INFIX_SEPARATOR
-                && is_next_glyph_nu(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_nu(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.c Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_NUMERIC
-                && is_next_glyph_nu(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_nu(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.d Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
         else if (bt == UCHAR_BREAK_SYMBOL
-                && is_next_glyph_nu(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
+                && (next_mclen = is_next_glyph_nu(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB25.e Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
         }
 
         /* Korean syllable blocks */
@@ -1379,7 +1477,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
         }
         else if ((bt == UCHAR_BREAK_HANGUL_T_JAMO
-                    || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE)
+                    || bt == UCHAR_BREAK_HANGUL_LVT_SYLLABLE)
                 && is_next_glyph_jt(&gbctxt,
                     mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB26.3 Do not break a Korean syllable.\n");
@@ -1463,23 +1561,25 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // there are an even number of regional indicators preceding the
         // position of the break.
         else if (bt == UCHAR_BREAK_REGIONAL_INDICATOR
-                && is_even_nubmer_of_subsequent_ri(&gbctxt,
-                    mstr - mclen, mstr_len + mclen)) {
-            _DBG_PRINTF ("LB30a Break between two regional indicator symbols...\n");
+                && is_odd_nubmer_of_subsequent_ri(&gbctxt,
+                    mstr, mstr_len)) {
+            _DBG_PRINTF ("LB30a.1 Break between two regional indicator symbols...\n");
             gbctxt.curr_od = LB30a;
-            next_mclen = check_even_nubmer_of_subsequent_ri(&gbctxt,
-                mstr - mclen, mstr_len + mclen);
-            next_mclen -= mclen;
+            gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            next_mclen = check_subsequent_ri(&gbctxt,
+                mstr, mstr_len);
+            gbctxt_change_bt_last(&gbctxt, BOV_UNKNOWN);
         }
         else if (bt != UCHAR_BREAK_REGIONAL_INDICATOR
                 && is_even_nubmer_of_subsequent_ri(&gbctxt,
                     mstr, mstr_len)) {
 
-            _DBG_PRINTF ("LB30a Break between two regional indicator symbols...\n");
+            _DBG_PRINTF ("LB30a.2 Break between two regional indicator symbols...\n");
             gbctxt.curr_od = LB30a;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
-            next_mclen = check_even_nubmer_of_subsequent_ri(&gbctxt,
+            next_mclen = check_subsequent_ri(&gbctxt,
                 mstr, mstr_len);
+            gbctxt_change_bt_last(&gbctxt, BOV_UNKNOWN);
         }
 
         // LB30b Do not break between an emoji base and an emoji modifier.
@@ -1496,7 +1596,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 next_glyph:
         mstr_len -= next_mclen;
         mstr += next_mclen;
-        cosumed += mclen + next_mclen;
+        cosumed += next_mclen;
 
         // Return if we got any BK!
         if (gbctxt.bs[gbctxt.n] == BOV_MANDATORY) {
