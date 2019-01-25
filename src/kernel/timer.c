@@ -78,7 +78,7 @@ static pthread_mutex_t timerLock;
 #define TIMER_UNLOCK()
 #endif
 
-#ifdef __LINUX__
+#if defined(__LINUX__) && defined(_MGRM_THREADS)
 #   define _MG_USE_BETTER_TIMER
 #endif /* __LINUX__ */
 
