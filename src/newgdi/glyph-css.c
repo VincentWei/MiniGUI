@@ -485,7 +485,14 @@ static inline int is_next_glyph_jt(struct glyph_break_ctxt* gbctxt,
         UCHAR_BREAK_HANGUL_T_JAMO);
 }
 
-static int is_next_glyph_em(struct glyph_break_ctxt* gbctxt,
+static inline int is_next_glyph_ri(struct glyph_break_ctxt* gbctxt,
+    const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
+{
+    return is_next_glyph_bt(gbctxt, mstr, mstr_len, gv, uc,
+        UCHAR_BREAK_REGIONAL_INDICATOR);
+}
+
+static inline int is_next_glyph_em(struct glyph_break_ctxt* gbctxt,
     const char* mstr, int mstr_len, Glyph32*gv, Uchar32 *uc)
 {
     return is_next_glyph_bt(gbctxt, mstr, mstr_len, gv, uc,
@@ -760,6 +767,7 @@ static int check_subsequent_sps_and_end_bt(struct glyph_break_ctxt* gbctxt,
     return cosumed;
 }
 
+#if 0
 static BOOL is_odd_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         const char* mstr, int mstr_len)
 {
@@ -787,6 +795,7 @@ static BOOL is_odd_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 
     return FALSE;
 }
+#endif
 
 static BOOL is_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         const char* mstr, int mstr_len)
@@ -1171,6 +1180,11 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             gbctxt.curr_od = LB15;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
 
+            _DBG_PRINTF ("LB19 Do not break before or after quotation marks, such as ‘ ” ’\n");
+            gbctxt.curr_od = LB19;
+            gbctxt_change_bt_before_last(&gbctxt, BOV_NOTALLOWED);
+
+            gbctxt.curr_od = LB15;
             // For subsequent spaces and OP.
             cosumed_one_loop += check_subsequent_sps_and_end_bt(&gbctxt,
                     mstr, mstr_len, col_sp,
@@ -1338,81 +1352,88 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // LB25 Do not break between the following pairs of classes
         // relevant to numbers
         if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
-                && (next_mclen = is_next_glyph_po(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_po(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB25.1 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
-
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
-                && (next_mclen = is_next_glyph_pr(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_pr(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB25.2 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
-                && (next_mclen = is_next_glyph_po(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_po(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             gbctxt.curr_od = LB25;
             _DBG_PRINTF ("LB25.3 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
-                && (next_mclen = is_next_glyph_pr(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_pr(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB25.4 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt == UCHAR_BREAK_NUMERIC
-                && (next_mclen = is_next_glyph_po(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_po(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB25.5 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt == UCHAR_BREAK_NUMERIC
-                && (next_mclen = is_next_glyph_pr(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_pr(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB25.6 Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt == UCHAR_BREAK_POSTFIX
-                && (next_mclen = is_next_glyph_op(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_op(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             gbctxt.curr_od = LB25;
             _DBG_PRINTF ("LB25.7 Do not break between the following pairs of classes\n");
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt == UCHAR_BREAK_POSTFIX
                 && is_next_glyph_nu(&gbctxt,
@@ -1487,15 +1508,16 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 #endif
         }
         else if (bt == UCHAR_BREAK_SYMBOL
-                && (next_mclen = is_next_glyph_nu(&gbctxt,
-                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+                && is_next_glyph_nu(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB25.e Do not break between the following pairs of classes\n");
             gbctxt.curr_od = LB25;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+#if 0
             if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
                 goto error;
-
             cosumed_one_loop += next_mclen;
+#endif
         }
 
         /* Korean syllable blocks */
@@ -1629,20 +1651,24 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // there are an even number of regional indicators preceding the
         // position of the break.
         else if (bt == UCHAR_BREAK_REGIONAL_INDICATOR
-                && is_odd_nubmer_of_subsequent_ri(&gbctxt,
-                    mstr, mstr_len)) {
+                && (next_mclen = is_next_glyph_ri(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB30a.1 Break between two regional indicator symbols...\n");
             gbctxt.curr_od = LB30a;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
+            cosumed_one_loop += next_mclen;
+#if 0
             next_mclen = check_subsequent_ri(&gbctxt,
                 mstr, mstr_len);
             gbctxt_change_bt_last(&gbctxt, BOV_UNKNOWN);
-
             cosumed_one_loop += next_mclen;
+#endif
         }
         else if (bt != UCHAR_BREAK_REGIONAL_INDICATOR
-                && is_even_nubmer_of_subsequent_ri(&gbctxt,
-                    mstr, mstr_len)) {
+                && (next_mclen = is_even_nubmer_of_subsequent_ri(&gbctxt,
+                    mstr, mstr_len)) > 0) {
 
             _DBG_PRINTF ("LB30a.2 Break between two regional indicator symbols...\n");
             gbctxt.curr_od = LB30a;
