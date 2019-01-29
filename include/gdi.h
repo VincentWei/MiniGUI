@@ -2291,9 +2291,9 @@ MG_EXPORT Uint32 GUIAPI SetDCAttr (HDC hdc, int attr, Uint32 value);
  *         OR'd the new pixel value with the original pixel on the surface.
  * \retval ROP_XOR
  *         XOR'd the new pixel value with the original pixel on the surface.
-  * \retval ROP_COMPOSITE
+ * \retval ROP_COMPOSITE
  *         call default color composition the new pixel value with the original pixel on the surface.
-  * \retval ROP_COMP_USER
+ * \retval ROP_COMP_USER
  *         User defined color composition operations.
  *
  * \sa SetRasterOperation, SetUserCompositionOps
