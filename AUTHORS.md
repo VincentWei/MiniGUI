@@ -1,8 +1,9 @@
-The main maintainers and/or developers:
+The current main maintainers and/or developers:
 
 * WEI Yongming
 
-The following people had been involved in the development of MiniGUI Core:
+As employed engineers of [Beijing FMSoft Technologies Co., Ltd.],
+the following people have participated in the development of MiniGUI Core:
 
 * HOU Huihua
 * WAN Zheng
@@ -10,4 +11,6 @@ The following people had been involved in the development of MiniGUI Core:
 * DONG Junjie
 * YAN Xiaowei
 
-[FMSoft](http://www.fmsoft.cn)
+For community contributors, please see RELASENOTES.md documentation.
+
+[Beijing FMSoft Technologies Co., Ltd.]: http://www.fmsoft.cn
