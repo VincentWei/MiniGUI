@@ -1812,8 +1812,9 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         [pdc->surface->format->BytesPerPixel - 1];
     pdc->draw_src_span = draw_src_span_ops [pdc->rop]
         [pdc->surface->format->BytesPerPixel - 1];
+    pdc->user_comp_ctxt = pdc->surface->format;
 
-    pdc->cur_dst = (BYTE*)pdc->surface->pixels 
+    pdc->cur_dst = (BYTE*)pdc->surface->pixels
             + pdc->surface->pitch * pdc->DevRC.top
             + pdc->surface->format->BytesPerPixel * pdc->DevRC.left;
 
@@ -1864,6 +1865,7 @@ static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref)
         [pdc->surface->format->BytesPerPixel - 1];
     pdc->draw_src_span = draw_src_span_ops [pdc->rop]
         [pdc->surface->format->BytesPerPixel - 1];
+    pdc->user_comp_ctxt = pdc->surface->format;
 
     pdc->cur_dst = (BYTE*)pdc->surface->pixels 
             + pdc->surface->pitch * pdc->DevRC.top
@@ -1955,6 +1957,7 @@ static void dc_InitScreenDC (PDC pdc, GAL_Surface *surface)
         [pdc->surface->format->BytesPerPixel - 1];
     pdc->draw_src_span = draw_src_span_ops [pdc->rop]
         [pdc->surface->format->BytesPerPixel - 1];
+    pdc->user_comp_ctxt = pdc->surface->format;
 
     pdc->cur_dst = pdc->surface->pixels;
     pdc->move_to = move_to_ops [pdc->surface->format->BytesPerPixel - 1];
@@ -1966,7 +1969,7 @@ static void dc_InitScreenDC (PDC pdc, GAL_Surface *surface)
     /* Init bitmap scaler ALG */
     SetBitmapScalerType((HDC)pdc, BITMAP_SCALER_DDA);
 }
-        
+
 int GUIAPI GetRasterOperation (HDC hdc)
 {
     PDC pdc;
@@ -1992,6 +1995,7 @@ int GUIAPI SetRasterOperation (HDC hdc, int rop)
                 [pdc->surface->format->BytesPerPixel - 1];
         pdc->draw_src_span = draw_src_span_ops [rop]
                 [pdc->surface->format->BytesPerPixel - 1];
+        pdc->user_comp_ctxt = pdc->surface->format;
     }
 
     return old;
@@ -3643,6 +3647,7 @@ BOOL GUIAPI RestoreDC (HDC hdc, int saved_dc)
             [pdc->surface->format->BytesPerPixel - 1];
         pdc->draw_src_span = draw_src_span_ops [pdc->rop]
             [pdc->surface->format->BytesPerPixel - 1];
+        pdc->user_comp_ctxt = pdc->surface->format;
     }
     else if (ROP_COMP_USER == pdc->rop) {
         pdc->draw_pixel = dc_state->user_set_pixel;

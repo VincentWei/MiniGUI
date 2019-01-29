@@ -11051,7 +11051,7 @@ typedef struct _COMP_CTXT {
     /** The user context passed to SetUserCompositionOps */
     void* user_comp_ctxt;
 
-    /** the pixel value shoulb be skipped (the color key) */
+    /** the pixel value should be skipped (the color key) */
     gal_pixel skip_pixel;
 
     /** the current pixel value for setpixel and setpixels operation */
