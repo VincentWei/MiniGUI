@@ -532,7 +532,8 @@ static void bidi_string_reverse (void* context, int len, int pos)
     }
 }
 
-static void bidi_resolve_string (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
+static void bidi_resolve_string (const CHARSETOPS* charset_ops,
+        Glyph32* glyphs, int len, int pel,
         TYPERUN **ptype_rl_list, BYTE *pmax_level)
 {
     BYTE base_level = 0;
@@ -543,7 +544,13 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops, Glyph32* glyphs,
     type_rl_list = get_runtype_link (charset_ops, glyphs, len);
 
     /* 1.Find base level */
-    bidi_resolveParagraphs(&type_rl_list, &base_dir, &base_level);
+    if (pel != 0 && pel != 1) {
+        bidi_resolveParagraphs(&type_rl_list, &base_dir, &base_level);
+    }
+    else {
+        base_level = pel;
+        base_dir = BIDI_LEVEL_TO_DIR (base_level);
+    }
 
     /* 2.Resolving Explicit levels.*/
     bidi_resolveExplicit(&type_rl_list, base_dir);
@@ -590,8 +597,8 @@ static void bidi_reorder_cb (void* context, int len,
     DBGLOG("\nReordering, Done\n");
 }
 
-void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
-        Uint8* embedding_level_list, Uint8 type)
+void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
+        Glyph32* glyphs, int len, int pel, Uint8* embedding_levels, Uint8 type)
 {
     int i = 0;
     BYTE max_level = 1;
@@ -600,16 +607,16 @@ void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops, Glyph32*
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
 
     /* type = 0, get the logical embedding level; else visual level.*/
     for (pp = type_rl_list->next; pp->next; pp = pp->next){
         int pos = POS (pp), len = LEN (pp);
         for(i = 0; i < len; i++)
-            embedding_level_list[pos + i] = LEVEL(pp);
+            embedding_levels[pos + i] = LEVEL(pp);
     }
     if (type) {
-        bidi_reorder_cb(embedding_level_list, len, &type_rl_list, max_level,
+        bidi_reorder_cb(embedding_levels, len, &type_rl_list, max_level,
                 bidi_index_reverse);
     }
 
@@ -619,8 +626,8 @@ void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops, Glyph32*
     print_hexstr(glyphs, len, TRUE);
 }
 
-Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, 
-        int len, GLYPHMAPINFO* map)
+Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
+        Glyph32* glyphs, int len, GLYPHMAPINFO* map, int pel)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
@@ -632,11 +639,9 @@ Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops, Glyph32* 
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
 
-    for (node_p=type_rl_list->next; node_p->next; 
-            node_p=node_p->next)
-    {
+    for (node_p=type_rl_list->next; node_p->next; node_p=node_p->next) {
         run_pos = node_p->pos;
         run_len = node_p->len;
 
@@ -657,8 +662,8 @@ Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops, Glyph32* 
     return glyphs;
 }
 
-Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, 
-        int len, int* index_map)
+Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
+        Glyph32* glyphs, int len, int* index_map, int pel)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
@@ -666,7 +671,7 @@ Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops, Glyph32
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
 
     bidi_reorder_cb(index_map, len, &type_rl_list, max_level,
             bidi_string_reverse);
@@ -679,7 +684,8 @@ Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops, Glyph32
     return glyphs;
 }
 
-Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
+Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops,
+        Glyph32* glyphs, int len, int pel)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
@@ -687,7 +693,7 @@ Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops, Glyph3
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
 
     bidi_reorder_cb (glyphs, len, &type_rl_list, max_level, bidi_string_reverse);
 

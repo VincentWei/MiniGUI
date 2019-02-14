@@ -9577,8 +9577,11 @@ typedef Uint32 Glyph32;
  * \brief Data type of struct _GLYPHMAPINFO.
  */
 typedef struct _GLYPHMAPINFO {
+    /** The index of the character in the text string. */
     int byte_index;
+    /** The length of the character in bytes. */
     int char_len;
+    /** The direction of the glyph; TRUE for RTL, FALSE for LTR. */
     BOOL is_rtol;
 } GLYPHMAPINFO;
 
@@ -10451,7 +10454,6 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
      *      - The direction of the glyphs;
      *      - The writing mode (horizontal or vertical) and text orientation;
      *      - The hyphenation handling method;
-     *      - The BIDI method;
      *      - The hanging punctation method;
      *      - Whether and how to adjust the glyph position for alignment of justify.
      * @{
@@ -10498,14 +10500,6 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 #define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
 #define GRF_TEXT_COMBINE_UPRIGHT_NONE   0x00000000
 #define GRF_TEXT_COMBINE_UPRIGHT_ALL    0x00040000
-
-#define GRF_BIDI_MASK                   0x00F00000
-#define GRF_BIDI_NORMAL                 0x00000000
-#define GRF_BIDI_EMBED                  0x00100000
-#define GRF_BIDI_ISOLATE                0x00200000
-#define GRF_BIDI_BIDI_OVERRIDE          0x00300000
-#define GRF_BIDI_ISOLATE_OVERRIDE       0x00400000
-#define GRF_BIDI_PLAINTEXT              0x00500000
 
 #define GRF_ALIGN_MASK                  0x0F000000
 #define GRF_ALIGN_LEFT                  0x00000000
@@ -10582,7 +10576,8 @@ typedef struct _GLYPHPOSORT {
  * \param logfont The logfont used to parse the glyph string.
  * \param x The x-position of first glyph.
  * \param y The y-position of first glyph.
- * \param glyphs The pointer to the glyph string.
+ * \param glyphs The pointer to the glyph string. The glyphs should be reordered
+ *          to be visual ones by calling BIDI functions.
  * \param break_opps The pointer to the break opportunities array of the glpyhs.
  *          It should be returned by \a GetGlyphsByRules.
  * \param nr_glyphs The number of the glyphs.
@@ -10999,28 +10994,68 @@ MG_EXPORT int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
         const char* text, int text_len, Glyph32** glyphs,
         GLYPHMAPINFO** glyphs_map);
 
-/** \fn Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
- *         Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map)
- * \brief Reorder the logical glyphs string to visual glyphs string.
+/** \fn BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
+ *         Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map, int pel)
+ * \brief Reorder the specified logical glyph string to the visual glyph string.
  *
- * This function reorders the logical glyphs string to visual
- * glyphs string. If \a glyphs_map is not NULL, also returns the visual
- * glyphs map info.
+ * This function reorders the logical glyph string in place to a visual
+ * glyphs string. If \a index_map is not NULL, it also returns
+ * the index of logical glyphs.
  *
  * \param log_font The logical font.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The length of the glyph string.
- * \param glyphs_map The position map from the logical glyph string to
- *        the visual glyph string.
+ * \param glyphs_map The position map returned by \a BIDIGetTextLogicalGlyphs;
+ *          can be NULL.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0: Level 0 (left to right)
+ *          - 1: Level 1 (right to left)
+ *          - others: Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
  *
- * \return The pointer to the visual glyph string.
+ * \return TRUE on success, otherwise FALSE.
  */
-MG_EXPORT Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map);
+MG_EXPORT BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map, int pel);
+
+/** obsolete; use BIDILogGlyphs2VisGlyphsEx instead */
+static inline Glyph32* BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map)
+{
+    if (BIDILogGlyphs2VisGlyphsEx (log_font, glyphs, nr_glyphs, glyph_map, -1))
+        return glyphs;
+
+    return NULL;
+}
+
+/** \fn BOOL GUIAPI BIDIGetVisualGlyphIndexMap (LOGFONT* log_font,
+ *         Glyph32* glyphs, int nr_glyphs, int** index_map, int pel)
+ * \brief Reorder the specified logical glyph string to the visual glyph string.
+ *
+ * This function reorders the logical glyph string in place to a visual
+ * glyphs string. If \a index_map is not NULL, it also returns
+ * the index of logical glyphs.
+ *
+ * \param log_font The logical font.
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The length of the glyph string.
+ * \param index_map The pointer to the position map from the logical glyph string to
+ *          the visual glyph string. If *index_map is NULL, the function will
+ *          try to allocate a new one. The caller should free it when it is not useful.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0: Level 0 (left to right)
+ *          - 1: Level 1 (right to left)
+ *          - others: Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ */
+MG_EXPORT BOOL GUIAPI BIDIGetVisualGlyphIndexMap (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int** index_map, int pel);
 
 /**
- * \fn void GUIAPI BIDIGetLogicalEmbedLevels (LOGFONT* log_font, \
-        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
+ * \fn void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font, \
+        const Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels)
  * \brief Get the logical embedding levels for the logical glyph string
  *        and generate runs by embedding levels, the for reorder to get
  *        visual glyph string.
@@ -11028,28 +11063,50 @@ MG_EXPORT Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
  * \param log_font The logical font.
  * \param glyphs The pointer to the logical glyph string.
  * \param nr_glyphs The length of the glyph string.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0: Level 0 (left to right)
+ *          - 1: Level 1 (right to left)
+ *          - others: Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
  * \param embed_levels The logical embedding level.
  *
  * \return None.
  */
-MG_EXPORT void GUIAPI BIDIGetLogicalEmbedLevels (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels);
+MG_EXPORT void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels);
+
+static inline void BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
+{
+    BIDIGetLogicalEmbedLevelsEx (log_font, glyphs, nr_glyphs, -1, embed_levels);
+}
 
 /**
- * \fn void GUIAPI BIDIGetVisualEmbedLevels (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
+ * \fn void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
+        const Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels)
  * \brief Get the visual embedding levels for the given logical glyph
  *        string, then you can get the edge for visual glyphs.
  *
  * \param log_font The logical font.
  * \param glyphs The pointer to the logical glyph string.
  * \param nr_glyphs The length of the glyph string.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0: Level 0 (left to right)
+ *          - 1: Level 1 (right to left)
+ *          - others: Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
  * \param embed_levels The embedding level logical to visual.
  *
  * \return void.
  */
-MG_EXPORT void GUIAPI BIDIGetVisualEmbedLevels (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels);
+MG_EXPORT void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels);
+
+static inline void BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
+{
+    BIDIGetVisualEmbedLevelsEx (log_font, glyphs, nr_glyphs, -1, embed_levels);
+}
 
     /** @} end of glyph */
 /*

@@ -467,7 +467,8 @@ Glyph32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
         logical_glyphs = _gdi_get_glyphs_string (pdc, text, text_len, nr_glyphs);
         if (*nr_glyphs > 0)
-            __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, logical_glyphs, *nr_glyphs);
+            __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
+                logical_glyphs, *nr_glyphs, -1);
     }
 
     return logical_glyphs;
@@ -866,7 +867,8 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
 
             logical_glyphs = _gdi_get_glyphs_string_break(pdc, text, text_len,
                     &nr_glyphs, context);
-            __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, logical_glyphs, nr_glyphs);
+            __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
+                logical_glyphs, nr_glyphs, -1);
 
             if(!logical_glyphs)
                 return 0;
@@ -979,76 +981,6 @@ int  GUIAPI BIDIGetTextLogicalGlyphs(
 
     return i;
 }
-
-/* \bref: Get the visual glyph string and the glyphs map table, if
- * caller not malloc space for glyphs or glyphs_map, it will malloc
- * space inner.
- *
- * \param  LOGFONT*   log_font: The logical font.
- * \param  unsigned char* text: Input logical string, input.
- * \param  int        text_len: Input logical string len, input.
- * \param  Glyph32**    glyphs: visual glyph string, input/output.
- * \param  GLYPHMAPINFO* glyph_map: position mapping from Visual glyphs
- * string to Logical text, output.
- *
- * \param  return int : return visual glyph string len, output.
- */
-int  GUIAPI BIDIGetTextVisualGlyphs(
-        LOGFONT*       log_font,
-        const char*    text,
-        int            text_len,
-        Glyph32**      glyphs,
-        GLYPHMAPINFO** glyphs_map)
-{
-    int nr_glyphs = 0;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
-
-    if(glyphs == NULL || glyphs_map == NULL)
-        return nr_glyphs;
-
-    nr_glyphs = BIDIGetTextLogicalGlyphs(log_font, text, text_len,
-            glyphs, glyphs_map);
-
-    if(mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type){
-        __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops, *glyphs,
-                nr_glyphs, *glyphs_map);
-
-        __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, *glyphs, nr_glyphs);
-    }
-    return nr_glyphs;
-}
-
-/* bref: reorder the logical glyphs string to visual glyphs string.
- * if glyphs_map not NULL, get the visual glyphs map info.
- *
- * \param  LOGFONT* log_font: The logical font.
- * \param  Glyph32* glyphs: visual glyph string, Input.
- * \param  int      nr_glyphs: glyph string len, Input.
- * \param  GLYPHMAPINFO* glyph_map: position mapping from logical glyphs.
- * string to Logical text, output.
- *
- * \param  Glyph32* : return visual glyph string, output.
- */
-Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs(
-        LOGFONT* log_font,
-        Glyph32* glyphs,
-        int nr_glyphs,
-        GLYPHMAPINFO* glyphs_map)
-{
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
-
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
-        /* get the visual glyphs map from the logical glyphs map. */
-        if (glyphs_map) {
-            __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops,
-                    glyphs, nr_glyphs, glyphs_map);
-        }
-        __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops, glyphs, nr_glyphs);
-    }
-
-    return glyphs;
-}
-
 
 /*
  * \param  HDC*     hdc: The device context.
@@ -1196,10 +1128,10 @@ static int* generate_ranges(PLOGFONT log_font, Glyph32* log_glyphs,
     int* p = NULL;
     int max_ranges = DEF_RANGES * 2;
     GLYPHMAPINFO* v_map = NULL;
-    Uint8* embedding_level_list = NULL;
+    Uint8* embedding_levels = NULL;
 
-    BIDIGetLogicalEmbedLevels(log_font, log_glyphs,
-            nr_glyphs, &embedding_level_list);
+    BIDIGetLogicalEmbeddLevels(log_font, log_glyphs,
+            nr_glyphs, &embedding_levels);
 
     /* get all the logical ranges in the same language.
      * default malloc DEF_RANGES ranges.*/
@@ -1209,7 +1141,7 @@ static int* generate_ranges(PLOGFONT log_font, Glyph32* log_glyphs,
     p[m++] = l_start_index;
     for(i = l_start_index; i <= l_end_index; i++){
         if((i+1) <= l_end_index
-                && embedding_level_list[i] != embedding_level_list[i+1]){
+                && embedding_levels[i] != embedding_levels[i+1]){
             if(m > (max_ranges-2)) {
                 max_ranges += DEF_RANGES*2;
                 p = realloc(p, max_ranges * sizeof(int));
@@ -1227,8 +1159,7 @@ static int* generate_ranges(PLOGFONT log_font, Glyph32* log_glyphs,
     }
 
     v_map = l_map;
-    BIDILogGlyphs2VisGlyphs (log_font, log_glyphs,
-                nr_glyphs, v_map);
+    BIDILogGlyphs2VisGlyphs (log_font, log_glyphs, nr_glyphs, v_map);
 
     *nr_ranges = m;
 
@@ -1242,7 +1173,7 @@ static int* generate_ranges(PLOGFONT log_font, Glyph32* log_glyphs,
         }
     }
 
-    free(embedding_level_list);
+    free(embedding_levels);
     return p;
 }
 
@@ -1348,8 +1279,7 @@ void GUIAPI GetTextRangesLog2VisTest(
             &l_glyphs, &l_map);
 
     v_map = l_map;
-    BIDILogGlyphs2VisGlyphs (log_font, l_glyphs,
-        nr_glyphs, v_map);
+    BIDILogGlyphs2VisGlyphs (log_font, l_glyphs, nr_glyphs, v_map);
 
     /* get all the logical ranges in the same language.
      * default malloc 5 ranges.*/
@@ -1495,69 +1425,108 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
     free(l_glyphs);
 }
 
-/*
- * bref: get the logical embedding levels for the logical glyph string
- * and generate runs by embedding levels, then for reorder to get
- * visual glyph string.
- *
- * \param  LOGFONT* log_font: The logical font.
- * \param  Glyph32* glyphs: Input logical glyph string, input.
- * \param  int      nr_glyphs: Input logical string len, input.
- * \param  Uint8**  embedding_level_list: embedding level Logical, output.
- *
- * \param  return void.
- */
-void GUIAPI BIDIGetLogicalEmbedLevels(
-        LOGFONT*  log_font,
-        Glyph32*  glyphs,
-        int       nr_glyphs,
-        Uint8**   embedding_level_list)
+int GUIAPI BIDIGetTextVisualGlyphs(LOGFONT* log_font,
+        const char*    text, int text_len,
+        Glyph32**      glyphs,
+        GLYPHMAPINFO** glyphs_map)
 {
-    int i = 0;
+    int nr_glyphs = 0;
     DEVFONT* mbc_devfont = log_font->mbc_devfont;
 
-    if(*embedding_level_list == NULL)
-        *embedding_level_list = malloc(nr_glyphs * sizeof (Uint8));
+    if (glyphs == NULL || glyphs_map == NULL)
+        return nr_glyphs;
+
+    nr_glyphs = BIDIGetTextLogicalGlyphs(log_font, text, text_len,
+            glyphs, glyphs_map);
+
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type){
+        __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops, *glyphs,
+                nr_glyphs, *glyphs_map, -1);
+        __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
+                *glyphs, nr_glyphs, -1);
+    }
+    return nr_glyphs;
+}
+
+BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map, int pel)
+{
+    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+
+    if (nr_glyphs > 0 && mbc_devfont
+                && mbc_devfont->charset_ops->bidi_glyph_type) {
+        if (glyph_map) {
+            __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops,
+                    glyphs, nr_glyphs, glyph_map, pel);
+        }
+        __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
+                glyphs, nr_glyphs, pel);
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+BOOL GUIAPI BIDIGetVisualGlyphIndexMap (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int** index_map, int pel)
+{
+    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+
+    if (nr_glyphs > 0 && mbc_devfont
+                && mbc_devfont->charset_ops->bidi_glyph_type) {
+        if (*index_map == NULL)
+            *index_map = malloc (nr_glyphs * sizeof (int));
+
+        if (*index_map) {
+            int i;
+            for (i = 0; i < nr_glyphs; i++) {
+                *index_map[i] = i;
+            }
+
+            __mg_charset_bidi_index_reorder (mbc_devfont->charset_ops,
+                    glyphs, nr_glyphs, *index_map, pel);
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+void GUIAPI BIDIGetLogicalEmbedLevelsEx(LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int pel,
+        Uint8**  embedding_levels)
+{
+    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+
+    if (*embedding_levels == NULL)
+        *embedding_levels = malloc(nr_glyphs * sizeof (Uint8));
 
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
-        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops, glyphs, nr_glyphs,
-                *embedding_level_list, 0);
+        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
+                glyphs, nr_glyphs, pel, *embedding_levels, 0);
     }
-    else{
-        for(i = 0; i < nr_glyphs; i++){
-            (*embedding_level_list)[i] = i;
-        }
+    else {
+        memset (*embedding_levels, 0, sizeof(Uint8) * nr_glyphs);
     }
 }
 
-/*
- * \param  LOGFONT*  log_font: The logical font.
- * \param  Glyph32*  glyphs: Input logical glyph string, input.
- * \param  int       nr_glyphs: Input logical string len, input.
- * \param  Uint8     *embedding_level_list: embedding level logical
- * to visual, output.
- *
- * \param  return void.
- */
-void GUIAPI BIDIGetVisualEmbedLevels(
-        LOGFONT* log_font,
-        Glyph32* glyphs,
-        int      nr_glyphs,
-        Uint8**  embedding_level_list)
+void GUIAPI BIDIGetVisualEmbedLevelsEx(LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int pel,
+        Uint8**  embedding_levels)
 {
-    int i = 0;
     DEVFONT* mbc_devfont = log_font->mbc_devfont;
 
-    if(*embedding_level_list == NULL)
-        *embedding_level_list = malloc(nr_glyphs * sizeof (Uint8));
+    if (*embedding_levels == NULL)
+        *embedding_levels = malloc(nr_glyphs * sizeof (Uint8));
 
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
-        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops, glyphs, nr_glyphs,
-                *embedding_level_list, 1);
+        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
+                glyphs, nr_glyphs, pel, *embedding_levels, 1);
     }
-    else{
-        for(i = 0; i < nr_glyphs; i++){
-            (*embedding_level_list)[i] = i;
-        }
+    else {
+        memset (*embedding_levels, 0, sizeof(Uint8) * nr_glyphs);
     }
 }
+
