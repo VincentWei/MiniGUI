@@ -513,7 +513,7 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
         int start_byte_index = get_glyph_text_index(sled, sled->selStart);
         int end_byte_index = get_glyph_text_index (sled, sled->selEnd);
 
-        GetTextRangesLog2Vis(log_font, (char*)TEXT, TEXTLEN,
+        BIDIGetTextRangesLog2Vis(log_font, (char*)TEXT, TEXTLEN,
                 start_byte_index, end_byte_index, 
                 &ranges, &nr_ranges);
 

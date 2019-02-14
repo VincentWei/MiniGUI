@@ -1198,7 +1198,7 @@ static int* generate_ranges(PLOGFONT log_font, Glyph32* log_glyphs,
     GLYPHMAPINFO* v_map = NULL;
     Uint8* embedding_level_list = NULL;
 
-    BIDIGetLogicalEmbeddLevels(log_font, log_glyphs,
+    BIDIGetLogicalEmbedLevels(log_font, log_glyphs,
             nr_glyphs, &embedding_level_list);
 
     /* get all the logical ranges in the same language.
@@ -1412,14 +1412,9 @@ void GUIAPI GetTextRangesLog2VisTest(
  *
  * \return  void .
  */
-void GUIAPI GetTextRangesLog2Vis(
-        LOGFONT* log_font,
-        char*    text,
-        int      text_len,
-        int      start_index,
-        int      end_index,
-        int**    ranges,
-        int*     nr_ranges)
+void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
+        const char* text, int text_len, int start_index, int end_index,
+        int** ranges, int* nr_ranges)
 {
     int  i = 0;
     int* p = NULL;
@@ -1512,7 +1507,7 @@ void GUIAPI GetTextRangesLog2Vis(
  *
  * \param  return void.
  */
-void GUIAPI BIDIGetLogicalEmbeddLevels(
+void GUIAPI BIDIGetLogicalEmbedLevels(
         LOGFONT*  log_font,
         Glyph32*  glyphs,
         int       nr_glyphs,
@@ -1544,7 +1539,7 @@ void GUIAPI BIDIGetLogicalEmbeddLevels(
  *
  * \param  return void.
  */
-void GUIAPI BIDIGetVisualEmbeddLevels(
+void GUIAPI BIDIGetVisualEmbedLevels(
         LOGFONT* log_font,
         Glyph32* glyphs,
         int      nr_glyphs,

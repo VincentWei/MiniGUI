@@ -10451,9 +10451,9 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
      *      - The direction of the glyphs;
      *      - The writing mode (horizontal or vertical) and text orientation;
      *      - The hyphenation handling method;
-     *      - The BIDI methods;
+     *      - The BIDI method;
      *      - The hanging punctation method;
-     *      - Whether and how to adjust the glyph postion for alignment of justify.
+     *      - Whether and how to adjust the glyph position for alignment of justify.
      * @{
      */
 
@@ -10509,10 +10509,10 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 
 #define GRF_ALIGN_MASK                  0x0F000000
 #define GRF_ALIGN_LEFT                  0x00000000
-#define GRF_ALGIN_RIGHT                 0x01000000
-#define GRF_ALGIN_TOP                   0x02000000
-#define GRF_ALGIN_BOTTOM                0x03000000
-#define GRF_ALGIN_JUSTIFY               0x04000000
+#define GRF_ALIGN_RIGHT                 0x01000000
+#define GRF_ALIGN_TOP                   0x02000000
+#define GRF_ALIGN_BOTTOM                0x03000000
+#define GRF_ALIGN_JUSTIFY               0x04000000
 
 #define GRF_TEXT_JUSTIFY_MASK           0x30000000
 #define GRF_TEXT_JUSTIFY_AUTO           0x00000000
@@ -10619,7 +10619,7 @@ typedef struct _GLYPHPOSORT {
  *
  * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags, white_space_rule
  */
-MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
+MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
         Uint32 render_flags, Uint32 space_rule,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
@@ -10939,9 +10939,9 @@ MG_EXPORT BOOL GUIAPI GetGlyphBIDIType (LOGFONT* log_font,
         Glyph32 glyph_value, Uint32 *bidi_type);
 
 /**
- * \fn int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font, \
-        const char* text, int text_len, Glyph32** glyphs, \
-        GLYPHMAPINFO** glyphs_map)
+ * \fn int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font,
+ *      const char* text, int text_len, Glyph32** glyphs,
+ *      GLYPHMAPINFO** glyphs_map)
  * \brief Get logical glyphs string of the text.
  *
  * \param log_font The logical font.
@@ -10955,13 +10955,34 @@ MG_EXPORT BOOL GUIAPI GetGlyphBIDIType (LOGFONT* log_font,
  *
  * \sa GLYPHMAPINFO
  */
-MG_EXPORT int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font,
+MG_EXPORT int GUIAPI BIDIGetTextLogicalGlyphs (LOGFONT* log_font,
         const char* text, int text_len, Glyph32** glyphs,
         GLYPHMAPINFO** glyphs_map);
 
+/**
+ * \fn void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
+ *      const char* text, int text_len,
+ *      int start_index, int end_index,
+ *      int** ranges, int* nr_ranges)
+ * \brief Get a list of visual ranges corresponding to a given logical range.
+ *
+ * \param log_font The logical font.
+ * \param text The pointer to the logical text string.
+ * \param text_len The length of the logical text string in bytes.
+ * \param start_index The start index of the logical range.
+ * \param end_index The end index of the logical range.
+ * \param ranges The pointer to store a pointer to an array of arranges.
+ * \param nr_ranges The number of ranges stored in \a ranges.
+ *
+ * \return None.
+ */
+MG_EXPORT void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
+        const char* text, int text_len, int start_index, int end_index,
+        int** ranges, int* nr_ranges);
+
 /** \fn int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
-        const char* text, int text_len, Glyph32** glyphs,
-        GLYPHMAPINFO** glyphs_map)
+ *      const char* text, int text_len, Glyph32** glyphs,
+ *      GLYPHMAPINFO** glyphs_map)
  * \brief Get visual glyphs and glyph_map info relative with logical
  *        string byte index.
  *
@@ -10978,12 +10999,12 @@ MG_EXPORT int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
         const char* text, int text_len, Glyph32** glyphs,
         GLYPHMAPINFO** glyphs_map);
 
-/** \fn Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font, \
+/** \fn Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
  *         Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map)
  * \brief Reorder the logical glyphs string to visual glyphs string.
  *
  * This function reorders the logical glyphs string to visual
- * glyphs string. If \a glyphs_map is not NULL, get the visual
+ * glyphs string. If \a glyphs_map is not NULL, also returns the visual
  * glyphs map info.
  *
  * \param log_font The logical font.
@@ -10998,28 +11019,8 @@ MG_EXPORT Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
         Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map);
 
 /**
- * \fn void GUIAPI GetTextRangesLog2Vis (LOGFONT* log_font, char* text, \
-        int text_len, int start_index, int end_index, int** ranges, \
-        int* nr_ranges)
- * \brief Get a list of visual ranges corresponding to a given logical range.
- *
- * \param log_font The logical font.
- * \param text The pointer to the logical text string.
- * \param text_len The length of the logical text string in bytes.
- * \param start_index The start index of the logical range.
- * \param end_index The end index of the logical range.
- * \param ranges The pointer to store a pointer to an array of arranges.
- * \param nr_ranges The number of ranges stored in \a ranges.
- *
- * \return None.
- */
-MG_EXPORT void GUIAPI GetTextRangesLog2Vis (LOGFONT* log_font, char* text,
-        int text_len, int start_index, int end_index, int** ranges,
-        int* nr_ranges);
-
-/**
- * \fn void GUIAPI BIDIGetLogicalEmbeddLevels (LOGFONT* log_font, \
-        Glyph32*  glyphs, int nr_glyphs, Uint8** embedding_level_list)
+ * \fn void GUIAPI BIDIGetLogicalEmbedLevels (LOGFONT* log_font, \
+        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
  * \brief Get the logical embedding levels for the logical glyph string
  *        and generate runs by embedding levels, the for reorder to get
  *        visual glyph string.
@@ -11027,28 +11028,28 @@ MG_EXPORT void GUIAPI GetTextRangesLog2Vis (LOGFONT* log_font, char* text,
  * \param log_font The logical font.
  * \param glyphs The pointer to the logical glyph string.
  * \param nr_glyphs The length of the glyph string.
- * \param embedding_level_list The logical embedding level.
+ * \param embed_levels The logical embedding level.
  *
  * \return None.
  */
-MG_EXPORT void GUIAPI BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
-        Glyph32*  glyphs, int nr_glyphs, Uint8** embedding_level_list);
+MG_EXPORT void GUIAPI BIDIGetLogicalEmbedLevels (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels);
 
 /**
- * \fn void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font, \
-        Glyph32* glyphs, int nr_glyphs, Uint8**  embedding_level_list)
+ * \fn void GUIAPI BIDIGetVisualEmbedLevels (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
  * \brief Get the visual embedding levels for the given logical glyph
  *        string, then you can get the edge for visual glyphs.
  *
- * \param log_font  The logical font.
+ * \param log_font The logical font.
  * \param glyphs The pointer to the logical glyph string.
  * \param nr_glyphs The length of the glyph string.
- * \param embedding_level_list The embedding level logical to visual.
+ * \param embed_levels The embedding level logical to visual.
  *
  * \return void.
  */
-MG_EXPORT void GUIAPI BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, Uint8**  embedding_level_list);
+MG_EXPORT void GUIAPI BIDIGetVisualEmbedLevels (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels);
 
     /** @} end of glyph */
 /*
