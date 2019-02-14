@@ -10416,8 +10416,8 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *        See \a char_transform_rule.
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
- * \param break_opps The pointer to a Uint8 buffer to store
- *        the break opportunities array of the glpyhs; can be NULL.
+ * \param break_opps The pointer to a buffer to store the address of the
+ *        Uint8 array which returns the break opportunities array of the glpyhs.
  *        Note that the length of this array is always one longer than
  *        glyphs array. The first unit of the array stores the
  *        break opportunity before the first glyph, and the others store
@@ -10543,8 +10543,7 @@ typedef struct _GLYPHEXTINFO {
 /**
  * The glyph position and orientation information.
  */
-typedef struct _GLYPHPOSORT
-{
+typedef struct _GLYPHPOSORT {
     /**
      * The x coordinate of the glyph position.
      */
@@ -10574,16 +10573,18 @@ typedef struct _GLYPHPOSORT
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
  *          int* nr_to_fit)
- * \brief Get the visual extent info of a glyph string.
+ * \brief Get the visual extent info of all glyphs fitting in the specified
+ *          maximal output extent.
  *
  * This function gets the visual extent information of a glyph string which can
  * fit a line with the specified maximal extent.
  *
- * \param logfont The logfont used to parse the string.
+ * \param logfont The logfont used to parse the glyph string.
  * \param x The x-position of first glyph.
  * \param y The y-position of first glyph.
  * \param glyphs The pointer to the glyph string.
  * \param break_opps The pointer to the break opportunities array of the glpyhs.
+ *          It should be returned by \a GetGlyphsByRules.
  * \param nr_glyphs The number of the glyphs.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param space_rule The white space rule; see \a white_space_rule.
@@ -10616,7 +10617,7 @@ typedef struct _GLYPHPOSORT
  * \note You are responsible to destroy the sideways LOGFONT object
  *       when it is no longer useful.
  *
- * \sa GLYPHEXTINFO, DrawGlyphStringEx, glyph_render_flags, white_space_rule
+ * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags, white_space_rule
  */
 MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx (LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
