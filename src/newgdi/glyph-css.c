@@ -293,7 +293,8 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
     return mclen;
 }
 
-static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
+static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc,
+        UCharBasicType* pgc)
 {
     UCharBasicType gc = UCharGetType(uc);
     UCharBreakType bt = UCharGetBreak(uc);
@@ -327,7 +328,7 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
 
     case UCHAR_BREAK_COMBINING_MARK:
     case UCHAR_BREAK_ZERO_WIDTH_JOINER:
-        if (gbctxt->base_bt != UCHAR_BREAK_UNSET) {
+        if (gbctxt && gbctxt->base_bt != UCHAR_BREAK_UNSET) {
             _DBG_PRINTF ("CM as if it has the line breaking class of the base character(%d)\n", gbctxt->base_bt);
             // CM/ZWJ should have the same break class as
             // its base character.
@@ -338,6 +339,9 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
     default:
         break;
     }
+
+    if (pgc)
+        *pgc = gc;
 
     return bt;
 }
@@ -362,7 +366,7 @@ static int collapse_space(struct glyph_break_ctxt* gbctxt,
         mstr_len -= mclen;
         cosumed += mclen;
 
-        bt = resolve_lbc(gbctxt, uc);
+        bt = resolve_lbc(gbctxt, uc, NULL);
     } while (bt == UCHAR_BREAK_SPACE || uc == UCHAR_TAB);
 
     return cosumed;
@@ -384,7 +388,7 @@ static int check_glyphs_following_zw(struct glyph_break_ctxt* gbctxt,
             mstr += mclen;
             mstr_len -= mclen;
 
-            if (resolve_lbc(gbctxt, uc) == UCHAR_BREAK_SPACE) {
+            if (resolve_lbc(gbctxt, uc, NULL) == UCHAR_BREAK_SPACE) {
                 cosumed += mclen;
                 gbctxt_change_bt_last(gbctxt, BOV_NOTALLOWED);
                 gbctxt_push_back(gbctxt, gv, BOV_NOTALLOWED);
@@ -409,7 +413,7 @@ static int is_next_glyph_bt(struct glyph_break_ctxt* gbctxt,
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
-    if (mclen > 0 && resolve_lbc(gbctxt, *uc) == bt)
+    if (mclen > 0 && resolve_lbc(gbctxt, *uc, NULL) == bt)
         return mclen;
 
     return 0;
@@ -523,7 +527,7 @@ static int is_next_glyph_hy_or_ba(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_HYPHEN
                 || bt == UCHAR_BREAK_AFTER)
             return mclen;
@@ -539,7 +543,7 @@ static int is_next_glyph_al_hl(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_HEBREW_LETTER || bt == UCHAR_BREAK_ALPHABETIC)
             return mclen;
     }
@@ -554,7 +558,7 @@ static int is_next_glyph_pr_po(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_PREFIX || bt == UCHAR_BREAK_POSTFIX)
             return mclen;
     }
@@ -569,7 +573,7 @@ static int is_next_glyph_id_eb_em(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_IDEOGRAPHIC
                 || bt == UCHAR_BREAK_EMOJI_BASE
                 || bt == UCHAR_BREAK_EMOJI_MODIFIER)
@@ -586,7 +590,7 @@ static int is_next_glyph_jl_jv_jt_h2_h3(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_HANGUL_L_JAMO
                 || bt == UCHAR_BREAK_HANGUL_V_JAMO
                 || bt == UCHAR_BREAK_HANGUL_T_JAMO
@@ -605,7 +609,7 @@ static int is_next_glyph_jl_jv_h2_h3(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_HANGUL_L_JAMO
                 || bt == UCHAR_BREAK_HANGUL_V_JAMO
                 || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE
@@ -623,7 +627,7 @@ static int is_next_glyph_jv_jt(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_HANGUL_V_JAMO
                 || bt == UCHAR_BREAK_HANGUL_T_JAMO)
             return mclen;
@@ -639,7 +643,7 @@ static int is_next_glyph_al_hl_nu(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
         if (bt == UCHAR_BREAK_HEBREW_LETTER
                 || bt == UCHAR_BREAK_ALPHABETIC
                 || bt == UCHAR_BREAK_NUMERIC)
@@ -659,7 +663,7 @@ static BOOL is_next_glyph_zw(struct glyph_break_ctxt* gbctxt,
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     &gv, &uc);
-    if (mclen > 0 && resolve_lbc(gbctxt, uc) == UCHAR_BREAK_ZERO_WIDTH_SPACE)
+    if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL) == UCHAR_BREAK_ZERO_WIDTH_SPACE)
         return TRUE;
 
     return FALSE;
@@ -718,7 +722,7 @@ static int is_subsequent_sps_and_end_bt(struct glyph_break_ctxt* gbctxt,
         mclen = get_next_glyph(gbctxt, mstr, mstr_len,
                     &gv, &uc);
         if (mclen > 0) {
-            UCharBreakType bt = resolve_lbc(gbctxt, uc);
+            UCharBreakType bt = resolve_lbc(gbctxt, uc, NULL);
             if (bt == UCHAR_BREAK_SPACE) {
                 mstr += mclen;
                 mstr_len -= mclen;
@@ -746,7 +750,7 @@ static int check_subsequent_sps_and_end_bt(struct glyph_break_ctxt* gbctxt,
     while (mstr_len > 0 && *mstr != '\0') {
         mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
         if (mclen > 0) {
-            UCharBreakType bt = resolve_lbc(gbctxt, uc);
+            UCharBreakType bt = resolve_lbc(gbctxt, uc, NULL);
             _DBG_PRINTF("%s: %04X (%d)\n", __FUNCTION__, uc, bt);
             if (bt == UCHAR_BREAK_SPACE) {
                 mstr += mclen;
@@ -781,7 +785,7 @@ static BOOL is_odd_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         mstr += mclen;
         mstr_len -= mclen;
 
-        if (mclen > 0 && resolve_lbc(gbctxt, uc)
+        if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL)
                     == UCHAR_BREAK_REGIONAL_INDICATOR) {
             nr++;
             continue;
@@ -810,7 +814,7 @@ static BOOL is_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         mstr += mclen;
         mstr_len -= mclen;
 
-        if (mclen > 0 && resolve_lbc(gbctxt, uc)
+        if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL)
                     == UCHAR_BREAK_REGIONAL_INDICATOR) {
             nr++;
             continue;
@@ -835,7 +839,7 @@ static int check_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 
     while (mstr_len > 0 && *mstr != '\0') {
         mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
-        if (mclen > 0 && resolve_lbc(gbctxt, uc)
+        if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL)
                     == UCHAR_BREAK_REGIONAL_INDICATOR) {
             mstr += mclen;
             mstr_len -= mclen;
@@ -927,7 +931,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
         // LB1 Resolve line breaking class
         gbctxt.curr_od = LB1;
-        bt = resolve_lbc(&gbctxt, uc);
+        bt = resolve_lbc(&gbctxt, uc, NULL);
 
         /* Start and end of text */
         // LB2 Never break at the start of text.
@@ -1734,20 +1738,347 @@ error:
     return 0;
 }
 
-int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
-            const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
-            Uint32 reander_flags, Uint32 space_rule,
-            int letter_spacing, int word_spacing, int tab_size, int max_extent,
-            SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
+static int font_get_glyph_metrics (LOGFONT* logfont, DEVFONT* devfont,
+        Glyph32 rg, int* adv_x, int* adv_y, BBOX* bbox)
+{
+    int bold = 0;
+    int tmp_x = 0;
+    int tmp_y = 0;
+    int bbox_x = 0, bbox_y = 0;
+    int bbox_w = 0, bbox_h = 0;
+    int gbt;
+
+    gbt = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
+            & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
+
+    devfont->font_ops->get_glyph_bbox (logfont, devfont,
+            rg, &bbox_x, &bbox_y, &bbox_w, &bbox_h);
+
+    if ((logfont->style & FS_WEIGHT_MASK) > FS_WEIGHT_MEDIUM
+            && (devfont->style & FS_WEIGHT_MASK) < FS_WEIGHT_DEMIBOLD
+            && (gbt == DEVFONTGLYPHTYPE_MONOBMP)) {
+        bold = GET_DEVFONT_SCALE (logfont, devfont);
+        bbox_w += bold;
+    }
+
+    if (bbox) {
+        bbox->x = bbox_x;
+        bbox->y = bbox_y;
+        bbox->w = bbox_w;
+        bbox->h = bbox_h;
+    }
+
+    devfont->font_ops->get_glyph_advance (logfont, devfont, rg, &tmp_x, &tmp_y);
+
+    tmp_x += bold;
+    if (gbt == DEVFONTGLYPHTYPE_MONOBMP) {
+        if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY ||
+                (logfont->style & FS_DECORATE_OUTLINE)) {
+            tmp_x += 1;
+        }
+    }
+
+    if (adv_x) *adv_x = tmp_x;
+    if (adv_y) *adv_y = tmp_y;
+
+    return 0;
+}
+
+#define IS_UPRIGHT(rf)  \
+    ((render_flags & GRF_TEXT_ORIENTATION_MASK) == GRF_TEXT_ORIENTATION_UPRIGHT)
+#define IS_SIDEWAYS(rf)  \
+    ((render_flags & GRF_TEXT_ORIENTATION_MASK) == GRF_TEXT_ORIENTATION_SIDEWAYS)
+
+static int normalize_advance(Uint32 render_flags, int* adv_x, int* adv_y)
+{
+    int line_adv;
+    int dir = 1;
+
+    if ((render_flags & GRF_DIRECTION_MASK) == GRF_DIRECTION_RTL)
+        dir = -1;
+
+    switch (render_flags & GRF_WRITING_MODE_MASK) {
+    case GRF_WRITING_MODE_VERTICAL_RL:
+        if (IS_SIDEWAYS(render_flags)) {
+        }
+        else {
+            int tmp;
+            tmp = *adv_x;
+            *adv_x = *adv_y;
+            *adv_y = tmp;
+        }
+        line_adv = *adv_y;
+        *adv_y *= dir;
+        break;
+
+    case GRF_WRITING_MODE_VERTICAL_LR:
+        if (IS_SIDEWAYS(render_flags)) {
+        }
+        else {
+            int tmp;
+            tmp = *adv_x;
+            *adv_x = *adv_y;
+            *adv_y = tmp;
+        }
+        line_adv = *adv_y;
+        *adv_y *= dir;
+        break;
+
+    case GRF_WRITING_MODE_HORIZONTAL_TB:
+    default:
+        if (IS_SIDEWAYS(render_flags)) {
+            int tmp;
+            tmp = *adv_x;
+            *adv_x = *adv_y;
+            *adv_y = tmp;
+        }
+        else {
+        }
+        line_adv = *adv_x;
+        *adv_x *= dir;
+        break;
+    }
+
+    return line_adv;
+}
+
+static void advance_extra_spacing(Uint32 render_flags, int extra_spacing,
+        int* adv_x, int *adv_y)
+{
+    int dir = 1;
+
+    if ((render_flags & GRF_DIRECTION_MASK) == GRF_DIRECTION_RTL)
+        dir = -1;
+
+    switch (render_flags & GRF_WRITING_MODE_MASK) {
+    case GRF_WRITING_MODE_VERTICAL_RL:
+        if (IS_SIDEWAYS(render_flags)) {
+        }
+        else {
+            *adv_y += dir * extra_spacing;
+        }
+        break;
+
+    case GRF_WRITING_MODE_VERTICAL_LR:
+        if (IS_SIDEWAYS(render_flags)) {
+        }
+        else {
+            *adv_y += dir * extra_spacing;
+        }
+        break;
+
+    case GRF_WRITING_MODE_HORIZONTAL_TB:
+    default:
+        if (IS_SIDEWAYS(render_flags)) {
+            *adv_x += dir * extra_spacing;
+        }
+        else {
+        }
+        break;
+    }
+}
+
+static int find_breaking_pos_any(const Glyph32* glyphs,
+        const Uint8* break_oppos, int n, Uint32 rf)
 {
     return 0;
 }
 
+static int find_breaking_pos_word(const Glyph32* glyphs,
+        const Uint8* break_oppos, int n, Uint32 rf)
+{
+    return 0;
+}
+
+static int find_breaking_pos_normal(const Glyph32* glyphs,
+        const Uint8* break_oppos, int n, Uint32 rf)
+{
+    return 0;
+}
+
+int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
+            const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
+            Uint32 render_flags, Uint32 space_rule,
+            int letter_spacing, int word_spacing, int tab_size, int max_extent,
+            SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
+{
+    int n = 0;
+    int total_extent = 0;
+    int nr_letter_spaces = 0;
+    int nr_word_spaces = 0;
+    int breaking_pos = -1;
+
+    if (line_size) {
+        line_size->cx = 0;
+        line_size->cy = 0;
+    }
+
+    /* check the rotation of the logfont is compatible with render flags */
+    switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
+    case GRF_TEXT_ORIENTATION_UPRIGHT:
+        if (logfont->rotation != 0)
+            return 0;
+        break;
+    case GRF_TEXT_ORIENTATION_SIDEWAYS:
+        if (logfont->rotation != 900)
+            return 0;
+        break;
+    default:
+        return 0;
+    }
+
+    /* Cases of no text wrapping */
+    if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP) {
+        max_extent = -1;
+    }
+
+    while (n < nr_glyphs) {
+        DEVFONT* devfont;
+        Glyph32 gv;
+        Uchar32 uc;
+        UCharBasicType gc;
+        UCharBreakType bt;
+
+        BBOX bbox;
+        int adv_x, adv_y;
+        int line_adv;
+
+        gv = glyphs[n];
+        uc = GLYPH2UCHAR(gv);
+        bt = resolve_lbc(NULL, uc, &gc);
+
+        if (uc == UCHAR_TAB) {
+            bbox.x = 0; bbox.y = 0;
+            bbox.w = 0; bbox.h = 0;
+            adv_x = 0; adv_y = 0;
+            line_adv = tab_size;
+        }
+        else if (bt == UCHAR_BREAK_ZERO_WIDTH_SPACE
+                || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER) {
+            bbox.x = 0; bbox.y = 0;
+            bbox.w = 0; bbox.h = 0;
+            adv_x = 0; adv_y = 0;
+            line_adv = 0;
+        }
+        else {
+            devfont = SELECT_DEVFONT(logfont, gv);
+            font_get_glyph_metrics (logfont, devfont, REAL_GLYPH(gv),
+                    &adv_x, &adv_y, &bbox);
+
+            line_adv = normalize_advance(render_flags, &adv_x, &adv_y);
+        }
+
+        if (glyph_ext_info) {
+            glyph_ext_info[n].bbox_x = bbox.x;
+            glyph_ext_info[n].bbox_y = bbox.y;
+            glyph_ext_info[n].bbox_w = bbox.w;
+            glyph_ext_info[n].bbox_h = bbox.h;
+            glyph_ext_info[n].advance_x = adv_x;
+            glyph_ext_info[n].advance_y = adv_y;
+        }
+
+        if (n > 0 && break_oppos[n+1] == BOV_MANDATORY) {
+            n++;
+            // hard line breaking
+            break;
+        }
+
+        if (max_extent > 0 && (total_extent + line_adv) > max_extent) {
+            // overflow
+            switch (render_flags & GRF_OVERFLOW_WRAP_MASK) {
+            case GRF_OVERFLOW_WRAP_BREAK_WORD:
+                breaking_pos = find_breaking_pos_word(glyphs, break_oppos,
+                    n, render_flags);
+                break;
+            case GRF_OVERFLOW_WRAP_ANYWHERE:
+                breaking_pos = find_breaking_pos_any(glyphs, break_oppos,
+                    n, render_flags);
+                break;
+            case GRF_OVERFLOW_WRAP_NORMAL:
+            default:
+                breaking_pos = find_breaking_pos_normal(glyphs, break_oppos,
+                    n, render_flags);
+                break;
+            }
+
+            break;
+        }
+
+        if ((render_flags & GRF_ALIGN_MASK) != GRF_ALIGN_JUSTIFY) {
+            int extra_spacing = 0;
+            // extra space for word and letter
+            if (uc == UCHAR_SPACE) {
+                extra_spacing = word_spacing;
+            }
+            else if (gc != UCHAR_TYPE_FORMAT) {
+                extra_spacing = letter_spacing;
+            }
+
+            line_adv += extra_spacing;
+            advance_extra_spacing(render_flags, extra_spacing, &adv_x, &adv_y);
+        }
+        else {
+            if (uc == UCHAR_SPACE) {
+                nr_word_spaces++;
+            }
+            else if (gc != UCHAR_TYPE_FORMAT) {
+                nr_letter_spaces++;
+            }
+        }
+
+        total_extent += line_adv;
+
+        if (glyph_pos) {
+            if (n == 0) {
+                glyph_pos[n].x = x;
+                glyph_pos[n].y = y;
+            }
+            else {
+                glyph_pos[n].x = glyph_pos[n - 1].x + adv_x;
+                glyph_pos[n].y = glyph_pos[n - 1].y + adv_y;
+            }
+
+            if (adv_x == 0 && adv_y == 0) {
+                glyph_pos[n].suppressed = 1;
+            }
+        }
+
+        if (line_size) {
+            line_size->cx += adv_x;
+            line_size->cy += adv_y;
+        }
+
+        n++;
+    }
+
+    if (breaking_pos != -1 && breaking_pos != n) {
+        // wrapped due to overflow
+    }
+
+    if ((render_flags & GRF_ALIGN_MASK) == GRF_ALIGN_JUSTIFY) {
+    }
+
+    return n;
+}
+
 #endif /*  _MGCHARSET_UNICODE */
 
-BOOL GUIAPI DrawGlyphStringEx(HDC hdc, const Glyph32* glyphs, int nr_glyphs,
+int GUIAPI DrawGlyphStringEx(HDC hdc, const Glyph32* glyphs, int nr_glyphs,
         const GLYPHPOS* glyph_pos)
 {
-    return TRUE;
+    int i;
+    int n = 0;
+
+    if (glyph_pos) {
+        for (i = 0; i < nr_glyphs; i++) {
+            if (glyph_pos[i].suppressed == 0) {
+                DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, glyphs[i],
+                    NULL, NULL);
+                n++;
+            }
+        }
+    }
+
+    return n;
 }
 
