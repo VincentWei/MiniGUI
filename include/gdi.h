@@ -9602,8 +9602,7 @@ MG_EXPORT Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len);
 
 /** The glyph bitmap structure. */
-typedef struct _GLYPHBITMAP
-{
+typedef struct _GLYPHBITMAP {
     /** The bounding box of the glyph. */
     int bbox_x, bbox_y, bbox_w, bbox_h;
     /** The advance measure of the glyph. */
@@ -10373,13 +10372,15 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * The break opportunity code
  */
-#define BOV_UNKNOWN          0x00
-#define BOV_SET_FLAG         0x08
-#define BOV_MANDATORY_FLAG   0x04
-#define BOV_BREAK_FLAG       0x01
+#define BOV_UNKNOWN             0x00
+#define BOV_SET_FLAG            0x08
+#define BOV_MANDATORY_FLAG      0x04
+#define BOV_BREAK_FLAG          0x01
+#define BOV_HYPHEN_BEFORE_FLAG  0x10
+#define BOV_HYPHEN_AFTER_FLAG   0x20
 
-#define BOV_NOTALLOWED   (BOV_SET_FLAG | 0x00)
-#define BOV_ALLOWED      (BOV_SET_FLAG | BOV_BREAK_FLAG)
+#define BOV_NOTALLOWED          (BOV_SET_FLAG | 0x00)
+#define BOV_ALLOWED             (BOV_SET_FLAG | BOV_BREAK_FLAG)
 #define BOV_MANDATORY \
     (BOV_SET_FLAG | BOV_MANDATORY_FLAG | BOV_BREAK_FLAG)
 
@@ -10488,25 +10489,51 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 #define GRF_DIRECTION_RTL               0x00001000
 
 #define GRF_WRITING_MODE_MASK           0x0000C000
+/**
+ * Top-to-bottom direction.
+ * Both the writing mode and the typographic mode are horizontal.
+ */
 #define GRF_WRITING_MODE_HORIZONTAL_TB  0x00000000
+/**
+ * Right-to-left direction.
+ * Both the writing mode and the typographic mode are vertical.
+ */
 #define GRF_WRITING_MODE_VERTICAL_RL    0x00004000
+/**
+ * Left-to-right direction.
+ * Both the writing mode and the typographic mode are vertical.
+ */
 #define GRF_WRITING_MODE_VERTICAL_LR    0x00008000
 
-#define GRF_TEXT_ORIENTATIO_MASK        0x00030000
-#define GRF_TEXT_ORIENTATIO_MIXED       0x00000000
-#define GRF_TEXT_ORIENTATIO_UPRIGHT     0x00010000
-#define GRF_TEXT_ORIENTATIO_SIDEWAYS    0x00020000
+#define GRF_TEXT_ORIENTATION_MASK       0x00030000
+/**
+ * The glyphs are individually typeset upright in
+ * vertical lines with vertical font metrics.
+ */
+#define GRF_TEXT_ORIENTATION_UPRIGHT    0x00000000
+/**
+ * The glyphs typeset a run rotated 90° clockwise
+ * from their upright orientation.
+ */
+#define GRF_TEXT_ORIENTATION_SIDEWAYS   0x00010000
 
+/* The mixed text orientation should handled by caller */
+#define GRF_TEXT_ORIENTATION_MIXED      0x00020000
+
+/*
+ * the text combine upright property should be handled by caller
 #define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
 #define GRF_TEXT_COMBINE_UPRIGHT_NONE   0x00000000
 #define GRF_TEXT_COMBINE_UPRIGHT_ALL    0x00040000
+ */
 
 #define GRF_ALIGN_MASK                  0x0F000000
-#define GRF_ALIGN_LEFT                  0x00000000
-#define GRF_ALIGN_RIGHT                 0x01000000
-#define GRF_ALIGN_TOP                   0x02000000
-#define GRF_ALIGN_BOTTOM                0x03000000
-#define GRF_ALIGN_JUSTIFY               0x04000000
+#define GRF_ALIGN_START                 0x00000000
+#define GRF_ALIGN_END                   0x01000000
+#define GRF_ALIGN_LEFT                  0x02000000
+#define GRF_ALIGN_RIGHT                 0x03000000
+#define GRF_ALIGN_CENTER                0x04000000
+#define GRF_ALIGN_JUSTIFY               0x05000000
 
 #define GRF_TEXT_JUSTIFY_MASK           0x30000000
 #define GRF_TEXT_JUSTIFY_AUTO           0x00000000
@@ -10515,8 +10542,18 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 #define GRF_TEXT_JUSTIFY_INTER_CHAR     0x30000000
 
 #define GRF_HYPHENS_MASK                0xC0000000
+/**
+ * Words are not hyphenated, even if characters inside the word explicitly
+ * define hyphenation opportunities (the conditional "soft hyphen").
+ */
 #define GRF_HYPHENS_NONE                0x00000000
+/**
+ * Words are only hyphenated where there are characters inside the word
+ * that explicitly suggest hyphenation opportunities.
+ */
 #define GRF_HYPHENS_MANUAL              0x40000000
+
+/* should handled by caller */
 #define GRF_HYPHENS_AUTO                0x80000000
 
     /** @} end of glyph_render_flags */
@@ -10535,9 +10572,9 @@ typedef struct _GLYPHEXTINFO {
 #define GLYPH_ORIENTATION_SIDEWAYS      1
 
 /**
- * The glyph position and orientation information.
+ * The glyph position information.
  */
-typedef struct _GLYPHPOSORT {
+typedef struct _GLYPHPOS {
     /**
      * The x coordinate of the glyph position.
      */
@@ -10558,15 +10595,14 @@ typedef struct _GLYPHPOSORT {
      *      the glyph rotates 90° clockwise from horizontal.
      */
     unsigned char ort:2;
-} GLYPHPOSORT;
+} GLYPHPOS;
 
 /**
- * \fn PLOGFONT GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
+ * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *          const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
  *          Uint32 render_flags, Uint32 space_rule,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
- *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
- *          int* nr_to_fit)
+ *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
  * \brief Get the visual extent info of all glyphs fitting in the specified
  *          maximal output extent.
  *
@@ -10591,15 +10627,10 @@ typedef struct _GLYPHPOSORT {
  * \param line_size The buffer to store the line extent info; can be NULL.
  * \param glyph_ext_info The buffer to store the extent info of all glyphs
  *          which can fit in the max extent; can be NULL.
- * \param pos_orts The buffer to store the positions and orientations of
+ * \param glyph_pos The buffer to store the positions and orientations of
  *          all glyphs which can fit in the max extent; can be NULL.
- * \param nr_to_fit The buffer to store the number of glyphs which can be fit
- *          to the maximal extent.
  *
- * \return The LOGFONT object to render the sideways glyphs if there was one;
- *          otherwize NULL.
- *          The number of the glyphs which can be fit to the maximal extent
- *          will be returned through \a nr_to_fit.
+ * \return The number of glyphs which can be fit to the maximal extent.
  *          The extent info of every glyphs which are fit in the max_extent will
  *          be returned through \a glyph_ext_info if it was not NULL, and the
  *          line extent info will be returned through \a line_size
@@ -10607,28 +10638,23 @@ typedef struct _GLYPHPOSORT {
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \note The LOGFONT object \a logfont should have the rotation be zero.
- *
- * \note You are responsible to destroy the sideways LOGFONT object
- *       when it is no longer useful.
+ * \note The LOGFONT object \a logfont should have the rotation be 0° or 180°
+ *      for upright glyphs and 90° or 270° (-90°) for sideways glyphs.
  *
  * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags, white_space_rule
  */
-MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
+MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
         Uint32 render_flags, Uint32 space_rule,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOSORT* pos_orts,
-        int* nr_to_fit);
+        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos);
 
 #endif /* _MGCHARSET_UNICODE */
 
 /*
  * \fn BOOL GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
- *          int nr_glyphs, const GLYPHPOSORT* pos_orts,
- *          PLOGFONT logfont_sideways)
- * \brief Draw a glyph string at the specified positions
- *        in different orientations.
+ *          int nr_glyphs, const GLYPHPOS* glyph_pos)
+ * \brief Draw a glyph string at the specified positions.
  *
  * This function draws a glyph string to the specific positions
  * in different orientations on a DC \a hdc.
@@ -10636,18 +10662,11 @@ MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  * \param hdc The device context.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The number of the glyphs should be drawn.
- * \param pos_orts The buffer holds the position and the orientations
+ * \param glyph_pos The buffer holds the position information
  *        of every glyph. If it is NULL, the manner of this function
  *        will be same as \a DrawGlyphString.
- * \param logfont_sideways The LOGFONT object to render the sideways
- *        glyphs. It should be the LOGFONT object returned by
- *        \a GetGlyphsExtentPointEx. If it NULL, the orientation
- *        of the glyphs will be ignored.
  *
  * \return TRUE on success, otherwise FALSE.
- *
- * \note You are responsible to destroy the sideways LOGFONT object
- *       when it is no longer useful.
  *
  * \note The LOGFONT object selected into the DC \a hdc should
  *      be the same as used by GetGlyphsExtentPointEx.
@@ -10655,8 +10674,7 @@ MG_EXPORT PLOGFONT GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  * \sa GetGlyphsExtentPointEx
  */
 MG_EXPORT BOOL GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
-        int nr_glyphs, const GLYPHPOSORT* pos_orts,
-        PLOGFONT logfont_sideways);
+        int nr_glyphs, const GLYPHPOS* glyph_pos);
 
 /*
  * Define some bit masks, that character types are based on, each one has
@@ -11091,9 +11109,12 @@ static inline void BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
  * \param glyphs The pointer to the logical glyph string.
  * \param nr_glyphs The length of the glyph string.
  * \param pel The paragraph embedding level, can be one of the following values:
- *          - 0: Level 0 (left to right)
- *          - 1: Level 1 (right to left)
- *          - others: Determine according to the heuristic given in
+ *          - 0\n
+ *            Level 0 (left to right)
+ *          - 1\n
+ *            Level 1 (right to left)
+ *          - others\n
+ *            Determine according to the heuristic given in
  *            steps P2 and P3 of the Unicode bidirectional algorithm.
  * \param embed_levels The embedding level logical to visual.
  *
