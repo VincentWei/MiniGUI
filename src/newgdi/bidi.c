@@ -468,7 +468,7 @@ Glyph32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
         logical_glyphs = _gdi_get_glyphs_string (pdc, text, text_len, nr_glyphs);
         if (*nr_glyphs > 0)
             __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
-                logical_glyphs, *nr_glyphs, -1);
+                logical_glyphs, *nr_glyphs, -1, NULL, NULL);
     }
 
     return logical_glyphs;
@@ -868,7 +868,7 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
             logical_glyphs = _gdi_get_glyphs_string_break(pdc, text, text_len,
                     &nr_glyphs, context);
             __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
-                logical_glyphs, nr_glyphs, -1);
+                logical_glyphs, nr_glyphs, -1, NULL, NULL);
 
             if(!logical_glyphs)
                 return 0;
@@ -1425,6 +1425,18 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
     free(l_glyphs);
 }
 
+static void bidi_reverse_map (void* context, int len, int pos)
+{
+    GLYPHMAPINFO* str = (GLYPHMAPINFO*)context + pos;
+    int i;
+    for (i = 0; i < len / 2; i++)
+    {
+        GLYPHMAPINFO tmp = str[i];
+        str[i] = str[len - 1 - i];
+        str[len - 1 - i] = tmp;
+    }
+}
+
 int GUIAPI BIDIGetTextVisualGlyphs(LOGFONT* log_font,
         const char*    text, int text_len,
         Glyph32**      glyphs,
@@ -1439,56 +1451,46 @@ int GUIAPI BIDIGetTextVisualGlyphs(LOGFONT* log_font,
     nr_glyphs = BIDIGetTextLogicalGlyphs(log_font, text, text_len,
             glyphs, glyphs_map);
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type){
-        __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops, *glyphs,
-                nr_glyphs, *glyphs_map, -1);
+    if (nr_glyphs > 0 && mbc_devfont
+                && mbc_devfont->charset_ops->bidi_glyph_type) {
         __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
-                *glyphs, nr_glyphs, -1);
+                *glyphs, nr_glyphs, -1,
+                *glyphs_map, bidi_reverse_map);
     }
+
     return nr_glyphs;
 }
 
-BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map, int pel)
+Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs(LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map)
 {
     DEVFONT* mbc_devfont = log_font->mbc_devfont;
 
     if (nr_glyphs > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_glyph_type) {
-        if (glyph_map) {
-            __mg_charset_bidi_map_reorder (mbc_devfont->charset_ops,
-                    glyphs, nr_glyphs, glyph_map, pel);
-        }
         __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
-                glyphs, nr_glyphs, pel);
+                glyphs, nr_glyphs, -1,
+                glyphs_map, bidi_reverse_map);
 
-        return TRUE;
+        return glyphs;
     }
 
-    return FALSE;
+    return NULL;
 }
 
-BOOL GUIAPI BIDIGetVisualGlyphIndexMap (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, int** index_map, int pel)
+BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx(LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int pel,
+        void* extra, CB_REVERSE_EXTRA cb_reorder_extra)
 {
     DEVFONT* mbc_devfont = log_font->mbc_devfont;
 
     if (nr_glyphs > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_glyph_type) {
-        if (*index_map == NULL)
-            *index_map = malloc (nr_glyphs * sizeof (int));
+        __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
+                glyphs, nr_glyphs, pel,
+                extra, cb_reorder_extra);
 
-        if (*index_map) {
-            int i;
-            for (i = 0; i < nr_glyphs; i++) {
-                *index_map[i] = i;
-            }
-
-            __mg_charset_bidi_index_reorder (mbc_devfont->charset_ops,
-                    glyphs, nr_glyphs, *index_map, pel);
-
-            return TRUE;
-        }
+        return TRUE;
     }
 
     return FALSE;

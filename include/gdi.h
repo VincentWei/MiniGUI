@@ -11104,64 +11104,64 @@ MG_EXPORT int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
         const char* text, int text_len, Glyph32** glyphs,
         GLYPHMAPINFO** glyphs_map);
 
-/** \fn BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
- *         Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map, int pel)
- * \brief Reorder the specified logical glyph string to the visual glyph string.
+/*
+ * \var typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos)
+ * \brief The prototype of the user defined function to reverse an array.
  *
- * This function reorders the logical glyph string in place to a visual
- * glyphs string. If \a index_map is not NULL, it also returns
- * the index of logical glyphs.
+ * The function reverse an array pointed by \a extra from the position
+ * specified by \a pos for the length specified by \a len.
+ *
+ * \sa BIDILogGlyphs2VisGlyphsEx
+ */
+typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
+
+/** \fn BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
+ *      Glyph32* glyphs, int nr_glyphs, int pel,
+ *      void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
+ * \brief Reorder the specified logical glyph string in visual order and
+ * reorder an extra array to reflect the visule order of the glyphs.
+ *
+ * This function reorders the logical glyph string in place to visual order.
+ * If \a extra and \a cb_reverse_extra are both not NULL, it also reorders
+ * the array pointed by \a extra by calling the callback function
+ * \a cb_reverse_extra.
+ *
+ * \param log_font The logical font.
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The length of the glyph string.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0: Level 0 (left to right)
+ *          - 1: Level 1 (right to left)
+ *          - others: Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
+ * \param extra The pointer to the extra array to reorder; can be NULL.
+ * \param cb_reverse_extra The callback function to reverse the extra array.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ */
+MG_EXPORT BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, int pel,
+        void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
+
+/** \fn BOOL GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
+ *      Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map)
+ * \brief Reorder the specified logical glyph string in visual order and
+ * reorder glyph map if specified.
+ *
+ * This function reorders the logical glyph string in place to visual order.
+ * If \a glyphs_map is not NULL, it also reorders
+ * the map to reflect the visual order.
  *
  * \param log_font The logical font.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The length of the glyph string.
  * \param glyphs_map The position map returned by \a BIDIGetTextLogicalGlyphs;
  *          can be NULL.
- * \param pel The paragraph embedding level, can be one of the following values:
- *          - 0: Level 0 (left to right)
- *          - 1: Level 1 (right to left)
- *          - others: Determine according to the heuristic given in
- *            steps P2 and P3 of the Unicode bidirectional algorithm.
  *
- * \return TRUE on success, otherwise FALSE.
+ * \return The pointer to the visual glyphs; NULL when error.
  */
-MG_EXPORT BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map, int pel);
-
-/** obsolete; use BIDILogGlyphs2VisGlyphsEx instead */
-static inline Glyph32* BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyph_map)
-{
-    if (BIDILogGlyphs2VisGlyphsEx (log_font, glyphs, nr_glyphs, glyph_map, -1))
-        return glyphs;
-
-    return NULL;
-}
-
-/** \fn BOOL GUIAPI BIDIGetVisualGlyphIndexMap (LOGFONT* log_font,
- *         Glyph32* glyphs, int nr_glyphs, int** index_map, int pel)
- * \brief Reorder the specified logical glyph string to the visual glyph string.
- *
- * This function reorders the logical glyph string in place to a visual
- * glyphs string. If \a index_map is not NULL, it also returns
- * the index of logical glyphs.
- *
- * \param log_font The logical font.
- * \param glyphs The pointer to the glyph string.
- * \param nr_glyphs The length of the glyph string.
- * \param index_map The pointer to the position map from the logical glyph string to
- *          the visual glyph string. If *index_map is NULL, the function will
- *          try to allocate a new one. The caller should free it when it is not useful.
- * \param pel The paragraph embedding level, can be one of the following values:
- *          - 0: Level 0 (left to right)
- *          - 1: Level 1 (right to left)
- *          - others: Determine according to the heuristic given in
- *            steps P2 and P3 of the Unicode bidirectional algorithm.
- *
- * \return TRUE on success, otherwise FALSE.
- */
-MG_EXPORT BOOL GUIAPI BIDIGetVisualGlyphIndexMap (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, int** index_map, int pel);
+MG_EXPORT Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
+        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map);
 
 /**
  * \fn void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font, \

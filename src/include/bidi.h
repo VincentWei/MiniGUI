@@ -66,16 +66,17 @@ typedef struct _BIDICHAR_MIRROR_MAP {
     Glyph32 mirrored;
 } BIDICHAR_MIRROR_MAP;
 
-typedef void (*CB_DO_REORDER) (void* context, int len, int pos);
-
 Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len, int pel);
+        Glyph32* glyphs, int len, int pel,
+        void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
 
+/*
 Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
         Glyph32* glyphs, int len, GLYPHMAPINFO* map, int pel);
 
 Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
         Glyph32* glyphs, int len, int* index_map, int pel);
+*/
 
 void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
         Glyph32* glyphs, int len, int pel, Uint8* embedding_levels, Uint8 type);

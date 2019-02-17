@@ -491,45 +491,9 @@ bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
                     glyphs[i] = mirrored_ch;
             }
         }
-    } 
+    }
 
     DBGLOG ("  Mirroring, Done\n");
-}
-
-static void bidi_map_reverse (void* context, int len, int pos)
-{
-    GLYPHMAPINFO* str = (GLYPHMAPINFO*)context + pos;
-    int i;
-    for (i = 0; i < len / 2; i++)
-    {
-        GLYPHMAPINFO tmp = str[i];
-        str[i] = str[len - 1 - i];
-        str[len - 1 - i] = tmp;
-    }
-}
-
-static void bidi_index_reverse (void* context, int len, int pos)
-{
-    char* str = (char*)context + pos;
-    int i;
-    for (i = 0; i < len / 2; i++)
-    {
-        char tmp = str[i];
-        str[i] = str[len - 1 - i];
-        str[len - 1 - i] = tmp;
-    }
-}
-
-static void bidi_string_reverse (void* context, int len, int pos)
-{
-    Glyph32* str = (Glyph32*)context + pos;
-    int i;
-    for (i = 0; i < len / 2; i++)
-    {
-        Glyph32 tmp = str[i];
-        str[i] = str[len - 1 - i];
-        str[len - 1 - i] = tmp;
-    }
 }
 
 static void bidi_resolve_string (const CHARSETOPS* charset_ops,
@@ -570,8 +534,26 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops,
     *ptype_rl_list = type_rl_list;
 }
 
-static void bidi_reorder_cb (void* context, int len,
-        TYPERUN **ptype_rl_list, BYTE max_level, CB_DO_REORDER cb)
+typedef struct _REORDER_CONTEXT {
+    Glyph32* glyphs;
+    void* extra;
+    CB_REVERSE_EXTRA cb;
+} REORDER_CONTEXT;
+
+static void bidi_reverse_glyphs (Glyph32* glyphs, int len, int pos)
+{
+    int i;
+    Glyph32* gs = glyphs + pos;
+
+    for (i = 0; i < len / 2; i++) {
+        Glyph32 tmp = gs[i];
+        gs[i] = gs[len - 1 - i];
+        gs[len - 1 - i] = tmp;
+    }
+}
+
+static void bidi_reorder (REORDER_CONTEXT* context, int len,
+        TYPERUN **ptype_rl_list, BYTE max_level)
 {
     int i = 0;
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
@@ -590,11 +572,30 @@ static void bidi_reorder_cb (void* context, int len,
                     pp1 = pp1->next;
                 }
                 pp = pp1->prev;
-                cb(context, len, pos);
+
+                if (context->glyphs) {
+                    bidi_reverse_glyphs(context->glyphs, len, pos);
+                }
+
+                if (context->extra && context->cb) {
+                    context->cb(context->extra, len, pos);
+                }
             }
         }
     }
     DBGLOG("\nReordering, Done\n");
+}
+
+static void bidi_reverse_chars (void* context, int len, int pos)
+{
+    char* str = (char*)context + pos;
+    int i;
+    for (i = 0; i < len / 2; i++)
+    {
+        char tmp = str[i];
+        str[i] = str[len - 1 - i];
+        str[len - 1 - i] = tmp;
+    }
 }
 
 void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
@@ -607,7 +608,8 @@ void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list,
+            &max_level);
 
     /* type = 0, get the logical embedding level; else visual level.*/
     for (pp = type_rl_list->next; pp->next; pp = pp->next){
@@ -615,15 +617,33 @@ void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
         for(i = 0; i < len; i++)
             embedding_levels[pos + i] = LEVEL(pp);
     }
+
     if (type) {
-        bidi_reorder_cb(embedding_levels, len, &type_rl_list, max_level,
-                bidi_index_reverse);
+        REORDER_CONTEXT rc;
+
+        rc.glyphs = NULL;
+        rc.extra = embedding_levels;
+        rc.cb = bidi_reverse_chars;
+        bidi_reorder(&rc, len, &type_rl_list, max_level);
     }
 
     /* free typerun list.*/
     free_typerun_list(type_rl_list);
 
     print_hexstr(glyphs, len, TRUE);
+}
+
+#if 0
+static void bidi_map_reverse (void* context, int len, int pos)
+{
+    GLYPHMAPINFO* str = (GLYPHMAPINFO*)context + pos;
+    int i;
+    for (i = 0; i < len / 2; i++)
+    {
+        GLYPHMAPINFO tmp = str[i];
+        str[i] = str[len - 1 - i];
+        str[len - 1 - i] = tmp;
+    }
 }
 
 Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
@@ -683,19 +703,26 @@ Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
 
     return glyphs;
 }
+#endif
 
 Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len, int pel)
+        Glyph32* glyphs, int len, int pel,
+        void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
+    REORDER_CONTEXT rc;
 
     print_hexstr(glyphs, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list,
+        &max_level);
 
-    bidi_reorder_cb (glyphs, len, &type_rl_list, max_level, bidi_string_reverse);
+    rc.glyphs = glyphs;
+    rc.extra = extra;
+    rc.cb = cb_reverse_extra;
+    bidi_reorder (&rc, len, &type_rl_list, max_level);
 
     /* free typerun list.*/
     free_typerun_list (type_rl_list);
@@ -705,7 +732,8 @@ Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops,
     return glyphs;
 }
 
-Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
+Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
+        Glyph32* glyphs, int len)
 {
     BYTE base_level = 0;
     Uint32 base_dir = BIDI_TYPE_L;
@@ -723,11 +751,13 @@ Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops, Glyph32* g
     return base_dir;
 }
 
-BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value, Uint32 *bidi_type)
+BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value,
+        Uint32 *bidi_type)
 {
     DEVFONT* mbc_devfont = log_font->mbc_devfont;
 
-    if (mbc_devfont == NULL || mbc_devfont->charset_ops->bidi_glyph_type == NULL)
+    if (mbc_devfont == NULL ||
+            mbc_devfont->charset_ops->bidi_glyph_type == NULL)
         return FALSE;
 
     *bidi_type = mbc_devfont->charset_ops->bidi_glyph_type (glyph_value);
