@@ -857,7 +857,7 @@ static int check_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 
 int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
-            Uint32 space_rule, Uint32 trans_rule,
+            Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
             Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs)
 {
     struct glyph_break_ctxt gbctxt;
@@ -865,7 +865,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
     BOOL col_sp = FALSE;
 
     // CSS: collapses space according to space rule
-    if (space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP)
+    if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP)
         col_sp = TRUE;
 
     gbctxt.mbc_devfont = logfont->mbc_devfont;
@@ -914,8 +914,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
         _DBG_PRINTF ("Got a glyph: %04X\n", uc);
 
-        if ((space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP
-                || space_rule == WSR_PRE_LINE) && uc == UCHAR_TAB) {
+        if ((wsr == WSR_NORMAL || wsr == WSR_NOWRAP
+                || wsr == WSR_PRE_LINE) && uc == UCHAR_TAB) {
             // Every tab is converted to a space (U+0020).
             _DBG_PRINTF ("CSS: Every tab is converted to a space (U+0020)\n");
             uc = UCHAR_SPACE;
@@ -943,7 +943,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         }
 
         // Only break at forced line breaks.
-        if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP)
+        if (wsr == WSR_PRE || wsr == WSR_NOWRAP)
             // Set the default breaking manner is not allowed.
             bo = BOV_NOTALLOWED;
         else
@@ -988,7 +988,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             gbctxt.curr_od = LB6;
             gbctxt_change_bt_before_last(&gbctxt, BOV_NOTALLOWED);
 
-            if (space_rule == WSR_NORMAL || space_rule == WSR_NOWRAP) {
+            if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP) {
                 // Collapse new lines
             }
             else {
@@ -1052,7 +1052,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         }
 
         // Only break at forced line breaks.
-        if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP) {
+        if (wsr == WSR_PRE || wsr == WSR_NOWRAP) {
             // ignore the following breaking rules.
             goto next_glyph;
         }
@@ -1794,9 +1794,6 @@ static int normalize_advance(Uint32 render_flags, int* adv_x, int* adv_y)
     int line_adv;
     int dir = 1;
 
-    if ((render_flags & GRF_DIRECTION_MASK) == GRF_DIRECTION_RTL)
-        dir = -1;
-
     switch (render_flags & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
         if (IS_SIDEWAYS(render_flags)) {
@@ -1847,9 +1844,6 @@ static void advance_extra_spacing(Uint32 render_flags, int extra_spacing,
 {
     int dir = 1;
 
-    if ((render_flags & GRF_DIRECTION_MASK) == GRF_DIRECTION_RTL)
-        dir = -1;
-
     switch (render_flags & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
         if (IS_SIDEWAYS(render_flags)) {
@@ -1898,7 +1892,7 @@ static int find_breaking_pos_normal(const Glyph32* glyphs,
 
 int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
             const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
-            Uint32 render_flags, Uint32 space_rule,
+            Uint32 render_flags,
             int letter_spacing, int word_spacing, int tab_size, int max_extent,
             SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
 {
@@ -1925,11 +1919,6 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
         break;
     default:
         return 0;
-    }
-
-    /* Cases of no text wrapping */
-    if (space_rule == WSR_PRE || space_rule == WSR_NOWRAP) {
-        max_extent = -1;
     }
 
     while (n < nr_glyphs) {

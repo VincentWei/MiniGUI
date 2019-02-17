@@ -10231,7 +10231,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /** @} end of language_code */
 
     /**
-     * \defgroup white_space_rule White Space Rules
+     * \defgroup white_space_rules White Space Rules
      *
      *  The white space rule indicates \a GetGlyphsByRules and
      *  \a GetGlyphsExtentPointEx
@@ -10300,10 +10300,10 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  */
 #define WSR_PRE_LINE        0x06
 
-    /** @} end of white_space_rule */
+    /** @} end of white_space_rules */
 
     /**
-     * \defgroup char_transform_rule Character Transformation Rule
+     * \defgroup char_transform_rules Character Transformation Rules
      *
      *  The character transformation rule indicates how \a GetGlyphsByRules
      *  transforms text for styling purposes; can be
@@ -10320,9 +10320,9 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *
  * \brief No effects.
  */
-#define CTR_NONE            0x00000000
+#define CTR_NONE            0x00
 
-#define CTR_CASE_MASK       0x0000000F
+#define CTR_CASE_MASK       0x0F
 
 /**
  * \def CTR_CAPITALIZE
@@ -10330,21 +10330,21 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \brief Puts the first typographic letter unit of each word,
  * if lowercase, in titlecase; other characters are unaffected.
  */
-#define CTR_CAPITALIZE      0x00000001
+#define CTR_CAPITALIZE      0x01
 
 /**
  * \def CTR_UPPERCASE
  *
  * \brief Puts all letters in uppercase.
  */
-#define CTR_UPPERCASE       0x00000002
+#define CTR_UPPERCASE       0x02
 
 /**
  * \def CTR_LOWERCASE
  *
  * \brief Puts all letters in lowercase.
  */
-#define CTR_LOWERCASE       0x00000003
+#define CTR_LOWERCASE       0x03
 
 /**
  * \def CTR_FULL_WIDTH
@@ -10354,7 +10354,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * it is left as is. This value is typically used to typeset
  * Latin letters and digits as if they were ideographic characters.
  */
-#define CTR_FULL_WIDTH      0x00000010
+#define CTR_FULL_WIDTH      0x10
 
 /**
  * \def CTR_FULL_SIZE_KANA
@@ -10365,9 +10365,88 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * Kana to compensate for legibility issues at the small font sizes
  * typically used in ruby.
  */
-#define CTR_FULL_SIZE_KANA  0x00000020
+#define CTR_FULL_SIZE_KANA  0x20
 
-    /** @} end of char_transform_rule */
+    /** @} end of char_transform_rules */
+
+    /**
+     * \defgroup word_break_rules Word Breaking Rules
+     *
+     *  The word breaking rule indicates how \a GetGlyphsByRules
+     *  creates soft wrap opportunities between letters.
+     *
+     * @{
+     */
+
+/**
+ * \def WBR_NORMAL
+ *
+ * \brief Words break according to their customary rules, as defined
+ * by UNICODE LINE BREAKING ALGORITHM.
+ */
+#define WBR_NORMAL          0x00
+
+/**
+ * \def WBR_BREAK_ALL
+ *
+ * \brief Breaking is allowed within “words”.
+ */
+#define WBR_BREAK_ALL       0x01
+
+/**
+ * \def WBR_KEEP_ALL
+ *
+ * \brief Breaking is forbidden within “words”.
+ */
+#define WBR_KEEP_ALL        0x02
+
+    /** @} end of word_break_rules */
+
+    /**
+     * \defgroup line_break_policies Line Breaking Policies
+     *
+     * The line breaking policy specifies the strictness
+     * of line-breaking rules applied within an element:
+     * especially how wrapping interacts with punctuation and symbols.
+     *
+     * @{
+     */
+
+/**
+ * \def LBP_NORMAL
+ *
+ * \brief Breaks text using the most common set of line-breaking rules.
+ */
+#define LBP_NORMAL          0x00
+
+/**
+ * \def LBP_LOOSE
+ *
+ * \brief Breaks text using the least restrictive set of line-breaking rules.
+ * Typically used for short lines, such as in newspapers.
+ */
+#define LBP_LOOSE           0x01
+
+/**
+ * \def LBP_STRICT
+ *
+ * \brief Breaks text using the most stringent set of line-breaking rules.
+ */
+#define LBP_STRICT          0x02
+
+/**
+ * \def LBP_ANYWHERE
+ *
+ * \brief There is a soft wrap opportunity around every typographic character
+ * unit, including around any punctuation character or preserved spaces,
+ * or in the middle of words, disregarding any prohibition against line
+ * breaks, even those introduced by characters with the GL, WJ, or ZWJ
+ * breaking class or mandated by the word breaking rule. The different wrapping
+ * opportunities must not be prioritized. Hyphenation is not applied.
+ */
+#define LBP_ANYWHERE        0x03
+
+    /** @} end of line_break_policies */
 
 /**
  * The break opportunity code
@@ -10388,20 +10467,26 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  *          const char* mstr, unsigned int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
- *          Uint32 space_rule, Uint32 trans_rule,
+ *          Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
  *          Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs);
- * \brief Calculate the glyph string under the specified white space and
- *        transformation rule.
+ * \brief Calculate the glyph string and the breaking opportunities under
+ *        the specified rules and line breaking policy.
  *
- * This function calculates and allocates the glyph string and the break
+ * This function calculates and allocates the glyph string and the breaking
  * opportunities of the glyphs from a multi-byte string under the specified
- * content language \a content_language, writing system \a writing_system,
- * white space rule \a space_rule, and transformation rule \a trans_rule.
+ * content language \a content_language, the writing system \a writing_system,
+ * the white space rule \a wsr, the text transformation rule
+ * \a ctr, the word breaking rule \a wbr, and
+ * the line breaking policy \a lbp.
  *
  * The implementation of this function conforms to UNICODE LINE BREAKING
  * ALGORITHM:
  *
  *      https://www.unicode.org/reports/tr14/tr14-39.html
+ *
+ * and the CSS Text Module Level 3:
+ *
+ *      https://www.w3.org/TR/css-text-3/
  *
  * The function will return if it encounters any hard line break or the null
  * character. The hard line break will be included in the returned glyphs if
@@ -10415,9 +10500,12 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \param mstr_len The length of \a mstr in bytes.
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
- * \param space_rule The white space rule; see \a white_space_rule.
- * \param trans_rule The character transformation rule.
- *        See \a char_transform_rule.
+ * \param wsr The white space rule; see \a white_space_rules.
+ * \param ctr The character transformation rule;
+ *        see \a char_transform_rule.
+ * \param wbr The word breaking rule; see \a word_break_rules.
+ * \param lbp The line breaking policy;
+ *        see \a line_break_policies.
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
  * \param break_opps The pointer to a buffer to store the address of the
@@ -10439,12 +10527,12 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa DrawGlyphStringEx, white_space_rule, char_transform_rule
+ * \sa DrawGlyphStringEx, white_space_rules, char_transform_rule
  */
 MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
             const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
-            Uint32 space_rule, Uint32 trans_rule,
+            Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
             Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs);
 
     /**
@@ -10460,35 +10548,7 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
      * @{
      */
 
-#define GRF_WORD_BREAK_MASK             0x00000003
-#define GRF_WORD_BREAK_NORMAL           0x00000000
-#define GRF_WORD_BREAK_KEEP_ALL         0x00000001
-#define GRF_WORD_BREAK_BREAK_ALL        0x00000002
-
-#define GRF_OVERFLOW_WRAP_MASK          0x0000000C
-#define GRF_OVERFLOW_WRAP_NORMAL        0x00000000
-#define GRF_OVERFLOW_WRAP_BREAK_WORD    0x00000004
-#define GRF_OVERFLOW_WRAP_ANYWHERE      0x00000008
-
-#define GRF_LINE_BREAK_MASK             0x000000F0
-#define GRF_LINE_BREAK_NORMAL           0x00000000
-#define GRF_LINE_BREAK_AUTO             0x00000010
-#define GRF_LINE_BREAK_LOOSE            0x00000020
-#define GRF_LINE_BREAK_STRICT           0x00000030
-#define GRF_LINE_BREAK_ANYWHERE         0x00000040
-
-#define GRF_HANGING_PUNC_MASK           0x00000F00
-#define GRF_HANGING_PUNC_NONE           0x00000000
-#define GRF_HANGING_PUNC_FORCE_END      0x00000100
-#define GRF_HANGING_PUNC_ALLOW_END      0x00000200
-#define GRF_HANGING_PUNC_FIRST          0x00000400 // flag bit
-#define GRF_HANGING_PUNC_LAST           0x00000800 // flag bit
-
-#define GRF_DIRECTION_MASK              0x00003000
-#define GRF_DIRECTION_LTR               0x00000000
-#define GRF_DIRECTION_RTL               0x00001000
-
-#define GRF_WRITING_MODE_MASK           0x0000C000
+#define GRF_WRITING_MODE_MASK           0xF0000000
 /**
  * Top-to-bottom direction.
  * Both the writing mode and the typographic mode are horizontal.
@@ -10498,14 +10558,14 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  * Right-to-left direction.
  * Both the writing mode and the typographic mode are vertical.
  */
-#define GRF_WRITING_MODE_VERTICAL_RL    0x00004000
+#define GRF_WRITING_MODE_VERTICAL_RL    0x10000000
 /**
  * Left-to-right direction.
  * Both the writing mode and the typographic mode are vertical.
  */
-#define GRF_WRITING_MODE_VERTICAL_LR    0x00008000
+#define GRF_WRITING_MODE_VERTICAL_LR    0x20008000
 
-#define GRF_TEXT_ORIENTATION_MASK       0x00030000
+#define GRF_TEXT_ORIENTATION_MASK       0x0F000000
 /**
  * The glyphs are individually typeset upright in
  * vertical lines with vertical font metrics.
@@ -10515,33 +10575,16 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  * The glyphs typeset a run rotated 90° clockwise
  * from their upright orientation.
  */
-#define GRF_TEXT_ORIENTATION_SIDEWAYS   0x00010000
-
+#define GRF_TEXT_ORIENTATION_SIDEWAYS   0x01000000
 /* The mixed text orientation should handled by caller */
-#define GRF_TEXT_ORIENTATION_MIXED      0x00020000
+#define GRF_TEXT_ORIENTATION_MIXED      0x02000000
 
-/*
- * the text combine upright property should be handled by caller
-#define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
-#define GRF_TEXT_COMBINE_UPRIGHT_NONE   0x00000000
-#define GRF_TEXT_COMBINE_UPRIGHT_ALL    0x00040000
- */
+#define GRF_OVERFLOW_WRAP_MASK          0x00F00000
+#define GRF_OVERFLOW_WRAP_NORMAL        0x00000000
+#define GRF_OVERFLOW_WRAP_BREAK_WORD    0x00100000
+#define GRF_OVERFLOW_WRAP_ANYWHERE      0x00200000
 
-#define GRF_ALIGN_MASK                  0x0F000000
-#define GRF_ALIGN_START                 0x00000000
-#define GRF_ALIGN_END                   0x01000000
-#define GRF_ALIGN_LEFT                  0x02000000
-#define GRF_ALIGN_RIGHT                 0x03000000
-#define GRF_ALIGN_CENTER                0x04000000
-#define GRF_ALIGN_JUSTIFY               0x05000000
-
-#define GRF_TEXT_JUSTIFY_MASK           0x30000000
-#define GRF_TEXT_JUSTIFY_AUTO           0x00000000
-#define GRF_TEXT_JUSTIFY_NONE           0x10000000
-#define GRF_TEXT_JUSTIFY_INTER_WORD     0x20000000
-#define GRF_TEXT_JUSTIFY_INTER_CHAR     0x30000000
-
-#define GRF_HYPHENS_MASK                0xC0000000
+#define GRF_HYPHENS_MASK                0x000F0000
 /**
  * Words are not hyphenated, even if characters inside the word explicitly
  * define hyphenation opportunities (the conditional "soft hyphen").
@@ -10551,10 +10594,55 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  * Words are only hyphenated where there are characters inside the word
  * that explicitly suggest hyphenation opportunities.
  */
-#define GRF_HYPHENS_MANUAL              0x40000000
+#define GRF_HYPHENS_MANUAL              0x00010000
 
 /* should handled by caller */
-#define GRF_HYPHENS_AUTO                0x80000000
+#define GRF_HYPHENS_AUTO                0x00010000
+
+#define GRF_ALIGN_MASK                  0x0000F000
+#define GRF_ALIGN_START                 0x00000000
+#define GRF_ALIGN_END                   0x00001000
+#define GRF_ALIGN_LEFT                  0x00002000
+#define GRF_ALIGN_RIGHT                 0x00003000
+#define GRF_ALIGN_CENTER                0x00004000
+#define GRF_ALIGN_JUSTIFY               0x00005000
+
+#define GRF_TEXT_JUSTIFY_MASK           0x00000F00
+#define GRF_TEXT_JUSTIFY_AUTO           0x00000000
+#define GRF_TEXT_JUSTIFY_NONE           0x00000100
+#define GRF_TEXT_JUSTIFY_INTER_WORD     0x00000200
+#define GRF_TEXT_JUSTIFY_INTER_CHAR     0x00000300
+
+#define GRF_HANGING_PUNC_MASK           0x000000F0
+#define GRF_HANGING_PUNC_NONE           0x00000000
+#define GRF_HANGING_PUNC_FORCE_END      0x00000010
+#define GRF_HANGING_PUNC_ALLOW_END      0x00000020
+
+#define GRF_HANGING_PUNC_FLAGS          0x0000000F
+#define GRF_HANGING_PUNC_FIRST          0x00000001
+#define GRF_HANGING_PUNC_LAST           0x00000002
+
+/*
+#define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
+#define GRF_TEXT_COMBINE_UPRIGHT_NONE   0x00000000
+#define GRF_TEXT_COMBINE_UPRIGHT_ALL    0x00040000
+
+#define GRF_WORD_BREAK_MASK             0x00000003
+#define GRF_WORD_BREAK_NORMAL           0x00000000
+#define GRF_WORD_BREAK_KEEP_ALL         0x00000001
+#define GRF_WORD_BREAK_BREAK_ALL        0x00000002
+
+#define GRF_LINE_BREAK_MASK             0x000000F0
+#define GRF_LINE_BREAK_NORMAL           0x00000000
+#define GRF_LINE_BREAK_AUTO             0x00000010
+#define GRF_LINE_BREAK_LOOSE            0x00000020
+#define GRF_LINE_BREAK_STRICT           0x00000030
+#define GRF_LINE_BREAK_ANYWHERE         0x00000040
+
+#define GRF_DIRECTION_MASK              0x00003000
+#define GRF_DIRECTION_LTR               0x00000000
+#define GRF_DIRECTION_RTL               0x00001000
+ */
 
     /** @} end of glyph_render_flags */
 
@@ -10600,7 +10688,7 @@ typedef struct _GLYPHPOS {
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *          const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
- *          Uint32 render_flags, Uint32 space_rule,
+ *          Uint32 render_flags,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
  * \brief Get the visual extent info of all glyphs fitting in the specified
@@ -10618,7 +10706,6 @@ typedef struct _GLYPHPOS {
  *          It should be returned by \a GetGlyphsByRules.
  * \param nr_glyphs The number of the glyphs.
  * \param render_flags The render flags; see \a glyph_render_flags.
- * \param space_rule The white space rule; see \a white_space_rule.
  * \param letter_spacing This parameter specifies additional spacing
  *          (commonly called tracking) between adjacent glyphs.
  * \param word_spacing This parameter specifies additional spacing between words.
@@ -10644,11 +10731,11 @@ typedef struct _GLYPHPOS {
  * \note The positions of all glyphs are always with respected to
  *      the top-left corner of the output rectangle.
  *
- * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags, white_space_rule
+ * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
         const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
-        Uint32 render_flags, Uint32 space_rule,
+        Uint32 render_flags,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos);
 
