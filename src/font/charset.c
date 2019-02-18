@@ -4412,9 +4412,9 @@ BOOL IsCompatibleCharset (const char* charset, CHARSETOPS* ops)
 
 #ifdef _MGCHARSET_UNICODE
 
-UCharBasicType GUIAPI UCharGetType(Uchar32 uc)
+UCharGeneralCategory GUIAPI UCharGetType(Uchar32 uc)
 {
-    return (UCharBasicType)TYPE(uc);
+    return (UCharGeneralCategory)TYPE(uc);
 }
 
 /** The function determines the break type of a UNICODE character. */

@@ -5865,7 +5865,7 @@ typedef Uint32 Uchar32;
 #define MCHAR_TYPE_VOWEL_BELLOW     (MCHAR_TYPE_VOWEL | MCHAR_TYPE_BELLOW_MARK)
 
 /**
- * UCharBasicType: basic type of a UNICODE character.
+ * UCharGeneralCategory: General category of a UNICODE character.
  *
  * - UCHAR_TYPE_CONTROL: General category "Other, Control" (Cc)
  * - UCHAR_TYPE_FORMAT: General category "Other, Format" (Cf)
@@ -5933,7 +5933,7 @@ typedef enum {
     UCHAR_TYPE_LINE_SEPARATOR,
     UCHAR_TYPE_PARAGRAPH_SEPARATOR,
     UCHAR_TYPE_SPACE_SEPARATOR
-} UCharBasicType;
+} UCharGeneralCategory;
 
 /**
  * UCharBreakType: The break type of a UNICODE character.
@@ -7416,7 +7416,7 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
             n, NULL)
 
 /** The function determines the general category (basic type) of a UNICODE character. */
-MG_EXPORT UCharBasicType GUIAPI UCharGetType(Uchar32 uc);
+MG_EXPORT UCharGeneralCategory GUIAPI UCharGetType(Uchar32 uc);
 
 /** The function determines the break property of a UNICODE character. */
 MG_EXPORT UCharBreakType GUIAPI UCharGetBreak(Uchar32 uc);
