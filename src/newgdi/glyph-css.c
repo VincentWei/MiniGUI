@@ -92,10 +92,15 @@ struct glyph_break_ctxt {
     int      len_buff;
     int      n;
     int      base_bt;
-    Uint8    curr_od;
 
     LanguageCode cl;
     UCharScriptType ws;
+
+    Uint8   curr_od;
+    Uint8   wsr;
+    Uint8   ctr;
+    Uint8   wbr;
+    Uint8   lbp;
 };
 
 static int gbctxt_init(struct glyph_break_ctxt* gbctxt, int size)
@@ -340,6 +345,19 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc,
         break;
     }
 
+    /*
+     * Breaking is allowed within “words”: specifically, in addition to
+     * soft wrap opportunities allowed for normal, any typographic character
+     * units resolving to the NU (“numeric”), AL (“alphabetic”), or
+     * SA (“Southeast Asian”) line breaking classes are instead treated
+     * as ID (“ideographic characters”) for the purpose of line-breaking.
+     */
+    if (gbctxt->wbr == WBR_BREAK_ALL &&
+            (bt == UCHAR_BREAK_NUMERIC || bt == UCHAR_BREAK_ALPHABETIC
+                || bt == UCHAR_BREAK_COMPLEX_CONTEXT)) {
+        bt = UCHAR_BREAK_IDEOGRAPHIC;
+    }
+
     if (pgc)
         *pgc = gc;
 
@@ -415,6 +433,40 @@ static int is_next_glyph_bt(struct glyph_break_ctxt* gbctxt,
                     gv, uc);
     if (mclen > 0 && resolve_lbc(gbctxt, *uc, NULL) == bt)
         return mclen;
+
+    return 0;
+}
+
+static BOOL is_glyph_letter(UCharBasicType gc, UCharBreakType bt)
+{
+    if ((gc >= UCHAR_TYPE_LOWERCASE_LETTER
+                && gc <= UCHAR_TYPE_UPPERCASE_LETTER)
+            || (gc >= UCHAR_TYPE_DECIMAL_NUMBER
+                && gc <= UCHAR_TYPE_OTHER_NUMBER))
+        return TRUE;
+
+    if (bt == UCHAR_BREAK_NUMERIC
+            || bt == UCHAR_BREAK_ALPHABETIC
+            || bt == UCHAR_BREAK_IDEOGRAPHIC
+            || bt == UCHAR_BREAK_AMBIGUOUS)
+        return TRUE;
+
+    return FALSE;
+}
+
+static int is_next_glyph_letter(struct glyph_break_ctxt* gbctxt,
+    const char* mstr, int mstr_len, Glyph32* gv, Uchar32* uc)
+{
+    int mclen;
+    UCharBasicType gc;
+    UCharBreakType bt;
+
+    mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
+    if (mclen > 0) {
+        bt = resolve_lbc(gbctxt, *uc, &gc);
+        if (is_glyph_letter(gc, bt))
+            return mclen;
+    }
 
     return 0;
 }
@@ -877,6 +929,10 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
     gbctxt.base_bt = UCHAR_BREAK_UNSET;
     gbctxt.cl = content_language;
     gbctxt.ws = writing_system;
+    gbctxt.wsr = wsr;
+    gbctxt.ctr = ctr;
+    gbctxt.wbr = wbr;
+    gbctxt.lbp = lbp;
 
     *glyphs = NULL;
     *break_oppos = NULL;
@@ -894,6 +950,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         Uchar32 uc;
         int mclen = 0;
         UCharBreakType bt;
+        UCharBasicType gc;
         Uint8 bo;
 
         Glyph32 next_gv;
@@ -931,7 +988,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
         // LB1 Resolve line breaking class
         gbctxt.curr_od = LB1;
-        bt = resolve_lbc(&gbctxt, uc, NULL);
+        bt = resolve_lbc(&gbctxt, uc, &gc);
 
         /* Start and end of text */
         // LB2 Never break at the start of text.
@@ -1056,13 +1113,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             // ignore the following breaking rules.
             goto next_glyph;
         }
-
-        if (lbp == LBP_ANYWHERE) {
-            _DBG_PRINTF ("LBP_ANYWHERE\n");
-            bo = BOV_ALLOWED;
-            gbctxt.curr_od = LB8a;
-            gbctxt_change_bt_last(&gbctxt, bo);
-
+        else if (lbp == LBP_ANYWHERE) {
             // ignore the following breaking rules.
             goto next_glyph;
         }
@@ -1144,6 +1195,27 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             _DBG_PRINTF ("LB12 Do not break after NBSP and related characters\n");
             gbctxt.curr_od = LB12;
             gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED_DEFINITELY);
+        }
+
+        /* Breaking is forbidden within “words”: implicit soft wrap
+         * opportunities between typographic letter units (or other
+         * typographic character units belonging to the NU, AL, AI, or ID
+         * Unicode line breaking classes) are suppressed, i.e. breaks are
+         * prohibited between pairs of such characters (regardless of
+         * line-break settings other than anywhere) except where opportunities
+         * exist due to dictionary-based breaking.
+         */
+        if (wbr == WBR_KEEP_ALL && is_glyph_letter(gc, bt)
+                && (next_mclen = is_next_glyph_letter(&gbctxt,
+                    mstr, mstr_len, &next_gv, &next_uc)) > 0) {
+            _DBG_PRINTF ("WBR_KEEP_ALL.\n");
+            gbctxt.curr_od = LB12a;
+            gbctxt_change_bt_last(&gbctxt, BOV_NOTALLOWED_UNCERTAINLY);
+            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
+                goto error;
+
+            cosumed_one_loop += next_mclen;
+            goto next_glyph;
         }
 
         /* Non-breaking characters */
