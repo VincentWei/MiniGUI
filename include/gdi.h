@@ -10448,20 +10448,19 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 
     /** @} end of line_break_policies */
 
+#define BOV_SET_FLAG            0x80
+#define BOV_MANDATORY_FLAG      0x40
+#define BOV_NOTBREAK_FLAG       0x20
+#define BOV_BREAK_FLAG          0x10
+
 /**
  * The break opportunity code
  */
-#define BOV_UNKNOWN             0x00
-#define BOV_SET_FLAG            0x08
-#define BOV_MANDATORY_FLAG      0x04
-#define BOV_BREAK_FLAG          0x01
-#define BOV_HYPHEN_BEFORE_FLAG  0x10
-#define BOV_HYPHEN_AFTER_FLAG   0x20
-
-#define BOV_NOTALLOWED          (BOV_SET_FLAG | 0x00)
-#define BOV_ALLOWED             (BOV_SET_FLAG | BOV_BREAK_FLAG)
-#define BOV_MANDATORY \
-    (BOV_SET_FLAG | BOV_MANDATORY_FLAG | BOV_BREAK_FLAG)
+#define BOV_UNKNOWN                 0x00
+#define BOV_NOTALLOWED_DEFINITELY   (BOV_SET_FLAG | BOV_NOTBREAK_FLAG | 0x01)
+#define BOV_NOTALLOWED_UNCERTAINLY  (BOV_SET_FLAG | BOV_NOTBREAK_FLAG | 0x02)
+#define BOV_ALLOWED                 (BOV_SET_FLAG | BOV_BREAK_FLAG)
+#define BOV_MANDATORY               (BOV_SET_FLAG | BOV_MANDATORY_FLAG | BOV_BREAK_FLAG)
 
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
@@ -10517,8 +10516,10 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *        The break opportunity can be one of the following values:
  *          - BOV_MANDATORY\n
  *            Mandatory break.
- *          - BOV_NOTALLOWED\n
- *            No break allowed after the glyph.
+ *          - BOV_NOTALLOWED_DEFINITELY\n
+ *            No break allowed after the glyph definitely.
+ *          - BOV_NOTALLOWED_UNCERTAINLY\n
+ *            No break allowed after the glyph uncertainly.
  *          - BOV_ALLOWED\n
  *            Break allowed after the glyph.
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
