@@ -4412,7 +4412,7 @@ BOOL IsCompatibleCharset (const char* charset, CHARSETOPS* ops)
 
 #ifdef _MGCHARSET_UNICODE
 
-UCharGeneralCategory GUIAPI UCharGetType(Uchar32 uc)
+UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc)
 {
     return (UCharGeneralCategory)TYPE(uc);
 }

@@ -308,7 +308,7 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
 static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc,
         UCharGeneralCategory* pgc)
 {
-    UCharGeneralCategory gc = UCharGetType(uc);
+    UCharGeneralCategory gc = UCharGetCategory(uc);
     UCharBreakType bt = UCharGetBreak(uc);
 
     /*
@@ -2142,7 +2142,8 @@ static int font_get_glyph_metrics (LOGFONT* logfont, DEVFONT* devfont,
 #define IS_SIDEWAYS(rf)  \
     ((render_flags & GRF_TEXT_ORIENTATION_MASK) == GRF_TEXT_ORIENTATION_SIDEWAYS)
 
-static int normalize_advance(Uint32 render_flags, int* adv_x, int* adv_y)
+static int normalize_advance(Uint32 render_flags, const BBOX* bbox,
+        int* adv_x, int* adv_y)
 {
     int line_adv;
     int dir = 1;
@@ -2244,7 +2245,8 @@ static int find_breaking_pos_normal(const Glyph32* glyphs,
 }
 
 int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
-            const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
+            const Glyph32* glyphs, int nr_glyphs,
+            const Uint8* break_oppos, const Uint8* break_classes,
             Uint32 render_flags,
             int letter_spacing, int word_spacing, int tab_size, int max_extent,
             SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
@@ -2286,8 +2288,13 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
         int line_adv;
 
         gv = glyphs[n];
-        uc = GLYPH2UCHAR(gv);
-        bt = resolve_lbc(NULL, uc, &gc);
+        devfont = SELECT_DEVFONT(logfont, gv);
+        if (devfont->charset_ops->conv_to_uc32)
+            uc = devfont->charset_ops->conv_to_uc32(gv);
+        else
+            uc = GLYPH2UCHAR(gv);
+        gc = UCharGetCategory(uc);
+        bt = break_classes[n];
 
         if (uc == UCHAR_TAB) {
             bbox.x = 0; bbox.y = 0;
@@ -2303,11 +2310,9 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
             line_adv = 0;
         }
         else {
-            devfont = SELECT_DEVFONT(logfont, gv);
-            font_get_glyph_metrics (logfont, devfont, REAL_GLYPH(gv),
+            font_get_glyph_metrics(logfont, devfont, REAL_GLYPH(gv),
                     &adv_x, &adv_y, &bbox);
-
-            line_adv = normalize_advance(render_flags, &adv_x, &adv_y);
+            line_adv = normalize_advance(render_flags, &bbox, &adv_x, &adv_y);
         }
 
         if (glyph_ext_info) {

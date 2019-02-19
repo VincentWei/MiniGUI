@@ -7416,7 +7416,7 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
             n, NULL)
 
 /** The function determines the general category (basic type) of a UNICODE character. */
-MG_EXPORT UCharGeneralCategory GUIAPI UCharGetType(Uchar32 uc);
+MG_EXPORT UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc);
 
 /** The function determines the break property of a UNICODE character. */
 MG_EXPORT UCharBreakType GUIAPI UCharGetBreak(Uchar32 uc);
@@ -10516,7 +10516,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *        the break opportunities after other gyphs.
  *        The break opportunity can be one of the following values:
  *          - BOV_MANDATORY\n
- *            Mandatory break.
+ *            The mandatory breaking.
  *          - BOV_NOTALLOWED_DEFINITELY\n
  *            No breaking allowed after the glyph definitely.
  *          - BOV_NOTALLOWED_UNCERTAINLY\n
@@ -10693,7 +10693,8 @@ typedef struct _GLYPHPOS {
 
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
- *          const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
+ *          const Glyph32* glyphs, int nr_glyphs,
+ *          const Uint8* break_classes, const Uint8* break_oppos,
  *          Uint32 render_flags,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
@@ -10707,40 +10708,50 @@ typedef struct _GLYPHPOS {
  * \param x The x-position of first glyph.
  * \param y The y-position of first glyph.
  * \param glyphs The pointer to the glyph string. The glyphs should be reordered
- *          to be visual ones by calling BIDI functions.
- * \param break_opps The pointer to the break opportunities array of the glyphs.
- *          It should be returned by \a GetGlyphsByRules.
+ *      as visual ones by calling BIDI functions.
  * \param nr_glyphs The number of the glyphs.
+ * \param break_opps The pointer to the break opportunities array of the glyphs.
+ *      It should be returned by \a GetGlyphsByRules.
+ * \param break_classes The pointer to the break classes array of the glyphs.
+ *      It should be returned by \a GetGlyphsByRules.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param letter_spacing This parameter specifies additional spacing
- *          (commonly called tracking) between adjacent glyphs.
- * \param word_spacing This parameter specifies additional spacing between words.
+ *      (commonly called tracking) between adjacent glyphs.
+ * \param word_spacing This parameter specifies the additional spacing between
+ *      words.
  * \param tab_size The tab size used to render preserved tab characters.
  * \param max_extent The maximal output extent value. No limit when it is < 0.
  * \param line_size The buffer to store the line extent info; can be NULL.
  * \param glyph_ext_info The buffer to store the extent info of all glyphs
- *          which can fit in the max extent; can be NULL.
+ *      which can fit in the max extent; can be NULL.
  * \param glyph_pos The buffer to store the positions and orientations of
- *          all glyphs which can fit in the max extent; can be NULL.
+ *      all glyphs which can fit in the max extent; can be NULL.
  *
- * \return The number of glyphs which can be fit to the maximal extent.
- *          The extent info of every glyphs which are fit in the max_extent will
- *          be returned through \a glyph_ext_info if it was not NULL, and the
- *          line extent info will be returned through \a line_size
- *          if it was not NULL.
+ * \return The number of glyphs which can be fit to the maximal extent, or
+ *      the the number of glyphs before a mandatory breaking.
+ *      The extent info of every glyphs which are fit in the maximal extent
+ *      will be returned through \a glyph_ext_info if it was not NULL, and the
+ *      line extent info will be returned through \a line_size
+ *      if it was not NULL.
  *
  * \note Only available when support for UNICODE is enabled.
  *
  * \note The LOGFONT object \a logfont should have the rotation be 0°
  *      for upright glyphs and 90° for sideways glyphs.
  *
- * \note The positions of all glyphs are always with respected to
- *      the top-left corner of the output rectangle.
+ * \note The position coordinates of the first glyph are
+ *      with respect to the top-left corner of the output rectangle
+ *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
+ *      GRF_WRITING_MODE_VERTICAL_LR, otherwise they are with respect
+ *      to the top-right corner of the output rectangle. However,
+ *      the positions contained in \a glyph_pos are always with respect to
+ *      the top-left corner of the resulting output line rectangle.
  *
  * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
-        const Glyph32* glyphs, const Uint8* break_oppos, int nr_glyphs,
+        const Glyph32* glyphs, int nr_glyphs,
+        const Uint8* break_classes, const Uint8* break_oppos,
         Uint32 render_flags,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos);
@@ -10763,7 +10774,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *
  * \return The number of glyphs really drawn.
  *
- * \note The positions of all glyphs are always with respected to
+ * \note The positions of all glyphs are always with respect to
  *      the top-left corner of the output rectangle.
  *
  * \note The LOGFONT object selected into the DC \a hdc should
