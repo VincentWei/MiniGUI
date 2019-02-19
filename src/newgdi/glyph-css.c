@@ -2139,7 +2139,7 @@ static BOOL is_horizontal_only_script(Uchar32 uc)
     return TRUE;
 }
 
-static int font_get_glyph_metrics (LOGFONT* logfont, DEVFONT* devfont,
+static int font_get_glyph_metrics(LOGFONT* logfont, DEVFONT* devfont,
         Glyph32 rg, int* adv_x, int* adv_y, BBOX* bbox)
 {
     int bold = 0;
@@ -2302,6 +2302,10 @@ static inline BOOL is_word_separator(Uchar32 uc)
             uc == 0x10100 || uc == 0x10101 || uc == 0x1039F || uc == 0x1091F);
 }
 
+/*
+ * TODO: scripts and spacing:
+ * https://www.w3.org/TR/css-text-3/#script-groups
+ */
 static inline BOOL is_typographic_char(Uchar32 uc, Uint8 gc)
 {
     return (gc != UCHAR_TYPE_FORMAT && gc != UCHAR_TYPE_CONTROL);
@@ -2626,6 +2630,11 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
             break;
         }
 
+        /*
+         * TODO: white space processing part II:
+         * https://www.w3.org/TR/css-text-3/#white-space-phase-2
+         */
+
         if (uc == UCHAR_TAB) {
             bbox.x = 0; bbox.y = 0;
             bbox.w = 0; bbox.h = 0;
@@ -2670,6 +2679,11 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         my_gei[n].bbox_h = bbox.h;
         my_gei[n].advance_x = adv_x;
         my_gei[n].advance_y = adv_y;
+
+        /*
+         * TODO: hanging punctuation
+         * https://www.w3.org/TR/css-text-3/#hanging-punctuation-property
+         */
 
         if (max_extent > 0 && (total_extent + line_adv) > max_extent) {
             // overflow
