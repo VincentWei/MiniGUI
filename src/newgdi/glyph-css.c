@@ -1043,7 +1043,8 @@ static int check_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-            Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs)
+            Glyph32** glyphs, Uint8** break_oppos, Uint8** break_classes,
+            int* nr_glyphs)
 {
     struct glyph_break_ctxt gbctxt;
     int cosumed = 0;
@@ -1070,6 +1071,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
     *glyphs = NULL;
     *break_oppos = NULL;
+    if (break_classes)
+        *break_classes = NULL;
     *nr_glyphs = 0;
 
     if (mstr_len == 0)
@@ -2068,12 +2071,14 @@ next_glyph:
 
         *glyphs = gbctxt.gs;
         *break_oppos = gbctxt.bos;
+        if (break_classes)
+            *break_classes = gbctxt.bts;
         *nr_glyphs = gbctxt.n - 1;
     }
     else
         goto error;
 
-    if (gbctxt.bts) free(gbctxt.bts);
+    if (break_classes == NULL && gbctxt.bts) free(gbctxt.bts);
     if (gbctxt.od) free(gbctxt.od);
 
     return cosumed;

@@ -10467,7 +10467,8 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *          const char* mstr, unsigned int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
- *          Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs);
+ *          Glyph32** glyphs, Uint8** break_oppos, Uint8** break_classes,
+ *          int* nr_glyphs);
  * \brief Calculate the glyph string and the breaking opportunities under
  *        the specified rules and line breaking policy.
  *
@@ -10508,20 +10509,23 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
  * \param break_opps The pointer to a buffer to store the address of the
- *        Uint8 array which returns the break opportunities array of the glpyhs.
+ *        Uint8 array which contains the break opportunities of the glyphs.
  *        Note that the length of this array is always one longer than
- *        glyphs array. The first unit of the array stores the
+ *        the glyphs array. The first unit of the array stores the
  *        break opportunity before the first glyph, and the others store
  *        the break opportunities after other gyphs.
  *        The break opportunity can be one of the following values:
  *          - BOV_MANDATORY\n
  *            Mandatory break.
  *          - BOV_NOTALLOWED_DEFINITELY\n
- *            No break allowed after the glyph definitely.
+ *            No breaking allowed after the glyph definitely.
  *          - BOV_NOTALLOWED_UNCERTAINLY\n
- *            No break allowed after the glyph uncertainly.
+ *            No breaking allowed after the glyph uncertainly.
  *          - BOV_ALLOWED\n
- *            Break allowed after the glyph.
+ *            Breaking allowed after the glyph.
+ * \param break_classes The pointer to a buffer to store the address of the
+ *      Uint8 array which contains the breaking classes (UCharBreakType)
+ *      of the glyphs; can be NULL.
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
  *
  * \return The number of the bytes consumed in \a mstr; zero on error.
@@ -10534,7 +10538,8 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
             const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-            Glyph32** glyphs, Uint8** break_oppos, int* nr_glyphs);
+            Glyph32** glyphs, Uint8** break_oppos, Uint8** break_classes,
+            int* nr_glyphs);
 
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags
@@ -10703,7 +10708,7 @@ typedef struct _GLYPHPOS {
  * \param y The y-position of first glyph.
  * \param glyphs The pointer to the glyph string. The glyphs should be reordered
  *          to be visual ones by calling BIDI functions.
- * \param break_opps The pointer to the break opportunities array of the glpyhs.
+ * \param break_opps The pointer to the break opportunities array of the glyphs.
  *          It should be returned by \a GetGlyphsByRules.
  * \param nr_glyphs The number of the glyphs.
  * \param render_flags The render flags; see \a glyph_render_flags.
