@@ -6082,7 +6082,7 @@ typedef enum {
  * - UCHAR_SCRIPT_THAI:       Thai
  * - UCHAR_SCRIPT_TIBETAN:    Tibetan
  * - UCHAR_SCRIPT_CANADIAN_ABORIGINAL:
- *                               Canadian Aboriginal
+ *                            Canadian Aboriginal
  * - UCHAR_SCRIPT_YI:         Yi
  * - UCHAR_SCRIPT_TAGALOG:    Tagalog
  * - UCHAR_SCRIPT_HANUNOO:    Hanunoo
@@ -6097,14 +6097,14 @@ typedef enum {
  * - UCHAR_SCRIPT_TAI_LE:     Tai Le
  * - UCHAR_SCRIPT_UGARITIC:   Ugaritic
  * - UCHAR_SCRIPT_NEW_TAI_LUE:
- *                               New Tai Lue
+ *                            New Tai Lue
  * - UCHAR_SCRIPT_BUGINESE:   Buginese
  * - UCHAR_SCRIPT_GLAGOLITIC: Glagolitic
  * - UCHAR_SCRIPT_TIFINAGH:   Tifinagh
  * - UCHAR_SCRIPT_SYLOTI_NAGRI:
- *                               Syloti Nagri
+ *                            Syloti Nagri
  * - UCHAR_SCRIPT_OLD_PERSIAN:
- *                               Old Persian
+ *                            Old Persian
  * - UCHAR_SCRIPT_KHAROSHTHI: Kharoshthi
  * - UCHAR_SCRIPT_UNKNOWN:    an unassigned code point
  * - UCHAR_SCRIPT_BALINESE:   Balinese
@@ -7857,22 +7857,22 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
  * \return The return value is one or more of the following values:
  *
  *  - TA_TOP\n
- *      Specifies alignment of the x-axis and the top of the bounding
+ *      Specifies alignment of the y-axis and the top of the bounding
  *      rectangle.
  *  - TA_BASELINE\n
- *      Specifies alignment of the x-axis and the baseline of the chosen font
+ *      Specifies alignment of the y-axis and the baseline of the chosen font
  *      within the bounding rectangle.
  *  - TA_BOTTOM\n
- *      Specifies alignment of the x-axis and the bottom of the bounding
+ *      Specifies alignment of the y-axis and the bottom of the bounding
  *      rectangle.
  *  - TA_LEFT\n
- *      Specifies alignment of the y-axis and the left side of the bounding
+ *      Specifies alignment of the x-axis and the left side of the bounding
  *      rectangle.
  *  - TA_RIGHT\n
- *      Specifies alignment of the y-axis and the right side of the bounding
+ *      Specifies alignment of the x-axis and the right side of the bounding
  *      rectangle.
  *  - TA_CENTER\n
- *      Specifies alignment of the y-axis and the center of the bounding
+ *      Specifies alignment of the x-axis and the center of the bounding
  *      rectangle. Note that MiniGUI does not support TA_CENTER so far.
  *  - TA_NOUPDATECP\n
  *      Specifies that the current position is not updated.
@@ -9895,8 +9895,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
     /**
      * \defgroup language_code Language Code
      *
-     *  The language code specifies the content lanuage for \a GetGlyphsByRules and
-     *  \a GetGlyphsExtentPointEx.
+     * The language code specifies the content lanuage for \a GetGlyphsByRules.
      *
      * @{
      */
@@ -10233,8 +10232,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup white_space_rules White Space Rules
      *
-     *  The white space rule indicates \a GetGlyphsByRules and
-     *  \a GetGlyphsExtentPointEx
+     *  The white space rule indicates \a GetGlyphsByRules.
      *
      *      - whether and how white space inside the string is collapsed.
      *      - whether lines may wrap at unforced soft wrap opportunities.
@@ -10244,7 +10242,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_NORMAL
  *
- * \brief This value directs \a GetGlyphsExtentPointEx
+ * \brief This value directs \a GetGlyphsByRules
  * collapses sequences of white space into a single character.
  */
 #define WSR_NORMAL          0x01
@@ -10252,7 +10250,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_PRE
  *
- * \brief This value prevents \a GetGlyphsExtentPointEx from collapsing
+ * \brief This value prevents \a GetGlyphsByRules from collapsing
  * sequences of white space. Segment breaks such as line feeds are
  * preserved as forced line breaks. Lines only break at forced line breaks;
  * content that does not fit within the block container overflows it.
@@ -10286,7 +10284,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *      white space glyph, including between white space characters.
  *
  * When white space rule is specified to be WSR_BREAK_SPACES, the manner
- * of \a GetGlyphsByRules and \a GetGlyphsExtentPointEx will conform
+ * of \a GetGlyphsByRules will conform
  * to UNICODE LINE BREAKING ALGORITHM.
  */
 #define WSR_BREAK_SPACES    0x05
@@ -10582,12 +10580,29 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  * from their upright orientation.
  */
 #define GRF_TEXT_ORIENTATION_SIDEWAYS   0x01000000
-/* The mixed text orientation should handled by caller */
+/**
+ * In vertical writing modes, typographic character units from
+ * horizontal-only scripts are typeset sideways, i.e. 90° clockwise
+ * from their standard orientation in horizontal text.
+ * Typographic character units from vertical scripts are
+ * typeset with their intrinsic orientation.
+ */
 #define GRF_TEXT_ORIENTATION_MIXED      0x02000000
 
 #define GRF_OVERFLOW_WRAP_MASK          0x00F00000
+/**
+ * Lines may break only at allowed break points.
+ */
 #define GRF_OVERFLOW_WRAP_NORMAL        0x00000000
+/**
+ * Lines may break only at word seperators.
+ */
 #define GRF_OVERFLOW_WRAP_BREAK_WORD    0x00100000
+/**
+ * An otherwise unbreakable sequence of characters may be broken
+ * at an arbitrary point if there are no otherwise-acceptable
+ * break points in the line.
+ */
 #define GRF_OVERFLOW_WRAP_ANYWHERE      0x00200000
 
 #define GRF_HYPHENS_MASK                0x000F0000
@@ -10606,18 +10621,52 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 #define GRF_HYPHENS_AUTO                0x00010000
 
 #define GRF_ALIGN_MASK                  0x0000F000
+/**
+ * Text content is aligned to the start edge of the line box.
+ */
 #define GRF_ALIGN_START                 0x00000000
+/**
+ * Text content is aligned to the end edge of the line box.
+ */
 #define GRF_ALIGN_END                   0x00001000
+/**
+ * Text content is aligned to the line left edge of the line box.
+ * In vertical writing modes, this will be the physical top edge.
+ */
 #define GRF_ALIGN_LEFT                  0x00002000
+/**
+ * Text content is aligned to the line right edge of the line box.
+ * In vertical writing modes, this will be the physical bottom edge.
+ */
 #define GRF_ALIGN_RIGHT                 0x00003000
+/**
+ * Text content is centered within the line box.
+ */
 #define GRF_ALIGN_CENTER                0x00004000
+/**
+ * Text is justified according to the method specified by GRF_TEXT_JUSTIFY_XXX,
+ * in order to exactly fill the line box.
+ */
 #define GRF_ALIGN_JUSTIFY               0x00005000
 
 #define GRF_TEXT_JUSTIFY_MASK           0x00000F00
+/**
+ * Justification adjusts primarily the spacing at word separators
+ * and between CJK typographic letter units along with secondarily
+ * between Southeast Asian typographic letter units.
+ */
 #define GRF_TEXT_JUSTIFY_AUTO           0x00000000
-#define GRF_TEXT_JUSTIFY_NONE           0x00000100
-#define GRF_TEXT_JUSTIFY_INTER_WORD     0x00000200
-#define GRF_TEXT_JUSTIFY_INTER_CHAR     0x00000300
+/**
+ * Justification adjusts spacing at word separators only.
+ */
+#define GRF_TEXT_JUSTIFY_INTER_WORD     0x00000100
+/**
+ * Justification adjusts spacing between each pair of adjacent
+ * typographic character units.
+ */
+#define GRF_TEXT_JUSTIFY_INTER_CHAR     0x00000200
+
+/* should handled by caller */
 
 #define GRF_HANGING_PUNC_MASK           0x000000F0
 #define GRF_HANGING_PUNC_NONE           0x00000000
@@ -10660,6 +10709,12 @@ typedef struct _GLYPHEXTINFO {
     int bbox_x, bbox_y, bbox_w, bbox_h;
     /** The advance values of the glyph. */
     int advance_x, advance_y;
+    /** The extra spacing values of the glyph. */
+    int extra_x, extra_y;
+
+    // internal use
+    Uchar32 uc;
+    Uint8 bt, gc;
 } GLYPHEXTINFO;
 
 #define GLYPH_ORIENTATION_UPRIGHT       0
@@ -10692,14 +10747,15 @@ typedef struct _GLYPHPOS {
 } GLYPHPOS;
 
 /**
- * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
+ * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
  *          const Glyph32* glyphs, int nr_glyphs,
  *          const Uint8* break_classes, const Uint8* break_oppos,
- *          Uint32 render_flags,
+ *          int x, int y, Uint32 render_flags,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
- *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos)
+ *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
+ *          LOGFONT** logfont_sideways)
  * \brief Get the visual extent info of all glyphs fitting in the specified
- *          maximal output extent.
+ *      maximal output extent.
  *
  * This function gets the visual extent information of a glyph string which can
  * fit a line with the specified maximal extent.
@@ -10725,19 +10781,24 @@ typedef struct _GLYPHPOS {
  * \param glyph_ext_info The buffer to store the extent info of all glyphs
  *      which can fit in the max extent; can be NULL.
  * \param glyph_pos The buffer to store the positions and orientations of
- *      all glyphs which can fit in the max extent; can be NULL.
+ *      all glyphs which can fit in the max extent; cannot be NULL.
+ * \param logfont_sideways The buffer to store the LOGFONT object created
+ *      by this function for sideways glyphs if text orientation specified
+ *      in \a render_flags is mixed (GRF_TEXT_ORIENTATION_MIXED) or
+ *      sideways (GRF_TEXT_ORIENTATION_SIDEWAYS).
  *
- * \return The number of glyphs which can be fit to the maximal extent, or
- *      the the number of glyphs before a mandatory breaking.
+ * \return The number of glyphs which can be fit to the maximal extent.
  *      The extent info of every glyphs which are fit in the maximal extent
  *      will be returned through \a glyph_ext_info if it was not NULL, and the
  *      line extent info will be returned through \a line_size
- *      if it was not NULL.
+ *      if it was not NULL. Note the function will return immediately if
+ *      it encounters a mandatory breaking.
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \note The LOGFONT object \a logfont should have the rotation be 0°
- *      for upright glyphs and 90° for sideways glyphs.
+ * \note The LOGFONT object \a logfont_upright should have the rotation
+ *      be 0° for upright glyphs and \a logfont_sideways will have the
+ *      rotation be 90° for sideways glyphs.
  *
  * \note The position coordinates of the first glyph are
  *      with respect to the top-left corner of the output rectangle
@@ -10749,24 +10810,29 @@ typedef struct _GLYPHPOS {
  *
  * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
-MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
+MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         const Glyph32* glyphs, int nr_glyphs,
         const Uint8* break_classes, const Uint8* break_oppos,
-        Uint32 render_flags,
+        Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos);
+        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
+        LOGFONT** logfont_sideways);
 
 #endif /* _MGCHARSET_UNICODE */
 
 /*
- * \fn int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
- *          int nr_glyphs, const GLYPHPOS* glyph_pos)
- * \brief Draw a glyph string at the specified positions.
+ * \fn int GUIAPI DrawGlyphStringEx (HDC hdc,,
+ *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+ *      const Glyph32* glyphs, int nr_glyphs, const GLYPHPOS* glyph_pos)
+ * \brief Draw a glyph string at the specified positions and text orientations.
  *
- * This function draws a glyph string to the specific positions
- * on a DC \a hdc.
+ * This function draws a glyph string to the specific positions and
+ * orientations on a DC \a hdc with the logfonts specified by
+ * \a logfont_upright and \a logfont_sideways.
  *
  * \param hdc The device context.
+ * \param logfont_upright The LOGFONT object used for upright glyphs.
+ * \param logfont_sideways The LOGFONT object used for sideways glyphs.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The number of the glyphs should be drawn.
  * \param glyph_pos The buffer holds the position information
@@ -10774,16 +10840,14 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont, int x, int y,
  *
  * \return The number of glyphs really drawn.
  *
- * \note The positions of all glyphs are always with respect to
+ * \note The positions contained in \a glyph_pos are always aligned to
  *      the top-left corner of the output rectangle.
- *
- * \note The LOGFONT object selected into the DC \a hdc should
- *      be the same as used by GetGlyphsExtentPointEx.
  *
  * \sa GetGlyphsExtentPointEx
  */
-MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc, const Glyph32* glyphs,
-        int nr_glyphs, const GLYPHPOS* glyph_pos);
+MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
+        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+        const Glyph32* glyphs, int nr_glyphs, const GLYPHPOS* glyph_pos);
 
 /*
  * Define some bit masks, that character types are based on, each one has
