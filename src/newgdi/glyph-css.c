@@ -2442,14 +2442,23 @@ static void justify_glyphs_auto(Uint32 rf, GLYPHEXTINFO* gei, int n,
 }
 
 static void adjust_glyph_position(LOGFONT* lfur, LOGFONT* lfsw, Uint32 rf,
-        int x, int y, GLYPHPOS* pos)
+        int x, int y, int lw, const GLYPHEXTINFO* gei, GLYPHPOS* pos)
 {
     switch (rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
+        if (IS_SIDEWAYS(rf)) {
+            x -= lfsw->size;
+        }
+        else {
+            x -= (lw + gei->bbox_w) / 2;
+        }
+        break;
+
     case GRF_WRITING_MODE_VERTICAL_LR:
         if (IS_SIDEWAYS(rf)) {
         }
         else {
+            x += (lw - gei->bbox_w) / 2;
         }
         break;
 
@@ -2457,11 +2466,35 @@ static void adjust_glyph_position(LOGFONT* lfur, LOGFONT* lfsw, Uint32 rf,
     default:
         break;
     }
+
+    pos->x += x;
+    pos->y += y;
 }
 
-static void fill_glyph_positions(LOGFONT* lfur, LOGFONT* lfsw, Uint32 rf,
+static void offset_glyph_positions(Uint32 rf, GLYPHPOS* pos, int n, int offset)
+{
+    int i;
+
+    switch (rf & GRF_WRITING_MODE_MASK) {
+    case GRF_WRITING_MODE_VERTICAL_RL:
+    case GRF_WRITING_MODE_VERTICAL_LR:
+        for (i = 0; i < n; i++) {
+            pos[i].y += offset;
+        }
+        break;
+
+    case GRF_WRITING_MODE_HORIZONTAL_TB:
+    default:
+        for (i = 0; i < n; i++) {
+            pos[i].x += offset;
+        }
+        break;
+    }
+}
+
+static void calc_glyph_positions(LOGFONT* lfur, LOGFONT* lfsw, Uint32 rf,
         const GLYPHEXTINFO* gei, int n,
-        int x, int y, int max_extent, GLYPHPOS* pos)
+        int x, int y, int lw, int gap, GLYPHPOS* pos)
 {
     int i;
 
@@ -2477,18 +2510,21 @@ static void fill_glyph_positions(LOGFONT* lfur, LOGFONT* lfsw, Uint32 rf,
             pos[i].y += gei[i - 1].extra_y;
         }
 
-        adjust_glyph_position(lfur, lfsw, rf, x, y, pos + i);
+        adjust_glyph_position(lfur, lfsw, rf, x, y, lw, gei + i, pos + i);
 
         if (gei[i].advance_x == 0 && gei[i].advance_x == 0) {
             pos[i].suppressed = 1;
         }
     }
 
-    if (max_extent > 0) {
+    if (gap > 0) {
         switch (rf & GRF_ALIGN_MASK) {
         case GRF_ALIGN_RIGHT:
         case GRF_ALIGN_END:
+            offset_glyph_positions(rf, pos, n, -gap);
+            break;
         case GRF_ALIGN_CENTER:
+            offset_glyph_positions(rf, pos, n, -gap/2);
             break;
 
         case GRF_ALIGN_LEFT:
@@ -2701,9 +2737,9 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         }
     }
 
-    // fill glyph positions
-    fill_glyph_positions(logfont_upright, *logfont_sideways, render_flags,
-            my_gei, n, x, y, max_extent, glyph_pos);
+    // calcualte glyph positions according to the alignment and the base point
+    calc_glyph_positions(logfont_upright, *logfont_sideways, render_flags,
+            my_gei, n, x, y, line_width, max_extent - total_extent, glyph_pos);
 
     if (line_size) {
         if ((render_flags & GRF_WRITING_MODE_MASK)
@@ -2732,17 +2768,40 @@ int GUIAPI DrawGlyphStringEx(HDC hdc,
 {
     int i;
     int n = 0;
+    Uint32 old_ta;
+    PLOGFONT old_lf;
 
-    if (glyph_pos == NULL)
+    if (glyph_pos == NULL || nr_glyphs <= 0)
         return 0;
+
+    old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
+    old_lf = GetCurFont(hdc);
 
     for (i = 0; i < nr_glyphs; i++) {
         if (glyph_pos[i].suppressed == 0) {
+            if (glyph_pos[i].ort == GLYPH_ORIENTATION_UPRIGHT) {
+                if (logfont_upright)
+                    SelectFont(hdc, logfont_upright);
+                else
+                    goto error;
+            }
+            else {
+                if (logfont_sideways)
+                    SelectFont(hdc, logfont_sideways);
+                else
+                    goto error;
+            }
+
             DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, glyphs[i],
                 NULL, NULL);
+
             n++;
         }
     }
+
+error:
+    SelectFont(hdc, old_lf);
+    SetTextAlign(hdc, old_ta);
 
     return n;
 }
