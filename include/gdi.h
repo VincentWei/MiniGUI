@@ -10243,7 +10243,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \brief This value directs \a GetGlyphsByRules
  * collapses sequences of white space into a single character.
  */
-#define WSR_NORMAL          0x01
+#define WSR_NORMAL          0x00
 
 /**
  * \def WSR_PRE
@@ -10253,7 +10253,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * preserved as forced line breaks. Lines only break at forced line breaks;
  * content that does not fit within the block container overflows it.
  */
-#define WSR_PRE             0x02
+#define WSR_PRE             0x01
 
 /**
  * \def WSR_NOWRAP
@@ -10261,7 +10261,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \brief Like \a WSR_NORMAL, this value collapses white spaces; but like
  * \a WSR_PRE, it does not allow wrapping.
  */
-#define WSR_NOWRAP          0x03
+#define WSR_NOWRAP          0x02
 
 /**
  * \def WSR_PRE_WRAP
@@ -10269,7 +10269,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \brief Like \a WSR_PRE, this value preserves white space; but like
  * \a WSR_NORMAL, it allows wrapping.
  */
-#define WSR_PRE_WRAP        0x04
+#define WSR_PRE_WRAP        0x03
 
 /**
  * \def WSR_BREAK_SPACES
@@ -10285,7 +10285,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * of \a GetGlyphsByRules will conform
  * to UNICODE LINE BREAKING ALGORITHM.
  */
-#define WSR_BREAK_SPACES    0x05
+#define WSR_BREAK_SPACES    0x04
 
 /**
  * \def WSR_PRE_LINE
@@ -10294,7 +10294,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * allows wrapping, but preserves segment breaks in the source
  * as forced line breaks.
  */
-#define WSR_PRE_LINE        0x06
+#define WSR_PRE_LINE        0x05
 
     /** @} end of white_space_rules */
 
