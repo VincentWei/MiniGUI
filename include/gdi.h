@@ -6390,8 +6390,7 @@ typedef struct _CHARSETOPS CHARSETOPS;
 
 /* charops fontops devont structure is here. */
 /** The device font structure. */
-struct _DEVFONT
-{
+struct _DEVFONT {
     /**
       * The device font name.
       * The family name supports aliases since 3.4.0:
@@ -6439,8 +6438,7 @@ struct _DEVFONT
 #define INV_LOGFONT     0
 
 /** The font metrics structure. */
-typedef struct _FONTMETRICS
-{
+typedef struct _FONTMETRICS {
     /** The height of the logical font. */
     int font_height;
     /** The ascent of the logical font. */
@@ -8453,7 +8451,7 @@ typedef void (* CB_ONE_SCANLINE) (void* context, MYBITMAP* my_bmp, int y);
 MG_EXPORT BOOL GUIAPI RegisterBitmapFileType (const char *ext,
             void* (*init) (MG_RWops* fp, MYBITMAP *my_bmp, RGB *pal),
             int (*load) (MG_RWops* fp, void* init_info, MYBITMAP *my_bmp,
-                    CB_ONE_SCANLINE cb, void* context),
+            CB_ONE_SCANLINE cb, void* context),
             void (*cleanup) (void* init_info),
             int (*save) (MG_RWops* fp, MYBITMAP *my_bmp, RGB *pal),
             BOOL (*check) (MG_RWops* fp));
@@ -10666,16 +10664,46 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  */
 #define GRF_TEXT_JUSTIFY_INTER_CHAR     0x00000200
 
-/* should handled by caller */
-
 #define GRF_HANGING_PUNC_MASK           0x000000F0
+/**
+ * No character hangs.
+ */
 #define GRF_HANGING_PUNC_NONE           0x00000000
+/**
+ * A stop or comma at the end of a line hangs.
+ */
 #define GRF_HANGING_PUNC_FORCE_END      0x00000010
+/**
+ * A stop or comma at the end of a line hangs
+ * if it does not otherwise fit prior to justification.
+ */
 #define GRF_HANGING_PUNC_ALLOW_END      0x00000020
+/**
+ * An opening bracket or quote at the start of the line hangs.
+ */
+#define GRF_HANGING_PUNC_OPEN           0x00000040
+/**
+ * An closing bracket or quote at the end of the line hangs.
+ */
+#define GRF_HANGING_PUNC_CLOSE          0x00000080
 
-#define GRF_HANGING_PUNC_FLAGS          0x0000000F
-#define GRF_HANGING_PUNC_FIRST          0x00000001
-#define GRF_HANGING_PUNC_LAST           0x00000002
+#define GRF_SPACES_MASK                 0x0000000F
+/**
+ * All spaces are kept.
+ */
+#define GRF_SPACES_KEEP                 0x00000000
+/**
+ * A sequence of spaces at the start of a line is removed.
+ */
+#define GRF_SPACES_REMOVE_START         0x00000001
+/**
+ * A sequence of spaces at the end of a line is removed.
+ */
+#define GRF_SPACES_REMOVE_END           0x00000002
+/**
+ * A sequence of spaces at the end of a line hangs.
+ */
+#define GRF_SPACES_HANGE_END            0x00000004
 
 /*
 #define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
@@ -10701,6 +10729,13 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 
     /** @} end of glyph_render_flags */
 
+#define GLYPH_HANGED_NONE           0
+#define GLYPH_HANGED_START          1
+#define GLYPH_HANGED_END            2
+
+#define GLYPH_ORIENTATION_UPRIGHT   0
+#define GLYPH_ORIENTATION_SIDEWAYS  1
+
 /**
  * The glyph extent information.
  */
@@ -10714,11 +10749,12 @@ typedef struct _GLYPHEXTINFO {
 
     // internal use
     Uchar32 uc;
-    Uint8 bt, gc;
+    Uint8 bt;
+    Uint8 gc;
+    Uint8 ignored:1;
+    Uint8 hanged:2;
+    Uint8 ort:2;
 } GLYPHEXTINFO;
-
-#define GLYPH_ORIENTATION_UPRIGHT       0
-#define GLYPH_ORIENTATION_SIDEWAYS      1
 
 /**
  * The glyph position information.
@@ -10735,7 +10771,17 @@ typedef struct _GLYPHPOS {
     /**
      * Whether suppress the glyph.
      */
-    unsigned char suppressed:1;
+    Uint8 suppressed:1;
+    /**
+     * Whether hanged the glyph; can be one of the following values:
+     *  - GLYPH_HANGED_NONE\n
+     *      the glyph is not hanged.
+     *  - GLYPH_HANGED_START\n
+     *      the glyph is hanged at the start of the line.
+     *  - GLYPH_HANGED_END\n
+     *      the glyph is hanged at the end of the line.
+     */
+    Uint8 hanged:2;
     /**
      * The orientation of the glyph; can be one of the following values:
      *  - GLYPH_ORIENTATION_UPRIGHT\n
@@ -10743,7 +10789,7 @@ typedef struct _GLYPHPOS {
      *  - GLYPH_ORIENTATION_SIDEWAYS\n
      *      the glyph rotates 90° clockwise from horizontal.
      */
-    unsigned char ort:2;
+    Uint8 orientation:2;
 } GLYPHPOS;
 
 /**
