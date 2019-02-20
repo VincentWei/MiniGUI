@@ -73,6 +73,7 @@
 #define UCHAR_BREAK_UNSET   -1
 
 #define UCHAR_SPACE         0x0020
+#define UCHAR_SHY           0x00AD
 #define UCHAR_IDSPACE       0x3000
 #define UCHAR_TAB           0x0009
 

@@ -10603,21 +10603,6 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  */
 #define GRF_OVERFLOW_WRAP_ANYWHERE      0x00200000
 
-#define GRF_HYPHENS_MASK                0x000F0000
-/**
- * Words are not hyphenated, even if characters inside the word explicitly
- * define hyphenation opportunities (the conditional "soft hyphen").
- */
-#define GRF_HYPHENS_NONE                0x00000000
-/**
- * Words are only hyphenated where there are characters inside the word
- * that explicitly suggest hyphenation opportunities.
- */
-#define GRF_HYPHENS_MANUAL              0x00010000
-
-/* should handled by caller */
-#define GRF_HYPHENS_AUTO                0x00010000
-
 #define GRF_ALIGN_MASK                  0x0000F000
 /**
  * Text content is aligned to the start edge of the line box.
@@ -10706,6 +10691,11 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
 #define GRF_SPACES_HANGE_END            0x00000004
 
 /*
+#define GRF_HYPHENS_MASK                0x000F0000
+#define GRF_HYPHENS_NONE                0x00000000
+#define GRF_HYPHENS_MANUAL              0x00010000
+#define GRF_HYPHENS_AUTO                0x00020000
+
 #define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
 #define GRF_TEXT_COMBINE_UPRIGHT_NONE   0x00000000
 #define GRF_TEXT_COMBINE_UPRIGHT_ALL    0x00040000
@@ -10841,6 +10831,9 @@ typedef struct _GLYPHPOS {
  *      it encounters a mandatory breaking.
  *
  * \note Only available when support for UNICODE is enabled.
+ *
+ * \note Any invisible format character including SOFT HYPHEN (U+00AD)
+ *      will be ignored (suppressed).
  *
  * \note The LOGFONT object \a logfont_upright should have the rotation
  *      be 0° for upright glyphs and \a logfont_sideways will have the
