@@ -112,6 +112,8 @@ static int get_ch_width (LOGFONT* logfont, DEVFONT* devfont,
         return vbf_info->max_width * scale;
 
     glyph_value = REAL_GLYPH(glyph_value);
+    if (glyph_value < vbf_info->first_glyph || glyph_value > vbf_info->last_glyph)
+        glyph_value = vbf_info->def_glyph;
     return vbf_info->advance_x [glyph_value - vbf_info->first_glyph] * scale;
 }
 
