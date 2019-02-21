@@ -2805,6 +2805,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     int line_width = 0;
     int gap;
     GLYPHEXTINFO* gei;
+    BOOL test_overflow = TRUE;
 
     /* Check logfont_upright and create logfont_sideways if need */
     if (logfont_upright == NULL || logfont_upright->rotation != 0)
@@ -2903,7 +2904,8 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
                 render_flags, glyphs[n], gei + n, &line_width);
         }
 
-        if (max_extent > 0 && (total_extent + line_adv) > max_extent) {
+        if (test_overflow && max_extent > 0
+                && (total_extent + line_adv) > max_extent) {
             // overflow
             switch (render_flags & GRF_OVERFLOW_WRAP_MASK) {
             case GRF_OVERFLOW_WRAP_BREAK_WORD:
@@ -2921,12 +2923,13 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
                 break;
             }
 
-            /*
-             * TODO: hanging spaces and punctuation
-             * https://www.w3.org/TR/css-text-3/#hanging-punctuation-property
-             */
+            if (breaking_pos > 0) {
+                // a valid breaking position found before current glyph
+                break;
+            }
 
-            break;
+            breaking_pos = -1;
+            test_overflow = FALSE;
         }
 
         // extra space for word and letter
@@ -2944,7 +2947,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         n++;
     }
 
-    if (breaking_pos != -1 && breaking_pos != n) {
+    if (breaking_pos > 0 && breaking_pos != n) {
         // wrapped due to overflow
         n = breaking_pos + 1;
     }
@@ -3018,6 +3021,12 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
                 render_flags, glyphs[n], gei + n, &line_width);
             n++;
         }
+    }
+
+    // ignore the last mandatory breaking
+    if (n < nr_glyphs && break_oppos[n] == BOV_MANDATORY) {
+        gei[n].ignored = 1;
+        n++;
     }
 
     gap = max_extent - total_extent;
