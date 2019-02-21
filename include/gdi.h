@@ -10786,7 +10786,7 @@ typedef struct _GLYPHPOS {
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
  *          const Glyph32* glyphs, int nr_glyphs,
  *          const Uint8* break_classes, const Uint8* break_oppos,
- *          int x, int y, Uint32 render_flags,
+ *          Uint32 render_flags, int x, int y,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
  *          LOGFONT** logfont_sideways)
@@ -10797,8 +10797,6 @@ typedef struct _GLYPHPOS {
  * fit a line with the specified maximal extent.
  *
  * \param logfont The logfont used to parse the glyph string.
- * \param x The x-position of first glyph.
- * \param y The y-position of first glyph.
  * \param glyphs The pointer to the glyph string. The glyphs should be reordered
  *      as visual ones by calling BIDI functions.
  * \param nr_glyphs The number of the glyphs.
@@ -10807,6 +10805,8 @@ typedef struct _GLYPHPOS {
  * \param break_classes The pointer to the break classes array of the glyphs.
  *      It should be returned by \a GetGlyphsByRules.
  * \param render_flags The render flags; see \a glyph_render_flags.
+ * \param x The x-position of first glyph.
+ * \param y The y-position of first glyph.
  * \param letter_spacing This parameter specifies additional spacing
  *      (commonly called tracking) between adjacent glyphs.
  * \param word_spacing This parameter specifies the additional spacing between
