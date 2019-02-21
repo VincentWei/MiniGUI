@@ -3030,6 +3030,10 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
             n++;
             break;
         }
+        else if (!test_overflow && (gis[n].bt & BOV_BREAK_FLAG)) {
+            n++;
+            break;
+        }
 
         n++;
     }
