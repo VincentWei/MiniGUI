@@ -2811,18 +2811,26 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     if (logfont_upright == NULL || logfont_upright->rotation != 0)
         return 0;
 
-    if ((render_flags & GRF_WRITING_MODE_MASK)
-            != GRF_WRITING_MODE_HORIZONTAL_TB) {
-        switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
-        case GRF_TEXT_ORIENTATION_MIXED:
-        case GRF_TEXT_ORIENTATION_SIDEWAYS:
-            *logfont_sideways = create_sideways_logfont(logfont_upright);
-            if (*logfont_sideways == NULL)
-                return 0;
-            break;
-        default:
-            *logfont_sideways = NULL;
-            break;
+    if (*logfont_sideways == NULL) {
+        if ((render_flags & GRF_WRITING_MODE_MASK)
+                != GRF_WRITING_MODE_HORIZONTAL_TB) {
+            switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
+            case GRF_TEXT_ORIENTATION_MIXED:
+            case GRF_TEXT_ORIENTATION_SIDEWAYS:
+                *logfont_sideways = create_sideways_logfont(logfont_upright);
+                if (*logfont_sideways == NULL
+                        || (*logfont_sideways)->rotation == 900)
+                    return 0;
+                break;
+            default:
+                *logfont_sideways = NULL;
+                break;
+            }
+        }
+    }
+    else {
+        if ((*logfont_sideways)->rotation != 900) {
+            return 0;
         }
     }
 

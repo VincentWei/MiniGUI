@@ -10821,7 +10821,9 @@ typedef struct _GLYPHPOS {
  * \param logfont_sideways The buffer to store the LOGFONT object created
  *      by this function for sideways glyphs if text orientation specified
  *      in \a render_flags is mixed (GRF_TEXT_ORIENTATION_MIXED) or
- *      sideways (GRF_TEXT_ORIENTATION_SIDEWAYS).
+ *      sideways (GRF_TEXT_ORIENTATION_SIDEWAYS). If *logfont_sidways is
+ *      not NULL, this function will try to use this LOGFONT object for
+ *      sideways glyphs.
  *
  * \return The number of glyphs which can be fit to the maximal extent.
  *      The extent info of every glyphs which are fit in the maximal extent
