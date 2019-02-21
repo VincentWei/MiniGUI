@@ -2103,6 +2103,8 @@ typedef struct _MYGLYPHINFO {
     Uint8 ignored:1;
     Uint8 hanged:2;
     Uint8 ort:2;
+    Uint8 justify_word:1;
+    Uint8 justify_char:1;
 } MYGLYPHINFO;
 
 typedef struct _MYGLYPHARGS {
@@ -2362,39 +2364,45 @@ static void justify_glyphs_inter_word(MYGLYPHARGS* args,
     int left;
 
     for (i = 0; i < n; i++) {
-        if (gis[i].ignored == 0 && gis[i].hanged == 0) {
-            if (is_word_separator(gis + i)) {
-                nr_words++;
-            }
+        if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
+                is_word_separator(gis + i)) {
+            nr_words++;
+            gis[i].justify_word = 1;
+        }
+        else {
+            gis[i].justify_word = 0;
         }
     }
 
-    nr_words--;
     if (nr_words <= 0)
         return;
 
     err_per_unit = error / nr_words;
     left = error % nr_words;
     if (err_per_unit > 0) {
-        for (i = 0; i < n; i++) {
-            if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                    is_word_separator(gis + i)) {
+
+        i = 0;
+        do {
+            if (gis[i].justify_word) {
                 increase_extra_spacing(args, err_per_unit, gei + i);
+                nr_words--;
             }
-        }
+
+            i++;
+        } while (nr_words > 0);
     }
 
     if (left > 0) {
-        for (i = 0; i < n; i++) {
-            if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                    is_word_separator(gis + i)) {
+        i = 0;
+        do {
+            if (gis[i].justify_word) {
                 increase_extra_spacing(args, 1, gei + i);
+                if (--left == 0)
+                    break;
             }
 
-            left--;
-            if (left == 0)
-                break;
-        }
+            i++;
+        } while (1);
     }
 }
 
@@ -2411,6 +2419,10 @@ static void justify_glyphs_inter_char(MYGLYPHARGS* args,
                 !is_word_separator(gis + i) &&
                 is_typographic_char(gis + i)) {
             nr_chars++;
+            gis[i].justify_char = 1;
+        }
+        else {
+            gis[i].justify_char = 0;
         }
     }
 
@@ -2421,26 +2433,24 @@ static void justify_glyphs_inter_char(MYGLYPHARGS* args,
     err_per_unit = error / nr_chars;
     left = error % nr_chars;
     if (err_per_unit > 0) {
-        for (i = 0; i < n; i++) {
-            if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                    !is_word_separator(gis + i) &&
-                    is_typographic_char(gis + i)) {
+        i = 0;
+        do {
+            if (gis[i].justify_char) {
                 increase_extra_spacing(args, err_per_unit, gei + i);
+                nr_chars--;
             }
-        }
+
+            i++;
+        } while (nr_chars > 0);
     }
 
     if (left > 0) {
         for (i = 0; i < n; i++) {
-            if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                    !is_word_separator(gis + i) &&
-                    is_typographic_char(gis + i)) {
+            if (gis[i].justify_char) {
                 increase_extra_spacing(args, 1, gei + i);
+                if (--left == 0)
+                    break;
             }
-
-            left--;
-            if (left == 0)
-                break;
         }
     }
 }
@@ -2467,14 +2477,19 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
             if (is_word_separator(gis + i) ||
                     gis[i].bt == UCHAR_BREAK_IDEOGRAPHIC) {
                 nr_words++;
+                gis[i].justify_word = 1;
             }
             else if (is_typographic_char(gis + i)) {
                 nr_chars++;
+                gis[i].justify_char = 1;
+            }
+            else {
+                gis[i].justify_word = 0;
+                gis[i].justify_char = 0;
             }
         }
     }
 
-    nr_words--;
     nr_chars--;
 
     /* most error for words and CJK letters */
@@ -2483,48 +2498,61 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
 
     if (nr_words > 0) {
         err_per_unit = error / nr_words;
+        left = error % nr_words;
         if (err_per_unit > 0) {
-            for (i = 0; i < n; i++) {
-                if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                        (is_word_separator(gis + i) ||
-                            gis[i].bt == UCHAR_BREAK_IDEOGRAPHIC)) {
+
+            i = 0;
+            do {
+                if (gis[i].justify_word) {
                     increase_extra_spacing(args, err_per_unit, gei + i);
                     compensated += err_per_unit;
+                    nr_words--;
+                }
+
+                i++;
+            } while (nr_words > 0);
+        }
+
+        if (nr_chars <= 0) {
+            for (i = 0; i < n; i++) {
+                if (gis[i].justify_word) {
+                    increase_extra_spacing(args, 1, gei + i);
+                    left--;
+                    if (left == 0)
+                        break;
                 }
             }
+
+            return;
         }
     }
 
-    if (nr_chars <= 0)
-        return;
+    if (nr_chars > 0) {
+        /* left error for other chars */
+        error = total_error - compensated;
+        err_per_unit = error / nr_chars;
+        left = error % nr_chars;
+        if (err_per_unit > 0) {
+            i = 0;
+            do {
+                if (gis[i].justify_char) {
+                    increase_extra_spacing(args, err_per_unit, gei + i);
+                    nr_chars--;
+                }
 
-    /* left error for other chars */
-    error = total_error - compensated;
-    err_per_unit = error / nr_chars;
-    left = error % nr_chars;
-    if (err_per_unit > 0) {
-        for (i = 0; i < n; i++) {
-            if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                    (!(is_word_separator(gis + i) ||
-                        gis[i].bt == UCHAR_BREAK_IDEOGRAPHIC) &&
-                        is_typographic_char(gis + i))) {
-                increase_extra_spacing(args, err_per_unit, gei + i);
-            }
+                i++;
+            } while (nr_chars > 0);
         }
-    }
 
-    if (left > 0) {
-        for (i = 0; i < n; i++) {
-            if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                    (!(is_word_separator(gis + i) ||
-                        gis[i].bt == UCHAR_BREAK_IDEOGRAPHIC) &&
-                        is_typographic_char(gis + i))) {
-                increase_extra_spacing(args, 1, gei + i);
+        if (left > 0) {
+            for (i = 0; i < n; i++) {
+                if (gis[i].justify_char) {
+                    increase_extra_spacing(args, 1, gei + i);
+                    left--;
+                    if (left == 0)
+                        break;
+                }
             }
-
-            left--;
-            if (left == 0)
-                break;
         }
     }
 }
@@ -2557,8 +2585,6 @@ static void adjust_glyph_position(MYGLYPHARGS* args,
 
     pos->x += x;
     pos->y += y;
-    _DBG_PRINTF("%s: glyph position (%d, %d); base point (%d, %d)\n",
-        __FUNCTION__, pos->x, pos->y, x, y);
 }
 
 static void calc_glyph_positions(MYGLYPHARGS* args,
@@ -3030,7 +3056,9 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
             n++;
             break;
         }
-        else if (!test_overflow && (gis[n].bt & BOV_BREAK_FLAG)) {
+
+        if (!test_overflow && max_extent > 0
+                && (break_oppos[n] == BOV_ALLOWED)) {
             n++;
             break;
         }
@@ -3158,9 +3186,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     }
 
     // align unhanged glyphs
-    if (gap > 0) {
-        align_unhanged_glyphs(&args, glyph_pos, n, gap);
-    }
+    align_unhanged_glyphs(&args, glyph_pos, n, gap);
 
     // adjust positions of hanged glyphs
     adjust_hanged_glyphs_start(&args, gis, gei, glyph_pos, n, x, y);
