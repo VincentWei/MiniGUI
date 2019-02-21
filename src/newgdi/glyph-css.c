@@ -3069,6 +3069,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
                 }
             }
         }
+        nr_letters--;
 
         switch (render_flags & GRF_TEXT_JUSTIFY_MASK) {
         case GRF_TEXT_JUSTIFY_INTER_WORD:
