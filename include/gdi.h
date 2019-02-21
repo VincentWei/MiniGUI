@@ -10733,17 +10733,11 @@ typedef struct _GLYPHEXTINFO {
     /** The bounding box of the glyph. */
     int bbox_x, bbox_y, bbox_w, bbox_h;
     /** The advance values of the glyph. */
-    int advance_x, advance_y;
+    int adv_x, adv_y;
     /** The extra spacing values of the glyph. */
     int extra_x, extra_y;
-
-    // internal use
-    Uchar32 uc;
-    Uint8 bt;
-    Uint8 gc;
-    Uint8 ignored:1;
-    Uint8 hanged:2;
-    Uint8 ort:2;
+    /** The advance value of the glyph along the line direction. */
+    int line_adv;
 } GLYPHEXTINFO;
 
 /**
