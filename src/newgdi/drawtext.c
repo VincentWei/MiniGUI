@@ -480,15 +480,13 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     if (nFormat & DT_RIGHT) {
         x = rcDraw.right;
         old_ta = SetTextAlign(hdc, TA_RIGHT);
-        _ERR_PRINTF("%s: SetTextAlign(TA_RIGHT) called, pdc->ta_flags(%x)\n",
-            __FUNCTION__, pdc->ta_flags);
     }
     else {
         old_ta = SetTextAlign(hdc, TA_LEFT);
         x = rcDraw.left;
     }
 
-    if(nFormat & DT_CALCRECT){
+    if (nFormat & DT_CALCRECT) {
         *pRect = rcDraw;
         NormalizeRect (pRect);
         pRect->top  = y;

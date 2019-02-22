@@ -2351,9 +2351,6 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
         if (bbox) bbox->x -= (bold + ch_extra + adv_len);
     }
 
-    _ERR_PRINTF("_font_get_glyph_advance: direction(%s)\n",
-            direction?"LTR":"RTL");
-
     if (direction) {
         tmp_x += bold + ch_extra;
         if (adv_x) *adv_x = tmp_x - x;
