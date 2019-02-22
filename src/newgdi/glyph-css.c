@@ -78,10 +78,11 @@
 #define UCHAR_TAB           0x0009
 
 enum _LBOrder {
-    LB1, LB2, LB3, LB4, LB5, LB6, LB7, LB8, LB8a, LB9, LB10,
+    LB1, LB2, LB3, LB4, LB5, LB6, LB7, LB8, LBPRE, LB8a, LB9, LB10,
     LB11, LB12, LB12a, LB13, LB14, LB15, LB16, LB17, LB18, LB19,
     LB20, LB21, LB21a, LB21b, LB22, LB23, LB23a, LB24, LB25, LB26,
     LB27, LB28, LB29, LB30, LB30a, LB30b, LB31,
+    LBLAST = 0xFF,
 };
 
 struct glyph_break_ctxt {
@@ -147,7 +148,7 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
     if (gbctxt->n == 0) {
         // set the before break opportunity
         gbctxt->bos[0] = bo;
-        gbctxt->od[0] = 0xFF;
+        gbctxt->od[0] = LBLAST;
     }
     else {
         // set the after break opportunity
@@ -155,7 +156,7 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         gbctxt->bts[gbctxt->n - 1] = (Uint8)bt;
         gbctxt->bos[gbctxt->n] = bo;
         if (bo == BOV_UNKNOWN)
-            gbctxt->od[gbctxt->n] = 0xFF;
+            gbctxt->od[gbctxt->n] = LBLAST;
         else
             gbctxt->od[gbctxt->n] = gbctxt->curr_od;
     }
@@ -1053,10 +1054,14 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
     struct glyph_break_ctxt gbctxt;
     int cosumed = 0;
     BOOL col_sp = FALSE;
+    BOOL col_nl = FALSE;
 
     // CSS: collapses space according to space rule
-    if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP)
+    if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP || wsr == WSR_PRE_LINE)
         col_sp = TRUE;
+    // CSS: collapses new lines acoording to space rule
+    if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP)
+        col_nl = TRUE;
 
     gbctxt.mbc_devfont = logfont->mbc_devfont;
     gbctxt.sbc_devfont = logfont->sbc_devfont;
@@ -1142,12 +1147,16 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         }
 
         // Only break at forced line breaks.
-        if (wsr == WSR_PRE || wsr == WSR_NOWRAP)
+        if (wsr == WSR_PRE || wsr == WSR_NOWRAP) {
             // Set the default breaking manner is not allowed.
+            gbctxt.curr_od = LBPRE;
             bo = BOV_NOTALLOWED_DEFINITELY;
-        else
+        }
+        else {
             // Set the default breaking manner is not set.
+            gbctxt.curr_od = LBLAST;
             bo = BOV_UNKNOWN;
+        }
 
         // Set default break opportunity of the current glyph
         if (gbctxt_push_back(&gbctxt, gv, bt, bo) == 0)
@@ -1182,23 +1191,18 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             _DBG_PRINTF ("LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.\n");
             gbctxt.curr_od = LB5;
             gbctxt_change_bo_last(&gbctxt, BOV_NOTALLOWED_DEFINITELY);
-
             _DBG_PRINTF ("LB6 Do not break before hard line breaks\n");
             gbctxt.curr_od = LB6;
             gbctxt_change_bo_before_last(&gbctxt, BOV_NOTALLOWED_DEFINITELY);
 
-            if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP) {
+            if (col_nl)
                 // Collapse new lines
-            }
-            else {
-                if (col_sp)
-                    bo = BOV_NOTALLOWED_DEFINITELY;
-                else
-                    bo = BOV_MANDATORY;
-                if (gbctxt_push_back(&gbctxt, next_gv,
-                        UCHAR_BREAK_LINE_FEED, bo) == 0)
-                    goto error;
-            }
+                bo = BOV_NOTALLOWED_DEFINITELY;
+            else
+                bo = BOV_MANDATORY;
+            if (gbctxt_push_back(&gbctxt, next_gv,
+                    UCHAR_BREAK_LINE_FEED, bo) == 0)
+                goto error;
         }
         // LB5 Treat CR followed by LF, as well as CR, LF,
         // and NL as hard line breaks.
@@ -1207,7 +1211,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 || bt == UCHAR_BREAK_LINE_FEED
                 || bt == UCHAR_BREAK_NEXT_LINE) {
 
-            if (col_sp)
+            if (col_nl)
                 // Collapse new lines
                 bo = BOV_NOTALLOWED_DEFINITELY;
             else
@@ -2289,38 +2293,38 @@ static int find_breaking_pos_normal(MYGLYPHARGS* args, int n)
 {
     int i;
 
-    for (i = n - 1; i > 0; i--) {
+    for (i = n - 1; i >= 0; i--) {
         if (args->bos[i] == BOV_ALLOWED)
             return i;
     }
 
-    return 0;
+    return -1;
 }
 
 static int find_breaking_pos_any(MYGLYPHARGS* args, int n)
 {
     int i;
 
-    for (i = n - 1; i > 0; i--) {
+    for (i = n - 1; i >= 0; i--) {
         if (args->bos[i] == BOV_ALLOWED
                 || args->bos[i] == BOV_NOTALLOWED_UNCERTAINLY)
             return i;
     }
 
-    return 0;
+    return -1;
 }
 
 static int find_breaking_pos_word(MYGLYPHARGS* args, int n)
 {
     int i;
 
-    for (i = n - 1; i > 0; i--) {
+    for (i = n - 1; i >= 0; i--) {
         if (args->bos[i] == BOV_ALLOWED
                 && args->bcs[i] == UCHAR_BREAK_SPACE)
             return i;
     }
 
-    return 0;
+    return -1;
 }
 
 static inline BOOL is_invisible_glyph(const MYGLYPHINFO* gi)
@@ -2473,19 +2477,16 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
     int left;
 
     for (i = 0; i < n; i++) {
+        gis[i].justify_word = 0;
+        gis[i].justify_char = 0;
         if (gis[i].ignored == 0 && gis[i].hanged == 0) {
-            if (is_word_separator(gis + i) ||
-                    gis[i].bt == UCHAR_BREAK_IDEOGRAPHIC) {
+            if (is_word_separator(gis + i) || IsUCharWideCJK(gis[i].uc)) {
                 nr_words++;
                 gis[i].justify_word = 1;
             }
             else if (is_typographic_char(gis + i)) {
                 nr_chars++;
                 gis[i].justify_char = 1;
-            }
-            else {
-                gis[i].justify_word = 0;
-                gis[i].justify_char = 0;
             }
         }
     }
@@ -2513,12 +2514,11 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
             } while (nr_words > 0);
         }
 
-        if (nr_chars <= 0) {
+        if (nr_chars <= 0 && left > 0) {
             for (i = 0; i < n; i++) {
                 if (gis[i].justify_word) {
                     increase_extra_spacing(args, 1, gei + i);
-                    left--;
-                    if (left == 0)
+                    if (--left == 0)
                         break;
                 }
             }
@@ -2548,8 +2548,7 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
             for (i = 0; i < n; i++) {
                 if (gis[i].justify_char) {
                     increase_extra_spacing(args, 1, gei + i);
-                    left--;
-                    if (left == 0)
+                    if (--left == 0)
                         break;
                 }
             }
@@ -2897,13 +2896,14 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     int n = 0;
     int total_extent = 0;
     int breaking_pos = -1;
-    int line_width = 0;
+    int line_width;
     int gap;
 
     MYGLYPHARGS  args;
     MYGLYPHINFO* gis = NULL;
     GLYPHEXTINFO* gei = NULL;
     BOOL test_overflow = TRUE;
+    BOOL lfsw_created = FALSE;
 
     /* Check logfont_upright and create logfont_sideways if need */
     if (logfont_upright == NULL || logfont_upright->rotation != 0)
@@ -2919,6 +2919,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
                 if (*logfont_sideways == NULL
                         || (*logfont_sideways)->rotation != 900)
                     goto error;
+                lfsw_created = TRUE;
                 break;
             default:
                 *logfont_sideways = NULL;
@@ -2956,6 +2957,11 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     args.bos = break_oppos;
     args.rf = render_flags;
     args.nr_gvs = nr_glyphs;
+
+    line_width = args.lfur->size;
+    if (args.lfsw) {
+        line_width = MAX(line_width, args.lfsw->size);
+    }
 
     while (n < nr_glyphs) {
         int extra_spacing = 0;
@@ -3030,7 +3036,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
                 break;
             }
 
-            if (breaking_pos > 0) {
+            if (breaking_pos >= 0) {
                 // a valid breaking position found before current glyph
                 break;
             }
@@ -3051,7 +3057,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         set_extra_spacing(&args, extra_spacing, gei + n);
 
         total_extent += gei[n].line_adv;
-        if (n > 0 && break_oppos[n] == BOV_MANDATORY) {
+        if (break_oppos[n] == BOV_MANDATORY) {
             // hard line breaking
             n++;
             break;
@@ -3066,7 +3072,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         n++;
     }
 
-    if (breaking_pos > 0 && breaking_pos != n) {
+    if (breaking_pos >= 0 && breaking_pos != n) {
         // wrapped due to overflow
         int i;
 
@@ -3213,6 +3219,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         }
     }
 
+    free(gis);
     if (glyph_ext_info == NULL)
         free(gei);
 
@@ -3221,6 +3228,10 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
 error:
     if (gei) free(gei);
     if (gis) free(gis);
+    if (lfsw_created) {
+        DestroyLogFont(*logfont_sideways);
+        *logfont_sideways = NULL;
+    }
     return 0;
 }
 

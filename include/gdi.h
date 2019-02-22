@@ -10242,6 +10242,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *
  * \brief This value directs \a GetGlyphsByRules
  * collapses sequences of white space into a single character.
+ * Lines may wrap at allowed soft wrap opportunities.
  */
 #define WSR_NORMAL          0x00
 
@@ -10251,7 +10252,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \brief This value prevents \a GetGlyphsByRules from collapsing
  * sequences of white space. Segment breaks such as line feeds are
  * preserved as forced line breaks. Lines only break at forced line breaks;
- * content that does not fit within the block container overflows it.
+ * content that does not fit within the specified extent overflows it.
  */
 #define WSR_PRE             0x01
 
@@ -10794,8 +10795,10 @@ typedef struct _GLYPHPOS {
  * \param glyphs The pointer to the glyph string. The glyphs should be reordered
  *      as visual ones by calling BIDI functions.
  * \param nr_glyphs The number of the glyphs.
- * \param break_opps The pointer to the break opportunities array of the glyphs.
- *      It should be returned by \a GetGlyphsByRules.
+ * \param break_oppos The pointer to the break opportunities array of the glyphs.
+ *      It should be returned by \a GetGlyphsByRules. However, the caller
+ *      should skip the first unit (the break opportunity before the first glyph)
+ *      before passing the pointer to this function.
  * \param break_classes The pointer to the break classes array of the glyphs.
  *      It should be returned by \a GetGlyphsByRules.
  * \param render_flags The render flags; see \a glyph_render_flags.
