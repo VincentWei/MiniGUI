@@ -159,6 +159,7 @@ struct tagDC
 
     int tabstop;
     int cExtra;     /* Character extra */
+    int wExtra;     /* Word extra */
     int alExtra;    /* Above line extra */
     int blExtra;    /* Bellow line extra */
 

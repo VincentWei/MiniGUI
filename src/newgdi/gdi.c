@@ -1733,7 +1733,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         pdc->pLogFont = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
     pdc->tabstop = 8;
     pdc->CurTextPos.x = pdc->CurTextPos.y = 0;
-    pdc->cExtra = pdc->alExtra = pdc->blExtra = 0;
+    pdc->cExtra = pdc->wExtra = pdc->alExtra = pdc->blExtra = 0;
 
     pdc->mapmode = MM_TEXT;
     pdc->ta_flags = TA_LEFT | TA_TOP | TA_NOUPDATECP;
@@ -1834,12 +1834,12 @@ static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref)
 
     /* copy attributes from reference DC
      * gal_pixel bkcolor, pencolor, brushcolor, textcolor;
-     * int bkmode, tabstop, cExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags;
+     * int bkmode, tabstop, cExtra, wExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags;
      */
-    memcpy (&pdc->bkcolor, &pdc_ref->bkcolor, 
-                sizeof (gal_pixel)*4 + sizeof (int)*8);
+    memcpy (&pdc->bkcolor, &pdc_ref->bkcolor,
+                sizeof (gal_pixel)*4 + sizeof (int)*9);
 #ifdef _MGHAVE_ADV_2DAPI
-    memcpy (&pdc->pen_type, &pdc_ref->pen_type, 
+    memcpy (&pdc->pen_type, &pdc_ref->pen_type,
                 (sizeof(int)*7) + sizeof(POINT) + (sizeof (void*)*3));
 #endif
     pdc->pLogFont = pdc_ref->pLogFont;
@@ -1900,7 +1900,7 @@ static void dc_InitScreenDC (PDC pdc, GAL_Surface *surface)
     pdc->pLogFont = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
     pdc->tabstop = 8;
     pdc->CurTextPos.x = pdc->CurTextPos.y = 0;
-    pdc->cExtra = pdc->alExtra = pdc->blExtra = 0;
+    pdc->cExtra = pdc->wExtra = pdc->alExtra = pdc->blExtra = 0;
 
     pdc->mapmode = MM_TEXT;
     pdc->ta_flags = TA_LEFT | TA_TOP | TA_NOUPDATECP;
@@ -3438,8 +3438,8 @@ HWND GUIAPI WindowFromDC (HDC hdc)
 typedef struct _DCSTATE
 {
     GAL_Color bkcolor, pencolor, brushcolor, textcolor;
-    /* bkmode, tabstop, cExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags */
-    char attrs_g1 [sizeof(int)*8];
+    /* bkmode, tabstop, cExtra, wExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags */
+    char attrs_g1 [sizeof(int)*9];
 
 #ifdef _MGHAVE_ADV_2DAPI
     /* 

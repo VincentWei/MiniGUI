@@ -422,9 +422,8 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     if (RECTWP(pRect) == 0 || RECTHP(pRect) == 0) return -1;
 
     pdc = dc_HDC2PDC(hdc);
-    /* for support utf-16 by humingming 2010.7.6 */
-    //if (is_utf16_logfont (pdc)) return -1;
-    if (pdc->pLogFont->rotation) return -1;
+    if (pdc->pLogFont->rotation)
+        return -1;
 
     if (nCount < 0) nCount = __mg_strlen (pdc->pLogFont, pText);
     if (nCount <= 0) return -1;
@@ -478,9 +477,11 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     }
 
     /* set the start_x pos.*/
-    if (nFormat & DT_RIGHT){
+    if (nFormat & DT_RIGHT) {
         x = rcDraw.right;
         old_ta = SetTextAlign(hdc, TA_RIGHT);
+        _ERR_PRINTF("%s: SetTextAlign(TA_RIGHT) called, pdc->ta_flags(%x)\n",
+            __FUNCTION__, pdc->ta_flags);
     }
     else {
         old_ta = SetTextAlign(hdc, TA_LEFT);
