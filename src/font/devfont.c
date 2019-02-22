@@ -252,11 +252,8 @@ DEVFONT* font_GetMatchedSBDevFont (LOGFONT* log_font)
     else {
         /*sbc logfont --- sbc devfont*/
         matched_devfont = get_matched_devfont (log_font, sb_dev_font_head,
-                nr_sb_dev_fonts,log_font->charset);
+                nr_sb_dev_fonts, log_font->charset);
     }
-
-    if (!matched_devfont && g_SysLogFont [0])
-        matched_devfont = g_SysLogFont [0]->sbc_devfont;
 
     return matched_devfont;
 }
