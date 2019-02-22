@@ -5727,7 +5727,10 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 struct _DEVFONT;
 typedef struct _DEVFONT DEVFONT;
 
-/** The logical font structure. */
+/**
+  * The logical font structure.
+  * \note All fields are read-only.
+  */
 typedef struct _LOGFONT {
     /** The type of the logical font. */
     char type [LEN_LOGFONT_NAME_FIELD + 1];
@@ -5736,7 +5739,7 @@ typedef struct _LOGFONT {
     /** The charset of the logical font. */
     char charset [LEN_LOGFONT_NAME_FIELD + 1];
     /** The styles of the logical font. */
-    DWORD style;
+    DWORD32 style;
     /** The size of the logical font. */
     int size;
     /** The rotation angle of the logical font. */
@@ -5745,6 +5748,8 @@ typedef struct _LOGFONT {
     int ascent;
     /** The descent of the logical font. */
     int descent;
+    /** The size requested */
+    int size_request;
     /** The scale factor of sbc device font. */
     unsigned short sbc_scale;
     /** The scale factor of mbc device font. */
@@ -10566,7 +10571,7 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
  * Left-to-right direction.
  * Both the writing mode and the typographic mode are vertical.
  */
-#define GRF_WRITING_MODE_VERTICAL_LR    0x20008000
+#define GRF_WRITING_MODE_VERTICAL_LR    0x20000000
 
 #define GRF_TEXT_ORIENTATION_MASK       0x0F000000
 /**

@@ -2125,14 +2125,16 @@ typedef struct _MYGLYPHARGS {
     int hanged_end;
 } MYGLYPHARGS;
 
+#if 0
 static LOGFONT* create_sideways_logfont(LOGFONT* logfont_upright)
 {
     LOGFONT tmp;
 
     memcpy(&tmp, logfont_upright, sizeof(LOGFONT));
-    tmp.rotation = 900;
+    tmp.rotation = -900;
     return CreateLogFontIndirect(&tmp);
 }
+#endif
 
 #define SCRIPT_ORIENTATION_HORIZONTAL   0x01
 #define SCRIPT_ORIENTATION_VERTICAL     0x02
@@ -2221,11 +2223,6 @@ static int font_get_glyph_metrics(LOGFONT* logfont,
     return 0;
 }
 
-#define IS_UPRIGHT(rf)  \
-    ((rf & GRF_TEXT_ORIENTATION_MASK) == GRF_TEXT_ORIENTATION_UPRIGHT)
-#define IS_SIDEWAYS(rf)  \
-    ((rf & GRF_TEXT_ORIENTATION_MASK) == GRF_TEXT_ORIENTATION_SIDEWAYS)
-
 static void normalize_glyph_metrics(LOGFONT* logfont,
         Uint32 render_flags, const BBOX* bbox,
         int* adv_x, int* adv_y, int* line_adv, int* line_width)
@@ -2233,20 +2230,18 @@ static void normalize_glyph_metrics(LOGFONT* logfont,
     switch (render_flags & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
     case GRF_WRITING_MODE_VERTICAL_LR:
-        if (IS_SIDEWAYS(render_flags)) {
+        if (logfont->rotation == -900) {
             *line_adv = *adv_y;
             if (logfont->size > *line_width)
                 *line_width = logfont->size;
         }
         else {
-            int tmp;
-            tmp = *adv_x;
-            *adv_x = *adv_y;
-            *adv_y = tmp;
-
-            *line_adv = logfont->size;
             if (*adv_x > *line_width)
                 *line_width = *adv_x;
+
+            *adv_x = 0;
+            *adv_y = logfont->size;
+            *line_adv = logfont->size;
         }
         break;
 
@@ -2260,35 +2255,35 @@ static void normalize_glyph_metrics(LOGFONT* logfont,
 }
 
 static void set_extra_spacing(MYGLYPHARGS* args, int extra_spacing,
-        GLYPHEXTINFO* gei)
+        GLYPHEXTINFO* ges)
 {
     switch (args->rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
     case GRF_WRITING_MODE_VERTICAL_LR:
-        gei->extra_x = 0;
-        gei->extra_y = extra_spacing;
+        ges->extra_x = 0;
+        ges->extra_y = extra_spacing;
         break;
 
     case GRF_WRITING_MODE_HORIZONTAL_TB:
     default:
-        gei->extra_x = extra_spacing;
-        gei->extra_y = 0;
+        ges->extra_x = extra_spacing;
+        ges->extra_y = 0;
         break;
     }
 }
 
 static void increase_extra_spacing(MYGLYPHARGS* args, int extra_spacing,
-        GLYPHEXTINFO* gei)
+        GLYPHEXTINFO* ges)
 {
     switch (args->rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
     case GRF_WRITING_MODE_VERTICAL_LR:
-        gei->extra_y += extra_spacing;
+        ges->extra_y += extra_spacing;
         break;
 
     case GRF_WRITING_MODE_HORIZONTAL_TB:
     default:
-        gei->extra_x += extra_spacing;
+        ges->extra_x += extra_spacing;
         break;
     }
 }
@@ -2364,7 +2359,7 @@ static inline BOOL is_typographic_char(const MYGLYPHINFO* gi)
 }
 
 static void justify_glyphs_inter_word(MYGLYPHARGS* args,
-        MYGLYPHINFO* gis, GLYPHEXTINFO* gei, int n, int error)
+        MYGLYPHINFO* gis, GLYPHEXTINFO* ges, int n, int error)
 {
     int i;
     int nr_words = 0;
@@ -2392,7 +2387,7 @@ static void justify_glyphs_inter_word(MYGLYPHARGS* args,
         i = 0;
         do {
             if (gis[i].justify_word) {
-                increase_extra_spacing(args, err_per_unit, gei + i);
+                increase_extra_spacing(args, err_per_unit, ges + i);
                 nr_words--;
             }
 
@@ -2404,7 +2399,7 @@ static void justify_glyphs_inter_word(MYGLYPHARGS* args,
         i = 0;
         do {
             if (gis[i].justify_word) {
-                increase_extra_spacing(args, 1, gei + i);
+                increase_extra_spacing(args, 1, ges + i);
                 if (--left == 0)
                     break;
             }
@@ -2415,7 +2410,7 @@ static void justify_glyphs_inter_word(MYGLYPHARGS* args,
 }
 
 static void justify_glyphs_inter_char(MYGLYPHARGS* args,
-        MYGLYPHINFO* gis, GLYPHEXTINFO* gei, int n, int error)
+        MYGLYPHINFO* gis, GLYPHEXTINFO* ges, int n, int error)
 {
     int i;
     int nr_chars = 0;
@@ -2444,7 +2439,7 @@ static void justify_glyphs_inter_char(MYGLYPHARGS* args,
         i = 0;
         do {
             if (gis[i].justify_char) {
-                increase_extra_spacing(args, err_per_unit, gei + i);
+                increase_extra_spacing(args, err_per_unit, ges + i);
                 nr_chars--;
             }
 
@@ -2455,7 +2450,7 @@ static void justify_glyphs_inter_char(MYGLYPHARGS* args,
     if (left > 0) {
         for (i = 0; i < n; i++) {
             if (gis[i].justify_char) {
-                increase_extra_spacing(args, 1, gei + i);
+                increase_extra_spacing(args, 1, ges + i);
                 if (--left == 0)
                     break;
             }
@@ -2470,7 +2465,7 @@ static void justify_glyphs_inter_char(MYGLYPHARGS* args,
  * typographic character units.
  */
 static void justify_glyphs_auto(MYGLYPHARGS* args,
-        MYGLYPHINFO* gis, GLYPHEXTINFO* gei, int n, int error)
+        MYGLYPHINFO* gis, GLYPHEXTINFO* ges, int n, int error)
 {
     int i;
     int total_error = error;
@@ -2509,7 +2504,7 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
             i = 0;
             do {
                 if (gis[i].justify_word) {
-                    increase_extra_spacing(args, err_per_unit, gei + i);
+                    increase_extra_spacing(args, err_per_unit, ges + i);
                     compensated += err_per_unit;
                     nr_words--;
                 }
@@ -2521,7 +2516,7 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
         if (nr_chars <= 0 && left > 0) {
             for (i = 0; i < n; i++) {
                 if (gis[i].justify_word) {
-                    increase_extra_spacing(args, 1, gei + i);
+                    increase_extra_spacing(args, 1, ges + i);
                     if (--left == 0)
                         break;
                 }
@@ -2540,7 +2535,7 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
             i = 0;
             do {
                 if (gis[i].justify_char) {
-                    increase_extra_spacing(args, err_per_unit, gei + i);
+                    increase_extra_spacing(args, err_per_unit, ges + i);
                     nr_chars--;
                 }
 
@@ -2551,7 +2546,7 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
         if (left > 0) {
             for (i = 0; i < n; i++) {
                 if (gis[i].justify_char) {
-                    increase_extra_spacing(args, 1, gei + i);
+                    increase_extra_spacing(args, 1, ges + i);
                     if (--left == 0)
                         break;
                 }
@@ -2561,23 +2556,24 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
 }
 
 static void adjust_glyph_position(MYGLYPHARGS* args,
-        int x, int y, const GLYPHEXTINFO* gei, GLYPHPOS* pos)
+        int x, int y, const MYGLYPHINFO* gi, const GLYPHEXTINFO* ge,
+        GLYPHPOS* pos)
 {
     switch (args->rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
-        if (IS_SIDEWAYS(args->rf)) {
-            x -= args->lfsw->size;
-        }
-        else {
-            x -= (args->lw + gei->bbox_w) / 2;
+        if (gi->ort == GLYPH_ORIENTATION_UPRIGHT) {
+            x -= (args->lw + ge->bbox_w) / 2;
+            x -= ge->bbox_x;
         }
         break;
 
     case GRF_WRITING_MODE_VERTICAL_LR:
-        if (IS_SIDEWAYS(args->rf)) {
+        if (gi->ort == GLYPH_ORIENTATION_SIDEWAYS) {
+            x += args->lfsw->size;
         }
         else {
-            x += (args->lw - gei->bbox_w) / 2;
+            x += (args->lw - ge->bbox_w) / 2;
+            x -= ge->bbox_x;
         }
         break;
 
@@ -2591,7 +2587,7 @@ static void adjust_glyph_position(MYGLYPHARGS* args,
 }
 
 static void calc_unhanged_glyph_positions(MYGLYPHARGS* args,
-        const MYGLYPHINFO* gis, const GLYPHEXTINFO* gei, int n,
+        const MYGLYPHINFO* gis, const GLYPHEXTINFO* ges, int n,
         int x, int y, GLYPHPOS* pos)
 {
     int i;
@@ -2608,15 +2604,15 @@ static void calc_unhanged_glyph_positions(MYGLYPHARGS* args,
             pos[i].y = 0;
         }
         else {
-            pos[i].x = pos[i - 1].x + gei[i - 1].adv_x;
-            pos[i].y = pos[i - 1].y + gei[i - 1].adv_y;
-            pos[i].x += gei[i - 1].extra_x;
-            pos[i].y += gei[i - 1].extra_y;
+            pos[i].x = pos[i - 1].x + ges[i - 1].adv_x;
+            pos[i].y = pos[i - 1].y + ges[i - 1].adv_y;
+            pos[i].x += ges[i - 1].extra_x;
+            pos[i].y += ges[i - 1].extra_y;
         }
     }
 
     for (i = first; i < stop; i++) {
-        adjust_glyph_position(args, x, y, gei + i, pos + i);
+        adjust_glyph_position(args, x, y, gis + i, ges + i, pos + i);
 
         pos[i].suppressed = gis[i].ignored;
         pos[i].hanged = gis[i].hanged;
@@ -2625,20 +2621,20 @@ static void calc_unhanged_glyph_positions(MYGLYPHARGS* args,
 }
 
 static int calc_hanged_glyphs_extent(MYGLYPHARGS* args,
-        const GLYPHEXTINFO* gei, int n)
+        const GLYPHEXTINFO* ges, int n)
 {
     int i;
     int hanged_extent = 0;
 
     if (args->hanged_start >= 0) {
         for (i = 0; i <= args->hanged_start; i++) {
-            hanged_extent += gei[i].line_adv;
+            hanged_extent += ges[i].line_adv;
         }
     }
 
     if (args->hanged_end < n) {
         for (i = args->hanged_end; i < n; i++) {
-            hanged_extent += gei[i].line_adv;
+            hanged_extent += ges[i].line_adv;
         }
     }
 
@@ -2649,7 +2645,7 @@ static int calc_hanged_glyphs_extent(MYGLYPHARGS* args,
 }
 
 static int calc_hanged_glyphs_start(MYGLYPHARGS* args,
-        const MYGLYPHINFO* gis, const GLYPHEXTINFO* gei,
+        const MYGLYPHINFO* gis, const GLYPHEXTINFO* ges,
         GLYPHPOS* pos, int n, int x, int y)
 {
     int i;
@@ -2659,7 +2655,7 @@ static int calc_hanged_glyphs_start(MYGLYPHARGS* args,
     case GRF_WRITING_MODE_VERTICAL_RL:
     case GRF_WRITING_MODE_VERTICAL_LR:
         for (i = 0; i <= args->hanged_start; i++) {
-            hanged_extent += gei[i].line_adv;
+            hanged_extent += ges[i].line_adv;
         }
 
         for (i = 0; i <= args->hanged_start; i++) {
@@ -2668,10 +2664,10 @@ static int calc_hanged_glyphs_start(MYGLYPHARGS* args,
                 pos[i].y = -hanged_extent;
             }
             else {
-                pos[i].x = pos[i - 1].x + gei[i - 1].adv_x;
-                pos[i].y = pos[i - 1].y + gei[i - 1].adv_y;
-                pos[i].x += gei[i - 1].extra_x;
-                pos[i].y += gei[i - 1].extra_y;
+                pos[i].x = pos[i - 1].x + ges[i - 1].adv_x;
+                pos[i].y = pos[i - 1].y + ges[i - 1].adv_y;
+                pos[i].x += ges[i - 1].extra_x;
+                pos[i].y += ges[i - 1].extra_y;
             }
         }
         break;
@@ -2679,7 +2675,7 @@ static int calc_hanged_glyphs_start(MYGLYPHARGS* args,
     case GRF_WRITING_MODE_HORIZONTAL_TB:
     default:
         for (i = 0; i <= args->hanged_start; i++) {
-            hanged_extent += gei[i].line_adv;
+            hanged_extent += ges[i].line_adv;
         }
 
         for (i = 0; i <= args->hanged_start; i++) {
@@ -2688,17 +2684,17 @@ static int calc_hanged_glyphs_start(MYGLYPHARGS* args,
                 pos[i].y = 0;
             }
             else {
-                pos[i].x = pos[i - 1].x + gei[i - 1].adv_x;
-                pos[i].y = pos[i - 1].y + gei[i - 1].adv_y;
-                pos[i].x += gei[i - 1].extra_x;
-                pos[i].y += gei[i - 1].extra_y;
+                pos[i].x = pos[i - 1].x + ges[i - 1].adv_x;
+                pos[i].y = pos[i - 1].y + ges[i - 1].adv_y;
+                pos[i].x += ges[i - 1].extra_x;
+                pos[i].y += ges[i - 1].extra_y;
             }
         }
         break;
     }
 
     for (i = 0; i <= args->hanged_start; i++) {
-        adjust_glyph_position(args, x, y, gei + i, pos + i);
+        adjust_glyph_position(args, x, y, gis + i, ges + i, pos + i);
 
         pos[i].suppressed = gis[i].ignored;
         pos[i].hanged = gis[i].hanged;
@@ -2709,7 +2705,7 @@ static int calc_hanged_glyphs_start(MYGLYPHARGS* args,
 }
 
 static int calc_hanged_glyphs_end(MYGLYPHARGS* args,
-        const MYGLYPHINFO* gis, const GLYPHEXTINFO* gei,
+        const MYGLYPHINFO* gis, const GLYPHEXTINFO* ges,
         GLYPHPOS* pos, int n, int x, int y, int extent)
 {
     int i;
@@ -2724,13 +2720,13 @@ static int calc_hanged_glyphs_end(MYGLYPHARGS* args,
                 pos[i].y = extent;
             }
             else {
-                pos[i].x = pos[i - 1].x + gei[i - 1].adv_x;
-                pos[i].y = pos[i - 1].y + gei[i - 1].adv_y;
-                pos[i].x += gei[i - 1].extra_x;
-                pos[i].y += gei[i - 1].extra_y;
+                pos[i].x = pos[i - 1].x + ges[i - 1].adv_x;
+                pos[i].y = pos[i - 1].y + ges[i - 1].adv_y;
+                pos[i].x += ges[i - 1].extra_x;
+                pos[i].y += ges[i - 1].extra_y;
             }
 
-            hanged_extent += gei[i].line_adv;
+            hanged_extent += ges[i].line_adv;
         }
         break;
 
@@ -2742,19 +2738,19 @@ static int calc_hanged_glyphs_end(MYGLYPHARGS* args,
                 pos[i].y = 0;
             }
             else {
-                pos[i].x = pos[i - 1].x + gei[i - 1].adv_x;
-                pos[i].y = pos[i - 1].y + gei[i - 1].adv_y;
-                pos[i].x += gei[i - 1].extra_x;
-                pos[i].y += gei[i - 1].extra_y;
+                pos[i].x = pos[i - 1].x + ges[i - 1].adv_x;
+                pos[i].y = pos[i - 1].y + ges[i - 1].adv_y;
+                pos[i].x += ges[i - 1].extra_x;
+                pos[i].y += ges[i - 1].extra_y;
             }
 
-            hanged_extent += gei[i].line_adv;
+            hanged_extent += ges[i].line_adv;
         }
         break;
     }
 
     for (i = args->hanged_end; i < n; i++) {
-        adjust_glyph_position(args, x, y, gei + i, pos + i);
+        adjust_glyph_position(args, x, y, gis + i, ges + i, pos + i);
 
         pos[i].suppressed = gis[i].ignored;
         pos[i].hanged = gis[i].hanged;
@@ -2774,6 +2770,9 @@ static void offset_unhanged_glyph_positions(MYGLYPHARGS* args,
         first = args->hanged_start + 1;
     if (args->hanged_end < n)
         stop = args->hanged_end;
+
+    _DBG_PRINTF("%s: offset(%d), first(%d), stop(%d)\n",
+            __FUNCTION__, offset, first, stop);
 
     switch (args->rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
@@ -2795,6 +2794,8 @@ static void offset_unhanged_glyph_positions(MYGLYPHARGS* args,
 static void align_unhanged_glyphs(MYGLYPHARGS* args,
         GLYPHPOS* pos, int n, int gap)
 {
+    _DBG_PRINTF("%s: args->rf(0x%08X), gap(%d)\n",
+            __FUNCTION__, args->rf, gap);
     switch (args->rf & GRF_ALIGN_MASK) {
     case GRF_ALIGN_RIGHT:
     case GRF_ALIGN_END:
@@ -2870,31 +2871,31 @@ static void init_glyph_info(MYGLYPHARGS* args, int i,
 }
 
 static inline int shrink_total_extent(MYGLYPHARGS* args, int total_extent,
-        const GLYPHEXTINFO* gei)
+        const GLYPHEXTINFO* ges)
 {
 #if 0
     switch (args->rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
     case GRF_WRITING_MODE_VERTICAL_LR:
-        total_extent -= gei->adv_y;
-        total_extent -= gei->extra_y;
+        total_extent -= ges->adv_y;
+        total_extent -= ges->extra_y;
         break;
     case GRF_WRITING_MODE_HORIZONTAL_TB:
     default:
-        total_extent -= gei->adv_x;
-        total_extent -= gei->extra_x;
+        total_extent -= ges->adv_x;
+        total_extent -= ges->extra_x;
         break;
     }
 
     return total_extent;
 #else
-    return total_extent - gei->line_adv;
+    return total_extent - ges->line_adv;
 #endif
 
 }
 
 static int get_glyph_extent_info(MYGLYPHARGS* args, Glyph32 gv,
-        MYGLYPHINFO* gi, GLYPHEXTINFO* gei)
+        MYGLYPHINFO* gi, GLYPHEXTINFO* ges)
 {
     LOGFONT* logfont = args->lfur;
     BBOX bbox;
@@ -2921,12 +2922,12 @@ static int get_glyph_extent_info(MYGLYPHARGS* args, Glyph32 gv,
     normalize_glyph_metrics(logfont, args->rf, &bbox,
             &adv_x, &adv_y, &line_adv, &args->lw);
 
-    gei->bbox_x = bbox.x;
-    gei->bbox_y = bbox.y;
-    gei->bbox_w = bbox.w;
-    gei->bbox_h = bbox.h;
-    gei->adv_x = adv_x;
-    gei->adv_y = adv_y;
+    ges->bbox_x = bbox.x;
+    ges->bbox_y = bbox.y;
+    ges->bbox_w = bbox.w;
+    ges->bbox_h = bbox.h;
+    ges->adv_x = adv_x;
+    ges->adv_y = adv_y;
 
     return line_adv;
 }
@@ -2968,7 +2969,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
 
     MYGLYPHARGS  args;
     MYGLYPHINFO* gis = NULL;
-    GLYPHEXTINFO* gei = NULL;
+    GLYPHEXTINFO* ges = NULL;
     BOOL test_overflow = TRUE;
     BOOL lfsw_created = FALSE;
 
@@ -2982,9 +2983,10 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
             switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
             case GRF_TEXT_ORIENTATION_MIXED:
             case GRF_TEXT_ORIENTATION_SIDEWAYS:
-                *logfont_sideways = create_sideways_logfont(logfont_upright);
+                *logfont_sideways
+                    = CreateLogFontIndirectEx(logfont_upright, -900);
                 if (*logfont_sideways == NULL
-                        || (*logfont_sideways)->rotation != 900)
+                        || (*logfont_sideways)->rotation != -900)
                     goto error;
                 lfsw_created = TRUE;
                 break;
@@ -2995,19 +2997,19 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         }
     }
     else {
-        if ((*logfont_sideways)->rotation != 900) {
+        if ((*logfont_sideways)->rotation != -900) {
             goto error;
         }
     }
 
     if (glyph_ext_info == NULL) {
-        gei = (GLYPHEXTINFO*)calloc(sizeof(GLYPHEXTINFO), nr_glyphs);
-        if (gei == NULL)
+        ges = (GLYPHEXTINFO*)calloc(sizeof(GLYPHEXTINFO), nr_glyphs);
+        if (ges == NULL)
             goto error;
     }
     else {
-        gei = glyph_ext_info;
-        memset(gei, 0, sizeof(GLYPHEXTINFO) * nr_glyphs);
+        ges = glyph_ext_info;
+        memset(ges, 0, sizeof(GLYPHEXTINFO) * nr_glyphs);
     }
 
     gis = (MYGLYPHINFO*)calloc(sizeof(MYGLYPHINFO), nr_glyphs);
@@ -3040,38 +3042,38 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         if (gis[n].uc == UCHAR_TAB) {
             if (tab_size > 0) {
                 int tabstops = total_extent / tab_size + 1;
-                gei[n].line_adv = tabstops * tab_size- total_extent;
+                ges[n].line_adv = tabstops * tab_size- total_extent;
 
                 // If this distance is less than 0.5ch, then the
                 // subsequent tab stop is used instead.
-                if (gei[n].line_adv < logfont_upright->size / 6) {
+                if (ges[n].line_adv < logfont_upright->size / 6) {
                     tabstops++;
-                    gei[n].line_adv = tabstops * tab_size- total_extent;
+                    ges[n].line_adv = tabstops * tab_size- total_extent;
                 }
 
                 switch (render_flags & GRF_WRITING_MODE_MASK) {
                 case GRF_WRITING_MODE_VERTICAL_RL:
                 case GRF_WRITING_MODE_VERTICAL_LR:
-                    gei[n].adv_y = gei[n].line_adv;
+                    ges[n].adv_y = ges[n].line_adv;
                     break;
                 case GRF_WRITING_MODE_HORIZONTAL_TB:
                 default:
-                    gei[n].adv_x = gei[n].line_adv;
+                    ges[n].adv_x = ges[n].line_adv;
                     break;
                 }
             }
             else {
                 gis[n].ignored = 1;
-                gei[n].line_adv = 0;
+                ges[n].line_adv = 0;
             }
         }
         else if (is_invisible_glyph (gis + n)) {
             gis[n].ignored = 1;
-            gei[n].line_adv = 0;
+            ges[n].line_adv = 0;
         }
         else {
-            gei[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
-                    gei + n);
+            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+                    ges + n);
         }
 
         // extra space for word and letter
@@ -3084,12 +3086,12 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         }
 
         if (extra_spacing > 0) {
-            gei[n].line_adv += extra_spacing;
-            set_extra_spacing(&args, extra_spacing, gei + n);
+            ges[n].line_adv += extra_spacing;
+            set_extra_spacing(&args, extra_spacing, ges + n);
         }
 
         if (test_overflow && max_extent > 0
-                && (total_extent + gei[n].line_adv) > max_extent) {
+                && (total_extent + ges[n].line_adv) > max_extent) {
             // overflow
             switch (render_flags & GRF_OVERFLOW_WRAP_MASK) {
             case GRF_OVERFLOW_WRAP_BREAK_WORD:
@@ -3113,7 +3115,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
             test_overflow = FALSE;
         }
 
-        total_extent += gei[n].line_adv;
+        total_extent += ges[n].line_adv;
         if (break_oppos[n] == BOV_MANDATORY) {
             // hard line breaking
             n++;
@@ -3137,7 +3139,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
 
         total_extent = 0;
         for (i = 0; i < n; i++) {
-            total_extent += gei[i].line_adv;
+            total_extent += ges[i].line_adv;
         }
     }
 
@@ -3148,7 +3150,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     if (render_flags & GRF_SPACES_REMOVE_START) {
         int i = 0;
         while (i < n && gis[i].uc == UCHAR_SPACE) {
-            memset(gei + i, 0, sizeof(GLYPHEXTINFO));
+            memset(ges + i, 0, sizeof(GLYPHEXTINFO));
             gis[i].ignored = 1;
             i++;
         }
@@ -3160,7 +3162,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         while (i > 0 &&
                 (gis[i].uc == UCHAR_SPACE || gis[i].uc == UCHAR_IDSPACE)) {
 
-            memset(gei + i, 0, sizeof(GLYPHEXTINFO));
+            memset(ges + i, 0, sizeof(GLYPHEXTINFO));
             gis[i].ignored = 1;
             i--;
         }
@@ -3198,9 +3200,9 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         else if (n < nr_glyphs && is_closing_punctation(gis + n)) {
             gis[n].hanged = GLYPH_HANGED_END;
             if (n < args.hanged_end) args.hanged_end = n;
-            gei[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
-                    gei + n);
-            total_extent += gei[n].line_adv;
+            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+                    ges + n);
+            total_extent += ges[n].line_adv;
             n++;
         }
 #endif
@@ -3217,9 +3219,9 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         else if (n < nr_glyphs && is_stop_or_common(gis + n)) {
             gis[n].hanged = GLYPH_HANGED_END;
             if (n < args.hanged_end) args.hanged_end = n;
-            gei[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
-                    gei + n);
-            total_extent += gei[n].line_adv;
+            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+                    ges + n);
+            total_extent += ges[n].line_adv;
             n++;
         }
 #endif
@@ -3230,28 +3232,28 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         if (n < nr_glyphs && is_stop_or_common(gis + n)) {
             gis[n].hanged = GLYPH_HANGED_END;
             if (n < args.hanged_end) args.hanged_end = n;
-            gei[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
-                    gei + n);
-            total_extent += gei[n].line_adv;
+            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+                    ges + n);
+            total_extent += ges[n].line_adv;
             n++;
         }
     }
 
-    total_extent -= calc_hanged_glyphs_extent(&args, gei, n);
+    total_extent -= calc_hanged_glyphs_extent(&args, ges, n);
 
     // calc positions of hanged glyphs
     if (args.hanged_start >= 0) {
-        calc_hanged_glyphs_start(&args, gis, gei,
+        calc_hanged_glyphs_start(&args, gis, ges,
                 glyph_pos, n, x, y);
     }
 
     if (args.hanged_end < n) {
         if (max_extent > 0) {
-            calc_hanged_glyphs_end(&args, gis, gei,
+            calc_hanged_glyphs_end(&args, gis, ges,
                         glyph_pos, n, x, y, MAX(max_extent, total_extent));
         }
         else {
-            calc_hanged_glyphs_end(&args, gis, gei,
+            calc_hanged_glyphs_end(&args, gis, ges,
                     glyph_pos, n, x, y, total_extent);
         }
     }
@@ -3262,21 +3264,21 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
             && gap > 0) {
         switch (render_flags & GRF_TEXT_JUSTIFY_MASK) {
         case GRF_TEXT_JUSTIFY_INTER_WORD:
-            justify_glyphs_inter_word(&args, gis, gei, n, gap);
+            justify_glyphs_inter_word(&args, gis, ges, n, gap);
             break;
         case GRF_TEXT_JUSTIFY_INTER_CHAR:
-            justify_glyphs_inter_char(&args, gis, gei, n, gap);
+            justify_glyphs_inter_char(&args, gis, ges, n, gap);
             break;
         case GRF_TEXT_JUSTIFY_AUTO:
         default:
-            justify_glyphs_auto(&args, gis, gei, n, gap);
+            justify_glyphs_auto(&args, gis, ges, n, gap);
             break;
         }
 
     }
 
     // calcualte unhanged glyph positions according to the base point
-    calc_unhanged_glyph_positions(&args, gis, gei, n, x, y, glyph_pos);
+    calc_unhanged_glyph_positions(&args, gis, ges, n, x, y, glyph_pos);
 
     // align unhanged glyphs
     align_unhanged_glyphs(&args, glyph_pos, n, gap);
@@ -3285,29 +3287,30 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         if ((render_flags & GRF_WRITING_MODE_MASK)
                 == GRF_WRITING_MODE_HORIZONTAL_TB) {
             line_size->cx = glyph_pos[n - 1].x - glyph_pos[0].x
-                + gei[n - 1].adv_x + gei[n - 1].extra_x;
+                + ges[n - 1].adv_x + ges[n - 1].extra_x;
             line_size->cy = args.lw;
         }
         else {
-            line_size->cx = glyph_pos[n - 1].y - glyph_pos[0].y
-                + gei[n - 1].adv_y + gei[n - 1].extra_y;
+            line_size->cy = glyph_pos[n - 1].y - glyph_pos[0].y
+                + ges[n - 1].adv_y + ges[n - 1].extra_y;
             line_size->cx = args.lw;
         }
     }
 
     free(gis);
     if (glyph_ext_info == NULL)
-        free(gei);
+        free(ges);
 
     return n;
 
 error:
-    if (gei) free(gei);
+    if (ges) free(ges);
     if (gis) free(gis);
     if (lfsw_created) {
         DestroyLogFont(*logfont_sideways);
         *logfont_sideways = NULL;
     }
+
     return 0;
 }
 

@@ -112,6 +112,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     strncpy (log_font->charset, charset, LEN_LOGFONT_NAME_FIELD);
     log_font->charset [LEN_LOGFONT_NAME_FIELD] = '\0';
 
+    log_font->size_request = size;
     if (size > FONT_MAX_SIZE)
         log_font->size = FONT_MAX_SIZE;
     else if (size < FONT_MIN_SIZE)
@@ -255,42 +256,73 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
 PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *logfont)
 {
-    PLOGFONT font;
+    PLOGFONT newfont;
     DEVFONT* sbc_devfont, *mbc_devfont;
+    int sbc_value, mbc_value = 0;
 
     if (!logfont) return NULL;
 
     // VincentWei: make sure the logfont has the key for resource manager.
-    //if ((font = malloc (sizeof (LOGFONT))) == NULL)
-    if ((font = (PLOGFONT)malloc (sizeof (FONT_RES))) == NULL)
+    //if ((newfont = malloc (sizeof (LOGFONT))) == NULL)
+    if ((newfont = (PLOGFONT)malloc (sizeof (FONT_RES))) == NULL)
         return INV_LOGFONT;
 
     // VincentWei: make sure the logfont has an invalid key for resource manager.
-    memcpy (font, logfont, sizeof(LOGFONT));
-    ((FONT_RES *)font)->key = -1;
+    memcpy (newfont, logfont, sizeof(LOGFONT));
+    ((FONT_RES *)newfont)->key = -1;
+
+    // reset request size of newfont to logfont->size_request
+    newfont->size = logfont->size_request;
 
     sbc_devfont = logfont->sbc_devfont;
     if (sbc_devfont->font_ops->new_instance)
-        sbc_devfont = (*sbc_devfont->font_ops->new_instance) (logfont, sbc_devfont, TRUE);
+        sbc_devfont = (*sbc_devfont->font_ops->new_instance) (newfont, sbc_devfont, TRUE);
     if (sbc_devfont == NULL) {
-        free (font);
+        free (newfont);
         return INV_LOGFONT;
     }
 
     mbc_devfont = logfont->mbc_devfont;
     if (mbc_devfont && mbc_devfont->font_ops->new_instance)
-        mbc_devfont = (*mbc_devfont->font_ops->new_instance) (logfont, mbc_devfont, FALSE);
+        mbc_devfont = (*mbc_devfont->font_ops->new_instance) (newfont, mbc_devfont, FALSE);
 
-    font->sbc_devfont = sbc_devfont;
-    font->mbc_devfont = mbc_devfont;
+    newfont->sbc_devfont = sbc_devfont;
+    newfont->mbc_devfont = mbc_devfont;
 
-    return font;
+    /*reset ascent of logfont*/
+    sbc_value = newfont->sbc_devfont->font_ops->get_font_ascent (newfont,
+                    newfont->sbc_devfont);
+    if (newfont->mbc_devfont) {
+        mbc_value = newfont->mbc_devfont->font_ops->get_font_ascent (newfont,
+                        newfont->mbc_devfont);
+        newfont->ascent = MAX (sbc_value, mbc_value);
+    }
+    else {
+        newfont->ascent = sbc_value;
+    }
+
+    /*reset descent of logfont*/
+    sbc_value = newfont->sbc_devfont->font_ops->get_font_descent (newfont,
+                    newfont->sbc_devfont);
+    if (newfont->mbc_devfont) {
+        mbc_value = newfont->mbc_devfont->font_ops->get_font_descent (newfont,
+                        newfont->mbc_devfont);
+        newfont->descent = MAX (sbc_value, mbc_value);
+    }
+    else {
+        newfont->descent = sbc_value;
+    }
+
+    /*reset size of logfont*/
+    newfont->size = newfont->ascent + newfont->descent;
+    return newfont;
 }
 
 PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT *logfont, int rotation)
 {
     PLOGFONT newfont;
     DEVFONT* sbc_devfont, *mbc_devfont;
+    int sbc_value, mbc_value = 0;
 
     if (!logfont) return NULL;
 
@@ -305,6 +337,7 @@ PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT *logfont, int rotation)
     sbc_devfont = logfont->sbc_devfont;
     mbc_devfont = logfont->mbc_devfont;
 
+    newfont->size = logfont->size_request;
     newfont->rotation = rotation;
     if (logfont->rotation == 0 && rotation != 0) {
         /* check if sbc_devfont and mbc_devfont support rotation */
@@ -328,6 +361,32 @@ PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT *logfont, int rotation)
     newfont->sbc_devfont = sbc_devfont;
     newfont->mbc_devfont = mbc_devfont;
 
+    /*reset ascent of logfont*/
+    sbc_value = newfont->sbc_devfont->font_ops->get_font_ascent (newfont,
+                    newfont->sbc_devfont);
+    if (newfont->mbc_devfont) {
+        mbc_value = newfont->mbc_devfont->font_ops->get_font_ascent (newfont,
+                        newfont->mbc_devfont);
+        newfont->ascent = MAX (sbc_value, mbc_value);
+    }
+    else {
+        newfont->ascent = sbc_value;
+    }
+
+    /*reset descent of logfont*/
+    sbc_value = newfont->sbc_devfont->font_ops->get_font_descent (newfont,
+                    newfont->sbc_devfont);
+    if (newfont->mbc_devfont) {
+        mbc_value = newfont->mbc_devfont->font_ops->get_font_descent (newfont,
+                        newfont->mbc_devfont);
+        newfont->descent = MAX (sbc_value, mbc_value);
+    }
+    else {
+        newfont->descent = sbc_value;
+    }
+
+    /*reset size of logfont*/
+    newfont->size = newfont->ascent + newfont->descent;
     return newfont;
 }
 
