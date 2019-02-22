@@ -368,7 +368,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
 #ifdef _MGFONT_TTF_CACHE
     /* Search cache by unicode !*/
-    if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
+    if (ft_inst_info->cache) {
         TTFCACHEINFO *cache_info;
         int datasize;
         cache_info = __mg_ttc_search(ft_inst_info->cache,
@@ -439,7 +439,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     }
 
 #ifdef _MGFONT_TTF_CACHE
-    if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
+    if (ft_inst_info->cache) {
         TTFCACHEINFO * pcache;
         TTFCACHEINFO cache_info = {0};
         int datasize;
@@ -505,7 +505,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         uni_char = glyph_value;
 
 #ifdef _MGFONT_TTF_CACHE
-    if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
+    if (ft_inst_info->cache) {
         TTFCACHEINFO *cacheinfo;
         int datasize;
 
@@ -559,7 +559,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         *pitch = source->pitch;
 
 #ifdef _MGFONT_TTF_CACHE
-    if (ft_inst_info->cache && (ft_inst_info->rotation == 0)) {
+    if (ft_inst_info->cache) {
         TTFCACHEINFO * pcache;
         int datasize;
         int size = source->rows * (*pitch);
@@ -788,8 +788,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
         //FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL;
 
     /* if unmask non-cache and no rotation */
-    if (!(logfont->style & FS_OTHER_TTFNOCACHE) &&
-        (ft_inst_info->rotation == 0)) {
+    if (!(logfont->style & FS_OTHER_TTFNOCACHE)) {
 
         HCACHE hCache = __mg_ttc_is_exist(logfont->family, logfont->charset,
                         logfont->style, logfont->size, logfont->rotation);
