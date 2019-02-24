@@ -115,13 +115,6 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
         goto error;
     }
 
-#if 0
-    if (real_font_name) {
-        strncpy (real_font_name, filehead->font_name, LEN_DEVFONT_NAME_MAX);
-        real_font_name [LEN_DEVFONT_NAME_MAX] = '\0';
-    }
-#endif
-
     fclose (fp);
     return upf_info;
 

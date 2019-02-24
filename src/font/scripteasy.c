@@ -103,7 +103,7 @@ static void unlock(void)
 static BOOL load_fonts(void)
 {
     int i;
-    int font_table_size = se_font_desc.font_name_map_size;    
+    int font_table_size = se_font_desc.font_name_map_size;
     BOOL result = FALSE;
 
 #if SE_MINIGUI_TRACE

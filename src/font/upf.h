@@ -40,9 +40,9 @@
 #ifndef GUI_FONT_UPF_H
     #define GUI_FONT_UPF_H
 
-#define LEN_VERSION_MAX       10
-#define LEN_VENDER_NAME_MAX   12
-#define LEN_DEVFONT_NAME_MAX  127
+#define LEN_VERSION_MAX         10
+#define LEN_VENDER_NAME_MAX     12
+#define LEN_UPF_NAME_MAX        127
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,7 +100,7 @@ typedef struct
     char     vender_name [LEN_VENDER_NAME_MAX];
     Uint16   endian;
 
-    char     font_name [LEN_DEVFONT_NAME_MAX + 1];
+    char     font_name [LEN_UPF_NAME_MAX + 1];
 
     Uint8    width;
     Uint8    height;
