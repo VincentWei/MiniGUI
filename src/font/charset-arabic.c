@@ -51,7 +51,7 @@ typedef struct _SHAPEINFO {
 #define MAX_GLYPH_VALUE 0x133
 #define SHAPENUMBER 36
 static const SHAPEINFO shape_info[SHAPENUMBER] = {
-      /*        Base                 Isol    Final    Initial    Medial */
+      /* Base                Isol            Final            Initial         Medial */
     { /* 0  0xC1 (0x0621) */ 0xC1/*0xFE80*/, 0x00,            0x00,           0x00 /* Arabic letter Hamza                 */ },
     { /* 1  0xC2 (0x0622) */ 0xC2/*0xFE81*/, 0x102/*0xFE82*/, 0x00,           0x00 /* Arabic letter Alef with Madda above */ },
     { /* 2  0xC3 (0x0623) */ 0xC3/*0xFE83*/, 0x103/*0xFE84*/, 0x00,           0x00 /* Arabic letter Alef with Hamza above */ },
