@@ -149,7 +149,7 @@ void read_total_file( void )
     fclose (fp);
 }
 
-static int HelloWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT HelloWinProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
     switch (message) {

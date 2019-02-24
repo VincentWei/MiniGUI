@@ -6,13 +6,13 @@ helloworld:helloworld.c
 	gcc helloworld.c -Wall -g -o helloworld -lminigui_ths -lm -ljpeg -lz -lfreetype -lpng -lpthread
 
 hebrew_test:hebrew_test.c
-	gcc hebrew_test.c -g -o hebrew_test -lminigui_ths -lm -ljpeg -lz -lttf -lpng -lpthread
+	gcc hebrew_test.c -g -o hebrew_test -lminigui_ths -lm -ljpeg -lz -lfreetype -lpng -lpthread
 
 hebrew_test_release:hebrew_test.c
-	gcc hebrew_test.c -g -o hebrew_test -lminigui_ths -lm -ljpeg -lz -lttf -lpng -lpthread
+	gcc hebrew_test.c -g -o hebrew_test -lminigui_ths -lm -ljpeg -lz -lfreetype -lpng -lpthread
 
 hebrew_test_debug:hebrew_test.c
-	gcc hebrew_test.c -DARABIC_DEBUG -g -o hebrew_test -lminigui_ths -lm -ljpeg -lz -lttf -lpng -lpthread
+	gcc hebrew_test.c -DARABIC_DEBUG -g -o hebrew_test -lminigui_ths -lm -ljpeg -lz -lfreetype -lpng -lpthread
 
 hebrew_test_unicode:hebrew_test.c
 	gcc hebrew_test.c -DARABIC_UNICODE -DARABIC_DEBUG -g -o hebrew_test_u -lminigui_ths -lm -lfreetype -ljpeg -lz -lpng -lpthread

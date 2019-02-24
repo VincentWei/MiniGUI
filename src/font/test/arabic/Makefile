@@ -6,8 +6,7 @@ u:arabic_test_unicode
 hex:arabic_test_hex 
 
 MINIGUI_COMMON = /usr/local/include/minigui
-LIBS = -lminigui_ths -lm -ljpeg -lz -lpng -lpthread -lttf
-#LIBS = -lminigui_ths -lm -ljpeg -lz -lpng -lpthread -lfreetype
+LIBS = -lminigui_ths -lm -ljpeg -lz -lpng -lpthread -lfreetype
 
 arabic_test:arabic_test.c $(MINIGUI_COMMON)
 	gcc arabic_test.c -Wall -g -o arabic_test $(LIBS) 

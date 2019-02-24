@@ -496,7 +496,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
             i = _gdi_output_visual_glyphs (pdc, logical_glyphs, nr_glyphs,
                     direction, cb_one_glyph, context);
         }
-        else if(!direction){
+        else if (!direction) {
             /* not need reorder glyphs, right to left, should alloc
              * glyphs range. */
             logical_glyphs = _gdi_get_glyphs_string(pdc, text, text_len,
@@ -516,7 +516,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
             free(logical_glyphs);
         }
     }
-    else{
+    else {
         if (!direction) { /* right to left, reverse text.*/
             for (i = text_len - 1; i >= 0; i--) {
                 if (!(glyph_value = sbc_devfont->charset_ops->char_glyph_value
@@ -526,7 +526,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                 glyph_type = sbc_devfont->charset_ops->glyph_type
                     (glyph_value);
 
-                if(!cb_one_glyph (context, glyph_value, glyph_type))
+                if (!cb_one_glyph (context, glyph_value, glyph_type))
                     break;
             }
         }

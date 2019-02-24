@@ -59,23 +59,23 @@ char filename[256];
 char fontname[50];
 
 BOOL textout = TRUE;
-RECT arabic_rc = {0, 0, 640, 480};
+RECT hebrew_rc = {0, 0, 640, 480};
 int line_num = 0;
 
 static char msg_text [256] = "Show text with TextOut.";
 
 static FILE *fp = NULL;
 static PLOGFONT logfont_iso8859_8;
-//static char arabic_text[] = {0xc7,0xe4,0xe1,0xd1,0xea,0xe2,0xa0,0xc7,0xe4,0xca,0xe2,0xe6,0xea,0x00};
+//static char hebrew_text[] = {0xc7,0xe4,0xe1,0xd1,0xea,0xe2,0xa0,0xc7,0xe4,0xca,0xe2,0xe6,0xea,0x00};
 
 static int reset_fp_pos()
 {
-    arabic_rc.left   = 0;
-    arabic_rc.top    = 0;
-    arabic_rc.right  = g_rcScr.right - 24;
-    arabic_rc.bottom = g_rcScr.bottom;
+    hebrew_rc.left   = 0;
+    hebrew_rc.top    = 0;
+    hebrew_rc.right  = g_rcScr.right - 24;
+    hebrew_rc.bottom = g_rcScr.bottom;
     if(!fp){
-        DBGLOG2("============================= arabic_test %s===============================\n", filename);
+        DBGLOG2("============================= hebrew_test %s===============================\n", filename);
         fp = fopen(filename, "rb");
         if (!fp) {
             DBGLOG2("cannot open %s\n", filename);
@@ -140,7 +140,7 @@ void read_total_file( void )
     fclose (fp);
 }
 
-static int HelloWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+static LRESULT HelloWinProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
     switch (message) {
@@ -196,13 +196,13 @@ static int HelloWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                     
                     if(textout == TRUE) {
                         if(GetTextAlign(hdc) == TA_RIGHT)
-                            TextOut(hdc, arabic_rc.right, i*line_height, pline);
+                            TextOut(hdc, hebrew_rc.right, i*line_height, pline);
                         else
-                            TextOut(hdc, arabic_rc.left, i*line_height, pline);
+                            TextOut(hdc, hebrew_rc.left, i*line_height, pline);
                     }
                     else{
-                        int height = DrawText(hdc, pline, -1, &arabic_rc, DT_RIGHT);
-                        arabic_rc.top += height;
+                        int height = DrawText(hdc, pline, -1, &hebrew_rc, DT_RIGHT);
+                        hebrew_rc.top += height;
                     }
                     i++;
                 }
@@ -210,7 +210,7 @@ static int HelloWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             /*
             else{
                 read_total_file();
-                DrawText(hdc, filebuf, -1, &arabic_rc, DT_RIGHT);
+                DrawText(hdc, filebuf, -1, &hebrew_rc, DT_RIGHT);
             }
             */
 #endif

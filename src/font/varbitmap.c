@@ -42,6 +42,8 @@
 #include <string.h>
 #include <assert.h>
 
+#define DEBUG
+
 #include "common.h"
 
 #ifdef _MGFONT_VBF
@@ -177,6 +179,8 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         int offset;
 
         offset = glyph_value - vbf_info->first_glyph;
+        _DBG_PRINTF("%s: GV(%x) OFFSET(%d)\n",
+                __FUNCTION__, glyph_value, offset);
 
         if (px) {
             tempint = vbf_info->bbox[offset].x;

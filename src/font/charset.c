@@ -3464,7 +3464,7 @@ static int utf8_len_first_char (const unsigned char* mstr, int len)
 }
 
 static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar, int pre_len,
-                const unsigned char* cur_mchar, int cur_len)
+        const unsigned char* cur_mchar, int cur_len)
 {
     Uchar32 wc = *((unsigned char *)(cur_mchar++));
     int n, t;
