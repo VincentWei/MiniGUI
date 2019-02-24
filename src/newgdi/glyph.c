@@ -2322,7 +2322,7 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     bbox_x = x;
     bbox_y = y;
 
-    /* in freetype get_glyph_bbox loads glyph, so we must get_glyph_bbox
+    /* in freetype get_glyph_bbox loads glyph, so we must call get_glyph_bbox
      * before get_glyph_advance, get_glyph_monobitmap....
      */
     devfont->font_ops->get_glyph_bbox (logfont, devfont,

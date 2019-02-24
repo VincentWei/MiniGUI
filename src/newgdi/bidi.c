@@ -32,7 +32,7 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
-** textout.c: Hight level textout drawing.
+** bidi.c
 **
 ** Current maintainer: houhuihua.
 **
@@ -63,7 +63,7 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
     int i = 0;
     int len_cur_char;
     int left_bytes = text_len;
-    int glyph_type;
+    unsigned int glyph_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
     DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
@@ -114,7 +114,7 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
     return logical_glyphs;
 }
 
-static int inline get_glyph_type (LOGFONT* logfont, Glyph32 glyph_value)
+static unsigned int inline get_glyph_type(LOGFONT* logfont, Glyph32 glyph_value)
 {
     if (IS_MBC_GLYPH (glyph_value))
         return logfont->mbc_devfont->charset_ops->glyph_type(glyph_value);
@@ -152,7 +152,7 @@ static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs,
 {
     int i = 0;
     int j = 0;
-    int glyph_type;
+    unsigned int glyph_type;
     Glyph32 glyph_value;
     Glyph32 biggest_vowel = 0;
 
@@ -229,7 +229,7 @@ static int output_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
 {
     int i = 0;
     Glyph32 glyph_value;
-    int glyph_type;
+    unsigned int glyph_type;
     int old_text_align = pdc->ta_flags;
     int old_bkmode = pdc->bkmode;
 
@@ -259,7 +259,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
     int i = 0;
     Glyph32 glyph_value   = INV_GLYPH_VALUE;
     Glyph32 biggest_vowel = INV_GLYPH_VALUE;
-    int glyph_type;
+    unsigned int glyph_type;
     int cur_advance = 0;
     int max_advance = 0;
     int bkmode = pdc->bkmode;
@@ -318,7 +318,7 @@ static int output_visual_glyphs_rtl (PDC pdc, Glyph32* visual_glyphs,
     int nr_glyphs, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int cur = nr_glyphs - 1;
-    int glyph_type;
+    unsigned int glyph_type;
     Glyph32 glyph_value;
     int vowel_num;
     int outed_vowel_num;
@@ -376,7 +376,7 @@ static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context,
         BOOL if_break, BOOL if_draw)
 {
-    int glyph_type;
+    unsigned int glyph_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
     DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
@@ -478,7 +478,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                 BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int i = 0;
-    int glyph_type;
+    unsigned int glyph_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
     DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
@@ -554,7 +554,7 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
     int i = 0;
     int len_cur_char;
     int left_bytes = text_len;
-    int glyph_type;
+    unsigned int glyph_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
     DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
@@ -821,7 +821,8 @@ _gdi_output_glyphs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
     int nr_glyphs = 0;
     int i = 0;
-    int glyph_type, glyph_value;
+    unsigned int glyph_type;
+    Glyph32 glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
 
     if(ctxt->nFormat & DT_WORDBREAK){
@@ -1004,7 +1005,7 @@ int GUIAPI GetGlyphsExtentPoint(
     PDC pdc = dc_HDC2PDC(hdc);
     PLOGFONT log_font = pdc->pLogFont;
     DEVFONT* devfont = NULL;
-    int glyph_type = 0;
+    unsigned int glyph_type = 0;
 
     size->cx = 0;
     size->cy = 0;
@@ -1053,7 +1054,7 @@ int GUIAPI GetGlyphsExtent(
     int i = 0;
     int advance = 0;
     int adv_x, adv_y;
-    int glyph_type;
+    unsigned int glyph_type;
     Glyph32 glyph_value = INV_GLYPH_VALUE;
     PDC pdc = dc_HDC2PDC(hdc);
     PLOGFONT log_font = pdc->pLogFont;

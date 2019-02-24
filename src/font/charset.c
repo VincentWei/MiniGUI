@@ -43,6 +43,8 @@
 #include <ctype.h>
 #include <assert.h>
 
+#define DEBUG
+
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"

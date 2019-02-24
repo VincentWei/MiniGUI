@@ -162,7 +162,8 @@ typedef struct _TEXTOUT_CTXT
     BOOL only_extent;
 } TEXTOUT_CTXT;
 
-static BOOL cb_textout (void* context, Glyph32 glyph_value, unsigned int glyph_type)
+static BOOL cb_textout (void* context, Glyph32 glyph_value,
+        unsigned int glyph_type)
 {
     TEXTOUT_CTXT* ctxt = (TEXTOUT_CTXT*)context;
     int adv_x, adv_y;
@@ -172,8 +173,7 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value, unsigned int glyph_t
         adv_x = adv_y = 0;
     }
     else if (check_vowel(glyph_type)) {
-        if (!ctxt->only_extent)
-        {
+        if (!ctxt->only_extent) {
             bkmode = ctxt->pdc->bkmode;
             //ctxt->pdc->bkmode = BM_TRANSPARENT;
             _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
@@ -182,8 +182,8 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value, unsigned int glyph_t
             ctxt->pdc->bkmode = bkmode;
 
         }
-            //adv_x = adv_y = 0;
-            adv_x = 0;
+        //adv_x = adv_y = 0;
+        adv_x = 0;
     }
     else {
         if (ctxt->only_extent)

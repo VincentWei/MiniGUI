@@ -171,7 +171,7 @@ struct _CHARSETOPS
      */
     int (*pos_first_char) (const unsigned char* mstr, int mstrlen);
 
-    /** The method to get the type of one glyph. */
+    /** The method to get the BIDI type of one glyph. */
     unsigned int (*bidi_glyph_type) (Glyph32 glyph_value);
 
     /** Get mirrored glyph

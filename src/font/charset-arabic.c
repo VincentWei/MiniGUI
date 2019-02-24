@@ -458,7 +458,7 @@ static unsigned int iso8859_6_glyph_type (Glyph32 glyph_value)
 {
     unsigned int ch_type = MCHAR_TYPE_UNKNOWN;
 
-    if (is_arabic_glyph_vowel (glyph_value)){  /* is vowel */
+    if (is_arabic_glyph_vowel (glyph_value)) {  /* is vowel */
         ch_type = MCHAR_TYPE_VOWEL;
     }
     else{

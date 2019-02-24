@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** varbitmap.h: the head file of raw bitmap font operation set.
-** 
+**
 */
 
 #ifndef GUI_FONT_VARBITMAP_H
@@ -43,43 +43,55 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-
-typedef struct _VBF_BBOX
-{
+typedef struct _VBF_BBOX {
         char x, y, w, h;
 } VBF_BBOX;
 
-typedef struct
-{
-    char ver_info [4];  /* font version*/
-    const char* name;         /* font name*/
+typedef struct {
+    /* font version*/
+    char ver_info [4];
+    /* font name*/
+    const char* name;
 
-    char max_width;     /* The max width in pixels. */
-    char ave_width;     /* The average width in pixels. */
-    char height;        /* The height in pixels. */
-    char descent;       /* The pixels below the base line. */
+    /* The max width in pixels. */
+    char max_width;
+    /* The average width in pixels. */
+    char ave_width;
+    /* The height in pixels. */
+    char height;
+    /* The pixels below the base line. */
+    char descent;
 
-    int first_glyph;    /* The glyph number of the first character in this font.*/
-    int last_glyph;     /* The glyph number of the last character in this font.*/
-    int def_glyph;      /* The glyph number of the default character in this font.*/
+    /* The glyph number of the first character in this font.*/
+    int first_glyph;
+    /* The glyph number of the last character in this font.*/
+    int last_glyph;
+    /* The glyph number of the default character in this font.*/
+    int def_glyph;
 
-    unsigned int font_size; /* used by mmap. It should be zero for in-core vbfs. */
+    /* used by mmap. It should be zero for in-core vbfs. */
+    unsigned int font_size;
 
-    const VBF_BBOX* bbox;     /* The pointer to the glyph bounding box array or NULL. */
+    /* The pointer to the glyph bounding box array or NULL. */
+    const VBF_BBOX* bbox;
 
-    const char* advance_x;    /* The pointer to the glyph advance x array. 
-                           If bbox is NULL, the array contains the width of each glyph.
-                           If advance_x is NULL, the glyph has the universal width, 
-                           that's max_width. */
-    const char* advance_y;    /* The pointer to the glyph advance y array.
-                           If bbox is NULL, advance_y should be NULL.
-                           If bbox is not NULL and advance_y is NULL, 
-                           all glyph has the universal advance_y, that is, zero. */
+    /* The pointer to the glyph advance x array.
+       If bbox is NULL, the array contains the width of each glyph.
+       If advance_x is NULL, the glyph has the universal width,
+       that's max_width. */
+    const char* advance_x;
+    /* The pointer to the glyph advance y array.
+       If bbox is NULL, advance_y should be NULL.
+       If bbox is not NULL and advance_y is NULL,
+       all glyph has the universal advance_y, that is, zero. */
+    const char* advance_y;
 
-    const unsigned int* bits_offset;      /* The pointer to the glyph bitmap offset array 
-                                       whose number will be used to fetch glyph bitmap 
-                                       from bits array or NULL. */
-    const unsigned char* all_glyph_bits;  /* The 8-bit right-padded bitmap data for all glyphs. */
+    /* The pointer to the glyph bitmap offset array
+       whose number will be used to fetch glyph bitmap
+       from bits array or NULL. */
+    const unsigned int* bits_offset;
+    /* The 8-bit right-padded bitmap data for all glyphs. */
+    const unsigned char* all_glyph_bits;
 } VBFINFO;
 
 #define VBF_LEN_VERSION_INFO 10
