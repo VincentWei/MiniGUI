@@ -10450,15 +10450,99 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 
     /** @} end of line_break_policies */
 
-#define BOV_SET_FLAG            0x80
-#define BOV_MANDATORY_FLAG      0x40
-#define BOV_NOTBREAK_FLAG       0x20
-#define BOV_BREAK_FLAG          0x10
-
+    /**
+     * \defgroup breaking_opportunities The breaking opportunity code
+     *
+     * MiniGUI uses a 16-bits word to represent the character, word, and line
+     * breaking opportunities of a character in a context.
+     *
+     * Please see UAX#29 and UAX#14 for more information:
+     *
+     *      https://www.unicode.org/reports/tr29/tr29-33.html
+     *      https://www.unicode.org/reports/tr14/tr14-41.html
+     *
+     * @{
+     */
 /**
- * The break opportunity code
+ * Unknown breaking code.
  */
-#define BOV_UNKNOWN                 0x00
+#define BOV_UNKNOWN                 0x0000
+/**
+ * If set, the character is a whitespace character.
+ */
+#define BOV_WHITE_SPACE             0x8000
+/**
+ * If set, the character is a expandable space.
+ */
+#define BOV_EXPANDABLE_SPACE        0x0800
+
+#define BOV_GB_MASK                 0xF000
+/**
+ * If set, can break at the character when doing character wrap.
+ */
+#define BOV_GB_CHAR_BREAK           0x1000
+/**
+ * If set, cursor can appear in front of the character
+ * (i.e. this is a grapheme boundary, or the first character in the text).
+ */
+#define BOV_GB_CURSOR_POS           0x2000
+/**
+ * If set, backspace deletes one character rather than
+ * the entire grapheme cluster.
+ */
+#define BOV_GB_BACKSPACE_DEL_CH     0x4000
+
+#define BOV_WB_MASK                 0x0F00
+/**
+ * If set, the glyph is the word boundary as defined by UAX#29.
+ */
+#define BOV_WB_WORD_BOUNDARY        0x0100
+/**
+ * If set, the glyph is the first character in a word.
+ */
+#define BOV_WB_WORD_START           0x0200
+/**
+ * If set, the glyph is the first non-word character after a word.
+ */
+#define BOV_WB_WORD_END             0x0400
+
+#define BOV_SB_MASK                 0x00F0
+/**
+ * If set, the glyph is the sentence boundary as defined by UAX#29.
+ */
+#define BOV_SB_SENTENCE_BOUNDARY    0x0010
+/**
+ * If set, the glyph is the first character in a sentence.
+ */
+#define BOV_SB_SENTENCE_START       0x0020
+/**
+ * If set, the glyph is the first non-sentence character in a sentence.
+ */
+#define BOV_SB_SENTANCE_END         0x0040
+
+#define BOV_LB_MASK                 0x000F
+#define BOV_LB_BREAK_FLAG           0x0004
+#define BOV_LB_MANDATORY_FLAG       0x0008
+/**
+ * The line can break after the character.
+ */
+#define BOV_LB_ALLOWED              (BOV_LB_BREAK_FLAG | 0x0001)
+/**
+ * The line must break after the character.
+ */
+#define BOV_LB_MANDATORY            (BOV_LB_BREAK_FLAG | BOV_LB_MANDATORY_FLAG | 0x0002)
+/**
+ * The line break is not allowed after the character.
+ */
+#define BOV_LB_NOTALLOWED           0x0000
+
+/* to be deprecated */
+#define BOV_SET_FLAG                0x80
+#define BOV_MANDATORY_FLAG          0x40
+#define BOV_NOTBREAK_FLAG           0x20
+#define BOV_BREAK_FLAG              0x10
+
+/* to be deprecated */
 #define BOV_NOTALLOWED_DEFINITELY   (BOV_SET_FLAG | BOV_NOTBREAK_FLAG | 0x01)
 #define BOV_NOTALLOWED_UNCERTAINLY  (BOV_SET_FLAG | BOV_NOTBREAK_FLAG | 0x02)
 #define BOV_ALLOWED                 (BOV_SET_FLAG | BOV_BREAK_FLAG)
@@ -10469,7 +10553,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *          const char* mstr, unsigned int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
- *          Glyph32** glyphs, Uint8** break_oppos, Uint8** break_classes,
+ *          Glyph32** glyphs, Uint16** break_oppos, Uint8** break_classes,
  *          int* nr_glyphs);
  * \brief Calculate the glyph string and the breaking opportunities under
  *        the specified rules and line breaking policy.
@@ -10510,20 +10594,18 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *        see \a line_break_policies.
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
- * \param break_opps The pointer to a buffer to store the address of the
- *        Uint8 array which contains the break opportunities of the glyphs.
+ * \param break_oppos The pointer to a buffer to store the address of the
+ *        Uint16 array which contains the break opportunities of the glyphs.
  *        Note that the length of this array is always one longer than
  *        the glyphs array. The first unit of the array stores the
  *        break opportunity before the first glyph, and the others store
  *        the break opportunities after other gyphs.
  *        The break opportunity can be one of the following values:
- *          - BOV_MANDATORY\n
+ *          - BOV_LB_MANDATORY\n
  *            The mandatory breaking.
- *          - BOV_NOTALLOWED_DEFINITELY\n
+ *          - BOV_LB_NOTALLOWED\n
  *            No breaking allowed after the glyph definitely.
- *          - BOV_NOTALLOWED_UNCERTAINLY\n
- *            No breaking allowed after the glyph uncertainly.
- *          - BOV_ALLOWED\n
+ *          - BOV_LB_ALLOWED\n
  *            Breaking allowed after the glyph.
  * \param break_classes The pointer to a buffer to store the address of the
  *      Uint8 array which contains the breaking classes (UCharBreakType)
@@ -10540,7 +10622,7 @@ MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
             const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-            Glyph32** glyphs, Uint8** break_oppos, Uint8** break_classes,
+            Glyph32** glyphs, Uint16** break_oppos, Uint8** break_classes,
             int* nr_glyphs);
 
     /**
@@ -10785,7 +10867,7 @@ typedef struct _GLYPHPOS {
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
  *          const Glyph32* glyphs, int nr_glyphs,
- *          const Uint8* break_classes, const Uint8* break_oppos,
+ *          const Uint16* break_oppos, const Uint8* break_classes,
  *          Uint32 render_flags, int x, int y,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
@@ -10855,7 +10937,7 @@ typedef struct _GLYPHPOS {
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         const Glyph32* glyphs, int nr_glyphs,
-        const Uint8* break_classes, const Uint8* break_oppos,
+        const Uint16* break_oppos, const Uint8* break_classes,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
