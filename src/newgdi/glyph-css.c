@@ -2757,6 +2757,9 @@ static int calc_hanged_glyphs_end(MYGLYPHARGS* args,
         pos[i].orientation = gis[i].ort;
     }
 
+    _DBG_PRINTF("%s: hanged_start(%d) hanged_end(%d) n(%d) hanged_extent(%d)\n",
+        __FUNCTION__, args->hanged_start, args->hanged_end, n, hanged_extent);
+
     return hanged_extent;
 }
 
@@ -3150,6 +3153,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     if (render_flags & GRF_SPACES_REMOVE_START) {
         int i = 0;
         while (i < n && gis[i].uc == UCHAR_SPACE) {
+            total_extent -= ges[i].line_adv;
             memset(ges + i, 0, sizeof(GLYPHEXTINFO));
             gis[i].ignored = 1;
             i++;
@@ -3161,7 +3165,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         int i = n - 1;
         while (i > 0 &&
                 (gis[i].uc == UCHAR_SPACE || gis[i].uc == UCHAR_IDSPACE)) {
-
+            total_extent -= ges[i].line_adv;
             memset(ges + i, 0, sizeof(GLYPHEXTINFO));
             gis[i].ignored = 1;
             i--;
