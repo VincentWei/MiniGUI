@@ -1166,7 +1166,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         if (get_next_glyph(&gbctxt, mstr, mstr_len, &next_gv, &next_uc) == 0) {
             _DBG_PRINTF ("LB3 Always break at the end of text\n");
             gbctxt.curr_od = LB3;
-            gbctxt_change_bo_last(&gbctxt, BOV_MANDATORY);
+            gbctxt_change_bo_last(&gbctxt, BOV_LB_MANDATORY);
         }
 
         /* Mandatory breaks */
@@ -1175,7 +1175,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         if (bt == UCHAR_BREAK_MANDATORY) {
             _DBG_PRINTF ("LB4 Always break after hard line breaks\n");
             gbctxt.curr_od = LB4;
-            gbctxt_change_bo_last(&gbctxt, BOV_MANDATORY);
+            gbctxt_change_bo_last(&gbctxt, BOV_LB_MANDATORY);
             _DBG_PRINTF ("LB6 Do not break before hard line breaks\n");
             gbctxt.curr_od = LB6;
             gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
@@ -1199,7 +1199,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 // Collapse new lines
                 bo = BOV_LB_NOTALLOWED;
             else
-                bo = BOV_MANDATORY;
+                bo = BOV_LB_MANDATORY;
             if (gbctxt_push_back(&gbctxt, next_gv,
                     UCHAR_BREAK_LINE_FEED, bo) == 0)
                 goto error;
@@ -1215,7 +1215,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 // Collapse new lines
                 bo = BOV_LB_NOTALLOWED;
             else
-                bo = BOV_MANDATORY;
+                bo = BOV_LB_MANDATORY;
             _DBG_PRINTF ("LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.\n");
             gbctxt.curr_od = LB5;
             gbctxt_change_bo_last(&gbctxt, bo);
@@ -1250,7 +1250,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 gbctxt.curr_od = LB8;
                 cosumed_one_loop += check_glyphs_following_zw(&gbctxt,
                     mstr, mstr_len);
-                gbctxt_change_bo_last(&gbctxt, BOV_ALLOWED);
+                gbctxt_change_bo_last(&gbctxt, BOV_LB_ALLOWED);
                 goto next_glyph;
             }
         }
@@ -1490,7 +1490,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         else if (bt == UCHAR_BREAK_SPACE) {
             _DBG_PRINTF ("LB18 Break after spaces\n");
             gbctxt.curr_od = LB18;
-            gbctxt_change_bo_last(&gbctxt, BOV_ALLOWED);
+            gbctxt_change_bo_last(&gbctxt, BOV_LB_ALLOWED);
         }
         /* Special case rules */
         // LB19 Do not break before or after quotation marks, such as ‘ ” ’.
@@ -1504,8 +1504,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         else if (bt == UCHAR_BREAK_CONTINGENT) {
             _DBG_PRINTF ("LB20 Break before and after unresolved CB.\n");
             gbctxt.curr_od = LB20;
-            gbctxt_change_bo_last(&gbctxt, BOV_ALLOWED);
-            gbctxt_change_bo_before_last(&gbctxt, BOV_ALLOWED);
+            gbctxt_change_bo_last(&gbctxt, BOV_LB_ALLOWED);
+            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_ALLOWED);
         }
         // LB21 Do not break before hyphen-minus, other hyphens,
         // fixed-width spaces, small kana, and other non-starters,
@@ -2062,7 +2062,7 @@ next_glyph:
         cosumed += cosumed_one_loop;
 
         // Return if we got any BK!
-        if (gbctxt.bos[gbctxt.n] == BOV_MANDATORY) {
+        if (gbctxt.bos[gbctxt.n] == BOV_LB_MANDATORY) {
             break;
         }
     }
@@ -2073,7 +2073,7 @@ next_glyph:
         for (n = 1; n < gbctxt.n; n++) {
             if (gbctxt.bos[n] == BOV_UNKNOWN) {
                 _DBG_PRINTF ("LB31 Break everywhere else: %d\n", n);
-                gbctxt.bos[n] = BOV_ALLOWED;
+                gbctxt.bos[n] = BOV_LB_ALLOWED;
             }
         }
 
@@ -2293,7 +2293,7 @@ static int find_breaking_pos_normal(MYGLYPHARGS* args, int n)
     int i;
 
     for (i = n - 1; i >= 0; i--) {
-        if (args->bos[i] == BOV_ALLOWED)
+        if (args->bos[i] == BOV_LB_ALLOWED)
             return i;
     }
 
@@ -2305,7 +2305,7 @@ static int find_breaking_pos_any(MYGLYPHARGS* args, int n)
     int i;
 
     for (i = n - 1; i >= 0; i--) {
-        if (args->bos[i] == BOV_ALLOWED
+        if (args->bos[i] == BOV_LB_ALLOWED
                 || args->bos[i] == BOV_LB_NOTALLOWED)
             return i;
     }
@@ -2318,7 +2318,7 @@ static int find_breaking_pos_word(MYGLYPHARGS* args, int n)
     int i;
 
     for (i = n - 1; i >= 0; i--) {
-        if (args->bos[i] == BOV_ALLOWED
+        if (args->bos[i] == BOV_LB_ALLOWED
                 && args->bcs[i] == UCHAR_BREAK_SPACE)
             return i;
     }
@@ -3119,14 +3119,14 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         }
 
         total_extent += ges[n].line_adv;
-        if (break_oppos[n] == BOV_MANDATORY) {
+        if (break_oppos[n] == BOV_LB_MANDATORY) {
             // hard line breaking
             n++;
             break;
         }
 
         if (!test_overflow && max_extent > 0
-                && (break_oppos[n] == BOV_ALLOWED)) {
+                && (break_oppos[n] == BOV_LB_ALLOWED)) {
             n++;
             break;
         }

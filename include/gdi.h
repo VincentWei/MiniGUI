@@ -10534,19 +10534,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * The line break is not allowed after the character.
  */
-#define BOV_LB_NOTALLOWED           0x0000
-
-/* to be deprecated */
-#define BOV_SET_FLAG                0x80
-#define BOV_MANDATORY_FLAG          0x40
-#define BOV_NOTBREAK_FLAG           0x20
-#define BOV_BREAK_FLAG              0x10
-
-/* to be deprecated */
-#define BOV_NOTALLOWED_DEFINITELY   (BOV_SET_FLAG | BOV_NOTBREAK_FLAG | 0x01)
-#define BOV_NOTALLOWED_UNCERTAINLY  (BOV_SET_FLAG | BOV_NOTBREAK_FLAG | 0x02)
-#define BOV_ALLOWED                 (BOV_SET_FLAG | BOV_BREAK_FLAG)
-#define BOV_MANDATORY               (BOV_SET_FLAG | BOV_MANDATORY_FLAG | BOV_BREAK_FLAG)
+#define BOV_LB_NOTALLOWED           0x0003
 
 /**
  * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
