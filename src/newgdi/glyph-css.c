@@ -34,7 +34,7 @@
 
 /*
 ** glyph-css.c: The implementation of APIs which conform to the specifiction
-** of CSS 3
+** of CSS 3, UAX#29, and UAX#14.
 **
 ** Reference:
 **
@@ -71,7 +71,7 @@
 
 #define MIN_LEN_GLYPHS      4
 #define INC_LEN_GLYPHS      4
-#define UCHAR_BREAK_UNSET   -1
+#define UCHAR_BREAK_UNSET   0xFF
 
 #define UCHAR_SPACE         0x0020
 #define UCHAR_SHY           0x00AD
@@ -1300,26 +1300,26 @@ static void check_sentence_breaks(struct glyph_break_ctxt* gbctxt,
     gbctxt->bos[i] &= ~BOV_SB_SENTENCE_END;
 
     /* maybe start sentence */
-    if (gbctxt->last_sentence_start == -1 && !gbctxt->is_sentence_boundary)
+    if (gbctxt->last_sentence_start == 0 && !gbctxt->is_sentence_boundary)
         gbctxt->last_sentence_start = i - 1;
 
     /* remember last non space character position */
-    if (i > 0 && !(gbctxt->bos[i - 1] & BOV_SPACE))
+    if (i > 1 && !(gbctxt->bos[i - 1] & BOV_SPACE))
         gbctxt->last_non_space = i;
 
     /* meets sentence end, mark both sentence start and end */
-    if (gbctxt->last_sentence_start != -1 && gbctxt->is_sentence_boundary) {
-        if (gbctxt->last_non_space != -1) {
+    if (gbctxt->last_sentence_start != 0 && gbctxt->is_sentence_boundary) {
+        if (gbctxt->last_non_space != 0) {
             gbctxt->bos[gbctxt->last_sentence_start] |= BOV_SB_SENTENCE_START;
             gbctxt->bos[gbctxt->last_non_space] |= BOV_SB_SENTENCE_END;
         }
 
-        gbctxt->last_sentence_start = -1;
-        gbctxt->last_non_space = -1;
+        gbctxt->last_sentence_start = 0;
+        gbctxt->last_non_space = 0;
     }
 
     /* meets space character, move sentence start */
-    if (gbctxt->last_sentence_start != -1 &&
+    if (gbctxt->last_sentence_start != 0 &&
             gbctxt->last_sentence_start == i - 1 &&
             (gbctxt->bos[i - 1] & BOV_SPACE))
         gbctxt->last_sentence_start++;
@@ -2068,7 +2068,7 @@ static int check_subsequent_ri(struct glyph_break_ctxt* gbctxt,
     return cosumed;
 }
 
-int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
+int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
             Glyph32** glyphs, Uint16** break_oppos, Uint8** break_classes,
@@ -2105,10 +2105,12 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
     gbctxt.base_uc  = 0;
     gbctxt.last_word_letter = 0;
 
-    gbctxt.last_sentence_start = -1;
-    gbctxt.last_non_space = -1;
-    gbctxt.prev_wb_index = -1;
-    gbctxt.prev_sb_index = -1;
+    // NOTE: the index 0 of break_oppos is the break opportunity
+    // before the first glyph.
+    gbctxt.last_sentence_start = 0;
+    gbctxt.last_non_space = 0;
+    gbctxt.prev_wb_index = 0;
+    gbctxt.prev_sb_index = 0;
 
     gbctxt.prev_gbt = GB_Other;
     gbctxt.prev_gbt = GB_Other;
@@ -3049,7 +3051,8 @@ next_glyph:
         for (n = 1; n < gbctxt.n; n++) {
             if ((gbctxt.bos[n] & BOV_LB_MASK) == BOV_UNKNOWN) {
                 _DBG_PRINTF ("LB31 Break everywhere else: %d\n", n);
-                gbctxt.bos[n] |= (~BOV_LB_MASK & BOV_LB_ALLOWED);
+                gbctxt.bos[n] &= ~BOV_LB_MASK;
+                gbctxt.bos[n] |= BOV_LB_ALLOWED;
             }
         }
 

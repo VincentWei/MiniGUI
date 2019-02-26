@@ -9898,7 +9898,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
     /**
      * \defgroup language_code Language Code
      *
-     * The language code specifies the content lanuage for \a GetGlyphsByRules.
+     * The language code specifies the content lanuage for \a GetGlyphsAndBreaks.
      *
      * @{
      */
@@ -10235,7 +10235,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup white_space_rules White Space Rules
      *
-     *  The white space rule indicates \a GetGlyphsByRules.
+     *  The white space rule indicates \a GetGlyphsAndBreaks.
      *
      *      - whether and how white space inside the string is collapsed.
      *      - whether lines may wrap at unforced soft wrap opportunities.
@@ -10245,7 +10245,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_NORMAL
  *
- * \brief This value directs \a GetGlyphsByRules
+ * \brief This value directs \a GetGlyphsAndBreaks
  * collapses sequences of white space into a single character.
  * Lines may wrap at allowed soft wrap opportunities.
  */
@@ -10254,7 +10254,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_PRE
  *
- * \brief This value prevents \a GetGlyphsByRules from collapsing
+ * \brief This value prevents \a GetGlyphsAndBreaks from collapsing
  * sequences of white space. Segment breaks such as line feeds are
  * preserved as forced line breaks. Lines only break at forced line breaks;
  * content that does not fit within the specified extent overflows it.
@@ -10288,7 +10288,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *      white space glyph, including between white space characters.
  *
  * When white space rule is specified to be WSR_BREAK_SPACES, the manner
- * of \a GetGlyphsByRules will conform
+ * of \a GetGlyphsAndBreaks will conform
  * to UNICODE LINE BREAKING ALGORITHM.
  */
 #define WSR_BREAK_SPACES    0x04
@@ -10307,7 +10307,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup char_transform_rules Character Transformation Rules
      *
-     *  The character transformation rule indicates how \a GetGlyphsByRules
+     *  The character transformation rule indicates how \a GetGlyphsAndBreaks
      *  transforms text for styling purposes; can be
      *
      *      - CTR_NONE,
@@ -10374,7 +10374,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup word_break_rules Word Breaking Rules
      *
-     *  The word breaking rule indicates how \a GetGlyphsByRules
+     *  The word breaking rule indicates how \a GetGlyphsAndBreaks
      *  creates soft wrap opportunities between letters.
      *
      * @{
@@ -10537,7 +10537,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 #define BOV_LB_NOTALLOWED           0x0003
 
 /**
- * \fn int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
+ * \fn int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont,
  *          const char* mstr, unsigned int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
@@ -10550,13 +10550,16 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * opportunities of the glyphs from a multi-byte string under the specified
  * content language \a content_language, the writing system \a writing_system,
  * the white space rule \a wsr, the text transformation rule
- * \a ctr, the word breaking rule \a wbr, and
- * the line breaking policy \a lbp.
+ * \a ctr, the word breaking rule \a wbr, and the line breaking policy \a lbp.
  *
  * The implementation of this function conforms to UNICODE LINE BREAKING
  * ALGORITHM:
  *
  *      https://www.unicode.org/reports/tr14/tr14-39.html
+ *
+ * and UNICODE TEXT SEGMENTATION:
+ *
+ *      https://www.unicode.org/reports/tr29/tr29-33.html
  *
  * and the CSS Text Module Level 3:
  *
@@ -10606,7 +10609,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *
  * \sa DrawGlyphStringEx, white_space_rules, char_transform_rule
  */
-MG_EXPORT int GUIAPI GetGlyphsByRules(LOGFONT* logfont,
+MG_EXPORT int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont,
             const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
@@ -10871,11 +10874,11 @@ typedef struct _GLYPHPOS {
  *      as visual ones by calling BIDI functions.
  * \param nr_glyphs The number of the glyphs.
  * \param break_oppos The pointer to the break opportunities array of the glyphs.
- *      It should be returned by \a GetGlyphsByRules. However, the caller
+ *      It should be returned by \a GetGlyphsAndBreaks. However, the caller
  *      should skip the first unit (the break opportunity before the first glyph)
  *      before passing the pointer to this function.
  * \param break_classes The pointer to the break classes array of the glyphs.
- *      It should be returned by \a GetGlyphsByRules.
+ *      It should be returned by \a GetGlyphsAndBreaks.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param x The x-position of first glyph.
  * \param y The y-position of first glyph.
@@ -10921,7 +10924,7 @@ typedef struct _GLYPHPOS {
  *      the positions contained in \a glyph_pos are always with respect to
  *      the top-left corner of the resulting output line rectangle.
  *
- * \sa GetGlyphsByRules, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ * \sa GetGlyphsAndBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         const Glyph32* glyphs, int nr_glyphs,
