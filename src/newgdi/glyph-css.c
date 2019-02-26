@@ -3081,7 +3081,6 @@ error:
 // internal use
 typedef struct _MYGLYPHINFO {
     Uchar32 uc;
-    Uint8 bt;
     Uint8 gc;
     Uint8 ignored:1;
     Uint8 hanged:2;
@@ -3094,7 +3093,6 @@ typedef struct _MYGLYPHARGS {
     PLOGFONT lfur;
     PLOGFONT lfsw;
     const Glyph32* gvs;
-    const Uint8* bcs;
     const Uint16* bos;
     Uint32 rf;
     int nr_gvs;
@@ -3272,7 +3270,7 @@ static int find_breaking_pos_normal(MYGLYPHARGS* args, int n)
     int i;
 
     for (i = n - 1; i >= 0; i--) {
-        if (args->bos[i] == BOV_LB_ALLOWED)
+        if ((args->bos[i] & BOV_LB_MASK) == BOV_LB_ALLOWED)
             return i;
     }
 
@@ -3284,8 +3282,7 @@ static int find_breaking_pos_any(MYGLYPHARGS* args, int n)
     int i;
 
     for (i = n - 1; i >= 0; i--) {
-        if (args->bos[i] == BOV_LB_ALLOWED
-                || args->bos[i] == BOV_LB_NOTALLOWED)
+        if (args->bos[i] & BOV_GB_CHAR_BREAK)
             return i;
     }
 
@@ -3297,8 +3294,7 @@ static int find_breaking_pos_word(MYGLYPHARGS* args, int n)
     int i;
 
     for (i = n - 1; i >= 0; i--) {
-        if (args->bos[i] == BOV_LB_ALLOWED
-                && args->bcs[i] == UCHAR_BREAK_SPACE)
+        if (args->bos[i] & BOV_WB_WORD_BOUNDARY)
             return i;
     }
 
@@ -3309,9 +3305,7 @@ static inline BOOL is_invisible_glyph(const MYGLYPHINFO* gi)
 {
     return (
         gi->gc == UCHAR_CATEGORY_CONTROL ||
-        gi->gc == UCHAR_CATEGORY_FORMAT ||
-        gi->bt == UCHAR_BREAK_ZERO_WIDTH_SPACE ||
-        gi->bt == UCHAR_BREAK_ZERO_WIDTH_JOINER
+        gi->gc == UCHAR_CATEGORY_FORMAT
     );
 }
 
@@ -3846,7 +3840,6 @@ static void init_glyph_info(MYGLYPHARGS* args, int i,
     else
         gi->uc = GLYPH2UCHAR(args->gvs[i]);
     gi->gc = UCharGetCategory(gi->uc);
-    gi->bt = args->bcs[i];
     gi->ignored = 0;
     gi->hanged = GLYPH_HANGED_NONE;
     gi->ort = GLYPH_ORIENTATION_UPRIGHT;
@@ -3938,7 +3931,7 @@ static int get_last_normal_glyph(MYGLYPHINFO* gis, int n)
 
 int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         const Glyph32* glyphs, int nr_glyphs,
-        const Uint16* break_oppos, const Uint8* break_classes,
+        const Uint16* break_oppos,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
@@ -4004,7 +3997,6 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     args.lfur = logfont_upright;
     args.lfsw = *logfont_sideways;
     args.gvs = glyphs;
-    args.bcs = break_classes;
     args.bos = break_oppos;
     args.rf = render_flags;
     args.nr_gvs = nr_glyphs;
@@ -4098,14 +4090,14 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         }
 
         total_extent += ges[n].line_adv;
-        if (break_oppos[n] == BOV_LB_MANDATORY) {
+        if ((break_oppos[n] & BOV_LB_MASK) == BOV_LB_MANDATORY) {
             // hard line breaking
             n++;
             break;
         }
 
         if (!test_overflow && max_extent > 0
-                && (break_oppos[n] == BOV_LB_ALLOWED)) {
+                && ((break_oppos[n] & BOV_LB_MASK) == BOV_LB_ALLOWED)) {
             n++;
             break;
         }

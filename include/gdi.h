@@ -10857,8 +10857,7 @@ typedef struct _GLYPHPOS {
 
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
- *          const Glyph32* glyphs, int nr_glyphs,
- *          const Uint16* break_oppos, const Uint8* break_classes,
+ *          const Glyph32* glyphs, int nr_glyphs, const Uint16* break_oppos,
  *          Uint32 render_flags, int x, int y,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
@@ -10877,8 +10876,6 @@ typedef struct _GLYPHPOS {
  *      It should be returned by \a GetGlyphsAndBreaks. However, the caller
  *      should skip the first unit (the break opportunity before the first glyph)
  *      before passing the pointer to this function.
- * \param break_classes The pointer to the break classes array of the glyphs.
- *      It should be returned by \a GetGlyphsAndBreaks.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param x The x-position of first glyph.
  * \param y The y-position of first glyph.
@@ -10927,8 +10924,7 @@ typedef struct _GLYPHPOS {
  * \sa GetGlyphsAndBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
-        const Glyph32* glyphs, int nr_glyphs,
-        const Uint16* break_oppos, const Uint8* break_classes,
+        const Glyph32* glyphs, int nr_glyphs, const Uint16* break_oppos,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
