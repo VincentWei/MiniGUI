@@ -65,6 +65,7 @@
 #include "drawtext.h"
 #include "fixedmath.h"
 #include "glyph.h"
+#include "unicode-ops.h"
 
 #ifdef _MGCHARSET_UNICODE
 
@@ -85,151 +86,204 @@ enum _LBOrder {
     LBLAST = 0xFF,
 };
 
+/* See Grapheme_Cluster_Break Property Values table of UAX#29 */
+typedef enum {
+    GB_Other,
+    GB_ControlCRLF,
+    GB_Extend,
+    GB_ZWJ,
+    GB_Prepend,
+    GB_SpacingMark,
+    GB_InHangulSyllable, /* Handles all of L, V, T, LV, LVT rules */
+    /* Use state machine to handle emoji sequence */
+    /* Rule GB12 and GB13 */
+    GB_RI_Odd, /* Meets odd number of RI */
+    GB_RI_Even, /* Meets even number of RI */
+} _GBType;
+
+/* See Word_Break Property Values table of UAX#29 */
+typedef enum {
+    WB_Other,
+    WB_NewlineCRLF,
+    WB_ExtendFormat,
+    WB_Katakana,
+    WB_Hebrew_Letter,
+    WB_ALetter,
+    WB_MidNumLet,
+    WB_MidLetter,
+    WB_MidNum,
+    WB_Numeric,
+    WB_ExtendNumLet,
+    WB_RI_Odd,
+    WB_RI_Even,
+    WB_WSegSpace,
+} _WBType;
+
+/* See Sentence_Break Property Values table of UAX#29 */
+typedef enum {
+    SB_Other,
+    SB_ExtendFormat,
+    SB_ParaSep,
+    SB_Sp,
+    SB_Lower,
+    SB_Upper,
+    SB_OLetter,
+    SB_Numeric,
+    SB_ATerm,
+    SB_SContinue,
+    SB_STerm,
+    SB_Close,
+    /* Rules SB8 and SB8a */
+    SB_ATerm_Close_Sp,
+    SB_STerm_Close_Sp,
+} _SBType;
+
+/* An enum that works as the states of the Hangul syllables system.
+ */
+typedef enum {
+    JAMO_L,     /* UCHAR_BREAK_HANGUL_L_JAMO */
+    JAMO_V,     /* UCHAR_BREAK_HANGUL_V_JAMO */
+    JAMO_T,     /* UCHAR_BREAK_HANGUL_T_JAMO */
+    JAMO_LV,    /* UCHAR_BREAK_HANGUL_LV_SYLLABLE */
+    JAMO_LVT,   /* UCHAR_BREAK_HANGUL_LVT_SYLLABLE */
+    NO_JAMO     /* Other */
+} _JamoType;
+
+/* Previously "123foo" was two words. But in UAX#29,
+ * we know don't break words between consecutive letters and numbers.
+ */
+typedef enum {
+  WordNone,
+  WordLetters,
+  WordNumbers
+} _WordType;
+
 struct glyph_break_ctxt {
     DEVFONT* mbc_devfont;
     DEVFONT* sbc_devfont;
-    Glyph32* gs;
+    Glyph32* gvs;
     Uint8*   bts;
     Uint16*  bos;
-    Uint8*   od;
+    Uint8*   ods;
 
     int      len_buff;
     int      n;
-    int      base_bt;
 
     LanguageCode cl;
     UCharScriptType ws;
 
-    Uint8   curr_od;
     Uint8   wsr;
     Uint8   ctr;
     Uint8   wbr;
     Uint8   lbp;
+
+    Uint8   base_bt;
+    Uint8   curr_od;
+    Uint8   curr_gc;
+    Uint8   curr_bt;
+
+    Uchar32 prev_uc;
+    Uchar32 base_uc;
+    Uchar32 last_word_letter;
+
+    int     last_sentence_start;
+    int     last_non_space;
+    int     prev_wb_index;
+    int     prev_sb_index;
+
+    _GBType prev_gbt;
+    _WBType prev_wbt, prev_prev_wbt;
+    _SBType prev_sbt, prev_prev_sbt;
+    _JamoType prev_jamo;
+    _WordType curr_wt;
+
+    Uint8   makes_hangul_syllable:1;
+
+    /* UAX#29 boundaries */
+    Uint8   is_grapheme_boundary:1;
+    Uint8   is_word_boundary:1;
+    Uint8   is_sentence_boundary:1;
+
+    /* Emoji extended pictographics */
+    Uint8   met_extended_pictographic:1;
+    Uint8   is_extended_pictographic:1;
 };
 
-static int gbctxt_init(struct glyph_break_ctxt* gbctxt, int size)
+static int gbctxt_init_spaces(struct glyph_break_ctxt* gbctxt, int size)
 {
     // pre-allocate buffers
     gbctxt->len_buff = size;
     if (gbctxt->len_buff < MIN_LEN_GLYPHS)
         gbctxt->len_buff = MIN_LEN_GLYPHS;
 
-    gbctxt->gs = (Glyph32*)malloc(sizeof(Glyph32) * gbctxt->len_buff);
+    gbctxt->gvs = (Glyph32*)malloc(sizeof(Glyph32) * gbctxt->len_buff);
     gbctxt->bts = (Uint8*)malloc(sizeof(Uint8) * gbctxt->len_buff);
     gbctxt->bos = (Uint16*)malloc(sizeof(Uint16) * gbctxt->len_buff);
-    gbctxt->od = (Uint8*)malloc(sizeof(Uint8) * gbctxt->len_buff);
-    if (gbctxt->gs == NULL || gbctxt->bts == NULL
-            || gbctxt->bos == NULL || gbctxt->od == NULL)
+    gbctxt->ods = (Uint8*)malloc(sizeof(Uint8) * gbctxt->len_buff);
+    if (gbctxt->gvs == NULL || gbctxt->bts == NULL
+            || gbctxt->bos == NULL || gbctxt->ods == NULL)
         return 0;
 
     return gbctxt->len_buff;
 }
 
-static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
-        Glyph32 gv, UCharBreakType bt, Uint16 bo)
+static BOOL gbctxt_change_lbo_last(struct glyph_break_ctxt* gbctxt,
+        Uint16 lbo)
 {
-    /* realloc buffers if it needs */
-    if ((gbctxt->n + 2) >= gbctxt->len_buff) {
-        gbctxt->len_buff += INC_LEN_GLYPHS;
-        gbctxt->gs = (Glyph32*)realloc(gbctxt->gs,
-            sizeof(Glyph32) * gbctxt->len_buff);
-        gbctxt->bts = (Uint8*)realloc(gbctxt->bts,
-            sizeof(Uint8) * gbctxt->len_buff);
-        gbctxt->bos = (Uint16*)realloc(gbctxt->bos,
-            sizeof(Uint16) * gbctxt->len_buff);
-        gbctxt->od = (Uint8*)realloc(gbctxt->od,
-            sizeof(Uint8) * gbctxt->len_buff);
+    int i = gbctxt->n - 1;
 
-        if (gbctxt->gs == NULL || gbctxt->bts == NULL
-                || gbctxt->bos == NULL || gbctxt->od == NULL)
-            return 0;
-    }
-
-    if (gbctxt->n == 0) {
-        // set the before break opportunity
-        gbctxt->bos[0] = bo;
-        gbctxt->od[0] = LBLAST;
-    }
-    else {
-        // set the after break opportunity
-        gbctxt->gs[gbctxt->n - 1] = gv;
-        gbctxt->bts[gbctxt->n - 1] = bt;
-        gbctxt->bos[gbctxt->n] = bo;
-        if (bo == BOV_UNKNOWN)
-            gbctxt->od[gbctxt->n] = LBLAST;
-        else
-            gbctxt->od[gbctxt->n] = gbctxt->curr_od;
-    }
-
-    gbctxt->n++;
-    return gbctxt->n;
-}
-
-static BOOL gbctxt_change_bo_last(struct glyph_break_ctxt* gbctxt,
-        Uint8 bo)
-{
-    if (gbctxt->n < 1)
+    if (i < 0)
         return FALSE;
 
-    if (gbctxt->bos[gbctxt->n - 1] == BOV_UNKNOWN) {
-         gbctxt->bos[gbctxt->n - 1] = bo;
-         gbctxt->od[gbctxt->n - 1] = gbctxt->curr_od;
+    if ((gbctxt->bos[i] & BOV_LB_MASK) == BOV_UNKNOWN) {
+         gbctxt->bos[i] &= ~BOV_LB_MASK;
+         gbctxt->bos[i] |= lbo;
+         gbctxt->ods[i] = gbctxt->curr_od;
     }
-    else if (gbctxt->bos[gbctxt->n - 1] & BOV_LB_MANDATORY_FLAG) {
+    else if (gbctxt->bos[i] & BOV_LB_MANDATORY_FLAG) {
         _DBG_PRINTF("%s: ignore the change: old one is mandatory\n",
             __FUNCTION__);
     }
-    else if (gbctxt->curr_od <= gbctxt->od[gbctxt->n - 1]) {
+    else if (gbctxt->curr_od <= gbctxt->ods[i]) {
         _DBG_PRINTF("%s: changed: curr_od(%d), org_od(%d)\n",
-            __FUNCTION__, gbctxt->curr_od, gbctxt->od[gbctxt->n - 1]);
-         gbctxt->bos[gbctxt->n - 1] = bo;
-         gbctxt->od[gbctxt->n - 1] = gbctxt->curr_od;
+            __FUNCTION__, gbctxt->curr_od, gbctxt->ods[i]);
+         gbctxt->bos[i] &= ~BOV_LB_MASK;
+         gbctxt->bos[i] |= lbo;
+         gbctxt->ods[i] = gbctxt->curr_od;
     }
     else {
         _DBG_PRINTF("%s: ignore the change: curr_od(%d), org_od(%d)\n",
-            __FUNCTION__, gbctxt->curr_od, gbctxt->od[gbctxt->n - 1]);
+            __FUNCTION__, gbctxt->curr_od, gbctxt->ods[i]);
     }
 
     return TRUE;
 }
 
-static BOOL gbctxt_change_bo_before_last(struct glyph_break_ctxt* gbctxt,
-        Uint8 bo)
+static BOOL gbctxt_change_lbo_before_last(struct glyph_break_ctxt* gbctxt,
+        Uint16 lbo)
 {
+    int i = gbctxt->n - 2;
+
     // do not allow to change the first break value
-    if (gbctxt->n < 3) {
+    if (i < 1) {
         return FALSE;
     }
 
-#if 0
-    // do not apply this bo to the char before last one
-    if (gbctxt->base_bt != UCHAR_BREAK_UNSET) {
-        return FALSE;
+    if ((gbctxt->bos[i] & BOV_LB_MASK) == BOV_UNKNOWN) {
+         gbctxt->bos[i] &= ~BOV_LB_MASK;
+         gbctxt->bos[i] |= lbo;
+         gbctxt->ods[i] = gbctxt->curr_od;
     }
-#endif
-
-    if (gbctxt->bos[gbctxt->n - 2] == BOV_UNKNOWN) {
-         gbctxt->bos[gbctxt->n - 2] = bo;
-         gbctxt->od[gbctxt->n - 2] = gbctxt->curr_od;
-    }
-    else if (gbctxt->bos[gbctxt->n - 2] & BOV_LB_MANDATORY_FLAG) {
+    else if (gbctxt->bos[i] & BOV_LB_MANDATORY_FLAG) {
         _DBG_PRINTF("%s: ignore the change: old one is mandatory\n",
             __FUNCTION__);
     }
-#if 0
-    // Because rules are applied in order, allowing breaks following SP
-    // in rule LB18 implies that any prohibited break in rules
-    // LB19–LB30 is equivalent to an indirect break.
-    else if (gbctxt->curr_od > LB18
-            && GLYPH2UCHAR(gbctxt->gs[gbctxt->n - 3]) == UCHAR_SPACE) {
-        _DBG_PRINTF("%s: ignore the change\n", __FUNCTION__);
-    }
-#endif
-    else if (gbctxt->curr_od <= gbctxt->od[gbctxt->n - 2]) {
+    else if (gbctxt->curr_od <= gbctxt->ods[i]) {
         _DBG_PRINTF("%s: changed: curr_od(%d), org_od(%d)\n",
-            __FUNCTION__, gbctxt->curr_od, gbctxt->od[gbctxt->n - 2]);
-         gbctxt->bos[gbctxt->n - 2] = bo;
-         gbctxt->od[gbctxt->n - 2] = gbctxt->curr_od;
+            __FUNCTION__, gbctxt->curr_od, gbctxt->ods[gbctxt->n - 2]);
+         gbctxt->bos[i] &= ~BOV_LB_MASK;
+         gbctxt->bos[i] |= lbo;
+         gbctxt->ods[i] = gbctxt->curr_od;
     }
     else {
         _DBG_PRINTF("%s: ignore the change\n", __FUNCTION__);
@@ -239,25 +293,25 @@ static BOOL gbctxt_change_bo_before_last(struct glyph_break_ctxt* gbctxt,
 }
 
 #if 0
-static BOOL gbctxt_change_bo_before_last_sp(struct glyph_break_ctxt* gbctxt,
-        Uint8 bo)
+static BOOL gbctxt_change_lbo_before_last_sp(struct glyph_break_ctxt* gbctxt,
+        Uint16 lbo)
 {
     // do not allow to change the first break value
     if (gbctxt->n < 3) {
         return FALSE;
     }
 
-    if (GLYPH2UCHAR(gbctxt->gs[gbctxt->n - 3]) == UCHAR_SPACE) {
+    if (GLYPH2UCHAR(gbctxt->gvs[gbctxt->n - 3]) == UCHAR_SPACE) {
         _DBG_PRINTF("%s: force changed: curr_od(%d), org_od(%d)\n",
-            __FUNCTION__, gbctxt->curr_od, gbctxt->od[gbctxt->n - 2]);
-         gbctxt->bos[gbctxt->n - 2] = bo;
-         gbctxt->od[gbctxt->n - 2] = gbctxt->curr_od;
+            __FUNCTION__, gbctxt->curr_od, gbctxt->ods[gbctxt->n - 2]);
+         gbctxt->bos[gbctxt->n - 2] = lbo;
+         gbctxt->ods[gbctxt->n - 2] = gbctxt->curr_od;
     }
-    else if (gbctxt->curr_od < gbctxt->od[gbctxt->n - 2]) {
+    else if (gbctxt->curr_od < gbctxt->ods[gbctxt->n - 2]) {
         _DBG_PRINTF("%s: changed: curr_od(%d), org_od(%d)\n",
-            __FUNCTION__, gbctxt->curr_od, gbctxt->od[gbctxt->n - 2]);
-         gbctxt->bos[gbctxt->n - 2] = bo;
-         gbctxt->od[gbctxt->n - 2] = gbctxt->curr_od;
+            __FUNCTION__, gbctxt->curr_od, gbctxt->ods[gbctxt->n - 2]);
+         gbctxt->bos[gbctxt->n - 2] = lbo;
+         gbctxt->ods[gbctxt->n - 2] = gbctxt->curr_od;
     }
     else {
         _DBG_PRINTF("%s: ignore the change\n", __FUNCTION__);
@@ -308,11 +362,10 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
     return mclen;
 }
 
-static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc,
-        UCharGeneralCategory* pgc)
+static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
 {
-    UCharGeneralCategory gc = UCharGetCategory(uc);
-    UCharBreakType bt = UCharGetBreak(uc);
+    Uint8 gc = UCharGetCategory(uc);
+    Uint8 bt = UCharGetBreak(uc);
 
     /*
      * TODO: according to the content language and the writing system
@@ -328,8 +381,8 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc,
         break;
 
     case UCHAR_BREAK_COMPLEX_CONTEXT:
-        if (gc == UCHAR_TYPE_NON_SPACING_MARK
-                || gc == UCHAR_TYPE_SPACING_MARK) {
+        if (gc == UCHAR_CATEGORY_NON_SPACING_MARK
+                || gc == UCHAR_CATEGORY_SPACING_MARK) {
             bt = UCHAR_BREAK_COMBINING_MARK;
         }
         else {
@@ -368,10 +421,984 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc,
         bt = UCHAR_BREAK_IDEOGRAPHIC;
     }
 
-    if (pgc)
-        *pgc = gc;
-
+    gbctxt->curr_gc = gc;
+    gbctxt->curr_bt = bt;
     return bt;
+}
+
+/* Find the Grapheme Break Type of uc */
+static _GBType resolve_gbt(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc)
+{
+    _GBType gbt;
+
+    gbt = GB_Other;
+    switch (gc) {
+    case UCHAR_CATEGORY_FORMAT:
+        if (uc == 0x200C) {
+            gbt = GB_Extend;
+            break;
+        }
+        if (uc == 0x200D) {
+            gbt = GB_ZWJ;
+            break;
+        }
+        if ((uc >= 0x600 && uc <= 0x605) ||
+                uc == 0x6DD || uc == 0x70F ||
+                uc == 0x8E2 || uc == 0xD4E || uc == 0x110BD ||
+                (uc >= 0x111C2 && uc <= 0x111C3)) {
+            gbt = GB_Prepend;
+            break;
+        }
+
+    case UCHAR_CATEGORY_CONTROL:
+    case UCHAR_CATEGORY_LINE_SEPARATOR:
+    case UCHAR_CATEGORY_PARAGRAPH_SEPARATOR:
+    case UCHAR_CATEGORY_SURROGATE:
+        /* fall through */
+        gbt = GB_ControlCRLF;
+        break;
+
+    case UCHAR_CATEGORY_UNASSIGNED:
+        /* Unassigned default ignorables */
+        if ((uc >= 0xFFF0 && uc <= 0xFFF8) ||
+                (uc >= 0xE0000 && uc <= 0xE0FFF)) {
+            gbt = GB_ControlCRLF;
+            break;
+        }
+
+    case UCHAR_CATEGORY_OTHER_LETTER:
+        if (gbctxt->makes_hangul_syllable)
+            gbt = GB_InHangulSyllable;
+        break;
+
+    case UCHAR_CATEGORY_MODIFIER_LETTER:
+        if (uc >= 0xFF9E && uc <= 0xFF9F)
+            gbt = GB_Extend; /* Other_Grapheme_Extend */
+        break;
+
+    case UCHAR_CATEGORY_SPACING_MARK:
+        gbt = GB_SpacingMark; /* SpacingMark */
+        if (uc >= 0x0900 &&
+            (uc == 0x09BE || uc == 0x09D7 ||
+                uc == 0x0B3E || uc == 0x0B57 ||
+                uc == 0x0BBE || uc == 0x0BD7 ||
+                uc == 0x0CC2 || uc == 0x0CD5 ||
+                uc == 0x0CD6 || uc == 0x0D3E ||
+                uc == 0x0D57 || uc == 0x0DCF ||
+                uc == 0x0DDF || uc == 0x1D165 ||
+                (uc >= 0x1D16E && uc <= 0x1D172))) {
+            gbt = GB_Extend; /* Other_Grapheme_Extend */
+        }
+        break;
+
+    case UCHAR_CATEGORY_ENCLOSING_MARK:
+    case UCHAR_CATEGORY_NON_SPACING_MARK:
+        gbt = GB_Extend; /* Grapheme_Extend */
+        break;
+
+    case UCHAR_CATEGORY_OTHER_SYMBOL:
+        if (uc >= 0x1F1E6 && uc <= 0x1F1FF) {
+            if (gbctxt->prev_gbt == GB_RI_Odd)
+                gbt = GB_RI_Even;
+            else if (gbctxt->prev_gbt == GB_RI_Even)
+                gbt = GB_RI_Odd;
+            else
+                gbt = GB_RI_Odd;
+            break;
+        }
+        break;
+
+    case UCHAR_CATEGORY_MODIFIER_SYMBOL:
+        if (uc >= 0x1F3FB && uc <= 0x1F3FF)
+            gbt = GB_Extend;
+        break;
+    }
+
+    return gbt;
+}
+
+/* Find the Word Break Type of uc */
+static _WBType resolve_wbt(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc, Uint8 bt)
+{
+    UCharScriptType script;
+    _WBType wbt;
+
+    script = UCharGetScriptType (uc);
+    wbt = WB_Other;
+
+    if (script == UCHAR_SCRIPT_KATAKANA)
+        wbt = WB_Katakana;
+
+    if (script == UCHAR_SCRIPT_HEBREW && gc == UCHAR_CATEGORY_OTHER_LETTER)
+        wbt = WB_Hebrew_Letter;
+
+    if (wbt == WB_Other) {
+        switch (uc >> 8) {
+        case 0x30:
+            if ((uc >= 0x3031 && uc == 0x3035) ||
+                    uc == 0x309b || uc == 0x309c ||
+                    uc == 0x30a0 || uc == 0x30fc)
+                wbt = WB_Katakana; /* Katakana exceptions */
+            break;
+        case 0xFF:
+            if (uc == 0xFF70)
+                wbt = WB_Katakana; /* Katakana exceptions */
+            else if (uc >= 0xFF9E && uc <= 0xFF9F)
+                wbt = WB_ExtendFormat; /* Other_Grapheme_Extend */
+            break;
+        case 0x05:
+            if (uc == 0x05F3)
+                wbt = WB_ALetter; /* ALetter exceptions */
+            break;
+        }
+    }
+
+    if (wbt == WB_Other) {
+        switch (bt) {
+        case UCHAR_BREAK_NUMERIC:
+            if (uc != 0x066C)
+                wbt = WB_Numeric; /* Numeric */
+            break;
+        case UCHAR_BREAK_INFIX_SEPARATOR:
+            if (uc != 0x003A && uc != 0xFE13 && uc != 0x002E)
+                wbt = WB_MidNum; /* MidNum */
+            break;
+        }
+    }
+
+    if (wbt == WB_Other) {
+        switch (gc) {
+        case UCHAR_CATEGORY_CONTROL:
+            if (uc != 0x000D && uc != 0x000A && uc != 0x000B &&
+                    uc != 0x000C && uc != 0x0085)
+                break;
+            /* fall through */
+        case UCHAR_CATEGORY_LINE_SEPARATOR:
+        case UCHAR_CATEGORY_PARAGRAPH_SEPARATOR:
+            wbt = WB_NewlineCRLF; /* CR, LF, Newline */
+            break;
+
+        case UCHAR_CATEGORY_FORMAT:
+        case UCHAR_CATEGORY_SPACING_MARK:
+        case UCHAR_CATEGORY_ENCLOSING_MARK:
+        case UCHAR_CATEGORY_NON_SPACING_MARK:
+            wbt = WB_ExtendFormat; /* Extend, Format */
+            break;
+
+        case UCHAR_CATEGORY_CONNECT_PUNCTUATION:
+            wbt = WB_ExtendNumLet; /* ExtendNumLet */
+            break;
+
+        case UCHAR_CATEGORY_INITIAL_PUNCTUATION:
+        case UCHAR_CATEGORY_FINAL_PUNCTUATION:
+            if (uc == 0x2018 || uc == 0x2019)
+                wbt = WB_MidNumLet; /* MidNumLet */
+            break;
+        case UCHAR_CATEGORY_OTHER_PUNCTUATION:
+            if (uc == 0x0027 || uc == 0x002e || uc == 0x2024 ||
+                    uc == 0xfe52 || uc == 0xff07 || uc == 0xff0e)
+                wbt = WB_MidNumLet; /* MidNumLet */
+            else if (uc == 0x00b7 || uc == 0x05f4 || uc == 0x2027 ||
+                    uc == 0x003a || uc == 0x0387 ||
+                    uc == 0xfe13 || uc == 0xfe55 || uc == 0xff1a)
+                wbt = WB_MidLetter; /* WB_MidLetter */
+            else if (uc == 0x066c ||
+                    uc == 0xfe50 || uc == 0xfe54 || uc == 0xff0c ||
+                    uc == 0xff1b)
+                wbt = WB_MidNum; /* MidNum */
+            break;
+
+        case UCHAR_CATEGORY_OTHER_SYMBOL:
+            if (uc >= 0x24B6 && uc <= 0x24E9) /* Other_Alphabetic */
+                goto Alphabetic;
+
+            if (uc >=0x1F1E6 && uc <=0x1F1FF) {
+                if (gbctxt->prev_wbt == WB_RI_Odd)
+                    wbt = WB_RI_Even;
+                else if (gbctxt->prev_wbt == WB_RI_Even)
+                    wbt = WB_RI_Odd;
+                else
+                    wbt = WB_RI_Odd;
+            }
+
+            break;
+
+        case UCHAR_CATEGORY_OTHER_LETTER:
+        case UCHAR_CATEGORY_LETTER_NUMBER:
+            if (uc == 0x3006 || uc == 0x3007 ||
+                    (uc >= 0x3021 && uc <= 0x3029) ||
+                    (uc >= 0x3038 && uc <= 0x303A) ||
+                    (uc >= 0x3400 && uc <= 0x4DB5) ||
+                    (uc >= 0x4E00 && uc <= 0x9FC3) ||
+                    (uc >= 0xF900 && uc <= 0xFA2D) ||
+                    (uc >= 0xFA30 && uc <= 0xFA6A) ||
+                    (uc >= 0xFA70 && uc <= 0xFAD9) ||
+                    (uc >= 0x20000 && uc <= 0x2A6D6) ||
+                    (uc >= 0x2F800 && uc <= 0x2FA1D))
+                break; /* ALetter exceptions: Ideographic */
+            goto Alphabetic;
+
+        case UCHAR_CATEGORY_LOWERCASE_LETTER:
+        case UCHAR_CATEGORY_MODIFIER_LETTER:
+        case UCHAR_CATEGORY_TITLECASE_LETTER:
+        case UCHAR_CATEGORY_UPPERCASE_LETTER:
+Alphabetic:
+            if (bt != UCHAR_BREAK_COMPLEX_CONTEXT
+                    && script != UCHAR_SCRIPT_HIRAGANA)
+                wbt = WB_ALetter; /* ALetter */
+            break;
+        }
+    }
+
+    if (wbt == WB_Other) {
+        if (gc == UCHAR_CATEGORY_SPACE_SEPARATOR &&
+                bt != UCHAR_BREAK_NON_BREAKING_GLUE)
+            wbt = WB_WSegSpace;
+    }
+
+    return wbt;
+}
+
+/* Find the Sentence Break Type of wc */
+static _SBType resolve_sbt(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc, Uint8 bt)
+{
+    _SBType sbt;
+
+    sbt = SB_Other;
+    if (bt == UCHAR_BREAK_NUMERIC)
+        sbt = SB_Numeric; /* Numeric */
+
+    if (sbt == SB_Other) {
+        switch (gc) {
+        case UCHAR_CATEGORY_CONTROL:
+            if (uc == '\r' || uc == '\n')
+                sbt = SB_ParaSep;
+            else if (uc == 0x0009 || uc == 0x000B || uc == 0x000C)
+                sbt = SB_Sp;
+            else if (uc == 0x0085)
+                sbt = SB_ParaSep;
+            break;
+
+        case UCHAR_CATEGORY_SPACE_SEPARATOR:
+            if (uc == 0x0020 || uc == 0x00A0 || uc == 0x1680 ||
+                    (uc >= 0x2000 && uc <= 0x200A) ||
+                    uc == 0x202F || uc == 0x205F || uc == 0x3000)
+                sbt = SB_Sp;
+            break;
+
+        case UCHAR_CATEGORY_LINE_SEPARATOR:
+        case UCHAR_CATEGORY_PARAGRAPH_SEPARATOR:
+            sbt = SB_ParaSep;
+            break;
+
+        case UCHAR_CATEGORY_FORMAT:
+        case UCHAR_CATEGORY_SPACING_MARK:
+        case UCHAR_CATEGORY_ENCLOSING_MARK:
+        case UCHAR_CATEGORY_NON_SPACING_MARK:
+            sbt = SB_ExtendFormat; /* Extend, Format */
+            break;
+
+        case UCHAR_CATEGORY_MODIFIER_LETTER:
+            if (uc >= 0xFF9E && uc <= 0xFF9F)
+                sbt = SB_ExtendFormat; /* Other_Grapheme_Extend */
+            break;
+
+        case UCHAR_CATEGORY_TITLECASE_LETTER:
+            sbt = SB_Upper;
+            break;
+
+        case UCHAR_CATEGORY_DASH_PUNCTUATION:
+            if (uc == 0x002D ||
+                    (uc >= 0x2013 && uc <= 0x2014) ||
+                    (uc >= 0xFE31 && uc <= 0xFE32) ||
+                    uc == 0xFE58 || uc == 0xFE63 || uc == 0xFF0D)
+                sbt = SB_SContinue;
+            break;
+
+        case UCHAR_CATEGORY_OTHER_PUNCTUATION:
+            if (uc == 0x05F3)
+                sbt = SB_OLetter;
+            else if (uc == 0x002E || uc == 0x2024 ||
+                    uc == 0xFE52 || uc == 0xFF0E)
+                sbt = SB_ATerm;
+
+            if (uc == 0x002C || uc == 0x003A || uc == 0x055D ||
+                    (uc >= 0x060C && uc <= 0x060D) ||
+                    uc == 0x07F8 || uc == 0x1802 ||
+                    uc == 0x1808 || uc == 0x3001 ||
+                    (uc >= 0xFE10 && uc <= 0xFE11) ||
+                    uc == 0xFE13 ||
+                    (uc >= 0xFE50 && uc <= 0xFE51) ||
+                    uc == 0xFE55 || uc == 0xFF0C ||
+                    uc == 0xFF1A || uc == 0xFF64)
+                sbt = SB_SContinue;
+
+            if (uc == 0x0021 || uc == 0x003F ||
+                    uc == 0x0589 || uc == 0x061F || uc == 0x06D4 ||
+                    (uc >= 0x0700 && uc <= 0x0702) ||
+                    uc == 0x07F9 ||
+                    (uc >= 0x0964 && uc <= 0x0965) ||
+                    (uc >= 0x104A && uc <= 0x104B) ||
+                    uc == 0x1362 ||
+                    (uc >= 0x1367 && uc <= 0x1368) ||
+                    uc == 0x166E ||
+                    (uc >= 0x1735 && uc <= 0x1736) ||
+                    uc == 0x1803 || uc == 0x1809 ||
+                    (uc >= 0x1944 && uc <= 0x1945) ||
+                    (uc >= 0x1AA8 && uc <= 0x1AAB) ||
+                    (uc >= 0x1B5A && uc <= 0x1B5B) ||
+                    (uc >= 0x1B5E && uc <= 0x1B5F) ||
+                    (uc >= 0x1C3B && uc <= 0x1C3C) ||
+                    (uc >= 0x1C7E && uc <= 0x1C7F) ||
+                    (uc >= 0x203C && uc <= 0x203D) ||
+                    (uc >= 0x2047 && uc <= 0x2049) ||
+                    uc == 0x2E2E || uc == 0x2E3C ||
+                    uc == 0x3002 || uc == 0xA4FF ||
+                    (uc >= 0xA60E && uc <= 0xA60F) ||
+                    uc == 0xA6F3 || uc == 0xA6F7 ||
+                    (uc >= 0xA876 && uc <= 0xA877) ||
+                    (uc >= 0xA8CE && uc <= 0xA8CF) ||
+                    uc == 0xA92F ||
+                    (uc >= 0xA9C8 && uc <= 0xA9C9) ||
+                    (uc >= 0xAA5D && uc <= 0xAA5F) ||
+                    (uc >= 0xAAF0 && uc <= 0xAAF1) ||
+                    uc == 0xABEB ||
+                    (uc >= 0xFE56 && uc <= 0xFE57) ||
+                    uc == 0xFF01 || uc == 0xFF1F || uc == 0xFF61 ||
+                    (uc >= 0x10A56 && uc <= 0x10A57) ||
+                    (uc >= 0x11047 && uc <= 0x11048) ||
+                    (uc >= 0x110BE && uc <= 0x110C1) ||
+                    (uc >= 0x11141 && uc <= 0x11143) ||
+                    (uc >= 0x111C5 && uc <= 0x111C6) ||
+                    uc == 0x111CD ||
+                    (uc >= 0x111DE && uc <= 0x111DF) ||
+                    (uc >= 0x11238 && uc <= 0x11239) ||
+                    (uc >= 0x1123B && uc <= 0x1123C) ||
+                    uc == 0x112A9 ||
+                    (uc >= 0x1144B && uc <= 0x1144C) ||
+                    (uc >= 0x115C2 && uc <= 0x115C3) ||
+                    (uc >= 0x115C9 && uc <= 0x115D7) ||
+                    (uc >= 0x11641 && uc <= 0x11642) ||
+                    (uc >= 0x1173C && uc <= 0x1173E) ||
+                    (uc >= 0x11C41 && uc <= 0x11C42) ||
+                    (uc >= 0x16A6E && uc <= 0x16A6F) ||
+                    uc == 0x16AF5 ||
+                    (uc >= 0x16B37 && uc <= 0x16B38) ||
+                    uc == 0x16B44 || uc == 0x1BC9F || uc == 0x1DA88)
+                sbt = SB_STerm;
+            break;
+        }
+    }
+
+    if (sbt == SB_Other) {
+        if (IsUCharLowercase(uc))
+            sbt = SB_Lower;
+        else if (IsUCharUppercase(uc))
+            sbt = SB_Upper;
+        else if (IsUCharAlpha(uc))
+            sbt = SB_OLetter;
+
+        if (gc == UCHAR_CATEGORY_OPEN_PUNCTUATION ||
+                gc == UCHAR_CATEGORY_CLOSE_PUNCTUATION ||
+                bt == UCHAR_BREAK_QUOTATION)
+            sbt = SB_Close;
+    }
+
+    return sbt;
+}
+
+/* There are Hangul syllables encoded as characters, that act like a
+ * sequence of Jamos. For each character we define a JamoType
+ * that the character starts with, and one that it ends with.  This
+ * decomposes JAMO_LV and JAMO_LVT to simple other JAMOs.  So for
+ * example, a character with LineBreak type
+ * UCHAR_BREAK_HANGUL_LV_SYLLABLE has start=JAMO_L and end=JAMO_V.
+ */
+struct _CharJamoProps {
+    _JamoType start, end;
+};
+
+/* Map from JamoType to CharJamoProps that hold only simple
+ * JamoTypes (no LV or LVT) or none.
+ */
+static const struct _CharJamoProps HangulJamoProps[] = {
+    {JAMO_L, JAMO_L},   /* JAMO_L */
+    {JAMO_V, JAMO_V},   /* JAMO_V */
+    {JAMO_T, JAMO_T},   /* JAMO_T */
+    {JAMO_L, JAMO_V},   /* JAMO_LV */
+    {JAMO_L, JAMO_T},   /* JAMO_LVT */
+    {NO_JAMO, NO_JAMO}  /* NO_JAMO */
+};
+
+/* A character forms a syllable with the previous character if and only if:
+ * JamoType(this) is not NO_JAMO and:
+ *
+ * HangulJamoProps[JamoType(prev)].end and
+ * HangulJamoProps[JamoType(this)].start are equal,
+ * or the former is one less than the latter.
+ */
+
+#define IS_JAMO(btype)                          \
+    ((btype >= UCHAR_BREAK_HANGUL_L_JAMO) &&    \
+     (btype <= UCHAR_BREAK_HANGUL_LVT_SYLLABLE))
+
+#define JAMO_TYPE(btype)    \
+    (IS_JAMO(btype) ? (btype - UCHAR_BREAK_HANGUL_L_JAMO) : NO_JAMO)
+
+/* Determine wheter this forms a Hangul syllable with prev. */
+static void check_hangul_syllable(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 bt)
+{
+    _JamoType jamo = JAMO_TYPE (bt);
+    if (jamo == NO_JAMO)
+        gbctxt->makes_hangul_syllable = 0;
+    else {
+        _JamoType prev_end   = HangulJamoProps[gbctxt->prev_jamo].end;
+        _JamoType this_start = HangulJamoProps[jamo].start;
+
+        /* See comments before IS_JAMO */
+        gbctxt->makes_hangul_syllable = (prev_end == this_start) ||
+            (prev_end + 1 == this_start);
+    }
+}
+
+static Uint16 check_white_space(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc)
+{
+    Uint16 bo;
+
+    switch (gc) {
+    case UCHAR_CATEGORY_SPACE_SEPARATOR:
+    case UCHAR_CATEGORY_LINE_SEPARATOR:
+    case UCHAR_CATEGORY_PARAGRAPH_SEPARATOR:
+        bo = BOV_SPACE;
+        break;
+
+    default:
+        if (uc == '\t' || uc == '\n' || uc == '\r' || uc == '\f')
+            bo = BOV_SPACE;
+        else
+            bo = BOV_UNKNOWN;
+        break;
+    }
+
+    /* Just few spaces have variable width. So explicitly mark them.
+     */
+    if (0x0020 == uc || 0x00A0 == uc) {
+        bo |= BOV_EXPANDABLE_SPACE;
+    }
+
+    return bo;
+}
+
+static inline
+void check_emoji_extended_pictographic(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc)
+{
+    gbctxt->is_extended_pictographic =
+        _unicode_is_emoji_extended_pictographic(uc);
+}
+
+/* Types of Japanese characters */
+#define JAPANESE(uc) ((uc) >= 0x2F00 && (uc) <= 0x30FF)
+#define KANJI(uc)    ((uc) >= 0x2F00 && (uc) <= 0x2FDF)
+#define HIRAGANA(uc) ((uc) >= 0x3040 && (uc) <= 0x309F)
+#define KATAKANA(uc) ((uc) >= 0x30A0 && (uc) <= 0x30FF)
+
+#define LATIN(uc) (((uc) >= 0x0020 && (uc) <= 0x02AF) || ((uc) >= 0x1E00 && (uc) <= 0x1EFF))
+#define CYRILLIC(uc) (((uc) >= 0x0400 && (uc) <= 0x052F))
+#define GREEK(uc) (((uc) >= 0x0370 && (uc) <= 0x3FF) || ((uc) >= 0x1F00 && (uc) <= 0x1FFF))
+#define KANA(uc) ((uc) >= 0x3040 && (uc) <= 0x30FF)
+#define HANGUL(uc) ((uc) >= 0xAC00 && (uc) <= 0xD7A3)
+#define BACKSPACE_DELETES_CHARACTER(uc) \
+    (!LATIN (uc) && !CYRILLIC (uc) && !GREEK (uc) && !KANA(uc) && !HANGUL(uc))
+
+static Uint16 check_grapheme_boundaries(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc, Uint8 bt)
+{
+    _GBType gbt;
+    Uint16 bo;
+
+    gbt = resolve_gbt(gbctxt, uc, gc);
+
+    /* Rule GB11 */
+    if (gbctxt->met_extended_pictographic) {
+        if (gbt == GB_Extend)
+            gbctxt->met_extended_pictographic = 1;
+        else if (_unicode_is_emoji_extended_pictographic(gbctxt->prev_uc) &&
+                gbt == GB_ZWJ)
+            gbctxt->met_extended_pictographic = 1;
+        else if (gbctxt->prev_gbt == GB_Extend && gbt == GB_ZWJ)
+            gbctxt->met_extended_pictographic = 1;
+        else if (gbctxt->prev_gbt == GB_ZWJ && gbctxt->is_extended_pictographic)
+            gbctxt->met_extended_pictographic = 1;
+        else
+            gbctxt->met_extended_pictographic = 0;
+    }
+
+    /* Grapheme Cluster Boundary Rules */
+    gbctxt->is_grapheme_boundary = 1; /* Rule GB999 */
+
+    /* We apply Rules GB1 and GB2 at the upper level of the function */
+
+    if (uc == '\n' && gbctxt->prev_uc == '\r')
+        gbctxt->is_grapheme_boundary = 0; /* Rule GB3 */
+    else if (gbctxt->prev_gbt == GB_ControlCRLF || gbt == GB_ControlCRLF)
+        gbctxt->is_grapheme_boundary = 1; /* Rules GB4 and GB5 */
+    else if (gbt == GB_InHangulSyllable)
+        gbctxt->is_grapheme_boundary = 0; /* Rules GB6, GB7, GB8 */
+    else if (gbt == GB_Extend)
+    {
+        gbctxt->is_grapheme_boundary = 0; /* Rule GB9 */
+    }
+    else if (gbt == GB_ZWJ)
+        gbctxt->is_grapheme_boundary = 0; /* Rule GB9 */
+    else if (gbt == GB_SpacingMark)
+        gbctxt->is_grapheme_boundary = 0; /* Rule GB9a */
+    else if (gbctxt->prev_gbt == GB_Prepend)
+        gbctxt->is_grapheme_boundary = 0; /* Rule GB9b */
+    else if (gbctxt->is_extended_pictographic)
+    { /* Rule GB11 */
+        if (gbctxt->prev_gbt == GB_ZWJ && gbctxt->met_extended_pictographic)
+            gbctxt->is_grapheme_boundary = 0;
+    }
+    else if (gbctxt->prev_gbt == GB_RI_Odd && gbt == GB_RI_Even)
+        gbctxt->is_grapheme_boundary = 0; /* Rule GB12 and GB13 */
+
+    if (gbctxt->is_extended_pictographic)
+        gbctxt->met_extended_pictographic = 1;
+
+    bo = 0;
+    if (gbctxt->is_grapheme_boundary) {
+        bo = BOV_GB_CURSOR_POS;
+    }
+
+    /* If this is a grapheme boundary, we have to decide if backspace
+     * deletes a character or the whole grapheme cluster */
+    if (gbctxt->is_grapheme_boundary &&
+            BACKSPACE_DELETES_CHARACTER (gbctxt->base_uc)) {
+        bo |= BOV_GB_BACKSPACE_DEL_CH;
+    }
+
+    gbctxt->prev_gbt = gbt;
+
+    return bo;
+}
+
+static Uint16 check_word_boundaries(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc, Uint8 bt, int i)
+{
+    gbctxt->is_word_boundary = 0;
+
+    /* Rules WB3 and WB4 */
+    if (gbctxt->is_grapheme_boundary ||
+            (uc >= 0x1F1E6 && uc <= 0x1F1FF)) {
+
+        _WBType wbt = resolve_wbt(gbctxt, uc, gc, bt);
+
+        /* We apply Rules WB1 and WB2 at the upper level of the function */
+
+        if (gbctxt->prev_uc == 0x3031 && uc == 0x41)
+            _DBG_PRINTF ("%s: Y %d %d\n",
+                __FUNCTION__, gbctxt->prev_wbt, wbt);
+
+        if (gbctxt->prev_wbt == WB_NewlineCRLF &&
+                gbctxt->prev_wb_index + 1 == i) {
+            /* The extra check for gbctxt->prev_wb_index is to
+             * correctly handle sequences like
+             * Newline ÷ Extend × Extend
+             * since we have not skipped ExtendFormat yet.
+             */
+            gbctxt->is_word_boundary = 1; /* Rule WB3a */
+        }
+        else if (wbt == WB_NewlineCRLF)
+            gbctxt->is_word_boundary = 1; /* Rule WB3b */
+        else if (gbctxt->prev_uc == 0x200D &&
+                gbctxt->is_extended_pictographic)
+            gbctxt->is_word_boundary = 0; /* Rule WB3c */
+        else if (gbctxt->prev_wbt == WB_WSegSpace &&
+                wbt == WB_WSegSpace && gbctxt->prev_wb_index + 1 == i)
+            gbctxt->is_word_boundary = 0; /* Rule WB3d */
+        else if (wbt == WB_ExtendFormat)
+            gbctxt->is_word_boundary = 0; /* Rules WB4? */
+        else if ((gbctxt->prev_wbt == WB_ALetter  ||
+                    gbctxt->prev_wbt == WB_Hebrew_Letter ||
+                    gbctxt->prev_wbt == WB_Numeric) &&
+                (wbt == WB_ALetter  ||
+                 wbt == WB_Hebrew_Letter ||
+                 wbt == WB_Numeric))
+            gbctxt->is_word_boundary = 0; /* Rules WB5, WB8, WB9, WB10 */
+        else if (gbctxt->prev_wbt == WB_Katakana && wbt == WB_Katakana)
+            gbctxt->is_word_boundary = 0; /* Rule WB13 */
+        else if ((gbctxt->prev_wbt == WB_ALetter ||
+                    gbctxt->prev_wbt == WB_Hebrew_Letter ||
+                    gbctxt->prev_wbt == WB_Numeric ||
+                    gbctxt->prev_wbt == WB_Katakana ||
+                    gbctxt->prev_wbt == WB_ExtendNumLet) &&
+                wbt == WB_ExtendNumLet)
+            gbctxt->is_word_boundary = 0; /* Rule WB13a */
+        else if (gbctxt->prev_wbt == WB_ExtendNumLet &&
+                (wbt == WB_ALetter ||
+                 wbt == WB_Hebrew_Letter ||
+                 wbt == WB_Numeric ||
+                 wbt == WB_Katakana))
+            gbctxt->is_word_boundary = 0; /* Rule WB13b */
+        else if (((gbctxt->prev_prev_wbt == WB_ALetter ||
+                        gbctxt->prev_prev_wbt == WB_Hebrew_Letter) &&
+                    (wbt == WB_ALetter ||
+                     wbt == WB_Hebrew_Letter)) &&
+                (gbctxt->prev_wbt == WB_MidLetter ||
+                 gbctxt->prev_wbt == WB_MidNumLet ||
+                 gbctxt->prev_uc == 0x0027))
+        {
+            /* Rule WB6 */
+            gbctxt->bos[gbctxt->prev_wb_index] &= ~BOV_WB_WORD_BOUNDARY;
+            gbctxt->is_word_boundary = 0; /* Rule WB7 */
+        }
+        else if (gbctxt->prev_wbt == WB_Hebrew_Letter && uc == 0x0027)
+            gbctxt->is_word_boundary = 0; /* Rule WB7a */
+        else if (gbctxt->prev_prev_wbt == WB_Hebrew_Letter &&
+                gbctxt->prev_uc == 0x0022 &&
+                wbt == WB_Hebrew_Letter) {
+
+            /* Rule WB7b */
+            gbctxt->bos[gbctxt->prev_wb_index] &= ~BOV_WB_WORD_BOUNDARY;
+            gbctxt->is_word_boundary = 0; /* Rule WB7c */
+        }
+        else if ((gbctxt->prev_prev_wbt == WB_Numeric &&
+                wbt == WB_Numeric) &&
+                (gbctxt->prev_wbt == WB_MidNum ||
+                    gbctxt->prev_wbt == WB_MidNumLet ||
+                    gbctxt->prev_uc == 0x0027)) {
+            gbctxt->is_word_boundary = 0; /* Rule WB11 */
+
+            /* Rule WB12 */
+            gbctxt->bos[gbctxt->prev_wb_index] &= ~BOV_WB_WORD_BOUNDARY;
+        }
+        else if (gbctxt->prev_wbt == WB_RI_Odd && wbt == WB_RI_Even)
+            gbctxt->is_word_boundary = 0; /* Rule WB15 and WB16 */
+        else
+            gbctxt->is_word_boundary = 1; /* Rule WB999 */
+
+        if (wbt != WB_ExtendFormat) {
+            gbctxt->prev_prev_wbt = gbctxt->prev_wbt;
+            gbctxt->prev_wbt = wbt;
+            gbctxt->prev_wb_index = i;
+        }
+    }
+
+    if (gbctxt->is_word_boundary)
+        return BOV_WB_WORD_BOUNDARY;
+
+    return 0;
+}
+
+#define IS_OTHER_TERM(sbt)                                      \
+    /* not in (OLetter | Upper | Lower | ParaSep | SATerm) */   \
+    !(sbt == SB_OLetter ||                                      \
+            sbt == SB_Upper || sbt == SB_Lower ||               \
+            sbt == SB_ParaSep ||                                \
+            sbt == SB_ATerm || sbt == SB_STerm ||               \
+            sbt == SB_ATerm_Close_Sp ||                         \
+            sbt == SB_STerm_Close_Sp)
+
+static Uint16 check_sentence_boundaries(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc, Uint8 bt, int i)
+{
+    gbctxt->is_sentence_boundary = 0;
+
+    /* Rules SB3 and SB5 */
+    if (gbctxt->is_word_boundary || uc == '\r' || uc == '\n') {
+
+        _SBType sbt = resolve_sbt(gbctxt, uc, gc, bt);
+
+        /* Sentence Boundary Rules */
+
+        /* We apply Rules SB1 and SB2 at the upper level of the function */
+
+        if (uc == '\n' && gbctxt->prev_uc == '\r')
+            gbctxt->is_sentence_boundary = 0; /* Rule SB3 */
+        else if (gbctxt->prev_sbt == SB_ParaSep &&
+                gbctxt->prev_sb_index + 1 == i) {
+            /* The extra check for gbctxt->prev_sb_index is to correctly
+             * handle sequences like
+             * ParaSep ÷ Extend × Extend
+             * since we have not skipped ExtendFormat yet.
+             */
+
+            gbctxt->is_sentence_boundary = 1; /* Rule SB4 */
+        }
+        else if (sbt == SB_ExtendFormat)
+            gbctxt->is_sentence_boundary = 0; /* Rule SB5? */
+        else if (gbctxt->prev_sbt == SB_ATerm && sbt == SB_Numeric)
+            gbctxt->is_sentence_boundary = 0; /* Rule SB6 */
+        else if ((gbctxt->prev_prev_sbt == SB_Upper ||
+                    gbctxt->prev_prev_sbt == SB_Lower) &&
+                gbctxt->prev_sbt == SB_ATerm &&
+                sbt == SB_Upper)
+            gbctxt->is_sentence_boundary = 0; /* Rule SB7 */
+        else if (gbctxt->prev_sbt == SB_ATerm && sbt == SB_Close)
+            sbt = SB_ATerm;
+        else if (gbctxt->prev_sbt == SB_STerm && sbt == SB_Close)
+            sbt = SB_STerm;
+        else if (gbctxt->prev_sbt == SB_ATerm && sbt == SB_Sp)
+            sbt = SB_ATerm_Close_Sp;
+        else if (gbctxt->prev_sbt == SB_STerm && sbt == SB_Sp)
+            sbt = SB_STerm_Close_Sp;
+        /* Rule SB8 */
+        else if ((gbctxt->prev_sbt == SB_ATerm ||
+                gbctxt->prev_sbt == SB_ATerm_Close_Sp) &&
+                sbt == SB_Lower)
+            gbctxt->is_sentence_boundary = 0;
+        else if ((gbctxt->prev_prev_sbt == SB_ATerm ||
+                gbctxt->prev_prev_sbt == SB_ATerm_Close_Sp) &&
+                IS_OTHER_TERM(gbctxt->prev_sbt) &&
+                sbt == SB_Lower)
+            gbctxt->bos[gbctxt->prev_sb_index] &= ~BOV_SB_SENTENCE_BOUNDARY;
+        else if ((gbctxt->prev_sbt == SB_ATerm ||
+                    gbctxt->prev_sbt == SB_ATerm_Close_Sp ||
+                    gbctxt->prev_sbt == SB_STerm ||
+                    gbctxt->prev_sbt == SB_STerm_Close_Sp) &&
+                (sbt == SB_SContinue ||
+                    sbt == SB_ATerm || sbt == SB_STerm))
+            gbctxt->is_sentence_boundary = 0; /* Rule SB8a */
+        else if ((gbctxt->prev_sbt == SB_ATerm ||
+                    gbctxt->prev_sbt == SB_STerm) &&
+                (sbt == SB_Close || sbt == SB_Sp ||
+                    sbt == SB_ParaSep))
+            gbctxt->is_sentence_boundary = 0; /* Rule SB9 */
+        else if ((gbctxt->prev_sbt == SB_ATerm ||
+                    gbctxt->prev_sbt == SB_ATerm_Close_Sp ||
+                    gbctxt->prev_sbt == SB_STerm ||
+                    gbctxt->prev_sbt == SB_STerm_Close_Sp) &&
+                (sbt == SB_Sp || sbt == SB_ParaSep))
+            gbctxt->is_sentence_boundary = 0; /* Rule SB10 */
+        else if ((gbctxt->prev_sbt == SB_ATerm ||
+                    gbctxt->prev_sbt == SB_ATerm_Close_Sp ||
+                    gbctxt->prev_sbt == SB_STerm ||
+                    gbctxt->prev_sbt == SB_STerm_Close_Sp) &&
+                sbt != SB_ParaSep)
+            gbctxt->is_sentence_boundary = 1; /* Rule SB11 */
+        else
+            gbctxt->is_sentence_boundary = 0; /* Rule SB998 */
+
+        if (sbt != SB_ExtendFormat &&
+                !((gbctxt->prev_prev_sbt == SB_ATerm ||
+                    gbctxt->prev_prev_sbt == SB_ATerm_Close_Sp) &&
+                IS_OTHER_TERM(gbctxt->prev_sbt) &&
+                IS_OTHER_TERM(sbt))) {
+            gbctxt->prev_prev_sbt = gbctxt->prev_sbt;
+            gbctxt->prev_sbt = sbt;
+            gbctxt->prev_sb_index = i;
+        }
+    }
+
+    if (i == 1)
+        gbctxt->is_sentence_boundary = 1; /* Rules SB1 and SB2 */
+
+    if (gbctxt->is_sentence_boundary)
+        return BOV_SB_SENTENCE_BOUNDARY;
+
+    return 0;
+}
+
+#undef IS_OTHER_TERM
+
+/* ---- Word breaks ---- */
+static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc, int i)
+{
+    /* default to not a word start/end */
+    gbctxt->bos[i] &= ~BOV_WB_WORD_START;
+    gbctxt->bos[i] &= ~BOV_WB_WORD_END;
+
+    if (gbctxt->curr_wt != WordNone) {
+        /* Check for a word end */
+        switch (gc) {
+        case UCHAR_CATEGORY_SPACING_MARK:
+        case UCHAR_CATEGORY_ENCLOSING_MARK:
+        case UCHAR_CATEGORY_NON_SPACING_MARK:
+        case UCHAR_CATEGORY_FORMAT:
+            /* nothing, we just eat these up as part of the word */
+            break;
+
+        case UCHAR_CATEGORY_LOWERCASE_LETTER:
+        case UCHAR_CATEGORY_MODIFIER_LETTER:
+        case UCHAR_CATEGORY_OTHER_LETTER:
+        case UCHAR_CATEGORY_TITLECASE_LETTER:
+        case UCHAR_CATEGORY_UPPERCASE_LETTER:
+            if (gbctxt->curr_wt == WordLetters) {
+                /* Japanese special cases for ending the word */
+                if (JAPANESE (gbctxt->last_word_letter) ||
+                        JAPANESE (uc)) {
+                    if ((HIRAGANA (gbctxt->last_word_letter) &&
+                                !HIRAGANA (uc)) ||
+                            (KATAKANA (gbctxt->last_word_letter) &&
+                             !(KATAKANA (uc) || HIRAGANA (uc))) ||
+                            (KANJI (gbctxt->last_word_letter) &&
+                             !(HIRAGANA (uc) || KANJI (uc))) ||
+                            (JAPANESE (gbctxt->last_word_letter) &&
+                             !JAPANESE (uc)) ||
+                            (!JAPANESE (gbctxt->last_word_letter) &&
+                             JAPANESE (uc)))
+                        gbctxt->bos[i] |= BOV_WB_WORD_END;
+                }
+            }
+            gbctxt->last_word_letter = uc;
+            break;
+
+        case UCHAR_CATEGORY_DECIMAL_NUMBER:
+        case UCHAR_CATEGORY_LETTER_NUMBER:
+        case UCHAR_CATEGORY_OTHER_NUMBER:
+            gbctxt->last_word_letter = uc;
+            break;
+
+        default:
+            /* Punctuation, control/format chars, etc. all end a word. */
+            gbctxt->bos[i] |= BOV_WB_WORD_END;
+            gbctxt->curr_wt = WordNone;
+            break;
+        }
+    }
+    else {
+        /* Check for a word start */
+        switch (gc) {
+        case UCHAR_CATEGORY_LOWERCASE_LETTER:
+        case UCHAR_CATEGORY_MODIFIER_LETTER:
+        case UCHAR_CATEGORY_OTHER_LETTER:
+        case UCHAR_CATEGORY_TITLECASE_LETTER:
+        case UCHAR_CATEGORY_UPPERCASE_LETTER:
+            gbctxt->curr_wt = WordLetters;
+            gbctxt->last_word_letter = uc;
+            gbctxt->bos[i] |= BOV_WB_WORD_START;
+            break;
+
+        case UCHAR_CATEGORY_DECIMAL_NUMBER:
+        case UCHAR_CATEGORY_LETTER_NUMBER:
+        case UCHAR_CATEGORY_OTHER_NUMBER:
+            gbctxt->curr_wt = WordNumbers;
+            gbctxt->last_word_letter = uc;
+            gbctxt->bos[i] |= BOV_WB_WORD_START;
+            break;
+
+        default:
+            /* No word here */
+            break;
+        }
+    }
+}
+
+/* ---- Sentence breaks ---- */
+static void check_sentence_breaks(struct glyph_break_ctxt* gbctxt,
+        Uchar32 uc, Uint8 gc, int i)
+{
+    /* default to not a sentence start/end */
+    gbctxt->bos[i] &= ~BOV_SB_SENTENCE_START;
+    gbctxt->bos[i] &= ~BOV_SB_SENTENCE_END;
+
+    /* maybe start sentence */
+    if (gbctxt->last_sentence_start == -1 && !gbctxt->is_sentence_boundary)
+        gbctxt->last_sentence_start = i - 1;
+
+    /* remember last non space character position */
+    if (i > 0 && !(gbctxt->bos[i - 1] & BOV_SPACE))
+        gbctxt->last_non_space = i;
+
+    /* meets sentence end, mark both sentence start and end */
+    if (gbctxt->last_sentence_start != -1 && gbctxt->is_sentence_boundary) {
+        if (gbctxt->last_non_space != -1) {
+            gbctxt->bos[gbctxt->last_sentence_start] |= BOV_SB_SENTENCE_START;
+            gbctxt->bos[gbctxt->last_non_space] |= BOV_SB_SENTENCE_END;
+        }
+
+        gbctxt->last_sentence_start = -1;
+        gbctxt->last_non_space = -1;
+    }
+
+    /* meets space character, move sentence start */
+    if (gbctxt->last_sentence_start != -1 &&
+            gbctxt->last_sentence_start == i - 1 &&
+            (gbctxt->bos[i - 1] & BOV_SPACE))
+        gbctxt->last_sentence_start++;
+}
+
+static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
+        Glyph32 gv, Uchar32 uc, Uint8 bt, Uint16 lbo)
+{
+    /* realloc buffers if it needs */
+    if ((gbctxt->n + 2) >= gbctxt->len_buff) {
+        gbctxt->len_buff += INC_LEN_GLYPHS;
+        gbctxt->gvs = (Glyph32*)realloc(gbctxt->gvs,
+            sizeof(Glyph32) * gbctxt->len_buff);
+        gbctxt->bts = (Uint8*)realloc(gbctxt->bts,
+            sizeof(Uint8) * gbctxt->len_buff);
+        gbctxt->bos = (Uint16*)realloc(gbctxt->bos,
+            sizeof(Uint16) * gbctxt->len_buff);
+        gbctxt->ods = (Uint8*)realloc(gbctxt->ods,
+            sizeof(Uint8) * gbctxt->len_buff);
+
+        if (gbctxt->gvs == NULL || gbctxt->bts == NULL
+                || gbctxt->bos == NULL || gbctxt->ods == NULL)
+            return 0;
+    }
+
+    if (gbctxt->n == 0) {
+        // set the before line break opportunity
+        gbctxt->bos[0] = lbo;
+        gbctxt->ods[0] = LBLAST;
+    }
+    else {
+        // break opportunities for grapheme, word, and sentence.
+        Uint8 gc;
+        Uint16 gwsbo = 0;
+
+        // set the after line break opportunity
+        gbctxt->gvs[gbctxt->n - 1] = gv;
+        gbctxt->bts[gbctxt->n - 1] = bt;
+        gbctxt->bos[gbctxt->n] = lbo;
+        if (lbo == BOV_UNKNOWN)
+            gbctxt->ods[gbctxt->n] = LBLAST;
+        else
+            gbctxt->ods[gbctxt->n] = gbctxt->curr_od;
+
+        // determine the grapheme, word, and sentence breaks
+        gc = UCharGetCategory(uc);
+        check_hangul_syllable(gbctxt, uc, bt);
+        gwsbo |= check_white_space(gbctxt, uc, gc);
+        check_emoji_extended_pictographic(gbctxt, uc);
+        gwsbo |= check_grapheme_boundaries(gbctxt, uc, gc, bt);
+        gwsbo |= check_word_boundaries(gbctxt, uc, gc, bt, gbctxt->n);
+        gwsbo |= check_sentence_boundaries(gbctxt, uc, gc, bt, gbctxt->n);
+
+        // sot
+        if (gbctxt->n == 1) {
+            // Rule GB1
+            gwsbo |= BOV_GB_CURSOR_POS;
+            // Rule WB1
+            gwsbo |= BOV_WB_WORD_BOUNDARY;
+            // Ruel SB1
+            gwsbo |= BOV_SB_SENTENCE_BOUNDARY;
+        }
+        gbctxt->bos[gbctxt->n] |= gwsbo;
+
+        check_word_breaks(gbctxt, uc, gc, gbctxt->n);
+        check_sentence_breaks(gbctxt, uc, gc, gbctxt->n);
+
+        gbctxt->prev_uc = uc;
+
+        /* uc might not be a valid Unicode base character, but really all we
+         * need to know is the last non-combining character */
+        if (gc != UCHAR_CATEGORY_SPACING_MARK &&
+                gc != UCHAR_CATEGORY_ENCLOSING_MARK &&
+                gc != UCHAR_CATEGORY_NON_SPACING_MARK)
+            gbctxt->base_uc = uc;
+    }
+
+    gbctxt->n++;
+    return gbctxt->n;
 }
 
 static int collapse_space(struct glyph_break_ctxt* gbctxt,
@@ -389,7 +1416,7 @@ static int collapse_space(struct glyph_break_ctxt* gbctxt,
         if (mclen == 0)
             break;
 
-        bt = resolve_lbc(gbctxt, uc, NULL);
+        bt = resolve_lbc(gbctxt, uc);
         if (bt != UCHAR_BREAK_SPACE && uc != UCHAR_TAB)
             break;
 
@@ -416,10 +1443,10 @@ static int check_glyphs_following_zw(struct glyph_break_ctxt* gbctxt,
             mstr += mclen;
             mstr_len -= mclen;
 
-            if (resolve_lbc(gbctxt, uc, NULL) == UCHAR_BREAK_SPACE) {
+            if (resolve_lbc(gbctxt, uc) == UCHAR_BREAK_SPACE) {
                 cosumed += mclen;
-                gbctxt_change_bo_last(gbctxt, BOV_LB_NOTALLOWED);
-                gbctxt_push_back(gbctxt, gv, UCHAR_BREAK_SPACE,
+                gbctxt_change_lbo_last(gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_push_back(gbctxt, gv, uc, UCHAR_BREAK_SPACE,
                     BOV_LB_NOTALLOWED);
             }
             else {
@@ -441,7 +1468,7 @@ static int is_next_glyph_bt(struct glyph_break_ctxt* gbctxt,
     int mclen;
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
-    if (mclen > 0 && resolve_lbc(gbctxt, *uc, NULL) == bt)
+    if (mclen > 0 && resolve_lbc(gbctxt, *uc) == bt)
         return mclen;
 
     return 0;
@@ -449,10 +1476,10 @@ static int is_next_glyph_bt(struct glyph_break_ctxt* gbctxt,
 
 static BOOL is_glyph_letter(UCharGeneralCategory gc, UCharBreakType bt)
 {
-    if ((gc >= UCHAR_TYPE_LOWERCASE_LETTER
-                && gc <= UCHAR_TYPE_UPPERCASE_LETTER)
-            || (gc >= UCHAR_TYPE_DECIMAL_NUMBER
-                && gc <= UCHAR_TYPE_OTHER_NUMBER))
+    if ((gc >= UCHAR_CATEGORY_LOWERCASE_LETTER
+                && gc <= UCHAR_CATEGORY_UPPERCASE_LETTER)
+            || (gc >= UCHAR_CATEGORY_DECIMAL_NUMBER
+                && gc <= UCHAR_CATEGORY_OTHER_NUMBER))
         return TRUE;
 
     if (bt == UCHAR_BREAK_NUMERIC
@@ -469,13 +1496,12 @@ static int is_next_glyph_letter(struct glyph_break_ctxt* gbctxt,
     UCharBreakType* pbt)
 {
     int mclen;
-    UCharGeneralCategory gc;
     UCharBreakType bt;
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        bt = resolve_lbc(gbctxt, *uc, &gc);
-        if (is_glyph_letter(gc, bt)) {
+        bt = resolve_lbc(gbctxt, *uc);
+        if (is_glyph_letter(gbctxt->curr_gc, bt)) {
             if (pbt) *pbt = bt;
             return mclen;
         }
@@ -595,7 +1621,7 @@ static int is_next_glyph_hy_ba(struct glyph_break_ctxt* gbctxt,
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_HYPHEN
                 || bt == UCHAR_BREAK_AFTER) {
             if (pbt) *pbt = bt;
@@ -612,7 +1638,7 @@ static int is_next_glyph_al_hl(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_HEBREW_LETTER || bt == UCHAR_BREAK_ALPHABETIC)
             return mclen;
     }
@@ -626,7 +1652,7 @@ static int is_next_glyph_pr_po(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_PREFIX || bt == UCHAR_BREAK_POSTFIX)
             return mclen;
     }
@@ -640,7 +1666,7 @@ static int is_next_glyph_id_eb_em(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_IDEOGRAPHIC
                 || bt == UCHAR_BREAK_EMOJI_BASE
                 || bt == UCHAR_BREAK_EMOJI_MODIFIER)
@@ -657,7 +1683,7 @@ static int is_next_glyph_jl_jv_jt_h2_h3(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_HANGUL_L_JAMO
                 || bt == UCHAR_BREAK_HANGUL_V_JAMO
                 || bt == UCHAR_BREAK_HANGUL_T_JAMO
@@ -678,7 +1704,7 @@ static int is_next_glyph_jl_jv_h2_h3(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_HANGUL_L_JAMO
                 || bt == UCHAR_BREAK_HANGUL_V_JAMO
                 || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE
@@ -698,7 +1724,7 @@ static int is_next_glyph_jv_jt(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_HANGUL_V_JAMO
                 || bt == UCHAR_BREAK_HANGUL_T_JAMO) {
             if (pbt) *pbt = bt;
@@ -715,7 +1741,7 @@ static int is_next_glyph_al_hl_nu(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_HEBREW_LETTER
                 || bt == UCHAR_BREAK_ALPHABETIC
                 || bt == UCHAR_BREAK_NUMERIC)
@@ -731,7 +1757,7 @@ static int is_next_glyph_cl_cp_is_sy(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
                 || bt == UCHAR_BREAK_CLOSE_PARANTHESIS
                 || bt == UCHAR_BREAK_INFIX_SEPARATOR
@@ -753,7 +1779,7 @@ static int is_next_glyph_nu_OR_op_hy_followed_nu(
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_NUMERIC) {
             return mclen;
         }
@@ -774,7 +1800,7 @@ static int is_next_glyph_nu_sy_is(struct glyph_break_ctxt* gbctxt,
     int mclen;
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = resolve_lbc(gbctxt, *uc, NULL);
+        UCharBreakType bt = resolve_lbc(gbctxt, *uc);
         if (bt == UCHAR_BREAK_NUMERIC
                 || bt == UCHAR_BREAK_SYMBOL
                 || bt == UCHAR_BREAK_INFIX_SEPARATOR)
@@ -848,7 +1874,7 @@ static BOOL is_next_glyph_zw(struct glyph_break_ctxt* gbctxt,
     Uchar32 uc;
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
-    if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL)
+    if (mclen > 0 && resolve_lbc(gbctxt, uc)
             == UCHAR_BREAK_ZERO_WIDTH_SPACE)
         return TRUE;
 
@@ -870,8 +1896,7 @@ static int check_subsequent_cm_zwj(struct glyph_break_ctxt* gbctxt,
 
         // CM/ZWJ should have the same break class as
         // its base character.
-        gbctxt_push_back(gbctxt, gv, gbctxt->base_bt,
-                BOV_LB_NOTALLOWED);
+        gbctxt_push_back(gbctxt, gv, uc, gbctxt->base_bt, BOV_LB_NOTALLOWED);
 
         mstr += mclen;
         mstr_len -= mclen;
@@ -890,8 +1915,7 @@ static int check_subsequent_sp(struct glyph_break_ctxt* gbctxt,
     Uchar32 uc;
 
     while ((mclen = is_next_glyph_sp(gbctxt, mstr, mstr_len, &gv, &uc)) > 0) {
-        gbctxt_push_back(gbctxt, gv,
-            UCHAR_BREAK_SPACE, BOV_LB_NOTALLOWED);
+        gbctxt_push_back(gbctxt, gv, uc, UCHAR_BREAK_SPACE, BOV_LB_NOTALLOWED);
         mstr += mclen;
         mstr_len -= mclen;
         cosumed += mclen;
@@ -910,7 +1934,7 @@ static int is_subsequent_sps_and_end_bt(struct glyph_break_ctxt* gbctxt,
     while (mstr_len > 0 && *mstr != '\0') {
         mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
         if (mclen > 0) {
-            UCharBreakType bt = resolve_lbc(gbctxt, uc, NULL);
+            UCharBreakType bt = resolve_lbc(gbctxt, uc);
             if (bt == UCHAR_BREAK_SPACE) {
                 mstr += mclen;
                 mstr_len -= mclen;
@@ -938,15 +1962,14 @@ static int check_subsequent_sps_and_end_bt(struct glyph_break_ctxt* gbctxt,
     while (mstr_len > 0 && *mstr != '\0') {
         mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
         if (mclen > 0) {
-            UCharBreakType bt = resolve_lbc(gbctxt, uc, NULL);
+            UCharBreakType bt = resolve_lbc(gbctxt, uc);
             _DBG_PRINTF("%s: %04X (%d)\n", __FUNCTION__, uc, bt);
             if (bt == UCHAR_BREAK_SPACE) {
                 mstr += mclen;
                 mstr_len -= mclen;
                 cosumed += mclen;
                 if (!col_sp)
-                    gbctxt_push_back(gbctxt,
-                        gv, bt, BOV_LB_NOTALLOWED);
+                    gbctxt_push_back(gbctxt, gv, uc, bt, BOV_LB_NOTALLOWED);
                 continue;
             }
             else if (bt == end_bt) {
@@ -974,7 +1997,7 @@ static BOOL is_odd_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         mstr += mclen;
         mstr_len -= mclen;
 
-        if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL)
+        if (mclen > 0 && resolve_lbc(gbctxt, uc)
                     == UCHAR_BREAK_REGIONAL_INDICATOR) {
             nr++;
             continue;
@@ -1003,7 +2026,7 @@ static BOOL is_even_nubmer_of_subsequent_ri(struct glyph_break_ctxt* gbctxt,
         mstr += mclen;
         mstr_len -= mclen;
 
-        if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL)
+        if (mclen > 0 && resolve_lbc(gbctxt, uc)
                 == UCHAR_BREAK_REGIONAL_INDICATOR) {
             nr++;
             continue;
@@ -1028,13 +2051,13 @@ static int check_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 
     while (mstr_len > 0 && *mstr != '\0') {
         mclen = get_next_glyph(gbctxt, mstr, mstr_len, &gv, &uc);
-        if (mclen > 0 && resolve_lbc(gbctxt, uc, NULL)
+        if (mclen > 0 && resolve_lbc(gbctxt, uc)
                     == UCHAR_BREAK_REGIONAL_INDICATOR) {
             mstr += mclen;
             mstr_len -= mclen;
             cosumed += mclen;
 
-            gbctxt_push_back(gbctxt, gv,
+            gbctxt_push_back(gbctxt, gv, uc,
                 UCHAR_BREAK_REGIONAL_INDICATOR, BOV_LB_NOTALLOWED);
             continue;
         }
@@ -1065,7 +2088,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
     gbctxt.mbc_devfont = logfont->mbc_devfont;
     gbctxt.sbc_devfont = logfont->sbc_devfont;
-    gbctxt.gs = NULL;
+    gbctxt.gvs = NULL;
     gbctxt.bts = NULL;
     gbctxt.bos = NULL;
     gbctxt.len_buff = 0;
@@ -1078,6 +2101,29 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
     gbctxt.wbr = wbr;
     gbctxt.lbp = lbp;
 
+    gbctxt.prev_uc  = 0;
+    gbctxt.base_uc  = 0;
+    gbctxt.last_word_letter = 0;
+
+    gbctxt.last_sentence_start = -1;
+    gbctxt.last_non_space = -1;
+    gbctxt.prev_wb_index = -1;
+    gbctxt.prev_sb_index = -1;
+
+    gbctxt.prev_gbt = GB_Other;
+    gbctxt.prev_gbt = GB_Other;
+    gbctxt.prev_wbt = gbctxt.prev_prev_wbt = WB_Other;
+    gbctxt.prev_sbt = gbctxt.prev_prev_sbt = SB_Other;
+    gbctxt.prev_jamo = NO_JAMO;
+    gbctxt.curr_wt = WordNone;
+
+    gbctxt.makes_hangul_syllable = 0;
+    gbctxt.is_grapheme_boundary = 0;
+    gbctxt.is_word_boundary = 0;
+    gbctxt.is_sentence_boundary = 0;
+    gbctxt.met_extended_pictographic = 0;
+    gbctxt.is_extended_pictographic = 0;
+
     *glyphs = NULL;
     *break_oppos = NULL;
     if (break_classes)
@@ -1087,7 +2133,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
     if (mstr_len == 0)
         return 0;
 
-    if (gbctxt_init(&gbctxt, mstr_len >> 1) <= 0) {
+    if (gbctxt_init_spaces(&gbctxt, mstr_len >> 1) <= 0) {
         goto error;
     }
 
@@ -1097,7 +2143,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         int mclen = 0;
         UCharBreakType bt;
         UCharGeneralCategory gc;
-        Uint8 bo;
+        // line break opportunity
+        Uint16 lbo;
 
         Glyph32 next_gv;
         Uchar32 next_uc;
@@ -1135,14 +2182,15 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
         // LB1 Resolve line breaking class
         gbctxt.curr_od = LB1;
-        bt = resolve_lbc(&gbctxt, uc, &gc);
+        bt = resolve_lbc(&gbctxt, uc);
+        gc = gbctxt.curr_gc;
 
         /* Start and end of text */
         // LB2 Never break at the start of text.
         if (gbctxt.n == 0) {
             _DBG_PRINTF ("LB2 Never break at the start of text\n");
             gbctxt.curr_od = LB2;
-            if (gbctxt_push_back(&gbctxt, 0, 0, BOV_LB_NOTALLOWED) == 0)
+            if (gbctxt_push_back(&gbctxt, 0, 0, 0, BOV_LB_NOTALLOWED) == 0)
                 goto error;
         }
 
@@ -1150,23 +2198,23 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         if (wsr == WSR_PRE || wsr == WSR_NOWRAP) {
             // Set the default breaking manner is not allowed.
             gbctxt.curr_od = LBPRE;
-            bo = BOV_LB_NOTALLOWED;
+            lbo = BOV_LB_NOTALLOWED;
         }
         else {
             // Set the default breaking manner is not set.
             gbctxt.curr_od = LBLAST;
-            bo = BOV_UNKNOWN;
+            lbo = BOV_UNKNOWN;
         }
 
         // Set default break opportunity of the current glyph
-        if (gbctxt_push_back(&gbctxt, gv, bt, bo) == 0)
+        if (gbctxt_push_back(&gbctxt, gv, uc, bt, lbo) == 0)
             goto error;
 
         // LB3 Always break at the end of text.
         if (get_next_glyph(&gbctxt, mstr, mstr_len, &next_gv, &next_uc) == 0) {
             _DBG_PRINTF ("LB3 Always break at the end of text\n");
             gbctxt.curr_od = LB3;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_MANDATORY);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_MANDATORY);
         }
 
         /* Mandatory breaks */
@@ -1175,10 +2223,10 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         if (bt == UCHAR_BREAK_MANDATORY) {
             _DBG_PRINTF ("LB4 Always break after hard line breaks\n");
             gbctxt.curr_od = LB4;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_MANDATORY);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_MANDATORY);
             _DBG_PRINTF ("LB6 Do not break before hard line breaks\n");
             gbctxt.curr_od = LB6;
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
         // LB5 Treat CR followed by LF, as well as CR, LF,
         // and NL as hard line breaks.
@@ -1190,18 +2238,18 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.\n");
             gbctxt.curr_od = LB5;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             _DBG_PRINTF ("LB6 Do not break before hard line breaks\n");
             gbctxt.curr_od = LB6;
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             if (col_nl)
                 // Collapse new lines
-                bo = BOV_LB_NOTALLOWED;
+                lbo = BOV_LB_NOTALLOWED;
             else
-                bo = BOV_LB_MANDATORY;
-            if (gbctxt_push_back(&gbctxt, next_gv,
-                    UCHAR_BREAK_LINE_FEED, bo) == 0)
+                lbo = BOV_LB_MANDATORY;
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc,
+                    UCHAR_BREAK_LINE_FEED, lbo) == 0)
                 goto error;
         }
         // LB5 Treat CR followed by LF, as well as CR, LF,
@@ -1213,15 +2261,15 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             if (col_nl)
                 // Collapse new lines
-                bo = BOV_LB_NOTALLOWED;
+                lbo = BOV_LB_NOTALLOWED;
             else
-                bo = BOV_LB_MANDATORY;
+                lbo = BOV_LB_MANDATORY;
             _DBG_PRINTF ("LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.\n");
             gbctxt.curr_od = LB5;
-            gbctxt_change_bo_last(&gbctxt, bo);
+            gbctxt_change_lbo_last(&gbctxt, lbo);
             _DBG_PRINTF ("LB6 Do not break before hard line breaks\n");
             gbctxt.curr_od = LB6;
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         /* Explicit breaks and non-breaks */
@@ -1231,7 +2279,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB7 Do not break before spaces or zero width space\n");
             gbctxt.curr_od = LB7;
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             if (col_sp) {
                 cosumed_one_loop += collapse_space(&gbctxt, mstr, mstr_len);
@@ -1250,7 +2298,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 gbctxt.curr_od = LB8;
                 cosumed_one_loop += check_glyphs_following_zw(&gbctxt,
                     mstr, mstr_len);
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_ALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_ALLOWED);
                 goto next_glyph;
             }
         }
@@ -1273,7 +2321,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB8a Do not break between a zero width joiner and ID, EB, EM\n");
             gbctxt.curr_od = LB8a;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         /* Combining marks */
@@ -1294,7 +2342,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB9 Do not break a combining character sequence\n");
             gbctxt.curr_od = LB9;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             // LB10 Treat any remaining combining mark or ZWJ as AL.
             if ((bt == UCHAR_BREAK_COMBINING_MARK
@@ -1304,7 +2352,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             gbctxt.base_bt = bt;
             cosumed_one_loop += check_subsequent_cm_zwj(&gbctxt, mstr, mstr_len);
-            gbctxt_change_bo_last(&gbctxt, BOV_UNKNOWN);
+            gbctxt_change_lbo_last(&gbctxt, BOV_UNKNOWN);
 
             mstr += cosumed_one_loop;
             mstr_len -= cosumed_one_loop;
@@ -1331,17 +2379,17 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         // LB11 Do not break before or after Word joiner
         // and related characters.
         if (bt == UCHAR_BREAK_WORD_JOINER) {
-            bo = BOV_LB_NOTALLOWED;
+            lbo = BOV_LB_NOTALLOWED;
             _DBG_PRINTF ("LB11 Do not break before or after Word joiner and ...\n");
             gbctxt.curr_od = LB11;
-            gbctxt_change_bo_last(&gbctxt, bo);
-            gbctxt_change_bo_before_last(&gbctxt, bo);
+            gbctxt_change_lbo_last(&gbctxt, lbo);
+            gbctxt_change_lbo_before_last(&gbctxt, lbo);
         }
         // LB12 Do not break after NBSP and related characters.
         else if (bt == UCHAR_BREAK_NON_BREAKING_GLUE) {
             _DBG_PRINTF ("LB12 Do not break after NBSP and related characters\n");
             gbctxt.curr_od = LB12;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         /* Breaking is forbidden within “words”: implicit soft wrap
@@ -1357,8 +2405,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc, &next_bt)) > 0) {
             _DBG_PRINTF ("WBR_KEEP_ALL.\n");
             gbctxt.curr_od = LB12a;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt, next_gv, next_bt, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc, next_bt,
+                    BOV_UNKNOWN) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -1379,7 +2428,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB12a Do not break before NBSP and related characters, except after SP and HY\n");
             gbctxt.curr_od = LB12a;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         /* Opening and closing */
@@ -1388,7 +2437,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
             if (bt == UCHAR_BREAK_EXCLAMATION) {
                 _DBG_PRINTF ("LB13 for LBP_LOOSE: Do not break before ‘!’, even after spaces.\n");
                 gbctxt.curr_od = LB13;
-                gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
         }
         else if (lbp == LBP_NORMAL) {
@@ -1399,13 +2448,13 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
                 _DBG_PRINTF ("LB13 for LBP_NORMAL: Do not break between non-number and ‘]’ or ‘;’ or ‘/’.\n");
                 gbctxt.curr_od = LB13;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
 
             if (bt == UCHAR_BREAK_EXCLAMATION) {
                 _DBG_PRINTF ("LB13 for LBP_NORMAL: Do not break before ‘!’, even after spaces\n");
                 gbctxt.curr_od = LB13;
-                gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
         }
         else {
@@ -1417,7 +2466,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     || bt == UCHAR_BREAK_SYMBOL) {
                 _DBG_PRINTF ("LB13  for LBP_STRICT: Do not break before ‘]’ or ‘!’ or ‘;’ or ‘/’, even after spaces\n");
                 gbctxt.curr_od = LB13;
-                gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
         }
 
@@ -1425,7 +2474,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         if (bt == UCHAR_BREAK_OPEN_PUNCTUATION) {
             _DBG_PRINTF ("LB14 Do not break after ‘[’, even after spaces\n");
             gbctxt.curr_od = LB14;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             // For any possible subsequent space.
             if (col_sp) {
@@ -1443,11 +2492,11 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB15 Do not break within ‘”[’, even with intervening spaces\n");
             gbctxt.curr_od = LB15;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             _DBG_PRINTF ("LB19 Do not break before or after quotation marks, such as ‘ ” ’\n");
             gbctxt.curr_od = LB19;
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             gbctxt.curr_od = LB15;
             // For subsequent spaces and OP.
@@ -1464,7 +2513,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB16 Do not break between closing punctuation and NS, even...\n");
             gbctxt.curr_od = LB16;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             // For subsequent spaces and NS.
             cosumed_one_loop += check_subsequent_sps_and_end_bt(&gbctxt,
@@ -1478,7 +2527,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB17 Do not break within ‘——’, even with intervening spaces\n");
             gbctxt.curr_od = LB17;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
 
             // For subsequent spaces and B2.
             cosumed_one_loop += check_subsequent_sps_and_end_bt(&gbctxt,
@@ -1490,22 +2539,22 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
         else if (bt == UCHAR_BREAK_SPACE) {
             _DBG_PRINTF ("LB18 Break after spaces\n");
             gbctxt.curr_od = LB18;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_ALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_ALLOWED);
         }
         /* Special case rules */
         // LB19 Do not break before or after quotation marks, such as ‘ ” ’.
         else if (bt == UCHAR_BREAK_QUOTATION) {
             _DBG_PRINTF ("LB19 Do not break before or after quotation marks, such as ‘ ” ’\n");
             gbctxt.curr_od = LB19;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
         // LB20 Break before and after unresolved CB.
         else if (bt == UCHAR_BREAK_CONTINGENT) {
             _DBG_PRINTF ("LB20 Break before and after unresolved CB.\n");
             gbctxt.curr_od = LB20;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_ALLOWED);
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_ALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_ALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_ALLOWED);
         }
         // LB21 Do not break before hyphen-minus, other hyphens,
         // fixed-width spaces, small kana, and other non-starters,
@@ -1515,12 +2564,12 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                 || bt == UCHAR_BREAK_NON_STARTER) {
             _DBG_PRINTF ("LB21.1 Do not break before hyphen-minus, other hyphens...\n");
             gbctxt.curr_od = LB21;
-            gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
         else if (bt == UCHAR_BREAK_BEFORE) {
             _DBG_PRINTF ("LB21.2 Do not break before hyphen-minus, other hyphens...\n");
             gbctxt.curr_od = LB21;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
         // LB21a Don't break after Hebrew + Hyphen.
         else if (bt == UCHAR_BREAK_HEBREW_LETTER
@@ -1529,9 +2578,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB21a Don't break after Hebrew + Hyphen\n");
             gbctxt.curr_od = LB21a;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             if (gbctxt_push_back(&gbctxt,
-                    next_gv, next_bt, BOV_LB_NOTALLOWED) == 0)
+                    next_gv, next_uc, next_bt, BOV_LB_NOTALLOWED) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -1542,7 +2591,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB21b Don’t break between Solidus and Hebrew letters\n");
             gbctxt.curr_od = LB21b;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
         // LB22 Do not break between two ellipses, or between letters,
         // numbers or exclamations and ellipsis.
@@ -1559,7 +2608,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB22 Do not break between two ellipses, or between letters...\n");
             gbctxt.curr_od = LB22;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         /* Numbers */
@@ -1571,14 +2620,14 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB23 Do not break between digits and letters\n");
                 gbctxt.curr_od = LB23;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_NUMERIC
                     && is_next_glyph_al_hl(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB23 Do not break between digits and letters\n");
                 gbctxt.curr_od = LB23;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             // LB23a Do not break between numeric prefixes and ideographs,
             // or between ideographs and numeric postfixes.
@@ -1587,7 +2636,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB23a.1 Do not break between numeric prefixes and ID...\n");
                 gbctxt.curr_od = LB23a;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if ((bt == UCHAR_BREAK_IDEOGRAPHIC
                         || bt == UCHAR_BREAK_EMOJI_BASE
@@ -1596,7 +2645,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB23a.2 Do not break between numeric prefixes and ID...\n");
                 gbctxt.curr_od = LB23a;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             // LB24 Do not break between numeric prefix/postfix and letters,
             // or between letters and prefix/postfix.
@@ -1606,7 +2655,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB24 Do not break between numeric prefix/postfix and letters\n");
                 gbctxt.curr_od = LB24;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if ((bt == UCHAR_BREAK_ALPHABETIC
                         || bt == UCHAR_BREAK_HEBREW_LETTER)
@@ -1614,7 +2663,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB24 Do not break between numeric prefix/postfix and letters\n");
                 gbctxt.curr_od = LB24;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
         }
 
@@ -1626,42 +2675,42 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.5 for LBP_LOOSE: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_NUMERIC
                     && is_next_glyph_pr(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.6 for LBP_LOOSE: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_POSTFIX
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 gbctxt.curr_od = LB25;
                 _DBG_PRINTF ("LB25.8 for LBP_LOOSE: Do not break between the certain pairs of classes\n");
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_PREFIX
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.a for LBP_LOOSE: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_HYPHEN
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.b for LBP_LOOSE: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_NUMERIC
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.d for LBP_LOOSE: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
         }
         else if (lbp == LBP_NORMAL) {
@@ -1670,7 +2719,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.1 for LBP_NORMAL: (PR | PO) × ( OP | HY )? NU.\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if ((bt == UCHAR_BREAK_OPEN_PUNCTUATION
                         || bt == UCHAR_BREAK_HYPHEN)
@@ -1678,14 +2727,14 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.2 for LBP_NORMAL: ( OP | HY ) × NU.\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_NUMERIC
                     && is_next_glyph_nu_sy_is(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.3 for LBP_NORMAL: NU × (NU | SY | IS).\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
 
             if ((bt == UCHAR_BREAK_NUMERIC
@@ -1696,13 +2745,13 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     && are_prev_glyphs_nu_AND_nu_sy_is(&gbctxt, FALSE)) {
                 _DBG_PRINTF ("LB25.4 for LBP_NORMAL: NU (NU | SY | IS)* × (NU | SY | IS | CL | CP ).\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             if ((bt == UCHAR_BREAK_POSTFIX || bt == UCHAR_BREAK_PREFIX)
                     && are_prev_glyphs_nu_AND_nu_sy_is_AND_cl_cp(&gbctxt)) {
                 _DBG_PRINTF ("LB25.5 for LBP_NORMAL: NU (NU | SY | IS)* (CL | CP)? × (PO | PR).\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
+                gbctxt_change_lbo_before_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
         }
         else {
@@ -1711,168 +2760,97 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.1 for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_CLOSE_PUNCTUATION
                     && is_next_glyph_pr(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.2 for LBP_STRICT: Do not break between the certain pairs of classes\n");
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
                     && is_next_glyph_po(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 gbctxt.curr_od = LB25;
                 _DBG_PRINTF ("LB25.3 for LBP_STRICT: Do not break between the certain pairs of classes\n");
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
                     && is_next_glyph_pr(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.4 for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_NUMERIC
                     && is_next_glyph_po(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.5 for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_NUMERIC
                     && is_next_glyph_pr(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.6 for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_POSTFIX
                     && is_next_glyph_op(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 gbctxt.curr_od = LB25;
                 _DBG_PRINTF ("LB25.7 for LBP_STRICT: Do not break between the certain pairs of classes\n");
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_POSTFIX
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 gbctxt.curr_od = LB25;
                 _DBG_PRINTF ("LB25.8 for LBP_STRICT: Do not break between the certain pairs of classes\n");
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_PREFIX
                     && is_next_glyph_op(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 gbctxt.curr_od = LB25;
                 _DBG_PRINTF ("LB25.9 for LBP_STRICT: Do not break between the certain pairs of classes\n");
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_PREFIX
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.a for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_HYPHEN
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.b for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_INFIX_SEPARATOR
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.c for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_NUMERIC
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.d for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
             else if (bt == UCHAR_BREAK_SYMBOL
                     && is_next_glyph_nu(&gbctxt,
                         mstr, mstr_len, &next_gv, &next_uc) > 0) {
                 _DBG_PRINTF ("LB25.e for LBP_STRICT: Do not break between the certain pairs of classes\n");
                 gbctxt.curr_od = LB25;
-                gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-                if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                    goto error;
-                cosumed_one_loop += next_mclen;
-#endif
+                gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             }
         }
 
@@ -1883,8 +2861,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc, &next_bt)) > 0) {
             _DBG_PRINTF ("LB26.1 Do not break a Korean syllable.\n");
             gbctxt.curr_od = LB26;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt, next_gv, next_bt, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc, next_bt,
+                    BOV_UNKNOWN) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -1895,8 +2874,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc, &next_bt)) > 0) {
             _DBG_PRINTF ("LB26.2 Do not break a Korean syllable.\n");
             gbctxt.curr_od = LB26;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt, next_gv, next_bt, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc, next_bt,
+                    BOV_UNKNOWN) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -1907,8 +2887,8 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB26.3 Do not break a Korean syllable.\n");
             gbctxt.curr_od = LB26;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt, next_gv,
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc,
                     UCHAR_BREAK_HANGUL_T_JAMO, BOV_UNKNOWN) == 0)
                 goto error;
 
@@ -1924,9 +2904,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB27.1 Treat a Korean Syllable Block the same as ID.\n");
             gbctxt.curr_od = LB27;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt,
-                    next_gv, UCHAR_BREAK_INSEPARABLE, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc,
+                    UCHAR_BREAK_INSEPARABLE, BOV_UNKNOWN) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -1940,9 +2920,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB27.2 Treat a Korean Syllable Block the same as ID.\n");
             gbctxt.curr_od = LB27;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt,
-                    next_gv, UCHAR_BREAK_POSTFIX, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc,
+                    UCHAR_BREAK_POSTFIX, BOV_UNKNOWN) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -1952,8 +2932,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc, &next_bt)) > 0) {
             _DBG_PRINTF ("LB27.3 Treat a Korean Syllable Block the same as ID.\n");
             gbctxt.curr_od = LB27;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt, next_gv, next_bt, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc,
+                    next_bt, BOV_UNKNOWN) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -1969,7 +2950,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB28 Do not break between alphabetics (“at”)\n");
             gbctxt.curr_od = LB28;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         // LB29 Do not break between numeric punctuation
@@ -1979,7 +2960,7 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB29 Do not break between numeric punctuation\n");
             gbctxt.curr_od = LB29;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         // LB30 Do not break between letters, numbers, or ordinary symbols and
@@ -1991,19 +2972,14 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB30.1 Do not break between letters, numbers...\n");
             gbctxt.curr_od = LB30;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
         else if (bt == UCHAR_BREAK_CLOSE_PARANTHESIS
                 && is_next_glyph_al_hl_nu(&gbctxt,
                     mstr, mstr_len, &next_gv, &next_uc) > 0) {
             _DBG_PRINTF ("LB30.2 Do not break between letters, numbers...\n");
             gbctxt.curr_od = LB30;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-#if 0
-            if (gbctxt_push_back(&gbctxt, next_gv, BOV_UNKNOWN) == 0)
-                goto error;
-            cosumed_one_loop += next_mclen;
-#endif
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
 
         // LB30a Break between two regional indicator symbols if and only if
@@ -2014,17 +2990,11 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB30a.1 Break between two regional indicator symbols...\n");
             gbctxt.curr_od = LB30a;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt,
-                    next_gv, UCHAR_BREAK_REGIONAL_INDICATOR, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc,
+                    UCHAR_BREAK_REGIONAL_INDICATOR, BOV_UNKNOWN) == 0)
                 goto error;
             cosumed_one_loop += next_mclen;
-#if 0
-            next_mclen = check_subsequent_ri(&gbctxt,
-                mstr, mstr_len);
-            gbctxt_change_bo_last(&gbctxt, BOV_UNKNOWN);
-            cosumed_one_loop += next_mclen;
-#endif
         }
         else if (bt != UCHAR_BREAK_REGIONAL_INDICATOR
                 && (next_mclen = is_even_nubmer_of_subsequent_ri(&gbctxt,
@@ -2032,10 +3002,10 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
 
             _DBG_PRINTF ("LB30a.2 Break between two regional indicator symbols...\n");
             gbctxt.curr_od = LB30a;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
             next_mclen = check_subsequent_ri(&gbctxt,
                 mstr, mstr_len);
-            gbctxt_change_bo_last(&gbctxt, BOV_UNKNOWN);
+            gbctxt_change_lbo_last(&gbctxt, BOV_UNKNOWN);
 
             cosumed_one_loop += next_mclen;
         }
@@ -2046,9 +3016,9 @@ int GUIAPI GetGlyphsByRules(LOGFONT* logfont, const char* mstr, int mstr_len,
                     mstr, mstr_len, &next_gv, &next_uc)) > 0) {
             _DBG_PRINTF ("LB30b Do not break between an emoji base and an emoji modifier\n");
             gbctxt.curr_od = LB30b;
-            gbctxt_change_bo_last(&gbctxt, BOV_LB_NOTALLOWED);
-            if (gbctxt_push_back(&gbctxt,
-                    next_gv, UCHAR_BREAK_EMOJI_MODIFIER, BOV_UNKNOWN) == 0)
+            gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
+            if (gbctxt_push_back(&gbctxt, next_gv, next_uc,
+                    UCHAR_BREAK_EMOJI_MODIFIER, BOV_UNKNOWN) == 0)
                 goto error;
 
             cosumed_one_loop += next_mclen;
@@ -2062,7 +3032,13 @@ next_glyph:
         cosumed += cosumed_one_loop;
 
         // Return if we got any BK!
-        if (gbctxt.bos[gbctxt.n] == BOV_LB_MANDATORY) {
+        if ((gbctxt.bos[gbctxt.n] & BOV_LB_MASK) == BOV_LB_MANDATORY) {
+            // Rule GB2
+            gbctxt.bos[gbctxt.n] |= BOV_GB_CURSOR_POS;
+            // Rule WB2
+            gbctxt.bos[gbctxt.n] |= BOV_WB_WORD_BOUNDARY;
+            // Rule SB2
+            gbctxt.bos[gbctxt.n] |= BOV_SB_SENTENCE_BOUNDARY;
             break;
         }
     }
@@ -2071,13 +3047,13 @@ next_glyph:
         // LB31 Break everywhere else.
         int n;
         for (n = 1; n < gbctxt.n; n++) {
-            if (gbctxt.bos[n] == BOV_UNKNOWN) {
+            if ((gbctxt.bos[n] & BOV_LB_MASK) == BOV_UNKNOWN) {
                 _DBG_PRINTF ("LB31 Break everywhere else: %d\n", n);
-                gbctxt.bos[n] = BOV_LB_ALLOWED;
+                gbctxt.bos[n] |= (~BOV_LB_MASK & BOV_LB_ALLOWED);
             }
         }
 
-        *glyphs = gbctxt.gs;
+        *glyphs = gbctxt.gvs;
         *break_oppos = gbctxt.bos;
         if (break_classes)
             *break_classes = gbctxt.bts;
@@ -2087,15 +3063,15 @@ next_glyph:
         goto error;
 
     if (break_classes == NULL && gbctxt.bts) free(gbctxt.bts);
-    if (gbctxt.od) free(gbctxt.od);
+    if (gbctxt.ods) free(gbctxt.ods);
 
     return cosumed;
 
 error:
-    if (gbctxt.gs) free(gbctxt.gs);
+    if (gbctxt.gvs) free(gbctxt.gvs);
     if (gbctxt.bts) free(gbctxt.bts);
     if (gbctxt.bos) free(gbctxt.bos);
-    if (gbctxt.od) free(gbctxt.od);
+    if (gbctxt.ods) free(gbctxt.ods);
     return 0;
 }
 
@@ -2329,8 +3305,8 @@ static int find_breaking_pos_word(MYGLYPHARGS* args, int n)
 static inline BOOL is_invisible_glyph(const MYGLYPHINFO* gi)
 {
     return (
-        gi->gc == UCHAR_TYPE_CONTROL ||
-        gi->gc == UCHAR_TYPE_FORMAT ||
+        gi->gc == UCHAR_CATEGORY_CONTROL ||
+        gi->gc == UCHAR_CATEGORY_FORMAT ||
         gi->bt == UCHAR_BREAK_ZERO_WIDTH_SPACE ||
         gi->bt == UCHAR_BREAK_ZERO_WIDTH_JOINER
     );
@@ -2353,8 +3329,8 @@ static inline BOOL is_word_separator(const MYGLYPHINFO* gi)
 static inline BOOL is_typographic_char(const MYGLYPHINFO* gi)
 {
     return (
-        gi->gc != UCHAR_TYPE_FORMAT &&
-        gi->gc != UCHAR_TYPE_CONTROL
+        gi->gc != UCHAR_CATEGORY_FORMAT &&
+        gi->gc != UCHAR_CATEGORY_CONTROL
     );
 }
 
@@ -2820,9 +3796,9 @@ static void align_unhanged_glyphs(MYGLYPHARGS* args,
 static inline BOOL is_opening_punctation(const MYGLYPHINFO* gi)
 {
     return (
-        gi->gc == UCHAR_TYPE_OPEN_PUNCTUATION ||
-        gi->gc == UCHAR_TYPE_FINAL_PUNCTUATION ||
-        gi->gc == UCHAR_TYPE_INITIAL_PUNCTUATION ||
+        gi->gc == UCHAR_CATEGORY_OPEN_PUNCTUATION ||
+        gi->gc == UCHAR_CATEGORY_FINAL_PUNCTUATION ||
+        gi->gc == UCHAR_CATEGORY_INITIAL_PUNCTUATION ||
         gi->uc == 0x0027 ||
         gi->uc == 0x0022
     );
@@ -2831,9 +3807,9 @@ static inline BOOL is_opening_punctation(const MYGLYPHINFO* gi)
 static inline BOOL is_closing_punctation(const MYGLYPHINFO* gi)
 {
     return (
-        gi->gc == UCHAR_TYPE_CLOSE_PUNCTUATION ||
-        gi->gc == UCHAR_TYPE_FINAL_PUNCTUATION ||
-        gi->gc == UCHAR_TYPE_INITIAL_PUNCTUATION ||
+        gi->gc == UCHAR_CATEGORY_CLOSE_PUNCTUATION ||
+        gi->gc == UCHAR_CATEGORY_FINAL_PUNCTUATION ||
+        gi->gc == UCHAR_CATEGORY_INITIAL_PUNCTUATION ||
         gi->uc == 0x0027 ||
         gi->uc == 0x0022
     );

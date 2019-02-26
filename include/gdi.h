@@ -5872,72 +5872,72 @@ typedef Uint32 Uchar32;
 /**
  * UCharGeneralCategory: General category of a UNICODE character.
  *
- * - UCHAR_TYPE_CONTROL: General category "Other, Control" (Cc)
- * - UCHAR_TYPE_FORMAT: General category "Other, Format" (Cf)
- * - UCHAR_TYPE_UNASSIGNED: General category "Other, Not Assigned" (Cn)
- * - UCHAR_TYPE_PRIVATE_USE: General category "Other, Private Use" (Co)
- * - UCHAR_TYPE_SURROGATE: General category "Other, Surrogate" (Cs)
- * - UCHAR_TYPE_LOWERCASE_LETTER: General category "Letter, Lowercase" (Ll)
- * - UCHAR_TYPE_MODIFIER_LETTER: General category "Letter, Modifier" (Lm)
- * - UCHAR_TYPE_OTHER_LETTER: General category "Letter, Other" (Lo)
- * - UCHAR_TYPE_TITLECASE_LETTER: General category "Letter, Titlecase" (Lt)
- * - UCHAR_TYPE_UPPERCASE_LETTER: General category "Letter, Uppercase" (Lu)
- * - UCHAR_TYPE_SPACING_MARK: General category "Mark, Spacing" (Mc)
- * - UCHAR_TYPE_ENCLOSING_MARK: General category "Mark, Enclosing" (Me)
- * - UCHAR_TYPE_NON_SPACING_MARK: General category "Mark, Nonspacing" (Mn)
- * - UCHAR_TYPE_DECIMAL_NUMBER: General category "Number, Decimal Digit" (Nd)
- * - UCHAR_TYPE_LETTER_NUMBER: General category "Number, Letter" (Nl)
- * - UCHAR_TYPE_OTHER_NUMBER: General category "Number, Other" (No)
- * - UCHAR_TYPE_CONNECT_PUNCTUATION: General category "Punctuation, Connector" (Pc)
- * - UCHAR_TYPE_DASH_PUNCTUATION: General category "Punctuation, Dash" (Pd)
- * - UCHAR_TYPE_CLOSE_PUNCTUATION: General category "Punctuation, Close" (Pe)
- * - UCHAR_TYPE_FINAL_PUNCTUATION: General category "Punctuation, Final quote" (Pf)
- * - UCHAR_TYPE_INITIAL_PUNCTUATION: General category "Punctuation, Initial quote" (Pi)
- * - UCHAR_TYPE_OTHER_PUNCTUATION: General category "Punctuation, Other" (Po)
- * - UCHAR_TYPE_OPEN_PUNCTUATION: General category "Punctuation, Open" (Ps)
- * - UCHAR_TYPE_CURRENCY_SYMBOL: General category "Symbol, Currency" (Sc)
- * - UCHAR_TYPE_MODIFIER_SYMBOL: General category "Symbol, Modifier" (Sk)
- * - UCHAR_TYPE_MATH_SYMBOL: General category "Symbol, Math" (Sm)
- * - UCHAR_TYPE_OTHER_SYMBOL: General category "Symbol, Other" (So)
- * - UCHAR_TYPE_LINE_SEPARATOR: General category "Separator, Line" (Zl)
- * - UCHAR_TYPE_PARAGRAPH_SEPARATOR: General category "Separator, Paragraph" (Zp)
- * - UCHAR_TYPE_SPACE_SEPARATOR: General category "Separator, Space" (Zs)
+ * - UCHAR_CATEGORY_CONTROL: General category "Other, Control" (Cc)
+ * - UCHAR_CATEGORY_FORMAT: General category "Other, Format" (Cf)
+ * - UCHAR_CATEGORY_UNASSIGNED: General category "Other, Not Assigned" (Cn)
+ * - UCHAR_CATEGORY_PRIVATE_USE: General category "Other, Private Use" (Co)
+ * - UCHAR_CATEGORY_SURROGATE: General category "Other, Surrogate" (Cs)
+ * - UCHAR_CATEGORY_LOWERCASE_LETTER: General category "Letter, Lowercase" (Ll)
+ * - UCHAR_CATEGORY_MODIFIER_LETTER: General category "Letter, Modifier" (Lm)
+ * - UCHAR_CATEGORY_OTHER_LETTER: General category "Letter, Other" (Lo)
+ * - UCHAR_CATEGORY_TITLECASE_LETTER: General category "Letter, Titlecase" (Lt)
+ * - UCHAR_CATEGORY_UPPERCASE_LETTER: General category "Letter, Uppercase" (Lu)
+ * - UCHAR_CATEGORY_SPACING_MARK: General category "Mark, Spacing" (Mc)
+ * - UCHAR_CATEGORY_ENCLOSING_MARK: General category "Mark, Enclosing" (Me)
+ * - UCHAR_CATEGORY_NON_SPACING_MARK: General category "Mark, Nonspacing" (Mn)
+ * - UCHAR_CATEGORY_DECIMAL_NUMBER: General category "Number, Decimal Digit" (Nd)
+ * - UCHAR_CATEGORY_LETTER_NUMBER: General category "Number, Letter" (Nl)
+ * - UCHAR_CATEGORY_OTHER_NUMBER: General category "Number, Other" (No)
+ * - UCHAR_CATEGORY_CONNECT_PUNCTUATION: General category "Punctuation, Connector" (Pc)
+ * - UCHAR_CATEGORY_DASH_PUNCTUATION: General category "Punctuation, Dash" (Pd)
+ * - UCHAR_CATEGORY_CLOSE_PUNCTUATION: General category "Punctuation, Close" (Pe)
+ * - UCHAR_CATEGORY_FINAL_PUNCTUATION: General category "Punctuation, Final quote" (Pf)
+ * - UCHAR_CATEGORY_INITIAL_PUNCTUATION: General category "Punctuation, Initial quote" (Pi)
+ * - UCHAR_CATEGORY_OTHER_PUNCTUATION: General category "Punctuation, Other" (Po)
+ * - UCHAR_CATEGORY_OPEN_PUNCTUATION: General category "Punctuation, Open" (Ps)
+ * - UCHAR_CATEGORY_CURRENCY_SYMBOL: General category "Symbol, Currency" (Sc)
+ * - UCHAR_CATEGORY_MODIFIER_SYMBOL: General category "Symbol, Modifier" (Sk)
+ * - UCHAR_CATEGORY_MATH_SYMBOL: General category "Symbol, Math" (Sm)
+ * - UCHAR_CATEGORY_OTHER_SYMBOL: General category "Symbol, Other" (So)
+ * - UCHAR_CATEGORY_LINE_SEPARATOR: General category "Separator, Line" (Zl)
+ * - UCHAR_CATEGORY_PARAGRAPH_SEPARATOR: General category "Separator, Paragraph" (Zp)
+ * - UCHAR_CATEGORY_SPACE_SEPARATOR: General category "Separator, Space" (Zs)
  *
  * These are the possible character classifications from the
  * Unicode specification.
  * See [Unicode Character Database](http://www.unicode.org/reports/tr44/#General_Category_Values).
  */
 typedef enum {
-    UCHAR_TYPE_CONTROL,
-    UCHAR_TYPE_FORMAT,
-    UCHAR_TYPE_UNASSIGNED,
-    UCHAR_TYPE_PRIVATE_USE,
-    UCHAR_TYPE_SURROGATE,
-    UCHAR_TYPE_LOWERCASE_LETTER,
-    UCHAR_TYPE_MODIFIER_LETTER,
-    UCHAR_TYPE_OTHER_LETTER,
-    UCHAR_TYPE_TITLECASE_LETTER,
-    UCHAR_TYPE_UPPERCASE_LETTER,
-    UCHAR_TYPE_SPACING_MARK,
-    UCHAR_TYPE_ENCLOSING_MARK,
-    UCHAR_TYPE_NON_SPACING_MARK,
-    UCHAR_TYPE_DECIMAL_NUMBER,
-    UCHAR_TYPE_LETTER_NUMBER,
-    UCHAR_TYPE_OTHER_NUMBER,
-    UCHAR_TYPE_CONNECT_PUNCTUATION,
-    UCHAR_TYPE_DASH_PUNCTUATION,
-    UCHAR_TYPE_CLOSE_PUNCTUATION,
-    UCHAR_TYPE_FINAL_PUNCTUATION,
-    UCHAR_TYPE_INITIAL_PUNCTUATION,
-    UCHAR_TYPE_OTHER_PUNCTUATION,
-    UCHAR_TYPE_OPEN_PUNCTUATION,
-    UCHAR_TYPE_CURRENCY_SYMBOL,
-    UCHAR_TYPE_MODIFIER_SYMBOL,
-    UCHAR_TYPE_MATH_SYMBOL,
-    UCHAR_TYPE_OTHER_SYMBOL,
-    UCHAR_TYPE_LINE_SEPARATOR,
-    UCHAR_TYPE_PARAGRAPH_SEPARATOR,
-    UCHAR_TYPE_SPACE_SEPARATOR
+    UCHAR_CATEGORY_CONTROL,
+    UCHAR_CATEGORY_FORMAT,
+    UCHAR_CATEGORY_UNASSIGNED,
+    UCHAR_CATEGORY_PRIVATE_USE,
+    UCHAR_CATEGORY_SURROGATE,
+    UCHAR_CATEGORY_LOWERCASE_LETTER,
+    UCHAR_CATEGORY_MODIFIER_LETTER,
+    UCHAR_CATEGORY_OTHER_LETTER,
+    UCHAR_CATEGORY_TITLECASE_LETTER,
+    UCHAR_CATEGORY_UPPERCASE_LETTER,
+    UCHAR_CATEGORY_SPACING_MARK,
+    UCHAR_CATEGORY_ENCLOSING_MARK,
+    UCHAR_CATEGORY_NON_SPACING_MARK,
+    UCHAR_CATEGORY_DECIMAL_NUMBER,
+    UCHAR_CATEGORY_LETTER_NUMBER,
+    UCHAR_CATEGORY_OTHER_NUMBER,
+    UCHAR_CATEGORY_CONNECT_PUNCTUATION,
+    UCHAR_CATEGORY_DASH_PUNCTUATION,
+    UCHAR_CATEGORY_CLOSE_PUNCTUATION,
+    UCHAR_CATEGORY_FINAL_PUNCTUATION,
+    UCHAR_CATEGORY_INITIAL_PUNCTUATION,
+    UCHAR_CATEGORY_OTHER_PUNCTUATION,
+    UCHAR_CATEGORY_OPEN_PUNCTUATION,
+    UCHAR_CATEGORY_CURRENCY_SYMBOL,
+    UCHAR_CATEGORY_MODIFIER_SYMBOL,
+    UCHAR_CATEGORY_MATH_SYMBOL,
+    UCHAR_CATEGORY_OTHER_SYMBOL,
+    UCHAR_CATEGORY_LINE_SEPARATOR,
+    UCHAR_CATEGORY_PARAGRAPH_SEPARATOR,
+    UCHAR_CATEGORY_SPACE_SEPARATOR
 } UCharGeneralCategory;
 
 /**
@@ -10470,7 +10470,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * If set, the character is a whitespace character.
  */
-#define BOV_WHITE_SPACE             0x8000
+#define BOV_SPACE                   0x8000
 /**
  * If set, the character is a expandable space.
  */
@@ -10518,7 +10518,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * If set, the glyph is the first non-sentence character in a sentence.
  */
-#define BOV_SB_SENTANCE_END         0x0040
+#define BOV_SB_SENTENCE_END         0x0040
 
 #define BOV_LB_MASK                 0x000F
 #define BOV_LB_BREAK_FLAG           0x0004

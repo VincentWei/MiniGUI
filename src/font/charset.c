@@ -43,8 +43,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-#define DEBUG
-
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -3490,74 +3488,74 @@ static Glyph32 utf8_char_glyph_value (const unsigned char* pre_mchar, int pre_le
 #include "unicode-tables.h"
 #include "unicode-break.h"
 
-#define ATTR_TABLE(Page) (((Page) <= UCHAR_TYPE_LAST_PAGE_PART1) \
+#define ATTR_TABLE(Page) (((Page) <= UCHAR_CATEGORY_LAST_PAGE_PART1) \
                           ? attr_table_part1[Page] \
                           : attr_table_part2[(Page) - 0xe00])
 
 #define ATTTABLE(Page, Char) \
-  ((ATTR_TABLE(Page) == UCHAR_TYPE_MAX_TABLE_INDEX) ? 0 : (attr_data[ATTR_TABLE(Page)][Char]))
+  ((ATTR_TABLE(Page) == UCHAR_CATEGORY_MAX_TABLE_INDEX) ? 0 : (attr_data[ATTR_TABLE(Page)][Char]))
 
 #define TTYPE_PART1(Page, Char) \
-  ((type_table_part1[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
-   ? (type_table_part1[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
+  ((type_table_part1[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+   ? (type_table_part1[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
    : (type_data[type_table_part1[Page]][Char]))
 
 #define TTYPE_PART2(Page, Char) \
-  ((type_table_part2[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
-   ? (type_table_part2[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
+  ((type_table_part2[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+   ? (type_table_part2[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
    : (type_data[type_table_part2[Page]][Char]))
 
 #define TYPE(Char) \
-  (((Char) <= UCHAR_TYPE_LAST_CHAR_PART1) \
+  (((Char) <= UCHAR_CATEGORY_LAST_CHAR_PART1) \
    ? TTYPE_PART1 ((Char) >> 8, (Char) & 0xff) \
-   : (((Char) >= 0xe0000 && (Char) <= UCHAR_TYPE_LAST_CHAR) \
+   : (((Char) >= 0xe0000 && (Char) <= UCHAR_CATEGORY_LAST_CHAR) \
       ? TTYPE_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
-      : UCHAR_TYPE_UNASSIGNED))
+      : UCHAR_CATEGORY_UNASSIGNED))
 
 #define IS(Type, Class) (((unsigned int)1 << (Type)) & (Class))
 #define OR(Type, Rest)  (((unsigned int)1 << (Type)) | (Rest))
 
 #define ISALPHA(Type)   IS ((Type),             \
-                OR (UCHAR_TYPE_LOWERCASE_LETTER, \
-                OR (UCHAR_TYPE_UPPERCASE_LETTER, \
-                OR (UCHAR_TYPE_TITLECASE_LETTER, \
-                OR (UCHAR_TYPE_MODIFIER_LETTER,  \
-                OR (UCHAR_TYPE_OTHER_LETTER,     0))))))
+                OR (UCHAR_CATEGORY_LOWERCASE_LETTER, \
+                OR (UCHAR_CATEGORY_UPPERCASE_LETTER, \
+                OR (UCHAR_CATEGORY_TITLECASE_LETTER, \
+                OR (UCHAR_CATEGORY_MODIFIER_LETTER,  \
+                OR (UCHAR_CATEGORY_OTHER_LETTER,     0))))))
 
 #define ISALDIGIT(Type) IS ((Type),             \
-                OR (UCHAR_TYPE_DECIMAL_NUMBER,   \
-                OR (UCHAR_TYPE_LETTER_NUMBER,    \
-                OR (UCHAR_TYPE_OTHER_NUMBER,     \
-                OR (UCHAR_TYPE_LOWERCASE_LETTER, \
-                OR (UCHAR_TYPE_UPPERCASE_LETTER, \
-                OR (UCHAR_TYPE_TITLECASE_LETTER, \
-                OR (UCHAR_TYPE_MODIFIER_LETTER,  \
-                OR (UCHAR_TYPE_OTHER_LETTER,     0)))))))))
+                OR (UCHAR_CATEGORY_DECIMAL_NUMBER,   \
+                OR (UCHAR_CATEGORY_LETTER_NUMBER,    \
+                OR (UCHAR_CATEGORY_OTHER_NUMBER,     \
+                OR (UCHAR_CATEGORY_LOWERCASE_LETTER, \
+                OR (UCHAR_CATEGORY_UPPERCASE_LETTER, \
+                OR (UCHAR_CATEGORY_TITLECASE_LETTER, \
+                OR (UCHAR_CATEGORY_MODIFIER_LETTER,  \
+                OR (UCHAR_CATEGORY_OTHER_LETTER,     0)))))))))
 
 #define ISMARK(Type)    IS ((Type),             \
-                OR (UCHAR_TYPE_NON_SPACING_MARK, \
-                OR (UCHAR_TYPE_SPACING_MARK, \
-                OR (UCHAR_TYPE_ENCLOSING_MARK,   0))))
+                OR (UCHAR_CATEGORY_NON_SPACING_MARK, \
+                OR (UCHAR_CATEGORY_SPACING_MARK, \
+                OR (UCHAR_CATEGORY_ENCLOSING_MARK,   0))))
 
 #define ISZEROWIDTHTYPE(Type)   IS ((Type),         \
-                OR (UCHAR_TYPE_NON_SPACING_MARK, \
-                OR (UCHAR_TYPE_ENCLOSING_MARK,   \
-                OR (UCHAR_TYPE_FORMAT,       0))))
+                OR (UCHAR_CATEGORY_NON_SPACING_MARK, \
+                OR (UCHAR_CATEGORY_ENCLOSING_MARK,   \
+                OR (UCHAR_CATEGORY_FORMAT,       0))))
 
 #define TPROP_PART1(Page, Char) \
-  ((break_property_table_part1[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
-   ? (break_property_table_part1[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
+  ((break_property_table_part1[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+   ? (break_property_table_part1[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
    : (break_property_data[break_property_table_part1[Page]][Char]))
 
 #define TPROP_PART2(Page, Char) \
-  ((break_property_table_part2[Page] >= UCHAR_TYPE_MAX_TABLE_INDEX) \
-   ? (break_property_table_part2[Page] - UCHAR_TYPE_MAX_TABLE_INDEX) \
+  ((break_property_table_part2[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+   ? (break_property_table_part2[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
    : (break_property_data[break_property_table_part2[Page]][Char]))
 
 #define PROP(Char) \
-  (((Char) <= UCHAR_TYPE_LAST_CHAR_PART1) \
+  (((Char) <= UCHAR_CATEGORY_LAST_CHAR_PART1) \
    ? TPROP_PART1 ((Char) >> 8, (Char) & 0xff) \
-   : (((Char) >= 0xe0000 && (Char) <= UCHAR_TYPE_LAST_CHAR) \
+   : (((Char) >= 0xe0000 && (Char) <= UCHAR_CATEGORY_LAST_CHAR) \
       ? TPROP_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
       : UCHAR_BREAK_UNKNOWN))
 
@@ -4449,59 +4447,59 @@ BOOL GUIAPI IsUCharAlpha(Uchar32 uc)
 
 BOOL GUIAPI IsUCharControl(Uchar32 uc)
 {
-    return TYPE(uc) == UCHAR_TYPE_CONTROL;
+    return TYPE(uc) == UCHAR_CATEGORY_CONTROL;
 }
 
 BOOL GUIAPI IsUCharDigit(Uchar32 uc)
 {
-    return TYPE(uc) == UCHAR_TYPE_DECIMAL_NUMBER;
+    return TYPE(uc) == UCHAR_CATEGORY_DECIMAL_NUMBER;
 }
 
 BOOL GUIAPI IsUCharGraph(Uchar32 uc)
 {
     return !IS (TYPE(uc),
-            OR (UCHAR_TYPE_CONTROL,
-            OR (UCHAR_TYPE_FORMAT,
-            OR (UCHAR_TYPE_UNASSIGNED,
-            OR (UCHAR_TYPE_SURROGATE,
-            OR (UCHAR_TYPE_SPACE_SEPARATOR,
+            OR (UCHAR_CATEGORY_CONTROL,
+            OR (UCHAR_CATEGORY_FORMAT,
+            OR (UCHAR_CATEGORY_UNASSIGNED,
+            OR (UCHAR_CATEGORY_SURROGATE,
+            OR (UCHAR_CATEGORY_SPACE_SEPARATOR,
             0))))));
 }
 
 BOOL GUIAPI IsUCharLowercase(Uchar32 uc)
 {
-    return TYPE(uc) == UCHAR_TYPE_LOWERCASE_LETTER;
+    return TYPE(uc) == UCHAR_CATEGORY_LOWERCASE_LETTER;
 }
 
 BOOL GUIAPI IsUCharPrint(Uchar32 uc)
 {
     return !IS (TYPE(uc),
-            OR (UCHAR_TYPE_CONTROL,
-            OR (UCHAR_TYPE_FORMAT,
-            OR (UCHAR_TYPE_UNASSIGNED,
-            OR (UCHAR_TYPE_SURROGATE,
+            OR (UCHAR_CATEGORY_CONTROL,
+            OR (UCHAR_CATEGORY_FORMAT,
+            OR (UCHAR_CATEGORY_UNASSIGNED,
+            OR (UCHAR_CATEGORY_SURROGATE,
             0)))));
 }
 
 BOOL GUIAPI IsUCharUppercase(Uchar32 uc)
 {
-    return TYPE(uc) == UCHAR_TYPE_UPPERCASE_LETTER;
+    return TYPE(uc) == UCHAR_CATEGORY_UPPERCASE_LETTER;
 }
 
 BOOL GUIAPI IsUCharPunct(Uchar32 uc)
 {
     return IS (TYPE(uc),
-            OR (UCHAR_TYPE_CONNECT_PUNCTUATION,
-            OR (UCHAR_TYPE_DASH_PUNCTUATION,
-            OR (UCHAR_TYPE_CLOSE_PUNCTUATION,
-            OR (UCHAR_TYPE_FINAL_PUNCTUATION,
-            OR (UCHAR_TYPE_INITIAL_PUNCTUATION,
-            OR (UCHAR_TYPE_OTHER_PUNCTUATION,
-            OR (UCHAR_TYPE_OPEN_PUNCTUATION,
-            OR (UCHAR_TYPE_CURRENCY_SYMBOL,
-            OR (UCHAR_TYPE_MODIFIER_SYMBOL,
-            OR (UCHAR_TYPE_MATH_SYMBOL,
-            OR (UCHAR_TYPE_OTHER_SYMBOL,
+            OR (UCHAR_CATEGORY_CONNECT_PUNCTUATION,
+            OR (UCHAR_CATEGORY_DASH_PUNCTUATION,
+            OR (UCHAR_CATEGORY_CLOSE_PUNCTUATION,
+            OR (UCHAR_CATEGORY_FINAL_PUNCTUATION,
+            OR (UCHAR_CATEGORY_INITIAL_PUNCTUATION,
+            OR (UCHAR_CATEGORY_OTHER_PUNCTUATION,
+            OR (UCHAR_CATEGORY_OPEN_PUNCTUATION,
+            OR (UCHAR_CATEGORY_CURRENCY_SYMBOL,
+            OR (UCHAR_CATEGORY_MODIFIER_SYMBOL,
+            OR (UCHAR_CATEGORY_MATH_SYMBOL,
+            OR (UCHAR_CATEGORY_OTHER_SYMBOL,
             0))))))))))));
 }
 
@@ -4517,9 +4515,9 @@ BOOL GUIAPI IsUCharSpace(Uchar32 uc)
 
     default: {
         if (IS (TYPE(uc),
-               OR (UCHAR_TYPE_SPACE_SEPARATOR,
-               OR (UCHAR_TYPE_LINE_SEPARATOR,
-               OR (UCHAR_TYPE_PARAGRAPH_SEPARATOR,
+               OR (UCHAR_CATEGORY_SPACE_SEPARATOR,
+               OR (UCHAR_CATEGORY_LINE_SEPARATOR,
+               OR (UCHAR_CATEGORY_PARAGRAPH_SEPARATOR,
                 0)))))
             return TRUE;
         }
@@ -4551,14 +4549,14 @@ BOOL GUIAPI IsUCharXDigit(Uchar32 uc)
 {
     return ((uc >= 'a' && uc <= 'f')
             || (uc >= 'A' && uc <= 'F')
-            || (TYPE(uc) == UCHAR_TYPE_DECIMAL_NUMBER));
+            || (TYPE(uc) == UCHAR_CATEGORY_DECIMAL_NUMBER));
 }
 
 BOOL GUIAPI IsUCharDefined(Uchar32 uc)
 {
     return !IS (TYPE(uc),
-              OR (UCHAR_TYPE_UNASSIGNED,
-              OR (UCHAR_TYPE_SURROGATE,
+              OR (UCHAR_CATEGORY_UNASSIGNED,
+              OR (UCHAR_CATEGORY_SURROGATE,
              0)));
 }
 
@@ -4641,7 +4639,7 @@ BOOL GUIAPI IsUCharWideCJK (Uchar32 uc)
 Uchar32 UCharToUpper (Uchar32 uc)
 {
     int t = TYPE (uc);
-    if (t == UCHAR_TYPE_LOWERCASE_LETTER) {
+    if (t == UCHAR_CATEGORY_LOWERCASE_LETTER) {
         Uchar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
@@ -4653,7 +4651,7 @@ Uchar32 UCharToUpper (Uchar32 uc)
          */
         return val ? val : uc;
     }
-    else if (t == UCHAR_TYPE_TITLECASE_LETTER) {
+    else if (t == UCHAR_CATEGORY_TITLECASE_LETTER) {
         unsigned int i;
         for (i = 0; i < TABLESIZE (title_table); ++i) {
             if (title_table[i][0] == uc)
@@ -4670,7 +4668,7 @@ Uchar32 UCharToUpper (Uchar32 uc)
 Uchar32 GUIAPI UCharToLower (Uchar32 uc)
 {
     int t = TYPE (uc);
-    if (t == UCHAR_TYPE_UPPERCASE_LETTER) {
+    if (t == UCHAR_CATEGORY_UPPERCASE_LETTER) {
         Uchar32 val = ATTTABLE (uc >> 8, uc & 0xff);
         if (val >= 0x1000000) {
             const unsigned char *p = special_case_table + val - 0x1000000;
@@ -4682,7 +4680,7 @@ Uchar32 GUIAPI UCharToLower (Uchar32 uc)
             return val ? val : uc;
         }
     }
-    else if (t == UCHAR_TYPE_TITLECASE_LETTER) {
+    else if (t == UCHAR_CATEGORY_TITLECASE_LETTER) {
         unsigned int i;
         for (i = 0; i < TABLESIZE (title_table); ++i) {
             if (title_table[i][0] == uc)
@@ -4704,7 +4702,7 @@ Uchar32 GUIAPI UCharToTitle (Uchar32 uc)
             return title_table[i][0];
     }
 
-    if (TYPE (uc) == UCHAR_TYPE_LOWERCASE_LETTER)
+    if (TYPE (uc) == UCHAR_CATEGORY_LOWERCASE_LETTER)
         return UCharToUpper (uc);
 
     return uc;

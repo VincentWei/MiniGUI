@@ -10,11 +10,12 @@ SRC_FILES = charset.c charset-arabic.c charset-bidi.c \
             gbunimap.c gbkunimap.c gb18030unimap.c big5unimap.c \
             ujisunimap.c sjisunimap.c euckrunimap.c \
             textops.c mapunitogb.c mapunitogbk.c mapunitobig5.c mapunitogb18030.c \
-            bitmapfont.c scripteasy.c
+            bitmapfont.c scripteasy.c \
+            unicode-emoji.c
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \
-            unicode-tables.h unicode-break.h unicode-decomp.h unicode-comp.h
+            unicode-tables.h unicode-break.h unicode-decomp.h unicode-comp.h unicode-emoji-table.h
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc
