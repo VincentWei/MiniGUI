@@ -10470,13 +10470,18 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * If set, the character is a whitespace character.
  */
-#define BOV_SPACE                   0x8000
+#define BOV_WHITESPACE              0x8000
 /**
- * If set, the character is a expandable space.
+ * If set, the character is an expandable space.
  */
 #define BOV_EXPANDABLE_SPACE        0x0800
 
-#define BOV_GB_MASK                 0xF000
+/**
+ * If set, the character has zero width.
+ */
+#define BOV_ZERO_WIDTH              0x0080
+
+#define BOV_GB_MASK                 0x7000
 /**
  * If set, can break at the character when doing character wrap.
  */
@@ -10492,7 +10497,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  */
 #define BOV_GB_BACKSPACE_DEL_CH     0x4000
 
-#define BOV_WB_MASK                 0x0F00
+#define BOV_WB_MASK                 0x0700
 /**
  * If set, the glyph is the word boundary as defined by UAX#29.
  */
@@ -10506,7 +10511,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  */
 #define BOV_WB_WORD_END             0x0400
 
-#define BOV_SB_MASK                 0x00F0
+#define BOV_SB_MASK                 0x0070
 /**
  * If set, the glyph is the sentence boundary as defined by UAX#29.
  */
@@ -10516,7 +10521,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  */
 #define BOV_SB_SENTENCE_START       0x0020
 /**
- * If set, the glyph is the first non-sentence character in a sentence.
+ * If set, the glyph is the first non-sentence character after a sentence.
  */
 #define BOV_SB_SENTENCE_END         0x0040
 

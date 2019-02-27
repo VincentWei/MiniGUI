@@ -869,7 +869,7 @@ static void check_hangul_syllable(struct glyph_break_ctxt* gbctxt,
         gbctxt->prev_jamo = jamo;
 }
 
-static Uint16 check_white_space(struct glyph_break_ctxt* gbctxt,
+static Uint16 check_space(struct glyph_break_ctxt* gbctxt,
         Uchar32 uc, Uint8 gc)
 {
     Uint16 bo;
@@ -878,12 +878,12 @@ static Uint16 check_white_space(struct glyph_break_ctxt* gbctxt,
     case UCHAR_CATEGORY_SPACE_SEPARATOR:
     case UCHAR_CATEGORY_LINE_SEPARATOR:
     case UCHAR_CATEGORY_PARAGRAPH_SEPARATOR:
-        bo = BOV_SPACE;
+        bo = BOV_WHITESPACE;
         break;
 
     default:
         if (uc == '\t' || uc == '\n' || uc == '\r' || uc == '\f')
-            bo = BOV_SPACE;
+            bo = BOV_WHITESPACE;
         else
             bo = BOV_UNKNOWN;
         break;
@@ -894,6 +894,14 @@ static Uint16 check_white_space(struct glyph_break_ctxt* gbctxt,
     if (0x0020 == uc || 0x00A0 == uc) {
         bo |= BOV_EXPANDABLE_SPACE;
     }
+
+    if (uc != 0x00AD && (
+            gc == UCHAR_CATEGORY_NON_SPACING_MARK ||
+            gc == UCHAR_CATEGORY_ENCLOSING_MARK ||
+            gc == UCHAR_CATEGORY_FORMAT))
+        bo |= BOV_ZERO_WIDTH;
+    else if ((uc >= 0x1160 && uc < 0x1200) || uc == 0x200B)
+        bo |= BOV_ZERO_WIDTH;
 
     return bo;
 }
@@ -1216,8 +1224,8 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
         Uchar32 uc, Uint8 gc, int i)
 {
     /* default to not a word start/end */
-    gbctxt->bos[i - 1] &= ~BOV_WB_WORD_START;
-    gbctxt->bos[i - 1] &= ~BOV_WB_WORD_END;
+    gbctxt->bos[i] &= ~BOV_WB_WORD_START;
+    gbctxt->bos[i] &= ~BOV_WB_WORD_END;
 
     if (gbctxt->curr_wt != WordNone) {
         /* Check for a word end */
@@ -1248,7 +1256,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
                              !JAPANESE (uc)) ||
                             (!JAPANESE (gbctxt->last_word_letter) &&
                              JAPANESE (uc)))
-                        gbctxt->bos[i - 1] |= BOV_WB_WORD_END;
+                        gbctxt->bos[i] |= BOV_WB_WORD_END;
                 }
             }
             gbctxt->last_word_letter = uc;
@@ -1262,7 +1270,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
 
         default:
             /* Punctuation, control/format chars, etc. all end a word. */
-            gbctxt->bos[i - 1] |= BOV_WB_WORD_END;
+            gbctxt->bos[i] |= BOV_WB_WORD_END;
             gbctxt->curr_wt = WordNone;
             break;
         }
@@ -1277,7 +1285,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
         case UCHAR_CATEGORY_UPPERCASE_LETTER:
             gbctxt->curr_wt = WordLetters;
             gbctxt->last_word_letter = uc;
-            gbctxt->bos[i - 1] |= BOV_WB_WORD_START;
+            gbctxt->bos[i] |= BOV_WB_WORD_START;
             break;
 
         case UCHAR_CATEGORY_DECIMAL_NUMBER:
@@ -1285,7 +1293,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
         case UCHAR_CATEGORY_OTHER_NUMBER:
             gbctxt->curr_wt = WordNumbers;
             gbctxt->last_word_letter = uc;
-            gbctxt->bos[i - 1] |= BOV_WB_WORD_START;
+            gbctxt->bos[i] |= BOV_WB_WORD_START;
             break;
 
         default:
@@ -1300,36 +1308,36 @@ static void check_sentence_breaks(struct glyph_break_ctxt* gbctxt,
         Uchar32 uc, Uint8 gc, int i)
 {
     /* default to not a sentence start/end */
-    gbctxt->bos[i - 1] &= ~BOV_SB_SENTENCE_START;
-    gbctxt->bos[i - 1] &= ~BOV_SB_SENTENCE_END;
+    gbctxt->bos[i] &= ~BOV_SB_SENTENCE_START;
+    gbctxt->bos[i] &= ~BOV_SB_SENTENCE_END;
 
     /* maybe start sentence */
-    if (gbctxt->last_stc_start == 0 && !gbctxt->is_sentence_boundary)
+    if (gbctxt->last_stc_start == -1 && !gbctxt->is_sentence_boundary)
         gbctxt->last_stc_start = i - 1;
 
     /* remember last non space character position */
-    if (i > 1 && !(gbctxt->bos[i - 2] & BOV_SPACE))
+    if (i > 0 && !(gbctxt->bos[i - 1] & BOV_WHITESPACE))
         gbctxt->last_non_space = i;
 
     /* meets sentence end, mark both sentence start and end */
-    if (gbctxt->last_stc_start != 0 && gbctxt->is_sentence_boundary) {
-        if (gbctxt->last_non_space != 0) {
-            gbctxt->bos[gbctxt->last_stc_start - 1] |= BOV_SB_SENTENCE_START;
-            gbctxt->bos[gbctxt->last_non_space - 1] |= BOV_SB_SENTENCE_END;
+    if (gbctxt->last_stc_start != -1 && gbctxt->is_sentence_boundary) {
+        if (gbctxt->last_non_space != -1) {
+            gbctxt->bos[gbctxt->last_stc_start] |= BOV_SB_SENTENCE_START;
+            gbctxt->bos[gbctxt->last_non_space] |= BOV_SB_SENTENCE_END;
         }
 
-        gbctxt->last_stc_start = 0;
-        gbctxt->last_non_space = 0;
+        gbctxt->last_stc_start = -1;
+        gbctxt->last_non_space = -1;
     }
 
     /* meets space character, move sentence start */
-    if (gbctxt->last_stc_start != 0 &&
+    if (gbctxt->last_stc_start != -1 &&
             gbctxt->last_stc_start == i - 1 &&
-            (gbctxt->bos[i - 2] & BOV_SPACE))
+            (gbctxt->bos[i - 1] & BOV_WHITESPACE))
         gbctxt->last_stc_start++;
 }
 
-#if 0
+#if 1
 static void dbg_dump_gbctxt(struct glyph_break_ctxt* gbctxt,
         const char* func, Uchar32 uc, Uint16 gwsbo)
 {
@@ -1340,7 +1348,7 @@ static void dbg_dump_gbctxt(struct glyph_break_ctxt* gbctxt,
         "\tis_grapheme_boundary: %d\n"
         "\tis_word_boundary: %d\n"
         "\tis_sentence_boundary: %d\n"
-        "\tBOV_SPACE: %s\n"
+        "\tBOV_WHITESPACE: %s\n"
         "\tBOV_EXPANDABLE_SPACE: %s\n"
         "\tBOV_GB_CHAR_BREAK: %s\n"
         "\tBOV_GB_CURSOR_POS: %s\n"
@@ -1358,7 +1366,7 @@ static void dbg_dump_gbctxt(struct glyph_break_ctxt* gbctxt,
         gbctxt->is_grapheme_boundary,
         gbctxt->is_word_boundary,
         gbctxt->is_sentence_boundary,
-        (gwsbo & BOV_SPACE)?"TRUE":"FALSE",
+        (gwsbo & BOV_WHITESPACE)?"TRUE":"FALSE",
         (gwsbo & BOV_EXPANDABLE_SPACE)?"TRUE":"FALSE",
         (gwsbo & BOV_GB_CHAR_BREAK)?"TRUE":"FALSE",
         (gwsbo & BOV_GB_CURSOR_POS)?"TRUE":"FALSE",
@@ -1421,8 +1429,8 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         check_hangul_syllable(gbctxt, uc, bt);
         //dbg_dump_gbctxt(gbctxt, "check_hangul_syllable", uc, gwsbo);
 
-        gwsbo |= check_white_space(gbctxt, uc, gc);
-        //dbg_dump_gbctxt(gbctxt, "check_white_space", uc, gwsbo);
+        gbctxt->bos[gbctxt->n] |= check_space(gbctxt, uc, gc);
+        //dbg_dump_gbctxt(gbctxt, "check_space", uc, gwsbo);
 
         check_emoji_extended_pictographic(gbctxt, uc);
         //dbg_dump_gbctxt(gbctxt, "check_extended_pictographic", uc, gwsbo);
@@ -1439,7 +1447,10 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         gbctxt->bos[gbctxt->n - 1] |= gwsbo;
 
         check_word_breaks(gbctxt, uc, gc, gbctxt->n);
+        dbg_dump_gbctxt(gbctxt, "check_word_breaks", uc, gwsbo);
+
         check_sentence_breaks(gbctxt, uc, gc, gbctxt->n);
+        dbg_dump_gbctxt(gbctxt, "check_sentence_breaks", uc, gwsbo);
 
         gbctxt->prev_uc = uc;
 
@@ -2161,8 +2172,8 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
 
     // NOTE: the index 0 of break_oppos is the break opportunity
     // before the first glyph.
-    gbctxt.last_stc_start = 0;
-    gbctxt.last_non_space = 0;
+    gbctxt.last_stc_start = -1;
+    gbctxt.last_non_space = -1;
     gbctxt.prev_wb_index = 0;
     gbctxt.prev_sb_index = 0;
 
@@ -3362,34 +3373,35 @@ static int find_breaking_pos_word(MYGLYPHARGS* args, int n)
     return -1;
 }
 
-static inline BOOL is_invisible_glyph(const MYGLYPHINFO* gi)
+static inline BOOL is_zero_width_glyph(const MYGLYPHARGS* args,
+        const MYGLYPHINFO* gis, int i)
 {
-    return (
-        gi->gc == UCHAR_CATEGORY_CONTROL ||
-        gi->gc == UCHAR_CATEGORY_FORMAT
-    );
+    return (args->bos[i] & BOV_ZERO_WIDTH);
 }
 
-static inline BOOL is_word_separator(const MYGLYPHINFO* gi)
+static inline BOOL is_word_separator(const MYGLYPHARGS* args,
+        const MYGLYPHINFO* gis, int i)
 {
+#if 0
+    return (args->bos[i] & BOV_WB_WORD_BOUNDARY);
+#else
     return (
-        gi->uc == 0x0020 || gi->uc == 0x00A0 ||
-        gi->uc == 0x1361 ||
-        gi->uc == 0x10100 || gi->uc == 0x10101 ||
-        gi->uc == 0x1039F || gi->uc == 0x1091F
+        gis[i].uc == 0x0020 || gis[i].uc == 0x00A0 ||
+        gis[i].uc == 0x1361 ||
+        gis[i].uc == 0x10100 || gis[i].uc == 0x10101 ||
+        gis[i].uc == 0x1039F || gis[i].uc == 0x1091F
     );
+#endif
 }
 
 /*
  * TODO: scripts and spacing:
  * https://www.w3.org/TR/css-text-3/#script-groups
  */
-static inline BOOL is_typographic_char(const MYGLYPHINFO* gi)
+static inline BOOL is_typographic_char(const MYGLYPHARGS* args,
+        const MYGLYPHINFO* gis, int i)
 {
-    return (
-        gi->gc != UCHAR_CATEGORY_FORMAT &&
-        gi->gc != UCHAR_CATEGORY_CONTROL
-    );
+    return (args->bos[i - 1] & BOV_GB_CHAR_BREAK);
 }
 
 static void justify_glyphs_inter_word(MYGLYPHARGS* args,
@@ -3402,7 +3414,7 @@ static void justify_glyphs_inter_word(MYGLYPHARGS* args,
 
     for (i = 0; i < n; i++) {
         if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                is_word_separator(gis + i)) {
+                is_word_separator(args, gis, i)) {
             nr_words++;
             gis[i].justify_word = 1;
         }
@@ -3453,8 +3465,8 @@ static void justify_glyphs_inter_char(MYGLYPHARGS* args,
 
     for (i = 0; i < n; i++) {
         if (gis[i].ignored == 0 && gis[i].hanged == 0 &&
-                !is_word_separator(gis + i) &&
-                is_typographic_char(gis + i)) {
+                !is_word_separator(args, gis, i) &&
+                is_typographic_char(args, gis, i)) {
             nr_chars++;
             gis[i].justify_char = 1;
         }
@@ -3513,16 +3525,20 @@ static void justify_glyphs_auto(MYGLYPHARGS* args,
         gis[i].justify_word = 0;
         gis[i].justify_char = 0;
         if (gis[i].ignored == 0 && gis[i].hanged == 0) {
-            if (is_word_separator(gis + i) || IsUCharWideCJK(gis[i].uc)) {
+            if ((is_word_separator(args, gis, i) && i != 0) ||
+                    IsUCharWideCJK(gis[i].uc)) {
                 nr_words++;
                 gis[i].justify_word = 1;
             }
-            else if (is_typographic_char(gis + i)) {
+            else if (is_typographic_char(args, gis, i)) {
                 nr_chars++;
                 gis[i].justify_char = 1;
             }
         }
     }
+
+    _DBG_PRINTF("%s: nr_words(%d), nr_chars(%d)\n",
+        __FUNCTION__, nr_words, nr_chars);
 
     nr_chars--;
 
@@ -3968,22 +3984,26 @@ static int get_glyph_extent_info(MYGLYPHARGS* args, Glyph32 gv,
     return line_adv;
 }
 
-static int get_first_normal_glyph(MYGLYPHINFO* gis, int n)
+static int get_first_normal_glyph(const MYGLYPHARGS* args,
+        const MYGLYPHINFO* gis, int n)
 {
     int i;
     for (i = 0; i < n; i++) {
-        if (gis[i].ignored == 0 && gis[i].hanged == 0)
+        if (gis[i].ignored == 0 && gis[i].hanged == 0
+                && (args->bos[i - 1] & BOV_GB_CHAR_BREAK))
             return i;
     }
 
     return -1;
 }
 
-static int get_last_normal_glyph(MYGLYPHINFO* gis, int n)
+static int get_last_normal_glyph(const MYGLYPHARGS* args,
+        const MYGLYPHINFO* gis, int n)
 {
     int i;
     for (i = n - 1; i >= 0; i--) {
-        if (gis[i].ignored == 0 && gis[i].hanged == 0)
+        if (gis[i].ignored == 0 && gis[i].hanged == 0
+                && (args->bos[i - 1] & BOV_GB_CHAR_BREAK))
             return i;
     }
 
@@ -4052,9 +4072,6 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     if (gis == NULL)
         goto error;
 
-    // skip the breaking opportunity before the first glyph
-    // break_oppos++;
-
     args.lfur = logfont_upright;
     args.lfsw = *logfont_sideways;
     args.gvs = glyphs;
@@ -4102,7 +4119,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
                 ges[n].line_adv = 0;
             }
         }
-        else if (is_invisible_glyph (gis + n)) {
+        else if (is_zero_width_glyph(&args, gis, n)) {
             gis[n].ignored = 1;
             ges[n].line_adv = 0;
         }
@@ -4113,10 +4130,10 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
 
         // extra space for word and letter
         extra_spacing = 0;
-        if (gis[n].ignored == 0 && is_word_separator(gis + n)) {
+        if (gis[n].ignored == 0 && is_word_separator(&args, gis, n)) {
             extra_spacing = word_spacing;
         }
-        else if (gis[n].ignored == 0 && is_typographic_char(gis + n)) {
+        else if (gis[n].ignored == 0 && is_typographic_char(&args, gis, n)) {
             extra_spacing = letter_spacing;
         }
 
@@ -4219,7 +4236,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     }
 
     if (render_flags & GRF_HANGING_PUNC_OPEN) {
-        int first = get_first_normal_glyph(gis, n);
+        int first = get_first_normal_glyph(&args, gis, n);
         if (first >= 0 && is_opening_punctation(gis + first)) {
             gis[first].hanged = GLYPH_HANGED_START;
             if (first > args.hanged_start) args.hanged_start = first;
@@ -4227,7 +4244,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
     }
 
     if (n > 1 && render_flags & GRF_HANGING_PUNC_CLOSE) {
-        int last = get_last_normal_glyph(gis, n);
+        int last = get_last_normal_glyph(&args, gis, n);
         if (last > 0 && is_closing_punctation(gis + last)) {
             gis[last].hanged = GLYPH_HANGED_END;
             if (last < args.hanged_end) args.hanged_end = last;
@@ -4246,7 +4263,7 @@ int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
 
     if (render_flags & GRF_HANGING_PUNC_FORCE_END) {
         // A stop or comma at the end of a line hangs.
-        int last = get_last_normal_glyph(gis, n);
+        int last = get_last_normal_glyph(&args, gis, n);
         if (last > 0 && is_stop_or_common(gis + last)) {
             gis[last].hanged = GLYPH_HANGED_END;
             if (last < args.hanged_end) args.hanged_end = last;
