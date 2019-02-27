@@ -1382,6 +1382,14 @@ static void dbg_dump_gbctxt(struct glyph_break_ctxt* gbctxt,
 #define dbg_dump_gbctxt(gbctxt, func, uc, gwsbo)
 #endif
 
+static inline Glyph32 uc2gv(Glyph32 gv, Uchar32 uc)
+{
+    if (IS_MBC_GLYPH(gv))
+        return SET_MBC_GLYPH(uc);
+
+    return uc;
+}
+
 static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         Glyph32 gv, Uchar32 uc, Uint8 bt, Uint16 lbo)
 {
@@ -1451,6 +1459,39 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
 
         check_sentence_breaks(gbctxt, uc, gc, gbctxt->n);
         dbg_dump_gbctxt(gbctxt, "check_sentence_breaks", uc, gwsbo);
+
+        // Character Transformation
+        // NOTE: Assume character transformation will not affect the breaks
+        if (gbctxt->ctr) {
+            Uchar32 new_uc = uc;
+
+            switch(gbctxt->ctr & CTR_CASE_MASK) {
+            case CTR_UPPERCASE:
+                new_uc = UCharToUpper(uc);
+                break;
+
+            case CTR_LOWERCASE:
+                new_uc = UCharToLower(uc);
+                break;
+
+            case CTR_CAPITALIZE:
+                if (gbctxt->bos[gbctxt->n] & BOV_WB_WORD_START)
+                    new_uc = UCharToUpper(uc);
+                break;
+            }
+
+            if (gbctxt->ctr & CTR_FULL_WIDTH) {
+                new_uc = UCharToFullWidth(new_uc);
+            }
+
+            if (gbctxt->ctr & CTR_FULL_SIZE_KANA) {
+                new_uc = UCharToFullSizeKana(new_uc);
+            }
+
+            if (new_uc != uc) {
+                gbctxt->gvs[gbctxt->n - 1] = uc2gv(gv, new_uc);
+            }
+        }
 
         gbctxt->prev_uc = uc;
 
@@ -2237,10 +2278,7 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
             // Every tab is converted to a space (U+0020).
             _DBG_PRINTF ("CSS: Every tab is converted to a space (U+0020)\n");
             uc = UCHAR_SPACE;
-            if (IS_MBC_GLYPH(gv))
-                gv = SET_MBC_GLYPH(UCHAR_SPACE);
-            else
-                gv = UCHAR_SPACE;
+            gv = uc2gv(gv, uc);
         }
 
         /*

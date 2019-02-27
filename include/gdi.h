@@ -10312,7 +10312,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
      *
      *      - CTR_NONE,
      *      - or one of CTR_CAPITALIZE, CTR_UPPERCASE, and CTR_LOWERCASE,
-     *      - and OR'ed with CTR_ FULL_WIDTH and/or CTR_FULL_SIZE_KANA
+     *      - and OR'ed with CTR_FULL_WIDTH and/or CTR_FULL_SIZE_KANA
      *
      * @{
      */

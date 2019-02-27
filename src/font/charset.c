@@ -4798,7 +4798,7 @@ Uchar32 GUIAPI UCharToFullSizeKana (Uchar32 uc)
     int mid = TABLESIZE (kana_small_to_full_size_table) / 2;
 
     if (uc < kana_small_to_full_size_table[lower].one
-            || uc < kana_small_to_full_size_table[upper].one)
+            || uc > kana_small_to_full_size_table[upper].one)
         return uc;
 
     do {
