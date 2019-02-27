@@ -48,8 +48,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG
-
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -1337,7 +1335,7 @@ static void check_sentence_breaks(struct glyph_break_ctxt* gbctxt,
         gbctxt->last_stc_start++;
 }
 
-#if 1
+#ifdef DEBUG
 static void dbg_dump_gbctxt(struct glyph_break_ctxt* gbctxt,
         const char* func, Uchar32 uc, Uint16 gwsbo)
 {
