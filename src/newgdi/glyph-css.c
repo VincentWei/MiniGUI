@@ -186,7 +186,7 @@ struct glyph_break_ctxt {
     Uchar32 base_uc;
     Uchar32 last_word_letter;
 
-    int     last_sentence_start;
+    int     last_stc_start;
     int     last_non_space;
     int     prev_wb_index;
     int     prev_sb_index;
@@ -198,15 +198,13 @@ struct glyph_break_ctxt {
     _WordType curr_wt;
 
     Uint8   makes_hangul_syllable:1;
+    Uint8   met_extended_pictographic:1;
+    Uint8   is_extended_pictographic:1;
 
     /* UAX#29 boundaries */
     Uint8   is_grapheme_boundary:1;
     Uint8   is_word_boundary:1;
     Uint8   is_sentence_boundary:1;
-
-    /* Emoji extended pictographics */
-    Uint8   met_extended_pictographic:1;
-    Uint8   is_extended_pictographic:1;
 };
 
 static int gbctxt_init_spaces(struct glyph_break_ctxt* gbctxt, int size)
@@ -525,7 +523,7 @@ static _WBType resolve_wbt(struct glyph_break_ctxt* gbctxt,
     UCharScriptType script;
     _WBType wbt;
 
-    script = UCharGetScriptType (uc);
+    script = UCharGetScriptType(uc);
     wbt = WB_Other;
 
     if (script == UCHAR_SCRIPT_KATAKANA)
@@ -537,7 +535,7 @@ static _WBType resolve_wbt(struct glyph_break_ctxt* gbctxt,
     if (wbt == WB_Other) {
         switch (uc >> 8) {
         case 0x30:
-            if ((uc >= 0x3031 && uc == 0x3035) ||
+            if ((uc >= 0x3031 && uc <= 0x3035) ||
                     uc == 0x309b || uc == 0x309c ||
                     uc == 0x30a0 || uc == 0x30fc)
                 wbt = WB_Katakana; /* Katakana exceptions */
@@ -603,7 +601,7 @@ static _WBType resolve_wbt(struct glyph_break_ctxt* gbctxt,
             else if (uc == 0x00b7 || uc == 0x05f4 || uc == 0x2027 ||
                     uc == 0x003a || uc == 0x0387 ||
                     uc == 0xfe13 || uc == 0xfe55 || uc == 0xff1a)
-                wbt = WB_MidLetter; /* WB_MidLetter */
+                wbt = WB_MidLetter; /* MidLetter */
             else if (uc == 0x066c ||
                     uc == 0xfe50 || uc == 0xfe54 || uc == 0xff0c ||
                     uc == 0xff1b)
@@ -657,6 +655,9 @@ Alphabetic:
                 bt != UCHAR_BREAK_NON_BREAKING_GLUE)
             wbt = WB_WSegSpace;
     }
+
+    _DBG_PRINTF("%s: uc(%0X), script(%d), wbt(%d)\n",
+        __FUNCTION__, uc, script, wbt);
 
     return wbt;
 }
@@ -863,6 +864,9 @@ static void check_hangul_syllable(struct glyph_break_ctxt* gbctxt,
         gbctxt->makes_hangul_syllable = (prev_end == this_start) ||
             (prev_end + 1 == this_start);
     }
+
+    if (bt != UCHAR_BREAK_SPACE)
+        gbctxt->prev_jamo = jamo;
 }
 
 static Uint16 check_white_space(struct glyph_break_ctxt* gbctxt,
@@ -950,8 +954,7 @@ static Uint16 check_grapheme_boundaries(struct glyph_break_ctxt* gbctxt,
         gbctxt->is_grapheme_boundary = 1; /* Rules GB4 and GB5 */
     else if (gbt == GB_InHangulSyllable)
         gbctxt->is_grapheme_boundary = 0; /* Rules GB6, GB7, GB8 */
-    else if (gbt == GB_Extend)
-    {
+    else if (gbt == GB_Extend) {
         gbctxt->is_grapheme_boundary = 0; /* Rule GB9 */
     }
     else if (gbt == GB_ZWJ)
@@ -960,8 +963,8 @@ static Uint16 check_grapheme_boundaries(struct glyph_break_ctxt* gbctxt,
         gbctxt->is_grapheme_boundary = 0; /* Rule GB9a */
     else if (gbctxt->prev_gbt == GB_Prepend)
         gbctxt->is_grapheme_boundary = 0; /* Rule GB9b */
-    else if (gbctxt->is_extended_pictographic)
-    { /* Rule GB11 */
+    else if (gbctxt->is_extended_pictographic) {
+        /* Rule GB11 */
         if (gbctxt->prev_gbt == GB_ZWJ && gbctxt->met_extended_pictographic)
             gbctxt->is_grapheme_boundary = 0;
     }
@@ -978,9 +981,10 @@ static Uint16 check_grapheme_boundaries(struct glyph_break_ctxt* gbctxt,
 
     /* If this is a grapheme boundary, we have to decide if backspace
      * deletes a character or the whole grapheme cluster */
-    if (gbctxt->is_grapheme_boundary &&
-            BACKSPACE_DELETES_CHARACTER (gbctxt->base_uc)) {
-        bo |= BOV_GB_BACKSPACE_DEL_CH;
+    if (gbctxt->is_grapheme_boundary) {
+        bo |= BOV_GB_CHAR_BREAK;
+        if (BACKSPACE_DELETES_CHARACTER (gbctxt->base_uc))
+            bo |= BOV_GB_BACKSPACE_DEL_CH;
     }
 
     gbctxt->prev_gbt = gbt;
@@ -1055,7 +1059,7 @@ static Uint16 check_word_boundaries(struct glyph_break_ctxt* gbctxt,
                  gbctxt->prev_uc == 0x0027))
         {
             /* Rule WB6 */
-            gbctxt->bos[gbctxt->prev_wb_index] &= ~BOV_WB_WORD_BOUNDARY;
+            gbctxt->bos[gbctxt->prev_wb_index - 1] &= ~BOV_WB_WORD_BOUNDARY;
             gbctxt->is_word_boundary = 0; /* Rule WB7 */
         }
         else if (gbctxt->prev_wbt == WB_Hebrew_Letter && uc == 0x0027)
@@ -1065,7 +1069,7 @@ static Uint16 check_word_boundaries(struct glyph_break_ctxt* gbctxt,
                 wbt == WB_Hebrew_Letter) {
 
             /* Rule WB7b */
-            gbctxt->bos[gbctxt->prev_wb_index] &= ~BOV_WB_WORD_BOUNDARY;
+            gbctxt->bos[gbctxt->prev_wb_index - 1] &= ~BOV_WB_WORD_BOUNDARY;
             gbctxt->is_word_boundary = 0; /* Rule WB7c */
         }
         else if ((gbctxt->prev_prev_wbt == WB_Numeric &&
@@ -1076,7 +1080,7 @@ static Uint16 check_word_boundaries(struct glyph_break_ctxt* gbctxt,
             gbctxt->is_word_boundary = 0; /* Rule WB11 */
 
             /* Rule WB12 */
-            gbctxt->bos[gbctxt->prev_wb_index] &= ~BOV_WB_WORD_BOUNDARY;
+            gbctxt->bos[gbctxt->prev_wb_index - 1] &= ~BOV_WB_WORD_BOUNDARY;
         }
         else if (gbctxt->prev_wbt == WB_RI_Odd && wbt == WB_RI_Even)
             gbctxt->is_word_boundary = 0; /* Rule WB15 and WB16 */
@@ -1157,7 +1161,7 @@ static Uint16 check_sentence_boundaries(struct glyph_break_ctxt* gbctxt,
                 gbctxt->prev_prev_sbt == SB_ATerm_Close_Sp) &&
                 IS_OTHER_TERM(gbctxt->prev_sbt) &&
                 sbt == SB_Lower)
-            gbctxt->bos[gbctxt->prev_sb_index] &= ~BOV_SB_SENTENCE_BOUNDARY;
+            gbctxt->bos[gbctxt->prev_sb_index - 1] &= ~BOV_SB_SENTENCE_BOUNDARY;
         else if ((gbctxt->prev_sbt == SB_ATerm ||
                     gbctxt->prev_sbt == SB_ATerm_Close_Sp ||
                     gbctxt->prev_sbt == SB_STerm ||
@@ -1212,8 +1216,8 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
         Uchar32 uc, Uint8 gc, int i)
 {
     /* default to not a word start/end */
-    gbctxt->bos[i] &= ~BOV_WB_WORD_START;
-    gbctxt->bos[i] &= ~BOV_WB_WORD_END;
+    gbctxt->bos[i - 1] &= ~BOV_WB_WORD_START;
+    gbctxt->bos[i - 1] &= ~BOV_WB_WORD_END;
 
     if (gbctxt->curr_wt != WordNone) {
         /* Check for a word end */
@@ -1244,7 +1248,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
                              !JAPANESE (uc)) ||
                             (!JAPANESE (gbctxt->last_word_letter) &&
                              JAPANESE (uc)))
-                        gbctxt->bos[i] |= BOV_WB_WORD_END;
+                        gbctxt->bos[i - 1] |= BOV_WB_WORD_END;
                 }
             }
             gbctxt->last_word_letter = uc;
@@ -1258,7 +1262,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
 
         default:
             /* Punctuation, control/format chars, etc. all end a word. */
-            gbctxt->bos[i] |= BOV_WB_WORD_END;
+            gbctxt->bos[i - 1] |= BOV_WB_WORD_END;
             gbctxt->curr_wt = WordNone;
             break;
         }
@@ -1273,7 +1277,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
         case UCHAR_CATEGORY_UPPERCASE_LETTER:
             gbctxt->curr_wt = WordLetters;
             gbctxt->last_word_letter = uc;
-            gbctxt->bos[i] |= BOV_WB_WORD_START;
+            gbctxt->bos[i - 1] |= BOV_WB_WORD_START;
             break;
 
         case UCHAR_CATEGORY_DECIMAL_NUMBER:
@@ -1281,7 +1285,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
         case UCHAR_CATEGORY_OTHER_NUMBER:
             gbctxt->curr_wt = WordNumbers;
             gbctxt->last_word_letter = uc;
-            gbctxt->bos[i] |= BOV_WB_WORD_START;
+            gbctxt->bos[i - 1] |= BOV_WB_WORD_START;
             break;
 
         default:
@@ -1296,34 +1300,79 @@ static void check_sentence_breaks(struct glyph_break_ctxt* gbctxt,
         Uchar32 uc, Uint8 gc, int i)
 {
     /* default to not a sentence start/end */
-    gbctxt->bos[i] &= ~BOV_SB_SENTENCE_START;
-    gbctxt->bos[i] &= ~BOV_SB_SENTENCE_END;
+    gbctxt->bos[i - 1] &= ~BOV_SB_SENTENCE_START;
+    gbctxt->bos[i - 1] &= ~BOV_SB_SENTENCE_END;
 
     /* maybe start sentence */
-    if (gbctxt->last_sentence_start == 0 && !gbctxt->is_sentence_boundary)
-        gbctxt->last_sentence_start = i - 1;
+    if (gbctxt->last_stc_start == 0 && !gbctxt->is_sentence_boundary)
+        gbctxt->last_stc_start = i - 1;
 
     /* remember last non space character position */
-    if (i > 1 && !(gbctxt->bos[i - 1] & BOV_SPACE))
+    if (i > 1 && !(gbctxt->bos[i - 2] & BOV_SPACE))
         gbctxt->last_non_space = i;
 
     /* meets sentence end, mark both sentence start and end */
-    if (gbctxt->last_sentence_start != 0 && gbctxt->is_sentence_boundary) {
+    if (gbctxt->last_stc_start != 0 && gbctxt->is_sentence_boundary) {
         if (gbctxt->last_non_space != 0) {
-            gbctxt->bos[gbctxt->last_sentence_start] |= BOV_SB_SENTENCE_START;
-            gbctxt->bos[gbctxt->last_non_space] |= BOV_SB_SENTENCE_END;
+            gbctxt->bos[gbctxt->last_stc_start - 1] |= BOV_SB_SENTENCE_START;
+            gbctxt->bos[gbctxt->last_non_space - 1] |= BOV_SB_SENTENCE_END;
         }
 
-        gbctxt->last_sentence_start = 0;
+        gbctxt->last_stc_start = 0;
         gbctxt->last_non_space = 0;
     }
 
     /* meets space character, move sentence start */
-    if (gbctxt->last_sentence_start != 0 &&
-            gbctxt->last_sentence_start == i - 1 &&
-            (gbctxt->bos[i - 1] & BOV_SPACE))
-        gbctxt->last_sentence_start++;
+    if (gbctxt->last_stc_start != 0 &&
+            gbctxt->last_stc_start == i - 1 &&
+            (gbctxt->bos[i - 2] & BOV_SPACE))
+        gbctxt->last_stc_start++;
 }
+
+#if 0
+static void dbg_dump_gbctxt(struct glyph_break_ctxt* gbctxt,
+        const char* func, Uchar32 uc, Uint16 gwsbo)
+{
+    _DBG_PRINTF("After calling %s (%06X):\n"
+        "\tmakes_hangul_syllable: %d (prev_jamo: %d)\n"
+        "\tmet_extended_pictographic: %d\n"
+        "\tis_extended_pictographic: %d\n"
+        "\tis_grapheme_boundary: %d\n"
+        "\tis_word_boundary: %d\n"
+        "\tis_sentence_boundary: %d\n"
+        "\tBOV_SPACE: %s\n"
+        "\tBOV_EXPANDABLE_SPACE: %s\n"
+        "\tBOV_GB_CHAR_BREAK: %s\n"
+        "\tBOV_GB_CURSOR_POS: %s\n"
+        "\tBOV_GB_BACKSPACE_DEL_CH: %s\n"
+        "\tBOV_WB_WORD_BOUNDARY: %s\n"
+        "\tBOV_WB_WORD_START: %s\n"
+        "\tBOV_WB_WORD_END: %s\n"
+        "\tBOV_SB_SENTENCE_BOUNDARY: %s\n"
+        "\tBOV_SB_SENTENCE_START: %s\n"
+        "\tBOV_SB_SENTENCE_END: %s\n",
+        func, uc,
+        gbctxt->makes_hangul_syllable, gbctxt->prev_jamo,
+        gbctxt->met_extended_pictographic,
+        gbctxt->is_extended_pictographic,
+        gbctxt->is_grapheme_boundary,
+        gbctxt->is_word_boundary,
+        gbctxt->is_sentence_boundary,
+        (gwsbo & BOV_SPACE)?"TRUE":"FALSE",
+        (gwsbo & BOV_EXPANDABLE_SPACE)?"TRUE":"FALSE",
+        (gwsbo & BOV_GB_CHAR_BREAK)?"TRUE":"FALSE",
+        (gwsbo & BOV_GB_CURSOR_POS)?"TRUE":"FALSE",
+        (gwsbo & BOV_GB_BACKSPACE_DEL_CH)?"TRUE":"FALSE",
+        (gwsbo & BOV_WB_WORD_BOUNDARY)?"TRUE":"FALSE",
+        (gwsbo & BOV_WB_WORD_START)?"TRUE":"FALSE",
+        (gwsbo & BOV_WB_WORD_END)?"TRUE":"FALSE",
+        (gwsbo & BOV_SB_SENTENCE_BOUNDARY)?"TRUE":"FALSE",
+        (gwsbo & BOV_SB_SENTENCE_START)?"TRUE":"FALSE",
+        (gwsbo & BOV_SB_SENTENCE_END)?"TRUE":"FALSE");
+}
+#else
+#define dbg_dump_gbctxt(gbctxt, func, uc, gwsbo)
+#endif
 
 static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         Glyph32 gv, Uchar32 uc, Uint8 bt, Uint16 lbo)
@@ -1366,23 +1415,28 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
 
         // determine the grapheme, word, and sentence breaks
         gc = UCharGetCategory(uc);
-        check_hangul_syllable(gbctxt, uc, bt);
-        gwsbo |= check_white_space(gbctxt, uc, gc);
-        check_emoji_extended_pictographic(gbctxt, uc);
-        gwsbo |= check_grapheme_boundaries(gbctxt, uc, gc, bt);
-        gwsbo |= check_word_boundaries(gbctxt, uc, gc, bt, gbctxt->n);
-        gwsbo |= check_sentence_boundaries(gbctxt, uc, gc, bt, gbctxt->n);
+        // use the original breaking class for GWS breaking test.
+        bt = UCharGetBreak(uc);
 
-        // sot
-        if (gbctxt->n == 1) {
-            // Rule GB1
-            gwsbo |= BOV_GB_CURSOR_POS;
-            // Rule WB1
-            gwsbo |= BOV_WB_WORD_BOUNDARY;
-            // Ruel SB1
-            gwsbo |= BOV_SB_SENTENCE_BOUNDARY;
-        }
-        gbctxt->bos[gbctxt->n] |= gwsbo;
+        check_hangul_syllable(gbctxt, uc, bt);
+        //dbg_dump_gbctxt(gbctxt, "check_hangul_syllable", uc, gwsbo);
+
+        gwsbo |= check_white_space(gbctxt, uc, gc);
+        //dbg_dump_gbctxt(gbctxt, "check_white_space", uc, gwsbo);
+
+        check_emoji_extended_pictographic(gbctxt, uc);
+        //dbg_dump_gbctxt(gbctxt, "check_extended_pictographic", uc, gwsbo);
+
+        gwsbo |= check_grapheme_boundaries(gbctxt, uc, gc, bt);
+        //dbg_dump_gbctxt(gbctxt, "check_grapheme_boundaries", uc, gwsbo);
+
+        gwsbo |= check_word_boundaries(gbctxt, uc, gc, bt, gbctxt->n);
+        //dbg_dump_gbctxt(gbctxt, "check_word_boundaries", uc, gwsbo);
+
+        gwsbo |= check_sentence_boundaries(gbctxt, uc, gc, bt, gbctxt->n);
+        //dbg_dump_gbctxt(gbctxt, "check_sentence_boundaries", uc, gwsbo);
+
+        gbctxt->bos[gbctxt->n - 1] |= gwsbo;
 
         check_word_breaks(gbctxt, uc, gc, gbctxt->n);
         check_sentence_breaks(gbctxt, uc, gc, gbctxt->n);
@@ -2107,7 +2161,7 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
 
     // NOTE: the index 0 of break_oppos is the break opportunity
     // before the first glyph.
-    gbctxt.last_sentence_start = 0;
+    gbctxt.last_stc_start = 0;
     gbctxt.last_non_space = 0;
     gbctxt.prev_wb_index = 0;
     gbctxt.prev_sb_index = 0;
@@ -3035,17 +3089,24 @@ next_glyph:
 
         // Return if we got any BK!
         if ((gbctxt.bos[gbctxt.n] & BOV_LB_MASK) == BOV_LB_MANDATORY) {
-            // Rule GB2
-            gbctxt.bos[gbctxt.n] |= BOV_GB_CURSOR_POS;
-            // Rule WB2
-            gbctxt.bos[gbctxt.n] |= BOV_WB_WORD_BOUNDARY;
-            // Rule SB2
-            gbctxt.bos[gbctxt.n] |= BOV_SB_SENTENCE_BOUNDARY;
             break;
         }
     }
 
     if (gbctxt.n > 0) {
+        // Rule GB1
+        gbctxt.bos[0] |= BOV_GB_CHAR_BREAK | BOV_GB_CURSOR_POS;
+        // Rule WB1
+        gbctxt.bos[0] |= BOV_WB_WORD_BOUNDARY;
+        // Ruel SB1
+        gbctxt.bos[0] |= BOV_SB_SENTENCE_BOUNDARY;
+        // Rule GB2
+        gbctxt.bos[gbctxt.n - 1] |= BOV_GB_CHAR_BREAK | BOV_GB_CURSOR_POS;
+        // Rule WB2
+        gbctxt.bos[gbctxt.n - 1] |= BOV_WB_WORD_BOUNDARY;
+        // Rule SB2
+        gbctxt.bos[gbctxt.n - 1] |= BOV_SB_SENTENCE_BOUNDARY;
+
         // LB31 Break everywhere else.
         int n;
         for (n = 1; n < gbctxt.n; n++) {
