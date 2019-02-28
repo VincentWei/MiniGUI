@@ -3850,7 +3850,7 @@ static int texteditor_get_text_count(mTextEditor* self, int start_with, BOOL bTe
             return len;
     }
 
-    if(plogfont->mbc_devfont == NULL)
+    if(plogfont->devfonts[1] == NULL)
         return len;
 
     while(idx < len)

@@ -64,7 +64,7 @@ extern int __mg_substrlen (PLOGFONT log_font, const char* text, int len,
 static inline BOOL is_utf16_logfont (PDC pdc)
 {
     DEVFONT* mbc_devfont;
-    mbc_devfont = pdc->pLogFont->mbc_devfont;
+    mbc_devfont = pdc->pLogFont->devfonts[1];
     if (mbc_devfont && strstr (mbc_devfont->charset_ops->name, "UTF-16")) {
         return TRUE;
     }
@@ -135,8 +135,8 @@ static int txtGetWidthOfNextWord (PDC pdc, const unsigned char* pText,
                 int nCount, int* nChars)
 {
     SIZE size;
-    DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
-    DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
+    DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
+    DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
     WORDINFO word_info = {0};
 
     *nChars = 0;
@@ -433,12 +433,12 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     line_height = pdc->pLogFont->size + pdc->alExtra + pdc->blExtra;
     if (nFormat & DT_TABSTOP)
         nTabWidth = HIWORD (nFormat) *
-                    (*pdc->pLogFont->sbc_devfont->font_ops->get_ave_width)
-                    (pdc->pLogFont, pdc->pLogFont->sbc_devfont);
+                    (*pdc->pLogFont->devfonts[0]->font_ops->get_ave_width)
+                    (pdc->pLogFont, pdc->pLogFont->devfonts[0]);
     else {
         nTabWidth = pdc->tabstop *
-                    (*pdc->pLogFont->sbc_devfont->font_ops->get_ave_width)
-                    (pdc->pLogFont, pdc->pLogFont->sbc_devfont);
+                    (*pdc->pLogFont->devfonts[0]->font_ops->get_ave_width)
+                    (pdc->pLogFont, pdc->pLogFont->devfonts[0]);
     }
 
     /* Transfer logical to device to screen here. */

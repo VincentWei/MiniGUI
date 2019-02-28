@@ -287,10 +287,10 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     glyph = get_glyph (p_upf, (UPFNODE *)(((UPFV1_FILE_HEADER *)p_upf)->off_nodes + p_upf), uc16);
 
     if (glyph == NULL) {
-        if (uc16 < 0x80 && logfont->sbc_devfont != devfont) {   /* ASCII */
+        if (uc16 < 0x80 && logfont->devfonts[0] != devfont) {   /* ASCII */
             unsigned char ascii_ch = uc16;
-            return logfont->sbc_devfont->font_ops->get_glyph_monobitmap (logfont,
-                            logfont->sbc_devfont, ascii_ch, pitch, scale);
+            return logfont->devfonts[0]->font_ops->get_glyph_monobitmap (logfont,
+                            logfont->devfonts[0], ascii_ch, pitch, scale);
         }
         else
             glyph = &def_glyph;
@@ -377,21 +377,21 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     glyph = get_glyph (p_upf, (UPFNODE *)(((UPFV1_FILE_HEADER *)p_upf)->off_nodes + p_upf), uc16);
 
     if (glyph == NULL) {
-        if (uc16 < 0x80 && logfont->sbc_devfont != devfont) {   /* ASCII */
+        if (uc16 < 0x80 && logfont->devfonts[0] != devfont) {   /* ASCII */
             unsigned char ascii_ch = uc16;
-            if (logfont->sbc_devfont->font_ops->get_glyph_bbox) {
-                return logfont->sbc_devfont->font_ops->get_glyph_bbox (logfont,
-                            logfont->sbc_devfont, ascii_ch,
+            if (logfont->devfonts[0]->font_ops->get_glyph_bbox) {
+                return logfont->devfonts[0]->font_ops->get_glyph_bbox (logfont,
+                            logfont->devfonts[0], ascii_ch,
                             px, py, pwidth, pheight);
             }
             else {
                 int width, height, ascent;
-                logfont->sbc_devfont->font_ops->get_glyph_advance
-                        (logfont, logfont->sbc_devfont, glyph_value, &width, 0);
-                height = logfont->sbc_devfont->font_ops->get_font_height
-                        (logfont, logfont->sbc_devfont);
-                ascent = logfont->sbc_devfont->font_ops->get_font_ascent
-                        (logfont, logfont->sbc_devfont);
+                logfont->devfonts[0]->font_ops->get_glyph_advance
+                        (logfont, logfont->devfonts[0], glyph_value, &width, 0);
+                height = logfont->devfonts[0]->font_ops->get_font_height
+                        (logfont, logfont->devfonts[0]);
+                ascent = logfont->devfonts[0]->font_ops->get_font_ascent
+                        (logfont, logfont->devfonts[0]);
 
                 if (pwidth) *pwidth = width;
                 if (pheight) *pheight = height;
@@ -435,11 +435,11 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     glyph = get_glyph (p_upf, (UPFNODE *)(((UPFV1_FILE_HEADER *)p_upf)->off_nodes + p_upf), uc16);
 
     if (glyph == NULL) {
-        if (uc16 < 0x80 && logfont->sbc_devfont != devfont) {   /* ASCII */
+        if (uc16 < 0x80 && logfont->devfonts[0] != devfont) {   /* ASCII */
             unsigned char ascii_ch = uc16;
-            if (logfont->sbc_devfont->font_ops->get_glyph_advance) {
-                return logfont->sbc_devfont->font_ops->get_glyph_advance (
-                        logfont, logfont->sbc_devfont, ascii_ch, px, py);
+            if (logfont->devfonts[0]->font_ops->get_glyph_advance) {
+                return logfont->devfonts[0]->font_ops->get_glyph_advance (
+                        logfont, logfont->devfonts[0], ascii_ch, px, py);
             }
         }
         else
@@ -495,9 +495,9 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
     glyph = get_glyph (p_upf, (UPFNODE *)(((UPFV1_FILE_HEADER *)p_upf)->off_nodes + p_upf), uc16);
 
     if (glyph == NULL) {
-        if (uc16 < 0x80 && logfont->sbc_devfont != devfont)   /* ASCII */
-            return logfont->sbc_devfont->font_ops->is_glyph_existed (logfont,
-                                    logfont->sbc_devfont, glyph_value);
+        if (uc16 < 0x80 && logfont->devfonts[0] != devfont)   /* ASCII */
+            return logfont->devfonts[0]->font_ops->is_glyph_existed (logfont,
+                                    logfont->devfonts[0], glyph_value);
         else
             return FALSE;
     }

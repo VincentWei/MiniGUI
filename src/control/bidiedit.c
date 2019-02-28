@@ -1071,14 +1071,12 @@ static int inline get_glyph_bidi_type (LOGFONT* logfont, Glyph32 glyph)
     DEVFONT* devfont;
 
     if (IS_MBC_GLYPH(glyph)) {
-        devfont = logfont->mbc_devfont;
+        devfont = logfont->devfonts[1];
 
-        if (devfont->charset_ops->bidi_glyph_type)
-        {
+        if (devfont->charset_ops->bidi_glyph_type) {
             return devfont->charset_ops->bidi_glyph_type (glyph);
         }
-        else
-        {
+        else {
             return BIDI_TYPE_LTR;
         }
     }

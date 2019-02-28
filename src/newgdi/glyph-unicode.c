@@ -157,6 +157,7 @@ typedef enum {
 } _WordType;
 
 struct glyph_break_ctxt {
+    LOGFONT* lf;
     DEVFONT* mbc_devfont;
     DEVFONT* sbc_devfont;
     Glyph32* gvs;
@@ -317,7 +318,7 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
         if (mclen > 0) {
             *gv = gbctxt->mbc_devfont->charset_ops->char_glyph_value
                 (NULL, 0, (Uint8*)mstr, mclen);
-            *gv = SET_MBC_GLYPH(*gv);
+            *gv = _gdi_set_glyph_dfi(gbctxt->lf, *gv);
 
             if (gbctxt->mbc_devfont->charset_ops->conv_to_uc32)
                 *uc = gbctxt->mbc_devfont->charset_ops->conv_to_uc32(*gv);
@@ -1484,7 +1485,7 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         //dbg_dump_gbctxt(gbctxt, "check_word_breaks", uc, gwsbo);
 
         check_sentence_breaks(gbctxt, uc, gc, gbctxt->n);
-        //dbg_dump_gbctxt(gbctxt, "check_sentence_breaks", uc, gwsbo);
+        dbg_dump_gbctxt(gbctxt, "check_sentence_breaks", uc, gwsbo);
 
         // Character Transformation
         // NOTE: Assume character transformation will not affect the breaks
@@ -2202,8 +2203,9 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
         col_nl = TRUE;
 
     memset(&gbctxt, 0, sizeof(gbctxt));
-    gbctxt.mbc_devfont = logfont->mbc_devfont;
-    gbctxt.sbc_devfont = logfont->sbc_devfont;
+    gbctxt.lf = logfont;
+    gbctxt.mbc_devfont = logfont->devfonts[1];
+    gbctxt.sbc_devfont = logfont->devfonts[0];
 #if 0
     gbctxt.gvs = NULL;
     gbctxt.ucs = NULL;

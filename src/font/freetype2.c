@@ -1163,24 +1163,22 @@ FONTOPS __mg_ttf_ops = {
 BOOL
 ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter)
 {
+    int         i;
     BOOL        rv = FALSE;
     DEVFONT*    devfont;
 
     if (IS_SUBPIXEL(logfont)) {
         if (filter >= MG_SMOOTH_MAX)
             filter = MG_SMOOTH_DEFAULT;
-        devfont = logfont->sbc_devfont;
-        if (devfont && devfont->font_ops == &__mg_ttf_ops) {
-            FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
-            ft_inst_info->ft_lcdfilter = filter;
-            rv = TRUE;
-        }
+        for (i = 0; i < MAXNR_DEVFONTS; i++) {
+            if ((devfont = logfont->devfonts[i]) == NULL)
+                break;
 
-        devfont = logfont->mbc_devfont;
-        if (devfont && devfont->font_ops == &__mg_ttf_ops) {
-            FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
-            ft_inst_info->ft_lcdfilter = filter;
-            rv = TRUE;
+            if (devfont->font_ops == &__mg_ttf_ops) {
+                FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
+                ft_inst_info->ft_lcdfilter = filter;
+                rv = TRUE;
+            }
         }
 
         /* remove subpixel style if filter is none */

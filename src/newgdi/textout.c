@@ -64,7 +64,7 @@ extern int __mg_substrlen (PLOGFONT log_font, const char* text, int len,
 static inline BOOL is_utf16_logfont (PDC pdc)
 {
     DEVFONT* mbc_devfont;
-    mbc_devfont = pdc->pLogFont->mbc_devfont;
+    mbc_devfont = pdc->pLogFont->devfonts[1];
     if (mbc_devfont && strstr (mbc_devfont->charset_ops->name, "UTF-16")) {
         return TRUE;
     }
@@ -452,8 +452,8 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
 {
     PDC pdc = dc_HDC2PDC (hdc);
     LOGFONT* log_font = pdc->pLogFont;
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
     int len_cur_char, advance_cur_char;
     int left_bytes = len;
     int char_count = 0;

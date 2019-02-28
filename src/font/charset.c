@@ -750,8 +750,8 @@ static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 gly
 
     pos = step = (n / 2) + 1;
 
-    BOOL is_mbc;
-    is_mbc = IS_MBC_GLYPH(glyph);
+    int dfi;
+    dfi = DFI_IN_GLYPH(glyph);
     glyph = REAL_GLYPH(glyph);
 
     while (step > 1) {
@@ -777,9 +777,9 @@ static BOOL get_mirror_glyph (const BIDICHAR_MIRROR_MAP* map, int n, Glyph32 gly
     if (mirrored){
         *mirrored = found ? map[pos].mirrored : glyph;
 
-        /* use the same mbc font for mirror char. */
-        if(is_mbc)
-            *mirrored = SET_MBC_GLYPH(*mirrored);
+        /* use the same devfont index for mirror char. */
+        if (dfi)
+            *mirrored = SET_GLYPH_DFI(*mirrored, dfi);
     }
 
     return found;

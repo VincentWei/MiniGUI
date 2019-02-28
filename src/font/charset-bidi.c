@@ -754,13 +754,13 @@ Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
 BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value,
         Uint32 *bidi_type)
 {
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* devfont = SELECT_DEVFONT(log_font, glyph_value);
 
-    if (mbc_devfont == NULL ||
-            mbc_devfont->charset_ops->bidi_glyph_type == NULL)
+    if (devfont == NULL ||
+            devfont->charset_ops->bidi_glyph_type == NULL)
         return FALSE;
 
-    *bidi_type = mbc_devfont->charset_ops->bidi_glyph_type (glyph_value);
+    *bidi_type = devfont->charset_ops->bidi_glyph_type (glyph_value);
     return TRUE;
 }
 

@@ -188,7 +188,7 @@ static int get_font_ascent (LOGFONT* logfont, DEVFONT* devfont)
 static int get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 {
     int height = RBFONT_INFO_P (devfont)->height;
-    
+
     height *= GET_DEVFONT_SCALE (logfont, devfont);
 
     if (height >= 40)

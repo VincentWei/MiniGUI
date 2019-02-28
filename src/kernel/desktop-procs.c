@@ -1038,7 +1038,7 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
         if (caplen < 32) {
             strcpy (nodes[idx_znode].caption, caption);
         } else {
-            GetTextCharPos (menufont, caption, caplen, (32 - 3), /* '...' = 3*/
+            get_text_char_pos (menufont, caption, caplen, (32 - 3), /* '...' = 3*/
                                  &fit_chars, pos_chars);
             memcpy(nodes[idx_znode].caption, 
                    caption, pos_chars[fit_chars-1]);

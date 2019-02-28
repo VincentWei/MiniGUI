@@ -205,28 +205,28 @@ void mg_TermSysFont (void)
 const char* GUIAPI GetSysCharset (BOOL wchar)
 {
     if (wchar) {
-        if (g_SysLogFont[1]->mbc_devfont)
-            return MBC_DEVFONT_INFO_P (g_SysLogFont[1])->charset_ops->name;
+        if (g_SysLogFont[1]->devfonts[1])
+            return g_SysLogFont[1]->devfonts[1]->charset_ops->name;
         else
             return NULL;
     }
-    else 
-        return SBC_DEVFONT_INFO_P (g_SysLogFont[0])->charset_ops->name;
+    else
+        return g_SysLogFont[0]->devfonts[0]->charset_ops->name;
 }
 
 int GUIAPI GetSysCharWidth (void)
 {
-    DEVFONT* sbc_devfont = g_SysLogFont[0]->sbc_devfont;
+    DEVFONT* sbc_devfont = g_SysLogFont[0]->devfonts[0];
 
     return sbc_devfont->font_ops->get_ave_width (g_SysLogFont[0], sbc_devfont);
 }
 
 int GUIAPI GetSysCCharWidth (void)
 {
-    DEVFONT* mbc_devfont = g_SysLogFont[1]->mbc_devfont;
+    DEVFONT* mbc_devfont = g_SysLogFont[1]->devfonts[1];
 
     if (mbc_devfont)
-    	return mbc_devfont->font_ops->get_ave_width (g_SysLogFont[1], mbc_devfont);
+        return mbc_devfont->font_ops->get_ave_width (g_SysLogFont[1], mbc_devfont);
     else
         return GetSysCharWidth () * 2;
 }
@@ -238,14 +238,14 @@ int GUIAPI GetSysCharHeight (void)
 
 int GUIAPI GetSysFontMaxWidth (int font_id)
 {
-    DEVFONT* sbc_devfont = g_SysLogFont[font_id]->sbc_devfont;
+    DEVFONT* sbc_devfont = g_SysLogFont[font_id]->devfonts[0];
 
     return sbc_devfont->font_ops->get_max_width (g_SysLogFont[font_id], sbc_devfont);
 }
 
 int GUIAPI GetSysFontAveWidth (int font_id)
 {
-    DEVFONT* sbc_devfont = g_SysLogFont[font_id]->sbc_devfont;
+    DEVFONT* sbc_devfont = g_SysLogFont[font_id]->devfonts[0];
 
     return sbc_devfont->font_ops->get_ave_width (g_SysLogFont[font_id], sbc_devfont);
 }

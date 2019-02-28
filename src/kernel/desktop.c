@@ -1340,11 +1340,11 @@ static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
     return old_hwnd;
 }
 
-static void GetTextCharPos (PLOGFONT log_font, const char *text, 
+static void get_text_char_pos (PLOGFONT log_font, const char *text, 
                int len, int fit_bytes, int *fit_chars, int *pos_chars)
 {
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
     int len_cur_char;
     int left_bytes = len;
     int char_count = 0, bytes = 0;
@@ -1624,11 +1624,11 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
             strcpy (nodes[free_slot].caption, caption);
         } else {
             int tail_pos;
-            GetTextCharPos (menufont, caption, caplen, (32 - 3), /* '...' = 3*/
+            get_text_char_pos (menufont, caption, caplen, (32 - 3), /* '...' = 3*/
                             &fit_chars, pos_chars);
 
             tail_pos = pos_chars[fit_chars-1];
-            
+
             if ((tail_pos + 3) >= 32 && fit_chars > 4) {
                 tail_pos = pos_chars[fit_chars-2];
                 if (tail_pos + 3 >= 32) {
@@ -1640,7 +1640,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
             }
             memcpy(nodes[free_slot].caption, caption, tail_pos);
             strcpy ((nodes[free_slot].caption + tail_pos), "...");
-            
+
         }
     }
 

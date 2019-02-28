@@ -50,8 +50,8 @@
 int GUIAPI GetTextMCharInfo (PLOGFONT log_font, const char* mstr, int len, 
                 int* pos_chars)
 {
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
     int count = 0;
     int left_bytes = len;
     int len_cur_char;
@@ -86,8 +86,8 @@ int GUIAPI GetTextMCharInfo (PLOGFONT log_font, const char* mstr, int len,
 int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, int len, 
                 int* pos_words, WORDINFO* info_words)
 {
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
     WORDINFO word_info; 
     int count = 0;
     int left_bytes = len;
@@ -150,8 +150,8 @@ int GUIAPI GetTextWordInfo (PLOGFONT log_font, const char* mstr, int len,
 
 int GUIAPI GetFirstMCharLen (PLOGFONT log_font, const char* mstr, int len)
 {
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
     int len_cur_char = 0;
 
     if (mbc_devfont) {
@@ -171,8 +171,8 @@ int GUIAPI GetFirstMCharLen (PLOGFONT log_font, const char* mstr, int len)
 
 int GUIAPI GetLastMCharLen (PLOGFONT log_font, const char* mstr, int len)
 {
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
     int left_bytes = len;
     int len_cur_char;
     int lastlen = 0;
@@ -204,8 +204,8 @@ int GUIAPI GetLastMCharLen (PLOGFONT log_font, const char* mstr, int len)
 int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
                     WORDINFO* word_info)
 {
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (mbc_devfont) {
         int mbc_pos;
@@ -234,8 +234,8 @@ int GUIAPI GetFirstWord (PLOGFONT log_font, const char* mstr, int len,
 int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, 
                 const unsigned char* mchar, int n)
 {
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
     DEVFONT* devfont;
     int len_cur_char = 0;
     Glyph32 glyph_value;
@@ -282,8 +282,8 @@ int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
 
 int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc)
 {
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
     unsigned char mchar [16];
     int len_cur_char = 0;
 
@@ -311,8 +311,8 @@ int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
                 const unsigned char* mstr, int mstr_len, int n,
                 int* conved_mstr_len)
 {
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
     DEVFONT* devfont;
     int left, count = 0;
     Uchar32* uchar32;
@@ -406,8 +406,8 @@ int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
                 const void *wcs, int wcs_len, BOOL wc32, int n,
                 int* conved_wcs_len)
 {
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
     int wc_count = 0, count = 0;
     unsigned char mchar [16] = {0};
     const Uchar32* uchar32;
@@ -493,7 +493,7 @@ int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
 
 size_t __mg_strlen (PLOGFONT log_font, const char* mstr)
 {
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (mbc_devfont && strstr (mbc_devfont->charset_ops->name, "UTF-16")) {
         size_t len = 0;
@@ -514,7 +514,7 @@ char* __mg_strnchr (PLOGFONT log_font, const char* s, size_t n, int c,
 {
     size_t i;
     unsigned char c1, c2;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (mbc_devfont) {
         *chlen = 2;
@@ -566,7 +566,7 @@ int __mg_substrlen (PLOGFONT log_font, const char* text, int len,
 
     len = substr - text;
     if (*nr_delim == 2) {
-        DEVFONT* mbc_devfont = log_font->mbc_devfont;
+        DEVFONT* mbc_devfont = log_font->devfonts[1];
         unsigned char c1, c2;
 
         if (strstr (mbc_devfont->charset_ops->name, "UTF-16LE")) {

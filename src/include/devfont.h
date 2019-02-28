@@ -68,14 +68,36 @@ void font_AddMBDevFont (DEVFONT* dev_font);
 void font_DelRelatedDevFont (DEVFONT* dev_font);
 void font_ResetDevFont (void);
 
-DEVFONT* font_GetMatchedSBDevFont (LOGFONT* log_font);
-DEVFONT* font_GetMatchedMBDevFont (LOGFONT* log_font);
+DEVFONT* font_GetMatchedSBDevFont (LOGFONT* lf, const char* family);
+DEVFONT* font_GetMatchedMBDevFont (LOGFONT* lf, const char* family);
+
+static inline unsigned short get_devfont_scale(LOGFONT* lf,
+        const DEVFONT* df)
+{
+    int i;
+    for (i = 0; i < MAXNR_DEVFONTS; i++) {
+        if (lf->devfonts[i] == df)
+            return lf->scales[i];
+    }
+
+    return 1;
+}
+
+static inline void set_devfont_scale(LOGFONT* lf, DEVFONT* df,
+        unsigned short s)
+{
+    int i;
+    for (i = 0; i < MAXNR_DEVFONTS; i++) {
+        if (lf->devfonts[i] == df)
+            lf->scales[i] = s;
+    }
+}
 
 #define GET_DEVFONT_SCALE(logfont, devfont) \
-        ((devfont->charset_ops->bytes_maxlen_char > 1)?logfont->mbc_scale:logfont->sbc_scale)
+        get_devfont_scale(logfont, devfont)
 
 #define SET_DEVFONT_SCALE(logfont, devfont, scale) \
-        ((devfont->charset_ops->bytes_maxlen_char > 1)?(logfont->mbc_scale = scale):(logfont->sbc_scale = scale))
+        set_devfont_scale(logfont, devfont, scale)
 
 unsigned short font_GetBestScaleFactor (int height, int expect);
 
@@ -265,8 +287,8 @@ struct _FONTOPS
 };
 
 typedef struct {
-        char* type;
-        FONTOPS* fontops;
+    char* type;
+    FONTOPS* fontops;
 } FONTOPS_INFO;
 
 extern FONTOPS_INFO __mg_fontops_infos[];

@@ -61,18 +61,22 @@ int GUIAPI GetFontHeight (HDC hdc)
 
 int GUIAPI GetMaxFontWidth (HDC hdc)
 {
+    int i;
+    DEVFONT* df;
     PDC pdc = dc_HDC2PDC(hdc);
-    DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
-    DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
-    int sbc_max_width = (*sbc_devfont->font_ops->get_max_width) 
-            (pdc->pLogFont, sbc_devfont);
-    int mbc_max_width = 0;
+    int max_width = 0;
 
-    if (mbc_devfont)
-        mbc_max_width = (*mbc_devfont->font_ops->get_max_width) 
-                (pdc->pLogFont, mbc_devfont);
-    
-    return (sbc_max_width > mbc_max_width) ? sbc_max_width : mbc_max_width;
+    for (i = 0; i < MAXNR_DEVFONTS; i++) {
+        int value;
+        df = pdc->pLogFont->devfonts[i];
+        if (df == NULL)
+            break;
+
+        value = df->font_ops->get_max_width(pdc->pLogFont, df);
+        max_width = MAX(max_width, value);
+    }
+
+    return max_width;
 }
 
 void GUIAPI GetLastTextOutPos (HDC hdc, POINT* pt)

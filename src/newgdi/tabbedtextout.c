@@ -64,7 +64,7 @@ extern int __mg_substrlen (PLOGFONT log_font, const char* text, int len,
 static inline BOOL is_utf16_logfont (PDC pdc)
 {
     DEVFONT* mbc_devfont;
-    mbc_devfont = pdc->pLogFont->mbc_devfont;
+    mbc_devfont = pdc->pLogFont->devfonts[1];
     if (mbc_devfont && strstr (mbc_devfont->charset_ops->name, "UTF-16")) {
         return TRUE;
     }
@@ -332,8 +332,8 @@ int GUIAPI TabbedTextOutLen (HDC hdc, int x, int y,
     if (len < 0) len = __mg_strlen (pdc->pLogFont, spText);
     if (len == 0) return 0;
 
-    tab_width = pdc->pLogFont->sbc_devfont->font_ops->get_ave_width
-            (pdc->pLogFont, pdc->pLogFont->sbc_devfont) * pdc->tabstop;
+    tab_width = pdc->pLogFont->devfonts[0]->font_ops->get_ave_width
+            (pdc->pLogFont, pdc->pLogFont->devfonts[0]) * pdc->tabstop;
 
     /* override start point by current text position */
     if ((pdc->ta_flags & TA_CP_MASK) == TA_UPDATECP) {
@@ -379,8 +379,8 @@ int GUIAPI GetTabbedTextExtent (HDC hdc, const char* spText, int len,
         return 0;
     }
 
-    tab_width = pdc->pLogFont->sbc_devfont->font_ops->get_ave_width
-            (pdc->pLogFont, pdc->pLogFont->sbc_devfont) * pdc->tabstop;
+    tab_width = pdc->pLogFont->devfonts[0]->font_ops->get_ave_width
+            (pdc->pLogFont, pdc->pLogFont->devfonts[0]) * pdc->tabstop;
 
     advance = _gdi_tabbed_text_out (pdc, 0, 0, (const unsigned char*) spText,
                     len, tab_width, TRUE, NULL, &size);
@@ -400,8 +400,8 @@ int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
 #if 0
     DEVFONT* sbc_devfont;
     DEVFONT* mbc_devfont;
-    sbc_devfont = pdc->pLogFont->sbc_devfont;
-    mbc_devfont = pdc->pLogFont->mbc_devfont;
+    sbc_devfont = pdc->pLogFont->devfonts[0];
+    mbc_devfont = pdc->pLogFont->devfonts[1];
 #endif
 
     ctxt.pdc = pdc;
@@ -484,8 +484,8 @@ int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y, const char* spText,
     if (nCount == 0) return 0;
 
     if (nTabs == 0 || pTabPos == NULL) {
-        int ave_width = (*pdc->pLogFont->sbc_devfont->font_ops->get_ave_width)
-                        (pdc->pLogFont, pdc->pLogFont->sbc_devfont);
+        int ave_width = (*pdc->pLogFont->devfonts[0]->font_ops->get_ave_width)
+                        (pdc->pLogFont, pdc->pLogFont->devfonts[0]);
         def_tab = ave_width * pdc->tabstop;
     }
     else
@@ -519,8 +519,8 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
 {
     PDC pdc = dc_HDC2PDC (hdc);
     LOGFONT* log_font = pdc->pLogFont;
-    DEVFONT* sbc_devfont = log_font->sbc_devfont;
-    DEVFONT* mbc_devfont = log_font->mbc_devfont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    DEVFONT* mbc_devfont = log_font->devfonts[1];
     DEVFONT* devfont;
     int left_bytes = len;
     int len_cur_char;

@@ -5457,6 +5457,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 
 /* Font-related structures */
 #define LEN_LOGFONT_NAME_FIELD      31
+#define LEN_LOGFONT_FAMILY_FILED    (LEN_LOGFONT_NAME_FIELD*7+6)
 #define LEN_UNIDEVFONT_NAME         255
 
 #define LEN_FONT_NAME               LEN_LOGFONT_NAME_FIELD
@@ -5723,9 +5724,10 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 
 #define FONT_MAX_SIZE               256
 #define FONT_MIN_SIZE               4
+#define MAXNR_DEVFONTS              8
 
 struct _DEVFONT;
-typedef struct _DEVFONT DEVFONT;
+typedef struct _DEVFONT     DEVFONT;
 
 /**
   * The logical font structure.
@@ -5733,48 +5735,45 @@ typedef struct _DEVFONT DEVFONT;
   */
 typedef struct _LOGFONT {
     /** The type of the logical font. */
-    char type [LEN_LOGFONT_NAME_FIELD + 1];
+    char* type;
     /** The family name of the logical font. */
-    char family [LEN_LOGFONT_NAME_FIELD + 1];
+    char* family;
     /** The charset of the logical font. */
-    char charset [LEN_LOGFONT_NAME_FIELD + 1];
+    char* charset;
     /** The styles of the logical font. */
     DWORD32 style;
     /** The size of the logical font. */
-    int size;
+    int  size;
     /** The rotation angle of the logical font. */
-    int rotation;
+    int  rotation;
     /** The ascent of the logical font. */
-    int ascent;
+    int  ascent;
     /** The descent of the logical font. */
-    int descent;
+    int  descent;
     /** The size requested initially. */
-    int size_request;
+    int  size_request;
 
-    /* The devfonts for the logfont */
-    DEVFONT*    devfonts[4];
-    /* The scale factors of devfonts */
-    Uint8       df_scales[4];
+    /*
+     * The following fields are internally used.
+     * They may be changed in the future.
+     */
 
-    /* To be deprecated. The scale factor of sbc device font. */
-    unsigned short sbc_scale;
-    /* To be deprecated. The scale factor of mbc device font. */
-    unsigned short mbc_scale;
-    /* To be deprecated. Device font in single charset set */
-    DEVFONT* sbc_devfont;
-    /* To be deprecated. Device font in multiply charset set */
-    DEVFONT* mbc_devfont;
+    // The scale factors of devfonts
+    unsigned short  scales[MAXNR_DEVFONTS];
+    // The devfonts for the logfont
+    DEVFONT*        devfonts[MAXNR_DEVFONTS];
 } LOGFONT;
+
 /**
  * \var typedef LOGFONT* PLOGFONT
  * \brief Data type of pointer to a LOGFONT.
  */
 typedef LOGFONT*    PLOGFONT;
 /**
- * \var typedef const LOGFONT* CPLOGFONT
- * \brief Data type of pointer to a const LOGFONT.
+ * \var typedef LOGFONT* CPLOGFONT
+ * \brief Data type of pointer to a LOGFONT.
  */
-typedef const LOGFONT*    CPLOGFONT;
+typedef LOGFONT*    CPLOGFONT;
 
 struct _WORDINFO;
 /**
@@ -6436,12 +6435,6 @@ struct _DEVFONT {
     BOOL             need_unload;
 };
 
-#define SBC_DEVFONT_INFO(logfont) (logfont.sbc_devfont)
-#define MBC_DEVFONT_INFO(logfont) (logfont.mbc_devfont)
-
-#define SBC_DEVFONT_INFO_P(logfont) (logfont->sbc_devfont)
-#define MBC_DEVFONT_INFO_P(logfont) (logfont->mbc_devfont)
-
 /**
  * \def INV_LOGFONT
  * \brief Invalid logfont.
@@ -6545,10 +6538,12 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *      - FONT_TYPE_NAME_ALL\n
  *        Creates a logical font by using any type device font.
  * \param family The family of the logical font, such as "Courier",
- *        "Helvetica", and so on.
+ *        "Helvetica", and so on. Since version 3.4.0, you can specify
+ *        up to 7 family names separated by comma, e.g.,
+ *        "Helvetica,Naskh".
  * \param charset The charset of the logical font. You can specify a
  *        sigle-byte charset like "ISO8859-1", or a multi-byte charset
- *        like "GB2312-0".
+ *        like "UTF-8", or "GB2312-0".
  * \param weight The weight of the logical font, can be one of the values:
  *      - FONT_WEIGHT_ALL\n
  *        Any one.
@@ -6668,7 +6663,9 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *      - FONT_TYPE_NAME_ALL\n
  *        Creates a logical font by using any type device font.
  * \param family The family of the logical font, such as "Courier",
- *        "Helvetica", and so on.
+ *        "Helvetica", and so on. Since version 3.4.0, you can specify
+ *        up to 7 family names separated by comma, e.g.,
+ *        "Helvetica,Naskh".
  * \param charset The charset of the logical font. You can specify a
  *        sigle-byte charset like "ISO8859-1", or a multi-byte charset
  *        like "GB2312-0".
@@ -6773,9 +6770,17 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  * \brief Creates a logical font by a font name.
  *
  * This function creates a logical font by a font name specified by
- * \a font_name.
+ * \a font_name. Note that since version 3.4.0, you can specify up
+ * to 4 family names in the LOGFONT name, such as:
  *
- * \param font_name The name of the font.
+ *      ttf-Courier,Naskh-rrncns-*-16-UTF-8
+ *
+ * In this way, you can specify a logfont to use multiple devfonts
+ * to render a complex text. This is useful when different glyphs are
+ * contained in different font files. Whereas, a font is often designed
+ * for a particular language/script or a few similar languages/scripts.
+ *
+ * \param font_name The name of the logfont.
  *
  * \return The pointer to the logical font created, NULL on error.
  *
@@ -6817,7 +6822,8 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT* logfont);
  *
  * \sa CreateLogFont, CreateLogFontIndirect, SelectFont
  */
-MG_EXPORT PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT* logfont, int rotation);
+MG_EXPORT PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT* logfont,
+        int rotation);
 
 /**
  * \fn void GUIAPI DestroyLogFont (PLOGFONT log_font)
@@ -9535,8 +9541,8 @@ typedef Uint32 Glyph32;
  */
 #define INV_GLYPH_VALUE             0xFFFFFFFF
 
-#define GLYPH_DEVFONT_INDEX_MASK    0xC0000000
-#define GLYPH_DEVFONT_INDEX_SHIFT   30
+#define GLYPH_DEVFONT_INDEX_MASK    0xF0000000
+#define GLYPH_DEVFONT_INDEX_SHIFT   28
 
 /**
  * \def REAL_GLYPH(glyph)
@@ -9547,20 +9553,18 @@ typedef Uint32 Glyph32;
 #define REAL_GLYPH(glyph)    ((glyph) & ~GLYPH_DEVFONT_INDEX_MASK)
 
 /**
- * \def SELECT_DEVFONT_EX(plogfont, glyph)
+ * \def SELECT_DEVFONT(logfont, glyph)
  * \brief Select a DEVFONT according to the LOGFONT glyph value.
  *
- * \param plogfont The pointer to a logical font.
- * \param glyph  The logical glyph value.
+ * \param logfont The pointer to a logical font.
+ * \param glyph   The logical glyph value.
  *
  */
-#define SELECT_DEVFONT_EX(plogfont, glyph) \
-    (plogfont)->devfonts[((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x03]
+#define SELECT_DEVFONT(logfont, glyph) \
+    (logfont)->devfonts[((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x07]
 
-/* to be deprecated */
-#define SELECT_DEVFONT(plogfont, glyph) \
-    ((glyph) & GLYPH_DEVFONT_INDEX_MASK ? \
-    (plogfont)->mbc_devfont : (plogfont)->sbc_devfont)
+#define DFI_IN_GLYPH(glyph) \
+    (((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x07)
 
 /**
  * \def IS_MBC_GLYPH(glyph)
@@ -9570,13 +9574,9 @@ typedef Uint32 Glyph32;
  */
 #define IS_MBC_GLYPH(glyph)  ((glyph) & GLYPH_DEVFONT_INDEX_MASK)
 
-/**
- * \def SET_MBC_GLYPH(glyph)
- * \brief set the glyph with multibyte mask
- *
- * \param glyph glyph value
- */
-#define SET_MBC_GLYPH(glyph) ((glyph) | 0x80000000)
+#define SET_GLYPH_DFI(glyph, dfi) \
+    (((glyph) & ~GLYPH_DEVFONT_INDEX_MASK) | \
+        (((Glyph32)((dfi) & 0x07)) << GLYPH_DEVFONT_INDEX_SHIFT))
 
 /**
  * \var typedef struct  _GLYPHMAPINFO GLYPHMAPINFO

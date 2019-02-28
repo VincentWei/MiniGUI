@@ -73,19 +73,33 @@ Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len)
 {
     int len_cur_char;
-
-    Glyph32  glyph_value = INV_GLYPH_VALUE;
-    DEVFONT* sbc_devfont  = logfont->sbc_devfont;
-    DEVFONT* mbc_devfont = logfont->mbc_devfont;
+    Glyph32  gv = INV_GLYPH_VALUE;
+    DEVFONT* sbc_devfont = logfont->devfonts[0];
+    DEVFONT* mbc_devfont = logfont->devfonts[1];
 
     if (mbc_devfont) {
+        int i, dfi;
+        DEVFONT* df;
+
         len_cur_char = mbc_devfont->charset_ops->len_first_char
             ((const unsigned char*)mchar, mchar_len);
 
         if (len_cur_char > 0) {
-            glyph_value = mbc_devfont->charset_ops->char_glyph_value
+            gv = mbc_devfont->charset_ops->char_glyph_value
                 ((Uint8*)pre_mchar, pre_len, (Uint8*)mchar, mchar_len);
-            return SET_MBC_GLYPH(glyph_value);
+
+            dfi = 1;
+            for (i = 1; i < MAXNR_DEVFONTS; i++) {
+                if ((df = logfont->devfonts[i])) {
+                    if (df->font_ops->is_glyph_existed(logfont, df, gv)) {
+                        dfi = i;
+                        break;
+                    }
+                }
+            }
+
+            // return the first devfont as the default
+            return SET_GLYPH_DFI(gv, dfi);
         }
     }
 
@@ -93,11 +107,11 @@ Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         ((const unsigned char*)mchar, mchar_len);
 
     if (len_cur_char > 0) {
-        glyph_value = sbc_devfont->charset_ops->char_glyph_value
+        gv = sbc_devfont->charset_ops->char_glyph_value
             (NULL, 0, (Uint8*)mchar, mchar_len);
     }
 
-    return glyph_value;
+    return gv;
 }
 
 Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
@@ -106,14 +120,17 @@ Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
     int len_cur_char;
 
     Glyph32  glyph_value = INV_GLYPH_VALUE;
-    DEVFONT* sbc_devfont  = logfont->sbc_devfont;
-    DEVFONT* mbc_devfont = logfont->mbc_devfont;
+    DEVFONT* sbc_devfont = logfont->devfonts[0];
+    DEVFONT* mbc_devfont = logfont->devfonts[1];
 
     if (mbc_devfont) {
         len_cur_char = mbc_devfont->charset_ops->len_first_char (
                 (const unsigned char*)mchar, mchar_len);
 
         if (len_cur_char > 0) {
+            int i, dfi;
+            DEVFONT* df;
+
             if (mbc_devfont->charset_ops->glyph_shape)
                 glyph_value = mbc_devfont->charset_ops->glyph_shape(
                         (const unsigned char*)mchar, mchar_len, shape_type);
@@ -121,7 +138,17 @@ Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
                 glyph_value = mbc_devfont->charset_ops->char_glyph_value
                 (NULL, 0, (Uint8*)mchar, len_cur_char);
 
-            return SET_MBC_GLYPH(glyph_value);
+            dfi = 1;
+            for (i = 1; i < MAXNR_DEVFONTS; i++) {
+                if ((df = logfont->devfonts[i])) {
+                    if (df->font_ops->is_glyph_existed(logfont, df, glyph_value)) {
+                        dfi = i;
+                        break;
+                    }
+                }
+            }
+
+            return SET_GLYPH_DFI(glyph_value, dfi);
         }
     }
 
@@ -2467,7 +2494,7 @@ static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
     if (pdc->pLogFont->rotation)
         *flag = ROTATE_RECT;
     else if (pdc->pLogFont->style & FS_SLANT_ITALIC &&
-        !(pdc->pLogFont->sbc_devfont->style & FS_SLANT_ITALIC))
+        !(pdc->pLogFont->devfonts[0]->style & FS_SLANT_ITALIC))
         *flag = ITALIC_RECT;
     else
         *flag = ROMAN_RECT;
@@ -2873,7 +2900,7 @@ end:
 int _gdi_get_italic_added_width (LOGFONT* logfont)
 {
     if (logfont->style & FS_SLANT_ITALIC
-        && !(logfont->sbc_devfont->style & FS_SLANT_ITALIC)) {
+        && !(logfont->devfonts[0]->style & FS_SLANT_ITALIC)) {
         return (logfont->size + 1) >> 1;
     }
     else {
@@ -2883,17 +2910,33 @@ int _gdi_get_italic_added_width (LOGFONT* logfont)
 
 void _gdi_start_new_line (PDC pdc)
 {
-    DEVFONT* sbc_devfont = pdc->pLogFont->sbc_devfont;
-    DEVFONT* mbc_devfont = pdc->pLogFont->mbc_devfont;
+    int i;
+    DEVFONT* df;
 
-    if (mbc_devfont) {
-        if (mbc_devfont->font_ops->start_str_output) {
-            mbc_devfont->font_ops->start_str_output(pdc->pLogFont, mbc_devfont);
+    for (i = 0; i < MAXNR_DEVFONTS; i++) {
+        if ((df = pdc->pLogFont->devfonts[i])) {
+            if (df->font_ops->start_str_output) {
+                df->font_ops->start_str_output(pdc->pLogFont, df);
+            }
+        }
+    }
+}
+
+Glyph32 _gdi_set_glyph_dfi(LOGFONT* lf, Glyph32 gv)
+{
+    int i, dfi = 1;
+    DEVFONT* df;
+
+    for (i = 1; i < MAXNR_DEVFONTS; i++) {
+        if ((df = lf->devfonts[i])) {
+            if (df->font_ops->is_glyph_existed(lf, df, gv)) {
+                dfi = i;
+                break;
+            }
         }
     }
 
-    if (sbc_devfont->font_ops->start_str_output) {
-        sbc_devfont->font_ops->start_str_output(pdc->pLogFont, sbc_devfont);
-    }
+    // return the first devfont as the default
+    return SET_GLYPH_DFI(gv, dfi);
 }
 
