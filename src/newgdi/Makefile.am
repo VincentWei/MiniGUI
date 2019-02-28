@@ -4,9 +4,8 @@ noinst_LTLIBRARIES = libnewgdi.la
 
 if MG_MINIMALGDI
 SRC_FILES = gdi.c attr.c clip.c coor.c rect.c  \
-              bitmap.c \
-              pixel.c pixel_ops.c \
-              region.c polygon.c 
+              bitmap.c pixel.c pixel_ops.c \
+              region.c polygon.c
 else
 SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
               palette.c readbmp.c icon.c screen.c bitmap.c \
@@ -14,7 +13,7 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
               region.c generators.c polygon.c flood.c \
               advapi.c midash.c mispans.c miwideline.c \
               mifillarc.c mifpolycon.c miarc.c rotatebmp.c \
-              text.c glyph.c bidi.c glyph-css.c \
+              text.c glyph.c bidi.c glyph-unicode.c \
               textout.c tabbedtextout.c drawtext.c
 endif
 

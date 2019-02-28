@@ -87,8 +87,6 @@ void font_DelMBDevFont (DEVFONT* dev_font);
 void dbg_dumpDevFonts (void);
 #endif
 
-#define INV_GLYPH_VALUE    -1
-
 static inline BOOL check_zero_width(unsigned int t)
 {
     return (t & GLYPHTYPE_MCHAR_MASK) == MCHAR_TYPE_ZEROWIDTH;

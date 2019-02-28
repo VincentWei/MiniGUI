@@ -5748,15 +5748,21 @@ typedef struct _LOGFONT {
     int ascent;
     /** The descent of the logical font. */
     int descent;
-    /** The size requested */
+    /** The size requested initially. */
     int size_request;
-    /** The scale factor of sbc device font. */
+
+    /* The devfonts for the logfont */
+    DEVFONT*    devfonts[4];
+    /* The scale factors of devfonts */
+    Uint8       df_scales[4];
+
+    /* To be deprecated. The scale factor of sbc device font. */
     unsigned short sbc_scale;
-    /** The scale factor of mbc device font. */
+    /* To be deprecated. The scale factor of mbc device font. */
     unsigned short mbc_scale;
-    /** Device font in single charset set */
+    /* To be deprecated. Device font in single charset set */
     DEVFONT* sbc_devfont;
-    /** Device font in multiply charset set */
+    /* To be deprecated. Device font in multiply charset set */
     DEVFONT* mbc_devfont;
 } LOGFONT;
 /**
@@ -9527,15 +9533,42 @@ typedef Uint32 Glyph32;
 /**
  * \def INV_GLYPH_VALUE
  */
-#define INV_GLYPH_VALUE    -1
+#define INV_GLYPH_VALUE             0xFFFFFFFF
+
+#define GLYPH_DEVFONT_INDEX_MASK    0xC0000000
+#define GLYPH_DEVFONT_INDEX_SHIFT   30
+
+/**
+ * \def REAL_GLYPH(glyph)
+ * \brief Get the real (DEVFONT) glyph value from a LOGFONT glyph.
+ *
+ * \param glyph The LOGFONT glyph value
+ */
+#define REAL_GLYPH(glyph)    ((glyph) & ~GLYPH_DEVFONT_INDEX_MASK)
+
+/**
+ * \def SELECT_DEVFONT_EX(plogfont, glyph)
+ * \brief Select a DEVFONT according to the LOGFONT glyph value.
+ *
+ * \param plogfont The pointer to a logical font.
+ * \param glyph  The logical glyph value.
+ *
+ */
+#define SELECT_DEVFONT_EX(plogfont, glyph) \
+    (plogfont)->devfonts[((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x03]
+
+/* to be deprecated */
+#define SELECT_DEVFONT(plogfont, glyph) \
+    ((glyph) & GLYPH_DEVFONT_INDEX_MASK ? \
+    (plogfont)->mbc_devfont : (plogfont)->sbc_devfont)
 
 /**
  * \def IS_MBC_GLYPH(glyph)
- * \brief to judge wether the glyph is multibyte glyph
+ * \brief Determine wether the glyph is multibyte glyph
  *
- * \param glyph  glyph value
+ * \param glyph The logfont glyph value
  */
-#define IS_MBC_GLYPH(glyph)  ((glyph) & 0x80000000)
+#define IS_MBC_GLYPH(glyph)  ((glyph) & GLYPH_DEVFONT_INDEX_MASK)
 
 /**
  * \def SET_MBC_GLYPH(glyph)
@@ -9544,36 +9577,6 @@ typedef Uint32 Glyph32;
  * \param glyph glyph value
  */
 #define SET_MBC_GLYPH(glyph) ((glyph) | 0x80000000)
-
-/**
- * \def REAL_GLYPH(glyph)
- * \brief get real glyph value from a glyph
- *
- * \param glyph glyph value
- */
-#define REAL_GLYPH(glyph)   ((glyph) & 0x7FFFFFFF)
-
-/**
- * \def GLYPH2UCHAR(glyph)
- * \brief get real glyph value from a glyph.
- * Only valid for UNICODE.
- *
- * \param glyph glyph value.
- */
-#define GLYPH2UCHAR(glyph)  ((glyph) & 0x7FFFFFFF)
-
-/**
- * \def SELECT_DEVFONT(plogfont, glyph)
- * \brief select a device font acording to the glyph value.
- *
- * \param plogfont  pointer to a logical font.
- * \param glyph  glyph value.
- *
- */
-#define SELECT_DEVFONT(plogfont, glyph) \
-    ((glyph) & 0x80000000 ? \
-    (plogfont)->mbc_devfont : \
-    (plogfont)->sbc_devfont)
 
 /**
  * \var typedef struct  _GLYPHMAPINFO GLYPHMAPINFO
@@ -10546,7 +10549,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *          const char* mstr, unsigned int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
- *          Glyph32** glyphs, Uint16** break_oppos, Uint8** break_classes,
+ *          Glyph32** glyphs, Uchar32** uchars, Uint16** break_oppos,
  *          int* nr_glyphs);
  * \brief Calculate the glyph string and the breaking opportunities under
  *        the specified rules and line breaking policy.
@@ -10590,6 +10593,9 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *        see \a line_break_policies.
  * \param glyphs The pointer to a buffer to store the address of the
  *        allocated glyph string.
+ * \param uchars The pointer to a buffer to store the address of the
+ *      UChar32 array which contains the Unicode character values
+ *      of the glyphs; can be NULL.
  * \param break_oppos The pointer to a buffer to store the address of the
  *        Uint16 array which contains the break opportunities of the glyphs.
  *        Note that the length of this array is always one longer than
@@ -10603,9 +10609,6 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *            No breaking allowed after the glyph definitely.
  *          - BOV_LB_ALLOWED\n
  *            Breaking allowed after the glyph.
- * \param break_classes The pointer to a buffer to store the address of the
- *      Uint8 array which contains the breaking classes (UCharBreakType)
- *      of the glyphs; can be NULL.
  * \param nr_glyphs The buffer to store the number of the allocated glyphs.
  *
  * \return The number of the bytes consumed in \a mstr; zero on error.
@@ -10618,8 +10621,23 @@ MG_EXPORT int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont,
             const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-            Glyph32** glyphs, Uint16** break_oppos, Uint8** break_classes,
+            Glyph32** glyphs, Uchar32** uchars, Uint16** break_oppos,
             int* nr_glyphs);
+
+/**
+ * \fn Glyph2UChar(LOGFONT* logfont, Glyph32 gv)
+ * \brief Get Uchar32 value (whide character value) from a LOGFONT glyph value.
+ *
+ * Only valid for UNICODE.
+ *
+ * \param logfont The LOGFONT object
+ * \param glyph The LOGFONT glyph value.
+ *
+ * \return The Uchar32 value (Unicode code point) of the glyph.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ */
+MG_EXPORT Uchar32 GUIAPI Glyph2UChar(LOGFONT* logfont, Glyph32 gv);
 
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags

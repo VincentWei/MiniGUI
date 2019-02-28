@@ -160,6 +160,7 @@ struct glyph_break_ctxt {
     DEVFONT* mbc_devfont;
     DEVFONT* sbc_devfont;
     Glyph32* gvs;
+    Uchar32* ucs;
     Uint8*   bts;
     Uint16*  bos;
     Uint8*   ods;
@@ -179,6 +180,7 @@ struct glyph_break_ctxt {
     Uint8   curr_gc;
     Uint8   curr_od;
 
+    /* UAX#29 boundaries */
     Uchar32 prev_uc;
     Uchar32 base_uc;
     Uchar32 last_word_letter;
@@ -198,29 +200,13 @@ struct glyph_break_ctxt {
     Uint8   met_extended_pictographic:1;
     Uint8   is_extended_pictographic:1;
 
-    /* UAX#29 boundaries */
     Uint8   is_grapheme_boundary:1;
     Uint8   is_word_boundary:1;
     Uint8   is_sentence_boundary:1;
+
+    // internal use
+    Uint8   need_ucs:1;
 };
-
-static int gbctxt_init_spaces(struct glyph_break_ctxt* gbctxt, int size)
-{
-    // pre-allocate buffers
-    gbctxt->len_buff = size;
-    if (gbctxt->len_buff < MIN_LEN_GLYPHS)
-        gbctxt->len_buff = MIN_LEN_GLYPHS;
-
-    gbctxt->gvs = (Glyph32*)malloc(sizeof(Glyph32) * gbctxt->len_buff);
-    gbctxt->bts = (Uint8*)malloc(sizeof(Uint8) * gbctxt->len_buff);
-    gbctxt->bos = (Uint16*)malloc(sizeof(Uint16) * gbctxt->len_buff);
-    gbctxt->ods = (Uint8*)malloc(sizeof(Uint8) * gbctxt->len_buff);
-    if (gbctxt->gvs == NULL || gbctxt->bts == NULL
-            || gbctxt->bos == NULL || gbctxt->ods == NULL)
-        return 0;
-
-    return gbctxt->len_buff;
-}
 
 static BOOL gbctxt_change_lbo_last(struct glyph_break_ctxt* gbctxt,
         Uint16 lbo)
@@ -296,7 +282,7 @@ static BOOL gbctxt_change_lbo_before_last_sp(struct glyph_break_ctxt* gbctxt,
         return FALSE;
     }
 
-    if (GLYPH2UCHAR(gbctxt->gvs[gbctxt->n - 3]) == UCHAR_SPACE) {
+    if (REAL_GLYPH(gbctxt->gvs[gbctxt->n - 3]) == UCHAR_SPACE) {
         _DBG_PRINTF("%s: force changed: curr_od(%d), org_od(%d)\n",
             __FUNCTION__, gbctxt->curr_od, gbctxt->ods[gbctxt->n - 2]);
          gbctxt->bos[gbctxt->n - 2] = lbo;
@@ -336,7 +322,7 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
             if (gbctxt->mbc_devfont->charset_ops->conv_to_uc32)
                 *uc = gbctxt->mbc_devfont->charset_ops->conv_to_uc32(*gv);
             else
-                *uc = GLYPH2UCHAR(*gv);
+                *uc = REAL_GLYPH(*gv);
         }
     }
 
@@ -350,7 +336,7 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
             if (gbctxt->sbc_devfont->charset_ops->conv_to_uc32)
                 *uc = gbctxt->sbc_devfont->charset_ops->conv_to_uc32(*gv);
             else
-                *uc = GLYPH2UCHAR(*gv);
+                *uc = REAL_GLYPH(*gv);
         }
     }
 
@@ -1381,10 +1367,8 @@ static void dbg_dump_gbctxt(struct glyph_break_ctxt* gbctxt,
 
 static inline Glyph32 uc2gv(Glyph32 gv, Uchar32 uc)
 {
-    if (IS_MBC_GLYPH(gv))
-        return SET_MBC_GLYPH(uc);
-
-    return uc;
+    Glyph32 dfi_mask = (gv & GLYPH_DEVFONT_INDEX_MASK);
+    return ((Glyph32)uc) | dfi_mask;
 }
 
 static inline BOOL is_glyph_letter(Uchar32 uc,
@@ -1405,6 +1389,27 @@ static inline BOOL is_glyph_letter(Uchar32 uc,
     return FALSE;
 }
 
+static int gbctxt_init_spaces(struct glyph_break_ctxt* gbctxt, int size)
+{
+    // pre-allocate buffers
+    gbctxt->len_buff = size;
+    if (gbctxt->len_buff < MIN_LEN_GLYPHS)
+        gbctxt->len_buff = MIN_LEN_GLYPHS;
+
+    gbctxt->gvs = (Glyph32*)malloc(sizeof(Glyph32) * gbctxt->len_buff);
+    if (gbctxt->need_ucs)
+        gbctxt->ucs = (Uchar32*)malloc(sizeof(Uchar32) * gbctxt->len_buff);
+    gbctxt->bts = (Uint8*)malloc(sizeof(Uint8) * gbctxt->len_buff);
+    gbctxt->bos = (Uint16*)malloc(sizeof(Uint16) * gbctxt->len_buff);
+    gbctxt->ods = (Uint8*)malloc(sizeof(Uint8) * gbctxt->len_buff);
+    if (gbctxt->gvs == NULL || gbctxt->bts == NULL ||
+            gbctxt->bos == NULL || gbctxt->ods == NULL ||
+            (gbctxt->need_ucs && gbctxt->ucs == NULL))
+        return 0;
+
+    return gbctxt->len_buff;
+}
+
 static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         Glyph32 gv, Uchar32 uc, UCharBreakType bt, Uint16 lbo)
 {
@@ -1413,6 +1418,9 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         gbctxt->len_buff += INC_LEN_GLYPHS;
         gbctxt->gvs = (Glyph32*)realloc(gbctxt->gvs,
             sizeof(Glyph32) * gbctxt->len_buff);
+        if (gbctxt->need_ucs)
+            gbctxt->ucs = (Uchar32*)realloc(gbctxt->ucs,
+                sizeof(Uchar32) * gbctxt->len_buff);
         gbctxt->bts = (Uint8*)realloc(gbctxt->bts,
             sizeof(Uint8) * gbctxt->len_buff);
         gbctxt->bos = (Uint16*)realloc(gbctxt->bos,
@@ -1420,8 +1428,9 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         gbctxt->ods = (Uint8*)realloc(gbctxt->ods,
             sizeof(Uint8) * gbctxt->len_buff);
 
-        if (gbctxt->gvs == NULL || gbctxt->bts == NULL
-                || gbctxt->bos == NULL || gbctxt->ods == NULL)
+        if (gbctxt->gvs == NULL || gbctxt->bts == NULL ||
+                gbctxt->bos == NULL || gbctxt->ods == NULL ||
+                (gbctxt->need_ucs && gbctxt->ucs == NULL))
             return 0;
     }
 
@@ -1437,6 +1446,8 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
 
         // set the after line break opportunity
         gbctxt->gvs[gbctxt->n - 1] = gv;
+        if (gbctxt->need_ucs)
+            gbctxt->ucs[gbctxt->n - 1] = uc;
         gbctxt->bts[gbctxt->n - 1] = bt;
         gbctxt->bos[gbctxt->n] = lbo;
         if (lbo == BOV_UNKNOWN)
@@ -2175,7 +2186,7 @@ static int check_subsequent_ri(struct glyph_break_ctxt* gbctxt,
 int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
             LanguageCode content_language, UCharScriptType writing_system,
             Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-            Glyph32** glyphs, Uint16** break_oppos, Uint8** break_classes,
+            Glyph32** glyphs, Uchar32** uchars, Uint16** break_oppos,
             int* nr_glyphs)
 {
     struct glyph_break_ctxt gbctxt;
@@ -2190,13 +2201,17 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
     if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP)
         col_nl = TRUE;
 
+    memset(&gbctxt, 0, sizeof(gbctxt));
     gbctxt.mbc_devfont = logfont->mbc_devfont;
     gbctxt.sbc_devfont = logfont->sbc_devfont;
+#if 0
     gbctxt.gvs = NULL;
+    gbctxt.ucs = NULL;
     gbctxt.bts = NULL;
     gbctxt.bos = NULL;
     gbctxt.len_buff = 0;
     gbctxt.n = 0;
+#endif
     gbctxt.base_bt = UCHAR_BREAK_UNSET;
     gbctxt.cl = content_language;
     gbctxt.ws = writing_system;
@@ -2205,16 +2220,18 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
     gbctxt.wbr = wbr;
     gbctxt.lbp = lbp;
 
+#if 0
     gbctxt.prev_uc  = 0;
     gbctxt.base_uc  = 0;
     gbctxt.last_word_letter = 0;
+#endif
 
     // NOTE: the index 0 of break_oppos is the break opportunity
     // before the first glyph.
     gbctxt.last_stc_start = -1;
     gbctxt.last_non_space = -1;
-    gbctxt.prev_wb_index = 0;
-    gbctxt.prev_sb_index = 0;
+    gbctxt.prev_wb_index = -1;
+    gbctxt.prev_sb_index = -1;
 
     gbctxt.prev_gbt = GB_Other;
     gbctxt.prev_gbt = GB_Other;
@@ -2223,17 +2240,21 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
     gbctxt.prev_jamo = NO_JAMO;
     gbctxt.curr_wt = WordNone;
 
+#if 0
     gbctxt.makes_hangul_syllable = 0;
     gbctxt.is_grapheme_boundary = 0;
     gbctxt.is_word_boundary = 0;
     gbctxt.is_sentence_boundary = 0;
     gbctxt.met_extended_pictographic = 0;
     gbctxt.is_extended_pictographic = 0;
+#endif
 
     *glyphs = NULL;
+    if (uchars) {
+        *uchars = NULL;
+        gbctxt.need_ucs = 1;
+    }
     *break_oppos = NULL;
-    if (break_classes)
-        *break_classes = NULL;
     *nr_glyphs = 0;
 
     if (mstr_len == 0)
@@ -3166,20 +3187,21 @@ next_glyph:
 
         *glyphs = gbctxt.gvs;
         *break_oppos = gbctxt.bos;
-        if (break_classes)
-            *break_classes = gbctxt.bts;
+        if (uchars)
+            *uchars = gbctxt.ucs;
         *nr_glyphs = gbctxt.n - 1;
     }
     else
         goto error;
 
-    if (break_classes == NULL && gbctxt.bts) free(gbctxt.bts);
+    if (uchars == NULL && gbctxt.ucs) free(gbctxt.ucs);
     if (gbctxt.ods) free(gbctxt.ods);
 
     return cosumed;
 
 error:
     if (gbctxt.gvs) free(gbctxt.gvs);
+    if (gbctxt.ucs) free(gbctxt.ucs);
     if (gbctxt.bts) free(gbctxt.bts);
     if (gbctxt.bos) free(gbctxt.bos);
     if (gbctxt.ods) free(gbctxt.ods);
@@ -3951,7 +3973,7 @@ static void init_glyph_info(MYGLYPHARGS* args, int i,
     if (devfont->charset_ops->conv_to_uc32)
         gi->uc = devfont->charset_ops->conv_to_uc32(args->gvs[i]);
     else
-        gi->uc = GLYPH2UCHAR(args->gvs[i]);
+        gi->uc = REAL_GLYPH(args->gvs[i]);
     gi->gc = UCharGetCategory(gi->uc);
     gi->ignored = 0;
     gi->hanged = GLYPH_HANGED_NONE;
@@ -4401,6 +4423,19 @@ error:
     }
 
     return 0;
+}
+
+Uchar32 GUIAPI Glyph2UChar(LOGFONT* logfont, Glyph32 gv)
+{
+    Uchar32 uc;
+    DEVFONT* devfont = SELECT_DEVFONT(logfont, gv);
+
+    if (devfont->charset_ops->conv_to_uc32)
+        uc = devfont->charset_ops->conv_to_uc32(gv);
+    else
+        uc = REAL_GLYPH(gv);
+
+    return uc;
 }
 
 #endif /*  _MGCHARSET_UNICODE */
