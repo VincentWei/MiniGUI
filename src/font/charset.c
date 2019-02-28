@@ -4418,7 +4418,7 @@ UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc)
 }
 
 /** The function determines the break type of a UNICODE character. */
-UCharBreakType GUIAPI UCharGetBreak(Uchar32 uc)
+UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc)
 {
     return (UCharBreakType)PROP(uc);
 }

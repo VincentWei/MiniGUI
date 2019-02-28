@@ -176,9 +176,8 @@ struct glyph_break_ctxt {
     Uint8   lbp;
 
     Uint8   base_bt;
-    Uint8   curr_od;
     Uint8   curr_gc;
-    Uint8   curr_bt;
+    Uint8   curr_od;
 
     Uchar32 prev_uc;
     Uchar32 base_uc;
@@ -360,8 +359,10 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
 
 static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
 {
-    Uint8 gc = UCharGetCategory(uc);
-    Uint8 bt = UCharGetBreak(uc);
+    UCharBreakType bt;
+
+    bt = UCharGetBreakType(uc);
+    gbctxt->curr_gc = UCharGetCategory(uc);
 
     /*
      * TODO: according to the content language and the writing system
@@ -377,8 +378,8 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
         break;
 
     case UCHAR_BREAK_COMPLEX_CONTEXT:
-        if (gc == UCHAR_CATEGORY_NON_SPACING_MARK
-                || gc == UCHAR_CATEGORY_SPACING_MARK) {
+        if (gbctxt->curr_gc == UCHAR_CATEGORY_NON_SPACING_MARK
+                || gbctxt->curr_gc == UCHAR_CATEGORY_SPACING_MARK) {
             bt = UCHAR_BREAK_COMBINING_MARK;
         }
         else {
@@ -417,19 +418,17 @@ static UCharBreakType resolve_lbc(struct glyph_break_ctxt* gbctxt, Uchar32 uc)
         bt = UCHAR_BREAK_IDEOGRAPHIC;
     }
 
-    gbctxt->curr_gc = gc;
-    gbctxt->curr_bt = bt;
     return bt;
 }
 
 /* Find the Grapheme Break Type of uc */
 static _GBType resolve_gbt(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc)
+        Uchar32 uc, UCharGeneralCategory gc)
 {
     _GBType gbt;
 
     gbt = GB_Other;
-    switch (gc) {
+    switch ((Uint8)gc) {
     case UCHAR_CATEGORY_FORMAT:
         if (uc == 0x200C) {
             gbt = GB_Extend;
@@ -516,7 +515,7 @@ static _GBType resolve_gbt(struct glyph_break_ctxt* gbctxt,
 
 /* Find the Word Break Type of uc */
 static _WBType resolve_wbt(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc, Uint8 bt)
+        Uchar32 uc, UCharGeneralCategory gc, UCharBreakType bt)
 {
     UCharScriptType script;
     _WBType wbt;
@@ -552,7 +551,7 @@ static _WBType resolve_wbt(struct glyph_break_ctxt* gbctxt,
     }
 
     if (wbt == WB_Other) {
-        switch (bt) {
+        switch ((Uint8)bt) {
         case UCHAR_BREAK_NUMERIC:
             if (uc != 0x066C)
                 wbt = WB_Numeric; /* Numeric */
@@ -565,7 +564,7 @@ static _WBType resolve_wbt(struct glyph_break_ctxt* gbctxt,
     }
 
     if (wbt == WB_Other) {
-        switch (gc) {
+        switch ((Uint8)gc) {
         case UCHAR_CATEGORY_CONTROL:
             if (uc != 0x000D && uc != 0x000A && uc != 0x000B &&
                     uc != 0x000C && uc != 0x0085)
@@ -662,7 +661,7 @@ Alphabetic:
 
 /* Find the Sentence Break Type of wc */
 static _SBType resolve_sbt(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc, Uint8 bt)
+        Uchar32 uc, UCharGeneralCategory gc, UCharBreakType bt)
 {
     _SBType sbt;
 
@@ -671,7 +670,7 @@ static _SBType resolve_sbt(struct glyph_break_ctxt* gbctxt,
         sbt = SB_Numeric; /* Numeric */
 
     if (sbt == SB_Other) {
-        switch (gc) {
+        switch ((Uint8)gc) {
         case UCHAR_CATEGORY_CONTROL:
             if (uc == '\r' || uc == '\n')
                 sbt = SB_ParaSep;
@@ -849,7 +848,7 @@ static const struct _CharJamoProps HangulJamoProps[] = {
 
 /* Determine wheter this forms a Hangul syllable with prev. */
 static void check_hangul_syllable(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 bt)
+        Uchar32 uc, UCharBreakType bt)
 {
     _JamoType jamo = JAMO_TYPE (bt);
     if (jamo == NO_JAMO)
@@ -868,7 +867,7 @@ static void check_hangul_syllable(struct glyph_break_ctxt* gbctxt,
 }
 
 static Uint16 check_space(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc)
+        Uchar32 uc, UCharGeneralCategory gc)
 {
     Uint16 bo;
 
@@ -927,7 +926,7 @@ void check_emoji_extended_pictographic(struct glyph_break_ctxt* gbctxt,
     (!LATIN (uc) && !CYRILLIC (uc) && !GREEK (uc) && !KANA(uc) && !HANGUL(uc))
 
 static Uint16 check_grapheme_boundaries(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc, Uint8 bt)
+        Uchar32 uc, UCharGeneralCategory gc, UCharBreakType bt)
 {
     _GBType gbt;
     Uint16 bo;
@@ -999,7 +998,7 @@ static Uint16 check_grapheme_boundaries(struct glyph_break_ctxt* gbctxt,
 }
 
 static Uint16 check_word_boundaries(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc, Uint8 bt, int i)
+        Uchar32 uc, UCharGeneralCategory gc, UCharBreakType bt, int i)
 {
     gbctxt->is_word_boundary = 0;
 
@@ -1116,7 +1115,7 @@ static Uint16 check_word_boundaries(struct glyph_break_ctxt* gbctxt,
             sbt == SB_STerm_Close_Sp)
 
 static Uint16 check_sentence_boundaries(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc, Uint8 bt, int i)
+        Uchar32 uc, UCharGeneralCategory gc, UCharBreakType bt, int i)
 {
     gbctxt->is_sentence_boundary = 0;
 
@@ -1219,7 +1218,7 @@ static Uint16 check_sentence_boundaries(struct glyph_break_ctxt* gbctxt,
 
 /* ---- Word breaks ---- */
 static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc, int i)
+        Uchar32 uc, UCharGeneralCategory gc, int i)
 {
     /* default to not a word start/end */
     gbctxt->bos[i] &= ~BOV_WB_WORD_START;
@@ -1303,7 +1302,7 @@ static void check_word_breaks(struct glyph_break_ctxt* gbctxt,
 
 /* ---- Sentence breaks ---- */
 static void check_sentence_breaks(struct glyph_break_ctxt* gbctxt,
-        Uchar32 uc, Uint8 gc, int i)
+        Uchar32 uc, UCharGeneralCategory gc, int i)
 {
     /* default to not a sentence start/end */
     gbctxt->bos[i] &= ~BOV_SB_SENTENCE_START;
@@ -1388,8 +1387,26 @@ static inline Glyph32 uc2gv(Glyph32 gv, Uchar32 uc)
     return uc;
 }
 
+static inline BOOL is_glyph_letter(Uchar32 uc,
+        UCharGeneralCategory gc, UCharBreakType bt)
+{
+    if ((gc >= UCHAR_CATEGORY_LOWERCASE_LETTER
+                && gc <= UCHAR_CATEGORY_UPPERCASE_LETTER)
+            || (gc >= UCHAR_CATEGORY_DECIMAL_NUMBER
+                && gc <= UCHAR_CATEGORY_OTHER_NUMBER))
+        return TRUE;
+
+    if (bt == UCHAR_BREAK_NUMERIC
+            || bt == UCHAR_BREAK_ALPHABETIC
+            || bt == UCHAR_BREAK_IDEOGRAPHIC
+            || bt == UCHAR_BREAK_AMBIGUOUS)
+        return TRUE;
+
+    return FALSE;
+}
+
 static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
-        Glyph32 gv, Uchar32 uc, Uint8 bt, Uint16 lbo)
+        Glyph32 gv, Uchar32 uc, UCharBreakType bt, Uint16 lbo)
 {
     /* realloc buffers if it needs */
     if ((gbctxt->n + 2) >= gbctxt->len_buff) {
@@ -1415,7 +1432,7 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
     }
     else {
         // break opportunities for grapheme, word, and sentence.
-        Uint8 gc;
+        UCharGeneralCategory gc;
         Uint16 gwsbo = 0;
 
         // set the after line break opportunity
@@ -1430,7 +1447,7 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         // determine the grapheme, word, and sentence breaks
         gc = UCharGetCategory(uc);
         // use the original breaking class for GWS breaking test.
-        bt = UCharGetBreak(uc);
+        bt = UCharGetBreakType(uc);
 
         check_hangul_syllable(gbctxt, uc, bt);
         //dbg_dump_gbctxt(gbctxt, "check_hangul_syllable", uc, gwsbo);
@@ -1453,14 +1470,14 @@ static int gbctxt_push_back(struct glyph_break_ctxt* gbctxt,
         gbctxt->bos[gbctxt->n - 1] |= gwsbo;
 
         check_word_breaks(gbctxt, uc, gc, gbctxt->n);
-        dbg_dump_gbctxt(gbctxt, "check_word_breaks", uc, gwsbo);
+        //dbg_dump_gbctxt(gbctxt, "check_word_breaks", uc, gwsbo);
 
         check_sentence_breaks(gbctxt, uc, gc, gbctxt->n);
-        dbg_dump_gbctxt(gbctxt, "check_sentence_breaks", uc, gwsbo);
+        //dbg_dump_gbctxt(gbctxt, "check_sentence_breaks", uc, gwsbo);
 
         // Character Transformation
         // NOTE: Assume character transformation will not affect the breaks
-        if (gbctxt->ctr) {
+        if (gbctxt->ctr && (is_glyph_letter(uc, gc, bt) || uc == 0x0020)) {
             Uchar32 new_uc = uc;
 
             switch(gbctxt->ctr & CTR_CASE_MASK) {
@@ -1578,23 +1595,6 @@ static int is_next_glyph_bt(struct glyph_break_ctxt* gbctxt,
     return 0;
 }
 
-static BOOL is_glyph_letter(UCharGeneralCategory gc, UCharBreakType bt)
-{
-    if ((gc >= UCHAR_CATEGORY_LOWERCASE_LETTER
-                && gc <= UCHAR_CATEGORY_UPPERCASE_LETTER)
-            || (gc >= UCHAR_CATEGORY_DECIMAL_NUMBER
-                && gc <= UCHAR_CATEGORY_OTHER_NUMBER))
-        return TRUE;
-
-    if (bt == UCHAR_BREAK_NUMERIC
-            || bt == UCHAR_BREAK_ALPHABETIC
-            || bt == UCHAR_BREAK_IDEOGRAPHIC
-            || bt == UCHAR_BREAK_AMBIGUOUS)
-        return TRUE;
-
-    return FALSE;
-}
-
 static int is_next_glyph_letter(struct glyph_break_ctxt* gbctxt,
     const char* mstr, int mstr_len, Glyph32* gv, Uchar32* uc,
     UCharBreakType* pbt)
@@ -1605,7 +1605,7 @@ static int is_next_glyph_letter(struct glyph_break_ctxt* gbctxt,
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
         bt = resolve_lbc(gbctxt, *uc);
-        if (is_glyph_letter(gbctxt->curr_gc, bt)) {
+        if (is_glyph_letter(*uc, gbctxt->curr_gc, bt)) {
             if (pbt) *pbt = bt;
             return mclen;
         }
@@ -1706,7 +1706,7 @@ static int is_next_glyph_cm_zwj(struct glyph_break_ctxt* gbctxt,
 
     mclen = get_next_glyph(gbctxt, mstr, mstr_len, gv, uc);
     if (mclen > 0) {
-        UCharBreakType bt = UCharGetBreak(*uc);
+        UCharBreakType bt = UCharGetBreakType(*uc);
         if (bt == UCHAR_BREAK_COMBINING_MARK
                 || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER) {
             if (pbt) *pbt = bt;
@@ -2503,7 +2503,7 @@ int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
          * line-break settings other than anywhere) except where opportunities
          * exist due to dictionary-based breaking.
          */
-        if (wbr == WBR_KEEP_ALL && is_glyph_letter(gc, bt)
+        if (wbr == WBR_KEEP_ALL && is_glyph_letter(uc, gc, bt)
                 && (next_mclen = is_next_glyph_letter(&gbctxt,
                     mstr, mstr_len, &next_gv, &next_uc, &next_bt)) > 0) {
             _DBG_PRINTF ("WBR_KEEP_ALL.\n");

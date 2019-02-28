@@ -7422,7 +7422,7 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
 MG_EXPORT UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc);
 
 /** The function determines the break property of a UNICODE character. */
-MG_EXPORT UCharBreakType GUIAPI UCharGetBreak(Uchar32 uc);
+MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
 
 /** The function determines the BIDI type of a UNICODE character. */
 MG_EXPORT unsigned int GUIAPI UCharGetBIDIType(Uchar32 uc);
