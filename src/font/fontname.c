@@ -115,7 +115,7 @@ BOOL fontGetFamilyFromName (const char* name, char* family)
     if (*(++family_part) == '\0')
         return FALSE;
 
-    while (family_part [i] && i <= LEN_LOGFONT_NAME_FIELD) {
+    while (family_part [i] && i <= LEN_LOGFONT_FAMILY_FILED) {
         if (family_part [i] == '-' || family_part [i] == ',') {
             family [i] = '\0';
             break;
@@ -157,7 +157,7 @@ static BOOL get_family_part_lower (const char* name, char* family)
 BOOL fontDoesMatchFamily (const char* name, const char* family)
 {
     // make sure there is a redundant space for the tail character.
-    char family_part[LEN_UNIDEVFONT_NAME + 2];
+    char family_part[LEN_LOGFONT_FAMILY_FILED + 2];
     char family_request[LEN_LOGFONT_NAME_FIELD + 2];
     int i = 0;
     size_t len;

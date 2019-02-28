@@ -172,8 +172,8 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
         else {
             _DBG_PRINTF ("FONT>LogFont: try to match MBC Devfont for family (%s)\n",
                     name_field);
-            if ((devfonts[i] = font_GetMatchedSBDevFont (newlf, name_field)) == NULL)
-                goto error;
+            if ((devfonts[i] = font_GetMatchedMBDevFont (newlf, name_field)) == NULL)
+                break;
 
             iter += n;
             if (*iter == ',' || *iter == ' ')
