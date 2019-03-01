@@ -71,7 +71,7 @@ int fontConvertFontType (const char* type)
     if (strcasecmp (type, FONT_TYPE_NAME_SCALE_T1F) == 0)
         return FONT_TYPE_SCALE_T1F;
     if (strcasecmp (type, FONT_TYPE_NAME_ALL) == 0)
-        return FONT_TYPE_ALL;
+        return FONT_TYPE_ANY;
 
     return -1;
 }
@@ -202,7 +202,7 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_WEIGHT_BOLD:
         style |= FS_WEIGHT_BOLD;
         break;
-    /* deprecated since v3.2.1
+    /* deprecated since v3.4.0
     case FONT_WEIGHT_BOOK:
         style |= FS_WEIGHT_BOOK;
         break;
@@ -228,7 +228,7 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_WEIGHT_THIN:
         style |= FS_WEIGHT_THIN;
         break;
-    /* deprecated since v3.2.1
+    /* deprecated since v3.4.0
     case FONT_WEIGHT_SUBPIXEL:
         style |= FS_WEIGHT_SUBPIXEL;
         break;
@@ -236,6 +236,7 @@ DWORD fontConvertStyle (const char* style_part)
         style |= FS_WEIGHT_MASK;
         break;
     */
+    case FONT_WEIGHT_ANY:
     default:
         style |= FS_WEIGHT_ANY;
         break;
@@ -252,11 +253,10 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_SLANT_ROMAN:
         style |= FS_SLANT_ROMAN;
         break;
-    case FONT_SLANT_ALL:
-        style |= FS_SLANT_MASK;
-        break;
+    case FONT_SLANT_ANY:
     default:
-        return 0xFFFFFFFF;
+        style |= FS_SLANT_ANY;
+        break;
     }
 
     style &= ~FS_FLIP_MASK;
@@ -271,6 +271,7 @@ DWORD fontConvertStyle (const char* style_part)
         style |= FS_FLIP_HORZVERT;
         break;
     default:
+        //style |= FS_FLIP_NONE;
         break;
     }
 
@@ -289,6 +290,7 @@ DWORD fontConvertStyle (const char* style_part)
         style |= FS_OTHER_TTFNOCACHEKERN;
         break;
     default:
+        //style |= FS_OTHER_NONE;
         break;
     }
 
@@ -313,6 +315,7 @@ DWORD fontConvertStyle (const char* style_part)
         style |= FS_DECORATE_STRUCKOUT;
         break;
     default:
+        //style |= FS_DECORATE_NONE;
         break;
     }
 

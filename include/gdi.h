@@ -5464,7 +5464,6 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define LEN_DEVFONT_NAME            LEN_UNIDEVFONT_NAME
 
 #define FONT_WEIGHT_NIL             '\0'
-#define FONT_WEIGHT_ALL             '*'
 #define FONT_WEIGHT_ANY             '*'
 #define FONT_WEIGHT_THIN            't'
 #define FONT_WEIGHT_EXTRA_LIGHT     'e'
@@ -5497,39 +5496,38 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_WEIGHT_BLACK             90
 
 #define FONT_SLANT_NIL              '\0'
-#define FONT_SLANT_ALL              '*'
+#define FONT_SLANT_ANY              '*'
 #define FONT_SLANT_ITALIC           'i'
 #define FONT_SLANT_OBLIQUE          'o'
 #define FONT_SLANT_ROMAN            'r'
 
 #define FS_SLANT_MASK               0x00000F00
+#define FS_SLANT_ANY                0x00000000
 #define FS_SLANT_ITALIC             0x00000100
 #define FS_SLANT_OBLIQUE            0x00000200
-#define FS_SLANT_ROMAN              0x00000000
+#define FS_SLANT_ROMAN              0x00000300
 
-#define FONT_FLIP_NIL               '\0'
+#define FONT_FLIP_NONE              'n'
 #define FONT_FLIP_HORZ              'h'
 #define FONT_FLIP_VERT              'v'
 #define FONT_FLIP_HORZVERT          't'
-#define FONT_FLIP_NONE              'n'
+#define FONT_FLIP_NIL               FONT_FLIP_NONE
 
 #define FS_FLIP_MASK                0x0000F000
+#define FS_FLIP_NONE                0x00000000
 #define FS_FLIP_HORZ                0x00001000
 #define FS_FLIP_VERT                0x00002000
 #define FS_FLIP_HORZVERT            0x00003000 /* HORZ | VERT */
 
-#define FONT_OTHER_NIL              '\0'
 #define FONT_OTHER_NONE             'n'
 #define FONT_OTHER_AUTOSCALE        's'
 #define FONT_OTHER_TTFNOCACHE       'c'
 #define FONT_OTHER_TTFKERN          'k'
 #define FONT_OTHER_TTFNOCACHEKERN   'r'
-
-/* Backward compatiblilty definitions; deprecated since v3.4.0 */
-#define FONT_OTHER_LCDPORTRAIT      'p'
-#define FONT_OTHER_LCDPORTRAITKERN  'q'
+#define FONT_OTHER_NIL              FONT_OTHER_NONE
 
 #define FS_OTHER_MASK               0x00FF0000
+#define FS_OTHER_NONE               0x00000000
 #define FS_OTHER_AUTOSCALE          0x00010000
 #define FS_OTHER_TTFNOCACHE         0x00020000
 #define FS_OTHER_TTFKERN            0x00040000
@@ -5544,10 +5542,12 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_DECORATE_US            'U' /* UNDERLINE | STRUCKOUT */
 
 #define FS_DECORATE_MASK            0x0F000000
+#define FS_DECORATE_NONE            0x00000000
 #define FS_DECORATE_UNDERLINE       0x01000000
 #define FS_DECORATE_STRUCKOUT       0x02000000
 #define FS_DECORATE_REVERSE         0x04000000
 #define FS_DECORATE_OUTLINE         0x08000000
+#define FS_DECORATE_US              (FS_DECORATE_UNDERLINE | FS_DECORATE_STRUCKOUT)
 
 #define FONT_RENDER_NIL             '\0'
 #define FONT_RENDER_ANY             '*'
@@ -5559,9 +5559,18 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_RENDER_MONO              0x00000000
 #define FS_RENDER_GREY              0x10000000
 #define FS_RENDER_SUBPIXEL          0x20000000
+#define FS_RENDER_ANY               FS_RENDER_MONO
 
-/*
- * Backward compatiblilty definitions.
+/* Backward compatiblilty definitions; deprecated since v3.4.0 */
+#define FONT_OTHER_LCDPORTRAIT      'p'
+#define FONT_OTHER_LCDPORTRAITKERN  'q'
+
+#define FONT_WEIGHT_ALL             FONT_WEIGHT_ANY
+#define FONT_SLANT_ALL              FONT_SLANT_ANY
+#define FS_WEIGHT_ALL               FS_WEIGHT_ANY
+#define FS_SLANT_ALL                FS_SLANT_ANY
+
+/* Backward compatiblilty definitions; deprecated since v3.4.0
  * All FONT_SETWIDTH_* and FONT_SPACING_* types will
  * be treated as FONT_FLIP_NIL and FONT_OTHER_NIL respectively.
  */
@@ -5588,6 +5597,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_STRUCKOUT_ALL          '*'
 #define FONT_STRUCKOUT_LINE         's'
 #define FONT_STRUCKOUT_NONE         'n'
+/******/
 
 #define FONT_TYPE_NAME_LEN          3
 #define FONT_TYPE_NAME_BITMAP_RAW   "rbf"
@@ -5597,7 +5607,8 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_TYPE_NAME_BITMAP_BMP   "bmp"
 #define FONT_TYPE_NAME_SCALE_TTF    "ttf"
 #define FONT_TYPE_NAME_SCALE_T1F    "t1f"
-#define FONT_TYPE_NAME_ALL          "*"
+#define FONT_TYPE_NAME_ANY          "*"
+#define FONT_TYPE_NAME_ALL          FONT_TYPE_NAME_ANY
 
 #define FONT_ETC_SECTION_NAME_VBF   "varbitmapfonts"
 #define FONT_ETC_SECTION_NAME_RBF   "rawbitmapfonts"
@@ -5612,7 +5623,8 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_TYPE_BITMAP_UPF        0x0005  /* "upf" */
 #define FONT_TYPE_SCALE_TTF         0x0010  /* "ttf" */
 #define FONT_TYPE_SCALE_T1F         0x0011  /* "t1f" */
-#define FONT_TYPE_ALL               0x00FF  /* "all" */
+#define FONT_TYPE_ANY               0x0000  /* "any" */
+#define FONT_TYPE_ALL               FONT_TYPE_ANY
 
 #define FONT_CHARSET_US_ASCII       "US-ASCII"
 
@@ -6543,7 +6555,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        Creates a logical font by using scalable TrueType device font.
  *      - FONT_TYPE_NAME_SCALE_T1F\n
  *        Creates a logical font by using scalable Adobe Type1 device font.
- *      - FONT_TYPE_NAME_ALL\n
+ *      - FONT_TYPE_NAME_ANY\n
  *        Creates a logical font by using any type device font.
  * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on. Since version 3.4.0, you can specify
@@ -6555,7 +6567,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        sigle-byte charset like "ISO8859-1", or a multi-byte charset
  *        like "UTF-8", or "GB2312-0".
  * \param weight The weight of the logical font, can be one of the values:
- *      - FONT_WEIGHT_ALL\n
+ *      - FONT_WEIGHT_ANY\n
  *        Any one.
  *      - FONT_WEIGHT_THIN\n
  *        Thin.
@@ -6563,8 +6575,10 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        Extra light (Ultra light).
  *      - FONT_WEIGHT_LIGHT\n
  *        Light.
+ *      - FONT_WEIGHT_NORMAL\n
+ *        Normal.
  *      - FONT_WEIGHT_REGULAR\n
- *        Regular (normal).
+ *        Regular.
  *      - FONT_WEIGHT_MEDIUM\n
  *        Medium.
  *      - FONT_WEIGHT_DEMIBOLD\n
@@ -6580,14 +6594,14 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *      - FONT_WEIGHT_SUBPIXEL\n
  *        For backforward compatibility only, same as FONT_WEIGHT_REGULAR and FONT_RENDER_SUBPIXEL.
  * \param slant The slant of the logical font, can be one of the values:
- *      - FONT_SLANT_ALL\n
+ *      - FONT_SLANT_ANY\n
  *        Any one.
  *      - FONT_SLANT_ROMAN\n
  *        Regular font.
- *      - FONT_SLANT_ITALIC\n
- *        Italic font.
+ *      - FONT_SLANT_OBLIQUE\n
+ *        Oblique font.
  * \param flip Does flip the glyph of the font, can be one of the following values:
- *      - FONT_FLIP_NIL\n
+ *      - FONT_FLIP_NONE\n
  *        Do not flip the glyph.
  *      - FONT_FLIP_HORZ\n
  *        Flip the glyph horizontally .
@@ -6596,7 +6610,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *      - FONT_FLIP_HORZVERT\n
  *        Flip the glyph horizontally and vertically.
  * \param other Other rendering features, can be one of the following values:
- *      - FONT_OTHER_NIL\n
+ *      - FONT_OTHER_NONE\n
  *        Not specified.
  *      - FONT_OTHER_AUTOSCALE\n
  *        Auto scale the bitmap glyph to match the desired font size.
@@ -6670,7 +6684,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *        Creates a logical font by using scalable TrueType device font.
  *      - FONT_TYPE_NAME_SCALE_T1F\n
  *        Creates a logical font by using scalable Adobe Type1 device font.
- *      - FONT_TYPE_NAME_ALL\n
+ *      - FONT_TYPE_NAME_ANY\n
  *        Creates a logical font by using any type device font.
  * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on. Since version 3.4.0, you can specify
@@ -6690,8 +6704,10 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *        Extra light (Ultra light).
  *      - FONT_WEIGHT_LIGHT\n
  *        Light.
+ *      - FONT_WEIGHT_NORMAL\n
+ *        Normal.
  *      - FONT_WEIGHT_REGULAR\n
- *        Regular (normal).
+ *        Regular.
  *      - FONT_WEIGHT_MEDIUM\n
  *        Medium.
  *      - FONT_WEIGHT_DEMIBOLD\n
@@ -6703,14 +6719,16 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *      - FONT_WEIGHT_BLACK\n
  *        Black (Heavy).
  * \param slant The slant of the logical font, can be one of the values:
- *      - FONT_SLANT_ALL\n
+ *      - FONT_SLANT_ANY\n
  *        Any one.
  *      - FONT_SLANT_ROMAN\n
  *        Regular font.
  *      - FONT_SLANT_ITALIC\n
  *        Italic font.
+ *      - FONT_SLANT_OB\n
+ *        Italic font.
  * \param flip Does flip the glyph of the font, can be one of the following values:
- *      - FONT_FLIP_NIL\n
+ *      - FONT_FLIP_NONE\n
  *        Do not flip the glyph.
  *      - FONT_FLIP_HORZ\n
  *        Flip the glyph horizontally .
@@ -6719,7 +6737,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *      - FONT_FLIP_HORZVERT\n
  *        Flip the glyph horizontally and vertically.
  * \param other Other rendering features, can be one of the following values:
- *      - FONT_OTHER_NIL\n
+ *      - FONT_OTHER_NONE\n
  *        Not specified.
  *      - FONT_OTHER_AUTOSCALE\n
  *        Auto scale the bitmap glyph to match the desired font size.

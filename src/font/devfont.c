@@ -124,15 +124,15 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
     dev_font = list_head;
     while (dev_font) {
         int type_req;
-        int weight_req = lf->style & FS_WEIGHT_MASK;
-        int weight_cur = dev_font->style & FS_WEIGHT_MASK;
+        DWORD32 style_req;
+        DWORD32 style_cur;
 
         /* clear match_bits first. */
         match_bits [i] = 0;
 
         /* does match this font type? */
         type_req = fontConvertFontType (lf->type);
-        if (type_req == FONT_TYPE_ALL)
+        if (type_req == FONT_TYPE_ANY)
             match_bits [i] |= MATCHED_TYPE;
         else if (type_req == fontGetFontTypeFromName (dev_font->name))
             match_bits [i] |= MATCHED_TYPE;
@@ -156,19 +156,24 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
         }
 
         /* does match the weight requested? */
-        if (weight_req == FS_WEIGHT_ANY || weight_req == weight_cur) {
+        style_req = lf->style & FS_WEIGHT_MASK;
+        style_cur = dev_font->style & FS_WEIGHT_MASK;
+        if (style_req == FS_WEIGHT_ANY || style_req == style_cur) {
             match_bits [i] |= MATCHED_WEIGHT;
         }
         else if (dev_font->font_ops->get_glyph_bmptype(lf, dev_font)
                     == DEVFONTGLYPHTYPE_MONOBMP
-                && weight_req > FS_WEIGHT_DEMIBOLD
-                && weight_cur < FS_WEIGHT_MEDIUM) {
+                && style_req > FS_WEIGHT_DEMIBOLD
+                && style_cur < FS_WEIGHT_MEDIUM) {
             // For mono glyph, the glyph render can do auot-bold
             match_bits [i] |= MATCHED_WEIGHT;
         }
 
-        /* The glyph renderer can do auto slant, so ignore slant style */
-        //match_bits [i] |= MATCHED_SLANT;
+        style_req = lf->style & FS_SLANT_MASK;
+        style_cur = dev_font->style & FS_SLANT_MASK;
+        if (style_req == FS_SLANT_ANY || style_req == style_cur) {
+            match_bits [i] |= MATCHED_SLANT;
+        }
 
         dev_font = dev_font->next;
         i ++;
@@ -189,16 +194,27 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
                         lf->size);
             size_error = ABS (size_error);
 
-            weight_error = (lf->style & FS_WEIGHT_MASK) -
-                (dev_font->style & FS_WEIGHT_MASK);
-            weight_error = ABS (weight_error);
+            if (match_bits [i] & MATCHED_WEIGHT) {
+                weight_error = 0;
+            }
+            else {
+                weight_error = (lf->style & FS_WEIGHT_MASK) -
+                    (dev_font->style & FS_WEIGHT_MASK);
+                weight_error = ABS (weight_error);
+            }
 
-            slant_error = (lf->style & FS_SLANT_MASK) -
-                (dev_font->style & FS_SLANT_MASK);
-            slant_error = ABS (slant_error);
+            if (match_bits [i] & MATCHED_FAMILY) {
+                slant_error = 0;
+            }
+            else {
+                slant_error = (lf->style & FS_SLANT_MASK) -
+                    (dev_font->style & FS_SLANT_MASK);
+                slant_error = ABS (slant_error);
+            }
 
             error = (size_error << 16) + slant_error + weight_error;
-            if (min_error >= error) {   /* use >=, make the later has a higher priority */
+            if (min_error >= error) {
+                /* use >=, make the later has a higher priority */
                 min_error = error;
                 matched_font = dev_font;
             }
