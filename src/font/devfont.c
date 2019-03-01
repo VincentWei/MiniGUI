@@ -406,6 +406,30 @@ void font_DelMBDevFont (DEVFONT* dev_font)
 }
 
 //////////////////////////////////////////////////////////////////////
+static DEVFONT* find_devfont(const char* font_name, BOOL is_mbc_list)
+{
+    DEVFONT* head;
+    DEVFONT* cur;
+
+    if (is_mbc_list) {
+        head = mb_dev_font_head;
+    }
+    else {
+        head = sb_dev_font_head;
+    }
+
+    cur = head;
+    while (cur) {
+        if (strcmp (cur->name, font_name) == 0) {
+            return cur;
+        }
+
+        cur = cur->next;
+    }
+
+    return NULL;
+}
+
 static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filename)
 {
     FONTOPS_INFO* fontops_info = __mg_fontops_infos;
@@ -434,6 +458,12 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
     if ((charset_ops = GetCharsetOpsEx (charset)) == NULL) {
         _MG_PRINTF ("FONT>DevFont: Invalid charset name %s of font %s.\n",
                 charset, font_name);
+        return NULL;
+    }
+
+    if (find_devfont(font_name, (charset_ops->bytes_maxlen_char > 1))) {
+        _MG_PRINTF ("FONT>DevFont: Duplicated devfont name (%s).\n",
+                font_name);
         return NULL;
     }
 
@@ -501,7 +531,7 @@ static void add_relating_devfonts_to_list (DEVFONT* related_devfont)
     }
 }
 
-BOOL AddDevFont (const char* font_name, void* data, BOOL is_filename)
+static BOOL add_dev_font (const char* font_name, void* data, BOOL is_filename)
 {
     DEVFONT* devfont = make_devfont (font_name, data, is_filename);
     if (devfont == NULL) {
@@ -602,7 +632,7 @@ BOOL font_InitIncoreFonts (void)
 
 #ifdef _MGFONT_RBF
     for (i = 0; i < NR_RBFONTS; i++) {
-        if (!AddDevFont (incore_rbfonts [i]->name, incore_rbfonts [i]->data, FALSE)) {
+        if (!add_dev_font (incore_rbfonts [i]->name, incore_rbfonts [i]->data, FALSE)) {
             _MG_PRINTF ("FONT>DevFont: can not init incore font: %s\n", incore_rbfonts [i]->name);
             return FALSE;
         }
@@ -611,7 +641,7 @@ BOOL font_InitIncoreFonts (void)
 
 #ifdef _MGFONT_VBF
     for (i = 0; i < NR_VBFONTS && incore_vbfonts[i]; i++) {
-        if (!AddDevFont (incore_vbfonts [i]->name, incore_vbfonts [i], FALSE)) {
+        if (!add_dev_font (incore_vbfonts [i]->name, incore_vbfonts [i], FALSE)) {
             _MG_PRINTF ("FONT>DevFont: can not init incore font: %s\n", incore_vbfonts [i]->name);
             return FALSE;
         }
@@ -621,7 +651,7 @@ BOOL font_InitIncoreFonts (void)
 #ifdef _MGFONT_UPF
     for (i = 0; i < NR_UPFONTS && incore_upfonts[i]; i++) {
         const char* name = ((UPFV1_FILE_HEADER*)(incore_upfonts [i]->root_dir))->font_name;
-        if (!AddDevFont (name, incore_upfonts [i], FALSE)) {
+        if (!add_dev_font (name, incore_upfonts [i], FALSE)) {
             _MG_PRINTF ("FONT>DevFont: can not init incore font: %s\n", name);
             return FALSE;
         }
@@ -700,8 +730,7 @@ one_list:
 }
 */
 
-
-static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list)
+static void del_devfont_from_list(const char* font_name, BOOL is_mbc_list)
 {
     DEVFONT* head;
     DEVFONT* cur;
@@ -829,16 +858,16 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
 
         /*add devfont*/
         if ((memres = (MEM_RES*)LoadResource (font_file, RES_TYPE_MEM_RES, 0))) {
-            AddDevFont (font_name, memres->data, FALSE);
+            add_dev_font (font_name, memres->data, FALSE);
             added_num ++;
         }
         else {
             /* [DK] Fix Bug #4801, which introduce a absolute path check error in Windows,
              * first to load from sytem res path, else load it directly(relative or absolute path).*/
             if ((0 == mg_path_joint(font_path, MAX_PATH + 1, sysres_get_system_res_path(), font_file))
-                    && ((AddDevFont (font_name, font_path, TRUE)) == TRUE))
+                    && ((add_dev_font (font_name, font_path, TRUE)) == TRUE))
                 added_num++;
-            else if ((AddDevFont (font_name, font_file, TRUE)) == TRUE)
+            else if ((add_dev_font (font_name, font_file, TRUE)) == TRUE)
                 added_num++;
         }
     }
@@ -853,12 +882,12 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
     }
 }
 
-BOOL GUIAPI font_InitSpecificalFonts (char* etc_section)
+BOOL font_InitSpecificalFonts (char* etc_section)
 {
     return init_or_term_specifical_fonts (etc_section, FALSE);
 }
 
-void GUIAPI font_TermSpecificalFonts (char* etc_section)
+void font_TermSpecificalFonts (char* etc_section)
 {
     init_or_term_specifical_fonts (etc_section, TRUE);
 }

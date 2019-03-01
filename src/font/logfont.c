@@ -170,10 +170,26 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
             // do not forward iter
         }
         else {
+            DEVFONT* df;
+
             _DBG_PRINTF ("FONT>LogFont: try to match MBC Devfont for family (%s)\n",
                     name_field);
-            if ((devfonts[i] = font_GetMatchedMBDevFont (newlf, name_field)) == NULL)
-                break;
+            if ((df = font_GetMatchedMBDevFont (newlf, name_field))) {
+                int j;
+                // check duplicated.
+                for (j = 0; j <= i; j++) {
+                    if (df == devfonts[j]) {
+                        // duplicated
+                        _DBG_PRINTF ("FONT>LogFont: ignore the duplicated devfont (%s)\n",
+                                name_field);
+                        break;
+                    }
+                    else if (devfonts[j] == NULL) {
+                        devfonts[j] = df;
+                        break;
+                    }
+                }
+            }
 
             iter += n;
             if (*iter == ',' || *iter == ' ')

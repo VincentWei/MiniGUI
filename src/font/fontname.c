@@ -216,6 +216,9 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_WEIGHT_REGULAR:
         style |= FS_WEIGHT_REGULAR;
         break;
+    case FONT_WEIGHT_NORMAL:
+        style |= FS_WEIGHT_NORMAL;
+        break;
     case FONT_WEIGHT_LIGHT:
         style |= FS_WEIGHT_LIGHT;
         break;

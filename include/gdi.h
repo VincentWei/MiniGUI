@@ -5469,6 +5469,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_WEIGHT_THIN            't'
 #define FONT_WEIGHT_EXTRA_LIGHT     'e'
 #define FONT_WEIGHT_LIGHT           'l'
+#define FONT_WEIGHT_NORMAL          'n'
 #define FONT_WEIGHT_REGULAR         'r'
 #define FONT_WEIGHT_MEDIUM          'm'
 #define FONT_WEIGHT_DEMIBOLD        'd'
@@ -5487,6 +5488,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_WEIGHT_THIN              10
 #define FS_WEIGHT_EXTRA_LIGHT       20
 #define FS_WEIGHT_LIGHT             30
+#define FS_WEIGHT_NORMAL            35
 #define FS_WEIGHT_REGULAR           40
 #define FS_WEIGHT_MEDIUM            50
 #define FS_WEIGHT_DEMIBOLD          60
@@ -5727,7 +5729,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define MAXNR_DEVFONTS              8
 
 struct _DEVFONT;
-typedef struct _DEVFONT     DEVFONT;
+typedef struct _DEVFONT DEVFONT;
 
 /**
   * The logical font structure.
@@ -6398,41 +6400,47 @@ struct _CHARSETOPS;
 typedef struct _FONTOPS FONTOPS;
 typedef struct _CHARSETOPS CHARSETOPS;
 
-/* charops fontops devont structure is here. */
-/** The device font structure. */
+/**
+ * The device font structure.
+ * \note All fields are read-only.
+ */
 struct _DEVFONT {
     /**
       * The device font name.
       * The family name supports aliases since 3.4.0:
       *
-      *     <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charsets>
+      *     <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charset[,charset]*>
       *
       * for example:
       *
-      *     ttf-courier,monospace-rrncnn-8-16-ISO8859-1,UTF-8
+      *     ttf-courier,monospace-rrncnn-0-0-ISO8859-1,UTF-8
       */
     char             name [LEN_UNIDEVFONT_NAME + 1];
 
     /** The styles of the device font. */
-    DWORD            style;
+    DWORD32          style;
 
-    /** The pointer to font operation structure. */
+    /*
+     * The following fields are internally used.
+     * They may changed in the future.
+     */
+    // indicating if the data need to be unloaded before delete a devfont
+    BOOL             need_unload;
+
+    // The pointer to font operation structure.
     FONTOPS*         font_ops;
 
-    /** The pointer to character set operation structure. */
+    // The pointer to character set operation structure.
     CHARSETOPS*      charset_ops;
 
-    /** The pointer to next device font. */
+    // The pointer to next device font.
     struct _DEVFONT* next;
 
-    /** The device font used data. */
+    // The device font used data.
     void*            data;
 
-    /** The device font used relationship. */
+    // The device font used relationship.
     void*            relationship;
-
-    /** indicating if the data need to be unloaded before delete a devfont*/
-    BOOL             need_unload;
 };
 
 /**

@@ -88,8 +88,10 @@ static inline void set_devfont_scale(LOGFONT* lf, DEVFONT* df,
 {
     int i;
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
-        if (lf->devfonts[i] == df)
+        if (lf->devfonts[i] == df) {
             lf->scales[i] = s;
+            break;
+        }
     }
 }
 
