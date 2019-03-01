@@ -6548,7 +6548,9 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on. Since version 3.4.0, you can specify
  *        up to 7 family names separated by comma, e.g.,
- *        "Helvetica,Naskh".
+ *        "Helvetica,黑体,Naskh,Sans Serif". Note that a family name should
+ *        be encoded in UTF-8 and without special characters (middle spaces
+ *        are allowed).
  * \param charset The charset of the logical font. You can specify a
  *        sigle-byte charset like "ISO8859-1", or a multi-byte charset
  *        like "UTF-8", or "GB2312-0".
@@ -6673,10 +6675,12 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on. Since version 3.4.0, you can specify
  *        up to 7 family names separated by comma, e.g.,
- *        "Helvetica,Naskh".
+ *        "Helvetica,黑体,Naskh,Sans Serif". Note that a family name should
+ *        be encoded in UTF-8 and without special characters (middle spaces
+ *        are allowed).
  * \param charset The charset of the logical font. You can specify a
  *        sigle-byte charset like "ISO8859-1", or a multi-byte charset
- *        like "GB2312-0".
+ *        like "GB2312-0" and "UTF-8".
  * \param weight The weight of the logical font, can be one of the values:
  *      - FONT_WEIGHT_ANY\n
  *        Any one.
@@ -6781,12 +6785,13 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  * \a font_name. Note that since version 3.4.0, you can specify up
  * to 4 family names in the LOGFONT name, such as:
  *
- *      ttf-Courier,Naskh-rrncns-*-16-UTF-8
+ *      ttf-Courier,宋体,Naskh,Sans Serif-rrncns-*-16-UTF-8
  *
  * In this way, you can specify a logfont to use multiple devfonts
  * to render a complex text. This is useful when different glyphs are
- * contained in different font files. Whereas, a font is often designed
- * for a particular language/script or a few similar languages/scripts.
+ * contained in different font files. It is well known that, a font is
+ * often designed for a particular language/script or a few similar
+ * languages/scripts.
  *
  * \param font_name The name of the logfont.
  *

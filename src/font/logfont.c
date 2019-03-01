@@ -109,7 +109,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     char name_field[LEN_LOGFONT_NAME_FIELD + 1];
     DEVFONT* devfonts[MAXNR_DEVFONTS] = {};
     const char* iter;
-    int i;
+    int i, n;
 
     // is valid style?
     if (style == 0xFFFFFFFF)
@@ -150,51 +150,50 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
             newlf->style, newlf->charset, newlf->size);
 
     iter = family;
-    for (i = 0; i < MAXNR_DEVFONTS; i++) {
+    if ((n = get_family_name_len(iter)) <= 0)
+        goto error;
 
-        int n = get_family_name_len(iter);
+    strncpy (name_field, iter, n);
+    name_field[LEN_LOGFONT_NAME_FIELD] = '\0';
 
-        if (n <= 0)
-            break;
+    _DBG_PRINTF ("FONT>LogFont: try to create SBC Devfont for family (%s)\n",
+            name_field);
 
-        strncpy (name_field, iter, n);
-        name_field[LEN_LOGFONT_NAME_FIELD] = '\0';
+    newlf->scales[0] = 1;
+    if ((devfonts[0] = font_GetMatchedSBDevFont (newlf, name_field)) == NULL)
+        goto error;
+
+    iter += n;
+    if (*iter == ',' || *iter == ' ')
+        iter++;
+
+    for (i = 1; i < MAXNR_DEVFONTS; i++) {
+        DEVFONT* df;
+
+        _DBG_PRINTF ("FONT>LogFont: try to create MBC Devfont for family (%s)\n",
+                name_field);
 
         newlf->scales[i] = 1;
-        if (i == 0) {
-            _DBG_PRINTF ("FONT>LogFont: try to match SBC Devfont for family (%s)\n",
-                    name_field);
-            if ((devfonts[0] = font_GetMatchedSBDevFont (newlf, name_field)) == NULL)
-                goto error;
-
-            // do not forward iter
-        }
-        else {
-            DEVFONT* df;
-
-            _DBG_PRINTF ("FONT>LogFont: try to match MBC Devfont for family (%s)\n",
-                    name_field);
-            if ((df = font_GetMatchedMBDevFont (newlf, name_field))) {
-                int j;
-                // check duplicated.
-                for (j = 0; j <= i; j++) {
-                    if (df == devfonts[j]) {
-                        // duplicated
-                        _DBG_PRINTF ("FONT>LogFont: ignore the duplicated devfont (%s)\n",
-                                name_field);
-                        break;
-                    }
-                    else if (devfonts[j] == NULL) {
-                        devfonts[j] = df;
-                        break;
-                    }
+        if ((df = font_GetMatchedMBDevFont (newlf, name_field))) {
+            int j;
+            // check duplicated.
+            for (j = 1; j < i; j++) {
+                if (df == devfonts[j]) {
+                    // duplicated
+                    _DBG_PRINTF ("FONT>LogFont: ignore the duplicated devfont (%s)\n",
+                            name_field);
+                    break;
+                }
+                else if (devfonts[j] == NULL) {
+                    devfonts[j] = df;
+                    break;
                 }
             }
-
-            iter += n;
-            if (*iter == ',' || *iter == ' ')
-                iter++;
         }
+
+        iter += n;
+        if (*iter == ',' || *iter == ' ')
+            iter++;
     }
 
     // check if all devfonts support rotation
