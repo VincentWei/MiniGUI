@@ -793,7 +793,8 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->image_type.flags = FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP;
 
     if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_MONO)
-        ft_inst_info->image_type.flags |= FT_LOAD_TARGET_MONO;
+        ft_inst_info->image_type.flags |=
+            FT_LOAD_TARGET_MONO | FT_LOAD_FORCE_AUTOHINT;
     else {
         if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL
                 && ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)
