@@ -607,8 +607,9 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
     buffer = get_raster_bitmap_buffer(source->rows * source->pitch);
     memcpy(buffer, source->buffer, source->rows * source->pitch);
-    if (sz) {
-        /* VincentWei: override the bbox.w and bbox.h with bitmap */
+    /* VincentWei: override the bbox.w and bbox.h with bitmap */
+    if (sz && (source->rows != sz->cy || source->width != sz->cx)) {
+        _ERR_PRINTF("FreeType2: BITMAP size does not match BBOX\n");
         sz->cx = source->width;
         sz->cy = source->rows;
     }

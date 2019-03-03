@@ -137,13 +137,13 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     if (newlf->type == NULL || newlf->family == NULL || newlf->charset == NULL)
         goto error;
 
-    newlf->size_request = size;
     if (size > FONT_MAX_SIZE)
         newlf->size = FONT_MAX_SIZE;
     else if (size < FONT_MIN_SIZE)
         newlf->size = FONT_MIN_SIZE;
     else
         newlf->size = size;
+    newlf->size_request = newlf->size;
 
     newlf->rotation = rotation;
 
