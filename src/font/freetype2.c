@@ -539,7 +539,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     /*convert to a bitmap (default render mode + destroy old or not)*/
     if (ft_inst_info->glyph->format != FT_GLYPH_FORMAT_BITMAP) {
         if (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE &&
-            IS_SUBPIXEL(logfont) && is_grey) {
+                IS_SUBPIXEL(logfont) && is_grey) {
             if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
                         FT_RENDER_MODE_LCD, NULL, 1)) {
                 _ERR_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
