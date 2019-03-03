@@ -184,13 +184,15 @@ static const char *my_strstr(const char *haystack, const char *needle)
  */
 BOOL fontDoesMatchFamily (const char* name, const char* family)
 {
-    // make sure there is a redundant space for the tail character.
-    char family_part[LEN_LOGFONT_FAMILY_FILED + 2];
-    char family_request[LEN_LOGFONT_NAME_FIELD + 2];
+    // make sure there is a redundant space for the head and tail characters.
+    char family_part[LEN_LOGFONT_FAMILY_FILED + 3];
+    char family_request[LEN_LOGFONT_NAME_FIELD + 3];
     int i;
     size_t len;
 
-    if (!get_family_part_lower(name, family_part)) {
+    // add ',' to the head
+    family_part[0] = ',';
+    if (!get_family_part_lower(name, family_part + 1)) {
         return FALSE;
     }
 
@@ -199,13 +201,14 @@ BOOL fontDoesMatchFamily (const char* name, const char* family)
     family_part[len] = ',';
     family_part[len + 1] = '\0';
 
-    // lowercase for family_request
+    // make family (lowercase)
+    family_request[0] = ',';
     i = 0;
     while (family[i] && i < LEN_LOGFONT_NAME_FIELD) {
-        family_request[i] = tolower(family[i]);
+        family_request[i + 1] = tolower(family[i]);
         i++;
     }
-    family_request[i] = '\0';
+    family_request[i + 1] = '\0';
 
     // add ',' to the tail
     len = strlen(family_request);
