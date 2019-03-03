@@ -6560,7 +6560,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on. Since version 3.4.0, you can specify
  *        up to 7 family names separated by comma, e.g.,
- *        "Helvetica,黑体,Naskh,Sans Serif". Note that a family name should
+ *        "Helvetica,黑体,Naskh,SansSerif". Note that a family name should
  *        be encoded in UTF-8 and without special characters (middle spaces
  *        are allowed).
  * \param charset The charset of the logical font. You can specify a
@@ -6689,7 +6689,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  * \param family The family of the logical font, such as "Courier",
  *        "Helvetica", and so on. Since version 3.4.0, you can specify
  *        up to 7 family names separated by comma, e.g.,
- *        "Helvetica,黑体,Naskh,Sans Serif". Note that a family name should
+ *        "Helvetica,黑体,Naskh,SansSerif". Note that a family name should
  *        be encoded in UTF-8 and without special characters (middle spaces
  *        are allowed).
  * \param charset The charset of the logical font. You can specify a
@@ -6803,7 +6803,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  * \a font_name. Note that since version 3.4.0, you can specify up
  * to 4 family names in the LOGFONT name, such as:
  *
- *      ttf-Courier,宋体,Naskh,Sans Serif-rrncns-*-16-UTF-8
+ *      ttf-Courier,宋体,Naskh,SansSerif-rrncns-*-16-UTF-8
  *
  * In this way, you can specify a logfont to use multiple devfonts
  * to render a complex text. This is useful when different glyphs are

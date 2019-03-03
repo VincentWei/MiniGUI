@@ -40,6 +40,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_ALLOCA
+#include <alloca.h>
+#endif
 
 #include "common.h"
 #include "minigui.h"
@@ -120,6 +123,9 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
     match_bits = (BYTE *)FixStrAlloc (list_len);
 #endif
 
+    _DBG_PRINTF("%s, family(%s), req_charset(%s), list_head(%p), list_len(%d)\n",
+            __FUNCTION__, family, req_charset, list_head, list_len);
+
     i = 0;
     dev_font = list_head;
     while (dev_font) {
@@ -132,27 +138,29 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
 
         /* does match this font type? */
         type_req = fontConvertFontType (lf->type);
-        if (type_req == FONT_TYPE_ANY)
+        if (type_req == FONT_TYPE_ANY) {
             match_bits [i] |= MATCHED_TYPE;
-        else if (type_req == fontGetFontTypeFromName (dev_font->name))
+            _DBG_PRINTF("%s, matched type of devfont#%d(%s)\n",
+                    __FUNCTION__, i, dev_font->name);
+        }
+        else if (type_req == fontGetFontTypeFromName (dev_font->name)) {
             match_bits [i] |= MATCHED_TYPE;
+            _DBG_PRINTF("%s, matched type of devfont#%d(%s)\n",
+                    __FUNCTION__, i, dev_font->name);
+        }
 
         /* does match this family requested? */
-#if 0   // since 3.4.0
-        char family [LEN_LOGFONT_NAME_FIELD + 1];
-        fontGetFamilyFromName (dev_font->name, family);
-        if (strcasecmp (family, lf->family) == 0) {
+        if (fontDoesMatchFamily(dev_font->name, family)) {
             match_bits [i] |= MATCHED_FAMILY;
+            _DBG_PRINTF("%s, matched family of devfont#%d(%s)\n",
+                    __FUNCTION__, i, dev_font->name);
         }
-#else
-        if (fontDoesMatchFamily(dev_font->name, family?family:lf->family)) {
-            match_bits [i] |= MATCHED_FAMILY;
-        }
-#endif
 
         /* does match this charset */
         if (IsCompatibleCharset (req_charset, dev_font->charset_ops)) {
             match_bits [i] |= MATCHED_CHARSET;
+            _DBG_PRINTF("%s, matched charset of devfont#%d(%s)\n",
+                    __FUNCTION__, i, dev_font->name);
         }
 
         /* does match the weight requested? */
@@ -160,6 +168,8 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
         style_cur = dev_font->style & FS_WEIGHT_MASK;
         if (style_req == FS_WEIGHT_ANY || style_req == style_cur) {
             match_bits [i] |= MATCHED_WEIGHT;
+            _DBG_PRINTF("%s, matched weight of devfont#%d(%s)\n",
+                    __FUNCTION__, i, dev_font->name);
         }
         else if (dev_font->font_ops->get_glyph_bmptype(lf, dev_font)
                     == DEVFONTGLYPHTYPE_MONOBMP
@@ -167,16 +177,20 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
                 && style_cur < FS_WEIGHT_MEDIUM) {
             // For mono glyph, the glyph render can do auot-bold
             match_bits [i] |= MATCHED_WEIGHT;
+            _DBG_PRINTF("%s, matched weight (auto bold) of devfont#%d(%s)\n",
+                    __FUNCTION__, i, dev_font->name);
         }
 
         style_req = lf->style & FS_SLANT_MASK;
         style_cur = dev_font->style & FS_SLANT_MASK;
         if (style_req == FS_SLANT_ANY || style_req == style_cur) {
             match_bits [i] |= MATCHED_SLANT;
+            _DBG_PRINTF("%s, matched slant of devfont#%d(%s)\n",
+                    __FUNCTION__, i, dev_font->name);
         }
 
         dev_font = dev_font->next;
-        i ++;
+        i++;
     }
 
     min_error = (FONT_MAX_SIZE << 16) + 0xFFFF;
@@ -213,6 +227,9 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
             }
 
             error = (size_error << 16) + slant_error + weight_error;
+            _DBG_PRINTF("%s, error of devfont#%d(%s): %d\n",
+                    __FUNCTION__, i, dev_font->name, error);
+
             if (min_error >= error) {
                 /* use >=, make the later has a higher priority */
                 min_error = error;
@@ -223,8 +240,11 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
         dev_font = dev_font->next;
     }
 
-    if (matched_font)
+    if (matched_font) {
+        _DBG_PRINTF("%s, got a matched devfont (%s): %d\n",
+                __FUNCTION__, matched_font->name, min_error);
         goto matched;
+    }
 
     min_error = FONT_MAX_SIZE;
     dev_font = list_head;
@@ -337,9 +357,9 @@ unsigned short font_GetBestScaleFactor (int height, int expect)
 { \
     devfont = head; \
     while (devfont) { \
-        _DBG_PRINTF ("  %d: %s, charsetname: %s, style: %p\n",  \
+        _DBG_PRINTF ("  %d: %s, charsetname: %s, style: %08x\n",  \
                 count,  \
-                devfont->name, devfont->charset_ops->name, (PVOID)devfont->style); \
+                devfont->name, devfont->charset_ops->name, devfont->style); \
             devfont = devfont->next; \
             count++; \
     } \

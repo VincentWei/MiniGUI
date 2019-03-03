@@ -44,6 +44,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#define DEBUG
+
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -116,7 +118,7 @@ BOOL fontGetFamilyFromName (const char* name, char* family)
         return FALSE;
 
     while (family_part [i] && i <= LEN_LOGFONT_FAMILY_FILED) {
-        if (family_part [i] == '-' || family_part [i] == ',') {
+        if (family_part [i] == '-'/* || family_part [i] == ',' */) {
             family [i] = '\0';
             break;
         }
@@ -151,6 +153,32 @@ static BOOL get_family_part_lower (const char* name, char* family)
     return TRUE;
 }
 
+#if 0
+static const char *my_strstr(const char *haystack, const char *needle)
+{
+    int i = 0, j = 0;
+    int tmp = i;
+    int str_len = strlen(haystack);
+    int substr_len = strlen(needle);
+
+    for (i = 0; i < str_len - substr_len; i++) {
+        tmp = i;
+
+        for (j = 0; j < substr_len; j++) {
+            if (haystack[tmp] == needle[j]) {
+                if (j == substr_len - 1)
+                    return haystack + i;
+                tmp++;
+            }
+            else
+                break;
+        }
+    }
+
+    return NULL;
+}
+#endif
+
 /* devfont family specification:
  * family[,alias]...
  */
@@ -159,7 +187,7 @@ BOOL fontDoesMatchFamily (const char* name, const char* family)
     // make sure there is a redundant space for the tail character.
     char family_part[LEN_LOGFONT_FAMILY_FILED + 2];
     char family_request[LEN_LOGFONT_NAME_FIELD + 2];
-    int i = 0;
+    int i;
     size_t len;
 
     if (!get_family_part_lower(name, family_part)) {
@@ -172,11 +200,12 @@ BOOL fontDoesMatchFamily (const char* name, const char* family)
     family_part[len + 1] = '\0';
 
     // lowercase for family_request
-    strncpy(family_request, family, LEN_LOGFONT_NAME_FIELD);
-    while (family_request[i]) {
-        family_request[i] = tolower(family_request[i]);
+    i = 0;
+    while (family[i] && i < LEN_LOGFONT_NAME_FIELD) {
+        family_request[i] = tolower(family[i]);
         i++;
     }
+    family_request[i] = '\0';
 
     // add ',' to the tail
     len = strlen(family_request);
@@ -184,7 +213,11 @@ BOOL fontDoesMatchFamily (const char* name, const char* family)
     family_request[len + 1] = '\0';
 
     // try to match "<family_request>,"
-    return strstr(family_part, family_request) != NULL;
+    if (strstr(family_part, family_request)) {
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 DWORD fontConvertStyle (const char* style_part)

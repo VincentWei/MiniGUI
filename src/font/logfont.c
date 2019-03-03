@@ -41,6 +41,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DEBUG
+
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -150,34 +152,36 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
             newlf->style, newlf->charset, newlf->size);
 
     iter = family;
-    if ((n = get_family_name_len(iter)) <= 0)
+    if ((n = get_family_name_len(iter)) <= 0 || n > LEN_LOGFONT_NAME_FIELD)
         goto error;
 
     strncpy (name_field, iter, n);
-    name_field[LEN_LOGFONT_NAME_FIELD] = '\0';
+    name_field[n] = '\0';
 
-    _DBG_PRINTF ("FONT>LogFont: try to create SBC Devfont for family (%s)\n",
+    _DBG_PRINTF ("FONT>LogFont: try to create SBC Devfont for family(%s)\n",
             name_field);
 
     newlf->scales[0] = 1;
     if ((devfonts[0] = font_GetMatchedSBDevFont (newlf, name_field)) == NULL)
         goto error;
 
-    iter += n;
-    if (*iter == ',' || *iter == ' ')
-        iter++;
-
+    iter = family;
     for (i = 1; i < MAXNR_DEVFONTS; i++) {
         DEVFONT* df;
 
-        _DBG_PRINTF ("FONT>LogFont: try to create MBC Devfont for family (%s)\n",
+        if ((n = get_family_name_len(iter)) <= 0 || n > LEN_LOGFONT_NAME_FIELD)
+            break;
+        strncpy (name_field, iter, n);
+        name_field[n] = '\0';
+
+        _DBG_PRINTF ("FONT>LogFont: try to create MBC Devfont for family(%s)\n",
                 name_field);
 
         newlf->scales[i] = 1;
         if ((df = font_GetMatchedMBDevFont (newlf, name_field))) {
             int j;
             // check duplicated.
-            for (j = 1; j < i; j++) {
+            for (j = 1; j <= i; j++) {
                 if (df == devfonts[j]) {
                     // duplicated
                     _DBG_PRINTF ("FONT>LogFont: ignore the duplicated devfont (%s)\n",
@@ -186,9 +190,15 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
                 }
                 else if (devfonts[j] == NULL) {
                     devfonts[j] = df;
+                    _DBG_PRINTF ("FONT>LogFont: created new devfont for family(%s)\n",
+                            name_field);
                     break;
                 }
             }
+        }
+        else {
+            _DBG_PRINTF ("FONT>LogFont: failed to created new devfont for family(%s)\n",
+                            name_field);
         }
 
         iter += n;
@@ -228,7 +238,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
 error:
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
-        if (newlf->devfonts[i] && newlf->devfonts[i]->font_ops->new_instance
+        if (newlf->devfonts[i] && newlf->devfonts[i]->font_ops->delete_instance
                 && newlf->devfonts[i] != devfonts[i]) {
             newlf->devfonts[i]->font_ops->delete_instance(newlf->devfonts[i]);
         }
@@ -286,7 +296,7 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *reflf)
 
 error:
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
-        if (newlf->devfonts[i] && newlf->devfonts[i]->font_ops->new_instance
+        if (newlf->devfonts[i] && newlf->devfonts[i]->font_ops->delete_instance
                 && newlf->devfonts[i] != reflf->devfonts[i]) {
             newlf->devfonts[i]->font_ops->delete_instance(newlf->devfonts[i]);
         }
@@ -355,7 +365,7 @@ PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT *reflf, int rotation)
 
 error:
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
-        if (newlf->devfonts[i] && newlf->devfonts[i]->font_ops->new_instance
+        if (newlf->devfonts[i] && newlf->devfonts[i]->font_ops->delete_instance
                 && newlf->devfonts[i] != reflf->devfonts[i]) {
             newlf->devfonts[i]->font_ops->delete_instance(newlf->devfonts[i]);
         }
@@ -455,7 +465,7 @@ void GUIAPI DestroyLogFont (PLOGFONT logfont)
 
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
         DEVFONT* df = logfont->devfonts[i];
-        if (df && df->font_ops->new_instance)
+        if (df && df->font_ops->delete_instance)
             df->font_ops->delete_instance(df);
     }
 
