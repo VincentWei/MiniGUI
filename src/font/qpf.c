@@ -329,7 +329,7 @@ static int get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
 {
     unsigned int uc16;
     QPF_GLYPH* glyph;
@@ -339,14 +339,14 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
         uc16 = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uc16 = glyph_value;
-    
+
     glyph = get_glyph (QPFONT_INFO_P (devfont)->tree, uc16);
 
     if (glyph == NULL) {
         if (uc16 < 0x80 && logfont->devfonts[0] != devfont) {   /* ASCII */
             unsigned char ascii_ch = uc16;
             return logfont->devfonts[0]->font_ops->get_glyph_monobitmap (logfont,
-                            logfont->devfonts[0], ascii_ch, pitch, scale);
+                            logfont->devfonts[0], ascii_ch, sz, pitch, scale);
         }
         else
             glyph = &def_glyph;
@@ -366,7 +366,7 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
-            Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
 {
     unsigned int uc16;
     QPF_GLYPH* glyph;

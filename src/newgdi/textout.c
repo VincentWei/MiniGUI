@@ -479,11 +479,25 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
         if (mbc_devfont &&
                 (len_cur_char = mbc_devfont->charset_ops->len_first_char
                     ((const unsigned char*)text, left_bytes)) > 0) {
+            int i, dfi;
+            DEVFONT* df;
 
             glyph_value = (*mbc_devfont->charset_ops->char_glyph_value)(NULL,
                     0, (const unsigned char*)text, 0);
 
-            advance_cur_char = _gdi_get_glyph_advance (pdc, glyph_value | 0x80000000,
+            dfi = 1;
+            for (i = 1; i < MAXNR_DEVFONTS; i++) {
+                if ((df = log_font->devfonts[i])) {
+                    if (df->font_ops->is_glyph_existed(log_font, df,
+                            glyph_value)) {
+                        dfi = i;
+                        break;
+                    }
+                }
+            }
+            glyph_value = SET_GLYPH_DFI(glyph_value, dfi);
+
+            advance_cur_char = _gdi_get_glyph_advance (pdc, glyph_value,
                 (pdc->ta_flags & TA_X_MASK) == TA_LEFT,
                 0, 0, NULL, NULL, NULL);
         }

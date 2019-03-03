@@ -230,6 +230,7 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     /* get the relative device font */
     DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
     glyph_value = REAL_GLYPH (glyph_value);
+    SIZE sz;
 
     /* get glyph type */
     if (glyph_info->mask & GLYPH_INFO_TYPE)
@@ -247,7 +248,8 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     }
 
     /* get metrics of the glyph */
-    if (glyph_info->mask & GLYPH_INFO_METRICS) {
+    if ((glyph_info->mask & GLYPH_INFO_METRICS) ||
+            (glyph_info->mask & GLYPH_INFO_BMP)) {
         glyph_info->advance_x = 0;
         glyph_info->advance_y = 0;
         glyph_info->bbox_x = 0;
@@ -256,6 +258,9 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         _font_get_glyph_advance (logfont, devfont, glyph_value, TRUE,
             0, 0, 0, &glyph_info->advance_x, &glyph_info->advance_x,
             (BBOX*)(&glyph_info->bbox_x));
+
+        sz.cx = glyph_info->bbox_w;
+        sz.cy = glyph_info->bbox_h;
     }
 
     /* get glyph bitmap info */
@@ -266,14 +271,18 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         switch (glyph_info->bmp_type) {
         case GLYPHBMP_TYPE_MONO:
             glyph_info->bits = devfont->font_ops->get_glyph_monobitmap (
-                logfont, devfont, glyph_value, &glyph_info->bmp_pitch, NULL);
+                logfont, devfont, glyph_value, &sz, &glyph_info->bmp_pitch, NULL);
+            glyph_info->bbox_w = sz.cx;
+            glyph_info->bbox_h = sz.cy;
             glyph_info->bmp_size = glyph_info->bmp_pitch * glyph_info->bbox_h;
             break;
 
         case GLYPHBMP_TYPE_GREY:
             glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
                     logfont, devfont, glyph_value,
-                    &glyph_info->bmp_pitch, NULL);
+                    &sz, &glyph_info->bmp_pitch, NULL);
+            glyph_info->bbox_w = sz.cx;
+            glyph_info->bbox_h = sz.cy;
             glyph_info->bmp_size =
                 glyph_info->bmp_pitch * glyph_info->bbox_h;
             break;
@@ -281,7 +290,9 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         case GLYPHBMP_TYPE_SUBPIXEL:
             glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
                     logfont, devfont, glyph_value,
-                    &glyph_info->bmp_pitch, NULL);
+                    &sz, &glyph_info->bmp_pitch, NULL);
+            glyph_info->bbox_w = sz.cx;
+            glyph_info->bbox_h = sz.cy;
             glyph_info->bmp_size =
                 glyph_info->bmp_pitch * glyph_info->bbox_h;
             break;
@@ -2017,7 +2028,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
         }
 
         data = (BYTE*)(*devfont->font_ops->get_glyph_monobitmap) (logfont,
-                devfont, glyph_value, &pitch, &scale);
+                devfont, glyph_value, bbox, &pitch, &scale);
 
         if (data == NULL)
             break;
@@ -2051,7 +2062,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
         /* get preybitmap */
         if (devfont->font_ops->get_glyph_greybitmap) {
             data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont,
-                    devfont, glyph_value, &pitch, &scale);
+                    devfont, glyph_value, bbox, &pitch, &scale);
             ctxt->cb = _dc_bookgrey_scan_line;
             if (data && scale > 1) {
                 bbox->cx = bbox->cx / scale;
@@ -2073,7 +2084,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
                 *devfont->font_ops->get_glyph_greybitmap) {
             /* the returned bits will be the subpixled pixmap */
             data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont,
-                    devfont, glyph_value, &pitch, &scale);
+                    devfont, glyph_value, bbox, &pitch, &scale);
             ctxt->cb = _dc_ft2subpixel_scan_line;
 
             /* flip the subpixeled pixmap */
@@ -2936,7 +2947,6 @@ Glyph32 _gdi_set_glyph_dfi(LOGFONT* lf, Glyph32 gv)
         }
     }
 
-    // return the first devfont as the default
     return SET_GLYPH_DFI(gv, dfi);
 }
 

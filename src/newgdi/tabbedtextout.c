@@ -572,8 +572,22 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                             (NULL, 0, (const unsigned char*)text, len_cur_char);
             glyph_type = devfont->charset_ops->glyph_type (glyph_value);
 
-            if(devfont == mbc_devfont)
-                glyph_value |= 0x80000000;
+            if (devfont == mbc_devfont) {
+                int i, dfi;
+                DEVFONT* df;
+
+                dfi = 1;
+                for (i = 1; i < MAXNR_DEVFONTS; i++) {
+                    if ((df = log_font->devfonts[i])) {
+                        if (df->font_ops->is_glyph_existed(log_font, df,
+                                glyph_value)) {
+                            dfi = i;
+                            break;
+                        }
+                    }
+                }
+                glyph_value = SET_GLYPH_DFI(glyph_value, dfi);
+            }
 
             switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
                 case MCHAR_TYPE_ZEROWIDTH:

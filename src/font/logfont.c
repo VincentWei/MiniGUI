@@ -278,6 +278,10 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *reflf)
 
     // reset request size of newlf to reflf->size_request
     newlf->size = reflf->size_request;
+    if (newlf->size > FONT_MAX_SIZE)
+        newlf->size = FONT_MAX_SIZE;
+    else if (newlf->size < FONT_MIN_SIZE)
+        newlf->size = FONT_MIN_SIZE;
 
     // create new devfont instance if need
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
@@ -333,9 +337,12 @@ PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT *reflf, int rotation)
             newlf->charset == NULL)
         goto error;
 
-
     // reset request size of newlf to reflf->size_request
     newlf->size = reflf->size_request;
+    if (newlf->size > FONT_MAX_SIZE)
+        newlf->size = FONT_MAX_SIZE;
+    else if (newlf->size < FONT_MIN_SIZE)
+        newlf->size = FONT_MIN_SIZE;
     newlf->rotation = rotation;
 
     // check if all devfonts support rotation
@@ -352,11 +359,11 @@ PLOGFONT GUIAPI CreateLogFontIndirectEx (LOGFONT *reflf, int rotation)
     // create new devfont instance if need
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
         DEVFONT* df = reflf->devfonts[i];
-        if (df->font_ops->new_instance)
-            newlf->devfonts[i] = df->font_ops->new_instance(newlf,
-                df, i == 0);
-        if (df == NULL) {
-            goto error;
+        if (df && df->font_ops->new_instance) {
+            newlf->devfonts[i] = df->font_ops->new_instance(newlf, df, i == 0);
+            if (newlf->devfonts[i] == NULL) {
+                goto error;
+            }
         }
     }
 
