@@ -152,10 +152,11 @@ static size_t rb_buf_size;
 
 static BYTE* get_raster_bitmap_buffer (size_t size)
 {
-    if (size <= rb_buf_size) return rb_buffer;
+    if (size <= rb_buf_size) {
+        return rb_buffer;
+    }
     rb_buf_size = ((size + 31) >> 5) << 5;
     rb_buffer = realloc (rb_buffer, rb_buf_size);
-    memset(rb_buffer, 0, rb_buf_size);
     return rb_buffer;
 }
 
@@ -419,12 +420,17 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         ft_inst_info->prev_index = ft_inst_info->cur_index;
     }
 
-    FT_Glyph_Get_CBox (ft_inst_info->glyph, ft_glyph_bbox_pixels, &bbox);
+    if (get_glyph_bmptype(logfont, devfont) == DEVFONTGLYPHTYPE_MONOBMP) {
+        FT_Glyph_Get_CBox (ft_inst_info->glyph, FT_GLYPH_BBOX_TRUNCATE, &bbox);
+    }
+    else {
+        FT_Glyph_Get_CBox (ft_inst_info->glyph, FT_GLYPH_BBOX_PIXELS, &bbox);
 
-    //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
-    if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)) {
-        bbox.xMin -= 1;
-        bbox.xMax += 1;
+        //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
+        if (IS_SUBPIXEL(logfont) && (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)) {
+            bbox.xMin -= 1;
+            bbox.xMax += 1;
+        }
     }
 
     /* We just save the BBOX :). */
@@ -483,7 +489,7 @@ error:
 /* call this function to get the bitmap/pixmap of the char */
 static const void*
 char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
-        Glyph32 glyph_value, int* pitch, BOOL is_grey)
+        Glyph32 glyph_value, SIZE* sz, int* pitch, BOOL is_grey)
 {
     FT_BitmapGlyph  glyph_bitmap;
     FT_Bitmap*      source;
@@ -599,8 +605,13 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     }
 #endif /* _MGFONT_TTF_CACHE */
 
-    buffer = get_raster_bitmap_buffer (source->rows * source->pitch);
+    buffer = get_raster_bitmap_buffer(source->rows * source->pitch);
     memcpy(buffer, source->buffer, source->rows * source->pitch);
+    if (sz) {
+        /* VincentWei: override the bbox.w and bbox.h with bitmap */
+        sz->cx = source->width;
+        sz->cy = source->rows;
+    }
 
     FT_Done_Glyph (ft_inst_info->glyph);
     FT_UNLOCK(&ft_lock);
@@ -613,21 +624,21 @@ error:
 
 static const void*
 get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-        Glyph32 glyph_value, int* pitch, unsigned short* scale)
+        Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (scale) *scale = 1;
-    return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, FALSE);
+    return char_bitmap_pixmap (logfont, devfont, glyph_value, sz, pitch, FALSE);
 }
 
 static const void*
 get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
-            Glyph32 glyph_value, int* pitch,
+            Glyph32 glyph_value, SIZE* sz, int* pitch,
             unsigned short* scale)
 {
     glyph_value = REAL_GLYPH(glyph_value);
     if (scale) *scale = 1;
-    return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, TRUE);
+    return char_bitmap_pixmap (logfont, devfont, glyph_value, sz, pitch, TRUE);
 }
 
 /* call this function before output a string */
@@ -909,6 +920,10 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_
             (FTC_FaceID) (ft_inst_info->image_type.face_id),
             ft_inst_info->ft_face_info->cmap_index, uni_char)) {
         goto error;
+    }
+    else {
+        FT_UNLOCK(&ft_lock);
+        return TRUE;
     }
 
 #endif /* _MGFONT_TTF_CACHE */
