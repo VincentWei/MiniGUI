@@ -291,7 +291,6 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
             ft_load_flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_FORCE_AUTOHINT;
     }
 
-
     FT_Activate_Size (ft_inst_info->size);
 
     *face = ft_face_info->face;
@@ -538,7 +537,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     }
 
     /*convert to a bitmap (default render mode + destroy old or not)*/
-    if (ft_inst_info->glyph->format != ft_glyph_format_bitmap) {
+    if (ft_inst_info->glyph->format != FT_GLYPH_FORMAT_BITMAP) {
         if (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE &&
             IS_SUBPIXEL(logfont) && is_grey) {
             if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
@@ -549,7 +548,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         }
         else {
             if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
-                        is_grey? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO,
+                        is_grey ? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO,
                         NULL, 1)) {
                 _ERR_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
                 goto error;
@@ -791,13 +790,18 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->image_type.width = logfont->size;
     ft_inst_info->image_type.height = logfont->size;
     ft_inst_info->image_type.face_id = (FTC_FaceID)ft_inst_info->ft_face_info;
+    ft_inst_info->image_type.flags = FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP;
 
-    /* houhh 20110304, AUTOHINT will be get more clear
-     * and thin glyph. */
-    ft_inst_info->image_type.flags =
-        FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP |
-        FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL |FT_LOAD_FORCE_AUTOHINT;
-        //FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_TARGET_NORMAL;
+    if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_MONO)
+        ft_inst_info->image_type.flags |= FT_LOAD_TARGET_MONO;
+    else {
+        if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL
+                && ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)
+            ft_inst_info->image_type.flags |= FT_LOAD_TARGET_LCD;
+        else
+            ft_inst_info->image_type.flags |=
+                FT_LOAD_TARGET_NORMAL | FT_LOAD_FORCE_AUTOHINT;
+    }
 
     /* if unmask non-cache and no rotation */
     if (!(logfont->style & FS_OTHER_TTFNOCACHE)) {
