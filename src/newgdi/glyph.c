@@ -69,7 +69,7 @@ int ft2GetLcdFilter (DEVFONT* devfont);
 int ft2IsFreeTypeDevfont (DEVFONT* devfont);
 #endif
 
-#define FS_WEIGHT_AUTOBOLD  30
+#define FS_WEIGHT_AUTOBOLD  29
 
 Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len)
@@ -2375,8 +2375,8 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 
     // VincentWei: only use auto bold when the weight of devfont does not
     // match the weight of logfont.
-    if (((logfont->style & FS_WEIGHT_MASK) -
-            (devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
+    if (((int)(logfont->style & FS_WEIGHT_MASK) -
+            (int)(devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
             && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
         bbox_w += bold;
@@ -2823,8 +2823,8 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
 
     // VincentWei: only use auto bold when the weight of devfont does not
     // match the weight of logfont.
-    if (((logfont->style & FS_WEIGHT_MASK) -
-            (devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
+    if (((int)(logfont->style & FS_WEIGHT_MASK) -
+            (int)(devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
             && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
     }

@@ -523,7 +523,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
             if (!is_grey && sz &&
                     (cacheinfo->height != sz->cy || cacheinfo->width != sz->cx)) {
-                _ERR_PRINTF("FreeType2: cached BITMAP size does not match BBOX\n");
+                _DBG_PRINTF("Font>FT2: Override BBOX size\n");
                 sz->cx = cacheinfo->width;
                 sz->cy = cacheinfo->height;
             }
@@ -612,12 +612,12 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
             /* VincentWei: override the bbox.w and bbox.h with bitmap for monobitmap */
             if (!is_grey && sz && (source->rows != sz->cy || source->width != sz->cx)) {
-                _ERR_PRINTF("FreeType2: BITMAP size does not match BBOX\n");
+                _DBG_PRINTF("Font>FT2: Override BBOX size\n");
                 sz->cx = source->width;
                 sz->cy = source->rows;
             }
 
-#ifdef _DEBUG
+#ifdef TTF_DBG
             if (is_grey)
                 print_bitmap_grey(source->buffer, source->width, source->rows, source->pitch);
             else
@@ -635,12 +635,12 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     memcpy(buffer, source->buffer, source->rows * source->pitch);
     /* VincentWei: override the bbox.w and bbox.h with bitmap */
     if (!is_grey && sz && (source->rows != sz->cy || source->width != sz->cx)) {
-        _ERR_PRINTF("FreeType2: BITMAP size does not match BBOX\n");
+        _DBG_PRINTF("Font>FT2: Override BBOX size\n");
         sz->cx = source->width;
         sz->cy = source->rows;
     }
 
-#ifdef _DEBUG
+#ifdef TTF_DBG
     if (is_grey)
         print_bitmap_grey(source->buffer, source->width, source->rows, source->pitch);
     else
@@ -1055,7 +1055,7 @@ static void* load_font_data (DEVFONT* devfont,
             weight_style = (tt_os2->usWeightClass/100 * 10);
         }
         else {
-            _DBG_PRINTF("FreeType2: Unknown tt_os2->usWeightClass: %u\n",
+            _DBG_PRINTF("FONT>FT2: Unknown tt_os2->usWeightClass: %u\n",
             tt_os2->usWeightClass);
         }
 
