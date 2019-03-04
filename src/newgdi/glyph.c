@@ -2940,9 +2940,9 @@ void _gdi_start_new_line (PDC pdc)
     }
 }
 
-Glyph32 _gdi_set_glyph_dfi(LOGFONT* lf, Glyph32 gv)
+Glyph32 _gdi_select_glyph_dfi(LOGFONT* lf, Glyph32 gv)
 {
-    int i, dfi = 1;
+    int i, dfi = 0;
     DEVFONT* df;
 
     for (i = 1; i < MAXNR_DEVFONTS; i++) {
@@ -2952,6 +2952,13 @@ Glyph32 _gdi_set_glyph_dfi(LOGFONT* lf, Glyph32 gv)
                 break;
             }
         }
+    }
+
+    if (dfi == 0) {
+        if (REAL_GLYPH(gv) < 0x80)
+            dfi = 0;
+        else
+            dfi = 1;
     }
 
     return SET_GLYPH_DFI(gv, dfi);

@@ -10886,6 +10886,10 @@ typedef struct _GLYPHPOS {
      */
     int y;
     /**
+     * Whether is a whitespace glyph.
+     */
+    Uint8 whitespace:1;
+    /**
      * Whether suppress the glyph.
      */
     Uint8 suppressed:1;

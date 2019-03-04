@@ -81,7 +81,7 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
                     (prev_mchar, prev_len, text, left_bytes);
 
                 logical_glyphs[i++]
-                    = _gdi_set_glyph_dfi(pdc->pLogFont, glyph_value);
+                    = _gdi_select_glyph_dfi(pdc->pLogFont, glyph_value);
                 glyph_type = (*mbc_devfont->charset_ops->glyph_type)
                     (glyph_value);
                 if (!(glyph_type & MCHAR_TYPE_NOSPACING_MARK)){
@@ -407,7 +407,7 @@ static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
                 glyph_value = mbc_devfont->charset_ops->char_glyph_value
                     (prev_mchar, prev_len, text, left_bytes);
 
-                glyph_value = _gdi_set_glyph_dfi(pdc->pLogFont, glyph_value);
+                glyph_value = _gdi_select_glyph_dfi(pdc->pLogFont, glyph_value);
                 goto do_glyph;
             }
         }
@@ -586,7 +586,7 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
 
             prev_mchar = text;
             prev_len = len_cur_char;
-            logical_glyphs[i++] = _gdi_set_glyph_dfi(pdc->pLogFont, glyph_value);
+            logical_glyphs[i++] = _gdi_select_glyph_dfi(pdc->pLogFont, glyph_value);
 
             glyph_type = (*mbc_devfont->charset_ops->glyph_type)
                 (glyph_value);
