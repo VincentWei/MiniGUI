@@ -111,6 +111,9 @@ static int get_ch_width (LOGFONT* logfont, DEVFONT* devfont,
     if (vbf_info->bits_offset == NULL)
         return vbf_info->max_width * scale;
 
+    if (glyph_value < vbf_info->first_glyph || glyph_value > vbf_info->last_glyph)
+        glyph_value = vbf_info->def_glyph;
+
     return vbf_info->advance_x [glyph_value - vbf_info->first_glyph] * scale;
 }
 
@@ -234,7 +237,7 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            const Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
 {
     int offset;
     Glyph32 eff_value = glyph_value;

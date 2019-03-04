@@ -1,60 +1,60 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** fontcache.c: Font cache for TrueType fonts.
-** 
+**
 ** Create date: 2006/02/01
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
- 
+
 #include "common.h"
 
 #ifdef _MGFONT_TTF_CACHE
 #include "minigui.h"
 #include "gdi.h"
 
-#ifdef _MGFONT_TTF 
+#ifdef _MGFONT_TTF
 #include <freetype/freetype.h>
 #include <freetype/ftxkern.h>
 #include <freetype/ftnameid.h>
 #include <freetype/ftxcmap.h>
 #include <freetype/ftxwidth.h>
 #include "freetype.h"
-#else 
+#else
 #include "freetype2.h"
 #endif
 
@@ -62,14 +62,14 @@
 typedef struct _MemBlk
 {
     void *data;
-    int len;            
-    struct _MemBlk *hashPrev; 
+    int len;
+    struct _MemBlk *hashPrev;
     struct _MemBlk *hashNext;
-    struct _MemBlk *lruPrev;  
+    struct _MemBlk *lruPrev;
     struct _MemBlk *lruNext;
 }MemBlk;
 
-typedef MemBlk LruQueueDummyHead; 
+typedef MemBlk LruQueueDummyHead;
 typedef MemBlk HashQueueDummyHead;
 
 /* hash directory array in every cache */
@@ -82,20 +82,20 @@ typedef struct _HashDirectory
    blkSize : the size of each block in cache(in byte)
    nBlk : how many blocks in cache
    nDir : how many directory entries in cache
-   *memPool : the memory pool(data use it) pointer. 
-   *lruQueueNodes : point all nodes by malloc. just 
-                    release function use it  
+   *memPool : the memory pool(data use it) pointer.
+   *lruQueueNodes : point all nodes by malloc. just
+                    release function use it
    *hashDir : the hash directory pointer
-   lruQueueDummyHead : head node of lru queue 
+   lruQueueDummyHead : head node of lru queue
    makeHashKeyFunc : the function which make hash key */
 typedef struct cache
-{   
+{
     /* Information about font */
-    char family[LEN_FONT_NAME + 1];
-    char charset[LEN_FONT_NAME + 1];
-    DWORD style;
+    char df_name[LEN_UNIDEVFONT_NAME + 1];
+    int style;
     int fontsize;
-    
+    int rotation;
+
     int refers;
     int blkSize;
     int nBlk;
@@ -111,7 +111,7 @@ typedef struct cache
    global cache LRU queue */
 typedef struct _CacheQueueNode
 {
-    /* hold global cache queue 
+    /* hold global cache queue
        max cache node maybe 10 */
     cache_t cache;
     struct _CacheQueueNode *prevCache;
@@ -121,15 +121,15 @@ typedef struct _CacheQueueNode
 /* cache system. global cache descriptor,
    but user don't touch it, we use it!
    queueDummyHead : the head node of cache queue.
-   
+
    maxCache : the max count of cache in programm
-   cacheSize : each cache's size(in BYTE and 
-               everyone has the same size!) 
+   cacheSize : each cache's size(in BYTE and
+               everyone has the same size!)
    nCache : how many cache Now!! */
 struct _CacheSystem
 {
     CacheQueueNode queueDummyHead;
-    
+
     int maxCache;
     int cacheSize;
     int nCache;
@@ -141,7 +141,7 @@ struct _CacheSystem __mg_globalCache;
 
 /* functions */
 
-static void 
+static void
 AppendCache(CacheQueueNode *new)
 {
     new->nextCache = &(__mg_globalCache.queueDummyHead);
@@ -151,18 +151,18 @@ AppendCache(CacheQueueNode *new)
 }
 
 /* create a new LRU-Queue. */
-static int 
+static int
 CreateCacheLruQueue(cache_t *cache, int nblk)
 {
     int i;
     MemBlk *blk;
-    
+
     blk = malloc(nblk * sizeof(MemBlk));
     DP(("Allocate cache %p  LRU == %p\n", cache, blk));
     if (blk == NULL) {
         return -1;
     }
-    
+
     memset(blk, 0, nblk * sizeof(MemBlk));
     cache->lruQueueNodes = blk;
     /* link the node as a double-linked-loop-list */
@@ -174,17 +174,17 @@ CreateCacheLruQueue(cache_t *cache, int nblk)
     }
     (blk + nblk - 1)->lruPrev = blk + nblk - 2;
     (blk + nblk - 1)->lruNext = &cache->lruQueueDummyHead;
-    
+
     cache->lruQueueDummyHead.lruPrev = blk + nblk - 1;
     cache->lruQueueDummyHead.lruNext = blk;
     return 0;
 }
 
-static int 
+static int
 InitCache(CacheQueueNode *new, int ndir, int nblock)
 {
     int i;
-    /* allocate Hash directory array and LRU queue nodes 
+    /* allocate Hash directory array and LRU queue nodes
        follow code is bad, but no way to fix it. */
     if (new->cache.hashDir) {
         free(new->cache.hashDir);
@@ -195,18 +195,18 @@ InitCache(CacheQueueNode *new, int ndir, int nblock)
     if (new->cache.hashDir == NULL) {
         return -1;
     }
-    
+
     memset(new->cache.hashDir, 0, ndir * sizeof(HashDirectory));
     for (i = 0; i < ndir; i++) {
-        new->cache.hashDir[i].hashHead.hashPrev = 
+        new->cache.hashDir[i].hashHead.hashPrev =
           &(new->cache.hashDir[i].hashHead);
-        new->cache.hashDir[i].hashHead.hashNext = 
+        new->cache.hashDir[i].hashHead.hashNext =
           &(new->cache.hashDir[i].hashHead);
     }
 
-    if (new->cache.lruQueueDummyHead.lruNext != 
+    if (new->cache.lruQueueDummyHead.lruNext !=
         &(new->cache.lruQueueDummyHead)) {
-        /* It's a old node, not malloced, 
+        /* It's a old node, not malloced,
            so we must release the old LRU-queue */
         free(new->cache.lruQueueNodes);
         DP(("free a old lru. %p\n", new->cache.lruQueueNodes));
@@ -216,7 +216,7 @@ InitCache(CacheQueueNode *new, int ndir, int nblock)
             free(new->cache.lruQueueNodes);
             DP(("free a old lru. %p\n", new->cache.lruQueueNodes));
         }
-        return -1; 
+        return -1;
     }
 
     return 0;
@@ -235,10 +235,10 @@ LruQueueBufferSplit(cache_t *cache, int bufsize)
         blk->data = buff;
         blk = blk->lruNext;
         buff = buff + bufsize;
-    } 
+    }
 }
 
-static void 
+static void
 DestroyCache(cache_t *cache)
 {
     if (cache->hashDir != NULL) {
@@ -257,7 +257,7 @@ DestroyCache(cache_t *cache)
 
 /* release a cache node from the global LRU cache queue.
    Free the memory and unlink the pointers. */
-static void 
+static void
 ReleaseCache(CacheQueueNode *cache)
 {
     /* Re-Link the double link queue */
@@ -273,26 +273,26 @@ ReleaseCache(CacheQueueNode *cache)
 /* allocate a new cache and append at the end of the global cache queue.
  * If global cache queue is full, we should kill the first node of the queue,
  * and we call this : Least-Recently-Used-Order
- * If global cache is not full, just allocate a new one. 
+ * If global cache is not full, just allocate a new one.
  * the func return pointer to the cache if succeed, return NULL means failed. */
 static CacheQueueNode *
 GetCache(int nblock, int ndir)
 {
     CacheQueueNode *temp;
-    
+
     if (__mg_globalCache.nCache == __mg_globalCache.maxCache) {
-        /* The Queue is Full!! in this case, we don't 
+        /* The Queue is Full!! in this case, we don't
            release any node, just return NULL */
         return NULL;
     }
-    /* there is empty space in the queue 
-       we should allocate a new CacheQueueNode and 
+    /* there is empty space in the queue
+       we should allocate a new CacheQueueNode and
        allocate Memory-Pool for it */
     if ((temp = malloc(sizeof(CacheQueueNode))) == NULL) {
         return NULL;
     }
     DP(("New a cache node %p\n", temp));
-    /* Set zero the new CacheQueueNode 
+    /* Set zero the new CacheQueueNode
        and link the head to itself */
     memset(temp, 0, sizeof(CacheQueueNode));
     temp->cache.lruQueueDummyHead.lruPrev = &(temp->cache.lruQueueDummyHead);
@@ -305,8 +305,8 @@ GetCache(int nblock, int ndir)
         return NULL;
     }
     __mg_globalCache.nCache++;
-    
-    /* init hash directory, lru-queue 
+
+    /* init hash directory, lru-queue
        the function should release the old hash directory
        and lru-queue and allocate new one.  */
     if (InitCache(temp, ndir, nblock) == -1) {
@@ -324,47 +324,47 @@ GetCache(int nblock, int ndir)
 }
 
 
-/* Pick-off a block from the head of cache's 
+/* Pick-off a block from the head of cache's
    lru-queue and also Hash queue(anywhere in hash q).
    Relink the lru queue and hash queue */
 static MemBlk *
 PickOffBlk(cache_t *cache)
 {
     MemBlk *blk;
-    
-    if (cache->lruQueueDummyHead.lruNext ==  
+
+    if (cache->lruQueueDummyHead.lruNext ==
         &cache->lruQueueDummyHead) {
         return NULL;
     }
-    /* get the head of the lru-queue 
-       it is a Least-Recently-Used-Order Node 
+    /* get the head of the lru-queue
+       it is a Least-Recently-Used-Order Node
        and we should re-link the queue */
     blk = cache->lruQueueDummyHead.lruNext;
-    
-    cache->lruQueueDummyHead.lruNext= 
+
+    cache->lruQueueDummyHead.lruNext=
       (cache->lruQueueDummyHead.lruNext)->lruNext;
-    (cache->lruQueueDummyHead.lruNext)->lruPrev = 
+    (cache->lruQueueDummyHead.lruNext)->lruPrev =
       &cache->lruQueueDummyHead;
-    /* we pick the block, and if the block already 
+    /* we pick the block, and if the block already
        in a hash q, so we must re-link the hash q */
     if (blk->hashNext && blk->hashPrev) {
         blk->hashNext->hashPrev = blk->hashPrev;
-        blk->hashPrev->hashNext = blk->hashNext; 
+        blk->hashPrev->hashNext = blk->hashNext;
     }
     return blk;
 }
 
-static void 
+static void
 AppendBlk(cache_t *cache, MemBlk *blk, int key)
 {
-    /* first, append the blcok at the end of the 
+    /* first, append the blcok at the end of the
        lru-queue. */
     blk->lruNext = &(cache->lruQueueDummyHead);
     blk->lruPrev = cache->lruQueueDummyHead.lruPrev;
     (cache->lruQueueDummyHead.lruPrev)->lruNext = blk;
     cache->lruQueueDummyHead.lruPrev = blk;
-    
-    /* Then, insert the block at the head of 
+
+    /* Then, insert the block at the head of
        the hash queue which KEY==key */
     blk->hashNext = cache->hashDir[key].hashHead.hashNext;
     (cache->hashDir[key].hashHead.hashNext)->hashPrev = blk;
@@ -378,13 +378,13 @@ AppendBlk(cache_t *cache, MemBlk *blk, int key)
 /**********************************************************
  *                    extern functions                    *
  **********************************************************/
-/* search a data in cache, 
+/* search a data in cache,
    hCache : which cache
    *cmpdata : your data pointer point to data for compare
    *size : if found the data, how long is the data(return val)
-   reutrn = pointer to the data */ 
+   reutrn = pointer to the data */
 TTFCACHEINFO *
-__mg_ttc_search(HCACHE hCache, unsigned short unicode, int *size)
+__mg_ttc_search(HCACHE hCache, UChar32 unicode, int *size)
 {
     int key;
     CacheQueueNode *ca;
@@ -400,9 +400,10 @@ __mg_ttc_search(HCACHE hCache, unsigned short unicode, int *size)
     }
     blk = ca->cache.hashDir[key].hashHead.hashNext;
 
-    for ( ; blk != &(ca->cache.hashDir[key].hashHead); 
+    for ( ; blk != &(ca->cache.hashDir[key].hashHead);
           blk = blk->hashNext) {
-        if (*(unsigned short *)(blk->data) == unicode) {
+        TTFCACHEINFO * tci = (TTFCACHEINFO *)blk->data;
+        if (tci->unicode == unicode) {
             /* If found the blk, we should pick off it
                and link it at the end of LRU-q */
             *size = blk->len;
@@ -412,23 +413,24 @@ __mg_ttc_search(HCACHE hCache, unsigned short unicode, int *size)
             blk->lruPrev = ca->cache.lruQueueDummyHead.lruPrev;
             (ca->cache.lruQueueDummyHead.lruPrev)->lruNext = blk;
             ca->cache.lruQueueDummyHead.lruPrev = blk;
-            return blk->data;
+            return tci;
         }
     }
+
     return NULL;
 }
 
-/* add data into a speicial cache 
-   hCache : which cache , 
+/* add data into a speicial cache
+   hCache : which cache ,
    *data : your data pointer
    size : your data's bytes
    key : hash key of your data */
-int 
+int
 __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
 {
     CacheQueueNode *ca;
     MemBlk *blk;
-    int key; 
+    int key;
 
     if (hCache == 0 || data == NULL) {
         return -1;
@@ -437,19 +439,19 @@ __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
     if (ca->cache.blkSize < size) {
         return -1;
     }
-    key = ca->cache.makeHashKeyFunc(*(unsigned short *)data);
-    
+    key = ca->cache.makeHashKeyFunc(data->unicode);
+
     /* pick off a block from lru queue */
     if ((blk = PickOffBlk(&ca->cache)) == NULL) {
         return -1;
     }
     /* 1. copy the TTFCACHEINFO structure
-       2. copy the BITMAP data by data->bitmap 
+       2. copy the BITMAP data by data->bitmap
        3. change the bitmap pointer */
     memcpy(blk->data, data, sizeof(TTFCACHEINFO));
     if (data->bitmap)
-        memcpy((blk->data + sizeof(TTFCACHEINFO)), 
-                data->bitmap, 
+        memcpy((blk->data + sizeof(TTFCACHEINFO)),
+                data->bitmap,
                 (size - sizeof(TTFCACHEINFO)));
     blk->len = size;
     ((TTFCACHEINFO *)(blk->data))->bitmap =  blk->data + sizeof(TTFCACHEINFO);
@@ -458,17 +460,17 @@ __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
     return 0;
 }
 
-/* create a cache for a font instance. 
+/* create a cache for a font instance.
    nblk : how many block in the cache.
    blks  ize : each block's size
    ndir : how many hash entries in the cache
    makeHashKey : the function which make the hash key */
-HCACHE  
-__mg_ttc_create(char *family, char *charset, DWORD style, int size, 
+HCACHE
+__mg_ttc_create(const char *df_name, int style, int size, int rotation,
     int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey)
 {
     CacheQueueNode *temp;
-    if (family == NULL || charset == NULL || makeHashKey == NULL) {
+    if (df_name == NULL || makeHashKey == NULL) {
         return (HCACHE)(0);
     }
     if (nblk <= 0 || blksize <= 0 || size <= 0 || ndir <= 0) {
@@ -482,10 +484,11 @@ __mg_ttc_create(char *family, char *charset, DWORD style, int size,
         return (HCACHE)(0);
     }
 
-    strncpy(temp->cache.family, family, LEN_FONT_NAME);
-    strncpy(temp->cache.charset, charset, LEN_FONT_NAME);
+    memset(temp->cache.df_name, 0, LEN_UNIDEVFONT_NAME + 1);
+    strncpy(temp->cache.df_name, df_name, LEN_UNIDEVFONT_NAME);
     temp->cache.style = style;
     temp->cache.fontsize = size;
+    temp->cache.rotation = rotation;
     temp->cache.blkSize = blksize;
     temp->cache.nBlk = nblk;
     temp->cache.nDir = ndir;
@@ -496,7 +499,7 @@ __mg_ttc_create(char *family, char *charset, DWORD style, int size,
     return (HCACHE)(temp);
 }
 
-void 
+void
 __mg_ttc_refer(HCACHE hCache)
 {
     CacheQueueNode *ca;
@@ -504,10 +507,10 @@ __mg_ttc_refer(HCACHE hCache)
         return;
     }
     ca = (CacheQueueNode *)(hCache);
-    ca->cache.refers++; 
+    ca->cache.refers++;
 }
 
-void 
+void
 __mg_ttc_release(HCACHE hCache)
 {
     CacheQueueNode *ca;
@@ -522,13 +525,13 @@ __mg_ttc_release(HCACHE hCache)
         ReleaseCache(ca);
         free(ca);
         DP(("Free cache==%p\n", ca));
-        __mg_globalCache.nCache--;        
+        __mg_globalCache.nCache--;
     }
 }
 
 /* init cache system, create cache queue, and clear cache counter,
    if need use cache, should call this function first */
-int 
+int
 __mg_ttc_sys_init(int maxCache, int cacheSize)
 {
     if (maxCache <= 0 || cacheSize <= 0) {
@@ -543,27 +546,27 @@ __mg_ttc_sys_init(int maxCache, int cacheSize)
 }
 
 
-void 
+void
 __mg_ttc_sys_deinit(void)
 {
     CacheQueueNode *q, *pfree;
-    
+
     if (__mg_globalCache.nCache == 0) {
-        /* it means just no cache in our system, 
-           no malloc at all, just set zero global val 
+        /* it means just no cache in our system,
+           no malloc at all, just set zero global val
            and return safe :) */
         memset(&__mg_globalCache, 0, sizeof(__mg_globalCache));
         return;
     }
-    /* In this case, it means more than ONE cache in 
-       our system. we should release follow structures: 
+    /* In this case, it means more than ONE cache in
+       our system. we should release follow structures:
        a. every CacheQueueNode(s) in global cache queue
-       b. every Memory-Pool in every cache 
+       b. every Memory-Pool in every cache
        c. every Hash-Directory in every cache
-       d. every LRU queue nodes in every cache 
+       d. every LRU queue nodes in every cache
        that's all, may be~~ :(  */
     q = __mg_globalCache.queueDummyHead.nextCache;
-    
+
     while (q != &__mg_globalCache.queueDummyHead) {
         pfree = q;
         q = q->nextCache;
@@ -575,34 +578,23 @@ __mg_ttc_sys_deinit(void)
 
 
 
-HCACHE 
-__mg_ttc_is_exist(char *family, char *charset, DWORD style, int size)
+HCACHE
+__mg_ttc_is_exist(const char *df_name, int style, int size, int rotation)
 {
     CacheQueueNode *p;
 
     if (__mg_globalCache.nCache == 0) {
         return (HCACHE)0;
     }
-    
+
     /* If can not match font name*/
     p = __mg_globalCache.queueDummyHead.nextCache;
     while (p != &__mg_globalCache.queueDummyHead) {
-        if (strncmp(p->cache.family, family, LEN_FONT_NAME) == 0) {
-            if (strncmp(p->cache.charset, charset, LEN_FONT_NAME) == 0) {
-                if (p->cache.fontsize == size) {
-                    int s = style & 0x000000FF;
-                    if ((s == FS_WEIGHT_BOOK || s == FS_WEIGHT_DEMIBOLD || s == FS_WEIGHT_SUBPIXEL) && 
-                        (p->cache.style == FS_WEIGHT_BOOK || p->cache.style == FS_WEIGHT_DEMIBOLD || 
-                         p->cache.style == FS_WEIGHT_SUBPIXEL)) {
-                        return (HCACHE) p;
-                    }
-                    if ((s != FS_WEIGHT_BOOK && s != FS_WEIGHT_DEMIBOLD && s != FS_WEIGHT_SUBPIXEL) && 
-                        (p->cache.style != FS_WEIGHT_BOOK && p->cache.style != FS_WEIGHT_DEMIBOLD && 
-                         p->cache.style != FS_WEIGHT_SUBPIXEL)) {
-                        return (HCACHE) p;
-                    }
-                }
-            }
+        if (strncmp(p->cache.df_name, df_name, LEN_UNIDEVFONT_NAME) == 0 &&
+                p->cache.style == style &&
+                p->cache.fontsize == size &&
+                p->cache.rotation == rotation) {
+            return (HCACHE) p;
         }
         p = p->nextCache;
     }
@@ -611,7 +603,7 @@ __mg_ttc_is_exist(char *family, char *charset, DWORD style, int size)
 
 #if 0
 
-static void 
+static void
 queue_traversal(LruQueueDummyHead *pQ)
 {
     MemBlk *ptr;
@@ -619,12 +611,12 @@ queue_traversal(LruQueueDummyHead *pQ)
     ptr = pQ->lruNext;
     for (; ptr != pQ; ptr = ptr->lruNext) {
         DP(("MemBlk = %p, MemBlk->prev = %p, "
-            "MemBlk->next = %p, MemBlk->data : %d\n", 
+            "MemBlk->next = %p, MemBlk->data : %d\n",
             ptr, ptr->lruPrev, ptr->lruNext, *(int *)(ptr->data)));
-    } 
+    }
 }
 
-static void 
+static void
 queue_traversal_reverse(LruQueueDummyHead *pQ)
 {
     MemBlk *ptr;
@@ -632,9 +624,9 @@ queue_traversal_reverse(LruQueueDummyHead *pQ)
     ptr = pQ->lruPrev;
     for ( ; ptr != pQ; ptr = ptr->lruPrev) {
         DP(("MemBlk = %p, MemBlk->prev = %p, "
-            "MemBlk->next = %p, MemBlk->data : %d\n", 
+            "MemBlk->next = %p, MemBlk->data : %d\n",
             ptr, ptr->lruPrev, ptr->lruNext, *(int *)(ptr->data)));
-    } 
+    }
 }
 
 
@@ -645,12 +637,12 @@ void __mg_ttc_dump_all(void)
     DP(("__mg_globalCache.maxCache = %d\n", __mg_globalCache.maxCache));
     DP(("__mg_globalCache.cacheSize = %d\n", __mg_globalCache.cacheSize));
     DP(("__mg_globalCache.nCache = %d\n", __mg_globalCache.nCache));
-    
-    DP(("__mg_globalCache.queueDummyHead.prevCache = %p\n", 
+
+    DP(("__mg_globalCache.queueDummyHead.prevCache = %p\n",
            __mg_globalCache.queueDummyHead.prevCache));
     DP(("__mg_globalCache.queueDummyHead.nextCache = %p\n",
            __mg_globalCache.queueDummyHead.nextCache));
-#endif 
+#endif
     pc = __mg_globalCache.queueDummyHead.nextCache;
     for ( ; pc != &__mg_globalCache.queueDummyHead; pc = pc->nextCache) {
         __mg_ttc_dump(&pc->cache);
@@ -662,21 +654,21 @@ void __mg_ttc_dump(cache_t *cache)
 {
     int i, j, k;
     MemBlk *ptr;
-#if 0    
+#if 0
     DP(("&cache = %p\n", cache));
-    DP(("cache.family = %s\n", cache->family));
-    DP(("cache.charset = %s\n", cache->charset));
+    DP(("cache.df_name = %s\n", cache->df_name));
     DP(("cache.style = %d\n", cache->style));
     DP(("cache.fontsize = %d\n", cache->fontsize));
+    DP(("cache.rotation = %d\n", cache->rotation));
     DP(("cache.blkSize = %d\n", cache->blkSize));
     DP(("cache.refers = %d\n", cache->refers));
     DP(("cache.nBlk = %d\n", cache->nBlk));
     DP(("cache.nDir = %d\n", cache->nDir));
-    DP(("cache.memPool = %d, (HEX) = %p\n", 
+    DP(("cache.memPool = %d, (HEX) = %p\n",
            cache->memPool, cache->memPool));
     DP(("cache.lruQueueNodes=%p\n", cache->lruQueueNodes));
     DP(("cache.hashDir = %p\n", cache->hashDir));
-#endif 
+#endif
     DP(("&cache.lruQueueDummyHead=%p\n",
            &cache->lruQueueDummyHead));
     DP(("cache.lruQueueDummyHead.lruPrev=%p\n",
@@ -686,48 +678,48 @@ void __mg_ttc_dump(cache_t *cache)
     //queue_traversal(&cache->lruQueueDummyHead);
     //DP(("----\n"));
     //queue_traversal_reverse(&cache->lruQueueDummyHead);
-#if 0        
+#if 0
     for (i=0; i<cache->nDir; i++) {
         MemBlk *p;
         printf("hash[%d]:", i);
         p = (cache->hashDir)[i].hashHead.hashNext;
         while(p != &(cache->hashDir[i].hashHead)) {
-            printf("-->%d(%d)", *(unsigned short *)(p->data), p->len);
+            printf("-->%d(%d)", *(UChar32 *)(p->data), p->len);
             p = p->hashNext;
         }
         printf("\n");
     }
 #endif
-    //printf("LRU: ");  
-    
+    //printf("LRU: ");
+
     ptr = cache->lruQueueDummyHead.lruNext;
     for ( ; ptr != &cache->lruQueueDummyHead; ptr = ptr->lruNext) {
-        DP(("-->%p(len:%d, data:%d)", 
-            ptr, ptr->len, *(unsigned short *)(ptr->data)));
+        DP(("-->%p(len:%d, data:%d)",
+            ptr, ptr->len, *(UCha32 *)(ptr->data)));
     }
-    //printf("\n");  
+    //printf("\n");
 }
 
-void 
+void
 __mg_ttc_dump_cacheinfo(TTFCACHEINFO *ca)
 {
     DP(("Dump TTFCACHEINFO %p...\n", ca));
     DP(("cacheInfo->unicode = %d\n", ca->unicode));
     DP(("cacheInfo->glyph_code = %d\n", ca->glyph_code));
-    
+
     DP(("cacheInfo->cur_xmin = %d, cacheInfo->cur_ymin = %d\n",
         ca->cur_xmin, ca->cur_ymin));
     DP(("cacheInfo->width = %d, cacheInfo->height = %d\n",
         ca->width, ca->height));
     DP(("cacheInfo->advance = %d\n", ca->advance));
     DP(("cacheInfo->cur_bbox = %d, %d, %d, %d\n",
-        ca->bbox.xMin, ca->bbox.yMin, 
+        ca->bbox.xMin, ca->bbox.yMin,
         ca->bbox.xMax, ca->bbox.yMax));
 
     DP(("\n"));
 }
 
-void 
+void
 __mg_ttc_dump_instance(TTFINSTANCEINFO *in)
 {
     DP(("Dump TTFINSTANCEINFO %p...\n", in));
@@ -740,9 +732,9 @@ __mg_ttc_dump_instance(TTFINSTANCEINFO *in)
         in->cur_width, in->cur_height));
     DP(("Instance->advance = %d\n", in->cur_advance));
     DP(("Instance->cur_bbox = %d, %d, %d, %d\n",
-        in->cur_bbox.xMin, in->cur_bbox.yMin, 
+        in->cur_bbox.xMin, in->cur_bbox.yMin,
         in->cur_bbox.xMax, in->cur_bbox.yMax));
-    
+
     DP(("\n"));
 }
 

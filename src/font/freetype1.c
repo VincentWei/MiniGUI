@@ -440,7 +440,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 /* call this function to get the bitmap/pixmap of the char */ 
 static const void* 
 char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont, 
-                const Glyph32 glyph_value, int* pitch, BOOL is_grey) 
+                const Glyph32 glyph_value, SIZE* sz, int* pitch, BOOL is_grey) 
 {
     TT_Raster_Map Raster;
     TT_Error error;
@@ -538,17 +538,17 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            const Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
 {
     if (scale) *scale = 1;
-    return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, FALSE);
+    return char_bitmap_pixmap (logfont, devfont, glyph_value, sz, pitch, FALSE);
 }
 
 static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
-            const Glyph32 glyph_value, int* pitch, unsigned short* scale)
+            const Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
 {
     if (scale) *scale = 1;
-    return char_bitmap_pixmap (logfont, devfont, glyph_value, pitch, TRUE);
+    return char_bitmap_pixmap (logfont, devfont, glyph_value, sz, pitch, TRUE);
 }
 
 /* call this function after getting the bitmap/pixmap of the char
