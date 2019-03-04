@@ -126,9 +126,11 @@ typedef struct tagTTFCACHEINFO {
     void        *bitmap;
 } TTFCACHEINFO, *PTTFCACHEINFO;
 
-extern HCACHE __mg_ttc_create(const char *df_name, int size, int rotation,
+extern HCACHE __mg_ttc_create(const char *df_name,
+        int style, int size, int rotation,
         int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey);
-extern HCACHE __mg_ttc_is_exist(const char *df_name, int size, int rotation);
+extern HCACHE __mg_ttc_is_exist(const char *df_name,
+        int style, int size, int rotation);
 
 extern int __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size);
 extern void __mg_ttc_release(HCACHE hCache);

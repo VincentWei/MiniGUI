@@ -840,7 +840,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     if (!(logfont->style & FS_OTHER_TTFNOCACHE)) {
 
         HCACHE hCache = __mg_ttc_is_exist(devfont->name,
-                        logfont->size, logfont->rotation);
+                        logfont->style, logfont->size, logfont->rotation);
         DP(("__mg_ttc_is_exist() return %p\n", hCache));
         /* No this style's cache */
         if (hCache == 0) {
@@ -870,7 +870,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
                 rows, col, blksize, (int)(blksize-sizeof(TTFCACHEINFO)), nblk));
 
             ft_inst_info->cache = __mg_ttc_create(devfont->name,
-                logfont->size, logfont->rotation,
+                logfont->style, logfont->size, logfont->rotation,
                 nblk , blksize, _TTF_HASH_NDIR, make_hash_key);
 
             DP(("__mg_ttc_create() return %p\n", ft_inst_info->cache));

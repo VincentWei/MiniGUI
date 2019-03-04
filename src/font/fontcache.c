@@ -88,6 +88,7 @@ typedef struct _HashDirectory {
 typedef struct _FontCache {
     /* Information about font */
     char df_name[LEN_UNIDEVFONT_NAME + 1];
+    int style;
     int fontsize;
     int rotation;
     int refers;
@@ -459,7 +460,7 @@ __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
    ndir : how many hash entries in the cache
    makeHashKey : the function which make the hash key */
 HCACHE
-__mg_ttc_create(const char *df_name, int size, int rotation,
+__mg_ttc_create(const char *df_name, int style, int size, int rotation,
         int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey)
 {
     CacheQueueNode *temp;
@@ -479,6 +480,7 @@ __mg_ttc_create(const char *df_name, int size, int rotation,
 
     memset(temp->cache.df_name, 0, LEN_UNIDEVFONT_NAME + 1);
     strncpy(temp->cache.df_name, df_name, LEN_UNIDEVFONT_NAME);
+    temp->cache.style = style & FS_RENDER_MASK;
     temp->cache.fontsize = size;
     temp->cache.rotation = rotation;
     temp->cache.blkSize = blksize;
@@ -568,10 +570,8 @@ __mg_ttc_sys_deinit(void)
     }
 }
 
-
-
 HCACHE
-__mg_ttc_is_exist(const char *df_name, int size, int rotation)
+__mg_ttc_is_exist(const char *df_name, int style, int size, int rotation)
 {
     CacheQueueNode *p;
 
@@ -582,6 +582,7 @@ __mg_ttc_is_exist(const char *df_name, int size, int rotation)
     p = __mg_globalCache.queueDummyHead.nextCache;
     while (p != &__mg_globalCache.queueDummyHead) {
         if (strncmp(p->cache.df_name, df_name, LEN_UNIDEVFONT_NAME) == 0
+                && p->cache.style == (style & FS_RENDER_MASK)
                 && p->cache.fontsize == size
                 && p->cache.rotation == rotation) {
             return (HCACHE) p;
