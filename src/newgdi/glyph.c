@@ -1852,10 +1852,10 @@ static BOOL get_subpixel_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
     }
 #endif
 
-    if (data == NULL)
-    {
+    if (data == NULL) {
         data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
                 REAL_GLYPH(glyph_value), bbx_size, &data_pitch, &scale);
+        bbx_size->cx += bold;
     }
 
     if (data == NULL)
@@ -1939,6 +1939,7 @@ static BOOL get_book_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
     data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
             REAL_GLYPH(glyph_value), bbx_size, &data_pitch, &scale);
+    bbx_size->cx += bold;
 
     if (data == NULL)
         return FALSE;
@@ -2002,6 +2003,7 @@ static BOOL get_light_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
     data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
             REAL_GLYPH(glyph_value), bbx_size, &pitch, &scale);
+    bbx_size->cx += bold;
 
     if (data == NULL)
         return FALSE;
@@ -2090,6 +2092,7 @@ static BOOL get_regular_bmp (PDC pdc, Glyph32 glyph_value, SIZE* bbx_size,
 
     data = (*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
             REAL_GLYPH(glyph_value), bbx_size, &pitch, &scale);
+    bbx_size->cx += bold;
 
     if (!data)
         return FALSE;
@@ -3737,6 +3740,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
 
             data = (BYTE*)(*devfont->font_ops->get_glyph_monobitmap) (logfont, devfont, 
                     REAL_GLYPH(glyph_value), bbox, &pitch, &scale);
+            bbox->cx += bold;
 
             if (data == NULL)
                 break;

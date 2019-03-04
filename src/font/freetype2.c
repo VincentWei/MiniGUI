@@ -511,7 +511,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             if (pitch)
                 *pitch = cacheinfo->pitch;
 
-            if (sz) {
+            if (!is_grey && sz) {
                 sz->cx = cacheinfo->width;
                 sz->cy = cacheinfo->height;
             }
@@ -592,7 +592,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                 pcache->flag = TRUE;
             }
 
-            if (sz) {
+            if (!is_grey && sz) {
                 sz->cx = pcache->width;
                 sz->cy = pcache->height;
             }
@@ -604,7 +604,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
     buffer = get_raster_bitmap_buffer (source->rows * source->pitch);
     memcpy(buffer, source->buffer, source->rows * source->pitch);
-    if (sz) {
+    if (!is_grey && sz) {
         sz->cx = source->width;
         sz->cy = source->rows;
     }
