@@ -636,7 +636,9 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         sz->cy = source->rows;
     }
 
+#ifdef _DEBUG
     print_bitmap_mono(buffer, source->width, source->rows, source->pitch);
+#endif
 
     FT_Done_Glyph (ft_inst_info->glyph);
     FT_UNLOCK(&ft_lock);
