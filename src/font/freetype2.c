@@ -521,7 +521,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             if (pitch)
                 *pitch = cacheinfo->pitch;
 
-            if (sz && (cacheinfo->height != sz->cy || cacheinfo->width != sz->cx)) {
+            if (!is_grey && sz &&
+                    (cacheinfo->height != sz->cy || cacheinfo->width != sz->cx)) {
                 _ERR_PRINTF("FreeType2: cached BITMAP size does not match BBOX\n");
                 sz->cx = cacheinfo->width;
                 sz->cy = cacheinfo->height;
@@ -604,17 +605,18 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                 memcpy(pcache->bitmap, source->buffer, size);
                 pcache->flag = TRUE;
 
-                DP(("%s: Write bitmap data for 0x%x to cache, bitmap size = %d, cache = %p\n",
-                        __FUNCTION__,
-                        uni_char, size, ft_inst_info->cache));
+                DP(("%s: Write bitmap data for 0x%x to cache, bitmap (%d X %d, %d), cache = %p\n",
+                        __FUNCTION__, uni_char, source->width, source->rows,
+                        source->pitch, ft_inst_info->cache));
             }
 
-            /* VincentWei: override the bbox.w and bbox.h with bitmap */
-            if (sz && (source->rows != sz->cy || source->width != sz->cx)) {
+            /* VincentWei: override the bbox.w and bbox.h with bitmap for monobitmap */
+            if (!is_grey && sz && (source->rows != sz->cy || source->width != sz->cx)) {
                 _ERR_PRINTF("FreeType2: BITMAP size does not match BBOX\n");
                 sz->cx = source->width;
                 sz->cy = source->rows;
             }
+
 #ifdef _DEBUG
             if (is_grey)
                 print_bitmap_grey(source->buffer, source->width, source->rows, source->pitch);
@@ -632,7 +634,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     buffer = get_raster_bitmap_buffer(source->rows * source->pitch);
     memcpy(buffer, source->buffer, source->rows * source->pitch);
     /* VincentWei: override the bbox.w and bbox.h with bitmap */
-    if (sz && (source->rows != sz->cy || source->width != sz->cx)) {
+    if (!is_grey && sz && (source->rows != sz->cy || source->width != sz->cx)) {
         _ERR_PRINTF("FreeType2: BITMAP size does not match BBOX\n");
         sz->cx = source->width;
         sz->cy = source->rows;
