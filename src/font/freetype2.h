@@ -63,14 +63,13 @@ extern "C" {
 #endif
 
 #ifdef _MGFONT_TTF_CACHE
-typedef unsigned long HCACHE;
-typedef int (* MakeHashKeyFunc)(unsigned short unicode);
+typedef void* HCACHE;
+typedef int (* MakeHashKeyFunc)(Uchar32 unicode);
 #endif 
 
 typedef struct tagFTFACEINFO {
 #ifdef _MGFONT_TTF_CACHE
-    /*should be MAX_PATH*/
-    char        filepathname[256];
+    char*       filepathname;
     int         face_index;
     int         cmap_index;
 #else
@@ -115,32 +114,33 @@ typedef struct tagFTINSTANCEINFO {
 #define _TTF_HASH_NDIR   37
 
 typedef struct tagTTFCACHEINFO {
-    unsigned short unicode;
-    short       glyph_code;
+    Uchar32     unicode;
+    FT_UInt     glyph_code;
     FT_Vector   advance;
     FT_BBox     bbox;
     FT_Vector   delta;
     int         flag;
     int         pitch;
+    int         width;
+    int         height;
     void        *bitmap;
 } TTFCACHEINFO, *PTTFCACHEINFO;
 
-extern HCACHE __mg_ttc_create(char *family, char *charset,
-        DWORD style, int size, int rotation,
+extern HCACHE __mg_ttc_create(const char *df_name, int size, int rotation,
         int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey);
+extern HCACHE __mg_ttc_is_exist(const char *df_name, int size, int rotation);
+
 extern int __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size);
 extern void __mg_ttc_release(HCACHE hCache);
 extern int __mg_ttc_sys_init(int maxCache, int cacheSize);
 extern void __mg_ttc_sys_deinit(void);
 extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache,
-               unsigned short unicode, int *size);
-extern HCACHE __mg_ttc_is_exist(char *family, char *charset,
-               DWORD style, int size, int rotation);
+               Uchar32 unicode, int *size);
 extern void __mg_ttc_refer(HCACHE hCache);
 
 #endif
 
-#undef TTF_DBG
+#define TTF_DBG
 
 #ifndef TTF_DBG
 #define DP(x) 

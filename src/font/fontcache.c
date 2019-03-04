@@ -85,15 +85,11 @@ typedef struct _HashDirectory {
    *hashDir : the hash directory pointer
    lruQueueDummyHead : head node of lru queue
    makeHashKeyFunc : the function which make hash key */
-typedef struct cache {
+typedef struct _FontCache {
     /* Information about font */
-    char family[LEN_LOGFONT_NAME_FIELD + 1];
-    // VincentWei: no need to check charset for TrueType
-    //char charset[LEN_LOGFONT_NAME_FIELD + 1];
-    int render_style; // render style
+    char df_name[LEN_UNIDEVFONT_NAME + 1];
     int fontsize;
     int rotation;
-
     int refers;
     int blkSize;
     int nBlk;
@@ -103,7 +99,7 @@ typedef struct cache {
     HashDirectory *hashDir;
     LruQueueDummyHead lruQueueDummyHead;
     MakeHashKeyFunc makeHashKeyFunc;
-} cache_t;
+} FontCache;
 
 /* Least-Recently-Used-Order
    global cache LRU queue */
@@ -111,7 +107,7 @@ typedef struct _CacheQueueNode
 {
     /* hold global cache queue
        max cache node maybe 10 */
-    cache_t cache;
+    FontCache cache;
     struct _CacheQueueNode *prevCache;
     struct _CacheQueueNode *nextCache;
 }CacheQueueNode;
@@ -149,7 +145,7 @@ AppendCache(CacheQueueNode *new)
 
 /* create a new LRU-Queue. */
 static int
-CreateCacheLruQueue(cache_t *cache, int nblk)
+CreateCacheLruQueue(FontCache *cache, int nblk)
 {
     int i;
     MemBlk *blk;
@@ -221,7 +217,7 @@ InitCache(CacheQueueNode *new, int ndir, int nblock)
 
 
 static void
-LruQueueBufferSplit(cache_t *cache, int bufsize)
+LruQueueBufferSplit(FontCache *cache, int bufsize)
 {
     MemBlk *blk;
     unsigned char *buff;
@@ -236,7 +232,7 @@ LruQueueBufferSplit(cache_t *cache, int bufsize)
 }
 
 static void
-DestroyCache(cache_t *cache)
+DestroyCache(FontCache *cache)
 {
     if (cache->hashDir != NULL) {
         free(cache->hashDir);
@@ -325,7 +321,7 @@ GetCache(int nblock, int ndir)
    lru-queue and also Hash queue(anywhere in hash q).
    Relink the lru queue and hash queue */
 static MemBlk *
-PickOffBlk(cache_t *cache)
+PickOffBlk(FontCache *cache)
 {
     MemBlk *blk;
 
@@ -352,7 +348,7 @@ PickOffBlk(cache_t *cache)
 }
 
 static void
-AppendBlk(cache_t *cache, MemBlk *blk, int key)
+AppendBlk(FontCache *cache, MemBlk *blk, int key)
 {
     /* first, append the blcok at the end of the
        lru-queue. */
@@ -381,7 +377,7 @@ AppendBlk(cache_t *cache, MemBlk *blk, int key)
    *size : if found the data, how long is the data(return val)
    reutrn = pointer to the data */
 TTFCACHEINFO *
-__mg_ttc_search(HCACHE hCache, unsigned short unicode, int *size)
+__mg_ttc_search(HCACHE hCache, Uchar32 unicode, int *size)
 {
     int key;
     CacheQueueNode *ca;
@@ -399,7 +395,8 @@ __mg_ttc_search(HCACHE hCache, unsigned short unicode, int *size)
 
     for ( ; blk != &(ca->cache.hashDir[key].hashHead);
           blk = blk->hashNext) {
-        if (*(unsigned short *)(blk->data) == unicode) {
+        TTFCACHEINFO* tci = (TTFCACHEINFO*)blk->data;
+        if (tci->unicode == unicode) {
             /* If found the blk, we should pick off it
                and link it at the end of LRU-q */
             *size = blk->len;
@@ -409,17 +406,18 @@ __mg_ttc_search(HCACHE hCache, unsigned short unicode, int *size)
             blk->lruPrev = ca->cache.lruQueueDummyHead.lruPrev;
             (ca->cache.lruQueueDummyHead.lruPrev)->lruNext = blk;
             ca->cache.lruQueueDummyHead.lruPrev = blk;
-            return blk->data;
+            return tci;
         }
     }
     return NULL;
 }
 
-/* add data into a speicial cache
+/* add data into the specific cache
    hCache : which cache ,
    *data : your data pointer
    size : your data's bytes
-   key : hash key of your data */
+   key : hash key of your data
+*/
 int
 __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
 {
@@ -434,7 +432,7 @@ __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
     if (ca->cache.blkSize < size) {
         return -1;
     }
-    key = ca->cache.makeHashKeyFunc(*(unsigned short *)data);
+    key = ca->cache.makeHashKeyFunc(data->unicode);
 
     /* pick off a block from lru queue */
     if ((blk = PickOffBlk(&ca->cache)) == NULL) {
@@ -461,12 +459,11 @@ __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
    ndir : how many hash entries in the cache
    makeHashKey : the function which make the hash key */
 HCACHE
-__mg_ttc_create(char *family, char *charset,
-        DWORD style, int size, int rotation,
+__mg_ttc_create(const char *df_name, int size, int rotation,
         int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey)
 {
     CacheQueueNode *temp;
-    if (family == NULL || /* charset == NULL || */makeHashKey == NULL) {
+    if (df_name == NULL || makeHashKey == NULL) {
         return (HCACHE)(0);
     }
     if (nblk <= 0 || blksize <= 0 || size <= 0 || ndir <= 0) {
@@ -480,9 +477,8 @@ __mg_ttc_create(char *family, char *charset,
         return (HCACHE)(0);
     }
 
-    strncpy(temp->cache.family, family, LEN_LOGFONT_NAME_FIELD);
-    //strncpy(temp->cache.charset, charset, LEN_LOGFONT_NAME_FIELD);
-    temp->cache.render_style = (style & FS_RENDER_MASK);
+    memset(temp->cache.df_name, 0, LEN_UNIDEVFONT_NAME + 1);
+    strncpy(temp->cache.df_name, df_name, LEN_UNIDEVFONT_NAME);
     temp->cache.fontsize = size;
     temp->cache.rotation = rotation;
     temp->cache.blkSize = blksize;
@@ -575,8 +571,7 @@ __mg_ttc_sys_deinit(void)
 
 
 HCACHE
-__mg_ttc_is_exist(char *family, char *charset,
-        DWORD style, int size, int rotation)
+__mg_ttc_is_exist(const char *df_name, int size, int rotation)
 {
     CacheQueueNode *p;
 
@@ -584,44 +579,16 @@ __mg_ttc_is_exist(char *family, char *charset,
         return (HCACHE)0;
     }
 
-#if 0 // VincentWei: Use FS_RENDER_MASK insead (3.4.0)
-    /* If can not match font name*/
     p = __mg_globalCache.queueDummyHead.nextCache;
     while (p != &__mg_globalCache.queueDummyHead) {
-        if (strncmp(p->cache.family, family, LEN_LOGFONT_NAME_FIELD) == 0) {
-            if (strncmp(p->cache.charset, charset, LEN_LOGFONT_NAME_FIELD) == 0) {
-                if (p->cache.fontsize == size) {
-                    int s = style & 0x000000FF;
-                    if ((s == FS_WEIGHT_BOOK || s == FS_WEIGHT_DEMIBOLD || s == FS_WEIGHT_SUBPIXEL) &&
-                        (p->cache.style == FS_WEIGHT_BOOK || p->cache.style == FS_WEIGHT_DEMIBOLD ||
-                         p->cache.style == FS_WEIGHT_SUBPIXEL)) {
-                        return (HCACHE) p;
-                    }
-                    if ((s != FS_WEIGHT_BOOK && s != FS_WEIGHT_DEMIBOLD && s != FS_WEIGHT_SUBPIXEL) &&
-                        (p->cache.style != FS_WEIGHT_BOOK && p->cache.style != FS_WEIGHT_DEMIBOLD &&
-                         p->cache.style != FS_WEIGHT_SUBPIXEL)) {
-                        return (HCACHE) p;
-                    }
-                }
-            }
-        p = p->nextCache;
-    }
-#else
-    p = __mg_globalCache.queueDummyHead.nextCache;
-    while (p != &__mg_globalCache.queueDummyHead) {
-        if (strncmp(p->cache.family, family, LEN_LOGFONT_NAME_FIELD) == 0
-#if 0 // VincentWei: do not need to check charset.
-                && strncmp(p->cache.charset, charset, LEN_LOGFONT_NAME_FIELD) == 0
-#endif
+        if (strncmp(p->cache.df_name, df_name, LEN_UNIDEVFONT_NAME) == 0
                 && p->cache.fontsize == size
-                && p->cache.rotation == rotation
-                && (style & FS_RENDER_MASK) == p->cache.render_style) {
+                && p->cache.rotation == rotation) {
             return (HCACHE) p;
         }
 
         p = p->nextCache;
     }
-#endif
 
     return (HCACHE)0;
 }
@@ -675,15 +642,13 @@ void __mg_ttc_dump_all(void)
     }
 }
 
-void __mg_ttc_dump(cache_t *cache)
+void __mg_ttc_dump(FontCache *cache)
 {
     int i, j, k;
     MemBlk *ptr;
 #if 0
     DP(("&cache = %p\n", cache));
-    DP(("cache.family = %s\n", cache->family));
-    DP(("cache.charset = %s\n", cache->charset));
-    DP(("cache.style = %d\n", cache->style));
+    DP(("cache.df_name = %s\n", cache->df_name));
     DP(("cache.fontsize = %d\n", cache->fontsize));
     DP(("cache.blkSize = %d\n", cache->blkSize));
     DP(("cache.refers = %d\n", cache->refers));

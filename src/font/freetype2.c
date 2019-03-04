@@ -170,14 +170,13 @@ static void free_raster_bitmap_buffer (void)
 
 /*************** TrueType on FreeType font operations ************************/
 
-#ifdef DEBUG_GLYPH_DATA
-static void
-print_bitmap(char* bits, int width, int height, int pitch)
+static inline void
+print_bitmap_mono(const BYTE* bits, int width, int height, int pitch)
 {
     int y = 0;
     int x = 0;
-    char* p_line_head;
-    char* p_cur_char;
+    const BYTE* p_line_head;
+    const BYTE* p_cur_char;
 
     for (y = 0, p_line_head = bits; y < height; y++)
     {
@@ -195,12 +194,12 @@ print_bitmap(char* bits, int width, int height, int pitch)
     }
 }
 
-static void
-print_bitmap_grey (void* buffer, int width, int rows, int pitch)
+static inline void
+print_bitmap_grey (const void* buffer, int width, int rows, int pitch)
 {
     int     i;
     int     j;
-    BYTE*   p = (BYTE*)buffer;
+    const BYTE*   p = (BYTE*)buffer;
 
     printf("*******************************************\n");
     for (i = 0; i < rows; i++) {
@@ -211,7 +210,6 @@ print_bitmap_grey (void* buffer, int width, int rows, int pitch)
     }
     printf("*******************************************\n");
 }
-#endif
 
 static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
@@ -375,7 +373,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
                                         uni_char, &datasize);
 
         if (cache_info != NULL) {
-            DP(("\nBBOX Hit!! %d\n", bbox_hit++));
+            DP(("%s: BBOX Hit!! %d\n", __FUNCTION__, bbox_hit++));
             ft_inst_info->bbox    = cache_info->bbox;
             ft_inst_info->advance = cache_info->advance;
 
@@ -390,7 +388,8 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
             FT_UNLOCK(&ft_lock);
             return (int)(cache_info->bbox.xMax - cache_info->bbox.xMin);
         }
-        DP(("\nBBOX Non - Hit! %d, %d\n", bbox_nohit++, uni_char));
+        DP(("%s: BBOX Non - Hit! %d, %d\n",
+            __FUNCTION__, bbox_nohit++, uni_char));
     }
 #endif /* _MGFONT_TTF_CACHE */
 
@@ -462,9 +461,10 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
             cache_info.bitmap  = NULL;
             cache_info.pitch   = 0;
             cache_info.flag    = FALSE;
-            DP(("Should Write %d to cache length = %d, bitmap size = %d, cache = %p\n",
-                        cache_info.unicode, sizeof(TTFCACHEINFO) + size, size,
-                        ft_inst_info->cache));
+            DP(("%s: Should Write %d to cache length = %d, bitmap size = %d, cache = %p\n",
+                    __FUNCTION__,
+                    cache_info.unicode, (int)(size + sizeof(TTFCACHEINFO)), size,
+                    ft_inst_info->cache));
 
             __mg_ttc_write(ft_inst_info->cache,
                     &cache_info, sizeof(TTFCACHEINFO) + size);
@@ -518,15 +518,20 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                         uni_char, &datasize);
 
         if (cacheinfo != NULL && cacheinfo->flag == TRUE) {
-            DP(("Bitmap Hit!! %d\n", bitmap_hit++));
+            DP(("%s: Bitmap Hit!! %d\n", __FUNCTION__, bitmap_hit++));
             if (pitch)
                 *pitch = cacheinfo->pitch;
 
+            if (sz && (cacheinfo->height != sz->cy || cacheinfo->width != sz->cx)) {
+                _ERR_PRINTF("FreeType2: cached BITMAP size does not match BBOX\n");
+                sz->cx = cacheinfo->width;
+                sz->cy = cacheinfo->height;
+            }
             FT_UNLOCK(&ft_lock);
             return cacheinfo->bitmap;
         }
 
-        DP(("Bitmap Non hit %d, %d\n", bitmap_nohit++, uni_char));
+        DP(("%s: Bitmap Non hit %d, %d\n", __FUNCTION__, bitmap_nohit++, uni_char));
     }
 #endif /* _MGFONT_TTF_CACHE */
 
@@ -567,7 +572,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     if (ft_inst_info->cache) {
         TTFCACHEINFO * pcache;
         int datasize;
-        int size = source->rows * (*pitch);
+        int size = source->rows * source->pitch;
 
         pcache = __mg_ttc_search(ft_inst_info->cache,
                uni_char, &datasize);
@@ -580,22 +585,40 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             cache_info.advance = ft_inst_info->advance;
             cache_info.delta   = ft_inst_info->delta;
             cache_info.bitmap  = source->buffer;
-            cache_info.pitch   = *pitch;
+            cache_info.pitch   = source->pitch;
+            cache_info.width   = source->width;
+            cache_info.height  = source->rows;
             cache_info.flag    = TRUE;
-            DP(("Should Write %d to cache length = %d, bitmap size = %d, cache = %p\n",
-                        cache_info.unicode, sizeof(TTFCACHEINFO) + size, size,
-                        ft_inst_info->cache));
+            DP(("%s: Write 0x%x to cache length = %d, bitmap size = %d, cache = %p\n",
+                    __FUNCTION__,
+                    cache_info.unicode, (int)(sizeof(TTFCACHEINFO) + size), size,
+                    ft_inst_info->cache));
 
             __mg_ttc_write(ft_inst_info->cache,
                     &cache_info, sizeof(TTFCACHEINFO) + size);
-
         }
         else {
             if (pcache->flag == FALSE) {
-                pcache->pitch   = *pitch;
+                pcache->pitch  = source->pitch;
+                pcache->width  = source->width;
+                pcache->height = source->rows;
                 memcpy(pcache->bitmap, source->buffer, size);
                 pcache->flag = TRUE;
+
+                DP(("%s: Write bitmap data for 0x%x to cache, bitmap size = %d, cache = %p\n",
+                        __FUNCTION__,
+                        uni_char, size, ft_inst_info->cache));
             }
+
+            /* VincentWei: override the bbox.w and bbox.h with bitmap */
+            if (sz && (source->rows != sz->cy || source->width != sz->cx)) {
+                _ERR_PRINTF("FreeType2: BITMAP size does not match BBOX\n");
+                sz->cx = source->width;
+                sz->cy = source->rows;
+            }
+#ifdef _DEBUG
+            print_bitmap_mono(source->buffer, source->width, source->rows, source->pitch);
+#endif
 
             FT_Done_Glyph (ft_inst_info->glyph);
             FT_UNLOCK(&ft_lock);
@@ -612,6 +635,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         sz->cx = source->width;
         sz->cy = source->rows;
     }
+
+    print_bitmap_mono(buffer, source->width, source->rows, source->pitch);
 
     FT_Done_Glyph (ft_inst_info->glyph);
     FT_UNLOCK(&ft_lock);
@@ -685,7 +710,7 @@ get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 #ifdef _MGFONT_TTF_CACHE
-static inline int make_hash_key(unsigned short data)
+static inline int make_hash_key(Uchar32 data)
 {
     return ((int)data % 37);
 }
@@ -807,8 +832,8 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     /* if unmask non-cache and no rotation */
     if (!(logfont->style & FS_OTHER_TTFNOCACHE)) {
 
-        HCACHE hCache = __mg_ttc_is_exist(logfont->family, logfont->charset,
-                        logfont->style, logfont->size, logfont->rotation);
+        HCACHE hCache = __mg_ttc_is_exist(devfont->name,
+                        logfont->size, logfont->rotation);
         DP(("__mg_ttc_is_exist() return %p\n", hCache));
         /* No this style's cache */
         if (hCache == 0) {
@@ -829,18 +854,17 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
             blksize += sizeof(TTFCACHEINFO);
 
             DP(("BITMAP Space = %d, Whole Space = %d\n",
-                blksize - sizeof(TTFCACHEINFO), blksize));
+                (int)(blksize - sizeof(TTFCACHEINFO)), blksize));
 
             blksize = (blksize + 3) & -4;
             nblk = ( _MGTTF_CACHE_SIZE * 1024 )/ blksize;
             DP(("[Before New a Cache], col = %d, row = %d, blksize = %d, "
                 "blksize(bitmap) = %d, nblk = %d\n",
-                rows, col, blksize, blksize-sizeof(TTFCACHEINFO), nblk));
+                rows, col, blksize, (int)(blksize-sizeof(TTFCACHEINFO)), nblk));
 
-            ft_inst_info->cache = __mg_ttc_create(logfont->family,
-                logfont->charset, logfont->style, logfont->size,
-                logfont->rotation, nblk , blksize, _TTF_HASH_NDIR,
-                make_hash_key);
+            ft_inst_info->cache = __mg_ttc_create(devfont->name,
+                logfont->size, logfont->rotation,
+                nblk , blksize, _TTF_HASH_NDIR, make_hash_key);
 
             DP(("__mg_ttc_create() return %p\n", ft_inst_info->cache));
         } else {
@@ -945,7 +969,8 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 }
 
 /************************ Create/Destroy FreeType font ***********************/
-static void* load_font_data (DEVFONT* devfont, const char* font_name, const char *file_name)
+static void* load_font_data (DEVFONT* devfont,
+        const char* font_name, const char *file_name)
 {
     int         i;
     FT_Error    error;
@@ -954,27 +979,32 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
     FTFACEINFO* ft_face_info = (FTFACEINFO*) calloc (1, sizeof(FTFACEINFO));
     FT2_DATA*   ft_data = (FT2_DATA*) calloc(1, sizeof(FTFACEINFO));
 
+    if (ft_face_info == NULL || ft_data == NULL) {
+        goto error_free;
+    }
+
     FT_LOCK(&ft_lock);
 
 #ifdef _MGFONT_TTF_CACHE
-    strcpy (ft_face_info->filepathname, file_name);
+    ft_face_info->filepathname = strdup (file_name);
+    if (ft_face_info->filepathname == NULL)
+        goto error;
+
     ft_face_info->face_index = 0;
 
-    error = FT_New_Face (ft_library, file_name, ft_face_info->face_index, &face);
+    error = FT_New_Face(ft_library, file_name, ft_face_info->face_index, &face);
 #else
-    error = FT_New_Face (ft_library, file_name, 0, &ft_face_info->face);
+    error = FT_New_Face(ft_library, file_name, 0, &ft_face_info->face);
     face = ft_face_info->face;
 #endif
 
     if (error == FT_Err_Unknown_File_Format) {
-        _MG_PRINTF ("FONT>FT2: the font file could be opened and read, but it\n\
-                ...appears that its font format is unsupported \n");
+        _ERR_PRINTF ("FONT>FT2: bad file format: %s\n", file_name);
         goto error;
     }
     else if (error) {
-        _MG_PRINTF ("FONT>FT2: another error code means that the font file \n\
-                ... could not be opened or read. or simply that it is\
-                broken ... \n ");
+        _ERR_PRINTF ("FONT>FT2: failed to open the font file: %s (%d)\n",
+            file_name, error);
         goto error;
     }
 
@@ -988,8 +1018,8 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
                     && (charmap->encoding_id == TT_APPLE_ID_DEFAULT))) {
             error = FT_Set_Charmap (face, charmap);
             if (error) {
-                _MG_PRINTF ("FONT>FT2: can not set \
-                        UNICODE CharMap, error is %d \n", error);
+                _ERR_PRINTF ("FONT>FT2: can not set UNICODE CharMap (%d)\n",
+                    error);
                 goto error;
             }
 #ifdef _MGFONT_TTF_CACHE
@@ -1000,7 +1030,7 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
     }
 
     if (i == face->num_charmaps) {
-        _MG_PRINTF ("FONT>FT2: No UNICODE CharMap\n");
+        _ERR_PRINTF ("FONT>FT2: No UNICODE CharMap: %s\n", file_name);
         goto error;
     }
 
@@ -1045,20 +1075,31 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
 
 error:
     FT_UNLOCK(&ft_lock);
-    free (ft_data);
-    free (ft_face_info);
+
+error_free:
+    if (ft_data)
+        free (ft_data);
+
+    if (ft_face_info) {
+        if (ft_face_info->filepathname)
+            free(ft_face_info->filepathname);
+        free(ft_face_info);
+    }
+
     return NULL;
 }
 
 static void unload_font_data (DEVFONT* devfont, void* data)
 {
     FT2_DATA* ft_data = (FT2_DATA*)data;
-#ifndef _MGFONT_TTF_CACHE
-    FT_Done_Face ((ft_data->ft_face_info)->face);
+#ifdef _MGFONT_TTF_CACHE
+    free(ft_data->ft_face_info->filepathname);
+#else
+    FT_Done_Face((ft_data->ft_face_info)->face);
 #endif
-    free (ft_data->ft_face_info);
-    free (ft_data->ft_inst_info);
-    free (ft_data);
+    free(ft_data->ft_face_info);
+    free(ft_data->ft_inst_info);
+    free(ft_data);
 }
 
 static void ShowErr (const char*  message , int error)
