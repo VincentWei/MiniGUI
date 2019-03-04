@@ -2932,6 +2932,9 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
         goto nodraw_ret;
     }
 
+    xpos += get_italic_offx (pdc, ctxt->glyph_italic,
+        ctxt->glyph_ascent, ctxt->glyph_line, ctxt->glyph_advance);
+
     GAL_GetRGB (pdc->textcolor, pdc->surface->format, &rgba_fg.r,
             &rgba_fg.g, &rgba_fg.b);
 
