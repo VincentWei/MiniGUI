@@ -195,11 +195,10 @@ print_bitmap_mono(const BYTE* bits, int width, int height, int pitch)
 }
 
 static inline void
-print_bitmap_grey (const void* buffer, int width, int rows, int pitch)
+print_bitmap_grey (const BYTE* buffer, int width, int rows, int pitch)
 {
-    int     i;
-    int     j;
-    const BYTE*   p = (BYTE*)buffer;
+    int i, j;
+    const BYTE* p = buffer;
 
     printf("*******************************************\n");
     for (i = 0; i < rows; i++) {
@@ -617,7 +616,10 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                 sz->cy = source->rows;
             }
 #ifdef _DEBUG
-            print_bitmap_mono(source->buffer, source->width, source->rows, source->pitch);
+            if (is_grey)
+                print_bitmap_grey(source->buffer, source->width, source->rows, source->pitch);
+            else
+                print_bitmap_mono(source->buffer, source->width, source->rows, source->pitch);
 #endif
 
             FT_Done_Glyph (ft_inst_info->glyph);
@@ -637,7 +639,10 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     }
 
 #ifdef _DEBUG
-    print_bitmap_mono(buffer, source->width, source->rows, source->pitch);
+    if (is_grey)
+        print_bitmap_grey(source->buffer, source->width, source->rows, source->pitch);
+    else
+        print_bitmap_mono(source->buffer, source->width, source->rows, source->pitch);
 #endif
 
     FT_Done_Glyph (ft_inst_info->glyph);
