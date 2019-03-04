@@ -11,11 +11,6 @@ Please report any bugs and incompatibilities in
 ### What's new in this version
 
 * ENHANCEMENTS:
-  1. Add a new key `dpi` for NEWGAL engine to define the DPI of the screen.
-     If it is absent, use 96 as the default DPI.
-  1. Add an item for `GetGDCapability` to return DPI of the DC.
-  1. New API `InitSlaveScreenEx` to specify the DPI of slave screen.
-     Define `InitSlaveScreen` as an inline function calling `InitSlaveScreenEx`.
   1. New API: `SyncUpdateDC`. You can use this function to synchronize
     the update rectangles of a surface to screen, if the surface
     represents the shadow frame buffer of the screen.
@@ -29,6 +24,11 @@ Please report any bugs and incompatibilities in
   1. Support BIDI for UNICODE charsets and cleanup the implementation.
     * New API: `GetGlyphBIDIType` to get the glyph type in BIDI.
     * New DC attribute: BIDI flag.
+  1. Add a new key `dpi` for NEWGAL engine to define the DPI of the screen.
+     If it is absent, use 96 as the default DPI.
+  1. Add an item for `GetGDCapability` to return DPI of the DC.
+  1. New API `InitSlaveScreenEx` to specify the DPI of slave screen.
+     Define `InitSlaveScreen` as an inline function calling `InitSlaveScreenEx`.
   1. Enhance commlcd engint to support more pixel type and synchronously update.
   1. New USVFB IAL engine and NEWGAL engine for web display server.
   1. New type: `QDWORD` for a quauter of DWORD. This type is 16-bit long on
@@ -48,6 +48,8 @@ Please report any bugs and incompatibilities in
   1. Skip null pixels for SUBPIXEL glyphs. This bug will always show background
      pixels of one SUBPIXEL glyph.
   1. Fix the bug of wrong bounding box handling for SUBPIXEL rendering of glyph.
+  1. Tune cache implementation of FreeType2 font engine.
+    * Enable cache for rotated LOGFONT.
 
 * TUNNING:
   1. Tune GLYPHINFO structure and GetGlyphInfo to return BIDI glyph type.
