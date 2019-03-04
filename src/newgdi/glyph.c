@@ -69,6 +69,8 @@ int ft2GetLcdFilter (DEVFONT* devfont);
 int ft2IsFreeTypeDevfont (DEVFONT* devfont);
 #endif
 
+#define FS_WEIGHT_AUTOBOLD  30
+
 Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len)
 {
@@ -1174,6 +1176,10 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
         goto nodraw_ret;
     }
 
+    xpos += get_italic_offx (pdc, ctxt->glyph_italic,
+                    ctxt->glyph_ascent, ctxt->glyph_line,
+                    ctxt->glyph_advance);
+
     GAL_GetRGB (pdc->textcolor, pdc->surface->format, &rgba_fg.r,
             &rgba_fg.g, &rgba_fg.b);
 
@@ -2029,6 +2035,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
 
         data = (BYTE*)(*devfont->font_ops->get_glyph_monobitmap) (logfont,
                 devfont, glyph_value, bbox, &pitch, &scale);
+        bbox->cx += bold;
 
         if (data == NULL)
             break;
@@ -2368,8 +2375,8 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 
     // VincentWei: only use auto bold when the weight of devfont does not
     // match the weight of logfont.
-    if ((logfont->style & FS_WEIGHT_MASK) > FS_WEIGHT_MEDIUM
-            && (devfont->style & FS_WEIGHT_MASK) < FS_WEIGHT_DEMIBOLD
+    if (((logfont->style & FS_WEIGHT_MASK) -
+            (devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
             && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
         bbox_w += bold;
@@ -2505,7 +2512,7 @@ static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
     if (pdc->pLogFont->rotation)
         *flag = ROTATE_RECT;
     else if (pdc->pLogFont->style & FS_SLANT_ITALIC &&
-        !(pdc->pLogFont->devfonts[0]->style & FS_SLANT_ITALIC))
+            !(pdc->pLogFont->devfonts[0]->style & FS_SLANT_ITALIC))
         *flag = ITALIC_RECT;
     else
         *flag = ROMAN_RECT;
@@ -2717,8 +2724,8 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
             draw_y2 = y2;
         }
 
-        if (logfont->rotation == 0 && (logfont->style & FS_SLANT_ITALIC))
-        {
+        if (logfont->rotation == 0
+                && (logfont->style & FS_SLANT_ITALIC)) {
             if (logfont->style & FS_FLIP_HORZ) {
                 /*try and try, -1 is right*/
                 draw_x1 += ((h - descent) >>1) - 1;
@@ -2816,8 +2823,8 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
 
     // VincentWei: only use auto bold when the weight of devfont does not
     // match the weight of logfont.
-    if ((logfont->style & FS_WEIGHT_MASK) > FS_WEIGHT_MEDIUM
-            && (devfont->style & FS_WEIGHT_MASK) < FS_WEIGHT_DEMIBOLD
+    if (((logfont->style & FS_WEIGHT_MASK) -
+            (devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
             && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
     }
@@ -2911,7 +2918,7 @@ end:
 int _gdi_get_italic_added_width (LOGFONT* logfont)
 {
     if (logfont->style & FS_SLANT_ITALIC
-        && !(logfont->devfonts[0]->style & FS_SLANT_ITALIC)) {
+            && !(logfont->devfonts[0]->style & FS_SLANT_ITALIC)) {
         return (logfont->size + 1) >> 1;
     }
     else {

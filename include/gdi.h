@@ -5497,15 +5497,15 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 
 #define FONT_SLANT_NIL              '\0'
 #define FONT_SLANT_ANY              '*'
+#define FONT_SLANT_ROMAN            'r'
 #define FONT_SLANT_ITALIC           'i'
 #define FONT_SLANT_OBLIQUE          'o'
-#define FONT_SLANT_ROMAN            'r'
 
 #define FS_SLANT_MASK               0x00000F00
 #define FS_SLANT_ANY                0x00000000
-#define FS_SLANT_ITALIC             0x00000100
-#define FS_SLANT_OBLIQUE            0x00000200
-#define FS_SLANT_ROMAN              0x00000300
+#define FS_SLANT_ROMAN              0x00000100
+#define FS_SLANT_ITALIC             0x00000200
+#define FS_SLANT_OBLIQUE            0x00000300
 
 #define FONT_FLIP_NONE              'n'
 #define FONT_FLIP_HORZ              'h'
