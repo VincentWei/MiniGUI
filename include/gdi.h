@@ -5818,40 +5818,40 @@ typedef Uint32 Uchar32;
      */
 
 /**
- * \def GLYPHTYPE_MCHAR_MASK
+ * \def CHARTYPE_MCHAR_MASK
  * \brief The bits mask of glyph type for multi-byte character
  */
-#define GLYPHTYPE_MCHAR_MASK        0x0000FFFF
+#define CHARTYPE_MCHAR_MASK        0x0000FFFF
 
 /**
  * \def EXTRACT_MCHAR_TYPE(t)
  * \brief Extracts multi-byte character type
  */
-#define EXTRACT_MCHAR_TYPE(t)       ((t) & GLYPHTYPE_MCHAR_MASK)
+#define EXTRACT_MCHAR_TYPE(t)       ((t) & CHARTYPE_MCHAR_MASK)
 
 /**
- * \def GLYPHTYPE_BASIC_MASK
+ * \def CHARTYPE_BASIC_MASK
  * \brief The bits mask of glyph type for unicode charachter
  */
-#define GLYPHTYPE_BASIC_MASK        0x00FF0000
+#define CHARTYPE_BASIC_MASK        0x00FF0000
 
 /**
  * \def EXTRACT_BASIC_TYPE(t)
  * \brief Extracts the basic UNICODE character type
  */
-#define EXTRACT_BASIC_TYPE(t)       (((t) & GLYPHTYPE_BASIC_MASK) >> 16)
+#define EXTRACT_BASIC_TYPE(t)       (((t) & CHARTYPE_BASIC_MASK) >> 16)
 
 /**
- * \def GLYPHTYPE_BREAK_MASK
+ * \def CHARTYPE_BREAK_MASK
  * \brief The bits mask of break type for UNICODE charachter
  */
-#define GLYPHTYPE_BREAK_MASK        0xFF000000
+#define CHARTYPE_BREAK_MASK        0xFF000000
 
 /**
  * \def EXTRACT_BREAK_TYPE(t)
  * \brief Extracts the break type of a UNICODE character
  */
-#define EXTRACT_BREAK_TYPE(t)       (((t) & GLYPHTYPE_BREAK_MASK) >> 24)
+#define EXTRACT_BREAK_TYPE(t)       (((t) & CHARTYPE_BREAK_MASK) >> 24)
 
 #define MCHAR_TYPE_NOSPACING_MARK   0x0001
 #define MCHAR_TYPE_ABOVE_MARK       0x0002

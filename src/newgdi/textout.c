@@ -138,10 +138,10 @@ int DrawGlyphString (HDC hdc, int startx, int starty, Glyph32* glyph_string, int
     DRAW_GLYPHS_CTXT ctxt = {hdc, startx, starty, 0};
 
     if ((((PDC)hdc)->ta_flags & TA_X_MASK) == TA_LEFT)
-        _gdi_output_visual_glyphs((PDC)hdc, glyph_string,
+        _gdi_output_visual_achars((PDC)hdc, glyph_string,
                 len, TRUE, cb_draw_glyph, &ctxt);
     else
-        _gdi_output_visual_glyphs((PDC)hdc, glyph_string,
+        _gdi_output_visual_achars((PDC)hdc, glyph_string,
                 len, FALSE, cb_draw_glyph, &ctxt);
 
     if (adv_x)

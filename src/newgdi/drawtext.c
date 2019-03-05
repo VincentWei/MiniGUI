@@ -107,7 +107,7 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
     BBOX bbox;
     int bkmode;
 
-    switch (char_type & GLYPHTYPE_MCHAR_MASK) {
+    switch (char_type & CHARTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
         case MCHAR_TYPE_CR:
             adv_x = adv_y = 0;

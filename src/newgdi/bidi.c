@@ -57,8 +57,8 @@
 #include "bidi.h"
 #include "cursor.h"
 
-static Achar32* _gdi_get_achs_string(PDC pdc, const unsigned char* text,
-        int text_len, int* nr_achs)
+static Achar32* _gdi_get_achars_string(PDC pdc, const unsigned char* text,
+        int text_len, int* nr_achars)
 {
     int i = 0;
     int len_cur_char;
@@ -67,12 +67,12 @@ static Achar32* _gdi_get_achs_string(PDC pdc, const unsigned char* text,
     Achar32  chv;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
-    Achar32 *logical_achs = NULL;
+    Achar32 *logical_achars = NULL;
 
     if (mbc_devfont) {
         int prev_len = 0;
         const unsigned char* prev_mchar = NULL;
-        logical_achs = malloc(text_len * sizeof (Achar32));
+        logical_achars = malloc(text_len * sizeof (Achar32));
         while (left_bytes > 0) {
             len_cur_char = mbc_devfont->charset_ops->len_first_char
                 ((const unsigned char*)text, left_bytes);
@@ -80,7 +80,7 @@ static Achar32* _gdi_get_achs_string(PDC pdc, const unsigned char* text,
                 chv = mbc_devfont->charset_ops->get_char_value
                     (prev_mchar, prev_len, text, left_bytes);
 
-                logical_achs[i++] = SET_MBCHV(chv);
+                logical_achars[i++] = SET_MBCHV(chv);
                 char_type = (*mbc_devfont->charset_ops->char_type)
                     (chv);
                 if (!(char_type & MCHAR_TYPE_NOSPACING_MARK)){
@@ -102,7 +102,7 @@ static Achar32* _gdi_get_achs_string(PDC pdc, const unsigned char* text,
             if (len_cur_char > 0) {
                 chv = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text, left_bytes);
-                logical_achs[i++] = chv;
+                logical_achars[i++] = chv;
                 text += len_cur_char;
                 left_bytes -= len_cur_char;
             }
@@ -110,11 +110,11 @@ static Achar32* _gdi_get_achs_string(PDC pdc, const unsigned char* text,
                 break;
         }
 
-        if (nr_achs)
-            *nr_achs = i;
+        if (nr_achars)
+            *nr_achars = i;
     }
 
-    return logical_achs;
+    return logical_achars;
 }
 
 static unsigned int inline get_char_type(LOGFONT* logfont, Achar32 chv)
@@ -150,8 +150,8 @@ static int jump_vowels_ltr (PDC pdc, Achar32* achs, int glyph_num, Glyph32* bigg
     return glyph_num;
 }
 
-static int output_visual_achs_ltr (PDC pdc, Achar32* visual_achs,
-    int nr_achs, CB_ONE_GLYPH cb_one_glyph, void* context)
+static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
+    int nr_achars, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int i = 0;
     int j = 0;
@@ -165,19 +165,19 @@ static int output_visual_achs_ltr (PDC pdc, Achar32* visual_achs,
     int old_text_align = pdc->ta_flags;
     int bkmode = pdc->bkmode;
 
-    while (i < nr_achs) {
+    while (i < nr_achars) {
         /*jump vowels*/
-        vowel_num = jump_vowels_ltr (pdc, visual_achs,
-                nr_achs-i, &biggest_vowel);
+        vowel_num = jump_vowels_ltr (pdc, visual_achars,
+                nr_achars-i, &biggest_vowel);
 
-        visual_achs += vowel_num;
+        visual_achars += vowel_num;
 
         /*output the letter after vowels,
          * the letter is the owner of jumped vowels
          * if there is a letter on the vowel's right*/
-        if (vowel_num < nr_achs - i)
+        if (vowel_num < nr_achars - i)
         {
-            chv = *(visual_achs);
+            chv = *(visual_achars);
             char_type = get_char_type (pdc->pLogFont, chv);
             if (!cb_one_glyph (context, chv, char_type)){
                 goto end;
@@ -201,10 +201,10 @@ static int output_visual_achs_ltr (PDC pdc, Achar32* visual_achs,
             pdc->bkmode = BM_TRANSPARENT;
         }
 
-        /*output other vowels from visual_achs[i]*/
+        /*output other vowels from visual_achars[i]*/
         for (j = 1; j<=vowel_num; j++)
         {
-            chv = *(visual_achs - j);
+            chv = *(visual_achars - j);
             if (chv != biggest_vowel)
             {
                 char_type = get_char_type (pdc->pLogFont, chv);
@@ -219,7 +219,7 @@ static int output_visual_achs_ltr (PDC pdc, Achar32* visual_achs,
         pdc->bkmode = bkmode;
 
         i += vowel_num + 1;
-        visual_achs ++;
+        visual_achars ++;
     }
 
 end:
@@ -227,7 +227,7 @@ end:
     return outed_num;
 }
 
-static int output_vowels_rtl (PDC pdc, Achar32* end_glyph, int left_num,
+static int output_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
      CB_ONE_GLYPH cb_one_glyph, void* context, int* outed_num)
 {
     int i = 0;
@@ -240,7 +240,7 @@ static int output_vowels_rtl (PDC pdc, Achar32* end_glyph, int left_num,
     pdc->bkmode = BM_TRANSPARENT;
     *outed_num = 0;
     for (i=0; i<left_num; i++) {
-        chv = *end_glyph--;
+        chv = *end_achar--;
         char_type = get_char_type (pdc->pLogFont, chv);
 
         if (check_vowel(char_type)) {
@@ -256,11 +256,11 @@ static int output_vowels_rtl (PDC pdc, Achar32* end_glyph, int left_num,
     return i;
 }
 
-static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_glyph, int left_num,
+static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
      CB_ONE_GLYPH cb_one_glyph, void* context, int* outed_num)
 {
     int i = 0;
-    Achar32 chv   = INV_GLYPH_VALUE;
+    Achar32 chv = INV_GLYPH_VALUE;
     Achar32 biggest_vowel = INV_GLYPH_VALUE;
     unsigned int char_type;
     int cur_advance = 0;
@@ -269,13 +269,12 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_glyph, int left_num,
     int old_text_align = pdc->ta_flags;
 
     *outed_num = 0;
-    if (!check_vowel(get_char_type (pdc->pLogFont, *end_glyph)))
+    if (!check_vowel(get_char_type (pdc->pLogFont, *end_achar)))
         return 0;
 
     pdc->ta_flags = (old_text_align & ~TA_RIGHT) | TA_LEFT;
-    for (i=0; i<left_num; i++)
-    {
-        chv = end_glyph [-i];
+    for (i = 0; i < left_num; i++) {
+        chv = end_achar [-i];
         char_type = get_char_type (pdc->pLogFont, chv);
 
         if (!check_vowel(char_type))
@@ -302,7 +301,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_glyph, int left_num,
     left_num = i;
     for (i=0; i<left_num; i++)
     {
-        chv = *end_glyph--;
+        chv = *end_achar--;
         if (chv != biggest_vowel)
         {
             char_type = get_char_type (pdc->pLogFont, chv);
@@ -317,10 +316,10 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_glyph, int left_num,
     return left_num;
 }
 
-static int output_visual_achs_rtl (PDC pdc, Achar32* visual_achs,
-    int nr_achs, CB_ONE_GLYPH cb_one_glyph, void* context)
+static int output_visual_achars_rtl (PDC pdc, Achar32* visual_achars,
+    int nr_achars, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
-    int cur = nr_achs - 1;
+    int cur = nr_achars - 1;
     unsigned int char_type;
     Achar32 chv;
     int vowel_num;
@@ -328,7 +327,7 @@ static int output_visual_achs_rtl (PDC pdc, Achar32* visual_achs,
     int outed_glyph_num = 0;
 
     /*out the vowels on the rightest*/
-    vowel_num = output_unowned_vowels_rtl (pdc, visual_achs+cur, cur+1,
+    vowel_num = output_unowned_vowels_rtl (pdc, visual_achars+cur, cur+1,
             cb_one_glyph, context, &outed_vowel_num);
     if (outed_vowel_num < vowel_num)
         return outed_vowel_num;
@@ -337,17 +336,20 @@ static int output_visual_achs_rtl (PDC pdc, Achar32* visual_achs,
     outed_glyph_num = outed_vowel_num;
 
     while (cur >= 0) {
-        chv = visual_achs[cur];
-        char_type = get_char_type (pdc->pLogFont, chv);
+        Glyph32 gv;
+
+        chv = visual_achars[cur];
+        char_type = get_char_type (pdc->pLogFont, REAL_ACHAR(chv));
+        gv = GetGlyphValue(pdc->pLogFont, chv);
 
         /*output the letter*/
-        if (!cb_one_glyph(context, chv, char_type)){
+        if (!cb_one_glyph(context, gv, char_type)){
             return outed_glyph_num;
         }
         outed_glyph_num ++;
 
         /*output the vowels of current letter, align with the letter's left*/
-        vowel_num = output_vowels_rtl (pdc, visual_achs+cur-1, cur,
+        vowel_num = output_vowels_rtl (pdc, visual_achars+cur-1, cur,
                 cb_one_glyph, context, &outed_vowel_num);
         outed_glyph_num += outed_vowel_num;
 
@@ -360,22 +362,22 @@ static int output_visual_achs_rtl (PDC pdc, Achar32* visual_achs,
     return outed_glyph_num;
 }
 
-int _gdi_output_visual_achs(PDC pdc, Achar32* visual_achs,
-    int nr_achs, BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context)
+int _gdi_output_visual_achars(PDC pdc, Achar32* visual_achars,
+    int nr_achars, BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     /* call cb_one_glyph to show text. */
     if (!direction) { /* right to left.*/
-        return  output_visual_achs_rtl (pdc, visual_achs,
-                nr_achs, cb_one_glyph, context);
+        return  output_visual_achars_rtl (pdc, visual_achars,
+                nr_achars, cb_one_glyph, context);
     }
     else {
-        return  output_visual_achs_ltr (pdc, visual_achs,
-                nr_achs, cb_one_glyph, context);
+        return  output_visual_achars_ltr (pdc, visual_achars,
+                nr_achars, cb_one_glyph, context);
     }
 
 }
 
-static int _gdi_output_achs_direct(PDC pdc, const unsigned char* text,
+static int _gdi_output_achars_direct(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context,
         BOOL if_break, BOOL if_draw)
 {
@@ -462,19 +464,19 @@ do_glyph:
 }
 
 Achar32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
-        int* nr_achs)
+        int* nr_achars)
 {
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
-    Achar32 *logical_achs = NULL;
+    Achar32 *logical_achars = NULL;
 
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
-        logical_achs = _gdi_get_achs_string (pdc, text, text_len, nr_achs);
-        if (*nr_achs > 0)
+        logical_achars = _gdi_get_achars_string (pdc, text, text_len, nr_achars);
+        if (*nr_achars > 0)
             __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
-                logical_achs, *nr_achs, -1, NULL, NULL);
+                logical_achars, *nr_achars, -1, NULL, NULL);
     }
 
-    return logical_achs;
+    return logical_achars;
 }
 
 int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
@@ -487,36 +489,36 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
 
     if (mbc_devfont) {
-        int nr_achs = 0;
-        Achar32 *logical_achs = NULL;
+        int nr_achars = 0;
+        Achar32 *logical_achars = NULL;
 
         if (mbc_devfont->charset_ops->bidi_char_type) {
 
-            logical_achs = _gdi_bidi_reorder (pdc, text, text_len, &nr_achs);
-            if (!logical_achs || nr_achs <= 0)
+            logical_achars = _gdi_bidi_reorder (pdc, text, text_len, &nr_achars);
+            if (!logical_achars || nr_achars <= 0)
                 return 0;
 
-            i = _gdi_output_visual_achs (pdc, logical_achs, nr_achs,
+            i = _gdi_output_visual_achars (pdc, logical_achars, nr_achars,
                     direction, cb_one_glyph, context);
         }
         else if (!direction) {
             /* not need reorder achs, right to left, should alloc
              * achs range. */
-            logical_achs = _gdi_get_achs_string(pdc, text, text_len,
-                    &nr_achs);
-            if(!logical_achs || nr_achs <= 0) return 0;
+            logical_achars = _gdi_get_achars_string(pdc, text, text_len,
+                    &nr_achars);
+            if(!logical_achars || nr_achars <= 0) return 0;
 
-            i = _gdi_output_visual_achs(pdc, logical_achs, nr_achs,
+            i = _gdi_output_visual_achars(pdc, logical_achars, nr_achars,
                     direction, cb_one_glyph, context);
         }
         else{
             /* not need reorder achs, output left to right.*/
-            i = _gdi_output_achs_direct(pdc, text, text_len,
+            i = _gdi_output_achars_direct(pdc, text, text_len,
                     cb_one_glyph, context, FALSE, TRUE);
         }
 
-        if (logical_achs) {
-            free(logical_achs);
+        if (logical_achars) {
+            free(logical_achars);
         }
     }
     else {
@@ -551,8 +553,8 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
 }
 
 static Achar32*
-_gdi_get_achs_string_charbreak(PDC pdc, const unsigned char* text,
-        int text_len, int* nr_achs, void* context)
+_gdi_get_achars_string_charbreak(PDC pdc, const unsigned char* text,
+        int text_len, int* nr_achars, void* context)
 {
     int i = 0;
     int len_cur_char;
@@ -561,7 +563,7 @@ _gdi_get_achs_string_charbreak(PDC pdc, const unsigned char* text,
     Achar32  chv;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
-    Achar32 *logical_achs = NULL;
+    Achar32 *logical_achars = NULL;
 
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
     int line_width = 0;
@@ -570,7 +572,7 @@ _gdi_get_achs_string_charbreak(PDC pdc, const unsigned char* text,
     int prev_len = 0;
     const unsigned char* prev_mchar = NULL;
 
-    logical_achs = malloc(text_len * sizeof (Achar32));
+    logical_achars = malloc(text_len * sizeof (Achar32));
 
     while (left_bytes > 0){
         if (mbc_devfont) {
@@ -585,7 +587,7 @@ _gdi_get_achs_string_charbreak(PDC pdc, const unsigned char* text,
 
             prev_mchar = text;
             prev_len = len_cur_char;
-            logical_achs[i++] = SET_MBCHV(chv);
+            logical_achars[i++] = SET_MBCHV(chv);
 
             char_type = (*mbc_devfont->charset_ops->char_type)
                 (chv);
@@ -596,7 +598,7 @@ _gdi_get_achs_string_charbreak(PDC pdc, const unsigned char* text,
                 prev_len += len_cur_char;
             }
 
-            line_width += _gdi_get_glyph_advance (pdc, logical_achs[i-1],
+            line_width += _gdi_get_glyph_advance (pdc, logical_achars[i-1],
                     TRUE, 0, 0, NULL, NULL, &bbox);
             left_bytes -= len_cur_char;
             text += len_cur_char;
@@ -608,8 +610,8 @@ _gdi_get_achs_string_charbreak(PDC pdc, const unsigned char* text,
             if (len_cur_char > 0) {
                 chv = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text, left_bytes);
-                logical_achs[i++] = chv;
-                line_width += _gdi_get_glyph_advance (pdc, logical_achs[i-1],
+                logical_achars[i++] = chv;
+                line_width += _gdi_get_glyph_advance (pdc, logical_achars[i-1],
                         TRUE, 0, 0, NULL, NULL, &bbox);
                 left_bytes -= len_cur_char;
                 text += len_cur_char;
@@ -623,9 +625,9 @@ _gdi_get_achs_string_charbreak(PDC pdc, const unsigned char* text,
         }
         ctxt->nCount = text_len - left_bytes;
     }
-    if(nr_achs) *nr_achs = i;
+    if(nr_achars) *nr_achars = i;
 
-    return logical_achs;
+    return logical_achars;
 }
 
 
@@ -674,8 +676,8 @@ static int _gdi_get_nextword_width (PDC pdc, const unsigned char* pText,
 }
 
 static void
-_gdi_get_achs_string_pos_wordbreak(PDC pdc, const unsigned char* text,
-        int text_len, int* nr_achs, void* context)
+_gdi_get_achars_string_pos_wordbreak(PDC pdc, const unsigned char* text,
+        int text_len, int* nr_achars, void* context)
 {
     int len_cur_char = 0;
     int left_bytes = text_len;
@@ -689,10 +691,10 @@ _gdi_get_achs_string_pos_wordbreak(PDC pdc, const unsigned char* text,
                 &wordLen, context);
         if(line_width > ctxt->max_extent){
             if(ctxt->nCount == 0){
-                Achar32* logical_achs =
-                    _gdi_get_achs_string_charbreak(pdc, text,
-                        text_len, nr_achs, ctxt);
-                if(logical_achs) free(logical_achs);
+                Achar32* logical_achars =
+                    _gdi_get_achars_string_charbreak(pdc, text,
+                        text_len, nr_achars, ctxt);
+                if(logical_achars) free(logical_achars);
             }
             break;
         }
@@ -725,60 +727,60 @@ _gdi_get_achs_string_pos_wordbreak(PDC pdc, const unsigned char* text,
 }
 
 static Achar32*
-_gdi_get_achs_string_wordbreak(PDC pdc, const unsigned char* text,
-        int text_len, int* nr_achs, void* context)
+_gdi_get_achars_string_wordbreak(PDC pdc, const unsigned char* text,
+        int text_len, int* nr_achars, void* context)
 {
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
-    Achar32 *logical_achs = NULL;
+    Achar32 *logical_achars = NULL;
 
     if (mbc_devfont) {
-        _gdi_get_achs_string_pos_wordbreak(pdc, text,
-                text_len, nr_achs, context);
-        logical_achs = _gdi_get_achs_string(pdc, text, ctxt->nCount,
-                nr_achs);
+        _gdi_get_achars_string_pos_wordbreak(pdc, text,
+                text_len, nr_achars, context);
+        logical_achars = _gdi_get_achars_string(pdc, text, ctxt->nCount,
+                nr_achars);
     }
-    return logical_achs;
+    return logical_achars;
 }
 
-static Achar32* _gdi_get_achs_string_break(PDC pdc, const unsigned char* text,
-        int text_len, int* nr_achs, void* context)
+static Achar32* _gdi_get_achars_string_break(PDC pdc, const unsigned char* text,
+        int text_len, int* nr_achars, void* context)
 {
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
     if((ctxt->nFormat & DT_CHARBREAK) || (ctxt->nFormat & DT_SINGLELINE)){
-        return _gdi_get_achs_string_charbreak(pdc, text,
-                text_len, nr_achs, ctxt);
+        return _gdi_get_achars_string_charbreak(pdc, text,
+                text_len, nr_achars, ctxt);
     }
     //else if(ctxt->nFormat & DT_WORDBREAK){
     else {
-        return _gdi_get_achs_string_wordbreak(pdc, text,
-                text_len, nr_achs, ctxt);
+        return _gdi_get_achars_string_wordbreak(pdc, text,
+                text_len, nr_achars, ctxt);
     }
 }
 
 static int
-_gdi_output_achs_direct_break(PDC pdc, const unsigned char* text,
+_gdi_output_achars_direct_break(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
-    int nr_achs = 0;
+    int nr_achars = 0;
 
     if(ctxt->nFormat & DT_WORDBREAK){
-        _gdi_get_achs_string_pos_wordbreak(pdc, text,
-                text_len, &nr_achs, context);
+        _gdi_get_achars_string_pos_wordbreak(pdc, text,
+                text_len, &nr_achars, context);
 
-        return _gdi_output_achs_direct(pdc, text, ctxt->nCount,
+        return _gdi_output_achars_direct(pdc, text, ctxt->nCount,
                     cb_one_glyph, ctxt, FALSE, TRUE);
     }
     else {
-        return _gdi_output_achs_direct(pdc, text, text_len,
+        return _gdi_output_achars_direct(pdc, text, text_len,
                     cb_one_glyph, ctxt, TRUE, TRUE);
     }
 }
 
 
-static void _gdi_get_achs_string_sbc_rtol_wordbreak(PDC pdc,
-      const unsigned char* text, int text_len, int* nr_achs, void* context)
+static void _gdi_get_achars_string_sbc_rtol_wordbreak(PDC pdc,
+      const unsigned char* text, int text_len, int* nr_achars, void* context)
 {
     int len_cur_char = 0;
     int left_bytes = text_len;
@@ -818,26 +820,26 @@ static void _gdi_get_achs_string_sbc_rtol_wordbreak(PDC pdc,
 }
 
 static int
-_gdi_output_achs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
+_gdi_output_achars_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
-    int nr_achs = 0;
+    int nr_achars = 0;
     int i = 0;
     unsigned int char_type;
     Achar32 chv;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
 
     if(ctxt->nFormat & DT_WORDBREAK){
-        _gdi_get_achs_string_sbc_rtol_wordbreak(pdc,
-                text, text_len, &nr_achs, ctxt);
+        _gdi_get_achars_string_sbc_rtol_wordbreak(pdc,
+                text, text_len, &nr_achars, ctxt);
     }
     else {
         /* get break char's pos, only count no draw chars out. */
-        _gdi_output_achs_direct(pdc, text, text_len,
+        _gdi_output_achars_direct(pdc, text, text_len,
                     cb_one_glyph, ctxt, TRUE, FALSE);
         /*
-        return _gdi_output_achs_direct(pdc, text, ctxt->nCount,
+        return _gdi_output_achars_direct(pdc, text, ctxt->nCount,
                     cb_one_glyph, ctxt, TRUE, TRUE);
         */
     }
@@ -854,7 +856,7 @@ _gdi_output_achs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
         if(!cb_one_glyph (context, chv, char_type))
             break;
     }
-    return nr_achs;
+    return nr_achars;
 }
 
 int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
@@ -864,39 +866,39 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
 
     if (mbc_devfont) {
-        int nr_achs = text_len;
-        Achar32 *logical_achs = NULL;
+        int nr_achars = text_len;
+        Achar32 *logical_achars = NULL;
 
         if (mbc_devfont->charset_ops->bidi_char_type){
 
-            logical_achs = _gdi_get_achs_string_break(pdc, text, text_len,
-                    &nr_achs, context);
+            logical_achars = _gdi_get_achars_string_break(pdc, text, text_len,
+                    &nr_achars, context);
             __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
-                logical_achs, nr_achs, -1, NULL, NULL);
+                logical_achars, nr_achars, -1, NULL, NULL);
 
-            if(!logical_achs)
+            if(!logical_achars)
                 return 0;
 
-            i = _gdi_output_visual_achs(pdc, logical_achs, nr_achs,
+            i = _gdi_output_visual_achars(pdc, logical_achars, nr_achars,
                     direction, cb_one_glyph, context);
         }
         /* not need reorder achs, right to left, should
          * alloc achs range. */
         else if(!direction){
-            logical_achs = _gdi_get_achs_string_break(pdc, text, text_len,
-                    &nr_achs, context);
-            if(!logical_achs) return 0;
-            i = _gdi_output_visual_achs(pdc, logical_achs, nr_achs,
+            logical_achars = _gdi_get_achars_string_break(pdc, text, text_len,
+                    &nr_achars, context);
+            if(!logical_achars) return 0;
+            i = _gdi_output_visual_achars(pdc, logical_achars, nr_achars,
                     direction, cb_one_glyph, context);
         }
         /* not need reorder achs, output left to right.*/
         else {
-            i = _gdi_output_achs_direct_break(pdc, text, text_len,
+            i = _gdi_output_achars_direct_break(pdc, text, text_len,
                     cb_one_glyph, context);
         }
 
-        if (logical_achs) {
-            free(logical_achs);
+        if (logical_achars) {
+            free(logical_achars);
         }
     }
     else{
@@ -904,11 +906,11 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
          * alloc mem for achs.*/
         if (!direction) {
             /* right to left, reverse text.*/
-            i = _gdi_output_achs_direct_sbc_rtol_break(pdc, text,
+            i = _gdi_output_achars_direct_sbc_rtol_break(pdc, text,
                     text_len, cb_one_glyph, context);
         }
         else {
-            i = _gdi_output_achs_direct_break(pdc, text, text_len,
+            i = _gdi_output_achars_direct_break(pdc, text, text_len,
                     cb_one_glyph, context);
         }
     }
@@ -1022,8 +1024,8 @@ static BOOL check_sel_range (PLOGFONT log_font, const char* text,
 
 #define DEF_RANGES 8
 
-static int* generate_ranges(PLOGFONT log_font, Achar32* log_achs,
-        int nr_achs, ACHARMAPINFO* l_map,
+static int* generate_ranges(PLOGFONT log_font, Achar32* log_achars,
+        int nr_achars, ACHARMAPINFO* l_map,
         int l_start_index, int l_end_index, int* nr_ranges)
 {
     int m = 0, i = 0, j = 0;
@@ -1032,8 +1034,8 @@ static int* generate_ranges(PLOGFONT log_font, Achar32* log_achs,
     ACHARMAPINFO* v_map = NULL;
     Uint8* embedding_levels = NULL;
 
-    BIDIGetLogicalEmbeddLevels(log_font, log_achs,
-            nr_achs, &embedding_levels);
+    BIDIGetLogicalEmbeddLevels(log_font, log_achars,
+            nr_achars, &embedding_levels);
 
     /* get all the logical ranges in the same language.
      * default malloc DEF_RANGES ranges.*/
@@ -1061,13 +1063,13 @@ static int* generate_ranges(PLOGFONT log_font, Achar32* log_achs,
     }
 
     v_map = l_map;
-    BIDILogAChars2VisAChars (log_font, log_achs, nr_achs, v_map);
+    BIDILogAChars2VisAChars (log_font, log_achars, nr_achars, v_map);
 
     *nr_ranges = m;
 
     /* translate the logical bytes index to visual glyph index. */
     for(j = 0; j < *nr_ranges; j++){
-        for(i = 0; i < nr_achs; i++) {
+        for(i = 0; i < nr_achars; i++) {
             if(p[j] == v_map[i].byte_index){
                 p[j] = i;
                 break;
@@ -1080,12 +1082,12 @@ static int* generate_ranges(PLOGFONT log_font, Achar32* log_achs,
 }
 
 
-static BOOL check_range_edge(int index, int nr_achs, ACHARMAPINFO* v_map)
+static BOOL check_range_edge(int index, int nr_achars, ACHARMAPINFO* v_map)
 {
-    if (index < 0 || index > nr_achs)
+    if (index < 0 || index > nr_achars)
         return FALSE;
 
-    if(index >= nr_achs-1 || index == 0){
+    if(index >= nr_achars-1 || index == 0){
         return TRUE;
     }
 
@@ -1164,10 +1166,10 @@ void GUIAPI GetTextRangesLog2VisTest(
 {
     int m = 0, i = 0;
     int* p = NULL;
-    Achar32* l_achs = NULL;
+    Achar32* l_achars = NULL;
     ACHARMAPINFO* v_map = NULL;
     ACHARMAPINFO* l_map = NULL;
-    int nr_achs = 0;
+    int nr_achars = 0;
 
     *nr_ranges = 0;
 
@@ -1176,11 +1178,11 @@ void GUIAPI GetTextRangesLog2VisTest(
         return;
     }
 
-    nr_achs = BIDIGetTextLogicalAChars(log_font, text, text_len,
-            &l_achs, &l_map);
+    nr_achars = BIDIGetTextLogicalAChars(log_font, text, text_len,
+            &l_achars, &l_map);
 
     v_map = l_map;
-    BIDILogAChars2VisAChars (log_font, l_achs, nr_achs, v_map);
+    BIDILogAChars2VisAChars (log_font, l_achars, nr_achars, v_map);
 
     /* get all the logical ranges in the same language.
      * default malloc 5 ranges.*/
@@ -1193,7 +1195,7 @@ void GUIAPI GetTextRangesLog2VisTest(
         start_index = end_index;
         end_index = a;
     }
-    for(i = 0; i < nr_achs; i++){
+    for(i = 0; i < nr_achars; i++){
         /* deal the start_index and end_index.*/
         if(v_map[i].byte_index <= start_index &&
                 (v_map[i].byte_index+v_map[i].char_len) > start_index){
@@ -1204,7 +1206,7 @@ void GUIAPI GetTextRangesLog2VisTest(
             p[m++] = i;
         }
 
-        if((i+1) >= nr_achs){
+        if((i+1) >= nr_achars){
             if(v_map[i].byte_index > start_index
                     && v_map[i].byte_index < end_index){
                 p[m++] = i+1;
@@ -1226,7 +1228,7 @@ void GUIAPI GetTextRangesLog2VisTest(
     *nr_ranges /= 2;
 
     free(l_map);
-    free(l_achs);
+    free(l_achars);
 }
 
 /*
@@ -1249,10 +1251,10 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
 {
     int  i = 0;
     int* p = NULL;
-    Achar32* l_achs = NULL;
+    Achar32* l_achars = NULL;
     ACHARMAPINFO* l_map = NULL;
     int l_start_index = start_index, l_end_index = end_index;
-    int nr_achs = 0;
+    int nr_achars = 0;
 
     *nr_ranges = 0;
     /* it is not bidi string. */
@@ -1284,10 +1286,10 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
         return;
     }
 
-    nr_achs = BIDIGetTextLogicalAChars(log_font, text, text_len,
-            &l_achs, &l_map);
+    nr_achars = BIDIGetTextLogicalAChars(log_font, text, text_len,
+            &l_achars, &l_map);
 
-    for(i = 0; i < nr_achs; i++) {
+    for(i = 0; i < nr_achars; i++) {
         int len = l_map[i].char_len;
         if(l_map[i].byte_index <= start_index
                 && start_index <= (l_map[i].byte_index + len)){
@@ -1306,7 +1308,7 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
         l_end_index = tmp;
     }
 
-    p = generate_ranges(log_font, l_achs, nr_achs, l_map,
+    p = generate_ranges(log_font, l_achars, nr_achars, l_map,
             l_start_index, l_end_index, nr_ranges);
 
     computer_ranges(p, nr_ranges);
@@ -1314,7 +1316,7 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
     /* check the ranges edges, +1 when edges.
      * after generate_ranges, l_map is translate to v_map*/
     for(i = 1; i < *nr_ranges; i+=2){
-        if(p[i] != 0 && check_range_edge(p[i], nr_achs, l_map)){
+        if(p[i] != 0 && check_range_edge(p[i], nr_achars, l_map)){
             p[i] += 1;
         }
     }
@@ -1323,7 +1325,7 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
     *nr_ranges /= 2;
 
     free(l_map);
-    free(l_achs);
+    free(l_achars);
 }
 
 static void bidi_reverse_map (void* context, int len, int pos)
@@ -1343,34 +1345,34 @@ int GUIAPI BIDIGetTextVisualAChars(LOGFONT* log_font,
         Achar32**      achs,
         ACHARMAPINFO** achs_map)
 {
-    int nr_achs = 0;
+    int nr_achars = 0;
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (achs == NULL || achs_map == NULL)
-        return nr_achs;
+        return nr_achars;
 
-    nr_achs = BIDIGetTextLogicalAChars(log_font, text, text_len,
+    nr_achars = BIDIGetTextLogicalAChars(log_font, text, text_len,
             achs, achs_map);
 
-    if (nr_achs > 0 && mbc_devfont
+    if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
-                *achs, nr_achs, -1,
+                *achs, nr_achars, -1,
                 *achs_map, bidi_reverse_map);
     }
 
-    return nr_achs;
+    return nr_achars;
 }
 
 Achar32* GUIAPI BIDILogAChars2VisAChars(LOGFONT* log_font,
-        Achar32* achs, int nr_achs, ACHARMAPINFO* achs_map)
+        Achar32* achs, int nr_achars, ACHARMAPINFO* achs_map)
 {
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 
-    if (nr_achs > 0 && mbc_devfont
+    if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
-                achs, nr_achs, -1,
+                achs, nr_achars, -1,
                 achs_map, bidi_reverse_map);
 
         return achs;
@@ -1380,15 +1382,15 @@ Achar32* GUIAPI BIDILogAChars2VisAChars(LOGFONT* log_font,
 }
 
 BOOL GUIAPI BIDILogAChars2VisACharsEx(LOGFONT* log_font,
-        Achar32* achs, int nr_achs, int pel,
+        Achar32* achs, int nr_achars, int pel,
         void* extra, CB_REVERSE_EXTRA cb_reorder_extra)
 {
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 
-    if (nr_achs > 0 && mbc_devfont
+    if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
-                achs, nr_achs, pel, extra, cb_reorder_extra);
+                achs, nr_achars, pel, extra, cb_reorder_extra);
 
         return TRUE;
     }
@@ -1397,38 +1399,38 @@ BOOL GUIAPI BIDILogAChars2VisACharsEx(LOGFONT* log_font,
 }
 
 void GUIAPI BIDIGetLogicalEmbedLevelsEx(LOGFONT* log_font,
-        Achar32* achs, int nr_achs, int pel,
+        Achar32* achs, int nr_achars, int pel,
         Uint8**  embedding_levels)
 {
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (*embedding_levels == NULL)
-        *embedding_levels = malloc(nr_achs * sizeof (Uint8));
+        *embedding_levels = malloc(nr_achars * sizeof (Uint8));
 
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
-                achs, nr_achs, pel, *embedding_levels, 0);
+                achs, nr_achars, pel, *embedding_levels, 0);
     }
     else {
-        memset (*embedding_levels, 0, sizeof(Uint8) * nr_achs);
+        memset (*embedding_levels, 0, sizeof(Uint8) * nr_achars);
     }
 }
 
 void GUIAPI BIDIGetVisualEmbedLevelsEx(LOGFONT* log_font,
-        Achar32* achs, int nr_achs, int pel,
+        Achar32* achs, int nr_achars, int pel,
         Uint8**  embedding_levels)
 {
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (*embedding_levels == NULL)
-        *embedding_levels = malloc(nr_achs * sizeof (Uint8));
+        *embedding_levels = malloc(nr_achars * sizeof (Uint8));
 
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
-                achs, nr_achs, pel, *embedding_levels, 1);
+                achs, nr_achars, pel, *embedding_levels, 1);
     }
     else {
-        memset (*embedding_levels, 0, sizeof(Uint8) * nr_achs);
+        memset (*embedding_levels, 0, sizeof(Uint8) * nr_achars);
     }
 }
 

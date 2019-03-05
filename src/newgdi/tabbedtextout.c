@@ -123,7 +123,7 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
     BBOX bbox;
     int bkmode = ctxt->pdc->bkmode;
 
-    switch (char_type & GLYPHTYPE_MCHAR_MASK) {
+    switch (char_type & CHARTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
@@ -202,7 +202,7 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
     int adv_x, adv_y;
     int tab_pos  = ctxt->nTabOrig;
 
-    switch (char_type & GLYPHTYPE_MCHAR_MASK) {
+    switch (char_type & CHARTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
@@ -589,7 +589,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                 glyph_value = SET_GLYPH_DFI(glyph_value, dfi);
             }
 
-            switch (char_type & GLYPHTYPE_MCHAR_MASK) {
+            switch (char_type & CHARTYPE_MCHAR_MASK) {
                 case MCHAR_TYPE_ZEROWIDTH:
                 case MCHAR_TYPE_VOWEL:
                     break;
