@@ -2504,37 +2504,36 @@ int _gdi_get_null_glyph_advance (PDC pdc, int advance, BOOL direction,
 #define ROTATE_RECT 2
 
 static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
-        POINT* area, GAL_Rect* gal_rc, int* flag)
+        POINT* area, GAL_Rect* gal_rc, int italic, int bold, int* flag)
 {
     int h = pdc->pLogFont->size;
     int ascent = pdc->pLogFont->ascent;
 
     if (pdc->pLogFont->rotation)
         *flag = ROTATE_RECT;
-    else if (pdc->pLogFont->style & FS_SLANT_ITALIC &&
-            !(pdc->pLogFont->devfonts[0]->style & FS_SLANT_ITALIC))
+    else if (italic > 0)
         *flag = ITALIC_RECT;
     else
         *flag = ROMAN_RECT;
 
-    switch (*flag)
-    {
-        case ROMAN_RECT:
-        case ITALIC_RECT:
-            gal_rc->x = x0;
-            gal_rc->y = y0 - ascent;
-            gal_rc->w = x1 - x0;
-            gal_rc->h = h;
-            break;
+    switch (*flag) {
+    case ROMAN_RECT:
+    case ITALIC_RECT:
+        gal_rc->x = x0;
+        gal_rc->y = y0 - ascent;
+        gal_rc->w = x1 - x0;
+        gal_rc->h = h;
+        break;
 
-        case ROTATE_RECT:
-            _gdi_get_glyph_box_vertices (x0, y0, x1, y1,
-                     area, pdc);
-            break;
+    case ROTATE_RECT:
+        _gdi_get_glyph_box_vertices (x0, y0, x1, y1,
+                 area, pdc);
+        break;
     }
 }
 
-static void draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int flag)
+static void draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc,
+        int italic, int bold, int flag)
 {
     int x = gal_rc->x;
     int y = gal_rc->y;
@@ -2553,18 +2552,18 @@ static void draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int flag)
         switch (font_style & FS_FLIP_MASK) {
         case FS_FLIP_HORZ:
         case FS_FLIP_VERT:
-            for (i=0; i<h; i++)
-            {
-                italic_x = x+(i>>1);
+            for (i = 0; i < h; i++) {
+                italic_x = x + (i >> 1);
                 _dc_draw_hline_clip (pdc, italic_x,
-                        italic_x+w-1, y+i);
+                        italic_x + w - 1, y + i);
             }
             break;
+
         default:
-            for (i=0; i<h; i++) {
-                italic_x = x+((h-i)>>1);
+            for (i = 0; i < h; i++) {
+                italic_x = x + ((h - i) >> 1);
                 _dc_draw_hline_clip (pdc, italic_x,
-                        italic_x+w-1, y+i);
+                        italic_x + w - 1, y + i);
             }
         }
         break;
@@ -2581,46 +2580,45 @@ static void draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc, int flag)
     }
 }
 
-static void make_back_rect(RECT* rc_back, POINT* area, GAL_Rect* gal_rc, int flag)
+static void make_back_rect(RECT* rc_back, POINT* area, GAL_Rect* gal_rc,
+        int italic, int bold, int flag)
 {
     int i;
-    switch (flag)
-    {
-        case ROMAN_RECT:
-            rc_back->left = gal_rc->x;
-            rc_back->right = gal_rc->x + gal_rc->w;
-            rc_back->top = gal_rc->y;
-            rc_back->bottom = gal_rc->y + gal_rc->h;
-            break;
+    switch (flag) {
+    case ROMAN_RECT:
+        rc_back->left = gal_rc->x;
+        rc_back->right = gal_rc->x + gal_rc->w;
+        rc_back->top = gal_rc->y;
+        rc_back->bottom = gal_rc->y + gal_rc->h;
+        break;
 
-        case ITALIC_RECT:
-            rc_back->left = gal_rc->x;
-            rc_back->right = gal_rc->x + gal_rc->w + (gal_rc->h >>1);
-            rc_back->top = gal_rc->y;
-            rc_back->bottom = gal_rc->y + gal_rc->h;
-            break;
+    case ITALIC_RECT:
+        rc_back->left = gal_rc->x;
+        rc_back->right = gal_rc->x + gal_rc->w;
+        rc_back->top = gal_rc->y;
+        rc_back->bottom = gal_rc->y + gal_rc->h;
+        break;
 
-        case ROTATE_RECT:
-            rc_back->left = area[0].x;
-            rc_back->right = area[0].x;
-            rc_back->top = area[0].y;
-            rc_back->bottom = area[0].y;
-            for (i=0; i<4; i++)
-            {
-                if (rc_back->left > area[i].x)
-                    rc_back->left = area[i].x;
+    case ROTATE_RECT:
+        rc_back->left = area[0].x;
+        rc_back->right = area[0].x;
+        rc_back->top = area[0].y;
+        rc_back->bottom = area[0].y;
 
-                if (rc_back->right < area[i].x)
-                    rc_back->right = area[i].x;
+        for (i=0; i<4; i++) {
+            if (rc_back->left > area[i].x)
+                rc_back->left = area[i].x;
 
-                if (rc_back->top > area[i].y)
-                    rc_back->top = area[i].y;
+            if (rc_back->right < area[i].x)
+                rc_back->right = area[i].x;
 
-                if (rc_back->bottom < area[i].y)
-                    rc_back->bottom = area[i].y;
-            }
+            if (rc_back->top > area[i].y)
+                rc_back->top = area[i].y;
+
+            if (rc_back->bottom < area[i].y)
+                rc_back->bottom = area[i].y;
+        }
     }
-
 }
 
 void _gdi_calc_glyphs_size_from_two_points (PDC pdc, int x0, int y0,
@@ -2631,8 +2629,8 @@ void _gdi_calc_glyphs_size_from_two_points (PDC pdc, int x0, int y0,
     int flag;
     RECT rc;
 
-    make_back_area(pdc, x0, y0, x1, y1, area, &gal_rc, &flag);
-    make_back_rect(&rc, area, &gal_rc, flag);
+    make_back_area(pdc, x0, y0, x1, y1, area, &gal_rc, 0, 0, &flag);
+    make_back_rect(&rc, area, &gal_rc, 0, 0, flag);
 
     size->cx = RECTW (rc);
     size->cy = RECTH (rc);
@@ -2654,12 +2652,12 @@ int _gdi_draw_null_glyph (PDC pdc, int advance, BOOL direction,
 
     if (direction)
         make_back_area(pdc, x, y, x+*adv_x, y+*adv_y,
-                area, &gal_rc, &flag);
+                area, &gal_rc, 0, 0, &flag);
     else
         make_back_area(pdc, x+*adv_x, y+*adv_y, x, y,
-                area, &gal_rc, &flag);
+                area, &gal_rc, 0, 0, &flag);
 
-    make_back_rect(&rc_back, area, &gal_rc, flag);
+    make_back_rect(&rc_back, area, &gal_rc, 0, 0, flag);
 
     if (!(pdc = __mg_check_ecrgn ((HDC)pdc))) {
         return advance;
@@ -2678,7 +2676,7 @@ int _gdi_draw_null_glyph (PDC pdc, int advance, BOOL direction,
 
     ENTER_DRAWING(pdc);
 
-    draw_back_area (pdc, area, &gal_rc, flag);
+    draw_back_area (pdc, area, &gal_rc, 0, 0, flag);
 
     LEAVE_DRAWING (pdc);
 end:
@@ -2764,8 +2762,7 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
                      &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
         }
 
-        if (logfont->rotation == 0 && (logfont->style & FS_SLANT_ITALIC))
-        {
+        if (logfont->rotation == 0 && (logfont->style & FS_SLANT_ITALIC)) {
             draw_x1 += h>>2;
             draw_x2 += h>>2;
         }
@@ -2853,17 +2850,17 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     if (need_rc_back) {
         if (direction)
             make_back_area(pdc, x, y, x+*adv_x, y+*adv_y,
-                    area, &bg_gal_rc, &flag);
+                    area, &bg_gal_rc, italic, bold, &flag);
         else
             make_back_area(pdc, x+*adv_x, y+*adv_y, x, y,
-                    area, &bg_gal_rc, &flag);
+                    area, &bg_gal_rc, italic, bold, &flag);
 
         if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
                 && (logfont->style & FS_DECORATE_OUTLINE)) {
             bg_gal_rc.x--; bg_gal_rc.y--;
             bg_gal_rc.w += 2; bg_gal_rc.h += 2;
         }
-        make_back_rect(&rc_back, area, &bg_gal_rc, flag);
+        make_back_rect(&rc_back, area, &bg_gal_rc, italic, bold, flag);
     }
 
     rc_front.left = fg_gal_rc.x;
@@ -2896,7 +2893,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     /* draw back ground */
     if (pdc->bkmode != BM_TRANSPARENT) {
         pdc->cur_pixel = pdc->bkcolor;
-        draw_back_area (pdc, area, &bg_gal_rc, flag);
+        draw_back_area (pdc, area, &bg_gal_rc, italic, bold, flag);
     }
 
     /* bbox is the real glyph pixels on one scan-line. */
@@ -2917,6 +2914,7 @@ end:
 
 int _gdi_get_italic_added_width (LOGFONT* logfont)
 {
+    /* FIXME: use the correct devfont for auto-italic */
     if (logfont->style & FS_SLANT_ITALIC
             && !(logfont->devfonts[0]->style & FS_SLANT_ITALIC)) {
         return (logfont->size + 1) >> 1;

@@ -670,7 +670,7 @@ static int _gdi_get_nextword_width (PDC pdc, const unsigned char* pText,
 
     *nChars = word_info.len;
 
-	/* Fixed bug of italic font */
+    /* Fixed bug of italic font */
     return size.cx - _gdi_get_italic_added_width (pdc->pLogFont);
 }
 
