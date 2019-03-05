@@ -71,183 +71,65 @@ int ft2IsFreeTypeDevfont (DEVFONT* devfont);
 
 #define FS_WEIGHT_AUTOBOLD  29
 
-Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
-        int mchar_len, const char* pre_mchar, int pre_len)
+Glyph32 GetGlyphValue(LOGFONT* lf, Achar32 chv)
 {
-    int len_cur_char;
-    Glyph32  gv = INV_GLYPH_VALUE;
-    DEVFONT* sbc_devfont = logfont->devfonts[0];
-    DEVFONT* mbc_devfont = logfont->devfonts[1];
+    Glyph32 gv = INV_GLYPH_VALUE;
+    int i, dfi = 0;
+    DEVFONT* df;
 
-    if (mbc_devfont) {
-        int i, dfi;
-        DEVFONT* df;
+    if (IS_MBCHV(chv)) {
+        chv = REAL_ACHAR(chv);
+        for (i = 1; i < MAXNR_DEVFONTS; i++) {
+            if ((df = lf->devfonts[i])) {
+                if (df->font_ops->get_glyph_value)
+                    gv = df->font_ops->get_glyph_value(lf, df, chv);
+                else
+                    gv = chv;
 
-        len_cur_char = mbc_devfont->charset_ops->len_first_char
-            ((const unsigned char*)mchar, mchar_len);
-
-        if (len_cur_char > 0) {
-            gv = mbc_devfont->charset_ops->get_char_value
-                ((Uint8*)pre_mchar, pre_len, (Uint8*)mchar, mchar_len);
-
-            dfi = 1;
-            for (i = 1; i < MAXNR_DEVFONTS; i++) {
-                if ((df = logfont->devfonts[i])) {
-                    if (df->font_ops->is_glyph_existed(logfont, df, gv)) {
-                        dfi = i;
-                        break;
-                    }
+                if (df->font_ops->is_glyph_existed(lf, df, gv)) {
+                    dfi = i;
+                    break;
                 }
             }
-
-            // return the first devfont as the default
-            return SET_GLYPH_DFI(gv, dfi);
         }
-    }
 
-    len_cur_char = sbc_devfont->charset_ops->len_first_char
-        ((const unsigned char*)mchar, mchar_len);
-
-    if (len_cur_char > 0) {
-        gv = sbc_devfont->charset_ops->get_char_value
-            (NULL, 0, (Uint8*)mchar, mchar_len);
-    }
-
-    return gv;
-}
-
-Glyph32 GUIAPI GetShapedGlyph (LOGFONT* logfont, const char* mchar,
-        int mchar_len, GLYPHSHAPETYPE shape_type)
-{
-    int len_cur_char;
-
-    Glyph32  glyph_value = INV_GLYPH_VALUE;
-    DEVFONT* sbc_devfont = logfont->devfonts[0];
-    DEVFONT* mbc_devfont = logfont->devfonts[1];
-
-    if (mbc_devfont) {
-        len_cur_char = mbc_devfont->charset_ops->len_first_char (
-                (const unsigned char*)mchar, mchar_len);
-
-        if (len_cur_char > 0) {
-            int i, dfi;
-            DEVFONT* df;
-
-            if (mbc_devfont->charset_ops->get_shaped_char_value)
-                glyph_value = mbc_devfont->charset_ops->get_shaped_char_value(
-                        (const unsigned char*)mchar, mchar_len, shape_type);
+        if (dfi == 0) {
+            if ((df = lf->devfonts[1])) {
+                dfi = 1;
+                if (df->font_ops->get_glyph_value)
+                    gv = df->font_ops->get_glyph_value(lf, df, chv);
+                else
+                    gv = chv;
+            }
             else
-                glyph_value = mbc_devfont->charset_ops->get_char_value
-                (NULL, 0, (Uint8*)mchar, len_cur_char);
-
-            dfi = 1;
-            for (i = 1; i < MAXNR_DEVFONTS; i++) {
-                if ((df = logfont->devfonts[i])) {
-                    if (df->font_ops->is_glyph_existed(logfont, df, glyph_value)) {
-                        dfi = i;
-                        break;
-                    }
-                }
-            }
-
-            return SET_GLYPH_DFI(glyph_value, dfi);
+                goto error;
         }
-    }
-
-    len_cur_char = sbc_devfont->charset_ops->len_first_char
-        ((const unsigned char*)mchar, mchar_len);
-
-    if (len_cur_char > 0) {
-        if (sbc_devfont->charset_ops->get_shaped_char_value)
-            glyph_value = sbc_devfont->charset_ops->get_shaped_char_value(
-                    (const unsigned char*)mchar, mchar_len, shape_type);
-        else
-            glyph_value = sbc_devfont->charset_ops->get_char_value
-                (NULL, 0, (Uint8*)mchar, len_cur_char);
-
-    }
-
-    return glyph_value;
-}
-
-BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 gv,
-        Glyph32* mirrored)
-{
-    *mirrored = INV_GLYPH_VALUE;
-
-    DEVFONT* devfont = SELECT_DEVFONT(logfont, gv);
-    if (devfont->charset_ops->bidi_mirror_char) {
-        return devfont->charset_ops->bidi_mirror_char(gv, mirrored);
-    }
-
-    return FALSE;
-}
-
-int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
-        int* adv_x, int* adv_y)
-{
-    int advance;
-    int char_type;
-
-    PDC pdc = dc_HDC2PDC(hdc);
-    DEVFONT* devfont = SELECT_DEVFONT(pdc->pLogFont, glyph_value);
-
-    /* Transfer logical to device to screen here. */
-    coor_LP2SP (pdc, &x, &y);
-    pdc->rc_output = pdc->DevRC;
-
-    char_type = devfont->charset_ops->char_type (glyph_value);
-    if (check_zero_width(char_type)) {
-        if (adv_x) *adv_x = 0;
-        if (adv_y) *adv_y = 0;
-        advance = 0;
     }
     else {
-        int my_adv_x, my_adv_y;
-        /* convert to the start point on baseline. */
-        _gdi_get_baseline_point (pdc, &x, &y);
-
-        advance = _gdi_draw_one_glyph (pdc, glyph_value,
-                (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                x, y, &my_adv_x, &my_adv_y);
-
-        if (adv_x) *adv_x = my_adv_x;
-        if (adv_y) *adv_y = my_adv_y;
+        dfi = 0;
+        if ((df = lf->devfonts[0])) {
+            if (df->font_ops->get_glyph_value)
+                gv = df->font_ops->get_glyph_value(lf, df, chv);
+            else
+                gv = chv;
+        }
+        else
+            goto error;
     }
 
-    return advance;
-}
+    return SET_GLYPH_DFI(gv, dfi);
 
-unsigned int GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value)
-{
-    /* get the relative device font */
-    DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
-    glyph_value = REAL_GLYPH (glyph_value);
-    return devfont->charset_ops->char_type (glyph_value);
+error:
+    return INV_GLYPH_VALUE;
 }
 
 int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         GLYPHINFO* glyph_info)
 {
     /* get the relative device font */
-    DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
+    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, glyph_value);
     glyph_value = REAL_GLYPH (glyph_value);
     SIZE sz;
-
-    /* get glyph type */
-    if (glyph_info->mask & GLYPH_INFO_TYPE)
-        glyph_info->char_type = devfont->charset_ops->char_type (glyph_value);
-
-    /* get glyph type */
-    if (glyph_info->mask & GLYPH_INFO_BIDI_TYPE) {
-        if (devfont->charset_ops->bidi_char_type) {
-            glyph_info->bidi_char_type
-                = devfont->charset_ops->bidi_char_type (glyph_value);
-        }
-        else {
-            glyph_info->bidi_char_type = BIDI_TYPE_INVALID;
-        }
-    }
 
     /* get metrics of the glyph */
     if ((glyph_info->mask & GLYPH_INFO_METRICS) ||
@@ -274,29 +156,18 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         case GLYPHBMP_TYPE_MONO:
             glyph_info->bits = devfont->font_ops->get_glyph_monobitmap (
                 logfont, devfont, glyph_value, &sz, &glyph_info->bmp_pitch, NULL);
-            glyph_info->bbox_w = sz.cx;
-            glyph_info->bbox_h = sz.cy;
-            glyph_info->bmp_size = glyph_info->bmp_pitch * glyph_info->bbox_h;
             break;
 
         case GLYPHBMP_TYPE_GREY:
             glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
                     logfont, devfont, glyph_value,
                     &sz, &glyph_info->bmp_pitch, NULL);
-            glyph_info->bbox_w = sz.cx;
-            glyph_info->bbox_h = sz.cy;
-            glyph_info->bmp_size =
-                glyph_info->bmp_pitch * glyph_info->bbox_h;
             break;
 
         case GLYPHBMP_TYPE_SUBPIXEL:
             glyph_info->bits = devfont->font_ops->get_glyph_greybitmap (
                     logfont, devfont, glyph_value,
                     &sz, &glyph_info->bmp_pitch, NULL);
-            glyph_info->bbox_w = sz.cx;
-            glyph_info->bbox_h = sz.cy;
-            glyph_info->bmp_size =
-                glyph_info->bmp_pitch * glyph_info->bbox_h;
             break;
 
         case GLYPHBMP_TYPE_PRERENDER:
@@ -306,26 +177,44 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         }
     }
 
+    glyph_info->bmp_width = sz.cx;
+    glyph_info->bmp_height = sz.cy;
     return 0;
 }
 
-void GUIAPI GetGlyphBitmap (LOGFONT* logfont, const char* mchar,
-        int mchar_len, GLYPHBITMAP* glyph_bitmap)
+int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
+        int* adv_x, int* adv_y)
 {
-    GLYPHINFO glyph_info;
-    Glyph32 glyph_value = INV_GLYPH_VALUE;
+    int advance;
+    int char_type;
 
-    memset(&glyph_info, 0, sizeof(GLYPHINFO));
-    glyph_value = GetGlyphValue(logfont, (const char*)mchar,
-            mchar_len, NULL, 0);
+    PDC pdc = dc_HDC2PDC(hdc);
+    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(pdc->pLogFont, glyph_value);
 
-    glyph_info.mask = GLYPH_INFO_METRICS | GLYPH_INFO_BMP;
-    glyph_info.bmp_type = GLYPHBMP_TYPE_MONO;
+    /* Transfer logical to device to screen here. */
+    coor_LP2SP (pdc, &x, &y);
+    pdc->rc_output = pdc->DevRC;
 
-    if (glyph_value != INV_GLYPH_VALUE)
-        GetGlyphInfo(logfont, glyph_value, &glyph_info);
+    char_type = devfont->charset_ops->char_type (glyph_value);
+    if (check_zero_width(char_type)) {
+        if (adv_x) *adv_x = 0;
+        if (adv_y) *adv_y = 0;
+        advance = 0;
+    }
+    else {
+        int my_adv_x, my_adv_y;
+        /* convert to the start point on baseline. */
+        _gdi_get_baseline_point (pdc, &x, &y);
 
-    memcpy(glyph_bitmap, &glyph_info.bbox_x, sizeof(GLYPHBITMAP));
+        advance = _gdi_draw_one_glyph (pdc, glyph_value,
+                (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                x, y, &my_adv_x, &my_adv_y);
+
+        if (adv_x) *adv_x = my_adv_x;
+        if (adv_y) *adv_y = my_adv_y;
+    }
+
+    return advance;
 }
 
 static int mult (fixed op1, fixed op2)
@@ -2011,7 +1900,7 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
     unsigned short scale = 1;
     BYTE* data = NULL;
     PLOGFONT logfont = pdc->pLogFont;
-    DEVFONT* devfont = SELECT_DEVFONT(pdc->pLogFont, glyph_value);
+    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(pdc->pLogFont, glyph_value);
     glyph_value = REAL_GLYPH(glyph_value);
 
     DWORD bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont);
@@ -2813,7 +2702,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             x, y, adv_x, adv_y, &bbox);
 
     logfont = pdc->pLogFont;
-    devfont = SELECT_DEVFONT (logfont, glyph_value);
+    devfont = SELECT_DEVFONT_BY_GLYPH (logfont, glyph_value);
 
     glyph_bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
@@ -2938,59 +2827,80 @@ void _gdi_start_new_line (PDC pdc)
     }
 }
 
-Glyph32 _gdi_select_glyph_dfi(LOGFONT* lf, Glyph32 gv)
+int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs, int nr_glyphs,
+        int max_extent, SIZE* size)
 {
-    int i, dfi = 0;
-    DEVFONT* df;
+    int i = 0;
+    int advance = 0;
+    int adv_x, adv_y;
+    PDC pdc = dc_HDC2PDC(hdc);
+    PLOGFONT log_font = pdc->pLogFont;
+    DEVFONT* devfont = NULL;
+    unsigned int char_type = 0;
 
-    for (i = 1; i < MAXNR_DEVFONTS; i++) {
-        if ((df = lf->devfonts[i])) {
-            if (df->font_ops->is_glyph_existed(lf, df, gv)) {
-                dfi = i;
-                break;
-            }
+    size->cx = 0;
+    size->cy = 0;
+
+    while(i < nr_glyphs){
+        devfont = SELECT_DEVFONT_BY_GLYPH(log_font, glyphs[i]);
+        char_type = devfont->charset_ops->char_type(glyphs[i]);
+
+        if (check_zero_width (char_type)) {
+            adv_x = adv_y = 0;
         }
+        else {
+            advance += _gdi_get_glyph_advance (pdc, glyphs[i],
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    0, 0, &adv_x, &adv_y, NULL);
+        }
+
+        if (max_extent > 0 && advance > max_extent)
+            break;
+
+        size->cx += adv_x;
+        size->cy += adv_y;
+        i ++;
     }
 
-    if (dfi == 0) {
-        if (REAL_GLYPH(gv) < 0x80)
-            dfi = 0;
-        else
-            dfi = 1;
-    }
+    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
+            size->cx, size->cy, size);
 
-    return SET_GLYPH_DFI(gv, dfi);
+    return i;
 }
 
-Glyph32 _gdi_get_glyph_value(LOGFONT* lf, Mchar32 chv)
+int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs, SIZE* size)
 {
-    Glyph32 gv = INV_GLYPH_VALUE;
-    int i, dfi = 0;
-    DEVFONT* df;
+    int i = 0;
+    int advance = 0;
+    int adv_x, adv_y;
+    unsigned int char_type;
+    Glyph32 glyph_value = INV_GLYPH_VALUE;
+    PDC pdc = dc_HDC2PDC(hdc);
+    PLOGFONT log_font = pdc->pLogFont;
+    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(log_font, glyph_value);
 
-    if (IS_MBCHV(chv)) {
-        for (i = 1; i < MAXNR_DEVFONTS; i++) {
-            if ((df = lf->devfonts[i])) {
-                if (df->font_ops->get_glyph_value)
-                    gv = df->font_ops->get_glyph_value(lf, df, chv);
-                else
-                    gv = REAL_CHV(chv);
+    size->cx = 0;
+    size->cy = 0;
+    while (i < nr_glyphs) {
+        devfont = SELECT_DEVFONT_BY_GLYPH(log_font, glyphs[i]);
+        char_type = devfont->charset_ops->char_type(glyphs[i]);
 
-                if (df->font_ops->is_glyph_existed(lf, df, gv)) {
-                    dfi = i;
-                    break;
-                }
-            }
+        if (check_zero_width (char_type)) {
+            adv_x = adv_y = 0;
         }
+        else {
+            advance += _gdi_get_glyph_advance (pdc, glyphs[i],
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    0, 0, &adv_x, &adv_y, NULL);
+        }
+        size->cx += adv_x;
+        size->cy += adv_y;
+        i ++;
     }
 
-    if (dfi == 0) {
-        if (REAL_CHV(chv) < 0x80)
-            dfi = 0;
-        else
-            dfi = 1;
-    }
+    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
+            size->cx, size->cy, size);
 
-    return SET_GLYPH_DFI(gv, dfi);
+    return advance;
 }
 

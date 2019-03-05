@@ -174,12 +174,12 @@ static unsigned short iso8859_68x_unicode_map [] =
     0xFEF7, 0xFEF8, 0xFEF9, 0xFEFA, /*0x130~0x133*/
 };
 
-static Uchar32 iso8859_6_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_6_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0x81)
-        return (Mchar32) (chv);
+        return (Achar32) (chv);
     else if (chv <= MAX_GLYPH_VALUE )
-        return (Mchar32) iso8859_68x_unicode_map[chv - 0x81];
+        return (Achar32) iso8859_68x_unicode_map[chv - 0x81];
     else
         return 0xFFFF;
 }
@@ -454,7 +454,7 @@ static int iso8859_6_len_first_char (const unsigned char* mstr, int len)
 
 #define ISARABIC_LIG_HALF(s) ((s == 0xa5) || (s == 0xa6))
 
-static unsigned int iso8859_6_char_type (Mchar32 chv)
+static unsigned int iso8859_6_char_type (Achar32 chv)
 {
     unsigned int ch_type = MCHAR_TYPE_UNKNOWN;
 
@@ -586,7 +586,7 @@ static Uint32 __mg_iso8859_68x_type[] = {
     BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,
 };
 
-static unsigned int iso8859_6_bidi_char_type (Mchar32 chv)
+static unsigned int iso8859_6_bidi_char_type (Achar32 chv)
 {
     return __mg_iso8859_68x_type [chv];
 }
@@ -655,7 +655,7 @@ static int get_next_char(const unsigned char* mchar, int len)
 #ifndef _DEBUG
 static
 #endif
-Mchar32 iso8859_6_get_char_value (const unsigned char* prev_mchar,
+Achar32 iso8859_6_get_char_value (const unsigned char* prev_mchar,
         int prev_len, const unsigned char* mchar, int len)
 {
     BOOL next_affects_joining = FALSE, prev_affects_joining = FALSE;
@@ -772,18 +772,18 @@ static const unsigned char* iso8859_6_get_next_word (const unsigned char* mstr,
 
 /*if cur_len>1, search ligature shape,
  * else search letter or phonetic symbol shape*/
-static Mchar32 iso8859_6_get_shaped_char_value (const unsigned char* cur_mchar,
+static Achar32 iso8859_6_get_shaped_char_value (const unsigned char* cur_mchar,
         int cur_len, int shape_type)
 {
-    Mchar32 chv = -1;
+    Achar32 chv = -1;
     int ignore;
     int index;
 
     if (cur_len > 1)
     {
-        if (shape_type == GLYPH_ISOLATED)
+        if (shape_type == ACHAR_ISOLATED)
             chv = get_ligature (cur_mchar, cur_len, FALSE, &ignore);
-        else if (shape_type != GLYPH_INITIAL) {
+        else if (shape_type != ACHAR_INITIAL) {
             /* LAM+ALEF+HAMAZ+MADDA ligature. */
             if (*cur_mchar == LAM)
                 chv = fontset_68x_get_ligature_char(*(cur_mchar+1), TRUE, &ignore);
@@ -800,16 +800,16 @@ static Mchar32 iso8859_6_get_shaped_char_value (const unsigned char* cur_mchar,
             if (index >=0)
             {
                 switch (shape_type) {
-                    case GLYPH_ISOLATED:
+                    case ACHAR_ISOLATED:
                         chv = shape_info[index].isolated;
                         break;
-                    case GLYPH_FINAL:
+                    case ACHAR_FINAL:
                         chv = shape_info[index].final;
                         break;
-                    case GLYPH_INITIAL:
+                    case ACHAR_INITIAL:
                         chv = shape_info[index].initial;
                         break;
-                    case GLYPH_MEDIAL:
+                    case ACHAR_MEDIAL:
                         chv = shape_info[index].medial;
                         break;
                 }
@@ -839,7 +839,7 @@ static const BIDICHAR_MIRROR_MAP __mg_iso8859_68x_mirror_table [] =
 //  {0x00BB, 0x00AB}
 };
 
-static BOOL iso8859_6_bidi_mirror_char (Mchar32 chv, Mchar32* mirrored)
+static BOOL iso8859_6_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 {
     return get_mirror_char (__mg_iso8859_68x_mirror_table,
             TABLESIZE (__mg_iso8859_68x_mirror_table), chv, mirrored);
@@ -868,7 +868,7 @@ static CHARSETOPS CharsetOps_iso8859_6 = {
 };
 
 #ifdef _DEBUG
-int iso8859_6_test_chv (int char_index, Mchar32 chv)
+int iso8859_6_test_chv (int char_index, Achar32 chv)
 {
     int i = 0;
     for (i = 0; i<SHAPENUMBER; i++) {

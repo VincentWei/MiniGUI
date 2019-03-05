@@ -44,20 +44,20 @@
 extern  "C" {
 #endif
 
-typedef struct _GLYPHBUF
+typedef struct _ACHARBUF
 {
-    GLYPHMAPINFO* glyph_map;     /* glyph info array */
-    Glyph32* glyphs;             /* glyph array  */
-    int   glyphs_len;            /* glyph array len or buffer used size */
+    ACHARMAPINFO* achar_map;     /* achar info array */
+    Achar32* achars;             /* achar array  */
+    int   achars_len;            /* achar array len or buffer used size */
     int   blocksize;             /* block size, a block is an allocate unit */
-    int   glyphs_buffsize;       /* glyph string buffer size */
-    int   glyphmap_buffsize;     /* glyph map buffer size */
-} GLYPHBUF;
+    int   achars_buffsize;       /* achar string buffer size */
+    int   acharmap_buffsize;     /* achar map buffer size */
+} ACHARBUF;
 
 typedef struct tagBIDISLEDITDATA
 {
     StrBuffer str_content;  // string text buffer
-    GLYPHBUF glyph_content; // glyph string buffer
+    ACHARBUF achar_content; // achar string buffer
 
     int     editPos;        // current edit position
     int     selStart;       // selection start position
@@ -91,48 +91,48 @@ typedef struct tagBIDISLEDITDATA
 typedef BIDISLEDITDATA* PBIDISLEDITDATA;
 
 static inline void* 
-glyphbuf_alloc (GLYPHBUF* glyph_buff, int len, int block_size)
+acharbuf_alloc (ACHARBUF* achar_buff, int len, int block_size)
 {
-    glyph_buff->glyphs_buffsize = (len + (block_size - len % block_size))
-                                     * sizeof (Glyph32);
-    glyph_buff->glyphs = malloc (glyph_buff->glyphs_buffsize);
+    achar_buff->achars_buffsize = (len + (block_size - len % block_size))
+                                     * sizeof (Achar32);
+    achar_buff->achars = malloc (achar_buff->achars_buffsize);
 
-    glyph_buff->glyphmap_buffsize = (len + (block_size - len % block_size)) 
-                                    * sizeof (GLYPHMAPINFO);
-    glyph_buff->glyph_map = malloc (glyph_buff->glyphmap_buffsize);
+    achar_buff->acharmap_buffsize = (len + (block_size - len % block_size)) 
+                                    * sizeof (ACHARMAPINFO);
+    achar_buff->achar_map = malloc (achar_buff->acharmap_buffsize);
 
-    glyph_buff->glyphs_len = len;
-    glyph_buff->blocksize = block_size;
+    achar_buff->achars_len = len;
+    achar_buff->blocksize = block_size;
 
-    return glyph_buff->glyphs;
+    return achar_buff->achars;
 }
 
-static inline void glyphbuf_free (GLYPHBUF *glyph_buff)
+static inline void acharbuf_free (ACHARBUF *achar_buff)
 {
-    if (glyph_buff) {
-        free (glyph_buff->glyphs);
-        free (glyph_buff->glyph_map);
+    if (achar_buff) {
+        free (achar_buff->achars);
+        free (achar_buff->achar_map);
     }
 }
 
-static inline void* glyphbuf_realloc (GLYPHBUF *glyph_buff, int len)
+static inline void* acharbuf_realloc (ACHARBUF *achar_buff, int len)
 {
-    if (len * sizeof(int) > glyph_buff->glyphs_buffsize || 
-        len * sizeof(int) < glyph_buff->glyphs_buffsize - glyph_buff->blocksize)    {
-        /* realloc glyph string mem */
-        glyph_buff->glyphs_buffsize = (len + (glyph_buff->blocksize - 
-                            len % glyph_buff->blocksize))* sizeof(Glyph32);
-        glyph_buff->glyphs = realloc (glyph_buff->glyphs, 
-                                glyph_buff->glyphs_buffsize);
+    if (len * sizeof(int) > achar_buff->achars_buffsize || 
+        len * sizeof(int) < achar_buff->achars_buffsize - achar_buff->blocksize)    {
+        /* realloc achar string mem */
+        achar_buff->achars_buffsize = (len + (achar_buff->blocksize - 
+                            len % achar_buff->blocksize))* sizeof(Achar32);
+        achar_buff->achars = realloc (achar_buff->achars, 
+                                achar_buff->achars_buffsize);
 
-        /* realloc glyph map mem */
-        glyph_buff->glyphmap_buffsize = (len + (glyph_buff->blocksize - 
-                        len % glyph_buff->blocksize))* sizeof(GLYPHMAPINFO);
-        glyph_buff->glyph_map = realloc (glyph_buff->glyph_map, 
-                        glyph_buff->glyphmap_buffsize);
+        /* realloc achar map mem */
+        achar_buff->acharmap_buffsize = (len + (achar_buff->blocksize - 
+                        len % achar_buff->blocksize))* sizeof(ACHARMAPINFO);
+        achar_buff->achar_map = realloc (achar_buff->achar_map, 
+                        achar_buff->acharmap_buffsize);
     }
 
-    return glyph_buff->glyphs;
+    return achar_buff->achars;
 }
 
 BOOL RegisterBIDISLEditControl (void);

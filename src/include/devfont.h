@@ -40,6 +40,52 @@
 #ifndef GUI_DEVFONT_H
     #define GUI_DEVFONT_H
 
+#define ACHAR_MBC_FLAG          0x80000000
+
+#define IS_MBCHV(chv)   ((chv) & ACHAR_MBC_FLAG)
+#define SET_MBCHV(chv)  ((chv) | ACHAR_MBC_FLAG)
+#define REAL_ACHAR(chv) ((chv) & ~ACHAR_MBC_FLAG)
+
+#define SELECT_DEVFONT_BY_ACHAR(logfont, chv) \
+    IS_MBCHV(chv)?(logfont->devfonts[1]):(logfont->devfonts[0])
+
+#define GLYPH_DEVFONT_INDEX_MASK    0xF0000000
+#define GLYPH_DEVFONT_INDEX_SHIFT   28
+
+/**
+ * \def REAL_GLYPH(glyph)
+ * \brief Get the real (DEVFONT) glyph value from a LOGFONT glyph.
+ *
+ * \param glyph The LOGFONT glyph value
+ */
+#define REAL_GLYPH(glyph)    ((glyph) & ~GLYPH_DEVFONT_INDEX_MASK)
+
+/**
+ * \def SELECT_DEVFONT_BY_GLYPH(logfont, glyph)
+ * \brief Select a DEVFONT according to the LOGFONT glyph value.
+ *
+ * \param logfont The pointer to a logical font.
+ * \param glyph   The logical glyph value.
+ *
+ */
+#define SELECT_DEVFONT_BY_GLYPH(logfont, glyph) \
+    (logfont)->devfonts[((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x07]
+
+#define DFI_IN_GLYPH(glyph) \
+    (((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x07)
+
+/**
+ * \def IS_MBC_GLYPH(glyph)
+ * \brief Determine wether the glyph is multibyte glyph
+ *
+ * \param glyph The logfont glyph value
+ */
+#define IS_MBC_GLYPH(glyph)  ((glyph) & GLYPH_DEVFONT_INDEX_MASK)
+
+#define SET_GLYPH_DFI(glyph, dfi) \
+    (((glyph) & ~GLYPH_DEVFONT_INDEX_MASK) | \
+        (((Glyph32)((dfi) & 0x07)) << GLYPH_DEVFONT_INDEX_SHIFT))
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -133,11 +179,6 @@ static inline long get_opened_file_size (FILE* fp)
     return size;
 }
 
-typedef unsigned int Mchar32;
-#define IS_MBCHV(chv)   ((chv) & 0x80000000)
-#define SET_MBCHV(chv)  ((chv) | 0x80000000)
-#define REAL_CHV(chv)   ((chv) & 0x7FFFFFFF)
-
 /** The character set operation structure. */
 struct _CHARSETOPS
 {
@@ -151,21 +192,21 @@ struct _CHARSETOPS
     const char* name;
 
     /** Default character. */
-    Mchar32 def_char_value;
+    Achar32 def_char_value;
 
     /** The method to get the length of the first character. */
     int (*len_first_char) (const unsigned char* mstr, int mstrlen);
 
     /** The method to get the character index. */
-    Mchar32 (*get_char_value) (const unsigned char* pre_mchar, int pre_len,
+    Achar32 (*get_char_value) (const unsigned char* pre_mchar, int pre_len,
             const unsigned char* cur_mchar, int cur_len);
 
     /** The method to get the require shape type of a mchar. */
-    Mchar32 (*get_shaped_char_value) (const unsigned char* cur_mchar, int cur_len,
+    Achar32 (*get_shaped_char_value) (const unsigned char* cur_mchar, int cur_len,
             int shape_type);
 
     /** The method to get the type of one character. */
-    unsigned int (*char_type) (Mchar32 chv);
+    unsigned int (*char_type) (Achar32 chv);
 
     /** The method to get character number in the string function. */
     int (*nr_chars_in_str) (const unsigned char* mstr, int mstrlen);
@@ -186,14 +227,14 @@ struct _CHARSETOPS
     int (*pos_first_char) (const unsigned char* mstr, int mstrlen);
 
     /** The method to get the BIDI type of one character. */
-    unsigned int (*bidi_char_type) (Mchar32 chv);
+    unsigned int (*bidi_char_type) (Achar32 chv);
 
     /** Get mirrored character */
-    BOOL (*bidi_mirror_char) (Mchar32 chv, Mchar32* mirrored);
+    BOOL (*bidi_mirror_char) (Achar32 chv, Achar32* mirrored);
 
 #ifdef _MGCHARSET_UNICODE
     /** The method to convert a mchar32 value to 32 bit UNICODE function. */
-    Uchar32 (*conv_to_uc32) (Mchar32 chv);
+    Uchar32 (*conv_to_uc32) (Achar32 chv);
 
     /** The method to convert \a wc to multily byte character function. */
     int (*conv_from_uc32) (Uchar32 wc, unsigned char* mchar);
@@ -283,7 +324,7 @@ struct _FONTOPS
      *
      * Since 3.4.0.
      */
-    Glyph32 (*get_glyph_value) (LOGFONT* logfont, DEVFONT* devfont, Mchar32 chv);
+    Glyph32 (*get_glyph_value) (LOGFONT* logfont, DEVFONT* devfont, Achar32 chv);
 };
 
 typedef struct {

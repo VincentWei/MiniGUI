@@ -9558,74 +9558,36 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
      */
 
      /**
-      * \defgroup glyph  Glyph defines and operations
-     *
-     * MiniGUI maintains some glyph defines and operations
-     *
-     * @{
-     */
+      * \defgroup mchar_glyph Abstract Character and Glyph definitions
+      *
+      * MiniGUI uses Achar32 type for a abstract character index value
+      * under a certain charset/encoding, and uses Glyph32 type
+      * for the glyph index value in a device font.
+      *
+      * Under Unicode charset or encodings, the abstract character index value
+      * will be identical to the Unicode code point, i.e., Achar32
+      * is equivalent to Uchar32 under this situation.
+      *
+      * @{
+      */
 
+typedef Uint32 Achar32;
 typedef Uint32 Glyph32;
+
+/**
+ * \def INV_ACHAR_VALUE
+ */
+#define INV_ACHAR_VALUE             0xFFFFFFFF
 
 /**
  * \def INV_GLYPH_VALUE
  */
 #define INV_GLYPH_VALUE             0xFFFFFFFF
 
-#define GLYPH_DEVFONT_INDEX_MASK    0xF0000000
-#define GLYPH_DEVFONT_INDEX_SHIFT   28
-
 /**
- * \def REAL_GLYPH(glyph)
- * \brief Get the real (DEVFONT) glyph value from a LOGFONT glyph.
- *
- * \param glyph The LOGFONT glyph value
- */
-#define REAL_GLYPH(glyph)    ((glyph) & ~GLYPH_DEVFONT_INDEX_MASK)
-
-/**
- * \def SELECT_DEVFONT(logfont, glyph)
- * \brief Select a DEVFONT according to the LOGFONT glyph value.
- *
- * \param logfont The pointer to a logical font.
- * \param glyph   The logical glyph value.
- *
- */
-#define SELECT_DEVFONT(logfont, glyph) \
-    (logfont)->devfonts[((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x07]
-
-#define DFI_IN_GLYPH(glyph) \
-    (((glyph) >> GLYPH_DEVFONT_INDEX_SHIFT) & 0x07)
-
-/**
- * \def IS_MBC_GLYPH(glyph)
- * \brief Determine wether the glyph is multibyte glyph
- *
- * \param glyph The logfont glyph value
- */
-#define IS_MBC_GLYPH(glyph)  ((glyph) & GLYPH_DEVFONT_INDEX_MASK)
-
-#define SET_GLYPH_DFI(glyph, dfi) \
-    (((glyph) & ~GLYPH_DEVFONT_INDEX_MASK) | \
-        (((Glyph32)((dfi) & 0x07)) << GLYPH_DEVFONT_INDEX_SHIFT))
-
-/**
- * \var typedef struct  _GLYPHMAPINFO GLYPHMAPINFO
- * \brief Data type of struct _GLYPHMAPINFO.
- */
-typedef struct _GLYPHMAPINFO {
-    /** The index of the character in the text string. */
-    int byte_index;
-    /** The length of the character in bytes. */
-    int char_len;
-    /** The direction of the glyph; TRUE for RTL, FALSE for LTR. */
-    BOOL is_rtol;
-} GLYPHMAPINFO;
-
-/**
- * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar, \
+ * \fn Achar32 GUIAPI GetACharValue (LOGFONT* logfont, const char* mchar, \
  *         int mchar_len, const char* pre_mchar, int pre_len)
- * \brief Get the glyph value of a multi-byte character.
+ * \brief Get the character value of a multi-byte character.
  *
  * \param logfont The logical font.
  * \param mchar The pointer to the multi-byte character.
@@ -9633,84 +9595,25 @@ typedef struct _GLYPHMAPINFO {
  * \param pre_mchar The pointer to the multi-byte character before \a mchar.
  * \param pre_len The length of \a per_mchar in bytes.
  *
- * \return The glyph value of the multi-byte character.
+ * \return The character value of the multi-byte character.
  */
-MG_EXPORT Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
+MG_EXPORT Achar32 GUIAPI GetACharValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len);
 
-/** The glyph bitmap structure. */
-typedef struct _GLYPHBITMAP {
-    /** The bounding box of the glyph. */
-    int bbox_x, bbox_y, bbox_w, bbox_h;
-    /** The advance measure of the glyph. */
-    int advance_x, advance_y;
-
-    /**
-     * The type of glyph bitmap, one of the following values:
-     * - GLYPHBMP_TYPE_MONO
-     * - GLYPHBMP_TYPE_GREY
-     * - GLYPHBMP_TYPE_SUBPIXEL
-     * - GLYPHBMP_TYPE_PRERENDER
-     */
-    int bmp_type;
-    /** The size of the glyph bitmap. */
-    unsigned int bmp_size;
-    /* The pitch of the glyph bitmap. */
-    int bmp_pitch;
-    /** The pointer to the buffer of glyph bitmap bits. */
-    const unsigned char* bits;
-
-    /**
-     * The prerender bitmap object.
-     * It is only valid if bmp_type is GLYPHBMP_TYPE_PRERENDER
-     */
-    BITMAP prbitmap;
-} GLYPHBITMAP;
-
 /**
- * \fn void GUIAPI GetGlyphBitmap (LOGFONT* log_font, \
-                const char* mchar, int mchar_len, \
-                GLYPHBITMAP* glyph_bitmap)
- * \brief Gets the glyph bitmap information when using a logical font to
- *        output a character.
- *
- * This function gets the glyph bitmap of one multi-byte character
- * (specified by \a mchar and \a mchar_len) and returns the bitmap information
- * through \a font_bitmap when using \a log_font to render the character.
- *
- * \param log_font The logical font used to render the character.
- * \param mchar The pointer to the multi-byte character.
- * \param mchar_len The length of the multi-byte character.
- * \param glyph_bitmap The buffer receives the glyph bitmap information.
- * \return None.
- *
- * Example:
- * \code
- *      GLYPHBITMAP glyph_bitmap = {0};
- *
- *      GetGlyphBitmap (log_font, "A", 1, &glyph_bitmap);
- * \endcode
- *
- * \sa GetFontMetrics, GLYPHBITMAP, GetGlyphInfo
- */
-MG_EXPORT void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
-                const char* mchar, int mchar_len,
-                GLYPHBITMAP* glyph_bitmap);
-
-/**
- * \var typedef enum GLYPHSHAPETYPE
- * \brief Glyph shape type.
+ * \var typedef enum ACHARSHAPETYPE
+ * \brief Achar32 shape type.
  */
 typedef enum {
-    GLYPH_ISOLATED,
-    GLYPH_FINAL,
-    GLYPH_INITIAL,
-    GLYPH_MEDIAL
-} GLYPHSHAPETYPE;
+    ACHAR_ISOLATED,
+    ACHAR_FINAL,
+    ACHAR_INITIAL,
+    ACHAR_MEDIAL
+} ACHARSHAPETYPE;
 
 /**
- * \fn Glyph32 GUIAPI GetShapedGlyph (LOGFONT* logfont, const char* mchar, \
- *         int mchar_len, GLYPHSHAPETYPE shape_type)
+ * \fn Achar32 GUIAPI GetShapedAChar (LOGFONT* logfont, const char* mchar, \
+ *         int mchar_len, ACHARSHAPETYPE shape_type)
  * \brief Get the glyph shape of a character.
  *
  * \param logfont The logical font.
@@ -9718,25 +9621,515 @@ typedef enum {
  * \param mchar_len The length of \a mchar in bytes.
  * \param shape_type The requested shape type.
  *
- * \return The multi-byte character's glyph shape value.
+ * \return The shaped character value.
  */
-MG_EXPORT Glyph32 GUIAPI GetShapedGlyph (LOGFONT* logfont, const char* mchar,
-        int mchar_len, GLYPHSHAPETYPE shape_type);
+MG_EXPORT Achar32 GUIAPI GetShapedAChar (LOGFONT* logfont, const char* mchar,
+        int mchar_len, ACHARSHAPETYPE shape_type);
 
 /**
- * \fn BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 glyph,
- *      Glyph32* mirrored)
- * \brief Get the mirror glyph if possible.
+ * \fn BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
+ *      Achar32* mirrored)
+ * \brief Get the mirrored abstract character if possible.
  *
  * \param logfont The logical font.
  * \param glyph The glyph value.
- * \param mirrored The buffer to store the mirrored glyph if \a glyph
- *      has a mirrored glyph.
+ * \param mirrored The buffer to store the mirrored Achar32 value if
+ *      the multi-byte character has a mirrored character.
  *
  * \return TRUE if success, FALSE on failure.
  */
-MG_EXPORT BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 glyph,
-        Glyph32* mirrored);
+MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
+        Achar32* mirrored);
+
+/**
+ * \fn Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
+ * \brief Retrieve the basic type and break type of an abtract character.
+ *
+ * This function retrieves the basic type and break type of a glyph.
+ *
+ * \param logfont The logical font.
+ * \param glyph_value The glyph value.
+ *
+ * \return The type of the specified glyph.
+ *
+ * \sa GetACharInfo, GetACharBIDIType, char_types
+ */
+MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
+
+/*
+ * Define some bit masks, that character types are based on, each one has
+ * only one bit on.
+ */
+
+#define BIDI_TYPE_INVALID       0x00000000L
+
+#define BIDI_MASK_RTL           0x00000001L    /* Is right to left */
+#define BIDI_MASK_ARABIC        0x00000002L    /* Is arabic */
+
+/* Each char can be only one of the three following. */
+#define BIDI_MASK_STRONG        0x00000010L    /* Is strong */
+#define BIDI_MASK_WEAK          0x00000020L    /* Is weak */
+#define BIDI_MASK_NEUTRAL       0x00000040L    /* Is neutral */
+#define BIDI_MASK_SENTINEL      0x00000080L    /* Is sentinel: SOT, EOT */
+
+/* Each char can be only one of the five following. */
+#define BIDI_MASK_LETTER        0x00000100L    /* Is letter: L, R, AL */
+#define BIDI_MASK_NUMBER        0x00000200L    /* Is number: EN, AN */
+#define BIDI_MASK_NUMSEPTER     0x00000400L    /* Is number separator or terminator: ES, ET, CS */
+#define BIDI_MASK_SPACE         0x00000800L    /* Is space: BN, BS, SS, WS */
+#define BIDI_MASK_EXPLICIT      0x00001000L    /* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
+
+/* Can be on only if BIDI_MASK_SPACE is also on. */
+#define BIDI_MASK_SEPARATOR     0x00002000L    /* Is test separator: BS, SS */
+/* Can be on only if BIDI_MASK_EXPLICIT is also on. */
+#define BIDI_MASK_OVERRIDE      0x00004000L    /* Is explicit override: LRO, RLO */
+
+#define BIDI_MASK_ES            0x00010000L
+#define BIDI_MASK_ET            0x00020000L
+#define BIDI_MASK_CS            0x00040000L
+
+#define BIDI_MASK_NSM           0x00080000L
+#define BIDI_MASK_BN            0x00100000L
+
+#define BIDI_MASK_BS            0x00200000L
+#define BIDI_MASK_SS            0x00400000L
+#define BIDI_MASK_WS            0x00800000L
+
+    /**
+     * \defgroup glyph_bidi_types Glyph BIDI types
+     *
+     * Values for BIDI glyph type.
+     *
+     * @{
+     */
+
+/**
+ * \def BIDI_TYPE_LTR
+ * \brief Strong left to right
+ */
+#define BIDI_TYPE_LTR    (BIDI_MASK_STRONG + BIDI_MASK_LETTER)
+
+/**
+ * \def BIDI_TYPE_RTL
+ * \brief Right to left characters
+ */
+#define BIDI_TYPE_RTL    (BIDI_MASK_STRONG + BIDI_MASK_LETTER \
+                         + BIDI_MASK_RTL)
+
+/**
+ * \def BIDI_TYPE_AL
+ * \brief Arabic characters
+ */
+#define BIDI_TYPE_AL    (BIDI_MASK_STRONG + BIDI_MASK_LETTER \
+                        + BIDI_MASK_RTL  + BIDI_MASK_ARABIC)
+
+/**
+ * \def BIDI_TYPE_LRE
+ * \brief Left-To-Right embedding
+ */
+#define BIDI_TYPE_LRE    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT)
+
+/**
+ * \def BIDI_TYPE_RLE
+ * \brief Right-To-Left embedding
+ */
+#define BIDI_TYPE_RLE    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+                        + BIDI_MASK_RTL)
+
+/**
+ * \def BIDI_TYPE_LRO
+ * \brief Left-To-Right override
+ */
+#define BIDI_TYPE_LRO    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+                        + BIDI_MASK_OVERRIDE)
+
+/**
+ * \def BIDI_TYPE_RLO
+ * \brief Right-To-Left override
+ */
+#define BIDI_TYPE_RLO    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
+                        + BIDI_MASK_RTL + BIDI_MASK_OVERRIDE)
+
+/**
+ * \def BIDI_TYPE_PDF
+ * \brief Pop directional override
+ */
+#define BIDI_TYPE_PDF    (BIDI_MASK_WEAK + BIDI_MASK_EXPLICIT)
+
+/**
+ * \def BIDI_TYPE_EN
+ * \brief European digit
+ */
+#define BIDI_TYPE_EN    (BIDI_MASK_WEAK + BIDI_MASK_NUMBER)
+
+/**
+ * \def BIDI_TYPE_AN
+ * \brief Arabic digit
+ */
+#define BIDI_TYPE_AN    (BIDI_MASK_WEAK + BIDI_MASK_NUMBER \
+                        + BIDI_MASK_ARABIC)
+
+/**
+ * \def BIDI_TYPE_ES
+ * \brief European number separator
+ */
+#define BIDI_TYPE_ES    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+                        + BIDI_MASK_ES)
+
+/**
+ * \def BIDI_TYPE_ET
+ * \brief European number terminator
+ */
+#define BIDI_TYPE_ET    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+                        + BIDI_MASK_ET)
+
+/**
+ * \def BIDI_TYPE_CS
+ * \brief Common Separator
+ */
+#define BIDI_TYPE_CS    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
+                        + BIDI_MASK_CS)
+
+/**
+ * \def BIDI_TYPE_NSM
+ * \brief Non spacing mark
+ */
+#define BIDI_TYPE_NSM    (BIDI_MASK_WEAK + BIDI_MASK_NSM)
+
+/**
+ * \def BIDI_TYPE_BN
+ * \brief Boundary neutral
+ */
+#define BIDI_TYPE_BN    (BIDI_MASK_WEAK + BIDI_MASK_SPACE \
+                        + BIDI_MASK_BN)
+
+/**
+ * \def BIDI_TYPE_BS
+ * \brief Block separator
+ */
+#define BIDI_TYPE_BS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+                        + BIDI_MASK_SEPARATOR + BIDI_MASK_BS)
+
+/**
+ * \def BIDI_TYPE_SS
+ * \brief Segment separator
+ */
+#define BIDI_TYPE_SS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+                        + BIDI_MASK_SEPARATOR + BIDI_MASK_SS)
+/**
+ * \def BIDI_TYPE_WS
+ * \brief Whitespace
+ */
+#define BIDI_TYPE_WS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
+                        + BIDI_MASK_WS)
+
+/**
+ * \def BIDI_TYPE_ON
+ * \brief Other Neutral
+ */
+#define BIDI_TYPE_ON    (BIDI_MASK_NEUTRAL)
+
+    /** @} end of glyph_bidi_types */
+
+/* The following are used to identify the paragraph direction,
+   types L, R, N are not used internally anymore, and recommended to use
+   LTR, RTL and ON instead, didn't removed because of compatability. */
+
+#define BIDI_TYPE_L        (BIDI_TYPE_LTR)
+#define BIDI_TYPE_R        (BIDI_TYPE_RTL)
+#define BIDI_TYPE_N        (BIDI_TYPE_ON)
+/* Weak left to right */
+#define BIDI_TYPE_WL    (BIDI_MASK_WEAK)
+/* Weak right to left */
+#define BIDI_TYPE_WR    (BIDI_MASK_WEAK + BIDI_MASK_RTL)
+
+/* The following are only used internally */
+
+/* Start of text */
+#define BIDI_TYPE_SOT    (BIDI_MASK_SENTINEL)
+/* End of text */
+#define BIDI_TYPE_EOT    (BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
+
+/* Is private-use value? */
+#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
+
+/* Return the direction of the level number, BIDI_TYPE_LTR for even and
+   BIDI_TYPE_RTL for odds. */
+#define BIDI_LEVEL_TO_DIR(lev) (BIDI_TYPE_LTR | (lev & 1))
+
+/* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
+   1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
+#define BIDI_DIR_TO_LEVEL(dir) ((BYTE)(dir & 1))
+
+/* Is right to left? */
+#define BIDI_IS_RTL(p)      ((p) & BIDI_MASK_RTL)
+/* Is arabic? */
+#define BIDI_IS_ARABIC(p)   ((p) & BIDI_MASK_ARABIC)
+
+/* Is strong? */
+#define BIDI_IS_STRONG(p)   ((p) & BIDI_MASK_STRONG)
+/* Is weak? */
+#define BIDI_IS_WEAK(p)     ((p) & BIDI_MASK_WEAK)
+/* Is neutral? */
+#define BIDI_IS_NEUTRAL(p)  ((p) & BIDI_MASK_NEUTRAL)
+/* Is sentinel? */
+#define BIDI_IS_SENTINEL(p) ((p) & BIDI_MASK_SENTINEL)
+
+/* Is letter: L, R, AL? */
+#define BIDI_IS_LETTER(p)   ((p) & BIDI_MASK_LETTER)
+/* Is number: EN, AN? */
+#define BIDI_IS_NUMBER(p)   ((p) & BIDI_MASK_NUMBER)
+/* Is number separator or terminator: ES, ET, CS? */
+#define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
+    ((p) & BIDI_MASK_NUMSEPTER)
+
+/* Is space: BN, BS, SS, WS? */
+#define BIDI_IS_SPACE(p)    ((p) & BIDI_MASK_SPACE)
+/* Is explicit mark: LRE, RLE, LRO, RLO, PDF? */
+#define BIDI_IS_EXPLICIT(p) ((p) & BIDI_MASK_EXPLICIT)
+
+/* Is test separator: BS, SS? */
+#define BIDI_IS_SEPARATOR(p) ((p) & BIDI_MASK_SEPARATOR)
+
+/* Is explicit override: LRO, RLO? */
+#define BIDI_IS_OVERRIDE(p) ((p) & BIDI_MASK_OVERRIDE)
+
+/* Some more: */
+
+/* Is left to right letter: LTR? */
+#define BIDI_IS_LTR_LETTER(p) \
+    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) == BIDI_MASK_LETTER)
+
+/* Is right to left letter: RTL, AL? */
+#define BIDI_IS_RTL_LETTER(p) \
+    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) \
+    == (BIDI_MASK_LETTER | BIDI_MASK_RTL))
+
+/* Is ES or CS: ES, CS? */
+#define BIDI_IS_ES_OR_CS(p) \
+    ((p) & (BIDI_MASK_ES | BIDI_MASK_CS))
+
+/* Change numbers: EN, AN to RTL. */
+#define BIDI_NUMBER_TO_RTL(p) \
+        (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
+
+/**
+ * \fn Uint32 GUIAPI GetACharBIDIType (LOGFONT* logfont, Achar32 chv)
+ * \brief Retriev the BIDI type of an abstract character.
+ *
+ * This function retrieves the BIDI type of an abstract character.
+ *
+ * \param logfont The logical font.
+ * \param glyph_value The glyph value.
+ *
+ * \return The BIDI type of the Achar32; BIDI_TYPE_INVALID on failure.
+ *
+ * \sa GetACharInfo, GetACharType
+ */
+MG_EXPORT Uint32 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv);
+
+/**
+ * \var typedef struct  _ACHARMAPINFO ACHARMAPINFO
+ * \brief Data type of struct _ACHARMAPINFO.
+ */
+typedef struct _ACHARMAPINFO {
+    /** The index of the character in the text string. */
+    int byte_index;
+    /** The length of the character in bytes. */
+    int char_len;
+    /** The direction of the character; TRUE for RTL, FALSE for LTR. */
+    BOOL is_rtol;
+} ACHARMAPINFO;
+
+/**
+ * \fn int GUIAPI BIDIGetTextLogicalAChars(LOGFONT* log_font,
+ *      const char* text, int text_len, Achar32** achars,
+ *      ACHARMAPINFO** achars_map)
+ * \brief Get logical achars string of the text.
+ *
+ * \param log_font The logical font.
+ * \param text The logical text string.
+ * \param text_len The lenght of the logical text string in bytes.
+ * \param achars The pointer to the logical glyph string.
+ * \param achars_map The position map from the logical achars string to
+ *        the logical text.
+ *
+ * \return The length of the logical glyph string.
+ *
+ * \sa ACHARMAPINFO
+ */
+MG_EXPORT int GUIAPI BIDIGetTextLogicalAChars (LOGFONT* log_font,
+        const char* text, int text_len, Achar32** achars,
+        ACHARMAPINFO** achars_map);
+
+/**
+ * \fn void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
+ *      const char* text, int text_len,
+ *      int start_index, int end_index,
+ *      int** ranges, int* nr_ranges)
+ * \brief Get a list of visual ranges corresponding to a given logical range.
+ *
+ * \param log_font The logical font.
+ * \param text The pointer to the logical text string.
+ * \param text_len The length of the logical text string in bytes.
+ * \param start_index The start index of the logical range.
+ * \param end_index The end index of the logical range.
+ * \param ranges The pointer to store a pointer to an array of arranges.
+ * \param nr_ranges The number of ranges stored in \a ranges.
+ *
+ * \return None.
+ */
+MG_EXPORT void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
+        const char* text, int text_len, int start_index, int end_index,
+        int** ranges, int* nr_ranges);
+
+/** \fn int GUIAPI BIDIGetTextVisualAChars (LOGFONT* log_font,
+ *      const char* text, int text_len, Achar32** achars,
+ *      ACHARMAPINFO** achars_map)
+ * \brief Get visual achars and glyph_map info relative with logical
+ *        string byte index.
+ *
+ * \param log_font The logical font.
+ * \param text The logical text string.
+ * \param text_len The length of the logical text string in bytes.
+ * \param achars The pointer to the visual glyph string.
+ * \param achars_map The position map from visual achars string to
+ *        the logical text.
+ *
+ * \return The length of the visual glyph string.
+ */
+MG_EXPORT int GUIAPI BIDIGetTextVisualAChars (LOGFONT* log_font,
+        const char* text, int text_len, Achar32** achars,
+        ACHARMAPINFO** achars_map);
+
+/*
+ * \var typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos)
+ * \brief The prototype of the user defined function to reverse an array.
+ *
+ * The function reverse an array pointed by \a extra from the position
+ * specified by \a pos for the length specified by \a len.
+ *
+ * \sa BIDILogAChars2VisACharsEx
+ */
+typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
+
+/** \fn BOOL GUIAPI BIDILogAChars2VisACharsEx (LOGFONT* log_font,
+ *      Achar32* achars, int nr_achars, int pel,
+ *      void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
+ * \brief Reorder the specified logical glyph string in visual order and
+ * reorder an extra array to reflect the visule order of the achars.
+ *
+ * This function reorders the logical glyph string in place to visual order.
+ * If \a extra and \a cb_reverse_extra are both not NULL, it also reorders
+ * the array pointed by \a extra by calling the callback function
+ * \a cb_reverse_extra.
+ *
+ * \param log_font The logical font.
+ * \param achars The pointer to the glyph string.
+ * \param nr_achars The length of the glyph string.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0: Level 0 (left to right)
+ *          - 1: Level 1 (right to left)
+ *          - others: Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
+ * \param extra The pointer to the extra array to reorder; can be NULL.
+ * \param cb_reverse_extra The callback function to reverse the extra array.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ */
+MG_EXPORT BOOL GUIAPI BIDILogAChars2VisACharsEx (LOGFONT* log_font,
+        Achar32* achars, int nr_achars, int pel,
+        void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
+
+/** \fn BOOL GUIAPI BIDILogAChars2VisAChars (LOGFONT* log_font,
+ *      Achar32* achars, int nr_achars, ACHARMAPINFO* achars_map)
+ * \brief Reorder the specified logical glyph string in visual order and
+ * reorder glyph map if specified.
+ *
+ * This function reorders the logical glyph string in place to visual order.
+ * If \a achars_map is not NULL, it also reorders
+ * the map to reflect the visual order.
+ *
+ * \param log_font The logical font.
+ * \param achars The pointer to the glyph string.
+ * \param nr_achars The length of the glyph string.
+ * \param achars_map The position map returned by \a BIDIGetTextLogicalAChars;
+ *          can be NULL.
+ *
+ * \return The pointer to the visual achars; NULL when error.
+ */
+MG_EXPORT Achar32* GUIAPI BIDILogAChars2VisAChars (LOGFONT* log_font,
+        Achar32* achars, int nr_achars, ACHARMAPINFO* achars_map);
+
+/**
+ * \fn void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font, \
+        const Achar32* achars, int nr_achars, int pel, Uint8** embed_levels)
+ * \brief Get the logical embedding levels for the logical glyph string
+ *        and generate runs by embedding levels, the for reorder to get
+ *        visual glyph string.
+ *
+ * \param log_font The logical font.
+ * \param achars The pointer to the logical glyph string.
+ * \param nr_achars The length of the glyph string.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0: Level 0 (left to right)
+ *          - 1: Level 1 (right to left)
+ *          - others: Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
+ * \param embed_levels The logical embedding level.
+ *
+ * \return None.
+ */
+MG_EXPORT void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font,
+        Achar32* achars, int nr_achars, int pel, Uint8** embed_levels);
+
+static inline void BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
+        Achar32* achars, int nr_achars, Uint8** embed_levels)
+{
+    BIDIGetLogicalEmbedLevelsEx (log_font, achars, nr_achars, -1, embed_levels);
+}
+
+/**
+ * \fn void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
+        const Achar32* achars, int nr_achars, int pel, Uint8** embed_levels)
+ * \brief Get the visual embedding levels for the given logical glyph
+ *        string, then you can get the edge for visual achars.
+ *
+ * \param log_font The logical font.
+ * \param achars The pointer to the logical glyph string.
+ * \param nr_achars The length of the glyph string.
+ * \param pel The paragraph embedding level, can be one of the following values:
+ *          - 0\n
+ *            Level 0 (left to right)
+ *          - 1\n
+ *            Level 1 (right to left)
+ *          - others\n
+ *            Determine according to the heuristic given in
+ *            steps P2 and P3 of the Unicode bidirectional algorithm.
+ * \param embed_levels The embedding level logical to visual.
+ *
+ * \return void.
+ */
+MG_EXPORT void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
+        Achar32* achars, int nr_achars, int pel, Uint8** embed_levels);
+
+static inline void BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
+        Achar32* achars, int nr_achars, Uint8** embed_levels)
+{
+    BIDIGetVisualEmbedLevelsEx (log_font, achars, nr_achars, -1, embed_levels);
+}
+
+/**
+ * \fn void GUIAPI GetGlyphValue (LOGFONT* logfont, Achar32 chv)
+ * \brief Get the LOGFONT glyph value of an abstract character.
+ *
+ * \param logfont The logical font.
+ * \param chv The value of the abstract character.
+ *
+ * \return The glyph value of the abstract character;
+ *      INV_GLYPH_VALUE on failure.
+ */
+MG_EXPORT Glyph32 GUIAPI GetGlyphValue(LOGFONT* logfont, Achar32 chv);
 
 /**
  * \fn int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value, \
@@ -9762,6 +10155,7 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 /*
  * \fn int GUIAPI DrawGlyphString (HDC hdc, int x, int y, \
  *      Glyph32* glyphs, int nr_glyphs, int* adv_x, int* adv_y);
+ *
  * \brief Draw a glyph string.
  *
  * This function draws a glyph string to the specific postion of a DC.
@@ -9782,25 +10176,8 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
         int nr_glyphs, int* adv_x, int* adv_y);
 
-/**
- * \fn Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value)
- * \brief Retrieve the basic type and break type of a glyph.
- *
- * This function retrieves the basic type and break type of a glyph.
- *
- * \param logfont The logical font.
- * \param glyph_value The glyph value.
- *
- * \return The type of the specified glyph.
- *
- * \sa GetGlyphInfo, GetGlyphBIDIType, char_types
- */
-MG_EXPORT Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value);
-
-#define GLYPH_INFO_TYPE         0x01
-#define GLYPH_INFO_BIDI_TYPE    0x02
-#define GLYPH_INFO_METRICS      0x04
-#define GLYPH_INFO_BMP          0x10
+#define GLYPH_INFO_METRICS      0x01
+#define GLYPH_INFO_BMP          0x02
 
 /** The type of glyph bitmap: monochrome */
 #define GLYPHBMP_TYPE_MONO      0x00
@@ -9819,27 +10196,12 @@ MG_EXPORT Uint32 GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value);
  */
 typedef struct _GLYPHINFO {
     /**
-     * The mask indicates if you want to get glyph type info, metrics,
-     * or bitmap infomation you want. Or'ed with the following values:
-     * - GLYPH_INFO_TYPE
-     * - GLYPH_INFO_BIDI_TYPE
+     * The mask indicates if you want to get glyph metrics,
+     * or bitmap infomation. Or'ed with the following values:
      * - GLYPH_INFO_METRICS
      * - GLYPH_INFO_BMP
      */
     Uint32 mask;
-
-    /** The glyph type */
-    Uint32 char_type;
-
-    /** The BIDI glyph type */
-    Uint32 bidi_char_type;
-
-#if 0 // VincentWei: removed since 3.4.0
-    /** The height of the glyph */
-    int height;
-    /** the descent of the glyph */
-    int descent;
-#endif
 
     /** The bounding box of the glyph. */
     int bbox_x, bbox_y, bbox_w, bbox_h;
@@ -9854,10 +10216,14 @@ typedef struct _GLYPHINFO {
      * - GLYPHBMP_TYPE_PRERENDER
      */
     int bmp_type;
-    /** The size of the glyph bitmap. */
-    unsigned int bmp_size;
+
+    /** The width of the glyph bitmap. */
+    int bmp_width;
+    /** The height of the glyph bitmap. */
+    int bmp_height;
     /* The pitch of the glyph bitmap. */
     int bmp_pitch;
+
     /** The pointer to the buffer of glyph bitmap bits. */
     const unsigned char* bits;
 
@@ -9932,7 +10298,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
     /**
      * \defgroup language_code Language Code
      *
-     * The language code specifies the content lanuage for \a GetGlyphsAndBreaks.
+     * The language code specifies the content language.
      *
      * @{
      */
@@ -10269,7 +10635,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup white_space_rules White Space Rules
      *
-     *  The white space rule indicates \a GetGlyphsAndBreaks.
+     *  The white space rule indicates \a GetUCharsAndBreaks.
      *
      *      - whether and how white space inside the string is collapsed.
      *      - whether lines may wrap at unforced soft wrap opportunities.
@@ -10279,7 +10645,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_NORMAL
  *
- * \brief This value directs \a GetGlyphsAndBreaks
+ * \brief This value directs \a GetUCharsAndBreaks
  * collapses sequences of white space into a single character.
  * Lines may wrap at allowed soft wrap opportunities.
  */
@@ -10288,7 +10654,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_PRE
  *
- * \brief This value prevents \a GetGlyphsAndBreaks from collapsing
+ * \brief This value prevents \a GetUCharsAndBreaks from collapsing
  * sequences of white space. Segment breaks such as line feeds are
  * preserved as forced line breaks. Lines only break at forced line breaks;
  * content that does not fit within the specified extent overflows it.
@@ -10322,7 +10688,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *      white space glyph, including between white space characters.
  *
  * When white space rule is specified to be WSR_BREAK_SPACES, the manner
- * of \a GetGlyphsAndBreaks will conform
+ * of \a GetUCharsAndBreaks will conform
  * to UNICODE LINE BREAKING ALGORITHM.
  */
 #define WSR_BREAK_SPACES    0x04
@@ -10341,7 +10707,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup char_transform_rules Character Transformation Rules
      *
-     *  The character transformation rule indicates how \a GetGlyphsAndBreaks
+     *  The character transformation rule indicates how \a GetUCharsAndBreaks
      *  transforms text for styling purposes; can be
      *
      *      - CTR_NONE,
@@ -10408,7 +10774,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup word_break_rules Word Breaking Rules
      *
-     *  The word breaking rule indicates how \a GetGlyphsAndBreaks
+     *  The word breaking rule indicates how \a GetUCharsAndBreaks
      *  creates soft wrap opportunities between letters.
      *
      * @{
@@ -10576,17 +10942,18 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 #define BOV_LB_NOTALLOWED           0x0003
 
 /**
- * \fn int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont,
+ * \fn int GUIAPI GetUCharsAndBreaks(LOGFONT* logfont,
  *          const char* mstr, unsigned int mstr_len,
  *          LanguageCode content_language, UCharScriptType writing_system,
  *          Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
- *          Glyph32** glyphs, Uchar32** uchars, Uint16** break_oppos,
- *          int* nr_glyphs);
- * \brief Calculate the glyph string and the breaking opportunities under
- *        the specified rules and line breaking policy.
+ *          Uchar32** uchars, Uint16** break_oppos,
+ *          int* nr_uchars);
+ * \brief Convert a multi-byte character string to a Unicode character string
+ *      and calculate the breaking opportunities under the specified rules and
+ *      line breaking policy.
  *
- * This function calculates and allocates the glyph string and the breaking
- * opportunities of the glyphs from a multi-byte string under the specified
+ * This function calculates and allocates the Uchar32 string and the breaking
+ * opportunities of the characters from a multi-byte string under the specified
  * content language \a content_language, the writing system \a writing_system,
  * the white space rule \a wsr, the text transformation rule
  * \a ctr, the word breaking rule \a wbr, and the line breaking policy \a lbp.
@@ -10605,10 +10972,10 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *      https://www.w3.org/TR/css-text-3/
  *
  * The function will return if it encounters any hard line break or the null
- * character. The hard line break will be included in the returned glyphs if
+ * character. The hard line break will be included in the returned Uchar32 if
  * there was one.
  *
- * Note that you are responsible for freeing the glyph string and the
+ * Note that you are responsible for freeing the Uchar32 string and the
  * break opportunities array allocated by this function.
  *
  * \param logfont The logfont used to parse the string.
@@ -10622,11 +10989,8 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \param wbr The word breaking rule; see \a word_break_rules.
  * \param lbp The line breaking policy;
  *        see \a line_break_policies.
- * \param glyphs The pointer to a buffer to store the address of the
- *        allocated glyph string.
  * \param uchars The pointer to a buffer to store the address of the
- *      UChar32 array which contains the Unicode character values
- *      of the glyphs; can be NULL.
+ *      UChar32 array which contains the Unicode character values.
  * \param break_oppos The pointer to a buffer to store the address of the
  *        Uint16 array which contains the break opportunities of the glyphs.
  *        Note that the length of this array is always one longer than
@@ -10648,27 +11012,44 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *
  * \sa DrawGlyphStringEx, white_space_rules, char_transform_rule
  */
-MG_EXPORT int GUIAPI GetGlyphsAndBreaks(LOGFONT* logfont,
-            const char* mstr, int mstr_len,
-            LanguageCode content_language, UCharScriptType writing_system,
-            Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-            Glyph32** glyphs, Uchar32** uchars, Uint16** break_oppos,
-            int* nr_glyphs);
+MG_EXPORT int GUIAPI GetUCharsAndBreaks(LOGFONT* logfont,
+        const char* mstr, int mstr_len,
+        LanguageCode content_language, UCharScriptType writing_system,
+        Uint8 wsr, Uint8 ctr, Uint8 wbr, Uint8 lbp,
+        Uchar32** uchars, Uint16** break_oppos, int* nr_ucs);
 
 /**
- * \fn Glyph2UChar(LOGFONT* logfont, Glyph32 gv)
- * \brief Get Uchar32 value (whide character value) from a LOGFONT glyph value.
+ * \fn AChar2UChar(LOGFONT* logfont, Achar32 chv)
+ * \brief Get Uchar32 value (Unicode whide character value) from
+ * a LOGFONT abstract character value.
  *
  * Only valid for UNICODE.
  *
  * \param logfont The LOGFONT object
- * \param glyph The LOGFONT glyph value.
+ * \param chv The LOGFONT character value.
  *
  * \return The Uchar32 value (Unicode code point) of the glyph.
  *
  * \note Only available when support for UNICODE is enabled.
  */
-MG_EXPORT Uchar32 GUIAPI Glyph2UChar(LOGFONT* logfont, Glyph32 gv);
+MG_EXPORT Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv);
+
+/**
+ * \fn int AChars2UChars(LOGFONT* logfont, const Achar32* achs,
+ *      Uchar32* ucs, int n)
+ * \brief Convert an Achar32 array to Unicode character array.
+ *
+ * Only valid for UNICODE.
+ *
+ * \param logfont The LOGFONT object
+ * \param chs The array of LOGFONT character values.
+ *
+ * \return The number of characters converted successfully.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ */
+MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
+        Uchar32* ucs, int n);
 
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags
@@ -10859,6 +11240,58 @@ MG_EXPORT Uchar32 GUIAPI Glyph2UChar(LOGFONT* logfont, Glyph32 gv);
 #define GLYPH_ORIENTATION_UPRIGHT   0
 #define GLYPH_ORIENTATION_SIDEWAYS  1
 
+typedef struct _SHAPEDGLYPHS {
+    int nr_glyphs;
+    /** The shaped glyphs */
+    Glyph32* glyphs;
+    /** The break opportunities */
+    Uint8* break_oppos;
+    /** The Unicode general categories. */
+    Uint8* ugc;
+    /** The Unicode Indic syllabic categories. */
+    Uint8* uics;
+    /** The Unicode Indic positional categories. */
+    Uint8* uipc;
+} SHAPEDGLYPHS;
+
+MG_EXPORT int GUIAPI GetShapedGlyphs(LOGFONT* logfont,
+        LanguageCode content_language, UCharScriptType writing_system,
+        const Uchar32 ucs, int nr_chars,
+        SHAPEDGLYPHS* shaped_glyphs);
+
+/**
+ * The glyph extent information.
+ */
+typedef struct _GLYPHEXTENT {
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y, bbox_w, bbox_h;
+    /** The advance values of the glyph. */
+    int adv_x, adv_y;
+    /** The advance value of the glyph along the line direction. */
+    int line_adv;
+    /**
+     * The orientation of the glyph; can be one of the following values:
+     *  - GLYPH_ORIENTATION_UPRIGHT\n
+     *      the glyph is in the standard horizontal orientation.
+     *  - GLYPH_ORIENTATION_SIDEWAYS\n
+     *      the glyph rotates 90° clockwise from horizontal.
+     */
+    Uint8 orientation:2;
+    /**
+     * Whether is a whitespace glyph.
+     */
+    Uint8 whitespace:1;
+    /**
+     * Whether suppress the glyph.
+     */
+    Uint8 suppressed:1;
+} GLYPHEXTENT;
+
+MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
+        const SHAPEDGLYPHS* shaped_glyphs, Uint32 render_flags,
+        GLYPHEXTENT** glyph_extents,
+        LOGFONT** logfont_sideways);
+
 /**
  * The glyph extent information.
  */
@@ -10886,6 +11319,14 @@ typedef struct _GLYPHPOS {
      */
     int y;
     /**
+     * The orientation of the glyph; can be one of the following values:
+     *  - GLYPH_ORIENTATION_UPRIGHT\n
+     *      the glyph is in the standard horizontal orientation.
+     *  - GLYPH_ORIENTATION_SIDEWAYS\n
+     *      the glyph rotates 90° clockwise from horizontal.
+     */
+    Uint8 orientation:2;
+    /**
      * Whether is a whitespace glyph.
      */
     Uint8 whitespace:1;
@@ -10903,16 +11344,14 @@ typedef struct _GLYPHPOS {
      *      the glyph is hanged at the end of the line.
      */
     Uint8 hanged:2;
-    /**
-     * The orientation of the glyph; can be one of the following values:
-     *  - GLYPH_ORIENTATION_UPRIGHT\n
-     *      the glyph is in the standard horizontal orientation.
-     *  - GLYPH_ORIENTATION_SIDEWAYS\n
-     *      the glyph rotates 90° clockwise from horizontal.
-     */
-    Uint8 orientation:2;
 } GLYPHPOS;
 
+MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
+        const Glyph32* glyphs, const Uint16* break_oppos,
+        const GLYPHEXTINFO* glyph_ext_info, int nr_glyphs,
+        Uint32 render_flags, int x, int y,
+        int letter_spacing, int word_spacing, int tab_size, int max_extent,
+        SIZE* line_size, GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
 /**
  * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
  *          const Glyph32* glyphs, int nr_glyphs, const Uint16* break_oppos,
@@ -10931,7 +11370,7 @@ typedef struct _GLYPHPOS {
  *      as visual ones by calling BIDI functions.
  * \param nr_glyphs The number of the glyphs.
  * \param break_oppos The pointer to the break opportunities array of the glyphs.
- *      It should be returned by \a GetGlyphsAndBreaks. However, the caller
+ *      It should be returned by \a GetUCharsAndBreaks. However, the caller
  *      should skip the first unit (the break opportunity before the first glyph)
  *      before passing the pointer to this function.
  * \param render_flags The render flags; see \a glyph_render_flags.
@@ -10979,7 +11418,7 @@ typedef struct _GLYPHPOS {
  *      the positions contained in \a glyph_pos are always with respect to
  *      the top-left corner of the resulting output line rectangle.
  *
- * \sa GetGlyphsAndBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ * \sa GetUCharsAndBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
         const Glyph32* glyphs, int nr_glyphs, const Uint16* break_oppos,
@@ -11018,459 +11457,6 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
         const Glyph32* glyphs, int nr_glyphs, const GLYPHPOS* glyph_pos);
-
-/*
- * Define some bit masks, that character types are based on, each one has
- * only one bit on.
- */
-
-#define BIDI_TYPE_INVALID       0x00000000L
-
-#define BIDI_MASK_RTL           0x00000001L    /* Is right to left */
-#define BIDI_MASK_ARABIC        0x00000002L    /* Is arabic */
-
-/* Each char can be only one of the three following. */
-#define BIDI_MASK_STRONG        0x00000010L    /* Is strong */
-#define BIDI_MASK_WEAK          0x00000020L    /* Is weak */
-#define BIDI_MASK_NEUTRAL       0x00000040L    /* Is neutral */
-#define BIDI_MASK_SENTINEL      0x00000080L    /* Is sentinel: SOT, EOT */
-
-/* Each char can be only one of the five following. */
-#define BIDI_MASK_LETTER        0x00000100L    /* Is letter: L, R, AL */
-#define BIDI_MASK_NUMBER        0x00000200L    /* Is number: EN, AN */
-#define BIDI_MASK_NUMSEPTER     0x00000400L    /* Is number separator or terminator: ES, ET, CS */
-#define BIDI_MASK_SPACE         0x00000800L    /* Is space: BN, BS, SS, WS */
-#define BIDI_MASK_EXPLICIT      0x00001000L    /* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
-
-/* Can be on only if BIDI_MASK_SPACE is also on. */
-#define BIDI_MASK_SEPARATOR     0x00002000L    /* Is test separator: BS, SS */
-/* Can be on only if BIDI_MASK_EXPLICIT is also on. */
-#define BIDI_MASK_OVERRIDE      0x00004000L    /* Is explicit override: LRO, RLO */
-
-#define BIDI_MASK_ES            0x00010000L
-#define BIDI_MASK_ET            0x00020000L
-#define BIDI_MASK_CS            0x00040000L
-
-#define BIDI_MASK_NSM           0x00080000L
-#define BIDI_MASK_BN            0x00100000L
-
-#define BIDI_MASK_BS            0x00200000L
-#define BIDI_MASK_SS            0x00400000L
-#define BIDI_MASK_WS            0x00800000L
-
-    /**
-     * \defgroup glyph_bidi_types Glyph BIDI types
-     *
-     * Values for BIDI glyph type.
-     *
-     * @{
-     */
-
-/**
- * \def BIDI_TYPE_LTR
- * \brief Strong left to right
- */
-#define BIDI_TYPE_LTR    (BIDI_MASK_STRONG + BIDI_MASK_LETTER)
-
-/**
- * \def BIDI_TYPE_RTL
- * \brief Right to left characters
- */
-#define BIDI_TYPE_RTL    (BIDI_MASK_STRONG + BIDI_MASK_LETTER \
-                         + BIDI_MASK_RTL)
-
-/**
- * \def BIDI_TYPE_AL
- * \brief Arabic characters
- */
-#define BIDI_TYPE_AL    (BIDI_MASK_STRONG + BIDI_MASK_LETTER \
-                        + BIDI_MASK_RTL  + BIDI_MASK_ARABIC)
-
-/**
- * \def BIDI_TYPE_LRE
- * \brief Left-To-Right embedding
- */
-#define BIDI_TYPE_LRE    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT)
-
-/**
- * \def BIDI_TYPE_RLE
- * \brief Right-To-Left embedding
- */
-#define BIDI_TYPE_RLE    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
-                        + BIDI_MASK_RTL)
-
-/**
- * \def BIDI_TYPE_LRO
- * \brief Left-To-Right override
- */
-#define BIDI_TYPE_LRO    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
-                        + BIDI_MASK_OVERRIDE)
-
-/**
- * \def BIDI_TYPE_RLO
- * \brief Right-To-Left override
- */
-#define BIDI_TYPE_RLO    (BIDI_MASK_STRONG + BIDI_MASK_EXPLICIT \
-                        + BIDI_MASK_RTL + BIDI_MASK_OVERRIDE)
-
-/**
- * \def BIDI_TYPE_PDF
- * \brief Pop directional override
- */
-#define BIDI_TYPE_PDF    (BIDI_MASK_WEAK + BIDI_MASK_EXPLICIT)
-
-/**
- * \def BIDI_TYPE_EN
- * \brief European digit
- */
-#define BIDI_TYPE_EN    (BIDI_MASK_WEAK + BIDI_MASK_NUMBER)
-
-/**
- * \def BIDI_TYPE_AN
- * \brief Arabic digit
- */
-#define BIDI_TYPE_AN    (BIDI_MASK_WEAK + BIDI_MASK_NUMBER \
-                        + BIDI_MASK_ARABIC)
-
-/**
- * \def BIDI_TYPE_ES
- * \brief European number separator
- */
-#define BIDI_TYPE_ES    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
-                        + BIDI_MASK_ES)
-
-/**
- * \def BIDI_TYPE_ET
- * \brief European number terminator
- */
-#define BIDI_TYPE_ET    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
-                        + BIDI_MASK_ET)
-
-/**
- * \def BIDI_TYPE_CS
- * \brief Common Separator
- */
-#define BIDI_TYPE_CS    (BIDI_MASK_WEAK + BIDI_MASK_NUMSEPTER \
-                        + BIDI_MASK_CS)
-
-/**
- * \def BIDI_TYPE_NSM
- * \brief Non spacing mark
- */
-#define BIDI_TYPE_NSM    (BIDI_MASK_WEAK + BIDI_MASK_NSM)
-
-/**
- * \def BIDI_TYPE_BN
- * \brief Boundary neutral
- */
-#define BIDI_TYPE_BN    (BIDI_MASK_WEAK + BIDI_MASK_SPACE \
-                        + BIDI_MASK_BN)
-
-/**
- * \def BIDI_TYPE_BS
- * \brief Block separator
- */
-#define BIDI_TYPE_BS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
-                        + BIDI_MASK_SEPARATOR + BIDI_MASK_BS)
-
-/**
- * \def BIDI_TYPE_SS
- * \brief Segment separator
- */
-#define BIDI_TYPE_SS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
-                        + BIDI_MASK_SEPARATOR + BIDI_MASK_SS)
-/**
- * \def BIDI_TYPE_WS
- * \brief Whitespace
- */
-#define BIDI_TYPE_WS    (BIDI_MASK_NEUTRAL + BIDI_MASK_SPACE \
-                        + BIDI_MASK_WS)
-
-/**
- * \def BIDI_TYPE_ON
- * \brief Other Neutral
- */
-#define BIDI_TYPE_ON    (BIDI_MASK_NEUTRAL)
-
-    /** @} end of glyph_bidi_types */
-
-/* The following are used to identify the paragraph direction,
-   types L, R, N are not used internally anymore, and recommended to use
-   LTR, RTL and ON instead, didn't removed because of compatability. */
-
-#define BIDI_TYPE_L        (BIDI_TYPE_LTR)
-#define BIDI_TYPE_R        (BIDI_TYPE_RTL)
-#define BIDI_TYPE_N        (BIDI_TYPE_ON)
-/* Weak left to right */
-#define BIDI_TYPE_WL    (BIDI_MASK_WEAK)
-/* Weak right to left */
-#define BIDI_TYPE_WR    (BIDI_MASK_WEAK + BIDI_MASK_RTL)
-
-/* The following are only used internally */
-
-/* Start of text */
-#define BIDI_TYPE_SOT    (BIDI_MASK_SENTINEL)
-/* End of text */
-#define BIDI_TYPE_EOT    (BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
-
-/* Is private-use value? */
-#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
-
-/* Return the direction of the level number, BIDI_TYPE_LTR for even and
-   BIDI_TYPE_RTL for odds. */
-#define BIDI_LEVEL_TO_DIR(lev) (BIDI_TYPE_LTR | (lev & 1))
-
-/* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
-   1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
-#define BIDI_DIR_TO_LEVEL(dir) ((BYTE)(dir & 1))
-
-/* Is right to left? */
-#define BIDI_IS_RTL(p)      ((p) & BIDI_MASK_RTL)
-/* Is arabic? */
-#define BIDI_IS_ARABIC(p)   ((p) & BIDI_MASK_ARABIC)
-
-/* Is strong? */
-#define BIDI_IS_STRONG(p)   ((p) & BIDI_MASK_STRONG)
-/* Is weak? */
-#define BIDI_IS_WEAK(p)     ((p) & BIDI_MASK_WEAK)
-/* Is neutral? */
-#define BIDI_IS_NEUTRAL(p)  ((p) & BIDI_MASK_NEUTRAL)
-/* Is sentinel? */
-#define BIDI_IS_SENTINEL(p) ((p) & BIDI_MASK_SENTINEL)
-
-/* Is letter: L, R, AL? */
-#define BIDI_IS_LETTER(p)   ((p) & BIDI_MASK_LETTER)
-/* Is number: EN, AN? */
-#define BIDI_IS_NUMBER(p)   ((p) & BIDI_MASK_NUMBER)
-/* Is number separator or terminator: ES, ET, CS? */
-#define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
-    ((p) & BIDI_MASK_NUMSEPTER)
-
-/* Is space: BN, BS, SS, WS? */
-#define BIDI_IS_SPACE(p)    ((p) & BIDI_MASK_SPACE)
-/* Is explicit mark: LRE, RLE, LRO, RLO, PDF? */
-#define BIDI_IS_EXPLICIT(p) ((p) & BIDI_MASK_EXPLICIT)
-
-/* Is test separator: BS, SS? */
-#define BIDI_IS_SEPARATOR(p) ((p) & BIDI_MASK_SEPARATOR)
-
-/* Is explicit override: LRO, RLO? */
-#define BIDI_IS_OVERRIDE(p) ((p) & BIDI_MASK_OVERRIDE)
-
-/* Some more: */
-
-/* Is left to right letter: LTR? */
-#define BIDI_IS_LTR_LETTER(p) \
-    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) == BIDI_MASK_LETTER)
-
-/* Is right to left letter: RTL, AL? */
-#define BIDI_IS_RTL_LETTER(p) \
-    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) \
-    == (BIDI_MASK_LETTER | BIDI_MASK_RTL))
-
-/* Is ES or CS: ES, CS? */
-#define BIDI_IS_ES_OR_CS(p) \
-    ((p) & (BIDI_MASK_ES | BIDI_MASK_CS))
-
-/* Change numbers: EN, AN to RTL. */
-#define BIDI_NUMBER_TO_RTL(p) \
-        (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
-
-/**
- * \fn BOOL GUIAPI GetGlyphBIDIType (LOGFONT* logfont,
- *      Glyph32 glyph_value, Uint32 *bidi_type)
- * \brief Retriev the BIDI type of a glyph.
- *
- * This function retrieves the BIDI type of a glyph.
- *
- * \param logfont The logical font.
- * \param glyph_value The glyph value.
- * \param bidi_type The buffer storing the BIDI type of the glyph.
- *
- * \return TRUE if success, FALSE on failure.
- *
- * \sa GetGlyphInfo, GetGlyphType
- */
-MG_EXPORT BOOL GUIAPI GetGlyphBIDIType (LOGFONT* log_font,
-        Glyph32 glyph_value, Uint32 *bidi_type);
-
-/**
- * \fn int GUIAPI BIDIGetTextLogicalGlyphs(LOGFONT* log_font,
- *      const char* text, int text_len, Glyph32** glyphs,
- *      GLYPHMAPINFO** glyphs_map)
- * \brief Get logical glyphs string of the text.
- *
- * \param log_font The logical font.
- * \param text The logical text string.
- * \param text_len The lenght of the logical text string in bytes.
- * \param glyphs The pointer to the logical glyph string.
- * \param glyphs_map The position map from the logical glyphs string to
- *        the logical text.
- *
- * \return The length of the logical glyph string.
- *
- * \sa GLYPHMAPINFO
- */
-MG_EXPORT int GUIAPI BIDIGetTextLogicalGlyphs (LOGFONT* log_font,
-        const char* text, int text_len, Glyph32** glyphs,
-        GLYPHMAPINFO** glyphs_map);
-
-/**
- * \fn void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
- *      const char* text, int text_len,
- *      int start_index, int end_index,
- *      int** ranges, int* nr_ranges)
- * \brief Get a list of visual ranges corresponding to a given logical range.
- *
- * \param log_font The logical font.
- * \param text The pointer to the logical text string.
- * \param text_len The length of the logical text string in bytes.
- * \param start_index The start index of the logical range.
- * \param end_index The end index of the logical range.
- * \param ranges The pointer to store a pointer to an array of arranges.
- * \param nr_ranges The number of ranges stored in \a ranges.
- *
- * \return None.
- */
-MG_EXPORT void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
-        const char* text, int text_len, int start_index, int end_index,
-        int** ranges, int* nr_ranges);
-
-/** \fn int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
- *      const char* text, int text_len, Glyph32** glyphs,
- *      GLYPHMAPINFO** glyphs_map)
- * \brief Get visual glyphs and glyph_map info relative with logical
- *        string byte index.
- *
- * \param log_font The logical font.
- * \param text The logical text string.
- * \param text_len The length of the logical text string in bytes.
- * \param glyphs The pointer to the visual glyph string.
- * \param glyphs_map The position map from visual glyphs string to
- *        the logical text.
- *
- * \return The length of the visual glyph string.
- */
-MG_EXPORT int GUIAPI BIDIGetTextVisualGlyphs (LOGFONT* log_font,
-        const char* text, int text_len, Glyph32** glyphs,
-        GLYPHMAPINFO** glyphs_map);
-
-/*
- * \var typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos)
- * \brief The prototype of the user defined function to reverse an array.
- *
- * The function reverse an array pointed by \a extra from the position
- * specified by \a pos for the length specified by \a len.
- *
- * \sa BIDILogGlyphs2VisGlyphsEx
- */
-typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
-
-/** \fn BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
- *      Glyph32* glyphs, int nr_glyphs, int pel,
- *      void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
- * \brief Reorder the specified logical glyph string in visual order and
- * reorder an extra array to reflect the visule order of the glyphs.
- *
- * This function reorders the logical glyph string in place to visual order.
- * If \a extra and \a cb_reverse_extra are both not NULL, it also reorders
- * the array pointed by \a extra by calling the callback function
- * \a cb_reverse_extra.
- *
- * \param log_font The logical font.
- * \param glyphs The pointer to the glyph string.
- * \param nr_glyphs The length of the glyph string.
- * \param pel The paragraph embedding level, can be one of the following values:
- *          - 0: Level 0 (left to right)
- *          - 1: Level 1 (right to left)
- *          - others: Determine according to the heuristic given in
- *            steps P2 and P3 of the Unicode bidirectional algorithm.
- * \param extra The pointer to the extra array to reorder; can be NULL.
- * \param cb_reverse_extra The callback function to reverse the extra array.
- *
- * \return TRUE on success, otherwise FALSE.
- */
-MG_EXPORT BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, int pel,
-        void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
-
-/** \fn BOOL GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
- *      Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map)
- * \brief Reorder the specified logical glyph string in visual order and
- * reorder glyph map if specified.
- *
- * This function reorders the logical glyph string in place to visual order.
- * If \a glyphs_map is not NULL, it also reorders
- * the map to reflect the visual order.
- *
- * \param log_font The logical font.
- * \param glyphs The pointer to the glyph string.
- * \param nr_glyphs The length of the glyph string.
- * \param glyphs_map The position map returned by \a BIDIGetTextLogicalGlyphs;
- *          can be NULL.
- *
- * \return The pointer to the visual glyphs; NULL when error.
- */
-MG_EXPORT Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, GLYPHMAPINFO* glyphs_map);
-
-/**
- * \fn void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font, \
-        const Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels)
- * \brief Get the logical embedding levels for the logical glyph string
- *        and generate runs by embedding levels, the for reorder to get
- *        visual glyph string.
- *
- * \param log_font The logical font.
- * \param glyphs The pointer to the logical glyph string.
- * \param nr_glyphs The length of the glyph string.
- * \param pel The paragraph embedding level, can be one of the following values:
- *          - 0: Level 0 (left to right)
- *          - 1: Level 1 (right to left)
- *          - others: Determine according to the heuristic given in
- *            steps P2 and P3 of the Unicode bidirectional algorithm.
- * \param embed_levels The logical embedding level.
- *
- * \return None.
- */
-MG_EXPORT void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels);
-
-static inline void BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
-{
-    BIDIGetLogicalEmbedLevelsEx (log_font, glyphs, nr_glyphs, -1, embed_levels);
-}
-
-/**
- * \fn void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
-        const Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels)
- * \brief Get the visual embedding levels for the given logical glyph
- *        string, then you can get the edge for visual glyphs.
- *
- * \param log_font The logical font.
- * \param glyphs The pointer to the logical glyph string.
- * \param nr_glyphs The length of the glyph string.
- * \param pel The paragraph embedding level, can be one of the following values:
- *          - 0\n
- *            Level 0 (left to right)
- *          - 1\n
- *            Level 1 (right to left)
- *          - others\n
- *            Determine according to the heuristic given in
- *            steps P2 and P3 of the Unicode bidirectional algorithm.
- * \param embed_levels The embedding level logical to visual.
- *
- * \return void.
- */
-MG_EXPORT void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, int pel, Uint8** embed_levels);
-
-static inline void BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
-        Glyph32* glyphs, int nr_glyphs, Uint8** embed_levels)
-{
-    BIDIGetVisualEmbedLevelsEx (log_font, glyphs, nr_glyphs, -1, embed_levels);
-}
 
     /** @} end of glyph */
 /*

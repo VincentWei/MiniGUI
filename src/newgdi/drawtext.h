@@ -69,7 +69,7 @@ static inline int _gdi_get_glyph_advance (PDC pdc, Glyph32 glyph_value,
             BOOL direction, int x, int y, int* adv_x, int* adv_y, BBOX* bbox)
 {
     LOGFONT* logfont = pdc->pLogFont;
-    DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
+    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, glyph_value);
     glyph_value = REAL_GLYPH (glyph_value);
 
     return _font_get_glyph_advance (logfont, devfont, glyph_value,

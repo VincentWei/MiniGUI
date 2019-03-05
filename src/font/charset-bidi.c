@@ -133,7 +133,7 @@ static void print_run_types(TYPERUN *pp)
     fprintf (stderr, "\n");
 } 
 
-static void print_hexstr(Glyph32* str, int len, BOOL reorder_state)
+static void print_hexstr(Achar32* str, int len, BOOL reorder_state)
 {
     int m = 0;
 
@@ -154,7 +154,7 @@ static void print_hexstr(Glyph32* str, int len, BOOL reorder_state)
 
 #else /* BIDI_DEBUG */
 
-inline static void print_hexstr(Glyph32* str, int len, BOOL reorder_state)
+inline static void print_hexstr(Achar32* str, int len, BOOL reorder_state)
 {
     return;
 }
@@ -218,7 +218,7 @@ static void compact_neutrals (TYPERUN *list)
         (p) = (q);	        \
     } while (0)
 
-static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len)
+static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Achar32* achars, int len)
 {
     int type = 0;
     TYPERUN *list, *last, *link;
@@ -231,7 +231,7 @@ static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Glyph32* glyphs
     last = list;
 
     for (i = 0; i < len; i++){
-        if ((type = charset_ops->bidi_char_type (glyphs[i])) != last->type){
+        if ((type = charset_ops->bidi_char_type (achars[i])) != last->type){
             link = calloc(1, sizeof(TYPERUN));
             link->type = type;
             link->pos = i;
@@ -473,7 +473,7 @@ static int bidi_resolveImplicit(TYPERUN **ptype_rl_list, int base_level)
 
 /* 6.Resolving Mirrored Char. */
 static void 
-bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len, 
+bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Achar32* achars, int len, 
         TYPERUN **ptype_rl_list, int base_level)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
@@ -486,9 +486,9 @@ bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
             int i;
             for (i = POS (pp); i < POS (pp) + LEN (pp); i++)
             {
-                Glyph32 mirrored_ch;
-                if (charset_ops->bidi_mirror_char && charset_ops->bidi_mirror_char (glyphs[i], &mirrored_ch))
-                    glyphs[i] = mirrored_ch;
+                Achar32 mirrored_ch;
+                if (charset_ops->bidi_mirror_char && charset_ops->bidi_mirror_char (achars[i], &mirrored_ch))
+                    achars[i] = mirrored_ch;
             }
         }
     }
@@ -497,7 +497,7 @@ bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
 }
 
 static void bidi_resolve_string (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len, int pel,
+        Achar32* achars, int len, int pel,
         TYPERUN **ptype_rl_list, BYTE *pmax_level)
 {
     BYTE base_level = 0;
@@ -505,7 +505,7 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops,
     TYPERUN *type_rl_list = NULL;
 
     /* split the text to some runs. */
-    type_rl_list = get_runtype_link (charset_ops, glyphs, len);
+    type_rl_list = get_runtype_link (charset_ops, achars, len);
 
     /* 1.Find base level */
     if (pel != 0 && pel != 1) {
@@ -529,24 +529,24 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops,
     *pmax_level = bidi_resolveImplicit(&type_rl_list, base_level);
 
     /* 6.Resolving Mirrored Char. */
-    bidi_resolveMirrorChar (charset_ops, glyphs, len, &type_rl_list, base_level);
+    bidi_resolveMirrorChar (charset_ops, achars, len, &type_rl_list, base_level);
 
     *ptype_rl_list = type_rl_list;
 }
 
 typedef struct _REORDER_CONTEXT {
-    Glyph32* glyphs;
+    Achar32* achars;
     void* extra;
     CB_REVERSE_EXTRA cb;
 } REORDER_CONTEXT;
 
-static void bidi_reverse_glyphs (Glyph32* glyphs, int len, int pos)
+static void bidi_reverse_achars (Achar32* achars, int len, int pos)
 {
     int i;
-    Glyph32* gs = glyphs + pos;
+    Achar32* gs = achars + pos;
 
     for (i = 0; i < len / 2; i++) {
-        Glyph32 tmp = gs[i];
+        Achar32 tmp = gs[i];
         gs[i] = gs[len - 1 - i];
         gs[len - 1 - i] = tmp;
     }
@@ -573,8 +573,8 @@ static void bidi_reorder (REORDER_CONTEXT* context, int len,
                 }
                 pp = pp1->prev;
 
-                if (context->glyphs) {
-                    bidi_reverse_glyphs(context->glyphs, len, pos);
+                if (context->achars) {
+                    bidi_reverse_achars(context->achars, len, pos);
                 }
 
                 if (context->extra && context->cb) {
@@ -599,16 +599,16 @@ static void bidi_reverse_chars (void* context, int len, int pos)
 }
 
 void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len, int pel, Uint8* embedding_levels, Uint8 type)
+        Achar32* achars, int len, int pel, Uint8* embedding_levels, Uint8 type)
 {
     int i = 0;
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL, *pp;
 
-    print_hexstr(glyphs, len, FALSE);
+    print_hexstr(achars, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list,
+    bidi_resolve_string (charset_ops, achars, len, pel, &type_rl_list,
             &max_level);
 
     /* type = 0, get the logical embedding level; else visual level.*/
@@ -621,7 +621,7 @@ void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
     if (type) {
         REORDER_CONTEXT rc;
 
-        rc.glyphs = NULL;
+        rc.achars = NULL;
         rc.extra = embedding_levels;
         rc.cb = bidi_reverse_chars;
         bidi_reorder(&rc, len, &type_rl_list, max_level);
@@ -630,7 +630,7 @@ void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
     /* free typerun list.*/
     free_typerun_list(type_rl_list);
 
-    print_hexstr(glyphs, len, TRUE);
+    print_hexstr(achars, len, TRUE);
 }
 
 #if 0
@@ -646,8 +646,8 @@ static void bidi_map_reverse (void* context, int len, int pos)
     }
 }
 
-Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len, GLYPHMAPINFO* map, int pel)
+Achar32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
+        Achar32* achars, int len, GLYPHMAPINFO* map, int pel)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
@@ -656,10 +656,10 @@ Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
     int run_pos;
     int run_len;
 
-    print_hexstr(glyphs, len, FALSE);
+    print_hexstr(achars, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, achars, len, pel, &type_rl_list, &max_level);
 
     for (node_p=type_rl_list->next; node_p->next; node_p=node_p->next) {
         run_pos = node_p->pos;
@@ -677,21 +677,21 @@ Glyph32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
     /* free typerun list.*/
     free_typerun_list(type_rl_list);
 
-    print_hexstr(glyphs, len, TRUE);
+    print_hexstr(achars, len, TRUE);
 
-    return glyphs;
+    return achars;
 }
 
-Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len, int* index_map, int pel)
+Achar32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
+        Achar32* achars, int len, int* index_map, int pel)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
 
-    print_hexstr(glyphs, len, FALSE);
+    print_hexstr(achars, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list, &max_level);
+    bidi_resolve_string (charset_ops, achars, len, pel, &type_rl_list, &max_level);
 
     bidi_reorder_cb(index_map, len, &type_rl_list, max_level,
             bidi_string_reverse);
@@ -699,27 +699,27 @@ Glyph32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
     /* free typerun list.*/
     free_typerun_list(type_rl_list);
 
-    print_hexstr(glyphs, len, TRUE);
+    print_hexstr(achars, len, TRUE);
 
-    return glyphs;
+    return achars;
 }
 #endif
 
-Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len, int pel,
+Achar32* __mg_charset_bidi_achars_reorder (const CHARSETOPS* charset_ops,
+        Achar32* achars, int len, int pel,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
     REORDER_CONTEXT rc;
 
-    print_hexstr(glyphs, len, FALSE);
+    print_hexstr(achars, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, glyphs, len, pel, &type_rl_list,
+    bidi_resolve_string (charset_ops, achars, len, pel, &type_rl_list,
         &max_level);
 
-    rc.glyphs = glyphs;
+    rc.achars = achars;
     rc.extra = extra;
     rc.cb = cb_reverse_extra;
     bidi_reorder (&rc, len, &type_rl_list, max_level);
@@ -727,20 +727,20 @@ Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops,
     /* free typerun list.*/
     free_typerun_list (type_rl_list);
 
-    print_hexstr (glyphs, len, TRUE);
+    print_hexstr (achars, len, TRUE);
 
-    return glyphs;
+    return achars;
 }
 
 Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
-        Glyph32* glyphs, int len)
+        Achar32* achars, int len)
 {
     BYTE base_level = 0;
     Uint32 base_dir = BIDI_TYPE_L;
     TYPERUN *type_rl_list = NULL;
 
     /* split the text to some runs. */
-    type_rl_list = get_runtype_link (charset_ops, glyphs, len);
+    type_rl_list = get_runtype_link (charset_ops, achars, len);
 
     /* 1.Find base level */
     bidi_resolveParagraphs(&type_rl_list, &base_dir, &base_level);
@@ -749,18 +749,5 @@ Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
     free_typerun_list(type_rl_list);
 
     return base_dir;
-}
-
-BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value,
-        Uint32 *bidi_type)
-{
-    DEVFONT* devfont = SELECT_DEVFONT(log_font, glyph_value);
-
-    if (devfont == NULL ||
-            devfont->charset_ops->bidi_char_type == NULL)
-        return FALSE;
-
-    *bidi_type = devfont->charset_ops->bidi_char_type (glyph_value);
-    return TRUE;
 }
 

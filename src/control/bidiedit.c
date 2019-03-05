@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -76,10 +76,10 @@ static void sledit_refresh_caret (HWND hWnd, PBIDISLEDITDATA sled, BOOL bInited)
             else \
                 ShowCaret(hWnd);
 
-/* simple macro to access glyphs string.*/
-#define GLYPHS    (sled->glyph_content.glyphs)
-#define GLYPHSMAP  (sled->glyph_content.glyph_map)
-#define GLYPHSLEN  (sled->glyph_content.glyphs_len)
+/* simple macro to access achars string.*/
+#define ACHARS    (sled->achar_content.achars)
+#define ACHARSMAP  (sled->achar_content.achar_map)
+#define ACHARSLEN  (sled->achar_content.achars_len)
 
 /* simple macro to access text string.*/
 #define TEXT      (sled->str_content.string)
@@ -104,88 +104,88 @@ BOOL RegisterBIDISLEditControl (void)
 
 }
 
-static int get_line_rl_type (GLYPHMAPINFO* map, int len);
+static int get_line_rl_type (ACHARMAPINFO* map, int len);
 
-static int get_glyph_text_index (PBIDISLEDITDATA sled, int glyph_index)
+static int get_achar_text_index (PBIDISLEDITDATA sled, int achar_index)
 {
-    if (glyph_index < 0 || glyph_index > GLYPHSLEN)
+    if (achar_index < 0 || achar_index > ACHARSLEN)
         return -1;
 
-    if(glyph_index >= GLYPHSLEN){
-        int line_type = get_line_rl_type (GLYPHSMAP, GLYPHSLEN);
+    if(achar_index >= ACHARSLEN){
+        int line_type = get_line_rl_type (ACHARSMAP, ACHARSLEN);
         if(!line_type){
             return TEXTLEN;
         }
         else{
             return 0;
         }
-        //return (GLYPHSMAP[glyph_index - 1].byte_index);
-        //return (GLYPHSMAP[glyph_index - 1].byte_index
-        //      + GLYPHSMAP[glyph_index - 1].char_len);
+        //return (ACHARSMAP[achar_index - 1].byte_index);
+        //return (ACHARSMAP[achar_index - 1].byte_index
+        //      + ACHARSMAP[achar_index - 1].char_len);
     }
-        
-    return (*(GLYPHSMAP + glyph_index)).byte_index;
+
+    return (*(ACHARSMAP + achar_index)).byte_index;
 }
 
-static int get_text_glyph_index (PBIDISLEDITDATA sled, int text_index)
+static int get_text_achar_index (PBIDISLEDITDATA sled, int text_index)
 {
     int min, max;
     int i = 0;
-    GLYPHMAPINFO* map = GLYPHSMAP;
-      
+    ACHARMAPINFO* map = ACHARSMAP;
+
     if (text_index < 0 || text_index > TEXTLEN)
         return -1;
-    
-    for (; i < GLYPHSLEN; i++) {
+
+    for (; i < ACHARSLEN; i++) {
         min = (map + i)->byte_index;
         max = (map + i)->byte_index + ((map + i)->char_len - 1);
 
         if ( text_index >= min && text_index <= max)
-            return i;        
+            return i;
     }
     return -1;
 }
 
-int get_glyph_char_len(PBIDISLEDITDATA sled, int glyph_index)
+int get_achar_char_len(PBIDISLEDITDATA sled, int achar_index)
 {
-    if (glyph_index<0 || glyph_index > GLYPHSLEN)
+    if (achar_index<0 || achar_index > ACHARSLEN)
         return -1;
-        
-    return (*(GLYPHSMAP + glyph_index)).char_len;
+
+    return (*(ACHARSMAP + achar_index)).char_len;
 }
 
 
 
-/* Update glyph sring and glyph map info */
-static void update_glyph_info (HWND hWnd, PBIDISLEDITDATA sled) 
+/* Update achar sring and achar map info */
+static void update_achar_info (HWND hWnd, PBIDISLEDITDATA sled)
 {
     PLOGFONT log_font = GetWindowFont(hWnd);
 
     if (TEXT == NULL || TEXTLEN <= 0){
-        GLYPHSLEN = 0;
-        return; 
+        ACHARSLEN = 0;
+        return;
     }
 
-    if (!glyphbuf_realloc (&sled->glyph_content, TEXTLEN))
+    if (!acharbuf_realloc (&sled->achar_content, TEXTLEN))
         return;
 
-    GLYPHSLEN = BIDIGetTextVisualGlyphs (log_font, (const char*)TEXT, TEXTLEN, 
-                                    &GLYPHS,  &GLYPHSMAP);   
+    ACHARSLEN = BIDIGetTextVisualAChars (log_font,
+                    (const char*)TEXT, TEXTLEN, &ACHARS, &ACHARSMAP);
     return;
 }
 
-#define CHAR_TYPE_RTL      1    
+#define CHAR_TYPE_RTL      1
 #define CHAR_TYPE_LTR      0
 #define CHAR_TYPE_UNKKOWN  -1
 
-static int get_char_type (PBIDISLEDITDATA sled, int glyph_index)
+static int get_char_type (PBIDISLEDITDATA sled, int achar_index)
 {
-    if (glyph_index < 0 || glyph_index >= GLYPHSLEN)
+    if (achar_index < 0 || achar_index >= ACHARSLEN)
         return CHAR_TYPE_UNKKOWN;
- 
-    if (GLYPHSMAP[glyph_index].is_rtol)
+
+    if (ACHARSMAP[achar_index].is_rtol)
         return CHAR_TYPE_RTL;
-    else 
+    else
         return CHAR_TYPE_LTR;
 }
 
@@ -197,7 +197,7 @@ static void setup_dc (HWND hWnd, BIDISLEDITDATA *sled, HDC hdc, BOOL bSel)
     if (!bSel) {
 
         if (dwStyle & WS_DISABLED)
-            SetTextColor (hdc, 
+            SetTextColor (hdc,
                     GetWindowElementPixel (hWnd, WE_FGC_DISABLED_ITEM));
         else
             SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
@@ -209,17 +209,17 @@ static void setup_dc (HWND hWnd, BIDISLEDITDATA *sled, HDC hdc, BOOL bSel)
         SetBkMode (hdc, BM_OPAQUE);
 
         if (dwStyle & WS_DISABLED)
-            SetTextColor (hdc, 
+            SetTextColor (hdc,
                     GetWindowElementPixel (hWnd, WE_FGC_DISABLED_ITEM));
         else
-            SetTextColor (hdc, 
+            SetTextColor (hdc,
                     GetWindowElementPixel (hWnd, WE_FGC_SELECTED_ITEM));
 
         if (sled->status & EST_FOCUSED)
             SetBkColor (hdc,
                     GetWindowElementPixel (hWnd, WE_BGC_SELECTED_ITEM));
         else
-            SetBkColor (hdc, 
+            SetBkColor (hdc,
                     GetWindowElementPixel (hWnd, WE_BGC_SELECTED_LOSTFOCUS));
     }
 }
@@ -234,26 +234,26 @@ static int sledit_settext (HWND hWnd, PBIDISLEDITDATA sled, const char *newtext)
     if (sled->hardLimit >= 0 && txtlen > sled->hardLimit) {
         return -1;
     }
- 
+
     /* free the old text */
     if (TEXT){
         testr_free (&sled->str_content);
-        glyphbuf_free (&sled->glyph_content);
+        acharbuf_free (&sled->achar_content);
     }
 
     if (!testr_alloc (&sled->str_content, len, sled->nBlockSize))
         return -1;
-    
-    if (!glyphbuf_alloc (&sled->glyph_content, len, sled->nBlockSize))
+
+    if (!acharbuf_alloc (&sled->achar_content, len, sled->nBlockSize))
         return -1;
 
     if (newtext && txtlen > 0){
         testr_setstr (&sled->str_content, newtext, txtlen);
-        update_glyph_info(hWnd, sled);
+        update_achar_info(hWnd, sled);
     }
     else {
         TEXTLEN = 0;
-        GLYPHSLEN = 0;
+        ACHARSLEN = 0;
     }
 
     return 0;
@@ -280,7 +280,7 @@ static void recalcSize (HWND hWnd, PBIDISLEDITDATA sled, BOOL bInited)
 
     set_line_width (hWnd, sled);
 
-    sled->starty  = sled->topMargin + ( sled->rcVis.bottom - 
+    sled->starty  = sled->topMargin + ( sled->rcVis.bottom -
                     sled->rcVis.top - GetWindowFont (hWnd)->size - 1 ) / 2;
 
     sledit_refresh_caret (hWnd, sled, bInited);
@@ -313,7 +313,7 @@ static int sledit_init (HWND hWnd, PBIDISLEDITDATA sled)
 
     sled->nBlockSize = DEF_LINE_BLOCK_SIZE;
     sled->hardLimit      = -1;
-    
+
     if (pCtrl->dwStyle & ES_TIP) {
         sled->tiptext = FixStrAlloc (DEF_TIP_LEN + 1);
         sled->tiptext[0] = 0;
@@ -324,12 +324,12 @@ static int sledit_init (HWND hWnd, PBIDISLEDITDATA sled)
     sled->str_content.string = NULL;
     sled->str_content.buffsize = 0;
     sled->str_content.txtlen = 0;
-    
-    sled->glyph_content.glyphs = NULL;
-    sled->glyph_content.glyph_map = NULL;
-    sled->glyph_content.glyphs_len = 0;
-    sled->glyph_content.glyphs_buffsize = 0;
-    sled->glyph_content.glyphmap_buffsize = 0;
+
+    sled->achar_content.achars = NULL;
+    sled->achar_content.achar_map = NULL;
+    sled->achar_content.achars_len = 0;
+    sled->achar_content.achars_buffsize = 0;
+    sled->achar_content.acharmap_buffsize = 0;
 
     sledit_settext (hWnd, sled, pCtrl->spCaption);
 
@@ -350,7 +350,7 @@ static void sledit_destroy (HWND hWnd, PBIDISLEDITDATA sled)
     if ( (GetWindowStyle(hWnd) & ES_TIP) && sled->tiptext)
         FreeFixStr (sled->tiptext);
     testr_free (&sled->str_content);
-    glyphbuf_free (&sled->glyph_content);
+    acharbuf_free (&sled->achar_content);
 
     return;
 }
@@ -417,7 +417,7 @@ static int get_caretpos_x(HWND hWnd)
 static BOOL check_sel_edge(int* p, int* num, PBIDISLEDITDATA sled)
 {
     int i = 0;
-    if(p && sled->selStart == 0 && sled->selEnd >= GLYPHSLEN){
+    if(p && sled->selStart == 0 && sled->selEnd >= ACHARSLEN){
         p[0] = 0;
         p[1] = sled->selEnd;
         *num = 1;
@@ -427,9 +427,9 @@ static BOOL check_sel_edge(int* p, int* num, PBIDISLEDITDATA sled)
     /* check the ranges. */
     if(!p || *num <= 0) return FALSE;
     for(i = 0; i < *num; i++){
-        if(p[i] < 0 || p[i] > GLYPHSLEN)
+        if(p[i] < 0 || p[i] > ACHARSLEN)
             return FALSE;
-        if(p[i+1] < 0 || p[i+1] > GLYPHSLEN)
+        if(p[i+1] < 0 || p[i+1] > ACHARSLEN)
             return FALSE;
     }
 
@@ -438,8 +438,8 @@ static BOOL check_sel_edge(int* p, int* num, PBIDISLEDITDATA sled)
         p[1] -= 1;
     }
 
-    if(p[1] == GLYPHSLEN){
-        sled->selEnd = GLYPHSLEN;
+    if(p[1] == ACHARSLEN){
+        sled->selEnd = ACHARSLEN;
     }
     return TRUE;
 }
@@ -448,10 +448,10 @@ static BOOL check_sel_edge(int* p, int* num, PBIDISLEDITDATA sled)
 static void print_ranges(int* ranges, int nr_ranges, PBIDISLEDITDATA sled)
 {
     int i = 0;
-    int start_byte_index = get_glyph_text_index(sled, sled->selStart);
-    int end_byte_index = get_glyph_text_index (sled, sled->selEnd);
+    int start_byte_index = get_achar_text_index(sled, sled->selStart);
+    int end_byte_index = get_achar_text_index (sled, sled->selEnd);
     if(ranges){
-        _MG_PRINTF("sel_glyph-[%d,%d], sel_byte = [%d, %d]\n",
+        _MG_PRINTF("sel_achar-[%d,%d], sel_byte = [%d, %d]\n",
                 sled->selStart, sled->selEnd,
                 start_byte_index, end_byte_index);
 
@@ -464,7 +464,7 @@ static void print_ranges(int* ranges, int nr_ranges, PBIDISLEDITDATA sled)
         _MG_PRINTF("\n");
     }
 }
-#endif 
+#endif
 
 static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
 {
@@ -475,11 +475,11 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
     int startx = 0;
     int* ranges = NULL;
     int  nr_ranges = 0;
-    Glyph32* glyph_string = GLYPHS;
+    Achar32* achar_string = ACHARS;
     int  i = 0;
     int* p = NULL;
-   
-    if (dwStyle & ES_TIP && TEXTLEN <= 0 && 
+
+    if (dwStyle & ES_TIP && TEXTLEN <= 0 &&
         GetFocus(GetParent(hWnd)) != hWnd) {
         setup_dc (hWnd, sled, hdc, FALSE);
         TextOut (hdc, sled->leftMargin, starty, sled->tiptext);
@@ -498,23 +498,23 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
         MoveTo (hdc, sled->leftMargin, sled->rcVis.bottom);
         LineTo (hdc, sled->rcVis.right, sled->rcVis.bottom);
 #else
-        DrawHDotLine (hdc, 
+        DrawHDotLine (hdc,
                     sled->leftMargin, sled->rcVis.bottom,
                     sled->rcVis.right - sled->rcVis.left);
 #endif
     }
 
-    /*some glyphs of arabic font have pixels out of them widths*/
+    /*some achars of arabic font have pixels out of them widths*/
     //sled->rcVis.right += 4;
     ClipRectIntersect (hdc, &sled->rcVis);
 
-    if (sled->selStart != sled->selEnd) { 
+    if (sled->selStart != sled->selEnd) {
         PLOGFONT log_font = GetWindowFont(hWnd);
-        int start_byte_index = get_glyph_text_index(sled, sled->selStart);
-        int end_byte_index = get_glyph_text_index (sled, sled->selEnd);
+        int start_byte_index = get_achar_text_index(sled, sled->selStart);
+        int end_byte_index = get_achar_text_index (sled, sled->selEnd);
 
         BIDIGetTextRangesLog2Vis(log_font, (char*)TEXT, TEXTLEN,
-                start_byte_index, end_byte_index, 
+                start_byte_index, end_byte_index,
                 &ranges, &nr_ranges);
 
         p = ranges;
@@ -523,9 +523,9 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
             ranges = p = NULL;
         }
 
-#ifdef _DEBUG 
+#ifdef _DEBUG
         print_ranges (p, nr_ranges, sled);
-#endif 
+#endif
         startx = sled->startx;
         sleContentToWindow (sled, &startx);
         while (p && i < nr_ranges){
@@ -538,44 +538,44 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
             /* draw normal string. */
             setup_dc (hWnd, sled, hdc, FALSE);
             outw += DrawGlyphString (hdc, startx + outw, starty,
-                    glyph_string, len, NULL, NULL);
+                    achar_string, len, NULL, NULL);
             /* draw selected string.*/
             setup_dc (hWnd, sled, hdc, TRUE);
-            outw += DrawGlyphString (hdc, startx + outw, starty, 
-                    glyph_string + len, *(p + 1) - *p, NULL, NULL);
+            outw += DrawGlyphString (hdc, startx + outw, starty,
+                    achar_string + len, *(p + 1) - *p, NULL, NULL);
 
-            glyph_string = GLYPHS + *(p + 1);
+            achar_string = ACHARS + *(p + 1);
 
-            p += 2; 
-            i++;       
+            p += 2;
+            i++;
         }
 
         /* draw the last rest normal string if necessary.*/
-        if (p && GLYPHSLEN > *(p-1)) {
+        if (p && ACHARSLEN > *(p-1)) {
             setup_dc (hWnd, sled, hdc, FALSE);
             outw += DrawGlyphString (hdc, startx + outw, starty,
-                    glyph_string, GLYPHSLEN - *(p - 1), NULL, NULL);
+                    achar_string, ACHARSLEN - *(p - 1), NULL, NULL);
         }
         else if(!p || nr_ranges == 0){
             /* draw first normal chars */
             if (sled->selStart > 0) {
                 setup_dc (hWnd, sled, hdc, FALSE);
                 outw += DrawGlyphString (hdc, startx + outw, starty,
-                        glyph_string, sled->selStart, NULL, NULL);
-                glyph_string += sled->selStart;
+                        achar_string, sled->selStart, NULL, NULL);
+                achar_string += sled->selStart;
             }
 
             /* draw selected chars */
             setup_dc (hWnd, sled, hdc, TRUE);
                 outw += DrawGlyphString (hdc, startx + outw, starty,
-                        glyph_string, sled->selEnd - sled->selStart, NULL, NULL);
-            glyph_string += sled->selEnd - sled->selStart;
+                        achar_string, sled->selEnd - sled->selStart, NULL, NULL);
+            achar_string += sled->selEnd - sled->selStart;
 
             /* draw others */
-            if (sled->selEnd < GLYPHSLEN) {
+            if (sled->selEnd < ACHARSLEN) {
                 setup_dc (hWnd, sled, hdc, FALSE);
                 outw += DrawGlyphString (hdc, startx + outw, starty,
-                        glyph_string, GLYPHSLEN - sled->selEnd, NULL, NULL);
+                        achar_string, ACHARSLEN - sled->selEnd, NULL, NULL);
             }
 
         }
@@ -587,23 +587,23 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
         setup_dc (hWnd, sled, hdc, FALSE);
         startx = sled->startx;
         sleContentToWindow (sled, &startx);
-        DrawGlyphString (hdc, startx, starty, glyph_string, GLYPHSLEN, NULL, NULL);
+        DrawGlyphString (hdc, startx, starty, achar_string, ACHARSLEN, NULL, NULL);
     }
 
     if (dwStyle & ES_PASSWORD)
         FreeFixStr (passwdBuffer);
 }
 
-static int 
+static int
 sleSetSel (HWND hWnd, PBIDISLEDITDATA sled, int sel_start, int sel_end)
 {
-    if (GLYPHSLEN <= 0)
+    if (ACHARSLEN <= 0)
         return -1;
 
     if (sel_start < 0)
         sel_start = 0;
     if (sel_end < 0)
-        sel_end = GLYPHSLEN;
+        sel_end = ACHARSLEN;
     if (sel_start == sel_end)
         return -1;
 
@@ -615,7 +615,7 @@ sleSetSel (HWND hWnd, PBIDISLEDITDATA sled, int sel_start, int sel_end)
     return sled->selEnd - sled->selStart;
 }
 
-/* 
+/*
  * set caret position according to the new desired x coordinate.
  */
 static void set_caret_pos (HWND hWnd, PBIDISLEDITDATA sled, int x, BOOL bSel)
@@ -623,10 +623,10 @@ static void set_caret_pos (HWND hWnd, PBIDISLEDITDATA sled, int x, BOOL bSel)
 #ifdef _DEBUG
     int out_chars = 0;
 #endif
-    int out_glyphs = 0;
+    int out_achars = 0;
     HDC hdc;
     SIZE txtsize;
-    
+
     hdc = GetClientDC (hWnd);
 
     sleWindowToContent (sled, &x);
@@ -638,28 +638,28 @@ static void set_caret_pos (HWND hWnd, PBIDISLEDITDATA sled, int x, BOOL bSel)
         txtsize.cx = 0;
     }
     else {
-        out_glyphs = GetGlyphsExtentPoint (hdc, GLYPHS, GLYPHSLEN,
+        out_achars = GetGlyphsExtentPoint (hdc, ACHARS, ACHARSLEN,
                                           x - sled->startx, &txtsize);
 #ifdef _DEBUG
-        if(out_glyphs <= GLYPHSLEN){
-            out_chars = get_glyph_text_index(sled, out_glyphs);
+        if(out_achars <= ACHARSLEN){
+            out_chars = get_achar_text_index(sled, out_achars);
         }
 #endif
-        _MG_PRINTF ("editPos=%d,out_chars=%d\n", out_glyphs, out_chars);
+        _MG_PRINTF ("editPos=%d,out_chars=%d\n", out_achars, out_chars);
     }
     if (!bSel) {
         sled->selStart = sled->selEnd = 0;
-        sled->editPos = out_glyphs;
+        sled->editPos = out_achars;
         mySetCaretPos (hWnd, sled, txtsize.cx + sled->startx);
     }
     else {
-        if (out_glyphs > sled->editPos) {
+        if (out_achars > sled->editPos) {
             sled->selStart = sled->editPos;
-            sled->selEnd = out_glyphs;
+            sled->selEnd = out_achars;
         }
         else {
             sled->selEnd = sled->editPos;
-            sled->selStart = out_glyphs;
+            sled->selStart = out_achars;
         }
     }
 
@@ -680,30 +680,30 @@ static BOOL make_pos_visible (HWND hWnd, PBIDISLEDITDATA sled, int x)
 }
 
 
-static BOOL 
-make_charpos_visible (HWND hWnd, PBIDISLEDITDATA sled, int glyph_pos, int *cx)
+static BOOL
+make_charpos_visible (HWND hWnd, PBIDISLEDITDATA sled, int achar_pos, int *cx)
 {
-    SIZE glyphs_size;
+    SIZE achars_size;
     HDC hdc;
 
-    if (glyph_pos <= 0)
-        glyphs_size.cx = 0;
+    if (achar_pos <= 0)
+        achars_size.cx = 0;
     else {
-        /* check the glyph_pos. */
-        if(glyph_pos > GLYPHSLEN)
-            glyph_pos = GLYPHSLEN;
+        /* check the achar_pos. */
+        if(achar_pos > ACHARSLEN)
+            achar_pos = ACHARSLEN;
 
         hdc = GetClientDC (hWnd);
-        GetGlyphsExtent (hdc, GLYPHS, glyph_pos, &glyphs_size);
+        GetGlyphsExtent (hdc, ACHARS, achar_pos, &achars_size);
         ReleaseDC (hdc);
     }
     if (cx)
-        *cx = sled->startx + glyphs_size.cx;
+        *cx = sled->startx + achars_size.cx;
 
-    return make_pos_visible (hWnd, sled, sled->startx + glyphs_size.cx);
+    return make_pos_visible (hWnd, sled, sled->startx + achars_size.cx);
 }
 
-static void 
+static void
 calc_content_width(HWND hWnd, PBIDISLEDITDATA sled, int charPos, int *cx)
 {
     SIZE txtsize;
@@ -722,22 +722,22 @@ calc_content_width(HWND hWnd, PBIDISLEDITDATA sled, int charPos, int *cx)
     return;
 }
 
-static void 
-calc_glyph_pos_cx (HWND hWnd, PBIDISLEDITDATA sled, int glyph_pos, int *cx)
+static void
+calc_achar_pos_cx (HWND hWnd, PBIDISLEDITDATA sled, int achar_pos, int *cx)
 {
-    SIZE glyphs_size;
+    SIZE achars_size;
     HDC hdc;
 
-    if (glyph_pos <= 0)
-        glyphs_size.cx = 0;
+    if (achar_pos <= 0)
+        achars_size.cx = 0;
     else {
         hdc = GetClientDC (hWnd);
-        GetTextExtent (hdc, (const char*)GLYPHS, glyph_pos, &glyphs_size);
+        GetTextExtent (hdc, (const char*)ACHARS, achar_pos, &achars_size);
         ReleaseDC (hdc);
     }
     if (cx)
-        *cx = sled->startx + glyphs_size.cx;
-        
+        *cx = sled->startx + achars_size.cx;
+
 }
 
 /*
@@ -776,7 +776,7 @@ static int sleMouseMove (HWND hWnd, PBIDISLEDITDATA sled, LPARAM lParam)
 
     ScreenToClient(hWnd, &mouseX, &mouseY);
     GetClientRect(hWnd, &rcClient);
-    
+
     if(mouseX >= 0 && mouseX < rcClient.right
        && mouseY >= 0 && mouseY < rcClient.bottom) {//in edit window
         set_caret_pos (hWnd, sled, mouseX, TRUE);
@@ -796,17 +796,17 @@ static int sleMouseMove (HWND hWnd, PBIDISLEDITDATA sled, LPARAM lParam)
         HDC hdc;
         SIZE size;
         sled->selStart = sled->editPos;
-        sled->selEnd = GLYPHSLEN;
-        //sled->nContX = sled->nContW - (sled->rcVis.right - sled->rcVis.left); 
+        sled->selEnd = ACHARSLEN;
+        //sled->nContX = sled->nContW - (sled->rcVis.right - sled->rcVis.left);
         hdc = GetClientDC (hWnd);
-        sled->nContX = GetGlyphsExtent (hdc, GLYPHS, GLYPHSLEN, &size) - (sled->rcVis.right - sled->rcVis.left);
+        sled->nContX = GetGlyphsExtent (hdc, ACHARS, ACHARSLEN, &size) - (sled->rcVis.right - sled->rcVis.left);
         ReleaseDC (hdc);
-        printf ("nContX = %d. nContW = %d, rcVis.right = %d, rcVis.left = %d.\n", 
+        printf ("nContX = %d. nContW = %d, rcVis.right = %d, rcVis.left = %d.\n",
                 sled->nContX, sled->nContW, sled->rcVis.right, sled->rcVis.left);
 #endif
     }
     else if (mouseX < 0) {
-        if (sled->selEnd == GLYPHSLEN) {
+        if (sled->selEnd == ACHARSLEN) {
             set_caret_pos (hWnd, sled, 0, TRUE);
             make_charpos_visible (hWnd, sled, sled->selStart, NULL);
             goto quit;
@@ -819,10 +819,10 @@ static int sleMouseMove (HWND hWnd, PBIDISLEDITDATA sled, LPARAM lParam)
         refresh = make_charpos_visible (hWnd, sled, sled->selStart, NULL);
     }
     else if (mouseX >= rcClient.right) {
-        if (sled->selStart == 0) 
+        if (sled->selStart == 0)
             set_caret_pos (hWnd, sled, rcClient.right - 1, TRUE);
 
-        if (sled->selEnd == GLYPHSLEN)
+        if (sled->selEnd == ACHARSLEN)
             return 0;
 
         sled->selEnd++;
@@ -839,7 +839,7 @@ quit:
 
 static void set_line_width (HWND hWnd, PBIDISLEDITDATA sled)
 {
-    SIZE glyphs_size;
+    SIZE achars_size;
     HDC hdc;
     DWORD dwStyle = GetWindowStyle(hWnd);
     int old_w = sled->nContW;
@@ -847,13 +847,13 @@ static void set_line_width (HWND hWnd, PBIDISLEDITDATA sled)
     hdc = GetClientDC (hWnd);
 
     SelectFont (hdc, GetWindowFont(hWnd));
-    update_glyph_info(hWnd, sled);
+    update_achar_info(hWnd, sled);
 
-    GetGlyphsExtent (hdc, GLYPHS, GLYPHSLEN, &glyphs_size);
+    GetGlyphsExtent (hdc, ACHARS, ACHARSLEN, &achars_size);
     ReleaseDC (hdc);
 
-    if (glyphs_size.cx > sled->nVisW)
-        sled->nContW = glyphs_size.cx;
+    if (achars_size.cx > sled->nVisW)
+        sled->nContW = achars_size.cx;
     else
         sled->nContW = sled->nVisW;
 
@@ -873,10 +873,10 @@ static void set_line_width (HWND hWnd, PBIDISLEDITDATA sled)
     if (sled->nContW > sled->nVisW)
         sled->startx = 0;
     else if (dwStyle & ES_RIGHT) {
-        sled->startx = sled->nVisW - glyphs_size.cx;
+        sled->startx = sled->nVisW - achars_size.cx;
     }
     else if (dwStyle & ES_CENTER) {
-        sled->startx = (sled->nVisW - glyphs_size.cx) >> 1;
+        sled->startx = (sled->nVisW - achars_size.cx) >> 1;
     }
     else {
         sled->startx = 0;
@@ -887,7 +887,7 @@ static void set_line_width (HWND hWnd, PBIDISLEDITDATA sled)
 
 static inline void edtChangeCont (HWND hWnd, PBIDISLEDITDATA sled)
 {
-    update_glyph_info (hWnd, sled);
+    update_achar_info (hWnd, sled);
     set_line_width (hWnd, sled);
 }
 
@@ -902,16 +902,16 @@ static void check_valid_passwd (char *newtext)
     }
 }
 
-static int get_glyph_bytes (PBIDISLEDITDATA sled, int glyph_index)
+static int get_achar_bytes (PBIDISLEDITDATA sled, int achar_index)
 {
-    if (glyph_index < 0 || glyph_index > GLYPHSLEN)
+    if (achar_index < 0 || achar_index > ACHARSLEN)
         return 0;
 
-    if(glyph_index >= GLYPHSLEN){
+    if(achar_index >= ACHARSLEN){
         return 0;
     }
-        
-    return (*(GLYPHSMAP + glyph_index)).char_len;
+
+    return (*(ACHARSMAP + achar_index)).char_len;
 }
 
 static void del_selected_text (HWND hWnd, PBIDISLEDITDATA sled)
@@ -926,25 +926,25 @@ static void del_selected_text (HWND hWnd, PBIDISLEDITDATA sled)
         if (sled->selStart < 0 || sled->selEnd < 0)
             return;
 
-        if(sled->selStart == 0 && sled->selEnd == GLYPHSLEN){
-            s = 0; 
-            e = TEXTLEN; 
+        if(sled->selStart == 0 && sled->selEnd == ACHARSLEN){
+            s = 0;
+            e = TEXTLEN;
         }
         else{
-            s = get_glyph_text_index(sled, sled->selStart);
-            e = get_glyph_text_index(sled, sled->selEnd);
-            /*add end glyph char_len.*/
+            s = get_achar_text_index(sled, sled->selStart);
+            e = get_achar_text_index(sled, sled->selEnd);
+            /*add end achar char_len.*/
             if(s > e)
-                end_byte_index += get_glyph_bytes(sled, sled->selStart);
+                end_byte_index += get_achar_bytes(sled, sled->selStart);
             else
-                end_byte_index += get_glyph_bytes(sled, sled->selEnd);
+                end_byte_index += get_achar_bytes(sled, sled->selEnd);
         }
 
         start_byte_index = MIN(s, e);
         end_byte_index = MAX (s, e);
 
 
-        _MG_PRINTF("delete: sel_glyph-[%d,%d], sel_byte = [%d, %d]\n",
+        _MG_PRINTF("delete: sel_achar-[%d,%d], sel_byte = [%d, %d]\n",
                 sled->selStart, sled->selEnd,
                 start_byte_index, end_byte_index);
 
@@ -959,17 +959,17 @@ static void del_selected_text (HWND hWnd, PBIDISLEDITDATA sled)
         ShowCaret(hWnd);
    }
 
-   return; 
+   return;
 
 }
 
-static int 
-sleBackspaceText (HWND hWnd, PBIDISLEDITDATA sled, int del_char_num, 
+static int
+sleBackspaceText (HWND hWnd, PBIDISLEDITDATA sled, int del_char_num,
         BOOL refresh, BOOL is_del)
 {
     int del_pos;
     unsigned char *pIns, *str_content = TEXT;
-    int old_glyphs_len = GLYPHSLEN;
+    int old_achars_len = ACHARSLEN;
     int edit_pos_offset = 0;
 
     if(sled->selStart != sled->selEnd) {
@@ -977,7 +977,7 @@ sleBackspaceText (HWND hWnd, PBIDISLEDITDATA sled, int del_char_num,
         del_char_num = 0;
    }
 
-    del_pos = get_glyph_text_index(sled, sled->editPos - 1) + 1;
+    del_pos = get_achar_text_index(sled, sled->editPos - 1) + 1;
 
     if (del_char_num > 0) {
         pIns = str_content + del_pos;
@@ -994,7 +994,7 @@ sleBackspaceText (HWND hWnd, PBIDISLEDITDATA sled, int del_char_num,
             sled->editPos --;
     }
     else {
-        edit_pos_offset = old_glyphs_len - GLYPHSLEN;
+        edit_pos_offset = old_achars_len - ACHARSLEN;
         if (del_char_num > 0 && edit_pos_offset > 0
             && sled->editPos >= edit_pos_offset )
             sled->editPos -= edit_pos_offset;
@@ -1018,70 +1018,70 @@ sleBackspaceText (HWND hWnd, PBIDISLEDITDATA sled, int del_char_num,
 }
 
 static int ascii_bidi_type[] = {
-    /*0x00~0x0f*/ 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_SS,  BIDI_TYPE_BS,  BIDI_TYPE_SS, 
+    /*0x00~0x0f*/
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
+    BIDI_TYPE_BN,  BIDI_TYPE_SS,  BIDI_TYPE_BS,  BIDI_TYPE_SS,
     BIDI_TYPE_WS,  BIDI_TYPE_BS,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
 
-    /*0x10~0x1f*/  
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
-    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN, 
+    /*0x10~0x1f*/
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
+    BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
     BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_BS,  BIDI_TYPE_SS,
 
-    /*0x20~0x2f*/  
-    BIDI_TYPE_WS,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ET, 
-    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON, 
-    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ES, 
+    /*0x20~0x2f*/
+    BIDI_TYPE_WS,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ET,
+    BIDI_TYPE_ET,  BIDI_TYPE_ET,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+    BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ES,
     BIDI_TYPE_CS,  BIDI_TYPE_ES,  BIDI_TYPE_CS,  BIDI_TYPE_CS,
 
-    /*0x30~0x3f*/  
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN, 
-    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_CS,  BIDI_TYPE_ON, 
+    /*0x30~0x3f*/
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_EN,
+    BIDI_TYPE_EN,  BIDI_TYPE_EN,  BIDI_TYPE_CS,  BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
 
-    /*0x40~0x4f*/  
+    /*0x40~0x4f*/
     BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
 
-    /*0x50~0x6f*/  
+    /*0x50~0x6f*/
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
-    /*0x60~0x6f*/  
+    /*0x60~0x6f*/
     BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
 
-    /*0x70~0x7f*/  
+    /*0x70~0x7f*/
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
-    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON, 
+    BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
 };
 
-static int inline get_glyph_bidi_type (LOGFONT* logfont, Glyph32 glyph)
+static int inline get_char_bidi_type (LOGFONT* logfont, Achar32 chv)
 {
     DEVFONT* devfont;
 
-    if (IS_MBC_GLYPH(glyph)) {
+    if (IS_MBCHV(chv)) {
         devfont = logfont->devfonts[1];
 
         if (devfont->charset_ops->bidi_char_type) {
-            return devfont->charset_ops->bidi_char_type (glyph);
+            return devfont->charset_ops->bidi_char_type (chv);
         }
         else {
             return BIDI_TYPE_LTR;
         }
     }
     else {
-        return ascii_bidi_type[glyph];
+        return ascii_bidi_type[chv];
     }
 
 }
@@ -1089,13 +1089,13 @@ static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_char_type,
         int r_char_type, int line_type)
 {
     int bidi_type;
-    Glyph32 glyph;
-    glyph = GetGlyphValue (logfont, newtext, strlen(newtext), NULL, 0);
+    Achar32 chv;
+    chv = GetACharValue (logfont, newtext, strlen(newtext), NULL, 0);
 
-    if (glyph == INV_GLYPH_VALUE)
+    if (chv == INV_ACHAR_VALUE)
         return -1;
 
-    bidi_type = get_glyph_bidi_type (logfont, glyph);
+    bidi_type = get_char_bidi_type (logfont, chv);
 
     if (BIDI_IS_STRONG(bidi_type))
     {
@@ -1118,7 +1118,7 @@ static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_char_type,
     {
         return l_char_type;
     }
-    /*no left glyph*/
+    /* no left char */
     else if (l_char_type == -1)
     {
         if (BIDI_IS_WEAK (bidi_type))
@@ -1126,7 +1126,7 @@ static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_char_type,
         else
             return line_type;
     }
-    /*no right glyph*/
+    /* no right char */
     else if (r_char_type == -1)
     {
         if (BIDI_IS_WEAK (bidi_type))
@@ -1141,7 +1141,7 @@ static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_char_type,
 
 }
 
-static int get_line_rl_type (GLYPHMAPINFO* map, int len)
+static int get_line_rl_type (ACHARMAPINFO* map, int len)
 {
     int i;
     for (i=0; i<len; i++)
@@ -1153,43 +1153,43 @@ static int get_line_rl_type (GLYPHMAPINFO* map, int len)
     return CHAR_TYPE_UNKKOWN;
 }
 
-#define INSERTPOS_BEFORE(sled, cur_glyph_index) \
-    ( (sled)->glyph_content.glyph_map[cur_glyph_index].byte_index )
+#define INSERTPOS_BEFORE(sled, cur_achar_index) \
+    ( (sled)->achar_content.achar_map[cur_achar_index].byte_index )
 
-#define INSERTPOS_AFTER(sled, cur_glyph_index) \
-    ( (sled)->glyph_content.glyph_map[cur_glyph_index].byte_index +  \
-     (sled)->glyph_content.glyph_map[cur_glyph_index].char_len )
+#define INSERTPOS_AFTER(sled, cur_achar_index) \
+    ( (sled)->achar_content.achar_map[cur_achar_index].byte_index +  \
+     (sled)->achar_content.achar_map[cur_achar_index].char_len )
 
 #define INSERTPOS_LINE_END(sled) \
     ((sled)->str_content.txtlen)
-   
 
-static int 
-get_insert_pos (PLOGFONT logfont, PBIDISLEDITDATA sled, char *newtext, 
+
+static int
+get_insert_pos (PLOGFONT logfont, PBIDISLEDITDATA sled, char *newtext,
         int* cur_type)
 {
-    int l_glyph_index = sled->editPos - 1;
-    int r_glyph_index = sled->editPos;
+    int l_achar_index = sled->editPos - 1;
+    int r_achar_index = sled->editPos;
 
-    int l_char_type = get_char_type (sled, l_glyph_index);
-    int r_char_type = get_char_type (sled, r_glyph_index);
+    int l_char_type = get_char_type (sled, l_achar_index);
+    int r_char_type = get_char_type (sled, r_achar_index);
 
-    int line_type = get_line_rl_type (GLYPHSMAP, GLYPHSLEN);
+    int line_type = get_line_rl_type (ACHARSMAP, ACHARSLEN);
 
     *cur_type = get_text_rl_type (logfont, newtext, l_char_type,
             r_char_type, line_type);
 
     if (*cur_type == CHAR_TYPE_RTL) {
         if (l_char_type == CHAR_TYPE_RTL) {
-            return INSERTPOS_BEFORE (sled, l_glyph_index);
+            return INSERTPOS_BEFORE (sled, l_achar_index);
         }
         else if (r_char_type == CHAR_TYPE_RTL) {
-            return INSERTPOS_AFTER (sled, r_glyph_index);
+            return INSERTPOS_AFTER (sled, r_achar_index);
         }
         else {
             /*L|L, or L|0(must in a L line)*/
             if (l_char_type == CHAR_TYPE_LTR) {
-                return INSERTPOS_AFTER (sled, l_glyph_index);
+                return INSERTPOS_AFTER (sled, l_achar_index);
             }
             /*0|L*/
             else if (r_char_type == CHAR_TYPE_LTR) {
@@ -1211,15 +1211,15 @@ get_insert_pos (PLOGFONT logfont, PBIDISLEDITDATA sled, char *newtext,
     }
     else {
         if (l_char_type == CHAR_TYPE_LTR) {
-            return INSERTPOS_AFTER (sled, l_glyph_index);
+            return INSERTPOS_AFTER (sled, l_achar_index);
         }
         else if (r_char_type == CHAR_TYPE_LTR) {
-            return INSERTPOS_BEFORE (sled, r_glyph_index);
+            return INSERTPOS_BEFORE (sled, r_achar_index);
         }
         else {
             /*R|R  or 0|R(must in R line)*/
             if (r_char_type == CHAR_TYPE_RTL) {
-                return INSERTPOS_AFTER (sled, r_glyph_index);
+                return INSERTPOS_AFTER (sled, r_achar_index);
             }
             /*R|0*/
             else if (l_char_type == CHAR_TYPE_RTL) {
@@ -1255,8 +1255,8 @@ static void print_text(PBIDISLEDITDATA sled)
 }
 #endif
 
-static int 
-sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext, 
+static int
+sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext,
                 int inserting, BOOL refresh)
 {
     int insert_pos;
@@ -1273,17 +1273,17 @@ sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext,
     //delete the seleted
     if(sled->selStart != sled->selEnd) {
         del_selected_text (hWnd, sled);
-        update_glyph_info (hWnd, sled);
+        update_achar_info (hWnd, sled);
     }
 
     insert_pos = get_insert_pos (GetWindowFont(hWnd), sled, newtext, &cur_type);
 
-#ifdef _DEBUG 
+#ifdef _DEBUG
     print_text (sled);
-#endif 
+#endif
 
     /* insert  and total char len > hardLimit in INSERT state */
-    if ( !(sled->status & EST_REPLACE) && 
+    if ( !(sled->status & EST_REPLACE) &&
            sled->hardLimit >= 0 &&
            ((TEXTLEN + inserting) > sled->hardLimit)) {
         Ping ();
@@ -1293,7 +1293,7 @@ sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext,
         if (!refresh)
             return 0;
     }      /* insert  and total char len > hardLimit in REPLACE state */
-    else if ( (sled->status & EST_REPLACE) && 
+    else if ( (sled->status & EST_REPLACE) &&
                sled->hardLimit >= 0 &&
                (insert_pos + inserting > sled->hardLimit) ) {
         Ping ();
@@ -1325,10 +1325,10 @@ sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext,
 
     /* RTL */
     if (cur_type == CHAR_TYPE_RTL) {
-        sled->editPos = get_text_glyph_index (sled, insert_pos);
+        sled->editPos = get_text_achar_index (sled, insert_pos);
     }
     else { /*LTR*/
-        sled->editPos = get_text_glyph_index (sled, insert_pos) + 1;    
+        sled->editPos = get_text_achar_index (sled, insert_pos) + 1;
     }
 
     sled->selStart = sled->selEnd = sled->editPos;
@@ -1338,9 +1338,9 @@ sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext,
         int i = 0;
         _MG_PRINTF ("string = %s.\n", TEXT);
         _MG_PRINTF ("editPos = %d.\n", sled->editPos);
-        for (i = 0; i < sled->glyph_content.glyphs_len; i++) {
-            _MG_PRINTF ("map[%d] = %d,", i, 
-                    sled->glyph_content.glyph_map[i].byte_index);
+        for (i = 0; i < sled->achar_content.achars_len; i++) {
+            _MG_PRINTF ("map[%d] = %d,", i,
+                    sled->achar_content.achar_map[i].byte_index);
             _MG_PRINTF ("\n");
         }
     }
@@ -1391,8 +1391,8 @@ static void esright_backspace_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
     if (sled->nContW <= sled->nVisW){
         if (sled->selStart != sled->selEnd){
 
-            calc_glyph_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
-            calc_glyph_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
+            calc_achar_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
+            calc_achar_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
             if (sled->selStart < sled->selEnd){
                 scroll_rc.right = sel_end_x + 1;
             }
@@ -1412,10 +1412,10 @@ static void esright_backspace_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
             edtSetCaretPos (hWnd, sled);
         }
         else{
-            calc_glyph_pos_cx(hWnd, sled, sled->editPos, &old_editpos_x);
+            calc_achar_pos_cx(hWnd, sled, sled->editPos, &old_editpos_x);
             scroll_rc.left = sled->rcVis.left;
-            calc_glyph_pos_cx(hWnd, sled, sled->editPos + del, &cur_editpos_x);
-            
+            calc_achar_pos_cx(hWnd, sled, sled->editPos + del, &cur_editpos_x);
+
             sleBackspaceText (hWnd, sled, del,TRUE, FALSE);
 
             edtSetCaretPos (hWnd, sled);
@@ -1424,7 +1424,7 @@ static void esright_backspace_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
             scroll_len = abs(cur_editpos_x - old_editpos_x);
             ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
-            /* Add for redraw glyph string. ES_RIGHT backspace/del error  */
+            /* Add for redraw achar string. ES_RIGHT backspace/del error  */
             InvalidateRect(hWnd, NULL, TRUE);
         }
 
@@ -1441,8 +1441,8 @@ static void esright_backspace_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
 
                 scroll_rc.right = sled->rcVis.right;
 
-                calc_glyph_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
-                calc_glyph_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
                 if (sled->selStart < sled->selEnd){
                     scroll_rc.left = sel_start_x + 1;
                 }
@@ -1495,8 +1495,8 @@ static void esright_backspace_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
                 refresh_rc.bottom = sled->rcVis.bottom;
                 refresh_rc.left = sled->rcVis.left;
 
-                calc_glyph_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
-                calc_glyph_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
                 if (sled->selStart < sled->selEnd){
                     scroll_rc.right = sel_end_x + 1 - sled->nContX;
                 }
@@ -1532,7 +1532,7 @@ static void esright_backspace_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
                 old_ncontw = sled->nContW;
                 sleBackspaceText (hWnd, sled, del, TRUE, FALSE);
                 edtSetCaretPos (hWnd, sled);
-                cur_caret_x = get_caretpos_x(hWnd);    
+                cur_caret_x = get_caretpos_x(hWnd);
                 scroll_rc.right = cur_caret_x;
 
                 scroll_len = abs(sled->nContW - old_ncontw);
@@ -1571,8 +1571,8 @@ static void esright_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
     if (sled->nContW <= sled->nVisW){
         if (sled->selStart != sled->selEnd){
 
-            calc_glyph_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
-            calc_glyph_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
+            calc_achar_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
+            calc_achar_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
             if (sled->selStart < sled->selEnd){
                 scroll_rc.right = sel_end_x + 1;
             }
@@ -1587,16 +1587,16 @@ static void esright_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
             ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
             edtSetCaretPos (hWnd, sled);
 
-            /* Add for redraw glyph string. ES_RIGHT backspace/del error  */
+            /* Add for redraw achar string. ES_RIGHT backspace/del error  */
             InvalidateRect(hWnd, NULL, TRUE);
- 
+
         }
         else{
             old_caret_x = get_caretpos_x(hWnd);
             scroll_rc.left = sled->rcVis.left;
             sleBackspaceText (hWnd, sled, del, TRUE, TRUE);
             edtSetCaretPos (hWnd, sled);
-            cur_caret_x = get_caretpos_x(hWnd);    
+            cur_caret_x = get_caretpos_x(hWnd);
             scroll_rc.right = cur_caret_x;
 
             scroll_len = cur_caret_x - old_caret_x;
@@ -1618,8 +1618,8 @@ static void esright_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
 
                 scroll_rc.right = sled->rcVis.right;
 
-                calc_glyph_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
-                calc_glyph_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
                 if (sled->selStart < sled->selEnd){
                     scroll_rc.left = sel_start_x + 1;
                 }
@@ -1647,11 +1647,11 @@ static void esright_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
 
                 scroll_rc.right = sled->rcVis.right;
 
-                scroll_rc.left = get_caretpos_x(hWnd); 
-                calc_glyph_pos_cx(hWnd, sled, sled->editPos, &old_editpos_x);
+                scroll_rc.left = get_caretpos_x(hWnd);
+                calc_achar_pos_cx(hWnd, sled, sled->editPos, &old_editpos_x);
 
                 sleBackspaceText (hWnd, sled, del, TRUE, TRUE);
-                calc_glyph_pos_cx(hWnd, sled, sled->editPos, &cur_editpos_x);
+                calc_achar_pos_cx(hWnd, sled, sled->editPos, &cur_editpos_x);
                 edtSetCaretPos (hWnd, sled);
 
                 scroll_len = old_editpos_x - cur_editpos_x;
@@ -1672,8 +1672,8 @@ static void esright_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
                 refresh_rc.bottom = sled->rcVis.bottom;
                 refresh_rc.left = sled->rcVis.left;
 
-                calc_glyph_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
-                calc_glyph_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
+                calc_achar_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
                 if (sled->selStart < sled->selEnd){
                     scroll_rc.right = sel_end_x + 1 - sled->nContX;
                 }
@@ -1711,7 +1711,7 @@ static void esright_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
                 scroll_rc.left = sled->rcVis.left;
                 sleBackspaceText (hWnd, sled, del, TRUE, TRUE);
                 edtSetCaretPos (hWnd, sled);
-                cur_caret_x = get_caretpos_x(hWnd);    
+                cur_caret_x = get_caretpos_x(hWnd);
                 scroll_rc.right = cur_caret_x;
 
                 scroll_len = cur_caret_x - old_caret_x;
@@ -1739,7 +1739,7 @@ static void esleft_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
 {
     int old_nContX = sled->nContX;
     RECT scroll_rc, del_rc, refresh_rc;
-    int glyphs_len_x;    
+    int achars_len_x;
     int sel_start_x, sel_end_x;
     int old_caret_x, cur_caret_x;
     int scroll_len;
@@ -1747,36 +1747,36 @@ static void esleft_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
     scroll_rc.top = sled->rcVis.top;
     scroll_rc.bottom = sled->rcVis.bottom;
     del_rc.bottom = sled->rcVis.bottom;
-    del_rc.top = sled->rcVis.top;  
+    del_rc.top = sled->rcVis.top;
     refresh_rc.top = sled->rcVis.top;
     refresh_rc.bottom = sled->rcVis.bottom;
 
     if (sled->selStart != sled->selEnd){
         if (sled->selStart < sled->selEnd){
-            calc_glyph_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
+            calc_achar_pos_cx(hWnd, sled, sled->selEnd, &sel_end_x);
             scroll_rc.left = sel_end_x;
         }
         else{
-            calc_glyph_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
+            calc_achar_pos_cx(hWnd, sled, sled->selStart, &sel_start_x);
             scroll_rc.left = sel_start_x;
         }
 
          scroll_rc.right = sled->rcVis.right;
      }
      else{
-         calc_glyph_pos_cx(hWnd, sled, sled->editPos, &scroll_rc.left);
+         calc_achar_pos_cx(hWnd, sled, sled->editPos, &scroll_rc.left);
          scroll_rc.left = scroll_rc.left - old_nContX;
          scroll_rc.right = sled->rcVis.right;
      }
 
      old_caret_x = get_caretpos_x(hWnd);
-     calc_glyph_pos_cx(hWnd, sled, GLYPHSLEN, &glyphs_len_x);
+     calc_achar_pos_cx(hWnd, sled, ACHARSLEN, &achars_len_x);
 
      sleBackspaceText (hWnd, sled, del, TRUE, TRUE);
 
-     calc_glyph_pos_cx(hWnd, sled, sled->editPos, &del_rc.left);
+     calc_achar_pos_cx(hWnd, sled, sled->editPos, &del_rc.left);
      del_rc.left = del_rc.left - old_nContX;
-     del_rc.right = scroll_rc.left; 
+     del_rc.right = scroll_rc.left;
 
      scroll_len = del_rc.left - scroll_rc.left;
 
@@ -1784,36 +1784,36 @@ static void esleft_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
          InvalidateRect(hWnd, NULL, TRUE);
      }
      else{
-         if ((old_nContX > 0) && 
-             ((glyphs_len_x - old_nContX) <= sled->rcVis.right)){
+         if ((old_nContX > 0) &&
+             ((achars_len_x - old_nContX) <= sled->rcVis.right)){
 
-             cur_caret_x = get_caretpos_x(hWnd);    
+             cur_caret_x = get_caretpos_x(hWnd);
              if (cur_caret_x != old_caret_x){
-                 scroll_len = cur_caret_x - old_caret_x;   
+                 scroll_len = cur_caret_x - old_caret_x;
                  scroll_rc.left = sled->rcVis.left;
                  scroll_rc.right = old_caret_x;
 
                  ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
-                
+
                  refresh_rc.left = old_caret_x;
                  refresh_rc.right = cur_caret_x;
 
                  InvalidateRect(hWnd, &refresh_rc, TRUE);
              }
              else if (sled->selStart != sled->selEnd) {
-                 scroll_len = sel_start_x - sel_end_x;   
+                 scroll_len = sel_start_x - sel_end_x;
                  scroll_rc.left = sled->rcVis.left;
                  scroll_rc.right = old_caret_x;
 
                  ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
-                
+
                  refresh_rc.left = old_caret_x;
                  refresh_rc.right = cur_caret_x;
 
                  InvalidateRect(hWnd, &refresh_rc, TRUE);
              }
              else{
-                 InvalidateRect(hWnd, NULL, TRUE);    
+                 InvalidateRect(hWnd, NULL, TRUE);
              }
          }
          else{
@@ -1821,11 +1821,11 @@ static void esleft_del_refresh(HWND hWnd, PBIDISLEDITDATA sled, int del)
 
              InvalidateRect(hWnd, &del_rc, TRUE);
              ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
-             calc_glyph_pos_cx(hWnd, sled, GLYPHSLEN, &rl);
+             calc_achar_pos_cx(hWnd, sled, ACHARSLEN, &rl);
 
-             if (((sled->nContW - sled->nContX) == sled->nVisW) && 
+             if (((sled->nContW - sled->nContX) == sled->nVisW) &&
                  (old_nContX > 0)){
-                 InvalidateRect(hWnd, NULL, TRUE);    
+                 InvalidateRect(hWnd, NULL, TRUE);
              }
              else if (rl < sled->nVisW){
                 refresh_rc.left = rl;
@@ -1874,7 +1874,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
 
             return 0;
         }
-            
+
         if (sled->selStart != sled->selEnd) {
             ShowCaret(hWnd);
             refresh = TRUE;
@@ -1889,14 +1889,14 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
 
         return 0;
     }
-   
+
     case SCANCODE_END:
     {
         BOOL refresh = FALSE;
-       
+
         if(lParam & KS_SHIFT) {
             sled->selStart = sled->editPos;
-            sled->selEnd = GLYPHSLEN;
+            sled->selEnd = ACHARSLEN;
             check_caret();
             make_charpos_visible (hWnd, sled, sled->selEnd, NULL);
             InvalidateRect(hWnd, NULL, TRUE);
@@ -1911,7 +1911,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
             refresh = TRUE;
         }
 
-        sled->editPos = GLYPHSLEN;
+        sled->editPos = ACHARSLEN;
         sled->selStart = sled->selEnd = sled->editPos;
 
         if (!edtSetCaretPos (hWnd, sled) && refresh)
@@ -1948,7 +1948,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
 
         if (sled->editPos > 0) {
-            sled->editPos--; 
+            sled->editPos--;
         }
 
         if (sled->selStart != sled->selEnd) {
@@ -1964,7 +1964,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
 
         return 0;
     }
-    
+
     case SCANCODE_CURSORBLOCKRIGHT:
     {
         BOOL refresh = FALSE;
@@ -1973,13 +1973,13 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
             if(sled->selStart == sled->selEnd)
                 sled->selStart = sled->selEnd = sled->editPos;
 
-            if (sled->selStart == sled->selEnd || 
+            if (sled->selStart == sled->selEnd ||
                             sled->selEnd > sled->editPos) {
-                if (sled->selEnd < GLYPHSLEN)
-                    sled->selEnd++; 
+                if (sled->selEnd < ACHARSLEN)
+                    sled->selEnd++;
             }
             else {
-                sled->selStart++; 
+                sled->selStart++;
             }
 
             check_caret ();
@@ -1990,8 +1990,8 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
             return 0;
         }
 
-        if (sled->editPos < GLYPHSLEN) {
-            sled->editPos++; 
+        if (sled->editPos < ACHARSLEN) {
+            sled->editPos++;
         }
 
         if (sled->selStart != sled->selEnd) {
@@ -2005,7 +2005,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
             InvalidateRect (hWnd, NULL, TRUE);
     }
     return 0;
-    
+
     case SCANCODE_REMOVE:
     {
         int del;
@@ -2014,11 +2014,11 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
         if ((dwStyle & ES_READONLY))
             return 0;
 
-        if (sled->editPos == GLYPHSLEN && sled->selStart == sled->selEnd)
+        if (sled->editPos == ACHARSLEN && sled->selStart == sled->selEnd)
             return 0;
 
-        if (sled->selStart == sled->selEnd && sled->editPos < GLYPHSLEN) {
-            sled->editPos ++; 
+        if (sled->selStart == sled->selEnd && sled->editPos < ACHARSLEN) {
+            sled->editPos ++;
         }
 
         del = sled->editPos - oldpos;
@@ -2033,7 +2033,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
             sled->changed = TRUE;
             NotifyParent (hWnd, GetDlgCtrlID(hWnd), EN_CHANGE);
 
-        } 
+        }
         else if (dwStyle & ES_RIGHT) {
             esright_del_refresh(hWnd, sled, del);
         }
@@ -2060,7 +2060,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
     case SCANCODE_X:
     {
         if ((lParam & KS_CTRL) && (sled->selEnd - sled->selStart > 0)) {
-            SetClipBoardData (CBNAME_TEXT, TEXT + sled->selStart, 
+            SetClipBoardData (CBNAME_TEXT, TEXT + sled->selStart,
                         sled->selEnd - sled->selStart, CBOP_NORMAL);
             if (wParam == SCANCODE_X && !(GetWindowStyle(hWnd) & ES_READONLY)) {
                 sleInsertText (hWnd, sled, NULL, 0, FALSE);
@@ -2084,7 +2084,7 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
     default:
         break;
     } //end switch
-       
+
     if (bChange){
         sled->changed = TRUE;
         NotifyParent (hWnd, pCtrl->id, EN_CHANGE);
@@ -2092,8 +2092,8 @@ static int sleKeyDown (HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     return 0;
 }
-static void 
-esright_input_char_refresh (HWND hWnd, 
+static void
+esright_input_char_refresh (HWND hWnd,
         PBIDISLEDITDATA sled, char *charBuffer, int chars)
 {
     RECT scroll_rc;
@@ -2111,7 +2111,7 @@ esright_input_char_refresh (HWND hWnd,
         sleInsertText (hWnd, sled, (char* )charBuffer, chars,TRUE);
 
         calc_content_width(hWnd, sled, TEXTLEN, &cur_ncontw);
-        scroll_len = abs(old_ncontw- cur_ncontw); 
+        scroll_len = abs(old_ncontw- cur_ncontw);
         cur_caret_x = get_caretpos_x(hWnd);
         scroll_rc.left = sled->rcVis.left;
         scroll_rc.right = cur_caret_x;
@@ -2125,114 +2125,114 @@ esright_input_char_refresh (HWND hWnd,
     }
 }
 
-static void 
-esleft_input_char_refresh (HWND hWnd, 
+static void
+esleft_input_char_refresh (HWND hWnd,
         PBIDISLEDITDATA sled, char *charBuffer, int chars)
 {
     int old_caretpos_x;
-    int old_sel_start, old_sel_end; 
+    int old_sel_start, old_sel_end;
     int old_sel_start_x, old_sel_end_x, cur_sel_start_x;
     RECT scroll_rc, refresh_rc;
     int scroll_len;
     int old_edit_pos_x, cur_edit_pos_x;
     int old_nContX;
-    //char_size is width of input chars; sel_size is width of the selected area 
+    //char_size is width of input chars; sel_size is width of the selected area
     int char_size, sel_size;
-    int glyphs_len_x;
+    int achars_len_x;
 
     old_sel_start = sled->selStart;
-    old_sel_end = sled->selEnd; 
+    old_sel_end = sled->selEnd;
 
     old_caretpos_x = get_caretpos_x(hWnd);
-    calc_glyph_pos_cx(hWnd, sled, sled->editPos, &old_edit_pos_x);
-    calc_glyph_pos_cx(hWnd, sled, GLYPHSLEN, &glyphs_len_x);
+    calc_achar_pos_cx(hWnd, sled, sled->editPos, &old_edit_pos_x);
+    calc_achar_pos_cx(hWnd, sled, ACHARSLEN, &achars_len_x);
     old_nContX= sled->nContX;
-    calc_glyph_pos_cx(hWnd, sled, old_sel_start, &old_sel_start_x);
-    calc_glyph_pos_cx(hWnd, sled, old_sel_end, &old_sel_end_x);
+    calc_achar_pos_cx(hWnd, sled, old_sel_start, &old_sel_start_x);
+    calc_achar_pos_cx(hWnd, sled, old_sel_end, &old_sel_end_x);
     old_sel_start_x = old_sel_start_x - sled->nContX;
     old_sel_end_x = old_sel_end_x - sled->nContX;
 
     sleInsertText (hWnd, sled, (char* )charBuffer, chars, TRUE);
 
-    calc_glyph_pos_cx(hWnd, sled, sled->editPos, &cur_edit_pos_x);
-    calc_glyph_pos_cx(hWnd, sled, old_sel_start, &cur_sel_start_x);
+    calc_achar_pos_cx(hWnd, sled, sled->editPos, &cur_edit_pos_x);
+    calc_achar_pos_cx(hWnd, sled, old_sel_start, &cur_sel_start_x);
     char_size = cur_edit_pos_x - cur_sel_start_x;
     sel_size = abs(old_sel_start_x - old_sel_end_x);
 
-    scroll_rc.top = sled->rcVis.top;		 
-    scroll_rc.bottom = sled->rcVis.bottom;		 
+    scroll_rc.top = sled->rcVis.top;		
+    scroll_rc.bottom = sled->rcVis.bottom;		
     refresh_rc.top = sled->rcVis.top;
     refresh_rc.bottom = sled->rcVis.bottom;
 
     if (char_size >= sled->nVisW){
-        InvalidateRect(hWnd, NULL, TRUE);   
+        InvalidateRect(hWnd, NULL, TRUE);
     }
     else{
         if (old_sel_start != old_sel_end){
 
-            if (sel_size >= sled->nVisW){   
+            if (sel_size >= sled->nVisW){
                 InvalidateRect(hWnd, NULL, TRUE);
             }
             else{
                 if (char_size < sel_size){
-                    //right scroll window 
-                    if ((old_nContX > 0) && 
-                        ((glyphs_len_x - old_nContX) <= sled->rcVis.right)) {
-                        scroll_len = sel_size - char_size;  
-                        scroll_rc.left = sled->rcVis.left;		 
+                    //right scroll window
+                    if ((old_nContX > 0) &&
+                        ((achars_len_x - old_nContX) <= sled->rcVis.right)) {
+                        scroll_len = sel_size - char_size;
+                        scroll_rc.left = sled->rcVis.left;		
                         scroll_rc.right = old_sel_start_x < old_sel_end_x
                                 ? old_sel_start_x : old_sel_end_x;
 
                         ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
                         refresh_rc.left = scroll_rc.right;
-                        refresh_rc.right = refresh_rc.left + sel_size + 
+                        refresh_rc.right = refresh_rc.left + sel_size +
                                     scroll_len;
 
                         InvalidateRect(hWnd, &refresh_rc, TRUE);
-                    } 
-                    else{//left scroll window 
-                        scroll_len = -(sel_size - char_size);  
-                        scroll_rc.left = old_sel_start_x < old_sel_end_x 
-                            ? old_sel_end_x : old_sel_start_x;		 
+                    }
+                    else{//left scroll window
+                        scroll_len = -(sel_size - char_size);
+                        scroll_rc.left = old_sel_start_x < old_sel_end_x
+                            ? old_sel_end_x : old_sel_start_x;		
                         scroll_rc.right = sled->rcVis.right;
 
                         ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
-                        refresh_rc.left = scroll_rc.left - sel_size; 
-                        refresh_rc.right = scroll_rc.left; 
+                        refresh_rc.left = scroll_rc.left - sel_size;
+                        refresh_rc.right = scroll_rc.left;
 
                         InvalidateRect(hWnd, &refresh_rc, TRUE);
                     }
                 }
-                else{//when char_size > sel_size right scroll window 
-                    scroll_len = char_size - sel_size;  
-                    scroll_rc.left = old_sel_start_x < old_sel_end_x 
-                        ? old_sel_end_x : old_sel_start_x;		 
-                    scroll_rc.right = sled->rcVis.right;		 
+                else{//when char_size > sel_size right scroll window
+                    scroll_len = char_size - sel_size;
+                    scroll_rc.left = old_sel_start_x < old_sel_end_x
+                        ? old_sel_end_x : old_sel_start_x;		
+                    scroll_rc.right = sled->rcVis.right;		
 
                     ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
                     refresh_rc.left = scroll_rc.left - sel_size;
-                    refresh_rc.right = refresh_rc.left + char_size + 1; 
+                    refresh_rc.right = refresh_rc.left + char_size + 1;
 
                     InvalidateRect(hWnd, &refresh_rc, TRUE);
                 }
             }
         }
         else{
-            int right;   
-            char_size = cur_edit_pos_x - old_edit_pos_x; 
+            int right;
+            char_size = cur_edit_pos_x - old_edit_pos_x;
 
-            calc_glyph_pos_cx(hWnd, sled, GLYPHSLEN, &right);
+            calc_achar_pos_cx(hWnd, sled, ACHARSLEN, &right);
 
-            if (old_caretpos_x < sled->rcVis.right){//right scroll window 
-                scroll_len = cur_edit_pos_x - old_edit_pos_x;     
+            if (old_caretpos_x < sled->rcVis.right){//right scroll window
+                scroll_len = cur_edit_pos_x - old_edit_pos_x;
                 if ((sled->rcVis.right - old_caretpos_x) < scroll_len){//
-                    scroll_len = -(scroll_len - 
-                                   (sled->rcVis.right- old_caretpos_x)); 
-                    scroll_rc.left = sled->rcVis.left;   
-                    scroll_rc.right = old_caretpos_x; 
+                    scroll_len = -(scroll_len -
+                                   (sled->rcVis.right- old_caretpos_x));
+                    scroll_rc.left = sled->rcVis.left;
+                    scroll_rc.right = old_caretpos_x;
                     ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
                     refresh_rc.left = sled->rcVis.right - char_size;
@@ -2241,9 +2241,9 @@ esleft_input_char_refresh (HWND hWnd,
                     InvalidateRect(hWnd, &refresh_rc, TRUE);
                 }
                 else{
-                    scroll_rc.left = old_caretpos_x;   
-                    scroll_rc.right = (right < sled->rcVis.right) 
-                        ? right+1 : sled->rcVis.right; 
+                    scroll_rc.left = old_caretpos_x;
+                    scroll_rc.right = (right < sled->rcVis.right)
+                        ? right+1 : sled->rcVis.right;
                     ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
                     refresh_rc.left = sled->rcVis.right - char_size;
@@ -2252,19 +2252,19 @@ esleft_input_char_refresh (HWND hWnd,
                     InvalidateRect(hWnd, &refresh_rc, TRUE);
                 }
             }
-            else{//left scroll window 
-                scroll_len = old_edit_pos_x - cur_edit_pos_x;     
+            else{//left scroll window
+                scroll_len = old_edit_pos_x - cur_edit_pos_x;
                 ScrollWindow(hWnd, scroll_len, 0, &sled->rcVis, NULL);
 
                 refresh_rc.left = sled->rcVis.right - char_size;
                 refresh_rc.right = sled->rcVis.right;
-                
+
                 InvalidateRect(hWnd, &refresh_rc, TRUE);
             }
 
-            if (((sled->nContW - sled->nContX) == sled->nVisW) 
+            if (((sled->nContW - sled->nContX) == sled->nVisW)
                     && (old_nContX > 0)){
-                InvalidateRect(hWnd, NULL, TRUE);    
+                InvalidateRect(hWnd, NULL, TRUE);
             }
         }
     }
@@ -2273,7 +2273,7 @@ esleft_input_char_refresh (HWND hWnd,
 static void sledit_refresh_caret (HWND hWnd, PBIDISLEDITDATA sled, BOOL bInited)
 {
     DWORD   dwStyle = GetWindowStyle(hWnd);
-    SIZE    glyphs_size;
+    SIZE    achars_size;
     int     outchar;
     HDC     hdc;
 
@@ -2281,7 +2281,7 @@ static void sledit_refresh_caret (HWND hWnd, PBIDISLEDITDATA sled, BOOL bInited)
         return;
 
     hdc = GetClientDC (hWnd);
-    outchar = GetGlyphsExtentPoint (hdc, GLYPHS, GLYPHSLEN, 0, &glyphs_size);
+    outchar = GetGlyphsExtentPoint (hdc, ACHARS, ACHARSLEN, 0, &achars_size);
     ReleaseDC (hdc);
 
     if (bInited) {
@@ -2319,9 +2319,9 @@ static int sledit_reset_text (HWND hWnd, PBIDISLEDITDATA sled, char* str)
         //TEXT = NULL;
         sled->str_content.buffsize = 0;
         TEXTLEN = 0;
-        sled->glyph_content.glyphs_buffsize = 0;
-        sled->glyph_content.glyphmap_buffsize = 0;
-        sled->glyph_content.glyphs_len = 0;
+        sled->achar_content.achars_buffsize = 0;
+        sled->achar_content.acharmap_buffsize = 0;
+        sled->achar_content.achars_len = 0;
     }
 
     sledit_settext (hWnd, sled, buffer);
@@ -2340,7 +2340,7 @@ static int sledit_reset_text (HWND hWnd, PBIDISLEDITDATA sled, char* str)
 
 static LRESULT
 SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{   
+{
     DWORD       dwStyle;
     HDC         hdc;
     PBIDISLEDITDATA sled = NULL;
@@ -2383,7 +2383,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case MSG_FONTCHANGED:
     {
-        sled->starty  = sled->topMargin + (sled->rcVis.bottom 
+        sled->starty  = sled->topMargin + (sled->rcVis.bottom
                 - sled->rcVis.top - GetWindowFont(hWnd)->size - 1)/2;
 
         DestroyCaret (hWnd);
@@ -2407,7 +2407,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             sled->status &= ~EST_FOCUSED;
             HideCaret (hWnd);
-            if ( sled->selStart != sled->selEnd 
+            if ( sled->selStart != sled->selEnd
                     || (dwStyle & ES_TIP && TEXTLEN <= 0)) {
                 refresh = TRUE;
             }
@@ -2425,11 +2425,11 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
- 
+
     case MSG_SETFOCUS:
         if (sled->status & EST_FOCUSED)
             break;
-        
+
         sled->status |= EST_FOCUSED;
 
         ActiveCaret (hWnd);
@@ -2448,7 +2448,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         NotifyParent (hWnd, GetDlgCtrlID(hWnd), EN_SETFOCUS);
         break;
-        
+
     case MSG_ENABLE:
         if ( (!(dwStyle & WS_DISABLED) && !wParam)
                 || ((dwStyle & WS_DISABLED) && wParam) ) {
@@ -2463,7 +2463,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case MSG_GETTEXTLENGTH:
         return TEXTLEN;
-    
+
     case MSG_GETTEXT:
     {
         char*   buffer = (char*)lParam;
@@ -2520,7 +2520,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 charBuffer [0] = tolower (charBuffer[0]);
             }
         }
-    
+
         if (chars == 1) {
             if (charBuffer [0] < 0x20 && charBuffer[0] != '\b') //FIXME
                 return 0;
@@ -2559,7 +2559,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             else if (dwStyle & ES_RIGHT) {
               esright_del_refresh(hWnd, sled, 0);
-              esright_input_char_refresh(hWnd, sled, (char*)charBuffer, 
+              esright_input_char_refresh(hWnd, sled, (char*)charBuffer,
                                 chars);
             }
             else if (dwStyle & ES_CENTER) {
@@ -2574,10 +2574,10 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
 
     case MSG_LBUTTONDBLCLK:
-        sleSetSel (hWnd, sled, 0, GLYPHSLEN);
+        sleSetSel (hWnd, sled, 0, ACHARSLEN);
         NotifyParent (hWnd,  GetDlgCtrlID(hWnd), EN_DBLCLK);
         break;
-        
+
     case MSG_LBUTTONDOWN:
     {
         if ( sled->status & EST_TMP) {
@@ -2585,7 +2585,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
 
-        if (HISWORD(lParam) < sled->rcVis.top 
+        if (HISWORD(lParam) < sled->rcVis.top
                 || HISWORD(lParam) > sled->rcVis.bottom)
             break;
 
@@ -2599,7 +2599,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         break;
     }
- 
+
     case MSG_NCLBUTTONUP:
     case MSG_LBUTTONUP:
         if (GetCapture() == hWnd)
@@ -2617,7 +2617,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             sleMouseMove (hWnd, sled, lParam);
         return 0;
     }
-        
+
     case MSG_GETDLGCODE:
         return DLGC_WANTCHARS| DLGC_HASSETSEL| DLGC_WANTARROWS| DLGC_WANTENTER;
 
@@ -2628,7 +2628,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return IME_WINDOW_TYPE_PASSWORD;
         else
             return IME_WINDOW_TYPE_NOT_EDITABLE;
-    
+
     case EM_GETCARETPOS:
     case EM_GETSELPOS:
     {
@@ -2637,11 +2637,11 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         int* char_pos = (int *)lParam;
 
         if (message == EM_GETSELPOS)
-            pos = (sled->editPos == sled->selStart) 
+            pos = (sled->editPos == sled->selStart)
                 ? sled->selEnd : sled->selStart;
         else
             pos = sled->editPos;
-        nr_chars = GetTextMCharInfo (GetWindowFont (hWnd), 
+        nr_chars = GetTextMCharInfo (GetWindowFont (hWnd),
                          (const char* )(TEXT), pos, NULL);
 
         if (line_pos) *line_pos = 0;
@@ -2653,28 +2653,28 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case EM_SETCARETPOS:
     case EM_SETSEL:
     {
-        int glyph_pos = (int)lParam;
+        int achar_pos = (int)lParam;
 
-        if (glyph_pos < 0)
+        if (achar_pos < 0)
             return -1;
 
-        if (glyph_pos > GLYPHSLEN)
-            glyph_pos = GLYPHSLEN;
+        if (achar_pos > ACHARSLEN)
+            achar_pos = ACHARSLEN;
 
         if (message == EM_SETCARETPOS) {
-            sled->editPos = glyph_pos;
+            sled->editPos = achar_pos;
             sled->selStart = sled->selEnd = 0;
             edtSetCaretPos (hWnd, sled);
             return sled->editPos;
         }
         else {
             int start, end;
-            if (sled->editPos < glyph_pos) {
+            if (sled->editPos < achar_pos) {
                 start = sled->editPos;
-                end = glyph_pos;
+                end = achar_pos;
             }
             else {
-                start = glyph_pos;
+                start = achar_pos;
                 end = sled->editPos;
             }
             return sleSetSel (hWnd, sled, start, end);
@@ -2687,7 +2687,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         else
             ExcludeWindowStyle (hWnd, ES_READONLY);
         return 0;
- 
+
     case EM_SETPASSWORDCHAR:
         if (sled->passwdChar != (int)wParam) {
             sled->passwdChar = (int)wParam;
@@ -2696,14 +2696,14 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         return 0;
- 
+
     case EM_GETPASSWORDCHAR:
     {
         if (lParam)
             *((int*)lParam) = sled->passwdChar;
         return 0;
     }
-    
+
     case EM_GETMAXLIMIT:
         return sled->hardLimit;
 
@@ -2723,7 +2723,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         return -1;
     }
-    
+
     case EM_GETTIPTEXT:
     {
         int len, tip_len;
@@ -2781,8 +2781,8 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         else
             len = MIN(sled->selEnd - sled->selStart, (int)wParam);
 
-        strncpy (buffer, 
-            (const char*)(TEXT + sled->selStart), len); 
+        strncpy (buffer,
+            (const char*)(TEXT + sled->selStart), len);
 
         return len;
     }
@@ -2799,10 +2799,10 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
 #ifdef _MGHAVE_CLIPBOARD
         if (sled->selEnd - sled->selStart > 0) {
-            SetClipBoardData (CBNAME_TEXT, 
-                    TEXT + sled->selStart, 
+            SetClipBoardData (CBNAME_TEXT,
+                    TEXT + sled->selStart,
                     sled->selEnd - sled->selStart, CBOP_NORMAL);
-            if (message == EM_CUTTOCB 
+            if (message == EM_CUTTOCB
                     && !(GetWindowStyle(hWnd) & ES_READONLY)) {
                 sleInsertText (hWnd, sled, NULL, 0, FALSE);
             }

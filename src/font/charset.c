@@ -57,13 +57,13 @@ static int sb_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 sb_get_char_value (const unsigned char* pre_mchar,  int pre_len,
+static Achar32 sb_get_char_value (const unsigned char* pre_mchar,  int pre_len,
                 const unsigned char* cur_mchar, int cur_len)
 {
-    return (Mchar32)(*cur_mchar);
+    return (Achar32)(*cur_mchar);
 }
 
-static unsigned int sb_char_type (Mchar32 chv)
+static unsigned int sb_char_type (Achar32 chv)
 {
     unsigned int ch_type = MCHAR_TYPE_UNKNOWN;
 
@@ -195,7 +195,7 @@ static int ascii_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 ascii_conv_to_uc32 (Mchar32 chv)
+static Uchar32 ascii_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 128)
         return chv;
@@ -261,7 +261,7 @@ static int iso8859_1_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 iso8859_1_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_1_conv_to_uc32 (Achar32 chv)
 {
     return chv;
 }
@@ -360,7 +360,7 @@ static unsigned short iso8859_2_unicode_map [] =
     0x00FD, 0x0163, 0x02D9
 };
 
-static Uchar32 iso8859_2_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_2_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -473,7 +473,7 @@ static unsigned short iso8859_3_unicode_map [] =
     0x015D, 0x02D9
 };
 
-static Uchar32 iso8859_3_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_3_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -585,7 +585,7 @@ static unsigned short iso8859_4_unicode_map [] =
     0x016B, 0x02D9
 };
 
-static Uchar32 iso8859_4_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_4_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -662,7 +662,7 @@ static int iso8859_5_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 iso8859_5_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_5_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -735,7 +735,7 @@ static CHARSETOPS CharsetOps_iso8859_5 = {
 
 #include "bidi.h"
 
-static BOOL get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n, Mchar32 chv, Mchar32* mirrored)
+static BOOL get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n, Achar32 chv, Achar32* mirrored)
 {
     int pos, step;
     BOOL found = FALSE;
@@ -743,7 +743,7 @@ static BOOL get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n, Mchar32 chv,
     pos = step = (n / 2) + 1;
 
     while (step > 1) {
-        Mchar32 cmp_char = map[pos].chv;
+        Achar32 cmp_char = map[pos].chv;
         step = (step + 1) / 2;
 
         if (cmp_char < chv) {
@@ -815,7 +815,7 @@ static unsigned short iso8859_7_unicode_map [] =
     0x038C, 0x00BD
 };
 
-static Uchar32 iso8859_7_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_7_conv_to_uc32 (Achar32 chv)
 {
     if (chv >= 0xBE && chv <= 0xFE) {
         return chv - 0xBE + 0x038E;
@@ -1040,7 +1040,7 @@ static Uint32 __mg_iso8859_8_type[] = {
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
 };
 
-static unsigned int iso8859_8_bidi_char_type (Mchar32 chv)
+static unsigned int iso8859_8_bidi_char_type (Achar32 chv)
 {
     return __mg_iso8859_8_type [chv];
 }
@@ -1059,14 +1059,14 @@ static const BIDICHAR_MIRROR_MAP __mg_iso8859_8_mirror_table [] =
 //  {0x00BB, 0x00AB}
 };
 
-static BOOL iso8859_8_bidi_mirror_char (Mchar32 chv, Mchar32* mirrored)
+static BOOL iso8859_8_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 {
     return get_mirror_char (__mg_iso8859_8_mirror_table,
             TABLESIZE (__mg_iso8859_8_mirror_table), chv, mirrored);
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 iso8859_8_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_8_conv_to_uc32 (Achar32 chv)
 {
     if (chv >= 0xE0 && chv <= 0xFA) {
         return  chv - 0xE0 + 0x05D0;
@@ -1169,7 +1169,7 @@ static int iso8859_9_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 iso8859_9_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_9_conv_to_uc32 (Achar32 chv)
 {
     switch (chv) {
         case 0xD0:
@@ -1306,7 +1306,7 @@ static unsigned short iso8859_10_unicode_map [] =
     0x00FE, 0x0138
 };
 
-static Uchar32 iso8859_10_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_10_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -1419,7 +1419,7 @@ static unsigned short iso8859_11_unicode_map [] =
     0x00FE, 0x00FF
 };
 
-static Uchar32 iso8859_11_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_11_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -1531,7 +1531,7 @@ static unsigned short iso8859_13_unicode_map [] =
     0x017E, 0x2019
 };
 
-static Uchar32 iso8859_13_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_13_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -1643,7 +1643,7 @@ static unsigned short iso8859_14_unicode_map [] =
     0x0177, 0x00FF
 };
 
-static Uchar32 iso8859_14_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_14_conv_to_uc32 (Achar32 chv)
 {
     if (chv < 0xA1)
         return chv;
@@ -1719,7 +1719,7 @@ static int iso8859_15_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 iso8859_15_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_15_conv_to_uc32 (Achar32 chv)
 {
     switch (chv) {
         case 0xA4:
@@ -1829,7 +1829,7 @@ static int iso8859_16_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 iso8859_16_conv_to_uc32 (Mchar32 chv)
+static Uchar32 iso8859_16_conv_to_uc32 (Achar32 chv)
 {
     switch (chv) {
         case 0xA1: return 0x0104;
@@ -1961,7 +1961,7 @@ static CHARSETOPS CharsetOps_iso8859_16 = {
         | defined(_MGCHARSET_SHIFTJIS) \
         | defined(_MGCHARSET_UNICODE)
 
-static unsigned int mb_char_type (Mchar32 chv)
+static unsigned int mb_char_type (Achar32 chv)
 {
     /* TODO: get the subtype of the char */
     return MCHAR_TYPE_GENERIC;
@@ -2015,7 +2015,7 @@ static int gb2312_0_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 gb2312_0_get_char_value (const unsigned char* pre_mchar,
+static Achar32 gb2312_0_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
     int area = cur_mchar [0] - 0xA1;
@@ -2102,7 +2102,7 @@ static int gb2312_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 gb2312_0_conv_to_uc32 (Mchar32 chv)
+static Uchar32 gb2312_0_conv_to_uc32 (Achar32 chv)
 {
     return (Uchar32)__mg_gbunicode_map [chv];
 }
@@ -2175,7 +2175,7 @@ static int gbk_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 gbk_get_char_value (const unsigned char* pre_mchar,  int pre_len,
+static Achar32 gbk_get_char_value (const unsigned char* pre_mchar,  int pre_len,
                 const unsigned char* cur_mchar, int cur_len)
 {
     if (cur_mchar [1] > 0x7F)
@@ -2260,7 +2260,7 @@ static int gbk_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 gbk_conv_to_uc32 (Mchar32 chv)
+static Uchar32 gbk_conv_to_uc32 (Achar32 chv)
 {
     return (Uchar32)__mg_gbkunicode_map[chv];
 }
@@ -2340,7 +2340,7 @@ static int gb18030_0_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 gb18030_0_get_char_value (const unsigned char* pre_mchar,
+static Achar32 gb18030_0_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
     unsigned char ch1;
@@ -2504,7 +2504,7 @@ static const unsigned char* gb18030_0_get_next_word (const unsigned char* mstr,
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 gb18030_0_conv_to_uc32 (Mchar32 chv)
+static Uchar32 gb18030_0_conv_to_uc32 (Achar32 chv)
 {
     /* from 0x90308130 to 0xE3329A35 */
     if (chv > 63611) {
@@ -2597,7 +2597,7 @@ static int big5_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 big5_get_char_value (const unsigned char* pre_mchar,  int pre_len,
+static Achar32 big5_get_char_value (const unsigned char* pre_mchar,  int pre_len,
                 const unsigned char* cur_mchar, int cur_len)
 {
     if (cur_mchar [1] & 0x80)
@@ -2678,7 +2678,7 @@ static int big5_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 big5_conv_to_uc32 (Mchar32 chv)
+static Uchar32 big5_conv_to_uc32 (Achar32 chv)
 {
     unsigned short ucs_code = __mg_big5_unicode_map [chv];
 
@@ -2753,7 +2753,7 @@ static int ksc5601_0_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 ksc5601_0_get_char_value (const unsigned char* pre_mchar,
+static Achar32 ksc5601_0_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
 #if 1
@@ -2837,7 +2837,7 @@ static int ksc5601_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 ksc5601_0_conv_to_uc32 (Mchar32 chv)
+static Uchar32 ksc5601_0_conv_to_uc32 (Achar32 chv)
 {
     unsigned short ucs_code = __mg_ksc5601_0_unicode_map [chv];
 
@@ -2900,7 +2900,7 @@ static int jisx0201_0_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 jisx0201_0_get_char_value (const unsigned char* pre_mchar,
+static Achar32 jisx0201_0_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
     if (cur_mchar [0] == 0x8E)
@@ -2958,7 +2958,7 @@ static int jisx0201_0_is_this_charset (const unsigned char* charset)
 
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 jisx0201_0_conv_to_uc32 (Mchar32 chv)
+static Uchar32 jisx0201_0_conv_to_uc32 (Achar32 chv)
 {
     if (chv >= 0xA1 && chv <= 0xDF)
         return 0xFF61 + chv - 0xA1;
@@ -3018,7 +3018,7 @@ static int jisx0208_0_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 jisx0208_0_get_char_value (const unsigned char* pre_mchar,
+static Achar32 jisx0208_0_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
 #if 1
@@ -3102,7 +3102,7 @@ static int jisx0208_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 jisx0208_0_conv_to_uc32 (Mchar32 chv)
+static Uchar32 jisx0208_0_conv_to_uc32 (Achar32 chv)
 {
     unsigned short ucs_code;
 
@@ -3169,7 +3169,7 @@ static int jisx0201_1_is_this_charset (const unsigned char* charset)
 
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 jisx0201_1_conv_to_uc32 (Mchar32 chv)
+static Uchar32 jisx0201_1_conv_to_uc32 (Achar32 chv)
 {
     if (chv >= 0xA1 && chv <= 0xDF)
         return 0xFF61 + chv - 0xA1;
@@ -3247,7 +3247,7 @@ static int jisx0208_1_len_first_char (const unsigned char* mstr, int len)
     return 0;
 }
 
-static Mchar32 jisx0208_1_get_char_value (const unsigned char* pre_mchar,
+static Achar32 jisx0208_1_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
     unsigned char ch1 = cur_mchar [0];
@@ -3358,7 +3358,7 @@ static int jisx0208_1_pos_first_char (const unsigned char* mstr, int mstrlen)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static Uchar32 jisx0208_1_conv_to_uc32 (Mchar32 chv)
+static Uchar32 jisx0208_1_conv_to_uc32 (Achar32 chv)
 {
     unsigned short ucs_code;
 
@@ -3432,7 +3432,7 @@ static int utf8_len_first_char (const unsigned char* mstr, int len)
     return 1;
 }
 
-static Mchar32 utf8_get_char_value (const unsigned char* pre_mchar, int pre_len,
+static Achar32 utf8_get_char_value (const unsigned char* pre_mchar, int pre_len,
         const unsigned char* cur_mchar, int cur_len)
 {
     Uchar32 wc = *((unsigned char *)(cur_mchar++));
@@ -3528,7 +3528,7 @@ static Mchar32 utf8_get_char_value (const unsigned char* pre_mchar, int pre_len,
       ? TPROP_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
       : UCHAR_BREAK_UNKNOWN))
 
-static unsigned int unicode_char_type (Mchar32 chv)
+static unsigned int unicode_char_type (Achar32 chv)
 {
     unsigned int mchar_type = MCHAR_TYPE_UNKNOWN;
     unsigned int basic_type = 0, break_type = 0;
@@ -3557,11 +3557,11 @@ static unsigned int unicode_char_type (Mchar32 chv)
 
 #include "unicode-bidi-tables.h"
 
-static unsigned int unicode_bidi_char_type (Mchar32 chv)
+static unsigned int unicode_bidi_char_type (Achar32 chv)
 {
-    Mchar32 chv_first = 0;
-    Mchar32 chv_last = (Mchar32)TABLESIZE (__mg_unicode_bidi_char_type_map);
-    Mchar32 chv_mid;
+    Achar32 chv_first = 0;
+    Achar32 chv_last = (Achar32)TABLESIZE (__mg_unicode_bidi_char_type_map);
+    Achar32 chv_mid;
 
     while (chv_last >= chv_first) {
         chv_mid = (chv_first + chv_last)/2;
@@ -3585,7 +3585,7 @@ static unsigned int unicode_bidi_char_type (Mchar32 chv)
     return BIDI_TYPE_LTR;
 }
 
-static BOOL unicode_bidi_mirror_char (Mchar32 chv, Mchar32* mirrored)
+static BOOL unicode_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 {
     return get_mirror_char (__mg_unicode_mirror_table,
             TABLESIZE (__mg_unicode_mirror_table), chv, mirrored);
@@ -3820,7 +3820,7 @@ static int utf16le_len_first_char (const unsigned char* mstr, int len)
     return 4;
 }
 
-static Mchar32 utf16le_get_char_value (const unsigned char* pre_mchar,
+static Achar32 utf16le_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
     Uchar16 w1, w2;
@@ -4046,7 +4046,7 @@ static int utf16be_len_first_char (const unsigned char* mstr, int len)
     return 4;
 }
 
-static Mchar32 utf16be_get_char_value (const unsigned char* pre_mchar,
+static Achar32 utf16be_get_char_value (const unsigned char* pre_mchar,
                 int pre_len, const unsigned char* cur_mchar, int cur_len)
 {
     Uchar16 w1, w2;
