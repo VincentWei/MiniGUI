@@ -716,18 +716,18 @@ Achar32* __mg_charset_bidi_achars_reorder (const CHARSETOPS* charset_ops,
     print_hexstr(achars, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
-    bidi_resolve_string (charset_ops, achars, len, pel, &type_rl_list,
+    bidi_resolve_string(charset_ops, achars, len, pel, &type_rl_list,
         &max_level);
 
     rc.achars = achars;
     rc.extra = extra;
     rc.cb = cb_reverse_extra;
-    bidi_reorder (&rc, len, &type_rl_list, max_level);
+    bidi_reorder(&rc, len, &type_rl_list, max_level);
 
     /* free typerun list.*/
-    free_typerun_list (type_rl_list);
+    free_typerun_list(type_rl_list);
 
-    print_hexstr (achars, len, TRUE);
+    print_hexstr(achars, len, TRUE);
 
     return achars;
 }
