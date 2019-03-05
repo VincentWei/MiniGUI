@@ -133,7 +133,7 @@ static int get_font_height (LOGFONT* logfont, DEVFONT* devfont)
     return VARFONT_INFO_P (devfont)->height * GET_DEVFONT_SCALE (logfont, devfont);
 }
 
-static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
+static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect, int df_slot)
 {
     int height = VARFONT_INFO_P (devfont)->height;
     unsigned short scale = 1;
@@ -141,7 +141,8 @@ static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
     if (logfont->style & FS_OTHER_AUTOSCALE)
         scale = font_GetBestScaleFactor (height, expect);
 
-    SET_DEVFONT_SCALE (logfont, devfont, scale);
+    if (df_slot >= 0 && df_slot < MAXNR_DEVFONTS)
+        SET_DEVFONT_SCALE (logfont, df_slot, scale);
 
     return height * scale;
 }

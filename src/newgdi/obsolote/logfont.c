@@ -32,6 +32,8 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
+** NOTE: DEPRECATED.
+**
 ** logfont.c: Log fonts management.
 **
 ** Current maintainer: Wei Yongming.

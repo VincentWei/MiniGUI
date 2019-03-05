@@ -200,8 +200,11 @@ static int get_font_height (LOGFONT* logfont, DEVFONT* devfont)
 	return type1_inst_info->font_height;
 }
 
-static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
+static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect, int df_slot)
 {
+    if (df_slot >= 0 && df_slot < MAXNR_DEVFONTS)
+        SET_DEVFONT_SCALE (logfont, df_slot, scale);
+
 	return expect;
 }
 

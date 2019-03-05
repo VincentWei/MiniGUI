@@ -147,9 +147,10 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     newlf->rotation = rotation;
 
-    _DBG_PRINTF ("FONT>LogFont: requested info: type: %s, family: %s, style: %x, charset: %s, size: %d.\n",
+    _DBG_PRINTF ("%s: requested LOGFONT: %s-%s-%x-%d-%s.\n",
+            __FUNCTION__,
             newlf->type, newlf->family,
-            newlf->style, newlf->charset, newlf->size);
+            newlf->style, newlf->size, newlf->charset);
 
     iter = family;
     if ((n = get_family_name_len(iter)) <= 0 || n > LEN_LOGFONT_NAME_FIELD)
@@ -158,11 +159,11 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
     strncpy (name_field, iter, n);
     name_field[n] = '\0';
 
-    _DBG_PRINTF ("FONT>LogFont: try to create SBC Devfont for family(%s)\n",
-            name_field);
+    _DBG_PRINTF ("%s: try to create SBC Devfont for family(%s)\n",
+            __FUNCTION__, name_field);
 
     newlf->scales[0] = 1;
-    if ((devfonts[0] = font_GetMatchedSBDevFont (newlf, name_field)) == NULL)
+    if ((devfonts[0] = font_GetMatchedSBDevFont(newlf, name_field)) == NULL)
         goto error;
 
     iter = family;
@@ -174,31 +175,31 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
         strncpy (name_field, iter, n);
         name_field[n] = '\0';
 
-        _DBG_PRINTF ("FONT>LogFont: try to create MBC Devfont for family(%s)\n",
-                name_field);
+        _DBG_PRINTF("%s: try to create MBC Devfont for family(%s)\n",
+                __FUNCTION__, name_field);
 
         newlf->scales[i] = 1;
-        if ((df = font_GetMatchedMBDevFont (newlf, name_field))) {
+        if ((df = font_GetMatchedMBDevFont (newlf, name_field, i))) {
             int j;
             // check duplicated.
             for (j = 1; j <= i; j++) {
                 if (df == devfonts[j]) {
                     // duplicated
-                    _DBG_PRINTF ("FONT>LogFont: ignore the duplicated devfont (%s)\n",
-                            name_field);
+                    _DBG_PRINTF("%s: ignore the duplicated devfont (%s)\n",
+                            __FUNCTION__, name_field);
                     break;
                 }
                 else if (devfonts[j] == NULL) {
                     devfonts[j] = df;
-                    _DBG_PRINTF ("FONT>LogFont: created new devfont for family(%s)\n",
-                            name_field);
+                    _DBG_PRINTF("%s: created new devfont for family(%s)\n",
+                            __FUNCTION__, name_field);
                     break;
                 }
             }
         }
         else {
-            _DBG_PRINTF ("FONT>LogFont: failed to created new devfont for family(%s)\n",
-                            name_field);
+            _DBG_PRINTF("%s: failed to created new devfont for family(%s)\n",
+                            __FUNCTION__, name_field);
         }
 
         iter += n;
@@ -231,8 +232,10 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     adjust_newlf_info(newlf);
 
-    _DBG_PRINTF ("FONT>LogFont: created info: type: %s, family: %s, style: %x, charset: %s, size: %d.\n",
-            newlf->type, newlf->family, newlf->style, newlf->charset, newlf->size);
+    _DBG_PRINTF ("%s: NEW LOGFONT: %s-%s-%x-%d-%s.\n",
+            __FUNCTION__,
+            newlf->type, newlf->family, newlf->style,
+            newlf->size, newlf->charset);
 
     return newlf;
 

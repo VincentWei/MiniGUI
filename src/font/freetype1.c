@@ -263,10 +263,13 @@ static int get_font_height (LOGFONT* logfont, DEVFONT* devfont)
     return ttf_inst_info->height;
 }
 
-static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect)
+static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect, int df_slot)
 {
     unsigned short scale = 1;
-    SET_DEVFONT_SCALE (logfont, devfont, scale);
+
+    if (df_slot >= 0 && df_slot < MAXNR_DEVFONTS)
+        SET_DEVFONT_SCALE (logfont, df_slot, scale);
+
     return expect;
 }
 

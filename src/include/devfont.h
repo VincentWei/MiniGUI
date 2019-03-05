@@ -69,7 +69,7 @@ void font_DelRelatedDevFont (DEVFONT* dev_font);
 void font_ResetDevFont (void);
 
 DEVFONT* font_GetMatchedSBDevFont (LOGFONT* lf, const char* family);
-DEVFONT* font_GetMatchedMBDevFont (LOGFONT* lf, const char* family);
+DEVFONT* font_GetMatchedMBDevFont (LOGFONT* lf, const char* family, int slot);
 
 static inline unsigned short get_devfont_scale(LOGFONT* lf,
         const DEVFONT* df)
@@ -83,23 +83,11 @@ static inline unsigned short get_devfont_scale(LOGFONT* lf,
     return 1;
 }
 
-static inline void set_devfont_scale(LOGFONT* lf, DEVFONT* df,
-        unsigned short s)
-{
-    int i;
-    for (i = 0; i < MAXNR_DEVFONTS; i++) {
-        if (lf->devfonts[i] == df) {
-            lf->scales[i] = s;
-            break;
-        }
-    }
-}
-
 #define GET_DEVFONT_SCALE(logfont, devfont) \
         get_devfont_scale(logfont, devfont)
 
-#define SET_DEVFONT_SCALE(logfont, devfont, scale) \
-        set_devfont_scale(logfont, devfont, scale)
+#define SET_DEVFONT_SCALE(logfont, df_slot, scale) \
+        (logfont)->scales[(df_slot)] = (scale)
 
 unsigned short font_GetBestScaleFactor (int height, int expect);
 
@@ -232,7 +220,7 @@ struct _FONTOPS
     int (*get_font_height) (LOGFONT* logfont, DEVFONT* devfont);
 
     /** The method to get font size function. */
-    int (*get_font_size) (LOGFONT* logfont, DEVFONT* devfont, int expect);
+    int (*get_font_size) (LOGFONT* logfont, DEVFONT* devfont, int expect, int slot);
 
     /** The method to get font ascent function. */
     int (*get_font_ascent) (LOGFONT* logfont, DEVFONT* devfont);

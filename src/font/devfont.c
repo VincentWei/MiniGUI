@@ -109,7 +109,7 @@ void font_ResetDevFont (void)
 #define MATCHED_SLANT       0x10
 
 static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
-        DEVFONT* list_head, int list_len, char* req_charset)
+        DEVFONT* list_head, int list_len, char* req_charset, int slot)
 {
     int i = 0;
     BYTE* match_bits;
@@ -123,7 +123,7 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
     match_bits = (BYTE *)FixStrAlloc (list_len);
 #endif
 
-    _DBG_PRINTF("%s, family(%s), req_charset(%s), list_head(%p), list_len(%d)\n",
+    _DBG_PRINTF("%s, family(%s), charset(%s), list_head(%p), list_len(%d)\n",
             __FUNCTION__, family, req_charset, list_head, list_len);
 
     i = 0;
@@ -205,24 +205,24 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
 
             size_error = lf->size -
                 (*dev_font->font_ops->get_font_size) (lf, dev_font,
-                        lf->size);
+                        lf->size, -1);
             size_error = ABS (size_error);
 
             if (match_bits [i] & MATCHED_WEIGHT) {
                 weight_error = 0;
             }
             else {
-                weight_error = (lf->style & FS_WEIGHT_MASK) -
-                    (dev_font->style & FS_WEIGHT_MASK);
+                weight_error = (int)(lf->style & FS_WEIGHT_MASK) -
+                    (int)(dev_font->style & FS_WEIGHT_MASK);
                 weight_error = ABS (weight_error);
             }
 
-            if (match_bits [i] & MATCHED_FAMILY) {
+            if (match_bits [i] & MATCHED_SLANT) {
                 slant_error = 0;
             }
             else {
-                slant_error = (lf->style & FS_SLANT_MASK) -
-                    (dev_font->style & FS_SLANT_MASK);
+                slant_error = (int)(lf->style & FS_SLANT_MASK) -
+                    (int)(dev_font->style & FS_SLANT_MASK);
                 slant_error = ABS (slant_error);
             }
 
@@ -241,7 +241,59 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
     }
 
     if (matched_font) {
-        _DBG_PRINTF("%s, got a matched devfont (%s): %d\n",
+        _DBG_PRINTF("%s, got a matched devfont (%s) in the first run: %d\n",
+                __FUNCTION__, matched_font->name, min_error);
+        goto matched;
+    }
+
+    min_error = (FONT_MAX_SIZE << 16) + 0xFFFF;
+    matched_font = NULL;
+    dev_font = list_head;
+    for (i = 0; i < list_len; i++) {
+        if ((match_bits [i] & MATCHED_TYPE)
+                && (match_bits [i] & MATCHED_CHARSET)) {
+
+            int error, size_error, weight_error, slant_error;
+
+            size_error = lf->size -
+                (*dev_font->font_ops->get_font_size) (lf, dev_font,
+                        lf->size, -1);
+            size_error = ABS (size_error);
+
+            if (match_bits [i] & MATCHED_WEIGHT) {
+                weight_error = 0;
+            }
+            else {
+                weight_error = (int)(lf->style & FS_WEIGHT_MASK) -
+                    (int)(dev_font->style & FS_WEIGHT_MASK);
+                weight_error = ABS (weight_error);
+            }
+
+            if (match_bits [i] & MATCHED_SLANT) {
+                slant_error = 0;
+            }
+            else {
+                slant_error = (int)(lf->style & FS_SLANT_MASK) -
+                    (int)(dev_font->style & FS_SLANT_MASK);
+                slant_error = ABS (slant_error);
+            }
+
+            error = (size_error << 16) + slant_error + weight_error;
+            _DBG_PRINTF("%s, error of devfont#%d(%s): %d\n",
+                    __FUNCTION__, i, dev_font->name, error);
+
+            if (min_error >= error) {
+                /* use >=, make the later has a higher priority */
+                min_error = error;
+                matched_font = dev_font;
+            }
+        }
+
+        dev_font = dev_font->next;
+    }
+
+    if (matched_font) {
+        _DBG_PRINTF("%s, got a matched devfont (%s) in the second run: %d\n",
                 __FUNCTION__, matched_font->name, min_error);
         goto matched;
     }
@@ -252,9 +304,11 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
         int error;
         if (match_bits [i] & MATCHED_CHARSET) {
             error = lf->size -
-                (*dev_font->font_ops->get_font_size) (lf, dev_font, lf->size);
+                (*dev_font->font_ops->get_font_size) (lf, dev_font,
+                        lf->size, -1);
             error = ABS (error);
-            if (min_error >= error) {   /* use >=, make the later has a higher priority */
+            if (min_error >= error) {
+                /* use >=, make the later has a higher priority */
                 min_error = error;
                 matched_font = dev_font;
             }
@@ -269,7 +323,8 @@ matched:
 #endif
 
     if (matched_font)
-        matched_font->font_ops->get_font_size (lf, matched_font, lf->size);
+        matched_font->font_ops->get_font_size (lf, matched_font,
+            lf->size, slot);
 
     return matched_font;
 }
@@ -284,18 +339,18 @@ DEVFONT* font_GetMatchedSBDevFont (LOGFONT* lf, const char* family)
         fontGetCharsetFromName (g_SysLogFont[0]->devfonts[0]->name,
                 sysfont_charset);
         matched_devfont = get_matched_devfont (lf, family, sb_dev_font_head,
-                nr_sb_dev_fonts, sysfont_charset);
+                nr_sb_dev_fonts, sysfont_charset, 0);
     }
     else {
         /*sbc logfont --- sbc devfont*/
         matched_devfont = get_matched_devfont (lf, family, sb_dev_font_head,
-                nr_sb_dev_fonts, lf->charset);
+                nr_sb_dev_fonts, lf->charset, 0);
     }
 
     return matched_devfont;
 }
 
-DEVFONT* font_GetMatchedMBDevFont (LOGFONT* lf, const char* family)
+DEVFONT* font_GetMatchedMBDevFont (LOGFONT* lf, const char* family, int slot)
 {
     /*sbc logfont doesn't need mbc font*/
     if (GetCharsetOps (lf->charset)->bytes_maxlen_char == 1)
@@ -303,7 +358,7 @@ DEVFONT* font_GetMatchedMBDevFont (LOGFONT* lf, const char* family)
     /*mbc logfont --- mbc devfont*/
     else
         return get_matched_devfont (lf, family, mb_dev_font_head,
-                nr_mb_dev_fonts, lf->charset);
+                nr_mb_dev_fonts, lf->charset, slot);
 }
 
 const DEVFONT* GUIAPI GetNextDevFont (const DEVFONT* dev_font)
