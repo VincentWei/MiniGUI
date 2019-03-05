@@ -2003,7 +2003,7 @@ case "$use_ttf_lib" in
                   [Define if include ttf cache])
 
         AC_ARG_WITH(ttfcachesize,
-                    [  --with-ttfcachesize=[64/128/256/512/1024]])
+                    [  --with-ttfcachesize=[64/128/256/512/1024/2048]])
 
         case "$with_ttfcachesize" in
             64)
@@ -2026,30 +2026,38 @@ case "$use_ttf_lib" in
                 AC_DEFINE(_MGTTF_CACHE_SIZE, 1024,
                           [Define if compile max ttf cahce size for 1024k])
             ;;
+            2048)
+                AC_DEFINE(_MGTTF_CACHE_SIZE, 2048,
+                          [Define if compile max ttf cahce size for 2048k])
+            ;;
             *)
-                AC_DEFINE(_MGTTF_CACHE_SIZE, 256,
-                          [Define if compile max ttf cahce size for 256k])
+                AC_DEFINE(_MGTTF_CACHE_SIZE, 1024,
+                          [Define if compile max ttf cahce size for 1024k (default value)])
             ;;
         esac
 
         AC_ARG_WITH(ttfcachenum,
-                    [  --with-mttfcachenum=[10/20/40]])
+                    [  --with-mttfcachenum=[16/32/64/128]])
         case "$with_mttfcachenum" in
-            10)
-                AC_DEFINE(_MGMAX_TTF_CACHE, 10,
-                          [Define if compile max ttf cahce number for 10])
+            16)
+                AC_DEFINE(_MGMAX_TTF_CACHE, 16,
+                          [Define if compile max ttf cahce number for 16])
             ;;
-            20)
-                AC_DEFINE(_MGMAX_TTF_CACHE, 20,
-                          [Define if compile max ttf cahce number for 20])
+            32)
+                AC_DEFINE(_MGMAX_TTF_CACHE, 32,
+                          [Define if compile max ttf cahce number for 32])
             ;;
-            40)
-                AC_DEFINE(_MGMAX_TTF_CACHE, 40,
-                          [Define if compile max ttf cahce number for 40])
+            64)
+                AC_DEFINE(_MGMAX_TTF_CACHE, 64,
+                          [Define if compile max ttf cahce number for 64])
+            ;;
+            128)
+                AC_DEFINE(_MGMAX_TTF_CACHE, 128,
+                          [Define if compile max ttf cahce number for 128])
             ;;
             *)
-                AC_DEFINE(_MGMAX_TTF_CACHE, 10,
-                          [Define if compile max ttf cahce number for 10 (default value)])
+                AC_DEFINE(_MGMAX_TTF_CACHE, 32,
+                          [Define if compile max ttf cahce number for 32 (default value)])
             ;;
         esac
     fi
