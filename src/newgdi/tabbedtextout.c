@@ -116,14 +116,14 @@ typedef struct _TABBEDTEXTOUT_CTXT
 } TABBEDTEXTOUT_CTXT;
 
 static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
-                unsigned int glyph_type)
+                unsigned int char_type)
 {
     TABBEDTEXTOUT_CTXT* ctxt = (TABBEDTEXTOUT_CTXT*)context;
     int adv_x, adv_y;
     BBOX bbox;
     int bkmode = ctxt->pdc->bkmode;
 
-    switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
+    switch (char_type & GLYPHTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
@@ -196,13 +196,13 @@ typedef struct _TABBEDTEXTOUTEX_CTXT
 } TABBEDTEXTOUTEX_CTXT;
 
 static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
-                unsigned int glyph_type)
+                unsigned int char_type)
 {
     TABBEDTEXTOUTEX_CTXT* ctxt = (TABBEDTEXTOUTEX_CTXT*)context;
     int adv_x, adv_y;
     int tab_pos  = ctxt->nTabOrig;
 
-    switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
+    switch (char_type & GLYPHTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
@@ -533,7 +533,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
     size->cx = size->cy = 0;
 
     /* This function does not support BIDI */
-    if (mbc_devfont && pdc->bidi_flags && mbc_devfont->charset_ops->bidi_glyph_type)
+    if (mbc_devfont && pdc->bidi_flags && mbc_devfont->charset_ops->bidi_char_type)
         return -1;
 
     _gdi_start_new_line (pdc);
@@ -566,11 +566,11 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
         }
 
         if (devfont) {
-            int glyph_type;
+            int char_type;
 
-            glyph_value = devfont->charset_ops->char_glyph_value
+            glyph_value = devfont->charset_ops->get_char_value
                             (NULL, 0, (const unsigned char*)text, len_cur_char);
-            glyph_type = devfont->charset_ops->glyph_type (glyph_value);
+            char_type = devfont->charset_ops->char_type (glyph_value);
 
             if (devfont == mbc_devfont) {
                 int i, dfi;
@@ -589,7 +589,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                 glyph_value = SET_GLYPH_DFI(glyph_value, dfi);
             }
 
-            switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
+            switch (char_type & GLYPHTYPE_MCHAR_MASK) {
                 case MCHAR_TYPE_ZEROWIDTH:
                 case MCHAR_TYPE_VOWEL:
                     break;

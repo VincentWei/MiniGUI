@@ -87,7 +87,7 @@ Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
             ((const unsigned char*)mchar, mchar_len);
 
         if (len_cur_char > 0) {
-            gv = mbc_devfont->charset_ops->char_glyph_value
+            gv = mbc_devfont->charset_ops->get_char_value
                 ((Uint8*)pre_mchar, pre_len, (Uint8*)mchar, mchar_len);
 
             dfi = 1;
@@ -109,14 +109,14 @@ Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
         ((const unsigned char*)mchar, mchar_len);
 
     if (len_cur_char > 0) {
-        gv = sbc_devfont->charset_ops->char_glyph_value
+        gv = sbc_devfont->charset_ops->get_char_value
             (NULL, 0, (Uint8*)mchar, mchar_len);
     }
 
     return gv;
 }
 
-Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
+Glyph32 GUIAPI GetShapedGlyph (LOGFONT* logfont, const char* mchar,
         int mchar_len, GLYPHSHAPETYPE shape_type)
 {
     int len_cur_char;
@@ -133,11 +133,11 @@ Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
             int i, dfi;
             DEVFONT* df;
 
-            if (mbc_devfont->charset_ops->glyph_shape)
-                glyph_value = mbc_devfont->charset_ops->glyph_shape(
+            if (mbc_devfont->charset_ops->get_shaped_char_value)
+                glyph_value = mbc_devfont->charset_ops->get_shaped_char_value(
                         (const unsigned char*)mchar, mchar_len, shape_type);
             else
-                glyph_value = mbc_devfont->charset_ops->char_glyph_value
+                glyph_value = mbc_devfont->charset_ops->get_char_value
                 (NULL, 0, (Uint8*)mchar, len_cur_char);
 
             dfi = 1;
@@ -158,11 +158,11 @@ Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
         ((const unsigned char*)mchar, mchar_len);
 
     if (len_cur_char > 0) {
-        if (sbc_devfont->charset_ops->glyph_shape)
-            glyph_value = sbc_devfont->charset_ops->glyph_shape(
+        if (sbc_devfont->charset_ops->get_shaped_char_value)
+            glyph_value = sbc_devfont->charset_ops->get_shaped_char_value(
                     (const unsigned char*)mchar, mchar_len, shape_type);
         else
-            glyph_value = sbc_devfont->charset_ops->char_glyph_value
+            glyph_value = sbc_devfont->charset_ops->get_char_value
                 (NULL, 0, (Uint8*)mchar, len_cur_char);
 
     }
@@ -176,8 +176,8 @@ BOOL GUIAPI GetMirrorGlyph (LOGFONT* logfont, Glyph32 gv,
     *mirrored = INV_GLYPH_VALUE;
 
     DEVFONT* devfont = SELECT_DEVFONT(logfont, gv);
-    if (devfont->charset_ops->bidi_mirror_glyph) {
-        return devfont->charset_ops->bidi_mirror_glyph(gv, mirrored);
+    if (devfont->charset_ops->bidi_mirror_char) {
+        return devfont->charset_ops->bidi_mirror_char(gv, mirrored);
     }
 
     return FALSE;
@@ -187,7 +187,7 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         int* adv_x, int* adv_y)
 {
     int advance;
-    int glyph_type;
+    int char_type;
 
     PDC pdc = dc_HDC2PDC(hdc);
     DEVFONT* devfont = SELECT_DEVFONT(pdc->pLogFont, glyph_value);
@@ -196,8 +196,8 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
     coor_LP2SP (pdc, &x, &y);
     pdc->rc_output = pdc->DevRC;
 
-    glyph_type = devfont->charset_ops->glyph_type (glyph_value);
-    if (check_zero_width(glyph_type)) {
+    char_type = devfont->charset_ops->char_type (glyph_value);
+    if (check_zero_width(char_type)) {
         if (adv_x) *adv_x = 0;
         if (adv_y) *adv_y = 0;
         advance = 0;
@@ -223,7 +223,7 @@ unsigned int GUIAPI GetGlyphType (LOGFONT* logfont, Glyph32 glyph_value)
     /* get the relative device font */
     DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
     glyph_value = REAL_GLYPH (glyph_value);
-    return devfont->charset_ops->glyph_type (glyph_value);
+    return devfont->charset_ops->char_type (glyph_value);
 }
 
 int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
@@ -236,16 +236,16 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
 
     /* get glyph type */
     if (glyph_info->mask & GLYPH_INFO_TYPE)
-        glyph_info->glyph_type = devfont->charset_ops->glyph_type (glyph_value);
+        glyph_info->char_type = devfont->charset_ops->char_type (glyph_value);
 
     /* get glyph type */
     if (glyph_info->mask & GLYPH_INFO_BIDI_TYPE) {
-        if (devfont->charset_ops->bidi_glyph_type) {
-            glyph_info->bidi_glyph_type
-                = devfont->charset_ops->bidi_glyph_type (glyph_value);
+        if (devfont->charset_ops->bidi_char_type) {
+            glyph_info->bidi_char_type
+                = devfont->charset_ops->bidi_char_type (glyph_value);
         }
         else {
-            glyph_info->bidi_glyph_type = BIDI_TYPE_INVALID;
+            glyph_info->bidi_char_type = BIDI_TYPE_INVALID;
         }
     }
 
@@ -2954,6 +2954,38 @@ Glyph32 _gdi_select_glyph_dfi(LOGFONT* lf, Glyph32 gv)
 
     if (dfi == 0) {
         if (REAL_GLYPH(gv) < 0x80)
+            dfi = 0;
+        else
+            dfi = 1;
+    }
+
+    return SET_GLYPH_DFI(gv, dfi);
+}
+
+Glyph32 _gdi_get_glyph_value(LOGFONT* lf, Mchar32 chv)
+{
+    Glyph32 gv = INV_GLYPH_VALUE;
+    int i, dfi = 0;
+    DEVFONT* df;
+
+    if (IS_MBCHV(chv)) {
+        for (i = 1; i < MAXNR_DEVFONTS; i++) {
+            if ((df = lf->devfonts[i])) {
+                if (df->font_ops->get_glyph_value)
+                    gv = df->font_ops->get_glyph_value(lf, df, chv);
+                else
+                    gv = REAL_CHV(chv);
+
+                if (df->font_ops->is_glyph_existed(lf, df, gv)) {
+                    dfi = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (dfi == 0) {
+        if (REAL_CHV(chv) < 0x80)
             dfi = 0;
         else
             dfi = 1;

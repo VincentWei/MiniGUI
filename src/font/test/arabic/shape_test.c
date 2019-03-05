@@ -101,7 +101,7 @@ static int test_correctness ()
         if (index < 0) /* not a letter.*/
             continue;
 
-        glyph_value = iso8859_6_char_glyph_value (NULL, 0, c, 1);
+        glyph_value = iso8859_6_get_char_value (NULL, 0, c, 1);
         fprintf (stderr, "%x 's glyph value = %x\n", *c, glyph_value);
 
         if (!iso8859_6_test_glyph_value (index, glyph_value)) {

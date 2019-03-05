@@ -9709,18 +9709,18 @@ typedef enum {
 } GLYPHSHAPETYPE;
 
 /**
- * \fn Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar, \
+ * \fn Glyph32 GUIAPI GetShapedGlyph (LOGFONT* logfont, const char* mchar, \
  *         int mchar_len, GLYPHSHAPETYPE shape_type)
  * \brief Get the glyph shape of a character.
  *
  * \param logfont The logical font.
  * \param mchar The pointer to the multi-byte character.
  * \param mchar_len The length of \a mchar in bytes.
- * \param shape_type The shape type of \a mchar.
+ * \param shape_type The requested shape type.
  *
  * \return The multi-byte character's glyph shape value.
  */
-MG_EXPORT Glyph32 GUIAPI GetGlyphShape (LOGFONT* logfont, const char* mchar,
+MG_EXPORT Glyph32 GUIAPI GetShapedGlyph (LOGFONT* logfont, const char* mchar,
         int mchar_len, GLYPHSHAPETYPE shape_type);
 
 /**
@@ -9829,10 +9829,10 @@ typedef struct _GLYPHINFO {
     Uint32 mask;
 
     /** The glyph type */
-    Uint32 glyph_type;
+    Uint32 char_type;
 
     /** The BIDI glyph type */
-    Uint32 bidi_glyph_type;
+    Uint32 bidi_char_type;
 
 #if 0 // VincentWei: removed since 3.4.0
     /** The height of the glyph */

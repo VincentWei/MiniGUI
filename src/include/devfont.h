@@ -133,6 +133,11 @@ static inline long get_opened_file_size (FILE* fp)
     return size;
 }
 
+typedef unsigned int Mchar32;
+#define IS_MBCHV(chv)   ((chv) & 0x80000000)
+#define SET_MBCHV(chv)  ((chv) | 0x80000000)
+#define REAL_CHV(chv)   ((chv) & 0x7FFFFFFF)
+
 /** The character set operation structure. */
 struct _CHARSETOPS
 {
@@ -146,34 +151,33 @@ struct _CHARSETOPS
     const char* name;
 
     /** Default character. */
-    Glyph32 def_glyph_value;
+    Mchar32 def_char_value;
 
-    /** The method to get the length of the first character function. */
+    /** The method to get the length of the first character. */
     int (*len_first_char) (const unsigned char* mstr, int mstrlen);
 
-    /** The method to get character offset function. */
-    Glyph32 (*char_glyph_value) (const unsigned char* pre_mchar, int pre_len,
-                const unsigned char* cur_mchar, int cur_len);
+    /** The method to get the character index. */
+    Mchar32 (*get_char_value) (const unsigned char* pre_mchar, int pre_len,
+            const unsigned char* cur_mchar, int cur_len);
 
-    /** The method to get the require shape type glyph value. */
-    Glyph32 (*glyph_shape) (const unsigned char* cur_mchar, int cur_len, int shape_type);
+    /** The method to get the require shape type of a mchar. */
+    Mchar32 (*get_shaped_char_value) (const unsigned char* cur_mchar, int cur_len,
+            int shape_type);
 
-    /** The method to get the type of one glyph. */
-    unsigned int (*glyph_type) (Glyph32 glyph_value);
+    /** The method to get the type of one character. */
+    unsigned int (*char_type) (Mchar32 chv);
 
     /** The method to get character number in the string function. */
     int (*nr_chars_in_str) (const unsigned char* mstr, int mstrlen);
 
-    /** The method to judge the \a charset is belong to the character set
-     *  function.
-     */
+    /** The method to judge a given charset name is belong to the character set */
     int (*is_this_charset) (const unsigned char* charset);
 
     /** The method to get  the length of the first substring. */
     int (*len_first_substr) (const unsigned char* mstr, int mstrlen);
 
     /** The method to get next word in the specitied length string function. */
-    const unsigned char* (*get_next_word) (const unsigned char* mstr, 
+    const unsigned char* (*get_next_word) (const unsigned char* mstr,
                 int strlen, WORDINFO* word_info);
 
     /** The method to get the position of the first character in the
@@ -181,16 +185,15 @@ struct _CHARSETOPS
      */
     int (*pos_first_char) (const unsigned char* mstr, int mstrlen);
 
-    /** The method to get the BIDI type of one glyph. */
-    unsigned int (*bidi_glyph_type) (Glyph32 glyph_value);
+    /** The method to get the BIDI type of one character. */
+    unsigned int (*bidi_char_type) (Mchar32 chv);
 
-    /** Get mirrored glyph
-     */
-    BOOL (*bidi_mirror_glyph) (Glyph32 glyph, Glyph32* mirrored);
+    /** Get mirrored character */
+    BOOL (*bidi_mirror_char) (Mchar32 chv, Mchar32* mirrored);
 
 #ifdef _MGCHARSET_UNICODE
-    /** The method to convert \a mchar to 32 bit UNICODE function. */
-    Uchar32 (*conv_to_uc32) (Glyph32 glyph_value);
+    /** The method to convert a mchar32 value to 32 bit UNICODE function. */
+    Uchar32 (*conv_to_uc32) (Mchar32 chv);
 
     /** The method to convert \a wc to multily byte character function. */
     int (*conv_from_uc32) (Uchar32 wc, unsigned char* mchar);
@@ -229,7 +232,7 @@ struct _FONTOPS
     int (*get_font_descent) (LOGFONT* logfont, DEVFONT* devfont);
 
     /** The method to judge the glyph is exist function. */
-    BOOL (*is_glyph_existed) (LOGFONT* logfont, DEVFONT* devfont, 
+    BOOL (*is_glyph_existed) (LOGFONT* logfont, DEVFONT* devfont,
             Glyph32 glyph_value);
 
     /** The method to get character advance function. */
@@ -241,16 +244,16 @@ struct _FONTOPS
             Glyph32 galph_value, int* px, int* py, int* pwidth, int* pheight);
 
     /** The method to get mono-bitmap function. */
-    const void* (*get_glyph_monobitmap) (LOGFONT* logfont, DEVFONT* devfont, 
+    const void* (*get_glyph_monobitmap) (LOGFONT* logfont, DEVFONT* devfont,
             Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale);
 
     /** The method to get grey bitmap, pitch and scale function */
-    const void* (*get_glyph_greybitmap) (LOGFONT* logfont, DEVFONT* devfont, 
+    const void* (*get_glyph_greybitmap) (LOGFONT* logfont, DEVFONT* devfont,
             Glyph32 galph_value, SIZE* sz, int* pitch, unsigned short* scale);
 
     /** The method to get the pre-rendered bitmap of one glyph. */
-    int (*get_glyph_prbitmap) (LOGFONT* logfont, DEVFONT* devfont, 
-            Glyph32 glaph_value, BITMAP *bmp);
+    int (*get_glyph_prbitmap) (LOGFONT* logfont, DEVFONT* devfont,
+            Glyph32 glyph_value, BITMAP *bmp);
 
     /* The method to preproccess start string output fuction, call this 
      * function before output a string, can be NULL.
@@ -258,7 +261,7 @@ struct _FONTOPS
     void (*start_str_output) (LOGFONT* logfont, DEVFONT* devfont);
 
     /** The method to instance new device font function, can be NULL. */
-    DEVFONT* (*new_instance) (LOGFONT* logfont, DEVFONT* devfont, 
+    DEVFONT* (*new_instance) (LOGFONT* logfont, DEVFONT* devfont,
             BOOL need_sbc_font);
 
     /** The method to delete instance of device font function, can be NULL. */
@@ -267,13 +270,20 @@ struct _FONTOPS
     int (*is_rotatable)  (LOGFONT* logfont, DEVFONT* devfont, int rot_desired);
 
     /** The method to load data of a devfont from font file
-     * FIXME real_fontname: return real name in file by a char point 
-     **/
-    //void* (*load_font_data) (char* fontname, char* filename, char* real_fontname);
+     * FIXME real_fontname: return real name in file by a char point
+     */
     void* (*load_font_data) (DEVFONT* devfont, const char* fontname, const char* filename);
 
     /** The method to unload data of a devfont*/
     void (*unload_font_data) (DEVFONT* devfont, void* data);
+
+    /**
+     * The method to get the glyph value according to the character value.
+     * If it is NULL, the glyph value will be equal to the character value.
+     *
+     * Since 3.4.0.
+     */
+    Glyph32 (*get_glyph_value) (LOGFONT* logfont, DEVFONT* devfont, Mchar32 chv);
 };
 
 typedef struct {

@@ -106,16 +106,16 @@ typedef struct _DRAW_GLYPHS_CTXT {
     int advance;
 } DRAW_GLYPHS_CTXT;
 
-static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int glyph_type)
+static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int char_type)
 {
     DRAW_GLYPHS_CTXT* ctxt = (DRAW_GLYPHS_CTXT*)context;
     int adv_x, adv_y;
     int bkmode;
 
-    if (check_zero_width(glyph_type)) {
+    if (check_zero_width(char_type)) {
         adv_x = adv_y = 0;
     }
-    else if (check_vowel(glyph_type)) {
+    else if (check_vowel(char_type)) {
         bkmode = GetBkMode (ctxt->hdc);
         //SetBkMode (ctxt->hdc, BM_TRANSPARENT);
         DrawGlyph (ctxt->hdc, ctxt->x, ctxt->y, glyph_value, &adv_x, &adv_y);
@@ -163,16 +163,16 @@ typedef struct _TEXTOUT_CTXT
 } TEXTOUT_CTXT;
 
 static BOOL cb_textout (void* context, Glyph32 glyph_value,
-        unsigned int glyph_type)
+        unsigned int char_type)
 {
     TEXTOUT_CTXT* ctxt = (TEXTOUT_CTXT*)context;
     int adv_x, adv_y;
     int bkmode;
 
-    if (check_zero_width (glyph_type)) {
+    if (check_zero_width (char_type)) {
         adv_x = adv_y = 0;
     }
-    else if (check_vowel(glyph_type)) {
+    else if (check_vowel(char_type)) {
         if (!ctxt->only_extent) {
             bkmode = ctxt->pdc->bkmode;
             //ctxt->pdc->bkmode = BM_TRANSPARENT;
@@ -326,7 +326,7 @@ typedef struct _TEXTOUTOMITTED_CTXT
     Uint32 max_extent;
 } TEXTOUTOMITTED_CTXT;
 
-static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int glyph_type)
+static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int char_type)
 {
     TEXTOUTOMITTED_CTXT* ctxt = (TEXTOUTOMITTED_CTXT*)context;
     int adv_x, adv_y;
@@ -334,10 +334,10 @@ static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int
     //BBOX bbox;
     int bkmode = ctxt->pdc->bkmode;
 
-    if (check_zero_width(glyph_type)) {
+    if (check_zero_width(char_type)) {
         adv_x = adv_y = 0;
     }
-    else if (check_vowel(glyph_type)) {
+    else if (check_vowel(char_type)) {
         //ctxt->pdc->bkmode = BM_TRANSPARENT;
         _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                 (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
@@ -463,7 +463,7 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
     size->cx = size->cy = 0;
 
     /* This function does not support BIDI */
-    if (mbc_devfont && pdc->bidi_flags && mbc_devfont->charset_ops->bidi_glyph_type)
+    if (mbc_devfont && pdc->bidi_flags && mbc_devfont->charset_ops->bidi_char_type)
         return -1;
 
     _gdi_start_new_line(pdc);
@@ -482,7 +482,7 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
             int i, dfi;
             DEVFONT* df;
 
-            glyph_value = (*mbc_devfont->charset_ops->char_glyph_value)(NULL,
+            glyph_value = (*mbc_devfont->charset_ops->get_char_value)(NULL,
                     0, (const unsigned char*)text, 0);
 
             dfi = 1;
@@ -505,7 +505,7 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
             if ((len_cur_char = sbc_devfont->charset_ops->len_first_char
                         ((const unsigned char*)text, left_bytes)) > 0) {
 
-                glyph_value = (*sbc_devfont->charset_ops->char_glyph_value)(
+                glyph_value = (*sbc_devfont->charset_ops->get_char_value)(
                         NULL, 0, (const unsigned char*)text, 0);
                 advance_cur_char = _gdi_get_glyph_advance (pdc, glyph_value,
                         (pdc->ta_flags & TA_X_MASK) == TA_LEFT,

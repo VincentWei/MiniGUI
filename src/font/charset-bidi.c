@@ -231,7 +231,7 @@ static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Glyph32* glyphs
     last = list;
 
     for (i = 0; i < len; i++){
-        if ((type = charset_ops->bidi_glyph_type (glyphs[i])) != last->type){
+        if ((type = charset_ops->bidi_char_type (glyphs[i])) != last->type){
             link = calloc(1, sizeof(TYPERUN));
             link->type = type;
             link->pos = i;
@@ -487,7 +487,7 @@ bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Glyph32* glyphs, int len,
             for (i = POS (pp); i < POS (pp) + LEN (pp); i++)
             {
                 Glyph32 mirrored_ch;
-                if (charset_ops->bidi_mirror_glyph && charset_ops->bidi_mirror_glyph (glyphs[i], &mirrored_ch))
+                if (charset_ops->bidi_mirror_char && charset_ops->bidi_mirror_char (glyphs[i], &mirrored_ch))
                     glyphs[i] = mirrored_ch;
             }
         }
@@ -757,10 +757,10 @@ BOOL GetGlyphBIDIType (LOGFONT* log_font, Glyph32 glyph_value,
     DEVFONT* devfont = SELECT_DEVFONT(log_font, glyph_value);
 
     if (devfont == NULL ||
-            devfont->charset_ops->bidi_glyph_type == NULL)
+            devfont->charset_ops->bidi_char_type == NULL)
         return FALSE;
 
-    *bidi_type = devfont->charset_ops->bidi_glyph_type (glyph_value);
+    *bidi_type = devfont->charset_ops->bidi_char_type (glyph_value);
     return TRUE;
 }
 

@@ -487,7 +487,7 @@ DEVFONT *CreateBMPDevFont (const char *bmpfont_name, const BITMAP* glyph_bmp,
         goto error_create;
     }
 
-    offset = (charset_ops->char_glyph_value) (NULL, 0,
+    offset = (charset_ops->get_char_value) (NULL, 0,
                 (const unsigned char*) start_mchar, 0);
 
     bmpfont_info = build_bmpfont_info (bmpfont_name, glyph_bmp,
@@ -550,7 +550,7 @@ BOOL AddGlyphsToBMPFont (DEVFONT* dev_font, BITMAP* glyph_bmp,
         return FALSE;
 
     /* Insert a node in the avl tree */
-    offset = (*dev_font->charset_ops->char_glyph_value) (NULL, 0,
+    offset = (*dev_font->charset_ops->get_char_value) (NULL, 0,
                 (const unsigned char*)start_mchar, 0);
 
     if (look_up (root, offset) == NULL) {
@@ -644,7 +644,7 @@ static int avl_look_up (DEVFONT *dev_font, char *start_mchar, int n)
     GLYPHTREENODE *p;
     int offset;
 
-    offset = (*dev_font->charset_ops->char_glyph_value) (NULL, 0,
+    offset = (*dev_font->charset_ops->get_char_value) (NULL, 0,
                 (const unsigned char*)start_mchar, n);
     offset += n;
 

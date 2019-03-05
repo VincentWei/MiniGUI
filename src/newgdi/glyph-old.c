@@ -1785,7 +1785,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     logfont = pdc->pLogFont;
     devfont = SELECT_DEVFONT (logfont, glyph_value);
 
-    glyph_bmptype = devfont->font_ops->get_glyph_type (logfont, devfont)
+    glyph_bmptype = devfont->font_ops->get_char_type (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
     // VincentWei: only use auto bold when the weight of devfont does not

@@ -174,19 +174,19 @@ static void update_glyph_info (HWND hWnd, PBIDISLEDITDATA sled)
     return;
 }
 
-#define GLYPH_TYPE_RTL      1    
-#define GLYPH_TYPE_LTR      0
-#define GLYPH_TYPE_UNKKOWN  -1
+#define CHAR_TYPE_RTL      1    
+#define CHAR_TYPE_LTR      0
+#define CHAR_TYPE_UNKKOWN  -1
 
-static int get_glyph_type (PBIDISLEDITDATA sled, int glyph_index)
+static int get_char_type (PBIDISLEDITDATA sled, int glyph_index)
 {
     if (glyph_index < 0 || glyph_index >= GLYPHSLEN)
-        return GLYPH_TYPE_UNKKOWN;
+        return CHAR_TYPE_UNKKOWN;
  
     if (GLYPHSMAP[glyph_index].is_rtol)
-        return GLYPH_TYPE_RTL;
+        return CHAR_TYPE_RTL;
     else 
-        return GLYPH_TYPE_LTR;
+        return CHAR_TYPE_LTR;
 }
 
 
@@ -1073,8 +1073,8 @@ static int inline get_glyph_bidi_type (LOGFONT* logfont, Glyph32 glyph)
     if (IS_MBC_GLYPH(glyph)) {
         devfont = logfont->devfonts[1];
 
-        if (devfont->charset_ops->bidi_glyph_type) {
-            return devfont->charset_ops->bidi_glyph_type (glyph);
+        if (devfont->charset_ops->bidi_char_type) {
+            return devfont->charset_ops->bidi_char_type (glyph);
         }
         else {
             return BIDI_TYPE_LTR;
@@ -1085,8 +1085,8 @@ static int inline get_glyph_bidi_type (LOGFONT* logfont, Glyph32 glyph)
     }
 
 }
-static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_glyph_type,
-        int r_glyph_type, int line_type)
+static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_char_type,
+        int r_char_type, int line_type)
 {
     int bidi_type;
     Glyph32 glyph;
@@ -1101,36 +1101,36 @@ static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_glyph_type,
     {
         if (BIDI_IS_RTL(bidi_type))
         {
-            return GLYPH_TYPE_RTL;
+            return CHAR_TYPE_RTL;
         }
         else
         {
-            return GLYPH_TYPE_LTR;
+            return CHAR_TYPE_LTR;
         }
     }
 
     if (BIDI_IS_NUMBER(bidi_type))
     {
-        return GLYPH_TYPE_LTR;
+        return CHAR_TYPE_LTR;
     }
 
-    if (l_glyph_type == r_glyph_type)
+    if (l_char_type == r_char_type)
     {
-        return l_glyph_type;
+        return l_char_type;
     }
     /*no left glyph*/
-    else if (l_glyph_type == -1)
+    else if (l_char_type == -1)
     {
         if (BIDI_IS_WEAK (bidi_type))
-            return r_glyph_type;
+            return r_char_type;
         else
             return line_type;
     }
     /*no right glyph*/
-    else if (r_glyph_type == -1)
+    else if (r_char_type == -1)
     {
         if (BIDI_IS_WEAK (bidi_type))
-            return l_glyph_type;
+            return l_char_type;
         else
             return line_type;
     }
@@ -1150,7 +1150,7 @@ static int get_line_rl_type (GLYPHMAPINFO* map, int len)
             return map->is_rtol;
         map++;
     }
-    return GLYPH_TYPE_UNKKOWN;
+    return CHAR_TYPE_UNKKOWN;
 }
 
 #define INSERTPOS_BEFORE(sled, cur_glyph_index) \
@@ -1171,30 +1171,30 @@ get_insert_pos (PLOGFONT logfont, PBIDISLEDITDATA sled, char *newtext,
     int l_glyph_index = sled->editPos - 1;
     int r_glyph_index = sled->editPos;
 
-    int l_glyph_type = get_glyph_type (sled, l_glyph_index);
-    int r_glyph_type = get_glyph_type (sled, r_glyph_index);
+    int l_char_type = get_char_type (sled, l_glyph_index);
+    int r_char_type = get_char_type (sled, r_glyph_index);
 
     int line_type = get_line_rl_type (GLYPHSMAP, GLYPHSLEN);
 
-    *cur_type = get_text_rl_type (logfont, newtext, l_glyph_type,
-            r_glyph_type, line_type);
+    *cur_type = get_text_rl_type (logfont, newtext, l_char_type,
+            r_char_type, line_type);
 
-    if (*cur_type == GLYPH_TYPE_RTL) {
-        if (l_glyph_type == GLYPH_TYPE_RTL) {
+    if (*cur_type == CHAR_TYPE_RTL) {
+        if (l_char_type == CHAR_TYPE_RTL) {
             return INSERTPOS_BEFORE (sled, l_glyph_index);
         }
-        else if (r_glyph_type == GLYPH_TYPE_RTL) {
+        else if (r_char_type == CHAR_TYPE_RTL) {
             return INSERTPOS_AFTER (sled, r_glyph_index);
         }
         else {
             /*L|L, or L|0(must in a L line)*/
-            if (l_glyph_type == GLYPH_TYPE_LTR) {
+            if (l_char_type == CHAR_TYPE_LTR) {
                 return INSERTPOS_AFTER (sled, l_glyph_index);
             }
             /*0|L*/
-            else if (r_glyph_type == GLYPH_TYPE_LTR) {
+            else if (r_char_type == CHAR_TYPE_LTR) {
                 /*logical head in L line*/
-                if (line_type == GLYPH_TYPE_LTR)
+                if (line_type == CHAR_TYPE_LTR)
                 {
                     return 0;
                 }
@@ -1210,21 +1210,21 @@ get_insert_pos (PLOGFONT logfont, PBIDISLEDITDATA sled, char *newtext,
         }
     }
     else {
-        if (l_glyph_type == GLYPH_TYPE_LTR) {
+        if (l_char_type == CHAR_TYPE_LTR) {
             return INSERTPOS_AFTER (sled, l_glyph_index);
         }
-        else if (r_glyph_type == GLYPH_TYPE_LTR) {
+        else if (r_char_type == CHAR_TYPE_LTR) {
             return INSERTPOS_BEFORE (sled, r_glyph_index);
         }
         else {
             /*R|R  or 0|R(must in R line)*/
-            if (r_glyph_type == GLYPH_TYPE_RTL) {
+            if (r_char_type == CHAR_TYPE_RTL) {
                 return INSERTPOS_AFTER (sled, r_glyph_index);
             }
             /*R|0*/
-            else if (l_glyph_type == GLYPH_TYPE_RTL) {
+            else if (l_char_type == CHAR_TYPE_RTL) {
                 /*logical head in R line*/
-                if (line_type == GLYPH_TYPE_RTL) {
+                if (line_type == CHAR_TYPE_RTL) {
                     return 0;
                 }
                 /*logical tail in L line*/
@@ -1324,7 +1324,7 @@ sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext,
     edtChangeCont (hWnd, sled);
 
     /* RTL */
-    if (cur_type == GLYPH_TYPE_RTL) {
+    if (cur_type == CHAR_TYPE_RTL) {
         sled->editPos = get_text_glyph_index (sled, insert_pos);
     }
     else { /*LTR*/

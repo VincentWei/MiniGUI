@@ -100,14 +100,14 @@ static inline BOOL is_utf16_logfont (PDC pdc)
 #endif
 
 static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
-                unsigned int glyph_type)
+                unsigned int char_type)
 {
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
     int adv_x = 0, adv_y = 0;
     BBOX bbox;
     int bkmode;
 
-    switch (glyph_type & GLYPHTYPE_MCHAR_MASK) {
+    switch (char_type & GLYPHTYPE_MCHAR_MASK) {
         case MCHAR_TYPE_ZEROWIDTH:
         case MCHAR_TYPE_CR:
             adv_x = adv_y = 0;

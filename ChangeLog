@@ -3216,7 +3216,7 @@ alExtra.(xwyan)
 	* src/gui/lf_flat.c
 	* src/gui/lf_skin.c
 
-08/24: ENHANCEMENT #1: Add a new method for FONTOPS: get_glyph_type to return
+08/24: ENHANCEMENT #1: Add a new method for FONTOPS: get_char_type to return
 the glyph type the devfont can give us.
 	* src/include/devfont.h
 	* src/font/*.c

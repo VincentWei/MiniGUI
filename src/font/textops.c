@@ -256,7 +256,7 @@ int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
         return 0;
     else {
         if (dest) {
-            glyph_value = devfont->charset_ops->char_glyph_value(NULL, 0, mchar, n);
+            glyph_value = devfont->charset_ops->get_char_value(NULL, 0, mchar, n);
             if(devfont->charset_ops->conv_to_uc32)
                 uc32 = devfont->charset_ops->conv_to_uc32 (glyph_value);
             else
@@ -371,7 +371,7 @@ int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
             }
         }
         else {
-            glyph_value = devfont->charset_ops->char_glyph_value (NULL, 0, mstr, left);
+            glyph_value = devfont->charset_ops->get_char_value (NULL, 0, mstr, left);
             if (devfont->charset_ops->conv_to_uc32)
                 uc32 = devfont->charset_ops->conv_to_uc32 (glyph_value);
             else

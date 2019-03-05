@@ -316,14 +316,16 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
             ((const unsigned char*)mstr, mstr_len);
 
         if (mclen > 0) {
-            *gv = gbctxt->mbc_devfont->charset_ops->char_glyph_value
+            Mchar32 chv = gbctxt->mbc_devfont->charset_ops->get_char_value
                 (NULL, 0, (Uint8*)mstr, mclen);
-            *gv = _gdi_select_glyph_dfi(gbctxt->lf, *gv);
 
             if (gbctxt->mbc_devfont->charset_ops->conv_to_uc32)
-                *uc = gbctxt->mbc_devfont->charset_ops->conv_to_uc32(*gv);
+                *uc = gbctxt->mbc_devfont->charset_ops->conv_to_uc32(chv);
             else
-                *uc = REAL_GLYPH(*gv);
+                *uc = chv;
+
+            chv = SET_MBCHV(chv);
+            *gv = _gdi_get_glyph_value(gbctxt->lf, chv);
         }
     }
 
@@ -332,12 +334,15 @@ static int get_next_glyph(struct glyph_break_ctxt* gbctxt,
             ((const unsigned char*)mstr, mstr_len);
 
         if (mclen > 0) {
-            *gv = gbctxt->sbc_devfont->charset_ops->char_glyph_value
+            Mchar32 chv = gbctxt->sbc_devfont->charset_ops->get_char_value
                 (NULL, 0, (Uint8*)mstr, mclen);
+
             if (gbctxt->sbc_devfont->charset_ops->conv_to_uc32)
-                *uc = gbctxt->sbc_devfont->charset_ops->conv_to_uc32(*gv);
+                *uc = gbctxt->sbc_devfont->charset_ops->conv_to_uc32(chv);
             else
-                *uc = REAL_GLYPH(*gv);
+                *uc = chv;
+
+            *gv = _gdi_get_glyph_value(gbctxt->lf, chv);
         }
     }
 

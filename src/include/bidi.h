@@ -62,8 +62,8 @@ extern "C" {
 typedef struct _TYPERUN TYPERUN;
 
 typedef struct _BIDICHAR_MIRROR_MAP {
-    Glyph32 glyph;
-    Glyph32 mirrored;
+    Mchar32 chv;
+    Mchar32 mirrored;
 } BIDICHAR_MIRROR_MAP;
 
 Glyph32* __mg_charset_bidi_glyphs_reorder (const CHARSETOPS* charset_ops,

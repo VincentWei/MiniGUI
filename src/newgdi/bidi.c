@@ -63,7 +63,7 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
     int i = 0;
     int len_cur_char;
     int left_bytes = text_len;
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
@@ -77,14 +77,14 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
             len_cur_char = mbc_devfont->charset_ops->len_first_char
                 ((const unsigned char*)text, left_bytes);
             if (len_cur_char > 0) {
-                glyph_value = mbc_devfont->charset_ops->char_glyph_value
+                glyph_value = mbc_devfont->charset_ops->get_char_value
                     (prev_mchar, prev_len, text, left_bytes);
 
                 logical_glyphs[i++]
                     = _gdi_select_glyph_dfi(pdc->pLogFont, glyph_value);
-                glyph_type = (*mbc_devfont->charset_ops->glyph_type)
+                char_type = (*mbc_devfont->charset_ops->char_type)
                     (glyph_value);
-                if (!(glyph_type & MCHAR_TYPE_NOSPACING_MARK)){
+                if (!(char_type & MCHAR_TYPE_NOSPACING_MARK)){
                     prev_mchar = text;
                     prev_len = len_cur_char;
                 }
@@ -101,7 +101,7 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
                 ((const unsigned char*)text, left_bytes);
 
             if (len_cur_char > 0) {
-                glyph_value = sbc_devfont->charset_ops->char_glyph_value
+                glyph_value = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text, left_bytes);
                 logical_glyphs[i++] = glyph_value;
                 text += len_cur_char;
@@ -118,12 +118,12 @@ static Glyph32* _gdi_get_glyphs_string(PDC pdc, const unsigned char* text,
     return logical_glyphs;
 }
 
-static unsigned int inline get_glyph_type(LOGFONT* logfont, Glyph32 glyph_value)
+static unsigned int inline get_char_type(LOGFONT* logfont, Glyph32 glyph_value)
 {
     if (IS_MBC_GLYPH (glyph_value))
-        return logfont->devfonts[1]->charset_ops->glyph_type(glyph_value);
+        return logfont->devfonts[1]->charset_ops->char_type(glyph_value);
     else
-        return logfont->devfonts[0]->charset_ops->glyph_type(glyph_value);
+        return logfont->devfonts[0]->charset_ops->char_type(glyph_value);
 }
 
 static int inline get_glyph_advance_in_dc (PDC pdc, Glyph32 glyph_value)
@@ -139,7 +139,7 @@ static int jump_vowels_ltr (PDC pdc, Glyph32* glyphs, int glyph_num, Glyph32* bi
     int cur_advance = 0;
     for (i=0; i<glyph_num; i++)
     {
-        if (!check_vowel(get_glyph_type (pdc->pLogFont, glyphs[i])))
+        if (!check_vowel(get_char_type (pdc->pLogFont, glyphs[i])))
             return i;
         cur_advance = get_glyph_advance_in_dc (pdc, glyphs[i]);
         if (cur_advance > max_advance)
@@ -156,7 +156,7 @@ static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs,
 {
     int i = 0;
     int j = 0;
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32 glyph_value;
     Glyph32 biggest_vowel = 0;
 
@@ -179,8 +179,8 @@ static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs,
         if (vowel_num < nr_glyphs - i)
         {
             glyph_value = *(visual_glyphs);
-            glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
-            if (!cb_one_glyph (context, glyph_value, glyph_type)){
+            char_type = get_char_type (pdc->pLogFont, glyph_value);
+            if (!cb_one_glyph (context, glyph_value, char_type)){
                 goto end;
             }
             outed_num++;
@@ -193,8 +193,8 @@ static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs,
         /*first output the biggest vowel*/
         if (vowel_num)
         {
-            glyph_type = get_glyph_type (pdc->pLogFont, biggest_vowel);
-            if (!cb_one_glyph (context, biggest_vowel, glyph_type)){
+            char_type = get_char_type (pdc->pLogFont, biggest_vowel);
+            if (!cb_one_glyph (context, biggest_vowel, char_type)){
                 goto end;
             }
             outed_num++;
@@ -208,8 +208,8 @@ static int output_visual_glyphs_ltr (PDC pdc, Glyph32* visual_glyphs,
             glyph_value = *(visual_glyphs - j);
             if (glyph_value != biggest_vowel)
             {
-                glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
-                if (!cb_one_glyph (context, glyph_value, glyph_type)){
+                char_type = get_char_type (pdc->pLogFont, glyph_value);
+                if (!cb_one_glyph (context, glyph_value, char_type)){
                     goto end;
                 }
                 outed_num++;
@@ -233,7 +233,7 @@ static int output_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
 {
     int i = 0;
     Glyph32 glyph_value;
-    unsigned int glyph_type;
+    unsigned int char_type;
     int old_text_align = pdc->ta_flags;
     int old_bkmode = pdc->bkmode;
 
@@ -242,10 +242,10 @@ static int output_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
     *outed_num = 0;
     for (i=0; i<left_num; i++) {
         glyph_value = *end_glyph--;
-        glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
+        char_type = get_char_type (pdc->pLogFont, glyph_value);
 
-        if (check_vowel(glyph_type)) {
-            if (cb_one_glyph(context, glyph_value, glyph_type)) {
+        if (check_vowel(char_type)) {
+            if (cb_one_glyph(context, glyph_value, char_type)) {
                 (*outed_num) ++;
             }
         }
@@ -263,23 +263,23 @@ static int output_unowned_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
     int i = 0;
     Glyph32 glyph_value   = INV_GLYPH_VALUE;
     Glyph32 biggest_vowel = INV_GLYPH_VALUE;
-    unsigned int glyph_type;
+    unsigned int char_type;
     int cur_advance = 0;
     int max_advance = 0;
     int bkmode = pdc->bkmode;
     int old_text_align = pdc->ta_flags;
 
     *outed_num = 0;
-    if (!check_vowel(get_glyph_type (pdc->pLogFont, *end_glyph)))
+    if (!check_vowel(get_char_type (pdc->pLogFont, *end_glyph)))
         return 0;
 
     pdc->ta_flags = (old_text_align & ~TA_RIGHT) | TA_LEFT;
     for (i=0; i<left_num; i++)
     {
         glyph_value = end_glyph [-i];
-        glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
+        char_type = get_char_type (pdc->pLogFont, glyph_value);
 
-        if (!check_vowel(glyph_type))
+        if (!check_vowel(char_type))
             break;
 
         cur_advance = get_glyph_advance_in_dc (pdc, glyph_value);
@@ -292,8 +292,8 @@ static int output_unowned_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
 
     /*output the biggest_vowel*/
     if(max_advance){
-        glyph_type = get_glyph_type (pdc->pLogFont, biggest_vowel);
-        if (cb_one_glyph(context, biggest_vowel, glyph_type)){
+        char_type = get_char_type (pdc->pLogFont, biggest_vowel);
+        if (cb_one_glyph(context, biggest_vowel, char_type)){
             (*outed_num) ++;
         }
     }
@@ -306,8 +306,8 @@ static int output_unowned_vowels_rtl (PDC pdc, Glyph32* end_glyph, int left_num,
         glyph_value = *end_glyph--;
         if (glyph_value != biggest_vowel)
         {
-            glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
-            if (cb_one_glyph(context, glyph_value, glyph_type))
+            char_type = get_char_type (pdc->pLogFont, glyph_value);
+            if (cb_one_glyph(context, glyph_value, char_type))
             {
                 (*outed_num) ++;
             }
@@ -322,7 +322,7 @@ static int output_visual_glyphs_rtl (PDC pdc, Glyph32* visual_glyphs,
     int nr_glyphs, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int cur = nr_glyphs - 1;
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32 glyph_value;
     int vowel_num;
     int outed_vowel_num;
@@ -339,10 +339,10 @@ static int output_visual_glyphs_rtl (PDC pdc, Glyph32* visual_glyphs,
 
     while (cur >= 0) {
         glyph_value = visual_glyphs[cur];
-        glyph_type = get_glyph_type (pdc->pLogFont, glyph_value);
+        char_type = get_char_type (pdc->pLogFont, glyph_value);
 
         /*output the letter*/
-        if (!cb_one_glyph(context, glyph_value, glyph_type)){
+        if (!cb_one_glyph(context, glyph_value, char_type)){
             return outed_glyph_num;
         }
         outed_glyph_num ++;
@@ -380,7 +380,7 @@ static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
         int text_len, CB_ONE_GLYPH cb_one_glyph, void* context,
         BOOL if_break, BOOL if_draw)
 {
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
@@ -404,7 +404,7 @@ static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
             len_cur_char = mbc_devfont->charset_ops->len_first_char
                 ((const unsigned char*)text, left_bytes);
             if (len_cur_char > 0) {
-                glyph_value = mbc_devfont->charset_ops->char_glyph_value
+                glyph_value = mbc_devfont->charset_ops->get_char_value
                     (prev_mchar, prev_len, text, left_bytes);
 
                 glyph_value = _gdi_select_glyph_dfi(pdc->pLogFont, glyph_value);
@@ -416,16 +416,16 @@ static int _gdi_output_glyphs_direct(PDC pdc, const unsigned char* text,
             ((const unsigned char*)text, left_bytes);
 
         if (len_cur_char > 0) {
-            glyph_value = sbc_devfont->charset_ops->char_glyph_value
+            glyph_value = sbc_devfont->charset_ops->get_char_value
                 (NULL, 0, text, left_bytes);
         }
         else break;
 
 do_glyph:
         if (IS_MBC_GLYPH (glyph_value))
-            glyph_type = mbc_devfont->charset_ops->glyph_type (glyph_value);
+            char_type = mbc_devfont->charset_ops->char_type (glyph_value);
         else
-            glyph_type = sbc_devfont->charset_ops->glyph_type (glyph_value);
+            char_type = sbc_devfont->charset_ops->char_type (glyph_value);
 
         if(if_break){
             DRAWTEXTEX2_CTXT _txt;
@@ -436,7 +436,7 @@ do_glyph:
             _txt.nFormat     = ctxt->nFormat;
             _txt.only_extent = TRUE;
             _txt.tab_width   = ctxt->tab_width;
-            if (!cb_one_glyph(&_txt, glyph_value, glyph_type)){
+            if (!cb_one_glyph(&_txt, glyph_value, char_type)){
                 break;
             }
             line_width += _txt.advance;
@@ -446,7 +446,7 @@ do_glyph:
         }
 
         if(if_draw) {
-            if (!cb_one_glyph(ctxt, glyph_value, glyph_type)){
+            if (!cb_one_glyph(ctxt, glyph_value, char_type)){
                 break;
             }
         }
@@ -468,7 +468,7 @@ Glyph32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
     Glyph32 *logical_glyphs = NULL;
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
         logical_glyphs = _gdi_get_glyphs_string (pdc, text, text_len, nr_glyphs);
         if (*nr_glyphs > 0)
             __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
@@ -482,7 +482,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                 BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context)
 {
     int i = 0;
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
@@ -491,7 +491,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
         int nr_glyphs = 0;
         Glyph32 *logical_glyphs = NULL;
 
-        if (mbc_devfont->charset_ops->bidi_glyph_type) {
+        if (mbc_devfont->charset_ops->bidi_char_type) {
 
             logical_glyphs = _gdi_bidi_reorder (pdc, text, text_len, &nr_glyphs);
             if (!logical_glyphs || nr_glyphs <= 0)
@@ -523,27 +523,27 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
     else {
         if (!direction) { /* right to left, reverse text.*/
             for (i = text_len - 1; i >= 0; i--) {
-                if (!(glyph_value = sbc_devfont->charset_ops->char_glyph_value
+                if (!(glyph_value = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text + i, 1)))
                     return (text_len-i-1);
 
-                glyph_type = sbc_devfont->charset_ops->glyph_type
+                char_type = sbc_devfont->charset_ops->char_type
                     (glyph_value);
 
-                if (!cb_one_glyph (context, glyph_value, glyph_type))
+                if (!cb_one_glyph (context, glyph_value, char_type))
                     break;
             }
         }
         else {
             for (i = 0; i < text_len; i++) {
-                if (!(glyph_value = sbc_devfont->charset_ops->char_glyph_value
+                if (!(glyph_value = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text + i, 1)))
                     return i;
 
-                glyph_type = sbc_devfont->charset_ops->glyph_type
+                char_type = sbc_devfont->charset_ops->char_type
                     (glyph_value);
 
-                if(!cb_one_glyph (context, glyph_value, glyph_type))
+                if(!cb_one_glyph (context, glyph_value, char_type))
                     break;
             }
         }
@@ -558,7 +558,7 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
     int i = 0;
     int len_cur_char;
     int left_bytes = text_len;
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32  glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
@@ -581,16 +581,16 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
         else len_cur_char = 0;
 
         if (len_cur_char > 0) {
-            glyph_value = mbc_devfont->charset_ops->char_glyph_value
+            glyph_value = mbc_devfont->charset_ops->get_char_value
                 (prev_mchar, prev_len, text, left_bytes);
 
             prev_mchar = text;
             prev_len = len_cur_char;
             logical_glyphs[i++] = _gdi_select_glyph_dfi(pdc->pLogFont, glyph_value);
 
-            glyph_type = (*mbc_devfont->charset_ops->glyph_type)
+            char_type = (*mbc_devfont->charset_ops->char_type)
                 (glyph_value);
-            if (!(glyph_type & MCHAR_TYPE_NOSPACING_MARK)){
+            if (!(char_type & MCHAR_TYPE_NOSPACING_MARK)){
                 prev_mchar = text;
             }
             else{
@@ -607,7 +607,7 @@ _gdi_get_glyphs_string_charbreak(PDC pdc, const unsigned char* text,
                 ((const unsigned char*)text, left_bytes);
 
             if (len_cur_char > 0) {
-                glyph_value = sbc_devfont->charset_ops->char_glyph_value
+                glyph_value = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text, left_bytes);
                 logical_glyphs[i++] = glyph_value;
                 line_width += _gdi_get_glyph_advance (pdc, logical_glyphs[i-1],
@@ -825,7 +825,7 @@ _gdi_output_glyphs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
     int nr_glyphs = 0;
     int i = 0;
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32 glyph_value;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
 
@@ -846,13 +846,13 @@ _gdi_output_glyphs_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
     if(ctxt->nCount <= 0) return 0;
 
     for (i = ctxt->nCount - 1; i >= 0; i--) {
-        glyph_value = sbc_devfont->charset_ops->char_glyph_value
+        glyph_value = sbc_devfont->charset_ops->get_char_value
             (NULL, 0, text + i, 1);
 
-        glyph_type = sbc_devfont->charset_ops->glyph_type
+        char_type = sbc_devfont->charset_ops->char_type
             (glyph_value);
 
-        if(!cb_one_glyph (context, glyph_value, glyph_type))
+        if(!cb_one_glyph (context, glyph_value, char_type))
             break;
     }
     return nr_glyphs;
@@ -868,7 +868,7 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
         int nr_glyphs = text_len;
         Glyph32 *logical_glyphs = NULL;
 
-        if (mbc_devfont->charset_ops->bidi_glyph_type){
+        if (mbc_devfont->charset_ops->bidi_char_type){
 
             logical_glyphs = _gdi_get_glyphs_string_break(pdc, text, text_len,
                     &nr_glyphs, context);
@@ -1009,16 +1009,16 @@ int GUIAPI GetGlyphsExtentPoint(
     PDC pdc = dc_HDC2PDC(hdc);
     PLOGFONT log_font = pdc->pLogFont;
     DEVFONT* devfont = NULL;
-    unsigned int glyph_type = 0;
+    unsigned int char_type = 0;
 
     size->cx = 0;
     size->cy = 0;
 
     while(i < nr_glyphs){
         devfont = SELECT_DEVFONT(log_font, glyphs[i]);
-        glyph_type = devfont->charset_ops->glyph_type(glyphs[i]);
+        char_type = devfont->charset_ops->char_type(glyphs[i]);
 
-        if (check_zero_width (glyph_type)) {
+        if (check_zero_width (char_type)) {
             adv_x = adv_y = 0;
         }
         else {
@@ -1058,7 +1058,7 @@ int GUIAPI GetGlyphsExtent(
     int i = 0;
     int advance = 0;
     int adv_x, adv_y;
-    unsigned int glyph_type;
+    unsigned int char_type;
     Glyph32 glyph_value = INV_GLYPH_VALUE;
     PDC pdc = dc_HDC2PDC(hdc);
     PLOGFONT log_font = pdc->pLogFont;
@@ -1068,9 +1068,9 @@ int GUIAPI GetGlyphsExtent(
     size->cy = 0;
     while (i < nr_glyphs) {
         devfont = SELECT_DEVFONT(log_font, glyphs[i]);
-        glyph_type = devfont->charset_ops->glyph_type(glyphs[i]);
+        char_type = devfont->charset_ops->char_type(glyphs[i]);
 
-        if (check_zero_width (glyph_type)) {
+        if (check_zero_width (char_type)) {
             adv_x = adv_y = 0;
         }
         else {
@@ -1361,7 +1361,7 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
     *nr_ranges = 0;
     /* it is not bidi string. */
     if (!log_font->devfonts[1] || (log_font->devfonts[1] &&
-                !log_font->devfonts[1]->charset_ops->bidi_glyph_type)) {
+                !log_font->devfonts[1]->charset_ops->bidi_char_type)) {
         *ranges = NULL;
         return;
     }
@@ -1457,7 +1457,7 @@ int GUIAPI BIDIGetTextVisualGlyphs(LOGFONT* log_font,
             glyphs, glyphs_map);
 
     if (nr_glyphs > 0 && mbc_devfont
-                && mbc_devfont->charset_ops->bidi_glyph_type) {
+                && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
                 *glyphs, nr_glyphs, -1,
                 *glyphs_map, bidi_reverse_map);
@@ -1472,7 +1472,7 @@ Glyph32* GUIAPI BIDILogGlyphs2VisGlyphs(LOGFONT* log_font,
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (nr_glyphs > 0 && mbc_devfont
-                && mbc_devfont->charset_ops->bidi_glyph_type) {
+                && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
                 glyphs, nr_glyphs, -1,
                 glyphs_map, bidi_reverse_map);
@@ -1490,7 +1490,7 @@ BOOL GUIAPI BIDILogGlyphs2VisGlyphsEx(LOGFONT* log_font,
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 
     if (nr_glyphs > 0 && mbc_devfont
-                && mbc_devfont->charset_ops->bidi_glyph_type) {
+                && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_glyphs_reorder (mbc_devfont->charset_ops,
                 glyphs, nr_glyphs, pel,
                 extra, cb_reorder_extra);
@@ -1510,7 +1510,7 @@ void GUIAPI BIDIGetLogicalEmbedLevelsEx(LOGFONT* log_font,
     if (*embedding_levels == NULL)
         *embedding_levels = malloc(nr_glyphs * sizeof (Uint8));
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
                 glyphs, nr_glyphs, pel, *embedding_levels, 0);
     }
@@ -1528,7 +1528,7 @@ void GUIAPI BIDIGetVisualEmbedLevelsEx(LOGFONT* log_font,
     if (*embedding_levels == NULL)
         *embedding_levels = malloc(nr_glyphs * sizeof (Uint8));
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_glyph_type) {
+    if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
         __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
                 glyphs, nr_glyphs, pel, *embedding_levels, 1);
     }

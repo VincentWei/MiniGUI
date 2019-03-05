@@ -272,7 +272,7 @@ get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 
 static int
 load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
-        FT_ULong uni_char, int glyph_type)
+        FT_ULong uni_char, int char_type)
 {
     /* no need to lock/unlock in this function */
 
@@ -281,10 +281,10 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     int ft_load_flags = FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
 
     //setting load_flags
-    if (glyph_type == DEVFONTGLYPHTYPE_MONOBMP)
+    if (char_type == DEVFONTGLYPHTYPE_MONOBMP)
         ft_load_flags |= FT_LOAD_TARGET_MONO;
     else {
-        if (glyph_type == DEVFONTGLYPHTYPE_SUBPIXEL
+        if (char_type == DEVFONTGLYPHTYPE_SUBPIXEL
                 && ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)
             ft_load_flags |= FT_LOAD_TARGET_LCD;
         else

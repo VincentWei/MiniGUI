@@ -211,7 +211,7 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
 
     glyph_value = REAL_GLYPH(glyph_value);
     if (glyph_value >= RBFONT_INFO_P (devfont)->nr_glyphs)
-        glyph_value = devfont->charset_ops->def_glyph_value;
+        glyph_value = devfont->charset_ops->def_char_value;
 
     bitmap_size = ((RBFONT_INFO_P (devfont)->width + 7) >> 3) 
                 * RBFONT_INFO_P (devfont)->height; 

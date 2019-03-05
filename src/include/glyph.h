@@ -46,6 +46,7 @@ extern "C" {
 #endif  /* __cplusplus */
 
 Glyph32 _gdi_select_glyph_dfi(LOGFONT* lf, Glyph32 gv);
+Glyph32 _gdi_get_glyph_value(LOGFONT* lf, Mchar32 chv);
 
 #ifdef __cplusplus
 }

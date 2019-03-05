@@ -89,7 +89,7 @@ void _gdi_calc_glyphs_size_from_two_points (PDC pdc, int x0, int y0,
         int x1, int y1, SIZE* size);
 
 typedef BOOL (*CB_ONE_GLYPH) (void* context, Glyph32 glyph_value, 
-        unsigned int glyph_type);
+        unsigned int char_type);
 
 int _gdi_output_visual_glyphs(PDC pdc, Glyph32* visual_glyphs, int nr_glyphs, 
         BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context);

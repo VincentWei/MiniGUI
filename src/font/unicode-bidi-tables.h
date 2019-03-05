@@ -43,7 +43,7 @@
 typedef struct _bidichar_type_map
 {
     Uint32    type;       // Type of Unicode characters
-    Glyph32   glyph;      // Starting index of Unicode character
+    Uchar32   chv;        // Starting index of Unicode character
     Uint8     count;      // Total number of Unicode characters of same type starting from glyphn
 } BIDICHAR_TYPE_MAP;
 

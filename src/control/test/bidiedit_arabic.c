@@ -271,30 +271,30 @@ static void set_keyboard_layout(HWND hDlg)
 }
 
 #if 0
-    if (cur_type == GLYPH_TYPE_RTL) {
-        if (l_glyph_type == GLYPH_TYPE_RTL)
+    if (cur_type == CHAR_TYPE_RTL) {
+        if (l_char_type == CHAR_TYPE_RTL)
             return INSERTPOS_BEFORE (sled, l_glyph_index);
-        else if (r_glyph_type == GLYPH_TYPE_RTL)
+        else if (r_char_type == CHAR_TYPE_RTL)
             return INSERTPOS_AFTER (sled, r_glyph_index);
         else
         {
-            if (l_glyph_type == GLYPH_TYPE_LTR)
+            if (l_char_type == CHAR_TYPE_LTR)
                 return INSERTPOS_AFTER (sled, l_glyph_index);
-            else if (l_glyph_type == GLYPH_TYPE_LTR)
+            else if (l_char_type == CHAR_TYPE_LTR)
                 return INSERTPOS_BEFORE (sled, r_glyph_index);
             else
                 return 0;
         }
     }
     else {
-        if (l_glyph_type == GLYPH_TYPE_LTR)
+        if (l_char_type == CHAR_TYPE_LTR)
             return INSERTPOS_AFTER (sled, l_glyph_index);
-        else if (r_glyph_type == GLYPH_TYPE_LTR)
+        else if (r_char_type == CHAR_TYPE_LTR)
             return INSERTPOS_BEFORE (sled, r_glyph_index);
         else {
-            if (l_glyph_type == GLYPH_TYPE_RTL)
+            if (l_char_type == CHAR_TYPE_RTL)
                 return INSERTPOS_BEFORE (sled, l_glyph_index);
-            else if (l_glyph_type == GLYPH_TYPE_RTL)
+            else if (l_char_type == CHAR_TYPE_RTL)
                 return INSERTPOS_AFTER (sled, r_glyph_index);
             else
                 return 0;
