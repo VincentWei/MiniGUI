@@ -378,7 +378,7 @@ AppendBlk(FontCache *cache, MemBlk *blk, int key)
    *size : if found the data, how long is the data(return val)
    reutrn = pointer to the data */
 TTFCACHEINFO *
-__mg_ttc_search(HCACHE hCache, Uchar32 unicode, int *size)
+__mg_ttc_search(HCACHE hCache, Glyph32 gv, int *size)
 {
     int key;
     CacheQueueNode *ca;
@@ -388,7 +388,7 @@ __mg_ttc_search(HCACHE hCache, Uchar32 unicode, int *size)
         return NULL;
     }
     ca = (CacheQueueNode *)(hCache);
-    key = ca->cache.makeHashKeyFunc(unicode);
+    key = ca->cache.makeHashKeyFunc(gv);
     if (key > (ca->cache.nDir - 1)) {
         return NULL;
     }
@@ -397,7 +397,7 @@ __mg_ttc_search(HCACHE hCache, Uchar32 unicode, int *size)
     for ( ; blk != &(ca->cache.hashDir[key].hashHead);
           blk = blk->hashNext) {
         TTFCACHEINFO* tci = (TTFCACHEINFO*)blk->data;
-        if (tci->unicode == unicode) {
+        if (tci->glyph_code == gv) {
             /* If found the blk, we should pick off it
                and link it at the end of LRU-q */
             *size = blk->len;
@@ -433,7 +433,7 @@ __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size)
     if (ca->cache.blkSize < size) {
         return -1;
     }
-    key = ca->cache.makeHashKeyFunc(data->unicode);
+    key = ca->cache.makeHashKeyFunc(data->glyph_code);
 
     /* pick off a block from lru queue */
     if ((blk = PickOffBlk(&ca->cache)) == NULL) {
@@ -695,7 +695,6 @@ void
 __mg_ttc_dump_cacheinfo(TTFCACHEINFO *ca)
 {
     DP(("Dump TTFCACHEINFO %p...\n", ca));
-    DP(("cacheInfo->unicode = %d\n", ca->unicode));
     DP(("cacheInfo->glyph_code = %d\n", ca->glyph_code));
 
     DP(("cacheInfo->cur_xmin = %d, cacheInfo->cur_ymin = %d\n",
@@ -714,7 +713,6 @@ void
 __mg_ttc_dump_instance(TTFINSTANCEINFO *in)
 {
     DP(("Dump TTFINSTANCEINFO %p...\n", in));
-    DP(("Instance->cur_unicode = %d\n", in->cur_unicode));
     DP(("Instance->cur_glyph_code = %d\n", in->cur_glyph_code));
     DP(("Instance->outline(addr) = %p\n", &in->cur_outline));
     DP(("Instance->cur_xmin = %d, Instance->cur_ymin = %d\n",

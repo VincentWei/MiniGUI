@@ -272,10 +272,9 @@ get_font_descent (LOGFONT* logfont, DEVFONT* devfont)
 
 static int
 load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
-        FT_ULong uni_char, int char_type)
+        Glyph32 gv, int char_type)
 {
     /* no need to lock/unlock in this function */
-
 #ifndef _MGFONT_TTF_CACHE
     FTFACEINFO*     ft_face_info = ft_inst_info->ft_face_info;
     int ft_load_flags = FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
@@ -294,8 +293,7 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     FT_Activate_Size (ft_inst_info->size);
 
     *face = ft_face_info->face;
-    ft_inst_info->cur_index = FT_Get_Char_Index (*face, uni_char);
-
+    ft_inst_info->cur_index = gv;
     if (FT_Load_Glyph (*face, ft_inst_info->cur_index, ft_load_flags)) {
         _MG_PRINTF ("FONT>FT2: FT_Load_Glyph error\n");
         return -1;
@@ -315,16 +313,9 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
         return 0;
     }
 
-    ft_inst_info->cur_index = FTC_CMapCache_Lookup (ft_cmap_cache,
-            (FTC_FaceID) (ft_inst_info->image_type.face_id),
-            ft_inst_info->ft_face_info->cmap_index,
-            uni_char);
-
-    if (FTC_ImageCache_Lookup (ft_image_cache,
-                &ft_inst_info->image_type,
-                ft_inst_info->cur_index,
-                &ft_glyph_tmp,
-                NULL)) {
+    ft_inst_info->cur_index = gv;
+    if (FTC_ImageCache_Lookup (ft_image_cache, &ft_inst_info->image_type,
+                ft_inst_info->cur_index, &ft_glyph_tmp, NULL)) {
         _MG_PRINTF ("FONT>FT2: can't access image cache.\n");
         return -1;
     }
@@ -345,24 +336,17 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
 /* call this function before getting the bitmap/pixmap of the char
  * to get the bbox of the char */
 static int
-get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
-                Glyph32 glyph_value,
+get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, Glyph32 gv,
                 int* px, int* py, int* pwidth, int* pheight)
 {
-
     FT_BBox         bbox;
     FT_Face         face;
-    FT_UInt         uni_char;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
     bbox.xMin = bbox.yMin = 32000;
     bbox.xMax = bbox.yMax = -32000;
 
-    glyph_value = REAL_GLYPH(glyph_value);
-    if (devfont->charset_ops->conv_to_uc32)
-        uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
-    else
-        uni_char = glyph_value;
+    gv = REAL_GLYPH(gv);
 
     FT_LOCK(&ft_lock);
 
@@ -371,8 +355,7 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     if (ft_inst_info->cache) {
         TTFCACHEINFO *cache_info;
         int datasize;
-        cache_info = __mg_ttc_search(ft_inst_info->cache,
-                                        uni_char, &datasize);
+        cache_info = __mg_ttc_search(ft_inst_info->cache, gv, &datasize);
 
         if (cache_info != NULL) {
             DP(("%s: BBOX Hit!! %d\n", __FUNCTION__, bbox_hit++));
@@ -390,12 +373,11 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
             FT_UNLOCK(&ft_lock);
             return (int)(cache_info->bbox.xMax - cache_info->bbox.xMin);
         }
-        DP(("%s: BBOX Non - Hit! %d, %d\n",
-            __FUNCTION__, bbox_nohit++, uni_char));
+        DP(("%s: BBOX Non - Hit! %d, %d\n", __FUNCTION__, bbox_nohit++, gv));
     }
 #endif /* _MGFONT_TTF_CACHE */
 
-    if (load_or_search_glyph (ft_inst_info, &face, uni_char,
+    if (load_or_search_glyph (ft_inst_info, &face, gv,
                 get_glyph_bmptype(logfont, devfont))) {
         _ERR_PRINTF ("FONT>FT2: load_or_search_glyph error in freetype2\n");
         goto error;
@@ -451,12 +433,10 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         int datasize;
         int size = 0;
 
-        pcache = __mg_ttc_search(ft_inst_info->cache,
-               uni_char, &datasize);
+        pcache = __mg_ttc_search(ft_inst_info->cache, gv, &datasize);
 
         if (pcache == NULL) {
             cache_info.glyph_code = ft_inst_info->cur_index;
-            cache_info.unicode = uni_char;
             cache_info.bbox    = ft_inst_info->bbox;
             cache_info.advance = ft_inst_info->advance;
             cache_info.delta   = ft_inst_info->delta;
@@ -490,34 +470,27 @@ error:
 /* call this function to get the bitmap/pixmap of the char */
 static const void*
 char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
-        Glyph32 glyph_value, SIZE* sz, int* pitch, BOOL is_grey)
+        Glyph32 gv, SIZE* sz, int* pitch, BOOL is_grey)
 {
     FT_BitmapGlyph  glyph_bitmap;
     FT_Bitmap*      source;
-    FT_UInt         uni_char;
     FT_Face         face;
     BYTE*           buffer = NULL;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
-    glyph_value = REAL_GLYPH(glyph_value);
+    gv = REAL_GLYPH(gv);
 
     FT_LOCK(&ft_lock);
 
     if (IS_SUBPIXEL(logfont))
         FT_Library_SetLcdFilter(ft_library, ft_inst_info->ft_lcdfilter);
 
-    if (devfont->charset_ops->conv_to_uc32)
-        uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
-    else
-        uni_char = glyph_value;
-
 #ifdef _MGFONT_TTF_CACHE
     if (ft_inst_info->cache) {
         TTFCACHEINFO *cacheinfo;
         int datasize;
 
-        cacheinfo = __mg_ttc_search(ft_inst_info->cache,
-                        uni_char, &datasize);
+        cacheinfo = __mg_ttc_search(ft_inst_info->cache, gv, &datasize);
 
         if (cacheinfo != NULL && cacheinfo->flag == TRUE) {
             DP(("%s: Bitmap Hit!! %d\n", __FUNCTION__, bitmap_hit++));
@@ -534,11 +507,11 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             return cacheinfo->bitmap;
         }
 
-        DP(("%s: Bitmap Non hit %d, %d\n", __FUNCTION__, bitmap_nohit++, uni_char));
+        DP(("%s: Bitmap Non hit %d, %d\n", __FUNCTION__, bitmap_nohit++, gv));
     }
 #endif /* _MGFONT_TTF_CACHE */
 
-    if (load_or_search_glyph (ft_inst_info, &face, uni_char,
+    if (load_or_search_glyph (ft_inst_info, &face, gv,
                 get_glyph_bmptype(logfont, devfont))) {
         _ERR_PRINTF ("FONT>FT2: load_or_search_glyph failed in freetype2\n");
         goto error;
@@ -577,13 +550,11 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         int datasize;
         int size = source->rows * source->pitch;
 
-        pcache = __mg_ttc_search(ft_inst_info->cache,
-               uni_char, &datasize);
+        pcache = __mg_ttc_search(ft_inst_info->cache, gv, &datasize);
 
         if (pcache == NULL) {
             TTFCACHEINFO cache_info;
             cache_info.glyph_code = ft_inst_info->cur_index;
-            cache_info.unicode = uni_char;
             cache_info.bbox    = ft_inst_info->bbox;
             cache_info.advance = ft_inst_info->advance;
             cache_info.delta   = ft_inst_info->delta;
@@ -609,7 +580,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                 pcache->flag = TRUE;
 
                 DP(("%s: Write bitmap data for 0x%x to cache, bitmap (%d X %d, %d), cache = %p\n",
-                        __FUNCTION__, uni_char, source->width, source->rows,
+                        __FUNCTION__, gv, source->width, source->rows,
                         source->pitch, ft_inst_info->cache));
             }
 
@@ -661,21 +632,21 @@ error:
 
 static const void*
 get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-        Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
+        Glyph32 gv, SIZE* sz, int* pitch, unsigned short* scale)
 {
-    glyph_value = REAL_GLYPH(glyph_value);
+    gv = REAL_GLYPH(gv);
     if (scale) *scale = 1;
-    return char_bitmap_pixmap (logfont, devfont, glyph_value, sz, pitch, FALSE);
+    return char_bitmap_pixmap (logfont, devfont, gv, sz, pitch, FALSE);
 }
 
 static const void*
 get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
-            Glyph32 glyph_value, SIZE* sz, int* pitch,
+            Glyph32 gv, SIZE* sz, int* pitch,
             unsigned short* scale)
 {
-    glyph_value = REAL_GLYPH(glyph_value);
+    gv = REAL_GLYPH(gv);
     if (scale) *scale = 1;
-    return char_bitmap_pixmap (logfont, devfont, glyph_value, sz, pitch, TRUE);
+    return char_bitmap_pixmap (logfont, devfont, gv, sz, pitch, TRUE);
 }
 
 /* call this function before output a string */
@@ -696,12 +667,12 @@ start_str_output (LOGFONT* logfont, DEVFONT* devfont)
  * to get the advance of the char */
 static int
 get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
-    Glyph32 glyph_value, int* px, int* py)
+        Glyph32 gv, int* px, int* py)
 {
     FT_Fixed advance;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
-    glyph_value = REAL_GLYPH(glyph_value);
+    gv = REAL_GLYPH(gv);
     if (ft_inst_info->use_kerning
             && ft_inst_info->prev_index && ft_inst_info->cur_index) {
         if (ft_inst_info->is_index_old) {
@@ -722,7 +693,7 @@ get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 #ifdef _MGFONT_TTF_CACHE
-static inline int make_hash_key(Uchar32 data)
+static int make_hash_key(Glyph32 data)
 {
     return ((int)data % 37);
 }
@@ -928,50 +899,44 @@ delete_instance (DEVFONT* devfont)
     free (devfont);
 }
 
-static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_value)
+static Glyph32 get_glyph_value (LOGFONT* logfont, DEVFONT* devfont, Achar32 ac)
 {
-    FT_Face         face;
-    FT_UInt         uni_char;
+    FT_Face face;
+    FT_UInt uc;
+    Glyph32 gv = INV_GLYPH_VALUE;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
 
-    glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
-        uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
+        uc = (*devfont->charset_ops->conv_to_uc32) (ac);
     else
-        uni_char = glyph_value;
+        uc = REAL_ACHAR(ac);
 
     FT_LOCK(&ft_lock);
 
 #ifndef _MGFONT_TTF_CACHE
     face = ft_inst_info->ft_face_info->face;
-    if (0 == FT_Get_Char_Index (face, uni_char))
-        goto error;
-    else {
-        FT_UNLOCK(&ft_lock);
-        return TRUE;
-    }
-
+    gv = FT_Get_Char_Index (face, uc);
 #else /* !_MGFONT_TTF_CACHE */
-
     if (get_cached_face (ft_inst_info, &face)) {
         _MG_PRINTF ("FONT>FT2: can't access cached face %p\n", ft_inst_info->ft_face_info);
         goto error;
     }
 
-    if (0 == FTC_CMapCache_Lookup (ft_cmap_cache,
-            (FTC_FaceID) (ft_inst_info->image_type.face_id),
-            ft_inst_info->ft_face_info->cmap_index, uni_char)) {
-        goto error;
-    }
-    else {
-        FT_UNLOCK(&ft_lock);
-        return TRUE;
-    }
-
+    gv = FTC_CMapCache_Lookup (ft_cmap_cache,
+        (FTC_FaceID) (ft_inst_info->image_type.face_id),
+        ft_inst_info->ft_face_info->cmap_index, uc);
 #endif /* _MGFONT_TTF_CACHE */
 
 error:
     FT_UNLOCK(&ft_lock);
+    return gv;
+}
+
+static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 gv)
+{
+    if (REAL_GLYPH(gv))
+        return TRUE;
+
     return FALSE;
 }
 
@@ -1231,7 +1196,8 @@ FONTOPS __mg_ttf_ops = {
     delete_instance,
     is_rotatable,
     load_font_data,
-    unload_font_data
+    unload_font_data,
+    get_glyph_value
 };
 
 BOOL

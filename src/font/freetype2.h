@@ -72,7 +72,7 @@ extern "C" {
 
 #ifdef _MGFONT_TTF_CACHE
 typedef void* HCACHE;
-typedef int (* MakeHashKeyFunc)(Uchar32 unicode);
+typedef int (* MakeHashKeyFunc)(Glyph32 gv);
 #endif
 
 typedef struct tagFTFACEINFO {
@@ -122,7 +122,6 @@ typedef struct tagFTINSTANCEINFO {
 #define _TTF_HASH_NDIR   37
 
 typedef struct tagTTFCACHEINFO {
-    Uchar32     unicode;
     FT_UInt     glyph_code;
     FT_Vector   advance;
     FT_BBox     bbox;
@@ -144,8 +143,7 @@ extern int __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size);
 extern void __mg_ttc_release(HCACHE hCache);
 extern int __mg_ttc_sys_init(int maxCache, int cacheSize);
 extern void __mg_ttc_sys_deinit(void);
-extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache,
-               Uchar32 unicode, int *size);
+extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache, Glyph32 gv, int *size);
 extern void __mg_ttc_refer(HCACHE hCache);
 
 #endif

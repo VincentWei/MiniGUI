@@ -11435,13 +11435,15 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
  * This function gets the visual extent information of a glyph string which can
  * fit a line with the specified maximal extent.
  *
- * \param logfont The logfont used to parse the glyph string.
+ * \param logfont_upright The logfont used to render the uchar string. Note
+ *      that the charset/encoding of this logfont should be Unicode, such as
+ *      UTF-8, UTF-16LE, and UTF-16BE.
  * \param uchars The pointer to the achar string.
  * \param nr_uchars The number of the glyphs.
  * \param break_oppos The pointer to the break opportunities array of the glyphs.
  *      It should be returned by \a GetUCharsAndBreaks. However, the caller
  *      should skip the first unit (the break opportunity before the first glyph)
- *      before passing the pointer to this function.
+ *      when passing the pointer to this function.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param x The x-position of first glyph.
  * \param y The y-position of first glyph.
@@ -11474,6 +11476,12 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
  *      it encounters a mandatory breaking.
  *
  * \note Only available when support for UNICODE is enabled.
+ *
+ * \note This function ignore the special types (such as diacritic mark,
+ *      vowel, contextual form, ligature, and so on) of the Unicode characters.
+ *      Please see \a GetShapedGlyphsStandard and \a GetShapedGlyphsComplex
+ *      for the purpose of shaping glyphs according to the language, script
+ *      (writing system), and the contextual shape features.
  *
  * \note Any invisible format character including SOFT HYPHEN (U+00AD)
  *      will be ignored (suppressed).
@@ -11516,8 +11524,8 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
  * \param logfont_upright The LOGFONT object used for upright glyphs.
  * \param logfont_sideways The LOGFONT object used for sideways glyphs.
  * \param glyphs The pointer to the glyph string; either a Glyph32 array
- *      or a SHAPEDGLYPH array. You should specify the element size via
- *      \a glyph_unit_size.
+ *      or a SHAPEDGLYPH array. You should specify the unit size of the array
+ *      via \a glyph_unit_size.
  * \param glyph_unit_size The size of one glyph unit item in bytes. If
  *      it is zero, then sizeof (Glyph32) will be used.
  * \param glyph_pos The buffer holds the position information

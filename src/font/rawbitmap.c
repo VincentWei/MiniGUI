@@ -162,8 +162,9 @@ static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect, int df
     if (logfont->style & FS_OTHER_AUTOSCALE)
         scale = font_GetBestScaleFactor (height, expect);
 
-    if (df_slot >= 0 && df_slot < MAXNR_DEVFONTS)
+    if (df_slot >= 0 && df_slot < MAXNR_DEVFONTS) {
         SET_DEVFONT_SCALE (logfont, df_slot, scale);
+    }
 
     return height * scale;
 }
