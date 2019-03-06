@@ -13,7 +13,7 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
               region.c generators.c polygon.c flood.c \
               advapi.c midash.c mispans.c miwideline.c \
               mifillarc.c mifpolycon.c miarc.c rotatebmp.c \
-              text.c achar.c glyph.c bidi.c glyph-unicode.c \
+              text.c achar.c glyph.c bidi.c glyph-unicode.c shaped-glyph.c \
               textout.c tabbedtextout.c drawtext.c
 endif
 

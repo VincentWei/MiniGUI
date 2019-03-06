@@ -11297,13 +11297,9 @@ MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
 
     /** @} end of glyph_render_flags */
 
-#define GLYPH_HANGED_NONE           0
-#define GLYPH_HANGED_START          1
-#define GLYPH_HANGED_END            2
-
-#define GLYPH_ORIENTATION_UPRIGHT   0
-#define GLYPH_ORIENTATION_SIDEWAYS  1
-
+/**
+ * The glyph type.
+ */
 typedef enum _GlyphType {
     GLYPH_TYPE_STANDALONE,
     GLYPH_TYPE_STDBASE,
@@ -11311,6 +11307,9 @@ typedef enum _GlyphType {
     GLYPH_TYPE_STDLIGATURE,
 } GlyphType;
 
+/**
+ * The glyph position.
+ */
 typedef enum _GlyphPosition {
     GLYPH_POS_BASELINE,
     GLYPH_POS_STDMARK_ABOVE,
@@ -11320,6 +11319,9 @@ typedef enum _GlyphPosition {
     GLYPH_POS_CMPCURSIVE,
 } GlyphPosition;
 
+/**
+ * The shaped glyph.
+ */
 typedef struct _SHAPEDGLYPH {
     /** The glyph value */
     Glyph32 gv;
@@ -11331,15 +11333,122 @@ typedef struct _SHAPEDGLYPH {
     Uint8 gp;
 } SHAPEDGLYPH;
 
-MG_EXPORT int GUIAPI GetShapedGlyphsStandard(LOGFONT* logfont,
+/**
+ * \fn int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
+ *      LanguageCode content_language, UCharScriptType writing_system,
+ *      const Uchar32* ucs, const Uint8* break_oppos, int nr_ucs,
+ *      SHAPEDGLYPH** glyphs, int* nr_glyphs)
+ * \brief Analyse and generate a shaped glyph string of a Unicode string under
+ *      specific content language and script.
+ *
+ * This function analyses and generates a shaped glyph string (including
+ * the breaking opportunities of the glyphs, and the type and position
+ * information of them) from a Unicode string and the breaking opportunities
+ * of all Unicode characters under the specified content language
+ * \a content_language, and the writing system \a writing_system.
+ *
+ * This function perform the basic shaping process according to the Unicode
+ * character properties. The shaping process includes:
+ *
+ *  - Shaping (substituting) glyphs.
+ *  - Assigning the breaking opportunities.
+ *  - Re-ordering.
+ *  - Positioning glyphs.
+ *
+ * You can also call \a GetShapedGlyphsComplex to perform the shaping process
+ * based on the data contained in the OpenType Layout tables.
+ *
+ * Note that you are responsible for freeing the buffer for
+ * the shaped glyph string allocated by this function.
+ *
+ * \param logfont The logfont used to parse the string.
+ *      Note that the charset/encoding of this logfont should be Unicode,
+ *      such as UTF-8, UTF-16LE, and UTF-16BE.
+ * \param content_language The content lanuage identifier.
+ * \param writing_system The writing system (script) identifier.
+ * \param ucs The pointer to the UChar32 array which contains the Unicode
+ *      characters.
+ * \param break_oppos The pointer to a Uint16 array which contains
+ *      the break opportunities of the Unicode characters.
+ * \param nr_ucs The number of the Unicode characters.
+ * \param glyphs The pointer to a buffer to store the pointer of the
+ *      generated SHAPEDGLYPH array.
+ * \param nr_glyphs The buffer to store the number of the generated glyphs.
+ *
+ * \return The number of the Unicode characters processed; zero on error.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \sa GetUCharsAndBreaks, GetShapedGlyphsComplex, SHAPEDGLYPH
+ *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawGlyphStringEx
+ */
+MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
-        const Uchar32* ucs, const Uint8* break_oppos, int nr_chars,
-        SHAPEDGLYPH* glyphs, int* nr_glyphs);
+        const Uchar32* ucs, const Uint8* break_oppos, int nr_ucs,
+        SHAPEDGLYPH** glyphs, int* nr_glyphs);
 
+/**
+ * \fn int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
+ *      LanguageCode content_language, UCharScriptType writing_system,
+ *      const Uchar32* ucs, const Uint8* break_oppos, int nr_ucs,
+ *      SHAPEDGLYPH** glyphs, int* nr_glyphs)
+ * \brief Analyse and generate a shaped glyph string of a Unicode string under
+ *      specific content language and script.
+ *
+ * This function analyses and generates a shaped glyph string (including
+ * the breaking opportunities of the glyphs, and the type and the position
+ * information of them) from a Unicode string and the breaking opportunities
+ * of all Unicode characters under the specified content language
+ * \a content_language, and the writing system \a writing_system.
+ *
+ * This function perform the basic shaping process according to the data
+ * contained in the OpenType Layout tables (GSUB, GPOS, and so on).
+ * The shaping process includes:
+ *
+ *  - Shaping (substituting) glyphs.
+ *  - Assigning the breaking opportunities.
+ *  - Re-ordering.
+ *  - Positioning glyphs.
+ *
+ * You can also call \a GetShapedGlyphsBasic to perform the shaping process
+ * based on the Unicode character properties.
+ *
+ * Note that you are responsible for freeing the buffer for
+ * the shaped glyph string allocated by this function.
+ *
+ * \param logfont The logfont used to parse the string.
+ *      Note that the charset/encoding of this logfont should be Unicode,
+ *      such as UTF-8, UTF-16LE, and UTF-16BE. Also note that the font file(s)
+ *      of the logfont should be OpenType font files, and use FreeType2 engine.
+ * \param content_language The content lanuage identifier.
+ * \param writing_system The writing system (script) identifier.
+ * \param ucs The pointer to the UChar32 array which contains the Unicode
+ *      characters.
+ * \param break_oppos The pointer to a Uint16 array which contains
+ *      the break opportunities of the Unicode characters.
+ * \param nr_ucs The number of the Unicode characters.
+ * \param glyphs The pointer to a buffer to store the pointer of the
+ *      generated SHAPEDGLYPH array.
+ * \param nr_glyphs The buffer to store the number of the generated glyphs.
+ *
+ * \return The number of the Unicode characters processed; zero on error.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, SHAPEDGLYPH
+ *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawGlyphStringEx
+ */
 MG_EXPORT int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
         const Uchar32* ucs, const Uint8* break_oppos, int nr_chars,
-        SHAPEDGLYPH* glyphs, int* nr_glyphs);
+        SHAPEDGLYPH** glyphs, int* nr_glyphs);
+
+#define GLYPH_ORIENTATION_UPRIGHT   0
+#define GLYPH_ORIENTATION_SIDEWAYS  1
+
+#define GLYPH_HANGED_NONE           0
+#define GLYPH_HANGED_START          1
+#define GLYPH_HANGED_END            2
 
 /**
  * The glyph extent information.
@@ -11371,9 +11480,52 @@ typedef struct _GLYPHEXTINFO {
     Uint8 orientation:2;
 } GLYPHEXTINFO;
 
+/**
+ * \fn int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
+ *      const SHAPEDGLYPH* glyphs, int nr_glyphs,
+ *      Uint32 render_flags,
+ *      GLYPHEXTINFO* glyph_ext_info,
+ *      LOGFONT** logfont_sideways);
+ *
+ * \brief Get the extent information of all shaped glyphs.
+ *
+ * This function gets the position information of a SHAPEDGLYPH string which can
+ * fit a line with the specified maximal extent.
+ *
+ * \param logfont_upright The logfont used to render the upright glyphs.
+ *      Note that the charset/encoding of this logfont should be Unicode,
+ *      such as UTF-8, UTF-16LE, and UTF-16BE.
+ * \param glyphs The pointer to the SHAPEDGLYPH string.
+ * \param nr_glyphs The number of the glyphs.
+ * \param render_flags The render flags; see \a glyph_render_flags.
+ * \param glyph_ext_info The GLYPHEXTINFO array storing the extent info of all glyphs.
+ * \param logfont_sideways The buffer to store the LOGFONT object created
+ *      by this function for sideways glyphs if text orientation specified
+ *      in \a render_flags is mixed (GRF_TEXT_ORIENTATION_MIXED) or
+ *      sideways (GRF_TEXT_ORIENTATION_SIDEWAYS). If *logfont_sidways is
+ *      not NULL, this function will try to use this LOGFONT object for
+ *      sideways glyphs.
+ *
+ * \return The number of shaped glyphs which are fit to the maximal extent.
+ *      The extra_x and extra_y fields of the glyph extent info of every glyph
+ *      may be changed due to the spacing value and justification.
+ *      The line extent info will be returned through \a line_size
+ *      if it was not NULL. Note the function will return immediately if
+ *      it encounters a mandatory breaking.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \note The LOGFONT object \a logfont_upright should have the rotation
+ *      be 0° for upright glyphs and \a logfont_sideways will have the
+ *      rotation be 90° for sideways glyphs.
+ *
+ * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *     GetGlyphsPositionInfo, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ */
 MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
-        const SHAPEDGLYPH* glyphs, Uint32 render_flags,
-        GLYPHEXTINFO** glyph_extent_info,
+        const SHAPEDGLYPH* glyphs, int nr_glyphs,
+        Uint32 render_flags,
+        GLYPHEXTINFO* glyph_ext_info,
         LOGFONT** logfont_sideways);
 
 /**
@@ -11416,11 +11568,70 @@ typedef struct _GLYPHPOS {
     Uint8 hanged:2;
 } GLYPHPOS;
 
-MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
+/**
+ * \fn int GUIAPI GetGlyphsPositionInfo(
+ *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+ *      const SHAPEDGLYPH* glyphs, GLYPHEXTINFO* glyph_ext_info, int nr_glyphs,
+ *      Uint32 render_flags, int x, int y,
+ *      int letter_spacing, int word_spacing, int tab_size, int max_extent,
+ *      SIZE* line_size, GLYPHPOS* glyph_pos);
+ *
+ * \brief Get the position info of all shaped glyphs fitting in the specified
+ *      maximal output extent.
+ *
+ * This function gets the position information of a SHAPEDGLYPH string which can
+ * fit a line with the specified maximal extent.
+ *
+ * \param logfont_upright The logfont used to render the upright glyphs.
+ *      Note that the charset/encoding of this logfont should be Unicode,
+ *      such as UTF-8, UTF-16LE, and UTF-16BE.
+ * \param logfont_sideways The LOGFONT object used to render the sideways glyphs.
+ * \param glyphs The pointer to the SHAPEDGLYPH string.
+ * \param glyph_ext_info The GLYPHEXTINFO array storing the extent info of all glyphs.
+ * \param nr_glyphs The number of the glyphs.
+ * \param render_flags The render flags; see \a glyph_render_flags.
+ * \param x The x-position of first glyph.
+ * \param y The y-position of first glyph.
+ * \param letter_spacing This parameter specifies additional spacing
+ *      (commonly called tracking) between adjacent glyphs.
+ * \param word_spacing This parameter specifies the additional spacing between
+ *      words.
+ * \param tab_size The tab size used to render preserved tab characters.
+ * \param max_extent The maximal output extent value. No limit when it is < 0.
+ * \param line_size The buffer to store the line extent info; can be NULL.
+ * \param glyph_pos The buffer to store the positions and orientations of
+ *      all glyphs which can fit in the max extent; cannot be NULL.
+ *
+ * \return The number of shaped glyphs which are fit to the maximal extent.
+ *      The extra_x and extra_y fields of the glyph extent info of every glyph
+ *      may be changed due to the spacing value and justification.
+ *      The line extent info will be returned through \a line_size
+ *      if it was not NULL. Note the function will return immediately if
+ *      it encounters a mandatory breaking.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \note The LOGFONT object \a logfont_upright should have the rotation
+ *      be 0° for upright glyphs and \a logfont_sideways will have the
+ *      rotation be 90° for sideways glyphs.
+ *
+ * \note The position coordinates of the first glyph are
+ *      with respect to the top-left corner of the output rectangle
+ *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
+ *      GRF_WRITING_MODE_VERTICAL_LR, otherwise they are with respect
+ *      to the top-right corner of the output rectangle. However,
+ *      the positions contained in \a glyph_pos are always with respect to
+ *      the top-left corner of the resulting output line rectangle.
+ *
+ * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      GetGlyphsExtentInfo, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ */
+MG_EXPORT int GUIAPI GetGlyphsPositionInfo(
+        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
         const SHAPEDGLYPH* glyphs, GLYPHEXTINFO* glyph_ext_info, int nr_glyphs,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
+        SIZE* line_size, GLYPHPOS* glyph_pos);
 
 /**
  * \fn int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
@@ -11479,7 +11690,7 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
  *
  * \note This function ignore the special types (such as diacritic mark,
  *      vowel, contextual form, ligature, and so on) of the Unicode characters.
- *      Please see \a GetShapedGlyphsStandard and \a GetShapedGlyphsComplex
+ *      Please see \a GetShapedGlyphsBasic and \a GetShapedGlyphsComplex
  *      for the purpose of shaping glyphs according to the language, script
  *      (writing system), and the contextual shape features.
  *
