@@ -119,35 +119,43 @@ static Achar32* _gdi_get_achars_string(PDC pdc, const unsigned char* text,
 
 static unsigned int inline get_char_type(LOGFONT* logfont, Achar32 chv)
 {
-    if (IS_MBC_GLYPH (chv))
+    if (IS_MBCHV (chv))
         return logfont->devfonts[1]->charset_ops->char_type(chv);
     else
         return logfont->devfonts[0]->charset_ops->char_type(chv);
 }
 
-static int inline get_glyph_advance_in_dc (PDC pdc, Achar32 chv)
+static int inline get_glyph_advance_in_dc (PDC pdc, Glyph32 gv)
 {
-    return _gdi_get_glyph_advance(pdc, chv, TRUE, 0, 0, NULL, NULL, NULL);
+    return _gdi_get_glyph_advance(pdc, gv, TRUE, 0, 0, NULL, NULL, NULL);
 }
 
-
-static int jump_vowels_ltr (PDC pdc, Achar32* achs, int glyph_num, Glyph32* biggest_vowel)
+static int jump_vowels_ltr (PDC pdc, Achar32* achs, int nr_achs,
+        Achar32* biggest_vowel)
 {
     int i = 0;
     int max_advance = 0;
     int cur_advance = 0;
-    for (i=0; i<glyph_num; i++)
-    {
+
+    for (i = 0; i < nr_achs; i++) {
+        Glyph32 gv;
+
         if (!check_vowel(get_char_type (pdc->pLogFont, achs[i])))
             return i;
-        cur_advance = get_glyph_advance_in_dc (pdc, achs[i]);
-        if (cur_advance > max_advance)
-        {
+
+        if ((gv = GetGlyphValue(pdc->pLogFont, achs[i])) == INV_GLYPH_VALUE) {
+            _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                __FUNCTION__, achs[i]);
+            return i;
+        }
+        cur_advance = get_glyph_advance_in_dc (pdc, gv);
+        if (cur_advance > max_advance) {
             max_advance = cur_advance;
             *biggest_vowel = achs [i];
         }
     }
-    return glyph_num;
+
+    return nr_achs;
 }
 
 static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
@@ -158,6 +166,7 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
     unsigned int char_type;
     Achar32 chv;
     Achar32 biggest_vowel = 0;
+    Glyph32 gv;
 
     int vowel_num;
     int outed_num = 0;
@@ -175,13 +184,20 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
         /*output the letter after vowels,
          * the letter is the owner of jumped vowels
          * if there is a letter on the vowel's right*/
-        if (vowel_num < nr_achars - i)
-        {
+        if (vowel_num < nr_achars - i) {
+
             chv = *(visual_achars);
             char_type = get_char_type (pdc->pLogFont, chv);
-            if (!cb_one_glyph (context, chv, char_type)){
+            if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+                _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                    __FUNCTION__, chv);
+                goto end ;
+            }
+
+            if (!cb_one_glyph (context, gv, char_type)) {
                 goto end;
             }
+
             outed_num++;
 
             /*set vowel aligns width letter's right*/
@@ -190,25 +206,40 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
         }
 
         /*first output the biggest vowel*/
-        if (vowel_num)
-        {
+        if (vowel_num) {
+
             char_type = get_char_type (pdc->pLogFont, biggest_vowel);
-            if (!cb_one_glyph (context, biggest_vowel, char_type)){
+            gv = GetGlyphValue(pdc->pLogFont, biggest_vowel);
+            if ((gv = GetGlyphValue(pdc->pLogFont, biggest_vowel)) ==
+                    INV_GLYPH_VALUE) {
+                _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                    __FUNCTION__, biggest_vowel);
+                goto end ;
+            }
+
+            if (!cb_one_glyph (context, gv, char_type)){
                 goto end;
             }
+
             outed_num++;
             /*transparent from other vowels*/
             pdc->bkmode = BM_TRANSPARENT;
         }
 
         /*output other vowels from visual_achars[i]*/
-        for (j = 1; j<=vowel_num; j++)
-        {
+        for (j = 1; j <= vowel_num; j++) {
+
             chv = *(visual_achars - j);
-            if (chv != biggest_vowel)
-            {
+            if (chv != biggest_vowel) {
                 char_type = get_char_type (pdc->pLogFont, chv);
-                if (!cb_one_glyph (context, chv, char_type)){
+                if ((gv = GetGlyphValue(pdc->pLogFont, chv)) ==
+                        INV_GLYPH_VALUE) {
+                    _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                        __FUNCTION__, chv);
+                    goto end ;
+                }
+
+                if (!cb_one_glyph (context, gv, char_type)){
                     goto end;
                 }
                 outed_num++;
@@ -239,16 +270,27 @@ static int output_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
     pdc->ta_flags = (old_text_align & ~TA_RIGHT) | TA_LEFT;
     pdc->bkmode = BM_TRANSPARENT;
     *outed_num = 0;
-    for (i=0; i<left_num; i++) {
+    for (i = 0; i < left_num; i++) {
         chv = *end_achar--;
         char_type = get_char_type (pdc->pLogFont, chv);
 
         if (check_vowel(char_type)) {
-            if (cb_one_glyph(context, chv, char_type)) {
+            Glyph32 gv;
+
+            if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+                _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                    __FUNCTION__, chv);
+                break;
+            }
+
+            if (cb_one_glyph(context, gv, char_type)) {
                 (*outed_num) ++;
             }
+            else
+                break;
         }
-        else break;
+        else
+            break;
     }
 
     pdc->ta_flags = old_text_align;
@@ -260,13 +302,14 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
      CB_ONE_GLYPH cb_one_glyph, void* context, int* outed_num)
 {
     int i = 0;
-    Achar32 chv = INV_GLYPH_VALUE;
-    Achar32 biggest_vowel = INV_GLYPH_VALUE;
+    Achar32 chv = INV_ACHAR_VALUE;
+    Achar32 biggest_vowel = INV_ACHAR_VALUE;
     unsigned int char_type;
     int cur_advance = 0;
     int max_advance = 0;
     int bkmode = pdc->bkmode;
     int old_text_align = pdc->ta_flags;
+    Glyph32 gv;
 
     *outed_num = 0;
     if (!check_vowel(get_char_type (pdc->pLogFont, *end_achar)))
@@ -280,18 +323,29 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
         if (!check_vowel(char_type))
             break;
 
-        cur_advance = get_glyph_advance_in_dc (pdc, chv);
-        if (cur_advance > max_advance)
-        {
+        if ((gv = GetGlyphValue(pdc->pLogFont, chv)) ==
+                INV_GLYPH_VALUE) {
+            _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                __FUNCTION__, chv);
+            break;
+        }
+
+        cur_advance = get_glyph_advance_in_dc (pdc, gv);
+        if (cur_advance > max_advance) {
             max_advance = cur_advance;
             biggest_vowel = chv;
         }
     }
 
     /*output the biggest_vowel*/
-    if(max_advance){
+    if (max_advance) {
         char_type = get_char_type (pdc->pLogFont, biggest_vowel);
-        if (cb_one_glyph(context, biggest_vowel, char_type)){
+        if ((gv = GetGlyphValue(pdc->pLogFont, biggest_vowel)) ==
+                INV_GLYPH_VALUE) {
+            _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                __FUNCTION__, biggest_vowel);
+        }
+        else if (cb_one_glyph(context, gv, char_type)) {
             (*outed_num) ++;
         }
     }
@@ -299,18 +353,23 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
     pdc->bkmode = BM_TRANSPARENT;
 
     left_num = i;
-    for (i=0; i<left_num; i++)
-    {
+    for (i = 0; i < left_num; i++) {
         chv = *end_achar--;
-        if (chv != biggest_vowel)
-        {
+        if (chv != biggest_vowel) {
+            Glyph32 gv;
+
             char_type = get_char_type (pdc->pLogFont, chv);
-            if (cb_one_glyph(context, chv, char_type))
-            {
+            if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+                _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                    __FUNCTION__, chv);
+                break;
+            }
+            if (cb_one_glyph(context, gv, char_type)) {
                 (*outed_num) ++;
             }
         }
     }
+
     pdc->bkmode = bkmode;
     pdc->ta_flags = old_text_align;
     return left_num;
@@ -339,8 +398,12 @@ static int output_visual_achars_rtl (PDC pdc, Achar32* visual_achars,
         Glyph32 gv;
 
         chv = visual_achars[cur];
-        char_type = get_char_type (pdc->pLogFont, REAL_ACHAR(chv));
-        gv = GetGlyphValue(pdc->pLogFont, chv);
+        char_type = get_char_type (pdc->pLogFont, chv);
+        if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+            _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                __FUNCTION__, chv);
+            return outed_glyph_num;
+        }
 
         /*output the letter*/
         if (!cb_one_glyph(context, gv, char_type)){
@@ -423,7 +486,7 @@ static int _gdi_output_achars_direct(PDC pdc, const unsigned char* text,
         else break;
 
 do_glyph:
-        if (IS_MBC_GLYPH (chv))
+        if (IS_MBCHV (chv))
             char_type = mbc_devfont->charset_ops->char_type (chv);
         else
             char_type = sbc_devfont->charset_ops->char_type (chv);
@@ -942,7 +1005,7 @@ int  GUIAPI BIDIGetTextLogicalAChars(
     int nr_chars;
     int prev_len = 0, len_cur_char = 0;
     const char* prev_mchar = NULL;
-    Achar32  chv = INV_GLYPH_VALUE;
+    Achar32  chv = INV_ACHAR_VALUE;
     Achar32* achar_str = NULL;
     ACHARMAPINFO* map = NULL;
 

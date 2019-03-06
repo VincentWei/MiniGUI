@@ -537,11 +537,11 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
 
             /* draw normal string. */
             setup_dc (hWnd, sled, hdc, FALSE);
-            outw += DrawGlyphString (hdc, startx + outw, starty,
+            outw += DrawACharString (hdc, startx + outw, starty,
                     achar_string, len, NULL, NULL);
             /* draw selected string.*/
             setup_dc (hWnd, sled, hdc, TRUE);
-            outw += DrawGlyphString (hdc, startx + outw, starty,
+            outw += DrawACharString (hdc, startx + outw, starty,
                     achar_string + len, *(p + 1) - *p, NULL, NULL);
 
             achar_string = ACHARS + *(p + 1);
@@ -553,28 +553,28 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
         /* draw the last rest normal string if necessary.*/
         if (p && ACHARSLEN > *(p-1)) {
             setup_dc (hWnd, sled, hdc, FALSE);
-            outw += DrawGlyphString (hdc, startx + outw, starty,
+            outw += DrawACharString (hdc, startx + outw, starty,
                     achar_string, ACHARSLEN - *(p - 1), NULL, NULL);
         }
         else if(!p || nr_ranges == 0){
             /* draw first normal chars */
             if (sled->selStart > 0) {
                 setup_dc (hWnd, sled, hdc, FALSE);
-                outw += DrawGlyphString (hdc, startx + outw, starty,
+                outw += DrawACharString (hdc, startx + outw, starty,
                         achar_string, sled->selStart, NULL, NULL);
                 achar_string += sled->selStart;
             }
 
             /* draw selected chars */
             setup_dc (hWnd, sled, hdc, TRUE);
-                outw += DrawGlyphString (hdc, startx + outw, starty,
+                outw += DrawACharString (hdc, startx + outw, starty,
                         achar_string, sled->selEnd - sled->selStart, NULL, NULL);
             achar_string += sled->selEnd - sled->selStart;
 
             /* draw others */
             if (sled->selEnd < ACHARSLEN) {
                 setup_dc (hWnd, sled, hdc, FALSE);
-                outw += DrawGlyphString (hdc, startx + outw, starty,
+                outw += DrawACharString (hdc, startx + outw, starty,
                         achar_string, ACHARSLEN - sled->selEnd, NULL, NULL);
             }
 
@@ -587,7 +587,7 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
         setup_dc (hWnd, sled, hdc, FALSE);
         startx = sled->startx;
         sleContentToWindow (sled, &startx);
-        DrawGlyphString (hdc, startx, starty, achar_string, ACHARSLEN, NULL, NULL);
+        DrawACharString (hdc, startx, starty, achar_string, ACHARSLEN, NULL, NULL);
     }
 
     if (dwStyle & ES_PASSWORD)
@@ -638,7 +638,7 @@ static void set_caret_pos (HWND hWnd, PBIDISLEDITDATA sled, int x, BOOL bSel)
         txtsize.cx = 0;
     }
     else {
-        out_achars = GetGlyphsExtentPoint (hdc, ACHARS, ACHARSLEN,
+        out_achars = GetACharsExtentPoint (hdc, ACHARS, ACHARSLEN,
                                           x - sled->startx, &txtsize);
 #ifdef _DEBUG
         if(out_achars <= ACHARSLEN){
@@ -694,7 +694,7 @@ make_charpos_visible (HWND hWnd, PBIDISLEDITDATA sled, int achar_pos, int *cx)
             achar_pos = ACHARSLEN;
 
         hdc = GetClientDC (hWnd);
-        GetGlyphsExtent (hdc, ACHARS, achar_pos, &achars_size);
+        GetACharsExtent (hdc, ACHARS, achar_pos, &achars_size);
         ReleaseDC (hdc);
     }
     if (cx)
@@ -799,7 +799,7 @@ static int sleMouseMove (HWND hWnd, PBIDISLEDITDATA sled, LPARAM lParam)
         sled->selEnd = ACHARSLEN;
         //sled->nContX = sled->nContW - (sled->rcVis.right - sled->rcVis.left);
         hdc = GetClientDC (hWnd);
-        sled->nContX = GetGlyphsExtent (hdc, ACHARS, ACHARSLEN, &size) - (sled->rcVis.right - sled->rcVis.left);
+        sled->nContX = GetACharsExtent (hdc, ACHARS, ACHARSLEN, &size) - (sled->rcVis.right - sled->rcVis.left);
         ReleaseDC (hdc);
         printf ("nContX = %d. nContW = %d, rcVis.right = %d, rcVis.left = %d.\n",
                 sled->nContX, sled->nContW, sled->rcVis.right, sled->rcVis.left);
@@ -849,7 +849,7 @@ static void set_line_width (HWND hWnd, PBIDISLEDITDATA sled)
     SelectFont (hdc, GetWindowFont(hWnd));
     update_achar_info(hWnd, sled);
 
-    GetGlyphsExtent (hdc, ACHARS, ACHARSLEN, &achars_size);
+    GetACharsExtent (hdc, ACHARS, ACHARSLEN, &achars_size);
     ReleaseDC (hdc);
 
     if (achars_size.cx > sled->nVisW)
@@ -2281,7 +2281,7 @@ static void sledit_refresh_caret (HWND hWnd, PBIDISLEDITDATA sled, BOOL bInited)
         return;
 
     hdc = GetClientDC (hWnd);
-    outchar = GetGlyphsExtentPoint (hdc, ACHARS, ACHARSLEN, 0, &achars_size);
+    outchar = GetACharsExtentPoint (hdc, ACHARS, ACHARSLEN, 0, &achars_size);
     ReleaseDC (hdc);
 
     if (bInited) {

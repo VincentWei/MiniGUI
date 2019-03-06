@@ -80,7 +80,7 @@ Glyph32 GetGlyphValue(LOGFONT* lf, Achar32 chv)
     if (IS_MBCHV(chv)) {
         chv = REAL_ACHAR(chv);
         for (i = 1; i < MAXNR_DEVFONTS; i++) {
-            if ((df = lf->devfonts[i])) {
+            if ((df = lf->devfonts[i]) != NULL) {
                 if (df->font_ops->get_glyph_value)
                     gv = df->font_ops->get_glyph_value(lf, df, chv);
                 else
@@ -94,7 +94,7 @@ Glyph32 GetGlyphValue(LOGFONT* lf, Achar32 chv)
         }
 
         if (dfi == 0) {
-            if ((df = lf->devfonts[1])) {
+            if ((df = lf->devfonts[1]) != NULL) {
                 dfi = 1;
                 if (df->font_ops->get_glyph_value)
                     gv = df->font_ops->get_glyph_value(lf, df, chv);
@@ -180,41 +180,6 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     glyph_info->bmp_width = sz.cx;
     glyph_info->bmp_height = sz.cy;
     return 0;
-}
-
-int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
-        int* adv_x, int* adv_y)
-{
-    int advance;
-    int char_type;
-
-    PDC pdc = dc_HDC2PDC(hdc);
-    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(pdc->pLogFont, glyph_value);
-
-    /* Transfer logical to device to screen here. */
-    coor_LP2SP (pdc, &x, &y);
-    pdc->rc_output = pdc->DevRC;
-
-    char_type = devfont->charset_ops->char_type (glyph_value);
-    if (check_zero_width(char_type)) {
-        if (adv_x) *adv_x = 0;
-        if (adv_y) *adv_y = 0;
-        advance = 0;
-    }
-    else {
-        int my_adv_x, my_adv_y;
-        /* convert to the start point on baseline. */
-        _gdi_get_baseline_point (pdc, &x, &y);
-
-        advance = _gdi_draw_one_glyph (pdc, glyph_value,
-                (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                x, y, &my_adv_x, &my_adv_y);
-
-        if (adv_x) *adv_x = my_adv_x;
-        if (adv_y) *adv_y = my_adv_y;
-    }
-
-    return advance;
 }
 
 static int mult (fixed op1, fixed op2)
@@ -2827,6 +2792,69 @@ void _gdi_start_new_line (PDC pdc)
     }
 }
 
+int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
+        int* adv_x, int* adv_y)
+{
+    int my_adv_x, my_adv_y;
+    int advance;
+    PDC pdc;
+
+    if (glyph_value == INV_GLYPH_VALUE)
+        return 0;
+
+    pdc = dc_HDC2PDC(hdc);
+    /* Transfer logical to device to screen here. */
+    coor_LP2SP (pdc, &x, &y);
+    pdc->rc_output = pdc->DevRC;
+
+    /* convert to the start point on baseline. */
+    _gdi_get_baseline_point (pdc, &x, &y);
+
+    advance = _gdi_draw_one_glyph (pdc, glyph_value,
+            (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+            x, y, &my_adv_x, &my_adv_y);
+
+    if (adv_x) *adv_x = my_adv_x;
+    if (adv_y) *adv_y = my_adv_y;
+
+    return advance;
+}
+
+int GUIAPI DrawGlyphStrings(HDC hdc, Glyph32* glyphs, int nr_glyphs,
+        const POINT* pts)
+{
+    int count = 0;
+    int i;
+    PDC pdc = dc_HDC2PDC(hdc);
+
+    for (i = 0; i < nr_glyphs; i++) {
+        int x, y;
+        int my_adv_x, my_adv_y;
+        Glyph32 gv = glyphs[i];
+
+        if (gv == INV_GLYPH_VALUE)
+            break;
+
+        count++;
+
+        /* Transfer logical to device to screen here. */
+        x = pts[i].x;
+        y = pts[i].y;
+
+        coor_LP2SP (pdc, &x, &y);
+        pdc->rc_output = pdc->DevRC;
+
+        /* convert to the start point on baseline. */
+        _gdi_get_baseline_point (pdc, &x, &y);
+
+        _gdi_draw_one_glyph (pdc, gv,
+                (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                x, y, &my_adv_x, &my_adv_y);
+    }
+
+    return count;
+}
+
 int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs, int nr_glyphs,
         int max_extent, SIZE* size)
 {
@@ -2834,22 +2862,18 @@ int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs, int nr_glyphs,
     int advance = 0;
     int adv_x, adv_y;
     PDC pdc = dc_HDC2PDC(hdc);
-    PLOGFONT log_font = pdc->pLogFont;
-    DEVFONT* devfont = NULL;
-    unsigned int char_type = 0;
 
     size->cx = 0;
     size->cy = 0;
 
-    while(i < nr_glyphs){
-        devfont = SELECT_DEVFONT_BY_GLYPH(log_font, glyphs[i]);
-        char_type = devfont->charset_ops->char_type(glyphs[i]);
+    while (i < nr_glyphs) {
+        Glyph32 gv = glyphs[i];
 
-        if (check_zero_width (char_type)) {
+        if (gv == INV_GLYPH_VALUE) {
             adv_x = adv_y = 0;
         }
         else {
-            advance += _gdi_get_glyph_advance (pdc, glyphs[i],
+            advance += _gdi_get_glyph_advance (pdc, gv,
                     (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     0, 0, &adv_x, &adv_y, NULL);
         }
@@ -2859,7 +2883,7 @@ int GUIAPI GetGlyphsExtentPoint(HDC hdc, Glyph32* glyphs, int nr_glyphs,
 
         size->cx += adv_x;
         size->cy += adv_y;
-        i ++;
+        i++;
     }
 
     _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
@@ -2873,23 +2897,18 @@ int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs, SIZE* size)
     int i = 0;
     int advance = 0;
     int adv_x, adv_y;
-    unsigned int char_type;
-    Glyph32 glyph_value = INV_GLYPH_VALUE;
     PDC pdc = dc_HDC2PDC(hdc);
-    PLOGFONT log_font = pdc->pLogFont;
-    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(log_font, glyph_value);
 
     size->cx = 0;
     size->cy = 0;
     while (i < nr_glyphs) {
-        devfont = SELECT_DEVFONT_BY_GLYPH(log_font, glyphs[i]);
-        char_type = devfont->charset_ops->char_type(glyphs[i]);
+        Glyph32 gv = glyphs[i];
 
-        if (check_zero_width (char_type)) {
+        if (gv == INV_GLYPH_VALUE) {
             adv_x = adv_y = 0;
         }
         else {
-            advance += _gdi_get_glyph_advance (pdc, glyphs[i],
+            advance += _gdi_get_glyph_advance (pdc, gv,
                     (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     0, 0, &adv_x, &adv_y, NULL);
         }

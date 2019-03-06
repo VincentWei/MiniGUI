@@ -124,33 +124,14 @@ static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int char
         adv_y = 0;
     }
     else {
-        ctxt->advance += DrawGlyph (ctxt->hdc, ctxt->x, ctxt->y, glyph_value, &adv_x, &adv_y);
+        ctxt->advance += DrawGlyph (ctxt->hdc, ctxt->x, ctxt->y,
+                glyph_value, &adv_x, &adv_y);
     }
 
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
     return TRUE;
-}
-
-int DrawGlyphString (HDC hdc, int startx, int starty, Glyph32* glyph_string, int len, int* adv_x, int* adv_y)
-{
-    DRAW_GLYPHS_CTXT ctxt = {hdc, startx, starty, 0};
-
-    if ((((PDC)hdc)->ta_flags & TA_X_MASK) == TA_LEFT)
-        _gdi_output_visual_achars((PDC)hdc, glyph_string,
-                len, TRUE, cb_draw_glyph, &ctxt);
-    else
-        _gdi_output_visual_achars((PDC)hdc, glyph_string,
-                len, FALSE, cb_draw_glyph, &ctxt);
-
-    if (adv_x)
-        *adv_x = ctxt.x - startx;
-
-    if (adv_y)
-        *adv_y = ctxt.y - starty;
-
-    return ctxt.advance;
 }
 
 typedef struct _TEXTOUT_CTXT
@@ -457,7 +438,8 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
     int len_cur_char, advance_cur_char;
     int left_bytes = len;
     int char_count = 0;
-    Glyph32 glyph_value;
+    Achar32 chv;
+    Glyph32 gv;
 
     /* set size to zero first */
     size->cx = size->cy = 0;
@@ -479,25 +461,12 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
         if (mbc_devfont &&
                 (len_cur_char = mbc_devfont->charset_ops->len_first_char
                     ((const unsigned char*)text, left_bytes)) > 0) {
-            int i, dfi;
-            DEVFONT* df;
 
-            glyph_value = (*mbc_devfont->charset_ops->get_char_value)(NULL,
+            chv = (*mbc_devfont->charset_ops->get_char_value)(NULL,
                     0, (const unsigned char*)text, 0);
 
-            dfi = 1;
-            for (i = 1; i < MAXNR_DEVFONTS; i++) {
-                if ((df = log_font->devfonts[i])) {
-                    if (df->font_ops->is_glyph_existed(log_font, df,
-                            glyph_value)) {
-                        dfi = i;
-                        break;
-                    }
-                }
-            }
-            glyph_value = SET_GLYPH_DFI(glyph_value, dfi);
-
-            advance_cur_char = _gdi_get_glyph_advance (pdc, glyph_value,
+            gv = GetGlyphValue(pdc->pLogFont, chv);
+            advance_cur_char = _gdi_get_glyph_advance (pdc, gv,
                 (pdc->ta_flags & TA_X_MASK) == TA_LEFT,
                 0, 0, NULL, NULL, NULL);
         }
@@ -505,9 +474,10 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
             if ((len_cur_char = sbc_devfont->charset_ops->len_first_char
                         ((const unsigned char*)text, left_bytes)) > 0) {
 
-                glyph_value = (*sbc_devfont->charset_ops->get_char_value)(
+                chv = (*sbc_devfont->charset_ops->get_char_value)(
                         NULL, 0, (const unsigned char*)text, 0);
-                advance_cur_char = _gdi_get_glyph_advance (pdc, glyph_value,
+                gv = GetGlyphValue(pdc->pLogFont, chv);
+                advance_cur_char = _gdi_get_glyph_advance (pdc, gv,
                         (pdc->ta_flags & TA_X_MASK) == TA_LEFT,
                         0, 0, NULL, NULL, NULL);
             }
@@ -530,5 +500,118 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
 ret:
     if (fit_chars) *fit_chars = char_count;
     return len - left_bytes;
+}
+
+int GUIAPI DrawACharString (HDC hdc, int startx, int starty,
+        Achar32* achars, int len, int* adv_x, int* adv_y)
+{
+    DRAW_GLYPHS_CTXT ctxt = {hdc, startx, starty, 0};
+
+    if ((((PDC)hdc)->ta_flags & TA_X_MASK) == TA_LEFT)
+        _gdi_output_visual_achars((PDC)hdc, achars,
+                len, TRUE, cb_draw_glyph, &ctxt);
+    else
+        _gdi_output_visual_achars((PDC)hdc, achars,
+                len, FALSE, cb_draw_glyph, &ctxt);
+
+    if (adv_x)
+        *adv_x = ctxt.x - startx;
+
+    if (adv_y)
+        *adv_y = ctxt.y - starty;
+
+    return ctxt.advance;
+}
+
+int GUIAPI GetACharsExtentPoint(HDC hdc, Achar32* achars, int nr_achars,
+        int max_extent, SIZE* size)
+{
+    int i = 0;
+    int advance = 0;
+    int adv_x, adv_y;
+    PDC pdc = dc_HDC2PDC(hdc);
+    PLOGFONT log_font = pdc->pLogFont;
+    DEVFONT* devfont = NULL;
+    unsigned int char_type = 0;
+
+    size->cx = 0;
+    size->cy = 0;
+
+    while(i < nr_achars){
+        devfont = SELECT_DEVFONT_BY_ACHAR(log_font, achars[i]);
+        char_type = devfont->charset_ops->char_type(achars[i]);
+
+        if (check_zero_width (char_type)) {
+            adv_x = adv_y = 0;
+        }
+        else {
+            Glyph32 gv;
+
+            if ((gv = GetGlyphValue(log_font, achars[i])) == INV_GLYPH_VALUE) {
+                _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                    __FUNCTION__, achars[i]);
+                break;
+            }
+
+            advance += _gdi_get_glyph_advance (pdc, gv,
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    0, 0, &adv_x, &adv_y, NULL);
+        }
+
+        if (max_extent > 0 && advance > max_extent)
+            break;
+
+        size->cx += adv_x;
+        size->cy += adv_y;
+        i ++;
+    }
+
+    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
+            size->cx, size->cy, size);
+
+    return i;
+}
+
+int GUIAPI GetACharsExtent(HDC hdc, Achar32* achars, int nr_achars, SIZE* size)
+{
+    int i = 0;
+    int advance = 0;
+    int adv_x, adv_y;
+    unsigned int char_type;
+    PDC pdc = dc_HDC2PDC(hdc);
+    PLOGFONT log_font = pdc->pLogFont;
+    DEVFONT* devfont;
+
+    size->cx = 0;
+    size->cy = 0;
+    while (i < nr_achars) {
+        devfont = SELECT_DEVFONT_BY_GLYPH(log_font, achars[i]);
+        char_type = devfont->charset_ops->char_type(achars[i]);
+
+        if (check_zero_width (char_type)) {
+            adv_x = adv_y = 0;
+        }
+        else {
+            Glyph32 gv;
+
+            if ((gv = GetGlyphValue(log_font, achars[i])) == INV_GLYPH_VALUE) {
+                _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
+                    __FUNCTION__, achars[i]);
+                break;
+            }
+
+            advance += _gdi_get_glyph_advance (pdc, gv,
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    0, 0, &adv_x, &adv_y, NULL);
+        }
+        size->cx += adv_x;
+        size->cy += adv_y;
+        i ++;
+    }
+
+    _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
+            size->cx, size->cy, size);
+
+    return advance;
 }
 

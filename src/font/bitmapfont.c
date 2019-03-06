@@ -274,7 +274,7 @@ get_glyph_prbitmap (LOGFONT* logfont, DEVFONT* devfont,
         bmp->bmHeight = 0;
         bmp->bmPitch  = 0;
 
-        _MG_PRINTF ("FONT>Bitmap: "
+        _DBG_PRINTF ("FONT>Bitmap: "
             "Glyph %d does not exist and is replaced with default glyph. \n",
             glyph_value);
         return 1;

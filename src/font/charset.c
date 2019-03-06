@@ -735,12 +735,17 @@ static CHARSETOPS CharsetOps_iso8859_5 = {
 
 #include "bidi.h"
 
-static BOOL get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n, Achar32 chv, Achar32* mirrored)
+static BOOL get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n,
+        Achar32 chv, Achar32* mirrored)
 {
     int pos, step;
     BOOL found = FALSE;
+    Achar32 mbc_mask;
 
     pos = step = (n / 2) + 1;
+
+    mbc_mask = chv & ACHAR_MBC_FLAG;
+    chv = REAL_ACHAR(chv);
 
     while (step > 1) {
         Achar32 cmp_char = map[pos].chv;
@@ -764,6 +769,7 @@ static BOOL get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n, Achar32 chv,
 
     if (mirrored){
         *mirrored = found ? map[pos].mirrored : chv;
+        *mirrored |= mbc_mask;
     }
 
     return found;
@@ -1042,7 +1048,7 @@ static Uint32 __mg_iso8859_8_type[] = {
 
 static unsigned int iso8859_8_bidi_char_type (Achar32 chv)
 {
-    return __mg_iso8859_8_type [chv];
+    return __mg_iso8859_8_type [REAL_ACHAR(chv)];
 }
 
 static const BIDICHAR_MIRROR_MAP __mg_iso8859_8_mirror_table [] =
@@ -1068,6 +1074,8 @@ static BOOL iso8859_8_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 #ifdef _MGCHARSET_UNICODE
 static Uchar32 iso8859_8_conv_to_uc32 (Achar32 chv)
 {
+    chv = REAL_ACHAR(chv);
+
     if (chv >= 0xE0 && chv <= 0xFA) {
         return  chv - 0xE0 + 0x05D0;
     }
@@ -1122,7 +1130,7 @@ static int iso8859_8_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 
 static CHARSETOPS CharsetOps_iso8859_8 = {
     256,
-    1,
+    2, // This is a trick for bidi reorder only implemented for MBC.
     FONT_CHARSET_ISO8859_8,
     0,
     sb_len_first_char,
@@ -2104,7 +2112,7 @@ static int gb2312_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static Uchar32 gb2312_0_conv_to_uc32 (Achar32 chv)
 {
-    return (Uchar32)__mg_gbunicode_map [chv];
+    return (Uchar32)__mg_gbunicode_map [REAL_ACHAR(chv)];
 }
 
 const unsigned char* __mg_map_uc16_to_gb (unsigned short uc16);
@@ -2262,7 +2270,7 @@ static int gbk_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static Uchar32 gbk_conv_to_uc32 (Achar32 chv)
 {
-    return (Uchar32)__mg_gbkunicode_map[chv];
+    return (Uchar32)__mg_gbkunicode_map[REAL_ACHAR(chv)];
 }
 
 const unsigned char* __mg_map_uc16_to_gbk (unsigned short uc16);
@@ -2506,6 +2514,8 @@ static const unsigned char* gb18030_0_get_next_word (const unsigned char* mstr,
 #ifdef _MGCHARSET_UNICODE
 static Uchar32 gb18030_0_conv_to_uc32 (Achar32 chv)
 {
+    chv = REAL_ACHAR(chv);
+
     /* from 0x90308130 to 0xE3329A35 */
     if (chv > 63611) {
         int m1, n1, m2, n2, m3, n3;
@@ -2680,7 +2690,7 @@ static int big5_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static Uchar32 big5_conv_to_uc32 (Achar32 chv)
 {
-    unsigned short ucs_code = __mg_big5_unicode_map [chv];
+    unsigned short ucs_code = __mg_big5_unicode_map[REAL_ACHAR(chv)];
 
     if (ucs_code == 0)
         return '?';
@@ -2839,7 +2849,7 @@ static int ksc5601_0_pos_first_char (const unsigned char* mstr, int mstrlen)
 #ifdef _MGCHARSET_UNICODE
 static Uchar32 ksc5601_0_conv_to_uc32 (Achar32 chv)
 {
-    unsigned short ucs_code = __mg_ksc5601_0_unicode_map [chv];
+    unsigned short ucs_code = __mg_ksc5601_0_unicode_map[REAL_ACHAR(chv)];
 
     if (ucs_code == 0)
         return '?';
@@ -3106,7 +3116,7 @@ static Uchar32 jisx0208_0_conv_to_uc32 (Achar32 chv)
 {
     unsigned short ucs_code;
 
-    ucs_code = __mg_jisx0208_0_unicode_map [chv];
+    ucs_code = __mg_jisx0208_0_unicode_map[REAL_ACHAR(chv)];
 
     if (ucs_code == 0)
         return '?';
@@ -3362,7 +3372,7 @@ static Uchar32 jisx0208_1_conv_to_uc32 (Achar32 chv)
 {
     unsigned short ucs_code;
 
-    ucs_code  = __mg_jisx0208_1_unicode_map [chv];
+    ucs_code  = __mg_jisx0208_1_unicode_map[REAL_ACHAR(chv)];
 
     if (ucs_code == 0)
         return '?';
@@ -3533,6 +3543,7 @@ static unsigned int unicode_char_type (Achar32 chv)
     unsigned int mchar_type = MCHAR_TYPE_UNKNOWN;
     unsigned int basic_type = 0, break_type = 0;
 
+    chv = REAL_ACHAR(chv);
     basic_type = TYPE(chv);
     break_type = PROP(chv);
 

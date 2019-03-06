@@ -91,7 +91,7 @@ void _gdi_calc_glyphs_size_from_two_points (PDC pdc, int x0, int y0,
 typedef BOOL (*CB_ONE_GLYPH) (void* context, Glyph32 glyph_value, 
         unsigned int char_type);
 
-int _gdi_output_visual_achars(PDC pdc, Glyph32* visual_glyphs, int nr_glyphs, 
+int _gdi_output_visual_achars(PDC pdc, Achar32* visual_achars, int nr_achars, 
         BOOL direction, CB_ONE_GLYPH cb_one_glyph, void* context);
 
 int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len, 

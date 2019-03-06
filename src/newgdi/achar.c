@@ -138,7 +138,7 @@ Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
     return devfont->charset_ops->char_type (REAL_ACHAR (chv));
 }
 
-Uint32 GetGlyphBIDIType (LOGFONT* log_font, Achar32 chv)
+Uint32 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv)
 {
     DEVFONT* devfont = SELECT_DEVFONT_BY_ACHAR(log_font, chv);
 

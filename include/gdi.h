@@ -9571,8 +9571,8 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
       * @{
       */
 
-typedef Uint32 Achar32;
-typedef Uint32 Glyph32;
+typedef unsigned int Achar32;
+typedef unsigned long Glyph32;
 
 /**
  * \def INV_ACHAR_VALUE
@@ -9915,7 +9915,7 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 
 /**
  * \fn Uint32 GUIAPI GetACharBIDIType (LOGFONT* logfont, Achar32 chv)
- * \brief Retriev the BIDI type of an abstract character.
+ * \brief Retrieve the BIDI type of an abstract character.
  *
  * This function retrieves the BIDI type of an abstract character.
  *
@@ -10119,6 +10119,70 @@ static inline void BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
     BIDIGetVisualEmbedLevelsEx (log_font, achars, nr_achars, -1, embed_levels);
 }
 
+/*
+ * \fn int GUIAPI DrawACharString (HDC hdc, int x, int y,
+ *      Achar32* achars, int nr_achars, int* adv_x, int* adv_y);
+ *
+ * \brief Draw an abstract character string.
+ *
+ * This function draws an abstract character string to the specific
+ * postion of a DC. Note that this function will ignore all breaks
+ * in the Achar32 string.
+ *
+ * \param hdc The device context.
+ * \param x The output start x position.
+ * \param y The output start y position.
+ * \param achars The pointer to the glyph string.
+ * \param nr_achars The number of achars which will be draw.
+ * \param adv_x The pointer used to return the advance in x-coordinate of
+ *        the glyph string, can be NULL.
+ * \param adv_y The pointer used to return the advance in y-coordinate of
+ *        the glyph string, can be NULL.
+ *
+ * \return The advance on baseline.
+ */
+MG_EXPORT int GUIAPI DrawACharString (HDC hdc, int x, int y, Achar32* achars,
+        int nr_achars, int* adv_x, int* adv_y);
+
+/**
+ * \fn int GUIAPI GetACharsExtent(HDC hdc, Achar32* achars, int nr_achars, \
+ *         SIZE* size)
+ * \brief Get visual extent value of an achar string.
+ *
+ * This function gets the extent value of an achar string on a DC. Note that
+ * this function will ignore all breaks in the achar string.
+ *
+ * \param hdc The device context.
+ * \param achars The pointer to the achar string.
+ * \param nr_achars The length of the achar string.
+ * \param size The buffer restoring the extents of the achar strings.
+ *
+ * \return The extent of the achar string.
+ */
+MG_EXPORT int GUIAPI GetACharsExtent (HDC hdc, Achar32* achars, int nr_achars,
+        SIZE* size);
+
+/**
+ * \fn int GUIAPI GetACharsExtentPoint (HDC hdc, Achar32* achars, \
+ *         int nr_achars, int max_extent, SIZE* size)
+ * \brief Get the visual extent value of an achar string.
+ *
+ * This function gets the visual extent value of a glpyh string.
+ * Note that this function ignore all breaks in the achar string.
+ *
+ * \param hdc The device context.
+ * \param achars The pointer to the achar string.
+ * \param nr_achars The length of the achar string len.
+ * \param max_extent The maximal output extent value.
+ * \param size The real extent of all visual achars in the achar string.
+ *
+ * \return The the index of the last achar which can be fit to the extent.
+ *
+ * \sa GetACharsExtentPointEx
+ */
+MG_EXPORT int GUIAPI GetACharsExtentPoint (HDC hdc, Achar32* achars,
+        int nr_achars, int max_extent, SIZE* size);
+
 /**
  * \fn void GUIAPI GetGlyphValue (LOGFONT* logfont, Achar32 chv)
  * \brief Get the LOGFONT glyph value of an abstract character.
@@ -10153,28 +10217,67 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         int* adv_x, int* adv_y);
 
 /*
- * \fn int GUIAPI DrawGlyphString (HDC hdc, int x, int y, \
- *      Glyph32* glyphs, int nr_glyphs, int* adv_x, int* adv_y);
+ * \fn int GUIAPI DrawGlyphString (HDC hdc, Glyph32* glyphs, int nr_glyphs,
+ *      const POINT* pts);
  *
- * \brief Draw a glyph string.
+ * \brief Draw a glyph string at specified positions.
  *
- * This function draws a glyph string to the specific postion of a DC.
- * Note that this function will ignore all breaks in the glyph string.
+ * This function draws a glyph string to the specific postions of a DC.
+ * Note that this function will ignore all special type (such as zero-width)
+ * in the glyph string.
  *
  * \param hdc The device context.
- * \param x The output start x position.
- * \param y The output start y position.
  * \param glyphs The pointer to the glyph string.
  * \param nr_glyphs The number of glyphs which will be draw.
- * \param adv_x The pointer used to return the advance in x-coordinate of
- *        the glyph string, can be NULL.
- * \param adv_y The pointer used to return the advance in y-coordinate of
- *        the glyph string, can be NULL.
+ * \param pts The positions of every glyphs.
  *
- * \return The advance on baseline.
+ * \return The number of glyphs drawn.
+ *
+ * \sa DrawGlyphStringEx
  */
-MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyphs,
-        int nr_glyphs, int* adv_x, int* adv_y);
+MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, Glyph32* glyphs, int nr_glyphs,
+        const POINT* pts);
+
+/**
+ * \fn int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs, \
+ *         SIZE* size)
+ * \brief Get visual extent value of a glyph string.
+ *
+ * This function gets the extent value of a glyph string on a DC. Note that
+ * this function will ignore all special types in the glyph string.
+ *
+ * \param hdc The device context.
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The length of the glyph string.
+ * \param size The buffer restoring the extents of the glyph string.
+ *
+ * \return The extent of the glyph string.
+ *
+ * \sa GetGlyphsExtentFromUChars
+ */
+MG_EXPORT int GUIAPI GetGlyphsExtent (HDC hdc, Glyph32* glyphs, int nr_glyphs,
+        SIZE* size);
+
+/**
+ * \fn int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs, \
+ *         int nr_glyphs, int max_extent, SIZE* size)
+ * \brief Get the visual extent value of an glyph string.
+ *
+ * This function gets the visual extent value of a glpyh string.
+ * Note that this function ignore all special types in the glyph string.
+ *
+ * \param hdc The device context.
+ * \param glyphs The pointer to the glyph string.
+ * \param nr_glyphs The length of the glyph string len.
+ * \param max_extent The maximal output extent value.
+ * \param size The real extent of all visual glyphs in the glyph string.
+ *
+ * \return The the index of the last glyph which can be fit to the extent.
+ *
+ * \sa GetGlyphsExtentFromUChars
+ */
+MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
+        int nr_glyphs, int max_extent, SIZE* size);
 
 #define GLYPH_INFO_METRICS      0x01
 #define GLYPH_INFO_BMP          0x02
@@ -10237,7 +10340,7 @@ typedef struct _GLYPHINFO {
 /**
  * \fn int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value, \
  *         GLYPHINFO* glyph_info)
- * \brief Retriev the information of a glyph.
+ * \brief Retrieve the information of a glyph.
  *
  * This function retrieves the information of a glyph.
  *
@@ -10253,45 +10356,6 @@ typedef struct _GLYPHINFO {
  */
 MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         GLYPHINFO* glyph_info);
-
-/**
- * \fn int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs, \
- *         SIZE* size)
- * \brief Get visual extent value of a glyph string.
- *
- * This function gets the extent value of a glyph string on a DC. Note that
- * this function will ignore all breaks in the glyph string.
- *
- * \param hdc The device context.
- * \param glyphs The pointer to the glyph string.
- * \param nr_glyphs The length of the glyph string.
- * \param size The buffer restoring the extents of the glyph strings.
- *
- * \return The extent of the glyph string.
- */
-MG_EXPORT int GUIAPI GetGlyphsExtent (HDC hdc, Glyph32* glyphs, int nr_glyphs,
-        SIZE* size);
-
-/**
- * \fn int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs, \
- *         int nr_glyphs, int max_extent, SIZE* size)
- * \brief Get the visual extent value of a glyph string.
- *
- * This function gets the visual extent value of a glpyh string.
- * Note that this function ignore all breaks in the glyph string.
- *
- * \param hdc The device context.
- * \param glyphs The pointer to the glyph string.
- * \param nr_glyphs The length of the glyph string len.
- * \param max_extent The maximal output extent value.
- * \param size The real extent of all visual glyphs in the glyph string.
- *
- * \return The the index of the last glyph which can be fit to the extent.
- *
- * \sa GetGlyphsExtentPointEx
- */
-MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
-        int nr_glyphs, int max_extent, SIZE* size);
 
 #ifdef _MGCHARSET_UNICODE
 
@@ -11054,7 +11118,7 @@ MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags
      *
-     * The glyph rendering flags indicates \a GetGlyphsExtentPointEx
+     * The glyph rendering flags indicates \a GetGlyphsExtentFromUChars
      *      - Whether and how to break if the glyph string overflows the max extent;
      *      - The direction of the glyphs;
      *      - The writing mode (horizontal or vertical) and text orientation;
@@ -11240,57 +11304,42 @@ MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
 #define GLYPH_ORIENTATION_UPRIGHT   0
 #define GLYPH_ORIENTATION_SIDEWAYS  1
 
-typedef struct _SHAPEDGLYPHS {
-    int nr_glyphs;
-    /** The shaped glyphs */
-    Glyph32* glyphs;
-    /** The break opportunities */
-    Uint8* break_oppos;
-    /** The Unicode general categories. */
-    Uint8* ugc;
-    /** The Unicode Indic syllabic categories. */
-    Uint8* uics;
-    /** The Unicode Indic positional categories. */
-    Uint8* uipc;
-} SHAPEDGLYPHS;
+typedef enum _GlyphType {
+    GLYPH_TYPE_STANDALONE,
+    GLYPH_TYPE_STDBASE,
+    GLYPH_TYPE_STDMARK,
+    GLYPH_TYPE_STDLIGATURE,
+} GlyphType;
 
-MG_EXPORT int GUIAPI GetShapedGlyphs(LOGFONT* logfont,
+typedef enum _GlyphPosition {
+    GLYPH_POS_BASELINE,
+    GLYPH_POS_STDMARK_ABOVE,
+    GLYPH_POS_STDMARK_BELOW,
+    GLYPH_POS_STDMKMK,
+    GLYPH_POS_STDKERNING,
+    GLYPH_POS_CMPCURSIVE,
+} GlyphPosition;
+
+typedef struct _SHAPEDGLYPH {
+    /** The glyph value */
+    Glyph32 gv;
+    /** The glyph breaking opportunities */
+    Uint16 bos;
+    /** The glyph type */
+    Uint8 gt;
+    /** The glyph position */
+    Uint8 gp;
+} SHAPEDGLYPH;
+
+MG_EXPORT int GUIAPI GetShapedGlyphsStandard(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
-        const Uchar32 ucs, int nr_chars,
-        SHAPEDGLYPHS* shaped_glyphs);
+        const Uchar32* ucs, const Uint8* break_oppos, int nr_chars,
+        SHAPEDGLYPH* glyphs, int* nr_glyphs);
 
-/**
- * The glyph extent information.
- */
-typedef struct _GLYPHEXTENT {
-    /** The bounding box of the glyph. */
-    int bbox_x, bbox_y, bbox_w, bbox_h;
-    /** The advance values of the glyph. */
-    int adv_x, adv_y;
-    /** The advance value of the glyph along the line direction. */
-    int line_adv;
-    /**
-     * The orientation of the glyph; can be one of the following values:
-     *  - GLYPH_ORIENTATION_UPRIGHT\n
-     *      the glyph is in the standard horizontal orientation.
-     *  - GLYPH_ORIENTATION_SIDEWAYS\n
-     *      the glyph rotates 90° clockwise from horizontal.
-     */
-    Uint8 orientation:2;
-    /**
-     * Whether is a whitespace glyph.
-     */
-    Uint8 whitespace:1;
-    /**
-     * Whether suppress the glyph.
-     */
-    Uint8 suppressed:1;
-} GLYPHEXTENT;
-
-MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
-        const SHAPEDGLYPHS* shaped_glyphs, Uint32 render_flags,
-        GLYPHEXTENT** glyph_extents,
-        LOGFONT** logfont_sideways);
+MG_EXPORT int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
+        LanguageCode content_language, UCharScriptType writing_system,
+        const Uchar32* ucs, const Uint8* break_oppos, int nr_chars,
+        SHAPEDGLYPH* glyphs, int* nr_glyphs);
 
 /**
  * The glyph extent information.
@@ -11304,7 +11353,28 @@ typedef struct _GLYPHEXTINFO {
     int extra_x, extra_y;
     /** The advance value of the glyph along the line direction. */
     int line_adv;
+    /**
+     * Whether suppress the glyph.
+     */
+    Uint8 suppressed:1;
+    /**
+     * Whether is a whitespace glyph.
+     */
+    Uint8 whitespace:1;
+    /**
+     * The orientation of the glyph; can be one of the following values:
+     *  - GLYPH_ORIENTATION_UPRIGHT\n
+     *      the glyph is in the standard horizontal orientation.
+     *  - GLYPH_ORIENTATION_SIDEWAYS\n
+     *      the glyph rotates 90° clockwise from horizontal.
+     */
+    Uint8 orientation:2;
 } GLYPHEXTINFO;
+
+MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
+        const SHAPEDGLYPH* glyphs, Uint32 render_flags,
+        GLYPHEXTINFO** glyph_extent_info,
+        LOGFONT** logfont_sideways);
 
 /**
  * The glyph position information.
@@ -11319,6 +11389,14 @@ typedef struct _GLYPHPOS {
      */
     int y;
     /**
+     * Whether suppress the glyph.
+     */
+    Uint8 suppressed:1;
+    /**
+     * Whether is a whitespace glyph.
+     */
+    Uint8 whitespace:1;
+    /**
      * The orientation of the glyph; can be one of the following values:
      *  - GLYPH_ORIENTATION_UPRIGHT\n
      *      the glyph is in the standard horizontal orientation.
@@ -11326,14 +11404,6 @@ typedef struct _GLYPHPOS {
      *      the glyph rotates 90° clockwise from horizontal.
      */
     Uint8 orientation:2;
-    /**
-     * Whether is a whitespace glyph.
-     */
-    Uint8 whitespace:1;
-    /**
-     * Whether suppress the glyph.
-     */
-    Uint8 suppressed:1;
     /**
      * Whether hanged the glyph; can be one of the following values:
      *  - GLYPH_HANGED_NONE\n
@@ -11347,18 +11417,18 @@ typedef struct _GLYPHPOS {
 } GLYPHPOS;
 
 MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
-        const Glyph32* glyphs, const Uint16* break_oppos,
-        const GLYPHEXTINFO* glyph_ext_info, int nr_glyphs,
+        const SHAPEDGLYPH* glyphs, GLYPHEXTINFO* glyph_ext_info, int nr_glyphs,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
+
 /**
- * \fn int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
- *          const Glyph32* glyphs, int nr_glyphs, const Uint16* break_oppos,
+ * \fn int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
+ *          const Uchar32* uchars, int nr_uchars, const Uint16* break_oppos,
  *          Uint32 render_flags, int x, int y,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
- *          SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
- *          LOGFONT** logfont_sideways)
+ *          SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
+ *          GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways)
  * \brief Get the visual extent info of all glyphs fitting in the specified
  *      maximal output extent.
  *
@@ -11366,9 +11436,8 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
  * fit a line with the specified maximal extent.
  *
  * \param logfont The logfont used to parse the glyph string.
- * \param glyphs The pointer to the glyph string. The glyphs should be reordered
- *      as visual ones by calling BIDI functions.
- * \param nr_glyphs The number of the glyphs.
+ * \param uchars The pointer to the achar string.
+ * \param nr_uchars The number of the glyphs.
  * \param break_oppos The pointer to the break opportunities array of the glyphs.
  *      It should be returned by \a GetUCharsAndBreaks. However, the caller
  *      should skip the first unit (the break opportunity before the first glyph)
@@ -11383,6 +11452,8 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
  * \param tab_size The tab size used to render preserved tab characters.
  * \param max_extent The maximal output extent value. No limit when it is < 0.
  * \param line_size The buffer to store the line extent info; can be NULL.
+ * \param glyphs The buffer to store the glyphs, which can fit in
+ *      the max extent; cannot be NULL.
  * \param glyph_ext_info The buffer to store the extent info of all glyphs
  *      which can fit in the max extent; can be NULL.
  * \param glyph_pos The buffer to store the positions and orientations of
@@ -11394,9 +11465,10 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
  *      not NULL, this function will try to use this LOGFONT object for
  *      sideways glyphs.
  *
- * \return The number of glyphs which can be fit to the maximal extent.
- *      The extent info of every glyphs which are fit in the maximal extent
- *      will be returned through \a glyph_ext_info if it was not NULL, and the
+ * \return The number of achars which can be fit to the maximal extent.
+ *      The glyphs and the extent info of every glyphs which are fit in
+ *      the maximal extent will be returned through \a glyphs and
+ *      \a glyph_ext_info (if it was not NULL), and the
  *      line extent info will be returned through \a line_size
  *      if it was not NULL. Note the function will return immediately if
  *      it encounters a mandatory breaking.
@@ -11420,19 +11492,20 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(LOGFONT* logfont_upright,
  *
  * \sa GetUCharsAndBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
-MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
-        const Glyph32* glyphs, int nr_glyphs, const Uint16* break_oppos,
+MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
+        const Achar32* uchars, int nr_uchars, const Uint16* break_oppos,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHEXTINFO* glyph_ext_info, GLYPHPOS* glyph_pos,
-        LOGFONT** logfont_sideways);
+        SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
+        GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
 
 #endif /* _MGCHARSET_UNICODE */
 
 /*
- * \fn int GUIAPI DrawGlyphStringEx (HDC hdc,,
+ * \fn int GUIAPI DrawGlyphStringEx (HDC hdc,
  *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
- *      const Glyph32* glyphs, int nr_glyphs, const GLYPHPOS* glyph_pos)
+ *      const Glyph32* glyphs, size_t glyph_unit_size, int nr_glyphs,
+ *      const GLYPHPOS* glyph_pos)
  * \brief Draw a glyph string at the specified positions and text orientations.
  *
  * This function draws a glyph string to the specific positions and
@@ -11442,21 +11515,26 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPointEx(LOGFONT* logfont_upright,
  * \param hdc The device context.
  * \param logfont_upright The LOGFONT object used for upright glyphs.
  * \param logfont_sideways The LOGFONT object used for sideways glyphs.
- * \param glyphs The pointer to the glyph string.
- * \param nr_glyphs The number of the glyphs should be drawn.
+ * \param glyphs The pointer to the glyph string; either a Glyph32 array
+ *      or a SHAPEDGLYPH array. You should specify the element size via
+ *      \a glyph_unit_size.
+ * \param glyph_unit_size The size of one glyph unit item in bytes. If
+ *      it is zero, then sizeof (Glyph32) will be used.
  * \param glyph_pos The buffer holds the position information
- *        of every glyph.
+ *      of every glyph.
+ * \param nr_glyphs The number of the glyphs should be drawn.
  *
  * \return The number of glyphs really drawn.
  *
  * \note The positions contained in \a glyph_pos are always aligned to
  *      the top-left corner of the output rectangle.
  *
- * \sa GetGlyphsExtentPointEx
+ * \sa GetGlyphsExtentFromUChars
  */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Glyph32* glyphs, int nr_glyphs, const GLYPHPOS* glyph_pos);
+        const Glyph32* glyphs, size_t glyph_unit_size,
+        const GLYPHPOS* glyph_pos, int nr_glyphs);
 
     /** @} end of glyph */
 /*

@@ -80,7 +80,7 @@
  *
  * \param glyph The logfont glyph value
  */
-#define IS_MBC_GLYPH(glyph)  ((glyph) & GLYPH_DEVFONT_INDEX_MASK)
+//#define IS_MBC_GLYPH(glyph)  ((glyph) & GLYPH_DEVFONT_INDEX_MASK)
 
 #define SET_GLYPH_DFI(glyph, dfi) \
     (((glyph) & ~GLYPH_DEVFONT_INDEX_MASK) | \

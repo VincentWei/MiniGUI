@@ -176,6 +176,8 @@ static unsigned short iso8859_68x_unicode_map [] =
 
 static Uchar32 iso8859_6_conv_to_uc32 (Achar32 chv)
 {
+    chv = REAL_ACHAR(chv);
+
     if (chv < 0x81)
         return (Achar32) (chv);
     else if (chv <= MAX_GLYPH_VALUE )
@@ -588,7 +590,7 @@ static Uint32 __mg_iso8859_68x_type[] = {
 
 static unsigned int iso8859_6_bidi_char_type (Achar32 chv)
 {
-    return __mg_iso8859_68x_type [chv];
+    return __mg_iso8859_68x_type[REAL_ACHAR(chv)];
 }
 
 static int get_table_index(Uint8 c)
