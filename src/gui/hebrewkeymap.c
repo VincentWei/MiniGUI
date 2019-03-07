@@ -53,7 +53,7 @@
 
 #ifdef _MGKBDLAYOUT_HEBREWPC
 
-static u_short plain_map[NR_KEYS] = {
+static const u_short plain_map[NR_KEYS] = {
 	0xf200,	0xf01b,	0xf031,	0xf032,	0xf033,	0xf034,	0xf035,	0xf036,
 	0xf037,	0xf038,	0xf039,	0xf030,	0xf02d,	0xf03d,	0xf07f,	0xf009,
 	0xfb2f,	0xfb27,	0xfbf7,	0xfbf8,	0xfbe0,	0xfbe8,	0xfbe5,	0xfbef,
@@ -72,7 +72,7 @@ static u_short plain_map[NR_KEYS] = {
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf703,	0xf703,	0xf200,
 };
 
-static u_short shift_map[NR_KEYS] = {
+static const u_short shift_map[NR_KEYS] = {
 	0xf200,	0xf01b,	0xf021,	0xf040,	0xf023,	0xf024,	0xf025,	0xf05e,
 	0xf026,	0xf02a,	0xf028,	0xf029,	0xf05f,	0xf02b,	0xf07f,	0xf009,
 	0xfb51,	0xfb57,	0xfb45,	0xfb52,	0xfb54,	0xfb59,	0xfb55,	0xfb49,
@@ -91,7 +91,7 @@ static u_short shift_map[NR_KEYS] = {
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf703,	0xf703,	0xf200,
 };
 
-static u_short altgr_map[NR_KEYS] = {
+static const u_short altgr_map[NR_KEYS] = {
 	0xf200,	0xf01b,	0xf031,	0xf032,	0xf033,	0xf034,	0xf035,	0xf036,
 	0xf037,	0xf038,	0xf039,	0xf030,	0xf02d,	0xf03d,	0xf07f,	0xf009,
 	0xfb71,	0xfb77,	0xfb65,	0xfb72,	0xfb74,	0xfb79,	0xfb75,	0xfb69,
@@ -111,7 +111,7 @@ static u_short altgr_map[NR_KEYS] = {
 };
 
 
-static u_short ctrl_map[NR_KEYS] = {
+static const u_short ctrl_map[NR_KEYS] = {
 	0xf200,	0xf01b,	0xf200,	0xf000,	0xf01b,	0xf01c,	0xf01d,	0xf01e,
 	0xf01f,	0xf07f,	0xf200,	0xf200,	0xf01f,	0xf200,	0xf008,	0xf009,
 	0xf011,	0xf017,	0xf005,	0xf012,	0xf014,	0xf019,	0xf015,	0xf009,
@@ -130,7 +130,7 @@ static u_short ctrl_map[NR_KEYS] = {
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf703,	0xf703,	0xf200,
 };
 
-static u_short shift_ctrl_map[NR_KEYS] = {
+static const u_short shift_ctrl_map[NR_KEYS] = {
 	0xf200,	0xf01b,	0xf200,	0xf000,	0xf01b,	0xf01c,	0xf01d,	0xf01e,
 	0xf01f,	0xf07f,	0xf200,	0xf200,	0xf01f,	0xf200,	0xf008,	0xf009,
 	0xf011,	0xf017,	0xf005,	0xf012,	0xf014,	0xf019,	0xf015,	0xf009,
@@ -149,7 +149,7 @@ static u_short shift_ctrl_map[NR_KEYS] = {
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf703,	0xf703,	0xf200,
 };
 
-static u_short alt_map[NR_KEYS] = {
+static const u_short alt_map[NR_KEYS] = {
 	0xf200,	0xf81b,	0xf831,	0xf832,	0xf833,	0xf834,	0xf835,	0xf836,
 	0xf837,	0xf838,	0xf839,	0xf830,	0xf82d,	0xf83d,	0xf87f,	0xf809,
 	0xf871,	0xf877,	0xf865,	0xf872,	0xf874,	0xf879,	0xf875,	0xf869,
@@ -169,7 +169,7 @@ static u_short alt_map[NR_KEYS] = {
 };
 
 
-static u_short ctrl_alt_map[NR_KEYS] = {
+static const u_short ctrl_alt_map[NR_KEYS] = {
 	0xf200,	0xf81b,	0xf200,	0xf800,	0xf81b,	0xf81c,	0xf81d,	0xf81e,
 	0xf81f,	0xf87f,	0xf200,	0xf200,	0xf81f,	0xf200,	0xf808,	0xf809,
 	0xf811,	0xf817,	0xf805,	0xf812,	0xf814,	0xf819,	0xf815,	0xf809,
@@ -188,7 +188,7 @@ static u_short ctrl_alt_map[NR_KEYS] = {
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf703,	0xf703,	0xf200,
 };
 
-static ushort *key_maps[MAX_NR_KEYMAPS] = {
+static const ushort *key_maps[MAX_NR_KEYMAPS] = {
 	plain_map, shift_map, altgr_map,0 ,
 	ctrl_map, shift_ctrl_map, 0, 0,
 	alt_map,0 ,0 ,0 ,
@@ -197,11 +197,11 @@ static ushort *key_maps[MAX_NR_KEYMAPS] = {
 
 /*
  * Philosophy: most people do not define more strings, but they who do
- * often want quite a lot of string space. So, we statically allocate
+ * often want quite a lot of string space. So, we static constally allocate
  * the default and allocate dynamically in chunks of 512 bytes.
  */
 
-static char func_buf[] = {
+static const char func_buf[] = {
 	'\033', '[', '[', 'A', 0, 
 	'\033', '[', '[', 'B', 0, 
 	'\033', '[', '[', 'C', 0, 
@@ -237,7 +237,7 @@ static char func_buf[] = {
 int funcbufsize = sizeof(func_buf);
 int funcbufleft = 0;*/          /* space left */
 
-static char *func_table[MAX_NR_FUNC] = {
+static const char *func_table[MAX_NR_FUNC] = {
 	func_buf + 0,
 	func_buf + 5,
 	func_buf + 10,
@@ -271,7 +271,7 @@ static char *func_table[MAX_NR_FUNC] = {
 	0,
 };
 
-static struct kbdiacr accent_table[MAX_DIACR] = {
+static const struct kbdiacr accent_table[MAX_DIACR] = {
 	{'`', 'A', '\300'},	{'`', 'a', '\340'},
 	{'\'', 'A', '\301'},	{'\'', 'a', '\341'},
 	{'^', 'A', '\302'},	{'^', 'a', '\342'},
@@ -308,15 +308,15 @@ static struct kbdiacr accent_table[MAX_DIACR] = {
 	{'s', 'z', '\337'},	{'i', 'j', '\377'},
 };
 
-static unsigned int accent_table_size = 68;
+static const unsigned int accent_table_size = 68;
 
 void init_hebrew_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p, 
                 unsigned int* accent_table_size_p, char*** func_table_p)
 {
-    *key_maps_p = key_maps;
-    *accent_table_p = accent_table;
+    *key_maps_p = (ushort**)key_maps;
+    *accent_table_p = (struct kbdiacr*)accent_table;
     *accent_table_size_p = accent_table_size;
-    *func_table_p = func_table;
+    *func_table_p = (char**)func_table;
 }
 
 #endif  /*_MGKBDLAYOUT_HEBREWPC*/

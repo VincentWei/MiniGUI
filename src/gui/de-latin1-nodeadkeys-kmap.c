@@ -38,7 +38,7 @@
 #include "linux_keyboard.h"
 #include "linux_kd.h"
 
-u_short plain_map[NR_KEYS] = {
+static u_short plain_map[NR_KEYS] = {
 	0xf200,	0xf01b,	0xf031,	0xf032,	0xf033,	0xf034,	0xf035,	0xf036,
 	0xf037,	0xf038,	0xf039,	0xf030,	0xf0df,	0xf027,	0xf07f,	0xf009,
 	0xfb71,	0xfb77,	0xfb65,	0xfb72,	0xfb74,	0xfb7a,	0xfb75,	0xfb69,
@@ -247,14 +247,14 @@ static u_short ctrl_alt_map[NR_KEYS] = {
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
 };
 
-ushort *key_maps[MAX_NR_KEYMAPS] = {
+static ushort *key_maps[MAX_NR_KEYMAPS] = {
 	plain_map, shift_map, altgr_map, shift_altgr_map,
 	ctrl_map, shift_ctrl_map, altgr_ctrl_map, 0,
 	alt_map, shift_alt_map, altgr_alt_map, 0,
 	ctrl_alt_map,	0
 };
 
-unsigned int keymap_count = 11;
+static unsigned int keymap_count = 11;
 
 
 /*
@@ -263,7 +263,7 @@ unsigned int keymap_count = 11;
  * the default and allocate dynamically in chunks of 512 bytes.
  */
 
-char func_buf[] = {
+static char func_buf[] = {
 	'\033', '[', '[', 'A', 0, 
 	'\033', '[', '[', 'B', 0, 
 	'\033', '[', '[', 'C', 0, 
