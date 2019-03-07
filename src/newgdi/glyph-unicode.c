@@ -893,7 +893,7 @@ void check_emoji_extended_pictographic(struct glyph_break_ctxt* gbctxt,
         Uchar32 uc)
 {
     gbctxt->is_extended_pictographic =
-        _unicode_is_emoji_extended_pictographic(uc);
+        _unicode_is_extended_pictographic(uc);
 }
 
 /* Types of Japanese characters */
@@ -922,7 +922,7 @@ static Uint16 check_grapheme_boundaries(struct glyph_break_ctxt* gbctxt,
     if (gbctxt->met_extended_pictographic) {
         if (gbt == GB_Extend)
             gbctxt->met_extended_pictographic = 1;
-        else if (_unicode_is_emoji_extended_pictographic(gbctxt->prev_uc) &&
+        else if (_unicode_is_extended_pictographic(gbctxt->prev_uc) &&
                 gbt == GB_ZWJ)
             gbctxt->met_extended_pictographic = 1;
         else if (gbctxt->prev_gbt == GB_Extend && gbt == GB_ZWJ)

@@ -51,7 +51,7 @@ BOOL _unicode_is_emoji(Uchar32 ch);
 BOOL _unicode_is_emoji_presentation(Uchar32 ch);
 BOOL _unicode_is_emoji_modifier(Uchar32 ch);
 BOOL _unicode_is_emoji_modifier_base(Uchar32 ch);
-BOOL _unicode_is_emoji_extended_pictographic(Uchar32 ch);
+BOOL _unicode_is_extended_pictographic(Uchar32 ch);
 
 BOOL _unicode_is_emoji_text_default(Uchar32 ch);
 BOOL _unicode_is_emoji_emoji_default(Uchar32 ch);
