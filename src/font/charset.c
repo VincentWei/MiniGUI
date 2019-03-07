@@ -3465,29 +3465,29 @@ static Achar32 utf8_get_char_value (const unsigned char* pre_mchar, int pre_len,
 }
 
 #include "unicode-tables.h"
-#include "unicode-break.h"
+#include "unicode-break-tables.h"
 
-#define ATTR_TABLE(Page) (((Page) <= UCHAR_CATEGORY_LAST_PAGE_PART1) \
+#define ATTR_TABLE(Page) (((Page) <= UCHAR_LAST_PAGE_PART1) \
                           ? attr_table_part1[Page] \
                           : attr_table_part2[(Page) - 0xe00])
 
 #define ATTTABLE(Page, Char) \
-  ((ATTR_TABLE(Page) == UCHAR_CATEGORY_MAX_TABLE_INDEX) ? 0 : (attr_data[ATTR_TABLE(Page)][Char]))
+  ((ATTR_TABLE(Page) == UCHAR_MAX_TABLE_INDEX) ? 0 : (attr_data[ATTR_TABLE(Page)][Char]))
 
 #define TTYPE_PART1(Page, Char) \
-  ((type_table_part1[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
-   ? (type_table_part1[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+  ((type_table_part1[Page] >= UCHAR_MAX_TABLE_INDEX) \
+   ? (type_table_part1[Page] - UCHAR_MAX_TABLE_INDEX) \
    : (type_data[type_table_part1[Page]][Char]))
 
 #define TTYPE_PART2(Page, Char) \
-  ((type_table_part2[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
-   ? (type_table_part2[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+  ((type_table_part2[Page] >= UCHAR_MAX_TABLE_INDEX) \
+   ? (type_table_part2[Page] - UCHAR_MAX_TABLE_INDEX) \
    : (type_data[type_table_part2[Page]][Char]))
 
 #define TYPE(Char) \
-  (((Char) <= UCHAR_CATEGORY_LAST_CHAR_PART1) \
+  (((Char) <= UCHAR_LAST_CHAR_PART1) \
    ? TTYPE_PART1 ((Char) >> 8, (Char) & 0xff) \
-   : (((Char) >= 0xe0000 && (Char) <= UCHAR_CATEGORY_LAST_CHAR) \
+   : (((Char) >= 0xe0000 && (Char) <= UCHAR_LAST_CHAR) \
       ? TTYPE_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
       : UCHAR_CATEGORY_UNASSIGNED))
 
@@ -3522,19 +3522,19 @@ static Achar32 utf8_get_char_value (const unsigned char* pre_mchar, int pre_len,
                 OR (UCHAR_CATEGORY_FORMAT,       0))))
 
 #define TPROP_PART1(Page, Char) \
-  ((break_property_table_part1[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
-   ? (break_property_table_part1[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+  ((break_property_table_part1[Page] >= UCHAR_MAX_TABLE_INDEX) \
+   ? (break_property_table_part1[Page] - UCHAR_MAX_TABLE_INDEX) \
    : (break_property_data[break_property_table_part1[Page]][Char]))
 
 #define TPROP_PART2(Page, Char) \
-  ((break_property_table_part2[Page] >= UCHAR_CATEGORY_MAX_TABLE_INDEX) \
-   ? (break_property_table_part2[Page] - UCHAR_CATEGORY_MAX_TABLE_INDEX) \
+  ((break_property_table_part2[Page] >= UCHAR_MAX_TABLE_INDEX) \
+   ? (break_property_table_part2[Page] - UCHAR_MAX_TABLE_INDEX) \
    : (break_property_data[break_property_table_part2[Page]][Char]))
 
 #define PROP(Char) \
-  (((Char) <= UCHAR_CATEGORY_LAST_CHAR_PART1) \
+  (((Char) <= UCHAR_LAST_CHAR_PART1) \
    ? TPROP_PART1 ((Char) >> 8, (Char) & 0xff) \
-   : (((Char) >= 0xe0000 && (Char) <= UCHAR_CATEGORY_LAST_CHAR) \
+   : (((Char) >= 0xe0000 && (Char) <= UCHAR_LAST_CHAR) \
       ? TPROP_PART2 (((Char) - 0xe0000) >> 8, (Char) & 0xff) \
       : UCHAR_BREAK_UNKNOWN))
 
@@ -4551,13 +4551,13 @@ BOOL GUIAPI IsUCharZeroWidth(Uchar32 uc)
 static inline BOOL g_unichar_iswide_bsearch (Uchar32 ch)
 {
     unsigned int lower = 0;
-    unsigned int upper = TABLESIZE (g_unicode_width_table_wide) - 1;
-    int mid = TABLESIZE (g_unicode_width_table_wide) / 2;
+    unsigned int upper = TABLESIZE (unicode_width_table_wide) - 1;
+    int mid = TABLESIZE (unicode_width_table_wide) / 2;
 
     do {
-        if (ch < g_unicode_width_table_wide[mid].start)
+        if (ch < unicode_width_table_wide[mid].start)
             upper = mid - 1;
-        else if (ch > g_unicode_width_table_wide[mid].end)
+        else if (ch > unicode_width_table_wide[mid].end)
             lower = mid + 1;
         else
             return TRUE;
@@ -4571,7 +4571,7 @@ static inline BOOL g_unichar_iswide_bsearch (Uchar32 ch)
 
 BOOL GUIAPI IsUCharWide(Uchar32 uc)
 {
-    if (uc < g_unicode_width_table_wide[0].start)
+    if (uc < unicode_width_table_wide[0].start)
         return FALSE;
     else
         return g_unichar_iswide_bsearch (uc);
@@ -4601,9 +4601,9 @@ BOOL GUIAPI IsUCharWideCJK (Uchar32 uc)
         return FALSE;
 
     if (bsearch((void*)((intptr_t)uc),
-                g_unicode_width_table_ambiguous,
-                TABLESIZE (g_unicode_width_table_ambiguous),
-                sizeof g_unicode_width_table_ambiguous[0],
+                unicode_width_table_ambiguous,
+                TABLESIZE (unicode_width_table_ambiguous),
+                sizeof unicode_width_table_ambiguous[0],
                 interval_compare))
         return TRUE;
 

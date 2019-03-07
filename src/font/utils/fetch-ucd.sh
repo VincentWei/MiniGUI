@@ -1,10 +1,10 @@
 #!/bin/bash
 
 url='https://www.unicode.org/Public/11.0.0/ucd/'
-files='Scripts.txt UnicodeData.txt IndicPositionalCategory.txt IndicSyllabicCategory.txt ArabicShaping.txt BidiBrackets.txt BidiMirroring.txt Blocks.txt'
+files='Scripts.txt UnicodeData.txt LineBreak.txt SpecialCasing.txt CaseFolding.txt CompositionExclusions.txt IndicPositionalCategory.txt IndicSyllabicCategory.txt ArabicShaping.txt BidiBrackets.txt BidiMirroring.txt Blocks.txt extracted/DerivedEastAsianWidth.txt'
 
-if test ! -d ucd; then
-    mkdir ucd
+if test ! -d ucd/extracted; then
+    mkdir -p ucd/extracted
 fi
 
 cd ucd/
@@ -15,6 +15,6 @@ do
         echo "$file exists, skipping"
     else
         echo "Fetching $url$file"
-        wget $url$file
+        wget -O $file $url$file
     fi
 done
