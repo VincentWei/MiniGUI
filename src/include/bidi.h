@@ -59,11 +59,28 @@ extern "C" {
     #define DBGLOG4(s, t1, t2, t3)
 #endif
 
+typedef struct _BIDICHAR_TYPE_MAP {
+    Uchar32   chv;        // Starting code point of Unicode character
+    Uint16    count;      // Total number of Unicode characters of same type starting from chv
+    Uint16    type;       // Type of Unicode characters
+} BIDICHAR_TYPE_MAP;
+
 typedef struct _TYPERUN TYPERUN;
 
+#define BIDICHAR_BRACKET_NONE   0
+#define BIDICHAR_BRACKET_OPEN   1
+#define BIDICHAR_BRACKET_CLOSE  2
+
+// NOTE: It is enough to use Uint16 for Unicode bracket table
+typedef struct _BIDICHAR_BRACKET {
+    Uint16 chv;
+    Uint8  type;
+} BIDICHAR_BRACKET;
+
+// NOTE: It is enough to use Uint16 for Unicode mirror map
 typedef struct _BIDICHAR_MIRROR_MAP {
-    Achar32 chv;
-    Achar32 mirrored;
+    Uint16 chv;
+    Uint16 mirrored;
 } BIDICHAR_MIRROR_MAP;
 
 Achar32* __mg_charset_bidi_achars_reorder (const CHARSETOPS* charset_ops,

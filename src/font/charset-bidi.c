@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** charset-bidi.c: The charset Bidirectional Algorithm.
-** 
+**
 ** Created by houhuihua at 2008/01/23
 */
 #include <stdio.h>
@@ -63,14 +63,14 @@ struct _TYPERUN
     struct _TYPERUN *prev;
     struct _TYPERUN *next;
 
-    Uint32 type;  /*  char type. */
-    int pos, len;       /*  run start position、run len.*/
-    BYTE level;         /*  Embedding level. */
+    int     pos, len;   /*  run start position, run len.*/
+    Uint16  type;       /*  char type. */
+    BYTE    level;      /*  embedding level. */
 };
 
 #ifdef BIDI_DEBUG
 
-static char bidi_type_name(Uint32 c)
+static char bidi_type_name(Uint16 c)
 {
     switch (c){
         case BIDI_TYPE_LTR: return 'L';
@@ -126,12 +126,12 @@ static void print_run_types(TYPERUN *pp)
         }
         else sprintf(level_str, "%c", bidi_level[(int)pp->level]);
 
-        fprintf(stderr, "pos:%d:len:%d(%c)[level:%s] || ", pp->pos, pp->len, 
+        fprintf(stderr, "pos:%d:len:%d(%c)[level:%s] || ", pp->pos, pp->len,
                 bidi_type_name(pp->type), level_str);
         pp = pp->next;
     }
     fprintf (stderr, "\n");
-} 
+}
 
 static void print_hexstr(Achar32* str, int len, BOOL reorder_state)
 {
@@ -286,7 +286,7 @@ static void bidi_resolveExplicit (TYPERUN **ptype_rl_list, Uint32 base_dir)
 }
 
 /* 3.Resolving weak types */
-static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir) 
+static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
     Uint32 last_strong, prev_type_org;
@@ -328,7 +328,7 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir)
 
     last_strong = base_dir;
     /* Resolving dependency of loops for rules W4 and W5, W5 may
-       want to prevent W4 to take effect in the next turn, do this 
+       want to prevent W4 to take effect in the next turn, do this
        through "w4". */
     w4 = TRUE;
     /* Resolving dependency of loops for rules W4 and W5 with W7,
@@ -427,8 +427,8 @@ static void bidi_resolveNeutrals(TYPERUN **ptype_rl_list, Uint32 base_bir)
 
         if (BIDI_IS_NEUTRAL (this_type))
             TYPE (pp) = (prev_type == next_type) ?
-                prev_type :                    /* N1. */ 
-                BIDI_EMBEDDING_DIR(pp); /* N2. */ 
+                prev_type :                    /* N1. */
+                BIDI_EMBEDDING_DIR(pp); /* N2. */
     }
     compact_list (type_rl_list);
 #ifdef BIDI_DEBUG
@@ -472,8 +472,8 @@ static int bidi_resolveImplicit(TYPERUN **ptype_rl_list, int base_level)
 }
 
 /* 6.Resolving Mirrored Char. */
-static void 
-bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Achar32* achars, int len, 
+static void
+bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Achar32* achars, int len,
         TYPERUN **ptype_rl_list, int base_level)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
@@ -487,7 +487,8 @@ bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Achar32* achars, int len,
             for (i = POS (pp); i < POS (pp) + LEN (pp); i++)
             {
                 Achar32 mirrored_ch;
-                if (charset_ops->bidi_mirror_char && charset_ops->bidi_mirror_char (achars[i], &mirrored_ch))
+                if (charset_ops->bidi_mirror_char &&
+                        charset_ops->bidi_mirror_char (achars[i], &mirrored_ch))
                     achars[i] = mirrored_ch;
             }
         }
@@ -501,7 +502,7 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops,
         TYPERUN **ptype_rl_list, BYTE *pmax_level)
 {
     BYTE base_level = 0;
-    Uint32 base_dir = BIDI_TYPE_L;
+    Uint32 base_dir = BIDI_TYPE_LTR;
     TYPERUN *type_rl_list = NULL;
 
     /* split the text to some runs. */
@@ -736,7 +737,7 @@ Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
         Achar32* achars, int len)
 {
     BYTE base_level = 0;
-    Uint32 base_dir = BIDI_TYPE_L;
+    Uint32 base_dir = BIDI_TYPE_LTR;
     TYPERUN *type_rl_list = NULL;
 
     /* split the text to some runs. */
