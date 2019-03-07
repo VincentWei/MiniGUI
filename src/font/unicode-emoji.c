@@ -53,7 +53,7 @@
 #ifdef _MGCHARSET_UNICODE
 
 #include "unicode-ops.h"
-#include "unicode-emoji-table.h"
+#include "unicode-emoji-tables.h"
 
 static int interval_compare(const void *key, const void *elt)
 {

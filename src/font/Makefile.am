@@ -15,7 +15,8 @@ SRC_FILES = charset.c charset-arabic.c charset-bidi.c \
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \
-            unicode-tables.h unicode-break.h unicode-decomp.h unicode-comp.h unicode-emoji-table.h
+            unicode-tables.h unicode-break.h unicode-decomp.h unicode-comp.h \
+            unicode-emoji-tables.h unicode-arabic-shaping-tables.h
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc
