@@ -90,5 +90,50 @@ int GUIAPI GetGlyphsPositionInfo(
     return 0;
 }
 
+int GUIAPI DrawShapedGlyphString(HDC hdc,
+        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+        const SHAPEDGLYPH* glyphs, const GLYPHPOS* glyph_pos,
+        int nr_glyphs)
+{
+    int i;
+    int n = 0;
+    Uint32 old_ta;
+    PLOGFONT old_lf;
+
+    if (glyphs == NULL || glyph_pos == NULL || nr_glyphs <= 0)
+        return 0;
+
+    old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
+    old_lf = GetCurFont(hdc);
+
+    for (i = 0; i < nr_glyphs; i++) {
+        if (glyph_pos[i].suppressed == 0 && glyph_pos[i].whitespace == 0) {
+            if (glyph_pos[i].orientation == GLYPH_ORIENTATION_UPRIGHT) {
+                if (logfont_upright)
+                    SelectFont(hdc, logfont_upright);
+                else
+                    goto error;
+            }
+            else {
+                if (logfont_sideways)
+                    SelectFont(hdc, logfont_sideways);
+                else
+                    goto error;
+            }
+
+            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, glyphs[i].gv,
+                NULL, NULL);
+
+            n++;
+        }
+    }
+
+error:
+    SelectFont(hdc, old_lf);
+    SetTextAlign(hdc, old_ta);
+
+    return n;
+}
+
 #endif /*  _MGCHARSET_UNICODE */
 

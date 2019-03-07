@@ -4443,26 +4443,21 @@ error:
 
 int GUIAPI DrawGlyphStringEx(HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Glyph32* glyphs, size_t gsize,
-        const GLYPHPOS* glyph_pos, int nr_glyphs)
+        const Glyph32* glyphs, const GLYPHPOS* glyph_pos,
+        int nr_glyphs)
 {
     int i;
     int n = 0;
     Uint32 old_ta;
-    const BYTE* glyph_item = (const BYTE*)glyphs;
     PLOGFONT old_lf;
 
     if (glyphs == NULL || glyph_pos == NULL || nr_glyphs <= 0)
         return 0;
 
-    if (gsize < sizeof(Glyph32))
-        gsize = sizeof(Glyph32);
-
     old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
     old_lf = GetCurFont(hdc);
 
     for (i = 0; i < nr_glyphs; i++) {
-        Glyph32 gv = *(const Glyph32*)glyph_item;
         if (glyph_pos[i].suppressed == 0 && glyph_pos[i].whitespace == 0) {
             if (glyph_pos[i].orientation == GLYPH_ORIENTATION_UPRIGHT) {
                 if (logfont_upright)
@@ -4477,13 +4472,11 @@ int GUIAPI DrawGlyphStringEx(HDC hdc,
                     goto error;
             }
 
-            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, gv,
+            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, glyphs[i],
                 NULL, NULL);
 
             n++;
         }
-
-        glyph_item += gsize;
     }
 
 error:

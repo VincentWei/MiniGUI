@@ -11380,7 +11380,7 @@ typedef struct _SHAPEDGLYPH {
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa GetUCharsAndBreaks, GetShapedGlyphsComplex, SHAPEDGLYPH
- *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawGlyphStringEx
+ *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
 MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
@@ -11436,7 +11436,7 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, SHAPEDGLYPH
- *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawGlyphStringEx
+ *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
 MG_EXPORT int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
@@ -11520,7 +11520,7 @@ typedef struct _GLYPHEXTINFO {
  *      rotation be 90° for sideways glyphs.
  *
  * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
- *     GetGlyphsPositionInfo, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ *     GetGlyphsPositionInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
         const SHAPEDGLYPH* glyphs, int nr_glyphs,
@@ -11624,7 +11624,7 @@ typedef struct _GLYPHPOS {
  *      the top-left corner of the resulting output line rectangle.
  *
  * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
- *      GetGlyphsExtentInfo, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ *      GetGlyphsExtentInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsPositionInfo(
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
@@ -11718,13 +11718,11 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
         SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
         GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
 
-#endif /* _MGCHARSET_UNICODE */
-
 /*
- * \fn int GUIAPI DrawGlyphStringEx (HDC hdc,
+ * \fn int GUIAPI DrawShapedGlyphString (HDC hdc,
  *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
- *      const Glyph32* glyphs, size_t glyph_unit_size, int nr_glyphs,
- *      const GLYPHPOS* glyph_pos)
+ *      const SHAPEDGLYPH* glyphs, const GLYPHPOS* glyph_pos,
+ *      int nr_glyphs)
  * \brief Draw a glyph string at the specified positions and text orientations.
  *
  * This function draws a glyph string to the specific positions and
@@ -11750,10 +11748,43 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
  *
  * \sa GetGlyphsExtentFromUChars
  */
+MG_EXPORT int GUIAPI DrawShapedGlyphString (HDC hdc,
+        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+        const SHAPEDGLYPH* glyphs, const GLYPHPOS* glyph_pos,
+        int nr_glyphs);
+
+#endif /* _MGCHARSET_UNICODE */
+
+/*
+ * \fn int GUIAPI DrawGlyphStringEx (HDC hdc,
+ *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+ *      const Glyph32* glyphs, const GLYPHPOS* glyph_pos,
+ *      int nr_glyphs)
+ * \brief Draw a glyph string at the specified positions and text orientations.
+ *
+ * This function draws a glyph string to the specific positions and
+ * orientations on a DC \a hdc with the logfonts specified by
+ * \a logfont_upright and \a logfont_sideways.
+ *
+ * \param hdc The device context.
+ * \param logfont_upright The LOGFONT object used for upright glyphs.
+ * \param logfont_sideways The LOGFONT object used for sideways glyphs.
+ * \param glyphs The pointer to the glyph string
+ * \param glyph_pos The buffer holds the position information
+ *      of every glyph.
+ * \param nr_glyphs The number of the glyphs should be drawn.
+ *
+ * \return The number of glyphs really drawn.
+ *
+ * \note The positions contained in \a glyph_pos are always aligned to
+ *      the top-left corner of the output rectangle.
+ *
+ * \sa GetGlyphsExtentFromUChars
+ */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Glyph32* glyphs, size_t glyph_unit_size,
-        const GLYPHPOS* glyph_pos, int nr_glyphs);
+        const Glyph32* glyphs, const GLYPHPOS* glyph_pos,
+        int nr_glyphs);
 
     /** @} end of glyph */
 /*
