@@ -7468,7 +7468,7 @@ MG_EXPORT UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc);
 MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
 
 /** The function determines the BIDI type of a UNICODE character. */
-MG_EXPORT unsigned int GUIAPI UCharGetBIDIType(Uchar32 uc);
+MG_EXPORT Uint16 GUIAPI UCharGetBIDIType(Uchar32 uc);
 
 /** The function returns the mirror character of a UNICODE character. */
 MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
@@ -9571,8 +9571,8 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
       * @{
       */
 
-typedef unsigned int Achar32;
-typedef unsigned long Glyph32;
+typedef Uint32 Achar32;
+typedef Uint32 Glyph32;
 
 /**
  * \def INV_ACHAR_VALUE
@@ -9661,39 +9661,43 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
  * only one bit on.
  */
 
-#define BIDI_TYPE_INVALID       0x00000000L
+#define BIDI_TYPE_INVALID       0x0000
 
-#define BIDI_MASK_RTL           0x00000001L    /* Is right to left */
-#define BIDI_MASK_ARABIC        0x00000002L    /* Is arabic */
+#define BIDI_MASK_RTL           0x0001    /* Is right to left */
+#define BIDI_MASK_ARABIC        0x0002    /* Is arabic */
+
+#define BIDI_MASK_NSM           0x0004
+#define BIDI_MASK_BN            0x0008
 
 /* Each char can be only one of the three following. */
-#define BIDI_MASK_STRONG        0x00000010L    /* Is strong */
-#define BIDI_MASK_WEAK          0x00000020L    /* Is weak */
-#define BIDI_MASK_NEUTRAL       0x00000040L    /* Is neutral */
-#define BIDI_MASK_SENTINEL      0x00000080L    /* Is sentinel: SOT, EOT */
+#define BIDI_SWN_MASK           0x0030
+#define BIDI_MASK_STRONG        0x0010    /* Is strong */
+#define BIDI_MASK_WEAK          0x0020    /* Is weak */
+#define BIDI_MASK_NEUTRAL       0x0030    /* Is neutral */
+
+#define BIDI_MASK_WS            0x0040
+#define BIDI_MASK_SENTINEL      0x0080    /* Is sentinel: SOT, EOT */
 
 /* Each char can be only one of the five following. */
-#define BIDI_MASK_LETTER        0x00000100L    /* Is letter: L, R, AL */
-#define BIDI_MASK_NUMBER        0x00000200L    /* Is number: EN, AN */
-#define BIDI_MASK_NUMSEPTER     0x00000400L    /* Is number separator or terminator: ES, ET, CS */
-#define BIDI_MASK_SPACE         0x00000800L    /* Is space: BN, BS, SS, WS */
-#define BIDI_MASK_EXPLICIT      0x00001000L    /* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
+#define BIDI_TYPE_MASK          0x0F00
+#define BIDI_MASK_LETTER        0x0100    /* Is letter: L, R, AL */
+#define BIDI_MASK_NUMBER        0x0200    /* Is number: EN, AN */
+#define BIDI_MASK_NUMSEPTER     0x0300    /* Is number separator or terminator: ES, ET, CS */
+#define BIDI_MASK_SPACE         0x0400    /* Is space: BN, BS, SS, WS */
+#define BIDI_MASK_EXPLICIT      0x0500    /* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
 
 /* Can be on only if BIDI_MASK_SPACE is also on. */
-#define BIDI_MASK_SEPARATOR     0x00002000L    /* Is test separator: BS, SS */
+#define BIDI_MASK_SEPARATOR     0x0800    /* Is test separator: BS, SS */
+
 /* Can be on only if BIDI_MASK_EXPLICIT is also on. */
-#define BIDI_MASK_OVERRIDE      0x00004000L    /* Is explicit override: LRO, RLO */
+#define BIDI_MASK_OVERRIDE      0x8000    /* Is explicit override: LRO, RLO */
 
-#define BIDI_MASK_ES            0x00010000L
-#define BIDI_MASK_ET            0x00020000L
-#define BIDI_MASK_CS            0x00040000L
-
-#define BIDI_MASK_NSM           0x00080000L
-#define BIDI_MASK_BN            0x00100000L
-
-#define BIDI_MASK_BS            0x00200000L
-#define BIDI_MASK_SS            0x00400000L
-#define BIDI_MASK_WS            0x00800000L
+#define BIDI_MISC_MASK          0x7000
+#define BIDI_MASK_ES            0x1000
+#define BIDI_MASK_CS            0x2000
+#define BIDI_MASK_ET            0x3000
+#define BIDI_MASK_BS            0x4000
+#define BIDI_MASK_SS            0x5000
 
     /**
      * \defgroup glyph_bidi_types Glyph BIDI types
@@ -9867,26 +9871,26 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 #define BIDI_IS_ARABIC(p)   ((p) & BIDI_MASK_ARABIC)
 
 /* Is strong? */
-#define BIDI_IS_STRONG(p)   ((p) & BIDI_MASK_STRONG)
+#define BIDI_IS_STRONG(p)   (((p) & BIDI_SWN_MASK) == BIDI_MASK_STRONG)
 /* Is weak? */
-#define BIDI_IS_WEAK(p)     ((p) & BIDI_MASK_WEAK)
+#define BIDI_IS_WEAK(p)     (((p) & BIDI_SWN_MASK) == BIDI_MASK_WEAK)
 /* Is neutral? */
-#define BIDI_IS_NEUTRAL(p)  ((p) & BIDI_MASK_NEUTRAL)
+#define BIDI_IS_NEUTRAL(p)  (((p) & BIDI_SWN_MASK) == BIDI_MASK_NEUTRAL)
 /* Is sentinel? */
 #define BIDI_IS_SENTINEL(p) ((p) & BIDI_MASK_SENTINEL)
 
 /* Is letter: L, R, AL? */
-#define BIDI_IS_LETTER(p)   ((p) & BIDI_MASK_LETTER)
+#define BIDI_IS_LETTER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_LETTER)
 /* Is number: EN, AN? */
-#define BIDI_IS_NUMBER(p)   ((p) & BIDI_MASK_NUMBER)
+#define BIDI_IS_NUMBER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMBER)
 /* Is number separator or terminator: ES, ET, CS? */
 #define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
-    ((p) & BIDI_MASK_NUMSEPTER)
+    (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMSEPTER)
 
 /* Is space: BN, BS, SS, WS? */
-#define BIDI_IS_SPACE(p)    ((p) & BIDI_MASK_SPACE)
+#define BIDI_IS_SPACE(p)    (((p) & BIDI_TYPE_MASK) == BIDI_MASK_SPACE)
 /* Is explicit mark: LRE, RLE, LRO, RLO, PDF? */
-#define BIDI_IS_EXPLICIT(p) ((p) & BIDI_MASK_EXPLICIT)
+#define BIDI_IS_EXPLICIT(p) (((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT)
 
 /* Is test separator: BS, SS? */
 #define BIDI_IS_SEPARATOR(p) ((p) & BIDI_MASK_SEPARATOR)
@@ -9907,7 +9911,8 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 
 /* Is ES or CS: ES, CS? */
 #define BIDI_IS_ES_OR_CS(p) \
-    ((p) & (BIDI_MASK_ES | BIDI_MASK_CS))
+    (((p) & BIDI_MISC_MASK) == BIDI_MASK_ES || \
+     ((p) & BIDI_MISC_MASK) == BIDI_MASK_CS)
 
 /* Change numbers: EN, AN to RTL. */
 #define BIDI_NUMBER_TO_RTL(p) \

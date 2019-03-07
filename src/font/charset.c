@@ -948,7 +948,7 @@ static const unsigned char* iso8859_8_get_next_word (const unsigned char* mstr,
     //return sb_get_next_word(mstr, mstrlen, word_info);
 }
 
-static Uint32 __mg_iso8859_8_type[] = {
+static Uint16 __mg_iso8859_8_type[] = {
     /*0x00~0x0f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -1046,7 +1046,7 @@ static Uint32 __mg_iso8859_8_type[] = {
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
 };
 
-static unsigned int iso8859_8_bidi_char_type (Achar32 chv)
+static Uint16 iso8859_8_bidi_char_type (Achar32 chv)
 {
     return __mg_iso8859_8_type [REAL_ACHAR(chv)];
 }
@@ -3568,7 +3568,7 @@ static unsigned int unicode_char_type (Achar32 chv)
 
 #include "unicode-bidi-tables.h"
 
-static unsigned int unicode_bidi_char_type (Achar32 chv)
+static Uint16 unicode_bidi_char_type (Achar32 chv)
 {
     Achar32 chv_first = 0;
     Achar32 chv_last = (Achar32)TABLESIZE (__mg_unicode_bidi_char_type_map);
@@ -4401,7 +4401,7 @@ UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc)
 }
 
 /** The function determines the BIDI type of a UNICODE character. */
-unsigned int GUIAPI UCharGetBIDIType(Uchar32 uc)
+Uint16 GUIAPI UCharGetBIDIType(Uchar32 uc)
 {
     return unicode_bidi_char_type(uc);
 }

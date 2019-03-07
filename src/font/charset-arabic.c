@@ -470,7 +470,7 @@ static unsigned int iso8859_6_char_type (Achar32 chv)
     return ch_type;
 }
 
-static Uint32 __mg_iso8859_68x_type[] = {
+static Uint16 __mg_iso8859_68x_type[] = {
     /*0x00~0x0f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -588,7 +588,7 @@ static Uint32 __mg_iso8859_68x_type[] = {
     BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,
 };
 
-static unsigned int iso8859_6_bidi_char_type (Achar32 chv)
+static Uint16 iso8859_6_bidi_char_type (Achar32 chv)
 {
     return __mg_iso8859_68x_type[REAL_ACHAR(chv)];
 }
