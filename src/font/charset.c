@@ -4406,6 +4406,32 @@ Uint16 GUIAPI UCharGetBIDIType(Uchar32 uc)
     return unicode_bidi_char_type(uc);
 }
 
+/** The function returns the bracket type of a UNICODE character. */
+Uint8 GUIAPI UCharGetBracketType(Uchar32 uc)
+{
+    unsigned int lower = 0;
+    unsigned int upper = TABLESIZE (__mg_unicode_bracket_table) - 1;
+    int mid = TABLESIZE (__mg_unicode_bracket_table) / 2;
+
+    if (uc < __mg_unicode_bracket_table[lower].chv ||
+            uc > __mg_unicode_bracket_table[upper].chv)
+        return BIDICHAR_BRACKET_NONE;
+
+    do {
+        if (uc < __mg_unicode_bracket_table[mid].chv)
+            upper = mid - 1;
+        else if (uc > __mg_unicode_bracket_table[mid].chv)
+            lower = mid + 1;
+        else
+            return __mg_unicode_bracket_table[mid].type;
+
+        mid = (lower + upper) / 2;
+
+    } while (lower <= upper);
+
+    return BIDICHAR_BRACKET_NONE;
+}
+
 /** The function returns the mirror character of a UNICODE character. */
 BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored)
 {
@@ -4881,7 +4907,7 @@ Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc)
     int mid = TABLESIZE (kana_small_to_full_size_table) / 2;
 
     if (uc < kana_small_to_full_size_table[lower].other
-            || uc < kana_small_to_full_size_table[upper].other)
+            || uc > kana_small_to_full_size_table[upper].other)
         return uc;
 
     do {

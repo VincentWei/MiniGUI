@@ -67,10 +67,6 @@ typedef struct _BIDICHAR_TYPE_MAP {
 
 typedef struct _TYPERUN TYPERUN;
 
-#define BIDICHAR_BRACKET_NONE   0
-#define BIDICHAR_BRACKET_OPEN   1
-#define BIDICHAR_BRACKET_CLOSE  2
-
 // NOTE: It is enough to use Uint16 for Unicode bracket table
 typedef struct _BIDICHAR_BRACKET {
     Uint16 chv;

@@ -7470,6 +7470,13 @@ MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
 /** The function determines the BIDI type of a UNICODE character. */
 MG_EXPORT Uint16 GUIAPI UCharGetBIDIType(Uchar32 uc);
 
+#define BIDICHAR_BRACKET_NONE   0
+#define BIDICHAR_BRACKET_OPEN   1
+#define BIDICHAR_BRACKET_CLOSE  2
+
+/** The function returns the bracket type of a UNICODE character. */
+MG_EXPORT Uint8 GUIAPI UCharGetBracketType(Uchar32 uc);
+
 /** The function returns the mirror character of a UNICODE character. */
 MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
 
