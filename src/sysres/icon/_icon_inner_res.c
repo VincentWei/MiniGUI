@@ -39,62 +39,63 @@
 //include files
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_excalmatory_flat_data[]; //icon/excalmatory-flat.ico.c 
+extern const unsigned char _mgir_ico_excalmatory_flat_data[]; //icon/excalmatory-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_excalmatory_data[]; //icon/excalmatory.ico.c 
+extern const unsigned char _mgir_ico_excalmatory_data[]; //icon/excalmatory.ico.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_failed_flat_data[]; //icon/failed-flat.ico.c 
+extern const unsigned char _mgir_ico_failed_flat_data[]; //icon/failed-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_failed_data[]; //icon/failed.ico.c 
+extern const unsigned char _mgir_ico_failed_data[]; //icon/failed.ico.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_folder_flat_data[]; //icon/folder-flat.ico.c 
+extern const unsigned char _mgir_ico_folder_flat_data[]; //icon/folder-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_folder_data[]; //icon/folder.ico.c 
+extern const unsigned char _mgir_ico_folder_data[]; //icon/folder.ico.c 
 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_fold_flat_data[]; //icon/fold-flat.ico.c 
+extern const unsigned char _mgir_ico_fold_flat_data[]; //icon/fold-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_fold_data[]; //icon/fold.ico.c 
+extern const unsigned char _mgir_ico_fold_data[]; //icon/fold.ico.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_form_flat_data[]; //icon/form-flat.ico.c 
+extern const unsigned char _mgir_ico_form_flat_data[]; //icon/form-flat.ico.c 
 #endif
 
 
-extern unsigned char _mgir_ico_form_data[]; //icon/form.ico.c 
+extern const unsigned char _mgir_ico_form_data[]; //icon/form.ico.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_help_flat_data[]; //icon/help-flat.ico.c 
+extern const unsigned char _mgir_ico_help_flat_data[]; //icon/help-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_help_data[]; //icon/help.ico.c 
+extern const unsigned char _mgir_ico_help_data[]; //icon/help.ico.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_textfile_flat_data[]; //icon/textfile-flat.ico.c 
+extern const unsigned char _mgir_ico_textfile_flat_data[]; //icon/textfile-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_textfile_data[]; //icon/textfile.ico.c 
+extern const unsigned char _mgir_ico_textfile_data[]; //icon/textfile.ico.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_unfold_flat_data[]; //icon/unfold-flat.ico.c 
+extern const unsigned char _mgir_ico_unfold_flat_data[]; //icon/unfold-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_unfold_data[]; //icon/unfold.ico.c 
+extern const unsigned char _mgir_ico_unfold_data[]; //icon/unfold.ico.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_ico_warning_flat_data[]; //icon/warning-flat.ico.c 
+extern const unsigned char _mgir_ico_warning_flat_data[]; //icon/warning-flat.ico.c 
 #endif
 
-extern unsigned char _mgir_ico_warning_data[]; //icon/warning.ico.c 
+extern const unsigned char _mgir_ico_warning_data[]; //icon/warning.ico.c 
+
 //declear arrays
-static INNER_RES __mgir_icon_inner_res[]={
+static const INNER_RES __mgir_icon_inner_res[]={
 
 #ifdef _MGLF_RDR_FLAT
 	{ 0x32F227B, (void*)_mgir_ico_excalmatory_flat_data, 1078, "ico"}, //icon/excalmatory-flat.ico.c

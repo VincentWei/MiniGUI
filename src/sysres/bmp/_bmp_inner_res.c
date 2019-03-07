@@ -37,47 +37,47 @@
 #ifdef _MGINCORE_RES
 
 //include files
-extern unsigned char _mgir_bmp_classic_check_button_data[]; //bmp/classic_check_button.bmp.c 
-extern unsigned char _mgir_bmp_classic_radio_button_data[]; //bmp/classic_radio_button.bmp.c 
+extern const unsigned char _mgir_bmp_classic_check_button_data[]; //bmp/classic_check_button.bmp.c 
+extern const unsigned char _mgir_bmp_classic_radio_button_data[]; //bmp/classic_radio_button.bmp.c 
 
 #ifdef _MGLF_RDR_FLAT
-extern unsigned char _mgir_bmp_flat_check_button_data[]; //bmp/flat_check_button.bmp.c 
-extern unsigned char _mgir_bmp_flat_radio_button_data[]; //bmp/flat_radio_button.bmp.c 
+extern const unsigned char _mgir_bmp_flat_check_button_data[]; //bmp/flat_check_button.bmp.c 
+extern const unsigned char _mgir_bmp_flat_radio_button_data[]; //bmp/flat_radio_button.bmp.c 
 #endif
 
 #ifdef _MGLF_RDR_SKIN
-extern unsigned char _mgir_gif_skin_arrows_data[]; //bmp/skin_arrows.gif.c 
-extern unsigned char _mgir_bmp_skin_arrows_shell_data[]; //bmp/skin_arrows_shell.bmp.c 
-extern unsigned char _mgir_bmp_skin_bborder_data[]; //bmp/skin_bborder.bmp.c 
-extern unsigned char _mgir_bmp_skin_bkgnd_data[]; //bmp/skin_bkgnd.bmp.c 
-extern unsigned char _mgir_gif_skin_caption_data[]; //bmp/skin_caption.gif.c 
-extern unsigned char _mgir_bmp_skin_checkbtn_data[]; //bmp/skin_checkbtn.bmp.c 
-extern unsigned char _mgir_gif_skin_cpn_btn_data[]; //bmp/skin_cpn_btn.gif.c 
-extern unsigned char _mgir_bmp_skin_header_data[]; //bmp/skin_header.bmp.c 
-extern unsigned char _mgir_bmp_skin_lborder_data[]; //bmp/skin_lborder.bmp.c 
-extern unsigned char _mgir_gif_skin_pb_htrack_data[]; //bmp/skin_pb_htrack.gif.c 
-extern unsigned char _mgir_bmp_skin_pb_htruck_data[]; //bmp/skin_pb_htruck.bmp.c 
-extern unsigned char _mgir_gif_skin_pb_vtrack_data[]; //bmp/skin_pb_vtrack.gif.c 
-extern unsigned char _mgir_bmp_skin_pb_vtruck_data[]; //bmp/skin_pb_vtruck.bmp.c 
-extern unsigned char _mgir_gif_skin_pushbtn_data[]; //bmp/skin_pushbtn.gif.c 
-extern unsigned char _mgir_gif_skin_radiobtn_data[]; //bmp/skin_radiobtn.gif.c 
-extern unsigned char _mgir_bmp_skin_rborder_data[]; //bmp/skin_rborder.bmp.c 
-extern unsigned char _mgir_bmp_skin_sb_arrows_data[]; //bmp/skin_sb_arrows.bmp.c 
-extern unsigned char _mgir_bmp_skin_sb_hshaft_data[]; //bmp/skin_sb_hshaft.bmp.c 
-extern unsigned char _mgir_bmp_skin_sb_hthumb_data[]; //bmp/skin_sb_hthumb.bmp.c 
-extern unsigned char _mgir_bmp_skin_sb_vshaft_data[]; //bmp/skin_sb_vshaft.bmp.c 
-extern unsigned char _mgir_bmp_skin_sb_vthumb_data[]; //bmp/skin_sb_vthumb.bmp.c 
-extern unsigned char _mgir_gif_skin_tab_data[]; //bmp/skin_tab.gif.c 
-extern unsigned char _mgir_gif_skin_tb_horz_data[]; //bmp/skin_tb_horz.gif.c 
-extern unsigned char _mgir_bmp_skin_tborder_data[]; //bmp/skin_tborder.bmp.c 
-extern unsigned char _mgir_gif_skin_tbslider_h_data[]; //bmp/skin_tbslider_h.gif.c 
-extern unsigned char _mgir_gif_skin_tbslider_v_data[]; //bmp/skin_tbslider_v.gif.c 
-extern unsigned char _mgir_gif_skin_tb_vert_data[]; //bmp/skin_tb_vert.gif.c 
-extern unsigned char _mgir_bmp_skin_tree_data[]; //bmp/skin_tree.bmp.c 
+extern const unsigned char _mgir_gif_skin_arrows_data[]; //bmp/skin_arrows.gif.c 
+extern const unsigned char _mgir_bmp_skin_arrows_shell_data[]; //bmp/skin_arrows_shell.bmp.c 
+extern const unsigned char _mgir_bmp_skin_bborder_data[]; //bmp/skin_bborder.bmp.c 
+extern const unsigned char _mgir_bmp_skin_bkgnd_data[]; //bmp/skin_bkgnd.bmp.c 
+extern const unsigned char _mgir_gif_skin_caption_data[]; //bmp/skin_caption.gif.c 
+extern const unsigned char _mgir_bmp_skin_checkbtn_data[]; //bmp/skin_checkbtn.bmp.c 
+extern const unsigned char _mgir_gif_skin_cpn_btn_data[]; //bmp/skin_cpn_btn.gif.c 
+extern const unsigned char _mgir_bmp_skin_header_data[]; //bmp/skin_header.bmp.c 
+extern const unsigned char _mgir_bmp_skin_lborder_data[]; //bmp/skin_lborder.bmp.c 
+extern const unsigned char _mgir_gif_skin_pb_htrack_data[]; //bmp/skin_pb_htrack.gif.c 
+extern const unsigned char _mgir_bmp_skin_pb_htruck_data[]; //bmp/skin_pb_htruck.bmp.c 
+extern const unsigned char _mgir_gif_skin_pb_vtrack_data[]; //bmp/skin_pb_vtrack.gif.c 
+extern const unsigned char _mgir_bmp_skin_pb_vtruck_data[]; //bmp/skin_pb_vtruck.bmp.c 
+extern const unsigned char _mgir_gif_skin_pushbtn_data[]; //bmp/skin_pushbtn.gif.c 
+extern const unsigned char _mgir_gif_skin_radiobtn_data[]; //bmp/skin_radiobtn.gif.c 
+extern const unsigned char _mgir_bmp_skin_rborder_data[]; //bmp/skin_rborder.bmp.c 
+extern const unsigned char _mgir_bmp_skin_sb_arrows_data[]; //bmp/skin_sb_arrows.bmp.c 
+extern const unsigned char _mgir_bmp_skin_sb_hshaft_data[]; //bmp/skin_sb_hshaft.bmp.c 
+extern const unsigned char _mgir_bmp_skin_sb_hthumb_data[]; //bmp/skin_sb_hthumb.bmp.c 
+extern const unsigned char _mgir_bmp_skin_sb_vshaft_data[]; //bmp/skin_sb_vshaft.bmp.c 
+extern const unsigned char _mgir_bmp_skin_sb_vthumb_data[]; //bmp/skin_sb_vthumb.bmp.c 
+extern const unsigned char _mgir_gif_skin_tab_data[]; //bmp/skin_tab.gif.c 
+extern const unsigned char _mgir_gif_skin_tb_horz_data[]; //bmp/skin_tb_horz.gif.c 
+extern const unsigned char _mgir_bmp_skin_tborder_data[]; //bmp/skin_tborder.bmp.c 
+extern const unsigned char _mgir_gif_skin_tbslider_h_data[]; //bmp/skin_tbslider_h.gif.c 
+extern const unsigned char _mgir_gif_skin_tbslider_v_data[]; //bmp/skin_tbslider_v.gif.c 
+extern const unsigned char _mgir_gif_skin_tb_vert_data[]; //bmp/skin_tb_vert.gif.c 
+extern const unsigned char _mgir_bmp_skin_tree_data[]; //bmp/skin_tree.bmp.c 
 #endif
 
 //declear arrays
-static INNER_RES __mgir_bmp_inner_res[]={
+static const INNER_RES __mgir_bmp_inner_res[]={
 	{ 0xA1C8F16, (void*)_mgir_bmp_classic_check_button_data, 4110, "bmp"}, //bmp/classic_check_button.bmp.c
 	{ 0xA1BCFD6, (void*)_mgir_bmp_classic_radio_button_data, 3510, "bmp"}, //bmp/classic_radio_button.bmp.c
 
