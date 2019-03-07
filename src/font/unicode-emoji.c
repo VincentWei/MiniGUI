@@ -34,9 +34,12 @@
 
 /*
 ** Some operators to check Emoji.
-** Implementation of the functions is based on some code from LGPL'd Pango.
+** Implementation of the functions is based on some code from HarfBuzz
+** (licensed under MIT).:
 **
-** Created by WEI Yongming at 2019/02/26
+**  https://github.com/harfbuzz/harfbuzz
+**
+** Created by WEI Yongming at 2019/03/01
 */
 
 #include <stdio.h>
@@ -82,7 +85,7 @@ DEFINE_unicode_is_(emoji)
 DEFINE_unicode_is_(emoji_presentation)
 DEFINE_unicode_is_(emoji_modifier)
 DEFINE_unicode_is_(emoji_modifier_base)
-DEFINE_unicode_is_(emoji_extended_pictographic)
+DEFINE_unicode_is_(extended_pictographic)
 
 BOOL _unicode_is_emoji_text_default(Uchar32 ch)
 {
