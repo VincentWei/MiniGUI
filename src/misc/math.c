@@ -154,7 +154,7 @@ fixed fixdiv (fixed dividend, fixed divisor)
    return result;
 }
 
-fixed _cos_tbl[512] =
+const fixed __mg_cos_tbl[512] =
 {
    /* precalculated fixed point (16.16) cosines for a full circle (0-255) */
 
@@ -226,7 +226,7 @@ fixed _cos_tbl[512] =
 
 
 
-fixed _tan_tbl[256] =
+const fixed __mg_tan_tbl[256] =
 {
    /* precalculated fixed point (16.16) tangents for a half circle (0-127) */
 
@@ -266,7 +266,7 @@ fixed _tan_tbl[256] =
 
 
 
-fixed _acos_tbl[513] =
+const fixed __mg_acos_tbl[513] =
 {
    /* precalculated fixed point (16.16) inverse cosines (-1 to 1) */
 
@@ -357,7 +357,7 @@ fixed fixatan(fixed x)
 
    do {
       c = (a + b) >> 1;
-      d = x - _tan_tbl[c];
+      d = x - __mg_tan_tbl[c];
 
       if (d > 0)
 	 a = c + 1;

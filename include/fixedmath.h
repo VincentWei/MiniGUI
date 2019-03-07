@@ -151,9 +151,9 @@ MG_EXPORT fixed fixatan (fixed x);
  */
 MG_EXPORT fixed fixatan2 (fixed y, fixed x);
 
-extern MG_EXPORT fixed _cos_tbl[];
-extern MG_EXPORT fixed _tan_tbl[];
-extern MG_EXPORT fixed _acos_tbl[];
+extern MG_EXPORT const fixed __mg_cos_tbl[];
+extern MG_EXPORT const fixed __mg_tan_tbl[];
+extern MG_EXPORT const fixed __mg_acos_tbl[];
 
 /************************** inline fixed point math functions *****************/
 /* ftofix and fixtof are used in generic C versions of fixmul and fixdiv */
@@ -364,7 +364,7 @@ static inline int fixtoi (fixed x)
  */
 static inline fixed fixcos (fixed x)
 {
-   return _cos_tbl[((x + 0x4000) >> 15) & 0x1FF];
+   return __mg_cos_tbl[((x + 0x4000) >> 15) & 0x1FF];
 }
 
 /**
@@ -378,7 +378,7 @@ static inline fixed fixcos (fixed x)
  */
 static inline fixed fixsin (fixed x)
 { 
-   return _cos_tbl[((x - 0x400000 + 0x4000) >> 15) & 0x1FF];
+   return __mg_cos_tbl[((x - 0x400000 + 0x4000) >> 15) & 0x1FF];
 }
 
 /**
@@ -392,7 +392,7 @@ static inline fixed fixsin (fixed x)
  */
 static inline fixed fixtan (fixed x)
 { 
-   return _tan_tbl[((x + 0x4000) >> 15) & 0xFF];
+   return __mg_tan_tbl[((x + 0x4000) >> 15) & 0xFF];
 }
 
 /**
@@ -415,7 +415,7 @@ static inline fixed fixacos (fixed x)
       return 0;
    }
 
-   return _acos_tbl[(x+65536+127)>>8];
+   return __mg_acos_tbl[(x+65536+127)>>8];
 }
 
 /**
@@ -438,7 +438,7 @@ static inline fixed fixasin (fixed x)
       return 0;
    }
 
-   return 0x00400000 - _acos_tbl[(x+65536+127)>>8];
+   return 0x00400000 - __mg_acos_tbl[(x+65536+127)>>8];
 }
 
     /** @} end of fixed_math_fns */
