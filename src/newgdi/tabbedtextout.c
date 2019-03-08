@@ -123,12 +123,12 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
     BBOX bbox;
     int bkmode = ctxt->pdc->bkmode;
 
-    switch (char_type & CHARTYPE_MCHAR_MASK) {
-        case MCHAR_TYPE_ZEROWIDTH:
+    switch (char_type & ACHARTYPE_BASIC_MASK) {
+        case ACHAR_BASIC_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
 
-        case MCHAR_TYPE_HT:
+        case ACHAR_BASIC_HT:
             _gdi_start_new_line (ctxt->pdc);
             if (ctxt->only_extent) {
                 ctxt->advance += _gdi_get_null_glyph_advance (ctxt->pdc,
@@ -144,7 +144,7 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
             }
             break;
 
-        case MCHAR_TYPE_VOWEL:
+        case ACHAR_BASIC_VOWEL:
             if (!ctxt->only_extent) {
                 //ctxt->pdc->bkmode = BM_TRANSPARENT;
                 _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
@@ -202,12 +202,12 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
     int adv_x, adv_y;
     int tab_pos  = ctxt->nTabOrig;
 
-    switch (char_type & CHARTYPE_MCHAR_MASK) {
-        case MCHAR_TYPE_ZEROWIDTH:
+    switch (char_type & ACHARTYPE_BASIC_MASK) {
+        case ACHAR_BASIC_ZEROWIDTH:
             adv_x = adv_y = 0;
             break;
 
-        case MCHAR_TYPE_HT:
+        case ACHAR_BASIC_HT:
             _gdi_start_new_line (ctxt->pdc);
             /* use some tabs to move current x. */
             if (ctxt->advance >= tab_pos) {
@@ -225,7 +225,7 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
             ctxt->nTabOrig = tab_pos;
             break;
 
-        case MCHAR_TYPE_VOWEL:
+        case ACHAR_BASIC_VOWEL:
             _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
@@ -589,20 +589,20 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                 glyph_value = SET_GLYPH_DFI(glyph_value, dfi);
             }
 
-            switch (char_type & CHARTYPE_MCHAR_MASK) {
-                case MCHAR_TYPE_ZEROWIDTH:
-                case MCHAR_TYPE_VOWEL:
+            switch (char_type & ACHARTYPE_BASIC_MASK) {
+                case ACHAR_BASIC_ZEROWIDTH:
+                case ACHAR_BASIC_VOWEL:
                     break;
-                case MCHAR_TYPE_LF:
+                case ACHAR_BASIC_LF:
                     size->cy += line_height;
-                case MCHAR_TYPE_CR:
+                case ACHAR_BASIC_CR:
                     if (last_line_width > size->cx)
                         size->cx = last_line_width;
                     last_line_width = 0;
                     _gdi_start_new_line (pdc);
                     break;
 
-                case MCHAR_TYPE_HT:
+                case ACHAR_BASIC_HT:
                     last_line_width += tab_width;
                     _gdi_start_new_line (pdc);
                     break;

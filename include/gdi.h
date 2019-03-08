@@ -5802,91 +5802,87 @@ typedef Uint16 Uchar16;
 typedef Uint32 Uchar32;
 
     /**
-     * \defgroup char_types Character types
+     * \defgroup achar_types Abstract Character Types
      *
      * MiniGUI uses a Uint32 value to store the type information of a character.
      *
-     * MiniGUI uses the lower 16-bit integer for the type of a multi-byte character.
-     * The definition macros have MCHAR_TYPE as the prefix.
+     * MiniGUI uses the lower 16-bit integer for the basic type of
+     * an abstract character. The definition macros have ACHAR_BASIC_
+     * as the prefix.
      *
      * For a UNICODE character, MiniGUI uses the high 16-bit for the
-     * basic UNICODE character classifications and the possible line break
-     * classifications. The low byte for the basic type, and the high byte for
-     * the break type.
+     * general UNICODE character categories and the possible line break
+     * classifications. The low byte for the general category, and
+     * the high byte for the break class.
      *
      * @{
      */
 
-/**
- * \def CHARTYPE_MCHAR_MASK
- * \brief The bits mask of glyph type for multi-byte character
- */
-#define CHARTYPE_MCHAR_MASK        0x0000FFFF
+#define ACHARTYPE_BASIC_MASK        0x0000FFFF
+#define ACHARTYPE_CATEGORY_MASK     0x00FF0000
+#define ACHARTYPE_BREAK_MASK        0xFF000000
 
 /**
- * \def EXTRACT_MCHAR_TYPE(t)
- * \brief Extracts multi-byte character type
+ * \def ACHARTYPE_EXTRACT_BASIC
+ * \brief Extract the basic type from an abstract character type.
  */
-#define EXTRACT_MCHAR_TYPE(t)       ((t) & CHARTYPE_MCHAR_MASK)
+#define ACHARTYPE_EXTRACT_BASIC(t) \
+        (((t) & ACHARTYPE_BASIC_MASK))
 
 /**
- * \def CHARTYPE_BASIC_MASK
- * \brief The bits mask of glyph type for unicode charachter
+ * \def ACHARTYPE_EXTRACT_CATEGORY
+ * \brief Extract the UNICODE general category from an abstract character type.
  */
-#define CHARTYPE_BASIC_MASK        0x00FF0000
+#define ACHARTYPE_EXTRACT_CATEGORY(t) \
+        (((t) & ACHARTYPE_CATEGORY_MASK) >> 16)
 
 /**
- * \def EXTRACT_BASIC_TYPE(t)
- * \brief Extracts the basic UNICODE character type
+ * \def ACHARTYPE_EXTRACT_BREAK
+ * \brief Extract the UNICODE break class from an abstract character type.
  */
-#define EXTRACT_BASIC_TYPE(t)       (((t) & CHARTYPE_BASIC_MASK) >> 16)
+#define ACHARTYPE_EXTRACT_BREAK(t) \
+        (((t) & ACHARTYPE_BREAK_MASK) >> 24)
 
 /**
- * \def CHARTYPE_BREAK_MASK
- * \brief The bits mask of break type for UNICODE charachter
+ * \def ACHARTYPE_UNKNOWN
+ * \breif Unknown abstract character type.
  */
-#define CHARTYPE_BREAK_MASK        0xFF000000
+#define ACHARTYPE_UNKNOWN           0
 
-/**
- * \def EXTRACT_BREAK_TYPE(t)
- * \brief Extracts the break type of a UNICODE character
- */
-#define EXTRACT_BREAK_TYPE(t)       (((t) & CHARTYPE_BREAK_MASK) >> 24)
+#define ACHAR_BASIC_NOSPACING_MARK   0x0001
+#define ACHAR_BASIC_ABOVE_MARK       0x0002
+#define ACHAR_BASIC_BELLOW_MARK      0x0004
 
-#define MCHAR_TYPE_NOSPACING_MARK   0x0001
-#define MCHAR_TYPE_ABOVE_MARK       0x0002
-#define MCHAR_TYPE_BELLOW_MARK      0x0004
-
-#define MCHAR_TYPE_UNKNOWN          0x0000
-#define MCHAR_TYPE_NUL              (0x0000 | MCHAR_TYPE_NOSPACING_MARK)
+#define ACHAR_BASIC_UNKNOWN          0x0000
+#define ACHAR_BASIC_NUL              (0x0000 | ACHAR_BASIC_NOSPACING_MARK)
 /** Control character (group 1) */
-#define MCHAR_TYPE_CTRL1            0x0100
+#define ACHAR_BASIC_CTRL1            0x0100
 /** Bell */
-#define MCHAR_TYPE_BEL              0x0200
+#define ACHAR_BASIC_BEL              0x0200
 /** Backspace */
-#define MCHAR_TYPE_BS               0x0300
+#define ACHAR_BASIC_BS               0x0300
 /** Horinzontal Tab */
-#define MCHAR_TYPE_HT               0x0400
+#define ACHAR_BASIC_HT               0x0400
 /** Line Feed */
-#define MCHAR_TYPE_LF               0x0500
+#define ACHAR_BASIC_LF               0x0500
 /** Vertical Tab */
-#define MCHAR_TYPE_VT               0x0600
+#define ACHAR_BASIC_VT               0x0600
 /** Form Feed */
-#define MCHAR_TYPE_FF               0x0700
+#define ACHAR_BASIC_FF               0x0700
 /** Carriage Return */
-#define MCHAR_TYPE_CR               0x0800
+#define ACHAR_BASIC_CR               0x0800
 /** Control character (group 2) */
-#define MCHAR_TYPE_CTRL2            0x0900
+#define ACHAR_BASIC_CTRL2            0x0900
 /** Space */
-#define MCHAR_TYPE_SPACE            0x0A00
+#define ACHAR_BASIC_SPACE            0x0A00
 /** Zero width character */
-#define MCHAR_TYPE_ZEROWIDTH        0x0B00
-#define MCHAR_TYPE_GENERIC          0x0C00
+#define ACHAR_BASIC_ZEROWIDTH        0x0B00
+#define ACHAR_BASIC_GENERIC          0x0C00
 
-#define MCHAR_TYPE_LIGATURE         (0x0D00 | MCHAR_TYPE_NOSPACING_MARK)
-#define MCHAR_TYPE_VOWEL            (0x0E00 | MCHAR_TYPE_NOSPACING_MARK)
-#define MCHAR_TYPE_VOWEL_ABOVE      (MCHAR_TYPE_VOWEL | MCHAR_TYPE_ABOVE_MARK)
-#define MCHAR_TYPE_VOWEL_BELLOW     (MCHAR_TYPE_VOWEL | MCHAR_TYPE_BELLOW_MARK)
+#define ACHAR_BASIC_LIGATURE         (0x0D00 | ACHAR_BASIC_NOSPACING_MARK)
+#define ACHAR_BASIC_VOWEL            (0x0E00 | ACHAR_BASIC_NOSPACING_MARK)
+#define ACHAR_BASIC_VOWEL_ABOVE      (ACHAR_BASIC_VOWEL | ACHAR_BASIC_ABOVE_MARK)
+#define ACHAR_BASIC_VOWEL_BELLOW     (ACHAR_BASIC_VOWEL | ACHAR_BASIC_BELLOW_MARK)
 
 /**
  * UCharGeneralCategory: General category of a UNICODE character.
@@ -6404,7 +6400,7 @@ typedef enum {
     UCHAR_SCRIPT_SOGDIAN,                /* Sogd */
 } UCharScriptType;
 
-    /** @} end of char_types */
+    /** @} end of achar_types */
 
 struct _FONTOPS;
 struct _CHARSETOPS;
@@ -9650,16 +9646,30 @@ MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
 
 /**
  * \fn Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
- * \brief Retrieve the basic type and break type of an abtract character.
+ * \brief Retrieve the basic type, the general cateory of Unicode, and
+ *      the break class of Unicode of an abtract character.
  *
- * This function retrieves the basic type and break type of a glyph.
+ * This function retrieves the basic type, the general category defined by
+ * Unicode terms, and the break class defined by Unicode of an abstract
+ * character.
  *
  * \param logfont The logical font.
- * \param glyph_value The glyph value.
+ * \param chv An Achar32 value.
  *
- * \return The type of the specified glyph.
+ * \return The type of the specified Achar32 value. You can use the following
+ *      macros to extract the basic type, the break type, and the bidi type
+ *      respectively:
+ *      - ACHARTYPE_EXTRACT_BASIC(type)\n
+ *      - ACHARTYPE_EXTRACT_CATEGORY(type)\n
+ *      - ACHARTYPE_EXTRACT_BREAK(type)\n
  *
- * \sa GetACharInfo, GetACharBIDIType, char_types
+ * \note The basic type is defined by MiniGUI for basic rendering for some
+ *      complex shaping glyphs.
+ *
+ * \note The general category and the break class are only available when
+ *      the support for Unicode is enabled.
+ *
+ * \sa GetACharBIDIType, achar_types
  */
 MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 
@@ -9926,7 +9936,7 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
         (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
 
 /**
- * \fn Uint32 GUIAPI GetACharBIDIType (LOGFONT* logfont, Achar32 chv)
+ * \fn Uint16 GUIAPI GetACharBIDIType (LOGFONT* logfont, Achar32 chv)
  * \brief Retrieve the BIDI type of an abstract character.
  *
  * This function retrieves the BIDI type of an abstract character.
@@ -9936,9 +9946,9 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
  *
  * \return The BIDI type of the Achar32; BIDI_TYPE_INVALID on failure.
  *
- * \sa GetACharInfo, GetACharType
+ * \sa GetACharType
  */
-MG_EXPORT Uint32 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv);
+MG_EXPORT Uint16 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv);
 
 /**
  * \var typedef struct  _ACHARMAPINFO ACHARMAPINFO

@@ -134,19 +134,52 @@ BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv, Achar32* mirrored)
 
 Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
 {
+    Uint32 t = ACHARTYPE_UNKNOWN;
     DEVFONT* devfont = SELECT_DEVFONT_BY_ACHAR(logfont, chv);
-    return devfont->charset_ops->char_type (REAL_ACHAR (chv));
+
+    if (devfont) {
+        t = devfont->charset_ops->char_type (REAL_ACHAR (chv));
+
+#ifdef _MGCHARSET_UNICODE
+        // get general category and break class from Unicode
+        if (devfont->charset_ops->conv_to_uc32) {
+            Uchar32 uc;
+            Uint32 gc, bt;
+
+            uc = devfont->charset_ops->conv_to_uc32(chv);
+            gc = UCharGetCategory(uc);
+            bt = UCharGetBreakType(uc);
+            t = t | (gc << 16) | (bt << 24);
+        }
+#endif /* _MGCHARSET_UNICODE */
+    }
+
+    return t;
 }
 
-Uint32 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv)
+Uint16 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv)
 {
+    Uint16 t = BIDI_TYPE_INVALID;
     DEVFONT* devfont = SELECT_DEVFONT_BY_ACHAR(log_font, chv);
 
-    if (devfont == NULL ||
-            devfont->charset_ops->bidi_char_type == NULL)
-        return BIDI_TYPE_INVALID;
+    if (devfont) {
+        if (devfont->charset_ops->bidi_char_type)
+            t = devfont->charset_ops->bidi_char_type(REAL_ACHAR(chv));
+        else {
+#ifdef _MGCHARSET_UNICODE
+            // get Bidi type from Unicode
+            if (devfont->charset_ops->conv_to_uc32) {
+                Uchar32 uc;
+                uc = devfont->charset_ops->conv_to_uc32(chv);
+                t = UCharGetBIDIType(uc);
+            }
+#else
+            t = BIDI_TYPE_INVALID;
+#endif
+        }
+    }
 
-    return devfont->charset_ops->bidi_char_type (REAL_ACHAR (chv));
+    return t;
 }
 
 #ifdef _MGCHARSET_UNICODE

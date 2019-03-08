@@ -147,12 +147,12 @@ void dbg_dumpDevFonts (void);
 
 static inline BOOL check_zero_width(unsigned int t)
 {
-    return (t & CHARTYPE_MCHAR_MASK) == MCHAR_TYPE_ZEROWIDTH;
+    return (t & ACHARTYPE_BASIC_MASK) == ACHAR_BASIC_ZEROWIDTH;
 }
 
 static inline BOOL check_vowel(unsigned int t)
 {
-    return ((t & CHARTYPE_MCHAR_MASK) == MCHAR_TYPE_VOWEL);
+    return ((t & ACHARTYPE_BASIC_MASK) == ACHAR_BASIC_VOWEL);
 }
 
 static inline long get_file_size (const char* filename)

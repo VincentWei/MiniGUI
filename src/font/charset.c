@@ -65,45 +65,45 @@ static Achar32 sb_get_char_value (const unsigned char* pre_mchar,  int pre_len,
 
 static unsigned int sb_char_type (Achar32 chv)
 {
-    unsigned int ch_type = MCHAR_TYPE_UNKNOWN;
+    unsigned int ch_type = ACHAR_BASIC_UNKNOWN;
 
     switch (chv) {
         case '\0':
-            ch_type = MCHAR_TYPE_NUL;
+            ch_type = ACHAR_BASIC_NUL;
             break;
         case '\a':
-            ch_type = MCHAR_TYPE_BEL;
+            ch_type = ACHAR_BASIC_BEL;
             break;
         case '\b':
-            ch_type = MCHAR_TYPE_BS;
+            ch_type = ACHAR_BASIC_BS;
             break;
         case '\t':
-            ch_type = MCHAR_TYPE_HT;
+            ch_type = ACHAR_BASIC_HT;
             break;
         case '\n':
-            ch_type = MCHAR_TYPE_LF;
+            ch_type = ACHAR_BASIC_LF;
             break;
         case '\v':
-            ch_type = MCHAR_TYPE_VT;
+            ch_type = ACHAR_BASIC_VT;
             break;
         case '\f':
-            ch_type = MCHAR_TYPE_FF;
+            ch_type = ACHAR_BASIC_FF;
             break;
         case '\r':
-            ch_type = MCHAR_TYPE_CR;
+            ch_type = ACHAR_BASIC_CR;
             break;
         case ' ':
-            ch_type = MCHAR_TYPE_SPACE;
+            ch_type = ACHAR_BASIC_SPACE;
             break;
     }
 
-    if (ch_type == MCHAR_TYPE_UNKNOWN) {
+    if (ch_type == ACHAR_BASIC_UNKNOWN) {
         if (chv < '\a')
-            ch_type = MCHAR_TYPE_CTRL1;
+            ch_type = ACHAR_BASIC_CTRL1;
         else if (chv < ' ')
-            ch_type = MCHAR_TYPE_CTRL2;
+            ch_type = ACHAR_BASIC_CTRL2;
         else
-            ch_type = MCHAR_TYPE_GENERIC;
+            ch_type = ACHAR_BASIC_GENERIC;
     }
 
     return ch_type;
@@ -1972,7 +1972,7 @@ static CHARSETOPS CharsetOps_iso8859_16 = {
 static unsigned int mb_char_type (Achar32 chv)
 {
     /* TODO: get the subtype of the char */
-    return MCHAR_TYPE_GENERIC;
+    return ACHAR_BASIC_GENERIC;
 }
 
 static int db_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
@@ -3540,7 +3540,7 @@ static Achar32 utf8_get_char_value (const unsigned char* pre_mchar, int pre_len,
 
 static unsigned int unicode_char_type (Achar32 chv)
 {
-    unsigned int mchar_type = MCHAR_TYPE_UNKNOWN;
+    unsigned int mchar_type = ACHAR_BASIC_UNKNOWN;
     unsigned int basic_type = 0, break_type = 0;
 
     chv = REAL_ACHAR(chv);
@@ -3550,18 +3550,18 @@ static unsigned int unicode_char_type (Achar32 chv)
     if (chv < 0x80)
         mchar_type = sb_char_type(chv);
     else if (break_type == UCHAR_BREAK_CARRIAGE_RETURN)
-        mchar_type = MCHAR_TYPE_CR;
+        mchar_type = ACHAR_BASIC_CR;
     else if (break_type == UCHAR_BREAK_LINE_FEED)
-        mchar_type = MCHAR_TYPE_LF;
+        mchar_type = ACHAR_BASIC_LF;
     else if (break_type == UCHAR_BREAK_NEXT_LINE)
-        mchar_type = MCHAR_TYPE_LF;
+        mchar_type = ACHAR_BASIC_LF;
     else if (break_type == UCHAR_BREAK_SPACE)
-        mchar_type = MCHAR_TYPE_SPACE;
+        mchar_type = ACHAR_BASIC_SPACE;
     else if (chv != 0x00AD && ISZEROWIDTHTYPE (basic_type))
-        mchar_type = MCHAR_TYPE_ZEROWIDTH;
+        mchar_type = ACHAR_BASIC_ZEROWIDTH;
     else if ((chv >= 0x1160 && chv < 0x1200)
             || chv == 0x200B)
-        mchar_type = MCHAR_TYPE_ZEROWIDTH;
+        mchar_type = ACHAR_BASIC_ZEROWIDTH;
 
     return (break_type << 24) | (basic_type << 16) | mchar_type;
 }

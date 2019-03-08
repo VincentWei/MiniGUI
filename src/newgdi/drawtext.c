@@ -107,13 +107,13 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
     BBOX bbox;
     int bkmode;
 
-    switch (char_type & CHARTYPE_MCHAR_MASK) {
-        case MCHAR_TYPE_ZEROWIDTH:
-        case MCHAR_TYPE_CR:
+    switch (char_type & ACHARTYPE_BASIC_MASK) {
+        case ACHAR_BASIC_ZEROWIDTH:
+        case ACHAR_BASIC_CR:
             adv_x = adv_y = 0;
             break;
 
-        case MCHAR_TYPE_HT:
+        case ACHAR_BASIC_HT:
             if(!(ctxt->nFormat & DT_EXPANDTABS))
                 return TRUE;
             _gdi_start_new_line (ctxt->pdc);
@@ -131,7 +131,7 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
             }
             break;
 
-        case MCHAR_TYPE_VOWEL:
+        case ACHAR_BASIC_VOWEL:
             if (!ctxt->only_extent) {
                 bkmode = ctxt->pdc->bkmode;
                 //ctxt->pdc->bkmode = BM_TRANSPARENT;

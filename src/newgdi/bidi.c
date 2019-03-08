@@ -83,7 +83,7 @@ static Achar32* _gdi_get_achars_string(PDC pdc, const unsigned char* text,
                 logical_achars[i++] = SET_MBCHV(chv);
                 char_type = (*mbc_devfont->charset_ops->char_type)
                     (chv);
-                if (!(char_type & MCHAR_TYPE_NOSPACING_MARK)){
+                if (!(char_type & ACHAR_BASIC_NOSPACING_MARK)){
                     prev_mchar = text;
                     prev_len = len_cur_char;
                 }
@@ -654,7 +654,7 @@ _gdi_get_achars_string_charbreak(PDC pdc, const unsigned char* text,
 
             char_type = (*mbc_devfont->charset_ops->char_type)
                 (chv);
-            if (!(char_type & MCHAR_TYPE_NOSPACING_MARK)){
+            if (!(char_type & ACHAR_BASIC_NOSPACING_MARK)){
                 prev_mchar = text;
             }
             else{

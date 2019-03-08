@@ -458,10 +458,10 @@ static int iso8859_6_len_first_char (const unsigned char* mstr, int len)
 
 static unsigned int iso8859_6_char_type (Achar32 chv)
 {
-    unsigned int ch_type = MCHAR_TYPE_UNKNOWN;
+    unsigned int ch_type = ACHAR_BASIC_UNKNOWN;
 
     if (is_arabic_char_vowel (chv)) {  /* is vowel */
-        ch_type = MCHAR_TYPE_VOWEL;
+        ch_type = ACHAR_BASIC_VOWEL;
     }
     else{
         ch_type = sb_char_type (chv);
