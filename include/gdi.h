@@ -9724,13 +9724,29 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 #define BIDI_MASK_SS            0x5000
 
     /**
-     * \defgroup glyph_bidi_types Glyph BIDI types
+     * \defgroup bidi_types BIDI types
      *
-     * Values for BIDI glyph type.
+     * Values for BIDI types.
      *
      * @{
      */
 
+typedef Uint16  BidiType;
+typedef Uint8   BidiLevel;
+
+#define BIDI_PGDIR_LTR      0
+#define BIDI_PGDIR_RTL      1
+#define BIDI_PGDIR_ON       2
+
+#define BIDI_FLAG_SHAPE_MIRRORING       0x00000001
+#define BIDI_FLAG_REORDER_NSM           0x00000002
+#define BIDI_FLAG_SHAPE_ARAB_PRES       0x00000100
+#define BIDI_FLAG_SHAPE_ARAB_LIGA       0x00000200
+#define BIDI_FLAG_SHAPE_ARAB_CONSOLE    0x00000400
+
+#define BIDI_FLAG_REMOVE_BIDI           0x00010000
+#define BIDI_FLAG_REMOVE_JOINING        0x00020000
+#define BIDI_FLAG_REMOVE_SPECIALS       0x00040000
 /**
  * \def BIDI_TYPE_LTR
  * \brief Strong left to right
@@ -9868,30 +9884,35 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
  */
 #define BIDI_TYPE_PDI   (BIDI_MASK_NEUTRAL | BIDI_MASK_WEAK | BIDI_MASK_ISOLATE)
 
-    /** @} end of glyph_bidi_types */
+    /** @} end of bidi_types */
 
-/* The following are only used internally */
+#define BIDI_TYPE_SENTINEL    (BIDI_MASK_SENTINEL)
 
-/* Start of text */
-#define BIDI_TYPE_SOT    (BIDI_MASK_SENTINEL)
-/* End of text */
-#define BIDI_TYPE_EOT    (BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
+/* Weak Left-To-Right */
+#define BIDI_TYPE_WLTR     (BIDI_MASK_WEAK)
+/* Weak Right-To-Left */
+#define BIDI_TYPE_WRTL     (BIDI_MASK_WEAK | BIDI_MASK_RTL)
 
 /* Is private-use value? */
-#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
-
-/* Return the direction of the level number, BIDI_TYPE_LTR for even and
-   BIDI_TYPE_RTL for odds. */
-#define BIDI_LEVEL_TO_DIR(lev) (BIDI_TYPE_LTR | (lev & 1))
-
-/* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
-   1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
-#define BIDI_DIR_TO_LEVEL(dir) ((BYTE)(dir & 1))
+//#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
 
 /* Is right to left? */
 #define BIDI_IS_RTL(p)      ((p) & BIDI_MASK_RTL)
 /* Is arabic? */
 #define BIDI_IS_ARABIC(p)   ((p) & BIDI_MASK_ARABIC)
+
+/* Is right-to-left level? */
+#define BIDI_LEVEL_IS_RTL(lev) ((lev) & 1)
+
+/* Return the bidi type corresponding to the direction of the level number,
+   FRIBIDI_TYPE_LTR for evens and FRIBIDI_TYPE_RTL for odds. */
+#define BIDI_LEVEL_TO_DIR(lev) \
+    (BIDI_LEVEL_IS_RTL(lev) ? BIDI_TYPE_RTL : BIDI_TYPE_LTR)
+
+/* Return the minimum level of the direction, 0 for FRIBIDI_TYPE_LTR and
+   1 for FRIBIDI_TYPE_RTL and FRIBIDI_TYPE_AL. */
+#define BIDI_DIR_TO_LEVEL(dir) \
+    ((BidiLevel) (BIDI_IS_RTL(dir) ? 1 : 0))
 
 /* Is strong? */
 #define BIDI_IS_STRONG(p)   (!((p) & BIDI_SWN_MASK))
@@ -9921,7 +9942,8 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 /* Is explicit override: LRO, RLO? */
 #define BIDI_IS_OVERRIDE(p) ((p) & BIDI_MASK_OVERRIDE)
 
-/* Some more: */
+/* Is isolote: LRO, RLO? */
+#define BIDI_IS_ISOLATE(p) (((p) & BIDI_TYPE_MASK) == BIDI_MASK_ISOLATE)
 
 /* Is left to right letter: LTR? */
 #define BIDI_IS_LTR_LETTER(p) \
@@ -9939,7 +9961,43 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 
 /* Change numbers: EN, AN to RTL. */
 #define BIDI_NUMBER_TO_RTL(p) \
-        (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
+    (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
+
+/* Is explicit or BN: LRE, RLE, LRO, RLO, PDF, BN? */
+#define BIDI_IS_EXPLICIT_OR_BN(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        ((p) & (BIDI_MASK_BN)))
+
+/* Is explicit or BN or WS: LRE, RLE, LRO, RLO, PDF, BN, WS? */
+#define BIDI_IS_EXPLICIT_OR_BN_OR_WS(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        ((p) & (BIDI_MASK_BN | BIDI_MASK_WS)))
+
+/* Is explicit or separator or BN or WS: LRE, RLE, LRO, RLO, PDF, BS, SS, BN, WS? */
+#define BIDI_IS_EXPLICIT_OR_SEPARATOR_OR_BN_OR_WS(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        ((p) & (BIDI_MASK_SEPARATOR | BIDI_MASK_BN | BIDI_MASK_WS)))
+
+/* Is explicit or BN or NSM: LRE, RLE, LRO, RLO, PDF, BN, NSM? */
+#define BIDI_IS_EXPLICIT_OR_BN_OR_NSM(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NSM) || \
+        ((p) & BIDI_MASK_BN))
+
+/* Override status of an explicit mark:
+ * LRO,LRE->LTR, RLO,RLE->RTL, otherwise->ON. */
+#define BIDI_EXPLICIT_TO_OVERRIDE_DIR(p) \
+    (BIDI_IS_OVERRIDE(p) ? BIDI_LEVEL_TO_DIR(BIDI_DIR_TO_LEVEL(p)) \
+        : BIDI_TYPE_ON)
+
+/* Change numbers to RTL: EN,AN -> RTL. */
+#define BIDI_CHANGE_NUMBER_TO_RTL(p) \
+    (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
+
+#define BIDI_BRACKET_OPEN_MASK      0x80000000
+#define BIDI_BRACKET_ID_MASK        0x7fffffff
+#define BIDI_IS_BRACKET_OPEN(bt)    ((bt & BIDI_BRACKET_OPEN_MASK)>0)
+#define BIDI_BRACKET_ID(bt)         ((bt & BIDI_BRACKET_ID_MASK))
 
 /**
  * \fn Uint16 GUIAPI GetACharBIDIType (LOGFONT* logfont, Achar32 chv)

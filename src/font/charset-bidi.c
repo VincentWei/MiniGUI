@@ -47,6 +47,8 @@
 #include "gdi.h"
 
 #include "devfont.h"
+
+#define BIDI_DEBUG
 #include "bidi.h"
 
 #define BIDI_MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -65,10 +67,36 @@ struct _TYPERUN
 
     int     pos, len;   /*  run start position, run len.*/
     Uint16  type;       /*  char type. */
-    BYTE    level;      /*  embedding level. */
+    Sint16  level;      /*  embedding level. */
 };
 
 #ifdef BIDI_DEBUG
+
+static const char bidi_level[] = {
+    /* -1 == BIDI_TYPE_SENTINEL, indicating start or end of string. */
+    '$',
+    /* 0-61 == 0-9,a-z,A-Z are the the only valid levels before resolving
+     * implicits.  after that the level @ may be appear too.
+     */
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+    'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D',
+    'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+    'Y', 'Z',
+
+    /* TBD - insert another 125-64 levels */
+
+    /* 62 == only must appear after resolving implicits. */
+    '@',
+
+    /* 63 == BIDI_LEVEL_INVALID, internal error, this level shouldn't be seen.*/
+    '!',
+
+    /* >= 64 == overflows, this levels and higher levels show a real bug!. */
+    '*', '*', '*', '*', '*'
+};
 
 static char bidi_type_name(Uint16 c)
 {
@@ -76,19 +104,33 @@ static char bidi_type_name(Uint16 c)
         case BIDI_TYPE_LTR: return 'L';
         case BIDI_TYPE_RTL: return 'R';
         case BIDI_TYPE_AL:  return 'A';
+        case BIDI_TYPE_LRE: return '<';
+        case BIDI_TYPE_RLE: return '>';
+        case BIDI_TYPE_LRO: return '(';
+        case BIDI_TYPE_RLO: return ')';
+        case BIDI_TYPE_PDF: return 'P';
         case BIDI_TYPE_EN:  return '1';
         case BIDI_TYPE_AN:  return '9';
-        case BIDI_TYPE_ES:  return 'w';
-        case BIDI_TYPE_ET:  return 'w';
-        case BIDI_TYPE_CS:  return 'w';
+        case BIDI_TYPE_ES:  return 's';
+        case BIDI_TYPE_ET:  return 't';
+        case BIDI_TYPE_CS:  return 'c';
         case BIDI_TYPE_NSM: return '`';
         case BIDI_TYPE_BN:  return 'b';
         case BIDI_TYPE_BS:  return 'B';
         case BIDI_TYPE_SS:  return 'S';
         case BIDI_TYPE_WS:  return '_';
         case BIDI_TYPE_ON:  return 'n';
+        case BIDI_TYPE_LRI: return '[';
+        case BIDI_TYPE_RLI: return ']';
+        case BIDI_TYPE_FSI: return '@';
+        case BIDI_TYPE_PDI: return '#';
+        case BIDI_TYPE_SOT: return '^';
+        case BIDI_TYPE_EOT: return '$';
     }
-    return 'n';
+
+    fprintf(stderr, "Unknown bidi type: %02x\n", c);
+
+    return '*';
 }
 
 static void print_resolved_levels(TYPERUN *pp)
@@ -97,7 +139,7 @@ static void print_resolved_levels(TYPERUN *pp)
     while(pp){
         int i;
         for(i = 0; i < LEN (pp); i++)
-            fprintf(stderr, "%c", bidi_level[(int)LEVEL(pp)]);
+            fprintf(stderr, "%c", bidi_level[(int)LEVEL(pp) + 1]);
         pp = pp->next;
     }
     fprintf(stderr, "\n");
@@ -124,7 +166,7 @@ static void print_run_types(TYPERUN *pp)
         if(pp->level == -1){
             sprintf(level_str, "%s", "-1");
         }
-        else sprintf(level_str, "%c", bidi_level[(int)pp->level]);
+        else sprintf(level_str, "%c(%d)", bidi_level[(int)pp->level + 1], (int)pp->level);
 
         fprintf(stderr, "pos:%d:len:%d(%c)[level:%s] || ", pp->pos, pp->len,
                 bidi_type_name(pp->type), level_str);
@@ -146,10 +188,9 @@ static void print_hexstr(Achar32* str, int len, BOOL reorder_state)
     DBGLOG("   ");
     for(m = 0; m < len; m++){
         if(m && !(m%16)) DBGLOG("\n   ");
-        DBGLOG2("0x%02x ", (unsigned char)str[m]);
+        DBGLOG2("0x%04X ", REAL_ACHAR(str[m]));
     }
     DBGLOG("\n====================================================\n");
-
 }
 
 #else /* BIDI_DEBUG */
@@ -255,7 +296,7 @@ static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Achar32* achars
 static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, Uint32* pbase_dir, BYTE* pbase_level)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
-    DBGLOG("\n1:Finding the base level\n");
+    DBGLOG("\n1.Finding the base level\n");
 
     *pbase_dir = BIDI_TYPE_ON;
     for (pp = type_rl_list; pp; pp = pp->next){
@@ -267,9 +308,9 @@ static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, Uint32* pbase_dir, B
     }
     *pbase_dir = BIDI_LEVEL_TO_DIR (*pbase_level);
 
-    DBGLOG2("   Base level: %c\n", bidi_level[(int)*pbase_level]);
+    DBGLOG2("   Base level: %c\n", bidi_level[(int)*pbase_level + 1]);
     DBGLOG2("   Base dir: %c\n", bidi_type_name(*pbase_dir));
-    DBGLOG("Finding the base level, Done\n");
+    DBGLOG("  Finding the base level, Done\n");
 }
 
 /* 2.Resolving Explicit levels.
@@ -277,12 +318,18 @@ static void bidi_resolveParagraphs(TYPERUN **ptype_rl_list, Uint32* pbase_dir, B
 static void bidi_resolveExplicit (TYPERUN **ptype_rl_list, Uint32 base_dir)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
-    DBGLOG("\n2:Resolving weak types\n");
+    DBGLOG("\n2.Resolving explicit types\n");
 
     for (pp = type_rl_list->next; pp->next; pp = pp->next)
     {
        LEVEL(pp) = BIDI_DIR_TO_LEVEL(base_dir);
     }
+
+#ifdef BIDI_DEBUG
+    print_run_types(type_rl_list);
+    print_resolved_levels(type_rl_list);
+    print_resolved_types(type_rl_list);
+#endif
     return;
 }
 
@@ -293,7 +340,7 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir)
     Uint32 last_strong, prev_type_org;
     BOOL w4;
 
-    DBGLOG("\n3:Resolving weak types\n");
+    DBGLOG("\n3.Resolving weak types\n");
     last_strong = base_dir;
 
     for (pp = type_rl_list->next; pp->next; pp = pp->next)
@@ -403,7 +450,6 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir)
     print_resolved_levels (type_rl_list);
     print_resolved_types (type_rl_list);
 #endif
-
 }
 
 /* Return the embedding direction of a link. */
@@ -413,7 +459,9 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir)
 static void bidi_resolveNeutrals(TYPERUN **ptype_rl_list, Uint32 base_bir)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
-    DBGLOG ("\n4:Resolving neutral types\n");
+
+    DBGLOG ("\n4.Resolving neutral types\n");
+
     for (pp = type_rl_list->next; pp->next; pp = pp->next)
     {
         Uint32 prev_type, this_type, next_type;
@@ -444,7 +492,8 @@ static int bidi_resolveImplicit(TYPERUN **ptype_rl_list, int base_level)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
     int max_level = base_level;
-    DBGLOG ("\n5:Resolving implicit levels\n");
+
+    DBGLOG ("\n5.Resolving implicit levels\n");
 
     for (pp = type_rl_list->next; pp->next; pp = pp->next){
         Uint32 this_type;
@@ -480,7 +529,7 @@ bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Achar32* achars, int len,
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
 
     /* L4. Mirror all characters that are in odd levels and have mirrors. */
-    DBGLOG ("6.Mirroring\n");
+    DBGLOG ("\n6.Mirroring\n");
     for (pp = type_rl_list->next; pp->next; pp = pp->next) {
         if (pp->level & 1)
         {
@@ -514,8 +563,14 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops,
         bidi_resolveParagraphs(&type_rl_list, &base_dir, &base_level);
     }
     else {
+        DBGLOG("\n1.Initializing the base level\n");
+
         base_level = pel;
         base_dir = BIDI_LEVEL_TO_DIR (base_level);
+
+        DBGLOG2("   Base level: %c\n", bidi_level[base_level + 1]);
+        DBGLOG2("   Base dir: %c\n", bidi_type_name(base_dir));
+        DBGLOG("  Initializing the base level, Done\n");
     }
 
     /* 2.Resolving Explicit levels.*/
@@ -561,7 +616,7 @@ static void bidi_reorder (REORDER_CONTEXT* context, int len,
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
 
     /* L2. Reorder. */
-    DBGLOG("\n6:Reordering\n");
+    DBGLOG("\n7.Reordering\n");
 
     for(i = max_level; i > 0; i--){
         for (pp = type_rl_list->next; pp->next; pp = pp->next){
@@ -585,7 +640,7 @@ static void bidi_reorder (REORDER_CONTEXT* context, int len,
             }
         }
     }
-    DBGLOG("\nReordering, Done\n");
+    DBGLOG("  Reordering, Done\n");
 }
 
 static void bidi_reverse_chars (void* context, int len, int pos)

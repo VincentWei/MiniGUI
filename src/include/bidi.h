@@ -46,8 +46,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-//#define ARABIC_DEBUG
-#ifdef ARABIC_DEBUG
+#ifdef BIDI_DEBUG
     #define DBGLOG(s)      do { if (1) { fprintf(stderr, s); } } while (0)
     #define DBGLOG2(s, t1)  do { if (1) { fprintf(stderr, s, t1); } } while (0)
     #define DBGLOG3(s, t1,t2)  do { if (1) { fprintf(stderr, s, t1,t2); } } while (0)

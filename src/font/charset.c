@@ -3574,6 +3574,7 @@ static Uint16 unicode_bidi_char_type (Achar32 chv)
     Achar32 chv_last = (Achar32)TABLESIZE (__mg_unicode_bidi_char_type_map);
     Achar32 chv_mid;
 
+    chv = REAL_ACHAR(chv);
     while (chv_last >= chv_first) {
         chv_mid = (chv_first + chv_last)/2;
 
