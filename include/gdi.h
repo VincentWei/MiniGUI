@@ -11143,6 +11143,58 @@ MG_EXPORT Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv);
 MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
         Uchar32* ucs, int n);
 
+/**
+ * \def UCHAR2ACHAR(uc)
+ * \brief The macro to convert a Uchar32 value to Achar32 value.
+ *
+ * \note The converted Achar32 value should be used only with LOGFONT objects
+ *      in Unicode charset (encodings like UTF-8, UTF-16LE, and UTF-16BE).
+ *
+ * \sa UChar2AChar, UChars2AChars
+ */
+#define UCHAR2ACHAR(uc) ((uc) | 0x80000000)
+
+/**
+ * \fn BOOL UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac)
+ * \brief Get the LOGFONT Achar32 value from a Unicode character value.
+ *
+ * This function converts a Unicode character value \a uc to the abstract
+ * character value which is defined by the charset of the LOGFONT object
+ * \a logfont.
+ *
+ * \param logfont The LOGFONT object
+ * \param uc The Unicode character value.
+ * \param ac The buffer to store the converted Achar32 value.
+ *
+ * \return TRUE for success, otherwise FALSE. When the return value
+ *      is FALSE, it means that the charset of the LOGFONT object
+ *      does not contain a code point for the Unicode character.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \sa UChars2AChars, UCHAR2ACHAR
+ */
+MG_EXPORT BOOL GUIAPI UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac);
+
+/**
+ * \fn int UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
+ *      Achar32* acs, int n)
+ * \brief Convert an Uchar32 array to Unicode character array.
+ *
+ * Only valid for UNICODE.
+ *
+ * \param logfont The LOGFONT object
+ * \param chs The array of LOGFONT character values.
+ *
+ * \return The number of characters converted successfully.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \sa UChar2AChar, UCHAR2ACHAR
+ */
+MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
+        Achar32* acs, int n);
+
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags
      *

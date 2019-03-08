@@ -228,4 +228,107 @@ int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
     return TRUE;
 }
 
+BOOL GUIAPI UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac)
+{
+    DEVFONT* mbc_devfont;
+    DEVFONT* sbc_devfont;
+    unsigned char mchar [16];
+    int l = 0;
+
+    if (logfont == NULL || uc == 0 || ac == NULL)
+        return FALSE;
+
+    mbc_devfont = logfont->devfonts[1];
+    sbc_devfont = logfont->devfonts[0];
+    if (mbc_devfont) {
+        if (mbc_devfont->charset_ops->conv_to_uc32) {
+            // not in Unicode encoding
+            l = mbc_devfont->charset_ops->conv_from_uc32(uc, mchar);
+            if (l > 0) {
+                *ac = mbc_devfont->charset_ops->get_char_value(NULL, 0,
+                        mchar, l);
+                *ac = SET_MBCHV(*ac);
+            }
+        }
+        else {
+            l = 1;
+            *ac = SET_MBCHV(uc);
+        }
+    }
+
+    if (l <= 0) {
+        if (sbc_devfont->charset_ops->conv_to_uc32) {
+            // not in Unicode encoding
+            l = sbc_devfont->charset_ops->conv_from_uc32(uc, mchar);
+            if (l > 0) {
+                *ac = mbc_devfont->charset_ops->get_char_value(NULL, 0,
+                    mchar, l);
+            }
+        }
+        else {
+            l = 1;
+            *ac = uc;
+        }
+    }
+
+    if (l <= 0)
+        return FALSE;
+
+    return TRUE;
+}
+
+int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
+        Achar32* acs, int n)
+{
+    DEVFONT* mbc_devfont;
+    DEVFONT* sbc_devfont;
+    unsigned char mchar [16];
+    int i, l = 0;
+
+    if (logfont == NULL || ucs == NULL || acs == NULL)
+        return FALSE;
+
+    mbc_devfont = logfont->devfonts[1];
+    sbc_devfont = logfont->devfonts[0];
+
+    for (i = 0; i < n; i++) {
+        if (mbc_devfont) {
+            if (mbc_devfont->charset_ops->conv_to_uc32) {
+                // not in Unicode encoding
+                l = mbc_devfont->charset_ops->conv_from_uc32(ucs[i], mchar);
+                if (l > 0) {
+                    acs[i] = mbc_devfont->charset_ops->get_char_value(NULL, 0,
+                            mchar, l);
+                    acs[i] = SET_MBCHV(acs[i]);
+                }
+            }
+            else {
+                l = 1;
+                acs[i] = SET_MBCHV(ucs[i]);
+            }
+
+        }
+
+        if (l <= 0) {
+            if (sbc_devfont->charset_ops->conv_to_uc32) {
+                // not in Unicode encoding
+                l = sbc_devfont->charset_ops->conv_from_uc32(ucs[i], mchar);
+                if (l > 0) {
+                    acs[i] = mbc_devfont->charset_ops->get_char_value(NULL, 0,
+                        mchar, l);
+                }
+            }
+            else {
+                l = 1;
+                acs[i] = ucs[i];
+            }
+        }
+
+        if (l <= 0)
+            return i;
+    }
+
+    return i;
+}
+
 #endif /* _MGCHARSET_UNICODE */
