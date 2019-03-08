@@ -175,6 +175,7 @@ static void free_typerun_list (TYPERUN *type_rl_list)
         free(p);
     };
 }
+
 static TYPERUN* merge_with_prev(TYPERUN *second)
 {
     TYPERUN *first = second->prev;

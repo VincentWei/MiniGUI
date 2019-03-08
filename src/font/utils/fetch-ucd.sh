@@ -1,6 +1,6 @@
 #!/bin/bash
 
-url='https://www.unicode.org/Public/11.0.0/ucd/'
+url='https://www.unicode.org/Public/12.0.0/ucd/'
 files='Scripts.txt UnicodeData.txt LineBreak.txt SpecialCasing.txt CaseFolding.txt CompositionExclusions.txt IndicPositionalCategory.txt IndicSyllabicCategory.txt ArabicShaping.txt BidiBrackets.txt BidiMirroring.txt Blocks.txt extracted/DerivedEastAsianWidth.txt extracted/DerivedBidiClass.txt'
 
 if test ! -d ucd/extracted; then

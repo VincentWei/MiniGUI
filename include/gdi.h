@@ -6398,6 +6398,12 @@ typedef enum {
     UCHAR_SCRIPT_MEDEFAIDRIN,            /* Medf */
     UCHAR_SCRIPT_OLD_SOGDIAN,            /* Sogo */
     UCHAR_SCRIPT_SOGDIAN,                /* Sogd */
+
+    /* Unicode 12.0 additions */
+    UCHAR_SCRIPT_ELYMAIC,                /* Elymaic */
+    UCHAR_SCRIPT_NANDINAGARI,            /* Nandinagari */
+    UCHAR_SCRIPT_NYIAKENG_PUACHUE_HMONG, /* Nyiakeng Puachue Hmong */
+    UCHAR_SCRIPT_WANCHO,                 /* Wancho */
 } UCharScriptType;
 
     /** @} end of achar_types */
