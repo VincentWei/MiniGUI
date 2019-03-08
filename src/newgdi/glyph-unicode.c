@@ -2397,13 +2397,16 @@ int GUIAPI GetUCharsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
             goto next_glyph;
         }
 
-        // LB8a Do not break between a zero width joiner and an ideograph,
+        // LB8a Do not break after a zero width joiner.
+        // This changed since Unicode 11.0.0. Before 11.0.0, the rule is:
+        // Do not break between a zero width joiner and an ideograph,
         // emoji base or emoji modifier.
-        if (bt == UCHAR_BREAK_ZERO_WIDTH_JOINER
-                && is_next_glyph_id_eb_em(&gbctxt,
-                    mstr, mstr_len, &next_uc) > 0) {
+        //if (bt == UCHAR_BREAK_ZERO_WIDTH_JOINER
+        //        && is_next_glyph_id_eb_em(&gbctxt,
+        //            mstr, mstr_len, &next_uc) > 0) {
+        if (bt == UCHAR_BREAK_ZERO_WIDTH_JOINER) {
 
-            _DBG_PRINTF ("LB8a Do not break between a zero width joiner and ID, EB, EM\n");
+            _DBG_PRINTF ("LB8a Do not break after a zero width joiner\n");
             gbctxt.curr_od = LB8a;
             gbctxt_change_lbo_last(&gbctxt, BOV_LB_NOTALLOWED);
         }
@@ -2415,7 +2418,7 @@ int GUIAPI GetUCharsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
         // Treat ZWJ as if it were CM.
         // CM/ZWJ should have the same break class as
         // its base character.
-        if (bt != UCHAR_BREAK_MANDATORY
+        else if (bt != UCHAR_BREAK_MANDATORY
                 && bt != UCHAR_BREAK_CARRIAGE_RETURN
                 && bt != UCHAR_BREAK_LINE_FEED
                 && bt != UCHAR_BREAK_NEXT_LINE
@@ -2431,6 +2434,7 @@ int GUIAPI GetUCharsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
             // LB10 Treat any remaining combining mark or ZWJ as AL.
             if ((bt == UCHAR_BREAK_COMBINING_MARK
                     || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)) {
+                _DBG_PRINTF ("LB10.a Treat any remaining combining mark or ZWJ as AL\n");
                 bt = UCHAR_BREAK_ALPHABETIC;
             }
 
@@ -2447,7 +2451,7 @@ int GUIAPI GetUCharsAndBreaks(LOGFONT* logfont, const char* mstr, int mstr_len,
         // LB10 Treat any remaining combining mark or ZWJ as AL.
         else if ((bt == UCHAR_BREAK_COMBINING_MARK
                     || bt == UCHAR_BREAK_ZERO_WIDTH_JOINER)) {
-            _DBG_PRINTF ("LB10 Treat any remaining combining mark or ZWJ as AL\n");
+            _DBG_PRINTF ("LB10.b Treat any remaining combining mark or ZWJ as AL\n");
             bt = UCHAR_BREAK_ALPHABETIC;
         }
 #if 0
