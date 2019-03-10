@@ -81,7 +81,7 @@ enum Char32TypeLinearEnumOffsetOne
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
 # define _MGBIDI_ADD_ALIAS(TYPE1,TYPE2) TYPE1 = TYPE2,
-# include "../mgbidi-bidi-types-list.h"
+# include "../mgbidi-bidi-types-list.inc"
 # undef _MGBIDI_ADD_ALIAS
 # undef _MGBIDI_ADD_TYPE
   NUM_TYPES
@@ -96,7 +96,7 @@ type_names[] =
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) {STRINGIZE(TYPE), TYPE},
 # define _MGBIDI_ADD_ALIAS(TYPE1,TYPE2) _MGBIDI_ADD_TYPE(TYPE1, SYMBOL)
-# include "../mgbidi-bidi-types-list.h"
+# include "../mgbidi-bidi-types-list.inc"
 # undef _MGBIDI_ADD_ALIAS
 # undef _MGBIDI_ADD_TYPE
 };

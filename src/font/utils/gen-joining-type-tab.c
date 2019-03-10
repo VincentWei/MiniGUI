@@ -93,7 +93,7 @@ die3l (
 enum FriBidiJoiningLinearEnumOffsetOne
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
-# include "../mgbidi-joining-types-list.h"
+# include "../mgbidi-joining-types-list.inc"
 # undef _MGBIDI_ADD_TYPE
   NUM_TYPES
 };
@@ -106,7 +106,7 @@ struct
 type_names[] =
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) {STRINGIZE(TYPE), TYPE},
-# include "../mgbidi-joining-types-list.h"
+# include "../mgbidi-joining-types-list.inc"
 # undef _MGBIDI_ADD_TYPE
 };
 

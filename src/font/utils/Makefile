@@ -36,7 +36,7 @@ mgbidi-unicode-version.h:ucd/ReadMe.txt gen-unicode-version
 	./gen-unicode-version ucd/ReadMe.txt > mgbidi-unicode-version.h
 
 clean:
-	rm -f *.o mgbidi-*.h \
+	rm -f *.o mgbidi-*.h mgbidi-*.inc \
     mkmap-ucs-gb2312 mkmap-gb18030-ucs.c mkmap-ucs-gb18030 \
     gen-unicode-version \
     gen-bidi-type-tab \
