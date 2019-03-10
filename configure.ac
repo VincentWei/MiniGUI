@@ -193,6 +193,7 @@ build_eucjp_support="no"
 build_shiftjis_support="no"
 
 build_unicode_support="yes"
+build_full_unicode="yes"
 
 dnl Keyboard layout specific options
 use_kbd_hebrewpc="no"

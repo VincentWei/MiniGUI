@@ -494,7 +494,7 @@ static const char *gbidi_get_bidi_type_name(BidiType t)
     switch ((int)t) {
 #   define _BIDI_ADD_TYPE(TYPE,SYMBOL) case BIDI_TYPE_##TYPE: return #TYPE;
 #   define _BIDI_ALL_TYPES
-#   include "mgbidi-bidi-types-list.h"
+#   include "mgbidi-bidi-types-list.inc"
 #   undef _BIDI_ALL_TYPES
 #   undef _BIDI_ADD_TYPE
     default:
