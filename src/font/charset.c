@@ -731,6 +731,10 @@ static CHARSETOPS CharsetOps_iso8859_5 = {
 
 #endif /* _CYRILLIC */
 
+#if defined (_MGCHARSET_HEBREW) || defined (_MGCHARSET_ARABIC)
+#include "iso8859-bidi-tables.inc"
+#endif
+
 #if defined (_MGCHARSET_HEBREW) || defined (_MGCHARSET_ARABIC) || defined (_MGCHARSET_UNICODE)
 
 #include "bidi.h"
@@ -948,7 +952,8 @@ static const unsigned char* iso8859_8_get_next_word (const unsigned char* mstr,
     //return sb_get_next_word(mstr, mstrlen, word_info);
 }
 
-static Uint16 __mg_iso8859_8_type[] = {
+static BidiType __mg_iso8859_8_bidi_char_type_map[] = {
+#if 0
     /*0x00~0x0f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -984,6 +989,7 @@ static Uint16 __mg_iso8859_8_type[] = {
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+
     /*0x60~0x6f*/
     BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
@@ -995,6 +1001,7 @@ static Uint16 __mg_iso8859_8_type[] = {
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
+#endif
 
     /*0x80~0x8f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -1048,7 +1055,11 @@ static Uint16 __mg_iso8859_8_type[] = {
 
 static BidiType iso8859_8_bidi_char_type (Achar32 chv)
 {
-    return (BidiType)__mg_iso8859_8_type [REAL_ACHAR(chv)];
+    chv = REAL_ACHAR(chv);
+    if (chv > 0x7F)
+        return (BidiType)__mg_iso8859_8_bidi_char_type_map[chv - 0x80];
+    else
+        return (BidiType)__mg_iso8859_1_bidi_char_type_map[chv];
 }
 
 static const BIDICHAR_MIRROR_MAP __mg_iso8859_8_mirror_table [] =

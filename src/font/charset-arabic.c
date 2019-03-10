@@ -470,7 +470,8 @@ static unsigned int iso8859_6_char_type (Achar32 chv)
     return ch_type;
 }
 
-static Uint16 __mg_iso8859_68x_type[] = {
+static BidiType __mg_iso8859_6_bidi_char_type_map[] = {
+#if 0
     /*0x00~0x0f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -506,6 +507,7 @@ static Uint16 __mg_iso8859_68x_type[] = {
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+
     /*0x60~0x6f*/
     BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
@@ -517,6 +519,7 @@ static Uint16 __mg_iso8859_68x_type[] = {
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
+#endif
 
     /*0x80~0x8f*/
     BIDI_TYPE_ON,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,
@@ -590,7 +593,11 @@ static Uint16 __mg_iso8859_68x_type[] = {
 
 static BidiType iso8859_6_bidi_char_type (Achar32 chv)
 {
-    return (BidiType)__mg_iso8859_68x_type[REAL_ACHAR(chv)];
+    chv = REAL_ACHAR(chv);
+    if (chv > 0x7F)
+        return (BidiType)__mg_iso8859_6_bidi_char_type_map[chv - 0x80];
+    else
+        return (BidiType)__mg_iso8859_1_bidi_char_type_map[chv];
 }
 
 static int get_table_index(Uint8 c)

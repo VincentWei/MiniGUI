@@ -20,6 +20,7 @@ HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             unicode-tables.h unicode-break-tables.h unicode-script-table.h \
             unicode-decomp.h unicode-comp.h \
             unicode-emoji-tables.h \
+            iso8859-bidi-tables.inc \
             mgbidi.h \
             mgbidi-bidi-types-list.inc \
             mgbidi-joining-types-list.inc \
