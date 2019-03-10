@@ -151,7 +151,7 @@ static void free_run_list(BidiRun *run_list)
 
 
 static BidiRun* run_list_encode_bidi_types (const BidiType *bidi_types,
-    const Uint8 *bracket_types, const int len)
+    const BidiBracketType *bracket_types, const int len)
 {
     BidiRun *list, *last;
     register BidiRun *run = NULL;
@@ -742,7 +742,7 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
 }
 
 BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
-      const Uint8 *bracket_types, const int len,
+      const BidiBracketType *bracket_types, const int len,
       int *pbase_dir, BidiLevel *embedding_levels)
 {
     BidiLevel base_level_per_iso_level[BIDI_MAX_EXPLICIT_LEVEL];
@@ -1265,7 +1265,7 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         {
             int level = RL_LEVEL(pp);
             int iso_level = RL_ISOLATE_LEVEL(pp);
-            Uint8 brack_prop = RL_BRACKET_TYPE(pp);
+            BidiBracketType brack_prop = RL_BRACKET_TYPE(pp);
 
             /* Interpret the isolating run sequence as such that they
                end at a change in the level, unless the iso_level has been
@@ -1286,9 +1286,10 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
                 else {
                     int stack_idx = bracket_stack_size[iso_level] - 1;
                     while (stack_idx >= 0) {
-                        Uint8 se_brack_prop = RL_BRACKET_TYPE(bracket_stack[iso_level][stack_idx]);
-                        if (BIDI_BRACKET_ID(se_brack_prop) == BIDI_BRACKET_ID(brack_prop))
-                        {
+                        BidiBracketType se_brack_prop =
+                        RL_BRACKET_TYPE(bracket_stack[iso_level][stack_idx]);
+                        if (BIDI_BRACKET_ID(se_brack_prop) ==
+                                BIDI_BRACKET_ID(brack_prop)) {
                             bracket_stack_size[iso_level] = stack_idx;
 
                             pairing_nodes = pairing_nodes_push(pairing_nodes,
@@ -1393,7 +1394,7 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
 
             /* Remove the bracket property and re-compact */
             {
-                const Uint8 NoBracket = BIDI_BRACKET_NONE;
+                const BidiBracketType NoBracket = BIDI_BRACKET_NONE;
                 for_run_list (pp, main_run_list)
                     pp->bracket_type = NoBracket;
                 compact_neutrals (main_run_list);

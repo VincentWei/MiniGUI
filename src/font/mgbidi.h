@@ -199,7 +199,7 @@ int mgbidi_get_paragraph_dir(const BidiType *bidi_types, int len);
  * (memory allocation failure most probably).
  */
 BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
-    const Uint8* bracket_types, int len,
+    const BidiBracketType* bracket_types, int len,
     int *base_dir, BidiLevel *embedding_levels);
 
 /* mgbidi_reorder_line - reorder a line of logical string to visual
