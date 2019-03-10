@@ -11,13 +11,13 @@
 
   use MGBIDI_GET_BRACKETS_DELTA(key) to access your table
 
-  assumed sizeof(Int32): 4
+  assumed sizeof(Sint32): 4
   required memory: 6400
   lookups: 2
   partition shape: Brk[1024][64]
   different table entries: 1 17
 */
-static const Int32 BrkLev1[64*17] = {
+static const Sint32 BrkLev1[64*17] = {
 #define BrkLev1_0000 0x0
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

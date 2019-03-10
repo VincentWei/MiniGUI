@@ -11,13 +11,13 @@
 
   use MGBIDI_GET_BRACKET_TYPE(key) to access your table
 
-  assumed sizeof(Int8): 1
+  assumed sizeof(Sint8): 1
   required memory: 2816
   lookups: 2
   partition shape: Brt[512][128]
   different table entries: 1 14
 */
-static const Int8 BrtLev1[128*14] = {
+static const Sint8 BrtLev1[128*14] = {
 #define BrtLev1_0000 0x0
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

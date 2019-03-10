@@ -9,7 +9,8 @@ SRC_FILES = charset.c charset-arabic.c \
             fontcache.c freetype2.c font-engines.c\
             gbunimap.c gbkunimap.c gb18030unimap.c big5unimap.c \
             ujisunimap.c sjisunimap.c euckrunimap.c \
-            textops.c mapunitogb.c mapunitogbk.c mapunitobig5.c mapunitogb18030.c \
+            textops.c \
+            mapunitogb.c mapunitogbk.c mapunitobig5.c mapunitogb18030.c \
             bitmapfont.c scripteasy.c \
             unicode-emoji.c \
             mgbidi.c

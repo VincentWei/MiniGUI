@@ -65,7 +65,7 @@
 
 #ifdef DEBUG
 
-static inline int gbidi_debug_status(void)
+static inline int mgbidi_debug_status(void)
 {
     return 1;
 }
@@ -166,14 +166,14 @@ static BidiRun* run_list_encode_bidi_types (const BidiType *bidi_types,
     for (i = 0; i < len; i++)
     {
         register BidiType char_type = bidi_types[i];
-        register Uint8 bracket_type = BIDICHAR_BRACKET_NONE;
+        register Uint8 bracket_type = BIDI_BRACKET_NONE;
         if (bracket_types)
             bracket_type = bracket_types[i];
 
         if (char_type != last->type
                 /* Always separate bracket into single char runs! */
-                || bracket_type != BIDICHAR_BRACKET_NONE
-                || last->bracket_type != BIDICHAR_BRACKET_NONE
+                || bracket_type != BIDI_BRACKET_NONE
+                || last->bracket_type != BIDI_BRACKET_NONE
                 || BIDI_IS_ISOLATE(char_type)) {
             run = new_run ();
             if (!run) break;
@@ -377,8 +377,8 @@ static void compact_list(BidiRun *list)
             if (RL_TYPE (list->prev) == RL_TYPE (list)
                     && RL_LEVEL (list->prev) == RL_LEVEL (list)
                     /* Don't join brackets! */
-                    && RL_BRACKET_TYPE(list) == BIDICHAR_BRACKET_NONE
-                    && RL_BRACKET_TYPE(list->prev) == BIDICHAR_BRACKET_NONE) {
+                    && RL_BRACKET_TYPE(list) == BIDI_BRACKET_NONE
+                    && RL_BRACKET_TYPE(list->prev) == BIDI_BRACKET_NONE) {
                 list = merge_with_prev (list);
             }
         }
@@ -395,8 +395,8 @@ static void compact_neutrals(BidiRun *list)
                       || (BIDI_IS_NEUTRAL (RL_TYPE (list->prev))
                           && BIDI_IS_NEUTRAL (RL_TYPE (list)))))
                     /* Don't join brackets! */
-                    && RL_BRACKET_TYPE(list) == BIDICHAR_BRACKET_NONE
-                    && RL_BRACKET_TYPE(list->prev) == BIDICHAR_BRACKET_NONE) {
+                    && RL_BRACKET_TYPE(list) == BIDI_BRACKET_NONE
+                    && RL_BRACKET_TYPE(list->prev) == BIDI_BRACKET_NONE) {
                 list = merge_with_prev (list);
             }
         }
@@ -411,7 +411,7 @@ static void compact_neutrals(BidiRun *list)
 /* The static sentinel is used to signal the end of an isolating sequence */
 static BidiRun sentinel = {
     NULL, NULL, NULL, NULL, 0, 0, BIDI_TYPE_SENTINEL, -1, -1,
-    BIDICHAR_BRACKET_NONE,
+    BIDI_BRACKET_NONE,
 };
 
 static BidiRun *get_adjacent_run(BidiRun *list,
@@ -479,9 +479,9 @@ static const char char_from_level_array[] = {
     '*', '*', '*', '*', '*'
 };
 
-#define gbidi_char_from_level(level) char_from_level_array[(level) + 1]
+#define mgbidi_char_from_level(level) char_from_level_array[(level) + 1]
 
-static const char *gbidi_get_bidi_type_name(BidiType t)
+static const char *mgbidi_get_bidi_type_name(BidiType t)
 {
     switch ((int)t) {
 #   define _BIDI_ADD_TYPE(TYPE,SYMBOL) case BIDI_TYPE_##TYPE: return #TYPE;
@@ -499,7 +499,7 @@ static void print_types_re(const BidiRun *pp)
     _DBG_PRINTF ("  Run types  : ");
     for_run_list (pp, pp) {
         _DBG_PRINTF ("%d:%d(%s)[%d,%d] ",
-                pp->pos, pp->len, gbidi_get_bidi_type_name (pp->type), pp->level, pp->isolate_level);
+                pp->pos, pp->len, mgbidi_get_bidi_type_name (pp->type), pp->level, pp->isolate_level);
     }
     _DBG_PRINTF ("\n");
 }
@@ -511,7 +511,7 @@ static void print_resolved_levels(const BidiRun *pp)
     {
         register int i;
         for (i = RL_LEN (pp); i; i--)
-            _DBG_PRINTF ("%c", gbidi_char_from_level (RL_LEVEL (pp)));
+            _DBG_PRINTF ("%c", mgbidi_char_from_level (RL_LEVEL (pp)));
     }
     _DBG_PRINTF ("\n");
 }
@@ -522,7 +522,7 @@ static void print_resolved_types(const BidiRun *pp)
     for_run_list (pp, pp) {
         int i;
         for (i = RL_LEN (pp); i; i--)
-            _DBG_PRINTF ("%s ", gbidi_get_bidi_type_name (pp->type));
+            _DBG_PRINTF ("%s ", mgbidi_get_bidi_type_name (pp->type));
     }
     _DBG_PRINTF ("\n");
 }
@@ -533,7 +533,7 @@ static void print_bidi_string(const BidiType *bidi_types, const int len)
 
     _DBG_PRINTF ("  Org. types : ");
     for (i = 0; i < len; i++)
-        _DBG_PRINTF ("%s ", gbidi_get_bidi_type_name (bidi_types[i]));
+        _DBG_PRINTF ("%s ", mgbidi_get_bidi_type_name (bidi_types[i]));
     _DBG_PRINTF ("\n");
 }
 
@@ -647,7 +647,7 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
 #define BIDI_EMBEDDING_DIRECTION(link) \
     BIDI_LEVEL_TO_DIR(RL_LEVEL(link))
 
-int gbidi_get_par_direction(const BidiType *bidi_types, const int len)
+int mgbidi_get_par_direction(const BidiType *bidi_types, const int len)
 {
     register int i;
 
@@ -741,7 +741,7 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
     }
 }
 
-BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
+BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
       const Uint8 *bracket_types, const int len,
       int *pbase_dir, BidiLevel *embedding_levels)
 {
@@ -757,7 +757,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         goto out;
     }
 
-    _DBG_PRINTF ("in gbidi_get_paragraph_els");
+    _DBG_PRINTF ("in mgbidi_get_paragraph_els");
 
     /* Determinate character types */
     {
@@ -794,13 +794,13 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         }
     }
     base_dir = BIDI_LEVEL_TO_DIR (base_level);
-    _DBG_PRINTF ("  base level : %c", gbidi_char_from_level (base_level));
-    _DBG_PRINTF ("  base dir   : %s", gbidi_get_bidi_type_name (base_dir));
+    _DBG_PRINTF ("  base level : %c", mgbidi_char_from_level (base_level));
+    _DBG_PRINTF ("  base dir   : %s", mgbidi_get_bidi_type_name (base_dir));
 
     base_level_per_iso_level[0] = base_level;
 
 # ifdef DEBUG
-    if (gbidi_debug_status ()) {
+    if (mgbidi_debug_status ()) {
         print_types_re (main_run_list);
     }
 # endif        /* DEBUG */
@@ -1043,7 +1043,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     compact_list (main_run_list);
 
 # ifdef DEBUG
-    if (gbidi_debug_status ()) {
+    if (mgbidi_debug_status ()) {
         print_types_re (main_run_list);
         print_bidi_string (bidi_types, len);
         print_resolved_levels (main_run_list);
@@ -1225,7 +1225,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     compact_neutrals (main_run_list);
 
 #ifdef DEBUG
-    if (gbidi_debug_status ()) {
+    if (mgbidi_debug_status ()) {
         print_resolved_levels (main_run_list);
         print_resolved_types (main_run_list);
     }
@@ -1273,7 +1273,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
             if (level != last_level && last_iso_level == iso_level)
                 bracket_stack_size[last_iso_level] = 0;
 
-            if (brack_prop!= BIDICHAR_BRACKET_NONE
+            if (brack_prop!= BIDI_BRACKET_NONE
                     && RL_TYPE(pp)==BIDI_TYPE_ON) {
                 if (BIDI_IS_BRACKET_OPEN(brack_prop)) {
                     if (bracket_stack_size[iso_level] ==
@@ -1308,7 +1308,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         sort_pairing_nodes(&pairing_nodes);
 
 #ifdef DEBUG
-        if (gbidi_debug_status ()) {
+        if (mgbidi_debug_status ()) {
             print_pairing_nodes (pairing_nodes);
         }
 #endif /* DEBUG */
@@ -1393,7 +1393,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
 
             /* Remove the bracket property and re-compact */
             {
-                const Uint8 NoBracket = BIDICHAR_BRACKET_NONE;
+                const Uint8 NoBracket = BIDI_BRACKET_NONE;
                 for_run_list (pp, main_run_list)
                     pp->bracket_type = NoBracket;
                 compact_neutrals (main_run_list);
@@ -1401,8 +1401,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         }
 
 #ifdef DEBUG
-        if (gbidi_debug_status ())
-        {
+        if (mgbidi_debug_status ()) {
             print_resolved_levels (main_run_list);
             print_resolved_types (main_run_list);
         }
@@ -1443,7 +1442,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     compact_list (main_run_list);
 
 #ifdef DEBUG
-    if (gbidi_debug_status ()) {
+    if (mgbidi_debug_status ()) {
         print_resolved_levels (main_run_list);
         print_resolved_types (main_run_list);
     }
@@ -1479,7 +1478,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     compact_list (main_run_list);
 
 #ifdef DEBUG
-    if (gbidi_debug_status ()) {
+    if (mgbidi_debug_status ()) {
         print_bidi_string (bidi_types, len);
         print_resolved_levels (main_run_list);
         print_resolved_types (main_run_list);
@@ -1506,7 +1505,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         }
 
 # ifdef DEBUG
-    if (gbidi_debug_status ()) {
+    if (mgbidi_debug_status ()) {
         print_types_re (main_run_list);
         print_resolved_levels (main_run_list);
         print_resolved_types (main_run_list);
@@ -1526,7 +1525,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
            separator or paragraph separator, and
            4. any sequence of whitespace characters and/or isolate formatting
            characters at the end of the line.
-           ... (to be continued in gbidi_reorder_line()). */
+           ... (to be continued in mgbidi_reorder_line()). */
         list = new_run_list ();
         if (!list) goto out;
         q = list;
@@ -1566,7 +1565,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     }
 
 #ifdef DEBUG
-    if (gbidi_debug_status ()) {
+    if (mgbidi_debug_status ()) {
         print_types_re (main_run_list);
         print_resolved_levels (main_run_list);
         print_resolved_types (main_run_list);
@@ -1587,7 +1586,7 @@ BidiLevel gbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     status = TRUE;
 
 out:
-    _DBG_PRINTF ("leaving gbidi_get_paragraph_els");
+    _DBG_PRINTF ("leaving mgbidi_get_paragraph_els");
 
     if (main_run_list)
         free_run_list (main_run_list);
@@ -1620,7 +1619,7 @@ static void index_array_reverse (int *arr, int len)
     }
 }
 
-BidiLevel gbidi_reorder_line(Uint32 flags,
+BidiLevel mgbidi_reorder_line(Uint32 flags,
         const BidiType *bidi_types, int len,
         int off, int base_dir,
         BidiLevel *embedding_levels,
@@ -1635,7 +1634,7 @@ BidiLevel gbidi_reorder_line(Uint32 flags,
         goto out;
     }
 
-    _DBG_PRINTF ("in gbidi_reorder_line");
+    _DBG_PRINTF ("in mgbidi_reorder_line");
 
     _DBG_PRINTF ("reset the embedding levels, 4. whitespace at the end of line");
     {

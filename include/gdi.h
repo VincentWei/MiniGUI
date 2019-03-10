@@ -7311,6 +7311,10 @@ MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font,
 #include <stddef.h>
 #include <stdlib.h>
 
+typedef Uint8   BidiLevel;
+typedef Uint16  BidiType;
+typedef Uint32  BidiBracketType;
+
 /**
  * \fn int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, \
  *              const unsigned char* mstr, int n)
@@ -7472,12 +7476,53 @@ MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
 /** The function determines the BIDI type of a UNICODE character. */
 MG_EXPORT Uint16 GUIAPI UCharGetBIDIType(Uchar32 uc);
 
-#define BIDICHAR_BRACKET_NONE   0
-#define BIDICHAR_BRACKET_OPEN   1
-#define BIDICHAR_BRACKET_CLOSE  2
+#define BIDI_BRACKET_NONE           0
+#define BIDI_BRACKET_OPEN_MASK      0x80000000
+#define BIDI_BRACKET_CHAR_MASK      0X7FFFFFFF
+#define BIDI_IS_BRACKET_OPEN(bt)    ((bt & BIDI_BRACKET_OPEN_MASK)>0)
+#define BIDI_BRACKET_CHAR(bt)       ((bt & BIDI_BRACKET_CHAR_MASK))
 
-/** The function returns the bracket type of a UNICODE character. */
-MG_EXPORT Uint8 GUIAPI UCharGetBracketType(Uchar32 uc);
+/* \fn BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch)
+ * \brief Get bracketed character
+ *
+ * This function finds the bracketed equivalent of a character as defined in
+ * the file BidiBrackets.txt of the Unicode Character Database available at
+ * http://www.unicode.org/Public/UNIDATA/BidiBrackets.txt.
+ *
+ * If the input character is a declared as a brackets character in the
+ * Unicode standard and has a bracketed equivalent.  The matching bracketed
+ * character is put in the output, otherwise the input character itself is
+ * put.
+ *
+ * \param ch input character
+ *
+ * \return The bracket type of the character. Use the
+ * BIDI_IS_BRACKET(BidiBracketType) to test if it is a valid
+ * property. Use BCHI_BRACKET_CHAR(BidiBracketType) to get
+ * the bracketed character value.
+ *
+ * \sa UCharGetBracketTypes
+ */
+MG_EXPORT BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch);
+
+/* \fn void UCharGetBracketTypes(const Uchar32 *ucs, int nr_ucs,
+ *      const BidiType *bidi_types, BidiBracketType *bracket_types)
+ * \brief Get bracketed characters of a Uchar32 string.
+ *
+ * This function finds the bracketed characters of an string of characters.
+ * See UCharGetBracketType() for more information about the bracketed
+ * characters returned by this function.
+ *
+ * \param ucs The input Uchar32 string.
+ * \param nr_ucs The length of string.
+ * \param bidi_types The bidi types (an array of BidiType) of the string.
+ * \param bracket_types The pointer to a BidiBracketType array storing
+ *      the bracketed characters.
+ *
+ * \sa UCharGetBracketType
+ */
+MG_EXPORT void GUIAPI UCharGetBracketTypes(const Uchar32 *ucs, int len_ucs,
+        const BidiType *bidi_types, BidiBracketType *bracket_types);
 
 /** The function returns the mirror character of a UNICODE character. */
 MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
@@ -9730,9 +9775,6 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
      *
      * @{
      */
-
-typedef Uint16  BidiType;
-typedef Uint8   BidiLevel;
 
 #define BIDI_PGDIR_LTR      0
 #define BIDI_PGDIR_RTL      1

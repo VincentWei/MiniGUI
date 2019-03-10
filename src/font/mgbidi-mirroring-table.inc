@@ -11,13 +11,13 @@
 
   use MGBIDI_GET_MIRRORING_DELTA(key) to access your table
 
-  assumed sizeof(Int16): 2
+  assumed sizeof(Sint16): 2
   required memory: 5632
   lookups: 2
   partition shape: Mir[1024][64]
   different table entries: 1 28
 */
-static const Int16 MirLev1[64*28] = {
+static const Sint16 MirLev1[64*28] = {
 #define MirLev1_0000 0x0
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,-2,0,

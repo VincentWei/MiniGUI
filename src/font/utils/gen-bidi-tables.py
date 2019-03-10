@@ -44,11 +44,13 @@ for i, f in enumerate (files):
 
         if i == 1:
             t = fields[2]
+            v = [int (fields[1], 16), fields[2]]
         else:
             t = fields[1]
+            v = fields[1]
 
         for u in range (start, end + 1):
-            data[i][u] = t
+            data[i][u] = v
         values[i][t] = values[i].get (t, 0) + end - start + 1
 
 # The unassigned code points that default to AL are in the ranges:
@@ -233,16 +235,17 @@ print ("{")
 d = data[1]
 uu = sorted (d.keys())
 for u in uu:
-    v = d[u]
-    v = v.strip()
-    if cmp(v, 'o') == 0:
-        bracket_type = "BIDICHAR_BRACKET_OPEN"
-    elif cmp(v, 'c') == 0:
-        bracket_type = "BIDICHAR_BRACKET_CLOSE"
+    v0 = d[u][0]
+    v1 = d[u][1]
+    v1 = v1.strip()
+    if cmp(v1, 'o') == 0:
+        bracket_type = "MGBIDI_BRACKET_OPEN"
+    elif cmp(v1, 'c') == 0:
+        bracket_type = "MGBIDI_BRACKET_CLOSE"
     else:
-        bracket_type = "BIDICHAR_BRACKET_NONE"
+        bracket_type = "MGBIDI_BRACKET_NONE"
 
-    print ("    { 0x%06X, %s }," % (u, bracket_type, ))
+    print ("    { 0x%06X, %d, %s }," % (u, v0 - u, bracket_type, ))
 
 print ("};")
 print ("")

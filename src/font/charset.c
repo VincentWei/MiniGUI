@@ -324,7 +324,7 @@ static int iso8859_2_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_2_unicode_map [] =
+static const unsigned short iso8859_2_unicode_map [] =
 {
     0x0104, 0x02D8,
     0x0141, 0x00A4, 0x013D,
@@ -437,7 +437,7 @@ static int iso8859_3_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_3_unicode_map [] =
+static const unsigned short iso8859_3_unicode_map [] =
 {
     0x0126, 0x02D8, 0x00A3,
     0x00A4, 0x00A5, 0x0124,
@@ -549,7 +549,7 @@ static int iso8859_4_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_4_unicode_map [] =
+static const unsigned short iso8859_4_unicode_map [] =
 {
     0x0104, 0x0138, 0x0156,
     0x00A4, 0x0128, 0x013B,
@@ -807,7 +807,7 @@ static int iso8859_7_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_7_unicode_map [] =
+static const unsigned short iso8859_7_unicode_map [] =
 {
     0x2018, 0x2019, 0x00A3,
     0x00A4, 0x00A5, 0x00A6,
@@ -1278,7 +1278,7 @@ static int iso8859_10_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_10_unicode_map [] =
+static const unsigned short iso8859_10_unicode_map [] =
 {
     0x0104, 0x0112, 0x0122,
     0x012A, 0x0128, 0x0136,
@@ -1391,7 +1391,7 @@ static int iso8859_11_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_11_unicode_map [] =
+static const unsigned short iso8859_11_unicode_map [] =
 {
     0x0E01, 0x0E02, 0x0E03,
     0x0E04, 0x0E05, 0x0E06,
@@ -1503,7 +1503,7 @@ static int iso8859_13_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_13_unicode_map [] =
+static const unsigned short iso8859_13_unicode_map [] =
 {
     0x201D, 0x00A2, 0x00A3,
     0x00A4, 0x201E, 0x00A6,
@@ -1615,7 +1615,7 @@ static int iso8859_14_is_this_charset (const unsigned char* charset)
 }
 
 #ifdef _MGCHARSET_UNICODE
-static unsigned short iso8859_14_unicode_map [] =
+static const unsigned short iso8859_14_unicode_map [] =
 {
     0x1E02, 0x1E03, 0x00A3,
     0x010A, 0x010B, 0x1E0A,
@@ -3566,6 +3566,125 @@ static unsigned int unicode_char_type (Achar32 chv)
     return (break_type << 24) | (basic_type << 16) | mchar_type;
 }
 
+#define _USE_MGBIDI
+
+#ifdef _USE_MGBIDI
+
+enum _BidiCharTypeLinearEnum {
+#define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
+#include "mgbidi-bidi-types-list.inc"
+#undef _MGBIDI_ADD_TYPE
+    _MGBIDI_NUM_TYPES
+};
+
+#include "mgbidi-bidi-type-table.inc"
+
+/* Map _BidiCharTypeLinearEnum to BidiType. */
+static const BidiType linear_enum_to_bidi_type[] = {
+#define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) BIDI_TYPE_##TYPE,
+#include "mgbidi-bidi-types-list.inc"
+#undef _MGBIDI_ADD_TYPE
+};
+
+static BidiType unicode_bidi_char_type(Achar32 ch)
+{
+    ch = REAL_ACHAR(ch);
+    return linear_enum_to_bidi_type[MGBIDI_GET_BIDI_TYPE(ch)];
+}
+
+BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
+{
+    return linear_enum_to_bidi_type[MGBIDI_GET_BIDI_TYPE(uc)];
+}
+
+void UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
+{
+    register int i = len;
+    for (; i; i--) {
+        *btypes++ = linear_enum_to_bidi_type[MGBIDI_GET_BIDI_TYPE(*str)];
+        str++;
+    }
+}
+
+#include "mgbidi-brackets-table.inc"
+#include "mgbidi-brackets-type-table.inc"
+
+#define MGBIDI_TYPE_BRACKET_OPEN 2
+
+BidiBracketType UCharGetBracketType(Uchar32 ch)
+{
+    BidiBracketType bracket_type;
+    register Uint8 char_type = MGBIDI_GET_BRACKET_TYPE (ch);
+
+    /* The bracket type from the table may be:
+       0 - Not a bracket
+       1 - a bracket
+       2 - closing.
+
+       This will be recodeded into the BidiBracketType as having a
+       bracket_id = 0 if the character is not a bracket.
+     */
+    BOOL is_open = FALSE;
+
+    if (char_type == 0)
+        bracket_type = BIDI_BRACKET_NONE;
+    else {
+        is_open = (char_type & MGBIDI_TYPE_BRACKET_OPEN) != 0;
+        bracket_type = MGBIDI_GET_BRACKETS (ch) & BIDI_BRACKET_CHAR_MASK;
+    }
+
+    if (is_open)
+        bracket_type |= BIDI_BRACKET_OPEN_MASK;
+
+    return bracket_type;
+}
+
+void UCharGetBracketTypes(const Uchar32 *str, int len,
+        const BidiType *types, BidiBracketType *btypes)
+{
+    int i;
+    for (i = 0; i < len; i++) {
+        /* Optimization that bracket must be of types ON */
+        if (*types == BIDI_TYPE_ON)
+            *btypes = UCharGetBracketType (*str);
+        else
+            *btypes = BIDI_BRACKET_NONE;
+
+        btypes++;
+        types++;
+        str++;
+    }
+}
+
+#include "mgbidi-mirroring-table.inc"
+
+static BOOL unicode_bidi_mirror_char(Achar32 ch, Achar32* mirrored_ch)
+{
+    register Achar32 result;
+    register Uint32 mbc_mask;
+
+    mbc_mask = ch & ACHAR_MBC_FLAG;
+    ch = REAL_ACHAR(ch);
+    result = MGBIDI_GET_MIRRORING(ch);
+    if (mirrored_ch)
+        *mirrored_ch = result;
+    result |= mbc_mask;
+
+    return ch != result ? TRUE : FALSE;
+}
+
+BOOL GUIAPI UCharGetMirror(Uchar32 ch, Uchar32* mirrored_ch)
+{
+    register Achar32 result;
+
+    result = MGBIDI_GET_MIRRORING(ch);
+    if (mirrored_ch)
+        *mirrored_ch = result;
+    return ch != result ? TRUE : FALSE;
+}
+
+#else
+
 #include "unicode-bidi-tables.h"
 
 static Uint16 unicode_bidi_char_type (Achar32 chv)
@@ -3602,6 +3721,63 @@ static BOOL unicode_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
     return get_mirror_char (__mg_unicode_mirror_table,
             TABLESIZE (__mg_unicode_mirror_table), chv, mirrored);
 }
+
+BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
+{
+    return unicode_bidi_char_type(uc);
+}
+
+BidiBracketType GUIAPI UCharGetBracketType(Uchar32 uc)
+{
+    BidiBracketType bracket_type;
+    unsigned int lower = 0;
+    unsigned int upper = TABLESIZE (__mg_unicode_bracket_table) - 1;
+    int mid = TABLESIZE (__mg_unicode_bracket_table) / 2;
+
+    if (uc < __mg_unicode_bracket_table[lower].chv ||
+            uc > __mg_unicode_bracket_table[upper].chv)
+        return BIDI_BRACKET_NONE;
+
+    do {
+        if (uc < __mg_unicode_bracket_table[mid].chv)
+            upper = mid - 1;
+        else if (uc > __mg_unicode_bracket_table[mid].chv)
+            lower = mid + 1;
+        else
+            goto found;
+
+        mid = (lower + upper) / 2;
+
+    } while (lower <= upper);
+
+    return BIDI_BRACKET_NONE;
+
+found:
+    bracket_type = __mg_unicode_bracket_table[mid].chv +
+                   __mg_unicode_bracket_table[mid].bracket_off;
+    bracket_type &= BIDI_BRACKET_CHAR_MASK;
+    if (__mg_unicode_bracket_table[mid].type == MGBIDI_BRACKET_OPEN)
+        bracket_type |= BIDI_BRACKET_OPEN_MASK;
+
+    return bracket_type;
+}
+
+void GUIAPI UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
+{
+    register int i = len;
+    for (; i; i--) {
+        *btypes++ = UCharGetBracketType(*str);
+        str++;
+    }
+}
+
+/** The function returns the mirror character of a UNICODE character. */
+BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored)
+{
+    return unicode_bidi_mirror_char (uc, mirrored);
+}
+
+#endif /* !_USE_MGBIDI */
 
 static int utf8_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
 {
@@ -4399,44 +4575,6 @@ UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc)
 UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc)
 {
     return (UCharBreakType)PROP(uc);
-}
-
-/** The function determines the BIDI type of a UNICODE character. */
-Uint16 GUIAPI UCharGetBIDIType(Uchar32 uc)
-{
-    return unicode_bidi_char_type(uc);
-}
-
-/** The function returns the bracket type of a UNICODE character. */
-Uint8 GUIAPI UCharGetBracketType(Uchar32 uc)
-{
-    unsigned int lower = 0;
-    unsigned int upper = TABLESIZE (__mg_unicode_bracket_table) - 1;
-    int mid = TABLESIZE (__mg_unicode_bracket_table) / 2;
-
-    if (uc < __mg_unicode_bracket_table[lower].chv ||
-            uc > __mg_unicode_bracket_table[upper].chv)
-        return BIDICHAR_BRACKET_NONE;
-
-    do {
-        if (uc < __mg_unicode_bracket_table[mid].chv)
-            upper = mid - 1;
-        else if (uc > __mg_unicode_bracket_table[mid].chv)
-            lower = mid + 1;
-        else
-            return __mg_unicode_bracket_table[mid].type;
-
-        mid = (lower + upper) / 2;
-
-    } while (lower <= upper);
-
-    return BIDICHAR_BRACKET_NONE;
-}
-
-/** The function returns the mirror character of a UNICODE character. */
-BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored)
-{
-    return unicode_bidi_mirror_char (uc, mirrored);
 }
 
 BOOL GUIAPI IsUCharAlnum(Uchar32 uc)

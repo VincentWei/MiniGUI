@@ -292,8 +292,8 @@ gen_brackets_tab (
           "#define PACKTAB_UINT32 Uint32\n\n");
 
   key_bytes = max_dist <= 0x7f ? 1 : max_dist < 0x7fff ? 2 : 4;
-  key_type = key_bytes == 1 ? "Int8" : key_bytes == 2 ?
-    "Int16" : "Int32";
+  key_type = key_bytes == 1 ? "Sint8" : key_bytes == 2 ?
+    "Sint16" : "Sint32";
 
   if (!pack_table
       (table, MGBIDI_UNICODE_CHARS, key_bytes, 0, max_depth, 1, NULL,
