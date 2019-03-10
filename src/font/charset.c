@@ -1046,9 +1046,9 @@ static Uint16 __mg_iso8859_8_type[] = {
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
 };
 
-static Uint16 iso8859_8_bidi_char_type (Achar32 chv)
+static BidiType iso8859_8_bidi_char_type (Achar32 chv)
 {
-    return __mg_iso8859_8_type [REAL_ACHAR(chv)];
+    return (BidiType)__mg_iso8859_8_type [REAL_ACHAR(chv)];
 }
 
 static const BIDICHAR_MIRROR_MAP __mg_iso8859_8_mirror_table [] =
@@ -3687,7 +3687,7 @@ BOOL GUIAPI UCharGetMirror(Uchar32 ch, Uchar32* mirrored_ch)
 
 #include "unicode-bidi-tables.h"
 
-static Uint16 unicode_bidi_char_type (Achar32 chv)
+static BidiType unicode_bidi_char_type (Achar32 chv)
 {
     Achar32 chv_first = 0;
     Achar32 chv_last = (Achar32)TABLESIZE (__mg_unicode_bidi_char_type_map);

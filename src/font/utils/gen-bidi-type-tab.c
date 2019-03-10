@@ -177,6 +177,8 @@ init_tab_unicode_data_txt (
 
   for (c = 0x2060; c < 0x2070; c++)
     table[c] = BN;
+  for (c = 0x20A0; c < 0x20CF; c++)
+    table[c] = ET;
   for (c = 0xFDD0; c < 0xFDF0; c++)
     table[c] = BN;
   for (c = 0xFFF0; c < 0xFFF9; c++)
@@ -186,12 +188,36 @@ init_tab_unicode_data_txt (
 
   if (MGBIDI_UNICODE_CHARS > 0x10000)
     {
+#if 0
       for (c = 0x10800; c < 0x11000; c++)
         table[c] = RTL;
 
       for (c = 0xE0000; c < 0xE1000; c++)
         table[c] = BN;
+#else
+      for (c = 0x10800; c < 0x10D00; c++)
+        table[c] = RTL;
+
+      for (c = 0x10D40; c < 0x10F30; c++)
+        table[c] = RTL;
+
+      for (c = 0x10F70; c < 0x11000; c++)
+        table[c] = RTL;
+
+      for (c = 0x1E800; c < 0x1EC70; c++)
+        table[c] = RTL;
+
+      for (c = 0x1ECC0; c < 0x1EE00; c++)
+        table[c] = RTL;
+
+      for (c = 0x1EF00; c < 0x1F000; c++)
+        table[c] = RTL;
+
+      for (c = 0xE0000; c < 0xE1000; c++)
+        table[c] = BN;
+#endif
     }
+
 }
 
 static void

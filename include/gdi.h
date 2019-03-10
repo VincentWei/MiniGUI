@@ -7306,14 +7306,14 @@ MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font,
 MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font,
                 const char* mstr, int len, WORDINFO* word_info);
 
+typedef Uint8   BidiLevel;
+typedef Uint16  BidiType;
+typedef Uint32  BidiBracketType;
+
 #ifdef _MGCHARSET_UNICODE
 
 #include <stddef.h>
 #include <stdlib.h>
-
-typedef Uint8   BidiLevel;
-typedef Uint16  BidiType;
-typedef Uint32  BidiBracketType;
 
 /**
  * \fn int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, \
@@ -7473,8 +7473,8 @@ MG_EXPORT UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc);
 /** The function determines the break property of a UNICODE character. */
 MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
 
-/** The function determines the BIDI type of a UNICODE character. */
-MG_EXPORT Uint16 GUIAPI UCharGetBIDIType(Uchar32 uc);
+/** The function determines the bidi type of a UNICODE character. */
+MG_EXPORT BidiType GUIAPI UCharGetBidiType(Uchar32 uc);
 
 #define BIDI_BRACKET_NONE           0
 #define BIDI_BRACKET_OPEN_MASK      0x80000000
@@ -9625,8 +9625,8 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
       * @{
       */
 
-typedef Uint32 Achar32;
-typedef Uint32 Glyph32;
+typedef Uint32  Achar32;
+typedef Uint32  Glyph32;
 
 /**
  * \def INV_ACHAR_VALUE
@@ -9720,7 +9720,7 @@ MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
  * \note The general category and the break class are only available when
  *      the support for Unicode is enabled.
  *
- * \sa GetACharBIDIType, achar_types
+ * \sa GetACharBidiType, achar_types
  */
 MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 
@@ -10042,7 +10042,7 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 #define BIDI_BRACKET_ID(bt)         ((bt & BIDI_BRACKET_ID_MASK))
 
 /**
- * \fn Uint16 GUIAPI GetACharBIDIType (LOGFONT* logfont, Achar32 chv)
+ * \fn BidiType GUIAPI GetACharBidiType (LOGFONT* logfont, Achar32 chv)
  * \brief Retrieve the BIDI type of an abstract character.
  *
  * This function retrieves the BIDI type of an abstract character.
@@ -10054,7 +10054,7 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
  *
  * \sa GetACharType
  */
-MG_EXPORT Uint16 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv);
+MG_EXPORT BidiType GUIAPI GetACharBidiType (LOGFONT* log_font, Achar32 chv);
 
 /**
  * \var typedef struct  _ACHARMAPINFO ACHARMAPINFO

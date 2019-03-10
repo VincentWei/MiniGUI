@@ -161,7 +161,7 @@ Please report any bugs and incompatibilities in
   1. Add `__mg_save_jpg` function for storing MYBITMAP as JPEG file (@10km).
   1. Modified logic for checking JPEG format (@10km).
   1. Support BIDI for UNICODE charsets and cleanup the implementation.
-    * New API: `GetGlyphBIDIType` to get the glyph type in BIDI.
+    * New API: `GetGlyphBidiType` to get the glyph type in BIDI.
     * New DC attribute: BIDI flag.
   1. Enhance commlcd engint to support more pixel type and synchronously update.
   1. New USVFB IAL engine and NEWGAL engine for web display server.

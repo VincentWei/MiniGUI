@@ -588,9 +588,9 @@ static Uint16 __mg_iso8859_68x_type[] = {
     BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,
 };
 
-static Uint16 iso8859_6_bidi_char_type (Achar32 chv)
+static BidiType iso8859_6_bidi_char_type (Achar32 chv)
 {
-    return __mg_iso8859_68x_type[REAL_ACHAR(chv)];
+    return (BidiType)__mg_iso8859_68x_type[REAL_ACHAR(chv)];
 }
 
 static int get_table_index(Uint8 c)

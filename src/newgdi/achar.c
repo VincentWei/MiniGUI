@@ -157,7 +157,7 @@ Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
     return t;
 }
 
-Uint16 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv)
+Uint16 GUIAPI GetACharBidiType (LOGFONT* log_font, Achar32 chv)
 {
     Uint16 t = BIDI_TYPE_INVALID;
     DEVFONT* devfont = SELECT_DEVFONT_BY_ACHAR(log_font, chv);
@@ -171,7 +171,7 @@ Uint16 GUIAPI GetACharBIDIType (LOGFONT* log_font, Achar32 chv)
             if (devfont->charset_ops->conv_to_uc32) {
                 Uchar32 uc;
                 uc = devfont->charset_ops->conv_to_uc32(chv);
-                t = UCharGetBIDIType(uc);
+                t = UCharGetBidiType(uc);
             }
 #else
             t = BIDI_TYPE_INVALID;

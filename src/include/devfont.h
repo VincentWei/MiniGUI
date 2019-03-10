@@ -227,7 +227,7 @@ struct _CHARSETOPS
     int (*pos_first_char) (const unsigned char* mstr, int mstrlen);
 
     /** The method to get the BIDI type of one character. */
-    Uint16 (*bidi_char_type) (Achar32 chv);
+    BidiType (*bidi_char_type) (Achar32 chv);
 
     /** Get mirrored character */
     BOOL (*bidi_mirror_char) (Achar32 chv, Achar32* mirrored);
