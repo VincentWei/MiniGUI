@@ -2,7 +2,7 @@ SUBDIRS = in-core
 
 noinst_LTLIBRARIES = libfont.la
 
-SRC_FILES = charset.c charset-arabic.c general-bidi.c \
+SRC_FILES = charset.c charset-arabic.c mgbidi.c \
             unicode-comp.c unicode-script.c language-code.c \
             sysfont.c logfont.c devfont.c fontname.c \
             rawbitmap.c varbitmap.c qpf.c upf.c \
@@ -16,7 +16,7 @@ SRC_FILES = charset.c charset-arabic.c general-bidi.c \
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \
             unicode-tables.h unicode-break-tables.h unicode-script-table.h \
-            unicode-decomp.h unicode-comp.h general-bidi.h \
+            unicode-decomp.h unicode-comp.h mgbidi.h \
             unicode-emoji-tables.h unicode-arabic-shaping-tables.h
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \

@@ -33,17 +33,17 @@
  */
 
 /*
-** general-bidi.c:
+** mgbidi.c:
 **
-** A general implementation of UNICODE BIDIRECTIONAL ALGORITHM
+** A general implementation of UNICODE BIDIRECTIONAL ALGORITHM for MiniGUI
 **
 **  https://www.unicode.org/reports/tr9/
 **
 ** Created by WEI Yongming at 2019/03/08
 **
-** This implementation is based on LGPL'd Bidi:
+** This implementation is based on LGPL'd FriBidi:
 **
-**  https://github.com/gbidi/gbidi
+**  https://github.com/fribidi/fribidi
 **
 ** Authors:
 **   Behdad Esfahbod, 2001, 2002, 2004
@@ -69,7 +69,7 @@
 #include "devfont.h"
 
 #include "bidi.h"
-#include "general-bidi.h"
+#include "mgbidi.h"
 
 #ifdef DEBUG
 

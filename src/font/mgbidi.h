@@ -3,7 +3,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -33,29 +33,30 @@
  */
 
 /*
-** general-bidi.h:
+** mgbidi.h:
 **
-** A general implementation of UNICODE BIDIRECTIONAL ALGORITHM
+** A general implementation of UNICODE BIDIRECTIONAL ALGORITHM for MiniGUI
 **
 **  https://www.unicode.org/reports/tr9/
 **
 ** Created by WEI Yongming at 2019/03/08
 **
-** This implementation is based on LGPL'd Bidi:
+** This implementation is based on LGPL'd FriBidi:
 **
-**  https://github.com/gbidi/gbidi
-**
-** Authors:
-**   Behdad Esfahbod, 2001, 2002, 2004
-**   Dov Grobgeld, 1999, 2000, 2017
-**
-** Copyright (C) 2004 Sharif FarsiWeb, Inc
-** Copyright (C) 2001,2002 Behdad Esfahbod
-** Copyright (C) 1999,2000,2017 Dov Grobgeld
+**  https://github.com/fribidi/fribidi
 */
 
 #ifndef _MGFONT_GENERAL_BIDI_H
 #define _MGFONT_GENERAL_BIDI_H
+
+#ifdef _MGCHARSET_UNICODE_FULL
+#define MGBIDI_UNICODE_CHARS   0x110000
+#else
+#define MGBIDI_UNICODE_CHARS   0xFFFE
+#endif
+
+/* some general macros */
+#define STRINGIZE(symbol) #symbol
 
 /* A few macros for working with bits */
 #define BIDI_TEST_BITS(x, mask) (((x) & (mask)) ? 1 : 0)

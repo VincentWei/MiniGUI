@@ -76,7 +76,7 @@ int main (int argc, char* argv[])
         for (ch2 = 0xA1; ch2 < 0xFF; ch2++) {
             index = gb_index (ch1, ch2);
             if (index >= 0) {
-                uc16 = gbunicode_map [index];
+                uc16 = __mg_gbunicode_map [index];
 
                 if (gb_char [uc16].ch1 || gb_char [uc16].ch2) {
                     fprintf (stderr, "WARNING: duplicated value 0x%04X.\n", uc16);
@@ -130,7 +130,7 @@ int main (int argc, char* argv[])
             }
             printf ("0x%02x, 0x%02x, ", gb_char [uc16].ch1, gb_char [uc16].ch2);
         }
-        printf ("\n};\n", index);
+        printf ("\n};\n");
     }
     printf ("\n");
 
@@ -146,7 +146,7 @@ int main (int argc, char* argv[])
     }
     printf ("};\n");
 
-    printf ("#define NR_BYTES_PER_CHAR %d\n", sizeof (struct _gb_char));
+    printf ("#define NR_BYTES_PER_CHAR %lu\n", sizeof (struct _gb_char));
     printf ("\n");
     printf ("/* using binary search */\n");
     printf ("const unsigned char* __mg_map_uc16_to_gb (unsigned short uc16)\n");

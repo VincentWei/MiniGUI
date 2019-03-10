@@ -1,28 +1,35 @@
-CC=gcc 
-CFLAGS=-Wall -g
+CC=gcc
+CFLAGS=-Wall -Werror -g -D__MINIGUI_LIB__ -I../../../include/
 
-all:bin2c qpf2c vbf2c upgradevbf bdf2vbf dumpupf qpf2upf upf2c
+all:mkmap-ucs-gb18030 mkmap-ucs-gb2312 \
+    gen-unicode-version \
+    gen-bidi-type-tab \
+    gen-joining-type-tab \
+    gen-arabic-shaping-tab \
+    gen-mirroring-tab \
+    gen-brackets-tab \
+    gen-brackets-type-tab
 
-bin2c:bin2c.o
+mkmap-ucs-gb2312:mkmap-ucs-gb2312.o
 
-qpf2c:qpf2c.o
+mkmap-ucs-gb18030:mkmap-ucs-gb18030.o
 
-qpf2upf:qpf2upf.o
+gen-unicode-version:gen-unicode-version.o
 
-upf2c:upf2c.c
-
-vbf2c:vbf2c.o
-
-makegbrbf:makegbrbf.o
-
-makeucs2gbtable:makeucs2gbtable.o
-
-upgradevbf:upgradevbf.o
-
-bdf2vbf:bdf2vbf.c
-
-dumpupf:
-	gcc -lminigui_ths -lttf  -ljpeg -lpng -lpthread -lm -lz -o dumpupf dumpupf.c
+gen-bidi-type-tab:gen-bidi-type-tab.o packtab.o
+gen-joining-type-tab:gen-joining-type-tab.o packtab.o
+gen-arabic-shaping-tab:gen-arabic-shaping-tab.o packtab.o
+gen-mirroring-tab:gen-mirroring-tab.o packtab.o
+gen-brackets-tab:gen-brackets-tab.o packtab.o
+gen-brackets-type-tab:gen-brackets-type-tab.o packtab.o
 
 clean:
-	rm -f qpf2c qpf2upf upf2c vbf2c bin2c dumpqpf dumpupf dumpqpf2 upgradevbf bdf2vbf *.o
+	rm -f *.o mkmap-ucs-gb2312 mkmap-gb18030-ucs.c mkmap-ucs-gb18030 \
+    gen-unicode-version \
+    gen-bidi-type-tab \
+    gen-joining-type-tab \
+    gen-arabic-shaping-tab \
+    gen-mirroring-tab \
+    gen-brackets-tab \
+    gen-brackets-type-tab
+

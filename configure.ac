@@ -636,6 +636,10 @@ AC_ARG_ENABLE(unicodesupport,
 [  --enable-unicodesupport  include UNICODE (ISO-10646-1 and UTF-8 encoding) support <default=yes>],
 build_unicode_support=$enableval)
 
+AC_ARG_ENABLE(fullunicode,
+[  --enable-fullunicode     include support for full UNICODE code points <default=yes>],
+build_full_unicode=$enableval)
+
 AC_ARG_ENABLE(kbdhebrewpc,
 [  --enable-kbdhebrewpc     include keyboard layout for Hebrew PC keyboard <default=no>],
 use_kbd_hebrewpc=$enableval)
@@ -2215,6 +2219,11 @@ fi
 if test "x$build_unicode_support" = "xyes"; then
     AC_DEFINE(_MGCHARSET_UNICODE, 1,
             [Define if support UNICODE])
+fi
+
+if test "x$build_full_unicode" = "xyes"; then
+    AC_DEFINE(_MGCHARSET_UNICODE_FULL, 1,
+            [Define if support full UNICODE code points])
 fi
 
 if test "x$use_kbd_hebrewpc" = "xyes"; then
