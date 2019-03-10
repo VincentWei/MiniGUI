@@ -155,7 +155,7 @@ struct _BidiRun {
  * http://www.unicode.org/reports/tr9/#P2.
  *
  * You typically do not need this function as
- * mgbidi_get_paragraph_els() knows how to compute base direction
+ * mgbidi_get_paragraph_els_ex() knows how to compute base direction
  * itself, but you may need this to implement a more sophisticated paragraph
  * direction handling.  Note that you can pass more than a paragraph to this
  * function and the direction of the first non-neutral paragraph is returned,
@@ -173,14 +173,15 @@ struct _BidiRun {
  */
 int mgbidi_get_paragraph_dir(const BidiType *bidi_types, int len);
 
-/* mgbidi_get_paragraph_els_ex - get bidi embedding levels of a paragraph
+/**
+ * \fn mgbidi_get_paragraph_els_ex
+ * \brief Get bidi embedding levels of a paragraph
  *
  * This function finds the bidi embedding levels of a single paragraph,
  * as defined by the Unicode Bidirectional Algorithm available at
  * http://www.unicode.org/reports/tr9/.
  *
- * This function implements rules P2 to I1 inclusive, and parts 1 to 3 of L1,
- * except for rule X9 which is implemented in mgbidi_remove_bidi_marks().
+ * This function implements rules P2 to I1 inclusive, and parts 1 to 3 of L1.
  * Part 4 of L1 is implemented in mgbidi_reorder_line().
  *
  * There are a few macros defined in mgbidi-bidi-types.h to work with this
@@ -189,7 +190,7 @@ int mgbidi_get_paragraph_dir(const BidiType *bidi_types, int len);
  * \param bidi_types the pointer to the BidiType array as returned by
  *      mgbidi_get_bidi_types()
  * \param bracket_types The pointer to a Uint8 which contains the
-        bracket types as returned by mgbidi_get_bracket_types()
+        bracket types as returned by UCharGetBracketTypes()
  * \param len The length of the list.
  * \param base_dir requested and resolved paragraph base direction
  * \param embedding_levels The pointer to a buffer which will restore
@@ -202,7 +203,9 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     const BidiBracketType* bracket_types, int len,
     int *base_dir, BidiLevel *embedding_levels);
 
-/* mgbidi_reorder_line - reorder a line of logical string to visual
+/**
+ * \fn mgbidi_reorder_line
+ * \brief Reorder a line of logical string to visual
  *
  * This function reorders the characters in a line of text from logical to
  * final visual order.
@@ -214,7 +217,7 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
  * As a side effect it also sets position maps if not NULL.
  *
  * You should provide the resolved paragraph direction and embedding levels as
- * set by mgbidi_get_paragraph_els().  Also note that the embedding
+ * set by mgbidi_get_paragraph_els_ex().  Also note that the embedding
  * levels may change a bit.  To be exact, the embedding level of any sequence
  * of white space at the end of line is reset to the paragraph embedding level
  * (That is part 4 of rule L1).
@@ -236,12 +239,12 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
  * \param bidi_types the pointer to the BidiType array as returned by
  *      mgbidi_get_bidi_types()
  * \param bracket_types The pointer to a Uint8 which contains the
-        bracket types as returned by mgbidi_get_bracket_types()
+        bracket types as returned by UCharGetBracketTypes()
  * \param len The length of the list.
  * \param off The input offset of the beginning of the line in the paragraph.
  * \param base_dir The resolved paragraph base direction.
  * \param embedding_levels The embedding levels, as returned by
-        mgbidi_get_paragraph_els()
+        mgbidi_get_paragraph_els_ex()
  * \param visual_str
  * \param extra The pointer to the extra array to reorder; can be NULL.
  * \param cb_reverse_extra The callback function to reverse the extra array.
