@@ -21,14 +21,14 @@ HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             unicode-emoji-tables.h \
             mgbidi.h \
             mgbidi-bidi-types-list.inc \
-            mgbidi-bidi-type-table.inc \
+            mgbidi-joining-types-list.inc \
             mgbidi-arabic-misc-table.inc \
-            mgbidi-arabic-shaping-table.inc \
+            mgbidi-bidi-type-table.inc \
             mgbidi-brackets-table.inc \
             mgbidi-brackets-type-table.inc \
-            mgbidi-joining-types-list.inc \
-            mgbidi-joining-type-table.inc \
-            mgbidi-mirroring-table.inc
+            mgbidi-mirroring-table.inc \
+            mgbidi-arabic-shaping-table.inc \
+            mgbidi-joining-type-table.inc
 
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
