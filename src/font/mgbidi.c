@@ -494,32 +494,7 @@ static const char *gbidi_get_bidi_type_name(BidiType t)
     switch ((int)t) {
 #   define _BIDI_ADD_TYPE(TYPE,SYMBOL) case BIDI_TYPE_##TYPE: return #TYPE;
 #   define _BIDI_ALL_TYPES
-    _BIDI_ADD_TYPE (LTR, 'L')	/* Left-To-Right letter */
-    _BIDI_ADD_TYPE (RTL, 'R')	/* Right-To-Left letter */
-    _BIDI_ADD_TYPE (AL, 'A')	/* Arabic Letter */
-    _BIDI_ADD_TYPE (EN, '1')	/* European Numeral */
-    _BIDI_ADD_TYPE (AN, '9')	/* Arabic Numeral */
-    _BIDI_ADD_TYPE (ES, 'w')	/* European number Separator */
-    _BIDI_ADD_TYPE (ET, 'w')	/* European number Terminator */
-    _BIDI_ADD_TYPE (CS, 'w')	/* Common Separator */
-    _BIDI_ADD_TYPE (NSM, '`')	/* Non Spacing Mark */
-    _BIDI_ADD_TYPE (BN, 'b')	/* Boundary Neutral */
-    _BIDI_ADD_TYPE (BS, 'B')	/* Block Separator */
-    _BIDI_ADD_TYPE (SS, 'S')	/* Segment Separator */
-    _BIDI_ADD_TYPE (WS, '_')	/* WhiteSpace */
-    _BIDI_ADD_TYPE (ON, 'n')	/* Other Neutral */
-    _BIDI_ADD_TYPE (LRE, '+')	/* Left-to-Right Embedding */
-    _BIDI_ADD_TYPE (RLE, '+')	/* Right-to-Left Embedding */
-    _BIDI_ADD_TYPE (LRO, '+')	/* Left-to-Right Override */
-    _BIDI_ADD_TYPE (RLO, '+')	/* Right-to-Left Override */
-    _BIDI_ADD_TYPE (PDF, '-')	/* Pop Directional Flag */
-    _BIDI_ADD_TYPE (LRI, '+')	/* Left-to-Right Isolate */
-    _BIDI_ADD_TYPE (RLI, '+')	/* Right-to-Left Isolate */
-    _BIDI_ADD_TYPE (FSI, '+')	/* First-Strong Isolate */
-    _BIDI_ADD_TYPE (PDI, '-')	/* Pop Directional Isolate */
-    _BIDI_ADD_TYPE (WLTR, 'l')	/* Weak Left To Right paragraph */
-    _BIDI_ADD_TYPE (WRTL, 'r')	/* Weak Right To Left paragraph */
-    _BIDI_ADD_TYPE (SENTINEL, '$')	/* SENTINEL */
+#   include "mgbidi-bidi-types-list.h"
 #   undef _BIDI_ALL_TYPES
 #   undef _BIDI_ADD_TYPE
     default:

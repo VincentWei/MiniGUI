@@ -2,7 +2,7 @@ SUBDIRS = in-core
 
 noinst_LTLIBRARIES = libfont.la
 
-SRC_FILES = charset.c charset-arabic.c mgbidi.c \
+SRC_FILES = charset.c charset-arabic.c \
             unicode-comp.c unicode-script.c language-code.c \
             sysfont.c logfont.c devfont.c fontname.c \
             rawbitmap.c varbitmap.c qpf.c upf.c \
@@ -11,13 +11,15 @@ SRC_FILES = charset.c charset-arabic.c mgbidi.c \
             ujisunimap.c sjisunimap.c euckrunimap.c \
             textops.c mapunitogb.c mapunitogbk.c mapunitobig5.c mapunitogb18030.c \
             bitmapfont.c scripteasy.c \
-            unicode-emoji.c
+            unicode-emoji.c \
+            mgbidi.c
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \
             unicode-tables.h unicode-break-tables.h unicode-script-table.h \
-            unicode-decomp.h unicode-comp.h mgbidi.h \
-            unicode-emoji-tables.h unicode-arabic-shaping-tables.h
+            unicode-decomp.h unicode-comp.h \
+            unicode-emoji-tables.h \
+            mgbidi.h mgbidi-bidi-types-list.h mgbidi-joining-types-list.h
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc
