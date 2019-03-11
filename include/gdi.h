@@ -10099,8 +10099,7 @@ MG_EXPORT int GUIAPI BIDIGetTextLogicalAChars (LOGFONT* log_font,
 
 /**
  * \fn void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
- *      const char* text, int text_len,
- *      int start_index, int end_index,
+ *      const char* text, int text_len, int start_index, int end_index,
  *      int** ranges, int* nr_ranges)
  * \brief Get a list of visual ranges corresponding to a given logical range.
  *

@@ -3597,7 +3597,7 @@ static const BidiType linear_enum_to_bidi_type[] = {
 #undef _UNIBIDI_ADD_TYPE
 };
 
-static BidiType unicode_bidi_char_type(Achar32 ch)
+static BidiType __mg_unicode_bidi_char_type(Achar32 ch)
 {
     ch = REAL_ACHAR(ch);
     return linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(ch)];
@@ -3669,7 +3669,7 @@ void UCharGetBracketTypes(const Uchar32 *str, int len,
 
 #include "unicode-bidi-mirroring-table.inc"
 
-static BOOL unicode_bidi_mirror_char(Achar32 ch, Achar32* mirrored_ch)
+static BOOL __mg_unicode_bidi_mirror_char(Achar32 ch, Achar32* mirrored_ch)
 {
     register Achar32 result;
     register Uint32 mbc_mask;
@@ -3698,26 +3698,26 @@ BOOL GUIAPI UCharGetMirror(Uchar32 ch, Uchar32* mirrored_ch)
 
 #include "unicode-bidi-tables.h"
 
-static BidiType unicode_bidi_char_type (Achar32 chv)
+static BidiType __mg_unicode_bidi_char_type (Achar32 chv)
 {
     Achar32 chv_first = 0;
-    Achar32 chv_last = (Achar32)TABLESIZE (__mg_unicode_bidi_char_type_map);
+    Achar32 chv_last = (Achar32)TABLESIZE (__mg___mg_unicode_bidi_char_type_map);
     Achar32 chv_mid;
 
     chv = REAL_ACHAR(chv);
     while (chv_last >= chv_first) {
         chv_mid = (chv_first + chv_last)/2;
 
-        if ((__mg_unicode_bidi_char_type_map[chv_mid].chv <= chv)
-                && ((__mg_unicode_bidi_char_type_map[chv_mid].chv + __mg_unicode_bidi_char_type_map[chv_mid].count) > chv)) {
-            return __mg_unicode_bidi_char_type_map[chv_mid].type;
+        if ((__mg___mg_unicode_bidi_char_type_map[chv_mid].chv <= chv)
+                && ((__mg___mg_unicode_bidi_char_type_map[chv_mid].chv + __mg___mg_unicode_bidi_char_type_map[chv_mid].count) > chv)) {
+            return __mg___mg_unicode_bidi_char_type_map[chv_mid].type;
         }
 
-        if (chv >= (__mg_unicode_bidi_char_type_map[chv_mid].chv + __mg_unicode_bidi_char_type_map[chv_mid].count)) {
+        if (chv >= (__mg___mg_unicode_bidi_char_type_map[chv_mid].chv + __mg___mg_unicode_bidi_char_type_map[chv_mid].count)) {
             chv_first = chv_mid + 1;
         }
         else {
-            if (chv < __mg_unicode_bidi_char_type_map[chv_mid].chv)
+            if (chv < __mg___mg_unicode_bidi_char_type_map[chv_mid].chv)
                 chv_last = chv_mid - 1;
             else
                 chv_last = chv_mid;
@@ -3727,7 +3727,7 @@ static BidiType unicode_bidi_char_type (Achar32 chv)
     return BIDI_TYPE_LTR;
 }
 
-static BOOL unicode_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
+static BOOL __mg_unicode_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 {
     return get_mirror_char (__mg_unicode_mirror_table,
             TABLESIZE (__mg_unicode_mirror_table), chv, mirrored);
@@ -3735,7 +3735,7 @@ static BOOL unicode_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 
 BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
 {
-    return unicode_bidi_char_type(uc);
+    return __mg_unicode_bidi_char_type(uc);
 }
 
 BidiBracketType GUIAPI UCharGetBracketType(Uchar32 uc)
@@ -3785,7 +3785,7 @@ void GUIAPI UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
 /** The function returns the mirror character of a UNICODE character. */
 BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored)
 {
-    return unicode_bidi_mirror_char (uc, mirrored);
+    return __mg_unicode_bidi_mirror_char (uc, mirrored);
 }
 
 #endif /* !_USE_UNIBIDI */
@@ -3989,8 +3989,8 @@ static CHARSETOPS CharsetOps_utf8 = {
     utf8_len_first_substr,
     utf8_get_next_word,
     utf8_pos_first_char,
-    unicode_bidi_char_type,
-    unicode_bidi_mirror_char,
+    __mg_unicode_bidi_char_type,
+    __mg_unicode_bidi_mirror_char,
     NULL,
     utf8_conv_from_uc32,
 };
@@ -4215,8 +4215,8 @@ static CHARSETOPS CharsetOps_utf16le = {
     utf16le_len_first_substr,
     utf16le_get_next_word,
     utf16le_pos_first_char,
-    unicode_bidi_char_type,
-    unicode_bidi_mirror_char,
+    __mg_unicode_bidi_char_type,
+    __mg_unicode_bidi_mirror_char,
     NULL,
     utf16le_conv_from_uc32
 };
@@ -4441,8 +4441,8 @@ static CHARSETOPS CharsetOps_utf16be = {
     utf16be_len_first_substr,
     utf16be_get_next_word,
     utf16be_pos_first_char,
-    unicode_bidi_char_type,
-    unicode_bidi_mirror_char,
+    __mg_unicode_bidi_char_type,
+    __mg_unicode_bidi_mirror_char,
     NULL,
     utf16be_conv_from_uc32
 };

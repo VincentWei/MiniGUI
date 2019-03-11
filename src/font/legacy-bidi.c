@@ -655,7 +655,7 @@ static void bidi_reverse_chars (void* context, int len, int pos)
     }
 }
 
-void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
+void __mg_legacy_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int pel, Uint8* embedding_levels, Uint8 type)
 {
     int i = 0;
@@ -703,7 +703,7 @@ static void bidi_map_reverse (void* context, int len, int pos)
     }
 }
 
-Achar32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
+Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, GLYPHMAPINFO* map, int pel)
 {
     BYTE max_level = 1;
@@ -739,7 +739,7 @@ Achar32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
     return achars;
 }
 
-Achar32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
+Achar32* __mg_legacy_bidi_index_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int* index_map, int pel)
 {
     BYTE max_level = 1;
@@ -762,7 +762,7 @@ Achar32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
 }
 #endif
 
-Achar32* __mg_charset_bidi_achars_reorder (const CHARSETOPS* charset_ops,
+Achar32* __mg_legacy_bidi_achars_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int pel,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
 {
@@ -789,7 +789,7 @@ Achar32* __mg_charset_bidi_achars_reorder (const CHARSETOPS* charset_ops,
     return achars;
 }
 
-Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
+Uint32 __mg_legacy_bidi_str_base_dir (const CHARSETOPS* charset_ops,
         Achar32* achars, int len)
 {
     BYTE base_level = 0;

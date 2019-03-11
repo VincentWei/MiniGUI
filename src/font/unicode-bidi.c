@@ -58,8 +58,9 @@
 #include "minigui.h"
 #include "gdi.h"
 
-#include "devfont.h"
+#ifdef _MGCHARSET_UNICODE
 
+#include "devfont.h"
 #include "bidi.h"
 #include "unicode-bidi.h"
 
@@ -474,9 +475,9 @@ static const char char_from_level_array[] = {
     '*', '*', '*', '*', '*'
 };
 
-#define unicode_bidi_char_from_level(level) char_from_level_array[(level) + 1]
+#define unibidi_char_from_level(level) char_from_level_array[(level) + 1]
 
-static const char *unicode_bidi_get_bidi_type_name(BidiType t)
+static const char *unibidi_get_bidi_type_name(BidiType t)
 {
     switch ((int)t) {
 #   define _BIDI_ADD_TYPE(TYPE,SYMBOL) case BIDI_TYPE_##TYPE: return #TYPE;
@@ -494,7 +495,7 @@ static void print_types_re(const BidiRun *pp)
     _DBG_PRINTF ("  Run types  : ");
     for_run_list (pp, pp) {
         _DBG_PRINTF ("%d:%d(%s)[%d,%d] ",
-                pp->pos, pp->len, unicode_bidi_get_bidi_type_name (pp->type), pp->level, pp->isolate_level);
+                pp->pos, pp->len, unibidi_get_bidi_type_name (pp->type), pp->level, pp->isolate_level);
     }
     _DBG_PRINTF ("\n");
 }
@@ -506,7 +507,7 @@ static void print_resolved_levels(const BidiRun *pp)
     {
         register int i;
         for (i = RL_LEN (pp); i; i--)
-            _DBG_PRINTF ("%c", unicode_bidi_char_from_level (RL_LEVEL (pp)));
+            _DBG_PRINTF ("%c", unibidi_char_from_level (RL_LEVEL (pp)));
     }
     _DBG_PRINTF ("\n");
 }
@@ -517,7 +518,7 @@ static void print_resolved_types(const BidiRun *pp)
     for_run_list (pp, pp) {
         int i;
         for (i = RL_LEN (pp); i; i--)
-            _DBG_PRINTF ("%s ", unicode_bidi_get_bidi_type_name (pp->type));
+            _DBG_PRINTF ("%s ", unibidi_get_bidi_type_name (pp->type));
     }
     _DBG_PRINTF ("\n");
 }
@@ -528,7 +529,7 @@ static void print_bidi_string(const BidiType *bidi_types, const int len)
 
     _DBG_PRINTF ("  Org. types : ");
     for (i = 0; i < len; i++)
-        _DBG_PRINTF ("%s ", unicode_bidi_get_bidi_type_name (bidi_types[i]));
+        _DBG_PRINTF ("%s ", unibidi_get_bidi_type_name (bidi_types[i]));
     _DBG_PRINTF ("\n");
 }
 
@@ -642,7 +643,7 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
 #define BIDI_EMBEDDING_DIRECTION(link) \
     BIDI_LEVEL_TO_DIR(RL_LEVEL(link))
 
-int unicode_bidi_get_par_direction(const BidiType *bidi_types, const int len)
+int __mg_unicode_bidi_get_par_direction(const BidiType *bidi_types, const int len)
 {
     register int i;
 
@@ -736,7 +737,7 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
     }
 }
 
-BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
+BidiLevel __mg_unicode_bidi_get_paragraph_els(const BidiType *bidi_types,
       const BidiBracketType *bracket_types, const int len,
       int *pbase_dir, BidiLevel *embedding_levels)
 {
@@ -752,7 +753,7 @@ BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
         goto out;
     }
 
-    _DBG_PRINTF ("in unicode_bidi_get_paragraph_els");
+    _DBG_PRINTF ("in __mg_unicode_bidi_get_paragraph_els");
 
     /* Determinate character types */
     {
@@ -789,8 +790,8 @@ BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
         }
     }
     base_dir = BIDI_LEVEL_TO_DIR (base_level);
-    _DBG_PRINTF ("  base level : %c", unicode_bidi_char_from_level (base_level));
-    _DBG_PRINTF ("  base dir   : %s", unicode_bidi_get_bidi_type_name (base_dir));
+    _DBG_PRINTF ("  base level : %c", unibidi_char_from_level (base_level));
+    _DBG_PRINTF ("  base dir   : %s", unibidi_get_bidi_type_name (base_dir));
 
     base_level_per_iso_level[0] = base_level;
 
@@ -1505,7 +1506,7 @@ BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
            separator or paragraph separator, and
            4. any sequence of whitespace characters and/or isolate formatting
            characters at the end of the line.
-           ... (to be continued in unicode_bidi_reorder_line()). */
+           ... (to be continued in __mg_unicode_bidi_reorder_line()). */
         list = new_run_list ();
         if (!list) goto out;
         q = list;
@@ -1564,7 +1565,7 @@ BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
     status = TRUE;
 
 out:
-    _DBG_PRINTF ("leaving unicode_bidi_get_paragraph_els");
+    _DBG_PRINTF ("leaving __mg_unicode_bidi_get_paragraph_els");
 
     if (main_run_list)
         free_run_list (main_run_list);
@@ -1575,12 +1576,12 @@ out:
 
 
 static void
-bidi_string_reverse(Achar32 *str, int len)
+bidi_string_reverse(Uchar32 *str, int len)
 {
     int i;
 
     for (i = 0; i < len / 2; i++) {
-        Achar32 tmp = str[i];
+        Uchar32 tmp = str[i];
         str[i] = str[len - 1 - i];
         str[len - 1 - i] = tmp;
     }
@@ -1597,11 +1598,10 @@ static void index_array_reverse (int *arr, int len)
     }
 }
 
-BidiLevel unicode_bidi_reorder_line(Uint32 flags,
-        const BidiType *bidi_types, int len,
-        int off, int base_dir,
-        BidiLevel *embedding_levels,
-        Achar32 *visual_str, int *map,
+BidiLevel __mg_unicode_bidi_reorder_line(Uint32 flags,
+        const BidiType *bidi_types, int len, int off,
+        int base_dir, BidiLevel *embedding_levels,
+        Uchar32 *visual_str, int *map,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
 {
     BOOL status = FALSE;
@@ -1612,7 +1612,7 @@ BidiLevel unicode_bidi_reorder_line(Uint32 flags,
         goto out;
     }
 
-    _DBG_PRINTF ("in unicode_bidi_reorder_line");
+    _DBG_PRINTF ("in __mg_unicode_bidi_reorder_line");
 
     _DBG_PRINTF ("reset the embedding levels, 4. whitespace at the end of line");
     {
@@ -1703,3 +1703,4 @@ out:
     return status ? max_level + 1 : 0;
 }
 
+#endif /* _MGCHARSET_UNICODE */

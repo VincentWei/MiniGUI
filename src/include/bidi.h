@@ -47,10 +47,14 @@ extern "C" {
 #endif  /* __cplusplus */
 
 #ifdef BIDI_DEBUG
-    #define DBGLOG(s)      do { if (1) { fprintf(stderr, s); } } while (0)
-    #define DBGLOG2(s, t1)  do { if (1) { fprintf(stderr, s, t1); } } while (0)
-    #define DBGLOG3(s, t1,t2)  do { if (1) { fprintf(stderr, s, t1,t2); } } while (0)
-    #define DBGLOG4(s, t1,t2,t3)  do { if (1) { fprintf(stderr, s, t1,t2,t3); } } while (0)
+    #define DBGLOG(s)      \
+        do { if (1) { fprintf(stderr, s); } } while (0)
+    #define DBGLOG2(s, t1)  \
+        do { if (1) { fprintf(stderr, s, t1); } } while (0)
+    #define DBGLOG3(s, t1,t2) \
+        do { if (1) { fprintf(stderr, s, t1, t2); } } while (0)
+    #define DBGLOG4(s, t1,t2,t3) \
+        do { if (1) { fprintf(stderr, s, t1, t2, t3); } } while (0)
 #else
     #define DBGLOG(s)
     #define DBGLOG2(s, t1)
@@ -61,9 +65,12 @@ extern "C" {
 typedef struct _TYPERUN TYPERUN;
 
 typedef struct _BIDICHAR_TYPE_MAP {
-    Uchar32   chv;        // Starting code point of Unicode character
-    Uint16    count;      // Total number of Unicode characters of same type starting from chv
-    Uint16    type;       // Type of Unicode characters
+    // Starting code point of Unicode character
+    Uchar32   chv;
+    // Total number of Unicode characters of same type starting from chv
+    Uint16    count;
+    // Type of Unicode characters
+    Uint16    type;
 } BIDICHAR_TYPE_MAP;
 
 #define MGBIDI_BRACKET_NONE       0
@@ -83,28 +90,29 @@ typedef struct _BIDICHAR_MIRROR_MAP {
     Uint16 mirrored;
 } BIDICHAR_MIRROR_MAP;
 
-Achar32* __mg_charset_bidi_achars_reorder (const CHARSETOPS* charset_ops,
+Achar32* __mg_legacy_bidi_achars_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int pel,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
 
-/*
-Achar32* __mg_charset_bidi_map_reorder (const CHARSETOPS* charset_ops,
-        Achar32* achars, int len, GLYPHMAPINFO* map, int pel);
-
-Achar32* __mg_charset_bidi_index_reorder (const CHARSETOPS* charset_ops,
-        Achar32* achars, int len, int* index_map, int pel);
-*/
-
-void __mg_charset_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
+void __mg_legacy_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int pel, Uint8* embedding_levels, Uint8 type);
 
-Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
+Uint32 __mg_legacy_bidi_str_base_dir (const CHARSETOPS* charset_ops,
         Achar32* achars, int len);
+
+#if 0
+// Deprecated
+Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
+        Achar32* achars, int len, GLYPHMAPINFO* map, int pel);
+
+Achar32* __mg_legacy_bidi_index_reorder (const CHARSETOPS* charset_ops,
+        Achar32* achars, int len, int* index_map, int pel);
+#endif
 
 #ifdef _MGCHARSET_UNICODE
 
 /**
- * \fn unicode_bidi_get_paragraph_dir
+ * \fn __mg_unicode_bidi_get_paragraph_dir
  * \brief get base paragraph direction
  *
  * This function finds the base direction of a single paragraph,
@@ -112,7 +120,7 @@ Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
  * http://www.unicode.org/reports/tr9/#P2.
  *
  * You typically do not need this function as
- * unicode_bidi_get_paragraph_els_ex() knows how to compute base direction
+ * __mg_unicode_bidi_get_paragraph_els() knows how to compute base direction
  * itself, but you may need this to implement a more sophisticated paragraph
  * direction handling.  Note that you can pass more than a paragraph to this
  * function and the direction of the first non-neutral paragraph is returned,
@@ -121,17 +129,17 @@ Uint32 __mg_charset_bidi_str_base_dir (const CHARSETOPS* charset_ops,
  * direction of the previous paragraph.
  *
  * \param bidi_types the pointer to the BidiType array as returned by
- *      unicode_bidi_get_bidi_types()
+ *      __mg_unicode_bidi_get_bidi_types()
  * \param len The length of bidi_types
  *
  * \return Base pargraph direction. No weak paragraph direction is returned,
  * only BIDI_PGDIR_LTR, BIDI_PGDIR_RTL, or BIDI_PGDIR_ON.
  *
  */
-int unicode_bidi_get_paragraph_dir(const BidiType *bidi_types, int len);
+int __mg_unicode_bidi_get_paragraph_dir(const BidiType *bidi_types, int len);
 
 /**
- * \fn unicode_bidi_get_paragraph_els_ex
+ * \fn __mg_unicode_bidi_get_paragraph_els
  * \brief Get bidi embedding levels of a paragraph
  *
  * This function finds the bidi embedding levels of a single paragraph,
@@ -139,13 +147,13 @@ int unicode_bidi_get_paragraph_dir(const BidiType *bidi_types, int len);
  * http://www.unicode.org/reports/tr9/.
  *
  * This function implements rules P2 to I1 inclusive, and parts 1 to 3 of L1.
- * Part 4 of L1 is implemented in unicode_bidi_reorder_line().
+ * Part 4 of L1 is implemented in __mg_unicode_bidi_reorder_line().
  *
  * There are a few macros defined in mgbidi-bidi-types.h to work with this
  * embedding levels.
  *
  * \param bidi_types the pointer to the BidiType array as returned by
- *      unicode_bidi_get_bidi_types()
+ *      __mg_unicode_bidi_get_bidi_types()
  * \param bracket_types The pointer to a Uint8 which contains the
         bracket types as returned by UCharGetBracketTypes()
  * \param len The length of the list.
@@ -156,12 +164,12 @@ int unicode_bidi_get_paragraph_dir(const BidiType *bidi_types, int len);
  * \return The Maximum level found plus one, or zero if any error occurred
  * (memory allocation failure most probably).
  */
-BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
+BidiLevel __mg_unicode_bidi_get_paragraph_els(const BidiType *bidi_types,
     const BidiBracketType* bracket_types, int len,
     int *base_dir, BidiLevel *embedding_levels);
 
 /**
- * \fn unicode_bidi_reorder_line
+ * \fn __mg_unicode_bidi_reorder_line
  * \brief Reorder a line of logical string to visual
  *
  * This function reorders the characters in a line of text from logical to
@@ -174,7 +182,7 @@ BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
  * As a side effect it also sets position maps if not NULL.
  *
  * You should provide the resolved paragraph direction and embedding levels as
- * set by unicode_bidi_get_paragraph_els_ex().  Also note that the embedding
+ * set by __mg_unicode_bidi_get_paragraph_els(). Also note that the embedding
  * levels may change a bit.  To be exact, the embedding level of any sequence
  * of white space at the end of line is reset to the paragraph embedding level
  * (That is part 4 of rule L1).
@@ -194,15 +202,15 @@ BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
  *
  * \param flags The reorder flags.
  * \param bidi_types the pointer to the BidiType array as returned by
- *      unicode_bidi_get_bidi_types()
- * \param bracket_types The pointer to a Uint8 which contains the
-        bracket types as returned by UCharGetBracketTypes()
+ *      __mg_unicode_bidi_get_bidi_types()
+ * \param bracket_types The pointer to a BidiBracketType array which
+ *      contains the bracket types as returned by UCharGetBracketTypes()
  * \param len The length of the list.
  * \param off The input offset of the beginning of the line in the paragraph.
  * \param base_dir The resolved paragraph base direction.
  * \param embedding_levels The embedding levels, as returned by
-        unicode_bidi_get_paragraph_els_ex()
- * \param visual_str
+        __mg_unicode_bidi_get_paragraph_els()
+ * \param visual_str The Uchar32 string will be reordered.
  * \param extra The pointer to the extra array to reorder; can be NULL.
  * \param cb_reverse_extra The callback function to reverse the extra array.
  * \param map a map of string indices which is reordered to reflect
@@ -211,12 +219,13 @@ BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
  * \return Maximum level found in this line plus one, or zero if any error
  * occurred (memory allocation failure most probably).
  */
-BidiLevel unicode_bidi_reorder_line(Uint32 flags, const BidiType *bidi_types,
-    int len, int off, int base_dir, BidiLevel *embedding_levels,
-    Achar32 *visual_str, int *map,
+BidiLevel __mg_unicode_bidi_reorder_line(Uint32 flags,
+    const BidiType *bidi_types, int len, int off,
+    int base_dir, BidiLevel *embedding_levels,
+    Uchar32 *visual_str, int *map,
     void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
 
-#endif
+#endif /* _MGCHARSET_UNICODE */
 
 #ifdef __cplusplus
 }

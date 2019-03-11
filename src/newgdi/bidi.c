@@ -535,7 +535,7 @@ Achar32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
         logical_achars = _gdi_get_achars_string (pdc, text, text_len, nr_achars);
         if (*nr_achars > 0)
-            __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
+            __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
                 logical_achars, *nr_achars, -1, NULL, NULL);
     }
 
@@ -936,7 +936,7 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
 
             logical_achars = _gdi_get_achars_string_break(pdc, text, text_len,
                     &nr_achars, context);
-            __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
+            __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
                 logical_achars, nr_achars, -1, NULL, NULL);
 
             if(!logical_achars)
@@ -1419,7 +1419,7 @@ int GUIAPI BIDIGetTextVisualAChars(LOGFONT* log_font,
 
     if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
-        __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
+        __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
                 *achs, nr_achars, -1,
                 *achs_map, bidi_reverse_map);
     }
@@ -1434,7 +1434,7 @@ Achar32* GUIAPI BIDILogAChars2VisAChars(LOGFONT* log_font,
 
     if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
-        __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
+        __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
                 achs, nr_achars, -1,
                 achs_map, bidi_reverse_map);
 
@@ -1452,7 +1452,7 @@ BOOL GUIAPI BIDILogAChars2VisACharsEx(LOGFONT* log_font,
 
     if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
-        __mg_charset_bidi_achars_reorder (mbc_devfont->charset_ops,
+        __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
                 achs, nr_achars, pel, extra, cb_reorder_extra);
 
         return TRUE;
@@ -1471,7 +1471,7 @@ void GUIAPI BIDIGetLogicalEmbedLevelsEx(LOGFONT* log_font,
         *embedding_levels = malloc(nr_achars * sizeof (Uint8));
 
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
-        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
+        __mg_legacy_bidi_get_embeddlevels (mbc_devfont->charset_ops,
                 achs, nr_achars, pel, *embedding_levels, 0);
     }
     else {
@@ -1489,7 +1489,7 @@ void GUIAPI BIDIGetVisualEmbedLevelsEx(LOGFONT* log_font,
         *embedding_levels = malloc(nr_achars * sizeof (Uint8));
 
     if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
-        __mg_charset_bidi_get_embeddlevels (mbc_devfont->charset_ops,
+        __mg_legacy_bidi_get_embeddlevels (mbc_devfont->charset_ops,
                 achs, nr_achars, pel, *embedding_levels, 1);
     }
     else {
