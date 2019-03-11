@@ -55,6 +55,41 @@
 #define UNIBIDI_UNICODE_CHARS   0xFFFE
 #endif
 
+/* Some special Unicode characters */
+
+/* Bidirectional marks */
+#define BIDI_CHAR_LRM        0x200E
+#define BIDI_CHAR_RLM        0x200F
+#define BIDI_CHAR_LRE        0x202A
+#define BIDI_CHAR_RLE        0x202B
+#define BIDI_CHAR_PDF        0x202C
+#define BIDI_CHAR_LRO        0x202D
+#define BIDI_CHAR_RLO        0x202E
+#define BIDI_CHAR_LRI        0x2066
+#define BIDI_CHAR_RLI        0x2067
+#define BIDI_CHAR_FSI        0x2068
+#define BIDI_CHAR_PDI        0x2069
+
+/* Line and Paragraph Separators */
+#define BIDI_CHAR_LS         0x2028
+#define BIDI_CHAR_PS         0x2029
+
+/* Arabic Joining marks */
+#define BIDI_CHAR_ZWNJ       0x200C
+#define BIDI_CHAR_ZWJ        0x200D
+
+/* Hebrew and Arabic */
+#define BIDI_CHAR_HEBREW_ALEF    0x05D0
+#define BIDI_CHAR_ARABIC_ALEF    0x0627
+#define BIDI_CHAR_ARABIC_ZERO    0x0660
+#define BIDI_CHAR_PERSIAN_ZERO   0x06F0
+
+/* Misc */
+#define BIDI_CHAR_ZWNBSP         0xFEFF
+
+/* Char we place for a deleted slot, to delete later */
+#define BIDI_CHAR_FILL        BIDI_CHAR_ZWNBSP
+
 /* some general macros */
 #define STRINGIZE(symbol) #symbol
 
@@ -84,7 +119,155 @@
 /* The maximum *number* of nested brackets: 0-63 */
 #define BIDI_MAX_NESTED_BRACKET_PAIRS   63
 
-#define BIDI_SENTINEL               -1
+#define BIDI_SENTINEL                   -1
+
+/*
+ * Define bit masks that joining types are based on, each mask has
+ * only one bit set.
+ */
+#define BIDI_MASK_JOINS_RIGHT       0x01    /* May join to right */
+#define BIDI_MASK_JOINS_LEFT        0x02    /* May join to right */
+#define BIDI_MASK_ARAB_SHAPES       0x04    /* May Arabic shape */
+#define BIDI_MASK_TRANSPARENT       0x08    /* Is transparent */
+#define BIDI_MASK_IGNORED           0x10    /* Is ignored */
+#define BIDI_MASK_LIGATURED         0x20    /* Is ligatured */
+
+/*
+ * Define values for FriBidiJoiningType
+ */
+
+/* nUn-joining */
+#define BIDI_JOINING_TYPE_U_VAL    ( 0 )
+
+/* Right-joining */
+#define BIDI_JOINING_TYPE_R_VAL    \
+    ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_ARAB_SHAPES )
+
+/* Dual-joining */
+#define BIDI_JOINING_TYPE_D_VAL    \
+    ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT \
+    | BIDI_MASK_ARAB_SHAPES )
+
+/* join-Causing */
+#define BIDI_JOINING_TYPE_C_VAL    \
+    ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT )
+
+/* Left-joining */
+#define BIDI_JOINING_TYPE_L_VAL    \
+    ( BIDI_MASK_JOINS_LEFT | BIDI_MASK_ARAB_SHAPES )
+
+/* Transparent */
+#define BIDI_JOINING_TYPE_T_VAL    \
+    ( BIDI_MASK_TRANSPARENT | BIDI_MASK_ARAB_SHAPES )
+
+/* iGnored */
+#define BIDI_JOINING_TYPE_G_VAL    ( BIDI_MASK_IGNORED )
+
+enum _BidiJoiningTypeEnum {
+# define _UNIBIDI_ADD_TYPE(TYPE,SYMBOL) \
+    BIDI_JOINING_TYPE_##TYPE = BIDI_JOINING_TYPE_##TYPE##_VAL,
+# include "unicode-joining-types-list.inc"
+# undef _UNIBIDI_ADD_TYPE
+    _UNIBIDI_JOINING_TYPE_JUNK	/* Don't use this */
+};
+
+/*
+ * The equivalent of JoiningType values for ArabicProp
+ */
+
+/* Primary Arabic Joining Classes (Table 8-2) */
+
+/* nUn-joining */
+#define BIDI_IS_JOINING_TYPE_U(p)    \
+    ( 0 == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) ) )
+
+/* Right-joining */
+#define BIDI_IS_JOINING_TYPE_R(p)    \
+    ( BIDI_MASK_JOINS_RIGHT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) ) )
+
+/* Dual-joining */
+#define BIDI_IS_JOINING_TYPE_D(p)    \
+    ( ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT    \
+      | BIDI_MASK_ARAB_SHAPES ) == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT    \
+        | BIDI_MASK_ARAB_SHAPES ) ) )
+
+/* join-Causing */
+#define BIDI_IS_JOINING_TYPE_C(p)    \
+    ( ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) == ( (p) & \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT    \
+        | BIDI_MASK_ARAB_SHAPES ) ) )
+
+/* Left-joining */
+#define BIDI_IS_JOINING_TYPE_L(p)    \
+    ( BIDI_MASK_JOINS_LEFT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) ) )
+
+/* Transparent */
+#define BIDI_IS_JOINING_TYPE_T(p)    \
+    ( BIDI_MASK_TRANSPARENT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED ) ) )
+
+/* iGnored */
+#define BIDI_IS_JOINING_TYPE_G(p)    \
+    ( BIDI_MASK_IGNORED == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED ) ) )
+
+/* and for Derived Arabic Joining Classes (Table 8-3) */
+
+/* Right join-Causing */
+#define BIDI_IS_JOINING_TYPE_RC(p)    \
+    ( BIDI_MASK_JOINS_RIGHT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT ) ) )
+
+/* Left join-Causing */
+#define BIDI_IS_JOINING_TYPE_LC(p)    \
+    ( BIDI_MASK_JOINS_LEFT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_LEFT ) ) )
+
+/*
+ * Defining macros for needed queries, It is fully dependent on the 
+ * implementation of FriBidiJoiningType.
+ */
+
+/* Joins to right: R, D, C? */
+#define BIDI_JOINS_RIGHT(p)    ((p) & BIDI_MASK_JOINS_RIGHT)
+
+/* Joins to left: L, D, C? */
+#define BIDI_JOINS_LEFT(p)    ((p) & BIDI_MASK_JOINS_LEFT)
+
+/* May shape: R, D, L, T? */
+#define BIDI_ARAB_SHAPES(p)    ((p) & BIDI_MASK_ARAB_SHAPES)
+
+/* Is skipped in joining: T, G? */
+#define BIDI_IS_JOIN_SKIPPED(p)    \
+    ((p) & (BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED))
+
+/* Is base that will be shaped: R, D, L? */
+#define BIDI_IS_JOIN_BASE_SHAPES(p)    \
+    ( BIDI_MASK_ARAB_SHAPES == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_ARAB_SHAPES ) ) )
+
+#define BIDI_JOINS_PRECEDING_MASK(level)    \
+    (BIDI_LEVEL_IS_RTL (level) ? BIDI_MASK_JOINS_RIGHT    \
+                      : BIDI_MASK_JOINS_LEFT)
+
+#define BIDI_JOINS_FOLLOWING_MASK(level)    \
+    (BIDI_LEVEL_IS_RTL (level) ? BIDI_MASK_JOINS_LEFT    \
+                      : BIDI_MASK_JOINS_RIGHT)
+
+#define BIDI_JOIN_SHAPE(p)    \
+    ((p) & ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ))
 
 #ifdef __cplusplus
 extern "C" {

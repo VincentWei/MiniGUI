@@ -13,7 +13,9 @@ SRC_FILES = charset.c charset-arabic.c legacy-bidi.c \
             mapunitogb.c mapunitogbk.c mapunitobig5.c mapunitogb18030.c \
             bitmapfont.c scripteasy.c \
             unicode-emoji.c \
-            unicode-bidi.c
+            unicode-bidi.c \
+            unicode-joining-types.c unicode-joining.c unicode-shape.c \
+            unicode-shape-arabic.c
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \

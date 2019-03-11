@@ -644,7 +644,7 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
 #define BIDI_EMBEDDING_DIRECTION(link) \
     BIDI_LEVEL_TO_DIR(RL_LEVEL(link))
 
-int UCharGetParagraphDir(const BidiType *bidi_types, const int len)
+int UBidiGetParagraphDir(const BidiType *bidi_types, const int len)
 {
     register int i;
 
@@ -738,7 +738,7 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
     }
 }
 
-BidiLevel UCharGetParagraphEmbeddingLevels(const BidiType *bidi_types,
+BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
       const BidiBracketType *bracket_types, const int len,
       int *pbase_dir, BidiLevel *embedding_levels)
 {
@@ -754,7 +754,7 @@ BidiLevel UCharGetParagraphEmbeddingLevels(const BidiType *bidi_types,
         goto out;
     }
 
-    _DBG_PRINTF ("in UCharGetParagraphEmbeddingLevels");
+    _DBG_PRINTF ("in UBidiGetParagraphEmbeddingLevels");
 
     /* Determinate character types */
     {
@@ -1507,7 +1507,7 @@ BidiLevel UCharGetParagraphEmbeddingLevels(const BidiType *bidi_types,
            separator or paragraph separator, and
            4. any sequence of whitespace characters and/or isolate formatting
            characters at the end of the line.
-           ... (to be continued in UCharReorderBidiLine()). */
+           ... (to be continued in UBidiReorderLine()). */
         list = new_run_list ();
         if (!list) goto out;
         q = list;
@@ -1566,7 +1566,7 @@ BidiLevel UCharGetParagraphEmbeddingLevels(const BidiType *bidi_types,
     status = TRUE;
 
 out:
-    _DBG_PRINTF ("leaving UCharGetParagraphEmbeddingLevels");
+    _DBG_PRINTF ("leaving UBidiGetParagraphEmbeddingLevels");
 
     if (main_run_list)
         free_run_list (main_run_list);
@@ -1599,7 +1599,7 @@ static void index_array_reverse (int *arr, int len)
     }
 }
 
-BidiLevel UCharReorderBidiLine(Uint32 flags,
+BidiLevel UBidiReorderLine(Uint32 flags,
         const BidiType *bidi_types, int len, int off,
         int base_dir, BidiLevel *embedding_levels,
         Uchar32 *visual_str, int *map,
@@ -1613,7 +1613,7 @@ BidiLevel UCharReorderBidiLine(Uint32 flags,
         goto out;
     }
 
-    _DBG_PRINTF ("in UCharReorderBidiLine");
+    _DBG_PRINTF ("in UBidiReorderLine");
 
     _DBG_PRINTF ("reset the embedding levels, 4. whitespace at the end of line");
     {

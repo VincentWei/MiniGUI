@@ -3608,7 +3608,7 @@ BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
     return linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(uc)];
 }
 
-void GUIAPI UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
+void GUIAPI UStrGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
 {
     register int i = len;
     for (; i; i--) {
@@ -3650,7 +3650,7 @@ BidiBracketType UCharGetBracketType(Uchar32 ch)
     return bracket_type;
 }
 
-void UCharGetBracketTypes(const Uchar32 *str, int len,
+void UStrGetBracketTypes(const Uchar32 *str, int len,
         const BidiType *types, BidiBracketType *btypes)
 {
     int i;
@@ -3773,7 +3773,7 @@ found:
     return bracket_type;
 }
 
-void GUIAPI UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
+void GUIAPI UStrGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
 {
     register int i = len;
     for (; i; i--) {

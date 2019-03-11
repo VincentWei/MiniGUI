@@ -5920,7 +5920,7 @@ typedef Uint32 Uchar32;
  *
  * These are the possible character classifications from the
  * Unicode specification.
- * See [Unicode Character Database](http://www.unicode.org/reports/tr44/#General_Category_Values).
+ * See [Unicode Character Database](https://www.unicode.org/reports/tr44/#General_Category_Values).
  */
 typedef enum {
     UCHAR_CATEGORY_CONTROL,
@@ -6007,7 +6007,7 @@ typedef enum {
  * Since new unicode versions may add new types here, applications should be
  * ready to handle unknown values. They may be regarded as %UCHAR_BREAK_UNKNOWN.
  *
- * See [Unicode Line Breaking Algorithm](http://www.unicode.org/unicode/reports/tr14/).
+ * See [Unicode Line Breaking Algorithm](https://www.unicode.org/unicode/reports/tr14/).
  */
 typedef enum {
     UCHAR_BREAK_MANDATORY,
@@ -6221,7 +6221,7 @@ typedef enum {
  *
  * Note that new types may be added in the future. Applications
  * should be ready to handle unknown values.
- * See [Unicode Standard Annex #24: Script names](http://www.unicode.org/reports/tr24/).
+ * See [Unicode Standard Annex #24: Script names](https://www.unicode.org/reports/tr24/).
  */
 typedef enum {
     UCHAR_SCRIPT_INVALID_CODE = -1,
@@ -7310,6 +7310,9 @@ typedef Uint8   BidiLevel;
 typedef Uint16  BidiType;
 typedef Uint32  BidiBracketType;
 
+typedef Uint8   BidiJoiningType;
+typedef Uint8   BidiArabicProp;
+
 #ifdef _MGCHARSET_UNICODE
 
 #include <stddef.h>
@@ -7487,12 +7490,12 @@ MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
  *
  * \return The bidi type.
  *
- * \sa UCharGetBidiTypes, bidi_types
+ * \sa UStrGetBidiTypes, bidi_types
  */
 MG_EXPORT BidiType GUIAPI UCharGetBidiType(Uchar32 uc);
 
 /**
- * \fn void GUIAPI UCharGetBidiTypes(const Uchar32* ucs, int nr_ucs,
+ * \fn void GUIAPI UStrGetBidiTypes(const Uchar32* ucs, int nr_ucs,
  *      BidiType* bds);
  * \brief Get bidi types for an string of Unicode characters.
  *
@@ -7505,7 +7508,7 @@ MG_EXPORT BidiType GUIAPI UCharGetBidiType(Uchar32 uc);
  *
  * \sa UCharGetBidiType
  */
-MG_EXPORT void GUIAPI UCharGetBidiTypes(const Uchar32* ucs, int nr_ucs,
+MG_EXPORT void GUIAPI UStrGetBidiTypes(const Uchar32* ucs, int nr_ucs,
         BidiType* bds);
 
 #define BIDI_BRACKET_NONE           0
@@ -7519,7 +7522,7 @@ MG_EXPORT void GUIAPI UCharGetBidiTypes(const Uchar32* ucs, int nr_ucs,
  *
  * This function finds the bracketed equivalent of a character as defined in
  * the file BidiBrackets.txt of the Unicode Character Database available at
- * http://www.unicode.org/Public/UNIDATA/BidiBrackets.txt.
+ * https://www.unicode.org/Public/UNIDATA/BidiBrackets.txt.
  *
  * If the input character is a declared as a brackets character in the
  * Unicode standard and has a bracketed equivalent.  The matching bracketed
@@ -7533,11 +7536,11 @@ MG_EXPORT void GUIAPI UCharGetBidiTypes(const Uchar32* ucs, int nr_ucs,
  * property. Use BCHI_BRACKET_CHAR(BidiBracketType) to get
  * the bracketed character value.
  *
- * \sa UCharGetBracketTypes
+ * \sa UStrGetBracketTypes
  */
 MG_EXPORT BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch);
 
-/* \fn void UCharGetBracketTypes(const Uchar32 *ucs, int nr_ucs,
+/* \fn void UStrGetBracketTypes(const Uchar32 *ucs, int nr_ucs,
  *      const BidiType *bidi_types, BidiBracketType *bracket_types)
  * \brief Get bracketed characters of a Uchar32 string.
  *
@@ -7553,7 +7556,7 @@ MG_EXPORT BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch);
  *
  * \sa UCharGetBracketType
  */
-MG_EXPORT void GUIAPI UCharGetBracketTypes(const Uchar32 *ucs, int len_ucs,
+MG_EXPORT void GUIAPI UStrGetBracketTypes(const Uchar32 *ucs, int len_ucs,
         const BidiType *bidi_types, BidiBracketType *bracket_types);
 
 /**
@@ -7579,15 +7582,55 @@ MG_EXPORT void GUIAPI UCharGetBracketTypes(const Uchar32 *ucs, int len_ucs,
 MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
 
 /**
- * \fn int GUIAPI UCharGetParagraphDir(const BidiType *bidi_types, int len)
+ * \fn BidiJoiningType GUIAPI UCharGetJoiningType(Uchar32 uc)
+ * \brief Get character joining type.
+ *
+ * This function returns the joining type of a character as defined in Table
+ * 8-2 Primary Arabic Joining Classes of the Unicode standard available at
+ *
+ * https://www.unicode.org/versions/Unicode12.0.0/ch08.pdf#G7462
+ *
+ * using data provided in file ArabicShaping.txt and UnicodeData.txt of
+ * the Unicode Character Database available at
+ *
+ * https://www.unicode.org/Public/UNIDATA/ArabicShaping.txt
+ *
+ * and
+ *
+ * https://www.unicode.org/Public/UNIDATA/UnicodeData.txt.
+ *
+ */
+MG_EXPORT BidiJoiningType GUIAPI UCharGetJoiningType(Uchar32 uc);
+
+/**
+ * \fn void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs,
+ *      BidiJoiningType *joing_types, int len)
+ * \brief Get joining types for a string of Unicode characters
+ *
+ * This function finds the joining types of an string of characters.
+ * See \a UCharGetJoiningType for more information about the
+ * joining types returned by this function.
+ *
+ * \param ucs The input Uchar32 string.
+ * \param joining_types The output joining types.
+ * \param len The string length.
+ *
+ * \sa UCharGetJoiningType
+ */
+MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs,
+        BidiJoiningType *joing_types, int len);
+
+/**
+ * \fn int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len)
  * \brief get base paragraph direction
  *
  * This function finds the base direction of a single paragraph,
  * as defined by rule P2 of the Unicode Bidirectional Algorithm available at
- * http://www.unicode.org/reports/tr9/#P2.
+ *
+ *      https://www.unicode.org/reports/tr9/#P2.
  *
  * You typically do not need this function as
- * __mg_unicode_bidi_get_paragraph_els() knows how to compute base direction
+ * UBidiGetParagraphEmbeddingLevels() knows how to compute base direction
  * itself, but you may need this to implement a more sophisticated paragraph
  * direction handling.  Note that you can pass more than a paragraph to this
  * function and the direction of the first non-neutral paragraph is returned,
@@ -7596,17 +7639,17 @@ MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
  * direction of the previous paragraph.
  *
  * \param bidi_types the pointer to the BidiType array as returned by
- *      __mg_unicode_bidi_get_bidi_types()
+ *      UStrGetBidiTypes().
  * \param len The length of bidi_types
  *
  * \return Base pargraph direction. No weak paragraph direction is returned,
  * only BIDI_PGDIR_LTR, BIDI_PGDIR_RTL, or BIDI_PGDIR_ON.
  *
  */
-MG_EXPORT int GUIAPI UCharGetParagraphDir(const BidiType *bidi_types, int len);
+MG_EXPORT int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
 
 /**
- * \fn BidiLevel GUIAPI UCharGetParagraphEmbeddingLevels(
+ * \fn BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
  *      const BidiType *bidi_types,
  *      const BidiBracketType* bracket_types, int len,
  *      int *base_dir, BidiLevel *embedding_levels);
@@ -7618,12 +7661,12 @@ MG_EXPORT int GUIAPI UCharGetParagraphDir(const BidiType *bidi_types, int len);
  *      https://www.unicode.org/reports/tr9/.
  *
  * This function implements rules P2 to I1 inclusive, and parts 1 to 3 of L1.
- * Part 4 of L1 is implemented in __mg_unicode_bidi_reorder_line().
+ * Part 4 of L1 is implemented in UBidiReorderLine().
  *
  * \param bidi_types the pointer to the BidiType array as returned by
- *      UCharGetBidiTypes().
+ *      UStrGetBidiTypes().
  * \param bracket_types The pointer to a Uint8 which contains the
-        bracket types as returned by UCharGetBracketTypes()
+        bracket types as returned by UStrGetBracketTypes()
  * \param len The length of the list.
  * \param base_dir requested and resolved paragraph base direction
  * \param embedding_levels The pointer to a buffer which will restore
@@ -7632,9 +7675,9 @@ MG_EXPORT int GUIAPI UCharGetParagraphDir(const BidiType *bidi_types, int len);
  * \return The Maximum level found plus one, or zero if any error occurred
  * (memory allocation failure most probably).
  *
- * \sa UCharGetBidiTypes, UCharGetBracketTypes
+ * \sa UStrGetBidiTypes, UStrGetBracketTypes
  */
-MG_EXPORT BidiLevel GUIAPI UCharGetParagraphEmbeddingLevels(
+MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
         const BidiType *bidi_types,
         const BidiBracketType* bracket_types, int len,
         int *base_dir, BidiLevel *embedding_levels);
@@ -7646,12 +7689,12 @@ MG_EXPORT BidiLevel GUIAPI UCharGetParagraphEmbeddingLevels(
  * The function reverse an array pointed by \a extra from the position
  * specified by \a pos for the length specified by \a len.
  *
- * \sa UCharReorderBidiLine, BIDILogAChars2VisACharsEx
+ * \sa UBidiReorderLine, BIDILogAChars2VisACharsEx
  */
 typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
 
 /**
- * \fn BidiLevel GUIAPI UCharReorderBidiLine(Uint32 reorder_flags,
+ * \fn BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  *      const BidiType *bidi_types, int len, int off,
  *      int base_dir, BidiLevel *embedding_levels,
  *      Uchar32 *visual_str, int *map,
@@ -7669,7 +7712,7 @@ typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
  * As a side effect it also sets position maps if not NULL.
  *
  * You should provide the resolved paragraph direction and embedding levels as
- * set by UCharGetParagraphEmbeddingLevels(). Also note that the embedding
+ * set by UBidiGetParagraphEmbeddingLevels(). Also note that the embedding
  * levels may change a bit.  To be exact, the embedding level of any sequence
  * of white space at the end of line is reset to the paragraph embedding level
  * (That is part 4 of rule L1).
@@ -7687,54 +7730,161 @@ typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
  * for example do not like it. This is controlled by the
  * BIDI_FLAG_REORDER_NSM flag. The flag is on in BIDI_FLAGS_DEFAULT.
  *
- * \param reorder_flags The reorder flags.
+ * \param bidi_flags The reorder flags.
  * \param bidi_types the pointer to the BidiType array as returned by
- *      UCharGetBidiTypes()
+ *      UStrGetBidiTypes()
  * \param bracket_types The pointer to a BidiBracketType array which
- *      contains the bracket types as returned by UCharGetBracketTypes()
+ *      contains the bracket types as returned by UStrGetBracketTypes()
  * \param len The length of the list.
  * \param off The input offset of the beginning of the line in the paragraph.
  * \param base_dir The resolved paragraph base direction.
  * \param embedding_levels The embedding levels, as returned by
-        UCharGetParagraphEmbeddingLevels()
+        UBidiGetParagraphEmbeddingLevels()
  * \param visual_str The Uchar32 string will be reordered.
- * \param map a map of string indices which is reordered to reflect
- *      where each glyph ends up.
+ * \param indices_map A map of string indices which is reordered to reflect
+ *      where each character ends up.
  * \param extra The pointer to the extra array to reorder; can be NULL.
  * \param cb_reverse_extra The callback function to reverse the extra array.
  *
  * \return Maximum level found in this line plus one, or zero if any error
  * occurred (memory allocation failure most probably).
  *
- * \sa UCharGetBidiTypes, UCharGetBracketTypes,
- *      UCharGetParagraphEmbeddingLevels
+ * \sa UStrGetBidiTypes, UStrGetBracketTypes,
+ *      UBidiGetParagraphEmbeddingLevels
  */
-MG_EXPORT BidiLevel GUIAPI UCharReorderBidiLine(Uint32 reorder_flags,
+MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
         const BidiType *bidi_types, int len, int off,
         int base_dir, BidiLevel *embedding_levels,
-        Uchar32 *visual_str, int *map,
+        Uchar32 *visual_str, int *indices_map,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
 
 /**
- * \fn void GUIAPI UCharShapeMirroring(const BidiLevel *els, int len,
- *      Uchar32 *ucs)
+ * \fn void GUIAPI UBidiShapeMirroring(const BidiLevel *els,
+ *      Uchar32 *ucs, int len)
  * \brief Do mirroring shaping
  *
  * This functions replaces mirroring characters on right-to-left embeddings in
  * string with their mirrored equivalent as returned by UCharGetMirror().
  *
  * This function implements rule L4 of the Unicode Bidirectional Algorithm
- * available at http://www.unicode.org/reports/tr9/#L4.
+ * available at
+ *
+ *      https://www.unicode.org/reports/tr9/#L4.
  *
  * \param els input list of embedding levels, as returned by
- *      UCharGetParagraphEmbeddingLevels().
- * \param len The input string length.
+ *      UBidiGetParagraphEmbeddingLevels().
  * \param ucs The Uchar32 string to shape.
+ * \param len The input string length.
  *
- * \sa UCharGetParagraphEmbeddingLevels
+ * \sa UBidiGetParagraphEmbeddingLevels
  */
-MG_EXPORT void GUIAPI UCharShapeMirroring(const BidiLevel *els, int len,
-        Uchar32 *ucs);
+MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *els,
+        Uchar32* ucs, int len);
+
+/**
+ * \fn void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
+ *      const BidiLevel *embedding_levels, BidiArabicProp *ar_props,
+ *      int len);
+ * \brief Do Arabic joining
+ *
+ * This function does the Arabic joining algorithm.  Means, given Arabic
+ * joining types of the characters in ar_props (note that
+ * FriBidiJoiningType can be casted to BidiArabicProp automagically), this
+ * function modifies this properties to grasp the effect of neighboring
+ * characters. You probably need this information later to do Arabic shaping.
+ *
+ * This function implements rules R1 to R7 inclusive (all rules) of the Arabic
+ * Cursive Joining algorithm of the Unicode standard as available at
+ *
+ * https://www.unicode.org/versions/Unicode4.0.0/ch08.pdf#G7462.
+ *
+ * It also interacts correctly with the bidirection algorithm as defined in
+ * Section 3.5 Shaping of the Unicode Bidirectional Algorithm available at
+ *
+ *      https://www.unicode.org/reports/tr9/#Shaping.
+ *
+ * There are a few macros defined in fribidi-joining-types.h for querying the
+ * Arabic properties computed by this function.
+ *
+ * \param bidi_types The list of bidi types as returned by UStrGetBidiTypes().
+ * \param embedding_levels input list of embedding levels, as returned by
+ *      UBidiGetParagraphEmbeddingLevels().
+ * \param ar_props Arabic properties to analyze, initialized by joining types,
+ *      as returned by fribidi_get_joining_types
+ */
+MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
+        const BidiLevel *embedding_levels, BidiArabicProp *ar_props,
+        int len);
+
+/**
+ * \fn void GUIAPI UBidiShapeArabic(Uint32 bidi_flags,
+ *      const BidiLevel *embedding_levels,
+ *      BidiArabicProp *ar_props, FriBidiChar *ucs, int len)
+ * \brief Do Arabic shaping.
+ *
+ * The actual shaping that is done depends on the flags set. The following
+ * flags affect this function:
+ *
+ *  - BIDI_FLAG_SHAPE_MIRRORING: Do mirroring.\n
+ *  - BIDI_FLAG_SHAPE_ARAB_PRES: Shape Arabic characters to
+ *      their presentation form glyphs.\n
+ *  - BIDI_FLAG_SHAPE_ARAB_LIGA: Form mandatory Arabic ligatures.\n
+ *  - BIDI_FLAG_SHAPE_ARAB_CONSOLE: Perform additional Arabic shaping
+ *      suitable for text rendered on grid terminals with no mark
+ *      rendering capabilities.
+ *
+ * Of the above, FRIBIDI_FLAG_SHAPE_ARAB_CONSOLE is only used in special
+ * cases, but the rest are recommended in any environment that doesn't have
+ * other means for doing Arabic shaping.  The set of extra flags that enable
+ * this level of Arabic support has a shortcut named FRIBIDI_FLAGS_ARABIC.
+ *
+ * \param shaping_flags shaping flags.
+ * \param embedding_levels input list of embedding levels, as returned by
+ *      UBidiGetParagraphEmbeddingLevels().
+ * \param arb_props The Arabic character properties as computed by
+ *      UBidiJoinArabic().
+ * \param ucs The Uchar32 string to shape.
+ * \param len The length of the string.
+ *
+ * \sa UBidiGetParagraphEmbeddingLevels, UBidiJoinArabic
+ */
+MG_EXPORT void GUIAPI UBidiShapeArabic(Uint32 shaping_flags,
+        const BidiLevel *embedding_levels,
+        BidiArabicProp *ar_props, Uchar32* ucs, int len);
+
+/**
+ * \fn void GUIAPI UBidiShape(Uint32 shaping_flags,
+        const BidiLevel *embedding_levels,
+        BidiArabicProp *ar_props, Uchar32* ucs, int len)
+ * \brief Do bidi-aware shaping.
+ *
+ * This function does all shaping work that depends on the resolved embedding
+ * levels of the characters.  Currently it does mirroring and Arabic shaping,
+ * but the list may grow in the future.  This function is a wrapper around
+ * fribidi_shape_mirroring and fribidi_shape_arabic.
+ *
+ * The flags parameter specifies which shapings are applied. The only flags
+ * affecting the functionality of this function are those beginning with
+ * BIDI_FLAG_SHAPE_.  Of these, only BIDI_FLAG_SHAPE_MIRRORING is on
+ * in BIDI_FLAGS_DEFAULT.  For details of the Arabic-specific flags see
+ * UBidiShapeArabic. If ar_props is NULL, no Arabic shaping is performed.
+ *
+ * Feel free to do your own shaping before or after calling this function,
+ * but you should take care of embedding levels yourself then.
+ *
+ * \param shaping_flags shaping flags
+ * \param embedding_levels input list of embedding levels, as returned by
+ *      UBidiGetParagraphEmbeddingLevels().
+ * \param arb_props The Arabic character properties as computed by
+ *      UBidiJoinArabic().
+ * \param ucs The Uchar32 string to shape.
+ * \param len The length of the string.
+ *
+ * \sa UBidiShapeArabic, UBidiShapeMirroring
+ */
+MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
+        const BidiLevel *embedding_levels,
+        BidiArabicProp *ar_props, Uchar32* ucs, int len);
 
 /** The function determines whether a character is alphanumeric. */
 MG_EXPORT BOOL GUIAPI IsUCharAlnum(Uchar32 uc);
@@ -7798,7 +7948,7 @@ MG_EXPORT BOOL GUIAPI IsUCharWide(Uchar32 uc);
  * cell under legacy East Asian locales.  If a character is wide according to
  * g_unichar_iswide(), then it is also reported wide with this function, but
  * the converse is not necessarily true. See the
- * [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)
+ * [Unicode Standard Annex #11](https://www.unicode.org/reports/tr11/)
  * for details.
  */
 MG_EXPORT BOOL GUIAPI IsUCharWideCJK(Uchar32 uc);
@@ -7889,7 +8039,7 @@ MG_EXPORT int GUIAPI UCharGetScriptType (Uchar32 ch);
  *   is not understood.
  *
  * See
- * [Codes for the representation of names of scripts](http://unicode.org/iso15924/codelists.html)
+ * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
  * for details.
  *
  * Since: 3.4.0
@@ -7912,7 +8062,7 @@ MG_EXPORT Uint32 GUIAPI UCharScriptTypeToISO15924 (int script);
  *   \a UCHAR_SCRIPT_UNKNOWN if \a iso15924 is unknown.
  *
  * See
- * [Codes for the representation of names of scripts](http://unicode.org/iso15924/codelists.html)
+ * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
  * for details.
  *
  * Since: 3.4.0
@@ -7932,7 +8082,7 @@ MG_EXPORT int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924);
  *   \a UCHAR_SCRIPT_UNKNOWN if \a iso15924 is unknown.
  *
  * See
- * [Codes for the representation of names of scripts](http://unicode.org/iso15924/codelists.html)
+ * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
  * for details.
  *
  * Since: 3.4.0
@@ -11386,7 +11536,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  * \param lbp The line breaking policy;
  *        see \a line_break_policies.
  * \param uchars The pointer to a buffer to store the address of the
- *      UChar32 array which contains the Unicode character values.
+ *      Uchar32 array which contains the Unicode character values.
  * \param break_oppos The pointer to a buffer to store the address of the
  *        Uint16 array which contains the break opportunities of the glyphs.
  *        Note that the length of this array is always one longer than
@@ -11750,7 +11900,7 @@ typedef struct _SHAPEDGLYPH {
  *      such as UTF-8, UTF-16LE, and UTF-16BE.
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
- * \param ucs The pointer to the UChar32 array which contains the Unicode
+ * \param ucs The pointer to the Uchar32 array which contains the Unicode
  *      characters.
  * \param break_oppos The pointer to a Uint16 array which contains
  *      the break opportunities of the Unicode characters.
@@ -11806,7 +11956,7 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  *      of the logfont should be OpenType font files, and use FreeType2 engine.
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
- * \param ucs The pointer to the UChar32 array which contains the Unicode
+ * \param ucs The pointer to the Uchar32 array which contains the Unicode
  *      characters.
  * \param break_oppos The pointer to a Uint16 array which contains
  *      the break opportunities of the Unicode characters.
