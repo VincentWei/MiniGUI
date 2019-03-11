@@ -50,9 +50,9 @@
 #define _MGFONT_UNICODE_BIDI_H
 
 #ifdef _MGCHARSET_UNICODE_FULL
-#define MGBIDI_UNICODE_CHARS   0x110000
+#define UNIBIDI_UNICODE_CHARS   0x110000
 #else
-#define MGBIDI_UNICODE_CHARS   0xFFFE
+#define UNIBIDI_UNICODE_CHARS   0xFFFE
 #endif
 
 /* some general macros */

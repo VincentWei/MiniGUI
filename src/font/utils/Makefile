@@ -61,6 +61,7 @@ unicode-joining-type-table.inc: \
 
 unicode-arabic-shaping-table.inc: \
 		ucd/UnicodeData.txt \
+		ucd/ArabicShaping.txt \
 		unicode-version.h \
 		gen-arabic-shaping-tab
 	./gen-arabic-shaping-tab $(COMPRESSION) $^ > $@

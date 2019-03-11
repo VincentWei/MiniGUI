@@ -44,14 +44,14 @@
 **  https://github.com/fribidi/fribidi
 */
 
-#ifndef _MGBIDI_ADD_TYPE
-# define _MGBIDI_ADD_TYPE(x,y)
+#ifndef _UNIBIDI_ADD_TYPE
+# define _UNIBIDI_ADD_TYPE(x,y)
 #endif
 
-_MGBIDI_ADD_TYPE (U, '|')	/* nUn-joining, e.g. Full Stop */
-_MGBIDI_ADD_TYPE (R, '<')	/* Right-joining, e.g. Arabic Letter Dal */
-_MGBIDI_ADD_TYPE (D, '+')	/* Dual-joining, e.g. Arabic Letter Ain */
-_MGBIDI_ADD_TYPE (C, '-')	/* join-Causing, e.g. Tatweel, ZWJ */
-_MGBIDI_ADD_TYPE (T, '^')	/* Transparent, e.g. Arabic Fatha */
-_MGBIDI_ADD_TYPE (L, '>')	/* Left-joining, i.e. fictional */
-_MGBIDI_ADD_TYPE (G, '~')	/* iGnored, e.g. LRE, RLE, ZWNBSP */
+_UNIBIDI_ADD_TYPE (U, '|')	/* nUn-joining, e.g. Full Stop */
+_UNIBIDI_ADD_TYPE (R, '<')	/* Right-joining, e.g. Arabic Letter Dal */
+_UNIBIDI_ADD_TYPE (D, '+')	/* Dual-joining, e.g. Arabic Letter Ain */
+_UNIBIDI_ADD_TYPE (C, '-')	/* join-Causing, e.g. Tatweel, ZWJ */
+_UNIBIDI_ADD_TYPE (T, '^')	/* Transparent, e.g. Arabic Fatha */
+_UNIBIDI_ADD_TYPE (L, '>')	/* Left-joining, i.e. fictional */
+_UNIBIDI_ADD_TYPE (G, '~')	/* iGnored, e.g. LRE, RLE, ZWNBSP */

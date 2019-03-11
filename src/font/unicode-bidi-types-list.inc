@@ -52,67 +52,67 @@
 ** Copyright (C) 1999,2000,2017 Dov Grobgeld
 */
 
-#ifndef _MGBIDI_ADD_TYPE
-# define _MGBIDI_ADD_TYPE(x,y)
+#ifndef _UNIBIDI_ADD_TYPE
+# define _UNIBIDI_ADD_TYPE(x,y)
 #endif
-#ifndef _MGBIDI_ADD_ALIAS
-# define _MGBIDI_ADD_ALIAS(x1,x2)
+#ifndef _UNIBIDI_ADD_ALIAS
+# define _UNIBIDI_ADD_ALIAS(x1,x2)
 #endif
 
-#if !defined(_MGBIDI_PAR_TYPES) || defined(_MGBIDI_ALL_TYPES)
+#if !defined(_UNIBIDI_PAR_TYPES) || defined(_UNIBIDI_ALL_TYPES)
 
-_MGBIDI_ADD_TYPE (LTR, 'L')    /* Left-To-Right letter */
-_MGBIDI_ADD_TYPE (RTL, 'R')    /* Right-To-Left letter */
-_MGBIDI_ADD_TYPE (AL, 'A')    /* Arabic Letter */
-_MGBIDI_ADD_TYPE (EN, '1')    /* European Numeral */
-_MGBIDI_ADD_TYPE (AN, '9')    /* Arabic Numeral */
-_MGBIDI_ADD_TYPE (ES, 'w')    /* European number Separator */
-_MGBIDI_ADD_TYPE (ET, 'w')    /* European number Terminator */
-_MGBIDI_ADD_TYPE (CS, 'w')    /* Common Separator */
-_MGBIDI_ADD_TYPE (NSM, '`')    /* Non Spacing Mark */
-_MGBIDI_ADD_TYPE (BN, 'b')    /* Boundary Neutral */
-_MGBIDI_ADD_TYPE (BS, 'B')    /* Block Separator */
-_MGBIDI_ADD_TYPE (SS, 'S')    /* Segment Separator */
-_MGBIDI_ADD_TYPE (WS, '_')    /* WhiteSpace */
-_MGBIDI_ADD_TYPE (ON, 'n')    /* Other Neutral */
-_MGBIDI_ADD_TYPE (LRE, '+')    /* Left-to-Right Embedding */
-_MGBIDI_ADD_TYPE (RLE, '+')    /* Right-to-Left Embedding */
-_MGBIDI_ADD_TYPE (LRO, '+')    /* Left-to-Right Override */
-_MGBIDI_ADD_TYPE (RLO, '+')    /* Right-to-Left Override */
-_MGBIDI_ADD_TYPE (PDF, '-')    /* Pop Directional Flag */
-_MGBIDI_ADD_TYPE (LRI, '+')    /* Left-to-Right Isolate */
-_MGBIDI_ADD_TYPE (RLI, '+')    /* Right-to-Left Isolate */
-_MGBIDI_ADD_TYPE (FSI, '+')    /* First-Strong Isolate */
-_MGBIDI_ADD_TYPE (PDI, '-')    /* Pop Directional Isolate */
+_UNIBIDI_ADD_TYPE (LTR, 'L')    /* Left-To-Right letter */
+_UNIBIDI_ADD_TYPE (RTL, 'R')    /* Right-To-Left letter */
+_UNIBIDI_ADD_TYPE (AL, 'A')    /* Arabic Letter */
+_UNIBIDI_ADD_TYPE (EN, '1')    /* European Numeral */
+_UNIBIDI_ADD_TYPE (AN, '9')    /* Arabic Numeral */
+_UNIBIDI_ADD_TYPE (ES, 'w')    /* European number Separator */
+_UNIBIDI_ADD_TYPE (ET, 'w')    /* European number Terminator */
+_UNIBIDI_ADD_TYPE (CS, 'w')    /* Common Separator */
+_UNIBIDI_ADD_TYPE (NSM, '`')    /* Non Spacing Mark */
+_UNIBIDI_ADD_TYPE (BN, 'b')    /* Boundary Neutral */
+_UNIBIDI_ADD_TYPE (BS, 'B')    /* Block Separator */
+_UNIBIDI_ADD_TYPE (SS, 'S')    /* Segment Separator */
+_UNIBIDI_ADD_TYPE (WS, '_')    /* WhiteSpace */
+_UNIBIDI_ADD_TYPE (ON, 'n')    /* Other Neutral */
+_UNIBIDI_ADD_TYPE (LRE, '+')    /* Left-to-Right Embedding */
+_UNIBIDI_ADD_TYPE (RLE, '+')    /* Right-to-Left Embedding */
+_UNIBIDI_ADD_TYPE (LRO, '+')    /* Left-to-Right Override */
+_UNIBIDI_ADD_TYPE (RLO, '+')    /* Right-to-Left Override */
+_UNIBIDI_ADD_TYPE (PDF, '-')    /* Pop Directional Flag */
+_UNIBIDI_ADD_TYPE (LRI, '+')    /* Left-to-Right Isolate */
+_UNIBIDI_ADD_TYPE (RLI, '+')    /* Right-to-Left Isolate */
+_UNIBIDI_ADD_TYPE (FSI, '+')    /* First-Strong Isolate */
+_UNIBIDI_ADD_TYPE (PDI, '-')    /* Pop Directional Isolate */
 
-#if defined(_MGBIDI_ADD_ALIAS)
-_MGBIDI_ADD_ALIAS (L, LTR)
-_MGBIDI_ADD_ALIAS (R, RTL)
-_MGBIDI_ADD_ALIAS (B, BS)
-_MGBIDI_ADD_ALIAS (S, SS)
-#endif /* _MGBIDI_ADD_ALIAS */
+#if defined(_UNIBIDI_ADD_ALIAS)
+_UNIBIDI_ADD_ALIAS (L, LTR)
+_UNIBIDI_ADD_ALIAS (R, RTL)
+_UNIBIDI_ADD_ALIAS (B, BS)
+_UNIBIDI_ADD_ALIAS (S, SS)
+#endif /* _UNIBIDI_ADD_ALIAS */
 
-#if defined(_MGBIDI_SENTINEL_TYPE) || defined(_MGBIDI_ALL_TYPES)
-_MGBIDI_ADD_TYPE (SENTINEL, '$')    /* SENTINEL */
-#endif /* _MGBIDI_SENTINEL_TYPES || _MGBIDI_ALL_TYPES*/
-#endif /* !_MGBIDI_PAR_TYPES || _MGBIDI_ALL_TYPES */
+#if defined(_UNIBIDI_SENTINEL_TYPE) || defined(_UNIBIDI_ALL_TYPES)
+_UNIBIDI_ADD_TYPE (SENTINEL, '$')    /* SENTINEL */
+#endif /* _UNIBIDI_SENTINEL_TYPES || _UNIBIDI_ALL_TYPES*/
+#endif /* !_UNIBIDI_PAR_TYPES || _UNIBIDI_ALL_TYPES */
 
-#if defined(_MGBIDI_PAR_TYPES) || defined(_MGBIDI_ALL_TYPES)
-# if !defined(_MGBIDI_ALL_TYPES)
-_MGBIDI_ADD_TYPE (LTR, 'L')    /* Left-To-Right paragraph */
-_MGBIDI_ADD_TYPE (RTL, 'R')    /* Right-To-Left paragraph */
-_MGBIDI_ADD_TYPE (ON, 'n')    /* directiOn-Neutral paragraph */
-# endif /* !_MGBIDI_ALL_TYPES */
-_MGBIDI_ADD_TYPE (WLTR, 'l')    /* Weak Left To Right paragraph */
-_MGBIDI_ADD_TYPE (WRTL, 'r')    /* Weak Right To Left paragraph */
-#endif /* _MGBIDI_PAR_TYPES || _MGBIDI_ALL_TYPES*/
+#if defined(_UNIBIDI_PAR_TYPES) || defined(_UNIBIDI_ALL_TYPES)
+# if !defined(_UNIBIDI_ALL_TYPES)
+_UNIBIDI_ADD_TYPE (LTR, 'L')    /* Left-To-Right paragraph */
+_UNIBIDI_ADD_TYPE (RTL, 'R')    /* Right-To-Left paragraph */
+_UNIBIDI_ADD_TYPE (ON, 'n')    /* directiOn-Neutral paragraph */
+# endif /* !_UNIBIDI_ALL_TYPES */
+_UNIBIDI_ADD_TYPE (WLTR, 'l')    /* Weak Left To Right paragraph */
+_UNIBIDI_ADD_TYPE (WRTL, 'r')    /* Weak Right To Left paragraph */
+#endif /* _UNIBIDI_PAR_TYPES || _UNIBIDI_ALL_TYPES*/
 
-#if defined(_MGBIDI_ENUM_TYPES)
+#if defined(_UNIBIDI_ENUM_TYPES)
 typedef enum {
-# define _MGBIDI_ADD_TYPE _MGBIDI_ENUM_ADD_TYPE
+# define _UNIBIDI_ADD_TYPE _UNIBIDI_ENUM_ADD_TYPE
 # include "mgbidi-bidi-types-list.h"
-# undef _MGBIDI_ADD_TYPE
-  _MGBIDI_TYPES_MAX
-} _MGBIDI_ENUM_TYPES
-#endif /* _MGBIDI_ENUM_TYPES */
+# undef _UNIBIDI_ADD_TYPE
+  _UNIBIDI_TYPES_MAX
+} _UNIBIDI_ENUM_TYPES
+#endif /* _UNIBIDI_ENUM_TYPES */
 

@@ -3577,42 +3577,42 @@ static unsigned int unicode_char_type (Achar32 chv)
     return (break_type << 24) | (basic_type << 16) | mchar_type;
 }
 
-#define _USE_MGBIDI
+#define _USE_UNIBIDI
 
-#ifdef _USE_MGBIDI
+#ifdef _USE_UNIBIDI
 
 enum _BidiCharTypeLinearEnum {
-#define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
+#define _UNIBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
 #include "unicode-bidi-types-list.inc"
-#undef _MGBIDI_ADD_TYPE
-    _MGBIDI_NUM_TYPES
+#undef _UNIBIDI_ADD_TYPE
+    _UNIBIDI_NUM_TYPES
 };
 
 #include "unicode-bidi-type-table.inc"
 
 /* Map _BidiCharTypeLinearEnum to BidiType. */
 static const BidiType linear_enum_to_bidi_type[] = {
-#define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) BIDI_TYPE_##TYPE,
+#define _UNIBIDI_ADD_TYPE(TYPE,SYMBOL) BIDI_TYPE_##TYPE,
 #include "unicode-bidi-types-list.inc"
-#undef _MGBIDI_ADD_TYPE
+#undef _UNIBIDI_ADD_TYPE
 };
 
 static BidiType unicode_bidi_char_type(Achar32 ch)
 {
     ch = REAL_ACHAR(ch);
-    return linear_enum_to_bidi_type[MGBIDI_GET_BIDI_TYPE(ch)];
+    return linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(ch)];
 }
 
 BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
 {
-    return linear_enum_to_bidi_type[MGBIDI_GET_BIDI_TYPE(uc)];
+    return linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(uc)];
 }
 
 void UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
 {
     register int i = len;
     for (; i; i--) {
-        *btypes++ = linear_enum_to_bidi_type[MGBIDI_GET_BIDI_TYPE(*str)];
+        *btypes++ = linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(*str)];
         str++;
     }
 }
@@ -3620,12 +3620,12 @@ void UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
 #include "unicode-bidi-brackets-table.inc"
 #include "unicode-bidi-brackets-type-table.inc"
 
-#define MGBIDI_TYPE_BRACKET_OPEN 2
+#define UNIBIDI_TYPE_BRACKET_OPEN 2
 
 BidiBracketType UCharGetBracketType(Uchar32 ch)
 {
     BidiBracketType bracket_type;
-    register Uint8 char_type = MGBIDI_GET_BRACKET_TYPE (ch);
+    register Uint8 char_type = UNIBIDI_GET_BRACKET_TYPE (ch);
 
     /* The bracket type from the table may be:
        0 - Not a bracket
@@ -3640,8 +3640,8 @@ BidiBracketType UCharGetBracketType(Uchar32 ch)
     if (char_type == 0)
         bracket_type = BIDI_BRACKET_NONE;
     else {
-        is_open = (char_type & MGBIDI_TYPE_BRACKET_OPEN) != 0;
-        bracket_type = MGBIDI_GET_BRACKETS (ch) & BIDI_BRACKET_CHAR_MASK;
+        is_open = (char_type & UNIBIDI_TYPE_BRACKET_OPEN) != 0;
+        bracket_type = UNIBIDI_GET_BRACKETS (ch) & BIDI_BRACKET_CHAR_MASK;
     }
 
     if (is_open)
@@ -3676,7 +3676,7 @@ static BOOL unicode_bidi_mirror_char(Achar32 ch, Achar32* mirrored_ch)
 
     mbc_mask = ch & ACHAR_MBC_FLAG;
     ch = REAL_ACHAR(ch);
-    result = MGBIDI_GET_MIRRORING(ch);
+    result = UNIBIDI_GET_MIRRORING(ch);
     if (mirrored_ch)
         *mirrored_ch = result;
     result |= mbc_mask;
@@ -3688,7 +3688,7 @@ BOOL GUIAPI UCharGetMirror(Uchar32 ch, Uchar32* mirrored_ch)
 {
     register Achar32 result;
 
-    result = MGBIDI_GET_MIRRORING(ch);
+    result = UNIBIDI_GET_MIRRORING(ch);
     if (mirrored_ch)
         *mirrored_ch = result;
     return ch != result ? TRUE : FALSE;
@@ -3767,7 +3767,7 @@ found:
     bracket_type = __mg_unicode_bracket_table[mid].chv +
                    __mg_unicode_bracket_table[mid].bracket_off;
     bracket_type &= BIDI_BRACKET_CHAR_MASK;
-    if (__mg_unicode_bracket_table[mid].type == MGBIDI_BRACKET_OPEN)
+    if (__mg_unicode_bracket_table[mid].type == UNIBIDI_BRACKET_OPEN)
         bracket_type |= BIDI_BRACKET_OPEN_MASK;
 
     return bracket_type;
@@ -3788,7 +3788,7 @@ BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored)
     return unicode_bidi_mirror_char (uc, mirrored);
 }
 
-#endif /* !_USE_MGBIDI */
+#endif /* !_USE_UNIBIDI */
 
 static int utf8_nr_chars_in_str (const unsigned char* mstr, int mstrlen)
 {

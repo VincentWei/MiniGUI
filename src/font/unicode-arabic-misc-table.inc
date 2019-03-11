@@ -82,11 +82,11 @@ static const Uchar32 NSMShap[][4] = {
   {0xFE7E, 0xFE7F, 0xFE7E, 0xFE7F,},
 };
 
-#ifndef MGBIDI_ACCESS_SHAPE_TABLE
-# define MGBIDI_ACCESS_SHAPE_TABLE(table,min,max,x,shape) \
+#ifndef UNIBIDI_ACCESS_SHAPE_TABLE
+# define UNIBIDI_ACCESS_SHAPE_TABLE(table,min,max,x,shape) \
     (((x)<(min)||(x)>(max))?(x):(table)[(x)-(min)][(shape)])
 #endif
 
-#define MGBIDI_GET_ARABIC_SHAPE_NSM(x,shape) \
-    MGBIDI_ACCESS_SHAPE_TABLE(NSMShap, 0x064B, 0x0652, (x), (shape))
+#define UNIBIDI_GET_ARABIC_SHAPE_NSM(x,shape) \
+    UNIBIDI_ACCESS_SHAPE_TABLE(NSMShap, 0x064B, 0x0652, (x), (shape))
 
