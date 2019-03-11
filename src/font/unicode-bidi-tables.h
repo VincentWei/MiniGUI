@@ -18,7 +18,7 @@
 #ifndef _UNICODE_BIDI_TABLES_H
 #define _UNICODE_BIDI_TABLES_H
 
-static const BIDICHAR_TYPE_MAP __mg___mg_unicode_bidi_char_type_map[] =
+static const BIDICHAR_TYPE_MAP __mg_unicode_bidi_char_type_map[] =
 {
     { 0x000000, 0x0009, BIDI_TYPE_BN },
     { 0x000009, 0x0001, BIDI_TYPE_SS },

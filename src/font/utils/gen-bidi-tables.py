@@ -210,7 +210,7 @@ print ()
 print ("#ifndef _UNICODE_BIDI_TABLES_H")
 print ("#define _UNICODE_BIDI_TABLES_H")
 print ("")
-print ("static const BIDICHAR_TYPE_MAP __mg___mg_unicode_bidi_char_type_map[] =")
+print ("static const BIDICHAR_TYPE_MAP __mg_unicode_bidi_char_type_map[] =")
 print ("{")
 
 cur_chv = 0
