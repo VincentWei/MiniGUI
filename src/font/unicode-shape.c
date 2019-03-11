@@ -63,8 +63,6 @@ void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
 {
     register int i;
 
-    _DBG_PRINTF("in fribidi_shape_mirroring");
-
     if (len == 0 || !str) return;
 
     /* L4. Mirror all characters that are in odd levels and have mirrors. */
@@ -84,8 +82,6 @@ void GUIAPI UBidiShape(Uint32 flags,
 {
     if (len == 0 || !str)
         return;
-
-    _DBG_PRINTF ("in fribidi_shape");
 
     if (ar_props)
         UBidiShapeArabic(flags, embedding_levels, ar_props, str, len);

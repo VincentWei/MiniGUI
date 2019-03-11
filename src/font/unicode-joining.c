@@ -73,7 +73,7 @@ static char get_char_from_joining_type(BidiJoiningType j, BOOL visual)
 
 #   define _BIDI_ADD_TYPE(TYPE,SYMBOL)	\
     if (BIDI_IS_JOINING_TYPE_##TYPE(j)) return SYMBOL;
-#   include "fribidi-joining-types-list.h"
+#   include "unicode-joining-types-list.inc"
 #   undef _BIDI_ADD_TYPE
 
     return '?';
@@ -86,7 +86,7 @@ static void print_joining_types(const BidiLevel *embedding_levels,
 
     _DBG_PRINTF ("  Join. types: ");
     for (i = 0; i < len; i++)
-        _DBG_PRINTF2 ("%c", get_char_from_joining_type (jtypes[i],
+        _DBG_PRINTF ("%c", get_char_from_joining_type (jtypes[i],
                     !BIDI_LEVEL_IS_RTL(embedding_levels[i])));
     _DBG_PRINTF ("\n");
 }
@@ -106,8 +106,6 @@ void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
         BidiArabicProp *ar_props, int len)
 {
     if (len == 0) return;
-
-    _DBG_PRINTF ("in fribidi_join_arabic");
 
 #ifdef DEBUG
     print_joining_types (embedding_levels, len, ar_props);
@@ -192,8 +190,6 @@ void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
 #ifdef DEBUG
      print_joining_types (embedding_levels, len, ar_props);
 #endif /* DEBUG */
-
-    _DBG_PRINTF ("leaving fribidi_join_arabic");
 }
 
 #endif /* _MGCHARSET_UNICODE */

@@ -7789,7 +7789,7 @@ MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *els,
  *
  * This function does the Arabic joining algorithm.  Means, given Arabic
  * joining types of the characters in ar_props (note that
- * FriBidiJoiningType can be casted to BidiArabicProp automagically), this
+ * BidiJoiningType can be casted to BidiArabicProp automagically), this
  * function modifies this properties to grasp the effect of neighboring
  * characters. You probably need this information later to do Arabic shaping.
  *
@@ -7810,7 +7810,9 @@ MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *els,
  * \param embedding_levels input list of embedding levels, as returned by
  *      UBidiGetParagraphEmbeddingLevels().
  * \param ar_props Arabic properties to analyze, initialized by joining types,
- *      as returned by fribidi_get_joining_types
+ *      as returned by UStrGetJoiningTypes().
+ *
+ * \sa UBidiGetParagraphEmbeddingLevels, UStrGetJoiningTypes
  */
 MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
         const BidiLevel *embedding_levels, BidiArabicProp *ar_props,
@@ -7819,7 +7821,7 @@ MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
 /**
  * \fn void GUIAPI UBidiShapeArabic(Uint32 bidi_flags,
  *      const BidiLevel *embedding_levels,
- *      BidiArabicProp *ar_props, FriBidiChar *ucs, int len)
+ *      BidiArabicProp *ar_props, Uchar32 *ucs, int len)
  * \brief Do Arabic shaping.
  *
  * The actual shaping that is done depends on the flags set. The following
@@ -7833,10 +7835,10 @@ MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
  *      suitable for text rendered on grid terminals with no mark
  *      rendering capabilities.
  *
- * Of the above, FRIBIDI_FLAG_SHAPE_ARAB_CONSOLE is only used in special
+ * Of the above, BIDI_FLAG_SHAPE_ARAB_CONSOLE is only used in special
  * cases, but the rest are recommended in any environment that doesn't have
  * other means for doing Arabic shaping.  The set of extra flags that enable
- * this level of Arabic support has a shortcut named FRIBIDI_FLAGS_ARABIC.
+ * this level of Arabic support has a shortcut named BIDI_FLAGS_ARABIC.
  *
  * \param shaping_flags shaping flags.
  * \param embedding_levels input list of embedding levels, as returned by
@@ -7861,7 +7863,7 @@ MG_EXPORT void GUIAPI UBidiShapeArabic(Uint32 shaping_flags,
  * This function does all shaping work that depends on the resolved embedding
  * levels of the characters.  Currently it does mirroring and Arabic shaping,
  * but the list may grow in the future.  This function is a wrapper around
- * fribidi_shape_mirroring and fribidi_shape_arabic.
+ * UBidiShapeMirroring and UBidiShapeArabic.
  *
  * The flags parameter specifies which shapings are applied. The only flags
  * affecting the functionality of this function are those beginning with
@@ -10313,12 +10315,12 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 #define BIDI_LEVEL_IS_RTL(lev) ((lev) & 1)
 
 /* Return the bidi type corresponding to the direction of the level number,
-   FRIBIDI_TYPE_LTR for evens and FRIBIDI_TYPE_RTL for odds. */
+   BIDI_TYPE_LTR for evens and BIDI_TYPE_RTL for odds. */
 #define BIDI_LEVEL_TO_DIR(lev) \
     (BIDI_LEVEL_IS_RTL(lev) ? BIDI_TYPE_RTL : BIDI_TYPE_LTR)
 
-/* Return the minimum level of the direction, 0 for FRIBIDI_TYPE_LTR and
-   1 for FRIBIDI_TYPE_RTL and FRIBIDI_TYPE_AL. */
+/* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
+   1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
 #define BIDI_DIR_TO_LEVEL(dir) \
     ((BidiLevel) (BIDI_IS_RTL(dir) ? 1 : 0))
 
