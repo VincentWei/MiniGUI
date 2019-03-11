@@ -71,10 +71,10 @@ static char get_char_from_joining_type(BidiJoiningType j, BOOL visual)
                 (!BIDI_JOINS_RIGHT (j) && BIDI_JOINS_LEFT (j))))
         j ^= BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT;
 
-#   define _BIDI_ADD_TYPE(TYPE,SYMBOL)	\
+#define _UNIBIDI_ADD_TYPE(TYPE,SYMBOL)  \
     if (BIDI_IS_JOINING_TYPE_##TYPE(j)) return SYMBOL;
-#   include "unicode-joining-types-list.inc"
-#   undef _BIDI_ADD_TYPE
+#include "unicode-joining-types-list.inc"
+#undef _UNIBIDI_ADD_TYPE
 
     return '?';
 }

@@ -33,7 +33,7 @@
  */
 
 /*
-** mgbidi-bidi-types-list.h:
+** mgbidi-bidi-types-list.inc:
 **
 ** The list of BIDI types
 **
@@ -42,14 +42,6 @@
 ** This implementation is based on LGPL'd FriBidi:
 **
 **  https://github.com/fribidi/fribidi
-**
-** Authors:
-**   Behdad Esfahbod, 2001, 2002, 2004
-**   Dov Grobgeld, 1999, 2000, 2017
-**
-** Copyright (C) 2004 Sharif FarsiWeb, Inc
-** Copyright (C) 2001,2002 Behdad Esfahbod
-** Copyright (C) 1999,2000,2017 Dov Grobgeld
 */
 
 #ifndef _UNIBIDI_ADD_TYPE

@@ -284,10 +284,10 @@ struct _BidiRun {
     BidiRun *next_isolate;
 
     int pos, len;
+    BidiBracketType bracket_type;
     BidiType type;
     BidiLevel level;
     BidiLevel isolate_level;
-    Uint8 bracket_type;
 };
 
 #define swap(a,b) \
