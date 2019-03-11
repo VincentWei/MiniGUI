@@ -1,5 +1,5 @@
 /* MGBidi
- * gen-arabic-shaping-tab.c - generate mgbidi-arabic-shaping-table.h
+ * gen-arabic-shaping-tab.c - generate unicode-arabic-shaping-table.h
  *
  * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
  *
@@ -37,11 +37,11 @@
 
 #include "packtab.h"
 
-#include "../mgbidi.h"
-#include "mgbidi-unicode-version.h"
+#include "../unicode-bidi.h"
+#include "unicode-version.h"
 
 #define appname "gen-arabic-shaping-tab"
-#define outputname "mgbidi-arabic-shaping-table.h"
+#define outputname "unicode-arabic-shaping-table.inc"
 
 static void
 die (

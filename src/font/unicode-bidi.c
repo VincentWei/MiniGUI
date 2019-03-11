@@ -33,7 +33,7 @@
  */
 
 /*
-** mgbidi.c:
+** unicode-bidi.c:
 **
 ** A general implementation of UNICODE BIDIRECTIONAL ALGORITHM for MiniGUI
 **
@@ -61,14 +61,9 @@
 #include "devfont.h"
 
 #include "bidi.h"
-#include "mgbidi.h"
+#include "unicode-bidi.h"
 
 #ifdef DEBUG
-
-static inline int mgbidi_debug_status(void)
-{
-    return 1;
-}
 
 #include <assert.h>
 
@@ -479,14 +474,14 @@ static const char char_from_level_array[] = {
     '*', '*', '*', '*', '*'
 };
 
-#define mgbidi_char_from_level(level) char_from_level_array[(level) + 1]
+#define unicode_bidi_char_from_level(level) char_from_level_array[(level) + 1]
 
-static const char *mgbidi_get_bidi_type_name(BidiType t)
+static const char *unicode_bidi_get_bidi_type_name(BidiType t)
 {
     switch ((int)t) {
 #   define _BIDI_ADD_TYPE(TYPE,SYMBOL) case BIDI_TYPE_##TYPE: return #TYPE;
 #   define _BIDI_ALL_TYPES
-#   include "mgbidi-bidi-types-list.inc"
+#   include "unicode-bidi-types-list.inc"
 #   undef _BIDI_ALL_TYPES
 #   undef _BIDI_ADD_TYPE
     default:
@@ -499,7 +494,7 @@ static void print_types_re(const BidiRun *pp)
     _DBG_PRINTF ("  Run types  : ");
     for_run_list (pp, pp) {
         _DBG_PRINTF ("%d:%d(%s)[%d,%d] ",
-                pp->pos, pp->len, mgbidi_get_bidi_type_name (pp->type), pp->level, pp->isolate_level);
+                pp->pos, pp->len, unicode_bidi_get_bidi_type_name (pp->type), pp->level, pp->isolate_level);
     }
     _DBG_PRINTF ("\n");
 }
@@ -511,7 +506,7 @@ static void print_resolved_levels(const BidiRun *pp)
     {
         register int i;
         for (i = RL_LEN (pp); i; i--)
-            _DBG_PRINTF ("%c", mgbidi_char_from_level (RL_LEVEL (pp)));
+            _DBG_PRINTF ("%c", unicode_bidi_char_from_level (RL_LEVEL (pp)));
     }
     _DBG_PRINTF ("\n");
 }
@@ -522,7 +517,7 @@ static void print_resolved_types(const BidiRun *pp)
     for_run_list (pp, pp) {
         int i;
         for (i = RL_LEN (pp); i; i--)
-            _DBG_PRINTF ("%s ", mgbidi_get_bidi_type_name (pp->type));
+            _DBG_PRINTF ("%s ", unicode_bidi_get_bidi_type_name (pp->type));
     }
     _DBG_PRINTF ("\n");
 }
@@ -533,7 +528,7 @@ static void print_bidi_string(const BidiType *bidi_types, const int len)
 
     _DBG_PRINTF ("  Org. types : ");
     for (i = 0; i < len; i++)
-        _DBG_PRINTF ("%s ", mgbidi_get_bidi_type_name (bidi_types[i]));
+        _DBG_PRINTF ("%s ", unicode_bidi_get_bidi_type_name (bidi_types[i]));
     _DBG_PRINTF ("\n");
 }
 
@@ -647,7 +642,7 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
 #define BIDI_EMBEDDING_DIRECTION(link) \
     BIDI_LEVEL_TO_DIR(RL_LEVEL(link))
 
-int mgbidi_get_par_direction(const BidiType *bidi_types, const int len)
+int unicode_bidi_get_par_direction(const BidiType *bidi_types, const int len)
 {
     register int i;
 
@@ -741,7 +736,7 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
     }
 }
 
-BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
+BidiLevel unicode_bidi_get_paragraph_els_ex(const BidiType *bidi_types,
       const BidiBracketType *bracket_types, const int len,
       int *pbase_dir, BidiLevel *embedding_levels)
 {
@@ -757,7 +752,7 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         goto out;
     }
 
-    _DBG_PRINTF ("in mgbidi_get_paragraph_els");
+    _DBG_PRINTF ("in unicode_bidi_get_paragraph_els");
 
     /* Determinate character types */
     {
@@ -794,16 +789,14 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         }
     }
     base_dir = BIDI_LEVEL_TO_DIR (base_level);
-    _DBG_PRINTF ("  base level : %c", mgbidi_char_from_level (base_level));
-    _DBG_PRINTF ("  base dir   : %s", mgbidi_get_bidi_type_name (base_dir));
+    _DBG_PRINTF ("  base level : %c", unicode_bidi_char_from_level (base_level));
+    _DBG_PRINTF ("  base dir   : %s", unicode_bidi_get_bidi_type_name (base_dir));
 
     base_level_per_iso_level[0] = base_level;
 
-# ifdef DEBUG
-    if (mgbidi_debug_status ()) {
-        print_types_re (main_run_list);
-    }
-# endif        /* DEBUG */
+#ifdef DEBUG
+    print_types_re (main_run_list);
+#endif        /* DEBUG */
 
     /* Explicit Levels and Directions */
     _DBG_PRINTF ("explicit levels and directions");
@@ -1042,14 +1035,12 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
 
     compact_list (main_run_list);
 
-# ifdef DEBUG
-    if (mgbidi_debug_status ()) {
-        print_types_re (main_run_list);
-        print_bidi_string (bidi_types, len);
-        print_resolved_levels (main_run_list);
-        print_resolved_types (main_run_list);
-    }
-# endif        /* DEBUG */
+#ifdef DEBUG
+    print_types_re (main_run_list);
+    print_bidi_string (bidi_types, len);
+    print_resolved_levels (main_run_list);
+    print_resolved_types (main_run_list);
+#endif /* DEBUG */
 
     /* 4. Resolving weak types. Also calculate the maximum isolate level */
     max_iso_level = 0;
@@ -1225,11 +1216,9 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     compact_neutrals (main_run_list);
 
 #ifdef DEBUG
-    if (mgbidi_debug_status ()) {
-        print_resolved_levels (main_run_list);
-        print_resolved_types (main_run_list);
-    }
-#endif        /* DEBUG */
+    print_resolved_levels (main_run_list);
+    print_resolved_types (main_run_list);
+#endif /* DEBUG */
 
     /* 5. Resolving Neutral Types */
 
@@ -1309,9 +1298,7 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         sort_pairing_nodes(&pairing_nodes);
 
 #ifdef DEBUG
-        if (mgbidi_debug_status ()) {
-            print_pairing_nodes (pairing_nodes);
-        }
+        print_pairing_nodes (pairing_nodes);
 #endif /* DEBUG */
 
         /* Start the N0 */
@@ -1402,10 +1389,8 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
         }
 
 #ifdef DEBUG
-        if (mgbidi_debug_status ()) {
-            print_resolved_levels (main_run_list);
-            print_resolved_types (main_run_list);
-        }
+        print_resolved_levels (main_run_list);
+        print_resolved_types (main_run_list);
 #endif  /* DEBUG */
     }
 
@@ -1443,10 +1428,8 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     compact_list (main_run_list);
 
 #ifdef DEBUG
-    if (mgbidi_debug_status ()) {
-        print_resolved_levels (main_run_list);
-        print_resolved_types (main_run_list);
-    }
+    print_resolved_levels (main_run_list);
+    print_resolved_types (main_run_list);
 #endif /* DEBUG */
 
     /* 6. Resolving implicit levels */
@@ -1479,12 +1462,10 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     compact_list (main_run_list);
 
 #ifdef DEBUG
-    if (mgbidi_debug_status ()) {
-        print_bidi_string (bidi_types, len);
-        print_resolved_levels (main_run_list);
-        print_resolved_types (main_run_list);
-    }
-#endif        /* DEBUG */
+    print_bidi_string (bidi_types, len);
+    print_resolved_levels (main_run_list);
+    print_resolved_types (main_run_list);
+#endif /* DEBUG */
 
     /* Reinsert the explicit codes & BN's that are already removed, from the
        explicits_list to main_run_list. */
@@ -1505,13 +1486,11 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
                 p->level = p->prev->level;
         }
 
-# ifdef DEBUG
-    if (mgbidi_debug_status ()) {
-        print_types_re (main_run_list);
-        print_resolved_levels (main_run_list);
-        print_resolved_types (main_run_list);
-    }
-# endif        /* DEBUG */
+#ifdef DEBUG
+    print_types_re (main_run_list);
+    print_resolved_levels (main_run_list);
+    print_resolved_types (main_run_list);
+#endif        /* DEBUG */
 
     _DBG_PRINTF ("reset the embedding levels, 1, 2, 3.");
     {
@@ -1526,7 +1505,7 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
            separator or paragraph separator, and
            4. any sequence of whitespace characters and/or isolate formatting
            characters at the end of the line.
-           ... (to be continued in mgbidi_reorder_line()). */
+           ... (to be continued in unicode_bidi_reorder_line()). */
         list = new_run_list ();
         if (!list) goto out;
         q = list;
@@ -1566,11 +1545,9 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     }
 
 #ifdef DEBUG
-    if (mgbidi_debug_status ()) {
-        print_types_re (main_run_list);
-        print_resolved_levels (main_run_list);
-        print_resolved_types (main_run_list);
-    }
+    print_types_re (main_run_list);
+    print_resolved_levels (main_run_list);
+    print_resolved_types (main_run_list);
 #endif /* DEBUG */
 
     {
@@ -1587,7 +1564,7 @@ BidiLevel mgbidi_get_paragraph_els_ex(const BidiType *bidi_types,
     status = TRUE;
 
 out:
-    _DBG_PRINTF ("leaving mgbidi_get_paragraph_els");
+    _DBG_PRINTF ("leaving unicode_bidi_get_paragraph_els");
 
     if (main_run_list)
         free_run_list (main_run_list);
@@ -1620,7 +1597,7 @@ static void index_array_reverse (int *arr, int len)
     }
 }
 
-BidiLevel mgbidi_reorder_line(Uint32 flags,
+BidiLevel unicode_bidi_reorder_line(Uint32 flags,
         const BidiType *bidi_types, int len,
         int off, int base_dir,
         BidiLevel *embedding_levels,
@@ -1635,7 +1612,7 @@ BidiLevel mgbidi_reorder_line(Uint32 flags,
         goto out;
     }
 
-    _DBG_PRINTF ("in mgbidi_reorder_line");
+    _DBG_PRINTF ("in unicode_bidi_reorder_line");
 
     _DBG_PRINTF ("reset the embedding levels, 4. whitespace at the end of line");
     {
@@ -1723,7 +1700,6 @@ BidiLevel mgbidi_reorder_line(Uint32 flags,
     status = TRUE;
 
 out:
-
     return status ? max_level + 1 : 0;
 }
 

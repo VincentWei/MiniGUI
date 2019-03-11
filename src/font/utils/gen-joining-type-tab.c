@@ -1,5 +1,5 @@
 /* MGBidi
- * gen-joining-type-tab.c - generate mgbidi-joining-type-table.h
+ * gen-joining-type-tab.c - generate unicode-joining-type-table.h
  *
  * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
  *
@@ -37,11 +37,11 @@
 
 #include "packtab.h"
 
-#include "../mgbidi.h"
-#include "mgbidi-unicode-version.h"
+#include "../unicode-bidi.h"
+#include "unicode-version.h"
 
 #define appname "gen-joining-type-tab"
-#define outputname "mgbidi-joining-type-table.h"
+#define outputname "unicode-joining-type-table.h"
 
 static void
 die (
@@ -93,7 +93,7 @@ die3l (
 enum FriBidiJoiningLinearEnumOffsetOne
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
-# include "../mgbidi-joining-types-list.inc"
+# include "../unicode-joining-types-list.inc"
 # undef _MGBIDI_ADD_TYPE
   NUM_TYPES
 };
@@ -106,7 +106,7 @@ struct
 type_names[] =
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) {STRINGIZE(TYPE), TYPE},
-# include "../mgbidi-joining-types-list.inc"
+# include "../unicode-joining-types-list.inc"
 # undef _MGBIDI_ADD_TYPE
 };
 

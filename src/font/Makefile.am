@@ -2,7 +2,7 @@ SUBDIRS = in-core
 
 noinst_LTLIBRARIES = libfont.la
 
-SRC_FILES = charset.c charset-arabic.c \
+SRC_FILES = charset.c charset-arabic.c legacy-bidi.c \
             unicode-comp.c unicode-script.c language-code.c \
             sysfont.c logfont.c devfont.c fontname.c \
             rawbitmap.c varbitmap.c qpf.c upf.c \
@@ -13,25 +13,24 @@ SRC_FILES = charset.c charset-arabic.c \
             mapunitogb.c mapunitogbk.c mapunitobig5.c mapunitogb18030.c \
             bitmapfont.c scripteasy.c \
             unicode-emoji.c \
-            mgbidi.c
+            unicode-bidi.c
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \
             unicode-tables.h unicode-break-tables.h unicode-script-table.h \
             unicode-decomp.h unicode-comp.h \
             unicode-emoji-tables.h \
-            iso8859-bidi-tables.inc \
-            mgbidi.h \
-            mgbidi-bidi-types-list.inc \
-            mgbidi-joining-types-list.inc \
-            mgbidi-arabic-misc-table.inc \
-            mgbidi-bidi-type-table.inc \
-            mgbidi-brackets-table.inc \
-            mgbidi-brackets-type-table.inc \
-            mgbidi-mirroring-table.inc \
-            mgbidi-arabic-shaping-table.inc \
-            mgbidi-joining-type-table.inc
-
+            legacy-bidi-tables.inc \
+            unicode-bidi.h \
+            unicode-joining-types-list.inc \
+            unicode-joining-type-table.inc \
+            unicode-arabic-shaping-table.inc \
+            unicode-arabic-misc-table.inc \
+            unicode-bidi-bidi-types-list.inc \
+            unicode-bidi-bidi-type-table.inc \
+            unicode-bidi-brackets-table.inc \
+            unicode-bidi-brackets-type-table.inc \
+            unicode-bidi-mirroring-table.inc
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc

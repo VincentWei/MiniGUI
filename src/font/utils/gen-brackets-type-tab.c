@@ -1,5 +1,5 @@
 /* MGBidi
- * gen-brackets-type-tab.c - generate mgbidi-brackets-type-table.h
+ * gen-brackets-type-tab.c - generate unicode-bidi-brackets-type-table.h
  *
  * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
  *
@@ -39,11 +39,11 @@
 
 #include "packtab.h"
 
-#include "../mgbidi.h"
-#include "mgbidi-unicode-version.h"
+#include "../unicode-bidi.h"
+#include "unicode-version.h"
 
 #define appname "gen-brackets-type-tab"
-#define outputname "mgbidi-brackets-type-tablel.h"
+#define outputname "unicode-bidi-brackets-type-table.inc"
 
 static void
 die (

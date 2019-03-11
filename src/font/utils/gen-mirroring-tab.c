@@ -1,5 +1,5 @@
 /* MGBidi
- * gen-mirroring-tab.c - generate mgbidi-mirroring-table.h
+ * gen-mirroring-tab.c - generate unicode-bidi-mirroring-table.h
  *
  * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
  *
@@ -37,11 +37,11 @@
 
 #include "packtab.h"
 
-#include "../mgbidi.h"
-#include "mgbidi-unicode-version.h"
+#include "../unicode-bidi.h"
+#include "unicode-version.h"
 
 #define appname "gen-mirroring-tab"
-#define outputname "mgbidi-mirroring-table.h"
+#define outputname "unicode-bidi-mirroring-table.inc"
 
 static void
 die (

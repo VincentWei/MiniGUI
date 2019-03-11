@@ -1,5 +1,5 @@
 /* MGBidi
- * gen-unicode-version.c - generate mgbidi-unicode-version.h
+ * gen-unicode-version.c - generate unicode-version.h
  *
  * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
  *
@@ -39,7 +39,7 @@
 #include "packtab.h"
 
 #define appname "gen-unicode-version"
-#define outputname "mgbidi-unicode-version.h"
+#define outputname "unicode-version.h"
 
 static void
 die (

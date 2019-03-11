@@ -9935,6 +9935,13 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 /* Weak Right-To-Left */
 #define BIDI_TYPE_WRTL     (BIDI_MASK_WEAK | BIDI_MASK_RTL)
 
+/* The following are only used internally */
+
+/* Start of text */
+#define BIDI_TYPE_SOT   (BIDI_MASK_SENTINEL)
+/* End of text */
+#define BIDI_TYPE_EOT   (BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
+
 /* Is private-use value? */
 //#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
 

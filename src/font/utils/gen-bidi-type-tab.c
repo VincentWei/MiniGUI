@@ -1,5 +1,5 @@
 /* MGBidi
- * gen-bidi-type-tab.c - generate mgbidi-bidi-type-table.h
+ * gen-bidi-type-tab.c - generate unicode-bidi-type-table.h
  *
  * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
  *
@@ -37,11 +37,11 @@
 
 #include "packtab.h"
 
-#include "../mgbidi.h"
-#include "mgbidi-unicode-version.h"
+#include "../unicode-bidi.h"
+#include "unicode-version.h"
 
 #define appname "gen-bidi-type-tab"
-#define outputname "mgbidi-bidi-type-table.h"
+#define outputname "unicode-bidi-type-table.h"
 
 static void
 die (
@@ -81,7 +81,7 @@ enum Char32TypeLinearEnumOffsetOne
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
 # define _MGBIDI_ADD_ALIAS(TYPE1,TYPE2) TYPE1 = TYPE2,
-# include "../mgbidi-bidi-types-list.inc"
+# include "../unicode-bidi-types-list.inc"
 # undef _MGBIDI_ADD_ALIAS
 # undef _MGBIDI_ADD_TYPE
   NUM_TYPES
@@ -96,7 +96,7 @@ type_names[] =
 {
 # define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) {STRINGIZE(TYPE), TYPE},
 # define _MGBIDI_ADD_ALIAS(TYPE1,TYPE2) _MGBIDI_ADD_TYPE(TYPE1, SYMBOL)
-# include "../mgbidi-bidi-types-list.inc"
+# include "../unicode-bidi-types-list.inc"
 # undef _MGBIDI_ADD_ALIAS
 # undef _MGBIDI_ADD_TYPE
 };

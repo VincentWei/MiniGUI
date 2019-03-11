@@ -732,7 +732,7 @@ static CHARSETOPS CharsetOps_iso8859_5 = {
 #endif /* _CYRILLIC */
 
 #if defined (_MGCHARSET_HEBREW) || defined (_MGCHARSET_ARABIC)
-#include "iso8859-bidi-tables.inc"
+#include "legacy-bidi-tables.inc"
 #endif
 
 #if defined (_MGCHARSET_HEBREW) || defined (_MGCHARSET_ARABIC) || defined (_MGCHARSET_UNICODE)
@@ -3583,17 +3583,17 @@ static unsigned int unicode_char_type (Achar32 chv)
 
 enum _BidiCharTypeLinearEnum {
 #define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) TYPE,
-#include "mgbidi-bidi-types-list.inc"
+#include "unicode-bidi-types-list.inc"
 #undef _MGBIDI_ADD_TYPE
     _MGBIDI_NUM_TYPES
 };
 
-#include "mgbidi-bidi-type-table.inc"
+#include "unicode-bidi-type-table.inc"
 
 /* Map _BidiCharTypeLinearEnum to BidiType. */
 static const BidiType linear_enum_to_bidi_type[] = {
 #define _MGBIDI_ADD_TYPE(TYPE,SYMBOL) BIDI_TYPE_##TYPE,
-#include "mgbidi-bidi-types-list.inc"
+#include "unicode-bidi-types-list.inc"
 #undef _MGBIDI_ADD_TYPE
 };
 
@@ -3617,8 +3617,8 @@ void UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
     }
 }
 
-#include "mgbidi-brackets-table.inc"
-#include "mgbidi-brackets-type-table.inc"
+#include "unicode-bidi-brackets-table.inc"
+#include "unicode-bidi-brackets-type-table.inc"
 
 #define MGBIDI_TYPE_BRACKET_OPEN 2
 
@@ -3667,7 +3667,7 @@ void UCharGetBracketTypes(const Uchar32 *str, int len,
     }
 }
 
-#include "mgbidi-mirroring-table.inc"
+#include "unicode-bidi-mirroring-table.inc"
 
 static BOOL unicode_bidi_mirror_char(Achar32 ch, Achar32* mirrored_ch)
 {
