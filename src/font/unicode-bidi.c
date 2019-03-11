@@ -1279,8 +1279,8 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
                     while (stack_idx >= 0) {
                         BidiBracketType se_brack_prop =
                         RL_BRACKET_TYPE(bracket_stack[iso_level][stack_idx]);
-                        if (BIDI_BRACKET_ID(se_brack_prop) ==
-                                BIDI_BRACKET_ID(brack_prop)) {
+                        if (BIDI_BRACKET_CHAR(se_brack_prop) ==
+                                BIDI_BRACKET_CHAR(brack_prop)) {
                             bracket_stack_size[iso_level] = stack_idx;
 
                             pairing_nodes = pairing_nodes_push(pairing_nodes,

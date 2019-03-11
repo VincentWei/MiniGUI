@@ -7306,12 +7306,344 @@ MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font,
 MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font,
                 const char* mstr, int len, WORDINFO* word_info);
 
+    /**
+     * \defgroup bidi_types BIDI types
+     *
+     * Values for BIDI types.
+     *
+     * @{
+     */
+
 typedef Uint8   BidiLevel;
 typedef Uint16  BidiType;
 typedef Uint32  BidiBracketType;
 
 typedef Uint8   BidiJoiningType;
 typedef Uint8   BidiArabicProp;
+
+#define BIDI_PGDIR_LTR      0
+#define BIDI_PGDIR_RTL      1
+#define BIDI_PGDIR_ON       2
+
+#define BIDI_FLAG_SHAPE_MIRRORING       0x00000001
+#define BIDI_FLAG_REORDER_NSM           0x00000002
+#define BIDI_FLAG_SHAPE_ARAB_PRES       0x00000100
+#define BIDI_FLAG_SHAPE_ARAB_LIGA       0x00000200
+#define BIDI_FLAG_SHAPE_ARAB_CONSOLE    0x00000400
+
+#define BIDI_FLAGS_DEFAULT  \
+    (BIDI_FLAG_REORDER_NSM | BIDI_FLAG_REMOVE_SPECIALS)
+
+#define BIDI_FLAGS_ARABIC  \
+    (BIDI_FLAG_SHAPE_ARAB_PRES | BIDI_FLAG_SHAPE_ARAB_LIGA)
+
+#define BIDI_FLAG_REMOVE_BIDI           0x00010000
+#define BIDI_FLAG_REMOVE_JOINING        0x00020000
+#define BIDI_FLAG_REMOVE_SPECIALS       0x00040000
+
+#define BIDI_BRACKET_NONE           0
+#define BIDI_BRACKET_OPEN_MASK      0x80000000
+#define BIDI_BRACKET_CHAR_MASK      0X7FFFFFFF
+#define BIDI_IS_BRACKET_OPEN(bt)    ((bt & BIDI_BRACKET_OPEN_MASK)>0)
+#define BIDI_BRACKET_CHAR(bt)       ((bt & BIDI_BRACKET_CHAR_MASK))
+
+/*
+ * Define some bit masks, that character types are based on, each one has
+ * only one bit on.
+ */
+
+#define BIDI_TYPE_INVALID       0x0000
+
+#define BIDI_MASK_RTL           0x0001    /* Is right to left */
+#define BIDI_MASK_ARABIC        0x0002    /* Is arabic */
+
+#define BIDI_MASK_FIRST         0x0004    /* Whether direction is determined by first strong */
+#define BIDI_MASK_BN            0x0008    /* flag for BN */
+
+#define BIDI_SWN_MASK           0x0030
+#define BIDI_MASK_STRONG        0x0000    /* Is strong */
+#define BIDI_MASK_WEAK          0x0010    /* Is weak */
+#define BIDI_MASK_NEUTRAL       0x0020    /* Is neutral */
+
+#define BIDI_MASK_WS            0x0040
+#define BIDI_MASK_SENTINEL      0x0080    /* Is sentinel: SOT, EOT */
+
+/* Each char can be only one of the seven following. */
+#define BIDI_TYPE_MASK          0x0F00
+#define BIDI_MASK_LETTER        0x0100    /* Is letter: L, R, AL */
+#define BIDI_MASK_NUMBER        0x0200    /* Is number: EN, AN */
+#define BIDI_MASK_NUMSEPTER     0x0300    /* Is number separator or terminator: ES, ET, CS */
+#define BIDI_MASK_SPACE         0x0400    /* Is space: BN, BS, SS, WS */
+#define BIDI_MASK_EXPLICIT      0x0500    /* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
+#define BIDI_MASK_ISOLATE       0x0600    /* Is isolate mark: LRI, RLI, FSI, PDI */
+#define BIDI_MASK_NSM           0x0700    /* Is non spacing mark: NSM */
+
+/* Can be on only if BIDI_MASK_SPACE is also on. */
+#define BIDI_MASK_SEPARATOR     0x0800    /* Is separator: BS, SS */
+
+/* Can be on only if BIDI_MASK_EXPLICIT is also on. */
+#define BIDI_MASK_OVERRIDE      0x8000    /* Is explicit override: LRO, RLO */
+
+#define BIDI_MISC_MASK          0x7000
+#define BIDI_MASK_ES            0x1000
+#define BIDI_MASK_CS            0x2000
+#define BIDI_MASK_ET            0x3000
+#define BIDI_MASK_BS            0x4000
+#define BIDI_MASK_SS            0x5000
+
+/**
+ * \def BIDI_TYPE_LTR
+ * \brief Strong left to right
+ */
+#define BIDI_TYPE_LTR    (BIDI_MASK_STRONG | BIDI_MASK_LETTER)
+
+/**
+ * \def BIDI_TYPE_RTL
+ * \brief Right to left characters
+ */
+#define BIDI_TYPE_RTL    (BIDI_MASK_STRONG | BIDI_MASK_LETTER | BIDI_MASK_RTL)
+
+/**
+ * \def BIDI_TYPE_AL
+ * \brief Arabic characters
+ */
+#define BIDI_TYPE_AL    (BIDI_MASK_STRONG | BIDI_MASK_LETTER | BIDI_MASK_RTL  | BIDI_MASK_ARABIC)
+
+/**
+ * \def BIDI_TYPE_LRE
+ * \brief Left-To-Right embedding
+ */
+#define BIDI_TYPE_LRE    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT)
+
+/**
+ * \def BIDI_TYPE_RLE
+ * \brief Right-To-Left embedding
+ */
+#define BIDI_TYPE_RLE    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT | BIDI_MASK_RTL)
+
+/**
+ * \def BIDI_TYPE_LRO
+ * \brief Left-To-Right override
+ */
+#define BIDI_TYPE_LRO    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT | BIDI_MASK_OVERRIDE)
+
+/**
+ * \def BIDI_TYPE_RLO
+ * \brief Right-To-Left override
+ */
+#define BIDI_TYPE_RLO    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT | BIDI_MASK_RTL | BIDI_MASK_OVERRIDE)
+
+/**
+ * \def BIDI_TYPE_PDF
+ * \brief Pop directional override
+ */
+#define BIDI_TYPE_PDF    (BIDI_MASK_WEAK | BIDI_MASK_EXPLICIT)
+
+/**
+ * \def BIDI_TYPE_EN
+ * \brief European digit
+ */
+#define BIDI_TYPE_EN    (BIDI_MASK_WEAK | BIDI_MASK_NUMBER)
+
+/**
+ * \def BIDI_TYPE_AN
+ * \brief Arabic digit
+ */
+#define BIDI_TYPE_AN    (BIDI_MASK_WEAK | BIDI_MASK_NUMBER | BIDI_MASK_ARABIC)
+
+/**
+ * \def BIDI_TYPE_ES
+ * \brief European number separator
+ */
+#define BIDI_TYPE_ES    (BIDI_MASK_WEAK | BIDI_MASK_NUMSEPTER | BIDI_MASK_ES)
+
+/**
+ * \def BIDI_TYPE_ET
+ * \brief European number terminator
+ */
+#define BIDI_TYPE_ET    (BIDI_MASK_WEAK | BIDI_MASK_NUMSEPTER | BIDI_MASK_ET)
+
+/**
+ * \def BIDI_TYPE_CS
+ * \brief Common Separator
+ */
+#define BIDI_TYPE_CS    (BIDI_MASK_WEAK | BIDI_MASK_NUMSEPTER | BIDI_MASK_CS)
+
+/**
+ * \def BIDI_TYPE_NSM
+ * \brief Non spacing mark
+ */
+#define BIDI_TYPE_NSM    (BIDI_MASK_WEAK | BIDI_MASK_NSM)
+
+/**
+ * \def BIDI_TYPE_BN
+ * \brief Boundary neutral
+ */
+#define BIDI_TYPE_BN    (BIDI_MASK_WEAK | BIDI_MASK_SPACE | BIDI_MASK_BN)
+
+/**
+ * \def BIDI_TYPE_BS
+ * \brief Block separator (Paragraph separator)
+ */
+#define BIDI_TYPE_BS    (BIDI_MASK_NEUTRAL | BIDI_MASK_SPACE | BIDI_MASK_SEPARATOR | BIDI_MASK_BS)
+
+/**
+ * \def BIDI_TYPE_SS
+ * \brief Segment separator
+ */
+#define BIDI_TYPE_SS    (BIDI_MASK_NEUTRAL | BIDI_MASK_SPACE | BIDI_MASK_SEPARATOR | BIDI_MASK_SS)
+/**
+ * \def BIDI_TYPE_WS
+ * \brief Whitespace
+ */
+#define BIDI_TYPE_WS    (BIDI_MASK_NEUTRAL | BIDI_MASK_SPACE | BIDI_MASK_WS)
+
+/**
+ * \def BIDI_TYPE_ON
+ * \brief Other Neutral
+ */
+#define BIDI_TYPE_ON    (BIDI_MASK_NEUTRAL)
+
+/**
+ * \def BIDI_TYPE_LRI
+ * \brief Left-to-Right Isolate
+ */
+#define BIDI_TYPE_LRI   (BIDI_MASK_NEUTRAL | BIDI_MASK_ISOLATE)
+
+/**
+ * \def BIDI_TYPE_RLI
+ * \brief Right-to-Left Isolate
+ */
+#define BIDI_TYPE_RLI   (BIDI_MASK_NEUTRAL | BIDI_MASK_ISOLATE | BIDI_MASK_RTL)
+
+/**
+ * \def BIDI_TYPE_FSI
+ * \brief First Strong Isolate
+ */
+#define BIDI_TYPE_FSI   (BIDI_MASK_NEUTRAL | BIDI_MASK_ISOLATE | BIDI_MASK_FIRST)
+
+/**
+ * \def BIDI_TYPE_PDI
+ * \brief Pop Directional Isolate
+ */
+#define BIDI_TYPE_PDI   (BIDI_MASK_NEUTRAL | BIDI_MASK_WEAK | BIDI_MASK_ISOLATE)
+
+#define BIDI_TYPE_SENTINEL    (BIDI_MASK_SENTINEL)
+
+/* Weak Left-To-Right */
+#define BIDI_TYPE_WLTR     (BIDI_MASK_WEAK)
+/* Weak Right-To-Left */
+#define BIDI_TYPE_WRTL     (BIDI_MASK_WEAK | BIDI_MASK_RTL)
+
+/* The following are only used internally */
+
+/* Start of text */
+#define BIDI_TYPE_SOT   (BIDI_MASK_SENTINEL)
+/* End of text */
+#define BIDI_TYPE_EOT   (BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
+
+/* Is private-use value? */
+//#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
+
+/* Is right to left? */
+#define BIDI_IS_RTL(p)      ((p) & BIDI_MASK_RTL)
+/* Is arabic? */
+#define BIDI_IS_ARABIC(p)   ((p) & BIDI_MASK_ARABIC)
+
+/* Is right-to-left level? */
+#define BIDI_LEVEL_IS_RTL(lev) ((lev) & 1)
+
+/* Return the bidi type corresponding to the direction of the level number,
+   BIDI_TYPE_LTR for evens and BIDI_TYPE_RTL for odds. */
+#define BIDI_LEVEL_TO_DIR(lev) \
+    (BIDI_LEVEL_IS_RTL(lev) ? BIDI_TYPE_RTL : BIDI_TYPE_LTR)
+
+/* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
+   1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
+#define BIDI_DIR_TO_LEVEL(dir) \
+    ((BidiLevel) (BIDI_IS_RTL(dir) ? 1 : 0))
+
+/* Is strong? */
+#define BIDI_IS_STRONG(p)   (!((p) & BIDI_SWN_MASK))
+/* Is weak? */
+#define BIDI_IS_WEAK(p)     ((p) & BIDI_MASK_WEAK)
+/* Is neutral? */
+#define BIDI_IS_NEUTRAL(p)  ((p) & BIDI_MASK_NEUTRAL)
+/* Is sentinel? */
+#define BIDI_IS_SENTINEL(p) ((p) & BIDI_MASK_SENTINEL)
+
+/* Is letter: L, R, AL? */
+#define BIDI_IS_LETTER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_LETTER)
+/* Is number: EN, AN? */
+#define BIDI_IS_NUMBER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMBER)
+/* Is number separator or terminator: ES, ET, CS? */
+#define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
+    (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMSEPTER)
+
+/* Is space: BN, BS, SS, WS? */
+#define BIDI_IS_SPACE(p)    (((p) & BIDI_TYPE_MASK) == BIDI_MASK_SPACE)
+/* Is explicit mark: LRE, RLE, LRO, RLO, PDF? */
+#define BIDI_IS_EXPLICIT(p) (((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT)
+
+/* Is test separator: BS, SS? */
+#define BIDI_IS_SEPARATOR(p) ((p) & BIDI_MASK_SEPARATOR)
+
+/* Is explicit override: LRO, RLO? */
+#define BIDI_IS_OVERRIDE(p) ((p) & BIDI_MASK_OVERRIDE)
+
+/* Is isolote: LRO, RLO? */
+#define BIDI_IS_ISOLATE(p) (((p) & BIDI_TYPE_MASK) == BIDI_MASK_ISOLATE)
+
+/* Is left to right letter: LTR? */
+#define BIDI_IS_LTR_LETTER(p) \
+    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) == BIDI_MASK_LETTER)
+
+/* Is right to left letter: RTL, AL? */
+#define BIDI_IS_RTL_LETTER(p) \
+    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) \
+    == (BIDI_MASK_LETTER | BIDI_MASK_RTL))
+
+/* Is ES or CS: ES, CS? */
+#define BIDI_IS_ES_OR_CS(p) \
+    (((p) & BIDI_MISC_MASK) == BIDI_MASK_ES || \
+     ((p) & BIDI_MISC_MASK) == BIDI_MASK_CS)
+
+/* Change numbers: EN, AN to RTL. */
+#define BIDI_NUMBER_TO_RTL(p) \
+    (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
+
+/* Is explicit or BN: LRE, RLE, LRO, RLO, PDF, BN? */
+#define BIDI_IS_EXPLICIT_OR_BN(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        ((p) & (BIDI_MASK_BN)))
+
+/* Is explicit or BN or WS: LRE, RLE, LRO, RLO, PDF, BN, WS? */
+#define BIDI_IS_EXPLICIT_OR_BN_OR_WS(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        ((p) & (BIDI_MASK_BN | BIDI_MASK_WS)))
+
+/* Is explicit or separator or BN or WS: LRE, RLE, LRO, RLO, PDF, BS, SS, BN, WS? */
+#define BIDI_IS_EXPLICIT_OR_SEPARATOR_OR_BN_OR_WS(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        ((p) & (BIDI_MASK_SEPARATOR | BIDI_MASK_BN | BIDI_MASK_WS)))
+
+/* Is explicit or BN or NSM: LRE, RLE, LRO, RLO, PDF, BN, NSM? */
+#define BIDI_IS_EXPLICIT_OR_BN_OR_NSM(p) \
+    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
+        (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NSM) || \
+        ((p) & BIDI_MASK_BN))
+
+/* Override status of an explicit mark:
+ * LRO,LRE->LTR, RLO,RLE->RTL, otherwise->ON. */
+#define BIDI_EXPLICIT_TO_OVERRIDE_DIR(p) \
+    (BIDI_IS_OVERRIDE(p) ? BIDI_LEVEL_TO_DIR(BIDI_DIR_TO_LEVEL(p)) \
+        : BIDI_TYPE_ON)
+
+/* Change numbers to RTL: EN,AN -> RTL. */
+#define BIDI_CHANGE_NUMBER_TO_RTL(p) \
+    (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
+
+    /** @} end of bidi_types */
 
 #ifdef _MGCHARSET_UNICODE
 
@@ -7510,12 +7842,6 @@ MG_EXPORT BidiType GUIAPI UCharGetBidiType(Uchar32 uc);
  */
 MG_EXPORT void GUIAPI UStrGetBidiTypes(const Uchar32* ucs, int nr_ucs,
         BidiType* bds);
-
-#define BIDI_BRACKET_NONE           0
-#define BIDI_BRACKET_OPEN_MASK      0x80000000
-#define BIDI_BRACKET_CHAR_MASK      0X7FFFFFFF
-#define BIDI_IS_BRACKET_OPEN(bt)    ((bt & BIDI_BRACKET_OPEN_MASK)>0)
-#define BIDI_BRACKET_CHAR(bt)       ((bt & BIDI_BRACKET_CHAR_MASK))
 
 /* \fn BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch)
  * \brief Get bracketed character
@@ -7803,9 +8129,6 @@ MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *els,
  *
  *      https://www.unicode.org/reports/tr9/#Shaping.
  *
- * There are a few macros defined in fribidi-joining-types.h for querying the
- * Arabic properties computed by this function.
- *
  * \param bidi_types The list of bidi types as returned by UStrGetBidiTypes().
  * \param embedding_levels input list of embedding levels, as returned by
  *      UBidiGetParagraphEmbeddingLevels().
@@ -7833,7 +8156,7 @@ MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
  *  - BIDI_FLAG_SHAPE_ARAB_LIGA: Form mandatory Arabic ligatures.\n
  *  - BIDI_FLAG_SHAPE_ARAB_CONSOLE: Perform additional Arabic shaping
  *      suitable for text rendered on grid terminals with no mark
- *      rendering capabilities.
+ *      rendering capabilities.\n
  *
  * Of the above, BIDI_FLAG_SHAPE_ARAB_CONSOLE is only used in special
  * cases, but the rest are recommended in any environment that doesn't have
@@ -10084,330 +10407,6 @@ MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
  * \sa GetACharBidiType, achar_types
  */
 MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
-
-/*
- * Define some bit masks, that character types are based on, each one has
- * only one bit on.
- */
-
-#define BIDI_TYPE_INVALID       0x0000
-
-#define BIDI_MASK_RTL           0x0001    /* Is right to left */
-#define BIDI_MASK_ARABIC        0x0002    /* Is arabic */
-
-#define BIDI_MASK_FIRST         0x0004    /* Whether direction is determined by first strong */
-#define BIDI_MASK_BN            0x0008    /* flag for BN */
-
-#define BIDI_SWN_MASK           0x0030
-#define BIDI_MASK_STRONG        0x0000    /* Is strong */
-#define BIDI_MASK_WEAK          0x0010    /* Is weak */
-#define BIDI_MASK_NEUTRAL       0x0020    /* Is neutral */
-
-#define BIDI_MASK_WS            0x0040
-#define BIDI_MASK_SENTINEL      0x0080    /* Is sentinel: SOT, EOT */
-
-/* Each char can be only one of the seven following. */
-#define BIDI_TYPE_MASK          0x0F00
-#define BIDI_MASK_LETTER        0x0100    /* Is letter: L, R, AL */
-#define BIDI_MASK_NUMBER        0x0200    /* Is number: EN, AN */
-#define BIDI_MASK_NUMSEPTER     0x0300    /* Is number separator or terminator: ES, ET, CS */
-#define BIDI_MASK_SPACE         0x0400    /* Is space: BN, BS, SS, WS */
-#define BIDI_MASK_EXPLICIT      0x0500    /* Is expilict mark: LRE, RLE, LRO, RLO, PDF */
-#define BIDI_MASK_ISOLATE       0x0600    /* Is isolate mark: LRI, RLI, FSI, PDI */
-#define BIDI_MASK_NSM           0x0700    /* Is non spacing mark: NSM */
-
-/* Can be on only if BIDI_MASK_SPACE is also on. */
-#define BIDI_MASK_SEPARATOR     0x0800    /* Is separator: BS, SS */
-
-/* Can be on only if BIDI_MASK_EXPLICIT is also on. */
-#define BIDI_MASK_OVERRIDE      0x8000    /* Is explicit override: LRO, RLO */
-
-#define BIDI_MISC_MASK          0x7000
-#define BIDI_MASK_ES            0x1000
-#define BIDI_MASK_CS            0x2000
-#define BIDI_MASK_ET            0x3000
-#define BIDI_MASK_BS            0x4000
-#define BIDI_MASK_SS            0x5000
-
-    /**
-     * \defgroup bidi_types BIDI types
-     *
-     * Values for BIDI types.
-     *
-     * @{
-     */
-
-#define BIDI_PGDIR_LTR      0
-#define BIDI_PGDIR_RTL      1
-#define BIDI_PGDIR_ON       2
-
-#define BIDI_FLAG_SHAPE_MIRRORING       0x00000001
-#define BIDI_FLAG_REORDER_NSM           0x00000002
-#define BIDI_FLAG_SHAPE_ARAB_PRES       0x00000100
-#define BIDI_FLAG_SHAPE_ARAB_LIGA       0x00000200
-#define BIDI_FLAG_SHAPE_ARAB_CONSOLE    0x00000400
-
-#define BIDI_FLAG_REMOVE_BIDI           0x00010000
-#define BIDI_FLAG_REMOVE_JOINING        0x00020000
-#define BIDI_FLAG_REMOVE_SPECIALS       0x00040000
-/**
- * \def BIDI_TYPE_LTR
- * \brief Strong left to right
- */
-#define BIDI_TYPE_LTR    (BIDI_MASK_STRONG | BIDI_MASK_LETTER)
-
-/**
- * \def BIDI_TYPE_RTL
- * \brief Right to left characters
- */
-#define BIDI_TYPE_RTL    (BIDI_MASK_STRONG | BIDI_MASK_LETTER | BIDI_MASK_RTL)
-
-/**
- * \def BIDI_TYPE_AL
- * \brief Arabic characters
- */
-#define BIDI_TYPE_AL    (BIDI_MASK_STRONG | BIDI_MASK_LETTER | BIDI_MASK_RTL  | BIDI_MASK_ARABIC)
-
-/**
- * \def BIDI_TYPE_LRE
- * \brief Left-To-Right embedding
- */
-#define BIDI_TYPE_LRE    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT)
-
-/**
- * \def BIDI_TYPE_RLE
- * \brief Right-To-Left embedding
- */
-#define BIDI_TYPE_RLE    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT | BIDI_MASK_RTL)
-
-/**
- * \def BIDI_TYPE_LRO
- * \brief Left-To-Right override
- */
-#define BIDI_TYPE_LRO    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT | BIDI_MASK_OVERRIDE)
-
-/**
- * \def BIDI_TYPE_RLO
- * \brief Right-To-Left override
- */
-#define BIDI_TYPE_RLO    (BIDI_MASK_STRONG | BIDI_MASK_EXPLICIT | BIDI_MASK_RTL | BIDI_MASK_OVERRIDE)
-
-/**
- * \def BIDI_TYPE_PDF
- * \brief Pop directional override
- */
-#define BIDI_TYPE_PDF    (BIDI_MASK_WEAK | BIDI_MASK_EXPLICIT)
-
-/**
- * \def BIDI_TYPE_EN
- * \brief European digit
- */
-#define BIDI_TYPE_EN    (BIDI_MASK_WEAK | BIDI_MASK_NUMBER)
-
-/**
- * \def BIDI_TYPE_AN
- * \brief Arabic digit
- */
-#define BIDI_TYPE_AN    (BIDI_MASK_WEAK | BIDI_MASK_NUMBER | BIDI_MASK_ARABIC)
-
-/**
- * \def BIDI_TYPE_ES
- * \brief European number separator
- */
-#define BIDI_TYPE_ES    (BIDI_MASK_WEAK | BIDI_MASK_NUMSEPTER | BIDI_MASK_ES)
-
-/**
- * \def BIDI_TYPE_ET
- * \brief European number terminator
- */
-#define BIDI_TYPE_ET    (BIDI_MASK_WEAK | BIDI_MASK_NUMSEPTER | BIDI_MASK_ET)
-
-/**
- * \def BIDI_TYPE_CS
- * \brief Common Separator
- */
-#define BIDI_TYPE_CS    (BIDI_MASK_WEAK | BIDI_MASK_NUMSEPTER | BIDI_MASK_CS)
-
-/**
- * \def BIDI_TYPE_NSM
- * \brief Non spacing mark
- */
-#define BIDI_TYPE_NSM    (BIDI_MASK_WEAK | BIDI_MASK_NSM)
-
-/**
- * \def BIDI_TYPE_BN
- * \brief Boundary neutral
- */
-#define BIDI_TYPE_BN    (BIDI_MASK_WEAK | BIDI_MASK_SPACE | BIDI_MASK_BN)
-
-/**
- * \def BIDI_TYPE_BS
- * \brief Block separator (Paragraph separator)
- */
-#define BIDI_TYPE_BS    (BIDI_MASK_NEUTRAL | BIDI_MASK_SPACE | BIDI_MASK_SEPARATOR | BIDI_MASK_BS)
-
-/**
- * \def BIDI_TYPE_SS
- * \brief Segment separator
- */
-#define BIDI_TYPE_SS    (BIDI_MASK_NEUTRAL | BIDI_MASK_SPACE | BIDI_MASK_SEPARATOR | BIDI_MASK_SS)
-/**
- * \def BIDI_TYPE_WS
- * \brief Whitespace
- */
-#define BIDI_TYPE_WS    (BIDI_MASK_NEUTRAL | BIDI_MASK_SPACE | BIDI_MASK_WS)
-
-/**
- * \def BIDI_TYPE_ON
- * \brief Other Neutral
- */
-#define BIDI_TYPE_ON    (BIDI_MASK_NEUTRAL)
-
-/**
- * \def BIDI_TYPE_LRI
- * \brief Left-to-Right Isolate
- */
-#define BIDI_TYPE_LRI   (BIDI_MASK_NEUTRAL | BIDI_MASK_ISOLATE)
-
-/**
- * \def BIDI_TYPE_RLI
- * \brief Right-to-Left Isolate
- */
-#define BIDI_TYPE_RLI   (BIDI_MASK_NEUTRAL | BIDI_MASK_ISOLATE | BIDI_MASK_RTL)
-
-/**
- * \def BIDI_TYPE_FSI
- * \brief First Strong Isolate
- */
-#define BIDI_TYPE_FSI   (BIDI_MASK_NEUTRAL | BIDI_MASK_ISOLATE | BIDI_MASK_FIRST)
-
-/**
- * \def BIDI_TYPE_PDI
- * \brief Pop Directional Isolate
- */
-#define BIDI_TYPE_PDI   (BIDI_MASK_NEUTRAL | BIDI_MASK_WEAK | BIDI_MASK_ISOLATE)
-
-    /** @} end of bidi_types */
-
-#define BIDI_TYPE_SENTINEL    (BIDI_MASK_SENTINEL)
-
-/* Weak Left-To-Right */
-#define BIDI_TYPE_WLTR     (BIDI_MASK_WEAK)
-/* Weak Right-To-Left */
-#define BIDI_TYPE_WRTL     (BIDI_MASK_WEAK | BIDI_MASK_RTL)
-
-/* The following are only used internally */
-
-/* Start of text */
-#define BIDI_TYPE_SOT   (BIDI_MASK_SENTINEL)
-/* End of text */
-#define BIDI_TYPE_EOT   (BIDI_MASK_SENTINEL + BIDI_MASK_RTL)
-
-/* Is private-use value? */
-//#define BIDI_TYPE_PRIVATE(p)    ((p) < 0)
-
-/* Is right to left? */
-#define BIDI_IS_RTL(p)      ((p) & BIDI_MASK_RTL)
-/* Is arabic? */
-#define BIDI_IS_ARABIC(p)   ((p) & BIDI_MASK_ARABIC)
-
-/* Is right-to-left level? */
-#define BIDI_LEVEL_IS_RTL(lev) ((lev) & 1)
-
-/* Return the bidi type corresponding to the direction of the level number,
-   BIDI_TYPE_LTR for evens and BIDI_TYPE_RTL for odds. */
-#define BIDI_LEVEL_TO_DIR(lev) \
-    (BIDI_LEVEL_IS_RTL(lev) ? BIDI_TYPE_RTL : BIDI_TYPE_LTR)
-
-/* Return the minimum level of the direction, 0 for BIDI_TYPE_LTR and
-   1 for BIDI_TYPE_RTL and BIDI_TYPE_AL. */
-#define BIDI_DIR_TO_LEVEL(dir) \
-    ((BidiLevel) (BIDI_IS_RTL(dir) ? 1 : 0))
-
-/* Is strong? */
-#define BIDI_IS_STRONG(p)   (!((p) & BIDI_SWN_MASK))
-/* Is weak? */
-#define BIDI_IS_WEAK(p)     ((p) & BIDI_MASK_WEAK)
-/* Is neutral? */
-#define BIDI_IS_NEUTRAL(p)  ((p) & BIDI_MASK_NEUTRAL)
-/* Is sentinel? */
-#define BIDI_IS_SENTINEL(p) ((p) & BIDI_MASK_SENTINEL)
-
-/* Is letter: L, R, AL? */
-#define BIDI_IS_LETTER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_LETTER)
-/* Is number: EN, AN? */
-#define BIDI_IS_NUMBER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMBER)
-/* Is number separator or terminator: ES, ET, CS? */
-#define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
-    (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMSEPTER)
-
-/* Is space: BN, BS, SS, WS? */
-#define BIDI_IS_SPACE(p)    (((p) & BIDI_TYPE_MASK) == BIDI_MASK_SPACE)
-/* Is explicit mark: LRE, RLE, LRO, RLO, PDF? */
-#define BIDI_IS_EXPLICIT(p) (((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT)
-
-/* Is test separator: BS, SS? */
-#define BIDI_IS_SEPARATOR(p) ((p) & BIDI_MASK_SEPARATOR)
-
-/* Is explicit override: LRO, RLO? */
-#define BIDI_IS_OVERRIDE(p) ((p) & BIDI_MASK_OVERRIDE)
-
-/* Is isolote: LRO, RLO? */
-#define BIDI_IS_ISOLATE(p) (((p) & BIDI_TYPE_MASK) == BIDI_MASK_ISOLATE)
-
-/* Is left to right letter: LTR? */
-#define BIDI_IS_LTR_LETTER(p) \
-    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) == BIDI_MASK_LETTER)
-
-/* Is right to left letter: RTL, AL? */
-#define BIDI_IS_RTL_LETTER(p) \
-    ((p) & (BIDI_MASK_LETTER | BIDI_MASK_RTL) \
-    == (BIDI_MASK_LETTER | BIDI_MASK_RTL))
-
-/* Is ES or CS: ES, CS? */
-#define BIDI_IS_ES_OR_CS(p) \
-    (((p) & BIDI_MISC_MASK) == BIDI_MASK_ES || \
-     ((p) & BIDI_MISC_MASK) == BIDI_MASK_CS)
-
-/* Change numbers: EN, AN to RTL. */
-#define BIDI_NUMBER_TO_RTL(p) \
-    (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
-
-/* Is explicit or BN: LRE, RLE, LRO, RLO, PDF, BN? */
-#define BIDI_IS_EXPLICIT_OR_BN(p) \
-    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
-        ((p) & (BIDI_MASK_BN)))
-
-/* Is explicit or BN or WS: LRE, RLE, LRO, RLO, PDF, BN, WS? */
-#define BIDI_IS_EXPLICIT_OR_BN_OR_WS(p) \
-    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
-        ((p) & (BIDI_MASK_BN | BIDI_MASK_WS)))
-
-/* Is explicit or separator or BN or WS: LRE, RLE, LRO, RLO, PDF, BS, SS, BN, WS? */
-#define BIDI_IS_EXPLICIT_OR_SEPARATOR_OR_BN_OR_WS(p) \
-    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
-        ((p) & (BIDI_MASK_SEPARATOR | BIDI_MASK_BN | BIDI_MASK_WS)))
-
-/* Is explicit or BN or NSM: LRE, RLE, LRO, RLO, PDF, BN, NSM? */
-#define BIDI_IS_EXPLICIT_OR_BN_OR_NSM(p) \
-    ((((p) & BIDI_TYPE_MASK) == BIDI_MASK_EXPLICIT) || \
-        (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NSM) || \
-        ((p) & BIDI_MASK_BN))
-
-/* Override status of an explicit mark:
- * LRO,LRE->LTR, RLO,RLE->RTL, otherwise->ON. */
-#define BIDI_EXPLICIT_TO_OVERRIDE_DIR(p) \
-    (BIDI_IS_OVERRIDE(p) ? BIDI_LEVEL_TO_DIR(BIDI_DIR_TO_LEVEL(p)) \
-        : BIDI_TYPE_ON)
-
-/* Change numbers to RTL: EN,AN -> RTL. */
-#define BIDI_CHANGE_NUMBER_TO_RTL(p) \
-    (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
-
-#define BIDI_BRACKET_OPEN_MASK      0x80000000
-#define BIDI_BRACKET_ID_MASK        0x7fffffff
-#define BIDI_IS_BRACKET_OPEN(bt)    ((bt & BIDI_BRACKET_OPEN_MASK)>0)
-#define BIDI_BRACKET_ID(bt)         ((bt & BIDI_BRACKET_ID_MASK))
 
 /**
  * \fn BidiType GUIAPI GetACharBidiType (LOGFONT* logfont, Achar32 chv)
