@@ -55,10 +55,11 @@
 #define DEBUG
 
 #include "common.h"
-#include "minigui.h"
-#include "gdi.h"
 
 #ifdef _MGCHARSET_UNICODE
+
+#include "minigui.h"
+#include "gdi.h"
 
 #include "devfont.h"
 #include "bidi.h"
@@ -643,7 +644,7 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
 #define BIDI_EMBEDDING_DIRECTION(link) \
     BIDI_LEVEL_TO_DIR(RL_LEVEL(link))
 
-int __mg_unicode_bidi_get_par_direction(const BidiType *bidi_types, const int len)
+int UCharGetParagraphDir(const BidiType *bidi_types, const int len)
 {
     register int i;
 
@@ -737,7 +738,7 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
     }
 }
 
-BidiLevel __mg_unicode_bidi_get_paragraph_els(const BidiType *bidi_types,
+BidiLevel UCharGetParagraphEmbeddingLevels(const BidiType *bidi_types,
       const BidiBracketType *bracket_types, const int len,
       int *pbase_dir, BidiLevel *embedding_levels)
 {
@@ -753,7 +754,7 @@ BidiLevel __mg_unicode_bidi_get_paragraph_els(const BidiType *bidi_types,
         goto out;
     }
 
-    _DBG_PRINTF ("in __mg_unicode_bidi_get_paragraph_els");
+    _DBG_PRINTF ("in UCharGetParagraphEmbeddingLevels");
 
     /* Determinate character types */
     {
@@ -1506,7 +1507,7 @@ BidiLevel __mg_unicode_bidi_get_paragraph_els(const BidiType *bidi_types,
            separator or paragraph separator, and
            4. any sequence of whitespace characters and/or isolate formatting
            characters at the end of the line.
-           ... (to be continued in __mg_unicode_bidi_reorder_line()). */
+           ... (to be continued in UCharReorderBidiLine()). */
         list = new_run_list ();
         if (!list) goto out;
         q = list;
@@ -1565,7 +1566,7 @@ BidiLevel __mg_unicode_bidi_get_paragraph_els(const BidiType *bidi_types,
     status = TRUE;
 
 out:
-    _DBG_PRINTF ("leaving __mg_unicode_bidi_get_paragraph_els");
+    _DBG_PRINTF ("leaving UCharGetParagraphEmbeddingLevels");
 
     if (main_run_list)
         free_run_list (main_run_list);
@@ -1598,7 +1599,7 @@ static void index_array_reverse (int *arr, int len)
     }
 }
 
-BidiLevel __mg_unicode_bidi_reorder_line(Uint32 flags,
+BidiLevel UCharReorderBidiLine(Uint32 flags,
         const BidiType *bidi_types, int len, int off,
         int base_dir, BidiLevel *embedding_levels,
         Uchar32 *visual_str, int *map,
@@ -1612,7 +1613,7 @@ BidiLevel __mg_unicode_bidi_reorder_line(Uint32 flags,
         goto out;
     }
 
-    _DBG_PRINTF ("in __mg_unicode_bidi_reorder_line");
+    _DBG_PRINTF ("in UCharReorderBidiLine");
 
     _DBG_PRINTF ("reset the embedding levels, 4. whitespace at the end of line");
     {

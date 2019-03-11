@@ -3608,7 +3608,7 @@ BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
     return linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(uc)];
 }
 
-void UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
+void GUIAPI UCharGetBidiTypes(const Uchar32 *str, int len, BidiType *btypes)
 {
     register int i = len;
     for (; i; i--) {
