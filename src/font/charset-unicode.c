@@ -44,12 +44,14 @@
 #include <assert.h>
 
 #include "common.h"
+
+#ifdef _MGCHARSET_UNICODE
+
 #include "minigui.h"
 #include "gdi.h"
 #include "devfont.h"
 #include "charset.h"
-
-#ifdef _MGCHARSET_UNICODE
+#include "bidi.h"
 
 /************************* UTF-8 Specific Operations ************************/
 static int utf8_len_first_char (const unsigned char* mstr, int len)
@@ -205,7 +207,7 @@ static unsigned int unicode_char_type (Achar32 chv)
     return (break_type << 24) | (basic_type << 16) | mchar_type;
 }
 
-#define _USE_UNIBIDI
+#undef _USE_UNIBIDI
 
 #ifdef _USE_UNIBIDI
 
@@ -312,23 +314,23 @@ BOOL GUIAPI UCharGetMirror(Uchar32 ch, Uchar32* mirrored_ch)
 static BidiType unicode_bidi_char_type (Achar32 chv)
 {
     Achar32 chv_first = 0;
-    Achar32 chv_last = (Achar32)TABLESIZE (__mg___mg_unicode_bidi_char_type_map);
+    Achar32 chv_last = (Achar32)TABLESIZE (unicode_bidi_char_type_map);
     Achar32 chv_mid;
 
     chv = REAL_ACHAR(chv);
     while (chv_last >= chv_first) {
         chv_mid = (chv_first + chv_last)/2;
 
-        if ((__mg___mg_unicode_bidi_char_type_map[chv_mid].chv <= chv)
-                && ((__mg___mg_unicode_bidi_char_type_map[chv_mid].chv + __mg___mg_unicode_bidi_char_type_map[chv_mid].count) > chv)) {
-            return __mg___mg_unicode_bidi_char_type_map[chv_mid].type;
+        if ((unicode_bidi_char_type_map[chv_mid].chv <= chv)
+                && ((unicode_bidi_char_type_map[chv_mid].chv + unicode_bidi_char_type_map[chv_mid].count) > chv)) {
+            return unicode_bidi_char_type_map[chv_mid].type;
         }
 
-        if (chv >= (__mg___mg_unicode_bidi_char_type_map[chv_mid].chv + __mg___mg_unicode_bidi_char_type_map[chv_mid].count)) {
+        if (chv >= (unicode_bidi_char_type_map[chv_mid].chv + unicode_bidi_char_type_map[chv_mid].count)) {
             chv_first = chv_mid + 1;
         }
         else {
-            if (chv < __mg___mg_unicode_bidi_char_type_map[chv_mid].chv)
+            if (chv < unicode_bidi_char_type_map[chv_mid].chv)
                 chv_last = chv_mid - 1;
             else
                 chv_last = chv_mid;
@@ -338,10 +340,13 @@ static BidiType unicode_bidi_char_type (Achar32 chv)
     return BIDI_TYPE_LTR;
 }
 
+BOOL __mg_get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n,
+        Achar32 chv, Achar32* mirrored);
+
 static BOOL unicode_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 {
-    return get_mirror_char (__mg_unicode_mirror_table,
-            TABLESIZE (__mg_unicode_mirror_table), chv, mirrored);
+    return __mg_get_mirror_char (unicode_mirror_table,
+            TABLESIZE (unicode_mirror_table), chv, mirrored);
 }
 
 BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
@@ -353,17 +358,17 @@ BidiBracketType GUIAPI UCharGetBracketType(Uchar32 uc)
 {
     BidiBracketType bracket_type;
     unsigned int lower = 0;
-    unsigned int upper = TABLESIZE (__mg_unicode_bracket_table) - 1;
-    int mid = TABLESIZE (__mg_unicode_bracket_table) / 2;
+    unsigned int upper = TABLESIZE (unicode_bracket_table) - 1;
+    int mid = TABLESIZE (unicode_bracket_table) / 2;
 
-    if (uc < __mg_unicode_bracket_table[lower].chv ||
-            uc > __mg_unicode_bracket_table[upper].chv)
+    if (uc < unicode_bracket_table[lower].chv ||
+            uc > unicode_bracket_table[upper].chv)
         return BIDI_BRACKET_NONE;
 
     do {
-        if (uc < __mg_unicode_bracket_table[mid].chv)
+        if (uc < unicode_bracket_table[mid].chv)
             upper = mid - 1;
-        else if (uc > __mg_unicode_bracket_table[mid].chv)
+        else if (uc > unicode_bracket_table[mid].chv)
             lower = mid + 1;
         else
             goto found;
@@ -375,11 +380,14 @@ BidiBracketType GUIAPI UCharGetBracketType(Uchar32 uc)
     return BIDI_BRACKET_NONE;
 
 found:
-    bracket_type = __mg_unicode_bracket_table[mid].chv +
-                   __mg_unicode_bracket_table[mid].bracket_off;
-    bracket_type &= BIDI_BRACKET_CHAR_MASK;
-    if (__mg_unicode_bracket_table[mid].type == UNIBIDI_BRACKET_OPEN)
-        bracket_type |= BIDI_BRACKET_OPEN_MASK;
+    if (unicode_bracket_table[mid].type == _BIDI_BRACKET_OPEN) {
+        bracket_type = uc | BIDI_BRACKET_OPEN_MASK;
+    }
+    else {
+        bracket_type = unicode_bracket_table[mid].chv +
+                       unicode_bracket_table[mid].bracket_off;
+        bracket_type &= BIDI_BRACKET_CHAR_MASK;
+    }
 
     return bracket_type;
 }

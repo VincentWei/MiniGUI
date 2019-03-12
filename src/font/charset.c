@@ -741,7 +741,9 @@ static CHARSETOPS CharsetOps_iso8859_5 = {
 
 #include "bidi.h"
 
-static BOOL get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n,
+#define get_mirror_char __mg_get_mirror_char
+
+BOOL __mg_get_mirror_char (const BIDICHAR_MIRROR_MAP* map, int n,
         Achar32 chv, Achar32* mirrored)
 {
     int pos, step;

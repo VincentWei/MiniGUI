@@ -210,7 +210,7 @@ print ()
 print ("#ifndef _UNICODE_BIDI_TABLES_H")
 print ("#define _UNICODE_BIDI_TABLES_H")
 print ("")
-print ("static const BIDICHAR_TYPE_MAP __mg_unicode_bidi_char_type_map[] =")
+print ("static const BIDICHAR_TYPE_MAP unicode_bidi_char_type_map[] =")
 print ("{")
 
 cur_chv = 0
@@ -229,7 +229,7 @@ for i in range(1, NR_UNICODE_CHARS):
 
 print ("};")
 print ("")
-print ("static const BIDICHAR_BRACKET __mg_unicode_bracket_table[] =")
+print ("static const BIDICHAR_BRACKET unicode_bracket_table[] =")
 print ("{")
 
 d = data[1]
@@ -239,18 +239,18 @@ for u in uu:
     v1 = d[u][1]
     v1 = v1.strip()
     if cmp(v1, 'o') == 0:
-        bracket_type = "MGBIDI_BRACKET_OPEN"
+        bracket_type = "_BIDI_BRACKET_OPEN"
     elif cmp(v1, 'c') == 0:
-        bracket_type = "MGBIDI_BRACKET_CLOSE"
+        bracket_type = "_BIDI_BRACKET_CLOSE"
     else:
-        bracket_type = "MGBIDI_BRACKET_NONE"
+        bracket_type = "_BIDI_BRACKET_NONE"
 
     print ("    { 0x%06X, %d, %s }," % (u, v0 - u, bracket_type, ))
 
 print ("};")
 print ("")
 
-print ("static const BIDICHAR_MIRROR_MAP __mg_unicode_mirror_table[] =")
+print ("static const BIDICHAR_MIRROR_MAP unicode_mirror_table[] =")
 print ("{")
 
 d = data[2]

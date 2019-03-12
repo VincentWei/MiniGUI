@@ -7885,6 +7885,146 @@ typedef Uint8   BidiArabicProp;
 #define BIDI_PGDIR_RTL      BIDI_TYPE_RTL
 #define BIDI_PGDIR_ON       BIDI_TYPE_ON
 
+/*
+ * Define bit masks that joining types are based on, each mask has
+ * only one bit set.
+ */
+#define BIDI_MASK_JOINS_RIGHT       0x01    /* May join to right */
+#define BIDI_MASK_JOINS_LEFT        0x02    /* May join to right */
+#define BIDI_MASK_ARAB_SHAPES       0x04    /* May Arabic shape */
+#define BIDI_MASK_TRANSPARENT       0x08    /* Is transparent */
+#define BIDI_MASK_IGNORED           0x10    /* Is ignored */
+#define BIDI_MASK_LIGATURED         0x20    /* Is ligatured */
+
+/*
+ * Define values for BidiJoiningType
+ */
+
+/* nUn-joining */
+#define BIDI_JOINING_TYPE_U_VAL    ( 0 )
+
+/* Right-joining */
+#define BIDI_JOINING_TYPE_R_VAL    \
+    ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_ARAB_SHAPES )
+
+/* Dual-joining */
+#define BIDI_JOINING_TYPE_D_VAL    \
+    ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT \
+    | BIDI_MASK_ARAB_SHAPES )
+
+/* join-Causing */
+#define BIDI_JOINING_TYPE_C_VAL    \
+    ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT )
+
+/* Left-joining */
+#define BIDI_JOINING_TYPE_L_VAL    \
+    ( BIDI_MASK_JOINS_LEFT | BIDI_MASK_ARAB_SHAPES )
+
+/* Transparent */
+#define BIDI_JOINING_TYPE_T_VAL    \
+    ( BIDI_MASK_TRANSPARENT | BIDI_MASK_ARAB_SHAPES )
+
+/* iGnored */
+#define BIDI_JOINING_TYPE_G_VAL    ( BIDI_MASK_IGNORED )
+
+/*
+ * The equivalent of JoiningType values for ArabicProp
+ */
+
+/* Primary Arabic Joining Classes (Table 8-2) */
+
+/* nUn-joining */
+#define BIDI_IS_JOINING_TYPE_U(p)    \
+    ( 0 == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) ) )
+
+/* Right-joining */
+#define BIDI_IS_JOINING_TYPE_R(p)    \
+    ( BIDI_MASK_JOINS_RIGHT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) ) )
+
+/* Dual-joining */
+#define BIDI_IS_JOINING_TYPE_D(p)    \
+    ( ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT    \
+      | BIDI_MASK_ARAB_SHAPES ) == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT    \
+        | BIDI_MASK_ARAB_SHAPES ) ) )
+
+/* join-Causing */
+#define BIDI_IS_JOINING_TYPE_C(p)    \
+    ( ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) == ( (p) & \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT    \
+        | BIDI_MASK_ARAB_SHAPES ) ) )
+
+/* Left-joining */
+#define BIDI_IS_JOINING_TYPE_L(p)    \
+    ( BIDI_MASK_JOINS_LEFT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ) ) )
+
+/* Transparent */
+#define BIDI_IS_JOINING_TYPE_T(p)    \
+    ( BIDI_MASK_TRANSPARENT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED ) ) )
+
+/* iGnored */
+#define BIDI_IS_JOINING_TYPE_G(p)    \
+    ( BIDI_MASK_IGNORED == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED ) ) )
+
+/* and for Derived Arabic Joining Classes (Table 8-3) */
+
+/* Right join-Causing */
+#define BIDI_IS_JOINING_TYPE_RC(p)    \
+    ( BIDI_MASK_JOINS_RIGHT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_RIGHT ) ) )
+
+/* Left join-Causing */
+#define BIDI_IS_JOINING_TYPE_LC(p)    \
+    ( BIDI_MASK_JOINS_LEFT == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_JOINS_LEFT ) ) )
+
+/*
+ * Defining macros for needed queries, It is fully dependent on the 
+ * implementation of BidiJoiningType.
+ */
+
+/* Joins to right: R, D, C? */
+#define BIDI_JOINS_RIGHT(p)    ((p) & BIDI_MASK_JOINS_RIGHT)
+
+/* Joins to left: L, D, C? */
+#define BIDI_JOINS_LEFT(p)    ((p) & BIDI_MASK_JOINS_LEFT)
+
+/* May shape: R, D, L, T? */
+#define BIDI_ARAB_SHAPES(p)    ((p) & BIDI_MASK_ARAB_SHAPES)
+
+/* Is skipped in joining: T, G? */
+#define BIDI_IS_JOIN_SKIPPED(p)    \
+    ((p) & (BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED))
+
+/* Is base that will be shaped: R, D, L? */
+#define BIDI_IS_JOIN_BASE_SHAPES(p)    \
+    ( BIDI_MASK_ARAB_SHAPES == ( (p) &    \
+        ( BIDI_MASK_TRANSPARENT | BIDI_MASK_IGNORED    \
+        | BIDI_MASK_ARAB_SHAPES ) ) )
+
+#define BIDI_JOINS_PRECEDING_MASK(level)    \
+    (BIDI_LEVEL_IS_RTL (level) ? BIDI_MASK_JOINS_RIGHT    \
+                      : BIDI_MASK_JOINS_LEFT)
+
+#define BIDI_JOINS_FOLLOWING_MASK(level)    \
+    (BIDI_LEVEL_IS_RTL (level) ? BIDI_MASK_JOINS_LEFT    \
+                      : BIDI_MASK_JOINS_RIGHT)
+
+#define BIDI_JOIN_SHAPE(p)    \
+    ((p) & ( BIDI_MASK_JOINS_RIGHT | BIDI_MASK_JOINS_LEFT ))
+
     /** @} end of bidi_types */
 
 #ifdef _MGCHARSET_UNICODE
@@ -12054,7 +12194,7 @@ typedef struct _SHAPEDGLYPH {
  *      LanguageCode content_language, UCharScriptType writing_system,
  *      const Uchar32* logical_ucs, int nr_ucs,
  *      Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
- *      int* pos_l2v, int* nr_glyphs)
+ *      BidiType *paragraph_dir, int* pos_l2v, int* nr_glyphs)
  * \brief Analyse and generate a shaped glyph string of a Unicode string under
  *      specific content language and script.
  *
@@ -12069,7 +12209,7 @@ typedef struct _SHAPEDGLYPH {
  * The shaping process includes:
  *
  *  - Shaping (substituting) glyphs.
- *  - Assigning the breaking opportunities to glyphs.
+ *  - Tailoring and assigning the breaking opportunities to glyphs.
  *  - Re-ordering glyphs.
  *  - Positioning glyphs.
  *
@@ -12094,6 +12234,7 @@ typedef struct _SHAPEDGLYPH {
  *      writing systems.
  * \param visual_glyphs The pointer to the buffer to store the generated
  *      shaped visual glyph array.
+ * \param paragraph_dir The specified and resolved paragraph base direction.
  * \param pos_l2v The pointer to an int array which will store the map from
  *      the positions in the logical Uchar32 string to the positions in
  *      the visual shaped glyphs; can be NULL.
@@ -12103,21 +12244,26 @@ typedef struct _SHAPEDGLYPH {
  *
  * \note Only available when support for UNICODE is enabled.
  *
+ * \note This function assumes that you passed one line (one paragraph) of
+ *      the logical Unicode string. Therefore, you need to call this function
+ *      after calling GetUCharsAndBreaks.
+ *
  * \sa GetUCharsAndBreaks, GetShapedGlyphsComplex, SHAPEDGLYPH,
+ *      UBidiReorderLine, bidi_types,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
 MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
         const Uchar32* logical_ucs, int nr_ucs,
         Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
-        int* pos_l2v, int* nr_glyphs);
+        BidiType *paragraph_dir, int* pos_l2v, int* nr_glyphs);
 
 /**
  * \fn int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
  *      LanguageCode content_language, UCharScriptType writing_system,
  *      const Uchar32* logical_ucs, int nr_ucs,
  *      Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
- *      int* pos_l2v, int* nr_glyphs);
+ *      BidiType *paragraph_dir, int* pos_l2v, int* nr_glyphs);
  * \brief Analyse and generate a shaped glyph string of a Unicode string under
  *      specific content language and script.
  *
@@ -12157,6 +12303,7 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  *      writing systems.
  * \param visual_glyphs The pointer to the buffer to store the generated
  *      shaped visual glyph array.
+ * \param paragraph_dir The specified and resolved paragraph base direction.
  * \param pos_l2v The pointer to an int array which will store the map from
  *      the positions in the logical Uchar32 string to the positions in
  *      the visual shaped glyphs; can be NULL.
@@ -12166,14 +12313,19 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, SHAPEDGLYPH
+ * \note This function assumes that you passed one line (one paragraph) of
+ *      the logical Unicode string. Therefore, you need to call this function
+ *      after calling GetUCharsAndBreaks.
+ *
+ * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, SHAPEDGLYPH,
+ *      UBidiReorderLine, bidi_types,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
 MG_EXPORT int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
         const Uchar32* logical_ucs, int nr_ucs,
         Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
-        int* pos_l2v, int* nr_glyphs);
+        BidiType *paragraph_dir, int* pos_l2v, int* nr_glyphs);
 
 #define GLYPH_ORIENTATION_UPRIGHT   0
 #define GLYPH_ORIENTATION_SIDEWAYS  1

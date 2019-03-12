@@ -73,9 +73,9 @@ typedef struct _BIDICHAR_TYPE_MAP {
     Uint16    type;
 } BIDICHAR_TYPE_MAP;
 
-#define MGBIDI_BRACKET_NONE       0
-#define MGBIDI_BRACKET_CLOSE      1
-#define MGBIDI_BRACKET_OPEN       2
+#define _BIDI_BRACKET_NONE       0
+#define _BIDI_BRACKET_CLOSE      1
+#define _BIDI_BRACKET_OPEN       2
 
 // NOTE: It is enough to use Uint16 for Unicode bracket table
 typedef struct _BIDICHAR_BRACKET {

@@ -70,8 +70,7 @@ typedef struct _PairMap {
 #include "unicode-arabic-misc-table.inc"
 
 static void unibidi_shape_arabic_joining (const Uchar32 table[][4],
-        Uchar32 min, Uchar32 max,
-        const int len,
+        Uchar32 min, Uchar32 max, const int len,
         const BidiArabicProp *ar_props,
         Uchar32 *str)
 {
@@ -114,8 +113,7 @@ static Uchar32 find_pair_match (const PairMap *table, int size,
      find_pair_match(table, len, first, second))
 
 static void unibidi_shape_arabic_ligature(const PairMap *table,
-        int size, const BidiLevel *embedding_levels,
-        int len,
+        int size, const BidiLevel *embedding_levels, int len,
         BidiArabicProp *ar_props, Uchar32 *str)
 {
     /* TODO: This doesn't form ligatures for even-level Arabic text.
@@ -145,8 +143,6 @@ static void unibidi_shape_arabic_ligature(const PairMap *table,
 void UBidiShapeArabic(Uint32 flags, const BidiLevel *embedding_levels, int len,
         BidiArabicProp *ar_props, Uchar32 *str)
 {
-    _DBG_PRINTF ("in UBidiShapeArabic");
-
     if (len == 0 || !str) return;
 
     if (BIDI_TEST_BITS (flags, BIDI_FLAG_SHAPE_ARAB_PRES)) {
@@ -154,11 +150,13 @@ void UBidiShapeArabic(Uint32 flags, const BidiLevel *embedding_levels, int len,
     }
 
     if (BIDI_TEST_BITS (flags, BIDI_FLAG_SHAPE_ARAB_LIGA)) {
-        DO_LIGATURING (mandatory_liga_table, embedding_levels, len, ar_props, str);
+        DO_LIGATURING (mandatory_liga_table, embedding_levels, len,
+            ar_props, str);
     }
 
     if (BIDI_TEST_BITS (flags, BIDI_FLAG_SHAPE_ARAB_CONSOLE)) {
-        DO_LIGATURING (console_liga_table, embedding_levels, len, ar_props, str);
+        DO_LIGATURING (console_liga_table, embedding_levels, len,
+            ar_props, str);
         DO_SHAPING (UNIBIDI_GET_ARABIC_SHAPE_NSM, len, ar_props, str);
     }
 }
