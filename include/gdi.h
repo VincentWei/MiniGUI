@@ -7595,8 +7595,10 @@ typedef Uint8   BidiArabicProp;
 
 /* Is letter: L, R, AL? */
 #define BIDI_IS_LETTER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_LETTER)
+
 /* Is number: EN, AN? */
 #define BIDI_IS_NUMBER(p)   (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMBER)
+
 /* Is number separator or terminator: ES, ET, CS? */
 #define BIDI_IS_NUMBER_SEPARATOR_OR_TERMINATOR(p) \
     (((p) & BIDI_TYPE_MASK) == BIDI_MASK_NUMSEPTER)
@@ -8006,7 +8008,7 @@ MG_EXPORT int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
  * \fn BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
  *      const BidiType *bidi_types,
  *      const BidiBracketType* bracket_types, int len,
- *      int *base_dir, BidiLevel *embedding_levels);
+ *      BidiType *paragraph_dir, BidiLevel *embedding_levels);
  * \brief Get bidi embedding levels of a paragraph.
  *
  * This function finds the bidi embedding levels of a single paragraph,
@@ -8022,9 +8024,17 @@ MG_EXPORT int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
  * \param bracket_types The pointer to a Uint8 which contains the
         bracket types as returned by UStrGetBracketTypes()
  * \param len The length of the list.
- * \param base_dir requested and resolved paragraph base direction
+ * \param paragraph_dir requested and resolved paragraph base direction. You
+ *      can pass the following values for base direction:
+ *          - BIDI_PGDIR_LTR\n
+ *              Explicit left to right.
+ *          - BIDI_PGDIR_RTL\n
+ *              Explicit right to left.
+ *          - BIDI_PGDIR_ON\n
+ *              The base direction will be resolved by applying the
+ *              rules P2 and P3, and returned via this parameter.
  * \param embedding_levels The pointer to a buffer which will restore
- *      the embedding levels
+ *      the embedding levels.
  *
  * \return The Maximum level found plus one, or zero if any error occurred
  * (memory allocation failure most probably).
@@ -8034,7 +8044,7 @@ MG_EXPORT int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
 MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
         const BidiType *bidi_types,
         const BidiBracketType* bracket_types, int len,
-        int *base_dir, BidiLevel *embedding_levels);
+        BidiType *paragraph_dir, BidiLevel *embedding_levels);
 
 /*
  * \var typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos)
@@ -8050,7 +8060,7 @@ typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
 /**
  * \fn BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  *      const BidiType *bidi_types, int len, int off,
- *      int base_dir, BidiLevel *embedding_levels,
+ *      BidiType paragraph_dir, BidiLevel *embedding_levels,
  *      Uchar32 *visual_str, int *map,
  *      void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
  * \brief Reorder a line of logical string to visual string.
@@ -8091,7 +8101,7 @@ typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
  *      contains the bracket types as returned by UStrGetBracketTypes()
  * \param len The length of the list.
  * \param off The input offset of the beginning of the line in the paragraph.
- * \param base_dir The resolved paragraph base direction.
+ * \param paragraph_dir The resolved paragraph base direction.
  * \param embedding_levels The embedding levels, as returned by
         UBidiGetParagraphEmbeddingLevels()
  * \param visual_str The Uchar32 string will be reordered.
@@ -8108,7 +8118,7 @@ typedef void (*CB_REVERSE_EXTRA) (void* extra, int len, int pos);
  */
 MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
         const BidiType *bidi_types, int len, int off,
-        int base_dir, BidiLevel *embedding_levels,
+        BidiType paragraph_dir, BidiLevel *embedding_levels,
         Uchar32 *visual_str, int *indices_map,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
 

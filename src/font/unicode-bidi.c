@@ -164,7 +164,7 @@ static BidiRun* run_list_encode_bidi_types (const BidiType *bidi_types,
     for (i = 0; i < len; i++)
     {
         register BidiType char_type = bidi_types[i];
-        register Uint8 bracket_type = BIDI_BRACKET_NONE;
+        register BidiBracketType bracket_type = BIDI_BRACKET_NONE;
         if (bracket_types)
             bracket_type = bracket_types[i];
 
@@ -740,11 +740,11 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
 
 BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
       const BidiBracketType *bracket_types, const int len,
-      int *pbase_dir, BidiLevel *embedding_levels)
+      BidiType *paragraph_dir, BidiLevel *embedding_levels)
 {
     BidiLevel base_level_per_iso_level[BIDI_MAX_EXPLICIT_LEVEL];
     BidiLevel base_level, max_level = 0;
-    int base_dir;
+    BidiType base_dir;
     BidiRun *main_run_list = NULL, *explicits_list = NULL, *pp;
     BOOL status = FALSE;
     int max_iso_level = 0;
@@ -764,8 +764,8 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
     /* Find base level */
     /* If no strong base_dir was found, resort to the weak direction
        that was passed on input. */
-    base_level = BIDI_DIR_TO_LEVEL (*pbase_dir);
-    if (!BIDI_IS_STRONG (*pbase_dir))
+    base_level = BIDI_DIR_TO_LEVEL (*paragraph_dir);
+    if (!BIDI_IS_STRONG (*paragraph_dir))
         /* P2. P3. Search for first strong character and use its direction as
            base direction */
     {
@@ -783,12 +783,12 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
             else if (valid_isolate_count==0 && BIDI_IS_LETTER (RL_TYPE (pp)))
             {
                 base_level = BIDI_DIR_TO_LEVEL (RL_TYPE (pp));
-                *pbase_dir = BIDI_LEVEL_TO_DIR (base_level);
+                // *paragraph_dir = BIDI_LEVEL_TO_DIR (base_level);
                 break;
             }
         }
     }
-    base_dir = BIDI_LEVEL_TO_DIR (base_level);
+    *paragraph_dir = base_dir = BIDI_LEVEL_TO_DIR (base_level);
     _DBG_PRINTF ("  base level : %c\n", unibidi_char_from_level (base_level));
     _DBG_PRINTF ("  base dir   : %s\n", unibidi_get_bidi_type_name (base_dir));
 
@@ -1574,8 +1574,7 @@ out:
 }
 
 
-static void
-bidi_string_reverse(Uchar32 *str, int len)
+static void bidi_string_reverse(Uchar32 *str, int len)
 {
     int i;
 
@@ -1599,7 +1598,7 @@ static void index_array_reverse (int *arr, int len)
 
 BidiLevel UBidiReorderLine(Uint32 flags,
         const BidiType *bidi_types, int len, int off,
-        int base_dir, BidiLevel *embedding_levels,
+        BidiType paragraph_dir, BidiLevel *embedding_levels,
         Uchar32 *visual_str, int *map,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
 {
@@ -1621,7 +1620,7 @@ BidiLevel UBidiReorderLine(Uint32 flags,
            4. any sequence of white space characters at the end of the line. */
         for (i = off + len - 1; i >= off &&
                 BIDI_IS_EXPLICIT_OR_BN_OR_WS (bidi_types[i]); i--)
-            embedding_levels[i] = BIDI_DIR_TO_LEVEL (base_dir);
+            embedding_levels[i] = BIDI_DIR_TO_LEVEL (paragraph_dir);
     }
 
     /* 7. Reordering resolved levels */
