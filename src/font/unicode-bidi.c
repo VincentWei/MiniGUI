@@ -149,7 +149,7 @@ static void free_run_list(BidiRun *run_list)
 
 
 static BidiRun* run_list_encode_bidi_types (const BidiType *bidi_types,
-    const BidiBracketType *bracket_types, const int len)
+    const BidiBracketType *bracket_types, int len)
 {
     BidiRun *list, *last;
     register BidiRun *run = NULL;
@@ -524,7 +524,7 @@ static void print_resolved_types(const BidiRun *pp)
     _DBG_PRINTF ("\n");
 }
 
-static void print_bidi_string(const BidiType *bidi_types, const int len)
+static void print_bidi_string(const BidiType *bidi_types, int len)
 {
     int i;
 
@@ -644,13 +644,14 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
 #define BIDI_EMBEDDING_DIRECTION(link) \
     BIDI_LEVEL_TO_DIR(RL_LEVEL(link))
 
-int UBidiGetParagraphDir(const BidiType *bidi_types, const int len)
+BidiType UBidiGetParagraphDir(const BidiType *bidi_types, int len)
 {
     register int i;
 
-    for (i = 0; i < len; i++)
+    for (i = 0; i < len; i++) {
         if (BIDI_IS_LETTER(bidi_types[i]))
             return BIDI_IS_RTL(bidi_types[i]) ? BIDI_PGDIR_RTL : BIDI_PGDIR_LTR;
+    }
 
     return BIDI_PGDIR_ON;
 }
@@ -739,7 +740,7 @@ static void free_pairing_nodes(BidiPairingNode *nodes)
 }
 
 BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
-      const BidiBracketType *bracket_types, const int len,
+      const BidiBracketType *bracket_types, int len,
       BidiType *paragraph_dir, BidiLevel *embedding_levels)
 {
     BidiLevel base_level_per_iso_level[BIDI_MAX_EXPLICIT_LEVEL];
@@ -1610,14 +1611,15 @@ BidiLevel UBidiReorderLine(Uint32 flags,
         goto out;
     }
 
-    _DBG_PRINTF ("%s: reset the embedding levels, 4. whitespace at the end of line\n",
-            __FUNCTION__);
-
     {
         register int i;
 
         /* L1. Reset the embedding levels of some chars:
            4. any sequence of white space characters at the end of the line. */
+        _DBG_PRINTF ("%s: L1. Reset the embedding levels of some chars:"
+                "4. any sequence of white space characters at the end of the line.\n",
+                __FUNCTION__);
+
         for (i = off + len - 1; i >= off &&
                 BIDI_IS_EXPLICIT_OR_BN_OR_WS (bidi_types[i]); i--)
             embedding_levels[i] = BIDI_DIR_TO_LEVEL (paragraph_dir);

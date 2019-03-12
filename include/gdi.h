@@ -7977,7 +7977,7 @@ MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs,
         BidiJoiningType *joing_types, int len);
 
 /**
- * \fn int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len)
+ * \fn BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len)
  * \brief get base paragraph direction
  *
  * This function finds the base direction of a single paragraph,
@@ -7996,13 +7996,13 @@ MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs,
  *
  * \param bidi_types the pointer to the BidiType array as returned by
  *      UStrGetBidiTypes().
- * \param len The length of bidi_types
+ * \param len The length of bidi types array.
  *
  * \return Base pargraph direction. No weak paragraph direction is returned,
  * only BIDI_PGDIR_LTR, BIDI_PGDIR_RTL, or BIDI_PGDIR_ON.
  *
  */
-MG_EXPORT int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
+MG_EXPORT BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
 
 /**
  * \fn BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
@@ -8032,7 +8032,8 @@ MG_EXPORT int GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
  *              Explicit right to left.
  *          - BIDI_PGDIR_ON\n
  *              The base direction will be resolved by applying the
- *              rules P2 and P3, and returned via this parameter.
+ *              rules P2 and P3, and returned via this parameter (one
+ *              of BIDI_PGDIR_LTR or BIDI_PGDIR_RTL) .
  * \param embedding_levels The pointer to a buffer which will restore
  *      the embedding levels.
  *
