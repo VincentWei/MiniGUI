@@ -57,16 +57,18 @@
 
 int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
-        const Uchar32* ucs, const Uint8* break_oppos, int nr_chars,
-        SHAPEDGLYPH** glyphs, int* nr_glyphs)
+        const Uchar32* logical_ucs, int nr_ucs,
+        Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
+        int* pos_l2v, int* nr_glyphs)
 {
     return 0;
 }
 
 int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
-        const Uchar32* ucs, const Uint8* break_oppos, int nr_chars,
-        SHAPEDGLYPH** glyphs, int* nr_glyphs)
+        const Uchar32* logical_ucs, int nr_ucs,
+        Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
+        int* pos_l2v, int* nr_glyphs)
 {
     return 0;
 }

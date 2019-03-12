@@ -6214,6 +6214,10 @@ typedef enum {
  * - UCHAR_SCRIPT_MEDEFAIDRIN:          Medefaidrin.
  * - UCHAR_SCRIPT_OLD_SOGDIAN:          Old Sogdian.
  * - UCHAR_SCRIPT_SOGDIAN:              Sogdian.
+ * - UCHAR_SCRIPT_ELYMAIC:              Elymaic.
+ * - UCHAR_SCRIPT_NANDINAGARI:          Nandinagari.
+ * - UCHAR_SCRIPT_NYIAKENG_PUACHUE_HMONGN: Nyiakeng Puachue Hmong.
+ * - UCHAR_SCRIPT_WANCHO:               Wancho.
  *
  * This enumeration identifies different writing
  * systems. The values correspond to the names as defined in the
@@ -7306,6 +7310,214 @@ MG_EXPORT int GUIAPI GetFirstMCharLen (PLOGFONT log_font,
 MG_EXPORT int GUIAPI GetFirstWord (PLOGFONT log_font,
                 const char* mstr, int len, WORDINFO* word_info);
 
+/**
+ * \fn int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len, \
+                int max_extent, int* fit_chars, int* pos_chars,  \
+                int* dx_chars, SIZE* size)
+ * \brief Computes the extent of a string when output the string in a
+ *        limited space.
+ *
+ * This function computes the extent of the specified string of text \a text
+ * which is \a len bytes long when output the text in a limited space
+ * (\a max_extent wide). If \a pos_chars and \a dx_chars are not NULL,
+ * this function will return the positions of each character in the text,
+ * and the output position of each character.  This function returns the
+ * text extent in a SIZE struct pointed to by \a size, and the width of
+ * text as return value.
+ *
+ * \param hdc The device context.
+ * \param text The multi-byte string.
+ * \param len The length of the string.
+ * \param max_extent The width of the limited space.
+ * \param fit_chars The number of the characters actually outputed.
+ * \param pos_chars The positions of each character in the text will be
+ *        returned through this pointer.
+ * \param dx_chars The output positions of each character in the text will be
+ *        returned through this pointer.
+ * \param size The output extent of the text in the limited space will be
+ *        returned through this pointer.
+ *
+ * \return The number of the characters which can be fit to the limited space.
+ *
+ * \sa GetFirstMCharLen, GetFirstWord
+ */
+MG_EXPORT int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
+                int max_extent, int* fit_chars, int* pos_chars,
+                int* dx_chars, SIZE* size);
+
+/**
+ * \fn int GUIAPI GetTabbedTextExtentPoint (HDC hdc, \
+                const char* text, int len, int max_extent, \
+                int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
+ *
+ * \brief Computes the extent of a string when output the formatted string
+ *        in a limited space.
+ */
+MG_EXPORT int GUIAPI GetTabbedTextExtentPoint (HDC hdc,
+                const char* text, int len, int max_extent,
+                int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size);
+
+#ifdef _MGCHARSET_UNICODE
+
+#include <stddef.h>
+#include <stdlib.h>
+
+/**
+ * \fn int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, \
+ *              const unsigned char* mstr, int n)
+ *
+ * \brief Converts a multibyte character to a wide character in UCS
+ *        according to the charset/encoding of the logical font.
+ *
+ * \param log_font The logical font.
+ * \param dest The buffer used to store the wide character; can be NULL.
+ * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE
+ *        for 16-bit long.
+ * \param mstr The pointer to the multi-byte character.
+ * \param n The length of the multi-byte character.
+ *
+ * \return If mchar is not NULL, the function returns the number of consumed
+ *        bytes starting at mchar, or 0 if s points to a null byte,
+ *        or -1 upon  failure.
+ *
+ * \sa WC2MBEx, mbtowc
+ */
+MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
+                const unsigned char* mstr, int n);
+
+/**
+ * \def MB2WC(log_font, dest, mstr, n)
+ * \brief The backward compatibility version of MB2WCEx.
+ *
+ * \sa MB2WCEx
+ */
+#define MB2WC(log_font, dest, mstr, n) \
+                   MB2WCEx (log_font, dest, sizeof(wchar_t) == 4, mstr, n)
+
+/**
+ * \fn int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc)
+ *
+ * \brief Converts a wide character in UCS to a multibyte character
+ *        according to the charset/encoding of the logical font.
+ *
+ * \param log_font The logical font.
+ * \param s The buffer used to store the converted multibyte characters.
+ * \param wc The wide character.
+ *
+ * \return If s is not NULL, the function returns the number of bytes that
+ *        have been written to the byte array at s. If wc can not be
+ *        represented as a multibyte sequence (according to
+ *        the current logfont),  -1 is returned.
+ *
+ * \sa WC2MB, mbtowc
+ */
+MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc);
+
+/**
+ * \def WC2MB(log_font, dest, mstr, n)
+ * \brief The backward compatibility version of WC2MBEx.
+ *
+ * \sa WC2MBEx
+ */
+#define WC2MB(log_font, s, wc) \
+                   WC2MBEx (log_font, s, (Uchar32)wc)
+
+/**
+ * \fn int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32, \
+ *               const unsigned char* mstr, int mstr_len, int n, \
+ *               int* conved_mstr_len)
+ *
+ * \brief Converts a multibyte string to a wide character string in
+ *        UC16 according to the charset/encoding of the logical font.
+ *
+ * This function is a MiniGUI version of ISO/ANSI mbstowcs function.
+ * It converts a multibyte string to a wide character string in UC16.
+ * The behaviour of mbstowcs depends on the LC_CTYPE category of the
+ * current locale, while MBS2WCS depends on the charset/encoding of
+ * MiniGUI logical font.
+ *
+ * \param log_font The logical font.
+ * \param dest The buffer used to store the converted wide character string.
+ * \param wc32 Whether the unicode char is 32-bit long. TRUE for yes, FALSE
+ *        for 16-bit long.
+ * \param mstr The pointer to multibyte string.
+ * \param mstr_len The length of the multibyte string in bytes.
+ * \param n The length of the buffer in wide characters.
+ * \param conved_mstr_len The length of the multibyte string which are
+ *        converted correctly in bytes will be returned through this pointer,
+ *        can be NULL.
+ *
+ * \return The function returns the number of wide characters
+ *         that make up the converted part of the wide character string,
+ *         not including the terminating null wide character.
+ *         If an invalid multibyte sequence was encountered, -1 is returned.
+ *
+ * \sa WCS2MBSEx, mbstowcs, mbsrtowcs
+ */
+MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
+                const unsigned char* mstr, int mstr_len, int n,
+                int* conved_mstr_len);
+
+/**
+ * \def MBS2WCS(log_font, dest, mstr, mstr_len, n)
+ * \brief The backward compatibility version of MBS2WCSEx.
+ *
+ * \sa MBS2WCSEx
+ */
+#define MBS2WCS(log_font, dest, mstr, mstr_len, n) \
+            MBS2WCSEx(log_font, dest, sizeof (wchar_t) == 4, mstr, \
+            mstr_len, n, NULL)
+
+/**
+ * \fn int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest, \
+ *               const void *wcs, int wcs_len, BOOL wc32, int n, \
+ *               int* conved_wcs_len)
+ *
+ * \brief Converts a wide character string in UC16 to a multibyte
+ *        string according to the charset/encoding of the logical font.
+ *
+ * This function is a MiniGUI version of ISO/ANSI wcstombs function.
+ * It converts a wide character string in UC16 to a multibyte string.
+ * The behaviour of wcstombs depends on the LC_CTYPE category of the
+ * current locale, while WCS2MBS depends on the charset/encoding of
+ * MiniGUI logical font.
+ *
+ * \param log_font The logical font.
+ * \param dest The buffer used to store the converted multibyte string.
+ * \param wcs The pointer to the wide character string.
+ * \param wcs_len The number of the wide characters in wcs.
+ * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE
+ *        for 16-bit long.
+ * \param n The length of the dest in bytes.
+ * \param conved_wcs_len The number of the wide characters which are
+ *        converted correctly will be returned through this pointer, can
+ *        be NULL.
+ *
+ * \return The function returns the number of bytes that make up the
+ *         converted part of multibyte sequence, not including the
+ *         terminating null byte. If a wide character was encountered
+ *         which could not be converted, -1 is returned.
+ *
+ * \sa MBS2WCSEx, wcstombs, wcsrtombs
+ */
+MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
+                const void *wcs, int wcs_len, BOOL wc32, int n,
+                int* conved_wcs_len);
+
+/**
+ * \def WCS2MBS(log_font, dest, wcs, wcs_len, n)
+ * \brief The backward compatibility version of WCS2MBSEx.
+ *
+ * \sa WCS2MBSEx
+ */
+#define WCS2MBS(log_font, dest, wcs, wcs_len, n) \
+            WCS2MBSEx (log_font, dest, wcs, wcs_len, sizeof (wchar_t) == 4, \
+            n, NULL)
+
+#endif /* _MGCHARSET_UNICODE */
+
+    /** @} end of text_parse_fns */
+
     /**
      * \defgroup bidi_types BIDI types
      *
@@ -7677,160 +7889,11 @@ typedef Uint8   BidiArabicProp;
 
 #ifdef _MGCHARSET_UNICODE
 
-#include <stddef.h>
-#include <stdlib.h>
-
-/**
- * \fn int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, \
- *              const unsigned char* mstr, int n)
- *
- * \brief Converts a multibyte character to a wide character in UCS
- *        according to the charset/encoding of the logical font.
- *
- * \param log_font The logical font.
- * \param dest The buffer used to store the wide character; can be NULL.
- * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE
- *        for 16-bit long.
- * \param mstr The pointer to the multi-byte character.
- * \param n The length of the multi-byte character.
- *
- * \return If mchar is not NULL, the function returns the number of consumed
- *        bytes starting at mchar, or 0 if s points to a null byte,
- *        or -1 upon  failure.
- *
- * \sa WC2MBEx, mbtowc
- */
-MG_EXPORT int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32,
-                const unsigned char* mstr, int n);
-
-/**
- * \def MB2WC(log_font, dest, mstr, n)
- * \brief The backward compatibility version of MB2WCEx.
- *
- * \sa MB2WCEx
- */
-#define MB2WC(log_font, dest, mstr, n) \
-                   MB2WCEx (log_font, dest, sizeof(wchar_t) == 4, mstr, n)
-
-/**
- * \fn int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc)
- *
- * \brief Converts a wide character in UCS to a multibyte character
- *        according to the charset/encoding of the logical font.
- *
- * \param log_font The logical font.
- * \param s The buffer used to store the converted multibyte characters.
- * \param wc The wide character.
- *
- * \return If s is not NULL, the function returns the number of bytes that
- *        have been written to the byte array at s. If wc can not be
- *        represented as a multibyte sequence (according to
- *        the current logfont),  -1 is returned.
- *
- * \sa WC2MB, mbtowc
- */
-MG_EXPORT int GUIAPI WC2MBEx (PLOGFONT log_font, unsigned char *s, Uchar32 wc);
-
-/**
- * \def WC2MB(log_font, dest, mstr, n)
- * \brief The backward compatibility version of WC2MBEx.
- *
- * \sa WC2MBEx
- */
-#define WC2MB(log_font, s, wc) \
-                   WC2MBEx (log_font, s, (Uchar32)wc)
-
-/**
- * \fn int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32, \
- *               const unsigned char* mstr, int mstr_len, int n, \
- *               int* conved_mstr_len)
- *
- * \brief Converts a multibyte string to a wide character string in
- *        UC16 according to the charset/encoding of the logical font.
- *
- * This function is a MiniGUI version of ISO/ANSI mbstowcs function.
- * It converts a multibyte string to a wide character string in UC16.
- * The behaviour of mbstowcs depends on the LC_CTYPE category of the
- * current locale, while MBS2WCS depends on the charset/encoding of
- * MiniGUI logical font.
- *
- * \param log_font The logical font.
- * \param dest The buffer used to store the converted wide character string.
- * \param wc32 Whether the unicode char is 32-bit long. TRUE for yes, FALSE
- *        for 16-bit long.
- * \param mstr The pointer to multibyte string.
- * \param mstr_len The length of the multibyte string in bytes.
- * \param n The length of the buffer in wide characters.
- * \param conved_mstr_len The length of the multibyte string which are
- *        converted correctly in bytes will be returned through this pointer,
- *        can be NULL.
- *
- * \return The function returns the number of wide characters
- *         that make up the converted part of the wide character string,
- *         not including the terminating null wide character.
- *         If an invalid multibyte sequence was encountered, -1 is returned.
- *
- * \sa WCS2MBSEx, mbstowcs, mbsrtowcs
- */
-MG_EXPORT int GUIAPI MBS2WCSEx (PLOGFONT log_font, void* dest, BOOL wc32,
-                const unsigned char* mstr, int mstr_len, int n,
-                int* conved_mstr_len);
-
-/**
- * \def MBS2WCS(log_font, dest, mstr, mstr_len, n)
- * \brief The backward compatibility version of MBS2WCSEx.
- *
- * \sa MBS2WCSEx
- */
-#define MBS2WCS(log_font, dest, mstr, mstr_len, n) \
-            MBS2WCSEx(log_font, dest, sizeof (wchar_t) == 4, mstr, \
-            mstr_len, n, NULL)
-
-/**
- * \fn int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest, \
- *               const void *wcs, int wcs_len, BOOL wc32, int n, \
- *               int* conved_wcs_len)
- *
- * \brief Converts a wide character string in UC16 to a multibyte
- *        string according to the charset/encoding of the logical font.
- *
- * This function is a MiniGUI version of ISO/ANSI wcstombs function.
- * It converts a wide character string in UC16 to a multibyte string.
- * The behaviour of wcstombs depends on the LC_CTYPE category of the
- * current locale, while WCS2MBS depends on the charset/encoding of
- * MiniGUI logical font.
- *
- * \param log_font The logical font.
- * \param dest The buffer used to store the converted multibyte string.
- * \param wcs The pointer to the wide character string.
- * \param wcs_len The number of the wide characters in wcs.
- * \param wc32 Whether the wide char is 32-bit long. TRUE for yes, FALSE
- *        for 16-bit long.
- * \param n The length of the dest in bytes.
- * \param conved_wcs_len The number of the wide characters which are
- *        converted correctly will be returned through this pointer, can
- *        be NULL.
- *
- * \return The function returns the number of bytes that make up the
- *         converted part of multibyte sequence, not including the
- *         terminating null byte. If a wide character was encountered
- *         which could not be converted, -1 is returned.
- *
- * \sa MBS2WCSEx, wcstombs, wcsrtombs
- */
-MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
-                const void *wcs, int wcs_len, BOOL wc32, int n,
-                int* conved_wcs_len);
-
-/**
- * \def WCS2MBS(log_font, dest, wcs, wcs_len, n)
- * \brief The backward compatibility version of WCS2MBSEx.
- *
- * \sa WCS2MBSEx
- */
-#define WCS2MBS(log_font, dest, wcs, wcs_len, n) \
-            WCS2MBSEx (log_font, dest, wcs, wcs_len, sizeof (wchar_t) == 4, \
-            n, NULL)
+    /**
+     * \defgroup unicode_ops Operators for Unicode character and string
+     *
+     * @{
+     */
 
 /** The function determines the general category (basic type) of a UNICODE character. */
 MG_EXPORT UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc);
@@ -8149,7 +8212,7 @@ MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
         void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
 
 /**
- * \fn void GUIAPI UBidiShapeMirroring(const BidiLevel *els,
+ * \fn void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
  *      int len, Uchar32 *ucs)
  * \brief Do mirroring shaping
  *
@@ -8161,7 +8224,7 @@ MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  *
  *      https://www.unicode.org/reports/tr9/#L4.
  *
- * \param els input list of embedding levels, as returned by
+ * \param embedding_levels input list of embedding levels, as returned by
  *      UBidiGetParagraphEmbeddingLevels().
  * \param len The input string length.
  * \param ucs The Uchar32 string to shape.
@@ -8170,7 +8233,7 @@ MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  *
  * Since: 3.4.0
  */
-MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *els,
+MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
         int len, Uchar32* ucs);
 
 /**
@@ -8494,56 +8557,9 @@ static inline int GUIAPI UCharScriptTypeFromISO15924Code (const char* iso15924)
             iso15924[2], iso15924[1], iso15924[0]));
 }
 
+    /** @} end of unicode_ops */
+
 #endif /* _MGCHARSET_UNICODE */
-
-/**
- * \fn int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len, \
-                int max_extent, int* fit_chars, int* pos_chars,  \
-                int* dx_chars, SIZE* size)
- * \brief Computes the extent of a string when output the string in a
- *        limited space.
- *
- * This function computes the extent of the specified string of text \a text
- * which is \a len bytes long when output the text in a limited space
- * (\a max_extent wide). If \a pos_chars and \a dx_chars are not NULL,
- * this function will return the positions of each character in the text,
- * and the output position of each character.  This function returns the
- * text extent in a SIZE struct pointed to by \a size, and the width of
- * text as return value.
- *
- * \param hdc The device context.
- * \param text The multi-byte string.
- * \param len The length of the string.
- * \param max_extent The width of the limited space.
- * \param fit_chars The number of the characters actually outputed.
- * \param pos_chars The positions of each character in the text will be
- *        returned through this pointer.
- * \param dx_chars The output positions of each character in the text will be
- *        returned through this pointer.
- * \param size The output extent of the text in the limited space will be
- *        returned through this pointer.
- *
- * \return The number of the characters which can be fit to the limited space.
- *
- * \sa GetFirstMCharLen, GetFirstWord
- */
-MG_EXPORT int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
-                int max_extent, int* fit_chars, int* pos_chars,
-                int* dx_chars, SIZE* size);
-
-/**
- * \fn int GUIAPI GetTabbedTextExtentPoint (HDC hdc, \
-                const char* text, int len, int max_extent, \
-                int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
- *
- * \brief Computes the extent of a string when output the formatted string
- *        in a limited space.
- */
-MG_EXPORT int GUIAPI GetTabbedTextExtentPoint (HDC hdc,
-                const char* text, int len, int max_extent,
-                int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size);
-
-    /** @} end of text_parse_fns */
 
     /**
      * \defgroup text_output_fns Text output functions
@@ -10409,51 +10425,10 @@ typedef Uint32  Glyph32;
  * \param pre_mchar The pointer to the multi-byte character before \a mchar.
  * \param pre_len The length of \a per_mchar in bytes.
  *
- * \return The character value of the multi-byte character.
+ * \return The abstract character value of the multi-byte character.
  */
 MG_EXPORT Achar32 GUIAPI GetACharValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len);
-
-/**
- * \var typedef enum ACHARSHAPETYPE
- * \brief Achar32 shape type.
- */
-typedef enum {
-    ACHAR_ISOLATED,
-    ACHAR_FINAL,
-    ACHAR_INITIAL,
-    ACHAR_MEDIAL
-} ACHARSHAPETYPE;
-
-/**
- * \fn Achar32 GUIAPI GetShapedAChar (LOGFONT* logfont, const char* mchar, \
- *         int mchar_len, ACHARSHAPETYPE shape_type)
- * \brief Get the glyph shape of a character.
- *
- * \param logfont The logical font.
- * \param mchar The pointer to the multi-byte character.
- * \param mchar_len The length of \a mchar in bytes.
- * \param shape_type The requested shape type.
- *
- * \return The shaped character value.
- */
-MG_EXPORT Achar32 GUIAPI GetShapedAChar (LOGFONT* logfont, const char* mchar,
-        int mchar_len, ACHARSHAPETYPE shape_type);
-
-/**
- * \fn BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
- *      Achar32* mirrored)
- * \brief Get the mirrored abstract character if possible.
- *
- * \param logfont The logical font.
- * \param glyph The glyph value.
- * \param mirrored The buffer to store the mirrored Achar32 value if
- *      the multi-byte character has a mirrored character.
- *
- * \return TRUE if success, FALSE on failure.
- */
-MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
-        Achar32* mirrored);
 
 /**
  * \fn Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
@@ -10485,6 +10460,65 @@ MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
 MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
 
 /**
+ * \var typedef enum ACHARSHAPETYPE
+ * \brief Achar32 shape type.
+ */
+typedef enum {
+    ACHAR_ISOLATED,
+    ACHAR_FINAL,
+    ACHAR_INITIAL,
+    ACHAR_MEDIAL
+} ACHARSHAPETYPE;
+
+/**
+ * \fn Achar32 GUIAPI GetShapedAChar (LOGFONT* logfont, const char* mchar, \
+ *         int mchar_len, ACHARSHAPETYPE shape_type)
+ * \brief Get the glyph shape of a character.
+ *
+ * \param logfont The logical font.
+ * \param mchar The pointer to the multi-byte character.
+ * \param mchar_len The length of \a mchar in bytes.
+ * \param shape_type The requested shape type.
+ *
+ * \return The shaped character value.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
+ */
+MG_EXPORT Achar32 GUIAPI GetShapedAChar (LOGFONT* logfont, const char* mchar,
+        int mchar_len, ACHARSHAPETYPE shape_type);
+
+/**
+ * \fn BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
+ *      Achar32* mirrored)
+ * \brief Get the mirrored abstract character if possible.
+ *
+ * \param logfont The logical font.
+ * \param glyph The glyph value.
+ * \param mirrored The buffer to store the mirrored Achar32 value if
+ *      the multi-byte character has a mirrored character.
+ *
+ * \return TRUE if success, FALSE on failure.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
+ */
+MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
+        Achar32* mirrored);
+
+/**
  * \fn BidiType GUIAPI GetACharBidiType (LOGFONT* logfont, Achar32 chv)
  * \brief Retrieve the BIDI type of an abstract character.
  *
@@ -10495,7 +10529,14 @@ MG_EXPORT Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv);
  *
  * \return The BIDI type of the Achar32; BIDI_TYPE_INVALID on failure.
  *
- * \sa GetACharType
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops, GetACharType, bidi_types
  */
 MG_EXPORT BidiType GUIAPI GetACharBidiType (LOGFONT* log_font, Achar32 chv);
 
@@ -10527,7 +10568,14 @@ typedef struct _ACHARMAPINFO {
  *
  * \return The length of the logical glyph string.
  *
- * \sa ACHARMAPINFO
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops, ACHARMAPINFO
  */
 MG_EXPORT int GUIAPI BIDIGetTextLogicalAChars (LOGFONT* log_font,
         const char* text, int text_len, Achar32** achars,
@@ -10548,6 +10596,15 @@ MG_EXPORT int GUIAPI BIDIGetTextLogicalAChars (LOGFONT* log_font,
  * \param nr_ranges The number of ranges stored in \a ranges.
  *
  * \return None.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
  */
 MG_EXPORT void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
         const char* text, int text_len, int start_index, int end_index,
@@ -10567,6 +10624,15 @@ MG_EXPORT void GUIAPI BIDIGetTextRangesLog2Vis (LOGFONT* log_font,
  *        the logical text.
  *
  * \return The length of the visual glyph string.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
  */
 MG_EXPORT int GUIAPI BIDIGetTextVisualAChars (LOGFONT* log_font,
         const char* text, int text_len, Achar32** achars,
@@ -10595,6 +10661,15 @@ MG_EXPORT int GUIAPI BIDIGetTextVisualAChars (LOGFONT* log_font,
  * \param cb_reverse_extra The callback function to reverse the extra array.
  *
  * \return TRUE on success, otherwise FALSE.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
  */
 MG_EXPORT BOOL GUIAPI BIDILogAChars2VisACharsEx (LOGFONT* log_font,
         Achar32* achars, int nr_achars, int pel,
@@ -10616,13 +10691,22 @@ MG_EXPORT BOOL GUIAPI BIDILogAChars2VisACharsEx (LOGFONT* log_font,
  *          can be NULL.
  *
  * \return The pointer to the visual achars; NULL when error.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
  */
 MG_EXPORT Achar32* GUIAPI BIDILogAChars2VisAChars (LOGFONT* log_font,
         Achar32* achars, int nr_achars, ACHARMAPINFO* achars_map);
 
 /**
  * \fn void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font, \
-        const Achar32* achars, int nr_achars, int pel, Uint8** embed_levels)
+        const Achar32* achars, int nr_achars, int pel, Uint8** embedding_levels)
  * \brief Get the logical embedding levels for the logical glyph string
  *        and generate runs by embedding levels, the for reorder to get
  *        visual glyph string.
@@ -10635,22 +10719,32 @@ MG_EXPORT Achar32* GUIAPI BIDILogAChars2VisAChars (LOGFONT* log_font,
  *          - 1: Level 1 (right to left)
  *          - others: Determine according to the heuristic given in
  *            steps P2 and P3 of the Unicode bidirectional algorithm.
- * \param embed_levels The logical embedding level.
+ * \param embedding_levels The logical embedding level.
  *
  * \return None.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (for Arabic and Hebrew languages respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
  */
 MG_EXPORT void GUIAPI BIDIGetLogicalEmbedLevelsEx (LOGFONT* log_font,
-        Achar32* achars, int nr_achars, int pel, Uint8** embed_levels);
+        Achar32* achars, int nr_achars, int pel, Uint8** embedding_levels);
 
 static inline void BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
-        Achar32* achars, int nr_achars, Uint8** embed_levels)
+        Achar32* achars, int nr_achars, Uint8** embedding_levels)
 {
-    BIDIGetLogicalEmbedLevelsEx (log_font, achars, nr_achars, -1, embed_levels);
+    BIDIGetLogicalEmbedLevelsEx (log_font, achars, nr_achars, -1,
+            embedding_levels);
 }
 
 /**
  * \fn void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
-        const Achar32* achars, int nr_achars, int pel, Uint8** embed_levels)
+        const Achar32* achars, int nr_achars, int pel, Uint8** embedding_levels)
  * \brief Get the visual embedding levels for the given logical glyph
  *        string, then you can get the edge for visual achars.
  *
@@ -10665,17 +10759,28 @@ static inline void BIDIGetLogicalEmbeddLevels (LOGFONT* log_font,
  *          - others\n
  *            Determine according to the heuristic given in
  *            steps P2 and P3 of the Unicode bidirectional algorithm.
- * \param embed_levels The embedding level logical to visual.
+ * \param embedding_levels The embedding level logical to visual.
  *
- * \return void.
+ * \return none.
+ *
+ * \note This is an API of the legacy implementation of bidirectional algorithm.
+ *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
+ *      (Arabic and Hebrew respectively).
+ *      New apps should enable the support for Unicode charset, and
+ *      use the new implementation of Unicode Bidirectional Algorithm (UBA).
+ *
+ * \sa UBidiReorderLine, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ *      unicode_ops
  */
+
 MG_EXPORT void GUIAPI BIDIGetVisualEmbedLevelsEx (LOGFONT* log_font,
-        Achar32* achars, int nr_achars, int pel, Uint8** embed_levels);
+        Achar32* achars, int nr_achars, int pel, Uint8** embedding_levels);
 
 static inline void BIDIGetVisualEmbeddLevels (LOGFONT* log_font,
-        Achar32* achars, int nr_achars, Uint8** embed_levels)
+        Achar32* achars, int nr_achars, Uint8** embedding_levels)
 {
-    BIDIGetVisualEmbedLevelsEx (log_font, achars, nr_achars, -1, embed_levels);
+    BIDIGetVisualEmbedLevelsEx (log_font, achars, nr_achars, -1,
+            embedding_levels);
 }
 
 /*
@@ -11947,62 +12052,72 @@ typedef struct _SHAPEDGLYPH {
 /**
  * \fn int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  *      LanguageCode content_language, UCharScriptType writing_system,
- *      const Uchar32* ucs, const Uint8* break_oppos, int nr_ucs,
- *      SHAPEDGLYPH** glyphs, int* nr_glyphs)
+ *      const Uchar32* logical_ucs, int nr_ucs,
+ *      Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
+ *      int* pos_l2v, int* nr_glyphs)
  * \brief Analyse and generate a shaped glyph string of a Unicode string under
  *      specific content language and script.
  *
  * This function analyses and generates a shaped glyph string (including
- * the breaking opportunities of the glyphs, and the type and position
+ * the breaking opportunities of the glyphs, the glyph types, and the position
  * information of them) from a Unicode string and the breaking opportunities
  * of all Unicode characters under the specified content language
  * \a content_language, and the writing system \a writing_system.
  *
- * This function perform the basic shaping process according to the Unicode
- * character properties. The shaping process includes:
+ * This function also performs the basic shaping process according to the
+ * Unicode character properties if the content language is Arabic. 
+ * The shaping process includes:
  *
  *  - Shaping (substituting) glyphs.
- *  - Assigning the breaking opportunities.
- *  - Re-ordering.
+ *  - Assigning the breaking opportunities to glyphs.
+ *  - Re-ordering glyphs.
  *  - Positioning glyphs.
  *
  * You can also call \a GetShapedGlyphsComplex to perform the shaping process
- * based on the data contained in the OpenType Layout tables.
+ * based on the data contained in the OpenType Layout tables of the font.
  *
- * Note that you are responsible for freeing the buffer for
- * the shaped glyph string allocated by this function.
+ * Note that you are responsible for allocating the buffer for the shaped glyph
+ * string. Generally, the length of the allocated buffer should be same as
+ * \a nr_ucs.
  *
  * \param logfont The logfont used to parse the string.
  *      Note that the charset/encoding of this logfont should be Unicode,
  *      such as UTF-8, UTF-16LE, and UTF-16BE.
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
- * \param ucs The pointer to the Uchar32 array which contains the Unicode
- *      characters.
- * \param break_oppos The pointer to a Uint16 array which contains
- *      the break opportunities of the Unicode characters.
+ * \param logical_ucs The pointer to the Uchar32 array, which is the logical
+ *      Unicode character string.
  * \param nr_ucs The number of the Unicode characters.
- * \param glyphs The pointer to a buffer to store the pointer of the
- *      generated SHAPEDGLYPH array.
+ * \param break_oppos The pointer to a Uint16 array which contains
+ *      the break opportunities of the Unicode characters. Note that
+ *      the values may be changed under certain content languags and/or
+ *      writing systems.
+ * \param visual_glyphs The pointer to the buffer to store the generated
+ *      shaped visual glyph array.
+ * \param pos_l2v The pointer to an int array which will store the map from
+ *      the positions in the logical Uchar32 string to the positions in
+ *      the visual shaped glyphs; can be NULL.
  * \param nr_glyphs The buffer to store the number of the generated glyphs.
  *
  * \return The number of the Unicode characters processed; zero on error.
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa GetUCharsAndBreaks, GetShapedGlyphsComplex, SHAPEDGLYPH
+ * \sa GetUCharsAndBreaks, GetShapedGlyphsComplex, SHAPEDGLYPH,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
 MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
-        const Uchar32* ucs, const Uint8* break_oppos, int nr_ucs,
-        SHAPEDGLYPH** glyphs, int* nr_glyphs);
+        const Uchar32* logical_ucs, int nr_ucs,
+        Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
+        int* pos_l2v, int* nr_glyphs);
 
 /**
  * \fn int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
  *      LanguageCode content_language, UCharScriptType writing_system,
- *      const Uchar32* ucs, const Uint8* break_oppos, int nr_ucs,
- *      SHAPEDGLYPH** glyphs, int* nr_glyphs)
+ *      const Uchar32* logical_ucs, int nr_ucs,
+ *      Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
+ *      int* pos_l2v, int* nr_glyphs);
  * \brief Analyse and generate a shaped glyph string of a Unicode string under
  *      specific content language and script.
  *
@@ -12012,7 +12127,7 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  * of all Unicode characters under the specified content language
  * \a content_language, and the writing system \a writing_system.
  *
- * This function perform the basic shaping process according to the data
+ * This function perform the complex shaping process according to the data
  * contained in the OpenType Layout tables (GSUB, GPOS, and so on).
  * The shaping process includes:
  *
@@ -12021,25 +12136,30 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  *  - Re-ordering.
  *  - Positioning glyphs.
  *
- * You can also call \a GetShapedGlyphsBasic to perform the shaping process
- * based on the Unicode character properties.
+ * You can also call \a GetShapedGlyphsBasic to perform the basic shaping
+ * process based on the Unicode character properties.
  *
- * Note that you are responsible for freeing the buffer for
- * the shaped glyph string allocated by this function.
+ * Note that you are responsible for allocating the buffer for the shaped glyph
+ * string. Generally, the length of the allocated buffer should be same as
+ * \a nr_ucs.
  *
  * \param logfont The logfont used to parse the string.
  *      Note that the charset/encoding of this logfont should be Unicode,
- *      such as UTF-8, UTF-16LE, and UTF-16BE. Also note that the font file(s)
- *      of the logfont should be OpenType font files, and use FreeType2 engine.
+ *      such as UTF-8, UTF-16LE, and UTF-16BE.
  * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
- * \param ucs The pointer to the Uchar32 array which contains the Unicode
- *      characters.
- * \param break_oppos The pointer to a Uint16 array which contains
- *      the break opportunities of the Unicode characters.
+ * \param logical_ucs The pointer to the Uchar32 array, which is the logical
+ *      Unicode character string.
  * \param nr_ucs The number of the Unicode characters.
- * \param glyphs The pointer to a buffer to store the pointer of the
- *      generated SHAPEDGLYPH array.
+ * \param break_oppos The pointer to a Uint16 array which contains
+ *      the break opportunities of the Unicode characters. Note that
+ *      the values may be changed under certain content languags and/or
+ *      writing systems.
+ * \param visual_glyphs The pointer to the buffer to store the generated
+ *      shaped visual glyph array.
+ * \param pos_l2v The pointer to an int array which will store the map from
+ *      the positions in the logical Uchar32 string to the positions in
+ *      the visual shaped glyphs; can be NULL.
  * \param nr_glyphs The buffer to store the number of the generated glyphs.
  *
  * \return The number of the Unicode characters processed; zero on error.
@@ -12051,8 +12171,9 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  */
 MG_EXPORT int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
         LanguageCode content_language, UCharScriptType writing_system,
-        const Uchar32* ucs, const Uint8* break_oppos, int nr_chars,
-        SHAPEDGLYPH** glyphs, int* nr_glyphs);
+        const Uchar32* logical_ucs, int nr_ucs,
+        Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
+        int* pos_l2v, int* nr_glyphs);
 
 #define GLYPH_ORIENTATION_UPRIGHT   0
 #define GLYPH_ORIENTATION_SIDEWAYS  1

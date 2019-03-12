@@ -255,6 +255,12 @@ static const Uint32 iso15924_tags[] =
     PACK ('M','e','d','f'), /* UCHAR_SCRIPT_MEDEFAIDRIN */
     PACK ('S','o','g','o'), /* UCHAR_SCRIPT_OLD_SOGDIAN */
     PACK ('S','o','g','d'), /* UCHAR_SCRIPT_SOGDIAN */
+
+    /* Unicode 12.0 additions */
+    PACK ('E','l','y','m'), /* UCHAR_SCRIPT_ELYMAIC */
+    PACK ('N','a','n','d'), /* UCHAR_SCRIPT_NANDINAGARI */
+    PACK ('H','m','n','p'), /* UCHAR_SCRIPT_NYIAKENG_PUACHUE_HMONG */
+    PACK ('W','c','h','o'), /* UCHAR_SCRIPT_WANCHO */
 #undef PACK
 };
 

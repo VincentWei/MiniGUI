@@ -4,17 +4,18 @@ noinst_LTLIBRARIES = libnewgdi.la
 
 if MG_MINIMALGDI
 SRC_FILES = gdi.c attr.c clip.c coor.c rect.c  \
-              bitmap.c pixel.c pixel_ops.c \
-              region.c polygon.c
+            bitmap.c pixel.c pixel_ops.c \
+            region.c polygon.c
 else
 SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
-              palette.c readbmp.c icon.c screen.c bitmap.c \
-              pixel.c line.c arc.c pixel_ops.c \
-              region.c generators.c polygon.c flood.c \
-              advapi.c midash.c mispans.c miwideline.c \
-              mifillarc.c mifpolycon.c miarc.c rotatebmp.c \
-              text.c achar.c glyph.c bidi.c glyph-unicode.c shaped-glyph.c \
-              textout.c tabbedtextout.c drawtext.c
+            palette.c readbmp.c icon.c screen.c bitmap.c \
+            pixel.c line.c arc.c pixel_ops.c \
+            region.c generators.c polygon.c flood.c \
+            advapi.c midash.c mispans.c miwideline.c \
+            mifillarc.c mifpolycon.c miarc.c rotatebmp.c \
+            text.c achar.c glyph.c legacy-bidi.c \
+            textout.c tabbedtextout.c drawtext.c \
+            glyph-unicode.c shaped-glyph.c
 endif
 
 HDR_FILES = drawtext.h mi.h midc.h mistruct.h miwideline.h \
