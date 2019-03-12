@@ -8578,6 +8578,9 @@ MG_EXPORT Uchar32 GUIAPI UCharToFullSizeKana (Uchar32 uc);
 /** Converts a glyph to small Kana. */
 MG_EXPORT Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc);
 
+/** Determines is the given Unicode character an Arabic vowel. */
+MG_EXPORT BOOL GUIAPI UCharIsArabicVowel(Uchar32 uc);
+
 /** Determines the canonical combining class of a Unicode character.*/
 MG_EXPORT int GUIAPI UCharCombiningClass (Uchar32 uc);
 

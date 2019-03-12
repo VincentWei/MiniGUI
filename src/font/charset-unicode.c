@@ -1581,4 +1581,18 @@ Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc)
     return uc;
 }
 
+BOOL GUIAPI UCharIsArabicVowel(Uchar32 uc)
+{
+    if ((uc >= 0x064B) && (uc <= 0x0655))
+        return TRUE;
+
+    if ((uc >= 0xFC5E) && (uc <= 0xFC63))
+        return TRUE;
+
+    if ((uc >= 0xFE70) && (uc <= 0xFE7F))
+        return TRUE;
+
+    return 0;
+}
+
 #endif /* _MGCHARSET_UNICODE */

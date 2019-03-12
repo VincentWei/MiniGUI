@@ -116,6 +116,9 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
     if (!visual_ucs)
         goto out;
 
+    /* TODO: compose logical character here */
+    memcpy(visual_ucs, logical_ucs, sizeof(Uchar32) * nr_ucs);
+
     if (nr_ucs < LOCAL_ARRAY_SIZE)
         bidi_ts = local_bidi_ts;
     else
@@ -167,8 +170,6 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
             pos_v2l[i] = i;
     }
 
-    memcpy(visual_ucs, logical_ucs, sizeof(Uchar32) * nr_ucs);
-
     if (content_language == LANGCODE_ar) {
         /* Arabic joining */
         if (nr_ucs < LOCAL_ARRAY_SIZE)
@@ -204,11 +205,7 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
                     visual_glyphs[j].gt = GLYPH_TYPE_STDLIGATURE;
                     visual_glyphs[j].gp = GLYPH_POS_BASELINE;
                 }
-                else if (ar_prop & BIDI_MASK_ARAB_SHAPES) {
-                    visual_glyphs[j].gt = GLYPH_TYPE_STDBASE;
-                    visual_glyphs[j].gp = GLYPH_POS_BASELINE;
-                }
-                else if (ar_prop & BIDI_MASK_TRANSPARENT) {
+                else if (UCharIsArabicVowel(visual_ucs[i])) {
                     visual_glyphs[j].gt = GLYPH_TYPE_STDMARK;
                     visual_glyphs[j].gp = GLYPH_POS_STDMARK_ABOVE;
                 }
