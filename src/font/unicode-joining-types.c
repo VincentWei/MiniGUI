@@ -71,8 +71,8 @@ BidiJoiningType GUIAPI UCharGetJoiningType(Uchar32 ch)
     return UNIBIDI_GET_JOINING_TYPE (ch);
 }
 
-void GUIAPI UStrGetJoiningTypes (const Uchar32 *ucs,
-      BidiJoiningType *joining_types, int len)
+void GUIAPI UStrGetJoiningTypes (const Uchar32 *ucs, int len,
+      BidiJoiningType *joining_types)
 {
     register int i = len;
     for (; i; i--) {

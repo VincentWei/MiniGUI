@@ -2,7 +2,7 @@ SUBDIRS = in-core
 
 noinst_LTLIBRARIES = libfont.la
 
-SRC_FILES = charset.c charset-arabic.c legacy-bidi.c \
+SRC_FILES = charset.c charset-arabic.c legacy-bidi.c charset-unicode.c \
             unicode-comp.c unicode-script.c language-code.c \
             sysfont.c logfont.c devfont.c fontname.c \
             rawbitmap.c varbitmap.c qpf.c upf.c \

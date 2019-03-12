@@ -142,10 +142,8 @@ static void unibidi_shape_arabic_ligature(const PairMap *table,
 #define DO_SHAPING(tablemacro, len, ar_props, str) \
     unibidi_shape_arabic_joining (tablemacro(,), len, ar_props, str)
 
-void UBidiShapeArabic(Uint32 flags,
-        const BidiLevel *embedding_levels,
-        BidiArabicProp *ar_props,
-        Uchar32 *str, int len)
+void UBidiShapeArabic(Uint32 flags, const BidiLevel *embedding_levels, int len,
+        BidiArabicProp *ar_props, Uchar32 *str)
 {
     _DBG_PRINTF ("in UBidiShapeArabic");
 

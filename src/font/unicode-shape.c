@@ -58,8 +58,8 @@
 
 #include "unicode-bidi.h"
 
-void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
-        Uchar32* str, int len)
+void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels, int len,
+        Uchar32* str)
 {
     register int i;
 
@@ -77,17 +77,17 @@ void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
 }
 
 void GUIAPI UBidiShape(Uint32 flags,
-        const BidiLevel *embedding_levels,
-        BidiArabicProp *ar_props, Uchar32 *str, int len)
+        const BidiLevel *embedding_levels, int len,
+        BidiArabicProp *ar_props, Uchar32 *str)
 {
     if (len == 0 || !str)
         return;
 
     if (ar_props)
-        UBidiShapeArabic(flags, embedding_levels, ar_props, str, len);
+        UBidiShapeArabic(flags, embedding_levels, len, ar_props, str);
 
     if (BIDI_TEST_BITS (flags, BIDI_FLAG_SHAPE_MIRRORING))
-        UBidiShapeMirroring (embedding_levels, str, len);
+        UBidiShapeMirroring (embedding_levels, len, str);
 }
 
 #endif /* _MGCHARSET_UNICODE */

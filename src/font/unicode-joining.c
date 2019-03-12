@@ -102,8 +102,8 @@ static void print_joining_types(const BidiLevel *embedding_levels,
     ((i) == (j) || (i) == BIDI_SENTINEL || (j) == BIDI_SENTINEL)
 
 void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
-        const BidiLevel *embedding_levels,
-        BidiArabicProp *ar_props, int len)
+        const BidiLevel *embedding_levels, int len,
+        BidiArabicProp *ar_props)
 {
     if (len == 0) return;
 
