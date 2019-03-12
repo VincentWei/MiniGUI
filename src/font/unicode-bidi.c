@@ -1616,7 +1616,7 @@ BidiLevel UBidiReorderLine(Uint32 flags,
 
         /* L1. Reset the embedding levels of some chars:
            4. any sequence of white space characters at the end of the line. */
-        _DBG_PRINTF ("%s: L1. Reset the embedding levels of some chars:"
+        _DBG_PRINTF ("%s: L1. Reset the embedding levels of some chars:\n"
                 "4. any sequence of white space characters at the end of the line.\n",
                 __FUNCTION__);
 
