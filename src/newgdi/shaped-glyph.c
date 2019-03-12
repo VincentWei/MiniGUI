@@ -104,6 +104,8 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
         return 0;
     }
 
+    writing_system = _unicode_normalize_script(content_language, writing_system);
+
     /*
      * TODO: tailor break opportunties according to the content languages.
      */
@@ -170,7 +172,7 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
             pos_v2l[i] = i;
     }
 
-    if (content_language == LANGCODE_ar) {
+    if (writing_system == UCHAR_SCRIPT_ARABIC) {
         /* Arabic joining */
         if (nr_ucs < LOCAL_ARRAY_SIZE)
             ar_props = local_ar_props;

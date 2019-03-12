@@ -289,5 +289,30 @@ int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924)
     return UCHAR_SCRIPT_UNKNOWN;
 }
 
+/*
+ * https://www.w3.org/TR/css-text-3/#script-tagging
+ */
+UCharScriptType _unicode_normalize_script(LanguageCode cl,
+        UCharScriptType ws)
+{
+    if (cl == LANGCODE_zh && ws == UCHAR_SCRIPT_INVALID_CODE) {
+        return UCHAR_SCRIPT_HAN;
+    }
+    else if (ws == UCHAR_SCRIPT_BOPOMOFO) {
+        return UCHAR_SCRIPT_HAN;
+    }
+    else if (cl == LANGCODE_ja && ws == UCHAR_SCRIPT_INVALID_CODE) {
+        return UCHAR_SCRIPT_KATAKANA;
+    }
+    else if (cl == LANGCODE_ko && ws == UCHAR_SCRIPT_INVALID_CODE) {
+        return UCHAR_SCRIPT_HANGUL;
+    }
+    else if (cl == LANGCODE_unknown || ws == UCHAR_SCRIPT_INVALID_CODE) {
+        return UCHAR_SCRIPT_INVALID_CODE;
+    }
+
+    return ws;
+}
+
 #endif /* _MGCHARSET_UNICODE */
 
