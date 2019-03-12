@@ -207,7 +207,7 @@ static unsigned int unicode_char_type (Achar32 chv)
     return (break_type << 24) | (basic_type << 16) | mchar_type;
 }
 
-#undef _USE_UNIBIDI
+#define _USE_UNIBIDI
 
 #ifdef _USE_UNIBIDI
 
