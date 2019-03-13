@@ -11806,6 +11806,14 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
             iso639_1[0]));
 }
 
+/** Get language code and script type from ISO639 language name. */
+MG_EXPORT UCharScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
+        int* lang_code);
+
+/** Normalize script type according to language code */
+MG_EXPORT UCharScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
+    UCharScriptType ws);
+
     /** @} end of language_code */
 
     /**

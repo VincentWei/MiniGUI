@@ -298,7 +298,8 @@ static int comp_lang(const void *k1, const void *k2)
    return strcmp(sl1->lang, sl2->lang);
 }
 
-UCharScriptType GetLangScriptFromName(const char* lang_name, int* lang_code)
+UCharScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
+        int* lang_code)
 {
     const UCharScriptTypeForLang* matched;
 
@@ -321,23 +322,27 @@ UCharScriptType GetLangScriptFromName(const char* lang_name, int* lang_code)
 /*
  * https://www.w3.org/TR/css-text-3/#script-tagging
  */
-UCharScriptType _unicode_normalize_script(LanguageCode cl,
+UCharScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
         UCharScriptType ws)
 {
-    if (cl == LANGCODE_zh && ws == UCHAR_SCRIPT_INVALID_CODE) {
+    if (ws == UCHAR_SCRIPT_BOPOMOFO) {
         return UCHAR_SCRIPT_HAN;
     }
-    else if (ws == UCHAR_SCRIPT_BOPOMOFO) {
+
+    if (ws != UCHAR_SCRIPT_INVALID_CODE)
+        return ws;
+
+    switch (cl) {
+    case LANGCODE_zh:
         return UCHAR_SCRIPT_HAN;
-    }
-    else if (cl == LANGCODE_ja && ws == UCHAR_SCRIPT_INVALID_CODE) {
-        return UCHAR_SCRIPT_KATAKANA;
-    }
-    else if (cl == LANGCODE_ko && ws == UCHAR_SCRIPT_INVALID_CODE) {
+    case LANGCODE_ja:
+        return UCHAR_SCRIPT_HAN;
+    case LANGCODE_ko:
         return UCHAR_SCRIPT_HANGUL;
-    }
-    else if (cl == LANGCODE_unknown || ws == UCHAR_SCRIPT_INVALID_CODE) {
-        return UCHAR_SCRIPT_INVALID_CODE;
+    case LANGCODE_unknown:
+        return UCHAR_SCRIPT_COMMON;
+    default:
+        break;
     }
 
     return ws;
