@@ -8781,8 +8781,7 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
  *          - BOV_LB_ALLOWED\n
  *            Breaking allowed after the uchar.
  *
- * \return The number of the Uchar32 characters consumed in \a ucs;
- *      zero on error.
+ * \return The length of break oppoortunities array; zero on error.
  *
  * \note Only available when support for UNICODE is enabled.
  *

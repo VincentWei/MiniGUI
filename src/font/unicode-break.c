@@ -1442,7 +1442,7 @@ static inline int break_next_uchar(struct break_ctxt* ctxt,
 static int check_uchars_following_zw(struct break_ctxt* ctxt,
     const Uchar32* ucs_left, int nr_left_ucs)
 {
-    int cosumed = 0;
+    int consumed = 0;
 
     do {
         int uclen;
@@ -1454,7 +1454,7 @@ static int check_uchars_following_zw(struct break_ctxt* ctxt,
             nr_left_ucs -= uclen;
 
             if (resolve_lbc(ctxt, uc) == UCHAR_BREAK_SPACE) {
-                cosumed += uclen;
+                consumed += uclen;
                 break_change_lbo_last(ctxt, BOV_LB_NOTALLOWED);
                 break_push_back(ctxt, uc, UCHAR_BREAK_SPACE,
                     BOV_LB_NOTALLOWED);
@@ -1468,7 +1468,7 @@ static int check_uchars_following_zw(struct break_ctxt* ctxt,
 
     } while (TRUE);
 
-    return cosumed;
+    return consumed;
 }
 
 static int is_next_uchar_bt(struct break_ctxt* ctxt,
@@ -1875,7 +1875,7 @@ static BOOL is_next_uchar_zw(struct break_ctxt* ctxt,
 static int check_subsequent_cm_zwj(struct break_ctxt* ctxt,
     const Uchar32* ucs_left, int nr_left_ucs)
 {
-    int cosumed = 0;
+    int consumed = 0;
     int uclen;
     Uchar32 uc;
     UCharBreakType bt;
@@ -1889,16 +1889,16 @@ static int check_subsequent_cm_zwj(struct break_ctxt* ctxt,
 
         ucs_left += uclen;
         nr_left_ucs -= uclen;
-        cosumed += uclen;
+        consumed += uclen;
     }
 
-    return cosumed;
+    return consumed;
 }
 
 static int check_subsequent_sp(struct break_ctxt* ctxt,
     const Uchar32* ucs_left, int nr_left_ucs)
 {
-    int cosumed = 0;
+    int consumed = 0;
     int uclen;
     Uchar32 uc;
 
@@ -1906,10 +1906,10 @@ static int check_subsequent_sp(struct break_ctxt* ctxt,
         break_push_back(ctxt, uc, UCHAR_BREAK_SPACE, BOV_LB_NOTALLOWED);
         ucs_left += uclen;
         nr_left_ucs -= uclen;
-        cosumed += uclen;
+        consumed += uclen;
     }
 
-    return cosumed;
+    return consumed;
 }
 
 static int is_subsequent_sps_and_end_bt(struct break_ctxt* ctxt,
@@ -1941,7 +1941,7 @@ static int is_subsequent_sps_and_end_bt(struct break_ctxt* ctxt,
 static int check_subsequent_sps_and_end_bt(struct break_ctxt* ctxt,
     const Uchar32* ucs_left, int nr_left_ucs, BOOL col_sp, UCharBreakType end_bt)
 {
-    int cosumed = 0;
+    int consumed = 0;
     int uclen;
     Uchar32 uc;
 
@@ -1953,20 +1953,20 @@ static int check_subsequent_sps_and_end_bt(struct break_ctxt* ctxt,
             if (bt == UCHAR_BREAK_SPACE) {
                 ucs_left += uclen;
                 nr_left_ucs -= uclen;
-                cosumed += uclen;
+                consumed += uclen;
                 if (!col_sp)
                     break_push_back(ctxt, uc, bt, BOV_LB_NOTALLOWED);
                 continue;
             }
             else if (bt == end_bt) {
-                return cosumed;
+                return consumed;
             }
         }
 
         break;
     }
 
-    return cosumed;
+    return consumed;
 }
 
 #if 0
@@ -2028,7 +2028,7 @@ static BOOL is_even_nubmer_of_subsequent_ri(struct break_ctxt* ctxt,
 static int check_subsequent_ri(struct break_ctxt* ctxt,
         const Uchar32* ucs_left, int nr_left_ucs)
 {
-    int cosumed = 0;
+    int consumed = 0;
     int uclen;
     Uchar32 uc;
 
@@ -2038,7 +2038,7 @@ static int check_subsequent_ri(struct break_ctxt* ctxt,
                     == UCHAR_BREAK_REGIONAL_INDICATOR) {
             ucs_left += uclen;
             nr_left_ucs -= uclen;
-            cosumed += uclen;
+            consumed += uclen;
 
             break_push_back(ctxt, uc,
                 UCHAR_BREAK_REGIONAL_INDICATOR, BOV_LB_NOTALLOWED);
@@ -2048,7 +2048,7 @@ static int check_subsequent_ri(struct break_ctxt* ctxt,
             break;
     }
 
-    return cosumed;
+    return consumed;
 }
 
 int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
@@ -2058,7 +2058,6 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
     struct break_ctxt ctxt;
     Uint8 local_bts [LOCAL_ARRAY_SIZE];
     Uint8 local_ods [LOCAL_ARRAY_SIZE + 1];
-    int cosumed = 0;
     Uchar32* ucs_left;
     int nr_left_ucs;
 
@@ -2105,7 +2104,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
         Uchar32 next_uc;
         UCharBreakType next_bt;
         int next_uclen;
-        int cosumed_one_loop = 0;
+        int consumed_one_loop = 0;
 
         uclen = break_next_uchar(&ctxt, ucs_left, nr_left_ucs, &uc);
         if (uclen == 0) {
@@ -2114,7 +2113,6 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
         }
         ucs_left += uclen;
         nr_left_ucs -= uclen;
-        cosumed += uclen;
 
         ctxt.base_bt = UCHAR_BREAK_UNSET;
 
@@ -2170,7 +2168,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
         else if (bt == UCHAR_BREAK_CARRIAGE_RETURN
                 && (next_uclen = is_next_uchar_lf(&ctxt,
                     ucs_left, nr_left_ucs, &next_uc)) > 0) {
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
 
             _DBG_PRINTF ("LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.\n");
             ctxt.curr_od = LB5;
@@ -2215,7 +2213,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
         if (bt == UCHAR_BREAK_ZERO_WIDTH_SPACE) {
             _DBG_PRINTF ("LB8: Break before any character following a zero-width space...\n");
             ctxt.curr_od = LB8;
-            cosumed_one_loop += check_uchars_following_zw(&ctxt,
+            consumed_one_loop += check_uchars_following_zw(&ctxt,
                 ucs_left, nr_left_ucs);
             break_change_lbo_last(&ctxt, BOV_LB_ALLOWED);
             goto next_uchar;
@@ -2268,12 +2266,12 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
             }
 
             ctxt.base_bt = bt;
-            cosumed_one_loop += check_subsequent_cm_zwj(&ctxt, ucs_left, nr_left_ucs);
+            consumed_one_loop += check_subsequent_cm_zwj(&ctxt, ucs_left, nr_left_ucs);
             break_change_lbo_last(&ctxt, BOV_UNKNOWN);
 
-            ucs_left += cosumed_one_loop;
-            nr_left_ucs -= cosumed_one_loop;
-            cosumed_one_loop = 0;
+            ucs_left += consumed_one_loop;
+            nr_left_ucs -= consumed_one_loop;
+            consumed_one_loop = 0;
 
             ctxt.base_bt = UCHAR_BREAK_UNSET;
         }
@@ -2327,7 +2325,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
             goto next_uchar;
         }
 
@@ -2394,7 +2392,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
             break_change_lbo_last(&ctxt, BOV_LB_NOTALLOWED);
 
             // For any possible subsequent space.
-            cosumed_one_loop += check_subsequent_sp(&ctxt, ucs_left, nr_left_ucs);
+            consumed_one_loop += check_subsequent_sp(&ctxt, ucs_left, nr_left_ucs);
         }
         // LB15 Do not break within ‘”[’, even with intervening spaces.
         else if (bt == UCHAR_BREAK_QUOTATION
@@ -2411,7 +2409,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
 
             ctxt.curr_od = LB15;
             // For subsequent spaces and OP.
-            cosumed_one_loop += check_subsequent_sps_and_end_bt(&ctxt,
+            consumed_one_loop += check_subsequent_sps_and_end_bt(&ctxt,
                     ucs_left, nr_left_ucs, FALSE,
                     UCHAR_BREAK_OPEN_PUNCTUATION);
         }
@@ -2427,7 +2425,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
             break_change_lbo_last(&ctxt, BOV_LB_NOTALLOWED);
 
             // For subsequent spaces and NS.
-            cosumed_one_loop += check_subsequent_sps_and_end_bt(&ctxt,
+            consumed_one_loop += check_subsequent_sps_and_end_bt(&ctxt,
                     ucs_left, nr_left_ucs, FALSE,
                     UCHAR_BREAK_NON_STARTER);
         }
@@ -2441,7 +2439,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
             break_change_lbo_last(&ctxt, BOV_LB_NOTALLOWED);
 
             // For subsequent spaces and B2.
-            cosumed_one_loop += check_subsequent_sps_and_end_bt(&ctxt,
+            consumed_one_loop += check_subsequent_sps_and_end_bt(&ctxt,
                     ucs_left, nr_left_ucs, FALSE,
                     UCHAR_BREAK_BEFORE_AND_AFTER);
         }
@@ -2494,7 +2492,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     next_uc, next_bt, BOV_LB_NOTALLOWED) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
         // LB21b Don’t break between Solidus and Hebrew letters.
         else if (bt == UCHAR_BREAK_SYMBOL
@@ -2777,7 +2775,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
         else if ((bt == UCHAR_BREAK_HANGUL_V_JAMO
                     || bt == UCHAR_BREAK_HANGUL_LV_SYLLABLE)
@@ -2790,7 +2788,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
         else if ((bt == UCHAR_BREAK_HANGUL_T_JAMO
                     || bt == UCHAR_BREAK_HANGUL_LVT_SYLLABLE)
@@ -2803,7 +2801,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     UCHAR_BREAK_HANGUL_T_JAMO, BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
         // LB27 Treat a Korean Syllable Block the same as ID.
         else if ((bt == UCHAR_BREAK_HANGUL_L_JAMO
@@ -2820,7 +2818,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     UCHAR_BREAK_INSEPARABLE, BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
         else if ((bt == UCHAR_BREAK_HANGUL_L_JAMO
                     || bt == UCHAR_BREAK_HANGUL_V_JAMO
@@ -2836,7 +2834,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     UCHAR_BREAK_POSTFIX, BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
         else if (bt == UCHAR_BREAK_PREFIX
                 && (next_uclen = is_next_uchar_jl_jv_jt_h2_h3(&ctxt,
@@ -2848,7 +2846,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     next_bt, BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
 
         /* Finally, join alphabetic letters into words
@@ -2905,7 +2903,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
             if (break_push_back(&ctxt, next_uc,
                     UCHAR_BREAK_REGIONAL_INDICATOR, BOV_UNKNOWN) == 0)
                 goto error;
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
         else if (bt != UCHAR_BREAK_REGIONAL_INDICATOR
                 && (next_uclen = is_even_nubmer_of_subsequent_ri(&ctxt,
@@ -2918,7 +2916,7 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                 ucs_left, nr_left_ucs);
             break_change_lbo_last(&ctxt, BOV_UNKNOWN);
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
 
         // LB30b Do not break between an emoji base and an emoji modifier.
@@ -2932,15 +2930,14 @@ int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
                     UCHAR_BREAK_EMOJI_MODIFIER, BOV_UNKNOWN) == 0)
                 goto error;
 
-            cosumed_one_loop += next_uclen;
+            consumed_one_loop += next_uclen;
         }
 
         ctxt.base_bt = UCHAR_BREAK_UNSET;
 
 next_uchar:
-        nr_left_ucs -= cosumed_one_loop;
-        ucs_left += cosumed_one_loop;
-        cosumed += cosumed_one_loop;
+        nr_left_ucs -= consumed_one_loop;
+        ucs_left += consumed_one_loop;
 
         _DBG_PRINTF("%s: nr_ucs: %d, ctxt.n: %d, nr_left_ucs: %d\n",
                 __FUNCTION__, nr_ucs, ctxt.n, nr_left_ucs);
@@ -2984,7 +2981,7 @@ next_uchar:
     if (ctxt.ods && ctxt.ods != local_ods) free(ctxt.ods);
     if (ctxt.bts && ctxt.bts != local_bts) free(ctxt.bts);
 
-    return ctxt.n - 1;
+    return ctxt.n;
 
 error:
     if (*break_oppos == NULL && ctxt.bos) free(ctxt.bos);
