@@ -8490,6 +8490,245 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
         const BidiLevel *embedding_levels, int len,
         BidiArabicProp *ar_props, Uchar32* ucs);
 
+    /**
+     * \defgroup char_transform_rules Character Transformation Rules
+     *
+     *  The character transformation rule indicates how \a UStrGetBreaks
+     *  transforms text for styling purposes; can be
+     *
+     *      - CTR_NONE,
+     *      - or one of CTR_CAPITALIZE, CTR_UPPERCASE, and CTR_LOWERCASE,
+     *      - and OR'ed with CTR_FULL_WIDTH and/or CTR_FULL_SIZE_KANA
+     *
+     * @{
+     */
+
+/**
+ * \def CTR_NONE
+ *
+ * \brief No effects.
+ */
+#define CTR_NONE            0x00
+
+#define CTR_CASE_MASK       0x0F
+
+/**
+ * \def CTR_CAPITALIZE
+ *
+ * \brief Puts the first typographic letter unit of each word,
+ * if lowercase, in titlecase; other characters are unaffected.
+ */
+#define CTR_CAPITALIZE      0x01
+
+/**
+ * \def CTR_UPPERCASE
+ *
+ * \brief Puts all letters in uppercase.
+ */
+#define CTR_UPPERCASE       0x02
+
+/**
+ * \def CTR_LOWERCASE
+ *
+ * \brief Puts all letters in lowercase.
+ */
+#define CTR_LOWERCASE       0x03
+
+/**
+ * \def CTR_FULL_WIDTH
+ *
+ * \brief Puts all typographic character units in fullwidth form.
+ * If a character does not have a corresponding fullwidth form,
+ * it is left as is. This value is typically used to typeset
+ * Latin letters and digits as if they were ideographic characters.
+ */
+#define CTR_FULL_WIDTH      0x10
+
+/**
+ * \def CTR_FULL_SIZE_KANA
+ *
+ * \brief Converts all small Kana characters to the equivalent
+ * full-size Kana. This value is typically used for ruby annotation
+ * text, where authors may want all small Kana to be drawn as large
+ * Kana to compensate for legibility issues at the small font sizes
+ * typically used in ruby.
+ */
+#define CTR_FULL_SIZE_KANA  0x20
+
+    /** @} end of char_transform_rules */
+
+    /**
+     * \defgroup word_break_rules Word Breaking Rules
+     *
+     *  The word breaking rule indicates how \a UStrGetBreaks
+     *  creates soft wrap opportunities between letters.
+     *
+     * @{
+     */
+
+/**
+ * \def WBR_NORMAL
+ *
+ * \brief Words break according to their customary rules, as defined
+ * by UNICODE LINE BREAKING ALGORITHM.
+ */
+#define WBR_NORMAL          0x00
+
+/**
+ * \def WBR_BREAK_ALL
+ *
+ * \brief Breaking is allowed within “words”.
+ */
+#define WBR_BREAK_ALL       0x01
+
+/**
+ * \def WBR_KEEP_ALL
+ *
+ * \brief Breaking is forbidden within “words”.
+ */
+#define WBR_KEEP_ALL        0x02
+
+    /** @} end of word_break_rules */
+
+    /**
+     * \defgroup line_break_policies Line Breaking Policies
+     *
+     * The line breaking policy specifies the strictness
+     * of line-breaking rules applied within an element:
+     * especially how wrapping interacts with punctuation and symbols.
+     *
+     * @{
+     */
+
+/**
+ * \def LBP_NORMAL
+ *
+ * \brief Breaks text using the most common set of line-breaking rules.
+ */
+#define LBP_NORMAL          0x00
+
+/**
+ * \def LBP_LOOSE
+ *
+ * \brief Breaks text using the least restrictive set of line-breaking rules.
+ * Typically used for short lines, such as in newspapers.
+ */
+#define LBP_LOOSE           0x01
+
+/**
+ * \def LBP_STRICT
+ *
+ * \brief Breaks text using the most stringent set of line-breaking rules.
+ */
+#define LBP_STRICT          0x02
+
+/**
+ * \def LBP_ANYWHERE
+ *
+ * \brief There is a soft wrap opportunity around every typographic character
+ * unit, including around any punctuation character or preserved spaces,
+ * or in the middle of words, disregarding any prohibition against line
+ * breaks, even those introduced by characters with the GL, WJ, or ZWJ
+ * breaking class or mandated by the word breaking rule. The different wrapping
+ * opportunities must not be prioritized. Hyphenation is not applied.
+ */
+#define LBP_ANYWHERE        0x03
+
+    /** @} end of line_break_policies */
+
+    /**
+     * \defgroup breaking_opportunities The breaking opportunity code
+     *
+     * MiniGUI uses a 16-bits word to represent the character, word, and line
+     * breaking opportunities of a character in a context.
+     *
+     * Please see UAX#29 and UAX#14 for more information:
+     *
+     *      https://www.unicode.org/reports/tr29/tr29-33.html
+     *      https://www.unicode.org/reports/tr14/tr14-41.html
+     *
+     * @{
+     */
+/**
+ * Unknown breaking code.
+ */
+#define BOV_UNKNOWN                 0x0000
+/**
+ * If set, the character is a whitespace character.
+ */
+#define BOV_WHITESPACE              0x8000
+/**
+ * If set, the character is an expandable space.
+ */
+#define BOV_EXPANDABLE_SPACE        0x0800
+
+/**
+ * If set, the character has zero width.
+ */
+#define BOV_ZERO_WIDTH              0x0080
+
+#define BOV_GB_MASK                 0x7000
+/**
+ * If set, can break at the character when doing character wrap.
+ */
+#define BOV_GB_CHAR_BREAK           0x1000
+/**
+ * If set, cursor can appear in front of the character
+ * (i.e. this is a grapheme boundary, or the first character in the text).
+ */
+#define BOV_GB_CURSOR_POS           0x2000
+/**
+ * If set, backspace deletes one character rather than
+ * the entire grapheme cluster.
+ */
+#define BOV_GB_BACKSPACE_DEL_CH     0x4000
+
+#define BOV_WB_MASK                 0x0700
+/**
+ * If set, the glyph is the word boundary as defined by UAX#29.
+ */
+#define BOV_WB_WORD_BOUNDARY        0x0100
+/**
+ * If set, the glyph is the first character in a word.
+ */
+#define BOV_WB_WORD_START           0x0200
+/**
+ * If set, the glyph is the first non-word character after a word.
+ */
+#define BOV_WB_WORD_END             0x0400
+
+#define BOV_SB_MASK                 0x0070
+/**
+ * If set, the glyph is the sentence boundary as defined by UAX#29.
+ */
+#define BOV_SB_SENTENCE_BOUNDARY    0x0010
+/**
+ * If set, the glyph is the first character in a sentence.
+ */
+#define BOV_SB_SENTENCE_START       0x0020
+/**
+ * If set, the glyph is the first non-sentence character after a sentence.
+ */
+#define BOV_SB_SENTENCE_END         0x0040
+
+#define BOV_LB_MASK                 0x000F
+#define BOV_LB_BREAK_FLAG           0x0004
+#define BOV_LB_MANDATORY_FLAG       0x0008
+/**
+ * The line can break after the character.
+ */
+#define BOV_LB_ALLOWED              (BOV_LB_BREAK_FLAG | 0x0001)
+/**
+ * The line must break after the character.
+ */
+#define BOV_LB_MANDATORY            (BOV_LB_BREAK_FLAG | BOV_LB_MANDATORY_FLAG | 0x0002)
+/**
+ * The line break is not allowed after the character.
+ */
+#define BOV_LB_NOTALLOWED           0x0003
+
+    /** @} end of breaking_opportunities */
+
 /**
  * \fn int GUIAPI UStrGetBreaks(Uchar32* ucs, int nr_ucs,
  *          UCharScriptType writing_system, Uint8 ctr, Uint8 wbr, Uint8 lbp,
@@ -11578,7 +11817,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
     /**
      * \defgroup white_space_rules White Space Rules
      *
-     *  The white space rule indicates \a GetUCharsAndBreaks.
+     *  The white space rule indicates \a GetUCharsUntilParagraphBoundary.
      *
      *      - whether and how white space inside the string is collapsed.
      *      - whether lines may wrap at unforced soft wrap opportunities.
@@ -11588,7 +11827,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_NORMAL
  *
- * \brief This value directs \a GetUCharsAndBreaks
+ * \brief This value directs \a GetUCharsUntilParagraphBoundary
  * collapses sequences of white space into a single character.
  * Lines may wrap at allowed soft wrap opportunities.
  */
@@ -11597,7 +11836,7 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 /**
  * \def WSR_PRE
  *
- * \brief This value prevents \a GetUCharsAndBreaks from collapsing
+ * \brief This value prevents \a GetUCharsUntilParagraphBoundary from collapsing
  * sequences of white space. Segment breaks such as line feeds are
  * preserved as forced line breaks. Lines only break at forced line breaks;
  * content that does not fit within the specified extent overflows it.
@@ -11631,8 +11870,8 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
  *      white space glyph, including between white space characters.
  *
  * When white space rule is specified to be WSR_BREAK_SPACES, the manner
- * of \a GetUCharsAndBreaks will conform
- * to UNICODE LINE BREAKING ALGORITHM.
+ * of \a GetUCharsUntilParagraphBoundary will conform
+ * to CSS Text Module Level 3.
  */
 #define WSR_BREAK_SPACES    0x04
 
@@ -11646,245 +11885,6 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 #define WSR_PRE_LINE        0x05
 
     /** @} end of white_space_rules */
-
-    /**
-     * \defgroup char_transform_rules Character Transformation Rules
-     *
-     *  The character transformation rule indicates how \a GetUCharsAndBreaks
-     *  transforms text for styling purposes; can be
-     *
-     *      - CTR_NONE,
-     *      - or one of CTR_CAPITALIZE, CTR_UPPERCASE, and CTR_LOWERCASE,
-     *      - and OR'ed with CTR_FULL_WIDTH and/or CTR_FULL_SIZE_KANA
-     *
-     * @{
-     */
-
-/**
- * \def CTR_NONE
- *
- * \brief No effects.
- */
-#define CTR_NONE            0x00
-
-#define CTR_CASE_MASK       0x0F
-
-/**
- * \def CTR_CAPITALIZE
- *
- * \brief Puts the first typographic letter unit of each word,
- * if lowercase, in titlecase; other characters are unaffected.
- */
-#define CTR_CAPITALIZE      0x01
-
-/**
- * \def CTR_UPPERCASE
- *
- * \brief Puts all letters in uppercase.
- */
-#define CTR_UPPERCASE       0x02
-
-/**
- * \def CTR_LOWERCASE
- *
- * \brief Puts all letters in lowercase.
- */
-#define CTR_LOWERCASE       0x03
-
-/**
- * \def CTR_FULL_WIDTH
- *
- * \brief Puts all typographic character units in fullwidth form.
- * If a character does not have a corresponding fullwidth form,
- * it is left as is. This value is typically used to typeset
- * Latin letters and digits as if they were ideographic characters.
- */
-#define CTR_FULL_WIDTH      0x10
-
-/**
- * \def CTR_FULL_SIZE_KANA
- *
- * \brief Converts all small Kana characters to the equivalent
- * full-size Kana. This value is typically used for ruby annotation
- * text, where authors may want all small Kana to be drawn as large
- * Kana to compensate for legibility issues at the small font sizes
- * typically used in ruby.
- */
-#define CTR_FULL_SIZE_KANA  0x20
-
-    /** @} end of char_transform_rules */
-
-    /**
-     * \defgroup word_break_rules Word Breaking Rules
-     *
-     *  The word breaking rule indicates how \a GetUCharsAndBreaks
-     *  creates soft wrap opportunities between letters.
-     *
-     * @{
-     */
-
-/**
- * \def WBR_NORMAL
- *
- * \brief Words break according to their customary rules, as defined
- * by UNICODE LINE BREAKING ALGORITHM.
- */
-#define WBR_NORMAL          0x00
-
-/**
- * \def WBR_BREAK_ALL
- *
- * \brief Breaking is allowed within “words”.
- */
-#define WBR_BREAK_ALL       0x01
-
-/**
- * \def WBR_KEEP_ALL
- *
- * \brief Breaking is forbidden within “words”.
- */
-#define WBR_KEEP_ALL        0x02
-
-    /** @} end of word_break_rules */
-
-    /**
-     * \defgroup line_break_policies Line Breaking Policies
-     *
-     * The line breaking policy specifies the strictness
-     * of line-breaking rules applied within an element:
-     * especially how wrapping interacts with punctuation and symbols.
-     *
-     * @{
-     */
-
-/**
- * \def LBP_NORMAL
- *
- * \brief Breaks text using the most common set of line-breaking rules.
- */
-#define LBP_NORMAL          0x00
-
-/**
- * \def LBP_LOOSE
- *
- * \brief Breaks text using the least restrictive set of line-breaking rules.
- * Typically used for short lines, such as in newspapers.
- */
-#define LBP_LOOSE           0x01
-
-/**
- * \def LBP_STRICT
- *
- * \brief Breaks text using the most stringent set of line-breaking rules.
- */
-#define LBP_STRICT          0x02
-
-/**
- * \def LBP_ANYWHERE
- *
- * \brief There is a soft wrap opportunity around every typographic character
- * unit, including around any punctuation character or preserved spaces,
- * or in the middle of words, disregarding any prohibition against line
- * breaks, even those introduced by characters with the GL, WJ, or ZWJ
- * breaking class or mandated by the word breaking rule. The different wrapping
- * opportunities must not be prioritized. Hyphenation is not applied.
- */
-#define LBP_ANYWHERE        0x03
-
-    /** @} end of line_break_policies */
-
-    /**
-     * \defgroup breaking_opportunities The breaking opportunity code
-     *
-     * MiniGUI uses a 16-bits word to represent the character, word, and line
-     * breaking opportunities of a character in a context.
-     *
-     * Please see UAX#29 and UAX#14 for more information:
-     *
-     *      https://www.unicode.org/reports/tr29/tr29-33.html
-     *      https://www.unicode.org/reports/tr14/tr14-41.html
-     *
-     * @{
-     */
-/**
- * Unknown breaking code.
- */
-#define BOV_UNKNOWN                 0x0000
-/**
- * If set, the character is a whitespace character.
- */
-#define BOV_WHITESPACE              0x8000
-/**
- * If set, the character is an expandable space.
- */
-#define BOV_EXPANDABLE_SPACE        0x0800
-
-/**
- * If set, the character has zero width.
- */
-#define BOV_ZERO_WIDTH              0x0080
-
-#define BOV_GB_MASK                 0x7000
-/**
- * If set, can break at the character when doing character wrap.
- */
-#define BOV_GB_CHAR_BREAK           0x1000
-/**
- * If set, cursor can appear in front of the character
- * (i.e. this is a grapheme boundary, or the first character in the text).
- */
-#define BOV_GB_CURSOR_POS           0x2000
-/**
- * If set, backspace deletes one character rather than
- * the entire grapheme cluster.
- */
-#define BOV_GB_BACKSPACE_DEL_CH     0x4000
-
-#define BOV_WB_MASK                 0x0700
-/**
- * If set, the glyph is the word boundary as defined by UAX#29.
- */
-#define BOV_WB_WORD_BOUNDARY        0x0100
-/**
- * If set, the glyph is the first character in a word.
- */
-#define BOV_WB_WORD_START           0x0200
-/**
- * If set, the glyph is the first non-word character after a word.
- */
-#define BOV_WB_WORD_END             0x0400
-
-#define BOV_SB_MASK                 0x0070
-/**
- * If set, the glyph is the sentence boundary as defined by UAX#29.
- */
-#define BOV_SB_SENTENCE_BOUNDARY    0x0010
-/**
- * If set, the glyph is the first character in a sentence.
- */
-#define BOV_SB_SENTENCE_START       0x0020
-/**
- * If set, the glyph is the first non-sentence character after a sentence.
- */
-#define BOV_SB_SENTENCE_END         0x0040
-
-#define BOV_LB_MASK                 0x000F
-#define BOV_LB_BREAK_FLAG           0x0004
-#define BOV_LB_MANDATORY_FLAG       0x0008
-/**
- * The line can break after the character.
- */
-#define BOV_LB_ALLOWED              (BOV_LB_BREAK_FLAG | 0x0001)
-/**
- * The line must break after the character.
- */
-#define BOV_LB_MANDATORY            (BOV_LB_BREAK_FLAG | BOV_LB_MANDATORY_FLAG | 0x0002)
-/**
- * The line break is not allowed after the character.
- */
-#define BOV_LB_NOTALLOWED           0x0003
-
-    /** @} end of breaking_opportunities */
 
 /**
  * \fn int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
@@ -12287,9 +12287,9 @@ typedef struct _SHAPEDGLYPH {
  *
  * \note This function assumes that you passed one line (one paragraph) of
  *      the logical Unicode string. Therefore, you need to call this function
- *      after calling GetUCharsAndBreaks.
+ *      after calling GetUCharsUntilParagraphBoundary.
  *
- * \sa GetUCharsAndBreaks, GetShapedGlyphsComplex, SHAPEDGLYPH,
+ * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsComplex, SHAPEDGLYPH,
  *      UBidiReorderLine, bidi_types,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
@@ -12356,9 +12356,9 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  *
  * \note This function assumes that you passed one line (one paragraph) of
  *      the logical Unicode string. Therefore, you need to call this function
- *      after calling GetUCharsAndBreaks.
+ *      after calling GetUCharsUntilParagraphBoundary.
  *
- * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, SHAPEDGLYPH,
+ * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic, SHAPEDGLYPH,
  *      UBidiReorderLine, bidi_types,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
@@ -12444,7 +12444,7 @@ typedef struct _GLYPHEXTINFO {
  *      be 0° for upright glyphs and \a logfont_sideways will have the
  *      rotation be 90° for sideways glyphs.
  *
- * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
  *     GetGlyphsPositionInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
@@ -12548,7 +12548,7 @@ typedef struct _GLYPHPOS {
  *      the positions contained in \a glyph_pos are always with respect to
  *      the top-left corner of the resulting output line rectangle.
  *
- * \sa GetUCharsAndBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
+ * \sa UStrGetBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsPositionInfo(
@@ -12577,7 +12577,7 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(
  * \param uchars The pointer to the achar string.
  * \param nr_uchars The number of the glyphs.
  * \param break_oppos The pointer to the break opportunities array of the glyphs.
- *      It should be returned by \a GetUCharsAndBreaks. However, the caller
+ *      It should be returned by \a UStrGetBreaks. However, the caller
  *      should skip the first unit (the break opportunity before the first glyph)
  *      when passing the pointer to this function.
  * \param render_flags The render flags; see \a glyph_render_flags.
@@ -12634,7 +12634,7 @@ MG_EXPORT int GUIAPI GetGlyphsPositionInfo(
  *      the positions contained in \a glyph_pos are always with respect to
  *      the top-left corner of the resulting output line rectangle.
  *
- * \sa GetUCharsAndBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ * \sa UStrGetBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
         const Achar32* uchars, int nr_uchars, const Uint16* break_oppos,
