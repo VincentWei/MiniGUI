@@ -782,7 +782,7 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
             else if (valid_isolate_count==0 && BIDI_IS_LETTER (RL_TYPE (pp)))
             {
                 base_level = BIDI_DIR_TO_LEVEL (RL_TYPE (pp));
-                // *paragraph_dir = BIDI_LEVEL_TO_DIR (base_level);
+                //*paragraph_dir = BIDI_LEVEL_TO_DIR (base_level);
                 break;
             }
         }

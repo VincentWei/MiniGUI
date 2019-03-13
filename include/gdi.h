@@ -7883,7 +7883,7 @@ typedef Uint8   BidiArabicProp;
 
 #define BIDI_PGDIR_LTR      BIDI_TYPE_LTR
 #define BIDI_PGDIR_RTL      BIDI_TYPE_RTL
-#define BIDI_PGDIR_WLRT     BIDI_TYPE_WLTR
+#define BIDI_PGDIR_WLTR     BIDI_TYPE_WLTR
 #define BIDI_PGDIR_WRTL     BIDI_TYPE_WRTL
 
 #define BIDI_PGDIR_ON       BIDI_TYPE_ON
