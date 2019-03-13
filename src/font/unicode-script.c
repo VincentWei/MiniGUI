@@ -291,8 +291,6 @@ int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924)
 
 #include "script-language-table.inc"
 
-static int (*compar)(const void *, const void *);
-
 static int comp_lang(const void *k1, const void *k2)
 {
    UCharScriptTypeForLang *sl1 = (UCharScriptTypeForLang*) k1;

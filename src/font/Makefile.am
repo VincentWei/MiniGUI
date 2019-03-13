@@ -33,7 +33,8 @@ HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             unicode-bidi-bidi-type-table.inc \
             unicode-bidi-brackets-table.inc \
             unicode-bidi-brackets-type-table.inc \
-            unicode-bidi-mirroring-table.inc
+            unicode-bidi-mirroring-table.inc \
+            script-language-table.inc
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc
