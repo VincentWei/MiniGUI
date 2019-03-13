@@ -70,15 +70,23 @@ static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
 #endif
 
 /* Local array size, used for stack-based local arrays */
-#define LOCAL_ARRAY_SIZE 128
+
+#if SIZEOF_PTR == 8
+#   define LOCAL_ARRAY_SIZE 256
+#else
+#   define LOCAL_ARRAY_SIZE 128
+#endif
 
 int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
-        LanguageCode content_language, UCharScriptType writing_system,
+        UCharScriptType writing_system,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp,
         const Uchar32* logical_ucs, int nr_ucs,
-        Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
-        BidiType *paragraph_dir, int* pos_l2v, int* nr_glyphs)
+        BidiType* paragraph_dir,
+        Glyph32* visual_glyphs, GLYPHSHAPINGINFO* glyph_shaping_info,
+        Uint16* break_oppos, int* map_v2l, int* nr_glyphs)
 {
-    int i, j;
+    int ret_value = 0;
+    int i, j, nr_reordered;
     BidiLevel max_level = 0;
 
     Uchar32 local_visual_ucs[LOCAL_ARRAY_SIZE];
@@ -96,26 +104,29 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
     BidiLevel local_els[LOCAL_ARRAY_SIZE];
     BidiLevel* els = NULL;
 
-    int local_pos_v2l[LOCAL_ARRAY_SIZE];
-    int* pos_v2l = NULL;
+    int local_indics_map[LOCAL_ARRAY_SIZE];
+    int* indics_map = NULL;
 
     if (nr_ucs == 0 || logical_ucs == NULL || break_oppos == NULL ||
             visual_glyphs == NULL || nr_glyphs == NULL) {
         return 0;
     }
 
-    writing_system = _unicode_normalize_script(content_language, writing_system);
-
-    /*
-     * TODO: tailor break opportunties according to the content languages.
-     */
-
+    /* TODO: we may re-use visual_glyphs for visual ucs */
     if (nr_ucs < LOCAL_ARRAY_SIZE)
         visual_ucs = local_visual_ucs;
     else
         visual_ucs = malloc (nr_ucs * sizeof(Uchar32));
 
     if (!visual_ucs)
+        goto out;
+
+    if (nr_ucs < LOCAL_ARRAY_SIZE)
+        indics_map = local_indics_map;
+    else
+        indics_map = malloc (nr_ucs * sizeof(int));
+
+    if (!indics_map)
         goto out;
 
     /* TODO: compose logical character here */
@@ -154,23 +165,9 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
     if (max_level < 0)
         goto out;
 
-    /* If l2v is to be calculated we must have to
-       make a private instance of it. */
-    if (pos_l2v) {
-        if (nr_ucs < LOCAL_ARRAY_SIZE)
-            pos_v2l = local_pos_v2l;
-        else
-            pos_v2l = (int*)malloc(sizeof(int) * nr_ucs);
-
-        if (!pos_v2l)
-            goto out;
-    }
-
     /* Set up the ordering array to identity order */
-    if (pos_v2l) {
-        for (i = 0; i < nr_ucs; i++)
-            pos_v2l[i] = i;
-    }
+    for (i = 0; i < nr_ucs; i++)
+        indics_map[i] = i;
 
     if (writing_system == UCHAR_SCRIPT_ARABIC) {
         /* Arabic joining */
@@ -190,62 +187,65 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
     }
 
     if (UBidiReorderLine(BIDI_FLAGS_DEFAULT, bidi_ts, nr_ucs, 0,
-                *paragraph_dir, els, visual_ucs, pos_v2l, NULL, NULL) == 0)
+                *paragraph_dir, els, visual_ucs, indics_map, NULL, NULL) == 0)
         goto out;
 
-    /* get shaped glyphs */
+    // remove the unused characters and get the real length of the visual ucs.
     j = 0;
     for (i = 0; i < nr_ucs; i++) {
-        if (pos_v2l[i] >= 0) {
-            visual_glyphs[j].gv = GetGlyphValue(logfont,
-                    UCHAR2ACHAR(visual_ucs[i]));
-            visual_glyphs[j].bos = break_oppos[pos_v2l[i]];
-
-            if (ar_props) {
-                BidiArabicProp ar_prop = ar_props[pos_v2l[i]];
-                if (ar_prop & BIDI_MASK_LIGATURED) {
-                    visual_glyphs[j].gt = GLYPH_TYPE_STDLIGATURE;
-                    visual_glyphs[j].gp = GLYPH_POS_BASELINE;
-                }
-                else if (UCharIsArabicVowel(visual_ucs[i])) {
-                    visual_glyphs[j].gt = GLYPH_TYPE_STDMARK;
-                    visual_glyphs[j].gp = GLYPH_POS_STDMARK_ABOVE;
-                }
-                else {
-                    visual_glyphs[j].gt = GLYPH_TYPE_STANDALONE;
-                    visual_glyphs[j].gp = GLYPH_POS_BASELINE;
-                }
-            }
-            else {
-                visual_glyphs[j].gt = GLYPH_TYPE_STANDALONE;
-                visual_glyphs[j].gp = GLYPH_POS_BASELINE;
-            }
-
+        if (!BIDI_IS_EXPLICIT_OR_BN (bidi_ts[indics_map[i]])) {
+            visual_ucs[j] = visual_ucs[i];
             j++;
         }
+    }
+    nr_reordered = j;
+
+    if (break_oppos) {
+        // The breaking opportunities
+        if (UStrGetBreaks(writing_system, ctr, wbr, lbp, visual_ucs, nr_reordered,
+                &break_oppos) == 0)
+            goto out;
+    }
+
+    // get shaped glyphs
+    for (i = 0; i < nr_reordered; i++) {
+        visual_glyphs[i] = GetGlyphValue(logfont, UCHAR2ACHAR(visual_ucs[i]));
+
+        if (ar_props) {
+            BidiArabicProp ar_prop = ar_props[indics_map[i]];
+            if (ar_prop & BIDI_MASK_LIGATURED) {
+                glyph_shaping_info[i].gt = GLYPH_TYPE_STDLIGATURE;
+                glyph_shaping_info[i].gp = GLYPH_POS_BASELINE;
+            }
+            else if (UCharIsArabicVowel(visual_ucs[i])) {
+                glyph_shaping_info[i].gt = GLYPH_TYPE_STDMARK;
+                glyph_shaping_info[i].gp = GLYPH_POS_STDMARK_ABOVE;
+            }
+            else {
+                glyph_shaping_info[i].gt = GLYPH_TYPE_STANDALONE;
+                glyph_shaping_info[i].gp = GLYPH_POS_BASELINE;
+            }
+        }
         else {
-            _DBG_PRINTF("%s: A character skipped\n", __FUNCTION__);
+            glyph_shaping_info[i].gt = GLYPH_TYPE_STANDALONE;
+            glyph_shaping_info[i].gp = GLYPH_POS_BASELINE;
         }
     }
 
-    *nr_glyphs = j;
+    *nr_glyphs = nr_reordered;
 
-    /* Convert the v2l list to l2v */
-    if (pos_l2v) {
-        for (i = 0; i < nr_ucs; i++)
-            pos_l2v[i] = -1;
-        for (i = 0; i < nr_ucs; i++)
-            pos_l2v[pos_v2l[i]] = i;
+    if (map_v2l) {
+        memcpy(map_v2l, indics_map, sizeof(int) * nr_reordered);
     }
 
-    return nr_ucs;
+    ret_value = nr_ucs;
 
 out:
+    if (indics_map && indics_map != local_indics_map)
+        free (indics_map);
+
     if (visual_ucs && visual_ucs != local_visual_ucs)
         free (visual_ucs);
-
-    if (pos_v2l && pos_v2l != local_pos_v2l)
-        free (pos_v2l);
 
     if (els && els != local_els)
         free (els);
@@ -259,41 +259,43 @@ out:
     if (brk_ts && brk_ts != local_brk_ts)
         free (brk_ts);
 
-    return 0;
+    return ret_value;
 }
 
 int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
-        LanguageCode content_language, UCharScriptType writing_system,
+        UCharScriptType writing_system,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp,
         const Uchar32* logical_ucs, int nr_ucs,
-        Uint16* break_oppos, SHAPEDGLYPH* visual_glyphs,
-        BidiType *paragraph_dir, int* pos_l2v, int* nr_glyphs)
+        BidiType* paragraph_dir,
+        Glyph32* visual_glyphs, GLYPHSHAPINGINFO* glyph_shaping_info,
+        Uint16* break_oppos, int* map_v2l, int* nr_glyphs)
 {
     return 0;
 }
 
 int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
-        const SHAPEDGLYPH* glyphs, int nr_glyphs,
-        Uint32 render_flags,
-        GLYPHEXTINFO* glyph_extent_info,
-        LOGFONT** logfont_sideways)
+        const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
+        int nr_glyphs, Uint32 render_flags,
+        GLYPHEXTINFO* glyph_ext_info, LOGFONT** logfont_sideways)
 {
     return 0;
 }
 
 int GUIAPI GetGlyphsPositionInfo(
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const SHAPEDGLYPH* glyphs, GLYPHEXTINFO* glyph_ext_info, int nr_glyphs,
+        const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
+        const Uint16* break_oppos, int nr_glyphs,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHPOS* glyph_pos)
+        GLYPHEXTINFO* glyph_ext_info, SIZE* line_size, GLYPHPOS* glyph_pos)
 {
     return 0;
 }
 
 int GUIAPI DrawShapedGlyphString(HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const SHAPEDGLYPH* glyphs, const GLYPHPOS* glyph_pos,
-        int nr_glyphs)
+        const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
+        const GLYPHPOS* glyph_pos, int nr_glyphs)
 {
     int i;
     int n = 0;
@@ -321,7 +323,7 @@ int GUIAPI DrawShapedGlyphString(HDC hdc,
                     goto error;
             }
 
-            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, glyphs[i].gv,
+            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, glyphs[i],
                 NULL, NULL);
 
             n++;
