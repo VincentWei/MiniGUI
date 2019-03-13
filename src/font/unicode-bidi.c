@@ -52,8 +52,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-#define DEBUG
-
 #include "common.h"
 
 #ifdef _MGCHARSET_UNICODE

@@ -8730,18 +8730,16 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
     /** @} end of breaking_opportunities */
 
 /**
- * \fn int GUIAPI UStrGetBreaks(Uchar32* ucs, int nr_ucs,
- *          UCharScriptType writing_system, Uint8 ctr, Uint8 wbr, Uint8 lbp,
- *          Uint16** break_oppos);
- * \brief Convert a multi-byte character string to a Unicode character string
- *      and calculate the breaking opportunities under the specified rules and
- *      line breaking policy.
+ * \fn int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
+ *          Uint8 ctr, Uint8 wbr, Uint8 lbp,
+ *          Uchar32* ucs, int nr_ucs, Uint16** break_oppos);
+ * \brief Calculate the breaking opportunities of a Uchar32 string under
+ *      the specified rules and line breaking policy.
  *
- * This function calculates and allocates the Uchar32 string and the breaking
- * opportunities of the characters from a multi-byte string under the specified
- * content language \a content_language, the writing system \a writing_system,
- * the white space rule \a wsr, the text transformation rule
- * \a ctr, the word breaking rule \a wbr, and the line breaking policy \a lbp.
+ * This function calculates the breaking opportunities of the Unicode characters
+ * under the specified the writing system \a writing_system, the word breaking
+ * rule \a wbr, and the line breaking policy \a lbp. This function also
+ * transforms the character according to the text transformation rule \a ctr.
  *
  * The implementation of this function conforms to UNICODE LINE BREAKING
  * ALGORITHM:
@@ -8756,50 +8754,44 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
  *
  *      https://www.w3.org/TR/css-text-3/
  *
- * The function will return if it encounters any hard line break or the null
- * character. The hard line break will be included in the returned Uchar32 if
- * there was one.
+ * The function will return if it encounters the end of the text.
  *
- * Note that you are responsible for freeing the Uchar32 string and the
- * break opportunities array allocated by this function.
+ * Note that you are responsible for freeing the break opportunities array
+ * allocated by this function if it allocates the buffer.
  *
- * \param logfont The logfont used to parse the string.
- * \param mstr The pointer to the multi-byte string.
- * \param mstr_len The length of \a mstr in bytes.
- * \param content_language The content lanuage identifier.
  * \param writing_system The writing system (script) identifier.
- * \param wsr The white space rule; see \a white_space_rules.
- * \param ctr The character transformation rule;
- *        see \a char_transform_rule.
+ * \param ctr The character transformation rule; see \a char_transform_rule.
  * \param wbr The word breaking rule; see \a word_break_rules.
- * \param lbp The line breaking policy;
- *        see \a line_break_policies.
- * \param uchars The pointer to a buffer to store the address of the
- *      Uchar32 array which contains the Unicode character values.
- * \param break_oppos The pointer to a buffer to store the address of the
- *        Uint16 array which contains the break opportunities of the glyphs.
+ * \param lbp The line breaking policy; see \a line_break_policies.
+ * \param ucs The Uchar32 string.
+ * \param nr_ucs The length of the Uchar32 string.
+ * \param break_oppos The pointer to a buffer to store the address of a
+ *        Uint16 array which will return the break opportunities of the uchars.
+ *        If the buffer contains a NULL value, this function will try to
+ *        allocate a new space for the break opportunities.
  *        Note that the length of this array is always one longer than
- *        the glyphs array. The first unit of the array stores the
- *        break opportunity before the first glyph, and the others store
+ *        the Unicode array. The first unit of the array stores the
+ *        break opportunity before the first uchar, and the others store
  *        the break opportunities after other gyphs.
  *        The break opportunity can be one of the following values:
  *          - BOV_LB_MANDATORY\n
  *            The mandatory breaking.
  *          - BOV_LB_NOTALLOWED\n
- *            No breaking allowed after the glyph definitely.
+ *            No breaking allowed after the uchar definitely.
  *          - BOV_LB_ALLOWED\n
- *            Breaking allowed after the glyph.
- * \param nr_glyphs The buffer to store the number of the allocated glyphs.
+ *            Breaking allowed after the uchar.
  *
- * \return The number of the bytes consumed in \a mstr; zero on error.
+ * \return The number of the Uchar32 characters consumed in \a ucs;
+ *      zero on error.
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa DrawGlyphStringEx, white_space_rules, char_transform_rule
+ * \sa DrawGlyphStringEx, word_break_rules, char_transform_rule,
+ *      line_break_policies
  */
-MG_EXPORT int GUIAPI UStrGetBreaks(Uchar32* ucs, int nr_ucs,
-        UCharScriptType writing_system, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        Uint16** break_oppos);
+MG_EXPORT int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp,
+        Uchar32* ucs, int nr_ucs, Uint16** break_oppos);
 
 /** The function determines whether a character is alphanumeric. */
 MG_EXPORT BOOL GUIAPI IsUCharAlnum(Uchar32 uc);

@@ -39,8 +39,9 @@
 **
 ** Reference:
 **
-**  [UNICODE LINE BREAKING ALGORITHM](https://www.unicode.org/reports/tr14/)
 **  [UNICODE TEXT SEGMENTATION](https://www.unicode.org/reports/tr29/)
+**  [UNICODE LINE BREAKING ALGORITHM](https://www.unicode.org/reports/tr14/)
+**  [CSS Text Module Level 3](https://www.w3.org/TR/css-text-3/#content-writing-system)
 **
 ** Create by WEI Yongming at 2019/01/16
 */
@@ -1303,7 +1304,8 @@ static void dbg_dump_ctxt(struct break_ctxt* ctxt,
 #define LOCAL_ARRAY_SIZE        256
 
 static int break_init_spaces(struct break_ctxt* ctxt,
-        Uchar32* ucs, Uint8* local_bts, Uint8* local_ods, int nr_ucs)
+        Uchar32* ucs, Uint16* bos, Uint8* local_bts, Uint8* local_ods,
+        int nr_ucs)
 {
     ctxt->ucs = ucs;
     ctxt->nr_ucs = nr_ucs;
@@ -1317,7 +1319,10 @@ static int break_init_spaces(struct break_ctxt* ctxt,
         ctxt->ods = local_ods;
     }
 
-    ctxt->bos = (Uint16*)malloc(sizeof(Uint16) * (ctxt->nr_ucs + 1));
+    if (bos)
+        ctxt->bos = bos;
+    else
+        ctxt->bos = (Uint16*)malloc(sizeof(Uint16) * (ctxt->nr_ucs + 1));
 
     if (ctxt->bts == NULL || ctxt->bos == NULL || ctxt->ods == NULL)
         return 0;
@@ -2046,9 +2051,9 @@ static int check_subsequent_ri(struct break_ctxt* ctxt,
     return cosumed;
 }
 
-int GUIAPI UStrGetBreaks(Uchar32* ucs, int nr_ucs,
-            UCharScriptType writing_system, Uint8 ctr, Uint8 wbr, Uint8 lbp,
-            Uint16** break_oppos)
+int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
+            Uint8 ctr, Uint8 wbr, Uint8 lbp,
+            Uchar32* ucs, int nr_ucs, Uint16** break_oppos)
 {
     struct break_ctxt ctxt;
     Uint8 local_bts [LOCAL_ARRAY_SIZE];
@@ -2079,12 +2084,11 @@ int GUIAPI UStrGetBreaks(Uchar32* ucs, int nr_ucs,
     ctxt.prev_jamo = NO_JAMO;
     ctxt.curr_wt = WordNone;
 
-    *break_oppos = NULL;
-
     if (ucs == NULL || nr_ucs == 0)
         return 0;
 
-    if (break_init_spaces(&ctxt, ucs, local_bts, local_ods, nr_ucs) <= 0) {
+    if (break_init_spaces(&ctxt, ucs, *break_oppos, local_bts, local_ods,
+            nr_ucs) <= 0) {
         goto error;
     }
 
@@ -2938,10 +2942,14 @@ next_uchar:
         ucs_left += cosumed_one_loop;
         cosumed += cosumed_one_loop;
 
-        // Return if we got any BK!
-        if ((ctxt.bos[ctxt.n] & BOV_LB_MASK) == BOV_LB_MANDATORY) {
+        _DBG_PRINTF("%s: nr_ucs: %d, ctxt.n: %d, nr_left_ucs: %d\n",
+                __FUNCTION__, nr_ucs, ctxt.n, nr_left_ucs);
+#if 0
+        // Do not return if we got any BK!
+        if (0 && (ctxt.bos[ctxt.n - 1] & BOV_LB_MASK) == BOV_LB_MANDATORY) {
             break;
         }
+#endif
     }
 
     if (ctxt.n > 0) {
@@ -2968,18 +2976,18 @@ next_uchar:
             }
         }
 
-        *break_oppos = ctxt.bos;
     }
     else
         goto error;
 
+    if (*break_oppos == NULL) *break_oppos = ctxt.bos;
     if (ctxt.ods && ctxt.ods != local_ods) free(ctxt.ods);
     if (ctxt.bts && ctxt.bts != local_bts) free(ctxt.bts);
 
-    return cosumed;
+    return ctxt.n - 1;
 
 error:
-    if (ctxt.bos) free(ctxt.bos);
+    if (*break_oppos == NULL && ctxt.bos) free(ctxt.bos);
     if (ctxt.ods && ctxt.ods != local_ods) free(ctxt.ods);
     if (ctxt.bts && ctxt.bts != local_bts) free(ctxt.bts);
     return 0;
