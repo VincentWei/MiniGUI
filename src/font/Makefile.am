@@ -14,6 +14,7 @@ SRC_FILES = charset.c charset-arabic.c legacy-bidi.c charset-unicode.c \
             bitmapfont.c scripteasy.c \
             unicode-emoji.c \
             unicode-bidi.c \
+            unicode-break.c \
             unicode-joining-types.c unicode-joining.c unicode-shape.c \
             unicode-shape-arabic.c
 

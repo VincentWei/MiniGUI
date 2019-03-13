@@ -43,9 +43,32 @@
 #ifndef GUI_UNICODE_OPS_H
 #define GUI_UNICODE_OPS_H
 
+#define UCHAR_SPACE         0x0020
+#define UCHAR_SHY           0x00AD
+#define UCHAR_IDSPACE       0x3000
+#define UCHAR_TAB           0x0009
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+static inline BOOL is_uchar_letter(Uchar32 uc,
+        UCharGeneralCategory gc, UCharBreakType bt)
+{
+    if ((gc >= UCHAR_CATEGORY_LOWERCASE_LETTER
+                && gc <= UCHAR_CATEGORY_UPPERCASE_LETTER)
+            || (gc >= UCHAR_CATEGORY_DECIMAL_NUMBER
+                && gc <= UCHAR_CATEGORY_OTHER_NUMBER))
+        return TRUE;
+
+    if (bt == UCHAR_BREAK_NUMERIC
+            || bt == UCHAR_BREAK_ALPHABETIC
+            || bt == UCHAR_BREAK_IDEOGRAPHIC
+            || bt == UCHAR_BREAK_AMBIGUOUS)
+        return TRUE;
+
+    return FALSE;
+}
 
 BOOL _unicode_is_emoji(Uchar32 ch);
 BOOL _unicode_is_emoji_presentation(Uchar32 ch);

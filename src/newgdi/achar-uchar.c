@@ -31,8 +31,10 @@
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
+
 /*
-** achar.c: API implementation for abstract character.
+** achar-uchar.c: API implementation for conversion between
+**  abstract characters and Unicode characters.
 **
 ** Create date: 2019/03/05
 */
@@ -184,6 +186,8 @@ Uint16 GUIAPI GetACharBidiType (LOGFONT* log_font, Achar32 chv)
 
 #ifdef _MGCHARSET_UNICODE
 
+#include "unicode-ops.h"
+
 Uchar32 GUIAPI Achar2UChar(LOGFONT* logfont, Achar32 chv)
 {
     Uchar32 uc;
@@ -331,4 +335,248 @@ int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
     return i;
 }
 
+#define MIN_LEN_UCHARS      4
+#define INC_LEN_UCHARS      8
+
+struct ustr_ctxt {
+    Uchar32* ucs;
+    int      len_buff;
+    int      n;
+    Uint8    wsr;
+};
+
+static int usctxt_init_spaces(struct ustr_ctxt* ctxt, int size)
+{
+    // pre-allocate buffers
+    ctxt->len_buff = size;
+    if (ctxt->len_buff < MIN_LEN_UCHARS)
+        ctxt->len_buff = MIN_LEN_UCHARS;
+
+    ctxt->ucs = (Uchar32*)malloc(sizeof(Uchar32) * ctxt->len_buff);
+    if (ctxt->ucs == NULL)
+        return 0;
+
+    ctxt->n = 0;
+    return ctxt->len_buff;
+}
+
+static int usctxt_push_back(struct ustr_ctxt* ctxt, Uchar32 uc)
+{
+    /* realloc buffers if it needs */
+    if ((ctxt->n + 2) >= ctxt->len_buff) {
+        ctxt->len_buff += INC_LEN_UCHARS;
+        ctxt->ucs = (Uchar32*)realloc(ctxt->ucs,
+            sizeof(Uchar32) * ctxt->len_buff);
+
+        if (ctxt->ucs == NULL)
+            return 0;
+    }
+
+    ctxt->ucs[ctxt->n] = uc;
+    ctxt->n++;
+    return ctxt->n;
+}
+
+static int get_next_uchar(LOGFONT* lf, const char* mstr, int mstr_len,
+        Uchar32* uc)
+{
+    int mclen = 0;
+
+    if (mstr_len <= 0 || *mstr == '\0')
+        return 0;
+
+    if (lf->devfonts[1]) {
+        mclen = lf->devfonts[1]->charset_ops->len_first_char
+            ((const unsigned char*)mstr, mstr_len);
+
+        if (mclen > 0) {
+            Achar32 chv = lf->devfonts[1]->charset_ops->get_char_value
+                (NULL, 0, (Uint8*)mstr, mclen);
+
+            if (lf->devfonts[1]->charset_ops->conv_to_uc32)
+                *uc = lf->devfonts[1]->charset_ops->conv_to_uc32(chv);
+            else
+                *uc = chv;
+
+            chv = SET_MBCHV(chv);
+        }
+    }
+
+    if (mclen == 0) {
+        mclen = lf->devfonts[0]->charset_ops->len_first_char
+            ((const unsigned char*)mstr, mstr_len);
+
+        if (mclen > 0) {
+            Achar32 chv = lf->devfonts[0]->charset_ops->get_char_value
+                (NULL, 0, (Uint8*)mstr, mclen);
+
+            if (lf->devfonts[0]->charset_ops->conv_to_uc32)
+                *uc = lf->devfonts[0]->charset_ops->conv_to_uc32(chv);
+            else
+                *uc = chv;
+        }
+    }
+
+    return mclen;
+}
+
+static int is_next_mchar_bt(LOGFONT* lf,
+        const char* mstr, int mstr_len, Uchar32* uc,
+        UCharBreakType bt)
+{
+    int mclen;
+
+    mclen = get_next_uchar(lf, mstr, mstr_len, uc);
+    if (mclen > 0 && UCharGetBreakType(*uc) == bt)
+        return mclen;
+
+    return 0;
+}
+
+static inline int is_next_mchar_lf(LOGFONT* lf,
+        const char* mstr, int mstr_len, Uchar32* uc)
+{
+    return is_next_mchar_bt(lf, mstr, mstr_len, uc,
+            UCHAR_BREAK_LINE_FEED);
+}
+
+static int collapse_space(LOGFONT* lf, const char* mstr, int mstr_len)
+{
+    Uchar32 uc;
+    UCharBreakType bt;
+    int cosumed = 0;
+
+    do {
+        int mclen;
+
+        mclen = get_next_uchar(lf, mstr, mstr_len, &uc);
+        if (mclen == 0)
+            break;
+
+        bt = UCharGetBreakType(uc);
+        if (bt != UCHAR_BREAK_SPACE && uc != UCHAR_TAB)
+            break;
+
+        mstr += mclen;
+        mstr_len -= mclen;
+        cosumed += mclen;
+    } while (1);
+
+    return cosumed;
+}
+
+/*
+    Reference:
+    [CSS Text Module Level 3](https://www.w3.org/TR/css-text-3/)
+ */
+int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
+        const char* mstr, int mstr_len, Uint8 wsr,
+        Uchar32** uchars, int* nr_uchars)
+{
+    struct ustr_ctxt ctxt;
+    int cosumed = 0;
+    BOOL col_sp = FALSE;
+    BOOL col_nl = FALSE;
+
+    // CSS: collapses space according to space rule
+    if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP || wsr == WSR_PRE_LINE)
+        col_sp = TRUE;
+    // CSS: collapses new lines acoording to space rule
+    if (wsr == WSR_NORMAL || wsr == WSR_NOWRAP)
+        col_nl = TRUE;
+
+    *uchars = NULL;
+    *nr_uchars = 0;
+
+    if (mstr_len == 0)
+        return 0;
+
+    ctxt.wsr = wsr;
+    if (usctxt_init_spaces(&ctxt, mstr_len >> 1) <= 0) {
+        goto error;
+    }
+
+    while (TRUE) {
+        Uchar32 uc, next_uc;
+        UCharBreakType bt;
+
+        int mclen = 0;
+        int next_mclen;
+        int cosumed_one_loop = 0;
+
+        mclen = get_next_uchar(logfont, mstr, mstr_len, &uc);
+        if (mclen == 0) {
+            // badly encoded or end of text
+            break;
+        }
+
+        mstr += mclen;
+        mstr_len -= mclen;
+        cosumed += mclen;
+
+        if ((wsr == WSR_NORMAL || wsr == WSR_NOWRAP
+                || wsr == WSR_PRE_LINE) && uc == UCHAR_TAB) {
+            _DBG_PRINTF ("CSS: Every tab is converted to a space (U+0020)\n");
+            uc = UCHAR_SPACE;
+        }
+
+        bt = UCharGetBreakType(uc);
+        if (usctxt_push_back(&ctxt, uc) == 0)
+            goto error;
+
+        /* Check mandatory breaks */
+        if (bt == UCHAR_BREAK_MANDATORY) {
+            break;
+        }
+        else if (bt == UCHAR_BREAK_CARRIAGE_RETURN
+                && (next_mclen = is_next_mchar_lf(logfont,
+                    mstr, mstr_len, &next_uc)) > 0) {
+            cosumed_one_loop += next_mclen;
+
+            if (col_nl) {
+                ctxt.n--;
+            }
+            else {
+                if (usctxt_push_back(&ctxt, next_uc) == 0)
+                    goto error;
+                break;
+            }
+        }
+        else if (bt == UCHAR_BREAK_CARRIAGE_RETURN
+                || bt == UCHAR_BREAK_LINE_FEED
+                || bt == UCHAR_BREAK_NEXT_LINE) {
+
+            if (col_nl) {
+                ctxt.n--;
+            }
+            else {
+                break;
+            }
+        }
+        /* collapse spaces */
+        else if (col_sp && (bt == UCHAR_BREAK_SPACE
+                || bt == UCHAR_BREAK_ZERO_WIDTH_SPACE)) {
+            cosumed_one_loop += collapse_space(logfont, mstr, mstr_len);
+        }
+
+        mstr_len -= cosumed_one_loop;
+        mstr += cosumed_one_loop;
+        cosumed += cosumed_one_loop;
+    }
+
+    if (ctxt.n > 0) {
+        *uchars = ctxt.ucs;
+        *nr_uchars = ctxt.n;
+    }
+    else
+        goto error;
+
+    return cosumed;
+
+error:
+    if (ctxt.ucs) free(ctxt.ucs);
+    return 0;
+}
+
 #endif /* _MGCHARSET_UNICODE */
+
