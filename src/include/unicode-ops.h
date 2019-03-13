@@ -81,9 +81,6 @@ BOOL _unicode_is_emoji_emoji_default(Uchar32 ch);
 BOOL _unicode_is_emoji_keycap_base(Uchar32 ch);
 BOOL _unicode_is_regional_indicator(Uchar32 ch);
 
-UCharScriptType _unicode_normalize_script(LanguageCode content_language,
-        UCharScriptType writing_system);
-
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
