@@ -289,6 +289,37 @@ int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924)
     return UCHAR_SCRIPT_UNKNOWN;
 }
 
+#include "script-language-table.inc"
+
+static int (*compar)(const void *, const void *);
+
+static int comp_lang(const void *k1, const void *k2)
+{
+   UCharScriptTypeForLang *sl1 = (UCharScriptTypeForLang*) k1;
+   UCharScriptTypeForLang *sl2 = (UCharScriptTypeForLang*) k2;
+   return strcmp(sl1->lang, sl2->lang);
+}
+
+UCharScriptType GetLangScriptFromName(const char* lang_name, int* lang_code)
+{
+    const UCharScriptTypeForLang* matched;
+
+    matched = bsearch(lang_name, _script_for_lang,
+                TABLESIZE(_script_for_lang), sizeof (_script_for_lang[0]),
+                comp_lang);
+
+    if (matched) {
+        if (lang_code)
+            *lang_code = LanguageCodeFromISO639s1Code(matched->lang);
+        return matched->scripts[0];
+    }
+
+    if (lang_code)
+        *lang_code = LANGCODE_unknown;
+
+    return UCHAR_SCRIPT_INVALID_CODE;
+}
+
 /*
  * https://www.w3.org/TR/css-text-3/#script-tagging
  */
