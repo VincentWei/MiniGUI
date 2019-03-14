@@ -1147,6 +1147,10 @@ error_ftc_manager:
     FTC_Manager_Done (ft_cache_manager);
 #endif /* _MGFONT_TTF_CACHE */
 
+#ifdef _MGCOMPLEX_SCRIPTS
+    __mg_init_harzbuff_funcs();
+#endif
+
     return TRUE;
 
 error_library:
@@ -1171,6 +1175,10 @@ void font_TermFreetypeLibrary (void)
         FT_Done_FreeType (ft_library);
 
     FT_DESTROY_LOCK(&ft_lock);
+
+#ifdef _MGCOMPLEX_SCRIPTS
+    __mg_term_harzbuff_funcs();
+#endif
 }
 
 /**************************** Global data ************************************/

@@ -16,7 +16,7 @@ SRC_FILES = charset.c charset-arabic.c legacy-bidi.c charset-unicode.c \
             unicode-bidi.c \
             unicode-break.c \
             unicode-joining-types.c unicode-joining.c unicode-shape.c \
-            unicode-shape-arabic.c
+            unicode-shape-arabic.c harzbuff-minigui-funcs.c
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \
