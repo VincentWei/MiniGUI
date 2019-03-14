@@ -594,7 +594,7 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops,
 typedef struct _REORDER_CONTEXT {
     Achar32* achars;
     void* extra;
-    CB_REVERSE_EXTRA cb;
+    CB_REVERSE_ARRAY cb;
 } REORDER_CONTEXT;
 
 static void bidi_reverse_achars (Achar32* achars, int len, int pos)
@@ -764,7 +764,7 @@ Achar32* __mg_legacy_bidi_index_reorder (const CHARSETOPS* charset_ops,
 
 Achar32* __mg_legacy_bidi_achars_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int pel,
-        void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
+        void* extra, CB_REVERSE_ARRAY cb_reverse_extra)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;

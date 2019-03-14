@@ -92,7 +92,7 @@ typedef struct _BIDICHAR_MIRROR_MAP {
 
 Achar32* __mg_legacy_bidi_achars_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int pel,
-        void* extra, CB_REVERSE_EXTRA cb_reverse_extra);
+        void* extra, CB_REVERSE_ARRAY cb_reverse_extra);
 
 void __mg_legacy_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int pel, Uint8* embedding_levels, Uint8 type);

@@ -1446,7 +1446,7 @@ Achar32* GUIAPI BIDILogAChars2VisAChars(LOGFONT* log_font,
 
 BOOL GUIAPI BIDILogAChars2VisACharsEx(LOGFONT* log_font,
         Achar32* achs, int nr_achars, int pel,
-        void* extra, CB_REVERSE_EXTRA cb_reorder_extra)
+        void* extra, CB_REVERSE_ARRAY cb_reorder_extra)
 {
     DEVFONT* mbc_devfont = log_font->devfonts[1];
 

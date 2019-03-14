@@ -1599,7 +1599,7 @@ BidiLevel UBidiReorderLine(Uint32 flags,
         const BidiType *bidi_types, int len, int off,
         BidiType paragraph_dir, BidiLevel *embedding_levels,
         Uchar32 *visual_str, int *map,
-        void* extra, CB_REVERSE_EXTRA cb_reverse_extra)
+        void* extra, CB_REVERSE_ARRAY cb_reverse_extra)
 {
     BOOL status = FALSE;
     BidiLevel max_level = 0;

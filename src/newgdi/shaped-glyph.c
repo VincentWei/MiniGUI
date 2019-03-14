@@ -78,13 +78,12 @@ static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
 #endif
 
 int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
-        UCharScriptType writing_system,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        const Uchar32* logical_ucs, int nr_ucs,
-        BidiType* paragraph_dir,
-        Glyph32* visual_glyphs, GLYPHSHAPINGINFO* glyph_shaping_info,
-        Uint16* break_oppos, int* map_v2l, int* nr_glyphs)
+        LanguageCode lang_code, UCharScriptType writing_system,
+        const Uchar32* ucs, int nr_ucs,
+        const BidiLevel embedding_levels, BidiType base_dir,
+        SHAPEDGLYPHS* shaped_glyphs)
 {
+#if 0
     int ret_value = 0;
     int i, j, nr_reordered;
     BidiLevel max_level = 0;
@@ -260,22 +259,24 @@ out:
         free (brk_ts);
 
     return ret_value;
+#endif
+    return 0;
 }
 
 int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
-        UCharScriptType writing_system,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        const Uchar32* logical_ucs, int nr_ucs,
-        BidiType* paragraph_dir,
-        Glyph32* visual_glyphs, GLYPHSHAPINGINFO* glyph_shaping_info,
-        Uint16* break_oppos, int* map_v2l, int* nr_glyphs)
+        LanguageCode lang_code, UCharScriptType writing_system,
+        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
+        const BidiLevel embedding_levels, BidiType base_dir,
+        SHAPEDGLYPHS* shaped_glyphs)
 {
     return 0;
 }
 
 int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
-        const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
-        int nr_glyphs, Uint32 render_flags,
+        LanguageCode lang_code, UCharScriptType writing_system,
+        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
+        const BidiLevel embedding_levels, BidiType base_dir,
+        const SHAPEDGLYPHS* shaped_glyphs,
         GLYPHEXTINFO* glyph_ext_info, LOGFONT** logfont_sideways)
 {
     return 0;
@@ -283,8 +284,10 @@ int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
 
 int GUIAPI GetGlyphsPositionInfo(
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
-        const Uint16* break_oppos, int nr_glyphs,
+        const Uchar32* ucs, int nr_ucs,
+        const Uint16* break_oppos,
+        const BidiLevel embedding_levels, BidiType base_dir,
+        const SHAPEDGLYPHS* shaped_glyphs,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         GLYPHEXTINFO* glyph_ext_info, SIZE* line_size, GLYPHPOS* glyph_pos)
@@ -294,7 +297,7 @@ int GUIAPI GetGlyphsPositionInfo(
 
 int GUIAPI DrawShapedGlyphString(HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
+        const SHAPEDGLYPHS* shaped_glyphs,
         const GLYPHPOS* glyph_pos, int nr_glyphs)
 {
     int i;
@@ -302,7 +305,7 @@ int GUIAPI DrawShapedGlyphString(HDC hdc,
     Uint32 old_ta;
     PLOGFONT old_lf;
 
-    if (glyphs == NULL || glyph_pos == NULL || nr_glyphs <= 0)
+    if (shaped_glyphs == NULL || glyph_pos == NULL || nr_glyphs <= 0)
         return 0;
 
     old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
@@ -310,6 +313,9 @@ int GUIAPI DrawShapedGlyphString(HDC hdc,
 
     for (i = 0; i < nr_glyphs; i++) {
         if (glyph_pos[i].suppressed == 0 && glyph_pos[i].whitespace == 0) {
+            Glyph32 gv = shaped_glyphs->cb_get_glyph_info(
+                    shaped_glyphs->shaping_engine, shaped_glyphs->glyph_infos,
+                    i, NULL);
             if (glyph_pos[i].orientation == GLYPH_ORIENTATION_UPRIGHT) {
                 if (logfont_upright)
                     SelectFont(hdc, logfont_upright);
@@ -323,7 +329,7 @@ int GUIAPI DrawShapedGlyphString(HDC hdc,
                     goto error;
             }
 
-            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, glyphs[i],
+            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, gv,
                 NULL, NULL);
 
             n++;
