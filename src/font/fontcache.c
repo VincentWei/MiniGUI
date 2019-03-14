@@ -43,20 +43,11 @@
 
 #include "common.h"
 
-#ifdef _MGFONT_TTF_CACHE
+#if defined(_MGFONT_FT2) && defined(_MGFONT_TTF_CACHE)
+
 #include "minigui.h"
 #include "gdi.h"
-
-#ifdef _MGFONT_TTF
-#include <freetype/freetype.h>
-#include <freetype/ftxkern.h>
-#include <freetype/ftnameid.h>
-#include <freetype/ftxcmap.h>
-#include <freetype/ftxwidth.h>
-#include "freetype.h"
-#else
 #include "freetype2.h"
-#endif
 
 typedef struct _MemBlk {
     void *data;
@@ -729,5 +720,5 @@ __mg_ttc_dump_instance(TTFINSTANCEINFO *in)
 
 #endif /* 0 */
 
-#endif /*  _MGFONT_TTF_CACHE */
+#endif /* defined(_MGFONT_FT2) && defined(_MGFONT_TTF_CACHE) */
 
