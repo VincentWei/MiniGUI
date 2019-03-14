@@ -1141,10 +1141,16 @@ BOOL font_InitFreetypeLibrary (void)
         goto error_library;
     }
 
+#ifdef _MGCOMPLEX_SCRIPTS
+    __mg_init_harzbuff_funcs();
+#endif
+
     return TRUE;
 
 error_ftc_manager:
     FTC_Manager_Done (ft_cache_manager);
+    return FALSE;
+
 #endif /* _MGFONT_TTF_CACHE */
 
 #ifdef _MGCOMPLEX_SCRIPTS
