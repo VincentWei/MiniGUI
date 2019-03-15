@@ -6056,168 +6056,168 @@ typedef enum {
 } UCharBreakType;
 
 /**
- * UCharScriptType: The script type of a UNICODE character.
+ * ScriptType: The script type of a UNICODE character.
  *
- * - UCHAR_SCRIPT_INVALID_CODE:
+ * - SCRIPT_INVALID_CODE:
  *                           a value never returned from UCharGetScriptType()
- * - UCHAR_SCRIPT_COMMON:     a character used by multiple different scripts
- * - UCHAR_SCRIPT_INHERITED:  a mark glyph that takes its script from the
+ * - SCRIPT_COMMON:     a character used by multiple different scripts
+ * - SCRIPT_INHERITED:  a mark glyph that takes its script from the
  *                           base glyph to which it is attached
- * - UCHAR_SCRIPT_ARABIC:     Arabic
- * - UCHAR_SCRIPT_ARMENIAN:   Armenian
- * - UCHAR_SCRIPT_BENGALI:    Bengali
- * - UCHAR_SCRIPT_BOPOMOFO:   Bopomofo
- * - UCHAR_SCRIPT_CHEROKEE:   Cherokee
- * - UCHAR_SCRIPT_COPTIC:     Coptic
- * - UCHAR_SCRIPT_CYRILLIC:   Cyrillic
- * - UCHAR_SCRIPT_DESERET:    Deseret
- * - UCHAR_SCRIPT_DEVANAGARI: Devanagari
- * - UCHAR_SCRIPT_ETHIOPIC:   Ethiopic
- * - UCHAR_SCRIPT_GEORGIAN:   Georgian
- * - UCHAR_SCRIPT_GOTHIC:     Gothic
- * - UCHAR_SCRIPT_GREEK:      Greek
- * - UCHAR_SCRIPT_GUJARATI:   Gujarati
- * - UCHAR_SCRIPT_GURMUKHI:   Gurmukhi
- * - UCHAR_SCRIPT_HAN:        Han
- * - UCHAR_SCRIPT_HANGUL:     Hangul
- * - UCHAR_SCRIPT_HEBREW:     Hebrew
- * - UCHAR_SCRIPT_HIRAGANA:   Hiragana
- * - UCHAR_SCRIPT_KANNADA:    Kannada
- * - UCHAR_SCRIPT_KATAKANA:   Katakana
- * - UCHAR_SCRIPT_KHMER:      Khmer
- * - UCHAR_SCRIPT_LAO:        Lao
- * - UCHAR_SCRIPT_LATIN:      Latin
- * - UCHAR_SCRIPT_MALAYALAM:  Malayalam
- * - UCHAR_SCRIPT_MONGOLIAN:  Mongolian
- * - UCHAR_SCRIPT_MYANMAR:    Myanmar
- * - UCHAR_SCRIPT_OGHAM:      Ogham
- * - UCHAR_SCRIPT_OLD_ITALIC: Old Italic
- * - UCHAR_SCRIPT_ORIYA:      Oriya
- * - UCHAR_SCRIPT_RUNIC:      Runic
- * - UCHAR_SCRIPT_SINHALA:    Sinhala
- * - UCHAR_SCRIPT_SYRIAC:     Syriac
- * - UCHAR_SCRIPT_TAMIL:      Tamil
- * - UCHAR_SCRIPT_TELUGU:     Telugu
- * - UCHAR_SCRIPT_THAANA:     Thaana
- * - UCHAR_SCRIPT_THAI:       Thai
- * - UCHAR_SCRIPT_TIBETAN:    Tibetan
- * - UCHAR_SCRIPT_CANADIAN_ABORIGINAL:
+ * - SCRIPT_ARABIC:     Arabic
+ * - SCRIPT_ARMENIAN:   Armenian
+ * - SCRIPT_BENGALI:    Bengali
+ * - SCRIPT_BOPOMOFO:   Bopomofo
+ * - SCRIPT_CHEROKEE:   Cherokee
+ * - SCRIPT_COPTIC:     Coptic
+ * - SCRIPT_CYRILLIC:   Cyrillic
+ * - SCRIPT_DESERET:    Deseret
+ * - SCRIPT_DEVANAGARI: Devanagari
+ * - SCRIPT_ETHIOPIC:   Ethiopic
+ * - SCRIPT_GEORGIAN:   Georgian
+ * - SCRIPT_GOTHIC:     Gothic
+ * - SCRIPT_GREEK:      Greek
+ * - SCRIPT_GUJARATI:   Gujarati
+ * - SCRIPT_GURMUKHI:   Gurmukhi
+ * - SCRIPT_HAN:        Han
+ * - SCRIPT_HANGUL:     Hangul
+ * - SCRIPT_HEBREW:     Hebrew
+ * - SCRIPT_HIRAGANA:   Hiragana
+ * - SCRIPT_KANNADA:    Kannada
+ * - SCRIPT_KATAKANA:   Katakana
+ * - SCRIPT_KHMER:      Khmer
+ * - SCRIPT_LAO:        Lao
+ * - SCRIPT_LATIN:      Latin
+ * - SCRIPT_MALAYALAM:  Malayalam
+ * - SCRIPT_MONGOLIAN:  Mongolian
+ * - SCRIPT_MYANMAR:    Myanmar
+ * - SCRIPT_OGHAM:      Ogham
+ * - SCRIPT_OLD_ITALIC: Old Italic
+ * - SCRIPT_ORIYA:      Oriya
+ * - SCRIPT_RUNIC:      Runic
+ * - SCRIPT_SINHALA:    Sinhala
+ * - SCRIPT_SYRIAC:     Syriac
+ * - SCRIPT_TAMIL:      Tamil
+ * - SCRIPT_TELUGU:     Telugu
+ * - SCRIPT_THAANA:     Thaana
+ * - SCRIPT_THAI:       Thai
+ * - SCRIPT_TIBETAN:    Tibetan
+ * - SCRIPT_CANADIAN_ABORIGINAL:
  *                            Canadian Aboriginal
- * - UCHAR_SCRIPT_YI:         Yi
- * - UCHAR_SCRIPT_TAGALOG:    Tagalog
- * - UCHAR_SCRIPT_HANUNOO:    Hanunoo
- * - UCHAR_SCRIPT_BUHID:      Buhid
- * - UCHAR_SCRIPT_TAGBANWA:   Tagbanwa
- * - UCHAR_SCRIPT_BRAILLE:    Braille
- * - UCHAR_SCRIPT_CYPRIOT:    Cypriot
- * - UCHAR_SCRIPT_LIMBU:      Limbu
- * - UCHAR_SCRIPT_OSMANYA:    Osmanya
- * - UCHAR_SCRIPT_SHAVIAN:    Shavian
- * - UCHAR_SCRIPT_LINEAR_B:   Linear B
- * - UCHAR_SCRIPT_TAI_LE:     Tai Le
- * - UCHAR_SCRIPT_UGARITIC:   Ugaritic
- * - UCHAR_SCRIPT_NEW_TAI_LUE:
+ * - SCRIPT_YI:         Yi
+ * - SCRIPT_TAGALOG:    Tagalog
+ * - SCRIPT_HANUNOO:    Hanunoo
+ * - SCRIPT_BUHID:      Buhid
+ * - SCRIPT_TAGBANWA:   Tagbanwa
+ * - SCRIPT_BRAILLE:    Braille
+ * - SCRIPT_CYPRIOT:    Cypriot
+ * - SCRIPT_LIMBU:      Limbu
+ * - SCRIPT_OSMANYA:    Osmanya
+ * - SCRIPT_SHAVIAN:    Shavian
+ * - SCRIPT_LINEAR_B:   Linear B
+ * - SCRIPT_TAI_LE:     Tai Le
+ * - SCRIPT_UGARITIC:   Ugaritic
+ * - SCRIPT_NEW_TAI_LUE:
  *                            New Tai Lue
- * - UCHAR_SCRIPT_BUGINESE:   Buginese
- * - UCHAR_SCRIPT_GLAGOLITIC: Glagolitic
- * - UCHAR_SCRIPT_TIFINAGH:   Tifinagh
- * - UCHAR_SCRIPT_SYLOTI_NAGRI:
+ * - SCRIPT_BUGINESE:   Buginese
+ * - SCRIPT_GLAGOLITIC: Glagolitic
+ * - SCRIPT_TIFINAGH:   Tifinagh
+ * - SCRIPT_SYLOTI_NAGRI:
  *                            Syloti Nagri
- * - UCHAR_SCRIPT_OLD_PERSIAN:
+ * - SCRIPT_OLD_PERSIAN:
  *                            Old Persian
- * - UCHAR_SCRIPT_KHAROSHTHI: Kharoshthi
- * - UCHAR_SCRIPT_UNKNOWN:    an unassigned code point
- * - UCHAR_SCRIPT_BALINESE:   Balinese
- * - UCHAR_SCRIPT_CUNEIFORM:  Cuneiform
- * - UCHAR_SCRIPT_PHOENICIAN: Phoenician
- * - UCHAR_SCRIPT_PHAGS_PA:   Phags-pa
- * - UCHAR_SCRIPT_NKO:        N'Ko
- * - UCHAR_SCRIPT_KAYAH_LI:   Kayah Li.
- * - UCHAR_SCRIPT_LEPCHA:     Lepcha.
- * - UCHAR_SCRIPT_REJANG:     Rejang.
- * - UCHAR_SCRIPT_SUNDANESE:  Sundanese.
- * - UCHAR_SCRIPT_SAURASHTRA: Saurashtra.
- * - UCHAR_SCRIPT_CHAM:       Cham.
- * - UCHAR_SCRIPT_OL_CHIKI:   Ol Chiki.
- * - UCHAR_SCRIPT_VAI:        Vai.
- * - UCHAR_SCRIPT_CARIAN:     Carian.
- * - UCHAR_SCRIPT_LYCIAN:     Lycian.
- * - UCHAR_SCRIPT_LYDIAN:     Lydian.
- * - UCHAR_SCRIPT_AVESTAN:    Avestan.
- * - UCHAR_SCRIPT_BAMUM:      Bamum.
- * - UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS: Egyptian Hieroglpyhs.
- * - UCHAR_SCRIPT_IMPERIAL_ARAMAIC: Imperial Aramaic.
- * - UCHAR_SCRIPT_INSCRIPTIONAL_PAHLAVI: Inscriptional Pahlavi.
- * - UCHAR_SCRIPT_INSCRIPTIONAL_PARTHIAN: Inscriptional Parthian.
- * - UCHAR_SCRIPT_JAVANESE:   Javanese.
- * - UCHAR_SCRIPT_KAITHI:     Kaithi.
- * - UCHAR_SCRIPT_LISU:       Lisu.
- * - UCHAR_SCRIPT_MEETEI_MAYEK: Meetei Mayek.
- * - UCHAR_SCRIPT_OLD_SOUTH_ARABIAN: Old South Arabian.
- * - UCHAR_SCRIPT_OLD_TURKIC: Old Turkic.
- * - UCHAR_SCRIPT_SAMARITAN:  Samaritan.
- * - UCHAR_SCRIPT_TAI_THAM:   Tai Tham.
- * - UCHAR_SCRIPT_TAI_VIET:   Tai Viet.
- * - UCHAR_SCRIPT_BATAK:      Batak.
- * - UCHAR_SCRIPT_BRAHMI:     Brahmi.
- * - UCHAR_SCRIPT_MANDAIC:    Mandaic.
- * - UCHAR_SCRIPT_CHAKMA:     Chakma.
- * - UCHAR_SCRIPT_MEROITIC_CURSIVE:     Meroitic Cursive.
- * - UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS: Meroitic Hieroglyphs.
- * - UCHAR_SCRIPT_MIAO:                 Miao.
- * - UCHAR_SCRIPT_SHARADA:              Sharada.
- * - UCHAR_SCRIPT_SORA_SOMPENG:         Sora Sompeng.
- * - UCHAR_SCRIPT_TAKRI:                Takri.
- * - UCHAR_SCRIPT_BASSA_VAH:            Bassa.
- * - UCHAR_SCRIPT_CAUCASIAN_ALBANIAN:   Caucasian Albanian.
- * - UCHAR_SCRIPT_DUPLOYAN:             Duployan.
- * - UCHAR_SCRIPT_ELBASAN:              Elbasan.
- * - UCHAR_SCRIPT_GRANTHA:              Grantha.
- * - UCHAR_SCRIPT_KHOJKI:               Kjohki.
- * - UCHAR_SCRIPT_KHUDAWADI:            Khudawadi, Sindhi.
- * - UCHAR_SCRIPT_LINEAR_A:             Linear A.
- * - UCHAR_SCRIPT_MAHAJANI:             Mahajani.
- * - UCHAR_SCRIPT_MANICHAEAN:           Manichaean.
- * - UCHAR_SCRIPT_MENDE_KIKAKUI:        Mende Kikakui.
- * - UCHAR_SCRIPT_MODI:                 Modi.
- * - UCHAR_SCRIPT_MRO:                  Mro.
- * - UCHAR_SCRIPT_NABATAEAN:            Nabataean.
- * - UCHAR_SCRIPT_OLD_NORTH_ARABIAN:    Old North Arabian.
- * - UCHAR_SCRIPT_OLD_PERMIC:           Old Permic.
- * - UCHAR_SCRIPT_PAHAWH_HMONG:         Pahawh Hmong.
- * - UCHAR_SCRIPT_PALMYRENE:            Palmyrene.
- * - UCHAR_SCRIPT_PAU_CIN_HAU:          Pau Cin Hau.
- * - UCHAR_SCRIPT_PSALTER_PAHLAVI:      Psalter Pahlavi.
- * - UCHAR_SCRIPT_SIDDHAM:              Siddham.
- * - UCHAR_SCRIPT_TIRHUTA:              Tirhuta.
- * - UCHAR_SCRIPT_WARANG_CITI:          Warang Citi.
- * - UCHAR_SCRIPT_AHOM:                 Ahom.
- * - UCHAR_SCRIPT_ANATOLIAN_HIEROGLYPHS: Anatolian Hieroglyphs.
- * - UCHAR_SCRIPT_HATRAN:               Hatran.
- * - UCHAR_SCRIPT_MULTANI:              Multani.
- * - UCHAR_SCRIPT_OLD_HUNGARIAN:        Old Hungarian.
- * - UCHAR_SCRIPT_SIGNWRITING:          Signwriting.
- * - UCHAR_SCRIPT_ADLAM:                Adlam.
- * - UCHAR_SCRIPT_BHAIKSUKI:            Bhaiksuki.
- * - UCHAR_SCRIPT_MARCHEN:              Marchen.
- * - UCHAR_SCRIPT_NEWA:                 Newa.
- * - UCHAR_SCRIPT_OSAGE:                Osage.
- * - UCHAR_SCRIPT_TANGUT:               Tangut.
- * - UCHAR_SCRIPT_MASARAM_GONDI:        Masaram Gondi.
- * - UCHAR_SCRIPT_NUSHU:                Nushu.
- * - UCHAR_SCRIPT_SOYOMBO:              Soyombo.
- * - UCHAR_SCRIPT_ZANABAZAR_SQUARE:     Zanabazar Square.
- * - UCHAR_SCRIPT_DOGRA:                Dogra.
- * - UCHAR_SCRIPT_GUNJALA_GONDI:        Gunjala Gondi.
- * - UCHAR_SCRIPT_HANIFI_ROHINGYA:      Hanifi Rohingya.
- * - UCHAR_SCRIPT_MAKASAR:              Makasar.
- * - UCHAR_SCRIPT_MEDEFAIDRIN:          Medefaidrin.
- * - UCHAR_SCRIPT_OLD_SOGDIAN:          Old Sogdian.
- * - UCHAR_SCRIPT_SOGDIAN:              Sogdian.
- * - UCHAR_SCRIPT_ELYMAIC:              Elymaic.
- * - UCHAR_SCRIPT_NANDINAGARI:          Nandinagari.
- * - UCHAR_SCRIPT_NYIAKENG_PUACHUE_HMONGN: Nyiakeng Puachue Hmong.
- * - UCHAR_SCRIPT_WANCHO:               Wancho.
+ * - SCRIPT_KHAROSHTHI: Kharoshthi
+ * - SCRIPT_UNKNOWN:    an unassigned code point
+ * - SCRIPT_BALINESE:   Balinese
+ * - SCRIPT_CUNEIFORM:  Cuneiform
+ * - SCRIPT_PHOENICIAN: Phoenician
+ * - SCRIPT_PHAGS_PA:   Phags-pa
+ * - SCRIPT_NKO:        N'Ko
+ * - SCRIPT_KAYAH_LI:   Kayah Li.
+ * - SCRIPT_LEPCHA:     Lepcha.
+ * - SCRIPT_REJANG:     Rejang.
+ * - SCRIPT_SUNDANESE:  Sundanese.
+ * - SCRIPT_SAURASHTRA: Saurashtra.
+ * - SCRIPT_CHAM:       Cham.
+ * - SCRIPT_OL_CHIKI:   Ol Chiki.
+ * - SCRIPT_VAI:        Vai.
+ * - SCRIPT_CARIAN:     Carian.
+ * - SCRIPT_LYCIAN:     Lycian.
+ * - SCRIPT_LYDIAN:     Lydian.
+ * - SCRIPT_AVESTAN:    Avestan.
+ * - SCRIPT_BAMUM:      Bamum.
+ * - SCRIPT_EGYPTIAN_HIEROGLYPHS: Egyptian Hieroglpyhs.
+ * - SCRIPT_IMPERIAL_ARAMAIC: Imperial Aramaic.
+ * - SCRIPT_INSCRIPTIONAL_PAHLAVI: Inscriptional Pahlavi.
+ * - SCRIPT_INSCRIPTIONAL_PARTHIAN: Inscriptional Parthian.
+ * - SCRIPT_JAVANESE:   Javanese.
+ * - SCRIPT_KAITHI:     Kaithi.
+ * - SCRIPT_LISU:       Lisu.
+ * - SCRIPT_MEETEI_MAYEK: Meetei Mayek.
+ * - SCRIPT_OLD_SOUTH_ARABIAN: Old South Arabian.
+ * - SCRIPT_OLD_TURKIC: Old Turkic.
+ * - SCRIPT_SAMARITAN:  Samaritan.
+ * - SCRIPT_TAI_THAM:   Tai Tham.
+ * - SCRIPT_TAI_VIET:   Tai Viet.
+ * - SCRIPT_BATAK:      Batak.
+ * - SCRIPT_BRAHMI:     Brahmi.
+ * - SCRIPT_MANDAIC:    Mandaic.
+ * - SCRIPT_CHAKMA:     Chakma.
+ * - SCRIPT_MEROITIC_CURSIVE:     Meroitic Cursive.
+ * - SCRIPT_MEROITIC_HIEROGLYPHS: Meroitic Hieroglyphs.
+ * - SCRIPT_MIAO:                 Miao.
+ * - SCRIPT_SHARADA:              Sharada.
+ * - SCRIPT_SORA_SOMPENG:         Sora Sompeng.
+ * - SCRIPT_TAKRI:                Takri.
+ * - SCRIPT_BASSA_VAH:            Bassa.
+ * - SCRIPT_CAUCASIAN_ALBANIAN:   Caucasian Albanian.
+ * - SCRIPT_DUPLOYAN:             Duployan.
+ * - SCRIPT_ELBASAN:              Elbasan.
+ * - SCRIPT_GRANTHA:              Grantha.
+ * - SCRIPT_KHOJKI:               Kjohki.
+ * - SCRIPT_KHUDAWADI:            Khudawadi, Sindhi.
+ * - SCRIPT_LINEAR_A:             Linear A.
+ * - SCRIPT_MAHAJANI:             Mahajani.
+ * - SCRIPT_MANICHAEAN:           Manichaean.
+ * - SCRIPT_MENDE_KIKAKUI:        Mende Kikakui.
+ * - SCRIPT_MODI:                 Modi.
+ * - SCRIPT_MRO:                  Mro.
+ * - SCRIPT_NABATAEAN:            Nabataean.
+ * - SCRIPT_OLD_NORTH_ARABIAN:    Old North Arabian.
+ * - SCRIPT_OLD_PERMIC:           Old Permic.
+ * - SCRIPT_PAHAWH_HMONG:         Pahawh Hmong.
+ * - SCRIPT_PALMYRENE:            Palmyrene.
+ * - SCRIPT_PAU_CIN_HAU:          Pau Cin Hau.
+ * - SCRIPT_PSALTER_PAHLAVI:      Psalter Pahlavi.
+ * - SCRIPT_SIDDHAM:              Siddham.
+ * - SCRIPT_TIRHUTA:              Tirhuta.
+ * - SCRIPT_WARANG_CITI:          Warang Citi.
+ * - SCRIPT_AHOM:                 Ahom.
+ * - SCRIPT_ANATOLIAN_HIEROGLYPHS: Anatolian Hieroglyphs.
+ * - SCRIPT_HATRAN:               Hatran.
+ * - SCRIPT_MULTANI:              Multani.
+ * - SCRIPT_OLD_HUNGARIAN:        Old Hungarian.
+ * - SCRIPT_SIGNWRITING:          Signwriting.
+ * - SCRIPT_ADLAM:                Adlam.
+ * - SCRIPT_BHAIKSUKI:            Bhaiksuki.
+ * - SCRIPT_MARCHEN:              Marchen.
+ * - SCRIPT_NEWA:                 Newa.
+ * - SCRIPT_OSAGE:                Osage.
+ * - SCRIPT_TANGUT:               Tangut.
+ * - SCRIPT_MASARAM_GONDI:        Masaram Gondi.
+ * - SCRIPT_NUSHU:                Nushu.
+ * - SCRIPT_SOYOMBO:              Soyombo.
+ * - SCRIPT_ZANABAZAR_SQUARE:     Zanabazar Square.
+ * - SCRIPT_DOGRA:                Dogra.
+ * - SCRIPT_GUNJALA_GONDI:        Gunjala Gondi.
+ * - SCRIPT_HANIFI_ROHINGYA:      Hanifi Rohingya.
+ * - SCRIPT_MAKASAR:              Makasar.
+ * - SCRIPT_MEDEFAIDRIN:          Medefaidrin.
+ * - SCRIPT_OLD_SOGDIAN:          Old Sogdian.
+ * - SCRIPT_SOGDIAN:              Sogdian.
+ * - SCRIPT_ELYMAIC:              Elymaic.
+ * - SCRIPT_NANDINAGARI:          Nandinagari.
+ * - SCRIPT_NYIAKENG_PUACHUE_HMONGN: Nyiakeng Puachue Hmong.
+ * - SCRIPT_WANCHO:               Wancho.
  *
  * This enumeration identifies different writing
  * systems. The values correspond to the names as defined in the
@@ -6228,187 +6228,187 @@ typedef enum {
  * See [Unicode Standard Annex #24: Script names](https://www.unicode.org/reports/tr24/).
  */
 typedef enum {
-    UCHAR_SCRIPT_INVALID_CODE = -1,
-    UCHAR_SCRIPT_COMMON       = 0,   /* Zyyy */
-    UCHAR_SCRIPT_INHERITED,          /* Zinh (Qaai) */
-    UCHAR_SCRIPT_ARABIC,             /* Arab */
-    UCHAR_SCRIPT_ARMENIAN,           /* Armn */
-    UCHAR_SCRIPT_BENGALI,            /* Beng */
-    UCHAR_SCRIPT_BOPOMOFO,           /* Bopo */
-    UCHAR_SCRIPT_CHEROKEE,           /* Cher */
-    UCHAR_SCRIPT_COPTIC,             /* Copt (Qaac) */
-    UCHAR_SCRIPT_CYRILLIC,           /* Cyrl (Cyrs) */
-    UCHAR_SCRIPT_DESERET,            /* Dsrt */
-    UCHAR_SCRIPT_DEVANAGARI,         /* Deva */
-    UCHAR_SCRIPT_ETHIOPIC,           /* Ethi */
-    UCHAR_SCRIPT_GEORGIAN,           /* Geor (Geon, Geoa) */
-    UCHAR_SCRIPT_GOTHIC,             /* Goth */
-    UCHAR_SCRIPT_GREEK,              /* Grek */
-    UCHAR_SCRIPT_GUJARATI,           /* Gujr */
-    UCHAR_SCRIPT_GURMUKHI,           /* Guru */
-    UCHAR_SCRIPT_HAN,                /* Hani */
-    UCHAR_SCRIPT_HANGUL,             /* Hang */
-    UCHAR_SCRIPT_HEBREW,             /* Hebr */
-    UCHAR_SCRIPT_HIRAGANA,           /* Hira */
-    UCHAR_SCRIPT_KANNADA,            /* Knda */
-    UCHAR_SCRIPT_KATAKANA,           /* Kana */
-    UCHAR_SCRIPT_KHMER,              /* Khmr */
-    UCHAR_SCRIPT_LAO,                /* Laoo */
-    UCHAR_SCRIPT_LATIN,              /* Latn (Latf, Latg) */
-    UCHAR_SCRIPT_MALAYALAM,          /* Mlym */
-    UCHAR_SCRIPT_MONGOLIAN,          /* Mong */
-    UCHAR_SCRIPT_MYANMAR,            /* Mymr */
-    UCHAR_SCRIPT_OGHAM,              /* Ogam */
-    UCHAR_SCRIPT_OLD_ITALIC,         /* Ital */
-    UCHAR_SCRIPT_ORIYA,              /* Orya */
-    UCHAR_SCRIPT_RUNIC,              /* Runr */
-    UCHAR_SCRIPT_SINHALA,            /* Sinh */
-    UCHAR_SCRIPT_SYRIAC,             /* Syrc (Syrj, Syrn, Syre) */
-    UCHAR_SCRIPT_TAMIL,              /* Taml */
-    UCHAR_SCRIPT_TELUGU,             /* Telu */
-    UCHAR_SCRIPT_THAANA,             /* Thaa */
-    UCHAR_SCRIPT_THAI,               /* Thai */
-    UCHAR_SCRIPT_TIBETAN,            /* Tibt */
-    UCHAR_SCRIPT_CANADIAN_ABORIGINAL, /* Cans */
-    UCHAR_SCRIPT_YI,                 /* Yiii */
-    UCHAR_SCRIPT_TAGALOG,            /* Tglg */
-    UCHAR_SCRIPT_HANUNOO,            /* Hano */
-    UCHAR_SCRIPT_BUHID,              /* Buhd */
-    UCHAR_SCRIPT_TAGBANWA,           /* Tagb */
+    SCRIPT_INVALID_CODE = -1,
+    SCRIPT_COMMON       = 0,   /* Zyyy */
+    SCRIPT_INHERITED,          /* Zinh (Qaai) */
+    SCRIPT_ARABIC,             /* Arab */
+    SCRIPT_ARMENIAN,           /* Armn */
+    SCRIPT_BENGALI,            /* Beng */
+    SCRIPT_BOPOMOFO,           /* Bopo */
+    SCRIPT_CHEROKEE,           /* Cher */
+    SCRIPT_COPTIC,             /* Copt (Qaac) */
+    SCRIPT_CYRILLIC,           /* Cyrl (Cyrs) */
+    SCRIPT_DESERET,            /* Dsrt */
+    SCRIPT_DEVANAGARI,         /* Deva */
+    SCRIPT_ETHIOPIC,           /* Ethi */
+    SCRIPT_GEORGIAN,           /* Geor (Geon, Geoa) */
+    SCRIPT_GOTHIC,             /* Goth */
+    SCRIPT_GREEK,              /* Grek */
+    SCRIPT_GUJARATI,           /* Gujr */
+    SCRIPT_GURMUKHI,           /* Guru */
+    SCRIPT_HAN,                /* Hani */
+    SCRIPT_HANGUL,             /* Hang */
+    SCRIPT_HEBREW,             /* Hebr */
+    SCRIPT_HIRAGANA,           /* Hira */
+    SCRIPT_KANNADA,            /* Knda */
+    SCRIPT_KATAKANA,           /* Kana */
+    SCRIPT_KHMER,              /* Khmr */
+    SCRIPT_LAO,                /* Laoo */
+    SCRIPT_LATIN,              /* Latn (Latf, Latg) */
+    SCRIPT_MALAYALAM,          /* Mlym */
+    SCRIPT_MONGOLIAN,          /* Mong */
+    SCRIPT_MYANMAR,            /* Mymr */
+    SCRIPT_OGHAM,              /* Ogam */
+    SCRIPT_OLD_ITALIC,         /* Ital */
+    SCRIPT_ORIYA,              /* Orya */
+    SCRIPT_RUNIC,              /* Runr */
+    SCRIPT_SINHALA,            /* Sinh */
+    SCRIPT_SYRIAC,             /* Syrc (Syrj, Syrn, Syre) */
+    SCRIPT_TAMIL,              /* Taml */
+    SCRIPT_TELUGU,             /* Telu */
+    SCRIPT_THAANA,             /* Thaa */
+    SCRIPT_THAI,               /* Thai */
+    SCRIPT_TIBETAN,            /* Tibt */
+    SCRIPT_CANADIAN_ABORIGINAL, /* Cans */
+    SCRIPT_YI,                 /* Yiii */
+    SCRIPT_TAGALOG,            /* Tglg */
+    SCRIPT_HANUNOO,            /* Hano */
+    SCRIPT_BUHID,              /* Buhd */
+    SCRIPT_TAGBANWA,           /* Tagb */
 
     /* Unicode-4.0 additions */
-    UCHAR_SCRIPT_BRAILLE,            /* Brai */
-    UCHAR_SCRIPT_CYPRIOT,            /* Cprt */
-    UCHAR_SCRIPT_LIMBU,              /* Limb */
-    UCHAR_SCRIPT_OSMANYA,            /* Osma */
-    UCHAR_SCRIPT_SHAVIAN,            /* Shaw */
-    UCHAR_SCRIPT_LINEAR_B,           /* Linb */
-    UCHAR_SCRIPT_TAI_LE,             /* Tale */
-    UCHAR_SCRIPT_UGARITIC,           /* Ugar */
+    SCRIPT_BRAILLE,            /* Brai */
+    SCRIPT_CYPRIOT,            /* Cprt */
+    SCRIPT_LIMBU,              /* Limb */
+    SCRIPT_OSMANYA,            /* Osma */
+    SCRIPT_SHAVIAN,            /* Shaw */
+    SCRIPT_LINEAR_B,           /* Linb */
+    SCRIPT_TAI_LE,             /* Tale */
+    SCRIPT_UGARITIC,           /* Ugar */
 
     /* Unicode-4.1 additions */
-    UCHAR_SCRIPT_NEW_TAI_LUE,        /* Talu */
-    UCHAR_SCRIPT_BUGINESE,           /* Bugi */
-    UCHAR_SCRIPT_GLAGOLITIC,         /* Glag */
-    UCHAR_SCRIPT_TIFINAGH,           /* Tfng */
-    UCHAR_SCRIPT_SYLOTI_NAGRI,       /* Sylo */
-    UCHAR_SCRIPT_OLD_PERSIAN,        /* Xpeo */
-    UCHAR_SCRIPT_KHAROSHTHI,         /* Khar */
+    SCRIPT_NEW_TAI_LUE,        /* Talu */
+    SCRIPT_BUGINESE,           /* Bugi */
+    SCRIPT_GLAGOLITIC,         /* Glag */
+    SCRIPT_TIFINAGH,           /* Tfng */
+    SCRIPT_SYLOTI_NAGRI,       /* Sylo */
+    SCRIPT_OLD_PERSIAN,        /* Xpeo */
+    SCRIPT_KHAROSHTHI,         /* Khar */
 
     /* Unicode-5.0 additions */
-    UCHAR_SCRIPT_UNKNOWN,            /* Zzzz */
-    UCHAR_SCRIPT_BALINESE,           /* Bali */
-    UCHAR_SCRIPT_CUNEIFORM,          /* Xsux */
-    UCHAR_SCRIPT_PHOENICIAN,         /* Phnx */
-    UCHAR_SCRIPT_PHAGS_PA,           /* Phag */
-    UCHAR_SCRIPT_NKO,                /* Nkoo */
+    SCRIPT_UNKNOWN,            /* Zzzz */
+    SCRIPT_BALINESE,           /* Bali */
+    SCRIPT_CUNEIFORM,          /* Xsux */
+    SCRIPT_PHOENICIAN,         /* Phnx */
+    SCRIPT_PHAGS_PA,           /* Phag */
+    SCRIPT_NKO,                /* Nkoo */
 
     /* Unicode-5.1 additions */
-    UCHAR_SCRIPT_KAYAH_LI,           /* Kali */
-    UCHAR_SCRIPT_LEPCHA,             /* Lepc */
-    UCHAR_SCRIPT_REJANG,             /* Rjng */
-    UCHAR_SCRIPT_SUNDANESE,          /* Sund */
-    UCHAR_SCRIPT_SAURASHTRA,         /* Saur */
-    UCHAR_SCRIPT_CHAM,               /* Cham */
-    UCHAR_SCRIPT_OL_CHIKI,           /* Olck */
-    UCHAR_SCRIPT_VAI,                /* Vaii */
-    UCHAR_SCRIPT_CARIAN,             /* Cari */
-    UCHAR_SCRIPT_LYCIAN,             /* Lyci */
-    UCHAR_SCRIPT_LYDIAN,             /* Lydi */
+    SCRIPT_KAYAH_LI,           /* Kali */
+    SCRIPT_LEPCHA,             /* Lepc */
+    SCRIPT_REJANG,             /* Rjng */
+    SCRIPT_SUNDANESE,          /* Sund */
+    SCRIPT_SAURASHTRA,         /* Saur */
+    SCRIPT_CHAM,               /* Cham */
+    SCRIPT_OL_CHIKI,           /* Olck */
+    SCRIPT_VAI,                /* Vaii */
+    SCRIPT_CARIAN,             /* Cari */
+    SCRIPT_LYCIAN,             /* Lyci */
+    SCRIPT_LYDIAN,             /* Lydi */
 
     /* Unicode-5.2 additions */
-    UCHAR_SCRIPT_AVESTAN,                /* Avst */
-    UCHAR_SCRIPT_BAMUM,                  /* Bamu */
-    UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS,   /* Egyp */
-    UCHAR_SCRIPT_IMPERIAL_ARAMAIC,       /* Armi */
-    UCHAR_SCRIPT_INSCRIPTIONAL_PAHLAVI,  /* Phli */
-    UCHAR_SCRIPT_INSCRIPTIONAL_PARTHIAN, /* Prti */
-    UCHAR_SCRIPT_JAVANESE,               /* Java */
-    UCHAR_SCRIPT_KAITHI,                 /* Kthi */
-    UCHAR_SCRIPT_LISU,                   /* Lisu */
-    UCHAR_SCRIPT_MEETEI_MAYEK,           /* Mtei */
-    UCHAR_SCRIPT_OLD_SOUTH_ARABIAN,      /* Sarb */
-    UCHAR_SCRIPT_OLD_TURKIC,             /* Orkh */
-    UCHAR_SCRIPT_SAMARITAN,              /* Samr */
-    UCHAR_SCRIPT_TAI_THAM,               /* Lana */
-    UCHAR_SCRIPT_TAI_VIET,               /* Tavt */
+    SCRIPT_AVESTAN,                /* Avst */
+    SCRIPT_BAMUM,                  /* Bamu */
+    SCRIPT_EGYPTIAN_HIEROGLYPHS,   /* Egyp */
+    SCRIPT_IMPERIAL_ARAMAIC,       /* Armi */
+    SCRIPT_INSCRIPTIONAL_PAHLAVI,  /* Phli */
+    SCRIPT_INSCRIPTIONAL_PARTHIAN, /* Prti */
+    SCRIPT_JAVANESE,               /* Java */
+    SCRIPT_KAITHI,                 /* Kthi */
+    SCRIPT_LISU,                   /* Lisu */
+    SCRIPT_MEETEI_MAYEK,           /* Mtei */
+    SCRIPT_OLD_SOUTH_ARABIAN,      /* Sarb */
+    SCRIPT_OLD_TURKIC,             /* Orkh */
+    SCRIPT_SAMARITAN,              /* Samr */
+    SCRIPT_TAI_THAM,               /* Lana */
+    SCRIPT_TAI_VIET,               /* Tavt */
 
     /* Unicode-6.0 additions */
-    UCHAR_SCRIPT_BATAK,                  /* Batk */
-    UCHAR_SCRIPT_BRAHMI,                 /* Brah */
-    UCHAR_SCRIPT_MANDAIC,                /* Mand */
+    SCRIPT_BATAK,                  /* Batk */
+    SCRIPT_BRAHMI,                 /* Brah */
+    SCRIPT_MANDAIC,                /* Mand */
 
     /* Unicode-6.1 additions */
-    UCHAR_SCRIPT_CHAKMA,                 /* Cakm */
-    UCHAR_SCRIPT_MEROITIC_CURSIVE,       /* Merc */
-    UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS,   /* Mero */
-    UCHAR_SCRIPT_MIAO,                   /* Plrd */
-    UCHAR_SCRIPT_SHARADA,                /* Shrd */
-    UCHAR_SCRIPT_SORA_SOMPENG,           /* Sora */
-    UCHAR_SCRIPT_TAKRI,                  /* Takr */
+    SCRIPT_CHAKMA,                 /* Cakm */
+    SCRIPT_MEROITIC_CURSIVE,       /* Merc */
+    SCRIPT_MEROITIC_HIEROGLYPHS,   /* Mero */
+    SCRIPT_MIAO,                   /* Plrd */
+    SCRIPT_SHARADA,                /* Shrd */
+    SCRIPT_SORA_SOMPENG,           /* Sora */
+    SCRIPT_TAKRI,                  /* Takr */
 
     /* Unicode 7.0 additions */
-    UCHAR_SCRIPT_BASSA_VAH,              /* Bass */
-    UCHAR_SCRIPT_CAUCASIAN_ALBANIAN,     /* Aghb */
-    UCHAR_SCRIPT_DUPLOYAN,               /* Dupl */
-    UCHAR_SCRIPT_ELBASAN,                /* Elba */
-    UCHAR_SCRIPT_GRANTHA,                /* Gran */
-    UCHAR_SCRIPT_KHOJKI,                 /* Khoj */
-    UCHAR_SCRIPT_KHUDAWADI,              /* Sind */
-    UCHAR_SCRIPT_LINEAR_A,               /* Lina */
-    UCHAR_SCRIPT_MAHAJANI,               /* Mahj */
-    UCHAR_SCRIPT_MANICHAEAN,             /* Manu */
-    UCHAR_SCRIPT_MENDE_KIKAKUI,          /* Mend */
-    UCHAR_SCRIPT_MODI,                   /* Modi */
-    UCHAR_SCRIPT_MRO,                    /* Mroo */
-    UCHAR_SCRIPT_NABATAEAN,              /* Nbat */
-    UCHAR_SCRIPT_OLD_NORTH_ARABIAN,      /* Narb */
-    UCHAR_SCRIPT_OLD_PERMIC,             /* Perm */
-    UCHAR_SCRIPT_PAHAWH_HMONG,           /* Hmng */
-    UCHAR_SCRIPT_PALMYRENE,              /* Palm */
-    UCHAR_SCRIPT_PAU_CIN_HAU,            /* Pauc */
-    UCHAR_SCRIPT_PSALTER_PAHLAVI,        /* Phlp */
-    UCHAR_SCRIPT_SIDDHAM,                /* Sidd */
-    UCHAR_SCRIPT_TIRHUTA,                /* Tirh */
-    UCHAR_SCRIPT_WARANG_CITI,            /* Wara */
+    SCRIPT_BASSA_VAH,              /* Bass */
+    SCRIPT_CAUCASIAN_ALBANIAN,     /* Aghb */
+    SCRIPT_DUPLOYAN,               /* Dupl */
+    SCRIPT_ELBASAN,                /* Elba */
+    SCRIPT_GRANTHA,                /* Gran */
+    SCRIPT_KHOJKI,                 /* Khoj */
+    SCRIPT_KHUDAWADI,              /* Sind */
+    SCRIPT_LINEAR_A,               /* Lina */
+    SCRIPT_MAHAJANI,               /* Mahj */
+    SCRIPT_MANICHAEAN,             /* Manu */
+    SCRIPT_MENDE_KIKAKUI,          /* Mend */
+    SCRIPT_MODI,                   /* Modi */
+    SCRIPT_MRO,                    /* Mroo */
+    SCRIPT_NABATAEAN,              /* Nbat */
+    SCRIPT_OLD_NORTH_ARABIAN,      /* Narb */
+    SCRIPT_OLD_PERMIC,             /* Perm */
+    SCRIPT_PAHAWH_HMONG,           /* Hmng */
+    SCRIPT_PALMYRENE,              /* Palm */
+    SCRIPT_PAU_CIN_HAU,            /* Pauc */
+    SCRIPT_PSALTER_PAHLAVI,        /* Phlp */
+    SCRIPT_SIDDHAM,                /* Sidd */
+    SCRIPT_TIRHUTA,                /* Tirh */
+    SCRIPT_WARANG_CITI,            /* Wara */
 
     /* Unicode 8.0 additions */
-    UCHAR_SCRIPT_AHOM,                   /* Ahom */
-    UCHAR_SCRIPT_ANATOLIAN_HIEROGLYPHS,  /* Hluw */
-    UCHAR_SCRIPT_HATRAN,                 /* Hatr */
-    UCHAR_SCRIPT_MULTANI,                /* Mult */
-    UCHAR_SCRIPT_OLD_HUNGARIAN,          /* Hung */
-    UCHAR_SCRIPT_SIGNWRITING,            /* Sgnw */
+    SCRIPT_AHOM,                   /* Ahom */
+    SCRIPT_ANATOLIAN_HIEROGLYPHS,  /* Hluw */
+    SCRIPT_HATRAN,                 /* Hatr */
+    SCRIPT_MULTANI,                /* Mult */
+    SCRIPT_OLD_HUNGARIAN,          /* Hung */
+    SCRIPT_SIGNWRITING,            /* Sgnw */
 
     /* Unicode 9.0 additions */
-    UCHAR_SCRIPT_ADLAM,                  /* Adlm */
-    UCHAR_SCRIPT_BHAIKSUKI,              /* Bhks */
-    UCHAR_SCRIPT_MARCHEN,                /* Marc */
-    UCHAR_SCRIPT_NEWA,                   /* Newa */
-    UCHAR_SCRIPT_OSAGE,                  /* Osge */
-    UCHAR_SCRIPT_TANGUT,                 /* Tang */
+    SCRIPT_ADLAM,                  /* Adlm */
+    SCRIPT_BHAIKSUKI,              /* Bhks */
+    SCRIPT_MARCHEN,                /* Marc */
+    SCRIPT_NEWA,                   /* Newa */
+    SCRIPT_OSAGE,                  /* Osge */
+    SCRIPT_TANGUT,                 /* Tang */
 
     /* Unicode 10.0 additions */
-    UCHAR_SCRIPT_MASARAM_GONDI,          /* Gonm */
-    UCHAR_SCRIPT_NUSHU,                  /* Nshu */
-    UCHAR_SCRIPT_SOYOMBO,                /* Soyo */
-    UCHAR_SCRIPT_ZANABAZAR_SQUARE,       /* Zanb */
+    SCRIPT_MASARAM_GONDI,          /* Gonm */
+    SCRIPT_NUSHU,                  /* Nshu */
+    SCRIPT_SOYOMBO,                /* Soyo */
+    SCRIPT_ZANABAZAR_SQUARE,       /* Zanb */
 
     /* Unicode 11.0 additions */
-    UCHAR_SCRIPT_DOGRA,                  /* Dogr */
-    UCHAR_SCRIPT_GUNJALA_GONDI,          /* Gong */
-    UCHAR_SCRIPT_HANIFI_ROHINGYA,        /* Rohg */
-    UCHAR_SCRIPT_MAKASAR,                /* Maka */
-    UCHAR_SCRIPT_MEDEFAIDRIN,            /* Medf */
-    UCHAR_SCRIPT_OLD_SOGDIAN,            /* Sogo */
-    UCHAR_SCRIPT_SOGDIAN,                /* Sogd */
+    SCRIPT_DOGRA,                  /* Dogr */
+    SCRIPT_GUNJALA_GONDI,          /* Gong */
+    SCRIPT_HANIFI_ROHINGYA,        /* Rohg */
+    SCRIPT_MAKASAR,                /* Maka */
+    SCRIPT_MEDEFAIDRIN,            /* Medf */
+    SCRIPT_OLD_SOGDIAN,            /* Sogo */
+    SCRIPT_SOGDIAN,                /* Sogd */
 
     /* Unicode 12.0 additions */
-    UCHAR_SCRIPT_ELYMAIC,                /* Elymaic */
-    UCHAR_SCRIPT_NANDINAGARI,            /* Nandinagari */
-    UCHAR_SCRIPT_NYIAKENG_PUACHUE_HMONG, /* Nyiakeng Puachue Hmong */
-    UCHAR_SCRIPT_WANCHO,                 /* Wancho */
-} UCharScriptType;
+    SCRIPT_ELYMAIC,                /* Elymaic */
+    SCRIPT_NANDINAGARI,            /* Nandinagari */
+    SCRIPT_NYIAKENG_PUACHUE_HMONG, /* Nyiakeng Puachue Hmong */
+    SCRIPT_WANCHO,                 /* Wancho */
+} ScriptType;
 
     /** @} end of achar_types */
 
@@ -7533,6 +7533,8 @@ typedef Uint32  BidiBracketType;
 typedef Uint8   BidiJoiningType;
 typedef Uint8   BidiArabicProp;
 
+typedef Uint16  ParagraphDir;
+
 #define BIDI_FLAG_SHAPE_MIRRORING       0x00000001
 #define BIDI_FLAG_REORDER_NSM           0x00000002
 #define BIDI_FLAG_SHAPE_ARAB_PRES       0x00000100
@@ -7881,12 +7883,11 @@ typedef Uint8   BidiArabicProp;
 #define BIDI_CHANGE_NUMBER_TO_RTL(p) \
     (BIDI_IS_NUMBER(p) ? BIDI_TYPE_RTL : (p))
 
-#define BIDI_PGDIR_LTR      BIDI_TYPE_LTR
-#define BIDI_PGDIR_RTL      BIDI_TYPE_RTL
-#define BIDI_PGDIR_WLTR     BIDI_TYPE_WLTR
-#define BIDI_PGDIR_WRTL     BIDI_TYPE_WRTL
-
-#define BIDI_PGDIR_ON       BIDI_TYPE_ON
+#define BIDI_PGDIR_LTR  BIDI_TYPE_LTR
+#define BIDI_PGDIR_RTL  BIDI_TYPE_RTL
+#define BIDI_PGDIR_WLTR BIDI_TYPE_WLTR
+#define BIDI_PGDIR_WRTL BIDI_TYPE_WRTL
+#define BIDI_PGDIR_ON   BIDI_TYPE_ON
 
 /*
  * Define bit masks that joining types are based on, each mask has
@@ -8235,7 +8236,7 @@ MG_EXPORT BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int l
  * \fn BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
  *      const BidiType *bidi_types,
  *      const BidiBracketType* bracket_types, int len,
- *      BidiType *paragraph_dir, BidiLevel *embedding_levels);
+ *      ParagraphDir *paragraph_dir, BidiLevel *embedding_levels);
  * \brief Get bidi embedding levels of a paragraph.
  *
  * This function finds the bidi embedding levels of a single paragraph,
@@ -8257,7 +8258,7 @@ MG_EXPORT BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int l
  *              Explicit left to right.
  *          - BIDI_PGDIR_RTL\n
  *              Explicit right to left.
- *          - BIDI_PGDIR_ON\n
+ *          - other values\n
  *              The base direction will be resolved by applying the
  *              rules P2 and P3, and returned via this parameter (one
  *              of BIDI_PGDIR_LTR or BIDI_PGDIR_RTL) .
@@ -8274,7 +8275,7 @@ MG_EXPORT BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int l
 MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
         const BidiType *bidi_types,
         const BidiBracketType* bracket_types, int len,
-        BidiType *paragraph_dir, BidiLevel *embedding_levels);
+        ParagraphDir *paragraph_dir, BidiLevel *embedding_levels);
 
 /*
  * \var typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos)
@@ -8290,7 +8291,7 @@ typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos);
 /**
  * \fn BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  *      const BidiType *bidi_types, int len, int off,
- *      BidiType paragraph_dir, BidiLevel *embedding_levels,
+ *      ParagraphDir paragraph_dir, BidiLevel *embedding_levels,
  *      Uchar32 *visual_str, int *map,
  *      void* extra, CB_REVERSE_ARRAY cb_reverse_extra)
  * \brief Reorder a line of logical string to visual string.
@@ -8350,7 +8351,7 @@ typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos);
  */
 MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
         const BidiType *bidi_types, int len, int off,
-        BidiType paragraph_dir, BidiLevel *embedding_levels,
+        ParagraphDir paragraph_dir, BidiLevel *embedding_levels,
         Uchar32 *visual_str, int *indices_map,
         void* extra, CB_REVERSE_ARRAY cb_reverse_extra);
 
@@ -8733,7 +8734,7 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
     /** @} end of breaking_opportunities */
 
 /**
- * \fn int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
+ * \fn int GUIAPI UStrGetBreaks(ScriptType writing_system,
  *          Uint8 ctr, Uint8 wbr, Uint8 lbp,
  *          Uchar32* ucs, int nr_ucs, Uint16** break_oppos);
  * \brief Calculate the breaking opportunities of a Uchar32 string under
@@ -8791,7 +8792,7 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
  * \sa DrawGlyphStringEx, word_break_rules, char_transform_rule,
  *      line_break_policies
  */
-MG_EXPORT int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
+MG_EXPORT int GUIAPI UStrGetBreaks(ScriptType writing_system,
         Uint8 ctr, Uint8 wbr, Uint8 lbp,
         Uchar32* ucs, int nr_ucs, Uint16** break_oppos);
 
@@ -8928,14 +8929,14 @@ MG_EXPORT int GUIAPI UCharFullyDecompose (Uchar32 ch, BOOL compat,
  *
  * \return The script type code for the UNICODE character.
  *
- * \sa UCharScriptType
+ * \sa ScriptType
  *
  * Since: 3.4.0
  */
 MG_EXPORT int GUIAPI UCharGetScriptType (Uchar32 ch);
 
 /**
- * \fn Uint32 UCharScriptTypeToISO15924 (int script)
+ * \fn Uint32 ScriptTypeToISO15924 (int script)
  *
  * Looks up the ISO 15924 code for @script.  ISO 15924 assigns four-letter
  * codes to scripts.  For example, the code for Arabic is 'Arab'.  The
@@ -8946,7 +8947,7 @@ MG_EXPORT int GUIAPI UCharGetScriptType (Uchar32 ch);
  * \param script a Unicode script
  *
  * \return the ISO 15924 code for \a script, encoded as an integer,
- *   of zero if script is UCHAR_SCRIPT_INVALID_CODE or
+ *   of zero if script is SCRIPT_INVALID_CODE or
  *   ISO 15924 code 'Zzzz' (script code for UNKNOWN) if \a script
  *   is not understood.
  *
@@ -8956,10 +8957,10 @@ MG_EXPORT int GUIAPI UCharGetScriptType (Uchar32 ch);
  *
  * Since: 3.4.0
  */
-MG_EXPORT Uint32 GUIAPI UCharScriptTypeToISO15924 (int script);
+MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (int script);
 
 /**
- * \fn int UCharScriptTypeFromISO15924 (Uint32 iso15924)
+ * \fn int ScriptTypeFromISO15924 (Uint32 iso15924)
  *
  * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
  * codes to scripts.  For example, the code for Arabic is 'Arab'.
@@ -8970,8 +8971,8 @@ MG_EXPORT Uint32 GUIAPI UCharScriptTypeToISO15924 (int script);
  * \param an encoded Unicode script code in ISO15924
  *
  * \return the Unicode script for \a iso15924, or
- *   of \a UCHAR_SCRIPT_INVALID_CODE if \a iso15924 is zero and
- *   \a UCHAR_SCRIPT_UNKNOWN if \a iso15924 is unknown.
+ *   of \a SCRIPT_INVALID_CODE if \a iso15924 is zero and
+ *   \a SCRIPT_UNKNOWN if \a iso15924 is unknown.
  *
  * See
  * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
@@ -8979,10 +8980,10 @@ MG_EXPORT Uint32 GUIAPI UCharScriptTypeToISO15924 (int script);
  *
  * Since: 3.4.0
  */
-MG_EXPORT int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924);
+MG_EXPORT int GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
 
 /**
- * \fn int UCharScriptTypeFromISO15924Code (const char* iso15924)
+ * \fn int ScriptTypeFromISO15924Code (const char* iso15924)
  *
  * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
  * codes to scripts.  For example, the code for Arabic is 'Arab'.
@@ -8990,8 +8991,8 @@ MG_EXPORT int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924);
  * \param iso15924 a Unicode script type code in ISO15924
  *
  * \returns the Unicode script for \a iso15924, or
- *   of \a UCHAR_SCRIPT_INVALID_CODE if \a iso15924 is zero and
- *   \a UCHAR_SCRIPT_UNKNOWN if \a iso15924 is unknown.
+ *   of \a SCRIPT_INVALID_CODE if \a iso15924 is zero and
+ *   \a SCRIPT_UNKNOWN if \a iso15924 is unknown.
  *
  * See
  * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
@@ -8999,9 +9000,9 @@ MG_EXPORT int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924);
  *
  * Since: 3.4.0
  */
-static inline int GUIAPI UCharScriptTypeFromISO15924Code (const char* iso15924)
+static inline int GUIAPI ScriptTypeFromISO15924Code (const char* iso15924)
 {
-    return UCharScriptTypeFromISO15924(MAKEDWORD32(iso15924[3],
+    return ScriptTypeFromISO15924(MAKEDWORD32(iso15924[3],
             iso15924[2], iso15924[1], iso15924[0]));
 }
 
@@ -11807,12 +11808,12 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
 }
 
 /** Get language code and script type from ISO639 language name. */
-MG_EXPORT UCharScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
+MG_EXPORT ScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
         int* lang_code);
 
 /** Normalize script type according to language code */
-MG_EXPORT UCharScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
-    UCharScriptType ws);
+MG_EXPORT ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
+    ScriptType ws);
 
     /** @} end of language_code */
 
@@ -12273,49 +12274,116 @@ typedef struct _GLYPHPOS {
     Uint8 hanged:2;
 } GLYPHPOS;
 
-/*
- * \var typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos)
- * \brief The prototype of the user defined function to reverse an array.
+/**
+ * \fn int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
+ *          const Uchar32* uchars, int nr_uchars, const Uint16* break_oppos,
+ *          Uint32 render_flags, int x, int y,
+ *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
+ *          SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
+ *          GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways)
+ * \brief Get the visual extent info of all glyphs fitting in the specified
+ *      maximal output extent.
  *
- * The function reverse an array pointed by \a extra from the position
- * specified by \a pos for the length specified by \a len.
+ * This function gets the visual extent information of a glyph string which can
+ * fit a line with the specified maximal extent.
  *
- * \sa UBidiReorderLine, BIDILogAChars2VisACharsEx
+ * \param logfont_upright The logfont used to render the uchar string. Note
+ *      that the charset/encoding of this logfont should be Unicode, such as
+ *      UTF-8, UTF-16LE, and UTF-16BE.
+ * \param uchars The pointer to the achar string.
+ * \param nr_uchars The number of the glyphs.
+ * \param break_oppos The pointer to the break opportunities array of the glyphs.
+ *      It should be returned by \a UStrGetBreaks. However, the caller
+ *      should skip the first unit (the break opportunity before the first glyph)
+ *      when passing the pointer to this function.
+ * \param render_flags The render flags; see \a glyph_render_flags.
+ * \param x The x-position of first glyph.
+ * \param y The y-position of first glyph.
+ * \param letter_spacing This parameter specifies additional spacing
+ *      (commonly called tracking) between adjacent glyphs.
+ * \param word_spacing This parameter specifies the additional spacing between
+ *      words.
+ * \param tab_size The tab size used to render preserved tab characters.
+ * \param max_extent The maximal output extent value. No limit when it is < 0.
+ * \param line_size The buffer to store the line extent info; can be NULL.
+ * \param glyphs The buffer to store the glyphs, which can fit in
+ *      the max extent; cannot be NULL.
+ * \param glyph_ext_info The buffer to store the extent info of all glyphs
+ *      which can fit in the max extent; can be NULL.
+ * \param glyph_pos The buffer to store the positions and orientations of
+ *      all glyphs which can fit in the max extent; cannot be NULL.
+ * \param logfont_sideways The buffer to store the LOGFONT object created
+ *      by this function for sideways glyphs if text orientation specified
+ *      in \a render_flags is mixed (GRF_TEXT_ORIENTATION_MIXED) or
+ *      sideways (GRF_TEXT_ORIENTATION_SIDEWAYS). If *logfont_sidways is
+ *      not NULL, this function will try to use this LOGFONT object for
+ *      sideways glyphs.
+ *
+ * \return The number of achars which can be fit to the maximal extent.
+ *      The glyphs and the extent info of every glyphs which are fit in
+ *      the maximal extent will be returned through \a glyphs and
+ *      \a glyph_ext_info (if it was not NULL), and the
+ *      line extent info will be returned through \a line_size
+ *      if it was not NULL. Note the function will return immediately if
+ *      it encounters a mandatory breaking.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \note This function ignore the special types (such as diacritic mark,
+ *      vowel, contextual form, ligature, and so on) of the Unicode characters.
+ *      Please see \a GetShapedGlyphsBasic and \a GetShapedGlyphsComplex
+ *      for the purpose of shaping glyphs according to the language, the
+ *      script (writing system), and the contextual shaping features.
+ *
+ * \note Any invisible format character including SOFT HYPHEN (U+00AD)
+ *      will be ignored (suppressed).
+ *
+ * \note The LOGFONT object \a logfont_upright should have the rotation
+ *      be 0° for upright glyphs and \a logfont_sideways will have the
+ *      rotation be 90° for sideways glyphs.
+ *
+ * \note The position coordinates of the first glyph are
+ *      with respect to the top-left corner of the output rectangle
+ *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
+ *      GRF_WRITING_MODE_VERTICAL_LR, otherwise they are with respect
+ *      to the top-right corner of the output rectangle. However,
+ *      the positions contained in \a glyph_pos are always with respect to
+ *      the top-left corner of the resulting output line rectangle.
+ *
+ * \sa UStrGetBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
-typedef void (*CB_REVERSE_ARRAY) (void* array, int len, int pos);
+MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
+        const Achar32* uchars, int nr_uchars, const Uint16* break_oppos,
+        Uint32 render_flags, int x, int y,
+        int letter_spacing, int word_spacing, int tab_size, int max_extent,
+        SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
+        GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
 
-typedef Glyph32 (*CB_GET_GLYPH_INFO) (void* shaping_engine,
-        void* glyph_info, int index, int* cluster);
-
-typedef BOOL (*CB_DESTROY_OBJECT) (void* object);
-
-typedef struct _SHAPEDGLYPHS {
-    /* The pointer to the shaping engine */
-    void*               shaping_engine;
-
-    /* The array contains the glyph information */
-    void*               glyph_infos;
-
-    /* The number of glyphs */
-    int                 nr_glyphs;
-
-    /* the callback reverse the glyphs */
-    CB_REVERSE_ARRAY    cb_reverse_glyphs;
-
-    /* The callback returns the glyph value and cluster
-       from a void glyph information */
-    CB_GET_GLYPH_INFO   cb_get_glyph_info;
-
-    /* the callback destroy the shaping engine */
-    CB_DESTROY_OBJECT   cb_destroy_engine;
-} SHAPEDGLYPHS;
+/* The fields in the structure _GLYPHRUNINFO are invisible to users */
+struct _GLYPHRUNINFO;
+typedef struct _GLYPHRUNINFO    GLYPHRUNINFO;
 
 /**
- * \fn SHAPEDGLYPHS* GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
- *      LanguageCode lang_code, UCharScriptType writing_system,
- *      const Uchar32* ucs, int nr_ucs,
- *      const BidiLevel embedding_levels, BidiType base_dir,
- *      SHAPEDGLYPHS* shaped_glyphs)
+ * Split a Uchar32 paragraph string into text runs according to the
+ * scripts of characters.
+ *
+ * This function also calculates the embedding levels and the
+ * breaking opportunities of the string.
+ *
+ * This function is useful for text in mixed scripts.
+ */
+MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(LOGFONT* logfont,
+        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
+        const char* lang_script_tag, ParagraphDir base_dir);
+
+/**
+ * Destroy the text run info object. It also free the embedde levels
+ * and the breaking opportunities.
+ */
+MG_EXPORT int GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
+
+/**
+ * \fn BOOL GUIAPI GetShapedGlyphRunsBasic()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system.
  *
@@ -12361,18 +12429,10 @@ typedef struct _SHAPEDGLYPHS {
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
-        LanguageCode lang_code, UCharScriptType writing_system,
-        const Uchar32* ucs, int nr_ucs,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        SHAPEDGLYPHS* shaped_glyphs);
+MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info);
 
 /**
- * \fn int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
- *      LanguageCode lang_code, UCharScriptType writing_system,
- *      Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
- *      const BidiLevel embedding_levels, BidiType base_dir,
- *      SHAPEDGLYPHS* shaped_glyphs);
+ * \fn int GUIAPI GetShapedGlyphsComplex()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system. This is the complex
  *      implementation based on HarfBuzz, which is LGPL'd shaping engine.
@@ -12437,17 +12497,10 @@ MG_EXPORT int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
-        LanguageCode lang_code, UCharScriptType writing_system,
-        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        SHAPEDGLYPHS* shaped_glyphs);
+MG_EXPORT BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info);
 
 /**
- * \fn int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
- *      const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
- *      int nr_glyphs, Uint32 render_flags,
- *      GLYPHEXTINFO* glyph_ext_info, LOGFONT** logfont_sideways);
+ * \fn int GUIAPI GetGlyphsExtentInfo()
  *
  * \brief Get the extent information of all shaped glyphs.
  *
@@ -12481,13 +12534,10 @@ MG_EXPORT int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
  *
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
  *     GetGlyphsPositionInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
+ *
+MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
+        GLYPHRUNINFO* run_info, int run_idx);
  */
-MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
-        LanguageCode lang_code, UCharScriptType writing_system,
-        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        const SHAPEDGLYPHS* shaped_glyphs,
-        GLYPHEXTINFO* glyph_ext_info, LOGFONT** logfont_sideways);
 
 /**
  * \fn int GUIAPI GetGlyphsPositionInfo()
@@ -12549,106 +12599,13 @@ MG_EXPORT int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
  * \sa UStrGetBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
-MG_EXPORT int GUIAPI GetGlyphsPositionInfo(
-        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Uchar32* ucs, int nr_ucs,
-        const Uint16* break_oppos,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        const SHAPEDGLYPHS* shaped_glyphs,
-        Uint32 render_flags, int x, int y,
+MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const GLYPHRUNINFO* run_info,
+        int uc_start_index, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        GLYPHEXTINFO* glyph_ext_info, SIZE* line_size, GLYPHPOS* glyph_pos);
-
-/**
- * \fn int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
- *          const Uchar32* uchars, int nr_uchars, const Uint16* break_oppos,
- *          Uint32 render_flags, int x, int y,
- *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
- *          SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
- *          GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways)
- * \brief Get the visual extent info of all glyphs fitting in the specified
- *      maximal output extent.
- *
- * This function gets the visual extent information of a glyph string which can
- * fit a line with the specified maximal extent.
- *
- * \param logfont_upright The logfont used to render the uchar string. Note
- *      that the charset/encoding of this logfont should be Unicode, such as
- *      UTF-8, UTF-16LE, and UTF-16BE.
- * \param uchars The pointer to the achar string.
- * \param nr_uchars The number of the glyphs.
- * \param break_oppos The pointer to the break opportunities array of the glyphs.
- *      It should be returned by \a UStrGetBreaks. However, the caller
- *      should skip the first unit (the break opportunity before the first glyph)
- *      when passing the pointer to this function.
- * \param render_flags The render flags; see \a glyph_render_flags.
- * \param x The x-position of first glyph.
- * \param y The y-position of first glyph.
- * \param letter_spacing This parameter specifies additional spacing
- *      (commonly called tracking) between adjacent glyphs.
- * \param word_spacing This parameter specifies the additional spacing between
- *      words.
- * \param tab_size The tab size used to render preserved tab characters.
- * \param max_extent The maximal output extent value. No limit when it is < 0.
- * \param line_size The buffer to store the line extent info; can be NULL.
- * \param glyphs The buffer to store the glyphs, which can fit in
- *      the max extent; cannot be NULL.
- * \param glyph_ext_info The buffer to store the extent info of all glyphs
- *      which can fit in the max extent; can be NULL.
- * \param glyph_pos The buffer to store the positions and orientations of
- *      all glyphs which can fit in the max extent; cannot be NULL.
- * \param logfont_sideways The buffer to store the LOGFONT object created
- *      by this function for sideways glyphs if text orientation specified
- *      in \a render_flags is mixed (GRF_TEXT_ORIENTATION_MIXED) or
- *      sideways (GRF_TEXT_ORIENTATION_SIDEWAYS). If *logfont_sidways is
- *      not NULL, this function will try to use this LOGFONT object for
- *      sideways glyphs.
- *
- * \return The number of achars which can be fit to the maximal extent.
- *      The glyphs and the extent info of every glyphs which are fit in
- *      the maximal extent will be returned through \a glyphs and
- *      \a glyph_ext_info (if it was not NULL), and the
- *      line extent info will be returned through \a line_size
- *      if it was not NULL. Note the function will return immediately if
- *      it encounters a mandatory breaking.
- *
- * \note Only available when support for UNICODE is enabled.
- *
- * \note This function ignore the special types (such as diacritic mark,
- *      vowel, contextual form, ligature, and so on) of the Unicode characters.
- *      Please see \a GetShapedGlyphsBasic and \a GetShapedGlyphsComplex
- *      for the purpose of shaping glyphs according to the language, script
- *      (writing system), and the contextual shape features.
- *
- * \note Any invisible format character including SOFT HYPHEN (U+00AD)
- *      will be ignored (suppressed).
- *
- * \note The LOGFONT object \a logfont_upright should have the rotation
- *      be 0° for upright glyphs and \a logfont_sideways will have the
- *      rotation be 90° for sideways glyphs.
- *
- * \note The position coordinates of the first glyph are
- *      with respect to the top-left corner of the output rectangle
- *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
- *      GRF_WRITING_MODE_VERTICAL_LR, otherwise they are with respect
- *      to the top-right corner of the output rectangle. However,
- *      the positions contained in \a glyph_pos are always with respect to
- *      the top-left corner of the resulting output line rectangle.
- *
- * \sa UStrGetBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
- */
-MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
-        const Achar32* uchars, int nr_uchars, const Uint16* break_oppos,
-        Uint32 render_flags, int x, int y,
-        int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
-        GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
+        SIZE* line_size, GLYPHPOS** glyph_pos, int* nr_glyphs);
 
 /*
- * \fn int GUIAPI DrawShapedGlyphString (HDC hdc,
- *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
- *      const Glyph32* glyphs, const GLYPHSHAPINGINFO* glyph_shaping_info,
- *      const GLYPHPOS* glyph_pos, int nr_glyphs)
+ * \fn int GUIAPI DrawShapedGlyphs ()
  * \brief Draw a shaped glyph string at the specified positions and text orientations.
  *
  * This function draws a shaped glyph string to the specific positions and
@@ -12672,10 +12629,8 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
  *
  * \sa GetGlyphsExtentFromUChars
  */
-MG_EXPORT int GUIAPI DrawShapedGlyphString (HDC hdc,
-        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const SHAPEDGLYPHS* shaped_glyphs,
-        const GLYPHPOS* glyph_pos, int nr_glyphs);
+MG_EXPORT int GUIAPI DrawShapedGlyphs(const GLYPHRUNINFO* run_info,
+        int uc_start_index, int nr_glyphs);
 
 #endif /* _MGCHARSET_UNICODE */
 

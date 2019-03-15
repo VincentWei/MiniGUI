@@ -47,21 +47,19 @@
 #include <string.h>
 
 #include "common.h"
+
+#if defined(_MGCHARSET_UNICODE) && defined(_MGCOMPLEX_SCRIPTS)
+
 #include "minigui.h"
 #include "gdi.h"
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
+#include "glyphruninfo.h"
 
-#ifdef _MGCHARSET_UNICODE
-
-int GUIAPI GetShapedGlyphsComplex(LOGFONT* logfont,
-        LanguageCode lang_code, UCharScriptType writing_system,
-        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        SHAPEDGLYPHS* shaped_glyphs)
+BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info)
 {
-    return 0;
+    return FALSE;
 }
 
 #endif /*  _MGCHARSET_UNICODE */

@@ -66,7 +66,7 @@ static inline int unichar_get_script_bsearch (Uchar32 ch)
 
     } while (lower <= upper);
 
-    return UCHAR_SCRIPT_UNKNOWN;
+    return SCRIPT_UNKNOWN;
 }
 
 int GUIAPI UCharGetScriptType (Uchar32 ch)
@@ -82,191 +82,191 @@ static const Uint32 iso15924_tags[] =
 {
 #define PACK(a,b,c,d) ((Uint32)((((Uint8)(a))<<24)|(((Uint8)(b))<<16)|(((Uint8)(c))<<8)|((Uint8)(d))))
 
-    PACK ('Z','y','y','y'), /* UCHAR_SCRIPT_COMMON */
-    PACK ('Z','i','n','h'), /* UCHAR_SCRIPT_INHERITED */
-    PACK ('A','r','a','b'), /* UCHAR_SCRIPT_ARABIC */
-    PACK ('A','r','m','n'), /* UCHAR_SCRIPT_ARMENIAN */
-    PACK ('B','e','n','g'), /* UCHAR_SCRIPT_BENGALI */
-    PACK ('B','o','p','o'), /* UCHAR_SCRIPT_BOPOMOFO */
-    PACK ('C','h','e','r'), /* UCHAR_SCRIPT_CHEROKEE */
-    PACK ('C','o','p','t'), /* UCHAR_SCRIPT_COPTIC */
-    PACK ('C','y','r','l'), /* UCHAR_SCRIPT_CYRILLIC */
-    PACK ('D','s','r','t'), /* UCHAR_SCRIPT_DESERET */
-    PACK ('D','e','v','a'), /* UCHAR_SCRIPT_DEVANAGARI */
-    PACK ('E','t','h','i'), /* UCHAR_SCRIPT_ETHIOPIC */
-    PACK ('G','e','o','r'), /* UCHAR_SCRIPT_GEORGIAN */
-    PACK ('G','o','t','h'), /* UCHAR_SCRIPT_GOTHIC */
-    PACK ('G','r','e','k'), /* UCHAR_SCRIPT_GREEK */
-    PACK ('G','u','j','r'), /* UCHAR_SCRIPT_GUJARATI */
-    PACK ('G','u','r','u'), /* UCHAR_SCRIPT_GURMUKHI */
-    PACK ('H','a','n','i'), /* UCHAR_SCRIPT_HAN */
-    PACK ('H','a','n','g'), /* UCHAR_SCRIPT_HANGUL */
-    PACK ('H','e','b','r'), /* UCHAR_SCRIPT_HEBREW */
-    PACK ('H','i','r','a'), /* UCHAR_SCRIPT_HIRAGANA */
-    PACK ('K','n','d','a'), /* UCHAR_SCRIPT_KANNADA */
-    PACK ('K','a','n','a'), /* UCHAR_SCRIPT_KATAKANA */
-    PACK ('K','h','m','r'), /* UCHAR_SCRIPT_KHMER */
-    PACK ('L','a','o','o'), /* UCHAR_SCRIPT_LAO */
-    PACK ('L','a','t','n'), /* UCHAR_SCRIPT_LATIN */
-    PACK ('M','l','y','m'), /* UCHAR_SCRIPT_MALAYALAM */
-    PACK ('M','o','n','g'), /* UCHAR_SCRIPT_MONGOLIAN */
-    PACK ('M','y','m','r'), /* UCHAR_SCRIPT_MYANMAR */
-    PACK ('O','g','a','m'), /* UCHAR_SCRIPT_OGHAM */
-    PACK ('I','t','a','l'), /* UCHAR_SCRIPT_OLD_ITALIC */
-    PACK ('O','r','y','a'), /* UCHAR_SCRIPT_ORIYA */
-    PACK ('R','u','n','r'), /* UCHAR_SCRIPT_RUNIC */
-    PACK ('S','i','n','h'), /* UCHAR_SCRIPT_SINHALA */
-    PACK ('S','y','r','c'), /* UCHAR_SCRIPT_SYRIAC */
-    PACK ('T','a','m','l'), /* UCHAR_SCRIPT_TAMIL */
-    PACK ('T','e','l','u'), /* UCHAR_SCRIPT_TELUGU */
-    PACK ('T','h','a','a'), /* UCHAR_SCRIPT_THAANA */
-    PACK ('T','h','a','i'), /* UCHAR_SCRIPT_THAI */
-    PACK ('T','i','b','t'), /* UCHAR_SCRIPT_TIBETAN */
-    PACK ('C','a','n','s'), /* UCHAR_SCRIPT_CANADIAN_ABORIGINAL */
-    PACK ('Y','i','i','i'), /* UCHAR_SCRIPT_YI */
-    PACK ('T','g','l','g'), /* UCHAR_SCRIPT_TAGALOG */
-    PACK ('H','a','n','o'), /* UCHAR_SCRIPT_HANUNOO */
-    PACK ('B','u','h','d'), /* UCHAR_SCRIPT_BUHID */
-    PACK ('T','a','g','b'), /* UCHAR_SCRIPT_TAGBANWA */
+    PACK ('Z','y','y','y'), /* SCRIPT_COMMON */
+    PACK ('Z','i','n','h'), /* SCRIPT_INHERITED */
+    PACK ('A','r','a','b'), /* SCRIPT_ARABIC */
+    PACK ('A','r','m','n'), /* SCRIPT_ARMENIAN */
+    PACK ('B','e','n','g'), /* SCRIPT_BENGALI */
+    PACK ('B','o','p','o'), /* SCRIPT_BOPOMOFO */
+    PACK ('C','h','e','r'), /* SCRIPT_CHEROKEE */
+    PACK ('C','o','p','t'), /* SCRIPT_COPTIC */
+    PACK ('C','y','r','l'), /* SCRIPT_CYRILLIC */
+    PACK ('D','s','r','t'), /* SCRIPT_DESERET */
+    PACK ('D','e','v','a'), /* SCRIPT_DEVANAGARI */
+    PACK ('E','t','h','i'), /* SCRIPT_ETHIOPIC */
+    PACK ('G','e','o','r'), /* SCRIPT_GEORGIAN */
+    PACK ('G','o','t','h'), /* SCRIPT_GOTHIC */
+    PACK ('G','r','e','k'), /* SCRIPT_GREEK */
+    PACK ('G','u','j','r'), /* SCRIPT_GUJARATI */
+    PACK ('G','u','r','u'), /* SCRIPT_GURMUKHI */
+    PACK ('H','a','n','i'), /* SCRIPT_HAN */
+    PACK ('H','a','n','g'), /* SCRIPT_HANGUL */
+    PACK ('H','e','b','r'), /* SCRIPT_HEBREW */
+    PACK ('H','i','r','a'), /* SCRIPT_HIRAGANA */
+    PACK ('K','n','d','a'), /* SCRIPT_KANNADA */
+    PACK ('K','a','n','a'), /* SCRIPT_KATAKANA */
+    PACK ('K','h','m','r'), /* SCRIPT_KHMER */
+    PACK ('L','a','o','o'), /* SCRIPT_LAO */
+    PACK ('L','a','t','n'), /* SCRIPT_LATIN */
+    PACK ('M','l','y','m'), /* SCRIPT_MALAYALAM */
+    PACK ('M','o','n','g'), /* SCRIPT_MONGOLIAN */
+    PACK ('M','y','m','r'), /* SCRIPT_MYANMAR */
+    PACK ('O','g','a','m'), /* SCRIPT_OGHAM */
+    PACK ('I','t','a','l'), /* SCRIPT_OLD_ITALIC */
+    PACK ('O','r','y','a'), /* SCRIPT_ORIYA */
+    PACK ('R','u','n','r'), /* SCRIPT_RUNIC */
+    PACK ('S','i','n','h'), /* SCRIPT_SINHALA */
+    PACK ('S','y','r','c'), /* SCRIPT_SYRIAC */
+    PACK ('T','a','m','l'), /* SCRIPT_TAMIL */
+    PACK ('T','e','l','u'), /* SCRIPT_TELUGU */
+    PACK ('T','h','a','a'), /* SCRIPT_THAANA */
+    PACK ('T','h','a','i'), /* SCRIPT_THAI */
+    PACK ('T','i','b','t'), /* SCRIPT_TIBETAN */
+    PACK ('C','a','n','s'), /* SCRIPT_CANADIAN_ABORIGINAL */
+    PACK ('Y','i','i','i'), /* SCRIPT_YI */
+    PACK ('T','g','l','g'), /* SCRIPT_TAGALOG */
+    PACK ('H','a','n','o'), /* SCRIPT_HANUNOO */
+    PACK ('B','u','h','d'), /* SCRIPT_BUHID */
+    PACK ('T','a','g','b'), /* SCRIPT_TAGBANWA */
 
     /* Unicode-4.0 additions */
-    PACK ('B','r','a','i'), /* UCHAR_SCRIPT_BRAILLE */
-    PACK ('C','p','r','t'), /* UCHAR_SCRIPT_CYPRIOT */
-    PACK ('L','i','m','b'), /* UCHAR_SCRIPT_LIMBU */
-    PACK ('O','s','m','a'), /* UCHAR_SCRIPT_OSMANYA */
-    PACK ('S','h','a','w'), /* UCHAR_SCRIPT_SHAVIAN */
-    PACK ('L','i','n','b'), /* UCHAR_SCRIPT_LINEAR_B */
-    PACK ('T','a','l','e'), /* UCHAR_SCRIPT_TAI_LE */
-    PACK ('U','g','a','r'), /* UCHAR_SCRIPT_UGARITIC */
+    PACK ('B','r','a','i'), /* SCRIPT_BRAILLE */
+    PACK ('C','p','r','t'), /* SCRIPT_CYPRIOT */
+    PACK ('L','i','m','b'), /* SCRIPT_LIMBU */
+    PACK ('O','s','m','a'), /* SCRIPT_OSMANYA */
+    PACK ('S','h','a','w'), /* SCRIPT_SHAVIAN */
+    PACK ('L','i','n','b'), /* SCRIPT_LINEAR_B */
+    PACK ('T','a','l','e'), /* SCRIPT_TAI_LE */
+    PACK ('U','g','a','r'), /* SCRIPT_UGARITIC */
 
     /* Unicode-4.1 additions */
-    PACK ('T','a','l','u'), /* UCHAR_SCRIPT_NEW_TAI_LUE */
-    PACK ('B','u','g','i'), /* UCHAR_SCRIPT_BUGINESE */
-    PACK ('G','l','a','g'), /* UCHAR_SCRIPT_GLAGOLITIC */
-    PACK ('T','f','n','g'), /* UCHAR_SCRIPT_TIFINAGH */
-    PACK ('S','y','l','o'), /* UCHAR_SCRIPT_SYLOTI_NAGRI */
-    PACK ('X','p','e','o'), /* UCHAR_SCRIPT_OLD_PERSIAN */
-    PACK ('K','h','a','r'), /* UCHAR_SCRIPT_KHAROSHTHI */
+    PACK ('T','a','l','u'), /* SCRIPT_NEW_TAI_LUE */
+    PACK ('B','u','g','i'), /* SCRIPT_BUGINESE */
+    PACK ('G','l','a','g'), /* SCRIPT_GLAGOLITIC */
+    PACK ('T','f','n','g'), /* SCRIPT_TIFINAGH */
+    PACK ('S','y','l','o'), /* SCRIPT_SYLOTI_NAGRI */
+    PACK ('X','p','e','o'), /* SCRIPT_OLD_PERSIAN */
+    PACK ('K','h','a','r'), /* SCRIPT_KHAROSHTHI */
 
     /* Unicode-5.0 additions */
-    PACK ('Z','z','z','z'), /* UCHAR_SCRIPT_UNKNOWN */
-    PACK ('B','a','l','i'), /* UCHAR_SCRIPT_BALINESE */
-    PACK ('X','s','u','x'), /* UCHAR_SCRIPT_CUNEIFORM */
-    PACK ('P','h','n','x'), /* UCHAR_SCRIPT_PHOENICIAN */
-    PACK ('P','h','a','g'), /* UCHAR_SCRIPT_PHAGS_PA */
-    PACK ('N','k','o','o'), /* UCHAR_SCRIPT_NKO */
+    PACK ('Z','z','z','z'), /* SCRIPT_UNKNOWN */
+    PACK ('B','a','l','i'), /* SCRIPT_BALINESE */
+    PACK ('X','s','u','x'), /* SCRIPT_CUNEIFORM */
+    PACK ('P','h','n','x'), /* SCRIPT_PHOENICIAN */
+    PACK ('P','h','a','g'), /* SCRIPT_PHAGS_PA */
+    PACK ('N','k','o','o'), /* SCRIPT_NKO */
 
     /* Unicode-5.1 additions */
-    PACK ('K','a','l','i'), /* UCHAR_SCRIPT_KAYAH_LI */
-    PACK ('L','e','p','c'), /* UCHAR_SCRIPT_LEPCHA */
-    PACK ('R','j','n','g'), /* UCHAR_SCRIPT_REJANG */
-    PACK ('S','u','n','d'), /* UCHAR_SCRIPT_SUNDANESE */
-    PACK ('S','a','u','r'), /* UCHAR_SCRIPT_SAURASHTRA */
-    PACK ('C','h','a','m'), /* UCHAR_SCRIPT_CHAM */
-    PACK ('O','l','c','k'), /* UCHAR_SCRIPT_OL_CHIKI */
-    PACK ('V','a','i','i'), /* UCHAR_SCRIPT_VAI */
-    PACK ('C','a','r','i'), /* UCHAR_SCRIPT_CARIAN */
-    PACK ('L','y','c','i'), /* UCHAR_SCRIPT_LYCIAN */
-    PACK ('L','y','d','i'), /* UCHAR_SCRIPT_LYDIAN */
+    PACK ('K','a','l','i'), /* SCRIPT_KAYAH_LI */
+    PACK ('L','e','p','c'), /* SCRIPT_LEPCHA */
+    PACK ('R','j','n','g'), /* SCRIPT_REJANG */
+    PACK ('S','u','n','d'), /* SCRIPT_SUNDANESE */
+    PACK ('S','a','u','r'), /* SCRIPT_SAURASHTRA */
+    PACK ('C','h','a','m'), /* SCRIPT_CHAM */
+    PACK ('O','l','c','k'), /* SCRIPT_OL_CHIKI */
+    PACK ('V','a','i','i'), /* SCRIPT_VAI */
+    PACK ('C','a','r','i'), /* SCRIPT_CARIAN */
+    PACK ('L','y','c','i'), /* SCRIPT_LYCIAN */
+    PACK ('L','y','d','i'), /* SCRIPT_LYDIAN */
 
     /* Unicode-5.2 additions */
-    PACK ('A','v','s','t'), /* UCHAR_SCRIPT_AVESTAN */
-    PACK ('B','a','m','u'), /* UCHAR_SCRIPT_BAMUM */
-    PACK ('E','g','y','p'), /* UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS */
-    PACK ('A','r','m','i'), /* UCHAR_SCRIPT_IMPERIAL_ARAMAIC */
-    PACK ('P','h','l','i'), /* UCHAR_SCRIPT_INSCRIPTIONAL_PAHLAVI */
-    PACK ('P','r','t','i'), /* UCHAR_SCRIPT_INSCRIPTIONAL_PARTHIAN */
-    PACK ('J','a','v','a'), /* UCHAR_SCRIPT_JAVANESE */
-    PACK ('K','t','h','i'), /* UCHAR_SCRIPT_KAITHI */
-    PACK ('L','i','s','u'), /* UCHAR_SCRIPT_LISU */
-    PACK ('M','t','e','i'), /* UCHAR_SCRIPT_MEETEI_MAYEK */
-    PACK ('S','a','r','b'), /* UCHAR_SCRIPT_OLD_SOUTH_ARABIAN */
-    PACK ('O','r','k','h'), /* UCHAR_SCRIPT_OLD_TURKIC */
-    PACK ('S','a','m','r'), /* UCHAR_SCRIPT_SAMARITAN */
-    PACK ('L','a','n','a'), /* UCHAR_SCRIPT_TAI_THAM */
-    PACK ('T','a','v','t'), /* UCHAR_SCRIPT_TAI_VIET */
+    PACK ('A','v','s','t'), /* SCRIPT_AVESTAN */
+    PACK ('B','a','m','u'), /* SCRIPT_BAMUM */
+    PACK ('E','g','y','p'), /* SCRIPT_EGYPTIAN_HIEROGLYPHS */
+    PACK ('A','r','m','i'), /* SCRIPT_IMPERIAL_ARAMAIC */
+    PACK ('P','h','l','i'), /* SCRIPT_INSCRIPTIONAL_PAHLAVI */
+    PACK ('P','r','t','i'), /* SCRIPT_INSCRIPTIONAL_PARTHIAN */
+    PACK ('J','a','v','a'), /* SCRIPT_JAVANESE */
+    PACK ('K','t','h','i'), /* SCRIPT_KAITHI */
+    PACK ('L','i','s','u'), /* SCRIPT_LISU */
+    PACK ('M','t','e','i'), /* SCRIPT_MEETEI_MAYEK */
+    PACK ('S','a','r','b'), /* SCRIPT_OLD_SOUTH_ARABIAN */
+    PACK ('O','r','k','h'), /* SCRIPT_OLD_TURKIC */
+    PACK ('S','a','m','r'), /* SCRIPT_SAMARITAN */
+    PACK ('L','a','n','a'), /* SCRIPT_TAI_THAM */
+    PACK ('T','a','v','t'), /* SCRIPT_TAI_VIET */
 
     /* Unicode-6.0 additions */
-    PACK ('B','a','t','k'), /* UCHAR_SCRIPT_BATAK */
-    PACK ('B','r','a','h'), /* UCHAR_SCRIPT_BRAHMI */
-    PACK ('M','a','n','d'), /* UCHAR_SCRIPT_MANDAIC */
+    PACK ('B','a','t','k'), /* SCRIPT_BATAK */
+    PACK ('B','r','a','h'), /* SCRIPT_BRAHMI */
+    PACK ('M','a','n','d'), /* SCRIPT_MANDAIC */
 
     /* Unicode-6.1 additions */
-    PACK ('C','a','k','m'), /* UCHAR_SCRIPT_CHAKMA */
-    PACK ('M','e','r','c'), /* UCHAR_SCRIPT_MEROITIC_CURSIVE */
-    PACK ('M','e','r','o'), /* UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS */
-    PACK ('P','l','r','d'), /* UCHAR_SCRIPT_MIAO */
-    PACK ('S','h','r','d'), /* UCHAR_SCRIPT_SHARADA */
-    PACK ('S','o','r','a'), /* UCHAR_SCRIPT_SORA_SOMPENG */
-    PACK ('T','a','k','r'), /* UCHAR_SCRIPT_TAKRI */
+    PACK ('C','a','k','m'), /* SCRIPT_CHAKMA */
+    PACK ('M','e','r','c'), /* SCRIPT_MEROITIC_CURSIVE */
+    PACK ('M','e','r','o'), /* SCRIPT_MEROITIC_HIEROGLYPHS */
+    PACK ('P','l','r','d'), /* SCRIPT_MIAO */
+    PACK ('S','h','r','d'), /* SCRIPT_SHARADA */
+    PACK ('S','o','r','a'), /* SCRIPT_SORA_SOMPENG */
+    PACK ('T','a','k','r'), /* SCRIPT_TAKRI */
 
     /* Unicode 7.0 additions */
-    PACK ('B','a','s','s'), /* UCHAR_SCRIPT_BASSA_VAH */
-    PACK ('A','g','h','b'), /* UCHAR_SCRIPT_CAUCASIAN_ALBANIAN */
-    PACK ('D','u','p','l'), /* UCHAR_SCRIPT_DUPLOYAN */
-    PACK ('E','l','b','a'), /* UCHAR_SCRIPT_ELBASAN */
-    PACK ('G','r','a','n'), /* UCHAR_SCRIPT_GRANTHA */
-    PACK ('K','h','o','j'), /* UCHAR_SCRIPT_KHOJKI*/
-    PACK ('S','i','n','d'), /* UCHAR_SCRIPT_KHUDAWADI */
-    PACK ('L','i','n','a'), /* UCHAR_SCRIPT_LINEAR_A */
-    PACK ('M','a','h','j'), /* UCHAR_SCRIPT_MAHAJANI */
-    PACK ('M','a','n','u'), /* UCHAR_SCRIPT_MANICHAEAN */
-    PACK ('M','e','n','d'), /* UCHAR_SCRIPT_MENDE_KIKAKUI */
-    PACK ('M','o','d','i'), /* UCHAR_SCRIPT_MODI */
-    PACK ('M','r','o','o'), /* UCHAR_SCRIPT_MRO */
-    PACK ('N','b','a','t'), /* UCHAR_SCRIPT_NABATAEAN */
-    PACK ('N','a','r','b'), /* UCHAR_SCRIPT_OLD_NORTH_ARABIAN */
-    PACK ('P','e','r','m'), /* UCHAR_SCRIPT_OLD_PERMIC */
-    PACK ('H','m','n','g'), /* UCHAR_SCRIPT_PAHAWH_HMONG */
-    PACK ('P','a','l','m'), /* UCHAR_SCRIPT_PALMYRENE */
-    PACK ('P','a','u','c'), /* UCHAR_SCRIPT_PAU_CIN_HAU */
-    PACK ('P','h','l','p'), /* UCHAR_SCRIPT_PSALTER_PAHLAVI */
-    PACK ('S','i','d','d'), /* UCHAR_SCRIPT_SIDDHAM */
-    PACK ('T','i','r','h'), /* UCHAR_SCRIPT_TIRHUTA */
-    PACK ('W','a','r','a'), /* UCHAR_SCRIPT_WARANG_CITI */
+    PACK ('B','a','s','s'), /* SCRIPT_BASSA_VAH */
+    PACK ('A','g','h','b'), /* SCRIPT_CAUCASIAN_ALBANIAN */
+    PACK ('D','u','p','l'), /* SCRIPT_DUPLOYAN */
+    PACK ('E','l','b','a'), /* SCRIPT_ELBASAN */
+    PACK ('G','r','a','n'), /* SCRIPT_GRANTHA */
+    PACK ('K','h','o','j'), /* SCRIPT_KHOJKI*/
+    PACK ('S','i','n','d'), /* SCRIPT_KHUDAWADI */
+    PACK ('L','i','n','a'), /* SCRIPT_LINEAR_A */
+    PACK ('M','a','h','j'), /* SCRIPT_MAHAJANI */
+    PACK ('M','a','n','u'), /* SCRIPT_MANICHAEAN */
+    PACK ('M','e','n','d'), /* SCRIPT_MENDE_KIKAKUI */
+    PACK ('M','o','d','i'), /* SCRIPT_MODI */
+    PACK ('M','r','o','o'), /* SCRIPT_MRO */
+    PACK ('N','b','a','t'), /* SCRIPT_NABATAEAN */
+    PACK ('N','a','r','b'), /* SCRIPT_OLD_NORTH_ARABIAN */
+    PACK ('P','e','r','m'), /* SCRIPT_OLD_PERMIC */
+    PACK ('H','m','n','g'), /* SCRIPT_PAHAWH_HMONG */
+    PACK ('P','a','l','m'), /* SCRIPT_PALMYRENE */
+    PACK ('P','a','u','c'), /* SCRIPT_PAU_CIN_HAU */
+    PACK ('P','h','l','p'), /* SCRIPT_PSALTER_PAHLAVI */
+    PACK ('S','i','d','d'), /* SCRIPT_SIDDHAM */
+    PACK ('T','i','r','h'), /* SCRIPT_TIRHUTA */
+    PACK ('W','a','r','a'), /* SCRIPT_WARANG_CITI */
 
     /* Unicode 8.0 additions */
-    PACK ('A','h','o','m'), /* UCHAR_SCRIPT_AHOM */
-    PACK ('H','l','u','w'), /* UCHAR_SCRIPT_ANATOLIAN_HIEROGLYPHS */
-    PACK ('H','a','t','r'), /* UCHAR_SCRIPT_HATRAN */
-    PACK ('M','u','l','t'), /* UCHAR_SCRIPT_MULTANI */
-    PACK ('H','u','n','g'), /* UCHAR_SCRIPT_OLD_HUNGARIAN */
-    PACK ('S','g','n','w'), /* UCHAR_SCRIPT_SIGNWRITING */
+    PACK ('A','h','o','m'), /* SCRIPT_AHOM */
+    PACK ('H','l','u','w'), /* SCRIPT_ANATOLIAN_HIEROGLYPHS */
+    PACK ('H','a','t','r'), /* SCRIPT_HATRAN */
+    PACK ('M','u','l','t'), /* SCRIPT_MULTANI */
+    PACK ('H','u','n','g'), /* SCRIPT_OLD_HUNGARIAN */
+    PACK ('S','g','n','w'), /* SCRIPT_SIGNWRITING */
 
     /* Unicode 9.0 additions */
-    PACK ('A','d','l','m'), /* UCHAR_SCRIPT_ADLAM */
-    PACK ('B','h','k','s'), /* UCHAR_SCRIPT_BHAIKSUKI */
-    PACK ('M','a','r','c'), /* UCHAR_SCRIPT_MARCHEN */
-    PACK ('N','e','w','a'), /* UCHAR_SCRIPT_NEWA */
-    PACK ('O','s','g','e'), /* UCHAR_SCRIPT_OSAGE */
-    PACK ('T','a','n','g'), /* UCHAR_SCRIPT_TANGUT */
+    PACK ('A','d','l','m'), /* SCRIPT_ADLAM */
+    PACK ('B','h','k','s'), /* SCRIPT_BHAIKSUKI */
+    PACK ('M','a','r','c'), /* SCRIPT_MARCHEN */
+    PACK ('N','e','w','a'), /* SCRIPT_NEWA */
+    PACK ('O','s','g','e'), /* SCRIPT_OSAGE */
+    PACK ('T','a','n','g'), /* SCRIPT_TANGUT */
 
     /* Unicode 10.0 additions */
-    PACK ('G','o','n','m'), /* UCHAR_SCRIPT_MASARAM_GONDI */
-    PACK ('N','s','h','u'), /* UCHAR_SCRIPT_NUSHU */
-    PACK ('S','o','y','o'), /* UCHAR_SCRIPT_SOYOMBO */
-    PACK ('Z','a','n','b'), /* UCHAR_SCRIPT_ZANABAZAR_SQUARE */
+    PACK ('G','o','n','m'), /* SCRIPT_MASARAM_GONDI */
+    PACK ('N','s','h','u'), /* SCRIPT_NUSHU */
+    PACK ('S','o','y','o'), /* SCRIPT_SOYOMBO */
+    PACK ('Z','a','n','b'), /* SCRIPT_ZANABAZAR_SQUARE */
 
     /* Unicode 11.0 additions */
-    PACK ('D','o','g','r'), /* UCHAR_SCRIPT_DOGRA */
-    PACK ('G','o','n','g'), /* UCHAR_SCRIPT_GUNJALA_GONDI */
-    PACK ('R','o','h','g'), /* UCHAR_SCRIPT_HANIFI_ROHINGYA */
-    PACK ('M','a','k','a'), /* UCHAR_SCRIPT_MAKASAR */
-    PACK ('M','e','d','f'), /* UCHAR_SCRIPT_MEDEFAIDRIN */
-    PACK ('S','o','g','o'), /* UCHAR_SCRIPT_OLD_SOGDIAN */
-    PACK ('S','o','g','d'), /* UCHAR_SCRIPT_SOGDIAN */
+    PACK ('D','o','g','r'), /* SCRIPT_DOGRA */
+    PACK ('G','o','n','g'), /* SCRIPT_GUNJALA_GONDI */
+    PACK ('R','o','h','g'), /* SCRIPT_HANIFI_ROHINGYA */
+    PACK ('M','a','k','a'), /* SCRIPT_MAKASAR */
+    PACK ('M','e','d','f'), /* SCRIPT_MEDEFAIDRIN */
+    PACK ('S','o','g','o'), /* SCRIPT_OLD_SOGDIAN */
+    PACK ('S','o','g','d'), /* SCRIPT_SOGDIAN */
 
     /* Unicode 12.0 additions */
-    PACK ('E','l','y','m'), /* UCHAR_SCRIPT_ELYMAIC */
-    PACK ('N','a','n','d'), /* UCHAR_SCRIPT_NANDINAGARI */
-    PACK ('H','m','n','p'), /* UCHAR_SCRIPT_NYIAKENG_PUACHUE_HMONG */
-    PACK ('W','c','h','o'), /* UCHAR_SCRIPT_WANCHO */
+    PACK ('E','l','y','m'), /* SCRIPT_ELYMAIC */
+    PACK ('N','a','n','d'), /* SCRIPT_NANDINAGARI */
+    PACK ('H','m','n','p'), /* SCRIPT_NYIAKENG_PUACHUE_HMONG */
+    PACK ('W','c','h','o'), /* SCRIPT_WANCHO */
 #undef PACK
 };
 
-Uint32 GUIAPI UCharScriptTypeToISO15924 (int script)
+Uint32 GUIAPI ScriptTypeToISO15924 (int script)
 {
-    if (script == UCHAR_SCRIPT_INVALID_CODE)
+    if (script == SCRIPT_INVALID_CODE)
         return 0;
 
     if (script < 0 || script >= (int) TABLESIZE (iso15924_tags))
@@ -275,33 +275,33 @@ Uint32 GUIAPI UCharScriptTypeToISO15924 (int script)
     return iso15924_tags[script];
 }
 
-int GUIAPI UCharScriptTypeFromISO15924 (Uint32 iso15924)
+int GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924)
 {
     unsigned int i;
 
     if (!iso15924)
-        return UCHAR_SCRIPT_INVALID_CODE;
+        return SCRIPT_INVALID_CODE;
 
     for (i = 0; i < TABLESIZE (iso15924_tags); i++)
         if (iso15924_tags[i] == iso15924)
             return (int) i;
 
-    return UCHAR_SCRIPT_UNKNOWN;
+    return SCRIPT_UNKNOWN;
 }
 
 #include "script-language-table.inc"
 
 static int comp_lang(const void *k1, const void *k2)
 {
-   UCharScriptTypeForLang *sl1 = (UCharScriptTypeForLang*) k1;
-   UCharScriptTypeForLang *sl2 = (UCharScriptTypeForLang*) k2;
+   ScriptTypeForLang *sl1 = (ScriptTypeForLang*) k1;
+   ScriptTypeForLang *sl2 = (ScriptTypeForLang*) k2;
    return strcmp(sl1->lang, sl2->lang);
 }
 
-UCharScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
+ScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
         int* lang_code)
 {
-    const UCharScriptTypeForLang* matched;
+    const ScriptTypeForLang* matched;
 
     matched = bsearch(lang_name, _script_for_lang,
                 TABLESIZE(_script_for_lang), sizeof (_script_for_lang[0]),
@@ -316,31 +316,31 @@ UCharScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
     if (lang_code)
         *lang_code = LANGCODE_unknown;
 
-    return UCHAR_SCRIPT_INVALID_CODE;
+    return SCRIPT_INVALID_CODE;
 }
 
 /*
  * https://www.w3.org/TR/css-text-3/#script-tagging
  */
-UCharScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
-        UCharScriptType ws)
+ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
+        ScriptType ws)
 {
-    if (ws == UCHAR_SCRIPT_BOPOMOFO) {
-        return UCHAR_SCRIPT_HAN;
+    if (ws == SCRIPT_BOPOMOFO) {
+        return SCRIPT_HAN;
     }
 
-    if (ws != UCHAR_SCRIPT_INVALID_CODE)
+    if (ws != SCRIPT_INVALID_CODE)
         return ws;
 
     switch (cl) {
     case LANGCODE_zh:
-        return UCHAR_SCRIPT_HAN;
+        return SCRIPT_HAN;
     case LANGCODE_ja:
-        return UCHAR_SCRIPT_HAN;
+        return SCRIPT_HAN;
     case LANGCODE_ko:
-        return UCHAR_SCRIPT_HANGUL;
+        return SCRIPT_HANGUL;
     case LANGCODE_unknown:
-        return UCHAR_SCRIPT_COMMON;
+        return SCRIPT_COMMON;
     default:
         break;
     }

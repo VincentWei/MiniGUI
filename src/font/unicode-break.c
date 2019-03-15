@@ -151,7 +151,7 @@ struct break_ctxt {
     int      nr_ucs;
     int      n;
 
-    UCharScriptType ws;
+    ScriptType ws;
     Uint8   ctr;
     Uint8   wbr;
     Uint8   lbp;
@@ -439,16 +439,16 @@ static _GBType resolve_gbt(struct break_ctxt* ctxt,
 static _WBType resolve_wbt(struct break_ctxt* ctxt,
         Uchar32 uc, UCharGeneralCategory gc, UCharBreakType bt)
 {
-    UCharScriptType script;
+    ScriptType script;
     _WBType wbt;
 
     script = UCharGetScriptType(uc);
     wbt = WB_Other;
 
-    if (script == UCHAR_SCRIPT_KATAKANA)
+    if (script == SCRIPT_KATAKANA)
         wbt = WB_Katakana;
 
-    if (script == UCHAR_SCRIPT_HEBREW && gc == UCHAR_CATEGORY_OTHER_LETTER)
+    if (script == SCRIPT_HEBREW && gc == UCHAR_CATEGORY_OTHER_LETTER)
         wbt = WB_Hebrew_Letter;
 
     if (wbt == WB_Other) {
@@ -563,7 +563,7 @@ static _WBType resolve_wbt(struct break_ctxt* ctxt,
         case UCHAR_CATEGORY_UPPERCASE_LETTER:
 Alphabetic:
             if (bt != UCHAR_BREAK_COMPLEX_CONTEXT
-                    && script != UCHAR_SCRIPT_HIRAGANA)
+                    && script != SCRIPT_HIRAGANA)
                 wbt = WB_ALetter; /* ALetter */
             break;
         }
@@ -2051,7 +2051,7 @@ static int check_subsequent_ri(struct break_ctxt* ctxt,
     return consumed;
 }
 
-int GUIAPI UStrGetBreaks(UCharScriptType writing_system,
+int GUIAPI UStrGetBreaks(ScriptType writing_system,
             Uint8 ctr, Uint8 wbr, Uint8 lbp,
             Uchar32* ucs, int nr_ucs, Uint16** break_oppos)
 {

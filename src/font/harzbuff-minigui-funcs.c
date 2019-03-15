@@ -87,7 +87,7 @@ hb_minigui_unicode_script (hb_unicode_funcs_t *ufuncs,
         hb_codepoint_t      unicode,
         void               *user_data)
 {
-    return UCharScriptTypeToISO15924 (UCharGetScriptType(unicode));
+    return ScriptTypeToISO15924 (UCharGetScriptType(unicode));
 }
 
 static hb_bool_t

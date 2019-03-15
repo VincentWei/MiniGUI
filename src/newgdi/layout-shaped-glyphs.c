@@ -52,29 +52,7 @@
 #include "devfont.h"
 #include "unicode-ops.h"
 
-int GUIAPI GetGlyphsExtentInfo(LOGFONT* logfont,
-        LanguageCode lang_code, UCharScriptType writing_system,
-        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        const SHAPEDGLYPHS* shaped_glyphs,
-        GLYPHEXTINFO* glyph_ext_info, LOGFONT** logfont_sideways)
-{
-    return 0;
-}
-
-int GUIAPI GetGlyphsPositionInfo(
-        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Uchar32* ucs, int nr_ucs,
-        const Uint16* break_oppos,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        const SHAPEDGLYPHS* shaped_glyphs,
-        Uint32 render_flags, int x, int y,
-        int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        GLYPHEXTINFO* glyph_ext_info, SIZE* line_size, GLYPHPOS* glyph_pos)
-{
-    return 0;
-}
-
+#if 0
 int GUIAPI DrawShapedGlyphString(HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
         const SHAPEDGLYPHS* shaped_glyphs,
@@ -122,6 +100,7 @@ error:
 
     return n;
 }
+#endif
 
 #endif /*  _MGCHARSET_UNICODE */
 

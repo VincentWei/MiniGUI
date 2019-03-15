@@ -1503,9 +1503,9 @@ EOT
         }
             
         if ($c < $start) {
-            printf OUT " UCHAR_SCRIPT_UNKNOWN,";
+            printf OUT " SCRIPT_UNKNOWN,";
         } else {
-            printf OUT " UCHAR_SCRIPT_%s,", $script;
+            printf OUT " SCRIPT_%s,", $script;
         }
     }
 
@@ -1536,7 +1536,7 @@ EOT
             $i++;
             $end = $scripts[$i]->[1];
         }
-        printf OUT " { %#06x, %5d, UCHAR_SCRIPT_%s },\n", $start, $end - $start + 1, $script;
+        printf OUT " { %#06x, %5d, SCRIPT_%s },\n", $start, $end - $start + 1, $script;
     }
 
     printf OUT<<EOT;

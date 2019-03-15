@@ -47,13 +47,15 @@
 #include <string.h>
 
 #include "common.h"
+
+#ifdef _MGCHARSET_UNICODE
+
 #include "minigui.h"
 #include "gdi.h"
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-
-#ifdef _MGCHARSET_UNICODE
+#include "glyphruninfo.h"
 
 #if 0
 static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
@@ -77,11 +79,7 @@ static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
-int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
-        LanguageCode lang_code, UCharScriptType writing_system,
-        const Uchar32* ucs, int nr_ucs,
-        const BidiLevel embedding_levels, BidiType base_dir,
-        SHAPEDGLYPHS* shaped_glyphs)
+BOOL GUIAPI ShapeGlyphRunsBasic(GLYPHRUNINFO* run_info)
 {
 #if 0
     int ret_value = 0;
@@ -168,7 +166,7 @@ int GUIAPI GetShapedGlyphsBasic(LOGFONT* logfont,
     for (i = 0; i < nr_ucs; i++)
         indics_map[i] = i;
 
-    if (writing_system == UCHAR_SCRIPT_ARABIC) {
+    if (writing_system == SCRIPT_ARABIC) {
         /* Arabic joining */
         if (nr_ucs < LOCAL_ARRAY_SIZE)
             ar_props = local_ar_props;
@@ -260,7 +258,7 @@ out:
 
     return ret_value;
 #endif
-    return 0;
+    return FALSE;
 }
 
 #endif /*  _MGCHARSET_UNICODE */

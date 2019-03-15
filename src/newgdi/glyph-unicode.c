@@ -109,31 +109,31 @@ static LOGFONT* create_sideways_logfont(LOGFONT* logfont_upright)
 #define SCRIPT_ORIENTATION_BI           (0x01 | 0x02)
 
 typedef struct _VERT_SCRIPT_ORT {
-    UCharScriptType st;
+    ScriptType st;
     int             rot;
     const char*     vid;
 } VERT_SCRIPT_ORT;
 
 static VERT_SCRIPT_ORT vertical_scripts [] = {
-    {UCHAR_SCRIPT_BOPOMOFO, 0, "ttb"},
-    {UCHAR_SCRIPT_EGYPTIAN_HIEROGLYPHS, 0, "ttb"},
-    {UCHAR_SCRIPT_HIRAGANA, 0, "ttb"},
-    {UCHAR_SCRIPT_KATAKANA, 0, "ttb"},
-    {UCHAR_SCRIPT_HAN, 0, "ttb"},
-    {UCHAR_SCRIPT_HANGUL, 0, "ttb"},
-    {UCHAR_SCRIPT_MEROITIC_CURSIVE, 0, "ttb"},
-    {UCHAR_SCRIPT_MEROITIC_HIEROGLYPHS, 0, "ttb"},
-    {UCHAR_SCRIPT_MONGOLIAN, 90, "ttb"},
-    {UCHAR_SCRIPT_OGHAM, -90, "btt"},
-    {UCHAR_SCRIPT_OLD_TURKIC, -90, "ttb"},
-    {UCHAR_SCRIPT_PHAGS_PA, 90, "ttb"},
-    {UCHAR_SCRIPT_YI, 0, "ttb"},
+    {SCRIPT_BOPOMOFO, 0, "ttb"},
+    {SCRIPT_EGYPTIAN_HIEROGLYPHS, 0, "ttb"},
+    {SCRIPT_HIRAGANA, 0, "ttb"},
+    {SCRIPT_KATAKANA, 0, "ttb"},
+    {SCRIPT_HAN, 0, "ttb"},
+    {SCRIPT_HANGUL, 0, "ttb"},
+    {SCRIPT_MEROITIC_CURSIVE, 0, "ttb"},
+    {SCRIPT_MEROITIC_HIEROGLYPHS, 0, "ttb"},
+    {SCRIPT_MONGOLIAN, 90, "ttb"},
+    {SCRIPT_OGHAM, -90, "btt"},
+    {SCRIPT_OLD_TURKIC, -90, "ttb"},
+    {SCRIPT_PHAGS_PA, 90, "ttb"},
+    {SCRIPT_YI, 0, "ttb"},
 };
 
 static BOOL is_horizontal_only_script(Uchar32 uc)
 {
     size_t i;
-    UCharScriptType st = UCharGetScriptType(uc);
+    ScriptType st = UCharGetScriptType(uc);
 
     for (i = 0; i < TABLESIZE(vertical_scripts); i++) {
         if (st == vertical_scripts[i].st)
