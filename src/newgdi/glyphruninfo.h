@@ -78,6 +78,8 @@ typedef enum {
     GR_DIRECTION_BTT
 } GlyphRunDir;
 
+// NOTE: we arrange the fields carefully to avoid wasting space when
+// we allocate an array of this structure.
 typedef struct _MAPL2G {
     // Glyph index in the run; Less than 0 if it is ignored.
     Sint32          glyph_index;
@@ -116,6 +118,10 @@ struct _GLYPHRUNINFO {
     int             nr_ucs;
     int             nr_runs;
     ParagraphDir    base_dir;
+
+    /* The following fields will be initialized by CreateGlyphRunInfo. */
+    Uint8           all_even;
+    Uint8           all_odd;
 };
 
 #ifdef __cplusplus

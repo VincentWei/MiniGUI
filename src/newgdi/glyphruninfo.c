@@ -80,6 +80,8 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
     BidiBracketType local_brk_ts[LOCAL_ARRAY_SIZE];
     BidiBracketType *brk_ts = NULL;
 
+    BidiLevel level_or, level_and;
+
     ScriptType script_type = SCRIPT_COMMON;
 
     int i, j;
@@ -122,10 +124,15 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
 
     // remove the bidi marks from embedding levels and original string.
     j = 0;
+    level_or = 0, level_and = 1;
     for (i = 0; i < nr_ucs; i++) {
         if (!BIDI_IS_EXPLICIT_OR_BN (bidi_ts[i])) {
             els[j] = els[i];
             ucs[j] = ucs[i];
+
+            level_or |= els[j];
+            level_and &= els[j];
+
             j++;
         }
     }
@@ -136,6 +143,12 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
             ucs, nr_ucs, &bos) == 0) {
         goto out;
     }
+
+    // check for all even or odd
+    /* If none of the levels had the LSB set, all chars were even. */
+    runinfo->all_even = (level_or & 0x1) == 0;
+    /* If all of the levels had the LSB set, all chars were odd. */
+    runinfo->all_odd = (level_and & 0x1) == 1;
 
     runinfo->ucs = ucs;
     runinfo->nr_ucs = nr_ucs;
