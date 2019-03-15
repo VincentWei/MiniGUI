@@ -79,7 +79,8 @@ static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
-BOOL GUIAPI ShapeGlyphRunsBasic(GLYPHRUNINFO* run_info)
+BOOL GUIAPI ShapeGlyphRunsBasic(GLYPHRUNINFO* run_info,
+        LOGFONT* lf, Uint32 rf)
 {
 #if 0
     int ret_value = 0;

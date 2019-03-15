@@ -78,31 +78,44 @@ typedef enum {
     GR_DIRECTION_BTT
 } GlyphRunDir;
 
-struct _GLPYHRUNINFO {
-    /* the logfont for upright glyphs */
-    LOGFONT*        lfur;
-    /* The logfont for sideways glyphs */
-    LOGFONT*        lfsw;
+typedef struct _MAPL2G {
+    // Glyph index in the run; Less than 0 if it is ignored.
+    Sint32          glyph_index;
+    // the run index; a 16-bit unsigned number is enough.
+    Uint16          run_index;
+    // number of glyphs the uchar maps to.
+    Sint16          nr_glyphs;
+} MAPL2G;
+
+typedef struct _GLYPHRUN {
+    LanguageCode    lc;
+    ScriptType      st;
+    GlyphRunDir     dir;
+    int             si; // start index
+    int             len;
+} GLYPHRUN;
+
+struct _GLYPHRUNINFO {
+    /* The following fields will be initialized by CreateGlyphRunInfo. */
     Uchar32*        ucs;
-    SHAPPINGENGINE* se;
-
-    struct _textrun {
-        LanguageCode    lc;
-        ScriptType st;
-        GlyphRunDir     dir;
-        int             si; // start index
-        int             len;
-    }*              runs;
-
     BidiLevel*      els;
-    Uint16*         bos;
+    BreakOppo*      bos;
+    GLYPHRUN*       runs;
+
+    /* The following fields will be initialized by the Shapping Engine. */
+    LOGFONT*        lfur;   // The logfont for upright glyphs
+    LOGFONT*        lfsw;   // The logfont for sideways glyphs
+    SHAPPINGENGINE  se;
+    MAPL2G*         u2g;
     SHAPEDGLYPHS**  sgs;
     GLYPHEXTINFO**  ges;
 
+    const char*     lang_tag;
+    const char*     script_tag;
+    Uint32          render_flags;
     int             nr_ucs;
     int             nr_runs;
-    int             nr_scripts;
-    Uint32          render_flags;
+    ParagraphDir    base_dir;
 };
 
 #ifdef __cplusplus

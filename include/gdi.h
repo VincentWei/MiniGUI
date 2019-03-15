@@ -8731,12 +8731,14 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
  */
 #define BOV_LB_NOTALLOWED           0x0003
 
+typedef Uint16 BreakOppo;
+
     /** @} end of breaking_opportunities */
 
 /**
  * \fn int GUIAPI UStrGetBreaks(ScriptType writing_system,
  *          Uint8 ctr, Uint8 wbr, Uint8 lbp,
- *          Uchar32* ucs, int nr_ucs, Uint16** break_oppos);
+ *          Uchar32* ucs, int nr_ucs, BreakOppo** break_oppos);
  * \brief Calculate the breaking opportunities of a Uchar32 string under
  *      the specified rules and line breaking policy.
  *
@@ -8794,7 +8796,7 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
  */
 MG_EXPORT int GUIAPI UStrGetBreaks(ScriptType writing_system,
         Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        Uchar32* ucs, int nr_ucs, Uint16** break_oppos);
+        Uchar32* ucs, int nr_ucs, BreakOppo** break_oppos);
 
 /** The function determines whether a character is alphanumeric. */
 MG_EXPORT BOOL GUIAPI IsUCharAlnum(Uchar32 uc);
@@ -12276,7 +12278,7 @@ typedef struct _GLYPHPOS {
 
 /**
  * \fn int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
- *          const Uchar32* uchars, int nr_uchars, const Uint16* break_oppos,
+ *          const Uchar32* uchars, int nr_uchars, const BreakOppo* break_oppos,
  *          Uint32 render_flags, int x, int y,
  *          int letter_spacing, int word_spacing, int tab_size, int max_extent,
  *          SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
@@ -12353,7 +12355,7 @@ typedef struct _GLYPHPOS {
  * \sa UStrGetBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
-        const Achar32* uchars, int nr_uchars, const Uint16* break_oppos,
+        const Achar32* uchars, int nr_uchars, const BreakOppo* break_oppos,
         Uint32 render_flags, int x, int y,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
@@ -12369,18 +12371,23 @@ typedef struct _GLYPHRUNINFO    GLYPHRUNINFO;
  *
  * This function also calculates the embedding levels and the
  * breaking opportunities of the string.
- *
- * This function is useful for text in mixed scripts.
  */
-MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(LOGFONT* logfont,
-        Uint32 render_flags, const Uchar32* ucs, int nr_ucs,
-        const char* lang_script_tag, ParagraphDir base_dir);
+MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
+        const char* lang_tag, const char* script_tag,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp,
+        Uchar32* ucs, int nr_ucs, ParagraphDir base_dir);
 
 /**
- * Destroy the text run info object. It also free the embedde levels
- * and the breaking opportunities.
+ * Reset the glyph run information for the next rendering under a
+ * new LOGFONT and the rendering flags.
  */
-MG_EXPORT int GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
+MG_EXPORT BOOL GUIAPI ResetGlyphRunInfo(GLYPHRUNINFO* run_info);
+
+/**
+ * Destroy the glyph run info object. It also frees all data allocated
+ * for shapping and layouting the glyphs.
+ */
+MG_EXPORT BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
 
 /**
  * \fn BOOL GUIAPI GetShapedGlyphRunsBasic()
@@ -12429,7 +12436,8 @@ MG_EXPORT int GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info);
+MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info,
+        LOGFONT* logfont, Uint32 render_flags);
 
 /**
  * \fn int GUIAPI GetShapedGlyphsComplex()
@@ -12497,7 +12505,8 @@ MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info);
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info);
+MG_EXPORT BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info,
+        LOGFONT* logfont, Uint32 render_flags);
 
 /**
  * \fn int GUIAPI GetGlyphsExtentInfo()
