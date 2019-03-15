@@ -22,7 +22,8 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
 endif
 
 HDR_FILES = drawtext.h mi.h midc.h mistruct.h miwideline.h \
-            pixel_ops.h mifillarc.h mispans.h polygon.h mifpoly.h
+            pixel_ops.h mifillarc.h mispans.h polygon.h mifpoly.h \
+            glyphruninfo.h
 
 libnewgdi_la_SOURCES = $(SRC_FILES) $(HDR_FILES)
 
