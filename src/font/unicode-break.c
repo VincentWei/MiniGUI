@@ -1301,7 +1301,11 @@ static void dbg_dump_ctxt(struct break_ctxt* ctxt,
 #define dbg_dump_ctxt(ctxt, func, uc, gwsbo)
 #endif
 
-#define LOCAL_ARRAY_SIZE        256
+#if SIZEOF_PTR == 8
+#   define LOCAL_ARRAY_SIZE 256
+#else
+#   define LOCAL_ARRAY_SIZE 128
+#endif
 
 static int break_init_spaces(struct break_ctxt* ctxt,
         Uchar32* ucs, Uint16* bos, Uint8* local_bts, Uint8* local_ods,

@@ -57,8 +57,7 @@
 #include "unicode-ops.h"
 #include "glyphruninfo.h"
 
-BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info,
-        LOGFONT* lf, Uint32 rf)
+BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info, Uint32 rf)
 {
     return FALSE;
 }

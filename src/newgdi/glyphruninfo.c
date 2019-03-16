@@ -61,10 +61,16 @@
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
+static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo)
+{
+    return FALSE;
+}
+
 GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
         const char* lang_tag, const char* script_tag,
+        Uchar32* ucs, int nr_ucs, ParagraphDir base_dir,
         Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        Uchar32* ucs, int nr_ucs, ParagraphDir base_dir)
+        LOGFONT* logfont, RGBCOLOR color)
 {
     BOOL ok = FALSE;
 
@@ -96,8 +102,10 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
     else
         bidi_ts = malloc (nr_ucs * sizeof(BidiType));
 
-    if (!bidi_ts)
+    if (!bidi_ts) {
+        _DBG_PRINTF("%s: failed to allocate space for bidi types.\n");
         goto out;
+    }
 
     UStrGetBidiTypes(ucs, nr_ucs, bidi_ts);
 
@@ -106,57 +114,77 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
     else
         brk_ts = (BidiBracketType*)malloc (nr_ucs * sizeof(BidiBracketType));
 
-    if (!brk_ts)
+    if (!brk_ts) {
+        _DBG_PRINTF("%s: failed to allocate space for bracket types.\n");
         goto out;
+    }
 
     UStrGetBracketTypes (ucs, bidi_ts, nr_ucs, brk_ts);
 
     els = (BidiLevel*)malloc (nr_ucs * sizeof(BidiLevel));
     if (!els) {
+        _DBG_PRINTF("%s: failed to allocate space for embedding levels.\n");
         goto out;
     }
 
     max_level = UBidiGetParagraphEmbeddingLevels(bidi_ts, brk_ts, nr_ucs,
             &base_dir, els) - 1;
     if (max_level < 0) {
+        _DBG_PRINTF("%s: failed to get paragraph embedding levels.\n");
         goto out;
     }
-
-    // remove the bidi marks from embedding levels and original string.
-    j = 0;
-    level_or = 0, level_and = 1;
-    for (i = 0; i < nr_ucs; i++) {
-        if (!BIDI_IS_EXPLICIT_OR_BN (bidi_ts[i])) {
-            els[j] = els[i];
-            ucs[j] = ucs[i];
-
-            level_or |= els[j];
-            level_and &= els[j];
-
-            j++;
-        }
-    }
-    nr_ucs = j;
 
     // Calculate the breaking opportunities
     if (UStrGetBreaks(script_type, ctr, wbr, lbp,
             ucs, nr_ucs, &bos) == 0) {
+        _DBG_PRINTF("%s: failed to get breaking opportunities.\n");
         goto out;
+    }
+
+    // Initialize other fields
+    INIT_LIST_HEAD(&runinfo->cm_head.list);
+    runinfo->cm_head.si = 0;
+    runinfo->cm_head.len = nr_ucs;
+    runinfo->cm_head.color = color;
+
+    INIT_LIST_HEAD(&runinfo->run_head.list);
+    runinfo->run_head.lf = logfont;
+    runinfo->run_head.gs = NULL;
+    runinfo->run_head.nr_gs = 0;
+    runinfo->run_head.lt = lang_tag;
+    runinfo->run_head.st = script_type;
+    runinfo->run_head.dir = base_dir;
+    runinfo->run_head.si = 0;
+    runinfo->run_head.nr_ucs = nr_ucs;
+
+    // make the embedding levels of the bidi marks to be -1.
+    level_or = 0, level_and = 1;
+    j = 0;
+    for (i = 0; i < nr_ucs; i++) {
+        if (BIDI_IS_EXPLICIT_OR_BN (bidi_ts[i])) {
+            els[i] = -1;
+        }
+        else {
+            level_or |= els[j];
+            level_and &= els[j];
+            j++;
+        }
     }
 
     // check for all even or odd
     /* If none of the levels had the LSB set, all chars were even. */
-    runinfo->all_even = (level_or & 0x1) == 0;
+    runinfo->run_head.all_even = (level_or & 0x1) == 0;
     /* If all of the levels had the LSB set, all chars were odd. */
-    runinfo->all_odd = (level_and & 0x1) == 1;
+    runinfo->run_head.all_odd = (level_and & 0x1) == 1;
+
+    if (!init_glyph_runs(runinfo)) {
+        _DBG_PRINTF("%s: failed to call init_glyph_runs.\n");
+        goto out;
+    }
 
     runinfo->ucs = ucs;
-    runinfo->nr_ucs = nr_ucs;
     runinfo->els = els;
     runinfo->bos = bos;
-    runinfo->base_dir = base_dir;
-    runinfo->lang_tag = lang_tag;
-    runinfo->script_tag = script_tag;
     ok = TRUE;
 
 out:
@@ -169,7 +197,7 @@ out:
     if (ok)
         return runinfo;
 
-    if (runinfo->runs) free(runinfo->runs);
+    if (runinfo->l2g) free(runinfo->l2g);
     if (els) free(els);
     if (bos) free(bos);
     free(runinfo);
@@ -177,14 +205,152 @@ out:
     return NULL;
 }
 
-BOOL GUIAPI ResetGlyphRunInfo(GLYPHRUNINFO* run_info)
+BOOL GUIAPI SetPartFontInGlyphRuns(GLYPHRUNINFO* runinfo,
+    int start_index, int length, LOGFONT* logfont)
 {
     return FALSE;
 }
 
-BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info)
+RGBCOLOR __mg_glyphruns_get_color(const GLYPHRUNINFO* runinfo, int index)
 {
+    struct list_head *i;
+
+    list_for_each(i, &runinfo->cm_head.list) {
+        UCHARCOLORMAP* color_entry;
+        color_entry = (UCHARCOLORMAP*)i;
+        if (index >= color_entry->si &&
+                (index < color_entry->si + color_entry->len)) {
+            return color_entry->color;
+        }
+    }
+
+    return runinfo->cm_head.color;
+}
+
+BOOL GUIAPI SetPartColorInGlyphRuns(GLYPHRUNINFO* runinfo,
+    int start_index, int length, RGBCOLOR color)
+{
+    UCHARCOLORMAP* color_entry = NULL;
+
+    if (runinfo == NULL || start_index < 0 || length < 0 ||
+            start_index > runinfo->run_head.nr_ucs ||
+            (start_index + length) > runinfo->run_head.nr_ucs) {
+        goto error;
+    }
+
+    color_entry = calloc(1, sizeof(UCHARCOLORMAP));
+    if (color_entry == NULL) {
+        goto error;
+    }
+
+    color_entry->si = start_index;
+    color_entry->len = length;
+    color_entry->color = color;
+
+    list_add(&color_entry->list, &runinfo->cm_head.list);
+
+    return TRUE;
+
+error:
     return FALSE;
+}
+
+BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* runinfo, LOGFONT* logfont)
+{
+    if (runinfo == NULL)
+        return FALSE;
+
+    while (!list_empty(&runinfo->run_head.list)) {
+        GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.list.prev;
+        list_del(runinfo->run_head.list.prev);
+        runinfo->se.cb_destroy_glyphs(runinfo->se.shaping_engine, run->gs);
+        free(run);
+    }
+
+    if (runinfo->se.shaping_engine) {
+        runinfo->se.cb_destroy_engine(runinfo->se.shaping_engine);
+    }
+
+    if (runinfo->l2g) {
+        free(runinfo->l2g);
+        runinfo->l2g = NULL;
+    }
+
+    if (runinfo->ges) {
+        free(runinfo->ges);
+        runinfo->ges = NULL;
+    }
+
+    runinfo->run_head.lf = logfont;
+
+    return init_glyph_runs(runinfo);
+}
+
+BOOL GUIAPI ResetColorInGlyphRuns(GLYPHRUNINFO* runinfo, RGBCOLOR color)
+{
+    if (runinfo == NULL)
+        return FALSE;
+
+    while (!list_empty(&runinfo->cm_head.list)) {
+        UCHARCOLORMAP* entry = (UCHARCOLORMAP*)runinfo->cm_head.list.prev;
+        list_del(runinfo->cm_head.list.prev);
+        free(entry);
+    }
+
+    runinfo->cm_head.color = color;
+    return TRUE;
+}
+
+BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* runinfo,
+    Uint8 ctr, Uint8 wbr, Uint8 lbp)
+{
+    if (runinfo == NULL)
+        return FALSE;
+
+    if (runinfo->bos) {
+        free (runinfo->bos);
+        runinfo->bos = NULL;
+    }
+
+    // Calculate the breaking opportunities
+    if (UStrGetBreaks(runinfo->run_head.st, ctr, wbr, lbp,
+            runinfo->ucs, runinfo->run_head.nr_ucs, &runinfo->bos) == 0) {
+        _DBG_PRINTF("%s: failed to get breaking opportunities.\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* runinfo)
+{
+    if (runinfo == NULL)
+        return FALSE;
+
+    while (!list_empty(&runinfo->cm_head.list)) {
+        UCHARCOLORMAP* entry = (UCHARCOLORMAP*)runinfo->cm_head.list.prev;
+        list_del(runinfo->cm_head.list.prev);
+        free(entry);
+    }
+
+    while (!list_empty(&runinfo->run_head.list)) {
+        GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.list.prev;
+        list_del(runinfo->run_head.list.prev);
+        runinfo->se.cb_destroy_glyphs(runinfo->se.shaping_engine, run->gs);
+        free(run);
+    }
+
+    if (runinfo->se.shaping_engine) {
+        runinfo->se.cb_destroy_engine(runinfo->se.shaping_engine);
+    }
+
+    if (runinfo->l2g) free(runinfo->l2g);
+    if (runinfo->ges) free(runinfo->ges);
+    if (runinfo->els) free(runinfo->els);
+    if (runinfo->bos) free(runinfo->bos);
+
+    free(runinfo);
+    return TRUE;
 }
 
 #endif /*  _MGCHARSET_UNICODE */

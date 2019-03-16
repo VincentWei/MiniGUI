@@ -69,7 +69,7 @@
 
 static void validate_run_list(BidiRun *run_list)
 {
-    register BidiRun *q;
+    BidiRun *q;
 
     assert (run_list);
     assert (run_list->next);
@@ -93,7 +93,7 @@ static inline void validate_run_list(BidiRun *run_list)
 
 static BidiRun* new_run(void)
 {
-    register BidiRun *run;
+    BidiRun *run;
 
     run = malloc (sizeof (BidiRun));
 
@@ -107,7 +107,7 @@ static BidiRun* new_run(void)
 
 static BidiRun* new_run_list(void)
 {
-    register BidiRun *run;
+    BidiRun *run;
 
     run = new_run ();
 
@@ -130,13 +130,13 @@ static void free_run_list(BidiRun *run_list)
     validate_run_list (run_list);
 
     {
-        register BidiRun *pp;
+        BidiRun *pp;
 
         pp = run_list;
         pp->prev->next = NULL;
         while (pp)
         {
-            register BidiRun *p;
+            BidiRun *p;
 
             p = pp;
             pp = pp->next;
@@ -150,7 +150,7 @@ static BidiRun* run_list_encode_bidi_types (const BidiType *bidi_types,
     const BidiBracketType *bracket_types, int len)
 {
     BidiRun *list, *last;
-    register BidiRun *run = NULL;
+    BidiRun *run = NULL;
     int i;
 
     /* Create the list sentinel */
@@ -161,8 +161,8 @@ static BidiRun* run_list_encode_bidi_types (const BidiType *bidi_types,
     /* Scan over the character types */
     for (i = 0; i < len; i++)
     {
-        register BidiType char_type = bidi_types[i];
-        register BidiBracketType bracket_type = BIDI_BRACKET_NONE;
+        BidiType char_type = bidi_types[i];
+        BidiBracketType bracket_type = BIDI_BRACKET_NONE;
         if (bracket_types)
             bracket_type = bracket_types[i];
 
@@ -220,8 +220,8 @@ static BidiRun* run_list_encode_bidi_types (const BidiType *bidi_types,
 */
 static BOOL shadow_run_list(BidiRun *base, BidiRun *over, BOOL preserve_length)
 {
-    register BidiRun *p = base, *q, *r, *s, *t;
-    register int pos = 0, pos2;
+    BidiRun *p = base, *q, *r, *s, *t;
+    int pos = 0, pos2;
     BOOL status = FALSE;
 
     validate_run_list (base);
@@ -504,7 +504,7 @@ static void print_resolved_levels(const BidiRun *pp)
 {
     _DBG_PRINTF ("  Res. levels: ");
     for_run_list (pp, pp) {
-        register int i;
+        int i;
         for (i = RL_LEN (pp); i; i--)
             _DBG_PRINTF ("%c", unibidi_char_from_level (RL_LEVEL (pp)));
     }
@@ -644,7 +644,7 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
 
 BidiType UBidiGetParagraphDir(const BidiType *bidi_types, int len)
 {
-    register int i;
+    int i;
 
     for (i = 0; i < len; i++) {
         if (BIDI_IS_LETTER(bidi_types[i]))
@@ -1054,7 +1054,7 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
 
         for_run_list (pp, main_run_list)
         {
-            register BidiType prev_type, this_type, next_type;
+            BidiType prev_type, this_type, next_type;
             BidiRun *ppp_prev, *ppp_next;
             int iso_level;
 
@@ -1137,7 +1137,7 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
         /* Each isolate level has its own memory of the last strong character */
         for_run_list (pp, main_run_list)
         {
-            register BidiType prev_type, this_type, next_type;
+            BidiType prev_type, this_type, next_type;
             int iso_level;
             BidiRun *ppp_prev, *ppp_next;
 
@@ -1472,8 +1472,8 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
        explicits_list to main_run_list. */
     _DBG_PRINTF ("reinserting explicit codes\n");
     if (explicits_list->next != explicits_list) {
-            register BidiRun *p;
-            register BOOL stat =
+            BidiRun *p;
+            BOOL stat =
                 shadow_run_list (main_run_list, explicits_list, TRUE);
             explicits_list = NULL;
             if (!stat) goto out;
@@ -1495,9 +1495,9 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
 
     _DBG_PRINTF ("reset the embedding levels, 1, 2, 3.\n");
     {
-        register int j, state, pos;
-        register BidiType char_type;
-        register BidiRun *p, *q, *list;
+        int j, state, pos;
+        BidiType char_type;
+        BidiRun *p, *q, *list;
 
         /* L1. Reset the embedding levels of some chars:
            1. segment separators,
@@ -1555,8 +1555,8 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
         int pos = 0;
         for_run_list (pp, main_run_list)
         {
-            register int l;
-            register BidiLevel level = pp->level;
+            int l;
+            BidiLevel level = pp->level;
             for (l = pp->len; l; l--)
                 embedding_levels[pos++] = level;
         }
@@ -1610,7 +1610,7 @@ BidiLevel UBidiReorderLine(Uint32 flags,
     }
 
     {
-        register int i;
+        int i;
 
         /* L1. Reset the embedding levels of some chars:
            4. any sequence of white space characters at the end of the line. */
@@ -1625,8 +1625,8 @@ BidiLevel UBidiReorderLine(Uint32 flags,
 
     /* 7. Reordering resolved levels */
     {
-        register BidiLevel level;
-        register int i;
+        BidiLevel level;
+        int i;
 
         /* Reorder both the outstring and the order array */
         {
@@ -1636,7 +1636,7 @@ BidiLevel UBidiReorderLine(Uint32 flags,
                     if (BIDI_LEVEL_IS_RTL (embedding_levels[i])
                             && bidi_types[i] == BIDI_TYPE_NSM)
                     {
-                        register int seq_end = i;
+                        int seq_end = i;
                         level = embedding_levels[i];
 
                         for (i--; i >= off &&
@@ -1677,7 +1677,7 @@ BidiLevel UBidiReorderLine(Uint32 flags,
                 for (i = off + len - 1; i >= off; i--) {
                     if (embedding_levels[i] >= level) {
                         /* Find all stretches that are >= level_idx */
-                        register int seq_end = i;
+                        int seq_end = i;
                         for (i--; i >= off && embedding_levels[i] >= level; i--)
                             ;
 

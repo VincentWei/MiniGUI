@@ -12374,14 +12374,41 @@ typedef struct _GLYPHRUNINFO    GLYPHRUNINFO;
  */
 MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
         const char* lang_tag, const char* script_tag,
+        Uchar32* ucs, int nr_ucs, ParagraphDir base_dir,
         Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        Uchar32* ucs, int nr_ucs, ParagraphDir base_dir);
+        LOGFONT* logfont, RGBCOLOR color);
 
 /**
- * Reset the glyph run information for the next rendering under a
- * new LOGFONT and the rendering flags.
+ * Set font of part characters. Please call this function before
+ * calling ShapeGlyphRunsBaisc or ShapeGlyphRunsComplex.
  */
-MG_EXPORT BOOL GUIAPI ResetGlyphRunInfo(GLYPHRUNINFO* run_info);
+MG_EXPORT BOOL GUIAPI SetPartFontInGlyphRuns(GLYPHRUNINFO* run_info,
+    int start_index, int length, LOGFONT* logfont);
+
+/**
+ * Set color of part characters.
+ */
+MG_EXPORT BOOL GUIAPI SetPartColorInGlyphRuns(GLYPHRUNINFO* run_info,
+    int start_index, int length, RGBCOLOR color);
+
+/**
+ * Reset the font of glyph runs for the next rendering under a
+ * new LOGFONT.
+ */
+MG_EXPORT BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* run_info,
+        LOGFONT* logfont);
+
+/**
+ * Reset the color of glyph runs.
+ */
+MG_EXPORT BOOL GUIAPI ResetColorInGlyphRuns(GLYPHRUNINFO* run_info,
+        RGBCOLOR color);
+
+/**
+ * Reset the breaking opportunities of glyph runs.
+ */
+MG_EXPORT BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* run_info,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp);
 
 /**
  * Destroy the glyph run info object. It also frees all data allocated
@@ -12437,7 +12464,7 @@ MG_EXPORT BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
 MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info,
-        LOGFONT* logfont, Uint32 render_flags);
+        Uint32 render_flags);
 
 /**
  * \fn int GUIAPI GetShapedGlyphsComplex()
@@ -12506,7 +12533,7 @@ MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
 MG_EXPORT BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info,
-        LOGFONT* logfont, Uint32 render_flags);
+        Uint32 render_flags);
 
 /**
  * \fn int GUIAPI GetGlyphsExtentInfo()

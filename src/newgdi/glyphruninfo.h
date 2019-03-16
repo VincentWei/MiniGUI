@@ -41,10 +41,14 @@
 #ifndef _MG_NEWGDI_GLYPHRUNINFO_H
     #define _MG_NEWGDI_GLYPHRUNINFO_H
 
-typedef Glyph32 (*CB_GET_GLYPH_INFO) (void* shaping_engine,
-        void* glyph_info, int index, int* cluster);
+#include "list.h"
 
-typedef BOOL (*CB_DESTROY_OBJECT) (void* object);
+typedef Glyph32 (*CB_GET_GLYPH_INFO) (void* shaping_engine,
+        void* glyph_infos, int index, int* cluster);
+
+typedef BOOL (*CB_DESTROY_GLYPHS) (void* shaping_engine, void* glyph_infos);
+
+typedef BOOL (*CB_DESTROY_ENGINE) (void* shaping_engine);
 
 typedef struct _SHAPPINGENGINE {
     /* The pointer to the shaping engine */
@@ -57,17 +61,12 @@ typedef struct _SHAPPINGENGINE {
        from a void glyph information */
     CB_GET_GLYPH_INFO   cb_get_glyph_info;
 
-    /* the callback destroy the shaping engine */
-    CB_DESTROY_OBJECT   cb_destroy_engine;
+    /* the callback destroy the shaped glyph info */
+    CB_DESTROY_GLYPHS   cb_destroy_glyphs;
+
+    /* the callback destroy the shapping engine instance */
+    CB_DESTROY_ENGINE   cb_destroy_engine;
 } SHAPPINGENGINE;
-
-typedef struct _SHAPEDGLYPHS {
-    /* The array contains the glyph information */
-    void*   glyph_infos;
-
-    /* The number of glyphs */
-    int     nr_glyphs;
-} SHAPEDGLYPHS;
 
 /* same as HarfBuzz */
 typedef enum {
@@ -78,56 +77,61 @@ typedef enum {
     GR_DIRECTION_BTT
 } GlyphRunDir;
 
+typedef struct _GLYPHRUN {
+    struct list_head list;
+    LOGFONT*    lf;     // The logfont for this run.
+    const char* lt;     // language tag
+    void*       gs;     // the shaped glyph information
+    int         nr_gs;  // the number of shaped glyphs
+
+    int         si;     // start index
+    int         nr_ucs; // the number of characters
+
+    ScriptType  st;     // script type
+    GlyphRunDir dir;    // The direction
+
+    Uint8       all_even;
+    Uint8       all_odd;
+} GLYPHRUN;
+
 // NOTE: we arrange the fields carefully to avoid wasting space when
-// we allocate an array of this structure.
+// we allocate an array of this structure due to the alignment.
 typedef struct _MAPL2G {
-    // Glyph index in the run; Less than 0 if it is ignored.
-    Sint32          glyph_index;
-    // the run index; a 16-bit unsigned number is enough.
-    Uint16          run_index;
-    // number of glyphs the uchar maps to.
-    Sint16          nr_glyphs;
+    GLYPHRUN*       glyph_run;      // the glyph run this char belongs to.
+    int             glyph_index;    // the index of the glyph in the run.
 } MAPL2G;
 
-typedef struct _GLYPHRUN {
-    LanguageCode    lc;
-    ScriptType      st;
-    GlyphRunDir     dir;
-    int             si; // start index
-    int             len;
-} GLYPHRUN;
+typedef struct _UCHARCOLORMAP {
+    struct list_head    list;
+    int                 si;
+    int                 len;
+    RGBCOLOR            color;
+} UCHARCOLORMAP;
 
 struct _GLYPHRUNINFO {
     /* The following fields will be initialized by CreateGlyphRunInfo. */
     Uchar32*        ucs;
     BidiLevel*      els;
     BreakOppo*      bos;
-    GLYPHRUN*       runs;
 
-    /* The following fields will be initialized by the Shapping Engine. */
-    LOGFONT*        lfur;   // The logfont for upright glyphs
-    LOGFONT*        lfsw;   // The logfont for sideways glyphs
-    SHAPPINGENGINE  se;
-    MAPL2G*         u2g;
-    SHAPEDGLYPHS**  sgs;
-    GLYPHEXTINFO**  ges;
+    UCHARCOLORMAP   cm_head;    // the head of color map list of the characters.
+                                // change by calling SetPartColorInGlyphRunInfo.
+    GLYPHRUN        run_head;   // glyph runs
+                                // change by SetPartFontInGlyphRunInfo.
 
-    const char*     lang_tag;
-    const char*     script_tag;
-    Uint32          render_flags;
-    int             nr_ucs;
-    int             nr_runs;
-    ParagraphDir    base_dir;
+    /* The following fields will be initialized by the shapping engine. */
+    SHAPPINGENGINE  se;     // the shapping engine.
+    MAPL2G*         l2g;    // the logical character to glyph map.
+    GLYPHEXTINFO*   ges;    // the glyph extent information.
 
-    /* The following fields will be initialized by CreateGlyphRunInfo. */
-    Uint8           all_even;
-    Uint8           all_odd;
+    Uint32          rf;     // the rendering flags.
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
+RGBCOLOR __mg_glyphruns_get_color(const GLYPHRUNINFO* runinfo, int index);
 
 #ifdef __cplusplus
 }
