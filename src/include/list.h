@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -42,6 +42,7 @@
   #define _MG_LIST_H
 
 #include "mgconfig.h"
+
 struct list_head {
     struct list_head *next, *prev;
 };
@@ -60,45 +61,45 @@ typedef struct list_head list_t;
 } while (0)
 
 /*
- * Insert a new entry between two known consecutive entries. 
+ * Insert a new_entry entry between two known consecutive entries.
  *
  * This is only for internal list manipulation where we know
  * the prev/next entries already!
  */
-static inline void __list_add(struct list_head * new,
+static inline void __list_add(struct list_head * new_entry,
     struct list_head * prev,
     struct list_head * next)
 {
-    next->prev = new;
-    new->next = next;
-    new->prev = prev;
-    prev->next = new;
+    next->prev = new_entry;
+    new_entry->next = next;
+    new_entry->prev = prev;
+    prev->next = new_entry;
 }
 
 /**
- * list_add - add a new entry
- * @new: new entry to be added
+ * list_add - add a new_entry entry
+ * @new_entry: new_entry entry to be added
  * @head: list head to add it after
  *
- * Insert a new entry after the specified head.
+ * Insert a new_entry entry after the specified head.
  * This is good for implementing stacks.
  */
-static inline void list_add(struct list_head *new, struct list_head *head)
+static inline void list_add(struct list_head *new_entry, struct list_head *head)
 {
-    __list_add(new, head, head->next);
+    __list_add(new_entry, head, head->next);
 }
 
 /**
- * list_add_tail - add a new entry
- * @new: new entry to be added
+ * list_add_tail - add a new_entry entry
+ * @new_entry: new_entry entry to be added
  * @head: list head to add it before
  *
- * Insert a new entry before the specified head.
+ * Insert a new_entry entry before the specified head.
  * This is useful for implementing queues.
  */
-static inline void list_add_tail(struct list_head *new, struct list_head *head)
+static inline void list_add_tail(struct list_head *new_entry, struct list_head *head)
 {
-    __list_add(new, head->prev, head);
+    __list_add(new_entry, head->prev, head);
 }
 
 /*
@@ -132,7 +133,7 @@ static inline void list_del(struct list_head *entry)
 static inline void list_del_init(struct list_head *entry)
 {
     __list_del(entry->prev, entry->next);
-    INIT_LIST_HEAD(entry); 
+    INIT_LIST_HEAD(entry);
 }
 
 /**
@@ -160,7 +161,7 @@ static inline int list_empty(struct list_head *head)
  */
 #define list_for_each(pos, head) \
     for (pos = (head)->next; pos != (head); pos = pos->next)
-            
+
 /**
  * list_for_each_safe    -    iterate over a list safe against removal of list entry
  * @pos:    the &struct list_head to use as a loop counter.
@@ -189,7 +190,7 @@ static inline int list_empty(struct list_head *head)
     for (pos = (head)->next, i=0; (pos != (head) && i < index); pos = pos->next,i++)
 
 
-static inline int list_add_by_index(struct list_head *new, struct list_head *head, int index)
+static inline int list_add_by_index(struct list_head *new_entry, struct list_head *head, int index)
 {
     list_t *pos = head;
     int i = -1;
@@ -197,7 +198,7 @@ static inline int list_add_by_index(struct list_head *new, struct list_head *hea
     if (index >= 0) {
         for (pos = (head)->next, i=0; (pos != (head) && i < index); pos = pos->next,i++);
     }
-    list_add_tail (new, pos);
+    list_add_tail (new_entry, pos);
     return i;
 }
 
@@ -232,10 +233,8 @@ static inline int list_add_by_index(struct list_head *new, struct list_head *hea
         GETBY_EX(func, head, entrytype, member, datatype, pdata, (strcmp(pdata->datamember,data)==0))
 
 /* for more compicated */
-#if 0
 #define GET_ENTRY_BY_STRUCT(func, head, entrytype, member, datamember, datatype, equal_cond) \
         GETBY_EX(func, head, entrytype, member, datatype, pdata, equal_cond)
-#endif
 
 /* for index */
 #define GET_ENTRY_BY_INDEX(func, entrytype, member) \
@@ -264,6 +263,5 @@ static inline int list_add_by_index(struct list_head *new, struct list_head *hea
             } \
             return -1; \
         }
-
 
 #endif /* _MG_LIST_H */
