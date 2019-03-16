@@ -12199,8 +12199,15 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
 
     /** @} end of glyph_render_flags */
 
-#define GLYPH_ORIENTATION_UPRIGHT   0
-#define GLYPH_ORIENTATION_SIDEWAYS  1
+#define GLYPH_GRAVITY_NORTH                 0
+#define GLYPH_GRAVITY_EAST                  1
+#define GLYPH_GRAVITY_WEST                  2
+#define GLYPH_GRAVITY_SOUTH                 3
+
+#define GLYPH_ORIENTATION_UPRIGHT           GLYPH_GRAVITY_NORTH
+#define GLYPH_ORIENTATION_SIDEWAYS          GLYPH_GRAVITY_EAST
+#define GLYPH_ORIENTATION_SIDEWAYS_LEFT     GLYPH_GRAVITY_WEST
+#define GLYPH_ORIENTATION_INVERTED          GLYPH_GRAVITY_SOUTH
 
 #define GLYPH_HANGED_NONE           0
 #define GLYPH_HANGED_START          1
@@ -12232,6 +12239,10 @@ typedef struct _GLYPHEXTINFO {
      *      the glyph is in the standard horizontal orientation.
      *  - GLYPH_ORIENTATION_SIDEWAYS\n
      *      the glyph rotates 90° clockwise from horizontal.
+     *  - GLYPH_ORIENTATION_SIDEWAYS_LEFT\n
+     *      the glyph rotates 90° counter-clockwise from horizontal.
+     *  - GLYPH_ORIENTATION_INVERTED\n
+     *      the glyph is in the inverted horizontal orientation.
      */
     Uint8 orientation:2;
 } GLYPHEXTINFO;
@@ -12262,6 +12273,10 @@ typedef struct _GLYPHPOS {
      *      the glyph is in the standard horizontal orientation.
      *  - GLYPH_ORIENTATION_SIDEWAYS\n
      *      the glyph rotates 90° clockwise from horizontal.
+     *  - GLYPH_ORIENTATION_SIDEWAYS_LEFT\n
+     *      the glyph rotates 90° counter-clockwise from horizontal.
+     *  - GLYPH_ORIENTATION_INVERTED\n
+     *      the glyph is in the inverted horizontal orientation.
      */
     Uint8 orientation:2;
     /**
@@ -12365,6 +12380,23 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
 struct _GLYPHRUNINFO;
 typedef struct _GLYPHRUNINFO    GLYPHRUNINFO;
 
+/* same as HarfBuzz */
+typedef enum {
+    GLYPH_RUN_DIR_INVALID = 0,
+    GLYPH_RUN_DIR_LTR = 4,
+    GLYPH_RUN_DIR_RTL,
+    GLYPH_RUN_DIR_TTB,
+    GLYPH_RUN_DIR_BTT
+} GlyphRunDir;
+
+typedef enum {
+    GLYPH_ORIENT_NORTH  = GLYPH_GRAVITY_NORTH,
+    GLYPH_ORIENT_EAST   = GLYPH_GRAVITY_EAST,
+    GLYPH_ORIENT_WEST   = GLYPH_GRAVITY_WEST,
+    GLYPH_ORIENT_SOUTH  = GLYPH_GRAVITY_SOUTH,
+    GLYPH_ORIENT_MIXED,
+} GlyphOrient;
+
 /**
  * Split a Uchar32 paragraph string into text runs according to the
  * scripts of characters.
@@ -12372,11 +12404,10 @@ typedef struct _GLYPHRUNINFO    GLYPHRUNINFO;
  * This function also calculates the embedding levels and the
  * breaking opportunities of the string.
  */
-MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
+MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
         const char* lang_tag, const char* script_tag,
-        Uchar32* ucs, int nr_ucs, ParagraphDir base_dir,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        LOGFONT* logfont, RGBCOLOR color);
+        GlyphRunDir run_dir, GlyphOrient glyph_orient, ParagraphDir base_dir,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp, LOGFONT* logfont, RGBCOLOR color);
 
 /**
  * Set font of part characters. Please call this function before
@@ -12409,6 +12440,12 @@ MG_EXPORT BOOL GUIAPI ResetColorInGlyphRuns(GLYPHRUNINFO* run_info,
  */
 MG_EXPORT BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* run_info,
         Uint8 ctr, Uint8 wbr, Uint8 lbp);
+
+/**
+ * Reset the direction and orientation of glyph runs.
+ */
+MG_EXPORT BOOL GUIAPI ResetDirectionInGlyphRuns(GLYPHRUNINFO* run_info,
+        GlyphRunDir run_dir, GlyphOrient glyph_orient);
 
 /**
  * Destroy the glyph run info object. It also frees all data allocated

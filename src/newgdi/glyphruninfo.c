@@ -66,11 +66,10 @@ static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo)
     return FALSE;
 }
 
-GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
+GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
         const char* lang_tag, const char* script_tag,
-        Uchar32* ucs, int nr_ucs, ParagraphDir base_dir,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp,
-        LOGFONT* logfont, RGBCOLOR color)
+        GlyphRunDir run_dir, GlyphOrient glyph_orient, ParagraphDir base_dir,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp, LOGFONT* logfont, RGBCOLOR color)
 {
     BOOL ok = FALSE;
 
@@ -151,11 +150,15 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(
     runinfo->run_head.lf = logfont;
     runinfo->run_head.gs = NULL;
     runinfo->run_head.nr_gs = 0;
-    runinfo->run_head.lt = lang_tag;
-    runinfo->run_head.st = script_type;
-    runinfo->run_head.dir = base_dir;
+
     runinfo->run_head.si = 0;
     runinfo->run_head.nr_ucs = nr_ucs;
+
+    runinfo->run_head.lt = lang_tag;
+    runinfo->run_head.st = script_type;
+    runinfo->run_head.level = BIDI_DIR_TO_LEVEL(base_dir);
+    runinfo->run_head.dir = run_dir;
+    runinfo->run_head.ort = glyph_orient;
 
     // make the embedding levels of the bidi marks to be -1.
     level_or = 0, level_and = 1;
@@ -206,8 +209,19 @@ out:
 }
 
 BOOL GUIAPI SetPartFontInGlyphRuns(GLYPHRUNINFO* runinfo,
-    int start_index, int length, LOGFONT* logfont)
+        int start_index, int length, LOGFONT* logfont)
 {
+    if (runinfo == NULL)
+        return FALSE;
+
+    // can not change font after shaped the glyphs
+    if (runinfo->se.engine != NULL)
+        return FALSE;
+
+    // can not change font for empty runs
+    if (list_empty(&runinfo->run_head.list))
+        return FALSE;
+
     return FALSE;
 }
 
@@ -228,7 +242,7 @@ RGBCOLOR __mg_glyphruns_get_color(const GLYPHRUNINFO* runinfo, int index)
 }
 
 BOOL GUIAPI SetPartColorInGlyphRuns(GLYPHRUNINFO* runinfo,
-    int start_index, int length, RGBCOLOR color)
+        int start_index, int length, RGBCOLOR color)
 {
     UCHARCOLORMAP* color_entry = NULL;
 
@@ -263,12 +277,12 @@ BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* runinfo, LOGFONT* logfont)
     while (!list_empty(&runinfo->run_head.list)) {
         GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.list.prev;
         list_del(runinfo->run_head.list.prev);
-        runinfo->se.cb_destroy_glyphs(runinfo->se.shaping_engine, run->gs);
+        runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
 
-    if (runinfo->se.shaping_engine) {
-        runinfo->se.cb_destroy_engine(runinfo->se.shaping_engine);
+    if (runinfo->se.engine) {
+        runinfo->se.destroy_engine(runinfo->se.engine);
     }
 
     if (runinfo->l2g) {
@@ -284,6 +298,49 @@ BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* runinfo, LOGFONT* logfont)
     runinfo->run_head.lf = logfont;
 
     return init_glyph_runs(runinfo);
+}
+
+static void set_run_dir(GLYPHRUNINFO* runinfo, GLYPHRUN* run,
+        GlyphRunDir run_dir, GlyphOrient glyph_orient)
+{
+}
+
+BOOL GUIAPI ResetDirectionInGlyphRuns(GLYPHRUNINFO* runinfo,
+        GlyphRunDir run_dir, GlyphOrient glyph_orient)
+{
+    struct list_head *i;
+
+    if (runinfo == NULL)
+        return FALSE;
+
+    runinfo->run_head.dir = run_dir;
+    runinfo->run_head.ort = glyph_orient;
+
+    list_for_each(i, &runinfo->run_head.list) {
+        GLYPHRUN* run = (GLYPHRUN*)i;
+        if (runinfo->se.engine && run->gs) {
+            runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
+        }
+
+        set_run_dir(runinfo, run, run_dir, glyph_orient);
+    }
+
+    if (runinfo->l2g) {
+        free(runinfo->l2g);
+        runinfo->l2g = NULL;
+    }
+
+    if (runinfo->ges) {
+        free(runinfo->ges);
+        runinfo->ges = NULL;
+    }
+
+    if (runinfo->se.engine) {
+        runinfo->se.destroy_engine(runinfo->se.engine);
+        runinfo->se.engine = NULL;
+    }
+
+    return TRUE;
 }
 
 BOOL GUIAPI ResetColorInGlyphRuns(GLYPHRUNINFO* runinfo, RGBCOLOR color)
@@ -312,7 +369,7 @@ BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* runinfo,
         runinfo->bos = NULL;
     }
 
-    // Calculate the breaking opportunities
+    // Re-calculate the breaking opportunities
     if (UStrGetBreaks(runinfo->run_head.st, ctr, wbr, lbp,
             runinfo->ucs, runinfo->run_head.nr_ucs, &runinfo->bos) == 0) {
         _DBG_PRINTF("%s: failed to get breaking opportunities.\n");
@@ -336,12 +393,12 @@ BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* runinfo)
     while (!list_empty(&runinfo->run_head.list)) {
         GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.list.prev;
         list_del(runinfo->run_head.list.prev);
-        runinfo->se.cb_destroy_glyphs(runinfo->se.shaping_engine, run->gs);
+        runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
 
-    if (runinfo->se.shaping_engine) {
-        runinfo->se.cb_destroy_engine(runinfo->se.shaping_engine);
+    if (runinfo->se.engine) {
+        runinfo->se.destroy_engine(runinfo->se.engine);
     }
 
     if (runinfo->l2g) free(runinfo->l2g);

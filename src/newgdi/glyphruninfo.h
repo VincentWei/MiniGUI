@@ -43,55 +43,47 @@
 
 #include "list.h"
 
-typedef Glyph32 (*CB_GET_GLYPH_INFO) (void* shaping_engine,
+typedef Glyph32 (*CB_GET_GLYPH_INFO) (void* engine,
         void* glyph_infos, int index, int* cluster);
 
-typedef BOOL (*CB_DESTROY_GLYPHS) (void* shaping_engine, void* glyph_infos);
+typedef BOOL (*CB_DESTROY_GLYPHS) (void* engine, void* glyph_infos);
 
-typedef BOOL (*CB_DESTROY_ENGINE) (void* shaping_engine);
+typedef BOOL (*CB_DESTROY_ENGINE) (void* engine);
 
 typedef struct _SHAPPINGENGINE {
     /* The pointer to the shaping engine */
-    void*               shaping_engine;
+    void*               engine;
 
     /* the callback reverse the glyphs */
-    CB_REVERSE_ARRAY    cb_reverse_glyphs;
+    CB_REVERSE_ARRAY    reverse_glyphs;
 
     /* The callback returns the glyph value and cluster
        from a void glyph information */
-    CB_GET_GLYPH_INFO   cb_get_glyph_info;
+    CB_GET_GLYPH_INFO   get_glyph_info;
 
     /* the callback destroy the shaped glyph info */
-    CB_DESTROY_GLYPHS   cb_destroy_glyphs;
+    CB_DESTROY_GLYPHS   destroy_glyphs;
 
     /* the callback destroy the shapping engine instance */
-    CB_DESTROY_ENGINE   cb_destroy_engine;
+    CB_DESTROY_ENGINE   destroy_engine;
 } SHAPPINGENGINE;
-
-/* same as HarfBuzz */
-typedef enum {
-    GR_DIRECTION_INVALID = 0,
-    GR_DIRECTION_LTR = 4,
-    GR_DIRECTION_RTL,
-    GR_DIRECTION_TTB,
-    GR_DIRECTION_BTT
-} GlyphRunDir;
 
 typedef struct _GLYPHRUN {
     struct list_head list;
-    LOGFONT*    lf;     // The logfont for this run.
+    LOGFONT*    lf;     // the logfont for this run.
     const char* lt;     // language tag
     void*       gs;     // the shaped glyph information
+
     int         nr_gs;  // the number of shaped glyphs
+    int         si;     // start index in the Unicode string
+    int         nr_ucs; // the number of Unicode characters
 
-    int         si;     // start index
-    int         nr_ucs; // the number of characters
-
-    ScriptType  st;     // script type
-    GlyphRunDir dir;    // The direction
-
-    Uint8       all_even;
-    Uint8       all_odd;
+    Uint32      st:8;       // script type
+    Uint32      level:8;    // the bidi level
+    Uint32      dir:4;      // the run direction
+    Uint32      ort:2;      // the glyph orientation
+    Uint32      all_even:1; // flag indicating all level is even
+    Uint8       all_odd:1;  // flag indicating all level is odd
 } GLYPHRUN;
 
 // NOTE: we arrange the fields carefully to avoid wasting space when
