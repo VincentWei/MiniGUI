@@ -39,11 +39,20 @@
 **
 **  https://www.unicode.org/reports/tr9/
 **
-** Created by WEI Yongming at 2019/03/08
+** Created at 2019/03/08
 **
-** This implementation is based on LGPL'd FriBidi:
+** This implementation is copied from LGPL'd FriBidi and revised for MiniGUI
+** By Vincent Wei.
 **
 **  https://github.com/fribidi/fribidi
+**
+** Authors of FriBidi:
+**   Behdad Esfahbod, 2001, 2002, 2004
+**   Dov Grobgeld, 1999, 2000
+**
+** Copyright (C) 2004 Sharif FarsiWeb, Inc
+** Copyright (C) 2001,2002 Behdad Esfahbod
+** Copyright (C) 1999,2000 Dov Grobgeld
 */
 
 #include <stdio.h>

@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -120,7 +120,7 @@ BOOL GUIAPI InitBitmapPixelFormat (HDC hdc, PBITMAP bmp)
     return TRUE;
 }
 
-static BOOL find_color_key (GAL_PixelFormat* format, const MYBITMAP* my_bmp, 
+static BOOL find_color_key (GAL_PixelFormat* format, const MYBITMAP* my_bmp,
                           const RGB* pal, RGB* trans)
 {
     BOOL ret = FALSE;
@@ -190,7 +190,7 @@ inline static BOOL device_has_alpha(HDC hdc)
 }
 
 /* Initializes a bitmap object with a mybitmap object */
-static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp, 
+static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
                 const MYBITMAP* my_bmp, RGB* pal, BOOL alloc_all)
 {
     int ret = ERR_BMP_OK;
@@ -238,7 +238,7 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
                 trans.b = GetBValue (my_bmp->transparent);
             }
         }
-        bmp->bmColorKey = GAL_MapRGB (pdc->surface->format, 
+        bmp->bmColorKey = GAL_MapRGB (pdc->surface->format,
                         trans.r, trans.g, trans.b);
     }
     else
@@ -256,7 +256,7 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
         if (!device_has_alpha(hdc)) {
             bmp->bmType |= BMP_TYPE_ALPHA_MASK;
             alpha_pitch = (bmp->bmWidth + 3) & (~3);
-            
+
             if (alloc_all) {
                 size = bmp->bmHeight * alpha_pitch;
             } else {
@@ -264,7 +264,7 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
             }
             bmp->bmAlphaMask = calloc(1, size);
             bmp->bmAlphaPitch = alpha_pitch;
-            
+
             if (bmp->bmAlphaMask == NULL) {
                 ret = ERR_BMP_MEM;
                 goto cleanup_and_ret;
@@ -344,7 +344,7 @@ static void compilergba_bitmap_sl (HDC hdc, BYTE* bits, BYTE* alpha_mask, MYBITM
 /*
  * This function expand a mybitmap to a compiled bitmap.
  */
-int GUIAPI ExpandMyBitmap (HDC hdc, PBITMAP bmp, const MYBITMAP* my_bmp, 
+int GUIAPI ExpandMyBitmap (HDC hdc, PBITMAP bmp, const MYBITMAP* my_bmp,
                            const RGB* pal, int frame)
 {
     Uint8* bits;
@@ -381,29 +381,29 @@ int GUIAPI ExpandMyBitmap (HDC hdc, PBITMAP bmp, const MYBITMAP* my_bmp,
 
     switch (my_bmp->depth) {
     case 1:
-        ExpandMonoBitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch, 
-                        my_bmp->w, my_bmp->h, my_bmp->flags, 
-                        GAL_MapRGB (pdc->surface->format, 
+        ExpandMonoBitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch,
+                        my_bmp->w, my_bmp->h, my_bmp->flags,
+                        GAL_MapRGB (pdc->surface->format,
                                 pal[0].r, pal[0].g, pal[0].b),
-                        GAL_MapRGB (pdc->surface->format, 
+                        GAL_MapRGB (pdc->surface->format,
                                 pal[1].r, pal[1].g, pal[1].b));
         break;
     case 4:
-        Expand16CBitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch, 
+        Expand16CBitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch,
                         my_bmp->w, my_bmp->h, my_bmp->flags, pal);
         break;
     case 8:
-        Expand256CBitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch, 
+        Expand256CBitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch,
                         my_bmp->w, my_bmp->h, my_bmp->flags, pal, NULL, NULL);
         break;
     case 24:
-        CompileRGBABitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch, 
-                        my_bmp->w, my_bmp->h, my_bmp->flags & ~MYBMP_RGBSIZE_4, 
+        CompileRGBABitmap (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch,
+                        my_bmp->w, my_bmp->h, my_bmp->flags & ~MYBMP_RGBSIZE_4,
                         pdc->surface->format, NULL, NULL);
         break;
     case 32:
-        CompileRGBABitmapEx (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch, 
-                        my_bmp->w, my_bmp->h, my_bmp->flags | MYBMP_RGBSIZE_4, 
+        CompileRGBABitmapEx (hdc, bmp->bmBits, bmp->bmPitch, bits, my_bmp->pitch,
+                        my_bmp->w, my_bmp->h, my_bmp->flags | MYBMP_RGBSIZE_4,
                         pdc->surface->format, NULL, NULL, alpha_mask);
         break;
     default:
@@ -441,7 +441,7 @@ static void cb_load_bitmap_sl (void* context, MYBITMAP* my_bmp, int y)
     pdc = dc_HDC2PDC (info->hdc);
     src_bits = my_bmp->bits;
     dst_bits = info->bmp->bmBits + info->bmp->bmPitch * y;
-    
+
     if (info->bmp->bmType & BMP_TYPE_ALPHA_MASK) {
         dst_alpha_mask= info->bmp->bmAlphaMask + info->bmp->bmAlphaPitch * y;
     } else {
@@ -450,27 +450,27 @@ static void cb_load_bitmap_sl (void* context, MYBITMAP* my_bmp, int y)
 
     switch (my_bmp->depth) {
     case 1:
-        ExpandMonoBitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, my_bmp->w, 1, my_bmp->flags, 
-                        GAL_MapRGB (pdc->surface->format, 
+        ExpandMonoBitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch, my_bmp->w, 1, my_bmp->flags,
+                        GAL_MapRGB (pdc->surface->format,
                             info->pal[0].r, info->pal[0].g, info->pal[0].b),
-                        GAL_MapRGB (pdc->surface->format, 
+                        GAL_MapRGB (pdc->surface->format,
                             info->pal[1].r, info->pal[1].g, info->pal[1].b));
         break;
     case 4:
-        Expand16CBitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, 
+        Expand16CBitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch,
                         my_bmp->w, 1, my_bmp->flags, info->pal);
         break;
     case 8:
-        Expand256CBitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, 
+        Expand256CBitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch,
                         my_bmp->w, 1, my_bmp->flags, info->pal, NULL, NULL);
         break;
     case 24:
-        CompileRGBABitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, 
-                        my_bmp->w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4, 
+        CompileRGBABitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch,
+                        my_bmp->w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4,
                         pdc->surface->format, NULL, NULL);
         break;
     case 32:
@@ -516,7 +516,7 @@ int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP bmp, const char* file_name)
     int ret;
     MG_RWops* area;
     const char* ext;
-    
+
     /* format, png, jpg etc. */
     if ((ext = get_extension (file_name)) == NULL) {
         return ERR_BMP_UNKNOWN_TYPE;
@@ -534,7 +534,7 @@ int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP bmp, const char* file_name)
     return ret;
 }
 
-int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP bmp, const void* mem, int size, 
+int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP bmp, const void* mem, int size,
                               const char* ext)
 {
     int ret;
@@ -554,11 +554,11 @@ int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP bmp, const void* mem, int size,
 /* this function delete the pixel format of a bitmap */
 void GUIAPI DeleteBitmapAlphaPixel (PBITMAP bmp)
 {
-	if (bmp->bmType & BMP_TYPE_ALPHA_MASK) {
+    if (bmp->bmType & BMP_TYPE_ALPHA_MASK) {
        free (bmp->bmAlphaMask);
-	   bmp->bmType &= ~BMP_TYPE_ALPHA_MASK;
-	   bmp->bmAlphaMask = NULL;
-	}
+       bmp->bmType &= ~BMP_TYPE_ALPHA_MASK;
+       bmp->bmAlphaMask = NULL;
+    }
 }
 
 /* this function unloads bitmap */
@@ -590,31 +590,31 @@ static void cb_paint_image_sl (void* context, MYBITMAP* my_bmp, int y)
 
     switch (my_bmp->depth) {
     case 1:
-        ExpandMonoBitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, my_bmp->w, 1, my_bmp->flags, 
-                        GAL_MapRGB (info->pdc->surface->format, 
+        ExpandMonoBitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch, my_bmp->w, 1, my_bmp->flags,
+                        GAL_MapRGB (info->pdc->surface->format,
                             info->pal[0].r, info->pal[0].g, info->pal[0].b),
-                        GAL_MapRGB (info->pdc->surface->format, 
+                        GAL_MapRGB (info->pdc->surface->format,
                             info->pal[1].r, info->pal[1].g, info->pal[1].b));
         break;
     case 4:
-        Expand16CBitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, 
+        Expand16CBitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch,
                         my_bmp->w, 1, my_bmp->flags, info->pal);
         break;
     case 8:
-        Expand256CBitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, 
+        Expand256CBitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch,
                         my_bmp->w, 1, my_bmp->flags, info->pal, NULL, NULL);
         break;
     case 24:
-        CompileRGBABitmap (info->hdc, dst_bits, info->bmp->bmPitch, 
-                        src_bits, my_bmp->pitch, 
-                        my_bmp->w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4, 
+        CompileRGBABitmap (info->hdc, dst_bits, info->bmp->bmPitch,
+                        src_bits, my_bmp->pitch,
+                        my_bmp->w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4,
                         pdc->surface->format, NULL, NULL);
         break;
     case 32:
-     	compilergba_bitmap_sl (info->hdc, dst_bits, info->bmp->bmAlphaMask, my_bmp);
+         compilergba_bitmap_sl (info->hdc, dst_bits, info->bmp->bmAlphaMask, my_bmp);
         break;
     default:
         break;
@@ -631,7 +631,7 @@ int GUIAPI PaintImageEx (HDC hdc, int x, int y, MG_RWops* area, const char *ext)
     int ret;
     void* load_info;
     FILL_BITMAP_INFO info;
-        
+
     info.hdc = hdc;
     info.pdc = NULL;
     info.bmp = &bmp;
@@ -671,7 +671,7 @@ int GUIAPI PaintImageFromFile (HDC hdc, int x, int y, const char *file_name)
     MG_RWops* area;
     const char* ext;
 
-    if ((ext = get_extension (file_name)) == NULL) 
+    if ((ext = get_extension (file_name)) == NULL)
         return ERR_BMP_UNKNOWN_TYPE;
 
     if (!(area = MGUI_RWFromFile (file_name, "rb"))) {
@@ -685,7 +685,7 @@ int GUIAPI PaintImageFromFile (HDC hdc, int x, int y, const char *file_name)
     return ret;
 }
 
-int GUIAPI PaintImageFromMem (HDC hdc, int x, int y, const void* mem, 
+int GUIAPI PaintImageFromMem (HDC hdc, int x, int y, const void* mem,
                 int size, const char *ext)
 {
     int ret;
@@ -707,11 +707,11 @@ typedef struct {
     BITMAP* bmp;
     RGB* pal;
     FILLINFO fill_info;
-    
+
     PDC pdc;
     int *dda_ys;
     Uint8* expanded_line;
-	Uint8* expanded_alpha_line;
+    Uint8* expanded_alpha_line;
     int expanded_len;
 } STRETCH_PAINT_IMAGE_INFO;
 
@@ -719,59 +719,59 @@ static void _cb_stretch_paint_image_sl (void* context, MYBITMAP* my_bmp, int yy)
 {
     STRETCH_PAINT_IMAGE_INFO* info = (STRETCH_PAINT_IMAGE_INFO*)context;
     BYTE* expanded_line;
-	BYTE* expanded_alpha_line;
+    BYTE* expanded_alpha_line;
     int expanded_len;
     int nr_ident_lines;
 
-    if (info->dda_ys 
-                    && (info->dda_ys [yy + 1] - info->dda_ys [yy]) == 0 
+    if (info->dda_ys
+                    && (info->dda_ys [yy + 1] - info->dda_ys [yy]) == 0
                     && yy != 0)
         return;
 
     if (info->expanded_line) {
         expanded_line = info->expanded_line;
         expanded_len = info->expanded_len;
-		expanded_alpha_line = info->expanded_alpha_line;
+        expanded_alpha_line = info->expanded_alpha_line;
     }
     else {
         expanded_line = info->bmp->bmBits;
         expanded_len = info->bmp->bmPitch;
-		expanded_alpha_line = info->bmp->bmAlphaMask;
+        expanded_alpha_line = info->bmp->bmAlphaMask;
     }
 
     /* expand the line into expanded_line first */
     switch (my_bmp->depth) {
     case 1:
         ExpandMonoBitmap (info->hdc, expanded_line, expanded_len,
-                        my_bmp->bits, my_bmp->pitch, my_bmp->w, 1, 
-                        my_bmp->flags, 
-                        GAL_MapRGB (info->pdc->surface->format, 
+                        my_bmp->bits, my_bmp->pitch, my_bmp->w, 1,
+                        my_bmp->flags,
+                        GAL_MapRGB (info->pdc->surface->format,
                             info->pal[0].r, info->pal[0].g, info->pal[0].b),
-                        GAL_MapRGB (info->pdc->surface->format, 
+                        GAL_MapRGB (info->pdc->surface->format,
                             info->pal[1].r, info->pal[1].g, info->pal[1].b));
         break;
 
     case 4:
-        Expand16CBitmap (info->hdc, expanded_line, expanded_len, 
-                        my_bmp->bits, my_bmp->pitch, 
+        Expand16CBitmap (info->hdc, expanded_line, expanded_len,
+                        my_bmp->bits, my_bmp->pitch,
                         my_bmp->w, 1, my_bmp->flags, info->pal);
         break;
 
     case 8:
         Expand256CBitmap (info->hdc, expanded_line, expanded_len,
-                        my_bmp->bits, my_bmp->pitch, 
+                        my_bmp->bits, my_bmp->pitch,
                         my_bmp->w, 1, my_bmp->flags, info->pal, NULL, NULL);
         break;
 
     case 24:
         CompileRGBABitmap (info->hdc, expanded_line, expanded_len,
-                        my_bmp->bits, my_bmp->pitch, 
-                        my_bmp->w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4, 
+                        my_bmp->bits, my_bmp->pitch,
+                        my_bmp->w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4,
                         info->pdc->surface->format, NULL, NULL);
         break;
 
     case 32:
-    	compilergba_bitmap_sl (info->hdc, expanded_line, expanded_alpha_line, my_bmp);
+        compilergba_bitmap_sl (info->hdc, expanded_line, expanded_alpha_line, my_bmp);
         break;
 
     default:
@@ -790,7 +790,7 @@ static void _cb_stretch_paint_image_sl (void* context, MYBITMAP* my_bmp, int yy)
         x = 0; sx = 0;
         dp1 = info->expanded_line;
         dp2 = info->bmp->bmBits;
-		dp3 = info->expanded_alpha_line;
+        dp3 = info->expanded_alpha_line;
 
         switch (info->bmp->bmBytesPerPixel) {
         case 1:
@@ -806,16 +806,16 @@ static void _cb_stretch_paint_image_sl (void* context, MYBITMAP* my_bmp, int yy)
                 }
             }
         break;
-    
+
         case 2:
             {
                 while (x < info->bmp->bmWidth) {
                     index = (sx >> 16) * 2;
-                    *(unsigned short *) (dp2 + x * 2) 
+                    *(unsigned short *) (dp2 + x * 2)
                             = *(unsigned short *) (dp1 + index);
                     if (info->bmp->bmType & BMP_TYPE_ALPHA_MASK) {
-						info->bmp->bmAlphaMask[x] = dp3[index >> 1];
-					}
+                        info->bmp->bmAlphaMask[x] = dp3[index >> 1];
+                    }
                     sx += xfactor;
                     x++;
                 }
@@ -826,9 +826,9 @@ static void _cb_stretch_paint_image_sl (void* context, MYBITMAP* my_bmp, int yy)
                 while (x < info->bmp->bmWidth) {
                     index = (sx >> 16) * 3;
 #if 0
-                    *(unsigned short *) (dp2 + x * 3) 
+                    *(unsigned short *) (dp2 + x * 3)
                             = *(unsigned short *) (dp1 + (sx >> 16) * 3);
-                    *(unsigned char *) (dp2 + x * 3 + 2) 
+                    *(unsigned char *) (dp2 + x * 3 + 2)
                             = *(unsigned char *) (dp1 + (sx >> 16) * 3 + 2);
 #else
                     dp2 [x*3] = dp1 [index];
@@ -847,7 +847,7 @@ static void _cb_stretch_paint_image_sl (void* context, MYBITMAP* my_bmp, int yy)
             {
                 while (x < info->bmp->bmWidth) {
                     index = (sx >> 16) * 4;
-                    *(unsigned *) (dp2 + x * 4) 
+                    *(unsigned *) (dp2 + x * 4)
                             = *(unsigned *) (dp1 + index);
                     if (info->bmp->bmType & BMP_TYPE_ALPHA_MASK) {
                         info->bmp->bmAlphaMask[x] = dp3[index >> 2];
@@ -859,14 +859,14 @@ static void _cb_stretch_paint_image_sl (void* context, MYBITMAP* my_bmp, int yy)
         break;
         }
     }
-    
+
     /* ok to output the lines */
     if (info->dda_ys) {
         if (info->dda_ys [yy] < info->fill_info.dst_rect.h) {
-       	    int i = 0;
+               int i = 0;
             nr_ident_lines = info->dda_ys [yy + 1] - info->dda_ys [yy];
             for (i = 0; i < nr_ident_lines; i++) {
-                _fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info, 
+                _fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info,
                                 info->dda_ys [yy] + i);
             }
         }
@@ -883,7 +883,7 @@ static void _deinit_stretch_paint_info (STRETCH_PAINT_IMAGE_INFO* info)
         free (info->expanded_alpha_line);
 }
 
-static void _init_stretch_paint_info (STRETCH_PAINT_IMAGE_INFO* info, 
+static void _init_stretch_paint_info (STRETCH_PAINT_IMAGE_INFO* info,
                 const MYBITMAP* mybmp, const BITMAP* bmp)
 {
     if (mybmp->w == bmp->bmWidth) {
@@ -924,10 +924,10 @@ static void _init_stretch_paint_info (STRETCH_PAINT_IMAGE_INFO* info,
             while (dy < bmp->bmHeight) {
                 int syint = sy >> 16;
                 sy += yfactor;
-    
+
                 if ((sy >> 16) != syint)
                     break;
-    
+
                 info->dda_ys [yy] = dy;
                 dy++;
             }
@@ -950,7 +950,7 @@ static void _init_stretch_paint_info (STRETCH_PAINT_IMAGE_INFO* info,
 
 }
 
-int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h, 
+int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h,
                 MG_RWops* area, const char *ext)
 {
     MYBITMAP my_bmp;
@@ -985,14 +985,14 @@ int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h,
     _init_stretch_paint_info (&info, &my_bmp, &bmp);
 
     info.pdc = _begin_fill_bitmap (hdc, x, y, 0, 0, &bmp, &info.fill_info);
-    if (info.pdc == NULL) {	    
+    if (info.pdc == NULL) {
         free (info.dda_ys);
         ret = ERR_BMP_OTHER;
         goto fail2;
     }
 
     bmp.bmHeight = 1;
-    ret = LoadMyBitmapSL (area, load_info, &my_bmp, 
+    ret = LoadMyBitmapSL (area, load_info, &my_bmp,
                     _cb_stretch_paint_image_sl, &info);
 
     _end_fill_bitmap (info.pdc, &bmp, &info.fill_info);
@@ -1006,14 +1006,14 @@ fail1:
     return ret;
 }
 
-int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y, int w, int h, 
+int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y, int w, int h,
                 const char *file_name)
 {
     int ret;
     MG_RWops* area;
     const char* ext;
 
-    if ((ext = get_extension (file_name)) == NULL) 
+    if ((ext = get_extension (file_name)) == NULL)
         return ERR_BMP_UNKNOWN_TYPE;
 
     if (!(area = MGUI_RWFromFile (file_name, "rb"))) {
@@ -1027,7 +1027,7 @@ int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y, int w, int h,
     return ret;
 }
 
-int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y, int w, int h, 
+int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y, int w, int h,
                 const void* mem, int size, const char *ext)
 {
     int ret;
@@ -1052,14 +1052,14 @@ static BYTE*  cb_directdraw_pixel(HDC hdc, MYBITMAP_CONTXT* mybmp, Uint32 pixel,
     MYBITMAP* my_bmp =mybmp->mybmp;
 
     if (pdc->rop == ROP_SET) {
-        if (mybmp->AlphaPixelFormat != NULL 
+        if (mybmp->AlphaPixelFormat != NULL
                 && mybmp->AlphaPixelFormat != dst->format) {
             if ((my_bmp->flags & MYBMP_ALPHA && my_bmp->depth == 32) && dst->format->BitsPerPixel > 8
                     && (my_bmp->flags & MYBMP_TRANSPARENT)) {
                 dest = gal_PutPixelKeyAlpha (dst, dest, pixel, mybmp);
                 return dest;
             }
-            else if ((my_bmp->flags & MYBMP_ALPHA && my_bmp->depth == 32) && 
+            else if ((my_bmp->flags & MYBMP_ALPHA && my_bmp->depth == 32) &&
                     dst->format->BitsPerPixel > 8) {
                 dest = gal_PutPixelAlpha (dst, dest, pixel, mybmp);
                 return dest;
@@ -1089,7 +1089,7 @@ static BYTE*  cb_directdraw_pixel(HDC hdc, MYBITMAP_CONTXT* mybmp, Uint32 pixel,
     return dest;
 }
 
-static void cb_direct_paint_mybmp_sl (void* context, int stepx, 
+static void cb_direct_paint_mybmp_sl (void* context, int stepx,
         int y, MYBITMAP_CONTXT* mybmp_contxt)
 {
     FILL_BITMAP_INFO* info = (FILL_BITMAP_INFO*)context;
@@ -1121,35 +1121,35 @@ static void cb_direct_paint_mybmp_sl (void* context, int stepx,
 
     switch(my_bmp->depth){
         case 1:
-            ExpandPartMonoBitmap (info->hdc, dst_bits, pdc->surface->pitch, 
-                    src_bits, my_bmp->pitch, pdc->surface->clip_rect.w, 1, 
-                    my_bmp->flags, GAL_MapRGB (pdc->surface->format, 
+            ExpandPartMonoBitmap (info->hdc, dst_bits, pdc->surface->pitch,
+                    src_bits, my_bmp->pitch, pdc->surface->clip_rect.w, 1,
+                    my_bmp->flags, GAL_MapRGB (pdc->surface->format,
                         info->pal[0].r, info->pal[0].g, info->pal[0].b),
-                    GAL_MapRGB (pdc->surface->format, info->pal[1].r, 
+                    GAL_MapRGB (pdc->surface->format, info->pal[1].r,
                         info->pal[1].g, info->pal[1].b),stepx,cb_directdraw_pixel,
                     mybmp_contxt);
             break;
         case 4:
-            ExpandPart16CBitmap (info->hdc, dst_bits, pdc->surface->pitch, 
-                    src_bits, my_bmp->pitch, pdc->surface->clip_rect.w,1, 
+            ExpandPart16CBitmap (info->hdc, dst_bits, pdc->surface->pitch,
+                    src_bits, my_bmp->pitch, pdc->surface->clip_rect.w,1,
                     my_bmp->flags, info->pal, stepx,cb_directdraw_pixel,mybmp_contxt);
             break;
         case 8:
             src_bits +=stepx;
-            Expand256CBitmap (info->hdc, dst_bits, pdc->surface->pitch, src_bits, my_bmp->pitch, 
-                        pdc->surface->clip_rect.w, 1, my_bmp->flags, 
+            Expand256CBitmap (info->hdc, dst_bits, pdc->surface->pitch, src_bits, my_bmp->pitch,
+                        pdc->surface->clip_rect.w, 1, my_bmp->flags,
                         info->pal,cb_directdraw_pixel,mybmp_contxt);
             break;
         case 24:
             src_bits +=stepx*3;
-            CompileRGBABitmap (info->hdc, dst_bits, pdc->surface->pitch, src_bits, my_bmp->pitch, 
-                        pdc->surface->clip_rect.w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4, 
+            CompileRGBABitmap (info->hdc, dst_bits, pdc->surface->pitch, src_bits, my_bmp->pitch,
+                        pdc->surface->clip_rect.w, 1, my_bmp->flags & ~MYBMP_RGBSIZE_4,
                         mybmp_contxt->AlphaPixelFormat,cb_directdraw_pixel,mybmp_contxt);
             break;
         case 32:
             src_bits +=stepx*4;
-            CompileRGBABitmap (info->hdc, dst_bits, pdc->surface->pitch, src_bits, my_bmp->pitch, 
-                    pdc->surface->clip_rect.w, 1, my_bmp->flags |MYBMP_RGBSIZE_4, 
+            CompileRGBABitmap (info->hdc, dst_bits, pdc->surface->pitch, src_bits, my_bmp->pitch,
+                    pdc->surface->clip_rect.w, 1, my_bmp->flags |MYBMP_RGBSIZE_4,
                     mybmp_contxt->AlphaPixelFormat,cb_directdraw_pixel,mybmp_contxt);
     }
 }
@@ -1211,7 +1211,7 @@ int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal
                 trans.b = GetBValue (mybmp->transparent);
             }
         }
-        colorKey = GAL_MapRGB (pdc->surface->format, 
+        colorKey = GAL_MapRGB (pdc->surface->format,
                 trans.r, trans.g, trans.b);
     }
     else
@@ -1250,8 +1250,8 @@ int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal
 
         if (pdc->surface->format->BitsPerPixel > 8) {
 
-            AlphaPixelFormat 
-                    = GAL_AllocFormat (pdc->surface->format->BytesPerPixel << 3, 
+            AlphaPixelFormat
+                    = GAL_AllocFormat (pdc->surface->format->BytesPerPixel << 3,
                                         Rmask, Gmask, Bmask, Amask);
             if (!AlphaPixelFormat)
             {
@@ -1303,7 +1303,7 @@ int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal
     info.hdc = hdc;
     info.pdc = pdc;
     info.bmp = NULL;
-    
+
     info.fill_info.dst_rect =dst_rect;
     cliprect = pdc->ecrgn.head;
     while(cliprect){
@@ -1321,7 +1321,7 @@ int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal
         cliprect = cliprect->next;
     }
 
-    pdc->bkmode =oldbkmode; 
+    pdc->bkmode =oldbkmode;
     __mg_leave_drawing (pdc);
     pdc->rc_output = rc_tmp;
     UNLOCK_GCRINFO (pdc);
@@ -1379,15 +1379,15 @@ int GUIAPI SaveBitmapToFile (HDC hdc, PBITMAP bmp, const char* file_name)
 
 int GUIAPI SetBitmapKeyColor (HDC hdc, PBITMAP bmp, Uint8 r, Uint8 g, Uint8 b)
 {
-    int ret = ERR_BMP_UNKNOWN_TYPE; 
+    int ret = ERR_BMP_UNKNOWN_TYPE;
 
-	if (bmp) {
+    if (bmp) {
         PDC pdc = dc_HDC2PDC (hdc);
         bmp->bmColorKey = GAL_MapRGB (pdc->surface->format, r, g, b);
 
         bmp->bmType |= BMP_TYPE_COLORKEY;
         ret = ERR_BMP_OK;
-	}		
+    }
 
     return ret;
 }
