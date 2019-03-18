@@ -9008,6 +9008,17 @@ static inline int GUIAPI ScriptTypeFromISO15924Code (const char* iso15924)
             iso15924[2], iso15924[1], iso15924[0]));
 }
 
+
+typedef enum _UCharVOP {
+    UCHAR_VOP_U = 0,
+    UCHAR_VOP_R,
+    UCHAR_VOP_TU,
+    UCHAR_VOP_TR,
+} UCharVOP;
+
+/** Get the vertical orientation property of a Unicode character */
+MG_EXPORT UCharVOP GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
+
     /** @} end of unicode_ops */
 
 #endif /* _MGCHARSET_UNICODE */
