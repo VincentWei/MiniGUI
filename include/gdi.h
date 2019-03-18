@@ -12410,8 +12410,13 @@ typedef enum {
     GLYPH_ORIENT_EAST   = GLYPH_GRAVITY_EAST,
     GLYPH_ORIENT_WEST   = GLYPH_GRAVITY_WEST,
     GLYPH_ORIENT_SOUTH  = GLYPH_GRAVITY_SOUTH,
-    GLYPH_ORIENT_MIXED,
 } GlyphOrient;
+
+typedef enum {
+    GLYPH_ORIENT_POLICY_NATURAL,
+    GLYPH_ORIENT_POLICY_STRONG,
+    GLYPH_ORIENT_POLICY_LINE,
+} GlyphOrientPolicy;
 
 /**
  * Split a Uchar32 paragraph string into text runs according to the
@@ -12421,9 +12426,11 @@ typedef enum {
  * breaking opportunities of the string.
  */
 MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
-        const char* lang_tag, const char* script_tag,
-        GlyphRunDir run_dir, GlyphOrient glyph_orient, ParagraphDir base_dir,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp, LOGFONT* logfont, RGBCOLOR color);
+        LanguageCode lang_code, ScriptType script_type,
+        ParagraphDir base_dir, GlyphRunDir run_dir,
+        GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp,
+        LOGFONT* logfont, RGBCOLOR color);
 
 /**
  * Set font of part characters. Please call this function before

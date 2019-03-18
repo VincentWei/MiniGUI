@@ -48,6 +48,44 @@
 #define UCHAR_IDSPACE       0x3000
 #define UCHAR_TAB           0x0009
 
+#define PAREN_STACK_DEPTH 128
+
+typedef struct _ParenStackEntry {
+    int pair_index;
+    ScriptType script_type;
+} ParenStackEntry;
+
+typedef struct _ScriptIterator {
+    const Uchar32* ucs_start;
+    const Uchar32* ucs_end;
+    const Uchar32* script_start;
+    const Uchar32* script_end;
+    int paren_sp;
+
+    ScriptType script_type;
+    ParenStackEntry paren_stack[PAREN_STACK_DEPTH];
+} ScriptIterator;
+
+typedef struct _WidthIterator {
+    const Uchar32*  ucs_start;
+    const Uchar32*  ucs_end;
+    const Uchar32*  start;
+    const Uchar32*  end;
+    BOOL            upright;
+} WidthIterator;
+
+typedef struct _EmojiIterator {
+    const Uchar32 *text_start;
+    const Uchar32 *text_end;
+    const Uchar32 *start;
+    const Uchar32 *end;
+    BOOL is_emoji;
+
+    unsigned char *types;
+    unsigned int n_chars;
+    unsigned int cursor;
+} EmojiIterator;
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -80,6 +118,19 @@ BOOL _unicode_is_emoji_text_default(Uchar32 ch);
 BOOL _unicode_is_emoji_emoji_default(Uchar32 ch);
 BOOL _unicode_is_emoji_keycap_base(Uchar32 ch);
 BOOL _unicode_is_regional_indicator(Uchar32 ch);
+
+ScriptIterator*__mg_script_iterator_init (ScriptIterator *iter,
+        const Uchar32* ucs, int nr_ucs);
+BOOL __mg_script_iterator_next (ScriptIterator* iter);
+
+WidthIterator* __mg_width_iter_init (WidthIterator* iter,
+        const Uchar32* ucs, int nr_ucs);
+void __mg_width_iter_next(WidthIterator* iter);
+
+EmojiIterator* __mg_emoji_iter_init (EmojiIterator *iter,
+        const Uchar32*  ucs, int nr_ucs);
+BOOL __mg_emoji_iter_next (EmojiIterator *iter);
+void __mg_emoji_iter_fini (EmojiIterator *iter);
 
 #ifdef __cplusplus
 }

@@ -35,7 +35,7 @@
 /*
 ** Some operators to check Emoji.
 ** Implementation of the functions is based on some code from HarfBuzz
-** (licensed under MIT).:
+** (licensed under MIT):
 **
 **  https://github.com/harfbuzz/harfbuzz
 **
@@ -105,6 +105,176 @@ BOOL _unicode_is_emoji_keycap_base(Uchar32 ch)
 BOOL _unicode_is_regional_indicator(Uchar32 ch)
 {
     return (ch >= 0x1F1E6 && ch <= 0x1F1FF);
+}
+
+/*
+ * Implementation of EmojiIterator is based on Chromium's Ragel-based
+ * parser:
+ *
+ * https://chromium-review.googlesource.com/c/chromium/src/+/1264577
+ *
+ * The grammar file emoji_presentation_scanner.rl was just modified to
+ * adapt the function signature and variables to our usecase.  The
+ * grammar itself was NOT modified:
+ *
+ * https://chromium-review.googlesource.com/c/chromium/src/+/1264577/3/third_party/blink/renderer/platform/fonts/emoji_presentation_scanner.rl
+ *
+ * The emoji_presentation_scanner.c is generated from .rl file by
+ * running ragel on it.
+ *
+ * The categorization is also based on:
+ *
+ * https://chromium-review.googlesource.com/c/chromium/src/+/1264577/3/third_party/blink/renderer/platform/fonts/utf16_ragel_iterator.h
+ *
+ * The iterator next() is based on:
+ *
+ * https://chromium-review.googlesource.com/c/chromium/src/+/1264577/3/third_party/blink/renderer/platform/fonts/symbols_iterator.cc
+ *
+ * // Copyright 2015 The Chromium Authors. All rights reserved.
+ * // Use of this source code is governed by a BSD-style license that can be
+ * // found in the LICENSE file.
+ */
+
+const Uchar32 kCombiningEnclosingCircleBackslashCharacter = 0x20E0;
+const Uchar32 kCombiningEnclosingKeycapCharacter = 0x20E3;
+const Uchar32 kVariationSelector15Character = 0xFE0E;
+const Uchar32 kVariationSelector16Character = 0xFE0F;
+const Uchar32 kZeroWidthJoinerCharacter = 0x200D;
+
+enum EmojiScannerCategory {
+    EMOJI = 0,
+    EMOJI_TEXT_PRESENTATION = 1,
+    EMOJI_EMOJI_PRESENTATION = 2,
+    EMOJI_MODIFIER_BASE = 3,
+    EMOJI_MODIFIER = 4,
+    EMOJI_VS_BASE = 5,
+    REGIONAL_INDICATOR = 6,
+    KEYCAP_BASE = 7,
+    COMBINING_ENCLOSING_KEYCAP = 8,
+    COMBINING_ENCLOSING_CIRCLE_BACKSLASH = 9,
+    ZWJ = 10,
+    VS15 = 11,
+    VS16 = 12,
+    TAG_BASE = 13,
+    TAG_SEQUENCE = 14,
+    TAG_TERM = 15,
+    kMaxEmojiScannerCategory = 16
+};
+
+static unsigned char emojiSegmentationCategory (Uchar32 codepoint)
+{
+    /* Specific ones first. */
+    if (codepoint == kCombiningEnclosingKeycapCharacter)
+        return COMBINING_ENCLOSING_KEYCAP;
+    if (codepoint == kCombiningEnclosingCircleBackslashCharacter)
+        return COMBINING_ENCLOSING_CIRCLE_BACKSLASH;
+    if (codepoint == kZeroWidthJoinerCharacter)
+        return ZWJ;
+    if (codepoint == kVariationSelector15Character)
+        return VS15;
+    if (codepoint == kVariationSelector16Character)
+        return VS16;
+    if (codepoint == 0x1F3F4)
+        return TAG_BASE;
+    if ((codepoint >= 0xE0030 && codepoint <= 0xE0039) ||
+            (codepoint >= 0xE0061 && codepoint <= 0xE007A))
+        return TAG_SEQUENCE;
+    if (codepoint == 0xE007F)
+        return TAG_TERM;
+
+    if (_unicode_is_emoji_modifier_base (codepoint))
+        return EMOJI_MODIFIER_BASE;
+    if (_unicode_is_emoji_modifier (codepoint))
+        return EMOJI_MODIFIER;
+    if (_unicode_is_regional_indicator (codepoint))
+        return REGIONAL_INDICATOR;
+    if (_unicode_is_emoji_keycap_base (codepoint))
+        return KEYCAP_BASE;
+
+    if (_unicode_is_emoji_emoji_default (codepoint))
+        return EMOJI_EMOJI_PRESENTATION;
+    if (_unicode_is_emoji_text_default (codepoint))
+        return EMOJI_TEXT_PRESENTATION;
+    if (_unicode_is_emoji (codepoint))
+        return EMOJI;
+
+    /* Ragel state machine will interpret unknown category as "any". */
+    return kMaxEmojiScannerCategory;
+}
+
+
+typedef BOOL bool;
+enum { false = FALSE, true = TRUE };
+typedef unsigned char *emoji_text_iter_t;
+
+#include "emoji_presentation_scanner.inc"
+
+EmojiIterator * __mg_emoji_iter_init (EmojiIterator *iter,
+        const Uchar32* ucs, int nr_ucs)
+{
+    int i;
+    unsigned char *types;
+    const Uchar32 *p;
+
+    assert (nr_ucs > 0);
+
+    types = malloc (sizeof (unsigned char) * nr_ucs);
+    if (types == NULL)
+        return NULL;
+
+    p = ucs;
+    for (i = 0; i < nr_ucs; i++) {
+        types[i] = emojiSegmentationCategory (*p);
+        p++;
+    }
+
+    iter->text_start = iter->start = iter->end = ucs;
+    iter->text_end = ucs + nr_ucs;
+    iter->is_emoji = FALSE;
+
+    iter->types = types;
+    iter->n_chars = nr_ucs;
+    iter->cursor = 0;
+
+    __mg_emoji_iter_next (iter);
+    return iter;
+}
+
+BOOL __mg_emoji_iter_next (EmojiIterator *iter)
+{
+    unsigned int old_cursor, cursor;
+    BOOL is_emoji;
+
+    if (iter->end >= iter->text_end)
+        return FALSE;
+
+    iter->start = iter->end;
+
+    old_cursor = cursor = iter->cursor;
+    cursor = scan_emoji_presentation (iter->types + cursor,
+            iter->types + iter->n_chars,
+            &is_emoji) - iter->types;
+
+    do {
+        iter->cursor = cursor;
+        iter->is_emoji = is_emoji;
+
+        if (cursor == iter->n_chars)
+            break;
+
+        cursor = scan_emoji_presentation (iter->types + cursor,
+                iter->types + iter->n_chars,
+                &is_emoji) - iter->types;
+    }
+    while (iter->is_emoji == is_emoji);
+
+    iter->end = iter->start + (iter->cursor - old_cursor);
+    return TRUE;
+}
+
+void __mg_emoji_iter_fini (EmojiIterator *iter)
+{
+    free (iter->types);
 }
 
 #endif /* _MGCHARSET_UNICODE */

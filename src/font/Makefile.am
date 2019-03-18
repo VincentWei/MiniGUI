@@ -16,7 +16,8 @@ SRC_FILES = charset.c charset-arabic.c legacy-bidi.c charset-unicode.c \
             unicode-bidi.c \
             unicode-break.c \
             unicode-joining-types.c unicode-joining.c unicode-shape.c \
-            unicode-shape-arabic.c harzbuff-minigui-funcs.c
+            unicode-shape-arabic.c harzbuff-minigui-funcs.c \
+            unicode-iterators.c
 
 HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             upf.h bitmapfont.h unicode-bidi-tables.h \
@@ -34,7 +35,8 @@ HDR_FILES = charset.h rawbitmap.h varbitmap.h freetype2.h qpf.h se_minigui.h \
             unicode-bidi-brackets-table.inc \
             unicode-bidi-brackets-type-table.inc \
             unicode-bidi-mirroring-table.inc \
-            script-language-table.inc
+            script-language-table.inc \
+            emoji_presentation_scanner.inc
 
 EXTRA_DIST = convgbmap.c jisunimap.c $(SRC_FILES) $(HDR_FILES) \
              makefile.ng makefile.msvc

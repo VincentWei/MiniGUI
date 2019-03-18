@@ -53,23 +53,68 @@
 #include "unicode-ops.h"
 #include "glyphruninfo.h"
 
-/* Local array size, used for stack-based local arrays */
+typedef enum {
+  EMBEDDING_CHANGED    = 1 << 0,
+  SCRIPT_CHANGED       = 1 << 1,
+  LANG_CHANGED         = 1 << 2,
+  DERIVED_LANG_CHANGED = 1 << 3,
+  WIDTH_CHANGED        = 1 << 3,
+  EMOJI_CHANGED        = 1 << 5,
+} ChangedFlags;
 
+typedef struct _GlyphRunState {
+    GLYPHRUNINFO*   context;
+    const Uchar32*  text;
+    const Uchar32*  end;
+
+    const Uchar32*  run_start;
+    const Uchar32*  run_end;
+
+    BidiLevel*      embedding_levels;
+    const Uchar32*  embedding_end;
+    int             embedding_end_offset;
+    BidiLevel       embedding;
+
+    GlyphOrient     orient;
+    GlyphOrientPolicy   orient_policy;
+    GlyphOrient     resolved_gravity;
+    BOOL            centered_baseline;
+
+    Uint8           changed;
+
+    ScriptIterator  script_iter;
+    const Uchar32*  script_end;
+    ScriptType      script;
+
+    WidthIterator   width_iter;
+    EmojiIterator   emoji_iter;
+
+    LanguageCode    derived_lang;
+} GlyphRunState;
+
+static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo)
+{
+#if 0
+    BidiLevel el = runinfo->els[0];
+    ScriptType st = UCharGetScriptType(runinfo->ucs[0]);
+#endif
+
+    return FALSE;
+}
+
+/* Local array size, used for stack-based local arrays */
 #if SIZEOF_PTR == 8
 #   define LOCAL_ARRAY_SIZE 256
 #else
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
-static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo)
-{
-    return FALSE;
-}
-
 GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
-        const char* lang_tag, const char* script_tag,
-        GlyphRunDir run_dir, GlyphOrient glyph_orient, ParagraphDir base_dir,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp, LOGFONT* logfont, RGBCOLOR color)
+        LanguageCode lang_code, ScriptType script_type,
+        ParagraphDir base_dir, GlyphRunDir run_dir,
+        GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
+        Uint8 ctr, Uint8 wbr, Uint8 lbp,
+        LOGFONT* logfont, RGBCOLOR color)
 {
     BOOL ok = FALSE;
 
@@ -84,10 +129,7 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
 
     BidiBracketType local_brk_ts[LOCAL_ARRAY_SIZE];
     BidiBracketType *brk_ts = NULL;
-
     BidiLevel level_or, level_and;
-
-    ScriptType script_type = SCRIPT_COMMON;
 
     int i, j;
 
@@ -99,7 +141,7 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     if (nr_ucs < LOCAL_ARRAY_SIZE)
         bidi_ts = local_bidi_ts;
     else
-        bidi_ts = malloc (nr_ucs * sizeof(BidiType));
+        bidi_ts = malloc(nr_ucs * sizeof(BidiType));
 
     if (!bidi_ts) {
         _DBG_PRINTF("%s: failed to allocate space for bidi types.\n");
@@ -141,6 +183,10 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     }
 
     // Initialize other fields
+    runinfo->ucs = ucs;
+    runinfo->els = els;
+    runinfo->bos = bos;
+
     INIT_LIST_HEAD(&runinfo->cm_head.list);
     runinfo->cm_head.si = 0;
     runinfo->cm_head.len = nr_ucs;
@@ -154,7 +200,7 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     runinfo->run_head.si = 0;
     runinfo->run_head.nr_ucs = nr_ucs;
 
-    runinfo->run_head.lc = LanguageCodeFromISO639s1Code(lang_tag);
+    runinfo->run_head.lc = lang_code;
     runinfo->run_head.st = script_type;
     runinfo->run_head.level = BIDI_DIR_TO_LEVEL(base_dir);
     runinfo->run_head.dir = run_dir;
@@ -185,9 +231,6 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
         goto out;
     }
 
-    runinfo->ucs = ucs;
-    runinfo->els = els;
-    runinfo->bos = bos;
     ok = TRUE;
 
 out:
