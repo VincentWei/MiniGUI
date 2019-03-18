@@ -8277,6 +8277,10 @@ MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
         const BidiBracketType* bracket_types, int len,
         ParagraphDir *paragraph_dir, BidiLevel *embedding_levels);
 
+MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
+        const Uchar32* ucs, int nr_ucs,
+        ParagraphDir *paragraph_dir, BidiLevel *embedding_levels);
+
 /*
  * \var typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos)
  * \brief The prototype of the user defined function to reverse an array.
@@ -12429,7 +12433,6 @@ MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ScriptType script_type,
         ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp,
         LOGFONT* logfont, RGBCOLOR color);
 
 /**
@@ -12700,7 +12703,8 @@ MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
  *      GetGlyphsExtentInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
 MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const GLYPHRUNINFO* run_info,
-        int uc_start_index, int x, int y,
+        const BreakOppo* break_oppos,
+        int uc_start_index, int x, int y, Uint32 render_flags,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, GLYPHPOS** glyph_pos, int* nr_glyphs);
 

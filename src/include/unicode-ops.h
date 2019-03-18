@@ -128,7 +128,7 @@ WidthIterator* __mg_width_iter_init (WidthIterator* iter,
 void __mg_width_iter_next(WidthIterator* iter);
 
 EmojiIterator* __mg_emoji_iter_init (EmojiIterator *iter,
-        const Uchar32*  ucs, int nr_ucs);
+        const Uchar32*  ucs, int nr_ucs, Uint8* types_buff);
 BOOL __mg_emoji_iter_next (EmojiIterator *iter);
 void __mg_emoji_iter_fini (EmojiIterator *iter);
 

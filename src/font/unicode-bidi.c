@@ -1711,4 +1711,130 @@ out:
     return status ? max_level + 1 : 0;
 }
 
+/* Local array size, used for stack-based local arrays */
+#if SIZEOF_PTR == 8
+#   define LOCAL_ARRAY_SIZE 256
+#else
+#   define LOCAL_ARRAY_SIZE 128
+#endif
+
+BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
+        const Uchar32* ucs, int nr_ucs,
+        ParagraphDir *paragraph_dir, BidiLevel *els)
+{
+    int i;
+    ParagraphDir base_dir = *paragraph_dir;
+    BidiLevel max_level = 0;
+
+    BidiType local_bidi_ts[LOCAL_ARRAY_SIZE];
+    BidiType *bidi_ts = NULL;
+    BidiType ored_types = 0;
+    BidiType anded_strongs = BIDI_TYPE_RLE;
+
+    BidiBracketType local_brk_ts[LOCAL_ARRAY_SIZE];
+    BidiBracketType *brk_ts = NULL;
+
+    if (!els) {
+        _DBG_PRINTF("%s: Embedding levels is NULL.\n",
+            __FUNCTION__);
+        goto out;
+    }
+
+    if (nr_ucs < LOCAL_ARRAY_SIZE)
+        bidi_ts = local_bidi_ts;
+    else
+        bidi_ts = malloc(nr_ucs * sizeof(BidiType));
+
+    if (!bidi_ts) {
+        _DBG_PRINTF("%s: failed to allocate space for bidi types.\n",
+            __FUNCTION__);
+        goto out;
+    }
+
+    if (nr_ucs < LOCAL_ARRAY_SIZE)
+        brk_ts = local_brk_ts;
+    else
+        brk_ts = (BidiBracketType*)malloc (nr_ucs * sizeof(BidiBracketType));
+
+    if (!brk_ts) {
+        _DBG_PRINTF("%s: failed to allocate space for bracket types.\n",
+            __FUNCTION__);
+        goto out;
+    }
+
+    for (i = 0; i < nr_ucs; i++) {
+        BidiType bidi_type;
+        bidi_ts[i] = bidi_type = UCharGetBidiType(ucs[i]);
+        ored_types |= bidi_type;
+        if (BIDI_IS_STRONG (bidi_type))
+            anded_strongs &= bidi_type;
+
+        if (bidi_ts[i] == BIDI_TYPE_ON)
+            brk_ts[i] = UCharGetBracketType(ucs[i]);
+        else
+            brk_ts[i] = BIDI_BRACKET_NONE;
+    }
+
+    /* Short-circuit (malloc-expensive) Bidi call for unidirectional text. */
+
+    /* The case that all resolved levels will be ltr.
+     * No isolates, all strongs be LTR, there should be no Arabic numbers
+     * (or letters for that matter), and one of the following:
+     *
+     * o base_dir doesn't have an RTL taste.
+     * o there are letters, and base_dir is weak.
+     */
+    if (!BIDI_IS_ISOLATE (ored_types) &&
+            !BIDI_IS_RTL (ored_types) &&
+            !BIDI_IS_ARABIC (ored_types) &&
+            (!BIDI_IS_RTL (base_dir) ||
+             (BIDI_IS_WEAK (base_dir) &&
+              BIDI_IS_LETTER (ored_types))
+            ))
+    {
+        /* all LTR */
+        base_dir = BIDI_PGDIR_LTR;
+        memset (els, 0, nr_ucs);
+    }
+    /* The case that all resolved levels will be RTL is much more complex.
+     * No isolates, no numbers, all strongs are RTL, and one of
+     * the following:
+     *
+     * o base_dir has an RTL taste (may be weak).
+     * o there are letters, and base_dir is weak.
+     */
+    else if (!BIDI_IS_ISOLATE (ored_types) &&
+            !BIDI_IS_NUMBER (ored_types) &&
+            BIDI_IS_RTL (anded_strongs) &&
+            (BIDI_IS_RTL (base_dir) ||
+             (BIDI_IS_WEAK (base_dir) &&
+              BIDI_IS_LETTER (ored_types))
+            ))
+    {
+        /* all RTL */
+        base_dir = BIDI_PGDIR_RTL;
+        memset (els, 1, nr_ucs);
+    }
+    else {
+        max_level = UBidiGetParagraphEmbeddingLevels(bidi_ts, brk_ts, nr_ucs,
+                &base_dir, els);
+        if (max_level == 0) {
+            _DBG_PRINTF("%s: failed to get paragraph embedding levels.\n");
+            memset (els, 0, nr_ucs);
+        }
+
+    }
+
+    *paragraph_dir = (base_dir == BIDI_PGDIR_LTR) ? BIDI_PGDIR_LTR : BIDI_PGDIR_RTL;
+
+out:
+    if (bidi_ts && bidi_ts != local_bidi_ts)
+        free (bidi_ts);
+
+    if (brk_ts && brk_ts != local_brk_ts)
+        free (brk_ts);
+
+    return max_level;
+}
+
 #endif /* _MGCHARSET_UNICODE */

@@ -82,8 +82,6 @@ typedef struct _GLYPHRUN {
     Uint32      level:8;    // the bidi level
     Uint32      dir:4;      // the run direction
     Uint32      ort:2;      // the glyph orientation
-    Uint32      all_even:1; // flag indicating all level is even
-    Uint8       all_odd:1;  // flag indicating all level is odd
 } GLYPHRUN;
 
 // NOTE: we arrange the fields carefully to avoid wasting space when
@@ -102,9 +100,7 @@ typedef struct _UCHARCOLORMAP {
 
 struct _GLYPHRUNINFO {
     /* The following fields will be initialized by CreateGlyphRunInfo. */
-    Uchar32*        ucs;
-    BidiLevel*      els;
-    BreakOppo*      bos;
+    const Uchar32*  ucs;
 
     UCHARCOLORMAP   cm_head;    // the head of color map list of the characters.
                                 // change by calling SetPartColorInGlyphRunInfo.
@@ -117,6 +113,8 @@ struct _GLYPHRUNINFO {
     GLYPHEXTINFO*   ges;    // the glyph extent information.
 
     Uint32          rf;     // the rendering flags.
+    Uint8           all_even:1; // flag indicating all level is even
+    Uint8           all_odd:1;  // flag indicating all level is odd
 };
 
 #ifdef __cplusplus

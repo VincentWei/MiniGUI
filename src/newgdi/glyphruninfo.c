@@ -53,16 +53,24 @@
 #include "unicode-ops.h"
 #include "glyphruninfo.h"
 
-typedef enum {
-  EMBEDDING_CHANGED    = 1 << 0,
-  SCRIPT_CHANGED       = 1 << 1,
-  LANG_CHANGED         = 1 << 2,
-  DERIVED_LANG_CHANGED = 1 << 3,
-  WIDTH_CHANGED        = 1 << 3,
-  EMOJI_CHANGED        = 1 << 5,
-} ChangedFlags;
+/* Local array size, used for stack-based local arrays */
+#if SIZEOF_PTR == 8
+#   define LOCAL_ARRAY_SIZE 256
+#else
+#   define LOCAL_ARRAY_SIZE 128
+#endif
 
-typedef struct _GlyphRunState {
+enum {
+    EMBEDDING_CHANGED    = 1 << 0,
+    SCRIPT_CHANGED       = 1 << 1,
+    LANG_CHANGED         = 1 << 2,
+    DERIVED_LANG_CHANGED = 1 << 3,
+    FONT_CHANGED         = 1 << 4,
+    WIDTH_CHANGED        = 1 << 5,
+    EMOJI_CHANGED        = 1 << 6,
+};
+
+typedef struct _GLYPHRUNSTATE {
     GLYPHRUNINFO*   context;
     const Uchar32*  text;
     const Uchar32*  end;
@@ -90,11 +98,13 @@ typedef struct _GlyphRunState {
     EmojiIterator   emoji_iter;
 
     LanguageCode    derived_lang;
-} GlyphRunState;
+} GLYPHRUNSTATE;
 
-static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo)
+static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo, BidiLevel* els)
 {
 #if 0
+    GLYPHRUNSTATE state;
+
     BidiLevel el = runinfo->els[0];
     ScriptType st = UCharGetScriptType(runinfo->ucs[0]);
 #endif
@@ -102,36 +112,17 @@ static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo)
     return FALSE;
 }
 
-/* Local array size, used for stack-based local arrays */
-#if SIZEOF_PTR == 8
-#   define LOCAL_ARRAY_SIZE 256
-#else
-#   define LOCAL_ARRAY_SIZE 128
-#endif
-
 GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ScriptType script_type,
         ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp,
         LOGFONT* logfont, RGBCOLOR color)
 {
     BOOL ok = FALSE;
 
     GLYPHRUNINFO* runinfo;
+    BidiLevel  local_els[LOCAL_ARRAY_SIZE];
     BidiLevel* els = NULL;
-    BreakOppo* bos = NULL;
-
-    BidiLevel max_level = 0;
-
-    BidiType local_bidi_ts[LOCAL_ARRAY_SIZE];
-    BidiType *bidi_ts = NULL;
-
-    BidiBracketType local_brk_ts[LOCAL_ARRAY_SIZE];
-    BidiBracketType *brk_ts = NULL;
-    BidiLevel level_or, level_and;
-
-    int i, j;
 
     runinfo = (GLYPHRUNINFO*)calloc(1, sizeof(GLYPHRUNINFO));
     if (ucs == NULL || nr_ucs <= 0 || runinfo == NULL) {
@@ -139,53 +130,28 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     }
 
     if (nr_ucs < LOCAL_ARRAY_SIZE)
-        bidi_ts = local_bidi_ts;
+        els = local_els;
     else
-        bidi_ts = malloc(nr_ucs * sizeof(BidiType));
+        els = (BidiLevel*)malloc (nr_ucs * sizeof(BidiLevel));
 
-    if (!bidi_ts) {
-        _DBG_PRINTF("%s: failed to allocate space for bidi types.\n");
-        goto out;
-    }
-
-    UStrGetBidiTypes(ucs, nr_ucs, bidi_ts);
-
-    if (nr_ucs < LOCAL_ARRAY_SIZE)
-        brk_ts = local_brk_ts;
-    else
-        brk_ts = (BidiBracketType*)malloc (nr_ucs * sizeof(BidiBracketType));
-
-    if (!brk_ts) {
-        _DBG_PRINTF("%s: failed to allocate space for bracket types.\n");
-        goto out;
-    }
-
-    UStrGetBracketTypes (ucs, bidi_ts, nr_ucs, brk_ts);
-
-    els = (BidiLevel*)malloc (nr_ucs * sizeof(BidiLevel));
     if (!els) {
         _DBG_PRINTF("%s: failed to allocate space for embedding levels.\n");
         goto out;
     }
 
-    max_level = UBidiGetParagraphEmbeddingLevels(bidi_ts, brk_ts, nr_ucs,
-            &base_dir, els) - 1;
-    if (max_level < 0) {
-        _DBG_PRINTF("%s: failed to get paragraph embedding levels.\n");
-        goto out;
-    }
+    UBidiGetParagraphEmbeddingLevelsAlt(ucs, nr_ucs, &base_dir, els);
 
+    /* the breaking opportunities should be passed to the layout function.
     // Calculate the breaking opportunities
     if (UStrGetBreaks(script_type, ctr, wbr, lbp,
             ucs, nr_ucs, &bos) == 0) {
         _DBG_PRINTF("%s: failed to get breaking opportunities.\n");
         goto out;
     }
+    */
 
     // Initialize other fields
     runinfo->ucs = ucs;
-    runinfo->els = els;
-    runinfo->bos = bos;
 
     INIT_LIST_HEAD(&runinfo->cm_head.list);
     runinfo->cm_head.si = 0;
@@ -206,6 +172,11 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     runinfo->run_head.dir = run_dir;
     runinfo->run_head.ort = glyph_orient;
 
+#if 0
+    int i, j;
+    BidiLevel max_level = 0;
+    BidiLevel level_or, level_and;
+
     // make the embedding levels of the bidi marks to be -1.
     level_or = 0, level_and = 1;
     j = 0;
@@ -222,11 +193,12 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
 
     // check for all even or odd
     /* If none of the levels had the LSB set, all chars were even. */
-    runinfo->run_head.all_even = (level_or & 0x1) == 0;
+    runinfo->all_even = (level_or & 0x1) == 0;
     /* If all of the levels had the LSB set, all chars were odd. */
-    runinfo->run_head.all_odd = (level_and & 0x1) == 1;
+    runinfo->all_odd = (level_and & 0x1) == 1;
+#endif
 
-    if (!init_glyph_runs(runinfo)) {
+    if (!init_glyph_runs(runinfo, els)) {
         _DBG_PRINTF("%s: failed to call init_glyph_runs.\n");
         goto out;
     }
@@ -234,18 +206,13 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     ok = TRUE;
 
 out:
-    if (bidi_ts && bidi_ts != local_bidi_ts)
-        free (bidi_ts);
-
-    if (brk_ts && brk_ts != local_brk_ts)
-        free (brk_ts);
+    if (els && els != local_els)
+        free(els);
 
     if (ok)
         return runinfo;
 
     if (runinfo->l2g) free(runinfo->l2g);
-    if (els) free(els);
-    if (bos) free(bos);
     free(runinfo);
 
     return NULL;
@@ -340,7 +307,7 @@ BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* runinfo, LOGFONT* logfont)
 
     runinfo->run_head.lf = logfont;
 
-    return init_glyph_runs(runinfo);
+    return init_glyph_runs(runinfo, NULL);
 }
 
 static void set_run_dir(GLYPHRUNINFO* runinfo, GLYPHRUN* run,
@@ -401,16 +368,12 @@ BOOL GUIAPI ResetColorInGlyphRuns(GLYPHRUNINFO* runinfo, RGBCOLOR color)
     return TRUE;
 }
 
+#if 0
 BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* runinfo,
     Uint8 ctr, Uint8 wbr, Uint8 lbp)
 {
     if (runinfo == NULL)
         return FALSE;
-
-    if (runinfo->bos) {
-        free (runinfo->bos);
-        runinfo->bos = NULL;
-    }
 
     // Re-calculate the breaking opportunities
     if (UStrGetBreaks(runinfo->run_head.st, ctr, wbr, lbp,
@@ -421,6 +384,7 @@ BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* runinfo,
 
     return TRUE;
 }
+#endif
 
 BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* runinfo)
 {
@@ -446,8 +410,6 @@ BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* runinfo)
 
     if (runinfo->l2g) free(runinfo->l2g);
     if (runinfo->ges) free(runinfo->ges);
-    if (runinfo->els) free(runinfo->els);
-    if (runinfo->bos) free(runinfo->bos);
 
     free(runinfo);
     return TRUE;

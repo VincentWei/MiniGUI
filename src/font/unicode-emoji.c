@@ -210,17 +210,13 @@ typedef unsigned char *emoji_text_iter_t;
 #include "emoji_presentation_scanner.inc"
 
 EmojiIterator * __mg_emoji_iter_init (EmojiIterator *iter,
-        const Uchar32* ucs, int nr_ucs)
+        const Uchar32* ucs, int nr_ucs, Uint8* types_buff)
 {
     int i;
-    unsigned char *types;
+    Uint8 *types = types_buff;
     const Uchar32 *p;
 
     assert (nr_ucs > 0);
-
-    types = malloc (sizeof (unsigned char) * nr_ucs);
-    if (types == NULL)
-        return NULL;
 
     p = ucs;
     for (i = 0; i < nr_ucs; i++) {
@@ -270,11 +266,6 @@ BOOL __mg_emoji_iter_next (EmojiIterator *iter)
 
     iter->end = iter->start + (iter->cursor - old_cursor);
     return TRUE;
-}
-
-void __mg_emoji_iter_fini (EmojiIterator *iter)
-{
-    free (iter->types);
 }
 
 #endif /* _MGCHARSET_UNICODE */
