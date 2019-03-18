@@ -154,7 +154,7 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     runinfo->run_head.si = 0;
     runinfo->run_head.nr_ucs = nr_ucs;
 
-    runinfo->run_head.lt = lang_tag;
+    runinfo->run_head.lc = LanguageCodeFromISO639s1Code(lang_tag);
     runinfo->run_head.st = script_type;
     runinfo->run_head.level = BIDI_DIR_TO_LEVEL(base_dir);
     runinfo->run_head.dir = run_dir;

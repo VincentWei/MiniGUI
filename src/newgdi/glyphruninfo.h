@@ -70,14 +70,14 @@ typedef struct _SHAPPINGENGINE {
 
 typedef struct _GLYPHRUN {
     struct list_head list;
-    LOGFONT*    lf;     // the logfont for this run.
-    const char* lt;     // language tag
+    LOGFONT*    lf;     // the logfont for this run
     void*       gs;     // the shaped glyph information
 
     int         nr_gs;  // the number of shaped glyphs
     int         si;     // start index in the Unicode string
     int         nr_ucs; // the number of Unicode characters
 
+    Uint32      lc:8;       // language code
     Uint32      st:8;       // script type
     Uint32      level:8;    // the bidi level
     Uint32      dir:4;      // the run direction

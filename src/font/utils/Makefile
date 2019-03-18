@@ -10,7 +10,8 @@ all:mkmap-ucs-gb18030 mkmap-ucs-gb2312 \
     gen-arabic-shaping-tab \
     gen-mirroring-tab \
     gen-brackets-tab \
-    gen-brackets-type-tab
+    gen-brackets-type-tab \
+    gen-vop-tab
 
 mkmap-ucs-gb2312:mkmap-ucs-gb2312.o
 
@@ -23,14 +24,16 @@ gen-arabic-shaping-tab:gen-arabic-shaping-tab.o packtab.o
 gen-mirroring-tab:gen-mirroring-tab.o packtab.o
 gen-brackets-tab:gen-brackets-tab.o packtab.o
 gen-brackets-type-tab:gen-brackets-type-tab.o packtab.o
+gen-vop-tab:gen-vop-tab.o packtab.o
 
-biditables:unicode-version.h \
+tables:unicode-version.h \
     unicode-bidi-type-table.inc \
     unicode-joining-type-table.inc \
     unicode-arabic-shaping-table.inc \
     unicode-bidi-mirroring-table.inc \
     unicode-bidi-brackets-table.inc \
-    unicode-bidi-brackets-type-table.inc
+    unicode-bidi-brackets-type-table.inc \
+    unicode-vop-table.inc
 
 unicode-version.h:ucd/ReadMe.txt gen-unicode-version
 	./gen-unicode-version ucd/ReadMe.txt > unicode-version.h
@@ -44,7 +47,8 @@ clean:
     gen-arabic-shaping-tab \
     gen-mirroring-tab \
     gen-brackets-tab \
-    gen-brackets-type-tab
+    gen-brackets-type-tab \
+    gen-vop-tab
 
 unicode-bidi-type-table.inc: \
 		ucd/UnicodeData.txt \
@@ -84,4 +88,10 @@ unicode-bidi-brackets-type-table.inc: \
 		unicode-version.h \
 		gen-brackets-type-tab
 	./gen-brackets-type-tab $(COMPRESSION) $^ > $@
+
+unicode-vop-table.inc: \
+		ucd/VerticalOrientation.txt \
+		unicode-version.h \
+		gen-vop-tab
+	./gen-vop-tab $(COMPRESSION) $^ > $@
 

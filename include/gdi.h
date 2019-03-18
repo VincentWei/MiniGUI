@@ -11803,11 +11803,17 @@ MG_EXPORT int GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
  *
  * Since: 3.4.0
  */
-static inline int GUIAPI LanguageCodeFromISO639s1Code (const char* iso639_1)
+static inline int GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
 {
     return LanguageCodeFromISO639s1(MAKEWORD16(iso639_1[1],
             iso639_1[0]));
 }
+
+/** Get ISO639-1 language code from the native language code. */
+MG_EXPORT const char* GUIAPI LanguageCodeToISO639s1(LanguageCode lc);
+
+/** Get the sample language code (ISO639-1) from the specific script type */
+MG_EXPORT const char* GUIAPI GetSampleLanguageFromScript(ScriptType st);
 
 /** Get language code and script type from ISO639 language name. */
 MG_EXPORT ScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
@@ -12377,8 +12383,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
         GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
 
 /* The fields in the structure _GLYPHRUNINFO are invisible to users */
-struct _GLYPHRUNINFO;
-typedef struct _GLYPHRUNINFO    GLYPHRUNINFO;
+typedef struct _GLYPHRUNINFO GLYPHRUNINFO;
 
 /* same as HarfBuzz */
 typedef enum {
@@ -12454,7 +12459,7 @@ MG_EXPORT BOOL GUIAPI ResetDirectionInGlyphRuns(GLYPHRUNINFO* run_info,
 MG_EXPORT BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
 
 /**
- * \fn BOOL GUIAPI GetShapedGlyphRunsBasic()
+ * \fn BOOL GUIAPI ShapeGlyphRunsBaisc()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system.
  *
@@ -12503,8 +12508,10 @@ MG_EXPORT BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
 MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info,
         Uint32 render_flags);
 
+#ifdef _MGCOMPLEX_SCRIPTS
+
 /**
- * \fn int GUIAPI GetShapedGlyphsComplex()
+ * \fn int GUIAPI ShapeGlyphRunsComplex()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system. This is the complex
  *      implementation based on HarfBuzz, which is LGPL'd shaping engine.
@@ -12571,6 +12578,8 @@ MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info,
  */
 MG_EXPORT BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info,
         Uint32 render_flags);
+
+#endif /* _MGCOMPLEX_SCRIPTS */
 
 /**
  * \fn int GUIAPI GetGlyphsExtentInfo()
@@ -12648,7 +12657,7 @@ MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
  * \param glyph_pos The buffer to store the positions and orientations of
  *      all glyphs which can fit in the max extent; cannot be NULL.
  *
- * \return The number of shaped glyphs which are fit to the maximal extent.
+ * \return The number of characters which are fit to the maximal extent.
  *      The extra_x and extra_y fields of the glyph extent info of every glyph
  *      may be changed due to the spacing value and justification.
  *      The line extent info will be returned through \a line_size
@@ -12679,7 +12688,8 @@ MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const GLYPHRUNINFO* run_info,
 
 /*
  * \fn int GUIAPI DrawShapedGlyphs ()
- * \brief Draw a shaped glyph string at the specified positions and text orientations.
+ * \brief Draw a shaped glyph string at the specified positions
+ *      and text orientations.
  *
  * This function draws a shaped glyph string to the specific positions and
  * orientations on a DC \a hdc with the logfonts specified by
@@ -12703,7 +12713,7 @@ MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const GLYPHRUNINFO* run_info,
  * \sa GetGlyphsExtentFromUChars
  */
 MG_EXPORT int GUIAPI DrawShapedGlyphs(const GLYPHRUNINFO* run_info,
-        int uc_start_index, int nr_glyphs);
+        int uc_start_index, const GLYPHPOS* glyph_pos, int nr_glyphs);
 
 #endif /* _MGCHARSET_UNICODE */
 
