@@ -1,5 +1,28 @@
 /*
  * gen-vop-tab.c - generate unicode-vop-table.inc
+ *
+ * Derived from utilities of FriBidi by Vincent Wei for MiniGUI 3.4.0
+ *
+ * Authors of FriBidi:
+ *   Behdad Esfahbod, 2004, 2005
+ *
+ * Copyright (C) 2004 Sharif FarsiWeb, Inc
+ * Copyright (C) 2004, 2005 Behdad Esfahbod
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library, in a file named COPYING; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA
  */
 
 #include <stdio.h>
@@ -26,27 +49,26 @@
 static void
 die (const char *msg)
 {
-  fprintf (stderr, appname ": %s\n", msg);
-  exit (1);
+    fprintf (stderr, appname ": %s\n", msg);
+    exit (1);
 }
 
 static void
-die2 (const char *fmt, const char *p
-)
+die2 (const char *fmt, const char *p)
 {
-  fprintf (stderr, appname ": ");
-  fprintf (stderr, fmt, p);
-  fprintf (stderr, "\n");
-  exit (1);
+    fprintf (stderr, appname ": ");
+    fprintf (stderr, fmt, p);
+    fprintf (stderr, "\n");
+    exit (1);
 }
 
 static void
 die3 (const char *fmt, unsigned long l, const char *p)
 {
-  fprintf (stderr, appname ": ");
-  fprintf (stderr, fmt, l, p);
-  fprintf (stderr, "\n");
-  exit (1);
+    fprintf (stderr, appname ": ");
+    fprintf (stderr, fmt, l, p);
+    fprintf (stderr, "\n");
+    exit (1);
 }
 
 enum VOPLinearEnumOffsetOne {
