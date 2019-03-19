@@ -416,9 +416,9 @@ typedef struct {
 #define RTL  GLYPH_RUN_DIR_RTL
 #define WEAK GLYPH_RUN_DIR_WEAK_LTR
 
-#define S GLYPH_ORIENT_SOUTH
-#define E GLYPH_ORIENT_EAST
-#define W GLYPH_ORIENT_WEST
+#define S GLYPH_ORIENT_UPRIGHT
+#define E GLYPH_ORIENT_SIDEWAYS
+#define W GLYPH_ORIENT_SIDEWAYS_LEFT
 
 #define UNKNOWN_SCRIPT_PROPERTY \
     {LTR, NONE, S, FALSE}
@@ -666,22 +666,22 @@ GlyphOrient GetWideGlyphOrientationForScript (ScriptType script,
     default:
     case GLYPH_ORIENT_POLICY_NATURAL:
         if (props.vert_dir == VERTICAL_DIRECTION_NONE)
-            return GLYPH_ORIENT_SOUTH;
-        if ((base_orient   == GLYPH_ORIENT_EAST) ^
+            return GLYPH_ORIENT_UPRIGHT;
+        if ((base_orient   == GLYPH_ORIENT_SIDEWAYS) ^
                 (props.vert_dir == VERTICAL_DIRECTION_BTT))
-            return GLYPH_ORIENT_SOUTH;
+            return GLYPH_ORIENT_UPRIGHT;
         else
-            return GLYPH_ORIENT_NORTH;
+            return GLYPH_ORIENT_UPSIDE_DOWN;
 
     case GLYPH_ORIENT_POLICY_STRONG:
         return base_orient;
 
     case GLYPH_ORIENT_POLICY_LINE:
-        if ((base_orient    == GLYPH_ORIENT_EAST) ^
+        if ((base_orient    == GLYPH_ORIENT_SIDEWAYS) ^
                 (props.horiz_dir == GLYPH_RUN_DIR_RTL))
-            return GLYPH_ORIENT_SOUTH;
+            return GLYPH_ORIENT_UPRIGHT;
         else
-            return GLYPH_ORIENT_NORTH;
+            return GLYPH_ORIENT_UPSIDE_DOWN;
     }
 }
 #endif /* _MGCHARSET_UNICODE */

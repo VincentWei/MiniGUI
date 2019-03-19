@@ -96,7 +96,7 @@ typedef struct _TEXTCOLORMAP {
 struct _TEXTRUNSINFO {
     /* The following fields will be initialized by CreateGlyphRunInfo. */
     const Uchar32*      ucs;    // the uchars
-    const char*         fontname;// the logfont specified
+    char*               fontname;// the logfont name specified
 
     TEXTCOLORMAP        cm_head; // the head of color map list of the characters
     struct list_head    run_head;// glyph runs (list)

@@ -171,7 +171,77 @@ static void state_update_for_new_run (TEXTRUNSTATE *state)
 static LOGFONT* create_logfont_for_run(const TEXTRUNSINFO* runinfo,
         const TEXTRUN* run)
 {
-    return NULL;
+    char fontname[LEN_LOGFONT_NAME_FULL + 1];
+    int orient_pos = fontGetOrientPosFromName(runinfo->fontname);
+    LOGFONT* lf;
+
+    if (orient_pos < 0)
+        return NULL;
+
+    memset (fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
+    strncpy (fontname, runinfo->fontname, LEN_LOGFONT_NAME_FULL);
+
+    switch (run->ort) {
+    case GLYPH_ORIENT_UPRIGHT:
+        fontname[orient_pos] = FONT_ORIENT_UPRIGHT;
+        break;
+    case GLYPH_ORIENT_SIDEWAYS:
+        fontname[orient_pos] = FONT_ORIENT_SIDEWAYS;
+        break;
+    case GLYPH_ORIENT_UPSIDE_DOWN:
+        fontname[orient_pos] = FONT_ORIENT_UPSIDE_DOWN;
+        break;
+    case GLYPH_ORIENT_SIDEWAYS_LEFT:
+        fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
+        break;
+    default:
+        _DBG_PRINTF("%s: bad orientation param: %d\n",
+            __FUNCTION__, run->ort);
+        return NULL;
+    }
+
+    lf = (LOGFONT*)LoadResource(fontname, RES_TYPE_FONT, 0);
+    if (lf == NULL) {
+        _ERR_PRINTF("%s: failed to create LOGFONT for run\n",
+            __FUNCTION__);
+        return NULL;
+    }
+
+    return lf;
+}
+
+static void release_logfont_for_run(const TEXTRUNSINFO* runinfo,
+        const TEXTRUN* run)
+{
+    char fontname[LEN_LOGFONT_NAME_FULL + 1];
+    int orient_pos = fontGetOrientPosFromName(runinfo->fontname);
+
+    if (orient_pos < 0)
+        return;
+
+    memset (fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
+    strncpy (fontname, runinfo->fontname, LEN_LOGFONT_NAME_FULL);
+
+    switch (run->ort) {
+    case GLYPH_ORIENT_UPRIGHT:
+        fontname[orient_pos] = FONT_ORIENT_UPRIGHT;
+        break;
+    case GLYPH_ORIENT_SIDEWAYS:
+        fontname[orient_pos] = FONT_ORIENT_SIDEWAYS;
+        break;
+    case GLYPH_ORIENT_UPSIDE_DOWN:
+        fontname[orient_pos] = FONT_ORIENT_UPSIDE_DOWN;
+        break;
+    case GLYPH_ORIENT_SIDEWAYS_LEFT:
+        fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
+        break;
+    default:
+        _DBG_PRINTF("%s: bad orientation param: %d\n",
+            __FUNCTION__, run->ort);
+        return;
+    }
+
+    ReleaseRes(Str2Key(fontname));
 }
 
 static BOOL state_process_run (TEXTRUNSTATE *state)
@@ -326,17 +396,17 @@ static inline Uint8 get_glyph_orient_from_fontname (const char* fontname)
 {
     switch (fontGetOrientFromName (fontname)) {
     case FONT_ORIENT_SIDEWAYS:
-        return GLYPH_ORIENT_EAST;
+        return GLYPH_ORIENT_SIDEWAYS;
 
     case FONT_ORIENT_UPSIDE_DOWN:
-        return GLYPH_ORIENT_NORTH;
+        return GLYPH_ORIENT_UPSIDE_DOWN;
 
     case FONT_ORIENT_SIDEWAYS_LEFT:
-        return GLYPH_ORIENT_WEST;
+        return GLYPH_ORIENT_SIDEWAYS_LEFT;
 
     case FONT_ORIENT_UPRIGHT:
     default:
-        return GLYPH_ORIENT_SOUTH;
+        return GLYPH_ORIENT_UPRIGHT;
     }
 }
 
@@ -388,7 +458,8 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     BidiLevel* els = NULL;
 
     runinfo = (TEXTRUNSINFO*)calloc(1, sizeof(TEXTRUNSINFO));
-    if (ucs == NULL || nr_ucs <= 0 || runinfo == NULL) {
+    if (ucs == NULL || nr_ucs <= 0 || logfont_name == NULL ||
+            runinfo == NULL) {
         return NULL;
     }
 
@@ -415,7 +486,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
 
     // Initialize other fields
     runinfo->ucs        = ucs;
-    runinfo->fontname   = logfont_name;
+    runinfo->fontname   = strdup(logfont_name);
     runinfo->nr_ucs     = nr_ucs;
     runinfo->lc         = lang_code;
     runinfo->base_level = (base_dir == BIDI_PGDIR_LTR) ? 0 : 1;
@@ -551,7 +622,10 @@ BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* runinfo, const char* logfont_name)
     while (!list_empty(&runinfo->run_head)) {
         TEXTRUN* run = (TEXTRUN*)runinfo->run_head.prev;
         list_del(runinfo->run_head.prev);
-        runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
+        if (run->lf)
+            release_logfont_for_run(runinfo, run);
+        if (runinfo->se.engine)
+            runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
 
@@ -559,7 +633,8 @@ BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* runinfo, const char* logfont_name)
         runinfo->se.destroy_engine(runinfo->se.engine);
     }
 
-    runinfo->fontname = logfont_name;
+    free(runinfo->fontname);
+    runinfo->fontname = strdup(logfont_name);
     return create_glyph_runs(runinfo, NULL);
 }
 
@@ -645,6 +720,8 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
     while (!list_empty(&runinfo->run_head)) {
         TEXTRUN* run = (TEXTRUN*)runinfo->run_head.prev;
         list_del(runinfo->run_head.prev);
+        if (run->lf)
+            release_logfont_for_run(runinfo, run);
         if (runinfo->se.engine)
             runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
@@ -654,6 +731,7 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
         runinfo->se.destroy_engine(runinfo->se.engine);
     }
 
+    free(runinfo->fontname);
     free(runinfo);
     return TRUE;
 }

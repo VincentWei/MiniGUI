@@ -103,7 +103,7 @@ BOOL mg_InitSysFont (void)
     for (i = 0; i < nr_fonts; i++) {
         char key [11];
         char type [LEN_LOGFONT_NAME_FIELD + 1];
-        char family [LEN_LOGFONT_FAMILY_FILED + 1];
+        char family [LEN_LOGFONT_FAMILY_FIELD + 1];
         char style [LEN_LOGFONT_NAME_FIELD + 1];
         char charset [LEN_LOGFONT_NAME_FIELD + 1];
         char font_name [LEN_DEVFONT_NAME + 1];

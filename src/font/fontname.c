@@ -117,7 +117,7 @@ BOOL fontGetFamilyFromName (const char* name, char* family)
     if (*(++family_part) == '\0')
         return FALSE;
 
-    while (family_part [i] && i <= LEN_LOGFONT_FAMILY_FILED) {
+    while (family_part [i] && i <= LEN_LOGFONT_FAMILY_FIELD) {
         if (family_part [i] == '-'/* || family_part [i] == ',' */) {
             family [i] = '\0';
             break;
@@ -185,7 +185,7 @@ static const char *my_strstr(const char *haystack, const char *needle)
 BOOL fontDoesMatchFamily (const char* name, const char* family)
 {
     // make sure there is a redundant space for the head and tail characters.
-    char family_part[LEN_LOGFONT_FAMILY_FILED + 3];
+    char family_part[LEN_LOGFONT_FAMILY_FIELD + 3];
     char family_request[LEN_LOGFONT_NAME_FIELD + 3];
     int i;
     size_t len;
@@ -504,6 +504,22 @@ char fontGetOrientFromName (const char* name)
         return FONT_ORIENT_UPRIGHT;
 
     return orient[0];
+}
+
+int fontGetOrientPosFromName (const char* name)
+{
+    int i;
+    const char* orient_part = name;
+
+    for (i = 0; i < NR_LOOP_FOR_ORIENT; i++) {
+        if ((orient_part = strchr (orient_part, '-')) == NULL)
+            return -1;
+
+        if (*(++orient_part) == '\0')
+            return -1;
+    }
+
+    return orient_part - name;
 }
 
 int fontGetHeightFromName (const char* name)

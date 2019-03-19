@@ -5457,7 +5457,8 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 
 /* Font-related structures */
 #define LEN_LOGFONT_NAME_FIELD      31
-#define LEN_LOGFONT_FAMILY_FILED    (LEN_LOGFONT_NAME_FIELD*7+6)
+#define LEN_LOGFONT_FAMILY_FIELD    (LEN_LOGFONT_NAME_FIELD*7+6)
+#define LEN_LOGFONT_NAME_FULL       (LEN_LOGFONT_FAMILY_FIELD + 32)
 #define LEN_UNIDEVFONT_NAME         255
 
 #define LEN_FONT_NAME               LEN_LOGFONT_NAME_FIELD
@@ -9048,11 +9049,11 @@ typedef enum {
 #define GLYPH_GRAVITY_AUTO                  4
 
 typedef enum {
-    GLYPH_ORIENT_SOUTH  = GLYPH_GRAVITY_SOUTH,
-    GLYPH_ORIENT_EAST   = GLYPH_GRAVITY_EAST,
-    GLYPH_ORIENT_NORTH  = GLYPH_GRAVITY_NORTH,
-    GLYPH_ORIENT_WEST   = GLYPH_GRAVITY_WEST,
-    GLYPH_ORIENT_AUTO   = GLYPH_GRAVITY_AUTO,
+    GLYPH_ORIENT_UPRIGHT        = GLYPH_GRAVITY_SOUTH,
+    GLYPH_ORIENT_SIDEWAYS       = GLYPH_GRAVITY_EAST,
+    GLYPH_ORIENT_UPSIDE_DOWN    = GLYPH_GRAVITY_NORTH,
+    GLYPH_ORIENT_SIDEWAYS_LEFT  = GLYPH_GRAVITY_WEST,
+    GLYPH_ORIENT_AUTO           = GLYPH_GRAVITY_AUTO,
 } GlyphOrient;
 
 typedef enum {
@@ -9062,7 +9063,7 @@ typedef enum {
 } GlyphOrientPolicy;
 
 #define GLYPH_ORIENT_IS_VERTICAL(orient) \
-    ((orient) == GLYPH_ORIENT_EAST || (orient) == GLYPH_ORIENT_WEST)
+    ((orient) == GLYPH_ORIENT_SIDEWAYS || (orient) == GLYPH_ORIENT_SIDEWAYS_LEFT)
 
 /** Get the vertical orientation property of a Unicode character */
 MG_EXPORT UCharVOP GUIAPI UCharGetVerticalOrientation(Uchar32 uc);

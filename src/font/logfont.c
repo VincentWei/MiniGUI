@@ -454,7 +454,7 @@ PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
 PLOGFONT GUIAPI CreateLogFontByName (const char* font_name)
 {
     char type[LEN_LOGFONT_NAME_FIELD + 1];
-    char family[LEN_LOGFONT_FAMILY_FILED + 1];
+    char family[LEN_LOGFONT_FAMILY_FIELD + 1];
     char charset[LEN_LOGFONT_NAME_FIELD + 1];
     DWORD style;
     int height;
