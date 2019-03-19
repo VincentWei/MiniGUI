@@ -288,7 +288,7 @@ const BITMAP* GUIAPI GetSystemBitmap (HWND hWnd, const char* id)
 
     if (hWnd == HWND_NULL)
         return NULL;
-    
+
     win_info = GetWindowInfo(hWnd);
     return GetSystemBitmapEx (win_info->we_rdr->name, id);
 }
@@ -297,15 +297,15 @@ BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name, const char* id)
 {
     char file[MAX_NAME + 1] = "bmp/";
     char* file_name;
-    
+
     file_name = file+strlen(file);
-        
+
     if (GetMgEtcValue (rdr_name, id, file_name, sizeof(file)-(file_name - file)) < 0 )
         return FALSE;
 
     if (!LoadBitmapFromRes (HDC_SCREEN, file))
         return FALSE;
-       
+
     return TRUE;
 }
 
@@ -323,11 +323,21 @@ void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name, const char* i
 
 BOOL mg_InitSystemRes (void)
 {
-    InitializeResManager(57);
+#ifdef _MGCHARSET_UNICODE
+#   ifdef _MGCOMPLEX_SCRIPTS
+#       define _SIZE_RES_HASH_TABLE 256
+#   else
+#       define _SIZE_RES_HASH_TABLE 128
+#   endif
+#else
+#   define _SIZE_RES_HASH_TABLE 64
+#endif
+
+    InitializeResManager(_SIZE_RES_HASH_TABLE);
+
+#undef _SIZE_RES_HASH_TABLE
 
     sysres_init_inner_resource();
-
-
     return TRUE;
 }
 

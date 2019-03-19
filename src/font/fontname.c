@@ -474,6 +474,38 @@ int fontGetWidthFromName (const char* name)
     return atoi (width);
 }
 
+/* Since 3.4.0; only for LOGFONT name */
+char fontGetOrientFromName (const char* name)
+{
+    int i;
+    const char* orient_part = name;
+    char orient [LEN_LOGFONT_NAME_FIELD + 1];
+
+    for (i = 0; i < NR_LOOP_FOR_ORIENT; i++) {
+        if ((orient_part = strchr (orient_part, '-')) == NULL)
+            return FONT_ORIENT_UPRIGHT;
+
+        if (*(++orient_part) == '\0')
+            return FONT_ORIENT_UPRIGHT;
+    }
+
+    i = 0;
+    while (orient_part [i]) {
+        if (orient_part [i] == '-') {
+            orient [i] = '\0';
+            break;
+        }
+
+        orient [i] = orient_part [i];
+        i++;
+    }
+
+    if (orient_part [i] == '\0')
+        return FONT_ORIENT_UPRIGHT;
+
+    return orient[0];
+}
+
 int fontGetHeightFromName (const char* name)
 {
     int i;

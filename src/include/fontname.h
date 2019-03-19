@@ -45,6 +45,7 @@ extern "C" {
 
 #define NR_LOOP_FOR_STYLE   2
 #define NR_LOOP_FOR_WIDTH   3
+#define NR_LOOP_FOR_ORIENT  NR_LOOP_FOR_WIDTH
 #define NR_LOOP_FOR_HEIGHT  4
 #define NR_LOOP_FOR_CHARSET 5
 
@@ -58,6 +59,12 @@ BOOL fontDoesMatchFamily (const char* name, const char* family);
 BOOL fontCopyStyleFromName (const char* name, char* style);
 DWORD fontGetStyleFromName (const char* name);
 DWORD fontConvertStyle (const char* style_part);
+
+#define FONT_ORIENT_UPRIGHT         'U'
+#define FONT_ORIENT_SIDEWAYS        'S'
+#define FONT_ORIENT_UPSIDE_DOWN     'D'
+#define FONT_ORIENT_SIDEWAYS_LEFT   'L'
+char fontGetOrientFromName (const char* name);
 
 int fontGetWidthFromName (const char* name);
 int fontGetHeightFromName (const char* name);

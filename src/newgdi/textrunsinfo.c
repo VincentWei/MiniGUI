@@ -33,7 +33,7 @@
  */
 
 /*
-** glyphruninfo.c: The implementation of APIs related TEXTRUNSINFO
+** textrunsinfo.c: The implementation of APIs related to TEXTRUNSINFO
 **
 ** Create by WEI Yongming at 2019/03/15
 */
@@ -52,6 +52,7 @@
 #include "devfont.h"
 #include "unicode-ops.h"
 #include "textrunsinfo.h"
+#include "fontname.h"
 
 /* Local array size, used for stack-based local arrays */
 #if SIZEOF_PTR == 8
@@ -167,11 +168,10 @@ static void state_update_for_new_run (TEXTRUNSTATE *state)
 #endif
 }
 
-/* we need a logfont cache */
 static LOGFONT* create_logfont_for_run(const TEXTRUNSINFO* runinfo,
         const TEXTRUN* run)
 {
-    return runinfo->lf;
+    return NULL;
 }
 
 static BOOL state_process_run (TEXTRUNSTATE *state)
@@ -322,16 +322,19 @@ out:
     return ok;
 }
 
-static inline Uint8 get_glyph_orient_from_logfont (LOGFONT* lf)
+static inline Uint8 get_glyph_orient_from_fontname (const char* fontname)
 {
-    switch (lf->rotation) {
-    case -900:
+    switch (fontGetOrientFromName (fontname)) {
+    case FONT_ORIENT_SIDEWAYS:
         return GLYPH_ORIENT_EAST;
-    case 900:
-        return GLYPH_ORIENT_WEST;
-    case 1800:
+
+    case FONT_ORIENT_UPSIDE_DOWN:
         return GLYPH_ORIENT_NORTH;
-    case 0:
+
+    case FONT_ORIENT_SIDEWAYS_LEFT:
+        return GLYPH_ORIENT_WEST;
+
+    case FONT_ORIENT_UPRIGHT:
     default:
         return GLYPH_ORIENT_SOUTH;
     }
@@ -376,7 +379,7 @@ void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
 TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
-        LOGFONT* logfont, RGBCOLOR color)
+        const char* logfont_name, RGBCOLOR color)
 {
     BOOL ok = FALSE;
 
@@ -411,14 +414,14 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     */
 
     // Initialize other fields
-    runinfo->ucs = ucs;
-    runinfo->lf = logfont;
-    runinfo->nr_ucs = nr_ucs;
-    runinfo->lc = lang_code;
-    runinfo->base_dir = (base_dir == BIDI_PGDIR_LTR) ? 0 : 1;
-    runinfo->run_dir = run_dir;
-    runinfo->ort_base = glyph_orient;
-    runinfo->ort_plc = orient_policy;
+    runinfo->ucs        = ucs;
+    runinfo->fontname   = logfont_name;
+    runinfo->nr_ucs     = nr_ucs;
+    runinfo->lc         = lang_code;
+    runinfo->base_level = (base_dir == BIDI_PGDIR_LTR) ? 0 : 1;
+    runinfo->run_dir    = run_dir;
+    runinfo->ort_base   = glyph_orient;
+    runinfo->ort_plc    = orient_policy;
 
     INIT_LIST_HEAD(&runinfo->cm_head.list);
     runinfo->cm_head.si = 0;
@@ -429,7 +432,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     runinfo->nr_runs = 0;
 
     if (runinfo->ort_base == GLYPH_ORIENT_AUTO)
-        runinfo->ort_rsv = get_glyph_orient_from_logfont (runinfo->lf);
+        runinfo->ort_rsv = get_glyph_orient_from_fontname (runinfo->fontname);
     else
         runinfo->ort_rsv = runinfo->ort_base;
 
@@ -480,7 +483,7 @@ out:
 }
 
 BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* runinfo,
-        int start_index, int length, LOGFONT* logfont)
+        int start_index, int length, const char* logfont_name)
 {
     if (runinfo == NULL)
         return FALSE;
@@ -496,13 +499,13 @@ BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* runinfo,
     return FALSE;
 }
 
-RGBCOLOR __mg_glyphruns_get_color(const TEXTRUNSINFO* runinfo, int index)
+RGBCOLOR __mg_textruns_get_color(const TEXTRUNSINFO* runinfo, int index)
 {
     struct list_head *i;
 
     list_for_each(i, &runinfo->cm_head.list) {
-        UCHARCOLORMAP* color_entry;
-        color_entry = (UCHARCOLORMAP*)i;
+        TEXTCOLORMAP* color_entry;
+        color_entry = (TEXTCOLORMAP*)i;
         if (index >= color_entry->si &&
                 (index < color_entry->si + color_entry->len)) {
             return color_entry->color;
@@ -515,7 +518,7 @@ RGBCOLOR __mg_glyphruns_get_color(const TEXTRUNSINFO* runinfo, int index)
 BOOL GUIAPI SetPartColorInTextRuns(TEXTRUNSINFO* runinfo,
         int start_index, int length, RGBCOLOR color)
 {
-    UCHARCOLORMAP* color_entry = NULL;
+    TEXTCOLORMAP* color_entry = NULL;
 
     if (runinfo == NULL || start_index < 0 || length < 0 ||
             start_index > runinfo->nr_ucs ||
@@ -523,7 +526,7 @@ BOOL GUIAPI SetPartColorInTextRuns(TEXTRUNSINFO* runinfo,
         goto error;
     }
 
-    color_entry = calloc(1, sizeof(UCHARCOLORMAP));
+    color_entry = calloc(1, sizeof(TEXTCOLORMAP));
     if (color_entry == NULL) {
         goto error;
     }
@@ -540,7 +543,7 @@ error:
     return FALSE;
 }
 
-BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* runinfo, LOGFONT* logfont)
+BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* runinfo, const char* logfont_name)
 {
     if (runinfo == NULL)
         return FALSE;
@@ -556,8 +559,7 @@ BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* runinfo, LOGFONT* logfont)
         runinfo->se.destroy_engine(runinfo->se.engine);
     }
 
-    runinfo->lf = logfont;
-
+    runinfo->fontname = logfont_name;
     return create_glyph_runs(runinfo, NULL);
 }
 
@@ -602,7 +604,7 @@ BOOL GUIAPI ResetColorInTextRuns(TEXTRUNSINFO* runinfo, RGBCOLOR color)
         return FALSE;
 
     while (!list_empty(&runinfo->cm_head.list)) {
-        UCHARCOLORMAP* entry = (UCHARCOLORMAP*)runinfo->cm_head.list.prev;
+        TEXTCOLORMAP* entry = (TEXTCOLORMAP*)runinfo->cm_head.list.prev;
         list_del(runinfo->cm_head.list.prev);
         free(entry);
     }
@@ -635,7 +637,7 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
         return FALSE;
 
     while (!list_empty(&runinfo->cm_head.list)) {
-        UCHARCOLORMAP* entry = (UCHARCOLORMAP*)runinfo->cm_head.list.prev;
+        TEXTCOLORMAP* entry = (TEXTCOLORMAP*)runinfo->cm_head.list.prev;
         list_del(runinfo->cm_head.list.prev);
         free(entry);
     }

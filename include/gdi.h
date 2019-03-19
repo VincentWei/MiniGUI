@@ -5526,12 +5526,12 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_OTHER_TTFNOCACHEKERN   'r'
 #define FONT_OTHER_NIL              FONT_OTHER_NONE
 
-#define FS_OTHER_MASK               0x00FF0000
+#define FS_OTHER_MASK               0x00F00000
 #define FS_OTHER_NONE               0x00000000
-#define FS_OTHER_AUTOSCALE          0x00010000
-#define FS_OTHER_TTFNOCACHE         0x00020000
-#define FS_OTHER_TTFKERN            0x00040000
-#define FS_OTHER_TTFNOCACHEKERN     0x00060000 /* KERN | NOCACHE */
+#define FS_OTHER_AUTOSCALE          0x00100000
+#define FS_OTHER_TTFNOCACHE         0x00200000
+#define FS_OTHER_TTFKERN            0x00400000
+#define FS_OTHER_TTFNOCACHEKERN     0x00600000 /* KERN | NOCACHE */
 
 #define FONT_DECORATE_NIL           '\0'
 #define FONT_DECORATE_NONE          'n'
@@ -5782,14 +5782,16 @@ typedef struct _LOGFONT {
  * \var typedef LOGFONT* PLOGFONT
  * \brief Data type of pointer to a LOGFONT.
  */
-typedef LOGFONT*    PLOGFONT;
+typedef LOGFONT* PLOGFONT;
+
 /**
  * \var typedef LOGFONT* CPLOGFONT
  * \brief Data type of pointer to a LOGFONT.
  */
-typedef LOGFONT*    CPLOGFONT;
+typedef const LOGFONT* CPLOGFONT;
 
 struct _WORDINFO;
+
 /**
  * \var typedef struct _WORDINFO WORDINFO
  * \brief Date type of _WORDINFO.
@@ -6807,9 +6809,9 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  *
  * This function creates a logical font by a font name specified by
  * \a font_name. Note that since version 3.4.0, you can specify up
- * to 4 family names in the LOGFONT name, such as:
+ * to 7 family names in the LOGFONT name, such as:
  *
- *      ttf-Courier,宋体,Naskh,SansSerif-rrncns-*-16-UTF-8
+ *      ttf-Courier,宋体,Naskh,SansSerif-rrncns-U-16-UTF-8
  *
  * In this way, you can specify a logfont to use multiple devfonts
  * to render a complex text. This is useful when different glyphs are
@@ -6817,13 +6819,21 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  * often designed for a particular language/script or a few similar
  * languages/scripts.
  *
+ * Since 3.4.0, the previous width field of a logfont name is used for
+ * the glyph orientation:
+ *
+ *  - 'U': Glyphs stand upright (default).
+ *  - 'S': Glyphs are rotated 90 degrees clockwise (sideways).
+ *  - 'D': Glyphs are upside-down.
+ *  - 'L': Glyphs are rotated 90 degrees counter-clockwise (sideways left).
+ *
  * \param font_name The name of the logfont.
  *
  * \return The pointer to the logical font created, NULL on error.
  *
  * \sa CreateLogFont, SelectFont
  */
-MG_EXPORT PLOGFONT GUIAPI CreateLogFontByName (const char* font_name);
+MG_EXPORT PLOGFONT GUIAPI CreateLogFontByName(const char* font_name);
 
 /**
  * \fn PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT* logfont)
@@ -12487,14 +12497,14 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
 MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
-        LOGFONT* logfont, RGBCOLOR color);
+        const char* logfont_name, RGBCOLOR color);
 
 /**
  * Set font of part characters. Please call this function before
  * calling ShapeTextRunsBaisc or ShapeTextRunsComplex.
  */
 MG_EXPORT BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* run_info,
-    int start_index, int length, LOGFONT* logfont);
+    int start_index, int length, const char* logfont_name);
 
 /**
  * Set color of part characters.
@@ -12507,19 +12517,13 @@ MG_EXPORT BOOL GUIAPI SetPartColorInTextRuns(TEXTRUNSINFO* run_info,
  * new LOGFONT.
  */
 MG_EXPORT BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* run_info,
-        LOGFONT* logfont);
+        const char* logfont_name);
 
 /**
  * Reset the color of glyph runs.
  */
 MG_EXPORT BOOL GUIAPI ResetColorInTextRuns(TEXTRUNSINFO* run_info,
         RGBCOLOR color);
-
-/**
- * Reset the breaking opportunities of glyph runs.
- */
-MG_EXPORT BOOL GUIAPI ResetBreaksInTextRuns(TEXTRUNSINFO* run_info,
-        Uint8 ctr, Uint8 wbr, Uint8 lbp);
 
 /**
  * Reset the direction and orientation of glyph runs.

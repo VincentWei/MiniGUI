@@ -458,6 +458,7 @@ PLOGFONT GUIAPI CreateLogFontByName (const char* font_name)
     char charset[LEN_LOGFONT_NAME_FIELD + 1];
     DWORD style;
     int height;
+    int rotation;
 
     if (!fontGetTypeNameFromName (font_name, type) ||
             !fontGetFamilyFromName (font_name, family) ||
@@ -466,7 +467,26 @@ PLOGFONT GUIAPI CreateLogFontByName (const char* font_name)
             ((style = fontGetStyleFromName (font_name)) == 0xFFFFFFFF))
         return NULL;
 
-    return gdiCreateLogFont (type, family, charset, style, height, 0);
+    switch (fontGetOrientFromName (font_name)) {
+    case FONT_ORIENT_SIDEWAYS:
+        rotation = -900;
+        break;
+
+    case FONT_ORIENT_UPSIDE_DOWN:
+        rotation = 1800;
+        break;
+
+    case FONT_ORIENT_SIDEWAYS_LEFT:
+        rotation = 900;
+        break;
+
+    case FONT_ORIENT_UPRIGHT:
+    default:
+        rotation = 0;
+        break;
+    }
+
+    return gdiCreateLogFont (type, family, charset, style, height, rotation);
 }
 
 void GUIAPI DestroyLogFont (PLOGFONT logfont)

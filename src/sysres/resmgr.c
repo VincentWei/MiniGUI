@@ -365,7 +365,7 @@ BOOL InitializeResManager(int hash_table_size)
 {
     char szpath[MAX_PATH+1];
     char* p = NULL;
-	pwd_res_path = strdup("./");
+    pwd_res_path = strdup("./");
 
     //initialize paths
 #if !defined(__NOUNIX__) || defined(WIN32)
@@ -701,7 +701,7 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     RES_ENTRY * entry;
     RES_KEY key;
     RES_TYPE_INFO *ti = NULL;
-	int     src_type = 0;
+    int     src_type = 0;
     void *data = NULL;
     char szfilename[MAX_PATH+1]={0};
 
@@ -752,11 +752,11 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     {
         //add type info's
         ti->ops_ref ++;
-		src_type = GetSourceType(entry);
-		if(src_type == REF_SRC_NOTYPE){
-			src_type = ti->def_source;
-			SetSourceType(entry, src_type);
-		}
+        src_type = GetSourceType(entry);
+        if(src_type == REF_SRC_NOTYPE){
+            src_type = ti->def_source;
+            SetSourceType(entry, src_type);
+        }
         switch(src_type)
         {
         case REF_SRC_FILE:
@@ -837,7 +837,7 @@ static void delete_entry(HASH_TABLE *table, RES_ENTRY* entry)
 
 int ReleaseRes(RES_KEY key)
 {
-	int ref = 0;
+    int ref = 0;
     RES_ENTRY *entry = NULL;
     RES_LOCK();
     entry = get_entry(&hash_table, key, FALSE);
@@ -845,7 +845,7 @@ int ReleaseRes(RES_KEY key)
         RES_UNLOCK();
         return -1;
     }
-	ref = --entry->refcnt;
+    ref = --entry->refcnt;
     if(ref <= 0)
         delete_entry(&hash_table, entry);
     RES_UNLOCK();
