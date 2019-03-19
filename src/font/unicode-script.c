@@ -635,11 +635,11 @@ GlyphOrient ScriptGetGlyphOrientation (ScriptType script,
     if (base_orient == GLYPH_ORIENT_AUTO)
         base_orient = props.preferred_orient;
 
-    return ScriptGetWideGlyphOrientation (script, props.wide,
+    return GetWideGlyphOrientationForScript (script, props.wide,
             base_orient, hint);
 }
 
-GlyphOrient ScriptGetWideGlyphOrientation (ScriptType script,
+GlyphOrient GetWideGlyphOrientationForScript (ScriptType script,
         BOOL wide, GlyphOrient base_orient, GlyphOrientPolicy hint)
 {
     ScriptTypeProperties props = get_script_properties (script);

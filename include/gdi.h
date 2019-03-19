@@ -9079,7 +9079,7 @@ MG_EXPORT GlyphOrient GUIAPI ScriptGetGlyphOrientation (ScriptType script,
         GlyphOrient base_orient, GlyphOrientPolicy policy);
 
 /**
- * ScriptGetWideGlyphOrientation:
+ * GetWideGlyphOrientationForScript:
  * @script: #ScriptType to query
  * @wide: %TRUE for wide characters as returned by IsUCharWide()
  * @base_orient: base orientation of the paragraph
@@ -9104,7 +9104,7 @@ MG_EXPORT GlyphOrient GUIAPI ScriptGetGlyphOrientation (ScriptType script,
  *
  * Since: 3.4.0
  */
-GlyphOrient ScriptGetWideGlyphOrientation (ScriptType script,
+GlyphOrient GetWideGlyphOrientationForScript (ScriptType script,
         BOOL wide, GlyphOrient base_orient, GlyphOrientPolicy policy);
 
     /** @} end of unicode_ops */
@@ -12478,58 +12478,53 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
         SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
         GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
 
-/* The fields in the structure _GLYPHRUNINFO are invisible to users */
-typedef struct _GLYPHRUNINFO GLYPHRUNINFO;
+/* The fields in the structure _TEXTRUNSINFO are invisible to users */
+typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
 
 /**
- * Split a Uchar32 paragraph string into text runs according to the
- * scripts of characters.
- *
- * This function also calculates the embedding levels and the
- * breaking opportunities of the string.
+ * Split a Uchar32 paragraph string into text runs.
  */
-MG_EXPORT GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
-        LanguageCode lang_code, ScriptType script_type,
-        ParagraphDir base_dir, GlyphRunDir run_dir,
+MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
+        LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
         LOGFONT* logfont, RGBCOLOR color);
 
 /**
  * Set font of part characters. Please call this function before
- * calling ShapeGlyphRunsBaisc or ShapeGlyphRunsComplex.
+ * calling ShapeTextRunsBaisc or ShapeTextRunsComplex.
  */
-MG_EXPORT BOOL GUIAPI SetPartFontInGlyphRuns(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* run_info,
     int start_index, int length, LOGFONT* logfont);
 
 /**
  * Set color of part characters.
  */
-MG_EXPORT BOOL GUIAPI SetPartColorInGlyphRuns(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetPartColorInTextRuns(TEXTRUNSINFO* run_info,
     int start_index, int length, RGBCOLOR color);
 
 /**
  * Reset the font of glyph runs for the next rendering under a
  * new LOGFONT.
  */
-MG_EXPORT BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* run_info,
         LOGFONT* logfont);
 
 /**
  * Reset the color of glyph runs.
  */
-MG_EXPORT BOOL GUIAPI ResetColorInGlyphRuns(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI ResetColorInTextRuns(TEXTRUNSINFO* run_info,
         RGBCOLOR color);
 
 /**
  * Reset the breaking opportunities of glyph runs.
  */
-MG_EXPORT BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI ResetBreaksInTextRuns(TEXTRUNSINFO* run_info,
         Uint8 ctr, Uint8 wbr, Uint8 lbp);
 
 /**
  * Reset the direction and orientation of glyph runs.
  */
-MG_EXPORT BOOL GUIAPI ResetDirectionInGlyphRuns(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI ResetDirectionInTextRuns(TEXTRUNSINFO* run_info,
         GlyphRunDir run_dir, GlyphOrient glyph_orient,
         GlyphOrientPolicy orient_policy);
 
@@ -12537,10 +12532,10 @@ MG_EXPORT BOOL GUIAPI ResetDirectionInGlyphRuns(GLYPHRUNINFO* run_info,
  * Destroy the glyph run info object. It also frees all data allocated
  * for shapping and layouting the glyphs.
  */
-MG_EXPORT BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
+MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* run_info);
 
 /**
- * \fn BOOL GUIAPI ShapeGlyphRunsBaisc()
+ * \fn BOOL GUIAPI ShapeTextRunsBaisc()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system.
  *
@@ -12586,13 +12581,13 @@ MG_EXPORT BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* run_info);
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI ShapeTextRunsBaisc(TEXTRUNSINFO* run_info,
         Uint32 render_flags);
 
 #ifdef _MGCOMPLEX_SCRIPTS
 
 /**
- * \fn int GUIAPI ShapeGlyphRunsComplex()
+ * \fn int GUIAPI ShapeTextRunsComplex()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system. This is the complex
  *      implementation based on HarfBuzz, which is LGPL'd shaping engine.
@@ -12657,7 +12652,7 @@ MG_EXPORT BOOL GUIAPI ShapeGlyphRunsBaisc(GLYPHRUNINFO* run_info,
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info,
+MG_EXPORT BOOL GUIAPI ShapeTextRunsComplex(TEXTRUNSINFO* run_info,
         Uint32 render_flags);
 
 #endif /* _MGCOMPLEX_SCRIPTS */
@@ -12699,7 +12694,7 @@ MG_EXPORT BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info,
  *     GetGlyphsPositionInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  *
 MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
-        GLYPHRUNINFO* run_info, int run_idx);
+        TEXTRUNSINFO* run_info, int run_idx);
  */
 
 /**
@@ -12762,7 +12757,7 @@ MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
  * \sa UStrGetBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
-MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const GLYPHRUNINFO* run_info,
+MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const TEXTRUNSINFO* run_info,
         const BreakOppo* break_oppos,
         int uc_start_index, int x, int y, Uint32 render_flags,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
@@ -12794,7 +12789,7 @@ MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const GLYPHRUNINFO* run_info,
  *
  * \sa GetGlyphsExtentFromUChars
  */
-MG_EXPORT int GUIAPI DrawShapedGlyphs(const GLYPHRUNINFO* run_info,
+MG_EXPORT int GUIAPI DrawShapedGlyphs(const TEXTRUNSINFO* run_info,
         int uc_start_index, const GLYPHPOS* glyph_pos, int nr_glyphs);
 
 #endif /* _MGCHARSET_UNICODE */

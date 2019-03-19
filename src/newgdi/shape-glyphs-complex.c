@@ -55,9 +55,9 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "glyphruninfo.h"
+#include "textrunsinfo.h"
 
-BOOL GUIAPI ShapeGlyphRunsComplex(GLYPHRUNINFO* run_info, Uint32 rf)
+BOOL GUIAPI ShapeTextRunsComplex(TEXTRUNSINFO* run_info, Uint32 rf)
 {
     return FALSE;
 }

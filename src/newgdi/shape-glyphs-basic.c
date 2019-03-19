@@ -55,7 +55,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "glyphruninfo.h"
+#include "textrunsinfo.h"
 
 #if 0
 static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
@@ -79,7 +79,7 @@ static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
-BOOL GUIAPI ShapeGlyphRunsBasic(GLYPHRUNINFO* run_info, Uint32 rf)
+BOOL GUIAPI ShapeTextRunsBasic(TEXTRUNSINFO* run_info, Uint32 rf)
 {
 #if 0
     int ret_value = 0;

@@ -33,13 +33,13 @@
  */
 
 /*
-** glyphruninfo.h: Internal interface related GLYPHRUNINFO.
+** glyphruninfo.h: Internal interface related TEXTRUNSINFO.
 **
 ** Create by WEI Yongming at 2019/03/15
 */
 
-#ifndef _MG_NEWGDI_GLYPHRUNINFO_H
-    #define _MG_NEWGDI_GLYPHRUNINFO_H
+#ifndef _MG_NEWGDI_TEXTRUNSINFO_H
+    #define _MG_NEWGDI_TEXTRUNSINFO_H
 
 #include "list.h"
 
@@ -68,28 +68,54 @@ typedef struct _SHAPPINGENGINE {
     CB_DESTROY_ENGINE   destroy_engine;
 } SHAPPINGENGINE;
 
-typedef struct _GLYPHRUN {
+typedef struct _TEXTRUN {
     struct list_head list;
     LOGFONT*    lf;     // the logfont for this run
+
     void*       gs;     // the shaped glyph information
 
-    int         nr_gs;  // the number of shaped glyphs
-    int         si;     // start index in the Unicode string
-    int         nr_ucs; // the number of Unicode characters
+    int         idx;    // start index in the Unicode string
+    int         len;    // the number of Unicode characters
 
-    Uint32      lc:8;       // language code
-    Uint32      st:8;       // script type
-    Uint32      level:8;    // the bidi level
-    Uint32      dir:4;      // the run direction
-    Uint32      ort:2;      // the glyph orientation
-} GLYPHRUN;
+    int         ngs;    // the number of shaped glyphs
 
-// NOTE: we arrange the fields carefully to avoid wasting space when
-// we allocate an array of this structure due to the alignment.
-typedef struct _MAPL2G {
-    GLYPHRUN*       glyph_run;      // the glyph run this char belongs to.
-    int             glyph_index;    // the index of the glyph in the run.
-} MAPL2G;
+    Uint32      lc:8;   // language code
+    Uint32      st:8;   // script type
+    Uint32      el:8;   // the bidi embedding level
+    Uint32      dir:4;  // the run direction
+    Uint32      ort:2;  // the glyph orientation
+} TEXTRUN;
+
+typedef struct _LAYOUTINFO LAYOUTINFO;
+
+typedef struct _LAYOUTRUN {
+    struct list_head    list;
+    TEXTRUN*            text_run;   // the glyph run
+    int                 start_idx;  // the index in glyph run
+    int                 nr_glyphs;  // the number of glyphs
+} LAYOUTRUN;
+
+typedef struct _LAYOUTLINE {
+    LAYOUTINFO*         layout_info;
+
+    struct list_head    run_head;   // the list head for layout runs
+
+    int                 idx;        // the index in uchar string
+    int                 len;        // the length in uchar string
+
+    Uint8               first_line:1;   // is first line of the paragraph?
+    Uint8               resolved_dir:3; // resolved direction of the line
+    Uint8               all_even:1; // flag indicating all level is even
+    Uint8               all_odd:1;  // flag indicating all level is odd
+} LAYOUTLINE;
+
+struct _LAYOUTINFO {
+    const TEXTRUNSINFO* runinfo;
+
+    struct list_head    line_head;
+
+    int                 nr_lines;
+};
 
 typedef struct _UCHARCOLORMAP {
     struct list_head    list;
@@ -98,44 +124,36 @@ typedef struct _UCHARCOLORMAP {
     RGBCOLOR            color;
 } UCHARCOLORMAP;
 
-struct _GLYPHRUNINFO {
+struct _TEXTRUNSINFO {
     /* The following fields will be initialized by CreateGlyphRunInfo. */
     const Uchar32*      ucs;    // the uchars
     LOGFONT*            lf;     // the logfont specified
 
-    UCHARCOLORMAP       cm_head;// the head of color map list of the characters
-                                // change by calling SetPartColorInGlyphRunInfo
-    struct list_head    run_head;   // glyph runs
-                                // change by SetPartFontInGlyphRunInfo
+    UCHARCOLORMAP       cm_head; // the head of color map list of the characters
+    struct list_head    run_head;// glyph runs (list)
 
     int             nr_ucs;     // number of uchars
+    int             nr_runs;    // number of runs
     Uint32          lc:8;       // language code specified
-    Uint32          st:8;       // script type specified
     Uint32          ort_base:3; // the glyph orientation specified
     Uint32          ort_rsv:3;  // the glyph orientation resolved
     Uint32          ort_plc:2;  // the glyph orientation policy specified
     Uint32          run_dir:4;  // the run direction specified
     Uint32          base_dir:1; // the paragraph direction; 0 for LTR, 1 for RTL
-    Uint32          all_even:1; // flag indicating all level is even
-    Uint32          all_odd:1;  // flag indicating all level is odd
 
     /* The following fields will be initialized by the shapping engine. */
     SHAPPINGENGINE  se;     // the shapping engine
-    MAPL2G*         l2g;    // the logical character to glyph map
-    GLYPHEXTINFO*   ges;    // the glyph extent information
-
-    Uint32          rf;     // the rendering flags
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-RGBCOLOR __mg_glyphruns_get_color(const GLYPHRUNINFO* runinfo, int index);
+RGBCOLOR __mg_glyphruns_get_color(const TEXTRUNSINFO* runinfo, int index);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif // _MG_NEWGDI_GLYPHRUNINFO_H
+#endif // _MG_NEWGDI_TEXTRUNSINFO_H
 
