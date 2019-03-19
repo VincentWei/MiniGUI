@@ -93,9 +93,9 @@ ScriptIterator* __mg_script_iterator_init(ScriptIterator *iter,
 
     iter->ucs_start = ucs;
     iter->ucs_end = ucs + nr_ucs;
-    iter->script_start = ucs;
-    iter->script_end = ucs;
-    iter->script_type = SCRIPT_COMMON;
+    iter->start = ucs;
+    iter->end = ucs;
+    iter->script = SCRIPT_COMMON;
 
     iter->paren_sp = -1;
 
@@ -163,15 +163,15 @@ BOOL __mg_script_iterator_next (ScriptIterator *iter)
 {
     int start_sp;
 
-    if (iter->script_end == iter->ucs_end)
+    if (iter->end == iter->ucs_end)
         return FALSE;
 
     start_sp = iter->paren_sp;
-    iter->script_type = SCRIPT_COMMON;
-    iter->script_start = iter->script_end;
+    iter->script = SCRIPT_COMMON;
+    iter->start = iter->end;
 
-    for (; iter->script_end < iter->ucs_end; iter->script_end++) {
-        Uchar32 ch = *iter->script_end;
+    for (; iter->end < iter->ucs_end; iter->end++) {
+        Uchar32 ch = *iter->end;
         ScriptType sc;
         int pair_index;
 
@@ -202,8 +202,8 @@ BOOL __mg_script_iterator_next (ScriptIterator *iter)
                     iter->paren_sp = 0;
 
                 iter->paren_stack[iter->paren_sp].pair_index = pair_index;
-                iter->paren_stack[iter->paren_sp].script_type =
-                        iter->script_type;
+                iter->paren_stack[iter->paren_sp].script =
+                        iter->script;
             }
             else if (iter->paren_sp >= 0) {
                 int pi = pair_index & ~1;
@@ -216,21 +216,20 @@ BOOL __mg_script_iterator_next (ScriptIterator *iter)
                     start_sp = iter->paren_sp;
 
                 if (iter->paren_sp >= 0)
-                    sc = iter->paren_stack[iter->paren_sp].script_type;
+                    sc = iter->paren_stack[iter->paren_sp].script;
             }
         }
 
-        if (SAME_SCRIPT (iter->script_type, sc)) {
-            if (!REAL_SCRIPT (iter->script_type) && REAL_SCRIPT (sc)) {
-                iter->script_type = sc;
+        if (SAME_SCRIPT (iter->script, sc)) {
+            if (!REAL_SCRIPT (iter->script) && REAL_SCRIPT (sc)) {
+                iter->script = sc;
 
                 /*
                  * now that we have a final script code, fix any open
                  * characters we pushed before we knew the script code.
                  */
                 while (start_sp < iter->paren_sp)
-                    iter->paren_stack[++start_sp].script_type =
-                            iter->script_type;
+                    iter->paren_stack[++start_sp].script = iter->script;
             }
 
             /*
@@ -254,18 +253,18 @@ BOOL __mg_script_iterator_next (ScriptIterator *iter)
     return TRUE;
 }
 
-static inline BOOL width_iter_is_upright(Uchar32 ch)
+static inline BOOL width_iterator_is_upright(Uchar32 ch)
 {
     return (UCharGetVerticalOrientation(ch) == UCHAR_VOP_U);
 }
 
-void __mg_width_iter_next(WidthIterator* iter)
+void __mg_width_iterator_next(WidthIterator* iter)
 {
     BOOL met_joiner = FALSE;
     iter->start = iter->end;
 
     if (iter->end < iter->ucs_end) {
-        iter->upright = width_iter_is_upright(*iter->end);
+        iter->upright = width_iterator_is_upright(*iter->end);
     }
 
     while (iter->end < iter->ucs_end) {
@@ -293,21 +292,21 @@ void __mg_width_iter_next(WidthIterator* iter)
             continue;
         }
 
-        if (width_iter_is_upright (ch) != iter->upright)
+        if (width_iterator_is_upright (ch) != iter->upright)
             break;
 
         iter->end++;
     }
 }
 
-WidthIterator* __mg_width_iter_init (WidthIterator* iter,
+WidthIterator* __mg_width_iterator_init (WidthIterator* iter,
         const Uchar32* ucs, int nr_ucs)
 {
     iter->ucs_start = ucs;
     iter->ucs_end = ucs + nr_ucs;
     iter->start = iter->end = ucs;
 
-    __mg_width_iter_next (iter);
+    __mg_width_iterator_next (iter);
     return iter;
 }
 

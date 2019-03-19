@@ -348,5 +348,303 @@ ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
     return ws;
 }
 
+typedef enum {
+    VERTICAL_DIRECTION_NONE,
+    VERTICAL_DIRECTION_TTB,
+    VERTICAL_DIRECTION_BTT
+} VerticalDirection;
+
+typedef struct {
+    /* GlyphRunDir */
+    Uint8 horiz_dir;       /* Orientation in horizontal context */
+
+    /* PangoVerticalDirection */
+    Uint8 vert_dir;        /* Orientation in vertical context */
+
+    /* GlyphOrient */
+    Uint8 preferred_orient;    /* Preferred context orientation */
+
+    /* BOOL */
+    Uint8 wide;            /* Whether script is mostly wide.
+                             * Wide characters are upright (ie.
+                             * not rotated) in foreign context */
+} ScriptTypeProperties;
+
+#define NONE VERTICAL_DIRECTION_NONE
+#define TTB  VERTICAL_DIRECTION_TTB
+#define BTT  VERTICAL_DIRECTION_BTT
+
+#define LTR  GLYPH_RUN_DIR_LTR
+#define RTL  GLYPH_RUN_DIR_RTL
+#define WEAK GLYPH_RUN_DIR_WEAK_LTR
+
+#define S GLYPH_ORIENT_SOUTH
+#define E GLYPH_ORIENT_EAST
+#define W GLYPH_ORIENT_WEST
+
+#define UNKNOWN_SCRIPT_PROPERTY \
+    {LTR, NONE, S, FALSE}
+
+const ScriptTypeProperties script_properties[] =
+{/* ISO 15924 code */
+    {LTR, NONE, S, FALSE},    /* Zyyy */
+    {LTR, NONE, S, FALSE},    /* Qaai */
+    {RTL, NONE, S, FALSE},    /* Arab */
+    {LTR, NONE, S, FALSE},    /* Armn */
+    {LTR, NONE, S, FALSE},    /* Beng */
+    {LTR, TTB,  E, TRUE },    /* Bopo */
+    {LTR, NONE, S, FALSE},    /* Cher */
+    {LTR, NONE, S, FALSE},    /* Qaac */
+    {LTR, NONE, S, FALSE},    /* Cyrl (Cyrs) */
+    {LTR, NONE, S, FALSE},    /* Dsrt */
+    {LTR, NONE, S, FALSE},    /* Deva */
+    {LTR, NONE, S, FALSE},    /* Ethi */
+    {LTR, NONE, S, FALSE},    /* Geor (Geon, Geoa) */
+    {LTR, NONE, S, FALSE},    /* Goth */
+    {LTR, NONE, S, FALSE},    /* Grek */
+    {LTR, NONE, S, FALSE},    /* Gujr */
+    {LTR, NONE, S, FALSE},    /* Guru */
+    {LTR, TTB,  E, TRUE },    /* Hani */
+    {LTR, TTB,  E, TRUE },    /* Hang */
+    {RTL, NONE, S, FALSE},    /* Hebr */
+    {LTR, TTB,  E, TRUE },    /* Hira */
+    {LTR, NONE, S, FALSE},    /* Knda */
+    {LTR, TTB,  E, TRUE },    /* Kana */
+    {LTR, NONE, S, FALSE},    /* Khmr */
+    {LTR, NONE, S, FALSE},    /* Laoo */
+    {LTR, NONE, S, FALSE},    /* Latn (Latf, Latg) */
+    {LTR, NONE, S, FALSE},    /* Mlym */
+    {WEAK,TTB,  W, FALSE},    /* Mong */
+    {LTR, NONE, S, FALSE},    /* Mymr */
+    {LTR, BTT,  W, FALSE},    /* Ogam */
+    {LTR, NONE, S, FALSE},    /* Ital */
+    {LTR, NONE, S, FALSE},    /* Orya */
+    {LTR, NONE, S, FALSE},    /* Runr */
+    {LTR, NONE, S, FALSE},    /* Sinh */
+    {RTL, NONE, S, FALSE},    /* Syrc (Syrj, Syrn, Syre) */
+    {LTR, NONE, S, FALSE},    /* Taml */
+    {LTR, NONE, S, FALSE},    /* Telu */
+    {RTL, NONE, S, FALSE},    /* Thaa */
+    {LTR, NONE, S, FALSE},    /* Thai */
+    {LTR, NONE, S, FALSE},    /* Tibt */
+    {LTR, NONE, S, FALSE},    /* Cans */
+    {LTR, TTB,  S, TRUE },    /* Yiii */
+    {LTR, NONE, S, FALSE},    /* Tglg */
+    {LTR, NONE, S, FALSE},    /* Hano */
+    {LTR, NONE, S, FALSE},    /* Buhd */
+    {LTR, NONE, S, FALSE},    /* Tagb */
+
+    /* Unicode-4.0 additions */
+    {LTR, NONE, S, FALSE},    /* Brai */
+    {RTL, NONE, S, FALSE},    /* Cprt */
+    {LTR, NONE, S, FALSE},    /* Limb */
+    {LTR, NONE, S, FALSE},    /* Osma */
+    {LTR, NONE, S, FALSE},    /* Shaw */
+    {LTR, NONE, S, FALSE},    /* Linb */
+    {LTR, NONE, S, FALSE},    /* Tale */
+    {LTR, NONE, S, FALSE},    /* Ugar */
+
+    /* Unicode-4.1 additions */
+    {LTR, NONE, S, FALSE},    /* Talu */
+    {LTR, NONE, S, FALSE},    /* Bugi */
+    {LTR, NONE, S, FALSE},    /* Glag */
+    {LTR, NONE, S, FALSE},    /* Tfng */
+    {LTR, NONE, S, FALSE},    /* Sylo */
+    {LTR, NONE, S, FALSE},    /* Xpeo */
+    {LTR, NONE, S, FALSE},    /* Khar */
+
+    /* Unicode-5.0 additions */
+    {LTR, NONE, S, FALSE},    /* Zzzz */
+    {LTR, NONE, S, FALSE},    /* Bali */
+    {LTR, NONE, S, FALSE},    /* Xsux */
+    {RTL, NONE, S, FALSE},    /* Phnx */
+    {LTR, NONE, S, FALSE},    /* Phag */
+    {RTL, NONE, S, FALSE},    /* Nkoo */
+
+    /* Unicode-5.1 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Kali */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Lepc */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Rjng */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sund */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Saur */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Cham */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Olck */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Vaii */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Cari */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Lyci */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Lydi */
+
+    /* Unicode-5.2 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Avst */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Bamu */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Egyp */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Armi */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Phli */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Prti */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Java */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Kthi */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Lisu */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Mtei */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sarb */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Orkh */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Samr */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Lana */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Tavt */
+
+    /* Unicode-6.0 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Batk */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Brah */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Mand */
+
+    /* Unicode-6.1 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Cakm */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Merc */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Mero */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Plrd */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Shrd */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sora */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Takr */
+
+    /* Unicode 7.0 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Bass */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Aghb */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Dupl */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Elba */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Gran */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Khoj */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sind */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Lina */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Mahj */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Manu */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Mend */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Modi */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Mroo */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Nbat */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Narb */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Perm */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Hmng */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Palm */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Pauc */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Phlp */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sidd */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Tirh */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Wara */
+
+    /* Unicode 8.0 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Ahom */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Hluw */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Hatr */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Mult */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Hung */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sgnw */
+
+    /* Unicode 9.0 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Adlm */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Bhks */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Marc */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Newa */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Osge */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Tang */
+
+    /* Unicode 10.0 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Gonm */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Nshu */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Soyo */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Zanb */
+
+    /* Unicode 11.0 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Dogr */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Gong */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Rohg */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Maka */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Medf */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sogo */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Sogd */
+
+    /* Unicode 12.0 additions */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Elymaic */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Nandinagari */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Nyiakeng Puachue Hmong */
+    UNKNOWN_SCRIPT_PROPERTY,  /* Wancho */
+};
+
+#undef NONE
+#undef TTB
+#undef BTT
+
+#undef LTR
+#undef RTL
+#undef WEAK
+
+#undef S
+#undef E
+#undef N
+#undef W
+
+static inline ScriptTypeProperties get_script_properties (ScriptType script)
+{
+    if (script < 0 || (size_t)script >= TABLESIZE (script_properties))
+        return script_properties[0];
+
+    return script_properties[script];
+}
+
+GlyphOrient ScriptGetGlyphOrientation (ScriptType script,
+        GlyphOrient base_orient, GlyphOrientPolicy hint)
+{
+    ScriptTypeProperties props = get_script_properties (script);
+
+    if (base_orient == GLYPH_ORIENT_AUTO)
+        base_orient = props.preferred_orient;
+
+    return ScriptGetWideGlyphOrientation (script, props.wide,
+            base_orient, hint);
+}
+
+GlyphOrient ScriptGetWideGlyphOrientation (ScriptType script,
+        BOOL wide, GlyphOrient base_orient, GlyphOrientPolicy hint)
+{
+    ScriptTypeProperties props = get_script_properties (script);
+    BOOL vertical;
+
+    if (base_orient == GLYPH_ORIENT_AUTO)
+        base_orient = props.preferred_orient;
+
+    vertical = GLYPH_ORIENT_IS_VERTICAL(base_orient);
+
+    /* Everything is designed such that a system with no vertical support
+     * renders everything correctly horizontally.  So, if not in a vertical
+     * orientation, base and resolved gravities are always the same.
+     *
+     * Wide characters are always upright.
+     */
+    if (!vertical || wide)
+        return base_orient;
+
+    /* If here, we have a narrow character in a vertical orientation setting.
+     * Resolve depending on the hint.
+     */
+    switch (hint) {
+    default:
+    case GLYPH_ORIENT_POLICY_NATURAL:
+        if (props.vert_dir == VERTICAL_DIRECTION_NONE)
+            return GLYPH_ORIENT_SOUTH;
+        if ((base_orient   == GLYPH_ORIENT_EAST) ^
+                (props.vert_dir == VERTICAL_DIRECTION_BTT))
+            return GLYPH_ORIENT_SOUTH;
+        else
+            return GLYPH_ORIENT_NORTH;
+
+    case GLYPH_ORIENT_POLICY_STRONG:
+        return base_orient;
+
+    case GLYPH_ORIENT_POLICY_LINE:
+        if ((base_orient    == GLYPH_ORIENT_EAST) ^
+                (props.horiz_dir == GLYPH_RUN_DIR_RTL))
+            return GLYPH_ORIENT_SOUTH;
+        else
+            return GLYPH_ORIENT_NORTH;
+    }
+}
 #endif /* _MGCHARSET_UNICODE */
 

@@ -9020,8 +9020,92 @@ typedef enum _UCharVOP {
     UCHAR_VOP_TR,
 } UCharVOP;
 
+/* same as HarfBuzz */
+typedef enum {
+    GLYPH_RUN_DIR_INVALID = 0,
+    GLYPH_RUN_DIR_WEAK_LTR,
+    GLYPH_RUN_DIR_WEAK_RTL,
+    GLYPH_RUN_DIR_LTR = 4,
+    GLYPH_RUN_DIR_RTL,
+    GLYPH_RUN_DIR_TTB,
+    GLYPH_RUN_DIR_BTT
+} GlyphRunDir;
+
+#define GLYPH_GRAVITY_SOUTH                 0
+#define GLYPH_GRAVITY_EAST                  1
+#define GLYPH_GRAVITY_NORTH                 2
+#define GLYPH_GRAVITY_WEST                  3
+#define GLYPH_GRAVITY_AUTO                  4
+
+typedef enum {
+    GLYPH_ORIENT_SOUTH  = GLYPH_GRAVITY_SOUTH,
+    GLYPH_ORIENT_EAST   = GLYPH_GRAVITY_EAST,
+    GLYPH_ORIENT_NORTH  = GLYPH_GRAVITY_NORTH,
+    GLYPH_ORIENT_WEST   = GLYPH_GRAVITY_WEST,
+    GLYPH_ORIENT_AUTO   = GLYPH_GRAVITY_AUTO,
+} GlyphOrient;
+
+typedef enum {
+    GLYPH_ORIENT_POLICY_NATURAL,
+    GLYPH_ORIENT_POLICY_STRONG,
+    GLYPH_ORIENT_POLICY_LINE,
+} GlyphOrientPolicy;
+
+#define GLYPH_ORIENT_IS_VERTICAL(orient) \
+    ((orient) == GLYPH_ORIENT_EAST || (orient) == GLYPH_ORIENT_WEST)
+
 /** Get the vertical orientation property of a Unicode character */
 MG_EXPORT UCharVOP GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
+
+/**
+ * ScriptGetGlyphOrientation:
+ * @script: #ScriptType to query
+ * @base_orient: base orientation of the paragraph
+ * @policy: orientation policy
+ *
+ * Based on the script, base orientation, and policy, returns actual orientation
+ * to use in laying out a single glyph run.
+ *
+ * If @base_orient is %GLYPH_ORIENT_AUTO, it is first replaced with the
+ * preferred orientation of @script. To get the preferred orientation of a script,
+ * pass %GLYPH_ORIENT_AUTO and %GLYPH_ORIENT_POLICY_STRONG in.
+ *
+ * Return value: resolved orientation suitable to use for a run of text
+ * with @script.
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT GlyphOrient GUIAPI ScriptGetGlyphOrientation (ScriptType script,
+        GlyphOrient base_orient, GlyphOrientPolicy policy);
+
+/**
+ * ScriptGetWideGlyphOrientation:
+ * @script: #ScriptType to query
+ * @wide: %TRUE for wide characters as returned by IsUCharWide()
+ * @base_orient: base orientation of the paragraph
+ * @policy: orientation policy
+ *
+ * Based on the script, East Asian width, base orientation, and policy,
+ * returns actual orientation to use in laying out a single character
+ * or a run of glyph.
+ *
+ * This function is similar to ScriptGetGlyphOrientation() except
+ * that this function makes a distinction between narrow/half-width and
+ * wide/full-width characters also.  Wide/full-width characters always
+ * stand <emphasis>upright</emphasis>, that is, they always take the
+ * base orientation, whereas narrow/full-width characters are always
+ * rotated in vertical context.
+ *
+ * If @base_orient is %GLYPH_ORIENT_AUTO, it is first replaced with the
+ * preferred orientation of @script.
+ *
+ * Return value: resolved orientation suitable to use for a run of text
+ * with @script and @wide.
+ *
+ * Since: 3.4.0
+ */
+GlyphOrient ScriptGetWideGlyphOrientation (ScriptType script,
+        BOOL wide, GlyphOrient base_orient, GlyphOrientPolicy policy);
 
     /** @} end of unicode_ops */
 
@@ -12220,15 +12304,10 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
 
     /** @} end of glyph_render_flags */
 
-#define GLYPH_GRAVITY_NORTH                 0
-#define GLYPH_GRAVITY_EAST                  1
-#define GLYPH_GRAVITY_WEST                  2
-#define GLYPH_GRAVITY_SOUTH                 3
-
-#define GLYPH_ORIENTATION_UPRIGHT           GLYPH_GRAVITY_NORTH
+#define GLYPH_ORIENTATION_UPRIGHT           GLYPH_GRAVITY_SOUTH
 #define GLYPH_ORIENTATION_SIDEWAYS          GLYPH_GRAVITY_EAST
+#define GLYPH_ORIENTATION_UPSIDE_DOWN       GLYPH_GRAVITY_NORTH
 #define GLYPH_ORIENTATION_SIDEWAYS_LEFT     GLYPH_GRAVITY_WEST
-#define GLYPH_ORIENTATION_INVERTED          GLYPH_GRAVITY_SOUTH
 
 #define GLYPH_HANGED_NONE           0
 #define GLYPH_HANGED_START          1
@@ -12400,28 +12479,6 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
 /* The fields in the structure _GLYPHRUNINFO are invisible to users */
 typedef struct _GLYPHRUNINFO GLYPHRUNINFO;
 
-/* same as HarfBuzz */
-typedef enum {
-    GLYPH_RUN_DIR_INVALID = 0,
-    GLYPH_RUN_DIR_LTR = 4,
-    GLYPH_RUN_DIR_RTL,
-    GLYPH_RUN_DIR_TTB,
-    GLYPH_RUN_DIR_BTT
-} GlyphRunDir;
-
-typedef enum {
-    GLYPH_ORIENT_NORTH  = GLYPH_GRAVITY_NORTH,
-    GLYPH_ORIENT_EAST   = GLYPH_GRAVITY_EAST,
-    GLYPH_ORIENT_WEST   = GLYPH_GRAVITY_WEST,
-    GLYPH_ORIENT_SOUTH  = GLYPH_GRAVITY_SOUTH,
-} GlyphOrient;
-
-typedef enum {
-    GLYPH_ORIENT_POLICY_NATURAL,
-    GLYPH_ORIENT_POLICY_STRONG,
-    GLYPH_ORIENT_POLICY_LINE,
-} GlyphOrientPolicy;
-
 /**
  * Split a Uchar32 paragraph string into text runs according to the
  * scripts of characters.
@@ -12471,7 +12528,8 @@ MG_EXPORT BOOL GUIAPI ResetBreaksInGlyphRuns(GLYPHRUNINFO* run_info,
  * Reset the direction and orientation of glyph runs.
  */
 MG_EXPORT BOOL GUIAPI ResetDirectionInGlyphRuns(GLYPHRUNINFO* run_info,
-        GlyphRunDir run_dir, GlyphOrient glyph_orient);
+        GlyphRunDir run_dir, GlyphOrient glyph_orient,
+        GlyphOrientPolicy orient_policy);
 
 /**
  * Destroy the glyph run info object. It also frees all data allocated

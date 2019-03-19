@@ -71,45 +71,251 @@ enum {
 };
 
 typedef struct _GLYPHRUNSTATE {
-    GLYPHRUNINFO*   context;
+    GLYPHRUNINFO*   runinfo;
     const Uchar32*  text;
     const Uchar32*  end;
 
     const Uchar32*  run_start;
     const Uchar32*  run_end;
 
-    BidiLevel*      embedding_levels;
-    const Uchar32*  embedding_end;
-    int             embedding_end_offset;
-    BidiLevel       embedding;
+    BidiLevel*      els;
+    const Uchar32*  emb_end;
+    int             emb_end_offset;
+    BidiLevel       emb_level;
 
     GlyphOrient     orient;
     GlyphOrientPolicy   orient_policy;
-    GlyphOrient     resolved_gravity;
+    GlyphOrient     ort_rsv;
     BOOL            centered_baseline;
 
     Uint8           changed;
 
     ScriptIterator  script_iter;
-    const Uchar32*  script_end;
-    ScriptType      script;
-
     WidthIterator   width_iter;
     EmojiIterator   emoji_iter;
 
     LanguageCode    derived_lang;
 } GLYPHRUNSTATE;
 
-static BOOL init_glyph_runs(GLYPHRUNINFO* runinfo, BidiLevel* els)
+static void update_embedding_end(GLYPHRUNSTATE *state)
 {
+    state->emb_level = state->els[state->emb_end_offset];
+    while (state->emb_end < state->end &&
+            state->els[state->emb_end_offset] == state->emb_level)
+    {
+        state->emb_end_offset++;
+        state->emb_end++;
+    }
+
+    state->changed |= EMBEDDING_CHANGED;
+}
+
+static void update_end (GLYPHRUNSTATE *state)
+{
+    state->run_end = state->emb_end;
+    if (state->script_iter.end < state->run_end)
+        state->run_end = state->script_iter.end;
+    if (state->width_iter.end < state->run_end)
+        state->run_end = state->width_iter.end;
+    if (state->emoji_iter.end < state->run_end)
+        state->run_end = state->emoji_iter.end;
+}
+
+static void state_update_for_new_run (GLYPHRUNSTATE *state)
+{
+    if (state->changed & (SCRIPT_CHANGED | WIDTH_CHANGED)) {
+        GlyphOrient orient = state->orient;
+        GlyphOrientPolicy orient_policy = state->runinfo->ort_plc;
+
+        if (orient == GLYPH_ORIENT_AUTO)
+            orient = state->runinfo->ort_rsv;
+
+        state->ort_rsv = ScriptGetWideGlyphOrientation(
+                state->script_iter.script, state->width_iter.upright,
+                orient, orient_policy);
+    }
+
 #if 0
-    GLYPHRUNSTATE state;
+    if (state->changed & (SCRIPT_CHANGED | LANG_CHANGED))
+    {
+        LanguageCode old_derived_lang = state->derived_lang;
+        state->derived_lang = compute_derived_language (state->lang, state->script);
+        if (old_derived_lang != state->derived_lang)
+            state->changed |= DERIVED_LANG_CHANGED;
+    }
 
-    BidiLevel el = runinfo->els[0];
-    ScriptType st = UCharGetScriptType(runinfo->ucs[0]);
+    if ((state->changed & DERIVED_LANG_CHANGED) || !state->lang_engine) {
+        state->lang_engine = _pango_get_language_engine ();
+    }
 #endif
+}
 
-    return FALSE;
+static void state_process_run (GLYPHRUNSTATE *state)
+{
+    const Uchar32 *p;
+    BOOL last_was_forced_break = FALSE;
+
+    /* Only one character has the category LINE_SEPARATOR in Unicode 12.0;
+     * update this if that changes. */
+#define LINE_SEPARATOR 0x2028
+
+    state_update_for_new_run (state);
+
+    for (p = state->run_start; p < state->run_end; p++) {
+        Uchar32 wc = *p;
+        BOOL is_forced_break = (wc == '\t' || wc == LINE_SEPARATOR);
+        UCharGeneralCategory type;
+
+        /* We don't want space characters to affect font selection; in general,
+         * it's always wrong to select a font just to render a space.
+         * We assume that all fonts have the ASCII space, and for other space
+         * characters if they don't, HarfBuzz will compatibility-decompose them
+         * to ASCII space...
+         * See bugs #355987 and #701652.
+         *
+         * We don't want to change fonts just for variation selectors.
+         * See bug #781123.
+         */
+        type = UCharGetCategory (wc);
+        if ((type == UCHAR_CATEGORY_CONTROL ||
+                type == UCHAR_CATEGORY_FORMAT ||
+                type == UCHAR_CATEGORY_SURROGATE ||
+                (type == UCHAR_CATEGORY_SPACE_SEPARATOR &&
+                    wc != 0x1680u /* OGHAM SPACE MARK */) ||
+                (wc >= 0xfe00u && wc <= 0xfe0fu) ||
+                (wc >= 0xe0100u && wc <= 0xe01efu))) {
+        }
+        else {
+        }
+
+        is_forced_break = last_was_forced_break; // supress warning
+        last_was_forced_break = is_forced_break;
+    }
+
+#if 0
+    /* Finish the final item from the current segment */
+    state->item->length = (p - state->text) - state->item->offset;
+    if (!state->item->analysis.shape_engine) {
+        PangoEngineShape *shape_engine;
+        PangoFont *font;
+
+        if ((!get_shaper_and_font (state, ' ', &shape_engine, &font))) {
+            /* If no shaper was found, warn only once per fontmap/script pair */
+            PangoFontMap *fontmap = state->context->font_map;
+            const char *script_name = string_from_script (get_script (state));
+
+            if (!g_object_get_data (G_OBJECT (fontmap), script_name))
+            {
+                G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+                    g_warning ("failed to choose a font, expect ugly output. engine-type='%s', script='%s'",
+                            pango_font_map_get_shape_engine_type (fontmap),
+                            script_name);
+                G_GNUC_END_IGNORE_DEPRECATIONS
+
+                    g_object_set_data_full (G_OBJECT (fontmap), script_name,
+                            GINT_TO_POINTER (1), NULL);
+            }
+
+            shape_engine = _pango_get_fallback_shaper ();
+            font = NULL;
+        }
+
+        itemize_state_fill_shaper (state, shape_engine, font);
+    }
+
+    state->item = NULL;
+#endif
+}
+
+static BOOL state_next (GLYPHRUNSTATE *state)
+{
+    if (state->run_end == state->end)
+        return FALSE;
+
+    state->changed = 0;
+    state->run_start = state->run_end;
+
+    if (state->run_end == state->emb_end) {
+        update_embedding_end (state);
+    }
+
+    if (state->run_end == state->script_iter.end) {
+        __mg_script_iterator_next (&state->script_iter);
+        state->changed |= SCRIPT_CHANGED;
+    }
+
+    if (state->run_end == state->width_iter.end) {
+        __mg_width_iterator_next (&state->width_iter);
+        state->changed |= WIDTH_CHANGED;
+    }
+
+    if (state->run_end == state->emoji_iter.end)
+    {
+        __mg_emoji_iterator_next (&state->emoji_iter);
+        state->changed |= EMOJI_CHANGED;
+    }
+
+    update_end (state);
+    return TRUE;
+}
+
+static inline Uint8 get_glyph_orient_from_logfont (LOGFONT* lf)
+{
+    return GLYPH_ORIENT_SOUTH;
+}
+
+static void update_resolved_orientation (GLYPHRUNINFO *runinfo)
+{
+    if (runinfo->ort_base == GLYPH_ORIENT_AUTO)
+        runinfo->ort_rsv = get_glyph_orient_from_logfont (runinfo->lf);
+    else
+        runinfo->ort_rsv = runinfo->ort_base;
+}
+
+static BOOL create_glyph_runs(GLYPHRUNINFO* runinfo, BidiLevel* els)
+{
+    BOOL ok = FALSE;
+    GLYPHRUNSTATE state;
+    Uint8 local_types_buff[LOCAL_ARRAY_SIZE];
+    Uint8* types_buff = NULL;
+
+    if (runinfo->nr_ucs <= LOCAL_ARRAY_SIZE) {
+        types_buff = local_types_buff;
+    }
+    else {
+        types_buff = malloc(sizeof(Uint8)* runinfo->nr_ucs);
+    }
+
+    if (!types_buff)
+        goto out;
+
+    state.runinfo = runinfo;
+    state.text = runinfo->ucs;
+    state.end = runinfo->ucs + runinfo->nr_ucs;
+    state.els = els;
+
+    state.changed = 0;
+
+    state.emb_end_offset = 0;
+    state.emb_end = runinfo->ucs;
+    update_embedding_end(&state);
+
+    __mg_script_iterator_init (&state.script_iter, state.text, runinfo->nr_ucs);
+    __mg_width_iterator_init (&state.width_iter, state.text, runinfo->nr_ucs);
+    __mg_emoji_iterator_init (&state.emoji_iter, state.text, runinfo->nr_ucs,
+        types_buff);
+
+    update_end (&state);
+
+    do {
+        state_process_run (&state);
+    } while (state_next (&state));
+
+out:
+    if (types_buff && types_buff != local_types_buff)
+        free (types_buff);
+
+    return ok;
 }
 
 GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
@@ -152,25 +358,23 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
 
     // Initialize other fields
     runinfo->ucs = ucs;
+    runinfo->lf = logfont;
+    runinfo->nr_ucs = nr_ucs;
+    runinfo->lc = lang_code;
+    runinfo->st = script_type;
+    runinfo->base_dir = (base_dir == BIDI_PGDIR_LTR) ? 0 : 1;
+    runinfo->run_dir = run_dir;
+    runinfo->ort_base = glyph_orient;
+    runinfo->ort_plc = orient_policy;
 
     INIT_LIST_HEAD(&runinfo->cm_head.list);
     runinfo->cm_head.si = 0;
     runinfo->cm_head.len = nr_ucs;
     runinfo->cm_head.color = color;
 
-    INIT_LIST_HEAD(&runinfo->run_head.list);
-    runinfo->run_head.lf = logfont;
-    runinfo->run_head.gs = NULL;
-    runinfo->run_head.nr_gs = 0;
+    INIT_LIST_HEAD(&runinfo->run_head);
 
-    runinfo->run_head.si = 0;
-    runinfo->run_head.nr_ucs = nr_ucs;
-
-    runinfo->run_head.lc = lang_code;
-    runinfo->run_head.st = script_type;
-    runinfo->run_head.level = BIDI_DIR_TO_LEVEL(base_dir);
-    runinfo->run_head.dir = run_dir;
-    runinfo->run_head.ort = glyph_orient;
+    update_resolved_orientation(runinfo);
 
 #if 0
     int i, j;
@@ -198,8 +402,8 @@ GLYPHRUNINFO* GUIAPI CreateGlyphRunInfo(Uchar32* ucs, int nr_ucs,
     runinfo->all_odd = (level_and & 0x1) == 1;
 #endif
 
-    if (!init_glyph_runs(runinfo, els)) {
-        _DBG_PRINTF("%s: failed to call init_glyph_runs.\n");
+    if (!create_glyph_runs(runinfo, els)) {
+        _DBG_PRINTF("%s: failed to call create_glyph_runs.\n");
         goto out;
     }
 
@@ -212,7 +416,6 @@ out:
     if (ok)
         return runinfo;
 
-    if (runinfo->l2g) free(runinfo->l2g);
     free(runinfo);
 
     return NULL;
@@ -229,7 +432,7 @@ BOOL GUIAPI SetPartFontInGlyphRuns(GLYPHRUNINFO* runinfo,
         return FALSE;
 
     // can not change font for empty runs
-    if (list_empty(&runinfo->run_head.list))
+    if (list_empty(&runinfo->run_head))
         return FALSE;
 
     return FALSE;
@@ -257,8 +460,8 @@ BOOL GUIAPI SetPartColorInGlyphRuns(GLYPHRUNINFO* runinfo,
     UCHARCOLORMAP* color_entry = NULL;
 
     if (runinfo == NULL || start_index < 0 || length < 0 ||
-            start_index > runinfo->run_head.nr_ucs ||
-            (start_index + length) > runinfo->run_head.nr_ucs) {
+            start_index > runinfo->nr_ucs ||
+            (start_index + length) > runinfo->nr_ucs) {
         goto error;
     }
 
@@ -284,9 +487,9 @@ BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* runinfo, LOGFONT* logfont)
     if (runinfo == NULL)
         return FALSE;
 
-    while (!list_empty(&runinfo->run_head.list)) {
-        GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.list.prev;
-        list_del(runinfo->run_head.list.prev);
+    while (!list_empty(&runinfo->run_head)) {
+        GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.prev;
+        list_del(runinfo->run_head.prev);
         runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
@@ -305,9 +508,9 @@ BOOL GUIAPI ResetFontInGlyphRuns(GLYPHRUNINFO* runinfo, LOGFONT* logfont)
         runinfo->ges = NULL;
     }
 
-    runinfo->run_head.lf = logfont;
+    runinfo->lf = logfont;
 
-    return init_glyph_runs(runinfo, NULL);
+    return create_glyph_runs(runinfo, NULL);
 }
 
 static void set_run_dir(GLYPHRUNINFO* runinfo, GLYPHRUN* run,
@@ -316,17 +519,19 @@ static void set_run_dir(GLYPHRUNINFO* runinfo, GLYPHRUN* run,
 }
 
 BOOL GUIAPI ResetDirectionInGlyphRuns(GLYPHRUNINFO* runinfo,
-        GlyphRunDir run_dir, GlyphOrient glyph_orient)
+        GlyphRunDir run_dir, GlyphOrient glyph_orient,
+        GlyphOrientPolicy orient_policy)
 {
     struct list_head *i;
 
     if (runinfo == NULL)
         return FALSE;
 
-    runinfo->run_head.dir = run_dir;
-    runinfo->run_head.ort = glyph_orient;
+    runinfo->run_dir = run_dir;
+    runinfo->ort_base = glyph_orient;
+    runinfo->ort_plc = orient_policy;
 
-    list_for_each(i, &runinfo->run_head.list) {
+    list_for_each(i, &runinfo->run_head) {
         GLYPHRUN* run = (GLYPHRUN*)i;
         if (runinfo->se.engine && run->gs) {
             runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
@@ -397,9 +602,9 @@ BOOL GUIAPI DestroyGlyphRunInfo(GLYPHRUNINFO* runinfo)
         free(entry);
     }
 
-    while (!list_empty(&runinfo->run_head.list)) {
-        GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.list.prev;
-        list_del(runinfo->run_head.list.prev);
+    while (!list_empty(&runinfo->run_head)) {
+        GLYPHRUN* run = (GLYPHRUN*)runinfo->run_head.prev;
+        list_del(runinfo->run_head.prev);
         runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
