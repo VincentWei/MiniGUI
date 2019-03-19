@@ -86,6 +86,34 @@ typedef struct _TEXTRUN {
     Uint32      ort:2;  // the glyph orientation
 } TEXTRUN;
 
+typedef struct _UCHARCOLORMAP {
+    struct list_head    list;
+    int                 si;
+    int                 len;
+    RGBCOLOR            color;
+} UCHARCOLORMAP;
+
+struct _TEXTRUNSINFO {
+    /* The following fields will be initialized by CreateGlyphRunInfo. */
+    const Uchar32*      ucs;    // the uchars
+    LOGFONT*            lf;     // the logfont specified
+
+    UCHARCOLORMAP       cm_head; // the head of color map list of the characters
+    struct list_head    run_head;// glyph runs (list)
+
+    int             nr_ucs;     // number of uchars
+    int             nr_runs;    // number of runs
+    Uint32          lc:8;       // language code specified
+    Uint32          ort_base:3; // the glyph orientation specified
+    Uint32          ort_rsv:3;  // the glyph orientation resolved
+    Uint32          ort_plc:2;  // the glyph orientation policy specified
+    Uint32          run_dir:4;  // the run direction specified
+    Uint32          base_dir:1; // the paragraph direction; 0 for LTR, 1 for RTL
+
+    /* The following fields will be initialized by the shapping engine. */
+    SHAPPINGENGINE  se;     // the shapping engine
+};
+
 typedef struct _LAYOUTINFO LAYOUTINFO;
 
 typedef struct _LAYOUTRUN {
@@ -115,34 +143,6 @@ struct _LAYOUTINFO {
     struct list_head    line_head;
 
     int                 nr_lines;
-};
-
-typedef struct _UCHARCOLORMAP {
-    struct list_head    list;
-    int                 si;
-    int                 len;
-    RGBCOLOR            color;
-} UCHARCOLORMAP;
-
-struct _TEXTRUNSINFO {
-    /* The following fields will be initialized by CreateGlyphRunInfo. */
-    const Uchar32*      ucs;    // the uchars
-    LOGFONT*            lf;     // the logfont specified
-
-    UCHARCOLORMAP       cm_head; // the head of color map list of the characters
-    struct list_head    run_head;// glyph runs (list)
-
-    int             nr_ucs;     // number of uchars
-    int             nr_runs;    // number of runs
-    Uint32          lc:8;       // language code specified
-    Uint32          ort_base:3; // the glyph orientation specified
-    Uint32          ort_rsv:3;  // the glyph orientation resolved
-    Uint32          ort_plc:2;  // the glyph orientation policy specified
-    Uint32          run_dir:4;  // the run direction specified
-    Uint32          base_dir:1; // the paragraph direction; 0 for LTR, 1 for RTL
-
-    /* The following fields will be initialized by the shapping engine. */
-    SHAPPINGENGINE  se;     // the shapping engine
 };
 
 #ifdef __cplusplus

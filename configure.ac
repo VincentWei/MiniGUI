@@ -2487,6 +2487,9 @@ if test "x$devel_mode" = "xyes"; then
     if test "$ac_cv_prog_gcc" = "yes"; then
         CPPFLAGS="$CPPFLAGS -Wall -Werror"
     fi
+
+    AC_DEFINE(_MGDEVEL_MODE, 1,
+            [Define if developer mode enabled])
 else
     CPPFLAGS="$CPPFLAGS -DNDEBUG"
 fi

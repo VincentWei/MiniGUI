@@ -195,9 +195,9 @@ static BOOL state_process_run (TEXTRUNSTATE *state)
     run->lf  = create_logfont_for_run(state->runinfo, run);
     run->gs  = NULL;
     run->ngs = 0;
-    run->idx = state->run_end - state->text;
+    run->idx = state->run_start - state->text;
     run->len = state->run_end - state->run_start;
-    list_add(&run->list, &state->runinfo->run_head);
+    list_add_tail(&run->list, &state->runinfo->run_head);
 
     state->runinfo->nr_runs++;
 
@@ -292,6 +292,7 @@ static BOOL create_glyph_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
     state.end = runinfo->ucs + runinfo->nr_ucs;
     state.els = els;
 
+    state.run_start = state.text;
     state.changed = 0;
 
     state.emb_end_offset = 0;
@@ -335,6 +336,42 @@ static inline Uint8 get_glyph_orient_from_logfont (LOGFONT* lf)
         return GLYPH_ORIENT_SOUTH;
     }
 }
+
+#ifdef _MGDEVEL_MODE
+void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
+        void* prev,
+        LOGFONT** logfont, int* start_index, int* length,
+        LanguageCode* lang_code, ScriptType* script,
+        BidiLevel* embedding_level, GlyphRunDir* run_dir,
+        GlyphOrient* orient)
+{
+    TEXTRUN* run = NULL;
+
+    if (prev == NULL) {
+        if (list_empty(&runinfo->run_head))
+            return NULL;
+        run = (TEXTRUN*)runinfo->run_head.next;
+    }
+    else {
+        struct list_head* list_entry = (struct list_head*)prev;
+        if (list_entry->next == &runinfo->run_head)
+            return NULL;
+
+        run = (TEXTRUN*)list_entry->next;
+    }
+
+    if (logfont) *logfont = run->lf;
+    if (start_index) *start_index = run->idx;
+    if (length) *length = run->len;
+    if (lang_code) *lang_code = run->lc;
+    if (script) *script = run->st;
+    if (embedding_level) *embedding_level = run->el;
+    if (run_dir) *run_dir = run->dir;
+    if (orient) *orient = run->ort;
+
+    return run;
+}
+#endif /* _MGDEVEL_MODE */
 
 TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
@@ -606,7 +643,8 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
     while (!list_empty(&runinfo->run_head)) {
         TEXTRUN* run = (TEXTRUN*)runinfo->run_head.prev;
         list_del(runinfo->run_head.prev);
-        runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
+        if (runinfo->se.engine)
+            runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
 

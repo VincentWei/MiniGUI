@@ -1795,6 +1795,7 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
         /* all LTR */
         base_dir = BIDI_PGDIR_LTR;
         memset (els, 0, nr_ucs);
+        max_level = 1;
     }
     /* The case that all resolved levels will be RTL is much more complex.
      * No isolates, no numbers, all strongs are RTL, and one of
@@ -1814,6 +1815,7 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
         /* all RTL */
         base_dir = BIDI_PGDIR_RTL;
         memset (els, 1, nr_ucs);
+        max_level = 2;
     }
     else {
         max_level = UBidiGetParagraphEmbeddingLevels(bidi_ts, brk_ts, nr_ucs,
@@ -1822,7 +1824,6 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
             _DBG_PRINTF("%s: failed to get paragraph embedding levels.\n");
             memset (els, 0, nr_ucs);
         }
-
     }
 
     *paragraph_dir = (base_dir == BIDI_PGDIR_LTR) ? BIDI_PGDIR_LTR : BIDI_PGDIR_RTL;

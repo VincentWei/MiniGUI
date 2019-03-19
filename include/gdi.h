@@ -8989,7 +8989,7 @@ MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (ScriptType script);
 MG_EXPORT ScriptType GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
 
 /**
- * \fn int ScriptTypeFromISO15924Code (const char* iso15924)
+ * \fn ScriptType ScriptTypeFromISO15924Code (const char* iso15924)
  *
  * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
  * codes to scripts.  For example, the code for Arabic is 'Arab'.
@@ -12482,7 +12482,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
 typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
 
 /**
- * Split a Uchar32 paragraph string into text runs.
+ * Split a Uchar32 paragraph string in mixed scripts into text runs.
  */
 MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
