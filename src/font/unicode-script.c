@@ -74,7 +74,7 @@ ScriptType GUIAPI UCharGetScriptType (Uchar32 ch)
     if (ch < EASY_SCRIPTS_RANGE)
         return (ScriptType)unicode_script_easy_table[ch];
     else
-        return (ScriptType)unichar_get_script_bsearch (ch);
+        return (ScriptType)unichar_get_script_bsearch(ch);
 }
 
 /* http://unicode.org/iso15924/ */
@@ -394,16 +394,16 @@ typedef enum {
 
 typedef struct {
     /* GlyphRunDir */
-    Uint8 horiz_dir;       /* Orientation in horizontal context */
+    Uint8 horiz_dir;        /* Orientation in horizontal context */
 
     /* PangoVerticalDirection */
-    Uint8 vert_dir;        /* Orientation in vertical context */
+    Uint8 vert_dir;         /* Orientation in vertical context */
 
     /* GlyphOrient */
-    Uint8 preferred_orient;    /* Preferred context orientation */
+    Uint8 preferred_orient; /* Preferred context orientation */
 
     /* BOOL */
-    Uint8 wide;            /* Whether script is mostly wide.
+    Uint8 wide;             /* Whether script is mostly wide.
                              * Wide characters are upright (ie.
                              * not rotated) in foreign context */
 } ScriptTypeProperties;
