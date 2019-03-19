@@ -6228,7 +6228,7 @@ typedef enum {
  * See [Unicode Standard Annex #24: Script names](https://www.unicode.org/reports/tr24/).
  */
 typedef enum {
-    SCRIPT_INVALID_CODE = -1,
+    SCRIPT_INVALID_CODE = 0xFF,
     SCRIPT_COMMON       = 0,   /* Zyyy */
     SCRIPT_INHERITED,          /* Zinh (Qaai) */
     SCRIPT_ARABIC,             /* Arab */
@@ -8924,7 +8924,7 @@ MG_EXPORT int GUIAPI UCharFullyDecompose (Uchar32 ch, BOOL compat,
         Uchar32 *result, int result_len);
 
 /**
- * \fn int GUIAPI UCharGetScriptType (Uchar32 ch)
+ * \fn ScriptType GUIAPI UCharGetScriptType (Uchar32 ch)
  *
  * Looks up the script code for a particular character (as defined
  * by Unicode Standard Annex #24). No check is made for @ch being a
@@ -8939,10 +8939,10 @@ MG_EXPORT int GUIAPI UCharFullyDecompose (Uchar32 ch, BOOL compat,
  *
  * Since: 3.4.0
  */
-MG_EXPORT int GUIAPI UCharGetScriptType (Uchar32 ch);
+MG_EXPORT ScriptType GUIAPI UCharGetScriptType (Uchar32 ch);
 
 /**
- * \fn Uint32 ScriptTypeToISO15924 (int script)
+ * \fn Uint32 ScriptTypeToISO15924 (ScriptType script)
  *
  * Looks up the ISO 15924 code for @script.  ISO 15924 assigns four-letter
  * codes to scripts.  For example, the code for Arabic is 'Arab'.  The
@@ -8963,10 +8963,10 @@ MG_EXPORT int GUIAPI UCharGetScriptType (Uchar32 ch);
  *
  * Since: 3.4.0
  */
-MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (int script);
+MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (ScriptType script);
 
 /**
- * \fn int ScriptTypeFromISO15924 (Uint32 iso15924)
+ * \fn ScriptType ScriptTypeFromISO15924 (Uint32 iso15924)
  *
  * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
  * codes to scripts.  For example, the code for Arabic is 'Arab'.
@@ -8986,7 +8986,7 @@ MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (int script);
  *
  * Since: 3.4.0
  */
-MG_EXPORT int GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
+MG_EXPORT ScriptType GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
 
 /**
  * \fn int ScriptTypeFromISO15924Code (const char* iso15924)
@@ -9006,7 +9006,7 @@ MG_EXPORT int GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
  *
  * Since: 3.4.0
  */
-static inline int GUIAPI ScriptTypeFromISO15924Code (const char* iso15924)
+static inline ScriptType GUIAPI ScriptTypeFromISO15924Code (const char* iso15924)
 {
     return ScriptTypeFromISO15924(MAKEDWORD32(iso15924[3],
             iso15924[2], iso15924[1], iso15924[0]));
@@ -11586,7 +11586,7 @@ MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
  */
 typedef enum {
     /** Unknown language code */
-    LANGCODE_unknown = -1,
+    LANGCODE_unknown = 0xFF,
     /** Language code for Afar */
     LANGCODE_aa = 0,
     /** Language code for Abkhazian */
@@ -11631,6 +11631,8 @@ typedef enum {
     LANGCODE_da,
     /** Language code for German */
     LANGCODE_de,
+    /** Language code for Divehi */
+    LANGCODE_dv,
     /** Language code for Bhutani */
     LANGCODE_dz,
     /** Language code for Greek */
@@ -11888,7 +11890,7 @@ typedef enum {
  *
  * Since: 3.4.0
  */
-MG_EXPORT int GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
+MG_EXPORT LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
 
 /**
  * LanguageCodeFromISO639s1Code:
@@ -11902,7 +11904,7 @@ MG_EXPORT int GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
  *
  * Since: 3.4.0
  */
-static inline int GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
+static inline LanguageCode GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
 {
     return LanguageCodeFromISO639s1(MAKEWORD16(iso639_1[1],
             iso639_1[0]));
@@ -11912,11 +11914,11 @@ static inline int GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
 MG_EXPORT const char* GUIAPI LanguageCodeToISO639s1(LanguageCode lc);
 
 /** Get the sample language code (ISO639-1) from the specific script type */
-MG_EXPORT const char* GUIAPI GetSampleLanguageFromScript(ScriptType st);
+MG_EXPORT LanguageCode GUIAPI GetSampleLanguageForScript(ScriptType st);
 
-/** Get language code and script type from ISO639 language name. */
-MG_EXPORT ScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
-        int* lang_code);
+/** Get language code and scripts for ISO639 language name. */
+MG_EXPORT const ScriptType* GUIAPI GetScriptsForLang(const char* lang_name,
+        LanguageCode* lang_code, int* nr_scripts);
 
 /** Normalize script type according to language code */
 MG_EXPORT ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,

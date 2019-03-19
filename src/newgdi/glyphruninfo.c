@@ -83,6 +83,9 @@ typedef struct _GLYPHRUNSTATE {
     int             emb_end_offset;
     BidiLevel       emb_level;
 
+    LanguageCode    lang;
+    ScriptType      script;
+
     GlyphOrient     orient;
     GlyphOrientPolicy   orient_policy;
     GlyphOrient     ort_rsv;
@@ -121,6 +124,25 @@ static void update_end (GLYPHRUNSTATE *state)
         state->run_end = state->emoji_iter.end;
 }
 
+static LanguageCode compute_derived_language (LanguageCode lang,
+        ScriptType script)
+{
+    LanguageCode derived_lang;
+
+    /* Make sure the language tag is consistent with the derived
+     * script. There is no point in marking up a section of
+     * Arabic text with the "en" language tag.
+     */
+    if ((lang != LANGCODE_unknown) &&
+            __mg_language_includes_script(lang, script))
+        derived_lang = lang;
+    else {
+        derived_lang = GetSampleLanguageForScript(script);
+    }
+
+    return derived_lang;
+}
+
 static void state_update_for_new_run (GLYPHRUNSTATE *state)
 {
     if (state->changed & (SCRIPT_CHANGED | WIDTH_CHANGED)) {
@@ -135,15 +157,16 @@ static void state_update_for_new_run (GLYPHRUNSTATE *state)
                 orient, orient_policy);
     }
 
-#if 0
     if (state->changed & (SCRIPT_CHANGED | LANG_CHANGED))
     {
         LanguageCode old_derived_lang = state->derived_lang;
-        state->derived_lang = compute_derived_language (state->lang, state->script);
+        state->derived_lang = compute_derived_language (state->lang,
+                state->script);
         if (old_derived_lang != state->derived_lang)
             state->changed |= DERIVED_LANG_CHANGED;
     }
 
+#if 0
     if ((state->changed & DERIVED_LANG_CHANGED) || !state->lang_engine) {
         state->lang_engine = _pango_get_language_engine ();
     }
@@ -171,10 +194,6 @@ static void state_process_run (GLYPHRUNSTATE *state)
          * We assume that all fonts have the ASCII space, and for other space
          * characters if they don't, HarfBuzz will compatibility-decompose them
          * to ASCII space...
-         * See bugs #355987 and #701652.
-         *
-         * We don't want to change fonts just for variation selectors.
-         * See bug #781123.
          */
         type = UCharGetCategory (wc);
         if ((type == UCHAR_CATEGORY_CONTROL ||

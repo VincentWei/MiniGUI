@@ -69,12 +69,12 @@ static inline int unichar_get_script_bsearch (Uchar32 ch)
     return SCRIPT_UNKNOWN;
 }
 
-int GUIAPI UCharGetScriptType (Uchar32 ch)
+ScriptType GUIAPI UCharGetScriptType (Uchar32 ch)
 {
     if (ch < EASY_SCRIPTS_RANGE)
-        return unicode_script_easy_table[ch];
+        return (ScriptType)unicode_script_easy_table[ch];
     else
-        return unichar_get_script_bsearch (ch);
+        return (ScriptType)unichar_get_script_bsearch (ch);
 }
 
 /* http://unicode.org/iso15924/ */
@@ -264,18 +264,18 @@ static const Uint32 iso15924_tags[] =
 #undef PACK
 };
 
-Uint32 GUIAPI ScriptTypeToISO15924 (int script)
+Uint32 GUIAPI ScriptTypeToISO15924 (ScriptType script)
 {
     if (script == SCRIPT_INVALID_CODE)
         return 0;
 
-    if (script < 0 || script >= (int) TABLESIZE (iso15924_tags))
+    if (script < 0 || script >= (ScriptType) TABLESIZE (iso15924_tags))
         return 0x5A7A7A7A;
 
     return iso15924_tags[script];
 }
 
-int GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924)
+ScriptType GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924)
 {
     unsigned int i;
 
@@ -284,7 +284,7 @@ int GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924)
 
     for (i = 0; i < TABLESIZE (iso15924_tags); i++)
         if (iso15924_tags[i] == iso15924)
-            return (int) i;
+            return (ScriptType) i;
 
     return SCRIPT_UNKNOWN;
 }
@@ -298,9 +298,10 @@ static int comp_lang(const void *k1, const void *k2)
    return strcmp(sl1->lang, sl2->lang);
 }
 
-ScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
-        int* lang_code)
+const ScriptType* GUIAPI GetScriptsForLang(const char* lang_name,
+        LanguageCode* lang_code, int* nr_scripts)
 {
+    const ScriptType* scripts;
     const ScriptTypeForLang* matched;
 
     matched = bsearch(lang_name, _script_for_lang,
@@ -310,13 +311,50 @@ ScriptType GUIAPI GetLangScriptFromName(const char* lang_name,
     if (matched) {
         if (lang_code)
             *lang_code = LanguageCodeFromISO639s1Code(matched->lang);
-        return matched->scripts[0];
+        scripts = matched->scripts;
+        if (nr_scripts) {
+            int i;
+
+            for (i = 0; i < TABLESIZE(_script_for_lang->scripts); i++) {
+                if (_script_for_lang->scripts[i] == 0)
+                    break;
+            }
+
+            *nr_scripts = i;
+        }
+
+        return scripts;
     }
 
     if (lang_code)
         *lang_code = LANGCODE_unknown;
 
-    return SCRIPT_INVALID_CODE;
+    return NULL;
+}
+
+BOOL __mg_language_includes_script(LanguageCode lc, ScriptType script)
+{
+    const ScriptType *scripts;
+    int num_scripts, j;
+
+    /* copied from the one in pango-script.c */
+#define REAL_SCRIPT(script) \
+    ((script) > SCRIPT_INHERITED && (script) != SCRIPT_UNKNOWN)
+
+    if (!REAL_SCRIPT (script))
+        return TRUE;
+
+#undef REAL_SCRIPT
+
+    scripts = GetScriptsForLang (LanguageCodeToISO639s1(lc), &lc, &num_scripts);
+    if (!scripts)
+        return TRUE;
+
+    for (j = 0; j < num_scripts; j++)
+        if (scripts[j] == script)
+            return TRUE;
+
+    return FALSE;
 }
 
 /*
@@ -386,7 +424,7 @@ typedef struct {
     {LTR, NONE, S, FALSE}
 
 const ScriptTypeProperties script_properties[] =
-{/* ISO 15924 code */
+{
     {LTR, NONE, S, FALSE},    /* Zyyy */
     {LTR, NONE, S, FALSE},    /* Qaai */
     {RTL, NONE, S, FALSE},    /* Arab */

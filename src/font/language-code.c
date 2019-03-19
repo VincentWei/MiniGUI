@@ -67,6 +67,7 @@ static const Uint16 iso639_1_codes[] =
     PACK('c', 'y'), //  Welch
     PACK('d', 'a'), //  Danish
     PACK('d', 'e'), //  German
+    PACK('d', 'v'), //  Divehi
     PACK('d', 'z'), //  Bhutani
     PACK('e', 'l'), //  Greek
     PACK('e', 'n'), //  English
@@ -190,7 +191,7 @@ static const Uint16 iso639_1_codes[] =
 #undef PACK
 };
 
-int GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1)
+LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1)
 {
     unsigned int lower = 0;
     unsigned int upper = TABLESIZE (iso639_1_codes) - 1;
@@ -205,7 +206,7 @@ int GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1)
         else if (iso639_1 > iso639_1_codes[mid])
             lower = mid + 1;
         else
-            return (int)mid;
+            return (LanguageCode)mid;
 
         mid = (lower + upper) / 2;
     } while (lower <= upper);
@@ -237,6 +238,7 @@ static const char* iso639_1_codes_str[] =
     "cy", //  Welch
     "da", //  Danish
     "de", //  German
+    "dv", //  Divehi
     "dz", //  Bhutani
     "el", //  Greek
     "en", //  English
@@ -371,180 +373,180 @@ const char* GUIAPI LanguageCodeToISO639s1 (LanguageCode lc)
     return "";
 }
 
-static const char sample_language_of_script[][3] = {
-    "",     /* SCRIPT_COMMON */
-    "",     /* SCRIPT_INHERITED */
-    "ar",   /* SCRIPT_ARABIC */
-    "hy",   /* SCRIPT_ARMENIAN */
-    "bn",   /* SCRIPT_BENGALI */
-    "zh",   /* SCRIPT_BOPOMOFO: Used primarily in Taiwan, but not part of the standard zh-tw orthography */
-    "",     /* SCRIPT_CHEROKEE; no ISO639-1 code; ISO639-2 code: chr  */
-    "",     /* SCRIPT_COPTIC; no ISO639-1 code; ISO639-2 code: cop */
-    "ru",   /* SCRIPT_CYRILLIC */
-    "",     /* SCRIPT_DESERET: Deseret was used to write English */
-    "hi",   /* SCRIPT_DEVANAGARI */
-    "am",   /* SCRIPT_ETHIOPIC */
-    "ka",   /* SCRIPT_GEORGIAN */
-    "",     /* SCRIPT_GOTHIC */
-    "el",   /* SCRIPT_GREEK */
-    "gu",   /* SCRIPT_GUJARATI */
-    "pa",   /* SCRIPT_GURMUKHI */
-    "",     /* SCRIPT_HAN */
-    "ko",   /* SCRIPT_HANGUL */
-    "he",   /* SCRIPT_HEBREW */
-    "ja",   /* SCRIPT_HIRAGANA */
-    "kn",   /* SCRIPT_KANNADA */
-    "ja",   /* SCRIPT_KATAKANA */
-    "km",   /* SCRIPT_KHMER */
-    "lo",   /* SCRIPT_LAO */
-    "en",   /* SCRIPT_LATIN */
-    "ml",   /* SCRIPT_MALAYALAM */
-    "mn",   /* SCRIPT_MONGOLIAN */
-    "my",   /* SCRIPT_MYANMAR */
-    "",     /* SCRIPT_OGHAM; Ogham was used to write old Irish */
-    "",     /* SCRIPT_OLD_ITALIC */
-    "or",   /* SCRIPT_ORIYA */
-    "",     /* SCRIPT_RUNIC */
-    "si",   /* SCRIPT_SINHALA */
-    "",     /* SCRIPT_SYRIAC; no ISO639-1 code; ISO639-2 code: syr */
-    "ta",   /* SCRIPT_TAMIL */
-    "te",   /* SCRIPT_TELUGU */
-    "dv",   /* SCRIPT_THAANA */
-    "th",   /* SCRIPT_THAI */
-    "bo",   /* SCRIPT_TIBETAN */
-    "iu",   /* SCRIPT_CANADIAN_ABORIGINAL */
-    "",     /* SCRIPT_YI */
-    "tl",   /* SCRIPT_TAGALOG */
+static const LanguageCode sample_language_of_script[] = {
+    LANGCODE_unknown,     /* SCRIPT_COMMON */
+    LANGCODE_unknown,     /* SCRIPT_INHERITED */
+    LANGCODE_ar,   /* SCRIPT_ARABIC */
+    LANGCODE_hy,   /* SCRIPT_ARMENIAN */
+    LANGCODE_bn,   /* SCRIPT_BENGALI */
+    LANGCODE_zh,   /* SCRIPT_BOPOMOFO: Used primarily in Taiwan, but not part of the standard zh-tw orthography */
+    LANGCODE_unknown,     /* SCRIPT_CHEROKEE; no ISO639-1 code; ISO639-2 code: chr  */
+    LANGCODE_unknown,     /* SCRIPT_COPTIC; no ISO639-1 code; ISO639-2 code: cop */
+    LANGCODE_ru,   /* SCRIPT_CYRILLIC */
+    LANGCODE_unknown,     /* SCRIPT_DESERET: Deseret was used to write English */
+    LANGCODE_hi,   /* SCRIPT_DEVANAGARI */
+    LANGCODE_am,   /* SCRIPT_ETHIOPIC */
+    LANGCODE_ka,   /* SCRIPT_GEORGIAN */
+    LANGCODE_unknown,     /* SCRIPT_GOTHIC */
+    LANGCODE_el,   /* SCRIPT_GREEK */
+    LANGCODE_gu,   /* SCRIPT_GUJARATI */
+    LANGCODE_pa,   /* SCRIPT_GURMUKHI */
+    LANGCODE_unknown,     /* SCRIPT_HAN */
+    LANGCODE_ko,   /* SCRIPT_HANGUL */
+    LANGCODE_he,   /* SCRIPT_HEBREW */
+    LANGCODE_ja,   /* SCRIPT_HIRAGANA */
+    LANGCODE_kn,   /* SCRIPT_KANNADA */
+    LANGCODE_ja,   /* SCRIPT_KATAKANA */
+    LANGCODE_km,   /* SCRIPT_KHMER */
+    LANGCODE_lo,   /* SCRIPT_LAO */
+    LANGCODE_en,   /* SCRIPT_LATIN */
+    LANGCODE_ml,   /* SCRIPT_MALAYALAM */
+    LANGCODE_mn,   /* SCRIPT_MONGOLIAN */
+    LANGCODE_my,   /* SCRIPT_MYANMAR */
+    LANGCODE_unknown,     /* SCRIPT_OGHAM; Ogham was used to write old Irish */
+    LANGCODE_unknown,     /* SCRIPT_OLD_ITALIC */
+    LANGCODE_or,   /* SCRIPT_ORIYA */
+    LANGCODE_unknown,     /* SCRIPT_RUNIC */
+    LANGCODE_si,   /* SCRIPT_SINHALA */
+    LANGCODE_unknown,     /* SCRIPT_SYRIAC; no ISO639-1 code; ISO639-2 code: syr */
+    LANGCODE_ta,   /* SCRIPT_TAMIL */
+    LANGCODE_te,   /* SCRIPT_TELUGU */
+    LANGCODE_dv,   /* SCRIPT_THAANA */
+    LANGCODE_th,   /* SCRIPT_THAI */
+    LANGCODE_bo,   /* SCRIPT_TIBETAN */
+    LANGCODE_iu,   /* SCRIPT_CANADIAN_ABORIGINAL */
+    LANGCODE_unknown,     /* SCRIPT_YI */
+    LANGCODE_tl,   /* SCRIPT_TAGALOG */
 
     /* Phillipino languages/scripts */
-    "",     /* SCRIPT_HANUNOO; no ISO639-1 code and ISO639-2 code; hnn? */
-    "",     /* SCRIPT_BUHID; no ISO639-1 code and ISO639-2 code; bku? */
-    "",     /* SCRIPT_TAGBANWA; no ISO639-1 code and ISO639-2 code; tbw? */
+    LANGCODE_unknown,     /* SCRIPT_HANUNOO; no ISO639-1 code and ISO639-2 code; hnn? */
+    LANGCODE_unknown,     /* SCRIPT_BUHID; no ISO639-1 code and ISO639-2 code; bku? */
+    LANGCODE_unknown,     /* SCRIPT_TAGBANWA; no ISO639-1 code and ISO639-2 code; tbw? */
 
-    "",     /* SCRIPT_BRAILLE */
-    "",     /* SCRIPT_CYPRIOT */
-    "",     /* SCRIPT_LIMBU */
-    "",     /* SCRIPT_OSMANYA; Used for Somali (so) in the past */
-    "",     /* SCRIPT_SHAVIAN; The Shavian alphabet was designed for English */
-    "",     /* SCRIPT_LINEAR_B */
-    "",     /* SCRIPT_TAI_LE */
-    "",     /* SCRIPT_UGARITIC; no ISO639-1 code; ISO639-2 code: uga */
+    LANGCODE_unknown,     /* SCRIPT_BRAILLE */
+    LANGCODE_unknown,     /* SCRIPT_CYPRIOT */
+    LANGCODE_unknown,     /* SCRIPT_LIMBU */
+    LANGCODE_unknown,     /* SCRIPT_OSMANYA; Used for Somali (so) in the past */
+    LANGCODE_unknown,     /* SCRIPT_SHAVIAN; The Shavian alphabet was designed for English */
+    LANGCODE_unknown,     /* SCRIPT_LINEAR_B */
+    LANGCODE_unknown,     /* SCRIPT_TAI_LE */
+    LANGCODE_unknown,     /* SCRIPT_UGARITIC; no ISO639-1 code; ISO639-2 code: uga */
 
-    "",     /* SCRIPT_NEW_TAI_LUE */
-    "",     /* SCRIPT_BUGINESE; no ISO639-1 code; ISO639-2 code: bug */
-    "",     /* SCRIPT_GLAGOLITIC: The original script for Old Church Slavonic (chu), later written with Cyrillic */
-    "",     /* SCRIPT_TIFINAGH: Used for for Berber (ber), but Arabic script is more common */
-    "",     /* SCRIPT_SYLOTI_NAGRI; no ISO639-1 code and ISO639-2 code; syl? */
-    "",     /* SCRIPT_OLD_PERSIAN; no ISO639-1 code; ISO639-2 code: peo */
-    "",     /* SCRIPT_KHAROSHTHI */
+    LANGCODE_unknown,     /* SCRIPT_NEW_TAI_LUE */
+    LANGCODE_unknown,     /* SCRIPT_BUGINESE; no ISO639-1 code; ISO639-2 code: bug */
+    LANGCODE_unknown,     /* SCRIPT_GLAGOLITIC: The original script for Old Church Slavonic (chu), later written with Cyrillic */
+    LANGCODE_unknown,     /* SCRIPT_TIFINAGH: Used for for Berber (ber), but Arabic script is more common */
+    LANGCODE_unknown,     /* SCRIPT_SYLOTI_NAGRI; no ISO639-1 code and ISO639-2 code; syl? */
+    LANGCODE_unknown,     /* SCRIPT_OLD_PERSIAN; no ISO639-1 code; ISO639-2 code: peo */
+    LANGCODE_unknown,     /* SCRIPT_KHAROSHTHI */
 
-    "",     /* SCRIPT_UNKNOWN */
-    "",     /* SCRIPT_BALINESE */
-    "",     /* SCRIPT_CUNEIFORM */
-    "",     /* SCRIPT_PHOENICIAN */
-    "",     /* SCRIPT_PHAGS_PA */
-    "",     /* SCRIPT_NKO; no ISO639-1 code; ISO639-2 code: nqo */
+    LANGCODE_unknown,     /* SCRIPT_UNKNOWN */
+    LANGCODE_unknown,     /* SCRIPT_BALINESE */
+    LANGCODE_unknown,     /* SCRIPT_CUNEIFORM */
+    LANGCODE_unknown,     /* SCRIPT_PHOENICIAN */
+    LANGCODE_unknown,     /* SCRIPT_PHAGS_PA */
+    LANGCODE_unknown,     /* SCRIPT_NKO; no ISO639-1 code; ISO639-2 code: nqo */
 
     /* Unicode-5.1 additions */
-    "",     /* SCRIPT_KAYAH_LI */
-    "",     /* SCRIPT_LEPCHA */
-    "",     /* SCRIPT_REJANG */
-    "",     /* SCRIPT_SUNDANESE */
-    "",     /* SCRIPT_SAURASHTRA */
-    "",     /* SCRIPT_CHAM */
-    "",     /* SCRIPT_OL_CHIKI */
-    "",     /* SCRIPT_VAI */
-    "",     /* SCRIPT_CARIAN */
-    "",     /* SCRIPT_LYCIAN */
-    "",     /* SCRIPT_LYDIAN */
+    LANGCODE_unknown,     /* SCRIPT_KAYAH_LI */
+    LANGCODE_unknown,     /* SCRIPT_LEPCHA */
+    LANGCODE_unknown,     /* SCRIPT_REJANG */
+    LANGCODE_unknown,     /* SCRIPT_SUNDANESE */
+    LANGCODE_unknown,     /* SCRIPT_SAURASHTRA */
+    LANGCODE_unknown,     /* SCRIPT_CHAM */
+    LANGCODE_unknown,     /* SCRIPT_OL_CHIKI */
+    LANGCODE_unknown,     /* SCRIPT_VAI */
+    LANGCODE_unknown,     /* SCRIPT_CARIAN */
+    LANGCODE_unknown,     /* SCRIPT_LYCIAN */
+    LANGCODE_unknown,     /* SCRIPT_LYDIAN */
 
     /* Unicode-6.0 additions */
-    "",     /* SCRIPT_BATAK */
-    "",     /* SCRIPT_BRAHMI */
-    "",     /* SCRIPT_MANDAIC */
+    LANGCODE_unknown,     /* SCRIPT_BATAK */
+    LANGCODE_unknown,     /* SCRIPT_BRAHMI */
+    LANGCODE_unknown,     /* SCRIPT_MANDAIC */
 
     /* Unicode-6.1 additions */
-    "",     /* SCRIPT_CHAKMA */
-    "",     /* SCRIPT_MEROITIC_CURSIVE */
-    "",     /* SCRIPT_MEROITIC_HIEROGLYPHS */
-    "",     /* SCRIPT_MIAO */
-    "",     /* SCRIPT_SHARADA */
-    "",     /* SCRIPT_SORA_SOMPENG */
-    "",     /* SCRIPT_TAKRI */
+    LANGCODE_unknown,     /* SCRIPT_CHAKMA */
+    LANGCODE_unknown,     /* SCRIPT_MEROITIC_CURSIVE */
+    LANGCODE_unknown,     /* SCRIPT_MEROITIC_HIEROGLYPHS */
+    LANGCODE_unknown,     /* SCRIPT_MIAO */
+    LANGCODE_unknown,     /* SCRIPT_SHARADA */
+    LANGCODE_unknown,     /* SCRIPT_SORA_SOMPENG */
+    LANGCODE_unknown,     /* SCRIPT_TAKRI */
 
     /* Unicode 7.0 additions */
-    "",     /* SCRIPT_BASSA_VAH, Bass */
-    "",     /* SCRIPT_CAUCASIAN_ALBANIAN, Aghb */
-    "",     /* SCRIPT_DUPLOYAN, Dupl */
-    "",     /* SCRIPT_ELBASAN, Elba */
-    "",     /* SCRIPT_GRANTHA, Gran */
-    "",     /* SCRIPT_KHOJKI, Khoj */
-    "",     /* SCRIPT_KHUDAWADI, Sind */
-    "",     /* SCRIPT_LINEAR_A, Lina */
-    "",     /* SCRIPT_MAHAJANI, Mahj */
-    "",     /* SCRIPT_MANICHAEAN, Manu */
-    "",     /* SCRIPT_MENDE_KIKAKUI, Mend */
-    "",     /* SCRIPT_MODI, Modi */
-    "",     /* SCRIPT_MRO, Mroo */
-    "",     /* SCRIPT_NABATAEAN, Nbat */
-    "",     /* SCRIPT_OLD_NORTH_ARABIAN, Narb */
-    "",     /* SCRIPT_OLD_PERMIC, Perm */
-    "",     /* SCRIPT_PAHAWH_HMONG, Hmng */
-    "",     /* SCRIPT_PALMYRENE, Palm */
-    "",     /* SCRIPT_PAU_CIN_HAU, Pauc */
-    "",     /* SCRIPT_PSALTER_PAHLAVI, Phlp */
-    "",     /* SCRIPT_SIDDHAM, Sidd */
-    "",     /* SCRIPT_TIRHUTA, Tirh */
-    "",     /* SCRIPT_WARANG_CITI, Wara */
+    LANGCODE_unknown,     /* SCRIPT_BASSA_VAH, Bass */
+    LANGCODE_unknown,     /* SCRIPT_CAUCASIAN_ALBANIAN, Aghb */
+    LANGCODE_unknown,     /* SCRIPT_DUPLOYAN, Dupl */
+    LANGCODE_unknown,     /* SCRIPT_ELBASAN, Elba */
+    LANGCODE_unknown,     /* SCRIPT_GRANTHA, Gran */
+    LANGCODE_unknown,     /* SCRIPT_KHOJKI, Khoj */
+    LANGCODE_unknown,     /* SCRIPT_KHUDAWADI, Sind */
+    LANGCODE_unknown,     /* SCRIPT_LINEAR_A, Lina */
+    LANGCODE_unknown,     /* SCRIPT_MAHAJANI, Mahj */
+    LANGCODE_unknown,     /* SCRIPT_MANICHAEAN, Manu */
+    LANGCODE_unknown,     /* SCRIPT_MENDE_KIKAKUI, Mend */
+    LANGCODE_unknown,     /* SCRIPT_MODI, Modi */
+    LANGCODE_unknown,     /* SCRIPT_MRO, Mroo */
+    LANGCODE_unknown,     /* SCRIPT_NABATAEAN, Nbat */
+    LANGCODE_unknown,     /* SCRIPT_OLD_NORTH_ARABIAN, Narb */
+    LANGCODE_unknown,     /* SCRIPT_OLD_PERMIC, Perm */
+    LANGCODE_unknown,     /* SCRIPT_PAHAWH_HMONG, Hmng */
+    LANGCODE_unknown,     /* SCRIPT_PALMYRENE, Palm */
+    LANGCODE_unknown,     /* SCRIPT_PAU_CIN_HAU, Pauc */
+    LANGCODE_unknown,     /* SCRIPT_PSALTER_PAHLAVI, Phlp */
+    LANGCODE_unknown,     /* SCRIPT_SIDDHAM, Sidd */
+    LANGCODE_unknown,     /* SCRIPT_TIRHUTA, Tirh */
+    LANGCODE_unknown,     /* SCRIPT_WARANG_CITI, Wara */
 
     /* Unicode 8.0 additions */
-    "",     /* SCRIPT_AHOM, Ahom */
-    "",     /* SCRIPT_ANATOLIAN_HIEROGLYPHS, Hluw */
-    "",     /* SCRIPT_HATRAN, Hatr */
-    "",     /* SCRIPT_MULTANI, Mult */
-    "",     /* SCRIPT_OLD_HUNGARIAN, Hung */
-    "",     /* SCRIPT_SIGNWRITING, Sgnw */
+    LANGCODE_unknown,     /* SCRIPT_AHOM, Ahom */
+    LANGCODE_unknown,     /* SCRIPT_ANATOLIAN_HIEROGLYPHS, Hluw */
+    LANGCODE_unknown,     /* SCRIPT_HATRAN, Hatr */
+    LANGCODE_unknown,     /* SCRIPT_MULTANI, Mult */
+    LANGCODE_unknown,     /* SCRIPT_OLD_HUNGARIAN, Hung */
+    LANGCODE_unknown,     /* SCRIPT_SIGNWRITING, Sgnw */
 
     /* Unicode 9.0 additions */
-    "",     /* SCRIPT_ADLAM, Adlm */
-    "",     /* SCRIPT_BHAIKSUKI, Bhks */
-    "",     /* SCRIPT_MARCHEN, Marc */
-    "",     /* SCRIPT_NEWA, Newa */
-    "",     /* SCRIPT_OSAGE, Osge */
-    "",     /* SCRIPT_TANGUT, Tang */
+    LANGCODE_unknown,     /* SCRIPT_ADLAM, Adlm */
+    LANGCODE_unknown,     /* SCRIPT_BHAIKSUKI, Bhks */
+    LANGCODE_unknown,     /* SCRIPT_MARCHEN, Marc */
+    LANGCODE_unknown,     /* SCRIPT_NEWA, Newa */
+    LANGCODE_unknown,     /* SCRIPT_OSAGE, Osge */
+    LANGCODE_unknown,     /* SCRIPT_TANGUT, Tang */
 
     /* Unicode 10.0 additions */
-    "",     /* SCRIPT_MASARAM_GONDI, Gonm */
-    "",     /* SCRIPT_NUSHU, Nshu */
-    "",     /* SCRIPT_SOYOMBO, Soyo */
-    "",     /* SCRIPT_ZANABAZAR_SQUARE, Zanb */
+    LANGCODE_unknown,     /* SCRIPT_MASARAM_GONDI, Gonm */
+    LANGCODE_unknown,     /* SCRIPT_NUSHU, Nshu */
+    LANGCODE_unknown,     /* SCRIPT_SOYOMBO, Soyo */
+    LANGCODE_unknown,     /* SCRIPT_ZANABAZAR_SQUARE, Zanb */
 
     /* Unicode 11.0 additions */
-    "",     /* SCRIPT_DOGRA, Dogr */
-    "",     /* SCRIPT_GUNJALA_GONDI, Gong */
-    "",     /* SCRIPT_HANIFI_ROHINGYA, Rohg */
-    "",     /* SCRIPT_MAKASAR, Maka */
-    "",     /* SCRIPT_MEDEFAIDRIN, Medf */
-    "",     /* SCRIPT_OLD_SOGDIAN, Sogo */
-    "",     /* SCRIPT_SOGDIAN, Sogd */
+    LANGCODE_unknown,     /* SCRIPT_DOGRA, Dogr */
+    LANGCODE_unknown,     /* SCRIPT_GUNJALA_GONDI, Gong */
+    LANGCODE_unknown,     /* SCRIPT_HANIFI_ROHINGYA, Rohg */
+    LANGCODE_unknown,     /* SCRIPT_MAKASAR, Maka */
+    LANGCODE_unknown,     /* SCRIPT_MEDEFAIDRIN, Medf */
+    LANGCODE_unknown,     /* SCRIPT_OLD_SOGDIAN, Sogo */
+    LANGCODE_unknown,     /* SCRIPT_SOGDIAN, Sogd */
 
     /* Unicode 12.0 additions */
-    "",     /* SCRIPT_ELYMAIC, Elymaic */
-    "",     /* SCRIPT_NANDINAGARI, Nandinagari */
-    "",     /* SCRIPT_NYIAKENG_PUACHUE_HMONG, Nyiakeng Puachue Hmong */
-    "",     /* SCRIPT_WANCHO, Wancho */
+    LANGCODE_unknown,     /* SCRIPT_ELYMAIC, Elymaic */
+    LANGCODE_unknown,     /* SCRIPT_NANDINAGARI, Nandinagari */
+    LANGCODE_unknown,     /* SCRIPT_NYIAKENG_PUACHUE_HMONG, Nyiakeng Puachue Hmong */
+    LANGCODE_unknown,     /* SCRIPT_WANCHO, Wancho */
 };
 
-const char* GetSampleLanguageFromScript(ScriptType st)
+LanguageCode GetSampleLanguageForScript(ScriptType st)
 {
     switch (st) {
     case SCRIPT_INVALID_CODE:
-        return "";
+        return LANGCODE_unknown;
     default:
         return sample_language_of_script[st];
     }
 
-    return "";
+    return LANGCODE_unknown;
 }
 
 #endif /* _MGCHARSET_UNICODE */

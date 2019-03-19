@@ -132,6 +132,8 @@ EmojiIterator* __mg_emoji_iterator_init (EmojiIterator *iter,
 BOOL __mg_emoji_iterator_next (EmojiIterator *iter);
 void __mg_emoji_iterator_fini (EmojiIterator *iter);
 
+BOOL __mg_language_includes_script(LanguageCode lc, ScriptType script);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
