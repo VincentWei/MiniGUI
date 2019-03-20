@@ -263,8 +263,6 @@ static BOOL state_process_run (TEXTRUNSTATE *state)
     run->dir = state->runinfo->run_dir;
     run->ort = state->ort_rsv;
     run->lf  = create_logfont_for_run(state->runinfo, run);
-    run->gs  = NULL;
-    run->ngs = 0;
     run->idx = state->run_start - state->text;
     run->len = state->run_end - state->run_start;
     list_add_tail(&run->list, &state->runinfo->run_head);
@@ -560,7 +558,7 @@ BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* runinfo,
         return FALSE;
 
     // can not change font after shaped the glyphs
-    if (runinfo->se.engine != NULL)
+    if (runinfo->sei.inst != NULL)
         return FALSE;
 
     // can not change font for empty runs
@@ -624,13 +622,11 @@ BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* runinfo, const char* logfont_name)
         list_del(runinfo->run_head.prev);
         if (run->lf)
             release_logfont_for_run(runinfo, run);
-        if (runinfo->se.engine)
-            runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
 
-    if (runinfo->se.engine) {
-        runinfo->se.destroy_engine(runinfo->se.engine);
+    if (runinfo->sei.inst) {
+        runinfo->sei.free(runinfo->sei.inst);
     }
 
     free(runinfo->fontname);
@@ -658,16 +654,12 @@ BOOL GUIAPI ResetDirectionInTextRuns(TEXTRUNSINFO* runinfo,
 
     list_for_each(i, &runinfo->run_head) {
         TEXTRUN* run = (TEXTRUN*)i;
-        if (runinfo->se.engine && run->gs) {
-            runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
-        }
-
         set_run_dir(runinfo, run, run_dir, glyph_orient);
     }
 
-    if (runinfo->se.engine) {
-        runinfo->se.destroy_engine(runinfo->se.engine);
-        runinfo->se.engine = NULL;
+    if (runinfo->sei.inst) {
+        runinfo->sei.free(runinfo->sei.inst);
+        runinfo->sei.inst = NULL;
     }
 
     return TRUE;
@@ -722,13 +714,11 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
         list_del(runinfo->run_head.prev);
         if (run->lf)
             release_logfont_for_run(runinfo, run);
-        if (runinfo->se.engine)
-            runinfo->se.destroy_glyphs(runinfo->se.engine, run->gs);
         free(run);
     }
 
-    if (runinfo->se.engine) {
-        runinfo->se.destroy_engine(runinfo->se.engine);
+    if (runinfo->sei.inst) {
+        runinfo->sei.free(runinfo->sei.inst);
     }
 
     free(runinfo->fontname);

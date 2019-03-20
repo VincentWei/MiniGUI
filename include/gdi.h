@@ -12201,6 +12201,12 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
  */
 #define GRF_OVERFLOW_WRAP_ANYWHERE      0x00200000
 
+#define GRF_OVERFLOW_ELLIPSIZE_MASK     0x000F0000
+#define GRF_OVERFLOW_ELLIPSIZE_NONE     0x00000000
+#define GRF_OVERFLOW_ELLIPSIZE_START    0x00010000
+#define GRF_OVERFLOW_ELLIPSIZE_MIDDLE   0x00020000
+#define GRF_OVERFLOW_ELLIPSIZE_END      0x00030000
+
 #define GRF_ALIGN_MASK                  0x0000F000
 /**
  * Text content is aligned to the start edge of the line box.
@@ -12372,6 +12378,14 @@ typedef struct _GLYPHPOS {
      * The y coordinate of the glyph position.
      */
     int y;
+    /**
+     * The x offset of the glyph position.
+     */
+    int x_off;
+    /**
+     * The y offset of the glyph position.
+     */
+    int y_off;
     /**
      * Whether suppress the glyph.
      */
@@ -12586,8 +12600,7 @@ MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* run_info);
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT BOOL GUIAPI ShapeTextRunsBaisc(TEXTRUNSINFO* run_info,
-        Uint32 render_flags);
+MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info);
 
 #ifdef _MGCOMPLEX_SCRIPTS
 
@@ -12657,11 +12670,32 @@ MG_EXPORT BOOL GUIAPI ShapeTextRunsBaisc(TEXTRUNSINFO* run_info,
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT BOOL GUIAPI ShapeTextRunsComplex(TEXTRUNSINFO* run_info,
-        Uint32 render_flags);
+MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* run_info);
 
 #endif /* _MGCOMPLEX_SCRIPTS */
 
+typedef struct _LAYOUTINFO LAYOUTINFO;
+typedef struct _LAYOUTLINE LAYOUTLINE;
+
+MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
+        const TEXTRUNSINFO* run_info, Uint32 render_flags,
+        const BreakOppo* break_oppos, BOOL persist_lines,
+        int letter_spacing, int word_spacing, int tab_size);
+
+MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
+
+typedef void (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
+        LOGFONT* lf, RGBCOLOR color, Glyph32 gv, const GLYPHPOS* pos);
+
+MG_EXPORT int GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
+        int* x, int* y, int max_extent, SIZE* line_size,
+        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
+
+MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const TEXTRUNSINFO* run_info,
+        const BreakOppo* break_oppos,
+        int uc_start_index, int x, int y, Uint32 render_flags,
+        int letter_spacing, int word_spacing, int tab_size, int max_extent,
+        SIZE* line_size, GLYPHPOS** glyph_pos, int* nr_glyphs);
 /**
  * \fn int GUIAPI GetGlyphsExtentInfo()
  *

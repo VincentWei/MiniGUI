@@ -43,55 +43,49 @@
 
 #include "list.h"
 
-typedef Glyph32 (*CB_GET_GLYPH_INFO) (void* engine,
-        void* glyph_infos, int index, int* cluster);
+typedef struct _TEXTRUN         TEXTRUN;
+typedef struct _GLYPHSTRING     GLYPHSTRING;
+typedef struct _SEINSTANCE      SEINSTANCE;
+typedef struct _TEXTCOLORMAP    TEXTCOLORMAP;
 
-typedef BOOL (*CB_DESTROY_GLYPHS) (void* engine, void* glyph_infos);
+typedef BOOL (*CB_SHAPE_TEXT_RUN)(SEINSTANCE* instance,
+        const TEXTRUN* run, GLYPHSTRING* gs);
 
-typedef BOOL (*CB_DESTROY_ENGINE) (void* engine);
+typedef BOOL (*CB_DESTROY_INSTANCE)(SEINSTANCE* instance);
 
-typedef struct _SHAPPINGENGINE {
-    /* The pointer to the shaping engine */
-    void*               engine;
+typedef struct _SHAPINGENGINEINFO SHAPINGENGINEINFO;
 
-    /* the callback reverse the glyphs */
-    CB_REVERSE_ARRAY    reverse_glyphs;
+struct _SHAPINGENGINEINFO {
+    /* The pointer to the shaping engine instance */
+    SEINSTANCE*         inst;
 
-    /* The callback returns the glyph value and cluster
-       from a void glyph information */
-    CB_GET_GLYPH_INFO   get_glyph_info;
+    /* callback to shap a text run */
+    CB_SHAPE_TEXT_RUN   shape;
 
-    /* the callback destroy the shaped glyph info */
-    CB_DESTROY_GLYPHS   destroy_glyphs;
+    /* callback to destroy the shaping engine instance */
+    CB_DESTROY_INSTANCE free;
+};
 
-    /* the callback destroy the shapping engine instance */
-    CB_DESTROY_ENGINE   destroy_engine;
-} SHAPPINGENGINE;
-
-typedef struct _TEXTRUN {
+struct _TEXTRUN {
     struct list_head list;
     LOGFONT*    lf;     // the logfont for this run
 
-    void*       gs;     // the shaped glyph information
-
     int         idx;    // start index in the Unicode string
     int         len;    // the number of Unicode characters
-
-    int         ngs;    // the number of shaped glyphs
 
     Uint32      lc:8;   // language code
     Uint32      st:8;   // script type
     Uint32      el:8;   // the bidi embedding level
     Uint32      dir:4;  // the run direction
     Uint32      ort:2;  // the glyph orientation
-} TEXTRUN;
+};
 
-typedef struct _TEXTCOLORMAP {
+struct _TEXTCOLORMAP {
     struct list_head    list;
     int                 si;
     int                 len;
     RGBCOLOR            color;
-} TEXTCOLORMAP;
+};
 
 struct _TEXTRUNSINFO {
     /* The following fields will be initialized by CreateGlyphRunInfo. */
@@ -110,39 +104,8 @@ struct _TEXTRUNSINFO {
     Uint32      run_dir:4;      // the run direction specified
     Uint32      base_level:1;   // the paragraph direction; 0 for LTR, 1 for RTL
 
-    /* The following fields will be initialized by the shapping engine. */
-    SHAPPINGENGINE  se;         // the shapping engine
-};
-
-typedef struct _GLYPHLAYOUTINFO GLYPHLAYOUTINFO;
-
-typedef struct _GLYPHRUN {
-    struct list_head    list;
-    TEXTRUN*            text_run;   // the glyph run
-    int                 start_idx;  // the index in glyph run
-    int                 nr_glyphs;  // the number of glyphs
-} GLYPHRUN;
-
-typedef struct _GLYPHLINE {
-    GLYPHLAYOUTINFO*    layout_info;
-
-    struct list_head    run_head;   // the list head for glyph layout runs
-
-    int                 idx;        // the index in uchar string
-    int                 len;        // the length in uchar string
-
-    Uint8               first_line:1;   // is first line of the paragraph?
-    Uint8               resolved_dir:3; // resolved direction of the line
-    Uint8               all_even:1; // flag indicating all level is even
-    Uint8               all_odd:1;  // flag indicating all level is odd
-} GLYPHLINE;
-
-struct _GLYPHLAYOUTINFO {
-    const TEXTRUNSINFO* runinfo;
-
-    struct list_head    line_head;
-
-    int                 nr_lines;
+    /* The following fields will be initialized by the shaping engine. */
+    SHAPINGENGINEINFO   sei;    // the shaping engine information
 };
 
 #ifdef __cplusplus

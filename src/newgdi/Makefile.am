@@ -24,7 +24,7 @@ endif
 
 HDR_FILES = drawtext.h mi.h midc.h mistruct.h miwideline.h \
             pixel_ops.h mifillarc.h mispans.h polygon.h mifpoly.h \
-            textrunsinfo.h
+            textrunsinfo.h layoutinfo.h
 
 libnewgdi_la_SOURCES = $(SRC_FILES) $(HDR_FILES)
 
