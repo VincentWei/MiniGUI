@@ -57,10 +57,10 @@
 #include "unicode-ops.h"
 #include "textrunsinfo.h"
 
-BOOL GUIAPI ShapeTextRunsComplex(TEXTRUNSINFO* run_info, Uint32 rf)
+BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* run_info)
 {
     return FALSE;
 }
 
-#endif /*  _MGCHARSET_UNICODE */
+#endif /* defined(_MGCHARSET_UNICODE) && defined(_MGCOMPLEX_SCRIPTS) */
 

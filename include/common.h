@@ -2055,6 +2055,13 @@ int init_minigui_printf (int (*output_char) (int ch),
     #define TCS_CLRLINE(fp)
 #endif
 
+#define _WRN_PRINTF(fmt, ...)                   \
+    do {                                        \
+        TCS_PURPLE (stderr);                    \
+        fprintf (stderr, fmt, ##__VA_ARGS__);   \
+        TCS_NONE (stderr);                      \
+    } while (0)
+
 #define _ERR_PRINTF(fmt, ...)                   \
     do {                                        \
         TCS_RED (stderr);                       \

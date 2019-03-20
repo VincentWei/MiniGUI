@@ -12516,7 +12516,7 @@ MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
 
 /**
  * Set font of part characters. Please call this function before
- * calling ShapeTextRunsBaisc or ShapeTextRunsComplex.
+ * calling InitBasicShapingEngine or InitComplexShapingEngine.
  */
 MG_EXPORT BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* run_info,
     int start_index, int length, const char* logfont_name);
@@ -12554,7 +12554,7 @@ MG_EXPORT BOOL GUIAPI ResetDirectionInTextRuns(TEXTRUNSINFO* run_info,
 MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* run_info);
 
 /**
- * \fn BOOL GUIAPI ShapeTextRunsBaisc()
+ * \fn BOOL GUIAPI InitBasicShapingEngine()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system.
  *
@@ -12605,7 +12605,7 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info);
 #ifdef _MGCOMPLEX_SCRIPTS
 
 /**
- * \fn int GUIAPI ShapeTextRunsComplex()
+ * \fn int GUIAPI InitComplexShapingEngine()
  * \brief Analyse and generate a shaped glyph string of a Unicode string
  *      under specific language and writing system. This is the complex
  *      implementation based on HarfBuzz, which is LGPL'd shaping engine.
@@ -12677,25 +12677,30 @@ MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* run_info);
 typedef struct _LAYOUTINFO LAYOUTINFO;
 typedef struct _LAYOUTLINE LAYOUTLINE;
 
+/**
+ * Create layout information structure for laying out a paragraph.
+ */
 MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* run_info, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
         int letter_spacing, int word_spacing, int tab_size);
 
+/**
+ * Destroy the specified layout information structure.
+ */
 MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
 typedef void (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
         LOGFONT* lf, RGBCOLOR color, Glyph32 gv, const GLYPHPOS* pos);
 
-MG_EXPORT int GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
+/**
+ * Layout the next line of a paragraph according to the layout information.
+ */
+MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
+        LAYOUTLINE* prev_Line,
         int* x, int* y, int max_extent, SIZE* line_size,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
 
-MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const TEXTRUNSINFO* run_info,
-        const BreakOppo* break_oppos,
-        int uc_start_index, int x, int y, Uint32 render_flags,
-        int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHPOS** glyph_pos, int* nr_glyphs);
 /**
  * \fn int GUIAPI GetGlyphsExtentInfo()
  *

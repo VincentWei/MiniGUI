@@ -195,7 +195,7 @@ static LOGFONT* create_logfont_for_run(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _DBG_PRINTF("%s: bad orientation param: %d\n",
+        _WRN_PRINTF("%s: bad orientation param: %d\n",
             __FUNCTION__, run->ort);
         return NULL;
     }
@@ -236,7 +236,7 @@ static void release_logfont_for_run(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _DBG_PRINTF("%s: bad orientation param: %d\n",
+        _WRN_PRINTF("%s: bad orientation param: %d\n",
             __FUNCTION__, run->ort);
         return;
     }
@@ -467,7 +467,8 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
         els = (BidiLevel*)malloc (nr_ucs * sizeof(BidiLevel));
 
     if (!els) {
-        _DBG_PRINTF("%s: failed to allocate space for embedding levels.\n");
+        _ERR_PRINTF("%s: failed to allocate space for embedding levels.\n",
+            __FUNCTION__);
         goto out;
     }
 
@@ -477,7 +478,8 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     // Calculate the breaking opportunities
     if (UStrGetBreaks(script_type, ctr, wbr, lbp,
             ucs, nr_ucs, &bos) == 0) {
-        _DBG_PRINTF("%s: failed to get breaking opportunities.\n");
+        _ERR_PRINTF("%s: failed to get breaking opportunities.\n",
+            __FUNCTION__);
         goto out;
     }
     */
@@ -532,7 +534,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
 #endif
 
     if (!create_glyph_runs(runinfo, els)) {
-        _DBG_PRINTF("%s: failed to call create_glyph_runs.\n",
+        _ERR_PRINTF("%s: failed to call create_glyph_runs.\n",
             __FUNCTION__);
         goto out;
     }
@@ -555,10 +557,6 @@ BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* runinfo,
         int start_index, int length, const char* logfont_name)
 {
     if (runinfo == NULL)
-        return FALSE;
-
-    // can not change font after shaped the glyphs
-    if (runinfo->sei.inst != NULL)
         return FALSE;
 
     // can not change font for empty runs
@@ -657,11 +655,6 @@ BOOL GUIAPI ResetDirectionInTextRuns(TEXTRUNSINFO* runinfo,
         set_run_dir(runinfo, run, run_dir, glyph_orient);
     }
 
-    if (runinfo->sei.inst) {
-        runinfo->sei.free(runinfo->sei.inst);
-        runinfo->sei.inst = NULL;
-    }
-
     return TRUE;
 }
 
@@ -690,7 +683,8 @@ BOOL GUIAPI ResetBreaksInTextRuns(TEXTRUNSINFO* runinfo,
     // Re-calculate the breaking opportunities
     if (UStrGetBreaks(runinfo->run_head.st, ctr, wbr, lbp,
             runinfo->ucs, runinfo->run_head.nr_ucs, &runinfo->bos) == 0) {
-        _DBG_PRINTF("%s: failed to get breaking opportunities.\n");
+        _ERR_PRINTF("%s: failed to get breaking opportunities.\n",
+            __FUNCTION__);
         return FALSE;
     }
 

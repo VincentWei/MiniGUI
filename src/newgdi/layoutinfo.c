@@ -33,7 +33,7 @@
  */
 
 /*
-** layout-shaped-glyphs.c: The implementation of APIs related shaped-glyphs
+** layoutinfo.c: The implementation of APIs related LAYOUTINFO
 **
 ** Create by WEI Yongming at 2019/03/14
 */
@@ -51,6 +51,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
+#include "layoutinfo.h"
 
 #if 0
 int GUIAPI DrawShapedGlyphString(HDC hdc,

@@ -42,12 +42,12 @@
     #define _MG_NEWGDI_LAYOUTINFO_H
 
 #include "list.h"
-#include "textruninfo.h"
+#include "textrunsinfo.h"
 
 typedef struct _GLYPHRUN        GLYPHRUN;
-typedef struct _GLYPHINFO       GLYPHINFO;
+typedef struct _SHAPEDGLYPH     SHAPEDGLYPH;
 
-struct _GLYPHINFO {
+struct _SHAPEDGLYPH {
     Glyph32 gv;
     int     x_off;
     int     y_off;
@@ -57,12 +57,12 @@ struct _GLYPHINFO {
 };
 
 struct _GLYPHSTRING {
-    GLYPHINFO*  glyphs;
+    SHAPEDGLYPH*  glyphs;
     int*        log_clusters;
 
     int         nr_glyphs;
     int         reserved;
-} GLYPHSTRING;
+};
 
 struct _GLYPHRUN {
     struct list_head    list;
@@ -72,7 +72,7 @@ struct _GLYPHRUN {
 
 struct _LAYOUTLINE {
     struct list_head    list;
-    GLYPHLAYOUTINFO*    layout_info;
+    LAYOUTINFO*         layout_info;
     int*                log_widths; // the widths of the logical chars
 
     struct list_head    run_head;   // the list head for glyph runs
@@ -98,7 +98,7 @@ struct _GLYPHLAYOUTINFO {
     struct list_head    line_head;  // the list head of lines
 
     LAYOUTLINE          *curr_line; // current line
-    int                 idx_next_char;
+    int                 left_ucs;   // the number of chars not laied out.
 };
 
 #ifdef __cplusplus

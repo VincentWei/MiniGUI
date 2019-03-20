@@ -33,7 +33,7 @@
  */
 
 /*
-** shaped-glyph.c: The implementation of APIs related shaped-glyphs
+** shaped-glyph-basic.c: The implementation of basic shaping engine.
 **
 ** Reference:
 **
@@ -79,7 +79,7 @@ static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
-BOOL GUIAPI ShapeTextRunsBasic(TEXTRUNSINFO* run_info, Uint32 rf)
+BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info)
 {
 #if 0
     int ret_value = 0;
