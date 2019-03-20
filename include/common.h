@@ -2058,6 +2058,7 @@ int init_minigui_printf (int (*output_char) (int ch),
 #define _WRN_PRINTF(fmt, ...)                   \
     do {                                        \
         TCS_PURPLE (stderr);                    \
+        fprintf (stderr, "%s: ", __FUNCTION__); \
         fprintf (stderr, fmt, ##__VA_ARGS__);   \
         TCS_NONE (stderr);                      \
     } while (0)

@@ -195,8 +195,7 @@ static LOGFONT* create_logfont_for_run(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _WRN_PRINTF("%s: bad orientation param: %d\n",
-            __FUNCTION__, run->ort);
+        _WRN_PRINTF("bad orientation param: %d\n", run->ort);
         return NULL;
     }
 
@@ -236,8 +235,7 @@ static void release_logfont_for_run(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _WRN_PRINTF("%s: bad orientation param: %d\n",
-            __FUNCTION__, run->ort);
+        _WRN_PRINTF("bad orientation param: %d\n", run->ort);
         return;
     }
 
