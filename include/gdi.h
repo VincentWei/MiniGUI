@@ -12177,13 +12177,28 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
  */
 #define GRF_TEXT_ORIENTATION_SIDEWAYS   0x01000000
 /**
+ * The glyphs are individually typeset upside down in
+ * vertical lines with vertical font metrics.
+ */
+#define GRF_TEXT_ORIENTATION_UPSIDE_DOWN    0x02000000
+/**
+ * The glyphs typeset a run rotated 90° counter-clockwise
+ * from their upright orientation.
+ */
+#define GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT  0x03000000
+/**
+ * In vertical writing modes, all typographic character units
+ * keep in their intrinsic orientation.
+ */
+#define GRF_TEXT_ORIENTATION_AUTO       0x04000000
+/**
  * In vertical writing modes, typographic character units from
  * horizontal-only scripts are typeset sideways, i.e. 90° clockwise
  * from their standard orientation in horizontal text.
  * Typographic character units from vertical scripts are
  * typeset with their intrinsic orientation.
  */
-#define GRF_TEXT_ORIENTATION_MIXED      0x02000000
+#define GRF_TEXT_ORIENTATION_MIXED      0x05000000
 
 #define GRF_OVERFLOW_WRAP_MASK          0x00F00000
 /**

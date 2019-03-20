@@ -3,7 +3,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@
 /*
 ** layoutinfo.c: The implementation of APIs related LAYOUTINFO
 **
-** Create by WEI Yongming at 2019/03/14
+** Create by WEI Yongming at 2019/03/20
 */
 
 #include <stdio.h>
@@ -52,6 +52,91 @@
 #include "devfont.h"
 #include "unicode-ops.h"
 #include "layoutinfo.h"
+
+LAYOUTINFO* GUIAPI CreateLayoutInfo(
+        const TEXTRUNSINFO* runinfo, Uint32 render_flags,
+        const BreakOppo* break_oppos, BOOL persist_lines,
+        int letter_spacing, int word_spacing, int tab_size)
+{
+    LAYOUTINFO* layoutinfo;
+
+    if (runinfo == NULL || runinfo->sei.inst == NULL) {
+        return NULL;
+    }
+
+    layoutinfo = (LAYOUTINFO*)calloc(1, sizeof(LAYOUTINFO));
+    if (layoutinfo == NULL) {
+        return NULL;
+    }
+
+    layoutinfo->runinfo = runinfo;
+    layoutinfo->bos = break_oppos;
+    layoutinfo->rf = render_flags;
+    layoutinfo->ls = letter_spacing;
+    layoutinfo->ws = word_spacing;
+    layoutinfo->ts = tab_size;
+
+    INIT_LIST_HEAD(&layoutinfo->line_head);
+    layoutinfo->left_ucs = runinfo->nr_ucs;
+
+    layoutinfo->persist = persist_lines ? 1 : 0;
+
+    return layoutinfo;
+}
+
+static void release_glyph_string(GLYPHSTRING* gs)
+{
+    if (gs->glyphs)
+        free (gs->glyphs);
+    if (gs->log_clusters);
+        free (gs->log_clusters);
+
+    free(gs);
+}
+
+static void release_run(GLYPHRUN* run)
+{
+    if (run->gs) {
+        release_glyph_string(run->gs);
+    }
+
+    free(run);
+}
+
+static void release_line(LAYOUTLINE* line)
+{
+    while (!list_empty(&line->run_head)) {
+        GLYPHRUN* run = (GLYPHRUN*)line->run_head.prev;
+        list_del(line->run_head.prev);
+        release_run(run);
+    }
+
+    if (line->log_widths) {
+        free(line->log_widths);
+    }
+
+    free(line);
+}
+
+BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* info)
+{
+    while (!list_empty(&info->line_head)) {
+        LAYOUTLINE* line = (LAYOUTLINE*)info->line_head.prev;
+        list_del(info->line_head.prev);
+        release_line(line);
+    }
+
+    free(info);
+    return TRUE;
+}
+
+LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* info,
+        LAYOUTLINE* prev_Line,
+        int* x, int* y, int max_extent, SIZE* line_size,
+        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
+{
+    return NULL;
+}
 
 #if 0
 int GUIAPI DrawShapedGlyphString(HDC hdc,

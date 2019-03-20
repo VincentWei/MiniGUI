@@ -55,21 +55,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "textrunsinfo.h"
-
-#if 0
-static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
-{
-    int i;
-    SHAPEDGLYPH* vgs = (SHAPEDGLYPH*)context + pos;
-
-    for (i = 0; i < len / 2; i++) {
-        SHAPEDGLYPH tmp = vgs[i];
-        vgs[i] = vgs[len - 1 - i];
-        vgs[len - 1 - i] = tmp;
-    }
-}
-#endif
+#include "layoutinfo.h"
 
 /* Local array size, used for stack-based local arrays */
 
@@ -79,12 +65,25 @@ static void bidi_reverse_shaped_glyphs (void* context, int len, int pos)
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
-BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info)
+
+static void reverse_ucs (Uchar32* ucs, int len)
 {
-#if 0
-    int ret_value = 0;
-    int i, j, nr_reordered;
-    BidiLevel max_level = 0;
+    int i;
+    for (i = 0; i < len / 2; i++) {
+        Uchar32 tmp = ucs[i];
+        ucs[i] = ucs[len - 1 - i];
+        ucs[len - 1 - i] = tmp;
+    }
+}
+
+static BOOL shape_text_run(SEINSTANCE* inst,
+        const TEXTRUNSINFO* info, const TEXTRUN* run,
+        GLYPHSTRING* gs)
+{
+    BOOL ok = FALSE;
+    int i, j;
+    const Uchar32* logical_ucs = info->ucs + run->idx;
+    int nr_ucs = run->len;
 
     Uchar32 local_visual_ucs[LOCAL_ARRAY_SIZE];
     Uchar32* visual_ucs = NULL;
@@ -95,83 +94,48 @@ BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info)
     BidiType local_bidi_ts[LOCAL_ARRAY_SIZE];
     BidiType *bidi_ts = NULL;
 
-    BidiBracketType local_brk_ts[LOCAL_ARRAY_SIZE];
-    BidiBracketType *brk_ts = NULL;
-
     BidiLevel local_els[LOCAL_ARRAY_SIZE];
     BidiLevel* els = NULL;
 
-    int local_indics_map[LOCAL_ARRAY_SIZE];
-    int* indics_map = NULL;
-
-    if (nr_ucs == 0 || logical_ucs == NULL || break_oppos == NULL ||
-            visual_glyphs == NULL || nr_glyphs == NULL) {
-        return 0;
-    }
-
-    /* TODO: we may re-use visual_glyphs for visual ucs */
     if (nr_ucs < LOCAL_ARRAY_SIZE)
         visual_ucs = local_visual_ucs;
     else
-        visual_ucs = malloc (nr_ucs * sizeof(Uchar32));
+        visual_ucs = malloc(nr_ucs * sizeof(Uchar32));
 
     if (!visual_ucs)
-        goto out;
-
-    if (nr_ucs < LOCAL_ARRAY_SIZE)
-        indics_map = local_indics_map;
-    else
-        indics_map = malloc (nr_ucs * sizeof(int));
-
-    if (!indics_map)
         goto out;
 
     /* TODO: compose logical character here */
     memcpy(visual_ucs, logical_ucs, sizeof(Uchar32) * nr_ucs);
 
     if (nr_ucs < LOCAL_ARRAY_SIZE)
-        bidi_ts = local_bidi_ts;
-    else
-        bidi_ts = malloc (nr_ucs * sizeof(BidiType));
-
-    if (!bidi_ts)
-        goto out;
-
-    UStrGetBidiTypes(logical_ucs, nr_ucs, bidi_ts);
-
-    if (nr_ucs < LOCAL_ARRAY_SIZE)
-        brk_ts = local_brk_ts;
-    else
-        brk_ts = (BidiBracketType*)malloc (nr_ucs * sizeof(BidiBracketType));
-
-    if (!brk_ts)
-        goto out;
-
-    UStrGetBracketTypes (logical_ucs, bidi_ts, nr_ucs, brk_ts);
-
-    if (nr_ucs < LOCAL_ARRAY_SIZE)
         els = local_els;
     else
         els = (BidiLevel*)malloc (nr_ucs * sizeof(BidiLevel));
-
     if (!els)
         goto out;
 
-    max_level = UBidiGetParagraphEmbeddingLevels(bidi_ts, brk_ts, nr_ucs,
-            paragraph_dir, els) - 1;
-    if (max_level < 0)
-        goto out;
+    // Get the embedding levels from run instead calling
+    // UBidiGetParagraphEmbeddingLevels
+    memset(els, run->el, nr_ucs);
 
-    /* Set up the ordering array to identity order */
-    for (i = 0; i < nr_ucs; i++)
-        indics_map[i] = i;
+    if (run->st == SCRIPT_ARABIC) {
 
-    if (writing_system == SCRIPT_ARABIC) {
-        /* Arabic joining */
         if (nr_ucs < LOCAL_ARRAY_SIZE)
+            bidi_ts = local_bidi_ts;
+        else
+            bidi_ts = malloc (nr_ucs * sizeof(BidiType));
+
+        if (!bidi_ts)
+            goto out;
+
+        UStrGetBidiTypes(logical_ucs, nr_ucs, bidi_ts);
+
+        /* Arabic joining */
+        if (run->len < LOCAL_ARRAY_SIZE)
             ar_props = local_ar_props;
         else
-            ar_props = malloc(sizeof(BidiArabicProp) * nr_ucs);
+            ar_props = malloc(sizeof(BidiArabicProp) * run->len);
 
         if (!ar_props)
             goto out;
@@ -181,66 +145,64 @@ BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info)
         UBidiShape(BIDI_FLAG_SHAPE_MIRRORING | BIDI_FLAG_SHAPE_ARAB_PRES |
                 BIDI_FLAG_SHAPE_ARAB_LIGA,
                 els, nr_ucs, ar_props, visual_ucs);
+
+        if (bidi_ts && bidi_ts != local_bidi_ts) {
+            free (bidi_ts);
+            bidi_ts = NULL;
+        }
+    }
+    else if (BIDI_LEVEL_IS_RTL(run->el)) {
+        UBidiShapeMirroring(els, nr_ucs, visual_ucs);
     }
 
-    if (UBidiReorderLine(BIDI_FLAGS_DEFAULT, bidi_ts, nr_ucs, 0,
-                *paragraph_dir, els, visual_ucs, indics_map, NULL, NULL) == 0)
+    if (els && els != local_els) {
+        free (els);
+        els = NULL;
+    }
+
+    // reorder visual chars
+    if (BIDI_LEVEL_IS_RTL(run->el)) {
+        reverse_ucs(visual_ucs, nr_ucs);
+    }
+
+    // generate the glyphs
+    gs->glyphs = malloc(sizeof(SHAPEDGLYPH) * nr_ucs);
+    gs->log_clusters = malloc(sizeof(int) * nr_ucs);
+    if (gs->glyphs == NULL || gs->log_clusters == NULL)
         goto out;
 
-    // remove the unused characters and get the real length of the visual ucs.
     j = 0;
     for (i = 0; i < nr_ucs; i++) {
-        if (!BIDI_IS_EXPLICIT_OR_BN (bidi_ts[indics_map[i]])) {
-            visual_ucs[j] = visual_ucs[i];
-            j++;
-        }
-    }
-    nr_reordered = j;
+        Glyph32 gv;
 
-    if (break_oppos) {
-        // The breaking opportunities
-        if (UStrGetBreaks(writing_system, ctr, wbr, lbp, visual_ucs, nr_reordered,
-                &break_oppos) == 0)
-            goto out;
-    }
-
-    // get shaped glyphs
-    for (i = 0; i < nr_reordered; i++) {
-        visual_glyphs[i] = GetGlyphValue(logfont, UCHAR2ACHAR(visual_ucs[i]));
-
+        // check cluster for ligatures and marks
         if (ar_props) {
-            BidiArabicProp ar_prop = ar_props[indics_map[i]];
+            BidiArabicProp ar_prop = ar_props[i];
             if (ar_prop & BIDI_MASK_LIGATURED) {
-                glyph_shaping_info[i].gt = GLYPH_TYPE_STDLIGATURE;
-                glyph_shaping_info[i].gp = GLYPH_POS_BASELINE;
-            }
-            else if (UCharIsArabicVowel(visual_ucs[i])) {
-                glyph_shaping_info[i].gt = GLYPH_TYPE_STDMARK;
-                glyph_shaping_info[i].gp = GLYPH_POS_STDMARK_ABOVE;
             }
             else {
-                glyph_shaping_info[i].gt = GLYPH_TYPE_STANDALONE;
-                glyph_shaping_info[i].gp = GLYPH_POS_BASELINE;
+                gv = GetGlyphValue(run->lf, UCHAR2ACHAR(visual_ucs[i]));
+                gs->glyphs[j].gv = gv;
+                j++;
+
+                if (UCharIsArabicVowel(logical_ucs[i])) {
+                    // adjust offset
+                }
+                else {
+                }
             }
         }
-        else {
-            glyph_shaping_info[i].gt = GLYPH_TYPE_STANDALONE;
-            glyph_shaping_info[i].gp = GLYPH_POS_BASELINE;
-        }
+    }
+    gs->nr_glyphs = j;
+
+    if (ar_props && ar_props != local_ar_props) {
+        free (ar_props);
+        ar_props = NULL;
     }
 
-    *nr_glyphs = nr_reordered;
-
-    if (map_v2l) {
-        memcpy(map_v2l, indics_map, sizeof(int) * nr_reordered);
-    }
-
-    ret_value = nr_ucs;
+    ok = TRUE;
 
 out:
-    if (indics_map && indics_map != local_indics_map)
-        free (indics_map);
-
     if (visual_ucs && visual_ucs != local_visual_ucs)
         free (visual_ucs);
 
@@ -253,11 +215,12 @@ out:
     if (bidi_ts && bidi_ts != local_bidi_ts)
         free (bidi_ts);
 
-    if (brk_ts && brk_ts != local_brk_ts)
-        free (brk_ts);
+    return ok;
+}
 
-    return ret_value;
-#endif
+BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* info)
+{
+    info->sei.shape = shape_text_run;
     return FALSE;
 }
 

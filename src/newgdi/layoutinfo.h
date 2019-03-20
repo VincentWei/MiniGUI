@@ -3,7 +3,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -57,17 +57,17 @@ struct _SHAPEDGLYPH {
 };
 
 struct _GLYPHSTRING {
-    SHAPEDGLYPH*  glyphs;
-    int*        log_clusters;
+    SHAPEDGLYPH*    glyphs;
+    int*            log_clusters;
 
-    int         nr_glyphs;
-    int         reserved;
+    int             nr_glyphs;
+    int             reserved;
 };
 
 struct _GLYPHRUN {
     struct list_head    list;
-    TEXTRUN*            text_run;   // the text run to which this glyph run belongs
-    GLYPHSTRING*        glyphstr;   // the glyph string
+    TEXTRUN*            text;   // the text run to which this glyph run belongs
+    GLYPHSTRING*        gs;     // the glyph string
 };
 
 struct _LAYOUTLINE {
@@ -86,19 +86,21 @@ struct _LAYOUTLINE {
     Uint8               all_odd:1;  // flag indicating all level is odd
 };
 
-struct _GLYPHLAYOUTINFO {
+struct _LAYOUTINFO {
     const TEXTRUNSINFO* runinfo;
-    const BreakOppo*    break_oppos;
+    const BreakOppo*    bos;
 
-    Uint32              render_flags;
-    int                 letter_spacing;
-    int                 word_spacing;
-    int                 tab_size;
+    Uint32              rf;
+    int                 ls;
+    int                 ws;
+    int                 ts;
 
     struct list_head    line_head;  // the list head of lines
 
     LAYOUTLINE          *curr_line; // current line
+
     int                 left_ucs;   // the number of chars not laied out.
+    Uint32              persist:1;  // persist lines?
 };
 
 #ifdef __cplusplus

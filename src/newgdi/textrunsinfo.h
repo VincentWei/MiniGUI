@@ -49,7 +49,8 @@ typedef struct _SEINSTANCE      SEINSTANCE;
 typedef struct _TEXTCOLORMAP    TEXTCOLORMAP;
 
 typedef BOOL (*CB_SHAPE_TEXT_RUN)(SEINSTANCE* instance,
-        const TEXTRUN* run, GLYPHSTRING* gs);
+        const TEXTRUNSINFO* info, const TEXTRUN* run,
+        GLYPHSTRING* gs);
 
 typedef BOOL (*CB_DESTROY_INSTANCE)(SEINSTANCE* instance);
 
