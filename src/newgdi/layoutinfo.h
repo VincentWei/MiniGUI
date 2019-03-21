@@ -61,24 +61,26 @@ struct _GLYPHSTRING {
     int*            log_clusters;
 
     int             nr_glyphs;
-    int             reserved;
+    unsigned int    space;
 };
 
 struct _GLYPHRUN {
     struct list_head    list;
     TEXTRUN*            text;   // the text run to which this glyph run belongs
     GLYPHSTRING*        gs;     // the glyph string
+    int                 offset; // the offset of the first uchar in the text run
+    int                 nr_ucs; // the number of the uchars
 };
 
 struct _LAYOUTLINE {
     struct list_head    list;
-    LAYOUTINFO*         layout_info;
+    LAYOUTINFO*         layout;
     int*                log_widths; // the widths of the logical chars
 
     struct list_head    run_head;   // the list head for glyph runs
 
-    int                 idx;        // the index in uchar string
-    int                 len;        // the length in uchar string
+    int                 idx;        // the index in the uchar string
+    int                 nr_ucs;     // the number of the uchars
 
     Uint8               first_line:1;   // is first line of the paragraph?
     Uint8               resolved_dir:3; // resolved direction of the line
@@ -101,11 +103,53 @@ struct _LAYOUTINFO {
 
     int                 left_ucs;   // the number of chars not laied out.
     Uint32              persist:1;  // persist lines?
+    Uint32              single_paragraph:1;
+};
+
+typedef struct _GlyphItem GlyphItem;
+typedef struct _GlyphItemIter GlyphItemIter;
+
+struct _GlyphItem {
+    TEXTRUN       *item;
+    GLYPHSTRING   *glyphs;
+};
+
+struct _GlyphItemIter {
+    const GlyphItem *glyph_item;
+    const Uchar32 *text;
+
+    int start_glyph;
+    int start_index;
+    int start_char;
+
+    int end_glyph;
+    int end_index;
+    int end_char;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+GLYPHSTRING* __mg_glyph_string_new(void);
+void __mg_glyph_string_free(GLYPHSTRING* string);
+void __mg_glyph_string_set_size(GLYPHSTRING* string, int new_len);
+int __mg_glyph_string_get_width(const GLYPHSTRING* string);
+
+BOOL __mg_glyph_item_iter_init_start (GlyphItemIter  *iter,
+        const GlyphItem *glyph_item, const Uchar32 *text);
+
+BOOL __mg_glyph_item_iter_init_end (GlyphItemIter *iter,
+        const GlyphItem *glyph_item, const Uchar32 *text);
+
+BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter);
+BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter);
+
+void __mg_glyph_item_get_logical_widths(const GlyphItem* glyph_item,
+            const Uchar32* ucs, int* log_widths);
+
+void __mg_glyph_item_letter_space (const GlyphItem* glyph_item,
+            const Uchar32* ucs, const BreakOppo* bos, int letter_spacing);
 
 #ifdef __cplusplus
 }

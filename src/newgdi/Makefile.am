@@ -19,7 +19,7 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
             simple-glyph-renderer.c glyph-shaped.c \
             textrunsinfo.c \
             shape-glyphs-basic.c shape-glyphs-complex.c \
-            layoutinfo.c
+            layout-utils.c layoutinfo.c
 endif
 
 HDR_FILES = glyph.h drawtext.h mi.h midc.h mistruct.h miwideline.h \

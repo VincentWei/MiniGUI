@@ -12743,7 +12743,7 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  */
 MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
         LAYOUTLINE* prev_Line,
-        int x, int y, int max_extent, SIZE* line_size,
+        int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
 
 MG_EXPORT BOOL DrawShapedGlyph(HDC hdc, LOGFONT* lf, RGBCOLOR color,
