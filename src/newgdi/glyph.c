@@ -2201,6 +2201,39 @@ void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
     }
 }
 
+int _font_get_glyph_log_width(LOGFONT* logfont, Glyph32 gv)
+{
+    int width, bold = 0;
+    int glyph_bmptype;
+    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, gv);
+
+    gv = REAL_GLYPH(gv);
+    width = devfont->font_ops->get_glyph_advance(logfont, devfont, gv,
+            NULL, NULL);
+
+    glyph_bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
+            & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
+
+    // VincentWei: only use auto bold when the weight of devfont does not
+    // match the weight of logfont.
+    if (((int)(logfont->style & FS_WEIGHT_MASK) -
+            (int)(devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
+            && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
+        bold = GET_DEVFONT_SCALE (logfont, devfont);
+    }
+
+    width += bold;
+
+    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
+        if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY ||
+                (logfont->style & FS_DECORATE_OUTLINE)) {
+            width++;
+        }
+    }
+
+    return width;
+}
+
 int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
         Glyph32 glyph_value, BOOL direction, int ch_extra,
         int x, int y, int* adv_x, int* adv_y, BBOX* bbox)

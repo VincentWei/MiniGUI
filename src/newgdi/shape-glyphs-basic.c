@@ -56,6 +56,7 @@
 #include "devfont.h"
 #include "unicode-ops.h"
 #include "layoutinfo.h"
+#include "glyph.h"
 
 /* Local array size, used for stack-based local arrays */
 
@@ -66,13 +67,13 @@
 #endif
 
 
-static void reverse_ucs (Uchar32* ucs, int len)
+static void reverse_shaped_glyphs(SHAPEDGLYPH* glyphs, int len)
 {
     int i;
     for (i = 0; i < len / 2; i++) {
-        Uchar32 tmp = ucs[i];
-        ucs[i] = ucs[len - 1 - i];
-        ucs[len - 1 - i] = tmp;
+        SHAPEDGLYPH tmp = glyphs[i];
+        glyphs[i] = glyphs[len - 1 - i];
+        glyphs[len - 1 - i] = tmp;
     }
 }
 
@@ -85,8 +86,8 @@ static BOOL shape_text_run(SEINSTANCE* inst,
     const Uchar32* logical_ucs = info->ucs + run->idx;
     int nr_ucs = run->len;
 
-    Uchar32 local_visual_ucs[LOCAL_ARRAY_SIZE];
-    Uchar32* visual_ucs = NULL;
+    Uchar32 local_shaped_ucs[LOCAL_ARRAY_SIZE];
+    Uchar32* shaped_ucs = NULL;
 
     BidiArabicProp local_ar_props[LOCAL_ARRAY_SIZE];
     BidiArabicProp *ar_props = NULL;
@@ -98,15 +99,15 @@ static BOOL shape_text_run(SEINSTANCE* inst,
     BidiLevel* els = NULL;
 
     if (nr_ucs < LOCAL_ARRAY_SIZE)
-        visual_ucs = local_visual_ucs;
+        shaped_ucs = local_shaped_ucs;
     else
-        visual_ucs = malloc(nr_ucs * sizeof(Uchar32));
+        shaped_ucs = malloc(nr_ucs * sizeof(Uchar32));
 
-    if (!visual_ucs)
+    if (!shaped_ucs)
         goto out;
 
     /* TODO: compose logical character here */
-    memcpy(visual_ucs, logical_ucs, sizeof(Uchar32) * nr_ucs);
+    memcpy(shaped_ucs, logical_ucs, sizeof(Uchar32) * nr_ucs);
 
     if (nr_ucs < LOCAL_ARRAY_SIZE)
         els = local_els;
@@ -144,7 +145,7 @@ static BOOL shape_text_run(SEINSTANCE* inst,
         UBidiJoinArabic(bidi_ts, els, nr_ucs, ar_props);
         UBidiShape(BIDI_FLAG_SHAPE_MIRRORING | BIDI_FLAG_SHAPE_ARAB_PRES |
                 BIDI_FLAG_SHAPE_ARAB_LIGA,
-                els, nr_ucs, ar_props, visual_ucs);
+                els, nr_ucs, ar_props, shaped_ucs);
 
         if (bidi_ts && bidi_ts != local_bidi_ts) {
             free (bidi_ts);
@@ -152,7 +153,7 @@ static BOOL shape_text_run(SEINSTANCE* inst,
         }
     }
     else if (BIDI_LEVEL_IS_RTL(run->el)) {
-        UBidiShapeMirroring(els, nr_ucs, visual_ucs);
+        UBidiShapeMirroring(els, nr_ucs, shaped_ucs);
     }
 
     if (els && els != local_els) {
@@ -160,16 +161,16 @@ static BOOL shape_text_run(SEINSTANCE* inst,
         els = NULL;
     }
 
-    // reorder visual chars
-    if (BIDI_LEVEL_IS_RTL(run->el)) {
-        reverse_ucs(visual_ucs, nr_ucs);
-    }
-
     // generate the glyphs
     gs->glyphs = malloc(sizeof(SHAPEDGLYPH) * nr_ucs);
-    gs->log_clusters = malloc(sizeof(int) * nr_ucs);
-    if (gs->glyphs == NULL || gs->log_clusters == NULL)
+    if (gs->glyphs == NULL) {
         goto out;
+    }
+    gs->log_clusters = malloc(sizeof(int) * nr_ucs);
+    if (gs->log_clusters == NULL) {
+        free(gs->glyphs);
+        goto out;
+    }
 
     j = 0;
     for (i = 0; i < nr_ucs; i++) {
@@ -179,17 +180,33 @@ static BOOL shape_text_run(SEINSTANCE* inst,
         if (ar_props) {
             BidiArabicProp ar_prop = ar_props[i];
             if (ar_prop & BIDI_MASK_LIGATURED) {
+                if (j > 0) {
+                    gs->glyphs[j-1].is_cluster_start = 1;
+                }
+                else {
+                    _WRN_PRINTF("ligatured at the first glyph?\n");
+                }
             }
             else {
-                gv = GetGlyphValue(run->lf, UCHAR2ACHAR(visual_ucs[i]));
+                gv = GetGlyphValue(run->lf, UCHAR2ACHAR(shaped_ucs[i]));
                 gs->glyphs[j].gv = gv;
-                j++;
+                gs->glyphs[j].is_cluster_start = 0;
 
                 if (UCharIsArabicVowel(logical_ucs[i])) {
                     // adjust offset
+                    gs->glyphs[j].x_off = 0;
+                    gs->glyphs[j].y_off -= run->lf->ascent;
+                    gs->glyphs[j].width = 0;
                 }
                 else {
+                    gs->glyphs[j].x_off = 0;
+                    gs->glyphs[j].y_off = 0;
+                    gs->glyphs[j].width
+                        = _font_get_glyph_log_width(run->lf, gv);
                 }
+
+                gs->log_clusters[j] = i;
+                j++;
             }
         }
     }
@@ -200,11 +217,16 @@ static BOOL shape_text_run(SEINSTANCE* inst,
         ar_props = NULL;
     }
 
+    // reorder glyphs
+    if (BIDI_LEVEL_IS_RTL(run->el)) {
+        reverse_shaped_glyphs(gs->glyphs, gs->nr_glyphs);
+    }
+
     ok = TRUE;
 
 out:
-    if (visual_ucs && visual_ucs != local_visual_ucs)
-        free (visual_ucs);
+    if (shaped_ucs && shaped_ucs != local_shaped_ucs)
+        free (shaped_ucs);
 
     if (els && els != local_els)
         free (els);
