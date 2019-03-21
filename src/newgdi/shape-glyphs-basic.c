@@ -209,7 +209,21 @@ static BOOL shape_text_run(SEINSTANCE* inst,
                 j++;
             }
         }
+        else {
+            gv = GetGlyphValue(run->lf, UCHAR2ACHAR(shaped_ucs[i]));
+            gs->glyphs[j].gv = gv;
+            gs->glyphs[j].is_cluster_start = 0;
+
+            gs->glyphs[j].x_off = 0;
+            gs->glyphs[j].y_off = 0;
+            gs->glyphs[j].width
+                = _font_get_glyph_log_width(run->lf, gv);
+
+            gs->log_clusters[j] = i;
+            j++;
+        }
     }
+
     gs->nr_glyphs = j;
 
     if (ar_props && ar_props != local_ar_props) {

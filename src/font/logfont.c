@@ -41,8 +41,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG
-
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"

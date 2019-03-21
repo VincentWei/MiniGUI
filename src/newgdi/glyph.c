@@ -2207,6 +2207,9 @@ int _font_get_glyph_log_width(LOGFONT* logfont, Glyph32 gv)
     int glyph_bmptype;
     DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, gv);
 
+    if (gv == INV_GLYPH_VALUE)
+        return 0;
+
     gv = REAL_GLYPH(gv);
     width = devfont->font_ops->get_glyph_advance(logfont, devfont, gv,
             NULL, NULL);
@@ -2241,22 +2244,21 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     int bold = 0;
     int tmp_x = x;
     int tmp_y = y;
-    int adv_len;
-    int bbox_x = 0, bbox_y = 0;
+    int adv_len = 0;
+    int bbox_x = x, bbox_y = y;
     int bbox_w = 0, bbox_h = 0;
 
     int advance = 0;
     int glyph_bmptype;
 
+    // skip empty glyph
+    if (glyph_value == INV_GLYPH_VALUE) {
+        goto done;
+    }
+
     glyph_bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
 
-    bbox_x = x;
-    bbox_y = y;
-
-    /* in freetype get_glyph_bbox loads glyph, so we must call get_glyph_bbox
-     * before get_glyph_advance, get_glyph_monobitmap....
-     */
     devfont->font_ops->get_glyph_bbox (logfont, devfont,
             REAL_GLYPH(glyph_value), &bbox_x, &bbox_y, &bbox_w, &bbox_h);
 
@@ -2267,13 +2269,6 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
             && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
         bold = GET_DEVFONT_SCALE (logfont, devfont);
         bbox_w += bold;
-    }
-
-    if (bbox) {
-        bbox->x = bbox_x;
-        bbox->y = bbox_y;
-        bbox->w = bbox_w;
-        bbox->h = bbox_h;
     }
 
     adv_len = devfont->font_ops->get_glyph_advance (logfont, devfont,
@@ -2300,6 +2295,14 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
             if (adv_x) *adv_x  += 1;
             advance += 1;
         }
+    }
+
+done:
+    if (bbox) {
+        bbox->x = bbox_x;
+        bbox->y = bbox_y;
+        bbox->w = bbox_w;
+        bbox->h = bbox_h;
     }
 
     return adv_len + bold + ch_extra + advance;

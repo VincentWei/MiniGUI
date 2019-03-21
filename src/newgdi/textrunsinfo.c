@@ -75,6 +75,7 @@ typedef struct _TEXTRUNSTATE {
     TEXTRUNSINFO*   runinfo;
     const Uchar32*  text;
     const Uchar32*  end;
+    TEXTRUN*        run;
 
     const Uchar32*  run_start;
     const Uchar32*  run_end;
@@ -94,6 +95,7 @@ typedef struct _TEXTRUNSTATE {
     EmojiIterator   emoji_iter;
 
     LanguageCode    derived_lang;
+
 } TEXTRUNSTATE;
 
 static void update_embedding_end(TEXTRUNSTATE *state)
@@ -160,16 +162,11 @@ static void state_update_for_new_run (TEXTRUNSTATE *state)
         if (old_derived_lang != state->derived_lang)
             state->changed |= DERIVED_LANG_CHANGED;
     }
-
-#if 0
-    if ((state->changed & DERIVED_LANG_CHANGED) || !state->lang_engine) {
-        state->lang_engine = _pango_get_language_engine ();
-    }
-#endif
 }
 
-static LOGFONT* create_logfont_for_run(const TEXTRUNSINFO* runinfo,
-        const TEXTRUN* run)
+/* Use MiniGUI resource manager to avoid duplicated logfonts */
+static LOGFONT* create_logfont_for_ort(const TEXTRUNSINFO* runinfo,
+        GlyphOrient ort)
 {
     char fontname[LEN_LOGFONT_NAME_FULL + 1];
     int orient_pos = fontGetOrientPosFromName(runinfo->fontname);
@@ -181,7 +178,7 @@ static LOGFONT* create_logfont_for_run(const TEXTRUNSINFO* runinfo,
     memset (fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
     strncpy (fontname, runinfo->fontname, LEN_LOGFONT_NAME_FULL);
 
-    switch (run->ort) {
+    switch (ort) {
     case GLYPH_ORIENT_UPRIGHT:
         fontname[orient_pos] = FONT_ORIENT_UPRIGHT;
         break;
@@ -195,7 +192,7 @@ static LOGFONT* create_logfont_for_run(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _WRN_PRINTF("bad orientation param: %d\n", run->ort);
+        _WRN_PRINTF("bad orientation param: %d\n", ort);
         return NULL;
     }
 
@@ -242,66 +239,95 @@ static void release_logfont_for_run(const TEXTRUNSINFO* runinfo,
     ReleaseRes(Str2Key(fontname));
 }
 
+static void state_add_character(TEXTRUNSTATE *state,
+        BOOL no_shaping, BOOL force_break, const Uchar32* pos)
+{
+    if (state->run) {
+        BOOL without_shaping = (state->run->lf == NULL);
+        if (!force_break &&
+                state->run->lc == state->derived_lang &&
+                without_shaping == no_shaping) {
+            state->run->len++;
+            return;
+        }
+    }
+
+    state->run = malloc(sizeof(TEXTRUN));
+    if (no_shaping)
+        state->run->lf = NULL;
+    else
+        state->run->lf = create_logfont_for_ort(state->runinfo, state->ort_rsv);
+    state->run->idx = pos - state->text;
+    state->run->len = 1;
+    state->run->lc  = state->derived_lang;
+    state->run->st  = state->script_iter.script;
+    state->run->el  = state->emb_level;
+    state->run->dir = state->runinfo->run_dir;
+    state->run->ort = state->ort_rsv;
+
+    /* The level vs. gravity dance:
+     *  If gravity is SOUTH, leave level untouched.
+     *  If gravity is NORTH, step level one up, to
+     *    not get mirrored upside-down text.
+     *  If gravity is EAST, step up to an even level, as
+     *    it's a clockwise-rotated layout, so the rotated
+     *     top is unrotated left.
+     *  If gravity is WEST, step up to an odd level, as
+     *    it's a counter-clockwise-rotated layout, so the rotated
+     *    top is unrotated right.
+     */
+    switch (state->run->ort) {
+    case GLYPH_GRAVITY_SOUTH:
+    default:
+        break;
+    case GLYPH_GRAVITY_NORTH:
+        state->run->el++;
+        break;
+    case GLYPH_GRAVITY_EAST:
+        state->run->el += 1;
+        state->run->el &= ~1;
+        break;
+    case GLYPH_GRAVITY_WEST:
+        state->run->el |= 1;
+        break;
+    }
+
+    state->run->flags = state->centered_baseline ?
+            GLYPH_FLAG_CENTERED_BASELINE : 0;
+
+    list_add_tail(&state->run->list, &state->runinfo->run_head);
+    state->runinfo->nr_runs++;
+}
+
 static BOOL state_process_run (TEXTRUNSTATE *state)
 {
-    TEXTRUN* run;
+    const Uchar32* p;
+    BOOL last_was_forced_break = FALSE;
 
     state_update_for_new_run (state);
 
-    run = malloc(sizeof(TEXTRUN));
-    if (run == NULL) {
-        _ERR_PRINTF("%s: failed to allocate space for new glyph runs\n",
-            __FUNCTION__);
-        return FALSE;
-    }
+    for (p = state->run_start; p < state->run_end; p++) {
+        Uchar32 uc = *p;
 
-    run->lc  = state->derived_lang;
-    run->st  = state->script_iter.script;
-    run->el  = state->emb_level;
-    run->dir = state->runinfo->run_dir;
-    run->ort = state->ort_rsv;
-    run->lf  = create_logfont_for_run(state->runinfo, run);
-    run->idx = state->run_start - state->text;
-    run->len = state->run_end - state->run_start;
-    list_add_tail(&run->list, &state->runinfo->run_head);
-
-    state->runinfo->nr_runs++;
-
-    return TRUE;
-
-#if 0
-    const Uchar32 *p;
-    BOOL last_was_forced_break = FALSE;
-    /* Only one character has the category LINE_SEPARATOR in Unicode 12.0;
-     * update this if that changes. */
+/* Only one character has the category LINE_SEPARATOR in Unicode 12.0;
+ * update this if that changes. */
 #define LINE_SEPARATOR 0x2028
 
-    for (p = state->run_start; p < state->run_end; p++) {
-        Uchar32 wc = *p;
-        BOOL is_forced_break = (wc == '\t' || wc == LINE_SEPARATOR);
-        UCharGeneralCategory type;
+        BOOL is_forced_break = (uc == '\t' || uc == LINE_SEPARATOR);
+        BOOL no_shaping;
 
-        /* We don't want space characters to affect font selection; in general,
-         * it's always wrong to select a font just to render a space.
-         * We assume that all fonts have the ASCII space, and for other space
-         * characters if they don't, HarfBuzz will compatibility-decompose them
-         * to ASCII space...
-         */
-        type = UCharGetCategory (wc);
-        if ((type == UCHAR_CATEGORY_CONTROL ||
-                type == UCHAR_CATEGORY_FORMAT ||
-                type == UCHAR_CATEGORY_SURROGATE ||
-                (type == UCHAR_CATEGORY_SPACE_SEPARATOR &&
-                    wc != 0x1680u /* OGHAM SPACE MARK */) ||
-                (wc >= 0xfe00u && wc <= 0xfe0fu) ||
-                (wc >= 0xe0100u && wc <= 0xe01efu))) {
-        }
-        else {
-        }
+        no_shaping = is_uchar_no_shaping(uc);
+
+        state_add_character(state, no_shaping,
+                is_forced_break || last_was_forced_break, p);
 
         last_was_forced_break = is_forced_break;
     }
-#endif
+
+    /* Finish the final item from the current segment */
+    state->run = NULL;
+
+    return TRUE;
 }
 
 static BOOL state_next (TEXTRUNSTATE *state)
@@ -356,7 +382,12 @@ static BOOL create_glyph_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
     state.runinfo = runinfo;
     state.text = runinfo->ucs;
     state.end = runinfo->ucs + runinfo->nr_ucs;
+    state.run = NULL;
     state.els = els;
+    state.ort_rsv = runinfo->ort_rsv;
+
+    /* check font gravity here */
+    state.centered_baseline = GLYPH_ORIENT_IS_VERTICAL(runinfo->ort_rsv);
 
     state.run_start = state.text;
     state.changed = 0;
@@ -370,7 +401,14 @@ static BOOL create_glyph_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
     __mg_emoji_iterator_init (&state.emoji_iter, state.text, runinfo->nr_ucs,
         types_buff);
 
+    if (types_buff && types_buff != local_types_buff) {
+        free (types_buff);
+        types_buff = NULL;
+    }
+
     update_end (&state);
+    state.changed = EMBEDDING_CHANGED | SCRIPT_CHANGED | LANG_CHANGED |
+            FONT_CHANGED | WIDTH_CHANGED | EMOJI_CHANGED;
 
     do {
 
@@ -442,6 +480,40 @@ void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
 }
 #endif /* _MGDEVEL_MODE */
 
+static BOOL is_fontname_conformed(const char* fontname,
+        GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy)
+{
+    LOGFONT* lf;
+    DEVFONT *sbc_devfont, *mbc_devfont;
+    BOOL ok = FALSE;
+
+    if ((lf = CreateLogFontByName(fontname)) == NULL)
+        return FALSE;
+
+    sbc_devfont = lf->devfonts[0];
+    mbc_devfont = lf->devfonts[1];
+    if (mbc_devfont == NULL)
+        goto out;
+
+    if (mbc_devfont->charset_ops->conv_to_uc32)
+        goto out;
+
+    /* TODO: check more */
+    if (glyph_orient != GLYPH_ORIENT_UPRIGHT) {
+
+        if (sbc_devfont->font_ops->is_rotatable(lf, sbc_devfont, 100) != 100
+                || mbc_devfont->font_ops->is_rotatable(lf, mbc_devfont, 100)
+                    != 100)
+            goto out;
+    }
+
+    ok = TRUE;
+
+out:
+    DestroyLogFont(lf);
+    return ok;
+}
+
 TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
@@ -453,9 +525,16 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     BidiLevel  local_els[LOCAL_ARRAY_SIZE];
     BidiLevel* els = NULL;
 
+    if (ucs == NULL || nr_ucs <= 0 || logfont_name == NULL) {
+        return NULL;
+    }
+
+    if (!is_fontname_conformed(logfont_name, glyph_orient, orient_policy)) {
+        return NULL;
+    }
+
     runinfo = (TEXTRUNSINFO*)calloc(1, sizeof(TEXTRUNSINFO));
-    if (ucs == NULL || nr_ucs <= 0 || logfont_name == NULL ||
-            runinfo == NULL) {
+    if (runinfo == NULL) {
         return NULL;
     }
 
@@ -486,11 +565,18 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     runinfo->ucs        = ucs;
     runinfo->fontname   = strdup(logfont_name);
     runinfo->nr_ucs     = nr_ucs;
-    runinfo->lc         = lang_code;
+    if (lang_code == LANGCODE_unknown)
+        runinfo->lc     = LANGCODE_en;  // fallback to English
+    else
+        runinfo->lc     = lang_code;
     runinfo->base_level = (base_dir == BIDI_PGDIR_LTR) ? 0 : 1;
     runinfo->run_dir    = run_dir;
     runinfo->ort_base   = glyph_orient;
     runinfo->ort_plc    = orient_policy;
+    if (runinfo->ort_base == GLYPH_ORIENT_AUTO)
+        runinfo->ort_rsv = get_glyph_orient_from_fontname (runinfo->fontname);
+    else
+        runinfo->ort_rsv = runinfo->ort_base;
 
     INIT_LIST_HEAD(&runinfo->cm_head.list);
     runinfo->cm_head.si = 0;
@@ -499,11 +585,6 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
 
     INIT_LIST_HEAD(&runinfo->run_head);
     runinfo->nr_runs = 0;
-
-    if (runinfo->ort_base == GLYPH_ORIENT_AUTO)
-        runinfo->ort_rsv = get_glyph_orient_from_fontname (runinfo->fontname);
-    else
-        runinfo->ort_rsv = runinfo->ort_base;
 
 #if 0
     int i, j;

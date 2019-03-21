@@ -67,6 +67,8 @@ struct _SHAPINGENGINEINFO {
     CB_DESTROY_INSTANCE free;
 };
 
+#define GLYPH_FLAG_CENTERED_BASELINE    1
+
 struct _TEXTRUN {
     struct list_head list;
     LOGFONT*    lf;     // the logfont for this run
@@ -79,6 +81,7 @@ struct _TEXTRUN {
     Uint32      el:8;   // the bidi embedding level
     Uint32      dir:4;  // the run direction
     Uint32      ort:2;  // the glyph orientation
+    Uint32      flags:2;// other flags
 };
 
 struct _TEXTCOLORMAP {

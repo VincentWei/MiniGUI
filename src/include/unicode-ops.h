@@ -108,6 +108,24 @@ static inline BOOL is_uchar_letter(Uchar32 uc,
     return FALSE;
 }
 
+static inline BOOL is_uchar_no_shaping(Uchar32 uc)
+{
+    UCharGeneralCategory gc;
+
+    gc = UCharGetCategory (uc);
+    if ((gc == UCHAR_CATEGORY_CONTROL ||
+            gc == UCHAR_CATEGORY_FORMAT ||
+            gc == UCHAR_CATEGORY_SURROGATE ||
+            (gc == UCHAR_CATEGORY_SPACE_SEPARATOR &&
+                uc != 0x1680u /* OGHAM SPACE MARK */) ||
+            (uc >= 0xfe00u && uc <= 0xfe0fu) ||
+            (uc >= 0xe0100u && uc <= 0xe01efu))) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 BOOL _unicode_is_emoji(Uchar32 ch);
 BOOL _unicode_is_emoji_presentation(Uchar32 ch);
 BOOL _unicode_is_emoji_modifier(Uchar32 ch);
