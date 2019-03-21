@@ -12417,8 +12417,8 @@ typedef struct _GLYPHPOS {
      *      the glyph rotates 90° clockwise from horizontal.
      *  - GLYPH_ORIENTATION_SIDEWAYS_LEFT\n
      *      the glyph rotates 90° counter-clockwise from horizontal.
-     *  - GLYPH_ORIENTATION_INVERTED\n
-     *      the glyph is in the inverted horizontal orientation.
+     *  - GLYPH_ORIENTATION_UPSIDE_DOWN\n
+     *      the glyph is upside down.
      */
     Uint8 orientation:2;
     /**
@@ -12517,6 +12517,36 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
         SIZE* line_size, Glyph32* glyphs, GLYPHEXTINFO* glyph_ext_info,
         GLYPHPOS* glyph_pos, LOGFONT** logfont_sideways);
+
+/*
+ * \fn int GUIAPI DrawGlyphStringEx (HDC hdc,
+ *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+ *      const Glyph32* glyphs, const GLYPHPOS* glyph_pos, int nr_glyphs)
+ * \brief Draw a glyph string at the specified positions and text orientations.
+ *
+ * This function draws a glyph string to the specific positions and
+ * orientations on a DC \a hdc with the logfonts specified by
+ * \a logfont_upright and \a logfont_sideways.
+ *
+ * \param hdc The device context.
+ * \param logfont_upright The LOGFONT object used for upright glyphs.
+ * \param logfont_sideways The LOGFONT object used for sideways glyphs.
+ * \param glyphs The pointer to the glyph string
+ * \param glyph_pos The buffer holds the position information
+ *      of every glyph.
+ * \param nr_glyphs The number of the glyphs should be drawn.
+ *
+ * \return The number of glyphs really drawn.
+ *
+ * \note The positions contained in \a glyph_pos are always aligned to
+ *      the top-left corner of the output rectangle.
+ *
+ * \sa GetGlyphsExtentFromUChars
+ */
+MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
+        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
+        const Glyph32* glyphs, const GLYPHPOS* glyph_pos,
+        int nr_glyphs);
 
 /* The fields in the structure _TEXTRUNSINFO are invisible to users */
 typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
@@ -12705,7 +12735,7 @@ MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
  */
 MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
-typedef void (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
+typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
         LOGFONT* lf, RGBCOLOR color, Glyph32 gv, const GLYPHPOS* pos);
 
 /**
@@ -12713,8 +12743,14 @@ typedef void (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  */
 MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
         LAYOUTLINE* prev_Line,
-        int* x, int* y, int max_extent, SIZE* line_size,
+        int x, int y, int max_extent, SIZE* line_size,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
+
+MG_EXPORT BOOL DrawShapedGlyph(HDC hdc, LOGFONT* lf, RGBCOLOR color,
+        Glyph32 gv, const GLYPHPOS* pos);
+
+MG_EXPORT int DrawShapedGlyphLine(HDC hdc, const LAYOUTLINE* line,
+        int x, int y);
 
 /**
  * \fn int GUIAPI GetGlyphsExtentInfo()
@@ -12852,36 +12888,6 @@ MG_EXPORT int GUIAPI DrawShapedGlyphs(const TEXTRUNSINFO* run_info,
         int uc_start_index, const GLYPHPOS* glyph_pos, int nr_glyphs);
 
 #endif /* _MGCHARSET_UNICODE */
-
-/*
- * \fn int GUIAPI DrawGlyphStringEx (HDC hdc,
- *      LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
- *      const Glyph32* glyphs, const GLYPHPOS* glyph_pos, int nr_glyphs)
- * \brief Draw a glyph string at the specified positions and text orientations.
- *
- * This function draws a glyph string to the specific positions and
- * orientations on a DC \a hdc with the logfonts specified by
- * \a logfont_upright and \a logfont_sideways.
- *
- * \param hdc The device context.
- * \param logfont_upright The LOGFONT object used for upright glyphs.
- * \param logfont_sideways The LOGFONT object used for sideways glyphs.
- * \param glyphs The pointer to the glyph string
- * \param glyph_pos The buffer holds the position information
- *      of every glyph.
- * \param nr_glyphs The number of the glyphs should be drawn.
- *
- * \return The number of glyphs really drawn.
- *
- * \note The positions contained in \a glyph_pos are always aligned to
- *      the top-left corner of the output rectangle.
- *
- * \sa GetGlyphsExtentFromUChars
- */
-MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
-        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const Glyph32* glyphs, const GLYPHPOS* glyph_pos,
-        int nr_glyphs);
 
     /** @} end of glyph */
 /*

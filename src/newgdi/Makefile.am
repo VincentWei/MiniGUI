@@ -16,7 +16,7 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
             mifillarc.c mifpolycon.c miarc.c rotatebmp.c \
             text.c achar-uchar.c glyph.c legacy-bidi.c \
             textout.c tabbedtextout.c drawtext.c \
-            glyph-unicode.c \
+            simple-glyph-renderer.c glyph-shaped.c \
             textrunsinfo.c \
             shape-glyphs-basic.c shape-glyphs-complex.c \
             layoutinfo.c

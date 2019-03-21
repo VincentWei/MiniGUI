@@ -530,6 +530,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     }
 
     if (!is_fontname_conformed(logfont_name, glyph_orient, orient_policy)) {
+        _WRN_PRINTF("Please check your fontname; it must conform to the glyph orientation.");
         return NULL;
     }
 

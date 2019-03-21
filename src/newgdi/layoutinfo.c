@@ -132,7 +132,7 @@ BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* info)
 
 LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* info,
         LAYOUTLINE* prev_Line,
-        int* x, int* y, int max_extent, SIZE* line_size,
+        int x, int y, int max_extent, SIZE* line_size,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
     return NULL;

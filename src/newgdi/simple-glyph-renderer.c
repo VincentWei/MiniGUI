@@ -33,8 +33,8 @@
  */
 
 /*
-** glyph-unicode.c: The implementation of APIs which conform to the specifiction
-** of CSS 3, UAX#29, and UAX#14.
+** simple-glyph-renderer.c: The implementation of GetGlyphsExtentFromUChars
+**  and DrawGlyphStringEx.
 **
 ** Reference:
 **
