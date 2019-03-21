@@ -325,6 +325,14 @@ struct _FONTOPS
      * Since 3.4.0.
      */
     Glyph32 (*get_glyph_value) (LOGFONT* logfont, DEVFONT* devfont, Achar32 chv);
+
+    /**
+     * The method to get the kerning delta values
+     *
+     * Since 3.4.0.
+     */
+    void (*get_kerning) (LOGFONT* logfont, DEVFONT* devfont,
+        Glyph32 prev, Glyph32 curr, int* delta_x, int* delta_y);
 };
 
 typedef struct {

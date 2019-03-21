@@ -40,7 +40,7 @@
 #ifndef GUI_FREETYP2_H
     #define GUI_FREETYP2_H
 
-#undef TTF_DBG
+#define TTF_DBG
 
 #ifndef TTF_DBG
 #define DP(x)
@@ -108,11 +108,12 @@ typedef struct tagFTINSTANCEINFO {
     int         ascent;
     int         descent;
 
-    FT_Bool     use_kerning; /*FT_HAS_KERNING(face)*/
-    FT_Vector   delta;
-    int         is_index_old;
+    FT_Bool     use_kerning;
     FT_UInt     cur_index;
+#if 0
+    int         is_index_old;
     FT_UInt     prev_index;
+#endif
 
     FT_LcdFilter    ft_lcdfilter;
 } FTINSTANCEINFO, *PFTINSTANCEINFO;
@@ -121,12 +122,20 @@ typedef struct tagFTINSTANCEINFO {
 
 #define _TTF_HASH_NDIR   37
 
+#define CACHE_VALID_ADVANCE 0x01
+#define CACHE_VALID_BBOX    0x02
+#define CACHE_VALID_BITMAP  0x04
+
 typedef struct tagTTFCACHEINFO {
     FT_UInt     glyph_code;
+    Uint32      valid_advance:1;
+    Uint32      valid_bbox:1;
+    Uint32      valid_bitmap:1;
+    Uint32      reserved_flags:28;
+
     FT_Vector   advance;
     FT_BBox     bbox;
-    FT_Vector   delta;
-    int         flag;
+
     int         pitch;
     int         width;
     int         height;
