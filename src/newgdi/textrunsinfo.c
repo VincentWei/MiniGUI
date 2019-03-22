@@ -257,7 +257,7 @@ static void state_add_character(TEXTRUNSTATE *state,
         state->run->lf = NULL;
     else
         state->run->lf = create_logfont_for_ort(state->runinfo, state->ort_rsv);
-    state->run->idx = pos - state->text;
+    state->run->si  = pos - state->text;
     state->run->len = 1;
     state->run->lc  = state->derived_lang;
     state->run->st  = state->script_iter.script;
@@ -468,7 +468,7 @@ void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
     }
 
     if (logfont) *logfont = run->lf;
-    if (start_index) *start_index = run->idx;
+    if (start_index) *start_index = run->si;
     if (length) *length = run->len;
     if (lang_code) *lang_code = run->lc;
     if (script) *script = run->st;

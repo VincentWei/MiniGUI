@@ -144,13 +144,13 @@ BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
             glyph_index++;
 
             if (glyph_index == glyphs->nr_glyphs) {
-                iter->end_index = item->idx + item->len;
+                iter->end_index = item->si + item->len;
                 iter->end_char = item->len;
                 break;
             }
 
             if (glyphs->log_clusters[glyph_index] > cluster) {
-                iter->end_index = item->idx + glyphs->log_clusters[glyph_index];
+                iter->end_index = item->si + glyphs->log_clusters[glyph_index];
                 iter->end_char += iter->end_index - iter->start_index;
                 break;
             }
@@ -162,13 +162,13 @@ BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
             glyph_index--;
 
             if (glyph_index < 0) {
-                iter->end_index = item->idx + item->len;
+                iter->end_index = item->si + item->len;
                 iter->end_char = item->len;
                 break;
             }
 
             if (glyphs->log_clusters[glyph_index] > cluster) {
-                iter->end_index = item->idx + glyphs->log_clusters[glyph_index];
+                iter->end_index = item->si + glyphs->log_clusters[glyph_index];
                 iter->end_char += iter->end_index - iter->start_index;
                 break;
             }
@@ -207,7 +207,7 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
         cluster = glyphs->log_clusters[glyph_index - 1];
         while (TRUE) {
             if (glyph_index == 0) {
-                iter->start_index = item->idx;
+                iter->start_index = item->si;
                 iter->start_char = 0;
                 break;
             }
@@ -216,7 +216,7 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
 
             if (glyphs->log_clusters[glyph_index] < cluster) {
                 glyph_index++;
-                iter->start_index = item->idx + glyphs->log_clusters[glyph_index];
+                iter->start_index = item->si + glyphs->log_clusters[glyph_index];
                 iter->start_char -= iter->end_index - iter->start_index;
                 break;
             }
@@ -227,7 +227,7 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
         cluster = glyphs->log_clusters[glyph_index + 1];
         while (TRUE) {
             if (glyph_index == glyphs->nr_glyphs - 1) {
-                iter->start_index = item->idx;
+                iter->start_index = item->si;
                 iter->start_char = 0;
                 break;
             }
@@ -236,7 +236,7 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
 
             if (glyphs->log_clusters[glyph_index] < cluster) {
                 glyph_index--;
-                iter->start_index = item->idx + glyphs->log_clusters[glyph_index];
+                iter->start_index = item->si + glyphs->log_clusters[glyph_index];
                 iter->start_char -= iter->end_index - iter->start_index;
                 break;
             }
@@ -262,7 +262,7 @@ BOOL __mg_glyph_item_iter_init_start (GlyphItemIter  *iter,
     else
         iter->end_glyph = glyph_item->glyphs->nr_glyphs - 1;
 
-    iter->end_index = glyph_item->item->idx;
+    iter->end_index = glyph_item->item->si;
     iter->end_char = 0;
 
     iter->start_glyph = iter->end_glyph;
@@ -284,7 +284,7 @@ BOOL __mg_glyph_item_iter_init_end (GlyphItemIter *iter,
     else
         iter->start_glyph = -1;
 
-    iter->start_index = glyph_item->item->idx + glyph_item->item->len;
+    iter->start_index = glyph_item->item->si + glyph_item->item->len;
     iter->start_char = glyph_item->item->len;
 
     iter->end_glyph = iter->start_glyph;

@@ -66,10 +66,10 @@ struct _GLYPHSTRING {
 
 struct _GLYPHRUN {
     struct list_head    list;
-    TEXTRUN*            text;   // the text run to which this glyph run belongs
+    TEXTRUN*            trun;   // the text run to which this glyph run belongs
     GLYPHSTRING*        gs;     // the glyph string
-    int                 offset; // the offset of the first uchar in the text run
-    int                 nr_ucs; // the number of the uchars
+    int                 si;     // the start index in the text run
+    int                 len;    // the number of the uchars
 };
 
 struct _LAYOUTLINE {
@@ -77,10 +77,10 @@ struct _LAYOUTLINE {
     LAYOUTINFO*         layout;
     int*                log_widths; // the widths of the logical chars
 
-    struct list_head    run_head;   // the list head for glyph runs
+    struct list_head    grun_head;  // the list head for glyph runs
 
-    int                 idx;        // the index in the uchar string
-    int                 nr_ucs;     // the number of the uchars
+    int                 si;         // the start index in the uchar string
+    int                 len;        // the length of line (number of uchars)
 
     Uint8               first_line:1;   // is first line of the paragraph?
     Uint8               resolved_dir:3; // resolved direction of the line
@@ -89,7 +89,7 @@ struct _LAYOUTLINE {
 };
 
 struct _LAYOUTINFO {
-    const TEXTRUNSINFO* runinfo;
+    const TEXTRUNSINFO* truninfo;
     const BreakOppo*    bos;
 
     Uint32              rf;

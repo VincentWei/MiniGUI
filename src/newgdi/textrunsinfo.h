@@ -73,7 +73,7 @@ struct _TEXTRUN {
     struct list_head list;
     LOGFONT*    lf;     // the logfont for this run
 
-    int         idx;    // start index in the Unicode string
+    int         si;     // start index in the Unicode string
     int         len;    // the number of Unicode characters
 
     Uint32      lc:8;   // language code

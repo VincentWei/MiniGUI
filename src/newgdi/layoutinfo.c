@@ -54,34 +54,34 @@
 #include "layoutinfo.h"
 
 LAYOUTINFO* GUIAPI CreateLayoutInfo(
-        const TEXTRUNSINFO* runinfo, Uint32 render_flags,
+        const TEXTRUNSINFO* truninfo, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
         int letter_spacing, int word_spacing, int tab_size)
 {
-    LAYOUTINFO* layoutinfo;
+    LAYOUTINFO* layout;
 
-    if (runinfo == NULL || runinfo->sei.inst == NULL) {
+    if (truninfo == NULL || truninfo->sei.inst == NULL) {
         return NULL;
     }
 
-    layoutinfo = (LAYOUTINFO*)calloc(1, sizeof(LAYOUTINFO));
-    if (layoutinfo == NULL) {
+    layout = (LAYOUTINFO*)calloc(1, sizeof(LAYOUTINFO));
+    if (layout == NULL) {
         return NULL;
     }
 
-    layoutinfo->runinfo = runinfo;
-    layoutinfo->bos = break_oppos;
-    layoutinfo->rf = render_flags;
-    layoutinfo->ls = letter_spacing;
-    layoutinfo->ws = word_spacing;
-    layoutinfo->ts = tab_size;
+    layout->truninfo = truninfo;
+    layout->bos = break_oppos;
+    layout->rf = render_flags;
+    layout->ls = letter_spacing;
+    layout->ws = word_spacing;
+    layout->ts = tab_size;
 
-    INIT_LIST_HEAD(&layoutinfo->line_head);
-    layoutinfo->left_ucs = runinfo->nr_ucs;
+    INIT_LIST_HEAD(&layout->line_head);
+    layout->left_ucs = truninfo->nr_ucs;
 
-    layoutinfo->persist = persist_lines ? 1 : 0;
+    layout->persist = persist_lines ? 1 : 0;
 
-    return layoutinfo;
+    return layout;
 }
 
 static void release_glyph_string(GLYPHSTRING* gs)
@@ -105,9 +105,9 @@ static void release_run(GLYPHRUN* run)
 
 static void release_line(LAYOUTLINE* line)
 {
-    while (!list_empty(&line->run_head)) {
-        GLYPHRUN* run = (GLYPHRUN*)line->run_head.prev;
-        list_del(line->run_head.prev);
+    while (!list_empty(&line->grun_head)) {
+        GLYPHRUN* run = (GLYPHRUN*)line->grun_head.prev;
+        list_del(line->grun_head.prev);
         release_run(run);
     }
 
@@ -162,7 +162,7 @@ struct _LayoutState {
     /* Glyphs for the current text run */
     GLYPHSTRING* glyphs;
 
-    /* Character offset of first item in state->item in layout->runinfo->ucs */
+    /* Character offset of first item in state->item in layout->truninfo->ucs */
     int start_offset;
 
     /* Logical widths for the current text run */
@@ -172,7 +172,7 @@ struct _LayoutState {
      * to the remaining portion of the first item */
     int log_widths_offset;
 
-    /* Start index of line in layout->runinfo->ucs */
+    /* Start index of line in layout->truninfo->ucs */
     int line_start_index;
 
     /* maintained per line */
@@ -221,7 +221,7 @@ static void shape_shape(const Uchar32* ucs, int nr_ucs,
 
 static void shape_full(const Uchar32* item_ucs, int nr_item_ucs,
         const Uchar32* para_ucs, int nr_para_ucs,
-        const TEXTRUNSINFO* runinfo, const TEXTRUN* textrun,
+        const TEXTRUNSINFO* truninfo, const TEXTRUN* textrun,
         GLYPHSTRING* glyphs)
 {
 }
@@ -244,17 +244,17 @@ static GLYPHSTRING* shape_run(LAYOUTLINE *line, LayoutState *state,
     LAYOUTINFO *layout = line->layout;
     GLYPHSTRING *glyphs = __mg_glyph_string_new ();
 
-    if (layout->runinfo->ucs[item->idx] == '\t')
+    if (layout->truninfo->ucs[item->si] == '\t')
         shape_tab(line, glyphs);
     else {
         if (state->shape_set)
-            shape_shape(layout->runinfo->ucs + item->idx, item->len,
+            shape_shape(layout->truninfo->ucs + item->si, item->len,
                     &state->shape_ink_rect,
                     &state->shape_logical_rect, glyphs);
         else
-            shape_full(layout->runinfo->ucs + item->idx, item->len,
-                    layout->runinfo->ucs, layout->runinfo->nr_ucs,
-                    layout->runinfo, item, glyphs);
+            shape_full(layout->truninfo->ucs + item->si, item->len,
+                    layout->truninfo->ucs, layout->truninfo->nr_ucs,
+                    layout->truninfo, item, glyphs);
 
         if (layout->ls) {
             GlyphItem glyph_item;
@@ -264,7 +264,7 @@ static GLYPHSTRING* shape_run(LAYOUTLINE *line, LayoutState *state,
             glyph_item.glyphs = glyphs;
 
             __mg_glyph_item_letter_space (&glyph_item,
-                    layout->runinfo->ucs,
+                    layout->truninfo->ucs,
                     layout->bos + state->start_offset,
                     layout->ls);
 
@@ -277,6 +277,58 @@ static GLYPHSTRING* shape_run(LAYOUTLINE *line, LayoutState *state,
     }
 
     return glyphs;
+}
+
+static GLYPHRUN* insert_run (LAYOUTLINE *line, LayoutState *state,
+        TEXTRUN *text_run, int si, int len, BOOL last_run)
+{
+    GLYPHRUN *glyph_run = malloc (sizeof(GLYPHRUN));
+
+    glyph_run->trun = text_run;
+
+    if (last_run && state->log_widths_offset == 0)
+        glyph_run->gs = state->glyphs;
+    else
+        glyph_run->gs = shape_run (line, state, text_run);
+
+    if (last_run) {
+        if (state->log_widths_offset > 0)
+            __mg_glyph_string_free (state->glyphs);
+        state->glyphs = NULL;
+        free (state->log_widths);
+        state->log_widths = NULL;
+    }
+
+    glyph_run->si = si;
+    glyph_run->len = len;
+
+    list_add_tail(&glyph_run->list, &line->grun_head);
+    line->len += text_run->len;
+
+    return glyph_run;
+}
+
+static inline BOOL can_break_at (LAYOUTINFO *layout,
+        int offset, BOOL always_wrap_char)
+{
+    Uint32 wrap = layout->rf & GRF_OVERFLOW_WRAP_MASK;
+
+    if (offset == layout->truninfo->nr_ucs)
+        return TRUE;
+
+    if (wrap == GRF_OVERFLOW_WRAP_NORMAL)
+        wrap = always_wrap_char ? GRF_OVERFLOW_WRAP_ANYWHERE :
+                GRF_OVERFLOW_WRAP_BREAK_WORD;
+
+    else if (wrap == GRF_OVERFLOW_WRAP_BREAK_WORD)
+        return layout->bos[offset] & BOV_LB_BREAK_FLAG;
+    else if (wrap == GRF_OVERFLOW_WRAP_ANYWHERE)
+        return layout->bos[offset] & BOV_GB_CHAR_BREAK;
+    else {
+        _WRN_PRINTF ("broken LayoutInfo\n");
+    }
+
+    return TRUE;
 }
 
 /*
@@ -299,14 +351,13 @@ static GLYPHSTRING* shape_run(LAYOUTLINE *line, LayoutState *state,
  * or %BREAK_NONE_FIT returned. This is used when the end of the
  * run is not a break position.
  */
-static BreakResult process_one_text_run(LAYOUTINFO *layout,
+BreakResult process_one_text_run(LAYOUTINFO *layout,
         LAYOUTLINE *line, LayoutState *state,
         BOOL force_fit, BOOL no_break_at_end)
 {
     TEXTRUN *item = state->item;
     BOOL shape_set = FALSE;
     int width;
-    int length;
     int i;
     BOOL processing_new_item = FALSE;
 
@@ -315,7 +366,6 @@ static BreakResult process_one_text_run(LAYOUTINFO *layout,
 #define LINE_SEPARATOR 0x2028
 
     if (!state->glyphs) {
-        pango_layout_get_item_properties (item, &state->properties);
         state->glyphs = shape_run (line, state, item);
 
         state->log_widths = NULL;
@@ -325,16 +375,16 @@ static BreakResult process_one_text_run(LAYOUTINFO *layout,
     }
 
     if (!layout->single_paragraph &&
-            layout->runinfo->text[item->idx] == LINE_SEPARATOR &&
+            layout->truninfo->ucs[item->si] == LINE_SEPARATOR &&
             !should_ellipsize_current_line (layout, state)) {
-        insert_run (line, state, item, TRUE);
+        insert_run (line, state, item, 0, item->len, TRUE);
         state->log_widths_offset += item->len;
         return BREAK_LINE_SEPARATOR;
     }
 
     if (state->remaining_width < 0 && !no_break_at_end)  /* Wrapping off */
     {
-        insert_run (line, state, item, TRUE);
+        insert_run (line, state, item, 0, item->len, TRUE);
 
         return BREAK_ALL_FIT;
     }
@@ -349,11 +399,11 @@ static BreakResult process_one_text_run(LAYOUTINFO *layout,
     }
 
     if ((width <= state->remaining_width ||
-                (item->len == 1 && !line->runs)) &&
+                (item->len == 1 && list_empty(&line->grun_head))) &&
             !no_break_at_end) {
         state->remaining_width -= width;
         state->remaining_width = MAX (state->remaining_width, 0);
-        insert_run (line, state, item, TRUE);
+        insert_run (line, state, item, 0, item->len, TRUE);
 
         return BREAK_ALL_FIT;
     }
@@ -367,7 +417,7 @@ static BreakResult process_one_text_run(LAYOUTINFO *layout,
         if (processing_new_item) {
             GlyphItem glyph_item = {item, state->glyphs};
             state->log_widths = malloc (sizeof (int) * item->len);
-            __mg_glyph_item_get_logical_widths(&glyph_item, layout->runinfo->ucs,
+            __mg_glyph_item_get_logical_widths(&glyph_item, layout->truninfo->ucs,
                 state->log_widths);
         }
 
@@ -380,8 +430,9 @@ retry_break:
                 break;
 
             /* If there are no previous runs we have to take care to grab at least one char. */
-            if (can_break_at (layout, state->start_offset + num_chars, retrying_with_char_breaks) &&
-                    (num_chars > 0 || line->runs))
+            if (can_break_at (layout, state->start_offset + num_chars,
+                        retrying_with_char_breaks) &&
+                    (num_chars > 0 || !list_empty(&line->grun_head)))
             {
                 break_num_chars = num_chars;
                 break_width = width;
@@ -395,13 +446,15 @@ retry_break:
          * XXX Currently it doesn't quite match the logic there.  We don't check
          * the cluster here.  But should be fine in practice. */
         if (break_num_chars > 0 && break_num_chars < item->len &&
-                layout->log_attrs[state->start_offset + break_num_chars - 1].is_white)
+                layout->bos[state->start_offset + break_num_chars - 1] & BOV_WHITESPACE)
         {
             break_width -= state->log_widths[state->log_widths_offset + break_num_chars - 1];
         }
 
-        if (layout->wrap == PANGO_WRAP_WORD_CHAR && force_fit && break_width > state->remaining_width && !retrying_with_char_breaks)
-        {
+        if ((layout->rf & GRF_OVERFLOW_WRAP_MASK) == GRF_OVERFLOW_WRAP_NORMAL
+                && force_fit
+                && break_width > state->remaining_width
+                && !retrying_with_char_breaks) {
             retrying_with_char_breaks = TRUE;
             num_chars = item->len;
             width = orig_width;
@@ -412,34 +465,26 @@ retry_break:
 
         if (force_fit || break_width <= state->remaining_width)	/* Successfully broke the item */
         {
-            if (state->remaining_width >= 0)
-            {
+            if (state->remaining_width >= 0) {
                 state->remaining_width -= break_width;
                 state->remaining_width = MAX (state->remaining_width, 0);
             }
 
-            if (break_num_chars == item->len)
-            {
-                insert_run (line, state, item, TRUE);
-
+            if (break_num_chars == item->len) {
+                insert_run (line, state, item, 0, item->len, TRUE);
                 return BREAK_ALL_FIT;
             }
-            else if (break_num_chars == 0)
-            {
+            else if (break_num_chars == 0) {
                 return BREAK_EMPTY_FIT;
             }
-            else
-            {
-                TEXTRUN *new_item;
+            else {
+                GLYPHRUN *grun;
 
-                length = g_utf8_offset_to_pointer (layout->runinfo->ucs + item->idx, break_num_chars) - (layout->runinfo->ucs + item->idx);
-
-                new_item = pango_item_split (item, length, break_num_chars);
-
-                /* Add the width back, to the line, reshape, subtract the new width */
+                /* Add the width back, to the line, reshape,
+                   subtract the new width */
                 state->remaining_width += break_width;
-                insert_run (line, state, new_item, FALSE);
-                break_width = __mg_glyph_string_get_width (NULL /*((GlyphItem *)(line->runs->data))->glyphs*/);
+                grun = insert_run (line, state, item, 0, break_num_chars, FALSE);
+                break_width = __mg_glyph_string_get_width (grun->gs);
                 state->remaining_width -= break_width;
 
                 state->log_widths_offset += break_num_chars;

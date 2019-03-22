@@ -83,7 +83,7 @@ static BOOL shape_text_run(SEINSTANCE* inst,
 {
     BOOL ok = FALSE;
     int i, j;
-    const Uchar32* logical_ucs = info->ucs + run->idx;
+    const Uchar32* logical_ucs = info->ucs + run->si;
     int nr_ucs = run->len;
 
     Uchar32 local_shaped_ucs[LOCAL_ARRAY_SIZE];
