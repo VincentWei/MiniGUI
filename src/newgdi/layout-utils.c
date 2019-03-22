@@ -332,5 +332,20 @@ void __mg_glyph_item_get_logical_widths (const GlyphItem *glyph_item,
     }
 }
 
+void __mg_shape_utf8 (const char* text, int len,
+        const TEXTRUN* trun, GLYPHSTRING* gs)
+{
+}
+
+void __mg_text_run_free(TEXTRUN* trun)
+{
+}
+
+void __mg_glyph_item_letter_space (const GlyphItem* glyph_item,
+        const Uchar32* ucs, const BreakOppo* bos, int letter_spacing)
+{
+}
+
+
 #endif /*  _MGCHARSET_UNICODE */
 

@@ -664,6 +664,12 @@ RGBCOLOR __mg_textruns_get_text_color(const TEXTRUNSINFO* runinfo, int index)
     return runinfo->attrs.value;
 }
 
+TEXTRUN* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
+        int offset, int *start_index)
+{
+    return NULL;
+}
+
 BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
         int start_index, int length, RGBCOLOR color)
 {
