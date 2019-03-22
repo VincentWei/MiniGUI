@@ -2495,7 +2495,7 @@ else
 fi
 
 if test "$ac_cv_prog_gcc" = "yes"; then
-    CFLAGS="$CFLAGS -O2 -Wstrict-prototypes -pipe"
+    CFLAGS="$CFLAGS -O2 -fmax-errors=10 -Wstrict-prototypes -pipe"
 fi
 
 if test "x$runtime_mode" = "xths"; then

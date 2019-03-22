@@ -67,7 +67,8 @@ struct _SHAPINGENGINEINFO {
     CB_DESTROY_INSTANCE free;
 };
 
-#define GLYPH_FLAG_CENTERED_BASELINE    1
+#define TEXTRUN_FLAG_CENTERED_BASELINE      0x01
+#define TEXTRUN_FLAG_IS_ELLIPSIS            0x02
 
 struct _TEXTRUN {
     struct list_head list;

@@ -82,10 +82,9 @@ struct _LAYOUTLINE {
     int                 si;         // the start index in the uchar string
     int                 len;        // the length of line (number of uchars)
 
-    Uint8               first_line:1;   // is first line of the paragraph?
+    int                 nr_runs;
+    Uint8               is_paragraph_start:1;// is first line of the paragraph?
     Uint8               resolved_dir:3; // resolved direction of the line
-    Uint8               all_even:1; // flag indicating all level is even
-    Uint8               all_odd:1;  // flag indicating all level is odd
 };
 
 struct _LAYOUTINFO {
@@ -99,18 +98,17 @@ struct _LAYOUTINFO {
 
     struct list_head    lines;      // the list head of lines
 
-    int                 nr_left_ucs;// the number of chars not laied out.
+    int                 nr_left_ucs;// the number of chars not laied out
+    int                 nr_lines;   // the number of lines
+
     Uint32              persist:1;  // persist lines?
     Uint32              single_paragraph:1;
+    Uint32              is_wrapped:1;
+    Uint32              is_ellipsized:1;
 };
 
-typedef struct _GlyphItem GlyphItem;
+typedef GLYPHRUN GlyphItem;
 typedef struct _GlyphItemIter GlyphItemIter;
-
-struct _GlyphItem {
-    TEXTRUN       *item;
-    GLYPHSTRING   *glyphs;
-};
 
 struct _GlyphItemIter {
     const GlyphItem *glyph_item;
@@ -129,6 +127,8 @@ struct _GlyphItemIter {
 extern "C" {
 #endif  /* __cplusplus */
 
+void __mg_text_run_free(TEXTRUN* trun);
+
 GLYPHSTRING* __mg_glyph_string_new(void);
 void __mg_glyph_string_free(GLYPHSTRING* string);
 void __mg_glyph_string_set_size(GLYPHSTRING* string, int new_len);
@@ -144,10 +144,15 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter);
 BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter);
 
 void __mg_glyph_item_get_logical_widths(const GlyphItem* glyph_item,
-            const Uchar32* ucs, int* log_widths);
+        const Uchar32* ucs, int* log_widths);
 
 void __mg_glyph_item_letter_space (const GlyphItem* glyph_item,
-            const Uchar32* ucs, const BreakOppo* bos, int letter_spacing);
+        const Uchar32* ucs, const BreakOppo* bos, int letter_spacing);
+
+BOOL __mg_layout_line_ellipsize(LAYOUTLINE *line, int goal_width);
+
+void __mg_shape_utf8 (const char* text, int len,
+        const TEXTRUN* trun, GLYPHSTRING* gs);
 
 #ifdef __cplusplus
 }

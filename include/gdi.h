@@ -9034,12 +9034,11 @@ typedef enum _UCharVOP {
 /* same as HarfBuzz */
 typedef enum {
     GLYPH_RUN_DIR_INVALID = 0,
+    GLYPH_RUN_DIR_NEUTRAL,
     GLYPH_RUN_DIR_WEAK_LTR,
     GLYPH_RUN_DIR_WEAK_RTL,
-    GLYPH_RUN_DIR_LTR = 4,
+    GLYPH_RUN_DIR_LTR,
     GLYPH_RUN_DIR_RTL,
-    GLYPH_RUN_DIR_TTB,
-    GLYPH_RUN_DIR_BTT
 } GlyphRunDir;
 
 #define GLYPH_GRAVITY_SOUTH                 0

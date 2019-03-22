@@ -115,14 +115,14 @@ int __mg_glyph_string_get_width(const GLYPHSTRING *glyphs)
     return width;
 }
 
-#define LTR(glyph_item) (((glyph_item)->item->el & 1) == 0)
+#define LTR(glyph_item) (((glyph_item)->trun->el & 1) == 0)
 
 BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
 {
     int glyph_index = iter->end_glyph;
-    GLYPHSTRING *glyphs = iter->glyph_item->glyphs;
+    GLYPHSTRING *glyphs = iter->glyph_item->gs;
     int cluster;
-    TEXTRUN *item = iter->glyph_item->item;
+    TEXTRUN *item = iter->glyph_item->trun;
 
     if (LTR (iter->glyph_item)) {
         if (glyph_index == glyphs->nr_glyphs)
@@ -184,9 +184,9 @@ BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
 BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
 {
     int glyph_index = iter->start_glyph;
-    GLYPHSTRING *glyphs = iter->glyph_item->glyphs;
+    GLYPHSTRING *glyphs = iter->glyph_item->gs;
     int cluster;
-    TEXTRUN *item = iter->glyph_item->item;
+    TEXTRUN *item = iter->glyph_item->trun;
 
     if (LTR (iter->glyph_item)) {
         if (glyph_index == 0)
@@ -259,9 +259,9 @@ BOOL __mg_glyph_item_iter_init_start (GlyphItemIter  *iter,
     if (LTR (glyph_item))
         iter->end_glyph = 0;
     else
-        iter->end_glyph = glyph_item->glyphs->nr_glyphs - 1;
+        iter->end_glyph = glyph_item->gs->nr_glyphs - 1;
 
-    iter->end_index = glyph_item->item->si;
+    iter->end_index = glyph_item->trun->si;
     iter->end_char = 0;
 
     iter->start_glyph = iter->end_glyph;
@@ -279,12 +279,12 @@ BOOL __mg_glyph_item_iter_init_end (GlyphItemIter *iter,
     iter->text = text;
 
     if (LTR (glyph_item))
-        iter->start_glyph = glyph_item->glyphs->nr_glyphs;
+        iter->start_glyph = glyph_item->gs->nr_glyphs;
     else
         iter->start_glyph = -1;
 
-    iter->start_index = glyph_item->item->si + glyph_item->item->len;
-    iter->start_char = glyph_item->item->len;
+    iter->start_index = glyph_item->trun->si + glyph_item->trun->len;
+    iter->start_char = glyph_item->trun->len;
 
     iter->end_glyph = iter->start_glyph;
     iter->end_index = iter->start_index;
@@ -301,7 +301,7 @@ void __mg_glyph_item_get_logical_widths (const GlyphItem *glyph_item,
     BOOL has_cluster;
     int dir;
 
-    dir = glyph_item->item->el % 2 == 0 ? +1 : -1;
+    dir = glyph_item->trun->el % 2 == 0 ? +1 : -1;
     for (has_cluster = __mg_glyph_item_iter_init_start (&iter, glyph_item, text);
             has_cluster;
             has_cluster = __mg_glyph_item_iter_next_cluster (&iter))
@@ -311,7 +311,7 @@ void __mg_glyph_item_get_logical_widths (const GlyphItem *glyph_item,
         for (glyph_index  = iter.start_glyph;
                 glyph_index != iter.end_glyph;
                 glyph_index += dir) {
-            cluster_width += glyph_item->glyphs->glyphs[glyph_index].width;
+            cluster_width += glyph_item->gs->glyphs[glyph_index].width;
         }
 
         num_chars = iter.end_char - iter.start_char;

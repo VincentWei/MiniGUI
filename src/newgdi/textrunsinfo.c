@@ -293,7 +293,7 @@ static void state_add_character(TEXTRUNSTATE *state,
     }
 
     state->run->flags = state->centered_baseline ?
-            GLYPH_FLAG_CENTERED_BASELINE : 0;
+            TEXTRUN_FLAG_CENTERED_BASELINE : 0;
 
     list_add_tail(&state->run->list, &state->runinfo->truns);
     state->runinfo->nr_runs++;
