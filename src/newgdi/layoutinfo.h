@@ -77,7 +77,7 @@ struct _LAYOUTLINE {
     LAYOUTINFO*         layout;
     int*                log_widths; // the widths of the logical chars
 
-    struct list_head    grun_head;  // the list head for glyph runs
+    struct list_head    gruns;      // the list head for glyph runs
 
     int                 si;         // the start index in the uchar string
     int                 len;        // the length of line (number of uchars)

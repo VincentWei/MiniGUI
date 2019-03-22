@@ -295,7 +295,7 @@ static void state_add_character(TEXTRUNSTATE *state,
     state->run->flags = state->centered_baseline ?
             GLYPH_FLAG_CENTERED_BASELINE : 0;
 
-    list_add_tail(&state->run->list, &state->runinfo->run_head);
+    list_add_tail(&state->run->list, &state->runinfo->truns);
     state->runinfo->nr_runs++;
 }
 
@@ -455,13 +455,13 @@ void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
     TEXTRUN* run = NULL;
 
     if (prev == NULL) {
-        if (list_empty(&runinfo->run_head))
+        if (list_empty(&runinfo->truns))
             return NULL;
-        run = (TEXTRUN*)runinfo->run_head.next;
+        run = (TEXTRUN*)runinfo->truns.next;
     }
     else {
         struct list_head* list_entry = (struct list_head*)prev;
-        if (list_entry->next == &runinfo->run_head)
+        if (list_entry->next == &runinfo->truns)
             return NULL;
 
         run = (TEXTRUN*)list_entry->next;
@@ -579,12 +579,13 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     else
         runinfo->ort_rsv = runinfo->ort_base;
 
-    INIT_LIST_HEAD(&runinfo->cm_head.list);
-    runinfo->cm_head.si = 0;
-    runinfo->cm_head.len = nr_ucs;
-    runinfo->cm_head.color = color;
+    INIT_LIST_HEAD(&runinfo->attrs.list);
+    runinfo->attrs.si = 0;
+    runinfo->attrs.len = nr_ucs;
+    runinfo->attrs.type = TEXT_ATTR_TEXT_COLOR;
+    runinfo->attrs.value = color;
 
-    INIT_LIST_HEAD(&runinfo->run_head);
+    INIT_LIST_HEAD(&runinfo->truns);
     runinfo->nr_runs = 0;
 
 #if 0
@@ -633,39 +634,40 @@ out:
     return NULL;
 }
 
-BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* runinfo,
+BOOL GUIAPI SetFontInTextRuns(TEXTRUNSINFO* runinfo,
         int start_index, int length, const char* logfont_name)
 {
     if (runinfo == NULL)
         return FALSE;
 
     // can not change font for empty runs
-    if (list_empty(&runinfo->run_head))
+    if (list_empty(&runinfo->truns))
         return FALSE;
 
     return FALSE;
 }
 
-RGBCOLOR __mg_textruns_get_color(const TEXTRUNSINFO* runinfo, int index)
+RGBCOLOR __mg_textruns_get_text_color(const TEXTRUNSINFO* runinfo, int index)
 {
     struct list_head *i;
 
-    list_for_each(i, &runinfo->cm_head.list) {
-        TEXTCOLORMAP* color_entry;
-        color_entry = (TEXTCOLORMAP*)i;
+    list_for_each(i, &runinfo->attrs.list) {
+        TEXTATTRMAP* color_entry;
+        color_entry = (TEXTATTRMAP*)i;
         if (index >= color_entry->si &&
-                (index < color_entry->si + color_entry->len)) {
-            return color_entry->color;
+                (index < color_entry->si + color_entry->len) &&
+            color_entry->type == TEXT_ATTR_TEXT_COLOR) {
+            return color_entry->value;
         }
     }
 
-    return runinfo->cm_head.color;
+    return runinfo->attrs.value;
 }
 
-BOOL GUIAPI SetPartColorInTextRuns(TEXTRUNSINFO* runinfo,
+BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
         int start_index, int length, RGBCOLOR color)
 {
-    TEXTCOLORMAP* color_entry = NULL;
+    TEXTATTRMAP* color_entry = NULL;
 
     if (runinfo == NULL || start_index < 0 || length < 0 ||
             start_index > runinfo->nr_ucs ||
@@ -673,16 +675,17 @@ BOOL GUIAPI SetPartColorInTextRuns(TEXTRUNSINFO* runinfo,
         goto error;
     }
 
-    color_entry = calloc(1, sizeof(TEXTCOLORMAP));
+    color_entry = calloc(1, sizeof(TEXTATTRMAP));
     if (color_entry == NULL) {
         goto error;
     }
 
     color_entry->si = start_index;
     color_entry->len = length;
-    color_entry->color = color;
+    color_entry->type = TEXT_ATTR_TEXT_COLOR;
+    color_entry->value = color;
 
-    list_add(&color_entry->list, &runinfo->cm_head.list);
+    list_add(&color_entry->list, &runinfo->attrs.list);
 
     return TRUE;
 
@@ -690,102 +693,20 @@ error:
     return FALSE;
 }
 
-BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* runinfo, const char* logfont_name)
-{
-    if (runinfo == NULL)
-        return FALSE;
-
-    while (!list_empty(&runinfo->run_head)) {
-        TEXTRUN* run = (TEXTRUN*)runinfo->run_head.prev;
-        list_del(runinfo->run_head.prev);
-        if (run->lf)
-            release_logfont_for_run(runinfo, run);
-        free(run);
-    }
-
-    if (runinfo->sei.inst) {
-        runinfo->sei.free(runinfo->sei.inst);
-    }
-
-    free(runinfo->fontname);
-    runinfo->fontname = strdup(logfont_name);
-    return create_glyph_runs(runinfo, NULL);
-}
-
-static void set_run_dir(TEXTRUNSINFO* runinfo, TEXTRUN* run,
-        GlyphRunDir run_dir, GlyphOrient glyph_orient)
-{
-}
-
-BOOL GUIAPI ResetDirectionInTextRuns(TEXTRUNSINFO* runinfo,
-        GlyphRunDir run_dir, GlyphOrient glyph_orient,
-        GlyphOrientPolicy orient_policy)
-{
-    struct list_head *i;
-
-    if (runinfo == NULL)
-        return FALSE;
-
-    runinfo->run_dir = run_dir;
-    runinfo->ort_base = glyph_orient;
-    runinfo->ort_plc = orient_policy;
-
-    list_for_each(i, &runinfo->run_head) {
-        TEXTRUN* run = (TEXTRUN*)i;
-        set_run_dir(runinfo, run, run_dir, glyph_orient);
-    }
-
-    return TRUE;
-}
-
-BOOL GUIAPI ResetColorInTextRuns(TEXTRUNSINFO* runinfo, RGBCOLOR color)
-{
-    if (runinfo == NULL)
-        return FALSE;
-
-    while (!list_empty(&runinfo->cm_head.list)) {
-        TEXTCOLORMAP* entry = (TEXTCOLORMAP*)runinfo->cm_head.list.prev;
-        list_del(runinfo->cm_head.list.prev);
-        free(entry);
-    }
-
-    runinfo->cm_head.color = color;
-    return TRUE;
-}
-
-#if 0
-BOOL GUIAPI ResetBreaksInTextRuns(TEXTRUNSINFO* runinfo,
-    Uint8 ctr, Uint8 wbr, Uint8 lbp)
-{
-    if (runinfo == NULL)
-        return FALSE;
-
-    // Re-calculate the breaking opportunities
-    if (UStrGetBreaks(runinfo->run_head.st, ctr, wbr, lbp,
-            runinfo->ucs, runinfo->run_head.nr_ucs, &runinfo->bos) == 0) {
-        _ERR_PRINTF("%s: failed to get breaking opportunities.\n",
-            __FUNCTION__);
-        return FALSE;
-    }
-
-    return TRUE;
-}
-#endif
-
 BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
 {
     if (runinfo == NULL)
         return FALSE;
 
-    while (!list_empty(&runinfo->cm_head.list)) {
-        TEXTCOLORMAP* entry = (TEXTCOLORMAP*)runinfo->cm_head.list.prev;
-        list_del(runinfo->cm_head.list.prev);
+    while (!list_empty(&runinfo->attrs.list)) {
+        TEXTATTRMAP* entry = (TEXTATTRMAP*)runinfo->attrs.list.prev;
+        list_del(runinfo->attrs.list.prev);
         free(entry);
     }
 
-    while (!list_empty(&runinfo->run_head)) {
-        TEXTRUN* run = (TEXTRUN*)runinfo->run_head.prev;
-        list_del(runinfo->run_head.prev);
+    while (!list_empty(&runinfo->truns)) {
+        TEXTRUN* run = (TEXTRUN*)runinfo->truns.prev;
+        list_del(runinfo->truns.prev);
         if (run->lf)
             release_logfont_for_run(runinfo, run);
         free(run);

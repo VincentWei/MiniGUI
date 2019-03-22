@@ -105,9 +105,9 @@ static void release_run(GLYPHRUN* run)
 
 static void release_line(LAYOUTLINE* line)
 {
-    while (!list_empty(&line->grun_head)) {
-        GLYPHRUN* run = (GLYPHRUN*)line->grun_head.prev;
-        list_del(line->grun_head.prev);
+    while (!list_empty(&line->gruns)) {
+        GLYPHRUN* run = (GLYPHRUN*)line->gruns.prev;
+        list_del(line->gruns.prev);
         release_run(run);
     }
 
@@ -142,7 +142,7 @@ typedef enum {
 
 struct _LayoutState {
     /* maintained per layout */
-    /* is last line */
+    // is last line
     Uint32 last_line:1;
     Uint32 shape_set:1;
 
@@ -150,36 +150,36 @@ struct _LayoutState {
 
     /* maintained per paragraph */
 
-    /* Current text run */
-    TEXTRUN* item;
-
-    /* Current resolved base direction */
+    // Current resolved base direction
     GlyphRunDir base_dir;
 
-    /* Line of the paragraph, starting at 1 for first line */
+    // Line of the paragraph, starting at 1 for first line
     int line_of_par;
 
-    /* Glyphs for the current text run */
+    // Glyphs for the current glyph run
     GLYPHSTRING* glyphs;
 
-    /* Character offset of first item in state->item in layout->truninfo->ucs */
+    // Character offset of first item in state->item in layout->truninfo->ucs
     int start_offset;
 
-    /* Logical widths for the current text run */
+    // Logical widths for the current text run */
     int *log_widths;
 
     /* Offset into log_widths to the point corresponding
      * to the remaining portion of the first item */
     int log_widths_offset;
 
-    /* Start index of line in layout->truninfo->ucs */
+    // Start index of line in layout->truninfo->ucs */
     int line_start_index;
 
     /* maintained per line */
-    /* Goal width of line currently processing; < 0 is infinite */
+    // Current text run
+    TEXTRUN* item;
+    // the number of not fit uchars in current text run
+    int nr_left_ucs;
+    // Goal width of line currently processing; < 0 is infinite
     int line_width;
-
-    /* Amount of space remaining on line; < 0 is infinite */
+    // Amount of space remaining on line; < 0 is infinite
     int remaining_width;
 };
 
@@ -302,7 +302,7 @@ static GLYPHRUN* insert_run (LAYOUTLINE *line, LayoutState *state,
     glyph_run->si = si;
     glyph_run->len = len;
 
-    list_add_tail(&glyph_run->list, &line->grun_head);
+    list_add_tail(&glyph_run->list, &line->gruns);
     line->len += text_run->len;
 
     return glyph_run;
@@ -399,7 +399,7 @@ BreakResult process_one_text_run(LAYOUTINFO *layout,
     }
 
     if ((width <= state->remaining_width ||
-                (item->len == 1 && list_empty(&line->grun_head))) &&
+                (item->len == 1 && list_empty(&line->gruns))) &&
             !no_break_at_end) {
         state->remaining_width -= width;
         state->remaining_width = MAX (state->remaining_width, 0);
@@ -432,7 +432,7 @@ retry_break:
             /* If there are no previous runs we have to take care to grab at least one char. */
             if (can_break_at (layout, state->start_offset + num_chars,
                         retrying_with_char_breaks) &&
-                    (num_chars > 0 || !list_empty(&line->grun_head)))
+                    (num_chars > 0 || !list_empty(&line->gruns)))
             {
                 break_num_chars = num_chars;
                 break_width = width;
@@ -513,56 +513,6 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
 {
     return NULL;
 }
-
-#if 0
-int GUIAPI DrawShapedGlyphString(HDC hdc,
-        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const SHAPEDGLYPHS* shaped_glyphs,
-        const GLYPHPOS* glyph_pos, int nr_glyphs)
-{
-    int i;
-    int n = 0;
-    Uint32 old_ta;
-    PLOGFONT old_lf;
-
-    if (shaped_glyphs == NULL || glyph_pos == NULL || nr_glyphs <= 0)
-        return 0;
-
-    old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
-    old_lf = GetCurFont(hdc);
-
-    for (i = 0; i < nr_glyphs; i++) {
-        if (glyph_pos[i].suppressed == 0 && glyph_pos[i].whitespace == 0) {
-            Glyph32 gv = shaped_glyphs->cb_get_glyph_info(
-                    shaped_glyphs->shaping_engine, shaped_glyphs->glyph_infos,
-                    i, NULL);
-            if (glyph_pos[i].orientation == GLYPH_ORIENTATION_UPRIGHT) {
-                if (logfont_upright)
-                    SelectFont(hdc, logfont_upright);
-                else
-                    goto error;
-            }
-            else {
-                if (logfont_sideways)
-                    SelectFont(hdc, logfont_sideways);
-                else
-                    goto error;
-            }
-
-            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, gv,
-                NULL, NULL);
-
-            n++;
-        }
-    }
-
-error:
-    SelectFont(hdc, old_lf);
-    SetTextAlign(hdc, old_ta);
-
-    return n;
-}
-#endif
 
 #endif /*  _MGCHARSET_UNICODE */
 

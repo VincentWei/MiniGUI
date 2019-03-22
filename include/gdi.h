@@ -12560,37 +12560,40 @@ MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
         const char* logfont_name, RGBCOLOR color);
 
 /**
- * Set font of part characters. Please call this function before
- * calling InitBasicShapingEngine or InitComplexShapingEngine.
+ * Set logfont of text runs
  */
-MG_EXPORT BOOL GUIAPI SetPartFontInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetFontInTextRuns(TEXTRUNSINFO* run_info,
     int start_index, int length, const char* logfont_name);
 
 /**
- * Set color of part characters.
+ * Set text olor in text runs.
  */
-MG_EXPORT BOOL GUIAPI SetPartColorInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* run_info,
     int start_index, int length, RGBCOLOR color);
 
 /**
- * Reset the font of glyph runs for the next rendering under a
- * new LOGFONT.
+ * Set underline color in text runs.
  */
-MG_EXPORT BOOL GUIAPI ResetFontInTextRuns(TEXTRUNSINFO* run_info,
-        const char* logfont_name);
+MG_EXPORT BOOL GUIAPI SetUnderlineColorInTextRuns(TEXTRUNSINFO* run_info,
+    int start_index, int length, RGBCOLOR color);
 
 /**
- * Reset the color of glyph runs.
+ * Set strikethrough color in text runs.
  */
-MG_EXPORT BOOL GUIAPI ResetColorInTextRuns(TEXTRUNSINFO* run_info,
-        RGBCOLOR color);
+MG_EXPORT BOOL GUIAPI SetStrikethroughColorInTextRuns(TEXTRUNSINFO* run_info,
+    int start_index, int length, RGBCOLOR color);
 
 /**
- * Reset the direction and orientation of glyph runs.
+ * Set background color in text runs.
  */
-MG_EXPORT BOOL GUIAPI ResetDirectionInTextRuns(TEXTRUNSINFO* run_info,
-        GlyphRunDir run_dir, GlyphOrient glyph_orient,
-        GlyphOrientPolicy orient_policy);
+MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* run_info,
+    int start_index, int length, RGBCOLOR color);
+
+/**
+ * Set outline color in text runs.
+ */
+MG_EXPORT BOOL GUIAPI SetOutlineColorInTextRuns(TEXTRUNSINFO* run_info,
+    int start_index, int length, RGBCOLOR color);
 
 /**
  * Destroy the glyph run info object. It also frees all data allocated

@@ -46,7 +46,7 @@
 typedef struct _TEXTRUN         TEXTRUN;
 typedef struct _GLYPHSTRING     GLYPHSTRING;
 typedef struct _SEINSTANCE      SEINSTANCE;
-typedef struct _TEXTCOLORMAP    TEXTCOLORMAP;
+typedef struct _TEXTATTRMAP    TEXTATTRMAP;
 
 typedef BOOL (*CB_SHAPE_TEXT_RUN)(SEINSTANCE* instance,
         const TEXTRUNSINFO* info, const TEXTRUN* run,
@@ -84,20 +84,28 @@ struct _TEXTRUN {
     Uint32      flags:2;// other flags
 };
 
-struct _TEXTCOLORMAP {
+#define TEXT_ATTR_TEXT_COLOR            0x00
+#define TEXT_ATTR_UNDERLINE_COLOR       0x01
+#define TEXT_ATTR_STRIKETHROUGH_COLOR   0x02
+#define TEXT_ATTR_OUTLINE_COLOR         0x03
+#define TEXT_ATTR_BACKGROUND_COLOR      0x04
+
+
+struct _TEXTATTRMAP {
     struct list_head    list;
     int                 si;
     int                 len;
-    RGBCOLOR            color;
+    int                 type;   // attribute type
+    Uint32              value;  // attribute value
 };
 
 struct _TEXTRUNSINFO {
     /* The following fields will be initialized by CreateGlyphRunInfo. */
-    const Uchar32*      ucs;    // the uchars
-    char*               fontname;// the logfont name specified
+    const Uchar32*      ucs;        // the uchars
+    char*               fontname;   // the default logfont name specified
 
-    TEXTCOLORMAP        cm_head; // the head of color map list of the characters
-    struct list_head    run_head;// glyph runs (list)
+    TEXTATTRMAP         attrs;      // the head of color map (list)
+    struct list_head    truns;      // the head of text runs (list)
 
     int         nr_ucs;         // number of uchars
     int         nr_runs;        // number of runs
