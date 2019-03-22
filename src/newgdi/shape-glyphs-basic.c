@@ -184,7 +184,7 @@ static BOOL shape_text_run(SEINSTANCE* inst,
                     gs->glyphs[j-1].is_cluster_start = 1;
                 }
                 else {
-                    _WRN_PRINTF("ligatured at the first glyph?\n");
+                    _WRN_PRINTF("ligatured at the first glyph?");
                 }
             }
             else {

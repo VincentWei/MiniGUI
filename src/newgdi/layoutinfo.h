@@ -92,16 +92,14 @@ struct _LAYOUTINFO {
     const TEXTRUNSINFO* truninfo;
     const BreakOppo*    bos;
 
-    Uint32              rf;
-    int                 ls;
-    int                 ws;
-    int                 ts;
+    Uint32              rf;         // rendering flags
+    int                 ls;         // letter spacing
+    int                 ws;         // word spacing
+    int                 ts;         // tab size
 
-    struct list_head    line_head;  // the list head of lines
+    struct list_head    lines;      // the list head of lines
 
-    LAYOUTLINE          *curr_line; // current line
-
-    int                 left_ucs;   // the number of chars not laied out.
+    int                 nr_left_ucs;// the number of chars not laied out.
     Uint32              persist:1;  // persist lines?
     Uint32              single_paragraph:1;
 };

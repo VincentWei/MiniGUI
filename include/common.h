@@ -2060,6 +2060,7 @@ int init_minigui_printf (int (*output_char) (int ch),
         TCS_PURPLE (stderr);                    \
         fprintf (stderr, "%s: ", __FUNCTION__); \
         fprintf (stderr, fmt, ##__VA_ARGS__);   \
+        fprintf (stderr, "\n");                 \
         TCS_NONE (stderr);                      \
     } while (0)
 

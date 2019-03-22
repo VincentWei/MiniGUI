@@ -28,12 +28,12 @@
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
  *
- *   For more information about the commercial license, please refer to
+ *   For more layoutrmation about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 
 /*
-** layoutinfo.c: The implementation of APIs related LAYOUTINFO
+** layoutlayout.c: The implementation of APIs related LAYOUTINFO
 **
 ** Create by WEI Yongming at 2019/03/20
 */
@@ -76,8 +76,8 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     layout->ws = word_spacing;
     layout->ts = tab_size;
 
-    INIT_LIST_HEAD(&layout->line_head);
-    layout->left_ucs = truninfo->nr_ucs;
+    INIT_LIST_HEAD(&layout->lines);
+    layout->nr_left_ucs = truninfo->nr_ucs;
 
     layout->persist = persist_lines ? 1 : 0;
 
@@ -118,15 +118,15 @@ static void release_line(LAYOUTLINE* line)
     free(line);
 }
 
-BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* info)
+BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout)
 {
-    while (!list_empty(&info->line_head)) {
-        LAYOUTLINE* line = (LAYOUTLINE*)info->line_head.prev;
-        list_del(info->line_head.prev);
+    while (!list_empty(&layout->lines)) {
+        LAYOUTLINE* line = (LAYOUTLINE*)layout->lines.prev;
+        list_del(layout->lines.prev);
         release_line(line);
     }
 
-    free(info);
+    free(layout);
     return TRUE;
 }
 
@@ -149,34 +149,29 @@ struct _LayoutState {
     RECT shape_ink_rect, shape_logical_rect;
 
     /* maintained per paragraph */
-
     // Current resolved base direction
     GlyphRunDir base_dir;
-
     // Line of the paragraph, starting at 1 for first line
     int line_of_par;
-
     // Glyphs for the current glyph run
     GLYPHSTRING* glyphs;
+    // Logical widths for the current text run */
+    int *log_widths;
+    // Offset into log_widths to the point corresponding
+    // to the remaining portion of the first item
+    int log_widths_offset;
 
     // Character offset of first item in state->item in layout->truninfo->ucs
     int start_offset;
 
-    // Logical widths for the current text run */
-    int *log_widths;
-
-    /* Offset into log_widths to the point corresponding
-     * to the remaining portion of the first item */
-    int log_widths_offset;
-
-    // Start index of line in layout->truninfo->ucs */
-    int line_start_index;
-
     /* maintained per line */
     // Current text run
     TEXTRUN* item;
+    // Start index of line in current item */
+    int start_index_in_item;
     // the number of not fit uchars in current text run
-    int nr_left_ucs;
+    int left_ucs_in_item;
+
     // Goal width of line currently processing; < 0 is infinite
     int line_width;
     // Amount of space remaining on line; < 0 is infinite
@@ -279,7 +274,7 @@ static GLYPHSTRING* shape_run(LAYOUTLINE *line, LayoutState *state,
     return glyphs;
 }
 
-static GLYPHRUN* insert_run (LAYOUTLINE *line, LayoutState *state,
+static GLYPHRUN* insert_run(LAYOUTLINE *line, LayoutState *state,
         TEXTRUN *text_run, int si, int len, BOOL last_run)
 {
     GLYPHRUN *glyph_run = malloc (sizeof(GLYPHRUN));
@@ -325,7 +320,7 @@ static inline BOOL can_break_at (LAYOUTINFO *layout,
     else if (wrap == GRF_OVERFLOW_WRAP_ANYWHERE)
         return layout->bos[offset] & BOV_GB_CHAR_BREAK;
     else {
-        _WRN_PRINTF ("broken LayoutInfo\n");
+        _WRN_PRINTF ("broken LayoutInfo");
     }
 
     return TRUE;
@@ -506,11 +501,88 @@ retry_break:
     }
 }
 
+static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
+{
+    return NULL;
+}
+
+static int traverse_line_glyphs(LAYOUTLINE* line, int x, int y,
+        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
+{
+    return 0;
+}
+
 LAYOUTLINE* GUIAPI LayoutNextLine(
-        LAYOUTINFO* info, LAYOUTLINE* prev_Line,
+        LAYOUTINFO* layout, LAYOUTLINE* prev_line,
         int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
+    LAYOUTLINE* next_line = NULL;
+    LayoutState state;
+
+    if (layout->persist && layout->nr_left_ucs == 0) {
+        // already laid out
+
+        if (prev_line && &prev_line->list != &layout->lines) {
+            next_line = (LAYOUTLINE*)prev_line->list.next;
+            goto out;
+        }
+
+        return NULL;
+    }
+
+    // init state here
+
+    state.last_line = last_line ? 1 : 0;
+    state.shape_set = 0;
+    //state.shape_ink_rect;
+    //state.shape_logical_rect;
+
+    state.base_dir = layout->truninfo->run_dir;
+    state.line_of_par = 1;
+    state.glyphs = NULL;
+    state.log_widths = NULL;
+    state.log_widths_offset = 0;
+
+    if (prev_line == NULL) {
+        state.start_offset = 0;
+        state.item = (TEXTRUN*)&layout->truninfo->truns.next;
+        if (state.item == NULL) goto error;
+        state.start_index_in_item = 0;
+        state.left_ucs_in_item = state.item->len;
+    }
+    else {
+        state.start_offset = layout->truninfo->nr_ucs - layout->nr_left_ucs;
+        state.item = __mg_textruns_get_by_offset(layout->truninfo,
+                state.start_offset, &state.start_index_in_item);
+        if (state.item == NULL) goto error;
+        state.left_ucs_in_item = state.item->len - state.start_index_in_item;
+    }
+
+    state.line_width = max_extent;
+    state.remaining_width = max_extent;
+
+    next_line = check_next_line (layout, &state);
+    if (next_line) {
+        if (layout->persist) {
+            list_add_tail(&next_line->list, &layout->lines);
+        }
+        else {
+            release_line(prev_line);
+        }
+
+        layout->nr_left_ucs -= next_line->len;
+    }
+
+out:
+    if (next_line && cb_laid_out) {
+        traverse_line_glyphs(next_line, x, y, cb_laid_out, ctxt);
+    }
+
+    return next_line;
+
+error:
+    _WRN_PRINTF("bad item");
     return NULL;
 }
 

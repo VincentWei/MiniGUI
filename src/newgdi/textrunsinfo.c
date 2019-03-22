@@ -192,7 +192,7 @@ static LOGFONT* create_logfont_for_ort(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _WRN_PRINTF("bad orientation param: %d\n", ort);
+        _WRN_PRINTF("bad orientation param: %d", ort);
         return NULL;
     }
 
@@ -232,7 +232,7 @@ static void release_logfont_for_run(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _WRN_PRINTF("bad orientation param: %d\n", run->ort);
+        _WRN_PRINTF("bad orientation param: %d", run->ort);
         return;
     }
 
@@ -530,7 +530,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     }
 
     if (!is_fontname_conformed(logfont_name, glyph_orient, orient_policy)) {
-        _WRN_PRINTF("Please check your fontname; it must conform to the glyph orientation.");
+        _WRN_PRINTF("Please check your fontname; it must conform to the glyph orientation specified.");
         return NULL;
     }
 

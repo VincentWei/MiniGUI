@@ -125,6 +125,8 @@ extern "C" {
 #endif  /* __cplusplus */
 
 RGBCOLOR __mg_textruns_get_color(const TEXTRUNSINFO* runinfo, int index);
+TEXTRUN* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
+        int offset, int *start_index);
 
 #ifdef __cplusplus
 }

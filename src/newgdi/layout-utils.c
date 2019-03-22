@@ -89,8 +89,7 @@ void __mg_glyph_string_set_size (GLYPHSTRING* string, int new_len)
                 more_space = max_space;
 
                 if ((unsigned int)new_len > max_space) {
-                    _WRN_PRINTF("%s: Too large glyph string of length %d\n",
-                            __FUNCTION__, new_len);
+                    _WRN_PRINTF("Too large glyph string of length %d", new_len);
                 }
             }
 
