@@ -121,7 +121,7 @@ int __mg_glyph_string_get_width(const GlyphString *glyphs)
 
 /**
  * __mg_glyph_run_split:
- * @orig: a #PangoItem
+ * @orig: a #TextRun
  * @text: text to which positions in @orig apply
  * @split_index: byte index of position to split item, relative to the start of the item
  *

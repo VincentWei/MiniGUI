@@ -68,8 +68,6 @@ struct _GlyphRun {
     struct list_head    list;
     TextRun*            trun;   // the text run corresponding to the glyph run
     GlyphString*        gs;     // the glyph string
-    int                 so;     // the start offset in the text run
-    int                 len;    // the number of the uchars
 };
 
 struct _LAYOUTLINE {
@@ -126,7 +124,7 @@ struct _GlyphRunIter {
 extern "C" {
 #endif  /* __cplusplus */
 
-void __mg_text_run_free(TextRun* trun);
+void __mg_layout_line_free_gruns(LAYOUTLINE* line);
 
 GlyphString* __mg_glyph_string_new(void);
 void __mg_glyph_string_free(GlyphString* string);

@@ -680,7 +680,7 @@ TextRun* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
     return trun;
 }
 
-void __mg_text_run_free_orphan(TextRun* trun)
+void __mg_text_run_free(TextRun* trun)
 {
     free(trun);
 }

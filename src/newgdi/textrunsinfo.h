@@ -128,7 +128,7 @@ extern "C" {
 
 TextRun* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
         const Uchar32* ucs, int nr_ucs);
-void __mg_text_run_free_orphan(TextRun* trun);
+void __mg_text_run_free(TextRun* trun);
 
 TextRun* __mg_text_run_copy(const TextRun* trun);
 TextRun* __mg_text_run_split(TextRun *orig, int split_index);
