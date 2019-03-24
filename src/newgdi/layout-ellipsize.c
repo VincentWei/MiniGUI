@@ -133,7 +133,8 @@ struct _EllipsizeState
     int total_width;        /* Original width of line in Pango units */
     int gap_center;         /* Goal for center of gap */
 
-    GlyphItem *ellipsis_run;/* Run created to hold ellipsis */
+    TEXTRUN *ellipsis_trun; /* Text run created to hold ellipsis */
+    GLYPHRUN *ellipsis_grun; /* Glyph run created to hold ellipsis */
     int ellipsis_width;     /* Width of ellipsis, in Pango units */
     int ellipsis_is_cjk;    /* Whether the first character in the ellipsized
                              * is wide; this triggers us to try to use a
@@ -159,7 +160,6 @@ static void init_state (EllipsizeState *state, LAYOUTLINE *line)
     int start_offset;
 
     state->layout = line->layout;
-    //state->attrs = attrs;
 
     state->n_runs = line->nr_runs;
     state->run_info = malloc(sizeof(RunInfo) * state->n_runs);
@@ -180,10 +180,9 @@ static void init_state (EllipsizeState *state, LAYOUTLINE *line)
         i++;
     }
 
-    state->ellipsis_run = NULL;
+    state->ellipsis_trun = NULL;
+    state->ellipsis_grun = NULL;
     state->ellipsis_is_cjk = FALSE;
-    //state->line_start_attr = NULL;
-    //state->gap_start_attr = NULL;
 }
 
 /* Cleanup memory allocation
@@ -294,96 +293,72 @@ static BOOL ends_at_ellipsization_boundary (EllipsizeState *state, LineIter *ite
     return state->layout->bos[run_info->start_offset + iter->run_iter.end_char + 1] & BOV_GB_CURSOR_POS;
 }
 
-/* Helper function to re-itemize a string of text
- */
-static TEXTRUN * itemize_text (EllipsizeState *state, const char *text)
-{
-#if 0
-    TEXTRUN *item;
-    GList *items;
-    items = pango_itemize (state->layout->context, text, 0, strlen (text), attrs, NULL);
-    g_assert (g_list_length (items) == 1);
-
-    item = items->data;
-    g_list_free (items);
-    return item;
-#endif
-
-    return NULL;
-}
-
 /* Shapes the ellipsis using the font and is_cjk information computed by
  * update_ellipsis_shape() from the first character in the gap.
  */
 static void shape_ellipsis (EllipsizeState *state)
 {
-    //PangoAttrList *attrs = pango_attr_list_new ();
-    //GSList *run_attrs;
-    TEXTRUN *item;
+    Glyph32 ellipsis_gv;
+    TEXTRUN *text_run;
     GLYPHSTRING *glyphs;
-    //GSList *l;
-    //PangoAttribute *fallback;
-    const char *ellipsis_text;
+    Uchar32 ellipsis_ucs[3];
+    int nr_ucs = 0;
     int i;
 
-    /* Create/reset state->ellipsis_run
+    /* Create/reset state->ellipsis_grun
      */
-    if (!state->ellipsis_run) {
-        state->ellipsis_run = malloc (sizeof(GlyphItem));
-        state->ellipsis_run->gs = __mg_glyph_string_new ();
-        state->ellipsis_run->trun = NULL;
+    if (!state->ellipsis_grun) {
+        state->ellipsis_grun = malloc (sizeof(GlyphItem));
+        state->ellipsis_grun->gs = __mg_glyph_string_new ();
+        state->ellipsis_grun->trun = NULL;
     }
 
-    if (state->ellipsis_run->trun) {
-        __mg_text_run_free (state->ellipsis_run->trun);
-        state->ellipsis_run->trun = NULL;
+    if (state->ellipsis_trun) {
+        __mg_text_run_free (state->ellipsis_trun);
+        state->ellipsis_trun = NULL;
     }
-
-#if 0
-    /* Create an attribute list
-     */
-    run_attrs = pango_attr_iterator_get_attrs (state->gap_start_attr);
-    for (l = run_attrs; l; l = l->next)
-    {
-        PangoAttribute *attr = l->data;
-        attr->start_index = 0;
-        attr->end_index = G_MAXINT;
-
-        pango_attr_list_insert (attrs, attr);
-    }
-
-    g_slist_free (run_attrs);
-
-    fallback = pango_attr_fallback_new (FALSE);
-    fallback->start_index = 0;
-    fallback->end_index = G_MAXINT;
-    pango_attr_list_insert (attrs, fallback);
-#endif
 
     /* First try using a specific ellipsis character in the best matching font
      */
-    if (state->ellipsis_is_cjk)
-        ellipsis_text = "\342\213\257";    /* U+22EF: MIDLINE HORIZONTAL ELLIPSIS, used for CJK */
-    else
-        ellipsis_text = "\342\200\246";    /* U+2026: HORIZONTAL ELLIPSIS */
-
-    item = itemize_text (state, ellipsis_text);
-
-    /* If that fails we use "..." in the first matching font
-     */
-    if (0) {
-        __mg_text_run_free (item);
-        ellipsis_text = "...";
-        item = itemize_text (state, ellipsis_text);
+    if (state->ellipsis_is_cjk) {
+        /* U+22EF: MIDLINE HORIZONTAL ELLIPSIS, used for CJK */
+        ellipsis_ucs[0] = 0x22EF; // "\342\213\257";
+        nr_ucs = 1;
+    }
+    else {
+        /* U+2026: HORIZONTAL ELLIPSIS */
+        ellipsis_ucs[0] = 0x2026; // "\342\200\246";
+        nr_ucs = 1;
     }
 
-    state->ellipsis_run->trun = item;
+
+    text_run = __mg_text_run_new_orphan (state->layout->truninfo,
+            ellipsis_ucs, nr_ucs);
+    // TODO: other attributes of the text run.
+
+    text_run->lf = __mg_create_logfont_for_run(state->layout->truninfo, text_run);
+    ellipsis_gv = GetGlyphValue(text_run->lf, ellipsis_ucs[0]);
+
+    /* If the devfont of the glyph value of the specific ellipsis character
+     * is SBC devfont, we use "...".
+     */
+    if (DFI_IN_GLYPH(ellipsis_gv) == 0) {
+        __mg_text_run_free (text_run);
+        ellipsis_ucs[0] = '.';
+        ellipsis_ucs[1] = '.';
+        ellipsis_ucs[2] = '.';
+        nr_ucs = 3;
+        text_run = __mg_text_run_new_orphan (state->layout->truninfo,
+                ellipsis_ucs, nr_ucs);
+    }
+
+    state->ellipsis_trun = text_run;
 
     /* Now shape
      */
-    glyphs = state->ellipsis_run->gs;
+    glyphs = state->ellipsis_grun->gs;
 
-    __mg_shape_utf8 (ellipsis_text, strlen(ellipsis_text), item, glyphs);
+    __mg_shape_text_run(state->layout->truninfo, text_run, 0, nr_ucs, glyphs);
 
     state->ellipsis_width = 0;
     for (i = 0; i < glyphs->nr_glyphs; i++)
@@ -626,10 +601,10 @@ static BOOL remove_one_span (EllipsizeState *state)
 /* Fixes up the properties of the ellipsis run once we've determined the final extents
  * of the gap
  */
-static void fixup_ellipsis_run (EllipsizeState *state)
+static void fixup_ellipsis_grun (EllipsizeState *state)
 {
-    GLYPHSTRING *glyphs = state->ellipsis_run->gs;
-    TEXTRUN *item = state->ellipsis_run->trun;
+    GLYPHSTRING *glyphs = state->ellipsis_grun->gs;
+    TEXTRUN *text_run = state->ellipsis_trun;
     int level;
     int i;
 
@@ -641,18 +616,18 @@ static void fixup_ellipsis_run (EllipsizeState *state)
 
     glyphs->glyphs[0].is_cluster_start = TRUE;
 
-    /* Fix up the item to point to the entire elided text */
-    item->si = state->gap_start_iter.run_iter.start_index;
-    item->len = state->gap_end_iter.run_iter.end_index - item->si;
+    /* Fix up the text_run to point to the entire elided text */
+    text_run->si = state->gap_start_iter.run_iter.start_index;
+    text_run->len = state->gap_end_iter.run_iter.end_index - text_run->si;
 
-    /* The level for the item is the minimum level of the elided text */
+    /* The level for the text_run is the minimum level of the elided text */
     level = INT_MAX;
     for (i = state->gap_start_iter.run_index; i <= state->gap_end_iter.run_index; i++)
         level = MIN (level, state->run_info[i].run->trun->el);
 
-    item->el = level;
+    text_run->el = level;
 
-    item->flags |= TEXTRUN_FLAG_IS_ELLIPSIS;
+    text_run->flags |= TEXTRUN_FLAG_IS_ELLIPSIS;
 }
 
 #if 0
@@ -696,7 +671,7 @@ static GSList * get_run_list (EllipsizeState *state)
     if (partial_start_run)
         result = g_slist_prepend (result, partial_start_run);
 
-    result = g_slist_prepend (result, state->ellipsis_run);
+    result = g_slist_prepend (result, state->ellipsis_grun);
 
     if (partial_end_run)
         result = g_slist_prepend (result, partial_end_run);
@@ -751,7 +726,7 @@ BOOL __mg_layout_line_ellipsize (LAYOUTLINE *line, int goal_width)
             break;
     }
 
-    fixup_ellipsis_run (&state);
+    fixup_ellipsis_grun (&state);
 
     //g_slist_free (line->runs);
     //line->runs = get_run_list (&state);

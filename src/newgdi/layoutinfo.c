@@ -168,7 +168,7 @@ struct _LayoutState {
     // Start index of line in layout->text
     int line_start_index;
     // Current text run
-    TEXTRUN* item;
+    const TEXTRUN* item;
     // Start index of line in current item */
     int start_index_in_item;
     // the number of not fit uchars in current text run
@@ -236,20 +236,20 @@ static void distribute_letter_spacing (int letter_spacing,
 }
 
 static GLYPHSTRING* shape_run(LAYOUTLINE *line, LayoutState *state,
-        TEXTRUN *item)
+        const TEXTRUN *item, int offset, int len)
 {
     LAYOUTINFO *layout = line->layout;
     GLYPHSTRING *glyphs = __mg_glyph_string_new ();
 
-    if (layout->truninfo->ucs[item->si] == '\t')
+    if (layout->truninfo->ucs[item->si + offset] == '\t')
         shape_tab(line, glyphs);
     else {
         if (state->shape_set)
-            shape_shape(layout->truninfo->ucs + item->si, item->len,
+            shape_shape(layout->truninfo->ucs + item->si + offset, len,
                     &state->shape_ink_rect,
                     &state->shape_logical_rect, glyphs);
         else
-            shape_full(layout->truninfo->ucs + item->si, item->len,
+            shape_full(layout->truninfo->ucs + item->si + offset, len,
                     layout->truninfo->ucs, layout->truninfo->nr_ucs,
                     layout->truninfo, item, glyphs);
 
@@ -259,6 +259,8 @@ static GLYPHSTRING* shape_run(LAYOUTLINE *line, LayoutState *state,
 
             glyph_item.trun = item;
             glyph_item.gs = glyphs;
+            glyph_item.so = offset;
+            glyph_item.len = len;
 
             __mg_glyph_item_letter_space (&glyph_item,
                     layout->truninfo->ucs,
@@ -282,43 +284,42 @@ static void free_run (GLYPHRUN *run)
     free(run);
 }
 
-static TEXTRUN *uninsert_run (LAYOUTLINE *line)
+static const TEXTRUN *uninsert_run (LAYOUTLINE *line)
 {
     GLYPHRUN *run;
-    TEXTRUN *item;
+    const TEXTRUN *item;
 
     run = (GLYPHRUN*)&line->gruns.next;
     item = run->trun;
 
     list_del(line->gruns.next);
-    line->len -= item->len;
+    line->len -= run->len;
 
     free_run(run);
     return item;
 }
 
 static GLYPHRUN* insert_run(LAYOUTLINE *line, LayoutState *state,
-        TEXTRUN *text_run, int si, int len, BOOL last_run)
+        const TEXTRUN *text_run, int so, int len, BOOL last_run)
 {
-    GLYPHRUN *glyph_run = malloc (sizeof(GLYPHRUN));
+    GLYPHRUN *glyph_run = malloc(sizeof(GLYPHRUN));
 
     glyph_run->trun = text_run;
+    glyph_run->so = so;
+    glyph_run->len = len;
 
     if (last_run && state->log_widths_offset == 0)
         glyph_run->gs = state->glyphs;
     else
-        glyph_run->gs = shape_run (line, state, text_run);
+        glyph_run->gs = shape_run(line, state, text_run, so, len);
 
     if (last_run) {
         if (state->log_widths_offset > 0)
-            __mg_glyph_string_free (state->glyphs);
+            __mg_glyph_string_free(state->glyphs);
         state->glyphs = NULL;
-        free (state->log_widths);
+        free(state->log_widths);
         state->log_widths = NULL;
     }
-
-    glyph_run->si = si;
-    glyph_run->len = len;
 
     list_add_tail(&glyph_run->list, &line->gruns);
     line->len += text_run->len;
@@ -385,7 +386,7 @@ BreakResult process_text_run(LAYOUTINFO *layout,
         LAYOUTLINE *line, LayoutState *state,
         BOOL force_fit, BOOL no_break_at_end)
 {
-    TEXTRUN *item = state->item;
+    const TEXTRUN *item = state->item;
     BOOL shape_set = FALSE;
     int width;
     int i;
@@ -396,7 +397,7 @@ BreakResult process_text_run(LAYOUTINFO *layout,
 #define LINE_SEPARATOR 0x2028
 
     if (!state->glyphs) {
-        state->glyphs = shape_run (line, state, item);
+        state->glyphs = shape_run (line, state, item, 0, item->len);
 
         state->log_widths = NULL;
         state->log_widths_offset = 0;
@@ -645,7 +646,7 @@ static void zero_line_final_space (LAYOUTLINE *line,
         LayoutState *state, GLYPHRUN *run)
 {
     LAYOUTINFO *layout = line->layout;
-    TEXTRUN *item = run->trun;
+    const TEXTRUN *item = run->trun;
     GLYPHSTRING *glyphs = run->gs;
     int glyph = item->el % 2 ? 0 : glyphs->nr_glyphs - 1;
 
@@ -1101,13 +1102,12 @@ static void layout_line_postprocess (LAYOUTLINE *line,
 
 static void add_line (LAYOUTLINE *line, LayoutState  *state)
 {
+#if 0
     LAYOUTINFO *layout = line->layout;
 
-    /* we prepend, then reverse the list later */
     list_add_tail(&line->list, &layout->lines);
     layout->nr_lines++;
 
-#if 0
     if (layout->height >= 0) {
         PangoRectangle logical_rect;
         pango_layout_line_get_extents (line, NULL, &logical_rect);
@@ -1115,6 +1115,8 @@ static void add_line (LAYOUTLINE *line, LayoutState  *state)
         state->remaining_height -= layout->spacing;
         state->line_height = logical_rect.height;
     }
+#else
+    // do nothing
 #endif
 }
 
@@ -1139,7 +1141,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
         state->remaining_width = state->line_width;
 
     while (state->item) {
-        TEXTRUN *item = state->item;
+        const TEXTRUN *item = state->item;
         BreakResult result;
         int old_num_chars;
         int old_remaining_width;
@@ -1214,7 +1216,7 @@ done:
     add_line (line, state);
     state->line_of_par++;
     state->line_start_index += line->len;
-    return NULL;
+    return line;
 }
 
 static int traverse_line_glyphs(LAYOUTLINE* line, int x, int y,
@@ -1293,6 +1295,7 @@ next_line:
             release_line(prev_line);
         }
 
+        layout->nr_lines ++;
         layout->nr_left_ucs -= next_line->len;
     }
 

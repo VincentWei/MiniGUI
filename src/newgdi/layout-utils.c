@@ -64,8 +64,10 @@ void __mg_glyph_string_free (GLYPHSTRING *string)
     if (string == NULL)
         return;
 
-    free (string->glyphs);
-    free (string->log_clusters);
+    if (string->glyphs)
+        free (string->glyphs);
+    if (string->log_clusters)
+        free (string->log_clusters);
     free (string);
 }
 
@@ -122,7 +124,7 @@ BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
     int glyph_index = iter->end_glyph;
     GLYPHSTRING *glyphs = iter->glyph_item->gs;
     int cluster;
-    TEXTRUN *item = iter->glyph_item->trun;
+    const TEXTRUN *item = iter->glyph_item->trun;
 
     if (LTR (iter->glyph_item)) {
         if (glyph_index == glyphs->nr_glyphs)
@@ -186,7 +188,7 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
     int glyph_index = iter->start_glyph;
     GLYPHSTRING *glyphs = iter->glyph_item->gs;
     int cluster;
-    TEXTRUN *item = iter->glyph_item->trun;
+    const TEXTRUN *item = iter->glyph_item->trun;
 
     if (LTR (iter->glyph_item)) {
         if (glyph_index == 0)
@@ -330,15 +332,6 @@ void __mg_glyph_item_get_logical_widths (const GlyphItem *glyph_item,
             logical_widths[iter.start_char] += cluster_width - (char_width * num_chars);
         }
     }
-}
-
-void __mg_shape_utf8 (const char* text, int len,
-        const TEXTRUN* trun, GLYPHSTRING* gs)
-{
-}
-
-void __mg_text_run_free(TEXTRUN* trun)
-{
 }
 
 void __mg_glyph_item_letter_space (const GlyphItem* glyph_item,

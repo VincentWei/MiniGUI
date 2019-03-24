@@ -125,6 +125,15 @@ struct _TEXTRUNSINFO {
 extern "C" {
 #endif  /* __cplusplus */
 
+LOGFONT* __mg_create_logfont_for_run(const TEXTRUNSINFO* runinfo,
+        const TEXTRUN* run);
+void __mg_release_logfont_for_run(const TEXTRUNSINFO* runinfo,
+        const TEXTRUN* run);
+
+TEXTRUN* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
+        const Uchar32* ucs, int nr_ucs);
+void __mg_text_run_free_orphan(TEXTRUN* trun);
+
 RGBCOLOR __mg_textruns_get_color(const TEXTRUNSINFO* runinfo, int index);
 TEXTRUN* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
         int offset, int *start_index);

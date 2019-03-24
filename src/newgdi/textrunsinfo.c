@@ -165,8 +165,8 @@ static void state_update_for_new_run (TEXTRUNSTATE *state)
 }
 
 /* Use MiniGUI resource manager to avoid duplicated logfonts */
-static LOGFONT* create_logfont_for_ort(const TEXTRUNSINFO* runinfo,
-        GlyphOrient ort)
+LOGFONT* __mg_create_logfont_for_run(const TEXTRUNSINFO* runinfo,
+        const TEXTRUN* run)
 {
     char fontname[LEN_LOGFONT_NAME_FULL + 1];
     int orient_pos = fontGetOrientPosFromName(runinfo->fontname);
@@ -178,7 +178,7 @@ static LOGFONT* create_logfont_for_ort(const TEXTRUNSINFO* runinfo,
     memset (fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
     strncpy (fontname, runinfo->fontname, LEN_LOGFONT_NAME_FULL);
 
-    switch (ort) {
+    switch (run->ort) {
     case GLYPH_ORIENT_UPRIGHT:
         fontname[orient_pos] = FONT_ORIENT_UPRIGHT;
         break;
@@ -192,7 +192,7 @@ static LOGFONT* create_logfont_for_ort(const TEXTRUNSINFO* runinfo,
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _WRN_PRINTF("bad orientation param: %d", ort);
+        _WRN_PRINTF("bad orientation param: %d", run->ort);
         return NULL;
     }
 
@@ -206,7 +206,7 @@ static LOGFONT* create_logfont_for_ort(const TEXTRUNSINFO* runinfo,
     return lf;
 }
 
-static void release_logfont_for_run(const TEXTRUNSINFO* runinfo,
+void __mg_release_logfont_for_run(const TEXTRUNSINFO* runinfo,
         const TEXTRUN* run)
 {
     char fontname[LEN_LOGFONT_NAME_FULL + 1];
@@ -253,10 +253,6 @@ static void state_add_character(TEXTRUNSTATE *state,
     }
 
     state->run = malloc(sizeof(TEXTRUN));
-    if (no_shaping)
-        state->run->lf = NULL;
-    else
-        state->run->lf = create_logfont_for_ort(state->runinfo, state->ort_rsv);
     state->run->si  = pos - state->text;
     state->run->len = 1;
     state->run->lc  = state->derived_lang;
@@ -264,6 +260,12 @@ static void state_add_character(TEXTRUNSTATE *state,
     state->run->el  = state->emb_level;
     state->run->dir = state->runinfo->run_dir;
     state->run->ort = state->ort_rsv;
+
+    if (no_shaping)
+        state->run->lf = NULL;
+    else
+        state->run->lf = __mg_create_logfont_for_run(state->runinfo,
+            state->run);
 
     /* The level vs. gravity dance:
      *  If gravity is SOUTH, leave level untouched.
@@ -362,7 +364,7 @@ static BOOL state_next (TEXTRUNSTATE *state)
     return TRUE;
 }
 
-static BOOL create_glyph_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
+static BOOL create_text_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
 {
     BOOL ok = FALSE;
     TEXTRUNSTATE state;
@@ -614,8 +616,8 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     runinfo->all_odd = (level_and & 0x1) == 1;
 #endif
 
-    if (!create_glyph_runs(runinfo, els)) {
-        _ERR_PRINTF("%s: failed to call create_glyph_runs.\n",
+    if (!create_text_runs(runinfo, els)) {
+        _ERR_PRINTF("%s: failed to call create_text_runs.\n",
             __FUNCTION__);
         goto out;
     }
@@ -670,6 +672,19 @@ TEXTRUN* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
     return NULL;
 }
 
+TEXTRUN* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
+        const Uchar32* ucs, int nr_ucs)
+{
+    TEXTRUN* trun = malloc(sizeof(TEXTRUN));
+
+    return trun;
+}
+
+void __mg_text_run_free_orphan(TEXTRUN* trun)
+{
+    free(trun);
+}
+
 BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
         int start_index, int length, RGBCOLOR color)
 {
@@ -714,7 +729,7 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
         TEXTRUN* run = (TEXTRUN*)runinfo->truns.prev;
         list_del(runinfo->truns.prev);
         if (run->lf)
-            release_logfont_for_run(runinfo, run);
+            __mg_release_logfont_for_run(runinfo, run);
         free(run);
     }
 

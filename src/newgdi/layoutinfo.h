@@ -66,9 +66,9 @@ struct _GLYPHSTRING {
 
 struct _GLYPHRUN {
     struct list_head    list;
-    TEXTRUN*            trun;   // the text run to which this glyph run belongs
+    const TEXTRUN*      trun;   // the text run to which this glyph run belongs
     GLYPHSTRING*        gs;     // the glyph string
-    int                 si;     // the start index in the text run
+    int                 so;     // the start offset in the text run
     int                 len;    // the number of the uchars
 };
 
@@ -150,6 +150,9 @@ void __mg_glyph_item_letter_space (const GlyphItem* glyph_item,
         const Uchar32* ucs, const BreakOppo* bos, int letter_spacing);
 
 BOOL __mg_layout_line_ellipsize(LAYOUTLINE *line, int goal_width);
+
+int __mg_shape_text_run(const TEXTRUNSINFO* info, const TEXTRUN* run,
+        int so, int len, GLYPHSTRING* glyphs);
 
 void __mg_shape_utf8 (const char* text, int len,
         const TEXTRUN* trun, GLYPHSTRING* gs);

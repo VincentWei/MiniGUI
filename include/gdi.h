@@ -11408,7 +11408,7 @@ MG_EXPORT int GUIAPI GetACharsExtentPoint (HDC hdc, Achar32* achars,
         int nr_achars, int max_extent, SIZE* size);
 
 /**
- * \fn void GUIAPI GetGlyphValue (LOGFONT* logfont, Achar32 chv)
+ * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, Achar32 chv)
  * \brief Get the LOGFONT glyph value of an abstract character.
  *
  * \param logfont The logical font.
