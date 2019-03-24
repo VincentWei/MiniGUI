@@ -78,12 +78,12 @@ static void reverse_shaped_glyphs(ShapedGlyph* glyphs, int len)
 }
 
 static BOOL shape_text_run(SEInstance* inst,
-        const TEXTRUNSINFO* info, const TextRun* run,
+        const TEXTRUNSINFO* info, const LayoutRun* run,
         GlyphString* gs)
 {
     BOOL ok = FALSE;
     int i, j;
-    const Uchar32* logical_ucs = info->ucs + run->si;
+    const Uchar32* logical_ucs = run->ucs;
     int nr_ucs = run->len;
 
     Uchar32 local_shaped_ucs[LOCAL_ARRAY_SIZE];

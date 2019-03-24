@@ -43,13 +43,14 @@
 
 #include "list.h"
 
+typedef struct _LayoutRun       LayoutRun;
 typedef struct _TextRun         TextRun;
 typedef struct _GlyphString     GlyphString;
 typedef struct _SEInstance      SEInstance;
 typedef struct _TextAttrMap     TextAttrMap;
 
 typedef BOOL (*CB_SHAPE_TEXT_RUN)(SEInstance* instance,
-        const TEXTRUNSINFO* info, const TextRun* run,
+        const TEXTRUNSINFO* info, const LayoutRun* run,
         GlyphString* gs);
 
 typedef BOOL (*CB_DESTROY_INSTANCE)(SEInstance* instance);
@@ -67,16 +68,15 @@ struct _ShapingEngineInfo {
     CB_DESTROY_INSTANCE free;
 };
 
-#define TextRun_FLAG_CENTERED_BASELINE      0x01
-#define TextRun_FLAG_IS_ELLIPSIS            0x02
+#define TEXTRUN_FLAG_CENTERED_BASELINE      0x01
+#define TEXTRUN_FLAG_NOT_SHAPING            0x02
 
 struct _TextRun {
     struct list_head list;
-    const char* fontname;   // the logfont name for this run; NULL for default
-    LOGFONT*    lf;     // the logfont for this run
+    char*       fontname;   // the logfont name for this run; NULL for default
 
-    int         si;     // start index in the Unicode string
-    int         len;    // the number of Unicode characters
+    int         si;     // start index in the uchar string
+    int         len;    // the length in uchars
 
     Uint32      lc:8;   // language code
     Uint32      st:8;   // script type
@@ -91,7 +91,6 @@ struct _TextRun {
 #define TEXT_ATTR_STRIKETHROUGH_COLOR   0x02
 #define TEXT_ATTR_OUTLINE_COLOR         0x03
 #define TEXT_ATTR_BACKGROUND_COLOR      0x04
-
 
 struct _TextAttrMap {
     struct list_head    list;
@@ -126,20 +125,8 @@ struct _TEXTRUNSINFO {
 extern "C" {
 #endif  /* __cplusplus */
 
-TextRun* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
-        const Uchar32* ucs, int nr_ucs);
-void __mg_text_run_free(TextRun* trun);
-
-TextRun* __mg_text_run_copy(const TextRun* trun);
-TextRun* __mg_text_run_split(TextRun *orig, int split_index);
-
-LOGFONT* __mg_create_logfont_for_run(const TEXTRUNSINFO* runinfo,
-        const TextRun* run);
-void __mg_release_logfont_for_run(const TEXTRUNSINFO* runinfo,
-        const TextRun* run);
-
 RGBCOLOR __mg_textruns_get_color(const TEXTRUNSINFO* runinfo, int index);
-TextRun* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
+const TextRun* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
         int offset, int *start_index);
 
 #ifdef __cplusplus

@@ -64,9 +64,26 @@ struct _GlyphString {
     unsigned int    space;
 };
 
+#define LAYOUTRUN_FLAG_ORPHAN   0x01
+
+struct _LayoutRun {
+    struct list_head list;
+    LOGFONT*        lf;     // the logfont for this run
+    const Uchar32*  ucs;    // the uchar string
+
+    int             si;     // the start index of this run
+    int             len;    // the length of the uchar string
+    Uint32          lc:8;   // language code
+    Uint32          st:8;   // script type
+    Uint32          el:8;   // the bidi embedding level
+    Uint32          dir:4;  // the run direction
+    Uint32          ort:2;  // the glyph orientation
+    Uint32          flags:2;// other flags
+};
+
 struct _GlyphRun {
     struct list_head    list;
-    TextRun*            trun;   // the text run corresponding to the glyph run
+    LayoutRun*          lrun;   // the layout run corresponding to the glyph run
     GlyphString*        gs;     // the glyph string
 };
 
@@ -124,7 +141,28 @@ struct _GlyphRunIter {
 extern "C" {
 #endif  /* __cplusplus */
 
-void __mg_layout_line_free_gruns(LAYOUTLINE* line);
+LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
+        const char* fontname, GlyphOrient ort);
+void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
+        const char* fontname, GlyphOrient ort);
+
+GlyphRun *__mg_glyph_run_split (GlyphRun *orig,
+        const Uchar32 *text, int split_index);
+void __mg_glyph_run_free(GlyphRun* run);
+
+LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
+        const TextRun* trun, const Uchar32* ucs, int nr_ucs);
+LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
+        const TextRun* trun);
+LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
+        const TextRun* trun, int offset);
+
+void __mg_layout_run_free(LayoutRun* run);
+
+LayoutRun* __mg_layout_run_copy(const LayoutRun* run);
+LayoutRun* __mg_layout_run_split(LayoutRun *orig, int split_index);
+
+void __mg_layout_line_free_runs(LAYOUTLINE* line);
 
 GlyphString* __mg_glyph_string_new(void);
 void __mg_glyph_string_free(GlyphString* string);
@@ -148,11 +186,8 @@ void __mg_glyph_run_letter_space (const GlyphRun* glyph_run,
 
 BOOL __mg_layout_line_ellipsize(LAYOUTLINE *line, int goal_width);
 
-int __mg_shape_text_run(const TEXTRUNSINFO* info, const TextRun* run,
-        int so, int len, GlyphString* glyphs);
-
-void __mg_shape_utf8 (const char* text, int len,
-        const TextRun* trun, GlyphString* gs);
+int __mg_shape_layout_run(const TEXTRUNSINFO* info, const LayoutRun* run,
+        GlyphString* glyphs);
 
 #ifdef __cplusplus
 }

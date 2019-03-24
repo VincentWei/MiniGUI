@@ -84,43 +84,12 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     return layout;
 }
 
-static void release_glyph_string(GlyphString* gs)
-{
-    if (gs->glyphs)
-        free (gs->glyphs);
-    if (gs->log_clusters);
-        free (gs->log_clusters);
-
-    free(gs);
-}
-
-static void release_run(GlyphRun* run)
-{
-    if (run->trun) {
-        __mg_text_run_free(run->trun);
-    }
-
-    if (run->gs) {
-        release_glyph_string(run->gs);
-    }
-    free(run);
-}
-
-void __mg_layout_line_free_runs(LAYOUTLINE* line)
-{
-    while (!list_empty(&line->gruns)) {
-        GlyphRun* run = (GlyphRun*)line->gruns.prev;
-        list_del(line->gruns.prev);
-        release_run(run);
-    }
-}
-
 static void release_line(LAYOUTLINE* line)
 {
     while (!list_empty(&line->gruns)) {
         GlyphRun* run = (GlyphRun*)line->gruns.prev;
         list_del(line->gruns.prev);
-        release_run(run);
+        __mg_glyph_run_free(run);
     }
 
     if (line->log_widths) {
@@ -180,7 +149,9 @@ struct _LayoutState {
     // Start index of line in layout->text
     int line_start_index;
     // Current text run
-    TextRun* item;
+    const TextRun* trun;
+    // Current layout run
+    LayoutRun* item;
     // Start index of line in current item */
     int start_index_in_item;
     // the number of not fit uchars in current text run
@@ -230,7 +201,7 @@ static void shape_shape(const Uchar32* ucs, int nr_ucs,
 
 static void shape_full(const Uchar32* item_ucs, int nr_item_ucs,
         const Uchar32* para_ucs, int nr_para_ucs,
-        const TEXTRUNSINFO* truninfo, TextRun* textrun,
+        const TEXTRUNSINFO* truninfo, LayoutRun* textrun,
         GlyphString* glyphs)
 {
 }
@@ -248,7 +219,7 @@ static void distribute_letter_spacing (int letter_spacing,
 }
 
 static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
-        TextRun *item)
+        LayoutRun *item)
 {
     LAYOUTINFO *layout = line->layout;
     GlyphString *glyphs = __mg_glyph_string_new ();
@@ -269,7 +240,7 @@ static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
             GlyphRun glyph_run;
             int space_left, space_right;
 
-            glyph_run.trun = item;
+            glyph_run.lrun = item;
             glyph_run.gs = glyphs;
 
             __mg_glyph_run_letter_space (&glyph_run,
@@ -294,32 +265,32 @@ static void free_run (GlyphRun *run)
     free(run);
 }
 
-static TextRun *uninsert_run (LAYOUTLINE *line)
+static LayoutRun *uninsert_run (LAYOUTLINE *line)
 {
     GlyphRun *run;
-    TextRun *item;
+    LayoutRun *item;
 
     run = (GlyphRun*)&line->gruns.next;
-    item = run->trun;
+    item = run->lrun;
 
     list_del(line->gruns.next);
-    line->len -= run->trun->len;
+    line->len -= run->lrun->len;
 
     free_run(run);
     return item;
 }
 
 static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
-        TextRun *text_run, BOOL last_run)
+        LayoutRun *layout_run, BOOL last_run)
 {
     GlyphRun *glyph_run = malloc(sizeof(GlyphRun));
 
-    glyph_run->trun = text_run;
+    glyph_run->lrun = layout_run;
 
     if (last_run && state->log_widths_offset == 0)
         glyph_run->gs = state->glyphs;
     else
-        glyph_run->gs = shape_run(line, state, text_run);
+        glyph_run->gs = shape_run(line, state, layout_run);
 
     if (last_run) {
         if (state->log_widths_offset > 0)
@@ -330,7 +301,7 @@ static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
     }
 
     list_add_tail(&glyph_run->list, &line->gruns);
-    line->len += text_run->len;
+    line->len += layout_run->len;
 
     return glyph_run;
 }
@@ -394,7 +365,7 @@ BreakResult process_text_run(LAYOUTINFO *layout,
         LAYOUTLINE *line, LayoutState *state,
         BOOL force_fit, BOOL no_break_at_end)
 {
-    TextRun *item = state->item;
+    LayoutRun *item = state->item;
     BOOL shape_set = FALSE;
     int width;
     int i;
@@ -456,7 +427,7 @@ BreakResult process_text_run(LAYOUTINFO *layout,
         if (processing_new_item) {
 
             GlyphRun glyph_run;
-            glyph_run.trun = item;
+            glyph_run.lrun = item;
             glyph_run.gs = state->glyphs;
 
             state->log_widths = malloc (sizeof (int) * item->len);
@@ -632,8 +603,8 @@ static void layout_line_reorder(LAYOUTLINE *line)
     list_for_each(i, &line->gruns) {
         GlyphRun *grun = (GlyphRun*)i;
 
-        level_or |= grun->trun->el;
-        level_and &= grun->trun->el;
+        level_or |= grun->lrun->el;
+        level_and &= grun->lrun->el;
         length++;
     }
 
@@ -654,7 +625,7 @@ static void zero_line_final_space (LAYOUTLINE *line,
         LayoutState *state, GlyphRun *run)
 {
     LAYOUTINFO *layout = line->layout;
-    TextRun *item = run->trun;
+    LayoutRun *item = run->lrun;
     GlyphString *glyphs = run->gs;
     int glyph = item->el % 2 ? 0 : glyphs->nr_glyphs - 1;
 
@@ -711,7 +682,7 @@ static void pad_glyphstring_left (GlyphString *glyphs,
 
 static inline BOOL is_tab_run(LAYOUTINFO *layout, GlyphRun *grun)
 {
-    return (layout->truninfo->ucs[grun->trun->si] == '\t');
+    return (layout->truninfo->ucs[grun->lrun->si] == '\t');
 }
 
 /* When doing shaping, we add the letter spacing value for a
@@ -851,18 +822,18 @@ static void justify_clusters (LAYOUTLINE *line, LayoutState *state)
             int dir;
             int offset;
 
-            dir = run->trun->el % 2 == 0 ? +1 : -1;
+            dir = run->lrun->el % 2 == 0 ? +1 : -1;
 
             /* We need character offset of the start of the run.
              * We don't have this.
              * Compute by counting from the beginning of the line.
              * The naming is confusing.  Note that:
              *
-             * run->trun->si is the index of start of run.
+             * run->lrun->si is the index of start of run.
              * state->line_start_index is the index of start of line.
              */
-            assert(run->trun->si >= state->line_start_index);
-            offset = state->line_start_index + run->trun->si;
+            assert(run->lrun->si >= state->line_start_index);
+            offset = state->line_start_index + run->lrun->si;
 
             if ((have_cluster = (dir > 0)))
                 __mg_glyph_run_iter_init_start(&cluster_iter, run, text);
@@ -989,8 +960,8 @@ static void justify_words (LAYOUTLINE *line,
             BOOL have_cluster;
             int offset;
 
-            assert(run->trun->si >= state->line_start_index);
-            offset = state->line_start_index + run->trun->si;
+            assert(run->lrun->si >= state->line_start_index);
+            offset = state->line_start_index + run->lrun->si;
 
             for (have_cluster = __mg_glyph_run_iter_init_start (&cluster_iter,
                         run, text);
@@ -1149,7 +1120,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
         state->remaining_width = state->line_width;
 
     while (state->item) {
-        TextRun *item = state->item;
+        LayoutRun *item = state->item;
         BreakResult result;
         int old_num_chars;
         int old_remaining_width;
@@ -1275,24 +1246,27 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
             goto next_line;
         }
 
-        state.item = (TextRun*)&layout->truninfo->truns.next;
+        state.trun = (TextRun*)&layout->truninfo->truns.next;
+        state.item = __mg_layout_run_new_from(layout, state.trun);
         state.start_index_in_item = 0;
         state.left_ucs_in_item = state.item->len;
     }
     else {
         state.start_offset = layout->truninfo->nr_ucs - layout->nr_left_ucs;
-        state.item = __mg_textruns_get_by_offset(layout->truninfo,
+        state.trun = __mg_textruns_get_by_offset(layout->truninfo,
                 state.start_offset, &state.start_index_in_item);
-        if (state.item == NULL) {
+        if (state.trun == NULL) {
             return NULL;
         }
+        state.item = __mg_layout_run_new_from_offset(layout,
+                state.trun, state.start_index_in_item);
         state.left_ucs_in_item = state.item->len - state.start_index_in_item;
     }
 
     state.line_width = max_extent;
     state.remaining_width = max_extent;
 
-    next_line = check_next_line (layout, &state);
+    next_line = check_next_line(layout, &state);
 
 next_line:
     if (next_line) {

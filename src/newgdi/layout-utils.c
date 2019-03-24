@@ -52,6 +52,201 @@
 #include "devfont.h"
 #include "unicode-ops.h"
 #include "layoutinfo.h"
+#include "fontname.h"
+
+static BOOL fontname_get_from_orient(char* fontname, GlyphOrient ort)
+{
+    int orient_pos;
+
+    orient_pos = fontGetOrientPosFromName(fontname);
+    if (orient_pos < 0)
+        return FALSE;
+
+    switch (ort) {
+    case GLYPH_ORIENT_UPRIGHT:
+        fontname[orient_pos] = FONT_ORIENT_UPRIGHT;
+        break;
+    case GLYPH_ORIENT_SIDEWAYS:
+        fontname[orient_pos] = FONT_ORIENT_SIDEWAYS;
+        break;
+    case GLYPH_ORIENT_UPSIDE_DOWN:
+        fontname[orient_pos] = FONT_ORIENT_UPSIDE_DOWN;
+        break;
+    case GLYPH_ORIENT_SIDEWAYS_LEFT:
+        fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
+        break;
+    default:
+        _WRN_PRINTF("bad orientation param: %d", ort);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/* Use MiniGUI resource manager to avoid duplicated logfonts */
+LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
+        const char* fontname, GlyphOrient ort)
+{
+    char my_fontname[LEN_LOGFONT_NAME_FULL + 1];
+    LOGFONT* lf;
+
+    if (fontname == NULL)
+        fontname = layout->truninfo->fontname;
+
+    memset (my_fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
+    strncpy (my_fontname, fontname, LEN_LOGFONT_NAME_FULL);
+    if (!fontname_get_from_orient(my_fontname, ort)) {
+        return NULL;
+    }
+
+    lf = (LOGFONT*)LoadResource(my_fontname, RES_TYPE_FONT, 0);
+    if (lf == NULL) {
+        _ERR_PRINTF("%s: failed to create LOGFONT for layout: %p\n",
+            __FUNCTION__, layout);
+    }
+
+    return lf;
+}
+
+void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
+        const char* fontname, GlyphOrient ort)
+{
+    char my_fontname[LEN_LOGFONT_NAME_FULL + 1];
+    if (fontname == NULL)
+        fontname = layout->truninfo->fontname;
+
+    memset (my_fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
+    strncpy (my_fontname, fontname, LEN_LOGFONT_NAME_FULL);
+    if (!fontname_get_from_orient(my_fontname, ort)) {
+        return;
+    }
+
+    ReleaseRes(Str2Key(my_fontname));
+}
+
+LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
+        const TextRun* trun, const Uchar32* ucs, int nr_ucs)
+{
+    LOGFONT* lf;
+    LayoutRun* lrun;
+
+    lf = __mg_create_logfont_for_layout(layout, trun->fontname, trun->ort);
+    if (lf == NULL)
+        return NULL;
+
+    lrun = malloc(sizeof(LayoutRun));
+    lrun->lf = lf;
+    lrun->ucs = ucs;
+    lrun->si = 0;
+    lrun->len = nr_ucs;
+    lrun->si = trun->si;
+    lrun->len = trun->len;
+    lrun->lc = trun->lc;
+    lrun->st = trun->st;
+    lrun->el = trun->el;
+    lrun->dir = trun->dir;
+    lrun->ort = trun->ort;
+    lrun->flags |= LAYOUTRUN_FLAG_ORPHAN;
+
+    return lrun;
+}
+
+LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
+        const TextRun* trun)
+{
+    LOGFONT* lf;
+    LayoutRun* lrun;
+
+    lf = __mg_create_logfont_for_layout(layout, trun->fontname, trun->ort);
+    if (lf == NULL)
+        return NULL;
+
+    lrun = malloc(sizeof(LayoutRun));
+    lrun->lf = lf;
+    lrun->ucs = layout->truninfo->ucs;
+    lrun->si = trun->si;
+    lrun->len = trun->len;
+    lrun->lc = trun->lc;
+    lrun->st = trun->st;
+    lrun->el = trun->el;
+    lrun->dir = trun->dir;
+    lrun->ort = trun->ort;
+    lrun->flags = trun->flags;
+
+    return lrun;
+}
+
+LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
+        const TextRun* trun, int offset)
+{
+    LOGFONT* lf;
+    LayoutRun* lrun;
+
+    if (offset >= trun->len)
+        return NULL;
+
+    lf = __mg_create_logfont_for_layout(layout, trun->fontname, trun->ort);
+    if (lf == NULL)
+        return NULL;
+
+    lrun = malloc(sizeof(LayoutRun));
+
+    lrun->lf = lf;
+    lrun->ucs = layout->truninfo->ucs;
+    lrun->si = trun->si + offset;
+    lrun->len = trun->len - offset;
+    lrun->lc = trun->lc;
+    lrun->st = trun->st;
+    lrun->el = trun->el;
+    lrun->dir = trun->dir;
+    lrun->ort = trun->ort;
+    lrun->flags = trun->flags;
+
+    return lrun;
+}
+
+void __mg_layout_run_free(LayoutRun* lrun)
+{
+    if (lrun->lf) {
+        FONT_RES* font_res = (FONT_RES*)lrun->lf;
+        ReleaseRes(font_res->key);
+    }
+
+    free(lrun);
+}
+
+LayoutRun* __mg_layout_run_copy(const LayoutRun* lrun)
+{
+    LayoutRun *result;
+
+    if (lrun == NULL)
+        return NULL;
+
+    result = malloc(sizeof(LayoutRun));
+    memcpy(result, lrun, sizeof(LayoutRun));
+
+    return result;
+}
+
+LayoutRun* __mg_layout_run_split(LayoutRun *orig, int split_index)
+{
+    LayoutRun *new_run;
+
+    if (orig == NULL)
+        return NULL;
+    if (split_index <= 0)
+        return NULL;
+    if (split_index >= orig->len)
+        return NULL;
+
+    new_run = __mg_layout_run_copy(orig);
+    new_run->len = split_index;
+
+    orig->si += split_index;
+    orig->len -= split_index;
+
+    return new_run;
+}
 
 GlyphString* __mg_glyph_string_new (void)
 {
@@ -117,11 +312,33 @@ int __mg_glyph_string_get_width(const GlyphString *glyphs)
     return width;
 }
 
-#define LTR(glyph_run) (((glyph_run)->trun->el & 1) == 0)
+void __mg_layout_line_free_runs(LAYOUTLINE* line)
+{
+    while (!list_empty(&line->gruns)) {
+        GlyphRun* run = (GlyphRun*)line->gruns.prev;
+        list_del(line->gruns.prev);
+        __mg_glyph_run_free(run);
+    }
+}
+
+void __mg_glyph_run_free(GlyphRun* run)
+{
+    if (run->lrun) {
+        __mg_layout_run_free(run->lrun);
+    }
+
+    if (run->gs) {
+        __mg_glyph_string_free(run->gs);
+    }
+
+    free(run);
+}
+
+#define LTR(glyph_run) (((glyph_run)->lrun->el & 1) == 0)
 
 /**
  * __mg_glyph_run_split:
- * @orig: a #TextRun
+ * @orig: a #GlyphRun
  * @text: text to which positions in @orig apply
  * @split_index: byte index of position to split item, relative to the start of the item
  *
@@ -139,11 +356,9 @@ int __mg_glyph_string_get_width(const GlyphString *glyphs)
  * Return value: the newly allocated item representing text before
  *               @split_index, which should be freed
  *               with pango_glyph_run_free().
- *
- * Since: 1.2
  **/
 GlyphRun *__mg_glyph_run_split (GlyphRun *orig,
-        const char *text, int split_index)
+        const Uchar32 *text, int split_index)
 {
     GlyphRun *new_grun;
     int i;
@@ -152,11 +367,11 @@ GlyphRun *__mg_glyph_run_split (GlyphRun *orig,
 
     if (orig == NULL)
         return NULL;
-    if (orig->trun->len <= 0)
+    if (orig->lrun->len <= 0)
         return NULL;
     if (split_index <= 0)
         return NULL;
-    if (split_index >= orig->trun->len)
+    if (split_index >= orig->lrun->len)
         return NULL;
 
     if (LTR (orig)) {
@@ -189,7 +404,7 @@ GlyphRun *__mg_glyph_run_split (GlyphRun *orig,
     num_remaining = orig->gs->nr_glyphs - nr_glyphs;
 
     new_grun = malloc (sizeof(GlyphRun));
-    new_grun->trun = __mg_text_run_split (orig->trun, split_index);
+    new_grun->lrun = __mg_layout_run_split(orig->lrun, split_index);
 
     new_grun->gs = __mg_glyph_string_new ();
     __mg_glyph_string_set_size (new_grun->gs, nr_glyphs);
@@ -233,7 +448,7 @@ BOOL __mg_glyph_run_iter_next_cluster (GlyphRunIter *iter)
     int glyph_index = iter->end_glyph;
     GlyphString *glyphs = iter->glyph_run->gs;
     int cluster;
-    const TextRun *item = iter->glyph_run->trun;
+    const LayoutRun *item = iter->glyph_run->lrun;
 
     if (LTR (iter->glyph_run)) {
         if (glyph_index == glyphs->nr_glyphs)
@@ -297,7 +512,7 @@ BOOL __mg_glyph_run_iter_prev_cluster (GlyphRunIter *iter)
     int glyph_index = iter->start_glyph;
     GlyphString *glyphs = iter->glyph_run->gs;
     int cluster;
-    const TextRun *item = iter->glyph_run->trun;
+    const LayoutRun *item = iter->glyph_run->lrun;
 
     if (LTR (iter->glyph_run)) {
         if (glyph_index == 0)
@@ -372,7 +587,7 @@ BOOL __mg_glyph_run_iter_init_start (GlyphRunIter  *iter,
     else
         iter->end_glyph = glyph_run->gs->nr_glyphs - 1;
 
-    iter->end_index = glyph_run->trun->si;
+    iter->end_index = glyph_run->lrun->si;
     iter->end_char = 0;
 
     iter->start_glyph = iter->end_glyph;
@@ -394,8 +609,8 @@ BOOL __mg_glyph_run_iter_init_end (GlyphRunIter *iter,
     else
         iter->start_glyph = -1;
 
-    iter->start_index = glyph_run->trun->si + glyph_run->trun->len;
-    iter->start_char = glyph_run->trun->len;
+    iter->start_index = glyph_run->lrun->si + glyph_run->lrun->len;
+    iter->start_char = glyph_run->lrun->len;
 
     iter->end_glyph = iter->start_glyph;
     iter->end_index = iter->start_index;
@@ -412,7 +627,7 @@ void __mg_glyph_run_get_logical_widths (const GlyphRun *glyph_run,
     BOOL has_cluster;
     int dir;
 
-    dir = glyph_run->trun->el % 2 == 0 ? +1 : -1;
+    dir = glyph_run->lrun->el % 2 == 0 ? +1 : -1;
     for (has_cluster = __mg_glyph_run_iter_init_start (&iter, glyph_run, text);
             has_cluster;
             has_cluster = __mg_glyph_run_iter_next_cluster (&iter))
