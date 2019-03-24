@@ -43,22 +43,22 @@
 
 #include "list.h"
 
-typedef struct _TEXTRUN         TEXTRUN;
-typedef struct _GLYPHSTRING     GLYPHSTRING;
-typedef struct _SEINSTANCE      SEINSTANCE;
-typedef struct _TEXTATTRMAP    TEXTATTRMAP;
+typedef struct _TextRun         TextRun;
+typedef struct _GlyphString     GlyphString;
+typedef struct _SEInstance      SEInstance;
+typedef struct _TextAttrMap     TextAttrMap;
 
-typedef BOOL (*CB_SHAPE_TEXT_RUN)(SEINSTANCE* instance,
-        const TEXTRUNSINFO* info, const TEXTRUN* run,
-        GLYPHSTRING* gs);
+typedef BOOL (*CB_SHAPE_TEXT_RUN)(SEInstance* instance,
+        const TEXTRUNSINFO* info, const TextRun* run,
+        GlyphString* gs);
 
-typedef BOOL (*CB_DESTROY_INSTANCE)(SEINSTANCE* instance);
+typedef BOOL (*CB_DESTROY_INSTANCE)(SEInstance* instance);
 
-typedef struct _SHAPINGENGINEINFO SHAPINGENGINEINFO;
+typedef struct _ShapingEngineInfo ShapingEngineInfo;
 
-struct _SHAPINGENGINEINFO {
+struct _ShapingEngineInfo {
     /* The pointer to the shaping engine instance */
-    SEINSTANCE*         inst;
+    SEInstance*         inst;
 
     /* callback to shap a text run */
     CB_SHAPE_TEXT_RUN   shape;
@@ -67,11 +67,12 @@ struct _SHAPINGENGINEINFO {
     CB_DESTROY_INSTANCE free;
 };
 
-#define TEXTRUN_FLAG_CENTERED_BASELINE      0x01
-#define TEXTRUN_FLAG_IS_ELLIPSIS            0x02
+#define TextRun_FLAG_CENTERED_BASELINE      0x01
+#define TextRun_FLAG_IS_ELLIPSIS            0x02
 
-struct _TEXTRUN {
+struct _TextRun {
     struct list_head list;
+    const char* fontname;   // the logfont name for this run; NULL for default
     LOGFONT*    lf;     // the logfont for this run
 
     int         si;     // start index in the Unicode string
@@ -92,7 +93,7 @@ struct _TEXTRUN {
 #define TEXT_ATTR_BACKGROUND_COLOR      0x04
 
 
-struct _TEXTATTRMAP {
+struct _TextAttrMap {
     struct list_head    list;
     int                 si;
     int                 len;
@@ -105,7 +106,7 @@ struct _TEXTRUNSINFO {
     const Uchar32*      ucs;        // the uchars
     char*               fontname;   // the default logfont name specified
 
-    TEXTATTRMAP         attrs;      // the head of color map (list)
+    TextAttrMap         attrs;      // the head of color map (list)
     struct list_head    truns;      // the head of text runs (list)
 
     int         nr_ucs;         // number of uchars
@@ -118,24 +119,27 @@ struct _TEXTRUNSINFO {
     Uint32      base_level:1;   // the paragraph direction; 0 for LTR, 1 for RTL
 
     /* The following fields will be initialized by the shaping engine. */
-    SHAPINGENGINEINFO   sei;    // the shaping engine information
+    ShapingEngineInfo   sei;    // the shaping engine information
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-LOGFONT* __mg_create_logfont_for_run(const TEXTRUNSINFO* runinfo,
-        const TEXTRUN* run);
-void __mg_release_logfont_for_run(const TEXTRUNSINFO* runinfo,
-        const TEXTRUN* run);
-
-TEXTRUN* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
+TextRun* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
         const Uchar32* ucs, int nr_ucs);
-void __mg_text_run_free_orphan(TEXTRUN* trun);
+void __mg_text_run_free_orphan(TextRun* trun);
+
+TextRun* __mg_text_run_copy(const TextRun* trun);
+TextRun* __mg_text_run_split(TextRun *orig, int split_index);
+
+LOGFONT* __mg_create_logfont_for_run(const TEXTRUNSINFO* runinfo,
+        const TextRun* run);
+void __mg_release_logfont_for_run(const TEXTRUNSINFO* runinfo,
+        const TextRun* run);
 
 RGBCOLOR __mg_textruns_get_color(const TEXTRUNSINFO* runinfo, int index);
-TEXTRUN* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
+TextRun* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
         int offset, int *start_index);
 
 #ifdef __cplusplus

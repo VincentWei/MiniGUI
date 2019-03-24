@@ -74,7 +74,7 @@ int DrawShapedGlyphLine(HDC hdc, const LAYOUTLINE* line,
 #if 0
 int GUIAPI DrawShapedGlyphString(HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const SHAPEDGLYPHS* shaped_glyphs,
+        const ShapedGlyphS* shaped_glyphs,
         const GLYPHPOS* glyph_pos, int nr_glyphs)
 {
     int i;

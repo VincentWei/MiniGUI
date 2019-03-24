@@ -44,10 +44,10 @@
 #include "list.h"
 #include "textrunsinfo.h"
 
-typedef struct _GLYPHRUN        GLYPHRUN;
-typedef struct _SHAPEDGLYPH     SHAPEDGLYPH;
+typedef struct _GlyphRun        GlyphRun;
+typedef struct _ShapedGlyph     ShapedGlyph;
 
-struct _SHAPEDGLYPH {
+struct _ShapedGlyph {
     Glyph32 gv;
     int     x_off;
     int     y_off;
@@ -56,18 +56,18 @@ struct _SHAPEDGLYPH {
     Uint32  is_cluster_start:1;
 };
 
-struct _GLYPHSTRING {
-    SHAPEDGLYPH*    glyphs;
+struct _GlyphString {
+    ShapedGlyph*    glyphs;
     int*            log_clusters;
 
     int             nr_glyphs;
     unsigned int    space;
 };
 
-struct _GLYPHRUN {
+struct _GlyphRun {
     struct list_head    list;
-    const TEXTRUN*      trun;   // the text run to which this glyph run belongs
-    GLYPHSTRING*        gs;     // the glyph string
+    TextRun*            trun;   // the text run corresponding to the glyph run
+    GlyphString*        gs;     // the glyph string
     int                 so;     // the start offset in the text run
     int                 len;    // the number of the uchars
 };
@@ -107,11 +107,10 @@ struct _LAYOUTINFO {
     Uint32              is_ellipsized:1;
 };
 
-typedef GLYPHRUN GlyphItem;
-typedef struct _GlyphItemIter GlyphItemIter;
+typedef struct _GlyphRunIter GlyphRunIter;
 
-struct _GlyphItemIter {
-    const GlyphItem *glyph_item;
+struct _GlyphRunIter {
+    const GlyphRun *glyph_run;
     const Uchar32 *text;
 
     int start_glyph;
@@ -127,35 +126,35 @@ struct _GlyphItemIter {
 extern "C" {
 #endif  /* __cplusplus */
 
-void __mg_text_run_free(TEXTRUN* trun);
+void __mg_text_run_free(TextRun* trun);
 
-GLYPHSTRING* __mg_glyph_string_new(void);
-void __mg_glyph_string_free(GLYPHSTRING* string);
-void __mg_glyph_string_set_size(GLYPHSTRING* string, int new_len);
-int __mg_glyph_string_get_width(const GLYPHSTRING* string);
+GlyphString* __mg_glyph_string_new(void);
+void __mg_glyph_string_free(GlyphString* string);
+void __mg_glyph_string_set_size(GlyphString* string, int new_len);
+int __mg_glyph_string_get_width(const GlyphString* string);
 
-BOOL __mg_glyph_item_iter_init_start (GlyphItemIter  *iter,
-        const GlyphItem *glyph_item, const Uchar32 *text);
+BOOL __mg_glyph_run_iter_init_start (GlyphRunIter  *iter,
+        const GlyphRun *glyph_run, const Uchar32 *text);
 
-BOOL __mg_glyph_item_iter_init_end (GlyphItemIter *iter,
-        const GlyphItem *glyph_item, const Uchar32 *text);
+BOOL __mg_glyph_run_iter_init_end (GlyphRunIter *iter,
+        const GlyphRun *glyph_run, const Uchar32 *text);
 
-BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter);
-BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter);
+BOOL __mg_glyph_run_iter_prev_cluster (GlyphRunIter *iter);
+BOOL __mg_glyph_run_iter_next_cluster (GlyphRunIter *iter);
 
-void __mg_glyph_item_get_logical_widths(const GlyphItem* glyph_item,
+void __mg_glyph_run_get_logical_widths(const GlyphRun* glyph_run,
         const Uchar32* ucs, int* log_widths);
 
-void __mg_glyph_item_letter_space (const GlyphItem* glyph_item,
+void __mg_glyph_run_letter_space (const GlyphRun* glyph_run,
         const Uchar32* ucs, const BreakOppo* bos, int letter_spacing);
 
 BOOL __mg_layout_line_ellipsize(LAYOUTLINE *line, int goal_width);
 
-int __mg_shape_text_run(const TEXTRUNSINFO* info, const TEXTRUN* run,
-        int so, int len, GLYPHSTRING* glyphs);
+int __mg_shape_text_run(const TEXTRUNSINFO* info, const TextRun* run,
+        int so, int len, GlyphString* glyphs);
 
 void __mg_shape_utf8 (const char* text, int len,
-        const TEXTRUN* trun, GLYPHSTRING* gs);
+        const TextRun* trun, GlyphString* gs);
 
 #ifdef __cplusplus
 }

@@ -67,19 +67,19 @@
 #endif
 
 
-static void reverse_shaped_glyphs(SHAPEDGLYPH* glyphs, int len)
+static void reverse_shaped_glyphs(ShapedGlyph* glyphs, int len)
 {
     int i;
     for (i = 0; i < len / 2; i++) {
-        SHAPEDGLYPH tmp = glyphs[i];
+        ShapedGlyph tmp = glyphs[i];
         glyphs[i] = glyphs[len - 1 - i];
         glyphs[len - 1 - i] = tmp;
     }
 }
 
-static BOOL shape_text_run(SEINSTANCE* inst,
-        const TEXTRUNSINFO* info, const TEXTRUN* run,
-        GLYPHSTRING* gs)
+static BOOL shape_text_run(SEInstance* inst,
+        const TEXTRUNSINFO* info, const TextRun* run,
+        GlyphString* gs)
 {
     BOOL ok = FALSE;
     int i, j;
@@ -162,7 +162,7 @@ static BOOL shape_text_run(SEINSTANCE* inst,
     }
 
     // generate the glyphs
-    gs->glyphs = malloc(sizeof(SHAPEDGLYPH) * nr_ucs);
+    gs->glyphs = malloc(sizeof(ShapedGlyph) * nr_ucs);
     if (gs->glyphs == NULL) {
         goto out;
     }

@@ -71,11 +71,11 @@ enum {
     EMOJI_CHANGED        = 1 << 6,
 };
 
-typedef struct _TEXTRUNSTATE {
+typedef struct _TextRunSTATE {
     TEXTRUNSINFO*   runinfo;
     const Uchar32*  text;
     const Uchar32*  end;
-    TEXTRUN*        run;
+    TextRun*        run;
 
     const Uchar32*  run_start;
     const Uchar32*  run_end;
@@ -96,9 +96,9 @@ typedef struct _TEXTRUNSTATE {
 
     LanguageCode    derived_lang;
 
-} TEXTRUNSTATE;
+} TextRunSTATE;
 
-static void update_embedding_end(TEXTRUNSTATE *state)
+static void update_embedding_end(TextRunSTATE *state)
 {
     state->emb_level = state->els[state->emb_end_offset];
     while (state->emb_end < state->end &&
@@ -111,7 +111,7 @@ static void update_embedding_end(TEXTRUNSTATE *state)
     state->changed |= EMBEDDING_CHANGED;
 }
 
-static void update_end (TEXTRUNSTATE *state)
+static void update_end (TextRunSTATE *state)
 {
     state->run_end = state->emb_end;
     if (state->script_iter.end < state->run_end)
@@ -141,7 +141,7 @@ static LanguageCode compute_derived_language (LanguageCode lang,
     return derived_lang;
 }
 
-static void state_update_for_new_run (TEXTRUNSTATE *state)
+static void state_update_for_new_run (TextRunSTATE *state)
 {
     if (state->changed & (SCRIPT_CHANGED | WIDTH_CHANGED)) {
         GlyphOrient orient = state->runinfo->ort_base;
@@ -166,7 +166,7 @@ static void state_update_for_new_run (TEXTRUNSTATE *state)
 
 /* Use MiniGUI resource manager to avoid duplicated logfonts */
 LOGFONT* __mg_create_logfont_for_run(const TEXTRUNSINFO* runinfo,
-        const TEXTRUN* run)
+        const TextRun* run)
 {
     char fontname[LEN_LOGFONT_NAME_FULL + 1];
     int orient_pos = fontGetOrientPosFromName(runinfo->fontname);
@@ -207,7 +207,7 @@ LOGFONT* __mg_create_logfont_for_run(const TEXTRUNSINFO* runinfo,
 }
 
 void __mg_release_logfont_for_run(const TEXTRUNSINFO* runinfo,
-        const TEXTRUN* run)
+        const TextRun* run)
 {
     char fontname[LEN_LOGFONT_NAME_FULL + 1];
     int orient_pos = fontGetOrientPosFromName(runinfo->fontname);
@@ -239,7 +239,7 @@ void __mg_release_logfont_for_run(const TEXTRUNSINFO* runinfo,
     ReleaseRes(Str2Key(fontname));
 }
 
-static void state_add_character(TEXTRUNSTATE *state,
+static void state_add_character(TextRunSTATE *state,
         BOOL no_shaping, BOOL force_break, const Uchar32* pos)
 {
     if (state->run) {
@@ -252,7 +252,7 @@ static void state_add_character(TEXTRUNSTATE *state,
         }
     }
 
-    state->run = malloc(sizeof(TEXTRUN));
+    state->run = malloc(sizeof(TextRun));
     state->run->si  = pos - state->text;
     state->run->len = 1;
     state->run->lc  = state->derived_lang;
@@ -295,13 +295,13 @@ static void state_add_character(TEXTRUNSTATE *state,
     }
 
     state->run->flags = state->centered_baseline ?
-            TEXTRUN_FLAG_CENTERED_BASELINE : 0;
+            TextRun_FLAG_CENTERED_BASELINE : 0;
 
     list_add_tail(&state->run->list, &state->runinfo->truns);
     state->runinfo->nr_runs++;
 }
 
-static BOOL state_process_run (TEXTRUNSTATE *state)
+static BOOL state_process_run (TextRunSTATE *state)
 {
     const Uchar32* p;
     BOOL last_was_forced_break = FALSE;
@@ -332,7 +332,7 @@ static BOOL state_process_run (TEXTRUNSTATE *state)
     return TRUE;
 }
 
-static BOOL state_next (TEXTRUNSTATE *state)
+static BOOL state_next (TextRunSTATE *state)
 {
     if (state->run_end == state->end)
         return FALSE;
@@ -367,7 +367,7 @@ static BOOL state_next (TEXTRUNSTATE *state)
 static BOOL create_text_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
 {
     BOOL ok = FALSE;
-    TEXTRUNSTATE state;
+    TextRunSTATE state;
     Uint8 local_types_buff[LOCAL_ARRAY_SIZE];
     Uint8* types_buff = NULL;
 
@@ -454,19 +454,19 @@ void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
         BidiLevel* embedding_level, GlyphRunDir* run_dir,
         GlyphOrient* orient)
 {
-    TEXTRUN* run = NULL;
+    TextRun* run = NULL;
 
     if (prev == NULL) {
         if (list_empty(&runinfo->truns))
             return NULL;
-        run = (TEXTRUN*)runinfo->truns.next;
+        run = (TextRun*)runinfo->truns.next;
     }
     else {
         struct list_head* list_entry = (struct list_head*)prev;
         if (list_entry->next == &runinfo->truns)
             return NULL;
 
-        run = (TEXTRUN*)list_entry->next;
+        run = (TextRun*)list_entry->next;
     }
 
     if (logfont) *logfont = run->lf;
@@ -654,8 +654,8 @@ RGBCOLOR __mg_textruns_get_text_color(const TEXTRUNSINFO* runinfo, int index)
     struct list_head *i;
 
     list_for_each(i, &runinfo->attrs.list) {
-        TEXTATTRMAP* color_entry;
-        color_entry = (TEXTATTRMAP*)i;
+        TextAttrMap* color_entry;
+        color_entry = (TextAttrMap*)i;
         if (index >= color_entry->si &&
                 (index < color_entry->si + color_entry->len) &&
             color_entry->type == TEXT_ATTR_TEXT_COLOR) {
@@ -666,29 +666,62 @@ RGBCOLOR __mg_textruns_get_text_color(const TEXTRUNSINFO* runinfo, int index)
     return runinfo->attrs.value;
 }
 
-TEXTRUN* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
+TextRun* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
         int offset, int *start_index)
 {
     return NULL;
 }
 
-TEXTRUN* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
+TextRun* __mg_text_run_new_orphan(const TEXTRUNSINFO* info,
         const Uchar32* ucs, int nr_ucs)
 {
-    TEXTRUN* trun = malloc(sizeof(TEXTRUN));
+    TextRun* trun = malloc(sizeof(TextRun));
 
     return trun;
 }
 
-void __mg_text_run_free_orphan(TEXTRUN* trun)
+void __mg_text_run_free_orphan(TextRun* trun)
 {
     free(trun);
+}
+
+TextRun* __mg_text_run_copy(const TextRun* trun)
+{
+    TextRun *result;
+
+    if (trun == NULL)
+        return NULL;
+
+    result = malloc(sizeof(TextRun));
+    memcpy(result, trun, sizeof(TextRun));
+
+    return result;
+}
+
+TextRun* __mg_text_run_split(TextRun  *orig, int split_index)
+{
+    TextRun *new_run;
+
+    if (orig == NULL)
+        return NULL;
+    if (split_index <= 0)
+        return NULL;
+    if (split_index >= orig->len)
+        return NULL;
+
+    new_run = __mg_text_run_copy(orig);
+    new_run->len = split_index;
+
+    orig->si += split_index;
+    orig->len -= split_index;
+
+    return new_run;
 }
 
 BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
         int start_index, int length, RGBCOLOR color)
 {
-    TEXTATTRMAP* color_entry = NULL;
+    TextAttrMap* color_entry = NULL;
 
     if (runinfo == NULL || start_index < 0 || length < 0 ||
             start_index > runinfo->nr_ucs ||
@@ -696,7 +729,7 @@ BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
         goto error;
     }
 
-    color_entry = calloc(1, sizeof(TEXTATTRMAP));
+    color_entry = calloc(1, sizeof(TextAttrMap));
     if (color_entry == NULL) {
         goto error;
     }
@@ -720,13 +753,13 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
         return FALSE;
 
     while (!list_empty(&runinfo->attrs.list)) {
-        TEXTATTRMAP* entry = (TEXTATTRMAP*)runinfo->attrs.list.prev;
+        TextAttrMap* entry = (TextAttrMap*)runinfo->attrs.list.prev;
         list_del(runinfo->attrs.list.prev);
         free(entry);
     }
 
     while (!list_empty(&runinfo->truns)) {
-        TEXTRUN* run = (TEXTRUN*)runinfo->truns.prev;
+        TextRun* run = (TextRun*)runinfo->truns.prev;
         list_del(runinfo->truns.prev);
         if (run->lf)
             __mg_release_logfont_for_run(runinfo, run);

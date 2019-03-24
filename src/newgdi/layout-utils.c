@@ -53,13 +53,13 @@
 #include "unicode-ops.h"
 #include "layoutinfo.h"
 
-GLYPHSTRING* __mg_glyph_string_new (void)
+GlyphString* __mg_glyph_string_new (void)
 {
-    GLYPHSTRING *string = calloc(1, sizeof(GLYPHSTRING));
+    GlyphString *string = calloc(1, sizeof(GlyphString));
     return string;
 }
 
-void __mg_glyph_string_free (GLYPHSTRING *string)
+void __mg_glyph_string_free (GlyphString *string)
 {
     if (string == NULL)
         return;
@@ -71,7 +71,7 @@ void __mg_glyph_string_free (GLYPHSTRING *string)
     free (string);
 }
 
-void __mg_glyph_string_set_size (GLYPHSTRING* string, int new_len)
+void __mg_glyph_string_set_size (GlyphString* string, int new_len)
 {
     if (new_len < 0)
         return;
@@ -83,7 +83,7 @@ void __mg_glyph_string_set_size (GLYPHSTRING* string, int new_len)
         else {
             const unsigned int max_space =
                 MIN (INT_MAX,
-                    UINT_MAX / MAX (sizeof(SHAPEDGLYPH), sizeof(int)));
+                    UINT_MAX / MAX (sizeof(ShapedGlyph), sizeof(int)));
 
             unsigned int more_space = (unsigned int)string->space * 2;
 
@@ -100,13 +100,13 @@ void __mg_glyph_string_set_size (GLYPHSTRING* string, int new_len)
     }
 
     string->glyphs = realloc (string->glyphs,
-            string->space * sizeof (SHAPEDGLYPH));
+            string->space * sizeof (ShapedGlyph));
     string->log_clusters = realloc (string->log_clusters,
             string->space * sizeof (int));
     string->nr_glyphs = new_len;
 }
 
-int __mg_glyph_string_get_width(const GLYPHSTRING *glyphs)
+int __mg_glyph_string_get_width(const GlyphString *glyphs)
 {
     int i;
     int width = 0;
@@ -117,16 +117,125 @@ int __mg_glyph_string_get_width(const GLYPHSTRING *glyphs)
     return width;
 }
 
-#define LTR(glyph_item) (((glyph_item)->trun->el & 1) == 0)
+#define LTR(glyph_run) (((glyph_run)->trun->el & 1) == 0)
 
-BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
+/**
+ * __mg_glyph_run_split:
+ * @orig: a #PangoItem
+ * @text: text to which positions in @orig apply
+ * @split_index: byte index of position to split item, relative to the start of the item
+ *
+ * Modifies @orig to cover only the text after @split_index, and
+ * returns a new item that covers the text before @split_index that
+ * used to be in @orig. You can think of @split_index as the length of
+ * the returned item. @split_index may not be 0, and it may not be
+ * greater than or equal to the length of @orig (that is, there must
+ * be at least one byte assigned to each item, you can't create a
+ * zero-length item).
+ *
+ * This function is similar in function to pango_item_split() (and uses
+ * it internally.)
+ *
+ * Return value: the newly allocated item representing text before
+ *               @split_index, which should be freed
+ *               with pango_glyph_run_free().
+ *
+ * Since: 1.2
+ **/
+GlyphRun *__mg_glyph_run_split (GlyphRun *orig,
+        const char *text, int split_index)
+{
+    GlyphRun *new_grun;
+    int i;
+    int nr_glyphs;
+    int num_remaining;
+
+    if (orig == NULL)
+        return NULL;
+    if (orig->trun->len <= 0)
+        return NULL;
+    if (split_index <= 0)
+        return NULL;
+    if (split_index >= orig->trun->len)
+        return NULL;
+
+    if (LTR (orig)) {
+        for (i = 0; i < orig->gs->nr_glyphs; i++) {
+            if (orig->gs->log_clusters[i] >= split_index)
+                break;
+        }
+
+        if (i == orig->gs->nr_glyphs)
+            // No splitting necessary
+            return NULL;
+
+        split_index = orig->gs->log_clusters[i];
+        nr_glyphs = i;
+    }
+    else {
+        for (i = orig->gs->nr_glyphs - 1; i >= 0; i--) {
+            if (orig->gs->log_clusters[i] >= split_index)
+                break;
+        }
+
+        if (i < 0)
+            // No splitting necessary
+            return NULL;
+
+        split_index = orig->gs->log_clusters[i];
+        nr_glyphs = orig->gs->nr_glyphs - 1 - i;
+    }
+
+    num_remaining = orig->gs->nr_glyphs - nr_glyphs;
+
+    new_grun = malloc (sizeof(GlyphRun));
+    new_grun->trun = __mg_text_run_split (orig->trun, split_index);
+
+    new_grun->gs = __mg_glyph_string_new ();
+    __mg_glyph_string_set_size (new_grun->gs, nr_glyphs);
+
+    if (LTR (orig)) {
+        memcpy(new_grun->gs->glyphs,
+                orig->gs->glyphs,
+                nr_glyphs * sizeof(ShapedGlyph));
+        memcpy(new_grun->gs->log_clusters,
+                orig->gs->log_clusters,
+                nr_glyphs * sizeof(int));
+
+        memmove (orig->gs->glyphs,
+                orig->gs->glyphs + nr_glyphs,
+                num_remaining * sizeof(ShapedGlyph));
+        for (i = nr_glyphs; i < orig->gs->nr_glyphs; i++)
+            orig->gs->log_clusters[i - nr_glyphs] =
+                    orig->gs->log_clusters[i] - split_index;
+    }
+    else {
+        memcpy (new_grun->gs->glyphs,
+            orig->gs->glyphs + num_remaining,
+            nr_glyphs * sizeof(ShapedGlyph));
+        memcpy (new_grun->gs->log_clusters,
+            orig->gs->log_clusters + num_remaining,
+            nr_glyphs * sizeof(int));
+
+        for (i = 0; i < num_remaining; i++)
+            orig->gs->log_clusters[i] =
+                    orig->gs->log_clusters[i] - split_index;
+    }
+
+    __mg_glyph_string_set_size (orig->gs,
+            orig->gs->nr_glyphs - nr_glyphs);
+
+    return new_grun;
+}
+
+BOOL __mg_glyph_run_iter_next_cluster (GlyphRunIter *iter)
 {
     int glyph_index = iter->end_glyph;
-    GLYPHSTRING *glyphs = iter->glyph_item->gs;
+    GlyphString *glyphs = iter->glyph_run->gs;
     int cluster;
-    const TEXTRUN *item = iter->glyph_item->trun;
+    const TextRun *item = iter->glyph_run->trun;
 
-    if (LTR (iter->glyph_item)) {
+    if (LTR (iter->glyph_run)) {
         if (glyph_index == glyphs->nr_glyphs)
             return FALSE;
     }
@@ -139,7 +248,7 @@ BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
     iter->start_index = iter->end_index;
     iter->start_char = iter->end_char;
 
-    if (LTR (iter->glyph_item)) {
+    if (LTR (iter->glyph_run)) {
         cluster = glyphs->log_clusters[glyph_index];
         while (TRUE) {
             glyph_index++;
@@ -183,14 +292,14 @@ BOOL __mg_glyph_item_iter_next_cluster (GlyphItemIter *iter)
     return TRUE;
 }
 
-BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
+BOOL __mg_glyph_run_iter_prev_cluster (GlyphRunIter *iter)
 {
     int glyph_index = iter->start_glyph;
-    GLYPHSTRING *glyphs = iter->glyph_item->gs;
+    GlyphString *glyphs = iter->glyph_run->gs;
     int cluster;
-    const TEXTRUN *item = iter->glyph_item->trun;
+    const TextRun *item = iter->glyph_run->trun;
 
-    if (LTR (iter->glyph_item)) {
+    if (LTR (iter->glyph_run)) {
         if (glyph_index == 0)
             return FALSE;
     }
@@ -203,7 +312,7 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
     iter->end_index = iter->start_index;
     iter->end_char = iter->start_char;
 
-    if (LTR (iter->glyph_item)) {
+    if (LTR (iter->glyph_run)) {
 
         cluster = glyphs->log_clusters[glyph_index - 1];
         while (TRUE) {
@@ -252,18 +361,18 @@ BOOL __mg_glyph_item_iter_prev_cluster (GlyphItemIter *iter)
     return TRUE;
 }
 
-BOOL __mg_glyph_item_iter_init_start (GlyphItemIter  *iter,
-        const GlyphItem *glyph_item, const Uchar32 *text)
+BOOL __mg_glyph_run_iter_init_start (GlyphRunIter  *iter,
+        const GlyphRun *glyph_run, const Uchar32 *text)
 {
-    iter->glyph_item = glyph_item;
+    iter->glyph_run = glyph_run;
     iter->text = text;
 
-    if (LTR (glyph_item))
+    if (LTR (glyph_run))
         iter->end_glyph = 0;
     else
-        iter->end_glyph = glyph_item->gs->nr_glyphs - 1;
+        iter->end_glyph = glyph_run->gs->nr_glyphs - 1;
 
-    iter->end_index = glyph_item->trun->si;
+    iter->end_index = glyph_run->trun->si;
     iter->end_char = 0;
 
     iter->start_glyph = iter->end_glyph;
@@ -271,49 +380,49 @@ BOOL __mg_glyph_item_iter_init_start (GlyphItemIter  *iter,
     iter->start_char = iter->end_char;
 
     /* Advance onto the first cluster of the glyph item */
-    return __mg_glyph_item_iter_next_cluster (iter);
+    return __mg_glyph_run_iter_next_cluster (iter);
 }
 
-BOOL __mg_glyph_item_iter_init_end (GlyphItemIter *iter,
-        const GlyphItem *glyph_item, const Uchar32 *text)
+BOOL __mg_glyph_run_iter_init_end (GlyphRunIter *iter,
+        const GlyphRun *glyph_run, const Uchar32 *text)
 {
-    iter->glyph_item = glyph_item;
+    iter->glyph_run = glyph_run;
     iter->text = text;
 
-    if (LTR (glyph_item))
-        iter->start_glyph = glyph_item->gs->nr_glyphs;
+    if (LTR (glyph_run))
+        iter->start_glyph = glyph_run->gs->nr_glyphs;
     else
         iter->start_glyph = -1;
 
-    iter->start_index = glyph_item->trun->si + glyph_item->trun->len;
-    iter->start_char = glyph_item->trun->len;
+    iter->start_index = glyph_run->trun->si + glyph_run->trun->len;
+    iter->start_char = glyph_run->trun->len;
 
     iter->end_glyph = iter->start_glyph;
     iter->end_index = iter->start_index;
     iter->end_char = iter->start_char;
 
     /* Advance onto the first cluster of the glyph item */
-    return __mg_glyph_item_iter_prev_cluster (iter);
+    return __mg_glyph_run_iter_prev_cluster (iter);
 }
 
-void __mg_glyph_item_get_logical_widths (const GlyphItem *glyph_item,
+void __mg_glyph_run_get_logical_widths (const GlyphRun *glyph_run,
         const Uchar32 *text, int *logical_widths)
 {
-    GlyphItemIter iter;
+    GlyphRunIter iter;
     BOOL has_cluster;
     int dir;
 
-    dir = glyph_item->trun->el % 2 == 0 ? +1 : -1;
-    for (has_cluster = __mg_glyph_item_iter_init_start (&iter, glyph_item, text);
+    dir = glyph_run->trun->el % 2 == 0 ? +1 : -1;
+    for (has_cluster = __mg_glyph_run_iter_init_start (&iter, glyph_run, text);
             has_cluster;
-            has_cluster = __mg_glyph_item_iter_next_cluster (&iter))
+            has_cluster = __mg_glyph_run_iter_next_cluster (&iter))
     {
         int glyph_index, char_index, num_chars, cluster_width = 0, char_width;
 
         for (glyph_index  = iter.start_glyph;
                 glyph_index != iter.end_glyph;
                 glyph_index += dir) {
-            cluster_width += glyph_item->gs->glyphs[glyph_index].width;
+            cluster_width += glyph_run->gs->glyphs[glyph_index].width;
         }
 
         num_chars = iter.end_char - iter.start_char;
@@ -334,7 +443,7 @@ void __mg_glyph_item_get_logical_widths (const GlyphItem *glyph_item,
     }
 }
 
-void __mg_glyph_item_letter_space (const GlyphItem* glyph_item,
+void __mg_glyph_run_letter_space (const GlyphRun* glyph_run,
         const Uchar32* ucs, const BreakOppo* bos, int letter_spacing)
 {
 }

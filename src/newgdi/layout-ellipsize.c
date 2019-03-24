@@ -109,7 +109,7 @@ typedef struct _LineIter       LineIter;
 /* Keeps information about a single run */
 struct _RunInfo
 {
-    GLYPHRUN *run;
+    GlyphRun *run;
     int start_offset;   /* Character offset of run start */
     int width;          /* Width of run */
 };
@@ -117,7 +117,7 @@ struct _RunInfo
 /* Iterator to a position within the ellipsized line */
 struct _LineIter
 {
-    GlyphItemIter run_iter;
+    GlyphRunIter run_iter;
     int run_index;
 };
 
@@ -128,13 +128,13 @@ struct _EllipsizeState
     //PangoAttrList *attrs; /* Attributes used for itemization/shaping */
 
     RunInfo *run_info;      /* Array of information about each run */
-    int n_runs;
+    int nr_runs;
 
     int total_width;        /* Original width of line in Pango units */
     int gap_center;         /* Goal for center of gap */
 
-    TEXTRUN *ellipsis_trun; /* Text run created to hold ellipsis */
-    GLYPHRUN *ellipsis_grun; /* Glyph run created to hold ellipsis */
+    TextRun *ellipsis_trun; /* Text run created to hold ellipsis */
+    GlyphRun *ellipsis_grun; /* Glyph run created to hold ellipsis */
     int ellipsis_width;     /* Width of ellipsis, in Pango units */
     int ellipsis_is_cjk;    /* Whether the first character in the ellipsized
                              * is wide; this triggers us to try to use a
@@ -143,7 +143,7 @@ struct _EllipsizeState
 
     //PangoAttrIterator *line_start_attr; /* Cached PangoAttrIterator for the start of the run */
 
-    LineIter gap_start_iter; /* Iteratator pointig to the first cluster in gap */
+    LineIter gap_start_iter; /* Iteratator pointing to the first cluster in gap */
     int gap_start_x;        /* x position of start of gap, in Pango units */
     //PangoAttrIterator *gap_start_attr; /* Attribute iterator pointing to a range containing the first character in gap */
 
@@ -161,15 +161,15 @@ static void init_state (EllipsizeState *state, LAYOUTLINE *line)
 
     state->layout = line->layout;
 
-    state->n_runs = line->nr_runs;
-    state->run_info = malloc(sizeof(RunInfo) * state->n_runs);
+    state->nr_runs = line->nr_runs;
+    state->run_info = malloc(sizeof(RunInfo) * state->nr_runs);
 
     start_offset = line->si;
 
     state->total_width = 0;
     i = 0;
     list_for_each (l, &line->gruns) {
-        GLYPHRUN *run = (GLYPHRUN*)l;
+        GlyphRun *run = (GlyphRun*)l;
         int width = __mg_glyph_string_get_width (run->gs);
         state->run_info[i].run = run;
         state->run_info[i].width = width;
@@ -202,8 +202,8 @@ static void free_state (EllipsizeState *state)
  */
 static int get_cluster_width (LineIter *iter)
 {
-    GlyphItemIter *run_iter = &iter->run_iter;
-    GLYPHSTRING *glyphs = run_iter->glyph_item->gs;
+    GlyphRunIter *run_iter = &iter->run_iter;
+    GlyphString *glyphs = run_iter->glyph_run->gs;
     int width = 0;
     int i;
 
@@ -225,12 +225,12 @@ static int get_cluster_width (LineIter *iter)
  */
 static BOOL line_iter_next_cluster (EllipsizeState *state, LineIter *iter)
 {
-    if (!__mg_glyph_item_iter_next_cluster (&iter->run_iter)) {
-        if (iter->run_index == state->n_runs - 1)
+    if (!__mg_glyph_run_iter_next_cluster (&iter->run_iter)) {
+        if (iter->run_index == state->nr_runs - 1)
             return FALSE;
         else {
             iter->run_index++;
-            __mg_glyph_item_iter_init_start (&iter->run_iter,
+            __mg_glyph_run_iter_init_start (&iter->run_iter,
                     state->run_info[iter->run_index].run,
                     state->layout->truninfo->ucs);
         }
@@ -243,12 +243,12 @@ static BOOL line_iter_next_cluster (EllipsizeState *state, LineIter *iter)
  */
 static BOOL line_iter_prev_cluster (EllipsizeState *state, LineIter *iter)
 {
-    if (!__mg_glyph_item_iter_prev_cluster (&iter->run_iter)) {
+    if (!__mg_glyph_run_iter_prev_cluster (&iter->run_iter)) {
         if (iter->run_index == 0)
             return FALSE;
         else {
             iter->run_index--;
-            __mg_glyph_item_iter_init_end (&iter->run_iter,
+            __mg_glyph_run_iter_init_end (&iter->run_iter,
                     state->run_info[iter->run_index].run,
                     state->layout->truninfo->ucs);
         }
@@ -287,7 +287,7 @@ static BOOL ends_at_ellipsization_boundary (EllipsizeState *state, LineIter *ite
 {
     RunInfo *run_info = &state->run_info[iter->run_index];
 
-    if (iter->run_iter.end_char == run_info->run->trun->len && iter->run_index == state->n_runs - 1)
+    if (iter->run_iter.end_char == run_info->run->trun->len && iter->run_index == state->nr_runs - 1)
         return TRUE;
 
     return state->layout->bos[run_info->start_offset + iter->run_iter.end_char + 1] & BOV_GB_CURSOR_POS;
@@ -299,8 +299,8 @@ static BOOL ends_at_ellipsization_boundary (EllipsizeState *state, LineIter *ite
 static void shape_ellipsis (EllipsizeState *state)
 {
     Glyph32 ellipsis_gv;
-    TEXTRUN *text_run;
-    GLYPHSTRING *glyphs;
+    TextRun *text_run;
+    GlyphString *glyphs;
     Uchar32 ellipsis_ucs[3];
     int nr_ucs = 0;
     int i;
@@ -308,7 +308,7 @@ static void shape_ellipsis (EllipsizeState *state)
     /* Create/reset state->ellipsis_grun
      */
     if (!state->ellipsis_grun) {
-        state->ellipsis_grun = malloc (sizeof(GlyphItem));
+        state->ellipsis_grun = malloc (sizeof(GlyphRun));
         state->ellipsis_grun->gs = __mg_glyph_string_new ();
         state->ellipsis_grun->trun = NULL;
     }
@@ -455,8 +455,8 @@ static void update_ellipsis_shape (EllipsizeState *state)
  */
 static void find_initial_span (EllipsizeState *state)
 {
-    GlyphItem *glyph_item;
-    GlyphItemIter *run_iter;
+    GlyphRun *glyph_run;
+    GlyphRunIter *run_iter;
     BOOL have_cluster;
     int i;
     int x;
@@ -480,30 +480,29 @@ static void find_initial_span (EllipsizeState *state)
     /* Find the run containing the gap center
      */
     x = 0;
-    for (i = 0; i < state->n_runs; i++)
-    {
+    for (i = 0; i < state->nr_runs; i++) {
         if (x + state->run_info[i].width > state->gap_center)
             break;
 
         x += state->run_info[i].width;
     }
 
-    if (i == state->n_runs)    /* Last run is a closed interval, so back off one run */
-    {
+    /* Last run is a closed interval, so back off one run */
+    if (i == state->nr_runs) {
         i--;
         x -= state->run_info[i].width;
     }
 
-    /* Find the cluster containing the gap center
-     */
+    /* Find the cluster containing the gap center */
     state->gap_start_iter.run_index = i;
     run_iter = &state->gap_start_iter.run_iter;
-    glyph_item = state->run_info[i].run;
+    glyph_run = state->run_info[i].run;
 
-    cluster_width = 0;        /* Quiet GCC, the line must have at least one cluster */
-    for (have_cluster = __mg_glyph_item_iter_init_start (run_iter, glyph_item, state->layout->truninfo->ucs);
+    cluster_width = 0; // Quiet GCC, the line must have at least one cluster
+    for (have_cluster = __mg_glyph_run_iter_init_start(run_iter, glyph_run,
+                state->layout->truninfo->ucs);
             have_cluster;
-            have_cluster = __mg_glyph_item_iter_next_cluster (run_iter))
+            have_cluster = __mg_glyph_run_iter_next_cluster (run_iter))
     {
         cluster_width = get_cluster_width (&state->gap_start_iter);
 
@@ -513,24 +512,22 @@ static void find_initial_span (EllipsizeState *state)
         x += cluster_width;
     }
 
-    if (!have_cluster)    /* Last cluster is a closed interval, so back off one cluster */
+    /* Last cluster is a closed interval, so back off one cluster */
+    if (!have_cluster)
         x -= cluster_width;
 
     state->gap_end_iter = state->gap_start_iter;
-
     state->gap_start_x = x;
     state->gap_end_x = x + cluster_width;
 
     /* Expand the gap to a full span
      */
-    while (!starts_at_ellipsization_boundary (state, &state->gap_start_iter))
-    {
+    while (!starts_at_ellipsization_boundary (state, &state->gap_start_iter)) {
         line_iter_prev_cluster (state, &state->gap_start_iter);
         state->gap_start_x -= get_cluster_width (&state->gap_start_iter);
     }
 
-    while (!ends_at_ellipsization_boundary (state, &state->gap_end_iter))
-    {
+    while (!ends_at_ellipsization_boundary (state, &state->gap_end_iter)) {
         line_iter_next_cluster (state, &state->gap_end_iter);
         state->gap_end_x += get_cluster_width (&state->gap_end_iter);
     }
@@ -603,8 +600,8 @@ static BOOL remove_one_span (EllipsizeState *state)
  */
 static void fixup_ellipsis_grun (EllipsizeState *state)
 {
-    GLYPHSTRING *glyphs = state->ellipsis_grun->gs;
-    TEXTRUN *text_run = state->ellipsis_trun;
+    GlyphString *glyphs = state->ellipsis_grun->gs;
+    TextRun *text_run = state->ellipsis_trun;
     int level;
     int i;
 
@@ -627,7 +624,7 @@ static void fixup_ellipsis_grun (EllipsizeState *state)
 
     text_run->el = level;
 
-    text_run->flags |= TEXTRUN_FLAG_IS_ELLIPSIS;
+    text_run->flags |= TextRun_FLAG_IS_ELLIPSIS;
 }
 
 #if 0
@@ -635,11 +632,11 @@ static void fixup_ellipsis_grun (EllipsizeState *state)
  */
 static GSList * get_run_list (EllipsizeState *state)
 {
-    GlyphItem *partial_start_run = NULL;
-    GlyphItem *partial_end_run = NULL;
+    GlyphRun *partial_start_run = NULL;
+    GlyphRun *partial_end_run = NULL;
     GSList *result = NULL;
     RunInfo *run_info;
-    GlyphItemIter *run_iter;
+    GlyphRunIter *run_iter;
     int i;
 
     /* We first cut out the pieces of the starting and ending runs we want to
@@ -651,7 +648,7 @@ static GSList * get_run_list (EllipsizeState *state)
     if (run_iter->end_char != run_info->run->trun->len)
     {
         partial_end_run = run_info->run;
-        run_info->run = pango_glyph_item_split (run_info->run, state->layout->truninfo->ucs,
+        run_info->run = pango_glyph_run_split (run_info->run, state->layout->truninfo->ucs,
                 run_iter->end_index - run_info->run->trun->offset);
     }
 
@@ -659,7 +656,7 @@ static GSList * get_run_list (EllipsizeState *state)
     run_iter = &state->gap_start_iter.run_iter;
     if (run_iter->start_char != 0)
     {
-        partial_start_run = pango_glyph_item_split (run_info->run, state->layout->truninfo->ucs,
+        partial_start_run = pango_glyph_run_split (run_info->run, state->layout->truninfo->ucs,
                 run_iter->start_index - run_info->run->trun->offset);
     }
 
@@ -676,13 +673,13 @@ static GSList * get_run_list (EllipsizeState *state)
     if (partial_end_run)
         result = g_slist_prepend (result, partial_end_run);
 
-    for (i = state->gap_end_iter.run_index + 1; i < state->n_runs; i++)
+    for (i = state->gap_end_iter.run_index + 1; i < state->nr_runs; i++)
         result = g_slist_prepend (result, state->run_info[i].run);
 
     /* And free the ones we didn't use
      */
     for (i = state->gap_start_iter.run_index; i <= state->gap_end_iter.run_index; i++)
-        pango_glyph_item_free (state->run_info[i].run);
+        pango_glyph_run_free (state->run_info[i].run);
 
     return g_slist_reverse (result);
 }
@@ -692,7 +689,8 @@ static GSList * get_run_list (EllipsizeState *state)
  */
 static int current_width (EllipsizeState *state)
 {
-    return state->total_width - (state->gap_end_x - state->gap_start_x) + state->ellipsis_width;
+    return state->total_width - (state->gap_end_x - state->gap_start_x) +
+            state->ellipsis_width;
 }
 
 /**
