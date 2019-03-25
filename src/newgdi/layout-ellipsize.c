@@ -167,7 +167,7 @@ static void init_state (EllipsizeState *state, LAYOUTLINE *line)
     i = 0;
     list_for_each (l, &line->gruns) {
         GlyphRun *run = (GlyphRun*)l;
-        int width = __mg_glyph_string_get_width (run->gs);
+        int width = __mg_glyph_string_get_width (run->gstr);
         state->run_info[i].run = run;
         state->run_info[i].width = width;
         state->run_info[i].start_offset = start_offset;
@@ -195,7 +195,7 @@ static void free_state (EllipsizeState *state)
 static int get_cluster_width (LineIter *iter)
 {
     GlyphRunIter *run_iter = &iter->run_iter;
-    GlyphString *glyphs = run_iter->glyph_run->gs;
+    GlyphString *glyphs = run_iter->glyph_run->gstr;
     int width = 0;
     int i;
 
@@ -308,7 +308,7 @@ static void shape_ellipsis (EllipsizeState *state)
      */
     if (!state->ellipsis_grun) {
         state->ellipsis_grun = malloc (sizeof(GlyphRun));
-        state->ellipsis_grun->gs = __mg_glyph_string_new ();
+        state->ellipsis_grun->gstr = __mg_glyph_string_new ();
         state->ellipsis_grun->lrun = NULL;
     }
 
@@ -326,7 +326,7 @@ static void shape_ellipsis (EllipsizeState *state)
         ellipsis_ucs = _ellipsis_baseline;
     }
 
-    text_run = __mg_textruns_get_by_offset(state->layout->truninfo,
+    text_run = __mg_text_run_get_by_offset(state->layout->truninfo,
         state->gap_start_iter.run_iter.start_index, NULL);
 
     layout_run = __mg_layout_run_new_orphan (state->layout, text_run,
@@ -345,7 +345,7 @@ static void shape_ellipsis (EllipsizeState *state)
     state->ellipsis_lrun = layout_run;
 
     /* Now shape */
-    glyphs = state->ellipsis_grun->gs;
+    glyphs = state->ellipsis_grun->gstr;
     __mg_shape_layout_run(state->layout->truninfo, layout_run, glyphs);
 
     state->ellipsis_width = 0;
@@ -371,7 +371,7 @@ static void update_ellipsis_shape (EllipsizeState *state)
     BOOL is_cjk;
     const TextRun* text_run;
 
-    text_run = __mg_textruns_get_by_offset(state->layout->truninfo,
+    text_run = __mg_text_run_get_by_offset(state->layout->truninfo,
         state->gap_start_iter.run_iter.start_index, NULL);
 
     if (state->fontname != text_run->fontname) {
@@ -545,7 +545,7 @@ static BOOL remove_one_span (EllipsizeState *state)
  */
 static void fixup_ellipsis_grun (EllipsizeState *state)
 {
-    GlyphString *glyphs = state->ellipsis_grun->gs;
+    GlyphString *glyphs = state->ellipsis_grun->gstr;
     LayoutRun *layout_run = state->ellipsis_lrun;
     int level;
     int i;

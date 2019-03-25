@@ -67,7 +67,6 @@ struct _GlyphString {
 #define LAYOUTRUN_FLAG_ORPHAN   0x01
 
 struct _LayoutRun {
-    struct list_head list;
     LOGFONT*        lf;     // the logfont for this run
     const Uchar32*  ucs;    // the uchar string
 
@@ -84,7 +83,7 @@ struct _LayoutRun {
 struct _GlyphRun {
     struct list_head    list;
     LayoutRun*          lrun;   // the layout run corresponding to the glyph run
-    GlyphString*        gs;     // the glyph string
+    GlyphString*        gstr;   // the glyph string
 };
 
 struct _LAYOUTLINE {

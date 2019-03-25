@@ -563,10 +563,26 @@ RGBCOLOR __mg_textruns_get_text_color(const TEXTRUNSINFO* runinfo, int index)
     return runinfo->attrs.value;
 }
 
-const TextRun* __mg_textruns_get_by_offset(const TEXTRUNSINFO* runinfo,
-        int offset, int *start_index)
+const TextRun* __mg_text_run_get_by_offset(const TEXTRUNSINFO* runinfo,
+        int index, int *start_offset)
 {
-    return NULL;
+    struct list_head *i;
+    TextRun* found = NULL;
+
+    list_for_each(i, &runinfo->truns) {
+        TextRun* trun = (TextRun*)i;
+        if (index >= trun->si &&
+                (index < trun->si + trun->len)) {
+            found = trun;
+            if (start_offset) {
+                *start_offset = index - trun->si;
+            }
+
+            break;
+        }
+    }
+
+    return found;
 }
 
 BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
