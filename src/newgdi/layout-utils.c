@@ -124,6 +124,15 @@ void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
     ReleaseRes(Str2Key(my_fontname));
 }
 
+/*
+ * Not like Pango, we simply use the properties of the referenced TextRun
+ * for the new orphan LayoutRun, including the direction, the orientation,
+ * the embedding level, and the language, except the script type.
+ *
+ * Therefore, we assume that the text of the new LayoutRun are all
+ * in the same script, same direction, and same orientation. This is
+ * enough for the ellipsis.
+ */
 LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
         const TextRun* trun, const Uchar32* ucs, int nr_ucs)
 {
@@ -142,7 +151,7 @@ LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
     lrun->si = trun->si;
     lrun->len = trun->len;
     lrun->lc = trun->lc;
-    lrun->st = trun->st;
+    lrun->st = UCharGetScriptType(ucs[0]);
     lrun->el = trun->el;
     lrun->dir = trun->dir;
     lrun->ort = trun->ort;
@@ -339,7 +348,6 @@ void __mg_glyph_run_free(GlyphRun* run)
 /**
  * __mg_glyph_run_split:
  * @orig: a #GlyphRun
- * @text: text to which positions in @orig apply
  * @split_index: byte index of position to split item, relative to the start of the item
  *
  * Modifies @orig to cover only the text after @split_index, and
@@ -357,8 +365,7 @@ void __mg_glyph_run_free(GlyphRun* run)
  *               @split_index, which should be freed
  *               with pango_glyph_run_free().
  **/
-GlyphRun *__mg_glyph_run_split (GlyphRun *orig,
-        const Uchar32 *text, int split_index)
+GlyphRun *__mg_glyph_run_split (GlyphRun *orig, int split_index)
 {
     GlyphRun *new_grun;
     int i;

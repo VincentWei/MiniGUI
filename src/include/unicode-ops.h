@@ -43,10 +43,11 @@
 #ifndef GUI_UNICODE_OPS_H
 #define GUI_UNICODE_OPS_H
 
-#define UCHAR_SPACE         0x0020
-#define UCHAR_SHY           0x00AD
-#define UCHAR_IDSPACE       0x3000
-#define UCHAR_TAB           0x0009
+#define UCHAR_TAB               0x0009
+#define UCHAR_SPACE             0x0020
+#define UCHAR_SHY               0x00AD
+#define UCHAR_IDSPACE           0x3000
+#define UCHAR_LINE_SEPARATOR    0x2028
 
 #define PAREN_STACK_DEPTH 128
 

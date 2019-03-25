@@ -353,24 +353,6 @@ static void shape_ellipsis (EllipsizeState *state)
         state->ellipsis_width += glyphs->glyphs[i].width;
 }
 
-#if 0
-/* Helper function to advance a PangoAttrIterator to a particular
- * byte index.
- */
-static void advance_iterator_to (PangoAttrIterator *iter, int new_index)
-{
-    int start, end;
-
-    do
-    {
-        pango_attr_iterator_range (iter, &start, &end);
-        if (end > new_index)
-            break;
-    }
-    while (pango_attr_iterator_next (iter));
-}
-#endif
-
 /* Updates the shaping of the ellipsis if necessary when we move the
  * position of the start of the gap.
  *
@@ -609,7 +591,6 @@ static void get_run_list (EllipsizeState *state, LAYOUTLINE* line)
     if (run_iter->end_char != run_info->run->lrun->len) {
         partial_end_run = run_info->run;
         run_info->run = __mg_glyph_run_split (run_info->run,
-                state->layout->truninfo->ucs,
                 run_iter->end_index - run_info->run->lrun->si);
     }
 
@@ -617,7 +598,6 @@ static void get_run_list (EllipsizeState *state, LAYOUTLINE* line)
     run_iter = &state->gap_start_iter.run_iter;
     if (run_iter->start_char != 0) {
         partial_start_run = __mg_glyph_run_split (run_info->run,
-                state->layout->truninfo->ucs,
                 run_iter->start_index - run_info->run->lrun->si);
     }
 

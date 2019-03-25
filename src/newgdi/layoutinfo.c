@@ -56,7 +56,8 @@
 LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* truninfo, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
-        int letter_spacing, int word_spacing, int tab_size)
+        int letter_spacing, int word_spacing, int tab_size,
+        int* tabs, int nr_tabs)
 {
     LAYOUTINFO* layout;
 
@@ -75,6 +76,8 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     layout->ls = letter_spacing;
     layout->ws = word_spacing;
     layout->ts = tab_size;
+    layout->tabs = tabs;
+    layout->nr_tabs = nr_tabs;
 
     INIT_LIST_HEAD(&layout->lines);
     layout->nr_left_ucs = truninfo->nr_ucs;
@@ -152,10 +155,8 @@ struct _LayoutState {
     const TextRun* trun;
     // Current layout run
     LayoutRun* lrun;
-    // Start index of line in current lrun */
-    int start_index_in_lrun;
-    // the number of not fit uchars in current text run
-    int left_ucs_in_lrun;
+    // Start index of layout run in current text run */
+    int start_index_in_trun;
 
     // Goal width of line currently processing; < 0 is infinite
     int line_width;
@@ -180,11 +181,134 @@ static BOOL should_ellipsize_current_line(LAYOUTINFO *layout,
 int __mg_shape_layout_run(const TEXTRUNSINFO* info, const LayoutRun* run,
         GlyphString* glyphs)
 {
-    return 0;
+    if (!info->sei.shape(info->sei.inst, info, run, glyphs))
+        return 0;
+
+    return glyphs->nr_glyphs;
+}
+
+static void ensure_tab_width(LAYOUTINFO *layout)
+{
+    if (layout->ts == -1) {
+        /* Find out how wide 8 spaces are in the context's default
+         * font.
+         */
+
+        // TODO
+
+        /* We need to make sure the ts is > 0 so finding tab positions
+         * terminates. This check should be necessary only under extreme
+         * problems with the font.
+         */
+        if (layout->ts <= 0)
+            layout->ts = 50; /* pretty much arbitrary */
+    }
+}
+
+/* For now we only need the tab position, we assume
+ * all tabs are left-aligned.
+ */
+static int get_tab_pos(LAYOUTINFO *layout, int index, BOOL *is_default)
+{
+    int n_tabs;
+
+    if (layout->tabs) {
+        n_tabs = layout->nr_tabs;
+        if (is_default)
+            *is_default = FALSE;
+    }
+    else {
+        n_tabs = 0;
+        if (is_default)
+            *is_default = TRUE;
+    }
+
+    if (index < n_tabs) {
+        return layout->tabs[index];
+    }
+
+    if (n_tabs > 0) {
+        /* Extrapolate tab position, repeating the last tab gap to
+         * infinity.
+         */
+        int last_pos = 0;
+        int next_to_last_pos = 0;
+        int ts;
+
+        last_pos = layout->tabs[n_tabs - 1];
+
+        if (n_tabs > 1)
+            next_to_last_pos = layout->tabs[n_tabs - 2];
+        else
+            next_to_last_pos = 0;
+
+        if (last_pos > next_to_last_pos) {
+            ts = last_pos - next_to_last_pos;
+        }
+        else {
+            ts = layout->ts;
+        }
+
+        return last_pos + ts * (index - n_tabs + 1);
+    }
+    else {
+        /* No tab array set, so use default tab width
+         */
+        return layout->ts * index;
+    }
+}
+
+static int get_line_width(LAYOUTLINE *line)
+{
+    struct list_head *l;
+    int i;
+    int width = 0;
+
+    /* Compute the width of the line currently - inefficient, but easier
+     * than keeping the current width of the line up to date everywhere
+     */
+    list_for_each(l, &line->gruns) {
+        GlyphRun *run = (GlyphRun*)l;
+
+        for (i = 0; i < run->gs->nr_glyphs; i++)
+            width += run->gs->glyphs[i].width;
+    }
+
+    return width;
 }
 
 static void shape_tab(LAYOUTLINE *line, GlyphString *glyphs)
 {
+    int i, space_width;
+
+    int current_width = get_line_width(line);
+
+    __mg_glyph_string_set_size (glyphs, 1);
+
+    glyphs->glyphs[0].gv = INV_GLYPH_VALUE;
+    glyphs->glyphs[0].x_off = 0;
+    glyphs->glyphs[0].y_off = 0;
+    glyphs->glyphs[0].is_cluster_start = 1;
+
+    glyphs->log_clusters[0] = 0;
+
+    ensure_tab_width (line->layout);
+    space_width = line->layout->ts / 8;
+
+    for (i=0; ; i++) {
+        BOOL is_default;
+        int tab_pos = get_tab_pos (line->layout, i, &is_default);
+        /* Make sure there is at least a space-width of space between
+         * tab-aligned text and the text before it.  However, only do
+         * this if no tab array is set on the layout, ie. using default
+         * tab positions.  If use has set tab positions, respect it to
+         * the pixel.
+         */
+        if (tab_pos >= current_width + (is_default ? space_width : 1)) {
+            glyphs->glyphs[0].width = tab_pos - current_width;
+            break;
+        }
+    }
 }
 
 static void shape_shape(const Uchar32* ucs, int nr_ucs,
@@ -207,9 +331,11 @@ static void shape_shape(const Uchar32* ucs, int nr_ucs,
 
 static void shape_full(const Uchar32* lrun_ucs, int nr_lrun_ucs,
         const Uchar32* para_ucs, int nr_para_ucs,
-        const TEXTRUNSINFO* truninfo, LayoutRun* textrun,
+        const TEXTRUNSINFO* info, LayoutRun* lrun,
         GlyphString* glyphs)
 {
+    // TODO
+    info->sei.shape(info->sei.inst, info, lrun, glyphs);
 }
 
 static void distribute_letter_spacing (int letter_spacing,
@@ -230,7 +356,7 @@ static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
     LAYOUTINFO *layout = line->layout;
     GlyphString *glyphs = __mg_glyph_string_new ();
 
-    if (layout->truninfo->ucs[lrun->si] == '\t')
+    if (layout->truninfo->ucs[lrun->si] == UCHAR_TAB)
         shape_tab(line, glyphs);
     else {
         if (state->shape_set)
@@ -377,10 +503,6 @@ BreakResult process_text_run(LAYOUTINFO *layout,
     int i;
     BOOL processing_new_lrun = FALSE;
 
-    /* Only one character has type UCHAR_CATEGORY_LINE_SEPARATOR in
-     * Unicode 12.0; update this if that changes. */
-#define LINE_SEPARATOR 0x2028
-
     if (!state->glyphs) {
         state->glyphs = shape_run (line, state, lrun);
 
@@ -391,17 +513,16 @@ BreakResult process_text_run(LAYOUTINFO *layout,
     }
 
     if (!layout->single_paragraph &&
-            layout->truninfo->ucs[lrun->si] == LINE_SEPARATOR &&
+            layout->truninfo->ucs[lrun->si] == UCHAR_LINE_SEPARATOR &&
             !should_ellipsize_current_line (layout, state)) {
-        insert_run (line, state, lrun, TRUE);
+        insert_run(line, state, lrun, TRUE);
         state->log_widths_offset += lrun->len;
         return BREAK_LINE_SEPARATOR;
     }
 
-    if (state->remaining_width < 0 && !no_break_at_end)  /* Wrapping off */
-    {
+    if (state->remaining_width < 0 && !no_break_at_end) {
+        /* Wrapping off */
         insert_run (line, state, lrun, TRUE);
-
         return BREAK_ALL_FIT;
     }
 
@@ -449,7 +570,8 @@ retry_break:
             if (width > state->remaining_width && break_num_chars < lrun->len)
                 break;
 
-            /* If there are no previous runs we have to take care to grab at least one char. */
+            /* If there are no previous runs we have to take care to
+             * grab at least one char. */
             if (can_break_at (layout, state->start_offset + num_chars,
                         retrying_with_char_breaks) &&
                     (num_chars > 0 || !list_empty(&line->gruns)))
@@ -466,9 +588,11 @@ retry_break:
          * XXX Currently it doesn't quite match the logic there.  We don't check
          * the cluster here.  But should be fine in practice. */
         if (break_num_chars > 0 && break_num_chars < lrun->len &&
-                layout->bos[state->start_offset + break_num_chars - 1] & BOV_WHITESPACE)
+                layout->bos[state->start_offset + break_num_chars - 1] &
+                    BOV_WHITESPACE)
         {
-            break_width -= state->log_widths[state->log_widths_offset + break_num_chars - 1];
+            break_width -= state->log_widths[state->log_widths_offset +
+                                             break_num_chars - 1];
         }
 
         if ((layout->rf & GRF_OVERFLOW_WRAP_MASK) == GRF_OVERFLOW_WRAP_NORMAL
@@ -483,8 +607,8 @@ retry_break:
             goto retry_break;
         }
 
-        if (force_fit || break_width <= state->remaining_width)	/* Successfully broke the lrun */
-        {
+        if (force_fit || break_width <= state->remaining_width) {
+            /* Successfully broke the lrun */
             if (state->remaining_width >= 0) {
                 state->remaining_width -= break_width;
                 state->remaining_width = MAX (state->remaining_width, 0);
@@ -498,13 +622,16 @@ retry_break:
                 return BREAK_EMPTY_FIT;
             }
             else {
+                LayoutRun* new_lrun;
                 GlyphRun *grun;
+
+                new_lrun = __mg_layout_run_split(lrun, break_num_chars);
 
                 /* Add the width back, to the line, reshape,
                    subtract the new width */
                 state->remaining_width += break_width;
-                grun = insert_run (line, state, lrun, FALSE);
-                break_width = __mg_glyph_string_get_width (grun->gs);
+                grun = insert_run (line, state, new_lrun, FALSE);
+                break_width = __mg_glyph_string_get_width(grun->gs);
                 state->remaining_width -= break_width;
 
                 state->log_widths_offset += break_num_chars;
@@ -1076,7 +1203,8 @@ static void layout_line_postprocess (LAYOUTLINE *line,
             (wrapped || ellipsized)) {
         /* if we ellipsized, we don't have remaining_width set */
         if (state->remaining_width < 0)
-            state->remaining_width = state->line_width - layout_line_get_width (line);
+            state->remaining_width = state->line_width -
+                    layout_line_get_width (line);
 
         justify_words (line, state);
     }
@@ -1085,32 +1213,13 @@ static void layout_line_postprocess (LAYOUTLINE *line,
     line->layout->is_ellipsized |= ellipsized;
 }
 
-static void add_line (LAYOUTLINE *line, LayoutState  *state)
-{
-#if 0
-    LAYOUTINFO *layout = line->layout;
-
-    list_add_tail(&line->list, &layout->lines);
-    layout->nr_lines++;
-
-    if (layout->height >= 0) {
-        PangoRectangle logical_rect;
-        pango_layout_line_get_extents (line, NULL, &logical_rect);
-        state->remaining_height -= logical_rect.height;
-        state->remaining_height -= layout->spacing;
-        state->line_height = logical_rect.height;
-    }
-#else
-    // do nothing
-#endif
-}
-
 static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 {
     LAYOUTLINE *line;
+    struct list_head* t;
 
     BOOL have_break = FALSE;    // If we've seen a possible break yet
-    int break_remaining_width = 0;// Remaining width before adding run with break
+    int break_remaining_width = 0;// Left width before adding run with break
     int break_start_offset = 0; // Start offset before adding run with break
     struct list_head *break_link = NULL;  // Link holding run before break
     BOOL wrapped = FALSE;       // If we had to wrap the line
@@ -1125,21 +1234,32 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
     else
         state->remaining_width = state->line_width;
 
-    while (state->lrun) {
-        LayoutRun *lrun = state->lrun;
+    list_for_each_ex(t, &layout->truninfo->truns, &state->trun->list) {
+        state->trun = (const TextRun*)t;
+        LayoutRun *lrun;
         BreakResult result;
         int old_num_chars;
         int old_remaining_width;
         BOOL first_lrun_in_line;
 
+        if (state->start_index_in_trun > 0) {
+            lrun = __mg_layout_run_new_from_offset(layout,
+                state->trun, state->start_index_in_trun);
+        }
+        else {
+            lrun = __mg_layout_run_new_from(layout, state->trun);
+        }
+        state->lrun = lrun;
+
         old_num_chars = lrun->len;
         old_remaining_width = state->remaining_width;
-        first_lrun_in_line = !list_empty(&line->gruns);
+        first_lrun_in_line = list_empty(&line->gruns);
 
         result = process_text_run(layout, line, state, !have_break, FALSE);
         switch (result) {
         case BREAK_ALL_FIT:
-            if (can_break_in (layout, state->start_offset, old_num_chars, first_lrun_in_line))
+            if (can_break_in (layout, state->start_offset,
+                    old_num_chars, first_lrun_in_line))
             {
                 have_break = TRUE;
                 break_remaining_width = old_remaining_width;
@@ -1198,7 +1318,6 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 
 done:
     layout_line_postprocess (line, state, wrapped);
-    add_line (line, state);
     state->line_of_par++;
     state->line_start_index += line->len;
     return line;
@@ -1221,7 +1340,14 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     if (layout->persist && layout->nr_left_ucs == 0) {
         // already laid out
 
-        if (prev_line && &prev_line->list != &layout->lines) {
+        if (list_empty(&layout->lines))
+            return NULL;
+
+        if (prev_line == NULL) {
+            next_line = (LAYOUTLINE*)layout->lines.next;
+            goto out;
+        }
+        else if ((struct list_head*)prev_line != &layout->lines) {
             next_line = (LAYOUTLINE*)prev_line->list.next;
             goto out;
         }
@@ -1243,30 +1369,24 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     state.log_widths_offset = 0;
 
     if (prev_line == NULL) {
-        state.line_start_index = 0;
         if (list_empty(&layout->truninfo->truns)) {
-            next_line = layout_line_new(layout);
-            next_line->si = state.line_start_index;
-            next_line->is_paragraph_start = TRUE;
-            line_set_resolved_dir(next_line, layout->truninfo->run_dir);
-            goto next_line;
+            // empty line
+            next_line = NULL;
+            goto out;
         }
 
+        state.line_start_index = 0;
+        state.start_index_in_trun = 0;
         state.trun = (TextRun*)&layout->truninfo->truns.next;
-        state.lrun = __mg_layout_run_new_from(layout, state.trun);
-        state.start_index_in_lrun = 0;
-        state.left_ucs_in_lrun = state.lrun->len;
     }
     else {
-        state.start_offset = layout->truninfo->nr_ucs - layout->nr_left_ucs;
+        state.line_start_index = layout->truninfo->nr_ucs - layout->nr_left_ucs;
         state.trun = __mg_textruns_get_by_offset(layout->truninfo,
-                state.start_offset, &state.start_index_in_lrun);
+                state.start_offset, &state.start_index_in_trun);
         if (state.trun == NULL) {
-            return NULL;
+            next_line = NULL;
+            goto out;
         }
-        state.lrun = __mg_layout_run_new_from_offset(layout,
-                state.trun, state.start_index_in_lrun);
-        state.left_ucs_in_lrun = state.lrun->len - state.start_index_in_lrun;
     }
 
     state.line_width = max_extent;
@@ -1274,7 +1394,6 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
 
     next_line = check_next_line(layout, &state);
 
-next_line:
     if (next_line) {
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
@@ -1283,7 +1402,7 @@ next_line:
             release_line(prev_line);
         }
 
-        layout->nr_lines ++;
+        layout->nr_lines++;
         layout->nr_left_ucs -= next_line->len;
     }
 

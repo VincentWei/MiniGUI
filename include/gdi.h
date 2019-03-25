@@ -12730,7 +12730,8 @@ typedef struct _LAYOUTLINE LAYOUTLINE;
 MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* run_info, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
-        int letter_spacing, int word_spacing, int tab_size);
+        int letter_spacing, int word_spacing, int tab_size,
+        int* tabs, int nr_tabs);
 
 /**
  * Destroy the specified layout information structure.

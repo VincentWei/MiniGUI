@@ -105,6 +105,7 @@ struct _LAYOUTLINE {
 struct _LAYOUTINFO {
     const TEXTRUNSINFO* truninfo;
     const BreakOppo*    bos;
+    const int*          tabs;       // tabstop array
 
     Uint32              rf;         // rendering flags
     int                 ls;         // letter spacing
@@ -113,6 +114,7 @@ struct _LAYOUTINFO {
 
     struct list_head    lines;      // the list head of lines
 
+    int                 nr_tabs;    // number of tabstops
     int                 nr_left_ucs;// the number of chars not laied out
     int                 nr_lines;   // the number of lines
 
@@ -146,8 +148,7 @@ LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
 void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
         const char* fontname, GlyphOrient ort);
 
-GlyphRun *__mg_glyph_run_split (GlyphRun *orig,
-        const Uchar32 *text, int split_index);
+GlyphRun *__mg_glyph_run_split (GlyphRun *orig, int split_index);
 void __mg_glyph_run_free(GlyphRun* run);
 
 LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,

@@ -236,11 +236,7 @@ static BOOL state_process_run (TextRunState *state)
     for (p = state->run_start; p < state->run_end; p++) {
         Uchar32 uc = *p;
 
-/* Only one character has the category LINE_SEPARATOR in Unicode 12.0;
- * update this if that changes. */
-#define LINE_SEPARATOR 0x2028
-
-        BOOL is_forced_break = (uc == '\t' || uc == LINE_SEPARATOR);
+        BOOL is_forced_break = (uc == UCHAR_TAB || uc == UCHAR_LINE_SEPARATOR);
         BOOL no_shaping;
 
         no_shaping = is_uchar_no_shaping(uc);
@@ -516,32 +512,6 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(Uchar32* ucs, int nr_ucs,
     INIT_LIST_HEAD(&runinfo->truns);
     runinfo->nr_runs = 0;
 
-#if 0
-    int i, j;
-    BidiLevel max_level = 0;
-    BidiLevel level_or, level_and;
-
-    // make the embedding levels of the bidi marks to be -1.
-    level_or = 0, level_and = 1;
-    j = 0;
-    for (i = 0; i < nr_ucs; i++) {
-        if (BIDI_IS_EXPLICIT_OR_BN (bidi_ts[i])) {
-            els[i] = -1;
-        }
-        else {
-            level_or |= els[j];
-            level_and &= els[j];
-            j++;
-        }
-    }
-
-    // check for all even or odd
-    /* If none of the levels had the LSB set, all chars were even. */
-    runinfo->all_even = (level_or & 0x1) == 0;
-    /* If all of the levels had the LSB set, all chars were odd. */
-    runinfo->all_odd = (level_and & 0x1) == 1;
-#endif
-
     if (!create_text_runs(runinfo, els)) {
         _ERR_PRINTF("%s: failed to call create_text_runs.\n",
             __FUNCTION__);
@@ -572,6 +542,7 @@ BOOL GUIAPI SetFontInTextRuns(TEXTRUNSINFO* runinfo,
     if (list_empty(&runinfo->truns))
         return FALSE;
 
+    // TODO
     return FALSE;
 }
 

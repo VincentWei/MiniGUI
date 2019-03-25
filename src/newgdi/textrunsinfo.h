@@ -49,7 +49,7 @@ typedef struct _GlyphString     GlyphString;
 typedef struct _SEInstance      SEInstance;
 typedef struct _TextAttrMap     TextAttrMap;
 
-typedef BOOL (*CB_SHAPE_TEXT_RUN)(SEInstance* instance,
+typedef BOOL (*CB_SHAPE_LAYOUT_RUN)(SEInstance* instance,
         const TEXTRUNSINFO* info, const LayoutRun* run,
         GlyphString* gs);
 
@@ -62,7 +62,7 @@ struct _ShapingEngineInfo {
     SEInstance*         inst;
 
     /* callback to shap a text run */
-    CB_SHAPE_TEXT_RUN   shape;
+    CB_SHAPE_LAYOUT_RUN shape;
 
     /* callback to destroy the shaping engine instance */
     CB_DESTROY_INSTANCE free;

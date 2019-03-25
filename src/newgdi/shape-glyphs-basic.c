@@ -77,7 +77,7 @@ static void reverse_shaped_glyphs(ShapedGlyph* glyphs, int len)
     }
 }
 
-static BOOL shape_text_run(SEInstance* inst,
+static BOOL shape_layout_run(SEInstance* inst,
         const TEXTRUNSINFO* info, const LayoutRun* run,
         GlyphString* gs)
 {
@@ -254,11 +254,44 @@ out:
     return ok;
 }
 
-BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* info)
+struct _SEInstance {
+    const char* name;
+    int ref_count;
+};
+
+static struct _SEInstance shaping_engine_basic = {
+    "Basic Shapping Engine", 0
+};
+
+static BOOL destroy_instance(SEInstance* instance)
 {
-    info->sei.shape = shape_text_run;
+    if (instance == &shaping_engine_basic) {
+        shaping_engine_basic.ref_count--;
+        return TRUE;
+    }
+
+    _ERR_PRINTF("%s: you are destroying a non-basic shaping engine instance.\n",
+            __FUNCTION__);
+
     return FALSE;
 }
+
+BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* info)
+{
+    shaping_engine_basic.ref_count++;
+
+    info->sei.inst = &shaping_engine_basic;
+    info->sei.shape = shape_layout_run;
+    info->sei.free = destroy_instance;
+    return TRUE;
+}
+
+#ifdef _MGDEVEL_MODE
+int GetBasicShapingEngineRefCount(void)
+{
+    return shaping_engine_basic.ref_count;
+}
+#endif /* _MGDEVEL_MODE */
 
 #endif /*  _MGCHARSET_UNICODE */
 
