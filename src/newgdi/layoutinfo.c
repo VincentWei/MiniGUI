@@ -856,7 +856,6 @@ static void reorder_runs_recurse(struct list_head* result,
         }
     }
 
-    list_print(result, "returned from reorder_runs_recurse");
     return;
 }
 

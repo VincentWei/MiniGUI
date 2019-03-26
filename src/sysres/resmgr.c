@@ -54,8 +54,6 @@
 #include <pthread.h>
 #endif
 
-#define DEBUG
-
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
