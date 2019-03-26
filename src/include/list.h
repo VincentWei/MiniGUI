@@ -146,6 +146,37 @@ static inline int list_empty(const struct list_head *head)
 }
 
 /**
+ * list_concat - concatenate the entries from a list to another list.
+ * @src: the source list; the entries in the source list will be deleted.
+ * @dest: the destination list.
+ */
+static inline void list_concat(struct list_head* dest, struct list_head* src)
+{
+    while (!list_empty(src)) {
+        struct list_head* entry = src->next;
+        list_del(src->next);
+        list_add_tail(entry, dest);
+    }
+}
+
+/**
+ * list_move - move the entries from a list to another list.
+ * @src: the source list; the entries in the source list will be deleted.
+ * @dest: the destination list, the list will be initialized to empty
+ *      before moving the entries.
+ */
+static inline void list_move(struct list_head* dest, struct list_head* src)
+{
+    INIT_LIST_HEAD(dest);
+
+    while (!list_empty(src)) {
+        struct list_head* entry = src->next;
+        list_del(src->next);
+        list_add_tail(entry, dest);
+    }
+}
+
+/**
  * list_entry - get the struct for this entry
  * @ptr:    the &struct list_head pointer.
  * @type:    the type of the struct this is embedded in.
