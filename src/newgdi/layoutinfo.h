@@ -51,9 +51,10 @@ struct _ShapedGlyph {
     Glyph32 gv;
     int     x_off;
     int     y_off;
-    int     width;
 
+    Uint32  width:24;
     Uint32  is_cluster_start:1;
+    Uint32  hanged:2;
 };
 
 struct _GlyphString {

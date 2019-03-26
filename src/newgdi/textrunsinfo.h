@@ -125,7 +125,7 @@ struct _TEXTRUNSINFO {
 extern "C" {
 #endif  /* __cplusplus */
 
-RGBCOLOR __mg_textruns_get_color(const TEXTRUNSINFO* runinfo, int index);
+RGBCOLOR __mg_textruns_get_text_color(const TEXTRUNSINFO* runinfo, int index);
 
 const TextRun* __mg_text_run_get_by_offset(const TEXTRUNSINFO* runinfo,
         int index, int *start_offset);

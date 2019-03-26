@@ -1616,7 +1616,8 @@ done:
     return line;
 }
 
-static int traverse_line_glyphs(LAYOUTLINE* line, int x, int y,
+static int traverse_line_glyphs(const LAYOUTINFO* layout,
+        const LAYOUTLINE* line, int x, int y,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
     int j = 0;
@@ -1626,15 +1627,39 @@ static int traverse_line_glyphs(LAYOUTLINE* line, int x, int y,
     list_for_each(i, &line->gruns) {
         GlyphRun* run = (GlyphRun*)i;
         for (j = 0; j < run->gstr->nr_glyphs; j++) {
-            ShapedGlyph* sg = run->gstr->glyphs + j;
+            int index;
+            Uchar32 uc;
             GLYPHPOS pos;
+            RGBCOLOR color;
+            ShapedGlyph* glyph_info;
+
+            index = run->lrun->si + run->gstr->log_clusters[j];
+            uc = run->lrun->ucs[index];
+            color = __mg_textruns_get_text_color(layout->truninfo, index);
+            glyph_info = run->gstr->glyphs + j;
 
             pos.x = x + line_adv;
             pos.y = y;
-            pos.x_off = sg->x_off;
-            pos.y_off = sg->y_off;
-            line_adv += sg->width;
-            cb_laid_out(ctxt, run->lrun->lf, 0, run->gstr->glyphs[j].gv, &pos);
+            pos.x_off = glyph_info->x_off;
+            pos.y_off = glyph_info->y_off;
+
+            pos.suppressed = 0;
+            pos.whitespace = 0;
+            pos.orientation = run->lrun->ort;
+            pos.hanged = glyph_info->hanged;
+
+            if (run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) {
+                if (glyph_info->width > 0) {
+                    pos.whitespace = 1;
+                }
+                else {
+                    pos.suppressed = 1;
+                }
+            }
+
+            cb_laid_out(ctxt, run->lrun->lf, uc, glyph_info->gv, &pos, color);
+
+            line_adv += glyph_info->width;
         }
     }
     return 0;
@@ -1742,7 +1767,7 @@ out:
     }
 
     if (next_line && cb_laid_out) {
-        traverse_line_glyphs(next_line, x, y, cb_laid_out, ctxt);
+        traverse_line_glyphs(layout, next_line, x, y, cb_laid_out, ctxt);
     }
 
     return next_line;

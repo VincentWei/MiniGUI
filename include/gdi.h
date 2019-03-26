@@ -12739,7 +12739,7 @@ MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
 MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
 typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
-        LOGFONT* lf, RGBCOLOR color, Glyph32 gv, const GLYPHPOS* pos);
+        LOGFONT* lf, Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos, RGBCOLOR color);
 
 /**
  * Layout the next line of a paragraph according to the layout information.
