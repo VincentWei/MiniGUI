@@ -69,7 +69,7 @@ struct _ShapingEngineInfo {
 };
 
 #define TEXTRUN_FLAG_CENTERED_BASELINE      0x01
-#define TEXTRUN_FLAG_NOT_SHAPING            0x02
+#define TEXTRUN_FLAG_NO_SHAPING             0x02
 
 struct _TextRun {
     struct list_head list;

@@ -36,6 +36,29 @@
 ** layoutlayout.c: The implementation of APIs related LAYOUTINFO
 **
 ** Create by WEI Yongming at 2019/03/20
+**
+** This implementation is derived from LGPL'd Pango. However, we optimize
+** and simplify the original implementation in the following respects:
+**
+**  - We split the layout process into two stages. We get the text runs
+**      (Pango items) in the first stage, and the text runs will keep as
+**      constants for subsequent different layouts. In the seconde stage,
+**      we create a layout context for a set of specific layout parameters,
+**      and generates the lines one by one for the caller. This is useful
+**      for an app like browser, it can reuse the text runs if the output
+**      width or height changed, and it is no need to re-generate the text
+**      runs because of the size change of the output rectangle.
+**
+**  - We use MiniGUI's fontname for the font attributes of text, and leave
+**      the font selection and the glyph generating to MiniGUI's LOGFONT.
+**      In this way, we simplify the layout process greatly.
+**
+**  - We always use Uchar32 string for the whole layout process. So the
+**      code and the structures are clearer than original implementation.
+**
+**  - We provide two shaping engines for rendering the text. One is a
+**      basic shaping engine and other is the complex shaping engine based
+**      on HarzBuff. The former can be used for standard scripts.
 */
 
 #include <stdio.h>
@@ -54,6 +77,7 @@
 #include "devfont.h"
 #include "unicode-ops.h"
 #include "layoutinfo.h"
+#include "glyph.h"
 
 LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* truninfo, Uint32 render_flags,
@@ -313,6 +337,39 @@ static void shape_tab(LAYOUTLINE *line, GlyphString *glyphs)
     }
 }
 
+static void shape_space(const LAYOUTINFO* layout, const LayoutRun* lrun,
+        GlyphString* glyphs)
+{
+    unsigned int i;
+
+    __mg_glyph_string_set_size (glyphs, lrun->len);
+
+    for (i = 0; i < lrun->len; i++) {
+        UCharGeneralCategory gc;
+
+        gc = UCharGetCategory(lrun->ucs[i]);
+
+        glyphs->glyphs[i].gv = INV_GLYPH_VALUE;
+        glyphs->glyphs[i].x_off = 0;
+        glyphs->glyphs[i].y_off = 0;
+
+        if (gc == UCHAR_CATEGORY_SPACE_SEPARATOR) {
+            Glyph32 space_gv = GetGlyphValue(lrun->lf, UCHAR_SPACE);
+            glyphs->glyphs[i].width
+                        = _font_get_glyph_log_width(lrun->lf, space_gv);
+            if (IsUCharWide(lrun->ucs[i])) {
+                glyphs->glyphs[i].width *= 2;
+            }
+        }
+        else {
+            glyphs->glyphs[i].width = 0;
+        }
+
+        glyphs->glyphs[i].is_cluster_start = 1;
+        glyphs->log_clusters[i] = i;
+    }
+}
+
 static void shape_shape(const Uchar32* ucs, int nr_ucs,
         RECT* ink_rc, RECT* log_rc, GlyphString *glyphs)
 {
@@ -333,7 +390,7 @@ static void shape_shape(const Uchar32* ucs, int nr_ucs,
 
 static void shape_full(const Uchar32* lrun_ucs, int nr_lrun_ucs,
         const Uchar32* para_ucs, int nr_para_ucs,
-        const TEXTRUNSINFO* info, LayoutRun* lrun,
+        const TEXTRUNSINFO* info, const LayoutRun* lrun,
         GlyphString* glyphs)
 {
     // TODO
@@ -358,8 +415,13 @@ static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
     LAYOUTINFO *layout = line->layout;
     GlyphString *glyphs = __mg_glyph_string_new ();
 
-    if (layout->truninfo->ucs[lrun->si] == UCHAR_TAB)
+    if (layout->truninfo->ucs[lrun->si] == UCHAR_TAB) {
         shape_tab(line, glyphs);
+    }
+    else if (lrun->lf == NULL) {
+        // no need shaping
+        shape_space(layout, lrun, glyphs);
+    }
     else {
         if (state->shape_set)
             shape_shape(layout->truninfo->ucs + lrun->si, lrun->len,
@@ -405,12 +467,31 @@ static void free_glyph_run (GlyphRun *grun)
 }
 
 #ifdef DEBUG
+static inline void print_text_runs(const TEXTRUNSINFO* info, const char* func)
+{
+    int j = 0;
+    struct list_head* i;
+
+    _DBG_PRINTF("Text runs in content when calling %s (nr_runs: %d):\n",
+            func, info->nr_runs);
+
+    list_for_each(i, &info->truns) {
+        TextRun* run = (TextRun*)i;
+        _DBG_PRINTF("RUN NO.:               %d\n", j);
+        _DBG_PRINTF("   ADDRESS:        %p\n", run);
+        _DBG_PRINTF("   INDEX:          %d\n", run->si);
+        _DBG_PRINTF("   LENGHT:         %d\n", run->len);
+        _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->el);
+        j++;
+    }
+}
+
 static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
 {
     int j = 0;
     struct list_head* i;
 
-    _DBG_PRINTF("Runs in line after calling %s (line length: %d):\n",
+    _DBG_PRINTF("Runs in line when calling %s (line length: %d):\n",
             func, line->len);
 
     list_for_each(i, &line->gruns) {
@@ -419,7 +500,7 @@ static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
         _DBG_PRINTF("   ADDRESS:        %p\n", run);
         _DBG_PRINTF("   INDEX:          %d\n", run->lrun->si);
         _DBG_PRINTF("   LENGHT:         %d\n", run->lrun->len);
-        _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->lrun->len);
+        _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->lrun->el);
         _DBG_PRINTF("   NR GLYPHS:      %d\n", run->gstr->nr_glyphs);
         j++;
     }
@@ -431,7 +512,7 @@ static inline void print_run(const GlyphRun* run, const char* func)
     _DBG_PRINTF("   ADDRESS:        %p\n", run);
     _DBG_PRINTF("   INDEX:          %d\n", run->lrun->si);
     _DBG_PRINTF("   LENGHT:         %d\n", run->lrun->len);
-    _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->lrun->len);
+    _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->lrun->el);
     _DBG_PRINTF("   NR GLYPHS:      %d\n", run->gstr->nr_glyphs);
 }
 
@@ -449,6 +530,11 @@ static inline void list_print(struct list_head* head, const char* desc)
 }
 
 #else
+
+static inline void print_text_runs(const TEXTRUNSINFO* info, const char* func)
+{
+    // do nothing.
+}
 
 static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
 {
@@ -471,11 +557,10 @@ static void uninsert_run(LAYOUTLINE *line)
 {
     GlyphRun *grun;
 
-    grun = (GlyphRun*)line->gruns.next;
+    grun = (GlyphRun*)line->gruns.prev;
 
-    list_del(line->gruns.next);
+    list_del(line->gruns.prev);
     line->len -= grun->lrun->len;
-
     free_glyph_run(grun);
 
     print_line_runs(line, __FUNCTION__);
@@ -628,6 +713,7 @@ BreakResult process_layout_run(LAYOUTINFO *layout,
             glyph_run.lrun = lrun;
             glyph_run.gstr = state->glyphs;
 
+            assert(state->log_widths == NULL);
             state->log_widths = malloc (sizeof (int) * lrun->len);
             __mg_glyph_run_get_logical_widths(&glyph_run, layout->truninfo->ucs,
                 state->log_widths);
@@ -660,8 +746,7 @@ retry_break:
          * the cluster here.  But should be fine in practice. */
         if (break_num_chars > 0 && break_num_chars < lrun->len &&
                 layout->bos[state->start_offset + break_num_chars - 1] &
-                    BOV_WHITESPACE)
-        {
+                    BOV_WHITESPACE) {
             break_width -= state->log_widths[state->log_widths_offset +
                                              break_num_chars - 1];
         }
@@ -697,8 +782,8 @@ retry_break:
                 GlyphRun *grun;
 
                 new_lrun = __mg_layout_run_split(lrun, break_num_chars);
-
                 state->lrun = new_lrun;
+                /* we must free the original layout run */
                 __mg_layout_run_free(lrun);
 
                 /* Add the width back, to the line, reshape,
@@ -1343,12 +1428,10 @@ static void justify_words (LAYOUTLINE *line,
             }
         }
 
-        if (mode == MEASURE)
-        {
+        if (mode == MEASURE) {
             total_space_width = spaces_so_far;
 
-            if (total_space_width == 0)
-            {
+            if (total_space_width == 0) {
                 justify_clusters (line, state);
                 return;
             }
@@ -1433,7 +1516,6 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
         state->remaining_width = state->line_width;
 
     while (state->trun) {
-        LayoutRun *lrun;
         BreakResult result;
         int old_num_chars;
         int old_remaining_width;
@@ -1446,17 +1528,12 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
         else {
             state->lrun = __mg_layout_run_new_from(layout, state->trun);
         }
-        lrun = state->lrun;
 
-        old_num_chars = lrun->len;
+        old_num_chars = state->lrun->len;
         old_remaining_width = state->remaining_width;
         first_lrun_in_line = list_empty(&line->gruns);
 
         result = process_layout_run(layout, line, state, !have_break, FALSE);
-        lrun = state->lrun;
-
-        _DBG_PRINTF("%s: result of process_layout_run: %d\n",
-                __FUNCTION__, result);
 
         switch (result) {
         case BREAK_ALL_FIT:
@@ -1469,25 +1546,26 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
             }
 
             state->trun = (const TextRun*)state->trun->list.next;
+            state->start_index_in_trun = 0;
+            state->start_offset += old_num_chars;
             if (&state->trun->list == &layout->truninfo->truns)
                 state->trun = NULL;
-            state->start_offset += old_num_chars;
             break;
 
         case BREAK_EMPTY_FIT:
+            __mg_layout_run_free(state->lrun);
+            state->lrun = NULL;
             wrapped = TRUE;
             goto done;
 
         case BREAK_SOME_FIT:
-            _DBG_PRINTF("%s: handle BREAK_SOME_FIT: %d\n",
-                    __FUNCTION__, lrun->len);
-            state->start_offset += old_num_chars - lrun->len;
+            state->start_offset += old_num_chars - state->lrun->len;
             wrapped = TRUE;
             goto done;
 
         case BREAK_NONE_FIT:
-            _DBG_PRINTF("%s: handle BREAK_NONE_FIT: %d\n",
-                    __FUNCTION__, lrun->len);
+            __mg_layout_run_free(state->lrun);
+
             /* Back up over unused runs to run where there is a break */
             while (!list_empty(&line->gruns) &&
                     line->gruns.next != break_link) {
@@ -1509,8 +1587,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
             }
 
             /* Reshape run to break */
-            lrun = state->lrun;
-            old_num_chars = lrun->len;
+            old_num_chars = state->lrun->len;
             result = process_layout_run(layout, line, state, TRUE, TRUE);
 
             assert(result == BREAK_SOME_FIT || result == BREAK_EMPTY_FIT);
@@ -1521,9 +1598,10 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 
         case BREAK_LINE_SEPARATOR:
             state->trun = (const TextRun*)state->trun->list.next;
+            state->start_index_in_trun = 0;
+            state->start_offset += old_num_chars;
             if (&state->trun->list == &layout->truninfo->truns)
                 state->trun = NULL;
-            state->start_offset += old_num_chars;
             /* A line-separate is just a forced break.  Set wrapped, so we do
              * justification */
             wrapped = TRUE;
@@ -1532,8 +1610,6 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
     }
 
 done:
-    _DBG_PRINTF("%s: calling layout_line_postprocess: %d\n",
-            __FUNCTION__, line->len);
     layout_line_postprocess(line, state, wrapped);
     state->line_of_par++;
     state->line_start_index += line->len;
@@ -1611,28 +1687,38 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         }
 
         state.line_start_index = 0;
+        state.start_offset = 0;
         state.start_index_in_trun = 0;
         state.trun = (TextRun*)layout->truninfo->truns.next;
     }
     else {
         state.line_start_index = layout->truninfo->nr_ucs - layout->nr_left_ucs;
+        state.start_offset = state.line_start_index;
+        state.start_index_in_trun = 0;
         state.trun = __mg_text_run_get_by_offset(layout->truninfo,
-                state.start_offset, &state.start_index_in_trun);
+                state.line_start_index, &state.start_index_in_trun);
+
+        _DBG_PRINTF("%s: line_start_index: %d, start_index_in_trun: %d(%p)\n",
+            __FUNCTION__, state.line_start_index, state.start_index_in_trun,
+            state.trun);
+
         if (state.trun == NULL) {
             next_line = NULL;
             goto out;
         }
     }
 
-    if (prev_line) {
-        release_line(prev_line);
-        prev_line = NULL;
-    }
-
     state.line_width = max_extent;
     state.remaining_width = max_extent;
 
     next_line = check_next_line(layout, &state);
+
+    if (state.glyphs) {
+        __mg_glyph_string_free(state.glyphs);
+    }
+    if (state.log_widths) {
+        free(state.log_widths);
+    }
 
     if (next_line) {
         if (layout->persist) {
@@ -1641,6 +1727,13 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
 
         layout->nr_lines++;
         layout->nr_left_ucs -= next_line->len;
+    }
+
+    // Release previous line after got next line.
+    // This will avoid releasing the LOGFONT objects earlier.
+    if (prev_line) {
+        release_line(prev_line);
+        prev_line = NULL;
     }
 
 out:

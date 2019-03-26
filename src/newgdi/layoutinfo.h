@@ -64,7 +64,8 @@ struct _GlyphString {
     unsigned int    space;
 };
 
-#define LAYOUTRUN_FLAG_ORPHAN   0x01
+#define LAYOUTRUN_FLAG_CENTERED_BASELINE    TEXTRUN_FLAG_CENTERED_BASELINE
+#define LAYOUTRUN_FLAG_NO_SHAPING           TEXTRUN_FLAG_NO_SHAPING
 
 struct _LayoutRun {
     LOGFONT*        lf;     // the logfont for this run

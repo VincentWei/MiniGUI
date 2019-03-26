@@ -168,7 +168,7 @@ static void state_add_character(TextRunState *state,
         BOOL no_shaping, BOOL force_break, const Uchar32* pos)
 {
     if (state->run) {
-        BOOL without_shaping = (state->run->flags & TEXTRUN_FLAG_NOT_SHAPING);
+        BOOL without_shaping = (state->run->flags & TEXTRUN_FLAG_NO_SHAPING);
         if (!force_break &&
                 state->run->lc == state->derived_lang &&
                 without_shaping == no_shaping) {
@@ -189,7 +189,7 @@ static void state_add_character(TextRunState *state,
     state->run->flags = 0;
 
     if (no_shaping) {
-        state->run->flags |= TEXTRUN_FLAG_NOT_SHAPING;
+        state->run->flags |= TEXTRUN_FLAG_NO_SHAPING;
     }
 
     /* The level vs. gravity dance:
@@ -567,10 +567,10 @@ const TextRun* __mg_text_run_get_by_offset(const TEXTRUNSINFO* runinfo,
         int index, int *start_offset)
 {
     struct list_head *i;
-    TextRun* found = NULL;
+    const TextRun* found = NULL;
 
     list_for_each(i, &runinfo->truns) {
-        TextRun* trun = (TextRun*)i;
+        const TextRun* trun = (const TextRun*)i;
         if (index >= trun->si &&
                 (index < trun->si + trun->len)) {
             found = trun;

@@ -1079,8 +1079,12 @@ int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
             }
         }
         else if (is_whitespace_glyph(&args, gis, n)) {
+            Glyph32 space_gv = GetGlyphValue(logfont_upright, UCHAR_SPACE);
+
             gis[n].whitespace = 1;
-            ges[n].line_adv = logfont_upright->size / 6;
+            ges[n].line_adv = _font_get_glyph_log_width(logfont_upright,
+                                space_gv);
+
             switch (render_flags & GRF_WRITING_MODE_MASK) {
             case GRF_WRITING_MODE_VERTICAL_RL:
             case GRF_WRITING_MODE_VERTICAL_LR:

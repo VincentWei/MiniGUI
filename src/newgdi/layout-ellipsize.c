@@ -568,8 +568,6 @@ static void fixup_ellipsis_grun (EllipsizeState *state)
         level = MIN (level, state->run_info[i].run->lrun->el);
 
     layout_run->el = level;
-
-    layout_run->flags |= LAYOUTRUN_FLAG_ORPHAN;
 }
 
 /* Computes the new list of runs for the line

@@ -101,9 +101,6 @@ LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
         return NULL;
     }
 
-    _DBG_PRINTF("%s: calling LoadResource for LOGFONT: %s\n",
-        __FUNCTION__, my_fontname);
-
     lf = (LOGFONT*)LoadResource(my_fontname, RES_TYPE_FONT, 0);
     if (lf == NULL) {
         _ERR_PRINTF("%s: failed to create LOGFONT for layout: %p\n",
@@ -160,7 +157,7 @@ LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
     lrun->el = trun->el;
     lrun->dir = trun->dir;
     lrun->ort = trun->ort;
-    lrun->flags |= LAYOUTRUN_FLAG_ORPHAN;
+    lrun->flags = trun->flags;
 
     return lrun;
 }
@@ -196,8 +193,11 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
     LOGFONT* lf;
     LayoutRun* lrun;
 
-    if (offset >= trun->len)
+    if (offset >= trun->len) {
+        _DBG_PRINTF("%s: offset(%d) >= trun->len(%p, %d)\n",
+            __FUNCTION__, offset, trun, trun->len);
         return NULL;
+    }
 
     lf = __mg_create_logfont_for_layout(layout, trun->fontname, trun->ort);
     if (lf == NULL)
@@ -221,12 +221,8 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
 
 void __mg_layout_run_free(LayoutRun* lrun)
 {
-    _DBG_PRINTF("%s: called for %p\n",
-        __FUNCTION__, lrun);
-
     if (lrun->lf) {
         FONT_RES* font_res = (FONT_RES*)lrun->lf;
-        // FIXME
         if (font_res->key)
             ReleaseRes(font_res->key);
     }
@@ -263,17 +259,11 @@ LayoutRun* __mg_layout_run_split(LayoutRun *orig, int split_index)
     if (split_index >= orig->len)
         return NULL;
 
-    _DBG_PRINTF("%s: orig: %d, %d\n",
-        __FUNCTION__, orig->si, orig->len);
-
     new_run = __mg_layout_run_copy(orig);
     new_run->len = split_index;
 
     orig->si += split_index;
     orig->len -= split_index;
-
-    _DBG_PRINTF("%s: new layout run: %d, %d; orig: %d, %d\n",
-        __FUNCTION__, new_run->si, new_run->len, orig->si, orig->len);
 
     return new_run;
 }
@@ -686,11 +676,56 @@ void __mg_glyph_run_get_logical_widths (const GlyphRun *glyph_run,
     }
 }
 
-void __mg_glyph_run_letter_space (const GlyphRun* glyph_run,
+void __mg_glyph_run_letter_space(const GlyphRun* glyph_run,
         const Uchar32* ucs, const BreakOppo* bos, int letter_spacing)
 {
-}
+    GlyphRunIter iter;
+    ShapedGlyph *glyphs = glyph_run->gstr->glyphs;
+    BOOL have_cluster;
+    int space_left, space_right;
 
+    space_left = letter_spacing / 2;
+
+    /* hinting */
+    if ((letter_spacing & 1) == 0) {
+        space_left += 1;
+    }
+
+    space_right = letter_spacing - space_left;
+
+    for (have_cluster = __mg_glyph_run_iter_init_start(&iter, glyph_run, ucs);
+            have_cluster;
+            have_cluster = __mg_glyph_run_iter_next_cluster(&iter)) {
+
+        if (!(bos[iter.start_char] & BOV_GB_CURSOR_POS))
+            continue;
+
+        if (iter.start_glyph < iter.end_glyph) {
+            /* LTR */
+
+            if (iter.start_char > 0) {
+                glyphs[iter.start_glyph].width += space_left ;
+                glyphs[iter.start_glyph].x_off += space_left ;
+            }
+
+            if (iter.end_char < glyph_run->lrun->len) {
+                glyphs[iter.end_glyph-1].width += space_right;
+            }
+        }
+        else {
+            /* RTL */
+
+            if (iter.start_char > 0) {
+                glyphs[iter.start_glyph].width += space_right;
+            }
+
+            if (iter.end_char < glyph_run->lrun->len) {
+                glyphs[iter.end_glyph+1].x_off += space_left ;
+                glyphs[iter.end_glyph+1].width += space_left ;
+            }
+        }
+    }
+}
 
 #endif /*  _MGCHARSET_UNICODE */
 
