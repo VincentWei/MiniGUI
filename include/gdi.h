@@ -12551,7 +12551,37 @@ MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
 typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
 
 /**
- * Split a Uchar32 paragraph string in mixed scripts into text runs.
+ * \fn TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
+ *      LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
+ *      GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
+ *      const char* logfont_name, RGBCOLOR color);
+ *
+ * \brief Split a Uchar32 paragraph string in mixed scripts into text runs.
+ *
+ * This function splits the Uchar32 paragraph \a ucs in mixed scripts
+ * into text runs, and returns a TEXTRUNSINFO object.
+ *
+ * \param ucs The Uchar32 string returned by \a GetUCharsUntilParagraphBoundary.
+ * \param nr_ucs The length of the Uchar32 string.
+ * \param lang_code The language code.
+ * \param base_dir The base direction of the paragraph.
+ * \param run_dir The writing direction of the paragraph.
+ * \param glyph_orient The glyph orientation.
+ * \param orient_policy THe glyph orientation policy of the paragraph.
+ * \param logfont_name The default logfont name. You can change the font
+ *      of some text in the paragraph by calling \a SetFontInTextRuns.
+ * \param color The default text color. You can change the text color
+ *      of some text in the paragraph by calling \a SetTextColorInTextRuns
+ *
+ * \return The TEXTRUNSINFO object create; NULL for failure.
+ *
+ * \note This function assumes that you passed one paragraph of
+ *      the logical Unicode string. Therefore, you'd better to call this
+ *      function after calling GetUCharsUntilParagraphBoundary.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \sa GetUCharsUntilParagraphBoundary, SetFontInTextRuns, SetTextColorInTextRuns
  */
 MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
@@ -12561,93 +12591,87 @@ MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs
 /**
  * Set logfont of text runs
  */
-MG_EXPORT BOOL GUIAPI SetFontInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetFontInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, const char* logfont_name);
 
 /**
  * Set text olor in text runs.
  */
-MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, RGBCOLOR color);
 
 /**
  * Set underline color in text runs.
  */
-MG_EXPORT BOOL GUIAPI SetUnderlineColorInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetUnderlineColorInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, RGBCOLOR color);
 
 /**
  * Set strikethrough color in text runs.
  */
-MG_EXPORT BOOL GUIAPI SetStrikethroughColorInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetStrikethroughColorInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, RGBCOLOR color);
 
 /**
  * Set background color in text runs.
  */
-MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, RGBCOLOR color);
 
 /**
  * Set outline color in text runs.
  */
-MG_EXPORT BOOL GUIAPI SetOutlineColorInTextRuns(TEXTRUNSINFO* run_info,
+MG_EXPORT BOOL GUIAPI SetOutlineColorInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, RGBCOLOR color);
 
 /**
- * Destroy the glyph run info object. It also frees all data allocated
- * for shapping and layouting the glyphs.
- */
-MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* run_info);
-
-/**
- * \fn BOOL GUIAPI InitBasicShapingEngine()
- * \brief Analyse and generate a shaped glyph string of a Unicode string
- *      under specific language and writing system.
+ * \fn BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo)
  *
- * This function analyses a Unicode string under the specified
- * content language \a content_language and writing system
- * \a writing_systemand, and generates a shaped glyph string,
- * as long as the glyph information of them.
+ * \brief Destroy the glyph run info object. It also frees all data allocated
+ *      for shapping and layouting the glyphs.
  *
- * This function performs the basic shaping process according to the
- * Unicode character properties if the script type (writing system)
- * is Arabic. This includes processing the ligatures and mirroring.
+ * This function destroies the specific TEXTRUNSINFO object \a truninfo.
  *
- * This function also tries to find the correct glyph for a Uchar32
- * character by composing it with the adjucent character.
+ * \param truninfo The TEXTRUNSINFO object.
  *
- * For the better shaping glyphs, you should call \a GetShapedGlyphsComplex
- * to perform the shaping process based on the data contained in
- * the OpenType Layout tables of the font. MiniGUI uses LGPL'd HarfBuzz
- * as the shaping engine.
- *
- * \param logfont The logfont used to parse the string.
- *      Note that the charset/encoding of this logfont should be Unicode,
- *      such as UTF-8, UTF-16LE, and UTF-16BE.
- * \param lang_code The language code.
- * \param writing_system The writing system (script) identifier.
- * \param ucs The pointer to the Uchar32 array.
- * \param nr_ucs The number of the Unicode characters.
- * \param embedding_levels The embedding levels returned by calling
- *      UBidiGetParagraphEmbeddingLevels(). If it is NULL, ligature
- *      and mirroring process will be disabled.
- * \param base_dir The base direction of the paragraph.
- * \param shaped_glyphs The pointer to a SHAPEDGLYPHS structure, which
- *        contains the shaped glyphs information.
- *
- * \return The number of the Unicode characters processed; zero on error.
+ * \return TRUE for success, FALSE otherwise.
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \note This function assumes that you passed one paragraph of
- *      the logical Unicode string. Therefore, you'd better to call this
- *      function after calling GetUCharsUntilParagraphBoundary.
- *
- * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsComplex,
- *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
+ * \sa CreateTextRunsInfo
  */
-MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info);
+MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo);
+
+/**
+ * \fn BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo)
+ * \brief Initialize the base shaping engine for a TEXTRUNSINFO object.
+ *
+ * This function initializes the base shaping engine for the specific
+ * TEXTRUNSINFO object \a truninfo.
+ *
+ * The basic shaping engine performs the basic shaping process
+ * according to the Unicode character properties if the script type
+ * (writing system) is Arabic. This includes the mirroring/brackets
+ * subsititions, and the mandatory ligatures.
+ *
+ * For the better shaping glyphs, you can call \a InitComplexShapingEngine
+ * to perform the shaping process based on the data contained in
+ * the OpenType Layout tables in the underlaying OpenType fonts or TrueType
+ * fonts. MiniGUI uses LGPL'd HarfBuzz to implement the complex
+ * shaping engine.
+ *
+ * After initializing the shapping engine, you can call \a CreateLayoutInfo
+ * to layout the Uchar32 paragraph string.
+ *
+ * \param truninfo The TEXTRUNSINFO object.
+ *
+ * \return TRUE for success, FALSE otherwise.
+ *
+ * \note Only available when support for UNICODE is enabled.
+ *
+ * \sa InitComplexShapingEngine, CreateLayoutInfo
+ */
+MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo);
 
 #ifdef _MGCOMPLEX_SCRIPTS
 
@@ -12717,7 +12741,7 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* run_info);
  * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic,
  *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
  */
-MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* run_info);
+MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* truninfo);
 
 #endif /* _MGCOMPLEX_SCRIPTS */
 
@@ -12728,7 +12752,7 @@ typedef struct _LAYOUTLINE LAYOUTLINE;
  * Create layout information structure for laying out a paragraph.
  */
 MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
-        const TEXTRUNSINFO* run_info, Uint32 render_flags,
+        const TEXTRUNSINFO* truninfo, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
         int letter_spacing, int word_spacing, int tab_size,
         int* tabs, int nr_tabs);
@@ -12792,7 +12816,7 @@ MG_EXPORT int DrawShapedGlyphLine(HDC hdc, const LAYOUTLINE* line,
  *     GetGlyphsPositionInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  *
 MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
-        TEXTRUNSINFO* run_info, int run_idx);
+        TEXTRUNSINFO* truninfo, int run_idx);
  */
 
 /**
@@ -12855,7 +12879,7 @@ MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
  * \sa UStrGetBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
  *      GetGlyphsExtentInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
  */
-MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const TEXTRUNSINFO* run_info,
+MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const TEXTRUNSINFO* truninfo,
         const BreakOppo* break_oppos,
         int uc_start_index, int x, int y, Uint32 render_flags,
         int letter_spacing, int word_spacing, int tab_size, int max_extent,
@@ -12887,7 +12911,7 @@ MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const TEXTRUNSINFO* run_info,
  *
  * \sa GetGlyphsExtentFromUChars
  */
-MG_EXPORT int GUIAPI DrawShapedGlyphs(const TEXTRUNSINFO* run_info,
+MG_EXPORT int GUIAPI DrawShapedGlyphs(const TEXTRUNSINFO* truninfo,
         int uc_start_index, const GLYPHPOS* glyph_pos, int nr_glyphs);
 
 #endif /* _MGCHARSET_UNICODE */
