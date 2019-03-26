@@ -42,6 +42,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DEBUG
+
 #include "common.h"
 
 #ifdef _MGCHARSET_UNICODE
@@ -248,11 +250,17 @@ LayoutRun* __mg_layout_run_split(LayoutRun *orig, int split_index)
     if (split_index >= orig->len)
         return NULL;
 
+    _DBG_PRINTF("%s: orig: %d, %d\n",
+        __FUNCTION__, orig->si, orig->len);
+
     new_run = __mg_layout_run_copy(orig);
     new_run->len = split_index;
 
     orig->si += split_index;
     orig->len -= split_index;
+
+    _DBG_PRINTF("%s: new layout run: %d, %d; orig: %d, %d\n",
+        __FUNCTION__, new_run->si, new_run->len, orig->si, orig->len);
 
     return new_run;
 }
@@ -358,12 +366,9 @@ void __mg_glyph_run_free(GlyphRun* run)
  * be at least one byte assigned to each item, you can't create a
  * zero-length item).
  *
- * This function is similar in function to pango_item_split() (and uses
- * it internally.)
- *
  * Return value: the newly allocated item representing text before
  *               @split_index, which should be freed
- *               with pango_glyph_run_free().
+ *               with __mg_glyph_run_free().
  **/
 GlyphRun *__mg_glyph_run_split (GlyphRun *orig, int split_index)
 {
@@ -380,6 +385,9 @@ GlyphRun *__mg_glyph_run_split (GlyphRun *orig, int split_index)
         return NULL;
     if (split_index >= orig->lrun->len)
         return NULL;
+
+    _DBG_PRINTF("%s: called, orig: %d, %d, split at: %d\n",
+        __FUNCTION__, orig->lrun->si, orig->lrun->len, split_index);
 
     if (LTR (orig)) {
         for (i = 0; i < orig->gstr->nr_glyphs; i++) {
