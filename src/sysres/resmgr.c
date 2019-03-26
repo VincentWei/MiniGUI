@@ -54,6 +54,7 @@
 #include <pthread.h>
 #endif
 
+#define DEBUG
 
 #include "common.h"
 #include "minigui.h"
@@ -768,7 +769,9 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
         SetUsed(entry);
     }
 
-    entry->refcnt ++ ;
+    entry->refcnt++;
+    _DBG_PRINTF("%s: reference count for %p: %d\n",
+        __FUNCTION__, entry, entry->refcnt);
 
     data = get_res_data(entry, ti->ops, usr_param);
     if(GetSourceType(entry) == REF_SRC_FILE)
@@ -818,7 +821,7 @@ int AddResRef(RES_KEY key)
         return -1;
 #endif
     }
-    return ++entry->refcnt ;
+    return ++entry->refcnt;
 }
 
 static void delete_entry(HASH_TABLE *table, RES_ENTRY* entry)
@@ -826,10 +829,10 @@ static void delete_entry(HASH_TABLE *table, RES_ENTRY* entry)
     if(entry == NULL)
         return;
 
-    if(IsUsed(entry) && entry->data != NULL)
-    {
+    if(IsUsed(entry) && entry->data != NULL) {
         delete_entry_data(entry);
     }
+
     if(!(GetSourceType(entry) == REF_SRC_INNER
         && !IsInnerResCopyed(entry)))
         remove_entry(table, entry->key);
@@ -841,12 +844,17 @@ int ReleaseRes(RES_KEY key)
     RES_ENTRY *entry = NULL;
     RES_LOCK();
     entry = get_entry(&hash_table, key, FALSE);
-    if(entry == NULL){
+    if (entry == NULL){
         RES_UNLOCK();
         return -1;
     }
+
     ref = --entry->refcnt;
-    if(ref <= 0)
+
+    _DBG_PRINTF("%s: reference count for %p: %d\n",
+        __FUNCTION__, entry, entry->refcnt);
+
+    if (ref <= 0)
         delete_entry(&hash_table, entry);
     RES_UNLOCK();
     return ref;
@@ -900,47 +908,46 @@ static void res_error(int type, const char* funcname, const char* strinfo, ... )
 //ops
 static void* img_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 {
-    if(res == NULL)
+    if (res == NULL)
         return NULL;
 
-    if(res->data == NULL)
-    {
+    if (res->data == NULL) {
         //source is null
-        if(res->source.src == NULL)
+        if (res->source.src == NULL)
             return NULL;
 
-        switch(src_type)
-        {
-        case REF_SRC_FILE:
-            {
-                BITMAP *pbmp;
-                pbmp = NEW(BITMAP);
-                if(LoadBitmapFromFile((HDC)usr_param, pbmp, res->source.file) != 0)
-                {
+        switch(src_type) {
+        case REF_SRC_FILE: {
+            BITMAP *pbmp;
+            pbmp = NEW(BITMAP);
+            if (LoadBitmapFromFile((HDC)usr_param, pbmp,
+                    res->source.file) != 0) {
+                DELETE(pbmp);
+                return NULL;
+            }
+            res->data = pbmp;
+            break;
+        }
+
+        case REF_SRC_INNER: {
+            INNER_RES* inner = res->source.inner;
+            if(inner->additional == NULL) {
+                // raw bitmap
+                res->data = inner->data;
+            }
+            else {
+                BITMAP *pbmp = NEW(BITMAP);
+                if (LoadBitmapFromMem((HDC)usr_param, pbmp,
+                    inner->data, inner->data_len,
+                    (const char*)inner->additional) != 0) {
                     DELETE(pbmp);
                     return NULL;
                 }
                 res->data = pbmp;
-                break;
             }
-        case REF_SRC_INNER:
-            {
-                INNER_RES* inner = res->source.inner;
-                if(inner->additional == NULL) //raw bitmap
-                {
-                    res->data = inner->data;
-                }
-                else {
-                    BITMAP *pbmp = NEW(BITMAP);
-                    if(LoadBitmapFromMem((HDC)usr_param, pbmp, inner->data, inner->data_len, (const char*)inner->additional) != 0)
-                    {
-                        DELETE(pbmp);
-                        return NULL;
-                    }
-                    res->data = pbmp;
-                }
-                break;
-            }
+            break;
+        }
+
         default:
             return NULL;
         }
@@ -949,15 +956,17 @@ static void* img_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
     return res->data;
 }
 
-static void img_unload(RESOURCE* res, int src_type)
+static void img_unload (RESOURCE* res, int src_type)
 {
-    if(res && res->data){
-        if((src_type == REF_SRC_FILE)
-            || (src_type == REF_SRC_INNER
-                && (res->source.inner && res->source.inner->additional != NULL))){
+    if (res && res->data) {
+        if ((src_type == REF_SRC_FILE) ||
+                (src_type == REF_SRC_INNER
+                    && (res->source.inner &&
+                        res->source.inner->additional != NULL))) {
             UnloadBitmap(res->data);
             DELETE(res->data);
         }
+
         res->data = NULL;
     }
 }
@@ -1082,24 +1091,20 @@ static void icon_unload(RESOURCE* res, int src_type)
 
 static void* icon_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 {
-    if(res == NULL)
+    if (res == NULL)
         return NULL;
 
-    if(res->data==NULL)
-    {
+    if (res->data==NULL) {
         HICON hIcon = 0;
-        if(res->source.src == NULL)
+        if (res->source.src == NULL)
             return NULL;
 
-        switch(src_type)
-        {
-        case REF_SRC_FILE:
-        {
+        switch(src_type) {
+        case REF_SRC_FILE: {
             hIcon = LoadIconFromFile((HDC)usr_param, res->source.file, 0);
             break;
         }
-        case REF_SRC_INNER:
-        {
+        case REF_SRC_INNER: {
             hIcon = LoadIconFromMem((HDC)usr_param, res->source.inner->data, 0);
             break;
         }
@@ -1114,34 +1119,31 @@ static void* icon_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 
 static void icon_unload(RESOURCE* res, int src_type)
 {
-    if(res && res->data)
+    if (res && res->data)
         DestroyIcon((HICON)res->data);
 }
-
 
 #ifdef _MGHAVE_CURSOR
 static void* cursor_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 {
-    if(res == NULL)
+    if (res == NULL)
         return NULL;
 
-    if(res->data == NULL)
-    {
+    if (res->data == NULL) {
         if(res->source.src == NULL)
             return NULL;
 
-        switch(src_type)
-        {
-        case REF_SRC_FILE:
-        {
+        switch(src_type) {
+        case REF_SRC_FILE: {
             res->data =(void*) LoadCursorFromFile(res->source.file);
             break;
         }
-        case REF_SRC_INNER:
-        {
+
+        case REF_SRC_INNER: {
             res->data = (void*)LoadCursorFromMem(res->source.inner->data);
             break;
         }
+
         default:
             return NULL;
         }
@@ -1152,7 +1154,7 @@ static void* cursor_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 
 static void cursor_unload(RESOURCE* res, int src_type)
 {
-    if(res && res->data){
+    if (res && res->data) {
         DestroyCursor((HCURSOR)res->data);
     }
 }
@@ -1161,18 +1163,15 @@ static void cursor_unload(RESOURCE* res, int src_type)
 
 static void* etc_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 {
-    if(res == NULL)
+    if (res == NULL)
         return NULL;
 
-    if(res->data == NULL)
-    {
-        if(res->source.src == NULL)
+    if (res->data == NULL) {
+        if (res->source.src == NULL)
             return NULL;
 
-        switch(src_type)
-        {
-        case REF_SRC_FILE:
-        {
+        switch(src_type) {
+        case REF_SRC_FILE: {
             res->data = (void*)LoadEtcFile(res->source.file);
             break;
         }
@@ -1189,7 +1188,7 @@ static void* etc_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 
 static void etc_unload(RESOURCE* res, int src_type)
 {
-    if(res->data && src_type == REF_SRC_FILE)
+    if (res->data && src_type == REF_SRC_FILE)
         UnloadEtcFile((GHANDLE)res->data);
 }
 
@@ -1197,53 +1196,52 @@ static void etc_unload(RESOURCE* res, int src_type)
 //binery
 static void* mem_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 {
-    if(res == NULL)
+    if (res == NULL)
         return NULL;
 
-    if(res->data == NULL)
-    {
-        if(res->source.src == NULL)
+    if (res->data == NULL) {
+        if (res->source.src == NULL)
             return NULL;
 
-        switch(src_type)
-        {
-        case REF_SRC_INNER:
-            {
-                res->data = (MEM_RES*)&(res->source.inner->data);
-                break;
-            }
+        switch (src_type) {
+        case REF_SRC_INNER: {
+            res->data = (MEM_RES*)&(res->source.inner->data);
+            break;
+        }
         default:
             return NULL;
         }
     }
+
     return res->data;
 }
 
 static void mem_unload(RESOURCE* res, int src_type)
 {
-    if(res)
+    if (res)
         res->data = NULL;
 }
 
 static void* font_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 {
-    if(res == NULL)
+    if (res == NULL)
         return NULL;
 
-    if(res->data == NULL)
-    {
-        if(res->source.src == NULL)
+    if (res->data == NULL) {
+        if (res->source.src == NULL)
             return NULL;
 
-        if (src_type == REF_SRC_LOGIC)
-        {
+        if (src_type == REF_SRC_LOGIC) {
             char *font_name = (char *)res->source.file;
             PLOGFONT p = CreateLogFontByName(font_name);
-            FONT_RES *data = (FONT_RES *)malloc(sizeof(FONT_RES));
-            memcpy(&data->logfont, p, sizeof(LOGFONT));
-            data->key = ((RES_ENTRY *)res)->key;
-            free(p);
-            res->data = data;
+            if (p) {
+                FONT_RES* data = (FONT_RES*)p;
+                data->key = ((RES_ENTRY *)res)->key;
+                res->data = data;
+            }
+            else {
+                res->data = NULL;
+            }
         }
     }
 
@@ -1252,9 +1250,12 @@ static void* font_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 
 static void font_unload(RESOURCE* res, int src_type)
 {
-    FONT_RES *data = (FONT_RES *)res->data;
-    //FIXME, .... how to destroy the log font ???
-    DestroyLogFont (&data->logfont);
-    //free(data);
+    if (res && res->data) {
+        FONT_RES *data = (FONT_RES *)res->data;
+        _DBG_PRINTF("%s: LOGFONT %p will be destroyed\n",
+            __FUNCTION__, &data->logfont);
+        DestroyLogFont(&data->logfont);
+        res->data = NULL;
+    }
 }
 

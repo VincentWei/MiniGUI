@@ -1625,6 +1625,11 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         }
     }
 
+    if (prev_line) {
+        release_line(prev_line);
+        prev_line = NULL;
+    }
+
     state.line_width = max_extent;
     state.remaining_width = max_extent;
 
@@ -1634,15 +1639,16 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
         }
-        else if (prev_line) {
-            release_line(prev_line);
-        }
 
         layout->nr_lines++;
         layout->nr_left_ucs -= next_line->len;
     }
 
 out:
+    if (prev_line) {
+        release_line(prev_line);
+    }
+
     if (next_line && cb_laid_out) {
         traverse_line_glyphs(next_line, x, y, cb_laid_out, ctxt);
     }

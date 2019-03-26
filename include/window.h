@@ -4865,7 +4865,7 @@ MG_EXPORT void* GetResource (RES_KEY key);
  *
  *  When you get a resource, you should call this function to ensure that
  *  the resource can not be unloaded when you still use it.
- *  This function must be called after LoadResource.
+ *  This function must be called after GetResource.
  *
  *  \param key The key of resource (use Str2Key(res_name) to get the key).
  *

@@ -101,6 +101,9 @@ LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
         return NULL;
     }
 
+    _DBG_PRINTF("%s: calling LoadResource for LOGFONT: %s\n",
+        __FUNCTION__, my_fontname);
+
     lf = (LOGFONT*)LoadResource(my_fontname, RES_TYPE_FONT, 0);
     if (lf == NULL) {
         _ERR_PRINTF("%s: failed to create LOGFONT for layout: %p\n",
@@ -218,9 +221,14 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
 
 void __mg_layout_run_free(LayoutRun* lrun)
 {
+    _DBG_PRINTF("%s: called for %p\n",
+        __FUNCTION__, lrun);
+
     if (lrun->lf) {
         FONT_RES* font_res = (FONT_RES*)lrun->lf;
-        ReleaseRes(font_res->key);
+        // FIXME
+        if (font_res->key)
+            ReleaseRes(font_res->key);
     }
 
     free(lrun);
@@ -236,6 +244,11 @@ LayoutRun* __mg_layout_run_copy(const LayoutRun* lrun)
     result = malloc(sizeof(LayoutRun));
     memcpy(result, lrun, sizeof(LayoutRun));
 
+    // must increase the reference count of LOGFONT
+    if (result->lf) {
+        FONT_RES* font_res = (FONT_RES*)result->lf;
+        AddResRef(font_res->key);
+    }
     return result;
 }
 

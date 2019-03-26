@@ -41,6 +41,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DEBUG
+
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -123,6 +125,7 @@ static PLOGFONT gdiCreateLogFont (const char* type, const char* family,
 
     if ((newlf = (PLOGFONT)calloc(sizeof (FONT_RES), 1)) == NULL)
         return INV_LOGFONT;
+
     ((FONT_RES *)newlf)->key = -1;
 
     newlf->style = style;
