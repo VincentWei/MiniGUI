@@ -121,7 +121,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
     version [3] = '\0';
 
     if (strcmp(version, "87a") != 0 && strcmp(version, "89a") != 0) {
-        _MG_PRINTF ("MYBMP>Gif: GIF version number is not 87a or 89a\n");
+        _WRN_PRINTF ("MYBMP>Gif: GIF version number is not 87a or 89a\n");
         return NULL;                /* image loading error*/
     }
 
@@ -139,7 +139,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
     info->gif89.disposal = 0;
 
     if (!ReadOK (fp, buf, 7)) {
-        _MG_PRINTF ("MYBMP>Gif: bad screen descriptor\n");
+        _WRN_PRINTF ("MYBMP>Gif: bad screen descriptor\n");
         goto fini;                /* image loading error*/
     }
 
@@ -152,7 +152,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
 
     if (BitSet(buf[4], LOCALCOLORMAP)) {        /* Global Colormap */
         if (ReadColorMap(fp, info->screen.BitPixel, info->screen.ColorMap)) {
-            _MG_PRINTF ("MYBMP>Gif: bad global colormap\n");
+            _WRN_PRINTF ("MYBMP>Gif: bad global colormap\n");
             goto fini;                /* image loading error*/
         }
     }
@@ -160,12 +160,12 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
     do
     {
         if (!ReadOK (fp, &c, 1)) {
-            _MG_PRINTF ("MYBMP>Gif: EOF on image data\n");
+            _WRN_PRINTF ("MYBMP>Gif: EOF on image data\n");
             goto fini;
          }
 
         if (';' == c) {/* GIF terminator */
-             _MG_PRINTF ("MYBMP>Gif: no image \n" );
+             _WRN_PRINTF ("MYBMP>Gif: no image \n" );
             goto fini;
          }
         
@@ -199,7 +199,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
 
 
     if (!ReadOK (fp, buf, 9)) { /* Read the Image Descriptor*/
-         _MG_PRINTF ("MYBMP>Gif: bad image size\n");
+         _WRN_PRINTF ("MYBMP>Gif: bad image size\n");
         goto fini;
         }
 
@@ -209,7 +209,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
     if (!info->useGColormap) {
         memset (info->screen.ColorMap , 0 , 3*256);
         if (0 != ReadColorMap(fp, info->bitPixel, info->screen.ColorMap)) {
-             _MG_PRINTF ("MYBMP>Gif: bad local colormap\n");
+             _WRN_PRINTF ("MYBMP>Gif: bad local colormap\n");
             goto fini;
         }
     }
@@ -337,7 +337,7 @@ GetCode(MG_RWops *src, int code_size, int flag , void * info)
     if ((curbit + code_size) >= lastbit) {
         if (done) {
             if (curbit >= lastbit)
-                 _MG_PRINTF ("MYBMP>Gif: bad decode\n");
+                 _WRN_PRINTF ("MYBMP>Gif: bad decode\n");
             return -1;
         }
         buf[0] = buf[last_byte - 2];
@@ -430,7 +430,7 @@ LWZReadByte(MG_RWops *src, int flag, int input_code_size , void * info_data)
             while ((count = GetDataBlock(src, buf , info)) > 0);
 
             if (count != 0) {
-                _MG_PRINTF ("MYBMP>Gif: missing EOD in data stream (common occurence)");
+                _WRN_PRINTF ("MYBMP>Gif: missing EOD in data stream (common occurence)");
             }
             return -2;
         }
@@ -443,7 +443,7 @@ LWZReadByte(MG_RWops *src, int flag, int input_code_size , void * info_data)
         while (code >= clear_code) {
             *sp++ = table[1][code];
             if (code == table[0][code]) {
-                _MG_PRINTF ("MYBMP>Gif: circular table entry\n");
+                _WRN_PRINTF ("MYBMP>Gif: circular table entry\n");
                 return -1;
             }
             code = table[0][code];
@@ -481,11 +481,11 @@ ReadImage(MG_RWops* src, MYBITMAP* bmp, int len, int height,
      *        Initialize the compression routines
      */
     if (!ReadOK(src, &c, 1)) {
-        _MG_PRINTF ("MYBMP>Gif: EOF on image data\n");
+        _WRN_PRINTF ("MYBMP>Gif: EOF on image data\n");
         return 0;
     }
     if (LWZReadByte(src, TRUE, c , info) < 0) {
-        _MG_PRINTF ("MYBMP>Gif: error reading image\n");
+        _WRN_PRINTF ("MYBMP>Gif: error reading image\n");
         return 0;
     }
 

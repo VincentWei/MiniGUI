@@ -338,7 +338,7 @@ BOOL InitJZ4740Input(INPUT* input, const char* mdev, const char* mtype)
     touch_fd = open (TS_DEVICE, O_NONBLOCK);
 
     if (!touch_fd) {
-        _MG_PRINTF ("IAL>TSLib: can not open ts device\n");
+        _WRN_PRINTF ("IAL>TSLib: can not open ts device\n");
         return FALSE;
     }
     

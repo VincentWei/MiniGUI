@@ -52,7 +52,7 @@ static HCURSOR load_cursor_from_file (const char* filename)
     /* the cbType of struct CURSORDIR. */
     wTemp = MGUI_ReadLE16FP (fp);
     if(wTemp != 2) {
-        _MG_PRINTF ("LoadCursorFromFile: bad file type: %d\n", wTemp);
+        _WRN_PRINTF ("LoadCursorFromFile: bad file type: %d\n", wTemp);
         goto error;
     }
 
@@ -63,7 +63,7 @@ static HCURSOR load_cursor_from_file (const char* filename)
     w = fgetc (fp);  /* the width of first cursor. */
     h = fgetc (fp);  /* the height of first cursor. */
     if (w != CURSORWIDTH || h != CURSORHEIGHT) {
-        _MG_PRINTF ("LoadCursorFromFile: bad first cursor width (%d) and height (%d)\n", w, h);
+        _WRN_PRINTF ("LoadCursorFromFile: bad first cursor width (%d) and height (%d)\n", w, h);
         goto error;
     }
 
@@ -85,21 +85,21 @@ static HCURSOR load_cursor_from_file (const char* filename)
     imagew = MGUI_ReadLE32FP (fp);
     imageh = MGUI_ReadLE32FP (fp);
     if (imagew != CURSORWIDTH || imageh != (CURSORHEIGHT*2)) {
-        _MG_PRINTF ("LoadCursorFromFile: bad cursor image width (%d) and height (%d)\n", imagew, imageh);
+        _WRN_PRINTF ("LoadCursorFromFile: bad cursor image width (%d) and height (%d)\n", imagew, imageh);
         goto error;
     }
 
     /* check the biPlanes member; */
     wTemp = MGUI_ReadLE16FP (fp);
     if (wTemp != 1) {
-        _MG_PRINTF ("LoadCursorFromFile: bad planes (%d)\n", wTemp);
+        _WRN_PRINTF ("LoadCursorFromFile: bad planes (%d)\n", wTemp);
         goto error;
     }
 
     /* check the biBitCount member; */
     wTemp = MGUI_ReadLE16FP (fp);
     if (wTemp > 4) {
-        _MG_PRINTF ("LoadCursorFromFile: bad bit count (%d)\n", wTemp);
+        _WRN_PRINTF ("LoadCursorFromFile: bad bit count (%d)\n", wTemp);
         goto error;
     }
 
@@ -112,13 +112,13 @@ static HCURSOR load_cursor_from_file (const char* filename)
     
     /* allocate memory for image. */
     if ((image = (BYTE*)ALLOCATE_LOCAL (imagesize)) == NULL) {
-        _MG_PRINTF ("LoadCursorFromFile: error when allocating memory for image (%d)\n", imagesize);
+        _WRN_PRINTF ("LoadCursorFromFile: error when allocating memory for image (%d)\n", imagesize);
         goto error;
     }
 
     /* read image */
     if (fread (image, 1, imagesize, fp) < imagesize) {
-        _MG_PRINTF ("LoadCursorFromFile: error when reading data from file\n");
+        _WRN_PRINTF ("LoadCursorFromFile: error when reading data from file\n");
         goto error;
     }
     
@@ -130,7 +130,7 @@ static HCURSOR load_cursor_from_file (const char* filename)
     return csr;
 
 error:
-    _MG_PRINTF ("LoadCursorFromFile: failed when loading cursor from %s\n", filename);
+    _WRN_PRINTF ("LoadCursorFromFile: failed when loading cursor from %s\n", filename);
     fclose (fp);
     return csr;
 }
@@ -201,7 +201,7 @@ static HCURSOR load_cursor_from_mem (const void* area)
                         p + (imagesize - MONOSIZE), p, colornum);
 
 error:
-    _MG_PRINTF ("LoadCursorFromMem: failed when loading cursor from %p\n", area);
+    _WRN_PRINTF ("LoadCursorFromMem: failed when loading cursor from %p\n", area);
     return 0;
 }
 

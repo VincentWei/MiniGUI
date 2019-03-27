@@ -195,7 +195,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     pWin->idx_znode = dskAllocZOrderNode (pWin);
 
     if (pWin->idx_znode <= 0) {
-        _MG_PRINTF ("KERNEL>Desktop: Alloc zorder node for main window fail.\n");
+        _WRN_PRINTF ("KERNEL>Desktop: Alloc zorder node for main window fail.\n");
         return -1;
     }
 
@@ -1218,7 +1218,7 @@ static int dskStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
             SetCursor (GetSystemCursor (IDC_SIZENESW));
             break;
         default:
-            _MG_PRINTF ("KERNEL>Desktop: Drag and drop window: bad location\n");
+            _WRN_PRINTF ("KERNEL>Desktop: Drag and drop window: bad location\n");
             break;
     }
 
@@ -1297,7 +1297,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
                     break;
 
                 default:
-                    _MG_PRINTF ("KERNEL>Desktop: do_drag_drop_window: bad location\n");
+                    _WRN_PRINTF ("KERNEL>Desktop: do_drag_drop_window: bad location\n");
                     break;
         }
 
@@ -1735,7 +1735,7 @@ static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
         pNewCtrl->idx_znode = dskAllocZOrderNode ((PMAINWIN)pNewCtrl);
 
         if (pNewCtrl->idx_znode <= 0) {
-            _MG_PRINTF ("KERNEL>Desktop: Alloc zorder node for control fail.\n");
+            _WRN_PRINTF ("KERNEL>Desktop: Alloc zorder node for control fail.\n");
             return -1;
         }
 

@@ -1108,7 +1108,7 @@ void GridCellTypeNumber_set_text_value(gvGridCellData* cell, int row, int col, c
     if (INF[0] != 'I' && INF[0] != 'i')
         cell->data.number.num = number;
     else
-        _MG_PRINTF ("EX_CTRL>Grid: The inputed number is too big!\n");
+        _WRN_PRINTF ("EX_CTRL>Grid: The inputed number is too big!\n");
 }
 
 double GridCellTypeNumber_get_double_value(gvGridCellData* cell, int row, int col)

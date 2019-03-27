@@ -2055,6 +2055,13 @@ int init_minigui_printf (int (*output_char) (int ch),
     #define TCS_CLRLINE(fp)
 #endif
 
+#define _MG_PRINTF(fmt, ...)                    \
+    do {                                        \
+        TCS_GREEN (stdout);                     \
+        fprintf (stdout, fmt, ##__VA_ARGS__);   \
+        TCS_NONE (stdout);                      \
+    } while (0)
+
 #define _WRN_PRINTF(fmt, ...)                   \
     do {                                        \
         TCS_PURPLE (stderr);                    \
@@ -2071,25 +2078,14 @@ int init_minigui_printf (int (*output_char) (int ch),
         TCS_NONE (stderr);                      \
     } while (0)
 
-#ifdef _DEBUG
-# define _MG_PRINTF(fmt, ...)                   \
-    do {                                        \
-        TCS_GREEN (stdout);                     \
-        fprintf (stdout, fmt, ##__VA_ARGS__);   \
-        TCS_NONE (stdout);                      \
-    } while (0)
-# ifdef DEBUG
-#       define _DBG_PRINTF(fmt, ...)            \
+#if defined(_DEBUG)
+#   define _DBG_PRINTF(fmt, ...)                \
     do {                                        \
         TCS_YELLOW (stderr);                    \
         fprintf (stderr, fmt, ##__VA_ARGS__);   \
         TCS_NONE (stderr);                      \
     } while (0)
 # else
-#       define _DBG_PRINTF(fmt, ...)
-# endif
-#else
-#   define _MG_PRINTF(fmt, ...)
 #   define _DBG_PRINTF(fmt, ...)
 #endif
 

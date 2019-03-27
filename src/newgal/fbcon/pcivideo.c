@@ -63,7 +63,7 @@ int FB_ProbePCIAccelDriver (_THIS, const struct fb_fix_screeninfo* fb_finfo)
     int ret;
 
     if (pci_system_init ()) {
-        _MG_PRINTF ("NEWGAL>FBCON: Couldn't initialize PCI system\n");
+        _WRN_PRINTF ("NEWGAL>FBCON: Couldn't initialize PCI system\n");
         return -1;
     }
 

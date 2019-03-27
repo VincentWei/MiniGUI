@@ -140,19 +140,19 @@ BOOL InitTSLibInput(INPUT* input, const char* mdev, const char* mtype)
     }
 
     if (tsdevice == NULL) {
-        _MG_PRINTF ("IAL>TSLib: Please specify the ts device\n");
+        _WRN_PRINTF ("IAL>TSLib: Please specify the ts device\n");
         return FALSE;
     }
 
     ts = ts_open (tsdevice, 0);
 
     if (!ts) {
-        _MG_PRINTF ("IAL>TSLib: can not open ts device\n");
+        _WRN_PRINTF ("IAL>TSLib: can not open ts device\n");
         return FALSE;
     }
 
     if (ts_config (ts)) {
-        _MG_PRINTF ("IAL>TSLib: can not config ts device\n");
+        _WRN_PRINTF ("IAL>TSLib: can not config ts device\n");
         return FALSE;
     }
     

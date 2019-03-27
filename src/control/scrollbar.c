@@ -174,13 +174,13 @@ static int init_sbdata (HWND hwnd, PSCROLLBARDATA pdata, RECT * scRect)
 
     if (!GetWindowRect (hwnd, scRect))
     {
-        _MG_PRINTF ("ScrollBar Rect error!\n");
+        _WRN_PRINTF ("ScrollBar Rect error!\n");
         return -1;
     }
 
     if ((win_style & SBS_NOSHAFT) && (win_style & SBS_NOARROW))
     {
-        _MG_PRINTF ("ScrollBar styles error!\n");
+        _WRN_PRINTF ("ScrollBar styles error!\n");
         return -1;
     }
     if (!(win_style & SBS_HORZ))
@@ -285,7 +285,7 @@ int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
         
     if (!data)
     {
-        _MG_PRINTF ("addtional data2 is NULL\n");
+        _WRN_PRINTF ("addtional data2 is NULL\n");
         return -1; 
     }
 
@@ -364,7 +364,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 /* create the main data construction for the control */
                 if (!(data = (PSCROLLBARDATA) malloc (sizeof (SCROLLBARDATA)))) 
                 {
-                    _MG_PRINTF ("Create ScrollBar control failure!\n");
+                    _WRN_PRINTF ("Create ScrollBar control failure!\n");
                     return -1;
                 }
                 memset (data, 0 , sizeof (SCROLLBARDATA));
@@ -373,7 +373,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if(0 != init_sbdata(hwnd, data, &rc))
                 {
                     free(data);
-                    _MG_PRINTF ("Create ScrollBar control failure!\n");
+                    _WRN_PRINTF ("Create ScrollBar control failure!\n");
                     return -1;
                 }
 
@@ -404,7 +404,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 if (!data)
                 {
-                    _MG_PRINTF ("addition data2 is NULL \n");
+                    _WRN_PRINTF ("addition data2 is NULL \n");
                     return 1;
                 }
 
@@ -1081,7 +1081,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                     if (info->nMax < info->nMin)
                     {
-                        _MG_PRINTF ( "Error range\n");
+                        _WRN_PRINTF ( "Error range\n");
                         return -1;
                     }
                     new_nMin = info->nMin;
@@ -1093,7 +1093,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     if (info->nPage > new_nMax - new_nMin + 1
                         || info->nPage <= 0)
                     {
-                        _MG_PRINTF ( "Error page step\n");
+                        _WRN_PRINTF ( "Error page step\n");
                         return -1;
                     }
                     new_nPage = info->nPage;
@@ -1112,7 +1112,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     if (info->nPos < new_nMin ||
                         info->nPos > new_nMax)
                     {
-                        _MG_PRINTF ( "Error postion to set");
+                        _WRN_PRINTF ( "Error postion to set");
                         return -1;
                     }
                     new_nPos = info->nPos;
@@ -1171,7 +1171,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 
                 if(max < data->curPos || min > data->curPos)
                 {
-                    _MG_PRINTF ( "Error range to set\n");
+                    _WRN_PRINTF ( "Error range to set\n");
                     return -1;
                 } 
                 data->minPos = min;
@@ -1200,7 +1200,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 
                 if(max < data->curPos || min > data->curPos)
                 {
-                    _MG_PRINTF ( "Error range to set\n");
+                    _WRN_PRINTF ( "Error range to set\n");
                     return -1;
                 } 
                 data->minPos = min;

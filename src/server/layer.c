@@ -182,12 +182,12 @@ BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer)
     MG_Client* client;
 
     if (layer == NULL || strcmp (layer->name, NAME_DEF_LAYER) == 0) {
-        _MG_PRINTF ("SERVER: Can not delete the default layer.\n");
+        _WRN_PRINTF ("SERVER: Can not delete the default layer.\n");
         return FALSE;
     }
 
     if (zi->nr_topmosts + zi->nr_normals + zi->nr_popupmenus != 0) {
-        _MG_PRINTF ("SERVER: Some objects are still in this layer.\n");
+        _WRN_PRINTF ("SERVER: Some objects are still in this layer.\n");
         return FALSE;
     }
 
@@ -318,7 +318,7 @@ static MG_Layer* alloc_layer (const char* layer_name,
         return NULL;
     }
 
-    _MG_PRINTF ("SERVER: Create a new layer: %s\n", layer_name);
+    _WRN_PRINTF ("SERVER: Create a new layer: %s\n", layer_name);
 
     strcpy (new_layer->name, layer_name);
     new_layer->cli_head = NULL;
@@ -337,14 +337,14 @@ static MG_Layer* alloc_layer (const char* layer_name,
 
     mgTopmostLayer = new_layer;
 
-    _MG_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n", 
+    _WRN_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n", 
             mgTopmostLayer->zorder_info);
 
     /* Topmost layer changed */
     CHANGE_TOPMOST_LAYER(mgTopmostLayer);
 
     __mg_do_change_topmost_layer ();
-    _MG_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n", 
+    _WRN_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n", 
             mgTopmostLayer->zorder_info);
 
     /* Notify that a new topmost layer have been set. */
@@ -421,7 +421,7 @@ static void do_client_join_layer (int cli,
         return;
     }
 
-    _MG_PRINTF ("SERVER: Join a client (%s) to layer %s\n", 
+    _WRN_PRINTF ("SERVER: Join a client (%s) to layer %s\n", 
                 info->client_name, layer->name);
 
     strcpy (new_client->name, info->client_name);

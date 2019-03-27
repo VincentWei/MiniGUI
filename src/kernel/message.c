@@ -490,7 +490,7 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax
 
 #ifdef _MGRM_THREADS
     if (!(pMsgQueue = GetMsgQueueThisThread ())) {
-        _MG_PRINTF ("Kernel>message: no message queue.\n");
+        _WRN_PRINTF ("Kernel>message: no message queue.\n");
         return FALSE;
     }
 #else

@@ -64,7 +64,7 @@ static void TrackBarOnDraw (HWND hwnd, HDC hdc, TRACKBARDATA* pData, DWORD dwSty
 
     win_rdr = GetWindowInfo(hwnd)->we_rdr;
     if (!win_rdr) {
-        _MG_PRINTF ("CONTROL>TrackBar: window renderer is NULL.\n");
+        _WRN_PRINTF ("CONTROL>TrackBar: window renderer is NULL.\n");
         return;
     }
     
@@ -217,7 +217,7 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     {
         case MSG_CREATE:
             if (!(pData = malloc (sizeof (TRACKBARDATA)))) {
-                _MG_PRINTF ("CONTROL>TrackBar: Create control failure!\n");
+                _WRN_PRINTF ("CONTROL>TrackBar: Create control failure!\n");
                 return -1;
             }
             pData->nMax = 10;

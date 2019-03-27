@@ -44,8 +44,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG
-
 #include "common.h"
 
 #if defined(_MGCHARSET_UNICODE) && defined(_MGCOMPLEX_SCRIPTS)

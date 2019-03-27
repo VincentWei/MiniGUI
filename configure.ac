@@ -2479,9 +2479,9 @@ dnl define _GNU_SOURCE for pthread_rwlock_t
 CFLAGS="$CFLAGS -D_GNU_SOURCE"
 
 if test "x$devel_mode" = "xyes"; then
-    CPPFLAGS="$CPPFLAGS -D_DEBUG"
+    CPPFLAGS="$CPPFLAGS -DDEBUG"
     if test "x$detail_debug" = "xyes"; then
-        CPPFLAGS="$CPPFLAGS -DDEBUG"
+        CPPFLAGS="$CPPFLAGS -D_DEBUG"
     fi
 
     if test "$ac_cv_prog_gcc" = "yes"; then

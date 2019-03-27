@@ -216,7 +216,7 @@ static int LWZReadByte (MG_RWops *area, int flag, int input_code_size)
         while (code >= clear_code) {
             *sp++ = table[1][code];
             if (code == table[0][code]) {
-                _MG_PRINTF ("EX_CTRL>GIF89a: circular table entry\n");
+                _WRN_PRINTF ("EX_CTRL>GIF89a: circular table entry\n");
                 return -1;
             }
             code = table[0][code];
@@ -259,7 +259,7 @@ static int GetCode(MG_RWops *area, int code_size, int flag)
     if ((curbit + code_size) >= lastbit) {
         if (done) {
             if (curbit >= lastbit)
-                _MG_PRINTF ("EX_CTRL>GIF89a: bad decode\n");
+                _WRN_PRINTF ("EX_CTRL>GIF89a: bad decode\n");
             return -1;
         }
         buf[0] = buf[last_byte - 2];
@@ -362,7 +362,7 @@ static int ReadGIFGlobal (MG_RWops *area, GIFSCREEN* GifScreen)
     version [3] = '\0';
 
     if (strcmp ((const char*)version, "87a") != 0 && strcmp ((const char*)version, "89a") != 0) {
-        _MG_PRINTF ("EX_CTRL>GIF89a: GIF version number not 87a or 89a.\n");
+        _WRN_PRINTF ("EX_CTRL>GIF89a: GIF version number not 87a or 89a.\n");
         return -1;                /* image loading error*/
     }
 
@@ -373,7 +373,7 @@ static int ReadGIFGlobal (MG_RWops *area, GIFSCREEN* GifScreen)
     GifScreen->disposal = 0;
 
     if (!ReadOK (area, buf, 7)) {
-        _MG_PRINTF ("EX_CTRL>GIF89a: bad screen descriptor\n");
+        _WRN_PRINTF ("EX_CTRL>GIF89a: bad screen descriptor\n");
         return -1;                /* image loading error*/
     }
     GifScreen->Width = LM_to_uint (buf[0], buf[1]);
@@ -384,10 +384,10 @@ static int ReadGIFGlobal (MG_RWops *area, GIFSCREEN* GifScreen)
     GifScreen->AspectRatio = buf[6];
 
     if (BitSet(buf[4], LOCALCOLORMAP)) {        /* Global Colormap */
-        _MG_PRINTF ("EX_CTRL>GIF89a: have global colormap: %d\n", 
+        _WRN_PRINTF ("EX_CTRL>GIF89a: have global colormap: %d\n", 
                     GifScreen->Background);
         if (ReadColorMap (area, GifScreen->BitPixel, GifScreen->ColorMap)) {
-            _MG_PRINTF ("EX_CTRL>GIF89a: bad global colormap\n");
+            _WRN_PRINTF ("EX_CTRL>GIF89a: bad global colormap\n");
             return -1;                /* image loading error*/
         }
     }
@@ -399,7 +399,7 @@ static int ReadImageDesc (MG_RWops *area, IMAGEDESC* ImageDesc, GIFSCREEN* GifSc
 {
     unsigned char buf[16];
     if (!ReadOK (area, buf, 9)) {
-        _MG_PRINTF ("EX_CTRL>GIF89a: bad image size\n");
+        _WRN_PRINTF ("EX_CTRL>GIF89a: bad image size\n");
         return -1;
     }
 
@@ -414,9 +414,9 @@ static int ReadImageDesc (MG_RWops *area, IMAGEDESC* ImageDesc, GIFSCREEN* GifSc
     ImageDesc->interlace = BitSet(buf[8], INTERLACE);
 
     if (ImageDesc->haveColorMap) {
-        _MG_PRINTF ("EX_CTRL>GIF89a: have local colormap\n");
+        _WRN_PRINTF ("EX_CTRL>GIF89a: have local colormap\n");
         if (ReadColorMap (area, ImageDesc->bitPixel, ImageDesc->ColorMap) < 0) {
-            _MG_PRINTF ("EX_CTRL>GIF89a: bad local colormap\n");
+            _WRN_PRINTF ("EX_CTRL>GIF89a: bad local colormap\n");
             return -1;
         }
     } else {
@@ -437,12 +437,12 @@ static int ReadImage (MG_RWops* area, MYBITMAP* bmp, IMAGEDESC* ImageDesc, GIFSC
      * initialize the compression routines
      */
     if (!ReadOK (area, &c, 1)) {
-        _MG_PRINTF ("EX_CTRL>GIF89a: eof on image data\n");
+        _WRN_PRINTF ("EX_CTRL>GIF89a: eof on image data\n");
         return -1;
     }
 
     if (LWZReadByte (area, TRUE, c) < 0) {
-        _MG_PRINTF ("EX_CTRL>GIF89a: error reading image\n");
+        _WRN_PRINTF ("EX_CTRL>GIF89a: error reading image\n");
         return -1;
     }
 
@@ -549,11 +549,11 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
         anim->bk.a = 0;
     }
 
-    _MG_PRINTF ("EX_CTRL>GIF89a: Background: %d, %d, %d.\n",
+    _WRN_PRINTF ("EX_CTRL>GIF89a: Background: %d, %d, %d.\n",
                 anim->bk.r, anim->bk.g, anim->bk.b);
 
     if ((ok = ReadOK (area, &c, 1)) == 0) {
-        _MG_PRINTF ("EX_CTRL>GIF89a: EOF on image data\n");
+        _WRN_PRINTF ("EX_CTRL>GIF89a: EOF on image data\n");
         goto error;
     }
 
@@ -561,11 +561,11 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
         switch (c) {
         case '!':
             if ( (ok = ReadOK (area, &c, 1)) == 0) {
-                _MG_PRINTF ("EX_CTRL>GIF89a: EOF on image data\n");
+                _WRN_PRINTF ("EX_CTRL>GIF89a: EOF on image data\n");
                 goto error;
             }
             DoExtension (area, c, &GifScreen);
-            _MG_PRINTF ("EX_CTRL>GIF89a: Extension info: %d, %d, %d, %d, %d, %d\n",
+            _WRN_PRINTF ("EX_CTRL>GIF89a: Extension info: %d, %d, %d, %d, %d, %d\n",
                         GifScreen.Width, GifScreen.Height, 
                         GifScreen.AspectRatio, GifScreen.delayTime,
                         GifScreen.disposal, GifScreen.transparent);
@@ -579,7 +579,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
                 if (ReadImage (area, &mybmp, &ImageDesc, &GifScreen, 0) < 0)
                     goto error;
             }
-            _MG_PRINTF ("EX_CTRL>GIF89a: Image Descriptor: %d, %d, %d, %d, %d\n",
+            _WRN_PRINTF ("EX_CTRL>GIF89a: Image Descriptor: %d, %d, %d, %d, %d\n",
                         ImageDesc.Top, ImageDesc.Left,
                         ImageDesc.Width, ImageDesc.Height,
                         ImageDesc.haveColorMap);
@@ -595,14 +595,14 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
                 frame->width = mybmp.w;
                 frame->height = mybmp.h;
                 frame->delay_time = (GifScreen.delayTime>10)?GifScreen.delayTime:10;
-                _MG_PRINTF ("EX_CTRL>GIF89a: frame info: %d, %d, %d, %d\n", 
+                _WRN_PRINTF ("EX_CTRL>GIF89a: frame info: %d, %d, %d, %d\n", 
                         frame->off_x, frame->off_y, frame->delay_time, 
                         GifScreen.transparent);
 
                 if ((frame->mem_dc = CreateMemDCFromMyBitmap (&mybmp, ImageDesc.ColorMap)) == 0) {
                     free (mybmp.bits);
                     free (frame);
-                    _MG_PRINTF ("EX_CTRL>GIF89a: Error when expand frame bitmap.\n");
+                    _WRN_PRINTF ("EX_CTRL>GIF89a: Error when expand frame bitmap.\n");
                     goto error;
                 }
                 frame->bits = mybmp.bits;

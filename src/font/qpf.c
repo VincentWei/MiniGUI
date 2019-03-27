@@ -164,14 +164,14 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
     qpf_info = (QPFINFO*) calloc (1, sizeof(QPFINFO));
 
     if (!(fp = fopen (file_name, "rb"))) {
-        _MG_PRINTF ("FONT>QPF: open file error: %s.\n",
+        _WRN_PRINTF ("FONT>QPF: open file error: %s.\n",
                 file_name);
         goto error;
     }
 
     file_size = get_opened_file_size (fp);
     if (file_size == 0) {
-        _MG_PRINTF ("FONT>QPF: empty font file: %s.\n",
+        _WRN_PRINTF ("FONT>QPF: empty font file: %s.\n",
                 file_name);
         goto error;
     }
@@ -180,14 +180,14 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
 
     if ((qpf_info->height 
                 = fontGetHeightFromName (font_name)) == -1) {
-        _MG_PRINTF ("FONT>QPF: Invalid font name (height): %s.\n",
+        _WRN_PRINTF ("FONT>QPF: Invalid font name (height): %s.\n",
                 font_name);
         goto error;
     }
 
     if ((qpf_info->width 
                 = fontGetWidthFromName (font_name)) == -1) {
-        _MG_PRINTF ("FONT>QPF: Invalid font name (width): %s.\n",
+        _WRN_PRINTF ("FONT>QPF: Invalid font name (width): %s.\n",
                 font_name);
         goto error;
     }

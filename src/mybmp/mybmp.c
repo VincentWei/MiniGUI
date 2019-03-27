@@ -363,7 +363,7 @@ int GUIAPI SaveMyBitmapToFile (PMYBITMAP my_bmp, RGB* pal, const char* spFileNam
         return ERR_BMP_CANT_SAVE;
 
     if (!(fp = MGUI_RWFromFile (spFileName, "wb+"))) {
-        _MG_PRINTF ("MYBMP>WinBMP: Saving BMP file: fopen error.\n");
+        _WRN_PRINTF ("MYBMP>WinBMP: Saving BMP file: fopen error.\n");
         return ERR_BMP_FILEIO;
     }
 

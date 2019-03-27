@@ -44,11 +44,11 @@
 /******************************************************************************/
 
 #ifdef _DEBUG
-#    define ENTER_PROC(PROCNAME)    _MG_PRINTF ("ENTER\t" PROCNAME \
+#    define ENTER_PROC(PROCNAME)    _WRN_PRINTF ("ENTER\t" PROCNAME \
                                 "(%d)\n", __LINE__)
-#    define DEBUG_PROC(PROCNAME)    _MG_PRINTF ("DEBUG\t" PROCNAME \
+#    define DEBUG_PROC(PROCNAME)    _WRN_PRINTF ("DEBUG\t" PROCNAME \
                                 "(%d)\n", __LINE__)
-#    define LEAVE_PROC(PROCNAME)    _MG_PRINTF ("LEAVE\t" PROCNAME \
+#    define LEAVE_PROC(PROCNAME)    _WRN_PRINTF ("LEAVE\t" PROCNAME \
                                 "(%d)\n", __LINE__)
 #else
 #    define ENTER_PROC(PROCNAME)

@@ -58,7 +58,7 @@
 
 #include "unicode-bidi.h"
 
-#ifdef DEBUG
+#ifdef _DEBUG
 /*======================================================================
  *  For debugging, define some functions for printing joining types and
  *  properties.
@@ -91,7 +91,7 @@ static void print_joining_types(const BidiLevel *embedding_levels,
     _DBG_PRINTF ("\n");
 }
 
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
 #define UNIBIDI_CONSISTENT_LEVEL(i) \
     (BIDI_IS_EXPLICIT_OR_BN (bidi_types[(i)]) \
@@ -107,9 +107,9 @@ void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
 {
     if (len == 0) return;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_joining_types (embedding_levels, len, ar_props);
-#endif	/* DEBUG */
+#endif /* _DEBUG */
 
     /* The joining algorithm turned out very very dirty :(.  That's what happens
      * when you follow the standard which has never been implemented closely
@@ -187,9 +187,10 @@ void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
 
     }
 
-#ifdef DEBUG
+#ifdef _DEBUG
      print_joining_types (embedding_levels, len, ar_props);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 }
 
 #endif /* _MGCHARSET_UNICODE */
+

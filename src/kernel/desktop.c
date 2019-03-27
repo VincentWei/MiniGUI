@@ -1493,7 +1493,7 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
                             (unsigned char*)GET_MASKRECT_USAGEBMP(zi), 
                             zi->size_maskrect_usage_bmp, 1);
         if (free_slot == -1) {
-            _MG_PRINTF ("KERNEL: __mg_lookfor_unused_slot failed\n");
+            _WRN_PRINTF ("KERNEL: __mg_lookfor_unused_slot failed\n");
             return -1;
         }
 

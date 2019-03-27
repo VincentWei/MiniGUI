@@ -125,7 +125,7 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
                     sizeof (MASKRECT) * DEF_NR_MASKRECT);
 
     if (!__mg_zorder_info) {
-        _MG_PRINTF ("KERNEL>ZOrder: calloc zorderinfo failure. \n");
+        _WRN_PRINTF ("KERNEL>ZOrder: calloc zorderinfo failure. \n");
         return -1;
     }
 

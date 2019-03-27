@@ -251,13 +251,13 @@ BOOL InitIPAQH3600Input (INPUT* input, const char* mdev, const char* mtype)
 {
     ts = open (TS_DEVICE, O_RDONLY);
     if (ts < 0) {
-        _MG_PRINTF ("IAL>%s: Can not open touch screen!\n", __FILE__);
+        _WRN_PRINTF ("IAL>%s: Can not open touch screen!\n", __FILE__);
         return FALSE;
     }
 
     btn_fd = open (KBD_DEVICE, O_RDONLY);
     if (btn_fd < 0 ) {
-        _MG_PRINTF ("IAL>%s: Can not open button key!\n", __FILE__);
+        _WRN_PRINTF ("IAL>%s: Can not open button key!\n", __FILE__);
         return FALSE;
     }
 

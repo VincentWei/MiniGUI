@@ -42,8 +42,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG
-
 #include "common.h"
 
 #ifdef _MGCHARSET_UNICODE

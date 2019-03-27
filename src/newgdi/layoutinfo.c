@@ -65,8 +65,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG
-
 #include "common.h"
 
 #ifdef _MGCHARSET_UNICODE
@@ -150,6 +148,13 @@ typedef enum {
     BREAK_LINE_SEPARATOR
 } BreakResult;
 
+/* Local array size, used for stack-based local arrays */
+#if SIZEOF_PTR == 8
+#   define LOCAL_ARRAY_SIZE 256
+#else
+#   define LOCAL_ARRAY_SIZE 128
+#endif
+
 struct _LayoutState {
     /* maintained per layout */
     // is last line
@@ -171,6 +176,9 @@ struct _LayoutState {
     // to the remaining portion of the first lrun
     int log_widths_offset;
 
+    // Local array for logical widths
+    int local_log_widths[LOCAL_ARRAY_SIZE];
+
     // Character offset of first lrun in state->lrun in layout->truninfo->ucs
     int start_offset;
 
@@ -189,6 +197,24 @@ struct _LayoutState {
     // Amount of space remaining on line; < 0 is infinite
     int remaining_width;
 };
+
+static inline void state_log_widths_new(LayoutState* state, int n)
+{
+    if (n <= LOCAL_ARRAY_SIZE) {
+        state->log_widths = state->local_log_widths;
+        return;
+    }
+
+    state->log_widths = malloc(sizeof(int) * n);
+}
+
+static inline void state_log_widths_free(LayoutState* state)
+{
+    if (state->log_widths && state->log_widths != state->local_log_widths)
+        free(state->log_widths);
+
+    state->log_widths = NULL;
+}
 
 static BOOL should_ellipsize_current_line(LAYOUTINFO *layout,
         LayoutState *state)
@@ -466,7 +492,7 @@ static void free_glyph_run (GlyphRun *grun)
     free(grun);
 }
 
-#ifdef DEBUG
+#ifdef _DEBUG
 static inline void print_text_runs(const TEXTRUNSINFO* info, const char* func)
 {
     int j = 0;
@@ -582,8 +608,7 @@ static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
         if (state->log_widths_offset > 0)
             __mg_glyph_string_free(state->glyphs);
         state->glyphs = NULL;
-        free(state->log_widths);
-        state->log_widths = NULL;
+        state_log_widths_free(state);
     }
 
     list_add_tail(&glyph_run->list, &line->gruns);
@@ -714,7 +739,7 @@ BreakResult process_layout_run(LAYOUTINFO *layout,
             glyph_run.gstr = state->glyphs;
 
             assert(state->log_widths == NULL);
-            state->log_widths = malloc (sizeof (int) * lrun->len);
+            state_log_widths_new(state, lrun->len);
             __mg_glyph_run_get_logical_widths(&glyph_run, layout->truninfo->ucs,
                 state->log_widths);
         }
@@ -802,10 +827,9 @@ retry_break:
             }
         }
         else {
-            __mg_glyph_string_free (state->glyphs);
+            __mg_glyph_string_free(state->glyphs);
             state->glyphs = NULL;
-            free (state->log_widths);
-            state->log_widths = NULL;
+            state_log_widths_free(state);
 
             return BREAK_NONE_FIT;
         }
@@ -972,13 +996,6 @@ static inline void list_reverse(struct list_head* head)
 
     list_move(head, &tmp_head);
 }
-
-/* Local array size, used for stack-based local arrays */
-#if SIZEOF_PTR == 8
-#   define LOCAL_ARRAY_SIZE 256
-#else
-#   define LOCAL_ARRAY_SIZE 128
-#endif
 
 static void layout_line_reorder(LAYOUTLINE *line)
 {
@@ -1673,6 +1690,12 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     LAYOUTLINE* next_line = NULL;
     LayoutState state;
 
+    if (prev_line && prev_line->list.next &&
+            prev_line->list.next != &layout->lines) {
+        // must be a line persisted and not the last line.
+        return (LAYOUTLINE*)prev_line->list.next;
+    }
+
     if (layout->persist && layout->nr_left_ucs == 0) {
         // already laid out
 
@@ -1742,27 +1765,31 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         __mg_glyph_string_free(state.glyphs);
     }
     if (state.log_widths) {
-        free(state.log_widths);
+        state_log_widths_free(&state);
     }
 
     if (next_line) {
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
         }
+        else {
+            // list->next == NULL for not persisted.
+            next_line->list.next = NULL;
+        }
 
         layout->nr_lines++;
         layout->nr_left_ucs -= next_line->len;
     }
 
-    // Release previous line after got next line.
+    // Release the previous line after got the next line.
     // This will avoid releasing the LOGFONT objects earlier.
-    if (prev_line) {
+    if (layout->persist == 0 && prev_line) {
         release_line(prev_line);
         prev_line = NULL;
     }
 
 out:
-    if (prev_line) {
+    if (layout->persist == 0 && prev_line) {
         release_line(prev_line);
     }
 

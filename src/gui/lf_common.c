@@ -64,7 +64,7 @@ char* gui_GetIconFile(const char* rdr_name, char* file, char* _szValue)
 
     if (GetMgEtcValue (rdr_name, file,
                 iconname, sizeof(szValue)-(iconname-szValue)) < 0 ) {
-        _MG_PRINTF ("SYSRES: can't get %s's value from section %s in etc.\n",
+        _WRN_PRINTF ("SYSRES: can't get %s's value from section %s in etc.\n",
                 file, rdr_name);
         return NULL;
     }
@@ -81,7 +81,7 @@ BOOL gui_LoadIconRes(HDC hdc, const char* rdr_name, char* file)
     if (LoadResource(szValue, RES_TYPE_ICON, (DWORD)hdc) != NULL)
         return TRUE;
 
-    _MG_PRINTF ("SYSRES: can't get %s's value from section %s in etc.\n",
+    _WRN_PRINTF ("SYSRES: can't get %s's value from section %s in etc.\n",
             file, rdr_name);
 
     return FALSE;

@@ -296,12 +296,12 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     *face = ft_face_info->face;
     ft_inst_info->cur_index = gv;
     if (FT_Load_Glyph (*face, ft_inst_info->cur_index, ft_load_flags)) {
-        _MG_PRINTF ("FONT>FT2: FT_Load_Glyph error\n");
+        _WRN_PRINTF ("FONT>FT2: FT_Load_Glyph error\n");
         return -1;
     }
 
     if (FT_Get_Glyph ((*face)->glyph, &(ft_inst_info->glyph))) {
-        _MG_PRINTF ("FONT>FT2: FT_Get_Glyph error\n");
+        _WRN_PRINTF ("FONT>FT2: FT_Get_Glyph error\n");
         return -1;
     }
 
@@ -310,19 +310,19 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     FT_Glyph ft_glyph_tmp;
 
     if (get_cached_face (ft_inst_info, face)) {
-        _MG_PRINTF ("FONT>FT2: can't access font file %p\n", face);
+        _WRN_PRINTF ("FONT>FT2: can't access font file %p\n", face);
         return 0;
     }
 
     ft_inst_info->cur_index = gv;
     if (FTC_ImageCache_Lookup (ft_image_cache, &ft_inst_info->image_type,
                 ft_inst_info->cur_index, &ft_glyph_tmp, NULL)) {
-        _MG_PRINTF ("FONT>FT2: can't access image cache.\n");
+        _WRN_PRINTF ("FONT>FT2: can't access image cache.\n");
         return -1;
     }
 
     if (FT_Glyph_Copy (ft_glyph_tmp, &ft_inst_info->glyph)) {
-        _MG_PRINTF ("FONT>FT2: can't copy glyph from cache.\n");
+        _WRN_PRINTF ("FONT>FT2: can't copy glyph from cache.\n");
         return -1;
     }
 
@@ -854,7 +854,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     if (FTC_Manager_LookupFace (ft_cache_manager,
                   (FTC_FaceID)ft_face_info, &face)) {
         /* can't access the font file. do not render anything */
-        _MG_PRINTF ("FONT>FT2: can't access font file %p\n", ft_face_info);
+        _WRN_PRINTF ("FONT>FT2: can't access font file %p\n", ft_face_info);
         goto out_lock;
     }
 #else
@@ -1023,7 +1023,7 @@ static Glyph32 get_glyph_value (LOGFONT* logfont, DEVFONT* devfont, Achar32 ac)
     gv = FT_Get_Char_Index (face, uc);
 #else /* !_MGFONT_TTF_CACHE */
     if (get_cached_face (ft_inst_info, &face)) {
-        _MG_PRINTF ("FONT>FT2: can't access cached face %p\n", ft_inst_info->ft_face_info);
+        _WRN_PRINTF ("FONT>FT2: can't access cached face %p\n", ft_inst_info->ft_face_info);
         goto error;
     }
 
@@ -1242,7 +1242,7 @@ BOOL font_InitFreetypeLibrary (void)
 #endif
 
     if (__mg_ttc_sys_init (_MGMAX_TTF_CACHE, _MGTTF_CACHE_SIZE * 1024)) {
-        _MG_PRINTF ("FONT>FT2: init ttf cache sys failed\n");
+        _WRN_PRINTF ("FONT>FT2: init ttf cache sys failed\n");
         goto error_library;
     }
 

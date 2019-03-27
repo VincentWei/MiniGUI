@@ -67,24 +67,24 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
     int tmp;
 
     if ((tmp = fontGetWidthFromName (font_name)) == -1) {
-        _MG_PRINTF ("FONT>UPF: Invalid font name (width): %s.\n", font_name);
+        _WRN_PRINTF ("FONT>UPF: Invalid font name (width): %s.\n", font_name);
         goto error;
     }
     upf_info->width = (Uint8)tmp;
 
     if ((tmp = fontGetHeightFromName (font_name)) == -1) {
-        _MG_PRINTF ("FONT>UPF: Invalid font name (height): %s.\n", font_name);
+        _WRN_PRINTF ("FONT>UPF: Invalid font name (height): %s.\n", font_name);
         goto error;
     }
     upf_info->height = (Uint8)tmp;
 
     if ((fp = fopen (file_name, "rb")) == NULL) {
-        _MG_PRINTF ("FONT>UPF: can't open font file: %s\n", file_name);
+        _WRN_PRINTF ("FONT>UPF: can't open font file: %s\n", file_name);
         goto error;
     }
 
     if ((file_size = get_opened_file_size (fp)) <= 0) {
-        _MG_PRINTF ("FONT>UPF: empty font file: %s\n", file_name);
+        _WRN_PRINTF ("FONT>UPF: empty font file: %s\n", file_name);
         goto error;
     }
 

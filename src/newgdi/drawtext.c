@@ -236,7 +236,7 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     /* If output rect is too small, we shouldn't output any text.*/
     if (RECTW(rcDraw) < pdc->pLogFont->size
         && RECTH(rcDraw) < pdc->pLogFont->size) {
-        _MG_PRINTF ("NEWGDI: "
+        _WRN_PRINTF ("NEWGDI: "
             "Output rect is too small, we won't output any text. \n");
         return -1;
     }

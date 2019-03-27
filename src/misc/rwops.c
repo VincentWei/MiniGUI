@@ -130,7 +130,7 @@ static int mem_seek(MG_RWops *context, int offset, int whence)
             newpos = context->hidden.mem.stop+offset;
             break;
         default:
-            _MG_PRINTF ("MISC>RWOps: Unknown value for 'whence'\n");
+            _WRN_PRINTF ("MISC>RWOps: Unknown value for 'whence'\n");
             return(-1);
     }
     if ( newpos < context->hidden.mem.base ) {
@@ -257,7 +257,7 @@ MG_RWops *MGUI_RWFromFile(const char *file, const char *mode)
     fp = fopen(file, (char*)mode);
 #endif
     if ( fp == NULL ) {
-        _MG_PRINTF ("MISC>RWOps: Couldn't open %s\n", file);
+        _WRN_PRINTF ("MISC>RWOps: Couldn't open %s\n", file);
     } else {
         rwops = MGUI_RWFromFP(fp, 1);
     }
@@ -339,7 +339,7 @@ MG_RWops *MGUI_AllocRW(void)
 
     area = (MG_RWops *)malloc(sizeof *area);
     if ( area == NULL ) {
-        _MG_PRINTF ("MISC>RWOps: Out of memory\n");
+        _WRN_PRINTF ("MISC>RWOps: Out of memory\n");
     }
     else
         area->type = RWAREA_TYPE_UNKNOWN;

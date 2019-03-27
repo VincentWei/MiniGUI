@@ -379,13 +379,13 @@ BOOL InitIPAQH5400Input (INPUT* input, const char* mdev, const char* mtype)
 {
     ts_fd = open (mdev, O_RDONLY);
     if (ts_fd < 0) {
-        _MG_PRINTF ("IAL>%s: Can not open touch screen device: %s!\n", __FILE__, mdev);
+        _WRN_PRINTF ("IAL>%s: Can not open touch screen device: %s!\n", __FILE__, mdev);
         return FALSE;
     }
 
     kbd_fd = TTY_Open ();
     if (kbd_fd < 0 ) {
-        _MG_PRINTF ("IAL>%s: Can not open button key!\n", __FILE__);
+        _WRN_PRINTF ("IAL>%s: Can not open button key!\n", __FILE__);
         return FALSE;
     }
 

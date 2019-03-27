@@ -150,7 +150,7 @@ static BOOL SMI_MapMem (_THIS)
         break;
     }
 
-    _MG_PRINTF ("NEWGAL>FBCON>SMI: Physical MMIO at 0x%08lX\n", (unsigned long)memBase);
+    _DBG_PRINTF ("NEWGAL>FBCON>SMI: Physical MMIO at 0x%08lX\n", (unsigned long)memBase);
 
     {
         void** result = (void*)(&pSmi->MapBase);
@@ -161,13 +161,13 @@ static BOOL SMI_MapMem (_THIS)
                         result);
         if (err) {
             perror ("pci_device_map_range");
-            _MG_PRINTF ("NEWGAL>FBCON>SMI: pci_device_map_range failure: %s.\n", strerror (err));
+            _WRN_PRINTF ("NEWGAL>FBCON>SMI: pci_device_map_range failure: %s.\n", strerror (err));
             return FALSE;
         }
     }
 
     if (pSmi->MapBase == NULL) {
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: Internal error: could not map MMIO registers.\n");
+        _WRN_PRINTF ("NEWGAL>FBCON>SMI: Internal error: could not map MMIO registers.\n");
         return FALSE;
     }
 
@@ -216,11 +216,11 @@ static BOOL SMI_MapMem (_THIS)
         break;
     }
 
-    _MG_PRINTF ("NEWGAL>FBCON>SMI: Logical MMIO at %p - %p\n", pSmi->MapBase,
+    _DBG_PRINTF ("NEWGAL>FBCON>SMI: Logical MMIO at %p - %p\n", pSmi->MapBase,
            pSmi->MapBase + pSmi->MapSize - 1);
-    _MG_PRINTF ("NEWGAL>FBCON>SMI: DPR=%p, VPR=%p, IOBase=%p\n",
+    _DBG_PRINTF ("NEWGAL>FBCON>SMI: DPR=%p, VPR=%p, IOBase=%p\n",
            pSmi->DPRBase, pSmi->VPRBase, pSmi->IOBase);
-    _MG_PRINTF ("NEWGAL>FBCON>SMI: DataPort=%p - %p\n", pSmi->DataPortBase,
+    _DBG_PRINTF ("NEWGAL>FBCON>SMI: DataPort=%p - %p\n", pSmi->DataPortBase,
            pSmi->DataPortBase + pSmi->DataPortSize - 1);
     pSmi->memPhysBase = PCI_REGION_BASE(pSmi->PciInfo, 0, REGION_MEM);
 
@@ -262,7 +262,7 @@ static BOOL SMI_MapMem (_THIS)
 
     pSmi->videoRAMBytes = pSmi->videoRAMKBytes * 1024;
 
-    _MG_PRINTF ("NEWGAL>FBCON>SMI: videoram: %dkB\n", pSmi->videoRAMKBytes);
+    _DBG_PRINTF ("NEWGAL>FBCON>SMI: videoram: %dkB\n", pSmi->videoRAMKBytes);
 
     if (pSmi->videoRAMBytes) {
         /* Map the frame buffer */
@@ -286,20 +286,20 @@ static BOOL SMI_MapMem (_THIS)
       
             if (err) {
                 perror ("pci_device_map_range");
-                _MG_PRINTF ("NEWGAL>FBCON>SMI: pci_device_map_range failure.\n");
+                _WRN_PRINTF ("NEWGAL>FBCON>SMI: pci_device_map_range failure.\n");
                 return FALSE;
             }
         }
 
         if (pSmi->FBBase == NULL) {
-            _MG_PRINTF ("NEWGAL>FBCON>SMI: Internal error: could not "
+            _WRN_PRINTF ("NEWGAL>FBCON>SMI: Internal error: could not "
                 "map framebuffer.\n");
             return FALSE;
         }
 
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: Physical frame buffer at 0x%08lX offset: 0x%08lX\n",
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: Physical frame buffer at 0x%08lX offset: 0x%08lX\n",
                 pSmi->memPhysBase, pSmi->fbOffset);
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: Logical frame buffer at %p - %p\n", pSmi->FBBase,
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: Logical frame buffer at %p - %p\n", pSmi->FBBase,
                 pSmi->FBBase + pSmi->videoRAMBytes - 1);
 
         /* Set up offset to hwcursor memory area.  It's a 1K chunk at the end of
@@ -307,7 +307,7 @@ static BOOL SMI_MapMem (_THIS)
          */
         pSmi->FBCursorOffset = pSmi->videoRAMBytes - 1024;
 
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: Cursor Offset: %08lX\n",
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: Cursor Offset: %08lX\n",
                 (unsigned long)pSmi->FBCursorOffset);
 
         /* set up the fifo reserved space */
@@ -323,7 +323,7 @@ static BOOL SMI_MapMem (_THIS)
             pSmi->FBReserved = pSmi->videoRAMBytes - 2048;
         }
 
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: Reserved: %08lX\n",
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: Reserved: %08lX\n",
                 (unsigned long)pSmi->FBReserved);
 
     }
@@ -382,7 +382,7 @@ static void SMI_GEReset (int from_timeout, int line, char *file)
 
     if (from_timeout) {
         if (pSmi->GEResetCnt++ < 10) {
-            _MG_PRINTF ("\tSMI_GEReset called from %s line %d\n", file, line);
+            _DBG_PRINTF ("\tSMI_GEReset called from %s line %d\n", file, line);
         }
     }
     else {
@@ -478,7 +478,7 @@ static void SMI_SetClippingRectangle (int left, int top, int right, int bottom)
     SMIPtr pSmi = &smi_rec;
 
     ENTER_PROC("SMI_SetClippingRectangle");
-    _MG_PRINTF ("left=%d top=%d right=%d bottom=%d\n", left, top, right, bottom);
+    _DBG_PRINTF ("left=%d top=%d right=%d bottom=%d\n", left, top, right, bottom);
 
     /* CZ 26.10.2001: this code prevents offscreen pixmaps being drawn ???
         left   = max(left, 0);
@@ -642,7 +642,7 @@ static void SMI_SetupForScreenToScreenCopy (int xdir, int ydir, int rop,
 {
     SMIPtr pSmi = &smi_rec;
 
-    _MG_PRINTF ("xdir=%d ydir=%d rop=%02X trans=%08X\n", xdir, ydir, rop, trans);
+    _DBG_PRINTF ("xdir=%d ydir=%d rop=%02X trans=%08X\n", xdir, ydir, rop, trans);
 
     pSmi->AccelCmd = SMI_BltRop [rop]
                    | SMI_BITBLT
@@ -670,7 +670,7 @@ static void SMI_SubsequentScreenToScreenCopy (int x1, int y1, int x2,
 {
     SMIPtr pSmi = &smi_rec;
 
-    _MG_PRINTF ("x1=%d y1=%d x2=%d y2=%d w=%d h=%d\n", x1, y1, x2, y2, w, h);
+    _DBG_PRINTF ("x1=%d y1=%d x2=%d y2=%d w=%d h=%d\n", x1, y1, x2, y2, w, h);
 
     if (pSmi->AccelCmd & SMI_RIGHT_TO_LEFT) {
         x1 += w - 1;
@@ -913,7 +913,7 @@ int SMI_Probe (_THIS, const struct fb_fix_screeninfo* fb_finfo, PCI_VIDEO_DRIVER
     iter = pci_id_match_iterator_create (&id_match);
 
     while ((dev = pci_device_next (iter)) != NULL) {
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: found PCI video device by SMI: 0x%x (0x%x, 0x%x)\n", 
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: found PCI video device by SMI: 0x%x (0x%x, 0x%x)\n", 
                 dev->device_id, dev->subvendor_id, dev->subdevice_id);
 
         int i = 0;
@@ -932,7 +932,7 @@ found:
     if (dev) {
         SMIPtr pSmi = &smi_rec;
 
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: found SMI chipset: %d, %s (id of fb is %s)\n",
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: found SMI chipset: %d, %s (id of fb is %s)\n",
                 SMIChipsets [num_chipset].token, 
                 SMIChipsets [num_chipset].name,
                 fb_finfo->id);
@@ -947,7 +947,7 @@ found:
         pci_device_probe (dev);
     }
     else {
-        _MG_PRINTF ("NEWGAL>FBCON>SMI: not found any SMI chipset.\n");
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: not found any SMI chipset.\n");
     }
 
     pci_iterator_destroy (iter);

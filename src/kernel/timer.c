@@ -383,7 +383,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
     PMSGQUEUE pMsgQueue;
 
     if (id == 0) {
-        _MG_PRINTF ("KERNEL>Timer: bad identifier (%ld).\n", id);
+        _WRN_PRINTF ("KERNEL>Timer: bad identifier (%ld).\n", id);
         return FALSE;
     }
 
@@ -393,7 +393,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
 
 #ifdef _MGRM_THREADS
     if (!(pMsgQueue = GetMsgQueueThisThread ())) {
-        _MG_PRINTF ("KERNEL>Timer: Not a GUI thread.\n");
+        _WRN_PRINTF ("KERNEL>Timer: Not a GUI thread.\n");
         return FALSE;
     }
 #else
@@ -409,13 +409,13 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
                 slot = i;
         }
         else if (timerstr[i]->hWnd == hWnd && timerstr[i]->id == id) {
-            _MG_PRINTF ("KERNEL>Timer: duplicated call to SetTimerEx (%p, %ld).\n", hWnd, id);
+            _WRN_PRINTF ("KERNEL>Timer: duplicated call to SetTimerEx (%p, %ld).\n", hWnd, id);
             goto badret;
         }
     }
 
     if (slot < 0 || slot == DEF_NR_TIMERS) {
-        _MG_PRINTF ("KERNEL>Timer: No more slot for new timer (total: %d)\n", DEF_NR_TIMERS);
+        _WRN_PRINTF ("KERNEL>Timer: No more slot for new timer (total: %d)\n", DEF_NR_TIMERS);
         goto badret;
     }
 

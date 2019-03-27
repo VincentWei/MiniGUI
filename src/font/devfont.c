@@ -536,24 +536,24 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
     }
 
     if (fontops_info->type == NULL) {
-        _MG_PRINTF ("FONT>DevFont: invalid font type: %s.\n", font_name);
+        _WRN_PRINTF ("FONT>DevFont: invalid font type: %s.\n", font_name);
         return NULL;
     }
 
     /*find the first charset*/
     if (!fontGetCharsetFromName (font_name, charset)) {
-        _MG_PRINTF ("FONT>DevFont: Invalid charset name: %s.\n", font_name);
+        _WRN_PRINTF ("FONT>DevFont: Invalid charset name: %s.\n", font_name);
         return NULL;
     }
 
     if ((charset_ops = GetCharsetOpsEx (charset)) == NULL) {
-        _MG_PRINTF ("FONT>DevFont: Invalid charset name %s of font %s.\n",
+        _WRN_PRINTF ("FONT>DevFont: Invalid charset name %s of font %s.\n",
                 charset, font_name);
         return NULL;
     }
 
     if (find_devfont(font_name, (charset_ops->bytes_maxlen_char > 1))) {
-        _MG_PRINTF ("FONT>DevFont: Duplicated devfont name (%s).\n",
+        _WRN_PRINTF ("FONT>DevFont: Duplicated devfont name (%s).\n",
                 font_name);
         return NULL;
     }
@@ -569,7 +569,7 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
                 font_name, data);
 
         if (devfont->data == NULL) {
-            _MG_PRINTF ("FONT>DevFont: error in loading font %s from %s file\n",
+            _WRN_PRINTF ("FONT>DevFont: error in loading font %s from %s file\n",
                 font_name, (const char*) data);
             free (devfont);
             return NULL;
@@ -724,7 +724,7 @@ BOOL font_InitIncoreFonts (void)
 #ifdef _MGFONT_RBF
     for (i = 0; i < NR_RBFONTS; i++) {
         if (!add_dev_font (incore_rbfonts [i]->name, incore_rbfonts [i]->data, FALSE)) {
-            _MG_PRINTF ("FONT>DevFont: can not init incore font: %s\n", incore_rbfonts [i]->name);
+            _WRN_PRINTF ("FONT>DevFont: can not init incore font: %s\n", incore_rbfonts [i]->name);
             return FALSE;
         }
     }
@@ -733,7 +733,7 @@ BOOL font_InitIncoreFonts (void)
 #ifdef _MGFONT_VBF
     for (i = 0; i < NR_VBFONTS && incore_vbfonts[i]; i++) {
         if (!add_dev_font (incore_vbfonts [i]->name, incore_vbfonts [i], FALSE)) {
-            _MG_PRINTF ("FONT>DevFont: can not init incore font: %s\n", incore_vbfonts [i]->name);
+            _WRN_PRINTF ("FONT>DevFont: can not init incore font: %s\n", incore_vbfonts [i]->name);
             return FALSE;
         }
     }
@@ -743,7 +743,7 @@ BOOL font_InitIncoreFonts (void)
     for (i = 0; i < NR_UPFONTS && incore_upfonts[i]; i++) {
         const char* name = ((UPFV1_FILE_HEADER*)(incore_upfonts [i]->root_dir))->font_name;
         if (!add_dev_font (name, incore_upfonts [i], FALSE)) {
-            _MG_PRINTF ("FONT>DevFont: can not init incore font: %s\n", name);
+            _WRN_PRINTF ("FONT>DevFont: can not init incore font: %s\n", name);
             return FALSE;
         }
     }
@@ -751,7 +751,7 @@ BOOL font_InitIncoreFonts (void)
 
 #ifdef _MGFONT_SEF
     if(!initialize_scripteasy()) {
-        _MG_PRINTF (stderr, "GDI: Can not initialize ScriptEasy fonts!\n");
+        _WRN_PRINTF (stderr, "GDI: Can not initialize ScriptEasy fonts!\n");
         return FALSE;
     }
 #endif
@@ -920,7 +920,7 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
 
     /*get font number in minigui etc*/
     if (GetMgEtcIntValue (etc_section, "font_number", &font_num) < 0 ) {
-        _MG_PRINTF ("FONT>DevFont: can't find font_number in section %s.\n",
+        _WRN_PRINTF ("FONT>DevFont: can't find font_number in section %s.\n",
                 etc_section);
         return FALSE;
     }
@@ -929,14 +929,14 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
     for (i=0; i<font_num; i++) {
         snprintf (key, sizeof(key)-1, "name%d", i);
         if (GetMgEtcValue (etc_section, key, font_name, LEN_UNIDEVFONT_NAME) < 0) {
-            _MG_PRINTF ("FONT>DevFont: can't get name of key %s in section %s.\n",
+            _WRN_PRINTF ("FONT>DevFont: can't get name of key %s in section %s.\n",
                     key, etc_section);
             continue;
         }
 
         snprintf (key, sizeof(key)-1, "fontfile%d", i);
         if (GetMgEtcValue (etc_section, key, font_file_name, MAX_PATH) < 0) {
-            _MG_PRINTF ("FONT>DevFont: can't get font_file of key %s in section %s.\n",
+            _WRN_PRINTF ("FONT>DevFont: can't get font_file of key %s in section %s.\n",
                     key, etc_section);
             continue;
         }

@@ -104,7 +104,7 @@ BOOL mg_InitDesktop (void)
     ret = kernel_alloc_z_order_info (DEF_NR_TOPMOSTS, DEF_NR_NORMALS);
     
     if (ret < 0) {
-        _MG_PRINTF ("KERNEL>Desktop: Can not initialize ZOrderInfo!\n");
+        _WRN_PRINTF ("KERNEL>Desktop: Can not initialize ZOrderInfo!\n");
         return FALSE;
     }
 
@@ -120,7 +120,7 @@ BOOL mg_InitDesktop (void)
 
     // Init Window Management information.
     if (!InitWndManagementInfo()) {
-        _MG_PRINTF ("KERNEL>Desktop: Can not initialize window management information!\n");
+        _WRN_PRINTF ("KERNEL>Desktop: Can not initialize window management information!\n");
         return FALSE;
     }
 
@@ -133,7 +133,7 @@ void* DesktopMain (void* data)
 
     /* init message queue of desktop thread */
     if (!(__mg_dsk_msg_queue = mg_InitMsgQueueThisThread ()) ) {
-        _MG_PRINTF ("KERNEL>Desktop: mg_InitMsgQueueThisThread failure!\n");
+        _WRN_PRINTF ("KERNEL>Desktop: mg_InitMsgQueueThisThread failure!\n");
         return NULL;
     }
 

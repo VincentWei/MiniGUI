@@ -80,7 +80,7 @@ static int create_clip_board (const char* cb_name, size_t size)
 
     for (i = 0; i < NR_CLIPBOARDS; i++) {
         if (strncmp (cb_name, cbs [i].name, LEN_CLIPBOARD_NAME) == 0) {
-            _MG_PRINTF ("MISC>ClipBoard: create error: already existed.\n");
+            _WRN_PRINTF ("MISC>ClipBoard: create error: already existed.\n");
             return CBERR_BADNAME;
         }
         if (empty < 0 && cbs [i].name [0] == '\0') {

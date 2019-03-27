@@ -565,7 +565,7 @@ static void lstOnDrawSListBoxItems (HWND hWnd, HDC hdc,
 
     if (!pWin->we_rdr)
     {
-        _MG_PRINTF ("CONTROL>ListBox: NULL LFRDR.\n");
+        _WRN_PRINTF ("CONTROL>ListBox: NULL LFRDR.\n");
         return;
     }
 
@@ -710,7 +710,7 @@ static int lstSelectItem (HWND hwnd, PLISTBOXDATA pData, int newSel)
 
 #ifdef _DEBUG
     if (!newItem)
-        _MG_PRINTF ("CONTROL>ListBox: return value of lstGetItem is NULL. \n");
+        _WRN_PRINTF ("CONTROL>ListBox: return value of lstGetItem is NULL. \n");
 #endif
 
     if (GetWindowStyle (hwnd) & LBS_MULTIPLESEL) {

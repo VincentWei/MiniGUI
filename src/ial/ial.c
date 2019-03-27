@@ -265,7 +265,7 @@ int mg_InitIAL (void)
         _ERR_PRINTF ("IAL: Does not find the request engine: %s.\n", engine);
         if (NR_INPUTS) {
             __mg_cur_input = inputs;
-            _MG_PRINTF ("IAL: Use the first engine: %s\n", __mg_cur_input->id);
+            _WRN_PRINTF ("IAL: Use the first engine: %s\n", __mg_cur_input->id);
         }
         else
             return ERR_NO_MATCH;

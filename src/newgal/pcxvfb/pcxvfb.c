@@ -425,11 +425,11 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     //shm_init_lock(getpid());
 
     if ((pid = fork()) < 0) {
-        _MG_PRINTF ("NEWGAL>PCXVFB: fork() error.\n");
+        _WRN_PRINTF ("NEWGAL>PCXVFB: fork() error.\n");
     }
     else if (pid == 0) {
         if (execl_pcxvfb() == ERR_CONFIG_FILE)
-            _MG_PRINTF ("NEWGAL>PCXVFB: failed to read configuration failure.\n");
+            _WRN_PRINTF ("NEWGAL>PCXVFB: failed to read configuration failure.\n");
 
         perror ("execl");
         _exit (1);

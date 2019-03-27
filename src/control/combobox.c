@@ -352,7 +352,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             DWORD list_style, edit_style;
 
             if (!(pData = calloc (1, sizeof (COMBOBOXDATA)))) {
-                _MG_PRINTF ("CONTROL>ComboBox: Create control failure!\n");
+                _WRN_PRINTF ("CONTROL>ComboBox: Create control failure!\n");
                 return -1;
             }
 

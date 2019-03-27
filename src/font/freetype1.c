@@ -76,7 +76,7 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
 
     /* Load face */
     if (TT_Open_Face (ttf_engine, file_name, &ttf_glyph_info->face) != TT_Err_Ok) {
-        _MG_PRINTF ("FONT>FT1: TT_Open_Face error.\n");
+        _WRN_PRINTF ("FONT>FT1: TT_Open_Face error.\n");
         goto error_after_create_info;
     }
 
@@ -119,7 +119,7 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
     }
 
     if (i == n) {
-        _MG_PRINTF ("FONT>FT1: no unicode map table\n");
+        _WRN_PRINTF ("FONT>FT1: no unicode map table\n");
         goto error_after_create_face;
     }
 
@@ -129,7 +129,7 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
             = (properties.num_Glyphs > 255) ? 255 : properties.num_Glyphs - 1;
 
     if (TT_New_Glyph (ttf_glyph_info->face, &ttf_glyph_info->glyph) != TT_Err_Ok) {
-        _MG_PRINTF ("FONT>FT1: TT_New_Glyph error.\n");
+        _WRN_PRINTF ("FONT>FT1: TT_New_Glyph error.\n");
         goto error_after_create_face;
     }
     ttf_inst_info->ttf_glyph_info = ttf_glyph_info;
@@ -820,7 +820,7 @@ BOOL font_InitFreetypeLibrary (void)
 
 #ifdef _MGFONT_TTF_CACHE
     if (__mg_ttc_sys_init(_MGMAX_TTF_CACHE, _MGTTF_CACHE_SIZE * 1024)) {
-        _MG_PRINTF ("FONT>FT1: init ttf cache sys failed\n");
+        _WRN_PRINTF ("FONT>FT1: init ttf cache sys failed\n");
         goto error_library;
     }
 #endif

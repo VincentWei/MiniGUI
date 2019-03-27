@@ -451,17 +451,17 @@ static void print_ranges(int* ranges, int nr_ranges, PBIDISLEDITDATA sled)
     int start_byte_index = get_achar_text_index(sled, sled->selStart);
     int end_byte_index = get_achar_text_index (sled, sled->selEnd);
     if(ranges){
-        _MG_PRINTF("sel_achar-[%d,%d], sel_byte = [%d, %d]\n",
+        _DBG_PRINTF("sel_achar-[%d,%d], sel_byte = [%d, %d]\n",
                 sled->selStart, sled->selEnd,
                 start_byte_index, end_byte_index);
 
-        _MG_PRINTF("nr_ranges = %d.\n ranges = ", nr_ranges);
+        _DBG_PRINTF("nr_ranges = %d.\n ranges = ", nr_ranges);
         for (i=0; i<nr_ranges; i++)
         {
-            _MG_PRINTF ("[%d, %d)-",
+            _DBG_PRINTF ("[%d, %d)-",
                     ranges[i<<1], ranges[(i<<1)+1]);
         }
-        _MG_PRINTF("\n");
+        _DBG_PRINTF("\n");
     }
 }
 #endif
@@ -644,8 +644,8 @@ static void set_caret_pos (HWND hWnd, PBIDISLEDITDATA sled, int x, BOOL bSel)
         if(out_achars <= ACHARSLEN){
             out_chars = get_achar_text_index(sled, out_achars);
         }
+        _DBG_PRINTF ("editPos=%d,out_chars=%d\n", out_achars, out_chars);
 #endif
-        _MG_PRINTF ("editPos=%d,out_chars=%d\n", out_achars, out_chars);
     }
     if (!bSel) {
         sled->selStart = sled->selEnd = 0;
@@ -944,7 +944,7 @@ static void del_selected_text (HWND hWnd, PBIDISLEDITDATA sled)
         end_byte_index = MAX (s, e);
 
 
-        _MG_PRINTF("delete: sel_achar-[%d,%d], sel_byte = [%d, %d]\n",
+        _DBG_PRINTF("delete: sel_achar-[%d,%d], sel_byte = [%d, %d]\n",
                 sled->selStart, sled->selEnd,
                 start_byte_index, end_byte_index);
 
@@ -1243,15 +1243,15 @@ get_insert_pos (PLOGFONT logfont, PBIDISLEDITDATA sled, char *newtext,
 static void print_text(PBIDISLEDITDATA sled)
 {
     int i;
-    _MG_PRINTF("sled->text = [");
+    _DBG_PRINTF("sled->text = [");
     for (i=0; i<TEXTLEN; i++)
-        _MG_PRINTF("%c", TEXT[i]);
-    _MG_PRINTF ("]\n");
+        _DBG_PRINTF("%c", TEXT[i]);
+    _DBG_PRINTF ("]\n");
     /* output hexstring.*/
-    _MG_PRINTF("sled->text = [");
+    _DBG_PRINTF("sled->text = [");
     for (i=0; i<TEXTLEN; i++)
-        _MG_PRINTF("%0x ", TEXT[i]);
-    _MG_PRINTF ("]\n");
+        _DBG_PRINTF("%0x ", TEXT[i]);
+    _DBG_PRINTF ("]\n");
 }
 #endif
 
@@ -1336,12 +1336,12 @@ sleInsertText (HWND hWnd, PBIDISLEDITDATA sled, char *newtext,
 #ifdef _DEBUG
     {
         int i = 0;
-        _MG_PRINTF ("string = %s.\n", TEXT);
-        _MG_PRINTF ("editPos = %d.\n", sled->editPos);
+        _DBG_PRINTF ("string = %s.\n", TEXT);
+        _DBG_PRINTF ("editPos = %d.\n", sled->editPos);
         for (i = 0; i < sled->achar_content.achars_len; i++) {
-            _MG_PRINTF ("map[%d] = %d,", i,
+            _DBG_PRINTF ("map[%d] = %d,", i,
                     sled->achar_content.achar_map[i].byte_index);
-            _MG_PRINTF ("\n");
+            _DBG_PRINTF ("\n");
         }
     }
 #endif
@@ -2488,7 +2488,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         unsigned char charBuffer [4];
         int chars;
 
-        _MG_PRINTF("get char-----------------char----%p\n", (PVOID)wParam);
+        _DBG_PRINTF("get char-----------------char----%p\n", (PVOID)wParam);
 
         if (dwStyle & ES_READONLY)
             return 0;

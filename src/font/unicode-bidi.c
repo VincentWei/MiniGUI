@@ -72,7 +72,7 @@
 #include "bidi.h"
 #include "unicode-bidi.h"
 
-#ifdef DEBUG
+#ifdef _DEBUG
 
 #include <assert.h>
 
@@ -98,7 +98,7 @@ static inline void validate_run_list(BidiRun *run_list)
     // do nothing.
 }
 
-#endif /* !DEBUG */
+#endif /* !_DEBUG */
 
 static BidiRun* new_run(void)
 {
@@ -452,7 +452,7 @@ static BidiRun *get_adjacent_run(BidiRun *list,
     return ppp;
 }
 
-#ifdef DEBUG
+#ifdef _DEBUG
 /*======================================================================
  *  For debugging, define some functions for printing the types and the
  *  levels.
@@ -551,7 +551,7 @@ static void print_pairing_nodes(BidiPairingNode *nodes)
     _DBG_PRINTF ("\n");
 }
 
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
 /*=========================================================================
  * define macros for push and pop the status in to / out of the stack
@@ -802,9 +802,9 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
 
     base_level_per_iso_level[0] = base_level;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_types_re (main_run_list);
-#endif        /* DEBUG */
+#endif        /* _DEBUG */
 
     /* Explicit Levels and Directions */
     _DBG_PRINTF ("explicit levels and directions\n");
@@ -1044,12 +1044,12 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
 
     compact_list (main_run_list);
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_types_re (main_run_list);
     print_bidi_string (bidi_types, len);
     print_resolved_levels (main_run_list);
     print_resolved_types (main_run_list);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
     /* 4. Resolving weak types. Also calculate the maximum isolate level */
     max_iso_level = 0;
@@ -1224,10 +1224,10 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
 
     compact_neutrals (main_run_list);
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_resolved_levels (main_run_list);
     print_resolved_types (main_run_list);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
     /* 5. Resolving Neutral Types */
 
@@ -1307,9 +1307,9 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
         /* The list must now be sorted for the next algo to work! */
         sort_pairing_nodes(&pairing_nodes);
 
-#ifdef DEBUG
+#ifdef _DEBUG
         print_pairing_nodes (pairing_nodes);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
         /* Start the N0 */
         {
@@ -1398,10 +1398,10 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
             }
         }
 
-#ifdef DEBUG
+#ifdef _DEBUG
         print_resolved_levels (main_run_list);
         print_resolved_types (main_run_list);
-#endif  /* DEBUG */
+#endif /* _DEBUG */
     }
 
     _DBG_PRINTF ("resolving neutral types - N1+N2\n");
@@ -1437,10 +1437,10 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
 
     compact_list (main_run_list);
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_resolved_levels (main_run_list);
     print_resolved_types (main_run_list);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
     /* 6. Resolving implicit levels */
     _DBG_PRINTF ("resolving implicit levels\n");
@@ -1471,11 +1471,11 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
 
     compact_list (main_run_list);
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_bidi_string (bidi_types, len);
     print_resolved_levels (main_run_list);
     print_resolved_types (main_run_list);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
     /* Reinsert the explicit codes & BN's that are already removed, from the
        explicits_list to main_run_list. */
@@ -1496,11 +1496,11 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
                 p->level = p->prev->level;
         }
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_types_re (main_run_list);
     print_resolved_levels (main_run_list);
     print_resolved_types (main_run_list);
-#endif        /* DEBUG */
+#endif /* _DEBUG */
 
     _DBG_PRINTF ("reset the embedding levels, 1, 2, 3.\n");
     {
@@ -1554,11 +1554,11 @@ BidiLevel UBidiGetParagraphEmbeddingLevels(const BidiType *bidi_types,
         if (!shadow_run_list (main_run_list, list, FALSE)) goto out;
     }
 
-#ifdef DEBUG
+#ifdef _DEBUG
     print_types_re (main_run_list);
     print_resolved_levels (main_run_list);
     print_resolved_types (main_run_list);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 
     {
         int pos = 0;
@@ -1821,7 +1821,8 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
         max_level = UBidiGetParagraphEmbeddingLevels(bidi_ts, brk_ts, nr_ucs,
                 &base_dir, els);
         if (max_level == 0) {
-            _DBG_PRINTF("%s: failed to get paragraph embedding levels.\n");
+            _DBG_PRINTF("%s: failed to get paragraph embedding levels.\n",
+                __FUNCTION__);
             memset (els, 0, nr_ucs);
         }
     }

@@ -587,7 +587,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
     /* if rc_output not NULL, the scanlines's range is 
      * limit in the RECT. */
     if(rc_output){
-        _MG_PRINTF("rc_output:(%d,%d)\n", rc_output->top, rc_output->bottom);
+        _DBG_PRINTF("rc_output:(%d,%d)\n", rc_output->top, rc_output->bottom);
         edge = inactive_edges;
         while ((edge)) {
             next_edge = edge->next;
@@ -601,14 +601,14 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
 #else
                 Int64AddInt32(&(edge->x), edge->dx * (rc_output->top - edge->top), &(edge->x));
 #endif
-                _MG_PRINTF("start check newly active edes c=%d,top=%d,"
+                _DBG_PRINTF("start check newly active edes c=%d,top=%d,"
                         "bottom=%d.\n", c, edge->top, edge->bottom);
             }
             /* add the edge outside the rc_ouput. */
             else if(edge->bottom < rc_output->top 
                     || edge->top > rc_output->bottom){
                 inactive_edges = _remove_edge(inactive_edges, edge);
-                _MG_PRINTF("start delete edes c=%d,top=%d,"
+                _DBG_PRINTF("start delete edes c=%d,top=%d,"
                         "bottom=%d.\n", c, edge->top, edge->bottom);
             }
             edge = next_edge;
@@ -628,7 +628,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
             next_edge = edge->next;
             inactive_edges = _remove_edge(inactive_edges, edge);
             active_edges = _add_edge(active_edges, edge, TRUE);
-            _MG_PRINTF("check newly active edes c=%d,top=%d,"
+            _DBG_PRINTF("check newly active edes c=%d,top=%d,"
                     "bottom=%d.\n", c, edge->top, edge->bottom);
             edge = next_edge;
         }
@@ -656,7 +656,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
             next_edge = edge->next;
             if (c >= edge->bottom) {
                 active_edges = _remove_edge(active_edges, edge);
-                _MG_PRINTF("delete edes c=%d,top=%d,"
+                _DBG_PRINTF("delete edes c=%d,top=%d,"
                         "bottom=%d.\n", c, edge->top, edge->bottom);
             }
             else {

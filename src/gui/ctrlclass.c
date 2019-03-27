@@ -226,70 +226,70 @@ BOOL mg_InitControlClass ()
 
 #ifdef _MGCTRL_TREEVIEW
     if (!RegisterTreeViewControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: TreeView.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: TreeView.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_TREEVIEW_RDR
     if (!RegisterTreeViewRdrControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: TreeView_rdr.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: TreeView_rdr.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_MONTHCAL
     if (!RegisterMonthCalendarControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: MonthCalendar.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: MonthCalendar.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_SPINBOX
     if (!RegisterSpinControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: Spin.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: Spin.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_COOLBAR
     if (!RegisterCoolBarControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: CoolBar.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: CoolBar.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_LISTVIEW
     if (!RegisterListViewControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: ListView.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: ListView.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_GRIDVIEW
     if (!RegisterGridViewControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: GridView.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: GridView.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_ICONVIEW
     if (!RegisterIconViewControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: IconView.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: IconView.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_ANIMATION
     if (!RegisterAnimationControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: Animation.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: Animation.\n");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_SCROLLBAR
     if (!RegisterScrollBarControl ()) {
-        _MG_PRINTF ("Init MiniGUI control error: ScrollBar.\n");
+        _WRN_PRINTF ("Init MiniGUI control error: ScrollBar.\n");
         return FALSE;
     }
 #endif

@@ -166,7 +166,7 @@ void __mg_client_del (int cli)
     MG_Client* deleting = mgClients + cli;
     MG_Layer* layer = deleting->layer;
 
-    _MG_PRINTF ("SERVER: Remove a client: %s\n", deleting->name);
+    _WRN_PRINTF ("SERVER: Remove a client: %s\n", deleting->name);
 
     if (layer == NULL)
         goto ret;
