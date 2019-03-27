@@ -153,6 +153,13 @@ void __mg_emoji_iterator_fini (EmojiIterator *iter);
 
 BOOL __mg_language_includes_script(LanguageCode lc, ScriptType script);
 
+void __mg_unicode_break_arabic(const Uchar32* ucs, int nr_ucs,
+        BreakOppo* break_oppos);
+void __mg_unicode_break_indic(ScriptType writing_system,
+        const Uchar32* ucs, int nr_ucs, BreakOppo* break_oppos);
+void __mg_unicode_break_thai(const Uchar32* ucs, int nr_ucs,
+        BreakOppo* break_oppos);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

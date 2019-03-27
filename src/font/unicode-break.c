@@ -2994,5 +2994,32 @@ error:
     return 0;
 }
 
+void GUIAPI UStrTailorBreaks(ScriptType writing_system,
+        const Uchar32* ucs, int nr_ucs, BreakOppo* break_oppos)
+{
+    switch ((int)writing_system) {
+        case SCRIPT_ARABIC:
+            __mg_unicode_break_arabic(ucs, nr_ucs, break_oppos);
+            break;
+
+        case SCRIPT_DEVANAGARI:
+        case SCRIPT_BENGALI:
+        case SCRIPT_GURMUKHI:
+        case SCRIPT_GUJARATI:
+        case SCRIPT_ORIYA:
+        case SCRIPT_TAMIL:
+        case SCRIPT_TELUGU:
+        case SCRIPT_KANNADA:
+        case SCRIPT_MALAYALAM:
+        case SCRIPT_SINHALA:
+            __mg_unicode_break_indic(writing_system, ucs, nr_ucs, break_oppos);
+            break;
+
+        case SCRIPT_THAI:
+            __mg_unicode_break_thai(ucs, nr_ucs, break_oppos);
+            break;
+    }
+}
+
 #endif /* _MGCHARSET_UNICODE */
 

@@ -8813,6 +8813,9 @@ MG_EXPORT int GUIAPI UStrGetBreaks(ScriptType writing_system,
         Uint8 ctr, Uint8 wbr, Uint8 lbp,
         Uchar32* ucs, int nr_ucs, BreakOppo** break_oppos);
 
+MG_EXPORT void GUIAPI UStrTailorBreaks(ScriptType writing_system,
+        const Uchar32* ucs, int nr_ucs, BreakOppo* break_oppos);
+
 /** The function determines whether a character is alphanumeric. */
 MG_EXPORT BOOL GUIAPI IsUCharAlnum(Uchar32 uc);
 
@@ -12554,7 +12557,8 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  * \fn TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
  *      LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
  *      GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
- *      const char* logfont_name, RGBCOLOR color);
+ *      const char* logfont_name, RGBCOLOR color,
+ *      BreakOppo* break_oppos)
  *
  * \brief Split a Uchar32 paragraph string in mixed scripts into text runs.
  *
@@ -12563,6 +12567,7 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  *
  * \param ucs The Uchar32 string returned by \a GetUCharsUntilParagraphBoundary.
  * \param nr_ucs The length of the Uchar32 string.
+ * \param 
  * \param lang_code The language code.
  * \param base_dir The base direction of the paragraph.
  * \param run_dir The writing direction of the paragraph.
@@ -12572,21 +12577,26 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  *      of some text in the paragraph by calling \a SetFontInTextRuns.
  * \param color The default text color. You can change the text color
  *      of some text in the paragraph by calling \a SetTextColorInTextRuns
+ * \param break_oppos If not NULL, the break opportunities will be tailored
+ *      according to the script type of every text run. Please skip the first
+ *      entry when you pass the pointer.
  *
  * \return The TEXTRUNSINFO object create; NULL for failure.
  *
  * \note This function assumes that you passed one paragraph of
  *      the logical Unicode string. Therefore, you'd better to call this
- *      function after calling GetUCharsUntilParagraphBoundary.
+ *      function after calling \a GetUCharsUntilParagraphBoundary.
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa GetUCharsUntilParagraphBoundary, SetFontInTextRuns, SetTextColorInTextRuns
+ * \sa GetUCharsUntilParagraphBoundary, UStrGetBreaks,
+ *      SetFontInTextRuns, SetTextColorInTextRuns
  */
 MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
-        const char* logfont_name, RGBCOLOR color);
+        const char* logfont_name, RGBCOLOR color,
+        BreakOppo* break_oppos);
 
 /**
  * Set logfont of text runs

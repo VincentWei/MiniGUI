@@ -441,7 +441,8 @@ out:
 TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
         GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
-        const char* logfont_name, RGBCOLOR color)
+        const char* logfont_name, RGBCOLOR color,
+        BreakOppo* break_oppos)
 {
     BOOL ok = FALSE;
 
@@ -516,6 +517,15 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
         _ERR_PRINTF("%s: failed to call create_text_runs.\n",
             __FUNCTION__);
         goto out;
+    }
+
+    if (break_oppos) {
+        struct list_head* i;
+        list_for_each(i, &runinfo->truns) {
+            TextRun* trun = (TextRun*)i;
+            UStrTailorBreaks(trun->st, runinfo->ucs + trun->si, trun->len,
+                break_oppos + trun->si);
+        }
     }
 
     ok = TRUE;
