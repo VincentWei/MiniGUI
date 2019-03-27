@@ -6837,6 +6837,25 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  */
 MG_EXPORT PLOGFONT GUIAPI CreateLogFontByName(const char* font_name);
 
+#ifdef _MGCHARSET_UNICODE
+/**
+ * \fn PLOGFONT GUIAPI CreateLogFontForMChar2UChar(const char* charset)
+ * \brief Creates a logical font for conversion from multi-byte charset
+ *      to Unicode.
+ *
+ * This function creates a logical font in order to convert a multi-byte
+ * character string to Uchar32 string. You can use this logfont for
+ * \a GetUCharsUntilParagraphBoundary.
+ *
+ * \param charset The charset name of the multi-byte character string.
+ *
+ * \return The pointer to the logical font created, NULL on error.
+ *
+ * \sa DestroyLogFont, GetUCharsUntilParagraphBoundary
+ */
+MG_EXPORT PLOGFONT GUIAPI CreateLogFontForMChar2UChar(const char* charset);
+#endif /* _MGCHARSET_UNICODE */
+
 /**
  * \fn PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT* logfont)
  * \brief Creates a logical font indirectly from a LOGFONT structure.
@@ -12704,70 +12723,32 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo);
 #ifdef _MGCOMPLEX_SCRIPTS
 
 /**
- * \fn int GUIAPI InitComplexShapingEngine()
- * \brief Analyse and generate a shaped glyph string of a Unicode string
- *      under specific language and writing system. This is the complex
- *      implementation based on HarfBuzz, which is LGPL'd shaping engine.
+ * \fn BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* truninfo)
+ * \brief Initialize the complex shaping engine for a TEXTRUNSINFO object.
  *
- * This function analyses a Unicode string under the specified
- * content language \a content_language and writing system
- * \a writing_systemand, and generates a shaped glyph string,
- * as long as the glyph information of them.
+ * This function initializes the complex shaping engine for the specific
+ * TEXTRUNSINFO object \a truninfo.
  *
- * This function perform the complex shaping process according to the data
- * contained in the OpenType Layout tables (GSUB, GPOS, and so on).
- * The shaping process includes:
+ * The complex shaping engine performs the complex shaping process
+ * according to the data contained in the OpenType Layout tables
+ * (GSUB, GPOS, and so on) contained in a OpenType font. The complex
+ * shaping engine is implemented based on HarzBuff.
  *
- *  - Shaping (substituting) glyphs.
- *  - Re-ordering glyphs.
- *  - Positioning glyphs.
+ * You can call \a InitBasicShapingEngine to initialize the basic shaping
+ * process which shapes the glyphs based on the Unicode character properties
+ * instead.
  *
- * You can call \a GetShapedGlyphsBasic to perform the basic shaping
- * process based on the Unicode character properties instead.
+ * After initializing the shapping engine, you can call \a CreateLayoutInfo
+ * to layout the Uchar32 paragraph string.
  *
- * Note that you are responsible for allocating the buffers for the shaped
- * visual glyphs, the glyph shaping information, as well as the buffers
- * of the breaking opportunities and the indics map from glyphs to characters
- * if you need them. Generally, the length of the allocated buffer should
- * be same as \a nr_ucs, however, the buffer length of the breaking
- * opportunities should be longer one than \a nr_ucs.
+ * \param truninfo The TEXTRUNSINFO object.
  *
- * \param logfont The logfont used to parse the string.
- *      Note that the charset/encoding of this logfont should be Unicode,
- *      such as UTF-8, UTF-16LE, and UTF-16BE.
- * \param lang_code The language code.
- * \param writing_system The writing system (script) identifier.
- * \param render_flags The render flags; see \a glyph_render_flags.
- * \param ucs The pointer to the Uchar32 array.
- * \param nr_ucs The number of the Unicode characters.
- * \param embedding_levels The embedding levels returned by calling
- *      UBidiGetParagraphEmbeddingLevels(). If it is NULL, ligature
- *      and mirroring process will be disabled.
- * \param base_dir The base direction of the paragraph.
- * \param shaped_glyphs The pointer to a SHAPEDGLYPHS structure, which
- *        contains the shaped glyphs information.
+ * \return TRUE for success, FALSE otherwise.
  *
- * \return The number of the Unicode characters processed; zero on error.
+ * \note Only available when the support for UNICODE (_MGCHARSET_UNICODE)
+ *      and the support for complex scripts (_MGCOMPLEX_SCRIPTS) are enabled.
  *
- * \note Only available when support for UNICODE is enabled.
- *
- * \note This function assumes that you passed one paragraph of
- *      the logical Unicode string. Therefore, you'd better to call this
- *      function after calling GetUCharsUntilParagraphBoundary.
- *
- * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsComplex,
- *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
- *
- * \return The number of the Unicode characters processed; zero on error.
- *
- * \note Only available when support for UNICODE is enabled.
- *
- * \note This function assumes that you passed one paragraph of
- *      the logical Unicode string. Therefore, you'd better to call this
- *      function after calling GetUCharsUntilParagraphBoundary.
- *
- * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic,
- *      GetGlyphsExtentInfo, GetGlyphsPositionInfo, DrawShapedGlyphString
+ * \sa InitBasicShapingEngine, CreateLayoutInfo
  */
 MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* truninfo);
 
@@ -12777,7 +12758,33 @@ typedef struct _LAYOUTINFO LAYOUTINFO;
 typedef struct _LAYOUTLINE LAYOUTLINE;
 
 /**
- * Create layout information structure for laying out a paragraph.
+ * \fn LAYOUTINFO* GUIAPI CreateLayoutInfo(
+ *      const TEXTRUNSINFO* truninfo, Uint32 render_flags,
+ *      const BreakOppo* break_oppos, BOOL persist_lines,
+ *      int letter_spacing, int word_spacing, int tab_size,
+ *      int* tabs, int nr_tabs)
+ * \brief Create layout information structure for laying out a paragraph.
+ *
+ * This function creates a LAYOUTINFO object for laying out a TEXTRUNSINFO
+ * object \a truninfo, which represents a Uchar32 paragraph in mixed scripts
+ * ready to lay out.
+ *
+ * \param truninfo The TEXTRUNSINFO object.
+ * \param render_flags The render flags; see \a glyph_render_flags.
+ * \param break_oppos The breaking opportunities of the paragraph.
+ * \param persist_lines Whether to persist the lines laid out.
+ * \param letter_spacing This parameter specifies additional spacing
+ *      (commonly called tracking) between adjacent glyphs.
+ * \param word_spacing This parameter specifies the additional spacing between
+ *      words.
+ * \param tab_size The tab size used to render preserved tab characters.
+ * \param tabs The array of the tab stops; can be NULL.
+ * \param nr_tabs The length of the tab stops array.
+ *
+ * \return The LAYOUTINFO object; NULL for error.
+ *
+ * \sa CreateTextRunsInfo, InitBasicShapingEngine, InitComplexShapingEngine,
+ *      UStrGetBreaks, LayoutNextLine
  */
 MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* truninfo, Uint32 render_flags,
@@ -12786,20 +12793,82 @@ MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
         int* tabs, int nr_tabs);
 
 /**
- * Destroy the specified layout information structure.
+ * \fn BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info)
+ * \brief Destroy the specified layout information structure.
+ *
+ * This function destroy the specific layout information object \a layout_info.
+ *
+ * \param layout_info The LAYOUTINFO object.
+ *
+ * \return TRUE for success, FALSE otherwise.
+ *
+ * \sa CreateLayoutInfo
  */
 MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
 typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
-        LOGFONT* lf, Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos, RGBCOLOR color);
+        const TEXTRUNSINFO *truninfo, int uc_index, LOGFONT* lf,
+        Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos);
 
 /**
- * Layout the next line of a paragraph according to the layout information.
+ * \fn LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
+ *      LAYOUTLINE* prev_line,
+ *      int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
+ *      CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
+ * \brief Layout the next line of a paragraph according to the layout
+ *      information.
+ *
+ * This function lays out the next line of in a LAYOUTLINE object
+ * \a layout_info. If \a prev_line is NULL, the function will returns
+ * the first line.
+ *
+ * You can pass the maximal extent of the next line via \a max_extent to
+ * control the output extent of every line. The function will wrap or
+ * ellipsize the line according to the rendering flags of the LAYOUTINFO
+ * object. You can also control whether to render the next line as
+ * the last line of the LAYOUTINFO object via \a last_line parameter.
+ *
+ * The line size will be returned through \a line_size if it is not NULL.
+ * When there is a glyph positioned, the function will call \a cb_laid_out
+ * with the context \a ctxt. You can draw the glyph to a DC or do anything
+ * you want.
+ *
+ * The previous line will be release if the LAYOUTLINE object is not
+ * persisted. In this way, you can save memory use of the LAYOUTLINE object.
+ *
+ * \param layout_info The LAYOUTINFO object.
+ * \param prev_line NULL or the previous line object returned by this
+ *      function.
+ * \param x The x-corrdinate of the output position of the first glyph
+ *      in the next line.
+ * \param y The y-corrdinate of the output position of the first glyph
+ *      in the next line.
+ * \param max_extent The maximal extent of the next line; No limit if
+ *      it is less than 0.
+ * \param last_line Whether to lay out all left characters.
+ * \param line_size The size of the line will be returned through this
+ *      buffer if it is not NULL.
+ * \param cb_laid_out The callback for one laid out glyph.
+ * \param ctxt The context will be passed to \a cb_laid_out.
+ *
+ * \return NULL for no line, otherwise the next line object.
+ *
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, CreateTextRunsInfo
  */
 MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
         LAYOUTLINE* prev_line,
         int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
+
+MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
+        int max_line_width, int max_lines_height, RECT* rc_bouding);
+
+MG_EXPORT BOOL DrawLayoutGlyph(HDC hdc,
+        const TEXTRUNSINFO *truninfo, int uc_index, LOGFONT* lf,
+        Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos);
+
+MG_EXPORT int DrawLayoutLine(HDC hdc, LAYOUTLINE* line,
+        int x, int y, RECT* rc_bouding);
 
 #ifdef _MGDEVEL_MODE
 void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
@@ -12815,147 +12884,6 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
         int** log_widths, int* width, int* height,
         BOOL* is_ellipsized, BOOL* is_wrapped);
 #endif
-
-MG_EXPORT BOOL DrawShapedGlyph(HDC hdc, LOGFONT* lf, RGBCOLOR color,
-        Glyph32 gv, const GLYPHPOS* pos);
-
-MG_EXPORT int DrawShapedGlyphLine(HDC hdc, const LAYOUTLINE* line,
-        int x, int y);
-
-/**
- * \fn int GUIAPI GetGlyphsExtentInfo()
- *
- * \brief Get the extent information of all shaped glyphs.
- *
- * This function gets the extent information of all glyphs in
- * a shaped glyph string.
- *
- * \param logfont_upright The logfont used to render the upright glyphs.
- *      Note that the charset/encoding of this logfont should be Unicode,
- *      such as UTF-8, UTF-16LE, and UTF-16BE.
- * \param glyphs The glyph string.
- * \param glyph_shaping_info The pointer to the GLYPHSHAPINGINFO array, which
- *      contains the shaping information of all glyphs.
- * \param nr_glyphs The number of the glyphs.
- * \param render_flags The render flags; see \a glyph_render_flags.
- * \param glyph_ext_info The pointer to a GLYPHEXTINFO array storing the
- *      extent information of all glyphs.
- * \param logfont_sideways The buffer to store the LOGFONT object created
- *      by this function for sideways glyphs if text orientation specified
- *      in \a render_flags is mixed (GRF_TEXT_ORIENTATION_MIXED) or
- *      sideways (GRF_TEXT_ORIENTATION_SIDEWAYS). If *logfont_sidways is
- *      not NULL, this function will try to use this LOGFONT object for
- *      sideways glyphs.
- *
- * \return The number of glyphs; zero for failure.
- *
- * \note Only available when support for UNICODE is enabled.
- *
- * \note The LOGFONT object \a logfont_upright should have the rotation
- *      be 0° for upright glyphs and \a logfont_sideways will have the
- *      rotation be 90° for sideways glyphs.
- *
- * \sa GetUCharsUntilParagraphBoundary, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
- *     GetGlyphsPositionInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
- *
-MG_EXPORT GLYPHEXTINFO* GUIAPI GetShapedGlyphsExtentInfo(
-        TEXTRUNSINFO* truninfo, int run_idx);
- */
-
-/**
- * \fn int GUIAPI GetGlyphsPositionInfo()
- *
- * \brief Get the position info of all shaped glyphs fitting in the specified
- *      maximal output extent.
- *
- * This function gets the position information of a shaped glyph string which
- * can fit a line with the specified maximal extent.
- *
- * \param logfont_upright The logfont used to render the upright glyphs.
- *      Note that the charset/encoding of this logfont should be Unicode,
- *      such as UTF-8, UTF-16LE, and UTF-16BE.
- * \param logfont_sideways The LOGFONT object used to render the sideways glyphs.
- * \param glyphs The glyph string.
- * \param glyph_shaping_info The pointer to the GLYPHSHAPINGINFO array which
- *      returned by GetShapedGlyphsBasic() or GetShapedGlyphsComplex().
- * \param break_oppos The pointer to the break opportunities array of the glyphs.
- *      It should be returned by \a UStrGetBreaks, GetShapedGlyphsBasic,
- *      or GetShapedGlyphsComplex. However, the caller should skip the first
- *      unit (the break opportunity before the first glyph) when passing
- *      the pointer to this function.
- * \param nr_glyphs The number of the glyphs.
- * \param render_flags The render flags; see \a glyph_render_flags.
- * \param x The x-position of first glyph.
- * \param y The y-position of first glyph.
- * \param letter_spacing This parameter specifies additional spacing
- *      (commonly called tracking) between adjacent glyphs.
- * \param word_spacing This parameter specifies the additional spacing between
- *      words.
- * \param tab_size The tab size used to render preserved tab characters.
- * \param max_extent The maximal output extent value. No limit when it is < 0.
- * \param glyph_ext_info The GLYPHEXTINFO array storing the extent info of all glyphs.
- * \param line_size The buffer to store the line extent info; can be NULL.
- * \param glyph_pos The buffer to store the positions and orientations of
- *      all glyphs which can fit in the max extent; cannot be NULL.
- *
- * \return The number of characters which are fit to the maximal extent.
- *      The extra_x and extra_y fields of the glyph extent info of every glyph
- *      may be changed due to the spacing value and justification.
- *      The line extent info will be returned through \a line_size
- *      if it was not NULL. Note the function will return immediately if
- *      it encounters a mandatory breaking.
- *
- * \note Only available when support for UNICODE is enabled.
- *
- * \note The LOGFONT object \a logfont_upright should have the rotation
- *      be 0° for upright glyphs and \a logfont_sideways will have the
- *      rotation be 90° for sideways glyphs.
- *
- * \note The position coordinates of the first glyph are
- *      with respect to the top-left corner of the output rectangle
- *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
- *      GRF_WRITING_MODE_VERTICAL_LR, otherwise they are with respect
- *      to the top-right corner of the output rectangle. However,
- *      the positions contained in \a glyph_pos are always with respect to
- *      the top-left corner of the resulting output line rectangle.
- *
- * \sa UStrGetBreaks, GetShapedGlyphsBasic, GetShapedGlyphsComplex,
- *      GetGlyphsExtentInfo, DrawShapedGlyphString, GLYPHEXTINFO, glyph_render_flags
- */
-MG_EXPORT int GUIAPI GetShapedGlyphsFittingLine(const TEXTRUNSINFO* truninfo,
-        const BreakOppo* break_oppos,
-        int uc_start_index, int x, int y, Uint32 render_flags,
-        int letter_spacing, int word_spacing, int tab_size, int max_extent,
-        SIZE* line_size, GLYPHPOS** glyph_pos, int* nr_glyphs);
-
-/*
- * \fn int GUIAPI DrawShapedGlyphs ()
- * \brief Draw a shaped glyph string at the specified positions
- *      and text orientations.
- *
- * This function draws a shaped glyph string to the specific positions and
- * orientations on a DC \a hdc with the logfonts specified by
- * \a logfont_upright and \a logfont_sideways.
- *
- * \param hdc The device context.
- * \param logfont_upright The LOGFONT object used for upright glyphs.
- * \param logfont_sideways The LOGFONT object used for sideways glyphs.
- * \param glyphs The pointer to the glyph string.
- * \param glyph_shaping_info The pointer to the GLYPHSHAPINGINFO array which
- *      returned by GetShapedGlyphsBasic() or GetShapedGlyphsComplex().
- * \param glyph_pos The buffer holds the position information
- *      of every glyph.
- * \param nr_glyphs The number of the glyphs should be drawn.
- *
- * \return The number of glyphs really drawn.
- *
- * \note The positions contained in \a glyph_pos are always aligned to
- *      the top-left corner of the output rectangle.
- *
- * \sa GetGlyphsExtentFromUChars
- */
-MG_EXPORT int GUIAPI DrawShapedGlyphs(const TEXTRUNSINFO* truninfo,
-        int uc_start_index, const GLYPHPOS* glyph_pos, int nr_glyphs);
 
 #endif /* _MGCHARSET_UNICODE */
 

@@ -1657,13 +1657,11 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             int index;
             Uchar32 uc;
             GLYPHPOS pos;
-            RGBCOLOR color;
             ShapedGlyph* glyph_info;
 
             uc = run->lrun->ucs[run->gstr->log_clusters[j]];
 
             index = run->lrun->si + run->gstr->log_clusters[j];
-            color = __mg_textruns_get_text_color(layout->truninfo, index);
             glyph_info = run->gstr->glyphs + j;
 
             pos.x = x + line_adv;
@@ -1685,7 +1683,8 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                 }
             }
 
-            cb_laid_out(ctxt, run->lrun->lf, uc, glyph_info->gv, &pos, color);
+            cb_laid_out(ctxt, layout->truninfo, index, run->lrun->lf,
+                    uc, glyph_info->gv, &pos);
 
             line_adv += glyph_info->width;
         }
