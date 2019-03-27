@@ -65,8 +65,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
-
 #include "common.h"
 
 #ifdef _MGCHARSET_UNICODE
@@ -381,16 +379,10 @@ static void shape_space(const LAYOUTINFO* layout, const LayoutRun* lrun,
         gstr->glyphs[i].x_off = 0;
         gstr->glyphs[i].y_off = 0;
 
-        _ERR_PRINTF("%s: gc of uc (%04x): %d\n",
-                __FUNCTION__, lrun->ucs[i], gc);
-
         if (gc == UCHAR_CATEGORY_SPACE_SEPARATOR) {
             Glyph32 space_gv = GetGlyphValue(lrun->lf, UCHAR_SPACE);
             gstr->glyphs[i].width
                         = _font_get_glyph_log_width(lrun->lf, space_gv);
-
-            _ERR_PRINTF("%s: space width: %d\n",
-                    __FUNCTION__, gstr->glyphs[i].width);
 
             if (IsUCharWide(lrun->ucs[i])) {
                 gstr->glyphs[i].width *= 2;
