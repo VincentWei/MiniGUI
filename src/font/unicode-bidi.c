@@ -1734,6 +1734,13 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
     BidiBracketType local_brk_ts[LOCAL_ARRAY_SIZE];
     BidiBracketType *brk_ts = NULL;
 
+    /* NOTE:
+     * BIDI_IS_ISSOLATE, BIDI_IS_NUMBER, and BIDI_IS_LETTER
+     * can not be applied to ored_types */
+    BOOL have_isolate = FALSE;
+    BOOL have_number = FALSE;
+    BOOL have_letter = FALSE;
+
     if (!els) {
         _DBG_PRINTF("%s: Embedding levels is NULL.\n",
             __FUNCTION__);
@@ -1766,6 +1773,14 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
         BidiType bidi_type;
         bidi_ts[i] = bidi_type = UCharGetBidiType(ucs[i]);
         ored_types |= bidi_type;
+
+        if (BIDI_IS_ISOLATE(bidi_type) || BIDI_IS_EXPLICIT(bidi_type))
+            have_isolate = TRUE;
+        if (BIDI_IS_NUMBER(bidi_type))
+            have_number = TRUE;
+        if (BIDI_IS_LETTER(bidi_type))
+            have_letter = TRUE;
+
         if (BIDI_IS_STRONG (bidi_type))
             anded_strongs &= bidi_type;
 
@@ -1784,14 +1799,16 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
      * o base_dir doesn't have an RTL taste.
      * o there are letters, and base_dir is weak.
      */
-    if (!BIDI_IS_ISOLATE (ored_types) &&
+    if (!have_isolate /* BIDI_IS_ISOLATE (ored_types) */ &&
             !BIDI_IS_RTL (ored_types) &&
             !BIDI_IS_ARABIC (ored_types) &&
             (!BIDI_IS_RTL (base_dir) ||
              (BIDI_IS_WEAK (base_dir) &&
-              BIDI_IS_LETTER (ored_types))
+              have_letter /* BIDI_IS_LETTER (ored_types) */)
             ))
     {
+        _DBG_PRINTF("%s: have_isolate: %s, ored_types, base_dir: ");
+
         /* all LTR */
         base_dir = BIDI_PGDIR_LTR;
         memset (els, 0, nr_ucs);
@@ -1804,12 +1821,12 @@ BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
      * o base_dir has an RTL taste (may be weak).
      * o there are letters, and base_dir is weak.
      */
-    else if (!BIDI_IS_ISOLATE (ored_types) &&
-            !BIDI_IS_NUMBER (ored_types) &&
+    else if (!have_isolate /* BIDI_IS_ISOLATE (ored_types) */ &&
+            !have_number /* BIDI_IS_NUMBER (ored_types) */ &&
             BIDI_IS_RTL (anded_strongs) &&
             (BIDI_IS_RTL (base_dir) ||
              (BIDI_IS_WEAK (base_dir) &&
-              BIDI_IS_LETTER (ored_types))
+              have_letter /* BIDI_IS_LETTER (ored_types) */)
             ))
     {
         /* all RTL */

@@ -12773,13 +12773,20 @@ MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
         int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
 
-/**
- * Get layout line information
- */
+#ifdef _MGDEVEL_MODE
+void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
+        void* prev,
+        const char** fontname, int* start_index, int* length,
+        LanguageCode* lang_code, ScriptType* script,
+        BidiLevel* embedding_level, GlyphRunDir* run_dir,
+        GlyphOrient* orient, Uint8* flags);
+
+/* Get layout line information */
 MG_EXPORT BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
         int* line_no, int* max_extent, int* nr_chars, int* nr_glyphs,
         int** log_widths, int* width, int* height,
         BOOL* is_ellipsized, BOOL* is_wrapped);
+#endif
 
 MG_EXPORT BOOL DrawShapedGlyph(HDC hdc, LOGFONT* lf, RGBCOLOR color,
         Glyph32 gv, const GLYPHPOS* pos);

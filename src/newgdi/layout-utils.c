@@ -725,5 +725,25 @@ void __mg_glyph_run_letter_space(const GlyphRun* glyph_run,
     }
 }
 
+void __mg_reverse_shaped_glyphs(ShapedGlyph* glyphs, int len)
+{
+    int i;
+    for (i = 0; i < len / 2; i++) {
+        ShapedGlyph tmp = glyphs[i];
+        glyphs[i] = glyphs[len - 1 - i];
+        glyphs[len - 1 - i] = tmp;
+    }
+}
+
+void __mg_reverse_log_clusters(int* clusters, int len)
+{
+    int i;
+    for (i = 0; i < len / 2; i++) {
+        int tmp = clusters[i];
+        clusters[i] = clusters[len - 1 - i];
+        clusters[len - 1 - i] = tmp;
+    }
+}
+
 #endif /*  _MGCHARSET_UNICODE */
 

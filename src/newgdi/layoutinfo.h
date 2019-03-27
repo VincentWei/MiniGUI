@@ -196,6 +196,9 @@ BOOL __mg_layout_line_ellipsize(LAYOUTLINE *line, int goal_width);
 int __mg_shape_layout_run(const TEXTRUNSINFO* info, const LayoutRun* run,
         GlyphString* glyphs);
 
+void __mg_reverse_shaped_glyphs(ShapedGlyph* glyphs, int len);
+void __mg_reverse_log_clusters(int* clusters, int len);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

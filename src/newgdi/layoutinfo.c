@@ -58,7 +58,7 @@
 **
 **  - We provide two shaping engines for rendering the text. One is a
 **      basic shaping engine and other is the complex shaping engine based
-**      on HarzBuff. The former can be used for standard scripts.
+**      on HarzBuff. The former can be used for some simple applications.
 */
 
 #include <stdio.h>
@@ -366,42 +366,47 @@ static void shape_tab(LAYOUTLINE *line, GlyphString *glyphs)
 }
 
 static void shape_space(const LAYOUTINFO* layout, const LayoutRun* lrun,
-        GlyphString* glyphs)
+        GlyphString* gstr)
 {
     unsigned int i;
 
-    __mg_glyph_string_set_size (glyphs, lrun->len);
+    __mg_glyph_string_set_size (gstr, lrun->len);
 
     for (i = 0; i < lrun->len; i++) {
         UCharGeneralCategory gc;
 
         gc = UCharGetCategory(lrun->ucs[i]);
 
-        glyphs->glyphs[i].gv = INV_GLYPH_VALUE;
-        glyphs->glyphs[i].x_off = 0;
-        glyphs->glyphs[i].y_off = 0;
+        gstr->glyphs[i].gv = INV_GLYPH_VALUE;
+        gstr->glyphs[i].x_off = 0;
+        gstr->glyphs[i].y_off = 0;
 
         _ERR_PRINTF("%s: gc of uc (%04x): %d\n",
                 __FUNCTION__, lrun->ucs[i], gc);
 
         if (gc == UCHAR_CATEGORY_SPACE_SEPARATOR) {
             Glyph32 space_gv = GetGlyphValue(lrun->lf, UCHAR_SPACE);
-            glyphs->glyphs[i].width
+            gstr->glyphs[i].width
                         = _font_get_glyph_log_width(lrun->lf, space_gv);
 
             _ERR_PRINTF("%s: space width: %d\n",
-                    __FUNCTION__, glyphs->glyphs[i].width);
+                    __FUNCTION__, gstr->glyphs[i].width);
 
             if (IsUCharWide(lrun->ucs[i])) {
-                glyphs->glyphs[i].width *= 2;
+                gstr->glyphs[i].width *= 2;
             }
         }
         else {
-            glyphs->glyphs[i].width = 0;
+            gstr->glyphs[i].width = 0;
         }
 
-        glyphs->glyphs[i].is_cluster_start = 1;
-        glyphs->log_clusters[i] = i;
+        gstr->glyphs[i].is_cluster_start = 1;
+        gstr->log_clusters[i] = i;
+
+        if (BIDI_LEVEL_IS_RTL(lrun->el) && gstr->nr_glyphs > 1) {
+            __mg_reverse_shaped_glyphs(gstr->glyphs, gstr->nr_glyphs);
+            __mg_reverse_log_clusters(gstr->log_clusters, gstr->nr_glyphs);
+        }
     }
 }
 
@@ -1821,6 +1826,7 @@ out:
     return next_line;
 }
 
+#ifdef _MGDEVEL_MODE
 BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
         int* line_no, int* max_extent, int* nr_chars, int* nr_glyphs,
         int** log_widths, int* width, int* height,
@@ -1851,6 +1857,7 @@ BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
 
     return TRUE;
 }
+#endif
 
 #endif /*  _MGCHARSET_UNICODE */
 
