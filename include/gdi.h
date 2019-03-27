@@ -5601,6 +5601,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 /******/
 
 #define FONT_TYPE_NAME_LEN          3
+#define FONT_TYPE_NAME_BITMAP_NUF   "nuf"
 #define FONT_TYPE_NAME_BITMAP_RAW   "rbf"
 #define FONT_TYPE_NAME_BITMAP_VAR   "vbf"
 #define FONT_TYPE_NAME_BITMAP_QPF   "qpf"
@@ -6983,6 +6984,23 @@ typedef enum {
 MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter);
 
 #endif
+
+/**
+ * \fn DEVFONT* GUIAPI LoadDevFontFromIncoreData (const char* devfont_name, \
+ *        const void* data)
+ * \brief Load device font from incore data.
+ *
+ * This function can be used to load device font from incore data.
+ *
+ * \param devfont_name The device font name.
+ * \param data The pointer to the incore font data.
+ *
+ * \return the pointer to the new device font on success, NULL on error.
+ *
+ * \sa GetNextDevFont, DestroyDynamicDevFont
+ */
+MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromIncoreData (const char *devfont_name,
+        const void *data);
 
 #if defined(_MGFONT_QPF) || defined(_MGFONT_FT2) || defined(_MGFONT_TTF) || defined(_MGFONT_UPF)
 /**
