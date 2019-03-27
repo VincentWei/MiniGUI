@@ -2465,7 +2465,7 @@ static void draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc,
         break;
 
     default:
-        _WRN_PRINTF ("NEWGDI>Glyph: NO WAY\n");
+        _WRN_PRINTF ("No way to draw background");
         break;
     }
 }
@@ -2635,7 +2635,7 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
                         _dc_set_pixel_noclip);
             }
             else
-                _WRN_PRINTF ("NEWGDI>Glyph: no under line, rc_output: %d, %d, %d, %d\n",
+                _WRN_PRINTF ("no under line, rc_output: %d, %d, %d, %d\n",
                     pdc->rc_output.left, pdc->rc_output.top,
                     pdc->rc_output.right, pdc->rc_output.bottom);
             cliprect = cliprect->next;

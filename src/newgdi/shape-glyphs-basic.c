@@ -66,7 +66,6 @@
 #   define LOCAL_ARRAY_SIZE 128
 #endif
 
-
 static void reverse_shaped_glyphs(ShapedGlyph* glyphs, int len)
 {
     int i;
@@ -74,6 +73,16 @@ static void reverse_shaped_glyphs(ShapedGlyph* glyphs, int len)
         ShapedGlyph tmp = glyphs[i];
         glyphs[i] = glyphs[len - 1 - i];
         glyphs[len - 1 - i] = tmp;
+    }
+}
+
+static void reverse_log_clusters(int* clusters, int len)
+{
+    int i;
+    for (i = 0; i < len / 2; i++) {
+        int tmp = clusters[i];
+        clusters[i] = clusters[len - 1 - i];
+        clusters[len - 1 - i] = tmp;
     }
 }
 
@@ -234,6 +243,7 @@ static BOOL shape_layout_run(SEInstance* inst,
     // reorder glyphs
     if (BIDI_LEVEL_IS_RTL(run->el)) {
         reverse_shaped_glyphs(gs->glyphs, gs->nr_glyphs);
+        reverse_log_clusters(gs->log_clusters, gs->nr_glyphs);
     }
 
     ok = TRUE;

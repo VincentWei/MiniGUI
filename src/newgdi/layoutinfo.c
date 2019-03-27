@@ -65,6 +65,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _DEBUG
+
 #include "common.h"
 
 #ifdef _MGCHARSET_UNICODE
@@ -379,10 +381,17 @@ static void shape_space(const LAYOUTINFO* layout, const LayoutRun* lrun,
         glyphs->glyphs[i].x_off = 0;
         glyphs->glyphs[i].y_off = 0;
 
+        _ERR_PRINTF("%s: gc of uc (%04x): %d\n",
+                __FUNCTION__, lrun->ucs[i], gc);
+
         if (gc == UCHAR_CATEGORY_SPACE_SEPARATOR) {
             Glyph32 space_gv = GetGlyphValue(lrun->lf, UCHAR_SPACE);
             glyphs->glyphs[i].width
                         = _font_get_glyph_log_width(lrun->lf, space_gv);
+
+            _ERR_PRINTF("%s: space width: %d\n",
+                    __FUNCTION__, glyphs->glyphs[i].width);
+
             if (IsUCharWide(lrun->ucs[i])) {
                 glyphs->glyphs[i].width *= 2;
             }
@@ -444,7 +453,7 @@ static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
     if (layout->truninfo->ucs[lrun->si] == UCHAR_TAB) {
         shape_tab(line, glyphs);
     }
-    else if (lrun->lf == NULL) {
+    else if (lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) {
         // no need shaping
         shape_space(layout, lrun, glyphs);
     }
@@ -508,6 +517,8 @@ static inline void print_text_runs(const TEXTRUNSINFO* info, const char* func)
         _DBG_PRINTF("   INDEX:          %d\n", run->si);
         _DBG_PRINTF("   LENGHT:         %d\n", run->len);
         _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->el);
+        _DBG_PRINTF("   NO SHAPING     :%s\n",
+            (run->flags & TEXTRUN_FLAG_NO_SHAPING) ? "YES" : "NO");
         j++;
     }
 }
@@ -527,6 +538,8 @@ static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
         _DBG_PRINTF("   INDEX:          %d\n", run->lrun->si);
         _DBG_PRINTF("   LENGHT:         %d\n", run->lrun->len);
         _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->lrun->el);
+        _DBG_PRINTF("   NO SHAPING     :%s\n",
+            (run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) ? "YES" : "NO");
         _DBG_PRINTF("   NR GLYPHS:      %d\n", run->gstr->nr_glyphs);
         j++;
     }
@@ -1650,8 +1663,9 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             RGBCOLOR color;
             ShapedGlyph* glyph_info;
 
+            uc = run->lrun->ucs[run->gstr->log_clusters[j]];
+
             index = run->lrun->si + run->gstr->log_clusters[j];
-            uc = run->lrun->ucs[index];
             color = __mg_textruns_get_text_color(layout->truninfo, index);
             glyph_info = run->gstr->glyphs + j;
 

@@ -172,8 +172,8 @@ LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
 
     lrun = malloc(sizeof(LayoutRun));
     lrun->lf = lf;
-    lrun->ucs = layout->truninfo->ucs;
     lrun->si = trun->si;
+    lrun->ucs = layout->truninfo->ucs + lrun->si;
     lrun->len = trun->len;
     lrun->lc = trun->lc;
     lrun->st = trun->st;
@@ -204,8 +204,8 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
     lrun = malloc(sizeof(LayoutRun));
 
     lrun->lf = lf;
-    lrun->ucs = layout->truninfo->ucs;
     lrun->si = trun->si + offset;
+    lrun->ucs = layout->truninfo->ucs + lrun->si;
     lrun->len = trun->len - offset;
     lrun->lc = trun->lc;
     lrun->st = trun->st;

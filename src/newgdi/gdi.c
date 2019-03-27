@@ -221,7 +221,7 @@ void mg_TerminateScreenDC (void)
 #define INIT_SPECIFICAL_FONTS(etc_section) \
 { \
     if (!font_InitSpecificalFonts (etc_section)) { \
-        _WRN_PRINTF ("NEWGDI>InitGDI: Can not initialize fonts defined in section %s!\n", etc_section); \
+        _WRN_PRINTF ("Can not initialize fonts defined in section %s!", etc_section); \
         goto error; \
     } \
 }
@@ -230,7 +230,7 @@ void mg_TerminateScreenDC (void)
 BOOL mg_InitGDI (void)
 {
     if (!InitTextBitmapBuffer ()) {
-        _WRN_PRINTF ("NEWGDI>InitGDI: Can not initialize text bitmap buffer!\n");
+        _WRN_PRINTF ("Can not initialize text bitmap buffer!");
         goto error;
     }
 
@@ -252,7 +252,7 @@ BOOL mg_InitGDI (void)
 
 #if (defined (_MGFONT_TTF) || defined (_MGFONT_FT2)) && defined(_MGRM_THREADS)
     if (!font_InitFreetypeLibrary ()) {
-        _WRN_PRINTF ("NEWGDI>InitGDI: Can not initialize freetype fonts!\n");
+        _WRN_PRINTF ("Can not initialize freetype fonts!");
         goto error;
     }
     INIT_SPECIFICAL_FONTS (FONT_ETC_SECTION_NAME_TTF);
@@ -261,13 +261,13 @@ BOOL mg_InitGDI (void)
     /* TODO: add other font support here */
 #if defined (_MGFONT_SEF) && !defined(_LITE_VERSION)
     if(!initialize_scripteasy()) {
-        _WRN_PRINTF ("NEWGDI>InitGDI: Can not initialize ScriptEasy fonts!\n");
+        _WRN_PRINTF ("Can not initialize ScriptEasy fonts!");
         goto error;
     }
 #endif
 
     if (!font_InitIncoreFonts ()) {
-        _WRN_PRINTF ("NEWGDI>InitGDI: Can not initialize incore fonts!\n");
+        _WRN_PRINTF ("Can not initialize incore fonts!");
         goto error;
     }
 
@@ -276,7 +276,7 @@ BOOL mg_InitGDI (void)
 #endif
 
     if (!mg_InitSysFont ()) {
-        _WRN_PRINTF ("NEWGDI>InitGDI: Can not create system fonts!\n");
+        _WRN_PRINTF ("Can not create system fonts!");
         goto error;
     }
 
@@ -2647,7 +2647,7 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     UNLOCK(&dcslot);
 
     if (i >= DCSLOTNUMBER) {
-        _WRN_PRINTF ("NEWGDI>GetSecondarySubDC: no DC slot.\n");
+        _WRN_PRINTF ("NEWGDI>GetSecondarySubDC: no DC slot.");
         return HDC_SCREEN;
     }
 
@@ -3392,7 +3392,7 @@ HDC GUIAPI InitSlaveScreenEx (const char* name, const char* mode, int dpi)
     }
     else {
         free (pmem_dc);
-        _WRN_PRINTF ("NEWGDI>InitSlaveScreen: Can not init the slave screen: %s (%s)\n",
+        _WRN_PRINTF ("Can not init the slave screen: %s (%s)",
                         name, mode);
         return HDC_INVALID;
     }
