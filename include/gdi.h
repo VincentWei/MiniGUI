@@ -12807,8 +12807,8 @@ MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
 MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
 typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
-        const TEXTRUNSINFO *truninfo, int uc_index, LOGFONT* lf,
-        Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos);
+        const TEXTRUNSINFO *truninfo, int uc_index,
+        Uchar32 uc, LOGFONT* lf, Glyph32 gv, const GLYPHPOS* pos);
 
 /**
  * \fn LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,

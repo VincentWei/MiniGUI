@@ -1660,7 +1660,6 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             ShapedGlyph* glyph_info;
 
             uc = run->lrun->ucs[run->gstr->log_clusters[j]];
-
             index = run->lrun->si + run->gstr->log_clusters[j];
             glyph_info = run->gstr->glyphs + j;
 
@@ -1683,8 +1682,8 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                 }
             }
 
-            cb_laid_out(ctxt, layout->truninfo, index, run->lrun->lf,
-                    uc, glyph_info->gv, &pos);
+            cb_laid_out(ctxt, layout->truninfo, index, uc,
+                    run->lrun->lf, glyph_info->gv, &pos);
 
             line_adv += glyph_info->width;
         }

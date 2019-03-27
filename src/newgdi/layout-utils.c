@@ -146,10 +146,8 @@ LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
     lrun = malloc(sizeof(LayoutRun));
     lrun->lf = lf;
     lrun->ucs = ucs;
-    lrun->si = 0;
-    lrun->len = nr_ucs;
     lrun->si = trun->si;
-    lrun->len = trun->len;
+    lrun->len = nr_ucs;
     lrun->lc = trun->lc;
     lrun->st = UCharGetScriptType(ucs[0]);
     lrun->el = trun->el;
