@@ -97,10 +97,17 @@ struct _LAYOUTLINE {
 
     int                 si;         // the start index in the uchar string
     int                 len;        // the length of line (number of uchars)
+    int                 max_extent; // the max extent specified for this line
+    int                 nr_runs;    // number of glyph/layout runs
+    int                 width;      // actual width
+    int                 height;     // actual height
 
-    int                 nr_runs;
-    Uint8               is_paragraph_start:1;// is first line of the paragraph?
-    Uint8               resolved_dir:3; // resolved direction of the line
+    Uint32              line_no:24; // line number (0 for the first line).
+    Uint32              resolved_dir:4;     // resolved direction of the line
+    Uint32              is_paragraph_start:1;// is first line of the paragraph?
+    Uint32              is_last_line:1;     // is the last line.
+    Uint32              is_wrapped:1;       // is wrapped?
+    Uint32              is_ellipsized:1;    // is ellipsized?
 };
 
 struct _LAYOUTINFO {
@@ -121,8 +128,6 @@ struct _LAYOUTINFO {
 
     Uint32              persist:1;  // persist lines?
     Uint32              single_paragraph:1;
-    Uint32              is_wrapped:1;
-    Uint32              is_ellipsized:1;
 };
 
 typedef struct _GlyphRunIter GlyphRunIter;

@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -61,10 +61,10 @@
 #define  LEN_SPINVALUE          50
 
 #define  IDC_CEDIT              100
-#define  IDC_CLISTBOX           101    
+#define  IDC_CLISTBOX           101
 
-#define  INTER_EDIT_BUTTON      2 
-#define  INTER_EDIT_LISTBOX     4 
+#define  INTER_EDIT_BUTTON      2
+#define  INTER_EDIT_LISTBOX     4
 #define  DEF_LISTHEIGHT         60
 
 #define INC_BOX 1
@@ -81,7 +81,7 @@ BOOL RegisterComboBoxControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
-    WndClass.iBkColor    = 
+    WndClass.iBkColor    =
         GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
     WndClass.WinProc     = ComboBoxCtrlProc;
 
@@ -115,8 +115,8 @@ static void ComboBoxDrawSpinButton (HWND hwnd, HDC hdc , int which, int status)
 		bGetDC = TRUE;
 		hdc = GetClientDC(hwnd);
 	}
- 
-    pCtrl = gui_Control (hwnd); 
+
+    pCtrl = gui_Control (hwnd);
     win_info = GetWindowInfo(hwnd);
     pData = (PCOMBOBOXDATA)pCtrl->dwAddData2;
 
@@ -129,43 +129,43 @@ static void ComboBoxDrawSpinButton (HWND hwnd, HDC hdc , int which, int status)
     if(which == 0)
         status = LFRDR_BTN_STATUS_NORMAL;
 
-    switch (pCtrl->dwStyle & CBS_TYPEMASK) { 
+    switch (pCtrl->dwStyle & CBS_TYPEMASK) {
         case CBS_SIMPLE:
             break;
         case CBS_SPINLIST:
         case CBS_AUTOSPIN:
-            if (pCtrl->dwStyle & CBS_SPINARROW_LEFTRIGHT) 
+            if (pCtrl->dwStyle & CBS_SPINARROW_LEFTRIGHT)
             {
                 if(which == 0 || which == INC_BOX)
                 {
                     SelectClipRect (hdc, &(pData->IncSpinBox));
-                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->IncSpinBox), 
+                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->IncSpinBox),
                             fg_3d, status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_RIGHT);
                 }
                 if(which == 0 || which == DEC_BOX)
                 {
                     SelectClipRect (hdc, &(pData->DecSpinBox));
-                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->DecSpinBox), 
+                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->DecSpinBox),
                             fg_3d, status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_LEFT);
                 }
             }
-            else 
+            else
             {
                 if(which == 0 || which == INC_BOX)
                 {
                     SelectClipRect (hdc, &(pData->IncSpinBox));
-                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->IncSpinBox), 
+                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->IncSpinBox),
                             fg_3d, status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_UP);
                 }
                 if(which == 0 || which == DEC_BOX)
                 {
                     SelectClipRect (hdc, &(pData->DecSpinBox));
-                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->DecSpinBox), 
+                    win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->DecSpinBox),
                             fg_3d, status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_DOWN);
                 }
             }
             break;
-        
+
         default:
             SelectClipRect (hdc, &(pData->IncSpinBox));
             win_info->we_rdr->draw_arrow(hwnd, hdc, &(pData->IncSpinBox), fg_3d,
@@ -180,11 +180,11 @@ static void ComboBoxDrawSpinButton (HWND hwnd, HDC hdc , int which, int status)
     return ;
 }
 
-static void GetSpinBox (PCOMBOBOXDATA pData, DWORD dwStyle, 
+static void GetSpinBox (PCOMBOBOXDATA pData, DWORD dwStyle,
                             const RECT* rect, RECT* edit_box)
 {
     int w, h;
-    if (dwStyle & CBS_SPINARROW_TOPBOTTOM) 
+    if (dwStyle & CBS_SPINARROW_TOPBOTTOM)
     {
         w = (rect->right - rect->left) > 16 ? 16 : (rect->right - rect->left);
         h = (rect->bottom - rect->top)>>1;
@@ -205,7 +205,7 @@ static void GetSpinBox (PCOMBOBOXDATA pData, DWORD dwStyle,
         pData->DecSpinBox.top = rect->bottom - h;
         pData->DecSpinBox.bottom = rect->bottom;
     }
-    else if (dwStyle & CBS_SPINARROW_LEFTRIGHT) 
+    else if (dwStyle & CBS_SPINARROW_LEFTRIGHT)
     {
         h = rect->bottom - rect->top;
         w = h < 16 ? h : 16;
@@ -243,7 +243,7 @@ static void GetSpinBox (PCOMBOBOXDATA pData, DWORD dwStyle,
         pData->DecSpinBox.left = rect->right - w;
         pData->DecSpinBox.top = rect->top + (h>>1) + 1;
         pData->DecSpinBox.right =  rect->right;
-        pData->DecSpinBox.bottom = rect->bottom - (h>>1) + (w >>1); 
+        pData->DecSpinBox.bottom = rect->bottom - (h>>1) + (w >>1);
     }
 }
 
@@ -260,16 +260,16 @@ static void OnSizeChanged (PCONTROL pCtrl, DWORD dwStyle, const RECT* rcClient)
     SetRect (&rect, 0, 0, RECTWP (rcClient), RECTHP (rcClient));
     width = rect.right - rect.left;
 
-    switch (dwStyle & CBS_TYPEMASK) 
+    switch (dwStyle & CBS_TYPEMASK)
     {
         case CBS_SIMPLE:
-            height = GetSysFontHeight (SYSLOGFONT_CONTROL) + MARGIN_EDIT_TOP 
+            height = GetSysFontHeight (SYSLOGFONT_CONTROL) + MARGIN_EDIT_TOP
                          + MARGIN_EDIT_BOTTOM + (WIDTH_EDIT_BORDER<<1);
             edit_box.left = rect.left;
             edit_box.top = rect.top;
             edit_box.right = rect.left + width;
             edit_box.bottom = rect.top + height;
-           
+
             pData->ListBoxRect.left = rect.left;
             pData->ListBoxRect.right = rect.right - MARGIN_EDIT_RIGHT;
             pData->ListBoxRect.top = rect.top + height + INTER_EDIT_LISTBOX;
@@ -328,12 +328,12 @@ static void OnSizeChanged (PCONTROL pCtrl, DWORD dwStyle, const RECT* rcClient)
 
     if (pData->EditControl) {
         ShowWindow(pData->EditControl, SW_SHOW);
-        MoveWindow (pData->EditControl, edit_box.left, edit_box.top, 
+        MoveWindow (pData->EditControl, edit_box.left, edit_box.top,
                             RECTW(edit_box), RECTH(edit_box), TRUE);
     }
 
     if (pData->ListBoxControl) {
-        MoveWindow (pData->ListBoxControl, 
+        MoveWindow (pData->ListBoxControl,
                         pData->ListBoxRect.left, pData->ListBoxRect.top,
                         width, pData->list_height, TRUE);
     }
@@ -344,7 +344,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     PCONTROL      pCtrl   = gui_Control (hwnd);
     PCOMBOBOXDATA pData   = (PCOMBOBOXDATA)pCtrl->dwAddData2;
     DWORD         dwStyle = pCtrl->dwStyle;
-    
+
     switch (message) {
         case MSG_CREATE:
         {
@@ -352,14 +352,14 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             DWORD list_style, edit_style;
 
             if (!(pData = calloc (1, sizeof (COMBOBOXDATA)))) {
-                _WRN_PRINTF ("CONTROL>ComboBox: Create control failure!\n");
+                _WRN_PRINTF ("Create control failure!");
                 return -1;
             }
 
             pData->wStateFlags = 0;
             pData->nListItems = 0;
             pCtrl->dwAddData2 = (DWORD)pData;
-            
+
             list_style = WS_VSCROLL | LBS_NOTIFY | WS_THINFRAME;
             if ((dwStyle & CBS_TYPEMASK) == CBS_DROPDOWNLIST)
             list_style |= LBS_MOUSEFOLLOW;
@@ -376,7 +376,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             switch (dwStyle & CBS_TYPEMASK) {
             case CBS_SIMPLE:
                 list_style |= WS_VISIBLE | WS_BORDER;
-                pData->list_height = (pCtrl->dwAddData > 0) 
+                pData->list_height = (pCtrl->dwAddData > 0)
                                     ? pCtrl->dwAddData : DEF_LISTHEIGHT;
                 break;
 
@@ -395,32 +395,32 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 break;
 
             default:
-                pData->list_height = (pCtrl->dwAddData > 0) 
+                pData->list_height = (pCtrl->dwAddData > 0)
                                     ? pCtrl->dwAddData : DEF_LISTHEIGHT;
                 break;
             }
 
             if (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
-                pData->EditControl = CreateWindowEx (CTRL_SLEDIT, 
-                        edit_text, 
+                pData->EditControl = CreateWindowEx (CTRL_SLEDIT,
+                        edit_text,
                         edit_style, WS_EX_TRANSPARENT, IDC_CEDIT,
                         0, 0, 10, 10,
                         hwnd, 0);
             else
-                pData->EditControl = CreateWindow (CTRL_SLEDIT, 
-                        edit_text, 
+                pData->EditControl = CreateWindow (CTRL_SLEDIT,
+                        edit_text,
                         edit_style, IDC_CEDIT,
                         0, 0, 10, 10,
                         hwnd, 0);
 
             if ((dwStyle & CBS_TYPEMASK) == CBS_AUTOSPIN) {
-                WNDPROC old_edit_proc = 
+                WNDPROC old_edit_proc =
                     SetWindowCallbackProc (pData->EditControl, AutoSpinEditBoxProc);
                 SetWindowAdditionalData (pData->EditControl, (DWORD)old_edit_proc);
 
                 pData->str_format = strdup ("%d");
             }
-            
+
             if (dwStyle & CBS_EDITNOBORDER)
                 pCtrl->iBkColor = GetWindowBkColor(pData->EditControl);
             else
@@ -434,7 +434,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 				else{
                     ex_style |= WS_EX_CTRLASMAINWIN;
                 }
-                
+
                 pData->ListBoxControl = CreateWindowEx (CTRL_LISTBOX,
                             "listbox", list_style, ex_style,
                             IDC_CLISTBOX, 0, 0, 0, 0, hwnd, 0);
@@ -458,7 +458,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             RECT* rcResult = (RECT*)lParam;
             if ((dwStyle & CBS_TYPEMASK) == CBS_SIMPLE) {
                 int height = GetSysFontHeight (SYSLOGFONT_CONTROL)
-                        + MARGIN_EDIT_TOP + MARGIN_EDIT_BOTTOM 
+                        + MARGIN_EDIT_TOP + MARGIN_EDIT_BOTTOM
                         + (WIDTH_EDIT_BORDER<<1);
 
                 rcResult->left = rcExpect->left;
@@ -475,14 +475,14 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             OnSizeChanged (pCtrl, dwStyle, (const RECT*)lParam);
             break;
 
-        case MSG_CHILDHIDDEN: 
-        { 
-            int reason = wParam; 
-            int x = LOSWORD(lParam); 
-            int y = HISWORD(lParam); 
+        case MSG_CHILDHIDDEN:
+        {
+            int reason = wParam;
+            int x = LOSWORD(lParam);
+            int y = HISWORD(lParam);
 
             if (reason == RCTM_CLICK)
-                ScreenToClient (hwnd, &x, &y); 
+                ScreenToClient (hwnd, &x, &y);
 
             if (IS_SET (pData, CSF_HASDROPPED)) {
                 CLEAR_STATE (pData, CSF_HASDROPPED);
@@ -490,11 +490,11 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 NotifyParent (hwnd, pCtrl->id, CBN_CLOSEUP);
             }
 
-            if (((dwStyle & CBS_TYPEMASK) > CBS_AUTOSPIN) 
+            if (((dwStyle & CBS_TYPEMASK) > CBS_AUTOSPIN)
                     && PtInRect (&pData->IncSpinBox, x, y))
-                SET_STATE (pData, CSF_HASDROPPED); 
-            break; 
-        } 
+                SET_STATE (pData, CSF_HASDROPPED);
+            break;
+        }
 
         case MSG_SETFOCUS:
             if (dwStyle & CBS_AUTOFOCUS || dwStyle & WS_TABSTOP)
@@ -504,44 +504,44 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             break;
 
         case MSG_KILLFOCUS:
-            if (((dwStyle & CBS_TYPEMASK) == CBS_DROPDOWNLIST) && 
-                    IS_SET (pData, CSF_HASDROPPED)) { 
-                ShowWindow (pData->ListBoxControl, SW_HIDE); 
-                CLEAR_STATE (pData, CSF_HASDROPPED); 
+            if (((dwStyle & CBS_TYPEMASK) == CBS_DROPDOWNLIST) &&
+                    IS_SET (pData, CSF_HASDROPPED)) {
+                ShowWindow (pData->ListBoxControl, SW_HIDE);
+                CLEAR_STATE (pData, CSF_HASDROPPED);
                 if (dwStyle & CBS_NOTIFY)
                 {
                     NotifyParent (hwnd, pCtrl->id, CBN_SELECTCANCEL);
                     NotifyParent (hwnd, pCtrl->id, CBN_CLOSEUP);
                 }
-            } 
+            }
             if (dwStyle & CBS_NOTIFY)
                 NotifyParent (hwnd, pCtrl->id, CBN_KILLFOCUS);
             break;
 
-        case MSG_LBUTTONDOWN: 
-        { 
-            int x = LOSWORD(lParam); 
-            int y = HISWORD(lParam); 
+        case MSG_LBUTTONDOWN:
+        {
+            int x = LOSWORD(lParam);
+            int y = HISWORD(lParam);
             BOOL inc = FALSE;
 
             if (PtInRect (&pData->IncSpinBox, x, y))
             {
                 inc = TRUE;
-                //SendMessage(hwnd, MSG_PAINT, 
+                //SendMessage(hwnd, MSG_PAINT,
                 //        MAKELONG(INC_BOX, LFRDR_BTN_STATUS_PRESSED), 0);
                 ComboBoxDrawSpinButton(hwnd, 0, INC_BOX, LFRDR_BTN_STATUS_PRESSED);
             }
             else if (PtInRect (&pData->DecSpinBox, x, y))
             {
                 inc = FALSE;
-                //SendMessage(hwnd, MSG_PAINT, 
+                //SendMessage(hwnd, MSG_PAINT,
                 //        MAKELONG(DEC_BOX, LFRDR_BTN_STATUS_PRESSED), 0);
                 ComboBoxDrawSpinButton(hwnd, 0, DEC_BOX, LFRDR_BTN_STATUS_PRESSED);
             }
             else
                 break;
 
-            switch (dwStyle & CBS_TYPEMASK) { 
+            switch (dwStyle & CBS_TYPEMASK) {
                 case CBS_SPINLIST:
                     SetCapture (hwnd);
                     SendMessage (hwnd, CB_SPIN, inc, 0);
@@ -555,51 +555,51 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
                 case CBS_DROPDOWNLIST:
                     if (IS_SET (pData, CSF_HASDROPPED)) {
-                        CLEAR_STATE (pData, CSF_HASDROPPED); 
-                    } 
-                    else { 
+                        CLEAR_STATE (pData, CSF_HASDROPPED);
+                    }
+                    else {
                         ShowWindow (pData->ListBoxControl, SW_SHOW);
                         SetFocusChild (pData->ListBoxControl);
                         SendNotifyMessage (pData->ListBoxControl, MSG_SETFOCUS, 0,0);
-                        SET_STATE (pData, CSF_HASDROPPED); 
+                        SET_STATE (pData, CSF_HASDROPPED);
                         if (dwStyle & CBS_NOTIFY)
                             NotifyParent (hwnd, pCtrl->id, CBN_DROPDOWN);
-                    } 
+                    }
                     break;
-            } 
+            }
 
-            break; 
-        } 
+            break;
+        }
 
-        case MSG_LBUTTONUP: 
+        case MSG_LBUTTONUP:
         {
-            int x = LOSWORD(lParam); 
-            int y = HISWORD(lParam); 
-            
-            if(!((dwStyle & CBS_TYPEMASK) == CBS_DROPDOWNLIST)) 
+            int x = LOSWORD(lParam);
+            int y = HISWORD(lParam);
+
+            if(!((dwStyle & CBS_TYPEMASK) == CBS_DROPDOWNLIST))
                 ScreenToClient(hwnd, &x, &y);
-            
+
             if (PtInRect (&pData->IncSpinBox, x, y))
             {
-                //SendMessage(hwnd, MSG_PAINT, 
+                //SendMessage(hwnd, MSG_PAINT,
                 //        MAKELONG(INC_BOX, LFRDR_BTN_STATUS_HILITE), 0);
                 ComboBoxDrawSpinButton(hwnd, 0, INC_BOX, LFRDR_BTN_STATUS_HILITE);
                 mouse_old = INC_BOX;
             }
             else if (PtInRect (&pData->DecSpinBox, x, y))
             {
-                //SendMessage(hwnd, MSG_PAINT, 
+                //SendMessage(hwnd, MSG_PAINT,
                 //        MAKELONG(DEC_BOX, LFRDR_BTN_STATUS_HILITE), 0);
 				ComboBoxDrawSpinButton(hwnd, 0, DEC_BOX, LFRDR_BTN_STATUS_HILITE);
                 mouse_old = DEC_BOX;
             }
 
-            switch (dwStyle & CBS_TYPEMASK) 
-            { 
+            switch (dwStyle & CBS_TYPEMASK)
+            {
                 case CBS_SPINLIST:
                     if (IS_SET (pData, CSF_HASDROPPED)) {
                         SetFocusChild (pData->ListBoxControl);
-                    } 
+                    }
                 case CBS_AUTOSPIN:
                     /* cancel repeat message */
                     SetAutoRepeatMessage (0, 0, 0, 0);
@@ -617,13 +617,13 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 switch (LOWORD(wParam)) {
                 case SCANCODE_CURSORBLOCKUP:
                 case SCANCODE_CURSORBLOCKDOWN:
-                    SendMessage (hwnd, CB_SPIN, 
+                    SendMessage (hwnd, CB_SPIN,
                             (LOWORD(wParam) == SCANCODE_CURSORBLOCKDOWN), 0);
                     break;
 
                 case SCANCODE_PAGEUP:
                 case SCANCODE_PAGEDOWN:
-                    SendMessage (hwnd, CB_FASTSPIN, 
+                    SendMessage (hwnd, CB_FASTSPIN,
                             (LOWORD(wParam) == SCANCODE_PAGEDOWN), 0);
                     break;
                 }
@@ -684,7 +684,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             switch (id) {
             case IDC_CLISTBOX:
             {
-                if ((dwStyle & CBS_TYPEMASK) == CBS_DROPDOWNLIST && 
+                if ((dwStyle & CBS_TYPEMASK) == CBS_DROPDOWNLIST &&
                                 (code == LBN_CLICKED || code == LBN_KILLFOCUS)){
                     if (IS_SET (pData, CSF_HASDROPPED)) {
                         ShowWindow (pData->ListBoxControl, SW_HIDE);
@@ -705,12 +705,12 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 if (code != LBN_SELCHANGE && dwStyle & CBS_READONLY)
                     break;
 
-                if ((sel = SendMessage (pData->ListBoxControl, 
+                if ((sel = SendMessage (pData->ListBoxControl,
                                 LB_GETCURSEL, 0, 0)) >= 0) {
                     len = SendMessage (pData->ListBoxControl, LB_GETTEXTLEN, sel, 0);
                     buffer = ALLOCATE_LOCAL (len + 1);
                     //buffer = FixStrAlloc (len + 1);
-                    SendMessage (pData->ListBoxControl, LB_GETTEXT, 
+                    SendMessage (pData->ListBoxControl, LB_GETTEXT,
                                     sel, (LPARAM)buffer);
                     SendMessage (pData->EditControl, MSG_SETTEXT, 0, (LPARAM)buffer);
                     DEALLOCATE_LOCAL(buffer);
@@ -720,7 +720,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 if (dwStyle & CBS_NOTIFY)
                     NotifyParent (hwnd, pCtrl->id, CBN_SELCHANGE);
                 break;
-            } 
+            }
 
             case IDC_CEDIT:
                 if (code == EN_DBLCLK && dwStyle & CBS_NOTIFY) {
@@ -741,9 +741,9 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 #endif
 								if(str){
 	                            	GetWindowText (pData->EditControl, str, len);
-    	                            if ((sel = SendMessage (pData->ListBoxControl, 
+    	                            if ((sel = SendMessage (pData->ListBoxControl,
         	                                        LB_FINDSTRING, 0, (LPARAM)str)) >= 0)
-            	                        SendMessage (pData->ListBoxControl, 
+            	                        SendMessage (pData->ListBoxControl,
                                  	           LB_SETCURSEL, sel, 0);
 #ifndef HAVE_ALLOCA
 									free(str);
@@ -780,17 +780,17 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 int mouse = 0;
                 int x_pos = LOSWORD (lParam);
                 int y_pos = HISWORD (lParam);
-                
+
                 if(PtInRect(&pData->IncSpinBox, x_pos, y_pos))
-                    mouse = INC_BOX; 
+                    mouse = INC_BOX;
                 else if(PtInRect(&pData->DecSpinBox, x_pos, y_pos))
                     mouse = DEC_BOX;
                 else
                     mouse = 0;
-                
+
                 if(mouse != mouse_old)
                 {
-                    //SendMessage(hwnd, MSG_PAINT, 
+                    //SendMessage(hwnd, MSG_PAINT,
                     //            MAKELONG(mouse, LFRDR_BTN_STATUS_HILITE), 0);
 					ComboBoxDrawSpinButton(hwnd, 0, mouse, LFRDR_BTN_STATUS_HILITE);
                     mouse_old = mouse;
@@ -816,16 +816,16 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             return 0;
         }
 
-        /* when click the up/down button, 
+        /* when click the up/down button,
          * spin the value of SIMPLE and AUTOSPIN combobox */
         case CB_SPIN:
             switch (dwStyle & CBS_TYPEMASK) {
             case CBS_SPINLIST:
                 if (wParam)
-                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN, 
+                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN,
                             SCANCODE_CURSORBLOCKDOWN, 0);
                 else
-                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN, 
+                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN,
                             SCANCODE_CURSORBLOCKUP, 0);
                 break;
 
@@ -877,10 +877,10 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             switch (dwStyle & CBS_TYPEMASK) {
             case CBS_SPINLIST:
                 if (wParam)
-                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN, 
+                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN,
                                     SCANCODE_PAGEDOWN, 0);
                 else
-                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN, 
+                    SendMessage (pData->ListBoxControl, MSG_KEYDOWN,
                                     SCANCODE_PAGEUP, 0);
                 break;
 
@@ -929,7 +929,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
         break;
     }
-    
+
     if ((dwStyle & CBS_TYPEMASK) == CBS_AUTOSPIN) {
         switch (message) {
             case CB_SETSPINFORMAT:
@@ -961,12 +961,12 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 sscanf (buffer, pData->str_format, &cur_value);
 #endif
                 if (cur_value < pData->spin_min) {
-                    snprintf (buffer, LEN_SPINVALUE, 
+                    snprintf (buffer, LEN_SPINVALUE,
                             pData->str_format, pData->spin_min);
                     SetWindowText (pData->EditControl, buffer);
                 }
                 else if (cur_value > pData->spin_max) {
-                    snprintf (buffer, LEN_SPINVALUE, 
+                    snprintf (buffer, LEN_SPINVALUE,
                             pData->str_format, pData->spin_max);
                     SetWindowText (pData->EditControl, buffer);
                 }
@@ -1051,18 +1051,18 @@ static int DefCBProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
     switch (message) {
         /* messages specific to the listbox control */
         case CB_SETSTRCMPFUNC:
-            return SendMessage (pData->ListBoxControl, LB_SETSTRCMPFUNC, 
+            return SendMessage (pData->ListBoxControl, LB_SETSTRCMPFUNC,
                                 wParam, lParam);
 
         case CB_ADDSTRING:
-            rc = SendMessage (pData->ListBoxControl, LB_ADDSTRING, 
+            rc = SendMessage (pData->ListBoxControl, LB_ADDSTRING,
                                 wParam, lParam);
             if (rc >= 0)
-                pData->nListItems++; 
+                pData->nListItems++;
             return rc;
 
         case CB_DELETESTRING:
-            rc = SendMessage (pData->ListBoxControl, LB_DELETESTRING, 
+            rc = SendMessage (pData->ListBoxControl, LB_DELETESTRING,
                                 wParam, lParam);
             if (rc == 0) {
                 int idx;
@@ -1078,62 +1078,62 @@ static int DefCBProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 
         case CB_DIR:
             return SendMessage (pData->ListBoxControl, LB_DIR, wParam, lParam);
-            
+
         case CB_FINDSTRING:
-            return SendMessage (pData->ListBoxControl, LB_FINDSTRING, 
+            return SendMessage (pData->ListBoxControl, LB_FINDSTRING,
                                     wParam, lParam);
-            
+
         case CB_FINDSTRINGEXACT:
-               return SendMessage (pData->ListBoxControl, LB_FINDSTRINGEXACT, 
+               return SendMessage (pData->ListBoxControl, LB_FINDSTRINGEXACT,
                                     wParam, lParam);
-            
+
         case CB_GETCOUNT:
-            return SendMessage (pData->ListBoxControl, LB_GETCOUNT, 
+            return SendMessage (pData->ListBoxControl, LB_GETCOUNT,
                                     wParam, lParam);
-            
+
         case CB_GETITEMADDDATA:
-            return SendMessage (pData->ListBoxControl, LB_GETITEMADDDATA, 
+            return SendMessage (pData->ListBoxControl, LB_GETITEMADDDATA,
                                     wParam, lParam);
-            
+
         case CB_SETITEMADDDATA:
-            return SendMessage (pData->ListBoxControl, LB_SETITEMADDDATA, 
+            return SendMessage (pData->ListBoxControl, LB_SETITEMADDDATA,
                                     wParam, lParam);
-            
+
         case CB_GETITEMHEIGHT:
-            return SendMessage (pData->ListBoxControl, LB_GETITEMHEIGHT, 
+            return SendMessage (pData->ListBoxControl, LB_GETITEMHEIGHT,
                                     wParam, lParam);
-            
+
         case CB_SETITEMHEIGHT:
-            return SendMessage (pData->ListBoxControl, LB_SETITEMHEIGHT, 
+            return SendMessage (pData->ListBoxControl, LB_SETITEMHEIGHT,
                                     wParam, lParam);
-            
+
         case CB_GETLBTEXT:
-            return SendMessage (pData->ListBoxControl, LB_GETTEXT, 
+            return SendMessage (pData->ListBoxControl, LB_GETTEXT,
                                     wParam, lParam);
-            
+
         case CB_GETLBTEXTLEN:
-            return SendMessage (pData->ListBoxControl, LB_GETTEXTLEN, 
+            return SendMessage (pData->ListBoxControl, LB_GETTEXTLEN,
                                     wParam, lParam);
-            
+
         case CB_INSERTSTRING:
-            rc = SendMessage (pData->ListBoxControl, LB_INSERTSTRING, 
+            rc = SendMessage (pData->ListBoxControl, LB_INSERTSTRING,
                                     wParam, lParam);
             if (rc >= 0)
-                pData->nListItems++; 
+                pData->nListItems++;
             return rc;
-                
+
         case CB_GETCURSEL:
-            return SendMessage (pData->ListBoxControl, LB_GETCURSEL, 
+            return SendMessage (pData->ListBoxControl, LB_GETCURSEL,
                                     wParam, lParam);
 
         case CB_SETCURSEL:
-            if (SendMessage (pData->ListBoxControl, LB_SETCURSEL, 
+            if (SendMessage (pData->ListBoxControl, LB_SETCURSEL,
                                 wParam, lParam) == LB_ERR) {
                 SetWindowText (pData->EditControl, "");
                 return CB_ERR;
             }
 
-            index = SendMessage (pData->ListBoxControl, LB_GETCURSEL, 
+            index = SendMessage (pData->ListBoxControl, LB_GETCURSEL,
                                     wParam, lParam);
             len = SendMessage (pData->ListBoxControl, LB_GETTEXTLEN, index, 0);
             if (len <= 0) {
@@ -1141,7 +1141,7 @@ static int DefCBProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 return CB_ERR;
             }
 
-            selection = FixStrAlloc (len + 1);  
+            selection = FixStrAlloc (len + 1);
             SendMessage (pData->ListBoxControl, LB_GETTEXT,
                                 (WPARAM)index, (LPARAM)selection);
             SetWindowText (pData->EditControl, selection);
@@ -1153,14 +1153,14 @@ static int DefCBProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             return SendMessage (pData->EditControl, EM_GETSEL, wParam, lParam);
 
         case CB_LIMITTEXT:
-            return SendMessage (pData->EditControl, EM_LIMITTEXT, 
+            return SendMessage (pData->EditControl, EM_LIMITTEXT,
                                     wParam, lParam);
 
         case CB_SETEDITSEL:
             return SendMessage (pData->EditControl, EM_SETSEL, wParam, lParam);
 
         case MSG_GETTEXTLENGTH:
-            return SendMessage (pData->EditControl, MSG_GETTEXTLENGTH, 
+            return SendMessage (pData->EditControl, MSG_GETTEXTLENGTH,
                                     wParam, lParam);
 
         case MSG_GETTEXT:
@@ -1186,7 +1186,7 @@ static int DefCBProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             return 0;
 
         case CB_SELECTSTRING:
-            index = SendMessage (pData->ListBoxControl, LB_SELECTSTRING, 
+            index = SendMessage (pData->ListBoxControl, LB_SELECTSTRING,
                                     wParam, lParam);
             if (index == LB_ERR)
                return CB_ERR;
@@ -1195,8 +1195,8 @@ static int DefCBProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             if (len <= 0)
                return CB_ERR;
 
-            selection = FixStrAlloc (len + 1);  
-            rc = SendMessage (pData->ListBoxControl, LB_GETTEXT, 
+            selection = FixStrAlloc (len + 1);
+            rc = SendMessage (pData->ListBoxControl, LB_GETTEXT,
                                     (WPARAM)index, (LPARAM)selection);
             SetWindowText (pData->EditControl, selection);
             FreeFixStr (selection);

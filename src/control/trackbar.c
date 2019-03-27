@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -64,13 +64,13 @@ static void TrackBarOnDraw (HWND hwnd, HDC hdc, TRACKBARDATA* pData, DWORD dwSty
 
     win_rdr = GetWindowInfo(hwnd)->we_rdr;
     if (!win_rdr) {
-        _WRN_PRINTF ("CONTROL>TrackBar: window renderer is NULL.\n");
+        _WRN_PRINTF ("window renderer is NULL");
         return;
     }
-    
+
     GetClientRect (hwnd, &rc_client);
 
-    win_rdr->draw_trackbar (hwnd, hdc, (LFRDR_TRACKBARINFO *)pData); 
+    win_rdr->draw_trackbar (hwnd, hdc, (LFRDR_TRACKBARINFO *)pData);
 
     /* draw the tip of trackbar. */
     if ((dwStyle & TBS_TIP) && !(dwStyle & TBS_VERTICAL)) {
@@ -79,7 +79,7 @@ static void TrackBarOnDraw (HWND hwnd, HDC hdc, TRACKBARDATA* pData, DWORD dwSty
         RECT    rc_bar, rc_border;
         int sliderh, EndTipLen, x, y, w, h;
 
-        win_rdr->calc_trackbar_rect (hwnd, (LFRDR_TRACKBARINFO *)pData, 
+        win_rdr->calc_trackbar_rect (hwnd, (LFRDR_TRACKBARINFO *)pData,
                 dwStyle, &rc_client, NULL, &rc_bar, &rc_border);
         sliderh = RECTH (rc_bar);
 
@@ -88,23 +88,23 @@ static void TrackBarOnDraw (HWND hwnd, HDC hdc, TRACKBARDATA* pData, DWORD dwSty
         w = RECTW (rc_border);
         h = RECTH (rc_border);
 
-        SelectFont (hdc, (PLOGFONT)GetWindowElementAttr 
+        SelectFont (hdc, (PLOGFONT)GetWindowElementAttr
                 (hwnd, WE_FONT_TOOLTIP));
 
         SetBkMode (hdc, BM_TRANSPARENT);
         SetBkColor (hdc, GetWindowBkColor (hwnd));
         SetTextColor (hdc, GetWindowElementPixel (hwnd, WE_FGC_THREED_BODY));
 
-        TextOut (hdc, x + 1, y + (h>>1) - (sliderh>>1) - GAP_TIP_SLIDER, 
+        TextOut (hdc, x + 1, y + (h>>1) - (sliderh>>1) - GAP_TIP_SLIDER,
                             pData->sStartTip);
 
         GetTextExtent (hdc, pData->sEndTip, -1, &text_ext);
         EndTipLen = text_ext.cx + 4;
-        TextOut (hdc, (EndTipLen > (w>>1) - 20 ? x + (w>>1) + 20 : x + w -EndTipLen), 
-                        y + (h>>1) - (sliderh>>1) - GAP_TIP_SLIDER, pData->sEndTip); 
+        TextOut (hdc, (EndTipLen > (w>>1) - 20 ? x + (w>>1) + 20 : x + w -EndTipLen),
+                        y + (h>>1) - (sliderh>>1) - GAP_TIP_SLIDER, pData->sEndTip);
         sprintf (sPos, "%d", pData->nPos);
         GetTextExtent (hdc, sPos, -1, &text_ext);
-        TextOut (hdc, x + ((w - text_ext.cx) >> 1), 
+        TextOut (hdc, x + ((w - text_ext.cx) >> 1),
                         y + (h>>1) -(sliderh>>1) - GAP_TIP_SLIDER, sPos);
     }
 }
@@ -137,23 +137,23 @@ static void SetSliderPos (const CONTROL* pCtrl, int new_pos)
     RECT            rc_client, old_slider, new_slider;
 
     if (new_pos > pData->nMax)
-        new_pos = pData->nMax; 
+        new_pos = pData->nMax;
 
     if (new_pos < pData->nMin)
-        new_pos = pData->nMin; 
+        new_pos = pData->nMin;
 
-    if (pData->nPos == new_pos) 
+    if (pData->nPos == new_pos)
         return;
 
     GetClientRect ((HWND)pCtrl, &rc_client);
 
-    pCtrl->we_rdr->calc_trackbar_rect ((HWND)pCtrl, (LFRDR_TRACKBARINFO *)pData, 
+    pCtrl->we_rdr->calc_trackbar_rect ((HWND)pCtrl, (LFRDR_TRACKBARINFO *)pData,
                         pCtrl->dwStyle, &rc_client, NULL, &old_slider, NULL);
 
     pData->nPos = new_pos;
     TrackBarNormalizeParams (pCtrl, pData, pCtrl->dwStyle & TBS_NOTIFY);
 
-    pCtrl->we_rdr->calc_trackbar_rect ((HWND)pCtrl, (LFRDR_TRACKBARINFO *)pData, 
+    pCtrl->we_rdr->calc_trackbar_rect ((HWND)pCtrl, (LFRDR_TRACKBARINFO *)pData,
                         pCtrl->dwStyle, &rc_client, NULL, &new_slider, NULL);
 
     if (pCtrl->dwStyle & TBS_TIP) {
@@ -180,7 +180,7 @@ static int NormalizeMousePos (HWND hwnd, TRACKBARDATA* pData, int mousepos)
     dwStyle = GetWindowStyle (hwnd);
     win_rdr = GetWindowInfo(hwnd)->we_rdr;
 
-    win_rdr->calc_trackbar_rect (hwnd, (LFRDR_TRACKBARINFO *)pData, 
+    win_rdr->calc_trackbar_rect (hwnd, (LFRDR_TRACKBARINFO *)pData,
                         dwStyle, &rcClient, NULL, &rcBar, NULL);
 
     if (dwStyle & TBS_VERTICAL) {
@@ -212,12 +212,12 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     PCONTROL      pCtrl;
     TRACKBARDATA* pData;
     pCtrl = gui_Control (hwnd);
-    
+
     switch (message)
     {
         case MSG_CREATE:
             if (!(pData = malloc (sizeof (TRACKBARDATA)))) {
-                _WRN_PRINTF ("CONTROL>TrackBar: Create control failure!\n");
+                _WRN_PRINTF ("Create control failure!");
                 return -1;
             }
             pData->nMax = 10;
@@ -230,14 +230,14 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             pData->nTickFreq = 1;
             pCtrl->dwAddData2 = (DWORD)pData;
         break;
-    
+
         case MSG_DESTROY:
             free((void *)(pCtrl->dwAddData2));
         break;
 
         case MSG_NCPAINT:
             return 0;
-       
+
         case MSG_GETTEXTLENGTH:
         case MSG_GETTEXT:
         case MSG_SETTEXT:
@@ -272,15 +272,15 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             SendMessage (hwnd, TBM_SETPOS, pData->nPos, 0);
             return 0;
         }
-        
+
         case TBM_GETMIN:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             return pData->nMin;
-     
-        case TBM_GETMAX:    
+
+        case TBM_GETMAX:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             return pData->nMax;
-    
+
         case TBM_SETMIN:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
 
@@ -292,7 +292,7 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 pData->nPos = pData->nMin;
             SendMessage (hwnd, TBM_SETPOS, pData->nPos, 0);
             return 0;
-    
+
         case TBM_SETMAX:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
 
@@ -304,7 +304,7 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 pData->nPos = pData->nMax;
             SendMessage (hwnd, TBM_SETPOS, pData->nPos, 0);
             return 0;
-        
+
         case TBM_SETLINESIZE:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             if (wParam > (pData->nMax - pData->nMin))
@@ -315,26 +315,26 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
         case TBM_GETLINESIZE:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             return pData->nLineSize;
-        
+
         case TBM_SETPAGESIZE:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             if (wParam > (pData->nMax - pData->nMin))
                 return -1;
             pData->nPageSize = wParam;
             return 0;
-        
+
         case TBM_GETPAGESIZE:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             return pData->nPageSize;
-    
+
         case TBM_SETPOS:
             SetSliderPos (pCtrl, wParam);
             return 0;
-        
+
         case TBM_GETPOS:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             return pData->nPos;
-        
+
         case TBM_SETTICKFREQ:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             if (wParam > (pData->nMax - pData->nMin))
@@ -346,10 +346,10 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
         case TBM_GETTICKFREQ:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
             return pData->nTickFreq;
-    
+
         case TBM_SETTIP:
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
-            if (wParam) 
+            if (wParam)
                 strncpy(pData->sStartTip, (char *) wParam, TBLEN_TIP);
             if (lParam)
                 strncpy (pData->sEndTip, (char *) lParam, TBLEN_TIP);
@@ -363,19 +363,19 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             if (lParam)
                 strcpy ((char *) lParam, pData->sEndTip);
             return 0;
-        
+
         case MSG_SETFOCUS:
             if (pCtrl->dwStyle & TBS_FOCUS)
                 break;
             pCtrl->dwStyle |= TBS_FOCUS;
             InvalidateRect (hwnd, NULL, TRUE);
             break;
-    
+
         case MSG_KILLFOCUS:
             pCtrl->dwStyle &= ~TBS_FOCUS;
             InvalidateRect (hwnd, NULL, TRUE);
             break;
-    
+
         case MSG_GETDLGCODE:
             return DLGC_WANTARROWS;
 
@@ -406,21 +406,21 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 case SCANCODE_CURSORBLOCKLEFT:
                     SetSliderPos (pCtrl, pData->nPos - pData->nLineSize);
                 break;
-            
+
                 case SCANCODE_PAGEDOWN:
                     SetSliderPos (pCtrl, pData->nPos - pData->nPageSize);
                 break;
-            
+
                 case SCANCODE_PAGEUP:
                     SetSliderPos (pCtrl, pData->nPos + pData->nPageSize);
                 break;
-            
+
                 case SCANCODE_HOME:
                     pData->nPos = pData->nMin;
                     TrackBarNormalizeParams (pCtrl, pData, pCtrl->dwStyle & TBS_NOTIFY);
                     InvalidateRect (hwnd, NULL, TRUE);
                 break;
-            
+
                 case SCANCODE_END:
                     pData->nPos = pData->nMax;
                     TrackBarNormalizeParams (pCtrl, pData, pCtrl->dwStyle & TBS_NOTIFY);
@@ -433,9 +433,9 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             if (GetCapture() != hwnd) {
                 int mouseX = LOSWORD(lParam);
                 int mouseY = HISWORD(lParam);
-                
-                /** set state to press slider */        
-                pCtrl->dwStyle |=  LFRDR_TBS_PRESSED; 
+
+                /** set state to press slider */
+                pCtrl->dwStyle |=  LFRDR_TBS_PRESSED;
 
                 SetCapture (hwnd);
 
@@ -448,7 +448,7 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                             (pCtrl->dwStyle & TBS_VERTICAL)?mouseY:mouseX));
             }
             break;
-                
+
         case MSG_MOUSEMOVE:
         {
             /** hilite slider */
@@ -461,16 +461,16 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             pData = (TRACKBARDATA *)pCtrl->dwAddData2;
 
             GetClientRect (hwnd, &rc_client);
-            pCtrl->we_rdr->calc_trackbar_rect (hwnd, (LFRDR_TRACKBARINFO *)pData, 
+            pCtrl->we_rdr->calc_trackbar_rect (hwnd, (LFRDR_TRACKBARINFO *)pData,
                                 pCtrl->dwStyle, &rc_client, NULL, &rc_slider, NULL);
 
             if (GetCapture() == hwnd)
             {
                 ScreenToClient (hwnd, &mouseX, &mouseY);
                 if (PtInRect (&rc_slider, mouseX, mouseY))
-                    pCtrl->dwStyle |= LFRDR_TBS_HILITE; 
-                else 
-                    pCtrl->dwStyle &= ~LFRDR_TBS_HILITE; 
+                    pCtrl->dwStyle |= LFRDR_TBS_HILITE;
+                else
+                    pCtrl->dwStyle &= ~LFRDR_TBS_HILITE;
             }
             else
             {
@@ -479,16 +479,16 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     /** avoid twinkle by valid redraw */
                     if (!(pCtrl->dwStyle & LFRDR_TBS_HILITE))
                     {
-                        pCtrl->dwStyle |= LFRDR_TBS_HILITE; 
+                        pCtrl->dwStyle |= LFRDR_TBS_HILITE;
                         InvalidateRect (hwnd, NULL, TRUE);
                     }
                 }
-                else 
+                else
                 {
                     /** avoid twinkle by valid redraw */
                     if (pCtrl->dwStyle & LFRDR_TBS_HILITE)
                     {
-                        pCtrl->dwStyle &= ~LFRDR_TBS_HILITE; 
+                        pCtrl->dwStyle &= ~LFRDR_TBS_HILITE;
                         InvalidateRect (hwnd, NULL, TRUE);
                     }
                 }
@@ -503,8 +503,8 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
         case MSG_LBUTTONUP:
             if (GetCapture() == hwnd) {
 
-                /** set state to press slider */        
-                pCtrl->dwStyle &= ~LFRDR_TBS_PRESSED; 
+                /** set state to press slider */
+                pCtrl->dwStyle &= ~LFRDR_TBS_PRESSED;
                 ReleaseCapture ();
                 NotifyParent ((HWND)pCtrl, pCtrl->id, TBN_STOPDRAG);
 
@@ -512,15 +512,15 @@ static LRESULT TrackBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 InvalidateRect (hwnd, NULL, TRUE);
             }
             break;
-    
+
         case MSG_FONTCHANGED:
             InvalidateRect (hwnd, NULL, TRUE);
             return 0;
 
         default:
-            break;    
+            break;
     }
-    
+
     return DefaultControlProc (hwnd, message, wParam, lParam);
 }
 

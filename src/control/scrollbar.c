@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -59,7 +59,7 @@ static __inline void DPRINTF(const char* fmt, ...)
 {
 }
 #else
-#define DPRINTF(...) 
+#define DPRINTF(...)
 #endif
 
 static int get_shaft_len (HWND hwnd)
@@ -99,7 +99,7 @@ static int get_shaft_len (HWND hwnd)
     if (shaft_len < 0)
         shaft_len = 0;
     DPRINTF ("shaft len = %i\n", shaft_len);
-    
+
     return shaft_len;
 }
 
@@ -118,25 +118,25 @@ static void recalc_thumb_start (HWND hwnd, PSCROLLBARDATA data)
     {
         if (data->minPos == data->maxPos)
         {
-            bar_start = data->arrowLen; 
+            bar_start = data->arrowLen;
         }
         else
         {
             move_range = get_shaft_len (hwnd) - data->barLen;
             divt = div (move_range, data->maxPos - data->minPos);
-            bar_start = (data->curPos - data->minPos) * divt.quot 
-                + (data->curPos - data->minPos)* divt.rem 
-                /(data->maxPos - data->minPos); 
+            bar_start = (data->curPos - data->minPos) * divt.quot
+                + (data->curPos - data->minPos)* divt.rem
+                /(data->maxPos - data->minPos);
             DPRINTF ("shaft_len [%i], move_range [%i]"
                     "arrowLen [%i], bar_start [%i], "
                     "bar_len [%i]\n",
-                    get_shaft_len (hwnd), move_range, 
+                    get_shaft_len (hwnd), move_range,
                     data->arrowLen, bar_start,
                     data->barLen);
         }
     }
     data->barStart = bar_start;
-    
+
     return;
 }
 
@@ -159,12 +159,12 @@ static void recalc_thumb_len (HWND hwnd, PSCROLLBARDATA data)
     {
         shaft_len = get_shaft_len(hwnd);
         divt = div (shaft_len, data->maxPos - data->minPos + 1);
-        barlen = data->pageStep * divt.quot 
+        barlen = data->pageStep * divt.quot
             + data->pageStep * divt.rem / (data->maxPos - data->minPos + 1);
     }
 
     data->barLen = barlen;
-    
+
     return;
 }
 
@@ -172,15 +172,14 @@ static int init_sbdata (HWND hwnd, PSCROLLBARDATA pdata, RECT * scRect)
 {
     DWORD win_style = GetWindowStyle (hwnd);
 
-    if (!GetWindowRect (hwnd, scRect))
-    {
-        _WRN_PRINTF ("ScrollBar Rect error!\n");
+    if (!GetWindowRect (hwnd, scRect)) {
+        _WRN_PRINTF ("ScrollBar Rect error!");
         return -1;
     }
 
     if ((win_style & SBS_NOSHAFT) && (win_style & SBS_NOARROW))
     {
-        _WRN_PRINTF ("ScrollBar styles error!\n");
+        _WRN_PRINTF ("ScrollBar styles error!");
         return -1;
     }
     if (!(win_style & SBS_HORZ))
@@ -189,22 +188,22 @@ static int init_sbdata (HWND hwnd, PSCROLLBARDATA pdata, RECT * scRect)
     if (win_style & SBS_HORZ)
     {
         if (win_style & SBS_BOTTOMALIGN)
-            scRect->top = scRect->bottom 
+            scRect->top = scRect->bottom
                 //- GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR) - 1;
                 - GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR);
         else if (win_style & SBS_TOPALIGN)
-            scRect->bottom = scRect->top 
+            scRect->bottom = scRect->top
                 //+ GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR) + 1;
                 + GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR);
     }
     else
     {
         if (win_style & SBS_LEFTALIGN)
-            scRect->right = scRect->left 
+            scRect->right = scRect->left
                 //+ GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR) + 1;
                 + GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR);
         else if (win_style & SBS_RIGHTALIGN)
-            scRect->left = scRect->right 
+            scRect->left = scRect->right
                 //- GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR) - 1;
                 - GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR);
     }
@@ -223,15 +222,15 @@ static int init_sbdata (HWND hwnd, PSCROLLBARDATA pdata, RECT * scRect)
     pdata->barStart  = (win_style & SBS_HORZ) ? scRect->left : scRect->top;
     pdata->barStart  += pdata->arrowLen;
     pdata->barLen    = 10;
-    pdata->track_pos = 0;  
+    pdata->track_pos = 0;
     //recalc_thumb_len (hwnd, pdata);
-    
+
     if(win_style & WS_DISABLED)
         pdata->status = SBS_DISABLED_LTUP & SBS_DISABLED_BTDN;
     else
         pdata->status = 0;
-    
-    return 0; 
+
+    return 0;
 }
 
 static int get_mouse_pos(HWND hwnd, PSCROLLBARDATA data, int x, int y)
@@ -248,12 +247,12 @@ static int get_mouse_pos(HWND hwnd, PSCROLLBARDATA data, int x, int y)
             mouse_pos = HT_SB_LEFTARROW;
         else if(x < RECTW(scRect) && x > RECTW(scRect) - data->arrowLen)
             mouse_pos = HT_SB_RIGHTARROW;
-        else if(x > (data->barStart + data->arrowLen) 
+        else if(x > (data->barStart + data->arrowLen)
                 && x < (data->barStart + data->barLen + data->arrowLen))
             mouse_pos = HT_SB_HTHUMB;
         else if(x < (data->barStart + data->arrowLen) && x > data->arrowLen)
             mouse_pos = HT_SB_LEFTSPACE;
-        else if(x < (RECTW(scRect) - data->arrowLen) 
+        else if(x < (RECTW(scRect) - data->arrowLen)
                 && x > (data->barStart + data->barLen + data->arrowLen))
             mouse_pos = HT_SB_RIGHTSPACE;
     }
@@ -263,36 +262,36 @@ static int get_mouse_pos(HWND hwnd, PSCROLLBARDATA data, int x, int y)
             mouse_pos = HT_SB_UPARROW;
         else if(y < RECTH(scRect) && y > RECTH(scRect) - data->arrowLen)
             mouse_pos = HT_SB_DOWNARROW;
-        else if(y > data->barStart + data->arrowLen 
+        else if(y > data->barStart + data->arrowLen
                 && y < data->barStart + data->barLen + data->arrowLen)
             mouse_pos = HT_SB_VTHUMB;
         else if(y < data->barStart + data->arrowLen && y > data->arrowLen)
             mouse_pos = HT_SB_UPSPACE;
-        else if(y < RECTH(scRect) - data->arrowLen 
+        else if(y < RECTH(scRect) - data->arrowLen
                 && y > data->barStart + data->barLen + data->arrowLen)
             mouse_pos = HT_SB_DOWNSPACE;
     }
-    
+
     return mouse_pos;
 }
 
 int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
 {
-    int barStart, curPos;  
+    int barStart, curPos;
     int thumb_move_range;
     int mouse_pos;
     const WINDOWINFO* winfo;
-        
+
     if (!data)
     {
-        _WRN_PRINTF ("addtional data2 is NULL\n");
-        return -1; 
+        _WRN_PRINTF ("addtional data2 is NULL");
+        return -1;
     }
 
     if (data->status & SBS_PRESSED_THUMB)
     {
         winfo = GetWindowInfo(hwnd);
-            
+
         thumb_move_range = get_shaft_len (hwnd) - data->barLen;
         if (thumb_move_range == 0)
             return -1;
@@ -300,11 +299,11 @@ int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
         mouse_pos = (winfo->dwStyle & SBS_HORZ ? x : y );
 
         if ( ((winfo->dwStyle & SBS_DISABLED_LTUP) &&
-              (mouse_pos < data->track_pos)) 
-          || ((winfo->dwStyle & SBS_DISABLED_BTDN) && 
+              (mouse_pos < data->track_pos))
+          || ((winfo->dwStyle & SBS_DISABLED_BTDN) &&
               (mouse_pos > data->track_pos)))
-            return -1; 
-            
+            return -1;
+
         DPRINTF ("old track_pos [%i] mousePos [ ] barStart [%i] cusPos [%i]\n",
                 data->track_pos, data->barStart, data->curPos);
 
@@ -325,29 +324,29 @@ int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
             data->status &= ~(SBS_DISABLED_LTUP | SBS_DISABLED_BTDN);
         }
 
-        curPos = (data->maxPos - data->minPos) * barStart 
+        curPos = (data->maxPos - data->minPos) * barStart
             / thumb_move_range + data->minPos;
-            
+
         if (data->curPos <= data->minPos)
             data->curPos = data->minPos;
 
         if (data->curPos >= data->maxPos)
             data->curPos = data->maxPos;
-            
+
         if (barStart == data->barStart)
-        {   
-            return -1; 
-        }   
+        {
+            return -1;
+        }
         else
         {
             data->track_pos += barStart - data->barStart;
             data->barStart = barStart;
             data->curPos = curPos;
-        }   
+        }
 
         DPRINTF ("new track_pos [%i] mousePos [%i] barStart [%i] cusPos [%i]\n",
                 data->track_pos, mouse_pos, data->barStart, data->curPos);
-    }   
+    }
     return 0;
 }
 
@@ -356,15 +355,15 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     PSCROLLBARDATA data;
     PCONTROL pCtrl;
 
-    switch (message) 
+    switch (message)
     {
         case MSG_CREATE:
             {
                 RECT rc;
                 /* create the main data construction for the control */
-                if (!(data = (PSCROLLBARDATA) malloc (sizeof (SCROLLBARDATA)))) 
+                if (!(data = (PSCROLLBARDATA) malloc (sizeof (SCROLLBARDATA))))
                 {
-                    _WRN_PRINTF ("Create ScrollBar control failure!\n");
+                    _WRN_PRINTF ("Create ScrollBar control failure!");
                     return -1;
                 }
                 memset (data, 0 , sizeof (SCROLLBARDATA));
@@ -373,14 +372,14 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if(0 != init_sbdata(hwnd, data, &rc))
                 {
                     free(data);
-                    _WRN_PRINTF ("Create ScrollBar control failure!\n");
+                    _WRN_PRINTF ("Create ScrollBar control failure!");
                     return -1;
                 }
 
                 /* keep the data construction on the control add data*/
                 SetWindowAdditionalData2 (hwnd, (DWORD)data);
 
-                MoveWindow (hwnd, rc.left, rc.top, 
+                MoveWindow (hwnd, rc.left, rc.top,
                         RECTW (rc), RECTH (rc), TRUE);
                 break;
             }
@@ -388,7 +387,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case MSG_DESTROY:
             {
                 /* release the scrollbar data construction */
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
                 free(data);
                 /** destry caret */
                 DestroyCaret (hwnd);
@@ -400,11 +399,11 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 RECT * rc_expect;
                 DWORD win_style;
 
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 if (!data)
                 {
-                    _WRN_PRINTF ("addition data2 is NULL \n");
+                    _WRN_PRINTF ("addition data2 is NULL");
                     return 1;
                 }
 
@@ -415,19 +414,19 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if (win_style & SBS_HORZ)
                 {
                     if (win_style & SBS_BOTTOMALIGN)
-                        rc_expect->top = rc_expect->bottom 
+                        rc_expect->top = rc_expect->bottom
                             - GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR);
                     else if (win_style & SBS_TOPALIGN)
-                        rc_expect->bottom = rc_expect->top 
+                        rc_expect->bottom = rc_expect->top
                             + GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR);
                 }
                 else
                 {
                     if (win_style & SBS_LEFTALIGN)
-                        rc_expect->right = rc_expect->left 
+                        rc_expect->right = rc_expect->left
                             + GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR) ;
                     else if (win_style & SBS_RIGHTALIGN)
-                        rc_expect->left = rc_expect->right 
+                        rc_expect->left = rc_expect->right
                             - GetWindowElementAttr (hwnd, WE_METRICS_SCROLLBAR) ;
                 }
 
@@ -449,7 +448,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         case MSG_CSIZECHANGED:
             {
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
                 pCtrl = (PCONTROL)hwnd;
                 pCtrl->left = pCtrl->cl;
                 pCtrl->top = pCtrl->ct;
@@ -467,7 +466,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 int y_pos = HISWORD (lParam);
                 const WINDOWINFO* winfo = NULL;
                 HDC hdc;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
                 winfo = GetWindowInfo(hwnd);
                 hdc = GetClientDC (hwnd);
 
@@ -495,7 +494,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     {
                         SendNotifyMessage (GetParent (hwnd),
                             (winfo->dwStyle & SBS_HORZ) ?
-                            MSG_HSCROLL : MSG_VSCROLL, 
+                            MSG_HSCROLL : MSG_VSCROLL,
                             SB_THUMBTRACK, data->curPos);
                     }
                     else
@@ -515,7 +514,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     {
                         /* Make thumb button hilite.*/
                         data->status |= SBS_HILITE_THUMB;
-                        winfo->we_rdr->draw_scrollbar (hwnd, hdc, mouse_pos); 
+                        winfo->we_rdr->draw_scrollbar (hwnd, hdc, mouse_pos);
                     }
                 }
                 else
@@ -525,8 +524,8 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     {
                         data->status &= ~(SBS_PRESSED_THUMB
                                 | SBS_HILITE_THUMB);
-                        winfo->we_rdr->draw_scrollbar (hwnd, hdc, 
-                            (winfo->dwStyle & SBS_HORZ) ? 
+                        winfo->we_rdr->draw_scrollbar (hwnd, hdc,
+                            (winfo->dwStyle & SBS_HORZ) ?
                             HT_SB_HTHUMB : HT_SB_VTHUMB);
                     }
                 }
@@ -540,7 +539,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         if (!(data->status & SBS_HILITE_LTUP))
                         {
                             data->status |= SBS_HILITE_LTUP;
-                            winfo->we_rdr->draw_scrollbar (hwnd, hdc, mouse_pos); 
+                            winfo->we_rdr->draw_scrollbar (hwnd, hdc, mouse_pos);
                         }
                     }
                     else
@@ -548,12 +547,12 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         if (data->status & SBS_PRESSED_LTUP ||
                             data->status & SBS_HILITE_LTUP)
                         {
-                            data->status &= ~(SBS_HILITE_LTUP 
+                            data->status &= ~(SBS_HILITE_LTUP
                                     | SBS_HILITE_LTUP);
-                            winfo->we_rdr->draw_scrollbar (hwnd, hdc, 
-                                (winfo->dwStyle & SBS_HORZ) ? 
+                            winfo->we_rdr->draw_scrollbar (hwnd, hdc,
+                                (winfo->dwStyle & SBS_HORZ) ?
                                 HT_SB_LEFTARROW : HT_SB_UPARROW);
-                        } 
+                        }
                     }
                 }
 
@@ -566,7 +565,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         if (!(data->status & SBS_HILITE_BTDN))
                         {
                             data->status |= SBS_HILITE_BTDN;
-                            winfo->we_rdr->draw_scrollbar (hwnd, hdc, mouse_pos); 
+                            winfo->we_rdr->draw_scrollbar (hwnd, hdc, mouse_pos);
                         }
                     }
                     else
@@ -577,10 +576,10 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                             data->status &= ~(SBS_HILITE_BTDN
                                     | SBS_HILITE_BTDN);
 
-                            winfo->we_rdr->draw_scrollbar (hwnd, hdc, 
-                                (winfo->dwStyle & SBS_HORZ) ? 
+                            winfo->we_rdr->draw_scrollbar (hwnd, hdc,
+                                (winfo->dwStyle & SBS_HORZ) ?
                                 HT_SB_RIGHTARROW : HT_SB_DOWNARROW);
-                        } 
+                        }
                     }
                 }
                 ReleaseDC (hdc);
@@ -590,18 +589,18 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case MSG_MOUSEMOVEIN:
             {
                 BOOL in_out = (BOOL)wParam;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
                 if (!in_out)
                 {
                     DPRINTF ("<<<<<<<<<<<<MOVEOUT<<<<<<<<<<<<<\n");
-                
+
                     //if (!(data->status & SBS_PRESSED_THUMB))
                     {
                         ReleaseCapture ();
                     }
 
-                    data->status &= ~(SBS_HILITE_LTUP 
-                            | SBS_HILITE_BTDN  | SBS_HILITE_THUMB); 
+                    data->status &= ~(SBS_HILITE_LTUP
+                            | SBS_HILITE_BTDN  | SBS_HILITE_THUMB);
 /*                     GetWindowRect (hwnd, &rc);
  *                     GetClientRect (hwnd, &crc);
  *                     DPRINTF ("win rect(%i, %i, %i, %i)\n",
@@ -618,9 +617,9 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         case MSG_LBUTTONDOWN:
             {
-                int mouse_pos; 
-                int x_pos = LOSWORD(lParam); 
-                int y_pos = HISWORD(lParam); 
+                int mouse_pos;
+                int x_pos = LOSWORD(lParam);
+                int y_pos = HISWORD(lParam);
                 int notification_code = 0;
                 const WINDOWINFO* winfo;
                 int which_scroll;
@@ -628,9 +627,9 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                     SetCapture (hwnd);
                 }
-               
+
                 winfo = GetWindowInfo(hwnd);
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 mouse_pos = get_mouse_pos (hwnd, data, x_pos, y_pos);
 
@@ -665,7 +664,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     {
                         data->track_pos = x_pos;
                     }
-                    else 
+                    else
                     {
                         data->track_pos = y_pos;
                         DPRINTF ("track_pos ---- begin %i\n", y_pos);
@@ -684,7 +683,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         notification_code = SB_PAGELEFT;
                     else
                         notification_code = SB_PAGEUP;
-                }   
+                }
                 else if (mouse_pos == HT_SB_RIGHTSPACE ||
                          mouse_pos == HT_SB_DOWNSPACE)
                 {
@@ -703,12 +702,12 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 if(notification_code != 0)
                 {
-                    which_scroll = (winfo->dwStyle & SBS_HORZ) ? 
+                    which_scroll = (winfo->dwStyle & SBS_HORZ) ?
                         MSG_HSCROLL : MSG_VSCROLL;
 
                     if (winfo->dwStyle & SBS_NOTNOTIFYPARENT)
                     {
-                        SendNotifyMessage (GetParent(hwnd), which_scroll, 
+                        SendNotifyMessage (GetParent(hwnd), which_scroll,
                                 notification_code, 0);
 
                         SetAutoRepeatMessage (GetParent(hwnd), which_scroll,
@@ -719,14 +718,14 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         pCtrl = (PCONTROL) hwnd;
                         NotifyParent (hwnd, pCtrl->id, notification_code);
 
-                        SetAutoRepeatMessage (GetParent(hwnd), 
+                        SetAutoRepeatMessage (GetParent(hwnd),
                                 MSG_COMMAND,
-                                (WPARAM) MAKELONG 
+                                (WPARAM) MAKELONG
                                 (pCtrl->id, notification_code),
                                 (LPARAM)hwnd);
                     }
                 }
-                
+
                 // DK: Make the background does't redraw.
                 InvalidateRect(hwnd, NULL, FALSE);
                 return 0;
@@ -737,7 +736,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 int x_pos = LOSWORD (lParam);
                 int y_pos = HISWORD (lParam);
                 const WINDOWINFO* winfo = GetWindowInfo(hwnd);
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 ScreenToClient (hwnd, &x_pos, &y_pos);
                 track_thumb (hwnd, data, x_pos, y_pos);
@@ -748,21 +747,21 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 data->status &= ~SBS_PRESSED_LTUP;
                 data->status &= ~SBS_PRESSED_BTDN;
 
-                if (data->status & SBS_PRESSED_THUMB) 
+                if (data->status & SBS_PRESSED_THUMB)
                 {
                     data->status &= ~SBS_PRESSED_THUMB;
 
                     if (winfo->dwStyle & SBS_NOTNOTIFYPARENT)
                     {
-                        SendNotifyMessage (GetParent (hwnd), 
-                                ((GetWindowInfo(hwnd))->dwStyle & SBS_HORZ) ?  
+                        SendNotifyMessage (GetParent (hwnd),
+                                ((GetWindowInfo(hwnd))->dwStyle & SBS_HORZ) ?
                                 MSG_HSCROLL : MSG_VSCROLL,
                                 SB_THUMBPOSITION, data->curPos);
                     }
                     else
                     {
                         pCtrl = (PCONTROL) hwnd;
-                        NotifyParent (hwnd, 
+                        NotifyParent (hwnd,
                                 pCtrl->id, SB_THUMBPOSITION);
                     }
                 }
@@ -778,9 +777,9 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 int scancode = (int)wParam;
                 int notification_code = 0;
                 const WINDOWINFO* winfo = GetWindowInfo(hwnd);
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
-                switch (scancode) 
+                switch (scancode)
                 {
                     case SCANCODE_PAGEUP:
                         {
@@ -793,7 +792,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                 notification_code = SB_PAGEUP;
                             break;
                         }
-                        
+
                     case SCANCODE_PAGEDOWN:
                         {
                             if(data->status & SBS_DISABLED_BTDN)
@@ -806,9 +805,9 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                             break;
                         }
 
-                    case SCANCODE_CURSORBLOCKUP: 
+                    case SCANCODE_CURSORBLOCKUP:
                         {
-                            if ((winfo->dwStyle & SBS_HORZ) 
+                            if ((winfo->dwStyle & SBS_HORZ)
                                     || (data->status & SBS_DISABLED_LTUP))
                                 return 0;
                             notification_code = SB_LINEUP;
@@ -886,15 +885,15 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                     if (winfo->dwStyle & SBS_NOTNOTIFYPARENT)
                     {
-                        SendNotifyMessage (GetParent(hwnd), 
-                                (winfo->dwStyle & SBS_HORZ) ? 
-                                MSG_HSCROLL : MSG_VSCROLL, 
+                        SendNotifyMessage (GetParent(hwnd),
+                                (winfo->dwStyle & SBS_HORZ) ?
+                                MSG_HSCROLL : MSG_VSCROLL,
                                 notification_code, 0);
                     }
                     else
                     {
                         pCtrl = (PCONTROL) hwnd;
-                        NotifyParent (hwnd, 
+                        NotifyParent (hwnd,
                                 pCtrl->id, notification_code);
                     }
                     // DK: Make the background does't redraw.
@@ -911,7 +910,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         case MSG_KILLFOCUS:
             {
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
                 data->status &= ~SBS_HILITE_THUMB;
                 // DK: Make the background does't redraw.
                 InvalidateRect(hwnd, NULL, FALSE);
@@ -928,13 +927,13 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 pCtrl = (PCONTROL)hwnd;
                 caret = pCtrl->pCaretInfo;
                 winfo = GetWindowInfo(hwnd);
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
                 status = SBS_HILITE_THUMB;
 
                 if (!data || !caret)
-                    return -1; 
+                    return -1;
 
-                if (!caret->fShow) 
+                if (!caret->fShow)
                 {
                     caret->fShow = TRUE;
                     if (winfo->dwStyle & SBS_HORZ)
@@ -985,9 +984,9 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 const WINDOWINFO *winfo = GetWindowInfo(hwnd);
                 HDC hdc = BeginPaint(hwnd);
-                
-                winfo->we_rdr->draw_scrollbar(hwnd, hdc, 
-                        (winfo->dwStyle & SBS_HORZ) ? 
+
+                winfo->we_rdr->draw_scrollbar(hwnd, hdc,
+                        (winfo->dwStyle & SBS_HORZ) ?
                         HT_HSCROLL : HT_VSCROLL);
 
                 EndPaint(hwnd, hdc);
@@ -996,7 +995,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         case SBM_GETPOS:
             {
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
                 return data->curPos;
             }
 
@@ -1004,15 +1003,15 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 int pos = (int)wParam;
                 BOOL redraw = (BOOL)lParam;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 if (pos == data->curPos)
                     return 0;
 
-                if(pos < data->minPos) 
+                if(pos < data->minPos)
                 {
                     pos = data->minPos;
-                } 
+                }
 
                 if (pos > data->maxPos)
                 {
@@ -1049,7 +1048,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case SBM_GETSCROLLINFO:
             {
                 PSCROLLINFO info = (PSCROLLINFO) wParam;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 if (info->fMask & SIF_RANGE)
                 {
@@ -1060,7 +1059,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     info->nPage = data->pageStep;
                 if (info->fMask & SIF_POS)
                     info->nPos = data->curPos;
-                
+
                 return 0;
             }
 
@@ -1070,7 +1069,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 BOOL redraw = (BOOL)lParam;
                 int new_nPos, new_nMin, new_nMax;
                 UINT new_nPage;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 new_nPos  = data->curPos;
                 new_nMin  = data->minPos;
@@ -1081,7 +1080,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                     if (info->nMax < info->nMin)
                     {
-                        _WRN_PRINTF ( "Error range\n");
+                        _WRN_PRINTF ( "Error range");
                         return -1;
                     }
                     new_nMin = info->nMin;
@@ -1093,7 +1092,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     if (info->nPage > new_nMax - new_nMin + 1
                         || info->nPage <= 0)
                     {
-                        _WRN_PRINTF ( "Error page step\n");
+                        _WRN_PRINTF ( "Error page step");
                         return -1;
                     }
                     new_nPage = info->nPage;
@@ -1155,11 +1154,11 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 int *min = (int *)wParam;
                 int *max = (int *)lParam;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
-                
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+
                 *min = data->minPos;
                 *max = data->maxPos;
-                
+
                 return 0;
             }
 
@@ -1167,13 +1166,13 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 int min = (int) wParam;
                 int max = (int) lParam;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
-                
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+
                 if(max < data->curPos || min > data->curPos)
                 {
-                    _WRN_PRINTF ( "Error range to set\n");
+                    _WRN_PRINTF ( "Error range to set");
                     return -1;
-                } 
+                }
                 data->minPos = min;
                 data->maxPos = max;
 
@@ -1186,7 +1185,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     data->status |= SBS_DISABLED_BTDN;
                 else
                     data->status &= ~SBS_DISABLED_BTDN;
-                
+
                 recalc_thumb_len (hwnd, data);
                 recalc_thumb_start (hwnd, data);
                 return 0;
@@ -1196,16 +1195,16 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 int min = (int) wParam;
                 int max = (int) lParam;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
-                
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+
                 if(max < data->curPos || min > data->curPos)
                 {
-                    _WRN_PRINTF ( "Error range to set\n");
+                    _WRN_PRINTF ( "Error range to set");
                     return -1;
-                } 
+                }
                 data->minPos = min;
                 data->maxPos = max;
-                    
+
                 if (data->curPos == data->minPos)
                     data->status |= SBS_DISABLED_LTUP;
                 else
@@ -1215,12 +1214,12 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     data->status |= SBS_DISABLED_BTDN;
                 else
                     data->status &= ~SBS_DISABLED_BTDN;
-                
+
                 recalc_thumb_len (hwnd, data);
                 recalc_thumb_start (hwnd, data);
                 // DK: Make the background does't redraw.
                 InvalidateRect(hwnd, NULL, FALSE);
-                
+
                 return 0;
             }
 
@@ -1228,7 +1227,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 int which = (int)wParam;
                 BOOL enable = (BOOL)lParam;
-		        data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
+                data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
                 if (which & SB_ARROW_LTUP)
                 {
@@ -1262,7 +1261,7 @@ BOOL RegisterScrollBarControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
-    WndClass.iBkColor    = 
+    WndClass.iBkColor    =
         GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
     WndClass.WinProc     = ScrollBarCtrlProc;
 

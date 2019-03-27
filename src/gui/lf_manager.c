@@ -605,30 +605,30 @@ void dump_window_element_data (HWND hwnd)
         return;
 
     if (pwnd->wed == NULL) {
-        _WRN_PRINTF ("GUI>DumpWED: No attributes in list.\n");
+        _DBG_PRINTF ("GUI>DumpWED: No attributes in list.\n");
         return;
     }
 
-    _WRN_PRINTF ("GUI>DumpWED: The attributes of window elements:\n");
+    _DBG_PRINTF ("GUI>DumpWED: The attributes of window elements:\n");
     list_for_each (me, &pwnd->wed->list) {
         wed = list_entry (me, WND_ELEMENT_DATA, list);
         switch (wed->id & WE_ATTR_TYPE_MASK) {
             case WE_ATTR_TYPE_FONT:
-                _WRN_PRINTF ("\tfont in list:%s-%s-%s.\n", 
+                _DBG_PRINTF ("\tfont in list:%s-%s-%s.\n", 
                          ((PLOGFONT)(wed->data))->type, 
                          ((PLOGFONT)(wed->data))->family, 
                          ((PLOGFONT)(wed->data))->charset);
                 break;
 
             case WE_ATTR_TYPE_METRICS:
-                _WRN_PRINTF ("\tmetrics in list:%d.\n", (int)wed->data);
+                _DBG_PRINTF ("\tmetrics in list:%d.\n", (int)wed->data);
                 break;
 
             case WE_ATTR_TYPE_COLOR: 
-                _WRN_PRINTF ("\tcolor in list: %p.\n", (PVOID)wed->data); 
+                _DBG_PRINTF ("\tcolor in list: %p.\n", (PVOID)wed->data); 
         }
     }
-    _WRN_PRINTF ("GUI>DumpWED: Done\n");
+    _DBG_PRINTF ("GUI>DumpWED: Done\n");
 }
 
 #endif /* _DEBUG */
@@ -714,16 +714,16 @@ DWORD GUIAPI GetWindowElementAttr (HWND hwnd, int we_attr_id)
     return data;
 }
 
-gal_pixel GUIAPI 
+gal_pixel GUIAPI
 GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
 {
     DWORD data;
     Uint8 r, g, b, a;
     HDC dc;
     gal_pixel pixel;
-   
+
     if ((we_attr_id & WE_ATTR_TYPE_MASK) != WE_ATTR_TYPE_COLOR) {
-        _WRN_PRINTF ("GUI: Can't get color; invalid attr id: %x.\n", we_attr_id);
+        _WRN_PRINTF ("Can't get color; invalid attr id: %x.", we_attr_id);
         return -1;
     }
 
@@ -795,7 +795,7 @@ BOOL GUIAPI InitWindowElementAttrs (PWERENDERER rdr)
     if (!rdr || !rdr->name || rdr->name[0] == '\0')
         return FALSE;
 
-    _WRN_PRINTF ("GUI>InitWEA: Initialize %s renderer window element attributes.\n", 
+    _DBG_PRINTF ("GUI>InitWEA: Initialize %s renderer window element attributes.\n", 
             rdr->name);
 
     for (i = 0; i < WE_METRICS_NUMBER; i++) {
@@ -821,8 +821,8 @@ BOOL GUIAPI InitWindowElementAttrs (PWERENDERER rdr)
             if (szCKeyNames[i][j]) {
                 if (GetMgEtcValue (rdr->name, szCKeyNames[i][j], 
                         buff, 12) != ETC_OK) {
-                    _WRN_PRINTF ("GUI>InitWEA: InitWindowElementAttrs error: \
-                            Can not Get %s color. \n", szCKeyNames[i][j]);
+                    _WRN_PRINTF ("InitWindowElementAttrs error: \
+                            Can not Get %s color.", szCKeyNames[i][j]);
                     return FALSE;
                 }
 
@@ -847,11 +847,11 @@ BOOL mg_InitLFManager (void)
 
     /** be sure to success initializing default renderer */
     rdr = wnd_lf_info[0].wnd_rdr;
-    if (NULL == rdr) 
+    if (NULL == rdr)
         return FALSE;
 
     if (rdr->init && 0 != rdr->init (rdr)) {
-        _WRN_PRINTF ("GUI>InitLFM: failed to initialize default renderer's private info.\n");
+        _WRN_PRINTF ("failed to initialize default renderer's private info.");
         return FALSE;
     }
 
@@ -863,7 +863,7 @@ BOOL mg_InitLFManager (void)
 
         if (rdr->init && 0 != rdr->init (rdr)) {
             wnd_lf_info[i].wnd_rdr = NULL;
-            _WRN_PRINTF ("GUI>InitLFM: fail to initialize renderer[%d]'s private info.\n", i);
+            _WRN_PRINTF ("failed to initialize renderer[%d]'s private info.", i);
             continue;
         }
     }

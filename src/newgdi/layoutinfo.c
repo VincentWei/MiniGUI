@@ -1508,8 +1508,8 @@ static void layout_line_postprocess (LAYOUTLINE *line,
         justify_words (line, state);
     }
 
-    line->layout->is_wrapped |= wrapped;
-    line->layout->is_ellipsized |= ellipsized;
+    line->is_wrapped |= wrapped;
+    line->is_ellipsized |= ellipsized;
 }
 
 static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
@@ -1706,7 +1706,7 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
             next_line = (LAYOUTLINE*)layout->lines.next;
             goto out;
         }
-        else if ((struct list_head*)prev_line != &layout->lines) {
+        else if (prev_line->list.next != &layout->lines) {
             next_line = (LAYOUTLINE*)prev_line->list.next;
             goto out;
         }
@@ -1769,6 +1769,13 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     }
 
     if (next_line) {
+        next_line->max_extent = max_extent;
+        next_line->is_last_line = last_line;
+        if (prev_line == 0)
+            next_line->line_no = 0;
+        else
+            next_line->line_no = prev_line->line_no + 1;
+
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
         }
@@ -1798,6 +1805,37 @@ out:
     }
 
     return next_line;
+}
+
+BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
+        int* line_no, int* max_extent, int* nr_chars, int* nr_glyphs,
+        int** log_widths, int* width, int* height,
+        BOOL* is_ellipsized, BOOL* is_wrapped)
+{
+    if (line == NULL)
+        return FALSE;
+
+    if (line_no) *line_no = line->line_no;
+    if (max_extent) *max_extent = line->max_extent;
+    if (nr_chars) *nr_chars = line->len;
+    if (log_widths) *log_widths = line->log_widths;
+
+    if (nr_glyphs) {
+        struct list_head* i;
+
+        *nr_glyphs = 0;
+        list_for_each(i, &line->gruns) {
+            GlyphRun* run = (GlyphRun*)i;
+            *nr_glyphs += run->gstr->nr_glyphs;
+        }
+    }
+
+    if (width) *width = line->width;
+    if (height) *height = line->height;
+    if (is_ellipsized) *is_ellipsized = line->is_ellipsized;
+    if (is_wrapped) *is_wrapped = line->is_wrapped;
+
+    return TRUE;
 }
 
 #endif /*  _MGCHARSET_UNICODE */

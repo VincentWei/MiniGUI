@@ -916,7 +916,7 @@ textdoc_insert_text (TextDoc *txtdoc, const char* newtext, int len)
     /* insert last strings */
     /* FIXME */
     if (!nextnode) {
-        _WRN_PRINTF ("CONTROL>TextEdit: (Warning) nextnode is NULL!\n");
+        _WRN_PRINTF ("nextnode is NULL!");
         /* set_current_node (txtdoc, LASTNODE(txtdoc), FALSE, TRUE); */
     }
     else {
@@ -1446,7 +1446,7 @@ static int get_line_nr (HWND hWnd, PTEDATA ptedata, TextNode *node, int indent)
     HDC hdc;
 
     if (!node) {
-        _WRN_PRINTF ("CONTROL>TextEdit: (Warning) pass NULL text node to get_line_nr\n");
+        _WRN_PRINTF ("pass NULL text node to get_line_nr");
         return 0;
     }
 
@@ -1571,7 +1571,7 @@ set_line_width (HWND hWnd, PTEDATA ptedata, TextNode *node, int indent)
     HDC hdc;
 
     if (!node) {
-        _WRN_PRINTF ("CONTROL>TextEdit: (Warning) pass NULL text node to set_line_width\n");
+        _WRN_PRINTF ("pass NULL text node to set_line_width");
         return -1;
     }
 
