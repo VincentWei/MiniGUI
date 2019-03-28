@@ -60,7 +60,7 @@
 
 #include "unicode-vop-table.inc"
 
-UCharVOP GUIAPI UCharGetVerticalOrientation(Uchar32 uc)
+UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc)
 {
     return UCHAR_GET_VOP(uc);
 }

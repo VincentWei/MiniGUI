@@ -9063,23 +9063,30 @@ static inline ScriptType GUIAPI ScriptTypeFromISO15924Code (const char* iso15924
             iso15924[2], iso15924[1], iso15924[0]));
 }
 
-
-typedef enum _UCharVOP {
+typedef enum _UVerticalOrient {
     UCHAR_VOP_U = 0,
     UCHAR_VOP_R,
     UCHAR_VOP_TU,
     UCHAR_VOP_TR,
-} UCharVOP;
+} UVerticalOrient;
 
-/* same as HarfBuzz */
 typedef enum {
-    GLYPH_RUN_DIR_INVALID = 0,
+    GLYPH_RUN_DIR_LTR = 0,
+    GLYPH_RUN_DIR_RTL,
+    GLYPH_RUN_DIR_TTB,
+    GLYPH_RUN_DIR_BTT,
+
     GLYPH_RUN_DIR_NEUTRAL,
     GLYPH_RUN_DIR_WEAK_LTR,
     GLYPH_RUN_DIR_WEAK_RTL,
-    GLYPH_RUN_DIR_LTR,
-    GLYPH_RUN_DIR_RTL,
 } GlyphRunDir;
+
+typedef enum {
+    WRITING_MODE_HORIZONTAL_TTB = 0,
+    WRITING_MODE_HORIZONTAL_BTT,
+    WRITING_MODE_VERTICAL_RL,
+    WRITING_MODE_VERTICAL_LR,
+} ParagraphWritingMode;
 
 #define GLYPH_GRAVITY_SOUTH                 0
 #define GLYPH_GRAVITY_EAST                  1
@@ -9105,7 +9112,7 @@ typedef enum {
     ((orient) == GLYPH_ORIENT_SIDEWAYS || (orient) == GLYPH_ORIENT_SIDEWAYS_LEFT)
 
 /** Get the vertical orientation property of a Unicode character */
-MG_EXPORT UCharVOP GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
+MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
 
 /**
  * ScriptGetGlyphOrientation:
@@ -12441,6 +12448,10 @@ typedef struct _GLYPHPOS {
      */
     int y_off;
     /**
+     * The line advance of the glyph.
+     */
+    int advance;
+    /**
      * Whether suppress the glyph.
      */
     Uint8 suppressed:1;
@@ -12448,6 +12459,10 @@ typedef struct _GLYPHPOS {
      * Whether is a whitespace glyph.
      */
     Uint8 whitespace:1;
+    /**
+     * Whether is an ellipsized glyph.
+     */
+    Uint8 ellipsis:1;
     /**
      * The orientation of the glyph; can be one of the following values:
      *  - GLYPH_ORIENTATION_UPRIGHT\n

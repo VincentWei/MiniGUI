@@ -133,7 +133,7 @@ void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
  * in the same script, same direction, and same orientation. This is
  * enough for the ellipsis.
  */
-LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
         const TextRun* trun, const Uchar32* ucs, int nr_ucs)
 {
     LOGFONT* lf;
@@ -153,7 +153,7 @@ LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
     lrun->el = trun->el;
     lrun->dir = trun->dir;
     lrun->ort = trun->ort;
-    lrun->flags = trun->flags;
+    lrun->flags = trun->flags | LAYOUTRUN_FLAG_ELLIPSIS;
 
     return lrun;
 }

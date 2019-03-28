@@ -180,7 +180,7 @@ static void init_state (EllipsizeState *state, LAYOUTLINE *line)
     state->ellipsis_lrun = NULL;
     state->ellipsis_grun = NULL;
     state->ellipsis_is_cjk = FALSE;
-    state->fontname = NULL;
+    state->fontname = "";   // force to reset the fontname from gap
 }
 
 /* Cleanup memory allocation
@@ -260,29 +260,42 @@ static BOOL line_iter_prev_cluster (EllipsizeState *state, LineIter *iter)
  *
  */
 
-/* Checks if there is a ellipsization boundary before the cluster @iter points to
+/* Checks if there is a ellipsization boundary before
+ * the cluster @iter points to
  */
 static BOOL starts_at_ellipsization_boundary (EllipsizeState *state,
-        LineIter       *iter)
+        LineIter *iter)
 {
+    int index;
     RunInfo *run_info = &state->run_info[iter->run_index];
 
     if (iter->run_iter.start_char == 0 && iter->run_index == 0)
         return TRUE;
 
-    return state->layout->bos[run_info->start_offset + iter->run_iter.start_char] & BOV_GB_CURSOR_POS;
+    index = run_info->start_offset + iter->run_iter.start_char;
+    return state->layout->bos[index] & BOV_GB_CURSOR_POS;
 }
 
 /* Checks if there is a ellipsization boundary after the cluster @iter points to
  */
-static BOOL ends_at_ellipsization_boundary (EllipsizeState *state, LineIter *iter)
+static BOOL ends_at_ellipsization_boundary(EllipsizeState *state,
+        LineIter *iter)
 {
+    int index;
     RunInfo *run_info = &state->run_info[iter->run_index];
 
-    if (iter->run_iter.end_char == run_info->run->lrun->len && iter->run_index == state->nr_runs - 1)
+    if (iter->run_iter.end_char == run_info->run->lrun->len &&
+            iter->run_index == state->nr_runs - 1)
         return TRUE;
 
-    return state->layout->bos[run_info->start_offset + iter->run_iter.end_char + 1] & BOV_GB_CURSOR_POS;
+    index = run_info->start_offset + iter->run_iter.end_char;
+
+    /*
+     * FIXME: Pango uses index + 1 here, but will overflow the bos array.
+     */
+    assert(index < state->layout->truninfo->nr_ucs);
+
+    return state->layout->bos[index] & BOV_GB_CURSOR_POS;
 }
 
 /* Shapes the ellipsis using the font and is_cjk information computed by
@@ -329,7 +342,7 @@ static void shape_ellipsis (EllipsizeState *state)
     text_run = __mg_text_run_get_by_offset(state->layout->truninfo,
         state->gap_start_iter.run_iter.start_index, NULL);
 
-    layout_run = __mg_layout_run_new_orphan (state->layout, text_run,
+    layout_run = __mg_layout_run_new_ellipsis (state->layout, text_run,
             ellipsis_ucs, 1);
 
     ellipsis_gv = GetGlyphValue(layout_run->lf, ellipsis_ucs[0]);
@@ -338,7 +351,7 @@ static void shape_ellipsis (EllipsizeState *state)
      */
     if (DFI_IN_GLYPH(ellipsis_gv) == 0) {
         __mg_layout_run_free (layout_run);
-        layout_run = __mg_layout_run_new_orphan (state->layout,
+        layout_run = __mg_layout_run_new_ellipsis (state->layout,
                 text_run, ellipsis_ucs, 3);
     }
 
@@ -564,10 +577,12 @@ static void fixup_ellipsis_grun (EllipsizeState *state)
 
     /* The level for the layout_run is the minimum level of the elided text */
     level = INT_MAX;
-    for (i = state->gap_start_iter.run_index; i <= state->gap_end_iter.run_index; i++)
+    for (i = state->gap_start_iter.run_index;
+            i <= state->gap_end_iter.run_index; i++)
         level = MIN (level, state->run_info[i].run->lrun->el);
 
     layout_run->el = level;
+    state->ellipsis_grun->lrun = layout_run;
 }
 
 /* Computes the new list of runs for the line
@@ -662,7 +677,8 @@ BOOL __mg_layout_line_ellipsize (LAYOUTLINE *line, int goal_width)
 
     fixup_ellipsis_grun (&state);
 
-    __mg_layout_line_free_runs(line);
+    //__mg_layout_line_free_runs(line);
+    INIT_LIST_HEAD(&line->gruns);
     get_run_list(&state, line);
     is_ellipsized = TRUE;
 

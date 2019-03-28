@@ -81,9 +81,9 @@ struct _TextRun {
     Uint32      lc:8;   // language code
     Uint32      st:8;   // script type
     Uint32      el:8;   // the bidi embedding level
-    Uint32      dir:4;  // the run direction
-    Uint32      ort:2;  // the glyph orientation
-    Uint32      flags:2;// other flags
+    Uint32      dir:2;  // the run direction; value range: [0, 3]
+    Uint32      ort:2;  // the glyph orientation; value range: [0, 3]
+    Uint32      flags:4;// other flags
 };
 
 #define TEXT_ATTR_TEXT_COLOR            0x00

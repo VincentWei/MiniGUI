@@ -67,6 +67,7 @@ struct _GlyphString {
 
 #define LAYOUTRUN_FLAG_CENTERED_BASELINE    TEXTRUN_FLAG_CENTERED_BASELINE
 #define LAYOUTRUN_FLAG_NO_SHAPING           TEXTRUN_FLAG_NO_SHAPING
+#define LAYOUTRUN_FLAG_ELLIPSIS             0x04
 
 struct _LayoutRun {
     LOGFONT*        lf;     // the logfont for this run
@@ -77,9 +78,9 @@ struct _LayoutRun {
     Uint32          lc:8;   // language code
     Uint32          st:8;   // script type
     Uint32          el:8;   // the bidi embedding level
-    Uint32          dir:4;  // the run direction
-    Uint32          ort:2;  // the glyph orientation
-    Uint32          flags:2;// other flags
+    Uint32          dir:2;  // the run direction; value rage: [0, 3]
+    Uint32          ort:2;  // the glyph orientation; value range: [0, 3]
+    Uint32          flags:4;// other flags
 };
 
 struct _GlyphRun {
@@ -157,7 +158,7 @@ void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
 GlyphRun *__mg_glyph_run_split (GlyphRun *orig, int split_index);
 void __mg_glyph_run_free(GlyphRun* run);
 
-LayoutRun* __mg_layout_run_new_orphan(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
         const TextRun* trun, const Uchar32* ucs, int nr_ucs);
 LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
         const TextRun* trun);

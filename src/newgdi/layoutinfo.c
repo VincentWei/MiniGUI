@@ -525,8 +525,8 @@ static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
     int j = 0;
     struct list_head* i;
 
-    _DBG_PRINTF("Runs in line when calling %s (line length: %d):\n",
-            func, line->len);
+    _DBG_PRINTF("Runs in line when calling %s (line length: %d, runs: %d):\n",
+            func, line->len, line->nr_runs);
 
     list_for_each(i, &line->gruns) {
         GlyphRun* run = (GlyphRun*)i;
@@ -597,6 +597,7 @@ static void uninsert_run(LAYOUTLINE *line)
 
     list_del(line->gruns.prev);
     line->len -= grun->lrun->len;
+    line->nr_runs--;
     free_glyph_run(grun);
 
     print_line_runs(line, __FUNCTION__);
@@ -623,6 +624,7 @@ static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
 
     list_add_tail(&glyph_run->list, &line->gruns);
     line->len += layout_run->len;
+    line->nr_runs++;
 
     print_line_runs(line, __FUNCTION__);
 
@@ -1496,7 +1498,11 @@ static void layout_line_postprocess (LAYOUTLINE *line,
     if (state->line_width >= 0 &&
             should_ellipsize_current_line (line->layout, state)) {
         ellipsized = __mg_layout_line_ellipsize(line, state->line_width);
+
     }
+
+    _DBG_PRINTF("%s: ellipsized: %s\n",
+            __FUNCTION__, ellipsized ? "TRUE" : "FALSE");
 
     /* Now convert logical to visual order
      */
@@ -1647,7 +1653,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
         const LAYOUTLINE* line, int x, int y,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
-    int j = 0;
+    int j;
     struct list_head* i;
     int line_adv = 0;
 
@@ -1667,11 +1673,17 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             pos.y = y;
             pos.x_off = glyph_info->x_off;
             pos.y_off = glyph_info->y_off;
+            pos.advance = glyph_info->width;
 
             pos.suppressed = 0;
             pos.whitespace = 0;
+            pos.ellipsis = 0;
             pos.orientation = run->lrun->ort;
             pos.hanged = glyph_info->hanged;
+
+            if (run->lrun->flags & LAYOUTRUN_FLAG_ELLIPSIS) {
+                pos.ellipsis = 1;
+            }
 
             if (run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) {
                 if (glyph_info->width > 0) {
@@ -1682,13 +1694,15 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                 }
             }
 
-            cb_laid_out(ctxt, layout->truninfo, index, uc,
-                    run->lrun->lf, glyph_info->gv, &pos);
+            if (!cb_laid_out(ctxt, layout->truninfo, index, uc,
+                    run->lrun->lf, glyph_info->gv, &pos))
+                return j;
 
             line_adv += glyph_info->width;
         }
     }
-    return 0;
+
+    return j;
 }
 
 LAYOUTLINE* GUIAPI LayoutNextLine(
