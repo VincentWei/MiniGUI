@@ -846,25 +846,28 @@ typedef DWORD32 RGBCOLOR;
  * \brief Makes a RGBA triple value from red \a r, green \a g,
  *        blue \a b and alpha \a components.
  *
- * \note The red, green, blue and alpha components are all ranged from 0 to 255,
- * and the returned value will be a double word.
+ * \note The red, green, blue, and alpha components are all ranged
+ *      from 0 to 255, and the returned value will be a 32-bit double word.
  *
  * \sa GetRValue, GetGValue, GetBValue, GetAValue
  */
-#define MakeRGBA(r, g, b, a)    (((DWORD32)((BYTE)(r))) | ((DWORD32)((BYTE)(g)) << 8) \
-                | ((DWORD32)((BYTE)(b)) << 16) | ((DWORD32)((BYTE)(a)) << 24))
+#define MakeRGBA(r, g, b, a)    \
+                (((DWORD32)((BYTE)(r))) \
+                | ((DWORD32)((BYTE)(g)) << 8) \
+                | ((DWORD32)((BYTE)(b)) << 16) \
+                | ((DWORD32)((BYTE)(a)) << 24))
 
 /**
  * \def MakeRGB(r, g, b)
- * \brief Makes a RGB triple value from red \a r, green \a g, and blue \a b components.
+ * \brief Makes a RGB triple value from red \a r, green \a g,
+ *  and blue \a b components.
  *
  * \note The red, green, and blue components are all ranged from 0 to 255,
- * and the returned value will be a double word.
+ * and the returned value will be a 32-bit double word.
  *
- * \sa GetRValue, GetGValue, GetBValue
+ * \sa GetRValue, GetGValue, GetBValue, GetAValue
  */
-#define MakeRGB(r, g, b)    (((DWORD32)((BYTE)(r))) | ((DWORD32)((BYTE)(g)) << 8) \
-                | ((DWORD32)((BYTE)(b)) << 16))
+#define MakeRGB(r, g, b) MakeRGBA((r), (g), (b), 255)
 
 /**
  * A rectangle defined by coordinates of corners.
@@ -875,8 +878,7 @@ typedef DWORD32 RGBCOLOR;
  *
  * \sa PRECT, GAL_Rect
  */
-typedef struct _RECT
-{
+typedef struct _RECT {
     /**
      * The x coordinate of the upper-left corner of the rectangle.
      */

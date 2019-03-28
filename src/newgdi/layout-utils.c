@@ -124,6 +124,72 @@ void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
     ReleaseRes(Str2Key(my_fontname));
 }
 
+static GlyphOrient resolve_glyph_orient(const LAYOUTINFO* layout,
+        const TextRun* trun)
+{
+    LayoutGravity gravity;
+
+    if (layout->grv_plc == LAYOUT_GRAVITY_POLICY_STRONG) {
+        return layout->orient;
+    }
+
+    gravity = ScriptGetLayoutGravityForWide(trun->st,
+            trun->flags & TEXTRUN_FLAG_UPRIGHT,
+            layout->grv_base, layout->grv_plc);
+    switch (gravity) {
+    case LAYOUT_GRAVITY_SOUTH:
+        return GLYPH_ORIENT_UPRIGHT;
+    case LAYOUT_GRAVITY_EAST:
+        return GLYPH_ORIENT_SIDEWAYS;
+    case LAYOUT_GRAVITY_NORTH:
+        return GLYPH_ORIENT_SIDEWAYS_LEFT;
+    case LAYOUT_GRAVITY_WEST:
+        return GLYPH_ORIENT_UPSIDE_DOWN;
+    default:
+        break;
+    }
+
+    return GLYPH_ORIENT_UPRIGHT;
+}
+
+static void resolve_layout_run_dir(const LAYOUTINFO* layout,
+        LayoutRun* lrun)
+{
+    /* The level vs. gravity dance:
+     *  If gravity is SOUTH, leave level untouched.
+     *  If gravity is NORTH, step level one up, to
+     *    not get mirrored upside-down text.
+     *  If gravity is EAST, step up to an even level, as
+     *    it's a clockwise-rotated layout, so the rotated
+     *     top is unrotated left.
+     *  If gravity is WEST, step up to an odd level, as
+     *    it's a counter-clockwise-rotated layout, so the rotated
+     *    top is unrotated right.
+     */
+    switch (layout->grv_base) {
+    case LAYOUT_GRAVITY_SOUTH:
+    default:
+        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_RTL : GLYPH_RUN_DIR_LTR;
+        break;
+    case LAYOUT_GRAVITY_NORTH:
+        lrun->el++;
+        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_RTL : GLYPH_RUN_DIR_LTR;
+        break;
+    case LAYOUT_GRAVITY_EAST:
+        lrun->el += 1;
+        lrun->el &= ~1;
+        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_TTB : GLYPH_RUN_DIR_BTT;
+        break;
+    case LAYOUT_GRAVITY_WEST:
+        lrun->el |= 1;
+        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_TTB : GLYPH_RUN_DIR_BTT;
+        break;
+    }
+
+    if (LAYOUT_GRAVITY_IS_VERTICAL(layout->grv_base))
+        lrun->flags |= LAYOUTRUN_FLAG_CENTERED_BASELINE;
+}
+
 /*
  * Not like Pango, we simply use the properties of the referenced TextRun
  * for the new orphan LayoutRun, including the direction, the orientation,
@@ -136,10 +202,12 @@ void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
 LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
         const TextRun* trun, const Uchar32* ucs, int nr_ucs)
 {
+    GlyphOrient ort;
     LOGFONT* lf;
     LayoutRun* lrun;
 
-    lf = __mg_create_logfont_for_layout(layout, trun->fontname, trun->ort);
+    ort = resolve_glyph_orient(layout, trun);
+    lf = __mg_create_logfont_for_layout(layout, trun->fontname, ort);
     if (lf == NULL)
         return NULL;
 
@@ -151,20 +219,22 @@ LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
     lrun->lc = trun->lc;
     lrun->st = UCharGetScriptType(ucs[0]);
     lrun->el = trun->el;
-    lrun->dir = trun->dir;
-    lrun->ort = trun->ort;
+    lrun->ort = ort;
     lrun->flags = trun->flags | LAYOUTRUN_FLAG_ELLIPSIS;
 
+    resolve_layout_run_dir(layout, lrun);
     return lrun;
 }
 
 LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
         const TextRun* trun)
 {
+    GlyphOrient ort;
     LOGFONT* lf;
     LayoutRun* lrun;
 
-    lf = __mg_create_logfont_for_layout(layout, trun->fontname, trun->ort);
+    ort = resolve_glyph_orient(layout, trun);
+    lf = __mg_create_logfont_for_layout(layout, trun->fontname, ort);
     if (lf == NULL)
         return NULL;
 
@@ -176,26 +246,28 @@ LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
     lrun->lc = trun->lc;
     lrun->st = trun->st;
     lrun->el = trun->el;
-    lrun->dir = trun->dir;
-    lrun->ort = trun->ort;
+    lrun->ort = ort;
     lrun->flags = trun->flags;
 
+    resolve_layout_run_dir(layout, lrun);
     return lrun;
 }
 
 LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
         const TextRun* trun, int offset)
 {
+    GlyphOrient ort;
     LOGFONT* lf;
     LayoutRun* lrun;
 
     if (offset >= trun->len) {
-        _DBG_PRINTF("%s: offset(%d) >= trun->len(%p, %d)\n",
-            __FUNCTION__, offset, trun, trun->len);
+        _WRN_PRINTF("offset(%d) >= trun->len(%p, %d)",
+            offset, trun, trun->len);
         return NULL;
     }
 
-    lf = __mg_create_logfont_for_layout(layout, trun->fontname, trun->ort);
+    ort = resolve_glyph_orient(layout, trun);
+    lf = __mg_create_logfont_for_layout(layout, trun->fontname, ort);
     if (lf == NULL)
         return NULL;
 
@@ -208,10 +280,10 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
     lrun->lc = trun->lc;
     lrun->st = trun->st;
     lrun->el = trun->el;
-    lrun->dir = trun->dir;
-    lrun->ort = trun->ort;
+    lrun->ort = ort;
     lrun->flags = trun->flags;
 
+    resolve_layout_run_dir(layout, lrun);
     return lrun;
 }
 

@@ -93,7 +93,7 @@ int GUIAPI DrawShapedGlyphString(HDC hdc,
             Glyph32 gv = shaped_glyphs->cb_get_glyph_info(
                     shaped_glyphs->shaping_engine, shaped_glyphs->glyph_infos,
                     i, NULL);
-            if (glyph_pos[i].orientation == GLYPH_ORIENTATION_UPRIGHT) {
+            if (glyph_pos[i].orientation == GLYPH_ORIENT_UPRIGHT) {
                 if (logfont_upright)
                     SelectFont(hdc, logfont_upright);
                 else

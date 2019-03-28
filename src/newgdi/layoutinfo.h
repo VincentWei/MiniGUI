@@ -65,22 +65,23 @@ struct _GlyphString {
     unsigned int    space;
 };
 
-#define LAYOUTRUN_FLAG_CENTERED_BASELINE    TEXTRUN_FLAG_CENTERED_BASELINE
 #define LAYOUTRUN_FLAG_NO_SHAPING           TEXTRUN_FLAG_NO_SHAPING
+#define LAYOUTRUN_FLAG_UPRIGHT              TEXTRUN_FLAG_UPRIGHT
 #define LAYOUTRUN_FLAG_ELLIPSIS             0x04
+#define LAYOUTRUN_FLAG_CENTERED_BASELINE    0x08
 
 struct _LayoutRun {
-    LOGFONT*        lf;     // the logfont for this run
-    const Uchar32*  ucs;    // the uchar string
+    LOGFONT*        lf;         // the logfont for this run
+    const Uchar32*  ucs;        // the uchar string
 
-    int             si;     // the start index of this run
-    int             len;    // the length of the uchar string
-    Uint32          lc:8;   // language code
-    Uint32          st:8;   // script type
-    Uint32          el:8;   // the bidi embedding level
-    Uint32          dir:2;  // the run direction; value rage: [0, 3]
-    Uint32          ort:2;  // the glyph orientation; value range: [0, 3]
-    Uint32          flags:4;// other flags
+    int             si;         // the start index of this run
+    int             len;        // the length of the uchar string
+    Uint32          lc:8;       // language code
+    Uint32          st:8;       // script type
+    Uint32          el:8;       // the bidi embedding level
+    Uint32          dir:2;      // the run direction; value rage: [0, 3]
+    Uint32          ort:2;      // the glyph orientation; value range: [0, 3]
+    Uint32          flags:4;    // other flags
 };
 
 struct _GlyphRun {
@@ -127,6 +128,9 @@ struct _LAYOUTINFO {
     int                 nr_left_ucs;// the number of chars not laied out
     int                 nr_lines;   // the number of lines
 
+    Uint32              grv_base:4; // the base gravity
+    Uint32              grv_plc:2;  // the gravity policy specified
+    Uint32              orient:2;   // the glyph orientation specified
     Uint32              persist:1;  // persist lines?
     Uint32              single_paragraph:1;
 };

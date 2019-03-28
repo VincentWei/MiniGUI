@@ -536,14 +536,14 @@ static void adjust_glyph_position(MYGLYPHARGS* args,
 {
     switch (args->rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_VERTICAL_RL:
-        if (gi->orientation == GLYPH_ORIENTATION_UPRIGHT) {
+        if (gi->orientation == GLYPH_ORIENT_UPRIGHT) {
             x -= (args->lw + ge->bbox_w) / 2;
             x -= ge->bbox_x;
         }
         break;
 
     case GRF_WRITING_MODE_VERTICAL_LR:
-        if (gi->orientation == GLYPH_ORIENTATION_SIDEWAYS) {
+        if (gi->orientation == GLYPH_ORIENT_SIDEWAYS) {
             x += args->lfsw->size;
         }
         else {
@@ -858,7 +858,7 @@ static void init_glyph_info(MYGLYPHARGS* args, int i,
     gi->whitespace = 0;
     gi->suppressed = 0;
     gi->hanged = GLYPH_HANGED_NONE;
-    gi->orientation = GLYPH_ORIENTATION_UPRIGHT;
+    gi->orientation = GLYPH_ORIENT_UPRIGHT;
 }
 
 static inline int shrink_total_extent(MYGLYPHARGS* args, int total_extent,
@@ -899,13 +899,13 @@ static int get_glyph_extent_info(MYGLYPHARGS* args, Glyph32 gv,
                == GRF_TEXT_ORIENTATION_MIXED) {
             if (is_horizontal_only_script(gi->uc)) {
                 logfont = args->lfsw;
-                gi->orientation = GLYPH_ORIENTATION_SIDEWAYS;
+                gi->orientation = GLYPH_ORIENT_SIDEWAYS;
             }
         }
         else if ((args->rf & GRF_TEXT_ORIENTATION_MASK)
                == GRF_TEXT_ORIENTATION_SIDEWAYS) {
             logfont = args->lfsw;
-            gi->orientation = GLYPH_ORIENTATION_SIDEWAYS;
+            gi->orientation = GLYPH_ORIENT_SIDEWAYS;
         }
     }
 
@@ -1364,7 +1364,7 @@ int GUIAPI DrawGlyphStringEx(HDC hdc,
 
     for (i = 0; i < nr_glyphs; i++) {
         if (glyph_pos[i].suppressed == 0 && glyph_pos[i].whitespace == 0) {
-            if (glyph_pos[i].orientation == GLYPH_ORIENTATION_UPRIGHT) {
+            if (glyph_pos[i].orientation == GLYPH_ORIENT_UPRIGHT) {
                 if (logfont_upright)
                     SelectFont(hdc, logfont_upright);
                 else

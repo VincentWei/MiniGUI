@@ -339,7 +339,7 @@ static void shape_ellipsis (EllipsizeState *state)
         ellipsis_ucs = _ellipsis_baseline;
     }
 
-    text_run = __mg_text_run_get_by_offset(state->layout->truninfo,
+    text_run = __mg_text_run_get_by_offset_const(state->layout->truninfo,
         state->gap_start_iter.run_iter.start_index, NULL);
 
     layout_run = __mg_layout_run_new_ellipsis (state->layout, text_run,
@@ -384,7 +384,7 @@ static void update_ellipsis_shape (EllipsizeState *state)
     BOOL is_cjk;
     const TextRun* text_run;
 
-    text_run = __mg_text_run_get_by_offset(state->layout->truninfo,
+    text_run = __mg_text_run_get_by_offset_const(state->layout->truninfo,
         state->gap_start_iter.run_iter.start_index, NULL);
 
     if (state->fontname != text_run->fontname) {

@@ -47,7 +47,7 @@ typedef struct _LayoutRun       LayoutRun;
 typedef struct _TextRun         TextRun;
 typedef struct _GlyphString     GlyphString;
 typedef struct _SEInstance      SEInstance;
-typedef struct _TextAttrMap     TextAttrMap;
+typedef struct _TextColorMap     TextColorMap;
 
 typedef BOOL (*CB_SHAPE_LAYOUT_RUN)(SEInstance* instance,
         const TEXTRUNSINFO* info, const LayoutRun* run,
@@ -68,36 +68,31 @@ struct _ShapingEngineInfo {
     CB_DESTROY_INSTANCE free;
 };
 
-#define TEXTRUN_FLAG_CENTERED_BASELINE      0x01
-#define TEXTRUN_FLAG_NO_SHAPING             0x02
+#define TEXTRUN_FLAG_NO_SHAPING     0x01
+#define TEXTRUN_FLAG_UPRIGHT        0x02
 
 struct _TextRun {
     struct list_head list;
     char*       fontname;   // the logfont name for this run; NULL for default
 
-    int         si;     // start index in the uchar string
-    int         len;    // the length in uchars
+    int         si;         // start index in the uchar string
+    int         len;        // the length in uchars
 
-    Uint32      lc:8;   // language code
-    Uint32      st:8;   // script type
-    Uint32      el:8;   // the bidi embedding level
+    Uint32      lc:8;       // language code
+    Uint32      st:8;       // script type
+    Uint32      el:8;       // the bidi embedding level
+    Uint32      flags:2;    // other flags
+#if 0
     Uint32      dir:2;  // the run direction; value range: [0, 3]
     Uint32      ort:2;  // the glyph orientation; value range: [0, 3]
-    Uint32      flags:4;// other flags
+#endif
 };
 
-#define TEXT_ATTR_TEXT_COLOR            0x00
-#define TEXT_ATTR_UNDERLINE_COLOR       0x01
-#define TEXT_ATTR_STRIKETHROUGH_COLOR   0x02
-#define TEXT_ATTR_OUTLINE_COLOR         0x03
-#define TEXT_ATTR_BACKGROUND_COLOR      0x04
-
-struct _TextAttrMap {
+struct _TextColorMap {
     struct list_head    list;
     int                 si;
     int                 len;
-    int                 type;   // attribute type
-    Uint32              value;  // attribute value
+    RGBCOLOR            value;  // attribute value
 };
 
 struct _TEXTRUNSINFO {
@@ -105,17 +100,22 @@ struct _TEXTRUNSINFO {
     const Uchar32*      ucs;        // the uchars
     char*               fontname;   // the default logfont name specified
 
-    TextAttrMap         attrs;      // the head of color map (list)
+    TextColorMap        fg_colors;  // the head of foreground color map (list)
+    TextColorMap        bg_colors;  // the head of background color map (list)
     struct list_head    truns;      // the head of text runs (list)
 
-    int         nr_ucs;         // number of uchars
-    int         nr_runs;        // number of runs
+    int                 nr_ucs;     // number of uchars
+    int                 nr_runs;    // number of runs
+    LanguageCode        lc;         // language code specified
+    ParagraphDir        base_dir;   // paragraph base direction
+
+#if 0
     Uint32      lc:8;           // language code specified
-    Uint32      ort_base:3;     // the glyph orientation specified
-    Uint32      ort_rsv:3;      // the glyph orientation resolved
-    Uint32      ort_plc:2;      // the glyph orientation policy specified
-    Uint32      run_dir:4;      // the run direction specified
+    Uint32      grv_base:4;     // the gravity specified
+    Uint32      grv_plc:2;      // the gravity policy specified
+    Uint32      grv_rsv:4;      // the gravity resolved
     Uint32      base_level:1;   // the paragraph direction; 0 for LTR, 1 for RTL
+#endif
 
     /* The following fields will be initialized by the shaping engine. */
     ShapingEngineInfo   sei;    // the shaping engine information
@@ -125,9 +125,11 @@ struct _TEXTRUNSINFO {
 extern "C" {
 #endif  /* __cplusplus */
 
-RGBCOLOR __mg_textruns_get_text_color(const TEXTRUNSINFO* runinfo, int index);
-
-const TextRun* __mg_text_run_get_by_offset(const TEXTRUNSINFO* runinfo,
+TextRun* __mg_text_run_copy(const TextRun *orig);
+TextRun* __mg_text_run_split(TextRun *orig, int split_index);
+TextRun* __mg_text_run_get_by_offset(TEXTRUNSINFO* runinfo,
+        int index, int *start_offset);
+const TextRun* __mg_text_run_get_by_offset_const(const TEXTRUNSINFO* runinfo,
         int index, int *start_offset);
 
 #ifdef __cplusplus

@@ -9075,94 +9075,79 @@ typedef enum {
     GLYPH_RUN_DIR_RTL,
     GLYPH_RUN_DIR_TTB,
     GLYPH_RUN_DIR_BTT,
-
-    GLYPH_RUN_DIR_NEUTRAL,
-    GLYPH_RUN_DIR_WEAK_LTR,
-    GLYPH_RUN_DIR_WEAK_RTL,
 } GlyphRunDir;
 
 typedef enum {
-    WRITING_MODE_HORIZONTAL_TTB = 0,
-    WRITING_MODE_HORIZONTAL_BTT,
-    WRITING_MODE_VERTICAL_RL,
-    WRITING_MODE_VERTICAL_LR,
-} ParagraphWritingMode;
-
-#define GLYPH_GRAVITY_SOUTH                 0
-#define GLYPH_GRAVITY_EAST                  1
-#define GLYPH_GRAVITY_NORTH                 2
-#define GLYPH_GRAVITY_WEST                  3
-#define GLYPH_GRAVITY_AUTO                  4
+    LAYOUT_GRAVITY_SOUTH = 0,
+    LAYOUT_GRAVITY_EAST,
+    LAYOUT_GRAVITY_NORTH,
+    LAYOUT_GRAVITY_WEST,
+    LAYOUT_GRAVITY_AUTO,
+} LayoutGravity;
 
 typedef enum {
-    GLYPH_ORIENT_UPRIGHT        = GLYPH_GRAVITY_SOUTH,
-    GLYPH_ORIENT_SIDEWAYS       = GLYPH_GRAVITY_EAST,
-    GLYPH_ORIENT_UPSIDE_DOWN    = GLYPH_GRAVITY_NORTH,
-    GLYPH_ORIENT_SIDEWAYS_LEFT  = GLYPH_GRAVITY_WEST,
-    GLYPH_ORIENT_AUTO           = GLYPH_GRAVITY_AUTO,
-} GlyphOrient;
+    LAYOUT_GRAVITY_POLICY_NATURAL,
+    LAYOUT_GRAVITY_POLICY_STRONG,
+    LAYOUT_GRAVITY_POLICY_LINE,
+} LayoutGravityPolicy;
 
-typedef enum {
-    GLYPH_ORIENT_POLICY_NATURAL,
-    GLYPH_ORIENT_POLICY_STRONG,
-    GLYPH_ORIENT_POLICY_LINE,
-} GlyphOrientPolicy;
-
-#define GLYPH_ORIENT_IS_VERTICAL(orient) \
-    ((orient) == GLYPH_ORIENT_SIDEWAYS || (orient) == GLYPH_ORIENT_SIDEWAYS_LEFT)
+#define LAYOUT_GRAVITY_IS_VERTICAL(gravity) \
+    ((gravity) == LAYOUT_GRAVITY_EAST || (gravity) == LAYOUT_GRAVITY_WEST)
 
 /** Get the vertical orientation property of a Unicode character */
 MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
 
 /**
- * ScriptGetGlyphOrientation:
- * @script: #ScriptType to query
- * @base_orient: base orientation of the paragraph
- * @policy: orientation policy
+ * \fn LayoutGravity GUIAPI ScriptGetLayoutGravity(ScriptType script,
+ *      LayoutGravity base_gravity, LayoutGravityPolicy policy)
+ * \brief Based on the script, base gravity, and policy, returns actual gravity
+ *      to use in laying out a single glyph run.
  *
- * Based on the script, base orientation, and policy, returns actual orientation
- * to use in laying out a single glyph run.
- *
- * If @base_orient is %GLYPH_ORIENT_AUTO, it is first replaced with the
+ * If @base_orient is %LAYOUT_GRAVITY_AUTO, it is first replaced with the
  * preferred orientation of @script. To get the preferred orientation of a script,
- * pass %GLYPH_ORIENT_AUTO and %GLYPH_ORIENT_POLICY_STRONG in.
+ * pass %LAYOUT_GRAVITY_AUTO and %LAYOUT_GRAVITY_POLICY_STRONG in.
  *
- * Return value: resolved orientation suitable to use for a run of text
+ * \param script The script type to query
+ * \param base_gravity The base gravity of the paragraph/layout
+ * \param policy The gravity policy
+ *
+ * \param The resolved gravity suitable to use for a layout run of text
  * with @script.
  *
  * Since: 3.4.0
  */
-MG_EXPORT GlyphOrient GUIAPI ScriptGetGlyphOrientation (ScriptType script,
-        GlyphOrient base_orient, GlyphOrientPolicy policy);
+MG_EXPORT LayoutGravity GUIAPI ScriptGetLayoutGravity(ScriptType script,
+        LayoutGravity base_gravity, LayoutGravityPolicy policy);
 
 /**
- * GetWideGlyphOrientationForScript:
- * @script: #ScriptType to query
- * @wide: %TRUE for wide characters as returned by IsUCharWide()
- * @base_orient: base orientation of the paragraph
- * @policy: orientation policy
+ * \fn LayoutGravity GUIAPI ScriptGetLayoutGravityForWide (ScriptType script,
+ *      BOOL wide, LayoutGravity base_gravity, LayoutGravityPolicy policy)
+ * \brief Based on the script, East Asian width, base gravity, and policy,
+ *      returns the actual gravity to use in laying out a single character
+ *      or a run of text.
  *
- * Based on the script, East Asian width, base orientation, and policy,
- * returns actual orientation to use in laying out a single character
- * or a run of glyph.
- *
- * This function is similar to ScriptGetGlyphOrientation() except
+ * This function is similar to ScriptGetLayoutGravity() except
  * that this function makes a distinction between narrow/half-width and
  * wide/full-width characters also.  Wide/full-width characters always
- * stand <emphasis>upright</emphasis>, that is, they always take the
- * base orientation, whereas narrow/full-width characters are always
+ * stand upright, that is, they always take the
+ * base gravity, whereas narrow/half-width characters are always
  * rotated in vertical context.
  *
- * If @base_orient is %GLYPH_ORIENT_AUTO, it is first replaced with the
- * preferred orientation of @script.
+ * If @base_orient is %LAYOUT_GRAVITY_AUTO, it is first replaced with the
+ * preferred gravity of @script.
  *
- * Return value: resolved orientation suitable to use for a run of text
- * with @script and @wide.
+ * \param script The script type to query
+ * \param wide TRUE for wide characters as returned by IsUCharWide()
+ * \param base_gravity The base gravity of the paragraph
+ * \param policy The gravity policy
+ *
+ * \return The resolved gravity suitable to use for a run of text
+ * with \a script and \a wide.
  *
  * Since: 3.4.0
  */
-GlyphOrient GetWideGlyphOrientationForScript (ScriptType script,
-        BOOL wide, GlyphOrient base_orient, GlyphOrientPolicy policy);
+LayoutGravity ScriptGetLayoutGravityForWide (ScriptType script,
+        BOOL wide, LayoutGravity base_gravity, LayoutGravityPolicy policy);
 
     /** @} end of unicode_ops */
 
@@ -12196,32 +12181,40 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
 
 #define GRF_WRITING_MODE_MASK           0xF0000000
 /**
- * Top-to-bottom direction.
+ * Top-to-bottom horizontal direction.
  * Both the writing mode and the typographic mode are horizontal.
  */
 #define GRF_WRITING_MODE_HORIZONTAL_TB  0x00000000
 /**
- * Right-to-left direction.
- * Both the writing mode and the typographic mode are vertical.
+ * Bottom-to-top horizontal direction.
+ * Both the writing mode and the typographic mode are horizontal,
+ * but lines are generated from bottom to top.
  */
-#define GRF_WRITING_MODE_VERTICAL_RL    0x10000000
+#define GRF_WRITING_MODE_HORIZONTAL_BT  0x10000000
 /**
- * Left-to-right direction.
- * Both the writing mode and the typographic mode are vertical.
+ * Right-to-left vertical direction.
+ * Both the writing mode and the typographic mode are vertical,
+ * but the lines are generated from right to left.
  */
-#define GRF_WRITING_MODE_VERTICAL_LR    0x20000000
+#define GRF_WRITING_MODE_VERTICAL_RL    0x20000000
+/**
+ * Left-to-right vertical direction.
+ * Both the writing mode and the typographic mode are vertical.
+ * but the lines are generated from left to right.
+ */
+#define GRF_WRITING_MODE_VERTICAL_LR    0x30000000
 
-#define GRF_TEXT_ORIENTATION_MASK       0x0F000000
+#define GRF_TEXT_ORIENTATION_MASK           0x0F000000
 /**
  * The glyphs are individually typeset upright in
  * vertical lines with vertical font metrics.
  */
-#define GRF_TEXT_ORIENTATION_UPRIGHT    0x00000000
+#define GRF_TEXT_ORIENTATION_UPRIGHT        0x00000000
 /**
  * The glyphs typeset a run rotated 90° clockwise
  * from their upright orientation.
  */
-#define GRF_TEXT_ORIENTATION_SIDEWAYS   0x01000000
+#define GRF_TEXT_ORIENTATION_SIDEWAYS       0x01000000
 /**
  * The glyphs are individually typeset upside down in
  * vertical lines with vertical font metrics.
@@ -12236,7 +12229,7 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
  * In vertical writing modes, all typographic character units
  * keep in their intrinsic orientation.
  */
-#define GRF_TEXT_ORIENTATION_AUTO       0x04000000
+#define GRF_TEXT_ORIENTATION_AUTO           0x04000000
 /**
  * In vertical writing modes, typographic character units from
  * horizontal-only scripts are typeset sideways, i.e. 90° clockwise
@@ -12244,7 +12237,7 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
  * Typographic character units from vertical scripts are
  * typeset with their intrinsic orientation.
  */
-#define GRF_TEXT_ORIENTATION_MIXED      0x05000000
+#define GRF_TEXT_ORIENTATION_MIXED          0x05000000
 
 #define GRF_OVERFLOW_WRAP_MASK          0x00F00000
 /**
@@ -12384,10 +12377,12 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
 
     /** @} end of glyph_render_flags */
 
-#define GLYPH_ORIENTATION_UPRIGHT           GLYPH_GRAVITY_SOUTH
-#define GLYPH_ORIENTATION_SIDEWAYS          GLYPH_GRAVITY_EAST
-#define GLYPH_ORIENTATION_UPSIDE_DOWN       GLYPH_GRAVITY_NORTH
-#define GLYPH_ORIENTATION_SIDEWAYS_LEFT     GLYPH_GRAVITY_WEST
+typedef enum {
+    GLYPH_ORIENT_UPRIGHT,
+    GLYPH_ORIENT_SIDEWAYS,
+    GLYPH_ORIENT_UPSIDE_DOWN,
+    GLYPH_ORIENT_SIDEWAYS_LEFT,
+} GlyphOrient;
 
 #define GLYPH_HANGED_NONE           0
 #define GLYPH_HANGED_START          1
@@ -12415,13 +12410,13 @@ typedef struct _GLYPHEXTINFO {
     Uint8 whitespace:1;
     /**
      * The orientation of the glyph; can be one of the following values:
-     *  - GLYPH_ORIENTATION_UPRIGHT\n
+     *  - GLYPH_ORIENT_UPRIGHT\n
      *      the glyph is in the standard horizontal orientation.
-     *  - GLYPH_ORIENTATION_SIDEWAYS\n
+     *  - GLYPH_ORIENT_SIDEWAYS\n
      *      the glyph rotates 90° clockwise from horizontal.
-     *  - GLYPH_ORIENTATION_SIDEWAYS_LEFT\n
+     *  - GLYPH_ORIENT_SIDEWAYS_LEFT\n
      *      the glyph rotates 90° counter-clockwise from horizontal.
-     *  - GLYPH_ORIENTATION_INVERTED\n
+     *  - GLYPH_ORIENT_UPSIDE_DOWN\n
      *      the glyph is in the inverted horizontal orientation.
      */
     Uint8 orientation:2;
@@ -12465,13 +12460,13 @@ typedef struct _GLYPHPOS {
     Uint8 ellipsis:1;
     /**
      * The orientation of the glyph; can be one of the following values:
-     *  - GLYPH_ORIENTATION_UPRIGHT\n
+     *  - GLYPH_ORIENT_UPRIGHT\n
      *      the glyph is in the standard horizontal orientation.
-     *  - GLYPH_ORIENTATION_SIDEWAYS\n
+     *  - GLYPH_ORIENT_SIDEWAYS\n
      *      the glyph rotates 90° clockwise from horizontal.
-     *  - GLYPH_ORIENTATION_SIDEWAYS_LEFT\n
+     *  - GLYPH_ORIENT_SIDEWAYS_LEFT\n
      *      the glyph rotates 90° counter-clockwise from horizontal.
-     *  - GLYPH_ORIENTATION_UPSIDE_DOWN\n
+     *  - GLYPH_ORIENT_UPSIDE_DOWN\n
      *      the glyph is upside down.
      */
     Uint8 orientation:2;
@@ -12607,9 +12602,8 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
 
 /**
  * \fn TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
- *      LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
- *      GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
- *      const char* logfont_name, RGBCOLOR color,
+ *      LanguageCode lang_code, ParagraphDir base_dir,
+ *      const char* logfont_name, RGBCOLOR color, RGBCOLOR bg_color,
  *      BreakOppo* break_oppos)
  *
  * \brief Split a Uchar32 paragraph string in mixed scripts into text runs.
@@ -12619,16 +12613,16 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  *
  * \param ucs The Uchar32 string returned by \a GetUCharsUntilParagraphBoundary.
  * \param nr_ucs The length of the Uchar32 string.
- * \param 
  * \param lang_code The language code.
  * \param base_dir The base direction of the paragraph.
- * \param run_dir The writing direction of the paragraph.
- * \param glyph_orient The glyph orientation.
- * \param orient_policy THe glyph orientation policy of the paragraph.
  * \param logfont_name The default logfont name. You can change the font
  *      of some text in the paragraph by calling \a SetFontInTextRuns.
  * \param color The default text color. You can change the text color
- *      of some text in the paragraph by calling \a SetTextColorInTextRuns
+ *      of some text in the paragraph by calling \a SetTextColorInTextRuns.
+ * \param bg_color The default background color. You can change the background
+ *      color of some text in the paragraph by calling
+ *      \a SetBackgroundColorInTextRuns. If the background is transparent,
+ *      please pass MakeRGBA(0,0,0,0) for this argument.
  * \param break_oppos If not NULL, the break opportunities will be tailored
  *      according to the script type of every text run. Please skip the first
  *      entry when you pass the pointer.
@@ -12644,35 +12638,35 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  * \sa GetUCharsUntilParagraphBoundary, UStrGetBreaks,
  *      SetFontInTextRuns, SetTextColorInTextRuns
  */
-MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
-        LanguageCode lang_code, ParagraphDir base_dir, GlyphRunDir run_dir,
-        GlyphOrient glyph_orient, GlyphOrientPolicy orient_policy,
-        const char* logfont_name, RGBCOLOR color,
+MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(
+        const Uchar32* ucs, int nr_ucs,
+        LanguageCode lang_code, ParagraphDir base_dir,
+        const char* logfont_name, RGBCOLOR color, RGBCOLOR bg_color,
         BreakOppo* break_oppos);
 
 /**
- * Set logfont of text runs
+ * Set logfont name of text runs
  */
-MG_EXPORT BOOL GUIAPI SetFontInTextRuns(TEXTRUNSINFO* truninfo,
-    int start_index, int length, const char* logfont_name);
+MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* truninfo,
+        int start_index, int length, const char* logfont_name);
+
+/**
+ * Get logfont name of a specific character in text runs
+ */
+MG_EXPORT const char* GUIAPI GetFontNameInTextRuns(
+        const TEXTRUNSINFO* truninfo, int index);
 
 /**
  * Set text olor in text runs.
  */
 MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* truninfo,
-    int start_index, int length, RGBCOLOR color);
+        int start_index, int length, RGBCOLOR color);
 
 /**
- * Set underline color in text runs.
+ * Get text color of a specific character in text runs
  */
-MG_EXPORT BOOL GUIAPI SetUnderlineColorInTextRuns(TEXTRUNSINFO* truninfo,
-    int start_index, int length, RGBCOLOR color);
-
-/**
- * Set strikethrough color in text runs.
- */
-MG_EXPORT BOOL GUIAPI SetStrikethroughColorInTextRuns(TEXTRUNSINFO* truninfo,
-    int start_index, int length, RGBCOLOR color);
+MG_EXPORT RGBCOLOR GUIAPI GetTextColorInTextRuns(
+        const TEXTRUNSINFO* truninfo, int index);
 
 /**
  * Set background color in text runs.
@@ -12681,10 +12675,10 @@ MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, RGBCOLOR color);
 
 /**
- * Set outline color in text runs.
+ * Get background color of a specific character in text runs
  */
-MG_EXPORT BOOL GUIAPI SetOutlineColorInTextRuns(TEXTRUNSINFO* truninfo,
-    int start_index, int length, RGBCOLOR color);
+MG_EXPORT RGBCOLOR GUIAPI GetBackgroundColorInTextRuns(
+        const TEXTRUNSINFO* truninfo, int index);
 
 /**
  * \fn BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo)
@@ -12886,12 +12880,13 @@ MG_EXPORT int DrawLayoutLine(HDC hdc, LAYOUTLINE* line,
         int x, int y, RECT* rc_bouding);
 
 #ifdef _MGDEVEL_MODE
-void* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
-        void* prev,
+typedef struct _TextRun TEXTRUN;
+
+MG_EXPORT TEXTRUN* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
+        TEXTRUN* prev,
         const char** fontname, int* start_index, int* length,
         LanguageCode* lang_code, ScriptType* script,
-        BidiLevel* embedding_level, GlyphRunDir* run_dir,
-        GlyphOrient* orient, Uint8* flags);
+        BidiLevel* embedding_level, Uint8* flags);
 
 /* Get layout line information */
 MG_EXPORT BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,

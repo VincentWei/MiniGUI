@@ -106,6 +106,49 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     INIT_LIST_HEAD(&layout->lines);
     layout->nr_left_ucs = truninfo->nr_ucs;
 
+    switch (render_flags & GRF_WRITING_MODE_MASK) {
+    default:
+    case GRF_WRITING_MODE_HORIZONTAL_TB:
+        layout->grv_base = LAYOUT_GRAVITY_SOUTH;
+        break;
+    case GRF_WRITING_MODE_HORIZONTAL_BT:
+        layout->grv_base = LAYOUT_GRAVITY_NORTH;
+        break;
+    case GRF_WRITING_MODE_VERTICAL_RL:
+        layout->grv_base = LAYOUT_GRAVITY_WEST;
+        break;
+    case GRF_WRITING_MODE_VERTICAL_LR:
+        layout->grv_base = LAYOUT_GRAVITY_EAST;
+        break;
+    }
+
+    switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
+    case GRF_TEXT_ORIENTATION_AUTO:
+        layout->grv_plc = LAYOUT_GRAVITY_POLICY_NATURAL;
+        layout->orient = GLYPH_ORIENT_UPRIGHT;
+        break;
+    case GRF_TEXT_ORIENTATION_MIXED:
+        layout->grv_plc = LAYOUT_GRAVITY_POLICY_LINE;
+        layout->orient = GLYPH_ORIENT_UPRIGHT;
+        break;
+    case GRF_TEXT_ORIENTATION_UPRIGHT:
+        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
+        layout->orient = GLYPH_ORIENT_UPRIGHT;
+        break;
+    case GRF_TEXT_ORIENTATION_SIDEWAYS:
+        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
+        layout->orient = GLYPH_ORIENT_SIDEWAYS;
+        break;
+    case GRF_TEXT_ORIENTATION_UPSIDE_DOWN:
+        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
+        layout->orient = GLYPH_ORIENT_UPSIDE_DOWN;
+        break;
+    case GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT:
+        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
+        layout->orient = GLYPH_ORIENT_SIDEWAYS_LEFT;
+        break;
+    }
+
     layout->persist = persist_lines ? 1 : 0;
 
     return layout;
@@ -165,7 +208,7 @@ struct _LayoutState {
 
     /* maintained per paragraph */
     // Current resolved base direction
-    GlyphRunDir base_dir;
+    ParagraphDir base_dir;
     // Line of the paragraph, starting at 1 for first line
     int line_of_par;
     // Glyphs for the current glyph run
@@ -536,7 +579,7 @@ static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
         _DBG_PRINTF("   LENGHT:         %d\n", run->lrun->len);
         _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->lrun->el);
         _DBG_PRINTF("   NO SHAPING     :%s\n",
-            (run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) ? "YES" : "NO");
+            (run->lrun->noshape) ? "YES" : "NO");
         _DBG_PRINTF("   NR GLYPHS:      %d\n", run->gstr->nr_glyphs);
         j++;
     }
@@ -861,17 +904,17 @@ static LAYOUTLINE *layout_line_new(LAYOUTINFO *layout)
 /* The resolved direction for the line is always one
  * of LTR/RTL; not a week or neutral directions
  */
-static void line_set_resolved_dir(LAYOUTLINE *line, GlyphRunDir direction)
+static void line_set_resolved_dir(LAYOUTLINE *line, ParagraphDir direction)
 {
     switch (direction) {
     default:
-    case GLYPH_RUN_DIR_LTR:
-    case GLYPH_RUN_DIR_WEAK_LTR:
-    case GLYPH_RUN_DIR_NEUTRAL:
+    case BIDI_PGDIR_LTR:
+    case BIDI_PGDIR_WLTR:
+    case BIDI_PGDIR_ON:
         line->resolved_dir = GLYPH_RUN_DIR_LTR;
         break;
-    case GLYPH_RUN_DIR_RTL:
-    case GLYPH_RUN_DIR_WEAK_RTL:
+    case BIDI_PGDIR_RTL:
+    case BIDI_PGDIR_WRTL:
         line->resolved_dir = GLYPH_RUN_DIR_RTL;
         break;
     }
@@ -889,20 +932,20 @@ static void line_set_resolved_dir(LAYOUTLINE *line, GlyphRunDir direction)
      * A similar dance is performed in textrunsinfo.c:
      * state_add_character().  Keep in sync.
      */
-    switch (line->layout->truninfo->ort_rsv) {
+    switch (line->layout->grv_base) {
         default:
-        case GLYPH_GRAVITY_AUTO:
-        case GLYPH_GRAVITY_SOUTH:
+        case LAYOUT_GRAVITY_AUTO:
+        case LAYOUT_GRAVITY_SOUTH:
             break;
-        case GLYPH_GRAVITY_NORTH:
+        case LAYOUT_GRAVITY_NORTH:
             line->resolved_dir = GLYPH_RUN_DIR_LTR
                 + GLYPH_RUN_DIR_RTL
                 - line->resolved_dir;
             break;
-        case GLYPH_GRAVITY_EAST:
+        case LAYOUT_GRAVITY_EAST:
             line->resolved_dir = GLYPH_RUN_DIR_LTR;
             break;
-        case GLYPH_GRAVITY_WEST:
+        case LAYOUT_GRAVITY_WEST:
             line->resolved_dir = GLYPH_RUN_DIR_RTL;
             break;
     }
@@ -1609,7 +1652,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
             state->remaining_width = break_remaining_width;
 
             /* determine start text run again */
-            state->trun = __mg_text_run_get_by_offset(layout->truninfo,
+            state->trun = __mg_text_run_get_by_offset_const(layout->truninfo,
                     state->start_offset, &state->start_index_in_trun);
             if (state->start_index_in_trun > 0) {
                 state->lrun = __mg_layout_run_new_from_offset(layout,
@@ -1744,7 +1787,7 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     //state.shape_ink_rect;
     //state.shape_logical_rect;
 
-    state.base_dir = layout->truninfo->run_dir;
+    state.base_dir = layout->truninfo->base_dir;
     state.line_of_par = 1;
     state.glyphs = NULL;
     state.log_widths = NULL;
@@ -1766,7 +1809,7 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         state.line_start_index = layout->truninfo->nr_ucs - layout->nr_left_ucs;
         state.start_offset = state.line_start_index;
         state.start_index_in_trun = 0;
-        state.trun = __mg_text_run_get_by_offset(layout->truninfo,
+        state.trun = __mg_text_run_get_by_offset_const(layout->truninfo,
                 state.line_start_index, &state.start_index_in_trun);
 
         _DBG_PRINTF("%s: line_start_index: %d, start_index_in_trun: %d(%p)\n",

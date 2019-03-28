@@ -387,20 +387,26 @@ ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
 }
 
 typedef enum {
+    HORIZONTAL_DIRECTION_LTR,
+    HORIZONTAL_DIRECTION_RTL,
+    HORIZONTAL_DIRECTION_WEAK,
+} HorizontalDirection;
+
+typedef enum {
     VERTICAL_DIRECTION_NONE,
     VERTICAL_DIRECTION_TTB,
-    VERTICAL_DIRECTION_BTT
+    VERTICAL_DIRECTION_BTT,
 } VerticalDirection;
 
 typedef struct {
     /* GlyphRunDir */
     Uint8 horiz_dir;        /* Orientation in horizontal context */
 
-    /* PangoVerticalDirection */
+    /* VerticalDirection */
     Uint8 vert_dir;         /* Orientation in vertical context */
 
-    /* GlyphOrient */
-    Uint8 preferred_orient; /* Preferred context orientation */
+    /* LayoutGravity */
+    Uint8 preferred_gravity; /* Preferred context gravity */
 
     /* BOOL */
     Uint8 wide;             /* Whether script is mostly wide.
@@ -412,13 +418,13 @@ typedef struct {
 #define TTB  VERTICAL_DIRECTION_TTB
 #define BTT  VERTICAL_DIRECTION_BTT
 
-#define LTR  GLYPH_RUN_DIR_LTR
-#define RTL  GLYPH_RUN_DIR_RTL
-#define WEAK GLYPH_RUN_DIR_WEAK_LTR
+#define LTR  HORIZONTAL_DIRECTION_LTR
+#define RTL  HORIZONTAL_DIRECTION_RTL
+#define WEAK HORIZONTAL_DIRECTION_WEAK
 
-#define S GLYPH_ORIENT_UPRIGHT
-#define E GLYPH_ORIENT_SIDEWAYS
-#define W GLYPH_ORIENT_SIDEWAYS_LEFT
+#define S LAYOUT_GRAVITY_SOUTH
+#define E LAYOUT_GRAVITY_EAST
+#define W LAYOUT_GRAVITY_WEST
 
 #define UNKNOWN_SCRIPT_PROPERTY \
     {LTR, NONE, S, FALSE}
@@ -627,61 +633,61 @@ static inline ScriptTypeProperties get_script_properties (ScriptType script)
     return script_properties[script];
 }
 
-GlyphOrient ScriptGetGlyphOrientation (ScriptType script,
-        GlyphOrient base_orient, GlyphOrientPolicy hint)
+LayoutGravity ScriptGetLayoutGravity (ScriptType script,
+        LayoutGravity base_gravity, LayoutGravityPolicy hint)
 {
     ScriptTypeProperties props = get_script_properties (script);
 
-    if (base_orient == GLYPH_ORIENT_AUTO)
-        base_orient = props.preferred_orient;
+    if (base_gravity == LAYOUT_GRAVITY_AUTO)
+        base_gravity = props.preferred_gravity;
 
-    return GetWideGlyphOrientationForScript (script, props.wide,
-            base_orient, hint);
+    return ScriptGetLayoutGravityForWide (script, props.wide,
+            base_gravity, hint);
 }
 
-GlyphOrient GetWideGlyphOrientationForScript (ScriptType script,
-        BOOL wide, GlyphOrient base_orient, GlyphOrientPolicy hint)
+LayoutGravity ScriptGetLayoutGravityForWide (ScriptType script,
+        BOOL wide, LayoutGravity base_gravity, LayoutGravityPolicy hint)
 {
     ScriptTypeProperties props = get_script_properties (script);
     BOOL vertical;
 
-    if (base_orient == GLYPH_ORIENT_AUTO)
-        base_orient = props.preferred_orient;
+    if (base_gravity == LAYOUT_GRAVITY_AUTO)
+        base_gravity = props.preferred_gravity;
 
-    vertical = GLYPH_ORIENT_IS_VERTICAL(base_orient);
+    vertical = LAYOUT_GRAVITY_IS_VERTICAL(base_gravity);
 
     /* Everything is designed such that a system with no vertical support
      * renders everything correctly horizontally.  So, if not in a vertical
-     * orientation, base and resolved gravities are always the same.
+     * gravity, base and resolved gravities are always the same.
      *
      * Wide characters are always upright.
      */
     if (!vertical || wide)
-        return base_orient;
+        return base_gravity;
 
-    /* If here, we have a narrow character in a vertical orientation setting.
+    /* If here, we have a narrow character in a vertical gravity setting.
      * Resolve depending on the hint.
      */
     switch (hint) {
     default:
-    case GLYPH_ORIENT_POLICY_NATURAL:
+    case LAYOUT_GRAVITY_POLICY_NATURAL:
         if (props.vert_dir == VERTICAL_DIRECTION_NONE)
-            return GLYPH_ORIENT_UPRIGHT;
-        if ((base_orient   == GLYPH_ORIENT_SIDEWAYS) ^
+            return LAYOUT_GRAVITY_SOUTH;
+        if ((base_gravity   == LAYOUT_GRAVITY_EAST) ^
                 (props.vert_dir == VERTICAL_DIRECTION_BTT))
-            return GLYPH_ORIENT_UPRIGHT;
+            return LAYOUT_GRAVITY_SOUTH;
         else
-            return GLYPH_ORIENT_UPSIDE_DOWN;
+            return LAYOUT_GRAVITY_NORTH;
 
-    case GLYPH_ORIENT_POLICY_STRONG:
-        return base_orient;
+    case LAYOUT_GRAVITY_POLICY_STRONG:
+        return base_gravity;
 
-    case GLYPH_ORIENT_POLICY_LINE:
-        if ((base_orient    == GLYPH_ORIENT_SIDEWAYS) ^
+    case LAYOUT_GRAVITY_POLICY_LINE:
+        if ((base_gravity    == LAYOUT_GRAVITY_EAST) ^
                 (props.horiz_dir == GLYPH_RUN_DIR_RTL))
-            return GLYPH_ORIENT_UPRIGHT;
+            return LAYOUT_GRAVITY_SOUTH;
         else
-            return GLYPH_ORIENT_UPSIDE_DOWN;
+            return LAYOUT_GRAVITY_NORTH;
     }
 }
 #endif /* _MGCHARSET_UNICODE */
