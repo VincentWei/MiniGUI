@@ -623,24 +623,38 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
     int left_ucs;;
 
     if (runinfo == NULL || logfont_name == NULL ||
-            start_index < 0 || (start_index + length) > runinfo->nr_ucs)
+            start_index < 0 || length <= 0 ||
+            (start_index + length) > runinfo->nr_ucs)
         return FALSE;
-
-    if (strcmp(logfont_name, runinfo->fontname) == 0)
-        return TRUE;
 
     // can not change font for empty runs
     if (list_empty(&runinfo->truns))
         return FALSE;
 
+    if (!is_fontname_conformed(logfont_name)) {
+        return FALSE;
+    }
+
+    // change the default fontname
     if (start_index == 0 && length == runinfo->nr_ucs) {
-        // change the default fontname
-        if (!is_fontname_conformed(logfont_name)) {
-            return FALSE;
-        }
+        struct list_head* i;
+
+        // do not allow to set the same font as the default
+        if (strcmp(logfont_name, runinfo->fontname) == 0)
+            return TRUE;
 
         free(runinfo->fontname);
         runinfo->fontname = strdup(logfont_name);
+
+        // reset all runs fontname
+        list_for_each(i, &runinfo->truns) {
+            TextRun* run = (TextRun*)i;
+            if (run->fontname) {
+                free(run->fontname);
+                run->fontname = NULL;
+            }
+        }
+
         return TRUE;
     }
 
@@ -650,6 +664,13 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
 
         if (run == NULL)
             return FALSE;
+
+        // no need to change
+        if (run->fontname && strcmp(logfont_name, run->fontname) == 0) {
+            start_index = run->si + run->len;
+            left_ucs -= run->len - start_offset;
+            continue;
+        }
 
         if (start_offset == 0) {
             if (left_ucs >= run->len) {
@@ -677,6 +698,9 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
             TextRun* new_run;
 
             new_run = __mg_text_run_split(run, start_offset);
+            if (new_run->fontname)
+                new_run->fontname = strdup(new_run->fontname);
+
             // insert the new run to the list.
             __list_add(&new_run->list, run->list.prev, &run->list);
         }
@@ -710,7 +734,7 @@ BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
 {
     TextColorMap* color_entry = NULL;
 
-    if (runinfo == NULL || start_index < 0 || length < 0 ||
+    if (runinfo == NULL || start_index < 0 || length <= 0 ||
             start_index > runinfo->nr_ucs ||
             (start_index + length) > runinfo->nr_ucs) {
         goto error;
@@ -754,7 +778,7 @@ BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* runinfo,
 {
     TextColorMap* color_entry = NULL;
 
-    if (runinfo == NULL || start_index < 0 || length < 0 ||
+    if (runinfo == NULL || start_index < 0 || length <= 0 ||
             start_index > runinfo->nr_ucs ||
             (start_index + length) > runinfo->nr_ucs) {
         goto error;
