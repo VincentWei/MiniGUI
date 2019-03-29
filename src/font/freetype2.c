@@ -296,33 +296,36 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     *face = ft_face_info->face;
     ft_inst_info->cur_index = gv;
     if (FT_Load_Glyph (*face, ft_inst_info->cur_index, ft_load_flags)) {
-        _WRN_PRINTF ("FONT>FT2: FT_Load_Glyph error\n");
+        _WRN_PRINTF ("FONT>FT2: FT_Load_Glyph error");
         return -1;
     }
 
     if (FT_Get_Glyph ((*face)->glyph, &(ft_inst_info->glyph))) {
-        _WRN_PRINTF ("FONT>FT2: FT_Get_Glyph error\n");
+        _WRN_PRINTF ("FONT>FT2: FT_Get_Glyph error");
         return -1;
     }
 
 #else /* !_MGFONT_TTF_CACHE */
 
+    FT_Error error;
     FT_Glyph ft_glyph_tmp;
 
     if (get_cached_face (ft_inst_info, face)) {
-        _WRN_PRINTF ("FONT>FT2: can't access font file %p\n", face);
+        _WRN_PRINTF ("FONT>FT2: can't access font file %p", face);
         return 0;
     }
 
     ft_inst_info->cur_index = gv;
-    if (FTC_ImageCache_Lookup (ft_image_cache, &ft_inst_info->image_type,
-                ft_inst_info->cur_index, &ft_glyph_tmp, NULL)) {
-        _WRN_PRINTF ("FONT>FT2: can't access image cache.\n");
+    if ((error = FTC_ImageCache_Lookup (ft_image_cache, &ft_inst_info->image_type,
+                ft_inst_info->cur_index, &ft_glyph_tmp, NULL))) {
+        _WRN_PRINTF ("FONT>FT2: can't access image cache for index: 0x%X: %X",
+            ft_inst_info->cur_index, error);
+        assert(0);
         return -1;
     }
 
     if (FT_Glyph_Copy (ft_glyph_tmp, &ft_inst_info->glyph)) {
-        _WRN_PRINTF ("FONT>FT2: can't copy glyph from cache.\n");
+        _WRN_PRINTF ("FONT>FT2: can't copy glyph from cache.");
         return -1;
     }
 
@@ -379,7 +382,8 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, Glyph32 gv,
 
     if (load_or_search_glyph (ft_inst_info, &face, gv,
                 get_glyph_bmptype(logfont, devfont))) {
-        _ERR_PRINTF ("FONT>FT2: load_or_search_glyph error in freetype2\n");
+        _ERR_PRINTF ("%s: load_or_search_glyph error in freetype2\n",
+            __FUNCTION__);
         goto error;
     }
 
@@ -522,7 +526,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
     if (load_or_search_glyph (ft_inst_info, &face, gv,
                 get_glyph_bmptype(logfont, devfont))) {
-        _ERR_PRINTF ("FONT>FT2: load_or_search_glyph failed in freetype2\n");
+        _ERR_PRINTF ("%s: load_or_search_glyph failed in freetype2\n",
+            __FUNCTION__);
         goto error;
     }
 
@@ -532,7 +537,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                 IS_SUBPIXEL(logfont) && is_grey) {
             if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
                         FT_RENDER_MODE_LCD, NULL, 1)) {
-                _ERR_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
+                _ERR_PRINTF ("%s: FT_Glyph_To_Bitmap failed\n",
+                    __FUNCTION__);
                 goto error;
             }
         }
@@ -540,7 +546,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             if (FT_Glyph_To_Bitmap (&(ft_inst_info->glyph),
                         is_grey ? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO,
                         NULL, 1)) {
-                _ERR_PRINTF ("FONT>FT2: FT_Glyph_To_Bitmap failed\n");
+                _ERR_PRINTF ("%s: FT_Glyph_To_Bitmap failed\n",
+                    __FUNCTION__);
                 goto error;
             }
         }
@@ -711,7 +718,8 @@ get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 
     if (load_or_search_glyph (ft_inst_info, &face, gv,
                 get_glyph_bmptype(logfont, devfont))) {
-        _ERR_PRINTF ("FONT>FT2: load_or_search_glyph error in freetype2\n");
+        _ERR_PRINTF ("%s: load_or_search_glyph error in freetype2\n",
+            __FUNCTION__);
         goto error;
     }
 
@@ -854,7 +862,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     if (FTC_Manager_LookupFace (ft_cache_manager,
                   (FTC_FaceID)ft_face_info, &face)) {
         /* can't access the font file. do not render anything */
-        _WRN_PRINTF ("FONT>FT2: can't access font file %p\n", ft_face_info);
+        _WRN_PRINTF ("can't access font file %p", ft_face_info);
         goto out_lock;
     }
 #else
@@ -1023,7 +1031,7 @@ static Glyph32 get_glyph_value (LOGFONT* logfont, DEVFONT* devfont, Achar32 ac)
     gv = FT_Get_Char_Index (face, uc);
 #else /* !_MGFONT_TTF_CACHE */
     if (get_cached_face (ft_inst_info, &face)) {
-        _WRN_PRINTF ("FONT>FT2: can't access cached face %p\n", ft_inst_info->ft_face_info);
+        _WRN_PRINTF ("can't access cached face %p", ft_inst_info->ft_face_info);
         goto error;
     }
 
@@ -1081,12 +1089,12 @@ static void* load_font_data (DEVFONT* devfont,
 #endif
 
     if (error == FT_Err_Unknown_File_Format) {
-        _ERR_PRINTF ("FONT>FT2: bad file format: %s\n", file_name);
+        _ERR_PRINTF ("%s: bad file format: %s\n", __FUNCTION__, file_name);
         goto error;
     }
     else if (error) {
-        _ERR_PRINTF ("FONT>FT2: failed to open the font file: %s (%d)\n",
-            file_name, error);
+        _ERR_PRINTF ("%s: failed to open the font file: %s (%d)\n",
+            __FUNCTION__, file_name, error);
         goto error;
     }
 
@@ -1100,8 +1108,8 @@ static void* load_font_data (DEVFONT* devfont,
                     && (charmap->encoding_id == TT_APPLE_ID_DEFAULT))) {
             error = FT_Set_Charmap (face, charmap);
             if (error) {
-                _ERR_PRINTF ("FONT>FT2: can not set UNICODE CharMap (%d)\n",
-                    error);
+                _ERR_PRINTF ("%s: can not set UNICODE CharMap (%d)\n",
+                    __FUNCTION__, error);
                 goto error;
             }
 #ifdef _MGFONT_TTF_CACHE
@@ -1112,7 +1120,7 @@ static void* load_font_data (DEVFONT* devfont,
     }
 
     if (i == face->num_charmaps) {
-        _ERR_PRINTF ("FONT>FT2: No UNICODE CharMap: %s\n", file_name);
+        _ERR_PRINTF ("%s: No UNICODE CharMap: %s\n", __FUNCTION__, file_name);
         goto error;
     }
 
@@ -1184,11 +1192,10 @@ static void unload_font_data (DEVFONT* devfont, void* data)
     free(ft_data);
 }
 
-static void ShowErr (const char*  message , int error)
+static void ShowErr (const char* func, const char* message, int error)
 {
-    _ERR_PRINTF ("FONT>FT2: %s\n  error = 0x%04x\n", message, error );
+    _ERR_PRINTF ("%s: %s (error = 0x%04x)\n", func, message, error );
 }
-
 
 /******************************* Global data ********************************/
 BOOL font_InitFreetypeLibrary (void)
@@ -1206,7 +1213,7 @@ BOOL font_InitFreetypeLibrary (void)
     /* Init freetype library */
     error = FT_Init_FreeType (&ft_library);
     if (error) {
-        ShowErr ("could not initialize FreeType 2 library", error);
+        ShowErr (__FUNCTION__, "could not initialize FreeType 2 library", error);
         goto error_library;
     }
 
@@ -1217,32 +1224,32 @@ BOOL font_InitFreetypeLibrary (void)
     error = FTC_Manager_New (ft_library, 0, 0, 0,
                  my_face_requester, 0, &ft_cache_manager);
     if (error) {
-        ShowErr ("could not initialize cache manager", error);
+        ShowErr (__FUNCTION__, "could not initialize cache manager", error);
         goto error_ftc_manager;
     }
 
     error = FTC_ImageCache_New (ft_cache_manager, &ft_image_cache);
     if (error) {
-        ShowErr ("could not initialize glyph image cache", error);
+        ShowErr (__FUNCTION__, "could not initialize glyph image cache", error);
         goto error_ftc_manager;
     }
 
     error = FTC_CMapCache_New (ft_cache_manager, &ft_cmap_cache);
     if (error) {
-        ShowErr ("could not initialize charmap cache", error);
+        ShowErr (__FUNCTION__, "could not initialize charmap cache", error);
         goto error_ftc_manager;
     }
 
 #if 0
     error = FTC_SBitCache_New(ft_cache_manager, &ft_sbit_cache);
     if (error) {
-        ShowErr ("could not initialize sbit cache", error);
+        ShowErr (__FUNCTION__, "could not initialize sbit cache", error);
         goto error_ftc_manager;
     }
 #endif
 
     if (__mg_ttc_sys_init (_MGMAX_TTF_CACHE, _MGTTF_CACHE_SIZE * 1024)) {
-        _WRN_PRINTF ("FONT>FT2: init ttf cache sys failed\n");
+        _WRN_PRINTF ("init ttf cache sys failed");
         goto error_library;
     }
 
@@ -1265,7 +1272,7 @@ error_ftc_manager:
     return TRUE;
 
 error_library:
-    _ERR_PRINTF ("FONT>FT2: Could not initialise FreeType 2 library\n");
+    _ERR_PRINTF ("%s: Could not initialise FreeType 2 library\n", __FUNCTION__);
 
     FT_DESTROY_LOCK(&ft_lock);
     FT_Done_FreeType (ft_library);

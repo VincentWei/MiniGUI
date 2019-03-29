@@ -191,7 +191,7 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
             if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, chv);
-                goto end ;
+                goto end;
             }
 
             if (!cb_one_glyph (context, gv, char_type)) {
@@ -214,7 +214,7 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
                     INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, biggest_vowel);
-                goto end ;
+                goto end;
             }
 
             if (!cb_one_glyph (context, gv, char_type)){
@@ -446,6 +446,7 @@ static int _gdi_output_achars_direct(PDC pdc, const unsigned char* text,
 {
     unsigned int char_type;
     Achar32  chv;
+    Glyph32  gv;
     DEVFONT* sbc_devfont = pdc->pLogFont->devfonts[0];
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
     int len_cur_char = 0;
@@ -464,7 +465,7 @@ static int _gdi_output_achars_direct(PDC pdc, const unsigned char* text,
 #endif
 
     while (left_bytes > 0){
-        if(mbc_devfont){
+        if (mbc_devfont) {
             len_cur_char = mbc_devfont->charset_ops->len_first_char
                 ((const unsigned char*)text, left_bytes);
             if (len_cur_char > 0) {
@@ -483,7 +484,8 @@ static int _gdi_output_achars_direct(PDC pdc, const unsigned char* text,
             chv = sbc_devfont->charset_ops->get_char_value
                 (NULL, 0, text, left_bytes);
         }
-        else break;
+        else
+            break;
 
 do_glyph:
         if (IS_MBCHV (chv))
@@ -491,7 +493,12 @@ do_glyph:
         else
             char_type = sbc_devfont->charset_ops->char_type (chv);
 
-        if(if_break){
+        gv = GetGlyphValue(pdc->pLogFont, chv);
+        if (gv == INV_GLYPH_VALUE) {
+            continue;
+        }
+
+        if (if_break) {
             DRAWTEXTEX2_CTXT _txt;
             _txt.pdc         = pdc;
             _txt.x           = 0;
@@ -500,17 +507,17 @@ do_glyph:
             _txt.nFormat     = ctxt->nFormat;
             _txt.only_extent = TRUE;
             _txt.tab_width   = ctxt->tab_width;
-            if (!cb_one_glyph(&_txt, chv, char_type)){
+            if (!cb_one_glyph(&_txt, gv, char_type)) {
                 break;
             }
             line_width += _txt.advance;
-            if(line_width > ctxt->max_extent){
+            if (line_width > ctxt->max_extent) {
                 break;
             }
         }
 
-        if(if_draw) {
-            if (!cb_one_glyph(ctxt, chv, char_type)){
+        if (if_draw) {
+            if (!cb_one_glyph(ctxt, gv, char_type)){
                 break;
             }
         }
@@ -522,8 +529,8 @@ do_glyph:
             ctxt->nCount = text_len - left_bytes;
         }
     }
-    return i;
 
+    return i;
 }
 
 Achar32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
@@ -587,19 +594,27 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
     else {
         if (!direction) { /* right to left, reverse text.*/
             for (i = text_len - 1; i >= 0; i--) {
+                Glyph32 gv;
+
                 if (!(chv = sbc_devfont->charset_ops->get_char_value
-                    (NULL, 0, text + i, 1)))
+                        (NULL, 0, text + i, 1)))
                     return (text_len-i-1);
 
                 char_type = sbc_devfont->charset_ops->char_type
                     (chv);
 
-                if (!cb_one_glyph (context, chv, char_type))
+                gv = GetGlyphValue (pdc->pLogFont, chv);
+                if (gv == INV_GLYPH_VALUE)
+                    continue;
+
+                if (!cb_one_glyph (context, gv, char_type))
                     break;
             }
         }
         else {
             for (i = 0; i < text_len; i++) {
+                Glyph32 gv;
+
                 if (!(chv = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text + i, 1)))
                     return i;
@@ -607,7 +622,11 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                 char_type = sbc_devfont->charset_ops->char_type
                     (chv);
 
-                if(!cb_one_glyph (context, chv, char_type))
+                gv = GetGlyphValue (pdc->pLogFont, chv);
+                if (gv == INV_GLYPH_VALUE)
+                    continue;
+
+                if (!cb_one_glyph (context, gv, char_type))
                     break;
             }
         }
@@ -638,6 +657,8 @@ _gdi_get_achars_string_charbreak(PDC pdc, const unsigned char* text,
     logical_achars = malloc(text_len * sizeof (Achar32));
 
     while (left_bytes > 0){
+        Glyph32 gv;
+
         if (mbc_devfont) {
             len_cur_char = mbc_devfont->charset_ops->len_first_char
                 ((const unsigned char*)text, left_bytes);
@@ -661,7 +682,8 @@ _gdi_get_achars_string_charbreak(PDC pdc, const unsigned char* text,
                 prev_len += len_cur_char;
             }
 
-            line_width += _gdi_get_glyph_advance (pdc, logical_achars[i-1],
+            gv = GetGlyphValue(pdc->pLogFont, chv);
+            line_width += _gdi_get_glyph_advance (pdc, gv,
                     TRUE, 0, 0, NULL, NULL, &bbox);
             left_bytes -= len_cur_char;
             text += len_cur_char;
@@ -674,7 +696,9 @@ _gdi_get_achars_string_charbreak(PDC pdc, const unsigned char* text,
                 chv = sbc_devfont->charset_ops->get_char_value
                     (NULL, 0, text, left_bytes);
                 logical_achars[i++] = chv;
-                line_width += _gdi_get_glyph_advance (pdc, logical_achars[i-1],
+
+                gv = GetGlyphValue(pdc->pLogFont, chv);
+                line_width += _gdi_get_glyph_advance (pdc, gv,
                         TRUE, 0, 0, NULL, NULL, &bbox);
                 left_bytes -= len_cur_char;
                 text += len_cur_char;
@@ -910,13 +934,15 @@ _gdi_output_achars_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
     if(ctxt->nCount <= 0) return 0;
 
     for (i = ctxt->nCount - 1; i >= 0; i--) {
+        Glyph32 gv;
         chv = sbc_devfont->charset_ops->get_char_value
             (NULL, 0, text + i, 1);
 
         char_type = sbc_devfont->charset_ops->char_type
             (chv);
 
-        if(!cb_one_glyph (context, chv, char_type))
+        gv = GetGlyphValue(pdc->pLogFont, chv);
+        if (!cb_one_glyph (context, gv, char_type))
             break;
     }
     return nr_achars;
