@@ -5739,7 +5739,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_CHARSET_UTF16BE        "UTF-16BE"
 
 #define FONT_MAX_SIZE               256
-#define FONT_MIN_SIZE               4
+#define FONT_MIN_SIZE               1
 #define MAXNR_DEVFONTS              8
 
 struct _DEVFONT;
@@ -6840,8 +6840,8 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontByName(const char* font_name);
 #ifdef _MGCHARSET_UNICODE
 /**
  * \fn PLOGFONT GUIAPI CreateLogFontForMChar2UChar(const char* charset)
- * \brief Creates a logical font for conversion from multi-byte charset
- *      to Unicode.
+ * \brief Create a logical font for conversion from multi-byte character
+ *      string to Uchar32 string.
  *
  * This function creates a logical font in order to convert a multi-byte
  * character string to Uchar32 string. You can use this logfont for
@@ -6852,6 +6852,8 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontByName(const char* font_name);
  * \return The pointer to the logical font created, NULL on error.
  *
  * \sa DestroyLogFont, GetUCharsUntilParagraphBoundary
+ *
+ * Since 3.4.0
  */
 MG_EXPORT PLOGFONT GUIAPI CreateLogFontForMChar2UChar(const char* charset);
 #endif /* _MGCHARSET_UNICODE */
@@ -12076,6 +12078,8 @@ MG_EXPORT ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa DrawGlyphStringEx, white_space_rules, char_transform_rule
+ *
+ * Since 3.4.0
  */
 MG_EXPORT int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
         const char* mstr, int mstr_len, Uint8 wsr,
@@ -12094,6 +12098,8 @@ MG_EXPORT int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
  * \return The Uchar32 value (Unicode code point) of the glyph.
  *
  * \note Only available when support for UNICODE is enabled.
+ *
+ * Since 3.4.0
  */
 MG_EXPORT Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv);
 
@@ -12110,6 +12116,8 @@ MG_EXPORT Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv);
  * \return The number of characters converted successfully.
  *
  * \note Only available when support for UNICODE is enabled.
+ *
+ * Since 3.4.0
  */
 MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
         Uchar32* ucs, int n);
@@ -12122,6 +12130,8 @@ MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
  *      in Unicode charset (encodings like UTF-8, UTF-16LE, and UTF-16BE).
  *
  * \sa UChar2AChar, UChars2AChars
+ *
+ * Since 3.4.0
  */
 #define UCHAR2ACHAR(uc) ((uc) | 0x80000000)
 
@@ -12144,6 +12154,8 @@ MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa UChars2AChars, UCHAR2ACHAR
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac);
 
@@ -12162,6 +12174,8 @@ MG_EXPORT BOOL GUIAPI UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac);
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa UChar2AChar, UCHAR2ACHAR
+ *
+ * Since 3.4.0
  */
 MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
         Achar32* acs, int n);

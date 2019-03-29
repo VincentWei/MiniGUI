@@ -488,6 +488,17 @@ PLOGFONT GUIAPI CreateLogFontByName (const char* font_name)
     return gdiCreateLogFont (type, family, charset, style, height, rotation);
 }
 
+PLOGFONT GUIAPI CreateLogFontForMChar2UChar(const char* charset)
+{
+    char my_fontname[LEN_LOGFONT_NAME_FULL + 1];
+
+    memset(my_fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
+    strncpy(my_fontname, "nuf-dummy-rrncnn-U-1-", LEN_LOGFONT_NAME_FULL);
+    strncat(my_fontname, charset, LEN_LOGFONT_NAME_FIELD);
+
+    return CreateLogFontByName(my_fontname);
+}
+
 void GUIAPI DestroyLogFont (PLOGFONT logfont)
 {
     int i;
