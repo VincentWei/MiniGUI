@@ -12408,15 +12408,17 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
     /** @} end of glyph_render_flags */
 
 typedef enum {
-    GLYPH_ORIENT_UPRIGHT,
+    GLYPH_ORIENT_UPRIGHT = 0,
     GLYPH_ORIENT_SIDEWAYS,
     GLYPH_ORIENT_UPSIDE_DOWN,
     GLYPH_ORIENT_SIDEWAYS_LEFT,
 } GlyphOrient;
 
-#define GLYPH_HANGED_NONE           0
-#define GLYPH_HANGED_START          1
-#define GLYPH_HANGED_END            2
+typedef enum {
+    GLYPH_HANGED_NONE = 0,
+    GLYPH_HANGED_START,
+    GLYPH_HANGED_END,
+} GlyphHanged;
 
 /**
  * The glyph extent information.

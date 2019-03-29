@@ -689,6 +689,17 @@ static const char* _null_font_names [] = {
 #ifdef _MGCHARSET_GB18030
     "nuf-dummy-rrncnn-8-1-GB18030-0",
 #endif
+#ifdef _MGCHARSET_EUCKR
+    "nuf-dummy-rrncnn-8-1-EUC-KR",
+#endif
+#ifdef _MGCHARSET_EUCJP
+    "nuf-dummy-rrncnn-8-1-JISX0201-0",
+    "nuf-dummy-rrncnn-8-1-JISX0208-0",
+#endif
+#ifdef _MGCHARSET_SHIFTJIS
+    "nuf-dummy-rrncnn-8-1-JISX0201-1",
+    "nuf-dummy-rrncnn-8-1-JISX0208-1",
+#endif
 #ifdef _MGCHARSET_UNICODE
     "nuf-dummy-rrncnn-8-1-UTF-8",
     "nuf-dummy-rrncnn-8-1-UTF-16LE",
