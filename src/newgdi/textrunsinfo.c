@@ -644,13 +644,6 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
     if (start_index == 0 && length >= runinfo->nr_ucs) {
         struct list_head* i;
 
-        // do not allow to set the same font as the default
-        if (strcmp(logfont_name, runinfo->fontname) == 0)
-            return TRUE;
-
-        free(runinfo->fontname);
-        runinfo->fontname = strdup(logfont_name);
-
         // reset all runs fontname
         list_for_each(i, &runinfo->truns) {
             TextRun* run = (TextRun*)i;
@@ -660,6 +653,12 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
             }
         }
 
+        // do not allow to set the same font as the default
+        if (strcmp(logfont_name, runinfo->fontname) == 0)
+            return TRUE;
+
+        free(runinfo->fontname);
+        runinfo->fontname = strdup(logfont_name);
         return TRUE;
     }
 
