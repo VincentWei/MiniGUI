@@ -623,8 +623,7 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
     int left_ucs;;
 
     if (runinfo == NULL || logfont_name == NULL ||
-            start_index < 0 || length <= 0 ||
-            (start_index + length) > runinfo->nr_ucs)
+            start_index < 0 || start_index >= runinfo->nr_ucs)
         return FALSE;
 
     // can not change font for empty runs
@@ -635,8 +634,14 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
         return FALSE;
     }
 
+    // normalize length
+    if (length <= 0)
+        length = runinfo->nr_ucs;
+    if ((start_index + length) > runinfo->nr_ucs)
+        length = runinfo->nr_ucs - start_index;
+
     // change the default fontname
-    if (start_index == 0 && length == runinfo->nr_ucs) {
+    if (start_index == 0 && length >= runinfo->nr_ucs) {
         struct list_head* i;
 
         // do not allow to set the same font as the default
@@ -734,10 +739,27 @@ BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
 {
     TextColorMap* color_entry = NULL;
 
-    if (runinfo == NULL || start_index < 0 || length <= 0 ||
-            start_index > runinfo->nr_ucs ||
-            (start_index + length) > runinfo->nr_ucs) {
+    if (runinfo == NULL ||
+            start_index < 0 || start_index >= runinfo->nr_ucs) {
         goto error;
+    }
+
+    // normalize length
+    if (length <= 0)
+        length = runinfo->nr_ucs;
+    if ((start_index + length) > runinfo->nr_ucs)
+        length = runinfo->nr_ucs - start_index;
+
+    // change the default text color
+    if (start_index == 0 && length >= runinfo->nr_ucs) {
+        runinfo->fg_colors.value = color;
+
+        while (!list_empty(&runinfo->fg_colors.list)) {
+            TextColorMap* entry = (TextColorMap*)runinfo->fg_colors.list.prev;
+            list_del(runinfo->fg_colors.list.prev);
+            free(entry);
+        }
+        return TRUE;
     }
 
     color_entry = calloc(1, sizeof(TextColorMap));
@@ -778,10 +800,27 @@ BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* runinfo,
 {
     TextColorMap* color_entry = NULL;
 
-    if (runinfo == NULL || start_index < 0 || length <= 0 ||
-            start_index > runinfo->nr_ucs ||
-            (start_index + length) > runinfo->nr_ucs) {
+    if (runinfo == NULL ||
+            start_index < 0 || start_index >= runinfo->nr_ucs) {
         goto error;
+    }
+
+    // normalize length
+    if (length <= 0)
+        length = runinfo->nr_ucs;
+    if ((start_index + length) > runinfo->nr_ucs)
+        length = runinfo->nr_ucs - start_index;
+
+    // change the default background color
+    if (start_index == 0 && length >= runinfo->nr_ucs) {
+        runinfo->bg_colors.value = color;
+
+        while (!list_empty(&runinfo->bg_colors.list)) {
+            TextColorMap* entry = (TextColorMap*)runinfo->bg_colors.list.prev;
+            list_del(runinfo->bg_colors.list.prev);
+            free(entry);
+        }
+        return TRUE;
     }
 
     color_entry = calloc(1, sizeof(TextColorMap));
