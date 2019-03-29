@@ -1738,17 +1738,26 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     int j;
     struct list_head* i;
     int line_adv = 0;
+    RENDERDATA extra;
+
+    extra.truninfo  = layout->truninfo;
+    extra.layout    = layout;
+    extra.line      = line;
 
     list_for_each(i, &line->gruns) {
         GlyphRun* run = (GlyphRun*)i;
         for (j = 0; j < run->gstr->nr_glyphs; j++) {
-            int index;
-            Uchar32 uc;
             GLYPHPOS pos;
             ShapedGlyph* glyph_info;
 
-            uc = run->lrun->ucs[run->gstr->log_clusters[j]];
-            index = run->lrun->si + run->gstr->log_clusters[j];
+            extra.logfont   = run->lrun->lf;
+            extra.fg_color  = GetTextColorInTextRuns(layout->truninfo,
+                                extra.uc_index);
+            extra.bg_color  = GetBackgroundColorInTextRuns(layout->truninfo,
+                                extra.uc_index);
+            extra.uc        = run->lrun->ucs[run->gstr->log_clusters[j]];
+            extra.uc_index  = run->lrun->si + run->gstr->log_clusters[j];
+
             glyph_info = run->gstr->glyphs + j;
 
             pos.x = x + line_adv;
@@ -1776,8 +1785,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                 }
             }
 
-            if (!cb_laid_out(ctxt, layout->truninfo, index, uc,
-                    run->lrun->lf, glyph_info->gv, &pos))
+            if (!cb_laid_out(ctxt, glyph_info->gv, &pos, &extra))
                 return j;
 
             line_adv += glyph_info->width;

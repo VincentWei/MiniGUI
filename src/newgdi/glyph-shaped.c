@@ -59,14 +59,14 @@
 
 #ifdef _MGCHARSET_UNICODE
 
-BOOL DrawShapedGlyph(HDC hdc, LOGFONT* lf, RGBCOLOR color,
-        Glyph32 gv, const GLYPHPOS* pos)
+BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
+        const GLYPHPOS* glyph_pos, const RENDERDATA* render_data)
 {
     return FALSE;
 }
 
-int DrawShapedGlyphLine(HDC hdc, const LAYOUTLINE* line,
-        int x, int y)
+int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
+        int* x, int* y, RECT* bounding)
 {
     return 0;
 }

@@ -12877,9 +12877,75 @@ MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
  */
 MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
+/*
+ * \var typedef struct _RENDERDATA RENDERDATA
+ * \brief The extra data of the shaped glyph.
+ */
+typedef struct _RENDERDATA {
+    /**
+     * The text runs object.
+     */
+    const TEXTRUNSINFO* truninfo;
+
+    /**
+     * The layout object in which the glyph is contained.
+     */
+    const LAYOUTINFO*   layout;
+
+    /**
+     * The layout line object in which the glyph is located.
+     */
+    const LAYOUTLINE*   line;
+
+    /**
+     * The logfont object should be used to render the glyph.
+     */
+    LOGFONT*            logfont;
+
+    /**
+     * The text color of the glyph.
+     */
+    RGBCOLOR            fg_color;
+
+    /**
+     * The text color of the glyph.
+     */
+    RGBCOLOR            bg_color;
+
+    /**
+     * The Unicode character corresponding to the glyph.
+     */
+    Uchar32             uc;
+
+    /**
+     * The index of the Unicode character corresponding to
+     * the glyph in the text runs object.
+     */
+    int                 uc_index;
+} RENDERDATA;
+
+/**
+ * \var typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
+        Glyph32 glyph_value, const GLYPHPOS* glyph_pos,
+        const RENDERDATA* render_data)
+ * \brief The prototype of callback function for LayoutNextLine.
+ *
+ * This callback function will be called by \a LayoutNextLine when
+ * a glyph is laid out.
+ *
+ * \param ctxt The context value passed to LayoutNextLine.
+ * \param logfont .
+ * \param glyph_value The glyph value.
+ * \param glyph_pos The glyph position and orientation information.
+ * \param render_data The shaping data of the glyph.
+ *
+ * \sa LayoutNextLine, GLYPHPOS, RENDERDATA
+ *
+ * Since 3.4.0
+ */
 typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
-        const TEXTRUNSINFO *truninfo, int uc_index,
-        Uchar32 uc, LOGFONT* lf, Glyph32 gv, const GLYPHPOS* pos);
+        Glyph32 glyph_value, const GLYPHPOS* glyph_pos,
+        const RENDERDATA* render_data);
 
 /**
  * \fn LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
@@ -12995,9 +13061,9 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
         int x, int y, RECT* bounding);
 
 /**
- * \fn BOOL DrawLayoutGlyph(HDC hdc,
- *      const TEXTRUNSINFO *truninfo, int uc_index, LOGFONT* lf,
- *      Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos)
+ * \fn BOOL DrawShapedGlyph(HDC hdc, LOGFONT* logfont,
+ *      Glyph32 glyph_value, const GLYPHPOS* glyph_pos,
+ *      const RENDERDATA render_data)
  * \brief Draw a laid out glyph.
  *
  * This function draws a laied out glyph at the specified position.
@@ -13005,20 +13071,18 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
  * to draw a laid out glyph on the DC \a hdc.
  *
  * \param hdc The device context.
- * \param truninfo The text runs object
- * \param uc_index The index of the Unicode character corresponding to
- *      the glyph in the text runs object.
- * \param lf The logfont object should be used to draw the glyph.
- * \param uc The Unicode character corresponding to the glyph.
- * \param pos The glyph position and orientation information.
+ * \param glyph_value The glyph value.
+ * \param glyph_pos The glyph position and orientation information.
+ * \param shaping_info The shaping information of the glyph.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine,
+ *      GLYPHPOS, RENDERDATA
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL DrawLayoutGlyph(HDC hdc,
-        const TEXTRUNSINFO *truninfo, int uc_index, LOGFONT* lf,
-        Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos);
+MG_EXPORT BOOL DrawShapedGlyph(HDC hdc,
+        Glyph32 glyph_value, const GLYPHPOS* glyph_pos,
+        const RENDERDATA* render_data);
 
 /**
  * \fn DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
@@ -13072,7 +13136,6 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
  * \brief The context information of user defined color composition operators.
  *
  * \sa SetUserCompositionOps
- *
  */
 typedef struct _COMP_CTXT {
     /** the pointer to the destination */
