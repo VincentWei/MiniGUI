@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -53,7 +53,7 @@
 #ifdef HAVE_LINUX_KEYBOARD_H
   #include <linux/keyboard.h>
 #endif
-    
+
 #include "minigui.h"
 #include "gdi.h"
 #include "window.h"
@@ -202,7 +202,7 @@ static void ResetKeyEvent(void)
 #endif
 }
 
-/* 
+/*
  * default long pressed and always pressed value
  * The default long press handling disabled at startup.
  */
@@ -220,14 +220,14 @@ static void treat_longpress (PKEYEVENT ke, DWORD interval)
             ? __mg_key_longpress_time : __mg_key_alwayspress_time;
 
     if (__mg_key_longpress_time == 0 || interval < maxctime) {
-        flag1 = 0; 
+        flag1 = 0;
         flag2 = 1;
         ke->event = KE_KEYDOWN;
         return;
     }
 
     if (maxctime < __mg_key_alwayspress_time) {
-        if (interval >= __mg_key_longpress_time 
+        if (interval >= __mg_key_longpress_time
                         && interval <= __mg_key_alwayspress_time) {
             if (!flag1) {
                 flag1 = 1;
@@ -240,31 +240,31 @@ static void treat_longpress (PKEYEVENT ke, DWORD interval)
             if (flag2) {
                 flag2 = 0;
                 starttime = __mg_timer_counter;
-                ke->event = KE_KEYALWAYSPRESS; 
+                ke->event = KE_KEYALWAYSPRESS;
             }
             else if (__mg_timer_counter - starttime < __mg_interval_time) {
                 ke->event = 0;
             }
-            else {        
+            else {
                 starttime = __mg_timer_counter;
-                ke->event = KE_KEYALWAYSPRESS; 
+                ke->event = KE_KEYALWAYSPRESS;
             }
         }
     }
     else {
-        if (interval >= __mg_key_alwayspress_time 
+        if (interval >= __mg_key_alwayspress_time
                         && interval <= __mg_key_longpress_time) {
             if (flag2) {
                 flag2 = 0;
                 starttime = __mg_timer_counter;
-                ke->event = KE_KEYALWAYSPRESS; 
+                ke->event = KE_KEYALWAYSPRESS;
             }
             else if (__mg_timer_counter - starttime < __mg_interval_time) {
                 ke->event = 0;
             }
-            else {        
+            else {
                 starttime = __mg_timer_counter;
-                ke->event = KE_KEYALWAYSPRESS; 
+                ke->event = KE_KEYALWAYSPRESS;
             }
         }
         else if (interval >= __mg_key_longpress_time) {
@@ -296,7 +296,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             timeout_count = __mg_timer_counter + repeat_threshold;
 
             // repeat last event
-            if (old_lwe.type == LWETYPE_KEY 
+            if (old_lwe.type == LWETYPE_KEY
                     && old_lwe.data.ke.event == KE_KEYDOWN) {
                 memcpy (lwe, &old_lwe, sizeof (LWEVENT));
                 lwe->data.ke.status |= KS_REPEATED;
@@ -337,8 +337,8 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             if (button == oldbutton)
                 goto mouseret;
         }
-   
-        if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) && 
+
+        if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) &&
               (button & IAL_MOUSE_LEFTBUTTON) )
         {
             license_on_input();
@@ -353,7 +353,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             goto mouseret;
         }
 
-        if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) && 
+        if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) &&
              !(button & IAL_MOUSE_LEFTBUTTON) )
         {
             license_on_input();
@@ -362,7 +362,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             goto mouseret;
         }
 
-        if ( !(oldbutton & IAL_MOUSE_RIGHTBUTTON) && 
+        if ( !(oldbutton & IAL_MOUSE_RIGHTBUTTON) &&
               (button & IAL_MOUSE_RIGHTBUTTON) )
         {
             interval = __mg_timer_counter - time2;
@@ -375,7 +375,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             goto mouseret;
         }
 
-        if ( (oldbutton & IAL_MOUSE_RIGHTBUTTON) && 
+        if ( (oldbutton & IAL_MOUSE_RIGHTBUTTON) &&
             !(button & IAL_MOUSE_RIGHTBUTTON) )
         {
             me->event = ME_RIGHTUP;
@@ -424,7 +424,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             if (ke->event == 0)
                 return 0;
         }
-        
+
         make = (ke->event == KE_KEYDOWN)?1:0;
 
         if (i != nr_keys) {
@@ -440,7 +440,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                     }
                     caps_off = 1 - make;
                 break;
-                    
+
                 case SCANCODE_NUMLOCK:
                     if (make && num_off) {
                         numlock = 1 - numlock;
@@ -450,7 +450,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                     }
                     num_off = 1 - make;
                 break;
-                
+
                 case SCANCODE_SCROLLLOCK:
                     if (make & slock_off) {
                         slock = 1 - slock;
@@ -464,19 +464,19 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                 case SCANCODE_LEFTCONTROL:
                     control1 = make;
                     break;
-                    
+
                 case SCANCODE_RIGHTCONTROL:
                     control2 = make;
                     break;
-                    
+
                 case SCANCODE_LEFTSHIFT:
                     shift1 = make;
                     break;
-                    
+
                 case SCANCODE_RIGHTSHIFT:
                     shift2 = make;
                     break;
-                    
+
                 case SCANCODE_LEFTALT:
                     alt1 = make;
                     break;
@@ -484,7 +484,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                 case SCANCODE_RIGHTALT:
                     alt2 = make;
                     break;
-                    
+
             }
 
             status &= ~(MASK_KS_SHIFTKEYS);
@@ -498,7 +498,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                              (alt2 << 2)      |
                              (shift1 << 1)    |
                              (shift2));
-                             
+
             // Mouse button status
             if (oldbutton & IAL_MOUSE_LEFTBUTTON)
                 status |= KS_LEFTBUTTON;
@@ -514,7 +514,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
 #endif
         memcpy (&old_lwe, lwe, sizeof (LWEVENT));
         return 1;
-    } 
+    }
 
     old_lwe.type = 0;
     return 0;
@@ -549,7 +549,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
     const char* keystate;
     int i;
     int make;       /* 0 = release, 1 = presse */
-    
+
     if (event & IAL_MOUSEEVENT) {
         if (!IAL_UpdateMouse ())
             event &= ~IAL_MOUSEEVENT;
@@ -558,7 +558,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ((nr_keys = IAL_UpdateKeyboard ()) == 0)
             event &= ~IAL_KEYEVENT;
     }
-    
+
     if (event == 0) {
         if (__mg_event_timeout.tv_sec == 0 && __mg_event_timeout.tv_usec == 0) {
 
@@ -567,7 +567,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             __mg_event_timeout.tv_usec = repeatusec;
 
             // repeat last event
-            if (old_lwe.type == LWETYPE_KEY 
+            if (old_lwe.type == LWETYPE_KEY
                     && old_lwe.data.ke.event == KE_KEYDOWN) {
                memcpy (lwe, &old_lwe, sizeof (LWEVENT));
                lwe->data.ke.status |= KS_REPEATED;
@@ -610,8 +610,8 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             if (button == oldbutton)
                 goto mouseret;
         }
-   
-        if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) && 
+
+        if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) &&
               (button & IAL_MOUSE_LEFTBUTTON) )
         {
             license_on_input();
@@ -626,7 +626,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             goto mouseret;
         }
 
-        if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) && 
+        if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) &&
              !(button & IAL_MOUSE_LEFTBUTTON) )
         {
             license_on_input();
@@ -635,7 +635,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             goto mouseret;
         }
 
-        if ( !(oldbutton & IAL_MOUSE_RIGHTBUTTON) && 
+        if ( !(oldbutton & IAL_MOUSE_RIGHTBUTTON) &&
               (button & IAL_MOUSE_RIGHTBUTTON) )
         {
             interval = __mg_timer_counter - time2;
@@ -644,24 +644,24 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             else
                 me->event = ME_RIGHTDOWN;
             time2 = __mg_timer_counter;
-            
+
             goto mouseret;
         }
 
-        if ( (oldbutton & IAL_MOUSE_RIGHTBUTTON) && 
+        if ( (oldbutton & IAL_MOUSE_RIGHTBUTTON) &&
             !(button & IAL_MOUSE_RIGHTBUTTON) )
         {
             me->event = ME_RIGHTUP;
             goto mouseret;
         }
     }
-     
+
     if (event & IAL_KEYEVENT) {
         license_on_input();
 
         lwe->type = LWETYPE_KEY;
         keystate = IAL_GetKeyboardState ();
-        
+
         for (i = 1; i < nr_keys; i++) {
             if(!oldkeystate[i] && keystate[i]) {
                  ke->event = KE_KEYDOWN;
@@ -685,7 +685,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             if (ke->event == 0)
                 return 0;
         }
-        
+
         make = (ke->event == KE_KEYDOWN) ? 1 : 0;
 
         if (i != nr_keys) {
@@ -701,7 +701,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                     }
                     caps_off = 1 - make;
                 break;
-                    
+
                 case SCANCODE_NUMLOCK:
                     if (make && num_off) {
                         numlock = 1 - numlock;
@@ -711,7 +711,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                     }
                     num_off = 1 - make;
                 break;
-                
+
                 case SCANCODE_SCROLLLOCK:
                     if (make & slock_off) {
                         slock = 1 - slock;
@@ -725,19 +725,19 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                 case SCANCODE_LEFTCONTROL:
                     control1 = make;
                     break;
-                    
+
                 case SCANCODE_RIGHTCONTROL:
                     control2 = make;
                     break;
-                    
+
                 case SCANCODE_LEFTSHIFT:
                     shift1 = make;
                     break;
-                    
+
                 case SCANCODE_RIGHTSHIFT:
                     shift2 = make;
                     break;
-                    
+
                 case SCANCODE_LEFTALT:
                     alt1 = make;
                     break;
@@ -745,7 +745,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                 case SCANCODE_RIGHTALT:
                     alt2 = make;
                     break;
-                    
+
             }
 
             status &= ~(MASK_KS_SHIFTKEYS);
@@ -759,7 +759,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                              (alt2 << 2)      |
                              (shift1 << 1)    |
                              (shift2));
-                             
+
             // Mouse button status
             if (oldbutton & IAL_MOUSE_LEFTBUTTON)
                 status |= KS_LEFTBUTTON;
@@ -772,7 +772,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         __mg_event_timeout.tv_sec = 0;
         __mg_event_timeout.tv_usec = timeoutusec;
         return 1;
-    } 
+    }
 
     old_lwe.type = 0;
     return 0;

@@ -1,37 +1,37 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
-/* 
+/*
 ** desktop-comm.c: The Desktop module.
 **
 ** Current maintainer: Wei Yongming.
@@ -79,7 +79,7 @@ static void init_desktop_win (void)
     pDesktopWin->idx_znode         = 0;
 
     pDesktopWin->pMainWin          = pDesktopWin;
-    pDesktopWin->we_rdr            = __mg_def_renderer; 
+    pDesktopWin->we_rdr            = __mg_def_renderer;
 
     __mg_hwnd_desktop = (HWND)pDesktopWin;
     __mg_dsk_win  = pDesktopWin;
@@ -121,7 +121,7 @@ static PMAINWIN dskSetActiveWindow (PMAINWIN pWin)
 {
     PMAINWIN pOldActive = dskGetActiveWindow();
 
-    if (pWin == pOldActive) 
+    if (pWin == pOldActive)
         return pOldActive;
 
     pOldActive = (PMAINWIN) dskSetActiveZOrderNode (0, pWin?pWin->idx_znode:0);
@@ -158,11 +158,11 @@ static void dskShowMainWindow (PMAINWIN pWin, BOOL bActive)
         return dskSetActiveWindow (pWin);
 
     // if the showing window cover the current active window
-    // set this window as the active one. 
+    // set this window as the active one.
     //if (bActive && dskDoesCoverOther (pWin, dskGetActiveWindow()))
 #endif
     if (bActive)
-        dskSetActiveWindow (pWin); 
+        dskSetActiveWindow (pWin);
 
     return;
 }
@@ -174,13 +174,13 @@ static int dskAllocZOrderNode (PMAINWIN pWin)
 
     dskGetWindowRectInScreen (pWin, &rc);
 
-    return AllocZOrderNode (0, (HWND)pWin, 
-                    (HWND)pWin->pMainWin, 
-                    get_znode_flags_from_style (pWin), 
+    return AllocZOrderNode (0, (HWND)pWin,
+                    (HWND)pWin->pMainWin,
+                    get_znode_flags_from_style (pWin),
                     &rc, pWin->spCaption);
 }
 
-/* 
+/*
  * This funciton add the new main window to the z-order list.
  * If new main window is a visible window,
  * this new main window becomes the active window.
@@ -202,14 +202,14 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     // Handle main window hosting.
     if (pWin->pHosting)
         dskAddNewHostedMainWindow (pWin->pHosting, pWin);
-    
+
     // Init Global Clip Region info.
     dskInitGCRInfo (pWin);
 
     // Init Invalid Region info.
     dskInitInvRgn (pWin);
 
-    /* houhh 20081128, create secondary window dc before 
+    /* houhh 20081128, create secondary window dc before
      * InvalidateRect, erase_bk will used this. */
     if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
         pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
@@ -250,7 +250,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
 {
     int first = 0;
     ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
-    
+
     lock_zi_for_read (__mg_zorder_info);
     switch (nodes [pWin->idx_znode].flags & ZOF_TYPE_MASK) {
         case ZOF_TYPE_GLOBAL:
@@ -276,7 +276,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
         pCurTop->dwStyle &= ~WS_VISIBLE;
         dskHideWindow (0, pCurTop->idx_znode);
         dskSetPrimitiveChildren (pCurTop, FALSE);
-        SendNotifyMessage (pCurTop->hParent, 
+        SendNotifyMessage (pCurTop->hParent,
                         MSG_CHILDHIDDEN, reason, lParam);
 
         dskScreenToClient (pCurTop->pMainWin, &rc, &rc);
@@ -290,7 +290,7 @@ static int update_client_window_rgn (int cli, HWND hwnd)
 
     if (hwnd) {
         while (crc) {
-            __mg_update_window (hwnd, crc->rc.left, crc->rc.top, 
+            __mg_update_window (hwnd, crc->rc.left, crc->rc.top,
                     crc->rc.right, crc->rc.bottom);
             crc = crc->next;
         }
@@ -434,7 +434,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
     ZORDERINFO* zi = __mg_zorder_info;
     PTRACKMENUINFO plast = NULL;
     RECT rc;
-    
+
     if (sg_ptmi == ptmi) {
         sg_ptmi = NULL;
     }
@@ -484,8 +484,8 @@ static void dskEnableWindow (PMAINWIN pWin, int flags)
             pWin->dwStyle |=  WS_DISABLED;
 
         if (pWin->dwStyle & WS_DISABLED) {
-            if (__mg_capture_wnd && 
-                gui_GetMainWindowPtrOfControl (__mg_capture_wnd) == pWin) 
+            if (__mg_capture_wnd &&
+                gui_GetMainWindowPtrOfControl (__mg_capture_wnd) == pWin)
                 __mg_capture_wnd = 0;
 
             if (dskGetActiveWindow () == pWin) {
@@ -540,7 +540,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
             SelectClipRect (hdc, &rcMove);
 
-            BitBlt (hdc, rcMove.left, rcMove.top, 
+            BitBlt (hdc, rcMove.left, rcMove.top,
                     rcMove.right - rcMove.left,
                     rcMove.bottom - rcMove.top,
                     hdc, pswi->iOffx + rcMove.left, pswi->iOffy + rcMove.top, 0);
@@ -549,7 +549,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
         pcrc = pcrc->next;
     }
     //ReleaseDC (hdc);
-    //BUGFIXED: we must update the secondaryDC to clientDC, to ensure 
+    //BUGFIXED: we must update the secondaryDC to clientDC, to ensure
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
     if(pWin->pMainWin->secondaryDC){
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
@@ -567,7 +567,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
         pthread_mutex_lock (&pInvRgn->lock);
 #endif
         /*scroll whole screen, offset invalid region*/
-        if (EqualRect (pswi->rc1, &rcClient)) 
+        if (EqualRect (pswi->rc1, &rcClient))
             OffsetRegion (&(pInvRgn->rgn), pswi->iOffx, pswi->iOffy);
         else
             OffsetRegionEx (&(pInvRgn->rgn), &rcClient,
@@ -600,11 +600,11 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             rcInvalid.right = rcInvalid.left + pswi->iOffx;
             bNeedInvalidate = TRUE;
         }
-        
+
         /*
          * BUGFIXED: offx and offy would make the two diffrent areas invalidate
          * we should invalid both them (dongjunjie) 2010/07/30
-         *  
+         *
          *                   content
          *  ---------------------------
          *  |//: offX                 |
@@ -624,7 +624,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             bNeedInvalidate = FALSE; //resotre the inved value
             inved = TRUE;
         }
-    
+
         if (pswi->iOffy < 0) {
             rcInvalid.top = rcInvalid.bottom + pswi->iOffy;
             bNeedInvalidate = TRUE;
@@ -656,7 +656,7 @@ static void dskMoveMainWindow (PMAINWIN pWin, const RECT* prcExpect)
     RECT oldWinRect, rcResult;
 
     memcpy (&oldWinRect, &pWin->left, sizeof (RECT));
-    SendAsyncMessage ((HWND)pWin, MSG_CHANGESIZE, 
+    SendAsyncMessage ((HWND)pWin, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
 
     dskMoveWindow (0, pWin->idx_znode, &rcResult);
@@ -666,7 +666,7 @@ static void dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
 {
     RECT newWinRect, rcResult;
 
-    SendAsyncMessage ((HWND)pCtrl, MSG_CHANGESIZE, 
+    SendAsyncMessage ((HWND)pCtrl, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
     dskClientToScreen ((PMAINWIN)(pCtrl->hParent), prcExpect, &newWinRect);
 
@@ -700,7 +700,7 @@ static MSGHOOK dskRegisterMouseHook (void* context, MSGHOOK hook)
     return old_hook;
 }
 
-static int dskHandleKeyHooks (HWND dst_wnd, UINT message, 
+static int dskHandleKeyHooks (HWND dst_wnd, UINT message,
                 WPARAM wParam, LPARAM lParam)
 {
     int ret = HOOK_GOON;
@@ -712,7 +712,7 @@ static int dskHandleKeyHooks (HWND dst_wnd, UINT message,
     return ret;
 }
 
-static int dskHandleMouseHooks (HWND dst_wnd, UINT message, 
+static int dskHandleMouseHooks (HWND dst_wnd, UINT message,
                 WPARAM wParam, LPARAM lParam)
 {
     int ret = HOOK_GOON;
@@ -757,7 +757,7 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
 
     if ((message == MSG_KEYDOWN) && (status & KS_ALT) && (status & KS_CTRL))
         return HandleSpecialKey (scancode);
-        
+
     if (scancode == SCANCODE_LEFTALT ||
         scancode == SCANCODE_RIGHTALT) {
         if (message == MSG_KEYDOWN) {
@@ -777,14 +777,14 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
 
         if (message == MSG_KEYDOWN) {
             if( scancode == SCANCODE_TAB) {
-            
+
                 mg_modal = 1;
-                
+
 #ifdef _MGHAVE_MENU
                 if (sg_ptmi)
                     dskForceCloseMenu ();
 #endif
-                next_node = 
+                next_node =
                     get_next_visible_mainwin (__mg_zorder_info,
                             __mg_zorder_info->active_win);
 
@@ -809,7 +809,7 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
         else if (mg_modal == 1)
             return 0;
     }
-    
+
     if (scancode == SCANCODE_LEFTALT
              || scancode == SCANCODE_RIGHTALT || mg_altdown) {
         if (message == MSG_KEYDOWN)
@@ -822,18 +822,18 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
 #ifndef _MGRM_THREADS
     if (__mg_ime_wnd
                     && message != MSG_SYSKEYDOWN && message != MSG_SYSKEYUP) {
-        if (dskHandleKeyHooks (__mg_ime_wnd, 
+        if (dskHandleKeyHooks (__mg_ime_wnd,
                 message, (WPARAM)scancode, (LPARAM)status) == HOOK_GOON)
-            PostMessage (__mg_ime_wnd, 
+            PostMessage (__mg_ime_wnd,
                             message, (WPARAM)scancode, (LPARAM)status);
         return 0;
     }
 
 #else
     else if (__mg_ime_wnd && __mg_zorder_info->active_win) {
-        if (dskHandleKeyHooks (__mg_ime_wnd, 
+        if (dskHandleKeyHooks (__mg_ime_wnd,
                 message, (WPARAM)scancode, (LPARAM)status) == HOOK_GOON)
-            PostMessage (__mg_ime_wnd, 
+            PostMessage (__mg_ime_wnd,
                                 message, (WPARAM)scancode, (LPARAM)status);
 
         return 0;
@@ -841,15 +841,15 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
 #endif
 
     if (__mg_zorder_info->active_win) {
-        if (dskHandleKeyHooks ((HWND)dskGetActiveWindow(), 
+        if (dskHandleKeyHooks ((HWND)dskGetActiveWindow(),
                     message, (WPARAM)scancode, (LPARAM)status) == HOOK_GOON) {
             __mg_post_msg_by_znode (__mg_zorder_info,
-                    __mg_zorder_info->active_win, message, 
+                    __mg_zorder_info->active_win, message,
                     (WPARAM)scancode, (LPARAM)status);
         }
     }
     else {
-        if (dskHandleKeyHooks (HWND_DESKTOP, message, 
+        if (dskHandleKeyHooks (HWND_DESKTOP, message,
                     (WPARAM)scancode, (LPARAM)status) == HOOK_GOON) {
             SendMessage (HWND_DESKTOP, MSG_DT_KEYOFF + message,
                     (WPARAM)scancode, (LPARAM)status);
@@ -907,17 +907,17 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     PMAINWIN pCtrlPtrIn;
 
     if (__mg_capture_wnd) {
-        PostMessage (__mg_capture_wnd, message, 
+        PostMessage (__mg_capture_wnd, message,
                         flags | KS_CAPTURED, MAKELONG (x, y));
         return 0;
     }
 
     pCtrlPtrIn = gui_GetMainWindowPtrUnderPoint (x, y);
 
-    if (dskHandleMouseHooks ((HWND)pCtrlPtrIn, 
+    if (dskHandleMouseHooks ((HWND)pCtrlPtrIn,
                             message, flags, MAKELONG (x, y)) == HOOK_STOP)
         return 0;
-    
+
     if (pCtrlPtrIn && pCtrlPtrIn->WinType == TYPE_CONTROL) {
         pUnderPointer = pCtrlPtrIn->pMainWin;
     }
@@ -929,8 +929,8 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     switch (message) {
         case MSG_MOUSEMOVE:
             if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window, 
-                                message + MSG_DT_MOUSEOFF, 
+                PostMessage ((HWND)_mgs_button_down_main_window,
+                                message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
             }
             else {
@@ -958,8 +958,8 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                             SetCursor (def_cursor);
                     }
                     else
-                        PostMessage ((HWND)pUnderPointer, 
-                                message + MSG_DT_MOUSEOFF, 
+                        PostMessage ((HWND)pUnderPointer,
+                                message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
                 }
                 else {
@@ -976,8 +976,8 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
         case MSG_LBUTTONDOWN:
         case MSG_RBUTTONDOWN:
             if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window, 
-                                message + MSG_DT_MOUSEOFF, 
+                PostMessage ((HWND)_mgs_button_down_main_window,
+                                message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
                 if (message == MSG_LBUTTONDOWN)
                     _mgs_down_buttons |= DOWN_BUTTON_LEFT;
@@ -997,12 +997,12 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
 
                 if (pCtrlPtrIn == NULL) {
                     if (!dskIsTopMost (pUnderPointer)) {
-                        dskMoveToTopMost (pUnderPointer, 
+                        dskMoveToTopMost (pUnderPointer,
                                         RCTM_CLICK, MAKELONG (x, y));
                     }
-                
+
                     if (pUnderPointer != dskSetActiveWindow (pUnderPointer))
-                        SendNotifyMessage ((HWND) pUnderPointer, 
+                        SendNotifyMessage ((HWND) pUnderPointer,
                                         MSG_MOUSEACTIVE, 0, 0);
                 }
 
@@ -1037,12 +1037,12 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
             }
 
             if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window, 
-                                message + MSG_DT_MOUSEOFF, 
+                PostMessage ((HWND)_mgs_button_down_main_window,
+                                message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
                 if (message == MSG_LBUTTONUP)
                     _mgs_down_buttons &= ~DOWN_BUTTON_LEFT;
-                else 
+                else
                     _mgs_down_buttons &= ~DOWN_BUTTON_RIGHT;
 
                 if (!(_mgs_down_buttons & DOWN_BUTTON_ANY)) {
@@ -1064,19 +1064,19 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                         break;
                     }
                     else {
-                        PostMessage((HWND)pUnderPointer, 
-                            message + MSG_DT_MOUSEOFF, 
+                        PostMessage((HWND)pUnderPointer,
+                            message + MSG_DT_MOUSEOFF,
                             flags, MAKELONG (x, y));
                     }
                 }
             }
         break;
-        
+
         case MSG_LBUTTONDBLCLK:
         case MSG_RBUTTONDBLCLK:
             if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window, 
-                                message + MSG_DT_MOUSEOFF, 
+                PostMessage ((HWND)_mgs_button_down_main_window,
+                                message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
                 if (message == MSG_LBUTTONDBLCLK)
                     _mgs_down_buttons |= DOWN_BUTTON_LEFT;
@@ -1084,8 +1084,8 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                     _mgs_down_buttons |= DOWN_BUTTON_RIGHT;
             }
             else if (pUnderPointer) {
-                PostMessage ((HWND)pUnderPointer, 
-                                message + MSG_DT_MOUSEOFF, 
+                PostMessage ((HWND)pUnderPointer,
+                                message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
                 _mgs_button_down_main_window = pUnderPointer;
                 if (message == MSG_LBUTTONDBLCLK)
@@ -1094,8 +1094,8 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                     _mgs_down_buttons = DOWN_BUTTON_RIGHT;
             }
             else {
-                PostMessage (HWND_DESKTOP, 
-                            message + MSG_DT_MOUSEOFF, 
+                PostMessage (HWND_DESKTOP,
+                            message + MSG_DT_MOUSEOFF,
                             flags, MAKELONG (x, y));
                 _mgs_button_down_main_window = NULL;
                 _mgs_down_buttons = DOWN_BUTTON_NONE;
@@ -1134,7 +1134,7 @@ static void lock_zorder_info (void)
         if (pWin)
             pthread_mutex_lock (&pWin->pGCRInfo->lock);
     }
-    
+
     slot = __mg_zorder_info->first_normal;
     for (; slot > 0; slot = nodes[slot].next)
     {
@@ -1157,7 +1157,7 @@ static void unlock_zorder_info (void)
         if (pWin)
             pthread_mutex_unlock (&pWin->pGCRInfo->lock);
     }
-    
+
     slot = __mg_zorder_info->first_normal;
     for (; slot > 0; slot = nodes[slot].next)
     {
@@ -1255,8 +1255,8 @@ static int do_drag_drop_window (UINT msg, int x, int y)
 
         switch (_dd_info.location) {
                 case HT_CAPTION:
-                    OffsetRect (&_dd_info.rc, 
-                                    x - _dd_info.last_x, 
+                    OffsetRect (&_dd_info.rc,
+                                    x - _dd_info.last_x,
                                     y - _dd_info.last_y);
                     break;
 
@@ -1303,7 +1303,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
 
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
-                    
+
         _dd_info.last_x = x;
         _dd_info.last_y = y;
     }
@@ -1315,10 +1315,10 @@ static int do_drag_drop_window (UINT msg, int x, int y)
         /* post MSG_WINDOWDROPPED to the target window */
         SendNotifyMessage (_dd_info.hwnd, MSG_WINDOWDROPPED,
                           MAKELONG (_dd_info.rc.left, _dd_info.rc.top),
-                          MAKELONG (_dd_info.rc.right, _dd_info.rc.bottom));         
+                          MAKELONG (_dd_info.rc.right, _dd_info.rc.bottom));
         unlock_zorder_info ();
         SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
-        
+
         if(_dd_info.hwnd != (HWND)gui_GetMainWindowPtrUnderPoint (x, y))
             SetDefaultCursor (GetSystemCursor (IDC_ARROW));
         _dd_info.hwnd = 0;
@@ -1373,7 +1373,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
                 dskForceCloseMenu ();
 #endif
             dskHideMainWindow (pWin);
-            __mg_reset_desktop_capture_info (pWin); 
+            __mg_reset_desktop_capture_info (pWin);
             return 0;
 
         case MSG_MOVEMAINWIN:
@@ -1386,7 +1386,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
 
         case MSG_GETACTIVEMAIN:
             return (LRESULT)dskGetActiveWindow();
-        
+
         case MSG_SETACTIVEMAIN:
             lRet = (LRESULT)dskSetActiveWindow (pWin);
             return lRet;
@@ -1396,7 +1396,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
 
         case MSG_SETCAPTURE:
             return (LRESULT)DesktopSetCapture ((HWND)pWin);
- 
+
 #ifdef _MGHAVE_MENU
         case MSG_TRACKPOPUPMENU:
             return dskStartTrackPopupMenu((PTRACKMENUINFO)lParam);
@@ -1424,10 +1424,10 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         case MSG_ENABLEMAINWIN:
             dskEnableWindow (pWin, lParam);
             return 0;
-        
+
         case MSG_ISENABLED:
             return !(pWin->dwStyle & WS_DISABLED);
-        
+
         case MSG_SETWINCURSOR:
         {
             HCURSOR old = pWin->hCursor;
@@ -1542,14 +1542,14 @@ static HMENU dskCreateDesktopMenu (void)
     memset (&mii, 0, sizeof(MENUITEMINFO));
     mii.type        = MFT_STRING;
     mii.id          = IDM_REDRAWBG;
-    mii.typedata    = (DWORD)GetSysText(IDS_MGST_REFRESH); 
+    mii.typedata    = (DWORD)GetSysText(IDS_MGST_REFRESH);
     InsertMenuItem (hmnu, 0, TRUE, &mii);
 
     mii.type        = MFT_STRING;
     mii.id          = IDM_CLOSEALLWIN;
-    mii.typedata    = (DWORD)GetSysText(IDS_MGST_CLOSEALLWIN); 
+    mii.typedata    = (DWORD)GetSysText(IDS_MGST_CLOSEALLWIN);
     InsertMenuItem (hmnu, 1, TRUE, &mii);
-    
+
     mii.type        = MFT_STRING;
     mii.id          = IDM_ENDSESSION;
     mii.typedata    = (DWORD)GetSysText(IDS_MGST_ENDSESSION);
@@ -1560,7 +1560,7 @@ static HMENU dskCreateDesktopMenu (void)
     mii.typedata    = (DWORD)GetSysText(IDS_MGST_WINDOW);
     mii.hsubmenu     = dskCreateWindowSubMenu();
     InsertMenuItem (hmnu, 3, TRUE, &mii);
-                        
+
     mii.type        = MFT_SEPARATOR;
     mii.id          = 0;
     mii.typedata    = 0;
@@ -1586,18 +1586,18 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
 
     for (iPos = nCount; iPos > 0; iPos --)
         DeleteMenu (hWinMenu, iPos - 1, MF_BYPOSITION);
-    
+
     memset (&mii, 0, sizeof(MENUITEMINFO));
     mii.type = MFT_STRING;
 
     id = IDM_FIRSTWINDOW;
     iPos = 0;
-    
+
     slot = __mg_zorder_info->first_topmost;
     for (; slot > 0; slot = nodes[slot].next)
     {
         pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
-        if (pWin && pWin->WinType == TYPE_MAINWIN && 
+        if (pWin && pWin->WinType == TYPE_MAINWIN &&
                 !(nodes[slot].flags & ZOF_TF_TOPFOREVER)) {
             if (pWin->dwStyle & WS_VISIBLE)
                 mii.state       = MFS_ENABLED;
@@ -1606,16 +1606,16 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
         } else {
             continue;
         }
-            
+
         mii.id              = id;
-        mii.typedata        = (DWORD)pWin->spCaption; 
-        mii.itemdata        = (DWORD)pWin; 
+        mii.typedata        = (DWORD)pWin->spCaption;
+        mii.itemdata        = (DWORD)pWin;
         InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
 
         id++;
         iPos++;
     }
-    
+
     if (iPos != 0) {
         mii.type            = MFT_SEPARATOR;
         mii.state           = 0;
@@ -1639,20 +1639,20 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
         else {
             continue;
         }
-            
+
         mii.id              = id;
-        mii.typedata        = (DWORD)pWin->spCaption; 
-        mii.itemdata        = (DWORD)pWin; 
+        mii.typedata        = (DWORD)pWin->spCaption;
+        mii.itemdata        = (DWORD)pWin;
         InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
 
         id++;
         iPos++;
     }
-    
+
     nCount = GetMenuItemCount (hDesktopMenu);
     for (iPos = nCount; iPos > 5; iPos --)
         DeleteMenu (hDesktopMenu, iPos - 1, MF_BYPOSITION);
-        
+
     dsk_ops->customize_desktop_menu (dt_context, hDesktopMenu, 5);
 }
 #endif
@@ -1666,7 +1666,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
     else if (id == IDM_CLOSEALLWIN) {
         PMAINWIN pWin;
-    
+
         slot = __mg_zorder_info->first_topmost;
         for (; slot > 0; slot = nodes[slot].next)
         {
@@ -1691,7 +1691,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
 #else
                     && (pWin->pHosting == NULL)
 #endif
-               ) 
+               )
                     PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
         }
     }
@@ -1709,7 +1709,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         if (GetMenuItemInfo (win_menu, id, MF_BYCOMMAND, &mii) == 0) {
             pSelectedWin = (PMAINWIN)mii.itemdata;
 
-            if (pSelectedWin 
+            if (pSelectedWin
                     && pSelectedWin->WinType == TYPE_MAINWIN
                     && !(pSelectedWin->dwStyle & WS_DISABLED)) {
                 if (sg_ptmi)
@@ -1742,27 +1742,27 @@ static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
         // Init Global Clip Region info.
         dskInitGCRInfo ((PMAINWIN)pNewCtrl);
     }
- 
+
     pFirstCtrl = pParent->children;
 
     pNewCtrl->next = NULL;
-    
+
     if (!pFirstCtrl) {
         pParent->children = pNewCtrl;
         pNewCtrl->prev = NULL;
     }
     else {
         pLastCtrl = pFirstCtrl;
-        
+
         while (pLastCtrl->next)
             pLastCtrl = pLastCtrl->next;
-            
+
         pLastCtrl->next = pNewCtrl;
         pNewCtrl->prev = pLastCtrl;
     }
 
     dskInitInvRgn ((PMAINWIN)pNewCtrl);
-        
+
     pNewCtrl->pcci->nUseCount ++;
     return 0;
 }
@@ -1822,7 +1822,7 @@ typedef struct _REFRESH_INFO
     BOOL is_empty_invrc;
 } REFRESH_INFO;
 
-static BOOL _cb_refresh_znode (void* context, 
+static BOOL _cb_refresh_znode (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     PMAINWIN pTemp;
@@ -1848,10 +1848,10 @@ static BOOL _cb_refresh_znode (void* context,
             else
                 GetWindowRect((HWND)pTemp, &rcWin);
 
-            if (IntersectRect (&rcTemp, 
+            if (IntersectRect (&rcTemp,
                         &rcWin, info->invrc)) {
                 dskScreenToWindow (pTemp, &rcTemp, &rcInv);
-                SendAsyncMessage ((HWND)pTemp, 
+                SendAsyncMessage ((HWND)pTemp,
                                 MSG_NCPAINT, 0, (LPARAM)(&rcInv));
                 dskScreenToClient (pTemp, &rcTemp, &rcInv);
                 InvalidateRect ((HWND)pTemp, &rcInv, TRUE);
@@ -1873,7 +1873,7 @@ static void dskRefreshAllWindow (const RECT* invrc)
             dskForceCloseMenu ();
 #endif
 
-    SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 
+    SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0,
                         (LPARAM)(info.is_empty_invrc?0:&invrc));
 
     lock_zi_for_read (__mg_zorder_info);
@@ -1918,7 +1918,7 @@ static int dskSetIMEStatus (int iIMEStatusCode, int Value)
     if (__mg_ime_wnd == 0)
         return ERR_IME_NOIMEWND;
 
-    SendMessage (__mg_ime_wnd, 
+    SendMessage (__mg_ime_wnd,
         MSG_IME_SETSTATUS, (WPARAM)iIMEStatusCode, (LPARAM)Value);
 
     return ERR_OK;
@@ -1931,8 +1931,8 @@ static int dskSetIMEPos (const POINT* p)
         return ERR_IME_NOIMEWND;
 
     pt = *p;
-    //SendMessage (__mg_ime_wnd, 
-    PostMessage (__mg_ime_wnd, 
+    //SendMessage (__mg_ime_wnd,
+    PostMessage (__mg_ime_wnd,
         MSG_IME_SETPOS, (WPARAM)0, (LPARAM)&pt);
 
     return ERR_OK;
@@ -1943,7 +1943,7 @@ static int dskGetIMEPos (POINT* pt)
     if (__mg_ime_wnd == 0)
         return ERR_IME_NOIMEWND;
 
-    SendMessage (__mg_ime_wnd, 
+    SendMessage (__mg_ime_wnd,
         MSG_IME_GETPOS, (WPARAM)0, (LPARAM)pt);
 
     return ERR_OK;
@@ -1964,10 +1964,10 @@ void GUIAPI DesktopUpdateAllWindow(void)
 }
 
 #ifndef _MG_ENABLE_SCREENSAVER
-#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0) 
+#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0)
 #else
     /* The screensaver occupys one znode */
-#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1) 
+#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1)
 #endif
 
 LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -2007,7 +2007,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #ifdef _MGHAVE_MENU
         else if (wParam == SCANCODE_ESCAPE && lParam & KS_CTRL) {
             dskUpdateDesktopMenu (sg_DesktopMenu);
-            TrackPopupMenu (sg_DesktopMenu, TPM_DEFAULT, 
+            TrackPopupMenu (sg_DesktopMenu, TPM_DEFAULT,
                 0, g_rcScr.bottom, HWND_DESKTOP);
         }
 
@@ -2019,7 +2019,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
             return KeyMessageHandler (message, (int)wParam, (DWORD)lParam);
     }
-        
+
     if (message >= MSG_FIRSTMOUSEMSG && message <= MSG_LASTMOUSEMSG) {
 
         flags = (int)wParam;
@@ -2039,9 +2039,9 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
             return MouseMessageHandler (message, flags, x, y);
     }
-    
+
     if (message == MSG_COMMAND) {
-      
+
         if (wParam <= MAXID_RESERVED && wParam >= MINID_RESERVED) {
 #ifdef _MGHAVE_MENU
             dskDesktopCommand (sg_DesktopMenu, (int)wParam);
@@ -2154,30 +2154,30 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case MSG_NEWCTRLINSTANCE:
             return dskOnNewCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
-            
+
         case MSG_REMOVECTRLINSTANCE:
             return dskOnRemoveCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
-        
+
         case MSG_GETCTRLCLASSINFO:
             return (LRESULT)gui_GetControlClassInfo ((const char*)lParam);
 
         case MSG_CTRLCLASSDATAOP:
             return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
-            
+
         case MSG_REGISTERKEYHOOK:
-            return (LRESULT)dskRegisterKeyHook ((void*)wParam, 
+            return (LRESULT)dskRegisterKeyHook ((void*)wParam,
                             (MSGHOOK)lParam);
 
         case MSG_REGISTERMOUSEHOOK:
-            return (LRESULT)dskRegisterMouseHook ((void*)wParam, 
+            return (LRESULT)dskRegisterMouseHook ((void*)wParam,
                             (MSGHOOK)lParam);
 
         case MSG_IME_REGISTER:
             return dskRegisterIMEWnd ((HWND)wParam);
-            
+
         case MSG_IME_UNREGISTER:
             return dskUnregisterIMEWnd ((HWND)wParam);
-            
+
         case MSG_IME_SETSTATUS:
             return dskSetIMEStatus ((int)wParam, (int)lParam);
 
@@ -2189,7 +2189,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case MSG_IME_GETSTATUS:
             return dskGetIMEStatus ((int)wParam);
-            
+
 #ifndef _MGRM_THREADS
         case MSG_SRVNOTIFY:
             BroadcastMessage (MSG_SRVNOTIFY, wParam, lParam);
@@ -2221,7 +2221,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case MSG_DT_RBUTTONDOWN:
         case MSG_DT_RBUTTONDBLCLK:
             if(dsk_ops->mouse_handler)
-                dsk_ops->mouse_handler(dt_context, message, wParam, lParam);        
+                dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
             break;
 
         case MSG_TIMER:      // per 0.01s
@@ -2274,7 +2274,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
                     /* printf("force to quit !!!\n"); */
                 }
-                
+
                 if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
                         && HAS_NO_MAINWINDOW()
                         && __mg_enter_terminategui /* Let Desktop wait for MiniGUIMain() */
