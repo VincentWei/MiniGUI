@@ -12982,8 +12982,6 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  *      it is less than 0. This parameter is only effective when the
  *      line extent mode of the layout object is variable.
  * \param last_line Whether to lay out all left characters in one line.
- * \param line_size The size of the line will be returned through this
- *      buffer if it is not NULL.
  * \param cb_laid_out The callback for one laid out glyph.
  * \param ctxt The context will be passed to \a cb_laid_out.
  *      This parameter is only effective when cb_laid_out is not NULL.

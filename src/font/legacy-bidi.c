@@ -48,7 +48,8 @@
 
 #include "devfont.h"
 
-#define BIDI_DEBUG
+#undef  BIDI_DEBUG
+
 #include "bidi.h"
 
 #define BIDI_MAX(a,b) ((a) > (b) ? (a) : (b))

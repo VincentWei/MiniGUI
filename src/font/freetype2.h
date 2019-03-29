@@ -40,8 +40,6 @@
 #ifndef GUI_FREETYP2_H
     #define GUI_FREETYP2_H
 
-#define TTF_DBG
-
 #ifndef TTF_DBG
 #define DP(x)
 #else
