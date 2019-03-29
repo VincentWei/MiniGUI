@@ -12169,40 +12169,43 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags
      *
-     * The glyph rendering flags indicates \a GetGlyphsExtentFromUChars
-     *      - Whether and how to break if the glyph string overflows the max extent;
-     *      - The direction of the glyphs;
-     *      - The writing mode (horizontal or vertical) and text orientation;
-     *      - The hyphenation handling method;
+     * The glyph rendering flags indicates \a GetGlyphsExtentFromUChars and
+     * \a CreateLayoutInfo how to lay out the text:
+     *      - The writing mode (horizontal or vertical) and the glyph orientation;
+     *      - The indentation mode (none, first line or hanging);
+     *      - Whether and how to break if the line overflows the max extent;
+     *      - Whether and how to ellipsize if the line overflows the max extent;
+     *      - The alignment of line;
+     *      - Whether and how to adjust the glyph position for alignment of justify;
      *      - The hanging punctation method;
-     *      - Whether and how to adjust the glyph position for alignment of justify.
+     *      - Remove or hange the spaces at the start and/or end of the line.
      * @{
      */
 
-#define GRF_WRITING_MODE_MASK           0xF0000000
+#define GRF_WRITING_MODE_MASK               0xF0000000
 /**
  * Top-to-bottom horizontal direction.
  * Both the writing mode and the typographic mode are horizontal.
  */
-#define GRF_WRITING_MODE_HORIZONTAL_TB  0x00000000
+#define GRF_WRITING_MODE_HORIZONTAL_TB      0x00000000
 /**
  * Bottom-to-top horizontal direction.
  * Both the writing mode and the typographic mode are horizontal,
  * but lines are generated from bottom to top.
  */
-#define GRF_WRITING_MODE_HORIZONTAL_BT  0x10000000
+#define GRF_WRITING_MODE_HORIZONTAL_BT      0x10000000
 /**
  * Right-to-left vertical direction.
  * Both the writing mode and the typographic mode are vertical,
  * but the lines are generated from right to left.
  */
-#define GRF_WRITING_MODE_VERTICAL_RL    0x20000000
+#define GRF_WRITING_MODE_VERTICAL_RL        0x20000000
 /**
  * Left-to-right vertical direction.
  * Both the writing mode and the typographic mode are vertical.
  * but the lines are generated from left to right.
  */
-#define GRF_WRITING_MODE_VERTICAL_LR    0x30000000
+#define GRF_WRITING_MODE_VERTICAL_LR        0x30000000
 
 #define GRF_TEXT_ORIENTATION_MASK           0x0F000000
 /**
@@ -12239,141 +12242,154 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
  */
 #define GRF_TEXT_ORIENTATION_MIXED          0x05000000
 
-#define GRF_OVERFLOW_WRAP_MASK          0x00F00000
+#define GRF_LINE_EXTENT_MASK                0x00C00000
+/**
+ * The maximal line extent is fixed.
+ * The maximal line extent value you passed to \a LayoutNextLine
+ * will be ignored.
+ */
+#define GRF_LINE_EXTENT_FIXED               0x00000000
+/**
+ * The maximal line extent is variable. You should pass the desired
+ * maximal line extent value for a new line when calling
+ * \a LayoutNextLine. The intent mode will be ignored as well.
+ */
+#define GRF_LINE_EXTENT_VARIABLE            0x00400000
+
+#define GRF_INDENT_MASK                     0x00300000
+/**
+ * No indentation.
+ */
+#define GRF_INDENT_NONE                     0x00000000
+/**
+ * The first line is indented.
+ */
+#define GRF_INDENT_FIRST_LINE               0x00100000
+/**
+ * Indent all the lines of a paragraph except the first line.
+ */
+#define GRF_INDENT_HANGING                  0x00200000
+
+#define GRF_OVERFLOW_WRAP_MASK              0x000C0000
 /**
  * Lines may break only at allowed break points.
  */
-#define GRF_OVERFLOW_WRAP_NORMAL        0x00000000
+#define GRF_OVERFLOW_WRAP_NORMAL            0x00000000
 /**
  * Lines may break only at word seperators.
  */
-#define GRF_OVERFLOW_WRAP_BREAK_WORD    0x00100000
+#define GRF_OVERFLOW_WRAP_BREAK_WORD        0x00040000
 /**
  * An otherwise unbreakable sequence of characters may be broken
  * at an arbitrary point if there are no otherwise-acceptable
  * break points in the line.
  */
-#define GRF_OVERFLOW_WRAP_ANYWHERE      0x00200000
+#define GRF_OVERFLOW_WRAP_ANYWHERE          0x00080000
 
-#define GRF_OVERFLOW_ELLIPSIZE_MASK     0x000F0000
-#define GRF_OVERFLOW_ELLIPSIZE_NONE     0x00000000
-#define GRF_OVERFLOW_ELLIPSIZE_START    0x00010000
-#define GRF_OVERFLOW_ELLIPSIZE_MIDDLE   0x00020000
-#define GRF_OVERFLOW_ELLIPSIZE_END      0x00030000
+#define GRF_OVERFLOW_ELLIPSIZE_MASK         0x00030000
+/**
+ * No ellipsization
+ */
+#define GRF_OVERFLOW_ELLIPSIZE_NONE         0x00000000
+/**
+ * Omit characters at the start of the text
+ */
+#define GRF_OVERFLOW_ELLIPSIZE_START        0x00010000
+/**
+ * Omit characters in the middle of the text
+ */
+#define GRF_OVERFLOW_ELLIPSIZE_MIDDLE       0x00020000
+/**
+ * Omit characters at the end of the text
+ */
+#define GRF_OVERFLOW_ELLIPSIZE_END          0x00030000
 
-#define GRF_ALIGN_MASK                  0x0000F000
+#define GRF_ALIGN_MASK                      0x0000F000
 /**
  * Text content is aligned to the start edge of the line box.
  */
-#define GRF_ALIGN_START                 0x00000000
+#define GRF_ALIGN_START                     0x00000000
 /**
  * Text content is aligned to the end edge of the line box.
  */
-#define GRF_ALIGN_END                   0x00001000
+#define GRF_ALIGN_END                       0x00001000
 /**
  * Text content is aligned to the line left edge of the line box.
  * In vertical writing modes, this will be the physical top edge.
  */
-#define GRF_ALIGN_LEFT                  0x00002000
+#define GRF_ALIGN_LEFT                      0x00002000
 /**
  * Text content is aligned to the line right edge of the line box.
  * In vertical writing modes, this will be the physical bottom edge.
  */
-#define GRF_ALIGN_RIGHT                 0x00003000
+#define GRF_ALIGN_RIGHT                     0x00003000
 /**
  * Text content is centered within the line box.
  */
-#define GRF_ALIGN_CENTER                0x00004000
+#define GRF_ALIGN_CENTER                    0x00004000
 /**
  * Text is justified according to the method specified by GRF_TEXT_JUSTIFY_XXX,
  * in order to exactly fill the line box.
  */
-#define GRF_ALIGN_JUSTIFY               0x00005000
+#define GRF_ALIGN_JUSTIFY                   0x00005000
 
-#define GRF_TEXT_JUSTIFY_MASK           0x00000F00
+#define GRF_TEXT_JUSTIFY_MASK               0x00000F00
 /**
  * Justification adjusts primarily the spacing at word separators
  * and between CJK typographic letter units along with secondarily
  * between Southeast Asian typographic letter units.
  */
-#define GRF_TEXT_JUSTIFY_AUTO           0x00000000
+#define GRF_TEXT_JUSTIFY_AUTO               0x00000000
 /**
  * Justification adjusts spacing at word separators only.
  */
-#define GRF_TEXT_JUSTIFY_INTER_WORD     0x00000100
+#define GRF_TEXT_JUSTIFY_INTER_WORD         0x00000100
 /**
  * Justification adjusts spacing between each pair of adjacent
  * typographic character units.
  */
-#define GRF_TEXT_JUSTIFY_INTER_CHAR     0x00000200
+#define GRF_TEXT_JUSTIFY_INTER_CHAR         0x00000200
 
-#define GRF_HANGING_PUNC_MASK           0x000000F0
+#define GRF_HANGING_PUNC_MASK               0x000000F0
 /**
  * No character hangs.
  */
-#define GRF_HANGING_PUNC_NONE           0x00000000
+#define GRF_HANGING_PUNC_NONE               0x00000000
 /**
  * A stop or comma at the end of a line hangs.
  */
-#define GRF_HANGING_PUNC_FORCE_END      0x00000010
+#define GRF_HANGING_PUNC_FORCE_END          0x00000010
 /**
  * A stop or comma at the end of a line hangs
  * if it does not otherwise fit prior to justification.
  */
-#define GRF_HANGING_PUNC_ALLOW_END      0x00000020
+#define GRF_HANGING_PUNC_ALLOW_END          0x00000020
 /**
  * An opening bracket or quote at the start of the line hangs.
  */
-#define GRF_HANGING_PUNC_OPEN           0x00000040
+#define GRF_HANGING_PUNC_OPEN               0x00000040
 /**
  * An closing bracket or quote at the end of the line hangs.
  */
-#define GRF_HANGING_PUNC_CLOSE          0x00000080
+#define GRF_HANGING_PUNC_CLOSE              0x00000080
 
-#define GRF_SPACES_MASK                 0x0000000F
+#define GRF_SPACES_MASK                     0x0000000F
 /**
  * All spaces are kept.
  */
-#define GRF_SPACES_KEEP                 0x00000000
+#define GRF_SPACES_KEEP                     0x00000000
 /**
  * A sequence of spaces at the start of a line is removed.
  */
-#define GRF_SPACES_REMOVE_START         0x00000001
+#define GRF_SPACES_REMOVE_START             0x00000001
 /**
  * A sequence of spaces at the end of a line is removed.
  */
-#define GRF_SPACES_REMOVE_END           0x00000002
+#define GRF_SPACES_REMOVE_END               0x00000002
 /**
  * A sequence of spaces at the end of a line hangs.
  */
-#define GRF_SPACES_HANGE_END            0x00000004
-
-/*
-#define GRF_HYPHENS_MASK                0x000F0000
-#define GRF_HYPHENS_NONE                0x00000000
-#define GRF_HYPHENS_MANUAL              0x00010000
-#define GRF_HYPHENS_AUTO                0x00020000
-
-#define GRF_TEXT_COMBINE_UPRIGHT_MASK   0x000C0000
-#define GRF_TEXT_COMBINE_UPRIGHT_NONE   0x00000000
-#define GRF_TEXT_COMBINE_UPRIGHT_ALL    0x00040000
-
-#define GRF_WORD_BREAK_MASK             0x00000003
-#define GRF_WORD_BREAK_NORMAL           0x00000000
-#define GRF_WORD_BREAK_KEEP_ALL         0x00000001
-#define GRF_WORD_BREAK_BREAK_ALL        0x00000002
-
-#define GRF_LINE_BREAK_MASK             0x000000F0
-#define GRF_LINE_BREAK_NORMAL           0x00000000
-#define GRF_LINE_BREAK_AUTO             0x00000010
-#define GRF_LINE_BREAK_LOOSE            0x00000020
-#define GRF_LINE_BREAK_STRICT           0x00000030
-#define GRF_LINE_BREAK_ANYWHERE         0x00000040
-
-#define GRF_DIRECTION_MASK              0x00003000
-#define GRF_DIRECTION_LTR               0x00000000
-#define GRF_DIRECTION_RTL               0x00001000
- */
+#define GRF_SPACES_HANGE_END                0x00000004
 
     /** @} end of glyph_render_flags */
 
@@ -12559,6 +12575,8 @@ typedef struct _GLYPHPOS {
  *      the top-left corner of the resulting output line rectangle.
  *
  * \sa UStrGetBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
+ *
+ * Since 3.4.0
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
         const Achar32* uchars, int nr_uchars, const BreakOppo* break_oppos,
@@ -12591,6 +12609,8 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
  *      the top-left corner of the output rectangle.
  *
  * \sa GetGlyphsExtentFromUChars
+ *
+ * Since 3.4.0
  */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
@@ -12637,6 +12657,8 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  *
  * \sa GetUCharsUntilParagraphBoundary, UStrGetBreaks,
  *      SetFontInTextRuns, SetTextColorInTextRuns
+ *
+ * Since 3.4.0
  */
 MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(
         const Uchar32* ucs, int nr_ucs,
@@ -12646,36 +12668,48 @@ MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(
 
 /**
  * Set logfont name of text runs
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* truninfo,
         int start_index, int length, const char* logfont_name);
 
 /**
  * Get logfont name of a specific character in text runs
+ *
+ * Since 3.4.0
  */
 MG_EXPORT const char* GUIAPI GetFontNameInTextRuns(
         const TEXTRUNSINFO* truninfo, int index);
 
 /**
  * Set text olor in text runs.
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* truninfo,
         int start_index, int length, RGBCOLOR color);
 
 /**
  * Get text color of a specific character in text runs
+ *
+ * Since 3.4.0
  */
 MG_EXPORT RGBCOLOR GUIAPI GetTextColorInTextRuns(
         const TEXTRUNSINFO* truninfo, int index);
 
 /**
  * Set background color in text runs.
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* truninfo,
     int start_index, int length, RGBCOLOR color);
 
 /**
  * Get background color of a specific character in text runs
+ *
+ * Since 3.4.0
  */
 MG_EXPORT RGBCOLOR GUIAPI GetBackgroundColorInTextRuns(
         const TEXTRUNSINFO* truninfo, int index);
@@ -12695,6 +12729,8 @@ MG_EXPORT RGBCOLOR GUIAPI GetBackgroundColorInTextRuns(
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa CreateTextRunsInfo
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo);
 
@@ -12726,6 +12762,8 @@ MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo);
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa InitComplexShapingEngine, CreateLayoutInfo
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo);
 
@@ -12758,6 +12796,8 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo);
  *      and the support for complex scripts (_MGCOMPLEX_SCRIPTS) are enabled.
  *
  * \sa InitBasicShapingEngine, CreateLayoutInfo
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* truninfo);
 
@@ -12770,6 +12810,7 @@ typedef struct _LAYOUTLINE LAYOUTLINE;
  * \fn LAYOUTINFO* GUIAPI CreateLayoutInfo(
  *      const TEXTRUNSINFO* truninfo, Uint32 render_flags,
  *      const BreakOppo* break_oppos, BOOL persist_lines,
+ *      int max_line_extent, int indent,
  *      int letter_spacing, int word_spacing, int tab_size,
  *      int* tabs, int nr_tabs)
  * \brief Create layout information structure for laying out a paragraph.
@@ -12782,6 +12823,8 @@ typedef struct _LAYOUTLINE LAYOUTLINE;
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param break_oppos The breaking opportunities of the paragraph.
  * \param persist_lines Whether to persist the lines laid out.
+ * \param max_line_extent The fixed maximal line extent.
+ * \param indent The indentation value.
  * \param letter_spacing This parameter specifies additional spacing
  *      (commonly called tracking) between adjacent glyphs.
  * \param word_spacing This parameter specifies the additional spacing between
@@ -12794,10 +12837,13 @@ typedef struct _LAYOUTLINE LAYOUTLINE;
  *
  * \sa CreateTextRunsInfo, InitBasicShapingEngine, InitComplexShapingEngine,
  *      UStrGetBreaks, LayoutNextLine
+ *
+ * Since 3.4.0
  */
 MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* truninfo, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
+        int max_line_extent, int indent,
         int letter_spacing, int word_spacing, int tab_size,
         int* tabs, int nr_tabs);
 
@@ -12812,6 +12858,8 @@ MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
  * \return TRUE for success, FALSE otherwise.
  *
  * \sa CreateLayoutInfo
+ *
+ * Since 3.4.0
  */
 MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
@@ -12848,36 +12896,114 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  * \param layout_info The LAYOUTINFO object.
  * \param prev_line NULL or the previous line object returned by this
  *      function.
- * \param x The x-corrdinate of the output position of the first glyph
- *      in the next line.
- * \param y The y-corrdinate of the output position of the first glyph
- *      in the next line.
  * \param max_extent The maximal extent of the next line; No limit if
- *      it is less than 0.
- * \param last_line Whether to lay out all left characters.
+ *      it is less than 0. This parameter is only effective when the
+ *      line extent mode of the layout object is variable.
+ * \param last_line Whether to lay out all left characters in one line.
  * \param line_size The size of the line will be returned through this
  *      buffer if it is not NULL.
  * \param cb_laid_out The callback for one laid out glyph.
  * \param ctxt The context will be passed to \a cb_laid_out.
+ *      This parameter is only effective when cb_laid_out is not NULL.
+ * \param x The x-corrdinate of the output position of the first glyph
+ *      in the next line. This parameter is only effective when
+ *      \a cb_laid_out is not NULL.
+ * \param y The y-corrdinate of the output position of the first glyph
+ *      in the next line. This parameter is only effective when
+ *      \a cb_laid_out is not NULL.
  *
  * \return NULL for no line, otherwise the next line object.
  *
  * \sa CreateLayoutInfo, DestroyLayoutInfo, CreateTextRunsInfo
+ *
+ * Since 3.4.0
  */
 MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
         LAYOUTLINE* prev_line,
-        int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
-        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
+        int max_extent, BOOL last_line, SIZE* line_size,
+        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt, int x, int y);
 
+/**
+ * \fn int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
+ *      int max_line_extent, int max_height, int line_height,
+ *      RECT* bounding)
+ * \brief Calculate the bounding rectangle of a layout.
+ *
+ * This function calculates the bounding rectangle of the specific
+ * layout object \a layout_info.
+ *
+ * \param layout_info The LAYOUTINFO object.
+ * \param max_line_extent The maximal line extent; only effective if
+ *      the line extent mode of the layout object if variable.
+ * \param max_height The maximal height of the lines; no limit if
+ *      it is less than 0.
+ * \param line_height The line height. If it is less than 0, this function
+ *      will try to determine the line height automatically.
+ * \param bounding The buffer to receive the result.
+ *
+ * \return The number of lines laid out.
+ *
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ *
+ * Since 3.4.0
+ */
 MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
-        int max_line_width, int max_lines_height, RECT* rc_bouding);
+        int max_line_extent, int max_height, int line_height,
+        RECT* bounding);
 
+/**
+ * \fn BOOL DrawLayoutGlyph(HDC hdc,
+ *      const TEXTRUNSINFO *truninfo, int uc_index, LOGFONT* lf,
+ *      Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos)
+ * \brief Draw a laid out glyph.
+ *
+ * This function draws a laied out glyph at the specified position.
+ * You can pass this function to \a LayoutNextLine as the callback
+ * to draw a laid out glyph on the DC \a hdc.
+ *
+ * \param hdc The device context.
+ * \param truninfo The text runs object
+ * \param uc_index The index of the Unicode character corresponding to
+ *      the glyph in the text runs object.
+ * \param lf The logfont object should be used to draw the glyph.
+ * \param uc The Unicode character corresponding to the glyph.
+ * \param pos The glyph position and orientation information.
+ *
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ *
+ * Since 3.4.0
+ */
 MG_EXPORT BOOL DrawLayoutGlyph(HDC hdc,
         const TEXTRUNSINFO *truninfo, int uc_index, LOGFONT* lf,
         Uchar32 uc, Glyph32 gv, const GLYPHPOS* pos);
 
-MG_EXPORT int DrawLayoutLine(HDC hdc, LAYOUTLINE* line,
-        int x, int y, RECT* rc_bouding);
+/**
+ * \fn DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
+ *      int x, int y, RECT* bounding)
+ * \brief Draw a laid out line at the specific position.
+ *
+ * This function draws a laied out line at the specified position.
+ *
+ * \param hdc The device context.
+ * \param line The laid out LAYOUTLINE object. It should be one returned
+ *      by \a LayoutNextLine.
+ * \param x The buffer contained the x-corrdinate of the output position
+ *      of the first glyph in the line. The x-corrdinate of the next line
+ *      will be returned through this buffer as well.
+ * \param y The buffer contained the y-corrdinate of the output position
+ *      of the first glyph in the line. The y-corrdinate of the next line
+ *      will be returned through this buffer as well.
+ * \param bounding The buffer to store the bounding rectangle of
+ *      the line; can be NULL.
+ *
+ * \return The number of glyphs drawn.
+ *
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ *
+ * Since 3.4.0
+ */
+MG_EXPORT int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
+        int* x, int* y, RECT* bounding);
 
 #ifdef _MGDEVEL_MODE
 typedef struct _TextRun TEXTRUN;

@@ -80,6 +80,7 @@
 LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* truninfo, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
+        int max_line_extent, int indent,
         int letter_spacing, int word_spacing, int tab_size,
         int* tabs, int nr_tabs)
 {
@@ -94,14 +95,16 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
         return NULL;
     }
 
-    layout->truninfo = truninfo;
-    layout->bos = break_oppos;
-    layout->rf = render_flags;
-    layout->ls = letter_spacing;
-    layout->ws = word_spacing;
-    layout->ts = tab_size;
-    layout->tabs = tabs;
-    layout->nr_tabs = nr_tabs;
+    layout->truninfo    = truninfo;
+    layout->bos         = break_oppos;
+    layout->rf          = render_flags;
+    layout->ls          = letter_spacing;
+    layout->ws          = word_spacing;
+    layout->ts          = tab_size;
+    layout->max_ext     = max_line_extent;
+    layout->indent      = indent;
+    layout->tabs        = tabs;
+    layout->nr_tabs     = nr_tabs;
 
     INIT_LIST_HEAD(&layout->lines);
     layout->nr_left_ucs = truninfo->nr_ucs;
@@ -1750,8 +1753,8 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
 
 LAYOUTLINE* GUIAPI LayoutNextLine(
         LAYOUTINFO* layout, LAYOUTLINE* prev_line,
-        int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
-        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
+        int max_extent, BOOL last_line, SIZE* line_size,
+        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt, int x, int y)
 {
     LAYOUTLINE* next_line = NULL;
     LayoutState state;
@@ -1819,6 +1822,25 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         if (state.trun == NULL) {
             next_line = NULL;
             goto out;
+        }
+    }
+
+    if ((layout->rf & GRF_LINE_EXTENT_MASK) == GRF_LINE_EXTENT_FIXED) {
+        max_extent = layout->max_ext;
+
+        switch (layout->rf & GRF_INDENT_MASK) {
+        case GRF_INDENT_FIRST_LINE:
+            if (prev_line == NULL)
+                max_extent -= layout->indent;
+            break;
+
+        case GRF_INDENT_HANGING:
+            if (prev_line)
+                max_extent -= layout->indent;
+            break;
+
+        default:
+            break;
         }
     }
 

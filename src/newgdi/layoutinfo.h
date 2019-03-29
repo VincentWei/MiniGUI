@@ -116,15 +116,17 @@ struct _LAYOUTINFO {
     const TEXTRUNSINFO* truninfo;
     const BreakOppo*    bos;
     const int*          tabs;       // tabstop array
+    int                 nr_tabs;    // number of tabstops
 
     Uint32              rf;         // rendering flags
     int                 ls;         // letter spacing
     int                 ws;         // word spacing
     int                 ts;         // tab size
+    int                 max_ext;    // fixed maximal line extent
+    int                 indent;     // indent value
 
     struct list_head    lines;      // the list head of lines
 
-    int                 nr_tabs;    // number of tabstops
     int                 nr_left_ucs;// the number of chars not laied out
     int                 nr_lines;   // the number of lines
 
