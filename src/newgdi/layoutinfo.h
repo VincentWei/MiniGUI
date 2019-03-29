@@ -52,7 +52,8 @@ struct _ShapedGlyph {
     int     x_off;
     int     y_off;
 
-    Uint32  width:24;
+    Uint32  width:14;
+    Uint32  height:14;
     Uint32  is_cluster_start:1;
     Uint32  hanged:2;
 };
@@ -127,6 +128,7 @@ struct _LAYOUTINFO {
 
     struct list_head    lines;      // the list head of lines
 
+    LOGFONT*            lf_upright; // the default upright logfont
     int                 nr_left_ucs;// the number of chars not laied out
     int                 nr_lines;   // the number of lines
 

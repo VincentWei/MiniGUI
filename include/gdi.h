@@ -12934,13 +12934,32 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  */
 MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
         LAYOUTLINE* prev_line,
-        int max_extent, BOOL last_line, SIZE* line_size,
+        int max_extent, BOOL last_line,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt, int x, int y);
+
+/**
+ * \fn BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
+        SIZE* line_size)
+ * \brief Get the size of a layout line.
+ *
+ * This function gets the size of the specific layout line object \a line.
+ *
+ * \param line The layout line object.
+ * \param line_size The buffer to store the result.
+ *
+ * \return TRUE for success, FALSE otherwise.
+ *
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ *
+ * Since 3.4.0
+ */
+MG_EXPORT BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
+        SIZE* line_size);
 
 /**
  * \fn int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
  *      int max_line_extent, int max_height, int line_height,
- *      RECT* bounding)
+ *      int x, int y, RECT* bounding)
  * \brief Calculate the bounding rectangle of a layout.
  *
  * This function calculates the bounding rectangle of the specific
@@ -12948,22 +12967,32 @@ MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
  *
  * \param layout_info The LAYOUTINFO object.
  * \param max_line_extent The maximal line extent; only effective if
- *      the line extent mode of the layout object if variable.
+ *      the line extent mode of the layout object is variable.
  * \param max_height The maximal height of the lines; no limit if
  *      it is less than 0.
  * \param line_height The line height. If it is less than 0, this function
  *      will try to determine the line height automatically.
+ * \param x The x-position of first line.
+ * \param y The y-position of first line.
  * \param bounding The buffer to receive the result.
  *
  * \return The number of lines laid out.
  *
  * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
  *
+ * \note The position coordinates of the first line are
+ *      with respect to the top-left corner of the output rectangle
+ *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
+ *      GRF_WRITING_MODE_VERTICAL_LR, the bottom-left corner if
+ *      the writing mode is GRF_WRITING_MODE_HORIZONTAL_BT,
+ *      the top-right corner if the writing mode is
+ *      GRF_WRITING_MODE_VERTICAL_RL.
+ *
  * Since 3.4.0
  */
 MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
         int max_line_extent, int max_height, int line_height,
-        RECT* bounding);
+        int x, int y, RECT* bounding);
 
 /**
  * \fn BOOL DrawLayoutGlyph(HDC hdc,

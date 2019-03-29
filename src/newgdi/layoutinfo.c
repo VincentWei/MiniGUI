@@ -106,6 +106,13 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     layout->tabs        = tabs;
     layout->nr_tabs     = nr_tabs;
 
+    layout->lf_upright  = __mg_create_logfont_for_layout(layout,
+            NULL, GLYPH_ORIENT_UPRIGHT);
+    if (layout->lf_upright == NULL) {
+        free(layout);
+        return NULL;
+    }
+
     INIT_LIST_HEAD(&layout->lines);
     layout->nr_left_ucs = truninfo->nr_ucs;
 
@@ -174,6 +181,12 @@ static void release_line(LAYOUTLINE* line)
 
 BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout)
 {
+    if (layout->lf_upright) {
+        FONT_RES* font_res = (FONT_RES*)layout->lf_upright;
+        if (font_res->key)
+            ReleaseRes(font_res->key);
+    }
+
     while (!list_empty(&layout->lines)) {
         LAYOUTLINE* line = (LAYOUTLINE*)layout->lines.prev;
         list_del(layout->lines.prev);
@@ -356,7 +369,7 @@ static int get_tab_pos(LAYOUTINFO *layout, int index, BOOL *is_default)
     }
 }
 
-static int get_line_width(LAYOUTLINE *line)
+static int get_line_width(const LAYOUTLINE *line)
 {
     struct list_head *l;
     int i;
@@ -373,6 +386,23 @@ static int get_line_width(LAYOUTLINE *line)
     }
 
     return width;
+}
+
+static int get_line_height(const LAYOUTLINE *line)
+{
+    struct list_head *l;
+    int i;
+    int height = 0;
+
+    list_for_each(l, &line->gruns) {
+        GlyphRun *run = (GlyphRun*)l;
+
+        for (i = 0; i < run->gstr->nr_glyphs; i++)
+            if (run->gstr->glyphs[i].height > height)
+                height = run->gstr->glyphs[i].height;
+    }
+
+    return height;
 }
 
 static void shape_tab(LAYOUTLINE *line, GlyphString *glyphs)
@@ -1463,10 +1493,11 @@ static void justify_words (LAYOUTLINE *line,
             assert(run->lrun->si >= state->line_start_index);
             offset = state->line_start_index + run->lrun->si;
 
-            for (have_cluster = __mg_glyph_run_iter_init_start (&cluster_iter,
+            for (have_cluster = __mg_glyph_run_iter_init_start(&cluster_iter,
                         run, text);
                     have_cluster;
-                    have_cluster = __mg_glyph_run_iter_next_cluster (&cluster_iter))
+                    have_cluster = __mg_glyph_run_iter_next_cluster(
+                        &cluster_iter))
             {
                 int i;
                 int dir;
@@ -1475,8 +1506,10 @@ static void justify_words (LAYOUTLINE *line,
                         BOV_EXPANDABLE_SPACE))
                     continue;
 
-                dir = (cluster_iter.start_glyph < cluster_iter.end_glyph) ? 1 : -1;
-                for (i = cluster_iter.start_glyph; i != cluster_iter.end_glyph; i += dir)
+                dir = (cluster_iter.start_glyph < cluster_iter.end_glyph) ?
+                        1 : -1;
+                for (i = cluster_iter.start_glyph;
+                        i != cluster_iter.end_glyph; i += dir)
                 {
                     int glyph_width = glyphs->glyphs[i].width;
 
@@ -1588,6 +1621,9 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
     line->si = state->line_start_index;
     line->is_paragraph_start = state->line_of_par == 1;
     line_set_resolved_dir(line, state->base_dir);
+
+    line->width = -1;
+    line->height = -1;
 
     if (should_ellipsize_current_line (layout, state))
         state->remaining_width = -1;
@@ -1753,7 +1789,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
 
 LAYOUTLINE* GUIAPI LayoutNextLine(
         LAYOUTINFO* layout, LAYOUTLINE* prev_line,
-        int max_extent, BOOL last_line, SIZE* line_size,
+        int max_extent, BOOL last_line,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt, int x, int y)
 {
     LAYOUTLINE* next_line = NULL;
@@ -1893,6 +1929,83 @@ out:
     }
 
     return next_line;
+}
+
+BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
+        SIZE* line_size)
+{
+    if (line == NULL)
+        return FALSE;
+
+    if (line->width >= 0 && line->height >= 0) {
+        line_size->cx = line->width;
+        line_size->cy = line->height;
+    }
+    else {
+        line->width = line_size->cx = get_line_width(line);
+        line->height = line_size->cy = get_line_height(line);
+    }
+
+    return TRUE;
+}
+
+int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
+        int max_line_extent, int max_height, int line_height,
+        int x, int y, RECT* bounding)
+{
+    int nr_lines = 0;
+    int remaining_height = max_height;
+    LAYOUTLINE* line = NULL;
+    BOOL last_line = FALSE;
+    SIZE line_size;
+
+    if (line_height <= 0) {
+        // determine the default line height
+        Uint32 writing_mode = layout->rf & GRF_WRITING_MODE_MASK;
+        FONTMETRICS font_metrics;
+
+        GetFontMetrics(layout->lf_upright, &font_metrics);
+
+        if (writing_mode == GRF_WRITING_MODE_VERTICAL_LR ||
+                writing_mode == GRF_WRITING_MODE_VERTICAL_RL) {
+            line_height = font_metrics.max_width;
+        }
+        else {
+            line_height = font_metrics.font_height;
+        }
+    }
+
+    SetRect(bounding, 0, 0, 0, 0);
+
+    do {
+        if (max_height > 0) {
+            remaining_height -= line_height;
+            if (remaining_height <= 0)
+                last_line = TRUE;
+        }
+
+        line = LayoutNextLine(layout, line, max_line_extent, last_line,
+            NULL, NULL, 0, 0);
+
+        if (line == NULL) {
+            break;
+        }
+
+        GetLayoutLineSize(line, &line_size);
+        if (line_size.cy > line_height)
+            line_height = line_size.cy;
+
+        bounding->bottom += line_height;
+        if (line_size.cx > bounding->right)
+            bounding->right = line_size.cx;
+        nr_lines++;
+
+    } while (1);
+
+    // TODO: transform the bouding rectangle according to the wrting mode
+    OffsetRect(bounding, x, y);
+
+    return nr_lines;
 }
 
 #ifdef _MGDEVEL_MODE
