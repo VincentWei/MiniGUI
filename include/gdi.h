@@ -12881,7 +12881,7 @@ MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
 
 /*
  * \var typedef struct _RENDERDATA RENDERDATA
- * \brief The extra data of the shaped glyph.
+ * \brief The extra rendering data of the shaped glyph.
  */
 typedef struct _RENDERDATA {
     /**
@@ -12910,7 +12910,7 @@ typedef struct _RENDERDATA {
     RGBCOLOR            fg_color;
 
     /**
-     * The text color of the glyph.
+     * The background color of the glyph.
      */
     RGBCOLOR            bg_color;
 
@@ -13073,7 +13073,7 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
  * \param hdc The device context.
  * \param glyph_value The glyph value.
  * \param glyph_pos The glyph position and orientation information.
- * \param shaping_info The shaping information of the glyph.
+ * \param render_data The rendering data of the glyph.
  *
  * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine,
  *      GLYPHPOS, RENDERDATA
