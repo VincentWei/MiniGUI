@@ -279,7 +279,7 @@ print_bitmap(char* bits, int width, int height, int pitch)
 #endif
 
 static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
-        const Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
+        Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale)
 {
     unsigned int uc16;
     UPFGLYPH* glyph;

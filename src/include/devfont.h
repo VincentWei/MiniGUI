@@ -225,11 +225,11 @@ struct _FONTOPS
 
     /** The method to get mono-bitmap function. */
     const void* (*get_glyph_monobitmap) (LOGFONT* logfont, DEVFONT* devfont, 
-            const Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale);
+            Glyph32 glyph_value, SIZE* sz, int* pitch, unsigned short* scale);
 
     /** The method to get grey bitmap, pitch and scale function */
     const void* (*get_glyph_greybitmap) (LOGFONT* logfont, DEVFONT* devfont, 
-            const Glyph32 galph_value, SIZE* sz, int* pitch, unsigned short* scale);
+            Glyph32 galph_value, SIZE* sz, int* pitch, unsigned short* scale);
 
     /** The method to get the pre-rendered bitmap of one glyph. */
     int (*get_glyph_prbitmap) (LOGFONT* logfont, DEVFONT* devfont, 
