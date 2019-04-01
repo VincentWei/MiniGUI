@@ -12926,7 +12926,6 @@ typedef struct _RENDERDATA {
  * a glyph is laid out.
  *
  * \param ctxt The context value passed to LayoutNextLine.
- * \param logfont .
  * \param glyph_value The glyph value.
  * \param glyph_pos The glyph position and orientation information.
  * \param render_data The shaping data of the glyph.
@@ -12970,7 +12969,7 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  * \param max_extent The maximal extent of the next line; No limit if
  *      it is less than 0. This parameter is only effective when the
  *      line extent mode of the layout object is variable.
- * \param last_line Whether to lay out all left characters in one line.
+ * \param last_line Whether try to lay out all left characters in one line.
  * \param cb_laid_out The callback for one laid out glyph.
  * \param ctxt The context will be passed to \a cb_laid_out.
  *      This parameter is only effective when cb_laid_out is not NULL.
@@ -13048,9 +13047,18 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
  *      const RENDERDATA render_data)
  * \brief Draw a laid out glyph.
  *
- * This function draws a laied out glyph at the specified position.
+ * This function draws a laied out glyph.
  * You can pass this function to \a LayoutNextLine as the callback
  * to draw a laid out glyph on the DC \a hdc.
+ *
+ * Note that the function will call DrawGlyph to draw the glyphs
+ * and always draw the first glyph at the origin of the device context.
+ * You may call \a SetMapMode and \a SetViewportOrg
+ * before calling \a LayoutNextLine to change the logical coordinates
+ * of the DC in order to refect the real device corrdinates.
+ *
+ * However, we strongly recommend that you use \a DrawLayoutLine to
+ * output the glyphs for a better performance.
  *
  * \param hdc The device context.
  * \param glyph_value The glyph value.
@@ -13058,7 +13066,7 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
  * \param render_data The rendering data of the glyph.
  *
  * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine,
- *      GLYPHPOS, RENDERDATA
+ *      DrawLayoutLine, GLYPHPOS, RENDERDATA
  *
  * Since 3.4.0
  */
