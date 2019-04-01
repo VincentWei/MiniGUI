@@ -12905,16 +12905,6 @@ typedef struct _RENDERDATA {
     LOGFONT*            logfont;
 
     /**
-     * The text color of the glyph.
-     */
-    RGBCOLOR            fg_color;
-
-    /**
-     * The background color of the glyph.
-     */
-    RGBCOLOR            bg_color;
-
-    /**
      * The Unicode character corresponding to the glyph.
      */
     Uchar32             uc;
@@ -12951,8 +12941,7 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
 
 /**
  * \fn LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
- *      LAYOUTLINE* prev_line,
- *      int x, int y, int max_extent, BOOL last_line, SIZE* line_size,
+ *      LAYOUTLINE* prev_line, int max_extent, BOOL last_line,
  *      CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
  * \brief Layout the next line of a paragraph according to the layout
  *      information.
@@ -12985,12 +12974,6 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  * \param cb_laid_out The callback for one laid out glyph.
  * \param ctxt The context will be passed to \a cb_laid_out.
  *      This parameter is only effective when cb_laid_out is not NULL.
- * \param x The x-corrdinate of the output position of the first glyph
- *      in the next line. This parameter is only effective when
- *      \a cb_laid_out is not NULL.
- * \param y The y-corrdinate of the output position of the first glyph
- *      in the next line. This parameter is only effective when
- *      \a cb_laid_out is not NULL.
  *
  * \return NULL for no line, otherwise the next line object.
  *
@@ -12999,9 +12982,8 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  * Since 3.4.0
  */
 MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
-        LAYOUTLINE* prev_line,
-        int max_extent, BOOL last_line,
-        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt, int x, int y);
+        LAYOUTLINE* prev_line, int max_extent, BOOL last_line,
+        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
 
 /**
  * \fn BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
@@ -13061,7 +13043,7 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
         int x, int y, RECT* bounding);
 
 /**
- * \fn BOOL DrawShapedGlyph(HDC hdc, LOGFONT* logfont,
+ * \fn BOOL DrawShapedGlyph(HDC hdc,
  *      Glyph32 glyph_value, const GLYPHPOS* glyph_pos,
  *      const RENDERDATA render_data)
  * \brief Draw a laid out glyph.

@@ -3,8 +3,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
- *   Copyright (C) 1998~2002, WEI Yongming
+ *   Copyright (C) 2019, Beijing FMSoft Technologies Co., Ltd.
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,7 +32,7 @@
  */
 
 /*
-** ucs-iterator.c: The implementation of the uchar string iterators.
+** unicode-iterators.c: The implementation of the uchar string iterators.
 **
 ** Create by WEI Yongming at 2019/03/18
 **

@@ -1354,16 +1354,8 @@ static void justify_clusters (LAYOUTLINE *line, LayoutState *state)
 
             dir = run->lrun->el % 2 == 0 ? +1 : -1;
 
-            /* We need character offset of the start of the run.
-             * We don't have this.
-             * Compute by counting from the beginning of the line.
-             * The naming is confusing.  Note that:
-             *
-             * run->lrun->si is the index of start of run.
-             * state->line_start_index is the index of start of line.
-             */
             assert(run->lrun->si >= state->line_start_index);
-            offset = state->line_start_index + run->lrun->si;
+            offset = run->lrun->si;
 
             if ((have_cluster = (dir > 0)))
                 __mg_glyph_run_iter_init_start(&cluster_iter, run, text);
@@ -1491,7 +1483,7 @@ static void justify_words (LAYOUTLINE *line,
             int offset;
 
             assert(run->lrun->si >= state->line_start_index);
-            offset = state->line_start_index + run->lrun->si;
+            offset = run->lrun->si;
 
             for (have_cluster = __mg_glyph_run_iter_init_start(&cluster_iter,
                         run, text);
@@ -1732,7 +1724,7 @@ done:
 }
 
 static int traverse_line_glyphs(const LAYOUTINFO* layout,
-        const LAYOUTLINE* line, int x, int y,
+        const LAYOUTLINE* line,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
     int j;
@@ -1751,17 +1743,19 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             ShapedGlyph* glyph_info;
 
             extra.logfont   = run->lrun->lf;
+#if 0
             extra.fg_color  = GetTextColorInTextRuns(layout->truninfo,
                                 extra.uc_index);
             extra.bg_color  = GetBackgroundColorInTextRuns(layout->truninfo,
                                 extra.uc_index);
+#endif
             extra.uc        = run->lrun->ucs[run->gstr->log_clusters[j]];
             extra.uc_index  = run->lrun->si + run->gstr->log_clusters[j];
 
             glyph_info = run->gstr->glyphs + j;
 
-            pos.x = x + line_adv;
-            pos.y = y;
+            pos.x = line_adv;
+            pos.y = 0;
             pos.x_off = glyph_info->x_off;
             pos.y_off = glyph_info->y_off;
             pos.advance = glyph_info->width;
@@ -1798,7 +1792,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
 LAYOUTLINE* GUIAPI LayoutNextLine(
         LAYOUTINFO* layout, LAYOUTLINE* prev_line,
         int max_extent, BOOL last_line,
-        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt, int x, int y)
+        CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
     LAYOUTLINE* next_line = NULL;
     LayoutState state;
@@ -1806,7 +1800,8 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     if (prev_line && prev_line->list.next &&
             prev_line->list.next != &layout->lines) {
         // must be a line persisted and not the last line.
-        return (LAYOUTLINE*)prev_line->list.next;
+        next_line = (LAYOUTLINE*)prev_line->list.next;
+        goto out;
     }
 
     if (layout->persist && layout->nr_left_ucs == 0) {
@@ -1933,7 +1928,7 @@ out:
     }
 
     if (next_line && cb_laid_out) {
-        traverse_line_glyphs(layout, next_line, x, y, cb_laid_out, ctxt);
+        traverse_line_glyphs(layout, next_line, cb_laid_out, ctxt);
     }
 
     return next_line;
@@ -1993,7 +1988,7 @@ int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
         }
 
         line = LayoutNextLine(layout, line, max_line_extent, last_line,
-            NULL, NULL, 0, 0);
+            NULL, NULL);
 
         if (line == NULL) {
             break;

@@ -62,7 +62,49 @@
 BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
         const GLYPHPOS* glyph_pos, const RENDERDATA* render_data)
 {
-    return FALSE;
+    RGBCOLOR fg_color, bg_color;
+
+    if (glyph_pos == NULL || render_data == NULL)
+        return FALSE;
+
+    bg_color = GetBackgroundColorInTextRuns(render_data->truninfo,
+        render_data->uc_index);
+
+    if (glyph_pos->suppressed == 0 && glyph_pos->whitespace == 0) {
+        Uint32 old_ta;
+        PLOGFONT old_lf = NULL;
+        gal_pixel fg_pixel, bg_pixel;
+
+        old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
+
+        old_lf = SelectFont(hdc, render_data->logfont);
+
+        fg_color = GetTextColorInTextRuns(render_data->truninfo,
+            render_data->uc_index);
+        fg_pixel = DWORD2Pixel(hdc, fg_color);
+        SetTextColor(hdc, (DWORD)fg_pixel);
+
+        if (bg_color) {
+            bg_pixel = DWORD2Pixel(hdc, bg_color);
+            SetBkColor(hdc, (DWORD)bg_pixel);
+            SetBkMode(hdc, BM_OPAQUE);
+        }
+        else {
+            SetBkMode(hdc, BM_TRANSPARENT);
+        }
+
+        DrawGlyph(hdc, glyph_pos->x, glyph_pos->y, gv, NULL, NULL);
+
+        if (old_lf)
+            SelectFont(hdc, old_lf);
+
+        SetTextAlign(hdc, old_ta);
+    }
+    else if (glyph_pos->whitespace && bg_color) {
+        // TODO: draw background for whitespace.
+    }
+
+    return TRUE;
 }
 
 int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
