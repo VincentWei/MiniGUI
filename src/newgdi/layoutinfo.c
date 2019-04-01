@@ -1754,11 +1754,17 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
 
             glyph_info = run->gstr->glyphs + j;
 
-            pos.x = line_adv;
-            pos.y = 0;
-            pos.x_off = glyph_info->x_off;
-            pos.y_off = glyph_info->y_off;
-            pos.advance = glyph_info->width;
+            if (run->lrun->dir == GLYPH_RUN_DIR_TTB ||
+                    run->lrun->dir == GLYPH_RUN_DIR_BTT) {
+                pos.x = glyph_info->x_off;
+                pos.y = line_adv + glyph_info->y_off;
+                pos.advance = glyph_info->height;
+            }
+            else {
+                pos.x = line_adv + glyph_info->x_off;
+                pos.y = glyph_info->y_off;
+                pos.advance = glyph_info->width;
+            }
 
             pos.suppressed = 0;
             pos.whitespace = 0;

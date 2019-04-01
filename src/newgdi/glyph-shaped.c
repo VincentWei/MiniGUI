@@ -56,6 +56,7 @@
 #include "cursor.h"
 #include "drawtext.h"
 #include "glyph.h"
+#include "layoutinfo.h"
 
 #ifdef _MGCHARSET_UNICODE
 
@@ -71,11 +72,8 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
         render_data->uc_index);
 
     if (glyph_pos->suppressed == 0 && glyph_pos->whitespace == 0) {
-        Uint32 old_ta;
         PLOGFONT old_lf = NULL;
         gal_pixel fg_pixel, bg_pixel;
-
-        old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
 
         old_lf = SelectFont(hdc, render_data->logfont);
 
@@ -93,12 +91,11 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
             SetBkMode(hdc, BM_TRANSPARENT);
         }
 
-        DrawGlyph(hdc, glyph_pos->x, glyph_pos->y, gv, NULL, NULL);
+        DrawGlyph(hdc, glyph_pos->x + glyph_pos->x_off,
+                       glyph_pos->y + glyph_pos->y_off, gv, NULL, NULL);
 
         if (old_lf)
             SelectFont(hdc, old_lf);
-
-        SetTextAlign(hdc, old_ta);
     }
     else if (glyph_pos->whitespace && bg_color) {
         // TODO: draw background for whitespace.
@@ -107,10 +104,81 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
     return TRUE;
 }
 
-int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
-        int* x, int* y, RECT* bounding)
+int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
 {
-    return 0;
+    int n, log_x = 0, log_y = 0;
+    struct list_head* i;
+    const TEXTRUNSINFO* truninfo;
+    const LAYOUTINFO* layout;
+    Uint32 old_ta;
+    PLOGFONT old_lf = NULL;
+
+    if (line == NULL)
+        return 0;
+
+    layout = line->layout;
+    truninfo = layout->truninfo;
+
+    if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+            GRF_WRITING_MODE_HORIZONTAL_BT)
+        old_ta = SetTextAlign(hdc, TA_LEFT | TA_BOTTOM | TA_NOUPDATECP);
+    else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+            GRF_WRITING_MODE_VERTICAL_RL)
+        old_ta = SetTextAlign(hdc, TA_RIGHT | TA_TOP | TA_NOUPDATECP);
+    else
+        old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+    old_lf = GetCurFont(hdc);
+
+    list_for_each(i, &line->gruns) {
+        GlyphRun* run = (GlyphRun*)i;
+        int j;
+
+        SelectFont(hdc, run->lrun->lf);
+        for (j = 0; j < run->gstr->nr_glyphs; j++) {
+            int dev_x, dev_y;
+
+            ShapedGlyph* gi = run->gstr->glyphs + j;
+            int log_index = run->lrun->si + run->gstr->log_clusters[j];
+            RGBCOLOR bg_color, fg_color;
+
+            // We might use an interator to optimize the color settings.
+            fg_color = GetTextColorInTextRuns(truninfo, log_index);
+            bg_color = GetBackgroundColorInTextRuns(truninfo, log_index);
+            SetTextColor(hdc, DWORD2Pixel(hdc, fg_color));
+            if (bg_color) {
+                SetBkColor(hdc, DWORD2Pixel(hdc, bg_color));
+                SetBkMode(hdc, BM_OPAQUE);
+            }
+            else {
+                SetBkMode(hdc, BM_TRANSPARENT);
+            }
+
+            if (run->lrun->dir == GLYPH_RUN_DIR_TTB ||
+                    run->lrun->dir == GLYPH_RUN_DIR_BTT) {
+                dev_y = log_x + gi->x_off;
+                dev_x = log_y + gi->y_off;
+            }
+            else {
+                dev_x = log_x + gi->x_off;
+                dev_y = log_y + gi->y_off;
+            }
+
+            if ((run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) &&
+                    gi->width > 0 && bg_color) {
+                // FIXME: draw background here
+            }
+            else {
+                DrawGlyph(hdc, x + dev_x, y + dev_y, gi->gv, NULL, NULL);
+                n++;
+            }
+
+            log_x += gi->width;
+        }
+    }
+
+    SelectFont(hdc, old_lf);
+    SetTextAlign(hdc, old_ta);
+    return n;
 }
 
 #if 0

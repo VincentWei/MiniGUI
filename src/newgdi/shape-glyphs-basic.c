@@ -188,10 +188,23 @@ static BOOL shape_layout_run(SEInstance* inst,
                     gs->glyphs[j].width = 0;
                 }
                 else {
-                    gs->glyphs[j].x_off = 0;
-                    gs->glyphs[j].y_off = 0;
-                    gs->glyphs[j].width
-                        = _font_get_glyph_log_width(run->lf, gv);
+                    if (run->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
+                        BBOX bbox;
+                        int width = _font_get_glyph_metrics(run->lf, gv,
+                                NULL, NULL, &bbox);
+
+                        gs->glyphs[j].width = run->lf->size;
+                        gs->glyphs[j].height = width;
+                        gs->glyphs[j].x_off = (width - bbox.w) / 2;
+                        gs->glyphs[j].y_off = 0;
+                    }
+                    else {
+                        gs->glyphs[j].x_off = 0;
+                        gs->glyphs[j].y_off = 0;
+                        gs->glyphs[j].width
+                            = _font_get_glyph_log_width(run->lf, gv);
+                        gs->glyphs[j].height = run->lf->size;
+                    }
                 }
 
                 gs->log_clusters[j] = i;
@@ -203,15 +216,30 @@ static BOOL shape_layout_run(SEInstance* inst,
             gs->glyphs[j].gv = gv;
             gs->glyphs[j].is_cluster_start = 0;
 
-            gs->glyphs[j].x_off = 0;
-            gs->glyphs[j].y_off = 0;
-            gs->glyphs[j].width
-                = _font_get_glyph_log_width(run->lf, gv);
+            if (run->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
+                BBOX bbox;
+                int width = _font_get_glyph_metrics(run->lf, gv,
+                        NULL, NULL, &bbox);
+
+                gs->glyphs[j].width = run->lf->size;
+                gs->glyphs[j].height = width;
+                gs->glyphs[j].x_off = (width - bbox.w) / 2;
+                gs->glyphs[j].y_off = 0;
+            }
+            else {
+                gs->glyphs[j].x_off = 0;
+                gs->glyphs[j].y_off = 0;
+                gs->glyphs[j].width
+                    = _font_get_glyph_log_width(run->lf, gv);
+                gs->glyphs[j].height = run->lf->size;
+            }
 
             gs->log_clusters[j] = i;
             j++;
         }
+
     }
+
 
     gs->nr_glyphs = j;
 

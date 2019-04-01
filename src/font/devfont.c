@@ -993,7 +993,12 @@ DEVFONT* GUIAPI LoadDevFontFromFile(const char *devfont_name,
 
 void GUIAPI DestroyDynamicDevFont (DEVFONT** devfont)
 {
-    font_DelDevFont ((*devfont)->name);
+    char font_name [LEN_UNIDEVFONT_NAME + 1];
+
+    memset(font_name, 0, LEN_UNIDEVFONT_NAME + 1);
+    strncpy(font_name, (*devfont)->name, LEN_UNIDEVFONT_NAME);
+
+    font_DelDevFont (font_name);
     *devfont = NULL;
 }
 

@@ -13025,8 +13025,6 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
  *
  * \return The number of lines laid out.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
- *
  * \note The position coordinates of the first line are
  *      with respect to the top-left corner of the output rectangle
  *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
@@ -13034,6 +13032,8 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
  *      the writing mode is GRF_WRITING_MODE_HORIZONTAL_BT,
  *      the top-right corner if the writing mode is
  *      GRF_WRITING_MODE_VERTICAL_RL.
+ *
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
  *
  * Since 3.4.0
  */
@@ -13076,7 +13076,7 @@ MG_EXPORT BOOL DrawShapedGlyph(HDC hdc,
 
 /**
  * \fn DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
- *      int x, int y, RECT* bounding)
+ *      int x, int y)
  * \brief Draw a laid out line at the specific position.
  *
  * This function draws a laied out line at the specified position.
@@ -13095,12 +13095,20 @@ MG_EXPORT BOOL DrawShapedGlyph(HDC hdc,
  *
  * \return The number of glyphs drawn.
  *
+ * \note The position coordinates of the first line are
+ *      with respect to the top-left corner of the output rectangle
+ *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
+ *      GRF_WRITING_MODE_VERTICAL_LR, the bottom-left corner if
+ *      the writing mode is GRF_WRITING_MODE_HORIZONTAL_BT,
+ *      the top-right corner if the writing mode is
+ *      GRF_WRITING_MODE_VERTICAL_RL.
+ *
  * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
  *
  * Since 3.4.0
  */
 MG_EXPORT int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
-        int* x, int* y, RECT* bounding);
+        int x, int y);
 
 #ifdef _MGDEVEL_MODE
 typedef struct _TextRun TEXTRUN;

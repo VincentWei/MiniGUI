@@ -2275,7 +2275,7 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
             REAL_GLYPH(glyph_value), &tmp_x, &tmp_y);
 
     if (!direction) {
-        if (bbox) bbox->x -= (bold + ch_extra + adv_len);
+        bbox_x -= (bold + ch_extra + adv_len);
     }
 
     if (direction) {

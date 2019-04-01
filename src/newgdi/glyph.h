@@ -53,6 +53,9 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
         Glyph32 glyph_value, BOOL direction, int ch_extra,
         int x, int y, int* adv_x, int* adv_y, BBOX* bbox);
 
+int _font_get_glyph_metrics(LOGFONT* logfont,
+        Glyph32 gv, int* adv_x, int* adv_y, BBOX* bbox);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

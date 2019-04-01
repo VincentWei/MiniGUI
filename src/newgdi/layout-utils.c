@@ -186,7 +186,8 @@ static void resolve_layout_run_dir(const LAYOUTINFO* layout,
         break;
     }
 
-    if (LAYOUT_GRAVITY_IS_VERTICAL(layout->grv_base))
+    if (LAYOUT_GRAVITY_IS_VERTICAL(layout->grv_base) &&
+            lrun->ort == GLYPH_ORIENT_UPRIGHT)
         lrun->flags |= LAYOUTRUN_FLAG_CENTERED_BASELINE;
 }
 
