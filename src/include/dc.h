@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -39,7 +39,7 @@
 
 #ifndef _DC_H
     #define _DC_H
-    
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -78,14 +78,14 @@ void __mg_unlock_gcrinfo (PDC pdc);
 #else
 RECT g_rcScr;
 PLOGFONT g_SysLogFont[1];
-#define LOCK_GCRINFO(pdc)       
-#define UNLOCK_GCRINFO(pdc)    
+#define LOCK_GCRINFO(pdc)
+#define UNLOCK_GCRINFO(pdc)
 #define __mg_hwnd_desktop                     0xFFFFFFFD
 #define __mg_dsk_win                          1
 #define gui_Control(hwnd)                     NULL
-#define DestroyDskMsgQueue()                  
-#define salone_StandAloneStartup()            TRUE 
-#define salone_StandAloneCleanup()            
+#define DestroyDskMsgQueue()
+#define salone_StandAloneStartup()            TRUE
+#define salone_StandAloneCleanup()
 #define salone_IdleHandler4StandAlone(qmsg)   NULL
 #define kernel_GetGCRgnInfo(hwnd)             NULL
 #define GetWindowFont(hwnd)                   NULL
@@ -101,7 +101,7 @@ PLOGFONT g_SysLogFont[1];
 #define PreDefMainWinProc                     NULL
 #define PreDefControlProc                     NULL
 #define PreDefDialogProc                      NULL
-#define SendMessage(hwnd, message, wParam, lParam)    1 
+#define SendMessage(hwnd, message, wParam, lParam)    1
 #endif
 
 BOOL dc_GenerateECRgn (PDC pdc, BOOL fForce);
@@ -124,10 +124,10 @@ typedef void* (* CB_GET_LINE_BUFF) (void* context, int y, void** alpha_line_mask
 typedef void (* CB_LINE_SCALED) (void* context, const void* line, int y);
 
 typedef BOOL (* CB_BITMAP_SCALER_FUNC )(
-        void* context, 
-        const BITMAP* srjjc_bmp, 
+        void* context,
+        const BITMAP* srjjc_bmp,
         int dst_w, int dst_h,
-        CB_GET_LINE_BUFF cb_line_buff, 
+        CB_GET_LINE_BUFF cb_line_buff,
         CB_LINE_SCALED cb_line_scaled,
         GAL_PixelFormat *format);
 
@@ -136,7 +136,7 @@ struct tagDC
 {
     short DataType;  /* the data type, always be TYPE_HDC */
     short DCType;    /* the dc type */
-        
+
     BOOL inuse;
     HWND hwnd;
 
@@ -227,7 +227,7 @@ struct tagDC
 
     CLIPRECT* cur_ban;
     RECT rc_output;
-    
+
     /* local clip region information */
     CLIPRGN  lcrgn;
 
@@ -252,9 +252,9 @@ extern DC __mg_screen_sys_dc;
 /* This function convert HDC to PDC. */
 static inline PDC dc_HDC2PDC (HDC hdc)
 {
-    if (hdc == HDC_SCREEN_SYS) 
+    if (hdc == HDC_SCREEN_SYS)
       	return &__mg_screen_sys_dc;
-    else if (hdc == HDC_SCREEN) 
+    else if (hdc == HDC_SCREEN)
       	return &__mg_screen_dc;
     return (PDC) hdc;
 }
@@ -277,7 +277,7 @@ static inline BOOL dc_IsGeneralDC (PDC pdc)
 static inline BOOL dc_IsVisible (PDC pdc)
 {
     PCONTROL pCtrl;
-    
+
 #if 0
     if (pdc->DCType != TYPE_GENDC)
         return TRUE;
@@ -289,10 +289,10 @@ static inline BOOL dc_IsVisible (PDC pdc)
         else return TRUE;
     }
 #endif
-    
+
     if (pdc->hwnd == HWND_DESKTOP)
         return TRUE;
- 
+
     MG_CHECK_RET (MG_IS_WINDOW(pdc->hwnd), FALSE);
 
     pCtrl = (PCONTROL)(pdc->hwnd);
@@ -306,6 +306,7 @@ static inline BOOL dc_IsVisible (PDC pdc)
 
     return TRUE;
 }
+
 static inline void coor_DP2SP(PDC pdc, int* x, int* y)
 {
     *x += pdc->DevRC.left;
@@ -317,7 +318,6 @@ static inline void coor_SP2DP(PDC pdc, int* x, int* y)
     *x -= pdc->DevRC.left;
     *y -= pdc->DevRC.top;
 }
-
 
 static inline void coor_LP2SP(PDC pdc, int* x, int* y)
 {
@@ -511,7 +511,7 @@ static inline void _dc_step_y (PDC pdc, int step)
 #define BLOCK_DRAW_SEM(pdc)
 #define UNBLOCK_DRAW_SEM(pdc)
 
-#endif 
+#endif
 
 int __mg_enter_drawing (PDC pdc);
 void __mg_enter_drawing_nocheck (PDC pdc);
@@ -610,7 +610,7 @@ MG_EXPORT void ReleaseSecondarySubDC (HDC secondary_subdc);
 static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
 {
 #if 1
-    if (!(pWin->dwExStyle & WS_EX_CTRLASMAINWIN) 
+    if (!(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
             && (pWin->pMainWin->secondaryDC)) {
 #else
     if (pWin->pMainWin->secondaryDC) {
@@ -619,7 +619,7 @@ static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
             return pWin->privCDC;
         }
         else
-            return GetSecondarySubDC (pWin->pMainWin->secondaryDC, 
+            return GetSecondarySubDC (pWin->pMainWin->secondaryDC,
                     (HWND)pWin, client);
     }
     else {
@@ -646,13 +646,13 @@ static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
             ReleaseDC (hdc);
         }
     }
-} 
+}
 
-void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc, 
+void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* rc, DWORD flags);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif // _DC_H 
+#endif // _DC_H

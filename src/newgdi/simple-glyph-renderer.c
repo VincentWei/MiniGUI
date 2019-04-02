@@ -143,55 +143,6 @@ static BOOL is_horizontal_only_script(Uchar32 uc)
     return TRUE;
 }
 
-int _font_get_glyph_metrics(LOGFONT* logfont,
-        Glyph32 gv, int* adv_x, int* adv_y, BBOX* bbox)
-{
-    int bold = 0;
-    int tmp_x = 0;
-    int tmp_y = 0;
-    int bbox_x = 0, bbox_y = 0;
-    int bbox_w = 0, bbox_h = 0;
-    int gbt, width;;
-
-    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, gv);
-    gbt = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
-            & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
-
-    devfont->font_ops->get_glyph_bbox (logfont, devfont,
-            REAL_GLYPH(gv), &bbox_x, &bbox_y, &bbox_w, &bbox_h);
-
-    if ((logfont->style & FS_WEIGHT_MASK) > FS_WEIGHT_MEDIUM
-            && (devfont->style & FS_WEIGHT_MASK) < FS_WEIGHT_DEMIBOLD
-            && (gbt == DEVFONTGLYPHTYPE_MONOBMP)) {
-        bold = GET_DEVFONT_SCALE (logfont, devfont);
-        bbox_w += bold;
-    }
-
-    if (bbox) {
-        bbox->x = bbox_x;
-        bbox->y = bbox_y;
-        bbox->w = bbox_w;
-        bbox->h = bbox_h;
-    }
-
-    width = devfont->font_ops->get_glyph_advance (logfont, devfont,
-        REAL_GLYPH(gv), &tmp_x, &tmp_y);
-
-    tmp_x += bold;
-    if (gbt == DEVFONTGLYPHTYPE_MONOBMP) {
-        if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY ||
-                (logfont->style & FS_DECORATE_OUTLINE)) {
-            tmp_x++;
-            width++;
-        }
-    }
-
-    if (adv_x) *adv_x = tmp_x;
-    if (adv_y) *adv_y = tmp_y;
-
-    return width;
-}
-
 static void normalize_glyph_metrics(LOGFONT* logfont,
         Uint32 render_flags, const BBOX* bbox,
         int* adv_x, int* adv_y, int* line_adv, int* line_width)

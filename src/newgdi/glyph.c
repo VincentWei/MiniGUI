@@ -211,10 +211,10 @@ static int mult (fixed op1, fixed op2)
     mult(itofix(advance), fixsin(ftofix(tenthradian)))
 
 #define CAL_VEC_X(advance, tenthradian)       \
-    fixtoi (fixmul (itofix(advance), fixcos (ftofix(tenthradian))))
+    fixtoi(fixmul(itofix(advance), fixcos(ftofix(tenthradian))))
 
 #define CAL_VEC_Y(advance, tenthradian)       \
-    fixtoi (fixmul (itofix(advance), fixsin (ftofix(tenthradian))))
+    fixtoi(fixmul(itofix(advance), fixsin(ftofix(tenthradian))))
 
 
 /* global variables for pre-rendered bitmap glyph */
@@ -2103,50 +2103,50 @@ static inline void _gdi_direct_fillglyph (PDC pdc, Glyph32 glyph_value,
  * (*parallel_x1,*parallel_y1) to (x1,y1) is vertical relative to line from (x1,y1) to (x2,y2)
  * (*parallel_x2,*parallel_y2) is the point at the parallel line reponse to (x2,y2)
  */
-void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, int advance, int* parallel_x1,
-        int* parallel_y1, int* parallel_x2, int* parallel_y2, PDC pdc)
+void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, int advance,
+        int* parallel_x1, int* parallel_y1,
+        int* parallel_x2, int* parallel_y2, PDC pdc)
 {
     int adv_x, adv_y;
 
-    adv_x =CAL_VEC_X2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
+    adv_x = CAL_VEC_X2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
             *256/3600);
-    adv_y =CAL_VEC_Y2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
+    adv_y = CAL_VEC_Y2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
             *256 /3600);
 
-    *parallel_x1 =x1 +adv_x;
-    *parallel_y1 =y1 -adv_y;
+    *parallel_x1 = x1 + adv_x;
+    *parallel_y1 = y1 - adv_y;
 
-    *parallel_x2 =x2 +adv_x;
-    *parallel_y2 =y2 -adv_y;
+    *parallel_x2 = x2 + adv_x;
+    *parallel_y2 = y2 - adv_y;
 }
-
 
 void _gdi_get_glyph_box_vertices (int x1, int y1, int x2, int y2, POINT* pts, PDC pdc)
 {
     int  adv_x, adv_y;
 
-    adv_x =CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
+    adv_x = CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
                 +3600)%3600*256/3600);
-    adv_y =CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
+    adv_y = CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
                 +3600)%3600 *256 /3600);
 
-    pts[0].x  = x1+adv_x;
-    pts[0].y  = y1-adv_y;
+    pts[0].x = x1 + adv_x;
+    pts[0].y = y1 - adv_y;
 
-    pts[1].x =x2 +adv_x;
-    pts[1].y =y2 -adv_y;
+    pts[1].x = x2 + adv_x;
+    pts[1].y = y2 - adv_y;
 
 
-    adv_x =CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
+    adv_x = CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
                 +3600)%3600 * 256 / 3600);
-    adv_y =CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
+    adv_y = CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
                 +3600)%3600 * 256 / 3600);
 
-    pts[3].x  = x1+adv_x;
-    pts[3].y  = y1-adv_y;
+    pts[3].x = x1 + adv_x;
+    pts[3].y = y1 - adv_y;
 
-    pts[2].x =x2 +adv_x;
-    pts[2].y =y2 -adv_y;
+    pts[2].x = x2 + adv_x;
+    pts[2].y = y2 - adv_y;
 }
 
 void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
@@ -2168,21 +2168,34 @@ void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
         int adv_x, adv_y;
 
         if ((pdc->ta_flags & TA_Y_MASK) == TA_TOP) {
-            adv_x =CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation
+            adv_x = CAL_VEC_X2(pdc->pLogFont->ascent, ((pdc->pLogFont->rotation
                             +2700)%3600+3600)%3600 * 256 / 3600);
-            adv_y =CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation
+            adv_y = CAL_VEC_Y2(pdc->pLogFont->ascent, ((pdc->pLogFont->rotation
                             +2700)%3600+3600)%3600 * 256 / 3600);
-            *x +=adv_x;
-            *y -=adv_y;
+
+            if ((pdc->ta_flags & TA_X_MASK) == TA_LEFT) {
+                *x -= adv_x;
+            }
+            else if ((pdc->ta_flags & TA_X_MASK) == TA_RIGHT) {
+                *x += adv_x;
+            }
+            *y += adv_y;
         }
         else if ((pdc->ta_flags & TA_Y_MASK) == TA_BOTTOM) {
-            adv_x =CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation
+            adv_x = CAL_VEC_X2(pdc->pLogFont->descent, ((pdc->pLogFont->rotation
                             +900)%3600+3600)%3600 * 256 / 3600);
-            adv_y =CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation
+            adv_y = CAL_VEC_Y2(pdc->pLogFont->descent, ((pdc->pLogFont->rotation
                             +900)%3600+3600)%3600 * 256 / 3600);
-            *x +=adv_x;
-            *y -=adv_y;
+
+            if ((pdc->ta_flags & TA_X_MASK) == TA_LEFT) {
+                *x += adv_x;
+            }
+            else if ((pdc->ta_flags & TA_X_MASK) == TA_RIGHT) {
+                *x -= adv_x;
+            }
+            *y += adv_y;
         }
+
         /*
         int x1 = *x;
         int y1 = *y;
@@ -2274,8 +2287,12 @@ int _font_get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     adv_len = devfont->font_ops->get_glyph_advance (logfont, devfont,
             REAL_GLYPH(glyph_value), &tmp_x, &tmp_y);
 
-    if (!direction) {
+    // VincentWei: adjust the bbox_x for not rotated glyph
+    if (!direction && logfont->rotation == 0) {
         bbox_x -= (bold + ch_extra + adv_len);
+    }
+    else if (logfont->rotation) {
+        // adjust acorrding to the alignment
     }
 
     if (direction) {
@@ -2308,7 +2325,57 @@ done:
     return adv_len + bold + ch_extra + advance;
 }
 
-void _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL direction, PDC pdc, int *next_x, int *next_y)
+int _font_get_glyph_metrics(LOGFONT* logfont,
+        Glyph32 gv, int* adv_x, int* adv_y, BBOX* bbox)
+{
+    int bold = 0;
+    int tmp_x = 0;
+    int tmp_y = 0;
+    int bbox_x = 0, bbox_y = 0;
+    int bbox_w = 0, bbox_h = 0;
+    int gbt, width;;
+
+    DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, gv);
+    gbt = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
+            & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
+
+    devfont->font_ops->get_glyph_bbox (logfont, devfont,
+            REAL_GLYPH(gv), &bbox_x, &bbox_y, &bbox_w, &bbox_h);
+
+    if ((logfont->style & FS_WEIGHT_MASK) > FS_WEIGHT_MEDIUM
+            && (devfont->style & FS_WEIGHT_MASK) < FS_WEIGHT_DEMIBOLD
+            && (gbt == DEVFONTGLYPHTYPE_MONOBMP)) {
+        bold = GET_DEVFONT_SCALE (logfont, devfont);
+        bbox_w += bold;
+    }
+
+    if (bbox) {
+        bbox->x = bbox_x;
+        bbox->y = bbox_y;
+        bbox->w = bbox_w;
+        bbox->h = bbox_h;
+    }
+
+    width = devfont->font_ops->get_glyph_advance (logfont, devfont,
+        REAL_GLYPH(gv), &tmp_x, &tmp_y);
+
+    tmp_x += bold;
+    if (gbt == DEVFONTGLYPHTYPE_MONOBMP) {
+        if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_GREY ||
+                (logfont->style & FS_DECORATE_OUTLINE)) {
+            tmp_x++;
+            width++;
+        }
+    }
+
+    if (adv_x) *adv_x = tmp_x;
+    if (adv_y) *adv_y = tmp_y;
+
+    return width;
+}
+
+void _gdi_get_next_point_online (int pre_x, int pre_y, int advance,
+        BOOL direction, PDC pdc, int *next_x, int *next_y)
 {
     int  delta_x, delta_y;
     int  rotation;
@@ -2358,18 +2425,19 @@ void _gdi_get_next_point_online (int pre_x, int pre_y, int advance, BOOL directi
         }
     }
 
-    delta_x =CAL_VEC_X2(advance,rotation * 256 / 3600);
-    delta_y =CAL_VEC_Y2(advance,rotation * 256 / 3600);
+    delta_x = CAL_VEC_X2(advance,rotation * 256 / 3600);
+    delta_y = CAL_VEC_Y2(advance,rotation * 256 / 3600);
 
     if(direction){
-        *next_x +=delta_x;
-        *next_y -=delta_y;
+        *next_x += delta_x;
+        *next_y -= delta_y;
     }
     else{
-        *next_x -=delta_x;
-        *next_y +=delta_y;
+        *next_x -= delta_x;
+        *next_y += delta_y;
     }
 }
+
 #define SIN_DEGREE(degree) \
     fixsin (fixdiv (itofix(degree), ftofix(62.831852)))
 
@@ -2848,8 +2916,7 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
     _gdi_get_baseline_point (pdc, &x, &y);
 
     advance = _gdi_draw_one_glyph (pdc, glyph_value,
-            (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-            x, y, &my_adv_x, &my_adv_y);
+            TRUE, x, y, &my_adv_x, &my_adv_y);
 
     if (adv_x) *adv_x = my_adv_x;
     if (adv_y) *adv_y = my_adv_y;

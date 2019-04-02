@@ -363,7 +363,7 @@ static int get_tab_pos(LAYOUTINFO *layout, int index, BOOL *is_default)
     }
 }
 
-static int get_line_width(const LAYOUTLINE *line)
+static int calc_line_width(const LAYOUTLINE *line)
 {
     struct list_head *l;
     int i;
@@ -382,7 +382,7 @@ static int get_line_width(const LAYOUTLINE *line)
     return width;
 }
 
-static int get_line_height(const LAYOUTLINE *line)
+static int calc_line_height(const LAYOUTLINE *line)
 {
     struct list_head *l;
     int i;
@@ -403,7 +403,7 @@ static void shape_tab(LAYOUTLINE *line, GlyphString *glyphs)
 {
     int i, space_width;
 
-    int current_width = get_line_width(line);
+    int current_width = calc_line_width(line);
 
     __mg_glyph_string_set_size (glyphs, 1);
 
@@ -1722,10 +1722,35 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     struct list_head* i;
     int line_adv = 0;
     RENDERDATA extra;
+    Uint32 def_ta;
+    Uint32 up_ta;
 
     extra.truninfo  = layout->truninfo;
     extra.layout    = layout;
     extra.line      = line;
+
+    switch (layout->rf & GRF_WRITING_MODE_MASK) {
+    case GRF_WRITING_MODE_HORIZONTAL_BT:
+        def_ta = TA_LEFT | TA_BOTTOM | TA_NOUPDATECP;
+        up_ta = def_ta;
+        break;
+
+    case GRF_WRITING_MODE_VERTICAL_RL:
+        def_ta = TA_RIGHT | TA_TOP | TA_NOUPDATECP;
+        up_ta = def_ta;
+        break;
+
+    case GRF_WRITING_MODE_VERTICAL_LR:
+        def_ta = TA_LEFT | TA_BOTTOM | TA_NOUPDATECP;
+        up_ta = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+        break;
+
+    case GRF_WRITING_MODE_HORIZONTAL_TB:
+    default:
+        def_ta = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+        up_ta = def_ta;
+        break;
+    }
 
     list_for_each(i, &line->gruns) {
         GlyphRun* run = (GlyphRun*)i;
@@ -1745,17 +1770,25 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
 
             glyph_info = run->gstr->glyphs + j;
 
-            if (run->lrun->dir == GLYPH_RUN_DIR_TTB ||
-                    run->lrun->dir == GLYPH_RUN_DIR_BTT) {
-                pos.x = glyph_info->x_off;
-                pos.y = line_adv + glyph_info->y_off;
-                pos.advance = glyph_info->height;
+            pos.x_off = pos.y_off = 0;
+            if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
+                pos.y = line_adv;
+                pos.x = 0;
             }
             else {
-                pos.x = line_adv + glyph_info->x_off;
-                pos.y = glyph_info->y_off;
-                pos.advance = glyph_info->width;
+                pos.x = line_adv;
+                pos.y = 0;
             }
+
+            if (run->lrun->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
+                extra.ta = up_ta;
+                pos.x += (line->height - glyph_info->width) / 2;
+            }
+            else {
+                extra.ta = def_ta;
+            }
+
+            pos.advance = glyph_info->width;
 
             pos.suppressed = 0;
             pos.whitespace = 0;
@@ -1895,6 +1928,8 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     if (next_line) {
         next_line->max_extent = max_extent;
         next_line->is_last_line = last_line;
+        next_line->width = calc_line_width(next_line);
+        next_line->height = calc_line_height(next_line);
 
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
@@ -1938,8 +1973,8 @@ BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
         line_size->cy = line->height;
     }
     else {
-        line->width = line_size->cx = get_line_width(line);
-        line->height = line_size->cy = get_line_height(line);
+        line->width = line_size->cx = calc_line_width(line);
+        line->height = line_size->cy = calc_line_height(line);
     }
 
     return TRUE;

@@ -72,10 +72,9 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
         render_data->uc_index);
 
     if (glyph_pos->suppressed == 0 && glyph_pos->whitespace == 0) {
-        PLOGFONT old_lf = NULL;
         gal_pixel fg_pixel, bg_pixel;
 
-        old_lf = SelectFont(hdc, render_data->logfont);
+        SelectFont(hdc, render_data->logfont);
 
         fg_color = GetTextColorInTextRuns(render_data->truninfo,
             render_data->uc_index);
@@ -91,11 +90,9 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
             SetBkMode(hdc, BM_TRANSPARENT);
         }
 
+        SetTextAlign(hdc, render_data->ta);
         DrawGlyph(hdc, glyph_pos->x + glyph_pos->x_off,
                        glyph_pos->y + glyph_pos->y_off, gv, NULL, NULL);
-
-        if (old_lf)
-            SelectFont(hdc, old_lf);
     }
     else if (glyph_pos->whitespace && bg_color) {
         // TODO: draw background for whitespace.

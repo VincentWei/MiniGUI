@@ -189,13 +189,10 @@ static BOOL shape_layout_run(SEInstance* inst,
                 }
                 else {
                     if (run->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
-                        BBOX bbox;
-                        int width = _font_get_glyph_metrics(run->lf, gv,
-                                NULL, NULL, &bbox);
-
                         gs->glyphs[j].width = run->lf->size;
-                        gs->glyphs[j].height = width;
-                        gs->glyphs[j].x_off = (width - bbox.w) / 2;
+                        gs->glyphs[j].height
+                            = _font_get_glyph_log_width(run->lf, gv);
+                        gs->glyphs[j].x_off = 0;
                         gs->glyphs[j].y_off = 0;
                     }
                     else {
@@ -217,13 +214,10 @@ static BOOL shape_layout_run(SEInstance* inst,
             gs->glyphs[j].is_cluster_start = 0;
 
             if (run->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
-                BBOX bbox;
-                int width = _font_get_glyph_metrics(run->lf, gv,
-                        NULL, NULL, &bbox);
-
                 gs->glyphs[j].width = run->lf->size;
-                gs->glyphs[j].height = width;
-                gs->glyphs[j].x_off = (width - bbox.w) / 2;
+                gs->glyphs[j].height
+                    = _font_get_glyph_log_width(run->lf, gv);
+                gs->glyphs[j].x_off = 0;
                 gs->glyphs[j].y_off = 0;
             }
             else {

@@ -9431,6 +9431,9 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
 #define SetTextAlign(hdc, ta_flags)         \
             SetDCAttr (hdc, DC_ATTR_TEXT_ALIGN, (DWORD)ta_flags)
 
+#define BIDI_FLAG_LTR       0x00
+#define BIDI_FLAG_RTL       0x10
+
 #define GetBIDIFlags(hdc)                   \
             GetDCAttr (hdc, DC_ATTR_BIDI_FLAGS)
 
@@ -12907,6 +12910,11 @@ typedef struct _RENDERDATA {
      * The logfont object should be used to render the glyph.
      */
     LOGFONT*            logfont;
+
+    /**
+     * The text alignment for rendering the glyph
+     */
+    Uint32              ta;
 
     /**
      * The Unicode character corresponding to the glyph.
