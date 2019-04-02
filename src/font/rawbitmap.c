@@ -240,7 +240,8 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 {
     int advance = RBFONT_INFO_P (devfont)->width * 
                     GET_DEVFONT_SCALE (logfont, devfont);
-    *px += advance;
+    if (px)
+        *px += advance;
     return advance;
 }
 

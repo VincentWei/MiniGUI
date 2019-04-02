@@ -235,7 +235,8 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
         glyph_value = vbf_info->def_glyph;
 
     advance = get_ch_width(logfont, devfont, glyph_value);
-    *px += advance;
+    if (px)
+        *px += advance;
     return advance;
 }
 

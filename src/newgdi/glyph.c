@@ -2203,7 +2203,7 @@ void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
 
 int _font_get_glyph_log_width(LOGFONT* logfont, Glyph32 gv)
 {
-    int width, bold = 0;
+    int width, bold = 0, tmp_x = 0, tmp_y = 0;
     int glyph_bmptype;
     DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, gv);
 
@@ -2212,7 +2212,7 @@ int _font_get_glyph_log_width(LOGFONT* logfont, Glyph32 gv)
 
     gv = REAL_GLYPH(gv);
     width = devfont->font_ops->get_glyph_advance(logfont, devfont, gv,
-            NULL, NULL);
+            &tmp_x, &tmp_y);
 
     glyph_bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
             & DEVFONTGLYPHTYPE_MASK_BMPTYPE;

@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -193,14 +193,14 @@ exit:
 
 
 static BOOL init(
-    void                *mem_pool, 
-    int                 mem_pool_size, 
-    void                *cache_mem_pool, 
+    void                *mem_pool,
+    int                 mem_pool_size,
+    void                *cache_mem_pool,
     int                 cache_mem_pool_size)
 {
     SeInitInfo  init_info;
     int         result;
-    
+
     se_minigui_init_fonts();
     //
     // SeInitInfo initialization
@@ -257,7 +257,7 @@ SE_EXPORT BOOL initialize_scripteasy(void)
 
     if(se_font_desc.font_table_size < 1)
         return TRUE;
-    
+
     if(!load_fonts())
         return FALSE;
 
@@ -327,7 +327,7 @@ static void convert_log_font(SeLogFont *selogfont, const LOGFONT *logfont, const
 }
 
 #if 0
-static int get_glyph_width (LOGFONT* logfont, DEVFONT* devfont, 
+static int get_glyph_width (LOGFONT* logfont, DEVFONT* devfont,
                 Glyph32 glyph_value, int* px, int* py)
 {
     seunichar16 wc;
@@ -436,7 +436,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
     seunichar16 wc;
     SeLogFont   selogfont;
     const void *result;
-    
+
 #if SE_MINIGUI_TRACE
     printf("in get_glyph_greybitmap....\n");
 #endif
@@ -448,13 +448,13 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
         wc = glyph_value;
 
     convert_log_font(&selogfont, logfont, devfont);
-    
+
     lock();
     result = se_minigui_get_char_pixmap(&selogfont, wc, pitch);
-    unlock();    
+    unlock();
 
 #if SE_MINIGUI_TRACE
-    printf("[GET_CHAR_PIXMAP_RESULT] wc: 0x%04X size: %d attr: %d id: %d pitch: %d\n", 
+    printf("[GET_CHAR_PIXMAP_RESULT] wc: 0x%04X size: %d attr: %d id: %d pitch: %d\n",
         wc,
         selogfont.size,
         selogfont.attr,
@@ -486,7 +486,7 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
 
     convert_log_font(&selogfont, logfont, devfont);
     selogfont.attr |= SE_LOGFONT_MONO;
-    
+
     lock();
     result = se_minigui_get_char_pixmap(&selogfont, wc, pitch);
     unlock();
@@ -497,8 +497,8 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     return result;
 }
 
-static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, 
-                Glyph32 glyph_value, int* px, int* py, 
+static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
+                Glyph32 glyph_value, int* px, int* py,
                 int* pwidth, int* pheight)
 {
     seunichar16 wc;
@@ -531,12 +531,12 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 }
 
 
-static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont, 
+static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
                 Glyph32 glyph_value, int* px, int* py)
 {
     seunichar16 wc;
     SeLogFont   selogfont;
-    int x = *px;
+    int x = 0, y = 0;
 
     glyph_value = REAL_GLYPH(glyph_value);
     if (devfont->charset_ops->conv_to_uc32)
@@ -548,28 +548,31 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 
     lock();
 
-    se_minigui_get_char_advance(&selogfont, wc, px, py);
+    se_minigui_get_char_advance(&selogfont, wc, &x, &y);
 
     unlock();
 
 #if SE_MINIGUI_TRACE
-    printf("get_glyph_advance result. wc: 0x%04X x: %d y: %d\n", wc, px ? *px : 0, py ? *py : 0);
+    printf("get_glyph_advance result. wc: 0x%04X x: %d y: %d\n", wc, x, y);
 #endif
-   return *px - x; 
+
+    if (px)
+        *px += x;
+    return x;
 }
 
 static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, Glyph32 glyph_value)
 {
     int uni_char;
     int x, y, width, height;
-    
+
     glyph_value = REAL_GLYPH(glyph_value);
     if(devfont->charset_ops->conv_to_uc32)
         uni_char = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uni_char = glyph_value;
-    
-    if (!get_glyph_bbox (logfont, devfont, 
+
+    if (!get_glyph_bbox (logfont, devfont,
                 glyph_value, &x, &y, &width, &height))
         return FALSE;
     else
@@ -669,7 +672,7 @@ void se_switch_palette(
     gal_pixel   fg_color;
     int         yuv1, yuv2;
     int         r = 0, g = 0, b = 0;
-    
+
     bkmode = GetBkMode(hdc);
     fg_color = GetTextColor(hdc);
 
@@ -689,7 +692,7 @@ void se_switch_palette(
             g += gg;
             b += bb;
         }
-        
+
         r >>= 2;
         g >>= 2;
         b >>= 2;
@@ -699,9 +702,9 @@ void se_switch_palette(
         bg_color = GetBkColor(hdc);
         Pixel2RGB(hdc, bg_color, (Uint8*)&r, (Uint8*)&g, (Uint8*)&b);
     }
-    
+
     yuv2 = YUV_Y(r, g, b);
-    
+
     Pixel2RGB(hdc, fg_color, (Uint8*)&r, (Uint8*)&g, (Uint8*)&b);
     yuv1 = YUV_Y(r, g, b);
 

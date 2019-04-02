@@ -478,7 +478,8 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
     }
 
     advance = glyph->metrics->advance * GET_DEVFONT_SCALE (logfont, devfont);
-    *px += advance;
+    if (px)
+        *px += advance;
 
     return advance;
 }
