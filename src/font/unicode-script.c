@@ -633,7 +633,7 @@ static inline ScriptTypeProperties get_script_properties (ScriptType script)
     return script_properties[script];
 }
 
-GlyphGravity ScriptGetGlyphGravity (ScriptType script,
+GlyphGravity ScriptGetGlyphGravity (ScriptType script, BOOL vertical,
         GlyphGravity base_gravity, GlyphGravityPolicy hint)
 {
     ScriptTypeProperties props = get_script_properties (script);
@@ -641,24 +641,17 @@ GlyphGravity ScriptGetGlyphGravity (ScriptType script,
     if (base_gravity == GLYPH_GRAVITY_AUTO)
         base_gravity = props.preferred_gravity;
 
-    return ScriptGetGlyphGravityForWide (script, props.wide,
+    return ScriptGetGlyphGravityForWide (script, vertical, props.wide,
             base_gravity, hint);
 }
 
-
-#define GLYPH_GRAVITY_IS_VERTICAL(gravity) \
-    ((gravity) == GLYPH_GRAVITY_EAST || (gravity) == GLYPH_GRAVITY_WEST)
-
-GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script,
+GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script, BOOL vertical,
         BOOL wide, GlyphGravity base_gravity, GlyphGravityPolicy hint)
 {
     ScriptTypeProperties props = get_script_properties (script);
-    BOOL vertical;
 
     if (base_gravity == GLYPH_GRAVITY_AUTO)
         base_gravity = props.preferred_gravity;
-
-    vertical = GLYPH_GRAVITY_IS_VERTICAL(base_gravity);
 
     /* Everything is designed such that a system with no vertical support
      * renders everything correctly horizontally.  So, if not in a vertical
@@ -688,10 +681,17 @@ GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script,
 
     case GLYPH_GRAVITY_POLICY_LINE:
         if ((base_gravity    == GLYPH_GRAVITY_EAST) ^
-                (props.horiz_dir == GLYPH_RUN_DIR_RTL))
+                (props.horiz_dir == HORIZONTAL_DIRECTION_RTL))
             return GLYPH_GRAVITY_SOUTH;
         else
             return GLYPH_GRAVITY_NORTH;
+
+    case GLYPH_GRAVITY_POLICY_MIXED:
+        // CSS3: horizontal-only scripts are typeset sideways
+        if (props.vert_dir == VERTICAL_DIRECTION_NONE)
+            return GLYPH_GRAVITY_EAST;
+        else
+            return props.preferred_gravity;
     }
 }
 #endif /* _MGCHARSET_UNICODE */

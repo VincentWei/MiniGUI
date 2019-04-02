@@ -135,6 +135,7 @@ static GlyphOrient resolve_glyph_orient(const LAYOUTINFO* layout,
     }
 
     gravity = ScriptGetGlyphGravityForWide(trun->st,
+            layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG,
             trun->flags & TEXTRUN_FLAG_UPRIGHT,
             layout->grv_base, layout->grv_plc);
 

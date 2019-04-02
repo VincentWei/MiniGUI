@@ -9091,6 +9091,7 @@ typedef enum {
     GLYPH_GRAVITY_POLICY_NATURAL,
     GLYPH_GRAVITY_POLICY_STRONG,
     GLYPH_GRAVITY_POLICY_LINE,
+    GLYPH_GRAVITY_POLICY_MIXED,
 } GlyphGravityPolicy;
 
 /** Get the vertical orientation property of a Unicode character */
@@ -9107,6 +9108,7 @@ MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
  * pass %GLYPH_GRAVITY_AUTO and %GLYPH_GRAVITY_POLICY_STRONG in.
  *
  * \param script The script type to query
+ * \param vertical TRUE for vertical layout
  * \param base_gravity The base gravity of the layout
  * \param policy The gravity policy
  *
@@ -9116,7 +9118,7 @@ MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
  * Since: 3.4.0
  */
 MG_EXPORT GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
-        GlyphGravity base_gravity, GlyphGravityPolicy policy);
+        BOOL vertical, GlyphGravity base_gravity, GlyphGravityPolicy policy);
 
 /**
  * \fn GlyphGravity GUIAPI ScriptGetGlyphGravityForWide (ScriptType script,
@@ -9136,6 +9138,7 @@ MG_EXPORT GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
  * preferred gravity of @script.
  *
  * \param script The script type to query
+ * \param vertical TRUE for vertical layout.
  * \param wide TRUE for wide characters as returned by IsUCharWide()
  * \param base_gravity The base gravity of the paragraph
  * \param policy The gravity policy
@@ -9146,7 +9149,8 @@ MG_EXPORT GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
  * Since: 3.4.0
  */
 GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script,
-        BOOL wide, GlyphGravity base_gravity, GlyphGravityPolicy policy);
+        BOOL vertical, BOOL wide,
+        GlyphGravity base_gravity, GlyphGravityPolicy policy);
 
     /** @} end of unicode_ops */
 
@@ -12253,6 +12257,8 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
  * typeset with their intrinsic orientation.
  */
 #define GRF_TEXT_ORIENTATION_MIXED          0x05000000
+
+#define GRF_TEXT_ORIENTATION_LINE           0x06000000
 
 #define GRF_LINE_EXTENT_MASK                0x00C00000
 /**

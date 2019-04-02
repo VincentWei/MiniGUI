@@ -124,6 +124,10 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
             break;
         case GRF_TEXT_ORIENTATION_MIXED:
             layout->grv_base = GLYPH_GRAVITY_SOUTH;
+            layout->grv_plc = GLYPH_GRAVITY_POLICY_MIXED;
+            break;
+        case GRF_TEXT_ORIENTATION_LINE:
+            layout->grv_base = GLYPH_GRAVITY_EAST;
             layout->grv_plc = GLYPH_GRAVITY_POLICY_LINE;
             break;
         case GRF_TEXT_ORIENTATION_UPRIGHT:
