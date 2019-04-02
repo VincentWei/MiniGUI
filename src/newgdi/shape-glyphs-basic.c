@@ -141,9 +141,11 @@ static BOOL shape_layout_run(SEInstance* inst,
             bidi_ts = NULL;
         }
     }
+#if 0
     else if (BIDI_LEVEL_IS_RTL(run->el)) {
         UBidiShapeMirroring(els, nr_ucs, shaped_ucs);
     }
+#endif
 
     if (els && els != local_els) {
         free (els);
@@ -228,12 +230,14 @@ static BOOL shape_layout_run(SEInstance* inst,
                 gs->glyphs[j].height = run->lf->size;
             }
 
+            _DBG_PRINTF("%s: shaped uchar: %c, width: %d\n",
+                    __FUNCTION__, shaped_ucs[i], gs->glyphs[j].width);
+
             gs->log_clusters[j] = i;
             j++;
         }
 
     }
-
 
     gs->nr_glyphs = j;
 

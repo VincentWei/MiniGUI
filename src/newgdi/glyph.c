@@ -2095,24 +2095,38 @@ static inline void _gdi_direct_fillglyph (PDC pdc, Glyph32 glyph_value,
     }
 }
 
+void _gdi_get_rotated_point(int *x, int *y, int rotation)
+{
+    int advance = fixtoi(fixsqrt(fixadd(itofix(*x * *x), itofix(*y * *y))));
+
+    *x += CAL_VEC_X2(advance, ((rotation+900)%3600+3600)%3600
+            *256/3600);
+    *y -= CAL_VEC_Y2(advance, ((rotation+900)%3600+3600)%3600
+            *256/3600);
+}
+
 /*
  * the line direction is from (x1, y1) to (x2, y2),
- * plus advance is the distance from (*parallel_x1,*parallel_y1) to (x1,y1),advance is along direction
+ * the advance is the distance from (*parallel_x1,*parallel_y1) to
+ * (x1,y1), advance is along direction
  * rotation 90 degree from line direction in counter-clockwise
- * (*parallel_x1,*parallel_y1) is the point at the parallel line reponse to (x1,y1),the line from
- * (*parallel_x1,*parallel_y1) to (x1,y1) is vertical relative to line from (x1,y1) to (x2,y2)
- * (*parallel_x2,*parallel_y2) is the point at the parallel line reponse to (x2,y2)
+ * (*parallel_x1,*parallel_y1) is the point at the parallel line
+ * corresponding to (x1,y1).
+ * the line from (*parallel_x1,*parallel_y1) to (x1,y1) is vertical to
+ * to line from (x1,y1) to (x2,y2)
+ * (*parallel_x2,*parallel_y2) is the point at the parallel line
+ * corresponding to (x2,y2)
  */
 void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, int advance,
         int* parallel_x1, int* parallel_y1,
-        int* parallel_x2, int* parallel_y2, PDC pdc)
+        int* parallel_x2, int* parallel_y2, int rotation)
 {
     int adv_x, adv_y;
 
-    adv_x = CAL_VEC_X2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
+    adv_x = CAL_VEC_X2(advance,((rotation+900)%3600+3600)%3600
             *256/3600);
-    adv_y = CAL_VEC_Y2(advance,((pdc->pLogFont->rotation +900)%3600+3600)%3600
-            *256 /3600);
+    adv_y = CAL_VEC_Y2(advance,((rotation+900)%3600+3600)%3600
+            *256/3600);
 
     *parallel_x1 = x1 + adv_x;
     *parallel_y1 = y1 - adv_y;
@@ -2121,14 +2135,15 @@ void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, int advance,
     *parallel_y2 = y2 - adv_y;
 }
 
-void _gdi_get_glyph_box_vertices (int x1, int y1, int x2, int y2, POINT* pts, PDC pdc)
+void _gdi_get_glyph_box_vertices(int x1, int y1, int x2, int y2,
+        POINT* pts, PLOGFONT logfont)
 {
     int  adv_x, adv_y;
 
-    adv_x = CAL_VEC_X2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
+    adv_x = CAL_VEC_X2(logfont->ascent, ((logfont->rotation+900)%3600
                 +3600)%3600*256/3600);
-    adv_y = CAL_VEC_Y2(pdc->pLogFont->ascent,((pdc->pLogFont->rotation +900)%3600
-                +3600)%3600 *256 /3600);
+    adv_y = CAL_VEC_Y2(logfont->ascent, ((logfont->rotation+900)%3600
+                +3600)%3600*256/3600);
 
     pts[0].x = x1 + adv_x;
     pts[0].y = y1 - adv_y;
@@ -2137,10 +2152,10 @@ void _gdi_get_glyph_box_vertices (int x1, int y1, int x2, int y2, POINT* pts, PD
     pts[1].y = y2 - adv_y;
 
 
-    adv_x = CAL_VEC_X2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
-                +3600)%3600 * 256 / 3600);
-    adv_y = CAL_VEC_Y2(pdc->pLogFont->descent,((pdc->pLogFont->rotation +2700)%3600
-                +3600)%3600 * 256 / 3600);
+    adv_x = CAL_VEC_X2(logfont->descent, ((logfont->rotation+2700)%3600
+                +3600)%3600*256/3600);
+    adv_y = CAL_VEC_Y2(logfont->descent, ((logfont->rotation+2700)%3600
+                +3600)%3600*256/3600);
 
     pts[3].x = x1 + adv_x;
     pts[3].y = y1 - adv_y;
@@ -2163,8 +2178,7 @@ void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
         }
     }
     else {
-        /* TODO: calculate a point on the baseline */
-
+        /* calculate a point on the baseline */
         int adv_x, adv_y;
 
         if ((pdc->ta_flags & TA_Y_MASK) == TA_TOP) {
@@ -2173,44 +2187,17 @@ void _gdi_get_baseline_point (PDC pdc, int* x, int* y)
             adv_y = CAL_VEC_Y2(pdc->pLogFont->ascent, ((pdc->pLogFont->rotation
                             +2700)%3600+3600)%3600 * 256 / 3600);
 
-            if ((pdc->ta_flags & TA_X_MASK) == TA_LEFT) {
-                *x -= adv_x;
-            }
-            else if ((pdc->ta_flags & TA_X_MASK) == TA_RIGHT) {
-                *x += adv_x;
-            }
-            *y += adv_y;
+            *x += adv_x;
+            *y -= adv_y;
         }
         else if ((pdc->ta_flags & TA_Y_MASK) == TA_BOTTOM) {
             adv_x = CAL_VEC_X2(pdc->pLogFont->descent, ((pdc->pLogFont->rotation
                             +900)%3600+3600)%3600 * 256 / 3600);
             adv_y = CAL_VEC_Y2(pdc->pLogFont->descent, ((pdc->pLogFont->rotation
                             +900)%3600+3600)%3600 * 256 / 3600);
-
-            if ((pdc->ta_flags & TA_X_MASK) == TA_LEFT) {
-                *x += adv_x;
-            }
-            else if ((pdc->ta_flags & TA_X_MASK) == TA_RIGHT) {
-                *x -= adv_x;
-            }
-            *y += adv_y;
+            *x += adv_x;
+            *y -= adv_y;
         }
-
-        /*
-        int x1 = *x;
-        int y1 = *y;
-        int x2 = /x1 + 1000 * fixtoi();
-        int y2;
-
-        if ((pdc->ta_flags & TA_Y_MASK) == TA_TOP) {
-            _gdi_get_point_at_parallel (x1, y1, x2, y2,
-                    -pdc->pLogFont->ascent, x1, x, y);
-        }
-        else if ((pdc->ta_flags & TA_Y_MASK) == TA_BOTTOM) {
-            _gdi_get_point_at_parallel (x1, y1, x2, y2,
-                    pdc->pLogFont->descent, x1, x, y);
-        }
-        */
     }
 }
 
@@ -2485,7 +2472,7 @@ static void make_back_area(PDC pdc, int x0, int y0, int x1, int y1,
 
     case ROTATE_RECT:
         _gdi_get_glyph_box_vertices (x0, y0, x1, y1,
-                 area, pdc);
+                 area, pdc->pLogFont);
         break;
     }
 }
@@ -2669,7 +2656,8 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
     if (logfont->style & FS_DECORATE_UNDERLINE) {
         if (logfont->style & FS_FLIP_VERT) {
             _gdi_get_point_at_parallel(x1, y1, x2, y2, h-(descent<<1), \
-                     &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
+                     &draw_x1, &draw_y1, &draw_x2, &draw_y2,
+                     pdc->pLogFont->rotation);
         }
         else
         {
@@ -2714,11 +2702,13 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
     if (logfont->style & FS_DECORATE_STRUCKOUT) {
         if (logfont->style & FS_FLIP_VERT) {
             _gdi_get_point_at_parallel(x1, y1, x2, y2, (h >>1)-descent +1, \
-                     &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
+                    &draw_x1, &draw_y1, &draw_x2, &draw_y2,
+                    pdc->pLogFont->rotation);
         }
         else {
             _gdi_get_point_at_parallel(x1, y1, x2, y2, (h >>1) - descent, \
-                     &draw_x1, &draw_y1, &draw_x2, &draw_y2, pdc);
+                    &draw_x1, &draw_y1, &draw_x2, &draw_y2,
+                    pdc->pLogFont->rotation);
         }
 
         if (logfont->rotation == 0 && (logfont->style & FS_SLANT_ITALIC)) {
@@ -2916,7 +2906,8 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
     _gdi_get_baseline_point (pdc, &x, &y);
 
     advance = _gdi_draw_one_glyph (pdc, glyph_value,
-            TRUE, x, y, &my_adv_x, &my_adv_y);
+            (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+            x, y, &my_adv_x, &my_adv_y);
 
     if (adv_x) *adv_x = my_adv_x;
     if (adv_y) *adv_y = my_adv_y;

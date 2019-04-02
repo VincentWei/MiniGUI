@@ -1724,6 +1724,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     RENDERDATA extra;
     Uint32 def_ta;
     Uint32 up_ta;
+    int up_off_factor = 1;
 
     extra.truninfo  = layout->truninfo;
     extra.layout    = layout;
@@ -1738,11 +1739,13 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     case GRF_WRITING_MODE_VERTICAL_RL:
         def_ta = TA_RIGHT | TA_TOP | TA_NOUPDATECP;
         up_ta = def_ta;
+        up_off_factor = -1;
         break;
 
     case GRF_WRITING_MODE_VERTICAL_LR:
         def_ta = TA_LEFT | TA_BOTTOM | TA_NOUPDATECP;
         up_ta = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+        up_off_factor = 1;
         break;
 
     case GRF_WRITING_MODE_HORIZONTAL_TB:
@@ -1774,19 +1777,51 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
                 pos.y = line_adv;
                 pos.x = 0;
+
             }
             else {
                 pos.x = line_adv;
                 pos.y = 0;
             }
 
+            // vertical layout
             if (run->lrun->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
                 extra.ta = up_ta;
-                pos.x += (line->height - glyph_info->width) / 2;
+                if (run->lrun->ort == GLYPH_ORIENT_UPSIDE_DOWN) {
+                    pos.y += run->gstr->glyphs[0].width;
+                    pos.x_off = (line->height + glyph_info->height) / 2;
+                    pos.x_off *= up_off_factor;
+                }
+                else if (run->lrun->ort == GLYPH_ORIENT_UPRIGHT) {
+                    pos.x_off = (line->height - glyph_info->height) / 2;
+                    pos.x_off *= up_off_factor;
+                }
             }
             else {
                 extra.ta = def_ta;
+#if 0
+                if (run->lrun->ort == GLYPH_ORIENT_SIDEWAYS_LEFT) {
+                    if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_LR)
+                        extra.ta = TA_RIGHT | TA_TOP | TA_NOUPDATECP;
+                    else
+                        extra.ta = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+                }
+#endif
             }
+
+            if (run->lrun->ort == GLYPH_ORIENT_SIDEWAYS_LEFT) {
+                pos.y += run->gstr->glyphs[0].width;
+                if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                        GRF_WRITING_MODE_VERTICAL_RL)
+                    pos.x -= line->height;
+                else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                        GRF_WRITING_MODE_VERTICAL_LR)
+                    pos.x += line->height;
+            }
+
+            pos.x_off += glyph_info->x_off;
+            pos.y_off += glyph_info->y_off;
 
             pos.advance = glyph_info->width;
 
@@ -1808,6 +1843,10 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                     pos.suppressed = 1;
                 }
             }
+
+            _DBG_PRINTF("%s: uc: %c, width: %d, pos (%d, %d), off (%d, %d)\n",
+                    __FUNCTION__, extra.uc, glyph_info->width,
+                    pos.x, pos.y, pos.x_off, pos.y_off);
 
             if (!cb_laid_out(ctxt, glyph_info->gv, &pos, &extra))
                 return j;

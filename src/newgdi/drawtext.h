@@ -44,14 +44,16 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+void _gdi_get_rotated_point(int *x, int *y, int rotation);
+
 void _gdi_get_point_at_parallel(int x1, int y1, int x2, int y2, \
           int advance, int* parallel_x1, int* parallel_y1, int* parallel_x2, \
-          int* parallel_y2, PDC pdc);
+          int* parallel_y2, int rotation);
 
 void _gdi_get_baseline_point (PDC pdc, int* x, int* y);
 
 void _gdi_get_glyph_box_vertices (int x1, int y1, int x2, int y2,
-        POINT* pts, PDC pdc);
+        POINT* pts, PLOGFONT logfont);
 
 void _gdi_start_new_line (PDC pdc);
 

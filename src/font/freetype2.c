@@ -758,10 +758,14 @@ get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
 done:
     FT_UNLOCK(&ft_lock);
 
-    if (px)
-        *px += ((ft_inst_info->advance.x + 0x8000)>> 16);
-    if (py)
-        *py -= ((ft_inst_info->advance.y + 0x8000)>> 16);
+    if (px) {
+        //int old_x = *px;
+        *px += ((ft_inst_info->advance.x + 0x8000) >> 16);
+    }
+    if (py) {
+        //int old_y = *py;
+        *py -= ((ft_inst_info->advance.y + 0x8000) >> 16);
+    }
 
     advance = FT_Vector_Length (&ft_inst_info->advance);
     return (advance >> 16) + ((advance & 0x8000) >> 15);

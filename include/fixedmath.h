@@ -2,12 +2,12 @@
  * \file fixedmath.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/12
- * 
+ *
  * \brief This file includes fixed point and three-dimension math routines.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -45,7 +45,7 @@
 /*
  * $Id: fixedmath.h 12154 2009-10-15 07:21:34Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
  *      Fixed-point math routins come from Allegro (a gift software)
@@ -79,21 +79,21 @@ extern "C" {
 
     /**
      * \defgroup fixed_math_fns Fixed point math functions
-     * 
+     *
      * You know that the float point mathematics routines are very
-     * expensive. If you do not want precision mathematics result, 
+     * expensive. If you do not want precision mathematics result,
      * you can use fixed point. MiniGUI uses a double word (32-bit)
-     * integer to represent a fixed point ranged from -32767.0 to 
-     * 32767.0, and defines some fixed point mathematics routines for 
-     * your application. Some GDI functions need fixed point 
+     * integer to represent a fixed point ranged from -32767.0 to
+     * 32767.0, and defines some fixed point mathematics routines for
+     * your application. Some GDI functions need fixed point
      * math routines, like \a Arc.
      *
      * Example 1:
-     * 
+     *
      * \include fixed_point.c
      *
      * Example 2:
-     * 
+     *
      * \include fixedpoint.c
      * @{
      */
@@ -112,9 +112,9 @@ MG_EXPORT fixed fixsqrt (fixed x);
 /**
  * \fn fixed fixhypot (fixed x, fixed y)
  * \brief Returns the Euclidean distance from the origin.
- * 
- * The function returns the \a sqrt(x*x+y*y). This is the length of 
- * the hypotenuse of a right-angle triangle with sides of length \a x and \a y, 
+ *
+ * The function returns the \a sqrt(x*x+y*y). This is the length of
+ * the hypotenuse of a right-angle triangle with sides of length \a x and \a y,
  * or the distance of the point \a (x,y) from the origin.
  *
  * \sa fixsqrt
@@ -125,10 +125,10 @@ MG_EXPORT fixed fixhypot (fixed x, fixed y);
  * \fn fixed fixatan (fixed x)
  * \brief Calculates the arc tangent of a fixed point value.
  *
- * This function calculates the arc tangent of \a x; that is the value 
+ * This function calculates the arc tangent of \a x; that is the value
  * whose tangent is \a x.
  *
- * \return Returns the arc tangent in radians and the value is 
+ * \return Returns the arc tangent in radians and the value is
  *         mathematically defined to be between -PI/2 and PI/2 (inclusive).
  *
  * \sa fixatan2
@@ -140,11 +140,11 @@ MG_EXPORT fixed fixatan (fixed x);
  * \brief Calculates the arc tangent of two fixed point variables.
  *
  *  This function calculates the arc tangent of the two variables \a x and \a y.
- *  It is similar to calculating the arc tangent of \a y / \a x, except that 
- *  the signs of both arguments are used to determine the quadrant of the 
+ *  It is similar to calculating the arc tangent of \a y / \a x, except that
+ *  the signs of both arguments are used to determine the quadrant of the
  *  result.
  *
- * \return Returns the result in radians, which is between -PI and PI 
+ * \return Returns the result in radians, which is between -PI and PI
  *         (inclusive).
  *
  * \sa fixatan
@@ -162,7 +162,7 @@ extern MG_EXPORT const fixed __mg_acos_tbl[];
  * \fn fixed ftofix (double x)
  * \brief Converts a float point value to a fixed point value.
  *
- * This function converts the specified float point value \a x to 
+ * This function converts the specified float point value \a x to
  * a fixed point value.
  *
  * \note The float point should be ranged from -32767.0 to 32767.0.
@@ -171,7 +171,7 @@ extern MG_EXPORT const fixed __mg_acos_tbl[];
  * \sa fixtof
  */
 static inline fixed ftofix (double x)
-{ 
+{
    if (x > 32767.0) {
       errno = ERANGE;
       return 0x7FFFFFFF;
@@ -182,21 +182,21 @@ static inline fixed ftofix (double x)
       return -0x7FFFFFFF;
    }
 
-   return (long)(x * 65536.0 + (x < 0 ? -0.5 : 0.5)); 
+   return (long)(x * 65536.0 + (x < 0 ? -0.5 : 0.5));
 }
 
 /**
  * \fn double fixtof (fixed x)
  * \brief Converts a fixed point value to a float point value.
  *
- * This function converts the specified fixed point value \a x to 
+ * This function converts the specified fixed point value \a x to
  * a float point value.
  *
  * \sa ftofix
  */
 static inline double fixtof (fixed x)
-{ 
-   return (double)x / 65536.0; 
+{
+   return (double)x / 65536.0;
 }
 
 
@@ -209,7 +209,7 @@ static inline double fixtof (fixed x)
  *
  * \param x x,y: Two addends.
  * \param y x,y: Two addends.
- * \return The sum. If the result runs out of range of fixed point, 
+ * \return The sum. If the result runs out of range of fixed point,
  *         this function sets \a errno to \a ERANGE.
  *
  * \sa fixsub
@@ -220,19 +220,19 @@ static inline fixed fixadd (fixed x, fixed y)
 
    if (result >= 0) {
       if ((x < 0) && (y < 0)) {
-	 errno = ERANGE;
-	 return -0x7FFFFFFF;
+         errno = ERANGE;
+         return -0x7FFFFFFF;
       }
       else
-	 return result;
+         return result;
    }
    else {
       if ((x > 0) && (y > 0)) {
-	 errno = ERANGE;
-	 return 0x7FFFFFFF;
+         errno = ERANGE;
+         return 0x7FFFFFFF;
       }
       else
-	 return result;
+         return result;
    }
 }
 
@@ -240,13 +240,13 @@ static inline fixed fixadd (fixed x, fixed y)
  * \fn fixed fixsub (fixed x, fixed y)
  * \brief Subtract a fixed point value from another.
  *
- * This function subtracts the fixed point values \a y from the fixed 
+ * This function subtracts the fixed point values \a y from the fixed
  * point value \a x, and returns the difference.
  *
  * \param x The minuend.
  * \param y The subtrahend.
  *
- * \return The difference. If the result runs out of range of fixed point, 
+ * \return The difference. If the result runs out of range of fixed point,
  *         this function sets \a errno to \a ERANGE.
  *
  * \sa fixadd
@@ -257,33 +257,33 @@ static inline fixed fixsub (fixed x, fixed y)
 
    if (result >= 0) {
       if ((x < 0) && (y > 0)) {
-	 errno = ERANGE;
-	 return -0x7FFFFFFF;
+         errno = ERANGE;
+         return -0x7FFFFFFF;
       }
       else
-	 return result;
+         return result;
    }
    else {
       if ((x > 0) && (y < 0)) {
-	 errno = ERANGE;
-	 return 0x7FFFFFFF;
+         errno = ERANGE;
+         return 0x7FFFFFFF;
       }
       else
-	 return result;
+         return result;
    }
 }
 
 /**
  * \fn fixed fixmul (fixed x, fixed y)
  * \brief Returns the product of two fixed point values.
- * 
+ *
  * This function returns the product of two fixed point values \a x and \a y.
  *
  * \param x The faciend.
  * \param y The multiplicato.
- * \return The prodcut. If the result runs out of range of fixed point, 
+ * \return The prodcut. If the result runs out of range of fixed point,
  *         this function sets \a errno to \a ERANGE.
- * 
+ *
  * \sa fixdiv
  */
 MG_EXPORT fixed fixmul (fixed x, fixed y);
@@ -291,14 +291,14 @@ MG_EXPORT fixed fixmul (fixed x, fixed y);
 /**
  * \fn fixed fixdiv (fixed x, fixed y)
  * \brief Returns the quotient of two fixed point values.
- * 
+ *
  * This function returns the quotient of two fixed point values \a x and \a y.
  *
  * \param x The dividend.
  * \param y The divisor.
- * \return The quotient. If the result runs out of range of fixed point, 
+ * \return The quotient. If the result runs out of range of fixed point,
  *         this function sets \a errno to \a ERANGE.
- * 
+ *
  * \sa fixmul
  */
 MG_EXPORT fixed fixdiv (fixed x, fixed y);
@@ -336,7 +336,7 @@ static inline int fixceil (fixed x)
  * \sa fixtoi
  */
 static inline fixed itofix (int x)
-{ 
+{
    return x << 16;
 }
 
@@ -349,61 +349,61 @@ static inline fixed itofix (int x)
  * \sa itofix
  */
 static inline int fixtoi (fixed x)
-{ 
-   return (x >> 16) + ((x & 0x8000) >> 15);
+{
+    return (x >> 16) + ((x & 0x8000) >> 15);
 }
 
 /**
  * \fn fixed fixcos (fixed x)
  * \brief Returns the cosine of a fixed point.
  *
- * This function returns the cosine of the fixed point \a x, 
+ * This function returns the cosine of the fixed point \a x,
  * where \a x is given in radians.
  *
  * \sa fixacos
  */
 static inline fixed fixcos (fixed x)
 {
-   return __mg_cos_tbl[((x + 0x4000) >> 15) & 0x1FF];
+    return __mg_cos_tbl[((x + 0x4000) >> 15) & 0x1FF];
 }
 
 /**
  * \fn fixed fixsin (fixed x)
  * \brief Returns the sine of a fixed point.
  *
- * This function returns the sine of the fixed point \a x, 
+ * This function returns the sine of the fixed point \a x,
  * where \a x is given in radians.
  *
  * \sa fixasin
  */
 static inline fixed fixsin (fixed x)
-{ 
-   return __mg_cos_tbl[((x - 0x400000 + 0x4000) >> 15) & 0x1FF];
+{
+    return __mg_cos_tbl[((x - 0x400000 + 0x4000) >> 15) & 0x1FF];
 }
 
 /**
  * \fn fixed fixtan (fixed x)
  * \brief Returns the tangent of a fixed point.
  *
- * This function returns the tangent of the fixed point \a x, 
+ * This function returns the tangent of the fixed point \a x,
  * where \a x is given in radians.
  *
  * \sa fixcos, fixsin
  */
 static inline fixed fixtan (fixed x)
-{ 
-   return __mg_tan_tbl[((x + 0x4000) >> 15) & 0xFF];
+{
+    return __mg_tan_tbl[((x + 0x4000) >> 15) & 0xFF];
 }
 
 /**
  * \fn fixed fixacos (fixed x)
  * \brief Calculates and returns the arc cosine of a fixed point.
  *
- * This function calculates the arc cosine of the fixed point \a x; 
+ * This function calculates the arc cosine of the fixed point \a x;
  * that is the value whose cosine is \a x. If \a x falls outside
  * the range -1 to 1, this function fails and \a errno is set to EDOM.
  *
- * \return Returns the arc cosine in radians and the value is mathematically 
+ * \return Returns the arc cosine in radians and the value is mathematically
  *         defined to be between 0 and PI (inclusive).
  *
  * \sa fixcos
@@ -422,17 +422,17 @@ static inline fixed fixacos (fixed x)
  * \fn fixed fixasin (fixed x)
  * \brief Calculates and returns the arc sine of a fixed point.
  *
- * This function calculates the arc sine of the fixed point \a x; 
+ * This function calculates the arc sine of the fixed point \a x;
  * that is the value whose sine is \a x. If \a x falls outside
  * the range -1 to 1, this function fails and \a errno is set to EDOM.
  *
- * \return Returns the arc sine in radians and the value is mathematically 
+ * \return Returns the arc sine in radians and the value is mathematically
  *         defined to be between -PI/2 and PI/2 (inclusive).
  *
  * \sa fixsin
  */
 static inline fixed fixasin (fixed x)
-{ 
+{
    if ((x < -65536) || (x > 65536)) {
       errno = EDOM;
       return 0;

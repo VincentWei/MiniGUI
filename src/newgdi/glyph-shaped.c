@@ -72,6 +72,7 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
         render_data->uc_index);
 
     if (glyph_pos->suppressed == 0 && glyph_pos->whitespace == 0) {
+        int x_off, y_off;
         gal_pixel fg_pixel, bg_pixel;
 
         SelectFont(hdc, render_data->logfont);
@@ -91,8 +92,15 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
         }
 
         SetTextAlign(hdc, render_data->ta);
-        DrawGlyph(hdc, glyph_pos->x + glyph_pos->x_off,
-                       glyph_pos->y + glyph_pos->y_off, gv, NULL, NULL);
+        x_off = glyph_pos->x_off;
+        y_off = glyph_pos->y_off;
+        if (render_data->logfont->rotation) {
+            _gdi_get_rotated_point(&x_off, &y_off,
+                    render_data->logfont->rotation);
+        }
+
+        DrawGlyph(hdc, glyph_pos->x + x_off,
+                       glyph_pos->y + y_off, gv, NULL, NULL);
     }
     else if (glyph_pos->whitespace && bg_color) {
         // TODO: draw background for whitespace.

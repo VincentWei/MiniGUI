@@ -70,8 +70,9 @@ void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels, int len,
         if (BIDI_LEVEL_IS_RTL(embedding_levels[i])) {
             Uchar32 mirrored_ch;
 
-            if (UCharGetMirror(str[i], &mirrored_ch))
+            if (UCharGetMirror(str[i], &mirrored_ch)) {
                 str[i] = mirrored_ch;
+            }
         }
     }
 }

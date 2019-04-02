@@ -175,7 +175,8 @@ static void resolve_layout_run_dir(const LAYOUTINFO* layout,
     if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
         lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_TTB : GLYPH_RUN_DIR_BTT;
 
-        if (lrun->ort == GLYPH_ORIENT_UPRIGHT)
+        if (lrun->ort == GLYPH_ORIENT_UPRIGHT ||
+                lrun->ort == GLYPH_ORIENT_UPSIDE_DOWN)
             lrun->flags |= LAYOUTRUN_FLAG_CENTERED_BASELINE;
     }
     else {
