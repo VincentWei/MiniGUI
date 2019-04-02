@@ -1722,9 +1722,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     struct list_head* i;
     int line_adv = 0;
     RENDERDATA extra;
-    Uint32 def_ta;
-    Uint32 up_ta;
-    int up_off_factor = 1;
+    Uint32 def_ta, up_ta;
 
     extra.truninfo  = layout->truninfo;
     extra.layout    = layout;
@@ -1739,13 +1737,11 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     case GRF_WRITING_MODE_VERTICAL_RL:
         def_ta = TA_RIGHT | TA_TOP | TA_NOUPDATECP;
         up_ta = def_ta;
-        up_off_factor = -1;
         break;
 
     case GRF_WRITING_MODE_VERTICAL_LR:
         def_ta = TA_LEFT | TA_BOTTOM | TA_NOUPDATECP;
         up_ta = TA_LEFT | TA_TOP | TA_NOUPDATECP;
-        up_off_factor = 1;
         break;
 
     case GRF_WRITING_MODE_HORIZONTAL_TB:
@@ -1759,7 +1755,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
         GlyphRun* run = (GlyphRun*)i;
         for (j = 0; j < run->gstr->nr_glyphs; j++) {
             GLYPHPOS pos;
-            ShapedGlyph* glyph_info;
+            ShapedGlyph* gi;
 
             extra.logfont   = run->lrun->lf;
 #if 0
@@ -1771,9 +1767,8 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             extra.uc        = run->lrun->ucs[run->gstr->log_clusters[j]];
             extra.uc_index  = run->lrun->si + run->gstr->log_clusters[j];
 
-            glyph_info = run->gstr->glyphs + j;
+            gi = run->gstr->glyphs + j;
 
-            pos.x_off = pos.y_off = 0;
             if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
                 pos.y = line_adv;
                 pos.x = 0;
@@ -1789,12 +1784,20 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                 extra.ta = up_ta;
                 if (run->lrun->ort == GLYPH_ORIENT_UPSIDE_DOWN) {
                     pos.y += run->gstr->glyphs[0].width;
-                    pos.x_off = (line->height + glyph_info->height) / 2;
-                    pos.x_off *= up_off_factor;
+                    if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_RL)
+                        pos.x -= (line->height - gi->height) / 2;
+                    else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_LR)
+                        pos.x += (line->height + gi->height) / 2;
                 }
                 else if (run->lrun->ort == GLYPH_ORIENT_UPRIGHT) {
-                    pos.x_off = (line->height - glyph_info->height) / 2;
-                    pos.x_off *= up_off_factor;
+                    if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_RL)
+                        pos.x -= (line->height - gi->height) / 2;
+                    else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_LR)
+                        pos.x += (line->height - gi->height) / 2;
                 }
             }
             else {
@@ -1820,23 +1823,23 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                     pos.x += line->height;
             }
 
-            pos.x_off += glyph_info->x_off;
-            pos.y_off += glyph_info->y_off;
+            pos.x_off = gi->x_off;
+            pos.y_off = gi->y_off;
 
-            pos.advance = glyph_info->width;
+            pos.advance = gi->width;
 
             pos.suppressed = 0;
             pos.whitespace = 0;
             pos.ellipsis = 0;
             pos.orientation = run->lrun->ort;
-            pos.hanged = glyph_info->hanged;
+            pos.hanged = gi->hanged;
 
             if (run->lrun->flags & LAYOUTRUN_FLAG_ELLIPSIS) {
                 pos.ellipsis = 1;
             }
 
             if (run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) {
-                if (glyph_info->width > 0) {
+                if (gi->width > 0) {
                     pos.whitespace = 1;
                 }
                 else {
@@ -1845,13 +1848,13 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             }
 
             _DBG_PRINTF("%s: uc: %c, width: %d, pos (%d, %d), off (%d, %d)\n",
-                    __FUNCTION__, extra.uc, glyph_info->width,
+                    __FUNCTION__, extra.uc, gi->width,
                     pos.x, pos.y, pos.x_off, pos.y_off);
 
-            if (!cb_laid_out(ctxt, glyph_info->gv, &pos, &extra))
+            if (!cb_laid_out(ctxt, gi->gv, &pos, &extra))
                 return j;
 
-            line_adv += glyph_info->width;
+            line_adv += gi->width;
         }
     }
 

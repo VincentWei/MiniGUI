@@ -111,11 +111,11 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
 
 int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
 {
-    int n, log_x = 0, log_y = 0;
+    int n, line_adv = 0;
     struct list_head* i;
     const TEXTRUNSINFO* truninfo;
     const LAYOUTINFO* layout;
-    Uint32 old_ta;
+    Uint32 def_ta, up_ta;
     PLOGFONT old_lf = NULL;
 
     if (line == NULL)
@@ -124,23 +124,39 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
     layout = line->layout;
     truninfo = layout->truninfo;
 
-    if ((layout->rf & GRF_WRITING_MODE_MASK) ==
-            GRF_WRITING_MODE_HORIZONTAL_BT)
-        old_ta = SetTextAlign(hdc, TA_LEFT | TA_BOTTOM | TA_NOUPDATECP);
-    else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
-            GRF_WRITING_MODE_VERTICAL_RL)
-        old_ta = SetTextAlign(hdc, TA_RIGHT | TA_TOP | TA_NOUPDATECP);
-    else
-        old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
-    old_lf = GetCurFont(hdc);
+    switch (layout->rf & GRF_WRITING_MODE_MASK) {
+    case GRF_WRITING_MODE_HORIZONTAL_BT:
+        def_ta = TA_LEFT | TA_BOTTOM | TA_NOUPDATECP;
+        up_ta = def_ta;
+        break;
 
+    case GRF_WRITING_MODE_VERTICAL_RL:
+        def_ta = TA_RIGHT | TA_TOP | TA_NOUPDATECP;
+        up_ta = def_ta;
+        break;
+
+    case GRF_WRITING_MODE_VERTICAL_LR:
+        def_ta = TA_LEFT | TA_BOTTOM | TA_NOUPDATECP;
+        up_ta = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+        break;
+
+    case GRF_WRITING_MODE_HORIZONTAL_TB:
+    default:
+        def_ta = TA_LEFT | TA_TOP | TA_NOUPDATECP;
+        up_ta = def_ta;
+        break;
+    }
+
+    old_lf = GetCurFont(hdc);
     list_for_each(i, &line->gruns) {
         GlyphRun* run = (GlyphRun*)i;
         int j;
+        int log_x, log_y;
 
         SelectFont(hdc, run->lrun->lf);
         for (j = 0; j < run->gstr->nr_glyphs; j++) {
-            int dev_x, dev_y;
+            int x_off, y_off;
+            Uint32 ta;
 
             ShapedGlyph* gi = run->gstr->glyphs + j;
             int log_index = run->lrun->si + run->gstr->log_clusters[j];
@@ -158,82 +174,76 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
                 SetBkMode(hdc, BM_TRANSPARENT);
             }
 
-            if (run->lrun->dir == GLYPH_RUN_DIR_TTB ||
-                    run->lrun->dir == GLYPH_RUN_DIR_BTT) {
-                dev_y = log_x + gi->x_off;
-                dev_x = log_y + gi->y_off;
+            if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
+                log_y = line_adv;
+                log_x = 0;
             }
             else {
-                dev_x = log_x + gi->x_off;
-                dev_y = log_y + gi->y_off;
+                log_x = line_adv;
+                log_y = 0;
             }
 
-            if ((run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) &&
-                    gi->width > 0 && bg_color) {
-                // FIXME: draw background here
+            // vertical layout
+            if (run->lrun->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
+                ta = up_ta;
+                if (run->lrun->ort == GLYPH_ORIENT_UPSIDE_DOWN) {
+                    log_y += run->gstr->glyphs[0].width;
+                    if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_RL)
+                        log_x -= (line->height - gi->height) / 2;
+                    else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_LR)
+                        log_x += (line->height + gi->height) / 2;
+                }
+                else if (run->lrun->ort == GLYPH_ORIENT_UPRIGHT) {
+                    if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_RL)
+                        log_x -= (line->height - gi->height) / 2;
+                    else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                            GRF_WRITING_MODE_VERTICAL_LR)
+                        log_x += (line->height - gi->height) / 2;
+                }
             }
             else {
-                DrawGlyph(hdc, x + dev_x, y + dev_y, gi->gv, NULL, NULL);
+                ta = def_ta;
+            }
+
+            if (run->lrun->ort == GLYPH_ORIENT_SIDEWAYS_LEFT) {
+                log_y += run->gstr->glyphs[0].width;
+                if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                        GRF_WRITING_MODE_VERTICAL_RL)
+                    log_x -= line->height;
+                else if ((layout->rf & GRF_WRITING_MODE_MASK) ==
+                        GRF_WRITING_MODE_VERTICAL_LR)
+                    log_x += line->height;
+            }
+
+            if (run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) {
+                if (gi->width > 0 && bg_color) {
+                // FIXME: draw background here
+                }
+            }
+            else {
+                SetTextAlign(hdc, ta);
+
+                x_off = gi->x_off;
+                y_off = gi->y_off;
+                if (run->lrun->lf->rotation) {
+                    _gdi_get_rotated_point(&x_off, &y_off,
+                            run->lrun->lf->rotation);
+                }
+
+                DrawGlyph(hdc, x + log_x + x_off,
+                               y + log_y + y_off, gi->gv, NULL, NULL);
                 n++;
             }
 
-            log_x += gi->width;
+            line_adv += gi->width;
         }
     }
 
     SelectFont(hdc, old_lf);
-    SetTextAlign(hdc, old_ta);
     return n;
 }
-
-#if 0
-int GUIAPI DrawShapedGlyphString(HDC hdc,
-        LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
-        const ShapedGlyphS* shaped_glyphs,
-        const GLYPHPOS* glyph_pos, int nr_glyphs)
-{
-    int i;
-    int n = 0;
-    Uint32 old_ta;
-    PLOGFONT old_lf;
-
-    if (shaped_glyphs == NULL || glyph_pos == NULL || nr_glyphs <= 0)
-        return 0;
-
-    old_ta = SetTextAlign(hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
-    old_lf = GetCurFont(hdc);
-
-    for (i = 0; i < nr_glyphs; i++) {
-        if (glyph_pos[i].suppressed == 0 && glyph_pos[i].whitespace == 0) {
-            Glyph32 gv = shaped_glyphs->cb_get_glyph_info(
-                    shaped_glyphs->shaping_engine, shaped_glyphs->glyph_infos,
-                    i, NULL);
-            if (glyph_pos[i].orientation == GLYPH_ORIENT_UPRIGHT) {
-                if (logfont_upright)
-                    SelectFont(hdc, logfont_upright);
-                else
-                    goto error;
-            }
-            else {
-                if (logfont_sideways)
-                    SelectFont(hdc, logfont_sideways);
-                else
-                    goto error;
-            }
-
-            DrawGlyph(hdc, glyph_pos[i].x, glyph_pos[i].y, gv,
-                NULL, NULL);
-
-            n++;
-        }
-    }
-
-error:
-    SelectFont(hdc, old_lf);
-    SetTextAlign(hdc, old_ta);
-
-    return n;
-}
-#endif
 
 #endif /* _MGCHARSET_UNICODE */
