@@ -405,7 +405,7 @@ typedef struct {
     /* VerticalDirection */
     Uint8 vert_dir;         /* Orientation in vertical context */
 
-    /* LayoutGravity */
+    /* GlyphGravity */
     Uint8 preferred_gravity; /* Preferred context gravity */
 
     /* BOOL */
@@ -422,9 +422,9 @@ typedef struct {
 #define RTL  HORIZONTAL_DIRECTION_RTL
 #define WEAK HORIZONTAL_DIRECTION_WEAK
 
-#define S LAYOUT_GRAVITY_SOUTH
-#define E LAYOUT_GRAVITY_EAST
-#define W LAYOUT_GRAVITY_WEST
+#define S GLYPH_GRAVITY_SOUTH
+#define E GLYPH_GRAVITY_EAST
+#define W GLYPH_GRAVITY_WEST
 
 #define UNKNOWN_SCRIPT_PROPERTY \
     {LTR, NONE, S, FALSE}
@@ -633,28 +633,32 @@ static inline ScriptTypeProperties get_script_properties (ScriptType script)
     return script_properties[script];
 }
 
-LayoutGravity ScriptGetLayoutGravity (ScriptType script,
-        LayoutGravity base_gravity, LayoutGravityPolicy hint)
+GlyphGravity ScriptGetGlyphGravity (ScriptType script,
+        GlyphGravity base_gravity, GlyphGravityPolicy hint)
 {
     ScriptTypeProperties props = get_script_properties (script);
 
-    if (base_gravity == LAYOUT_GRAVITY_AUTO)
+    if (base_gravity == GLYPH_GRAVITY_AUTO)
         base_gravity = props.preferred_gravity;
 
-    return ScriptGetLayoutGravityForWide (script, props.wide,
+    return ScriptGetGlyphGravityForWide (script, props.wide,
             base_gravity, hint);
 }
 
-LayoutGravity ScriptGetLayoutGravityForWide (ScriptType script,
-        BOOL wide, LayoutGravity base_gravity, LayoutGravityPolicy hint)
+
+#define GLYPH_GRAVITY_IS_VERTICAL(gravity) \
+    ((gravity) == GLYPH_GRAVITY_EAST || (gravity) == GLYPH_GRAVITY_WEST)
+
+GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script,
+        BOOL wide, GlyphGravity base_gravity, GlyphGravityPolicy hint)
 {
     ScriptTypeProperties props = get_script_properties (script);
     BOOL vertical;
 
-    if (base_gravity == LAYOUT_GRAVITY_AUTO)
+    if (base_gravity == GLYPH_GRAVITY_AUTO)
         base_gravity = props.preferred_gravity;
 
-    vertical = LAYOUT_GRAVITY_IS_VERTICAL(base_gravity);
+    vertical = GLYPH_GRAVITY_IS_VERTICAL(base_gravity);
 
     /* Everything is designed such that a system with no vertical support
      * renders everything correctly horizontally.  So, if not in a vertical
@@ -670,24 +674,24 @@ LayoutGravity ScriptGetLayoutGravityForWide (ScriptType script,
      */
     switch (hint) {
     default:
-    case LAYOUT_GRAVITY_POLICY_NATURAL:
+    case GLYPH_GRAVITY_POLICY_NATURAL:
         if (props.vert_dir == VERTICAL_DIRECTION_NONE)
-            return LAYOUT_GRAVITY_SOUTH;
-        if ((base_gravity   == LAYOUT_GRAVITY_EAST) ^
+            return GLYPH_GRAVITY_SOUTH;
+        if ((base_gravity   == GLYPH_GRAVITY_EAST) ^
                 (props.vert_dir == VERTICAL_DIRECTION_BTT))
-            return LAYOUT_GRAVITY_SOUTH;
+            return GLYPH_GRAVITY_SOUTH;
         else
-            return LAYOUT_GRAVITY_NORTH;
+            return GLYPH_GRAVITY_NORTH;
 
-    case LAYOUT_GRAVITY_POLICY_STRONG:
+    case GLYPH_GRAVITY_POLICY_STRONG:
         return base_gravity;
 
-    case LAYOUT_GRAVITY_POLICY_LINE:
-        if ((base_gravity    == LAYOUT_GRAVITY_EAST) ^
+    case GLYPH_GRAVITY_POLICY_LINE:
+        if ((base_gravity    == GLYPH_GRAVITY_EAST) ^
                 (props.horiz_dir == GLYPH_RUN_DIR_RTL))
-            return LAYOUT_GRAVITY_SOUTH;
+            return GLYPH_GRAVITY_SOUTH;
         else
-            return LAYOUT_GRAVITY_NORTH;
+            return GLYPH_GRAVITY_NORTH;
     }
 }
 #endif /* _MGCHARSET_UNICODE */

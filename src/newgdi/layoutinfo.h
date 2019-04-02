@@ -91,6 +91,14 @@ struct _GlyphRun {
     GlyphString*        gstr;   // the glyph string
 };
 
+typedef enum {
+    LINE_DIRECTION_LTR,
+    LINE_DIRECTION_RTL,
+    LINE_DIRECTION_WEAK_LTR,
+    LINE_DIRECTION_WEAK_RTL,
+    LINE_DIRECTION_NEUTRAL
+} LineDirection;
+
 struct _LAYOUTLINE {
     struct list_head    list;
     LAYOUTINFO*         layout;
@@ -105,7 +113,6 @@ struct _LAYOUTLINE {
     int                 width;      // actual width
     int                 height;     // actual height
 
-    Uint32              line_no:24; // line number (0 for the first line).
     Uint32              resolved_dir:4;     // resolved direction of the line
     Uint32              is_paragraph_start:1;// is first line of the paragraph?
     Uint32              is_last_line:1;     // is the last line.
@@ -134,7 +141,6 @@ struct _LAYOUTINFO {
 
     Uint32              grv_base:4; // the base gravity
     Uint32              grv_plc:2;  // the gravity policy specified
-    Uint32              orient:2;   // the glyph orientation specified
     Uint32              persist:1;  // persist lines?
     Uint32              single_paragraph:1;
 };

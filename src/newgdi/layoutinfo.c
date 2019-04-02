@@ -116,47 +116,37 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     INIT_LIST_HEAD(&layout->lines);
     layout->nr_left_ucs = truninfo->nr_ucs;
 
-    switch (render_flags & GRF_WRITING_MODE_MASK) {
-    default:
-    case GRF_WRITING_MODE_HORIZONTAL_TB:
-        layout->grv_base = LAYOUT_GRAVITY_SOUTH;
-        break;
-    case GRF_WRITING_MODE_HORIZONTAL_BT:
-        layout->grv_base = LAYOUT_GRAVITY_NORTH;
-        break;
-    case GRF_WRITING_MODE_VERTICAL_RL:
-        layout->grv_base = LAYOUT_GRAVITY_WEST;
-        break;
-    case GRF_WRITING_MODE_VERTICAL_LR:
-        layout->grv_base = LAYOUT_GRAVITY_EAST;
-        break;
+    if (render_flags & GRF_WRITING_MODE_VERTICAL_FLAG) {
+        switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
+        case GRF_TEXT_ORIENTATION_AUTO:
+            layout->grv_base = GLYPH_GRAVITY_SOUTH;
+            layout->grv_plc = GLYPH_GRAVITY_POLICY_NATURAL;
+            break;
+        case GRF_TEXT_ORIENTATION_MIXED:
+            layout->grv_base = GLYPH_GRAVITY_SOUTH;
+            layout->grv_plc = GLYPH_GRAVITY_POLICY_LINE;
+            break;
+        case GRF_TEXT_ORIENTATION_UPRIGHT:
+            layout->grv_base = GLYPH_GRAVITY_SOUTH;
+            layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+            break;
+        case GRF_TEXT_ORIENTATION_SIDEWAYS:
+            layout->grv_base = GLYPH_GRAVITY_EAST;
+            layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+            break;
+        case GRF_TEXT_ORIENTATION_UPSIDE_DOWN:
+            layout->grv_base = GLYPH_GRAVITY_NORTH;
+            layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+            break;
+        case GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT:
+            layout->grv_base = GLYPH_GRAVITY_WEST;
+            layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+            break;
+        }
     }
-
-    switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
-    case GRF_TEXT_ORIENTATION_AUTO:
-        layout->grv_plc = LAYOUT_GRAVITY_POLICY_NATURAL;
-        layout->orient = GLYPH_ORIENT_UPRIGHT;
-        break;
-    case GRF_TEXT_ORIENTATION_MIXED:
-        layout->grv_plc = LAYOUT_GRAVITY_POLICY_LINE;
-        layout->orient = GLYPH_ORIENT_UPRIGHT;
-        break;
-    case GRF_TEXT_ORIENTATION_UPRIGHT:
-        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
-        layout->orient = GLYPH_ORIENT_UPRIGHT;
-        break;
-    case GRF_TEXT_ORIENTATION_SIDEWAYS:
-        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
-        layout->orient = GLYPH_ORIENT_SIDEWAYS;
-        break;
-    case GRF_TEXT_ORIENTATION_UPSIDE_DOWN:
-        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
-        layout->orient = GLYPH_ORIENT_UPSIDE_DOWN;
-        break;
-    case GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT:
-        layout->grv_plc = LAYOUT_GRAVITY_POLICY_STRONG;
-        layout->orient = GLYPH_ORIENT_SIDEWAYS_LEFT;
-        break;
+    else {
+        layout->grv_base = GLYPH_GRAVITY_SOUTH;
+        layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
     }
 
     layout->persist = persist_lines ? 1 : 0;
@@ -944,11 +934,11 @@ static void line_set_resolved_dir(LAYOUTLINE *line, ParagraphDir direction)
     case BIDI_PGDIR_LTR:
     case BIDI_PGDIR_WLTR:
     case BIDI_PGDIR_ON:
-        line->resolved_dir = GLYPH_RUN_DIR_LTR;
+        line->resolved_dir = LINE_DIRECTION_LTR;
         break;
     case BIDI_PGDIR_RTL:
     case BIDI_PGDIR_WRTL:
-        line->resolved_dir = GLYPH_RUN_DIR_RTL;
+        line->resolved_dir = LINE_DIRECTION_RTL;
         break;
     }
 
@@ -961,25 +951,22 @@ static void line_set_resolved_dir(LAYOUTLINE *line, ParagraphDir direction)
      *  If gravity is WEST, set to RTL, as
      *      it's a counter-clockwise-rotated layout, so the rotated
      *      top is unrotated right.
-     *
-     * A similar dance is performed in textrunsinfo.c:
-     * state_add_character().  Keep in sync.
      */
     switch (line->layout->grv_base) {
         default:
-        case LAYOUT_GRAVITY_AUTO:
-        case LAYOUT_GRAVITY_SOUTH:
+        case GLYPH_GRAVITY_AUTO:
+        case GLYPH_GRAVITY_SOUTH:
             break;
-        case LAYOUT_GRAVITY_NORTH:
-            line->resolved_dir = GLYPH_RUN_DIR_LTR
-                + GLYPH_RUN_DIR_RTL
+        case GLYPH_GRAVITY_NORTH:
+            line->resolved_dir = LINE_DIRECTION_LTR
+                + LINE_DIRECTION_RTL
                 - line->resolved_dir;
             break;
-        case LAYOUT_GRAVITY_EAST:
-            line->resolved_dir = GLYPH_RUN_DIR_LTR;
+        case GLYPH_GRAVITY_EAST:
+            line->resolved_dir = LINE_DIRECTION_LTR;
             break;
-        case LAYOUT_GRAVITY_WEST:
-            line->resolved_dir = GLYPH_RUN_DIR_RTL;
+        case GLYPH_GRAVITY_WEST:
+            line->resolved_dir = LINE_DIRECTION_RTL;
             break;
     }
 }
@@ -1904,10 +1891,6 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     if (next_line) {
         next_line->max_extent = max_extent;
         next_line->is_last_line = last_line;
-        if (prev_line == 0)
-            next_line->line_no = 0;
-        else
-            next_line->line_no = prev_line->line_no + 1;
 
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
@@ -2011,7 +1994,7 @@ int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
 
     } while (1);
 
-    // TODO: transform the bouding rectangle according to the wrting mode
+    // TODO: transform the bouding rectangle according to the writing mode
     OffsetRect(bounding, x, y);
 
     return nr_lines;
@@ -2019,14 +2002,13 @@ int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
 
 #ifdef _MGDEVEL_MODE
 BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
-        int* line_no, int* max_extent, int* nr_chars, int* nr_glyphs,
+        int* max_extent, int* nr_chars, int* nr_glyphs,
         int** log_widths, int* width, int* height,
         BOOL* is_ellipsized, BOOL* is_wrapped)
 {
     if (line == NULL)
         return FALSE;
 
-    if (line_no) *line_no = line->line_no;
     if (max_extent) *max_extent = line->max_extent;
     if (nr_chars) *nr_chars = line->len;
     if (log_widths) *log_widths = line->log_widths;

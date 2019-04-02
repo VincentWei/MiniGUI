@@ -127,29 +127,18 @@ void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
 static GlyphOrient resolve_glyph_orient(const LAYOUTINFO* layout,
         const TextRun* trun)
 {
-    LayoutGravity gravity;
+    GlyphGravity gravity;
 
-    if (layout->grv_plc == LAYOUT_GRAVITY_POLICY_STRONG) {
-        return layout->orient;
+    if (layout->grv_plc == GLYPH_GRAVITY_POLICY_STRONG) {
+        assert(layout->grv_base != GLYPH_GRAVITY_AUTO);
+        return layout->grv_base;
     }
 
-    gravity = ScriptGetLayoutGravityForWide(trun->st,
+    gravity = ScriptGetGlyphGravityForWide(trun->st,
             trun->flags & TEXTRUN_FLAG_UPRIGHT,
             layout->grv_base, layout->grv_plc);
-    switch (gravity) {
-    case LAYOUT_GRAVITY_SOUTH:
-        return GLYPH_ORIENT_UPRIGHT;
-    case LAYOUT_GRAVITY_EAST:
-        return GLYPH_ORIENT_SIDEWAYS;
-    case LAYOUT_GRAVITY_NORTH:
-        return GLYPH_ORIENT_SIDEWAYS_LEFT;
-    case LAYOUT_GRAVITY_WEST:
-        return GLYPH_ORIENT_UPSIDE_DOWN;
-    default:
-        break;
-    }
 
-    return GLYPH_ORIENT_UPRIGHT;
+    return (GlyphOrient)gravity;
 }
 
 static void resolve_layout_run_dir(const LAYOUTINFO* layout,
@@ -166,29 +155,31 @@ static void resolve_layout_run_dir(const LAYOUTINFO* layout,
      *    it's a counter-clockwise-rotated layout, so the rotated
      *    top is unrotated right.
      */
-    switch (layout->grv_base) {
-    case LAYOUT_GRAVITY_SOUTH:
+    switch (lrun->ort) {
+    case GLYPH_GRAVITY_SOUTH:
     default:
-        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_RTL : GLYPH_RUN_DIR_LTR;
         break;
-    case LAYOUT_GRAVITY_NORTH:
+    case GLYPH_GRAVITY_NORTH:
         lrun->el++;
-        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_RTL : GLYPH_RUN_DIR_LTR;
         break;
-    case LAYOUT_GRAVITY_EAST:
+    case GLYPH_GRAVITY_EAST:
         lrun->el += 1;
         lrun->el &= ~1;
-        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_TTB : GLYPH_RUN_DIR_BTT;
         break;
-    case LAYOUT_GRAVITY_WEST:
+    case GLYPH_GRAVITY_WEST:
         lrun->el |= 1;
-        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_TTB : GLYPH_RUN_DIR_BTT;
         break;
     }
 
-    if (LAYOUT_GRAVITY_IS_VERTICAL(layout->grv_base) &&
-            lrun->ort == GLYPH_ORIENT_UPRIGHT)
-        lrun->flags |= LAYOUTRUN_FLAG_CENTERED_BASELINE;
+    if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
+        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_TTB : GLYPH_RUN_DIR_BTT;
+
+        if (lrun->ort == GLYPH_ORIENT_UPRIGHT)
+            lrun->flags |= LAYOUTRUN_FLAG_CENTERED_BASELINE;
+    }
+    else {
+        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_RTL : GLYPH_RUN_DIR_LTR;
+    }
 }
 
 /*

@@ -86,7 +86,7 @@ typedef struct _TextRunState {
     BidiLevel       emb_level;
     Uint8           upright;
 #if 0
-    LayoutGravity   grv_rsv;
+    GlyphGravity   grv_rsv;
     BOOL            centered_baseline;
 #endif
 
@@ -148,13 +148,13 @@ static void state_update_for_new_run (TextRunState *state)
     if (state->changed & (SCRIPT_CHANGED | WIDTH_CHANGED)) {
         state->upright = state->width_iter.upright;
 #if 0
-        LayoutGravity gravity = state->runinfo->grv_base;
-        LayoutGravityPolicy gravity_policy = state->runinfo->grv_plc;
+        GlyphGravity gravity = state->runinfo->grv_base;
+        GlyphGravityPolicy gravity_policy = state->runinfo->grv_plc;
 
-        if (gravity == LAYOUT_GRAVITY_AUTO)
+        if (gravity == GLYPH_GRAVITY_AUTO)
             gravity = state->runinfo->grv_rsv;
 
-        state->grv_rsv = ScriptGetLayoutGravityForWide(
+        state->grv_rsv = ScriptGetGlyphGravityForWide(
                 state->script_iter.script, state->width_iter.upright,
                 gravity, gravity_policy);
 #endif
@@ -213,17 +213,17 @@ static void state_add_character(TextRunState *state,
      *    top is unrotated right.
      */
     switch (state->run->ort) {
-    case LAYOUT_GRAVITY_SOUTH:
+    case GLYPH_GRAVITY_SOUTH:
     default:
         break;
-    case LAYOUT_GRAVITY_NORTH:
+    case GLYPH_GRAVITY_NORTH:
         state->run->el++;
         break;
-    case LAYOUT_GRAVITY_EAST:
+    case GLYPH_GRAVITY_EAST:
         state->run->el += 1;
         state->run->el &= ~1;
         break;
-    case LAYOUT_GRAVITY_WEST:
+    case GLYPH_GRAVITY_WEST:
         state->run->el |= 1;
         break;
     }
@@ -320,7 +320,7 @@ static BOOL create_text_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
     state.upright = 0;
 #if 0
     state.grv_rsv = runinfo->ort_rsv;
-    state.centered_baseline = LAYOUT_GRAVITY_IS_VERTICAL(runinfo->grv_rsv);
+    state.centered_baseline = GLYPH_GRAVITY_IS_VERTICAL(runinfo->grv_rsv);
 #endif
 
     state.run_start = state.text;
@@ -364,17 +364,17 @@ static inline Uint8 get_gravity_from_fontname (const char* fontname)
 {
     switch (fontGetOrientFromName (fontname)) {
     case FONT_ORIENT_SIDEWAYS:
-        return LAYOUT_GRAVITY_EAST;
+        return GLYPH_GRAVITY_EAST;
 
     case FONT_ORIENT_UPSIDE_DOWN:
-        return LAYOUT_GRAVITY_NORTH;
+        return GLYPH_GRAVITY_NORTH;
 
     case FONT_ORIENT_SIDEWAYS_LEFT:
-        return LAYOUT_GRAVITY_WEST;
+        return GLYPH_GRAVITY_WEST;
 
     case FONT_ORIENT_UPRIGHT:
     default:
-        return LAYOUT_GRAVITY_SOUTH;
+        return GLYPH_GRAVITY_SOUTH;
     }
 }
 
@@ -490,7 +490,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
     runinfo->base_level = (base_dir == BIDI_PGDIR_LTR) ? 0 : 1;
     runinfo->grv_base   = glyph_orient;
     runinfo->grv_plc    = gravity_policy;
-    if (runinfo->grv_base == LAYOUT_GRAVITY_AUTO)
+    if (runinfo->grv_base == GLYPH_GRAVITY_AUTO)
         runinfo->grv_rsv = get_gravity_from_fontname (runinfo->fontname);
     else
         runinfo->grv_rsv = runinfo->ort_base;

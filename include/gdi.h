@@ -9080,37 +9080,34 @@ typedef enum {
 } GlyphRunDir;
 
 typedef enum {
-    LAYOUT_GRAVITY_SOUTH = 0,
-    LAYOUT_GRAVITY_EAST,
-    LAYOUT_GRAVITY_NORTH,
-    LAYOUT_GRAVITY_WEST,
-    LAYOUT_GRAVITY_AUTO,
-} LayoutGravity;
+    GLYPH_GRAVITY_SOUTH = 0,
+    GLYPH_GRAVITY_EAST,
+    GLYPH_GRAVITY_NORTH,
+    GLYPH_GRAVITY_WEST,
+    GLYPH_GRAVITY_AUTO,
+} GlyphGravity;
 
 typedef enum {
-    LAYOUT_GRAVITY_POLICY_NATURAL,
-    LAYOUT_GRAVITY_POLICY_STRONG,
-    LAYOUT_GRAVITY_POLICY_LINE,
-} LayoutGravityPolicy;
-
-#define LAYOUT_GRAVITY_IS_VERTICAL(gravity) \
-    ((gravity) == LAYOUT_GRAVITY_EAST || (gravity) == LAYOUT_GRAVITY_WEST)
+    GLYPH_GRAVITY_POLICY_NATURAL,
+    GLYPH_GRAVITY_POLICY_STRONG,
+    GLYPH_GRAVITY_POLICY_LINE,
+} GlyphGravityPolicy;
 
 /** Get the vertical orientation property of a Unicode character */
 MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
 
 /**
- * \fn LayoutGravity GUIAPI ScriptGetLayoutGravity(ScriptType script,
- *      LayoutGravity base_gravity, LayoutGravityPolicy policy)
+ * \fn GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
+ *      GlyphGravity base_gravity, GlyphGravityPolicy policy)
  * \brief Based on the script, base gravity, and policy, returns actual gravity
  *      to use in laying out a single glyph run.
  *
- * If @base_orient is %LAYOUT_GRAVITY_AUTO, it is first replaced with the
+ * If @base_orient is %GLYPH_GRAVITY_AUTO, it is first replaced with the
  * preferred orientation of @script. To get the preferred orientation of a script,
- * pass %LAYOUT_GRAVITY_AUTO and %LAYOUT_GRAVITY_POLICY_STRONG in.
+ * pass %GLYPH_GRAVITY_AUTO and %GLYPH_GRAVITY_POLICY_STRONG in.
  *
  * \param script The script type to query
- * \param base_gravity The base gravity of the paragraph/layout
+ * \param base_gravity The base gravity of the layout
  * \param policy The gravity policy
  *
  * \param The resolved gravity suitable to use for a layout run of text
@@ -9118,24 +9115,24 @@ MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
  *
  * Since: 3.4.0
  */
-MG_EXPORT LayoutGravity GUIAPI ScriptGetLayoutGravity(ScriptType script,
-        LayoutGravity base_gravity, LayoutGravityPolicy policy);
+MG_EXPORT GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
+        GlyphGravity base_gravity, GlyphGravityPolicy policy);
 
 /**
- * \fn LayoutGravity GUIAPI ScriptGetLayoutGravityForWide (ScriptType script,
- *      BOOL wide, LayoutGravity base_gravity, LayoutGravityPolicy policy)
+ * \fn GlyphGravity GUIAPI ScriptGetGlyphGravityForWide (ScriptType script,
+ *      BOOL wide, GlyphGravity base_gravity, GlyphGravityPolicy policy)
  * \brief Based on the script, East Asian width, base gravity, and policy,
  *      returns the actual gravity to use in laying out a single character
  *      or a run of text.
  *
- * This function is similar to ScriptGetLayoutGravity() except
+ * This function is similar to ScriptGetGlyphGravity() except
  * that this function makes a distinction between narrow/half-width and
  * wide/full-width characters also.  Wide/full-width characters always
  * stand upright, that is, they always take the
  * base gravity, whereas narrow/half-width characters are always
  * rotated in vertical context.
  *
- * If @base_orient is %LAYOUT_GRAVITY_AUTO, it is first replaced with the
+ * If @base_orient is %GLYPH_GRAVITY_AUTO, it is first replaced with the
  * preferred gravity of @script.
  *
  * \param script The script type to query
@@ -9148,8 +9145,8 @@ MG_EXPORT LayoutGravity GUIAPI ScriptGetLayoutGravity(ScriptType script,
  *
  * Since: 3.4.0
  */
-LayoutGravity ScriptGetLayoutGravityForWide (ScriptType script,
-        BOOL wide, LayoutGravity base_gravity, LayoutGravityPolicy policy);
+GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script,
+        BOOL wide, GlyphGravity base_gravity, GlyphGravityPolicy policy);
 
     /** @} end of unicode_ops */
 
@@ -12197,6 +12194,7 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
      */
 
 #define GRF_WRITING_MODE_MASK               0xF0000000
+#define GRF_WRITING_MODE_VERTICAL_FLAG      0x20000000
 /**
  * Top-to-bottom horizontal direction.
  * Both the writing mode and the typographic mode are horizontal.
@@ -12408,10 +12406,10 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
     /** @} end of glyph_render_flags */
 
 typedef enum {
-    GLYPH_ORIENT_UPRIGHT = 0,
-    GLYPH_ORIENT_SIDEWAYS,
-    GLYPH_ORIENT_UPSIDE_DOWN,
-    GLYPH_ORIENT_SIDEWAYS_LEFT,
+    GLYPH_ORIENT_UPRIGHT        = GLYPH_GRAVITY_SOUTH,
+    GLYPH_ORIENT_SIDEWAYS       = GLYPH_GRAVITY_EAST,
+    GLYPH_ORIENT_UPSIDE_DOWN    = GLYPH_GRAVITY_NORTH,
+    GLYPH_ORIENT_SIDEWAYS_LEFT  = GLYPH_GRAVITY_WEST,
 } GlyphOrient;
 
 typedef enum {
@@ -13121,7 +13119,7 @@ MG_EXPORT TEXTRUN* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
 
 /* Get layout line information */
 MG_EXPORT BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
-        int* line_no, int* max_extent, int* nr_chars, int* nr_glyphs,
+        int* max_extent, int* nr_chars, int* nr_glyphs,
         int** log_widths, int* width, int* height,
         BOOL* is_ellipsized, BOOL* is_wrapped);
 #endif
