@@ -65,6 +65,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _DEBUG
+
 #include "common.h"
 
 #ifdef _MGCHARSET_UNICODE
@@ -76,6 +78,32 @@
 #include "unicode-ops.h"
 #include "layoutinfo.h"
 #include "glyph.h"
+
+static BOOL check_logfont_rotatable(LOGFONT* logfont)
+{
+    int i;
+    DEVFONT* devfont;
+    BOOL ok = FALSE;
+
+    for (i = 0; i < MAXNR_DEVFONTS; i++) {
+        devfont = logfont->devfonts[i];
+
+        if (devfont) {
+            if (devfont->font_ops->is_rotatable == NULL ||
+                devfont->font_ops->is_rotatable(logfont, devfont, 900) != 900) {
+                ok = FALSE;
+                break;
+            }
+            else {
+                ok = TRUE;
+            }
+        }
+        else
+            break;
+    }
+
+    return ok;
+}
 
 LAYOUTINFO* GUIAPI CreateLayoutInfo(
         const TEXTRUNSINFO* truninfo, Uint32 render_flags,
@@ -117,35 +145,41 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     layout->nr_left_ucs = truninfo->nr_ucs;
 
     if (render_flags & GRF_WRITING_MODE_VERTICAL_FLAG) {
-        switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
-        case GRF_TEXT_ORIENTATION_AUTO:
-            layout->grv_base = GLYPH_GRAVITY_SOUTH;
-            layout->grv_plc = GLYPH_GRAVITY_POLICY_NATURAL;
-            break;
-        case GRF_TEXT_ORIENTATION_MIXED:
-            layout->grv_base = GLYPH_GRAVITY_SOUTH;
-            layout->grv_plc = GLYPH_GRAVITY_POLICY_MIXED;
-            break;
-        case GRF_TEXT_ORIENTATION_LINE:
-            layout->grv_base = GLYPH_GRAVITY_EAST;
-            layout->grv_plc = GLYPH_GRAVITY_POLICY_LINE;
-            break;
-        case GRF_TEXT_ORIENTATION_UPRIGHT:
+        if (!check_logfont_rotatable(layout->lf_upright)) {
             layout->grv_base = GLYPH_GRAVITY_SOUTH;
             layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
-            break;
-        case GRF_TEXT_ORIENTATION_SIDEWAYS:
-            layout->grv_base = GLYPH_GRAVITY_EAST;
-            layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
-            break;
-        case GRF_TEXT_ORIENTATION_UPSIDE_DOWN:
-            layout->grv_base = GLYPH_GRAVITY_NORTH;
-            layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
-            break;
-        case GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT:
-            layout->grv_base = GLYPH_GRAVITY_WEST;
-            layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
-            break;
+        }
+        else {
+            switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
+            case GRF_TEXT_ORIENTATION_AUTO:
+                layout->grv_base = GLYPH_GRAVITY_SOUTH;
+                layout->grv_plc = GLYPH_GRAVITY_POLICY_NATURAL;
+                break;
+            case GRF_TEXT_ORIENTATION_MIXED:
+                layout->grv_base = GLYPH_GRAVITY_SOUTH;
+                layout->grv_plc = GLYPH_GRAVITY_POLICY_MIXED;
+                break;
+            case GRF_TEXT_ORIENTATION_LINE:
+                layout->grv_base = GLYPH_GRAVITY_EAST;
+                layout->grv_plc = GLYPH_GRAVITY_POLICY_LINE;
+                break;
+            case GRF_TEXT_ORIENTATION_UPRIGHT:
+                layout->grv_base = GLYPH_GRAVITY_SOUTH;
+                layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+                break;
+            case GRF_TEXT_ORIENTATION_SIDEWAYS:
+                layout->grv_base = GLYPH_GRAVITY_EAST;
+                layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+                break;
+            case GRF_TEXT_ORIENTATION_UPSIDE_DOWN:
+                layout->grv_base = GLYPH_GRAVITY_NORTH;
+                layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+                break;
+            case GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT:
+                layout->grv_base = GLYPH_GRAVITY_WEST;
+                layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+                break;
+            }
         }
     }
     else {
@@ -455,6 +489,9 @@ static void shape_space(const LAYOUTINFO* layout, const LayoutRun* lrun,
             if (IsUCharWide(lrun->ucs[i])) {
                 gstr->glyphs[i].width *= 2;
             }
+
+            // A simple implementation for word spacing.
+            gstr->glyphs[i].width += layout->ws;
         }
         else {
             gstr->glyphs[i].width = 0;
@@ -499,16 +536,16 @@ static void shape_full(const Uchar32* lrun_ucs, int nr_lrun_ucs,
     info->sei.shape(info->sei.inst, info, lrun, glyphs);
 }
 
-static void distribute_letter_spacing (int letter_spacing,
+static void distribute_letter_spacing (int extra_spacing,
         int *space_left, int *space_right)
 {
-    *space_left = letter_spacing / 2;
+    *space_left = extra_spacing / 2;
     /* hinting */
-    if (letter_spacing & 1) {
+    if (extra_spacing & 1) {
         *space_left += 1;
     }
 
-    *space_right = letter_spacing - *space_left;
+    *space_right = extra_spacing - *space_left;
 }
 
 static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
@@ -785,6 +822,7 @@ BreakResult process_layout_run(LAYOUTINFO *layout,
     if (state->remaining_width < 0 && !no_break_at_end) {
         /* Wrapping off */
         insert_run (line, state, lrun, TRUE);
+        _WRN_PRINTF("BREAK_ALL_FIT due to state->remaining_width < 0");
         return BREAK_ALL_FIT;
     }
 
@@ -1081,13 +1119,13 @@ static void layout_line_reorder(LAYOUTLINE *line)
     struct list_head *i;
     BOOL all_even, all_odd;
     Uint8 level_or = 0, level_and = 1;
-    int length = 0;
+    int j = 0;
 
     GlyphRun** runs = NULL;
     GlyphRun* local_runs[LOCAL_ARRAY_SIZE];
 
-    if (length > LOCAL_ARRAY_SIZE) {
-        runs = malloc(sizeof(GlyphRun*) * length);
+    if (line->nr_runs > LOCAL_ARRAY_SIZE) {
+        runs = malloc(sizeof(GlyphRun*) * line->nr_runs);
     }
     else {
         runs = local_runs;
@@ -1101,11 +1139,11 @@ static void layout_line_reorder(LAYOUTLINE *line)
     list_for_each(i, &line->gruns) {
         GlyphRun *grun = (GlyphRun*)i;
 
-        runs[length] = grun;
+        runs[j] = grun;
 
         level_or |= grun->lrun->el;
         level_and &= grun->lrun->el;
-        length++;
+        j++;
     }
 
     /* If none of the levels had the LSB set, all numbers were even. */
@@ -1115,15 +1153,15 @@ static void layout_line_reorder(LAYOUTLINE *line)
     all_odd = (level_and & 0x1) == 1;
 
     if (!all_even && !all_odd) {
-        reorder_runs_recurse(&line->gruns, runs, length);
+        reorder_runs_recurse(&line->gruns, runs, line->nr_runs);
     }
     else if (all_odd) {
-        reverse_runs(&line->gruns, runs, length);
+        reverse_runs(&line->gruns, runs, line->nr_runs);
     }
 
-#if 0 /* test code for list_reverse and reverse_runs */
     print_line_runs(line, __FUNCTION__);
 
+#if 0 /* test code for list_reverse and reverse_runs */
     list_reverse(&line->gruns);
     print_line_runs(line, "list_reverse");
 
@@ -1560,13 +1598,7 @@ static void layout_line_postprocess (LAYOUTLINE *line,
     if (state->line_width >= 0 &&
             should_ellipsize_current_line (line->layout, state)) {
         ellipsized = __mg_layout_line_ellipsize(line, state->line_width);
-
     }
-
-#if 0
-    _DBG_PRINTF("%s: ellipsized: %s\n",
-            __FUNCTION__, ellipsized ? "TRUE" : "FALSE");
-#endif
 
     /* Now convert logical to visual order
      */
@@ -1574,6 +1606,7 @@ static void layout_line_postprocess (LAYOUTLINE *line,
 
     /* Fixup letter spacing between runs */
     adjust_line_letter_spacing (line, state);
+    _WRN_PRINTF("adjust_line_letter_spacing called");
 
     /*
      * Distribute extra space between words if justifying and line was wrapped
@@ -1714,6 +1747,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 
 done:
     layout_line_postprocess(line, state, wrapped);
+    _WRN_PRINTF("layout_line_postprocess called");
     state->line_start_index += line->len;
     return line;
 }
@@ -2108,6 +2142,7 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     state.remaining_width = max_extent;
 
     next_line = check_next_line(layout, &state);
+    _WRN_PRINTF("check_next_line called");
 
     if (state.glyphs) {
         __mg_glyph_string_free(state.glyphs);
@@ -2122,6 +2157,8 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         next_line->width = calc_line_width(next_line);
         next_line->height = calc_line_height(next_line);
 
+        _WRN_PRINTF("calc_line_height called");
+
         if (layout->nr_lines == 0)
             next_line->is_paragraph_start = 1;
         else
@@ -2129,6 +2166,7 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
 
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
+            _WRN_PRINTF("list_add_tail called");
         }
         else {
             // list->next == NULL for not persisted.
@@ -2155,6 +2193,7 @@ out:
         traverse_line_glyphs(layout, next_line, cb_laid_out, ctxt);
     }
 
+    _WRN_PRINTF("new line retruned");
     return next_line;
 }
 

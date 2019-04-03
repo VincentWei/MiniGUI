@@ -127,6 +127,14 @@ static inline BOOL is_uchar_no_shaping(Uchar32 uc)
     return FALSE;
 }
 
+static inline BOOL is_uchar_word_separator(Uchar32 uc)
+{
+    return (uc == 0x0020 || uc == 0x00A0 ||
+        uc == 0x1361 ||
+        uc == 0x10100 || uc == 0x10101 ||
+        uc == 0x1039F || uc == 0x1091F);
+}
+
 BOOL _unicode_is_emoji(Uchar32 ch);
 BOOL _unicode_is_emoji_presentation(Uchar32 ch);
 BOOL _unicode_is_emoji_modifier(Uchar32 ch);
