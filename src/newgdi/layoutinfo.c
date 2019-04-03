@@ -1836,6 +1836,23 @@ static Uint32 get_line_alignment(const LAYOUTINFO *layout,
 }
 #endif
 
+static inline int line_dir_to_factor(LineDirection d)
+{
+    switch (d) {
+    case LINE_DIRECTION_LTR:
+    case LINE_DIRECTION_WEAK_LTR:
+        return 1;
+    case LINE_DIRECTION_RTL:
+    case LINE_DIRECTION_WEAK_RTL:
+        return -1;
+    case LINE_DIRECTION_NEUTRAL:
+    default:
+        return 1;
+    }
+
+    return 1;
+}
+
 int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
         const LAYOUTLINE *line)
 {
@@ -1864,23 +1881,14 @@ int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
     }
 
     /* Indentation */
+
     if ((layout->rf & GRF_INDENT_MASK) == GRF_INDENT_FIRST_LINE &&
             line->is_paragraph_start) {
-        if (alignment == GRF_ALIGN_LEFT)
-            x_offset += layout->indent;
-        else if (alignment == GRF_ALIGN_RIGHT)
-            x_offset -= layout->indent;
-        else
-            x_offset -= layout->indent / 2;
+        x_offset += layout->indent;
     }
     else if ((layout->rf & GRF_INDENT_MASK) == GRF_INDENT_HANGING &&
             !line->is_paragraph_start) {
-        if (alignment == GRF_ALIGN_LEFT)
-            x_offset += layout->indent;
-        else if (alignment == GRF_ALIGN_RIGHT)
-            x_offset -= layout->indent;
-        else
-            x_offset -= layout->indent / 2;
+        x_offset += layout->indent;
     }
 
 done:
@@ -1925,6 +1933,9 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
         break;
     }
 
+    /* FIXME: for upside down and sideways left, the indentation
+     * should apply to the opposite edge
+     */
     line_offset = __mg_layout_get_line_offset(layout, line);
 
     list_for_each(i, &line->gruns) {
@@ -2189,19 +2200,70 @@ out:
     return next_line;
 }
 
-BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
+BOOL GUIAPI GetLayoutLineSize(const LAYOUTLINE* line,
         SIZE* line_size)
 {
-    if (line == NULL)
+    if (line == NULL || line->width < 0 || line->height < 0)
         return FALSE;
 
-    if (line->width >= 0 && line->height >= 0) {
-        line_size->cx = line->width;
-        line_size->cy = line->height;
-    }
-    else {
-        line->width = line_size->cx = calc_line_width(line);
-        line->height = line_size->cy = calc_line_height(line);
+    line_size->cx = line->width;
+    line_size->cy = line->height;
+
+    return TRUE;
+}
+
+BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
+        int* x, int* y, int line_height, RECT* line_rc)
+{
+    const LAYOUTINFO* layout;
+    int line_offset;
+
+    if (line == NULL || line->width < 0 || line->height < 0)
+        return FALSE;
+
+    layout = line->layout;
+    line_offset = __mg_layout_get_line_offset(layout, line);
+
+    if (line_height < line->height)
+        line_height = line->height;
+
+    switch (layout->rf & GRF_WRITING_MODE_MASK) {
+    case GRF_WRITING_MODE_HORIZONTAL_BT:
+        line_rc->left = *x + line_offset;
+        line_rc->bottom = *y;
+        line_rc->right = line_rc->left + line->width;
+        line_rc->top = line_rc->bottom - line->height;
+
+        *y -= line_height;
+        break;
+
+    case GRF_WRITING_MODE_VERTICAL_LR:
+        line_rc->left = *x;
+        line_rc->top = *y + line_offset;
+        line_rc->right = line_rc->left + line->height;
+        line_rc->bottom = line_rc->top + line->width;
+
+        *x += line_height;
+        break;
+
+    case GRF_WRITING_MODE_VERTICAL_RL:
+        line_rc->right = *x;
+        line_rc->top = *y + line_offset;
+        line_rc->left = line_rc->right - line->height;
+        line_rc->bottom = line_rc->top + line->width;
+
+        *x -= line_height;
+        break;
+
+    case GRF_WRITING_MODE_HORIZONTAL_TB:
+    default:
+        line_rc->left = *x + line_offset;
+        line_rc->top = *y;
+        line_rc->right = line_rc->left + line->width;
+        line_rc->bottom = line_rc->top + line->height;
+
+        *y += line_height;
+        break;
     }
 
     return TRUE;
@@ -2215,7 +2277,7 @@ int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
     int remaining_height = max_height;
     LAYOUTLINE* line = NULL;
     BOOL last_line = FALSE;
-    SIZE line_size;
+    RECT line_rc;
 
     if (line_height <= 0) {
         // determine the default line height
@@ -2238,7 +2300,7 @@ int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
     do {
         if (max_height > 0) {
             remaining_height -= line_height;
-            if (remaining_height <= 0)
+            if ((remaining_height - line_height) < 0)
                 last_line = TRUE;
         }
 
@@ -2249,19 +2311,11 @@ int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
             break;
         }
 
-        GetLayoutLineSize(line, &line_size);
-        if (line_size.cy > line_height)
-            line_height = line_size.cy;
+        GetLayoutLineRect(line, &x, &y, line_height, &line_rc);
+        GetBoundRect(bounding, bounding, &line_rc);
 
-        bounding->bottom += line_height;
-        if (line_size.cx > bounding->right)
-            bounding->right = line_size.cx;
         nr_lines++;
-
     } while (1);
-
-    // TODO: transform the bouding rectangle according to the writing mode
-    OffsetRect(bounding, x, y);
 
     return nr_lines;
 }

@@ -12997,8 +12997,8 @@ MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
 
 /**
- * \fn BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
-        SIZE* line_size)
+ * \fn BOOL GUIAPI GetLayoutLineSize(const LAYOUTLINE* line,
+ *      SIZE* line_size)
  * \brief Get the size of a layout line.
  *
  * This function gets the size of the specific layout line object \a line.
@@ -13012,8 +13012,42 @@ MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
+MG_EXPORT BOOL GUIAPI GetLayoutLineSize(const LAYOUTLINE* line,
         SIZE* line_size);
+
+/**
+ * \fn BOOL GUIAPI GetLayoutLineRect(LAYOUTLINE* line,
+ *      int* x, int* y, int line_height, RECT* line_rc)
+ * \brief Get the bouding rectangle of a layout line.
+ *
+ * This function gets the bouding rectangle of the specific
+ * layout line object \a line.
+ *
+ * \param line The layout line object.
+ * \param x The buffer contained the initial x-position of the line,
+ *      and returns the x-position of the next line.
+ * \param x The buffer contained the initial y-position of the line,
+ *      and returns the y-position of the next line.
+ * \param line_height The line height.
+ * \param line_rc The buffer to store the result.
+ *
+ * \return TRUE for success, FALSE otherwise.
+ *
+ * \note The position coordinates of the line are
+ *      with respect to the top-left corner of the output rectangle
+ *      if the writing mode is GRF_WRITING_MODE_HORIZONTAL_TB or
+ *      GRF_WRITING_MODE_VERTICAL_LR, the bottom-left corner if
+ *      the writing mode is GRF_WRITING_MODE_HORIZONTAL_BT,
+ *      the top-right corner if the writing mode is
+ *      GRF_WRITING_MODE_VERTICAL_RL.
+ *
+ * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine,
+ *  GetLayoutLineSize
+ *
+ * Since 3.4.0
+ */
+MG_EXPORT BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
+        int* x, int* y, int line_height, RECT* line_rc);
 
 /**
  * \fn int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
@@ -13046,6 +13080,7 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineSize(LAYOUTLINE* line,
  *      GRF_WRITING_MODE_VERTICAL_RL.
  *
  * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ *  GetLayoutLineRect
  *
  * Since 3.4.0
  */
