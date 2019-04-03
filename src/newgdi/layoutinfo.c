@@ -2312,7 +2312,12 @@ int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
         }
 
         GetLayoutLineRect(line, &x, &y, line_height, &line_rc);
-        GetBoundRect(bounding, bounding, &line_rc);
+        if (IsRectEmpty(bounding)) {
+            CopyRect(bounding, &line_rc);
+        }
+        else {
+            GetBoundRect(bounding, bounding, &line_rc);
+        }
 
         nr_lines++;
     } while (1);
