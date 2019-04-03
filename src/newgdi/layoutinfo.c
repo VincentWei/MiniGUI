@@ -822,7 +822,6 @@ BreakResult process_layout_run(LAYOUTINFO *layout,
     if (state->remaining_width < 0 && !no_break_at_end) {
         /* Wrapping off */
         insert_run (line, state, lrun, TRUE);
-        _WRN_PRINTF("BREAK_ALL_FIT due to state->remaining_width < 0");
         return BREAK_ALL_FIT;
     }
 
@@ -1606,7 +1605,6 @@ static void layout_line_postprocess (LAYOUTLINE *line,
 
     /* Fixup letter spacing between runs */
     adjust_line_letter_spacing (line, state);
-    _WRN_PRINTF("adjust_line_letter_spacing called");
 
     /*
      * Distribute extra space between words if justifying and line was wrapped
@@ -1747,7 +1745,6 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 
 done:
     layout_line_postprocess(line, state, wrapped);
-    _WRN_PRINTF("layout_line_postprocess called");
     state->line_start_index += line->len;
     return line;
 }
@@ -2142,7 +2139,6 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     state.remaining_width = max_extent;
 
     next_line = check_next_line(layout, &state);
-    _WRN_PRINTF("check_next_line called");
 
     if (state.glyphs) {
         __mg_glyph_string_free(state.glyphs);
@@ -2157,8 +2153,6 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         next_line->width = calc_line_width(next_line);
         next_line->height = calc_line_height(next_line);
 
-        _WRN_PRINTF("calc_line_height called");
-
         if (layout->nr_lines == 0)
             next_line->is_paragraph_start = 1;
         else
@@ -2166,7 +2160,6 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
 
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
-            _WRN_PRINTF("list_add_tail called");
         }
         else {
             // list->next == NULL for not persisted.
@@ -2193,7 +2186,6 @@ out:
         traverse_line_glyphs(layout, next_line, cb_laid_out, ctxt);
     }
 
-    _WRN_PRINTF("new line retruned");
     return next_line;
 }
 
