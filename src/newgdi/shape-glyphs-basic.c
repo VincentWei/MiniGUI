@@ -109,7 +109,8 @@ static BOOL shape_layout_run(SEInstance* inst,
     // UBidiGetParagraphEmbeddingLevels
     memset(els, run->el, nr_ucs);
 
-    if (run->st == SCRIPT_ARABIC) {
+    if (run->st == SCRIPT_ARABIC &&
+            !(run->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE)) {
 
         if (nr_ucs < LOCAL_ARRAY_SIZE)
             bidi_ts = local_bidi_ts;

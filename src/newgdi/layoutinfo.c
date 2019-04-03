@@ -146,6 +146,8 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
         if (!check_logfont_rotatable(layout->lf_upright)) {
             layout->grv_base = GLYPH_GRAVITY_SOUTH;
             layout->grv_plc = GLYPH_GRAVITY_POLICY_STRONG;
+            layout->rf &= ~GRF_TEXT_ORIENTATION_MASK;
+            layout->rf |= GRF_TEXT_ORIENTATION_UPRIGHT;
         }
         else {
             switch (render_flags & GRF_TEXT_ORIENTATION_MASK) {
