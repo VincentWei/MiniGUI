@@ -111,7 +111,7 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
 
 int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
 {
-    int n, line_adv = 0;
+    int n, line_offset, line_adv = 0;
     struct list_head* i;
     const TEXTRUNSINFO* truninfo;
     const LAYOUTINFO* layout;
@@ -147,6 +147,8 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
         break;
     }
 
+    line_offset = __mg_layout_get_line_offset(layout, line);
+
     old_lf = GetCurFont(hdc);
     list_for_each(i, &line->gruns) {
         GlyphRun* run = (GlyphRun*)i;
@@ -175,11 +177,13 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
             }
 
             if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
-                log_y = line_adv;
                 log_x = 0;
+                log_y = line_adv;
+                log_y += line_offset;
             }
             else {
                 log_x = line_adv;
+                log_x += line_offset;
                 log_y = 0;
             }
 

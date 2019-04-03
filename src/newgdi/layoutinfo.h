@@ -214,6 +214,9 @@ int __mg_shape_layout_run(const TEXTRUNSINFO* info, const LayoutRun* run,
 void __mg_reverse_shaped_glyphs(ShapedGlyph* glyphs, int len);
 void __mg_reverse_log_clusters(int* clusters, int len);
 
+int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
+        const LAYOUTLINE *line);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

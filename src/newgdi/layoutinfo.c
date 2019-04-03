@@ -219,8 +219,6 @@ struct _LayoutState {
     /* maintained per paragraph */
     // Current resolved base direction
     ParagraphDir base_dir;
-    // Line of the paragraph, starting at 1 for first line
-    int line_of_par;
     // Glyphs for the current glyph run
     GlyphString* glyphs;
     // Logical widths for the current text run */
@@ -462,6 +460,8 @@ static void shape_space(const LAYOUTINFO* layout, const LayoutRun* lrun,
             gstr->glyphs[i].width = 0;
         }
 
+        gstr->glyphs[i].height = lrun->lf->size;
+
         gstr->glyphs[i].is_cluster_start = 1;
         gstr->log_clusters[i] = i;
 
@@ -606,7 +606,7 @@ static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
         _DBG_PRINTF("   LENGHT:         %d\n", run->lrun->len);
         _DBG_PRINTF("   EMBEDDING LEVEL:%d\n", run->lrun->el);
         _DBG_PRINTF("   NO SHAPING     :%s\n",
-            (run->lrun->noshape) ? "YES" : "NO");
+            (run->lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) ? "YES" : "NO");
         _DBG_PRINTF("   NR GLYPHS:      %d\n", run->gstr->nr_glyphs);
         j++;
     }
@@ -669,8 +669,6 @@ static void uninsert_run(LAYOUTLINE *line)
     line->len -= grun->lrun->len;
     line->nr_runs--;
     free_glyph_run(grun);
-
-    print_line_runs(line, __FUNCTION__);
 }
 
 static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
@@ -696,8 +694,6 @@ static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
     line->len += layout_run->len;
     line->nr_runs++;
 
-    print_line_runs(line, __FUNCTION__);
-
     return glyph_run;
 }
 
@@ -709,12 +705,14 @@ static inline BOOL can_break_at (LAYOUTINFO *layout,
     if (offset == layout->truninfo->nr_ucs)
         return TRUE;
 
-    if (wrap == GRF_OVERFLOW_WRAP_NORMAL)
-        wrap = always_wrap_char ? GRF_OVERFLOW_WRAP_ANYWHERE :
-                GRF_OVERFLOW_WRAP_BREAK_WORD;
+    if (always_wrap_char)
+        wrap = GRF_OVERFLOW_WRAP_ANYWHERE;
 
+    if (wrap == GRF_OVERFLOW_WRAP_NORMAL)
+        return (layout->bos[offset] & BOV_LB_MASK) == BOV_LB_ALLOWED;
     else if (wrap == GRF_OVERFLOW_WRAP_BREAK_WORD)
-        return layout->bos[offset] & BOV_LB_BREAK_FLAG;
+        return (offset > 0 &&
+            (layout->bos[offset - 1] & BOV_WB_WORD_BOUNDARY));
     else if (wrap == GRF_OVERFLOW_WRAP_ANYWHERE)
         return layout->bos[offset] & BOV_GB_CHAR_BREAK;
     else {
@@ -725,11 +723,12 @@ static inline BOOL can_break_at (LAYOUTINFO *layout,
 }
 
 static inline BOOL can_break_in (LAYOUTINFO *layout,
-        int  start_offset, int  num_chars, BOOL allow_break_at_start)
+        int start_offset, int num_chars, BOOL allow_break_at_start)
 {
     int i;
 
-    for (i = allow_break_at_start ? 0 : 1; i < num_chars; i++)
+    // VincentWei: we must ignore allow_break_at_start here.
+    for (i = /* allow_break_at_start ? 0 : */0; i < num_chars; i++)
         if (can_break_at (layout, start_offset + i, FALSE))
             return TRUE;
 
@@ -804,7 +803,6 @@ BreakResult process_layout_run(LAYOUTINFO *layout,
         state->remaining_width -= width;
         state->remaining_width = MAX (state->remaining_width, 0);
         insert_run (line, state, lrun, TRUE);
-
         return BREAK_ALL_FIT;
     }
     else {
@@ -858,7 +856,7 @@ retry_break:
                                              break_num_chars - 1];
         }
 
-        if ((layout->rf & GRF_OVERFLOW_WRAP_MASK) == GRF_OVERFLOW_WRAP_NORMAL
+        if ((layout->rf & GRF_OVERFLOW_WRAP_MASK) == GRF_OVERFLOW_WRAP_ANYWHERE
                 && force_fit
                 && break_width > state->remaining_width
                 && !retrying_with_char_breaks) {
@@ -904,6 +902,8 @@ retry_break:
 
                 /* Shaped lruns should never be broken */
                 assert (!shape_set);
+
+                print_line_runs(line, __FUNCTION__);
 
                 return BREAK_SOME_FIT;
             }
@@ -1121,9 +1121,9 @@ static void layout_line_reorder(LAYOUTLINE *line)
         reverse_runs(&line->gruns, runs, length);
     }
 
+#if 0 /* test code for list_reverse and reverse_runs */
     print_line_runs(line, __FUNCTION__);
 
-#if 0 /* test code for list_reverse and reverse_runs */
     list_reverse(&line->gruns);
     print_line_runs(line, "list_reverse");
 
@@ -1563,8 +1563,10 @@ static void layout_line_postprocess (LAYOUTLINE *line,
 
     }
 
+#if 0
     _DBG_PRINTF("%s: ellipsized: %s\n",
             __FUNCTION__, ellipsized ? "TRUE" : "FALSE");
+#endif
 
     /* Now convert logical to visual order
      */
@@ -1602,7 +1604,6 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 
     line = layout_line_new (layout);
     line->si = state->line_start_index;
-    line->is_paragraph_start = state->line_of_par == 1;
     line_set_resolved_dir(line, state->base_dir);
 
     line->width = -1;
@@ -1640,7 +1641,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
                 have_break = TRUE;
                 break_remaining_width = old_remaining_width;
                 break_start_offset = state->start_offset;
-                break_link = line->gruns.next;
+                break_link = line->gruns.prev;
             }
 
             state->trun = (const TextRun*)state->trun->list.next;
@@ -1659,6 +1660,8 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
         case BREAK_SOME_FIT:
             state->start_offset += old_num_chars - state->lrun->len;
             wrapped = TRUE;
+
+            print_line_runs(line, __FUNCTION__);
             goto done;
 
         case BREAK_NONE_FIT:
@@ -1666,12 +1669,14 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 
             /* Back up over unused runs to run where there is a break */
             while (!list_empty(&line->gruns) &&
-                    line->gruns.next != break_link) {
+                    line->gruns.prev != break_link) {
                 uninsert_run(line);
             }
 
             state->start_offset = break_start_offset;
             state->remaining_width = break_remaining_width;
+
+            print_line_runs(line, __FUNCTION__);
 
             /* determine start text run again */
             state->trun = __mg_text_run_get_by_offset_const(layout->truninfo,
@@ -1709,9 +1714,146 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
 
 done:
     layout_line_postprocess(line, state, wrapped);
-    state->line_of_par++;
     state->line_start_index += line->len;
     return line;
+}
+
+#if 0
+static inline int paragraph_dir_to_simple(ParagraphDir d)
+{
+    switch (d) {
+    default:
+    case BIDI_PGDIR_LTR:
+    case BIDI_PGDIR_WLTR:
+        return 1;
+    case BIDI_PGDIR_RTL:
+    case BIDI_PGDIR_WRTL:
+        return -1;
+    case BIDI_PGDIR_ON:
+    default:
+        return 0;
+    }
+
+    return 0;
+}
+
+static inline int line_dir_to_simple(LineDirection d)
+{
+    switch (d) {
+    default:
+    case LINE_DIRECTION_LTR:
+    case LINE_DIRECTION_WEAK_LTR:
+        return 1;
+    case LINE_DIRECTION_RTL:
+    case LINE_DIRECTION_WEAK_RTL:
+        return -1;
+    case LINE_DIRECTION_NEUTRAL:
+    default:
+        return 0;
+    }
+
+    return 0;
+}
+
+/* call this when layout has auto_dir property */
+static Uint32 get_line_alignment(const LAYOUTINFO *layout,
+    const LAYOUTLINE *line)
+{
+    Uint32 alignment = layout->rf & GRF_ALIGN_MASK;
+
+    if (alignment != GRF_ALIGN_CENTER && layout->auto_dir &&
+            line_dir_to_simple (line->resolved_dir) ==
+            -paragraph_dir_to_simple (layout->trunsinfo->base_dir)) {
+        if (alignment == GRF_ALIGN_LEFT)
+            alignment = GRF_ALIGN_RIGHT;
+        else if (alignment == GRF_ALIGN_RIGHT)
+            alignment = GRF_ALIGN_LEFT;
+    }
+
+    return alignment;
+}
+
+#else
+
+static Uint32 get_line_alignment(const LAYOUTINFO *layout,
+    const LAYOUTLINE *line)
+{
+    Uint32 alignment = layout->rf & GRF_ALIGN_MASK;
+
+    switch (alignment) {
+    case GRF_ALIGN_START:
+        if ((layout->rf & GRF_TEXT_ORIENTATION_MASK) ==
+                GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT)
+            alignment = GRF_ALIGN_RIGHT;
+        else
+            alignment = GRF_ALIGN_LEFT;
+        break;
+
+    case GRF_ALIGN_END:
+        if ((layout->rf & GRF_TEXT_ORIENTATION_MASK) ==
+                GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT)
+            alignment = GRF_ALIGN_LEFT;
+        else
+            alignment = GRF_ALIGN_RIGHT;
+        break;
+
+    default:
+        break;
+    }
+
+    return alignment;
+}
+#endif
+
+int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
+        const LAYOUTLINE *line)
+{
+    int x_offset;
+    int layout_width;
+    Uint32 alignment = get_line_alignment(layout, line);
+
+    x_offset = 0;
+    if (alignment == GRF_ALIGN_JUSTIFY)
+        goto done;
+
+    layout_width = line->max_extent;
+    if (layout_width < 0)
+        goto done;
+
+    /* Alignment */
+    if (alignment == GRF_ALIGN_RIGHT) {
+        x_offset = layout_width - line->width;
+    }
+    else if (alignment == GRF_ALIGN_CENTER) {
+        x_offset = (layout_width - line->width) / 2;
+        /* hinting */
+        if ((layout_width | line->width) & 1) {
+            x_offset += 1;
+        }
+    }
+
+    /* Indentation */
+    if ((layout->rf & GRF_INDENT_MASK) == GRF_INDENT_FIRST_LINE &&
+            line->is_paragraph_start) {
+        if (alignment == GRF_ALIGN_LEFT)
+            x_offset += layout->indent;
+        else if (alignment == GRF_ALIGN_RIGHT)
+            x_offset -= layout->indent;
+        else
+            x_offset -= layout->indent / 2;
+    }
+    else if ((layout->rf & GRF_INDENT_MASK) == GRF_INDENT_HANGING &&
+            !line->is_paragraph_start) {
+        if (alignment == GRF_ALIGN_LEFT)
+            x_offset += layout->indent;
+        else if (alignment == GRF_ALIGN_RIGHT)
+            x_offset -= layout->indent;
+        else
+            x_offset -= layout->indent / 2;
+    }
+
+done:
+    return x_offset;
 }
 
 static int traverse_line_glyphs(const LAYOUTINFO* layout,
@@ -1723,6 +1865,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     int line_adv = 0;
     RENDERDATA extra;
     Uint32 def_ta, up_ta;
+    int line_offset;
 
     extra.truninfo  = layout->truninfo;
     extra.layout    = layout;
@@ -1751,6 +1894,8 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
         break;
     }
 
+    line_offset = __mg_layout_get_line_offset(layout, line);
+
     list_for_each(i, &line->gruns) {
         GlyphRun* run = (GlyphRun*)i;
         for (j = 0; j < run->gstr->nr_glyphs; j++) {
@@ -1770,12 +1915,13 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             gi = run->gstr->glyphs + j;
 
             if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
-                pos.y = line_adv;
                 pos.x = 0;
-
+                pos.y = line_adv;
+                pos.y += line_offset;
             }
             else {
                 pos.x = line_adv;
+                pos.x += line_offset;
                 pos.y = 0;
             }
 
@@ -1847,9 +1993,11 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
                 }
             }
 
+#if 0
             _DBG_PRINTF("%s: uc: %c, width: %d, pos (%d, %d), off (%d, %d)\n",
                     __FUNCTION__, extra.uc, gi->width,
                     pos.x, pos.y, pos.x_off, pos.y_off);
+#endif
 
             if (!cb_laid_out(ctxt, gi->gv, &pos, &extra))
                 return j;
@@ -1902,7 +2050,6 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     //state.shape_logical_rect;
 
     state.base_dir = layout->truninfo->base_dir;
-    state.line_of_par = 1;
     state.glyphs = NULL;
     state.log_widths = NULL;
     state.log_widths_offset = 0;
@@ -1926,9 +2073,11 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         state.trun = __mg_text_run_get_by_offset_const(layout->truninfo,
                 state.line_start_index, &state.start_index_in_trun);
 
+#if 0
         _DBG_PRINTF("%s: line_start_index: %d, start_index_in_trun: %d(%p)\n",
             __FUNCTION__, state.line_start_index, state.start_index_in_trun,
             state.trun);
+#endif
 
         if (state.trun == NULL) {
             next_line = NULL;
@@ -1972,6 +2121,11 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         next_line->is_last_line = last_line;
         next_line->width = calc_line_width(next_line);
         next_line->height = calc_line_height(next_line);
+
+        if (layout->nr_lines == 0)
+            next_line->is_paragraph_start = 1;
+        else
+            next_line->is_paragraph_start = 0;
 
         if (layout->persist) {
             list_add_tail(&next_line->list, &layout->lines);
