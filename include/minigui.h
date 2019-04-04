@@ -3566,7 +3566,7 @@ MG_EXPORT char * strtrimall (char* src);
      *
      * // Now free all of the blocks.
      * for (i = 0; i < 10000; i++)
-     *   mg_slice_free1 (50, mem[i]);
+     *   mg_slice_free (50, mem[i]);
      * \endcode
      *
      * And here is an example for using the slice allocator
@@ -3587,7 +3587,7 @@ MG_EXPORT char * strtrimall (char* src);
      * array->elt_size        = elt_size;
      *
      * // We can free the block, so it can be reused.
-     * mg_slice_free (MyStruct, array);
+     * mg_slice_delete (MyStruct, array);
      * \endcode
      *
      * @{
@@ -3604,7 +3604,7 @@ MG_EXPORT char * strtrimall (char* src);
  * if a malloc() fallback implementation is used instead,
  * the alignment may be reduced in a libc dependent fashion.
  * Note that the underlying slice allocation mechanism can
- * be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
  * Returns: a pointer to the allocated memory block, which will be %NULL if and
@@ -3620,7 +3620,7 @@ MG_EXPORT void *mg_slice_alloc(size_t block_size);
  *
  * Allocates a block of memory via mg_slice_alloc() and initializes
  * the returned memory to 0. Note that the underlying slice allocation
- * mechanism can be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * mechanism can be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
  * Returns: a pointer to the allocated block, which will be %NULL if and only
@@ -3648,7 +3648,7 @@ MG_EXPORT void *mg_slice_alloc0(size_t block_size);
 MG_EXPORT void *mg_slice_copy(size_t block_size, const void *mem_block);
 
 /**
- * mg_slice_free1:
+ * mg_slice_free:
  * @block_size: the size of the block
  * @mem_block: a pointer to the block to free
  *
@@ -3657,14 +3657,14 @@ MG_EXPORT void *mg_slice_copy(size_t block_size, const void *mem_block);
  * The memory must have been allocated via mg_slice_alloc() or
  * mg_slice_alloc0() and the @block_size has to match the size
  * specified upon allocation. Note that the exact release behaviour
- * can be changed with the [`G_DEBUG=gc-friendly`][G_DEBUG] environment
- * variable, also see [`G_SLICE`][G_SLICE] for related debugging options.
+ * can be changed with the [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment
+ * variable, also see [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
  * If @mem_block is %NULL, this function does nothing.
  *
  * Since: 3.4.0
  */
-MG_EXPORT void mg_slice_free1(size_t block_size, void *mem_block);
+MG_EXPORT void mg_slice_free(size_t block_size, void *mem_block);
 
 /**
  * mg_slice_free_chain_with_offset:
@@ -3679,8 +3679,8 @@ MG_EXPORT void mg_slice_free1(size_t block_size, void *mem_block);
  * @next pointer (similar to #GSList). The offset of the @next
  * field in each block is passed as third argument.
  * Note that the exact release behaviour can be changed with the
- * [`G_DEBUG=gc-friendly`][G_DEBUG] environment variable, also see
- * [`G_SLICE`][G_SLICE] for related debugging options.
+ * [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment variable, also see
+ * [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
  * If @mem_chain is %NULL, this function does nothing.
  *
@@ -3699,7 +3699,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  * It calls mg_slice_alloc() with `sizeof (@type)` and casts the
  * returned pointer to a pointer of the given type, avoiding a type
  * cast in the source code. Note that the underlying slice allocation
- * mechanism can be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * mechanism can be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
  * This can never return %NULL as the minimum allocation size from
@@ -3723,7 +3723,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  * and casts the returned pointer to a pointer of the given type,
  * avoiding a type cast in the source code.
  * Note that the underlying slice allocation mechanism can
- * be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
  * This can never return %NULL as the minimum allocation size from
@@ -3739,9 +3739,9 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
 /* MemoryBlockType *
  *       mg_slice_dup            (MemoryBlockType,
  *                               MemoryBlockType *mem_block);
- *       mg_slice_free           (MemoryBlockType,
+ *       mg_slice_delete           (MemoryBlockType,
  *                               MemoryBlockType *mem_block);
- *       mg_slice_free_chain     (MemoryBlockType,
+ *       mg_slice_delete_chain     (MemoryBlockType,
  *                               MemoryBlockType *first_chain_block,
  *                               memory_block_next_field);
  * pseudo prototypes for the macro definitions following below.
@@ -3759,7 +3759,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  * and casts the returned pointer to a pointer of the given type,
  * avoiding a type cast in the source code.
  * Note that the underlying slice allocation mechanism can
- * be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
  * This can never return %NULL.
@@ -3774,31 +3774,31 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
     : ((void) ((type*) 0 == (mem)), (type*) 0))
 
 /**
- * mg_slice_free:
+ * mg_slice_delete:
  * @type: the type of the block to free, typically a structure name
  * @mem: a pointer to the block to free
  *
  * A convenience macro to free a block of memory that has
  * been allocated from the slice allocator.
  *
- * It calls mg_slice_free1() using `sizeof (type)`
+ * It calls mg_slice_free() using `sizeof (type)`
  * as the block size.
  * Note that the exact release behaviour can be changed with the
- * [`G_DEBUG=gc-friendly`][G_DEBUG] environment variable, also see
- * [`G_SLICE`][G_SLICE] for related debugging options.
+ * [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment variable, also see
+ * [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
  * If @mem is %NULL, this macro does nothing.
  *
  * Since: 3.4.0
  */
-#define mg_slice_free(type, mem)                            \
+#define mg_slice_delete(type, mem)                          \
     do {                                                    \
-        if (1) mg_slice_free1 (sizeof (type), (mem));       \
+        if (1) mg_slice_free (sizeof (type), (mem));        \
         else   (void) ((type*) 0 == (mem));                 \
-    } while(0);
+    } while(0)
 
 /**
- * mg_slice_free_chain:
+ * mg_slice_delete_chain:
  * @type: the type of the @mem_chain blocks
  * @mem_chain: a pointer to the first block of the chain
  * @next: the field name of the next pointer in @type
@@ -3809,19 +3809,19 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  * a @next pointer (similar to #GSList). The name of the
  * @next field in @type is passed as third argument.
  * Note that the exact release behaviour can be changed with the
- * [`G_DEBUG=gc-friendly`][G_DEBUG] environment variable, also see
- * [`G_SLICE`][G_SLICE] for related debugging options.
+ * [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment variable, also see
+ * [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
  * If @mem_chain is %NULL, this function does nothing.
  *
  * Since: 3.4.0
  */
-#define mg_slice_free_chain(type, mem_chain, next)              \
+#define mg_slice_delete_chain(type, mem_chain, next)            \
     do {                                                        \
         if (1) mg_slice_free_chain_with_offset (sizeof (type),  \
                 (mem_chain), G_STRUCT_OFFSET (type, next));     \
         else   (void) ((type*) 0 == (mem_chain));               \
-    } while(0);
+    } while(0)
 
 #ifdef _MGDEVEL_MODE
 MG_EXPORT void mg_slice_debug_tree_statistics(void);

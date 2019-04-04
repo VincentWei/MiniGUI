@@ -239,16 +239,27 @@ static inline int smc_notify_free (void *pointer, size_t size)
 }
 #endif
 
+static BOOL _mem_gc_friendly;
 static pthread_key_t private_thread_memory;
 
 BOOL mg_InitSliceAllocator(void)
 {
+    const char *val;
+
+    val = getenv ("MG_DEBUG");
+    if (val != NULL && strstr(val, "gc-friendly"))
+        _mem_gc_friendly = TRUE;
+
     return pthread_key_create(&private_thread_memory,
             private_thread_memory_cleanup) == 0;
 }
 
 void mg_TerminateSliceAllocator(void)
 {
+#ifdef _MGDEVEL_MODE
+    mg_slice_debug_tree_statistics();
+#endif
+    pthread_key_delete(private_thread_memory);
 }
 
 static size_t      sys_page_size = 0;
@@ -363,13 +374,12 @@ static inline void g_mutex_lock_a (pthread_mutex_t *mutex,
         unsigned int  *contention_counter)
 {
     BOOL contention = FALSE;
-    if (!pthread_mutex_trylock(mutex))
-    {
+    if (pthread_mutex_trylock(mutex) != 0) {
         pthread_mutex_lock (mutex);
         contention = TRUE;
     }
-    if (contention)
-    {
+
+    if (contention) {
         allocator->mutex_counter++;
         if (allocator->mutex_counter >= 1)        /* quickly adapt to contention */
         {
@@ -778,9 +788,9 @@ void *mg_slice_alloc (size_t mem_size)
     return mem;
 }
 
-void * mg_slice_alloc0 (size_t mem_size)
+void *mg_slice_alloc0 (size_t mem_size)
 {
-    void * mem = mg_slice_alloc (mem_size);
+    void *mem = mg_slice_alloc (mem_size);
     if (mem)
         memset (mem, 0, mem_size);
     return mem;
@@ -794,9 +804,7 @@ void *mg_slice_copy (size_t  mem_size, const void *mem_block)
     return mem;
 }
 
-BOOL __mg_mem_gc_friendly;
-
-void mg_slice_free1 (size_t mem_size, void *mem_block)
+void mg_slice_free (size_t mem_size, void *mem_block)
 {
     size_t chunk_size = P2ALIGN (mem_size);
     unsigned int acat = allocator_categorize (chunk_size);
@@ -815,13 +823,13 @@ void mg_slice_free1 (size_t mem_size, void *mem_block)
             if (MG_UNLIKELY (thread_memory_magazine2_is_full (tmem, ix)))
                 thread_memory_magazine2_unload (tmem, ix);
         }
-        if (MG_UNLIKELY (__mg_mem_gc_friendly))
+        if (MG_UNLIKELY (_mem_gc_friendly))
             memset (mem_block, 0, chunk_size);
         thread_memory_magazine2_free (tmem, ix, mem_block);
     }
     else if (acat == 2)                   /* allocate through slab allocator */
     {
-        if (MG_UNLIKELY (__mg_mem_gc_friendly))
+        if (MG_UNLIKELY (_mem_gc_friendly))
             memset (mem_block, 0, chunk_size);
         pthread_mutex_lock (&allocator->slab_mutex);
         slab_allocator_free_chunk (chunk_size, mem_block);
@@ -829,7 +837,7 @@ void mg_slice_free1 (size_t mem_size, void *mem_block)
     }
     else                                  /* delegate to system malloc */
     {
-        if (MG_UNLIKELY (__mg_mem_gc_friendly))
+        if (MG_UNLIKELY (_mem_gc_friendly))
             memset (mem_block, 0, mem_size);
         free (mem_block);
     }
@@ -876,7 +884,7 @@ void mg_slice_free_chain_with_offset (size_t mem_size,
                 if (MG_UNLIKELY (thread_memory_magazine2_is_full (tmem, ix)))
                     thread_memory_magazine2_unload (tmem, ix);
             }
-            if (MG_UNLIKELY (__mg_mem_gc_friendly))
+            if (MG_UNLIKELY (_mem_gc_friendly))
                 memset (current, 0, chunk_size);
             thread_memory_magazine2_free (tmem, ix, current);
         }
@@ -891,7 +899,7 @@ void mg_slice_free_chain_with_offset (size_t mem_size,
             if (MG_UNLIKELY (allocator->config.debug_blocks) &&
                     !smc_notify_free (current, mem_size))
                 abort();
-            if (MG_UNLIKELY (__mg_mem_gc_friendly))
+            if (MG_UNLIKELY (_mem_gc_friendly))
                 memset (current, 0, chunk_size);
             slab_allocator_free_chunk (chunk_size, current);
         }
@@ -905,7 +913,7 @@ void mg_slice_free_chain_with_offset (size_t mem_size,
             if (MG_UNLIKELY (allocator->config.debug_blocks) &&
                     !smc_notify_free (current, mem_size))
                 abort();
-            if (MG_UNLIKELY (__mg_mem_gc_friendly))
+            if (MG_UNLIKELY (_mem_gc_friendly))
                 memset (current, 0, mem_size);
             free (current);
         }
@@ -1373,7 +1381,7 @@ static BOOL smc_tree_remove (SmcKType key)
     return found_one;
 }
 
-void mmg_slice_debug_tree_statistics (void)
+void mg_slice_debug_tree_statistics (void)
 {
     pthread_mutex_lock (&smc_tree_mutex);
 
