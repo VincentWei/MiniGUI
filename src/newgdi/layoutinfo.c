@@ -1978,7 +1978,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             if (run->lrun->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
                 extra.ta = up_ta;
                 if (run->lrun->ort == GLYPH_ORIENT_UPSIDE_DOWN) {
-                    pos.y += run->gstr->glyphs[0].width;
+                    pos.y += run->gstr->glyphs[j].width;
                     if ((layout->rf & GRF_WRITING_MODE_MASK) ==
                             GRF_WRITING_MODE_VERTICAL_RL)
                         pos.x -= (line->height - gi->height) / 2;
@@ -2009,7 +2009,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
             }
 
             if (run->lrun->ort == GLYPH_ORIENT_SIDEWAYS_LEFT) {
-                pos.y += run->gstr->glyphs[0].width;
+                pos.y += run->gstr->glyphs[j].width;
                 if ((layout->rf & GRF_WRITING_MODE_MASK) ==
                         GRF_WRITING_MODE_VERTICAL_RL)
                     pos.x -= line->height;
