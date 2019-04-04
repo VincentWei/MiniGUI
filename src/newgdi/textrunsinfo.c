@@ -182,7 +182,7 @@ static void state_add_character(TextRunState *state,
         }
     }
 
-    state->run = malloc(sizeof(TextRun));
+    state->run = mg_slice_new(TextRun);
     state->run->fontname = NULL;
     state->run->si      = pos - state->text;
     state->run->len     = 1;
@@ -306,7 +306,7 @@ static BOOL create_text_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
         types_buff = local_types_buff;
     }
     else {
-        types_buff = malloc(sizeof(Uint8)* runinfo->nr_ucs);
+        types_buff = malloc(sizeof(Uint8) * runinfo->nr_ucs);
     }
 
     if (!types_buff)
@@ -458,7 +458,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
         return NULL;
     }
 
-    runinfo = (TEXTRUNSINFO*)calloc(1, sizeof(TEXTRUNSINFO));
+    runinfo = (TEXTRUNSINFO*)mg_slice_new0(TEXTRUNSINFO);
     if (runinfo == NULL) {
         return NULL;
     }
@@ -466,7 +466,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
     if (nr_ucs < LOCAL_ARRAY_SIZE)
         els = local_els;
     else
-        els = (BidiLevel*)malloc (nr_ucs * sizeof(BidiLevel));
+        els = (BidiLevel*)malloc(nr_ucs * sizeof(BidiLevel));
 
     if (!els) {
         _ERR_PRINTF("%s: failed to allocate space for embedding levels.\n",
@@ -533,7 +533,7 @@ out:
     if (ok)
         return runinfo;
 
-    free(runinfo);
+    mg_slice_delete(TEXTRUNSINFO, runinfo);
 
     return NULL;
 }
@@ -589,7 +589,7 @@ TextRun* __mg_text_run_copy(const TextRun *trun)
     if (trun == NULL)
         return NULL;
 
-    result = malloc(sizeof(TextRun));
+    result = mg_slice_new(TextRun);
     memcpy(result, trun, sizeof(TextRun));
 
     return result;
@@ -756,12 +756,12 @@ BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
         while (!list_empty(&runinfo->fg_colors.list)) {
             TextColorMap* entry = (TextColorMap*)runinfo->fg_colors.list.prev;
             list_del(runinfo->fg_colors.list.prev);
-            free(entry);
+            mg_slice_delete(TextColorMap, entry);
         }
         return TRUE;
     }
 
-    color_entry = calloc(1, sizeof(TextColorMap));
+    color_entry = mg_slice_new0(TextColorMap);
     if (color_entry == NULL) {
         goto error;
     }
@@ -817,12 +817,12 @@ BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* runinfo,
         while (!list_empty(&runinfo->bg_colors.list)) {
             TextColorMap* entry = (TextColorMap*)runinfo->bg_colors.list.prev;
             list_del(runinfo->bg_colors.list.prev);
-            free(entry);
+            mg_slice_delete(TextColorMap, entry);
         }
         return TRUE;
     }
 
-    color_entry = calloc(1, sizeof(TextColorMap));
+    color_entry = mg_slice_new0(TextColorMap);
     if (color_entry == NULL) {
         goto error;
     }
@@ -863,13 +863,13 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
     while (!list_empty(&runinfo->bg_colors.list)) {
         TextColorMap* entry = (TextColorMap*)runinfo->bg_colors.list.prev;
         list_del(runinfo->bg_colors.list.prev);
-        free(entry);
+        mg_slice_delete(TextColorMap, entry);
     }
 
     while (!list_empty(&runinfo->fg_colors.list)) {
         TextColorMap* entry = (TextColorMap*)runinfo->fg_colors.list.prev;
         list_del(runinfo->fg_colors.list.prev);
-        free(entry);
+        mg_slice_delete(TextColorMap, entry);
     }
 
     while (!list_empty(&runinfo->truns)) {
@@ -877,7 +877,7 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
         list_del(runinfo->truns.prev);
         if (run->fontname)
             free(run->fontname);
-        free(run);
+        mg_slice_delete(TextRun, run);
     }
 
     if (runinfo->sei.inst) {
@@ -885,7 +885,7 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
     }
 
     free(runinfo->fontname);
-    free(runinfo);
+    mg_slice_delete(TEXTRUNSINFO, runinfo);
     return TRUE;
 }
 

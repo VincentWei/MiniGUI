@@ -205,7 +205,7 @@ LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
     if (lf == NULL)
         return NULL;
 
-    lrun = malloc(sizeof(LayoutRun));
+    lrun = mg_slice_new(LayoutRun);
     lrun->lf = lf;
     lrun->ucs = ucs;
     lrun->si = trun->si;
@@ -232,7 +232,7 @@ LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
     if (lf == NULL)
         return NULL;
 
-    lrun = malloc(sizeof(LayoutRun));
+    lrun = mg_slice_new(LayoutRun);
     lrun->lf = lf;
     lrun->si = trun->si;
     lrun->ucs = layout->truninfo->ucs + lrun->si;
@@ -265,7 +265,7 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
     if (lf == NULL)
         return NULL;
 
-    lrun = malloc(sizeof(LayoutRun));
+    lrun = mg_slice_new(LayoutRun);
 
     lrun->lf = lf;
     lrun->si = trun->si + offset;
@@ -289,7 +289,7 @@ void __mg_layout_run_free(LayoutRun* lrun)
             ReleaseRes(font_res->key);
     }
 
-    free(lrun);
+    mg_slice_delete(LayoutRun, lrun);
 }
 
 LayoutRun* __mg_layout_run_copy(const LayoutRun* lrun)
@@ -299,7 +299,7 @@ LayoutRun* __mg_layout_run_copy(const LayoutRun* lrun)
     if (lrun == NULL)
         return NULL;
 
-    result = malloc(sizeof(LayoutRun));
+    result = mg_slice_new(LayoutRun);
     memcpy(result, lrun, sizeof(LayoutRun));
 
     // must increase the reference count of LOGFONT
@@ -332,7 +332,7 @@ LayoutRun* __mg_layout_run_split(LayoutRun *orig, int split_index)
 
 GlyphString* __mg_glyph_string_new (void)
 {
-    GlyphString *string = calloc(1, sizeof(GlyphString));
+    GlyphString *string = mg_slice_new0(GlyphString);
     return string;
 }
 
@@ -345,7 +345,8 @@ void __mg_glyph_string_free (GlyphString *string)
         free (string->glyphs);
     if (string->log_clusters)
         free (string->log_clusters);
-    free (string);
+
+    mg_slice_delete(GlyphString, string);
 }
 
 void __mg_glyph_string_set_size (GlyphString* string, int new_len)
@@ -413,7 +414,7 @@ void __mg_glyph_run_free(GlyphRun* run)
         __mg_glyph_string_free(run->gstr);
     }
 
-    free(run);
+    mg_slice_delete(GlyphRun, run);
 }
 
 #define LTR(glyph_run) (((glyph_run)->lrun->el & 1) == 0)
@@ -483,7 +484,7 @@ GlyphRun *__mg_glyph_run_split (GlyphRun *orig, int split_index)
 
     num_remaining = orig->gstr->nr_glyphs - nr_glyphs;
 
-    new_grun = malloc (sizeof(GlyphRun));
+    new_grun = mg_slice_new(GlyphRun);
     new_grun->lrun = __mg_layout_run_split(orig->lrun, split_index);
 
     new_grun->gstr = __mg_glyph_string_new ();

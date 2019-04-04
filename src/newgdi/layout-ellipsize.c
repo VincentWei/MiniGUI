@@ -320,7 +320,7 @@ static void shape_ellipsis (EllipsizeState *state)
     /* Create/reset state->ellipsis_grun
      */
     if (!state->ellipsis_grun) {
-        state->ellipsis_grun = malloc (sizeof(GlyphRun));
+        state->ellipsis_grun = mg_slice_new(GlyphRun);
         state->ellipsis_grun->gstr = __mg_glyph_string_new ();
         state->ellipsis_grun->lrun = NULL;
     }

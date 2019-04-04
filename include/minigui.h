@@ -3737,11 +3737,11 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
 #define mg_slice_new0(type)      ((type*)mg_slice_alloc0(sizeof (type)))
 
 /* MemoryBlockType *
- *       mg_slice_dup            (MemoryBlockType,
+ *       mg_slice_dup           (MemoryBlockType,
  *                               MemoryBlockType *mem_block);
- *       mg_slice_delete           (MemoryBlockType,
+ *       mg_slice_delete        (MemoryBlockType,
  *                               MemoryBlockType *mem_block);
- *       mg_slice_delete_chain     (MemoryBlockType,
+ *       mg_slice_delete_chain  (MemoryBlockType,
  *                               MemoryBlockType *first_chain_block,
  *                               memory_block_next_field);
  * pseudo prototypes for the macro definitions following below.

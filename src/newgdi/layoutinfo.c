@@ -116,7 +116,7 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
         return NULL;
     }
 
-    layout = (LAYOUTINFO*)calloc(1, sizeof(LAYOUTINFO));
+    layout = (LAYOUTINFO*)mg_slice_new0(LAYOUTINFO);
     if (layout == NULL) {
         return NULL;
     }
@@ -135,7 +135,7 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     layout->lf_upright  = __mg_create_logfont_for_layout(layout,
             NULL, GLYPH_ORIENT_UPRIGHT);
     if (layout->lf_upright == NULL) {
-        free(layout);
+        mg_slice_delete(LAYOUTINFO, layout);
         return NULL;
     }
 
@@ -204,7 +204,7 @@ static void release_line(LAYOUTLINE* line)
         free(line->log_widths);
     }
 
-    free(line);
+    mg_slice_delete(LAYOUTLINE, line);
 }
 
 BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout)
@@ -221,7 +221,7 @@ BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout)
         release_line(line);
     }
 
-    free(layout);
+    mg_slice_delete(LAYOUTINFO, layout);
     return TRUE;
 }
 
@@ -602,7 +602,7 @@ static void free_glyph_run (GlyphRun *grun)
     }
 
     __mg_glyph_string_free(grun->gstr);
-    free(grun);
+    mg_slice_delete(GlyphRun, grun);
 }
 
 #ifdef _DEBUG
@@ -711,7 +711,7 @@ static void uninsert_run(LAYOUTLINE *line)
 static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
         LayoutRun *layout_run, BOOL last_run)
 {
-    GlyphRun *glyph_run = malloc(sizeof(GlyphRun));
+    GlyphRun *glyph_run = mg_slice_new(GlyphRun);
 
     glyph_run->lrun = layout_run;
 
@@ -957,7 +957,7 @@ retry_break:
 
 static LAYOUTLINE *layout_line_new(LAYOUTINFO *layout)
 {
-    LAYOUTLINE *line = calloc (1, sizeof (LAYOUTLINE));
+    LAYOUTLINE *line = mg_slice_new0(LAYOUTLINE);
 
     line->layout = layout;
     INIT_LIST_HEAD(&line->gruns);
