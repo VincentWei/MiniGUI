@@ -214,7 +214,7 @@ typedef struct {
     unsigned int    color_accu;
 } Allocator;
 
-/* --- g-slice prototypes --- */
+/* --- mg-slice prototypes --- */
 static void *slab_allocator_alloc_chunk(size_t chunk_size);
 static void  slab_allocator_free_chunk(size_t chunk_size, void *mem);
 static void  private_thread_memory_cleanup(void *data);
@@ -223,7 +223,7 @@ static void  allocator_memfree(size_t memsize, void *mem);
 static inline void magazine_cache_update_stamp (void);
 static inline size_t allocator_get_magazine_threshold(Allocator *allocator, unsigned int ix);
 
-/* --- g-slice memory checker --- */
+/* --- mg-slice memory checker --- */
 #ifdef _MGDEVEL_MODE
 static void smc_notify_alloc(void *pointer, size_t size);
 static int  smc_notify_free(void *pointer, size_t size);
@@ -753,7 +753,7 @@ void *mg_slice_alloc (size_t mem_size)
     /* This gets the private structure for this thread.  If the private
      * structure does not yet exist, it is created.
      *
-     * This has a side effect of causing GSlice to be initialised, so it
+     * This has a side effect of causing MGSlice to be initialised, so it
      * must come first.
      */
     tmem = thread_memory_from_self ();
@@ -1191,7 +1191,7 @@ static void mem_error (const char *format, ...)
 }
 
 #ifdef _MGDEVEL_MODE
-/* --- g-slice memory checker tree --- */
+/* --- mg-slice memory checker tree --- */
 typedef size_t SmcKType;                /* key type */
 typedef size_t SmcVType;                /* value type */
 typedef struct {
@@ -1203,7 +1203,7 @@ static void smc_tree_insert (SmcKType key, SmcVType value);
 static BOOL smc_tree_lookup (SmcKType key, SmcVType *value_p);
 static BOOL smc_tree_remove (SmcKType key);
 
-/* --- g-slice memory checker implementation --- */
+/* --- mg-slice memory checker implementation --- */
 static void smc_notify_alloc (void *pointer, size_t size)
 {
     size_t address = (size_t) pointer;
@@ -1223,19 +1223,19 @@ static int smc_notify_free (void *pointer, size_t size)
     found_one = smc_tree_lookup (address, &real_size);
 
     if (!found_one) {
-        _ERR_PRINTF("GSlice: MemChecker: attempt to release non-allocated block: %p size=%lu\n",
+        _ERR_PRINTF("MGSlice: MemChecker: attempt to release non-allocated block: %p size=%lu\n",
                 pointer, size);
         return 0;
     }
 
     if (real_size != size && (real_size || size)) {
-        _ERR_PRINTF("GSlice: MemChecker: attempt to release block with invalid size: %p size=%lu invalid-size=%lu\n",
+        _ERR_PRINTF("MGSlice: MemChecker: attempt to release block with invalid size: %p size=%lu invalid-size=%lu\n",
                 pointer, real_size, size);
         return 0;
     }
 
     if (!smc_tree_remove (address)) {
-        _ERR_PRINTF("GSlice: MemChecker: attempt to release non-allocated block: %p size=%lu\n",
+        _ERR_PRINTF("MGSlice: MemChecker: attempt to release non-allocated block: %p size=%lu\n",
                 pointer, size);
         return 0;
     }
@@ -1243,7 +1243,7 @@ static int smc_notify_free (void *pointer, size_t size)
     return 1; /* all fine */
 }
 
-/* --- g-slice memory checker tree implementation --- */
+/* --- mg-slice memory checker tree implementation --- */
 #define SMC_TRUNK_COUNT     (4093 /* 16381 */)          /* prime, to distribute trunk collisions (big, allocated just once) */
 #define SMC_BRANCH_COUNT    (511)                       /* prime, to distribute branch collisions */
 #define SMC_TRUNK_EXTENT    (SMC_BRANCH_COUNT * 2039)   /* key address space per trunk, should distribute uniformly across BRANCH_COUNT */
@@ -1406,15 +1406,15 @@ void mg_slice_debug_tree_statistics (void)
         en = b ? en : 0;
         tf = MAX (t, 1.0); /* max(1) to be a valid divisor */
         bf = MAX (b, 1.0); /* max(1) to be a valid divisor */
-        _MG_PRINTF("GSlice: MemChecker: %u trunks, %u branches, %u old branches\n", t, b, o);
-        _MG_PRINTF("GSlice: MemChecker: %f branches per trunk, %.2f%% utilization\n",
+        _MG_PRINTF("MGSlice: MemChecker: %u trunks, %u branches, %u old branches\n", t, b, o);
+        _MG_PRINTF("MGSlice: MemChecker: %f branches per trunk, %.2f%% utilization\n",
                 b / tf,
                 100.0 - (SMC_BRANCH_COUNT - b / tf) / (0.01 * SMC_BRANCH_COUNT));
-        _MG_PRINTF("GSlice: MemChecker: %f entries per branch, %u minimum, %u maximum\n",
+        _MG_PRINTF("MGSlice: MemChecker: %f entries per branch, %u minimum, %u maximum\n",
                 su / bf, en, ex);
     }
     else
-        _MG_PRINTF("GSlice: MemChecker: root=NULL\n");
+        _MG_PRINTF("MGSlice: MemChecker: root=NULL\n");
 
     pthread_mutex_unlock (&smc_tree_mutex);
 
@@ -1435,9 +1435,9 @@ void mg_slice_debug_tree_statistics (void)
      * VmPTE:       456 kB
      * Threads:        3
      * (gdb) print mg_slice_debug_tree_statistics ()
-     * GSlice: MemChecker: 422 trunks, 213068 branches, 0 old branches
-     * GSlice: MemChecker: 504.900474 branches per trunk, 98.81% utilization
-     * GSlice: MemChecker: 4.965039 entries per branch, 1 minimum, 37 maximum
+     * MGSlice: MemChecker: 422 trunks, 213068 branches, 0 old branches
+     * MGSlice: MemChecker: 504.900474 branches per trunk, 98.81% utilization
+     * MGSlice: MemChecker: 4.965039 entries per branch, 1 minimum, 37 maximum
      */
 }
 
