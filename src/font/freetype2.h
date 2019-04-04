@@ -78,9 +78,8 @@ typedef struct tagFTFACEINFO {
     char*       filepathname;
     int         face_index;
     int         cmap_index;
-#else
-    FT_Face     face;
 #endif
+    FT_Face     face;
     BOOL        valid;
 } FTFACEINFO, *PFTFACEINFO;
 
@@ -90,9 +89,8 @@ typedef struct tagFTINSTANCEINFO {
     FTC_ImageTypeRec  image_type;
     FT_Int      glyph_done;
     HCACHE      cache;
-#else
-    FT_Size     size;
 #endif
+    FT_Size     size;
     FT_Matrix   matrix;
     FT_Glyph    glyph;
     int         rotation;

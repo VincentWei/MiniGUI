@@ -70,8 +70,10 @@ typedef struct _FT2_DATA {
     FTINSTANCEINFO* ft_inst_info;
 } FT2_DATA;
 
-#define FT_FACE_INFO_P(devfont) ((FTFACEINFO*)(((FT2_DATA*)(devfont->data))->ft_face_info));
-#define FT_INST_INFO_P(devfont) ((FTINSTANCEINFO*)(((FT2_DATA*)(devfont->data))->ft_inst_info));
+#define FT_FACE_INFO_P(devfont) \
+    ((FTFACEINFO*)(((FT2_DATA*)(devfont->data))->ft_face_info));
+#define FT_INST_INFO_P(devfont) \
+    ((FTINSTANCEINFO*)(((FT2_DATA*)(devfont->data))->ft_inst_info));
 
 static FT_Library       ft_library = NULL;
 
@@ -92,34 +94,6 @@ static FT_Library       ft_library = NULL;
 static FTC_Manager      ft_cache_manager = NULL;
 static FTC_CMapCache    ft_cmap_cache = NULL;
 static FTC_ImageCache   ft_image_cache = NULL;
-
-#if 0
-static FTC_SBitCache    ft_sbit_cache = NULL;
-#endif
-
-/* find cached face, by FTC_Manager_LookupSize.
- * The size setting is image_type,
- * when getting glyph by FTC_Manager_LookupSize*/
-static FT_Error
-get_cached_face (FTINSTANCEINFO* ft_inst_info,
-               FT_Face* face)
-{
-    FTC_ScalerRec   scaler;
-    FT_Size         size;
-    FT_Error        error;
-
-    scaler.face_id = (FTC_FaceID)(ft_inst_info->ft_face_info);
-    scaler.width   = 1;
-    scaler.height  = 1;
-    scaler.pixel   = 1;
-
-    error = FTC_Manager_LookupSize( ft_cache_manager, &scaler, &size );
-
-    if ( !error )
-        *face= size->face;
-
-    return error;
-}
 
 static FT_Error
 my_face_requester (FTC_FaceID  face_id,
@@ -309,18 +283,15 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
 
     FT_Error error;
     FT_Glyph ft_glyph_tmp;
+    FTFACEINFO* ft_face_info = ft_inst_info->ft_face_info;
 
-    if (get_cached_face (ft_inst_info, face)) {
-        _WRN_PRINTF ("FONT>FT2: can't access font file %p", face);
-        return 0;
-    }
+    *face = ft_face_info->face;
 
     ft_inst_info->cur_index = gv;
     if ((error = FTC_ImageCache_Lookup (ft_image_cache, &ft_inst_info->image_type,
                 ft_inst_info->cur_index, &ft_glyph_tmp, NULL))) {
         _WRN_PRINTF ("FONT>FT2: can't access image cache for index: 0x%X: %X",
             ft_inst_info->cur_index, error);
-        assert(0);
         return -1;
     }
 
@@ -787,21 +758,12 @@ static void get_kerning (LOGFONT* logfont, DEVFONT* devfont,
     prev = REAL_GLYPH(prev);
     curr = REAL_GLYPH(curr);
     if (ft_inst_info->use_kerning && curr && prev) {
-        FT_Face face;
 
-#ifndef _MGFONT_TTF_CACHE
         FTFACEINFO* ft_face_info = FT_FACE_INFO_P (devfont);
-        face = ft_face_info->face;
-#else
-        if (get_cached_face(ft_inst_info, &face)) {
-            goto error;
-        }
-#endif
         /* get kerning. */
-        FT_Get_Kerning(face, prev, curr, FT_KERNING_DEFAULT, &delta);
+        FT_Get_Kerning(ft_face_info->face, prev, curr, FT_KERNING_DEFAULT, &delta);
     }
 
-error:
     if (delta_x)
         *delta_x = delta.x >> 6;
 
@@ -862,16 +824,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
 
     FT_LOCK(&ft_lock);
 
-#ifdef _MGFONT_TTF_CACHE
-    if (FTC_Manager_LookupFace (ft_cache_manager,
-                  (FTC_FaceID)ft_face_info, &face)) {
-        /* can't access the font file. do not render anything */
-        _WRN_PRINTF ("can't access font file %p", ft_face_info);
-        goto out_lock;
-    }
-#else
     face = ft_face_info->face;
-#endif
 
     /* Create instance */
     if (FT_New_Size (face, &size))
@@ -1009,6 +962,8 @@ delete_instance (DEVFONT* devfont)
     }
 
     FT_UNLOCK(&ft_lock);
+#else
+    FT_Done_Size (ft_inst_info->size);
 #endif /* _MGFONT_TTF_CACHE */
 
     free (ft_inst_info);
@@ -1018,7 +973,6 @@ delete_instance (DEVFONT* devfont)
 
 static Glyph32 get_glyph_value (LOGFONT* logfont, DEVFONT* devfont, Achar32 ac)
 {
-    FT_Face face;
     FT_UInt uc;
     Glyph32 gv = INV_GLYPH_VALUE;
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
@@ -1031,20 +985,13 @@ static Glyph32 get_glyph_value (LOGFONT* logfont, DEVFONT* devfont, Achar32 ac)
     FT_LOCK(&ft_lock);
 
 #ifndef _MGFONT_TTF_CACHE
-    face = ft_inst_info->ft_face_info->face;
-    gv = FT_Get_Char_Index (face, uc);
+    gv = FT_Get_Char_Index (ft_inst_info->ft_face_info->face, uc);
 #else /* !_MGFONT_TTF_CACHE */
-    if (get_cached_face (ft_inst_info, &face)) {
-        _WRN_PRINTF ("can't access cached face %p", ft_inst_info->ft_face_info);
-        goto error;
-    }
-
     gv = FTC_CMapCache_Lookup (ft_cmap_cache,
         (FTC_FaceID) (ft_inst_info->image_type.face_id),
         ft_inst_info->ft_face_info->cmap_index, uc);
 #endif /* _MGFONT_TTF_CACHE */
 
-error:
     FT_UNLOCK(&ft_lock);
     return gv;
 }
@@ -1083,14 +1030,10 @@ static void* load_font_data (DEVFONT* devfont,
     ft_face_info->filepathname = strdup (file_name);
     if (ft_face_info->filepathname == NULL)
         goto error;
+#endif
 
-    ft_face_info->face_index = 0;
-
-    error = FT_New_Face(ft_library, file_name, ft_face_info->face_index, &face);
-#else
     error = FT_New_Face(ft_library, file_name, 0, &ft_face_info->face);
     face = ft_face_info->face;
-#endif
 
     if (error == FT_Err_Unknown_File_Format) {
         _ERR_PRINTF ("%s: bad file format: %s\n", __FUNCTION__, file_name);
@@ -1188,9 +1131,8 @@ static void unload_font_data (DEVFONT* devfont, void* data)
     FT2_DATA* ft_data = (FT2_DATA*)data;
 #ifdef _MGFONT_TTF_CACHE
     free(ft_data->ft_face_info->filepathname);
-#else
-    FT_Done_Face((ft_data->ft_face_info)->face);
 #endif
+    FT_Done_Face((ft_data->ft_face_info)->face);
     free(ft_data->ft_face_info);
     free(ft_data->ft_inst_info);
     free(ft_data);
