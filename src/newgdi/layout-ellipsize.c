@@ -616,19 +616,28 @@ static void get_run_list (EllipsizeState *state, LAYOUTLINE* line)
 
     /* Now assemble the new list of runs
      */
-    for (i = 0; i < state->gap_start_iter.run_index; i++)
+    for (i = 0; i < state->gap_start_iter.run_index; i++) {
         list_add_tail(&state->run_info[i].run->list, &line->gruns);
+        line->nr_runs++;
+    }
 
-    if (partial_start_run)
+    if (partial_start_run) {
         list_add_tail(&partial_start_run->list, &line->gruns);
+        line->nr_runs++;
+    }
 
     list_add_tail(&state->ellipsis_grun->list, &line->gruns);
+    line->nr_runs++;
 
-    if (partial_end_run)
+    if (partial_end_run) {
         list_add_tail(&partial_end_run->list, &line->gruns);
+        line->nr_runs++;
+    }
 
-    for (i = state->gap_end_iter.run_index + 1; i < state->nr_runs; i++)
+    for (i = state->gap_end_iter.run_index + 1; i < state->nr_runs; i++) {
         list_add_tail(&state->run_info[i].run->list, &line->gruns);
+        line->nr_runs++;
+    }
 
     /* And free the ones we didn't use
      */
@@ -679,6 +688,8 @@ BOOL __mg_layout_line_ellipsize (LAYOUTLINE *line, int goal_width)
 
     //__mg_layout_line_free_runs(line);
     INIT_LIST_HEAD(&line->gruns);
+    line->nr_runs = 0;
+
     get_run_list(&state, line);
     is_ellipsized = TRUE;
 

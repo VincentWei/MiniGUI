@@ -1145,6 +1145,8 @@ static void layout_line_reorder(LAYOUTLINE *line)
         j++;
     }
 
+    assert(line->nr_runs == j);
+
     /* If none of the levels had the LSB set, all numbers were even. */
     all_even = (level_or & 0x1) == 0;
 
