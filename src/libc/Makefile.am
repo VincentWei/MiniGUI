@@ -2,7 +2,7 @@ AM_CPPFLAGS = -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/include -I$(ab
 
 noinst_LTLIBRARIES = liblibc.la
 
-SRC_FILES=malloc.c \
+SRC_FILES=malloc.c mgslice.c \
         defdev.c stdioinlines.c \
         fnprintf.c fprintf.c printf.c vfnprintf.c \
         snprintf.c  sprintf.c vsnprintf.c vfscanf.c  \
@@ -12,12 +12,12 @@ SRC_FILES=malloc.c \
         threadx_pprivate.c threadx_pthread.c threadx_mutex.c threadx_sem.c \
         nucleus_pthread.c nucleus_mutex.c nucleus_sem.c \
         vxworks_pthread.c vxworks_mutex.c vxworks_sem.c \
-		ose_sem.c \
+        ose_sem.c \
         psos_pprivate.c psos_pthread.c psos_mutex.c psos_sem.c
 
 HDR_FILES=ucos2_pprivate.h sysvipc_private.h ieeefp.h \
-		threadx_pprivate.h nucleus_pprivate.h vxworks_pprivate.h \
-		psos_pprivate.h
+        threadx_pprivate.h nucleus_pprivate.h vxworks_pprivate.h \
+        psos_pprivate.h
 
 EXTRA_DIST=makefile.ng makefile.msvc vxworks_sem.c
 

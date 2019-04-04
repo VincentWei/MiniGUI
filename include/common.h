@@ -169,10 +169,10 @@ typedef signed int      Sint32;
 /* Figure out how to support 64-bit datatypes */
 #if !defined(__STRICT_ANSI__)
 #   if defined(__GNUC__)
-#       define MGUI_HAS_64BIT_TYPE	long long
+#       define MGUI_HAS_64BIT_TYPE    long long
 #   endif
 #   if defined(__CC_ARM)
-#       define MGUI_HAS_64BIT_TYPE	long long
+#       define MGUI_HAS_64BIT_TYPE    long long
 #   endif
 #   if defined(_MSC_VER)
 #       define MGUI_HAS_64BIT_TYPE __int64
@@ -199,8 +199,8 @@ typedef signed MGUI_HAS_64BIT_TYPE Sint64;
 #else
 /* This is really just a hack to prevent the compiler from complaining */
 typedef struct {
-	Uint32 hi;
-	Uint32 lo;
+    Uint32 hi;
+    Uint32 lo;
 } Uint64, Sint64;
 #endif
 
@@ -220,6 +220,38 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
 #undef MGUI_COMPILE_TIME_ASSERT
 
     /** @} end of basic_types */
+
+/* Here we provide MG_GNUC_EXTENSION as an alias for __extension__,
+ * where this is valid. This allows for warningless compilation of
+ * "long long" types even in the presence of '-ansi -pedantic'. 
+ */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8)
+#define MG_GNUC_EXTENSION __extension__
+#else
+#define MG_GNUC_EXTENSION
+#endif
+
+/*
+ * The MG_LIKELY and MG_UNLIKELY macros let the programmer give hints to
+ * the compiler about the expected result of an expression. Some compilers
+ * can use this information for optimizations.
+ */
+#if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
+#define _MG_BOOLEAN_EXPR(expr)                  \
+ MG_GNUC_EXTENSION ({                           \
+   int _g_boolean_var_;                         \
+   if (expr)                                    \
+      _g_boolean_var_ = 1;                      \
+   else                                         \
+      _g_boolean_var_ = 0;                      \
+   _g_boolean_var_;                             \
+})
+#define MG_LIKELY(expr) (__builtin_expect (_MG_BOOLEAN_EXPR(expr), 1))
+#define MG_UNLIKELY(expr) (__builtin_expect (_MG_BOOLEAN_EXPR(expr), 0))
+#else
+#define MG_LIKELY(expr) (expr)
+#define MG_UNLIKELY(expr) (expr)
+#endif
 
     /**
      * \defgroup endian_info Endianness information
@@ -1778,12 +1810,12 @@ struct tm {
 #include  "os_type.h"
 #include  "os_file_api.h"
 
-#define fopen 	tp_fopen
-#define fclose 	tp_fclose
-#define fwrite 	tp_fwrite
-#define fread	tp_fread
-#define fseek	tp_fseek
-#define feof	tp_feof
+#define fopen     tp_fopen
+#define fclose     tp_fclose
+#define fwrite     tp_fwrite
+#define fread    tp_fread
+#define fseek    tp_fseek
+#define feof    tp_feof
 
 #undef assert
 #define _HAVE_ASSERT 1
@@ -1907,8 +1939,8 @@ int init_minigui_printf (int (*output_char) (int ch),
 
 #ifdef WIN32
 #   include <float.h>
-#   define isnan	_isnan
-#   define finite	_finite
+#   define isnan    _isnan
+#   define finite   _finite
 #endif
 
 #undef _I18N_MB_REQUIRED

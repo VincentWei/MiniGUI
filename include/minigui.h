@@ -3508,6 +3508,327 @@ MG_EXPORT char * strtrimall (char* src);
 
     /** @} end of str_helpers */
 
+    /**
+     * \defgroup slices_allocator_fns Slice Memory Allocator
+     *
+     * An efficient way to allocate groups of equal-sized chunks of memory.
+     *
+     * Memory slices provide a space-efficient and multi-processing scalable
+     * way to allocate equal-sized pieces of memory, just like the
+     * MiniGUI's block data heap (\a block_heap_fns). Relative to the
+     * standard malloc function and block data heap, this allocator can
+     * avoid excessive memory-waste, scalability and performance problems.
+     *
+     * Note that this implementation is derived from LGPL'd glib.
+     *
+     * To achieve these goals, the slice allocator uses a sophisticated,
+     * layered design that has been inspired by Bonwick's slab allocator
+     * ([Bonwick94](http://citeseer.ist.psu.edu/bonwick94slab.html)
+     * Jeff Bonwick, The slab allocator: An object-caching kernel
+     * memory allocator. USENIX 1994, and
+     * [Bonwick01](http://citeseer.ist.psu.edu/bonwick01magazines.html)
+     * Bonwick and Jonathan Adams, Magazines and vmem: Extending the
+     * slab allocator to many cpu's and arbitrary resources. USENIX 2001)
+     *
+     * It uses posix_memalign() to optimize allocations of many equally-sized
+     * chunks, and has per-thread free lists (the so-called magazine layer)
+     * to quickly satisfy allocation requests of already known structure sizes.
+     * This is accompanied by extra caching logic to keep freed memory around
+     * for some time before returning it to the system. Memory that is unused
+     * due to alignment constraints is used for cache colorization (random
+     * distribution of chunk addresses) to improve CPU cache utilization. The
+     * caching layer of the slice allocator adapts itself to high lock
+     * contention to improve scalability.
+     *
+     * The slice allocator can allocate blocks as small as two pointers, and
+     * unlike malloc(), it does not reserve extra space per block. For large
+     * block sizes, mg_slice_new() and mg_slice_alloc() will automatically
+     * delegate to the system malloc() implementation. For newly written code
+     * it is recommended to use the new `mg_slice` API instead of malloc() and
+     * friends, as long as objects are not resized during their lifetime and
+     * the object size used at allocation time is still available when freeing.
+     *
+     * Here is an example for using the slice allocator:
+     *
+     * \code
+     * char *mem[10000];
+     * int i;
+     *
+     * // Allocate 10000 blocks.
+     * for (i = 0; i < 10000; i++)
+     *   {
+     *     mem[i] = mg_slice_alloc (50);
+     *
+     *     // Fill in the memory with some junk.
+     *     for (j = 0; j < 50; j++)
+     *       mem[i][j] = i * j;
+     *   }
+     *
+     * // Now free all of the blocks.
+     * for (i = 0; i < 10000; i++)
+     *   mg_slice_free1 (50, mem[i]);
+     * \endcode
+     *
+     * And here is an example for using the slice allocator
+     * with data structures:
+     *
+     * \code
+     * MyStruct *array;
+     *
+     * // Allocate one block, using the mg_slice_new() macro.
+     * array = mg_slice_new (MyStruct);
+     *
+     * // We can now use array just like a normal pointer to a structure.
+     * array->data            = NULL;
+     * array->len             = 0;
+     * array->alloc           = 0;
+     * array->zero_terminated = (zero_terminated ? 1 : 0);
+     * array->clear           = (clear ? 1 : 0);
+     * array->elt_size        = elt_size;
+     *
+     * // We can free the block, so it can be reused.
+     * mg_slice_free (MyStruct, array);
+     * \endcode
+     *
+     * @{
+     */
+
+/**
+ * mg_slice_alloc:
+ * @block_size: the number of bytes to allocate
+ *
+ * Allocates a block of memory from the slice allocator.
+ * The block address handed out can be expected to be aligned
+ * to at least 1 * sizeof (void*),
+ * though in general slices are 2 * sizeof (void*) bytes aligned,
+ * if a malloc() fallback implementation is used instead,
+ * the alignment may be reduced in a libc dependent fashion.
+ * Note that the underlying slice allocation mechanism can
+ * be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * environment variable.
+ *
+ * Returns: a pointer to the allocated memory block, which will be %NULL if and
+ *    only if @mem_size is 0
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT void *mg_slice_alloc(size_t block_size);
+
+/**
+ * mg_slice_alloc0:
+ * @block_size: the number of bytes to allocate
+ *
+ * Allocates a block of memory via mg_slice_alloc() and initializes
+ * the returned memory to 0. Note that the underlying slice allocation
+ * mechanism can be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * environment variable.
+ *
+ * Returns: a pointer to the allocated block, which will be %NULL if and only
+ *    if @mem_size is 0
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT void *mg_slice_alloc0(size_t block_size);
+
+/**
+ * mg_slice_copy:
+ * @block_size: the number of bytes to allocate
+ * @mem_block: the memory to copy
+ *
+ * Allocates a block of memory from the slice allocator
+ * and copies @block_size bytes into it from @mem_block.
+ *
+ * @mem_block must be non-%NULL if @block_size is non-zero.
+ *
+ * Returns: a pointer to the allocated memory block, which will be %NULL if and
+ *    only if @mem_size is 0
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT void *mg_slice_copy(size_t block_size, const void *mem_block);
+
+/**
+ * mg_slice_free1:
+ * @block_size: the size of the block
+ * @mem_block: a pointer to the block to free
+ *
+ * Frees a block of memory.
+ *
+ * The memory must have been allocated via mg_slice_alloc() or
+ * mg_slice_alloc0() and the @block_size has to match the size
+ * specified upon allocation. Note that the exact release behaviour
+ * can be changed with the [`G_DEBUG=gc-friendly`][G_DEBUG] environment
+ * variable, also see [`G_SLICE`][G_SLICE] for related debugging options.
+ *
+ * If @mem_block is %NULL, this function does nothing.
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT void mg_slice_free1(size_t block_size, void *mem_block);
+
+/**
+ * mg_slice_free_chain_with_offset:
+ * @block_size: the size of the blocks
+ * @mem_chain:  a pointer to the first block of the chain
+ * @next_offset: the offset of the @next field in the blocks
+ *
+ * Frees a linked list of memory blocks of structure type @type.
+ *
+ * The memory blocks must be equal-sized, allocated via
+ * mg_slice_alloc() or mg_slice_alloc0() and linked together by a
+ * @next pointer (similar to #GSList). The offset of the @next
+ * field in each block is passed as third argument.
+ * Note that the exact release behaviour can be changed with the
+ * [`G_DEBUG=gc-friendly`][G_DEBUG] environment variable, also see
+ * [`G_SLICE`][G_SLICE] for related debugging options.
+ *
+ * If @mem_chain is %NULL, this function does nothing.
+ *
+ * Since: 3.4.0
+ */
+MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
+        void *mem_chain, size_t next_offset);
+
+/**
+ * mg_slice_new:
+ * @type: the type to allocate, typically a structure name
+ *
+ * A convenience macro to allocate a block of memory from the
+ * slice allocator.
+ *
+ * It calls mg_slice_alloc() with `sizeof (@type)` and casts the
+ * returned pointer to a pointer of the given type, avoiding a type
+ * cast in the source code. Note that the underlying slice allocation
+ * mechanism can be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * environment variable.
+ *
+ * This can never return %NULL as the minimum allocation size from
+ * `sizeof (@type)` is 1 byte.
+ *
+ * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
+ *    to @type
+ *
+ * Since: 3.4.0
+ */
+#define mg_slice_new(type)       ((type*)mg_slice_alloc(sizeof (type)))
+
+/**
+ * mg_slice_new0:
+ * @type: the type to allocate, typically a structure name
+ *
+ * A convenience macro to allocate a block of memory from the
+ * slice allocator and set the memory to 0.
+ *
+ * It calls mg_slice_alloc0() with `sizeof (@type)`
+ * and casts the returned pointer to a pointer of the given type,
+ * avoiding a type cast in the source code.
+ * Note that the underlying slice allocation mechanism can
+ * be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * environment variable.
+ *
+ * This can never return %NULL as the minimum allocation size from
+ * `sizeof (@type)` is 1 byte.
+ *
+ * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
+ *    to @type
+ *
+ * Since: 3.4.0
+ */
+#define mg_slice_new0(type)      ((type*)mg_slice_alloc0(sizeof (type)))
+
+/* MemoryBlockType *
+ *       mg_slice_dup            (MemoryBlockType,
+ *                               MemoryBlockType *mem_block);
+ *       mg_slice_free           (MemoryBlockType,
+ *                               MemoryBlockType *mem_block);
+ *       mg_slice_free_chain     (MemoryBlockType,
+ *                               MemoryBlockType *first_chain_block,
+ *                               memory_block_next_field);
+ * pseudo prototypes for the macro definitions following below.
+ */
+
+/**
+ * mg_slice_dup:
+ * @type: the type to duplicate, typically a structure name
+ * @mem: (not nullable): the memory to copy into the allocated block
+ *
+ * A convenience macro to duplicate a block of memory using
+ * the slice allocator.
+ *
+ * It calls mg_slice_copy() with `sizeof (@type)`
+ * and casts the returned pointer to a pointer of the given type,
+ * avoiding a type cast in the source code.
+ * Note that the underlying slice allocation mechanism can
+ * be changed with the [`G_SLICE=always-malloc`][G_SLICE]
+ * environment variable.
+ *
+ * This can never return %NULL.
+ *
+ * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
+ *    to @type
+ *
+ * Since: 3.4.0
+ */
+#define mg_slice_dup(type, mem)                             \
+    (1 ? (type*) mg_slice_copy (sizeof (type), (mem))       \
+    : ((void) ((type*) 0 == (mem)), (type*) 0))
+
+/**
+ * mg_slice_free:
+ * @type: the type of the block to free, typically a structure name
+ * @mem: a pointer to the block to free
+ *
+ * A convenience macro to free a block of memory that has
+ * been allocated from the slice allocator.
+ *
+ * It calls mg_slice_free1() using `sizeof (type)`
+ * as the block size.
+ * Note that the exact release behaviour can be changed with the
+ * [`G_DEBUG=gc-friendly`][G_DEBUG] environment variable, also see
+ * [`G_SLICE`][G_SLICE] for related debugging options.
+ *
+ * If @mem is %NULL, this macro does nothing.
+ *
+ * Since: 3.4.0
+ */
+#define mg_slice_free(type, mem)                            \
+    do {                                                    \
+        if (1) mg_slice_free1 (sizeof (type), (mem));       \
+        else   (void) ((type*) 0 == (mem));                 \
+    } while(0);
+
+/**
+ * mg_slice_free_chain:
+ * @type: the type of the @mem_chain blocks
+ * @mem_chain: a pointer to the first block of the chain
+ * @next: the field name of the next pointer in @type
+ *
+ * Frees a linked list of memory blocks of structure type @type.
+ * The memory blocks must be equal-sized, allocated via
+ * mg_slice_alloc() or mg_slice_alloc0() and linked together by
+ * a @next pointer (similar to #GSList). The name of the
+ * @next field in @type is passed as third argument.
+ * Note that the exact release behaviour can be changed with the
+ * [`G_DEBUG=gc-friendly`][G_DEBUG] environment variable, also see
+ * [`G_SLICE`][G_SLICE] for related debugging options.
+ *
+ * If @mem_chain is %NULL, this function does nothing.
+ *
+ * Since: 3.4.0
+ */
+#define mg_slice_free_chain(type, mem_chain, next)              \
+    do {                                                        \
+        if (1) mg_slice_free_chain_with_offset (sizeof (type),  \
+                (mem_chain), G_STRUCT_OFFSET (type, next));     \
+        else   (void) ((type*) 0 == (mem_chain));               \
+    } while(0);
+
+#ifdef _MGDEVEL_MODE
+MG_EXPORT void mg_slice_debug_tree_statistics(void);
+#endif
+
+    /** @} end of slices_allocator_fns */
+
     /** @} end of global_fns */
 
     /** @} end of fns */

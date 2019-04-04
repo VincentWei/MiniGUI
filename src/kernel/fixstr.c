@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
-/* 
+/*
 ** fixstr.c: the Fixed String module for MiniGUI.
-** 
+**
 ** Current maintainer: Wei Yongming.
 */
 
@@ -64,7 +64,7 @@ BOOL mg_InitFixStr (void)
 {
     int i, j, offset;
     BYTE* bitmap;
-    
+
     // allocate memory.
     if (!(FixStrHeap.heap [0] = malloc (MAX_LEN_FIXSTR * 8 * NR_HEAP))) return FALSE;
 
@@ -80,12 +80,12 @@ BOOL mg_InitFixStr (void)
             bitmap[j] |= 0xFF;
 
         bitmap += 1<<i;
-        
+
         FixStrHeap.offset[i] = offset;
-        
+
         offset += 1<<i;
     }
-    
+
 #ifdef _MGRM_THREADS
     pthread_mutex_init (&FixStrHeap.lock, NULL);
 #endif
@@ -111,13 +111,13 @@ char* GUIAPI FixStrAlloc (int len)
 
     if (len < 0)
         return NULL;
-        
+
     if (len == 0)
         return zero_string;
-        
+
     if (len >= MAX_LEN_FIXSTR)
         return (char*)malloc (len + 1);
-    
+
     // determine which heap will use.
     i = 0;
     while (ulen) {
@@ -134,7 +134,7 @@ char* GUIAPI FixStrAlloc (int len)
     // if 2K > len >= 1K, then i = 11;
     if (i == 1) i = 2;
     bufflen = 1 << i;
-    
+
     i = NR_HEAP + 1 - i;
     // i is the heap index;
     // if i == 7; then bufflen = 4
@@ -149,7 +149,7 @@ char* GUIAPI FixStrAlloc (int len)
     heap = FixStrHeap.heap[i];
     bitmap = FixStrHeap.bitmap + FixStrHeap.offset[i];
     btlen = 1 << i;
-    
+
     for (i = 0; i < btlen; i++) {
         for(j = 0; j < 8; j++) {
             if (*bitmap & (0x80 >> j)) {
@@ -165,7 +165,7 @@ char* GUIAPI FixStrAlloc (int len)
 
             heap += bufflen;
         }
-        
+
         bitmap++;
     }
 
@@ -182,10 +182,10 @@ void GUIAPI FreeFixStr (char* str)
     int i;
     int bufflen;
     int stroff;
-    
+
     if (str [0] == '\0')
         return;
-        
+
     if (str >= FixStrHeap.heap [NR_HEAP] || str < FixStrHeap.heap [0]) {
         free (str);
         return;

@@ -235,7 +235,7 @@ BOOL mg_InitMgEtc (void)
                         "or bad files!\n");
         return FALSE;
     }
-    
+
     if (hMgEtc)
         return TRUE;
 

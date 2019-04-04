@@ -74,6 +74,9 @@ void __mg_os_time_delay (int ms);
 
 extern GHANDLE hMgEtc;
 
+BOOL mg_InitSliceAllocator(void);
+void mg_TerminateSliceAllocator(void);
+
 BOOL mg_InitMgEtc (void);
 void mg_TerminateMgEtc (void);
 
