@@ -328,6 +328,9 @@ static void mg_slice_init_nomessage (void)
         allocator->slab_stack = mg_new0 (SlabInfo*, MAX_SLAB_INDEX (allocator));
     }
 
+    pthread_mutex_init(&allocator->magazine_mutex, NULL);
+    pthread_mutex_init(&allocator->slab_mutex, NULL);
+
     allocator->mutex_counter = 0;
     allocator->stamp_counter = MAX_STAMP_COUNTER; /* force initial update */
     allocator->last_stamp = 0;
@@ -1239,7 +1242,8 @@ static int smc_notify_free (void *pointer, size_t size)
 #define SMC_TRUNK_HASH(k)   ((k / SMC_TRUNK_EXTENT) % SMC_TRUNK_COUNT)  /* generate new trunk hash per megabyte (roughly) */
 #define SMC_BRANCH_HASH(k)  (k % SMC_BRANCH_COUNT)
 
-static pthread_mutex_t      smc_tree_mutex; /* mutex for MG_SLICE=debug-blocks */
+/* mutex for MG_SLICE=debug-blocks */
+static pthread_mutex_t      smc_tree_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct {
     SmcEntry    *entries;
