@@ -1806,38 +1806,6 @@ static Uint32 get_line_alignment(const LAYOUTINFO *layout,
     return alignment;
 }
 
-#else
-
-static Uint32 get_line_alignment(const LAYOUTINFO *layout,
-    const LAYOUTLINE *line)
-{
-    Uint32 alignment = layout->rf & GRF_ALIGN_MASK;
-
-    switch (alignment) {
-    case GRF_ALIGN_START:
-        if ((layout->rf & GRF_TEXT_ORIENTATION_MASK) ==
-                GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT)
-            alignment = GRF_ALIGN_RIGHT;
-        else
-            alignment = GRF_ALIGN_LEFT;
-        break;
-
-    case GRF_ALIGN_END:
-        if ((layout->rf & GRF_TEXT_ORIENTATION_MASK) ==
-                GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT)
-            alignment = GRF_ALIGN_LEFT;
-        else
-            alignment = GRF_ALIGN_RIGHT;
-        break;
-
-    default:
-        break;
-    }
-
-    return alignment;
-}
-#endif
-
 static inline int line_dir_to_factor(LineDirection d)
 {
     switch (d) {
@@ -1855,6 +1823,39 @@ static inline int line_dir_to_factor(LineDirection d)
     return 1;
 }
 
+#else
+
+static Uint32 get_line_alignment(const LAYOUTINFO *layout,
+    const LAYOUTLINE *line)
+{
+    Uint32 alignment = layout->rf & GRF_ALIGN_MASK;
+
+    switch (alignment) {
+    case GRF_ALIGN_LEFT:
+    case GRF_ALIGN_START:
+        if (line->resolved_dir == LINE_DIRECTION_RTL)
+            alignment = GRF_ALIGN_RIGHT;
+        else
+            alignment = GRF_ALIGN_LEFT;
+        break;
+
+    case GRF_ALIGN_RIGHT:
+    case GRF_ALIGN_END:
+        if (line->resolved_dir == LINE_DIRECTION_RTL)
+            alignment = GRF_ALIGN_LEFT;
+        else
+            alignment = GRF_ALIGN_RIGHT;
+        break;
+
+    default:
+        alignment = GRF_ALIGN_LEFT;
+        break;
+    }
+
+    return alignment;
+}
+#endif
+
 int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
         const LAYOUTLINE *line)
 {
@@ -1863,8 +1864,6 @@ int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
     Uint32 alignment = get_line_alignment(layout, line);
 
     x_offset = 0;
-    if (alignment == GRF_ALIGN_JUSTIFY)
-        goto done;
 
     layout_width = line->max_extent;
     if (layout_width < 0)
@@ -1886,11 +1885,17 @@ int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
 
     if ((layout->rf & GRF_INDENT_MASK) == GRF_INDENT_FIRST_LINE &&
             line->is_paragraph_start) {
-        x_offset += layout->indent;
+         if (alignment == GRF_ALIGN_LEFT)
+             x_offset += layout->indent;
+         else if (line->resolved_dir == LINE_DIRECTION_LTR)
+             x_offset += layout->indent;
     }
     else if ((layout->rf & GRF_INDENT_MASK) == GRF_INDENT_HANGING &&
             !line->is_paragraph_start) {
-        x_offset += layout->indent;
+         if (alignment == GRF_ALIGN_LEFT)
+             x_offset += layout->indent;
+         else if (line->resolved_dir == LINE_DIRECTION_LTR)
+             x_offset += layout->indent;
     }
 
 done:
