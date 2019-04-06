@@ -3610,7 +3610,7 @@ MG_EXPORT char * strtrimall (char* src);
  * Returns: a pointer to the allocated memory block, which will be %NULL if and
  *    only if @mem_size is 0
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void *mg_slice_alloc(size_t block_size);
 
@@ -3626,7 +3626,7 @@ MG_EXPORT void *mg_slice_alloc(size_t block_size);
  * Returns: a pointer to the allocated block, which will be %NULL if and only
  *    if @mem_size is 0
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void *mg_slice_alloc0(size_t block_size);
 
@@ -3643,7 +3643,7 @@ MG_EXPORT void *mg_slice_alloc0(size_t block_size);
  * Returns: a pointer to the allocated memory block, which will be %NULL if and
  *    only if @mem_size is 0
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void *mg_slice_copy(size_t block_size, const void *mem_block);
 
@@ -3662,7 +3662,7 @@ MG_EXPORT void *mg_slice_copy(size_t block_size, const void *mem_block);
  *
  * If @mem_block is %NULL, this function does nothing.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void mg_slice_free(size_t block_size, void *mem_block);
 
@@ -3684,7 +3684,7 @@ MG_EXPORT void mg_slice_free(size_t block_size, void *mem_block);
  *
  * If @mem_chain is %NULL, this function does nothing.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
         void *mem_chain, size_t next_offset);
@@ -3708,7 +3708,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
  *    to @type
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 #define mg_slice_new(type)       ((type*)mg_slice_alloc(sizeof (type)))
 
@@ -3732,7 +3732,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
  *    to @type
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 #define mg_slice_new0(type)      ((type*)mg_slice_alloc0(sizeof (type)))
 
@@ -3767,7 +3767,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
  *    to @type
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 #define mg_slice_dup(type, mem)                             \
     (1 ? (type*) mg_slice_copy (sizeof (type), (mem))       \
@@ -3789,7 +3789,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  *
  * If @mem is %NULL, this macro does nothing.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 #define mg_slice_delete(type, mem)                          \
     do {                                                    \
@@ -3814,7 +3814,7 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  *
  * If @mem_chain is %NULL, this function does nothing.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 #define mg_slice_delete_chain(type, mem_chain, next)            \
     do {                                                        \

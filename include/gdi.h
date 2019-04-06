@@ -5478,7 +5478,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FONT_WEIGHT_BLACK           'c'
 
 /* Backward compatiblilty definitions.
- * deprecated since v3.4.0, use FS_RENDER_XXX/FONT_RENDER_XXX instead
+ * deprecated since v4.0.0, use FS_RENDER_XXX/FONT_RENDER_XXX instead
  */
 #define FONT_WEIGHT_SUBPIXEL        's'
 #define FONT_WEIGHT_BOOK            'k'
@@ -5562,7 +5562,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_RENDER_SUBPIXEL          0x20000000
 #define FS_RENDER_ANY               FS_RENDER_MONO
 
-/* Backward compatiblilty definitions; deprecated since v3.4.0 */
+/* Backward compatiblilty definitions; deprecated since v4.0.0 */
 #define FONT_OTHER_LCDPORTRAIT      'p'
 #define FONT_OTHER_LCDPORTRAITKERN  'q'
 
@@ -5571,7 +5571,7 @@ MG_EXPORT int GUIAPI SubtractRect (RECT* rc, const RECT* psrc1, const RECT* psrc
 #define FS_WEIGHT_ALL               FS_WEIGHT_ANY
 #define FS_SLANT_ALL                FS_SLANT_ANY
 
-/* Backward compatiblilty definitions; deprecated since v3.4.0
+/* Backward compatiblilty definitions; deprecated since v4.0.0
  * All FONT_SETWIDTH_* and FONT_SPACING_* types will
  * be treated as FONT_FLIP_NIL and FONT_OTHER_NIL respectively.
  */
@@ -6429,7 +6429,7 @@ typedef struct _CHARSETOPS CHARSETOPS;
 struct _DEVFONT {
     /**
       * The device font name.
-      * The family name supports aliases since 3.4.0:
+      * The family name supports aliases since 4.0.0:
       *
       *     <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charset[,charset]*>
       *
@@ -6568,7 +6568,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *      - FONT_TYPE_NAME_ANY\n
  *        Creates a logical font by using any type device font.
  * \param family The family of the logical font, such as "Courier",
- *        "Helvetica", and so on. Since version 3.4.0, you can specify
+ *        "Helvetica", and so on. Since version 4.0.0, you can specify
  *        up to 7 family names separated by comma, e.g.,
  *        "Helvetica,黑体,Naskh,SansSerif". Note that a family name should
  *        be encoded in UTF-8 and without special characters (middle spaces
@@ -6697,7 +6697,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
  *      - FONT_TYPE_NAME_ANY\n
  *        Creates a logical font by using any type device font.
  * \param family The family of the logical font, such as "Courier",
- *        "Helvetica", and so on. Since version 3.4.0, you can specify
+ *        "Helvetica", and so on. Since version 4.0.0, you can specify
  *        up to 7 family names separated by comma, e.g.,
  *        "Helvetica,黑体,Naskh,SansSerif". Note that a family name should
  *        be encoded in UTF-8 and without special characters (middle spaces
@@ -6810,7 +6810,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  * \brief Creates a logical font by a font name.
  *
  * This function creates a logical font by a font name specified by
- * \a font_name. Note that since version 3.4.0, you can specify up
+ * \a font_name. Note that since version 4.0.0, you can specify up
  * to 7 family names in the LOGFONT name, such as:
  *
  *      ttf-Courier,宋体,Naskh,SansSerif-rrncns-U-16-UTF-8
@@ -6821,7 +6821,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontEx (const char* type, const char* family,
  * often designed for a particular language/script or a few similar
  * languages/scripts.
  *
- * Since 3.4.0, the previous width field of a logfont name is used for
+ * Since 4.0.0, the previous width field of a logfont name is used for
  * the glyph orientation:
  *
  *  - 'U': Glyphs stand upright (default).
@@ -6853,7 +6853,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontByName(const char* font_name);
  *
  * \sa DestroyLogFont, GetUCharsUntilParagraphBoundary
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT PLOGFONT GUIAPI CreateLogFontForMChar2UChar(const char* charset);
 #endif /* _MGCHARSET_UNICODE */
@@ -6879,7 +6879,7 @@ MG_EXPORT PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT* logfont);
  * This function creates a new logical font from information in the LOGFONT object
  * \a logfont and the new rotation value \a rotation.
  *
- * Since 3.4.0.
+ * Since 4.0.0.
  *
  * \param logfont The pointer to the reference logical font structure.
  * \param rotation The rotation of the logical font, it is in units of
@@ -8111,7 +8111,7 @@ MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
  *
  * \sa UStrGetBidiTypes, bidi_types
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT BidiType GUIAPI UCharGetBidiType(Uchar32 uc);
 
@@ -8129,7 +8129,7 @@ MG_EXPORT BidiType GUIAPI UCharGetBidiType(Uchar32 uc);
  *
  * \sa UCharGetBidiType
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UStrGetBidiTypes(const Uchar32* ucs, int nr_ucs,
         BidiType* bdts);
@@ -8155,7 +8155,7 @@ MG_EXPORT void GUIAPI UStrGetBidiTypes(const Uchar32* ucs, int nr_ucs,
  *
  * \sa UStrGetBracketTypes
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch);
 
@@ -8176,7 +8176,7 @@ MG_EXPORT BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch);
  *
  * \sa UCharGetBracketType
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UStrGetBracketTypes(const Uchar32 *ucs,
         const BidiType *bidi_types, int len_ucs,
@@ -8202,7 +8202,7 @@ MG_EXPORT void GUIAPI UStrGetBracketTypes(const Uchar32 *ucs,
  * \return A BOOL value indicates if the character has a mirroring equivalent
  *      or not.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
 
@@ -8228,7 +8228,7 @@ MG_EXPORT BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored);
  *
  * \return The joining type of the specified Uchar32 character.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT BidiJoiningType GUIAPI UCharGetJoiningType(Uchar32 uc);
 
@@ -8248,7 +8248,7 @@ MG_EXPORT BidiJoiningType GUIAPI UCharGetJoiningType(Uchar32 uc);
  *
  * \sa UCharGetJoiningType
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs, int nr_ucs,
         BidiJoiningType *joing_types);
@@ -8278,7 +8278,7 @@ MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs, int nr_ucs,
  * \return Base pargraph direction. No weak paragraph direction is returned,
  * only BIDI_PGDIR_LTR, BIDI_PGDIR_RTL, or BIDI_PGDIR_ON.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len);
 
@@ -8320,7 +8320,7 @@ MG_EXPORT BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int l
  *
  * \sa UStrGetBidiTypes, UStrGetBracketTypes
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
         const BidiType *bidi_types,
@@ -8401,7 +8401,7 @@ typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos);
  * \sa UStrGetBidiTypes, UStrGetBracketTypes,
  *      UBidiGetParagraphEmbeddingLevels
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
         const BidiType *bidi_types, int len, int off,
@@ -8429,7 +8429,7 @@ MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  *
  * \sa UBidiGetParagraphEmbeddingLevels
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
         int len, Uchar32* ucs);
@@ -8465,7 +8465,7 @@ MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
  *
  * \sa UBidiGetParagraphEmbeddingLevels, UStrGetJoiningTypes
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
         const BidiLevel *embedding_levels, int len,
@@ -8506,7 +8506,7 @@ MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
  *
  * \sa UBidiGetParagraphEmbeddingLevels, UBidiJoinArabic
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UBidiShapeArabic(Uint32 shaping_flags,
         const BidiLevel *embedding_levels, int len,
@@ -8542,7 +8542,7 @@ MG_EXPORT void GUIAPI UBidiShapeArabic(Uint32 shaping_flags,
  *
  * \sa UBidiShapeArabic, UBidiShapeMirroring
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
         const BidiLevel *embedding_levels, int len,
@@ -8990,7 +8990,7 @@ MG_EXPORT int GUIAPI UCharFullyDecompose (Uchar32 ch, BOOL compat,
  *
  * \sa ScriptType
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT ScriptType GUIAPI UCharGetScriptType (Uchar32 ch);
 
@@ -9014,7 +9014,7 @@ MG_EXPORT ScriptType GUIAPI UCharGetScriptType (Uchar32 ch);
  * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
  * for details.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (ScriptType script);
 
@@ -9037,7 +9037,7 @@ MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (ScriptType script);
  * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
  * for details.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT ScriptType GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
 
@@ -9057,7 +9057,7 @@ MG_EXPORT ScriptType GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
  * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
  * for details.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 static inline ScriptType GUIAPI ScriptTypeFromISO15924Code (const char* iso15924)
 {
@@ -9115,7 +9115,7 @@ MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
  * \param The resolved gravity suitable to use for a layout run of text
  * with @script.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
         BOOL vertical, GlyphGravity base_gravity, GlyphGravityPolicy policy);
@@ -9146,7 +9146,7 @@ MG_EXPORT GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
  * \return The resolved gravity suitable to use for a run of text
  * with \a script and \a wide.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script,
         BOOL vertical, BOOL wide,
@@ -11936,7 +11936,7 @@ typedef enum {
  * Returns: the language code for @iso639_1, or
  *   of %LANGCODE_unknown if @iso639_1 is invalid.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 MG_EXPORT LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
 
@@ -11950,7 +11950,7 @@ MG_EXPORT LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
  * Returns: the language code for @iso639_1, or
  *   of %LANGCODE_unknown if @iso639_1 is invalid.
  *
- * Since: 3.4.0
+ * Since: 4.0.0
  */
 static inline LanguageCode GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
 {
@@ -12083,7 +12083,7 @@ MG_EXPORT ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
  *
  * \sa DrawGlyphStringEx, white_space_rules, char_transform_rule
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
         const char* mstr, int mstr_len, Uint8 wsr,
@@ -12103,7 +12103,7 @@ MG_EXPORT int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv);
 
@@ -12121,7 +12121,7 @@ MG_EXPORT Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv);
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
         Uchar32* ucs, int n);
@@ -12135,7 +12135,7 @@ MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
  *
  * \sa UChar2AChar, UChars2AChars
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 #define UCHAR2ACHAR(uc) ((uc) | 0x80000000)
 
@@ -12159,7 +12159,7 @@ MG_EXPORT int GUIAPI AChars2UChars(LOGFONT* logfont, const Achar32* chs,
  *
  * \sa UChars2AChars, UCHAR2ACHAR
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac);
 
@@ -12179,7 +12179,7 @@ MG_EXPORT BOOL GUIAPI UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac);
  *
  * \sa UChar2AChar, UCHAR2ACHAR
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
         Achar32* acs, int n);
@@ -12599,7 +12599,7 @@ typedef struct _GLYPHPOS {
  *
  * \sa UStrGetBreaks, DrawGlyphStringEx, GLYPHEXTINFO, glyph_render_flags
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
         const Achar32* uchars, int nr_uchars, const BreakOppo* break_oppos,
@@ -12633,7 +12633,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
  *
  * \sa GetGlyphsExtentFromUChars
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
         LOGFONT* logfont_upright, LOGFONT* logfont_sideways,
@@ -12681,7 +12681,7 @@ typedef struct _TEXTRUNS TEXTRUNS;
  * \sa GetUCharsUntilParagraphBoundary, UStrGetBreaks,
  *      SetFontInTextRuns, SetTextColorInTextRuns
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT TEXTRUNS* GUIAPI CreateTextRuns(
         const Uchar32* ucs, int nr_ucs,
@@ -12692,7 +12692,7 @@ MG_EXPORT TEXTRUNS* GUIAPI CreateTextRuns(
 /**
  * Set logfont name of text runs
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNS* truns,
         int start_index, int length, const char* logfont_name);
@@ -12700,7 +12700,7 @@ MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNS* truns,
 /**
  * Get logfont name of a specific character in text runs
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT const char* GUIAPI GetFontNameInTextRuns(
         const TEXTRUNS* truns, int index);
@@ -12708,7 +12708,7 @@ MG_EXPORT const char* GUIAPI GetFontNameInTextRuns(
 /**
  * Set text olor in text runs.
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNS* truns,
         int start_index, int length, RGBCOLOR color);
@@ -12716,7 +12716,7 @@ MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNS* truns,
 /**
  * Get text color of a specific character in text runs
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT RGBCOLOR GUIAPI GetTextColorInTextRuns(
         const TEXTRUNS* truns, int index);
@@ -12724,7 +12724,7 @@ MG_EXPORT RGBCOLOR GUIAPI GetTextColorInTextRuns(
 /**
  * Set background color in text runs.
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNS* truns,
     int start_index, int length, RGBCOLOR color);
@@ -12732,7 +12732,7 @@ MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNS* truns,
 /**
  * Get background color of a specific character in text runs
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT RGBCOLOR GUIAPI GetBackgroundColorInTextRuns(
         const TEXTRUNS* truns, int index);
@@ -12753,7 +12753,7 @@ MG_EXPORT RGBCOLOR GUIAPI GetBackgroundColorInTextRuns(
  *
  * \sa CreateTextRuns
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI DestroyTextRuns(TEXTRUNS* truns);
 
@@ -12786,7 +12786,7 @@ MG_EXPORT BOOL GUIAPI DestroyTextRuns(TEXTRUNS* truns);
  *
  * \sa InitComplexShapingEngine, CreateLayout
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* truns);
 
@@ -12820,7 +12820,7 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* truns);
  *
  * \sa InitBasicShapingEngine, CreateLayout
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNS* truns);
 
@@ -12861,7 +12861,7 @@ typedef struct _LAYOUTLINE LAYOUTLINE;
  * \sa CreateTextRuns, InitBasicShapingEngine, InitComplexShapingEngine,
  *      UStrGetBreaks, LayoutNextLine
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT LAYOUT* GUIAPI CreateLayout(
         const TEXTRUNS* truns, Uint32 render_flags,
@@ -12882,7 +12882,7 @@ MG_EXPORT LAYOUT* GUIAPI CreateLayout(
  *
  * \sa CreateLayout
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI DestroyLayout(LAYOUT* layout);
 
@@ -12944,7 +12944,7 @@ typedef struct _RENDERDATA {
  *
  * \sa LayoutNextLine, GLYPHPOS, RENDERDATA
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
         Glyph32 glyph_value, const GLYPHPOS* glyph_pos,
@@ -12990,7 +12990,7 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  *
  * \sa CreateLayout, DestroyLayout, CreateTextRuns
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUT* layout,
         LAYOUTLINE* prev_line, int max_extent, BOOL last_line,
@@ -13010,7 +13010,7 @@ MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUT* layout,
  *
  * \sa CreateLayout, DestroyLayout, LayoutNextLine
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI GetLayoutLineSize(const LAYOUTLINE* line,
         SIZE* line_size);
@@ -13044,7 +13044,7 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineSize(const LAYOUTLINE* line,
  * \sa CreateLayout, DestroyLayout, LayoutNextLine,
  *  GetLayoutLineSize
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
         int* x, int* y, int line_height, RECT* line_rc);
@@ -13082,7 +13082,7 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
  * \sa CreateLayout, DestroyLayout, LayoutNextLine
  *  GetLayoutLineRect
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUT* layout,
         int max_line_extent, int max_height, int line_height,
@@ -13115,7 +13115,7 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUT* layout,
  * \sa CreateLayout, DestroyLayout, LayoutNextLine,
  *      DrawLayoutLine, GLYPHPOS, RENDERDATA
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT BOOL DrawShapedGlyph(HDC hdc,
         Glyph32 glyph_value, const GLYPHPOS* glyph_pos,
@@ -13152,7 +13152,7 @@ MG_EXPORT BOOL DrawShapedGlyph(HDC hdc,
  *
  * \sa CreateLayout, DestroyLayout, LayoutNextLine
  *
- * Since 3.4.0
+ * Since 4.0.0
  */
 MG_EXPORT int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
         int x, int y);

@@ -1,7 +1,7 @@
 /*
  * gen-vop-tab.c - generate unicode-vop-table.inc
  *
- * Derived from utilities of FriBidi by Vincent Wei for MiniGUI 3.4.0
+ * Derived from utilities of FriBidi by Vincent Wei for MiniGUI 4.0.0
  *
  * Authors of FriBidi:
  *   Behdad Esfahbod, 2004, 2005

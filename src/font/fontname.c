@@ -236,7 +236,7 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_WEIGHT_BOLD:
         style |= FS_WEIGHT_BOLD;
         break;
-    /* deprecated since v3.4.0
+    /* deprecated since v4.0.0
     case FONT_WEIGHT_BOOK:
         style |= FS_WEIGHT_BOOK;
         break;
@@ -262,7 +262,7 @@ DWORD fontConvertStyle (const char* style_part)
     case FONT_WEIGHT_THIN:
         style |= FS_WEIGHT_THIN;
         break;
-    /* deprecated since v3.4.0
+    /* deprecated since v4.0.0
     case FONT_WEIGHT_SUBPIXEL:
         style |= FS_WEIGHT_SUBPIXEL;
         break;
@@ -472,7 +472,7 @@ int fontGetWidthFromName (const char* name)
     return atoi (width);
 }
 
-/* Since 3.4.0; only for LOGFONT name */
+/* Since 4.0.0; only for LOGFONT name */
 char fontGetOrientFromName (const char* name)
 {
     int i;

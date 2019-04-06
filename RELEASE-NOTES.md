@@ -1,8 +1,8 @@
 # Release Notes
 
-## Version 3.4.0
+## Version 4.0.0
 
-The MiniGUI development team announces the availability of MiniGUI 3.4.0.
+The MiniGUI development team announces the availability of MiniGUI 4.0.0.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
@@ -73,7 +73,7 @@ please define the logical font name in the following way:
 
     ttf-Courier-rrncns-*-16-UTF-8
 
-Moreover, the family name of a DEVFONT supports aliases since 3.4.0:
+Moreover, the family name of a DEVFONT supports aliases since 4.0.0:
 
     <fonttype>-<family[,aliase]*>-<styles>-<width>-<height>-<charset[,charset]*>
 

@@ -1,7 +1,7 @@
 /* MGBidi
  * gen-brackets-type-tab.c - generate unicode-bidi-brackets-type-table.h
  *
- * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
+ * Revised from FriBidi by Vincent Wei for MiniGUI 4.0.0
  *
  * Authors of FriBidi:
  *   Behdad Esfahbod, 2001, 2002, 2004

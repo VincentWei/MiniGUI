@@ -75,6 +75,7 @@
 #endif
 
 #include <stdio.h>              /* fputs */
+#include <pthread.h>            /* pthread_xxx */
 
 /* the slice allocator is split up into 4 layers, roughly modelled after the slab
  * allocator and magazine extensions as outlined in:

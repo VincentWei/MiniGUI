@@ -1,7 +1,7 @@
 /* MGBidi
  * gen-arabic-shaping-tab.c - generate unicode-arabic-shaping-table.h
  *
- * Revised from FriBidi by Vincent Wei for MiniGUI 3.4.0
+ * Revised from FriBidi by Vincent Wei for MiniGUI 4.0.0
  *
  * Authors of FriBidi:
  *   Behdad Esfahbod, 2004, 2005

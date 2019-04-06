@@ -1806,7 +1806,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     fg_gal_rc.w = bbox.w + italic;
     fg_gal_rc.h = bbox.h;
 
-#if 0 // VincentWei: use FS_DECORATE_XXXX instead (3.4.0)
+#if 0 // VincentWei: use FS_DECORATE_XXXX instead (4.0.0)
     if ( pdc->bkmode != BM_TRANSPARENT
          || logfont->style & FS_UNDERLINE_LINE
          || logfont->style & FS_STRUCKOUT_LINE )
@@ -1817,7 +1817,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
 #endif
         need_rc_back = TRUE;
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+#if 0 // VincentWei: use FS_RENDER_MASK instead (4.0.0)
     if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
         if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
             fg_gal_rc.x--; fg_gal_rc.y--;
@@ -1845,7 +1845,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             make_back_area(pdc, x+*adv_x, y+*adv_y, x, y,
                     area, &bg_gal_rc, &flag);
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+#if 0 // VincentWei: use FS_RENDER_MASK instead (4.0.0)
         if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP) {
             if (logfont->style & FS_WEIGHT_BOOK_LIGHT) {
                 bg_gal_rc.x--; bg_gal_rc.y--;
@@ -1912,7 +1912,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
         bbx_size.cx = bbox.w;
         bbx_size.cy = bbox.h;
 
-#if 0 // VincentWei: use FS_RENDER_MASK instead (3.4.0)
+#if 0 // VincentWei: use FS_RENDER_MASK instead (4.0.0)
         if (logfont->style & FS_WEIGHT_BOOK) {
             if(! get_book_bmp(pdc, glyph_value, &bbx_size, bold, italic))
                 is_draw_glyph = FALSE;
