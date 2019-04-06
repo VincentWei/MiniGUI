@@ -321,9 +321,14 @@ static void sig_handler (int v)
 {
     if (v == SIGSEGV) {
         kill (getpid(), SIGABRT); /* cause core dump */
-    }else if (__mg_quiting_stage > 0) {
+    }
+    else if (v == SIGINT) {
+        _exit(1);
+    }
+    else if (__mg_quiting_stage > 0) {
         ExitGUISafely(-1);
-    }else{
+    }
+    else {
         exit(1); /* force to quit */
     }
 }
@@ -331,10 +336,10 @@ static void sig_handler (int v)
 static BOOL InstallSEGVHandler (void)
 {
     struct sigaction siga;
-    
+
     siga.sa_handler = sig_handler;
     siga.sa_flags = 0;
-    
+
     memset (&siga.sa_mask, 0, sizeof (sigset_t));
     sigaction (SIGSEGV, &siga, NULL);
     sigaction (SIGTERM, &siga, NULL);

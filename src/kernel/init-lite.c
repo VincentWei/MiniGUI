@@ -248,36 +248,31 @@ failure:
 static void sig_handler (int v)
 {
     if (v == SIGSEGV) {
-#ifdef WIN32
-		raise(SIGABRT);
-#else
         kill (getpid(), SIGABRT); /* cause core dump */
-#endif
-    }else if (__mg_quiting_stage > 0) {
+    }
+    if (v == SIGINT) {
+        _exit(1); /* force to quit */
+    }
+    else if (__mg_quiting_stage > 0) {
         ExitGUISafely(-1);
-    }else{
+    }
+    else {
         exit(1); /* force to quit */
     }
 }
 
 static BOOL InstallSEGVHandler (void)
 {
-#ifdef WIN32
-	signal(SIGSEGV, sig_handler);
-	signal(SIGTERM, sig_handler);
-	signal(SIGINT, sig_handler);
-#else
     struct sigaction siga;
-    
+
     siga.sa_handler = sig_handler;
     siga.sa_flags = 0;
-    
+
     memset (&siga.sa_mask, 0, sizeof (sigset_t));
     sigaction (SIGSEGV, &siga, NULL);
     sigaction (SIGTERM, &siga, NULL);
     sigaction (SIGINT, &siga, NULL);
     sigaction (SIGPIPE, &siga, NULL);
-#endif
     return TRUE;
 }
 
