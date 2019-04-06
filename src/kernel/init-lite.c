@@ -250,7 +250,7 @@ static void sig_handler (int v)
     if (v == SIGSEGV) {
         kill (getpid(), SIGABRT); /* cause core dump */
     }
-    if (v == SIGINT) {
+    else if (v == SIGINT) {
         _exit(1); /* force to quit */
     }
     else if (__mg_quiting_stage > 0) {
