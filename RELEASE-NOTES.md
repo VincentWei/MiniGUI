@@ -10,9 +10,11 @@ Please report any bugs and incompatibilities in
 
 ### What's new in this version
 
-In this version, we mainly enhanced and tuned the APIs of text rendering.
+In this version, we mainly enhanced and tuned the APIs related to text
+rendering in order that MiniGUI can handle complex writing systems
+(scripts) like Arabic and Indic:
 
-* MiniGUI now provides complete APIs for Unicode characters process.
+* MiniGUI now provides complete APIs for Unicode characters processing.
   These APIs conform to Unicode 12.0.
 
 * MiniGUI also provides new APIs to lay out, shape, and render glyphs
@@ -23,6 +25,11 @@ In this version, we mainly enhanced and tuned the APIs of text rendering.
 
 * We introduced Slice Memoroy Allocator for fast concurrent memory chunk
   allocation.
+
+The new APIs also conform to the specification of CSS Text Module
+Level 3. Indeed, we design the APIs for HybridOS foundation class library,
+which will provide the ability to render Graphics User Interfaces in
+CSS way.
 
 #### New APIs conforming Unicode 12.0
 
