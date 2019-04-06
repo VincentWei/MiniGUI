@@ -147,12 +147,22 @@ For more information, please run
     $ ./configure --help
 
 
-## NEW FEATURES IN VERSION 3.4.x
+## NEW FEATURES IN VERSION 4.0.x
 
-We introduce some new features in MiniGUI Version 3.4.x:
+In this version, we enhanced and tuned the APIs related to text rendering.
+in order to support HybridOS Foundation C++ Library.
 
-  * The font and UNICODE related APIs are tuned or enhanced,
-    in order to support HybridOS Foundation C++ Library.
+* MiniGUI now provides complete APIs for Unicode characters process.
+  These APIs conform to Unicode 12.0.
+
+* MiniGUI also provides new APIs to lay out, shape, and render glyphs
+  from complex and mixed scripts, such as Arabic, Thai, and Indic.
+
+* We tuned and optimized MiniGUI's logical and device font interfaces to
+  suppor the new features above.
+
+* We introduced Slice Memoroy Allocator for fast concurrent memory chunk
+  allocation.
 
 For more information, please refer to RELEASENOTES.md file.
 
@@ -304,8 +314,9 @@ A brief history description of the development progress lay below:
   44) Aug., 2017:     FMSoft released the latest source code of MiniGUI under GPL 3.0.
   45) Aug., 2017:     FMSoft released the latest source code of mDolphin under Apache 2.0.
   46) Dec., 2017:     FMSoft updated MiniGUI and miniStudio for latest Linux distributions.
-  47) Feb., 2018:     FMSoft released MiniGUI version 3.2.
-  47) Jun., 2019:     FMSoft released MiniGUI version 3.4.
+  47) Feb., 2018:     FMSoft released MiniGUI version 3.2.0.
+  48) Apr., 2019:     FMSoft released MiniGUI version 3.2.2.
+  49) Jun., 2019:     FMSoft released MiniGUI version 4.0.0.
 
 
 ## ABOUT THE AUTHORS
