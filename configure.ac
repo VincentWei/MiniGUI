@@ -2499,9 +2499,12 @@ if test "$ac_cv_prog_gcc" = "yes"; then
     CFLAGS="$CFLAGS -O2 -fmax-errors=10 -Wstrict-prototypes -pipe"
 fi
 
-if test "x$runtime_mode" = "xths"; then
-    DEP_LIBS="$DEP_LIBS -lpthread"
-fi
+#if test "x$runtime_mode" = "xths"; then
+#    DEP_LIBS="$DEP_LIBS -lpthread"
+#fi
+
+# Always link to pthread
+DEP_LIBS="$DEP_LIBS -lpthread"
 
 AC_SUBST(VIDEO_SUBDIRS)
 AC_SUBST(VIDEO_DRIVERS)
