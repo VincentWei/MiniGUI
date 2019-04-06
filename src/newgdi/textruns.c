@@ -33,7 +33,7 @@
  */
 
 /*
-** textrunsinfo.c: The implementation of APIs related to TEXTRUNSINFO
+** textrunsinfo.c: The implementation of APIs related to TEXTRUNS
 **
 ** Create by WEI Yongming at 2019/03/15
 */
@@ -51,7 +51,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "textrunsinfo.h"
+#include "textruns.h"
 #include "fontname.h"
 
 /* Local array size, used for stack-based local arrays */
@@ -72,7 +72,7 @@ enum {
 };
 
 typedef struct _TextRunState {
-    TEXTRUNSINFO*   runinfo;
+    TEXTRUNS*   runinfo;
     const Uchar32*  text;
     const Uchar32*  end;
     TextRun*        run;
@@ -295,7 +295,7 @@ static BOOL state_next (TextRunState *state)
     return TRUE;
 }
 
-static BOOL create_text_runs(TEXTRUNSINFO* runinfo, BidiLevel* els)
+static BOOL create_text_runs(TEXTRUNS* runinfo, BidiLevel* els)
 {
     BOOL ok = FALSE;
     TextRunState state;
@@ -379,7 +379,7 @@ static inline Uint8 get_gravity_from_fontname (const char* fontname)
 }
 
 #ifdef _MGDEVEL_MODE
-TEXTRUN* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
+TEXTRUN* GetNextTextRunInfo(TEXTRUNS* runinfo,
         TEXTRUN* prev,
         const char** fontname, int* start_index, int* length,
         LanguageCode* lang_code, ScriptType* script,
@@ -438,14 +438,14 @@ out:
     return ok;
 }
 
-TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
+TEXTRUNS* GUIAPI CreateTextRuns(const Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir,
         const char* logfont_name, RGBCOLOR color, RGBCOLOR bg_color,
         BreakOppo* break_oppos)
 {
     BOOL ok = FALSE;
 
-    TEXTRUNSINFO* runinfo;
+    TEXTRUNS* runinfo;
     BidiLevel  local_els[LOCAL_ARRAY_SIZE];
     BidiLevel* els = NULL;
 
@@ -458,7 +458,7 @@ TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
         return NULL;
     }
 
-    runinfo = (TEXTRUNSINFO*)mg_slice_new0(TEXTRUNSINFO);
+    runinfo = (TEXTRUNS*)mg_slice_new0(TEXTRUNS);
     if (runinfo == NULL) {
         return NULL;
     }
@@ -533,12 +533,12 @@ out:
     if (ok)
         return runinfo;
 
-    mg_slice_delete(TEXTRUNSINFO, runinfo);
+    mg_slice_delete(TEXTRUNS, runinfo);
 
     return NULL;
 }
 
-TextRun* __mg_text_run_get_by_offset(TEXTRUNSINFO* runinfo,
+TextRun* __mg_text_run_get_by_offset(TEXTRUNS* runinfo,
         int index, int *start_offset)
 {
     struct list_head *i;
@@ -561,7 +561,7 @@ TextRun* __mg_text_run_get_by_offset(TEXTRUNSINFO* runinfo,
 }
 
 const TextRun* __mg_text_run_get_by_offset_const(
-        const TEXTRUNSINFO* runinfo, int index, int *start_offset)
+        const TEXTRUNS* runinfo, int index, int *start_offset)
 {
     struct list_head *i;
     const TextRun* found = NULL;
@@ -615,7 +615,7 @@ TextRun* __mg_text_run_split(TextRun *orig, int split_index)
     return new_run;
 }
 
-BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
+BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNS* runinfo,
         int start_index, int length, const char* logfont_name)
 {
     TextRun* run;
@@ -713,7 +713,7 @@ BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* runinfo,
     return TRUE;
 }
 
-const char* GUIAPI GetFontNameInTextRuns(const TEXTRUNSINFO* runinfo, int index)
+const char* GUIAPI GetFontNameInTextRuns(const TEXTRUNS* runinfo, int index)
 {
     struct list_head *i;
 
@@ -733,7 +733,7 @@ out:
     return runinfo->fontname;
 }
 
-BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* runinfo,
+BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNS* runinfo,
         int start_index, int length, RGBCOLOR color)
 {
     TextColorMap* color_entry = NULL;
@@ -778,7 +778,7 @@ error:
     return FALSE;
 }
 
-RGBCOLOR GetTextColorInTextRuns(const TEXTRUNSINFO* runinfo, int index)
+RGBCOLOR GetTextColorInTextRuns(const TEXTRUNS* runinfo, int index)
 {
     struct list_head *i;
 
@@ -794,7 +794,7 @@ RGBCOLOR GetTextColorInTextRuns(const TEXTRUNSINFO* runinfo, int index)
     return runinfo->fg_colors.value;
 }
 
-BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* runinfo,
+BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNS* runinfo,
         int start_index, int length, RGBCOLOR color)
 {
     TextColorMap* color_entry = NULL;
@@ -839,7 +839,7 @@ error:
     return FALSE;
 }
 
-RGBCOLOR GetBackgroundColorInTextRuns(const TEXTRUNSINFO* runinfo, int index)
+RGBCOLOR GetBackgroundColorInTextRuns(const TEXTRUNS* runinfo, int index)
 {
     struct list_head *i;
 
@@ -855,7 +855,7 @@ RGBCOLOR GetBackgroundColorInTextRuns(const TEXTRUNSINFO* runinfo, int index)
     return runinfo->bg_colors.value;
 }
 
-BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
+BOOL GUIAPI DestroyTextRuns(TEXTRUNS* runinfo)
 {
     if (runinfo == NULL)
         return FALSE;
@@ -885,7 +885,7 @@ BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* runinfo)
     }
 
     free(runinfo->fontname);
-    mg_slice_delete(TEXTRUNSINFO, runinfo);
+    mg_slice_delete(TEXTRUNS, runinfo);
     return TRUE;
 }
 

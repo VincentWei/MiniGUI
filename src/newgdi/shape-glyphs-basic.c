@@ -55,7 +55,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "layoutinfo.h"
+#include "layout.h"
 #include "glyph.h"
 
 /* Local array size, used for stack-based local arrays */
@@ -67,7 +67,7 @@
 #endif
 
 static BOOL shape_layout_run(SEInstance* inst,
-        const TEXTRUNSINFO* info, const LayoutRun* run,
+        const TEXTRUNS* info, const LayoutRun* run,
         GlyphString* gs)
 {
     BOOL ok = FALSE;
@@ -293,7 +293,7 @@ static BOOL destroy_instance(SEInstance* instance)
     return FALSE;
 }
 
-BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* info)
+BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* info)
 {
     shaping_engine_basic.ref_count++;
 

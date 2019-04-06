@@ -70,7 +70,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "layoutinfo.h"
+#include "layout.h"
 
 typedef struct _EllipsizeState EllipsizeState;
 typedef struct _RunInfo        RunInfo;
@@ -124,7 +124,7 @@ struct _LineIter
 /* State of ellipsization process */
 struct _EllipsizeState
 {
-    LAYOUTINFO *layout;     /* Layout being ellipsized */
+    LAYOUT *layout;     /* Layout being ellipsized */
 
     RunInfo *run_info;      /* Array of information about each run */
     int nr_runs;
@@ -224,7 +224,7 @@ static BOOL line_iter_next_cluster (EllipsizeState *state, LineIter *iter)
             iter->run_index++;
             __mg_glyph_run_iter_init_start (&iter->run_iter,
                     state->run_info[iter->run_index].run,
-                    state->layout->truninfo->ucs);
+                    state->layout->truns->ucs);
         }
     }
 
@@ -242,7 +242,7 @@ static BOOL line_iter_prev_cluster (EllipsizeState *state, LineIter *iter)
             iter->run_index--;
             __mg_glyph_run_iter_init_end (&iter->run_iter,
                     state->run_info[iter->run_index].run,
-                    state->layout->truninfo->ucs);
+                    state->layout->truns->ucs);
         }
     }
 
@@ -293,7 +293,7 @@ static BOOL ends_at_ellipsization_boundary(EllipsizeState *state,
     /*
      * FIXME: Pango uses index + 1 here, but will overflow the bos array.
      */
-    assert(index < state->layout->truninfo->nr_ucs);
+    assert(index < state->layout->truns->nr_ucs);
 
     return state->layout->bos[index] & BOV_GB_CURSOR_POS;
 }
@@ -339,7 +339,7 @@ static void shape_ellipsis (EllipsizeState *state)
         ellipsis_ucs = _ellipsis_baseline;
     }
 
-    text_run = __mg_text_run_get_by_offset_const(state->layout->truninfo,
+    text_run = __mg_text_run_get_by_offset_const(state->layout->truns,
         state->gap_start_iter.run_iter.start_index, NULL);
 
     layout_run = __mg_layout_run_new_ellipsis (state->layout, text_run,
@@ -359,7 +359,7 @@ static void shape_ellipsis (EllipsizeState *state)
 
     /* Now shape */
     glyphs = state->ellipsis_grun->gstr;
-    __mg_shape_layout_run(state->layout->truninfo, layout_run, glyphs);
+    __mg_shape_layout_run(state->layout->truns, layout_run, glyphs);
 
     state->ellipsis_width = 0;
     for (i = 0; i < glyphs->nr_glyphs; i++)
@@ -384,7 +384,7 @@ static void update_ellipsis_shape (EllipsizeState *state)
     BOOL is_cjk;
     const TextRun* text_run;
 
-    text_run = __mg_text_run_get_by_offset_const(state->layout->truninfo,
+    text_run = __mg_text_run_get_by_offset_const(state->layout->truns,
         state->gap_start_iter.run_iter.start_index, NULL);
 
     if (state->fontname != text_run->fontname) {
@@ -395,7 +395,7 @@ static void update_ellipsis_shape (EllipsizeState *state)
     /* Check whether we need to recompute the ellipsis because we switch
      * from CJK to not or vice-versa
      */
-    start_wc = state->layout->truninfo->ucs[state->gap_start_iter.run_iter.start_index];
+    start_wc = state->layout->truns->ucs[state->gap_start_iter.run_iter.start_index];
     is_cjk = IsUCharWide (start_wc);
 
     if (is_cjk != state->ellipsis_is_cjk) {
@@ -457,7 +457,7 @@ static void find_initial_span (EllipsizeState *state)
 
     cluster_width = 0; // Quiet GCC, the line must have at least one cluster
     for (have_cluster = __mg_glyph_run_iter_init_start(run_iter, glyph_run,
-                state->layout->truninfo->ucs);
+                state->layout->truns->ucs);
             have_cluster;
             have_cluster = __mg_glyph_run_iter_next_cluster (run_iter))
     {

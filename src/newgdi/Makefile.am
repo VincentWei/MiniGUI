@@ -17,14 +17,14 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
             text.c achar-uchar.c glyph.c legacy-bidi.c \
             textout.c tabbedtextout.c drawtext.c \
             simple-glyph-renderer.c glyph-shaped.c \
-            textrunsinfo.c \
+            textruns.c \
             shape-glyphs-basic.c shape-glyphs-complex.c \
-            layoutinfo.c layout-utils.c layout-ellipsize.c
+            layout.c layout-utils.c layout-ellipsize.c
 endif
 
 HDR_FILES = glyph.h drawtext.h mi.h midc.h mistruct.h miwideline.h \
             pixel_ops.h mifillarc.h mispans.h polygon.h mifpoly.h \
-            textrunsinfo.h layoutinfo.h
+            textruns.h layout.h
 
 libnewgdi_la_SOURCES = $(SRC_FILES) $(HDR_FILES)
 

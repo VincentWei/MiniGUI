@@ -12187,13 +12187,13 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
     /**
      * \defgroup glyph_render_flags Glyph Rendering Flags
      *
-     * The glyph rendering flags indicates \a GetGlyphsExtentFromUChars and
-     * \a CreateLayoutInfo how to lay out the text:
+     * The glyph rendering flags indicate \a GetGlyphsExtentFromUChars and
+     * \a CreateLayout how to lay out the text:
      *      - The writing mode (horizontal or vertical) and the glyph orientation;
      *      - The indentation mode (none, first line or hanging);
      *      - Whether and how to break if the line overflows the max extent;
      *      - Whether and how to ellipsize if the line overflows the max extent;
-     *      - The alignment of line;
+     *      - The alignment of lines;
      *      - Whether and how to adjust the glyph position for alignment of justify;
      *      - The hanging punctation method;
      *      - Remove or hange the spaces at the start and/or end of the line.
@@ -12640,11 +12640,11 @@ MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
         const Glyph32* glyphs, const GLYPHPOS* glyph_pos,
         int nr_glyphs);
 
-/* The fields in the structure _TEXTRUNSINFO are invisible to users */
-typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
+/* The fields in the structure _TEXTRUNS are invisible to users */
+typedef struct _TEXTRUNS TEXTRUNS;
 
 /**
- * \fn TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(const Uchar32* ucs, int nr_ucs,
+ * \fn TEXTRUNS* GUIAPI CreateTextRuns(const Uchar32* ucs, int nr_ucs,
  *      LanguageCode lang_code, ParagraphDir base_dir,
  *      const char* logfont_name, RGBCOLOR color, RGBCOLOR bg_color,
  *      BreakOppo* break_oppos)
@@ -12652,7 +12652,7 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  * \brief Split a Uchar32 paragraph string in mixed scripts into text runs.
  *
  * This function splits the Uchar32 paragraph \a ucs in mixed scripts
- * into text runs, and returns a TEXTRUNSINFO object.
+ * into text runs, and returns a TEXTRUNS object.
  *
  * \param ucs The Uchar32 string returned by \a GetUCharsUntilParagraphBoundary.
  * \param nr_ucs The length of the Uchar32 string.
@@ -12670,7 +12670,7 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  *      according to the script type of every text run. Please skip the first
  *      entry when you pass the pointer.
  *
- * \return The TEXTRUNSINFO object create; NULL for failure.
+ * \return The TEXTRUNS object create; NULL for failure.
  *
  * \note This function assumes that you passed one paragraph of
  *      the logical Unicode string. Therefore, you'd better to call this
@@ -12683,7 +12683,7 @@ typedef struct _TEXTRUNSINFO TEXTRUNSINFO;
  *
  * Since 3.4.0
  */
-MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(
+MG_EXPORT TEXTRUNS* GUIAPI CreateTextRuns(
         const Uchar32* ucs, int nr_ucs,
         LanguageCode lang_code, ParagraphDir base_dir,
         const char* logfont_name, RGBCOLOR color, RGBCOLOR bg_color,
@@ -12694,7 +12694,7 @@ MG_EXPORT TEXTRUNSINFO* GUIAPI CreateTextRunsInfo(
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* truninfo,
+MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNS* truns,
         int start_index, int length, const char* logfont_name);
 
 /**
@@ -12703,14 +12703,14 @@ MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNSINFO* truninfo,
  * Since 3.4.0
  */
 MG_EXPORT const char* GUIAPI GetFontNameInTextRuns(
-        const TEXTRUNSINFO* truninfo, int index);
+        const TEXTRUNS* truns, int index);
 
 /**
  * Set text olor in text runs.
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* truninfo,
+MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNS* truns,
         int start_index, int length, RGBCOLOR color);
 
 /**
@@ -12719,14 +12719,14 @@ MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNSINFO* truninfo,
  * Since 3.4.0
  */
 MG_EXPORT RGBCOLOR GUIAPI GetTextColorInTextRuns(
-        const TEXTRUNSINFO* truninfo, int index);
+        const TEXTRUNS* truns, int index);
 
 /**
  * Set background color in text runs.
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* truninfo,
+MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNS* truns,
     int start_index, int length, RGBCOLOR color);
 
 /**
@@ -12735,34 +12735,34 @@ MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNSINFO* truninfo,
  * Since 3.4.0
  */
 MG_EXPORT RGBCOLOR GUIAPI GetBackgroundColorInTextRuns(
-        const TEXTRUNSINFO* truninfo, int index);
+        const TEXTRUNS* truns, int index);
 
 /**
- * \fn BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo)
+ * \fn BOOL GUIAPI DestroyTextRuns(TEXTRUNS* truns)
  *
  * \brief Destroy the glyph run info object. It also frees all data allocated
  *      for shapping and layouting the glyphs.
  *
- * This function destroies the specific TEXTRUNSINFO object \a truninfo.
+ * This function destroies the specific TEXTRUNS object \a truns.
  *
- * \param truninfo The TEXTRUNSINFO object.
+ * \param truns The TEXTRUNS object.
  *
  * \return TRUE for success, FALSE otherwise.
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa CreateTextRunsInfo
+ * \sa CreateTextRuns
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo);
+MG_EXPORT BOOL GUIAPI DestroyTextRuns(TEXTRUNS* truns);
 
 /**
- * \fn BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo)
- * \brief Initialize the base shaping engine for a TEXTRUNSINFO object.
+ * \fn BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* truns)
+ * \brief Initialize the base shaping engine for a TEXTRUNS object.
  *
  * This function initializes the base shaping engine for the specific
- * TEXTRUNSINFO object \a truninfo.
+ * TEXTRUNS object \a truns.
  *
  * The basic shaping engine performs the basic shaping process
  * according to the Unicode character properties if the script type
@@ -12775,29 +12775,29 @@ MG_EXPORT BOOL GUIAPI DestroyTextRunsInfo(TEXTRUNSINFO* truninfo);
  * fonts. MiniGUI uses LGPL'd HarfBuzz to implement the complex
  * shaping engine.
  *
- * After initializing the shapping engine, you can call \a CreateLayoutInfo
+ * After initializing the shapping engine, you can call \a CreateLayout
  * to layout the Uchar32 paragraph string.
  *
- * \param truninfo The TEXTRUNSINFO object.
+ * \param truns The TEXTRUNS object.
  *
  * \return TRUE for success, FALSE otherwise.
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa InitComplexShapingEngine, CreateLayoutInfo
+ * \sa InitComplexShapingEngine, CreateLayout
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo);
+MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* truns);
 
 #ifdef _MGCOMPLEX_SCRIPTS
 
 /**
- * \fn BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* truninfo)
- * \brief Initialize the complex shaping engine for a TEXTRUNSINFO object.
+ * \fn BOOL GUIAPI InitComplexShapingEngine(TEXTRUNS* truns)
+ * \brief Initialize the complex shaping engine for a TEXTRUNS object.
  *
  * This function initializes the complex shaping engine for the specific
- * TEXTRUNSINFO object \a truninfo.
+ * TEXTRUNS object \a truns.
  *
  * The complex shaping engine performs the complex shaping process
  * according to the data contained in the OpenType Layout tables
@@ -12808,41 +12808,41 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNSINFO* truninfo);
  * process which shapes the glyphs based on the Unicode character properties
  * instead.
  *
- * After initializing the shapping engine, you can call \a CreateLayoutInfo
+ * After initializing the shapping engine, you can call \a CreateLayout
  * to layout the Uchar32 paragraph string.
  *
- * \param truninfo The TEXTRUNSINFO object.
+ * \param truns The TEXTRUNS object.
  *
  * \return TRUE for success, FALSE otherwise.
  *
  * \note Only available when the support for UNICODE (_MGCHARSET_UNICODE)
  *      and the support for complex scripts (_MGCOMPLEX_SCRIPTS) are enabled.
  *
- * \sa InitBasicShapingEngine, CreateLayoutInfo
+ * \sa InitBasicShapingEngine, CreateLayout
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* truninfo);
+MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNS* truns);
 
 #endif /* _MGCOMPLEX_SCRIPTS */
 
-typedef struct _LAYOUTINFO LAYOUTINFO;
+typedef struct _LAYOUT LAYOUT;
 typedef struct _LAYOUTLINE LAYOUTLINE;
 
 /**
- * \fn LAYOUTINFO* GUIAPI CreateLayoutInfo(
- *      const TEXTRUNSINFO* truninfo, Uint32 render_flags,
+ * \fn LAYOUT* GUIAPI CreateLayout(
+ *      const TEXTRUNS* truns, Uint32 render_flags,
  *      const BreakOppo* break_oppos, BOOL persist_lines,
  *      int max_line_extent, int indent,
  *      int letter_spacing, int word_spacing, int tab_size,
  *      int* tabs, int nr_tabs)
  * \brief Create layout information structure for laying out a paragraph.
  *
- * This function creates a LAYOUTINFO object for laying out a TEXTRUNSINFO
- * object \a truninfo, which represents a Uchar32 paragraph in mixed scripts
+ * This function creates a LAYOUT object for laying out a TEXTRUNS
+ * object \a truns, which represents a Uchar32 paragraph in mixed scripts
  * ready to lay out.
  *
- * \param truninfo The TEXTRUNSINFO object.
+ * \param truns The TEXTRUNS object.
  * \param render_flags The render flags; see \a glyph_render_flags.
  * \param break_oppos The breaking opportunities of the paragraph.
  * \param persist_lines Whether to persist the lines laid out.
@@ -12856,35 +12856,35 @@ typedef struct _LAYOUTLINE LAYOUTLINE;
  * \param tabs The array of the tab stops; can be NULL.
  * \param nr_tabs The length of the tab stops array.
  *
- * \return The LAYOUTINFO object; NULL for error.
+ * \return The LAYOUT object; NULL for error.
  *
- * \sa CreateTextRunsInfo, InitBasicShapingEngine, InitComplexShapingEngine,
+ * \sa CreateTextRuns, InitBasicShapingEngine, InitComplexShapingEngine,
  *      UStrGetBreaks, LayoutNextLine
  *
  * Since 3.4.0
  */
-MG_EXPORT LAYOUTINFO* GUIAPI CreateLayoutInfo(
-        const TEXTRUNSINFO* truninfo, Uint32 render_flags,
+MG_EXPORT LAYOUT* GUIAPI CreateLayout(
+        const TEXTRUNS* truns, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
         int max_line_extent, int indent,
         int letter_spacing, int word_spacing, int tab_size,
         int* tabs, int nr_tabs);
 
 /**
- * \fn BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info)
+ * \fn BOOL GUIAPI DestroyLayout(LAYOUT* layout)
  * \brief Destroy the specified layout information structure.
  *
- * This function destroy the specific layout information object \a layout_info.
+ * This function destroy the specific layout information object \a layout.
  *
- * \param layout_info The LAYOUTINFO object.
+ * \param layout The LAYOUT object.
  *
  * \return TRUE for success, FALSE otherwise.
  *
- * \sa CreateLayoutInfo
+ * \sa CreateLayout
  *
  * Since 3.4.0
  */
-MG_EXPORT BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout_info);
+MG_EXPORT BOOL GUIAPI DestroyLayout(LAYOUT* layout);
 
 /*
  * \var typedef struct _RENDERDATA RENDERDATA
@@ -12894,12 +12894,12 @@ typedef struct _RENDERDATA {
     /**
      * The text runs object.
      */
-    const TEXTRUNSINFO* truninfo;
+    const TEXTRUNS*     truns;
 
     /**
      * The layout object in which the glyph is contained.
      */
-    const LAYOUTINFO*   layout;
+    const LAYOUT*       layout;
 
     /**
      * The layout line object in which the glyph is located.
@@ -12951,21 +12951,21 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
         const RENDERDATA* render_data);
 
 /**
- * \fn LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
+ * \fn LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUT* layout,
  *      LAYOUTLINE* prev_line, int max_extent, BOOL last_line,
  *      CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
  * \brief Layout the next line of a paragraph according to the layout
  *      information.
  *
  * This function lays out the next line of in a LAYOUTLINE object
- * \a layout_info. If \a prev_line is NULL, the function will returns
+ * \a layout. If \a prev_line is NULL, the function will returns
  * the first line.
  *
  * You can pass the maximal extent of the next line via \a max_extent to
  * control the output extent of every line. The function will wrap or
- * ellipsize the line according to the rendering flags of the LAYOUTINFO
+ * ellipsize the line according to the rendering flags of the LAYOUT
  * object. You can also control whether to render the next line as
- * the last line of the LAYOUTINFO object via \a last_line parameter.
+ * the last line of the LAYOUT object via \a last_line parameter.
  *
  * The line size will be returned through \a line_size if it is not NULL.
  * When there is a glyph positioned, the function will call \a cb_laid_out
@@ -12975,7 +12975,7 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  * The previous line will be release if the LAYOUTLINE object is not
  * persisted. In this way, you can save memory use of the LAYOUTLINE object.
  *
- * \param layout_info The LAYOUTINFO object.
+ * \param layout The LAYOUT object.
  * \param prev_line NULL or the previous line object returned by this
  *      function.
  * \param max_extent The maximal extent of the next line; No limit if
@@ -12988,11 +12988,11 @@ typedef BOOL (*CB_GLYPH_LAID_OUT) (GHANDLE ctxt,
  *
  * \return NULL for no line, otherwise the next line object.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, CreateTextRunsInfo
+ * \sa CreateLayout, DestroyLayout, CreateTextRuns
  *
  * Since 3.4.0
  */
-MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
+MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUT* layout,
         LAYOUTLINE* prev_line, int max_extent, BOOL last_line,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt);
 
@@ -13008,7 +13008,7 @@ MG_EXPORT LAYOUTLINE* GUIAPI LayoutNextLine(LAYOUTINFO* layout_info,
  *
  * \return TRUE for success, FALSE otherwise.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ * \sa CreateLayout, DestroyLayout, LayoutNextLine
  *
  * Since 3.4.0
  */
@@ -13041,7 +13041,7 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineSize(const LAYOUTLINE* line,
  *      the top-right corner if the writing mode is
  *      GRF_WRITING_MODE_VERTICAL_RL.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine,
+ * \sa CreateLayout, DestroyLayout, LayoutNextLine,
  *  GetLayoutLineSize
  *
  * Since 3.4.0
@@ -13050,15 +13050,15 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
         int* x, int* y, int line_height, RECT* line_rc);
 
 /**
- * \fn int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
+ * \fn int GUIAPI CalcLayoutBoundingRect(LAYOUT* layout,
  *      int max_line_extent, int max_height, int line_height,
  *      int x, int y, RECT* bounding)
  * \brief Calculate the bounding rectangle of a layout.
  *
  * This function calculates the bounding rectangle of the specific
- * layout object \a layout_info.
+ * layout object \a layout.
  *
- * \param layout_info The LAYOUTINFO object.
+ * \param layout The LAYOUT object.
  * \param max_line_extent The maximal line extent; only effective if
  *      the line extent mode of the layout object is variable.
  * \param max_height The maximal height of the lines; no limit if
@@ -13079,12 +13079,12 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
  *      the top-right corner if the writing mode is
  *      GRF_WRITING_MODE_VERTICAL_RL.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ * \sa CreateLayout, DestroyLayout, LayoutNextLine
  *  GetLayoutLineRect
  *
  * Since 3.4.0
  */
-MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
+MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUT* layout,
         int max_line_extent, int max_height, int line_height,
         int x, int y, RECT* bounding);
 
@@ -13112,7 +13112,7 @@ MG_EXPORT int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout_info,
  * \param glyph_pos The glyph position and orientation information.
  * \param render_data The rendering data of the glyph.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine,
+ * \sa CreateLayout, DestroyLayout, LayoutNextLine,
  *      DrawLayoutLine, GLYPHPOS, RENDERDATA
  *
  * Since 3.4.0
@@ -13150,7 +13150,7 @@ MG_EXPORT BOOL DrawShapedGlyph(HDC hdc,
  *      the top-right corner if the writing mode is
  *      GRF_WRITING_MODE_VERTICAL_RL.
  *
- * \sa CreateLayoutInfo, DestroyLayoutInfo, LayoutNextLine
+ * \sa CreateLayout, DestroyLayout, LayoutNextLine
  *
  * Since 3.4.0
  */
@@ -13160,7 +13160,7 @@ MG_EXPORT int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line,
 #ifdef _MGDEVEL_MODE
 typedef struct _TextRun TEXTRUN;
 
-MG_EXPORT TEXTRUN* GetNextTextRunInfo(TEXTRUNSINFO* runinfo,
+MG_EXPORT TEXTRUN* GetNextTextRunInfo(TEXTRUNS* runinfo,
         TEXTRUN* prev,
         const char** fontname, int* start_index, int* length,
         LanguageCode* lang_code, ScriptType* script,

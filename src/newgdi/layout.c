@@ -33,7 +33,7 @@
  */
 
 /*
-** layoutlayout.c: The implementation of APIs related LAYOUTINFO
+** layout.c: The implementation of APIs related LAYOUT
 **
 ** Create by WEI Yongming at 2019/03/20
 **
@@ -74,7 +74,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "layoutinfo.h"
+#include "layout.h"
 #include "glyph.h"
 
 static BOOL check_logfont_rotatable(LOGFONT* logfont)
@@ -103,25 +103,25 @@ static BOOL check_logfont_rotatable(LOGFONT* logfont)
     return ok;
 }
 
-LAYOUTINFO* GUIAPI CreateLayoutInfo(
-        const TEXTRUNSINFO* truninfo, Uint32 render_flags,
+LAYOUT* GUIAPI CreateLayout(
+        const TEXTRUNS* truns, Uint32 render_flags,
         const BreakOppo* break_oppos, BOOL persist_lines,
         int max_line_extent, int indent,
         int letter_spacing, int word_spacing, int tab_size,
         int* tabs, int nr_tabs)
 {
-    LAYOUTINFO* layout;
+    LAYOUT* layout;
 
-    if (truninfo == NULL || truninfo->sei.inst == NULL) {
+    if (truns == NULL || truns->sei.inst == NULL) {
         return NULL;
     }
 
-    layout = (LAYOUTINFO*)mg_slice_new0(LAYOUTINFO);
+    layout = (LAYOUT*)mg_slice_new0(LAYOUT);
     if (layout == NULL) {
         return NULL;
     }
 
-    layout->truninfo    = truninfo;
+    layout->truns    = truns;
     layout->bos         = break_oppos;
     layout->rf          = render_flags;
     layout->ls          = letter_spacing;
@@ -135,12 +135,12 @@ LAYOUTINFO* GUIAPI CreateLayoutInfo(
     layout->lf_upright  = __mg_create_logfont_for_layout(layout,
             NULL, GLYPH_ORIENT_UPRIGHT);
     if (layout->lf_upright == NULL) {
-        mg_slice_delete(LAYOUTINFO, layout);
+        mg_slice_delete(LAYOUT, layout);
         return NULL;
     }
 
     INIT_LIST_HEAD(&layout->lines);
-    layout->nr_left_ucs = truninfo->nr_ucs;
+    layout->nr_left_ucs = truns->nr_ucs;
 
     if (render_flags & GRF_WRITING_MODE_VERTICAL_FLAG) {
         if (!check_logfont_rotatable(layout->lf_upright)) {
@@ -207,7 +207,7 @@ static void release_line(LAYOUTLINE* line)
     mg_slice_delete(LAYOUTLINE, line);
 }
 
-BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout)
+BOOL GUIAPI DestroyLayout(LAYOUT* layout)
 {
     if (layout->lf_upright) {
         FONT_RES* font_res = (FONT_RES*)layout->lf_upright;
@@ -221,7 +221,7 @@ BOOL GUIAPI DestroyLayoutInfo(LAYOUTINFO* layout)
         release_line(line);
     }
 
-    mg_slice_delete(LAYOUTINFO, layout);
+    mg_slice_delete(LAYOUT, layout);
     return TRUE;
 }
 
@@ -264,7 +264,7 @@ struct _LayoutState {
     // Local array for logical widths
     int local_log_widths[LOCAL_ARRAY_SIZE];
 
-    // Character offset of first lrun in state->lrun in layout->truninfo->ucs
+    // Character offset of first lrun in state->lrun in layout->truns->ucs
     int start_offset;
 
     /* maintained per line */
@@ -301,7 +301,7 @@ static inline void state_log_widths_free(LayoutState* state)
     state->log_widths = NULL;
 }
 
-static BOOL should_ellipsize_current_line(LAYOUTINFO *layout,
+static BOOL should_ellipsize_current_line(LAYOUT *layout,
         LayoutState *state)
 {
     if (((layout->rf & GRF_OVERFLOW_ELLIPSIZE_MASK) ==
@@ -315,7 +315,7 @@ static BOOL should_ellipsize_current_line(LAYOUTINFO *layout,
     return TRUE;
 }
 
-int __mg_shape_layout_run(const TEXTRUNSINFO* info, const LayoutRun* run,
+int __mg_shape_layout_run(const TEXTRUNS* info, const LayoutRun* run,
         GlyphString* glyphs)
 {
     if (!info->sei.shape(info->sei.inst, info, run, glyphs))
@@ -324,7 +324,7 @@ int __mg_shape_layout_run(const TEXTRUNSINFO* info, const LayoutRun* run,
     return glyphs->nr_glyphs;
 }
 
-static void ensure_tab_width(LAYOUTINFO *layout)
+static void ensure_tab_width(LAYOUT *layout)
 {
     if (layout->ts == -1) {
         /* Find out how wide 8 spaces are in the context's default
@@ -345,7 +345,7 @@ static void ensure_tab_width(LAYOUTINFO *layout)
 /* For now we only need the tab position, we assume
  * all tabs are left-aligned.
  */
-static int get_tab_pos(LAYOUTINFO *layout, int index, BOOL *is_default)
+static int get_tab_pos(LAYOUT *layout, int index, BOOL *is_default)
 {
     int n_tabs;
 
@@ -465,7 +465,7 @@ static void shape_tab(LAYOUTLINE *line, GlyphString *glyphs)
     }
 }
 
-static void shape_space(const LAYOUTINFO* layout, const LayoutRun* lrun,
+static void shape_space(const LAYOUT* layout, const LayoutRun* lrun,
         GlyphString* gstr)
 {
     unsigned int i;
@@ -529,7 +529,7 @@ static void shape_shape(const Uchar32* ucs, int nr_ucs,
 
 static void shape_full(const Uchar32* lrun_ucs, int nr_lrun_ucs,
         const Uchar32* para_ucs, int nr_para_ucs,
-        const TEXTRUNSINFO* info, const LayoutRun* lrun,
+        const TEXTRUNS* info, const LayoutRun* lrun,
         GlyphString* glyphs)
 {
     // TODO
@@ -551,10 +551,10 @@ static void distribute_letter_spacing (int extra_spacing,
 static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
         LayoutRun *lrun)
 {
-    LAYOUTINFO *layout = line->layout;
+    LAYOUT *layout = line->layout;
     GlyphString *glyphs = __mg_glyph_string_new ();
 
-    if (layout->truninfo->ucs[lrun->si] == UCHAR_TAB) {
+    if (layout->truns->ucs[lrun->si] == UCHAR_TAB) {
         shape_tab(line, glyphs);
     }
     else if (lrun->flags & LAYOUTRUN_FLAG_NO_SHAPING) {
@@ -563,13 +563,13 @@ static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
     }
     else {
         if (state->shape_set)
-            shape_shape(layout->truninfo->ucs + lrun->si, lrun->len,
+            shape_shape(layout->truns->ucs + lrun->si, lrun->len,
                     &state->shape_ink_rect,
                     &state->shape_logical_rect, glyphs);
         else
-            shape_full(layout->truninfo->ucs + lrun->si, lrun->len,
-                    layout->truninfo->ucs, layout->truninfo->nr_ucs,
-                    layout->truninfo, lrun, glyphs);
+            shape_full(layout->truns->ucs + lrun->si, lrun->len,
+                    layout->truns->ucs, layout->truns->nr_ucs,
+                    layout->truns, lrun, glyphs);
 
         if (layout->ls) {
             GlyphRun glyph_run;
@@ -579,7 +579,7 @@ static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
             glyph_run.gstr = glyphs;
 
             __mg_glyph_run_letter_space (&glyph_run,
-                    layout->truninfo->ucs,
+                    layout->truns->ucs,
                     layout->bos + state->start_offset,
                     layout->ls);
 
@@ -606,7 +606,7 @@ static void free_glyph_run (GlyphRun *grun)
 }
 
 #ifdef _DEBUG
-static inline void print_text_runs(const TEXTRUNSINFO* info, const char* func)
+static inline void print_text_runs(const TEXTRUNS* info, const char* func)
 {
     int j = 0;
     struct list_head* i;
@@ -649,7 +649,7 @@ static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
     }
 }
 
-static inline void print_run(const GlyphRun* run, const char* func)
+static inline void print_glyph_run(const GlyphRun* run, const char* func)
 {
     _DBG_PRINTF("Run in %s:\n", func);
     _DBG_PRINTF("   ADDRESS:        %p\n", run);
@@ -674,7 +674,7 @@ static inline void list_print(struct list_head* head, const char* desc)
 
 #else
 
-static inline void print_text_runs(const TEXTRUNSINFO* info, const char* func)
+static inline void print_text_runs(const TEXTRUNS* info, const char* func)
 {
     // do nothing.
 }
@@ -684,7 +684,7 @@ static inline void print_line_runs(const LAYOUTLINE* line, const char* func)
     // do nothing.
 }
 
-static inline void print_run(const GlyphRun* run, const char* func)
+static inline void print_glyph_run(const GlyphRun* run, const char* func)
 {
     // do nothing.
 }
@@ -734,12 +734,12 @@ static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
     return glyph_run;
 }
 
-static inline BOOL can_break_at (LAYOUTINFO *layout,
+static inline BOOL can_break_at (LAYOUT *layout,
         int offset, BOOL always_wrap_char)
 {
     Uint32 wrap = layout->rf & GRF_OVERFLOW_WRAP_MASK;
 
-    if (offset == layout->truninfo->nr_ucs)
+    if (offset == layout->truns->nr_ucs)
         return TRUE;
 
     if (always_wrap_char)
@@ -753,13 +753,13 @@ static inline BOOL can_break_at (LAYOUTINFO *layout,
     else if (wrap == GRF_OVERFLOW_WRAP_ANYWHERE)
         return layout->bos[offset] & BOV_GB_CHAR_BREAK;
     else {
-        _WRN_PRINTF ("broken LayoutInfo");
+        _WRN_PRINTF ("broken Layout");
     }
 
     return TRUE;
 }
 
-static inline BOOL can_break_in (LAYOUTINFO *layout,
+static inline BOOL can_break_in (LAYOUT *layout,
         int start_offset, int num_chars, BOOL allow_break_at_start)
 {
     int i;
@@ -792,7 +792,7 @@ static inline BOOL can_break_in (LAYOUTINFO *layout,
  * or %BREAK_NONE_FIT returned. This is used when the end of the
  * run is not a break position.
  */
-BreakResult process_layout_run(LAYOUTINFO *layout,
+BreakResult process_layout_run(LAYOUT *layout,
         LAYOUTLINE *line, LayoutState *state,
         BOOL force_fit, BOOL no_break_at_end)
 {
@@ -812,7 +812,7 @@ BreakResult process_layout_run(LAYOUTINFO *layout,
     }
 
     if (!layout->single_paragraph &&
-            layout->truninfo->ucs[lrun->si] == UCHAR_LINE_SEPARATOR &&
+            layout->truns->ucs[lrun->si] == UCHAR_LINE_SEPARATOR &&
             !should_ellipsize_current_line (layout, state)) {
         insert_run(line, state, lrun, TRUE);
         state->log_widths_offset += lrun->len;
@@ -857,7 +857,7 @@ BreakResult process_layout_run(LAYOUTINFO *layout,
 
             assert(state->log_widths == NULL);
             state_log_widths_new(state, lrun->len);
-            __mg_glyph_run_get_logical_widths(&glyph_run, layout->truninfo->ucs,
+            __mg_glyph_run_get_logical_widths(&glyph_run, layout->truns->ucs,
                 state->log_widths);
         }
 
@@ -955,7 +955,7 @@ retry_break:
     }
 }
 
-static LAYOUTLINE *layout_line_new(LAYOUTINFO *layout)
+static LAYOUTLINE *layout_line_new(LAYOUT *layout)
 {
     LAYOUTLINE *line = mg_slice_new0(LAYOUTLINE);
 
@@ -1184,7 +1184,7 @@ static void layout_line_reorder(LAYOUTLINE *line)
 static void zero_line_final_space (LAYOUTLINE *line,
         LayoutState *state, GlyphRun *run)
 {
-    LAYOUTINFO *layout = line->layout;
+    LAYOUT *layout = line->layout;
     LayoutRun *lrun = run->lrun;
     GlyphString *glyphs = run->gstr;
     int glyph = lrun->el % 2 ? 0 : glyphs->nr_glyphs - 1;
@@ -1240,9 +1240,9 @@ static void pad_glyphstring_left (GlyphString *glyphs,
     glyphs->glyphs[glyph].x_off += adjustment;
 }
 
-static inline BOOL is_tab_run(LAYOUTINFO *layout, GlyphRun *grun)
+static inline BOOL is_tab_run(LAYOUT *layout, GlyphRun *grun)
 {
-    return (layout->truninfo->ucs[grun->lrun->si] == '\t');
+    return (layout->truns->ucs[grun->lrun->si] == '\t');
 }
 
 /* When doing shaping, we add the letter spacing value for a
@@ -1259,7 +1259,7 @@ static inline BOOL is_tab_run(LAYOUTINFO *layout, GlyphRun *grun)
  */
 static void adjust_line_letter_spacing(LAYOUTLINE *line, LayoutState *state)
 {
-    LAYOUTINFO *layout = line->layout;
+    LAYOUT *layout = line->layout;
     BOOL reversed;
     GlyphRun *last_run;
     int tab_adjustment;
@@ -1346,7 +1346,7 @@ static void adjust_line_letter_spacing(LAYOUTLINE *line, LayoutState *state)
 
 static void justify_clusters (LAYOUTLINE *line, LayoutState *state)
 {
-    const Uchar32 *text = line->layout->truninfo->ucs;
+    const Uchar32 *text = line->layout->truns->ucs;
     const BreakOppo *bos = line->layout->bos;
 
     int total_remaining_width, total_gaps = 0;
@@ -1482,7 +1482,7 @@ static void justify_clusters (LAYOUTLINE *line, LayoutState *state)
 static void justify_words (LAYOUTLINE *line,
         LayoutState  *state)
 {
-    const Uchar32 *text = line->layout->truninfo->ucs;
+    const Uchar32 *text = line->layout->truns->ucs;
     const BreakOppo *bos = line->layout->bos;
 
     int total_remaining_width, total_space_width = 0;
@@ -1625,7 +1625,7 @@ static void layout_line_postprocess (LAYOUTLINE *line,
     line->is_ellipsized |= ellipsized;
 }
 
-static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
+static LAYOUTLINE* check_next_line(LAYOUT* layout, LayoutState* state)
 {
     LAYOUTLINE *line;
 
@@ -1680,7 +1680,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
             state->trun = (const TextRun*)state->trun->list.next;
             state->start_index_in_trun = 0;
             state->start_offset += old_num_chars;
-            if (&state->trun->list == &layout->truninfo->truns)
+            if (&state->trun->list == &layout->truns->truns)
                 state->trun = NULL;
             break;
 
@@ -1712,7 +1712,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
             print_line_runs(line, __FUNCTION__);
 
             /* determine start text run again */
-            state->trun = __mg_text_run_get_by_offset_const(layout->truninfo,
+            state->trun = __mg_text_run_get_by_offset_const(layout->truns,
                     state->start_offset, &state->start_index_in_trun);
             if (state->start_index_in_trun > 0) {
                 state->lrun = __mg_layout_run_new_from_offset(layout,
@@ -1736,7 +1736,7 @@ static LAYOUTLINE* check_next_line(LAYOUTINFO* layout, LayoutState* state)
             state->trun = (const TextRun*)state->trun->list.next;
             state->start_index_in_trun = 0;
             state->start_offset += old_num_chars;
-            if (&state->trun->list == &layout->truninfo->truns)
+            if (&state->trun->list == &layout->truns->truns)
                 state->trun = NULL;
             /* A line-separate is just a forced break.  Set wrapped, so we do
              * justification */
@@ -1789,7 +1789,7 @@ static inline int line_dir_to_simple(LineDirection d)
 }
 
 /* call this when layout has auto_dir property */
-static Uint32 get_line_alignment(const LAYOUTINFO *layout,
+static Uint32 get_line_alignment(const LAYOUT *layout,
     const LAYOUTLINE *line)
 {
     Uint32 alignment = layout->rf & GRF_ALIGN_MASK;
@@ -1825,7 +1825,7 @@ static inline int line_dir_to_factor(LineDirection d)
 
 #else
 
-static Uint32 get_line_alignment(const LAYOUTINFO *layout,
+static Uint32 get_line_alignment(const LAYOUT *layout,
     const LAYOUTLINE *line)
 {
     Uint32 alignment = layout->rf & GRF_ALIGN_MASK;
@@ -1856,7 +1856,7 @@ static Uint32 get_line_alignment(const LAYOUTINFO *layout,
 }
 #endif
 
-int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
+int __mg_layout_get_line_offset(const LAYOUT *layout,
         const LAYOUTLINE *line)
 {
     int x_offset;
@@ -1902,7 +1902,7 @@ done:
     return x_offset;
 }
 
-static int traverse_line_glyphs(const LAYOUTINFO* layout,
+static int traverse_line_glyphs(const LAYOUT* layout,
         const LAYOUTLINE* line,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
@@ -1913,7 +1913,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
     Uint32 def_ta, up_ta;
     int line_offset;
 
-    extra.truninfo  = layout->truninfo;
+    extra.truns  = layout->truns;
     extra.layout    = layout;
     extra.line      = line;
 
@@ -1953,9 +1953,9 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
 
             extra.logfont   = run->lrun->lf;
 #if 0
-            extra.fg_color  = GetTextColorInTextRuns(layout->truninfo,
+            extra.fg_color  = GetTextColorInTextRuns(layout->truns,
                                 extra.uc_index);
-            extra.bg_color  = GetBackgroundColorInTextRuns(layout->truninfo,
+            extra.bg_color  = GetBackgroundColorInTextRuns(layout->truns,
                                 extra.uc_index);
 #endif
             extra.uc        = run->lrun->ucs[run->gstr->log_clusters[j]];
@@ -2059,7 +2059,7 @@ static int traverse_line_glyphs(const LAYOUTINFO* layout,
 }
 
 LAYOUTLINE* GUIAPI LayoutNextLine(
-        LAYOUTINFO* layout, LAYOUTLINE* prev_line,
+        LAYOUT* layout, LAYOUTLINE* prev_line,
         int max_extent, BOOL last_line,
         CB_GLYPH_LAID_OUT cb_laid_out, GHANDLE ctxt)
 {
@@ -2098,13 +2098,13 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
     //state.shape_ink_rect;
     //state.shape_logical_rect;
 
-    state.base_dir = layout->truninfo->base_dir;
+    state.base_dir = layout->truns->base_dir;
     state.glyphs = NULL;
     state.log_widths = NULL;
     state.log_widths_offset = 0;
 
     if (prev_line == NULL) {
-        if (list_empty(&layout->truninfo->truns)) {
+        if (list_empty(&layout->truns->truns)) {
             // empty line
             next_line = NULL;
             goto out;
@@ -2113,13 +2113,13 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         state.line_start_index = 0;
         state.start_offset = 0;
         state.start_index_in_trun = 0;
-        state.trun = (TextRun*)layout->truninfo->truns.next;
+        state.trun = (TextRun*)layout->truns->truns.next;
     }
     else {
-        state.line_start_index = layout->truninfo->nr_ucs - layout->nr_left_ucs;
+        state.line_start_index = layout->truns->nr_ucs - layout->nr_left_ucs;
         state.start_offset = state.line_start_index;
         state.start_index_in_trun = 0;
-        state.trun = __mg_text_run_get_by_offset_const(layout->truninfo,
+        state.trun = __mg_text_run_get_by_offset_const(layout->truns,
                 state.line_start_index, &state.start_index_in_trun);
 
 #if 0
@@ -2222,7 +2222,7 @@ BOOL GUIAPI GetLayoutLineSize(const LAYOUTLINE* line,
 BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
         int* x, int* y, int line_height, RECT* line_rc)
 {
-    const LAYOUTINFO* layout;
+    const LAYOUT* layout;
     int line_offset;
 
     if (line == NULL || line->width < 0 || line->height < 0)
@@ -2276,7 +2276,7 @@ BOOL GUIAPI GetLayoutLineRect(const LAYOUTLINE* line,
     return TRUE;
 }
 
-int GUIAPI CalcLayoutBoundingRect(LAYOUTINFO* layout,
+int GUIAPI CalcLayoutBoundingRect(LAYOUT* layout,
         int max_line_extent, int max_height, int line_height,
         int x, int y, RECT* bounding)
 {

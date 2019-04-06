@@ -33,16 +33,16 @@
  */
 
 /*
-** layoutinfo.h: Internal interface related to LAYOUTINFO.
+** layoutinfo.h: Internal interface related to LAYOUT.
 **
 ** Create by WEI Yongming at 2019/03/20
 */
 
-#ifndef _MG_NEWGDI_LAYOUTINFO_H
-    #define _MG_NEWGDI_LAYOUTINFO_H
+#ifndef _MG_NEWGDI_LAYOUT_H
+    #define _MG_NEWGDI_LAYOUT_H
 
 #include "list.h"
-#include "textrunsinfo.h"
+#include "textruns.h"
 
 typedef struct _GlyphRun        GlyphRun;
 typedef struct _ShapedGlyph     ShapedGlyph;
@@ -101,7 +101,7 @@ typedef enum {
 
 struct _LAYOUTLINE {
     struct list_head    list;
-    LAYOUTINFO*         layout;
+    LAYOUT*             layout;
     int*                log_widths; // the widths of the logical chars
 
     struct list_head    gruns;      // the list head for glyph runs
@@ -120,8 +120,8 @@ struct _LAYOUTLINE {
     Uint32              is_ellipsized:1;    // is ellipsized?
 };
 
-struct _LAYOUTINFO {
-    const TEXTRUNSINFO* truninfo;
+struct _LAYOUT {
+    const TEXTRUNS*     truns;
     const BreakOppo*    bos;
     const int*          tabs;       // tabstop array
     int                 nr_tabs;    // number of tabstops
@@ -164,19 +164,19 @@ struct _GlyphRunIter {
 extern "C" {
 #endif  /* __cplusplus */
 
-LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
+LOGFONT* __mg_create_logfont_for_layout(const LAYOUT* layout,
         const char* fontname, GlyphOrient ort);
-void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
+void __mg_release_logfont_for_layout(const LAYOUT* layout,
         const char* fontname, GlyphOrient ort);
 
 GlyphRun *__mg_glyph_run_split (GlyphRun *orig, int split_index);
 void __mg_glyph_run_free(GlyphRun* run);
 
-LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUT* layout,
         const TextRun* trun, const Uchar32* ucs, int nr_ucs);
-LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_from(const LAYOUT* layout,
         const TextRun* trun);
-LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_from_offset(const LAYOUT* layout,
         const TextRun* trun, int offset);
 
 void __mg_layout_run_free(LayoutRun* run);
@@ -208,18 +208,18 @@ void __mg_glyph_run_letter_space (const GlyphRun* glyph_run,
 
 BOOL __mg_layout_line_ellipsize(LAYOUTLINE *line, int goal_width);
 
-int __mg_shape_layout_run(const TEXTRUNSINFO* info, const LayoutRun* run,
+int __mg_shape_layout_run(const TEXTRUNS* info, const LayoutRun* run,
         GlyphString* glyphs);
 
 void __mg_reverse_shaped_glyphs(ShapedGlyph* glyphs, int len);
 void __mg_reverse_log_clusters(int* clusters, int len);
 
-int __mg_layout_get_line_offset(const LAYOUTINFO *layout,
+int __mg_layout_get_line_offset(const LAYOUT *layout,
         const LAYOUTLINE *line);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif // _MG_NEWGDI_LAYOUTINFO_H
+#endif // _MG_NEWGDI_LAYOUT_H
 

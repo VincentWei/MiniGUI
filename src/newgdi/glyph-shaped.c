@@ -56,7 +56,7 @@
 #include "cursor.h"
 #include "drawtext.h"
 #include "glyph.h"
-#include "layoutinfo.h"
+#include "layout.h"
 
 #ifdef _MGCHARSET_UNICODE
 
@@ -68,7 +68,7 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
     if (glyph_pos == NULL || render_data == NULL)
         return FALSE;
 
-    bg_color = GetBackgroundColorInTextRuns(render_data->truninfo,
+    bg_color = GetBackgroundColorInTextRuns(render_data->truns,
         render_data->uc_index);
 
     if (glyph_pos->suppressed == 0 && glyph_pos->whitespace == 0) {
@@ -77,7 +77,7 @@ BOOL DrawShapedGlyph(HDC hdc, Glyph32 gv,
 
         SelectFont(hdc, render_data->logfont);
 
-        fg_color = GetTextColorInTextRuns(render_data->truninfo,
+        fg_color = GetTextColorInTextRuns(render_data->truns,
             render_data->uc_index);
         fg_pixel = DWORD2Pixel(hdc, fg_color);
         SetTextColor(hdc, (DWORD)fg_pixel);
@@ -113,8 +113,8 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
 {
     int n, line_offset, line_adv = 0;
     struct list_head* i;
-    const TEXTRUNSINFO* truninfo;
-    const LAYOUTINFO* layout;
+    const TEXTRUNS* truns;
+    const LAYOUT* layout;
     Uint32 def_ta, up_ta;
     PLOGFONT old_lf = NULL;
 
@@ -122,7 +122,7 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
         return 0;
 
     layout = line->layout;
-    truninfo = layout->truninfo;
+    truns = layout->truns;
 
     switch (layout->rf & GRF_WRITING_MODE_MASK) {
     case GRF_WRITING_MODE_HORIZONTAL_BT:
@@ -165,8 +165,8 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
             RGBCOLOR bg_color, fg_color;
 
             // We might use an interator to optimize the color settings.
-            fg_color = GetTextColorInTextRuns(truninfo, log_index);
-            bg_color = GetBackgroundColorInTextRuns(truninfo, log_index);
+            fg_color = GetTextColorInTextRuns(truns, log_index);
+            bg_color = GetBackgroundColorInTextRuns(truns, log_index);
             SetTextColor(hdc, DWORD2Pixel(hdc, fg_color));
             if (bg_color) {
                 SetBkColor(hdc, DWORD2Pixel(hdc, bg_color));

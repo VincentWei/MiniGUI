@@ -33,7 +33,7 @@
  */
 
 /*
-** layout-utils.c: The implementation of utilities related LAYOUTINFO
+** layout-utils.c: The implementation of utilities related LAYOUT
 **
 ** Create by WEI Yongming at 2019/03/21
 */
@@ -51,7 +51,7 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "layoutinfo.h"
+#include "layout.h"
 #include "fontname.h"
 
 static BOOL fontname_get_from_orient(char* fontname, GlyphOrient ort)
@@ -84,14 +84,14 @@ static BOOL fontname_get_from_orient(char* fontname, GlyphOrient ort)
 }
 
 /* Use MiniGUI resource manager to avoid duplicated logfonts */
-LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
+LOGFONT* __mg_create_logfont_for_layout(const LAYOUT* layout,
         const char* fontname, GlyphOrient ort)
 {
     char my_fontname[LEN_LOGFONT_NAME_FULL + 1];
     LOGFONT* lf;
 
     if (fontname == NULL)
-        fontname = layout->truninfo->fontname;
+        fontname = layout->truns->fontname;
 
     memset (my_fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
     strncpy (my_fontname, fontname, LEN_LOGFONT_NAME_FULL);
@@ -108,12 +108,12 @@ LOGFONT* __mg_create_logfont_for_layout(const LAYOUTINFO* layout,
     return lf;
 }
 
-void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
+void __mg_release_logfont_for_layout(const LAYOUT* layout,
         const char* fontname, GlyphOrient ort)
 {
     char my_fontname[LEN_LOGFONT_NAME_FULL + 1];
     if (fontname == NULL)
-        fontname = layout->truninfo->fontname;
+        fontname = layout->truns->fontname;
 
     memset (my_fontname, 0, LEN_LOGFONT_NAME_FULL + 1);
     strncpy (my_fontname, fontname, LEN_LOGFONT_NAME_FULL);
@@ -124,7 +124,7 @@ void __mg_release_logfont_for_layout(const LAYOUTINFO* layout,
     ReleaseRes(Str2Key(my_fontname));
 }
 
-static GlyphOrient resolve_glyph_orient(const LAYOUTINFO* layout,
+static GlyphOrient resolve_glyph_orient(const LAYOUT* layout,
         const TextRun* trun)
 {
     GlyphGravity gravity;
@@ -142,7 +142,7 @@ static GlyphOrient resolve_glyph_orient(const LAYOUTINFO* layout,
     return (GlyphOrient)gravity;
 }
 
-static void resolve_layout_run_dir(const LAYOUTINFO* layout,
+static void resolve_layout_run_dir(const LAYOUT* layout,
         LayoutRun* lrun)
 {
     /* The level vs. gravity dance:
@@ -193,7 +193,7 @@ static void resolve_layout_run_dir(const LAYOUTINFO* layout,
  * in the same script, same direction, and same orientation. This is
  * enough for the ellipsis.
  */
-LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUT* layout,
         const TextRun* trun, const Uchar32* ucs, int nr_ucs)
 {
     GlyphOrient ort;
@@ -220,7 +220,7 @@ LayoutRun* __mg_layout_run_new_ellipsis(const LAYOUTINFO* layout,
     return lrun;
 }
 
-LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_from(const LAYOUT* layout,
         const TextRun* trun)
 {
     GlyphOrient ort;
@@ -235,7 +235,7 @@ LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
     lrun = mg_slice_new(LayoutRun);
     lrun->lf = lf;
     lrun->si = trun->si;
-    lrun->ucs = layout->truninfo->ucs + lrun->si;
+    lrun->ucs = layout->truns->ucs + lrun->si;
     lrun->len = trun->len;
     lrun->lc = trun->lc;
     lrun->st = trun->st;
@@ -247,7 +247,7 @@ LayoutRun* __mg_layout_run_new_from(const LAYOUTINFO* layout,
     return lrun;
 }
 
-LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
+LayoutRun* __mg_layout_run_new_from_offset(const LAYOUT* layout,
         const TextRun* trun, int offset)
 {
     GlyphOrient ort;
@@ -269,7 +269,7 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUTINFO* layout,
 
     lrun->lf = lf;
     lrun->si = trun->si + offset;
-    lrun->ucs = layout->truninfo->ucs + lrun->si;
+    lrun->ucs = layout->truns->ucs + lrun->si;
     lrun->len = trun->len - offset;
     lrun->lc = trun->lc;
     lrun->st = trun->st;

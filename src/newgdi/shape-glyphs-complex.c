@@ -55,9 +55,9 @@
 #include "window.h"
 #include "devfont.h"
 #include "unicode-ops.h"
-#include "textrunsinfo.h"
+#include "textruns.h"
 
-BOOL GUIAPI InitComplexShapingEngine(TEXTRUNSINFO* run_info)
+BOOL GUIAPI InitComplexShapingEngine(TEXTRUNS* run_info)
 {
     return FALSE;
 }

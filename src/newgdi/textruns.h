@@ -33,13 +33,13 @@
  */
 
 /*
-** textrunsinfo.h: Internal interface related to TEXTRUNSINFO.
+** textruns.h: Internal interface related to TEXTRUNS.
 **
 ** Create by WEI Yongming at 2019/03/15
 */
 
-#ifndef _MG_NEWGDI_TEXTRUNSINFO_H
-    #define _MG_NEWGDI_TEXTRUNSINFO_H
+#ifndef _MG_NEWGDI_TEXTRUNS_H
+    #define _MG_NEWGDI_TEXTRUNS_H
 
 #include "list.h"
 
@@ -47,10 +47,10 @@ typedef struct _LayoutRun       LayoutRun;
 typedef struct _TextRun         TextRun;
 typedef struct _GlyphString     GlyphString;
 typedef struct _SEInstance      SEInstance;
-typedef struct _TextColorMap     TextColorMap;
+typedef struct _TextColorMap    TextColorMap;
 
 typedef BOOL (*CB_SHAPE_LAYOUT_RUN)(SEInstance* instance,
-        const TEXTRUNSINFO* info, const LayoutRun* run,
+        const TEXTRUNS* info, const LayoutRun* run,
         GlyphString* gs);
 
 typedef BOOL (*CB_DESTROY_INSTANCE)(SEInstance* instance);
@@ -95,7 +95,7 @@ struct _TextColorMap {
     RGBCOLOR            value;  // attribute value
 };
 
-struct _TEXTRUNSINFO {
+struct _TEXTRUNS {
     /* The following fields will be initialized by CreateGlyphRunInfo. */
     const Uchar32*      ucs;        // the uchars
     char*               fontname;   // the default logfont name specified
@@ -127,14 +127,14 @@ extern "C" {
 
 TextRun* __mg_text_run_copy(const TextRun *orig);
 TextRun* __mg_text_run_split(TextRun *orig, int split_index);
-TextRun* __mg_text_run_get_by_offset(TEXTRUNSINFO* runinfo,
+TextRun* __mg_text_run_get_by_offset(TEXTRUNS* runinfo,
         int index, int *start_offset);
-const TextRun* __mg_text_run_get_by_offset_const(const TEXTRUNSINFO* runinfo,
+const TextRun* __mg_text_run_get_by_offset_const(const TEXTRUNS* runinfo,
         int index, int *start_offset);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif // _MG_NEWGDI_TEXTRUNSINFO_H
+#endif // _MG_NEWGDI_TEXTRUNS_H
 
