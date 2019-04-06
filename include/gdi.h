@@ -8089,10 +8089,38 @@ typedef Uint16  ParagraphDir;
      * @{
      */
 
-/** The function determines the general category (basic type) of a UNICODE character. */
+/**
+ * \fn UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc)
+ * \brief Get the general category of a Unicode character.
+ *
+ * The function determines the general category (basic type) of
+ * a UNICODE character \a uc.
+ *
+ * \param uc The Uchar32 value of the Unicode character.
+ *
+ * \return The general category of the Unicode character.
+ *
+ * \sa UCharGeneralCategory
+ *
+ * Since: 4.0.0
+ */
 MG_EXPORT UCharGeneralCategory GUIAPI UCharGetCategory(Uchar32 uc);
 
-/** The function determines the break property of a UNICODE character. */
+/**
+ * \fn UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc)
+ * \brief Get the break property of a Unicode character.
+ *
+ * The function determines the break property of a UNICODE character
+ * \a uc.
+ *
+ * \param uc The Uchar32 value of the Unicode character.
+ *
+ * \return The breaking type value of the Unicode character.
+ *
+ * \sa UCharBreakType
+ *
+ * Since: 4.0.0
+ */
 MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
 
 /**
@@ -8184,7 +8212,7 @@ MG_EXPORT void GUIAPI UStrGetBracketTypes(const Uchar32 *ucs,
 
 /**
  * \fn BOOL GUIAPI UCharGetMirror(Uchar32 uc, Uchar32* mirrored)
- * \brief Get mirroed character.
+ * \brief Get mirrored character.
  *
  * This function finds the mirrored equivalent of a Unicode character as
  * defined in the file BidiMirroring.txt of the Unicode Character Database
@@ -8255,7 +8283,7 @@ MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs, int nr_ucs,
 
 /**
  * \fn BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len)
- * \brief get base paragraph direction
+ * \brief Get the base paragraph direction.
  *
  * This function finds the base direction of a single paragraph,
  * as defined by rule P2 of the Unicode Bidirectional Algorithm available at
@@ -10988,7 +11016,7 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
      /**
       * \defgroup mchar_glyph Abstract Character and Glyph definitions
       *
-      * MiniGUI uses Achar32 type for a abstract character index value
+      * MiniGUI uses Achar32 type for an abstract character index value
       * under a certain charset/encoding, and uses Glyph32 type
       * for the glyph index value in a device font.
       *

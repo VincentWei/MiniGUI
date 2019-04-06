@@ -10,9 +10,135 @@ Please report any bugs and incompatibilities in
 
 ### What's new in this version
 
-In this version, we mainly enhanced and tuned the APIs of font rendering.
+In this version, we mainly enhanced and tuned the APIs of text rendering.
 
-#### Tunning the logical font APIs
+* MiniGUI now provides complete APIs for Unicode characters process.
+  These APIs conform to Unicode 12.0.
+
+* MiniGUI also provides new APIs to lay out, shape, and render glyphs
+  from complex and mixed scripts, such as Arabic, Thai, and Indic.
+
+* We tuned and optimized MiniGUI's logical and device font interfaces to
+  suppor the new features above.
+
+* We introduced Slice Memoroy Allocator for fast concurrent memory chunk
+  allocation.
+
+#### New APIs conforming Unicode 12.0
+
+* New types:
+    1. `Uchar32`: the Unicode code point value of a Unicode character.
+    1. `Achar32`: the abstract character index value under a certain
+        charset/encoding. Under Unicode charset or encodings, the
+        abstract character index value will be identical to the Unicode
+        code point, i.e., Achar32 is equivalent to Uchar32 under this
+        situation.
+    1. `Glyph32`: the glyph index value in a device font. Note that
+        A Glyph32 value is always bound to a specific logfont object.
+
+* New Functions to determine the Unicode character properties:
+    1. `UCharGetCategory` for getting the general category of
+        a Unicode character.
+    1. `UCharGetBreakType` for getting the breaking type of
+        a Unicode character.
+    1. `UStrGetBreaks` for getting the breaking types of
+        a Unicode string.
+    1. `UCharGetBidiType` for getting the bidi type of
+        a Unicode character.
+    1. `UStrGetBidiTypes` for getting the bidi types of a Unicode
+        character string.
+    1. `UCharGetBracketType` for getting the bracketed character of a
+        Uchar32 character.
+    1. `UStrGetBracketTypes` for getting the bracketed characters of a
+        Uchar32 string.
+    1. `UCharGetMirror` for getting the mirrored character of a Uchar32
+        character.
+    1. `UCharGetJoiningType` for getting the joining type of a Uchar32
+        character.
+    1. `UStrGetJoiningTypes` for getting the joining types of a Uchar32
+        string.
+    1. `UBidiGetParagraphDir` for getting the base paragraph direction
+        of a single paragraph.
+    1. `UBidiGetParagraphEmbeddingLevels` for getting the bidi embedding
+        levels of a paragraph.
+    1. `UBidiReorderLine`, `UBidiShapeMirroring`, `UBidiJoinArabic`,
+        ` UBidiShapeArabic`, and `UBidiShape` for doing bidi-aware
+        mirroring, joining, and shaping.
+    1. `UCharGetScriptType` for getting the script type of a Uchar32
+        character.
+
+MiniGUI also provides some utilities/helpers for Unicode character
+conversion, such as from lower case to upper case, single width to
+full width. Please see MiniGUI API reference document for the detailed
+description.
+
+#### New APIs for mixed scripts
+
+To lay out, shape, and render a text in mixed scripts, you should call
+`GetUCharsUntilParagraphBoundary` function first to convert
+a multi-byte string to a Unicode string under the specified white space
+rule and transformation rule. For example, convert a general C string
+in UTF-8 or GB18030 to a Uchar32 string. You can call
+`CreateLogFontForMChar2UChar` function to create a dummy logfont object
+for this purpose in order to expense a minimal memory.
+
+If the text is in simple scripts, like Latin or Chinese, you can call
+`GetGlyphsExtentPointEx` function to lay out the pargraph. This function
+returns a glyph string which can fit in a line with the specified
+maximal extent and rendering flags. After this, you can call
+`DrawGlyphStringEx` function to draw the glyph string to the
+specific positions of a DC.
+
+If the text is in complex and/or mixed scripts, like Arabic, Thai,
+and Indic, you should create a TEXTRUNS object first by calling
+`CreateTextRuns` function, then initialize the shaping engine for
+laying out the text.
+
+MiniGUI provides two types of shaping engine. One is called basic
+shaping engine. The corresponeding function is `InitBasicShapingEngine`.
+The other is called complex shaping engine, which is based on HarzBuff.
+The corresponeding function is `InitComplexShapingEngine`. The latter
+one can give you a better shaping result.
+
+After this, you should call `CreateLayout` to create a layout object
+for laying out the text, then call `LayoutNextLine` to lay out the lines
+one by one.
+
+You can render the laied out lines by calling `DrawLayoutLine` function.
+
+Finally, you call `DestroyLayout` and `DestroyTextRuns` to destroy
+the layout object and text runs object.
+
+Before rendering the glyphs laid out, you can also call `GetLayoutLineRect`
+to get the line rectangle, or call `CalcLayoutBoundingRect` to get
+the bouding rectangle of one paragraph.
+
+These new APIs provide a very flexible implementation for your apps
+to process the complex scripts. The implementation is derived from
+LGPL'd pango, but we optimize and simplify the original implementation
+in the following respects:
+
+* We split the layout process into two stages. We get the text runs
+  (Pango items) in the first stage, and the text runs will keep as
+  constants for subsequent different layouts. In the seconde stage,
+  we create a layout object for a set of specific layout parameters,
+  and generates the lines one by one for the caller. This is useful
+  for an app like browser, it can reuse the text runs if the output
+  width or height changed, and it is no need to re-generate the text
+  runs because of the size change of the output rectangle.
+
+* We use MiniGUI's fontname for the font attributes of text, and leave
+  the font selection and the glyph generating to MiniGUI's LOGFONT
+  module. In this way, we simplify the layout process greatly.
+
+* We always use Uchar32 string for the whole layout process. So the
+  code and the structures are clearer than original implementation.
+
+* We provide two shaping engines for rendering the text. One is a
+  basic shaping engine and other is the complex shaping engine based
+  on HarzBuff. The former can be used for some simple applications.
+
+#### Enhanced logical font APIs
 
 The styles of LOGFONT changed.
 
@@ -105,30 +231,15 @@ avoid the conflict with typedef of UChar32 in 'unicode/umachine.h'.
 
 * Redefine `Uchar32` and `Glyph32` as `Uint32` instead of `int`.
 
-#### New APIs
+#### Slice Allocator
 
-* `GetGlyphsByRules` function calculates and allocates the glyph string from
-a multi-byte string under the specified white space rule and transformation
-rule.
-
-* `GetGlyphsExtentPointEx` function gets the visual extent information
-of a glyph string which can fit in a line with the specified maximal extent.
-
-* `DrawGlyphStringEx` function draws a glyph string to the specific
-positions of a DC.
-
-* `CreateLogFontIndirectEx` creates a new LOGFONT by using the value of
-an existed LOGFONT but with a new rotation value.
-
-#### Others
+#### Other Changes
 
 * Support for FreeType1 removed.
 
 You should always use FreeType2 to support vector fonts, such as TrueType
 fonts (TTF), TrueType collections (TTC), OpenType fonts (OTF, both TrueType
 and CFF variants), OpenType collections (OTC), and Type 1 fonts (PFA and PFB).
-
-### Other Changes
 
 * A new BITMAP type: `BMP_TYPE_REPLACEKEY`. When `bmType` of a BITMAP object
 has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
