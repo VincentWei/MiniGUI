@@ -210,7 +210,29 @@ for example:
 
 Note that the length of one DEVFONT name can not exceed 255 bytes.
 
-#### Changed APIs
+#### Slice Allocator
+
+MiniGUI now provides an efficient way to allocate groups of equal-sized
+chunks of memory.
+
+Memory slices provide a space-efficient and multi-processing scalable
+way to allocate equal-sized pieces of memory, just like the
+MiniGUI's block data heap. Relative to the standard malloc function
+and block data heap, this allocator can avoid excessive memory-waste,
+scalability and performance problems.
+
+The following APIs are introduced:
+
+* `mg_slice_alloc` to allocate a given size tunk of memory.
+* `mg_slice_free` to free a given size tunk of memory.
+* `mg_slice_new` to allocate a memory for a given structure.
+* `mg_slice_delete` to free a memory for a given structure.
+
+We use the slice allocator when laying out the text in complex scripts.
+
+Note that this implementation is derived from LGPL'd glib.
+
+#### Other Changes
 
 * The fields `height` and `descent` have been removed from GLYPHINFO struct.
 One should get the font metrics information by calling `GetFontMetrics` function
@@ -231,10 +253,6 @@ avoid the conflict with typedef of UChar32 in 'unicode/umachine.h'.
 
 * Redefine `Uchar32` and `Glyph32` as `Uint32` instead of `int`.
 
-#### Slice Allocator
-
-#### Other Changes
-
 * Support for FreeType1 removed.
 
 You should always use FreeType2 to support vector fonts, such as TrueType
@@ -244,6 +262,18 @@ and CFF variants), OpenType collections (OTC), and Type 1 fonts (PFA and PFB).
 * A new BITMAP type: `BMP_TYPE_REPLACEKEY`. When `bmType` of a BITMAP object
 has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
 `bmColorRep`.
+
+#### Deprecated APIs
+
+The following old APIs are deprecated, you should use the Unicode version
+APIs instead:
+
+* BIDIGetTextLogicalAChars
+* BIDIGetTextRangesLog2Vis
+* BIDIGetTextVisualAChars
+* BIDILogAChars2VisACharsEx
+* BIDILogAChars2VisAChars
+* BIDIGetLogicalEmbedLevelsEx
 
 ## Version 3.2.1
 
