@@ -50,10 +50,6 @@
 #ifndef GUI_EXSTUBS_H
     #define GUI_EXSTUBS_H
 
-/* external stubs for COMMLCD NEWGAL engine */
-
-#ifdef _MGGAL_COMMLCD
-
 /* The pixel format defined by depth */
 #define COMMLCD_PSEUDO_RGB332   1
 #define COMMLCD_TRUE_RGB555     2
@@ -78,25 +74,6 @@ struct commlcd_info {
     Uint8*  fb;             // Frame buffer
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
-int __commlcd_drv_init (void);
-int __commlcd_drv_getinfo (struct commlcd_info *li,
-        int width, int height, int depth);
-int __commlcd_drv_release (void);
-int __commlcd_drv_setclut (int firstcolor, int ncolors, GAL_Color *colors);
-int __commlcd_drv_update (const RECT* rc_dirty);
-
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
-
-#endif /* _MGGAL_COMMLCD */
-
-#ifdef _MGIAL_COMM
-
 #define COMM_MOUSEINPUT    0x01
 #define COMM_KBINPUT       0x02
 
@@ -107,17 +84,31 @@ int __commlcd_drv_update (const RECT* rc_dirty);
 extern "C" {
 #endif  /* __cplusplus */
 
+/* external stubs for COMMLCD NEWGAL engine */
+#ifdef _MGGAL_COMMLCD
+
+int __commlcd_drv_init (void);
+int __commlcd_drv_getinfo (struct commlcd_info *li,
+        int width, int height, int depth);
+int __commlcd_drv_release (void);
+int __commlcd_drv_setclut (int firstcolor, int ncolors, GAL_Color *colors);
+int __commlcd_drv_update (const RECT* rc_dirty);
+
+#endif /* _MGGAL_COMMLCD */
+
+#ifdef _MGIAL_COMM
+
 int __comminput_init (void);
 int __comminput_ts_getdata (short *x, short *y, short *button);
 int __comminput_kb_getdata (short *key, short *status);
 int __comminput_wait_for_input (struct timeval *timeout);
 void __comminput_deinit (void);
 
+#endif /* _MGIAL_COMM */
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
-
-#endif /* _MGIAL_COMM */
 
 #endif /* GUI_EXSTUBS_H */
 
