@@ -15,21 +15,24 @@ rendering in order that MiniGUI can handle complex writing systems
 (scripts) like Arabic and Indic:
 
 * MiniGUI now provides complete APIs for Unicode characters processing.
-  These APIs conform to Unicode 12.0.
+  These APIs conform to Unicode 12.0, including the Unicode
+  Bidirectional Algorithm (UAX #9), Unicode Line Breaking Algorithm
+  (UAX #14), Unicode Normalization Forms (UAX #15), Unicode Script Property
+  (UAX #24), Unicode Text Segmentation (UAX #29), Unicode Vertical
+  Text Layout (UAX #50), and so on.
 
 * MiniGUI also provides new APIs to lay out, shape, and render glyphs
   from complex and mixed scripts, such as Arabic, Thai, and Indic.
 
 * We tuned and optimized MiniGUI's logical and device font interfaces to
-  suppor the new features above.
+  support the new features above.
 
-* We introduced Slice Memoroy Allocator for fast concurrent memory chunk
+* We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
 The new APIs also conform to the specification of CSS Text Module
-Level 3. Indeed, we design the APIs for HybridOS foundation class library,
-which will provide the ability to render Graphics User Interfaces in
-CSS way.
+Level 3. Indeed, we design the APIs for HybridOS Foundation Class Library,
+which will provide the ability to render GUIs in CSS way.
 
 #### New APIs conforming Unicode 12.0
 
@@ -41,7 +44,7 @@ CSS way.
         code point, i.e., Achar32 is equivalent to Uchar32 under this
         situation.
     1. `Glyph32`: the glyph index value in a device font. Note that
-        A Glyph32 value is always bound to a specific logfont object.
+        a Glyph32 value is always bound to a specific logfont object.
 
 * New Functions to determine the Unicode character properties:
     1. `UCharGetCategory` for getting the general category of
@@ -84,50 +87,50 @@ description.
 To lay out, shape, and render a text in mixed scripts, you should call
 `GetUCharsUntilParagraphBoundary` function first to convert
 a multi-byte string to a Unicode string under the specified white space
-rule and transformation rule. For example, convert a general C string
-in UTF-8 or GB18030 to a Uchar32 string. You can call
-`CreateLogFontForMChar2UChar` function to create a dummy logfont object
-for this purpose in order to expense a minimal memory.
+rule, breaking rule, and transformation rule. For example, converting a
+general C string in UTF-8 or GB18030 to a Uchar32 string by calling this
+function. You can call `CreateLogFontForMChar2UChar` function to create
+a dummy logfont object for this purpose in order to expense a minimal memory.
 
 If the text is in simple scripts, like Latin or Chinese, you can call
-`GetGlyphsExtentPointEx` function to lay out the pargraph. This function
+`GetGlyphsExtentPointEx` function to lay out the paragraph. This function
 returns a glyph string which can fit in a line with the specified
-maximal extent and rendering flags. After this, you can call
+maximal extent and rendering flags. After this, you call
 `DrawGlyphStringEx` function to draw the glyph string to the
-specific positions of a DC.
+specific position of a DC.
 
 If the text is in complex and/or mixed scripts, like Arabic, Thai,
 and Indic, you should create a TEXTRUNS object first by calling
 `CreateTextRuns` function, then initialize the shaping engine for
 laying out the text.
 
-MiniGUI provides two types of shaping engine. One is called basic
-shaping engine. The corresponeding function is `InitBasicShapingEngine`.
+MiniGUI provides two types of shaping engine. One is the basic
+shaping engine. The corresponding function is `InitBasicShapingEngine`.
 The other is called complex shaping engine, which is based on HarzBuff.
-The corresponeding function is `InitComplexShapingEngine`. The latter
+The corresponding function is `InitComplexShapingEngine`. The latter
 one can give you a better shaping result.
 
 After this, you should call `CreateLayout` to create a layout object
 for laying out the text, then call `LayoutNextLine` to lay out the lines
 one by one.
 
-You can render the laied out lines by calling `DrawLayoutLine` function.
+You can render the laid out lines by calling `DrawLayoutLine` function.
 
 Finally, you call `DestroyLayout` and `DestroyTextRuns` to destroy
 the layout object and text runs object.
 
 Before rendering the glyphs laid out, you can also call `GetLayoutLineRect`
 to get the line rectangle, or call `CalcLayoutBoundingRect` to get
-the bouding rectangle of one paragraph.
+the bounding rectangle of one paragraph.
 
 These new APIs provide a very flexible implementation for your apps
 to process the complex scripts. The implementation is derived from
-LGPL'd pango, but we optimize and simplify the original implementation
+LGPL'd Pango, but we optimize and simplify the original implementation
 in the following respects:
 
 * We split the layout process into two stages. We get the text runs
   (Pango items) in the first stage, and the text runs will keep as
-  constants for subsequent different layouts. In the seconde stage,
+  constants for subsequent different layouts. In the second stage,
   we create a layout object for a set of specific layout parameters,
   and generates the lines one by one for the caller. This is useful
   for an app like browser, it can reuse the text runs if the output
@@ -135,7 +138,7 @@ in the following respects:
   runs because of the size change of the output rectangle.
 
 * We use MiniGUI's fontname for the font attributes of text, and leave
-  the font selection and the glyph generating to MiniGUI's LOGFONT
+  the font selection and the glyph generating to MiniGUI's logfont
   module. In this way, we simplify the layout process greatly.
 
 * We always use Uchar32 string for the whole layout process. So the
@@ -176,7 +179,7 @@ The styles of LOGFONT changed.
   1. `FONT_DECORATE_STRUCKOUT`: glyphs are overstruck.
   1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE` and `FONT_DECORATE_STRUCKOUT`.
   1. `FONT_DECORATE_OUTLINE`: Outline (hollow) glyphs.
-  1. `FONT_DECORATE_REVERSE`: Reverved for future. Glyphs have their foreground and background reversed.
+  1. `FONT_DECORATE_REVERSE`: Reserved for future. Glyphs have their foreground and background reversed.
 * The following style are deprecated:
   1. `FONT_OTHER_LCDPORTRAIT`
   1. `FONT_OTHER_LCDPORTRAITKERN`
@@ -217,6 +220,25 @@ for example:
 
 Note that the length of one DEVFONT name can not exceed 255 bytes.
 
+Since version 4.0.0, you can specify up to 7 family names for a logfont name,
+such as:
+
+      ttf-Courier,宋体,Naskh,SansSerif-rrncns-U-16-UTF-8
+
+In this way, you can specify a logfont to use multiple devfonts
+to render a complex text. This is useful when different glyphs are
+contained in different font files. It is well known that, a font is
+often designed for a particular language/script or a few similar
+languages/scripts.
+
+Since 4.0.0, the previous width field of a logfont name is used for
+the glyph orientation:
+
+ - 'U': Glyphs stand upright (default).
+ - 'S': Glyphs are rotated 90 degrees clockwise (sideways).
+ - 'D': Glyphs are upside-down.
+ - 'L': Glyphs are rotated 90 degrees counter-clockwise (sideways left).
+
 #### Slice Allocator
 
 MiniGUI now provides an efficient way to allocate groups of equal-sized
@@ -230,8 +252,8 @@ scalability and performance problems.
 
 The following APIs are introduced:
 
-* `mg_slice_alloc` to allocate a given size tunk of memory.
-* `mg_slice_free` to free a given size tunk of memory.
+* `mg_slice_alloc` to allocate a given size trunk of memory.
+* `mg_slice_free` to free a given size trunk of memory.
 * `mg_slice_new` to allocate a memory for a given structure.
 * `mg_slice_delete` to free a memory for a given structure.
 
@@ -241,11 +263,11 @@ Note that this implementation is derived from LGPL'd glib.
 
 #### Other Changes
 
-* The fields `height` and `descent` have been removed from GLYPHINFO struct.
+* The fields `height` and `descent` have been removed from GLYPHINFO structure.
 One should get the font metrics information by calling `GetFontMetrics` function
 if you want to get the height and descent data of one font.
 
-* More fields added for GLYPHBITMAP struct in order to return the completed
+* More fields added for GLYPHBITMAP structure in order to return the completed
 rasterized glyph bitmap information.
 
 * `GetGlyphInfo` now can return the basic glyph type and break type of a
