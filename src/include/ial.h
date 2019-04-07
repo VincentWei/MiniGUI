@@ -60,7 +60,7 @@
 #include "mgsock.h"
 #include "misc.h"
 #include "gal.h"
-#include "customial.h"
+#include "exstubs.h"
 
 #ifdef __cplusplus
 extern "C" {

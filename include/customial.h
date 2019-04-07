@@ -51,7 +51,7 @@
 #ifndef GUI_IAL_CUSTOM_H
     #define GUI_IAL_CUSTOM_H
 
-#warning "Please use <minigui/exstubs.h> instead."
+#include "exstubs.h"
 
 #endif  /* GUI_IAL_CUSTOM_H */
 
