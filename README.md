@@ -7,7 +7,7 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 
   1. Introduction
   1. A brief building instruction
-  1. New features in version 3.4.x
+  1. New features in version 4.0.x
   1. New features in version 3.2.x
   1. The runtime modes of MiniGUI
   1. History
@@ -149,10 +149,10 @@ For more information, please run
 
 ## NEW FEATURES IN VERSION 4.0.x
 
-In this version, we enhanced and tuned the APIs related to text rendering.
+In this version, we enhanced and tuned the APIs related to text rendering,
 in order to support HybridOS Foundation C++ Library.
 
-* MiniGUI now provides complete APIs for Unicode characters process.
+* MiniGUI now provides complete APIs for Unicode characters processing.
   These APIs conform to Unicode 12.0.
 
 * MiniGUI also provides new APIs to lay out, shape, and render glyphs
