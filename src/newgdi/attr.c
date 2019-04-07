@@ -75,22 +75,22 @@ static int make_alpha_pixel_format (PDC pdc)
     if (pdc->alpha_pixel_format == NULL) {
         switch (pdc->surface->format->BytesPerPixel) {
         case 2:
-            Rmask = 0x0000F000;
-            Gmask = 0x00000F00;
-            Bmask = 0x000000F0;
-            Amask = 0x0000000F;
+            Amask = 0x0000F000;
+            Rmask = 0x00000F00;
+            Gmask = 0x000000F0;
+            Bmask = 0x0000000F;
             break;
         case 3:
-            Rmask = 0x00FC0000;
-            Gmask = 0x0003F000;
-            Bmask = 0x00000FC0;
-            Amask = 0x0000003F;
+            Amask = 0x00FC0000;
+            Rmask = 0x0003F000;
+            Gmask = 0x00000FC0;
+            Bmask = 0x0000003F;
             break;
         case 4:
-            Rmask = 0xFF000000;
-            Gmask = 0x00FF0000;
-            Bmask = 0x0000FF00;
-            Amask = 0x000000FF;
+            Amask = 0xFF000000;
+            Rmask = 0x00FF0000;
+            Gmask = 0x0000FF00;
+            Bmask = 0x000000FF;
             break;
         default:
             return -1;
