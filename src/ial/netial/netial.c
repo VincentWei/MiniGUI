@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -39,11 +39,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "mgconfig.h"
 #include "common.h"
+
+#ifdef _MGIAL_NET
+
 #include "minigui.h"
 #include "netial.h"
-#ifdef _MGIAL_NET
 
 #include <sys/ioctl.h>
 #include <sys/poll.h>
@@ -74,9 +75,9 @@ typedef struct {
 
 typedef struct
 {
-	int x;
-	int y;
-	int pressure;
+    int x;
+    int y;
+    int pressure;
 }MOUSE_EVENT;
 
 static int mousex = 0;
@@ -108,15 +109,15 @@ static int mouse_update(void)
 
 static void mouse_getxy(int *x, int* y)
 {
-	if (mousex < 0)
-		mousex = 0;
-	if (mousex > g_rcScr.right)
-		mousex = g_rcScr.right;
+    if (mousex < 0)
+        mousex = 0;
+    if (mousex > g_rcScr.right)
+        mousex = g_rcScr.right;
 
-	if (mousey < 0)
-		mousey = 0;
-	if (mousey > g_rcScr.bottom)
-		mousey = g_rcScr.bottom;
+    if (mousey < 0)
+        mousey = 0;
+    if (mousey > g_rcScr.bottom)
+        mousey = g_rcScr.bottom;
     *x = mousex;
     *y = mousey;
 }
@@ -149,98 +150,98 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     e = select (FD_SETSIZE, in, out, except, timeout) ;
 #endif
 
-    if (e > 0) 
-	{ 
-		if (temp_sock_descriptor >= 0 && FD_ISSET (temp_sock_descriptor, in)) 
-		{
-			FD_CLR (temp_sock_descriptor, in);
-			n = recv (temp_sock_descriptor, event_buf, 100, 0);
-			if (n == 0)
-			{
-				printf ("recv == 0\n");
-				exit (1);
-			}
-			if (n == sizeof (MOUSE_EVENT)/sizeof (char))
-			{
-				mouse_event = (MOUSE_EVENT*)event_buf;
-				mousex += mouse_event->x * 2;
-				mousey += mouse_event->y * 2;
-				switch (mouse_event->pressure)
-				{
-					case 1:
-						ts_event.pressure = IAL_MOUSE_LEFTBUTTON;
-						break;
-					case 2:
-						ts_event.pressure = IAL_MOUSE_RIGHTBUTTON;
-						break;
-					case 0:
-						ts_event.pressure = 0;
-						break;
-				}
-				return  IAL_MOUSEEVENT;
-			}
-		} 
-	}
-	else if (e < 0) 
-	{
-		return -1;
-	}
+    if (e > 0)
+    {
+        if (temp_sock_descriptor >= 0 && FD_ISSET (temp_sock_descriptor, in))
+        {
+            FD_CLR (temp_sock_descriptor, in);
+            n = recv (temp_sock_descriptor, event_buf, 100, 0);
+            if (n == 0)
+            {
+                printf ("recv == 0\n");
+                exit (1);
+            }
+            if (n == sizeof (MOUSE_EVENT)/sizeof (char))
+            {
+                mouse_event = (MOUSE_EVENT*)event_buf;
+                mousex += mouse_event->x * 2;
+                mousey += mouse_event->y * 2;
+                switch (mouse_event->pressure)
+                {
+                    case 1:
+                        ts_event.pressure = IAL_MOUSE_LEFTBUTTON;
+                        break;
+                    case 2:
+                        ts_event.pressure = IAL_MOUSE_RIGHTBUTTON;
+                        break;
+                    case 0:
+                        ts_event.pressure = 0;
+                        break;
+                }
+                return  IAL_MOUSEEVENT;
+            }
+        }
+    }
+    else if (e < 0)
+    {
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 BOOL InitNetInput (INPUT* input, const char* mdev, const char* mtype)
 {
-	sock_descriptor = socket (AF_INET, SOCK_STREAM, 0);
-	if (sock_descriptor == -1)
-	{
-		perror ("call to socket");
-		exit (1);
-	}
+    sock_descriptor = socket (AF_INET, SOCK_STREAM, 0);
+    if (sock_descriptor == -1)
+    {
+        perror ("call to socket");
+        exit (1);
+    }
 
-	bzero (&sin, sizeof (sin));
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = INADDR_ANY;
-	sin.sin_port = htons (port);
+    bzero (&sin, sizeof (sin));
+    sin.sin_family = AF_INET;
+    sin.sin_addr.s_addr = INADDR_ANY;
+    sin.sin_port = htons (port);
 
-	if (bind (sock_descriptor, (struct sockaddr*)&sin, sizeof (sin)) == -1)
-	{
-		perror("call to bind");
-		exit (1);
-	}
+    if (bind (sock_descriptor, (struct sockaddr*)&sin, sizeof (sin)) == -1)
+    {
+        perror("call to bind");
+        exit (1);
+    }
 
-	if (listen (sock_descriptor, 20) == -1)
-	{
-		perror ("call to listen");
-		exit (1);
-	}
-	printf ("Please start the PC side of the client process.\n");
+    if (listen (sock_descriptor, 20) == -1)
+    {
+        perror ("call to listen");
+        exit (1);
+    }
+    printf ("Please start the PC side of the client process.\n");
 
-	temp_sock_descriptor = accept (sock_descriptor, (struct sockaddr *)&pin, &address_size);
-	if (temp_sock_descriptor == -1)
-	{
-		perror ("call to accept");
-		exit (1);
-	}
+    temp_sock_descriptor = accept (sock_descriptor, (struct sockaddr *)&pin, &address_size);
+    if (temp_sock_descriptor == -1)
+    {
+        perror ("call to accept");
+        exit (1);
+    }
 
     input->update_mouse = mouse_update;
     input->get_mouse_xy = mouse_getxy;
     input->set_mouse_xy = NULL;
     input->get_mouse_button = mouse_getbutton;
     input->set_mouse_range = NULL;
-    
-	input->update_keyboard = NULL;
+
+    input->update_keyboard = NULL;
     input->get_keyboard_state = NULL;
 
     input->wait_event = wait_event;
-    
+
     return TRUE;
 }
 
 void TermNetInput(void)
 {
     if (temp_sock_descriptor >= 0)
-        close(temp_sock_descriptor);    
+        close(temp_sock_descriptor);
 }
 
 #endif /* _MGIAL_NET */
