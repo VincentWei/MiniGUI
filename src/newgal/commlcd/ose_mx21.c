@@ -101,8 +101,8 @@ static int a_getinfo (struct commlcd_info *li, int width, int height, int bpp)
     li->width = fbinfo->width;
     li->fb = fbinfo->fb_ptr;
     li->bpp = fbinfo->depth;
-    li->rlen = (li->bpp*li->width + 7) / 8;
-    /*li->rlen = fbinfo->fb_size;*/
+    li->pitch = (li->bpp*li->width + 7) / 8;
+    /*li->pitch = fbinfo->fb_size;*/
     return 0;
 }
 

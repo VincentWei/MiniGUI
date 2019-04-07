@@ -71,7 +71,7 @@ static int a_getinfo (struct commlcd_info *li, int width, int height, int bpp)
     li->width = ecos_lcd_info.width;
     li->fb = ecos_lcd_info.fb;
     li->bpp = ecos_lcd_info.bpp;
-    li->rlen = ecos_lcd_info.rlen;
+    li->pitch = ecos_lcd_info.pitch;
     li->async_update = 0;
     return 0;
 }

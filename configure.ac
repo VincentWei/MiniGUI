@@ -1520,10 +1520,14 @@ dnl         ;;
 dnl esac
 
 AC_ARG_WITH(targetname,
-  [  --with-targetname=unknown/customer/fmsoft/mstudio/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
+  [  --with-targetname=unknown/external/fmsoft/mstudio/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
                         S3C6410/S3C2440/S3C2410/hi3560a     Define the target board name])
 
 case "$with_targetname" in
+  external)
+    AC_DEFINE(__TARGET_EXTERNAL__, 1,
+        [Define for targets which use GAL and/or IAL engines and define the interfaces externally])
+   ;;
   fmsoft)
     AC_DEFINE(__TARGET_FMSOFT__, 1,
         [Define for FMSoft internal use])

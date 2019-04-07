@@ -91,7 +91,7 @@ static int a_getinfo (struct lcd_info *li, int width, int height, int bpp)
     li->width = modeInfo.width;
     li->fb = modeInfo.fbAddress;
     li->bpp = modeInfo.colorDepth;
-    li->rlen = (li->bpp*li->width + 7) / 8;
+    li->pitch = (li->bpp*li->width + 7) / 8;
     return 0;
 }
 

@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -47,6 +47,7 @@
 #include "newgal.h"
 #include "sysvideo.h"
 #include "pixels_c.h"
+#include "misc.h"
 
 #ifdef _MGGAL_COMMLCD
 
@@ -78,6 +79,23 @@ static void COMMLCD_DeleteDevice(GAL_VideoDevice *device)
     free (device);
 }
 
+static void COMMLCD_UpdateRects_Sync (_THIS, int numrects, GAL_Rect *rects)
+{
+    int i;
+
+    /* sync update */
+    for (i = 0; i < numrects; i++) {
+        RECT rc;
+        SetRect (&rc, rects[i].x, rects[i].y,
+                rects[i].x + rects[i].w, rects[i].y + rects[i].h);
+        if (!IsRectEmpty (&rc)) {
+            __mg_commlcd_ops.update (&rc);
+        }
+    }
+}
+
+static BOOL _valid_async_updater = TRUE;
+
 static void* task_do_update (void* data)
 {
     _THIS;
@@ -92,41 +110,23 @@ static void* task_do_update (void* data)
             this->hidden->dirty = FALSE;
         }
         pthread_mutex_unlock (&this->hidden->update_lock);
-        usleep (50*1000); /* 50 ms */
-    } while (1);
+        __mg_os_time_delay(50); /* 50 ms */
+    } while (_valid_async_updater);
 
     return NULL;
 }
 
-static void COMMLCD_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
+static void COMMLCD_UpdateRects_Async (_THIS, int numrects, GAL_Rect *rects)
 {
     int i;
     RECT bound;
-
-    if (__mg_commlcd_ops.update == NULL) {
-        return;
-    }
-
-    if (this->hidden->update_th == 0) {
-        /* sync update */
-        for (i = 0; i < numrects; i++) {
-            RECT rc;
-            SetRect (&rc, rects[i].x, rects[i].y, 
-                    rects[i].x + rects[i].w, rects[i].y + rects[i].h);
-            if (!IsRectEmpty (&rc)) {
-                __mg_commlcd_ops.update (&rc);
-            }
-        }
-
-        return;
-    }
 
     pthread_mutex_lock (&this->hidden->update_lock);
 
     bound = this->hidden->rc_dirty;
     for (i = 0; i < numrects; i++) {
         RECT rc;
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                 rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -180,8 +180,8 @@ static GAL_VideoDevice *COMMLCD_CreateDevice (int devindex)
     device->SetHWColorKey = NULL;
     device->SetHWAlpha = NULL;
     device->FreeHWSurface = COMMLCD_FreeHWSurface;
-    device->UpdateRects = COMMLCD_UpdateRects;
-    
+    device->UpdateRects = NULL;
+
     device->free = COMMLCD_DeleteDevice;
     return device;
 }
@@ -214,7 +214,7 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
     Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
-    struct commlcd_info li;	
+    struct commlcd_info li;    
     memset (&li, 0, sizeof (struct commlcd_info));
 
     if (__mg_commlcd_ops.getinfo (&li, width, height, bpp)) {
@@ -225,10 +225,10 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
 
     this->hidden->w = li.width;
     this->hidden->h = li.height;
-    this->hidden->pitch = li.rlen;
+    this->hidden->pitch = li.pitch;
     this->hidden->fb = li.fb;
 
-    memset (li.fb, 0, li.rlen * height);
+    memset (li.fb, 0, li.pitch * height);
 
     switch (li.type) {
     case COMMLCD_PSEUDO_RGB332:
@@ -264,6 +264,12 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         Gmask = 0x0000FF00;
         Bmask = 0x000000FF;
         break;
+    case COMMLCD_TRUE_ABRG8888:
+        Amask = 0xFF000000;
+        Bmask = 0x00FF0000;
+        Rmask = 0x0000FF00;
+        Gmask = 0x000000FF;
+        break;
     }
 
     /* Allocate the new pixel format for the screen */
@@ -284,17 +290,29 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = this->hidden->pitch;
     current->pixels = this->hidden->fb;
 
-    if (li.async_update && __mg_commlcd_ops.update) {
+    if (li.update_method == COMMLCD_UPDATE_NONE) {
+        this->UpdateRects = NULL;
+        this->hidden->update_th = 0;
+    }
+    else if (li.update_method == COMMLCD_UPDATE_ASYNC) {
+        this->UpdateRects = COMMLCD_UpdateRects_Async;
+
+#if 0
         pthread_attr_t new_attr;
 
         pthread_attr_init (&new_attr);
         pthread_attr_setdetachstate (&new_attr, PTHREAD_CREATE_DETACHED);
-        pthread_create (&this->hidden->update_th, &new_attr, 
+        pthread_create (&this->hidden->update_th, &new_attr,
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
+#else
+        pthread_create (&this->hidden->update_th, NULL,
+                        task_do_update, this);
+#endif
         pthread_mutex_init (&this->hidden->update_lock, NULL);
     }
     else {
+        this->UpdateRects = COMMLCD_UpdateRects_Sync;
         this->hidden->update_th = 0;
     }
 
@@ -308,8 +326,10 @@ static void COMMLCD_VideoQuit (_THIS)
         this->screen->pixels = NULL;
     }
 
-    if (__mg_commlcd_ops.update) {
+    if (this->hidden->update_th) {
         /* quit the update task */
+        _valid_async_updater = FALSE;
+        pthread_join(this->hidden->update_th, NULL);
     }
 
     if (__mg_commlcd_ops.release)
@@ -318,7 +338,7 @@ static void COMMLCD_VideoQuit (_THIS)
     return;
 }
 
-static GAL_Rect **COMMLCD_ListModes (_THIS, GAL_PixelFormat *format, 
+static GAL_Rect **COMMLCD_ListModes (_THIS, GAL_PixelFormat *format,
                 Uint32 flags)
 {
     return (GAL_Rect **) -1;
@@ -335,11 +355,11 @@ static void COMMLCD_FreeHWSurface (_THIS, GAL_Surface *surface)
     surface->pixels = NULL;
 }
 
-static int COMMLCD_SetColors (_THIS, int firstcolor, int ncolors, 
+static int COMMLCD_SetColors (_THIS, int firstcolor, int ncolors,
                 GAL_Color *colors)
 {
     if (__mg_commlcd_ops.setclut)
-    	return __mg_commlcd_ops.setclut (firstcolor, ncolors, colors);
+        return __mg_commlcd_ops.setclut (firstcolor, ncolors, colors);
 
     return 0;
 }
