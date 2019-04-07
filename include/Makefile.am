@@ -11,8 +11,8 @@ COMM_HDRS =     \
     common.h endianrw.h fixedmath.h \
     minigui.h gdi.h window.h control.h \
     own_malloc.h  own_stdio.h \
-    xvfb.h customial.h \
-    dti.c 
+    xvfb.h customial.h exstubs.h \
+    dti.c
 
 UCOSII_HDRS=ucos2_pthread.h ucos2_semaphore.h
 THREADX_HDRS=threadx_pthread.h threadx_semaphore.h

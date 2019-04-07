@@ -389,7 +389,7 @@ AC_ARG_ENABLE(netial,
 build_net_ial_engine=$enableval)
 
 AC_ARG_ENABLE(cisco_touchpad_ial,
-[  --enable-cisco_touchpad_ial	build the IAL engine for Cisco Touchpad <default=no>],
+[  --enable-cisco_touchpad_ial    build the IAL engine for Cisco Touchpad <default=no>],
 build_cisco_touchpad_ial_engine=$enableval)
 
 AC_ARG_ENABLE(mstar_ial,
@@ -892,21 +892,21 @@ CheckXVFB()
 [  --enable-videortosxvfb   include RTOS Virtual FrameBuffer NEWGAL engine <default=no>. Please disable pcxvfb to enable rtosxvfb],
     enable_video_rtos_xvfb=$enableval)
 
-	if test "x$enable_video_pc_xvfb" = "xyes"; then
-dnl	CheckPCXVFB
+    if test "x$enable_video_pc_xvfb" = "xyes"; then
+dnl    CheckPCXVFB
         AC_DEFINE(_MGGAL_PCXVFB, 1,
                 [Define if include PC Virtual FrameBuffer NEWGAL engine])
         VIDEO_SUBDIRS="$VIDEO_SUBDIRS pcxvfb"
         VIDEO_DRIVERS="$VIDEO_DRIVERS pcxvfb/libvideo_pcxvfb.la"
-	else 	
-		if test "x$enable_video_rtos_xvfb" = "xyes"; then
-dnl	CheckRTOSXVFB
+    else     
+        if test "x$enable_video_rtos_xvfb" = "xyes"; then
+dnl    CheckRTOSXVFB
         AC_DEFINE(_MGGAL_RTOSXVFB, 1,
                 [Define if include RTOS Virtual FrameBuffer NEWGAL engine])
         VIDEO_SUBDIRS="$VIDEO_SUBDIRS rtos_xvfb"
         VIDEO_DRIVERS="$VIDEO_DRIVERS rtos_xvfb/libvideo_rtos_xvfb.la"
-		fi
-	fi
+        fi
+    fi
 }
 
 
@@ -1509,17 +1509,21 @@ dnl         ;;
 dnl esac
 
 AC_ARG_WITH(targetname,
-  [  --with-targetname=unknown/customer/fmsoft/mstudio/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
+  [  --with-targetname=unknown/external/fmsoft/mstudio/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
                         S3C6410/S3C2440/S3C2410/hi3560a     Define the target board name])
 
 case "$with_targetname" in
+  external)
+    AC_DEFINE(__TARGET_EXTERNAL__, 1,
+        [Define for targets which use GAL and/or IAL engines and define the interfaces externally])
+   ;;
   fmsoft)
     AC_DEFINE(__TARGET_FMSOFT__, 1,
-	    [Define for FMSoft internal use])
+        [Define for FMSoft internal use])
    ;;
   mstudio)
     AC_DEFINE(__TARGET_MSTUDIO__, 1,
-	    [Define for FMSoft miniStudio])
+        [Define for FMSoft miniStudio])
    ;;
   stb810)
     AC_DEFINE(__TARGET_STB810__, 1,
@@ -1547,11 +1551,11 @@ case "$with_targetname" in
     ;;
   bfin)
     AC_DEFINE(__TARGET_BLACKFIN__, 1,
-	    [Define for Blackfin run uClinux])
+        [Define for Blackfin run uClinux])
    ;;
   c33l05)
     AC_DEFINE(__TARGET_C33L05__, 1,
-	    [Define for EPSON C33L05 (axLinux)])
+        [Define for EPSON C33L05 (axLinux)])
    ;;
   S3C6410)
     CFLAGS="$CFLAGS -D_WITH_TARGET_S3C6410"
@@ -2430,8 +2434,8 @@ fi
 if test "x$build_ctrl_textedit_new" = "xyes"; then
     AC_DEFINE(_MGCTRL_TEXTEDIT, 1,
             [Define if include TEXTEDIT control])
-	AC_DEFINE(_MGCTRL_TEXTEDIT_USE_NEW_IMPL, 1,
-			[Define if use new implementation of TEXTEDIT control])
+    AC_DEFINE(_MGCTRL_TEXTEDIT_USE_NEW_IMPL, 1,
+            [Define if use new implementation of TEXTEDIT control])
 fi
 
 if test "x$build_splash" = "xyes"; then

@@ -87,7 +87,7 @@ static int a_getinfo (struct lcd_info *li, int width, int height, int bpp)
     //li->bpp = modeInfo.colorDepth;
     li->bpp = 32;
     printf ("Current color depth is %d \n", modeInfo.colorDepth);
-    li->rlen = (li->bpp*1024 + 7) / 8;
+    li->pitch = (li->bpp*1024 + 7) / 8;
     return 0;
 }
 
