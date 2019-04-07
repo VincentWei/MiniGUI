@@ -159,9 +159,9 @@ in order to support HybridOS Foundation C++ Library.
   from complex and mixed scripts, such as Arabic, Thai, and Indic.
 
 * We tuned and optimized MiniGUI's logical and device font interfaces to
-  suppor the new features above.
+  support the new features above.
 
-* We introduced Slice Memoroy Allocator for fast concurrent memory chunk
+* We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
 For more information, please refer to RELEASENOTES.md file.
