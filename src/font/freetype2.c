@@ -771,6 +771,12 @@ static void get_kerning (LOGFONT* logfont, DEVFONT* devfont,
         *delta_y = delta.y >> 6;
 }
 
+static void* get_ft_face (LOGFONT* logfont, DEVFONT* devfont)
+{
+    FTFACEINFO* ft_face_info = FT_FACE_INFO_P (devfont);
+    return ft_face_info->face;
+}
+
 #ifdef _MGFONT_TTF_CACHE
 static int make_hash_key(Glyph32 data)
 {
@@ -1270,11 +1276,40 @@ FONTOPS __mg_ttf_ops = {
     load_font_data,
     unload_font_data,
     get_glyph_value,
-    get_kerning
+    get_kerning,
+    get_ft_face
 };
 
-BOOL
-ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter)
+/*  Get the FreeType2 face object for HarfBuzz shaping engine */
+void* __mg_ft2_get_face(LOGFONT* lf, Uchar32 uc, int* dfi)
+{
+    void* face = NULL;
+    DEVFONT* df;
+    int i;
+
+    /* find the FreeType2 devfont which contains the glyph for
+     * the Uchar32 character */
+    for (i = 1; i < MAXNR_DEVFONTS; i++) {
+        if ((df = lf->devfonts[i]) && df->font_ops->get_ft_face) {
+            face = df->font_ops->get_ft_face(lf, df);
+            if (df->font_ops->get_glyph_value(lf, df, uc)) {
+                *dfi = i;
+                return face;
+            }
+        }
+    }
+
+    /* return the default face object */
+    if ((df = lf->devfonts[1]) && df->font_ops->get_ft_face) {
+        *dfi = 1;
+        face = df->font_ops->get_ft_face(lf, df);
+        return face;
+    }
+
+    return NULL;
+}
+
+BOOL ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter)
 {
     int         i;
     BOOL        rv = FALSE;
@@ -1304,15 +1339,13 @@ ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter)
     return rv;
 }
 
-int
-ft2GetLcdFilter (DEVFONT* devfont)
+int ft2GetLcdFilter (DEVFONT* devfont)
 {
     FTINSTANCEINFO* ft_inst_info = FT_INST_INFO_P (devfont);
     return ft_inst_info->ft_lcdfilter;
 }
 
-int
-ft2IsFreeTypeDevfont (DEVFONT* devfont)
+int ft2IsFreeTypeDevfont (DEVFONT* devfont)
 {
     if (devfont && devfont->font_ops == &__mg_ttf_ops)
         return TRUE;

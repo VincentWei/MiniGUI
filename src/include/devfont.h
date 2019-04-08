@@ -333,6 +333,13 @@ struct _FONTOPS
      */
     void (*get_kerning) (LOGFONT* logfont, DEVFONT* devfont,
         Glyph32 prev, Glyph32 curr, int* delta_x, int* delta_y);
+
+    /**
+     * The method to get the FreeType2 FT_Face objece; only valid for FreeType2 font engine
+     *
+     * Since 4.0.0.
+     */
+    void* (*get_ft_face) (LOGFONT* logfont, DEVFONT* devfont);
 };
 
 typedef struct {
@@ -341,6 +348,7 @@ typedef struct {
 } FONTOPS_INFO;
 
 extern FONTOPS_INFO __mg_fontops_infos[];
+void* __mg_ft2_get_face(LOGFONT* lf, Uchar32 uc, int* dfi);
 
 #ifdef __cplusplus
 }

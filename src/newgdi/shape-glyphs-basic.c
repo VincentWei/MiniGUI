@@ -287,19 +287,17 @@ static BOOL destroy_instance(SEInstance* instance)
         return TRUE;
     }
 
-    _ERR_PRINTF("%s: you are destroying a non-basic shaping engine instance.\n",
-            __FUNCTION__);
-
+    _WRN_PRINTF("You are destroying a non-basic shaping engine instance");
     return FALSE;
 }
 
-BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* info)
+BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* truns)
 {
     shaping_engine_basic.ref_count++;
 
-    info->sei.inst = &shaping_engine_basic;
-    info->sei.shape = shape_layout_run;
-    info->sei.free = destroy_instance;
+    truns->sei.inst = &shaping_engine_basic;
+    truns->sei.shape = shape_layout_run;
+    truns->sei.free = destroy_instance;
     return TRUE;
 }
 
