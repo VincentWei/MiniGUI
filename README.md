@@ -180,7 +180,7 @@ in order to support [HybridOS Foundation Class Library].
 * We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
-For more information, please refer to RELEASENOTES.md file.
+For more information, please refer to [RELEASENOTES.md] file.
 
 ## NEW FEATURES IN VERSION 3.2.x
 
@@ -417,3 +417,5 @@ the commercial license of MiniGUI, please write to sales@minigui.com.
 
 [HybridOS]: https://github.com/FMSoftCN/hybridos
 [HybridOS Foundation Class Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
+[RELEASENOTES.md]: https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
+
