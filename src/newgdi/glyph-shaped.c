@@ -191,7 +191,7 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
             if (run->lrun->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
                 ta = up_ta;
                 if (run->lrun->ort == GLYPH_ORIENT_UPSIDE_DOWN) {
-                    log_y += run->gstr->glyphs[0].width;
+                    log_y += run->gstr->glyphs[j].width;
                     if ((layout->rf & GRF_WRITING_MODE_MASK) ==
                             GRF_WRITING_MODE_VERTICAL_RL)
                         log_x -= (line->height - gi->height) / 2;
@@ -213,7 +213,7 @@ int DrawLayoutLine(HDC hdc, const LAYOUTLINE* line, int x, int y)
             }
 
             if (run->lrun->ort == GLYPH_ORIENT_SIDEWAYS_LEFT) {
-                log_y += run->gstr->glyphs[0].width;
+                log_y += run->gstr->glyphs[j].width;
                 if ((layout->rf & GRF_WRITING_MODE_MASK) ==
                         GRF_WRITING_MODE_VERTICAL_RL)
                     log_x -= line->height;

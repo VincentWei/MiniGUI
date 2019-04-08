@@ -173,7 +173,7 @@ static void resolve_layout_run_dir(const LAYOUT* layout,
     }
 
     if (layout->rf & GRF_WRITING_MODE_VERTICAL_FLAG) {
-        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_TTB : GLYPH_RUN_DIR_BTT;
+        lrun->dir = (lrun->el & 1) ? GLYPH_RUN_DIR_BTT : GLYPH_RUN_DIR_TTB;
 
         if (lrun->ort == GLYPH_ORIENT_UPRIGHT ||
                 lrun->ort == GLYPH_ORIENT_UPSIDE_DOWN)

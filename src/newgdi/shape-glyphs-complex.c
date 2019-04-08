@@ -142,8 +142,8 @@ static BOOL shape_layout_run(SEInstance* inst,
             gs->glyphs[i].height = run->lf->size;
         }
 
-        gs->glyphs[i].x_off = glyph_pos[i].x_offset >> 6;
-        gs->glyphs[i].y_off = glyph_pos[i].y_offset >> 6;
+        gs->glyphs[i].x_off = ((glyph_pos[i].x_offset + 0x8000) >> 16);
+        gs->glyphs[i].y_off = ((glyph_pos[i].y_offset + 0x8000) >> 16);
 
         gs->glyphs[i].is_cluster_start = gs->log_clusters[i] != last_cluster;
         last_cluster = gs->log_clusters[i];
@@ -152,6 +152,7 @@ static BOOL shape_layout_run(SEInstance* inst,
     ok = TRUE;
 
 error:
+
     if (hb_font)
         hb_font_destroy(hb_font);
     if (hb_buf)
