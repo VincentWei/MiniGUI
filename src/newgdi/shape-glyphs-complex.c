@@ -69,16 +69,15 @@ static BOOL shape_layout_run(SEInstance* inst,
     BOOL ok = FALSE;
     int dfi;
     unsigned int i, nr_glyphs;
-    FT_Face* face = NULL;
+    FT_Face face = NULL;
     hb_buffer_t *hb_buf = NULL;
     hb_font_t *hb_font = NULL;
     hb_glyph_info_t *glyph_info;
     hb_glyph_position_t *glyph_pos;
     int last_cluster;
 
-    face = (FT_Face*)__mg_ft2_get_face(run->lf, run->ucs[0], &dfi);
-
-    if (face) {
+    face = (FT_Face)__mg_ft2_get_face(run->lf, run->ucs[0], &dfi);
+    if (face == NULL) {
         _WRN_PRINTF("Can not get FT2 face object for layout run: %p\n", run);
         return FALSE;
     }
@@ -87,6 +86,7 @@ static BOOL shape_layout_run(SEInstance* inst,
     if (hb_buf == NULL)
         goto error;
 
+    hb_buffer_set_content_type(hb_buf, HB_BUFFER_CONTENT_TYPE_UNICODE);
     for (i = 0; i < run->len; i++) {
         hb_buffer_add(hb_buf, run->ucs[i], i);
     }
@@ -96,7 +96,7 @@ static BOOL shape_layout_run(SEInstance* inst,
     hb_buffer_set_language(hb_buf,
             hb_language_from_string(LanguageCodeToISO639s1(run->lc), -1));
 
-    hb_font = hb_ft_font_create(*face, NULL);
+    hb_font = hb_ft_font_create(face, NULL);
     if (hb_font == NULL)
         goto error;
 
