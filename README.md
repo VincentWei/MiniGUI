@@ -22,8 +22,7 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 
 MiniGUI is a mature cross-platform windowing system and a GUI (Graphics
 User Interface) support system for embedded systems and smart IoT devices.
-This is the version 4.0.x of MiniGUI maintained by WEI Yongming
-[Vincent Wei](https://github.com/VincentWei).
+This is the version 4.0.x of MiniGUI maintained by WEI Yongming.
 
 MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
 use.
@@ -146,11 +145,11 @@ and MiniGUI components, please fetch one of the following repositories
 from GitHub and follow the instructions to build the samples and
 the demostration programs:
 
-    https://github.com/VincentWei/build-minigui-4.0
+https://github.com/VincentWei/build-minigui-4.0
 
 or
 
-    https://github.com/VincentWei/build-minigui-3.2
+https://github.com/VincentWei/build-minigui-3.2
 
 
 ### Unit Tests
@@ -158,7 +157,7 @@ or
 Since MiniGUI 4.0.0, we orgnize the unit test code of MiniGUI APIs in the
 following repository:
 
-    https://github.com/VincentWei/mg-tests
+https://github.com/VincentWei/mg-tests
 
 If you are intersted in hacking the MiniGUI code, please use this repository.
 
@@ -188,7 +187,7 @@ We introduce some new features in MiniGUI Version 3.2.x:
 
   * The support for 64-bit platform. Note that some APIs have changed
     to support 64-bit platform. For more information, please refer to
-    RELEASE-NOTES.md file.
+    [RELEASE-NOTES.md for 3.2.x] file.
 
 Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
@@ -418,4 +417,5 @@ the commercial license of MiniGUI, please write to sales@minigui.com.
 [HybridOS]: https://github.com/FMSoftCN/hybridos
 [HybridOS Foundation Class Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
 [RELEASENOTES.md]: https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
+[RELEASE-NOTES.md for 3.2.x]: https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md
 
