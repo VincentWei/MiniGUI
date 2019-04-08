@@ -3,7 +3,13 @@
 ## Version 4.0.0
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.0.
-All users of MiniGUI are recommended strongly to use this version.
+However, currently, it is still in the beta/pre-release stage. We plan to
+release the stable version about Jun. 2019.
+
+We now encourage the MiniGUI users to use this version for any new MiniGUI
+apps, especially if the new features of MiniGUI 4.0.0 are must for your
+new apps.
+
 Please report any bugs and incompatibilities in
 
     https://github.com/VincentWei/minigui
@@ -30,8 +36,8 @@ rendering in order that MiniGUI can handle complex writing systems
 * We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
-The new APIs also conform to the specification of CSS Text Module
-Level 3. Indeed, we design the APIs for HybridOS Foundation Class Library,
+The new APIs also conform to the specification of [CSS Text Module Level 3].
+Indeed, we design the APIs for [HybridOS Foundation Class Library],
 which will provide the ability to render GUIs in CSS way.
 
 #### New APIs conforming Unicode 12.0
@@ -675,3 +681,8 @@ report any bugs and incompatibilities in
   * [NEW] LockDCEx: support for directly read and write the pixels in a DC.
   * [NEW] CreateSecondaryDC: Creates a secondary window DC of a window.
   * [NEW] SetSecondaryDC:set a window's secondary DC and the callback for double buffer window.
+
+
+[HybridOS]: https://github.com/FMSoftCN/hybridos
+[HybridOS Foundation C++ Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
+[CSS Text Module Level 3]: https://www.w3.org/TR/css-text-3/

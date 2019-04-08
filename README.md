@@ -22,8 +22,8 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 
 MiniGUI is a mature cross-platform windowing system and a GUI (Graphics
 User Interface) support system for embedded systems and smart IoT devices.
-This is the version 3.2.x of MiniGUI maintained by WEI Yongming
-(Vincent Wei, https://github.com/VincentWei).
+This is the version 4.0.x of MiniGUI maintained by WEI Yongming
+[Vincent Wei](https://github.com/VincentWei).
 
 MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
 use.
@@ -47,18 +47,16 @@ for the developers to develop app much easier:
     functions like path, gradient, anti-aliase stretch, and color combination.
 
   * mGEff: mGEff provides an animation framework for MiniGUI app.
-     It also provides some popular UI/UE special effects.
+    It also provides some popular UI/UE special effects.
 
   * mGNCS: This component provides a new control set for MiniGUI app.
-    By using mGNCS, you can use miniStudio to develop MiniGUI app in
-    WYSIWYG way.
 
   * mGNCS4Touch: This component provides some new controls, which are
     compliant to the new control API spec of mGNCS, for devices with
-    a touch screen.
+    touch screens.
 
-There are also some legacy MiniGUI components. We will not maintain these
-components for MiniGUI core v3.2:
+There are also some legacy MiniGUI components. But we will not maintain these
+components since MiniGUI v3.2.0:
 
   * mGi: An input method component for MiniGUI. This component provides
     some typical input methods (such as softkey, hand-writing, and predict
@@ -105,11 +103,6 @@ components, and other open source apps on GitHub. You can visit them on:
 
 https://github.com/VincentWei
 
-FMSoft also releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
-You can also download it from the official site of MiniGUI.
-
-http://www.minigui.com/en/download
-
 
 ## A BRIEF BUILDING INSTRUCTION
 
@@ -126,7 +119,7 @@ You can run `apt install <package_name>` to install the software on Ubuntu Linux
     * libpng12-dev
     * libfreetype6-dev
 
-### Building
+### Building MiniGUI Core
 
 MiniGUI core uses GNU autoconf/automake scripts to configure and build the project.
 
@@ -146,11 +139,34 @@ For more information, please run
 
     $ ./configure --help
 
+### Building the Comprehensive Demo
+
+If you are anxious to see the comprehensive demo of MiniGUI core
+and MiniGUI components, please fetch one of the following repositories
+from GitHub and follow the instructions to build the samples and
+the demostration programs:
+
+    https://github.com/VincentWei/build-minigui-4.0
+
+or
+
+    https://github.com/VincentWei/build-minigui-3.2
+
+
+### Unit Tests
+
+Since MiniGUI 4.0.0, we orgnize the unit test code of MiniGUI APIs in the
+following repository:
+
+    https://github.com/VincentWei/mg-tests
+
+If you are intersted in hacking the MiniGUI code, please use this repository.
+
 
 ## NEW FEATURES IN VERSION 4.0.x
 
 In this version, we enhanced and tuned the APIs related to text rendering,
-in order to support HybridOS Foundation C++ Library.
+in order to support [HybridOS Foundation C++ Library].
 
 * MiniGUI now provides complete APIs for Unicode characters processing.
   These APIs conform to Unicode 12.0.
@@ -399,3 +415,5 @@ the commercial license of MiniGUI, please write to sales@minigui.com.
     For more information about the commercial license, please refer to
     <http://www.minigui.com/en/about/licensing-policy/>.
 
+[HybridOS]: https://github.com/FMSoftCN/hybridos
+[HybridOS Foundation C++ Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
