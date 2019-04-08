@@ -69,6 +69,7 @@ typedef struct _FtFontInfo {
     ScriptType          st;
     FT_Face             face;
     hb_font_t*          hb_font;
+    //hb_face_t*        hb_face;
     int                 dfi;
 } FtFontInfo;
 
@@ -84,6 +85,7 @@ static hb_font_t* get_hb_font_for_script(SEInstance* inst,
     struct list_head* f;
     FT_Face face;
     hb_font_t* hb_font;
+    //hb_face_t* hb_face;
     FtFontInfo *new_fi;
     FONT_RES* font_res;
 
@@ -108,11 +110,14 @@ static hb_font_t* get_hb_font_for_script(SEInstance* inst,
     if (hb_font == NULL)
         return NULL;
 
+    //hb_face = hb_face_reference (hb_font_get_face (hb_font));
+
     new_fi = mg_slice_new(FtFontInfo);
     new_fi->lf = lf;
     new_fi->st = st;
     new_fi->face = face;
     new_fi->hb_font = hb_font;
+    //new_fi->hb_face = hb_face;
     new_fi->dfi = *dfi;
 
     font_res = (FONT_RES*)lf;
@@ -154,6 +159,7 @@ static BOOL destroy_instance(SEInstance* inst)
         FtFontInfo *fi = (FtFontInfo*)inst->cached_fonts.prev;
         list_del(inst->cached_fonts.prev);
 
+        //hb_face_destroy(fi->hb_face);
         hb_font_destroy(fi->hb_font);
 
         font_res = (FONT_RES*)fi->lf;
