@@ -158,9 +158,7 @@ static BOOL destroy_instance(SEInstance* inst)
 
         font_res = (FONT_RES*)fi->lf;
         if (font_res->key) {
-            int rc = ReleaseRes(font_res->key);
-            _DBG_PRINTF("%s: ref count of logfont (%p): %d\n",
-                __FUNCTION__, fi->lf, rc);
+            ReleaseRes(font_res->key);
         }
 
         mg_slice_delete(FtFontInfo, fi);
