@@ -193,11 +193,11 @@ VideoBootStrap COMMLCD_bootstrap = {
 
 static int COMMLCD_VideoInit(_THIS, GAL_PixelFormat *vformat)
 {
-    fprintf (stderr, "NEWGAL>COMMLCD: Calling init method!\n");
+    _ERR_PRINTF ("NEWGAL>COMMLCD: Calling init method!\n");
 
     /* Initialize LCD screen */
     if (__mg_commlcd_ops.init ()) {
-        fprintf (stderr, "NEWGAL>COMMLCD: Couldn't initialize LCD\n");
+        _ERR_PRINTF ("NEWGAL>COMMLCD: Couldn't initialize LCD\n");
         return -1;
     }
 
@@ -214,21 +214,25 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
     Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
-    struct commlcd_info li;    
+    struct commlcd_info li;
     memset (&li, 0, sizeof (struct commlcd_info));
 
     if (__mg_commlcd_ops.getinfo (&li, width, height, bpp)) {
-        fprintf (stderr, "NEWGAL>COMMLCD: "
+        _ERR_PRINTF ("NEWGAL>COMMLCD: "
                 "Couldn't get the LCD information\n");
         return NULL;
+    }
+
+    if (li.bpp != bpp) {
+        _ERR_PRINTF ("NEWGAL>COMMLCD: "
+                "Returned color depth (%d) does not matched the requested color depth (%d)\n",
+                li.bpp, bpp);
     }
 
     this->hidden->w = li.width;
     this->hidden->h = li.height;
     this->hidden->pitch = li.pitch;
     this->hidden->fb = li.fb;
-
-    memset (li.fb, 0, li.pitch * height);
 
     switch (li.type) {
     case COMMLCD_PSEUDO_RGB332:
@@ -278,7 +282,7 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
             __mg_commlcd_ops.release ();
 
         this->hidden->fb = NULL;
-        fprintf (stderr, "NEWGAL>COMMLCD: "
+        _ERR_PRINTF ("NEWGAL>COMMLCD: "
                 "Couldn't allocate new pixel format for requested mode\n");
         return NULL;
     }
