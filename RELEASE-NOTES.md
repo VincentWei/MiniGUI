@@ -684,5 +684,5 @@ report any bugs and incompatibilities in
 
 
 [HybridOS]: https://github.com/FMSoftCN/hybridos
-[HybridOS Foundation C++ Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
+[HybridOS Foundation Class Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
 [CSS Text Module Level 3]: https://www.w3.org/TR/css-text-3/

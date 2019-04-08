@@ -166,7 +166,7 @@ If you are intersted in hacking the MiniGUI code, please use this repository.
 ## NEW FEATURES IN VERSION 4.0.x
 
 In this version, we enhanced and tuned the APIs related to text rendering,
-in order to support [HybridOS Foundation C++ Library].
+in order to support [HybridOS Foundation Class Library].
 
 * MiniGUI now provides complete APIs for Unicode characters processing.
   These APIs conform to Unicode 12.0.
@@ -416,4 +416,4 @@ the commercial license of MiniGUI, please write to sales@minigui.com.
     <http://www.minigui.com/en/about/licensing-policy/>.
 
 [HybridOS]: https://github.com/FMSoftCN/hybridos
-[HybridOS Foundation C++ Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
+[HybridOS Foundation Class Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
