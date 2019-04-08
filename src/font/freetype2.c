@@ -774,7 +774,7 @@ static void get_kerning (LOGFONT* logfont, DEVFONT* devfont,
 static void* get_ft_face (LOGFONT* logfont, DEVFONT* devfont)
 {
     FTFACEINFO* ft_face_info = FT_FACE_INFO_P (devfont);
-    return ft_face_info->face;
+    return ft_face_info;
 }
 
 #ifdef _MGFONT_TTF_CACHE
@@ -1032,11 +1032,9 @@ static void* load_font_data (DEVFONT* devfont,
 
     FT_LOCK(&ft_lock);
 
-#ifdef _MGFONT_TTF_CACHE
     ft_face_info->filepathname = strdup (file_name);
     if (ft_face_info->filepathname == NULL)
         goto error;
-#endif
 
     error = FT_New_Face(ft_library, file_name, 0, &ft_face_info->face);
     face = ft_face_info->face;
@@ -1135,9 +1133,7 @@ error_free:
 static void unload_font_data (DEVFONT* devfont, void* data)
 {
     FT2_DATA* ft_data = (FT2_DATA*)data;
-#ifdef _MGFONT_TTF_CACHE
     free(ft_data->ft_face_info->filepathname);
-#endif
     FT_Done_Face((ft_data->ft_face_info)->face);
     free(ft_data->ft_face_info);
     free(ft_data->ft_inst_info);
@@ -1281,9 +1277,9 @@ FONTOPS __mg_ttf_ops = {
 };
 
 /*  Get the FreeType2 face object for HarfBuzz shaping engine */
-void* __mg_ft2_get_face(LOGFONT* lf, Uchar32 uc, int* dfi)
+const FT2INFO* __mg_ft2_get_face(LOGFONT* lf, Uchar32 uc, int* dfi)
 {
-    void* face = NULL;
+    const FT2INFO* face = NULL;
     DEVFONT* df;
     int i;
 

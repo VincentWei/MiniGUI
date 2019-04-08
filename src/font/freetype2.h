@@ -74,13 +74,13 @@ typedef int (* MakeHashKeyFunc)(Glyph32 gv);
 #endif
 
 typedef struct tagFTFACEINFO {
-#ifdef _MGFONT_TTF_CACHE
     char*       filepathname;
+    FT_Face     face;
+    BOOL        valid;
+#ifdef _MGFONT_TTF_CACHE
     int         face_index;
     int         cmap_index;
 #endif
-    FT_Face     face;
-    BOOL        valid;
 } FTFACEINFO, *PFTFACEINFO;
 
 typedef struct tagFTINSTANCEINFO {

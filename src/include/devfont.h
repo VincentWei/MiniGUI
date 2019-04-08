@@ -348,7 +348,13 @@ typedef struct {
 } FONTOPS_INFO;
 
 extern FONTOPS_INFO __mg_fontops_infos[];
-void* __mg_ft2_get_face(LOGFONT* lf, Uchar32 uc, int* dfi);
+
+typedef struct tagFT2FILEANDFACE {
+    char*   filepathname;
+    void*   face;
+} FT2INFO;
+
+const FT2INFO* __mg_ft2_get_face(LOGFONT* lf, Uchar32 uc, int* dfi);
 
 #ifdef __cplusplus
 }

@@ -83,7 +83,7 @@ static hb_font_t* get_hb_font_for_script(SEInstance* inst,
         LOGFONT* lf, ScriptType st, Uchar32 uc, int* dfi)
 {
     struct list_head* f;
-    FT_Face face;
+    const FT2INFO* file_face;
     hb_font_t* hb_font;
     //hb_face_t* hb_face;
     FtFontInfo *new_fi;
@@ -98,14 +98,14 @@ static hb_font_t* get_hb_font_for_script(SEInstance* inst,
         }
     }
 
-    face = (FT_Face)__mg_ft2_get_face(lf, uc, dfi);
-    if (face == NULL) {
+    file_face = __mg_ft2_get_face(lf, uc, dfi);
+    if (file_face == NULL) {
         _WRN_PRINTF("Cannot get FT2 face for logfont (%p) and uc (0x%x)\n",
             lf, uc);
         return NULL;
     }
 
-    hb_font = hb_ft_font_create_referenced(face);
+    hb_font = hb_ft_font_create_referenced(file_face->face);
     //hb_font = hb_ft_font_create(face, NULL);
     if (hb_font == NULL)
         return NULL;
@@ -115,7 +115,7 @@ static hb_font_t* get_hb_font_for_script(SEInstance* inst,
     new_fi = mg_slice_new(FtFontInfo);
     new_fi->lf = lf;
     new_fi->st = st;
-    new_fi->face = face;
+    new_fi->face = file_face->face;
     new_fi->hb_font = hb_font;
     //new_fi->hb_face = hb_face;
     new_fi->dfi = *dfi;
