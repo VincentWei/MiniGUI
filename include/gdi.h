@@ -2772,7 +2772,7 @@ MG_EXPORT void GUIAPI RGB2Pixels (HDC hdc, const RGB* rgbs,
  */
 static inline gal_pixel RGB2Pixel (HDC hdc, Uint8 r, Uint8 g, Uint8 b)
 {
-    RGB rgb = {r, g, b, 0};
+    RGB rgb = {r, g, b, 0xFF};
     gal_pixel pixel;
 
     RGB2Pixels (hdc, &rgb, &pixel, 1);
