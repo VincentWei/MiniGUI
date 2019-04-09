@@ -352,7 +352,7 @@ static void shape_ellipsis (EllipsizeState *state)
     if (DFI_IN_GLYPH(ellipsis_gv) == 0) {
         __mg_layout_run_free (layout_run);
         layout_run = __mg_layout_run_new_ellipsis (state->layout,
-                text_run, ellipsis_ucs, 3);
+                text_run, _ellipsis_fallback, 3);
     }
 
     state->ellipsis_lrun = layout_run;

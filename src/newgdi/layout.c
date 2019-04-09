@@ -488,7 +488,9 @@ static void shape_space(const LAYOUT* layout, const LayoutRun* lrun,
                         = _font_get_glyph_log_width(lrun->lf, space_gv);
 
             if (IsUCharWide(lrun->ucs[i])) {
-                gstr->glyphs[i].width *= 2;
+                Glyph32 space_gv = GetGlyphValue(lrun->lf, UCHAR_IDSPACE);
+                gstr->glyphs[i].width
+                        = _font_get_glyph_log_width(lrun->lf, space_gv);
             }
 
             // A simple implementation for word spacing.
@@ -747,12 +749,13 @@ static inline BOOL can_break_at (LAYOUT *layout,
         wrap = GRF_OVERFLOW_WRAP_ANYWHERE;
 
     if (wrap == GRF_OVERFLOW_WRAP_NORMAL)
-        return (layout->bos[offset] & BOV_LB_MASK) == BOV_LB_ALLOWED;
+        return (
+            (layout->bos[offset] & BOV_LB_MASK) == BOV_LB_ALLOWED);
     else if (wrap == GRF_OVERFLOW_WRAP_BREAK_WORD)
         return (offset > 0 &&
             (layout->bos[offset - 1] & BOV_WB_WORD_BOUNDARY));
     else if (wrap == GRF_OVERFLOW_WRAP_ANYWHERE)
-        return layout->bos[offset] & BOV_GB_CHAR_BREAK;
+        return (offset > 0 && (layout->bos[offset] & BOV_GB_CHAR_BREAK));
     else {
         _WRN_PRINTF ("broken Layout");
     }
