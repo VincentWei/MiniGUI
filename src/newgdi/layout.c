@@ -737,25 +737,91 @@ static GlyphRun* insert_run(LAYOUTLINE *line, LayoutState *state,
     return glyph_run;
 }
 
+#ifdef _DEBUG
+static inline int uc32_to_utf8(Uchar32 c, char* outbuf)
+{
+    int len = 0;
+    int first;
+    int i;
+
+    if (c < 0x80) {
+        first = 0;
+        len = 1;
+    }
+    else if (c < 0x800) {
+        first = 0xc0;
+        len = 2;
+    }
+    else if (c < 0x10000) {
+        first = 0xe0;
+        len = 3;
+    }
+    else if (c < 0x200000) {
+        first = 0xf0;
+        len = 4;
+    }
+    else if (c < 0x4000000) {
+        first = 0xf8;
+        len = 5;
+    }
+    else {
+        first = 0xfc;
+        len = 6;
+    }
+
+    if (outbuf) {
+        for (i = len - 1; i > 0; --i) {
+            outbuf[i] = (c & 0x3f) | 0x80;
+            c >>= 6;
+        }
+        outbuf[0] = c | first;
+    }
+
+    return len;
+}
+
+static inline void print_uc (LAYOUT* layout, int index, const char* desc)
+{
+    char utf8_char [10];
+    Uchar32 uc = layout->truns->ucs[index];
+
+    memset(utf8_char, 0, 10);
+    uc32_to_utf8(uc, utf8_char);
+    _WRN_PRINTF("%s: character: %s (0x%x) at index: %d",
+            desc, utf8_char, uc, index);
+    assert(uc != 0xa);
+}
+#else
+static inline void print_uc (LAYOUT* layout, int index, const char* desc)
+{
+}
+#endif
+
 static inline BOOL can_break_at (LAYOUT *layout,
         int offset, BOOL always_wrap_char)
 {
     Uint32 wrap = layout->rf & GRF_OVERFLOW_WRAP_MASK;
 
-    if (offset == layout->truns->nr_ucs)
+    if (offset == layout->truns->nr_ucs) {
         return TRUE;
+    }
 
-    if (always_wrap_char)
+    if (always_wrap_char) {
         wrap = GRF_OVERFLOW_WRAP_ANYWHERE;
+    }
 
-    if (wrap == GRF_OVERFLOW_WRAP_NORMAL)
-        return (
-            (layout->bos[offset] & BOV_LB_MASK) == BOV_LB_ALLOWED);
-    else if (wrap == GRF_OVERFLOW_WRAP_BREAK_WORD)
+    if (wrap == GRF_OVERFLOW_WRAP_NORMAL) {
+        return (offset > 0 &&
+             (layout->bos[offset - 1] & BOV_LB_MASK) == BOV_LB_ALLOWED);
+    }
+    else if (wrap == GRF_OVERFLOW_WRAP_BREAK_WORD) {
         return (offset > 0 &&
             (layout->bos[offset - 1] & BOV_WB_WORD_BOUNDARY));
-    else if (wrap == GRF_OVERFLOW_WRAP_ANYWHERE)
-        return (offset > 0 && (layout->bos[offset] & BOV_GB_CHAR_BREAK));
+    }
+    else if (wrap == GRF_OVERFLOW_WRAP_ANYWHERE) {
+        return (offset > 0 &&
+            (layout->bos[offset - 1] & BOV_GB_CHAR_BREAK));
+    }
     else {
         _WRN_PRINTF ("broken Layout");
     }
@@ -943,8 +1009,6 @@ retry_break:
 
                 /* Shaped lruns should never be broken */
                 assert (!shape_set);
-
-                print_line_runs(line, __FUNCTION__);
 
                 return BREAK_SOME_FIT;
             }
@@ -1164,7 +1228,7 @@ static void layout_line_reorder(LAYOUTLINE *line)
         reverse_runs(&line->gruns, runs, line->nr_runs);
     }
 
-    print_line_runs(line, __FUNCTION__);
+    //print_line_runs(line, __FUNCTION__);
 
 #if 0 /* test code for list_reverse and reverse_runs */
     list_reverse(&line->gruns);
@@ -1698,11 +1762,13 @@ static LAYOUTLINE* check_next_line(LAYOUT* layout, LayoutState* state)
             state->start_offset += old_num_chars - state->lrun->len;
             wrapped = TRUE;
 
-            print_line_runs(line, __FUNCTION__);
+            //print_line_runs(line, __FUNCTION__);
             goto done;
 
         case BREAK_NONE_FIT:
             __mg_layout_run_free(state->lrun);
+
+            print_line_runs(line, "before uninsert_run");
 
             /* Back up over unused runs to run where there is a break */
             while (!list_empty(&line->gruns) &&
@@ -1710,10 +1776,13 @@ static LAYOUTLINE* check_next_line(LAYOUT* layout, LayoutState* state)
                 uninsert_run(line);
             }
 
+            /* uninsert the break link */
+            uninsert_run(line);
+
+            print_line_runs(line, "after uninsert_run");
+
             state->start_offset = break_start_offset;
             state->remaining_width = break_remaining_width;
-
-            print_line_runs(line, __FUNCTION__);
 
             /* determine start text run again */
             state->trun = __mg_text_run_get_by_offset_const(layout->truns,
@@ -2122,11 +2191,9 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         state.trun = __mg_text_run_get_by_offset_const(layout->truns,
                 state.line_start_index, &state.start_index_in_trun);
 
-#if 0
         _DBG_PRINTF("%s: line_start_index: %d, start_index_in_trun: %d(%p)\n",
             __FUNCTION__, state.line_start_index, state.start_index_in_trun,
             state.trun);
-#endif
 
         if (state.trun == NULL) {
             next_line = NULL;
