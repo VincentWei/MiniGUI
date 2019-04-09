@@ -1799,7 +1799,8 @@ static LAYOUTLINE* check_next_line(LAYOUT* layout, LayoutState* state)
             old_num_chars = state->lrun->len;
             result = process_layout_run(layout, line, state, TRUE, TRUE);
 
-            assert(result == BREAK_SOME_FIT || result == BREAK_EMPTY_FIT);
+            assert(result == BREAK_SOME_FIT || result == BREAK_EMPTY_FIT ||
+                    result == BREAK_ALL_FIT);
 
             state->start_offset += old_num_chars - state->lrun->len;
             wrapped = TRUE;
