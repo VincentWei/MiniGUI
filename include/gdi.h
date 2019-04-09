@@ -6258,7 +6258,6 @@ MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
 
 #endif
 
-#if defined(_MGFONT_QPF) || defined(_MGFONT_FT2) || defined(_MGFONT_TTF) || defined(_MGFONT_UPF)
 /**
  * \fn DEVFONT* GUIAPI LoadDevFontFromFile (const char* devfont_name, \
  *        const char* file_name)
@@ -6275,8 +6274,25 @@ MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
  *
  * \sa GetNextDevFont, DestroyDynamicDevFont
  */
-MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name, 
+MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name,
         const char *file_name);
+
+/**
+ * \fn DEVFONT* GUIAPI LoadDevFontFromIncoreData (const char* devfont_name, \
+ *        const void* data)
+ * \brief Load device font from incore data.
+ *
+ * This function can be used to load device font from incore data.
+ *
+ * \param devfont_name The device font name.
+ * \param data The pointer to the incore font data.
+ *
+ * \return the pointer to the new device font on success, NULL on error.
+ *
+ * \sa GetNextDevFont, DestroyDynamicDevFont
+ */
+MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromIncoreData (const char *devfont_name,
+        const void *data);
 
 /**
  * \fn void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont)
@@ -6288,7 +6304,6 @@ MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name,
  * \sa LoadDevFontFromFile 
  */
 MG_EXPORT void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont);
-#endif
 
     /** @} end of font_fns */
 
