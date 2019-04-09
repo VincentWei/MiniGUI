@@ -7023,7 +7023,6 @@ MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, FT2LCDFilter filter);
 MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromIncoreData (const char *devfont_name,
         const void *data);
 
-#if defined(_MGFONT_QPF) || defined(_MGFONT_FT2) || defined(_MGFONT_TTF) || defined(_MGFONT_UPF)
 /**
  * \fn DEVFONT* GUIAPI LoadDevFontFromFile (const char* devfont_name, \
  *        const char* file_name)
@@ -7053,7 +7052,6 @@ MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name,
  * \sa LoadDevFontFromFile
  */
 MG_EXPORT void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont);
-#endif
 
     /** @} end of font_fns */
 

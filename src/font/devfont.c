@@ -510,7 +510,7 @@ static DEVFONT* find_devfont(const char* font_name, BOOL is_mbc_list)
 
     cur = head;
     while (cur) {
-        if (strcmp (cur->name, font_name) == 0) {
+        if (strcasecmp (cur->name, font_name) == 0) {
             return cur;
         }
 
