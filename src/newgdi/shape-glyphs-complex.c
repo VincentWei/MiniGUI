@@ -305,6 +305,7 @@ error:
 
 BOOL GUIAPI InitComplexShapingEngine(TEXTRUNS* truns)
 {
+    // TODO: check using ttf fonts
     truns->sei.inst = create_instance();
     truns->sei.shape = shape_layout_run;
     truns->sei.free = destroy_instance;

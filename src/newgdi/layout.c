@@ -1847,10 +1847,6 @@ static Uint32 get_line_alignment(const LAYOUT *layout,
         else
             alignment = GRF_ALIGN_RIGHT;
         break;
-
-    default:
-        alignment = GRF_ALIGN_LEFT;
-        break;
     }
 
     return alignment;
