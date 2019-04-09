@@ -6416,6 +6416,359 @@ typedef enum {
 
     /** @} end of achar_types */
 
+    /**
+     * \defgroup language_code Language Code
+     *
+     * The language code specifies the content language.
+     *
+     * @{
+     */
+
+/**
+ * The language code.
+ */
+typedef enum {
+    /** Unknown language code */
+    LANGCODE_unknown = 0xFF,
+    /** Language code for Afar */
+    LANGCODE_aa = 0,
+    /** Language code for Abkhazian */
+    LANGCODE_ab,
+    /** Language code for Afrikaans */
+    LANGCODE_af,
+    /** Language code for Amharic */
+    LANGCODE_am,
+    /** Language code for Arabic */
+    LANGCODE_ar,
+    /** Language code for Assamese */
+    LANGCODE_as,
+    /** Language code for Aymara */
+    LANGCODE_ay,
+    /** Language code for Azerbaijani */
+    LANGCODE_az,
+    /** Language code for Bashkir */
+    LANGCODE_ba,
+    /** Language code for Byelorussian */
+    LANGCODE_be,
+    /** Language code for Bulgarian */
+    LANGCODE_bg,
+    /** Language code for Bihari */
+    LANGCODE_bh,
+    /** Language code for Bislama */
+    LANGCODE_bi,
+    /** Language code for Bengali */
+    LANGCODE_bn,
+    /** Language code for Tibetan */
+    LANGCODE_bo,
+    /** Language code for Breton */
+    LANGCODE_br,
+    /** Language code for Catalan */
+    LANGCODE_ca,
+    /** Language code for Corsican */
+    LANGCODE_co,
+    /** Language code for Czech */
+    LANGCODE_cs,
+    /** Language code for Welch */
+    LANGCODE_cy,
+    /** Language code for Danish */
+    LANGCODE_da,
+    /** Language code for German */
+    LANGCODE_de,
+    /** Language code for Divehi */
+    LANGCODE_dv,
+    /** Language code for Bhutani */
+    LANGCODE_dz,
+    /** Language code for Greek */
+    LANGCODE_el,
+    /** Language code for English */
+    LANGCODE_en,
+    /** Language code for Esperanto */
+    LANGCODE_eo,
+    /** Language code for Spanish */
+    LANGCODE_es,
+    /** Language code for Estonian */
+    LANGCODE_et,
+    /** Language code for Basque */
+    LANGCODE_eu,
+    /** Language code for Persian */
+    LANGCODE_fa,
+    /** Language code for Finnish */
+    LANGCODE_fi,
+    /** Language code for Fiji */
+    LANGCODE_fj,
+    /** Language code for Faeroese */
+    LANGCODE_fo,
+    /** Language code for French */
+    LANGCODE_fr,
+    /** Language code for Frisian */
+    LANGCODE_fy,
+    /** Language code for Irish */
+    LANGCODE_ga,
+    /** Language code for Scots Gaelic */
+    LANGCODE_gd,
+    /** Language code for Galician */
+    LANGCODE_gl,
+    /** Language code for Guarani */
+    LANGCODE_gn,
+    /** Language code for Gujarati */
+    LANGCODE_gu,
+    /** Language code for Hausa */
+    LANGCODE_ha,
+    /** Language code for Hindi */
+    LANGCODE_hi,
+    /** Language code for Hebrew */
+    LANGCODE_he,
+    /** Language code for Croatian */
+    LANGCODE_hr,
+    /** Language code for Hungarian */
+    LANGCODE_hu,
+    /** Language code for Armenian */
+    LANGCODE_hy,
+    /** Language code for Interlingua */
+    LANGCODE_ia,
+    /** Language code for Indonesian */
+    LANGCODE_id,
+    /** Language code for Interlingue */
+    LANGCODE_ie,
+    /** Language code for Inupiak */
+    LANGCODE_ik,
+    /** Language code for former Indonesian */
+    LANGCODE_in,
+    /** Language code for Icelandic */
+    LANGCODE_is,
+    /** Language code for Italian */
+    LANGCODE_it,
+    /** Language code for Inuktitut (Eskimo) */
+    LANGCODE_iu,
+    /** Language code for former Hebrew */
+    LANGCODE_iw,
+    /** Language code for Japanese */
+    LANGCODE_ja,
+    /** Language code for former Yiddish */
+    LANGCODE_ji,
+    /** Language code for Javanese */
+    LANGCODE_jw,
+    /** Language code for Georgian */
+    LANGCODE_ka,
+    /** Language code for Kazakh */
+    LANGCODE_kk,
+    /** Language code for Greenlandic */
+    LANGCODE_kl,
+    /** Language code for Cambodian */
+    LANGCODE_km,
+    /** Language code for Kannada */
+    LANGCODE_kn,
+    /** Language code for Korean */
+    LANGCODE_ko,
+    /** Language code for Kashmiri */
+    LANGCODE_ks,
+    /** Language code for Kurdish */
+    LANGCODE_ku,
+    /** Language code for Kirghiz */
+    LANGCODE_ky,
+    /** Language code for Latin */
+    LANGCODE_la,
+    /** Language code for Lingala */
+    LANGCODE_ln,
+    /** Language code for Laothian */
+    LANGCODE_lo,
+    /** Language code for Lithuanian */
+    LANGCODE_lt,
+    /** Language code for Latvian, Lettish */
+    LANGCODE_lv,
+    /** Language code for Malagasy */
+    LANGCODE_mg,
+    /** Language code for Maori */
+    LANGCODE_mi,
+    /** Language code for Macedonian */
+    LANGCODE_mk,
+    /** Language code for Malayalam */
+    LANGCODE_ml,
+    /** Language code for Mongolian */
+    LANGCODE_mn,
+    /** Language code for Moldavian */
+    LANGCODE_mo,
+    /** Language code for Marathi */
+    LANGCODE_mr,
+    /** Language code for Malay */
+    LANGCODE_ms,
+    /** Language code for Maltese */
+    LANGCODE_mt,
+    /** Language code for Burmese */
+    LANGCODE_my,
+    /** Language code for Nauru */
+    LANGCODE_na,
+    /** Language code for Nepali */
+    LANGCODE_ne,
+    /** Language code for Dutch */
+    LANGCODE_nl,
+    /** Language code for Norwegian */
+    LANGCODE_no,
+    /** Language code for Occitan */
+    LANGCODE_oc,
+    /** Language code for (Afan) Oromo */
+    LANGCODE_om,
+    /** Language code for Oriya */
+    LANGCODE_or,
+    /** Language code for Punjabi */
+    LANGCODE_pa,
+    /** Language code for Polish */
+    LANGCODE_pl,
+    /** Language code for Pashto, Pushto */
+    LANGCODE_ps,
+    /** Language code for Portuguese */
+    LANGCODE_pt,
+    /** Language code for Quechua */
+    LANGCODE_qu,
+    /** Language code for Rhaeto-Romance */
+    LANGCODE_rm,
+    /** Language code for Kirundi */
+    LANGCODE_rn,
+    /** Language code for Romanian */
+    LANGCODE_ro,
+    /** Language code for Russian */
+    LANGCODE_ru,
+    /** Language code for Kinyarwanda */
+    LANGCODE_rw,
+    /** Language code for Sanskrit */
+    LANGCODE_sa,
+    /** Language code for Sindhi */
+    LANGCODE_sd,
+    /** Language code for Sangro */
+    LANGCODE_sg,
+    /** Language code for Serbo-Croatian */
+    LANGCODE_sh,
+    /** Language code for Singhalese */
+    LANGCODE_si,
+    /** Language code for Slovak */
+    LANGCODE_sk,
+    /** Language code for Slovenian */
+    LANGCODE_sl,
+    /** Language code for Samoan */
+    LANGCODE_sm,
+    /** Language code for Shona */
+    LANGCODE_sn,
+    /** Language code for Somali */
+    LANGCODE_so,
+    /** Language code for Albanian */
+    LANGCODE_sq,
+    /** Language code for Serbian */
+    LANGCODE_sr,
+    /** Language code for Siswati */
+    LANGCODE_ss,
+    /** Language code for Sesotho */
+    LANGCODE_st,
+    /** Language code for Sudanese */
+    LANGCODE_su,
+    /** Language code for Swedish */
+    LANGCODE_sv,
+    /** Language code for Swahili */
+    LANGCODE_sw,
+    /** Language code for Tamil */
+    LANGCODE_ta,
+    /** Language code for Tegulu */
+    LANGCODE_te,
+    /** Language code for Tajik */
+    LANGCODE_tg,
+    /** Language code for Thai */
+    LANGCODE_th,
+    /** Language code for Tigrinya */
+    LANGCODE_ti,
+    /** Language code for Turkmen */
+    LANGCODE_tk,
+    /** Language code for Tagalog */
+    LANGCODE_tl,
+    /** Language code for Setswana */
+    LANGCODE_tn,
+    /** Language code for Tonga */
+    LANGCODE_to,
+    /** Language code for Turkish */
+    LANGCODE_tr,
+    /** Language code for Tsonga */
+    LANGCODE_ts,
+    /** Language code for Tatar */
+    LANGCODE_tt,
+    /** Language code for Twi */
+    LANGCODE_tw,
+    /** Language code for Uigur */
+    LANGCODE_ug,
+    /** Language code for Ukrainian */
+    LANGCODE_uk,
+    /** Language code for Urdu */
+    LANGCODE_ur,
+    /** Language code for Uzbek */
+    LANGCODE_uz,
+    /** Language code for Vietnamese */
+    LANGCODE_vi,
+    /** Language code for Volapuk */
+    LANGCODE_vo,
+    /** Language code for Wolof */
+    LANGCODE_wo,
+    /** Language code for Xhosa */
+    LANGCODE_xh,
+    /** Language code for Yiddish */
+    LANGCODE_yi,
+    /** Language code for Yoruba */
+    LANGCODE_yo,
+    /** Language code for Zhuang */
+    LANGCODE_za,
+    /** Language code for Chinese */
+    LANGCODE_zh,
+    /** Language code for Zulu */
+    LANGCODE_zu,
+} LanguageCode;
+
+/**
+ * LanuageCodeFromISO639s1:
+ * @iso639_1: An encoded language code in ISO639-1.
+ *
+ * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
+ * codes to languages.  For example, the code for Arabic is 'ar'.
+ * This function accepts two letter codes encoded as a @Uint16 in a
+ * big-endian fashion.  That is, the code expected for Arabic is
+ * 0x6172 (0x61 is ASCII code for 'a', 0x72 is ASCII code for 'r', etc).
+ *
+ * Returns: the language code for @iso639_1, or
+ *   of %LANGCODE_unknown if @iso639_1 is invalid.
+ *
+ * Since: 4.0.0
+ */
+MG_EXPORT LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
+
+/**
+ * LanguageCodeFromISO639s1Code:
+ * @iso639_1: A language code in ISO639-1.
+ *
+ * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
+ * codes to languages.  For example, the code for Arabic is 'ar'.
+ *
+ * Returns: the language code for @iso639_1, or
+ *   of %LANGCODE_unknown if @iso639_1 is invalid.
+ *
+ * Since: 4.0.0
+ */
+static inline LanguageCode GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
+{
+    return LanguageCodeFromISO639s1(MAKEWORD16(iso639_1[1],
+            iso639_1[0]));
+}
+
+/** Get ISO639-1 language code from the native language code. */
+MG_EXPORT const char* GUIAPI LanguageCodeToISO639s1(LanguageCode lc);
+
+/** Get the sample language code (ISO639-1) from the specific script type */
+MG_EXPORT LanguageCode GUIAPI GetSampleLanguageForScript(ScriptType st);
+
+/** Get language code and scripts for ISO639 language name. */
+MG_EXPORT const ScriptType* GUIAPI GetScriptsForLang(const char* lang_name,
+        LanguageCode* lang_code, int* nr_scripts);
+
+/** Normalize script type according to language code */
+MG_EXPORT ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
+    ScriptType ws);
+
+    /** @} end of language_code */
+
 struct _FONTOPS;
 struct _CHARSETOPS;
 
@@ -8816,7 +9169,7 @@ typedef Uint16 BreakOppo;
     /** @} end of breaking_opportunities */
 
 /**
- * \fn int GUIAPI UStrGetBreaks(ScriptType writing_system,
+ * \fn int GUIAPI UStrGetBreaks(LanguageCode lang_code,
  *          Uint8 ctr, Uint8 wbr, Uint8 lbp,
  *          Uchar32* ucs, int nr_ucs, BreakOppo** break_oppos);
  * \brief Calculate the breaking opportunities of a Uchar32 string under
@@ -8874,7 +9227,7 @@ typedef Uint16 BreakOppo;
  * \sa DrawGlyphStringEx, word_break_rules, char_transform_rule,
  *      line_break_policies
  */
-MG_EXPORT int GUIAPI UStrGetBreaks(ScriptType writing_system,
+MG_EXPORT int GUIAPI UStrGetBreaks(LanguageCode lang_code,
         Uint8 ctr, Uint8 wbr, Uint8 lbp,
         Uchar32* ucs, int nr_ucs, BreakOppo** break_oppos);
 
@@ -11646,359 +11999,6 @@ MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         GLYPHINFO* glyph_info);
 
 #ifdef _MGCHARSET_UNICODE
-
-    /**
-     * \defgroup language_code Language Code
-     *
-     * The language code specifies the content language.
-     *
-     * @{
-     */
-
-/**
- * The language code.
- */
-typedef enum {
-    /** Unknown language code */
-    LANGCODE_unknown = 0xFF,
-    /** Language code for Afar */
-    LANGCODE_aa = 0,
-    /** Language code for Abkhazian */
-    LANGCODE_ab,
-    /** Language code for Afrikaans */
-    LANGCODE_af,
-    /** Language code for Amharic */
-    LANGCODE_am,
-    /** Language code for Arabic */
-    LANGCODE_ar,
-    /** Language code for Assamese */
-    LANGCODE_as,
-    /** Language code for Aymara */
-    LANGCODE_ay,
-    /** Language code for Azerbaijani */
-    LANGCODE_az,
-    /** Language code for Bashkir */
-    LANGCODE_ba,
-    /** Language code for Byelorussian */
-    LANGCODE_be,
-    /** Language code for Bulgarian */
-    LANGCODE_bg,
-    /** Language code for Bihari */
-    LANGCODE_bh,
-    /** Language code for Bislama */
-    LANGCODE_bi,
-    /** Language code for Bengali */
-    LANGCODE_bn,
-    /** Language code for Tibetan */
-    LANGCODE_bo,
-    /** Language code for Breton */
-    LANGCODE_br,
-    /** Language code for Catalan */
-    LANGCODE_ca,
-    /** Language code for Corsican */
-    LANGCODE_co,
-    /** Language code for Czech */
-    LANGCODE_cs,
-    /** Language code for Welch */
-    LANGCODE_cy,
-    /** Language code for Danish */
-    LANGCODE_da,
-    /** Language code for German */
-    LANGCODE_de,
-    /** Language code for Divehi */
-    LANGCODE_dv,
-    /** Language code for Bhutani */
-    LANGCODE_dz,
-    /** Language code for Greek */
-    LANGCODE_el,
-    /** Language code for English */
-    LANGCODE_en,
-    /** Language code for Esperanto */
-    LANGCODE_eo,
-    /** Language code for Spanish */
-    LANGCODE_es,
-    /** Language code for Estonian */
-    LANGCODE_et,
-    /** Language code for Basque */
-    LANGCODE_eu,
-    /** Language code for Persian */
-    LANGCODE_fa,
-    /** Language code for Finnish */
-    LANGCODE_fi,
-    /** Language code for Fiji */
-    LANGCODE_fj,
-    /** Language code for Faeroese */
-    LANGCODE_fo,
-    /** Language code for French */
-    LANGCODE_fr,
-    /** Language code for Frisian */
-    LANGCODE_fy,
-    /** Language code for Irish */
-    LANGCODE_ga,
-    /** Language code for Scots Gaelic */
-    LANGCODE_gd,
-    /** Language code for Galician */
-    LANGCODE_gl,
-    /** Language code for Guarani */
-    LANGCODE_gn,
-    /** Language code for Gujarati */
-    LANGCODE_gu,
-    /** Language code for Hausa */
-    LANGCODE_ha,
-    /** Language code for Hindi */
-    LANGCODE_hi,
-    /** Language code for Hebrew */
-    LANGCODE_he,
-    /** Language code for Croatian */
-    LANGCODE_hr,
-    /** Language code for Hungarian */
-    LANGCODE_hu,
-    /** Language code for Armenian */
-    LANGCODE_hy,
-    /** Language code for Interlingua */
-    LANGCODE_ia,
-    /** Language code for Indonesian */
-    LANGCODE_id,
-    /** Language code for Interlingue */
-    LANGCODE_ie,
-    /** Language code for Inupiak */
-    LANGCODE_ik,
-    /** Language code for former Indonesian */
-    LANGCODE_in,
-    /** Language code for Icelandic */
-    LANGCODE_is,
-    /** Language code for Italian */
-    LANGCODE_it,
-    /** Language code for Inuktitut (Eskimo) */
-    LANGCODE_iu,
-    /** Language code for former Hebrew */
-    LANGCODE_iw,
-    /** Language code for Japanese */
-    LANGCODE_ja,
-    /** Language code for former Yiddish */
-    LANGCODE_ji,
-    /** Language code for Javanese */
-    LANGCODE_jw,
-    /** Language code for Georgian */
-    LANGCODE_ka,
-    /** Language code for Kazakh */
-    LANGCODE_kk,
-    /** Language code for Greenlandic */
-    LANGCODE_kl,
-    /** Language code for Cambodian */
-    LANGCODE_km,
-    /** Language code for Kannada */
-    LANGCODE_kn,
-    /** Language code for Korean */
-    LANGCODE_ko,
-    /** Language code for Kashmiri */
-    LANGCODE_ks,
-    /** Language code for Kurdish */
-    LANGCODE_ku,
-    /** Language code for Kirghiz */
-    LANGCODE_ky,
-    /** Language code for Latin */
-    LANGCODE_la,
-    /** Language code for Lingala */
-    LANGCODE_ln,
-    /** Language code for Laothian */
-    LANGCODE_lo,
-    /** Language code for Lithuanian */
-    LANGCODE_lt,
-    /** Language code for Latvian, Lettish */
-    LANGCODE_lv,
-    /** Language code for Malagasy */
-    LANGCODE_mg,
-    /** Language code for Maori */
-    LANGCODE_mi,
-    /** Language code for Macedonian */
-    LANGCODE_mk,
-    /** Language code for Malayalam */
-    LANGCODE_ml,
-    /** Language code for Mongolian */
-    LANGCODE_mn,
-    /** Language code for Moldavian */
-    LANGCODE_mo,
-    /** Language code for Marathi */
-    LANGCODE_mr,
-    /** Language code for Malay */
-    LANGCODE_ms,
-    /** Language code for Maltese */
-    LANGCODE_mt,
-    /** Language code for Burmese */
-    LANGCODE_my,
-    /** Language code for Nauru */
-    LANGCODE_na,
-    /** Language code for Nepali */
-    LANGCODE_ne,
-    /** Language code for Dutch */
-    LANGCODE_nl,
-    /** Language code for Norwegian */
-    LANGCODE_no,
-    /** Language code for Occitan */
-    LANGCODE_oc,
-    /** Language code for (Afan) Oromo */
-    LANGCODE_om,
-    /** Language code for Oriya */
-    LANGCODE_or,
-    /** Language code for Punjabi */
-    LANGCODE_pa,
-    /** Language code for Polish */
-    LANGCODE_pl,
-    /** Language code for Pashto, Pushto */
-    LANGCODE_ps,
-    /** Language code for Portuguese */
-    LANGCODE_pt,
-    /** Language code for Quechua */
-    LANGCODE_qu,
-    /** Language code for Rhaeto-Romance */
-    LANGCODE_rm,
-    /** Language code for Kirundi */
-    LANGCODE_rn,
-    /** Language code for Romanian */
-    LANGCODE_ro,
-    /** Language code for Russian */
-    LANGCODE_ru,
-    /** Language code for Kinyarwanda */
-    LANGCODE_rw,
-    /** Language code for Sanskrit */
-    LANGCODE_sa,
-    /** Language code for Sindhi */
-    LANGCODE_sd,
-    /** Language code for Sangro */
-    LANGCODE_sg,
-    /** Language code for Serbo-Croatian */
-    LANGCODE_sh,
-    /** Language code for Singhalese */
-    LANGCODE_si,
-    /** Language code for Slovak */
-    LANGCODE_sk,
-    /** Language code for Slovenian */
-    LANGCODE_sl,
-    /** Language code for Samoan */
-    LANGCODE_sm,
-    /** Language code for Shona */
-    LANGCODE_sn,
-    /** Language code for Somali */
-    LANGCODE_so,
-    /** Language code for Albanian */
-    LANGCODE_sq,
-    /** Language code for Serbian */
-    LANGCODE_sr,
-    /** Language code for Siswati */
-    LANGCODE_ss,
-    /** Language code for Sesotho */
-    LANGCODE_st,
-    /** Language code for Sudanese */
-    LANGCODE_su,
-    /** Language code for Swedish */
-    LANGCODE_sv,
-    /** Language code for Swahili */
-    LANGCODE_sw,
-    /** Language code for Tamil */
-    LANGCODE_ta,
-    /** Language code for Tegulu */
-    LANGCODE_te,
-    /** Language code for Tajik */
-    LANGCODE_tg,
-    /** Language code for Thai */
-    LANGCODE_th,
-    /** Language code for Tigrinya */
-    LANGCODE_ti,
-    /** Language code for Turkmen */
-    LANGCODE_tk,
-    /** Language code for Tagalog */
-    LANGCODE_tl,
-    /** Language code for Setswana */
-    LANGCODE_tn,
-    /** Language code for Tonga */
-    LANGCODE_to,
-    /** Language code for Turkish */
-    LANGCODE_tr,
-    /** Language code for Tsonga */
-    LANGCODE_ts,
-    /** Language code for Tatar */
-    LANGCODE_tt,
-    /** Language code for Twi */
-    LANGCODE_tw,
-    /** Language code for Uigur */
-    LANGCODE_ug,
-    /** Language code for Ukrainian */
-    LANGCODE_uk,
-    /** Language code for Urdu */
-    LANGCODE_ur,
-    /** Language code for Uzbek */
-    LANGCODE_uz,
-    /** Language code for Vietnamese */
-    LANGCODE_vi,
-    /** Language code for Volapuk */
-    LANGCODE_vo,
-    /** Language code for Wolof */
-    LANGCODE_wo,
-    /** Language code for Xhosa */
-    LANGCODE_xh,
-    /** Language code for Yiddish */
-    LANGCODE_yi,
-    /** Language code for Yoruba */
-    LANGCODE_yo,
-    /** Language code for Zhuang */
-    LANGCODE_za,
-    /** Language code for Chinese */
-    LANGCODE_zh,
-    /** Language code for Zulu */
-    LANGCODE_zu,
-} LanguageCode;
-
-/**
- * LanuageCodeFromISO639s1:
- * @iso639_1: An encoded language code in ISO639-1.
- *
- * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
- * codes to languages.  For example, the code for Arabic is 'ar'.
- * This function accepts two letter codes encoded as a @Uint16 in a
- * big-endian fashion.  That is, the code expected for Arabic is
- * 0x6172 (0x61 is ASCII code for 'a', 0x72 is ASCII code for 'r', etc).
- *
- * Returns: the language code for @iso639_1, or
- *   of %LANGCODE_unknown if @iso639_1 is invalid.
- *
- * Since: 4.0.0
- */
-MG_EXPORT LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
-
-/**
- * LanguageCodeFromISO639s1Code:
- * @iso639_1: A language code in ISO639-1.
- *
- * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
- * codes to languages.  For example, the code for Arabic is 'ar'.
- *
- * Returns: the language code for @iso639_1, or
- *   of %LANGCODE_unknown if @iso639_1 is invalid.
- *
- * Since: 4.0.0
- */
-static inline LanguageCode GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
-{
-    return LanguageCodeFromISO639s1(MAKEWORD16(iso639_1[1],
-            iso639_1[0]));
-}
-
-/** Get ISO639-1 language code from the native language code. */
-MG_EXPORT const char* GUIAPI LanguageCodeToISO639s1(LanguageCode lc);
-
-/** Get the sample language code (ISO639-1) from the specific script type */
-MG_EXPORT LanguageCode GUIAPI GetSampleLanguageForScript(ScriptType st);
-
-/** Get language code and scripts for ISO639 language name. */
-MG_EXPORT const ScriptType* GUIAPI GetScriptsForLang(const char* lang_name,
-        LanguageCode* lang_code, int* nr_scripts);
-
-/** Normalize script type according to language code */
-MG_EXPORT ScriptType GUIAPI NormalizeScriptType(LanguageCode cl,
-    ScriptType ws);
-
-    /** @} end of language_code */
 
     /**
      * \defgroup white_space_rules White Space Rules

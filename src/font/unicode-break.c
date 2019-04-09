@@ -151,7 +151,7 @@ struct break_ctxt {
     int      nr_ucs;
     int      n;
 
-    ScriptType ws;
+    LanguageCode lc;
     Uint8   ctr;
     Uint8   wbr;
     Uint8   lbp;
@@ -2055,7 +2055,7 @@ static int check_subsequent_ri(struct break_ctxt* ctxt,
     return consumed;
 }
 
-int GUIAPI UStrGetBreaks(ScriptType writing_system,
+int GUIAPI UStrGetBreaks(LanguageCode lang_code,
             Uint8 ctr, Uint8 wbr, Uint8 lbp,
             Uchar32* ucs, int nr_ucs, Uint16** break_oppos)
 {
@@ -2068,7 +2068,7 @@ int GUIAPI UStrGetBreaks(ScriptType writing_system,
     memset(&ctxt, 0, sizeof(ctxt));
 
     ctxt.base_bt = UCHAR_BREAK_UNSET;
-    ctxt.ws = writing_system;
+    ctxt.lc = lang_code;
     ctxt.ctr = ctr;
     ctxt.wbr = wbr;
     ctxt.lbp = lbp;
