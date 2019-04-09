@@ -211,8 +211,9 @@ BOOL GUIAPI DestroyLayout(LAYOUT* layout)
 {
     if (layout->lf_upright) {
         FONT_RES* font_res = (FONT_RES*)layout->lf_upright;
-        if (font_res->key)
+        if (font_res->key) {
             ReleaseRes(font_res->key);
+        }
     }
 
     while (!list_empty(&layout->lines)) {

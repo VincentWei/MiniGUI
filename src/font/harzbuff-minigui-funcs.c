@@ -108,27 +108,30 @@ hb_minigui_unicode_decompose (hb_unicode_funcs_t *ufuncs,
     return UCharDecompose(ab, a, b);
 }
 
-static hb_unicode_funcs_t *funcs;
+static hb_unicode_funcs_t *_funcs;
 static hb_unicode_funcs_t *get_unicode_funcs(void)
 {
-    funcs = hb_unicode_funcs_create (NULL);
+    if (_funcs)
+        return _funcs;
 
-    hb_unicode_funcs_set_combining_class_func (funcs,
+    _funcs = hb_unicode_funcs_create (NULL);
+
+    hb_unicode_funcs_set_combining_class_func (_funcs,
             hb_minigui_unicode_combining_class, NULL, NULL);
-    hb_unicode_funcs_set_general_category_func (funcs,
+    hb_unicode_funcs_set_general_category_func (_funcs,
             hb_minigui_unicode_general_category, NULL, NULL);
-    hb_unicode_funcs_set_mirroring_func (funcs,
+    hb_unicode_funcs_set_mirroring_func (_funcs,
             hb_minigui_unicode_mirroring, NULL, NULL);
-    hb_unicode_funcs_set_script_func (funcs,
+    hb_unicode_funcs_set_script_func (_funcs,
             hb_minigui_unicode_script, NULL, NULL);
-    hb_unicode_funcs_set_compose_func (funcs,
+    hb_unicode_funcs_set_compose_func (_funcs,
             hb_minigui_unicode_compose, NULL, NULL);
-    hb_unicode_funcs_set_decompose_func (funcs,
+    hb_unicode_funcs_set_decompose_func (_funcs,
             hb_minigui_unicode_decompose, NULL, NULL);
 
-    hb_unicode_funcs_make_immutable (funcs);
+    hb_unicode_funcs_make_immutable (_funcs);
 
-    return funcs;
+    return _funcs;
 }
 
 typedef hb_unicode_funcs_t *(*hb_get_unicode_funcs) (void);
@@ -144,8 +147,8 @@ void __mg_term_harzbuff_funcs(void)
 {
     _DBG_PRINTF("%s: called\n", __FUNCTION__);
 
-    if (funcs) {
-        hb_unicode_funcs_destroy(funcs);
+    if (_funcs) {
+        hb_unicode_funcs_destroy(_funcs);
     }
     else {
         _ERR_PRINTF("%s: hb_unicode_funcs_t object is NULL\n",

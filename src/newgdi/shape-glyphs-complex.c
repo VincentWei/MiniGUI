@@ -63,13 +63,16 @@
 #include <hb.h>
 #include <hb-ft.h>
 
+// define _CACHED_HB_FONT if you want use the cached HB fonts
+#define _CACHED_HB_FONT  1
+
 typedef struct _FtFontInfo {
     struct list_head    list;
     LOGFONT*            lf;
     ScriptType          st;
     FT_Face             face;
     hb_font_t*          hb_font;
-    //hb_face_t*        hb_face;
+    hb_face_t*          hb_face;
     int                 dfi;
 } FtFontInfo;
 
@@ -79,13 +82,15 @@ struct _SEInstance {
     struct list_head    cached_fonts;
 };
 
+#ifdef _CACHED_HB_FONT
+
 static hb_font_t* get_hb_font_for_script(SEInstance* inst,
         LOGFONT* lf, ScriptType st, Uchar32 uc, int* dfi)
 {
     struct list_head* f;
     const FT2INFO* file_face;
     hb_font_t* hb_font;
-    //hb_face_t* hb_face;
+    hb_face_t* hb_face;
     FtFontInfo *new_fi;
     FONT_RES* font_res;
 
@@ -105,19 +110,19 @@ static hb_font_t* get_hb_font_for_script(SEInstance* inst,
         return NULL;
     }
 
-    hb_font = hb_ft_font_create_referenced(file_face->face);
+    hb_face = hb_ft_face_create_cached(file_face->face);
+    hb_font = hb_font_create(hb_face);
+    //hb_font = hb_ft_font_create_referenced(file_face->face);
     //hb_font = hb_ft_font_create(face, NULL);
     if (hb_font == NULL)
         return NULL;
-
-    //hb_face = hb_face_reference (hb_font_get_face (hb_font));
 
     new_fi = mg_slice_new(FtFontInfo);
     new_fi->lf = lf;
     new_fi->st = st;
     new_fi->face = file_face->face;
     new_fi->hb_font = hb_font;
-    //new_fi->hb_face = hb_face;
+    new_fi->hb_face = hb_face;
     new_fi->dfi = *dfi;
 
     font_res = (FONT_RES*)lf;
@@ -127,6 +132,8 @@ static hb_font_t* get_hb_font_for_script(SEInstance* inst,
     inst->nr_fonts++;
     return hb_font;
 }
+
+#endif /* _CACHED_HB_FONT */
 
 static SEInstance* create_instance(void)
 {
@@ -159,8 +166,8 @@ static BOOL destroy_instance(SEInstance* inst)
         FtFontInfo *fi = (FtFontInfo*)inst->cached_fonts.prev;
         list_del(inst->cached_fonts.prev);
 
-        //hb_face_destroy(fi->hb_face);
         hb_font_destroy(fi->hb_font);
+        hb_face_destroy(fi->hb_face);
 
         font_res = (FONT_RES*)fi->lf;
         if (font_res->key) {
@@ -185,6 +192,9 @@ static BOOL shape_layout_run(SEInstance* inst,
     int dfi;
     unsigned int i, nr_glyphs;
     hb_buffer_t *hb_buf = NULL;
+#ifndef _CACHED_HB_FONT
+    hb_face_t *hb_face = NULL;
+#endif
     hb_font_t *hb_font = NULL;
     hb_glyph_info_t *glyph_info;
     hb_glyph_position_t *glyph_pos;
@@ -203,10 +213,26 @@ static BOOL shape_layout_run(SEInstance* inst,
     hb_buffer_set_script(hb_buf, ScriptTypeToISO15924(run->st));
     hb_buffer_set_language(hb_buf,
             hb_language_from_string(LanguageCodeToISO639s1(run->lc), -1));
+    hb_buffer_set_cluster_level(hb_buf, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
+    hb_buffer_set_flags(hb_buf, HB_BUFFER_FLAG_BOT | HB_BUFFER_FLAG_EOT);
 
+#ifdef _CACHED_HB_FONT
     hb_font = get_hb_font_for_script(inst, run->lf, run->st, run->ucs[0], &dfi);
     if (hb_font == NULL)
         goto error;
+#else
+    {
+        const FT2INFO* file_face;
+        file_face = __mg_ft2_get_face(run->lf, run->ucs[0], &dfi);
+        if (file_face == NULL) {
+            _WRN_PRINTF("Cannot get FT2 face for logfont (%p) and uc (0x%x)\n",
+                run->lf, run->ucs[0]);
+            return FALSE;
+        }
+        hb_face = hb_ft_face_create_cached(file_face->face);
+        hb_font = hb_font_create(hb_face);
+    }
+#endif
 
     hb_shape(hb_font, hb_buf, NULL, 0);
 
@@ -219,6 +245,9 @@ static BOOL shape_layout_run(SEInstance* inst,
     }
 
     // generate result
+    assert(gs->glyphs == NULL);
+    assert(gs->log_clusters == NULL);
+
     gs->glyphs = malloc(sizeof(ShapedGlyph) * nr_glyphs);
     if (gs->glyphs == NULL) {
         goto error;
@@ -263,6 +292,13 @@ error:
 
     if (hb_buf)
         hb_buffer_destroy(hb_buf);
+
+#ifndef _CACHED_HB_FONT
+    if (hb_font)
+        hb_font_destroy(hb_font);
+    if (hb_face)
+        hb_face_destroy(hb_face);
+#endif
 
     return ok;
 }
