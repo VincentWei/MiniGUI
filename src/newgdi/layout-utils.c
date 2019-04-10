@@ -139,8 +139,6 @@ static GlyphOrient resolve_glyph_orient(const LAYOUT* layout,
             trun->flags & TEXTRUN_FLAG_UPRIGHT,
             layout->grv_base, layout->grv_plc);
 
-    assert(gravity != GLYPH_GRAVITY_NORTH);
-
     return (GlyphOrient)gravity;
 }
 
@@ -164,7 +162,6 @@ static void resolve_layout_run_dir(const LAYOUT* layout,
         break;
     case GLYPH_GRAVITY_NORTH:
         lrun->el++;
-        assert(0);
         break;
     case GLYPH_GRAVITY_EAST:
         lrun->el += 1;

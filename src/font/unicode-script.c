@@ -692,10 +692,10 @@ GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script, BOOL vertical,
 
     case GLYPH_GRAVITY_POLICY_MIXED:
         // CSS3: horizontal-only scripts are typeset sideways
-        if (props.vert_dir == VERTICAL_DIRECTION_NONE)
-            return GLYPH_GRAVITY_EAST;
+        if (props.vert_dir != VERTICAL_DIRECTION_NONE)
+            return GLYPH_GRAVITY_SOUTH;
         else
-            return props.preferred_gravity;
+            return GLYPH_GRAVITY_EAST;
     }
 }
 #endif /* _MGCHARSET_UNICODE */
