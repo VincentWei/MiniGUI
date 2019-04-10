@@ -1727,8 +1727,8 @@ static void layout_line_postprocess (LAYOUTLINE *line,
         justify_words (line, state);
     }
 
-    line->is_wrapped |= wrapped;
-    line->is_ellipsized |= ellipsized;
+    line->is_wrapped = wrapped ? 1 : 0;
+    line->is_ellipsized = ellipsized ? 1 : 0;
 }
 
 static LAYOUTLINE* check_next_line(LAYOUT* layout, LayoutState* state)
@@ -2291,7 +2291,10 @@ LAYOUTLINE* GUIAPI LayoutNextLine(
         }
 
         layout->nr_lines++;
-        layout->nr_left_ucs -= next_line->len;
+        if (next_line->is_ellipsized)
+            layout->nr_left_ucs = 0;
+        else
+            layout->nr_left_ucs -= next_line->len;
     }
 
     // Release the previous line after got the next line.
