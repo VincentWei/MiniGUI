@@ -316,15 +316,6 @@ static BOOL should_ellipsize_current_line(LAYOUT *layout,
     return TRUE;
 }
 
-int __mg_shape_layout_run(const TEXTRUNS* info, const LayoutRun* run,
-        GlyphString* glyphs)
-{
-    if (!info->sei.shape(info->sei.inst, info, run, glyphs))
-        return 0;
-
-    return glyphs->nr_glyphs;
-}
-
 static void ensure_tab_width(LAYOUT *layout)
 {
     if (layout->ts == -1) {
@@ -513,30 +504,72 @@ static void shape_space(const LAYOUT* layout, const LayoutRun* lrun,
 }
 
 static void shape_shape(const Uchar32* ucs, int nr_ucs,
-        RECT* ink_rc, RECT* log_rc, GlyphString *glyphs)
+        RECT* ink_rc, RECT* log_rc, GlyphString *gs)
 {
-    unsigned int i;
+    int i;
 
-    __mg_glyph_string_set_size (glyphs, nr_ucs);
+    __mg_glyph_string_set_size(gs, nr_ucs);
 
     for (i = 0; i < nr_ucs; i++) {
-        glyphs->glyphs[i].gv = INV_GLYPH_VALUE;
-        glyphs->glyphs[i].x_off = 0;
-        glyphs->glyphs[i].y_off = 0;
-        glyphs->glyphs[i].width = RECTWP(log_rc);
-        glyphs->glyphs[i].is_cluster_start = 1;
+        gs->glyphs[i].gv = INV_GLYPH_VALUE;
+        gs->glyphs[i].x_off = 0;
+        gs->glyphs[i].y_off = 0;
+        gs->glyphs[i].width = RECTWP(log_rc);
+        gs->glyphs[i].height = RECTWP(log_rc);
+        gs->glyphs[i].is_cluster_start = 1;
 
-        glyphs->log_clusters[i] = i;
+        gs->log_clusters[i] = i;
+    }
+}
+
+// the shaping engine failed to shape the layout run
+static void shape_fallback(const TEXTRUNS* truns, const LayoutRun* lrun,
+        GlyphString *gs)
+{
+    int i;
+    int def_glyph_width = _font_get_glyph_log_width(lrun->lf, 0);
+    int def_glyph_height = lrun->lf->size;
+
+    __mg_glyph_string_set_size(gs, lrun->len);
+
+    for (i = 0; i < lrun->len; i++) {
+        gs->glyphs[i].gv = 0;
+
+        if (lrun->flags & LAYOUTRUN_FLAG_CENTERED_BASELINE) {
+            gs->glyphs[i].width = def_glyph_height;
+            gs->glyphs[i].height = def_glyph_width;
+        }
+        else {
+            gs->glyphs[i].width = def_glyph_width;
+            gs->glyphs[i].height = def_glyph_height;
+        }
+
+        gs->glyphs[i].x_off = 0;
+        gs->glyphs[i].y_off = 0;
+        gs->glyphs[i].is_cluster_start = 1;
+
+        gs->log_clusters[i] = i;
     }
 }
 
 static void shape_full(const Uchar32* lrun_ucs, int nr_lrun_ucs,
         const Uchar32* para_ucs, int nr_para_ucs,
-        const TEXTRUNS* info, const LayoutRun* lrun,
-        GlyphString* glyphs)
+        const TEXTRUNS* truns, const LayoutRun* lrun,
+        GlyphString* gs)
 {
-    // TODO
-    info->sei.shape(info->sei.inst, info, lrun, glyphs);
+    if (!truns->sei.shape(truns->sei.inst, truns, lrun, gs)) {
+        shape_fallback(truns, lrun, gs);
+    }
+}
+
+int __mg_shape_layout_run(const TEXTRUNS* truns, const LayoutRun* lrun,
+        GlyphString* gs)
+{
+    if (!truns->sei.shape(truns->sei.inst, truns, lrun, gs)) {
+        shape_fallback(truns, lrun, gs);
+    }
+
+    return gs->nr_glyphs;
 }
 
 static void distribute_letter_spacing (int extra_spacing,
@@ -609,15 +642,15 @@ static void free_glyph_run (GlyphRun *grun)
 }
 
 #ifdef _DEBUG
-static inline void print_text_runs(const TEXTRUNS* info, const char* func)
+static inline void print_text_runs(const TEXTRUNS* truns, const char* func)
 {
     int j = 0;
     struct list_head* i;
 
     _DBG_PRINTF("Text runs in content when calling %s (nr_runs: %d):\n",
-            func, info->nr_runs);
+            func, truns->nr_runs);
 
-    list_for_each(i, &info->truns) {
+    list_for_each(i, &truns->truns) {
         TextRun* run = (TextRun*)i;
         _DBG_PRINTF("RUN NO.:               %d\n", j);
         _DBG_PRINTF("   ADDRESS:        %p\n", run);
@@ -677,7 +710,7 @@ static inline void list_print(struct list_head* head, const char* desc)
 
 #else
 
-static inline void print_text_runs(const TEXTRUNS* info, const char* func)
+static inline void print_text_runs(const TEXTRUNS* truns, const char* func)
 {
     // do nothing.
 }

@@ -12851,6 +12851,9 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* truns);
  * \note Only available when the support for UNICODE (_MGCHARSET_UNICODE)
  *      and the support for complex scripts (_MGCOMPLEX_SCRIPTS) are enabled.
  *
+ * \note You must use TrueType/OpenType vector fonts for the complex shaping
+ *      engine.
+ *
  * \sa InitBasicShapingEngine, CreateLayout
  *
  * Since 4.0.0

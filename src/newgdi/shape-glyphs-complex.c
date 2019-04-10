@@ -227,7 +227,7 @@ static BOOL shape_layout_run(SEInstance* inst,
         if (file_face == NULL) {
             _WRN_PRINTF("Cannot get FT2 face for logfont (%p) and uc (0x%x)\n",
                 run->lf, run->ucs[0]);
-            return FALSE;
+            goto error;
         }
         hb_face = hb_ft_face_create_cached(file_face->face);
         hb_font = hb_font_create(hb_face);
