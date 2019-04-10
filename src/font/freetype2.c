@@ -1099,6 +1099,8 @@ static void* load_font_data (DEVFONT* devfont,
             devfont->style |= FS_SLANT_OBLIQUE;
         else if (tt_os2->fsSelection & 0x01) // ITALIC
             devfont->style |= FS_SLANT_ITALIC;
+        else
+            devfont->style |= FS_SLANT_ROMAN;
 
         devfont->style &= ~FS_DECORATE_MASK;
         if (tt_os2->fsSelection & (0x01 << 1)) // UNDERSCORE
