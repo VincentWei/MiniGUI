@@ -1677,15 +1677,20 @@ static void layout_line_postprocess (LAYOUTLINE *line,
     adjust_line_letter_spacing (line, state);
 
     /*
-     * Distribute extra space between words if justifying and line was wrapped
+     * Distribute extra space between words if justifying
      */
-    if ((line->layout->rf & GRF_ALIGN_MASK) == GRF_ALIGN_JUSTIFY &&
-            (wrapped || ellipsized)) {
+    if (((line->layout->rf & GRF_ALIGN_MASK) == GRF_ALIGN_JUSTIFY &&
+                (line->layout->rf & GRF_TEXT_JUSTIFY_MASK) != GRF_TEXT_JUSTIFY_NONE) ||
+            ((line->layout->rf & GRF_TEXT_JUSTIFY_MASK) != GRF_TEXT_JUSTIFY_NONE &&
+                (wrapped || ellipsized))) {
         /* if we ellipsized, we don't have remaining_width set */
         if (state->remaining_width < 0)
             state->remaining_width = state->line_width -
                     layout_line_get_width (line);
 
+        // TODO:
+        // implement GRF_TEXT_JUSTIFY_AUTO, GRF_TEXT_JUSTIFY_INTER_WORD,
+        //       and GRF_TEXT_JUSTIFY_INTER_CHAR
         justify_words (line, state);
     }
 

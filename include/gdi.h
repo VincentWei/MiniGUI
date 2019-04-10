@@ -12375,27 +12375,34 @@ MG_EXPORT int GUIAPI UChars2AChars(LOGFONT* logfont, const Uchar32* ucs,
  */
 #define GRF_ALIGN_CENTER                    0x00004000
 /**
- * Text is justified according to the method specified by GRF_TEXT_JUSTIFY_XXX,
- * in order to exactly fill the line box.
+ * All lines will be justified according to the method specified by
+ * GRF_TEXT_JUSTIFY_XXX, in order to exactly fill the line box.
+ *
+ * If you specify only a valid justification method (not GRF_TEXT_JUSTIFY_NONE)
+ * without GRF_ALIGN_JUSTIFY, the last line will not be justified.
  */
 #define GRF_ALIGN_JUSTIFY                   0x00005000
 
 #define GRF_TEXT_JUSTIFY_MASK               0x00000F00
 /**
+ * Do not justify.
+ */
+#define GRF_TEXT_JUSTIFY_NONE               0x00000000
+/**
  * Justification adjusts primarily the spacing at word separators
  * and between CJK typographic letter units along with secondarily
  * between Southeast Asian typographic letter units.
  */
-#define GRF_TEXT_JUSTIFY_AUTO               0x00000000
+#define GRF_TEXT_JUSTIFY_AUTO               0x00000100
 /**
  * Justification adjusts spacing at word separators only.
  */
-#define GRF_TEXT_JUSTIFY_INTER_WORD         0x00000100
+#define GRF_TEXT_JUSTIFY_INTER_WORD         0x00000200
 /**
  * Justification adjusts spacing between each pair of adjacent
  * typographic character units.
  */
-#define GRF_TEXT_JUSTIFY_INTER_CHAR         0x00000200
+#define GRF_TEXT_JUSTIFY_INTER_CHAR         0x00000300
 
 #define GRF_HANGING_PUNC_MASK               0x000000F0
 /**
