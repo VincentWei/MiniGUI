@@ -270,7 +270,17 @@ static BOOL shape_layout_run(SEInstance* inst,
 
         Glyph32 gv;
 
-        gv = SET_GLYPH_DFI(glyph_info[i].codepoint, dfi);
+        if (glyph_info[i].codepoint == 0) {
+            gv = GetGlyphValue(run->lf,
+                    UCHAR2ACHAR(run->ucs[glyph_info[i].cluster]));
+            if (REAL_GLYPH(gv) == 0) {
+                _WRN_PRINTF("Got an invalid glyph for uchar: 0x%04x",
+                    run->ucs[glyph_info[i].cluster]);
+            }
+        }
+        else
+            gv = SET_GLYPH_DFI(glyph_info[i].codepoint, dfi);
+
         gs->glyphs[i].gv = gv;
         gs->log_clusters[i] = glyph_info[i].cluster;
 
