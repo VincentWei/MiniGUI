@@ -223,11 +223,14 @@ static DEVFONT* get_matched_devfont (LOGFONT* lf, const char* family,
                 slant_error = (int)(lf->style & FS_SLANT_MASK) -
                     (int)(dev_font->style & FS_SLANT_MASK);
                 slant_error = ABS (slant_error);
+
+                _DBG_PRINTF("%s, style value of devfont#%d(%s): %x\n",
+                    __FUNCTION__, i, dev_font->name, dev_font->style);
             }
 
             error = (size_error << 16) + slant_error + weight_error;
-            _DBG_PRINTF("%s, error of devfont#%d(%s): %d\n",
-                    __FUNCTION__, i, dev_font->name, error);
+            _DBG_PRINTF("%s, error of devfont#%d(%s): %d (size_error: %d, weight_error: %d, slant_error: %d)\n",
+                    __FUNCTION__, i, dev_font->name, error, size_error, weight_error, slant_error);
 
             if (min_error >= error) {
                 /* use >=, make the later has a higher priority */

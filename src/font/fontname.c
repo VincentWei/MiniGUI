@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -35,7 +35,7 @@
 ** fontname.c: Font name parser.
 **
 ** Current maintainer: Wei Yongming.
-** 
+**
 ** Created by Wei Yongming, 2000/07/11
 */
 
@@ -49,7 +49,7 @@
 #include "gdi.h"
 #include "fontname.h"
 
-/* 
+/*
  * Font name format:
  * type-family-style-width-height-charset-encoding1[,encoding2,...]
  */
@@ -660,37 +660,37 @@ BOOL charsetGetSpecificCharset (const char* charsets, int _index, char* charset)
 
 #if 0
  /* type-family-style-width-height-charset-encoding1[,encoding2,...] */
-BOOL fontCreateFontName (char* devfont_name, const char* type, 
-        const char* family_name,  const char *style, int w, int h, 
+BOOL fontCreateFontName (char* devfont_name, const char* type,
+        const char* family_name,  const char *style, int w, int h,
         const char* charset_encoding)
 {
-	const char def_type [] = FONT_TYPE_NAME_ALL;
-	const char def_family_name [] = "*";
-	const char def_style [] = "*";
-	const char def_charset_encoding [] = "ISO8859-1";
+    const char def_type [] = FONT_TYPE_NAME_ALL;
+    const char def_family_name [] = "*";
+    const char def_style [] = "*";
+    const char def_charset_encoding [] = "ISO8859-1";
 
-	if (devfont_name == NULL) 
-		return FALSE;
+    if (devfont_name == NULL)
+        return FALSE;
 
-	if (type == NULL)
-		type = def_type;
+    if (type == NULL)
+        type = def_type;
 
-	if (family_name == NULL)
-		family_name = def_family_name;
+    if (family_name == NULL)
+        family_name = def_family_name;
 
-	if (file_style == NULL)
-		file_style = def_file_style;
+    if (file_style == NULL)
+        file_style = def_file_style;
 
-	if (style == NULL)
-		style = def_style;
+    if (style == NULL)
+        style = def_style;
 
-	if (charset_encoding == NULL)
-		charset_encoding = def_charset_encoding;
+    if (charset_encoding == NULL)
+        charset_encoding = def_charset_encoding;
 
-	sprintf(devfont_name, "%s-%s-%s-%d-%d-%s", 
-			type, family_name, style, w, h, charset_encoding);
-	
-	return TRUE;
+    sprintf(devfont_name, "%s-%s-%s-%d-%d-%s",
+            type, family_name, style, w, h, charset_encoding);
+
+    return TRUE;
 }
 #endif
 
