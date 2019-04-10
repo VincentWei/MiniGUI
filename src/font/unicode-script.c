@@ -659,8 +659,9 @@ GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script, BOOL vertical,
      *
      * Wide characters are always upright.
      */
-    if (!vertical || wide)
+    if (!vertical || wide) {
         return base_gravity;
+    }
 
     /* If here, we have a narrow character in a vertical gravity setting.
      * Resolve depending on the hint.
@@ -668,13 +669,16 @@ GlyphGravity ScriptGetGlyphGravityForWide (ScriptType script, BOOL vertical,
     switch (hint) {
     default:
     case GLYPH_GRAVITY_POLICY_NATURAL:
-        if (props.vert_dir == VERTICAL_DIRECTION_NONE)
+        if (props.vert_dir == VERTICAL_DIRECTION_NONE) {
             return GLYPH_GRAVITY_SOUTH;
-        if ((base_gravity   == GLYPH_GRAVITY_EAST) ^
-                (props.vert_dir == VERTICAL_DIRECTION_BTT))
+        }
+        if (((base_gravity   == GLYPH_GRAVITY_EAST) ^
+                    (props.vert_dir == VERTICAL_DIRECTION_BTT))
+                || props.wide)
             return GLYPH_GRAVITY_SOUTH;
-        else
+        else {
             return GLYPH_GRAVITY_NORTH;
+        }
 
     case GLYPH_GRAVITY_POLICY_STRONG:
         return base_gravity;

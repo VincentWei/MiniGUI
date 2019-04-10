@@ -598,7 +598,7 @@ static GlyphString* shape_run(LAYOUTLINE *line, LayoutState *state,
         shape_space(layout, lrun, glyphs);
     }
     else {
-        if (state->shape_set)
+        if (MG_UNLIKELY(state->shape_set))
             shape_shape(layout->truns->ucs + lrun->si, lrun->len,
                     &state->shape_ink_rect,
                     &state->shape_logical_rect, glyphs);

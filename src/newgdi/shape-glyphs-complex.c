@@ -210,6 +210,7 @@ static BOOL shape_layout_run(SEInstance* inst,
     }
 
     hb_buffer_set_direction(hb_buf, run->dir + HB_DIRECTION_LTR);
+
     hb_buffer_set_script(hb_buf, ScriptTypeToISO15924(run->st));
     hb_buffer_set_language(hb_buf,
             hb_language_from_string(LanguageCodeToISO639s1(run->lc), -1));
