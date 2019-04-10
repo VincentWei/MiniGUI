@@ -245,6 +245,7 @@ static BOOL shape_layout_run(SEInstance* inst,
     }
 
     // generate result
+#if 0
     assert(gs->glyphs == NULL);
     assert(gs->log_clusters == NULL);
 
@@ -257,6 +258,10 @@ static BOOL shape_layout_run(SEInstance* inst,
         free(gs->glyphs);
         goto error;
     }
+#else
+    // must use __mg_glyph_string_set_size
+    __mg_glyph_string_set_size(gs, nr_glyphs);
+#endif
 
     last_cluster = -1;
     gs->nr_glyphs = nr_glyphs;

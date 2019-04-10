@@ -154,6 +154,7 @@ static BOOL shape_layout_run(SEInstance* inst,
     }
 
     // generate the glyphs
+#if 0
     gs->glyphs = malloc(sizeof(ShapedGlyph) * nr_ucs);
     if (gs->glyphs == NULL) {
         goto out;
@@ -163,6 +164,10 @@ static BOOL shape_layout_run(SEInstance* inst,
         free(gs->glyphs);
         goto out;
     }
+#else
+    // must use __mg_glyph_string_set_size
+    __mg_glyph_string_set_size(gs, nr_ucs);
+#endif
 
     j = 0;
     for (i = 0; i < nr_ucs; i++) {
