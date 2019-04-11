@@ -54,7 +54,6 @@
 
 #include <stdio.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -87,12 +86,12 @@ extern MG_EXPORT RECT g_rcScr;
 
     /** @} end of rect_vars */
 
+#ifdef _MGRM_PROCESSES
+
     /**
      * \defgroup lite_vars MiniGUI-Processes specific variables
      * @{
      */
-
-#ifdef _MGRM_PROCESSES
 
 #include <sys/types.h>
 
@@ -246,12 +245,21 @@ extern MG_EXPORT MG_Layer* mgTopmostLayer;
  */
 extern MG_EXPORT MG_Layer* mgLayers;
 
-#endif /* _MGRM_PROCESSES */
-
     /** @} end of lite_vars */
+
+#endif /* _MGRM_PROCESSES */
 
     /** @} end of global_vars */
 
+    /**
+     * \addtogroup fns Functions
+     * @{
+     */
+
+    /**
+     * \addtogroup global_fns Global/general functions
+     * @{
+     */
 
 /**
 * \fn int GUIAPI InitGUI (int, const char **)
@@ -282,22 +290,12 @@ MG_EXPORT void GUIAPI TerminateGUI (int not_used);
 **/
 MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
 
-    /**
-     * \addtogroup fns Functions
-     * @{
-     */
-
-    /**
-     * \addtogroup global_fns Global/general functions
-     * @{
-     */
+#ifndef _MGRM_THREADS
 
     /**
      * \defgroup lite_fns MiniGUI-Processes specific functions
      * @{
      */
-
-#ifndef _MGRM_THREADS
 
     /**
      * \defgroup lite_listenfd_fns Listening a file descriptor
@@ -336,7 +334,7 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
 #define POLLERR 0x008
 #endif
 
-#endif
+#endif /* WIN32 */
 
 /**
  * \fn BOOL GUIAPI RegisterListenFD (int fd, int type,\
@@ -1390,11 +1388,11 @@ MG_EXPORT int sock_read_t (int fd, void* buff, int count, unsigned int timeout);
 
     /** @} end of lite_socket_fns */
 
-    /** @} end of lite_fns */
-
 #endif /* _MGRM_PROCESSES */
 
-#endif /* LITE_VERSION */
+    /** @} end of lite_fns */
+
+#endif /* _MGRM_THREADS */
 
     /**
      * \defgroup init_fns Initialization and termination functions
@@ -1465,7 +1463,7 @@ MG_EXPORT void GUIAPI ExitGUISafely (int exitcode);
   int minigui_entry (int args, const char* arg[]);
 #else
   #define main_entry main
-#endif
+#endif /* _USE_MINIGUIENTRY */
 
 /**
  * \def MiniGUIMain
@@ -1618,12 +1616,12 @@ MG_EXPORT void GUIAPI DesktopUpdateAllWindow (void);
 
     /** @} end of init_fns */
 
+#ifdef _MGHAVE_MOUSECALIBRATE
+
     /**
      * \defgroup mouse_calibrate Mouse calibration.
      * @{
      */
-
-#ifdef _MGHAVE_MOUSECALIBRATE
 
 /**
  * \fn BOOL GUIAPI SetMouseCalibrationParameters (const POINT* src_pts,\
@@ -1678,15 +1676,17 @@ MG_EXPORT BOOL GUIAPI SetMouseCalibrationParameters (const POINT* src_pts,
  */
 MG_EXPORT void GUIAPI GetOriginalMousePosition (int* x, int* y);
 
+    /** @} end of mouse_calibrate */
+
 #endif /* _MGHAVE_MOUSECALIBRATE */
 
-    /** @} end of mouse_calibrate */
+#ifdef _MGMISC_ABOUTDLG
 
     /**
      * \defgroup about_dlg About MiniGUI dialog
      * @{
      */
-#ifdef _MGMISC_ABOUTDLG
+
 #ifdef _MGRM_THREADS
 /**
  * \fn HWND GUIAPI OpenAboutDialog (void)
@@ -1703,8 +1703,9 @@ MG_EXPORT void GUIAPI GetOriginalMousePosition (int* x, int* y);
  *       _MGMISC_ABOUTDLG defined. For MiniGUI-Processes, you should
  *       call 'void GUIAPI OpenAboutDialog (HWND hHosting)' function instead.
  */
-MG_EXPORT  void GUIAPI OpenAboutDialog (void);
-#else
+MG_EXPORT void GUIAPI OpenAboutDialog (void);
+
+#else /* _MGRM_THREADS */
 
 /**
  * \fn HWND GUIAPI OpenAboutDialog (HWND hHosting)
@@ -1724,10 +1725,12 @@ MG_EXPORT  void GUIAPI OpenAboutDialog (void);
  *       call 'void GUIAPI OpenAboutDialog (void)' function instead.
  */
 MG_EXPORT HWND GUIAPI OpenAboutDialog (HWND hHosting);
+
 #endif /* _MGRM_THREADS */
-#endif /* _MGMISC_ABOUTDLG */
 
     /** @} end of about_dlg */
+
+#endif /* _MGMISC_ABOUTDLG */
 
     /**
      * \defgroup etc_fns Configuration file operations
@@ -1871,7 +1874,7 @@ typedef struct _ETC_S
  */
 extern MG_EXPORT char ETCFILEPATH [];
 
-#endif /* _MGINCORE_RES */
+#endif /* !_MGINCORE_RES */
 
 /**
  * \fn int GUIAPI GetValueFromEtcFile (const char* pEtcFile,\
@@ -2248,7 +2251,7 @@ static inline int GetMgEtcValue(const char* pSection,
 #ifndef _MGINCORE_RES
     if (!hMgEtc)
         return GetValueFromEtcFile (ETCFILEPATH, pSection, pKey, pValue, iLen);
-#endif
+#endif /* !_MGINCORE_RES */
 
     return GetValueFromEtc (hMgEtc, pSection, pKey, pValue, iLen);
 }
@@ -2268,7 +2271,7 @@ static inline int GetMgEtcIntValue (const char *pSection,
 #ifndef _MGINCORE_RES
     if (!hMgEtc)
         return GetIntValueFromEtcFile (ETCFILEPATH, pSection, pKey, value);
-#endif
+#endif /* !_MGINCORE_RES */
 
     return GetIntValueFromEtc (hMgEtc, pSection, pKey, value);
 }
@@ -3594,8 +3597,8 @@ MG_EXPORT char * strtrimall (char* src);
      */
 
 /**
- * mg_slice_alloc:
- * @block_size: the number of bytes to allocate
+ * \fn void *mg_slice_alloc(size_t block_size)
+ * \brief Allocate a slice memory.
  *
  * Allocates a block of memory from the slice allocator.
  * The block address handed out can be expected to be aligned
@@ -3607,82 +3610,91 @@ MG_EXPORT char * strtrimall (char* src);
  * be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
- * Returns: a pointer to the allocated memory block, which will be %NULL if and
- *    only if @mem_size is 0
+ * \param block_size The number of bytes to allocate.
+ *
+ * \return A pointer to the allocated memory block, which will be NULL
+ *      if and only if \a mem_size is 0.
  *
  * Since: 4.0.0
  */
 MG_EXPORT void *mg_slice_alloc(size_t block_size);
 
 /**
- * mg_slice_alloc0:
- * @block_size: the number of bytes to allocate
+ * \fn void *mg_slice_alloc0(size_t block_size)
+ * \brief Allocate a slice memory and initialize the memory to zero.
  *
  * Allocates a block of memory via mg_slice_alloc() and initializes
  * the returned memory to 0. Note that the underlying slice allocation
  * mechanism can be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
- * Returns: a pointer to the allocated block, which will be %NULL if and only
- *    if @mem_size is 0
+ * \param block_size The number of bytes to allocate.
+ *
+ * \return A pointer to the allocated block, which will be NULL
+ *      if and only if \a mem_size is 0.
  *
  * Since: 4.0.0
  */
 MG_EXPORT void *mg_slice_alloc0(size_t block_size);
 
 /**
- * mg_slice_copy:
- * @block_size: the number of bytes to allocate
- * @mem_block: the memory to copy
+ * \fn void *mg_slice_copy(size_t block_size, const void *mem_block)
+ * \brief Allocate and copy a slice.
  *
  * Allocates a block of memory from the slice allocator
- * and copies @block_size bytes into it from @mem_block.
+ * and copies \a block_size bytes into it from \a mem_block.
  *
- * @mem_block must be non-%NULL if @block_size is non-zero.
+ * \param block_size The number of bytes to allocate.
+ * \param mem_block The memory to copy.
  *
- * Returns: a pointer to the allocated memory block, which will be %NULL if and
- *    only if @mem_size is 0
+ * \return A pointer to the allocated memory block, which will be NULL
+ *      if and only if \a mem_size is 0.
+ *
+ * \note \a mem_block must be non-NULL if \a block_size is non-zero.
  *
  * Since: 4.0.0
  */
 MG_EXPORT void *mg_slice_copy(size_t block_size, const void *mem_block);
 
 /**
- * mg_slice_free:
- * @block_size: the size of the block
- * @mem_block: a pointer to the block to free
+ * \fn void mg_slice_free(size_t block_size, void *mem_block)
+ * \brief Free a block of memory.
  *
- * Frees a block of memory.
- *
- * The memory must have been allocated via mg_slice_alloc() or
- * mg_slice_alloc0() and the @block_size has to match the size
+ * This function frees a block of memory. The memory must have been
+ * allocated via \a mg_slice_alloc or
+ * \a mg_slice_alloc0 and the \a block_size has to match the size
  * specified upon allocation. Note that the exact release behaviour
  * can be changed with the [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment
  * variable, also see [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
- * If @mem_block is %NULL, this function does nothing.
+ * If \a mem_block is NULL, this function does nothing.
+ *
+ * \param block_size The size of the block.
+ * \param mem_block A pointer to the block to free.
  *
  * Since: 4.0.0
  */
 MG_EXPORT void mg_slice_free(size_t block_size, void *mem_block);
 
 /**
- * mg_slice_free_chain_with_offset:
- * @block_size: the size of the blocks
- * @mem_chain:  a pointer to the first block of the chain
- * @next_offset: the offset of the @next field in the blocks
- *
- * Frees a linked list of memory blocks of structure type @type.
+ * \fn void mg_slice_free_chain_with_offset(size_t block_size,
+        void *mem_chain, size_t next_offset)
+ * \brief Free a linked list of memory blocks.
  *
  * The memory blocks must be equal-sized, allocated via
  * mg_slice_alloc() or mg_slice_alloc0() and linked together by a
- * @next pointer (similar to #GSList). The offset of the @next
- * field in each block is passed as third argument.
+ * next pointer. The offset of the next field in each block is passed
+ * as the third argument \a next_offset.
+ *
  * Note that the exact release behaviour can be changed with the
  * [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment variable, also see
  * [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
- * If @mem_chain is %NULL, this function does nothing.
+ * If \a mem_chain is NULL, this function does nothing.
+ *
+ * \param block_size The size of the blocks.
+ * \param mem_chain A pointer to the first block of the chain.
+ * \param next_offset The offset of the next field in the blocks.
  *
  * Since: 4.0.0
  */
@@ -3690,47 +3702,52 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
         void *mem_chain, size_t next_offset);
 
 /**
- * mg_slice_new:
- * @type: the type to allocate, typically a structure name
+ * \def mg_slice_new(type)
+ * \brief The macro to allocate a slice memory for a structure.
  *
- * A convenience macro to allocate a block of memory from the
+ * This is a convenience macro to allocate a block of memory from the
  * slice allocator.
  *
- * It calls mg_slice_alloc() with `sizeof (@type)` and casts the
+ * It calls mg_slice_alloc() with `sizeof(type)` and casts the
  * returned pointer to a pointer of the given type, avoiding a type
  * cast in the source code. Note that the underlying slice allocation
  * mechanism can be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
- * This can never return %NULL as the minimum allocation size from
- * `sizeof (@type)` is 1 byte.
+ * This can never return NULL as the minimum allocation size from
+ * `sizeof(type)` is 1 byte.
  *
- * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
- *    to @type
+ * \param type the type to allocate, typically a structure name.
+ *
+ * \return A pointer to the allocated block, cast to a pointer
+ *    to \a type.
  *
  * Since: 4.0.0
  */
 #define mg_slice_new(type)       ((type*)mg_slice_alloc(sizeof (type)))
 
 /**
- * mg_slice_new0:
- * @type: the type to allocate, typically a structure name
+ * \def mg_slice_new0(type)
+ * \brief The macro to allocate a zero'd slice memory for a structure.
  *
- * A convenience macro to allocate a block of memory from the
+ * This is a convenience macro to allocate a block of memory from the
  * slice allocator and set the memory to 0.
  *
- * It calls mg_slice_alloc0() with `sizeof (@type)`
+ * It calls mg_slice_alloc0() with `sizeof(type)`
  * and casts the returned pointer to a pointer of the given type,
  * avoiding a type cast in the source code.
+ *
  * Note that the underlying slice allocation mechanism can
  * be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
- * This can never return %NULL as the minimum allocation size from
- * `sizeof (@type)` is 1 byte.
+ * This can never return NULL as the minimum allocation size from
+ * `sizeof(type)` is 1 byte.
  *
- * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
- *    to @type
+ * \param type The type to allocate, typically a structure name.
+ *
+ * \return A pointer to the allocated block, cast to a pointer
+ *    to \a type.
  *
  * Since: 4.0.0
  */
@@ -3748,24 +3765,25 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
  */
 
 /**
- * mg_slice_dup:
- * @type: the type to duplicate, typically a structure name
- * @mem: (not nullable): the memory to copy into the allocated block
+ * \def mg_slice_dup(type, mem)
+ * \brief Duplicate a structure.
  *
- * A convenience macro to duplicate a block of memory using
+ * This is a convenience macro to duplicate a block of memory using
  * the slice allocator.
  *
- * It calls mg_slice_copy() with `sizeof (@type)`
+ * It calls mg_slice_copy() with `sizeof(type)`
  * and casts the returned pointer to a pointer of the given type,
  * avoiding a type cast in the source code.
  * Note that the underlying slice allocation mechanism can
  * be changed with the [`MG_SLICE=always-malloc`][MG_SLICE]
  * environment variable.
  *
- * This can never return %NULL.
+ * This can never return NULL.
  *
- * Returns: (not nullable): a pointer to the allocated block, cast to a pointer
- *    to @type
+ * \param type The type to duplicate, typically a structure name.
+ * \param mem The memory to copy into the allocated block.
+ *
+ * \return A pointer to the allocated block, cast to a pointer to \a type.
  *
  * Since: 4.0.0
  */
@@ -3774,20 +3792,24 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
     : ((void) ((type*) 0 == (mem)), (type*) 0))
 
 /**
- * mg_slice_delete:
- * @type: the type of the block to free, typically a structure name
- * @mem: a pointer to the block to free
+ * \def mg_slice_delete(type, mem)
+ * \brief Free a block of memory.
  *
- * A convenience macro to free a block of memory that has
+ * This is a convenience macro to free a block of memory that has
  * been allocated from the slice allocator.
  *
- * It calls mg_slice_free() using `sizeof (type)`
- * as the block size.
+ * It calls mg_slice_free() using `sizeof(type)` as the block size.
+ *
  * Note that the exact release behaviour can be changed with the
  * [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment variable, also see
  * [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
- * If @mem is %NULL, this macro does nothing.
+ * If \a mem is NULL, this macro does nothing.
+ *
+ * \param type  The type of the block to free, typically a structure name.
+ * \param mem   A pointer to the block to free.
+ *
+ * \return None.
  *
  * Since: 4.0.0
  */
@@ -3798,21 +3820,26 @@ MG_EXPORT void mg_slice_free_chain_with_offset(size_t block_size,
     } while(0)
 
 /**
- * mg_slice_delete_chain:
- * @type: the type of the @mem_chain blocks
- * @mem_chain: a pointer to the first block of the chain
- * @next: the field name of the next pointer in @type
+ * \def mg_slice_delete_chain(type, mem_chain, next)
+ * \brief Free a linked list of memory blocks.
  *
- * Frees a linked list of memory blocks of structure type @type.
+ * This function frees a linked list of memory blocks of
+ * structure type \a type.
+ *
  * The memory blocks must be equal-sized, allocated via
  * mg_slice_alloc() or mg_slice_alloc0() and linked together by
- * a @next pointer (similar to #GSList). The name of the
- * @next field in @type is passed as third argument.
+ * a \a next pointer. The name of the
+ * \a next field in \a type is passed as third argument.
+ *
  * Note that the exact release behaviour can be changed with the
  * [`MG_DEBUG=gc-friendly`][MG_DEBUG] environment variable, also see
  * [`MG_SLICE`][MG_SLICE] for related debugging options.
  *
- * If @mem_chain is %NULL, this function does nothing.
+ * If \a mem_chain is NULL, this function does nothing.
+ *
+ * \param type The type of the \a mem_chain blocks.
+ * \param mem_chain A pointer to the first block of the chain.
+ * \param next The field name of the next pointer in \a type.
  *
  * Since: 4.0.0
  */

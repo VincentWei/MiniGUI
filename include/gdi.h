@@ -5849,7 +5849,7 @@ typedef Uint32 Uchar32;
 
 /**
  * \def ACHARTYPE_UNKNOWN
- * \breif Unknown abstract character type.
+ * \brief Unknown abstract character type.
  */
 #define ACHARTYPE_UNKNOWN           0
 
@@ -6063,7 +6063,7 @@ typedef enum {
  * ScriptType: The script type of a UNICODE character.
  *
  * - SCRIPT_INVALID_CODE:
- *                           a value never returned from UCharGetScriptType()
+ *                      a value never returned from UCharGetScriptType()
  * - SCRIPT_COMMON:     a character used by multiple different scripts
  * - SCRIPT_INHERITED:  a mark glyph that takes its script from the
  *                           base glyph to which it is attached
@@ -6719,31 +6719,33 @@ typedef enum {
 } LanguageCode;
 
 /**
- * LanuageCodeFromISO639s1:
- * @iso639_1: An encoded language code in ISO639-1.
+ * \fn LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1)
+ * \brief Get MiniGUI language code from an encoded ISO639-1 language code.
  *
  * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
  * codes to languages.  For example, the code for Arabic is 'ar'.
- * This function accepts two letter codes encoded as a @Uint16 in a
+ * This function accepts two letter codes encoded as a Uint16 in a
  * big-endian fashion.  That is, the code expected for Arabic is
  * 0x6172 (0x61 is ASCII code for 'a', 0x72 is ASCII code for 'r', etc).
  *
- * Returns: the language code for @iso639_1, or
- *   of %LANGCODE_unknown if @iso639_1 is invalid.
+ * \param iso639_1 An encoded language code in ISO639-1.
+ * \return The language code for \a iso639_1, or \a LANGCODE_unknown if
+ *          \a iso639_1 is invalid.
  *
  * Since: 4.0.0
  */
 MG_EXPORT LanguageCode GUIAPI LanguageCodeFromISO639s1 (Uint16 iso639_1);
 
 /**
- * LanguageCodeFromISO639s1Code:
- * @iso639_1: A language code in ISO639-1.
+ * \fn LanguageCode GUIAPI LanguageCodeFromISO639s1Code(const char* iso639_1)
+ * \brief Get MiniGUI language code from an ISO639-1 language code string.
  *
  * Looks up the language code for ISO639-1. ISO639-1 assigns two-letter
- * codes to languages.  For example, the code for Arabic is 'ar'.
+ * codes to languages. For example, the code for Arabic is 'ar'.
  *
- * Returns: the language code for @iso639_1, or
- *   of %LANGCODE_unknown if @iso639_1 is invalid.
+ * \param iso639_1 A language code in ISO639-1.
+ * \return The language code for \a iso639_1, or \a LANGCODE_unknown if
+ *          \a iso639_1 is invalid.
  *
  * Since: 4.0.0
  */
@@ -8613,7 +8615,7 @@ MG_EXPORT BidiJoiningType GUIAPI UCharGetJoiningType(Uchar32 uc);
 
 /**
  * \fn void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs, int nr_ucs,
- *      BidiJoiningType *joing_types)
+ *      BidiJoiningType *joining_types)
  * \brief Get joining types for a string of Unicode characters
  *
  * This function finds the joining types of an string of characters.
@@ -8630,7 +8632,7 @@ MG_EXPORT BidiJoiningType GUIAPI UCharGetJoiningType(Uchar32 uc);
  * Since: 4.0.0
  */
 MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs, int nr_ucs,
-        BidiJoiningType *joing_types);
+        BidiJoiningType *joining_types);
 
 /**
  * \fn BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int len)
@@ -8725,7 +8727,7 @@ typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos);
  * \fn BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  *      const BidiType *bidi_types, int len, int off,
  *      ParagraphDir paragraph_dir, BidiLevel *embedding_levels,
- *      Uchar32 *visual_str, int *map,
+ *      Uchar32 *visual_str, int *indices_map,
  *      void* extra, CB_REVERSE_ARRAY cb_reverse_extra)
  * \brief Reorder a line of logical string to visual string.
  *
@@ -8761,8 +8763,6 @@ typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos);
  * \param bidi_flags The reorder flags.
  * \param bidi_types the pointer to the BidiType array as returned by
  *      UStrGetBidiTypes()
- * \param bracket_types The pointer to a BidiBracketType array which
- *      contains the bracket types as returned by UStrGetBracketTypes()
  * \param len The length of the list.
  * \param off The input offset of the beginning of the line in the paragraph.
  * \param paragraph_dir The resolved paragraph base direction.
@@ -8851,7 +8851,7 @@ MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
         BidiArabicProp *ar_props);
 
 /**
- * \fn void GUIAPI UBidiShapeArabic(Uint32 bidi_flags,
+ * \fn void GUIAPI UBidiShapeArabic(Uint32 shaping_flags,
  *      const BidiLevel *embedding_levels, int len,
  *      BidiArabicProp *ar_props, Uchar32 *ucs)
  * \brief Do Arabic shaping.
@@ -8879,7 +8879,7 @@ MG_EXPORT void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,
  * \param embedding_levels input list of embedding levels, as returned by
  *      UBidiGetParagraphEmbeddingLevels().
  * \param len The length of the string.
- * \param arb_props The Arabic character properties as computed by
+ * \param ar_props The Arabic character properties as computed by
  *      UBidiJoinArabic().
  * \param ucs The Uchar32 string to shape.
  *
@@ -8893,8 +8893,8 @@ MG_EXPORT void GUIAPI UBidiShapeArabic(Uint32 shaping_flags,
 
 /**
  * \fn void GUIAPI UBidiShape(Uint32 shaping_flags,
-        const BidiLevel *embedding_levels, int len,
-        BidiArabicProp *ar_props, Uchar32* ucs)
+ *      const BidiLevel *embedding_levels, int len,
+ *      BidiArabicProp *ar_props, Uchar32* ucs)
  * \brief Do bidi-aware shaping.
  *
  * This function does all shaping work that depends on the resolved embedding
@@ -8915,7 +8915,7 @@ MG_EXPORT void GUIAPI UBidiShapeArabic(Uint32 shaping_flags,
  * \param embedding_levels input list of embedding levels, as returned by
  *      UBidiGetParagraphEmbeddingLevels().
  * \param len The length of the string.
- * \param arb_props The Arabic character properties as computed by
+ * \param ar_props The Arabic character properties as computed by
  *      UBidiJoinArabic().
  * \param ucs The Uchar32 string to shape.
  *
@@ -9198,7 +9198,7 @@ typedef Uint16 BreakOppo;
  * Note that you are responsible for freeing the break opportunities array
  * allocated by this function if it allocates the buffer.
  *
- * \param writing_system The writing system (script) identifier.
+ * \param lang_code The language code; not used so far, reserved for future.
  * \param ctr The character transformation rule; see \a char_transform_rule.
  * \param wbr The word breaking rule; see \a word_break_rules.
  * \param lbp The line breaking policy; see \a line_break_policies.
@@ -9359,7 +9359,7 @@ MG_EXPORT int GUIAPI UCharFullyDecompose (Uchar32 ch, BOOL compat,
  * \fn ScriptType GUIAPI UCharGetScriptType (Uchar32 ch)
  *
  * Looks up the script code for a particular character (as defined
- * by Unicode Standard Annex #24). No check is made for @ch being a
+ * by Unicode Standard Annex #24). No check is made for \a ch being a
  * valid Unicode character; if you pass in invalid character, the
  * result is undefined.
  *
@@ -9376,11 +9376,16 @@ MG_EXPORT ScriptType GUIAPI UCharGetScriptType (Uchar32 ch);
 /**
  * \fn Uint32 ScriptTypeToISO15924 (ScriptType script)
  *
- * Looks up the ISO 15924 code for @script.  ISO 15924 assigns four-letter
- * codes to scripts.  For example, the code for Arabic is 'Arab'.  The
- * four letter codes are encoded as a @Uint32 by this function in a
- * big-endian fashion.  That is, the code returned for Arabic is
- * 0x41726162 (0x41 is ASCII code for 'A', 0x72 is ASCII code for 'r', etc).
+ * Looks up the ISO15924 code for the specific ScriptType \a script.
+ * ISO15924 assigns four-letter codes to scripts. For example,
+ * the code for Arabic is 'Arab'.  The four letter codes are encoded
+ * as a Uint32 by this function in a big-endian fashion.
+ * That is, the code returned for Arabic is 0x41726162 (0x41 is ASCII
+ * code for 'A', 0x72 is ASCII code for 'r', etc).
+ *
+ * See
+ * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
+ * for details.
  *
  * \param script a Unicode script
  *
@@ -9389,9 +9394,7 @@ MG_EXPORT ScriptType GUIAPI UCharGetScriptType (Uchar32 ch);
  *   ISO 15924 code 'Zzzz' (script code for UNKNOWN) if \a script
  *   is not understood.
  *
- * See
- * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
- * for details.
+ * \sa ScriptTypeFromISO15924
  *
  * Since: 4.0.0
  */
@@ -9399,22 +9402,26 @@ MG_EXPORT Uint32 GUIAPI ScriptTypeToISO15924 (ScriptType script);
 
 /**
  * \fn ScriptType ScriptTypeFromISO15924 (Uint32 iso15924)
+ * \brief Get the ScriptType value from an encoded ISO15924 script code.
  *
- * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
- * codes to scripts.  For example, the code for Arabic is 'Arab'.
- * This function accepts four letter codes encoded as a @Uint32 in a
- * big-endian fashion.  That is, the code expected for Arabic is
+ * Looks up the Unicode script type for the specified encoded ISO15924
+ * script code \a iso15924. ISO 15924 assigns four-letter
+ * codes to scripts. For example, the code for Arabic is 'Arab'.
+ * This function accepts four letter codes encoded as a Uint32 in a
+ * big-endian fashion. That is, the code expected for Arabic is
  * 0x41726162 (0x41 is ASCII code for 'A', 0x72 is ASCII code for 'r', etc).
  *
- * \param an encoded Unicode script code in ISO15924
+ * See
+ * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
+ * for details.
+ *
+ * \param iso15924 an encoded Unicode script code in ISO15924.
  *
  * \return the Unicode script for \a iso15924, or
  *   of \a SCRIPT_INVALID_CODE if \a iso15924 is zero and
  *   \a SCRIPT_UNKNOWN if \a iso15924 is unknown.
  *
- * See
- * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
- * for details.
+ * \sa ScriptTypeFromISO15924Code
  *
  * Since: 4.0.0
  */
@@ -9423,18 +9430,21 @@ MG_EXPORT ScriptType GUIAPI ScriptTypeFromISO15924 (Uint32 iso15924);
 /**
  * \fn ScriptType ScriptTypeFromISO15924Code (const char* iso15924)
  *
- * Looks up the Unicode script type for @iso15924. ISO 15924 assigns four-letter
- * codes to scripts.  For example, the code for Arabic is 'Arab'.
- *
- * \param iso15924 a Unicode script type code in ISO15924
- *
- * \returns the Unicode script for \a iso15924, or
- *   of \a SCRIPT_INVALID_CODE if \a iso15924 is zero and
- *   \a SCRIPT_UNKNOWN if \a iso15924 is unknown.
+ * Looks up the Unicode script type for the specified ISO15924 script code
+ * \a iso15924. ISO15924 assigns four-letter codes to scripts.
+ * For example, the code for Arabic is 'Arab'.
  *
  * See
  * [Codes for the representation of names of scripts](https://www.unicode.org/iso15924/codelists.html)
  * for details.
+ *
+ * \param iso15924 a Unicode script type code in ISO15924.
+ *
+ * \return the Unicode script for \a iso15924, or
+ *   of \a SCRIPT_INVALID_CODE if \a iso15924 is zero and
+ *   \a SCRIPT_UNKNOWN if \a iso15924 is unknown.
+ *
+ * \sa ScriptTypeFromISO15924
  *
  * Since: 4.0.0
  */
@@ -9482,17 +9492,17 @@ MG_EXPORT UVerticalOrient GUIAPI UCharGetVerticalOrientation(Uchar32 uc);
  * \brief Based on the script, base gravity, and policy, returns actual gravity
  *      to use in laying out a single glyph run.
  *
- * If @base_orient is %GLYPH_GRAVITY_AUTO, it is first replaced with the
- * preferred orientation of @script. To get the preferred orientation of a script,
- * pass %GLYPH_GRAVITY_AUTO and %GLYPH_GRAVITY_POLICY_STRONG in.
+ * If \a base_orient is \a GLYPH_GRAVITY_AUTO, it is first replaced with the
+ * preferred orientation of \a script. To get the preferred orientation of a script,
+ * pass \a GLYPH_GRAVITY_AUTO and \a GLYPH_GRAVITY_POLICY_STRONG in.
  *
  * \param script The script type to query
  * \param vertical TRUE for vertical layout
  * \param base_gravity The base gravity of the layout
  * \param policy The gravity policy
  *
- * \param The resolved gravity suitable to use for a layout run of text
- * with @script.
+ * \return The resolved gravity suitable to use for a layout run of text
+ * with \a script.
  *
  * Since: 4.0.0
  */
@@ -9513,8 +9523,8 @@ MG_EXPORT GlyphGravity GUIAPI ScriptGetGlyphGravity(ScriptType script,
  * base gravity, whereas narrow/half-width characters are always
  * rotated in vertical context.
  *
- * If @base_orient is %GLYPH_GRAVITY_AUTO, it is first replaced with the
- * preferred gravity of @script.
+ * If \a base_orient is \a GLYPH_GRAVITY_AUTO, it is first replaced with the
+ * preferred gravity of \a script.
  *
  * \param script The script type to query
  * \param vertical TRUE for vertical layout.
@@ -11477,7 +11487,7 @@ MG_EXPORT Achar32 GUIAPI GetShapedAChar (LOGFONT* logfont, const char* mchar,
  * \brief Get the mirrored abstract character if possible.
  *
  * \param logfont The logical font.
- * \param glyph The glyph value.
+ * \param chv The abstract character value.
  * \param mirrored The buffer to store the mirrored Achar32 value if
  *      the multi-byte character has a mirrored character.
  *
@@ -11502,9 +11512,9 @@ MG_EXPORT BOOL GUIAPI GetMirrorAChar (LOGFONT* logfont, Achar32 chv,
  * This function retrieves the BIDI type of an abstract character.
  *
  * \param logfont The logical font.
- * \param glyph_value The glyph value.
+ * \param chv The abstract character value.
  *
- * \return The BIDI type of the Achar32; BIDI_TYPE_INVALID on failure.
+ * \return The BIDI type of \a chv; BIDI_TYPE_INVALID on failure.
  *
  * \note This is an API of the legacy implementation of bidirectional algorithm.
  *      It is used to support text in ISO8859-6 and ISO8859-8 charsets
@@ -12096,8 +12106,6 @@ MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
  * \param mstr The pointer to the multi-byte string.
  * \param mstr_len The length of \a mstr in bytes.
  * \param wsr The white space rule; see \a white_space_rules.
- * \param ctr The character transformation rule;
- *        see \a char_transform_rule.
  * \param uchars The pointer to a buffer to store the address of the
  *      Uchar32 array which contains the Unicode character values.
  * \param nr_uchars The buffer to store the number of the allocated
@@ -12141,7 +12149,9 @@ MG_EXPORT Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv);
  * Only valid for UNICODE.
  *
  * \param logfont The LOGFONT object
- * \param chs The array of LOGFONT character values.
+ * \param achs The array of the abstract character values.
+ * \param ucs The buffer to store the converted Uchar32 characters.
+ * \param n The length of the Achar32 array.
  *
  * \return The number of characters converted successfully.
  *
@@ -12197,7 +12207,9 @@ MG_EXPORT BOOL GUIAPI UChar2AChar(LOGFONT* logfont, Uchar32 uc, Achar32* ac);
  * Only valid for UNICODE.
  *
  * \param logfont The LOGFONT object
- * \param chs The array of LOGFONT character values.
+ * \param ucs The array of the Unicode characters.
+ * \param acs The buffer to store the converted abstract characters.
+ * \param n The length of the Uchar32 array.
  *
  * \return The number of characters converted successfully.
  *
@@ -13173,8 +13185,6 @@ MG_EXPORT BOOL DrawShapedGlyph(HDC hdc,
  * \param y The buffer contained the y-corrdinate of the output position
  *      of the first glyph in the line. The y-corrdinate of the next line
  *      will be returned through this buffer as well.
- * \param bounding The buffer to store the bounding rectangle of
- *      the line; can be NULL.
  *
  * \return The number of glyphs drawn.
  *

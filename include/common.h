@@ -727,7 +727,7 @@ typedef UINT_PTR LPARAM;
 #define MAKEWORD16(low, high) ((WORD16)(((BYTE)(low)) | (((WORD16)((BYTE)(high))) << 8)))
 
 /**
- * \def MAKEWORD32(first, second, third, fourth)
+ * \def MAKEDWORD32(first, second, third, fourth)
  * \brief Makes a WORD32 value with four bytes.
  *
  * \sa MAKEWORD16, FIRSTBYTE, SECONDBYTE, THIRDBYTE, FOURTHBYTE
