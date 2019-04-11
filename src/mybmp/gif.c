@@ -537,9 +537,9 @@ ReadImage(MG_RWops* src, MYBITMAP* bmp, int len, int height,
                 }
             }
             else {
-            /* emit line at here */
-            if (bmp->flags &= MYBMP_LOAD_ALLOCATE_ONE)
-                (*cb)(context, bmp, ypos);
+                /* emit line at here */
+                if (bmp->flags &= MYBMP_LOAD_ALLOCATE_ONE)
+                    (*cb)(context, bmp, ypos);
                 ++ypos;
             }
         }

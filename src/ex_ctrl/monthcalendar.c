@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -66,7 +66,7 @@
 #define WEEK_BORDER      5
 #define WEEK_VBORDER1    2
 #define WEEK_VBORDER2    3
-#define TEXT_BORDER      5 
+#define TEXT_BORDER      5
 #define LINE_D           2
 
 #define ARROW_H          7
@@ -110,7 +110,7 @@ BOOL RegisterMonthCalendarControl (void)
     WndClass.dwStyle        = WS_NONE;
     WndClass.dwExStyle      = WS_EX_NONE;
     WndClass.hCursor        = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor       = 
+    WndClass.iBkColor       =
         GetWindowElementPixel (HWND_DESKTOP, WE_BGC_WINDOW);
     WndClass.WinProc        = MonthCalendarCtrlProc;
 
@@ -118,7 +118,7 @@ BOOL RegisterMonthCalendarControl (void)
 }
 
 // draw page arrow
-static void mcDrawPageArrow (HWND hWnd, WINDOWINFO *info, PMONCALDDATA mc_data, 
+static void mcDrawPageArrow (HWND hWnd, WINDOWINFO *info, PMONCALDDATA mc_data,
         HDC hdc, RECT* prcArrow, BOOL bFaceR, BOOL bHilight)
 {
     PMCCOLORINFO pmcci;
@@ -144,7 +144,7 @@ static void mcDrawPageArrow (HWND hWnd, WINDOWINFO *info, PMONCALDDATA mc_data,
     Pixel2RGBA (hdc, pixel, &r, &g, &b, &a);
     color = MakeRGBA (r, g, b, a);
 
-    info->we_rdr->draw_arrow (hWnd, hdc, prcArrow, 
+    info->we_rdr->draw_arrow (hWnd, hdc, prcArrow,
             color, LFRDR_ARROW_HAVESHELL | status);
 }
 
@@ -173,7 +173,7 @@ static int GetMonLen (int year, int month)
     if (month < 1 || month > 12) return -1;
     if ((month <= 7 && month % 2 == 1) || (month >= 8 && month % 2 == 0))
         mon_len = 31;
-    else if (month == 2) 
+    else if (month == 2)
         if (IsLeapYear (year)) mon_len = 29;
         else mon_len = 28;
     else
@@ -185,7 +185,7 @@ static int GetYearLen (int year)
 {
     int i, year_len = 0;
     for (i = 1; i <= 12; i++) {
-        year_len += GetMonLen (year, i);    
+        year_len += GetMonLen (year, i);
     }
     return year_len;
 }
@@ -210,10 +210,10 @@ static int MyGetWeekDay (int year, int month, int day)
     }
     for (i = 1; i < month; i++)    {
         daylen += GetMonLen (year, i);
-    }    
+    }
     daylen += day;
     weekday = (weekday1 + daylen) - (int)((weekday1 + daylen) / 7)*7;
-    return weekday;    
+    return weekday;
 }
 
 // get weekday from date
@@ -224,7 +224,7 @@ static int GetWeekDay (int year, int month, int day)
     if (year < 1970) return -1;
     if (month < 1 || month > 12) return -1;
     if (day < 1 || day > 31) return -1;
-    
+
     if (year >= 2037) return MyGetWeekDay (year, month, day);
     memset (&nowday, 0, sizeof (nowday));
     nowday.tm_sec = 0;
@@ -238,7 +238,7 @@ static int GetWeekDay (int year, int month, int day)
         return -1;
     }
     else
-        return nowday.tm_wday;    
+        return nowday.tm_wday;
 }
 // get line and weekday from date according to weekday1
 static void mcGetCurDayPos (PMONCALDDATA mc_data, int day, int* pline, int* pWeekDay)
@@ -252,21 +252,21 @@ static void mcGetCurDayPos (PMONCALDDATA mc_data, int day, int* pline, int* pWee
 static void mcGetDayPos (int year, int month, int day, int* pline, int* pWeekDay)
 {
     *pWeekDay = GetWeekDay (year, month, day);
-    *pline = (day + 6 - *pWeekDay - 1)/7;    
+    *pline = (day + 6 - *pWeekDay - 1)/7;
 }
 */
 
 // get rects of arrows
-static void mcGetArrowRects (RECT* prcMonth, RECT* prcYear, 
-                                RECT* prcAML, RECT* prcAMR, 
+static void mcGetArrowRects (RECT* prcMonth, RECT* prcYear,
+                                RECT* prcAML, RECT* prcAMR,
                                 RECT* prcAYL, RECT* prcAYR)
 {
     prcAML->right = prcMonth->left - 1;
     prcAML->left = prcAML->right - ARROWRECT_W;
     prcAML->top = prcMonth->top;
     prcAML->bottom = prcMonth->bottom;
-    
-    prcAMR->left = prcMonth->right + 2;    
+
+    prcAMR->left = prcMonth->right + 2;
     prcAMR->right = prcAMR->left + ARROWRECT_W;
     prcAMR->top = prcMonth->top;
     prcAMR->bottom = prcMonth->bottom;
@@ -275,8 +275,8 @@ static void mcGetArrowRects (RECT* prcMonth, RECT* prcYear,
     prcAYL->left = prcAYL->right - ARROWRECT_W;
     prcAYL->top = prcYear->top;
     prcAYL->bottom = prcYear->bottom;
-    
-    prcAYR->left = prcYear->right + 2;    
+
+    prcAYR->left = prcYear->right + 2;
     prcAYR->right = prcAYR->left + ARROWRECT_W;
     prcAYR->top = prcYear->top;
     prcAYR->bottom = prcYear->bottom;
@@ -305,9 +305,9 @@ static void mcGetRects (HWND hWnd,  RECT* prcClient,
 
     if (prcClient) {
         *prcClient = rcClient;
-    }    
-    
-    if (prcMonth) 
+    }
+
+    if (prcMonth)
         SetRect (prcMonth, rcClient.left + MON_BORDER,
                       //rcClient.top + 4,
                       rcClient.top + 6,
@@ -326,7 +326,7 @@ static void mcGetRects (HWND hWnd,  RECT* prcClient,
 }
 
 // get item rect from the x-y mouse position
-static void mcGetItemRectFromPos (PMONCALDDATA mc_data,    RECT* prcMDay, 
+static void mcGetItemRectFromPos (PMONCALDDATA mc_data,    RECT* prcMDay,
                             RECT* prcItem, int* pline, int* pweekday, int x, int y)
 {
     *pline = (y - prcMDay->top) / mc_data->item_h;
@@ -337,7 +337,7 @@ static void mcGetItemRectFromPos (PMONCALDDATA mc_data,    RECT* prcMDay,
     prcItem->bottom = prcItem->top + mc_data->item_h;
 }
 
-static void mcGetItemRectFromDay (PMONCALDDATA mc_data, RECT* prcMDay, 
+static void mcGetItemRectFromDay (PMONCALDDATA mc_data, RECT* prcMDay,
                             RECT* prcItem, int day)
 {
     int LineIndex, weekday;
@@ -354,7 +354,7 @@ static void mcGetItemRectFromDay (PMONCALDDATA mc_data, RECT* prcMDay,
 // get current item rect from mc_data
 static void mcGetCurRect (RECT* prcMDay, RECT* prcItem, PMONCALDDATA mc_data)
 {
-    prcItem->left = prcMDay->left + mc_data->cur_WeekDay*mc_data->item_w;    
+    prcItem->left = prcMDay->left + mc_data->cur_WeekDay*mc_data->item_w;
     prcItem->top = prcMDay->top + mc_data->cur_line*mc_data->item_h;
     prcItem->right = prcItem->left + mc_data->item_w;
     prcItem->bottom = prcItem->top + mc_data->item_h;
@@ -367,7 +367,7 @@ static void mcTextOutCenter (HWND hWnd, HDC hdc, RECT* prcText, const char* pchT
 #if 0
     int ch_w, ch_h, x, y;
     int bkMode;
-    
+
     ch_w = GetSysCharWidth ();
     ch_h = GetSysCharHeight ();
     x = (prcText->right + prcText->left)/2 - strlen(pchText)*ch_w/2;
@@ -394,12 +394,12 @@ static void mcTextOutCenter (HWND hWnd, HDC hdc, RECT* prcText, const char* pchT
 static void mcUnHilightRect (HWND hWnd, PMONCALDDATA mc_data, HDC hdc, RECT* prcItem, int day)
 {
     int item_w, item_h;
-    char daytext[3];
+    char daytext[128];
     PMCCOLORINFO pmcci;
-    
+
     pmcci = (PMCCOLORINFO) mc_data->dwClrData;
     item_w = prcItem->right - prcItem->left;
-    item_h = prcItem->bottom - prcItem->top; 
+    item_h = prcItem->bottom - prcItem->top;
     SetBrushColor (hdc, pmcci->clr_daybk);
     FillBox (hdc, prcItem->left, prcItem->top, item_w, item_h);
 
@@ -416,9 +416,9 @@ static void mcUnHilightRect (HWND hWnd, PMONCALDDATA mc_data, HDC hdc, RECT* prc
 static void mcHilightRect (HWND hWnd, PMONCALDDATA mc_data, HDC hdc, RECT* prcItem, int day)
 {
     int item_w, item_h;
-    char daytext[3];
+    char daytext[128];
     PMCCOLORINFO pmcci;
-    
+
     pmcci = (PMCCOLORINFO) mc_data->dwClrData;
     SetBrushColor (hdc, pmcci->clr_dayHibk);
     item_w = prcItem->right - prcItem->left;
@@ -435,12 +435,12 @@ static void mcHilightRect (HWND hWnd, PMONCALDDATA mc_data, HDC hdc, RECT* prcIt
 }
 
 /* draw customed day color */
-static void mcDrawCustomedDay (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay, 
+static void mcDrawCustomedDay (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay,
                                 int newday)
 {
-    char daytext[3];
+    char daytext[128];
     gal_pixel oldcolor;
-    
+
     if (newday < 10)
         sprintf (daytext, " %d", newday);
     else
@@ -451,21 +451,21 @@ static void mcDrawCustomedDay (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* p
 }
 
 // draw change day
-static void mcDrawDay (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay, 
+static void mcDrawDay (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay,
                                 int newday)
 {
     RECT rcPItemDay, rcItemDay;
     // NUV PMCCOLORINFO pmcci;
-    
+
     // NUV pmcci = (PMCCOLORINFO) mc_data->dwClrData;
     mcGetCurRect (prcMDay, &rcPItemDay, mc_data);
-    mcUnHilightRect (hWnd, mc_data, hdc, &rcPItemDay, mc_data->cur_day);    
+    mcUnHilightRect (hWnd, mc_data, hdc, &rcPItemDay, mc_data->cur_day);
 
     mc_data->cur_day = newday;
-    mcGetCurDayPos (mc_data, mc_data->cur_day, &mc_data->cur_line, 
-                        &mc_data->cur_WeekDay);    
+    mcGetCurDayPos (mc_data, mc_data->cur_day, &mc_data->cur_line,
+                        &mc_data->cur_WeekDay);
     mcGetCurRect (prcMDay, &rcItemDay, mc_data);
-    mcHilightRect (hWnd, mc_data, hdc, &rcItemDay, mc_data->cur_day);         
+    mcHilightRect (hWnd, mc_data, hdc, &rcItemDay, mc_data->cur_day);
 }
 
 // draw month day area
@@ -474,16 +474,16 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
     int i, WeekDayPM = 0, LineIndex = 0;
     int mdaypm = 0, MonLenPM, mdaynm;
     int iWeekDay = 0;
-    char chMonthDay[3];
+    char chMonthDay[128];
     RECT rcMonthDay;
     PMCCOLORINFO pmcci;
-    
+
     pmcci = (PMCCOLORINFO) mc_data->dwClrData;
-    SetBkColor (hdc, pmcci->clr_daybk);    
+    SetBkColor (hdc, pmcci->clr_daybk);
     SetTextColor (hdc, pmcci->clr_daytext);
 
     for (i = 1; i <= mc_data->monlen; i++) {
-        if (i < 10) 
+        if (i < 10)
             sprintf (chMonthDay, " %d", i);
         else
             sprintf (chMonthDay, "%d", i);
@@ -497,19 +497,19 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
             SetTextColor (hdc, pmcci->clr_dayHitext);
             SetBkColor (hdc, pmcci->clr_dayHibk);
             SetBrushColor (hdc, pmcci->clr_dayHibk);
-            FillBox (hdc, rcMonthDay.left, rcMonthDay.top, 
+            FillBox (hdc, rcMonthDay.left, rcMonthDay.top,
                     mc_data->item_w, mc_data->item_h);
 
             SetPenColor(hdc, GetWindowElementPixel (hWnd, WE_MAINC_THREED_BODY));
-            Rectangle (hdc, rcMonthDay.left, rcMonthDay.top, 
-                    rcMonthDay.left+mc_data->item_w-1 , 
+            Rectangle (hdc, rcMonthDay.left, rcMonthDay.top,
+                    rcMonthDay.left+mc_data->item_w-1 ,
                     rcMonthDay.top+mc_data->item_h-1);
         }
         else {
             SetBkColor (hdc, pmcci->clr_daybk);
             SetTextColor (hdc, pmcci->clr_daytext);
             SetBrushColor (hdc, pmcci->clr_daybk);
-            FillBox (hdc, rcMonthDay.left, rcMonthDay.top, 
+            FillBox (hdc, rcMonthDay.left, rcMonthDay.top,
                     mc_data->item_w, mc_data->item_h);
         }
 
@@ -517,7 +517,7 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
             SetTextColor (hdc, mc_data->customed_day_color[i]);
 
             SetBrushColor (hdc, pmcci->clr_daybk);
-            FillBox (hdc, rcMonthDay.left, rcMonthDay.top, 
+            FillBox (hdc, rcMonthDay.left, rcMonthDay.top,
                     mc_data->item_w, mc_data->item_h);
         }
         mcTextOutCenter (hWnd, hdc, &rcMonthDay, chMonthDay);
@@ -525,12 +525,12 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
 
     SetTextColor (hdc, pmcci->clr_trailingtext);
     SetBrushColor (hdc, pmcci->clr_daybk);
-    
+
     LineIndex += (iWeekDay+1)/7;
     iWeekDay = (iWeekDay + 1)%7;
     mdaynm = 1;
     while (LineIndex <= 5) {
-        if (mdaynm < 10) 
+        if (mdaynm < 10)
             sprintf (chMonthDay, " %d", mdaynm);
         else
             sprintf (chMonthDay, "%d", mdaynm);
@@ -538,7 +538,7 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
         rcMonthDay.right = rcMonthDay.left + mc_data->item_w;
         rcMonthDay.top = prcMDay->top + mc_data->item_h*LineIndex;
         rcMonthDay.bottom = rcMonthDay.top + mc_data->item_h;
-        FillBox (hdc, rcMonthDay.left, rcMonthDay.top, 
+        FillBox (hdc, rcMonthDay.left, rcMonthDay.top,
                 mc_data->item_w, mc_data->item_h);
         mcTextOutCenter (hWnd, hdc, &rcMonthDay, chMonthDay);
         mdaynm++;
@@ -548,7 +548,7 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
             LineIndex++;
         }
     }
-    
+
     WeekDayPM = mc_data->WeekDay1 - 1;
     if (WeekDayPM >= 0) {
         rcMonthDay.top = prcMDay->top;
@@ -561,7 +561,7 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
 
     while (WeekDayPM >= 0) {
         sprintf (chMonthDay, "%d", mdaypm);
-        FillBox (hdc, rcMonthDay.left, rcMonthDay.top, 
+        FillBox (hdc, rcMonthDay.left, rcMonthDay.top,
                 mc_data->item_w, mc_data->item_h);
         mcTextOutCenter (hWnd, hdc, &rcMonthDay, chMonthDay);
         OffsetRect(&rcMonthDay, -mc_data->item_w, 0);
@@ -571,27 +571,27 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
 }
 
 // draw change month
-static void mcDrawMonth (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay, 
+static void mcDrawMonth (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay,
                             RECT* prcMonth, int newmonth)
 {
-    if (newmonth > 12) 
+    if (newmonth > 12)
         mc_data->cur_month = 12;
     else if (newmonth < 1) {
         mc_data->cur_month = 1;
-    } else 
-        mc_data->cur_month = newmonth; 
+    } else
+        mc_data->cur_month = newmonth;
     mc_data->monlen = GetMonLen (mc_data->cur_year, mc_data->cur_month);
     while (mc_data->cur_day > mc_data->monlen) {
         mc_data->cur_day--;
     }
     mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year, mc_data->cur_month, 1);
-    mcGetCurDayPos (mc_data, mc_data->cur_day, &mc_data->cur_line, 
-                        &mc_data->cur_WeekDay);    
+    mcGetCurDayPos (mc_data, mc_data->cur_day, &mc_data->cur_line,
+                        &mc_data->cur_WeekDay);
     InvalidateRect (hWnd, prcMonth, FALSE);
     InvalidateRect (hWnd, prcMDay, FALSE);
 }
 
-static void mcDrawYear (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay, 
+static void mcDrawYear (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay,
                             RECT* prcYear, int newyear)
 {
     if (newyear < 1970)    mc_data->cur_year = 1970;
@@ -601,8 +601,8 @@ static void mcDrawYear (HWND hWnd, HDC hdc, PMONCALDDATA mc_data, RECT* prcMDay,
         mc_data->cur_day--;
     }
     mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year, mc_data->cur_month, 1);
-    mcGetCurDayPos (mc_data, mc_data->cur_day, &mc_data->cur_line, 
-                        &mc_data->cur_WeekDay);    
+    mcGetCurDayPos (mc_data, mc_data->cur_day, &mc_data->cur_line,
+                        &mc_data->cur_WeekDay);
     InvalidateRect (hWnd, prcYear, FALSE);
     InvalidateRect (hWnd, prcMDay, FALSE);
 }
@@ -612,9 +612,9 @@ static const char *chMon_EL[] = {"January", "Febuary", "March", "April", "May", 
                             "July", "August", "September", "October", "November", "December"};
 static const char *chMon_ES[] = {"Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug",
                             "Sep", "Oct", "Nov", "Dec"};
-static const char *chMon_C[] = {"一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", 
+static const char *chMon_C[] = {"一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月",
                             "九月", "十月", "十一月", "十二月"};
-static const char *chWeek_C[] = {"日", "一", "二", "三", "四", "五", "六"}; 
+static const char *chWeek_C[] = {"日", "一", "二", "三", "四", "五", "六"};
 static const char *chWeek_E[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static const char *chWeek_E_S[] = {"S", "1", "2", "3", "4", "5", "6"};
 
@@ -634,7 +634,7 @@ static void mcDrawCalendar (HWND hWnd, HDC hdc, PMONCALDDATA mc_data)
     mcGetRects (hWnd, &rcClient, &rcMonth, &rcYear, &rcMDay);
 
     color = GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY);
-    
+
     /* draw client frame */
 //   if(GetWindowExStyle (hWnd) & WS_EX_TRANSPARENT)
         info->we_rdr->draw_3dbox (hdc, &rcClient, color,
@@ -651,7 +651,7 @@ static void mcDrawCalendar (HWND hWnd, HDC hdc, PMONCALDDATA mc_data)
         rc.right -= 2;
         rc.bottom = rc.top + DATECAP_H (hWnd);
 
-        info->we_rdr->draw_3dbox (hdc, &rc, color, 
+        info->we_rdr->draw_3dbox (hdc, &rc, color,
            /*LFRDR_3DBOX_FILLED |*/ LFRDR_3DBOX_THICKFRAME | LFRDR_BTN_STATUS_NORMAL);
     }
 
@@ -682,7 +682,7 @@ static void mcDrawCalendar (HWND hWnd, HDC hdc, PMONCALDDATA mc_data)
 
             FillBox (hdc, rcMonth.left, rcMonth.top, RECTW(rcMonth), RECTH(rcMonth));
             mcTextOutCenter (hWnd, hdc, &rcMonth, pchMon);
-            
+
             FillBox (hdc, rcYear.left, rcYear.top, RECTW(rcYear), RECTH(rcYear));
             sprintf(chYear, "%d", mc_data->cur_year);
             mcTextOutCenter (hWnd, hdc, &rcYear, chYear);
@@ -696,7 +696,7 @@ static void mcDrawCalendar (HWND hWnd, HDC hdc, PMONCALDDATA mc_data)
         int i, weekitem_w;
         const char *pchDay;
         RECT rcWeek, rcWeekItem;
-        
+
         rcWeek.left = rcClient.left + WEEK_BORDER;
         rcWeek.right = rcClient.right-WEEK_BORDER;
         rcWeek.top = rcClient.top + 2 + WEEK_VBORDER1 + DATECAP_H(hWnd);
@@ -738,27 +738,27 @@ static void mcDrawCalendar (HWND hWnd, HDC hdc, PMONCALDDATA mc_data)
     }
 }
 
-// initialize mc_data  
+// initialize mc_data
 static BOOL mcInitMonthCalendarData (HWND hWnd, MONCALDDATA* mc_data)
 {
     time_t nowtime;
     struct tm *pnt;
     RECT rcClient, rcMDay;
     PMCCOLORINFO pmcci;
-    
+
     __mg_time(&nowtime);
     pnt = (struct tm *)__mg_localtime(&nowtime);
     mc_data->sys_year = mc_data->cur_year = pnt->tm_year + 1900;
     mc_data->sys_month = mc_data->cur_month = pnt->tm_mon + 1;
     mc_data->sys_day = mc_data->cur_day = pnt->tm_mday;
-    
+
     mcGetRects (hWnd, &rcClient, NULL, NULL, &rcMDay);
     mc_data->item_w = (rcMDay.right - rcMDay.left) / 7;
     mc_data->item_h = (rcMDay.bottom - rcMDay.top) / 6;
     mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year, mc_data->cur_month, 1);
     mcGetCurDayPos (mc_data, mc_data->cur_day,
-                    &mc_data->cur_line, &mc_data->cur_WeekDay);    
-    mc_data->sys_WeekDay = mc_data->cur_WeekDay;    
+                    &mc_data->cur_line, &mc_data->cur_WeekDay);
+    mc_data->sys_WeekDay = mc_data->cur_WeekDay;
     mc_data->monlen = GetMonLen (mc_data->cur_year, mc_data->cur_month);
 
     mc_data->state = 0;
@@ -785,10 +785,10 @@ static void mcSetCurDay (HWND hWnd, PMONCALDDATA mc_data, int newday)
 {
     RECT rcClient, rcMDay;
     HDC hdc;
-    
-    if (newday < 1) 
+
+    if (newday < 1)
         newday = 1;
-    else if (newday > mc_data->monlen) 
+    else if (newday > mc_data->monlen)
         newday = mc_data->monlen;
     mcGetRects (hWnd, &rcClient, NULL, NULL, &rcMDay);
     hdc = GetClientDC (hWnd);
@@ -800,10 +800,10 @@ static void
 mcShiftYM (HWND hWnd, PMONCALDDATA mc_data, BOOL bMonth, BOOL bRight)
 {
     if (GetWindowStyle(hWnd) & MCS_NOTIFY)
-        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECHANGE);        
+        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECHANGE);
 
     if (bMonth && bRight) {
-        if (mc_data->cur_month != 12) 
+        if (mc_data->cur_month != 12)
             mc_data->cur_month++;
         else {
             mc_data->cur_month = 1;
@@ -811,7 +811,7 @@ mcShiftYM (HWND hWnd, PMONCALDDATA mc_data, BOOL bMonth, BOOL bRight)
         }
     }
     else if (bMonth) {
-        if (mc_data->cur_month != 1) 
+        if (mc_data->cur_month != 1)
             mc_data->cur_month--;
         else {
             if (mc_data->cur_year <= 1970)
@@ -835,7 +835,7 @@ mcShiftYM (HWND hWnd, PMONCALDDATA mc_data, BOOL bMonth, BOOL bRight)
     }
     mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year, mc_data->cur_month, 1);
     mcGetCurDayPos (mc_data, mc_data->cur_day,
-        &mc_data->cur_line, &mc_data->cur_WeekDay);    
+        &mc_data->cur_line, &mc_data->cur_WeekDay);
     InvalidateRect (hWnd, NULL, TRUE);
 }
 
@@ -899,7 +899,7 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
     HDC hdc;
     PMONCALDDATA    mc_data = NULL;
     DWORD dwStyle = GetWindowStyle (hWnd);
-    
+
     if (message != MSG_CREATE)
         mc_data = (PMONCALDDATA) GetWindowAdditionalData2 (hWnd);
 
@@ -909,21 +909,21 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             RECT rcWnd;
             int rc_w, rc_h;
             PMCCOLORINFO pmcci;
-            
+
             GetWindowRect (hWnd, &rcWnd);
             rc_w = rcWnd.right - rcWnd.left;
             rc_h = rcWnd.bottom - rcWnd.top;
             if (rc_w < MINWNDRECT_W) {
                 rc_w = MINWNDRECT_W;
-                MoveWindow (hWnd, rcWnd.left, rcWnd.top, rc_w, 
+                MoveWindow (hWnd, rcWnd.left, rcWnd.top, rc_w,
                                 rc_h, FALSE);
             }
             if (rc_h < MINWNDRECT_H) {
                 rc_h = MINWNDRECT_H;
-                MoveWindow (hWnd, rcWnd.left, rcWnd.top, rc_w, 
+                MoveWindow (hWnd, rcWnd.left, rcWnd.top, rc_w,
                                 rc_h, FALSE);
             }
-            
+
             if ((mc_data = (MONCALDDATA *) malloc (sizeof(MONCALDDATA))) == NULL)
                 return -1;
             SetWindowAdditionalData2 (hWnd, (DWORD) mc_data);
@@ -932,7 +932,7 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
                 return -1;
             }
             mc_data->dwClrData = (DWORD) pmcci;
-            
+
             if (!mcInitMonthCalendarData (hWnd, mc_data)) {
                 free (pmcci);
                 free (mc_data);
@@ -940,7 +940,7 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             }
         }
             break;
-            
+
         case MCM_GETCURDAY:
         {
             return mc_data->cur_day;
@@ -949,30 +949,30 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
         {
             return mc_data->cur_WeekDay;
         }
-            
+
         case MCM_GETCURMONTH:
             return mc_data->cur_month;
-            
+
         case MCM_GETCURYEAR:
             return mc_data->cur_year;
-            
+
         case MCM_GETCURMONLEN:
             return mc_data->monlen;
-        
+
         case MCM_SETCURDAY:
         {
             mcSetCurDay (hWnd, mc_data, wParam);
             return 0;
         }
-            
+
         case MCM_SETCURMONTH:
         {
             int newmonth = (int) wParam;
             RECT rcClient, rcMonth, rcMDay;
-            
+
             if (newmonth > 12)
                 newmonth = 12;
-            else if (newmonth < 1) 
+            else if (newmonth < 1)
                 newmonth = 1;
 
             if (DATECAP_H(hWnd) == 0)
@@ -984,7 +984,7 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             ReleaseDC (hdc);
             return 0;
         }
-            
+
         case MCM_SETCURYEAR:
         {
             int newyear = (int) wParam;
@@ -1001,18 +1001,18 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             ReleaseDC (hdc);
             return 0;
         }
-        
+
         case MCM_SETTODAY:
         {
             RECT rcClient, rcYear, rcMonth, rcMDay;
-            
+
             mcGetRects (hWnd, &rcClient, &rcMonth, &rcYear, &rcMDay);
             mc_data->cur_day = mc_data->sys_day;
             mc_data->cur_month = mc_data->sys_month;
             mc_data->cur_year = mc_data->sys_year;
             mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year, mc_data->cur_month, 1);
             mcGetCurDayPos (mc_data, mc_data->cur_day,
-                        &mc_data->cur_line, &mc_data->cur_WeekDay);    
+                        &mc_data->cur_line, &mc_data->cur_WeekDay);
             mc_data->monlen = GetMonLen (mc_data->cur_year, mc_data->cur_month);
 
             InvalidateRect (hWnd, &rcYear, FALSE);
@@ -1029,25 +1029,25 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             mcGetRects (hWnd, &rcClient, &rcMonth, &rcYear, &rcMDay);
             pcurdate = (PSYSTEMTIME) lParam;
             mc_data->cur_year = MAX(pcurdate->year, 1970);
-                      
+
             if (pcurdate->month > 12) {
                 mc_data->cur_month = 12;
             } else {
                 mc_data->cur_month = (pcurdate->month < 1) ? 1 : pcurdate->month;
             }
-            
+
             mc_data->monlen = GetMonLen (mc_data->cur_year, mc_data->cur_month);
             if (pcurdate->day < 1) {
                 mc_data->cur_day = 1;
             } else {
-                mc_data->cur_day = (pcurdate->day > mc_data->monlen) ? mc_data->monlen : pcurdate->day; 
+                mc_data->cur_day = (pcurdate->day > mc_data->monlen) ? mc_data->monlen : pcurdate->day;
             }
-            
+
             mc_data->WeekDay1 = GetWeekDay (mc_data->cur_year, mc_data->cur_month, 1);
-            mcGetCurDayPos (mc_data, mc_data->cur_day, 
+            mcGetCurDayPos (mc_data, mc_data->cur_day,
                             &mc_data->cur_line, &mc_data->cur_WeekDay);
             //mc_data->monlen = GetMonLen (mc_data->cur_year, mc_data->cur_month);
-            
+
             InvalidateRect (hWnd, &rcYear, FALSE);
             InvalidateRect (hWnd, &rcMonth, FALSE);
             InvalidateRect (hWnd, &rcMDay, FALSE);
@@ -1081,7 +1081,7 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
 
         case MCM_GETFIRSTWEEKDAY:
             return mc_data->WeekDay1;
-            
+
         case MCM_GETCURDATE:
         {
             PSYSTEMTIME pcurdate = NULL;
@@ -1093,7 +1093,7 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             pcurdate->weekday = mc_data->cur_WeekDay;
             return 0;
         }
-            
+
         case MCM_GETTODAY:
         {
             PSYSTEMTIME ptoday = NULL;
@@ -1105,20 +1105,20 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             ptoday->weekday = mc_data->sys_WeekDay;
             return 0;
         }
-            
+
         case MCM_GETMINREQRECTW:
-            return MINWNDRECT_W;    
-            
+            return MINWNDRECT_W;
+
         case MCM_GETMINREQRECTH:
             return MINWNDRECT_H;
-            
+
         case MCM_GETCOLOR:
         {
             PMCCOLORINFO pmcci, pmccinfo;
 
             pmccinfo = (PMCCOLORINFO) lParam;
             pmcci = (PMCCOLORINFO) mc_data->dwClrData;
-            
+
             pmccinfo->clr_titlebk         = pmcci->clr_titlebk;
             pmccinfo->clr_titletext     = pmcci->clr_titletext;
             pmccinfo->clr_arrow         = pmcci->clr_arrow;
@@ -1132,14 +1132,14 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             pmccinfo->clr_weekcapttext     = pmcci->clr_weekcapttext;
             return 0;
         }
-            
+
         case MCM_SETCOLOR:
         {
             PMCCOLORINFO pmcci, pmcci_new;
-            
+
             pmcci = (PMCCOLORINFO) mc_data->dwClrData;
             pmcci_new = (PMCCOLORINFO) lParam;
-            
+
             if (pmcci_new->clr_titlebk >= 0) {
                 pmcci->clr_titlebk = pmcci_new->clr_titlebk;
             }
@@ -1164,24 +1164,24 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
                 pmcci->clr_dayHitext    = pmcci_new->clr_dayHitext;
             if (pmcci->clr_weekcaptbk >= 0)
                 pmcci->clr_weekcaptbk    = pmcci_new->clr_weekcaptbk;
-            if (pmcci->clr_weekcapttext >= 0) 
+            if (pmcci->clr_weekcapttext >= 0)
                 pmcci->clr_weekcapttext = pmcci_new->clr_weekcapttext;
-            
-            InvalidateRect (hWnd, NULL, FALSE);    
+
+            InvalidateRect (hWnd, NULL, FALSE);
             return 0;
         }
-            
+
         case MSG_DESTROY:
             mcMonthCalendarCleanUp (mc_data);
-            free (mc_data);    
+            free (mc_data);
             break;
-            
+
         case MSG_LBUTTONDOWN:
         {
             int x, y;
             RECT rcClient, rcMonth, rcYear, rcMDay;
             RECT rcAML, rcAMR, rcAYL, rcAYR;
-            
+
             x = LOSWORD (lParam);
             y = HISWORD (lParam);
             mcGetRects (hWnd, &rcClient, &rcMonth, &rcYear, &rcMDay);
@@ -1216,24 +1216,24 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
 #endif
                 mcShiftYM (hWnd, mc_data, FALSE, FALSE);
             }
-                
+
             else if (PtInRect (&rcMDay, x, y)) {
                 int line, weekday, pline, pweekday, posindex;
                 RECT rcItemDay; //rcPItemDay;
-                
+
 #ifdef _KEY_OP_SUPPORT
                 SETFOCUS(MST_DAY_FOCUS);
 #endif
-                
+
                 pline = mc_data->cur_line;
                 pweekday = mc_data->cur_WeekDay;
-                mcGetItemRectFromPos (mc_data, &rcMDay, 
+                mcGetItemRectFromPos (mc_data, &rcMDay,
                                         &rcItemDay, &line, &weekday, x, y);
                 posindex = line * 7 + weekday + 1;
                 if (posindex < mc_data->WeekDay1+1) {
                     if (dwStyle & MCS_NOTIFY)
-                        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECHANGE);    
-                    if (mc_data->cur_month != 1) 
+                        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECHANGE);
+                    if (mc_data->cur_month != 1)
                         mc_data->cur_month--;
                     else {
                         if (mc_data->cur_year <= 1970)
@@ -1242,37 +1242,37 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
                         mc_data->cur_year--;
                         InvalidateRect (hWnd, &rcYear, FALSE);
                     }
-                    mc_data->monlen = GetMonLen (mc_data->cur_year, 
+                    mc_data->monlen = GetMonLen (mc_data->cur_year,
                                                  mc_data->cur_month);
                     while (mc_data->cur_day > mc_data->monlen) {
                         mc_data->cur_day--;
                     }
-                    mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year, 
+                    mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year,
                                                    mc_data->cur_month, 1);
                     mcGetCurDayPos (mc_data, mc_data->cur_day,
-                        &mc_data->cur_line, &mc_data->cur_WeekDay);    
+                        &mc_data->cur_line, &mc_data->cur_WeekDay);
                     InvalidateRect (hWnd, &rcMonth, FALSE);
                     InvalidateRect (hWnd, &rcMDay, FALSE);
                 }
                 else if (posindex >mc_data->monlen + mc_data->WeekDay1) {
                     if (dwStyle & MCS_NOTIFY)
-                        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECHANGE);    
-                    if (mc_data->cur_month != 12) 
+                        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECHANGE);
+                    if (mc_data->cur_month != 12)
                         mc_data->cur_month++;
                     else {
-                        mc_data->cur_month = 1; 
+                        mc_data->cur_month = 1;
                         mc_data->cur_year++;
                         InvalidateRect (hWnd, &rcYear, FALSE);
                     }
-                    mc_data->monlen = GetMonLen (mc_data->cur_year, 
+                    mc_data->monlen = GetMonLen (mc_data->cur_year,
                                                  mc_data->cur_month);
                     while (mc_data->cur_day > mc_data->monlen) {
                         mc_data->cur_day--;
                     }
-                    mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year, 
+                    mc_data->WeekDay1 = GetWeekDay(mc_data->cur_year,
                                                    mc_data->cur_month, 1);
                     mcGetCurDayPos (mc_data, mc_data->cur_day,
-                            &mc_data->cur_line, &mc_data->cur_WeekDay);    
+                            &mc_data->cur_line, &mc_data->cur_WeekDay);
                     InvalidateRect (hWnd, &rcMonth, FALSE);
                     InvalidateRect (hWnd, &rcMDay, FALSE);
                 }
@@ -1289,13 +1289,13 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
                   }
                   else {
                     if (dwStyle & MCS_NOTIFY)
-                        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECLK);        
+                        NotifyParent (hWnd, GetDlgCtrlID (hWnd), MCN_DATECLK);
                   }
                 }
             }
-        }    
+        }
             break;
-            
+
         case MSG_LBUTTONUP:
             break;
 
@@ -1318,7 +1318,7 @@ static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
             mcDrawCalendar (hWnd, hdc, mc_data);
             EndPaint (hWnd, hdc);
             return 0;
-            
+
         default:
             break;
     }

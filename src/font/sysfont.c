@@ -101,7 +101,7 @@ BOOL mg_InitSysFont (void)
     memset (sys_fonts, 0, nr_fonts * sizeof (PLOGFONT));
 
     for (i = 0; i < nr_fonts; i++) {
-        char key [11];
+        char key [64];
         char type [LEN_LOGFONT_NAME_FIELD + 1];
         char family [LEN_LOGFONT_FAMILY_FIELD + 1];
         char style [LEN_LOGFONT_NAME_FIELD + 1];

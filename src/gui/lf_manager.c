@@ -1,42 +1,42 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
-/* 
+/*
 ** lf_manager.c: The Look and Feel manager file.
 */
 
 #include <string.h>
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "common.h"
@@ -101,7 +101,7 @@ WINDOW_ELEMENT_RENDERER* GUIAPI GetWindowRendererFromName (const char* name)
     return NULL;
 }
 
-BOOL GUIAPI AddWindowElementRenderer (const char* name, 
+BOOL GUIAPI AddWindowElementRenderer (const char* name,
         const WINDOW_ELEMENT_RENDERER* we_rdr)
 {
     int i;
@@ -121,9 +121,9 @@ BOOL GUIAPI AddWindowElementRenderer (const char* name,
             available_pos = -1;
             break;
         }
-        
+
         /** find available slot */
-        if (-1 == available_pos && '\0' == wnd_lf_info[i].name[0]) 
+        if (-1 == available_pos && '\0' == wnd_lf_info[i].name[0])
         {
             available_pos = i;
             break;
@@ -135,8 +135,8 @@ BOOL GUIAPI AddWindowElementRenderer (const char* name,
     {
 #ifdef _MGRM_THREADS
         pthread_mutex_unlock (&gRendererMmutex);
-#endif 
-        return FALSE; 
+#endif
+        return FALSE;
     }
 
     /** get available slot */
@@ -149,13 +149,13 @@ BOOL GUIAPI AddWindowElementRenderer (const char* name,
     {
 #ifdef _MGRM_THREADS
         pthread_mutex_unlock (&gRendererMmutex);
-#endif 
+#endif
         return FALSE;
     }
 
 #ifdef _MGRM_THREADS
     pthread_mutex_unlock (&gRendererMmutex);
-#endif 
+#endif
     return TRUE;
 }
 
@@ -168,7 +168,7 @@ BOOL GUIAPI RemoveWindowElementRenderer (const char* name)
 
 #ifdef _MGRM_THREADS
     pthread_mutex_lock (&gRendererMmutex);
-#endif 
+#endif
 
     /** find matching renderer by name which is case-insensitive */
     for (i = 0; i < MAX_NR_RENDERERS; ++i)
@@ -179,25 +179,25 @@ BOOL GUIAPI RemoveWindowElementRenderer (const char* name)
             break;
         }
     }
-    
+
     /** find it out, then continue*/
-    if (FALSE == find || NULL == wnd_lf_info[i].wnd_rdr 
+    if (FALSE == find || NULL == wnd_lf_info[i].wnd_rdr
             || 0 != wnd_lf_info[i].wnd_rdr->refcount)
     {
 #ifdef _MGRM_THREADS
         pthread_mutex_unlock (&gRendererMmutex);
-#endif 
+#endif
         return FALSE;
     }
-    
-    /** release and clean renderer data as refcount is 0 */ 
+
+    /** release and clean renderer data as refcount is 0 */
     wnd_lf_info[i].wnd_rdr->deinit (wnd_lf_info[i].wnd_rdr);
     wnd_lf_info[i].wnd_rdr = NULL;
     wnd_lf_info[i].name[0] = '\0';
 
 #ifdef _MGRM_THREADS
     pthread_mutex_unlock (&gRendererMmutex);
-#endif 
+#endif
 
     return TRUE;
 }
@@ -247,7 +247,7 @@ const char* GUIAPI SetDefaultWindowElementRenderer (const char* name)
     return old_name;
 }
 
-BOOL GUIAPI SetWindowElementRenderer (HWND hWnd, const char* werdr_name, 
+BOOL GUIAPI SetWindowElementRenderer (HWND hWnd, const char* werdr_name,
         const WINDOW_ELEMENT_ATTR* we_attrs)
 {
     int i;
@@ -258,19 +258,19 @@ BOOL GUIAPI SetWindowElementRenderer (HWND hWnd, const char* werdr_name,
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pwnd = MG_GET_WINDOW_PTR(hWnd);
 
-    if (NULL == pwnd || 
-            ((NULL == werdr_name || '\0' == werdr_name) && NULL == we_attrs))
+    if (NULL == pwnd ||
+            ((NULL == werdr_name || '\0' == *werdr_name) && NULL == we_attrs))
     {
         return FALSE;
     }
 
     /** ingnore this window style */
     if (pwnd->dwExStyle & WS_EX_USEPARENTRDR)
-    {   
+    {
         return FALSE;
-    }   
+    }
 
-    rdr = (WINDOW_ELEMENT_RENDERER*)GetWindowRendererFromName (werdr_name); 
+    rdr = (WINDOW_ELEMENT_RENDERER*)GetWindowRendererFromName (werdr_name);
 
     /** change to new renderer */
     if (NULL != rdr)
@@ -288,11 +288,11 @@ BOOL GUIAPI SetWindowElementRenderer (HWND hWnd, const char* werdr_name,
         update = TRUE;
         for (i = 0; we_attrs[i].we_attr_id != -1; ++i)
         {
-            append_window_element_data (&pwnd->wed, 
+            append_window_element_data (&pwnd->wed,
                     we_attrs[i].we_attr_id, we_attrs[i].we_attr);
         }
     }
-    
+
     /** update window with new renderer and attributes */
     if (update)
         UpdateWindow (hWnd, TRUE);
@@ -307,10 +307,10 @@ BOOL GUIAPI SetWindowElementRenderer (HWND hWnd, const char* werdr_name,
 #define SIZE_WE_HEAP 32
 static BLOCKHEAP we_heap;
 
-/* 
+/*
  * init_we_heap:
  *
- * This function initializes a block data heap. 
+ * This function initializes a block data heap.
  *
  * Author: Peng LIU
  * Date: 2007-11-22
@@ -321,10 +321,10 @@ static void init_we_heap (void)
     return;
 }
 
-/* 
+/*
  * alloc_we_attr:
  *
- * This function request a block mem from block data heap. 
+ * This function request a block mem from block data heap.
  *
  * Author: Peng LIU
  * Date: 2007-11-22
@@ -334,10 +334,10 @@ static WND_ELEMENT_DATA* alloc_we_attr (void)
     return (WND_ELEMENT_DATA*) BlockDataAlloc (&we_heap);
 }
 
-/* 
+/*
  * free_we_attr:
  *
- * This function return a block mem to block data heap. 
+ * This function return a block mem to block data heap.
  *
  * Author: Peng LIU
  * Date: 2007-11-22
@@ -349,10 +349,10 @@ static void free_we_attr (WND_ELEMENT_DATA* wed)
 }
 
 
-/* 
+/*
  * destroy_we_heap:
  *
- * This function destroy block data heap. 
+ * This function destroy block data heap.
  *
  * Author: Peng LIU
  * Date: 2007-11-22
@@ -367,10 +367,10 @@ static void destroy_we_heap (void)
 
 /******** get/set window element interface *****************/
 
-/* 
+/*
  * get_attr_from_rdr:
  *
- * This function get a attribute value from render. 
+ * This function get a attribute value from render.
  *
  * Author: Peng LIU
  * Date: 2007-12-17
@@ -399,13 +399,13 @@ static DWORD get_attr_from_rdr (WINDOW_ELEMENT_RENDERER *rdr, int we_attr_id)
             return (DWORD)rdr->we_icon [icon_idx][index];
         }
 
-        case WE_ATTR_TYPE_RDR: 
+        case WE_ATTR_TYPE_RDR:
             if (!rdr->on_get_rdr_attr)
                 break;
             return rdr->on_get_rdr_attr (rdr, we_attr_id);
     }
 
-    return -1;    
+    return -1;
 }
 
 static int get_window_element_data (HWND hwnd, Uint32 id, DWORD* data)
@@ -449,7 +449,7 @@ set_window_element_data (HWND hwnd, Uint32 id, DWORD new_data, DWORD* old_data)
         int color_index = (id & WE_ATTR_TYPE_COLOR_MASK) >> 8;
         /* SetWindowBkColor.*/
         if ( index == WE_WINDOW && color_index == 1) {
-            SetWindowBkColor(hwnd, RGBA2Pixel(HDC_SCREEN, GetRValue(new_data), 
+            SetWindowBkColor(hwnd, RGBA2Pixel(HDC_SCREEN, GetRValue(new_data),
                         GetGValue(new_data), GetBValue(new_data), GetAValue(new_data)));
         }
     }
@@ -476,9 +476,9 @@ set_window_element_data (HWND hwnd, Uint32 id, DWORD new_data, DWORD* old_data)
             return WED_MEMERR;
 
         if (((id & WE_ATTR_TYPE_MASK) == WE_ATTR_TYPE_RDR)
-                && pwnd->we_rdr->on_set_rdr_attr) 
-            new_data = pwnd->we_rdr->on_set_rdr_attr (pwnd->we_rdr, id, new_data, FALSE); 
-        
+                && pwnd->we_rdr->on_set_rdr_attr)
+            new_data = pwnd->we_rdr->on_set_rdr_attr (pwnd->we_rdr, id, new_data, FALSE);
+
         new_wed->id = id;
         new_wed->data = new_data;
         list_add_tail (&new_wed->list, &pwnd->wed->list);
@@ -492,9 +492,9 @@ set_window_element_data (HWND hwnd, Uint32 id, DWORD new_data, DWORD* old_data)
             wed = list_entry (me, WND_ELEMENT_DATA, list);
             if (wed->id == id) {
                 *old_data = wed->data;
-            
+
                 if (((id & WE_ATTR_TYPE_MASK) == WE_ATTR_TYPE_RDR)
-                        && pwnd->we_rdr->on_set_rdr_attr) 
+                        && pwnd->we_rdr->on_set_rdr_attr)
                     new_data = pwnd->we_rdr->on_set_rdr_attr (pwnd->we_rdr, id, new_data, FALSE);
 
                 if (new_data == *old_data) {
@@ -502,7 +502,7 @@ set_window_element_data (HWND hwnd, Uint32 id, DWORD new_data, DWORD* old_data)
                 }
                 else {
                     wed->data = new_data;
-           
+
                     return WED_OK;
                 }
             }
@@ -519,11 +519,11 @@ set_window_element_data (HWND hwnd, Uint32 id, DWORD new_data, DWORD* old_data)
 
         new_wed->id = id;
         if (((id & WE_ATTR_TYPE_MASK) == WE_ATTR_TYPE_RDR)
-                && pwnd->we_rdr->on_set_rdr_attr) 
-            new_wed->data = pwnd->we_rdr->on_set_rdr_attr (pwnd->we_rdr, id, new_data, FALSE); 
+                && pwnd->we_rdr->on_set_rdr_attr)
+            new_wed->data = pwnd->we_rdr->on_set_rdr_attr (pwnd->we_rdr, id, new_data, FALSE);
         else
             new_wed->data = new_data;
-       
+
         list_add_tail (&new_wed->list, &pwnd->wed->list);
         return WED_NEW_DATA;
     }
@@ -550,8 +550,8 @@ int free_window_element_data (HWND hwnd)
         free (wed);
 #endif
     }
-   
-#ifdef WE_HEAP 
+
+#ifdef WE_HEAP
     free_we_attr (pwnd->wed);
 #else
     free (pwnd->wed);
@@ -565,7 +565,7 @@ int append_window_element_data (WND_ELEMENT_DATA** wed, Uint32 id, DWORD data)
 //int append_window_element_data (PMAINWIN pwnd, Uint32 id, DWORD data)
 {
     WND_ELEMENT_DATA* new_wed;
- 
+
     if (*wed == NULL) {
 #ifdef WE_HEAP
         *wed = alloc_we_attr ();
@@ -580,7 +580,7 @@ int append_window_element_data (WND_ELEMENT_DATA** wed, Uint32 id, DWORD data)
 
 #ifdef WE_HEAP
     new_wed = alloc_we_attr ();
-#else       
+#else
     new_wed = calloc (1, sizeof (WND_ELEMENT_DATA));
 #endif
 
@@ -614,9 +614,9 @@ void dump_window_element_data (HWND hwnd)
         wed = list_entry (me, WND_ELEMENT_DATA, list);
         switch (wed->id & WE_ATTR_TYPE_MASK) {
             case WE_ATTR_TYPE_FONT:
-                _DBG_PRINTF ("\tfont in list:%s-%s-%s.\n", 
-                         ((PLOGFONT)(wed->data))->type, 
-                         ((PLOGFONT)(wed->data))->family, 
+                _DBG_PRINTF ("\tfont in list:%s-%s-%s.\n",
+                         ((PLOGFONT)(wed->data))->type,
+                         ((PLOGFONT)(wed->data))->family,
                          ((PLOGFONT)(wed->data))->charset);
                 break;
 
@@ -624,8 +624,8 @@ void dump_window_element_data (HWND hwnd)
                 _DBG_PRINTF ("\tmetrics in list:%d.\n", (int)wed->data);
                 break;
 
-            case WE_ATTR_TYPE_COLOR: 
-                _DBG_PRINTF ("\tcolor in list: %p.\n", (PVOID)wed->data); 
+            case WE_ATTR_TYPE_COLOR:
+                _DBG_PRINTF ("\tcolor in list: %p.\n", (PVOID)wed->data);
         }
     }
     _DBG_PRINTF ("GUI>DumpWED: Done\n");
@@ -633,10 +633,10 @@ void dump_window_element_data (HWND hwnd)
 
 #endif /* _DEBUG */
 
-/* 
+/*
  * SetWindowElementAttr:
  *
- * This function set a attribute value. 
+ * This function set a attribute value.
  *
  * Author: Peng LIU
  * Date: 2007-11-22
@@ -674,7 +674,7 @@ DWORD GUIAPI SetWindowElementAttr (HWND hwnd, int we_attr_id, DWORD we_attr)
                 return old_data;
             }
 
-            case WE_ATTR_TYPE_RDR: 
+            case WE_ATTR_TYPE_RDR:
                 return __mg_def_renderer->on_set_rdr_attr (__mg_def_renderer, we_attr_id, we_attr, TRUE);
         }
     }
@@ -686,10 +686,10 @@ DWORD GUIAPI SetWindowElementAttr (HWND hwnd, int we_attr_id, DWORD we_attr)
 }
 
 
-/* 
+/*
  * GetWindowElementAttr:
  *
- * This function get a attribute value. 
+ * This function get a attribute value.
  *
  * Author: Peng LIU
  * Date: 2007-11-22
@@ -727,7 +727,7 @@ GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
         return -1;
     }
 
-    data = GetWindowElementAttr (hwnd, we_attr_id);   
+    data = GetWindowElementAttr (hwnd, we_attr_id);
     if (data < 0)
         return -1;
 
@@ -777,10 +777,10 @@ static const char* szCKeyNames [WE_COLORS_NUMBER][3] = {
     {NULL, "bgc_desktop"},
 };
 
-/* 
+/*
  * InitWindowElementAttrs:
  *
- * This function initializes window element attributes of the specified 
+ * This function initializes window element attributes of the specified
  * renderer according to the section of renderer name in MiniGUI.cfg.
  *
  * Author: XiaoweiYan
@@ -795,13 +795,13 @@ BOOL GUIAPI InitWindowElementAttrs (PWERENDERER rdr)
     if (!rdr || !rdr->name || rdr->name[0] == '\0')
         return FALSE;
 
-    _DBG_PRINTF ("GUI>InitWEA: Initialize %s renderer window element attributes.\n", 
+    _DBG_PRINTF ("GUI>InitWEA: Initialize %s renderer window element attributes.\n",
             rdr->name);
 
     for (i = 0; i < WE_METRICS_NUMBER; i++) {
 
         if (szMWMKeyNames[i]) {
-            if ( GetMgEtcValue (rdr->name, szMWMKeyNames[i], 
+            if ( GetMgEtcValue (rdr->name, szMWMKeyNames[i],
                     buff, 12) != ETC_OK)
                 return FALSE;
             else {
@@ -819,7 +819,7 @@ BOOL GUIAPI InitWindowElementAttrs (PWERENDERER rdr)
         for (j = 0; j < 3; j++) {
 
             if (szCKeyNames[i][j]) {
-                if (GetMgEtcValue (rdr->name, szCKeyNames[i][j], 
+                if (GetMgEtcValue (rdr->name, szCKeyNames[i][j],
                         buff, 12) != ETC_OK) {
                     _WRN_PRINTF ("InitWindowElementAttrs error: \
                             Can not Get %s color.", szCKeyNames[i][j]);
@@ -856,7 +856,7 @@ BOOL mg_InitLFManager (void)
     }
 
     /** initialize other renderer */
-    for (i = 1; i < MAX_NR_RENDERERS; ++i) 
+    for (i = 1; i < MAX_NR_RENDERERS; ++i)
     {
         rdr = wnd_lf_info [i].wnd_rdr;
         if (NULL == rdr)   continue;
