@@ -7929,13 +7929,38 @@ MG_EXPORT int GUIAPI WCS2MBSEx (PLOGFONT log_font, unsigned char* dest,
      * @{
      */
 
+/**
+ * The type for bidirection embedding level (Sint8).
+ */
 typedef Sint8   BidiLevel;
+/**
+ * The type for bidirection type (Uint16).
+ */
 typedef Uint16  BidiType;
+/**
+ * The type for bidirection bracket type (Uint32).
+ */
 typedef Uint32  BidiBracketType;
 
+/**
+ * The type for bidirection joining type (Uint8).
+ */
 typedef Uint8   BidiJoiningType;
+/**
+ * The type for bidirection Arabic property (Uint8).
+ */
 typedef Uint8   BidiArabicProp;
 
+/**
+ * The type for paragraph direction (Uint16).
+ * Only can be one of the following values:
+ *
+ * - BIDI_PGDIR_LTR: Left to right
+ * - BIDI_PGDIR_RTL: Right to left
+ * - BIDI_PGDIR_WLTR: Weak left to right
+ * - BIDI_PGDIR_WRTL: Weak right to left
+ * - BIDI_PGDIR_ON: Neutral
+ */
 typedef Uint16  ParagraphDir;
 
 #define BIDI_FLAG_SHAPE_MIRRORING       0x00000001
@@ -8484,7 +8509,7 @@ MG_EXPORT UCharBreakType GUIAPI UCharGetBreakType(Uchar32 uc);
  * Table 3.7 Bidirectional Character Types of the
  * Unicode Bidirectional Algorithm available at
  *
- *      https://www.unicode.org/reports/tr9/#Bidirectional_Character_Types
+ * https://www.unicode.org/reports/tr9/#Bidirectional_Character_Types
  *
  * \param uc The Uchar32 character.
  *
@@ -8515,11 +8540,13 @@ MG_EXPORT BidiType GUIAPI UCharGetBidiType(Uchar32 uc);
 MG_EXPORT void GUIAPI UStrGetBidiTypes(const Uchar32* ucs, int nr_ucs,
         BidiType* bdts);
 
-/* \fn BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch)
+/**
+ * \fn BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch)
  * \brief Get bracketed character
  *
  * This function finds the bracketed equivalent of a character as defined in
  * the file BidiBrackets.txt of the Unicode Character Database available at
+ *
  * https://www.unicode.org/Public/UNIDATA/BidiBrackets.txt.
  *
  * If the input character is a declared as a brackets character in the
@@ -8540,7 +8567,8 @@ MG_EXPORT void GUIAPI UStrGetBidiTypes(const Uchar32* ucs, int nr_ucs,
  */
 MG_EXPORT BidiBracketType GUIAPI UCharGetBracketType(Uchar32 ch);
 
-/* \fn void UStrGetBracketTypes(const Uchar32 *ucs,
+/**
+ * \fn void UStrGetBracketTypes(const Uchar32 *ucs,
  *      const BidiType *bidi_types, int nr_ucs,
  *      BidiBracketType *bracket_types)
  * \brief Get bracketed characters of a Uchar32 string.
@@ -8571,7 +8599,7 @@ MG_EXPORT void GUIAPI UStrGetBracketTypes(const Uchar32 *ucs,
  * defined in the file BidiMirroring.txt of the Unicode Character Database
  * available at
  *
- *      https://www.unicode.org/Public/UNIDATA/BidiMirroring.txt.
+ * https://www.unicode.org/Public/UNIDATA/BidiMirroring.txt.
  *
  * \param uc The Uchar32 character.
  * \param mirrored A pointer to a Uchar32 buffer to return the mirroed
@@ -8639,12 +8667,11 @@ MG_EXPORT void GUIAPI UStrGetJoiningTypes(const Uchar32 *ucs, int nr_ucs,
  * \brief Get the base paragraph direction.
  *
  * This function finds the base direction of a single paragraph,
- * as defined by rule P2 of the Unicode Bidirectional Algorithm available at
- *
- *      https://www.unicode.org/reports/tr9/#P2.
+ * as defined by
+ * [rule P2 of the Unicode Bidirectional Algorithm](https://www.unicode.org/reports/tr9/#P2).
  *
  * You typically do not need this function as
- * UBidiGetParagraphEmbeddingLevels() knows how to compute base direction
+ * \a UBidiGetParagraphEmbeddingLevels knows how to compute base direction
  * itself, but you may need this to implement a more sophisticated paragraph
  * direction handling.  Note that you can pass more than a paragraph to this
  * function and the direction of the first non-neutral paragraph is returned,
@@ -8671,17 +8698,16 @@ MG_EXPORT BidiType GUIAPI UBidiGetParagraphDir(const BidiType *bidi_types, int l
  * \brief Get bidi embedding levels of a paragraph.
  *
  * This function finds the bidi embedding levels of a single paragraph,
- * as defined by the Unicode Bidirectional Algorithm available at
- *
- *      https://www.unicode.org/reports/tr9/.
+ * as defined by
+ * [the Unicode Bidirectional Algorithm](https://www.unicode.org/reports/tr9/).
  *
  * This function implements rules P2 to I1 inclusive, and parts 1 to 3 of L1.
- * Part 4 of L1 is implemented in UBidiReorderLine().
+ * Part 4 of L1 is implemented in \a UBidiReorderLine().
  *
  * \param bidi_types the pointer to the BidiType array as returned by
- *      UStrGetBidiTypes().
+ *      \a UStrGetBidiTypes.
  * \param bracket_types The pointer to a Uint8 which contains the
-        bracket types as returned by UStrGetBracketTypes()
+        bracket types as returned by \a UStrGetBracketTypes.
  * \param len The length of the list.
  * \param paragraph_dir requested and resolved paragraph base direction. You
  *      can pass the following values for base direction:
@@ -8708,6 +8734,41 @@ MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevels(
         const BidiBracketType* bracket_types, int len,
         ParagraphDir *paragraph_dir, BidiLevel *embedding_levels);
 
+/**
+ * \brief An alternative of \a UBidiGetParagraphEmbeddingLevels().
+ *
+ * This function finds the bidi embedding levels of a single paragraph,
+ * as defined by
+ * [the Unicode Bidirectional Algorithm](https://www.unicode.org/reports/tr9/).
+ *
+ * This function implements rules P2 to I1 inclusive, and parts 1 to 3 of L1.
+ * Part 4 of L1 is implemented in \a UBidiReorderLine().
+ *
+ * Different from \a UBidiGetParagraphEmbeddingLevels(), this function finds
+ * the bidi embedding levels directly from the Uchar32 string.
+ *
+ * \param ucs The Unicode character string.
+ * \param nr_ucs The length of the string.
+ * \param paragraph_dir requested and resolved paragraph base direction. You
+ *      can pass the following values for base direction:
+ *          - BIDI_PGDIR_LTR\n
+ *              Explicit left to right.
+ *          - BIDI_PGDIR_RTL\n
+ *              Explicit right to left.
+ *          - other values\n
+ *              The base direction will be resolved by applying the
+ *              rules P2 and P3, and returned via this parameter (one
+ *              of BIDI_PGDIR_LTR or BIDI_PGDIR_RTL) .
+ * \param embedding_levels The pointer to a buffer which will restore
+ *      the embedding levels.
+ *
+ * \return The Maximum level found plus one, or zero if any error occurred
+ * (memory allocation failure most probably).
+ *
+ * \sa UBidiGetParagraphEmbeddingLevels
+ *
+ * Since: 4.0.0
+ */
 MG_EXPORT BidiLevel GUIAPI UBidiGetParagraphEmbeddingLevelsAlt(
         const Uchar32* ucs, int nr_ucs,
         ParagraphDir *paragraph_dir, BidiLevel *embedding_levels);
@@ -8737,7 +8798,7 @@ typedef void (*CB_REVERSE_ARRAY) (void* extra, int len, int pos);
  * This function implements part 4 of rule L1, and rules
  * L2 and L3 of the Unicode Bidirectional Algorithm available at
  *
- *      https://www.unicode.org/reports/tr9/#Reordering_Resolved_Levels.
+ * https://www.unicode.org/reports/tr9/#Reordering_Resolved_Levels.
  *
  * As a side effect it also sets position maps if not NULL.
  *
@@ -8799,7 +8860,7 @@ MG_EXPORT BidiLevel GUIAPI UBidiReorderLine(Uint32 bidi_flags,
  * This function implements rule L4 of the Unicode Bidirectional Algorithm
  * available at
  *
- *      https://www.unicode.org/reports/tr9/#L4.
+ * https://www.unicode.org/reports/tr9/#L4.
  *
  * \param embedding_levels input list of embedding levels, as returned by
  *      UBidiGetParagraphEmbeddingLevels().
@@ -8833,7 +8894,7 @@ MG_EXPORT void GUIAPI UBidiShapeMirroring(const BidiLevel *embedding_levels,
  * It also interacts correctly with the bidirection algorithm as defined in
  * Section 3.5 Shaping of the Unicode Bidirectional Algorithm available at
  *
- *      https://www.unicode.org/reports/tr9/#Shaping.
+ * https://www.unicode.org/reports/tr9/#Shaping.
  *
  * \param bidi_types The list of bidi types as returned by UStrGetBidiTypes().
  * \param embedding_levels input list of embedding levels, as returned by
@@ -9081,8 +9142,8 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
      *
      * Please see UAX#29 and UAX#14 for more information:
      *
-     *      https://www.unicode.org/reports/tr29/tr29-33.html
-     *      https://www.unicode.org/reports/tr14/tr14-41.html
+     * https://www.unicode.org/reports/tr29/tr29-33.html
+     * https://www.unicode.org/reports/tr14/tr14-41.html
      *
      * @{
      */
@@ -9164,6 +9225,9 @@ MG_EXPORT void GUIAPI UBidiShape(Uint32 shaping_flags,
  */
 #define BOV_LB_NOTALLOWED           0x0003
 
+/**
+ * The type for breaking opportunity (Uint16).
+ */
 typedef Uint16 BreakOppo;
 
     /** @} end of breaking_opportunities */
@@ -9183,15 +9247,15 @@ typedef Uint16 BreakOppo;
  * The implementation of this function conforms to UNICODE LINE BREAKING
  * ALGORITHM:
  *
- *      https://www.unicode.org/reports/tr14/tr14-39.html
+ * https://www.unicode.org/reports/tr14/tr14-39.html
  *
  * and UNICODE TEXT SEGMENTATION:
  *
- *      https://www.unicode.org/reports/tr29/tr29-33.html
+ * https://www.unicode.org/reports/tr29/tr29-33.html
  *
  * and the CSS Text Module Level 3:
  *
- *      https://www.w3.org/TR/css-text-3/
+ * https://www.w3.org/TR/css-text-3/
  *
  * The function will return if it encounters the end of the text.
  *
@@ -11375,9 +11439,51 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
      */
 
      /**
-      * \defgroup mchar_glyph Abstract Character and Glyph definitions
+      * \defgroup complex_scripts Rendering Text in Complex/Mixed Scripts
       *
-      * MiniGUI uses Achar32 type for an abstract character index value
+      * To lay out, shape, and render a text in mixed scripts, you should call
+      * \a GetUCharsUntilParagraphBoundary function first to convert
+      * a multi-byte string to a Unicode string under the specified white space
+      * rule, breaking rule, and transformation rule. For example, converting a
+      * general C string in UTF-8 or GB18030 to a Uchar32 string by calling this
+      * function. You can call \a CreateLogFontForMChar2UChar function to create
+      * a dummy logfont object for this purpose in order to expense a minimal memory.
+      *
+      * If the text is in simple scripts, like Latin or Chinese, you can call
+      * \a GetGlyphsExtentPointEx function to lay out the paragraph. This function
+      * returns a glyph string which can fit in a line with the specified
+      * maximal extent and rendering flags. After this, you call
+      * \a DrawGlyphStringEx function to draw the glyph string to the
+      * specific position of a DC.
+      *
+      * If the text is in complex and/or mixed scripts, like Arabic, Thai,
+      * and Indic, you should create a TEXTRUNS object first by calling
+      * \a CreateTextRuns function, then initialize the shaping engine for
+      * laying out the text.
+      *
+      * MiniGUI provides two types of shaping engine. One is the basic
+      * shaping engine. The corresponding function is \a InitBasicShapingEngine.
+      * The other is called complex shaping engine, which is based on HarzBuff.
+      * The corresponding function is \a InitComplexShapingEngine. The latter
+      * one can give you a better shaping result.
+      *
+      * After this, you should call \a CreateLayout to create a layout object
+      * for laying out the text, then call \a LayoutNextLine to lay out the lines
+      * one by one.
+      *
+      * You can render the laid out lines by calling \a DrawLayoutLine function.
+      *
+      * Finally, you call \a DestroyLayout and \a DestroyTextRuns to destroy
+      * the layout object and text runs object.
+      *
+      * Before rendering the glyphs laid out, you can also call \a GetLayoutLineRect
+      * to get the line rectangle, or call \a CalcLayoutBoundingRect to get
+      * the bounding rectangle of one paragraph.
+      *
+      * These new APIs provide a very flexible implementation for your apps
+      * to process the complex scripts.
+      *
+      * Note that MiniGUI uses Achar32 type for an abstract character index value
       * under a certain charset/encoding, and uses Glyph32 type
       * for the glyph index value in a device font.
       *
@@ -12097,7 +12203,7 @@ MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
  *
  * The implementation of this function conforms to the CSS Text Module Level 3:
  *
- *      https://www.w3.org/TR/css-text-3/
+ * https://www.w3.org/TR/css-text-3/
  *
  * Note that you are responsible for freeing the Uchar32 string allocated
  * by this function.
@@ -12685,7 +12791,10 @@ MG_EXPORT int GUIAPI DrawGlyphStringEx (HDC hdc,
         const Glyph32* glyphs, const GLYPHPOS* glyph_pos,
         int nr_glyphs);
 
-/* The fields in the structure _TEXTRUNS are invisible to users */
+/**
+ * The type for a text runs object.
+ * The fields in this structure are invisible to users.
+ */
 typedef struct _TEXTRUNS TEXTRUNS;
 
 /**
@@ -12704,7 +12813,7 @@ typedef struct _TEXTRUNS TEXTRUNS;
  * \param lang_code The language code.
  * \param base_dir The base direction of the paragraph.
  * \param logfont_name The default logfont name. You can change the font
- *      of some text in the paragraph by calling \a SetFontInTextRuns.
+ *      of some text in the paragraph by calling \a SetFontNameInTextRuns.
  * \param color The default text color. You can change the text color
  *      of some text in the paragraph by calling \a SetTextColorInTextRuns.
  * \param bg_color The default background color. You can change the background
@@ -12724,7 +12833,7 @@ typedef struct _TEXTRUNS TEXTRUNS;
  * \note Only available when support for UNICODE is enabled.
  *
  * \sa GetUCharsUntilParagraphBoundary, UStrGetBreaks,
- *      SetFontInTextRuns, SetTextColorInTextRuns
+ *      SetFontNameInTextRuns, SetTextColorInTextRuns
  *
  * Since 4.0.0
  */
@@ -12735,7 +12844,19 @@ MG_EXPORT TEXTRUNS* GUIAPI CreateTextRuns(
         BreakOppo* break_oppos);
 
 /**
- * Set logfont name of text runs
+ * \brief Set logfont name of text runs.
+ *
+ * This function set a new LOGFONT name for all text or a part of the text
+ * in a TEXTRUNS object.
+ *
+ * \param truns The TEXTRUNS object.
+ * \param start_index The start index of the text which will use the
+ *      new font name.
+ * \param length The length of the text which will use the
+ *      new font name.
+ * \param logfont_name The new logfont name.
+ *
+ * \return TRUE for success, otherwise FALSE.
  *
  * Since 4.0.0
  */
@@ -12743,7 +12864,7 @@ MG_EXPORT BOOL GUIAPI SetFontNameInTextRuns(TEXTRUNS* truns,
         int start_index, int length, const char* logfont_name);
 
 /**
- * Get logfont name of a specific character in text runs
+ * Get the font name of a specific character in a TEXTRUNS object.
  *
  * Since 4.0.0
  */
@@ -12751,7 +12872,19 @@ MG_EXPORT const char* GUIAPI GetFontNameInTextRuns(
         const TEXTRUNS* truns, int index);
 
 /**
- * Set text olor in text runs.
+ * \brief Set text color in a TEXTRUNS object.
+ *
+ * This function set a new text color for all text or a part of the text
+ * in a TEXTRUNS object \a truns.
+ *
+ * \param truns The TEXTRUNS object.
+ * \param start_index The start index of the text which will use the
+ *      new font name.
+ * \param length The length of the text which will use the
+ *      new font name.
+ * \param color The new text color.
+ *
+ * \return TRUE for success, otherwise FALSE.
  *
  * Since 4.0.0
  */
@@ -12759,7 +12892,7 @@ MG_EXPORT BOOL GUIAPI SetTextColorInTextRuns(TEXTRUNS* truns,
         int start_index, int length, RGBCOLOR color);
 
 /**
- * Get text color of a specific character in text runs
+ * Get the text color of a specific character in a TEXTRUNS object.
  *
  * Since 4.0.0
  */
@@ -12767,7 +12900,22 @@ MG_EXPORT RGBCOLOR GUIAPI GetTextColorInTextRuns(
         const TEXTRUNS* truns, int index);
 
 /**
- * Set background color in text runs.
+ * \brief Set background color in a TEXTRUNS object.
+ *
+ * This function set a new background color for all text or a part of
+ * the text in a TEXTRUNS object \a truns.
+ *
+ * \param truns The TEXTRUNS object.
+ * \param start_index The start index of the text which will use the
+ *      new font name.
+ * \param length The length of the text which will use the
+ *      new font name.
+ * \param color The new background color.
+ *
+ * \return TRUE for success, otherwise FALSE.
+ *
+ * \note If you use the value returned by \a MakeRGBA(0,0,0,0),
+ *      the background will be transparent.
  *
  * Since 4.0.0
  */
@@ -12775,7 +12923,7 @@ MG_EXPORT BOOL GUIAPI SetBackgroundColorInTextRuns(TEXTRUNS* truns,
     int start_index, int length, RGBCOLOR color);
 
 /**
- * Get background color of a specific character in text runs
+ * Get the background color of a specific character in a TEXTRUNS object.
  *
  * Since 4.0.0
  */
@@ -12874,7 +13022,16 @@ MG_EXPORT BOOL GUIAPI InitComplexShapingEngine(TEXTRUNS* truns);
 
 #endif /* _MGCOMPLEX_SCRIPTS */
 
+/**
+ * The type for a layout object.
+ * The fields in this structure are invisible to users.
+ */
 typedef struct _LAYOUT LAYOUT;
+
+/**
+ * The type for a layout line object.
+ * The fields in this structure are invisible to users.
+ */
 typedef struct _LAYOUTLINE LAYOUTLINE;
 
 /**
@@ -13221,7 +13378,8 @@ MG_EXPORT BOOL GUIAPI GetLayoutLineInfo(LAYOUTLINE* line,
 
 #endif /* _MGCHARSET_UNICODE */
 
-    /** @} end of glyph */
+    /** @} end of complex_scripts */
+
 /*
  * \var typedef struct _COMP_CTXT COMP_CTXT
  * \brief The context information of user defined color composition operators.
