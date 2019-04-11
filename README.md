@@ -5,17 +5,17 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 
 ## TABLE OF CONTENTS
 
-  1. Introduction
-  1. A brief building instruction
-  1. New features in version 4.0.x
-  1. New features in version 3.2.x
-  1. The runtime modes of MiniGUI
-  1. History
-  1. About the authors
-  1. If you have a problem
-  1. A little FAQ
-  1. Not free for commercial use
-  1. Copying
+1. Introduction 
+1. A brief building instruction 
+1. New features in version 4.0.x 
+1. New features in version 3.2.x 
+1. The runtime modes of MiniGUI 
+1. History 
+1. About the authors 
+1. If you have a problem 
+1. A little FAQ 
+1. Not free for commercial use 
+1. Copying 
 
 
 ## INTRODUCTION
@@ -179,7 +179,7 @@ in order to support [HybridOS Foundation Class Library].
 * We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
-For more information, please refer to [RELEASENOTES.md] file.
+For more information, please refer to RELEASE-NOTES.md file.
 
 ## NEW FEATURES IN VERSION 3.2.x
 
@@ -196,19 +196,19 @@ use this version for new projects.
 
 You can configure and compile MiniGUI as one of three runtime modes:
 
-  * 'MiniGUI-Threads': A program running on MiniGUI-Threads can create
+  * `MiniGUI-Threads`: A program running on MiniGUI-Threads can create
     multiple cascaded windows in different threads, and all the windows
     belong to a single process. MiniGUI-Threads is fit for some real-time
     systems on Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX,
     and OSE.
 
-  * 'MiniGUI-Processes': A program running on MiniGUI-Processes is
+  * `MiniGUI-Processes`: A program running on MiniGUI-Processes is
     an independent process, which can also create multiple windows.
     MiniGUI-Processes is fit for some complex embedded systems, such as
     PDAs, Thin-Clients or STBs. This mode is only useful for full-featured
     UNIX-like operating systems, like Linux.
 
-  * 'MiniGUI-Standalone': A single process version of MiniGUI. This mode
+  * `MiniGUI-Standalone`: A single process version of MiniGUI. This mode
     is useful for some small systems, like uClinux or RTOSes.
 
 The original MiniGUI (version 1.0) run in MiniGUI-Threads mode.
@@ -269,70 +269,72 @@ In the development of version 3.0.x, we introduced Look & Feel Renderer,
 BIDI text support, Non-rectangular window, double-buffer window, and
 other main features.
 
+In the development of version 4.0.x, we introduced the support for
+complex writing systems (scripts), such as Arabic, Thai, and Indic.
+
 A brief history description of the development progress lay below:
 
-  0)  1994 ~ 1996:    MiniGUI DOS version.
-  1)  Dec, 1998:      Began to write.
-  2)  Apr, 1999:      The skeleton of MiniGUI, windowing sub-system
-      and basic graphics device interfaces.
-  3)  May, 1999:      Timer, menu, and the skeleton of control sub-system.
-  4)  Jun, 1999:      Chinese input method (by Kang Xiaoning).
-  5)  July, 1999:     GIF and JPG loading support (by LI Zhuo).
-  6)  Aug, 1999:      Some standard controls (Portion by Zhao Jianghua).
-  7)  Sep, 1999:      Dialog boxes and message boxes.
-  8)  Sep, 1999:      Snapshot of screen or window.
-  9)  Jan., 2000:     VCOnGUI (Virtual Console on MiniGUI) version 0.2.02.
-  10) Mar., 2000:     Linux distribution installer based-on MiniGUI for
-      HappyLinux 1.0.
-  11) Jun., 2000:     Began to develop version 1.0.xx.
-  12) Sep., 2000:     MiniGUI version 0.3.06 released.
-  13) Oct., 2000:     MiniGUI version 0.9.00 released.
-  14) Nov., 2000:     MiniGUI version 0.9.96 released.
-  15) Jan., 2001:     MiniGUI version 0.9.98 released. You can build
-      MiniGUI-Lite from this version.
-  16) Jan., 2001:     MiniGUI version 1.0.00Beta1 released.
-  17) Feb., 2001:     MiniGUI version 1.0.00Pre1 released.
-  18) Apr., 2001:     MiniGUI version 1.0.00 released (2001/04/16).
-  18) Sep., 2001:     MiniGUI version 1.1.0Pre1 released (2001/09/12).
-  19) Sep., 2001:     MiniGUI version 1.0.9 released (2001/09/17),
-      this will be the last version of source branch 1.0.x.
-  20) Oct., 2001:     MiniGUI version 1.1.0Pre4 released (2001/10/22).
-      This version have new GAL and GDI interfaces.
-  21) Mar., 2002:     MiniGUI official version 1.1.0 released (2002/03/08).
-      MiniGUI API Reference documentation version 0.9 released.
-  22) Mar., 2002:     MiniGUI API Reference documentation version 1.0 released.
-  23) Apr., 2002:     MiniGUI the new stable version 1.2.0 released (2002/04/11).
-  24) Sep., 2002:     The main developers of MiniGUI founded a
-      new software corporation: Beijing FMSoft Technology Co., Ltd..
-      And the development and maintenance of MiniGUI changes from
-      loosely-knit team to business organization.
-  25) Mar., 2003:     MiniGUI official version 1.2.5 released (2003/03/23).
-  25) May., 2003:     MiniGUI official version 1.2.6 released (2003/05/18).
-  26) Sep., 2003:     MiniGUI official version 1.3.1 released (2003/09/11).
-  27) Jan., 2004:     MiniGUI official version 1.5.1 released (2004/01/18).
-  28) Feb., 2004:     MiniGUI tested on eCos and uC/OS-II.
-  29) Jun., 2004:     MiniGUI tested on VxWorks.
-  30) Jan., 2005:     MiniGUI tested on ThreadX and pSOS.
-  31) Feb., 2005:     MiniGUI official version 1.6.1 released.
-  32) Aug., 2005:     MiniGUI beta version 2.0.0 released.
-  33) Sep., 2005:     MiniGUI official version 1.6.8 released.
-  34) Oct., 2005:     MiniGUI official version 2.0.2 released.
-  35) Jun., 2006:     MiniGUI provides support for OSE.
-  36) Jul., 2006:     MiniGUI official version 2.0.3/1.6.9 released.
-  37) Nov., 2007:     MiniGUI official version 2.0.4/1.6.10 released.
-  38) Apr., 2009:     MiniGUI official version 3.0.2 released.
-  39) Oct., 2009:     MiniGUI official version 3.0.4 released.
-  40) Jan., 2010:     MiniGUI official version 3.0.6 released.
-  41) May., 2010:     MiniGUI official version 3.0.8 released.
-  42) Aug., 2010:     MiniGUI official version 3.0.10 released.
-  43) Oct., 2010:     MiniGUI official version 3.0.12 released.
-  44) Aug., 2017:     FMSoft released the latest source code of MiniGUI under GPL 3.0.
-  45) Aug., 2017:     FMSoft released the latest source code of mDolphin under Apache 2.0.
-  46) Dec., 2017:     FMSoft updated MiniGUI and miniStudio for latest Linux distributions.
-  47) Feb., 2018:     FMSoft released MiniGUI version 3.2.0.
-  48) Apr., 2019:     FMSoft released MiniGUI version 3.2.2.
-  49) Jun., 2019:     FMSoft released MiniGUI version 4.0.0.
-
+1. 1994 ~ 1996:    MiniGUI DOS version.
+1. Dec, 1998:      Began to write.
+1. Apr, 1999:      The skeleton of MiniGUI, windowing sub-system
+   and basic graphics device interfaces.
+1. May, 1999:      Timer, menu, and the skeleton of control sub-system.
+1. Jun, 1999:      Chinese input method (by Kang Xiaoning).
+1. July, 1999:     GIF and JPG loading support (by LI Zhuo).
+1. Aug, 1999:      Some standard controls (Portion by Zhao Jianghua).
+1. Sep, 1999:      Dialog boxes and message boxes.
+1. Sep, 1999:      Snapshot of screen or window.
+1. Jan., 2000:     VCOnGUI (Virtual Console on MiniGUI) version 0.2.02.
+1. Mar., 2000:     Linux distribution installer based-on MiniGUI for
+    HappyLinux 1.0.
+1. Jun., 2000:     Began to develop version 1.0.xx.
+1. Sep., 2000:     MiniGUI version 0.3.06 released.
+1. Oct., 2000:     MiniGUI version 0.9.00 released.
+1. Nov., 2000:     MiniGUI version 0.9.96 released.
+1. Jan., 2001:     MiniGUI version 0.9.98 released. You can build
+    MiniGUI-Lite from this version.
+1. Jan., 2001:     MiniGUI version 1.0.00Beta1 released.
+1. Feb., 2001:     MiniGUI version 1.0.00Pre1 released.
+1. Apr., 2001:     MiniGUI version 1.0.00 released (2001/04/16).
+1. Sep., 2001:     MiniGUI version 1.1.0Pre1 released (2001/09/12).
+1. Sep., 2001:     MiniGUI version 1.0.9 released (2001/09/17),
+    this will be the last version of source branch 1.0.x.
+1. Oct., 2001:     MiniGUI version 1.1.0Pre4 released (2001/10/22).
+    This version have new GAL and GDI interfaces.
+1. Mar., 2002:     MiniGUI official version 1.1.0 released (2002/03/08).
+    MiniGUI API Reference documentation version 0.9 released.
+1. Mar., 2002:     MiniGUI API Reference documentation version 1.0 released.
+1. Apr., 2002:     MiniGUI the new stable version 1.2.0 released (2002/04/11).
+1. Sep., 2002:     The main developers of MiniGUI founded a
+    new software corporation: Beijing FMSoft Technology Co., Ltd..
+    And the development and maintenance of MiniGUI changes from
+    loosely-knit team to business organization.
+1. Mar., 2003:     MiniGUI official version 1.2.5 released (2003/03/23).
+1. May., 2003:     MiniGUI official version 1.2.6 released (2003/05/18).
+1. Sep., 2003:     MiniGUI official version 1.3.1 released (2003/09/11).
+1. Jan., 2004:     MiniGUI official version 1.5.1 released (2004/01/18).
+1. Feb., 2004:     MiniGUI tested on eCos and uC/OS-II.
+1. Jun., 2004:     MiniGUI tested on VxWorks.
+1. Jan., 2005:     MiniGUI tested on ThreadX and pSOS.
+1. Feb., 2005:     MiniGUI official version 1.6.1 released.
+1. Aug., 2005:     MiniGUI beta version 2.0.0 released.
+1. Sep., 2005:     MiniGUI official version 1.6.8 released.
+1. Oct., 2005:     MiniGUI official version 2.0.2 released.
+1. Jun., 2006:     MiniGUI provides support for OSE.
+1. Jul., 2006:     MiniGUI official version 2.0.3/1.6.9 released.
+1. Nov., 2007:     MiniGUI official version 2.0.4/1.6.10 released.
+1. Apr., 2009:     MiniGUI official version 3.0.2 released.
+1. Oct., 2009:     MiniGUI official version 3.0.4 released.
+1. Jan., 2010:     MiniGUI official version 3.0.6 released.
+1. May., 2010:     MiniGUI official version 3.0.8 released.
+1. Aug., 2010:     MiniGUI official version 3.0.10 released.
+1. Oct., 2010:     MiniGUI official version 3.0.12 released.
+1. Aug., 2017:     FMSoft released the latest source code of MiniGUI under GPL 3.0.
+1. Aug., 2017:     FMSoft released the latest source code of mDolphin under Apache 2.0.
+1. Dec., 2017:     FMSoft updated MiniGUI and miniStudio for latest Linux distributions.
+1. Feb., 2018:     FMSoft released MiniGUI version 3.2.0.
+1. Apr., 2019:     FMSoft released MiniGUI version 3.2.2.
+1. Jun., 2019:     FMSoft released MiniGUI version 4.0.0.
 
 ## ABOUT THE AUTHORS
 
@@ -414,8 +416,5 @@ the commercial license of MiniGUI, please write to sales@minigui.com.
     For more information about the commercial license, please refer to
     <http://www.minigui.com/en/about/licensing-policy/>.
 
-[HybridOS]: https://github.com/FMSoftCN/hybridos
 [HybridOS Foundation Class Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
-[RELEASENOTES.md]: https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
-[RELEASE-NOTES.md for 3.2.x]: https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md
 
