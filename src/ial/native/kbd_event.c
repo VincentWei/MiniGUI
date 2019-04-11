@@ -37,6 +37,7 @@
 
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/sysmacros.h>  // for makedev
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
