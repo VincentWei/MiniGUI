@@ -179,7 +179,9 @@ in order to support [HybridOS Foundation Class Library].
 * We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
-For more information, please refer to RELEASE-NOTES.md file.
+For more information, please refer to RELEASE-NOTES.md file:
+
+https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
 
 ## NEW FEATURES IN VERSION 3.2.x
 
