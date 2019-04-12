@@ -267,41 +267,67 @@ We use the slice allocator when laying out the text in complex scripts.
 
 Note that this implementation is derived from LGPL'd glib.
 
-#### Other Changes
+#### Backward Compatibility Issues
 
-* The fields `height` and `descent` have been removed from GLYPHINFO structure.
-One should get the font metrics information by calling `GetFontMetrics` function
-if you want to get the height and descent data of one font.
+In MiniGUI 4.0.0, we changed some unreasonable APIs which were introduced
+in early versions. There are also other changes broke the backward
+compatibility. This section gives you a summary about these changes.
 
-* The the basic glyph type and break type have been removed from GLYPHINFO
-structure.
-
-* More fields added for GLYPHBITMAP structure in order to return the completed
-rasterized glyph bitmap information.
-
-* A new BITMAP type: `BMP_TYPE_REPLACEKEY`. When `bmType` of a BITMAP object
-has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
-`bmColorRep`.
+* Rename `UChar32` to `Uchar32` and `UChar16` to `Uchar16` in order to
+avoid the conflict with typedef of UChar32 in the system header
+`<unicode/umachine.h>`.
 
 * Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming
 rules.
 
-* Rename `UChar32` to `Uchar32` and `UChar16` to `Uchar16` in order to
-avoid the conflict with typedef of UChar32 in 'unicode/umachine.h'.
-
 * Redefine `Uchar32` and `Glyph32` as `Uint32` instead of `int`.
 
+In early versions, we did not significantly distinguish between
+characters and glyphs. This will lead to some confusion. Therefore,
+we introduce a new type called `Achar32`, which is the character's
+index value under a certain charset/encoding. While the type `Glyph32`
+is the index value of a glyph in a font.
+
+In order to reflect the correct character and glyph concepts,
+the following functions were changed:
+
+    * GetGlyphShape -> GetShapedAChar
+
+The following functions are changed and deprecated, you should use
+the new Unicode version functions instead:
+
+    * GetGlyphBIDIType -> GetACharBidiType
+    * BIDIGetTextLogicalGlyphs -> BIDIGetTextLogicalAChars
+    * BIDIGetTextVisualGlyphs -> BIDIGetTextVisualAChars
+    * BIDILogAChars2VisGlyphsEx -> BIDILogAChars2VisACharsEx
+    * BIDILogAChars2VisGlyphs -> BIDILogAChars2VisAChars
+
+The following new functions were added:
+
+    * GetGlyphValueAlt
+    * GetACharType
+    * GetMirrorAChar
+
+The following functions are deprecated:
+
+    * BIDIGetTextRangesLog2Vis
+    * BIDIGetLogicalEmbedLevelsEx
+    * GetGlyphBitmap
+
+The fields `height` and `descent` have been removed from GLYPHINFO structure.
+You should get the font metrics information by calling `GetFontMetrics` function
+if you want to get the height and descent data of one font.
+
+The the basic glyph type and break type have been removed from GLYPHINFO
+structure. You should use `GetACharType` instead.
+
+#### Other Changes
+
+A new BITMAP type `BMP_TYPE_REPLACEKEY` was added. When `bmType` of a BITMAP object
+has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
+`bmColorRep`.
+
 #### Deprecated APIs or Features
-
-The following old APIs are deprecated, you should use the Unicode version
-APIs instead:
-
-* BIDIGetTextLogicalAChars
-* BIDIGetTextRangesLog2Vis
-* BIDIGetTextVisualAChars
-* BIDILogAChars2VisACharsEx
-* BIDILogAChars2VisAChars
-* BIDIGetLogicalEmbedLevelsEx
 
 Support for FreeType1 was removed.
 You should always use FreeType2 to support vector fonts, such as TrueType

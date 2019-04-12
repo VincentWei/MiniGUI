@@ -143,7 +143,7 @@ static int jump_vowels_ltr (PDC pdc, Achar32* achs, int nr_achs,
         if (!check_vowel(get_char_type (pdc->pLogFont, achs[i])))
             return i;
 
-        if ((gv = GetGlyphValue(pdc->pLogFont, achs[i])) == INV_GLYPH_VALUE) {
+        if ((gv = GetGlyphValueAlt(pdc->pLogFont, achs[i])) == INV_GLYPH_VALUE) {
             _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                 __FUNCTION__, achs[i]);
             return i;
@@ -188,7 +188,7 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
 
             chv = *(visual_achars);
             char_type = get_char_type (pdc->pLogFont, chv);
-            if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+            if ((gv = GetGlyphValueAlt(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, chv);
                 goto end;
@@ -209,8 +209,8 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
         if (vowel_num) {
 
             char_type = get_char_type (pdc->pLogFont, biggest_vowel);
-            gv = GetGlyphValue(pdc->pLogFont, biggest_vowel);
-            if ((gv = GetGlyphValue(pdc->pLogFont, biggest_vowel)) ==
+            gv = GetGlyphValueAlt(pdc->pLogFont, biggest_vowel);
+            if ((gv = GetGlyphValueAlt(pdc->pLogFont, biggest_vowel)) ==
                     INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, biggest_vowel);
@@ -232,7 +232,7 @@ static int output_visual_achars_ltr (PDC pdc, Achar32* visual_achars,
             chv = *(visual_achars - j);
             if (chv != biggest_vowel) {
                 char_type = get_char_type (pdc->pLogFont, chv);
-                if ((gv = GetGlyphValue(pdc->pLogFont, chv)) ==
+                if ((gv = GetGlyphValueAlt(pdc->pLogFont, chv)) ==
                         INV_GLYPH_VALUE) {
                     _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                         __FUNCTION__, chv);
@@ -277,7 +277,7 @@ static int output_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
         if (check_vowel(char_type)) {
             Glyph32 gv;
 
-            if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+            if ((gv = GetGlyphValueAlt(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, chv);
                 break;
@@ -323,7 +323,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
         if (!check_vowel(char_type))
             break;
 
-        if ((gv = GetGlyphValue(pdc->pLogFont, chv)) ==
+        if ((gv = GetGlyphValueAlt(pdc->pLogFont, chv)) ==
                 INV_GLYPH_VALUE) {
             _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                 __FUNCTION__, chv);
@@ -340,7 +340,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
     /*output the biggest_vowel*/
     if (max_advance) {
         char_type = get_char_type (pdc->pLogFont, biggest_vowel);
-        if ((gv = GetGlyphValue(pdc->pLogFont, biggest_vowel)) ==
+        if ((gv = GetGlyphValueAlt(pdc->pLogFont, biggest_vowel)) ==
                 INV_GLYPH_VALUE) {
             _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                 __FUNCTION__, biggest_vowel);
@@ -359,7 +359,7 @@ static int output_unowned_vowels_rtl (PDC pdc, Achar32* end_achar, int left_num,
             Glyph32 gv;
 
             char_type = get_char_type (pdc->pLogFont, chv);
-            if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+            if ((gv = GetGlyphValueAlt(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, chv);
                 break;
@@ -399,7 +399,7 @@ static int output_visual_achars_rtl (PDC pdc, Achar32* visual_achars,
 
         chv = visual_achars[cur];
         char_type = get_char_type (pdc->pLogFont, chv);
-        if ((gv = GetGlyphValue(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
+        if ((gv = GetGlyphValueAlt(pdc->pLogFont, chv)) == INV_GLYPH_VALUE) {
             _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                 __FUNCTION__, chv);
             return outed_glyph_num;
@@ -493,7 +493,7 @@ do_glyph:
         else
             char_type = sbc_devfont->charset_ops->char_type (chv);
 
-        gv = GetGlyphValue(pdc->pLogFont, chv);
+        gv = GetGlyphValueAlt(pdc->pLogFont, chv);
         if (gv == INV_GLYPH_VALUE) {
             continue;
         }
@@ -603,7 +603,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                 char_type = sbc_devfont->charset_ops->char_type
                     (chv);
 
-                gv = GetGlyphValue (pdc->pLogFont, chv);
+                gv = GetGlyphValueAlt (pdc->pLogFont, chv);
                 if (gv == INV_GLYPH_VALUE)
                     continue;
 
@@ -622,7 +622,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                 char_type = sbc_devfont->charset_ops->char_type
                     (chv);
 
-                gv = GetGlyphValue (pdc->pLogFont, chv);
+                gv = GetGlyphValueAlt (pdc->pLogFont, chv);
                 if (gv == INV_GLYPH_VALUE)
                     continue;
 
@@ -682,7 +682,7 @@ _gdi_get_achars_string_charbreak(PDC pdc, const unsigned char* text,
                 prev_len += len_cur_char;
             }
 
-            gv = GetGlyphValue(pdc->pLogFont, chv);
+            gv = GetGlyphValueAlt(pdc->pLogFont, chv);
             line_width += _gdi_get_glyph_advance (pdc, gv,
                     TRUE, 0, 0, NULL, NULL, &bbox);
             left_bytes -= len_cur_char;
@@ -697,7 +697,7 @@ _gdi_get_achars_string_charbreak(PDC pdc, const unsigned char* text,
                     (NULL, 0, text, left_bytes);
                 logical_achars[i++] = chv;
 
-                gv = GetGlyphValue(pdc->pLogFont, chv);
+                gv = GetGlyphValueAlt(pdc->pLogFont, chv);
                 line_width += _gdi_get_glyph_advance (pdc, gv,
                         TRUE, 0, 0, NULL, NULL, &bbox);
                 left_bytes -= len_cur_char;
@@ -941,7 +941,7 @@ _gdi_output_achars_direct_sbc_rtol_break(PDC pdc, const unsigned char* text,
         char_type = sbc_devfont->charset_ops->char_type
             (chv);
 
-        gv = GetGlyphValue(pdc->pLogFont, chv);
+        gv = GetGlyphValueAlt(pdc->pLogFont, chv);
         if (!cb_one_glyph (context, gv, char_type))
             break;
     }

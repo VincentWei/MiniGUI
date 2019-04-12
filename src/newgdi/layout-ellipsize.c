@@ -345,7 +345,8 @@ static void shape_ellipsis (EllipsizeState *state)
     layout_run = __mg_layout_run_new_ellipsis (state->layout, text_run,
             ellipsis_ucs, 1);
 
-    ellipsis_gv = GetGlyphValue(layout_run->lf, ellipsis_ucs[0]);
+    ellipsis_gv = GetGlyphValueAlt(layout_run->lf,
+            UCHAR2ACHAR(ellipsis_ucs[0]));
     /* If the devfont of the glyph value of the specific ellipsis character
      * is SBC devfont, we use "...".
      */

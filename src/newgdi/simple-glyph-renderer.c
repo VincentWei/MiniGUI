@@ -803,7 +803,7 @@ static inline BOOL is_stop_or_common(const MYGLYPHINFO* gi)
 static void init_glyph_info(MYGLYPHARGS* args, int i,
         MYGLYPHINFO* gi)
 {
-    args->gvs[i] = GetGlyphValue(args->lfur, SET_MBCHV(args->ucs[i]));
+    args->gvs[i] = GetGlyphValueAlt(args->lfur, UCHAR2ACHAR(args->ucs[i]));
 
     gi->uc = args->ucs[i];
     gi->gc = UCharGetCategory(gi->uc);
@@ -1031,7 +1031,8 @@ int GUIAPI GetGlyphsExtentFromUChars(LOGFONT* logfont_upright,
             }
         }
         else if (is_whitespace_glyph(&args, gis, n)) {
-            Glyph32 space_gv = GetGlyphValue(logfont_upright, UCHAR_SPACE);
+            Glyph32 space_gv = GetGlyphValueAlt(logfont_upright,
+                    UCHAR2ACHAR(UCHAR_SPACE));
 
             gis[n].whitespace = 1;
             ges[n].line_adv = _font_get_glyph_log_width(logfont_upright,

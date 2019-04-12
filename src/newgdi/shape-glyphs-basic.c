@@ -185,7 +185,7 @@ static BOOL shape_layout_run(SEInstance* inst,
                 }
             }
             else {
-                gv = GetGlyphValue(run->lf, UCHAR2ACHAR(shaped_ucs[i]));
+                gv = GetGlyphValueAlt(run->lf, UCHAR2ACHAR(shaped_ucs[i]));
                 gs->glyphs[j].gv = gv;
                 gs->glyphs[j].is_cluster_start = 0;
 
@@ -217,7 +217,7 @@ static BOOL shape_layout_run(SEInstance* inst,
             }
         }
         else {
-            gv = GetGlyphValue(run->lf, UCHAR2ACHAR(shaped_ucs[i]));
+            gv = GetGlyphValueAlt(run->lf, UCHAR2ACHAR(shaped_ucs[i]));
             gs->glyphs[j].gv = gv;
             gs->glyphs[j].is_cluster_start = 0;
 

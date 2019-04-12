@@ -12042,7 +12042,23 @@ MG_EXPORT int GUIAPI GetACharsExtentPoint (HDC hdc, Achar32* achars,
         int nr_achars, int max_extent, SIZE* size);
 
 /**
- * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, Achar32 chv)
+ * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar, \
+ *         int mchar_len, const char* pre_mchar, int pre_len)
+ * \brief Get the glyph value of a multi-byte character.
+ *
+ * \param logfont The logical font.
+ * \param mchar The pointer to the multi-byte character.
+ * \param mchar_len The length of \a mchar in bytes.
+ * \param pre_mchar The pointer to the multi-byte character before \a mchar.
+ * \param pre_len The length of \a per_mchar in bytes.
+ *
+ * \return The glyph value of the multi-byte character.
+ */
+MG_EXPORT Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
+        int mchar_len, const char* pre_mchar, int pre_len);
+
+/**
+ * \fn Glyph32 GUIAPI GetGlyphValueAlt (LOGFONT* logfont, Achar32 chv)
  * \brief Get the LOGFONT glyph value of an abstract character.
  *
  * \param logfont The logical font.
@@ -12051,7 +12067,7 @@ MG_EXPORT int GUIAPI GetACharsExtentPoint (HDC hdc, Achar32* achars,
  * \return The glyph value of the abstract character;
  *      INV_GLYPH_VALUE on failure.
  */
-MG_EXPORT Glyph32 GUIAPI GetGlyphValue(LOGFONT* logfont, Achar32 chv);
+MG_EXPORT Glyph32 GUIAPI GetGlyphValueAlt(LOGFONT* logfont, Achar32 chv);
 
 /**
  * \fn int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value, \

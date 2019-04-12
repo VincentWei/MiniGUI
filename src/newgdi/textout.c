@@ -465,7 +465,7 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
             chv = (*mbc_devfont->charset_ops->get_char_value)(NULL,
                     0, (const unsigned char*)text, 0);
 
-            gv = GetGlyphValue(pdc->pLogFont, chv);
+            gv = GetGlyphValueAlt(pdc->pLogFont, chv);
             advance_cur_char = _gdi_get_glyph_advance (pdc, gv,
                 (pdc->ta_flags & TA_X_MASK) == TA_LEFT,
                 0, 0, NULL, NULL, NULL);
@@ -476,7 +476,7 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
 
                 chv = (*sbc_devfont->charset_ops->get_char_value)(
                         NULL, 0, (const unsigned char*)text, 0);
-                gv = GetGlyphValue(pdc->pLogFont, chv);
+                gv = GetGlyphValueAlt(pdc->pLogFont, chv);
                 advance_cur_char = _gdi_get_glyph_advance (pdc, gv,
                         (pdc->ta_flags & TA_X_MASK) == TA_LEFT,
                         0, 0, NULL, NULL, NULL);
@@ -547,7 +547,7 @@ int GUIAPI GetACharsExtentPoint(HDC hdc, Achar32* achars, int nr_achars,
         else {
             Glyph32 gv;
 
-            if ((gv = GetGlyphValue(log_font, achars[i])) == INV_GLYPH_VALUE) {
+            if ((gv = GetGlyphValueAlt(log_font, achars[i])) == INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, achars[i]);
                 break;
@@ -594,7 +594,7 @@ int GUIAPI GetACharsExtent(HDC hdc, Achar32* achars, int nr_achars, SIZE* size)
         else {
             Glyph32 gv;
 
-            if ((gv = GetGlyphValue(log_font, achars[i])) == INV_GLYPH_VALUE) {
+            if ((gv = GetGlyphValueAlt(log_font, achars[i])) == INV_GLYPH_VALUE) {
                 _DBG_PRINTF("%s: got a bad glyph value from achar: %x\n",
                     __FUNCTION__, achars[i]);
                 break;

@@ -71,7 +71,7 @@ int ft2IsFreeTypeDevfont (DEVFONT* devfont);
 
 #define FS_WEIGHT_AUTOBOLD  29
 
-Glyph32 GetGlyphValue(LOGFONT* lf, Achar32 chv)
+Glyph32 GetGlyphValueAlt(LOGFONT* lf, Achar32 chv)
 {
     Glyph32 gv = INV_GLYPH_VALUE;
     int i, dfi = 0;
@@ -121,6 +121,15 @@ Glyph32 GetGlyphValue(LOGFONT* lf, Achar32 chv)
 
 error:
     return INV_GLYPH_VALUE;
+}
+
+Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar,
+        int mchar_len, const char* pre_mchar, int pre_len)
+{
+    Achar32 achar = GetACharValue(logfont, mchar,
+        mchar_len, pre_mchar, pre_len);
+
+    return GetGlyphValueAlt(logfont, achar);
 }
 
 int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
@@ -192,7 +201,7 @@ void GUIAPI GetGlyphBitmap (LOGFONT* logfont, const char* mchar,
     memset(&glyph_info, 0, sizeof(GLYPHINFO));
     achar = GetACharValue(logfont,(const char*)mchar,
             mchar_len, NULL, 0);
-    glyph_value = GetGlyphValue(logfont, achar);
+    glyph_value = GetGlyphValueAlt(logfont, achar);
 
     glyph_info.mask = GLYPH_INFO_METRICS | GLYPH_INFO_BMP;
     glyph_info.bmp_type = GLYPHBMP_TYPE_MONO;

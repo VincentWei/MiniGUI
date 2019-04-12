@@ -474,15 +474,19 @@ static void shape_space(const LAYOUT* layout, const LayoutRun* lrun,
         gstr->glyphs[i].y_off = 0;
 
         if (gc == UCHAR_CATEGORY_SPACE_SEPARATOR) {
-            Glyph32 space_gv = GetGlyphValue(lrun->lf, UCHAR_SPACE);
-            gstr->glyphs[i].width
-                        = _font_get_glyph_log_width(lrun->lf, space_gv);
+            Glyph32 space_gv;
 
             if (IsUCharWide(lrun->ucs[i])) {
-                Glyph32 space_gv = GetGlyphValue(lrun->lf, UCHAR_IDSPACE);
-                gstr->glyphs[i].width
-                        = _font_get_glyph_log_width(lrun->lf, space_gv);
+                space_gv = GetGlyphValueAlt(lrun->lf,
+                    UCHAR2ACHAR(UCHAR_IDSPACE));
             }
+            else {
+                space_gv = GetGlyphValueAlt(lrun->lf,
+                    UCHAR2ACHAR(UCHAR_SPACE));
+            }
+
+            gstr->glyphs[i].width
+                    = _font_get_glyph_log_width(lrun->lf, space_gv);
 
             // A simple implementation for word spacing.
             gstr->glyphs[i].width += layout->ws;
