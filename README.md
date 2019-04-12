@@ -185,16 +185,20 @@ For more information, please refer to RELEASE-NOTES.md file:
 
 https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
 
+Because of the changes of some APIs, we recommended strongly that you
+use this version for new projects.
+
 ## NEW FEATURES IN VERSION 3.2.x
 
 We introduce some new features in MiniGUI Version 3.2.x:
 
   * The support for 64-bit platform. Note that some APIs have changed
-    to support 64-bit platform. For more information, please refer to
-    [RELEASE-NOTES.md for 3.2.x] file.
+    to support 64-bit platform.
+  * Some enhancements and optimizations.
 
-Because of the changes of some APIs, we recommended strongly that you
-use this version for new projects.
+For more information, please refer to RELEASE-NOTES.md file:
+
+https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md
 
 ## THE RUNTIME MODES OF MINIGUI
 

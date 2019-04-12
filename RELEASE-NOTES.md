@@ -4,7 +4,7 @@
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.0.
 However, currently, it is still in the beta/pre-release stage. We plan to
-release the stable version about Jun. 2019.
+release the first stable version about Jun. 2019.
 
 We now encourage the MiniGUI users to use this version for any new MiniGUI
 apps, especially if the new features of MiniGUI 4.0.0 are must for your
@@ -12,7 +12,7 @@ new apps.
 
 Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui
+https://github.com/VincentWei/minigui
 
 ### What's new in this version
 
@@ -346,7 +346,7 @@ The MiniGUI development team announces the availability of MiniGUI 3.2.2.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui
+https://github.com/VincentWei/minigui
 
 ### What's new in this version
 
@@ -399,7 +399,7 @@ The MiniGUI development team announces the availability of MiniGUI 3.2.0.
 All users of MiniGUI are recommended strongly to use this version for new
 MiniGUI apps. Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui
+https://github.com/VincentWei/minigui
 
 ### What's new in this version
 
@@ -626,7 +626,7 @@ The MiniGUI development team announces the availability of MiniGUI 3.0.13.
 All users of MiniGUI are encouraged to test this version carefully, and
 report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui.
+https://github.com/VincentWei/minigui.
 
 ### What's new in this version
 
@@ -666,7 +666,7 @@ The MiniGUI development team announces the availability of MiniGUI 3.0.2.
 All users of MiniGUI are encouraged to test this version carefully, and
 report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui.
+https://github.com/VincentWei/minigui.
 
 ### What's new in this version
 
