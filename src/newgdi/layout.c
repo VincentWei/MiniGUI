@@ -58,7 +58,7 @@
 **
 **  - We provide two shaping engines for rendering the text. One is a
 **      basic shaping engine and other is the complex shaping engine based
-**      on HarzBuff. The former can be used for some simple applications.
+**      on HarfBuzz. The former can be used for some simple applications.
 */
 
 #include <stdio.h>

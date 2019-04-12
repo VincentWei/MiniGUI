@@ -11564,7 +11564,7 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
       *
       * MiniGUI provides two types of shaping engine. One is the basic
       * shaping engine. The corresponding function is \a InitBasicShapingEngine.
-      * The other is called complex shaping engine, which is based on HarzBuff.
+      * The other is called complex shaping engine, which is based on HarfBuzz.
       * The corresponding function is \a InitComplexShapingEngine. The latter
       * one can give you a better shaping result.
       *
@@ -13112,7 +13112,7 @@ MG_EXPORT BOOL GUIAPI InitBasicShapingEngine(TEXTRUNS* truns);
  * The complex shaping engine performs the complex shaping process
  * according to the data contained in the OpenType Layout tables
  * (GSUB, GPOS, and so on) contained in a OpenType font. The complex
- * shaping engine is implemented based on HarzBuff.
+ * shaping engine is implemented based on HarfBuzz.
  *
  * You can call \a InitBasicShapingEngine to initialize the basic shaping
  * process which shapes the glyphs based on the Unicode character properties

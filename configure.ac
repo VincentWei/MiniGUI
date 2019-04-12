@@ -548,7 +548,7 @@ AC_ARG_ENABLE(ttfcache,
 build_ttfcache_support=$enableval)
 
 AC_ARG_ENABLE(complexscripts,
-[  --enable-complexscripts  build support for complex scripts (needs HarzBuff library) <default=yes>],
+[  --enable-complexscripts  build support for complex scripts (needs HarfBuzz library) <default=yes>],
 build_complex_scripts=$enableval)
 
 AC_ARG_ENABLE(bmpfsupport,

@@ -112,7 +112,7 @@ laying out the text.
 
 MiniGUI provides two types of shaping engine. One is the basic
 shaping engine. The corresponding function is `InitBasicShapingEngine`.
-The other is called complex shaping engine, which is based on HarzBuff.
+The other is called complex shaping engine, which is based on HarfBuzz.
 The corresponding function is `InitComplexShapingEngine`. The latter
 one can give you a better shaping result.
 
@@ -152,7 +152,7 @@ in the following respects:
 
 * We provide two shaping engines for rendering the text. One is a
   basic shaping engine and other is the complex shaping engine based
-  on HarzBuff. The former can be used for some simple applications.
+  on HarfBuzz. The former can be used for some simple applications.
 
 #### Enhanced logical font APIs
 
