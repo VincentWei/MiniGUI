@@ -297,7 +297,7 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     return advance;
 }
 
-void GUIAPI inline GetGlyphBitmap (LOGFONT* logfont, const char* mchar, 
+void GUIAPI GetGlyphBitmap (LOGFONT* logfont, const char* mchar, 
         int mchar_len, GLYPHBITMAP* glyph_bitmap)
 {
     GLYPHINFO glyph_info;
