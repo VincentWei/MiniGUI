@@ -8775,10 +8775,8 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyph_string, 
         int len, int* adv_x, int* adv_y);
 
-#define GLYPH_INFO_TYPE         0x01
-#define GLYPH_INFO_BIDI_TYPE    0x02
-#define GLYPH_INFO_METRICS      0x04
-#define GLYPH_INFO_BMP          0x10
+#define GLYPH_INFO_METRICS      0x01
+#define GLYPH_INFO_BMP          0x02
 
 /*the type of glyph bitmap*/
 #define GLYPHBMP_TYPE_MONO      0x00
@@ -8795,18 +8793,10 @@ typedef struct _GLYPHINFO
     /**
      * The mask indicates if you want to get glyph type info, metrics,
      * or bitmap infomation you want. Or'ed with the following values:
-     * - GLYPH_INFO_TYPE
-     * - GLYPH_INFO_BIDI_TYPE
      * - GLYPH_INFO_METRICS
      * - GLYPH_INFO_BMP
      */
-    unsigned char mask;
-
-    /** The basic glyph type */
-    unsigned int glyph_type;
-
-    /** The BIDI glyph type */
-    unsigned int bidi_glyph_type;
+    Uint32 mask;
 
     /** The height of the glyph */
     int height;

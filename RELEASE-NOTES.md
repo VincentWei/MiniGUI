@@ -32,7 +32,7 @@ Please report any bugs and incompatibilities in
   1. Enhance commlcd engint to support more pixel type and synchronously update.
   1. New USVFB IAL engine and NEWGAL engine for web display server.
   1. New type: `QDWORD` for a quauter of DWORD. This type is 16-bit long on
-64-bit architecture, and 8-bit long on 32-bit.
+    64-bit architecture, and 8-bit long on 32-bit.
   1. New macros for QDWORD:
     * `MAKEDWORD`: Make a DWROD from four QDWORDs.
     * `FIRST_QDWORD`: get the first (LSB) QDWORD from a DWORD.
@@ -50,9 +50,6 @@ Please report any bugs and incompatibilities in
   1. Fix the bug of wrong bounding box handling for SUBPIXEL rendering of glyph.
   1. Tune cache implementation of FreeType2 font engine.
     * Enable cache for rotated LOGFONT.
-
-* TUNNING:
-  1. Tune GLYPHINFO structure and GetGlyphInfo to return BIDI glyph type.
 
 ## Version 3.2.0
 
