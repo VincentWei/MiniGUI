@@ -273,16 +273,15 @@ Note that this implementation is derived from LGPL'd glib.
 One should get the font metrics information by calling `GetFontMetrics` function
 if you want to get the height and descent data of one font.
 
+* The the basic glyph type and break type have been removed from GLYPHINFO
+structure.
+
 * More fields added for GLYPHBITMAP structure in order to return the completed
 rasterized glyph bitmap information.
 
 * A new BITMAP type: `BMP_TYPE_REPLACEKEY`. When `bmType` of a BITMAP object
 has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
 `bmColorRep`.
-
-* `GetGlyphInfo` now can return the basic glyph type and break type of a
-UNICODE character. If the glyph is an ASCII character, the old `MCHAR_TYPE`
-can also be returned.
 
 * Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming
 rules.
