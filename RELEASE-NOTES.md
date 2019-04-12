@@ -183,9 +183,11 @@ The styles of LOGFONT changed.
   1. `FONT_DECORATE_NONE`: None.
   1. `FONT_DECORATE_UNDERLINE`: glyphs are underscored.
   1. `FONT_DECORATE_STRUCKOUT`: glyphs are overstruck.
-  1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE` and `FONT_DECORATE_STRUCKOUT`.
+  1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE` 
+and `FONT_DECORATE_STRUCKOUT`.
   1. `FONT_DECORATE_OUTLINE`: Outline (hollow) glyphs.
-  1. `FONT_DECORATE_REVERSE`: Reserved for future. Glyphs have their foreground and background reversed.
+  1. `FONT_DECORATE_REVERSE`: Reserved for future. Glyphs have their 
+foreground and background reversed.
 * The following style are deprecated:
   1. `FONT_OTHER_LCDPORTRAIT`
   1. `FONT_OTHER_LCDPORTRAITKERN`
@@ -334,9 +336,9 @@ You should always use FreeType2 to support vector fonts, such as TrueType
 fonts (TTF), TrueType collections (TTC), OpenType fonts (OTF, both TrueType
 and CFF variants), OpenType collections (OTC), and Type 1 fonts (PFA and PFB).
 
-## Version 3.2.1
+## Version 3.2.2
 
-The MiniGUI development team announces the availability of MiniGUI 3.2.1.
+The MiniGUI development team announces the availability of MiniGUI 3.2.2.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
@@ -345,11 +347,6 @@ Please report any bugs and incompatibilities in
 ### What's new in this version
 
 * ENHANCEMENTS:
-  1. Add a new key `dpi` for NEWGAL engine to define the DPI of the screen.
-     If it is absent, use 96 as the default DPI.
-  1. Add an item for `GetGDCapability` to return DPI of the DC.
-  1. New API `InitSlaveScreenEx` to specify the DPI of slave screen.
-     Define `InitSlaveScreen` as an inline function calling `InitSlaveScreenEx`.
   1. New API: `SyncUpdateDC`. You can use this function to synchronize
     the update rectangles of a surface to screen, if the surface
     represents the shadow frame buffer of the screen.
@@ -358,21 +355,28 @@ Please report any bugs and incompatibilities in
   1. New API: `UpdateInvalidClient`. You can use this function to update
     the invalid client region of a window instantly.
   1. Use different colors for the output of `_DBG_PRINTF` and `_ERR_PRINTF`.
-  1. Add `__mg_save_jpg` function for storing MYBITMAP as JPEG file (@10km).
-  1. Modified logic for checking JPEG format (@10km).
+  1. Add `__mg_save_jpg` function for storing MYBITMAP as JPEG file (10km).
+  1. Modified logic for checking JPEG format (10km).
   1. Support BIDI for UNICODE charsets and cleanup the implementation.
-    * New API: `GetGlyphBidiType` to get the glyph type in BIDI.
+    * New API: `GetGlyphBIDIType` to get the glyph type in BIDI.
     * New DC attribute: BIDI flag.
+  1. Add a new key `dpi` for NEWGAL engine to define the DPI of the screen.
+     If it is absent, use 96 as the default DPI.
+  1. Add an item for `GetGDCapability` to return DPI of the DC.
+  1. New API `InitSlaveScreenEx` to specify the DPI of slave screen.
+     Define `InitSlaveScreen` as an inline function calling `InitSlaveScreenEx`.
   1. Enhance commlcd engint to support more pixel type and synchronously update.
   1. New USVFB IAL engine and NEWGAL engine for web display server.
   1. New type: `QDWORD` for a quauter of DWORD. This type is 16-bit long on
-64-bit architecture, and 8-bit long on 32-bit.
+    64-bit architecture, and 8-bit long on 32-bit.
   1. New macros for QDWORD:
     * `MAKEDWORD`: Make a DWROD from four QDWORDs.
     * `FIRST_QDWORD`: get the first (LSB) QDWORD from a DWORD.
     * `SECOND_QDWORD`: get the second (LSB) QDWORD from a DWORD.
     * `THIRD_QDWORD`: get the third (LSB) QDWORD from a DWORD.
     * `FOURTH_QDWORD`: get the fourth (LSB) QDWORD from a DWORD.
+  1. New header for CommLCD NEWGAL engine and COMM IAL engine:
+    `<minigui/exstubs.h>`.
 
 * BUGFIXING:
   1. handle `PNG_COLOR_TYPE_GRAY_ALPHA` color type of PNG files.
@@ -382,9 +386,8 @@ Please report any bugs and incompatibilities in
   1. Skip null pixels for SUBPIXEL glyphs. This bug will always show background
      pixels of one SUBPIXEL glyph.
   1. Fix the bug of wrong bounding box handling for SUBPIXEL rendering of glyph.
-
-* TUNNING:
-  1. Tune GLYPHINFO structure and GetGlyphInfo to return BIDI glyph type.
+  1. Tune cache implementation of FreeType2 font engine.
+    * Enable cache for rotated LOGFONT.
 
 ## Version 3.2.0
 
