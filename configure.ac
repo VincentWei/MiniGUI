@@ -1348,11 +1348,29 @@ if test "x$build_jpg_support" != "xno"; then
 fi
 
 dnl Check for PNG library.
+libpng_version="no"
 if test "x$build_png_support" != "xno"; then
-    AC_CHECK_LIB(png, png_check_sig,
-        DEP_LIBS="$DEP_LIBS -lpng",
-        build_png_support=no, -lz -lm)
+    AC_CHECK_LIB(png12, png_check_sig,
+        libpng_version="12",
+        libpng_version="no", -lz -lm)
+    if test "x$libpng_version" == "xno"; then
+        AC_CHECK_LIB(png16, png_sig_cmp,
+            libpng_version="16",
+            libpng_version="no", -lz -lm)
+    fi
 fi
+
+case "$libpng_version" in
+    12)
+        DEP_LIBS="$DEP_LIBS -lpng12"
+    ;;
+    16)
+        DEP_LIBS="$DEP_LIBS -lpng16"
+    ;;
+    *)
+        build_png_support="no"
+    ;;
+esac
 
 AC_DEFINE_UNQUOTED(MINIGUI_MAJOR_VERSION, $MINIGUI_MAJOR_VERSION,
             [Major version of MiniGUI])
@@ -2311,6 +2329,8 @@ fi
 if test "x$build_png_support" = "xyes"; then
     AC_DEFINE(_MGIMAGE_PNG, 1,
             [Define if support PNG bmp file format])
+    AC_DEFINE_UNQUOTED(_MGLIBPNG_VER, $libpng_version,
+            [Define version of libpng])
 fi
 
 if test "x$build_menu" = "xyes"; then
