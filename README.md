@@ -78,7 +78,7 @@ as a free software project.
 You can download the source code tarball of MiniGUI and the dependent libraries
 from the download zone of the site:
 
-  http://www.minigui.com
+http://www.minigui.com
 
 FMSoft also releases some open source apps for MiniGUI on the site above,
 for examples:
@@ -342,7 +342,9 @@ A brief history description of the development progress lay below:
 
 The original author of MiniGUI is WEI Yongming, and now MiniGUI is
 maintained by FMSoft. For more information, please browse
-our home page: http://www.fmsoft.cn.
+our home page:
+
+http://www.fmsoft.cn.
 
 
 ## IF YOU HAVE A PROBLEM

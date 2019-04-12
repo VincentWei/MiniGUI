@@ -6853,7 +6853,7 @@ typedef struct _FONTMETRICS {
  * \param font_metrics The buffer receives the metrics information.
  * \return None.
  *
- * \sa GetGlyphBitmap, FONTMETRICS
+ * \sa GetGlyphInfo, FONTMETRICS
  */
 MG_EXPORT void GUIAPI GetFontMetrics (LOGFONT* log_font,
                 FONTMETRICS* font_metrics);
@@ -12046,9 +12046,9 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
 /** The type of glyph bitmap: grey (4-bit) */
 #define GLYPHBMP_TYPE_GREY4b    0x02
 /** The type of glyph bitmap: subpixel */
-#define GLYPHBMP_TYPE_SUBPIXEL  0x02
+#define GLYPHBMP_TYPE_SUBPIXEL  0x03
 /** The type of glyph bitmap: pre-rendered BITMAP object */
-#define GLYPHBMP_TYPE_PRERENDER 0x03
+#define GLYPHBMP_TYPE_PRERENDER 0x04
 
 /**
  * \var typedef struct  _GLYPHINFO GLYPHINFO

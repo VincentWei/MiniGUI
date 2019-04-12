@@ -276,6 +276,10 @@ if you want to get the height and descent data of one font.
 * More fields added for GLYPHBITMAP structure in order to return the completed
 rasterized glyph bitmap information.
 
+* A new BITMAP type: `BMP_TYPE_REPLACEKEY`. When `bmType` of a BITMAP object
+has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
+`bmColorRep`.
+
 * `GetGlyphInfo` now can return the basic glyph type and break type of a
 UNICODE character. If the glyph is an ASCII character, the old `MCHAR_TYPE`
 can also be returned.
@@ -288,17 +292,7 @@ avoid the conflict with typedef of UChar32 in 'unicode/umachine.h'.
 
 * Redefine `Uchar32` and `Glyph32` as `Uint32` instead of `int`.
 
-* Support for FreeType1 removed.
-
-You should always use FreeType2 to support vector fonts, such as TrueType
-fonts (TTF), TrueType collections (TTC), OpenType fonts (OTF, both TrueType
-and CFF variants), OpenType collections (OTC), and Type 1 fonts (PFA and PFB).
-
-* A new BITMAP type: `BMP_TYPE_REPLACEKEY`. When `bmType` of a BITMAP object
-has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
-`bmColorRep`.
-
-#### Deprecated APIs
+#### Deprecated APIs or Features
 
 The following old APIs are deprecated, you should use the Unicode version
 APIs instead:
@@ -309,6 +303,11 @@ APIs instead:
 * BIDILogAChars2VisACharsEx
 * BIDILogAChars2VisAChars
 * BIDIGetLogicalEmbedLevelsEx
+
+Support for FreeType1 was removed.
+You should always use FreeType2 to support vector fonts, such as TrueType
+fonts (TTF), TrueType collections (TTC), OpenType fonts (OTF, both TrueType
+and CFF variants), OpenType collections (OTC), and Type 1 fonts (PFA and PFB).
 
 ## Version 3.2.1
 
