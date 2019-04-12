@@ -229,7 +229,7 @@ Note that the length of one DEVFONT name can not exceed 255 bytes.
 Since version 4.0.0, you can specify up to 7 family names for a logfont name,
 such as:
 
-      ttf-Courier,宋体,Naskh,SansSerif-rrncns-U-16-UTF-8
+    ttf-Courier,宋体,Naskh,SansSerif-rrncns-U-16-UTF-8
 
 In this way, you can specify a logfont to use multiple devfonts
 to render a complex text. This is useful when different glyphs are
@@ -274,12 +274,10 @@ in early versions. There are also other changes broke the backward
 compatibility. This section gives you a summary about these changes.
 
 * Rename `UChar32` to `Uchar32` and `UChar16` to `Uchar16` in order to
-avoid the conflict with typedef of UChar32 in the system header
-`<unicode/umachine.h>`.
-
-* Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI naming
-rules.
-
+  avoid the conflict with typedef of UChar32 in the system header
+  `<unicode/umachine.h>`.
+* Rename `mg_FT_LcdFilter` to `FT2LCDFilter` in order to follow MiniGUI
+  naming rules.
 * Redefine `Uchar32` and `Glyph32` as `Uint32` instead of `int`.
 
 In early versions, we did not significantly distinguish between
@@ -289,30 +287,32 @@ index value under a certain charset/encoding. While the type `Glyph32`
 is the index value of a glyph in a font.
 
 In order to reflect the correct character and glyph concepts,
-the following functions were changed:
+the following functions are removed:
 
-    * GetGlyphShape -> GetShapedAChar
+    * GetGlyphType, use GetACharType instead.
+    * GetGlyphShape, use GetShapedAChar instead.
+    * GetGlyphBIDIType, use GetACharBidiType
 
-The following functions are changed and deprecated, you should use
-the new Unicode version functions instead:
+The names of the following functions are changed:
 
-    * GetGlyphBIDIType -> GetACharBidiType
     * BIDIGetTextLogicalGlyphs -> BIDIGetTextLogicalAChars
     * BIDIGetTextVisualGlyphs -> BIDIGetTextVisualAChars
-    * BIDILogAChars2VisGlyphsEx -> BIDILogAChars2VisACharsEx
     * BIDILogAChars2VisGlyphs -> BIDILogAChars2VisAChars
+    * BIDILogAChars2VisGlyphsEx -> BIDILogAChars2VisACharsEx
 
-The following new functions were added:
+The following functions are deprecated, you should use
+the new Unicode version instead:
 
-    * GetGlyphValueAlt
-    * GetACharType
-    * GetMirrorAChar
+    * BIDIGetTextLogicalAChars
+    * BIDIGetTextVisualAChars
+    * BIDILogAChars2VisAChars
+    * BIDILogAChars2VisACharsEx
+    * BIDIGetTextRangesLog2Vis
+    * BIDIGetLogicalEmbedLevelsEx
 
 The following functions are deprecated:
 
-    * BIDIGetTextRangesLog2Vis
-    * BIDIGetLogicalEmbedLevelsEx
-    * GetGlyphBitmap
+    * GetGlyphBitmap, use GetGlyphInfo instead.
 
 The fields `height` and `descent` have been removed from GLYPHINFO structure.
 You should get the font metrics information by calling `GetFontMetrics` function
@@ -327,7 +327,7 @@ A new BITMAP type `BMP_TYPE_REPLACEKEY` was added. When `bmType` of a BITMAP obj
 has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
 `bmColorRep`.
 
-#### Deprecated APIs or Features
+#### Deprecated Features
 
 Support for FreeType1 was removed.
 You should always use FreeType2 to support vector fonts, such as TrueType

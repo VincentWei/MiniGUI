@@ -11627,7 +11627,7 @@ MG_EXPORT Achar32 GUIAPI GetACharValue (LOGFONT* logfont, const char* mchar,
 /**
  * \fn Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
  * \brief Retrieve the basic type, the general cateory of Unicode, and
- *      the break class of Unicode of an abtract character.
+ *      the break class of Unicode of an abstract character.
  *
  * This function retrieves the basic type, the general category defined by
  * Unicode terms, and the break class defined by Unicode of an abstract
