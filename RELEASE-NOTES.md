@@ -39,6 +39,8 @@ Please report any bugs and incompatibilities in
     * `SECOND_QDWORD`: get the second (LSB) QDWORD from a DWORD.
     * `THIRD_QDWORD`: get the third (LSB) QDWORD from a DWORD.
     * `FOURTH_QDWORD`: get the fourth (LSB) QDWORD from a DWORD.
+  1. New header for CommLCD NEWGAL engine and COMM IAL engine:
+    `<minigui/exstubs.h>`.
 
 * BUGFIXING:
   1. handle `PNG_COLOR_TYPE_GRAY_ALPHA` color type of PNG files.
