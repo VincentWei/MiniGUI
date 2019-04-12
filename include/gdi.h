@@ -5888,6 +5888,59 @@ typedef Uint32 Uchar32;
 #define ACHAR_BASIC_VOWEL_ABOVE      (ACHAR_BASIC_VOWEL | ACHAR_BASIC_ABOVE_MARK)
 #define ACHAR_BASIC_VOWEL_BELLOW     (ACHAR_BASIC_VOWEL | ACHAR_BASIC_BELLOW_MARK)
 
+/* Compatibility definitions */
+#define MCHAR_TYPE_UNKNOWN          ACHAR_BASIC_UNKNOWN
+#define MCHAR_TYPE_NUL              ACHAR_BASIC_NUL
+#define MCHAR_TYPE_CTRL1            ACHAR_BASIC_CTRL1
+#define MCHAR_TYPE_BEL              ACHAR_BASIC_BEL
+#define MCHAR_TYPE_BS               ACHAR_BASIC_BS
+#define MCHAR_TYPE_HT               ACHAR_BASIC_HT
+#define MCHAR_TYPE_LF               ACHAR_BASIC_LF
+#define MCHAR_TYPE_VT               ACHAR_BASIC_VT
+#define MCHAR_TYPE_FF               ACHAR_BASIC_FF
+#define MCHAR_TYPE_CR               ACHAR_BASIC_CR
+#define MCHAR_TYPE_CTRL2            ACHAR_BASIC_CTRL2
+#define MCHAR_TYPE_SPACE            ACHAR_BASIC_SPACE
+#define MCHAR_TYPE_ZEROWIDTH        ACHAR_BASIC_ZEROWIDTH
+#define MCHAR_TYPE_GENERIC          ACHAR_BASIC_GENERIC
+#define MCHAR_TYPE_NOSPACING_MARK   ACHAR_BASIC_NOSPACING_MARK
+#define MCHAR_TYPE_LIGATURE         ACHAR_BASIC_LIGATURE
+#define MCHAR_TYPE_VOWEL            ACHAR_BASIC_VOWEL
+#define MCHAR_TYPE_VOWEL_ABOVE      ACHAR_BASIC_VOWEL_ABOVE
+#define MCHAR_TYPE_VOWEL_BELLOW     ACHAR_BASIC_VOWEL_BELLOW
+
+#if 0
+#define MCHAR_TYPE_ASCII            0x0080
+#define MCHAR_TYPE_LATIN1           0x0081
+#define MCHAR_TYPE_LATIN2           0x0082
+#define MCHAR_TYPE_LATIN3           0x0083
+#define MCHAR_TYPE_LATIN4           0x0084
+#define MCHAR_TYPE_LATIN5           0x0085
+#define MCHAR_TYPE_LATIN6           0x0086
+#define MCHAR_TYPE_LATIN7           0x0087
+#define MCHAR_TYPE_LATIN8           0x0088
+#define MCHAR_TYPE_LATIN9           0x0089
+#define MCHAR_TYPE_LATIN10          0x008A
+#define MCHAR_TYPE_CYRILLIC         0x008B
+#define MCHAR_TYPE_ARABIC           0x008C
+#define MCHAR_TYPE_GREEK            0x008D
+#define MCHAR_TYPE_HEBREW           0x008E
+#define MCHAR_TYPE_THAI             0x008F
+
+#define MCHAR_TYPE_DIGIT            0x0091
+#define MCHAR_TYPE_SYMBOL_PUNCT     0x0092
+#define MCHAR_TYPE_SYMBOL_MATH      0x0093
+#define MCHAR_TYPE_SYMBOL_OTHER     0x0094
+#define MCHAR_TYPE_FW_DIGIT         0x0095
+#define MCHAR_TYPE_FW_SYM_PUNCT     0x0096
+#define MCHAR_TYPE_FW_SYM_MATH      0x0097
+#define MCHAR_TYPE_FW_SYM_OTHER     0x0098
+
+#define MCHAR_TYPE_HANGUL           0x00A1
+#define MCHAR_TYPE_KATAKANA         0x00A2
+#define MCHAR_TYPE_CJK              0x00A3
+#endif
+
 /**
  * UCharGeneralCategory: General category of a UNICODE character.
  *
@@ -6857,6 +6910,54 @@ typedef struct _FONTMETRICS {
  */
 MG_EXPORT void GUIAPI GetFontMetrics (LOGFONT* log_font,
                 FONTMETRICS* font_metrics);
+
+/** The glyph bitmap structure. */
+typedef struct _GLYPHBITMAP {
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y, bbox_w, bbox_h;
+    /** The advance value of the glyph. */
+    int advance_x, advance_y;
+
+    /** The size of the glyph bitmap. */
+    size_t bmp_size;
+    /** The pitch of the glyph bitmap. */
+    int bmp_pitch;
+    /** The pointer to the buffer of glyph bitmap bits. */
+    const unsigned char* bits;
+} GLYPHBITMAP;
+
+/**
+ * \fn void GUIAPI GetGlyphBitmap (LOGFONT* log_font, \
+                const char* mchar, int mchar_len, \
+                GLYPHBITMAP* glyph_bitmap)
+ * \brief Gets the glyph bitmap information when uses a logical font to
+ *        output a multi-byte character.
+ *
+ * This function gets the glyph bitmap of one multi-byte character
+ * (specified by \a mchar and \a mchar_len) and returns the bitmap information
+ * through \a font_bitmap when using \a log_font to render the character.
+ *
+ * \param log_font The logical font used to render the character.
+ * \param mchar The pointer to the multi-byte character.
+ * \param mchar_len The length of the multi-byte character.
+ * \param glyph_bitmap The buffer receives the glyph bitmap information.
+ * \return None.
+ *
+ * Example:
+ * \code
+ *      GLYPHBITMAP glyph_bitmap = {0};
+ *
+ *      GetGlyphBitmap (log_font, "A", 1, &glyph_bitmap);
+ * \endcode
+ *
+ * \note Deprecated. This function is a legacy implementation.
+ *      New applications should use \a GetGlyphInfo instead.
+ *
+ * \sa GetFontMetrics, GLYPHBITMAP, GetGlyphInfo
+ */
+MG_EXPORT void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
+                const char* mchar, int mchar_len,
+                GLYPHBITMAP* glyph_bitmap);
 
 #ifndef _MGRM_THREADS
 

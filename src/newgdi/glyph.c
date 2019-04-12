@@ -182,6 +182,37 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     return 0;
 }
 
+void GUIAPI GetGlyphBitmap (LOGFONT* logfont, const char* mchar,
+        int mchar_len, GLYPHBITMAP* glyph_bitmap)
+{
+    Achar32 achar;
+    GLYPHINFO glyph_info;
+    Glyph32 glyph_value = INV_GLYPH_VALUE;
+
+    memset(&glyph_info, 0, sizeof(GLYPHINFO));
+    achar = GetACharValue(logfont,(const char*)mchar,
+            mchar_len, NULL, 0);
+    glyph_value = GetGlyphValue(logfont, achar);
+
+    glyph_info.mask = GLYPH_INFO_METRICS | GLYPH_INFO_BMP;
+    glyph_info.bmp_type = GLYPHBMP_TYPE_MONO;
+
+    if(glyph_value != INV_GLYPH_VALUE)
+        GetGlyphInfo(logfont, glyph_value, &glyph_info);
+
+    glyph_bitmap->bbox_x = glyph_info.bbox_x;
+    glyph_bitmap->bbox_y = glyph_info.bbox_y;
+    glyph_bitmap->bbox_w = glyph_info.bbox_w;
+    glyph_bitmap->bbox_h = glyph_info.bbox_h;
+
+    glyph_bitmap->advance_x = glyph_info.advance_x;
+    glyph_bitmap->advance_y = glyph_info.advance_y;
+
+    glyph_bitmap->bmp_size = glyph_info.bmp_pitch * glyph_info.bmp_height;
+    glyph_bitmap->bmp_pitch = glyph_info.bmp_pitch;
+    glyph_bitmap->bits = glyph_info.bits;
+}
+
 static int mult (fixed op1, fixed op2)
 {
     long s = op2;
