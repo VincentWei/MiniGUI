@@ -52,7 +52,7 @@ which will provide the ability to render GUIs in CSS way.
     1. `Glyph32`: the glyph index value in a device font. Note that
         a Glyph32 value is always bound to a specific logfont object.
 
-* New Functions to determine the Unicode character properties:
+* New functions to determine the Unicode character properties:
     1. `UCharGetCategory` for getting the general category of
         a Unicode character.
     1. `UCharGetBreakType` for getting the breaking type of
@@ -242,12 +242,12 @@ languages/scripts.
 Since 4.0.0, the previous width field of a logfont name is used for
 the glyph orientation:
 
- - 'U': Glyphs stand upright (default).
- - 'S': Glyphs are rotated 90 degrees clockwise (sideways).
- - 'D': Glyphs are upside-down.
- - 'L': Glyphs are rotated 90 degrees counter-clockwise (sideways left).
+- 'U': Glyphs stand upright (default).
+- 'S': Glyphs are rotated 90 degrees clockwise (sideways).
+- 'D': Glyphs are upside-down.
+- 'L': Glyphs are rotated 90 degrees counter-clockwise (sideways left).
 
-#### Slice Allocator
+#### Slice allocator
 
 MiniGUI now provides an efficient way to allocate groups of equal-sized
 chunks of memory.
@@ -269,7 +269,7 @@ We use the slice allocator when laying out the text in complex scripts.
 
 Note that this implementation is derived from LGPL'd glib.
 
-#### Other Enhancements
+#### Other enhancements
 
 * A new BITMAP type `BMP_TYPE_REPLACEKEY` was added. When `bmType` of a BITMAP object
 has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
@@ -279,7 +279,7 @@ has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
 
 * Support for Ubuntu 18.04 LTS.
 
-#### Backward Compatibility Issues
+#### Backward compatibility issues
 
 In MiniGUI 4.0.0, we changed some unreasonable APIs which were introduced
 in early versions. There are also other changes broke the backward
@@ -301,30 +301,30 @@ is the index value of a glyph in a font.
 In order to reflect the correct character and glyph concepts,
 the following functions are removed:
 
-    * GetGlyphType, use GetACharType instead.
-    * GetGlyphShape, use GetShapedAChar instead.
-    * GetGlyphBIDIType, use GetACharBidiType
+  * GetGlyphType, use GetACharType instead.
+  * GetGlyphShape, use GetShapedAChar instead.
+  * GetGlyphBIDIType, use GetACharBidiType
 
 The names of the following functions are changed:
 
-    * BIDIGetTextLogicalGlyphs -> BIDIGetTextLogicalAChars
-    * BIDIGetTextVisualGlyphs -> BIDIGetTextVisualAChars
-    * BIDILogAChars2VisGlyphs -> BIDILogAChars2VisAChars
-    * BIDILogAChars2VisGlyphsEx -> BIDILogAChars2VisACharsEx
+  * BIDIGetTextLogicalGlyphs -> BIDIGetTextLogicalAChars
+  * BIDIGetTextVisualGlyphs -> BIDIGetTextVisualAChars
+  * BIDILogAChars2VisGlyphs -> BIDILogAChars2VisAChars
+  * BIDILogAChars2VisGlyphsEx -> BIDILogAChars2VisACharsEx
 
 The following functions are deprecated, you should use
 the new Unicode version instead:
 
-    * BIDIGetTextLogicalAChars
-    * BIDIGetTextVisualAChars
-    * BIDILogAChars2VisAChars
-    * BIDILogAChars2VisACharsEx
-    * BIDIGetTextRangesLog2Vis
-    * BIDIGetLogicalEmbedLevelsEx
+  * BIDIGetTextLogicalAChars
+  * BIDIGetTextVisualAChars
+  * BIDILogAChars2VisAChars
+  * BIDILogAChars2VisACharsEx
+  * BIDIGetTextRangesLog2Vis
+  * BIDIGetLogicalEmbedLevelsEx
 
 The following functions are deprecated:
 
-    * GetGlyphBitmap, use GetGlyphInfo instead.
+  * GetGlyphBitmap, use GetGlyphInfo instead.
 
 The fields `height` and `descent` have been removed from GLYPHINFO structure.
 You should get the font metrics information by calling `GetFontMetrics` function
@@ -333,7 +333,7 @@ if you want to get the height and descent data of one font.
 The the basic glyph type and break type have been removed from GLYPHINFO
 structure. You should use `GetACharType` instead.
 
-#### Deprecated Features
+#### Deprecated features
 
 Support for FreeType1 was removed.
 You should always use FreeType2 to support vector fonts, such as TrueType
