@@ -269,6 +269,16 @@ We use the slice allocator when laying out the text in complex scripts.
 
 Note that this implementation is derived from LGPL'd glib.
 
+#### Other Enhancements
+
+* A new BITMAP type `BMP_TYPE_REPLACEKEY` was added. When `bmType` of a BITMAP object
+has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
+`bmColorRep`.
+
+* Support for libPNG 1.6.x.
+
+* Support for Ubuntu 18.04 LTS.
+
 #### Backward Compatibility Issues
 
 In MiniGUI 4.0.0, we changed some unreasonable APIs which were introduced
@@ -322,12 +332,6 @@ if you want to get the height and descent data of one font.
 
 The the basic glyph type and break type have been removed from GLYPHINFO
 structure. You should use `GetACharType` instead.
-
-#### Other Changes
-
-A new BITMAP type `BMP_TYPE_REPLACEKEY` was added. When `bmType` of a BITMAP object
-has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
-`bmColorRep`.
 
 #### Deprecated Features
 
