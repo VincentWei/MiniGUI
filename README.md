@@ -109,13 +109,14 @@ This instruction assumes that you are using Ubuntu Linux.
 
 ### Prerequisites
 
-You can run `apt install <package_name>` to install the software on Ubuntu Linux.
+You should run `apt install <package_name>` to install the following packages 
+on your Ubuntu Linux.
 
  * Building tools:
     * autoconf
  * Dependent libraries (all are optional):
     * libjpeg64-dev
-    * libpng12-dev
+    * libpng12-dev (use libpng-dev on Ubuntu Linux 18.04 LTS)
     * libfreetype6-dev
 
 ### Building MiniGUI Core
