@@ -97,7 +97,7 @@ static void __mg_timer_action (void *data)
     SHAREDRES_TIMER_COUNTER += 1;
 #else
 
-#if defined(__uClinux__) && defined(_MGRM_STANDALONE)
+#if defined(_MGRM_STANDALONE)
     __mg_timer_counter += 10;
 #else
 #   ifdef _MG_USE_BETTER_TIMER
