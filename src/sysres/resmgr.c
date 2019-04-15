@@ -931,7 +931,7 @@ static void* img_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
             INNER_RES* inner = res->source.inner;
             if(inner->additional == NULL) {
                 // raw bitmap
-                res->data = inner->data;
+                res->data = (void*)inner->data;
             }
             else {
                 BITMAP *pbmp = NEW(BITMAP);
@@ -1174,7 +1174,7 @@ static void* etc_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
             break;
         }
         case REF_SRC_INNER:
-            res->data = res->source.inner->data;
+            res->data = (void*)res->source.inner->data;
             break;
         default:
             return NULL;

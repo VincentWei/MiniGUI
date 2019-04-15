@@ -112,6 +112,8 @@ static inline void reset_hidecursor_sem (void)
 #ifdef _DEBUG
     if (ret == -1)
         perror ("reset_hidecursor_sem");
+#else
+    ret = ret + 0;
 #endif
 }
 

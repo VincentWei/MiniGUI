@@ -83,8 +83,10 @@ static pthread_mutex_t timerLock;
 #endif /* __LINUX__ */
 
 #ifdef _MG_USE_BETTER_TIMER
+#ifdef _MGRM_THREADS
 #include <sys/times.h>
 static clock_t g_timer_started;
+#endif
 static clock_t g_last_tick;
 #endif
 
@@ -95,7 +97,7 @@ static void __mg_timer_action (void *data)
     SHAREDRES_TIMER_COUNTER += 1;
 #else
 
-#if defined(__uClinux__) && defined(_MGRM_STANDALONE)
+#if defined(_MGRM_STANDALONE)
     __mg_timer_counter += 10;
 #else
 #   ifdef _MG_USE_BETTER_TIMER

@@ -4584,17 +4584,15 @@ typedef unsigned long RES_KEY;
 /* define the incore res type */
 typedef struct _INNER_RES {
     RES_KEY key;
-    Uint8* data;
+    const Uint8* data;
     int data_len;
 
-    /* special param recognized by the TYPE_OPS
-     * normal is null.
-     * is the data is a mem of raw png, jpeg, bmp
-     * and so on, it should be the extention name
-     * of the filename. eg.
+    /* A special param recognized by the TYPE_OPS; normally is NULL.
+     * If the data is a raw png, jpeg, bmp file content,
+     * it should be the extention name of the filename:
      * INNER_RES res[]= { ... { ..., ... ,.., "png" } .. };
      * */
-    void* additional;
+    const void* additional;
 } INNER_RES;
 
 /* the type of resource */
