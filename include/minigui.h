@@ -2565,10 +2565,6 @@ MG_EXPORT void GUIAPI FreeFixStr (char* str);
      * @{
      */
 
-#ifndef _MGHAVE_CURSOR
-static inline void do_nothing (void) { return; }
-#endif
-
 #ifdef _MGHAVE_CURSOR
 
 /**
@@ -2731,11 +2727,32 @@ MG_EXPORT HCURSOR GUIAPI GetSystemCursor (int csrid);
  */
 MG_EXPORT HCURSOR GUIAPI GetCurrentCursor (void);
 #else
-  #define LoadCursorFromFile(filename)    (do_nothing(), 0)
-  #define CreateCursor(x, y, w, h, ANDbs, XORbs, cr) (do_nothing(), 0)
-  #define DestroyCursor(hcsr)             (do_nothing(), 0)
-  #define GetSystemCursor(csrid)          (do_nothing(), 0)
-  #define GetCurrentCursor()              (do_nothing(), 0)
+
+static inline HCURSOR LoadCursorFromFile(const char* filename) {
+    return (HCURSOR)0;
+}
+
+static inline HCURSOR CreateCursor(int xhotspot, int yhotspot, int w, int h,
+               const BYTE* pANDBits, const BYTE* pXORBits, int colornum) {
+    return (HCURSOR)0;
+}
+
+static inline HCURSOR GUIAPI CopyCursor (HCURSOR hcsr) {
+    return (HCURSOR)0;
+}
+
+static inline BOOL DestroyCursor (HCURSOR hcsr) {
+    return TRUE;
+}
+
+static inline HCURSOR GetSystemCursor (int csrid) {
+    return (HCURSOR)0;
+}
+
+static inline HCURSOR GUIAPI GetCurrentCursor (void) {
+    return (HCURSOR)0;
+}
+
 #endif /* _MGHAVE_CURSOR */
 
 #define MAX_SYSCURSORINDEX    22
@@ -2864,6 +2881,29 @@ MG_EXPORT void GUIAPI SetCursorPos (int x, int y);
  MG_EXPORT HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL set_def);
 
 /**
+ * \fn HCURSOR GUIAPI GetDefaultCursor (void)
+ * \brief Gets the default cursor.
+ *
+ * This function gets the current default cursor.
+ *
+ * \return The current default cursor handle.
+ *
+ * \sa SetCursorEx, SetDefaultCursor
+ */
+MG_EXPORT  HCURSOR GUIAPI GetDefaultCursor (void);
+
+#else
+static inline HCURSOR SetCursorEx(HCURSOR hcsr, BOOL set_def) {
+    return (HCURSOR)0;
+}
+
+static inline HCURSOR GetDefaultCursor(void) {
+    return (HCURSOR)0;
+}
+
+#endif /* _MGHAVE_CURSOR */
+
+/**
  * \def SetCursor(hcsr)
  * \brief Changes the current cursor.
  *
@@ -2896,25 +2936,6 @@ MG_EXPORT void GUIAPI SetCursorPos (int x, int y);
  */
   #define SetDefaultCursor(hcsr) SetCursorEx (hcsr, TRUE)
 
-/**
- * \fn HCURSOR GUIAPI GetDefaultCursor (void)
- * \brief Gets the default cursor.
- *
- * This function gets the current default cursor.
- *
- * \return The current default cursor handle.
- *
- * \sa SetCursorEx, SetDefaultCursor
- */
-MG_EXPORT  HCURSOR GUIAPI GetDefaultCursor (void);
-
-#else
-  #define SetCursorEx(hcsr, set_def)    (do_nothing(), 0)
-  #define SetCursor(hcsr)               (do_nothing(), 0)
-  #define SetDefaultCursor(hcsr)        (do_nothing(), 0)
-  #define GetDefaultCursor()            (do_nothing(), 0)
-#endif /* _MGHAVE_CURSOR */
-
 #ifdef _MGHAVE_CURSOR
 
 /**
@@ -2932,8 +2953,13 @@ MG_EXPORT  HCURSOR GUIAPI GetDefaultCursor (void);
  * \return Cursor showing count value. 
  */
 MG_EXPORT int GUIAPI ShowCursor (BOOL fShow);
+
 #else
-  #define ShowCursor(fShow)             (do_nothing(), 0)
+
+static inline int GUIAPI ShowCursor (BOOL fShow) {
+    return 0;
+}
+
 #endif /* _MGHAVE_CURSOR */
 
     /** @} end of cursor_fns */
