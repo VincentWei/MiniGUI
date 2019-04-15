@@ -12,7 +12,7 @@ extern unsigned char __mg_splash_dat_04_progressbar_bk_data[]; //04_progressbar-
 
 //declear arrays
 static INNER_RES __mg_splash_splash_inner_res[]={
-	{ 0x1562B2, (void*)__mg_splash_dat_00_minigui_data, 16616, "dat"}, //00_minigui.dat.c
+	{ 0x1562B2, (void*)__mg_splash_dat_00_minigui_data, 16236, "dat"}, //00_minigui.dat.c
 	{ 0xCD582, (void*)__mg_splash_dat_01_fmsoft_data, 3798, "dat"}, //01_fmsoft.dat.c
 	{ 0xC8712, (void*)__mg_splash_dat_02_feiman_data, 10012, "dat"}, //02_feiman.dat.c
 	{ 0x536B0E, (void*)__mg_splash_dat_03_progressbar_data, 2857, "dat"}, //03_progressbar.dat.c

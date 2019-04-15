@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -45,9 +45,9 @@
 
 #ifdef _MGINCORE_RES
 
-// This configuration file is for MiniGUI V3.0.x
+// This configuration file is for MiniGUI V4.0.x
 // Section: system
-static char* _system_keys[]={ 
+static char* _system_keys[]={
 // GAL engine and default options
     "gal_engine",
     "defaultmode",
@@ -56,7 +56,7 @@ static char* _system_keys[]={
     "mdev",
     "mtype"
 };
-static char* _system_values[]={ 
+static char* _system_values[]={
 // GAL engine and default options
     "pc_xvfb",
     "800x600-16bpp",
@@ -66,49 +66,49 @@ static char* _system_values[]={
     "IMPS2"
 };
 // Section: fbcon
-static char* _fbcon_keys[]={ 
+static char* _fbcon_keys[]={
     "defaultmode"
 };
-static char* _fbcon_values[]={ 
+static char* _fbcon_values[]={
     "1024x768-16bpp"
 };
 // Section: qvfb
-static char* _qvfb_keys[]={ 
+static char* _qvfb_keys[]={
     "defaultmode",
     "display"
 };
-static char* _qvfb_values[]={ 
+static char* _qvfb_values[]={
     "640x480-16bpp",
     "0"
 };
 #ifdef _MGGAL_PCXVFB
 // Section: pc_xvfb
-static char* _pc_xvfb_keys[]={ 
+static char* _pc_xvfb_keys[]={
     "defaultmode",
     "window_caption",
     "exec_file"
 };
-static char* _pc_xvfb_values[]={ 
+static char* _pc_xvfb_values[]={
     "800x600-16bpp",
     "XVFB-for-MiniGUI-3.0-(Gtk-Version)",
     "/usr/local/bin/gvfb"
 };
 #endif
 // Section: rtos_xvfb
-static char* _rtos_xvfb_keys[]={ 
+static char* _rtos_xvfb_keys[]={
     "defaultmode"
 };
-static char* _rtos_xvfb_values[]={ 
+static char* _rtos_xvfb_values[]={
     "800x600-16bpp"
 };
 #ifdef _MGGAL_SHADOW
 // Section: shadow
-static char* _shadow_keys[]={ 
+static char* _shadow_keys[]={
     "real_engine",
     "defaultmode",
     "rotate_screen"
 };
-static char* _shadow_values[]={ 
+static char* _shadow_values[]={
     "pc_xvfb",
     "800x600-16bpp",
     "normal"
@@ -116,13 +116,13 @@ static char* _shadow_values[]={
 #endif
 #ifdef _MGGAL_MLSHADOW
 // Section: mlshadow
-static char* _mlshadow_keys[]={ 
+static char* _mlshadow_keys[]={
     "real_engine",
     "defaultmode",
     "def_bgcolor",
     "double_buffer"
 };
-static char* _mlshadow_values[]={ 
+static char* _mlshadow_values[]={
     "qvfb",
     "800x600-16bpp",
     "0x00FF00",
@@ -131,7 +131,7 @@ static char* _mlshadow_values[]={
 #endif
 // The first system font must be a logical font using RBF device font.
 // Section: systemfont
-static char* _systemfont_keys[]={ 
+static char* _systemfont_keys[]={
     "font_number",
     "font0",
     "font1",
@@ -145,7 +145,7 @@ static char* _systemfont_keys[]={
     "menu",
     "control"
 };
-static char* _systemfont_values[]={ 
+static char* _systemfont_values[]={
     "5",
     "rbf-FixedSys-rrncnn-8-16-ISO8859-1",
     "*-FixedSys-rrncnn-*-16-ISO8859-1",
@@ -160,58 +160,58 @@ static char* _systemfont_values[]={
     "3"
 };
 // Section: rawbitmapfonts
-static char* _rawbitmapfonts_keys[]={ 
+static char* _rawbitmapfonts_keys[]={
     "font_number"
 };
-static char* _rawbitmapfonts_values[]={ 
+static char* _rawbitmapfonts_values[]={
     "0"
 };
 // Section: varbitmapfonts
-static char* _varbitmapfonts_keys[]={ 
+static char* _varbitmapfonts_keys[]={
     "font_number"
 };
-static char* _varbitmapfonts_values[]={ 
+static char* _varbitmapfonts_values[]={
     "0"
 };
 // Section: upf
-static char* _upf_keys[]={ 
+static char* _upf_keys[]={
     "font_number"
 };
-static char* _upf_values[]={ 
+static char* _upf_values[]={
     "0"
 };
 // Section: qpf
-static char* _qpf_keys[]={ 
+static char* _qpf_keys[]={
     "font_number"
 };
-static char* _qpf_values[]={ 
+static char* _qpf_values[]={
     "0"
 };
 // Section: truetypefonts
-static char* _truetypefonts_keys[]={ 
+static char* _truetypefonts_keys[]={
     "font_number"
 };
-static char* _truetypefonts_values[]={ 
+static char* _truetypefonts_values[]={
     "0"
 };
 // Section: mouse
-static char* _mouse_keys[]={ 
+static char* _mouse_keys[]={
     "dblclicktime"
 };
-static char* _mouse_values[]={ 
+static char* _mouse_values[]={
     "300"
 };
 // Section: event
-static char* _event_keys[]={ 
+static char* _event_keys[]={
     "timeoutusec",
     "repeatusec"
 };
-static char* _event_values[]={ 
+static char* _event_values[]={
     "300000",
     "50000"
 };
 // Section: cursorinfo
-static char* _cursorinfo_keys[]={ 
+static char* _cursorinfo_keys[]={
 // Edit following line to specify cursor files path
     "cursorpath",
     "cursornumber",
@@ -239,7 +239,7 @@ static char* _cursorinfo_keys[]={
     "cursor21",
     "cursor22"
 };
-static char* _cursorinfo_values[]={ 
+static char* _cursorinfo_values[]={
 // Edit following line to specify cursor files path
     "/usr/local/share/minigui/res/cursor/",
     "23",
@@ -268,14 +268,14 @@ static char* _cursorinfo_values[]={
     "ve_split.cur"
 };
 // Section: resinfo
-static char* _resinfo_keys[]={ 
+static char* _resinfo_keys[]={
     "respath"
 };
-static char* _resinfo_values[]={ 
+static char* _resinfo_values[]={
     "/usr/local/share/minigui/res/"
 };
 // Section: classic
-static char* _classic_keys[]={ 
+static char* _classic_keys[]={
 // Note that max number defined in source code is 5.
     "iconnumber",
     "icon0",
@@ -338,7 +338,7 @@ static char* _classic_keys[]={
     "bgc_significant_item",
     "bgc_desktop"
 };
-static char* _classic_values[]={ 
+static char* _classic_values[]={
 // Note that max number defined in source code is 5.
     "5",
     "form.ico",
@@ -403,7 +403,7 @@ static char* _classic_values[]={
 };
 #ifdef _MGLF_RDR_FLAT
 // Section: flat
-static char* _flat_keys[]={ 
+static char* _flat_keys[]={
 // Note that max number defined in source code is 5.
     "iconnumber",
     "icon0",
@@ -458,7 +458,7 @@ static char* _flat_keys[]={
     "bgc_desktop",
     "flat_tab_normal_color"
 };
-static char* _flat_values[]={ 
+static char* _flat_values[]={
 // Note that max number defined in source code is 5.
     "5",
     "form-flat.ico",
@@ -516,7 +516,7 @@ static char* _flat_values[]={
 #endif
 #ifdef _MGLF_RDR_SKIN
 // Section: skin
-static char* _skin_keys[]={ 
+static char* _skin_keys[]={
 // Note that max number defined in source code is 5.
     "iconnumber",
     "icon0",
@@ -599,7 +599,7 @@ static char* _skin_keys[]={
     "skin_progressbar_hchunk",
     "skin_progressbar_vchunk"
 };
-static char* _skin_values[]={ 
+static char* _skin_values[]={
 // Note that max number defined in source code is 5.
     "5",
     "form.ico",
@@ -684,7 +684,7 @@ static char* _skin_values[]={
 };
 #endif
 // Section: fashion
-static char* _fashion_keys[]={ 
+static char* _fashion_keys[]={
 // Note that max number defined in source code is 5.
     "iconnumber",
     "icon0",
@@ -737,7 +737,7 @@ static char* _fashion_keys[]={
     "bgc_significant_item",
     "bgc_desktop"
 };
-static char* _fashion_values[]={ 
+static char* _fashion_values[]={
 // Note that max number defined in source code is 5.
     "5",
     "form.ico",
@@ -790,38 +790,38 @@ static char* _fashion_values[]={
     "0xFFC56A31",
     "0xFF984E00"
 };
-static ETCSECTION _etc_sections [] = { 
-    {0, 5, "system", _system_keys,_system_values }, 
-    {0, 1, "fbcon", _fbcon_keys,_fbcon_values }, 
-    {0, 2, "qvfb", _qvfb_keys,_qvfb_values }, 
+static ETCSECTION _etc_sections [] = {
+    {0, 5, "system", _system_keys,_system_values },
+    {0, 1, "fbcon", _fbcon_keys,_fbcon_values },
+    {0, 2, "qvfb", _qvfb_keys,_qvfb_values },
 #ifdef _MGGAL_PCXVFB
-    {0, 3, "pc_xvfb", _pc_xvfb_keys,_pc_xvfb_values }, 
+    {0, 3, "pc_xvfb", _pc_xvfb_keys,_pc_xvfb_values },
 #endif
-    {0, 1, "rtos_xvfb", _rtos_xvfb_keys,_rtos_xvfb_values }, 
+    {0, 1, "rtos_xvfb", _rtos_xvfb_keys,_rtos_xvfb_values },
 #ifdef _MGGAL_SHADOW
-    {0, 3, "shadow", _shadow_keys,_shadow_values }, 
+    {0, 3, "shadow", _shadow_keys,_shadow_values },
 #endif
 #ifdef _MGGAL_MLSHADOW
-    {0, 4, "mlshadow", _mlshadow_keys,_mlshadow_values }, 
+    {0, 4, "mlshadow", _mlshadow_keys,_mlshadow_values },
 #endif
-    {0, 12, "systemfont", _systemfont_keys,_systemfont_values }, 
-    {0, 1, "rawbitmapfonts", _rawbitmapfonts_keys,_rawbitmapfonts_values }, 
-    {0, 1, "varbitmapfonts", _varbitmapfonts_keys,_varbitmapfonts_values }, 
-    {0, 1, "upf", _upf_keys,_upf_values }, 
-    {0, 1, "qpf", _qpf_keys,_qpf_values }, 
-    {0, 1, "truetypefonts", _truetypefonts_keys,_truetypefonts_values }, 
-    {0, 1, "mouse", _mouse_keys,_mouse_values }, 
-    {0, 2, "event", _event_keys,_event_values }, 
-    {0, 25, "cursorinfo", _cursorinfo_keys,_cursorinfo_values }, 
-    {0, 1, "resinfo", _resinfo_keys,_resinfo_values }, 
-    {0, 45, "classic", _classic_keys,_classic_values }, 
+    {0, 12, "systemfont", _systemfont_keys,_systemfont_values },
+    {0, 1, "rawbitmapfonts", _rawbitmapfonts_keys,_rawbitmapfonts_values },
+    {0, 1, "varbitmapfonts", _varbitmapfonts_keys,_varbitmapfonts_values },
+    {0, 1, "upf", _upf_keys,_upf_values },
+    {0, 1, "qpf", _qpf_keys,_qpf_values },
+    {0, 1, "truetypefonts", _truetypefonts_keys,_truetypefonts_values },
+    {0, 1, "mouse", _mouse_keys,_mouse_values },
+    {0, 2, "event", _event_keys,_event_values },
+    {0, 25, "cursorinfo", _cursorinfo_keys,_cursorinfo_values },
+    {0, 1, "resinfo", _resinfo_keys,_resinfo_values },
+    {0, 45, "classic", _classic_keys,_classic_values },
 #ifdef _MGLF_RDR_FLAT
-    {0, 46, "flat", _flat_keys,_flat_values }, 
+    {0, 46, "flat", _flat_keys,_flat_values },
 #endif
 #ifdef _MGLF_RDR_SKIN
-    {0, 71, "skin", _skin_keys,_skin_values }, 
+    {0, 71, "skin", _skin_keys,_skin_values },
 #endif
-    {0, 45, "fashion", _fashion_keys,_fashion_values } 
+    {0, 45, "fashion", _fashion_keys,_fashion_values }
 };
 
 ///////////////////////////////////////////////////
