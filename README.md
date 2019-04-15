@@ -109,7 +109,7 @@ This instruction assumes that you are using Ubuntu Linux.
 
 ### Prerequisites
 
-You should run `apt install <package_name>` to install the following packages 
+You should run `apt install <package_name>` to install the following packages
 on your Ubuntu Linux.
 
  * Building tools:
@@ -399,7 +399,7 @@ the commercial license of MiniGUI, please write to sales@minigui.com.
 
 ## COPYING
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
