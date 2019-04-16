@@ -418,6 +418,8 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, Glyph32 gv,
             cache_info.advance = ft_inst_info->advance;
             cache_info.bitmap  = NULL;
             cache_info.pitch   = 0;
+            cache_info.width   = 0;
+            cache_info.height  = 0;
             cache_info.valid_bbox = 1;
             cache_info.valid_advance = 1;
             cache_info.valid_bitmap = 0;
@@ -481,9 +483,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             if (pitch)
                 *pitch = cacheinfo->pitch;
 
-            if (!is_grey && sz &&
-                    (cacheinfo->height != sz->cy || cacheinfo->width != sz->cx)) {
-                _DBG_PRINTF("Font>FT2: Override BBOX size\n");
+            if (!is_grey && sz) {
                 sz->cx = cacheinfo->width;
                 sz->cy = cacheinfo->height;
             }
@@ -574,10 +574,9 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             }
 
             /* VincentWei: override the bbox.w and bbox.h with bitmap for monobitmap */
-            if (!is_grey && sz && (source->rows != sz->cy || source->width != sz->cx)) {
-                _DBG_PRINTF("Font>FT2: Override BBOX size\n");
-                sz->cx = source->width;
-                sz->cy = source->rows;
+            if (!is_grey && sz) {
+                sz->cx = pcache->width;
+                sz->cy = pcache->height;
             }
 
 #ifdef TTF_DBG
@@ -597,8 +596,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     buffer = get_raster_bitmap_buffer(source->rows * source->pitch);
     memcpy(buffer, source->buffer, source->rows * source->pitch);
     /* VincentWei: override the bbox.w and bbox.h with bitmap */
-    if (!is_grey && sz && (source->rows != sz->cy || source->width != sz->cx)) {
-        _DBG_PRINTF("Font>FT2: Override BBOX size\n");
+    if (!is_grey && sz) {
         sz->cx = source->width;
         sz->cy = source->rows;
     }
@@ -874,7 +872,8 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
     ft_inst_info->image_type.width = logfont->size;
     ft_inst_info->image_type.height = logfont->size;
     ft_inst_info->image_type.face_id = (FTC_FaceID)ft_inst_info->ft_face_info;
-    ft_inst_info->image_type.flags = FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP;
+    ft_inst_info->image_type.flags = FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP |
+            FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
 
     if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_MONO)
         ft_inst_info->image_type.flags |=
@@ -949,9 +948,9 @@ out_lock:
     FT_UNLOCK(&ft_lock);
 
 out:
-    free (ft_data);
-    free (ft_inst_info);
-    free (new_devfont);
+    if (ft_data) free (ft_data);
+    if (ft_inst_info) free (ft_inst_info);
+    if (new_devfont) free (new_devfont);
     return NULL;
 }
 
