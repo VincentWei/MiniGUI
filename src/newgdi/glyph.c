@@ -1986,6 +1986,8 @@ static BOOL _gdi_get_glyph_data (PDC pdc, Glyph32 glyph_value,
             /* the returned bits will be the subpixled pixmap */
             data = (BYTE*)(*devfont->font_ops->get_glyph_greybitmap) (logfont,
                     devfont, glyph_value, bbox, &pitch, &scale);
+            // the width of SUBPIXEL bitmap is 3x real width of bbox
+            bbox->cx /= 3;
             ctxt->cb = _dc_ft2subpixel_scan_line;
 
             /* flip the subpixeled pixmap */

@@ -260,7 +260,7 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     else {
         if (char_type == DEVFONTGLYPHTYPE_SUBPIXEL
                 && ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)
-            ft_load_flags |= FT_LOAD_TARGET_LCD;
+            ft_load_flags |= FT_LOAD_TARGET_LCD | FT_LOAD_FORCE_AUTOHINT;
         else
             ft_load_flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_FORCE_AUTOHINT;
     }
@@ -385,9 +385,9 @@ get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, Glyph32 gv,
     else {
         FT_Glyph_Get_CBox (ft_inst_info->glyph, FT_GLYPH_BBOX_PIXELS, &bbox);
 
-        //Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
         if (IS_SUBPIXEL(logfont) &&
                 (ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)) {
+            // Note: using subpixel filter, the bbox_w is 2 pixel wider than normal.
             bbox.xMin -= 1;
             bbox.xMax += 1;
         }
@@ -468,9 +468,6 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
 
     FT_LOCK(&ft_lock);
 
-    if (IS_SUBPIXEL(logfont))
-        FT_Library_SetLcdFilter(ft_library, ft_inst_info->ft_lcdfilter);
-
 #ifdef _MGFONT_TTF_CACHE
     if (ft_inst_info->cache) {
         TTFCACHEINFO *cacheinfo;
@@ -483,7 +480,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
             if (pitch)
                 *pitch = cacheinfo->pitch;
 
-            if (!is_grey && sz) {
+            /* VincentWei: override the bbox.w and bbox.h with bitmap information */
+            if (sz) {
                 sz->cx = cacheinfo->width;
                 sz->cy = cacheinfo->height;
             }
@@ -494,6 +492,9 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
         DP(("%s: Bitmap Non hit %d, %d\n", __FUNCTION__, bitmap_nohit++, gv));
     }
 #endif /* _MGFONT_TTF_CACHE */
+
+    if (IS_SUBPIXEL(logfont))
+        FT_Library_SetLcdFilter(ft_library, ft_inst_info->ft_lcdfilter);
 
     if (load_or_search_glyph (ft_inst_info, &face, gv,
                 get_glyph_bmptype(logfont, devfont))) {
@@ -573,8 +574,8 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
                         source->pitch, ft_inst_info->cache));
             }
 
-            /* VincentWei: override the bbox.w and bbox.h with bitmap for monobitmap */
-            if (!is_grey && sz) {
+            /* VincentWei: override the bbox.w and bbox.h with bitmap information */
+            if (sz) {
                 sz->cx = pcache->width;
                 sz->cy = pcache->height;
             }
@@ -596,7 +597,7 @@ char_bitmap_pixmap (LOGFONT* logfont, DEVFONT* devfont,
     buffer = get_raster_bitmap_buffer(source->rows * source->pitch);
     memcpy(buffer, source->buffer, source->rows * source->pitch);
     /* VincentWei: override the bbox.w and bbox.h with bitmap */
-    if (!is_grey && sz) {
+    if (sz) {
         sz->cx = source->width;
         sz->cy = source->rows;
     }
@@ -880,8 +881,10 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
             FT_LOAD_TARGET_MONO | FT_LOAD_FORCE_AUTOHINT;
     else {
         if ((logfont->style & FS_RENDER_MASK) == FS_RENDER_SUBPIXEL
-                && ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE)
-            ft_inst_info->image_type.flags |= FT_LOAD_TARGET_LCD;
+                && ft_inst_info->ft_lcdfilter != FT_LCD_FILTER_NONE) {
+            ft_inst_info->image_type.flags |=
+                FT_LOAD_TARGET_LCD | FT_LOAD_FORCE_AUTOHINT;
+        }
         else
             ft_inst_info->image_type.flags |=
                 FT_LOAD_TARGET_NORMAL | FT_LOAD_FORCE_AUTOHINT;
@@ -922,7 +925,7 @@ new_instance (LOGFONT* logfont, DEVFONT* devfont, BOOL need_sbc_font)
 
             ft_inst_info->cache = __mg_ttc_create(devfont->name,
                 logfont->style, logfont->size, logfont->rotation,
-                nblk , blksize, _TTF_HASH_NDIR, make_hash_key);
+                nblk, blksize, _TTF_HASH_NDIR, make_hash_key);
 
             DP(("__mg_ttc_create() return %p\n", ft_inst_info->cache));
         } else {
