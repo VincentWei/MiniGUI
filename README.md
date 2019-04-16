@@ -144,7 +144,7 @@ For more information, please run
 If you are anxious to see the comprehensive demo of MiniGUI core
 and MiniGUI components, please fetch one of the following repositories
 from GitHub and follow the instructions to build the samples and
-the demostration programs:
+the demonstration programs:
 
 https://github.com/VincentWei/build-minigui-4.0
 
@@ -155,12 +155,12 @@ https://github.com/VincentWei/build-minigui-3.2
 
 ### Unit Tests
 
-Since MiniGUI 4.0.0, we orgnize the unit test code of MiniGUI APIs in the
+Since MiniGUI 4.0.0, we organize the unit test code of MiniGUI APIs in the
 following repository:
 
 https://github.com/VincentWei/mg-tests
 
-If you are intersted in hacking the MiniGUI code, please use this repository.
+If you are interested in hacking the MiniGUI code, please use this repository.
 
 
 ## NEW FEATURES IN VERSION 4.0.x
