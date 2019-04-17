@@ -36,7 +36,8 @@ rendering in order that MiniGUI can handle complex writing systems
 * We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
-The new APIs also conform to the specification of [CSS Text Module Level 3].
+The new APIs also conform to the specification of [CSS Text Module Level 3]
+and [CSS Writing Modes Level 3].
 Indeed, we design the APIs for [HybridOS Foundation Class Library],
 which will provide the ability to render GUIs in CSS way.
 
@@ -177,16 +178,16 @@ The styles of LOGFONT changed.
   1. `FONT_WEIGHT_BOLD`: Bold.
   1. `FONT_WEIGHT_EXTRA_BOLD`: Extra Bold (Ultra Bold).
   1. `FONT_WEIGHT_BLACK`: Black (Heavy).
-* Introduce the new decoration styles and replace 
+* Introduce the new decoration styles and replace
 `FONT_UNDERLINE_LINE` and `FONT_STRUCKOUT_LINE` with them:
   1. `FONT_DECORATE_ANY`: Not specified.
   1. `FONT_DECORATE_NONE`: None.
   1. `FONT_DECORATE_UNDERLINE`: glyphs are underscored.
   1. `FONT_DECORATE_STRUCKOUT`: glyphs are overstruck.
-  1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE` 
+  1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE`
 and `FONT_DECORATE_STRUCKOUT`.
   1. `FONT_DECORATE_OUTLINE`: Outline (hollow) glyphs.
-  1. `FONT_DECORATE_REVERSE`: Reserved for future. Glyphs have their 
+  1. `FONT_DECORATE_REVERSE`: Reserved for future. Glyphs have their
 foreground and background reversed.
 * The following style are deprecated:
   1. `FONT_OTHER_LCDPORTRAIT`
@@ -717,3 +718,4 @@ https://github.com/VincentWei/minigui.
 [HybridOS]: https://github.com/FMSoftCN/hybridos
 [HybridOS Foundation Class Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
 [CSS Text Module Level 3]: https://www.w3.org/TR/css-text-3/
+[CSS Writing Modes Level 3]: https://www.w3.org/TR/css-writing-modes-3/
