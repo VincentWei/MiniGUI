@@ -102,6 +102,10 @@ components, and other open source apps on GitHub. You can visit them on:
 
 https://github.com/VincentWei
 
+We now maintain the documents about MiniGUI on GitHub Wiki:
+
+https://github.com/VincentWei/minigui/wiki
+
 
 ## A BRIEF BUILDING INSTRUCTION
 
