@@ -11551,7 +11551,7 @@ MG_EXPORT void GUIAPI DestroyBMPFont (DEVFONT* dev_font);
       * a dummy logfont object for this purpose in order to expense a minimal memory.
       *
       * If the text is in simple scripts, like Latin or Chinese, you can call
-      * \a GetGlyphsExtentPointEx function to lay out the paragraph. This function
+      * \a GetGlyphsExtentFromUChars function to lay out the paragraph. This function
       * returns a glyph string which can fit in a line with the specified
       * maximal extent and rendering flags. After this, you call
       * \a DrawGlyphStringEx function to draw the glyph string to the
@@ -12113,7 +12113,7 @@ MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, Glyph32* glyphs, int nr_glyphs,
         const POINT* pts);
 
 /**
- * \fn int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs, \
+ * \fn int GUIAPI GetGlyphsExtent(HDC hdc, Glyph32* glyphs, int nr_glyphs,
  *         SIZE* size)
  * \brief Get visual extent value of a glyph string.
  *
@@ -12133,7 +12133,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtent (HDC hdc, Glyph32* glyphs, int nr_glyphs,
         SIZE* size);
 
 /**
- * \fn int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs, \
+ * \fn int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
  *         int nr_glyphs, int max_extent, SIZE* size)
  * \brief Get the visual extent value of an glyph string.
  *
