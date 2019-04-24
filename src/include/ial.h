@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -72,6 +72,7 @@ extern "C" {
 #define _ROT_DIR_HFLIP 0x08
 #define _ROT_DIR_VFLIP 0x10
 #endif
+
 extern void (*__mg_ial_change_mouse_xy_hook) (int* x, int* y);
 extern DWORD __mg_shadow_rotate_flags;
 
@@ -89,36 +90,36 @@ extern INPUT* __mg_cur_input;
 #define IAL_UpdateMouse         (*__mg_cur_input->update_mouse)
 
 //#define IAL_GetMouseXY          (*__mg_cur_input->get_mouse_xy)
-static inline void IAL_GetMouseXY(int *x, int* y) {
-
-        if (__mg_cur_input && __mg_cur_input->get_mouse_xy) {
-            (*__mg_cur_input->get_mouse_xy) (x, y);
+static inline void IAL_GetMouseXY(int *x, int* y)
+{
+    if (__mg_cur_input && __mg_cur_input->get_mouse_xy) {
+        (*__mg_cur_input->get_mouse_xy) (x, y);
 #ifdef _MGHAVE_MOUSECALIBRATE
-            __mg_mouse_org_pos.x = *x;
-            __mg_mouse_org_pos.y = *y;
+        __mg_mouse_org_pos.x = *x;
+        __mg_mouse_org_pos.y = *y;
 #endif
-        }
+    }
 
 #ifdef _MGHAVE_MOUSECALIBRATE
-        if (__mg_do_mouse_calibrate) __mg_do_mouse_calibrate (x, y);
+    if (__mg_do_mouse_calibrate) __mg_do_mouse_calibrate (x, y);
 #endif
 
-        if (*x < 0) *x = 0;
-        if (*y < 0) *y = 0;
-        
-        if (__mg_ial_change_mouse_xy_hook)
-            __mg_ial_change_mouse_xy_hook (x, y);
-        else
-        {
-            if (*x > (__gal_screen->w-1)) *x = (__gal_screen->w-1);
-            if (*y > (__gal_screen->h-1)) *y = (__gal_screen->h-1);
-        }
+    if (*x < 0) *x = 0;
+    if (*y < 0) *y = 0;
+
+    if (__mg_ial_change_mouse_xy_hook)
+        __mg_ial_change_mouse_xy_hook (x, y);
+    else
+    {
+        if (*x > (__gal_screen->w-1)) *x = (__gal_screen->w-1);
+        if (*y > (__gal_screen->h-1)) *y = (__gal_screen->h-1);
+    }
 }
 
 #define IAL_GetMouseButton      (*__mg_cur_input->get_mouse_button)
 
-//#define IAL_SetMouseXY          if (__mg_cur_input->set_mouse_xy) (*__mg_cur_input->set_mouse_xy)
-static inline void IAL_SetMouseXY (int x, int y) {
+static inline void IAL_SetMouseXY (int x, int y)
+{
     if (__mg_cur_input->set_mouse_xy) {
 #ifdef _MGGAL_SHADOW
         if (__mg_shadow_rotate_flags & _ROT_DIR_CW){
@@ -140,14 +141,15 @@ static inline void IAL_SetMouseXY (int x, int y) {
     }
 }
 
-//#define IAL_SetMouseRange       if (__mg_cur_input->set_mouse_range) (*__mg_cur_input->set_mouse_range)
-static inline void IAL_SetMouseRange (int minx, int miny, int maxx, int maxy) {
+static inline void IAL_SetMouseRange (int minx, int miny, int maxx, int maxy)
+{
 
 #ifdef _MGGAL_SHADOW
     if (__mg_shadow_rotate_flags)
         return;
 #endif
-    if (__mg_cur_input->set_mouse_range) (*__mg_cur_input->set_mouse_range)(minx, miny, maxx, maxy);
+    if (__mg_cur_input->set_mouse_range)
+        __mg_cur_input->set_mouse_range(minx, miny, maxx, maxy);
 
 }
 

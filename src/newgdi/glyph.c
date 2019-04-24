@@ -209,20 +209,6 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     DEVFONT* devfont = SELECT_DEVFONT(logfont, glyph_value);
     glyph_value = REAL_GLYPH (glyph_value);
 
-    /*get glyph type*/
-    if (glyph_info->mask & GLYPH_INFO_TYPE)
-        glyph_info->glyph_type = devfont->charset_ops->glyph_type (glyph_value);
-
-    /*get glyph type*/
-    if (glyph_info->mask & GLYPH_INFO_BIDI_TYPE) {
-        if (devfont->charset_ops->bidi_glyph_type) {
-            glyph_info->bidi_glyph_type = devfont->charset_ops->bidi_glyph_type (glyph_value);
-        }
-        else {
-            glyph_info->bidi_glyph_type = BIDI_TYPE_INVALID;
-        }
-    }
-
     glyph_info->advance_x = 0;
     glyph_info->advance_y = 0;
     glyph_info->bbox_x = 0;
@@ -297,7 +283,7 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
     return advance;
 }
 
-void GUIAPI inline GetGlyphBitmap (LOGFONT* logfont, const char* mchar, 
+void GUIAPI GetGlyphBitmap (LOGFONT* logfont, const char* mchar, 
         int mchar_len, GLYPHBITMAP* glyph_bitmap)
 {
     GLYPHINFO glyph_info;

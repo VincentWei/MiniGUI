@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -103,7 +103,7 @@ void font_ResetDevFont (void)
 #define MATCHED_FAMILY      0x02
 #define MATCHED_CHARSET     0x04
 
-static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head, 
+static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
         int list_len, char* req_charset)
 {
     int i = 0;
@@ -160,8 +160,8 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
         if ((match_bits [i] & MATCHED_TYPE)
                 && (match_bits [i] & MATCHED_FAMILY)
                 && (match_bits [i] & MATCHED_CHARSET)) {
-            error = log_font->size - 
-                (*dev_font->font_ops->get_font_size) (log_font, dev_font, 
+            error = log_font->size -
+                (*dev_font->font_ops->get_font_size) (log_font, dev_font,
                         log_font->size);
             error = ABS (error);
             if (min_error >= error) {   /* use >=, make the later has a higher priority */
@@ -178,7 +178,7 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
         FreeFixStr ((char*)match_bits);
 #endif
 
-        matched_font->font_ops->get_font_size (log_font, matched_font, 
+        matched_font->font_ops->get_font_size (log_font, matched_font,
                 log_font->size);
 
         return matched_font;
@@ -189,7 +189,7 @@ static DEVFONT* get_matched_devfont (LOGFONT* log_font, DEVFONT* list_head,
     for (i = 0; i < list_len; i++) {
         int error;
         if (match_bits [i] & MATCHED_CHARSET) {
-            error = log_font->size - 
+            error = log_font->size -
                 (*dev_font->font_ops->get_font_size) (log_font, dev_font, log_font->size);
             error = ABS (error);
             if (min_error >= error) {   /* use >=, make the later has a higher priority */
@@ -218,12 +218,12 @@ DEVFONT* font_GetMatchedSBDevFont (LOGFONT* log_font)
         /*mbc logfont --- sbc devfont*/
         char sysfont_charset [LEN_FONT_NAME + 1];
         fontGetCharsetFromName (g_SysLogFont[0]->sbc_devfont->name, sysfont_charset);
-        matched_devfont = get_matched_devfont (log_font, sb_dev_font_head, 
+        matched_devfont = get_matched_devfont (log_font, sb_dev_font_head,
                 nr_sb_dev_fonts, sysfont_charset);
     }
     else {
         /*sbc logfont --- sbc devfont*/
-        matched_devfont = get_matched_devfont (log_font, sb_dev_font_head, 
+        matched_devfont = get_matched_devfont (log_font, sb_dev_font_head,
                 nr_sb_dev_fonts,log_font->charset);
     }
 
@@ -240,7 +240,7 @@ DEVFONT* font_GetMatchedMBDevFont (LOGFONT* log_font)
         return NULL;
     /*mbc logfont --- mbc devfont*/
     else
-        return get_matched_devfont (log_font, mb_dev_font_head, 
+        return get_matched_devfont (log_font, mb_dev_font_head,
                 nr_mb_dev_fonts, log_font->charset);
 }
 
@@ -265,7 +265,7 @@ unsigned short font_GetBestScaleFactor (int height, int expect)
 {
     int error, min_error;
     unsigned short scale = 1;
-    
+
     min_error = height - expect;
     min_error = ABS (min_error);
 
@@ -322,10 +322,10 @@ void dbg_dumpDevFonts (void)
 
 /***** Added in MiniGUI V2.2 for bitmap font *****/
 
-/*  
+/*
  * Removes an element from single-byte devfont linked list. If two elements
  * contain the same data, only the first is removed. If none of the elements
- * contain the data, the single-byte devfont linked list is unchanged   
+ * contain the data, the single-byte devfont linked list is unchanged
  */
 void font_DelSBDevFont (DEVFONT* dev_font)
 {
@@ -334,27 +334,27 @@ void font_DelSBDevFont (DEVFONT* dev_font)
   tmp = sb_dev_font_head;
   while (tmp != NULL) {
       if (tmp == dev_font) {
-	  if (prev != NULL)
+      if (prev != NULL)
               prev->next = tmp->next;
-	  else
+      else
               sb_dev_font_head = tmp->next;
 
           nr_sb_dev_fonts --;
-          
-	  break;
+
+      break;
       }
-      
+
       prev = tmp;
       tmp = prev->next;
   }
-  
+
   return;
 }
 
-/*  
+/*
  * Removes an element from multiple-byte devfont linked list. If two elements
  * contain the same data, only the first is removed. If none of the elements
- * contain the data, the multiple-byte devfont linked list is unchanged   
+ * contain the data, the multiple-byte devfont linked list is unchanged
  */
 void font_DelMBDevFont (DEVFONT* dev_font)
 {
@@ -369,31 +369,55 @@ void font_DelMBDevFont (DEVFONT* dev_font)
               mb_dev_font_head = tmp->next;
 
           nr_mb_dev_fonts --;
-          
-	  break;
+
+      break;
       }
       prev = tmp;
       tmp = prev->next;
   }
-  
+
   return;
 }
 
 //////////////////////////////////////////////////////////////////////
-static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filename)
+static DEVFONT* find_devfont(const char* font_name, BOOL is_mbc_list)
+{
+    DEVFONT* head;
+    DEVFONT* cur;
+
+    if (is_mbc_list) {
+        head = mb_dev_font_head;
+    }
+    else {
+        head = sb_dev_font_head;
+    }
+
+    cur = head;
+    while (cur) {
+        if (strcasecmp (cur->name, font_name) == 0) {
+            return cur;
+        }
+
+        cur = cur->next;
+    }
+
+    return NULL;
+}
+
+static DEVFONT* make_devfont (const char* font_name, const void* data, BOOL is_filename)
 {
     FONTOPS_INFO* fontops_info = __mg_fontops_infos;
     DEVFONT* devfont;
     CHARSETOPS* charset_ops;
     char charset [LEN_FONT_NAME + 1];
-	
+
     /*find the FONTOPS and LOADER*/
     while (fontops_info->type) {
         if (strncmp (font_name, fontops_info->type, FONT_TYPE_NAME_LEN) == 0)
             break;
         fontops_info++;
     }
-	
+
     if (fontops_info->type == NULL) {
         _MG_PRINTF ("FONT>DevFont: invalid font type: %s.\n", font_name);
         return NULL;
@@ -406,8 +430,14 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
     }
 
     if ((charset_ops = GetCharsetOpsEx (charset)) == NULL) {
-        _MG_PRINTF ("FONT>DevFont: Invalid charset name %s of font %s.\n", 
+        _MG_PRINTF ("FONT>DevFont: Invalid charset name %s of font %s.\n",
                 charset, font_name);
+        return NULL;
+    }
+
+    if (find_devfont(font_name, (charset_ops->bytes_maxlen_char > 1))) {
+        _MG_PRINTF ("FONT>DevFont: Duplicated devfont name (%s)",
+                font_name);
         return NULL;
     }
 
@@ -421,7 +451,7 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
         devfont->data = devfont->font_ops->load_font_data (font_name, data);
 
         if (devfont->data == NULL) {
-            _MG_PRINTF ("FONT>DevFont: error in loading font %s from %s file.\n", 
+            _MG_PRINTF ("FONT>DevFont: error in loading font %s from %s file.\n",
                 font_name, (const char*) data);
             free (devfont);
             return NULL;
@@ -429,7 +459,7 @@ static DEVFONT* make_devfont (const char* font_name, void* data, BOOL is_filenam
         devfont->need_unload = TRUE;
     }
     else {
-        devfont->data = data;
+        devfont->data = (void*)data;
         devfont->need_unload = FALSE;
     }
 
@@ -562,7 +592,7 @@ static UPFINFO* incore_upfonts [] = {
     &__mgif_upf_times_12x10,
     &__mgif_upf_times_17x14,
 #endif
-	NULL
+    NULL
 };
 
 #define NR_UPFONTS  (sizeof (incore_upfonts) / sizeof (UPFINFO*))
@@ -649,7 +679,7 @@ static void del_all_devfonts (void)
     DEVFONT* cur;
     DEVFONT* head;
 
-    head = sb_dev_font_head; 
+    head = sb_dev_font_head;
 one_list:
     cur = head;
     while (cur) {
@@ -674,8 +704,8 @@ one_list:
 */
 
 
-static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list) 
-{ 
+static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list)
+{
     DEVFONT* head;
     DEVFONT* cur;
     DEVFONT* prev;
@@ -691,11 +721,11 @@ static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list
         prev = NULL;
     }
 
-    while (cur) { 
-        if (strcmp (cur->name, font_name) == 0) { 
-            /*unload cur->data*/ 
-            if (!cur->relationship && cur->need_unload) 
-                cur->font_ops->unload_font_data (cur->data); 
+    while (cur) {
+        if (strcmp (cur->name, font_name) == 0) {
+            /*unload cur->data*/
+            if (!cur->relationship && cur->need_unload)
+                cur->font_ops->unload_font_data (cur->data);
 
             if (cur == head) {
                 cur = cur->next;
@@ -705,20 +735,20 @@ static inline void del_devfont_from_list(const char* font_name, BOOL is_mbc_list
             }
             else {
                 prev->next = cur->next;
-                free (cur); 
-                cur = prev->next; 
+                free (cur);
+                cur = prev->next;
             }
 
             if (is_mbc_list)
                 nr_mb_dev_fonts--;
             else
                 nr_sb_dev_fonts--;
-        } 
-        else { 
+        }
+        else {
             prev = cur;
             cur = cur->next;
-        } 
-    } 
+        }
+    }
 
     if (is_mbc_list)
         mb_dev_font_head = head;
@@ -738,10 +768,22 @@ static void font_DelDevFont (const char* font_name)
     del_devfont_from_list(font_name, FALSE);
 }
 
-DEVFONT* GUIAPI LoadDevFontFromFile 
-    (const char *devfont_name, const char *file_name)
+DEVFONT* GUIAPI LoadDevFontFromIncoreData(const char *devfont_name,
+        const void *data)
 {
-    DEVFONT* devfont = make_devfont (devfont_name, (char*)file_name, TRUE);
+    DEVFONT* devfont = make_devfont (devfont_name, data, FALSE);
+    if (devfont == NULL)
+        return NULL;
+
+    ADD_DEVFONT_TO_LINKLIST (devfont);
+    add_relating_devfonts_to_list (devfont);
+    return devfont;
+}
+
+DEVFONT* GUIAPI LoadDevFontFromFile(const char *devfont_name,
+        const char *file_name)
+{
+    DEVFONT* devfont = make_devfont (devfont_name, file_name, TRUE);
     if (devfont == NULL)
         return NULL;
 
@@ -752,7 +794,12 @@ DEVFONT* GUIAPI LoadDevFontFromFile
 
 void GUIAPI DestroyDynamicDevFont (DEVFONT** devfont)
 {
-    font_DelDevFont ((*devfont)->name);
+    char font_name [LEN_UNIDEVFONT_NAME + 1];
+
+    memset(font_name, 0, LEN_UNIDEVFONT_NAME + 1);
+    strncpy(font_name, (*devfont)->name, LEN_UNIDEVFONT_NAME);
+
+    font_DelDevFont (font_name);
     *devfont = NULL;
 }
 
@@ -763,13 +810,13 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
     char font_name [LEN_UNIDEVFONT_NAME + 1];
     char font_file [MAX_PATH+1];
     char font_path [MAX_PATH+1];
-	char *font_file_name = NULL;
-	MEM_RES* memres = NULL;
+    char *font_file_name = NULL;
+    MEM_RES* memres = NULL;
 
     char key[12];
     int added_num = 0;
 
-	font_file_name = font_file;
+    font_file_name = font_file;
 
     /*get font number in minigui etc*/
     if (GetMgEtcIntValue (etc_section, "font_number", &font_num) < 0 ) {
@@ -782,14 +829,14 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
     for (i=0; i<font_num; i++) {
         snprintf (key, sizeof(key)-1, "name%d", i);
         if (GetMgEtcValue (etc_section, key, font_name, LEN_UNIDEVFONT_NAME) < 0) {
-            _MG_PRINTF ("FONT>DevFont: can't get name of key %s in section %s.\n", 
+            _MG_PRINTF ("FONT>DevFont: can't get name of key %s in section %s.\n",
                     key, etc_section);
             continue;
         }
 
         snprintf (key, sizeof(key)-1, "fontfile%d", i);
         if (GetMgEtcValue (etc_section, key, font_file_name, MAX_PATH) < 0) {
-            _MG_PRINTF ("FONT>DevFont: can't get font_file of key %s in section %s.\n", 
+            _MG_PRINTF ("FONT>DevFont: can't get font_file of key %s in section %s.\n",
                     key, etc_section);
             continue;
         }
@@ -808,7 +855,7 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
         else {
             /* [DK] Fix Bug #4801, which introduce a absolute path check error in Windows,
              * first to load from sytem res path, else load it directly(relative or absolute path).*/
-            if ((0 == mg_path_joint(font_path, MAX_PATH + 1, sysres_get_system_res_path(), font_file)) 
+            if ((0 == mg_path_joint(font_path, MAX_PATH + 1, sysres_get_system_res_path(), font_file))
                     && ((AddDevFont (font_name, font_path, TRUE)) == TRUE))
                 added_num++;
             else if ((AddDevFont (font_name, font_file, TRUE)) == TRUE)

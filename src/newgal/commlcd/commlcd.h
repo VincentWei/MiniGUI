@@ -37,6 +37,8 @@
 
 #include "sysvideo.h"
 
+#include "exstubs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -57,25 +59,25 @@ struct GAL_PrivateVideoData {
 };
 
 /* The pixel format defined by depth */
-#define COMMLCD_PSEUDO_RGB332    1
-#define COMMLCD_TRUE_RGB555      2
-#define COMMLCD_TRUE_RGB565      3
-#define COMMLCD_TRUE_RGB888      4
-#define COMMLCD_TRUE_RGB0888     5
-#define COMMLCD_TRUE_ARGB1555    6
-#define COMMLCD_TRUE_ARGB8888    7
-#define	COMMLCD_TRUE_AGBR8888	 8
+//#define COMMLCD_PSEUDO_RGB332    1
+//#define COMMLCD_TRUE_RGB555      2
+//#define COMMLCD_TRUE_RGB565      3
+//#define COMMLCD_TRUE_RGB888      4
+//#define COMMLCD_TRUE_RGB0888     5
+//#define COMMLCD_TRUE_ARGB1555    6
+//#define COMMLCD_TRUE_ARGB8888    7
+//#define	COMMLCD_TRUE_AGBR8888	 8
 
-struct commlcd_info {
-    short height;         // vertical resolution of the screen
-    short width;          // horinzontal resolution of the screen
-    short bpp;            // Depth (bits-per-pixel)
-    short type;           // Pixel type
-    short rlen;           // Length of one scan line in bytes
-    void  *fb;            // Frame buffer
+//struct commlcd_info {
+//    short height;         // vertical resolution of the screen
+//    short width;          // horinzontal resolution of the screen
+//    short bpp;            // Depth (bits-per-pixel)
+//    short type;           // Pixel type
+//    short rlen;           // Length of one scan line in bytes
+//    void  *fb;            // Frame buffer
 
-    short async_update;   // update asynchronously or synchronously. 0 for synchronously; others for asynchronously.
-};
+//    short async_update;   // update asynchronously or synchronously. 0 for synchronously; others for asynchronously.
+//};
 
 struct commlcd_ops {
     /* return value: zero for OK */

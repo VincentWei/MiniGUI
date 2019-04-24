@@ -2769,7 +2769,7 @@ MG_EXPORT void GUIAPI RGB2Pixels (HDC hdc, const RGB* rgbs,
  */
 static inline gal_pixel RGB2Pixel (HDC hdc, Uint8 r, Uint8 g, Uint8 b)
 {
-    RGB rgb = {r, g, b, 0};
+    RGB rgb = {r, g, b, 0xFF};
     gal_pixel pixel;
 
     RGB2Pixels (hdc, &rgb, &pixel, 1);
@@ -6258,7 +6258,6 @@ MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
 
 #endif
 
-#if defined(_MGFONT_QPF) || defined(_MGFONT_FT2) || defined(_MGFONT_TTF) || defined(_MGFONT_UPF)
 /**
  * \fn DEVFONT* GUIAPI LoadDevFontFromFile (const char* devfont_name, \
  *        const char* file_name)
@@ -6275,8 +6274,25 @@ MG_EXPORT BOOL GUIAPI ft2SetLcdFilter (LOGFONT* logfont, mg_FT_LcdFilter filter)
  *
  * \sa GetNextDevFont, DestroyDynamicDevFont
  */
-MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name, 
+MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name,
         const char *file_name);
+
+/**
+ * \fn DEVFONT* GUIAPI LoadDevFontFromIncoreData (const char* devfont_name, \
+ *        const void* data)
+ * \brief Load device font from incore data.
+ *
+ * This function can be used to load device font from incore data.
+ *
+ * \param devfont_name The device font name.
+ * \param data The pointer to the incore font data.
+ *
+ * \return the pointer to the new device font on success, NULL on error.
+ *
+ * \sa GetNextDevFont, DestroyDynamicDevFont
+ */
+MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromIncoreData (const char *devfont_name,
+        const void *data);
 
 /**
  * \fn void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont)
@@ -6288,7 +6304,6 @@ MG_EXPORT DEVFONT* GUIAPI LoadDevFontFromFile (const char *devfont_name,
  * \sa LoadDevFontFromFile 
  */
 MG_EXPORT void GUIAPI DestroyDynamicDevFont (DEVFONT **devfont);
-#endif
 
     /** @} end of font_fns */
 
@@ -8760,10 +8775,8 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 MG_EXPORT int GUIAPI DrawGlyphString (HDC hdc, int x, int y, Glyph32* glyph_string, 
         int len, int* adv_x, int* adv_y);
 
-#define GLYPH_INFO_TYPE         0x01
-#define GLYPH_INFO_BIDI_TYPE    0x02
-#define GLYPH_INFO_METRICS      0x04
-#define GLYPH_INFO_BMP          0x10
+#define GLYPH_INFO_METRICS      0x01
+#define GLYPH_INFO_BMP          0x02
 
 /*the type of glyph bitmap*/
 #define GLYPHBMP_TYPE_MONO      0x00
@@ -8780,18 +8793,10 @@ typedef struct _GLYPHINFO
     /**
      * The mask indicates if you want to get glyph type info, metrics,
      * or bitmap infomation you want. Or'ed with the following values:
-     * - GLYPH_INFO_TYPE
-     * - GLYPH_INFO_BIDI_TYPE
      * - GLYPH_INFO_METRICS
      * - GLYPH_INFO_BMP
      */
-    unsigned char mask;
-
-    /** The basic glyph type */
-    unsigned int glyph_type;
-
-    /** The BIDI glyph type */
-    unsigned int bidi_glyph_type;
+    Uint32 mask;
 
     /** The height of the glyph */
     int height;

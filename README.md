@@ -5,55 +5,55 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 
 ## TABLE OF CONTENTS
 
-  1. Introduction
-  1. A brief building instruction
-  1. New features in version 3.2.x
-  1. The runtime modes of MiniGUI
-  1. History
-  1. About the authors
-  1. If you have a problem
-  1. A little FAQ
-  1. Not free for commercial use
+  1. Introduction 
+  1. A brief building instruction 
+  1. New features in version 3.2.x 
+  1. The runtime modes of MiniGUI 
+  1. History 
+  1. About the authors 
+  1. If you have a problem 
+  1. A little FAQ 
+  1. Not free for commercial use 
   1. Copying
 
 
 ## INTRODUCTION
-    
-MiniGUI is a mature cross-platform windowing system and a GUI (Graphics 
+
+MiniGUI is a mature cross-platform windowing system and a GUI (Graphics
 User Interface) support system for embedded systems and smart IoT devices.
-This is the version 3.2.x of MiniGUI maintained by WEI Yongming 
+This is the version 3.2.x of MiniGUI maintained by WEI Yongming
 (Vincent Wei, https://github.com/VincentWei).
 
 MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
 use.
 
 MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
-windowing and GUI support system, which is especially fit for 
-embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other 
-traditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II, 
+windowing and GUI support system, which is especially fit for
+embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
+traditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II,
 and OSE.
 
-This is the MiniGUI core source tree, which provides windowing 
-and graphics interfaces as well as a lot of standard controls (tookit). 
+This is the MiniGUI core source tree, which provides windowing
+and graphics interfaces as well as a lot of standard controls (tookit).
 
 Besides MiniGUI core, FMSoft also provides some components
 for the developers to develop app much easier:
 
-  * mGUtils: A MiniGUI component which contains miscellaneous utilities 
-    like ColorSelectionDialogBox, FileOpenDialogBox, and so on. 
+  * mGUtils: A MiniGUI component which contains miscellaneous utilities
+    like ColorSelectionDialogBox, FileOpenDialogBox, and so on.
 
-  * mGPlus: A MiniGUI component which provides support for advanced graphics 
+  * mGPlus: A MiniGUI component which provides support for advanced graphics
     functions like path, gradient, anti-aliase stretch, and color combination.
 
-  * mGEff: mGEff provides an animation framework for MiniGUI app. 
+  * mGEff: mGEff provides an animation framework for MiniGUI app.
      It also provides some popular UI/UE special effects.
 
-  * mGNCS: This component provides a new control set for MiniGUI app. 
-    By using mGNCS, you can use miniStudio to develop MiniGUI app in 
-    WYSIWYG way. 
+  * mGNCS: This component provides a new control set for MiniGUI app.
+    By using mGNCS, you can use miniStudio to develop MiniGUI app in
+    WYSIWYG way.
 
-  * mGNCS4Touch: This component provides some new controls, which are 
-    compliant to the new control API spec of mGNCS, for devices with 
+  * mGNCS4Touch: This component provides some new controls, which are
+    compliant to the new control API spec of mGNCS, for devices with
     a touch screen.
 
 There are also some legacy MiniGUI components. We will not maintain these
@@ -61,7 +61,7 @@ components for MiniGUI core v3.2:
 
   * mGi: An input method component for MiniGUI. This component provides
     some typical input methods (such as softkey, hand-writing, and predict
-    text input for mobile phone) for MiniGUI apps. 
+    text input for mobile phone) for MiniGUI apps.
 
   * mGp: A printing component for MiniGUI. By using mGp, you can print
     out the graphics created by MiniGUI app to general-purpose printers.
@@ -70,11 +70,11 @@ components for MiniGUI core v3.2:
     provides a simple 3D API for app. You can use mG3d to create simple
     3D UI.
 
-MiniGUI is a free software project. In December 1998, the initiator of 
-FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public 
-License (GPL). In September 2002, the core developers of 
-MiniGUI founded FMSoft and started the commercial marketing with 
-the free software. By now, FMSoft still continues to release MiniGUI 
+MiniGUI is a free software project. In December 1998, the initiator of
+FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public
+License (GPL). In September 2002, the core developers of
+MiniGUI founded FMSoft and started the commercial marketing with
+the free software. By now, FMSoft still continues to release MiniGUI
 as a free software project.
 
 You can download the source code tarball of MiniGUI and the dependent libraries
@@ -82,27 +82,27 @@ from the download zone of the site:
 
   http://www.minigui.com
 
-FMSoft also releases some open source apps for MiniGUI on the site above, 
+FMSoft also releases some open source apps for MiniGUI on the site above,
 for examples:
 
-  * mDolphin, licensed under Apache 2.0, is a full-featured 
-    WEB/WAP browser, which is developed based on the open source browser 
+  * mDolphin, licensed under Apache 2.0, is a full-featured
+    WEB/WAP browser, which is developed based on the open source browser
     core WebKit and uses MiniGUI as its underlying graphics support system.
 
-  * mGallery, licensed under Apache 2.0, intends to 
-    provide a total solution for PMP (Portable Multimedia Player), 
+  * mGallery, licensed under Apache 2.0, intends to
+    provide a total solution for PMP (Portable Multimedia Player),
     which uses MiniGUI as the graphics platform.
 
-  * mSpider, licensed under GPL 3.0, intends to provide a 
+  * mSpider, licensed under GPL 3.0, intends to provide a
     light-weight MiniGUI-based web browser (HTML 3.2 and part JavaScript)
 
-  * mEagle, licensed under GPL 3.0, is an embedded GIS development platform 
+  * mEagle, licensed under GPL 3.0, is an embedded GIS development platform
     which addresses the needs of map browse, query, analysis, etc
 
-FMSoft had created the public repositories for MiniGUI core, MiniGUI 
+FMSoft had created the public repositories for MiniGUI core, MiniGUI
 components, and other open source apps on GitHub. You can visit them on:
 
-https://github.com/VincentWei 
+https://github.com/VincentWei
 
 FMSoft also releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
 You can also download it from the official site of MiniGUI.
@@ -154,7 +154,7 @@ We introduce some new features in MiniGUI Version 3.2.x:
     to support 64-bit platform. For more information, please refer to
     RELEASE-NOTES.md file.
 
-Because of the changes of some APIs, we recommended strongly that you 
+Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
 
 ## THE RUNTIME MODES OF MINIGUI
@@ -164,64 +164,64 @@ You can configure and compile MiniGUI as one of three runtime modes:
   * 'MiniGUI-Threads': A program running on MiniGUI-Threads can create
     multiple cascaded windows in different threads, and all the windows
     belong to a single process. MiniGUI-Threads is fit for some real-time
-    systems on Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX, 
+    systems on Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX,
     and OSE.
 
-  * 'MiniGUI-Processes': A program running on MiniGUI-Processes is 
-    an independent process, which can also create multiple windows. 
-    MiniGUI-Processes is fit for some complex embedded systems, such as 
-    PDAs, Thin-Clients or STBs. This mode is only useful for full-featured 
+  * 'MiniGUI-Processes': A program running on MiniGUI-Processes is
+    an independent process, which can also create multiple windows.
+    MiniGUI-Processes is fit for some complex embedded systems, such as
+    PDAs, Thin-Clients or STBs. This mode is only useful for full-featured
     UNIX-like operating systems, like Linux.
 
   * 'MiniGUI-Standalone': A single process version of MiniGUI. This mode
     is useful for some small systems, like uClinux or RTOSes.
 
 The original MiniGUI (version 1.0) run in MiniGUI-Threads mode.
-It is based on POSIX-compliant thread library. And this thread-based 
-architecture of MiniGUI is very fit for most traditional embedded 
-operating systems, such as eCos, uC/OS-II, and VxWorks. However, 
-if you use embedded Linux, the architecture like X Window will have 
-better stability and scalability, because of the independent memory 
+It is based on POSIX-compliant thread library. And this thread-based
+architecture of MiniGUI is very fit for most traditional embedded
+operating systems, such as eCos, uC/OS-II, and VxWorks. However,
+if you use embedded Linux, the architecture like X Window will have
+better stability and scalability, because of the independent memory
 address space of every process.
 
 Since version 2.0, we provides a new runtime mode called MiniGUI-Processes.
-You can use MiniGUI-Processes to run more than one MiniGUI-based 
-program in the form of UNIX process at the same time. MiniGUI-Processes 
-is a full-featured multi-process version of original MiniGUI -- You 
-can run a program based on MiniGUI-Processes from a program called 
-'mginit'. Just like X Window, the former process is called a client, 
-and the latter the server. 
+You can use MiniGUI-Processes to run more than one MiniGUI-based
+program in the form of UNIX process at the same time. MiniGUI-Processes
+is a full-featured multi-process version of original MiniGUI -- You
+can run a program based on MiniGUI-Processes from a program called
+'mginit'. Just like X Window, the former process is called a client,
+and the latter the server.
 
-Clients connect to the server via UNIX domain socket, and the server 
-receives and responses requests from clients. The server provides shared 
-resources for clients, manage window objects, and sends mouse 
-(or touch screen) and keyboard events to the active top-most client. 
-If a client exits or dies for some reasons, it will not damage other 
+Clients connect to the server via UNIX domain socket, and the server
+receives and responses requests from clients. The server provides shared
+resources for clients, manage window objects, and sends mouse
+(or touch screen) and keyboard events to the active top-most client.
+If a client exits or dies for some reasons, it will not damage other
 clients and the server.
 
 
 ## HISTORY
 
-About ten years have pasted since MiniGUI was initially created at 
-the end of 1998, and now it becomes much reliable and stable. 
-During the past years, many remarkable changes have taken place in 
+About ten years have pasted since MiniGUI was initially created at
+the end of 1998, and now it becomes much reliable and stable.
+During the past years, many remarkable changes have taken place in
 the MiniGUI project.
 
-At the original, the version 0.2.xx was based on SVGALib and PThread 
-(LinuxThreads). Then the version 0.3.xx had many enhanced features 
-including Graphics Abstract Layer (GAL), Input Abstract Layer (IAL), 
-and the support for multiple charsets and multiple fonts. 
+At the original, the version 0.2.xx was based on SVGALib and PThread
+(LinuxThreads). Then the version 0.3.xx had many enhanced features
+including Graphics Abstract Layer (GAL), Input Abstract Layer (IAL),
+and the support for multiple charsets and multiple fonts.
 
-In version 1.0.00, we designed MiniGUI-Lite, which was more fit for 
-some complex embedded systems, such as PDAs, Thin-Clients, or STBs. 
-MiniGUI-Lite made the embedded systems more stable and efficient. 
-The version 1.0.00 provided the native fbcon engine based on Linux 
-frame buffer device directly as well. 
+In version 1.0.00, we designed MiniGUI-Lite, which was more fit for
+some complex embedded systems, such as PDAs, Thin-Clients, or STBs.
+MiniGUI-Lite made the embedded systems more stable and efficient.
+The version 1.0.00 provided the native fbcon engine based on Linux
+frame buffer device directly as well.
 
-In the development of version 1.1.00, we re-wrote the GAL and GDI 
-interfaces, and provided some advanced video features, such as raster 
-operation, transparent blitting, alpha blending, and video hardware 
-acceleration. We also provided some important GDI functions, such as 
+In the development of version 1.1.00, we re-wrote the GAL and GDI
+interfaces, and provided some advanced video features, such as raster
+operation, transparent blitting, alpha blending, and video hardware
+acceleration. We also provided some important GDI functions, such as
 Ellipse, Arc, Polygon, and FloodFill.
 
 In the development of version 1.6.0, we added advanced 2D graphics
@@ -238,7 +238,7 @@ A brief history description of the development progress lay below:
 
   0)  1994 ~ 1996:    MiniGUI DOS version.
   1)  Dec, 1998:      Began to write.
-  2)  Apr, 1999:      The skeleton of MiniGUI, windowing sub-system 
+  2)  Apr, 1999:      The skeleton of MiniGUI, windowing sub-system
       and basic graphics device interfaces.
   3)  May, 1999:      Timer, menu, and the skeleton of control sub-system.
   4)  Jun, 1999:      Chinese input method (by Kang Xiaoning).
@@ -247,29 +247,29 @@ A brief history description of the development progress lay below:
   7)  Sep, 1999:      Dialog boxes and message boxes.
   8)  Sep, 1999:      Snapshot of screen or window.
   9)  Jan., 2000:     VCOnGUI (Virtual Console on MiniGUI) version 0.2.02.
-  10) Mar., 2000:     Linux distribution installer based-on MiniGUI for 
+  10) Mar., 2000:     Linux distribution installer based-on MiniGUI for
       HappyLinux 1.0.
   11) Jun., 2000:     Began to develop version 1.0.xx.
   12) Sep., 2000:     MiniGUI version 0.3.06 released.
-  13) Oct., 2000:     MiniGUI version 0.9.00 released. 
-  14) Nov., 2000:     MiniGUI version 0.9.96 released. 
-  15) Jan., 2001:     MiniGUI version 0.9.98 released. You can build 
+  13) Oct., 2000:     MiniGUI version 0.9.00 released.
+  14) Nov., 2000:     MiniGUI version 0.9.96 released.
+  15) Jan., 2001:     MiniGUI version 0.9.98 released. You can build
       MiniGUI-Lite from this version.
   16) Jan., 2001:     MiniGUI version 1.0.00Beta1 released.
   17) Feb., 2001:     MiniGUI version 1.0.00Pre1 released.
   18) Apr., 2001:     MiniGUI version 1.0.00 released (2001/04/16).
   18) Sep., 2001:     MiniGUI version 1.1.0Pre1 released (2001/09/12).
-  19) Sep., 2001:     MiniGUI version 1.0.9 released (2001/09/17), 
-      this will be the last version of source branch 1.0.x. 
-  20) Oct., 2001:     MiniGUI version 1.1.0Pre4 released (2001/10/22). 
+  19) Sep., 2001:     MiniGUI version 1.0.9 released (2001/09/17),
+      this will be the last version of source branch 1.0.x.
+  20) Oct., 2001:     MiniGUI version 1.1.0Pre4 released (2001/10/22).
       This version have new GAL and GDI interfaces.
-  21) Mar., 2002:     MiniGUI official version 1.1.0 released (2002/03/08). 
+  21) Mar., 2002:     MiniGUI official version 1.1.0 released (2002/03/08).
       MiniGUI API Reference documentation version 0.9 released.
   22) Mar., 2002:     MiniGUI API Reference documentation version 1.0 released.
-  23) Apr., 2002:     MiniGUI the new stable version 1.2.0 released (2002/04/11). 
-  24) Sep., 2002:     The main developers of MiniGUI founded a 
-      new software corporation: Beijing FMSoft Technology Co., Ltd.. 
-      And the development and maintenance of MiniGUI changes from 
+  23) Apr., 2002:     MiniGUI the new stable version 1.2.0 released (2002/04/11).
+  24) Sep., 2002:     The main developers of MiniGUI founded a
+      new software corporation: Beijing FMSoft Technology Co., Ltd..
+      And the development and maintenance of MiniGUI changes from
       loosely-knit team to business organization.
   25) Mar., 2003:     MiniGUI official version 1.2.5 released (2003/03/23).
   25) May., 2003:     MiniGUI official version 1.2.6 released (2003/05/18).
@@ -299,14 +299,14 @@ A brief history description of the development progress lay below:
 
 ## ABOUT THE AUTHORS
 
-The original author of MiniGUI is WEI Yongming, and now MiniGUI is 
-maintained by FMSoft. For more information, please browse 
+The original author of MiniGUI is WEI Yongming, and now MiniGUI is
+maintained by FMSoft. For more information, please browse
 our home page: http://www.fmsoft.cn.
 
 
 ## IF YOU HAVE A PROBLEM
 
-If you have any technical problem, advice or comment, please send 
+If you have any technical problem, advice or comment, please send
 messages to consult@minigui.com.
 
 
@@ -314,15 +314,15 @@ messages to consult@minigui.com.
 
 Q: Is GPL'd MiniGUI free for commercial use?
 
-A: Simply no. FMSoft releases MiniGUI under GPLv3 license. 
-   It is free for those who are 100% GPL and those who never copy, modify 
-   and distribute MiniGUI. But if you want to use these GPL'd versions 
+A: Simply no. FMSoft releases MiniGUI under GPLv3 license.
+   It is free for those who are 100% GPL and those who never copy, modify
+   and distribute MiniGUI. But if you want to use these GPL'd versions
    for commerce, you should get the commercial license from FMSoft first.
 
 Q: Which operating system does MiniGUI support?
 
-A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS, 
-   VxWorks, ThreadX, OSE, and even Win32. Any other real-time OSes can 
+A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS,
+   VxWorks, ThreadX, OSE, and even Win32. Any other real-time OSes can
    be supported theoretically.
 
 Q: Which architecture does MiniGUI support?
@@ -332,24 +332,24 @@ A: x86 32/64-bit, ARM 32/64-bit (e.g., ARMv7 and ARM Cortex-A7),
 
 Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?
 
-A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD. 
+A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
 
 
 ## NOT FREE FOR COMMERCIAL USE
 
-MiniGUI and its components are licensed under the GPL license. 
-So any links about MiniGUI must follow GPL. If you cannot accept GPL, 
-you need to be licensed from FMSoft. If you wonder that if you need 
+MiniGUI and its components are licensed under the GPL license.
+So any links about MiniGUI must follow GPL. If you cannot accept GPL,
+you need to be licensed from FMSoft. If you wonder that if you need
 the commercial license of MiniGUI, please refer to the LICENSE-POLICY file.
 
-We provide you the commercial license of MiniGUI according to the number 
-of the run-time binary copies of MiniGUI. If you are interested in 
-the commercial license of MiniGUI, please write to sales@minigui.com.  
+We provide you the commercial license of MiniGUI according to the number
+of the run-time binary copies of MiniGUI. If you are interested in
+the commercial license of MiniGUI, please write to sales@minigui.com.
 
 
 ## COPYING
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify

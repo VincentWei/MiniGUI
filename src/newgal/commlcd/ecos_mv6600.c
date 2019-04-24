@@ -74,7 +74,7 @@ static int a_getinfo (struct commlcd_info *li, int width, int height, int bpp)
    li->height = 240;
    li->width = 320;
    li->bpp = 32;
-   li->rlen = 320 * 32 / 8;
+   li->pitch = 320 * 32 / 8;
    li->fb = 0xe40000;
    li->type = COMMLCD_TRUE_RGB0888;
    return 0;

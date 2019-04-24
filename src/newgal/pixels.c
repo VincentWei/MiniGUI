@@ -239,6 +239,7 @@ GAL_PixelFormat *GAL_AllocFormat(int bpp,
     }
     return(format);
 }
+
 GAL_PixelFormat *GAL_ReallocFormat(GAL_Surface *surface, int bpp,
             Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
 {

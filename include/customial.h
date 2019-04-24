@@ -51,11 +51,6 @@
 #ifndef GUI_IAL_CUSTOM_H
     #define GUI_IAL_CUSTOM_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
-
 #define IAL_MOUSE_LEFTBUTTON    1
 #define IAL_MOUSE_RIGHTBUTTON   2
 #define IAL_MOUSE_MIDDLEBUTTON  4
@@ -67,12 +62,12 @@ extern "C" {
 #define IAL_MOUSEEVENT          1
 #define IAL_KEYEVENT            2
 
-typedef struct tagINPUT
-{
+typedef struct tagINPUT {
     char*   id;
 
     // Initialization and termination
-    BOOL (*init_input) (struct tagINPUT *input, const char* mdev, const char* mtype);
+    BOOL (*init_input) (struct tagINPUT *input, const char* mdev,
+            const char* mtype);
     void (*term_input) (void);
 
     // Mouse operations
@@ -92,21 +87,26 @@ typedef struct tagINPUT
     void (*set_leds) (unsigned int leds);
 
     // Event
-    int (*wait_event) (int which, int maxfd, fd_set *in, fd_set *out, 
+    int (*wait_event) (int which, int maxfd, fd_set *in, fd_set *out,
             fd_set *except, struct timeval *timeout);
 
     char mdev [MAX_PATH + 1];
-}INPUT;
+} INPUT;
 
 #ifdef _MGIAL_CUSTOM
-extern BOOL InitCustomInput (INPUT* input, const char* mdev, const char* mtype);
-extern void TermCustomInput (void);
-#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
+
+BOOL InitCustomInput (INPUT* input, const char* mdev, const char* mtype);
+void TermCustomInput (void);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif  /* GUI_IAL_CUSTOM_H */
+#endif /* _MGIAL_CUSTOM */
 
+#endif  /* GUI_IAL_CUSTOM_H */
 

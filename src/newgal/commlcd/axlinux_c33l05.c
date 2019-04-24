@@ -208,7 +208,7 @@ static int L2F50113T00_getscreeninfo (struct commlcd_info *li, int width, int he
     li->width = SCREEN_WIDTH;
     li->fb = (void*)VRAM_ADDR_1;
     li->bpp = LCD_BPP;
-    li->rlen = SCREEN_WIDTH * LCD_BPP_UNIT;
+    li->pitch = SCREEN_WIDTH * LCD_BPP_UNIT;
     li->async_update = 0;
 
     return 0;
