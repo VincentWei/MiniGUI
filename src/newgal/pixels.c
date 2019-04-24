@@ -219,7 +219,6 @@ GAL_PixelFormat *GAL_AllocFormat(int bpp,
             format->Amask = Amask;
             break;
     }
-
     /* Calculate some standard bitmasks, if necessary 
      * Note:  This could conflict with an alpha mask, if given.
      */
@@ -247,7 +246,8 @@ GAL_PixelFormat *GAL_ReallocFormat(GAL_Surface *surface, int bpp,
         GAL_FreeFormat(surface->format);
         GAL_FormatChanged(surface);
     }
-    surface->format = GAL_AllocFormat(bpp, Rmask, Gmask, Bmask, Amask);
+
+   surface->format = GAL_AllocFormat(bpp, Rmask, Gmask, Bmask, Amask);
     return surface->format;
 }
 

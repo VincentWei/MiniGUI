@@ -1266,7 +1266,9 @@ static void ShowCurItemHintText (HWND hWnd, NTBCTRLDATA *ntb_data , NTBITEM * pi
 		return;
 
     if (pitem->tip[0] == '\0')
+	{
         return;
+	}
 
 	x = pitem->rc_item.right;
 	y = pitem->rc_item.bottom;

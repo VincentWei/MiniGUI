@@ -4025,7 +4025,7 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
         break;
 
         case MSG_SHOWMENU:
-            if (GetCurrentCursor() != GetSystemCursor(IDC_ARROW))
+            if ((HCURSOR)GetCurrentCursor() != GetSystemCursor(IDC_ARROW))
                 SetCursor(GetSystemCursor(IDC_ARROW));
             return mnuShowPopupMenu (ptmi); 
         break;

@@ -125,18 +125,18 @@ static OS_TIMER_ID __mg_os_timer = 0;
 #else /* __AOS__ */
 static void* TimerEntry (void* data)
 {
-    sem_post ((sem_t*)data);
+	sem_post ((sem_t*)data);
 
 #ifdef _MG_USE_BETTER_TIMER
     g_timer_started = times(NULL);
     g_last_tick = 0;
 #endif /* _MG_USE_BETTER_TIMER */
 
-    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
+    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) 
+	{
         __mg_os_time_delay (10);
         __mg_timer_action (NULL);
     }
-
     /* printf("quit from TimerEntry()\n"); */
     return NULL;
 }
@@ -155,8 +155,9 @@ int __mg_timer_init (void)
                                          OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
 #else /* NOT __AOS__ */
     {
-        sem_t wait;
+    	sem_t wait;
         sem_init (&wait, 0, 0);
+		
         pthread_create (&__mg_timer, NULL, TimerEntry, &wait);
         sem_wait (&wait);
         sem_destroy (&wait);

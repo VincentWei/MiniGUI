@@ -1701,7 +1701,7 @@ typedef struct _GAL_Rect {
 #endif
 
 /* Commonly used definitions */
-#if !defined(__NOUNIX__) || defined (__ECOS__)
+#if !defined(__NOUNIX__) || defined (__ECOS__) || defined (__RTEMS__)
 #include <limits.h>
 #endif
 

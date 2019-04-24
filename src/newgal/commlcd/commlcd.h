@@ -64,6 +64,7 @@ struct GAL_PrivateVideoData {
 #define COMMLCD_TRUE_RGB0888     5
 #define COMMLCD_TRUE_ARGB1555    6
 #define COMMLCD_TRUE_ARGB8888    7
+#define	COMMLCD_TRUE_AGBR8888	 8
 
 struct commlcd_info {
     short height;         // vertical resolution of the screen

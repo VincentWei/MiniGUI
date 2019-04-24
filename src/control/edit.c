@@ -1893,7 +1893,9 @@ sledit_insert_text (HWND hWnd, PSLEDITDATA sled, const char* newtext, int len)
         return -1;
 
     if (dwStyle & ES_READONLY)
+	{
         return 0;
+	}
 
 	tempstr = (char*) malloc(realen+1);
 

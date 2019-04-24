@@ -997,7 +997,9 @@ static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, 
 
 
     if (bpp == 1)
+	{
         return -1;
+	}
 
 	if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
         while ( h-- ) {
@@ -1074,7 +1076,9 @@ static int _PutBoxAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w,
 
     
     if (bpp == 1)
+	{
         return -1;
+	}
 
 	if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
         if (dstfmt->Amask == 0xff000000 && dstfmt->BitsPerPixel == 32)
@@ -1233,7 +1237,9 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
 
 
     if (bpp == 1)
-        return -1;
+	{
+    	return -1;
+	}
 
 	if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
         while ( h-- ) {

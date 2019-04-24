@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <linux/input.h>
+//#include <linux/input.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -46,10 +46,10 @@
 #ifdef _MGIAL_NET
 
 #include <sys/ioctl.h>
-#include <sys/poll.h>
+//#include <sys/poll.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <linux/kd.h>
+//#include <linux/kd.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -216,7 +216,7 @@ BOOL InitNetInput (INPUT* input, const char* mdev, const char* mtype)
 	}
 	printf ("Please start the PC side of the client process.\n");
 
-	temp_sock_descriptor = accept (sock_descriptor, (struct sockaddr *)&pin, &address_size);
+	temp_sock_descriptor = accept (sock_descriptor, (struct sockaddr *)&pin, (socklen_t *)&address_size);		// gengyue
 	if (temp_sock_descriptor == -1)
 	{
 		perror ("call to accept");

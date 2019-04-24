@@ -270,11 +270,15 @@ int ncsParseConstructParams(va_list args, const char* signature, ...)
 		return 0;
     */
     if (_va_check (args) == 0)
+	{
         return 0;
+	}
 
 	argc = va_arg(args, int);
     if(argc <= 0)
+	{
         return 0;
+	}
 
 	va_start(params, signature);
 

@@ -44,7 +44,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#if !defined(__NOUNIX__) && !defined(WIN32)
+#if !defined(__NOUNIX__) && !defined(WIN32) && !defined(__RTEMS__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -364,7 +364,9 @@ static void delete_entry_data(RES_ENTRY* entry)
 BOOL InitializeResManager(int hash_table_size)
 {
     char szpath[MAX_PATH+1];
+#if !defined(__NOUNIX__) || defined(WIN32) || !defined(__RTEMS__)
     char* p = NULL;
+#endif
 	pwd_res_path = strdup("./");
 
     //initialize paths
@@ -634,9 +636,15 @@ int UnregisterResType(int type)
 
 static char* get_res_file(const char* res_name, char* filename)
 {
+#ifndef __RTEMS__
     int i;
+#endif
     if (res_name == NULL || filename == NULL)
         return NULL;
+
+#ifdef __RTEMS__
+	return NULL;
+#else
 
     //test it is a full path or not
     for(i=0; res_name[i] && res_name[i] == '/'; i++);
@@ -670,7 +678,7 @@ static char* get_res_file(const char* res_name, char* filename)
             return filename;
         }
     }
-
+#endif
     return NULL;
 }
 

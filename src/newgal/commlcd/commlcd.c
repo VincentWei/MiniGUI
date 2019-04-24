@@ -242,9 +242,9 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         Bmask = 0x001F;
         break;
     case COMMLCD_TRUE_RGB565:
-        Rmask = 0xF800;
-        Gmask = 0x07E0;
-        Bmask = 0x001F;
+        Rmask = 0x07E0;
+        Gmask = 0x001F;
+        Bmask = 0xF800;
         break;
     case COMMLCD_TRUE_RGB888:
     case COMMLCD_TRUE_RGB0888:
@@ -263,6 +263,13 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         Rmask = 0x00FF0000;
         Gmask = 0x0000FF00;
         Bmask = 0x000000FF;
+        break;
+    case COMMLCD_TRUE_AGBR8888:
+printf("=========================================================================== i am here, type is %d\n", li.type);
+        Amask = 0xFF000000;
+        Rmask = 0x0000FF00;
+        Gmask = 0x000000FF;
+        Bmask = 0x00FF0000;
         break;
     }
 

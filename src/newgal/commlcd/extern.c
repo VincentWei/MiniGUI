@@ -44,7 +44,7 @@
 
 #ifdef _MGGAL_COMMLCD
 
-#if defined (__VXWORKS__) || defined (__TARGET_UNKNOWN__)
+#if defined (__VXWORKS__) || defined (__TARGET_UNKNOWN__) || defined(__RTEMS__)
 
 #include "minigui.h"
 #include "newgal.h"

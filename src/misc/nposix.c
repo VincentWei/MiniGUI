@@ -413,7 +413,7 @@ void __mg_os_time_delay (int ms)
     OSTimeDly (OS_TICKS_PER_SEC * ms / 1000);
 #elif defined (__VXWORKS__) 
     taskDelay (sysClkRateGet() * ms / 1000);
-#elif defined (__PSOS__) || defined (__ECOS__)
+#elif defined (__PSOS__) || defined (__ECOS__) || defined (__RTEMS__)
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = ms * 1000000;
