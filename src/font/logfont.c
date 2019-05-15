@@ -503,6 +503,9 @@ void GUIAPI DestroyLogFont (PLOGFONT logfont)
 {
     int i;
 
+    if (!logfont)
+        return;
+
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
         DEVFONT* df = logfont->devfonts[i];
         if (df && df->font_ops->delete_instance)

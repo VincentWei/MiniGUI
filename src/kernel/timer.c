@@ -431,6 +431,8 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
     timerstr[slot]->tick_count = 0;
     timerstr[slot]->msg_queue = pMsgQueue;
 
+    _MG_PRINTF ("KERNEL>Timer: setup a new timer for window (%p) at slot (%d)\n", hWnd, slot);
+
 #ifdef _MGRM_PROCESSES
     if (!mgIsServer)
         __mg_set_select_timeout (USEC_10MS * speed);

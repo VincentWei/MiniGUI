@@ -5408,9 +5408,7 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
 
     if (!IsControl (hWnd)) return FALSE;
 
-    if (SendMessage (hWnd, MSG_DESTROY, 0, 0))
-    {
-
+    if (SendMessage (hWnd, MSG_DESTROY, 0, 0)) {
         return FALSE;
     }
 
@@ -5499,7 +5497,6 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
     --pCtrl->we_rdr->refcount;
 
     free (pCtrl);
-
     return TRUE;
 }
 

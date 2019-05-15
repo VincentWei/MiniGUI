@@ -1230,8 +1230,9 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     for (slot = 0; slot < DEF_NR_TIMERS; slot++) {
         if (pMsgQueue->TimerMask & (0x01UL << slot)) {
             HWND timer_wnd = __mg_get_timer_hwnd (slot);
-            if (timer_wnd == hWnd 
-                    || gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd){
+            if (timer_wnd == hWnd
+                    || (MG_IS_MAIN_WINDOW (hWnd) &&
+                        gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd)) {
                 RemoveMsgQueueTimerFlag (pMsgQueue, slot);
             }
         }

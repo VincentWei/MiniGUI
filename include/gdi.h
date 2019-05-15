@@ -11624,6 +11624,30 @@ typedef Uint32  Glyph32;
 MG_EXPORT Achar32 GUIAPI GetACharValue (LOGFONT* logfont, const char* mchar,
         int mchar_len, const char* pre_mchar, int pre_len);
 
+#ifdef _MGCHARSET_UNICODE
+
+/**
+ * \fn int GUIAPI GetNextUChar (LOGFONT* logfont, const char* mchar,
+ *         int mchar_len, Uchar32* uc)
+ * \brief Get the Uchar32 value (Unicode code point) of a multi-byte character
+ *      in specified LOGFONT object.
+ *
+ * This function get the Uchar32 value of a mutil-byte character in specified
+ * LOGFONT object \a logfont, which is under speicific charset/encoding.
+ *
+ * \param logfont The logical font.
+ * \param mchar The pointer to the multi-byte character.
+ * \param mchar_len The length of \a mchar in bytes.
+ * \param uc The buffer to receive the Uchar32 value.
+ *
+ * \return The number of bytes consumed, i.e., the lenght of the
+ *      multi-byte character.
+ */
+MG_EXPORT int GUIAPI GetNextUChar(LOGFONT* logfont, const char* mchar,
+        int mchar_len, Uchar32* uc);
+
+#endif /* _MGCHARSET_UNICODE */
+
 /**
  * \fn Uint32 GUIAPI GetACharType (LOGFONT* logfont, Achar32 chv)
  * \brief Retrieve the basic type, the general cateory of Unicode, and
@@ -12348,7 +12372,7 @@ MG_EXPORT int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
 
 /**
  * \fn AChar2UChar(LOGFONT* logfont, Achar32 chv)
- * \brief Get Uchar32 value (Unicode whide character value) from
+ * \brief Get Uchar32 value (Unicode wide character value) from
  * a LOGFONT abstract character value.
  *
  * Only valid for UNICODE.
@@ -12356,7 +12380,7 @@ MG_EXPORT int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
  * \param logfont The LOGFONT object
  * \param chv The LOGFONT character value.
  *
- * \return The Uchar32 value (Unicode code point) of the glyph.
+ * \return The Uchar32 value (Unicode code point) of the abstract character.
  *
  * \note Only available when support for UNICODE is enabled.
  *

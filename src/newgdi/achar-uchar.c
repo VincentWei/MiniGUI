@@ -377,7 +377,7 @@ static int usctxt_push_back(struct ustr_ctxt* ctxt, Uchar32 uc)
     return ctxt->n;
 }
 
-static int get_next_uchar(LOGFONT* lf, const char* mstr, int mstr_len,
+int GetNextUChar(LOGFONT* lf, const char* mstr, int mstr_len,
         Uchar32* uc)
 {
     int mclen = 0;
@@ -426,7 +426,7 @@ static int is_next_mchar_bt(LOGFONT* lf,
 {
     int mclen;
 
-    mclen = get_next_uchar(lf, mstr, mstr_len, uc);
+    mclen = GetNextUChar(lf, mstr, mstr_len, uc);
     if (mclen > 0 && UCharGetBreakType(*uc) == bt)
         return mclen;
 
@@ -449,7 +449,7 @@ static int collapse_space(LOGFONT* lf, const char* mstr, int mstr_len)
     do {
         int mclen;
 
-        mclen = get_next_uchar(lf, mstr, mstr_len, &uc);
+        mclen = GetNextUChar(lf, mstr, mstr_len, &uc);
         if (mclen == 0)
             break;
 
@@ -504,7 +504,7 @@ int GUIAPI GetUCharsUntilParagraphBoundary(LOGFONT* logfont,
         int next_mclen;
         int cosumed_one_loop = 0;
 
-        mclen = get_next_uchar(logfont, mstr, mstr_len, &uc);
+        mclen = GetNextUChar(logfont, mstr, mstr_len, &uc);
         if (mclen == 0) {
             // badly encoded or end of text
             break;
