@@ -164,7 +164,7 @@ static RES_TYPE_OPS font_ops={
 };
 
 static RES_TYPE_INFO pre_def_types[RES_TYPE_USER] = {
-    {(short)RES_TYPE_IMAGE, 0, 0, REF_SRC_FILE,&img_ops},
+    {(short)RES_TYPE_IMAGE, 0, 0, REF_SRC_FILE, &img_ops},
     {(short)RES_TYPE_MYBITMAP, 0, 0,REF_SRC_FILE, &mybmp_ops},
     {(short)RES_TYPE_ICON, 0, 0, REF_SRC_FILE, &icon_ops},
 #ifdef _MGHAVE_CURSOR
