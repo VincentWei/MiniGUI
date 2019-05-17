@@ -182,7 +182,7 @@ static RES_TYPE_INFO pre_def_types[RES_TYPE_USER] = {
 // the hash table operations
 //
 #define Key2Idx(t,key)   ((key)%((t)->size))
-#define IsInvalidKey(key)  ((key)>0 && (key)<0xFFFFFFFF)
+#define IsValidKey(key)  ((key)>0 && (key)<0xFFFFFFFF)
 static void init_hash_table(HASH_TABLE* table, int size)
 {
     if(table == NULL)
@@ -199,7 +199,7 @@ static RES_ENTRY* get_entry(HASH_TABLE* table, RES_KEY key, BOOL create)
     RES_ENTRY* entry;
     int idx;
 
-    if(table == NULL || table->size<=0 || table->entries == NULL  || !IsInvalidKey(key))
+    if(table == NULL || table->size<=0 || table->entries == NULL  || !IsValidKey(key))
         return NULL;
 
     idx = Key2Idx(table,key);
@@ -232,7 +232,7 @@ static void remove_entry(HASH_TABLE* table, RES_KEY key)
     RES_ENTRY* entry, *prev;
     int idx;
 
-    if(table == NULL && IsInvalidKey(key))
+    if(table == NULL && IsValidKey(key))
         return ;
 
     idx = Key2Idx(table,key);
