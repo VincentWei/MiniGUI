@@ -384,10 +384,10 @@ static int ReadGIFGlobal (MG_RWops *area, GIFSCREEN* GifScreen)
     GifScreen->AspectRatio = buf[6];
 
     if (BitSet(buf[4], LOCALCOLORMAP)) {        /* Global Colormap */
-        _WRN_PRINTF ("EX_CTRL>GIF89a: have global colormap: %d\n", 
+        _DBG_PRINTF ("EX_CTRL>GIF89a: have global colormap: %d\n", 
                     GifScreen->Background);
         if (ReadColorMap (area, GifScreen->BitPixel, GifScreen->ColorMap)) {
-            _WRN_PRINTF ("EX_CTRL>GIF89a: bad global colormap\n");
+            _DBG_PRINTF ("EX_CTRL>GIF89a: bad global colormap\n");
             return -1;                /* image loading error*/
         }
     }
@@ -414,7 +414,7 @@ static int ReadImageDesc (MG_RWops *area, IMAGEDESC* ImageDesc, GIFSCREEN* GifSc
     ImageDesc->interlace = BitSet(buf[8], INTERLACE);
 
     if (ImageDesc->haveColorMap) {
-        _WRN_PRINTF ("EX_CTRL>GIF89a: have local colormap\n");
+        _DBG_PRINTF ("EX_CTRL>GIF89a: have local colormap\n");
         if (ReadColorMap (area, ImageDesc->bitPixel, ImageDesc->ColorMap) < 0) {
             _WRN_PRINTF ("EX_CTRL>GIF89a: bad local colormap\n");
             return -1;
@@ -549,7 +549,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
         anim->bk.a = 0;
     }
 
-    _WRN_PRINTF ("EX_CTRL>GIF89a: Background: %d, %d, %d.\n",
+    _DBG_PRINTF ("EX_CTRL>GIF89a: Background: %d, %d, %d.\n",
                 anim->bk.r, anim->bk.g, anim->bk.b);
 
     if ((ok = ReadOK (area, &c, 1)) == 0) {
@@ -565,7 +565,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
                 goto error;
             }
             DoExtension (area, c, &GifScreen);
-            _WRN_PRINTF ("EX_CTRL>GIF89a: Extension info: %d, %d, %d, %d, %d, %d\n",
+            _DBG_PRINTF ("EX_CTRL>GIF89a: Extension info: %d, %d, %d, %d, %d, %d\n",
                         GifScreen.Width, GifScreen.Height, 
                         GifScreen.AspectRatio, GifScreen.delayTime,
                         GifScreen.disposal, GifScreen.transparent);
@@ -579,7 +579,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
                 if (ReadImage (area, &mybmp, &ImageDesc, &GifScreen, 0) < 0)
                     goto error;
             }
-            _WRN_PRINTF ("EX_CTRL>GIF89a: Image Descriptor: %d, %d, %d, %d, %d\n",
+            _DBG_PRINTF ("EX_CTRL>GIF89a: Image Descriptor: %d, %d, %d, %d, %d\n",
                         ImageDesc.Top, ImageDesc.Left,
                         ImageDesc.Width, ImageDesc.Height,
                         ImageDesc.haveColorMap);
@@ -595,7 +595,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
                 frame->width = mybmp.w;
                 frame->height = mybmp.h;
                 frame->delay_time = (GifScreen.delayTime>10)?GifScreen.delayTime:10;
-                _WRN_PRINTF ("EX_CTRL>GIF89a: frame info: %d, %d, %d, %d\n", 
+                _DBG_PRINTF ("EX_CTRL>GIF89a: frame info: %d, %d, %d, %d\n", 
                         frame->off_x, frame->off_y, frame->delay_time, 
                         GifScreen.transparent);
 
