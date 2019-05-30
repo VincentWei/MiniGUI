@@ -231,6 +231,7 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
             adv_x = adv_y = 0;
             break;
+
         default:
             ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
@@ -527,7 +528,8 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
     int tab_width, line_height;
     int last_line_width = 0;
     int char_count = 0;
-    Glyph32 glyph_value;
+    Achar32 ach;
+    Glyph32 gv;
 
     /* set size to zero first */
     size->cx = size->cy = 0;
@@ -568,9 +570,10 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
         if (devfont) {
             int char_type;
 
-            glyph_value = devfont->charset_ops->get_char_value
+            ach = devfont->charset_ops->get_char_value
                             (NULL, 0, (const unsigned char*)text, len_cur_char);
-            char_type = devfont->charset_ops->char_type (glyph_value);
+            char_type = devfont->charset_ops->char_type (ach);
+            gv = GetGlyphValueAlt(log_font, ach);
 
             if (devfont == mbc_devfont) {
                 int i, dfi;
@@ -580,13 +583,13 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                 for (i = 1; i < MAXNR_DEVFONTS; i++) {
                     if ((df = log_font->devfonts[i])) {
                         if (df->font_ops->is_glyph_existed(log_font, df,
-                                glyph_value)) {
+                                gv)) {
                             dfi = i;
                             break;
                         }
                     }
                 }
-                glyph_value = SET_GLYPH_DFI(glyph_value, dfi);
+                gv = SET_GLYPH_DFI(gv, dfi);
             }
 
             switch (char_type & ACHARTYPE_BASIC_MASK) {
@@ -608,7 +611,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                     break;
 
                 default:
-                   last_line_width  += _gdi_get_glyph_advance (pdc, glyph_value,
+                   last_line_width  += _gdi_get_glyph_advance (pdc, gv,
                         (pdc->ta_flags & TA_X_MASK) == TA_LEFT,
                         0, 0, NULL, NULL, NULL);
                     last_line_width += pdc->cExtra;
