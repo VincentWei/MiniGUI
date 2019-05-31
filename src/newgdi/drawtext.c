@@ -233,12 +233,14 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     coor_LP2SP(pdc, &rcDraw.right, &rcDraw.bottom);
     NormalizeRect (&rcDraw);
 
-    /* If output rect is too small, we shouldn't output any text.*/
+#if 0
+    /* If output rect is zero, we shouldn't output any text.*/
     if (RECTW(rcDraw) < pdc->pLogFont->size
-        && RECTH(rcDraw) < pdc->pLogFont->size) {
+            && RECTH(rcDraw) < pdc->pLogFont->size) {
         _WRN_PRINTF ("Output rect is too small, we won't output any text.");
         return -1;
     }
+#endif
 
     /* nFormat surpport follow. */
     if ((nFormat & DT_CALCRECT) || firstline){
