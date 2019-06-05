@@ -118,13 +118,14 @@ build_random_ial_engine="no"
 build_net_ial_engine="no"
 
 dnl common IAL engines
-build_console_ial_engine="yes"
-build_console_ps2="yes"
-build_console_imps2="yes"
-build_console_ms="yes"
-build_console_ms3="yes"
+build_evdev_ial_engine="yes"
+build_console_ial_engine="no"
+build_console_ps2="no"
+build_console_imps2="no"
+build_console_ms="no"
+build_console_ms3="no"
 build_console_gpm="no"
-build_text_mode="yes"
+build_text_mode="no"
 
 dnl the customized ial engine
 build_dlcustom_ial_engine="no"
@@ -263,6 +264,7 @@ enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
 
 enable_video_fbcon="yes"
+enable_video_drm="yes"
 enable_video_commlcd="no"
 enable_video_shadow="no"
 enable_video_mlshadow="no"
@@ -286,6 +288,9 @@ dnl settings for license management
 build_productid="no"
 build_splash="yes"
 build_screensaver="no"
+
+dnl internal settings
+need_udev="no"
 
 AC_ARG_ENABLE(develmode,
 [  --enable-develmode       developer mode <default=no>],
@@ -463,24 +468,28 @@ AC_ARG_ENABLE(dfbial,
 [  --enable-dfbial          build the DFB IAL engine <default=no>],
 build_dfb_ial_engine=$enableval)
 
+AC_ARG_ENABLE(evdevial,
+[  --enable-evdevial        build the Linux EVDev IAL engine <default=yes>],
+build_evdev_ial_engine=$enableval)
+
 AC_ARG_ENABLE(consoleial,
-[  --enable-consoleial      build the console (Linux console) IAL engine <default=yes>],
+[  --enable-consoleial      build the console (Linux console) IAL engine <default=no>],
 build_console_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleps2,
-[  --enable-consoleps2      build the console engine subdriver for PS2 mouse <default=yes>],
+[  --enable-consoleps2      build the console engine subdriver for PS2 mouse <default=no>],
 build_console_ps2=$enableval)
 
 AC_ARG_ENABLE(consoleimps2,
-[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=yes>],
+[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=no>],
 build_console_imps2=$enableval)
 
 AC_ARG_ENABLE(consolems,
-[  --enable-consolems       build the console engine subdirver for old MS serial mouse <default=yes>],
+[  --enable-consolems       build the console engine subdirver for old MS serial mouse <default=no>],
 build_console_ms=$enableval)
 
 AC_ARG_ENABLE(consolems3,
-[  --enable-consolems3      build the console engine subdirver for MS3 mouse <default=yes>],
+[  --enable-consolems3      build the console engine subdirver for MS3 mouse <default=no>],
 build_console_ms3=$enableval)
 
 AC_ARG_ENABLE(consolegpm,
@@ -488,7 +497,7 @@ AC_ARG_ENABLE(consolegpm,
 build_console_gpm=$enableval)
 
 AC_ARG_ENABLE(textmode,
-[  --enable-textmode        Linux system have console (text mode) on FrameBuffer <default=yes>],
+[  --enable-textmode        Linux system have console (text mode) on FrameBuffer <default=no>],
 build_text_mode=$enableval)
 
 AC_ARG_ENABLE(rbfsupport,
@@ -877,6 +886,28 @@ CheckFBCON()
     fi
 }
 
+dnl Find the DRM includes
+CheckDRM()
+{
+    AC_ARG_ENABLE(videodrm,
+[  --enable-videodrm      include Linux DRM NEWGAL engine <default=yes>],
+    enable_video_drm=$enableval)
+    if test "x$enable_video_drm" = "xyes"; then
+        PKG_CHECK_MODULES(DRM, [libudev >= 200, libdrm >= 2.4], video_drm="yes",
+            video_drm="no; Linux DRM NEWGAL engine requires libdrm and libudev")
+        if test "x$video_drm" = "xyes"; then
+            AC_DEFINE(_MGGAL_DRM, 1,
+                [Define if include Linux DRM NEWGAL engine])
+            VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
+            VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
+            DEP_LIBS="$DEP_LIBS -ldrm"
+            need_udev="yes"
+        else
+            AC_MSG_WARN([$video_drm])
+        fi
+    fi
+}
+
 dnl Check Qt Virtual FrameBuffer
 CheckQVFB()
 {
@@ -981,7 +1012,7 @@ CheckMLShadowVideo()
                 [Define if include MLShadow NEWGAL engine])
       VIDEO_SUBDIRS="$VIDEO_SUBDIRS mlshadow"
       VIDEO_DRIVERS="$VIDEO_DRIVERS mlshadow/libvideo_mlshadow.la"
-      DEP_LIBS="$DEP_LIBS -lpthread"
+dnl      DEP_LIBS="$DEP_LIBS -lpthread"
     fi
 }
 
@@ -997,7 +1028,7 @@ CheckShadowVideo()
                 [Define if include Shadow NEWGAL engine])
       VIDEO_SUBDIRS="$VIDEO_SUBDIRS shadow"
       VIDEO_DRIVERS="$VIDEO_DRIVERS shadow/libvideo_shadow.la"
-      DEP_LIBS="$DEP_LIBS -lpthread"
+dnl      DEP_LIBS="$DEP_LIBS -lpthread"
     fi
 }
 
@@ -1152,7 +1183,7 @@ CheckSTGFBVideo()
                 [Define if include NEWGAL engine for STGFB])
         VIDEO_SUBDIRS="$VIDEO_SUBDIRS stgfb"
         VIDEO_DRIVERS="$VIDEO_DRIVERS stgfb/libvideo_stgfb.la"
-        CFLAGS="$CFLAGS -DST_OSLINUX -DST_7105 -DARCHITECTURE_ST40 -DDEFINED_BOOL"
+        CPPFLAGS="$CPPFLAGS -DST_OSLINUX -DST_7105 -DARCHITECTURE_ST40 -DDEFINED_BOOL"
     fi
 }
 
@@ -1258,7 +1289,7 @@ CheckNexusVideo()
                 [Define if include nexus NEWGAL engine])
       VIDEO_SUBDIRS="$VIDEO_SUBDIRS nexus"
       VIDEO_DRIVERS="$VIDEO_DRIVERS nexus/libvideo_nexus.la"
-      DEP_LIBS="$DEP_LIBS -lnexus -lpthread -lm -lz"
+dnl      DEP_LIBS="$DEP_LIBS -lnexus"
     fi
 }
 
@@ -1311,6 +1342,7 @@ dnl Checks NewGAL Engine.
 {
   CheckDummyVideo
   CheckFBCON
+  CheckDRM
   CheckQVFB
   CheckXVFB
   CheckWVFB
@@ -1587,20 +1619,20 @@ case "$with_targetname" in
         [Define for EPSON C33L05 (axLinux)])
    ;;
   S3C6410)
-    CFLAGS="$CFLAGS -D_WITH_TARGET_S3C6410"
+    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_S3C6410"
    ;;
   S3C2440)
-    CFLAGS="$CFLAGS -D_WITH_TARGET_S3C2440"
+    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_S3C2440"
    ;;
   S3C2410)
-    CFLAGS="$CFLAGS -D_WITH_TARGET_S3C2410"
+    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_S3C2410"
    ;;
   hi3560a)
-    CFLAGS="$CFLAGS -D_WITH_TARGET_HI3560A"
+    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_HI3560A"
    ;;
   *)
     with_targetname="unknown"
-    CFLAGS="$CFLAGS -D_WITH_TARGET_NONE"
+    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_NONE"
     AC_DEFINE(__TARGET_UNKNOWN__, 1,
             [Define for unknown target])
     ;;
@@ -1632,7 +1664,7 @@ if test "x$use_own_pthread" = "xyes"; then
             [Define if use own implementation of pthread functions])
 fi
 
-CFLAGS="$CFLAGS -D__MINIGUI_LIB__"
+CPPFLAGS="$CPPFLAGS -D__MINIGUI_LIB__"
 
 case "$runtime_mode" in
     sa)
@@ -1647,7 +1679,7 @@ case "$runtime_mode" in
     ths)
         AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
-        CFLAGS="$CFLAGS -D_REENTRANT"
+        CPPFLAGS="$CPPFLAGS -D_REENTRANT"
         MINIGUI_RUNMODE="ths"
     ;;
     *)
@@ -1893,6 +1925,18 @@ if test "x$build_tslib_ial_engine" = "xyes"; then
     DEP_LIBS="$DEP_LIBS -lts"
 fi
 
+if test "x$build_evdev_ial_engine" = "xyes"; then
+    PKG_CHECK_MODULES(UDEV, [libudev >= 200], ,
+            build_evdev_ial_engine="no; Linux EVDev IAL engine requires libudev")
+    if test "x$build_evdev_ial_engine" = "xyes"; then
+        AC_DEFINE(_MGIAL_EVDEV, 1,
+                [Define if include Linux EVDev IAL engine])
+        need_udev="yes"
+    else
+        AC_MSG_WARN([$build_evdev_ial_engine])
+    fi
+fi
+
 if test "x$build_console_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_CONSOLE, 1,
             [Define if include console (Linux console) IAL engine])
@@ -2092,7 +2136,6 @@ if test "x$build_ttf_support" = "xyes"; then
     fi
 fi
 
-dnl Dealing with CFLAGS and LDFLAGS
 if test "x$build_complex_scripts" = "xyes"; then
     build_ttf_support="yes"
     AC_DEFINE(_MGCOMPLEX_SCRIPTS, 1,
@@ -2480,11 +2523,11 @@ if test "x$build_ctrl_textedit_new" = "xyes"; then
 fi
 
 if test "x$build_splash" = "xyes"; then
-    CFLAGS="$CFLAGS -D_MG_ENABLE_SPLASH=1"
+    CPPFLAGS="$CPPFLAGS -D_MG_ENABLE_SPLASH=1"
 fi
 
 if test "x$build_screensaver" = "xyes"; then
-    CFLAGS="$CFLAGS -D_MG_ENABLE_SCREENSAVER=1"
+    CPPFLAGS="$CPPFLAGS -D_MG_ENABLE_SCREENSAVER=1"
 fi
 
 if test "x$build_minimalgdi" = "xyes"; then
@@ -2501,7 +2544,7 @@ dnl ========================================================================
 dnl Write output
 
 dnl define _GNU_SOURCE for pthread_rwlock_t
-CFLAGS="$CFLAGS -D_GNU_SOURCE"
+CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 
 if test "x$devel_mode" = "xyes"; then
     CPPFLAGS="$CPPFLAGS -DDEBUG"
@@ -2523,11 +2566,10 @@ if test "$ac_cv_prog_gcc" = "yes"; then
     CFLAGS="$CFLAGS -O2 -fmax-errors=10 -Wstrict-prototypes -pipe"
 fi
 
-#if test "x$runtime_mode" = "xths"; then
-#    DEP_LIBS="$DEP_LIBS -lpthread"
-#fi
+if test "x$need_udev" = "xyes"; then
+    DEP_LIBS="$DEP_LIBS -ludev"
+fi
 
-# Always link to pthread
 DEP_LIBS="$DEP_LIBS -lpthread"
 
 AC_SUBST(VIDEO_SUBDIRS)
@@ -2537,6 +2579,7 @@ AC_SUBST(MINIGUI_RUNMODE)
 
 AM_CONDITIONAL(MGRM_PROCESSES, test "x$runtime_mode" = "xprocs")
 AM_CONDITIONAL(MGRM_STANDALONE, test "x$runtime_mode" = "xsa")
+AM_CONDITIONAL(MGIAL_EVDEV, test "x$build_evdev_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_CONSOLE, test "x$build_console_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_NEXUS, test "x$build_nexus_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_DLCUSTOM, test "x$build_dlcustom_ial_engine" = "xyes")
@@ -2562,6 +2605,7 @@ src/font/Makefile
 src/font/in-core/Makefile
 src/newgal/Makefile
 src/newgal/fbcon/Makefile
+src/newgal/drm/Makefile
 src/newgal/qvfb/Makefile
 src/newgal/pcxvfb/Makefile
 src/newgal/wvfb/Makefile
@@ -2619,6 +2663,54 @@ etc/Makefile
 m4/Makefile
 build/Makefile
 )
+
+CCVERSION=`$CC --version | head -n 1`
+
+AC_MSG_NOTICE([
+
+# Main building configuration:
+
+## Global Features:
+  * Runtime mode:       ${runtime_mode}
+  * Incore resource:    ${incore_res}
+  * Developer mode:     ${devel_mode}
+  * Cursor:             ${build_cursor_support}
+
+## NEWGAL Engines:
+  * dummy:              ${enable_video_dummy}
+  * pc_xvfb:            ${enable_video_pc_xvfb}
+  * usvfb:              ${enable_video_usvfb}
+  * drm:                ${enable_video_drm}
+  * fbcon:              ${enable_video_fbcon}
+  * commlcd:            ${enable_video_commlcd}
+
+## IAL Engines:
+  * dummy:              ${build_dummy_ial_engine}
+  * pc_xvfb:            ${enable_video_pc_xvfb}
+  * usvfb:              ${enable_video_usvfb}
+  * evdev:              ${build_evdev_ial_engine}
+  * console:            ${build_console_ial_engine}
+  * comm:               ${build_comm_ial_engine}
+
+## Fonts:
+  * rbf:                ${build_rbf_support}
+  * vbf:                ${build_vbf_support}
+  * upf:                ${build_upf_support}
+  * ttf:                ${build_ttf_support}
+
+## Other Features:
+  * JPEG:               ${build_jpg_support}
+  * PNG:                ${build_png_support}
+  * Unicode:            ${build_unicode_support}
+  * Complex Scripts:    ${build_complex_scripts}
+
+## Building Info:
+  * CC:                 ${CCVERSION}
+  * CPP flags:          ${CPPFLAGS}
+  * CC  flags:          ${CFLAGS}
+  * CXX flags:          ${CXXFLAGS}
+  * Dep. libraries:     ${DEP_LIBS}
+])
 
 dnl configs/Makefile
 dnl scripts/Makefile
