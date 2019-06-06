@@ -76,7 +76,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(time mktime localtime strdup strcasecmp strncasecmp strerror setlocale getpt)
+AC_CHECK_FUNCS(time mktime localtime strdup strcasecmp strncasecmp strerror setlocale)
 
 dnl ========================================================================
 dnl User selectable options
