@@ -1372,35 +1372,48 @@ dnl Checks NewGAL Engine.
 dnl ========================================================================
 dnl Checks for libraries.
 
+no_math="no"
+AC_CHECK_LIB(m, pow, , no_math="yes")
+
+if test "x$no_math" = "xno"; then
+    AC_DEFINE(_HAVE_MATH_LIB, 1,
+            [Define if have math library])
+fi
+
+if test "x$no_math" = "xyes"; then
+    build_adv2dapi="no"
+    build_jpg_support="no"
+fi
+
 dnl Check for JPEG library.
-if test "x$build_jpg_support" != "xno"; then
+if test "x$build_jpg_support" = "xyes"; then
     AC_CHECK_LIB(jpeg, jpeg_std_error,
         DEP_LIBS="$DEP_LIBS -ljpeg",
-        build_jpg_support=no, -lm)
+        build_jpg_support="no; support for JPEG file requires libjpeg", -lm)
 fi
 
 dnl Check for PNG library.
 libpng_version="no"
-if test "x$build_png_support" != "xno"; then
+if test "x$build_png_support" = "xyes"; then
     AC_CHECK_LIB(png12, png_check_sig,
         libpng_version="12",
-        libpng_version="no", -lz -lm)
+        libpng_version="no", -lz)
     if test "x$libpng_version" == "xno"; then
         AC_CHECK_LIB(png16, png_sig_cmp,
             libpng_version="16",
-            libpng_version="no", -lz -lm)
+            libpng_version="no", -lz)
     fi
 fi
 
 case "$libpng_version" in
     12)
-        DEP_LIBS="$DEP_LIBS -lpng12"
+        DEP_LIBS="$DEP_LIBS -lpng12 -lz"
     ;;
     16)
-        DEP_LIBS="$DEP_LIBS -lpng16"
+        DEP_LIBS="$DEP_LIBS -lpng16 -lz"
     ;;
     *)
-        build_png_support="no"
+        build_png_support="no; support PNG file requires libpng12 or libpng16"
     ;;
 esac
 
@@ -1576,47 +1589,37 @@ AC_ARG_WITH(targetname,
 case "$with_targetname" in
   external)
     AC_DEFINE(__TARGET_EXTERNAL__, 1,
-        [Define for targets which use GAL and/or IAL engines and define the interfaces externally])
+        [Define for targets which use GAL and/or IAL engines which use external implementation])
    ;;
   fmsoft)
-    AC_DEFINE(__TARGET_FMSOFT__, 1,
-        [Define for FMSoft internal use])
+    AC_DEFINE(__TARGET_FMSOFT__, 1, [Define for FMSoft internal use])
    ;;
   mstudio)
-    AC_DEFINE(__TARGET_MSTUDIO__, 1,
-        [Define for FMSoft miniStudio])
+    AC_DEFINE(__TARGET_MSTUDIO__, 1, [Define for FMSoft miniStudio])
    ;;
   stb810)
-    AC_DEFINE(__TARGET_STB810__, 1,
-            [Define for Philips STB810 target])
+    AC_DEFINE(__TARGET_STB810__, 1, [Define for Philips STB810 target])
     ;;
   vfanvil)
-    AC_DEFINE(__TARGET_VFANVIL__, 1,
-            [Define for VirualFone ANVIL target])
+    AC_DEFINE(__TARGET_VFANVIL__, 1, [Define for VirualFone ANVIL target])
     ;;
   monaco)
-    AC_DEFINE(__TARGET_MONACO__, 1,
-            [Define for Monaco ANVIL target])
+    AC_DEFINE(__TARGET_MONACO__, 1, [Define for Monaco ANVIL target])
     ;;
   mx21)
-    AC_DEFINE(__TARGET_MX21__, 1,
-            [Define for OSE on mx21])
+    AC_DEFINE(__TARGET_MX21__, 1, [Define for OSE on mx21])
     ;;
   vxi386)
-    AC_DEFINE(__TARGET_VXI386__, 1,
-            [Define for VxWorks on i386])
+    AC_DEFINE(__TARGET_VXI386__, 1, [Define for VxWorks on i386])
     ;;
   vxppc)
-    AC_DEFINE(__TARGET_PPC__, 1,
-            [Define for VxWorks on PowerPC])
+    AC_DEFINE(__TARGET_PPC__, 1, [Define for VxWorks on PowerPC])
     ;;
   bfin)
-    AC_DEFINE(__TARGET_BLACKFIN__, 1,
-        [Define for Blackfin run uClinux])
+    AC_DEFINE(__TARGET_BLACKFIN__, 1, [Define for Blackfin run uClinux])
    ;;
   c33l05)
-    AC_DEFINE(__TARGET_C33L05__, 1,
-        [Define for EPSON C33L05 (axLinux)])
+    AC_DEFINE(__TARGET_C33L05__, 1, [Define for EPSON C33L05 (axLinux)])
    ;;
   S3C6410)
     CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_S3C6410"
@@ -1633,8 +1636,7 @@ case "$with_targetname" in
   *)
     with_targetname="unknown"
     CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_NONE"
-    AC_DEFINE(__TARGET_UNKNOWN__, 1,
-            [Define for unknown target])
+    AC_DEFINE(__TARGET_UNKNOWN__, 1, [Define for unknown target])
     ;;
 esac
 
@@ -1706,18 +1708,6 @@ fi
 if test "x$incore_res" = "xyes"; then
   AC_DEFINE(_MGINCORE_RES, 1,
             [Define if build MiniGUI for no file I/O system (use in-core resources)])
-fi
-
-no_math="no"
-AC_CHECK_LIB(m, pow, DEP_LIBS="$DEP_LIBS -lm", no_math="yes")
-
-if test "x$no_math" = "xno"; then
-    AC_DEFINE(_HAVE_MATH_LIB, 1,
-            [Define if have math library])
-fi
-
-if test "x$no_math" = "xyes"; then
-    build_adv2dapi="no"
 fi
 
 if test "x$build_adv2dapi" = "xyes"; then
@@ -1880,7 +1870,7 @@ fi
 
 if test "x$build_custom_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_CUSTOM, 1,
-            [Define if include IAL engine for customer's board])
+            [Define if include IAL engine for external customer implementation])
 fi
 
 if test "x$build_net_ial_engine" = "xyes"; then
@@ -2056,9 +2046,8 @@ fi
 dnl Check FreeType lib
 if test "x$build_ttf_support" = "xyes"; then
     dnl Check for FreeType2 library
-    AC_CHECK_LIB(freetype, FT_Library_Version,
-        DEP_LIBS="$DEP_LIBS -lfreetype",
-        build_ttf_support="no")
+    AC_CHECK_LIB(freetype, FT_Library_Version, ,
+        build_ttf_support="no; support for TrueType fonts requires libfreetype")
 fi
 
 dnl Dealing with TTF cache size
@@ -2067,8 +2056,10 @@ if test "x$build_ttf_support" = "xyes"; then
     if test "x$build_complex_scripts" = "xyes"; then
         dnl Check for HarfBuzz library
         AC_CHECK_LIB(harfbuzz, hb_version,
-            DEP_LIBS="$DEP_LIBS -lharfbuzzex",
-            build_complex_scripts="no")
+            DEP_LIBS="$DEP_LIBS -lharfbuzzex -lfreetype",
+            build_complex_scripts="no; support for complex scripts requires libharfbuzz")
+    else
+        DEP_LIBS="$DEP_LIBS -lfreetype",
     fi
 
     if test "x$build_ttfcache_support" = "xyes"; then
@@ -2553,7 +2544,7 @@ if test "x$devel_mode" = "xyes"; then
     fi
 
     if test "$ac_cv_prog_gcc" = "yes"; then
-        CPPFLAGS="$CPPFLAGS -Wall -Werror"
+        CFLAGS="$CFLAGS -Wall -Werror"
     fi
 
     AC_DEFINE(_MGDEVEL_MODE, 1,
@@ -2563,11 +2554,15 @@ else
 fi
 
 if test "$ac_cv_prog_gcc" = "yes"; then
-    CFLAGS="$CFLAGS -O2 -fmax-errors=10 -Wstrict-prototypes -pipe"
+    CFLAGS="$CFLAGS -fmax-errors=10 -Wstrict-prototypes -pipe"
 fi
 
 if test "x$need_udev" = "xyes"; then
     DEP_LIBS="$DEP_LIBS -ludev"
+fi
+
+if test "x$no_math" = "xno"; then
+    DEP_LIBS="$DEP_LIBS -lm"
 fi
 
 DEP_LIBS="$DEP_LIBS -lpthread"
