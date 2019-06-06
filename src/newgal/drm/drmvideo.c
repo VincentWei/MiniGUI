@@ -3,8 +3,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
- *   Copyright (C) 1998~2002, WEI Yongming
+ *   Copyright (C) 2019, Beijing FMSoft Technologies Co., Ltd.
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -113,14 +112,14 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 }
 
 VideoBootStrap DRM_bootstrap = {
-    DRMVID_DRIVER_NAME, "Dummy video driver",
+    DRMVID_DRIVER_NAME, "Linux DRM video driver",
     DRM_Available, DRM_CreateDevice
 };
 
 
 static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 {
-    fprintf (stderr, "NEWGAL>DRM: Calling init method!\n");
+    _MG_PRINTF("NEWGAL>DRM: Calling init method!\n");
 
     /* Determine the screen depth (use default 8-bit depth) */
     /* we change this during the GAL_SetVideoMode implementation... */
@@ -154,7 +153,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
     this->hidden->buffer = malloc (pitch * height);
     if (!this->hidden->buffer) {
-        fprintf (stderr, "NEWGAL>DRM: "
+        _ERR_PRINTF ("NEWGAL>DRM: "
                 "Couldn't allocate buffer for requested mode\n");
         return NULL;
     }
@@ -165,7 +164,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
     if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
         free(this->hidden->buffer);
         this->hidden->buffer = NULL;
-        fprintf (stderr, "NEWGAL>DRM: "
+        _ERR_PRINTF ("NEWGAL>DRM: "
                 "Couldn't allocate new pixel format for requested mode\n");
         return(NULL);
     }
@@ -181,11 +180,11 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
     return(current);
 }
 
-/* We don't actually allow hardware surfaces other than the main one */
 static int DRM_AllocHWSurface(_THIS, GAL_Surface *surface)
 {
     return(-1);
 }
+
 static void DRM_FreeHWSurface(_THIS, GAL_Surface *surface)
 {
     surface->pixels = NULL;
@@ -209,3 +208,4 @@ static void DRM_VideoQuit(_THIS)
 }
 
 #endif /* _MGGAL_DRM */
+

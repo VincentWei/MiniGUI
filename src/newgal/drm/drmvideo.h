@@ -37,7 +37,7 @@
 #include "sysvideo.h"
 
 /* Hidden "this" pointer for the video functions */
-#define _THIS	GAL_VideoDevice *this
+#define _THIS   GAL_VideoDevice *this
 
 /* Private display data */
 
@@ -47,3 +47,4 @@ struct GAL_PrivateVideoData {
 };
 
 #endif /* _NEWGAL_DRMVIDEO_H */
+
