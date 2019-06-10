@@ -39,6 +39,7 @@
 */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <error.h>
 #include <string.h>
 
@@ -709,8 +710,8 @@ static int SMI_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color
     int y = rect->y;
 
     if (this->screen->pixels != dst->pixels) {
-        y += ((UINT)dst->pixels - (UINT)this->screen->pixels)/this->screen->pitch;
-        x += (((UINT)dst->pixels - (UINT)this->screen->pixels)%this->screen->pitch)/pSmi->Bpp;
+        y += ((uintptr_t)dst->pixels - (uintptr_t)this->screen->pixels)/this->screen->pitch;
+        x += (((uintptr_t)dst->pixels - (uintptr_t)this->screen->pixels)%this->screen->pitch)/pSmi->Bpp;
     }
 
     SMI_SetupForSolidFill (color, GXcopy, ~0);
@@ -767,15 +768,15 @@ static int SMI_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect,
     int dsty = dstrect->y;
 
     if (pSmi->this->screen->pixels != src->pixels) {
-        srcy += ((UINT)src->pixels - (UINT)pSmi->this->screen->pixels)
+        srcy += ((uintptr_t)src->pixels - (uintptr_t)pSmi->this->screen->pixels)
                     /pSmi->this->screen->pitch;
-        srcx += (((UINT)src->pixels - (UINT)pSmi->this->screen->pixels)
+        srcx += (((uintptr_t)src->pixels - (uintptr_t)pSmi->this->screen->pixels)
                     %pSmi->this->screen->pitch)/pSmi->Bpp;
     }
     if (pSmi->this->screen->pixels != dst->pixels) {
-        dsty += ((UINT)dst->pixels - (UINT)pSmi->this->screen->pixels)
+        dsty += ((uintptr_t)dst->pixels - (uintptr_t)pSmi->this->screen->pixels)
                     /pSmi->this->screen->pitch;
-        dstx += (((UINT)dst->pixels - (UINT)pSmi->this->screen->pixels)
+        dstx += (((uintptr_t)dst->pixels - (uintptr_t)pSmi->this->screen->pixels)
                     %pSmi->this->screen->pitch)/pSmi->Bpp;
     }
 
@@ -900,7 +901,9 @@ int SMI_Probe (_THIS, const struct fb_fix_screeninfo* fb_finfo, PCI_VIDEO_DRIVER
     struct pci_device_iterator * iter;
     struct pci_device * dev;
     struct pci_id_match id_match;
+#ifdef _DEBUG
     int num_chipset;
+#endif
 
     id_match.vendor_id = PCI_VENDOR_SMI;
     id_match.device_id = PCI_MATCH_ANY;
@@ -920,7 +923,9 @@ int SMI_Probe (_THIS, const struct fb_fix_screeninfo* fb_finfo, PCI_VIDEO_DRIVER
         while (SMIChipsets [i].token > 0) {
             if (dev->device_id == SMIChipsets [i].token) {
                 // found a chipset supported by this driver.
+#ifdef _DEBUG
                 num_chipset = i;
+#endif
                 goto found;
             }
 
