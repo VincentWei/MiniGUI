@@ -241,8 +241,9 @@ int mg_InitIAL (void)
     }
     else
 #endif
-    if (GetMgEtcValue ("system", "mdev", mdev, MAX_PATH) < 0)
-        return ERR_CONFIG_FILE;
+    if (GetMgEtcValue ("system", "mdev", mdev, MAX_PATH) < 0) {
+        strcpy (mdev, "/dev/zero");
+    }
 
 #ifndef __NOUNIX__
     if ((env_value = getenv ("MG_MTYPE"))) {
@@ -251,8 +252,9 @@ int mg_InitIAL (void)
     }
     else
 #endif
-    if (GetMgEtcValue ("system", "mtype", mtype, LEN_MTYPE_NAME) < 0)
-        return ERR_CONFIG_FILE;
+    if (GetMgEtcValue ("system", "mtype", mtype, LEN_MTYPE_NAME) < 0) {
+        strcpy (mdev, "none");
+    }
 
     for (i = 0; i < NR_INPUTS; i++) {
         if (strncmp (engine, inputs[i].id, LEN_ENGINE_NAME) == 0) {
@@ -260,7 +262,7 @@ int mg_InitIAL (void)
             break;
         }
     }
-   
+
     if (__mg_cur_input == NULL) {
         _ERR_PRINTF ("IAL: Does not find the request engine: %s.\n", engine);
         if (NR_INPUTS) {
