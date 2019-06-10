@@ -1,6 +1,6 @@
 
 ## Makefile.am for the drm video driver
-AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/newgal/
+AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/newgal/ -I$(DRM_INC_DIR)
 
 noinst_LTLIBRARIES = libvideo_drm.la
 

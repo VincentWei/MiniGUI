@@ -41,7 +41,15 @@
 
 /* Private display data */
 
+#define LEN_DEVICE_NAME     31
+
 struct GAL_PrivateVideoData {
+    char            dev_name[LEN_DEVICE_NAME + 1];
+    int             dev_fd;
+
+    DrmDriverOps*   driver_ops;
+    DrmDriver*      driver;
+
     int w, h;
     void *buffer;
 };

@@ -35,16 +35,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _DEBUG
 #include "common.h"
-#include "newgal.h"
-#include "sysvideo.h"
-#include "pixels_c.h"
 
 #ifdef _MGGAL_DRM
 
+#include <sys/sysmacros.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <drm/drm.h>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
+
+#include "minigui.h"
+#include "newgal.h"
+#include "exstubs.h"
+
+#include "pixels_c.h"
 #include "drmvideo.h"
 
-#define DRMVID_DRIVER_NAME "drm"
+#define DRM_DRIVER_NAME "drm"
 
 /* Initialization/Query functions */
 static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat);
@@ -61,13 +72,102 @@ static void DRM_FreeHWSurface(_THIS, GAL_Surface *surface);
 
 static int DRM_Available(void)
 {
-    return(1);
+    return drmAvailable();
 }
 
 static void DRM_DeleteDevice(GAL_VideoDevice *device)
 {
+    if (device->hidden->driver && device->hidden->driver_ops) {
+        device->hidden->driver_ops->destroy_driver(device->hidden->driver);
+    }
+
     free(device->hidden);
     free(device);
+}
+
+static char* find_driver_for_device (const char *dev_name)
+{
+    char *driver;
+    int major_number, minor_number;
+    struct stat file_attrs;
+    char *device_path;
+    char device_link_path[PATH_MAX + 1] = "";
+    int ret;
+
+    if (stat (dev_name, &file_attrs) < 0) {
+        _ERR_PRINTF("NEWGAL>DRM: failed to call stat on %s\n", dev_name);
+        return NULL;
+    }
+
+    if (!S_ISCHR (file_attrs.st_mode)) {
+        _ERR_PRINTF("NEWGAL>DRM: %s is not a character device\n", dev_name);
+        return NULL;
+    }
+
+    major_number = major (file_attrs.st_rdev);
+    minor_number = minor (file_attrs.st_rdev);
+
+    ret = asprintf (&device_path, "/sys/dev/char/%d:%d/device/driver",
+            major_number, minor_number);
+    if (ret < 0) {
+        _ERR_PRINTF("NEWGAL>DRM: failed to call asprintf to build device path\n");
+        return NULL;
+    }
+
+    if (readlink (device_path, device_link_path,
+            sizeof (device_link_path) - 1) < 0) {
+        free (device_path);
+        return NULL;
+    }
+
+    _DBG_PRINTF("NEWGAL>DRM: device link path: %s\n", device_link_path);
+
+    free (device_path);
+    driver = strrchr (device_link_path, '/');
+    if (driver == NULL)
+        return NULL;
+
+    return strdup (driver + strlen ("/"));
+}
+
+static int open_drm_device(GAL_VideoDevice *device)
+{
+    char *driver_name;
+    int device_fd;
+
+    driver_name = find_driver_for_device(device->hidden->dev_name);
+    _DBG_PRINTF("NEWGAL>DRM: Trye to load DRM driver: %s\n", driver_name);
+    device_fd = drmOpen(driver_name, NULL);
+
+    if (device_fd < 0) {
+        _ERR_PRINTF("drmOpen failed");
+        free(driver_name);
+        return -1;
+    }
+
+    if (strcmp(driver_name, "i915") == 0) {
+        _DBG_PRINTF("NEWGAL>DRM: found driver: i915\n");
+    }
+    else {
+#ifdef __TARGET_EXTERNAL__
+        device->hidden->driver_ops = __drm_ex_driver_get(driver_name);
+#endif
+    }
+
+    free (driver_name);
+    if (device->hidden->driver_ops == NULL) {
+        close (device_fd);
+        return -1;
+    }
+
+    device->hidden->driver = device->hidden->driver_ops->create_driver(device_fd);
+    if (device->hidden->driver == NULL) {
+        close(device_fd);
+        return -1;
+    }
+
+    device->hidden->dev_fd = device_fd;
+    return 0;
 }
 
 static GAL_VideoDevice *DRM_CreateDevice(int devindex)
@@ -77,18 +177,30 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     /* Initialize all variables that we clean on shutdown */
     device = (GAL_VideoDevice *)malloc(sizeof(GAL_VideoDevice));
     if ( device ) {
-        memset(device, 0, (sizeof *device));
+        memset(device, 0, (sizeof (*device)));
         device->hidden = (struct GAL_PrivateVideoData *)
-                malloc((sizeof *device->hidden));
+                malloc((sizeof (*device->hidden)));
     }
-    if ( (device == NULL) || (device->hidden == NULL) ) {
+    if ((device == NULL) || (device->hidden == NULL)) {
         GAL_OutOfMemory();
-        if ( device ) {
+        if (device) {
             free(device);
         }
-        return(0);
+        return NULL;
     }
-    memset(device->hidden, 0, (sizeof *device->hidden));
+
+    memset(device->hidden, 0, (sizeof (*device->hidden)));
+    if (GetMgEtcValue ("drm", "device",
+            device->hidden->dev_name, LEN_DEVICE_NAME) < 0) {
+        strcpy(device->hidden->dev_name, "/dev/dri/card0");
+        _WRN_PRINTF("No drm.device defined, use the default '/dev/dri/card0'");
+    }
+
+    device->hidden->dev_fd = -1;
+    open_drm_device(device);
+    if (device->hidden->dev_fd < 0) {
+        return NULL;
+    }
 
     /* Set the function pointers */
     device->VideoInit = DRM_VideoInit;
@@ -112,14 +224,14 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 }
 
 VideoBootStrap DRM_bootstrap = {
-    DRMVID_DRIVER_NAME, "Linux DRM video driver",
+    DRM_DRIVER_NAME, "Linux DRM video driver",
     DRM_Available, DRM_CreateDevice
 };
 
 
 static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 {
-    _MG_PRINTF("NEWGAL>DRM: Calling init method!\n");
+    _DBG_PRINTF("NEWGAL>DRM: Calling init method!\n");
 
     /* Determine the screen depth (use default 8-bit depth) */
     /* we change this during the GAL_SetVideoMode implementation... */
