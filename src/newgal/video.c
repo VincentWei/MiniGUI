@@ -144,6 +144,9 @@ static VideoBootStrap *bootstrap[] = {
 #ifdef _MGGAL_USVFB
     &USVFB_bootstrap,
 #endif
+#ifdef _MGGAL_DRM
+    &DRM_bootstrap,
+#endif
     NULL
 };
 
