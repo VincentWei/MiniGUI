@@ -32,7 +32,7 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
-** evdev.c: The implementation of EvDev IAL engine.
+** libinput.c: The implementation of the IAL engine based on libinput.
 **
 ** Created by Wei Yongming, 2019/06/10
 */
@@ -43,11 +43,11 @@
 
 #include "common.h"
 
-#ifdef _MGIAL_EVDEV
+#ifdef _MGIAL_LIBINPUT
 
 #include "misc.h"
 #include "ial.h"
-#include "evdev.h"
+#include "libinput.h"
 
 static int mouse_x, mouse_y, mouse_button;
 
@@ -114,7 +114,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     return 0;
 }
 
-BOOL InitEvdevInput (INPUT* input, const char* mdev, const char* mtype)
+BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
 {
     input->update_mouse = mouse_update;
     input->get_mouse_xy = mouse_getxy;
@@ -133,9 +133,9 @@ BOOL InitEvdevInput (INPUT* input, const char* mdev, const char* mtype)
     return TRUE;
 }
 
-void TermEvdevInput (void)
+void TermLibInput (void)
 {
 }
 
-#endif /* _MGIAL_EVDEV */
+#endif /* _MGIAL_LIBINPUT */
 

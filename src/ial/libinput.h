@@ -32,25 +32,25 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
-** evdev.h: the head file of EVDev IAL Engine.
+** libinput.h: the head file of the IAL engine based on libinput.
 **
 ** Created by Wei YongMing, 2019/06/10
 */
 
-#ifndef GUI_IAL_EVDEV_H
-    #define GUI_IAL_EVDEV_H
+#ifndef GUI_IAL_LIBINPUT_H
+    #define GUI_IAL_LIBINPUT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-BOOL InitEvdevInput (INPUT* input, const char* mdev, const char* mtype);
-void TermEvdevInput (void);
+BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype);
+void TermLibInput (void);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif  /* GUI_IAL_EVDEV_H */
+#endif  /* GUI_IAL_LIBINPUT_H */
 
 

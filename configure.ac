@@ -118,7 +118,7 @@ build_random_ial_engine="no"
 build_net_ial_engine="no"
 
 dnl common IAL engines
-build_evdev_ial_engine="yes"
+build_libinput_ial_engine="yes"
 build_console_ial_engine="no"
 build_console_ps2="no"
 build_console_imps2="no"
@@ -468,9 +468,9 @@ AC_ARG_ENABLE(dfbial,
 [  --enable-dfbial          build the DFB IAL engine <default=no>],
 build_dfb_ial_engine=$enableval)
 
-AC_ARG_ENABLE(evdevial,
-[  --enable-evdevial        build the Linux EVDev IAL engine <default=yes>],
-build_evdev_ial_engine=$enableval)
+AC_ARG_ENABLE(libinputial,
+[  --enable-libinputial     build the IAL engine based on libinput <default=yes>],
+build_libinput_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleial,
 [  --enable-consoleial      build the console (Linux console) IAL engine <default=no>],
@@ -1917,15 +1917,15 @@ if test "x$build_tslib_ial_engine" = "xyes"; then
     DEP_LIBS="$DEP_LIBS -lts"
 fi
 
-if test "x$build_evdev_ial_engine" = "xyes"; then
-    PKG_CHECK_MODULES(UDEV, [libudev >= 200], ,
-            build_evdev_ial_engine="no; Linux EVDev IAL engine requires libudev")
-    if test "x$build_evdev_ial_engine" = "xyes"; then
-        AC_DEFINE(_MGIAL_EVDEV, 1,
-                [Define if include Linux EVDev IAL engine])
+if test "x$build_libinput_ial_engine" = "xyes"; then
+    PKG_CHECK_MODULES(LIBINPUT, [libinput >= 1.10.0], ,
+            build_libinput_ial_engine="no; the IAL engine requires libinput 1.13.0 or later")
+    if test "x$build_libinput_ial_engine" = "xyes"; then
+        AC_DEFINE(_MGIAL_LIBINPUT, 1,
+                [Define if include Linux libinput IAL engine])
         need_udev="yes"
     else
-        AC_MSG_WARN([$build_evdev_ial_engine])
+        AC_MSG_WARN([$build_libinput_ial_engine])
     fi
 fi
 
@@ -2576,7 +2576,7 @@ AC_SUBST(MINIGUI_RUNMODE)
 
 AM_CONDITIONAL(MGRM_PROCESSES, test "x$runtime_mode" = "xprocs")
 AM_CONDITIONAL(MGRM_STANDALONE, test "x$runtime_mode" = "xsa")
-AM_CONDITIONAL(MGIAL_EVDEV, test "x$build_evdev_ial_engine" = "xyes")
+AM_CONDITIONAL(MGIAL_LIBINPUT, test "x$build_libinput_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_CONSOLE, test "x$build_console_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_NEXUS, test "x$build_nexus_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_DLCUSTOM, test "x$build_dlcustom_ial_engine" = "xyes")
@@ -2685,7 +2685,7 @@ AC_MSG_NOTICE([
   * dummy:              ${build_dummy_ial_engine}
   * pc_xvfb:            ${enable_video_pc_xvfb}
   * usvfb:              ${enable_video_usvfb}
-  * evdev:              ${build_evdev_ial_engine}
+  * libinput:           ${build_libinput_ial_engine}
   * console:            ${build_console_ial_engine}
   * comm:               ${build_comm_ial_engine}
 

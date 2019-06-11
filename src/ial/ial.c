@@ -117,8 +117,8 @@
 #ifdef _MGIAL_USVFB
     #include "usvfbinput.h"
 #endif
-#ifdef _MGIAL_EVDEV
-    #include "evdev.h"
+#ifdef _MGIAL_LIBINPUT
+    #include "libinput.h"
 #endif
 
 #define LEN_ENGINE_NAME        16
@@ -199,8 +199,8 @@ static INPUT inputs [] =
 #ifdef _MGIAL_USVFB
     {"usvfb", InitUSVFBInput, TermUSVFBInput},
 #endif
-#ifdef _MGIAL_EVDEV
-    {"evdev", InitEvdevInput, TermEvdevInput},
+#ifdef _MGIAL_LIBINPUT
+    {"libinput", InitLibInput, TermLibInput},
 #endif
 /* ... end of general IAL engines */
 };
