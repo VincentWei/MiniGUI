@@ -383,20 +383,25 @@ int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags)
         if ( sizes == (GAL_Rect **)0 ) {
             /* No sizes supported at this bit-depth */
             continue;
-        } else 
+        }
+        else {
             if ( (sizes == (GAL_Rect **)-1) ||
                     current_video->handles_any_size ) {
                 /* Any size supported at this bit-depth */
                 supported = 1;
                 continue;
-            } else
+            }
+            else {
                 for ( i=0; sizes[i]; ++i ) {
-                    if ((sizes[i]->w == width) && (sizes[i]->h == height)) {
+                    if ((sizes[i]->w >= width) && (sizes[i]->h >= height)) {
                         supported = 1;
                         break;
                     }
                 }
+            }
+        }
     }
+
     if ( supported ) {
         --b;
         return(GAL_closest_depths[table][b]);
@@ -418,9 +423,10 @@ static int GAL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
 
     /* Try the original video mode, get the closest depth */
     native_bpp = GAL_VideoModeOK(*w, *h, *BitsPerPixel, flags);
-
-    if (native_bpp == 0)
+    if (native_bpp == 0) {
+        GAL_SetError("NEWGAL: GAL_VideoModeOK returns zero\n");
         return 0;
+    }
 
     if ( native_bpp == *BitsPerPixel ) {
         return(1);
@@ -513,7 +519,8 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     if ( !GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags) ) {
 #endif
             GAL_SetError ("NEWGAL: GAL_GetVideoMode error, "
-                            "not supported video mode.\n");
+                        "not supported video mode: %dx%d-%dbpp.\n",
+                        video_w, video_h, video_bpp);
             return(NULL);
         }
     /* Check the requested flags */
