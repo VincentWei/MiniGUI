@@ -34,6 +34,8 @@
 #ifndef _NEWGAL_DRMVIDEO_H
 #define _NEWGAL_DRMVIDEO_H
 
+#include <stdint.h>
+
 #include "sysvideo.h"
 
 /* Hidden "this" pointer for the video functions */
@@ -54,8 +56,18 @@ typedef struct GAL_PrivateVideoData {
 
     DrmModeInfo*    mode_list;
 
-    int w, h;
-    void *buffer;
+    int             bpp;
+    uint32_t        width;
+    uint32_t        height;
+    uint32_t        pitch;
+    uint32_t        size;
+
+    uint32_t        conn;
+    uint32_t        buff;
+    uint32_t        handle;
+
+    drmModeCrtc*    saved_crtc;
+    uint8_t*        fb;
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRMVIDEO_H */

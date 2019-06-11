@@ -91,6 +91,7 @@ static int DRM_Available(void)
  * The following helpers derived from DRM HOWTO by David Herrmann.
  *
  * drm_prepare
+ * drm_find_crtc
  * drm_setup_dev
  * drm_create_dumb_fb
  * drm_cleanup
@@ -114,18 +115,12 @@ static int DRM_Available(void)
 struct drm_mode_info {
     struct drm_mode_info *next;
 
-    uint32_t width;
-    uint32_t height;
-    uint32_t stride;
-    uint32_t size;
-    uint32_t handle;
-    uint8_t *map;
+    uint32_t        width;
+    uint32_t        height;
+    uint32_t        conn;
+    uint32_t        crtc;
 
     drmModeModeInfo mode;
-    uint32_t fb;
-    uint32_t conn;
-    uint32_t crtc;
-    drmModeCrtc *saved_crtc;
 };
 
 /*
@@ -143,31 +138,31 @@ static void drm_cleanup(DrmVideoData* vdata)
         iter = vdata->mode_list;
         vdata->mode_list = iter->next;
 
-        /* restore saved CRTC configuration */
-        drmModeSetCrtc(vdata->dev_fd,
-                   iter->saved_crtc->crtc_id,
-                   iter->saved_crtc->buffer_id,
-                   iter->saved_crtc->x,
-                   iter->saved_crtc->y,
-                   &iter->conn,
-                   1,
-                   &iter->saved_crtc->mode);
-        drmModeFreeCrtc(iter->saved_crtc);
-
-        /* unmap buffer */
-        munmap(iter->map, iter->size);
-
-        /* delete framebuffer */
-        drmModeRmFB(vdata->dev_fd, iter->fb);
-
-        /* delete dumb buffer */
-        memset(&dreq, 0, sizeof(dreq));
-        dreq.handle = iter->handle;
-        drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
-
         /* free allocated memory */
         free(iter);
     }
+
+    /* restore saved CRTC configuration */
+    drmModeSetCrtc(vdata->dev_fd,
+               vdata->saved_crtc->crtc_id,
+               vdata->saved_crtc->buffer_id,
+               vdata->saved_crtc->x,
+               vdata->saved_crtc->y,
+               &vdata->conn,
+               1,
+               &vdata->saved_crtc->mode);
+    drmModeFreeCrtc(vdata->saved_crtc);
+
+    /* unmap buffer */
+    munmap(vdata->fb, vdata->size);
+
+    /* delete framebuffer */
+    drmModeRmFB(vdata->dev_fd, vdata->buff);
+
+    /* delete dumb buffer */
+    memset(&dreq, 0, sizeof(dreq));
+    dreq.handle = vdata->handle;
+    drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
 }
 
 static void DRM_DeleteDevice(GAL_VideoDevice *device)
@@ -353,11 +348,11 @@ VideoBootStrap DRM_bootstrap = {
 };
 
 /*
- * modeset_find_crtc(vdata, res, conn, dev):
+ * modeset_find_crtc(vdata, res, conn, info):
  * This small helper tries to find a suitable CRTC for the given connector.
  */
 static int drm_find_crtc(DrmVideoData* vdata,
-            drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *dev)
+            drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *info)
 {
     drmModeEncoder *enc;
     unsigned int i, j;
@@ -382,7 +377,7 @@ static int drm_find_crtc(DrmVideoData* vdata,
 
             if (crtc >= 0) {
                 drmModeFreeEncoder(enc);
-                dev->crtc = crtc;
+                info->crtc = crtc;
                 return 0;
             }
         }
@@ -420,7 +415,7 @@ static int drm_find_crtc(DrmVideoData* vdata,
             /* we have found a CRTC, so save it and return */
             if (crtc >= 0) {
                 drmModeFreeEncoder(enc);
-                dev->crtc = crtc;
+                info->crtc = crtc;
                 return 0;
             }
         }
@@ -434,83 +429,11 @@ static int drm_find_crtc(DrmVideoData* vdata,
 }
 
 /*
- * drm_create_dumb_fb(vdata, dev):
- * Call this function to create a so called "dumb buffer".
- * We can use it for unaccelerated software rendering on the CPU.
- */
-static int drm_create_dumb_fb(DrmVideoData* vdata, struct drm_mode_info *dev)
-{
-    struct drm_mode_create_dumb creq;
-    struct drm_mode_destroy_dumb dreq;
-    struct drm_mode_map_dumb mreq;
-    int ret;
-
-    /* create dumb buffer */
-    memset(&creq, 0, sizeof(creq));
-    creq.width = dev->width;
-    creq.height = dev->height;
-    creq.bpp = 32;
-    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq);
-    if (ret < 0) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot create dumb buffer (%d): %m\n",
-            errno);
-        return -errno;
-    }
-    dev->stride = creq.pitch;
-    dev->size = creq.size;
-    dev->handle = creq.handle;
-
-    /* create framebuffer object for the dumb-buffer */
-    ret = drmModeAddFB(vdata->dev_fd, dev->width, dev->height, 24, 32, dev->stride,
-               dev->handle, &dev->fb);
-    if (ret) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot create framebuffer (%d): %m\n",
-            errno);
-        ret = -errno;
-        goto err_destroy;
-    }
-
-    /* prepare buffer for memory mapping */
-    memset(&mreq, 0, sizeof(mreq));
-    mreq.handle = dev->handle;
-    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
-    if (ret) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%d): %m\n",
-            errno);
-        ret = -errno;
-        goto err_fb;
-    }
-
-    /* perform actual memory mapping */
-    dev->map = mmap(0, dev->size, PROT_READ | PROT_WRITE, MAP_SHARED,
-                vdata->dev_fd, mreq.offset);
-    if (dev->map == MAP_FAILED) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer (%d): %m\n",
-            errno);
-        ret = -errno;
-        goto err_fb;
-    }
-
-    /* clear the framebuffer to 0 */
-    memset(dev->map, 0, dev->size);
-    return 0;
-
-err_fb:
-    drmModeRmFB(vdata->dev_fd, dev->fb);
-
-err_destroy:
-    memset(&dreq, 0, sizeof(dreq));
-    dreq.handle = dev->handle;
-    drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
-    return ret;
-}
-
-/*
  * drm_setup_dev:
  * Set up a single connector.
  */
 static int drm_setup_dev(DrmVideoData* vdata,
-            drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *dev)
+            drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *info)
 {
     int ret;
 
@@ -529,24 +452,16 @@ static int drm_setup_dev(DrmVideoData* vdata,
     }
 
     /* copy the mode information into our device structure */
-    memcpy(&dev->mode, &conn->modes[0], sizeof(dev->mode));
-    dev->width = conn->modes[0].hdisplay;
-    dev->height = conn->modes[0].vdisplay;
+    memcpy(&info->mode, &conn->modes[0], sizeof(info->mode));
+    info->width = conn->modes[0].hdisplay;
+    info->height = conn->modes[0].vdisplay;
     _DBG_PRINTF("NEWGAL>DRM: mode for connector %u is %ux%u\n",
-        conn->connector_id, dev->width, dev->height);
+        conn->connector_id, info->width, info->height);
 
     /* find a crtc for this connector */
-    ret = drm_find_crtc(vdata, res, conn, dev);
+    ret = drm_find_crtc(vdata, res, conn, info);
     if (ret) {
         _DBG_PRINTF("NEWGAL>DRM: no valid crtc for connector %u\n",
-            conn->connector_id);
-        return ret;
-    }
-
-    /* create a framebuffer for this CRTC */
-    ret = drm_create_dumb_fb(vdata, dev);
-    if (ret) {
-        _DBG_PRINTF("NEWGAL>DRM: cannot create framebuffer for connector %u\n",
             conn->connector_id);
         return ret;
     }
@@ -559,7 +474,7 @@ static int drm_prepare(DrmVideoData* vdata)
     drmModeRes *res;
     drmModeConnector *conn;
     unsigned int i;
-    struct drm_mode_info *dev;
+    struct drm_mode_info *info;
     int ret;
 
     /* retrieve resources */
@@ -581,12 +496,12 @@ static int drm_prepare(DrmVideoData* vdata)
         }
 
         /* create a device structure */
-        dev = malloc(sizeof(*dev));
-        memset(dev, 0, sizeof(*dev));
-        dev->conn = conn->connector_id;
+        info = malloc(sizeof(*info));
+        memset(info, 0, sizeof(*info));
+        info->conn = conn->connector_id;
 
         /* call helper function to prepare this connector */
-        ret = drm_setup_dev(vdata, res, conn, dev);
+        ret = drm_setup_dev(vdata, res, conn, info);
         if (ret) {
             if (ret != -ENOENT) {
                 errno = -ret;
@@ -594,15 +509,15 @@ static int drm_prepare(DrmVideoData* vdata)
                     " %u:%u (%d): %m\n",
                     i, res->connectors[i], errno);
             }
-            free(dev);
+            free(info);
             drmModeFreeConnector(conn);
             continue;
         }
 
         /* free connector vdata and link device into global list */
         drmModeFreeConnector(conn);
-        dev->next = vdata->mode_list;
-        vdata->mode_list = dev;
+        info->next = vdata->mode_list;
+        vdata->mode_list = info;
     }
 
     /* free resources again */
@@ -620,9 +535,8 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
     struct drm_mode_info *iter;
     int i = 0;
     for (iter = this->hidden->mode_list; iter; iter = iter->next) {
-        _MG_PRINTF("mode #%d: %ux%u(%u), fb: %u, conn: %u, crtc: %u\n", i,
-                iter->width, iter->height, iter->stride,
-                iter->fb, iter->conn, iter->crtc);
+        _MG_PRINTF("mode #%d: %ux%u, conn: %u, crtc: %u\n", i,
+                iter->width, iter->height, iter->conn, iter->crtc);
         i++;
     }
 
@@ -656,43 +570,144 @@ static void DRM_VideoQuit(_THIS)
     }
 }
 
+/*
+ * drm_create_dumb_fb(vdata, info):
+ * Call this function to create a so called "dumb buffer".
+ * We can use it for unaccelerated software rendering on the CPU.
+ */
+static int drm_create_dumb_fb(DrmVideoData* vdata, const DrmModeInfo* info,
+        int depth, int bpp)
+{
+    struct drm_mode_create_dumb creq;
+    struct drm_mode_destroy_dumb dreq;
+    struct drm_mode_map_dumb mreq;
+    int ret;
+
+    /* create dumb buffer */
+    memset(&creq, 0, sizeof(creq));
+    creq.width = info->width;
+    creq.height = info->height;
+    creq.bpp = bpp;
+    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq);
+    if (ret < 0) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot create dumb buffer (%d): %m\n",
+            errno);
+        return -errno;
+    }
+
+    vdata->width = creq.width;
+    vdata->height = creq.height;
+    vdata->bpp = creq.bpp;
+    vdata->pitch = creq.pitch;
+    vdata->size = creq.size;
+    vdata->handle = creq.handle;
+
+    /* create framebuffer object for the dumb-buffer */
+    ret = drmModeAddFB(vdata->dev_fd, vdata->width, vdata->height, depth, bpp,
+                 vdata->pitch, vdata->handle, &vdata->buff);
+    if (ret) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot create framebuffer (%d): %m\n",
+            errno);
+        ret = -errno;
+        goto err_destroy;
+    }
+
+    /* prepare buffer for memory mapping */
+    memset(&mreq, 0, sizeof(mreq));
+    mreq.handle = vdata->handle;
+    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
+    if (ret) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%d): %m\n", errno);
+        ret = -errno;
+        goto err_fb;
+    }
+
+    /* perform actual memory mapping */
+    vdata->fb = mmap(0, vdata->size, PROT_READ | PROT_WRITE, MAP_SHARED,
+                vdata->dev_fd, mreq.offset);
+    if (vdata->fb == MAP_FAILED) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer (%d): %m\n", errno);
+        ret = -errno;
+        goto err_fb;
+    }
+
+    return 0;
+
+err_fb:
+    drmModeRmFB(vdata->dev_fd, vdata->buff);
+
+err_destroy:
+    memset(&dreq, 0, sizeof(dreq));
+    dreq.handle = vdata->handle;
+    drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+    return ret;
+}
+
+static DrmModeInfo* find_mode(DrmVideoData* vdata, int width, int height)
+{
+    return vdata->mode_list;
+}
+
 /* DRM engine methods for dumb buffers */
 static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
-    int pitch;
+    DrmVideoData* vdata = this->hidden;
+    DrmModeInfo* info;
+    int depth;
+    int ret;
 
-    if (this->hidden->buffer) {
-        free (this->hidden->buffer);
-    }
-
-    pitch = width * ((bpp + 7) / 8);
-    pitch = (pitch + 3) & ~3;
-
-    this->hidden->buffer = malloc (pitch * height);
-    if (!this->hidden->buffer) {
-        _ERR_PRINTF ("NEWGAL>DRM: "
-                "Couldn't allocate buffer for requested mode\n");
+    if (bpp < 16) {
+        _ERR_PRINTF("NEWGAL>DRM: bpp (%d) are too small for DRM\n", bpp);
         return NULL;
     }
 
-    memset (this->hidden->buffer, 0, pitch * height);
+    bpp = ((bpp + 7) / 8) * 8;
+    if (bpp > 24)
+        depth = 24;
+    else
+        depth = bpp;
 
-    /* Allocate the new pixel format for the screen */
-    if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
-        free(this->hidden->buffer);
-        this->hidden->buffer = NULL;
-        _ERR_PRINTF ("NEWGAL>DRM: "
-                "Couldn't allocate new pixel format for requested mode\n");
-        return(NULL);
+    /* find the connector+CRTC suitable for the resolution requested */
+    info = find_mode(vdata, width, height);
+    if (info == NULL) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
+            width, height, bpp);
+        return NULL;
+    }
+
+    _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
+            width, height, bpp);
+
+    /* create a dumb framebuffer for current CRTC */
+    ret = drm_create_dumb_fb(this->hidden, info, depth, bpp);
+    if (ret) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot create dumb framebuffer\n");
+        return NULL;
+    }
+
+    /* perform actual modesetting on the found connector+CRTC */
+    this->hidden->saved_crtc = drmModeGetCrtc(vdata->dev_fd, info->crtc);
+    ret = drmModeSetCrtc(vdata->dev_fd, info->crtc, vdata->buff, 0, 0,
+                     &info->conn, 1, &info->mode);
+    if (ret) {
+        _ERR_PRINTF ("NEWGAL>DRM: cannot set CRTC for connector %u (%d): %m\n",
+            info->conn, errno);
+        return NULL;
     }
 
     /* Set up the new mode framebuffer */
+    /* Allocate the new pixel format for the screen */
+    if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
+        _ERR_PRINTF ("NEWGAL>DRM: allocate new pixel format for requested mode\n");
+        return NULL;
+    }
+
     current->flags = flags & GAL_FULLSCREEN;
-    this->hidden->w = current->w = width;
-    this->hidden->h = current->h = height;
-    current->pitch = pitch;
-    current->pixels = this->hidden->buffer;
+    current->w = this->hidden->width;
+    current->h = this->hidden->height;
+    current->pitch = this->hidden->pitch;
+    current->pixels = this->hidden->fb;
 
     /* We're done */
     return(current);
