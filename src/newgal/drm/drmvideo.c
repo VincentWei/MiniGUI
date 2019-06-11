@@ -58,21 +58,21 @@
 
 #define DRM_DRIVER_NAME "drm"
 
+/* DRM engine methods for both dumb buffer and acclerated buffers */
+static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat);
+static GAL_Rect **DRM_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags);
+static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors);
+static void DRM_VideoQuit(_THIS);
+
 /* DRM engine operators for dumb buffer */
-static int DRM_VideoInit_Dumb(_THIS, GAL_PixelFormat *vformat);
-static GAL_Rect **DRM_ListModes_Dumb(_THIS, GAL_PixelFormat *format, Uint32 flags);
 static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags);
-static void DRM_VideoQuit_Dumb(_THIS);
 static int DRM_AllocHWSurface_Dumb(_THIS, GAL_Surface *surface);
 static void DRM_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface);
 
 /* DRM engine operators accelerated */
-static int DRM_VideoInit_Accl(_THIS, GAL_PixelFormat *vformat);
-static GAL_Rect **DRM_ListModes_Accl(_THIS, GAL_PixelFormat *format, Uint32 flags);
 static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags);
-static void DRM_VideoQuit_Accl(_THIS);
 static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface);
 static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface);
 static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst);
@@ -81,13 +81,93 @@ static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
 static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
 static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
 
-/* DRM engine methods for both dumb buffer and acclerated buffers */
-static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors);
-
 /* DRM driver bootstrap functions */
 static int DRM_Available(void)
 {
     return drmAvailable();
+}
+
+/*
+ * The following helpers derived from DRM HOWTO by David Herrmann.
+ *
+ * drm_prepare
+ * drm_setup_dev
+ * drm_create_dumb_fb
+ * drm_cleanup
+ *
+ * Copyright 2012-2017 David Herrmann <dh.herrmann@gmail.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for
+ * any purpose with or without fee is hereby granted, provided that the
+ * above copyright notice and this permission notice appear in all copies.
+
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ * THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT,
+ * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+struct drm_mode_info {
+    struct drm_mode_info *next;
+
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t size;
+    uint32_t handle;
+    uint8_t *map;
+
+    drmModeModeInfo mode;
+    uint32_t fb;
+    uint32_t conn;
+    uint32_t crtc;
+    drmModeCrtc *saved_crtc;
+};
+
+/*
+ * modeset_cleanup(vdata): This cleans up all the devices we created during
+ * modeset_prepare(). It resets the CRTCs to their saved states and deallocates
+ * all memory.
+ */
+static void drm_cleanup(DrmVideoData* vdata)
+{
+    struct drm_mode_info *iter;
+    struct drm_mode_destroy_dumb dreq;
+
+    while (vdata->mode_list) {
+        /* remove from global list */
+        iter = vdata->mode_list;
+        vdata->mode_list = iter->next;
+
+        /* restore saved CRTC configuration */
+        drmModeSetCrtc(vdata->dev_fd,
+                   iter->saved_crtc->crtc_id,
+                   iter->saved_crtc->buffer_id,
+                   iter->saved_crtc->x,
+                   iter->saved_crtc->y,
+                   &iter->conn,
+                   1,
+                   &iter->saved_crtc->mode);
+        drmModeFreeCrtc(iter->saved_crtc);
+
+        /* unmap buffer */
+        munmap(iter->map, iter->size);
+
+        /* delete framebuffer */
+        drmModeRmFB(vdata->dev_fd, iter->fb);
+
+        /* delete dumb buffer */
+        memset(&dreq, 0, sizeof(dreq));
+        dreq.handle = iter->handle;
+        drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+
+        /* free allocated memory */
+        free(iter);
+    }
 }
 
 static void DRM_DeleteDevice(GAL_VideoDevice *device)
@@ -95,6 +175,8 @@ static void DRM_DeleteDevice(GAL_VideoDevice *device)
     if (device->hidden->driver && device->hidden->driver_ops) {
         device->hidden->driver_ops->destroy_driver(device->hidden->driver);
     }
+
+    drm_cleanup(device->hidden);
 
     free(device->hidden);
     free(device);
@@ -151,9 +233,10 @@ static int open_drm_device(GAL_VideoDevice *device)
     int device_fd;
 
     driver_name = find_driver_for_device(device->hidden->dev_name);
-    _DBG_PRINTF("NEWGAL>DRM: Trye to load DRM driver: %s\n", driver_name);
-    device_fd = drmOpen(driver_name, NULL);
 
+    _DBG_PRINTF("NEWGAL>DRM: Try to load DRM driver: %s\n", driver_name);
+
+    device_fd = drmOpen(driver_name, NULL);
     if (device_fd < 0) {
         _ERR_PRINTF("drmOpen failed");
         free(driver_name);
@@ -162,6 +245,7 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     if (strcmp(driver_name, "i915") == 0) {
         _DBG_PRINTF("NEWGAL>DRM: found driver: i915\n");
+        // XXX: built-in driver operators for i915.
     }
     else {
 #ifdef __TARGET_EXTERNAL__
@@ -228,13 +312,13 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         return NULL;
     }
 
+    device->VideoInit = DRM_VideoInit;
+    device->ListModes = DRM_ListModes;
+    device->SetColors = DRM_SetColors;
+    device->VideoQuit = DRM_VideoQuit;
     if (device->hidden->driver) {
         /* Use accelerated driver */
-        device->VideoInit = DRM_VideoInit_Accl;
-        device->ListModes = DRM_ListModes_Accl;
         device->SetVideoMode = DRM_SetVideoMode_Accl;
-        device->SetColors = DRM_SetColors;
-        device->VideoQuit = DRM_VideoQuit_Accl;
 #ifndef _MGRM_THREADS
         device->RequestHWSurface = NULL;
 #endif
@@ -247,11 +331,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     }
     else {
         /* Use DUMB buffer */
-        device->VideoInit = DRM_VideoInit_Dumb;
-        device->ListModes = DRM_ListModes_Dumb;
         device->SetVideoMode = DRM_SetVideoMode_Dumb;
-        device->SetColors = DRM_SetColors;
-        device->VideoQuit = DRM_VideoQuit_Dumb;
 #ifndef _MGRM_THREADS
         device->RequestHWSurface = NULL;
 #endif
@@ -273,65 +353,27 @@ VideoBootStrap DRM_bootstrap = {
 };
 
 /*
- * The following helpers derived from DRM HOWTO by David Herrmann.
- *
- * Copyright 2012-2017 David Herrmann <dh.herrmann@gmail.com>
- *
- * Permission to use, copy, modify, and/or distribute this software for
- * any purpose with or without fee is hereby granted, provided that the
- * above copyright notice and this permission notice appear in all copies.
-
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
- * THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT,
- * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
-struct drm_dev {
-    struct drm_dev *next;
-
-    uint32_t width;
-    uint32_t height;
-    uint32_t stride;
-    uint32_t size;
-    uint32_t handle;
-    uint8_t *map;
-
-    drmModeModeInfo mode;
-    uint32_t fb;
-    uint32_t conn;
-    uint32_t crtc;
-    drmModeCrtc *saved_crtc;
-};
-
-static struct drm_dev *drm_list = NULL;
-
-/*
- * modeset_find_crtc(fd, res, conn, dev):
+ * modeset_find_crtc(vdata, res, conn, dev):
  * This small helper tries to find a suitable CRTC for the given connector.
  */
-static int drm_find_crtc(int fd, drmModeRes *res, drmModeConnector *conn,
-                 struct drm_dev *dev)
+static int drm_find_crtc(DrmVideoData* vdata,
+            drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *dev)
 {
     drmModeEncoder *enc;
     unsigned int i, j;
     int32_t crtc;
-    struct drm_dev *iter;
+    struct drm_mode_info *iter;
 
     /* first try the currently conected encoder+crtc */
     if (conn->encoder_id)
-        enc = drmModeGetEncoder(fd, conn->encoder_id);
+        enc = drmModeGetEncoder(vdata->dev_fd, conn->encoder_id);
     else
         enc = NULL;
 
     if (enc) {
         if (enc->crtc_id) {
             crtc = enc->crtc_id;
-            for (iter = drm_list; iter; iter = iter->next) {
+            for (iter = vdata->mode_list; iter; iter = iter->next) {
                 if (iter->crtc == crtc) {
                     crtc = -1;
                     break;
@@ -353,7 +395,7 @@ static int drm_find_crtc(int fd, drmModeRes *res, drmModeConnector *conn,
      * but lets be safe), iterate all other available encoders to find a
      * matching CRTC. */
     for (i = 0; i < conn->count_encoders; ++i) {
-        enc = drmModeGetEncoder(fd, conn->encoders[i]);
+        enc = drmModeGetEncoder(vdata->dev_fd, conn->encoders[i]);
         if (!enc) {
             _ERR_PRINTF("NEWGAL>DRM: cannot retrieve encoder %u:%u (%d): %m\n",
                 i, conn->encoders[i], errno);
@@ -368,7 +410,7 @@ static int drm_find_crtc(int fd, drmModeRes *res, drmModeConnector *conn,
 
             /* check that no other device already uses this CRTC */
             crtc = res->crtcs[j];
-            for (iter = drm_list; iter; iter = iter->next) {
+            for (iter = vdata->mode_list; iter; iter = iter->next) {
                 if (iter->crtc == crtc) {
                     crtc = -1;
                     break;
@@ -392,11 +434,11 @@ static int drm_find_crtc(int fd, drmModeRes *res, drmModeConnector *conn,
 }
 
 /*
- * drm_create_dumb_fb(fd, dev):
+ * drm_create_dumb_fb(vdata, dev):
  * Call this function to create a so called "dumb buffer".
  * We can use it for unaccelerated software rendering on the CPU.
  */
-static int drm_create_dumb_fb(int fd, struct drm_dev *dev)
+static int drm_create_dumb_fb(DrmVideoData* vdata, struct drm_mode_info *dev)
 {
     struct drm_mode_create_dumb creq;
     struct drm_mode_destroy_dumb dreq;
@@ -408,7 +450,7 @@ static int drm_create_dumb_fb(int fd, struct drm_dev *dev)
     creq.width = dev->width;
     creq.height = dev->height;
     creq.bpp = 32;
-    ret = drmIoctl(fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq);
+    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq);
     if (ret < 0) {
         _ERR_PRINTF("NEWGAL>DRM: cannot create dumb buffer (%d): %m\n",
             errno);
@@ -419,7 +461,7 @@ static int drm_create_dumb_fb(int fd, struct drm_dev *dev)
     dev->handle = creq.handle;
 
     /* create framebuffer object for the dumb-buffer */
-    ret = drmModeAddFB(fd, dev->width, dev->height, 24, 32, dev->stride,
+    ret = drmModeAddFB(vdata->dev_fd, dev->width, dev->height, 24, 32, dev->stride,
                dev->handle, &dev->fb);
     if (ret) {
         _ERR_PRINTF("NEWGAL>DRM: cannot create framebuffer (%d): %m\n",
@@ -431,7 +473,7 @@ static int drm_create_dumb_fb(int fd, struct drm_dev *dev)
     /* prepare buffer for memory mapping */
     memset(&mreq, 0, sizeof(mreq));
     mreq.handle = dev->handle;
-    ret = drmIoctl(fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
+    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
     if (ret) {
         _ERR_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%d): %m\n",
             errno);
@@ -441,7 +483,7 @@ static int drm_create_dumb_fb(int fd, struct drm_dev *dev)
 
     /* perform actual memory mapping */
     dev->map = mmap(0, dev->size, PROT_READ | PROT_WRITE, MAP_SHARED,
-                fd, mreq.offset);
+                vdata->dev_fd, mreq.offset);
     if (dev->map == MAP_FAILED) {
         _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer (%d): %m\n",
             errno);
@@ -454,12 +496,12 @@ static int drm_create_dumb_fb(int fd, struct drm_dev *dev)
     return 0;
 
 err_fb:
-    drmModeRmFB(fd, dev->fb);
+    drmModeRmFB(vdata->dev_fd, dev->fb);
 
 err_destroy:
     memset(&dreq, 0, sizeof(dreq));
     dreq.handle = dev->handle;
-    drmIoctl(fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+    drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
     return ret;
 }
 
@@ -467,8 +509,8 @@ err_destroy:
  * drm_setup_dev:
  * Set up a single connector.
  */
-static int drm_setup_dev(int fd, drmModeRes *res, drmModeConnector *conn,
-                 struct drm_dev *dev)
+static int drm_setup_dev(DrmVideoData* vdata,
+            drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *dev)
 {
     int ret;
 
@@ -494,7 +536,7 @@ static int drm_setup_dev(int fd, drmModeRes *res, drmModeConnector *conn,
         conn->connector_id, dev->width, dev->height);
 
     /* find a crtc for this connector */
-    ret = drm_find_crtc(fd, res, conn, dev);
+    ret = drm_find_crtc(vdata, res, conn, dev);
     if (ret) {
         _DBG_PRINTF("NEWGAL>DRM: no valid crtc for connector %u\n",
             conn->connector_id);
@@ -502,7 +544,7 @@ static int drm_setup_dev(int fd, drmModeRes *res, drmModeConnector *conn,
     }
 
     /* create a framebuffer for this CRTC */
-    ret = drm_create_dumb_fb(fd, dev);
+    ret = drm_create_dumb_fb(vdata, dev);
     if (ret) {
         _DBG_PRINTF("NEWGAL>DRM: cannot create framebuffer for connector %u\n",
             conn->connector_id);
@@ -512,16 +554,16 @@ static int drm_setup_dev(int fd, drmModeRes *res, drmModeConnector *conn,
     return 0;
 }
 
-static int drm_prepare(int fd)
+static int drm_prepare(DrmVideoData* vdata)
 {
     drmModeRes *res;
     drmModeConnector *conn;
     unsigned int i;
-    struct drm_dev *dev;
+    struct drm_mode_info *dev;
     int ret;
 
     /* retrieve resources */
-    res = drmModeGetResources(fd);
+    res = drmModeGetResources(vdata->dev_fd);
     if (!res) {
         _ERR_PRINTF("NEWGAL>DRM: cannot retrieve DRM resources (%d): %m\n",
             errno);
@@ -531,7 +573,7 @@ static int drm_prepare(int fd)
     /* iterate all connectors */
     for (i = 0; i < res->count_connectors; ++i) {
         /* get information for each connector */
-        conn = drmModeGetConnector(fd, res->connectors[i]);
+        conn = drmModeGetConnector(vdata->dev_fd, res->connectors[i]);
         if (!conn) {
             _ERR_PRINTF("NEWGAL>DRM: cannot retrieve DRM connector %u:%u(%d): %m\n",
                 i, res->connectors[i], errno);
@@ -544,7 +586,7 @@ static int drm_prepare(int fd)
         dev->conn = conn->connector_id;
 
         /* call helper function to prepare this connector */
-        ret = drm_setup_dev(fd, res, conn, dev);
+        ret = drm_setup_dev(vdata, res, conn, dev);
         if (ret) {
             if (ret != -ENOENT) {
                 errno = -ret;
@@ -557,10 +599,10 @@ static int drm_prepare(int fd)
             continue;
         }
 
-        /* free connector data and link device into global list */
+        /* free connector vdata and link device into global list */
         drmModeFreeConnector(conn);
-        dev->next = drm_list;
-        drm_list = dev;
+        dev->next = vdata->mode_list;
+        vdata->mode_list = dev;
     }
 
     /* free resources again */
@@ -568,15 +610,16 @@ static int drm_prepare(int fd)
     return 0;
 }
 
-static int DRM_VideoInit_Dumb(_THIS, GAL_PixelFormat *vformat)
+/* DRM engine methods for both dumb buffer and acclerated buffers */
+static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 {
     _DBG_PRINTF("NEWGAL>DRM: Calling %s\n", __FUNCTION__);
 
-    drm_prepare(this->hidden->dev_fd);
+    drm_prepare(this->hidden);
 
-    struct drm_dev *iter;
+    struct drm_mode_info *iter;
     int i = 0;
-    for (iter = drm_list; iter; iter = iter->next) {
+    for (iter = this->hidden->mode_list; iter; iter = iter->next) {
         _MG_PRINTF("mode #%d: %ux%u(%u), fb: %u, conn: %u, crtc: %u\n", i,
                 iter->width, iter->height, iter->stride,
                 iter->fb, iter->conn, iter->crtc);
@@ -590,7 +633,7 @@ static int DRM_VideoInit_Dumb(_THIS, GAL_PixelFormat *vformat)
     return(0);
 }
 
-static GAL_Rect **DRM_ListModes_Dumb(_THIS, GAL_PixelFormat *format, Uint32 flags)
+static GAL_Rect **DRM_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
 {
     if (format->BitsPerPixel < 8) {
         return NULL;
@@ -599,6 +642,21 @@ static GAL_Rect **DRM_ListModes_Dumb(_THIS, GAL_PixelFormat *format, Uint32 flag
     return (GAL_Rect**) -1;
 }
 
+static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
+{
+    /* do nothing of note. */
+    return(1);
+}
+
+static void DRM_VideoQuit(_THIS)
+{
+    if (this->screen->pixels != NULL) {
+        free(this->screen->pixels);
+        this->screen->pixels = NULL;
+    }
+}
+
+/* DRM engine methods for dumb buffers */
 static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
@@ -650,41 +708,11 @@ static void DRM_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface)
     surface->pixels = NULL;
 }
 
-/* Note:  If we are terminated, this could be called in the middle of
-   another video routine -- notably UpdateRects. */
-static void DRM_VideoQuit_Dumb(_THIS)
-{
-    if (this->screen->pixels != NULL) {
-        free(this->screen->pixels);
-        this->screen->pixels = NULL;
-    }
-}
-
-static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
-{
-    /* do nothing of note. */
-    return(1);
-}
-
-/* DRM engine operators accelerated */
-static int DRM_VideoInit_Accl(_THIS, GAL_PixelFormat *vformat)
-{
-    return 0;
-}
-
-static GAL_Rect **DRM_ListModes_Accl(_THIS, GAL_PixelFormat *format, Uint32 flags)
-{
-    return NULL;
-}
-
+/* DRM engine methods for accelerated buffers */
 static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags)
 {
     return NULL;
-}
-
-static void DRM_VideoQuit_Accl(_THIS)
-{
 }
 
 static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)

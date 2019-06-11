@@ -43,16 +43,20 @@
 
 #define LEN_DEVICE_NAME     31
 
-struct GAL_PrivateVideoData {
+typedef struct drm_mode_info DrmModeInfo;
+
+typedef struct GAL_PrivateVideoData {
     char            dev_name[LEN_DEVICE_NAME + 1];
     int             dev_fd;
 
     DrmDriverOps*   driver_ops;
     DrmDriver*      driver;
 
+    DrmModeInfo*    mode_list;
+
     int w, h;
     void *buffer;
-};
+} DrmVideoData;
 
 #endif /* _NEWGAL_DRMVIDEO_H */
 
