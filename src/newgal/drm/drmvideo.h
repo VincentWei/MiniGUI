@@ -55,6 +55,7 @@ typedef struct GAL_PrivateVideoData {
     DrmDriver*      driver;
 
     DrmModeInfo*    mode_list;
+    GAL_Rect**      modes;
 
     int             bpp;
     uint32_t        width;

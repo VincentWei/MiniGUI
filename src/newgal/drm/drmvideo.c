@@ -92,7 +92,7 @@ static int DRM_Available(void)
  *
  * drm_prepare
  * drm_find_crtc
- * drm_setup_dev
+ * drm_setup_connector
  * drm_create_dumb_fb
  * drm_cleanup
  *
@@ -133,6 +133,16 @@ static void drm_cleanup(DrmVideoData* vdata)
     struct drm_mode_info *iter;
     struct drm_mode_destroy_dumb dreq;
 
+    if (vdata->modes) {
+        int i = 0;
+        while (vdata->modes[i]) {
+            free (vdata->modes[i]);
+            i++;
+        }
+
+        free(vdata->modes);
+    }
+
     while (vdata->mode_list) {
         /* remove from global list */
         iter = vdata->mode_list;
@@ -142,27 +152,31 @@ static void drm_cleanup(DrmVideoData* vdata)
         free(iter);
     }
 
-    /* restore saved CRTC configuration */
-    drmModeSetCrtc(vdata->dev_fd,
-               vdata->saved_crtc->crtc_id,
-               vdata->saved_crtc->buffer_id,
-               vdata->saved_crtc->x,
-               vdata->saved_crtc->y,
-               &vdata->conn,
-               1,
-               &vdata->saved_crtc->mode);
-    drmModeFreeCrtc(vdata->saved_crtc);
+    if (vdata->saved_crtc) {
+        /* restore saved CRTC configuration */
+        drmModeSetCrtc(vdata->dev_fd,
+                   vdata->saved_crtc->crtc_id,
+                   vdata->saved_crtc->buffer_id,
+                   vdata->saved_crtc->x,
+                   vdata->saved_crtc->y,
+                   &vdata->conn,
+                   1,
+                   &vdata->saved_crtc->mode);
+        drmModeFreeCrtc(vdata->saved_crtc);
+    }
 
-    /* unmap buffer */
-    munmap(vdata->fb, vdata->size);
+    if (vdata->fb) {
+        /* unmap buffer */
+        munmap(vdata->fb, vdata->size);
 
-    /* delete framebuffer */
-    drmModeRmFB(vdata->dev_fd, vdata->buff);
+        /* delete framebuffer */
+        drmModeRmFB(vdata->dev_fd, vdata->buff);
 
-    /* delete dumb buffer */
-    memset(&dreq, 0, sizeof(dreq));
-    dreq.handle = vdata->handle;
-    drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+        /* delete dumb buffer */
+        memset(&dreq, 0, sizeof(dreq));
+        dreq.handle = vdata->handle;
+        drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+    }
 }
 
 static void DRM_DeleteDevice(GAL_VideoDevice *device)
@@ -429,10 +443,10 @@ static int drm_find_crtc(DrmVideoData* vdata,
 }
 
 /*
- * drm_setup_dev:
+ * drm_setup_connector:
  * Set up a single connector.
  */
-static int drm_setup_dev(DrmVideoData* vdata,
+static int drm_setup_connector(DrmVideoData* vdata,
             drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *info)
 {
     int ret;
@@ -469,6 +483,10 @@ static int drm_setup_dev(DrmVideoData* vdata,
     return 0;
 }
 
+/*
+ * drm_prepare:
+ *  Collect the connnectors and mode information.
+ */
 static int drm_prepare(DrmVideoData* vdata)
 {
     drmModeRes *res;
@@ -501,7 +519,7 @@ static int drm_prepare(DrmVideoData* vdata)
         info->conn = conn->connector_id;
 
         /* call helper function to prepare this connector */
-        ret = drm_setup_dev(vdata, res, conn, info);
+        ret = drm_setup_connector(vdata, res, conn, info);
         if (ret) {
             if (ret != -ENOENT) {
                 errno = -ret;
@@ -528,20 +546,40 @@ static int drm_prepare(DrmVideoData* vdata)
 /* DRM engine methods for both dumb buffer and acclerated buffers */
 static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 {
-    _DBG_PRINTF("NEWGAL>DRM: Calling %s\n", __FUNCTION__);
+    int n = 0;
+    struct drm_mode_info *iter;
 
     drm_prepare(this->hidden);
 
-    struct drm_mode_info *iter;
-    int i = 0;
     for (iter = this->hidden->mode_list; iter; iter = iter->next) {
-        _MG_PRINTF("mode #%d: %ux%u, conn: %u, crtc: %u\n", i,
+        _DBG_PRINTF("NEWGAL>DRM: mode #%d: %ux%u, conn: %u, crtc: %u\n", n,
                 iter->width, iter->height, iter->conn, iter->crtc);
-        i++;
+        n++;
     }
 
-    vformat->BitsPerPixel = 8;
-    vformat->BytesPerPixel = 1;
+    if (n == 0) {
+        return -1;
+    }
+
+    this->hidden->modes = calloc(n + 1, sizeof(GAL_Rect*));
+    if (this->hidden->modes == NULL) {
+        _ERR_PRINTF("NEWGAL>DRM: failed to allocate memory for modes (%d)\n",
+            n);
+        return -1;
+    }
+
+    n = 0;
+    for (iter = this->hidden->mode_list; iter; iter = iter->next) {
+        this->hidden->modes[n] = malloc(sizeof(GAL_Rect));
+        this->hidden->modes[n]->x = 0;
+        this->hidden->modes[n]->y = 0;
+        this->hidden->modes[n]->w = iter->width;
+        this->hidden->modes[n]->h = iter->height;
+        n++;
+    }
+
+    vformat->BitsPerPixel = 32;
+    vformat->BytesPerPixel = 4;
 
     /* We're done! */
     return(0);
@@ -549,11 +587,11 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 
 static GAL_Rect **DRM_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
 {
-    if (format->BitsPerPixel < 8) {
+    if (format->BitsPerPixel != 32) {
         return NULL;
     }
 
-    return (GAL_Rect**) -1;
+    return this->hidden->modes;
 }
 
 static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
@@ -565,7 +603,6 @@ static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
 static void DRM_VideoQuit(_THIS)
 {
     if (this->screen->pixels != NULL) {
-        free(this->screen->pixels);
         this->screen->pixels = NULL;
     }
 }
@@ -645,7 +682,14 @@ err_destroy:
 
 static DrmModeInfo* find_mode(DrmVideoData* vdata, int width, int height)
 {
-    return vdata->mode_list;
+    DrmModeInfo *iter;
+
+    for (iter = vdata->mode_list; iter; iter = iter->next) {
+        if (iter->width >= width && iter->height >= height)
+            return iter;
+    }
+
+    return NULL;
 }
 
 /* DRM engine methods for dumb buffers */
@@ -657,16 +701,11 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     int depth;
     int ret;
 
-    if (bpp < 16) {
-        _ERR_PRINTF("NEWGAL>DRM: bpp (%d) are too small for DRM\n", bpp);
-        return NULL;
+    if (bpp != 32) {
+        _DBG_PRINTF("NEWGAL>DRM: force bpp (%d) to be 32\n", bpp);
+        bpp = 32;
     }
-
-    bpp = ((bpp + 7) / 8) * 8;
-    if (bpp > 24)
-        depth = 24;
-    else
-        depth = bpp;
+    depth = 24;
 
     /* find the connector+CRTC suitable for the resolution requested */
     info = find_mode(vdata, width, height);
@@ -677,7 +716,7 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     }
 
     _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
-            width, height, bpp);
+            info->width, info->height, bpp);
 
     /* create a dumb framebuffer for current CRTC */
     ret = drm_create_dumb_fb(this->hidden, info, depth, bpp);
@@ -703,9 +742,11 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
         return NULL;
     }
 
+    _DBG_PRINTF("NEWGAL>DRM: real screen mode: %dx%d-%dbpp\n", width, height, bpp);
+
     current->flags = flags & GAL_FULLSCREEN;
-    current->w = this->hidden->width;
-    current->h = this->hidden->height;
+    current->w = width;
+    current->h = height;
     current->pitch = this->hidden->pitch;
     current->pixels = this->hidden->fb;
 
