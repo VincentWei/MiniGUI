@@ -276,7 +276,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     else if (retvalue < 0) {
         retvalue = -1;
     }
-        
+
     return retvalue;
 }
 
