@@ -1161,7 +1161,7 @@ typedef struct _GAL_Rect {
  *
  * The number of MiniGUI keys is defined to 255 by default. This means that
  * MiniGUI can destinguish 255 different keys with each has an unique scan code.
- * The scan codes below 129 are defined for PC keyboard by default.
+ * The scan codes below 251 are defined for Linux keyboard keys by default.
  * If your system has a large amount of keys, you can define the scan code of
  * keys ranged from 1 to 255 in your IAL engine. And your application will
  * receive a MSG_KEYDOWN and MSG_KEYUP messages when a key pressed and
@@ -1176,7 +1176,7 @@ typedef struct _GAL_Rect {
  * \def NR_KEYS
  * \brief The number of keys defined by Linux operating system.
  *
- * For a PC box, NR_KEYS is defined to 128 by default. You can define
+ * For a Linux box, NR_KEYS is defined to 250 by default. You can define
  * some input events from an input device other than keyboard, e.g.
  * your remote controller, as key events with different scan codes from
  * those of PC's. MiniGUI can support 255 keys, and the constant
@@ -1185,7 +1185,7 @@ typedef struct _GAL_Rect {
  * \sa MGUI_NR_KEYS
  */
 #ifndef NR_KEYS
-#define NR_KEYS                         128
+#define NR_KEYS                         250
 #endif
 
 /**
@@ -1206,7 +1206,9 @@ typedef struct _GAL_Rect {
  */
 #define SCANCODE_USER                   (NR_KEYS + 1)
 
+#define SCANCODE_RESERVED               0
 #define SCANCODE_ESCAPE                 1
+    #define SCANCODE_ESC                    SCANCODE_ESCAPE
 
 #define SCANCODE_1                      2
 #define SCANCODE_2                      3
@@ -1236,11 +1238,14 @@ typedef struct _GAL_Rect {
 #define SCANCODE_O                      24
 #define SCANCODE_P                      25
 #define SCANCODE_BRACKET_LEFT           26
+    #define SCANCODE_LEFTBRACE              SCANCODE_BRACKET_LEFT
 #define SCANCODE_BRACKET_RIGHT          27
+    #define SCANCODE_RIGHTBRACE             SCANCODE_BRACKET_RIGHT
 
 #define SCANCODE_ENTER                  28
 
 #define SCANCODE_LEFTCONTROL            29
+    #define SCANCODE_LEFTCTRL               SCANCODE_LEFTCONTROL
 
 #define SCANCODE_A                      30
 #define SCANCODE_S                      31
@@ -1254,7 +1259,6 @@ typedef struct _GAL_Rect {
 #define SCANCODE_SEMICOLON              39
 #define SCANCODE_APOSTROPHE             40
 #define SCANCODE_GRAVE                  41
-
 #define SCANCODE_LEFTSHIFT              42
 #define SCANCODE_BACKSLASH              43
 
@@ -1267,11 +1271,11 @@ typedef struct _GAL_Rect {
 #define SCANCODE_M                      50
 #define SCANCODE_COMMA                  51
 #define SCANCODE_PERIOD                 52
+    #define SCANCODE_DOT                    SCANCODE_PERIOD
 #define SCANCODE_SLASH                  53
-
 #define SCANCODE_RIGHTSHIFT             54
 #define SCANCODE_KEYPADMULTIPLY         55
-
+    #define SCANCODE_KPASTERISK             SCANCODE_KEYPADMULTIPLY
 #define SCANCODE_LEFTALT                56
 #define SCANCODE_SPACE                  57
 #define SCANCODE_CAPSLOCK               58
@@ -1291,61 +1295,226 @@ typedef struct _GAL_Rect {
 #define SCANCODE_SCROLLLOCK             70
 
 #define SCANCODE_KEYPAD7                71
+    #define SCANCODE_KP7                    SCANCODE_KEYPAD7
 #define SCANCODE_CURSORUPLEFT           71
 #define SCANCODE_KEYPAD8                72
+    #define SCANCODE_KP8                    SCANCODE_KEYPAD8
 #define SCANCODE_CURSORUP               72
 #define SCANCODE_KEYPAD9                73
+    #define SCANCODE_KP9                    SCANCODE_KEYPAD9
 #define SCANCODE_CURSORUPRIGHT          73
 #define SCANCODE_KEYPADMINUS            74
+    #define SCANCODE_KPMINUS                SCANCODE_KEYPADMINUS
 #define SCANCODE_KEYPAD4                75
+    #define SCANCODE_KP4                    SCANCODE_KEYPAD4
 #define SCANCODE_CURSORLEFT             75
 #define SCANCODE_KEYPAD5                76
+    #define SCANCODE_KP5                    SCANCODE_KEYPAD5
 #define SCANCODE_KEYPAD6                77
+    #define SCANCODE_KP6                    SCANCODE_KEYPAD6
 #define SCANCODE_CURSORRIGHT            77
 #define SCANCODE_KEYPADPLUS             78
+    #define SCANCODE_KPPLUS                 SCANCODE_KEYPADPLUS
 #define SCANCODE_KEYPAD1                79
+    #define SCANCODE_KP1                    SCANCODE_KEYPAD1
 #define SCANCODE_CURSORDOWNLEFT         79
 #define SCANCODE_KEYPAD2                80
+    #define SCANCODE_KP2                    SCANCODE_KEYPAD2
 #define SCANCODE_CURSORDOWN             80
 #define SCANCODE_KEYPAD3                81
+    #define SCANCODE_KP3                    SCANCODE_KEYPAD3
 #define SCANCODE_CURSORDOWNRIGHT        81
 #define SCANCODE_KEYPAD0                82
+    #define SCANCODE_KP0                    SCANCODE_KEYPAD0
 #define SCANCODE_KEYPADPERIOD           83
+    #define SCANCODE_KPDOT                  SCANCODE_KEYPADPERIOD
+
+#define SCANCODE_ZENKAKUHANKAKU         85
 
 #define SCANCODE_LESS                   86
+#define SCANCODE_102ND                      SCANCODE_LESS
 
 #define SCANCODE_F11                    87
 #define SCANCODE_F12                    88
 
+#define SCANCODE_RO                     89
+#define SCANCODE_KATAKANA               90
+#define SCANCODE_HIRAGANA               91
+#define SCANCODE_HENKAN                 92
+#define SCANCODE_KATAKANAHIRAGANA       93
+#define SCANCODE_MUHENKAN               94
+#define SCANCODE_KPJPCOMMA              95
+
 #define SCANCODE_KEYPADENTER            96
+    #define SCANCODE_KPENTER                SCANCODE_KEYPADENTER
 #define SCANCODE_RIGHTCONTROL           97
+    #define SCANCODE_RIGHTCTRL              SCANCODE_RIGHTCONTROL
 #define SCANCODE_CONTROL                97
 #define SCANCODE_KEYPADDIVIDE           98
+    #define SCANCODE_KPSLASH                SCANCODE_KEYPADDIVIDE
 #define SCANCODE_PRINTSCREEN            99
+    #define SCANCODE_SYSRQ                  SCANCODE_PRINTSCREEN
 #define SCANCODE_RIGHTALT               100
-#define SCANCODE_BREAK                  101    /* Beware: is 119     */
-#define SCANCODE_BREAK_ALTERNATIVE      119    /* on some keyboards! */
+#define SCANCODE_LINEFEED               101
 
 #define SCANCODE_HOME                   102
 #define SCANCODE_CURSORBLOCKUP          103    /* Cursor key block */
+    #define SCANCODE_UP                     SCANCODE_CURSORBLOCKUP
 #define SCANCODE_PAGEUP                 104
 #define SCANCODE_CURSORBLOCKLEFT        105    /* Cursor key block */
+    #define SCANCODE_LEFT                   SCANCODE_CURSORBLOCKLEFT
 #define SCANCODE_CURSORBLOCKRIGHT       106    /* Cursor key block */
+    #define SCANCODE_RIGHT                  SCANCODE_CURSORBLOCKRIGHT
 #define SCANCODE_END                    107
 #define SCANCODE_CURSORBLOCKDOWN        108    /* Cursor key block */
+    #define SCANCODE_DOWN                   SCANCODE_CURSORBLOCKDOWN
 #define SCANCODE_PAGEDOWN               109
 #define SCANCODE_INSERT                 110
 #define SCANCODE_REMOVE                 111
+    #define SCANCODE_DELETE                 SCANCODE_REMOVE
 
-#define SCANCODE_PAUSE                  119
+#define SCANCODE_MACRO                  112
+#define SCANCODE_MUTE                   113
+#define SCANCODE_VOLUMEDOWN             114
+#define SCANCODE_VOLUMEUP               115
+#define SCANCODE_POWER                  116     /* SC System Power Down */
+#define SCANCODE_KPEQUAL                117
+#define SCANCODE_KPPLUSMINUS            118
+#define SCANCODE_BREAK                  119
+    #define SCANCODE_BREAK_ALTERNATIVE      SCANCODE_BREAK
+    #define SCANCODE_PAUSE                  SCANCODE_BREAK
 
-#define SCANCODE_POWER                  120
-#define SCANCODE_SLEEP                  121
-#define SCANCODE_WAKEUP                 122
-
+#define SCANCODE_SCALE                  120    /* AL Compiz Scale (Expose) */
+#define SCANCODE_KPCOMMA                121
+#define SCANCODE_HANGEUL                122
+#define SCANCODE_HANJA                  123
+#define SCANCODE_YEN                    124
 #define SCANCODE_LEFTWIN                125
+    #define SCANCODE_LEFTMETA               SCANCODE_LEFTWIN
 #define SCANCODE_RIGHTWIN               126
-#define SCANCODE_MENU                   127
+    #define SCANCODE_RIGHTMETA              SCANCODE_RIGHTWIN
+#define SCANCODE_COMPOSE                127
+#define SCANCODE_STOP                   128    /* AC Stop */
+#define SCANCODE_AGAIN                  129
+#define SCANCODE_PROPS                  130    /* AC Properties */
+#define SCANCODE_UNDO                   131    /* AC Undo */
+#define SCANCODE_FRONT                  132
+#define SCANCODE_COPY                   133    /* AC Copy */
+#define SCANCODE_OPEN                   134    /* AC Open */
+#define SCANCODE_PASTE                  135    /* AC Paste */
+#define SCANCODE_FIND                   136    /* AC Search */
+#define SCANCODE_CUT                    137    /* AC Cut */
+#define SCANCODE_HELP                   138    /* AL Integrated Help Center */
+#define SCANCODE_MENU                   139    /* Menu (show menu) */
+#define SCANCODE_CALC                   140    /* AL Calculator */
+#define SCANCODE_SETUP                  141
+#define SCANCODE_SLEEP                  142    /* SC System Sleep */
+#define SCANCODE_WAKEUP                 143    /* System Wake Up */
+#define SCANCODE_FILE                   144    /* AL Local Machine Browser */
+#define SCANCODE_SENDFILE               145
+#define SCANCODE_DELETEFILE             146
+#define SCANCODE_XFER                   147
+#define SCANCODE_PROG1                  148
+#define SCANCODE_PROG2                  149
+#define SCANCODE_WWW                    150    /* AL Internet Browser */
+#define SCANCODE_MSDOS                  151
+#define SCANCODE_COFFEE                 152    /* AL Terminal Lock/Screensaver */
+    #define SCANCODE_SCREENLOCK             SCANCODE_COFFEE
+#define SCANCODE_ROTATE_DISPLAY         153    /* Display orientation for e.g. tablets */
+    #define SCANCODE_DIRECTION              SCANCODE_ROTATE_DISPLAY
+#define SCANCODE_CYCLEWINDOWS           154
+#define SCANCODE_MAIL                   155
+#define SCANCODE_BOOKMARKS              156    /* AC Bookmarks */
+#define SCANCODE_COMPUTER               157
+#define SCANCODE_BACK                   158    /* AC Back */
+#define SCANCODE_FORWARD                159    /* AC Forward */
+#define SCANCODE_CLOSECD                160
+#define SCANCODE_EJECTCD                161
+#define SCANCODE_EJECTCLOSECD           162
+#define SCANCODE_NEXTSONG               163
+#define SCANCODE_PLAYPAUSE              164
+#define SCANCODE_PREVIOUSSONG           165
+#define SCANCODE_STOPCD                 166
+#define SCANCODE_RECORD                 167
+#define SCANCODE_REWIND                 168
+#define SCANCODE_PHONE                  169    /* Media Select Telephone */
+#define SCANCODE_ISO                    170
+#define SCANCODE_CONFIG                 171    /* AL Consumer Control Configuration */
+#define SCANCODE_HOMEPAGE               172    /* AC Home */
+#define SCANCODE_REFRESH                173    /* AC Refresh */
+#define SCANCODE_EXIT                   174    /* AC Exit */
+#define SCANCODE_MOVE                   175
+#define SCANCODE_EDIT                   176
+#define SCANCODE_SCROLLUP               177
+#define SCANCODE_SCROLLDOWN             178
+#define SCANCODE_KPLEFTPAREN            179
+#define SCANCODE_KPRIGHTPAREN           180
+#define SCANCODE_NEW                    181    /* AC New */
+#define SCANCODE_REDO                   182    /* AC Redo/Repeat */
+#define SCANCODE_F13                    183
+#define SCANCODE_F14                    184
+#define SCANCODE_F15                    185
+#define SCANCODE_F16                    186
+#define SCANCODE_F17                    187
+#define SCANCODE_F18                    188
+#define SCANCODE_F19                    189
+#define SCANCODE_F20                    190
+#define SCANCODE_F21                    191
+#define SCANCODE_F22                    192
+#define SCANCODE_F23                    193
+#define SCANCODE_F24                    194
+
+#define SCANCODE_PLAYCD                 200
+#define SCANCODE_PAUSECD                201
+#define SCANCODE_PROG3                  202
+#define SCANCODE_PROG4                  203
+#define SCANCODE_DASHBOARD              204    /* AL Dashboard */
+#define SCANCODE_SUSPEND                205
+#define SCANCODE_CLOSE                  206    /* AC Close */
+#define SCANCODE_PLAY                   207
+#define SCANCODE_FASTFORWARD            208
+#define SCANCODE_BASSBOOST              209
+#define SCANCODE_PRINT                  210    /* AC Print */
+#define SCANCODE_HP                     211
+#define SCANCODE_CAMERA                 212
+#define SCANCODE_SOUND                  213
+#define SCANCODE_QUESTION               214
+#define SCANCODE_EMAIL                  215
+#define SCANCODE_CHAT                   216
+#define SCANCODE_SEARCH                 217
+#define SCANCODE_CONNECT                218
+#define SCANCODE_FINANCE                219    /* AL Checkbook/Finance */
+#define SCANCODE_SPORT                  220
+#define SCANCODE_SHOP                   221
+#define SCANCODE_ALTERASE               222
+#define SCANCODE_CANCEL                 223    /* AC Cancel */
+#define SCANCODE_BRIGHTNESSDOWN         224
+#define SCANCODE_BRIGHTNESSUP           225
+#define SCANCODE_MEDIA                  226
+#define SCANCODE_SWITCHVIDEOMODE        227    /* Cycle between available video outputs (Monitor/LCD/TV-out/etc) */
+#define SCANCODE_KBDILLUMTOGGLE         228
+#define SCANCODE_KBDILLUMDOWN           229
+#define SCANCODE_KBDILLUMUP             230
+#define SCANCODE_SEND                   231    /* AC Send */
+#define SCANCODE_REPLY                  232    /* AC Reply */
+#define SCANCODE_FORWARDMAIL            233    /* AC Forward Msg */
+#define SCANCODE_SAVE                   234    /* AC Save */
+#define SCANCODE_DOCUMENTS              235
+#define SCANCODE_BATTERY                236
+#define SCANCODE_BLUETOOTH              237
+#define SCANCODE_WLAN                   238
+#define SCANCODE_UWB                    239
+#define SCANCODE_UNKNOWN                240
+#define SCANCODE_VIDEO_NEXT             241    /* drive next video source */
+#define SCANCODE_VIDEO_PREV             242    /* drive previous video source */
+#define SCANCODE_BRIGHTNESS_CYCLE       243    /* brightness up, after max is min */
+#define SCANCODE_BRIGHTNESS_AUTO        244    /* Set Auto Brightness: manual brightness control is off, rely on ambient */
+    #define SCANCODE_BRIGHTNESS_ZERO        SCANCODE_BRIGHTNESS_AUTO
+#define SCANCODE_DISPLAY_OFF            245    /* display device to off state */
+#define SCANCODE_WWAN                   246    /* Wireless WAN (LTE, UMTS, GSM, etc.) */
+    #define SCANCODE_WIMAX                  SCANCODE_WWAN
+#define SCANCODE_RFKILL                 247    /* Key that controls all radios */
+#define SCANCODE_MICMUTE                248    /* Mute / unmute the microphone */
 
 #define SCANCODE_LEFTBUTTON             0x1000
 #define SCANCODE_RIGHTBUTTON            0x2000
