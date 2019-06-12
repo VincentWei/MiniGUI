@@ -288,6 +288,7 @@ int mg_InitIAL (void)
 
     _DBG_PRINTF ("IAL: Use %s engine.\n", __mg_cur_input->id);
 
+    IAL_SetMouseRange (0, 0, WIDTHOFPHYGC - 1, HEIGHTOFPHYGC - 1);
     return 0;
 }
 
