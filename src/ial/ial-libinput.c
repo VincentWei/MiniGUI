@@ -449,10 +449,15 @@ static BOOL on_mouse_moved (double dx, double dy)
     int new_x = (int)(my_ctxt.mouse_x + dx + 0.5);
     int new_y = (int)(my_ctxt.mouse_y + dy + 0.5);
 
+    _DBG_PRINTF("%s: new mouse position: %d, %d (old: %d, %d; delta: %f, %f)\n",
+            __FUNCTION__, new_x, new_y, my_ctxt.mouse_x, my_ctxt.mouse_y, dx, dy);
+
     normalize_mouse_pos(&new_x, &new_y);
     if (new_x == my_ctxt.mouse_x && new_y == my_ctxt.mouse_y)
         return FALSE;
 
+    my_ctxt.mouse_x = new_x;
+    my_ctxt.mouse_y = new_y;
     return TRUE;
 }
 
@@ -461,10 +466,15 @@ static BOOL on_new_mouse_pos (double x, double y)
     int new_x = (int)(x + 0.5);
     int new_y = (int)(y + 0.5);
 
+    _DBG_PRINTF("%s: new mouse position: %d, %d (old: %d, %d)\n",
+            __FUNCTION__, new_x, new_y, my_ctxt.mouse_x, my_ctxt.mouse_y);
+
     normalize_mouse_pos(&new_x, &new_y);
     if (new_x == my_ctxt.mouse_x && new_y == my_ctxt.mouse_y)
         return FALSE;
 
+    my_ctxt.mouse_x = new_x;
+    my_ctxt.mouse_y = new_y;
     return TRUE;
 }
 
@@ -503,6 +513,8 @@ static BOOL on_mouse_button_changed (uint32_t button,
         break;
     }
 
+    _DBG_PRINTF("%s: new mouse button: 0x%x (old: 0x%x)\n",
+            __FUNCTION__, my_ctxt.mouse_button, old_mouse_button);
     if (old_mouse_button == my_ctxt.mouse_button)
         return FALSE;
 
