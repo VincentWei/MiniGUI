@@ -644,17 +644,18 @@ void GUIAPI ClipCursor(const RECT* prc)
 
     if(prc == NULL)
     {
-        IAL_SetMouseRange (0,0,WIDTHOFPHYGC - 1,HEIGHTOFPHYGC - 1);
+        IAL_SetMouseRange (0, 0, WIDTHOFPHYGC - 1, HEIGHTOFPHYGC - 1);
         pthread_mutex_unlock(&__mg_mouselock);
         return;
     }
-        
+
     memcpy(&rc, prc, sizeof(RECT));
     NormalizeRect(&rc);
     IntersectRect(&cliprc, &rc, &cliprc);
     NormalizeRect(&cliprc);
 
-    IAL_SetMouseRange (cliprc.left,cliprc.top, cliprc.right,cliprc.bottom);
+    IAL_SetMouseRange (cliprc.left, cliprc.top,
+            cliprc.right - 1, cliprc.bottom - 1);
 
     pthread_mutex_unlock(&__mg_mouselock);
 }

@@ -784,7 +784,8 @@ void GUIAPI ClipCursor (const RECT* prc)
     IntersectRect (&cliprc, &rc, &cliprc);
     NormalizeRect (&cliprc);
 
-    IAL_SetMouseRange (cliprc.left, cliprc.top, cliprc.right, cliprc.bottom);
+    IAL_SetMouseRange (cliprc.left, cliprc.top,
+            cliprc.right - 1, cliprc.bottom - 1);
 }
 
 void GUIAPI GetClipCursor (RECT* prc)
