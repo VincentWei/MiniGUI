@@ -126,8 +126,9 @@ static void GetTimeout (void)
 
 /* Mouse event parameters. */
 static int oldbutton = 0;
-static DWORD time1;
-static DWORD time2;
+static DWORD time1; // for double click of left button
+static DWORD time2; // for double click of right button
+static DWORD time3; // for double click of middle button
 
 /* Key event parameters. */
 static DWORD ke_time;
@@ -161,6 +162,7 @@ static void ResetMouseEvent(void)
 
     time1 = 0;
     time2 = 0;
+    time3 = 0;
 }
 
 static void ResetKeyEvent(void)
@@ -333,6 +335,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             me->event = ME_MOVED;
             time1 = 0;
             time2 = 0;
+            time3 = 0;
 
             if (button == oldbutton)
                 goto mouseret;
@@ -379,6 +382,26 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             !(button & IAL_MOUSE_RIGHTBUTTON) )
         {
             me->event = ME_RIGHTUP;
+            goto mouseret;
+        }
+
+        if ( !(oldbutton & IAL_MOUSE_MIDDLEBUTTON) &&
+              (button & IAL_MOUSE_MIDDLEBUTTON) )
+        {
+            interval = __mg_timer_counter - time3;
+            if (interval <= dblclicktime)
+                me->event = ME_MIDDLEDBLCLICK;
+            else
+                me->event = ME_MIDDLEDOWN;
+            time3 = __mg_timer_counter;
+
+            goto mouseret;
+        }
+
+        if ( (oldbutton & IAL_MOUSE_MIDDLEBUTTON) &&
+            !(button & IAL_MOUSE_MIDDLEBUTTON) )
+        {
+            me->event = ME_MIDDLEUP;
             goto mouseret;
         }
     }
@@ -526,6 +549,8 @@ mouseret:
         status |= KS_LEFTBUTTON;
     if (oldbutton & IAL_MOUSE_RIGHTBUTTON)
         status |= KS_RIGHTBUTTON;
+    if (oldbutton & IAL_MOUSE_MIDDLEBUTTON)
+        status |= KS_MIDDLEBUTTON;
     me->status = status;
 #ifndef _MGRM_STANDALONE
     SHAREDRES_SHIFTSTATUS = status;
@@ -605,6 +630,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             me->event = ME_MOVED;
             time1 = 0;
             time2 = 0;
+            time3 = 0;
 
             //Note:should contains button state in MSG_MOUSEMOVE
             if (button == oldbutton)
@@ -652,6 +678,26 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             !(button & IAL_MOUSE_RIGHTBUTTON) )
         {
             me->event = ME_RIGHTUP;
+            goto mouseret;
+        }
+
+        if ( !(oldbutton & IAL_MOUSE_MIDDLEBUTTON) &&
+              (button & IAL_MOUSE_MIDDLEBUTTON) )
+        {
+            interval = __mg_timer_counter - time3;
+            if (interval <= dblclicktime)
+                me->event = ME_MIDDLEDBLCLICK;
+            else
+                me->event = ME_MIDDLEDOWN;
+            time3 = __mg_timer_counter;
+
+            goto mouseret;
+        }
+
+        if ( (oldbutton & IAL_MOUSE_MIDDLEBUTTON) &&
+            !(button & IAL_MOUSE_MIDDLEBUTTON) )
+        {
+            me->event = ME_MIDDLEUP;
             goto mouseret;
         }
     }
@@ -784,6 +830,8 @@ mouseret:
         status |= KS_LEFTBUTTON;
     if (oldbutton & IAL_MOUSE_RIGHTBUTTON)
         status |= KS_RIGHTBUTTON;
+    if (oldbutton & IAL_MOUSE_MIDDLEBUTTON)
+        status |= KS_MIDDLEBUTTON;
     me->status = status;
     memcpy (&old_lwe, lwe, sizeof (LWEVENT));
     __mg_event_timeout.tv_sec = 0;

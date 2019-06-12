@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -74,7 +74,7 @@
     /* The screensaver occupys one znode */
 #   define SERVER_HAS_NO_MAINWINDOW() (nr_of_all_znodes() == 1)
 #endif
-#   define CLIENT_HAS_NO_MAINWINDOW() (znodes_of_this_client() == 0) 
+#   define CLIENT_HAS_NO_MAINWINDOW() (znodes_of_this_client() == 0)
 
 /******************************* global data *********************************/
 MSGQUEUE __mg_desktop_msg_queue;
@@ -88,9 +88,9 @@ BOOL __mg_switch_away;
 void lock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
-    
+
     if (mgIsServer) return;
- 
+
 again:
     sb.sem_num = zi->zi_semnum;
     sb.sem_op = -1;
@@ -107,7 +107,7 @@ again:
 void unlock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
-    
+
     if (mgIsServer) return;
 
 again:
@@ -127,9 +127,9 @@ void lock_zi_for_change (const ZORDERINFO* zi)
     int clients = 0;
     struct sembuf sb;
 
-    clients = zi->max_nr_popupmenus + zi->max_nr_globals 
+    clients = zi->max_nr_popupmenus + zi->max_nr_globals
             + zi->max_nr_topmosts + zi->max_nr_normals;
-    
+
     /* Cancel the current drag and drop operation */
     __mg_do_drag_drop_window (MSG_IDLE, 0, 0);
 
@@ -149,9 +149,9 @@ void unlock_zi_for_change (const ZORDERINFO* zi)
 {
     int clients = 0;
     struct sembuf sb;
-    clients = zi->max_nr_popupmenus + zi->max_nr_globals 
+    clients = zi->max_nr_popupmenus + zi->max_nr_globals
             + zi->max_nr_topmosts + zi->max_nr_normals;
-    
+
 again:
     sb.sem_num = zi->zi_semnum;
     sb.sem_op = clients;
@@ -164,7 +164,7 @@ again:
     }
 }
 
-inline void* get_zi_from_client(int cli) 
+inline void* get_zi_from_client(int cli)
 {
     return (((cli>0)?mgClients[cli].layer:mgTopmostLayer)->zorder_info);
 }
@@ -222,7 +222,7 @@ static void init_desktop_win (void)
         pDesktopWin->spCaption = "THE VIRTUAL DESKTOP OF CLIENT";
 
     pDesktopWin->pMainWin          = pDesktopWin;
-    pDesktopWin->we_rdr            = __mg_def_renderer; 
+    pDesktopWin->we_rdr            = __mg_def_renderer;
 
     __mg_hwnd_desktop = (HWND)pDesktopWin;
     __mg_dsk_win  = pDesktopWin;
@@ -273,7 +273,7 @@ static int update_client_window_rgn (int cli, HWND hwnd)
 
     if (cli == 0) {
         while (crc) {
-            __mg_update_window (hwnd, crc->rc.left, crc->rc.top, 
+            __mg_update_window (hwnd, crc->rc.left, crc->rc.top,
                             crc->rc.right, crc->rc.bottom);
 
             crc = crc->next;
@@ -317,7 +317,7 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin)
     info.flags = get_znode_flags_from_style (pWin);
     info.hwnd = (HWND)pWin;
     info.main_win = (HWND)pWin->pMainWin;
-    
+
     if (pWin->spCaption) {
         if (strlen (pWin->spCaption) <= MAX_CAPTION_LEN) {
             strcpy (info.caption, pWin->spCaption);
@@ -326,7 +326,7 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin)
             info.caption[MAX_CAPTION_LEN] = '\0';
         }
     }
-    
+
     dskGetWindowRectInScreen (pWin, &info.rc);
 
     req.id = REQID_ZORDEROP;
@@ -583,14 +583,14 @@ static intptr_t cliChangeCaption (PMAINWIN pWin)
 
     info.id_op = ID_ZOOP_CHANGECAPTION;
     info.idx_znode = pWin->idx_znode;
-    
+
     if (strlen (pWin->spCaption) <= MAX_CAPTION_LEN) {
         strcpy (info.caption, pWin->spCaption);
     } else {
         memcpy (info.caption, pWin->spCaption, MAX_CAPTION_LEN);
         info.caption[MAX_CAPTION_LEN] = '\0';
     }
-    
+
     req.id = REQID_ZORDEROP;
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
@@ -633,9 +633,9 @@ static intptr_t cliAllocZOrderMaskRect (HWND pWin, const RECT4MASK* rc, int nr_r
 
     req.id = REQID_ZORDERMASKRECTOP;
     req.data = &info;
-    req.len_data = sizeof (info); 
+    req.len_data = sizeof (info);
 
-    if ((ret = ClientRequestEx (&req, rc, sizeof(RECT4MASK)*nr_rc, 
+    if ((ret = ClientRequestEx (&req, rc, sizeof(RECT4MASK)*nr_rc,
                 &ret, sizeof (intptr_t))) < 0) {
         return -1;
     }
@@ -663,7 +663,7 @@ static intptr_t cliFreeZOrderMaskRect (PMAINWIN pWin)
     return ret;
 }
 
-static int srvAllocZOrderMaskRect (int cli, int idx_znode, 
+static int srvAllocZOrderMaskRect (int cli, int idx_znode,
         int flags, const RECT4MASK *rc, const int nr_rc)
 {
     return AllocZOrderMaskRect (cli, idx_znode, flags, rc, nr_rc);
@@ -680,23 +680,23 @@ int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
         return -1;
 
     if (mgIsServer) {
-        return srvAllocZOrderMaskRect (0, 
+        return srvAllocZOrderMaskRect (0,
                 ((PMAINWIN)pWin)->idx_znode,
                 get_znode_flags_from_style((PMAINWIN)pWin),
                 rc, nr_rc);
     }
     else {
-        cliFreeZOrderMaskRect ((PMAINWIN)pWin); 
+        cliFreeZOrderMaskRect ((PMAINWIN)pWin);
         return cliAllocZOrderMaskRect (pWin, rc, nr_rc);
     }
 }
 
 ON_ZNODE_OPERATION OnZNodeOperation;
 
-static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win, 
+static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption)
 {
-    int free_slot = AllocZOrderNode (cli, hwnd, 
+    int free_slot = AllocZOrderNode (cli, hwnd,
                     main_win, flags, rc, caption);
 
     if ((free_slot != -1) && OnZNodeOperation)
@@ -705,7 +705,7 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     return free_slot;
 }
 
-static BOOL _cb_update_cli_znode (void* context, 
+static BOOL _cb_update_cli_znode (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* znode)
 {
     RECT rcInv;
@@ -716,7 +716,7 @@ static BOOL _cb_update_cli_znode (void* context,
 
         if (!IsRectEmpty(&(znode->dirty_rc))) {
 
-            IntersectRect(&rcInv, &znode->dirty_rc, &g_rcScr);    
+            IntersectRect(&rcInv, &znode->dirty_rc, &g_rcScr);
 
             msg.wParam = MAKELONG (rcInv.left, rcInv.top);
             msg.lParam = MAKELONG (rcInv.right, rcInv.bottom);
@@ -735,7 +735,7 @@ void __mg_check_dirty_znode (int cli)
 {
     ZORDERINFO* zi = (ZORDERINFO *)get_zi_from_client (cli);
 
-    do_for_all_znodes ((void*)(intptr_t)cli, zi, 
+    do_for_all_znodes ((void*)(intptr_t)cli, zi,
                     _cb_update_cli_znode, ZT_TOPMOST | ZT_NORMAL);
 
     mgClients [cli].has_dirty = FALSE;
@@ -827,13 +827,13 @@ typedef struct _DRAGDROPINFO {
 
 static DRAGDROPINFO _dd_info = {-1};
 
-static int srvStartDragWindow (int cli, int idx_znode, 
+static int srvStartDragWindow (int cli, int idx_znode,
                 int location, int init_x, int init_y)
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
             idx_znode < 0) {
         return -1;
@@ -843,9 +843,9 @@ static int srvStartDragWindow (int cli, int idx_znode,
         return -1;
 
     nodes = GET_ZORDERNODE(zi);
-    
+
     lock_zi_for_change (zi);
-    
+
     _dd_info.cli = cli;
     _dd_info.idx_znode = idx_znode;
     _dd_info.hwnd = nodes [idx_znode].fortestinghwnd;
@@ -902,14 +902,14 @@ static int srvCancelDragWindow (int cli, int idx_znode)
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
             idx_znode < 0) {
         return -1;
     }
 
-    if (_dd_info.cli == -1 
-                    || _dd_info.cli != cli 
+    if (_dd_info.cli == -1
+                    || _dd_info.cli != cli
                     || _dd_info.idx_znode != idx_znode)
         return -1;
 
@@ -927,7 +927,7 @@ static int srvCancelDragWindow (int cli, int idx_znode)
 int __mg_do_drag_drop_window (int msg, int x, int y)
 {
     HWND hwnd;
-    
+
     if (_dd_info.cli < 0)
         return 0;
 
@@ -938,8 +938,8 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
 
         switch (_dd_info.location) {
                 case HT_CAPTION:
-                    OffsetRect (&_dd_info.rc, 
-                                    x - _dd_info.last_x, 
+                    OffsetRect (&_dd_info.rc,
+                                    x - _dd_info.last_x,
                                     y - _dd_info.last_y);
                     break;
 
@@ -986,7 +986,7 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
 
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
-                    
+
         _dd_info.last_x = x;
         _dd_info.last_y = y;
     }
@@ -1040,9 +1040,9 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
         } else {
             get_text_char_pos (menufont, caption, caplen, (32 - 3), /* '...' = 3*/
                                  &fit_chars, pos_chars);
-            memcpy(nodes[idx_znode].caption, 
+            memcpy(nodes[idx_znode].caption,
                    caption, pos_chars[fit_chars-1]);
-            strcpy ((nodes[idx_znode].caption + pos_chars[fit_chars-1]), 
+            strcpy ((nodes[idx_znode].caption + pos_chars[fit_chars-1]),
                     "...");
         }
     }
@@ -1057,10 +1057,10 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
         const ZORDERMASKRECTOPINFO* info)
 {
     intptr_t ret = -1;
-    
+
     switch (info->id_op) {
         case ID_ZOOP_MASKRECT_SET:
-            ret = srvAllocZOrderMaskRect (cli, info->idx_znode, 
+            ret = srvAllocZOrderMaskRect (cli, info->idx_znode,
                         info->flags, info->rc,
                         info->nr_maskrect);
             break;
@@ -1074,10 +1074,10 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
 intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info)
 {
     intptr_t ret = -1;
-    
+
     switch (info->id_op) {
         case ID_ZOOP_ALLOC:
-            ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win, 
+            ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
                             info->flags, &info->rc, info->caption);
             break;
         case ID_ZOOP_FREE:
@@ -1132,7 +1132,7 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info)
         ZORDERNODE* nodes;
 
         nodes = GET_ZORDERNODE(zi);
-    
+
         dump_zorder_list (zi, nodes);
     }
 #endif
@@ -1140,13 +1140,13 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info)
     return ret;
 }
 
-static BOOL _cb_intersect_rc_no_cli (void* context, 
+static BOOL _cb_intersect_rc_no_cli (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     ZORDERNODE* del_node = (ZORDERNODE*)context;
 
-    if (node->cli != del_node->cli && 
-                    node->flags & ZOF_VISIBLE && 
+    if (node->cli != del_node->cli &&
+                    node->flags & ZOF_VISIBLE &&
                     //SubtractClipRect (&sg_UpdateRgn, &node->rc)) {
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, node)) {
         node->age ++;
@@ -1157,7 +1157,7 @@ static BOOL _cb_intersect_rc_no_cli (void* context,
     return FALSE;
 }
 
-static BOOL _cb_update_rc_nocli (void* context, 
+static BOOL _cb_update_rc_nocli (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     int cli = (int)(intptr_t)context;
@@ -1181,7 +1181,7 @@ int __mg_remove_all_znodes_of_client (int cli)
     RECT rc_bound = {0, 0, 0, 0};
 
     nodes = GET_ZORDERNODE(zi);
-    
+
     if (zi->cli_trackmenu == cli) {
         int i;
         ZORDERNODE* menu_nodes;
@@ -1226,7 +1226,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                 slot2 = nodes [slot].next;
                 for (; slot2 > 0; slot2 = nodes [slot2].next) {
                     if (nodes [slot2].cli != cli &&
-                        nodes [slot2].flags & ZOF_VISIBLE && 
+                        nodes [slot2].flags & ZOF_VISIBLE &&
                         //SubtractClipRect (&sg_UpdateRgn, &nodes [slot2].rc)) {
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
 
@@ -1235,7 +1235,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                     }
                 }
 
-                do_for_all_znodes (nodes + slot, zi, 
+                do_for_all_znodes (nodes + slot, zi,
                                 _cb_intersect_rc_no_cli, ZT_NORMAL);
 
                 if (!(nodes [0].flags & ZOF_REFERENCE) &&
@@ -1266,7 +1266,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                 slot2 = nodes [slot].next;
                 for (; slot2 > 0; slot2 = nodes [slot2].next) {
                     if (nodes [slot2].cli != cli &&
-                        nodes [slot2].flags & ZOF_VISIBLE && 
+                        nodes [slot2].flags & ZOF_VISIBLE &&
                         //SubtractClipRect (&sg_UpdateRgn, &nodes [slot2].rc)) {
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
 
@@ -1302,7 +1302,7 @@ int __mg_remove_all_znodes_of_client (int cli)
     do_for_all_znodes (&rc_bound, zi, _cb_update_znode, ZT_ALL);
 
     if (nodes [0].flags & ZOF_REFERENCE) {
-        SendMessage (HWND_DESKTOP, 
+        SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (WPARAM)&rc_bound);
         nodes [0].flags &= ~ZOF_REFERENCE;
     }
@@ -1347,12 +1347,12 @@ int __mg_do_change_topmost_layer (void)
 
     memcpy (new_use_bmp, old_use_bmp, old_zorder_info->max_nr_globals/8);
 
-    memcpy (new_nodes, old_nodes, 
+    memcpy (new_nodes, old_nodes,
                     (old_zorder_info->max_nr_globals)*sizeof(ZORDERNODE));
 
     for (i = old_zorder_info->max_nr_globals;
-            i <= old_zorder_info->max_nr_globals + 
-            old_zorder_info->max_nr_topmosts + 
+            i <= old_zorder_info->max_nr_globals +
+            old_zorder_info->max_nr_topmosts +
             old_zorder_info->max_nr_normals; i++)
     {
         new_nodes [i].age = old_nodes [i].age + 1;
@@ -1396,7 +1396,7 @@ static HWND dskSetActiveWindow (PMAINWIN pWin)
 
     old = dskGetActiveWindow (&old_cli);
 
-    if ((old_cli == __mg_client_id && pWin == (PMAINWIN)old) || 
+    if ((old_cli == __mg_client_id && pWin == (PMAINWIN)old) ||
                     (pWin && (pWin->dwExStyle & WS_EX_TOOLWINDOW)))
         return old;
 
@@ -1408,7 +1408,7 @@ static HWND dskSetActiveWindow (PMAINWIN pWin)
     return old;
 }
 
-/* 
+/*
  * This funciton add the new main window to the z-order list.
  * If new main window is a visible window,
  * this new main window becomes the active window.
@@ -1422,7 +1422,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     if (mgIsServer) {
         memcpy (&rcWin, &pWin->left, sizeof (RECT));
         pWin->idx_znode = srvAllocZOrderNode (0, (HWND)pWin, (HWND)pWin->pMainWin,
-                                              get_znode_flags_from_style (pWin), 
+                                              get_znode_flags_from_style (pWin),
                                               &rcWin, pWin->spCaption);
     }
     else
@@ -1441,7 +1441,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     /* Init Invalid Region info. */
     dskInitInvRgn (pWin);
 
-    /* houhh 20081128, create secondary window dc before 
+    /* houhh 20081128, create secondary window dc before
      * InvalidateRect, erase_bk will used this. */
     //pWin->dwExStyle = pWin->dwExStyle | WS_EX_AUTOSECONDARYDC;
     if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
@@ -1519,7 +1519,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
 {
     int first = 0;
     ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
-    
+
     lock_zi_for_read (__mg_zorder_info);
     switch (nodes [pWin->idx_znode].flags & ZOF_TYPE_MASK) {
         case ZOF_TYPE_GLOBAL:
@@ -1546,7 +1546,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
             pCurTop->dwStyle &= ~WS_VISIBLE;
             cliHideWindow (pCurTop);
             dskSetPrimitiveChildren (pCurTop, FALSE);
-            SendNotifyMessage (pCurTop->hParent, 
+            SendNotifyMessage (pCurTop->hParent,
                             MSG_CHILDHIDDEN, reason, lParam);
 
             dskScreenToClient (pCurTop->pMainWin, &rc, &rc);
@@ -1580,7 +1580,7 @@ static void dskMoveToTopMost (PMAINWIN pWin, int reason, LPARAM lParam)
             cliShowWindow (pWin);
 
         SendAsyncMessage ((HWND)pWin, MSG_NCPAINT, 0, 0);
-    
+
         InvalidateRect ((HWND)pWin, NULL, TRUE);
     }
     else {
@@ -1613,7 +1613,7 @@ static void dskShowMainWindow (PMAINWIN pWin, BOOL bActive)
     if (bActive)
         dskSetActiveWindow (pWin);
 
-    return; 
+    return;
 }
 
 /*
@@ -1636,7 +1636,7 @@ static void dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
 {
     RECT newWinRect, rcResult;
 
-    SendAsyncMessage ((HWND)pCtrl, MSG_CHANGESIZE, 
+    SendAsyncMessage ((HWND)pCtrl, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
     dskClientToScreen ((PMAINWIN)(pCtrl->hParent), &rcResult, &newWinRect);
 
@@ -1656,7 +1656,7 @@ static void dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
     RECT oldWinRect, rcResult;
 
     memcpy (&oldWinRect, &pWin->left, sizeof (RECT));
-    SendAsyncMessage ((HWND)pWin, MSG_CHANGESIZE, 
+    SendAsyncMessage ((HWND)pWin, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
 
     if (mgIsServer)
@@ -1666,11 +1666,11 @@ static void dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
 }
 
 #ifdef _MGHAVE_MENU
-/* 
+/*
  * The callback procedure of tracking menu.
  * It is defined in Menu module.
  */
-int PopupMenuTrackProc (PTRACKMENUINFO ptmi, 
+int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
                 int message, WPARAM wParam, LPARAM lParam);
 
 static void dskForceCloseMenu (void)
@@ -1742,7 +1742,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
 {
     PTRACKMENUINFO plast = NULL;
     RECT rc;
-    
+
     if (sg_ptmi == ptmi) {
         sg_ptmi = NULL;
     }
@@ -1797,8 +1797,8 @@ static void dskEnableWindow (PMAINWIN pWin, int flags)
             pWin->dwStyle |=  WS_DISABLED;
 
         if (pWin->dwStyle & WS_DISABLED) {
-            if (__mg_capture_wnd && 
-                gui_GetMainWindowPtrOfControl (__mg_capture_wnd) == pWin) 
+            if (__mg_capture_wnd &&
+                gui_GetMainWindowPtrOfControl (__mg_capture_wnd) == pWin)
                 __mg_capture_wnd = 0;
 
             if (dskGetActiveWindow (NULL) == (HWND)pWin) {
@@ -1857,14 +1857,14 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
             SelectClipRect (hdc, &rcMove);
 
-            BitBlt (hdc, rcMove.left, rcMove.top, 
+            BitBlt (hdc, rcMove.left, rcMove.top,
                     rcMove.right - rcMove.left,
                     rcMove.bottom - rcMove.top,
                     hdc, pswi->iOffx + rcMove.left, pswi->iOffy + rcMove.top, 0);
         }
         pcrc = pcrc->next;
     }
-    //BUGFIXED: we must update the secondaryDC to clientDC, to ensure 
+    //BUGFIXED: we must update the secondaryDC to clientDC, to ensure
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
     if(pWin->pMainWin->secondaryDC){
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
@@ -1881,7 +1881,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
         pthread_mutex_lock (&pInvRgn->lock);
 #endif
         /*scroll whole screen, offset invalid region*/
-        if (EqualRect (pswi->rc1, &rcClient)) 
+        if (EqualRect (pswi->rc1, &rcClient))
             OffsetRegion (&(pInvRgn->rgn), pswi->iOffx, pswi->iOffy);
         else
             OffsetRegionEx (&(pInvRgn->rgn), &rcClient,
@@ -1916,11 +1916,11 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             inved = TRUE;
         }
-        
+
         /*
          * BUGFIXED: offx and offy would make the two diffrent areas invalidate
          * we should invalid both them (dongjunjie) 2010/07/30
-         *  
+         *
          *                   content
          *  ---------------------------
          *  |//: offX                 |
@@ -2084,7 +2084,7 @@ static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lPar
         case MSG_SHOWMAINWIN:
             dskShowMainWindow (pWin, TRUE);
             break;
-            
+
         case MSG_HIDEMAINWIN:
             dskHideMainWindow (pWin);
             break;
@@ -2098,7 +2098,7 @@ static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lPar
 
         case MSG_GETACTIVEMAIN:
             return (LRESULT)dskGetActiveWindow (NULL);
-        
+
         case MSG_SETACTIVEMAIN:
             return (LRESULT)dskSetActiveWindow (pWin);
 
@@ -2107,7 +2107,7 @@ static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lPar
 
         case MSG_SETCAPTURE:
             return (LRESULT)dskSetCaptureWindow (pWin);
- 
+
 #ifdef _MGHAVE_MENU
         case MSG_TRACKPOPUPMENU:
             return dskStartTrackPopupMenu ((PTRACKMENUINFO)lParam);
@@ -2136,10 +2136,10 @@ static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lPar
         case MSG_ENABLEMAINWIN:
             dskEnableWindow (pWin, lParam);
             break;
-        
+
         case MSG_ISENABLED:
             return !(pWin->dwStyle & WS_DISABLED);
-        
+
         case MSG_SETWINCURSOR:
             {
                 HCURSOR old = pWin->hCursor;
@@ -2349,7 +2349,7 @@ static int srvKeyMessageHandler (int message, int scancode, DWORD status)
         else if (mg_modal == 1)
             return 0;
     }
-    
+
     if (scancode == SCANCODE_LEFTALT
              || scancode == SCANCODE_RIGHTALT || mg_altdown) {
         if (message == MSG_KEYDOWN)
@@ -2360,23 +2360,23 @@ static int srvKeyMessageHandler (int message, int scancode, DWORD status)
         }
     }
 
-    if (srvHandleKeyHook (message, 
+    if (srvHandleKeyHook (message,
                             (WPARAM)scancode, (LPARAM)status) == HOOK_STOP)
         return 0;
 
     if (__mg_ime_wnd) {
-        PostMessage (__mg_ime_wnd, 
+        PostMessage (__mg_ime_wnd,
                         message, (WPARAM)scancode, (LPARAM)status);
         return 0;
     }
 
     if (__mg_zorder_info->active_win) {
         __mg_post_msg_by_znode (__mg_zorder_info,
-                        __mg_zorder_info->active_win, message, 
+                        __mg_zorder_info->active_win, message,
                         (WPARAM)scancode, (LPARAM)status);
     }
     else {
-        SendMessage (HWND_DESKTOP, MSG_DT_KEYOFF + message, 
+        SendMessage (HWND_DESKTOP, MSG_DT_KEYOFF + message,
                         (WPARAM)scancode, (LPARAM)status);
     }
 
@@ -2387,7 +2387,7 @@ int __mg_get_znode_at_point (const ZORDERINFO* zi, int x, int y, HWND* hwnd)
 {
     ZORDERNODE* nodes = GET_ZORDERNODE(zi);
     int slot;
-    
+
     if (zi->cli_trackmenu >= 0)
         return -1;
 
@@ -2440,10 +2440,10 @@ int __mg_handle_normal_mouse_move (const ZORDERINFO* zi, int x, int y)
             else
                 hwnd = HWND_OTHERPROC;
 
-            post_msg_by_znode_p (zi, nodes + cur_slot, 
+            post_msg_by_znode_p (zi, nodes + cur_slot,
                             MSG_MOUSEMOVEIN, TRUE, (LPARAM)hwnd);
         }
-        else 
+        else
             SetCursor (GetSystemCursor (IDC_ARROW));
     }
     else if (cur_slot > 0) {
@@ -2474,7 +2474,7 @@ PMAINWIN gui_GetMainWindowPtrUnderPoint (int x, int y)
 {
     HWND hwnd;
 
-    if (__mg_get_znode_at_point (__mg_zorder_info, x, y, &hwnd) 
+    if (__mg_get_znode_at_point (__mg_zorder_info, x, y, &hwnd)
                     == __mg_client_id) {
         return (PMAINWIN)hwnd;
     }
@@ -2509,6 +2509,7 @@ static int check_capture (int message)
         switch (message) {
             case MSG_LBUTTONDOWN:
             case MSG_RBUTTONDOWN:
+            case MSG_MBUTTONDOWN:
                 if (mgs_captured_by != message)
                     return 1;
                 break;
@@ -2520,6 +2521,11 @@ static int check_capture (int message)
 
             case MSG_RBUTTONUP:
                 if (mgs_captured_by != MSG_RBUTTONDOWN)
+                    return 1;
+                break;
+
+            case MSG_MBUTTONUP:
+                if (mgs_captured_by != MSG_MBUTTONDOWN)
                     return 1;
                 break;
         }
@@ -2537,14 +2543,14 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
     int cx = 0, cy = 0;
 
     if (__mg_capture_wnd) {
-        PostMessage (__mg_capture_wnd, 
+        PostMessage (__mg_capture_wnd,
             message, flags | KS_CAPTURED, MAKELONG (x, y));
         return 0;
     }
 
-    if (mgs_captured_main_win != (void*)HWND_INVALID 
+    if (mgs_captured_main_win != (void*)HWND_INVALID
                     && mgs_captured_main_win != NULL) {
-        CapHitCode = SendAsyncMessage((HWND)mgs_captured_main_win, 
+        CapHitCode = SendAsyncMessage((HWND)mgs_captured_main_win,
                         MSG_HITTEST, (WPARAM)x, (LPARAM)y);
     }
 
@@ -2561,7 +2567,7 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
         pCtrlPtrIn = NULL;
 
         if (pUnderPointer) {
-            UndHitCode = SendAsyncMessage((HWND)pUnderPointer, MSG_HITTEST, 
+            UndHitCode = SendAsyncMessage((HWND)pUnderPointer, MSG_HITTEST,
                                         (WPARAM)x, (LPARAM)y);
             cx = x - pUnderPointer->cl;
             cy = y - pUnderPointer->ct;
@@ -2572,7 +2578,7 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
         case MSG_MOUSEMOVE:
             if (mgs_captured_main_win != (void *)HWND_INVALID) {
                 if (mgs_captured_main_win)
-                    PostMessage((HWND)mgs_captured_main_win, MSG_NCMOUSEMOVE, 
+                    PostMessage((HWND)mgs_captured_main_win, MSG_NCMOUSEMOVE,
                                 CapHitCode, MAKELONG (x, y));
                 else
                     PostMessage(HWND_DESKTOP, MSG_DT_MOUSEMOVE,
@@ -2585,19 +2591,19 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
                 if (UndHitCode == HT_CLIENT) {
                     if (def_cursor)
                         SetCursor (def_cursor);
-                    PostMessage ((HWND)pUnderPointer, MSG_SETCURSOR, 
+                    PostMessage ((HWND)pUnderPointer, MSG_SETCURSOR,
                             UndHitCode, MAKELONG (cx, cy));
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE, 
+                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
                             UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE, 
+                    PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE,
                             flags, MAKELONG (cx, cy));
                 }
                 else {
                     if (def_cursor)
                         SetCursor (def_cursor);
-                    PostMessage ((HWND)pUnderPointer, MSG_NCSETCURSOR, 
+                    PostMessage ((HWND)pUnderPointer, MSG_NCSETCURSOR,
                             UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE, 
+                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
                             UndHitCode, MAKELONG (x, y));
                 }
             }
@@ -2605,6 +2611,7 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
 
         case MSG_LBUTTONDOWN:
         case MSG_RBUTTONDOWN:
+        case MSG_MBUTTONDOWN:
             if (check_capture (message)) /* ignore the event */
                 break;
 
@@ -2620,16 +2627,16 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
 
                 if (pCtrlPtrIn == NULL) {
                     if (!dskIsTopMost (pUnderPointer)) {
-                        dskMoveToTopMost (pUnderPointer, 
+                        dskMoveToTopMost (pUnderPointer,
                                         RCTM_CLICK, MAKELONG (x, y));
                     }
-                
-                    if (pUnderPointer != 
+
+                    if (pUnderPointer !=
                             (PMAINWIN)dskSetActiveWindow (pUnderPointer))
                         PostMessage ((HWND) pUnderPointer,
                                 MSG_MOUSEACTIVE, UndHitCode, 0);
                 }
-                
+
                 if (UndHitCode != HT_CLIENT) {
                     if (UndHitCode & HT_NEEDCAPTURE) {
                         mgs_captured_main_win = pUnderPointer;
@@ -2642,7 +2649,7 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
                             UndHitCode, MAKELONG (x, y));
                 }
                 else {
-                    PostMessage((HWND)pUnderPointer, message, 
+                    PostMessage((HWND)pUnderPointer, message,
                         flags, MAKELONG(cx, cy));
                     mgs_captured_main_win = (void*)HWND_INVALID;
                 }
@@ -2657,18 +2664,19 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
 
         case MSG_LBUTTONUP:
         case MSG_RBUTTONUP:
+        case MSG_MBUTTONUP:
             if (check_capture (message)) /* ignore the event */
                 break;
 
             if (mgs_captured_main_win != (void*)HWND_INVALID) {
                 if (mgs_captured_main_win)
-                    PostMessage ((HWND)mgs_captured_main_win, 
+                    PostMessage ((HWND)mgs_captured_main_win,
                         message + MSG_NCMOUSEOFF,
                         CapHitCode, MAKELONG (x, y));
                 else if (!pUnderPointer)
                     PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
                         flags, MAKELONG (x, y));
-                
+
                // mgs_captured_main_win = NULL;
                 mgs_captured_main_win = (void*)HWND_INVALID;
                 break;
@@ -2678,14 +2686,14 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
                     if (pUnderPointer->dwStyle & WS_DISABLED) {
                         break;
                     }
-                    
+
                     if (UndHitCode == HT_CLIENT) {
-                        PostMessage((HWND)pUnderPointer, message, 
+                        PostMessage((HWND)pUnderPointer, message,
                             flags, MAKELONG (cx, cy));
                     }
                     else {
-                        PostMessage((HWND)pUnderPointer, 
-                            message + MSG_NCMOUSEOFF, 
+                        PostMessage((HWND)pUnderPointer,
+                            message + MSG_NCMOUSEOFF,
                             UndHitCode, MAKELONG (x, y));
                     }
                 }
@@ -2694,9 +2702,10 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
                         flags, MAKELONG (x, y));
             }
         break;
-        
+
         case MSG_LBUTTONDBLCLK:
         case MSG_RBUTTONDBLCLK:
+        case MSG_MBUTTONDBLCLK:
             if (pUnderPointer)
             {
                 if (pUnderPointer->dwStyle & WS_DISABLED) {
@@ -2705,14 +2714,14 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
                 }
 
                 if(UndHitCode == HT_CLIENT)
-                    PostMessage((HWND)pUnderPointer, message, 
+                    PostMessage((HWND)pUnderPointer, message,
                         flags, MAKELONG(cx, cy));
                 else
-                    PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF, 
+                    PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
                         UndHitCode, MAKELONG (x, y));
             }
             else {
-                PostMessage(HWND_DESKTOP, message + MSG_DT_MOUSEOFF, 
+                PostMessage(HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
                         flags, MAKELONG (x, y));
             }
         break;
@@ -2729,7 +2738,7 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
 static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
 {
     PCONTROL pFirstCtrl, pLastCtrl;
- 
+
     if (pNewCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) {
         RECT rcWin;
 
@@ -2737,9 +2746,9 @@ static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
 
         /* Add to z-order. */
         if (mgIsServer)
-            pNewCtrl->idx_znode = srvAllocZOrderNode (0, 
-                            (HWND)pNewCtrl, (HWND)pNewCtrl->pMainWin, 
-                            get_znode_flags_from_style ((PMAINWIN)pNewCtrl), 
+            pNewCtrl->idx_znode = srvAllocZOrderNode (0,
+                            (HWND)pNewCtrl, (HWND)pNewCtrl->pMainWin,
+                            get_znode_flags_from_style ((PMAINWIN)pNewCtrl),
                             &rcWin, pNewCtrl->spCaption);
         else
             pNewCtrl->idx_znode = cliAllocZOrderNode ((PMAINWIN)pNewCtrl);
@@ -2754,17 +2763,17 @@ static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
     pFirstCtrl = pParent->children;
 
     pNewCtrl->next = NULL;
-    
+
     if (!pFirstCtrl) {
         pParent->children = pNewCtrl;
         pNewCtrl->prev = NULL;
     }
     else {
         pLastCtrl = pFirstCtrl;
-        
+
         while (pLastCtrl->next)
             pLastCtrl = pLastCtrl->next;
-            
+
         pLastCtrl->next = pNewCtrl;
         pNewCtrl->prev = pLastCtrl;
     }
@@ -2864,7 +2873,7 @@ static HMENU srvCreateLayerSubMenu (BOOL flag)
     memset (&mii, 0, sizeof(MENUITEMINFO));
     mii.type        = MFT_STRING;
     mii.id          = 0;
-    mii.typedata    = 
+    mii.typedata    =
         flag ? (DWORD)GetSysText(IDS_MGST_SWITCHLAYER)
              : (DWORD)GetSysText(IDS_MGST_DELLAYER);
 
@@ -2887,12 +2896,12 @@ static HMENU srvCreateDesktopMenu (void)
     memset (&mii, 0, sizeof(MENUITEMINFO));
     mii.type        = MFT_STRING;
     mii.id          = IDM_REDRAWBG;
-    mii.typedata    = (DWORD)GetSysText(IDS_MGST_REFRESH); 
+    mii.typedata    = (DWORD)GetSysText(IDS_MGST_REFRESH);
     InsertMenuItem (hmnu, 0, TRUE, &mii);
 
     mii.type        = MFT_STRING;
     mii.id          = IDM_CLOSEALLWIN;
-    mii.typedata    = (DWORD)GetSysText(IDS_MGST_CLOSEALLWIN); 
+    mii.typedata    = (DWORD)GetSysText(IDS_MGST_CLOSEALLWIN);
     InsertMenuItem (hmnu, 1, TRUE, &mii);
 
     mii.type        = MFT_STRING;
@@ -2935,7 +2944,7 @@ typedef struct _UPDATA_DSKMENU_INFO
     int pos;
 } UPDATA_DSKMENU_INFO;
 
-static BOOL _cb_update_dskmenu (void* context, 
+static BOOL _cb_update_dskmenu (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     UPDATA_DSKMENU_INFO* info = (UPDATA_DSKMENU_INFO*) context;
@@ -2952,8 +2961,8 @@ static BOOL _cb_update_dskmenu (void* context,
         return FALSE;
 
     info->mii.id              = info->id;
-    info->mii.typedata        = (DWORD)(node->caption); 
-    info->mii.itemdata        = (DWORD)node; 
+    info->mii.typedata        = (DWORD)(node->caption);
+    info->mii.itemdata        = (DWORD)node;
     InsertMenuItem (info->menu, info->pos, TRUE, &info->mii);
 
     info->id++;
@@ -2962,7 +2971,7 @@ static BOOL _cb_update_dskmenu (void* context,
 }
 #endif
 
-static BOOL _cb_close_mainwin (void* context, 
+static BOOL _cb_close_mainwin (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     if (node->flags & ZOF_TF_MAINWIN) {
@@ -2998,7 +3007,7 @@ static int srvDesktopCommand (int id)
     }
     else if (id == IDM_CLOSEALLWIN) {
         lock_zi_for_read (__mg_zorder_info);
-        do_for_all_znodes (NULL, 
+        do_for_all_znodes (NULL,
                     __mg_zorder_info, _cb_close_mainwin, ZT_ALL);
         unlock_zi_for_read (__mg_zorder_info);
     }
@@ -3016,10 +3025,10 @@ static int srvDesktopCommand (int id)
         win_menu = GetSubMenu (sg_DesktopMenu, 3);
         if (GetMenuItemInfo (win_menu, id, MF_BYCOMMAND, &mii) == 0) {
             node = (ZORDERNODE*)mii.itemdata;
-            if (node && (node->flags & ZOF_TF_MAINWIN) 
+            if (node && (node->flags & ZOF_TF_MAINWIN)
                             && !(node->flags & ZOF_DISABLED)) {
-                ZORDERNODE * win_nodes = 
-                        (ZORDERNODE*) ((char*)(__mg_zorder_info + 1) + 
+                ZORDERNODE * win_nodes =
+                        (ZORDERNODE*) ((char*)(__mg_zorder_info + 1) +
                                        __mg_zorder_info->size_usage_bmp);
                 win_nodes += DEF_NR_POPUPMENUS;
 
@@ -3083,7 +3092,7 @@ static int srvUnregisterIMEWnd (HWND hwnd)
 /***********************************************************
  * Session message handling for the clients.
  **********************************************************/
-static BOOL _cb_count_znodes (void* context, 
+static BOOL _cb_count_znodes (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     if (node->cli == __mg_client_id) {
@@ -3098,7 +3107,7 @@ static int znodes_of_this_client (void)
     int count = 0;
 
     lock_zi_for_read (__mg_zorder_info);
-    count = do_for_all_znodes (NULL, __mg_zorder_info, 
+    count = do_for_all_znodes (NULL, __mg_zorder_info,
                     _cb_count_znodes, ZT_ALL);
     unlock_zi_for_read (__mg_zorder_info);
 
@@ -3158,7 +3167,7 @@ typedef struct _REFRESH_INFO
     BOOL is_empty_invrc;
 } REFRESH_INFO;
 
-static BOOL _cb_refresh_znode (void* context, 
+static BOOL _cb_refresh_znode (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     PMAINWIN pTemp;
@@ -3167,7 +3176,7 @@ static BOOL _cb_refresh_znode (void* context,
     if (node->cli == __mg_client_id) {
         pTemp = (PMAINWIN)node->fortestinghwnd;
 
-        if (pTemp && pTemp->WinType != TYPE_CONTROL 
+        if (pTemp && pTemp->WinType != TYPE_CONTROL
                         && pTemp->dwStyle & WS_VISIBLE) {
             if (info->is_empty_invrc) {
                 SendAsyncMessage ((HWND)pTemp, MSG_NCPAINT, 0, 0);
@@ -3175,10 +3184,10 @@ static BOOL _cb_refresh_znode (void* context,
             }
             else {
                 RECT rcTemp, rcInv;
-                if (IntersectRect (&rcTemp, 
+                if (IntersectRect (&rcTemp,
                             (RECT*)(&pTemp->left), info->invrc)) {
                     dskScreenToWindow (pTemp, &rcTemp, &rcInv);
-                    SendAsyncMessage ((HWND)pTemp, 
+                    SendAsyncMessage ((HWND)pTemp,
                                     MSG_NCPAINT, 0, (LPARAM)(&rcInv));
                     dskScreenToClient (pTemp, &rcTemp, &rcInv);
                     InvalidateRect ((HWND)pTemp, &rcInv, TRUE);
@@ -3200,7 +3209,7 @@ static void dskRefreshAllWindow (const RECT* invrc)
         info.is_empty_invrc = TRUE;
 
     if (mgIsServer)
-        SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 
+        SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0,
                             (LPARAM)(info.is_empty_invrc?0:&invrc));
 
     lock_zi_for_read (__mg_zorder_info);
@@ -3232,7 +3241,7 @@ static void dskOnTimer (void)
 
     if (sg_hCaretWnd != 0
             && (HWND)gui_GetMainWindowPtrOfControl (sg_hCaretWnd)
-                    == dskGetActiveWindow (NULL) 
+                    == dskGetActiveWindow (NULL)
             && uCounter >= sg_uCaretBTime) {
         PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
         uCounter = 0;
@@ -3273,7 +3282,7 @@ static void srvSaveScreen (BOOL active)
 }
 #endif /* _MGMISC_SAVESCREEN */
 
-static BOOL _cb_paint_mainwin (void* context, 
+static BOOL _cb_paint_mainwin (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     if (node->flags & ZOF_TF_MAINWIN) {
@@ -3285,7 +3294,7 @@ static BOOL _cb_paint_mainwin (void* context,
 void GUIAPI DesktopUpdateAllWindow(void)
 {
     SendMessage(HWND_DESKTOP, MSG_PAINT, 0L, 0L);
-    
+
     lock_zi_for_read (__mg_zorder_info);
     do_for_all_znodes (NULL, __mg_zorder_info, _cb_paint_mainwin, ZT_ALL);
     unlock_zi_for_read (__mg_zorder_info);
@@ -3303,13 +3312,13 @@ static void srvUpdateDesktopMenu (void)
     nCount = GetMenuItemCount (info.menu);
     for (iPos = nCount; iPos > 0; iPos --)
         DeleteMenu (info.menu, iPos - 1, MF_BYPOSITION);
-    
+
     memset (&info.mii, 0, sizeof (MENUITEMINFO));
     info.mii.type = MFT_STRING;
     info.id = IDM_FIRSTWINDOW;
     info.pos = 0;
-    
-    count = do_for_all_znodes (&info, 
+
+    count = do_for_all_znodes (&info,
                     __mg_zorder_info, _cb_update_dskmenu, ZT_GLOBAL);
 
     if (count) {
@@ -3323,7 +3332,7 @@ static void srvUpdateDesktopMenu (void)
     }
 
     info.mii.type = MFT_STRING;
-    count = do_for_all_znodes (&info, 
+    count = do_for_all_znodes (&info,
                     __mg_zorder_info, _cb_update_dskmenu, ZT_TOPMOST);
 
     if (count) {
@@ -3338,7 +3347,7 @@ static void srvUpdateDesktopMenu (void)
     }
 
     info.mii.type = MFT_STRING;
-    count = do_for_all_znodes (&info, 
+    count = do_for_all_znodes (&info,
                     __mg_zorder_info, _cb_update_dskmenu, ZT_NORMAL);
 
     info.menu = GetSubMenu (sg_DesktopMenu, 4);
@@ -3420,7 +3429,7 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
         case MSG_REINITSESSION:
             if (wParam)
                 __mg_init_local_sys_text ();
-            
+
 #ifdef _MGHAVE_MENU
             sg_DesktopMenu = srvCreateDesktopMenu ();
 #endif
@@ -3481,8 +3490,11 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
         case MSG_DT_MOUSEMOVE:
         case MSG_DT_RBUTTONDOWN:
         case MSG_DT_RBUTTONDBLCLK:
+        case MSG_DT_MBUTTONDOWN:
+        case MSG_DT_MBUTTONUP:
+        case MSG_DT_MBUTTONDBLCLK:
             if(dsk_ops->mouse_handler)
-                dsk_ops->mouse_handler(dt_context, message, wParam, lParam);        
+                dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
         break;
     }
 
@@ -3507,7 +3519,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #ifdef _MGHAVE_MENU
             else if (wParam == SCANCODE_ESCAPE && lParam & KS_CTRL) {
                 srvUpdateDesktopMenu ();
-                TrackPopupMenu (sg_DesktopMenu, TPM_DEFAULT, 
+                TrackPopupMenu (sg_DesktopMenu, TPM_DEFAULT,
                         0, g_rcScr.bottom, HWND_DESKTOP);
             }
 #endif
@@ -3516,7 +3528,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 MSG msg = {0, message, wParam, lParam, __mg_timer_counter};
 
-                __mg_send2client (&msg, mgClients + 
+                __mg_send2client (&msg, mgClients +
                                 __mg_zorder_info->cli_trackmenu);
             }
 #ifdef _MGHAVE_MENU
@@ -3544,7 +3556,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 MSG msg = {0, message, wParam, lParam, __mg_timer_counter};
 
-                __mg_send2client (&msg, mgClients + 
+                __mg_send2client (&msg, mgClients +
                                 __mg_zorder_info->cli_trackmenu);
             }
 #ifdef _MGHAVE_MENU

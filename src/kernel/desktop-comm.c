@@ -865,6 +865,7 @@ static PMAINWIN _mgs_old_under_p = NULL;
 #define DOWN_BUTTON_NONE        0x0000
 #define DOWN_BUTTON_LEFT        0x0001
 #define DOWN_BUTTON_RIGHT       0x0002
+#define DOWN_BUTTON_MIDDLE      0x0004
 #define DOWN_BUTTON_ANY         0x000F
 
 static DWORD _mgs_down_buttons = 0;
@@ -975,14 +976,17 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
 
         case MSG_LBUTTONDOWN:
         case MSG_RBUTTONDOWN:
+        case MSG_MBUTTONDOWN:
             if (_mgs_button_down_main_window) {
                 PostMessage ((HWND)_mgs_button_down_main_window,
                                 message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
                 if (message == MSG_LBUTTONDOWN)
                     _mgs_down_buttons |= DOWN_BUTTON_LEFT;
-                else
+                else if (message == MSG_RBUTTONDOWN)
                     _mgs_down_buttons |= DOWN_BUTTON_RIGHT;
+                else
+                    _mgs_down_buttons |= DOWN_BUTTON_MIDDLE;
             }
             else if (pUnderPointer) {
 #ifdef _MGHAVE_MENU
@@ -1013,8 +1017,10 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                 _mgs_button_down_main_window = pUnderPointer;
                 if (message == MSG_LBUTTONDOWN)
                     _mgs_down_buttons = DOWN_BUTTON_LEFT;
-                else
+                else if (message == MSG_RBUTTONDOWN)
                     _mgs_down_buttons = DOWN_BUTTON_RIGHT;
+                else
+                    _mgs_down_buttons = DOWN_BUTTON_MIDDLE;
             }
             else {
                 dskSetActiveWindow (NULL);
@@ -1027,12 +1033,17 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
 
         case MSG_LBUTTONUP:
         case MSG_RBUTTONUP:
+        case MSG_MBUTTONUP:
             if (_mgs_down_buttons == DOWN_BUTTON_LEFT &&
-                            message == MSG_RBUTTONUP) {
+                            message != MSG_LBUTTONUP) {
                 break;
             }
             if (_mgs_down_buttons == DOWN_BUTTON_RIGHT &&
-                            message == MSG_LBUTTONUP) {
+                            message != MSG_RBUTTONUP) {
+                break;
+            }
+            if (_mgs_down_buttons == DOWN_BUTTON_MIDDLE &&
+                            message != MSG_MBUTTONUP) {
                 break;
             }
 
@@ -1042,8 +1053,10 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                                 flags, MAKELONG (x, y));
                 if (message == MSG_LBUTTONUP)
                     _mgs_down_buttons &= ~DOWN_BUTTON_LEFT;
-                else
+                else if (message == MSG_RBUTTONUP)
                     _mgs_down_buttons &= ~DOWN_BUTTON_RIGHT;
+                else
+                    _mgs_down_buttons &= ~DOWN_BUTTON_MIDDLE;
 
                 if (!(_mgs_down_buttons & DOWN_BUTTON_ANY)) {
                     _mgs_button_down_main_window = NULL;
@@ -1074,14 +1087,17 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
 
         case MSG_LBUTTONDBLCLK:
         case MSG_RBUTTONDBLCLK:
+        case MSG_MBUTTONDBLCLK:
             if (_mgs_button_down_main_window) {
                 PostMessage ((HWND)_mgs_button_down_main_window,
                                 message + MSG_DT_MOUSEOFF,
                                 flags, MAKELONG (x, y));
                 if (message == MSG_LBUTTONDBLCLK)
                     _mgs_down_buttons |= DOWN_BUTTON_LEFT;
-                else
+                else if (message == MSG_RBUTTONDBLCLK)
                     _mgs_down_buttons |= DOWN_BUTTON_RIGHT;
+                else
+                    _mgs_down_buttons |= DOWN_BUTTON_MIDDLE;
             }
             else if (pUnderPointer) {
                 PostMessage ((HWND)pUnderPointer,
@@ -1090,8 +1106,10 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                 _mgs_button_down_main_window = pUnderPointer;
                 if (message == MSG_LBUTTONDBLCLK)
                     _mgs_down_buttons = DOWN_BUTTON_LEFT;
-                else
+                else if (message == MSG_RBUTTONDBLCLK)
                     _mgs_down_buttons = DOWN_BUTTON_RIGHT;
+                else
+                    _mgs_down_buttons = DOWN_BUTTON_MIDDLE;
             }
             else {
                 PostMessage (HWND_DESKTOP,

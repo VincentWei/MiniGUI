@@ -142,6 +142,15 @@ static void ParseEvent (PLWEVENT lwe)
         case ME_RIGHTDBLCLICK:
             Msg.message = MSG_RBUTTONDBLCLK;
             break;
+        case ME_MIDDLEDOWN:
+            Msg.message = MSG_MBUTTONDOWN;
+            break;
+        case ME_MIDDLEUP:
+            Msg.message = MSG_MBUTTONUP;
+            break;
+        case ME_MIDDLEDBLCLICK:
+            Msg.message = MSG_MBUTTONDBLCLK;
+            break;
         }
 
         if (me->event != ME_MOVED && (mouse_x != me->x || mouse_y != me->y)) {

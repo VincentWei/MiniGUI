@@ -548,6 +548,7 @@ static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message,
 
         case MSG_LBUTTONDOWN:
         case MSG_RBUTTONDOWN:
+        case MSG_MBUTTONDOWN:
             if (pUnderPointer) {
                 if (pUnderPointer->dwStyle & WS_DISABLED) {
                     Ping ();
@@ -585,6 +586,7 @@ static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message,
 
         case MSG_RBUTTONUP:
         case MSG_LBUTTONUP:
+        case MSG_MBUTTONUP:
             if (__mgs_captured_ctrl && message == MSG_LBUTTONUP) {
                 PostMessage ((HWND)__mgs_captured_ctrl,
                         message + MSG_NCMOUSEOFF,
@@ -613,6 +615,7 @@ static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message,
 
         case MSG_LBUTTONDBLCLK:
         case MSG_RBUTTONDBLCLK:
+        case MSG_MBUTTONDBLCLK:
             if (pUnderPointer) {
                 if (pUnderPointer->dwStyle & WS_DISABLED) {
                     Ping ();

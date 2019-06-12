@@ -1718,13 +1718,13 @@ typedef struct _GAL_Rect {
 #define KS_RIGHTBUTTON                  0x00002000
 
 /**
- * \def KS_MIDDLBUTTON
+ * \def KS_MIDDLEBUTTON
  * \brief This status indicate that middle button was pressed when
  * the key or mouse message posted to the window.
  *
  * \sa key_msgs
  */
-#define KS_MIDDLBUTTON                  0x00004000
+#define KS_MIDDLEBUTTON                 0x00004000
 
 /**
  * \def MASK_KS_BUTTONS
