@@ -55,17 +55,42 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+#define IAL_MOUSE_LEFTBUTTON    (1 << 0)
+#define IAL_MOUSE_RIGHTBUTTON   (1 << 1)
+#define IAL_MOUSE_MIDDLEBUTTON  (1 << 2)
 
-#define IAL_MOUSE_LEFTBUTTON    1
-#define IAL_MOUSE_RIGHTBUTTON   2
-#define IAL_MOUSE_MIDDLEBUTTON  4
-#define IAL_MOUSE_FOURTHBUTTON  8
-#define IAL_MOUSE_FIFTHBUTTON   16
-#define IAL_MOUSE_SIXTHBUTTON   32
-#define IAL_MOUSE_RESETBUTTON   64
+/* deprecated since 4.0.0
+#define IAL_MOUSE_FOURTHBUTTON  (1 << 3)
+#define IAL_MOUSE_FIFTHBUTTON   (1 << 4)
+#define IAL_MOUSE_SIXTHBUTTON   (1 << 5)
+#define IAL_MOUSE_SEVENTHBUTTON (1 << 6)
+#define IAL_MOUSE_EIGHTHBUTTON  (1 << 7)
 
-#define IAL_MOUSEEVENT          1
-#define IAL_KEYEVENT            2
+#define IAL_MOUSE_SIDEBUTTON    IAL_MOUSE_FOURTHBUTTON
+#define IAL_MOUSE_EXTRABUTTON   IAL_MOUSE_FIFTHBUTTON
+#define IAL_MOUSE_FORWARDBUTTON IAL_MOUSE_SIXTHBUTTON
+#define IAL_MOUSE_BACKBUTTON    IAL_MOUSE_SEVENTHBUTTON
+#define IAL_MOUSE_TASKBUTTON    IAL_MOUSE_EIGHTHBUTTON
+#define IAL_MOUSE_RESETBUTTON   IAL_MOUSE_EIGHTHBUTTON
+*/
+
+#define IAL_EVENT_MOUSE         (1 << 0)
+    #define IAL_MOUSEEVENT          IAL_EVENT_MOUSE
+#define IAL_EVENT_KEY           (1 << 1)
+    #define IAL_KEYEVENT            IAL_EVENT_KEY
+
+/* For pointer axis events. Since 4.0.0. */
+#define IAL_EVENT_AXIS          (1 << 2)
+/* For generic button pressed/released events. Since 4.0.0. */
+#define IAL_EVENT_BUTTON        (1 << 3)
+/* For multiple touch events. Since 4.0.0. */
+#define IAL_EVENT_MTOUCH        (1 << 4)
+/* For gesture events. Since 4.0.0. */
+#define IAL_EVENT_GESTURE       (1 << 5)
+/* For tablet events. Not implemented. */
+#define IAL_EVENT_TABLET        (1 << 6)
+/* For tablet pad events. Not implemented. */
+#define IAL_EVENT_TABLET_PAD    (1 << 7)
 
 typedef struct tagINPUT
 {
