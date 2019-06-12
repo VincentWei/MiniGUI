@@ -894,7 +894,7 @@ CheckDRM()
     enable_video_drm=$enableval)
     if test "x$enable_video_drm" = "xyes"; then
         PKG_CHECK_MODULES(DRM, [libudev >= 200, libdrm >= 2.4], video_drm="yes",
-            video_drm="no; Linux DRM NEWGAL engine requires libdrm and libudev")
+            video_drm="no; Linux DRM NEWGAL engine requires libdrm 2.4+ and libudev 200+")
         if test "x$video_drm" = "xyes"; then
             AC_DEFINE(_MGGAL_DRM, 1,
                 [Define if include Linux DRM NEWGAL engine])
@@ -1918,12 +1918,13 @@ if test "x$build_tslib_ial_engine" = "xyes"; then
 fi
 
 if test "x$build_libinput_ial_engine" = "xyes"; then
-    PKG_CHECK_MODULES(LIBINPUT, [libinput >= 1.10.0], ,
-            build_libinput_ial_engine="no; the IAL engine requires libinput 1.13.0 or later")
+    PKG_CHECK_MODULES(LIBINPUT, [libudev >= 200, libinput >= 1.10.0], ,
+            build_libinput_ial_engine="no; Libinput IAL engine requires libinput 1.13.0+ and libudev 200+")
     if test "x$build_libinput_ial_engine" = "xyes"; then
         AC_DEFINE(_MGIAL_LIBINPUT, 1,
                 [Define if include Linux libinput IAL engine])
         need_udev="yes"
+        DEP_LIBS="$DEP_LIBS -linput"
     else
         AC_MSG_WARN([$build_libinput_ial_engine])
     fi

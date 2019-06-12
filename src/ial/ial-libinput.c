@@ -32,7 +32,7 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
-** libinput.c: The implementation of the IAL engine based on libinput.
+** ial-libinput.c: The implementation of the IAL engine based on libinput.
 **
 ** Created by Wei Yongming, 2019/06/10
 */
@@ -45,9 +45,12 @@
 
 #ifdef _MGIAL_LIBINPUT
 
+#include <libudev.h>
+#include <libinput.h>
+
 #include "misc.h"
 #include "ial.h"
-#include "libinput.h"
+#include "ial-libinput.h"
 
 static int mouse_x, mouse_y, mouse_button;
 

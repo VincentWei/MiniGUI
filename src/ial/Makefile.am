@@ -49,7 +49,7 @@ MSTAR_SRCS = mstarial.h mstarial.c
 DFB_SRCS = dfb.h dfb.c
 
 USVFB_SRCS = usvfbinput.c usvfbinput.h
-LIBINPUT_SRCS = libinput.c libinput.h
+LIBINPUT_SRCS = ial-libinput.c ial-libinput.h
 
 if MGIAL_CONSOLE
 native_libial_la_LIBADD = native/libnative.la
