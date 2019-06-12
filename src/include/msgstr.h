@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -48,33 +48,32 @@ const char *__mg_msgstr1 [] =
     "MSG_RBUTTONDOWN         ",     // 0x0005
     "MSG_RBUTTONUP           ",     // 0x0006
     "MSG_RBUTTONDBLCLK       ",     // 0x0007
-    "MSG_NCLBUTTONDOWN       ",     // 0x0008
-    "MSG_NCLBUTTONUP         ",     // 0x0009
-    "MSG_NCLBUTTONDBLCLK     ",     // 0x000A
-    "MSG_NCMOUSEMOVE         ",     // 0x000B
-    "MSG_NCRBUTTONDOWN       ",     // 0x000C
-    "MSG_NCRBUTTONUP         ",     // 0x000D
-    "MSG_NCRBUTTONDBLCLK     ",     // 0x000E
-    "",                             // 0x000F
-    
-    "MSG_KEYDOWN             ",     // 0x0010
-    "MSG_CHAR                ",     // 0x0011
-    "MSG_KEYUP               ",     // 0x0012
-    "MSG_SYSKEYDOWN          ",     // 0x0013
-    "MSG_SYSCHAR             ",     // 0x0014
-    "MSG_SYSKEYUP            ",     // 0x0015
-    "MSG_KEYLONGPRESS        ",     // 0x0016
-    "MSG_KEYALWAYSPRESS      ",     // 0x0017
-    "MSG_KEYSYM              ",     // 0x0018
-    "MSG_UTF8CHAR            ",     // 0x0019
-    "",                             // 0x001A
-    "",                             // 0x001B
-    "",                             // 0x001C
-    "",                             // 0x001D
-    "",                             // 0x001E
+    "MSG_MBUTTONDOWN         ",     // 0x0008
+    "MSG_MBUTTONUP           ",     // 0x0009
+    "MSG_MBUTTONDBLCLK       ",     // 0x000A
+    "MSG_NCLBUTTONDOWN       ",     // 0x000B
+    "MSG_NCLBUTTONUP         ",     // 0x000C
+    "MSG_NCLBUTTONDBLCLK     ",     // 0x000D
+    "MSG_NCMOUSEMOVE         ",     // 0x000E
+    "MSG_NCRBUTTONDOWN       ",     // 0x000F
+    "MSG_NCRBUTTONUP         ",     // 0x0010
+    "MSG_NCRBUTTONDBLCLK     ",     // 0x0011
+    "MSG_NCMBUTTONDOWN       ",     // 0x0012
+    "MSG_NCMBUTTONUP         ",     // 0x0013
+    "MSG_NCMBUTTONDBLCLK     ",     // 0x0014
+
+    "MSG_KEYDOWN             ",     // 0x0015
+    "MSG_CHAR                ",     // 0x0016
+    "MSG_KEYUP               ",     // 0x0017
+    "MSG_SYSKEYDOWN          ",     // 0x0018
+    "MSG_SYSCHAR             ",     // 0x0019
+    "MSG_SYSKEYUP            ",     // 0x001A
+    "MSG_KEYLONGPRESS        ",     // 0x001B
+    "MSG_KEYALWAYSPRESS      ",     // 0x001C
+    "MSG_KEYSYM              ",     // 0x001D
+    "MSG_UTF8CHAR            ",     // 0x001E
     "",                             // 0x001F
-    
-    
+
     "MSG_SETCURSOR           ",     // 0x0020
     "MSG_NCHITTEST, MSG_HITTEST",   // 0x0021
     "MSG_CHANGESIZE          ",     // 0x0022
@@ -91,7 +90,7 @@ const char *__mg_msgstr1 [] =
     "",                             // 0x002D
     "",                             // 0x002E
     "",                             // 0x002F
-    
+
     "MSG_SETFOCUS            ",     // 0x0030
     "MSG_KILLFOCUS           ",     // 0x0031
     "MSG_MOUSEACTIVE         ",     // 0x0032
@@ -108,7 +107,7 @@ const char *__mg_msgstr1 [] =
     "",                             // 0x003D
     "",                             // 0x003E
     "",                             // 0x003F
-    
+
     "MSG_ACTIVEMENU          ",     // 0x0040
     "MSG_DEACTIVEMENU        ",     // 0x0041
     "MSG_HSCROLL             ",     // 0x0042
@@ -142,7 +141,7 @@ const char *__mg_msgstr1 [] =
     "",                             // 0x005D
     "",                             // 0x005E
     "",                             // 0x005F
-    
+
     "MSG_CREATE              ",     // 0x0060
     "MSG_NCCREATE            ",     // 0x0061
     "MSG_INITPANES           ",     // 0x0062
@@ -161,6 +160,59 @@ const char *__mg_msgstr1 [] =
     ""                              // 0x006F
 };
 
+
+// message string, Group 1.1: 0x0070 ~ 0x009F
+char * __mg_msgstr11 [] =
+{
+    "MSG_EXIN_AXIS          ",      // 0x0070
+    "MSG_EXIN_BUTTONDOWN    ",      // 0x0071
+    "MSG_EXIN_BUTTONUP      ",      // 0x0072
+    "MSG_EXIN_TOUCH_DOWN    ",      // 0x0073
+    "MSG_EXIN_TOUCH_UP      ",      // 0x0074
+    "MSG_EXIN_TOUCH_MOTION  ",      // 0x0075
+    "MSG_EXIN_TOUCH_CANCEL  ",      // 0x0076
+    "MSG_EXIN_TOUCH_FRAME   ",      // 0x0077
+    "",                             // 0x0078
+    "",                             // 0x0079
+    "MSG_EXIN_SWITCH_TOGGLE ",      // 0x007A
+    "",                             // 0x007B
+    "",                             // 0x007C
+    "",                             // 0x007D
+    "",                             // 0x007E
+    "",                             // 0x007F
+    "MSG_EXIN_GESTRUE_SWIPE_BEGIN", // 0x0080
+    "MSG_EXIN_GESTRUE_SWIPE_UPDATE",// 0x0081
+    "MSG_EXIN_GESTRUE_SWIPE_END",   // 0x0082
+    "MSG_EXIN_GESTURE_PINCH_BEGIN", // 0x0083
+    "MSG_EXIN_GESTURE_PINCH_UPDATE",// 0x0084
+    "MSG_EXIN_GESTURE_PINCH_END",   // 0x0085
+    "",                             // 0x0086
+    "",                             // 0x0087
+    "",                             // 0x0088
+    "",                             // 0x0089
+    "",                             // 0x008A
+    "",                             // 0x008B
+    "",                             // 0x008C
+    "",                             // 0x008D
+    "",                             // 0x008E
+    "",                             // 0x008F
+    "MSG_EXIN_TABLET_TOOL_AXIS",    // 0x0090
+    "MSG_EXIN_TABLET_TOOL_PROXIMITY",// 0x0091
+    "MSG_EXIN_TABLET_TOOL_TIP",     // 0x0092
+    "MSG_EXIN_TABLET_TOOL_BUTTON",  // 0x0093
+    "MSG_EXIN_TABLET_PAD_BUTTON",   // 0x0094
+    "MSG_EXIN_TABLET_PAD_RING",     // 0x0095
+    "MSG_EXIN_TABLET_PAD_STRIP",    // 0x0096
+    "",                             // 0x0097
+    "",                             // 0x0098
+    "",                             // 0x0099
+    "",                             // 0x009A
+    "",                             // 0x009B
+    "",                             // 0x009C
+    "",                             // 0x009D
+    "",                             // 0x009E
+    "",                             // 0x009F
+};
 
 // message string, Group 2: 0x00A0 ~ 0x010F
 char * __mg_msgstr2 [] =
@@ -181,7 +233,7 @@ char * __mg_msgstr2 [] =
     "",                             // 0x00AD
     "",                             // 0x00AE
     "",                             // 0x00AF
-    
+
     "MSG_ERASEBKGND          ",     // 0x00B0       // this is an async message.
     "MSG_PAINT               ",     // 0x00B1
     "MSG_NCPAINT             ",     // 0x00B2
@@ -214,7 +266,7 @@ char * __mg_msgstr2 [] =
     "",                             // 0x00CD
     "",                             // 0x00CE
     "",                             // 0x00CF
-    
+
     "MSG_STARTSESSION        ",     // 0x00D0
     "MSG_QUERYENDSESSION     ",     // 0x00D1
     "MSG_ENDSESSION          ",     // 0x00D2
@@ -251,7 +303,7 @@ char * __mg_msgstr2 [] =
 
     "MSG_ADDNEWMAINWIN       ",     // 0x00F0
     "MSG_REMOVEMAINWIN       ",     // 0x00F1
-    "MSG_MOVETOTOPMOST       ",     // 0x00F2 
+    "MSG_MOVETOTOPMOST       ",     // 0x00F2
     "MSG_SETACTIVEMAIN       ",     // 0x00F3
     "MSG_GETACTIVEMAIN       ",     // 0x00F4
     "MSG_SHOWMAINWIN         ",     // 0x00F5
@@ -303,7 +355,7 @@ char * __mg_msgstr3 [] =
     "",                             // 0x012D
     "",                             // 0x012E
     "",                             // 0x012F
-    
+
     "MSG_FONTCHANGING        ",     // 0x0130
     "MSG_FONTCHANGED         ",     // 0x0131
     "MSG_GETTEXTLENGTH       ",     // 0x0132
@@ -320,7 +372,7 @@ char * __mg_msgstr3 [] =
     "",                             // 0x013D
     "",                             // 0x013E
     "",                             // 0x013F
-    
+
     "MSG_QUIT                ",     // 0x0140
     "",                             // 0x0141
     "MSG_IDLE                ",     // 0x0142
@@ -337,7 +389,7 @@ char * __mg_msgstr3 [] =
     "",                             // 0x014D
     "",                             // 0x014E
     "",                             // 0x014F
-    
+
     "MSG_DOESNEEDIME         ",     // 0x0150
     "MSG_IME_REGISTER        ",     // 0x0151
     "MSG_IME_UNREGISTER      ",     // 0x0152
@@ -354,7 +406,7 @@ char * __mg_msgstr3 [] =
     "",                             // 0x015D
     "",                             // 0x015E
     "",                             // 0x015F
-    
+
     "MSG_SHOWMENU            ",     // 0x0160
     "MSG_HIDEMENU            ",     // 0x0161
     "MSG_ADDTIMER            ",     // 0x0162
@@ -371,7 +423,7 @@ char * __mg_msgstr3 [] =
     "MSG_REGISTERKEYHOOK     ",     // 0x016D
     "MSG_REGISTERMOUSEHOOK   ",     // 0x016E
     "",                             // 0x016F
-    
+
     "MSG_INITMENU            ",     // 0x0170
     "MSG_INITMENUPOPUP       ",     // 0x0171
     "MSG_MENUSELECT          ",     // 0x0172

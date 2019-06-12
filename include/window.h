@@ -226,7 +226,74 @@ extern "C" {
  */
 #define MSG_RBUTTONDBLCLK   0x0007
 
-#define MSG_NCMOUSEOFF      0x0007
+/**
+ * \def MSG_MBUTTONDOWN
+ * \brief Middle mouse button down message.
+ *
+ * This message is posted to the window when the user presses down
+ * the middle button of the mouse in the client area of the window.
+ *
+ * \code
+ * MSG_MBUTTONDOWN
+ * DWORD key_flags = (DWORD)wParam;
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param key_flags The shift key status when this message occurred.
+ * \param x_pos,y_pos The position of the mouse in client coordinates.
+ *
+ * \sa MSG_MBUTTONUP, key_defs
+ *
+ * Since 4.0.0
+ */
+#define MSG_MBUTTONDOWN     0x0008
+
+/**
+ * \def MSG_MBUTTONUP
+ * \brief Middle mouse button up message.
+ *
+ * This message is posted to the window when the user releases up
+ * the middle button of the mouse in the client area of the window.
+ *
+ * \code
+ * MSG_MBUTTONUP
+ * DWORD key_flags = (DWORD)wParam;
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param key_flags The shift key status when this message occurred.
+ * \param x_pos,y_pos The position of the mouse in client coordinates.
+ *
+ * \sa MSG_MBUTTONDOWN, key_defs
+ *
+ * Since 4.0.0
+ */
+#define MSG_MBUTTONUP       0x0009
+
+/**
+ * \def MSG_MBUTTONDBLCLK
+ * \brief Middle mouse button double clicked message.
+ *
+ * This message is posted to the window when the user double clicks
+ * the middle button of the mouse in the client area of the window.
+ *
+ * \code
+ * MSG_MBUTTONDBLCLK
+ * DWORD key_flags = (DWORD)wParam;
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param key_flags The shift key status when this message occurred.
+ * \param x_pos,y_pos The position of the mouse in client coordinates.
+ *
+ * \sa MSG_LBUTTONDBLCLK, key_defs
+ */
+#define MSG_MBUTTONDBLCLK   0x000A
+
+#define MSG_NCMOUSEOFF      0x000A
 
 /**
  * \def MSG_NCLBUTTONDOWN
@@ -247,7 +314,7 @@ extern "C" {
  *
  * \sa MSG_NCLBUTTONUP, MSG_NCHITTEST
  */
-#define MSG_NCLBUTTONDOWN   0x0008
+#define MSG_NCLBUTTONDOWN   0x000B
 
 /**
  * \def MSG_NCLBUTTONUP
@@ -268,7 +335,7 @@ extern "C" {
  *
  * \sa MSG_NCLBUTTONDOWN, MSG_NCHITTEST
  */
-#define MSG_NCLBUTTONUP     0x0009
+#define MSG_NCLBUTTONUP     0x000C
 
 /**
  * \def MSG_NCLBUTTONDBLCLK
@@ -289,7 +356,7 @@ extern "C" {
  *
  * \sa MSG_NCRBUTTONDBLCLK, MSG_NCHITTEST
  */
-#define MSG_NCLBUTTONDBLCLK 0x000A
+#define MSG_NCLBUTTONDBLCLK 0x000D
 
 /**
  * \def MSG_NCMOUSEMOVE
@@ -310,7 +377,7 @@ extern "C" {
  *
  * \sa MSG_NCHITTEST
  */
-#define MSG_NCMOUSEMOVE     0x000B
+#define MSG_NCMOUSEMOVE     0x000E
 
 /**
  * \def MSG_NCRBUTTONDOWN
@@ -331,7 +398,7 @@ extern "C" {
  *
  * \sa MSG_NCRBUTTONUP, MSG_NCHITTEST
  */
-#define MSG_NCRBUTTONDOWN   0x000C
+#define MSG_NCRBUTTONDOWN   0x000F
 
 /**
  * \def MSG_NCRBUTTONUP
@@ -352,7 +419,7 @@ extern "C" {
  *
  * \sa MSG_NCRBUTTONDOWN, MSG_NCHITTEST
  */
-#define MSG_NCRBUTTONUP     0x000D
+#define MSG_NCRBUTTONUP     0x0010
 
 /**
  * \def MSG_NCRBUTTONDBLCLK
@@ -373,9 +440,72 @@ extern "C" {
  *
  * \sa MSG_NCLBUTTONDBLCLK, MSG_NCHITTEST
  */
-#define MSG_NCRBUTTONDBLCLK 0x000E
+#define MSG_NCRBUTTONDBLCLK 0x0011
 
-#define MSG_LASTMOUSEMSG    0x000F
+/**
+ * \def MSG_NCMBUTTONDOWN
+ * \brief Middle mouse button down message in the non-client area.
+ *
+ * This message is posted to the window when the user presses down
+ * the middle button of the mouse in the non-client area of the window.
+ *
+ * \code
+ * MSG_NCMBUTTONDOWN
+ * int hit_code = (int)wParam;
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param hit_code The hit test code which tells the area of the mouse.
+ * \param x_pos,y_pos The position of the mouse in window coordinates.
+ *
+ * \sa MSG_NCMBUTTONUP, MSG_NCHITTEST
+ */
+#define MSG_NCMBUTTONDOWN   0x0012
+
+/**
+ * \def MSG_NCMBUTTONUP
+ * \brief Middle mouse button up message in the non-client area.
+ *
+ * This message is posted to the window when the user releases up
+ * the middle button of the mouse in the non-client area of the window.
+ *
+ * \code
+ * MSG_NCMBUTTONUP
+ * int hit_code = (int)wParam;
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param hit_code The hit test code which tells the area of the mouse.
+ * \param x_pos,y_pos The position of the mouse in window coordinates.
+ *
+ * \sa MSG_NCMBUTTONDOWN, MSG_NCHITTEST
+ */
+#define MSG_NCMBUTTONUP     0x0013
+
+/**
+ * \def MSG_NCMBUTTONDBLCLK
+ * \brief Middle mouse button double clicked in the non-client area.
+ *
+ * This message is posted to the window when the user double clicks
+ * the middle button of the mouse in the non-client area of the window.
+ *
+ * \code
+ * MSG_NCMBUTTONDBLCLK
+ * int hit_code = (int)wParam;
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param hit_code The hit test code which tells the area of the mouse.
+ * \param x_pos,y_pos The position of the mouse in window coordinates.
+ *
+ * \sa MSG_NCLBUTTONDBLCLK, MSG_NCHITTEST
+ */
+#define MSG_NCMBUTTONDBLCLK 0x0014
+
+#define MSG_LASTMOUSEMSG    0x0014
 
     /** @} end of mouse_msgs */
 
@@ -384,8 +514,8 @@ extern "C" {
      * @{
      */
 
-/* Group 2 from 0x0010 to 0x001F, the key messages. */
-#define MSG_FIRSTKEYMSG     0x0010
+/* Group 2 from 0x0015 to 0x001F, the key messages. */
+#define MSG_FIRSTKEYMSG     0x0015
 
 /**
  * \def MSG_KEYDOWN
@@ -409,7 +539,7 @@ extern "C" {
  *
  * \include keydown.c
  */
-#define MSG_KEYDOWN         0x0010
+#define MSG_KEYDOWN         0x0015
 
 /**
  * \def MSG_CHAR
@@ -437,7 +567,7 @@ extern "C" {
  *
  * \sa MSG_SYSCHAR, TranslateMessage, key_defs
  */
-#define MSG_CHAR            0x0011
+#define MSG_CHAR            0x0016
 
 /**
  * \def MSG_KEYUP
@@ -457,7 +587,7 @@ extern "C" {
  *
  * \sa MSG_KEYDOWN, key_defs
  */
-#define MSG_KEYUP           0x0012
+#define MSG_KEYUP           0x0017
 
 /**
  * \def MSG_SYSKEYDOWN
@@ -477,7 +607,7 @@ extern "C" {
  *
  * \sa MSG_SYSKEYUP, MSG_SYSCHAR, key_defs
  */
-#define MSG_SYSKEYDOWN      0x0013
+#define MSG_SYSKEYDOWN      0x0018
 
 /**
  * \def MSG_SYSCHAR
@@ -497,7 +627,7 @@ extern "C" {
  *
  * \sa MSG_CHAR, TranslateMessage, key_defs
  */
-#define MSG_SYSCHAR         0x0014
+#define MSG_SYSCHAR         0x0019
 
 /**
  * \def MSG_SYSKEYUP
@@ -517,7 +647,7 @@ extern "C" {
  *
  * \sa MSG_SYSKEYDOWN, key_defs
  */
-#define MSG_SYSKEYUP        0x0015
+#define MSG_SYSKEYUP        0x001A
 
 
 /* keyboard longpress supported */
@@ -529,7 +659,7 @@ extern "C" {
  * This message is sent when a key is pressed exceed user-defined long
  * time value.
  */
-#define MSG_KEYLONGPRESS    0x0016
+#define MSG_KEYLONGPRESS    0x001B
 
 /**
  * \def MSG_KEYALWAYSPRESS
@@ -538,7 +668,7 @@ extern "C" {
  * This message is sent when a key is pressed to exceed user-defined
  * always time value.
  */
-#define MSG_KEYALWAYSPRESS  0x0017
+#define MSG_KEYALWAYSPRESS  0x001C
 
 /**
  * \def MSG_KEYSYM
@@ -565,7 +695,7 @@ extern "C" {
  *
  * \sa MSG_SYSCHAR, TranslateMessage, key_defs
  */
-#define MSG_KEYSYM          0x0018
+#define MSG_KEYSYM          0x001D
 
 /**
  * \def MSG_UTF8CHAR
@@ -589,7 +719,7 @@ extern "C" {
  *
  * \sa MSG_CHAR, key_defs
  */
-#define MSG_UTF8CHAR        0x0019
+#define MSG_UTF8CHAR        0x001E
 
 /**
  * \def DEF_LPRESS_TIME
@@ -1143,7 +1273,7 @@ extern DWORD __mg_interval_time;
      * @{
      */
 
-    /* Group 4 from 0x0060 to 0x009F, the creation messages. */
+    /* Group 4 from 0x0060 to 0x007F, the creation messages. */
 #define MSG_FIRSTCREATEMSG  0x0060
 
 /**
@@ -1272,9 +1402,77 @@ extern DWORD __mg_interval_time;
  */
 #define MSG_HELP            0x006A
 
-#define MSG_LASTCREATEMSG   0x009F
+#define MSG_LASTCREATEMSG   0x006F
 
     /** @} end of creation_msgs */
+
+    /**
+     * \defgroup extra_input_msgs Extra input messages
+     * @{
+     */
+
+    /* Group 4 from 0x0070 to 0x009F, the extra input messages. */
+#define MSG_FIRSTEXTRAINPUTMSG  0x0070
+
+#define AXIS_SCROLL_VERTICAL    0
+#define AXIS_SCROLL_HORIZONTAL  1
+
+#define AXIS_SOURCE_WHEEL       0
+#define AXIS_SOURCE_FINGER      1
+#define AXIS_SOURCE_CONTINUOUS  2
+#define AXIS_SOURCE_WHEEL_TILT  3
+
+/**
+ * \def MSG_INPUT_AXIS
+ * \brief Indicates the user has clicked the closing box on the caption.
+ *
+ * This message is sent as a notification to the active window when the user
+ * operates the axis of a pointer device such as a mouse.
+ *
+ * \code
+ * MSG_INPUT_AXIS
+ * int scroll = LOSWORD (wParam);
+ * int source = HISWORD (wParam);
+ * int value = (int)lParam;
+ * \endcode
+ *
+ * \param scroll one of AXIS_SCROLL_VERTICAL or AXIS_SCROLL_HORIZONTAL
+ * \param source one of AXIS_SOURCE_WHEEL, AXIS_SOURCE_FINGER,
+ *      AXIS_SOURCE_CONTINUOUS, or AXIS_SOURCE_WHEEL_TILT.
+ * \param value The axis value.
+ */
+#define MSG_EXIN_AXIS                   0x0070
+
+#define MSG_EXIN_BUTTONDOWN             0x0071
+#define MSG_EXIN_BUTTONUP               0x0072
+
+#define MSG_EXIN_TOUCH_DOWN             0x0073
+#define MSG_EXIN_TOUCH_UP               0x0074
+#define MSG_EXIN_TOUCH_MOTION           0x0075
+#define MSG_EXIN_TOUCH_CANCEL           0x0076
+#define MSG_EXIN_TOUCH_FRAME            0x0077
+
+#define MSG_EXIN_SWITCH_TOGGLE          0x007A
+
+#define MSG_EXIN_GESTRUE_SWIPE_BEGIN    0x0080
+#define MSG_EXIN_GESTRUE_SWIPE_UPDATE   0x0081
+#define MSG_EXIN_GESTRUE_SWIPE_END      0x0082
+#define MSG_EXIN_GESTURE_PINCH_BEGIN    0x0083
+#define MSG_EXIN_GESTURE_PINCH_UPDATE   0x0084
+#define MSG_EXIN_GESTURE_PINCH_END      0x0085
+
+#define MSG_EXIN_TABLET_TOOL_AXIS       0x0090
+#define MSG_EXIN_TABLET_TOOL_PROXIMITY  0x0091
+#define MSG_EXIN_TABLET_TOOL_TIP        0x0092
+#define MSG_EXIN_TABLET_TOOL_BUTTON     0x0093
+#define MSG_EXIN_TABLET_PAD_BUTTON      0x0094
+#define MSG_EXIN_TABLET_PAD_RING        0x0095
+#define MSG_EXIN_TABLET_PAD_STRIP       0x0096
+
+
+#define MSG_LASTEXTRAINPUTMSG   0x009F
+
+    /** @} end of extra_input_msgs */
 
     /**
      * \defgroup paint_msgs Window painting messages

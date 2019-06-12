@@ -438,6 +438,8 @@ const char* GUIAPI Message2Str (UINT message)
 {
     if (message >= 0x0000 && message <= 0x006F)
         return __mg_msgstr1 [message];
+    else if (message >= 0x0070 && message <= 0x009F)
+        return __mg_msgstr11 [message - 0x0070];
     else if (message >= 0x00A0 && message <= 0x010F)
         return __mg_msgstr2 [message - 0x00A0];
     else if (message >= 0x0120 && message <= 0x017F)
