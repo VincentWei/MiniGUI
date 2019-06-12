@@ -58,9 +58,17 @@
 #include "ial.h"
 #include "ial-libinput.h"
 
+#define LEN_SEAT_ID     127
+
 struct _libinput_udev_context {
+    char seat_id[LEN_SEAT_ID + 1];
+
     struct udev *udev;
     struct libinput *li;
+    struct libinput_device *def_dev;
+    int suspended;
+
+    int min_x, max_x, min_y, max_y;
 
     int li_fd;
     int mouse_x, mouse_y, mouse_button;
@@ -74,6 +82,44 @@ static struct _libinput_udev_context my_ctxt;
 /*
  * Mouse operations -- Event
  */
+static void mouse_setrange (int newminx, int newminy, int newmaxx, int newmaxy)
+{
+    my_ctxt.min_x = newminx;
+    my_ctxt.max_x = newmaxx;
+    my_ctxt.min_y = newminy;
+    my_ctxt.max_y = newmaxy;
+
+    if (my_ctxt.mouse_x < my_ctxt.min_x)
+        my_ctxt.mouse_x = my_ctxt.min_x;
+    if (my_ctxt.mouse_x > my_ctxt.max_x)
+        my_ctxt.mouse_x = my_ctxt.max_x;
+    if (my_ctxt.mouse_y < my_ctxt.min_y)
+        my_ctxt.mouse_y = my_ctxt.min_y;
+    if (my_ctxt.mouse_y > my_ctxt.max_y)
+        my_ctxt.mouse_y = my_ctxt.max_y;
+
+    my_ctxt.mouse_x = (my_ctxt.min_x + my_ctxt.max_x) / 2;
+    my_ctxt.mouse_y = (my_ctxt.min_y + my_ctxt.max_y) / 2;
+}
+
+static void mouse_setxy (int newx, int newy)
+{
+    if (newx < my_ctxt.min_x)
+        newx = my_ctxt.min_x;
+    if (newx > my_ctxt.max_x)
+        newx = my_ctxt.max_x;
+    if (newy < my_ctxt.min_y)
+        newy = my_ctxt.min_y;
+    if (newy > my_ctxt.max_y)
+        newy = my_ctxt.max_y;
+
+    if (newx == my_ctxt.mouse_x && newy == my_ctxt.mouse_y)
+        return;
+
+    my_ctxt.mouse_x = newx;
+    my_ctxt.mouse_x = newy;
+}
+
 static int mouse_update(void)
 {
     return 1;
@@ -98,14 +144,14 @@ static int keyboard_update(void)
     return my_ctxt.last_keycode + 1;
 }
 
-static const char * keyboard_get_state (void)
+static const char * keyboard_getstate (void)
 {
     return my_ctxt.kbd_state;
 }
 
-#ifdef _DEBUG
-
 #include <linux/input-event-codes.h>
+
+#ifdef _DEBUG
 
 static unsigned char linux_keycode_to_scancode_map[] = {
     SCANCODE_RESERVED, // KEY_RESERVED (0)
@@ -386,130 +432,254 @@ static inline int translate_libinput_keycode(uint32_t keycode)
 
 #endif  /* !_DEBUG */
 
+static void normalize_mouse_pos(int* new_x, int* new_y)
+{
+    if (*new_x < my_ctxt.min_x)
+        *new_x = my_ctxt.min_x;
+    if (*new_x > my_ctxt.max_x)
+        *new_x = my_ctxt.max_x;
+    if (*new_y < my_ctxt.min_y)
+        *new_y = my_ctxt.min_y;
+    if (*new_y > my_ctxt.max_y)
+        *new_y = my_ctxt.max_y;
+}
+
+static BOOL on_mouse_moved (double dx, double dy)
+{
+    int new_x = (int)(my_ctxt.mouse_x + dx + 0.5);
+    int new_y = (int)(my_ctxt.mouse_y + dy + 0.5);
+
+    normalize_mouse_pos(&new_x, &new_y);
+    if (new_x == my_ctxt.mouse_x && new_y == my_ctxt.mouse_y)
+        return FALSE;
+
+    return TRUE;
+}
+
+static BOOL on_new_mouse_pos (double x, double y)
+{
+    int new_x = (int)(x + 0.5);
+    int new_y = (int)(y + 0.5);
+
+    normalize_mouse_pos(&new_x, &new_y);
+    if (new_x == my_ctxt.mouse_x && new_y == my_ctxt.mouse_y)
+        return FALSE;
+
+    return TRUE;
+}
+
+static BOOL on_mouse_button_changed (uint32_t button,
+        enum libinput_button_state state)
+{
+    int old_mouse_button = my_ctxt.mouse_button;
+
+    switch (button) {
+    case BTN_LEFT:
+        if (state == LIBINPUT_BUTTON_STATE_RELEASED)
+            my_ctxt.mouse_button &= ~IAL_MOUSE_LEFTBUTTON;
+        else
+            my_ctxt.mouse_button |= IAL_MOUSE_LEFTBUTTON;
+        break;
+
+    case BTN_RIGHT:
+        if (state == LIBINPUT_BUTTON_STATE_RELEASED)
+            my_ctxt.mouse_button &= ~IAL_MOUSE_RIGHTBUTTON;
+        else
+            my_ctxt.mouse_button |= IAL_MOUSE_RIGHTBUTTON;
+        break;
+
+    case BTN_MIDDLE:
+        if (state == LIBINPUT_BUTTON_STATE_RELEASED)
+            my_ctxt.mouse_button &= ~IAL_MOUSE_MIDDLEBUTTON;
+        else
+            my_ctxt.mouse_button |= IAL_MOUSE_MIDDLEBUTTON;
+        break;
+
+    case BTN_SIDE:
+    case BTN_EXTRA:
+    case BTN_FORWARD:
+    case BTN_BACK:
+    case BTN_TASK:
+        break;
+    }
+
+    if (old_mouse_button == my_ctxt.mouse_button)
+        return FALSE;
+
+    return TRUE;
+}
+
+static BOOL on_generic_button_changed (uint32_t button,
+        enum libinput_button_state state)
+{
+    return TRUE;
+}
+
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
 {
+    struct libinput_event *event;
+    enum libinput_event_type type;
     int retval;
-    fd_set rfds;
 
-    if (!in) {
-        in = &rfds;
-        FD_ZERO(in);
-    }
+    event = libinput_get_event(my_ctxt.li);
+    if (event == NULL) {
+        fd_set rfds;
 
-    FD_SET(my_ctxt.li_fd, in);
+        if (!in) {
+            in = &rfds;
+            FD_ZERO(in);
+        }
 
-    if (my_ctxt.li_fd > maxfd)
-        maxfd = my_ctxt.li_fd;
+        FD_SET(my_ctxt.li_fd, in);
 
-    retval = select (maxfd + 1, in, out, except, timeout);
-    if (retval > 0 && FD_ISSET (my_ctxt.li_fd, in)) {
-        struct libinput_event *event;
+        if (my_ctxt.li_fd > maxfd)
+            maxfd = my_ctxt.li_fd;
 
-        libinput_dispatch(my_ctxt.li);
-        event = libinput_get_event(my_ctxt.li);
-        if (event) {
-            enum libinput_event_type type;
-            type = libinput_event_get_type(event);
-
-            _DBG_PRINTF("IAL>LIBINPUT: got a new event: %d\n", type);
-
-            /* set default return value */
-            retval = -1;
-            switch (type) {
-            case LIBINPUT_EVENT_NONE:
-                _DBG_PRINTF("IAL>LIBINPUT: got a NONE event\n");
-                break;
-
-            case LIBINPUT_EVENT_DEVICE_ADDED: {
-                struct libinput_device *device;
-                struct libinput_seat *seat;
-                const char *seat_name;
-
-                device = libinput_event_get_device(event);
-                seat = libinput_device_get_seat(device);
-                seat_name = libinput_seat_get_logical_name(seat);
-                _DBG_PRINTF("IAL>LIBINPUT: a new event device added: %s\n", seat_name);
-                break;
+        retval = select (maxfd + 1, in, out, except, timeout);
+        if (retval > 0 && FD_ISSET (my_ctxt.li_fd, in)) {
+            libinput_dispatch(my_ctxt.li);
+            event = libinput_get_event(my_ctxt.li);
+            if (event == NULL) {
+                return -1;
             }
-
-            case LIBINPUT_EVENT_DEVICE_REMOVED: {
-                struct libinput_device *device;
-                struct libinput_seat *seat;
-                const char *seat_name;
-
-                device = libinput_event_get_device(event);
-                seat = libinput_device_get_seat(device);
-                seat_name = libinput_seat_get_logical_name(seat);
-                _DBG_PRINTF("IAL>LIBINPUT: an event device removed: %s\n", seat_name);
-                break;
-            }
-
-            case LIBINPUT_EVENT_KEYBOARD_KEY: {
-                struct libinput_event_keyboard* kbd_event;
-
-                kbd_event = libinput_event_get_keyboard_event(event);
-                if (kbd_event) {
-                    uint32_t keycode = libinput_event_keyboard_get_key(kbd_event);
-                    my_ctxt.last_keycode = translate_libinput_keycode(keycode);
-                    if (my_ctxt.last_keycode) {
-                        switch (libinput_event_keyboard_get_key_state(kbd_event)) {
-                        case LIBINPUT_KEY_STATE_RELEASED:
-                            my_ctxt.kbd_state[my_ctxt.last_keycode] = 0;
-                            break;
-                        case LIBINPUT_KEY_STATE_PRESSED:
-                            my_ctxt.kbd_state[my_ctxt.last_keycode] = 1;
-                            break;
-                        }
-
-                        retval = IAL_KEYEVENT;
-                    }
-                }
-                break;
-            }
-
-            case LIBINPUT_EVENT_POINTER_MOTION:
-                break;
-
-            case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
-                break;
-
-            case LIBINPUT_EVENT_POINTER_BUTTON:
-                break;
-
-            case LIBINPUT_EVENT_POINTER_AXIS:
-                break;
-
-            case LIBINPUT_EVENT_TOUCH_DOWN:
-                break;
-
-            case LIBINPUT_EVENT_TOUCH_UP:
-                break;
-
-            case LIBINPUT_EVENT_TOUCH_MOTION:
-                break;
-
-            case LIBINPUT_EVENT_TOUCH_CANCEL:
-                break;
-
-            case LIBINPUT_EVENT_TOUCH_FRAME:
-                break;
-
-            default:
-                _DBG_PRINTF("IAL>LIBINPUT: got a UNKNOWN event type: %d\n", type);
-                break;
-            }
-
-            libinput_event_destroy(event);
+        }
+        else if (retval < 0) {
+            _DBG_PRINTF("IAL>LIBINPUT: select returns < 0: %d\n", retval);
+            return -1;
+        }
+        else {
+            _DBG_PRINTF("IAL>LIBINPUT: select timeout\n");
+            return 0;
         }
     }
-    else if (retval < 0) {
-        _DBG_PRINTF("IAL>LIBINPUT: select returns < 0: %d\n", retval);
-        retval = -1;
+
+    type = libinput_event_get_type(event);
+    _DBG_PRINTF("IAL>LIBINPUT: got a new event: %d\n", type);
+
+    /* set default return value */
+    retval = -1;
+    switch (type) {
+    case LIBINPUT_EVENT_NONE:
+        _DBG_PRINTF("IAL>LIBINPUT: got a NONE event\n");
+        break;
+
+    case LIBINPUT_EVENT_DEVICE_ADDED: {
+        struct libinput_device *device;
+        struct libinput_seat *seat;
+        const char *seat_name;
+
+        device = libinput_event_get_device(event);
+        seat = libinput_device_get_seat(device);
+        seat_name = libinput_seat_get_logical_name(seat);
+        _DBG_PRINTF("IAL>LIBINPUT: a new event device added: %s\n", seat_name);
+        break;
     }
-    else {
-        _DBG_PRINTF("IAL>LIBINPUT: select timeout\n");
+
+    case LIBINPUT_EVENT_DEVICE_REMOVED: {
+        struct libinput_device *device;
+        struct libinput_seat *seat;
+        const char *seat_name;
+
+        device = libinput_event_get_device(event);
+        seat = libinput_device_get_seat(device);
+        seat_name = libinput_seat_get_logical_name(seat);
+        _DBG_PRINTF("IAL>LIBINPUT: an event device removed: %s\n", seat_name);
+        break;
     }
+
+    case LIBINPUT_EVENT_KEYBOARD_KEY: {
+        struct libinput_event_keyboard* kbd_event;
+
+        kbd_event = libinput_event_get_keyboard_event(event);
+        if (kbd_event) {
+            uint32_t keycode = libinput_event_keyboard_get_key(kbd_event);
+            my_ctxt.last_keycode = translate_libinput_keycode(keycode);
+            if (my_ctxt.last_keycode) {
+                switch (libinput_event_keyboard_get_key_state(kbd_event)) {
+                case LIBINPUT_KEY_STATE_RELEASED:
+                    my_ctxt.kbd_state[my_ctxt.last_keycode] = 0;
+                    break;
+                case LIBINPUT_KEY_STATE_PRESSED:
+                    my_ctxt.kbd_state[my_ctxt.last_keycode] = 1;
+                    break;
+                }
+
+                retval = IAL_EVENT_KEY;
+            }
+        }
+        break;
+    }
+
+    case LIBINPUT_EVENT_POINTER_MOTION: {
+        struct libinput_event_pointer* ptr_event;
+        double dx, dy;
+
+        ptr_event = libinput_event_get_pointer_event(event);
+        dx = libinput_event_pointer_get_dx(ptr_event);
+        dy = libinput_event_pointer_get_dy(ptr_event);
+        if (on_mouse_moved(dx, dy))
+            retval = IAL_EVENT_MOUSE;
+        break;
+    }
+
+    case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE: {
+        struct libinput_event_pointer* ptr_event;
+        double x, y;
+
+        ptr_event = libinput_event_get_pointer_event(event);
+        x = libinput_event_pointer_get_absolute_x_transformed(ptr_event,
+                my_ctxt.max_x - my_ctxt.min_x + 1);
+        y = libinput_event_pointer_get_absolute_y_transformed(ptr_event,
+                my_ctxt.max_y - my_ctxt.min_y + 1);
+        if (on_new_mouse_pos(x, y))
+            retval = IAL_EVENT_MOUSE;
+        break;
+    }
+
+    case LIBINPUT_EVENT_POINTER_BUTTON: {
+        struct libinput_event_pointer* ptr_event;
+        uint32_t button;
+        enum libinput_button_state state;
+
+        ptr_event = libinput_event_get_pointer_event(event);
+        button = libinput_event_pointer_get_button(ptr_event);
+        state = libinput_event_pointer_get_button_state(ptr_event);
+        if (button >= BTN_LEFT && button <= BTN_MIDDLE) {
+            if (on_mouse_button_changed(button, state))
+                retval = IAL_EVENT_MOUSE;
+        }
+        else {
+            if (on_generic_button_changed(button, state))
+                retval = IAL_EVENT_BUTTON;
+        }
+        break;
+    }
+
+    case LIBINPUT_EVENT_POINTER_AXIS:
+        break;
+
+    case LIBINPUT_EVENT_TOUCH_DOWN:
+        break;
+
+    case LIBINPUT_EVENT_TOUCH_UP:
+        break;
+
+    case LIBINPUT_EVENT_TOUCH_MOTION:
+        break;
+
+    case LIBINPUT_EVENT_TOUCH_CANCEL:
+        break;
+
+    case LIBINPUT_EVENT_TOUCH_FRAME:
+        break;
+
+    default:
+        _DBG_PRINTF("IAL>LIBINPUT: got a UNKNOWN event type: %d\n", type);
+        break;
+    }
+
+    libinput_event_destroy(event);
 
     return retval;
 }
@@ -540,35 +710,13 @@ static const struct libinput_interface my_interface = {
     .close_restricted = close_restricted,
 };
 
-#define LEN_SEAT_ID     128
-
-BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
+static void update_default_device(void)
 {
-    char seat_id[LEN_SEAT_ID + 1];
-
-    my_ctxt.udev = udev_new();
-    if (my_ctxt.udev == NULL)
-        goto error;
-
-    my_ctxt.li = libinput_udev_create_context(&my_interface,
-            &my_ctxt, my_ctxt.udev);
-    if (my_ctxt.li == NULL)
-        goto error;
-
-    if (GetMgEtcValue ("libinput", "seat",
-            seat_id, LEN_SEAT_ID) < 0) {
-        strcpy(seat_id, "seat0");
-        _WRN_PRINTF("No libinput.seat defined, use the default 'seat0'");
-    }
-
-    if (libinput_udev_assign_seat(my_ctxt.li, seat_id))
-        goto error;
-
-#if 0
     struct libinput_event *event;
     int default_seat_found = 0;
+
     libinput_dispatch(my_ctxt.li);
-    while (!default_seat_found && (event = libinput_get_event(my_ctxt.li))) {
+    while ((event = libinput_get_event(my_ctxt.li))) {
         enum libinput_event_type type;
         struct libinput_device *device;
         struct libinput_seat *seat;
@@ -588,28 +736,114 @@ BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
 
         _DBG_PRINTF("IAL>LIBINPUT: a new event device: %s\n", seat_name);
 
-        default_seat_found = (strcmp(seat_name, "default") == 0) ? 1 : 0;
+        if (!default_seat_found) {
+            default_seat_found = (strcmp(seat_name, "default") == 0) ? 1 : 0;
+            my_ctxt.def_dev = device;
+        }
+
         libinput_event_destroy(event);
     }
 
     if (!default_seat_found) {
-        _WRN_PRINTF("no default seat found for seat_id: %s", seat_id);
+        _WRN_PRINTF("no default seat found for seat_id: %s", my_ctxt.seat_id);
     }
-#endif
 
     my_ctxt.li_fd = libinput_get_fd(my_ctxt.li);
     _DBG_PRINTF("IAL>LIBINPUT: initialized successfully: %d\n",
             my_ctxt.li_fd);
+}
+
+static void input_suspend(void)
+{
+    if (!my_ctxt.suspended) {
+        libinput_suspend(my_ctxt.li);
+        my_ctxt.def_dev = NULL;
+        my_ctxt.suspended = 1;
+    }
+}
+
+static int input_resume(void)
+{
+    if (my_ctxt.suspended) {
+        if (libinput_resume(my_ctxt.li) == 0) {
+            update_default_device();
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+/*
+**
+
+NOTE: the led masks defined by libinput is not same as MiniGUI.
+
+libinput:
+
+    enum libinput_led {
+        LIBINPUT_LED_NUM_LOCK = (1 << 0),
+        LIBINPUT_LED_CAPS_LOCK = (1 << 1),
+        LIBINPUT_LED_SCROLL_LOCK = (1 << 2)
+    };
+
+MiniGUI:
+
+    IAL_SetLeds (slock | (numlock << 1) | (capslock << 2));
+
+**
+*/
+static void set_leds (unsigned int leds)
+{
+    if (my_ctxt.def_dev) {
+        enum libinput_led li_leds = 0;
+
+        if (leds & (1 << 2))
+            li_leds |= LIBINPUT_LED_CAPS_LOCK;
+        if (leds & (1 << 1))
+            li_leds |= LIBINPUT_LED_NUM_LOCK;
+        if (leds & (1 << 0))
+            li_leds |= LIBINPUT_LED_SCROLL_LOCK;
+
+        libinput_device_led_update(my_ctxt.def_dev, li_leds);
+    }
+}
+
+BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
+{
+    my_ctxt.udev = udev_new();
+    if (my_ctxt.udev == NULL)
+        goto error;
+
+    my_ctxt.li = libinput_udev_create_context(&my_interface,
+            &my_ctxt, my_ctxt.udev);
+    if (my_ctxt.li == NULL)
+        goto error;
+
+    if (GetMgEtcValue ("libinput", "seat",
+            my_ctxt.seat_id, LEN_SEAT_ID) < 0) {
+        strcpy(my_ctxt.seat_id, "seat0");
+        _WRN_PRINTF("No libinput.seat defined, use the default 'seat0'");
+    }
+
+    if (libinput_udev_assign_seat(my_ctxt.li, my_ctxt.seat_id))
+        goto error;
+
+    update_default_device();
 
     input->update_mouse = mouse_update;
     input->get_mouse_xy = mouse_getxy;
-    input->set_mouse_xy = NULL;
+    input->set_mouse_xy = mouse_setxy;
     input->get_mouse_button = mouse_getbutton;
-    input->set_mouse_range = NULL;
+    input->set_mouse_range = mouse_setrange;
+    input->suspend_mouse= input_suspend;
+    input->resume_mouse = input_resume;
 
     input->update_keyboard = keyboard_update;
-    input->get_keyboard_state = keyboard_get_state;
-    input->set_leds = NULL;
+    input->get_keyboard_state = keyboard_getstate;
+    input->suspend_keyboard = input_suspend;
+    input->resume_keyboard = input_resume;
+    input->set_leds = set_leds;
 
     input->wait_event = wait_event;
     return TRUE;
