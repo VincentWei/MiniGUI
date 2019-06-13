@@ -216,8 +216,8 @@ int mg_InitIAL (void)
     char* env_value;
 #endif
     char engine [LEN_ENGINE_NAME + 1];
-    char mdev [MAX_PATH + 1];
-    char mtype[LEN_MTYPE_NAME + 1];
+    char mdev [IAL_LEN_MDEV + 1];
+    char mtype [LEN_MTYPE_NAME + 1];
 
     if (NR_INPUTS == 0)
         return ERR_NO_ENGINE;
@@ -242,12 +242,12 @@ int mg_InitIAL (void)
 
 #ifndef __NOUNIX__
     if ((env_value = getenv ("MG_MDEV"))) {
-        strncpy (mdev, env_value, MAX_PATH);
-        mdev [MAX_PATH] = '\0';
+        strncpy (mdev, env_value, IAL_LEN_MDEV);
+        mdev [IAL_LEN_MDEV] = '\0';
     }
     else
 #endif
-    if (GetMgEtcValue ("system", "mdev", mdev, MAX_PATH) < 0) {
+    if (GetMgEtcValue ("system", "mdev", mdev, IAL_LEN_MDEV) < 0) {
         strcpy (mdev, "/dev/zero");
     }
 
@@ -279,7 +279,7 @@ int mg_InitIAL (void)
             return ERR_NO_MATCH;
     }
 
-    strcpy (__mg_cur_input->mdev, mdev);
+    //strcpy (__mg_cur_input->mdev, mdev);
 
     if (!IAL_InitInput (__mg_cur_input, mdev, mtype)) {
         _ERR_PRINTF ("IAL: Init IAL engine failure.\n");
