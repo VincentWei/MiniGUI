@@ -1863,8 +1863,49 @@ extern DWORD __mg_interval_time;
  */
 #define MSG_EXIN_TABLET_PAD_STRIP       0x0096
 
+/**
+ * \def MSG_EXIN_USER_BEGIN
+ * \brief Indicates that the beginning of a user-defined extra input event.
+ *
+ * \code
+ * MSG_EXIN_USER_BEGIN
+ * WPARAM wParam;
+ * LPARAM lParam;
+ * \endcode
+ *
+ * \param wParam The first parameter of this message.
+ * \param lParam The second parameter of this message.
+ */
 #define MSG_EXIN_USER_BEGIN             0x009A
+
+/**
+ * \def MSG_EXIN_USER_UPDATE
+ * \brief Indicates that the update of a user-defined extra input event.
+ *
+ * \code
+ * MSG_EXIN_USER_UPDATE
+ * WPARAM wParam;
+ * LPARAM lParam;
+ * \endcode
+ *
+ * \param wParam The first parameter of this message.
+ * \param lParam The second parameter of this message.
+ */
 #define MSG_EXIN_USER_UPDATE            0x009B
+
+/**
+ * \def MSG_EXIN_USER_END
+ * \brief Indicates that the end of a user-defined extra input event.
+ *
+ * \code
+ * MSG_EXIN_USER_END
+ * WPARAM wParam;
+ * LPARAM lParam;
+ * \endcode
+ *
+ * \param wParam The first parameter of this message.
+ * \param lParam The second parameter of this message.
+ */
 #define MSG_EXIN_USER_END               0x009C
 
 #define MSG_LASTEXTRAINPUTMSG   0x009F

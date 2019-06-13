@@ -3501,13 +3501,22 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-
 LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     int flags, x, y;
 
     if (message >= MSG_FIRSTWINDOWMSG && message <= MSG_LASTWINDOWMSG) {
         return dskWindowMessageHandler (message, (PMAINWIN)wParam, lParam);
+    }
+    // VW: Since 4.0.0 for extra input messages.
+    else if (message >= MSG_FIRSTEXTRAINPUTMSG && message <= MSG_LASTEXTRAINPUTMSG) {
+        if (mgIsServer && __mg_zorder_info->active_win) {
+            __mg_post_msg_by_znode (__mg_zorder_info,
+                            __mg_zorder_info->active_win, message,
+                            wParam, lParam);
+        }
+
+        PostMessage ((HWND)active_mainwnd, message, wParam, lParam);
     }
     else if (message >= MSG_FIRSTKEYMSG && message <= MSG_LASTKEYMSG) {
         if (mgIsServer) {

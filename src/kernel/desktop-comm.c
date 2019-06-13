@@ -2000,6 +2000,10 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     if (message == MSG_CHAR && active_mainwnd) {
         PostMessage ((HWND)active_mainwnd, message, wParam, lParam);
     }
+    // VW: Since 4.0.0 for extra input messages.
+    else if (message >= MSG_FIRSTEXTRAINPUTMSG && message <= MSG_LASTEXTRAINPUTMSG) {
+        PostMessage ((HWND)active_mainwnd, message, wParam, lParam);
+    }
     else if (message >= MSG_FIRSTKEYMSG && message <= MSG_LASTKEYMSG) {
 
         if (do_drag_drop_window (message, 0, 0))
