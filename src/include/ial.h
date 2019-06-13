@@ -173,7 +173,17 @@ static inline int IAL_ResumeKeyboard (void)
         return -1;
 }
 
-#define IAL_WaitEvent           (*__mg_cur_input->wait_event)
+static inline int IAL_WaitEvent(int maxfd, fd_set *in, fd_set *out,
+        fd_set *except, struct timeval *timeout, EXTRA_INPUT_EVENT* extra)
+{
+    if (__mg_cur_input->wait_event_ex) {
+        return __mg_cur_input->wait_event_ex(maxfd, in, out, except,
+            timeout, extra);
+    }
+
+    return __mg_cur_input->wait_event(IAL_MOUSEEVENT | IAL_KEYEVENT,
+                maxfd, in, out, except, timeout);
+}
 
 #define IAL_MType               (__mg_cur_input->mtype)
 #define IAL_MDev                (__mg_cur_input->mdev)
