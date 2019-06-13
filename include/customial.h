@@ -2,12 +2,12 @@
  * \file customial.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2007/06/06
- * 
+ *
  * \brief This file is the head file for Custom IAL Engine.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -44,16 +44,12 @@
 /*
  * $Id: customial.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef GUI_IAL_CUSTOM_H
     #define GUI_IAL_CUSTOM_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
 
 #define IAL_MOUSE_LEFTBUTTON    (1 << 0)
 #define IAL_MOUSE_RIGHTBUTTON   (1 << 1)
@@ -79,22 +75,74 @@ extern "C" {
 #define IAL_EVENT_KEY           (1 << 1)
     #define IAL_KEYEVENT            IAL_EVENT_KEY
 
-/* For pointer axis events. Since 4.0.0. */
-#define IAL_EVENT_AXIS          (1 << 2)
-/* For generic button pressed/released events. Since 4.0.0. */
-#define IAL_EVENT_BUTTON        (1 << 3)
-/* For multiple touch events. Since 4.0.0. */
-#define IAL_EVENT_MTOUCH        (1 << 4)
-/* For gesture events. Since 4.0.0. */
-#define IAL_EVENT_GESTURE       (1 << 5)
-/* For tablet events. Not implemented. */
-#define IAL_EVENT_TABLET        (1 << 6)
-/* For tablet pad events. Not implemented. */
-#define IAL_EVENT_TABLET_PAD    (1 << 7)
+#define IAL_EVENT_EXTRA         (1 << 2)
 
-typedef struct tagINPUT
-{
+/* The event identifiers, should keep sync with MSG_EXIN_XXX */
+#ifndef AXIS_SCROLL_INVALID
+    #define AXIS_SCROLL_INVALID     0
+    #define AXIS_SCROLL_VERTICAL    1
+    #define AXIS_SCROLL_HORIZONTAL  2
+
+    #define AXIS_SOURCE_INVALID     0
+    #define AXIS_SOURCE_WHEEL       1
+    #define AXIS_SOURCE_FINGER      2
+    #define AXIS_SOURCE_CONTINUOUS  3
+    #define AXIS_SOURCE_WHEEL_TILT  4
+#endif
+
+#define IAL_EVENT_AXIS                   0x0070
+#define IAL_EVENT_BUTTONDOWN             0x0071
+#define IAL_EVENT_BUTTONUP               0x0072
+
+#define IAL_EVENT_TOUCH_DOWN             0x0073
+#define IAL_EVENT_TOUCH_UP               0x0074
+#define IAL_EVENT_TOUCH_MOTION           0x0075
+#define IAL_EVENT_TOUCH_CANCEL           0x0076
+#define IAL_EVENT_TOUCH_FRAME            0x0077
+
+#ifndef SWITCH_INVALID
+    #define SWITCH_INVALID                  0
+    #define SWITCH_LID                      1
+    #define SWITCH_TABLET_MODE              2
+
+    #define SWITCH_STATE_INVALID            0
+    #define SWITCH_STATE_ON                 1
+    #define SWITCH_STATE_OFF                2
+#endif
+
+#define IAL_EVENT_SWITCH_TOGGLE          0x007A
+
+#define IAL_EVENT_GESTURE_SWIPE_BEGIN    0x0080
+#define IAL_EVENT_GESTURE_SWIPE_UPDATE   0x0081
+#define IAL_EVENT_GESTURE_SWIPE_END      0x0082
+#define IAL_EVENT_GESTURE_PINCH_BEGIN    0x0083
+#define IAL_EVENT_GESTURE_PINCH_UPDATE   0x0084
+#define IAL_EVENT_GESTURE_PINCH_END      0x0085
+
+#define IAL_EVENT_TABLET_TOOL_AXIS       0x0090
+#define IAL_EVENT_TABLET_TOOL_PROXIMITY  0x0091
+#define IAL_EVENT_TABLET_TOOL_TIP        0x0092
+#define IAL_EVENT_TABLET_TOOL_BUTTON     0x0093
+
+#define IAL_EVENT_TABLET_PAD_BUTTON      0x0094
+#define IAL_EVENT_TABLET_PAD_RING        0x0095
+#define IAL_EVENT_TABLET_PAD_STRIP       0x0096
+
+#define IAL_EVENT_USER_BEGIN             0x009A
+#define IAL_EVENT_USER_UPDATE            0x009B
+#define IAL_EVENT_USER_END               0x009C
+
+typedef struct _EXTRA_INPUT_EVENT {
+    int event;
+    WPARAM wparam;
+    LPARAM lparam;
+} EXTRA_INPUT_EVENT;
+
+#define IAL_LEN_MDEV            127
+
+typedef struct tagINPUT {
     char*   id;
+    //char*   mdev;
 
     // Initialization and termination
     BOOL (*init_input) (struct tagINPUT *input, const char* mdev, const char* mtype);
@@ -116,12 +164,18 @@ typedef struct tagINPUT
     int (*resume_keyboard) (void);
     void (*set_leds) (unsigned int leds);
 
-    // Event
-    int (*wait_event) (int which, int maxfd, fd_set *in, fd_set *out, 
+    // Event loop
+    int (*wait_event) (int which, int maxfd, fd_set *in, fd_set *out,
             fd_set *except, struct timeval *timeout);
 
-    char mdev [MAX_PATH + 1];
-}INPUT;
+    // New wait event method for getting extra input events; since 4.0.0
+    int (*wait_event_ex) (int maxfd, fd_set *in, fd_set *out,
+            fd_set *except, struct timeval *timeout, EXTRA_INPUT_EVENT* extra);
+} INPUT;
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 #ifdef _MGIAL_CUSTOM
 extern BOOL InitCustomInput (INPUT* input, const char* mdev, const char* mtype);
