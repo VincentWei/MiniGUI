@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -58,7 +58,7 @@ void screensaver_hide(void);
 
 /**
  * \def WS_EX_CTRLASMAINWIN
- * \brief The control can be displayed out of the main window 
+ * \brief The control can be displayed out of the main window
  *        which contains the control.
  */
 #define WS_EX_CTRLASMAINWIN     0x20000000L
@@ -66,28 +66,28 @@ void screensaver_hide(void);
 #define DEF_NR_TIMERS           NR_BITS_DWORD
 
 #if defined (__NOUNIX__) || defined (__uClinux__)
-  #define DEF_MSGQUEUE_LEN    16
+  #define DEF_MSGQUEUE_LEN    32
   #define SIZE_CLIPRECTHEAP   16
   #define SIZE_INVRECTHEAP    32
-  #define SIZE_QMSG_HEAP      16
+  #define SIZE_QMSG_HEAP      32
 #else
  #ifndef _MGRM_THREADS
-  #define DEF_MSGQUEUE_LEN    16
+  #define DEF_MSGQUEUE_LEN    32
   #define SIZE_CLIPRECTHEAP   16
   #define SIZE_INVRECTHEAP    32
-  #define SIZE_QMSG_HEAP      16
+  #define SIZE_QMSG_HEAP      32
  #else
-  #define DEF_MSGQUEUE_LEN    16     /* default message queue length */
+  #define DEF_MSGQUEUE_LEN    32
   #define SIZE_CLIPRECTHEAP   32
   #define SIZE_INVRECTHEAP    64
-  #define SIZE_QMSG_HEAP      16
+  #define SIZE_QMSG_HEAP      32
  #endif
 #endif
 
 /* IME info define.*/
 #define IME_SET_STATUS        1
 #define IME_GET_STATUS        2
-#define IME_SET_POS           3 
+#define IME_SET_POS           3
 #define IME_GET_POS           4
 
 /******************* Internal data of fix string module **********************/
@@ -150,7 +150,7 @@ typedef struct _CARETINFO {
     int     y;
     void*   pNormal;        // normal bitmap.
     void*   pXored;         // bit-Xored bitmap.
-    
+
     PBITMAP pBitmap;        // user defined caret bitmap.
 
     int     nWidth;         // original size of caret
@@ -244,7 +244,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg);
 extern PMSGQUEUE __mg_dsk_msg_queue;
 
 /* Running */
-#define _MG_QUITING_STAGE_RUNNING 1       
+#define _MG_QUITING_STAGE_RUNNING 1
 /* Try to quit main thread, and for Threads version quit other MainWindow Thread */
 #define _MG_QUITING_STAGE_START   (-10)
 /* Force to quit main thread, and other MainWindow Thread */
@@ -329,7 +329,7 @@ typedef struct _MAINWIN
 
     DWORD dwStyle;      // the styles of main window.
     DWORD dwExStyle;    // the extended styles of main window.
-    
+
     gal_pixel iFgColor; // the foreground color.
     gal_pixel iBkColor; // the background color.
     HMENU hMenu;        // handle of menu.
@@ -370,9 +370,9 @@ typedef struct _MAINWIN
                         // the main window that contains this window.
                         // for main window, always be itself.
 
-    HWND hParent;       // the parent of this window. 
+    HWND hParent;       // the parent of this window.
                         // for main window, always be HWND_DESKTOP.
-    
+
     /*
      * Child windows.
      */
@@ -387,18 +387,18 @@ typedef struct _MAINWIN
      * window element data.
      */
     struct _wnd_element_data* wed;
-    
-    /* 
+
+    /*
      * some internal fields
      * VM[2018-01-18]: Move these fields from header to here to compatible with WINDOWINFO
      */
     unsigned char DataType;     // the data type.
     unsigned char WinType;      // the window type.
-	unsigned short Flags;       // special runtime flags, such EraseBkGnd flags
+    unsigned short Flags;       // special runtime flags, such EraseBkGnd flags
 
     /*
      * The following members are only implemented for main window.
-     * Main Window hosting. 
+     * Main Window hosting.
      */
     struct _MAINWIN* pHosting;
                         // the hosting main window.
@@ -417,8 +417,8 @@ typedef struct _MAINWIN
 #ifdef _MGRM_THREADS
     pthread_t th;        // the thread which creates this main window.
 #endif
-	//the controls as main
-	HWND hFirstChildAsMainWin;
+    //the controls as main
+    HWND hFirstChildAsMainWin;
 
     HDC   secondaryDC;                // the secondary window dc.
     ON_UPDATE_SECONDARYDC update_secdc; // the callback of secondary window dc
@@ -447,7 +447,7 @@ void salone_StandAloneCleanup (void);
  */
 
 /* the client id is zero for the server */
-extern int __mg_client_id; 
+extern int __mg_client_id;
 
 BOOL kernel_IsOnlyMe (void);
 void* kernel_LoadSharedResource (void);
@@ -493,13 +493,13 @@ PMAINWIN gui_CheckAndGetMainWindowPtr (HWND hWnd);
 PMAINWIN gui_GetMainWindowPtrUnderPoint (int x, int y);
 
 /* return message queue of window. */
-PMSGQUEUE kernel_GetMsgQueue (HWND hWnd); 
+PMSGQUEUE kernel_GetMsgQueue (HWND hWnd);
 
 /* return the next window need to repaint. */
 HWND kernel_CheckInvalidRegion (PMAINWIN pWin);
 
 /* return global clipping region of window. */
-PGCRINFO kernel_GetGCRgnInfo (HWND hWnd); 
+PGCRINFO kernel_GetGCRgnInfo (HWND hWnd);
 
 /* internal variables */
 typedef struct _TRACKMENUINFO* PTRACKMENUINFO;
@@ -515,9 +515,9 @@ extern PTRACKMENUINFO __mg_ptmi;
 extern PMAINWIN __mg_dsk_win;
 extern HWND __mg_hwnd_desktop;
 
-extern LRESULT DesktopWinProc (HWND hWnd, 
+extern LRESULT DesktopWinProc (HWND hWnd,
                 UINT message, WPARAM wParam, LPARAM lParam);
-extern LRESULT SendSyncMessage (HWND hWnd, 
+extern LRESULT SendSyncMessage (HWND hWnd,
                 UINT msg, WPARAM wParam, LPARAM lParam);
 
 #ifndef _MGRM_THREADS
@@ -608,20 +608,20 @@ static inline MSGQUEUE* GetMsgQueueThisThread (void)
 #endif
 
 #ifndef _MGRM_THREADS
-static inline void 
+static inline void
 SetDesktopTimerFlag (void)
 {
     __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
 }
 #else
-static inline void 
+static inline void
 AlertDesktopTimerEvent (void)
 {
-	if(__mg_dsk_msg_queue)
-	{
-		__mg_dsk_msg_queue->TimerMask = 1;
-		POST_MSGQ(__mg_dsk_msg_queue);
-	}
+    if(__mg_dsk_msg_queue)
+    {
+        __mg_dsk_msg_queue->TimerMask = 1;
+        POST_MSGQ(__mg_dsk_msg_queue);
+    }
 }
 #endif
 
@@ -632,7 +632,7 @@ SetMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
     POST_MSGQ (pMsgQueue);
 }
 
-static inline void 
+static inline void
 RemoveMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
     pMsgQueue->TimerMask &= ~(0x01 << slot);
