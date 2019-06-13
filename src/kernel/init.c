@@ -182,6 +182,7 @@ static void* EventLoop (void* data)
     while (__mg_quiting_stage > _MG_QUITING_STAGE_EVENT) {
         EXTRA_INPUT_EVENT extra;
 
+        extra.params_mask = 0;
         event = IAL_WaitEvent (0, NULL, NULL, NULL, &__mg_event_timeout, &extra);
         if (event < 0)
             continue;
@@ -204,7 +205,20 @@ static void* EventLoop (void* data)
             msg.wParam = extra.wparam;
             msg.lParam = extra.lparam;
             msg.time = __mg_timer_counter;
-            QueueDeskMessage (&msg);
+            if (extra.params_mask) {
+                // packed multiple sub events
+                int i;
+                for (i = 0; i < NR_PACKED_SUB_EVENTS; i++) {
+                    if (extra.params_mask & (1 << i)) {
+                        msg.wParam = extra.wparams[i];
+                        msg.lParam = extra.lparams[i];
+                        QueueDeskMessage (&msg);
+                    }
+                }
+            }
+            else {
+                QueueDeskMessage (&msg);
+            }
         }
         else if (event == 0 && kernel_GetLWEvent (0, &lwe))
             ParseEvent (&lwe);

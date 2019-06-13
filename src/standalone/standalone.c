@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -195,6 +195,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
+    EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
 
     if (old_timer_counter != __mg_timer_counter) {
         old_timer_counter = __mg_timer_counter;
@@ -212,41 +213,39 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     }
 
 #ifdef __NOUNIX__
-    n = IAL_WaitEvent (IAL_MOUSEEVENT | IAL_KEYEVENT, 
-                mg_maxfd, &rset, wsetptr, esetptr, 
-                msg_queue?&sel_timeout:&sel_timeout_nd);
+    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
+                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
 
     /* update __mg_timer_counter */
     if (msg_queue) {
         //__mg_timer_counter += 10;
-		/**
-		10 is too fast, the "repeat_threshold" is 5, use ++, repeate 5 times
-		**/
-		__mg_timer_counter++;
+        /**
+        10 is too fast, the "repeat_threshold" is 5, use ++, repeate 5 times
+        **/
+        __mg_timer_counter++;
     }
 #elif defined (_MGGAL_BF533)
-    n = IAL_WaitEvent (IAL_MOUSEEVENT | IAL_KEYEVENT, 
-                mg_maxfd, &rset, wsetptr, esetptr, 
-                msg_queue?&sel_timeout:&sel_timeout_nd);
+    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
+                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
 
     /* update __mg_timer_counter */
     if (msg_queue) {
         __mg_timer_counter += 1;
     }
 #else
-    n = IAL_WaitEvent (IAL_MOUSEEVENT | IAL_KEYEVENT, 
-                mg_maxfd, &rset, wsetptr, esetptr, 
-                msg_queue?NULL:&sel_timeout_nd);
+    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
+                msg_queue?NULL:&sel_timeout_nd, &extra);
 #endif
 
-    if (msg_queue == NULL) msg_queue = __mg_dsk_msg_queue;
+    if (msg_queue == NULL)
+        msg_queue = __mg_dsk_msg_queue;
 
     if (n < 0) {
 
         /* It is time to check event again. */
         if (errno == EINTR) {
             //if (msg_queue)
-                ParseEvent (msg_queue, 0);
+            ParseEvent (msg_queue, 0);
         }
         return FALSE;
     }
@@ -257,7 +256,30 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     /* handle intput event (mouse/touch-screen or keyboard) */
     if (n & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
     if (n & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
-    if (n == 0) ParseEvent (msg_queue, 0);
+    if (n & IAL_EVENT_EXTRA) {
+        MSG msg;
+        msg.hwnd = HWND_DESKTOP;
+        msg.message = extra.event;
+        msg.wParam = extra.wparam;
+        msg.lParam = extra.lparam;
+        msg.time = __mg_timer_counter;
+        if (extra.params_mask) {
+            // packed multiple sub events
+            int i;
+            for (i = 0; i < NR_PACKED_SUB_EVENTS; i++) {
+                if (extra.params_mask & (1 << i)) {
+                    msg.wParam = extra.wparams[i];
+                    msg.lParam = extra.lparams[i];
+                    kernel_QueueMessage (msg_queue, &msg);
+                }
+            }
+        }
+        else {
+            kernel_QueueMessage (msg_queue, &msg);
+        }
+    }
+    else if (n == 0)
+        ParseEvent (msg_queue, 0);
 
     /* go through registered listen fds */
     for (i = 0; i < MAX_NR_LISTEN_FD; i++) {

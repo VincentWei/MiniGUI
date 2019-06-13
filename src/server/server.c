@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
 ** server.c: routines for server.
-** 
+**
 ** Current maintainer: Wei Yongming.
 **
 ** Create date: 2000/12/20
@@ -144,7 +144,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     else if (lwe.type == LWETYPE_MOUSE) {
         static int down_client = -1;
         static int down_by;
-        int cur_client = __mg_get_znode_at_point (__mg_zorder_info, 
+        int cur_client = __mg_get_znode_at_point (__mg_zorder_info,
                         me->x, me->y, NULL);
         Msg.wParam = me->status;
         switch (me->event) {
@@ -191,7 +191,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
 
         Msg.lParam = MAKELONG (me->x, me->y);
 
-        if (__mg_handle_mouse_hook (Msg.message, 
+        if (__mg_handle_mouse_hook (Msg.message,
                                 Msg.wParam, Msg.lParam) == HOOK_STOP)
             return;
 
@@ -233,7 +233,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             else
                 kernel_QueueMessage (msg_que, &Msg);
         }
-        
+
         if (Msg.message == MSG_LBUTTONUP && down_by == MSG_LBUTTONDOWN) {
             down_client = -1;
         }
@@ -246,7 +246,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
 static int listenfd;
 static int maxi;
 
-BOOL GUIAPI ServerStartup (int nr_globals, 
+BOOL GUIAPI ServerStartup (int nr_globals,
                 int def_nr_topmosts, int def_nr_normals)
 {
 
@@ -316,6 +316,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
+    EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
 
     if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
         __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
@@ -339,9 +340,8 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
     kernel_ReShowCursor ();
 #endif
 
-    if ( (n = IAL_WaitEvent (IAL_MOUSEEVENT | IAL_KEYEVENT, 
-                mg_maxfd, &rset, wsetptr, esetptr, 
-                msg_queue?NULL:(&sel_timeout))) < 0) {
+    if ((n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
+                msg_queue?NULL:(&sel_timeout), &extra)) < 0) {
 
         /* It is time to check event again. */
         if (errno == EINTR) {
@@ -388,7 +388,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
             int req_id;
 
             /* read request id from client */
-            if ( (nread = sock_read (clifd, &req_id, sizeof (int))) 
+            if ( (nread = sock_read (clifd, &req_id, sizeof (int)))
                             == SOCKERR_IO) {
 #ifdef _DEBUG
                 err_msg ("server: read error on fd %d", clifd);
@@ -410,7 +410,30 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
     /* handle intput event (mouse/touch-screen or keyboard) */
     if (n & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
     if (n & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
-    if (n == 0) ParseEvent (msg_queue, 0);
+    if (n & IAL_EVENT_EXTRA) {
+        MSG msg;
+        msg.hwnd = HWND_DESKTOP;
+        msg.message = extra.event;
+        msg.wParam = extra.wparam;
+        msg.lParam = extra.lparam;
+        msg.time = __mg_timer_counter;
+        if (extra.params_mask) {
+            // packed multiple sub events
+            int i;
+            for (i = 0; i < NR_PACKED_SUB_EVENTS; i++) {
+                if (extra.params_mask & (1 << i)) {
+                    msg.wParam = extra.wparams[i];
+                    msg.lParam = extra.lparams[i];
+                    kernel_QueueMessage (msg_queue, &msg);
+                }
+            }
+        }
+        else {
+            kernel_QueueMessage (msg_queue, &msg);
+        }
+    }
+    else if (n == 0)
+        ParseEvent (msg_queue, 0);
 
     /* go through registered listen fds */
     for (i = 0; i < MAX_NR_LISTEN_FD; i++) {
