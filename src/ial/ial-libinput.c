@@ -505,12 +505,9 @@ static BOOL on_mouse_button_changed (uint32_t button,
             my_ctxt.mouse_button |= IAL_MOUSE_MIDDLEBUTTON;
         break;
 
-    case BTN_SIDE:
-    case BTN_EXTRA:
-    case BTN_FORWARD:
-    case BTN_BACK:
-    case BTN_TASK:
-        break;
+    default:
+        // not a standard mouse button.
+        return FALSE;
     }
 
     _DBG_PRINTF("%s: new mouse button: 0x%x (old: 0x%x)\n",
@@ -521,14 +518,8 @@ static BOOL on_mouse_button_changed (uint32_t button,
     return TRUE;
 }
 
-static BOOL on_generic_button_changed (uint32_t button,
-        enum libinput_button_state state)
-{
-    return TRUE;
-}
-
-static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
+static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
+                struct timeval *timeout, EXTRA_INPUT_EVENT* extra)
 {
     struct libinput_event *event;
     enum libinput_event_type type;
@@ -657,38 +648,360 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
         ptr_event = libinput_event_get_pointer_event(event);
         button = libinput_event_pointer_get_button(ptr_event);
         state = libinput_event_pointer_get_button_state(ptr_event);
+
+        retval = 0;
         if (button >= BTN_LEFT && button <= BTN_MIDDLE) {
             if (on_mouse_button_changed(button, state))
-                retval = IAL_EVENT_MOUSE;
+                retval |= IAL_EVENT_MOUSE;
         }
-        else {
-            if (on_generic_button_changed(button, state))
-                retval = IAL_EVENT_BUTTON;
+
+        if (state == LIBINPUT_BUTTON_STATE_PRESSED)
+            extra->event = IAL_EVENT_BUTTONDOWN;
+        else
+            extra->event = IAL_EVENT_BUTTONUP;
+        extra->wparam = button;
+        extra->lparam = libinput_event_pointer_get_seat_button_count(ptr_event);
+        retval |= IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_POINTER_AXIS: {
+        struct libinput_event_pointer* ptr_event;
+        enum libinput_pointer_axis_source li_source;
+        int scroll = AXIS_SCROLL_INVALID;
+        int source = AXIS_SOURCE_INVALID;
+        double tmp;
+        int value, value_discrete;
+
+        ptr_event = libinput_event_get_pointer_event(event);
+        li_source = libinput_event_pointer_get_axis_source(ptr_event);
+        if (li_source) {
+            if (libinput_event_pointer_has_axis(ptr_event,
+                    LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
+                scroll = AXIS_SCROLL_VERTICAL;
+                tmp = libinput_event_pointer_get_axis_value(ptr_event,
+                        LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+                value = (int)(tmp + 0.5);
+                tmp = libinput_event_pointer_get_axis_value_discrete(ptr_event,
+                        LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+                value_discrete = (int)(tmp + 0.5);
+            }
+            else if (libinput_event_pointer_has_axis(ptr_event,
+                    LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
+                scroll = AXIS_SCROLL_HORIZONTAL;
+                tmp = libinput_event_pointer_get_axis_value(ptr_event,
+                        LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+                value = (int)(tmp + 0.5);
+                tmp = libinput_event_pointer_get_axis_value_discrete(ptr_event,
+                        LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+                value_discrete = (int)(tmp + 0.5);
+            }
+
+            switch (li_source) {
+            case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL:
+                source = AXIS_SOURCE_WHEEL;
+                break;
+            case LIBINPUT_POINTER_AXIS_SOURCE_FINGER:
+                source = AXIS_SOURCE_FINGER;
+                break;
+            case LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS:
+                source = AXIS_SOURCE_CONTINUOUS;
+                break;
+            case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
+                source = AXIS_SOURCE_WHEEL_TILT;
+                break;
+            }
+
+            if (scroll == AXIS_SCROLL_INVALID || source == AXIS_SOURCE_INVALID)
+                break;
+
+            extra->event = IAL_EVENT_AXIS;
+            extra->wparam = MAKELONG(scroll, source);
+            extra->lparam = MAKELONG(value, value_discrete);
+            retval = IAL_EVENT_EXTRA;
+        }
+
+        break;
+    }
+
+    case LIBINPUT_EVENT_TOUCH_DOWN: {
+        struct libinput_event_touch* tch_event;
+        double x, y;
+
+        tch_event = libinput_event_get_touch_event(event);
+        x = libinput_event_touch_get_x_transformed(tch_event,
+                my_ctxt.max_x - my_ctxt.min_x + 1);
+        y = libinput_event_touch_get_y_transformed(tch_event,
+                my_ctxt.max_y - my_ctxt.min_y + 1);
+
+        retval = 0;
+        // emulate the mouse left button down and mouse move events
+        if (on_mouse_button_changed(BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED) ||
+                on_new_mouse_pos(x, y))
+            retval |= IAL_EVENT_MOUSE;
+
+        extra->event = IAL_EVENT_TOUCH_DOWN;
+        extra->wparam = 0;
+        extra->lparam = MAKELONG(my_ctxt.mouse_x, my_ctxt.mouse_y);
+        retval |= IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_TOUCH_UP: {
+        //struct libinput_event_touch* tch_event;
+        //tch_event = libinput_event_get_touch_event(event);
+
+        retval = 0;
+        // emulate the mouse left button up and mouse move events
+        if (on_mouse_button_changed(BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED))
+            retval |= IAL_EVENT_MOUSE;
+
+        extra->event = IAL_EVENT_TOUCH_UP;
+        extra->wparam = 0;
+        extra->lparam = 0;
+        retval |= IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_TOUCH_MOTION: {
+        struct libinput_event_touch* tch_event;
+        double x, y;
+
+        tch_event = libinput_event_get_touch_event(event);
+        x = libinput_event_touch_get_x_transformed(tch_event,
+                my_ctxt.max_x - my_ctxt.min_x + 1);
+        y = libinput_event_touch_get_y_transformed(tch_event,
+                my_ctxt.max_y - my_ctxt.min_y + 1);
+
+        retval = 0;
+        // emulate the mouse move event
+        if (on_new_mouse_pos(x, y))
+            retval |= IAL_EVENT_MOUSE;
+
+        extra->event = IAL_EVENT_TOUCH_MOTION;
+        extra->wparam = 0;
+        extra->lparam = MAKELONG(my_ctxt.mouse_x, my_ctxt.mouse_y);
+        retval |= IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_TOUCH_CANCEL: {
+        retval = 0;
+        // emulate the mouse left button up and mouse move events
+        if (on_mouse_button_changed(BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED))
+            retval |= IAL_EVENT_MOUSE;
+
+        extra->event = IAL_EVENT_TOUCH_CANCEL;
+        extra->wparam = 0;
+        extra->lparam = 0;
+        retval |= IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_TOUCH_FRAME: {
+        struct libinput_event_touch* tch_event;
+
+        tch_event = libinput_event_get_touch_event(event);
+
+        extra->event = IAL_EVENT_TOUCH_FRAME;
+        extra->wparam = libinput_event_touch_get_seat_slot(tch_event);
+        extra->lparam = libinput_event_touch_get_slot(tch_event);
+        retval = IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_TABLET_TOOL_AXIS: {
+        break;
+    }
+
+    case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY: {
+        break;
+    }
+
+    case LIBINPUT_EVENT_TABLET_TOOL_TIP: {
+        break;
+    }
+
+    case LIBINPUT_EVENT_TABLET_TOOL_BUTTON: {
+        break;
+    }
+
+    case LIBINPUT_EVENT_TABLET_PAD_BUTTON: {
+        break;
+    }
+
+    case LIBINPUT_EVENT_TABLET_PAD_RING: {
+        break;
+    }
+
+    case LIBINPUT_EVENT_TABLET_PAD_STRIP: {
+        break;
+    }
+
+    case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN: {
+        struct libinput_event_gesture* gst_event;
+        int nr_figs;
+
+        gst_event = libinput_event_get_gesture_event(event);
+        nr_figs = libinput_event_gesture_get_finger_count(gst_event);
+
+        extra->event = IAL_EVENT_GESTURE_SWIPE_BEGIN;
+        extra->wparam = nr_figs;
+        extra->lparam = 0;
+        retval = IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE: {
+        struct libinput_event_gesture* gst_event;
+        int nr_figs;
+        double dx, dy;
+        int my_dx, my_dy;
+
+        gst_event = libinput_event_get_gesture_event(event);
+
+        nr_figs = libinput_event_gesture_get_finger_count(gst_event);
+        dx = libinput_event_gesture_get_dx(gst_event);
+        dy = libinput_event_gesture_get_dy(gst_event);
+        my_dx = (int)(dx + 0.5);
+        my_dy = (int)(dy + 0.5);
+
+        extra->event = IAL_EVENT_GESTURE_SWIPE_UPDATE;
+        extra->wparam = nr_figs;
+        extra->lparam = MAKELONG(my_dx, my_dy);
+        retval = IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_GESTURE_SWIPE_END: {
+        struct libinput_event_gesture* gst_event;
+        int nr_figs;
+        int is_cancelled;
+
+        gst_event = libinput_event_get_gesture_event(event);
+
+        nr_figs = libinput_event_gesture_get_finger_count(gst_event);
+        is_cancelled = libinput_event_gesture_get_cancelled(gst_event);
+
+        extra->event = IAL_EVENT_GESTURE_SWIPE_END;
+        extra->wparam = nr_figs;
+        extra->lparam = is_cancelled;
+        retval = IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN: {
+        struct libinput_event_gesture* gst_event;
+        int nr_figs;
+        double tmp;
+        unsigned int scale;
+
+        gst_event = libinput_event_get_gesture_event(event);
+
+        nr_figs = libinput_event_gesture_get_finger_count(gst_event);
+        tmp = libinput_event_gesture_get_scale(gst_event);
+        if (tmp < 0) tmp = 0;
+        scale = (unsigned int)(tmp * 100);
+
+        extra->event = IAL_EVENT_GESTURE_PINCH_BEGIN;
+        extra->wparam = nr_figs;
+        extra->lparam = scale;
+        retval = IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE: {
+        struct libinput_event_gesture* gst_event;
+        double tmp;
+        //int nr_figs;
+        //nr_figs = libinput_event_gesture_get_finger_count(gst_event);
+        unsigned int scale;
+        int dx, dy, da;
+
+        gst_event = libinput_event_get_gesture_event(event);
+
+        tmp = libinput_event_gesture_get_scale(gst_event);
+        if (tmp < 0) tmp = 0;
+        scale = (unsigned int)(tmp * 100);
+
+        tmp = libinput_event_gesture_get_angle_delta(gst_event);
+        da = (int)(tmp * 50);
+
+        tmp = libinput_event_gesture_get_dx(gst_event);
+        dx = (int)(tmp + 0.5);
+
+        tmp = libinput_event_gesture_get_dy(gst_event);
+        dy = (int)(tmp + 0.5);
+
+        extra->event = IAL_EVENT_GESTURE_PINCH_UPDATE;
+        extra->wparam = MAKELONG(scale, da);
+        extra->lparam = MAKELONG(dx, dy);
+        retval = IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_GESTURE_PINCH_END: {
+        struct libinput_event_gesture* gst_event;
+        int nr_figs;
+        double tmp;
+        unsigned int scale;
+        int is_cancelled;
+
+        gst_event = libinput_event_get_gesture_event(event);
+
+        nr_figs = libinput_event_gesture_get_finger_count(gst_event);
+        tmp = libinput_event_gesture_get_scale(gst_event);
+        if (tmp < 0) tmp = 0;
+        scale = (unsigned int)(tmp * 100);
+        is_cancelled = libinput_event_gesture_get_cancelled(gst_event);
+
+        extra->event = IAL_EVENT_GESTURE_PINCH_END;
+        extra->wparam = nr_figs;
+        extra->lparam = MAKELONG(is_cancelled, scale);
+        retval = IAL_EVENT_EXTRA;
+        break;
+    }
+
+    case LIBINPUT_EVENT_SWITCH_TOGGLE: {
+        struct libinput_event_switch* sch_event;
+        int my_switch = SWITCH_INVALID;
+        int my_state = SWITCH_STATE_INVALID;
+
+        sch_event = libinput_event_get_switch_event(event);
+        switch (libinput_event_switch_get_switch(sch_event)) {
+        case LIBINPUT_SWITCH_LID:
+            my_switch = SWITCH_LID;
+            break;
+        case LIBINPUT_SWITCH_TABLET_MODE:
+            my_switch = SWITCH_TABLET_MODE;
+            break;
+        }
+
+        if (my_switch) {
+            switch (libinput_event_switch_get_switch_state(sch_event)) {
+            case LIBINPUT_SWITCH_STATE_OFF:
+                my_state = SWITCH_STATE_OFF;
+                break;
+            case LIBINPUT_SWITCH_STATE_ON:
+                my_state = SWITCH_STATE_ON;
+                break;
+            }
+
+            if (my_state) {
+                extra->event = IAL_EVENT_SWITCH_TOGGLE;
+                extra->wparam = my_switch;
+                extra->lparam = my_state;
+                retval = IAL_EVENT_EXTRA;
+            }
         }
         break;
     }
 
-    case LIBINPUT_EVENT_POINTER_AXIS:
-        break;
-
-    case LIBINPUT_EVENT_TOUCH_DOWN:
-        break;
-
-    case LIBINPUT_EVENT_TOUCH_UP:
-        break;
-
-    case LIBINPUT_EVENT_TOUCH_MOTION:
-        break;
-
-    case LIBINPUT_EVENT_TOUCH_CANCEL:
-        break;
-
-    case LIBINPUT_EVENT_TOUCH_FRAME:
-        break;
-
+#if 0
     default:
         _DBG_PRINTF("IAL>LIBINPUT: got a UNKNOWN event type: %d\n", type);
         break;
+#endif
     }
 
     libinput_event_destroy(event);
@@ -857,7 +1170,7 @@ BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
     input->resume_keyboard = input_resume;
     input->set_leds = set_leds;
 
-    input->wait_event = wait_event;
+    input->wait_event_ex = wait_event_ex;
     return TRUE;
 
 error:
