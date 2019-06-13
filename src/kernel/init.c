@@ -1,37 +1,37 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
-/* 
+/*
 ** init.c: The Initialization/Termination routines for MiniGUI-Threads.
 **
 ** Current maintainer: Wei Yongming.
@@ -282,7 +282,7 @@ void mg_FreeMsgQueueThisThread (void)
 }
 
 /*
-The following function is moved to src/include/internals.h as an inline 
+The following function is moved to src/include/internals.h as an inline
 function.
 MSGQUEUE* GetMsgQueueThisThread (void)
 {
@@ -302,10 +302,10 @@ static BOOL SystemThreads(void)
 
     // this is the thread for desktop window.
     // this thread should have a normal priority same as
-    // other main window threads. 
+    // other main window threads.
     // if there is no main window can receive the low level events,
     // this desktop window is the only one can receive the events.
-    // to close a MiniGUI application, we should close the desktop 
+    // to close a MiniGUI application, we should close the desktop
     // window.
 #ifdef __NOUNIX__
     {
@@ -370,10 +370,10 @@ static void sig_handler (int v)
 static BOOL InstallSEGVHandler (void)
 {
     struct sigaction siga;
-    
+
     siga.sa_handler = sig_handler;
     siga.sa_flags = 0;
-    
+
     memset (&siga.sa_mask, 0, sizeof (sigset_t));
     sigaction (SIGSEGV, &siga, NULL);
     sigaction (SIGTERM, &siga, NULL);
@@ -437,22 +437,22 @@ int GUIAPI InitGUI (int args, const char *agr[])
     step++;
     switch (mg_InitGAL ()) {
     case ERR_CONFIG_FILE:
-        fprintf (stderr, 
+        fprintf (stderr,
             "KERNEL>InitGUI: Reading configuration failure!\n");
         return step;
 
     case ERR_NO_ENGINE:
-        fprintf (stderr, 
+        fprintf (stderr,
             "KERNEL>InitGUI: No graphics engine defined!\n");
         return step;
 
     case ERR_NO_MATCH:
-        fprintf (stderr, 
+        fprintf (stderr,
             "KERNEL>InitGUI: Can not get graphics engine information!\n");
         return step;
 
     case ERR_GFX_ENGINE:
-        fprintf (stderr, 
+        fprintf (stderr,
             "KERNEL>InitGUI: Can not initialize graphics engine!\n");
         return step;
     }
@@ -490,7 +490,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
 
     license_create();
-    splash_draw_framework(); 
+    splash_draw_framework();
 
     /* Init mouse cursor. */
     step++;
@@ -547,7 +547,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
         goto failure;
     }
     splash_progress();
-   
+
     step++;
     if (!mg_InitFreeQMSGList ()) {
         fprintf (stderr, "KERNEL>InitGUI: Init free QMSG list failure!\n");
@@ -633,7 +633,7 @@ void GUIAPI TerminateGUI (int not_used)
 
     mg_TerminateSliceAllocator();
 
-    /* 
+    /*
      * Restore original termio
      *tcsetattr (0, TCSAFLUSH, &savedtermio);
      */
