@@ -810,31 +810,237 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         break;
     }
 
-    case LIBINPUT_EVENT_TABLET_TOOL_AXIS: {
-        break;
-    }
-
-    case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY: {
-        break;
-    }
-
+    case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+    case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
     case LIBINPUT_EVENT_TABLET_TOOL_TIP: {
+        struct libinput_event_tablet_tool* tool_event;
+        int state = 0;
+        double tmp;
+
+        tool_event = libinput_event_get_tablet_tool_event(event);
+
+        if (type == LIBINPUT_EVENT_TABLET_TOOL_AXIS)
+            extra->event = IAL_EVENT_TABLET_TOOL_AXIS;
+        else if (type == LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY) {
+            extra->event = IAL_EVENT_TABLET_TOOL_PROXIMITY;
+            switch (libinput_event_tablet_tool_get_proximity_state(tool_event)) {
+            case LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT:
+                state = TABLET_TOOL_PROXIMITY_STATE_OUT;
+                break;
+            case LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN:
+                state = TABLET_TOOL_PROXIMITY_STATE_IN;
+                break;
+            }
+        }
+        else {
+            extra->event = IAL_EVENT_TABLET_TOOL_TIP;
+            switch (libinput_event_tablet_tool_get_tip_state(tool_event)) {
+            case LIBINPUT_TABLET_TOOL_TIP_UP:
+                state = TABLET_TOOL_TIP_UP;
+                break;
+            case LIBINPUT_TABLET_TOOL_TIP_DOWN:
+                state = TABLET_TOOL_TIP_DOWN;
+                break;
+            }
+        }
+
+        tool_event = libinput_event_get_tablet_tool_event(event);
+
+        extra->event = IAL_EVENT_TABLET_TOOL_AXIS;
+        if (libinput_event_tablet_tool_x_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_X;
+            tmp = libinput_event_tablet_tool_get_x_transformed(tool_event,
+                my_ctxt.max_x - my_ctxt.min_x + 1);
+            extra->wparams[TABLET_TOOL_X] = MAKELONG(state, TABLET_TOOL_X);
+            extra->lparams[TABLET_TOOL_X] = (int)(tmp * 10);
+        }
+
+        if (libinput_event_tablet_tool_y_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_X;
+            tmp = libinput_event_tablet_tool_get_y_transformed(tool_event,
+                my_ctxt.max_y - my_ctxt.min_y + 1);
+            extra->wparams[TABLET_TOOL_Y] = MAKELONG(state, TABLET_TOOL_X);
+            extra->lparams[TABLET_TOOL_Y] = (int)(tmp * 10);
+        }
+
+        if (libinput_event_tablet_tool_pressure_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_PRESSURE;
+            tmp = libinput_event_tablet_tool_get_pressure(tool_event);
+            extra->wparams[TABLET_TOOL_PRESSURE] = MAKELONG(state, TABLET_TOOL_PRESSURE);
+            extra->lparams[TABLET_TOOL_PRESSURE] = (int)(tmp * 1000);
+        }
+
+        if (libinput_event_tablet_tool_distance_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_DISTANCE;
+            tmp = libinput_event_tablet_tool_get_distance(tool_event);
+            extra->wparams[TABLET_TOOL_DISTANCE] = MAKELONG(state, TABLET_TOOL_DISTANCE);
+            extra->lparams[TABLET_TOOL_DISTANCE] = (int)(tmp * 1000);
+        }
+
+        if (libinput_event_tablet_tool_tilt_x_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_TILT_X;
+            tmp = libinput_event_tablet_tool_get_tilt_x(tool_event);
+            extra->wparams[TABLET_TOOL_TILT_X] = MAKELONG(state, TABLET_TOOL_TILT_X);
+            extra->lparams[TABLET_TOOL_TILT_X] = (int)(tmp * 50);
+        }
+
+        if (libinput_event_tablet_tool_tilt_y_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_TILT_Y;
+            tmp = libinput_event_tablet_tool_get_tilt_y(tool_event);
+            extra->wparams[TABLET_TOOL_TILT_Y] = MAKELONG(state, TABLET_TOOL_TILT_Y);
+            extra->lparams[TABLET_TOOL_TILT_Y] = (int)(tmp * 50);
+        }
+
+        if (libinput_event_tablet_tool_rotation_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_ROTATION;
+            tmp = libinput_event_tablet_tool_get_rotation(tool_event);
+            extra->wparams[TABLET_TOOL_ROTATION] = MAKELONG(state, TABLET_TOOL_ROTATION);
+            extra->lparams[TABLET_TOOL_ROTATION] = (int)(tmp * 50);
+        }
+
+        if (libinput_event_tablet_tool_slider_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_SLIDER;
+            tmp = libinput_event_tablet_tool_get_slider_position(tool_event);
+            extra->wparams[TABLET_TOOL_SLIDER] = MAKELONG(state, TABLET_TOOL_SLIDER);
+            extra->lparams[TABLET_TOOL_SLIDER] = (int)(tmp * 1000);
+        }
+
+#if 0
+        if (libinput_event_tablet_tool_size_major_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_SIZE_MAJOR;
+            tmp = libinput_event_tablet_tool_get_size_major(tool_event);
+            extra->wparams[TABLET_TOOL_SIZE_MAJOR] = MAKELONG(state, TABLET_TOOL_SIZE_MAJOR);
+            extra->lparams[TABLET_TOOL_SIZE_MAJOR] = (int)(tmp * 100);
+        }
+
+        if (libinput_event_tablet_tool_size_minor_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_SIZE_MINOR;
+            tmp = libinput_event_tablet_tool_get_size_minor(tool_event);
+            extra->wparams[TABLET_TOOL_SIZE_MINOR] = MAKELONG(state, TABLET_TOOL_SIZE_MINOR);
+            extra->lparams[TABLET_TOOL_SIZE_MINOR] = (int)(tmp * 100);
+        }
+#endif
+
+        if (libinput_event_tablet_tool_wheel_has_changed(tool_event)) {
+            extra->params_mask |= TABLET_TOOL_CHANGED_WHEEL;
+            tmp = libinput_event_tablet_tool_get_wheel_delta(tool_event);
+            extra->wparams[TABLET_TOOL_WHEEL] = MAKELONG(state, TABLET_TOOL_WHEEL);
+            extra->lparams[TABLET_TOOL_WHEEL] = (int)(tmp * 100);
+        }
+
+        if (extra->params_mask) {
+            retval = IAL_EVENT_EXTRA;
+        }
         break;
     }
 
     case LIBINPUT_EVENT_TABLET_TOOL_BUTTON: {
+        struct libinput_event_tablet_tool* tool_event;
+        uint32_t button_code;
+        int button_state = TABLET_BUTTON_STATE_INVALID;
+
+        tool_event = libinput_event_get_tablet_tool_event(event);
+
+        button_code = libinput_event_tablet_tool_get_button(tool_event);
+        switch (libinput_event_tablet_tool_get_button_state(tool_event)) {
+        case LIBINPUT_BUTTON_STATE_RELEASED:
+            button_state = TABLET_BUTTON_STATE_RELEASED;
+            break;
+        case LIBINPUT_BUTTON_STATE_PRESSED:
+            button_state = TABLET_BUTTON_STATE_PRESSED;
+            break;
+        }
+
+        extra->event = IAL_EVENT_TABLET_TOOL_BUTTON;
+        extra->wparam = button_code;
+        extra->lparam = button_state;
+        retval = IAL_EVENT_EXTRA;
         break;
     }
 
     case LIBINPUT_EVENT_TABLET_PAD_BUTTON: {
+        struct libinput_event_tablet_pad* pad_event;
+        uint32_t button_number;
+        int button_state = TABLET_BUTTON_STATE_INVALID;
+
+        pad_event = libinput_event_get_tablet_pad_event(event);
+
+        button_number = libinput_event_tablet_pad_get_button_number(pad_event);
+        switch (libinput_event_tablet_pad_get_button_state(pad_event)) {
+        case LIBINPUT_BUTTON_STATE_RELEASED:
+            button_state = TABLET_BUTTON_STATE_RELEASED;
+            break;
+        case LIBINPUT_BUTTON_STATE_PRESSED:
+            button_state = TABLET_BUTTON_STATE_PRESSED;
+            break;
+        }
+
+        extra->event = IAL_EVENT_TABLET_PAD_BUTTON;
+        extra->wparam = libinput_event_tablet_pad_get_mode(pad_event);
+        extra->lparam = MAKELONG(button_number, button_state);
+        retval = IAL_EVENT_EXTRA;
         break;
     }
 
     case LIBINPUT_EVENT_TABLET_PAD_RING: {
+        struct libinput_event_tablet_pad* pad_event;
+        unsigned int mode;
+        int source = TABLET_PAD_RING_SOURCE_UNKNOWN;
+        uint32_t number;
+        double tmp;
+        int position;
+
+        pad_event = libinput_event_get_tablet_pad_event(event);
+
+        mode = libinput_event_tablet_pad_get_mode(pad_event);
+        switch (libinput_event_tablet_pad_get_ring_source(pad_event)) {
+        case LIBINPUT_TABLET_PAD_RING_SOURCE_UNKNOWN:
+            source = TABLET_PAD_RING_SOURCE_UNKNOWN;
+            break;
+        case LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER:
+            source = TABLET_PAD_RING_SOURCE_FINGER;
+            break;
+        }
+
+        number = libinput_event_tablet_pad_get_ring_number(pad_event);
+        tmp = libinput_event_tablet_pad_get_ring_position(pad_event);
+        position = (int)(tmp * 50);
+
+        extra->event = IAL_EVENT_TABLET_PAD_RING;
+        extra->wparam = MAKELONG(mode, source);
+        extra->lparam = MAKELONG(position, number);
+        retval = IAL_EVENT_EXTRA;
         break;
     }
 
     case LIBINPUT_EVENT_TABLET_PAD_STRIP: {
+        struct libinput_event_tablet_pad* pad_event;
+        unsigned int mode;
+        int source = TABLET_PAD_STRIP_SOURCE_UNKNOWN;
+        uint32_t number;
+        double tmp;
+        int position;
+
+        pad_event = libinput_event_get_tablet_pad_event(event);
+
+        mode = libinput_event_tablet_pad_get_mode(pad_event);
+        switch (libinput_event_tablet_pad_get_strip_source(pad_event)) {
+        case LIBINPUT_TABLET_PAD_STRIP_SOURCE_UNKNOWN:
+            source = TABLET_PAD_STRIP_SOURCE_UNKNOWN;
+            break;
+        case LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER:
+            source = TABLET_PAD_STRIP_SOURCE_FINGER;
+            break;
+        }
+
+        number = libinput_event_tablet_pad_get_strip_number(pad_event);
+        tmp = libinput_event_tablet_pad_get_strip_position(pad_event);
+        position = (int)(tmp * 100);
+
+        extra->event = IAL_EVENT_TABLET_PAD_RING;
+        extra->wparam = MAKELONG(mode, source);
+        extra->lparam = MAKELONG(position, number);
+        retval = IAL_EVENT_EXTRA;
         break;
     }
 
@@ -956,8 +1162,8 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         is_cancelled = libinput_event_gesture_get_cancelled(gst_event);
 
         extra->event = IAL_EVENT_GESTURE_PINCH_END;
-        extra->wparam = nr_figs;
-        extra->lparam = MAKELONG(is_cancelled, scale);
+        extra->wparam = MAKELONG(nr_figs, is_cancelled);
+        extra->lparam = scale;
         retval = IAL_EVENT_EXTRA;
         break;
     }

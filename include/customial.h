@@ -119,6 +119,51 @@
 #define IAL_EVENT_GESTURE_PINCH_UPDATE   0x0084
 #define IAL_EVENT_GESTURE_PINCH_END      0x0085
 
+#ifndef TABLET_TOOL_X
+    #define TABLET_TOOL_PROXIMITY_STATE_INVALID 0
+    #define TABLET_TOOL_PROXIMITY_STATE_OUT     1
+    #define TABLET_TOOL_PROXIMITY_STATE_IN      2
+
+    #define TABLET_TOOL_TIP_INVALID         0
+    #define TABLET_TOOL_TIP_UP              1
+    #define TABLET_TOOL_TIP_DOWN            2
+
+    #define TABLET_BUTTON_STATE_INVALID     0
+    #define TABLET_BUTTON_STATE_RELEASED    1
+    #define TABLET_BUTTON_STATE_PRESSED     2
+
+    #define TABLET_PAD_RING_SOURCE_UNKNOWN  0
+    #define TABLET_PAD_RING_SOURCE_FINGER   1
+
+    #define TABLET_PAD_STRIP_SOURCE_UNKNOWN 0
+    #define TABLET_PAD_STRIP_SOURCE_FINGER  1
+
+    #define TABLET_TOOL_CHANGED_X           (1 << 0)
+    #define TABLET_TOOL_CHANGED_Y           (1 << 1)
+    #define TABLET_TOOL_CHANGED_PRESSURE    (1 << 2)
+    #define TABLET_TOOL_CHANGED_DISTANCE    (1 << 3)
+    #define TABLET_TOOL_CHANGED_TILT_X      (1 << 4)
+    #define TABLET_TOOL_CHANGED_TILT_Y      (1 << 5)
+    #define TABLET_TOOL_CHANGED_ROTATION    (1 << 6)
+    #define TABLET_TOOL_CHANGED_SLIDER      (1 << 7)
+    #define TABLET_TOOL_CHANGED_SIZE_MAJOR  (1 << 8)
+    #define TABLET_TOOL_CHANGED_SIZE_MINOR  (1 << 9)
+    #define TABLET_TOOL_CHANGED_WHEEL       (1 << 10)
+
+    #define TABLET_TOOL_X                   0
+    #define TABLET_TOOL_Y                   1
+    #define TABLET_TOOL_PRESSURE            2
+    #define TABLET_TOOL_DISTANCE            3
+    #define TABLET_TOOL_TILT_X              4
+    #define TABLET_TOOL_TILT_Y              5
+    #define TABLET_TOOL_ROTATION            6
+    #define TABLET_TOOL_SLIDER              7
+    #define TABLET_TOOL_SIZE_MAJOR          8
+    #define TABLET_TOOL_SIZE_MINOR          9
+    #define TABLET_TOOL_WHEEL               10
+
+#endif
+
 #define IAL_EVENT_TABLET_TOOL_AXIS       0x0090
 #define IAL_EVENT_TABLET_TOOL_PROXIMITY  0x0091
 #define IAL_EVENT_TABLET_TOOL_TIP        0x0092
@@ -132,17 +177,23 @@
 #define IAL_EVENT_USER_UPDATE            0x009B
 #define IAL_EVENT_USER_END               0x009C
 
+#define NR_PACKED_SUB_EVENTS            16
+
 typedef struct _EXTRA_INPUT_EVENT {
     int event;
     WPARAM wparam;
     LPARAM lparam;
+
+    // for tablet tool messages
+    unsigned int    params_mask;
+    WPARAM          wparams[NR_PACKED_SUB_EVENTS];
+    LPARAM          lparams[NR_PACKED_SUB_EVENTS];
 } EXTRA_INPUT_EVENT;
 
 #define IAL_LEN_MDEV            127
 
 typedef struct tagINPUT {
     char*   id;
-    //char*   mdev;
 
     // Initialization and termination
     BOOL (*init_input) (struct tagINPUT *input, const char* mdev, const char* mtype);
