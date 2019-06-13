@@ -180,8 +180,9 @@ static void* EventLoop (void* data)
     sem_post ((sem_t*)data);
 
     while (__mg_quiting_stage > _MG_QUITING_STAGE_EVENT) {
-        event = IAL_WaitEvent (IAL_MOUSEEVENT | IAL_KEYEVENT, 0,
-                        NULL, NULL, NULL, (void*)&__mg_event_timeout);
+        EXTRA_INPUT_EVENT extra;
+
+        event = IAL_WaitEvent (0, NULL, NULL, NULL, &__mg_event_timeout, &extra);
         if (event < 0)
             continue;
 
@@ -195,7 +196,17 @@ static void* EventLoop (void* data)
         if (event & IAL_KEYEVENT && kernel_GetLWEvent (IAL_KEYEVENT, &lwe))
             ParseEvent (&lwe);
 
-        if (event == 0 && kernel_GetLWEvent (0, &lwe))
+        // for extra input events; since 4.0.0
+        if (event & IAL_EVENT_EXTRA) {
+            MSG msg;
+            msg.hwnd = HWND_DESKTOP;
+            msg.message = extra.event;
+            msg.wParam = extra.wparam;
+            msg.lParam = extra.lparam;
+            msg.time = __mg_timer_counter;
+            QueueDeskMessage (&msg);
+        }
+        else if (event == 0 && kernel_GetLWEvent (0, &lwe))
             ParseEvent (&lwe);
     }
 
