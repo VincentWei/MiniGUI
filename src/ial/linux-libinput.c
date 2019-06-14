@@ -56,6 +56,7 @@
 #include "minigui.h"
 #include "misc.h"
 #include "ial.h"
+#include "linux-tty.h"
 #include "linux-libinput.h"
 
 #define LEN_SEAT_ID     127
@@ -67,6 +68,7 @@ struct _libinput_udev_context {
     struct libinput *li;
     struct libinput_device *def_dev;
     int suspended;
+    int vt_switch;
 
     int min_x, max_x, min_y, max_y;
 
@@ -140,6 +142,21 @@ static int keyboard_update(void)
 {
     if (my_ctxt.last_keycode == 0)
         return 0;
+
+    if (MG_UNLIKELY (my_ctxt.vt_switch &&
+            my_ctxt.kbd_state[SCANCODE_LEFTCONTROL] &&
+            my_ctxt.kbd_state[SCANCODE_LEFTALT] &&
+            (my_ctxt.last_keycode >= SCANCODE_F1) &&
+            (my_ctxt.last_keycode <= SCANCODE_F10) &&
+            my_ctxt.kbd_state[my_ctxt.last_keycode])) {
+
+        if (mg_linux_tty_switch_vt(my_ctxt.last_keycode - SCANCODE_F1 + 1) == 0) {
+            my_ctxt.kbd_state[my_ctxt.last_keycode] = 0;
+            my_ctxt.kbd_state[SCANCODE_LEFTCONTROL] = 0;
+            my_ctxt.kbd_state[SCANCODE_LEFTALT] = 0;
+            return 0;
+        }
+    }
 
     return my_ctxt.last_keycode + 1;
 }
@@ -551,13 +568,11 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
             return -1;
         }
         else {
-            _DBG_PRINTF("IAL>LIBINPUT: select timeout\n");
             return 0;
         }
     }
 
     type = libinput_event_get_type(event);
-    _DBG_PRINTF("IAL>LIBINPUT: got a new event: %d\n", type);
 
     /* set default return value */
     retval = -1;
@@ -1311,6 +1326,7 @@ static int input_resume(void)
     if (my_ctxt.suspended) {
         if (libinput_resume(my_ctxt.li) == 0) {
             update_default_device();
+            my_ctxt.suspended = 0;
             return 0;
         }
     }
@@ -1355,6 +1371,11 @@ static void set_leds (unsigned int leds)
 
 BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
 {
+    if (mg_linux_tty_enable_vt_switch() == 0) {
+        _DBG_PRINTF("IAL>LIBINPUT: vt switch enabled\n");
+        my_ctxt.vt_switch = 1;
+    }
+
     my_ctxt.udev = udev_new();
     if (my_ctxt.udev == NULL)
         goto error;
@@ -1415,6 +1436,8 @@ void TermLibInput (void)
 
     my_ctxt.li = NULL;
     my_ctxt.udev = NULL;
+
+    mg_linux_tty_disable_vt_switch();
 }
 
 #endif /* _MGIAL_LIBINPUT */
