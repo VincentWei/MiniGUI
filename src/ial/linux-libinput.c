@@ -416,7 +416,6 @@ static int translate_libinput_keycode(uint32_t keycode)
         return 0;
 
     scancode = linux_keycode_to_scancode_map[keycode];
-    _MG_PRINTF("keycode: %u -> %d\n", keycode, scancode);
     return scancode;
 }
 
@@ -815,9 +814,18 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
     case LIBINPUT_EVENT_TABLET_TOOL_TIP: {
         struct libinput_event_tablet_tool* tool_event;
         int state = 0;
-        double tmp;
+        double tmp, mouse_x, mouse_y;
 
         tool_event = libinput_event_get_tablet_tool_event(event);
+
+        /* always get x,y for mouse */
+        mouse_x = libinput_event_tablet_tool_get_x_transformed(tool_event,
+            my_ctxt.max_x - my_ctxt.min_x + 1);
+        mouse_y = libinput_event_tablet_tool_get_y_transformed(tool_event,
+            my_ctxt.max_y - my_ctxt.min_y + 1);
+
+        if (on_new_mouse_pos(mouse_x, mouse_y))
+            retval = IAL_EVENT_MOUSE;
 
         if (type == LIBINPUT_EVENT_TABLET_TOOL_AXIS)
             extra->event = IAL_EVENT_TABLET_TOOL_AXIS;
@@ -837,9 +845,15 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
             switch (libinput_event_tablet_tool_get_tip_state(tool_event)) {
             case LIBINPUT_TABLET_TOOL_TIP_UP:
                 state = TABLET_TOOL_TIP_UP;
+                // emulate the mouse left button up event
+                if (on_mouse_button_changed(BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED))
+                    retval = IAL_EVENT_MOUSE;
                 break;
             case LIBINPUT_TABLET_TOOL_TIP_DOWN:
                 state = TABLET_TOOL_TIP_DOWN;
+                // emulate the mouse left button down event
+                if (on_mouse_button_changed(BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED))
+                    retval = IAL_EVENT_MOUSE;
                 break;
             }
         }
@@ -849,59 +863,55 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         extra->event = IAL_EVENT_TABLET_TOOL_AXIS;
         if (libinput_event_tablet_tool_x_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_X;
-            tmp = libinput_event_tablet_tool_get_x_transformed(tool_event,
-                my_ctxt.max_x - my_ctxt.min_x + 1);
-            extra->wparams[TABLET_TOOL_X] = MAKELONG(state, TABLET_TOOL_X);
-            extra->lparams[TABLET_TOOL_X] = (int)(tmp * 10);
+            extra->wparams[TABLET_TOOL_X] = MAKELONG(TABLET_TOOL_X, state);
+            extra->lparams[TABLET_TOOL_X] = (int)(mouse_x * 10);
         }
 
         if (libinput_event_tablet_tool_y_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_X;
-            tmp = libinput_event_tablet_tool_get_y_transformed(tool_event,
-                my_ctxt.max_y - my_ctxt.min_y + 1);
-            extra->wparams[TABLET_TOOL_Y] = MAKELONG(state, TABLET_TOOL_X);
-            extra->lparams[TABLET_TOOL_Y] = (int)(tmp * 10);
+            extra->wparams[TABLET_TOOL_Y] = MAKELONG(TABLET_TOOL_X, state);
+            extra->lparams[TABLET_TOOL_Y] = (int)(mouse_y * 10);
         }
 
         if (libinput_event_tablet_tool_pressure_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_PRESSURE;
             tmp = libinput_event_tablet_tool_get_pressure(tool_event);
-            extra->wparams[TABLET_TOOL_PRESSURE] = MAKELONG(state, TABLET_TOOL_PRESSURE);
+            extra->wparams[TABLET_TOOL_PRESSURE] = MAKELONG(TABLET_TOOL_PRESSURE, state);
             extra->lparams[TABLET_TOOL_PRESSURE] = (int)(tmp * 1000);
         }
 
         if (libinput_event_tablet_tool_distance_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_DISTANCE;
             tmp = libinput_event_tablet_tool_get_distance(tool_event);
-            extra->wparams[TABLET_TOOL_DISTANCE] = MAKELONG(state, TABLET_TOOL_DISTANCE);
+            extra->wparams[TABLET_TOOL_DISTANCE] = MAKELONG(TABLET_TOOL_DISTANCE, state);
             extra->lparams[TABLET_TOOL_DISTANCE] = (int)(tmp * 1000);
         }
 
         if (libinput_event_tablet_tool_tilt_x_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_TILT_X;
             tmp = libinput_event_tablet_tool_get_tilt_x(tool_event);
-            extra->wparams[TABLET_TOOL_TILT_X] = MAKELONG(state, TABLET_TOOL_TILT_X);
+            extra->wparams[TABLET_TOOL_TILT_X] = MAKELONG(TABLET_TOOL_TILT_X, state);
             extra->lparams[TABLET_TOOL_TILT_X] = (int)(tmp * 50);
         }
 
         if (libinput_event_tablet_tool_tilt_y_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_TILT_Y;
             tmp = libinput_event_tablet_tool_get_tilt_y(tool_event);
-            extra->wparams[TABLET_TOOL_TILT_Y] = MAKELONG(state, TABLET_TOOL_TILT_Y);
+            extra->wparams[TABLET_TOOL_TILT_Y] = MAKELONG(TABLET_TOOL_TILT_Y, state);
             extra->lparams[TABLET_TOOL_TILT_Y] = (int)(tmp * 50);
         }
 
         if (libinput_event_tablet_tool_rotation_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_ROTATION;
             tmp = libinput_event_tablet_tool_get_rotation(tool_event);
-            extra->wparams[TABLET_TOOL_ROTATION] = MAKELONG(state, TABLET_TOOL_ROTATION);
+            extra->wparams[TABLET_TOOL_ROTATION] = MAKELONG(TABLET_TOOL_ROTATION, state);
             extra->lparams[TABLET_TOOL_ROTATION] = (int)(tmp * 50);
         }
 
         if (libinput_event_tablet_tool_slider_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_SLIDER;
             tmp = libinput_event_tablet_tool_get_slider_position(tool_event);
-            extra->wparams[TABLET_TOOL_SLIDER] = MAKELONG(state, TABLET_TOOL_SLIDER);
+            extra->wparams[TABLET_TOOL_SLIDER] = MAKELONG(TABLET_TOOL_SLIDER, state);
             extra->lparams[TABLET_TOOL_SLIDER] = (int)(tmp * 1000);
         }
 
@@ -909,14 +919,14 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         if (libinput_event_tablet_tool_size_major_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_SIZE_MAJOR;
             tmp = libinput_event_tablet_tool_get_size_major(tool_event);
-            extra->wparams[TABLET_TOOL_SIZE_MAJOR] = MAKELONG(state, TABLET_TOOL_SIZE_MAJOR);
+            extra->wparams[TABLET_TOOL_SIZE_MAJOR] = MAKELONG(TABLET_TOOL_SIZE_MAJOR, state);
             extra->lparams[TABLET_TOOL_SIZE_MAJOR] = (int)(tmp * 100);
         }
 
         if (libinput_event_tablet_tool_size_minor_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_SIZE_MINOR;
             tmp = libinput_event_tablet_tool_get_size_minor(tool_event);
-            extra->wparams[TABLET_TOOL_SIZE_MINOR] = MAKELONG(state, TABLET_TOOL_SIZE_MINOR);
+            extra->wparams[TABLET_TOOL_SIZE_MINOR] = MAKELONG(TABLET_TOOL_SIZE_MINOR, state);
             extra->lparams[TABLET_TOOL_SIZE_MINOR] = (int)(tmp * 100);
         }
 #endif
@@ -924,12 +934,15 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         if (libinput_event_tablet_tool_wheel_has_changed(tool_event)) {
             extra->params_mask |= TABLET_TOOL_CHANGED_WHEEL;
             tmp = libinput_event_tablet_tool_get_wheel_delta(tool_event);
-            extra->wparams[TABLET_TOOL_WHEEL] = MAKELONG(state, TABLET_TOOL_WHEEL);
+            extra->wparams[TABLET_TOOL_WHEEL] = MAKELONG(TABLET_TOOL_WHEEL, state);
             extra->lparams[TABLET_TOOL_WHEEL] = (int)(tmp * 100);
         }
 
         if (extra->params_mask) {
-            retval = IAL_EVENT_EXTRA;
+            if (retval > 0)
+                retval |= IAL_EVENT_EXTRA;
+            else
+                retval = IAL_EVENT_EXTRA;
         }
         break;
     }
