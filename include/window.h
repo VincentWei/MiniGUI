@@ -1700,6 +1700,20 @@ extern DWORD __mg_interval_time;
  */
 #define MSG_EXIN_GESTURE_PINCH_END      0x0085
 
+/**
+ * \def MSG_EXIN_END_CHANGES
+ * \brief Indicates the end of one or more parameter changes
+ *      of one hardware event.
+ *
+ * \code
+ * MSG_EXIN_END_CHANGES
+ * int count = (int)wParam;
+ * \endcode
+ *
+ * \param count The count of parameters changed.
+ */
+#define MSG_EXIN_END_CHANGES            0x008F
+
 #define TABLET_TOOL_X                   0
 #define TABLET_TOOL_Y                   1
 #define TABLET_TOOL_PRESSURE            2
@@ -1726,7 +1740,12 @@ extern DWORD __mg_interval_time;
 
 /**
  * \def MSG_EXIN_TABLET_TOOL_AXIS
- * \brief Indicates an axis has changed state.
+ * \brief Indicates an axis of the tablet tool has changed state.
+ *
+ * For a tablet tool, one or more axes may changed in one hardware event.
+ * MiniGUI will send one or more MSG_EXIN_TABLET_TOOL_XXX messages followed
+ * by a MSG_EXIN_END_CHANGES message to the current active window.
+ * Each MSG_EXIN_TABLET_TOOL_XXX message for a changed axis.
  *
  * \code
  * MSG_EXIN_TABLET_TOOL_AXIS
@@ -1734,7 +1753,37 @@ extern DWORD __mg_interval_time;
  * long value = (long)lParam;
  * \endcode
  *
- * \param which The axis identifier, can be one of the following values:
+ * \param which The axis identifier, can be one of the following identifiers:
+ *      - TABLET_TOOL_X:\n
+ *          The value contains the current absolute x coordinate of
+ *          the tablet tool, transformed to screen coordinates,
+ *          but scaled 10 times.
+ *      - TABLET_TOOL_Y:\n
+ *          The value containsthe current absolute y coordinate of
+ *          the tablet tool, transformed to screen coordinates,
+ *          but scaled 10 times.
+ *      - TABLET_TOOL_PRESSURE:\n
+ *          The value contains the current pressure being applied on
+ *          the tool in use, normalized to the range [0, 1000].
+ *      - TABLET_TOOL_DISTANCE:\n
+ *          The value contains the current distance from the tablet's sensor,
+ *          normalized to the range [0, 1000].
+ *      - TABLET_TOOL_TILT_X:\n
+ *          The value contains the current tilt along the X axis of the
+ *          tablet's current logical orientation, in 1/50 degrees off the
+ *          tablet's z axis.
+ *      - TABLET_TOOL_TILT_Y:\n
+ *          The value contains the current tilt along the Y axis of the
+ *          tablet's current logical orientation, in 1/50 degrees off the
+ *          tablet's z axis.
+ *      - TABLET_TOOL_ROTATION:\n
+ *          The value contains the current z rotation of the tool in
+ *          1/50 degrees, clockwise from the tool's logical neutral position.
+ *      - TABLET_TOOL_SLIDER:\n
+ *          The value contains the current position of the slider on the tool,
+ *          normalized to the range [-1000, 1000].
+ *      - TABLET_TOOL_WHEEL:\n
+ *          The value contains the delta for the wheel in 1/50 degrees.
  * \param value The value of the axis.
  */
 #define MSG_EXIN_TABLET_TOOL_AXIS       0x0090
@@ -1743,15 +1792,21 @@ extern DWORD __mg_interval_time;
  * \def MSG_EXIN_TABLET_TOOL_PROXIMITY
  * \brief Indicates that a tool has come in or out of proximity of the tablet.
  *
+ * For a tablet tool, one or more axes may changed in one hardware event.
+ * MiniGUI will send one or more MSG_EXIN_TABLET_TOOL_XXX messages followed
+ * by a MSG_EXIN_END_CHANGES message to the current active window.
+ * Each MSG_EXIN_TABLET_TOOL_XXX message for a changed axis.
+ *
  * \code
  * MSG_EXIN_TABLET_TOOL_PROXIMITY
- * int state = (int)LOSWORD(wParam);
- * int which = (int)HISWORD(wParam);
+ * int which = (int)LOSWORD(wParam);
+ * int state = (int)HISWORD(wParam);
  * long value = (long)lParam;
  * \endcode
  *
- * \param state The proximity state, can be 
- * \param which The axis identifier, can be one of the following values:
+ * \param which The axis identifier, please see \sa MSG_EXIN_TABLET_TOOL_AXIS.
+ * \param state The proximity state, can be TABLET_TOOL_PROXIMITY_STATE_OUT
+ *      or TABLET_TOOL_PROXIMITY_STATE_IN.
  * \param value The value of the axis.
  */
 #define MSG_EXIN_TABLET_TOOL_PROXIMITY  0x0091
@@ -1760,14 +1815,21 @@ extern DWORD __mg_interval_time;
  * \def MSG_EXIN_TABLET_TOOL_TIP
  * \brief Indicates that a tool has come in contact with the surface of the tablet.
  *
+ * For a tablet tool, one or more axes may changed in one hardware event.
+ * MiniGUI will send one or more MSG_EXIN_TABLET_TOOL_XXX messages followed
+ * by a MSG_EXIN_END_CHANGES message to the current active window.
+ * Each MSG_EXIN_TABLET_TOOL_XXX message for a changed axis.
+ *
  * \code
  * MSG_EXIN_TABLET_TOOL_TIP
- * int state = (int)LOSWORD(wParam);
- * int which = (int)HISWORD(wParam);
+ * int which = (int)LOSWORD(wParam);
+ * int state = (int)HISWORD(wParam);
  * long value = (long)lParam;
  * \endcode
  *
- * \param which The axis identifier, can be one of the following values:
+ * \param which The axis identifier, please see \sa MSG_EXIN_TABLET_TOOL_AXIS.
+ * \param state The tip state, can be TABLET_TOOL_TIP_UP
+ *      or TABLET_TOOL_TIP_DOWN.
  * \param value The value of the axis.
  */
 #define MSG_EXIN_TABLET_TOOL_TIP        0x0092

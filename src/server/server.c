@@ -419,13 +419,21 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         msg.time = __mg_timer_counter;
         if (extra.params_mask) {
             // packed multiple sub events
-            int i;
+            int i, n = 0;
             for (i = 0; i < NR_PACKED_SUB_EVENTS; i++) {
                 if (extra.params_mask & (1 << i)) {
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
                     kernel_QueueMessage (msg_queue, &msg);
+                    n++;
                 }
+            }
+
+            if (n > 0) {
+                msg.message = MSG_EXIN_END_CHANGES;
+                msg.wParam = n;
+                msg.lParam = 0;
+                kernel_QueueMessage (msg_queue, &msg);
             }
         }
         else {
