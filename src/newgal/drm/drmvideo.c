@@ -69,6 +69,8 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags);
 static int DRM_AllocHWSurface_Dumb(_THIS, GAL_Surface *surface);
 static void DRM_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface);
+static int DRM_Suspend_Dumb(_THIS);
+static int DRM_Resume_Dumb(_THIS);
 
 /* DRM engine operators accelerated */
 static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
@@ -154,14 +156,18 @@ static void drm_cleanup(DrmVideoData* vdata)
 
     if (vdata->saved_crtc) {
         /* restore saved CRTC configuration */
-        drmModeSetCrtc(vdata->dev_fd,
+        int ret = drmModeSetCrtc(vdata->dev_fd,
                    vdata->saved_crtc->crtc_id,
                    vdata->saved_crtc->buffer_id,
                    vdata->saved_crtc->x,
                    vdata->saved_crtc->y,
-                   &vdata->conn,
-                   1,
+                   &vdata->saved_info->conn, 1,
                    &vdata->saved_crtc->mode);
+        if (ret) {
+            _ERR_PRINTF ("NEWGAL>DRM: failed to restore CRTC for connector %u (%d): %m\n",
+                vdata->saved_info->conn, errno);
+        }
+
         drmModeFreeCrtc(vdata->saved_crtc);
     }
 
@@ -350,6 +356,8 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         device->SetHWColorKey = NULL;
         device->SetHWAlpha = NULL;
         device->FreeHWSurface = DRM_FreeHWSurface_Dumb;
+        device->Suspend = DRM_Suspend_Dumb;
+        device->Resume = DRM_Resume_Dumb;
     }
 
     device->free = DRM_DeleteDevice;
@@ -735,6 +743,8 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
         return NULL;
     }
 
+    this->hidden->saved_info = info;
+
     /* Set up the new mode framebuffer */
     /* Allocate the new pixel format for the screen */
     if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
@@ -762,6 +772,59 @@ static int DRM_AllocHWSurface_Dumb(_THIS, GAL_Surface *surface)
 static void DRM_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface)
 {
     surface->pixels = NULL;
+}
+
+static int DRM_Resume_Dumb(_THIS)
+{
+    DrmVideoData* vdata = this->hidden;
+    int ret = -1;
+
+    _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
+
+    if (vdata->saved_info) {
+        vdata->saved_crtc = drmModeGetCrtc(vdata->dev_fd,
+                vdata->saved_info->crtc);
+        ret = drmModeSetCrtc(vdata->dev_fd,
+                vdata->saved_info->crtc,
+                vdata->buff, 0, 0,
+                &vdata->saved_info->conn, 1,
+                &vdata->saved_info->mode);
+    }
+
+    if (ret) {
+        _ERR_PRINTF ("NEWGAL>DRM: Failed to resume dumb frame buffer: %d.\n",
+            ret);
+    }
+
+    return ret;
+}
+
+static int DRM_Suspend_Dumb(_THIS)
+{
+    DrmVideoData* vdata = this->hidden;
+    int ret = -1;
+
+    _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
+
+    if (vdata->saved_crtc) {
+        /* restore saved CRTC configuration */
+        ret = drmModeSetCrtc(vdata->dev_fd,
+                   vdata->saved_crtc->crtc_id,
+                   vdata->saved_crtc->buffer_id,
+                   vdata->saved_crtc->x,
+                   vdata->saved_crtc->y,
+                   &vdata->saved_info->conn, 1,
+                   &vdata->saved_crtc->mode);
+
+        drmModeFreeCrtc(vdata->saved_crtc);
+        vdata->saved_crtc = NULL;
+    }
+
+    if (ret) {
+        _ERR_PRINTF ("NEWGAL>DRM: Failed to suspend dumb frame buffer: %m.\n");
+    }
+
+    return ret;
 }
 
 /* DRM engine methods for accelerated buffers */

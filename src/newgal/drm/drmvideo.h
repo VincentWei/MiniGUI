@@ -63,10 +63,10 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        pitch;
     uint32_t        size;
 
-    uint32_t        conn;
     uint32_t        buff;
     uint32_t        handle;
 
+    DrmModeInfo*    saved_info;
     drmModeCrtc*    saved_crtc;
     uint8_t*        fb;
 } DrmVideoData;
