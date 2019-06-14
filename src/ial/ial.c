@@ -118,7 +118,7 @@
     #include "usvfbinput.h"
 #endif
 #ifdef _MGIAL_LIBINPUT
-    #include "ial-libinput.h"
+    #include "linux-libinput.h"
 #endif
 
 #define LEN_ENGINE_NAME        16

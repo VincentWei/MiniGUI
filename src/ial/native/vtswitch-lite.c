@@ -35,7 +35,7 @@
 ** vtswitch-lite.c: VT switching.
 **
 ** Created by Song Lixin, 2000/10/17
-** Clean code for MiniGUI 1.1.x by Wei Yongming, 20001/11/28
+** Clean code for MiniGUI 1.1.x by Wei Yongming, 2001/11/28
 */
 
 #include <stdio.h>
@@ -210,7 +210,7 @@ int done_vtswitch (int kbd_fd)
 
     if (!vtswitch_initialised) return 0;  /* shouldn't really happen either */
 
-    /* !trout gfoot.  Must turn off the signals before unhooking them... */
+    /* Must turn off the signals before unhooking them... */
     ioctl (ttyfd, VT_SETMODE, &startup_vtmode);
 
     sigemptyset (&sa.sa_mask);

@@ -25,7 +25,7 @@ DIST_SUBDIR=native nexusial netial
 EXTRA_DIST=spec_general_ts_drv.html \
            makefile.ng makefile.msvc
 
-COMMON_SRCS = ial.c
+COMMON_SRCS = ial.c linux-tty.c
 
 DUMMY_SRCS = dummy.c dummy.h
 AUTO_SRCS = auto.c auto.h auto-protocol.h
@@ -49,7 +49,7 @@ MSTAR_SRCS = mstarial.h mstarial.c
 DFB_SRCS = dfb.h dfb.c
 
 USVFB_SRCS = usvfbinput.c usvfbinput.h
-LIBINPUT_SRCS = ial-libinput.c ial-libinput.h
+LIBINPUT_SRCS = linux-libinput.c linux-libinput.h
 
 if MGIAL_CONSOLE
 native_libial_la_LIBADD = native/libnative.la
