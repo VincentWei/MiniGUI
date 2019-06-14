@@ -727,7 +727,7 @@ extern "C" {
  *
  * \sa MSG_KEYLONGPRESS
  */
-#define DEF_LPRESS_TIME     500
+#define DEF_LPRESS_TIME     200
 
 /**
  * \def DEF_APRESS_TIME
