@@ -60,8 +60,6 @@
 #include "cliprect.h"
 #include "gal.h"
 #include "internals.h"
-#include "ctrlclass.h"
-#include "dc.h"
 #include "ial.h"
 #include "linux-tty.h"
 
@@ -100,49 +98,31 @@ static void vt_switch_requested(int signo)
 
     if (console_should_be_active) {
         /* Performs a switch back. */
-        int new_fd;
-
         IAL_ResumeMouse();
-        if ((new_fd = IAL_ResumeKeyboard()) >= 0)
-            ttyfd = new_fd;
-
-        ioctl (ttyfd, VT_RELDISP, VT_ACKACQ);
-
+        IAL_ResumeKeyboard();
+        GAL_ResumeVideo();
         console_active = 1;
 
-#ifndef _MGRM_THREADS
-        __mg_switch_away = FALSE;
-#endif
+        if (ioctl (ttyfd, VT_RELDISP, VT_ACKACQ) == -1) {
+            _ERR_PRINTF("Linux>TTY: failed to switch VT back: %m\n");
+        }
 
-#ifdef _MGRM_PROCESSES
-        UpdateTopmostLayer (NULL);
-#else
-        SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
-#endif
     }
     else {
         /* Performs a switch away. */
-
-#ifdef _MGRM_PROCESSES
-        DisableClientsOutput ();
-#endif
-
-        if (ioctl (ttyfd, VT_RELDISP, 1) == -1) {
-            fprintf (stderr, "Error can't switch away from VT: %m\n");
-            return;
-        }
-
         console_active = 0;
-#ifndef _MGRM_THREADS
-        __mg_switch_away = TRUE;
-#endif
+        GAL_SuspendVideo();
         IAL_SuspendKeyboard();
         IAL_SuspendMouse();
+
+        if (ioctl (ttyfd, VT_RELDISP, 1) == -1) {
+            _ERR_PRINTF("Linux>TTY: failed to switch away from VT: %m\n");
+        }
     }
 }
 
 /* Init linux tty module, and returns the tty fd */
-int mg_linux_tty_init(BOOL graf_mode, BOOL vt_switch)
+int mg_linux_tty_init(BOOL graf_mode)
 {
     const char* tty_dev;
     if (geteuid() == 0)
@@ -170,49 +150,6 @@ int mg_linux_tty_init(BOOL graf_mode, BOOL vt_switch)
         }
     }
 
-    if (vt_switch) {
-        struct sigaction sa;
-        struct vt_mode vtm;
-        struct vt_stat stat;
-
-        if (ioctl (ttyfd, VT_GETSTATE, &stat) == -1) {
-            _ERR_PRINTF("Linux>TTY: failed to get vt state: %m.\n");
-            goto fail;
-        }
-
-        current_vt = stat.v_active;
-        console_active = console_should_be_active = 1;
-
-        /* Hook the signals */
-        sigemptyset(&sa.sa_mask);
-        sigaddset(&sa.sa_mask, SIGIO); /* block async IO during the VT switch */
-        sa.sa_flags = 0;
-        sa.sa_handler = vt_switch_requested;
-        if ((sigaction(SIGRELVT, &sa, NULL) < 0) || (sigaction(SIGACQVT, &sa, NULL) < 0)) {
-            _ERR_PRINTF("Linux>TTY: Unable to control VT switch.\n");
-            goto fail;
-        }
-
-        /* Save old mode, take control, and arrange for the signals
-         * to be raised. */
-        if (ioctl(ttyfd, VT_GETMODE, &saved_vtmode) == -1) {
-            _ERR_PRINTF("Linux>TTY: failed to get vt mode: %m.\n");
-            goto fail;
-        }
-
-        vtm = saved_vtmode;
-        vtm.mode = VT_PROCESS;
-        vtm.relsig = SIGRELVT;
-        vtm.acqsig = SIGACQVT;
-
-        if (ioctl(ttyfd, VT_SETMODE, &vtm) == -1) {
-            _ERR_PRINTF("Linux>TTY: failed to set vt mode: %m.\n");
-            goto fail;
-        }
-
-        vtswitch_initialized = 1;
-    }
-
     return ttyfd;
 
 fail:
@@ -224,24 +161,87 @@ fail:
     return -1;
 }
 
+int mg_linux_tty_enable_vt_switch(void)
+{
+    struct sigaction sa;
+    struct vt_mode vtm;
+    struct vt_stat stat;
+
+    if (ttyfd < 0) {
+        if (mg_linux_tty_init(FALSE) < 0)
+            goto fail;
+    }
+
+    if (ioctl (ttyfd, VT_GETSTATE, &stat) == -1) {
+        _ERR_PRINTF("Linux>TTY: failed to get vt state: %m.\n");
+        goto fail;
+    }
+
+    current_vt = stat.v_active;
+    console_active = console_should_be_active = 1;
+
+    /* Hook the signals */
+    sigemptyset(&sa.sa_mask);
+    sigaddset(&sa.sa_mask, SIGIO); /* block async IO during the VT switch */
+    sa.sa_flags = 0;
+    sa.sa_handler = vt_switch_requested;
+    if ((sigaction(SIGRELVT, &sa, NULL) < 0) ||
+            (sigaction(SIGACQVT, &sa, NULL) < 0)) {
+        _ERR_PRINTF("Linux>TTY: Unable to control VT switch.\n");
+        goto fail;
+    }
+
+    /* Save old mode, take control, and arrange for the signals
+     * to be raised. */
+    if (ioctl(ttyfd, VT_GETMODE, &saved_vtmode) == -1) {
+        _ERR_PRINTF("Linux>TTY: failed to get vt mode: %m.\n");
+        goto fail;
+    }
+
+    vtm = saved_vtmode;
+    vtm.mode = VT_PROCESS;
+    vtm.relsig = SIGRELVT;
+    vtm.acqsig = SIGACQVT;
+
+    if (ioctl(ttyfd, VT_SETMODE, &vtm) == -1) {
+        _ERR_PRINTF("Linux>TTY: failed to set vt mode: %m.\n");
+        goto fail;
+    }
+
+    vtswitch_initialized = 1;
+    return 0;
+
+fail:
+    return -1;
+}
+
+int mg_linux_tty_disable_vt_switch(void)
+{
+    struct sigaction sa;
+
+    if (ttyfd < 0)
+        return -1;
+
+    /* Must turn off the signals before unhooking them... */
+    ioctl (ttyfd, VT_SETMODE, &saved_vtmode);
+
+    sigemptyset (&sa.sa_mask);
+    sa.sa_handler = SIG_DFL;
+    sa.sa_flags = SA_RESTART;
+    sigaction (SIGRELVT, &sa, NULL);
+    sigaction (SIGACQVT, &sa, NULL);
+
+    vtswitch_initialized = 0;
+    return 0;
+}
+
 int mg_linux_tty_fini(void)
 {
     if (ttyfd < 0)
         return -1;
 
     if (vtswitch_initialized) {
-        struct sigaction sa;
-
-        /* Must turn off the signals before unhooking them... */
-        ioctl (ttyfd, VT_SETMODE, &saved_vtmode);
-
-        sigemptyset (&sa.sa_mask);
-        sa.sa_handler = SIG_DFL;
-        sa.sa_flags = SA_RESTART;
-        sigaction (SIGRELVT, &sa, NULL);
-        sigaction (SIGACQVT, &sa, NULL);
-
-        vtswitch_initialized = 0;
+        mg_linux_tty_disable_vt_switch();
     }
 
     if (old_kd_mode >= 0) {
@@ -256,9 +256,13 @@ int mg_linux_tty_fini(void)
 int mg_linux_tty_switch_vt(int vt)
 {
     if (ttyfd < 0 || !vtswitch_initialized || vt == current_vt)
-        return 1;
+        return -1;
 
-    ioctl (ttyfd, VT_ACTIVATE, vt);
+    if (ioctl (ttyfd, VT_ACTIVATE, vt) == -1) {
+        _ERR_PRINTF("Linux>TTY: failed to activiate VT (%d): %m\n", vt);
+        return -1;
+    }
+
     return 0;
 }
 
