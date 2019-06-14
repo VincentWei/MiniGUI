@@ -551,10 +551,10 @@ extern "C" {
  * \code
  * MSG_CHAR
  * unsigned char ch_buff [4];
- * unsigned char ch_buff [0] = FIRSTBYTE(wParam);
- * unsigned char ch_buff [1] = SECONDBYTE(wParam);
- * unsigned char ch_buff [2] = THIRDBYTE(wParam);
- * unsigned char ch_buff [3] = FOURTHBYTE(wParam);
+ * ch_buff [0] = FIRSTBYTE(wParam);
+ * ch_buff [1] = SECONDBYTE(wParam);
+ * ch_buff [2] = THIRDBYTE(wParam);
+ * ch_buff [3] = FOURTHBYTE(wParam);
  * DWORD key_flags = (DWORD)lParam;
  * \endcode
  *
@@ -658,6 +658,12 @@ extern "C" {
  *
  * This message is sent when a key is pressed exceed user-defined long
  * time value.
+ *
+ * \code
+ * MSG_KEYLONGPRESS
+ * int scancode = (int)wParam;
+ * DWORD key_flags = (DWORD)lParam;
+ * \endcode
  */
 #define MSG_KEYLONGPRESS    0x001B
 
@@ -667,6 +673,13 @@ extern "C" {
  *
  * This message is sent when a key is pressed to exceed user-defined
  * always time value.
+ *
+ * \code
+ * MSG_KEYLONGPRESS
+ * int scancode = (int)wParam;
+ * DWORD key_flags = (DWORD)lParam;
+ * \endcode
+ *
  */
 #define MSG_KEYALWAYSPRESS  0x001C
 
@@ -707,12 +720,12 @@ extern "C" {
  * \code
  * MSG_UTF8CHAR
  * unsigned char ch_utf8 [6];
- * unsigned char ch_utf8 [0] = FIRSTBYTE(wParam);
- * unsigned char ch_utf8 [1] = SECONDBYTE(wParam);
- * unsigned char ch_utf8 [2] = THIRDBYTE(wParam);
- * unsigned char ch_utf8 [3] = FOURTHBYTE(wParam);
- * unsigned char ch_utf8 [4] = FIRSTBYTE(lParam);
- * unsigned char ch_utf8 [5] = SECONDBYTE(lParam);
+ * ch_utf8 [0] = FIRSTBYTE(wParam);
+ * ch_utf8 [1] = SECONDBYTE(wParam);
+ * ch_utf8 [2] = THIRDBYTE(wParam);
+ * ch_utf8 [3] = FOURTHBYTE(wParam);
+ * ch_utf8 [4] = FIRSTBYTE(lParam);
+ * ch_utf8 [5] = SECONDBYTE(lParam);
  * \endcode
  *
  * \param ch_utf8 The buffer to save the character in UTF-8.
@@ -2713,7 +2726,7 @@ typedef struct _DRAGINFO {
  *
  * \code
  * MSG_TIMER
- * int timer_id = (int)wParam;
+ * LINT timer_id = (LINT)wParam;
  * DWORD tick_count = (DWORD)lParam;
  * \endcode
  *
