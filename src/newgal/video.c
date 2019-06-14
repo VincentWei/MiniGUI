@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -356,7 +356,7 @@ static Uint8 GAL_closest_depths[4][8] = {
     { 0, 32, 16, 15, 24, 8, 0, 0 }
 };
 
-int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags) 
+int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags)
 {
     int table, b, i;
     int supported;
@@ -406,7 +406,7 @@ int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags)
         --b;
         return(GAL_closest_depths[table][b]);
     }
-    else 
+    else
         return(0);
 }
 
@@ -557,12 +557,12 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 
             if (video->info.mlt_surfaces == 0){
                 if (video->SetColors)
-                    video->SetColors(this, 0, vf->palette->ncolors, 
+                    video->SetColors(this, 0, vf->palette->ncolors,
                             vf->palette->colors);
             }
             else{
                 if (video->SetSurfaceColors)
-                    video->SetSurfaceColors(this->screen, 0, vf->palette->ncolors, 
+                    video->SetSurfaceColors(this->screen, 0, vf->palette->ncolors,
                             vf->palette->colors);
             }
         }
@@ -598,7 +598,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     }
 
 #ifndef _MG_MINIMALGDI
-    license_get_processor_id(); 
+    license_get_processor_id();
 #endif
 
     video->info.vfmt = GAL_VideoSurface->format;
@@ -607,7 +607,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     return(GAL_PublicSurface);
 }
 
-/* 
+/*
  * Convert a surface into the video pixel format.
  */
 GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface)
@@ -704,7 +704,7 @@ void GAL_UpdateRect (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h
         if (h == 0)
             h = screen->h;
 
-        if ((int)(x+w) > screen->w) 
+        if ((int)(x+w) > screen->w)
             w = screen->w - x;
         if ((int)(y+h) > screen->h)
             h = screen->h - x;
@@ -1057,7 +1057,7 @@ void gal_SlaveVideoQuit (GAL_Surface * surface)
             video->free(video);
             video = NULL;
         }
-        else{  
+        else{
             video->DeleteSurface(video, surface);
             Slave_FreeSurface (surface);
         }
@@ -1065,7 +1065,7 @@ void gal_SlaveVideoQuit (GAL_Surface * surface)
     return;
 }
 
-static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this, 
+static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
         int width, int height, int depth,
         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
 {
@@ -1074,7 +1074,7 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     surface = (GAL_Surface *)malloc(sizeof(*surface));
 
     if ( surface == NULL ) {
-        GAL_OutOfMemory(); 
+        GAL_OutOfMemory();
         return(NULL);
     }
     surface->flags = GAL_HWSURFACE;
@@ -1114,11 +1114,11 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     /* The surface is ready to go */
     surface->refcount = 1;
     this->info.vfmt = surface->format;
-    
+
     return (surface);
 }
 
-static GAL_Rect ** Slave_ListModes (GAL_VideoDevice *this, 
+static GAL_Rect ** Slave_ListModes (GAL_VideoDevice *this,
         GAL_PixelFormat *format, Uint32 flags)
 {
     GAL_Rect **modes;
@@ -1135,7 +1135,7 @@ static GAL_Rect ** Slave_ListModes (GAL_VideoDevice *this,
     return (modes);
 }
 
-static int Slave_GetVideoMode (GAL_VideoDevice *this, 
+static int Slave_GetVideoMode (GAL_VideoDevice *this,
         int *w, int *h, int *BitsPerPixel, Uint32 flags)
 {
     int table, b, i;
@@ -1160,7 +1160,7 @@ static int Slave_GetVideoMode (GAL_VideoDevice *this,
     if (native_bpp == *BitsPerPixel) {
         return(1);
     }
-    
+
     if (native_bpp > 0) {
         *BitsPerPixel = native_bpp;
         return(1);
@@ -1172,11 +1172,11 @@ static int Slave_GetVideoMode (GAL_VideoDevice *this,
     table = ((*BitsPerPixel+7)/8)-1;
     GAL_closest_depths[table][0] = *BitsPerPixel;
     GAL_closest_depths[table][7] = surface->format->BitsPerPixel;
-    
+
     for ( b = 0; !supported && GAL_closest_depths[table][b]; ++b ) {
         format.BitsPerPixel = GAL_closest_depths[table][b];
         sizes = Slave_ListModes(this, &format, flags);
-    
+
         if ( sizes == (GAL_Rect **)0 ) {
             /* No sizes supported at this bit-depth */
             continue;
@@ -1211,11 +1211,11 @@ static int Slave_GetVideoMode (GAL_VideoDevice *this,
         GAL_SetError("NEWGAL: No video mode large enough for "
                 "the resolution specified.\n");
     }
-    
+
     return(supported);
 }
 
-static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device, 
+static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
                 GAL_Surface* surface, int width, int height, int bpp, Uint32 flags)
 {
     GAL_VideoDevice *video, *this;
@@ -1233,7 +1233,7 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
     video_w = width;
     video_h = height;
     video_bpp = bpp;
-    
+
     if (!Slave_GetVideoMode(this, &video_w, &video_h, &video_bpp, flags)){
         GAL_SetError ("NEWGAL: Slave_GetVideoMode error, "
                 "not supported video mode.\n");
@@ -1251,7 +1251,7 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
         video->physpal = NULL;
     }
 
-    if (!(video->SetVideoMode(this, surface, 
+    if (!(video->SetVideoMode(this, surface,
                     video_w, video_h, video_bpp, flags))) {
         return NULL;
     }
@@ -1267,12 +1267,12 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
             vf->DitheredPalette = TRUE;
             if (video->info.mlt_surfaces == 0){
                 if (video->SetColors)
-                    video->SetColors(this, 0, vf->palette->ncolors, 
+                    video->SetColors(this, 0, vf->palette->ncolors,
                             vf->palette->colors);
             }
             else{
                 if (video->SetSurfaceColors)
-                    video->SetSurfaceColors(surface, 0, vf->palette->ncolors, 
+                    video->SetSurfaceColors(surface, 0, vf->palette->ncolors,
                             vf->palette->colors);
             }
         }
@@ -1295,7 +1295,7 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
 
 GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int dpi)
 {
-    GAL_Surface* surface; 
+    GAL_Surface* surface;
     GAL_VideoDevice *video;
     GAL_PixelFormat vformat;
     unsigned int w, h, depth;
@@ -1304,7 +1304,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     video = GAL_GetVideo(driver_name);
 
     if (video == NULL) {
-        _DBG_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n", 
+        _DBG_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n",
                         driver_name);
         return NULL;
     }
@@ -1313,7 +1313,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     memset(&vformat, 0, sizeof(vformat));
 
     if ( video->VideoInit(video, &vformat) < 0 ) {
-        _DBG_PRINTF ("NEWGAL: Can not init the slave video engine: %s.\n", 
+        _DBG_PRINTF ("NEWGAL: Can not init the slave video engine: %s.\n",
                         driver_name);
         gal_SlaveVideoQuit (video->screen);
         return NULL;
@@ -1343,5 +1343,54 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
         surface->dpi = dpi;
 
     return surface;
+}
+
+/* Since 4.0.0; activate/deactivate video device, for switching virtual terminals */
+int GAL_ResumeVideo(void)
+{
+#ifdef _MGRM_PROCESSES
+    if (mgIsSever) {
+#endif
+        if (current_video && current_video->Resume) {
+            current_video->Resume(current_video);
+        }
+#ifdef _MGRM_PROCESSES
+    }
+#endif
+
+#ifndef _MGRM_THREADS
+    __mg_switch_away = FALSE;
+#endif
+
+#ifdef _MGRM_PROCESSES
+    UpdateTopmostLayer (NULL);
+#else
+    SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
+#endif
+
+    return 0;
+}
+
+int GAL_SuspendVideo(void)
+{
+#ifdef _MGRM_PROCESSES
+    DisableClientsOutput ();
+#endif
+
+#ifndef _MGRM_THREADS
+    __mg_switch_away = TRUE;
+#endif
+
+#ifdef _MGRM_PROCESSES
+    if (mgIsSever) {
+#endif
+        if (current_video && current_video->Suspend) {
+            current_video->Suspend(current_video);
+        }
+#ifdef _MGRM_PROCESSES
+    }
+#endif
+
+    return 0;
 }
 
