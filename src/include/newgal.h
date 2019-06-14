@@ -745,14 +745,24 @@ extern GAL_Surface* __gal_screen;
 #define GAL_BMask(surface)          (surface->format->Bmask)
 #define GAL_AMask(surface)          (surface->format->Amask)
 
-extern BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* bpp);
 extern int mg_InitGAL (void);
-extern BYTE*  gal_PutPixelAlphaChannel (GAL_Surface* dst, BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelKey (GAL_Surface* dst, BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelAlpha (GAL_Surface* dst, BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
 
+/* Since 4.0.0; suspend/resume video device, for switching virtual terminals */
+extern int GAL_SuspendVideo(void);
+extern int GAL_ResumeVideo(void);
+
+extern BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* bpp);
+
+extern BYTE*  gal_PutPixelAlphaChannel (GAL_Surface* dst,
+        BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
+extern BYTE*  gal_PutPixelKey (GAL_Surface* dst,
+        BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
+extern BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst,
+        BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
+extern BYTE*  gal_PutPixelAlpha (GAL_Surface* dst,
+        BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
+extern BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst,
+        BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
 
 #define mg_TerminateGAL GAL_VideoQuit
 
