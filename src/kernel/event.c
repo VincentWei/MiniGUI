@@ -208,7 +208,7 @@ static void ResetKeyEvent(void)
  * default long pressed and always pressed value
  * The default long press handling disabled at startup.
  */
-DWORD __mg_key_longpress_time = 0;
+DWORD __mg_key_longpress_time = DEF_LPRESS_TIME;
 DWORD __mg_key_alwayspress_time = DEF_APRESS_TIME;
 DWORD __mg_interval_time = DEF_INTERVAL_TIME;
 
@@ -300,8 +300,13 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             // repeat last event
             if (old_lwe.type == LWETYPE_KEY
                     && old_lwe.data.ke.event == KE_KEYDOWN) {
+
                 memcpy (lwe, &old_lwe, sizeof (LWEVENT));
-                lwe->data.ke.status |= KS_REPEATED;
+                interval = __mg_timer_counter - ke_time;
+                treat_longpress (ke, interval);
+                if (ke->event == KE_KEYDOWN) {
+                    lwe->data.ke.status |= KS_REPEATED;
+                }
                 return 1;
             }
 
@@ -594,9 +599,14 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             // repeat last event
             if (old_lwe.type == LWETYPE_KEY
                     && old_lwe.data.ke.event == KE_KEYDOWN) {
-               memcpy (lwe, &old_lwe, sizeof (LWEVENT));
-               lwe->data.ke.status |= KS_REPEATED;
-               return 1;
+
+                memcpy (lwe, &old_lwe, sizeof (LWEVENT));
+                interval = __mg_timer_counter - ke_time;
+                treat_longpress (ke, interval);
+                if (ke->event == KE_KEYDOWN) {
+                    lwe->data.ke.status |= KS_REPEATED;
+                }
+                return 1;
             }
 
             if (!(old_lwe.type == LWETYPE_MOUSE
