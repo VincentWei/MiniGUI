@@ -29,17 +29,28 @@ rendering in order that MiniGUI can handle complex writing systems
 
 * MiniGUI also provides new APIs to lay out, shape, and render glyphs
   from complex and mixed scripts, such as Arabic, Thai, and Indic.
+  The new APIs also conform to the specification of [CSS Text Module Level 3]
+  and [CSS Writing Modes Level 3].
 
 * We tuned and optimized MiniGUI's logical and device font interfaces to
   support the new features above.
 
-* We introduced a Slice Memory Allocator for fast concurrent memory chunk
-  allocation.
+Another important features of this version are two engines dedicated to Linux
+kernel:
 
-The new APIs also conform to the specification of [CSS Text Module Level 3]
-and [CSS Writing Modes Level 3].
-Indeed, we design the APIs for [HybridOS Foundation Class Library],
-which will provide the ability to render GUIs in CSS way.
+* The NEWGAL engine of `drm` to support DRM-driven graphics cards. By using
+  `drm` engine, one MiniGUI app can now use the hardware-accelerated graphics
+  rendering for 2D/3D graphics.
+* The IAL engine of `libinput` to support all modern input devices including
+  mouse, keyboard, joystick, switch, multiple touch panel, gesture, tablet tool,
+  and table pad. In MiniGUI 4.0, we introduce `MSG_EXIN_XXX` messages to support
+  the input events from devices other than standard mouse and keyboard. We
+  call these messages as 'extra input messages'.
+* The enhanced IAL engine of `random` to generate extra input messages
+  automatically for testing.
+
+At last, we introduced a Slice Memory Allocator for fast concurrent memory
+chunk allocation.
 
 #### New APIs conforming Unicode 12.0
 
@@ -248,6 +259,10 @@ the glyph orientation:
 - 'D': Glyphs are upside-down.
 - 'L': Glyphs are rotated 90 degrees counter-clockwise (sideways left).
 
+#### Support for DRM
+
+#### Extra input messages
+
 #### Slice allocator
 
 MiniGUI now provides an efficient way to allocate groups of equal-sized
@@ -279,6 +294,8 @@ has this bit set, any pixel which is equal to `bmColorKey` will be replaced by
 * Support for libPNG 1.6.x.
 
 * Support for Ubuntu 18.04 LTS.
+
+* Support for GCC 7.
 
 #### Backward compatibility issues
 
