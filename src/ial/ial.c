@@ -282,13 +282,13 @@ int mg_InitIAL (void)
     //strcpy (__mg_cur_input->mdev, mdev);
 
     if (!IAL_InitInput (__mg_cur_input, mdev, mtype)) {
-        _ERR_PRINTF ("IAL: Init IAL engine failure.\n");
+        _ERR_PRINTF ("IAL: Failed to initialize the IAL engine: %s.\n", __mg_cur_input->id);
         return ERR_INPUT_ENGINE;
     }
 
     _DBG_PRINTF ("IAL: Use %s engine.\n", __mg_cur_input->id);
-
     IAL_SetMouseRange (0, 0, WIDTHOFPHYGC - 1, HEIGHTOFPHYGC - 1);
+
     return 0;
 }
 
