@@ -67,8 +67,10 @@
 ** For invalid `random.eventtyps` and `random.maxkeycord key value,
 ** use `mouse` and `NR_KEYS` respectively.
 **
-** This engine maintains a state machine for input events, and
-** generates a reasonable event sequence for each event type.
+** This engine maintains a state machine for each input event type, and
+** generates a reasonable event sequence for each type. If and only if
+** an event sequence finished or cancelled, the engine switch to another
+** event type randomly.
 */
 
 #include <stdio.h>
@@ -84,169 +86,282 @@
 #include "ial.h"
 #include "random.h"
 
-static unsigned char kbd_state [NR_KEYS];
+enum _button_state {
+    BUTTON_STATE_RELEASED,
+    BUTTON_STATE_PRESSED,
+};
 
-typedef struct {
-    DWORD buttons;
-    int x;
-    int y;
-} MOUSE_INFO;
+struct _random_event {
+    int type;
+};
 
-static MOUSE_INFO mouse_info;
+static struct _event_state_machine {
+    const char* name;
+} event_state_machines [] = {
+    { "mouse", },
+    { "keyboard", },
+    { "joystick", },
+    { "button", },
+    { "single_touch", },
+    { "multi_touch", },
+    { "gesture", },
+    { "tablet_tool", },
+    { "tablet_pad", },
+    { "switch", },
+};
 
-/************************  Low Level Input Operations **********************/
-/*
- * Mouse operations -- Event
- */
-static int mouse_update (void)
+struct _random_input_contxt {
+    FILE* log_fp;
+    int min_x, max_x, min_y, max_y;
+    int mouse_x, mouse_y, mouse_button;
+    int nr_keys, last_keycode;
+    char* kbd_state;
+    struct _event_state_machine *esm [TABLESIZE(event_state_machines)];
+};
+
+static struct _random_input_contxt my_ctxt;
+
+static void mouse_setrange (int newminx, int newminy, int newmaxx, int newmaxy)
+{
+    my_ctxt.min_x = newminx;
+    my_ctxt.max_x = newmaxx;
+    my_ctxt.min_y = newminy;
+    my_ctxt.max_y = newmaxy;
+
+    if (my_ctxt.mouse_x < my_ctxt.min_x)
+        my_ctxt.mouse_x = my_ctxt.min_x;
+    if (my_ctxt.mouse_x > my_ctxt.max_x)
+        my_ctxt.mouse_x = my_ctxt.max_x;
+    if (my_ctxt.mouse_y < my_ctxt.min_y)
+        my_ctxt.mouse_y = my_ctxt.min_y;
+    if (my_ctxt.mouse_y > my_ctxt.max_y)
+        my_ctxt.mouse_y = my_ctxt.max_y;
+
+    my_ctxt.mouse_x = (my_ctxt.min_x + my_ctxt.max_x) / 2;
+    my_ctxt.mouse_y = (my_ctxt.min_y + my_ctxt.max_y) / 2;
+}
+
+static void mouse_setxy (int newx, int newy)
+{
+    if (newx < my_ctxt.min_x)
+        newx = my_ctxt.min_x;
+    if (newx > my_ctxt.max_x)
+        newx = my_ctxt.max_x;
+    if (newy < my_ctxt.min_y)
+        newy = my_ctxt.min_y;
+    if (newy > my_ctxt.max_y)
+        newy = my_ctxt.max_y;
+
+    if (newx == my_ctxt.mouse_x && newy == my_ctxt.mouse_y)
+        return;
+
+    my_ctxt.mouse_x = newx;
+    my_ctxt.mouse_x = newy;
+}
+
+static int mouse_update(void)
 {
     return 1;
 }
 
-static void mouse_getxy (int *x, int* y)
+static void mouse_getxy (int* x, int* y)
 {
-    *x = mouse_info.x;
-    *y = mouse_info.y;
+    *x = my_ctxt.mouse_x;
+    *y = my_ctxt.mouse_y;
 }
 
-static int mouse_getbutton (void)
+static int mouse_getbutton(void)
 {
-    return mouse_info.buttons;
+    return my_ctxt.mouse_button;
 }
 
-static int keyboard_update (void)
+static int keyboard_update(void)
 {
-    return NR_KEYS;
+    if (my_ctxt.last_keycode == 0)
+        return 0;
+
+    return my_ctxt.last_keycode + 1;
 }
 
-static const char* keyboard_getstate (void)
+static const char* keyboard_getstate(void)
 {
-    return (const char*) kbd_state;
+    return my_ctxt.kbd_state;
 }
 
-#define EVENT_TYPE_LD   0
-#define EVENT_TYPE_LU   1
-
-#define EVENT_TYPE_RD   2
-#define EVENT_TYPE_RU   3
-
-#define EVENT_TYPE_MOVE 4
-
-#define EVENT_TYPE_KD   5
-#define EVENT_TYPE_KU   6
-
-static int event_types_kbd [] =
-{2, EVENT_TYPE_KD, EVENT_TYPE_KU};
-static int event_types_pen [] =
-{3, EVENT_TYPE_LD, EVENT_TYPE_LU, EVENT_TYPE_MOVE};
-static int event_types_mice [] =
-{5, EVENT_TYPE_LD, EVENT_TYPE_LU, EVENT_TYPE_RD, EVENT_TYPE_RU, EVENT_TYPE_MOVE};
-static int event_types_pen_kbd [] =
-{5, EVENT_TYPE_LD, EVENT_TYPE_LU, EVENT_TYPE_MOVE, EVENT_TYPE_KD, EVENT_TYPE_KU};
-static int event_types_mice_kbd [] =
-{7, EVENT_TYPE_LD, EVENT_TYPE_LU, EVENT_TYPE_RD, EVENT_TYPE_RU, EVENT_TYPE_MOVE, EVENT_TYPE_KD, EVENT_TYPE_KU};
-
-/* defined by mtype */
-static int* event_types;
-
-static int event_generator (void)
+#if 0
+static void normalize_mouse_pos(int* new_x, int* new_y)
 {
-    int event_type;
-    int retvalue;
-    static int last_down_key;
-
-    while (1) {
-
-        retvalue = 0;
-        event_type = event_types [(rand () >> 8) % event_types [0] + 1];
-
-        if (event_type == EVENT_TYPE_LD) {
-            if (mouse_info.buttons & IAL_MOUSE_LEFTBUTTON)
-                continue;
-            mouse_info.buttons |= IAL_MOUSE_LEFTBUTTON;
-            retvalue = IAL_MOUSEEVENT;
-        }
-        else if (event_type == EVENT_TYPE_LU) {
-            if (!(mouse_info.buttons & IAL_MOUSE_LEFTBUTTON))
-                continue;
-            mouse_info.buttons &= ~IAL_MOUSE_LEFTBUTTON;
-            retvalue = IAL_MOUSEEVENT;
-        }
-        else if (event_type == EVENT_TYPE_RD) {
-            if (mouse_info.buttons & IAL_MOUSE_RIGHTBUTTON)
-                continue;
-            mouse_info.buttons |= IAL_MOUSE_RIGHTBUTTON;
-            retvalue = IAL_MOUSEEVENT;
-        }
-        else if (event_type == EVENT_TYPE_RU) {
-            if (!(mouse_info.buttons & IAL_MOUSE_RIGHTBUTTON))
-                continue;
-            mouse_info.buttons &= ~IAL_MOUSE_RIGHTBUTTON;
-            retvalue = IAL_MOUSEEVENT;
-        }
-        else if (event_type == EVENT_TYPE_MOVE) {
-            mouse_info.x = (rand () >> 8) % g_rcScr.right;
-            mouse_info.y = (rand () >> 8) % g_rcScr.bottom;
-            retvalue = IAL_MOUSEEVENT;
-        }
-        else if (event_type == EVENT_TYPE_KD) {
-            int key = ((rand () >> 8) % (NR_KEYS - 1)) + 1;
-
-            if (kbd_state [key]) {
-                if (rand () & 0xFFFFF000) {
-                    kbd_state [key] = 0;
-                    retvalue = IAL_KEYEVENT;
-                }
-            }
-            else {
-                kbd_state [key] = 1;
-                last_down_key = key;
-                retvalue = IAL_KEYEVENT;
-            }
-        }
-        else if (event_type == EVENT_TYPE_KU) {
-            if (last_down_key && kbd_state [last_down_key]) {
-                kbd_state [last_down_key] = 0;
-                last_down_key = 0;
-                retvalue = IAL_KEYEVENT;
-            }
-        }
-
-        if (retvalue)
-            break;
-    }
-
-    return retvalue;
+    if (*new_x < my_ctxt.min_x)
+        *new_x = my_ctxt.min_x;
+    if (*new_x > my_ctxt.max_x)
+        *new_x = my_ctxt.max_x;
+    if (*new_y < my_ctxt.min_y)
+        *new_y = my_ctxt.min_y;
+    if (*new_y > my_ctxt.max_y)
+        *new_y = my_ctxt.max_y;
 }
 
-static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
+static BOOL on_mouse_moved (double dx, double dy)
 {
-#ifdef _MGRM_THREADS
-    __mg_os_time_delay (10);
+    int new_x = (int)(my_ctxt.mouse_x + dx + 0.5);
+    int new_y = (int)(my_ctxt.mouse_y + dy + 0.5);
+
+    _DBG_PRINTF("%s: new mouse position: %d, %d (old: %d, %d; delta: %f, %f)\n",
+            __FUNCTION__, new_x, new_y, my_ctxt.mouse_x, my_ctxt.mouse_y, dx, dy);
+
+    normalize_mouse_pos(&new_x, &new_y);
+    if (new_x == my_ctxt.mouse_x && new_y == my_ctxt.mouse_y)
+        return FALSE;
+
+    my_ctxt.mouse_x = new_x;
+    my_ctxt.mouse_y = new_y;
+    return TRUE;
+}
+
+static BOOL on_new_mouse_pos (double x, double y)
+{
+    int new_x = (int)(x + 0.5);
+    int new_y = (int)(y + 0.5);
+
+    _DBG_PRINTF("%s: new mouse position: %d, %d (old: %d, %d)\n",
+            __FUNCTION__, new_x, new_y, my_ctxt.mouse_x, my_ctxt.mouse_y);
+
+    normalize_mouse_pos(&new_x, &new_y);
+    if (new_x == my_ctxt.mouse_x && new_y == my_ctxt.mouse_y)
+        return FALSE;
+
+    my_ctxt.mouse_x = new_x;
+    my_ctxt.mouse_y = new_y;
+    return TRUE;
+}
+
+#ifdef __LINUX__
+#include <linux/input-event-codes.h>
 #else
-    int e;
 
-    __mg_os_time_delay (10);
-    e = select (maxfd + 1, in, out, except, timeout);
-    if (e < 0) {
-        /* zero all fd sets */
-        if (in) FD_ZERO (in);
-        if (out) FD_ZERO (out);
-        if (except) FD_ZERO (except);
-    }
+/* copied from linux/input-event-codes.h */
+#define BTN_LEFT		0x110
+#define BTN_RIGHT		0x111
+#define BTN_MIDDLE		0x112
 #endif
 
-    return event_generator ();
+static BOOL on_mouse_button_changed (uint32_t button,
+        enum _button_state state)
+{
+    int old_mouse_button = my_ctxt.mouse_button;
+
+    switch (button) {
+    case BTN_LEFT:
+        if (state == BUTTON_STATE_RELEASED)
+            my_ctxt.mouse_button &= ~IAL_MOUSE_LEFTBUTTON;
+        else
+            my_ctxt.mouse_button |= IAL_MOUSE_LEFTBUTTON;
+        break;
+
+    case BTN_RIGHT:
+        if (state == BUTTON_STATE_RELEASED)
+            my_ctxt.mouse_button &= ~IAL_MOUSE_RIGHTBUTTON;
+        else
+            my_ctxt.mouse_button |= IAL_MOUSE_RIGHTBUTTON;
+        break;
+
+    case BTN_MIDDLE:
+        if (state == BUTTON_STATE_RELEASED)
+            my_ctxt.mouse_button &= ~IAL_MOUSE_MIDDLEBUTTON;
+        else
+            my_ctxt.mouse_button |= IAL_MOUSE_MIDDLEBUTTON;
+        break;
+
+    default:
+        // not a standard mouse button.
+        return FALSE;
+    }
+
+    _DBG_PRINTF("%s: new mouse button: 0x%x (old: 0x%x)\n",
+            __FUNCTION__, my_ctxt.mouse_button, old_mouse_button);
+    if (old_mouse_button == my_ctxt.mouse_button)
+        return FALSE;
+
+    return TRUE;
 }
+#endif
+
+static struct _random_event* get_random_event(struct _random_input_contxt* ctxt)
+{
+    return NULL;
+}
+
+static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
+                struct timeval *timeout, EXTRA_INPUT_EVENT* extra)
+{
+    struct _random_event *event;
+    int retval;
+
+    event = get_random_event(&my_ctxt);
+    if (event == NULL) {
+        retval = select (maxfd + 1, in, out, except, timeout);
+        if (retval >= 0) {
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+#define LEN_EVENT_TYPES     127
 
 BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
 {
+    char logfile[MAX_PATH + 1];
+    char eventtypes[LEN_EVENT_TYPES + 1];
+    int i, n;
+
+    if (GetMgEtcValue ("random", "logfile", logfile, MAX_PATH) == ETC_OK) {
+        my_ctxt.log_fp = fopen(logfile, "a");
+        if (my_ctxt.log_fp == NULL) {
+            _WRN_PRINTF("Failed to open file %s for logging; log disabled",
+                logfile);
+        }
+    }
+    else {
+        _WRN_PRINTF("No log file defined; log disabled");
+    }
+
+    if (GetMgEtcIntValue ("random", "maxkeycode", &my_ctxt.nr_keys) < 0 ||
+            my_ctxt.nr_keys <= 0) {
+        _WRN_PRINTF("Bad ETC key value: random.maxkeycode; use default: %d",
+                NR_KEYS);
+        my_ctxt.nr_keys = NR_KEYS;
+    }
+
+    my_ctxt.kbd_state = calloc(my_ctxt.nr_keys, sizeof(char));
+    if (my_ctxt.kbd_state == NULL) {
+        _ERR_PRINTF("IAL>RANDOM: failed to allocate space for key state\n");
+        return FALSE;
+    }
+
+    if (GetMgEtcValue ("random", "eventtypes", eventtypes, LEN_EVENT_TYPES) < 0) {
+        _WRN_PRINTF("Bad ETC key value: random.eventtypes; use default: %s",
+                "mouse");
+        strcpy(eventtypes, "mouse");
+    }
+
+    n = 0;
+    for (i = 0; i < TABLESIZE(event_state_machines); i++) {
+        if (strstr(eventtypes, event_state_machines[i].name)) {
+            my_ctxt.esm[n] = event_state_machines + i;
+            n++;
+        }
+    }
+
     input->update_mouse = mouse_update;
     input->get_mouse_xy = mouse_getxy;
-    input->set_mouse_xy = NULL;
+    input->set_mouse_xy = mouse_setxy;
     input->get_mouse_button = mouse_getbutton;
-    input->set_mouse_range = NULL;
+    input->set_mouse_range = mouse_setrange;
     input->suspend_mouse= NULL;
     input->resume_mouse = NULL;
 
@@ -255,20 +370,7 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
     input->suspend_keyboard = NULL;
     input->resume_keyboard = NULL;
     input->set_leds = NULL;
-
-    input->wait_event = wait_event;
-
-    event_types = event_types_mice_kbd;
-    if (mtype) {
-        if (strcmp (mtype, "mice") == 0)
-            event_types = event_types_mice;
-        else if (strcmp (mtype, "pen") == 0)
-            event_types = event_types_pen;
-        else if (strcmp (mtype, "pen-kbd") == 0)
-            event_types = event_types_pen_kbd;
-        else if (strcmp (mtype, "kbd") == 0)
-            event_types = event_types_kbd;
-    }
+    input->wait_event_ex = wait_event_ex;
 
     srand (__mg_os_get_random_seed ());
     return TRUE;
@@ -276,6 +378,10 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
 
 void TermRandomInput (void)
 {
+    if (my_ctxt.log_fp)
+        fclose(my_ctxt.log_fp);
+    if (my_ctxt.kbd_state)
+        free(my_ctxt.kbd_state);
 }
 
 #endif /* _MGIAL_RANDOM */
