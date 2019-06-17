@@ -8478,21 +8478,6 @@ MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
                 ResetTimerEx(hwnd, id, speed, (TIMERPROC)INV_PTR)
 
 /**
- * \fn DWORD GUIAPI GetTickCount (void)
- * \brief Retrieves the tick counts that have elapsed since MiniGUI was started.
- *
- * This function retrieves the tick counts that have elapsed since MiniGUI
- * was started. It is limited to the resolution of the system timer, i.e.
- * for a general Linux box, the returned tick count value is in unit of 10ms.
- *
- * \return The tick counts value that have elapsed since MiniGUI was started.
- *
- * \note The prototype had changed since MiniGUI v3.2; The old one:
- *      unsinged int GUIAPI GetTickCount (void);
- */
-MG_EXPORT DWORD GUIAPI GetTickCount (void);
-
-/**
  * \fn BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
  * \brief Determines whether a timer is installed.
  *
