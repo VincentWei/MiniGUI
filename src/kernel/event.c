@@ -149,7 +149,9 @@ static int slock_off = 1;          /* 1 = normal position, 0 = depressed */
 static int control1 = 0;           /* left control key state */
 static int control2 = 0;           /* right control key state */
 static int shift1 = 0;             /* left shift key state */
-static int shift2 = 0;             /* left shift key state */
+static int shift2 = 0;             /* right shift key state */
+static int meta1 = 0;              /* left meta key state */
+static int meta2 = 0;              /* right meta key state */
 
 static void ResetMouseEvent(void)
 {
@@ -187,6 +189,8 @@ static void ResetKeyEvent(void)
     num_off     = 1;
     slock       = 0;
     slock_off   = 1;
+    meta1       = 0;
+    meta2       = 0;
     IAL_SetLeds (slock | (numlock << 1) | (capslock << 2));
 
     __mg_event_timeout.tv_sec = 0;
@@ -513,11 +517,22 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                     alt2 = make;
                     break;
 
+                case SCANCODE_LEFTMETA:
+                    meta1 = make;
+                    break;
+
+                case SCANCODE_RIGHTMETA:
+                    meta2 = make;
+                    break;
             }
 
             status &= ~(MASK_KS_SHIFTKEYS);
 
-            status |= (DWORD)((capslock << 8) |
+            status |= (DWORD)(
+                             (meta1 << 13)    |
+                             (meta2 << 12)    |
+                             (capslock << 8)  |
+                             (capslock << 8)  |
                              (numlock << 7)   |
                              (slock << 6)     |
                              (control1 << 5)  |
@@ -802,11 +817,21 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                     alt2 = make;
                     break;
 
+                case SCANCODE_LEFTMETA:
+                    meta1 = make;
+                    break;
+
+                case SCANCODE_RIGHTMETA:
+                    meta2 = make;
+                    break;
             }
 
             status &= ~(MASK_KS_SHIFTKEYS);
 
-            status |= (DWORD)((capslock << 8) |
+            status |= (DWORD)(
+                             (meta1 << 13)    |
+                             (meta2 << 12)    |
+                             (capslock << 8)  |
                              (numlock << 7)   |
                              (slock << 6)     |
                              (control1 << 5)  |
