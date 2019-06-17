@@ -1521,6 +1521,39 @@ typedef struct _GAL_Rect {
 #define SCANCODE_MIDDLBUTTON            0x4000
 
 /**
+ * \def KS_LEFTMETA
+ * \brief This status indicate that left-Meta key was pressed when
+ * the key or mouse message posted to the window.
+ *
+ * \sa key_msgs
+ *
+ * Since 4.0.0
+ */
+#define KS_LEFTMETA                    0x00002000
+
+/**
+ * \def KS_RIGHTMETA
+ * \brief This status indicate that right-Meta key was pressed when
+ * the key or mouse message posted to the window.
+ *
+ * \sa key_msgs
+ *
+ * Since 4.0.0
+ */
+#define KS_RIGHTMETA                   0x00001000
+
+/**
+ * \def KS_META
+ * \brief This status indicate that either the left-Meta key or the right-Meta key
+ * was pressed when the key or mouse message posted to the window.
+ *
+ * \sa key_msgs
+ *
+ * Since 4.0.0
+ */
+#define KS_META                        0x00003000
+
+/**
  * \def KS_REPEATED
  * \brief This status indicate that the key down message is an
  *        auto-repeated one.
@@ -1697,7 +1730,7 @@ typedef struct _GAL_Rect {
  * \def MASK_KS_SHIFTKEYS
  * \brief The mask of key status.
  */
-#define MASK_KS_SHIFTKEYS               0x00000FFF
+#define MASK_KS_SHIFTKEYS               0x0000FFFF
 
 /**
  * \def KS_LEFTBUTTON
@@ -1706,7 +1739,7 @@ typedef struct _GAL_Rect {
  *
  * \sa key_msgs
  */
-#define KS_LEFTBUTTON                   0x00001000
+#define KS_LEFTBUTTON                   0x00010000
 
 /**
  * \def KS_RIGHTBUTTON
@@ -1715,7 +1748,7 @@ typedef struct _GAL_Rect {
  *
  * \sa key_msgs
  */
-#define KS_RIGHTBUTTON                  0x00002000
+#define KS_RIGHTBUTTON                  0x00020000
 
 /**
  * \def KS_MIDDLEBUTTON
@@ -1724,13 +1757,13 @@ typedef struct _GAL_Rect {
  *
  * \sa key_msgs
  */
-#define KS_MIDDLEBUTTON                 0x00004000
+#define KS_MIDDLEBUTTON                 0x00040000
 
 /**
  * \def MASK_KS_BUTTONS
  * \brief The mask of mouse button status.
  */
-#define MASK_KS_BUTTONS                 0x0000F000
+#define MASK_KS_BUTTONS                 0x000F0000
 
     /** @} end of key_defs */
 
