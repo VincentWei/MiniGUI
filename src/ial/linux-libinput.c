@@ -433,6 +433,7 @@ static int translate_libinput_keycode(uint32_t keycode)
         return 0;
 
     scancode = linux_keycode_to_scancode_map[keycode];
+    _MG_PRINTF("translate keycode %u to scancode: %u\n", keycode, scancode);
     return scancode;
 }
 
@@ -646,9 +647,9 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
 
         ptr_event = libinput_event_get_pointer_event(event);
         x = libinput_event_pointer_get_absolute_x_transformed(ptr_event,
-                my_ctxt.max_x - my_ctxt.min_x + 1);
+                my_ctxt.max_x - my_ctxt.min_x + 1) + my_ctxt.min_x;
         y = libinput_event_pointer_get_absolute_y_transformed(ptr_event,
-                my_ctxt.max_y - my_ctxt.min_y + 1);
+                my_ctxt.max_y - my_ctxt.min_y + 1) + my_ctxt.min_y;
         if (on_new_mouse_pos(x, y))
             retval = IAL_EVENT_MOUSE;
         break;
@@ -744,9 +745,9 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
 
         tch_event = libinput_event_get_touch_event(event);
         x = libinput_event_touch_get_x_transformed(tch_event,
-                my_ctxt.max_x - my_ctxt.min_x + 1);
+                my_ctxt.max_x - my_ctxt.min_x + 1) + my_ctxt.min_x;
         y = libinput_event_touch_get_y_transformed(tch_event,
-                my_ctxt.max_y - my_ctxt.min_y + 1);
+                my_ctxt.max_y - my_ctxt.min_y + 1) + my_ctxt.min_y;
 
         retval = 0;
         // emulate the mouse left button down and mouse move events
@@ -783,9 +784,9 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
 
         tch_event = libinput_event_get_touch_event(event);
         x = libinput_event_touch_get_x_transformed(tch_event,
-                my_ctxt.max_x - my_ctxt.min_x + 1);
+                my_ctxt.max_x - my_ctxt.min_x + 1) + my_ctxt.min_x;
         y = libinput_event_touch_get_y_transformed(tch_event,
-                my_ctxt.max_y - my_ctxt.min_y + 1);
+                my_ctxt.max_y - my_ctxt.min_y + 1) + my_ctxt.min_y;
 
         retval = 0;
         // emulate the mouse move event
@@ -835,9 +836,9 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
 
         /* always get x,y for mouse */
         mouse_x = libinput_event_tablet_tool_get_x_transformed(tool_event,
-            my_ctxt.max_x - my_ctxt.min_x + 1);
+            my_ctxt.max_x - my_ctxt.min_x + 1) + my_ctxt.min_x;
         mouse_y = libinput_event_tablet_tool_get_y_transformed(tool_event,
-            my_ctxt.max_y - my_ctxt.min_y + 1);
+            my_ctxt.max_y - my_ctxt.min_y + 1) + my_ctxt.min_y;
 
         if (on_new_mouse_pos(mouse_x, mouse_y))
             retval = IAL_EVENT_MOUSE;
