@@ -1490,13 +1490,13 @@ extern DWORD __mg_interval_time;
  *
  * \code
  * MSG_EXIN_BUTTONDOWN
- * unsigned int button = LOWORD(wParam);
- * unsigned int button_count = LOWORD(lParam);
+ * unsigned int button = (unsigned int)wParam;
+ * unsigned int nr_down_btns = (unsigned int)lParam;
  * \endcode
  *
  * \param button The button value. On Linux, the button values are defined
  *      in <linux/input-event-codes.h> file, and with `BTN_` prefix.
- * \param button_count The total number of buttons pressed.
+ * \param nr_down_btns The total number of buttons pressed.
  */
 #define MSG_EXIN_BUTTONDOWN             0x0071
 
@@ -1510,11 +1510,13 @@ extern DWORD __mg_interval_time;
  *
  * \code
  * MSG_EXIN_BUTTONUP
- * unsigned int button = LOWORD(wParam);
+ * unsigned int button = (unsigned int)wParam;
+ * unsigned int nr_down_btns = (unsigned int)lParam;
  * \endcode
  *
  * \param button The button value. On Linux, the button values are defined
  *      in <linux/input-event-codes.h> file, and with `BTN_` prefix.
+ * \param nr_down_btns The total number of buttons pressed.
  */
 #define MSG_EXIN_BUTTONUP               0x0072
 
@@ -1568,17 +1570,17 @@ extern DWORD __mg_interval_time;
  *
  * \code
  * MSG_EXIN_TOUCH_FRAME
- * unsigned int seat_slot = wParam;
- * unsigned int slot = lParam;
+ * int slot = (int)wParam;
+ * unsigned int seat_slot = (unsigned int)lParam;
  * \endcode
  *
- * \param seat_slot The seat slot of the touch event.
- *      A seat slot is a non-negative seat wide unique identifier
- *      of an active touch point.
  * \param slot The slot of the touch event.
  *      Please see the Linux kernel's multitouch protocol B documentation
  *      for more information. If the touch event has no assigned slot, for example,
  *      if it is from a single touch device, slot will be -1.
+ * \param seat_slot The seat slot of the touch event.
+ *      A seat slot is a non-negative seat wide unique identifier
+ *      of an active touch point.
  */
 #define MSG_EXIN_TOUCH_FRAME            0x0077
 
@@ -1628,7 +1630,7 @@ extern DWORD __mg_interval_time;
  * MSG_EXIN_GESTURE_SWIPE_UPDATE
  * int nr_figures = (int)wParam;
  * int dx = LOSWORD(lParam);
- * int dx = HISWORD(lParam);
+ * int dy = HISWORD(lParam);
  * \endcode
  *
  * \param nr_figures The number of fingers used for the gesture.
@@ -1701,7 +1703,7 @@ extern DWORD __mg_interval_time;
  * MSG_EXIN_GESTURE_PINCH_END
  * int nr_figures = (int)LOSWORD(wParam);
  * BOOL is_cancelled = (BOOL)HISWORD(wParam);
- * unsigned int scale = (unsigned int)scale;
+ * unsigned int scale = (unsigned int)lParam;
  * \endcode
  *
  * \param nr_figures The number of fingers used for the gesture.
