@@ -819,8 +819,8 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         tch_event = libinput_event_get_touch_event(event);
 
         extra->event = IAL_EVENT_TOUCH_FRAME;
-        extra->wparam = libinput_event_touch_get_seat_slot(tch_event);
-        extra->lparam = libinput_event_touch_get_slot(tch_event);
+        extra->wparam = libinput_event_touch_get_slot(tch_event);
+        extra->lparam = libinput_event_touch_get_seat_slot(tch_event);
         retval = IAL_EVENT_EXTRA;
         break;
     }

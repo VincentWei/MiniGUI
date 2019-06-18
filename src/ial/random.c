@@ -98,7 +98,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
+//#define _DEBUG
 #include "common.h"
 
 #ifdef _MGIAL_RANDOM
@@ -272,9 +272,6 @@ static const struct _random_event* generate_event_mouse(void* machine)
             break;
         }
 
-        _DBG_PRINTF("%s: new operation type: %d; time: (%ds)\n",
-                __FUNCTION__, my_machine->op_type, my_machine->op_sec);
-
         my_machine->event.event.type = RANDOM_EVENT_NONE;
         goto ret;
     }
@@ -296,8 +293,6 @@ static const struct _random_event* generate_event_mouse(void* machine)
         my_machine->event.event.type = RANDOM_EVENT_MOUSE_MOTION;
         my_machine->event.dx = (random() % 100) - 50;
         my_machine->event.dy = (random() % 100) - 50;
-        _DBG_PRINTF("MOUSE_OP_MOVE: dx: %d, dy: %d\n",
-                my_machine->event.dx, my_machine->event.dy);
         break;
 
     case MOUSE_OP_CLICK:
@@ -526,6 +521,7 @@ struct _button_event {
     struct _random_event event;
     int                 btncode;
     enum _button_state  state;
+    int                 nr_down;
 };
 
 enum _button_op_type {
@@ -544,6 +540,20 @@ struct _button_event_machine {
     int                 last_btn;
     int                 pressed_btns[MAX_PRESSED_BTNS];
 };
+
+static inline
+int button_pressed_count(struct _button_event_machine* machine)
+{
+    int i, n = 0;
+
+    for (i = 0; i < MAX_PRESSED_BTNS; i++) {
+        if (machine->pressed_btns[i]) {
+            n++;
+        }
+    }
+
+    return n;
+}
 
 static inline
 int button_is_pressed(struct _button_event_machine* machine, int btn)
@@ -674,6 +684,7 @@ static const struct _random_event* generate_event_button(void* machine)
                     my_machine->event.state = BUTTON_STATE_RELEASED;
 
                     my_machine->last_btn = BTN_NONE;
+                    my_machine->pressed_btns[idx] = BTN_NONE;
                 }
                 else {
                     my_machine->event.event.type = RANDOM_EVENT_BUTTON;
@@ -689,8 +700,11 @@ static const struct _random_event* generate_event_button(void* machine)
                 my_machine->event.state = BUTTON_STATE_RELEASED;
 
                 my_machine->last_btn = BTN_NONE;
+                my_machine->pressed_btns[idx] = BTN_NONE;
             }
         }
+
+        my_machine->event.nr_down = button_pressed_count(my_machine);
         break;
     }
 
@@ -940,8 +954,8 @@ static const struct _random_event* generate_event_gesture(void* machine)
         else if (GetTickCount() % 10) {
             // 90% possibility to wait update
             my_machine->event.event.type = RANDOM_EVENT_GESTURE_SWIPE_UPDATE;
-            my_machine->event.dx = random() % 10 - 5;
-            my_machine->event.dy = random() % 100 - 50;
+            my_machine->event.dx = (random() % 100) - 50;
+            my_machine->event.dy = (random() % 100) - 50;
         }
         else {
             my_machine->event.event.type = RANDOM_EVENT_GESTURE_SWIPE_END;
@@ -977,6 +991,10 @@ static const struct _random_event* generate_event_gesture(void* machine)
         }
         else {
             my_machine->event.event.type = RANDOM_EVENT_GESTURE_PINCH_END;
+            my_machine->event.scale = (random() % 1000) + 1;
+            if (my_machine->event.scale == 0)
+                my_machine->event.scale = 1;
+
             if (GetTickCount() % 3)
                 my_machine->event.is_cancelled = 0;
             else
@@ -1337,7 +1355,7 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
             else
                 extra->event = IAL_EVENT_BUTTONUP;
             extra->wparam = btn_event->btncode;
-            extra->lparam = 0;
+            extra->lparam = btn_event->nr_down;
             retval |= IAL_EVENT_EXTRA;
         }
         break;
@@ -1410,6 +1428,84 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         break;
     }
 
+    case RANDOM_EVENT_GESTURE_SWIPE_BEGIN: {
+        const struct _gesture_event* my_event;
+
+        my_event = get_gesture_event(event);
+        if (my_event) {
+            extra->event = IAL_EVENT_GESTURE_SWIPE_BEGIN;
+            extra->wparam = my_event->nr_figs;
+            extra->lparam = 0;
+            retval = IAL_EVENT_EXTRA;
+        }
+        break;
+    }
+
+    case RANDOM_EVENT_GESTURE_SWIPE_UPDATE: {
+        const struct _gesture_event* my_event;
+
+        my_event = get_gesture_event(event);
+        if (my_event) {
+            extra->event = IAL_EVENT_GESTURE_SWIPE_UPDATE;
+            extra->wparam = my_event->nr_figs;
+            extra->lparam = MAKELONG(my_event->dx, my_event->dy);
+            retval = IAL_EVENT_EXTRA;
+        }
+        break;
+    }
+
+    case RANDOM_EVENT_GESTURE_SWIPE_END: {
+        const struct _gesture_event* my_event;
+
+        my_event = get_gesture_event(event);
+        if (my_event) {
+            extra->event = IAL_EVENT_GESTURE_SWIPE_END;
+            extra->wparam = my_event->nr_figs;
+            extra->lparam = my_event->is_cancelled;
+            retval = IAL_EVENT_EXTRA;
+        }
+        break;
+    }
+
+    case RANDOM_EVENT_GESTURE_PINCH_BEGIN: {
+        const struct _gesture_event* my_event;
+
+        my_event = get_gesture_event(event);
+        if (my_event) {
+            extra->event = IAL_EVENT_GESTURE_PINCH_BEGIN;
+            extra->wparam = my_event->nr_figs;
+            extra->lparam = my_event->scale;
+            retval = IAL_EVENT_EXTRA;
+        }
+        break;
+    }
+
+    case RANDOM_EVENT_GESTURE_PINCH_UPDATE: {
+        const struct _gesture_event* my_event;
+
+        my_event = get_gesture_event(event);
+        if (my_event) {
+            extra->event = IAL_EVENT_GESTURE_PINCH_UPDATE;
+            extra->wparam = MAKELONG(my_event->scale, my_event->da);
+            extra->lparam = MAKELONG(my_event->dx, my_event->dy);
+            retval = IAL_EVENT_EXTRA;
+        }
+        break;
+    }
+
+    case RANDOM_EVENT_GESTURE_PINCH_END: {
+        const struct _gesture_event* my_event;
+
+        my_event = get_gesture_event(event);
+        if (my_event) {
+            extra->event = IAL_EVENT_GESTURE_PINCH_END;
+            extra->wparam = my_event->nr_figs;
+            extra->lparam = my_event->is_cancelled;
+            retval = IAL_EVENT_EXTRA;
+        }
+        break;
+    }
+
     default:
         _DBG_PRINTF("IAL>RANDOM: HOW CAN YOU GET HERE? (event->type: %d)\n",
                 event->type);
@@ -1438,12 +1534,6 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
         _WRN_PRINTF("No log file defined; log disabled");
     }
 
-    my_ctxt.kbd_state = calloc(my_ctxt.max_keycode + 1, sizeof(char));
-    if (my_ctxt.kbd_state == NULL) {
-        _ERR_PRINTF("IAL>RANDOM: failed to allocate space for key state\n");
-        return FALSE;
-    }
-
     if (GetMgEtcValue ("random", "eventtypes", eventtypes, LEN_EVENT_TYPES) < 0) {
         _WRN_PRINTF("Bad ETC key value: random.eventtypes; use default: %s",
                 "mouse");
@@ -1457,34 +1547,40 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
 
             if (strcmp(event_state_machines[i].name, "keyboard") == 0) {
                 if (GetMgEtcIntValue ("random", "minkeycode", &my_ctxt.min_keycode) < 0 ||
-                        my_ctxt.min_keycode <= MIN_SCANCODE ||
-                        my_ctxt.min_keycode >= MAX_SCANCODE) {
+                        my_ctxt.min_keycode < MIN_SCANCODE ||
+                        my_ctxt.min_keycode > MAX_SCANCODE) {
                     _WRN_PRINTF("Bad ETC key value: random.minkeycode; use default: %d",
                             MIN_SCANCODE);
                     my_ctxt.min_keycode = MIN_SCANCODE;
                 }
 
                 if (GetMgEtcIntValue ("random", "maxkeycode", &my_ctxt.max_keycode) < 0 ||
-                        my_ctxt.max_keycode <= MIN_SCANCODE ||
-                        my_ctxt.max_keycode <= my_ctxt.min_keycode) {
+                        my_ctxt.max_keycode < MIN_SCANCODE ||
+                        my_ctxt.max_keycode < my_ctxt.min_keycode) {
                     _WRN_PRINTF("Bad ETC key value: random.maxkeycode; use default: %d",
                             MAX_SCANCODE);
                     my_ctxt.max_keycode = MAX_SCANCODE;
+                }
+
+                my_ctxt.kbd_state = calloc(my_ctxt.max_keycode + 1, sizeof(char));
+                if (my_ctxt.kbd_state == NULL) {
+                    _ERR_PRINTF("IAL>RANDOM: failed to allocate space for key state\n");
+                    return FALSE;
                 }
             }
 
             if (strcmp(event_state_machines[i].name, "button") == 0) {
                 if (GetMgEtcIntValue ("random", "minbtncode", &my_ctxt.min_btncode) < 0 ||
-                        my_ctxt.min_btncode <= MIN_BTNCODE ||
-                        my_ctxt.min_btncode >= MAX_BTNCODE) {
+                        my_ctxt.min_btncode < MIN_BTNCODE ||
+                        my_ctxt.min_btncode > MAX_BTNCODE) {
                     _WRN_PRINTF("Bad ETC key value: random.minbtncode; use default: %d",
                             MIN_BTNCODE);
                     my_ctxt.min_btncode = MIN_BTNCODE;
                 }
 
                 if (GetMgEtcIntValue ("random", "maxbtncode", &my_ctxt.max_btncode) < 0 ||
-                        my_ctxt.max_btncode <= MIN_SCANCODE ||
-                        my_ctxt.max_btncode <= my_ctxt.min_btncode) {
+                        my_ctxt.max_btncode < MIN_SCANCODE ||
+                        my_ctxt.max_btncode < my_ctxt.min_btncode) {
                     _WRN_PRINTF("Bad ETC key value: random.maxbtncode; use default: %d",
                             MAX_BTNCODE);
                     my_ctxt.max_btncode = MAX_BTNCODE;
