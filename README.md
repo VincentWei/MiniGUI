@@ -439,7 +439,7 @@ In particular, the above open source or free software license does
 not apply to any entity on the Exception List published by
 Beijing FMSoft Technologies Co., Ltd.
 
-If you or the entity you represent is listed on the Exception List,
+If you are or the entity you represent is listed on the Exception List,
 the above open source or free software license does not apply to you
 or the entity you represent. Regardless of the purpose, you should not
 use the software in any way whatsoever, including but not limited to
