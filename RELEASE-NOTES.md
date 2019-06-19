@@ -38,7 +38,7 @@ rendering in order that MiniGUI can handle complex writing systems
 Another important features of this version are two engines dedicated to Linux
 kernel:
 
-* The NEWGAL engine of `drm` to support DRM-driven graphics cards. By using
+* The NEWGAL engine of `drm` to support modern DRM-driven graphics cards. By using
   `drm` engine, one MiniGUI app can now use the hardware-accelerated graphics
   rendering for 2D/3D graphics.
 * The IAL engine of `libinput` to support all modern input devices including

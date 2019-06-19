@@ -181,14 +181,18 @@ in order to support [HybridOS Foundation Class Library].
 * We tuned and optimized MiniGUI's logical and device font interfaces to
   support the new features above.
 
+* The NEWGAL engine of `drm` to support modern DRM-driven graphics cards on Linux.
+
+* The IAL engine of `libinput` to support all modern input devices including
+  mouse, keyboard, joystick, switch, multiple touch panel, gesture, tablet tool,
+  and table pad on Linux.
+
 * We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
 
 * Cleanup and tune code for GCC 7.3.
 
-For more information, please refer to RELEASE-NOTES.md file:
-
-https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
+For more information, please refer to [RELEASE-NOTES.md](RELEASE-NOTES.md) file:
 
 Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
