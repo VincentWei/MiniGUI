@@ -126,8 +126,8 @@ struct drm_mode_info {
 };
 
 /*
- * modeset_cleanup(vdata): This cleans up all the devices we created during
- * modeset_prepare(). It resets the CRTCs to their saved states and deallocates
+ * drm_cleanup(vdata): This cleans up all the devices we created during
+ * drm_prepare(). It resets the CRTCs to their saved states and deallocates
  * all memory.
  */
 static void drm_cleanup(DrmVideoData* vdata)
@@ -370,7 +370,7 @@ VideoBootStrap DRM_bootstrap = {
 };
 
 /*
- * modeset_find_crtc(vdata, res, conn, info):
+ * drm_find_crtc(vdata, res, conn, info):
  * This small helper tries to find a suitable CRTC for the given connector.
  */
 static int drm_find_crtc(DrmVideoData* vdata,
