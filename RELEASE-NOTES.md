@@ -171,7 +171,7 @@ in the following respects:
 The styles of LOGFONT changed.
 
 * Add new rendering style:
-  1. `FS_RENDER_ANY`: Not specified
+  1. `FS_RENDER_ANY`: Not specified.
   1. `FS_RENDER_MONO`:
   1. `FS_RENDER_GREY`:
   1. `FS_RENDER_SUBPIXEL`:
@@ -179,7 +179,7 @@ The styles of LOGFONT changed.
   1. `FS_WEIGHT_BOOK`; use `FS_RENDER_GREY` instead.
   1. `FS_WEIGHT_SUBPIXEL`; use `FS_RENDER_SUBPIXEL` instead.
 * Introduced or redefined the weight styles to follow OpenType specification:
-  1. `FONT_WEIGHT_ANY`: Not specified
+  1. `FONT_WEIGHT_ANY`: Not specified.
   1. `FONT_WEIGHT_THIN`: Thin.
   1. `FONT_WEIGHT_EXTRA_LIGHT`: Extra light (Ultra Light).
   1. `FONT_WEIGHT_LIGHT`: Light.
