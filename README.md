@@ -436,10 +436,10 @@ For more information about the commercial license, please refer to
 <http://www.minigui.com/en/about/licensing-policy/>.
 
 In particular, the above open source or free software license does
-not apply to any entity on the Exception List published by
+not apply to any entity in the Exception List published by
 Beijing FMSoft Technologies Co., Ltd.
 
-If you are or the entity you represent is listed on the Exception List,
+If you are or the entity you represent is listed in the Exception List,
 the above open source or free software license does not apply to you
 or the entity you represent. Regardless of the purpose, you should not
 use the software in any way whatsoever, including but not limited to
@@ -447,7 +447,7 @@ downloading, viewing, copying, distributing, compiling, and running.
 If you have already downloaded it, you MUST destroy all of its copies.
 
 The Exception List is published by FMSoft
-on the following webpage and may be updated from time to time:
+in the following webpage and may be updated from time to time:
 
 https://www.fmsoft.cn/exception-list
 
