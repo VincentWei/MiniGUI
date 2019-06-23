@@ -408,7 +408,7 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     return init_info;
 
 err:
-    fprintf(stderr, "__mg_init_jpg error!\n");
+    _ERR_PRINTF("__mg_init_jpg error!\n");
     return NULL;
 }
 
@@ -653,6 +653,132 @@ static BYTE* MYBITMAP_get_pixel_row_RGBA(unsigned int next_scanline,
     return linebuffer;
 }
 
+/* Expanded data destination object for MG_RWops output */
+typedef struct {
+    struct jpeg_destination_mgr pub;  /* public fields */
+
+    MG_RWops * out_rwops;             /* target stream */
+    JOCTET * buffer;                  /* start of buffer */
+} my_destination_mgr;
+
+typedef my_destination_mgr * my_dest_ptr;
+
+#define OUTPUT_BUF_SIZE  4096    /* choose an efficiently fwrite'able size */
+
+/*
+ * Initialize destination --- called by jpeg_start_compress
+ * before any data is actually written.
+ */
+
+static void init_destination (j_compress_ptr cinfo)
+{
+    my_dest_ptr dest = (my_dest_ptr) cinfo->dest;
+
+    /* Allocate the output buffer --- it will be released when done with image */
+    dest->buffer = (JOCTET *)
+        (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
+                OUTPUT_BUF_SIZE * SIZEOF(JOCTET));
+
+    dest->pub.next_output_byte = dest->buffer;
+    dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
+}
+
+
+/*
+ * Empty the output buffer --- called whenever buffer fills up.
+ *
+ * In typical applications, this should write the entire output buffer
+ * (ignoring the current state of next_output_byte & free_in_buffer),
+ * reset the pointer & count to the start of the buffer, and return TRUE
+ * indicating that the buffer has been dumped.
+ *
+ * In applications that need to be able to suspend compression due to output
+ * overrun, a FALSE return indicates that the buffer cannot be emptied now.
+ * In this situation, the compressor will return to its caller (possibly with
+ * an indication that it has not accepted all the supplied scanlines).  The
+ * application should resume compression after it has made more room in the
+ * output buffer.  Note that there are substantial restrictions on the use of
+ * suspension --- see the documentation.
+ *
+ * When suspending, the compressor will back up to a convenient restart point
+ * (typically the start of the current MCU). next_output_byte & free_in_buffer
+ * indicate where the restart point will be if the current call returns FALSE.
+ * Data beyond this point will be regenerated after resumption, so do not
+ * write it out when emptying the buffer externally.
+ */
+
+static boolean empty_output_buffer (j_compress_ptr cinfo)
+{
+    my_dest_ptr dest = (my_dest_ptr) cinfo->dest;
+
+    if (MGUI_RWwrite(dest->out_rwops, dest->buffer, 1, OUTPUT_BUF_SIZE) !=
+            (size_t) OUTPUT_BUF_SIZE)
+        ERREXIT(cinfo, JERR_FILE_WRITE);
+
+    dest->pub.next_output_byte = dest->buffer;
+    dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
+
+    return TRUE;
+}
+
+
+/*
+ * Terminate destination --- called by jpeg_finish_compress
+ * after all data has been written.  Usually needs to flush buffer.
+ *
+ * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
+ * application must deal with any cleanup that should happen even
+ * for error exit.
+ */
+
+static void term_destination (j_compress_ptr cinfo)
+{
+    my_dest_ptr dest = (my_dest_ptr) cinfo->dest;
+    size_t datacount = OUTPUT_BUF_SIZE - dest->pub.free_in_buffer;
+
+    /* Write any data remaining in the buffer */
+    if (datacount > 0) {
+        if (MGUI_RWwrite(dest->out_rwops, dest->buffer, 1, datacount) != datacount)
+            ERREXIT(cinfo, JERR_FILE_WRITE);
+    }
+
+#if 0 /* TODO */
+    fflush(dest->out_rwops);
+    /* Make sure we wrote the output file OK */
+    if (ferror(dest->out_rwops))
+        ERREXIT(cinfo, JERR_FILE_WRITE);
+#endif
+}
+
+
+/*
+ * Prepare for output to MG_RWops stream.
+ * The caller must have already opened the stream, and is responsible
+ * for closing it after finishing compression.
+ */
+static void my_jpeg_data_dest (j_compress_ptr cinfo, MG_RWops * out_rwops)
+{
+    my_dest_ptr dest;
+
+    /* The destination object is made permanent so that multiple JPEG images
+     * can be written to the same file without re-executing jpeg_stdio_dest.
+     * This makes it dangerous to use this manager and a different destination
+     * manager serially with the same JPEG object, because their private object
+     * sizes may be different.  Caveat programmer.
+     */
+    if (cinfo->dest == NULL) {    /* first time for this JPEG object? */
+        cinfo->dest = (struct jpeg_destination_mgr *)
+            (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
+                    SIZEOF(my_destination_mgr));
+    }
+
+    dest = (my_dest_ptr) cinfo->dest;
+    dest->pub.init_destination = init_destination;
+    dest->pub.empty_output_buffer = empty_output_buffer;
+    dest->pub.term_destination = term_destination;
+    dest->out_rwops = out_rwops;
+}
+
 #ifndef _MGIMAGE_JPG_SAVE_QUALITY
 #define _MGIMAGE_JPG_SAVE_QUALITY 90
 #endif
@@ -670,7 +796,7 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
     /* Step 1: Allocate and initialize JPEG compression object */
     cinfo = calloc (1, sizeof(struct jpeg_compress_struct));
     if (NULL == cinfo) {
-        fprintf(stderr, "__fl_save_jpg allocation error!\n");
+        _ERR_PRINTF("__mg_save_jpg allocation error!\n");
         return ERR_BMP_MEM;
     }
     jpeg_create_compress(cinfo);
@@ -689,18 +815,24 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
 
     /* Establish the setjmp return context for my_error_exit to use. */
     if (setjmp (jerr->setjmp_buffer)) {
-        fprintf(stderr, "__fl_save_jpg error!\n");
+        _ERR_PRINTF("MYBMP>JPEG: failed to call setjmp!\n");
         goto do_finally;
     }
+
+#if 0
     /* not supported RWAREA_TYPE_MEM type,
      * because the MEM type object can not dynamic allocate memory,so it's not safe  */
     if(RWAREA_TYPE_STDIO != fp->type) {
-        fprintf(stderr, "unsupported type of MG_RWops,only support RWAREA_TYPE_STDIO so far\n");
+        _ERR_PRINTF("MYBMP>JPEG: unsupported type of MG_RWops!\n");
         longjmp (jerr->setjmp_buffer, 1);
     }
 
     /* Step 3: specify data source */
     jpeg_stdio_dest(cinfo, fp->hidden.stdio.fp);
+#else
+    /* Step 3: specify data source */
+    my_jpeg_data_dest(cinfo, fp);
+#endif
 
     /* Step 4: initialize JPEG compression object */
     /* for JPEG compression, supported color space : JCS_GRAYSCALE,JCS_RGB,JCS_YCbCr,JCS_CMYK,JCS_YCCK
@@ -745,13 +877,13 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
         get_row = MYBITMAP_get_pixel_row_RGBA;
         break;
     default:
-        fprintf(stderr, "invalid MYBITMAP.depth = %d\n",mybmp->depth);
+        _ERR_PRINTF("MYBMP>JPEG: invalid MYBITMAP.depth = %d\n",mybmp->depth);
         longjmp (jerr->setjmp_buffer, 1);
         break;
     }
 
     if (mybmp->depth <= 8 && NULL == pal) {
-        fprintf(stderr, "the 'pal' argument must not be NULL for index color space\n");
+        _ERR_PRINTF("MYBMP>JPEG: the 'pal' argument must not be NULL for index color space\n");
         longjmp (jerr->setjmp_buffer, 1);
     }
 
@@ -767,10 +899,9 @@ int __mg_save_jpg (MG_RWops* fp, MYBITMAP* mybmp, RGB* pal)
         linebuffer = (JSAMPROW)cinfo->mem->alloc_large
             ((j_common_ptr) cinfo, JPOOL_IMAGE,
             (((cinfo->image_width + 3) & ~3) * cinfo->input_components));
-        if(NULL == linebuffer)
-        {
+        if(NULL == linebuffer) {
             retcode = ERR_BMP_MEM;
-            fprintf(stderr, "libjpeg allocation error!\n");
+            _ERR_PRINTF("MYBMP>JPEG: failed to call libjpeg alloc_larg\n");
             longjmp (jerr->setjmp_buffer, 1);
         }
     }
