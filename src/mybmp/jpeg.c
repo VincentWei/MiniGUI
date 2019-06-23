@@ -627,6 +627,18 @@ static BYTE* MYBITMAP_get_pixel_row_BGR(unsigned int next_scanline,
 static BYTE* MYBITMAP_get_pixel_row_RGBA(unsigned int next_scanline,
         MYBITMAP* mybmp,RGB* pal,BYTE* linebuffer)
 {
+#if 1 /* just skip the alpha component */
+    int i, j;
+    BYTE* bits = mybmp->bits + mybmp->pitch * next_scanline;
+
+    for (i = 0, j = 0; i < mybmp->w; i++, j += 3) {
+        linebuffer[j    ]  = (JSAMPLE)(bits[i * 4 + 2]);  /* red */
+        linebuffer[j + 1]  = (JSAMPLE)(bits[i * 4 + 1]);  /* green */
+        linebuffer[j + 2]  = (JSAMPLE)(bits[i * 4]);      /* blue */
+    }
+
+    return (JSAMPROW)linebuffer;
+#else
     int i, j;
     RGB* bits = (RGB*)(mybmp->bits + mybmp->pitch * next_scanline);
     RGB pixel;
@@ -651,6 +663,7 @@ static BYTE* MYBITMAP_get_pixel_row_RGBA(unsigned int next_scanline,
         linebuffer[ j + 2 ] += (JSAMPLE)((Uint32)bgcolor.b * (255 - pixel.a) >> 8); /* blue  + background color */
     }
     return linebuffer;
+#endif
 }
 
 /* Expanded data destination object for MG_RWops output */
