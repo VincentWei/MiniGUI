@@ -686,7 +686,7 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         int scroll = AXIS_SCROLL_INVALID;
         int source = AXIS_SOURCE_INVALID;
         double tmp;
-        int value, value_discrete;
+        int value = 0, value_discrete = 0;
 
         ptr_event = libinput_event_get_pointer_event(event);
         li_source = libinput_event_pointer_get_axis_source(ptr_event);
