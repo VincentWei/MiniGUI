@@ -340,6 +340,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
     kernel_ReShowCursor ();
 #endif
 
+    extra.params_mask = 0;
     if ((n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
                 msg_queue?NULL:(&sel_timeout), &extra)) < 0) {
 
