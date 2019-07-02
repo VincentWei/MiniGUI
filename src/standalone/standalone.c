@@ -64,6 +64,35 @@
 #include "menu.h"
 #include "ourhdr.h"
 
+#ifndef __NOUNIX__
+
+#include <unistd.h>
+#include <poll.h>
+#include <sys/time.h>
+
+static struct timeval timeval_startup;
+static DWORD get_timer_count(const struct timeval* current)
+{
+    DWORD ds = (current->tv_sec - timeval_startup.tv_sec);
+    DWORD dms;
+
+    if (current->tv_sec == timeval_startup.tv_sec) {
+        dms = (current->tv_usec - timeval_startup.tv_usec) / 1000L;
+    }
+    else if (current->tv_usec >= timeval_startup.tv_usec) {
+        dms = (current->tv_usec - timeval_startup.tv_usec) / 1000L;
+    }
+    else {
+        assert(ds > 0);
+
+        ds--;
+        dms = 1000L - (timeval_startup.tv_usec - current->tv_usec) / 1000L;
+    }
+
+    return ds * 100 + dms / 10;
+}
+#endif
+
 extern DWORD __mg_timer_counter;
 static DWORD old_timer_counter = 0;
 
@@ -164,8 +193,12 @@ BOOL GUIAPI salone_StandAloneStartup (void)
     mg_fd_zero (&mg_rfdset);
     mg_maxfd = 0;
 
-#ifndef _MGGAL_BF533
+#if 0 /* VW: do not use signal based interval timer; since 4.0 */
     mg_InstallIntervalTimer ();
+#endif
+
+#ifndef __NOUNIX__
+    gettimeofday(&timeval_startup, NULL);
 #endif
 
     return TRUE;
@@ -173,7 +206,7 @@ BOOL GUIAPI salone_StandAloneStartup (void)
 
 void salone_StandAloneCleanup (void)
 {
-#ifndef _MGGAL_BF533
+#if 0 /* VW: do not use signal based interval timer; since 4.0 */
     mg_UninstallIntervalTimer ();
 #endif
 }
@@ -190,12 +223,19 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     struct timeval sel_timeout = {0, 10000};
 #elif defined (_MGGAL_BF533)
     struct timeval sel_timeout = {0, 100000};
+#else
+    struct timeval sel_timeout = {0, 10000};
 #endif
     struct timeval sel_timeout_nd = {0, 0};
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
+
+#ifndef __NOUNIX__
+    struct timeval timeval_current;
+    gettimeofday(&timeval_current, NULL);
+#endif
 
     if (old_timer_counter != __mg_timer_counter) {
         old_timer_counter = __mg_timer_counter;
@@ -212,6 +252,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
         esetptr = &eset;
     }
 
+    extra.params_mask = 0;
 #ifdef __NOUNIX__
     n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
                 msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
@@ -234,7 +275,9 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     }
 #else
     n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?NULL:&sel_timeout_nd, &extra);
+                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
+    /* update __mg_timer_counter */
+    __mg_timer_counter = get_timer_count(&timeval_current);
 #endif
 
     if (msg_queue == NULL)

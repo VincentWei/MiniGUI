@@ -40,7 +40,7 @@
 
 #include "common.h"
 #include "minigui.h"
-#include "newgal.h"
+#include "gal.h"
 #include "sysvideo.h"
 #include "blit.h"
 #include "pixels_c.h"
