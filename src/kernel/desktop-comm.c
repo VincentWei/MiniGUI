@@ -2012,7 +2012,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (wParam == SCANCODE_PRINTSCREEN && message == MSG_KEYDOWN) {
 #ifdef _MGMISC_SAVESCREEN
             static int n = 1;
-            char buffer[20];
+            char buffer[64]; // VM: 20 is too small for file name
 
             sprintf (buffer, "%p-%d.bmp", (lParam & KS_CTRL)?
                                     (HWND)active_mainwnd:
