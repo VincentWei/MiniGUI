@@ -740,6 +740,9 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     if (ret) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot set CRTC for connector %u (%d): %m\n",
             info->conn, errno);
+
+        drmModeFreeCrtc(this->hidden->saved_crtc);
+        this->hidden->saved_crtc = NULL;
         return NULL;
     }
 
