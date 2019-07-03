@@ -2672,6 +2672,7 @@ AC_MSG_NOTICE([
   * Runtime mode:       ${runtime_mode}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
+  * Target name:        ${with_targetname}
   * Cursor:             ${build_cursor_support}
 
 ## NEWGAL Engines:
