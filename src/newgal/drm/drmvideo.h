@@ -63,12 +63,17 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        pitch;
     uint32_t        size;
 
-    uint32_t        buff;
-    uint32_t        handle;
+    uint32_t        scanout_buff_id;
+    uint8_t*        scanout_fb;
 
     DrmModeInfo*    saved_info;
     drmModeCrtc*    saved_crtc;
-    uint8_t*        fb;
+
+    /* only valid when using DUMB frame buffer */
+    uint32_t        handle;
+
+    /* only valid when using DRM driver */
+    uint32_t        console_buff_id;
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRMVIDEO_H */

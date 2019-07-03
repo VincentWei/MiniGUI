@@ -99,20 +99,21 @@ typedef struct _DrmDriverOps {
     void (*destroy_driver) (DrmDriver *driver);
 
     uint32_t (* create_buffer) (DrmDriver *driver,
+            int depth, int bpp,
             unsigned int width, unsigned int  height,
-            unsigned int *pitch, BOOL as_fb);
+            unsigned int *pitch);
 
     BOOL (* fetch_buffer) (DrmDriver *driver,
             uint32_t  buffer_id,
             unsigned int *width, unsigned int *height,
             unsigned int *pitch);
 
-    BOOL (* map_buffer) (DrmDriver *driver,
+    uint8_t* (* map_buffer) (DrmDriver *driver,
             uint32_t  buffer_id);
     void (* unmap_buffer) (DrmDriver *driver,
             uint32_t buffer_id);
 
-    char * (* begin_flush) (DrmDriver *driver,
+    uint8_t * (* begin_flush) (DrmDriver *driver,
             uint32_t buffer_id);
 
     void (* end_flush) (DrmDriver *driver,
