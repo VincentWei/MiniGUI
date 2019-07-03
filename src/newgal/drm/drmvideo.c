@@ -253,29 +253,23 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     device_fd = drmOpen(driver_name, NULL);
     if (device_fd < 0) {
-        _ERR_PRINTF("drmOpen failed");
+        _ERR_PRINTF("NEWGAL>DRM: drmOpen failed\n");
         free(driver_name);
         return -errno;
     }
 
-    if (strcmp(driver_name, "i915") == 0) {
-        _DBG_PRINTF("NEWGAL>DRM: found driver: i915\n");
-        // XXX: built-in driver operators for i915.
-    }
-    else {
 #ifdef __TARGET_EXTERNAL__
-        device->hidden->driver_ops = __drm_ex_driver_get(driver_name);
+    device->hidden->driver_ops = __drm_ex_driver_get(driver_name);
 #endif
-    }
-
     free (driver_name);
+
     if (device->hidden->driver_ops == NULL) {
         uint64_t has_dumb;
 
         /* check whether supports dumb buffer */
         if (drmGetCap(device_fd, DRM_CAP_DUMB_BUFFER, &has_dumb) < 0 ||
                 !has_dumb) {
-            _WRN_PRINTF("the DRM device '%s' does not support dumb buffers\n",
+            _ERR_PRINTF("NEWGAL>DRM: the DRM device '%s' does not support dumb buffers\n",
                     device->hidden->dev_name);
             close(device_fd);
             return -EOPNOTSUPP;
@@ -288,7 +282,7 @@ static int open_drm_device(GAL_VideoDevice *device)
     device->hidden->dev_fd = device_fd;
     device->hidden->driver = device->hidden->driver_ops->create_driver(device_fd);
     if (device->hidden->driver == NULL) {
-        _WRN_PRINTF("failed to create DRM driver");
+        _WRN_PRINTF("NEWGAL>DRM: failed to create DRM driver");
         device->hidden->driver_ops = NULL;
     }
 
@@ -318,7 +312,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     if (GetMgEtcValue ("drm", "device",
             device->hidden->dev_name, LEN_DEVICE_NAME) < 0) {
         strcpy(device->hidden->dev_name, "/dev/dri/card0");
-        _WRN_PRINTF("No drm.device defined, use the default '/dev/dri/card0'");
+        _WRN_PRINTF("NEWGAL>DRM: No drm.device defined, use the default '/dev/dri/card0'");
     }
 
     device->hidden->dev_fd = -1;

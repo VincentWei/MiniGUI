@@ -100,7 +100,7 @@ typedef struct _DrmDriverOps {
 
     uint32_t (* create_buffer) (DrmDriver *driver,
             unsigned int width, unsigned int  height,
-            unsigned int *pitch);
+            unsigned int *pitch, BOOL as_fb);
 
     BOOL (* fetch_buffer) (DrmDriver *driver,
             uint32_t  buffer_id,
