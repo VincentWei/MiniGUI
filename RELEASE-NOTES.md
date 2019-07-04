@@ -3,10 +3,7 @@
 ## Version 4.0.0
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.0.
-However, currently, it is still in the beta/pre-release stage. We plan to
-release the first stable version about Jun. 2019.
-
-We now encourage the MiniGUI users to use this version for any new MiniGUI
+We strongly recommend that you use this version for any new MiniGUI
 apps, especially if the new features of MiniGUI 4.0.0 are must for your
 new apps.
 
@@ -35,22 +32,28 @@ rendering in order that MiniGUI can handle complex writing systems
 * We tuned and optimized MiniGUI's logical and device font interfaces to
   support the new features above.
 
-Another important features of this version are two engines dedicated to Linux
-kernel:
+* MiniGUI now is enhanced to support input events which may be generated
+  by input devices other than standard mouse (or single-touch panel) and
+  keyboard, such as multi-touch panel (gesture), joystick, tablet tool,
+  and switch. In MiniGUI 4.0, we introduce `MSG_EXIN_XXX` messages to support
+  the input events from devices other than standard mouse and keyboard. We
+  call these messages as 'extra input messages'.
+
+Another important features of this version are the new following engines:
 
 * The NEWGAL engine of `drm` to support modern DRM-driven graphics cards. By using
   `drm` engine, one MiniGUI app can now use the hardware-accelerated graphics
   rendering for 2D/3D graphics.
 * The IAL engine of `libinput` to support all modern input devices including
-  mouse, keyboard, joystick, switch, multiple touch panel, gesture, tablet tool,
-  and table pad. In MiniGUI 4.0, we introduce `MSG_EXIN_XXX` messages to support
-  the input events from devices other than standard mouse and keyboard. We
-  call these messages as 'extra input messages'.
+  mouse, keyboard, joystick, switch, multi-touch panel, gesture, tablet tool,
+  and table pad.
 * The enhanced IAL engine of `random` to generate extra input messages
   automatically for testing.
 
 At last, we introduced a Slice Memory Allocator for fast concurrent memory
 chunk allocation.
+
+The following sections will describe these new features in detail.
 
 #### New APIs conforming Unicode 12.0
 
@@ -274,9 +277,14 @@ Libdrm is a user-space library implements the Direct Rendering Manager.
 MiniGUI mainly uses this library to support the dumb frame buffer
 (no hardware acceleration).
 
-In order to support the hardware acceleration, you need to write some
-code for your graphics card or GPU as a sub driver of `drm` engine
-outside MiniGUI.
+To avoid modifying the MiniGUI source code when supporting new GPUs,
+the `drm` engine has adopted a scalable design.
+
+* You can directly use the `drm` engine to run MiniGUI on a GPU
+which supports dumb frame buffer.
+* When you want to take advantage of the hardware acceleration of
+your GPU, you can write some code for your GPU as a sub driver
+of `drm` engine outside MiniGUI.
 
 In this situation, you need to configure MiniGUI with the following
 option:
@@ -328,7 +336,7 @@ Currently, there are two built-in IAL engines which can generates
 the extra input messages:
 
 * The IAL engine of `libinput` to support all modern input devices on a
-Linux box. This engine runs on `libinput` introduced by FreeDestkop project.
+Linux box. This engine runs on `libinput` introduced by Free Desktop project.
 
 * The enhanced IAL engine of `random` to generate extra input messages
   automatically for testing.
@@ -409,7 +417,8 @@ generates a reasonable event sequence for each type. If and only if
 an event sequence finished or cancelled, the engine switch to another
 event type randomly.
 
-Note that currently, the following event types are not implemented:
+Note that currently, the following event types (in `random` engine)
+are not implemented:
 
  - `multi_touch`
  - `tablet_tool`
@@ -510,6 +519,7 @@ structure. You should use `GetACharType` instead.
 #### Deprecated features
 
 Support for FreeType1 was removed.
+
 You should always use FreeType2 to support vector fonts, such as TrueType
 fonts (TTF), TrueType collections (TTC), OpenType fonts (OTF, both TrueType
 and CFF variants), OpenType collections (OTC), and Type 1 fonts (PFA and PFB).
