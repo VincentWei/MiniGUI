@@ -11,7 +11,7 @@
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -1506,30 +1506,30 @@ int MiniGUIAppMain
 /** Desktop operation set */
 typedef struct _DESKTOPOPS {
 
-        /** called when starting a new session, and return a context */
-        void* (*init) (void);
+    /** called when starting a new session, and return a context */
+    void* (*init) (void);
 
-        /** called when terminating a seesion */
-        void (*deinit) (void* context);
+    /** called when terminating a seesion */
+    void (*deinit) (void* context);
 
-        /** called when the desktop should be repainted */
-        void (*paint_desktop) (void* context,
-				HDC dc_desktop, const RECT* inv_rc);
+    /** called when the desktop should be repainted */
+    void (*paint_desktop) (void* context,
+            HDC dc_desktop, const RECT* inv_rc);
 
-        /** the keyboard event handler for the desktop */
-        void (*keyboard_handler) (void* context,
-				int message, WPARAM wParam, LPARAM lParam);
+    /** the keyboard event handler for the desktop */
+    void (*keyboard_handler) (void* context,
+            int message, WPARAM wParam, LPARAM lParam);
 
-        /** the mouse event handler for the desktop */
-        void (*mouse_handler) (void* context,
-				int message, WPARAM wParam, LPARAM lParam);
+    /** the mouse event handler for the desktop */
+    void (*mouse_handler) (void* context,
+            int message, WPARAM wParam, LPARAM lParam);
 
-        /** the desktop menu customizer */
-        void (*customize_desktop_menu) (void* context,
-				                 HMENU hmenu, int start_pos);
+    /** the desktop menu customizer */
+    void (*customize_desktop_menu) (void* context,
+                             HMENU hmenu, int start_pos);
 
-        /** the desktop menu command handler */
-        void (*desktop_menucmd_handler) (void* context, int id);
+    /** the desktop menu command handler */
+    void (*desktop_menucmd_handler) (void* context, int id);
 } DESKTOPOPS;
 
 /**
@@ -1559,13 +1559,13 @@ typedef struct _DESKTOPOPS {
  * }
  *
  * static void this_keyboard_handler(void* context, int message,\
- *	                               WPARAM wParam, LPARAM lParam)
+ *                                   WPARAM wParam, LPARAM lParam)
  * {
  *     ......
  * }
  *
  * static void this_mouse_handler(void* context, int message,\
- *		                            WPARAM wParam, LPARAM lParam)
+ *                                    WPARAM wParam, LPARAM lParam)
  * {
  *     ......
  * }
@@ -2019,7 +2019,7 @@ MG_EXPORT int GUIAPI RemoveSectionInEtcFile (const char* pEtcFile,
  *                              etc object.
  */
 MG_EXPORT int GUIAPI SaveSectionToEtcFile (const char* pEtcFile,
-										   PETCSECTION psect);
+                                           PETCSECTION psect);
 /**
  * \fn GHANDLE GUIAPI LoadEtcFile (const char * pEtcFile)
  * \brief Loads an etc file into memory.

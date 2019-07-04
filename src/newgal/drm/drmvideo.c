@@ -760,7 +760,7 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     int ret;
 
     if (bpp != 32) {
-        _DBG_PRINTF("NEWGAL>DRM: force bpp (%d) to be 32\n", bpp);
+        _DBG_PRINTF("NEWGAL>DRM>DUMB: force bpp (%d) to be 32\n", bpp);
         bpp = 32;
     }
     depth = 24;
@@ -768,18 +768,18 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     /* find the connector+CRTC suitable for the resolution requested */
     info = find_mode(vdata, width, height);
     if (info == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
+        _ERR_PRINTF("NEWGAL>DRM>DUMB: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
             width, height, bpp);
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("NEWGAL>DRM>DUMB: going setting video mode: %dx%d-%dbpp\n",
             info->width, info->height, bpp);
 
     /* create a dumb framebuffer for current CRTC */
     ret = drm_create_dumb_fb(this->hidden, info, depth, bpp);
     if (ret) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot create dumb framebuffer\n");
+        _ERR_PRINTF("NEWGAL>DRM>DUMB: cannot create dumb framebuffer\n");
         return NULL;
     }
 
@@ -788,7 +788,7 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     ret = drmModeSetCrtc(vdata->dev_fd, info->crtc, vdata->scanout_buff_id, 0, 0,
                      &info->conn, 1, &info->mode);
     if (ret) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot set CRTC for connector %u (%d): %m\n",
+        _ERR_PRINTF ("NEWGAL>DRM>DUMB: cannot set CRTC for connector %u (%d): %m\n",
             info->conn, errno);
 
         drmModeFreeCrtc(this->hidden->saved_crtc);
@@ -801,11 +801,13 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     /* Set up the new mode framebuffer */
     /* Allocate the new pixel format for the screen */
     if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
-        _ERR_PRINTF ("NEWGAL>DRM: allocate new pixel format for requested mode\n");
+        _ERR_PRINTF ("NEWGAL>DRM>DUMB: "
+                "failed to allocate new pixel format for requested mode\n");
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: real screen mode: %dx%d-%dbpp\n", width, height, bpp);
+    _DBG_PRINTF("NEWGAL>DRM>DUMB: real screen mode: %dx%d-%dbpp\n",
+            width, height, bpp);
 
     current->flags = flags & GAL_FULLSCREEN;
     current->w = width;
@@ -837,7 +839,7 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     unsigned int pitch;
 
     if (bpp != 32) {
-        _DBG_PRINTF("NEWGAL>DRM: force bpp (%d) to be 32\n", bpp);
+        _DBG_PRINTF("NEWGAL>DRM>ACCL: force bpp (%d) to be 32\n", bpp);
         bpp = 32;
     }
     depth = 24;
@@ -845,17 +847,17 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     /* find the connector+CRTC suitable for the resolution requested */
     info = find_mode(vdata, width, height);
     if (info == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
+        _ERR_PRINTF("NEWGAL>DRM>ACCL: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
             width, height, bpp);
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("NEWGAL>DRM>ACCL: going setting video mode: %dx%d-%dbpp\n",
             info->width, info->height, bpp);
 
 #if 0
     if (drmSetMaster(this->hidden->dev_fd)) {
-        _ERR_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
+        _ERR_PRINTF("NEWGAL>DRM>ACCL: failed to call drmSetMaster: %m\n");
         return NULL;
     }
 #endif
@@ -876,11 +878,11 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     vdata->handle = 0;
     vdata->scanout_fb = vdata->driver_ops->map_buffer(vdata->driver, vdata->scanout_buff_id);
     if (vdata->scanout_fb == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot map scanout frame buffer: %m\n");
+        _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot map scanout frame buffer: %m\n");
         goto error;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: scanout frame buffer: size (%dx%d), pitch(%d)\n",
+    _DBG_PRINTF("NEWGAL>DRM>ACCL: scanout frame buffer: size (%dx%d), pitch(%d)\n",
             vdata->width, vdata->height, vdata->pitch);
 
     /* get console buffer id */
@@ -890,7 +892,7 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     /* perform actual modesetting on the found connector+CRTC */
     if (drmModeSetCrtc(vdata->dev_fd, info->crtc, vdata->scanout_buff_id, 0, 0,
                      &info->conn, 1, &info->mode)) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot set CRTC for connector %u (%d): %m\n",
+        _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot set CRTC for connector %u (%d): %m\n",
             info->conn, errno);
 
         goto error;
@@ -900,10 +902,13 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
 
     /* Allocate the new pixel format for the screen */
     if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
+        _ERR_PRINTF ("NEWGAL>DRM>ACCL: "
+                "failed to allocate new pixel format for requested mode\n");
         goto error;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: real screen mode: %dx%d-%dbpp\n", width, height, bpp);
+    _DBG_PRINTF("NEWGAL>DRM>ACCL: real screen mode: %dx%d-%dbpp\n",
+        width, height, bpp);
 
     current->flags = flags & GAL_FULLSCREEN;
     current->w = width;
