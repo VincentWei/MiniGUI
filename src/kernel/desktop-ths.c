@@ -168,7 +168,8 @@ void* DesktopMain (void* data)
         {
             PSYNCMSG pSyncMsg = (PSYNCMSG)(Msg.pAdd);
             pSyncMsg->retval = lRet;
-            sem_post(pSyncMsg->sem_handle);
+			if(pSyncMsg->sem_handle)
+	            sem_post(pSyncMsg->sem_handle);
         }
 
 #ifdef _MGHAVE_TRACE_MSG
