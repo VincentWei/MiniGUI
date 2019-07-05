@@ -38,7 +38,7 @@
 #define _DEBUG
 #include "common.h"
 
-#ifdef _MGGAL_DRM
+#ifdef _MGGAL_DRI
 
 #include <sys/mman.h>
 #include <sys/sysmacros.h>
@@ -54,7 +54,7 @@
 #include "exstubs.h"
 
 #include "pixels_c.h"
-#include "drmvideo.h"
+#include "drivideo.h"
 
 #define DRM_DRIVER_NAME "drm"
 
@@ -121,7 +121,7 @@ struct drm_mode_info {
  * drm_prepare(). It resets the CRTCs to their saved states and deallocates
  * all memory.
  */
-static void drm_cleanup(DrmVideoData* vdata)
+static void drm_cleanup(DriVideoData* vdata)
 {
     if (vdata->saved_crtc) {
         /* restore saved CRTC configuration */
@@ -259,7 +259,7 @@ static int open_drm_device(GAL_VideoDevice *device)
     }
 
 #ifdef __TARGET_EXTERNAL__
-    device->hidden->driver_ops = __drm_ex_driver_get(driver_name);
+    device->hidden->driver_ops = __dri_ex_driver_get(driver_name);
 #endif
     free (driver_name);
 
@@ -370,7 +370,7 @@ VideoBootStrap DRM_bootstrap = {
  * drm_find_crtc(vdata, res, conn, info):
  * This small helper tries to find a suitable CRTC for the given connector.
  */
-static int drm_find_crtc(DrmVideoData* vdata,
+static int drm_find_crtc(DriVideoData* vdata,
             drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *info)
 {
     drmModeEncoder *enc;
@@ -451,7 +451,7 @@ static int drm_find_crtc(DrmVideoData* vdata,
  * drm_setup_connector:
  * Set up a single connector.
  */
-static int drm_setup_connector(DrmVideoData* vdata,
+static int drm_setup_connector(DriVideoData* vdata,
             drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *info)
 {
     int ret;
@@ -492,7 +492,7 @@ static int drm_setup_connector(DrmVideoData* vdata,
  * drm_prepare:
  *  Collect the connnectors and mode information.
  */
-static int drm_prepare(DrmVideoData* vdata)
+static int drm_prepare(DriVideoData* vdata)
 {
     drmModeRes *res;
     drmModeConnector *conn;
@@ -614,7 +614,7 @@ static void DRM_VideoQuit(_THIS)
 
 static int DRM_Resume(_THIS)
 {
-    DrmVideoData* vdata = this->hidden;
+    DriVideoData* vdata = this->hidden;
     int ret = -1;
 
     _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
@@ -639,7 +639,7 @@ static int DRM_Resume(_THIS)
 
 static int DRM_Suspend(_THIS)
 {
-    DrmVideoData* vdata = this->hidden;
+    DriVideoData* vdata = this->hidden;
     int ret = -1;
 
     _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
@@ -670,7 +670,7 @@ static int DRM_Suspend(_THIS)
  * Call this function to create a so called "dumb buffer".
  * We can use it for unaccelerated software rendering on the CPU.
  */
-static int drm_create_dumb_fb(DrmVideoData* vdata, const DrmModeInfo* info,
+static int drm_create_dumb_fb(DriVideoData* vdata, const DrmModeInfo* info,
         int depth, int bpp)
 {
     struct drm_mode_create_dumb creq;
@@ -738,7 +738,7 @@ err_destroy:
     return ret;
 }
 
-static DrmModeInfo* find_mode(DrmVideoData* vdata, int width, int height)
+static DrmModeInfo* find_mode(DriVideoData* vdata, int width, int height)
 {
     DrmModeInfo *iter;
 
@@ -754,7 +754,7 @@ static DrmModeInfo* find_mode(DrmVideoData* vdata, int width, int height)
 static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
-    DrmVideoData* vdata = this->hidden;
+    DriVideoData* vdata = this->hidden;
     DrmModeInfo* info;
     int depth;
     int ret;
@@ -833,7 +833,7 @@ static void DRM_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface)
 static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags)
 {
-    DrmVideoData* vdata = this->hidden;
+    DriVideoData* vdata = this->hidden;
     DrmModeInfo* info;
     int depth;
     unsigned int pitch;
@@ -969,5 +969,5 @@ static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
     return 0;
 }
 
-#endif /* _MGGAL_DRM */
+#endif /* _MGGAL_DRI */
 

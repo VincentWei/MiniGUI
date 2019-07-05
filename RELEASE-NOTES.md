@@ -41,8 +41,8 @@ rendering in order that MiniGUI can handle complex writing systems
 
 Another important features of this version are the new following engines:
 
-* The NEWGAL engine of `drm` to support modern DRM-driven graphics cards. By using
-  `drm` engine, one MiniGUI app can now use the hardware-accelerated graphics
+* The NEWGAL engine of `dri` to support modern DRM-driven graphics cards. By using
+  `dri` engine, one MiniGUI app can now use the hardware-accelerated graphics
   rendering for 2D/3D graphics.
 * The IAL engine of `libinput` to support all modern input devices including
   mouse, keyboard, joystick, switch, multi-touch panel, gesture, tablet tool,
@@ -265,11 +265,11 @@ the glyph orientation:
 #### Support for Linux DRI
 
 In order to support modern graphics cards or GPU, we introduced a
-new NEWGAL engine of `drm`. The developer can use this engine to
+new NEWGAL engine of `dri`. The developer can use this engine to
 run MiniGUI apps on a Linux box on which the DRI
 (Direct Rendering Infrastructure) is enabled.
 
-The `drm` engine uses `libdrm` developed by Free Desktop project:
+The `dri` engine uses `libdrm` developed by Free Desktop project:
 
 https://dri.freedesktop.org/wiki/
 
@@ -278,13 +278,13 @@ MiniGUI mainly uses this library to support the dumb frame buffer
 (no hardware acceleration).
 
 To avoid modifying the MiniGUI source code when supporting new GPUs,
-the `drm` engine has adopted a scalable design.
+the `dri` engine has adopted a scalable design.
 
-* You can directly use the `drm` engine to run MiniGUI on a GPU
+* You can directly use the `dri` engine to run MiniGUI on a GPU
 which supports dumb frame buffer.
 * When you want to take advantage of the hardware acceleration of
 your GPU, you can write some code for your GPU as a sub driver
-of `drm` engine outside MiniGUI.
+of `dri` engine outside MiniGUI.
 
 In this situation, you need to configure MiniGUI with the following
 option:
@@ -297,24 +297,24 @@ The header file `<minigui/exstubs.h>` defines the operators (a set of
 callback functions) you need to implement for your GPU externally.
 
 As an example, we implement the sub driver for `i915` graphics chard
-in `mg-tests/drm-extra-input/`. Please refer to `mg-tests` repository.
+in `mg-tests/dri-engine/`. Please refer to `mg-tests` repository.
 
 To exploit the GPU's accelerated rendering capabilities, a MiniGUI app
 can use `cairo` and/or `OpenGL ES` to assist in rendering 2D/3D graphics
-when using the `drm` engine. We will provide some samples in `mg-tests`
+when using the `dri` engine. We will provide some samples in `mg-tests`
 or `mg-samples` for this purpose.
 
-Note that for `drm` engine, we introduce a new section in MiniGUI runtime
+Note that for `dri` engine, we introduce a new section in MiniGUI runtime
 configuration:
 
 ```
-[drm]
+[dri]
 defaultmode=1024x768-32bpp
 device=/dev/dri/card0
 dpi=96
 ```
 
-You can use the key `drm.device` to specify your DRI device.
+You can use the key `dri.device` to specify your DRI device.
 
 Also note that when you use the hardware accelerated sub driver, MiniGUI app
 may need the root privilege to call `drmSetMaster` to set the video mode.
@@ -330,7 +330,7 @@ table pad.
 The extra input messages have the prefix `MSG_EXIN_`. If a MiniGUI app
 want to handle these extra input events such as gestures, you need
 to handle the `MSG_EXIN_XXX` messages in the app. For examples, please
-refer to `mg-tests/drm-extra-input/`.
+refer to `mg-tests/extra-input/`.
 
 Currently, there are two built-in IAL engines which can generates
 the extra input messages:

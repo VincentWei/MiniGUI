@@ -31,8 +31,8 @@
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 
-#ifndef _NEWGAL_DRMVIDEO_H
-#define _NEWGAL_DRMVIDEO_H
+#ifndef _NEWGAL_DRIVIDEO_H
+#define _NEWGAL_DRIVIDEO_H
 
 #include <stdint.h>
 
@@ -51,8 +51,8 @@ typedef struct GAL_PrivateVideoData {
     char            dev_name[LEN_DEVICE_NAME + 1];
     int             dev_fd;
 
-    DrmDriverOps*   driver_ops;
-    DrmDriver*      driver;
+    DriDriverOps*   driver_ops;
+    DriDriver*      driver;
 
     DrmModeInfo*    mode_list;
     GAL_Rect**      modes;
@@ -74,7 +74,7 @@ typedef struct GAL_PrivateVideoData {
 
     /* only valid when using DRM driver */
     uint32_t        console_buff_id;
-} DrmVideoData;
+} DriVideoData;
 
-#endif /* _NEWGAL_DRMVIDEO_H */
+#endif /* _NEWGAL_DRIVIDEO_H */
 

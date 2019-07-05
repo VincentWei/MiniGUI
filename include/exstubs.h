@@ -84,49 +84,49 @@ struct commlcd_info {
 extern "C" {
 #endif  /* __cplusplus */
 
-#ifdef _MGGAL_DRM
+#ifdef _MGGAL_DRI
 
 #include <stdint.h>
 
 /*
  * this struct should be defined by the driver
  */
-struct _DrmDriver;
-typedef struct _DrmDriver DrmDriver;
+struct _DriDriver;
+typedef struct _DriDriver DriDriver;
 
-typedef struct _DrmDriverOps {
-    DrmDriver* (*create_driver) (int device_fd);
-    void (*destroy_driver) (DrmDriver *driver);
+typedef struct _DriDriverOps {
+    DriDriver* (*create_driver) (int device_fd);
+    void (*destroy_driver) (DriDriver *driver);
 
-    uint32_t (* create_buffer) (DrmDriver *driver,
+    uint32_t (* create_buffer) (DriDriver *driver,
             int depth, int bpp,
             unsigned int width, unsigned int  height,
             unsigned int *pitch);
 
-    BOOL (* fetch_buffer) (DrmDriver *driver,
+    BOOL (* fetch_buffer) (DriDriver *driver,
             uint32_t  buffer_id,
             unsigned int *width, unsigned int *height,
             unsigned int *pitch);
 
-    uint8_t* (* map_buffer) (DrmDriver *driver,
+    uint8_t* (* map_buffer) (DriDriver *driver,
             uint32_t  buffer_id);
-    void (* unmap_buffer) (DrmDriver *driver,
+    void (* unmap_buffer) (DriDriver *driver,
             uint32_t buffer_id);
 
-    uint8_t * (* begin_flush) (DrmDriver *driver,
+    uint8_t * (* begin_flush) (DriDriver *driver,
             uint32_t buffer_id);
 
-    void (* end_flush) (DrmDriver *driver,
+    void (* end_flush) (DriDriver *driver,
             uint32_t buffer_id);
 
-    void (* destroy_buffer) (DrmDriver *driver,
+    void (* destroy_buffer) (DriDriver *driver,
             uint32_t buffer_id);
-} DrmDriverOps;
+} DriDriverOps;
 
-/* implement this stub to return the DRM driver operators */
-DrmDriverOps* __drm_ex_driver_get (const char* driver_name);
+/* implement this stub to return the DRI driver operators */
+DriDriverOps* __dri_ex_driver_get (const char* driver_name);
 
-#endif /* _MGGAL_DRM */
+#endif /* _MGGAL_DRI */
 
 /* external stubs for COMMLCD NEWGAL engine */
 #ifdef _MGGAL_COMMLCD
