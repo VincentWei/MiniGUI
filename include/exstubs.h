@@ -96,11 +96,20 @@ typedef struct _DriDriver DriDriver;
 
 typedef struct _DriDriverOps {
     DriDriver* (*create_driver) (int device_fd);
+
     void (*destroy_driver) (DriDriver *driver);
 
+    /**
+     * This operator creates a buffer with the specified pixel format,
+     * width, and height. If succeed, a valid (not zero) buffer id
+     * and the picth (row stride in bytes) will be returned.
+     * If failed, it returns 0.
+     *
+     * \note The driver must implement this operator.
+     */
     uint32_t (* create_buffer) (DriDriver *driver,
             int depth, int bpp,
-            unsigned int width, unsigned int  height,
+            unsigned int width, unsigned int height,
             unsigned int *pitch);
 
     BOOL (* fetch_buffer) (DriDriver *driver,
@@ -108,19 +117,104 @@ typedef struct _DriDriverOps {
             unsigned int *width, unsigned int *height,
             unsigned int *pitch);
 
+    /**
+     * This operator maps the buffer into the current process virtual memory
+     * space, and returns the virtual address. If failed, it returns NULL.
+     *
+     * \note The driver must implement this operator.
+     */
     uint8_t* (* map_buffer) (DriDriver *driver,
             uint32_t  buffer_id);
+
+    /**
+     * This operator un-maps a buffer.
+     *
+     * \note The driver must implement this operator.
+     */
     void (* unmap_buffer) (DriDriver *driver,
             uint32_t buffer_id);
 
+#if 0
     uint8_t * (* begin_flush) (DriDriver *driver,
             uint32_t buffer_id);
 
     void (* end_flush) (DriDriver *driver,
             uint32_t buffer_id);
+#endif
 
+    /**
+     * This operator destroies a buffer.
+     *
+     * \note The driver must implement this operator.
+     */
     void (* destroy_buffer) (DriDriver *driver,
             uint32_t buffer_id);
+
+    /**
+     * This operator clears the specific rectangle area of a buffer
+     * with the specific pixel value. If succeed, it returns 0.
+     *
+     * \note If this operator is set as NULL, the driver does not support
+     * hardware accelerated clear operation.
+     */
+    int (* clear_buffer) (DriDriver *driver,
+            uint32_t buffer_id, const GAL_Rect* rc, uint32_t pixel_value);
+
+    /**
+     * This operator checks whether a hardware accelerated blit
+     * can be done between the source buffer and the destination buffer.
+     * If succeed, it returns 0.
+     *
+     * \note If this operator is set as NULL, it will be supposed that
+     * the driver does not support any hardware accelerated blit operation.
+     */
+    int (* check_blit) (DriDriver *driver,
+            uint32_t src_id, uint32_t dst_id);
+
+    /**
+     * This operator copies bits from a source buffer to a destination buffer.
+     *
+     * \note If this operator is set as NULL, the driver does not support
+     * hardware accelerated copy blit.
+     */
+    int (* copy_blit) (DriDriver *driver,
+            uint32_t src_id, const GAL_Rect* src_rc,
+            uint32_t dst_id, const GAL_Rect* dst_rc);
+
+    /**
+     * This operator blits pixles from a source buffer with the source alpha value
+     * specified to a destination buffer.
+     *
+     * \note If this operator is set as NULL, the driver does not support
+     * hardware accelerated blit with alpha.
+     */
+    int (* alpha_blit) (DriDriver *driver,
+            uint32_t src_id, const GAL_Rect* src_rc,
+            uint32_t dst_id, const GAL_Rect* dst_rc, uint8_t alpha);
+
+    /**
+     * This operator blits pixles from a source buffer to a destination buffer,
+     * but skipping the pixel value specified by \a color_key.
+     *
+     * \note If this operator is set as NULL, the driver does not support
+     * hardware accelerated blit with color key.
+     */
+    int (* key_blit) (DriDriver *driver,
+            uint32_t src_id, const GAL_Rect* src_rc,
+            uint32_t dst_id, const GAL_Rect* dst_rc, uint32_t color_key);
+
+    /**
+     * This operator blits pixles from a source buffer with the source alpha value
+     * specified to a destination buffer, but skipping the pixel value specified.
+     *
+     * \note If this operator is set as NULL, the driver does not support
+     * hardware accelerated blit with alpha and color key.
+     */
+    int (* alpha_key_blit) (DriDriver *driver,
+            uint32_t src_id, const GAL_Rect* src_rc,
+            uint32_t dst_id, const GAL_Rect* dst_rc,
+            uint8_t alpha, uint32_t color_key);
+
 } DriDriverOps;
 
 /* implement this stub to return the DRI driver operators */
