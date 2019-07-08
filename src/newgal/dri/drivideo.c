@@ -856,14 +856,14 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
 {
     DriVideoData* vdata = this->hidden;
     DrmModeInfo* info;
-    int depth;
+    enum DriPixelFormat pixel_format;
     unsigned int pitch;
 
     if (bpp != 32) {
         _DBG_PRINTF("NEWGAL>DRM>ACCL: force bpp (%d) to be 32\n", bpp);
         bpp = 32;
     }
-    depth = 24;
+    pixel_format = PIXEL_FORMAT_B8G8R8A8_UNORM;
 
     /* find the connector+CRTC suitable for the resolution requested */
     info = find_mode(vdata, width, height);
@@ -885,7 +885,7 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
 
     /* create the scanout buffer and set up it as frame buffer */
     vdata->scanout_buff_id =
-        vdata->driver_ops->create_buffer(vdata->driver, depth, bpp,
+        vdata->driver_ops->create_buffer(vdata->driver, pixel_format,
             info->width, info->height, &pitch);
     if (vdata->scanout_buff_id == 0) {
         goto error;
@@ -960,14 +960,21 @@ error:
     return NULL;
 }
 
+static enum DriPixelFormat translate_pixel_format(const GAL_PixelFormat *surface)
+{
+    // TODO: handle pixel format
+    return PIXEL_FORMAT_B8G8R8A8_UNORM;
+}
+
 static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
 {
     DriVideoData* vdata = this->hidden;
+    enum DriPixelFormat pixel_format;
     unsigned int pitch;
     uint32_t buff_id = 0;
 
-    // TODO: handle pixel format
-    buff_id = vdata->driver_ops->create_buffer(vdata->driver, 24, 32,
+    pixel_format = translate_pixel_format(surface->format);
+    buff_id = vdata->driver_ops->create_buffer(vdata->driver, pixel_format,
             surface->w, surface->h, &pitch);
     if (buff_id == 0) {
         return -1;

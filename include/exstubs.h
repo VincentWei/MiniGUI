@@ -94,6 +94,58 @@ extern "C" {
 struct _DriDriver;
 typedef struct _DriDriver DriDriver;
 
+enum DriPixelFormat {
+    PIXEL_FORMAT_NONE = 0,
+
+    /* Packed unorm formats */    /* msb <------ TEXEL BITS -----------> lsb */
+    /* ---- ---- ---- ---- ---- ---- ---- ---- */
+    PIXEL_FORMAT_A8B8G8R8_UNORM,   /* RRRR RRRR GGGG GGGG BBBB BBBB AAAA AAAA */
+    PIXEL_FORMAT_X8B8G8R8_UNORM,   /* RRRR RRRR GGGG GGGG BBBB BBBB xxxx xxxx */
+    PIXEL_FORMAT_R8G8B8A8_UNORM,   /* AAAA AAAA BBBB BBBB GGGG GGGG RRRR RRRR */
+    PIXEL_FORMAT_R8G8B8X8_UNORM,   /* xxxx xxxx BBBB BBBB GGGG GGGG RRRR RRRR */
+    PIXEL_FORMAT_B8G8R8A8_UNORM,   /* AAAA AAAA RRRR RRRR GGGG GGGG BBBB BBBB */
+    PIXEL_FORMAT_B8G8R8X8_UNORM,   /* xxxx xxxx RRRR RRRR GGGG GGGG BBBB BBBB */
+    PIXEL_FORMAT_A8R8G8B8_UNORM,   /* BBBB BBBB GGGG GGGG RRRR RRRR AAAA AAAA */
+    PIXEL_FORMAT_X8R8G8B8_UNORM,   /* BBBB BBBB GGGG GGGG RRRR RRRR xxxx xxxx */
+    PIXEL_FORMAT_B5G6R5_UNORM,                         /* RRRR RGGG GGGB BBBB */
+    PIXEL_FORMAT_R5G6B5_UNORM,                         /* BBBB BGGG GGGR RRRR */
+    PIXEL_FORMAT_B4G4R4A4_UNORM,                       /* AAAA RRRR GGGG BBBB */
+    PIXEL_FORMAT_B4G4R4X4_UNORM,                       /* xxxx RRRR GGGG BBBB */
+    PIXEL_FORMAT_A4R4G4B4_UNORM,                       /* BBBB GGGG RRRR AAAA */
+    PIXEL_FORMAT_A1B5G5R5_UNORM,                       /* RRRR RGGG GGBB BBBA */
+    PIXEL_FORMAT_X1B5G5R5_UNORM,                       /* BBBB BGGG GGRR RRRX */
+    PIXEL_FORMAT_B5G5R5A1_UNORM,                       /* ARRR RRGG GGGB BBBB */
+    PIXEL_FORMAT_B5G5R5X1_UNORM,                       /* xRRR RRGG GGGB BBBB */
+    PIXEL_FORMAT_A1R5G5B5_UNORM,                       /* BBBB BGGG GGRR RRRA */
+    PIXEL_FORMAT_A4B4G4R4_UNORM,                       /* RRRR GGGG BBBB AAAA */
+    PIXEL_FORMAT_R4G4B4A4_UNORM,                       /* AAAA BBBB GGGG RRRR */
+    PIXEL_FORMAT_R5G5B5A1_UNORM,                       /* ABBB BBGG GGGR RRRR */
+    PIXEL_FORMAT_B2G3R3_UNORM,                                   /* RRRG GGBB */
+    PIXEL_FORMAT_R3G3B2_UNORM,                                   /* BBGG GRRR */
+
+    PIXEL_FORMAT_YCBCR,            /*                     YYYY YYYY UorV UorV */
+    PIXEL_FORMAT_YCBCR_REV,        /*                     UorV UorV YYYY YYYY */
+};
+
+enum DriColorLogicOp {
+   COLOR_LOGICOP_CLEAR = 0,
+   COLOR_LOGICOP_NOR = 1,
+   COLOR_LOGICOP_AND_INVERTED = 2,
+   COLOR_LOGICOP_COPY_INVERTED = 3,
+   COLOR_LOGICOP_AND_REVERSE = 4,
+   COLOR_LOGICOP_INVERT = 5,
+   COLOR_LOGICOP_XOR = 6,
+   COLOR_LOGICOP_NAND = 7,
+   COLOR_LOGICOP_AND = 8,
+   COLOR_LOGICOP_EQUIV = 9,
+   COLOR_LOGICOP_NOOP = 10,
+   COLOR_LOGICOP_OR_INVERTED = 11,
+   COLOR_LOGICOP_COPY = 12,
+   COLOR_LOGICOP_OR_REVERSE = 13,
+   COLOR_LOGICOP_OR = 14,
+   COLOR_LOGICOP_SET = 15
+};
+
 typedef struct _DriDriverOps {
     DriDriver* (*create_driver) (int device_fd);
 
@@ -101,24 +153,24 @@ typedef struct _DriDriverOps {
 
     /**
      * This operator creates a buffer with the specified pixel format,
-     * width, and height. If succeed, a valid (not zero) buffer id
+     * width, and height. If succeed, a valid (not zero) buffer identifier
      * and the picth (row stride in bytes) will be returned.
      * If failed, it returns 0.
      *
      * \note The driver must implement this operator.
      */
     uint32_t (* create_buffer) (DriDriver *driver,
-            int depth, int bpp,
+            enum DriPixelFormat pixel_format,
             unsigned int width, unsigned int height,
             unsigned int *pitch);
 
     BOOL (* fetch_buffer) (DriDriver *driver,
-            uint32_t  buffer_id,
+            uint32_t buffer_id,
             unsigned int *width, unsigned int *height,
             unsigned int *pitch);
 
     /**
-     * This operator maps the buffer into the current process virtual memory
+     * This operator maps the buffer into the current process's virtual memory
      * space, and returns the virtual address. If failed, it returns NULL.
      *
      * \note The driver must implement this operator.
