@@ -275,10 +275,11 @@ https://dri.freedesktop.org/wiki/
 
 Libdrm is a user-space library implements the Direct Rendering Manager.
 MiniGUI mainly uses this library to support the dumb frame buffer
-(no hardware acceleration).
+(no hardware acceleration). However, you can write a driver for your
+graphics card or GPU to implement the hardware accelerated features.
 
 To avoid modifying the MiniGUI source code when supporting new GPUs,
-the `dri` engine has adopted a scalable design.
+the `dri` engine has adopted a scalable design:
 
 * You can directly use the `dri` engine to run MiniGUI on a GPU
 which supports dumb frame buffer.
@@ -316,10 +317,13 @@ dpi=96
 
 You can use the key `dri.device` to specify your DRI device.
 
+Currently, the `dir` NEWGAL engine does not provide support for MiniGUI-Processes
+run-time mode. We will enhance this in the subsequent version of MiniGUI.
+
 Also note that when you use the hardware accelerated sub driver, MiniGUI app
 may need the root privilege to call `drmSetMaster` to set the video mode.
-However, under MiniGUI-Processes run mode, only the server (`mginit`) needs
-this privilege.
+However, under MiniGUI-Processes run-time mode, only the server (`mginit`) will
+need this privilege when you use the future `dri` engine.
 
 #### Extra input messages
 
