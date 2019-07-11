@@ -288,12 +288,12 @@ PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *reflf)
     // create new devfont instance if need
     for (i = 0; i < MAXNR_DEVFONTS; i++) {
         DEVFONT* df = reflf->devfonts[i];
-        if (df->font_ops->new_instance)
-            newlf->devfonts[i] = df->font_ops->new_instance(newlf,
-                df, i == 0);
         if (df == NULL) {
             goto error;
         }
+        if (df->font_ops->new_instance)
+            newlf->devfonts[i] = df->font_ops->new_instance(newlf,
+                df, i == 0);
     }
 
     adjust_newlf_info(newlf);
