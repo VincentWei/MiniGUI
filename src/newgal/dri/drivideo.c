@@ -80,6 +80,7 @@ static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface);
 static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst);
 static int DRI_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
         Uint32 color);
+static void DRI_UpdateRects_Accl (_THIS, int numrects, GAL_Rect *rects);
 static int DRI_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
 static int DRI_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
 
@@ -334,33 +335,7 @@ static GAL_VideoDevice *DRI_CreateDevice(int devindex)
 #endif
         device->AllocHWSurface = DRI_AllocHWSurface_Accl;
         device->FreeHWSurface = DRI_FreeHWSurface_Accl;
-
-        if (device->hidden->driver_ops->clear_buffer) {
-            device->info.blit_fill = 1;
-            device->FillHWRect = DRI_FillHWRect_Accl;
-        }
-        else
-            device->FillHWRect = NULL;
-
-        if (device->hidden->driver_ops->check_blit) {
-            device->CheckHWBlit = DRI_CheckHWBlit_Accl;
-            device->SetHWColorKey = DRI_SetHWColorKey_Accl;
-            device->SetHWAlpha = DRI_SetHWAlpha_Accl;
-
-            device->info.blit_hw = 1;
-            if (device->hidden->driver_ops->alpha_blit)
-                device->info.blit_hw_A = 1;
-            if (device->hidden->driver_ops->key_blit)
-                device->info.blit_hw_CC = 1;
-        }
-        else {
-            device->CheckHWBlit = NULL;
-            device->SetHWColorKey = NULL;
-            device->SetHWAlpha = NULL;
-        }
-
-        device->Suspend = DRI_Suspend;
-        device->Resume = DRI_Resume;
+        device->UpdateRects = DRI_UpdateRects_Accl;
     }
     else {
         /* Use DUMB buffer */
@@ -369,16 +344,19 @@ static GAL_VideoDevice *DRI_CreateDevice(int devindex)
         device->RequestHWSurface = NULL;
 #endif
         device->AllocHWSurface = DRI_AllocHWSurface_Dumb;
-        device->CheckHWBlit = NULL;
-        device->FillHWRect = NULL;
-        device->SetHWColorKey = NULL;
-        device->SetHWAlpha = NULL;
         device->FreeHWSurface = DRI_FreeHWSurface_Dumb;
-        device->Suspend = DRI_Suspend;
-        device->Resume = DRI_Resume;
+        device->UpdateRects = NULL;
     }
 
+    /* set accelerated methods in DRI_VideoInit */
+    device->CheckHWBlit = NULL;
+    device->FillHWRect = NULL;
+    device->SetHWColorKey = NULL;
+    device->SetHWAlpha = NULL;
+    device->Suspend = DRI_Suspend;
+    device->Resume = DRI_Resume;
     device->free = DRI_DeleteDevice;
+
     return device;
 }
 
@@ -606,6 +584,33 @@ static int DRI_VideoInit(_THIS, GAL_PixelFormat *vformat)
 
     vformat->BitsPerPixel = 32;
     vformat->BytesPerPixel = 4;
+
+    if (this->hidden->driver) {
+        if (this->hidden->driver_ops->clear_buffer) {
+            _DBG_PRINTF("NEWGAL>DRM: blit_fill enabled\n");
+            this->info.blit_fill = 1;
+            this->FillHWRect = DRI_FillHWRect_Accl;
+        }
+        else
+            this->FillHWRect = NULL;
+
+        if (this->hidden->driver_ops->check_blit) {
+            this->CheckHWBlit = DRI_CheckHWBlit_Accl;
+            this->SetHWColorKey = DRI_SetHWColorKey_Accl;
+            this->SetHWAlpha = DRI_SetHWAlpha_Accl;
+
+            this->info.blit_hw = 1;
+            if (this->hidden->driver_ops->alpha_blit)
+                this->info.blit_hw_A = 1;
+            if (this->hidden->driver_ops->key_blit)
+                this->info.blit_hw_CC = 1;
+        }
+        else {
+            this->CheckHWBlit = NULL;
+            this->SetHWColorKey = NULL;
+            this->SetHWAlpha = NULL;
+        }
+    }
 
     /* We're done! */
     return(0);
@@ -857,6 +862,7 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     DriVideoData* vdata = this->hidden;
     DrmModeInfo* info;
     enum DriPixelFormat pixel_format;
+    DriSurfaceBuffer* scanout_buff;
     unsigned int pitch;
 
     if (bpp != 32) {
@@ -891,17 +897,19 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         goto error;
     }
 
+    scanout_buff = vdata->driver_ops->map_buffer(vdata->driver, vdata->scanout_buff_id);
+    if (scanout_buff == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot map scanout frame buffer: %m\n");
+        goto error;
+    }
+
     vdata->width = info->width;
     vdata->height = info->height;
     vdata->bpp = bpp;
     vdata->pitch = pitch;
     vdata->size = pitch * info->height;
     vdata->handle = 0;
-    vdata->scanout_fb = vdata->driver_ops->map_buffer(vdata->driver, vdata->scanout_buff_id);
-    if (vdata->scanout_fb == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot map scanout frame buffer: %m\n");
-        goto error;
-    }
+    vdata->scanout_fb = scanout_buff->pixels;
 
     _DBG_PRINTF("NEWGAL>DRM>ACCL: scanout frame buffer: size (%dx%d), pitch(%d)\n",
             vdata->width, vdata->height, vdata->pitch);
@@ -931,11 +939,12 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     _DBG_PRINTF("NEWGAL>DRM>ACCL: real screen mode: %dx%d-%dbpp\n",
         width, height, bpp);
 
-    current->flags = (GAL_FULLSCREEN | GAL_HWSURFACE);
+    current->flags |= (GAL_FULLSCREEN | GAL_HWSURFACE);
     current->w = width;
     current->h = height;
     current->pitch = this->hidden->pitch;
     current->pixels = this->hidden->scanout_fb;
+    current->hwdata = (struct private_hwdata *)scanout_buff;
 
     /* We're done */
     return(current);
@@ -972,6 +981,7 @@ static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
     enum DriPixelFormat pixel_format;
     unsigned int pitch;
     uint32_t buff_id = 0;
+    DriSurfaceBuffer* surface_buffer;
 
     pixel_format = translate_pixel_format(surface->format);
     buff_id = vdata->driver_ops->create_buffer(vdata->driver, pixel_format,
@@ -980,15 +990,16 @@ static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
         return -1;
     }
 
-    surface->pixels = vdata->driver_ops->map_buffer(vdata->driver, buff_id);
-    if (surface->pixels == NULL) {
+    surface_buffer = vdata->driver_ops->map_buffer(vdata->driver, buff_id);
+    if (surface_buffer == NULL) {
         _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot map hardware buffer: %m\n");
         goto error;
     }
 
+    surface->pixels = surface_buffer->pixels;
     surface->flags |= GAL_HWSURFACE;
     surface->pitch = pitch;
-    surface->hwdata = (struct private_hwdata *)(uintptr_t)buff_id;
+    surface->hwdata = (struct private_hwdata *)surface_buffer;
     return 0;
 
 error:
@@ -1001,11 +1012,12 @@ error:
 static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
 {
     DriVideoData* vdata = this->hidden;
-    uint32_t buff_id = (uint32_t)(uintptr_t)surface->hwdata;
+    DriSurfaceBuffer* surface_buffer;
 
-    if (buff_id) {
-        vdata->driver_ops->unmap_buffer(vdata->driver, buff_id);
-        vdata->driver_ops->destroy_buffer(vdata->driver, buff_id);
+    surface_buffer = (DriSurfaceBuffer*)surface->hwdata;
+    if (surface_buffer) {
+        vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer->buff_id);
+        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer->buff_id);
     }
 
     surface->pixels = NULL;
@@ -1017,28 +1029,30 @@ static int DRI_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
 {
     GAL_VideoDevice *this = current_video;
     DriVideoData* vdata = this->hidden;
-    uint32_t src_id = (uint32_t)(uintptr_t)src->hwdata;
-    uint32_t dst_id = (uint32_t)(uintptr_t)dst->hwdata;
+    DriSurfaceBuffer *src_buf, *dst_buf;
+
+    src_buf = (DriSurfaceBuffer*)src->hwdata;
+    dst_buf = (DriSurfaceBuffer*)dst->hwdata;
 
     if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
             (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         return vdata->driver_ops->alpha_key_blit(vdata->driver,
-            src_id, src_rc, dst_id, dst_rc,
+            src_buf, src_rc, dst_buf, dst_rc,
             src->format->alpha, src->format->colorkey);
     }
     else if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
         return vdata->driver_ops->alpha_blit(vdata->driver,
-            src_id, src_rc, dst_id, dst_rc,
+            src_buf, src_rc, dst_buf, dst_rc,
             src->format->alpha);
     }
     else if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         return vdata->driver_ops->key_blit(vdata->driver,
-            src_id, src_rc, dst_id, dst_rc,
+            src_buf, src_rc, dst_buf, dst_rc,
             src->format->colorkey);
     }
     else {
         return vdata->driver_ops->copy_blit(vdata->driver,
-            src_id, src_rc, dst_id, dst_rc);
+            src_buf, src_rc, dst_buf, dst_rc);
     }
 
     return 0;
@@ -1047,9 +1061,11 @@ static int DRI_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
 static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
 {
     DriVideoData* vdata = this->hidden;
-    uint32_t src_id = (uint32_t)(uintptr_t)src->hwdata;
-    uint32_t dst_id = (uint32_t)(uintptr_t)dst->hwdata;
+    DriSurfaceBuffer *src_buf, *dst_buf;
     int accelerated;
+
+    src_buf = (DriSurfaceBuffer*)src->hwdata;
+    dst_buf = (DriSurfaceBuffer*)dst->hwdata;
 
     /* Set initial acceleration on */
     src->flags |= GAL_HWACCEL;
@@ -1075,7 +1091,7 @@ static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
     /* Check to see if final surface blit is accelerated */
     accelerated = !!(src->flags & GAL_HWACCEL);
     if (accelerated &&
-            vdata->driver_ops->check_blit(vdata->driver, src_id, dst_id) == 0) {
+            vdata->driver_ops->check_blit(vdata->driver, src_buf, dst_buf) == 0) {
         src->map->hw_blit = DRI_HWBlit;
     }
     else
@@ -1088,9 +1104,18 @@ static int DRI_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
         Uint32 color)
 {
     DriVideoData* vdata = this->hidden;
-    uint32_t dst_id = (uint32_t)(uintptr_t)dst->hwdata;
+    DriSurfaceBuffer *dst_buf;
 
-    return vdata->driver_ops->clear_buffer(vdata->driver, dst_id, rect, color);
+    dst_buf = (DriSurfaceBuffer*)dst->hwdata;
+    return vdata->driver_ops->clear_buffer(vdata->driver, dst_buf, rect, color);
+}
+
+static void DRI_UpdateRects_Accl (_THIS, int numrects, GAL_Rect *rects)
+{
+    DriVideoData* vdata = this->hidden;
+
+    if (vdata->driver_ops->flush_driver)
+        vdata->driver_ops->flush_driver(vdata->driver);
 }
 
 static int DRI_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)

@@ -85,6 +85,8 @@ void _dc_fillbox_clip (PDC pdc, const GAL_Rect* rect)
         while (cliprect) {
             if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)) {
                 SET_GAL_CLIPRECT (pdc, eff_rc);
+                _DBG_PRINTF("%s (%d, %d, %d, %d)\n",
+                    __func__, rect->x, rect->y, rect->w, rect->h);
                 GAL_FillRect (pdc->surface, rect, pdc->cur_pixel);
             }
             cliprect = cliprect->next;
@@ -179,7 +181,7 @@ void GUIAPI FillBox (HDC hdc, int x, int y, int w, int h)
     PDC pdc;
     GAL_Rect rect;
 
-    if (w<=0 || h<=0) {
+    if (w <= 0 || h <= 0) {
         return;
     }
 
@@ -209,7 +211,7 @@ void GUIAPI FillBox (HDC hdc, int x, int y, int w, int h)
 #else
     _dc_fillbox_clip (pdc, &rect);
 #endif
-    
+
     LEAVE_DRAWING (pdc);
     UNLOCK_GCRINFO (pdc);
 }

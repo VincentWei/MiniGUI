@@ -88,12 +88,36 @@ extern "C" {
 
 #include <stdint.h>
 
-/*
- * this struct should be defined by the driver
+/**
+ * The struct type represents the DRI sub driver.
+ * The concrete struct should be defined by the driver.
  */
 struct _DriDriver;
 typedef struct _DriDriver DriDriver;
 
+/**
+ * The struct type represents the bufffer can be used by
+ * MiniGUI NEWGAL engine for hardware surface.
+ */
+typedef struct _DriSurfaceBuffer {
+    uint32_t buff_id;
+    uint32_t width;
+    uint32_t height;
+    uint32_t pitch;
+
+    uint32_t pixel_format:8;
+    uint32_t depth:8;
+    uint32_t bpp:8;
+    uint32_t cpp:8;
+
+    uint8_t* pixels;
+} DriSurfaceBuffer;
+
+/**
+ * The pixel formats of the surface.
+ * MiniGUI NEWGAL engine for hardware surface.
+ * This concrete struct should be defined by the driver.
+ */
 enum DriPixelFormat {
     PIXEL_FORMAT_NONE = 0,
 
@@ -147,9 +171,26 @@ enum DriColorLogicOp {
 };
 
 typedef struct _DriDriverOps {
+    /**
+     * This operator creates the DriDriver object.
+     *
+     * \note The driver must implement this operator.
+     */
     DriDriver* (*create_driver) (int device_fd);
 
+    /**
+     * This operator destroies the DriDriver object.
+     *
+     * \note The driver must implement this operator.
+     */
     void (*destroy_driver) (DriDriver *driver);
+
+    /**
+     * This operator flushs the batch buffer of the driver or the hardware cache.
+     *
+     * \note This operator can be NULL.
+     */
+    void (* flush_driver) (DriDriver *driver);
 
     /**
      * This operator creates a buffer with the specified pixel format,
@@ -175,32 +216,22 @@ typedef struct _DriDriverOps {
      *
      * \note The driver must implement this operator.
      */
-    uint8_t* (* map_buffer) (DriDriver *driver,
-            uint32_t  buffer_id);
+    DriSurfaceBuffer* (* map_buffer) (DriDriver *driver,
+            uint32_t buffer_id);
 
     /**
      * This operator un-maps a buffer.
      *
      * \note The driver must implement this operator.
      */
-    void (* unmap_buffer) (DriDriver *driver,
-            uint32_t buffer_id);
-
-#if 0
-    uint8_t * (* begin_flush) (DriDriver *driver,
-            uint32_t buffer_id);
-
-    void (* end_flush) (DriDriver *driver,
-            uint32_t buffer_id);
-#endif
+    void (* unmap_buffer) (DriDriver *driver, uint32_t buffer_id);
 
     /**
      * This operator destroies a buffer.
      *
      * \note The driver must implement this operator.
      */
-    void (* destroy_buffer) (DriDriver *driver,
-            uint32_t buffer_id);
+    void (* destroy_buffer) (DriDriver *driver, uint32_t buffer_id);
 
     /**
      * This operator clears the specific rectangle area of a buffer
@@ -210,7 +241,7 @@ typedef struct _DriDriverOps {
      * hardware accelerated clear operation.
      */
     int (* clear_buffer) (DriDriver *driver,
-            uint32_t buffer_id, const GAL_Rect* rc, uint32_t pixel_value);
+            DriSurfaceBuffer* dst_buf, const GAL_Rect* rc, uint32_t pixel_value);
 
     /**
      * This operator checks whether a hardware accelerated blit
@@ -221,7 +252,7 @@ typedef struct _DriDriverOps {
      * the driver does not support any hardware accelerated blit operation.
      */
     int (* check_blit) (DriDriver *driver,
-            uint32_t src_id, uint32_t dst_id);
+            DriSurfaceBuffer* src_buf, DriSurfaceBuffer* dst_buf);
 
     /**
      * This operator copies bits from a source buffer to a destination buffer.
@@ -230,8 +261,8 @@ typedef struct _DriDriverOps {
      * hardware accelerated copy blit.
      */
     int (* copy_blit) (DriDriver *driver,
-            uint32_t src_id, const GAL_Rect* src_rc,
-            uint32_t dst_id, const GAL_Rect* dst_rc);
+            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc);
 
     /**
      * This operator blits pixles from a source buffer with the source alpha value
@@ -241,8 +272,8 @@ typedef struct _DriDriverOps {
      * hardware accelerated blit with alpha.
      */
     int (* alpha_blit) (DriDriver *driver,
-            uint32_t src_id, const GAL_Rect* src_rc,
-            uint32_t dst_id, const GAL_Rect* dst_rc, uint8_t alpha);
+            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint8_t alpha);
 
     /**
      * This operator blits pixles from a source buffer to a destination buffer,
@@ -252,8 +283,8 @@ typedef struct _DriDriverOps {
      * hardware accelerated blit with color key.
      */
     int (* key_blit) (DriDriver *driver,
-            uint32_t src_id, const GAL_Rect* src_rc,
-            uint32_t dst_id, const GAL_Rect* dst_rc, uint32_t color_key);
+            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint32_t color_key);
 
     /**
      * This operator blits pixles from a source buffer with the source alpha value
@@ -263,8 +294,8 @@ typedef struct _DriDriverOps {
      * hardware accelerated blit with alpha and color key.
      */
     int (* alpha_key_blit) (DriDriver *driver,
-            uint32_t src_id, const GAL_Rect* src_rc,
-            uint32_t dst_id, const GAL_Rect* dst_rc,
+            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
             uint8_t alpha, uint32_t color_key);
 
 } DriDriverOps;
