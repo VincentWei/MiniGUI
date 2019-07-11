@@ -143,8 +143,9 @@ static void drm_cleanup(DriVideoData* vdata)
 
     if (vdata->scanout_fb) {
         if (vdata->driver_ops) {
-            vdata->driver_ops->unmap_buffer(vdata->driver, vdata->scanout_buff_id);
-            vdata->driver_ops->destroy_buffer(vdata->driver, vdata->scanout_buff_id);
+            // do nothing for hardware surface.
+            // vdata->driver_ops->unmap_buffer(vdata->driver, vdata->scanout_buff_id);
+            // vdata->driver_ops->destroy_buffer(vdata->driver, vdata->scanout_buff_id);
         }
         else {
             /* dumb buffer */
@@ -183,7 +184,6 @@ static void drm_cleanup(DriVideoData* vdata)
         /* free allocated memory */
         free(iter);
     }
-
 }
 
 static void DRI_DeleteDevice(GAL_VideoDevice *device)
@@ -862,7 +862,7 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     DriVideoData* vdata = this->hidden;
     DrmModeInfo* info;
     enum DriPixelFormat pixel_format;
-    DriSurfaceBuffer* scanout_buff;
+    DriSurfaceBuffer* scanout_buff = NULL;
     unsigned int pitch;
 
     if (bpp != 32) {
@@ -956,8 +956,8 @@ error:
         vdata->saved_crtc = NULL;
     }
 
-    if (vdata->scanout_fb) {
-        vdata->driver_ops->unmap_buffer(vdata->driver, vdata->scanout_buff_id);
+    if (scanout_buff) {
+        vdata->driver_ops->unmap_buffer(vdata->driver, scanout_buff);
         vdata->scanout_fb = NULL;
     }
 
@@ -1016,7 +1016,7 @@ static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
 
     surface_buffer = (DriSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
-        vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer->buff_id);
+        vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
         vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer->buff_id);
     }
 

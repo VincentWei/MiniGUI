@@ -224,7 +224,7 @@ typedef struct _DriDriverOps {
      *
      * \note The driver must implement this operator.
      */
-    void (* unmap_buffer) (DriDriver *driver, uint32_t buffer_id);
+    void (* unmap_buffer) (DriDriver *driver, DriSurfaceBuffer* buffer);
 
     /**
      * This operator destroies a buffer.
