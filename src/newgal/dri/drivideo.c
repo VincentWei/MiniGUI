@@ -46,6 +46,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <drm/drm.h>
+#include <drm/drm_fourcc.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
@@ -587,7 +588,6 @@ static int DRI_VideoInit(_THIS, GAL_PixelFormat *vformat)
 
     if (this->hidden->driver) {
         if (this->hidden->driver_ops->clear_buffer) {
-            _DBG_PRINTF("NEWGAL>DRM: blit_fill enabled\n");
             this->info.blit_fill = 1;
             this->FillHWRect = DRI_FillHWRect_Accl;
         }
@@ -697,11 +697,12 @@ static int DRI_Suspend(_THIS)
  * We can use it for unaccelerated software rendering on the CPU.
  */
 static int drm_create_dumb_fb(DriVideoData* vdata, const DrmModeInfo* info,
-        int depth, int bpp)
+        uint32_t format, int bpp)
 {
     struct drm_mode_create_dumb creq;
     struct drm_mode_destroy_dumb dreq;
     struct drm_mode_map_dumb mreq;
+    uint32_t handles[4], pitches[4], offsets[4];
     int ret;
 
     /* create dumb buffer */
@@ -724,8 +725,12 @@ static int drm_create_dumb_fb(DriVideoData* vdata, const DrmModeInfo* info,
     vdata->handle = creq.handle;
 
     /* create framebuffer object for the dumb-buffer */
-    ret = drmModeAddFB(vdata->dev_fd, vdata->width, vdata->height, depth, bpp,
-                 vdata->pitch, vdata->handle, &vdata->scanout_buff_id);
+    handles[0] = vdata->handle;
+    pitches[0] = vdata->pitch;
+    offsets[0] = 0;
+
+    ret = drmModeAddFB2(vdata->dev_fd, vdata->width, vdata->height, format,
+            handles, pitches, offsets, &vdata->scanout_buff_id, 0);
     if (ret) {
         _ERR_PRINTF("NEWGAL>DRM: cannot create framebuffer (%d): %m\n",
             errno);
@@ -776,36 +781,526 @@ static DrmModeInfo* find_mode(DriVideoData* vdata, int width, int height)
     return NULL;
 }
 
+static inline uint32_t get_def_drm_format(int bpp)
+{
+    switch (bpp) {
+    case 32:
+        return DRM_FORMAT_XRGB8888;
+    case 24:
+        return DRM_FORMAT_RGB888;
+    case 16:
+        return DRM_FORMAT_RGB565;
+    case 8:
+        return DRM_FORMAT_RGB332;
+    default:
+        break;
+    }
+
+    return DRM_FORMAT_RGB565;
+}
+
+static uint32_t get_drm_format_from_etc(int* bpp)
+{
+    uint32_t format;
+    char fourcc[8] = {};
+
+    if (GetMgEtcValue ("dri", "pixelformat",
+            fourcc, 4) < 0) {
+        return get_def_drm_format(*bpp);
+    }
+
+    format = fourcc_code(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
+    switch (format) {
+    case DRM_FORMAT_RGB332:
+    case DRM_FORMAT_BGR233:
+        *bpp = 8;
+        break;
+
+    case DRM_FORMAT_XRGB4444:
+    case DRM_FORMAT_XBGR4444:
+    case DRM_FORMAT_RGBX4444:
+    case DRM_FORMAT_BGRX4444:
+    case DRM_FORMAT_ARGB4444:
+    case DRM_FORMAT_ABGR4444:
+    case DRM_FORMAT_RGBA4444:
+    case DRM_FORMAT_BGRA4444:
+    case DRM_FORMAT_XRGB1555:
+    case DRM_FORMAT_XBGR1555:
+    case DRM_FORMAT_RGBX5551:
+    case DRM_FORMAT_BGRX5551:
+    case DRM_FORMAT_ARGB1555:
+    case DRM_FORMAT_ABGR1555:
+    case DRM_FORMAT_RGBA5551:
+    case DRM_FORMAT_BGRA5551:
+    case DRM_FORMAT_RGB565:
+    case DRM_FORMAT_BGR565:
+        *bpp = 16;
+        break;
+
+    case DRM_FORMAT_RGB888:
+    case DRM_FORMAT_BGR888:
+        *bpp = 24;
+        break;
+
+    case DRM_FORMAT_XRGB8888:
+    case DRM_FORMAT_XBGR8888:
+    case DRM_FORMAT_RGBX8888:
+    case DRM_FORMAT_BGRX8888:
+    case DRM_FORMAT_ARGB8888:
+    case DRM_FORMAT_ABGR8888:
+    case DRM_FORMAT_RGBA8888:
+    case DRM_FORMAT_BGRA8888:
+#if 0
+    case DRM_FORMAT_XRGB2101010:
+    case DRM_FORMAT_XBGR2101010:
+    case DRM_FORMAT_RGBX1010102:
+    case DRM_FORMAT_BGRX1010102:
+    case DRM_FORMAT_ARGB2101010:
+    case DRM_FORMAT_ABGR2101010:
+    case DRM_FORMAT_RGBA1010102:
+    case DRM_FORMAT_BGRA1010102:
+#endif
+        *bpp = 32;
+        break;
+    default:
+        _ERR_PRINTF("NEWGAL>DRM: not supported pixel format: %s\n",
+            fourcc);
+        return 0;
+        break;
+    }
+
+    return format;
+}
+
+struct rgbamasks_drm_format_map {
+    uint32_t drm_format;
+    Uint32 Rmask, Gmask, Bmask, Amask;
+};
+
+static struct rgbamasks_drm_format_map _format_map_8bpp [] = {
+    { DRM_FORMAT_RGB332,    0xE0, 0x1C, 0x03, 0x00 },
+    { DRM_FORMAT_BGR233,    0x0E, 0x38, 0xC0, 0x00 },
+};
+
+static struct rgbamasks_drm_format_map _format_map_16bpp [] = {
+    { DRM_FORMAT_XRGB4444,  0x0F00, 0x00F0, 0x000F, 0x0000 },
+    { DRM_FORMAT_XBGR4444,  0x000F, 0x00F0, 0x0F00, 0x0000 },
+    { DRM_FORMAT_RGBX4444,  0xF000, 0x0F00, 0x00F0, 0x0000 },
+    { DRM_FORMAT_BGRX4444,  0x00F0, 0x0F00, 0xF000, 0x0000 },
+    { DRM_FORMAT_ARGB4444,  0x0F00, 0x00F0, 0x000F, 0xF000 },
+    { DRM_FORMAT_ABGR4444,  0x000F, 0x00F0, 0x0F00, 0xF000 },
+    { DRM_FORMAT_RGBA4444,  0xF000, 0x0F00, 0x00F0, 0x000F },
+    { DRM_FORMAT_BGRA4444,  0x00F0, 0x0F00, 0xF000, 0x000F },
+    { DRM_FORMAT_XRGB1555,  0x7C00, 0x03E0, 0x001F, 0x0000 },
+    { DRM_FORMAT_XBGR1555,  0x001F, 0x03E0, 0x7C00, 0x0000 },
+    { DRM_FORMAT_RGBX5551,  0xF800, 0x07C0, 0x003E, 0x0000 },
+    { DRM_FORMAT_BGRX5551,  0x003E, 0x07C0, 0xF800, 0x0000 },
+    { DRM_FORMAT_ARGB1555,  0x7C00, 0x03E0, 0x001F, 0x8000 },
+    { DRM_FORMAT_ABGR1555,  0x001F, 0x03E0, 0x7C00, 0x8000 },
+    { DRM_FORMAT_RGBA5551,  0xF800, 0x07C0, 0x003E, 0x0001 },
+    { DRM_FORMAT_BGRA5551,  0x003E, 0x07C0, 0xF800, 0x0001 },
+    { DRM_FORMAT_RGB565,    0xF800, 0x07E0, 0x001F, 0x0000 },
+    { DRM_FORMAT_BGR565,    0x001F, 0x07E0, 0xF800, 0x0000 },
+};
+
+static struct rgbamasks_drm_format_map _format_map_24bpp [] = {
+    { DRM_FORMAT_RGB888,    0xFF0000, 0x00FF00, 0x0000FF, 0x000000 },
+    { DRM_FORMAT_BGR888,    0x0000FF, 0x00FF00, 0xFF0000, 0x000000 },
+};
+
+static struct rgbamasks_drm_format_map _format_map_32bpp [] = {
+    { DRM_FORMAT_XRGB8888,  0x00FF0000, 0x0000FF00, 0x000000FF, 0x00000000 },
+    { DRM_FORMAT_XBGR8888,  0x000000FF, 0x0000FF00, 0x00FF0000, 0x00000000 },
+    { DRM_FORMAT_RGBX8888,  0xFF000000, 0x00FF0000, 0x0000FF00, 0x00000000 },
+    { DRM_FORMAT_BGRX8888,  0x0000FF00, 0x00FF0000, 0xFF000000, 0x00000000 },
+    { DRM_FORMAT_ARGB8888,  0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000 },
+    { DRM_FORMAT_ABGR8888,  0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000 },
+    { DRM_FORMAT_RGBA8888,  0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF },
+    { DRM_FORMAT_BGRA8888,  0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF },
+};
+
+static uint32_t translate_gal_format(const GAL_PixelFormat *gal_format)
+{
+    struct rgbamasks_drm_format_map* map;
+    size_t i, n;
+
+    switch (gal_format->BitsPerPixel) {
+    case 8:
+        map = _format_map_8bpp;
+        n = TABLESIZE(_format_map_8bpp);
+        break;
+
+    case 16:
+        map = _format_map_16bpp;
+        n = TABLESIZE(_format_map_16bpp);
+        break;
+
+    case 24:
+        map = _format_map_24bpp;
+        n = TABLESIZE(_format_map_24bpp);
+        break;
+
+    case 32:
+        map = _format_map_32bpp;
+        n = TABLESIZE(_format_map_32bpp);
+        break;
+
+    default:
+        return 0;
+    }
+
+    for (i = 0; i < n; i++) {
+        if (gal_format->Rmask == map[i].Rmask &&
+                gal_format->Gmask == map[i].Gmask &&
+                gal_format->Bmask == map[i].Bmask &&
+                gal_format->Amask == map[i].Amask) {
+            return map[i].drm_format;
+        }
+    }
+
+    return 0;
+}
+
+static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
+{
+    int bpp = 0;
+
+    switch (drm_format) {
+    case DRM_FORMAT_RGB332:
+        RGBAmasks[0] = 0xE0;
+        RGBAmasks[1] = 0x1C;
+        RGBAmasks[2] = 0x03;
+        RGBAmasks[3] = 0x00;
+        bpp = 8;
+        break;
+
+    case DRM_FORMAT_BGR233:
+        RGBAmasks[0] = 0x0E;
+        RGBAmasks[1] = 0x38;
+        RGBAmasks[2] = 0xC0;
+        RGBAmasks[3] = 0x00;
+        bpp = 8;
+        break;
+
+    case DRM_FORMAT_XRGB4444:
+        RGBAmasks[0] = 0x0F00;
+        RGBAmasks[1] = 0x00F0;
+        RGBAmasks[2] = 0x000F;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_XBGR4444:
+        RGBAmasks[0] = 0x000F;
+        RGBAmasks[1] = 0x00F0;
+        RGBAmasks[2] = 0x0F00;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_RGBX4444:
+        RGBAmasks[0] = 0xF000;
+        RGBAmasks[1] = 0x0F00;
+        RGBAmasks[2] = 0x00F0;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_BGRX4444:
+        RGBAmasks[0] = 0x00F0;
+        RGBAmasks[1] = 0x0F00;
+        RGBAmasks[2] = 0xF000;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_ARGB4444:
+        RGBAmasks[0] = 0x0F00;
+        RGBAmasks[1] = 0x00F0;
+        RGBAmasks[2] = 0x000F;
+        RGBAmasks[3] = 0xF000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_ABGR4444:
+        RGBAmasks[0] = 0x000F;
+        RGBAmasks[1] = 0x00F0;
+        RGBAmasks[2] = 0x0F00;
+        RGBAmasks[3] = 0xF000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_RGBA4444:
+        RGBAmasks[0] = 0xF000;
+        RGBAmasks[1] = 0x0F00;
+        RGBAmasks[2] = 0x00F0;
+        RGBAmasks[3] = 0x000F;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_BGRA4444:
+        RGBAmasks[0] = 0x00F0;
+        RGBAmasks[1] = 0x0F00;
+        RGBAmasks[2] = 0xF000;
+        RGBAmasks[3] = 0x000F;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_XRGB1555:
+        RGBAmasks[0] = 0x7C00;
+        RGBAmasks[1] = 0x03E0;
+        RGBAmasks[2] = 0x001F;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_XBGR1555:
+        RGBAmasks[0] = 0x001F;
+        RGBAmasks[1] = 0x03E0;
+        RGBAmasks[2] = 0x7C00;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_RGBX5551:
+        RGBAmasks[0] = 0xF800;
+        RGBAmasks[1] = 0x07C0;
+        RGBAmasks[2] = 0x003E;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_BGRX5551:
+        RGBAmasks[0] = 0x003E;
+        RGBAmasks[1] = 0x07C0;
+        RGBAmasks[2] = 0xF800;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_ARGB1555:
+        RGBAmasks[0] = 0x7C00;
+        RGBAmasks[1] = 0x03E0;
+        RGBAmasks[2] = 0x001F;
+        RGBAmasks[3] = 0x8000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_ABGR1555:
+        RGBAmasks[0] = 0x001F;
+        RGBAmasks[1] = 0x03E0;
+        RGBAmasks[2] = 0x7C00;
+        RGBAmasks[3] = 0x8000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_RGBA5551:
+        RGBAmasks[0] = 0xF800;
+        RGBAmasks[1] = 0x07C0;
+        RGBAmasks[2] = 0x003E;
+        RGBAmasks[3] = 0x0001;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_BGRA5551:
+        RGBAmasks[0] = 0x003E;
+        RGBAmasks[1] = 0x07C0;
+        RGBAmasks[2] = 0xF800;
+        RGBAmasks[3] = 0x0001;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_RGB565:
+        RGBAmasks[0] = 0xF800;
+        RGBAmasks[1] = 0x07E0;
+        RGBAmasks[2] = 0x001F;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_BGR565:
+        RGBAmasks[0] = 0x001F;
+        RGBAmasks[1] = 0x07E0;
+        RGBAmasks[2] = 0xF800;
+        RGBAmasks[3] = 0x0000;
+        bpp = 16;
+        break;
+
+    case DRM_FORMAT_RGB888:
+        RGBAmasks[0] = 0xFF0000;
+        RGBAmasks[1] = 0x00FF00;
+        RGBAmasks[2] = 0x0000FF;
+        RGBAmasks[3] = 0x000000;
+        bpp = 24;
+        break;
+
+    case DRM_FORMAT_BGR888:
+        RGBAmasks[0] = 0x0000FF;
+        RGBAmasks[1] = 0x00FF00;
+        RGBAmasks[2] = 0xFF0000;
+        RGBAmasks[3] = 0x000000;
+        bpp = 24;
+        break;
+
+    case DRM_FORMAT_XRGB8888:
+        RGBAmasks[0] = 0x00FF0000;
+        RGBAmasks[1] = 0x0000FF00;
+        RGBAmasks[2] = 0x000000FF;
+        RGBAmasks[3] = 0x00000000;
+        bpp = 32;
+        break;
+
+    case DRM_FORMAT_XBGR8888:
+        RGBAmasks[0] = 0x000000FF;
+        RGBAmasks[1] = 0x0000FF00;
+        RGBAmasks[2] = 0x00FF0000;
+        RGBAmasks[3] = 0x00000000;
+        bpp = 32;
+        break;
+
+    case DRM_FORMAT_RGBX8888:
+        RGBAmasks[0] = 0xFF000000;
+        RGBAmasks[1] = 0x00FF0000;
+        RGBAmasks[2] = 0x0000FF00;
+        RGBAmasks[3] = 0x00000000;
+        bpp = 32;
+        break;
+
+    case DRM_FORMAT_BGRX8888:
+        RGBAmasks[0] = 0x0000FF00;
+        RGBAmasks[1] = 0x00FF0000;
+        RGBAmasks[2] = 0xFF000000;
+        RGBAmasks[3] = 0x00000000;
+        bpp = 32;
+        break;
+
+    case DRM_FORMAT_ARGB8888:
+        RGBAmasks[0] = 0x00FF0000;
+        RGBAmasks[1] = 0x0000FF00;
+        RGBAmasks[2] = 0x000000FF;
+        RGBAmasks[3] = 0xFF000000;
+        bpp = 32;
+        break;
+
+    case DRM_FORMAT_ABGR8888:
+        RGBAmasks[0] = 0x000000FF;
+        RGBAmasks[1] = 0x0000FF00;
+        RGBAmasks[2] = 0x00FF0000;
+        RGBAmasks[3] = 0xFF000000;
+        bpp = 32;
+        break;
+
+    case DRM_FORMAT_RGBA8888:
+        RGBAmasks[0] = 0xFF000000;
+        RGBAmasks[1] = 0x00FF0000;
+        RGBAmasks[2] = 0x0000FF00;
+        RGBAmasks[3] = 0x000000FF;
+        bpp = 32;
+        break;
+
+    case DRM_FORMAT_BGRA8888:
+        RGBAmasks[0] = 0x0000FF00;
+        RGBAmasks[1] = 0x00FF0000;
+        RGBAmasks[2] = 0xFF000000;
+        RGBAmasks[3] = 0x000000FF;
+        bpp = 32;
+        break;
+
+#if 0
+    case DRM_FORMAT_XRGB2101010:
+        RGBAmasks[0] = 0x3FF00000;
+        RGBAmasks[1] = 0x000FFC00;
+        RGBAmasks[2] = 0x000003FF;
+        RGBAmasks[3] = 0x00000000;
+        break;
+
+    case DRM_FORMAT_XBGR2101010:
+        RGBAmasks[0] = 0x000003FF;
+        RGBAmasks[1] = 0x000FFC00;
+        RGBAmasks[2] = 0x3FF00000;
+        RGBAmasks[3] = 0x00000000;
+        break;
+
+    case DRM_FORMAT_RGBX1010102:
+        RGBAmasks[0] = 0xFFC00000;
+        RGBAmasks[1] = 0x003FF000;
+        RGBAmasks[2] = 0x00000FFC;
+        RGBAmasks[3] = 0x00000000;
+        break;
+
+    case DRM_FORMAT_BGRX1010102:
+        RGBAmasks[0] = 0x00000FFC;
+        RGBAmasks[1] = 0x003FF000;
+        RGBAmasks[2] = 0xFFC00000;
+        RGBAmasks[3] = 0x00000000;
+        break;
+
+    case DRM_FORMAT_ARGB2101010:
+        RGBAmasks[0] = 0x3FF00000;
+        RGBAmasks[1] = 0x000FFC00;
+        RGBAmasks[2] = 0x000003FF;
+        RGBAmasks[3] = 0xC0000000;
+        break;
+
+    case DRM_FORMAT_ABGR2101010:
+        RGBAmasks[0] = 0x000003FF;
+        RGBAmasks[1] = 0x000FFC00;
+        RGBAmasks[2] = 0x3FF00000;
+        RGBAmasks[3] = 0xC0000000;
+        break;
+
+    case DRM_FORMAT_RGBA1010102:
+        RGBAmasks[0] = 0xFFC00000;
+        RGBAmasks[1] = 0x003FF000;
+        RGBAmasks[2] = 0x00000FFC;
+        RGBAmasks[3] = 0x00000003;
+        break;
+
+    case DRM_FORMAT_BGRA1010102:
+        RGBAmasks[0] = 0x00000FFC;
+        RGBAmasks[1] = 0x003FF000;
+        RGBAmasks[2] = 0xFFC00000;
+        RGBAmasks[3] = 0x00000003;
+        break;
+#endif
+
+    default:
+        break;
+    }
+
+    return bpp;
+}
+
 /* DRM engine methods for dumb buffers */
 static GAL_Surface *DRI_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
+    uint32_t drm_format;
     DriVideoData* vdata = this->hidden;
     DrmModeInfo* info;
-    int depth;
+    Uint32 RGBAmasks[4];
     int ret;
 
-    if (bpp != 32) {
-        _DBG_PRINTF("NEWGAL>DRM>DUMB: force bpp (%d) to be 32\n", bpp);
-        bpp = 32;
+    drm_format = get_drm_format_from_etc(&bpp);
+    if (drm_format == 0) {
+        return NULL;
     }
-    depth = 24;
 
     /* find the connector+CRTC suitable for the resolution requested */
     info = find_mode(vdata, width, height);
     if (info == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM>DUMB: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
+        _ERR_PRINTF("NEWGAL>DRM: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
             width, height, bpp);
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM>DUMB: going setting video mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
             info->width, info->height, bpp);
 
     /* create a dumb framebuffer for current CRTC */
-    ret = drm_create_dumb_fb(this->hidden, info, depth, bpp);
+    ret = drm_create_dumb_fb(this->hidden, info, drm_format, bpp);
     if (ret) {
-        _ERR_PRINTF("NEWGAL>DRM>DUMB: cannot create dumb framebuffer\n");
+        _ERR_PRINTF("NEWGAL>DRM: cannot create dumb framebuffer\n");
         return NULL;
     }
 
@@ -814,7 +1309,7 @@ static GAL_Surface *DRI_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     ret = drmModeSetCrtc(vdata->dev_fd, info->crtc, vdata->scanout_buff_id, 0, 0,
                      &info->conn, 1, &info->mode);
     if (ret) {
-        _ERR_PRINTF ("NEWGAL>DRM>DUMB: cannot set CRTC for connector %u (%d): %m\n",
+        _ERR_PRINTF ("NEWGAL>DRM: cannot set CRTC for connector %u (%d): %m\n",
             info->conn, errno);
 
         drmModeFreeCrtc(this->hidden->saved_crtc);
@@ -826,13 +1321,20 @@ static GAL_Surface *DRI_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
 
     /* Set up the new mode framebuffer */
     /* Allocate the new pixel format for the screen */
-    if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
-        _ERR_PRINTF ("NEWGAL>DRM>DUMB: "
+    if (translate_drm_format(drm_format, RGBAmasks) == 0) {
+        _ERR_PRINTF("NEWGAL>DRM: not supported drm format: %u\n",
+            drm_format);
+        return NULL;
+    }
+
+    if (!GAL_ReallocFormat (current, bpp, RGBAmasks[0], RGBAmasks[1],
+            RGBAmasks[2], RGBAmasks[3])) {
+        _ERR_PRINTF ("NEWGAL>DRM: "
                 "failed to allocate new pixel format for requested mode\n");
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM>DUMB: real screen mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("NEWGAL>DRM: real screen mode: %dx%d-%dbpp\n",
             width, height, bpp);
 
     current->flags = flags & GAL_FULLSCREEN;
@@ -861,37 +1363,37 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
 {
     DriVideoData* vdata = this->hidden;
     DrmModeInfo* info;
-    enum DriPixelFormat pixel_format;
+    uint32_t drm_format;
+    Uint32 RGBAmasks[4];
     DriSurfaceBuffer* scanout_buff = NULL;
     unsigned int pitch;
 
-    if (bpp != 32) {
-        _DBG_PRINTF("NEWGAL>DRM>ACCL: force bpp (%d) to be 32\n", bpp);
-        bpp = 32;
+    drm_format = get_drm_format_from_etc(&bpp);
+    if (drm_format == 0) {
+        return NULL;
     }
-    pixel_format = PIXEL_FORMAT_B8G8R8A8_UNORM;
 
     /* find the connector+CRTC suitable for the resolution requested */
     info = find_mode(vdata, width, height);
     if (info == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM>ACCL: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
+        _ERR_PRINTF("NEWGAL>DRM: cannot find a CRTC for video mode: %dx%d-%dbpp\n",
             width, height, bpp);
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM>ACCL: going setting video mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
             info->width, info->height, bpp);
 
 #if 0
     if (drmSetMaster(this->hidden->dev_fd)) {
-        _ERR_PRINTF("NEWGAL>DRM>ACCL: failed to call drmSetMaster: %m\n");
+        _ERR_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
         return NULL;
     }
 #endif
 
     /* create the scanout buffer and set up it as frame buffer */
     vdata->scanout_buff_id =
-        vdata->driver_ops->create_buffer(vdata->driver, pixel_format,
+        vdata->driver_ops->create_buffer(vdata->driver, drm_format,
             info->width, info->height, &pitch);
     if (vdata->scanout_buff_id == 0) {
         goto error;
@@ -899,7 +1401,7 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
 
     scanout_buff = vdata->driver_ops->map_buffer(vdata->driver, vdata->scanout_buff_id);
     if (scanout_buff == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot map scanout frame buffer: %m\n");
+        _ERR_PRINTF ("NEWGAL>DRM: cannot map scanout frame buffer: %m\n");
         goto error;
     }
 
@@ -911,7 +1413,7 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     vdata->handle = 0;
     vdata->scanout_fb = scanout_buff->pixels;
 
-    _DBG_PRINTF("NEWGAL>DRM>ACCL: scanout frame buffer: size (%dx%d), pitch(%d)\n",
+    _DBG_PRINTF("NEWGAL>DRM: scanout frame buffer: size (%dx%d), pitch(%d)\n",
             vdata->width, vdata->height, vdata->pitch);
 
     /* get console buffer id */
@@ -921,7 +1423,7 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     /* perform actual modesetting on the found connector+CRTC */
     if (drmModeSetCrtc(vdata->dev_fd, info->crtc, vdata->scanout_buff_id, 0, 0,
                      &info->conn, 1, &info->mode)) {
-        _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot set CRTC for connector %u (%d): %m\n",
+        _ERR_PRINTF ("NEWGAL>DRM: cannot set CRTC for connector %u (%d): %m\n",
             info->conn, errno);
 
         goto error;
@@ -930,13 +1432,20 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     this->hidden->saved_info = info;
 
     /* Allocate the new pixel format for the screen */
-    if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
-        _ERR_PRINTF ("NEWGAL>DRM>ACCL: "
-                "failed to allocate new pixel format for requested mode\n");
-        goto error;
+    if (translate_drm_format(drm_format, RGBAmasks) == 0) {
+        _ERR_PRINTF("NEWGAL>DRM: not supported drm format: %u\n",
+            drm_format);
+        return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM>ACCL: real screen mode: %dx%d-%dbpp\n",
+    if (!GAL_ReallocFormat (current, bpp, RGBAmasks[0], RGBAmasks[1],
+            RGBAmasks[2], RGBAmasks[3])) {
+        _ERR_PRINTF ("NEWGAL>DRM: "
+                "failed to allocate new pixel format for requested mode\n");
+        return NULL;
+    }
+
+    _DBG_PRINTF("NEWGAL>DRM: real screen mode: %dx%d-%dbpp\n",
         width, height, bpp);
 
     current->flags |= (GAL_FULLSCREEN | GAL_HWSURFACE);
@@ -969,22 +1478,23 @@ error:
     return NULL;
 }
 
-static enum DriPixelFormat translate_pixel_format(const GAL_PixelFormat *surface)
-{
-    // TODO: handle pixel format
-    return PIXEL_FORMAT_B8G8R8A8_UNORM;
-}
-
 static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
 {
     DriVideoData* vdata = this->hidden;
-    enum DriPixelFormat pixel_format;
+    uint32_t drm_format;
     unsigned int pitch;
     uint32_t buff_id = 0;
     DriSurfaceBuffer* surface_buffer;
 
-    pixel_format = translate_pixel_format(surface->format);
-    buff_id = vdata->driver_ops->create_buffer(vdata->driver, pixel_format,
+    drm_format = translate_gal_format(surface->format);
+    if (drm_format == 0) {
+        _ERR_PRINTF("NEWGAL>DRM: not supported pixel format, RGBA masks (0x%08x, 0x%08x, 0x%08x, 0x%08x)\n",
+            surface->format->Rmask, surface->format->Gmask,
+            surface->format->Bmask, surface->format->Amask);
+        return -1;
+    }
+
+    buff_id = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
             surface->w, surface->h, &pitch);
     if (buff_id == 0) {
         return -1;
@@ -992,7 +1502,7 @@ static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
 
     surface_buffer = vdata->driver_ops->map_buffer(vdata->driver, buff_id);
     if (surface_buffer == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM>ACCL: cannot map hardware buffer: %m\n");
+        _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
         goto error;
     }
 
@@ -1052,7 +1562,7 @@ static int DRI_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
     }
     else {
         return vdata->driver_ops->copy_blit(vdata->driver,
-            src_buf, src_rc, dst_buf, dst_rc);
+            src_buf, src_rc, dst_buf, dst_rc, COLOR_LOGICOP_COPY);
     }
 
     return 0;

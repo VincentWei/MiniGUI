@@ -105,52 +105,17 @@ typedef struct _DriSurfaceBuffer {
     uint32_t height;
     uint32_t pitch;
 
-    uint32_t pixel_format:8;
-    uint32_t depth:8;
-    uint32_t bpp:8;
-    uint32_t cpp:8;
+    uint32_t drm_format;
+    //uint32_t depth:8;
+    uint16_t bpp:8;
+    uint16_t cpp:8;
 
     uint8_t* pixels;
 } DriSurfaceBuffer;
 
 /**
- * The pixel formats of the surface.
- * MiniGUI NEWGAL engine for hardware surface.
- * This concrete struct should be defined by the driver.
+ * The color logic operations.
  */
-enum DriPixelFormat {
-    PIXEL_FORMAT_NONE = 0,
-
-    /* Packed unorm formats */    /* msb <------ TEXEL BITS -----------> lsb */
-    /* ---- ---- ---- ---- ---- ---- ---- ---- */
-    PIXEL_FORMAT_A8B8G8R8_UNORM,   /* RRRR RRRR GGGG GGGG BBBB BBBB AAAA AAAA */
-    PIXEL_FORMAT_X8B8G8R8_UNORM,   /* RRRR RRRR GGGG GGGG BBBB BBBB xxxx xxxx */
-    PIXEL_FORMAT_R8G8B8A8_UNORM,   /* AAAA AAAA BBBB BBBB GGGG GGGG RRRR RRRR */
-    PIXEL_FORMAT_R8G8B8X8_UNORM,   /* xxxx xxxx BBBB BBBB GGGG GGGG RRRR RRRR */
-    PIXEL_FORMAT_B8G8R8A8_UNORM,   /* AAAA AAAA RRRR RRRR GGGG GGGG BBBB BBBB */
-    PIXEL_FORMAT_B8G8R8X8_UNORM,   /* xxxx xxxx RRRR RRRR GGGG GGGG BBBB BBBB */
-    PIXEL_FORMAT_A8R8G8B8_UNORM,   /* BBBB BBBB GGGG GGGG RRRR RRRR AAAA AAAA */
-    PIXEL_FORMAT_X8R8G8B8_UNORM,   /* BBBB BBBB GGGG GGGG RRRR RRRR xxxx xxxx */
-    PIXEL_FORMAT_B5G6R5_UNORM,                         /* RRRR RGGG GGGB BBBB */
-    PIXEL_FORMAT_R5G6B5_UNORM,                         /* BBBB BGGG GGGR RRRR */
-    PIXEL_FORMAT_B4G4R4A4_UNORM,                       /* AAAA RRRR GGGG BBBB */
-    PIXEL_FORMAT_B4G4R4X4_UNORM,                       /* xxxx RRRR GGGG BBBB */
-    PIXEL_FORMAT_A4R4G4B4_UNORM,                       /* BBBB GGGG RRRR AAAA */
-    PIXEL_FORMAT_A1B5G5R5_UNORM,                       /* RRRR RGGG GGBB BBBA */
-    PIXEL_FORMAT_X1B5G5R5_UNORM,                       /* BBBB BGGG GGRR RRRX */
-    PIXEL_FORMAT_B5G5R5A1_UNORM,                       /* ARRR RRGG GGGB BBBB */
-    PIXEL_FORMAT_B5G5R5X1_UNORM,                       /* xRRR RRGG GGGB BBBB */
-    PIXEL_FORMAT_A1R5G5B5_UNORM,                       /* BBBB BGGG GGRR RRRA */
-    PIXEL_FORMAT_A4B4G4R4_UNORM,                       /* RRRR GGGG BBBB AAAA */
-    PIXEL_FORMAT_R4G4B4A4_UNORM,                       /* AAAA BBBB GGGG RRRR */
-    PIXEL_FORMAT_R5G5B5A1_UNORM,                       /* ABBB BBGG GGGR RRRR */
-    PIXEL_FORMAT_B2G3R3_UNORM,                                   /* RRRG GGBB */
-    PIXEL_FORMAT_R3G3B2_UNORM,                                   /* BBGG GRRR */
-
-    PIXEL_FORMAT_YCBCR,            /*                     YYYY YYYY UorV UorV */
-    PIXEL_FORMAT_YCBCR_REV,        /*                     UorV UorV YYYY YYYY */
-};
-
 enum DriColorLogicOp {
    COLOR_LOGICOP_CLEAR = 0,
    COLOR_LOGICOP_NOR = 1,
@@ -201,7 +166,7 @@ typedef struct _DriDriverOps {
      * \note The driver must implement this operator.
      */
     uint32_t (* create_buffer) (DriDriver *driver,
-            enum DriPixelFormat pixel_format,
+            uint32_t drm_format,
             unsigned int width, unsigned int height,
             unsigned int *pitch);
 
@@ -262,7 +227,8 @@ typedef struct _DriDriverOps {
      */
     int (* copy_blit) (DriDriver *driver,
             DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc);
+            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            enum DriColorLogicOp logic_op);
 
     /**
      * This operator blits pixles from a source buffer with the source alpha value

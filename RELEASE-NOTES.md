@@ -311,14 +311,22 @@ configuration:
 ```
 [dri]
 defaultmode=1024x768-32bpp
+pixelformat=XR24
 device=/dev/dri/card0
 dpi=96
 ```
 
 You can use the key `dri.device` to specify your DRI device.
 
-Currently, the `dir` NEWGAL engine does not provide support for MiniGUI-Processes
-run-time mode. We will enhance this in the subsequent version of MiniGUI.
+You can use the key `dir.pixelformat` to specify the DRM pixel format for the
+screen. We use DRM fourcc code to defined the pixel format of the screen
+surface. For more information, please see `<drm/drm_fourcc.h>` header file.
+Note that only 8/16/24/32 bpp RGB formats are supported. For example, `XR24`
+means `X8R8G8B8` pixel format.
+
+Currently, the `dir` NEWGAL engine does not provide support for
+MiniGUI-Processes run-time mode. We will enhance this in the subsequent
+version of MiniGUI.
 
 Also note that when you use the hardware accelerated sub driver, MiniGUI app
 may need the root privilege to call `drmSetMaster` to set the video mode.
