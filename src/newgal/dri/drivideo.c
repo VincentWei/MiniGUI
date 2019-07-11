@@ -1094,8 +1094,11 @@ static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
             vdata->driver_ops->check_blit(vdata->driver, src_buf, dst_buf) == 0) {
         src->map->hw_blit = DRI_HWBlit;
     }
-    else
+    else {
+        src->map->hw_blit = NULL;
+        src->flags &= ~GAL_HWACCEL;
         accelerated = 0;
+    }
 
     return accelerated;
 }
