@@ -3984,10 +3984,10 @@ void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL fErase)
 {
     MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
 
-    if (fErase)
+    if (fErase) {
         SendAsyncMessage (hWnd, MSG_CHANGESIZE, 0, 0);
-
-    SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
+        SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
+    }
 
     /* a new implementation only check the window and its children. */
     {
