@@ -615,6 +615,10 @@ DWORD GUIAPI GetTickCount (void)
 {
 #ifdef _MGRM_PROCESSES
     return SHAREDRES_TIMER_COUNTER;
+#elif defined(_MGRM_STANDALONE)
+    extern DWORD __mg_os_get_time(void);
+    __mg_timer_counter = __mg_os_get_time() / 10;
+    return __mg_timer_counter;
 #else
     return __mg_timer_counter;
 #endif

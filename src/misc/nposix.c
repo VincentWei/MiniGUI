@@ -430,6 +430,63 @@ void __mg_os_time_delay (int ms)
 #endif
 }
 
+#ifndef __NOUNIX__
+
+#include <unistd.h>
+#include <poll.h>
+#include <sys/time.h>
+
+static struct timeval timeval_startup;
+void __mg_os_start_time(void)
+{
+    gettimeofday(&timeval_startup, NULL);
+}
+
+DWORD __mg_os_get_time(void)
+{
+    DWORD ds, dms;
+    struct timeval current;
+
+    gettimeofday(&current, NULL);
+    ds = (current.tv_sec - timeval_startup.tv_sec);
+
+    if (current.tv_sec == timeval_startup.tv_sec) {
+        dms = (current.tv_usec - timeval_startup.tv_usec) / 1000L;
+    }
+    else if (current.tv_usec >= timeval_startup.tv_usec) {
+        dms = (current.tv_usec - timeval_startup.tv_usec) / 1000L;
+    }
+    else {
+        assert(ds > 0);
+
+        ds--;
+        dms = 1000L - (timeval_startup.tv_usec - current.tv_usec) / 1000L;
+    }
+
+    return ds * 1000 + dms;
+}
+
+#elif defined(WIN32)
+
+#include <windows.h>
+
+#pragma comment(lib, "winmm.lib")
+
+void __mg_os_start_time(void)
+{
+    // do nothing
+}
+
+DWORD __mg_os_get_time(void) {
+    return timeGetTime();
+}
+
+#else
+
+#error "Please implement __mg_os_start_time and __mg_os_get_time for your OS"
+
+#endif
+
 /* ------------------------------ I/O -------------------------------- */
 void __mg_rewind (FILE *fp)
 {

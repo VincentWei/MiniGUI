@@ -64,35 +64,6 @@
 #include "menu.h"
 #include "ourhdr.h"
 
-#ifndef __NOUNIX__
-
-#include <unistd.h>
-#include <poll.h>
-#include <sys/time.h>
-
-static struct timeval timeval_startup;
-static DWORD get_timer_count(const struct timeval* current)
-{
-    DWORD ds = (current->tv_sec - timeval_startup.tv_sec);
-    DWORD dms;
-
-    if (current->tv_sec == timeval_startup.tv_sec) {
-        dms = (current->tv_usec - timeval_startup.tv_usec) / 1000L;
-    }
-    else if (current->tv_usec >= timeval_startup.tv_usec) {
-        dms = (current->tv_usec - timeval_startup.tv_usec) / 1000L;
-    }
-    else {
-        assert(ds > 0);
-
-        ds--;
-        dms = 1000L - (timeval_startup.tv_usec - current->tv_usec) / 1000L;
-    }
-
-    return ds * 100 + dms / 10;
-}
-#endif
-
 extern DWORD __mg_timer_counter;
 static DWORD old_timer_counter = 0;
 
@@ -188,6 +159,9 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     }
 }
 
+extern void  __mg_os_start_time(void);
+extern DWORD __mg_os_get_time(void);
+
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
     mg_fd_zero (&mg_rfdset);
@@ -197,9 +171,7 @@ BOOL GUIAPI salone_StandAloneStartup (void)
     mg_InstallIntervalTimer ();
 #endif
 
-#ifndef __NOUNIX__
-    gettimeofday(&timeval_startup, NULL);
-#endif
+    __mg_os_start_time();
 
     return TRUE;
 }
@@ -231,11 +203,6 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
-
-#ifndef __NOUNIX__
-    struct timeval timeval_current;
-    gettimeofday(&timeval_current, NULL);
-#endif
 
     if (old_timer_counter != __mg_timer_counter) {
         old_timer_counter = __mg_timer_counter;
@@ -277,7 +244,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
                 msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
     /* update __mg_timer_counter */
-    __mg_timer_counter = get_timer_count(&timeval_current);
+    __mg_timer_counter = __mg_os_get_time()/10;
 #endif
 
     if (msg_queue == NULL)
