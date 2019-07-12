@@ -262,9 +262,9 @@ the glyph orientation:
 - 'D': Glyphs are upside-down.
 - 'L': Glyphs are rotated 90 degrees counter-clockwise (sideways left).
 
-#### Support for Linux DRI
+#### Support for Linux DRI/DRM
 
-In order to support modern graphics cards or GPU, we introduced a
+In order to support modern graphics card or GPU, we introduced a
 new NEWGAL engine of `dri`. The developer can use this engine to
 run MiniGUI apps on a Linux box on which the DRI
 (Direct Rendering Infrastructure) is enabled.
@@ -278,7 +278,7 @@ MiniGUI mainly uses this library to support the dumb frame buffer
 (no hardware acceleration). However, you can write a driver for your
 graphics card or GPU to implement the hardware accelerated features.
 
-To avoid modifying the MiniGUI source code when supporting new GPUs,
+To avoid modifying the MiniGUI source code when supporting a new GPU,
 the `dri` engine has adopted a scalable design:
 
 * You can directly use the `dri` engine to run MiniGUI on a GPU
@@ -318,13 +318,13 @@ dpi=96
 
 You can use the key `dri.device` to specify your DRI device.
 
-You can use the key `dir.pixelformat` to specify the DRM pixel format for the
+You can use the key `dri.pixelformat` to specify the DRM pixel format for the
 screen. We use DRM fourcc code to defined the pixel format of the screen
 surface. For more information, please see `<drm/drm_fourcc.h>` header file.
 Note that only 8/16/24/32 bpp RGB formats are supported. For example, `XR24`
 means `X8R8G8B8` pixel format.
 
-Currently, the `dir` NEWGAL engine does not provide support for
+Currently, the `dri` NEWGAL engine does not provide support for
 MiniGUI-Processes run-time mode. We will enhance this in the subsequent
 version of MiniGUI.
 

@@ -164,7 +164,7 @@ following repository:
 
 https://github.com/VincentWei/mg-tests
 
-If you are interested in hacking the MiniGUI code, please use this repository.
+If you are interested in hacking the MiniGUI code, please visit this repository.
 
 
 ## NEW FEATURES IN VERSION 4.0.x
@@ -181,7 +181,15 @@ in order to support [HybridOS Foundation Class Library].
 * We tuned and optimized MiniGUI's logical and device font interfaces to
   support the new features above.
 
-* The NEWGAL engine of `drm` to support modern DRM-driven graphics cards on Linux.
+* MiniGUI now is enhanced to support input events which may be generated
+  by input devices other than standard mouse (or single-touch panel) and
+  keyboard, such as multi-touch panel (gesture), joystick, tablet tool,
+  table pad, and switch. In MiniGUI 4.0, we introduce `MSG_EXIN_XXX` messages
+  to support the input events from devices other than standard mouse
+  and keyboard. We call these messages as 'extra input messages'.
+
+* The NEWGAL engine of `dri` to support modern DRI/DRM-driven graphics cards
+  or GPUs on Linux.
 
 * The IAL engine of `libinput` to support all modern input devices including
   mouse, keyboard, joystick, switch, multiple touch panel, gesture, tablet tool,
@@ -351,15 +359,13 @@ A brief history description of the development progress lay below:
 1. Dec., 2017:     FMSoft updated MiniGUI and miniStudio for latest Linux distributions.
 1. Feb., 2018:     FMSoft released MiniGUI version 3.2.0.
 1. Apr., 2019:     FMSoft released MiniGUI version 3.2.2.
-1. Jun., 2019:     FMSoft released MiniGUI version 4.0.0.
+1. Jul., 2019:     FMSoft released MiniGUI version 4.0.0.
 
 ## ABOUT THE AUTHORS
 
 The original author of MiniGUI is WEI Yongming, and now MiniGUI is
-maintained by FMSoft. For more information, please browse
-our home page:
-
-http://www.fmsoft.cn.
+maintained by FMSoft. For more information, please refer to
+<http://www.fmsoft.cn>.
 
 
 ## IF YOU HAVE A PROBLEM
