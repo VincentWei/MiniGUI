@@ -79,7 +79,7 @@ static pthread_mutex_t timerLock;
 #endif
 
 /* timer action for minigui timers */
-static void __mg_timer_action (void *data)
+void __mg_timer_action (void *data)
 {
 #if defined(_MGRM_PROCESSES)
     SHAREDRES_TIMER_COUNTER = __mg_os_get_time_ms()/10;
@@ -101,7 +101,7 @@ static void __mg_timer_action (void *data)
 
 static OS_TIMER_ID __mg_os_timer = 0;
 
-#else /* __AOS__ */
+#elif defined(__USE_TIMER_THREAD) /* __AOS__ */
 static void* TimerEntry (void* data)
 {
     sem_post ((sem_t*)data);
@@ -114,7 +114,7 @@ static void* TimerEntry (void* data)
     /* printf("quit from TimerEntry()\n"); */
     return NULL;
 }
-#endif /* !__AOS__ */
+#endif /* __USE_TIMER_THREAD */
 
 int __mg_timer_init (void)
 {
@@ -127,7 +127,7 @@ int __mg_timer_init (void)
     __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_timer_action,
                                          NULL, AOS_TIMER_TICKT,
                                          OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
-#else /* NOT __AOS__ */
+#elif defined(__USE_TIMER_THREAD) /* __AOS__ */
     {
         sem_t wait;
         sem_init (&wait, 0, 0);
@@ -135,7 +135,7 @@ int __mg_timer_init (void)
         sem_wait (&wait);
         sem_destroy (&wait);
     }
-#endif /* __AOS__ */
+#endif /* __USE_TIMER_THREAD */
 
     return 0;
 }
