@@ -1349,7 +1349,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
 int GAL_ResumeVideo(void)
 {
 #ifdef _MGRM_PROCESSES
-    if (mgIsSever) {
+    if (mgIsServer) {
 #endif
         if (current_video && current_video->Resume) {
             current_video->Resume(current_video);
@@ -1382,7 +1382,7 @@ int GAL_SuspendVideo(void)
 #endif
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsSever) {
+    if (mgIsServer) {
 #endif
         if (current_video && current_video->Suspend) {
             current_video->Suspend(current_video);

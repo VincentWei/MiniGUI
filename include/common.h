@@ -1986,11 +1986,9 @@ typedef struct _GAL_Rect {
 
     /** @} end of macros_types */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef HAVE_TIME
+#ifdef HAVE_TIME
+#include <time.h>
+#else
 typedef unsigned long time_t;
 
 struct tm {
@@ -2004,6 +2002,10 @@ struct tm {
     int    tm_yday;  /* day of year [0,365] */
     int    tm_isdst; /* daylight savings flag */
 };
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #if defined (__THREADX__) && defined (__TARGET_VFANVIL__)

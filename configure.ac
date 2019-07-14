@@ -79,6 +79,8 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(time mktime localtime clock_gettime strdup strcasecmp strncasecmp strerror setlocale)
 AC_CHECK_FUNCS(posix_memalign memalign valloc)
 
+PKG_CHECK_MODULES(UDEV, [libudev >= 200], have_udev="yes", have_udev="no; need libudev 200+")
+
 dnl ========================================================================
 dnl User selectable options
 
@@ -889,23 +891,27 @@ CheckFBCON()
 dnl Find the DRM includes
 CheckDRM()
 {
-    AC_ARG_ENABLE(videodri,
-[  --enable-videodri      include Linux DRM NEWGAL engine <default=yes>],
-    enable_video_dri=$enableval)
-    if test "x$enable_video_dri" = "xyes"; then
-        PKG_CHECK_MODULES(DRM, [libudev >= 200, libdrm >= 2.4], video_dri="yes",
-            video_dri="no; Linux DRM NEWGAL engine requires libdrm 2.4+ and libudev 200+")
-        if test "x$video_dri" = "xyes"; then
-            AC_DEFINE(_MGGAL_DRI, 1,
-                [Define if include Linux DRM NEWGAL engine])
-            VIDEO_SUBDIRS="$VIDEO_SUBDIRS dri"
-            VIDEO_DRIVERS="$VIDEO_DRIVERS dri/libvideo_dri.la"
-            DEP_LIBS="$DEP_LIBS -ldrm"
-            need_udev="yes"
-            DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/drm"
-            AC_SUBST(DRM_INC_DIR)
-        else
-            AC_MSG_WARN([$video_dri])
+    if test "x$runtime_mode" = "xprocs"; then
+        enable_video_dri="no; DRI engine does not support MiniGUI-Processes runtime mode currently"
+    else
+        AC_ARG_ENABLE(videodri,
+    [  --enable-videodri      include Linux DRI NEWGAL engine <default=yes>],
+        enable_video_dri=$enableval)
+        if test "x$enable_video_dri" = "xyes"; then
+            PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_dri="yes",
+                video_dri="no; Linux DRI NEWGAL engine requires libdrm 2.4+")
+            if test "x$video_dri" = "xyes"; then
+                AC_DEFINE(_MGGAL_DRI, 1,
+                    [Define if include Linux DRI NEWGAL engine])
+                VIDEO_SUBDIRS="$VIDEO_SUBDIRS dri"
+                VIDEO_DRIVERS="$VIDEO_DRIVERS dri/libvideo_dri.la"
+                DEP_LIBS="$DEP_LIBS -ldrm"
+                need_udev="yes"
+                DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/drm"
+                AC_SUBST(DRM_INC_DIR)
+            else
+                AC_MSG_WARN([$video_dri])
+            fi
         fi
     fi
 }
@@ -1918,8 +1924,8 @@ if test "x$build_tslib_ial_engine" = "xyes"; then
 fi
 
 if test "x$build_libinput_ial_engine" = "xyes"; then
-    PKG_CHECK_MODULES(LIBINPUT, [libudev >= 200, libinput >= 1.10.0], ,
-            build_libinput_ial_engine="no; Libinput IAL engine requires libinput 1.13.0+ and libudev 200+")
+    PKG_CHECK_MODULES(LIBINPUT, [libinput >= 1.10.0], build_libinput_ial_engine="yes",
+            build_libinput_ial_engine="no; Libinput IAL engine requires libinput 1.10.0+")
     if test "x$build_libinput_ial_engine" = "xyes"; then
         AC_DEFINE(_MGIAL_LIBINPUT, 1,
                 [Define if include Linux libinput IAL engine])

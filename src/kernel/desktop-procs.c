@@ -3515,8 +3515,6 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             __mg_zorder_info->active_win, message,
                             wParam, lParam);
         }
-
-        PostMessage ((HWND)active_mainwnd, message, wParam, lParam);
     }
     else if (message >= MSG_FIRSTKEYMSG && message <= MSG_LASTKEYMSG) {
         if (mgIsServer) {
