@@ -560,8 +560,9 @@ int __mg_enter_drawing (PDC pdc)
         goto fail;
 #endif
 
-    if (!IntersectRect (&pdc->rc_output, &pdc->rc_output, &pdc->ecrgn.rcBound))
+    if (!IntersectRect (&pdc->rc_output, &pdc->rc_output, &pdc->ecrgn.rcBound)) {
         goto fail;
+    }
 
     LOCK (&__mg_gdilock);
     if (!dc_IsMemDC (pdc))

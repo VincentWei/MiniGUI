@@ -85,8 +85,6 @@ void _dc_fillbox_clip (PDC pdc, const GAL_Rect* rect)
         while (cliprect) {
             if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)) {
                 SET_GAL_CLIPRECT (pdc, eff_rc);
-                _DBG_PRINTF("%s (%d, %d, %d, %d)\n",
-                    __func__, rect->x, rect->y, rect->w, rect->h);
                 GAL_FillRect (pdc->surface, rect, pdc->cur_pixel);
             }
             cliprect = cliprect->next;
@@ -1128,18 +1126,17 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
             goto empty_ret;
         GetBoundRect (&pddc->rc_output, &srcOutput, &dstOutput);
     }
-    else
+    else {
         pddc->rc_output = dstOutput;
+    }
+
+    ENTER_DRAWING_NOCHECK (pddc);
 
     if (pddc->surface != psdc->surface && (psdc->surface ==
-                __gal_screen))
+                __gal_screen)) {
         psdc->rc_output = srcOutput;
-
-    ENTER_DRAWING (pddc);
-
-    if (pddc->surface !=  psdc->surface && (psdc->surface ==
-                __gal_screen))
         kernel_ShowCursorForGDI (FALSE, psdc);
+    }
 
     /*
      * The CLIPRECT's RECT order is: rc1 rc2 rc3 rc4 rc5 rc6
@@ -1273,11 +1270,11 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
         }
     }
 
-    if (pddc->surface !=  psdc->surface && (psdc->surface ==
+    if (pddc->surface != psdc->surface && (psdc->surface ==
                 __gal_screen))
         kernel_ShowCursorForGDI (TRUE, psdc);
 
-    LEAVE_DRAWING (pddc);
+    LEAVE_DRAWING_NOCHECK (pddc);
 
 empty_ret:
     UNLOCK_GCRINFO (pddc);
