@@ -182,8 +182,9 @@ static void* EventLoop (void* data)
     while (__mg_quiting_stage > _MG_QUITING_STAGE_EVENT) {
         EXTRA_INPUT_EVENT extra;
 
+#if 0
+ndef __USE_TIMER_THREAD
         /* VM: Since 4.0.0, update timer counter in event loop */
-#ifndef __USE_TIMER_THREAD
         if (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
             extern void __mg_timer_action (void *data);
             __mg_timer_action (NULL);
