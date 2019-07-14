@@ -234,7 +234,7 @@ char * __mg_msgstr2 [] =
     "",                      // 0x00AE
     "",                      // 0x00AF
 
-    "MSG_ERASEBKGND",        // 0x00B0 // this is an async message.
+    "MSG_ERASEBKGND",        // 0x00B0
     "MSG_PAINT",             // 0x00B1
     "MSG_NCPAINT",           // 0x00B2
     "MSG_NCACTIVATE",        // 0x00B3
@@ -250,10 +250,11 @@ char * __mg_msgstr2 [] =
     "",                      // 0x00BD
     "",                      // 0x00BE
     "",                      // 0x00BF
-    "",                      // 0x00C0
-    "",                      // 0x00C1
-    "",                      // 0x00C2
-    "",                      // 0x00C3
+
+    "MSG_STARTSESSION",      // 0x00C0
+    "MSG_QUERYENDSESSION",   // 0x00C1
+    "MSG_ENDSESSION",        // 0x00C2
+    "MSG_REINITSESSION",     // 0x00C3
     "",                      // 0x00C4
     "",                      // 0x00C5
     "",                      // 0x00C6
@@ -264,42 +265,42 @@ char * __mg_msgstr2 [] =
     "",                      // 0x00CB
     "",                      // 0x00CC
     "",                      // 0x00CD
-    "",                      // 0x00CE
-    "",                      // 0x00CF
+    "MSG_ERASEDESKTOP",      // 0x00CE
+    "MSG_PAINTDESKTOP",      // 0x00CF
 
-    "MSG_STARTSESSION",      // 0x00D0
-    "MSG_QUERYENDSESSION",   // 0x00D1
-    "MSG_ENDSESSION",        // 0x00D2
-    "MSG_REINITSESSION",     // 0x00D3
-    "",                      // 0x00D4
-    "",                      // 0x00D5
-    "",                      // 0x00D6
-    "",                      // 0x00D7
-    "",                      // 0x00D8
-    "",                      // 0x00D9
-    "",                      // 0x00DA
+    "",                      // 0x00D0
+    "MSG_DT_LBUTTONDOWN",    // 0x00D1
+    "MSG_DT_LBUTTONUP",      // 0x00D2
+    "MSG_DT_LBUTTONDBLCLK",  // 0x00D3
+    "MSG_DT_MOUSEMOVE",      // 0x00D4
+    "MSG_DT_RBUTTONDOWN",    // 0x00D5
+    "MSG_DT_RBUTTONUP",      // 0x00D6
+    "MSG_DT_RBUTTONDBLCLK",  // 0x00D7
+    "MSG_DT_MBUTTONDOWN",    // 0x00D8
+    "MSG_DT_MBUTTONUP",      // 0x00D9
+    "MSG_DT_MBUTTONDBLCLK",  // 0x00DA
     "",                      // 0x00DB
     "",                      // 0x00DC
     "",                      // 0x00DD
-    "MSG_ERASEDESKTOP",      // 0x00DE
-    "MSG_PAINTDESKTOP",      // 0x00DF
+    "",                      // 0x00DE
+    "",                      // 0x00DF
 
-    "MSG_DT_LBUTTONDOWN",    // 0x00E0
-    "MSG_DT_LBUTTONUP",      // 0x00E1
-    "MSG_DT_LBUTTONDBLCLK",  // 0x00E2
-    "MSG_DT_MOUSEMOVE",      // 0x00E3
-    "MSG_DT_RBUTTONDOWN",    // 0x00E4
-    "MSG_DT_RBUTTONUP",      // 0x00E5
-    "MSG_DT_RBUTTONDBLCLK",  // 0x00E6
-    "",                      // 0x00E7
-    "MSG_DT_KEYDOWN",        // 0x00E8
-    "MSG_DT_CHAR",           // 0x00E9
-    "MSG_DT_KEYUP",          // 0x00EA
-    "MSG_DT_SYSKEYDOWN",     // 0x00EB
-    "MSG_DT_SYSCHAR",        // 0x00EC
-    "MSG_DT_SYSKEYUP",       // 0x00ED
-    "MSG_DT_KEYLONGPRESS",   // 0x00EE
-    "MSG_DT_KEYALWAYSPRESS", // 0x00EF
+    "MSG_DT_KEYDOWN",        // 0x00E0
+    "MSG_DT_CHAR",           // 0x00E1
+    "MSG_DT_KEYUP",          // 0x00E2
+    "MSG_DT_SYSKEYDOWN",     // 0x00E3
+    "MSG_DT_SYSCHAR",        // 0x00E4
+    "MSG_DT_SYSKEYUP",       // 0x00E5
+    "MSG_DT_KEYLONGPRESS",   // 0x00E6
+    "MSG_DT_KEYALWAYSPRESS", // 0x00E7
+    "",                      // 0x00E8
+    "",                      // 0x00E9
+    "",                      // 0x00EA
+    "",                      // 0x00EB
+    "",                      // 0x00EC
+    "",                      // 0x00ED
+    "",                      // 0x00EE
+    "",                      // 0x00EF
 
     "MSG_ADDNEWMAINWIN",     // 0x00F0
     "MSG_REMOVEMAINWIN",     // 0x00F1

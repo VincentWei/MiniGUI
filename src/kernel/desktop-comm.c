@@ -104,8 +104,8 @@ void mg_TerminateDesktop (void)
     DestroyFreeClipRectList (&sg_FreeInvRectList);
 
     mg_TerminateSystemRes ();
-	//dongjunjie avoid double free
-	__mg_dsk_win = 0;
+    //dongjunjie avoid double free
+    __mg_dsk_win = 0;
 }
 
 static PMAINWIN dskGetActiveWindow (void)
@@ -532,7 +532,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
         if (pWin->dwExStyle & WS_EX_TRANSPARENT) {
             /* set invalidate rect. */
-			InvalidateRect ((HWND)pWin, &rcMove, TRUE);
+            InvalidateRect ((HWND)pWin, &rcMove, TRUE);
             inved = TRUE;
         }
         else {
@@ -619,7 +619,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
          */
         if(bNeedInvalidate)
         {
-			InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
+            InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             rcInvalid = rcMove; //restore the invalidate area
             bNeedInvalidate = FALSE; //resotre the inved value
             inved = TRUE;
@@ -636,7 +636,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
         if (bNeedInvalidate)
         {
-			InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
+            InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             inved = TRUE;
         }
 
@@ -1696,7 +1696,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
                     && (pWin->pHosting == NULL)
 #endif
                )
-				PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+                PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
         }
 
         slot = __mg_zorder_info->first_normal;
@@ -1978,7 +1978,7 @@ static int dskGetIMEStatus (int iIMEStatusCode)
 
 void GUIAPI DesktopUpdateAllWindow(void)
 {
-	SendMessage(HWND_DESKTOP, MSG_PAINT, 0, 0);
+    SendMessage(HWND_DESKTOP, MSG_PAINT, 0, 0);
 }
 
 #ifndef _MG_ENABLE_SCREENSAVER
@@ -2087,7 +2087,7 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if(dsk_ops->init)
                 dt_context = dsk_ops->init();
 #ifdef _MGHAVE_MENU
-			sg_DesktopMenu = dskCreateDesktopMenu ();
+            sg_DesktopMenu = dskCreateDesktopMenu ();
 #endif
 
             break;
@@ -2097,12 +2097,12 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 __mg_init_local_sys_text ();
 
 #ifdef _MGHAVE_MENU
-			if (sg_DesktopMenu) {
-				DestroyMenu (sg_DesktopMenu);
-				sg_DesktopMenu = 0;
-			}
+            if (sg_DesktopMenu) {
+                DestroyMenu (sg_DesktopMenu);
+                sg_DesktopMenu = 0;
+            }
 
-			sg_DesktopMenu = dskCreateDesktopMenu ();
+            sg_DesktopMenu = dskCreateDesktopMenu ();
 #endif
 
             SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
@@ -2242,6 +2242,9 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case MSG_DT_MOUSEMOVE:
         case MSG_DT_RBUTTONDOWN:
         case MSG_DT_RBUTTONDBLCLK:
+        case MSG_DT_MBUTTONDOWN:
+        case MSG_DT_MBUTTONDBLCLK:
+        case MSG_DT_MBUTTONUP:
             if(dsk_ops->mouse_handler)
                 dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
             break;
@@ -2264,8 +2267,10 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             uCounter += (__mg_timer_counter - blink_counter) * 10;
             blink_counter = __mg_timer_counter;
-
 #else
+            static DWORD blink_counter = 0;
+            static DWORD sg_old_counter = 0;
+
             if (__mg_quiting_stage < 0) {
                 int slot;
                 PMSGQUEUE pMsgQueue;
@@ -2307,12 +2312,16 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
 
-            mg_dispatch_timer_message (1);
+            if (MG_UNLIKELY(sg_old_counter == 0))
+                sg_old_counter = __mg_timer_counter;
+            mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+            sg_old_counter = __mg_timer_counter;
 
-            if (__mg_timer_counter % 10 != 0)
+            if (__mg_timer_counter < (blink_counter + 10))
                 break;
 
-            uCounter += 100;
+            uCounter += (__mg_timer_counter - blink_counter) * 10;
+            blink_counter = __mg_timer_counter;
 #endif
             if (sg_hCaretWnd != 0
                     && gui_GetMainWindowPtrOfControl (sg_hCaretWnd) == dskGetActiveWindow()

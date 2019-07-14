@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -37,7 +37,7 @@
 ** Current maintainer: Wei Yongming.
 **
 ** Create date: 1999/04/21
-*/ 
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,40 +78,17 @@ static pthread_mutex_t timerLock;
 #define TIMER_UNLOCK()
 #endif
 
-#if defined(__LINUX__) && defined(_MGRM_THREADS)
-#   define _MG_USE_BETTER_TIMER
-#endif /* __LINUX__ */
-
-#ifdef _MG_USE_BETTER_TIMER
-#ifdef _MGRM_THREADS
-#include <sys/times.h>
-static clock_t g_timer_started;
-#endif
-static clock_t g_last_tick;
-#endif
-
 /* timer action for minigui timers */
 static void __mg_timer_action (void *data)
 {
-#ifdef _MGRM_PROCESSES
-    SHAREDRES_TIMER_COUNTER += 1;
-#else
-
-#if defined(_MGRM_STANDALONE)
-    __mg_timer_counter += 10;
-#else
-#   ifdef _MG_USE_BETTER_TIMER
-    __mg_timer_counter = times(NULL) - g_timer_started;
-#   else /* _MG_USE_BETTER_TIMER */
-    __mg_timer_counter ++;
-#   endif /* _MG_USE_BETTER_TIMER */
-#endif
-
-#endif
-
-#ifdef _MGRM_THREADS
+#if defined(_MGRM_PROCESSES)
+    SHAREDRES_TIMER_COUNTER = __mg_os_get_time_ms()/10;
+#elif defined(_MGRM_THREADS)
+    __mg_timer_counter = __mg_os_get_time_ms()/10;
     /* alert desktop */
     AlertDesktopTimerEvent ();
+#else /* _MGRM_STANDALONE */
+    // do nothing
 #endif
 }
 
@@ -128,11 +105,6 @@ static OS_TIMER_ID __mg_os_timer = 0;
 static void* TimerEntry (void* data)
 {
     sem_post ((sem_t*)data);
-
-#ifdef _MG_USE_BETTER_TIMER
-    g_timer_started = times(NULL);
-    g_last_tick = 0;
-#endif /* _MG_USE_BETTER_TIMER */
 
     while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
         __mg_os_time_delay (10);
@@ -152,8 +124,8 @@ int __mg_timer_init (void)
     }
 
 #ifdef __AOS__
-    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_timer_action, 
-                                         NULL, AOS_TIMER_TICKT, 
+    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_timer_action,
+                                         NULL, AOS_TIMER_TICKT,
                                          OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
 #else /* NOT __AOS__ */
     {
@@ -195,7 +167,7 @@ BOOL mg_InstallIntervalTimer (void)
 {
     struct itimerval timerv;
     struct sigaction siga;
-    
+
     sigaction (SIGALRM, NULL, &old_alarm_handler);
 
     siga = old_alarm_handler;
@@ -243,6 +215,8 @@ BOOL mg_UninstallIntervalTimer (void)
 
 BOOL mg_InitTimer (void)
 {
+    __mg_os_start_time_ms();
+
 #ifdef _MGRM_THREADS
     pthread_mutex_init (&timerLock, NULL);
     __mg_timer_counter = 0;
@@ -287,12 +261,8 @@ void mg_dispatch_timer_message (DWORD inter)
 {
     int i;
 
-#ifdef _MG_USE_BETTER_TIMER
-    clock_t now = __mg_timer_counter;
-
-    inter = now - g_last_tick;
-    g_last_tick = now;
-#endif /* _MG_USE_BETTER_TIMER */
+    if (inter == 0)
+        return;
 
     TIMER_LOCK ();
 
@@ -306,7 +276,7 @@ void mg_dispatch_timer_message (DWORD inter)
                 timerstr[i]->tick_count = __mg_timer_counter;
 #endif
                 /* setting timer flag is simple, we do not need to lock msgq,
-                   or else we may encounter dead lock here */ 
+                   or else we may encounter dead lock here */
                 SetMsgQueueTimerFlag (timerstr[i]->msg_queue, i);
                 timerstr[i]->count -= timerstr[i]->speed;
             }
@@ -377,7 +347,7 @@ void __mg_move_timer_last (TIMER* timer, int slot)
 }
 #endif
 
-BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed, 
+BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
                 TIMERPROC timer_proc)
 {
     int i;
@@ -438,7 +408,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
 
     TIMER_UNLOCK ();
     return TRUE;
-    
+
 badret:
     TIMER_UNLOCK ();
     return FALSE;
@@ -519,7 +489,7 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
     TIMER_LOCK ();
 
     for (i = 0; i < DEF_NR_TIMERS; i++) {
-        if ((timerstr [i] && timerstr [i]->hWnd == hWnd) && 
+        if ((timerstr [i] && timerstr [i]->hWnd == hWnd) &&
                         (id == 0 || timerstr [i]->id == id)) {
             RemoveMsgQueueTimerFlag (pMsgQueue, i);
             free (timerstr[i]);
@@ -539,7 +509,7 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
     return killed;
 }
 
-BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed, 
+BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
                 TIMERPROC timer_proc)
 {
     int i;
@@ -616,8 +586,7 @@ DWORD GUIAPI GetTickCount (void)
 #ifdef _MGRM_PROCESSES
     return SHAREDRES_TIMER_COUNTER;
 #elif defined(_MGRM_STANDALONE)
-    extern DWORD __mg_os_get_time(void);
-    __mg_timer_counter = __mg_os_get_time() / 10;
+    __mg_timer_counter = __mg_os_get_time_ms()/10;
     return __mg_timer_counter;
 #else
     return __mg_timer_counter;

@@ -1059,7 +1059,7 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
              * first to load from sytem res path, else load it directly(relative or absolute path).*/
             if ((add_dev_font (font_name, font_file, TRUE)) == TRUE)
                 added_num++;
-            else if ((0 == mg_path_joint(font_path, MAX_PATH + 1,
+            else if ((0 == __mg_path_joint(font_path, MAX_PATH + 1,
                         sysres_get_system_res_path(), font_file))
                     && ((add_dev_font (font_name, font_path, TRUE)) == TRUE))
                 added_num++;

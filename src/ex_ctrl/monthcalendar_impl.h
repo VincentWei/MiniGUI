@@ -102,9 +102,9 @@ typedef MONCALDDATA* PMONCALDDATA;
 
 BOOL RegisterMonthCalendarControl (void);
 
-time_t __mg_time (time_t * timer);
-time_t __mg_mktime (struct tm * timeptr);
-struct tm *__mg_localtime (const time_t * timer);
+time_t __mg_os_time (time_t * timer);
+time_t __mg_os_mktime (struct tm * timeptr);
+struct tm *__mg_os_localtime (const time_t * timer);
 
 #ifdef  __cplusplus
 }

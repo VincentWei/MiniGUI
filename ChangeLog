@@ -4984,11 +4984,11 @@ provide the function whether the file exist or not.(xwyan)
 	* src/server/request.c
 
 10/24. MODIFICATION: Use 1980/01/01 00:00:00 to return the default local time 
-for __mg_localtime.
+for __mg_os_localtime.
 	* src/misc/nposix.c
 
 10/24. MODIFICATION: Use HAVE_TIME, HAVE_MKTIME, and HAVE_LOCALTIME to define 
-__mg_time, __mg_mktime, and __mg_localtime functions.
+__mg_os_time, __mg_os_mktime, and __mg_os_localtime functions.
 	* configure.in
 	* src/misc/nposix.c
 

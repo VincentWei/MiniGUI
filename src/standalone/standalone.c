@@ -159,8 +159,8 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     }
 }
 
-extern void  __mg_os_start_time(void);
-extern DWORD __mg_os_get_time(void);
+extern void  __mg_os_start_time_ms(void);
+extern DWORD __mg_os_get_time_ms(void);
 
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
@@ -171,7 +171,7 @@ BOOL GUIAPI salone_StandAloneStartup (void)
     mg_InstallIntervalTimer ();
 #endif
 
-    __mg_os_start_time();
+    __mg_os_start_time_ms();
 
     return TRUE;
 }
@@ -244,7 +244,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
     n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
                 msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
     /* update __mg_timer_counter */
-    __mg_timer_counter = __mg_os_get_time()/10;
+    __mg_timer_counter = __mg_os_get_time_ms()/10;
 #endif
 
     if (msg_queue == NULL)

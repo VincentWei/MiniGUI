@@ -234,7 +234,7 @@ static int GetWeekDay (int year, int month, int day)
     nowday.tm_mon = month-1;
     nowday.tm_year = year-1900;
 
-    if (__mg_mktime(&nowday) == -1) {
+    if (__mg_os_mktime(&nowday) == -1) {
         return -1;
     }
     else
@@ -746,8 +746,8 @@ static BOOL mcInitMonthCalendarData (HWND hWnd, MONCALDDATA* mc_data)
     RECT rcClient, rcMDay;
     PMCCOLORINFO pmcci;
 
-    __mg_time(&nowtime);
-    pnt = (struct tm *)__mg_localtime(&nowtime);
+    __mg_os_time(&nowtime);
+    pnt = (struct tm *)__mg_os_localtime(&nowtime);
     mc_data->sys_year = mc_data->cur_year = pnt->tm_year + 1900;
     mc_data->sys_month = mc_data->cur_month = pnt->tm_mon + 1;
     mc_data->sys_day = mc_data->cur_day = pnt->tm_mday;

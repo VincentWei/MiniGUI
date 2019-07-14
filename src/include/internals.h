@@ -617,8 +617,7 @@ SetDesktopTimerFlag (void)
 static inline void
 AlertDesktopTimerEvent (void)
 {
-    if(__mg_dsk_msg_queue)
-    {
+    if (__mg_dsk_msg_queue) {
         __mg_dsk_msg_queue->TimerMask = 1;
         POST_MSGQ(__mg_dsk_msg_queue);
     }

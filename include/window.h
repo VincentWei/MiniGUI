@@ -2041,7 +2041,7 @@ extern DWORD __mg_interval_time;
  *        should be erase. The rectangle is in client coordinates system.
  *        If it is NULL, the whole client area should be erased.
  */
-#define MSG_ERASEBKGND   	0x00B0      /* this is an async message */
+#define MSG_ERASEBKGND      0x00B0      /* this is an async message */
 
 /**
  * \def MSG_PAINT
@@ -2087,7 +2087,7 @@ extern DWORD __mg_interval_time;
  */
 #define MSG_SYNCPAINT       0x00B4
 
-#define MSG_LASTPAINTMSG    0x00CF
+#define MSG_LASTPAINTMSG    0x00BF
 
     /** @} end of paint_msgs */
 
@@ -2096,18 +2096,18 @@ extern DWORD __mg_interval_time;
      * @{
      */
 
-/* Group 6 from 0x00D0 to 0x00EF, the internal desktop messages. */
-#define MSG_FIRSTSESSIONMSG 0x00D0
+/* Group 6 from 0x00C0 to 0x00EF, the internal desktop messages. */
+#define MSG_FIRSTSESSIONMSG 0x00C0
 
-#define MSG_STARTSESSION    0x00D0
-#define MSG_QUERYENDSESSION 0x00D1
-#define MSG_ENDSESSION      0x00D2
-#define MSG_REINITSESSION   0x00D3
+#define MSG_STARTSESSION    0x00C0
+#define MSG_QUERYENDSESSION 0x00C1
+#define MSG_ENDSESSION      0x00C2
+#define MSG_REINITSESSION   0x00C3
 
-#define MSG_ERASEDESKTOP    0x00DE
-#define MSG_PAINTDESKTOP    0x00DF
+#define MSG_ERASEDESKTOP    0x00CE
+#define MSG_PAINTDESKTOP    0x00CF
 
-#define MSG_DT_MOUSEOFF     0x00E0
+#define MSG_DT_MOUSEOFF     0x00D0
 
 /**
  * \def MSG_DT_LBUTTONDOWN
@@ -2126,7 +2126,7 @@ extern DWORD __mg_interval_time;
  *
  * \sa MSG_DT_LBUTTONUP, MSG_LBUTTONDOWN
  */
-#define MSG_DT_LBUTTONDOWN  0x00E1
+#define MSG_DT_LBUTTONDOWN      0x00D1
 
 /**
  * \def MSG_DT_LBUTTONUP
@@ -2145,7 +2145,7 @@ extern DWORD __mg_interval_time;
  *
  * \sa MSG_DT_LBUTTONDOWN, MSG_LBUTTONUP
  */
-#define MSG_DT_LBUTTONUP    0x00E2
+#define MSG_DT_LBUTTONUP        0x00D2
 
 /**
  * \def MSG_DT_LBUTTONDBLCLK
@@ -2164,7 +2164,7 @@ extern DWORD __mg_interval_time;
  *
  * \sa MSG_RBUTTONDBLCLK
  */
-#define MSG_DT_LBUTTONDBLCLK    0x00E3
+#define MSG_DT_LBUTTONDBLCLK    0x00D3
 
 /**
  * \def MSG_DT_MOUSEMOVE
@@ -2183,7 +2183,7 @@ extern DWORD __mg_interval_time;
  *
  * \sa MSG_MOUSEMOVE
  */
-#define MSG_DT_MOUSEMOVE    0x00E4
+#define MSG_DT_MOUSEMOVE        0x00D4
 
 /**
  * \def MSG_DT_RBUTTONDOWN
@@ -2203,7 +2203,7 @@ extern DWORD __mg_interval_time;
  * \sa MSG_DT_RBUTTONUP, MSG_RBUTTONDOWN
  *
  */
-#define MSG_DT_RBUTTONDOWN  0x00E5
+#define MSG_DT_RBUTTONDOWN      0x00D5
 
 /**
  * \def MSG_DT_RBUTTONUP
@@ -2222,7 +2222,7 @@ extern DWORD __mg_interval_time;
  *
  * \sa MSG_DT_RBUTTONDOWN, MSG_RBUTTONUP
  */
-#define MSG_DT_RBUTTONUP    0x00E6
+#define MSG_DT_RBUTTONUP        0x00D6
 
 /**
  * \def MSG_DT_RBUTTONDBLCLK
@@ -2241,9 +2241,67 @@ extern DWORD __mg_interval_time;
  *
  * \sa MSG_LBUTTONDBLCLK
  */
-#define MSG_DT_RBUTTONDBLCLK    0x00E7
+#define MSG_DT_RBUTTONDBLCLK    0x00D7
 
-#define MSG_DT_KEYOFF       0x00D8
+/**
+ * \def MSG_DT_MBUTTONDOWN
+ * \brief Right mouse button down message on the desktop.
+ *
+ * This message is posted to the desktop window when the user presses down
+ * the right button of the mouse in the area of the desktop window.
+ *
+ * \code
+ * MSG_DT_MBUTTONDOWN
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param x_pos,y_pos The position of the mouse in desktop coordinates.
+ *
+ * \sa MSG_DT_MBUTTONUP, MSG_RBUTTONDOWN
+ *
+ */
+#define MSG_DT_MBUTTONDOWN      0x00D8
+
+/**
+ * \def MSG_DT_MBUTTONUP
+ * \brief Right mouse button up message on the desktop.
+ *
+ * This message is posted to the desktop window when the user releases up
+ * the right button of the mouse in the area of the desktop window.
+ *
+ * \code
+ * MSG_DT_MBUTTONUP
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param x_pos,y_pos The position of the mouse in desktop coordinates.
+ *
+ * \sa MSG_DT_MBUTTONDOWN, MSG_RBUTTONUP
+ */
+#define MSG_DT_MBUTTONUP        0x00D9
+
+/**
+ * \def MSG_DT_MBUTTONDBLCLK
+ * \brief Right mouse button double clicked message on the desktop.
+ *
+ * This message is posted to the desktop window when the user double clicks
+ * the right button of the mouse in the area of the desktop window.
+ *
+ * \code
+ * MSG_DT_MBUTTONDBLCLK
+ * int x_pos = LOSWORD (lParam);
+ * int y_pos = HISWORD (lParam);
+ * \endcode
+ *
+ * \param x_pos,y_pos The position of the mouse in desktop coordinates.
+ *
+ * \sa MSG_LBUTTONDBLCLK
+ */
+#define MSG_DT_MBUTTONDBLCLK    0x00DA
+
+#define MSG_DT_KEYOFF           0x00CB
 
 /**
  * \def MSG_DT_KEYDOWN
@@ -2262,7 +2320,9 @@ extern DWORD __mg_interval_time;
  * \sa MSG_DT_KEYUP
  *
  */
-#define MSG_DT_KEYDOWN      0x00E8
+#define MSG_DT_KEYDOWN          0x00E0
+
+#define MSG_DT_CHAR             0x00E1
 
 /**
  * \def MSG_DT_KEYUP
@@ -2280,18 +2340,16 @@ extern DWORD __mg_interval_time;
  *
  * \sa MSG_DT_KEYDOWN
  */
-#define MSG_DT_KEYUP        0x00EA
+#define MSG_DT_KEYUP            0x00E2
 
-#define MSG_DT_SYSKEYDOWN   0x00EB
-#define MSG_DT_SYSKEYUP     0x00ED
+#define MSG_DT_SYSKEYDOWN       0x00E3
+#define MSG_DT_SYSCHAR          0x00E4
+#define MSG_DT_SYSKEYUP         0x00E5
 
-#define MSG_DT_SYSCHAR      0x00EC
-#define MSG_DT_CHAR         0x00E9
+#define MSG_DT_KEYLONGPRESS     0x00E6
+#define MSG_DT_KEYALWAYSPRESS   0x00E7
 
-#define MSG_DT_KEYLONGPRESS     0x00EE
-#define MSG_DT_KEYALWAYSPRESS   0x00EF
-
-#define MSG_LASTSESSIONMSG  0x00EF
+#define MSG_LASTSESSIONMSG      0x00EF
 
     /** @} end of desktop_msgs */
 

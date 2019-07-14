@@ -1432,7 +1432,7 @@ char * strtrimall( char *src)
     return src;
 }
 
-BOOL mg_is_abs_path(const char* path)
+BOOL __mg_is_abs_path(const char* path)
 {
     if (NULL != path) {
 #ifdef WIN32
@@ -1448,10 +1448,10 @@ BOOL mg_is_abs_path(const char* path)
     return FALSE;
 }
 
-int mg_path_joint(char* dst, int dst_size, const char* abs_path, const char* sub_path)
+int __mg_path_joint(char* dst, int dst_size, const char* abs_path, const char* sub_path)
 {
     if (NULL != dst && NULL != abs_path && NULL != sub_path) {
-        if (mg_is_abs_path(abs_path) && (!mg_is_abs_path(sub_path))) {
+        if (__mg_is_abs_path(abs_path) && (!__mg_is_abs_path(sub_path))) {
             if (dst_size >= strlen(abs_path) + strlen(sub_path) 
                         + 2/* size of split '/' and terminator '\0' */) {
                 sprintf(dst, "%s/%s", abs_path, sub_path);

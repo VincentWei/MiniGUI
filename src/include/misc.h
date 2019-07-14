@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -65,6 +65,11 @@ struct timezone {
 
 unsigned int __mg_os_get_random_seed (void);
 void __mg_os_time_delay (int ms);
+void __mg_os_start_time_ms(void);
+DWORD __mg_os_get_time_ms(void);
+time_t __mg_os_time (time_t* timep);
+time_t __mg_os_mktime (struct tm *tmp);
+struct tm *__mg_os_localtime (const time_t * timep);
 
 #define NR_KEYS_INIT_ALLOC      8
 #define NR_KEYS_INC_ALLOC       4
@@ -90,8 +95,10 @@ int __mg_lookfor_unused_slot (unsigned char* bitmap, int len_bmp, int set);
 void __mg_slot_set_use (unsigned char* bitmap, int index);
 int __mg_slot_clear_use (unsigned char* bitmap, int index);
 
-BOOL mg_is_abs_path(const char* path);
-int mg_path_joint(char* dst, int dst_size, const char* abs_path, const char* sub_path);
+BOOL __mg_is_abs_path(const char* path);
+int __mg_path_joint(char* dst, int dst_size, const char* abs_path,
+        const char* sub_path);
+
 #if defined (__VXWORKS__) || defined(WIN32) || defined (__NUCLEUS_MNT__) || defined (_EM86_IAL) || defined (_EM85_IAL)
 double cbrt(double x);
 #endif

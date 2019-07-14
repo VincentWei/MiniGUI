@@ -1991,7 +1991,7 @@ extern "C" {
 #endif
 
 #ifndef HAVE_TIME
-typedef unsigned int time_t;
+typedef unsigned long time_t;
 
 struct tm {
     int    tm_sec;   /* seconds [0,61] */
