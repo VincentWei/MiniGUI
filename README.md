@@ -441,7 +441,9 @@ under the terms and conditions of the commercial license.
 For more information about the commercial license, please refer to
 <http://www.minigui.com/en/about/licensing-policy/>.
 
-In particular, the above open source or free software license does
+### Special Statement
+
+The above open source or free software license does
 not apply to any entity in the Exception List published by
 Beijing FMSoft Technologies Co., Ltd.
 
@@ -452,8 +454,7 @@ use the software in any way whatsoever, including but not limited to
 downloading, viewing, copying, distributing, compiling, and running.
 If you have already downloaded it, you MUST destroy all of its copies.
 
-The Exception List is published by FMSoft
-in the following webpage and may be updated from time to time:
-
-https://www.fmsoft.cn/exception-list
+The Exception List is published by FMSoft and may be updated
+from time to time. For more information, please see
+<https://www.fmsoft.cn/exception-list>.
 
