@@ -62,35 +62,13 @@
 #ifndef GUI_EXSTUBS_H
     #define GUI_EXSTUBS_H
 
-/* The pixel format defined by depth */
-#define COMMLCD_PSEUDO_RGB332   1
-#define COMMLCD_TRUE_RGB555     2
-#define COMMLCD_TRUE_RGB565     3
-#define COMMLCD_TRUE_RGB888     4
-#define COMMLCD_TRUE_RGB0888    5
-#define COMMLCD_TRUE_ARGB1555   6
-#define COMMLCD_TRUE_ARGB8888   7
-#define COMMLCD_TRUE_ABRG8888   8
-
-#define COMMLCD_UPDATE_NONE     0
-#define COMMLCD_UPDATE_SYNC     1
-#define COMMLCD_UPDATE_ASYNC    2
-
-struct commlcd_info {
-    int     height;         // vertical resolution of the screen
-    int     width;          // horinzontal resolution of the screen
-    int     pitch;          // Length of one scan line in bytes
-    int     bpp;            // Depth (bits-per-pixel)
-    int     type;           // Pixel type
-    int     update_method;  // Update method: none, asynchronously, or synchronously.
-    Uint8*  fb;             // Frame buffer
-};
-
-#define COMM_MOUSEINPUT    0x01
-#define COMM_KBINPUT       0x02
-
-#define COMM_MOUSELBUTTON  0x01
-#define COMM_MOUSERBUTTON  0x04
+    /**
+     * \defgroup external_stubs External Stubs
+     *
+     * The stubs (callbacks) you need to implement for external target.
+     *
+     * @{
+     */
 
 #ifdef __cplusplus
 extern "C" {
@@ -278,13 +256,38 @@ typedef struct _DriDriverOps {
 
 } DriDriverOps;
 
-/* implement this stub to return the DRI driver operators */
+/** Implement this stub to return the DRI driver operators */
 DriDriverOps* __dri_ex_driver_get (const char* driver_name);
 
 #endif /* _MGGAL_DRI */
 
-/* external stubs for COMMLCD NEWGAL engine */
 #ifdef _MGGAL_COMMLCD
+
+/* external stubs for COMMLCD NEWGAL engine */
+
+/* The pixel format defined by depth */
+#define COMMLCD_PSEUDO_RGB332   1
+#define COMMLCD_TRUE_RGB555     2
+#define COMMLCD_TRUE_RGB565     3
+#define COMMLCD_TRUE_RGB888     4
+#define COMMLCD_TRUE_RGB0888    5
+#define COMMLCD_TRUE_ARGB1555   6
+#define COMMLCD_TRUE_ARGB8888   7
+#define COMMLCD_TRUE_ABRG8888   8
+
+#define COMMLCD_UPDATE_NONE     0
+#define COMMLCD_UPDATE_SYNC     1
+#define COMMLCD_UPDATE_ASYNC    2
+
+struct commlcd_info {
+    int     height;         // vertical resolution of the screen
+    int     width;          // horinzontal resolution of the screen
+    int     pitch;          // Length of one scan line in bytes
+    int     bpp;            // Depth (bits-per-pixel)
+    int     type;           // Pixel type
+    int     update_method;  // Update method: none, asynchronously, or synchronously.
+    Uint8*  fb;             // Frame buffer
+};
 
 int __commlcd_drv_init (void);
 int __commlcd_drv_getinfo (struct commlcd_info *li,
@@ -297,6 +300,14 @@ int __commlcd_drv_update (const RECT* rc_dirty);
 
 #ifdef _MGIAL_COMM
 
+/* external stubs for COMM IAL engine */
+
+#define COMM_MOUSEINPUT    0x01
+#define COMM_KBINPUT       0x02
+
+#define COMM_MOUSELBUTTON  0x01
+#define COMM_MOUSERBUTTON  0x04
+
 int __comminput_init (void);
 int __comminput_ts_getdata (short *x, short *y, short *button);
 int __comminput_kb_getdata (short *key, short *status);
@@ -308,6 +319,8 @@ void __comminput_deinit (void);
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
+
+    /** @} end of general_rw_fns */
 
 #endif /* GUI_EXSTUBS_H */
 

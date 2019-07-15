@@ -2101,7 +2101,10 @@ PREDEFINED             = _MGRM_STANDALONE \
                          _MGCTRL_ANIMATION \
                          _MGFONT_FT2 \
                          _MGFONT_UPF \
-                         _MGFONT_BMPF
+                         _MGFONT_BMPF \
+                         _MGGAL_DRI \
+                         _MGGAL_COMMLCD \
+                         _MGIAL_COMM
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

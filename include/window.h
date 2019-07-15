@@ -1470,14 +1470,14 @@ extern DWORD __mg_interval_time;
 #define AXIS_SOURCE_WHEEL_TILT  4
 
 /**
- * \def MSG_INPUT_AXIS
+ * \def MSG_EXIN_AXIS
  * \brief Indicates an axis input event.
  *
  * This message is sent to the active window when the user
  * operates the axis of a pointer device such as a mouse.
  *
  * \code
- * MSG_INPUT_AXIS
+ * MSG_EXIN_AXIS
  * int scroll = LOSWORD(wParam);
  * int source = HISWORD(wParam);
  * int value  = LOSWORD(lParam);

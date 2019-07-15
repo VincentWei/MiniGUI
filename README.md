@@ -200,7 +200,9 @@ in order to support [HybridOS Foundation Class Library].
 
 * Cleanup and tune code for GCC 7.3.
 
-For more information, please refer to [RELEASE-NOTES.md](RELEASE-NOTES.md) file:
+For more information, please refer to `RELEASE-NOTES.md` file:
+
+https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
 
 Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
@@ -213,7 +215,7 @@ We introduce some new features in MiniGUI Version 3.2.x:
     to support 64-bit platform.
   * Some enhancements and optimizations.
 
-For more information, please refer to RELEASE-NOTES.md file:
+For more information, please refer to `RELEASE-NOTES.md` file:
 
 https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md
 
