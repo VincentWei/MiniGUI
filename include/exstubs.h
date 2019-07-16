@@ -125,6 +125,9 @@ enum DriColorLogicOp {
    COLOR_LOGICOP_SET = 15
 };
 
+/**
+ * The struct type defines the operators for a DRI driver.
+ */
 typedef struct _DriDriverOps {
     /**
      * This operator creates the DriDriver object.
