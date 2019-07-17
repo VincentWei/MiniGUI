@@ -26,7 +26,7 @@ rendering in order that MiniGUI can handle complex writing systems
 
 * MiniGUI also provides new APIs to lay out, shape, and render glyphs
   from complex and mixed scripts, such as Arabic, Thai, and Indic.
-  The new APIs also conform to the specification of [CSS Text Module Level 3]
+  The new APIs also conform to the specifications of [CSS Text Module Level 3]
   and [CSS Writing Modes Level 3].
 
 * We tuned and optimized MiniGUI's logical and device font interfaces to
