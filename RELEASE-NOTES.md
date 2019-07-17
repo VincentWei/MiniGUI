@@ -114,7 +114,7 @@ function. You can call `CreateLogFontForMChar2UChar` function to create
 a dummy logfont object for this purpose in order to expense a minimal memory.
 
 If the text is in simple scripts, like Latin or Chinese, you can call
-`GetGlyphsExtentPointEx` function to lay out the paragraph. This function
+`GetGlyphsExtentFromUChars` function to lay out the paragraph. This function
 returns a glyph string which can fit in a line with the specified
 maximal extent and rendering flags. After this, you call
 `DrawGlyphStringEx` function to draw the glyph string to the
