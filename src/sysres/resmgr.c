@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -368,8 +368,6 @@ static void delete_entry_data(RES_ENTRY* entry)
     }
 }
 
-
-
 ////////////////////////////////////////////
 //inside functions
 BOOL InitializeResManager(int hash_table_size)
@@ -382,9 +380,9 @@ BOOL InitializeResManager(int hash_table_size)
 #if !defined(__NOUNIX__) || defined(WIN32)
     if ((p = getenv ("MG_RES_PATH"))) {
         int len = strlen(p);
-        if (p[len-1] == '/') 
+        if (p[len-1] == '/')
             sprintf(szpath, "%s", p);
-        else 
+        else
             sprintf(szpath, "%s/", p);
         cfg_res_path = strdup(szpath);
     }
@@ -446,74 +444,6 @@ const char* sysres_get_system_res_path()
     return cfg_res_path;
 }
 
-//////////////////////////////////////////
-//outside functions
-#if 0
-static int get_respath_count()
-{
-    int cnt;
-    if(res_paths == NULL)
-        return 0;
-
-    for(cnt=0; res_paths[cnt]; cnt++);
-
-    return cnt;
-}
-
-int strstrcnt(const char* strs, int s)
-{
-    int i;
-    if(strs == NULL)
-        return 0;
-    i = 1;
-    while((strs = strchr(strs,s))){
-        i ++;
-        strs ++;
-    }
-    return i;
-}
-
-int AddResPath(const char* paths)
-{
-    int cnt;
-    int p_ctn = 0;
-    const char* str;
-    if(path == NULL)
-        return RES_RET_INVALID_PARAM;
-
-    cnt = get_respath_count();
-
-    if(cnt <= 0) cnt = 1;
-
-    //the path is "[path1]:[path2]:..."
-    //get the count of paths
-    p_cnt = strstrcnt(paths,':');
-    if(p_cnt <= 0)
-        return RES_RES_INVALID_PARAM;
-
-    res_pahts = SNEW(char*, res_paths, cnt+p_cnt);
-
-    str = paths;
-    cnt --;
-    while((str = strchr(paths,':')))
-    {
-        res_paths[cnt++] = strndup(paths, str-paths);
-        paths = str + 1;
-    }
-
-    res_paths[cnt++] = strdup(paths);
-    res_paths[cnt] = NULL;
-
-    return RES_RET_OK;
-}
-
-#endif
-
-const char* GetResPath (void)
-{
-    return usr_res_path;
-}
-
 int SetResPath(const char* path)
 {
     if(path == NULL) {
@@ -571,9 +501,8 @@ int AddInnerRes(INNER_RES* inner_res, int count, BOOL bcopy)
             }
             else
             {
-                //if the resource is not copyed,
-                //we didnot free it until the system
-                //is exist
+                //if the resource is not copied,
+                //we did not free it until the system exits.
                 entry->source = &inner_res[i];
             }
             SetUsed(entry);
@@ -808,7 +737,7 @@ void* GetResource(RES_KEY key)
 
     if (entry == NULL || entry->data == NULL) {
 #ifdef _DEBUG
-        ERR_RETV (NULL, -1, "data is not exist");
+        ERR_RETV (NULL, -1, "data does not exist");
 #else
         return NULL;
 #endif
@@ -826,7 +755,7 @@ int AddResRef(RES_KEY key)
     RES_UNLOCK();
     if (entry == NULL) {
 #ifdef _DEBUG
-        ERR_RETV (-1, -1, "resouce is not exist(key=%x)", key);
+        ERR_RETV (-1, -1, "resouce does not exist(key=%x)", key);
 #else
         return -1;
 #endif
@@ -894,12 +823,12 @@ static void res_error(int type, const char* funcname, const char* strinfo, ... )
     char strbuff [256];
     static const char* errinfo[]={
         "invalid param",
-        "key is not exits",
-        "load file failed",
-        "load mem failed",
+        "key does not exist",
+        "failed to load file",
+        "failed to load from memory",
         "unknown type",
         "not implement",
-        "res is in used"
+        "res is in use"
     };
     va_list va;
 
@@ -980,124 +909,6 @@ static void img_unload (RESOURCE* res, int src_type)
         res->data = NULL;
     }
 }
-
-////////////////////////////////////////////////
-//icons
-#if 0
-typedef struct _icon_res_t{
-    DWORD dwMask;
-    HICON *icons;
-}icon_res_t;
-
-static inline int icon_res_which_to_idx(DWORD dwMask, int which)
-{
-    int idx = 0;
-    while(which>=0)
-    {
-        if(dwMask&1) idx ++;
-        dwMask >>= 1;
-    }
-    return idx;
-}
-static inline int icon_res_get_cnt(icon_res_t* res)
-{
-    DWORD dw = res->dwMask;
-    int cnt = 0;
-    while(dw!=0)
-    {
-        cnt ++;
-        dw >>= 1;
-    }
-    return cnt;
-}
-
-static BOOL icon_get_res_data(RESOURCE* res, int src_type, void* usr_param)
-{
-    int which;
-    icon_res_t* res_icon;
-    if(res == NULL)
-        return FALSE;
-
-    which = (int)usr_param;
-
-    if(which < 0 || which>=32)
-        which = 0;
-
-    if(res->data == NULL)
-    {
-        res_icon = NEW(icon_res_t);
-        res->data = res_icon;
-    }
-
-    if(res_icon->dwMask & (1<<which)){
-        return res_icon->icons[icon_res_which_to_idx(res_icon->dwMask, which)];
-    }
-    else
-    {
-        //load icon
-        HICON hi;
-        if(res->source.src == NULL)
-            return NULL;
-
-        switch(src_type)
-        {
-        case REF_SRC_FILE:
-        {
-            char szpath[512];
-            RES_FILE_SRC* file = res->source.file;
-            sprintf(szpath, "%s/%s", file->path, file->filename);
-            hi = LoadIconFromFile(HDC_SCREEN, szpath, which);
-            break;
-        }
-        case REF_SRC_INNER:
-        {
-            INNER_RES* inner = res->source.inner;
-            hi = LoadIconFromMem(HDC_SCREEN, inner->data, inner->data_len, which);
-            break;
-        }
-        default:
-            return NULL;
-        }
-
-        if(hi != 0)
-        {
-            //insrt at which
-            int idx;
-            int cnt;
-            int i;
-            res_icon->dwMask |= (1<<which);
-            idx = icon_res_which_to_idx(res_icon->dwMask, which);
-            cnt = icon_res_get_cnt(res_icon);
-            res_icon->icons = SNEW(HICON, res_icon->icons,cnt+1);
-            //move elements
-            for(i=cnt; i>idx; i--)
-            {
-                res_icon->icons[i] = res_icon->icons[i-1];
-            }
-            res_icon->icons[idx] = hi;
-            return hi;
-        }
-    }
-
-    return NULL;
-}
-
-static void icon_unload(RESOURCE* res, int src_type)
-{
-    if(res && res->data)
-    {
-        icon_res_t* ir = (icon_res_t*)res->data;
-        if(ir->icons)
-        {
-            int cnt = icon_res_get_cnt(ir);
-            while(cnt>0)
-                DestroyIcon(ir->icons[--cnt]);
-            DELETE(ir->icons);
-        }
-        DELETE(ir);
-    }
-}
-#endif
 
 static void* icon_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
 {

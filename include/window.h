@@ -5383,37 +5383,35 @@ enum emResType {
     RES_TYPE_INVALID = 0xFF,
 
     /**
-     * All kinds of image supported by MiniGUI
-     * such as png, jpeg, bmp and so on
-     * This type will make LoadResource return a
-     * PBITMAP pointer
+     * Images supported by MiniGUI, such as PNG, JPEG, BMP and so on.
+     * Fot this type,  LoadResource returns a BITMAP object.
      */
     RES_TYPE_IMAGE = 0,
 
     /**
      * All kinds of image supported by MiniGUI.
-     * This Type will make LoadResource return a MYBITMAP* pointer
+     * For this type, LoadResource returns a MYBITMAP object.
      */
     RES_TYPE_MYBITMAP,
 
-    /*
+    /**
      * The icon file or data.
-     * it only make LoadResource load or get the FIRST icon, and return HICON.
-     * Note that this type is deprecated.
+     * For this type, LoadResource loads the icon and returns HICON.
      */
     RES_TYPE_ICON,
 
 #ifdef _MGHAVE_CURSOR
-    /** the cursor file or data.
-     * Make LoadResource return HCURSOR
+    /**
+     * The cursor file or data.
+     * For this type, LoadResource returns HCURSOR.
      */
     RES_TYPE_CURSOR,
 #endif
 
     /**
      * The runtime config file or data support by MiniGUI.
-     * This type will make LoadResource return GHANDLE.
-     * It should be accessed by GetValueFromEtc and GetIntValueFromEtc.
+     * For this type, LoadResource returns GHANDLE.
+     * You can use it for \a GetValueFromEtc and \a GetIntValueFromEtc.
      */
     RES_TYPE_ETC,
 
@@ -5425,9 +5423,10 @@ enum emResType {
     RES_TYPE_WINDOW,
 
     /**
-     * Make the LoadResource return the raw data of INNER_RES, it's a pointer
-     * of MEM_RES.
-     * Only support incore Resource, if the resource is stored in disk,
+     * The type for inner resource..
+     * Fot this type, LoadResource returns the raw data of INNER_RES,
+     * it's a pointer of MEM_RES.
+     * Only support incore Resource, if the resource is stored in file
      * LoadResource will return NULL.
      */
     RES_TYPE_MEM_RES,
@@ -5438,12 +5437,13 @@ enum emResType {
     RES_TYPE_FONT,
 
     /**
-     * The beginning of user defined type.
+     * The beginning of user defined resource type.
      */
     RES_TYPE_USER,
 
     /*
-     * The max valid value of type; the used defined type must less this value.
+     * The max valid value of resource type;
+     * the user defined type must less this value.
      */
     RES_TYPE_USER_MAX = 0x7F
 };
