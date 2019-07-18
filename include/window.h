@@ -5378,38 +5378,42 @@ typedef struct _INNER_RES {
     const void* additional;
 } INNER_RES;
 
-/* the type of resource */
-enum emResType{
+/** The type of resource */
+enum emResType {
     RES_TYPE_INVALID = 0xFF,
 
-    /* All kinds of image supported by MiniGUI
+    /**
+     * All kinds of image supported by MiniGUI
      * such as png, jpeg, bmp and so on
      * This type will make LoadResource return a
      * PBITMAP pointer
      */
     RES_TYPE_IMAGE = 0,
 
-    /* All kinds of image supported by MiniGUI
+    /**
+     * All kinds of image supported by MiniGUI.
      * This Type will make LoadResource return a MYBITMAP* pointer
      */
     RES_TYPE_MYBITMAP,
 
-    /* the icon file and mem
-     * it only make LoadResource load or get the FIRST
-     * icon, and return HICON
+    /*
+     * The icon file or data.
+     * it only make LoadResource load or get the FIRST icon, and return HICON.
+     * Note that this type is deprecated.
      */
     RES_TYPE_ICON,
 
 #ifdef _MGHAVE_CURSOR
-    /* the cursor file or data
+    /** the cursor file or data.
      * Make LoadResource return HCURSOR
      */
     RES_TYPE_CURSOR,
 #endif
 
-    /* the config file or data support by minigui
-     * make LoadResource return GHANDLE
-     * it should be accessed by GetValueFromEtc and GetIntValueFromEtc
+    /**
+     * The runtime config file or data support by MiniGUI.
+     * This type will make LoadResource return GHANDLE.
+     * It should be accessed by GetValueFromEtc and GetIntValueFromEtc.
      */
     RES_TYPE_ETC,
 
@@ -5418,24 +5422,28 @@ enum emResType{
     /* NOT IMPLEMENT */
     RES_TYPE_MENU,
     /* NOT IMPLEMENT */
-
     RES_TYPE_WINDOW,
-    /* Make the LoadResource return the
-     * raw data of INNER_RES, it's a pointer
-     * of MEM_RES
-     * only support incore Resource,
-     * if the resource is stored in disk, LoadResource will return NULL
+
+    /**
+     * Make the LoadResource return the raw data of INNER_RES, it's a pointer
+     * of MEM_RES.
+     * Only support incore Resource, if the resource is stored in disk,
+     * LoadResource will return NULL.
      */
     RES_TYPE_MEM_RES,
 
+    /**
+     * Make the LoadResource return a logfont object.
+     */
     RES_TYPE_FONT,
 
-    /* the beginning of user defined type
+    /**
+     * The beginning of user defined type.
      */
     RES_TYPE_USER,
 
-    /* the max valid value of type
-     * used defined type must less this value
+    /*
+     * The max valid value of type; the used defined type must less this value.
      */
     RES_TYPE_USER_MAX = 0x7F
 };
@@ -5544,11 +5552,11 @@ MG_EXPORT int SetResPath (const char* path);
  * \brief Add some incore resource into the resource manager in order to
  * call LoadResource to get those resource.
  *
- * \param inner_res The pointer to the incore resource.
- * \param count The bytes count of inner_res.
- * \param copy TRUE indicate that resource manager will copy the value of
- *        inner_res array, otherwise, resource manager just save the
- *        pointer to inner_res.
+ * \param inner_res The pointer to the incore resource entry array.
+ * \param count The number of the inner resource entries.
+ * \param copy TRUE indicate that resource manager will copy the entries of
+ *        the inner resource array, or the resource manager will just save the
+ *        pointer.
  *
  * \return RES_RET_OK for success or error code.
  */
@@ -5628,8 +5636,8 @@ MG_EXPORT void* LoadResource (const char* res_name, int type, DWORD usr_param);
  * \fn void* GetResource (RES_KEY key);
  * \brief Retrive and return a buffered resource by the key.
  *
- *  You should call LoadResource firstly, and then call GetResource when you need it.
- *  Note that GetResource will not increase the reference count automatically.
+ * You should call LoadResource firstly, and then call GetResource when you need it.
+ * Note that GetResource will not increase the reference count automatically.
  *
  * \param key The key of the resource (use Str2Key(res_name) to get the key).
  *
