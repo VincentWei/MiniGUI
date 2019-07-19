@@ -66,6 +66,8 @@
 #include <pthread.h>
 #endif
 
+#define _DEBUG
+
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -194,7 +196,6 @@ static RES_TYPE_INFO pre_def_types[RES_TYPE_USER] = {
 // the hash table operations
 //
 #define Key2Idx(t,key)   ((key)%((t)->size))
-#define IsValidKey(key)  ((key)>0 && (key)<0xFFFFFFFF)
 static void init_hash_table(HASH_TABLE* table, int size)
 {
     if(table == NULL)
@@ -211,7 +212,7 @@ static RES_ENTRY* get_entry(HASH_TABLE* table, RES_KEY key, BOOL create)
     RES_ENTRY* entry;
     int idx;
 
-    if(table == NULL || table->size<=0 || table->entries == NULL  || !IsValidKey(key))
+    if(table == NULL || table->size<=0 || table->entries == NULL)
         return NULL;
 
     idx = Key2Idx(table,key);
@@ -244,17 +245,16 @@ static void remove_entry(HASH_TABLE* table, RES_KEY key)
     RES_ENTRY* entry, *prev;
     int idx;
 
-    if(table == NULL && IsValidKey(key))
-        return ;
+    if (table == NULL)
+        return;
 
-    idx = Key2Idx(table,key);
-    if(idx <0 || idx >= table->size)
-        return ;
+    idx = Key2Idx(table, key);
+    if (idx < 0 || idx >= table->size)
+        return;
 
     //get the entry begin list
     entry = table->entries[idx];
-
-    if(entry->key == key){
+    if (entry->key == key) {
         table->entries[idx] = entry->next;
         DELETE(entry);
         return;
@@ -262,23 +262,21 @@ static void remove_entry(HASH_TABLE* table, RES_KEY key)
 
     prev = entry;
     entry = entry->next;
-    while(entry && entry->key != key){
+    while (entry && entry->key != key){
         prev = entry;
         entry = entry->next;
     }
 
-    if(entry )
-    {
+    if (entry) {
         prev->next = entry->next;
         DELETE(entry);
     }
-
 }
 
 static void release_hash_table(HASH_TABLE* table)
 {
-    if(table){
-        if(table->entries)
+    if (table) {
+        if (table->entries)
             DELETE(table->entries);
         table->entries = NULL;
         table->count = 0;
@@ -368,8 +366,17 @@ static void delete_entry_data(RES_ENTRY* entry)
     }
 }
 
-////////////////////////////////////////////
-//inside functions
+/* The hash table size should be a prime. The following table gives all primes
+ * less than 1000:
+ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101 103 107
+ 109 113 127 131 137 139 149 151 157 163 167 173 179 181 191 193 197 199 211 223
+ 227 229 233 239 241 251 257 263 269 271 277 281 283 293 307 311 313 317 331 337
+ 347 349 353 359 367 373 379 383 389 397 401 409 419 421 431 433 439 443 449 457
+ 461 463 467 479 487 491 499 503 509 521 523 541 547 557 563 569 571 577 587 593
+ 599 601 607 613 617 619 631 641 643 647 653 659 661 673 677 683 691 701 709 719
+ 727 733 739 743 751 757 761 769 773 787 797 809 811 821 823 827 829 839 853 857
+ 859 863 877 881 883 887 907 911 919 929 937 941 947 953 967 971 977 983 991 997
+*/
 BOOL InitializeResManager(int hash_table_size)
 {
     char szpath[MAX_PATH+1];
@@ -660,7 +667,7 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     if(entry == NULL){
         RES_UNLOCK();
 #ifdef _DEBUG
-        ERR_RETV(NULL, type, "%s is not exists", res_name);
+        ERR_RETV(NULL, type, "%s does not exist", res_name);
 #else
         return NULL;
 #endif
@@ -799,6 +806,7 @@ int ReleaseRes(RES_KEY key)
     return ref;
 }
 
+#if 0
 RES_KEY Str2Key (const char* str)
 {
     int i,l;
@@ -815,6 +823,53 @@ RES_KEY Str2Key (const char* str)
     }
 
     return ret;
+}
+#endif
+
+// We use FNV-1a algrithm for Str2Key:
+// http://isthe.com/chongo/tech/comp/fnv/
+
+#if SIZEOF_PTR == 8
+// 2^40 + 2^8 + 0xb3 = 1099511628211
+#   define FNV_PRIME        ((RES_KEY)0x100000001b3ULL)
+#   define FNV_INIT         ((RES_KEY)0xcbf29ce484222325ULL)
+#else
+// 2^24 + 2^8 + 0x93 = 16777619
+#   define FNV_PRIME        ((RES_KEY)0x01000193)
+#   define FNV_INIT         ((RES_KEY)0x811c9dc5)
+#endif
+
+RES_KEY Str2Key(const char* str)
+{
+    const unsigned char* s = (const unsigned char*)str;
+    RES_KEY hval = FNV_INIT;
+
+    if (str == NULL)
+        return RES_KEY_INVALID;
+
+    /*
+     * FNV-1a hash each octet in the buffer
+     */
+    while (*s) {
+
+        /* xor the bottom with the current octet */
+        hval ^= (RES_KEY)*s++;
+
+        /* multiply by the FNV magic prime */
+#ifdef __GNUC__
+#   if SIZEOF_PTR == 8
+        hval += (hval << 1) + (hval << 4) + (hval << 5) +
+            (hval << 7) + (hval << 8) + (hval << 40);
+#   else
+        hval += (hval<<1) + (hval<<4) + (hval<<7) + (hval<<8) + (hval<<24);
+#   endif
+#else
+        hval *= FNV_PRIME;
+#endif
+    }
+
+    /* return our new hash value */
+    return hval;
 }
 
 #ifdef _DEBUG
