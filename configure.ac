@@ -906,7 +906,6 @@ CheckDRM()
                 VIDEO_SUBDIRS="$VIDEO_SUBDIRS dri"
                 VIDEO_DRIVERS="$VIDEO_DRIVERS dri/libvideo_dri.la"
                 DEP_LIBS="$DEP_LIBS -ldrm"
-                need_udev="yes"
                 DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/drm"
                 AC_SUBST(DRM_INC_DIR)
             else
