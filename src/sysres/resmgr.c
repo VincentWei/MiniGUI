@@ -451,6 +451,11 @@ const char* sysres_get_system_res_path()
     return cfg_res_path;
 }
 
+const char* GetResPath (void)
+{
+    return usr_res_path;
+}
+
 int SetResPath(const char* path)
 {
     if(path == NULL) {
