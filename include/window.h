@@ -5361,7 +5361,7 @@ MG_EXPORT void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name,
         const char* id);
 
 /* define the key of resource */
-typedef unsigned long RES_KEY;
+typedef DWORD RES_KEY;
 #define RES_KEY_INVALID 0
 
 /* define the incore res type */
