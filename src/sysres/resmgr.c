@@ -66,8 +66,6 @@
 #include <pthread.h>
 #endif
 
-#define _DEBUG
-
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"

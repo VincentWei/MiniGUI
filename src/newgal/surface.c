@@ -48,7 +48,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
 #include "common.h"
 #include "newgal.h"
 #include "sysvideo.h"

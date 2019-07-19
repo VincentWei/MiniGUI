@@ -54,7 +54,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
 #include "common.h"
 
 #ifdef _MGIAL_LIBINPUT
@@ -602,7 +601,7 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         device = libinput_event_get_device(event);
         seat = libinput_device_get_seat(device);
         seat_name = libinput_seat_get_logical_name(seat);
-        _DBG_PRINTF("IAL>LIBINPUT: a new event device added: %s\n", seat_name);
+        _MG_PRINTF("IAL>LIBINPUT: a new event device added: %s\n", seat_name);
         break;
     }
 
@@ -614,7 +613,7 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         device = libinput_event_get_device(event);
         seat = libinput_device_get_seat(device);
         seat_name = libinput_seat_get_logical_name(seat);
-        _DBG_PRINTF("IAL>LIBINPUT: an event device removed: %s\n", seat_name);
+        _MG_PRINTF("IAL>LIBINPUT: an event device removed: %s\n", seat_name);
         break;
     }
 
