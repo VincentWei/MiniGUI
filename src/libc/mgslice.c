@@ -795,7 +795,7 @@ void *mg_slice_alloc (size_t mem_size)
     if (MG_UNLIKELY (allocator->config.debug_blocks))
         smc_notify_alloc (mem, mem_size);
 
-    _DBG_PRINTF("%s: slice allocated: %p (%lu)\n",
+    _DBG_PRINTF("%s: slice allocated: %p (%zu)\n",
             __FUNCTION__, (void*)mem, mem_size);
 
     return mem;
@@ -855,7 +855,7 @@ void mg_slice_free (size_t mem_size, void *mem_block)
         free (mem_block);
     }
 
-    _DBG_PRINTF("%s: slice freed: %p (%lu)\n",
+    _DBG_PRINTF("%s: slice freed: %p (%zu)\n",
             __FUNCTION__, (void*)mem_block, mem_size);
 }
 
@@ -1236,19 +1236,19 @@ static int smc_notify_free (void *pointer, size_t size)
     found_one = smc_tree_lookup (address, &real_size);
 
     if (!found_one) {
-        _ERR_PRINTF("MGSlice: MemChecker: attempt to release non-allocated block: %p size=%lu\n",
+        _ERR_PRINTF("MGSlice: MemChecker: attempt to release non-allocated block: %p size=%zu\n",
                 pointer, size);
         return 0;
     }
 
     if (real_size != size && (real_size || size)) {
-        _ERR_PRINTF("MGSlice: MemChecker: attempt to release block with invalid size: %p size=%lu invalid-size=%lu\n",
+        _ERR_PRINTF("MGSlice: MemChecker: attempt to release block with invalid size: %p size=%zu invalid-size=%zu\n",
                 pointer, real_size, size);
         return 0;
     }
 
     if (!smc_tree_remove (address)) {
-        _ERR_PRINTF("MGSlice: MemChecker: attempt to release non-allocated block: %p size=%lu\n",
+        _ERR_PRINTF("MGSlice: MemChecker: attempt to release non-allocated block: %p size=%zu\n",
                 pointer, size);
         return 0;
     }
