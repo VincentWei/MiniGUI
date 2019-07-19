@@ -1,5 +1,24 @@
 # Release Notes
 
+## Version 4.0.1
+
+The MiniGUI development team announces the availability of MiniGUI 4.0.0.
+We strongly recommend that you use this version for any new MiniGUI
+apps, especially if the new features of MiniGUI 4.0.0 are must for your
+new apps.
+
+Please report any bugs and incompatibilities in
+
+https://github.com/VincentWei/minigui
+
+### What's new in this version
+
+This version mainly fixed some minor issues:
+
+- Use FVN algorithm to implement Str2Key.
+- Tune some API description.
+- Tune format string to use '%z' instead of '%l' or '%ll' for `size_t` values.
+
 ## Version 4.0.0
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.0.
