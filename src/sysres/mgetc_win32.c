@@ -497,7 +497,7 @@ static char* _flat_values[]={
     "1",
     "16",
 //window element colors
-    "0xFFFFFFFFF",
+    "0xFFFFFFFF",
     "0xFF000000",
     "0xFF000000",
     "0xFF000000",

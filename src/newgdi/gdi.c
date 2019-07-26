@@ -337,17 +337,17 @@ void mg_TerminateGDI( void )
 #endif
 
 /*
- * Function: int GUIAPI GetGDCapability( int iItem)
+ * Function: Uint32 GUIAPI GetGDCapability( int iItem)
  *      This Function return DC parameters.
  * Parameters:
  *      The element want to retrive.
  * Return:
  *      The parameter.
  */
-unsigned int GUIAPI GetGDCapability (HDC hdc, int iItem)
+Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem)
 {
     PDC pdc;
-    unsigned int iret = 0xFFFFFFFF;
+    Uint32 iret = 0xFFFFFFFF;
 
     pdc = dc_HDC2PDC (hdc);
 

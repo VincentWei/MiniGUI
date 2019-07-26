@@ -1155,7 +1155,7 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
     #define GDCAP_DPI_MINIMAL   36
 
 /**
- * \fn unsigned int GUIAPI GetGDCapability (HDC hdc, int iItem)
+ * \fn Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem)
  * \brief Returns a capability of a DC.
  *
  * This function returns the capability of the specified item \a iItem of
@@ -1201,7 +1201,7 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  *
  * \return The capbility.
  */
-MG_EXPORT unsigned int GUIAPI GetGDCapability (HDC hdc, int iItem);
+MG_EXPORT Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem);
 
 /**
  * \fn HDC GUIAPI GetDC (HWND hwnd)
@@ -1911,7 +1911,7 @@ typedef int (* ON_UPDATE_SECONDARYDC)(HWND hwnd, HDC secondary_dc,
         const RECT* main_update_rc);
 
 #define ON_UPDSECDC_DEFAULT     ((ON_UPDATE_SECONDARYDC)0)
-#define ON_UPDSECDC_DONOTHING   ((ON_UPDATE_SECONDARYDC)0xFFFFFFFF)
+#define ON_UPDSECDC_DONOTHING   ((ON_UPDATE_SECONDARYDC)-1)
 
 /**
  * \fn HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc, \
