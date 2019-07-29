@@ -5,17 +5,20 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 
 ## TABLE OF CONTENTS
 
-1. Introduction 
-1. A brief building instruction 
-1. New features in version 4.0.x 
-1. New features in version 3.2.x 
-1. The runtime modes of MiniGUI 
-1. History 
-1. About the authors 
-1. If you have a problem 
-1. A little FAQ 
-1. Not free for commercial use 
-1. Copying 
+- [INTRODUCTION](#introduction)
+- [A BRIEF BUILDING INSTRUCTION](#a-brief-building-instruction)
+  * [Prerequisites](#prerequisites)
+  * [Building MiniGUI Core](#building-minigui-core)
+  * [Building the Comprehensive Demo](#building-the-comprehensive-demo)
+  * [Unit Tests](#unit-tests)
+- [NEW FEATURES IN VERSION 4.0.x](#new-features-in-version-40x)
+- [NEW FEATURES IN VERSION 3.2.x](#new-features-in-version-32x)
+- [THE RUNTIME MODES OF MINIGUI](#the-runtime-modes-of-minigui)
+- [HISTORY](#history)
+- [AUTHORS AND COPYING](#authors-and-copying)
+  * [Not Free for Commercial Use](#not-free-for-commercial-use)
+  * [Special Statement](#special-statement)
+- [A LITTLE FAQ](#a-little-faq)
 
 
 ## INTRODUCTION
@@ -363,57 +366,11 @@ A brief history description of the development progress lay below:
 1. Apr., 2019:     FMSoft released MiniGUI version 3.2.2.
 1. Jul., 2019:     FMSoft released MiniGUI version 4.0.0.
 
-## ABOUT THE AUTHORS
+## AUTHORS AND COPYING
 
 The original author of MiniGUI is WEI Yongming, and now MiniGUI is
 maintained by FMSoft. For more information, please refer to
 <http://www.fmsoft.cn>.
-
-
-## IF YOU HAVE A PROBLEM
-
-If you have any technical problem, advice or comment, please send
-messages to consult@minigui.com.
-
-
-## A LITTLE FAQ
-
-Q: Is GPL'd MiniGUI free for commercial use?
-
-A: Simply no. FMSoft releases MiniGUI under GPLv3 license.
-   It is free for those who are 100% GPL and those who never copy, modify
-   and distribute MiniGUI. But if you want to use these GPL'd versions
-   for commerce, you should get the commercial license from FMSoft first.
-
-Q: Which operating system does MiniGUI support?
-
-A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS,
-   VxWorks, ThreadX, OSE, and even Win32. Any other real-time OSes can
-   be supported theoretically.
-
-Q: Which architecture does MiniGUI support?
-
-A: x86 32/64-bit, ARM 32/64-bit (e.g., ARMv7 and ARM Cortex-A7),
-   PowerPC, MIPS, DragonBall, ColdFire, Blackfin, and so on.
-
-Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?
-
-A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
-
-
-## NOT FREE FOR COMMERCIAL USE
-
-MiniGUI and its components are licensed under the GPL license.
-So any links about MiniGUI must follow GPL. If you cannot accept GPL,
-you need to be licensed from FMSoft. If you wonder that if you need
-the commercial license of MiniGUI, please refer to the LICENSE-POLICY file.
-
-We provide you the commercial license of MiniGUI according to the number
-of the run-time binary copies of MiniGUI. If you are interested in
-the commercial license of MiniGUI, please write to sales@minigui.com.
-
-
-## COPYING
 
 Copyright (C) 2002 ~ 2019, Beijing FMSoft Technologies Co., Ltd.  
 Copyright (C) 1998 ~ 2002, WEI Yongming
@@ -459,4 +416,32 @@ If you have already downloaded it, you MUST destroy all of its copies.
 The Exception List is published by FMSoft and may be updated
 from time to time. For more information, please see
 <https://www.fmsoft.cn/exception-list>.
+
+### Not Free for Commercial Use
+
+As stated above, MiniGUI and its components are licensed under GPL.
+So any links about MiniGUI must follow GPL. If you cannot accept GPL,
+you need to be licensed from FMSoft.
+
+We provide you the commercial license of MiniGUI according to the number
+of the run-time binary copies of MiniGUI. If you are interested in
+the commercial license of MiniGUI, please write to <sales@minigui.com>.
+
+## A LITTLE FAQ
+
+Q: Which operating systems does MiniGUI support?  
+A: MiniGUI can run on Linux/uClinux, uC/OS-II, eCos, ThreadX, pSOS,
+   VxWorks, ThreadX, OSE, and even Win32. Any other real-time OSes can
+   be supported theoretically.
+
+Q: Which architecture does MiniGUI support?  
+A: x86 32/64-bit, ARM 32/64-bit (e.g., ARMv7 and ARM Cortex-A7),
+   PowerPC, MIPS, DragonBall, ColdFire, Blackfin, and so on.
+
+Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?  
+A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
+
+Q: Can I get the tech. support from MiniGUI team?  
+A: Yes, FMSoft can provide you with guaranteed commercial technical
+   support services. Please send messages to <sales@minigui.com>.
 
