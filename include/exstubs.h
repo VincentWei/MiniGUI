@@ -78,6 +78,12 @@ extern "C" {
 
 #include <stdint.h>
 
+    /**
+     * \defgroup external_stubs_dri External Stubs for DRI sub driver
+     *
+     * @{
+     */
+
 /**
  * The struct type represents the DRI sub driver.
  * The concrete struct should be defined by the driver.
@@ -96,7 +102,6 @@ typedef struct _DriSurfaceBuffer {
     uint32_t pitch;
 
     uint32_t drm_format;
-    //uint32_t depth:8;
     uint16_t bpp:8;
     uint16_t cpp:8;
 
@@ -126,37 +131,37 @@ enum DriColorLogicOp {
 };
 
 /**
- * The struct type defines the operators for a DRI driver.
+ * The struct type defines the operations for a DRI driver.
  */
 typedef struct _DriDriverOps {
     /**
-     * This operator creates the DriDriver object.
+     * This operation creates the DriDriver object.
      *
-     * \note The driver must implement this operator.
+     * \note The driver must implement this operation.
      */
     DriDriver* (*create_driver) (int device_fd);
 
     /**
-     * This operator destroies the DriDriver object.
+     * This operation destroies the DriDriver object.
      *
-     * \note The driver must implement this operator.
+     * \note The driver must implement this operation.
      */
     void (*destroy_driver) (DriDriver *driver);
 
     /**
-     * This operator flushs the batch buffer of the driver or the hardware cache.
+     * This operation flushs the batch buffer of the driver or the hardware cache.
      *
-     * \note This operator can be NULL.
+     * \note This operation can be NULL.
      */
     void (* flush_driver) (DriDriver *driver);
 
     /**
-     * This operator creates a buffer with the specified pixel format,
+     * This operation creates a buffer with the specified pixel format,
      * width, and height. If succeed, a valid (not zero) buffer identifier
      * and the picth (row stride in bytes) will be returned.
      * If failed, it returns 0.
      *
-     * \note The driver must implement this operator.
+     * \note The driver must implement this operation.
      */
     uint32_t (* create_buffer) (DriDriver *driver,
             uint32_t drm_format,
@@ -169,53 +174,53 @@ typedef struct _DriDriverOps {
             unsigned int *pitch);
 
     /**
-     * This operator maps the buffer into the current process's virtual memory
+     * This operation maps the buffer into the current process's virtual memory
      * space, and returns the virtual address. If failed, it returns NULL.
      *
-     * \note The driver must implement this operator.
+     * \note The driver must implement this operation.
      */
     DriSurfaceBuffer* (* map_buffer) (DriDriver *driver,
             uint32_t buffer_id);
 
     /**
-     * This operator un-maps a buffer.
+     * This operation un-maps a buffer.
      *
-     * \note The driver must implement this operator.
+     * \note The driver must implement this operation.
      */
     void (* unmap_buffer) (DriDriver *driver, DriSurfaceBuffer* buffer);
 
     /**
-     * This operator destroies a buffer.
+     * This operation destroies a buffer.
      *
-     * \note The driver must implement this operator.
+     * \note The driver must implement this operation.
      */
     void (* destroy_buffer) (DriDriver *driver, uint32_t buffer_id);
 
     /**
-     * This operator clears the specific rectangle area of a buffer
+     * This operation clears the specific rectangle area of a buffer
      * with the specific pixel value. If succeed, it returns 0.
      *
-     * \note If this operator is set as NULL, the driver does not support
+     * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated clear operation.
      */
     int (* clear_buffer) (DriDriver *driver,
             DriSurfaceBuffer* dst_buf, const GAL_Rect* rc, uint32_t pixel_value);
 
     /**
-     * This operator checks whether a hardware accelerated blit
+     * This operation checks whether a hardware accelerated blit
      * can be done between the source buffer and the destination buffer.
      * If succeed, it returns 0.
      *
-     * \note If this operator is set as NULL, it will be supposed that
+     * \note If this operation is set as NULL, it will be supposed that
      * the driver does not support any hardware accelerated blit operation.
      */
     int (* check_blit) (DriDriver *driver,
             DriSurfaceBuffer* src_buf, DriSurfaceBuffer* dst_buf);
 
     /**
-     * This operator copies bits from a source buffer to a destination buffer.
+     * This operation copies bits from a source buffer to a destination buffer.
      *
-     * \note If this operator is set as NULL, the driver does not support
+     * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated copy blit.
      */
     int (* copy_blit) (DriDriver *driver,
@@ -224,10 +229,10 @@ typedef struct _DriDriverOps {
             enum DriColorLogicOp logic_op);
 
     /**
-     * This operator blits pixles from a source buffer with the source alpha value
+     * This operation blits pixles from a source buffer with the source alpha value
      * specified to a destination buffer.
      *
-     * \note If this operator is set as NULL, the driver does not support
+     * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blit with alpha.
      */
     int (* alpha_blit) (DriDriver *driver,
@@ -235,10 +240,10 @@ typedef struct _DriDriverOps {
             DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint8_t alpha);
 
     /**
-     * This operator blits pixles from a source buffer to a destination buffer,
+     * This operation blits pixles from a source buffer to a destination buffer,
      * but skipping the pixel value specified by \a color_key.
      *
-     * \note If this operator is set as NULL, the driver does not support
+     * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blit with color key.
      */
     int (* key_blit) (DriDriver *driver,
@@ -246,10 +251,10 @@ typedef struct _DriDriverOps {
             DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint32_t color_key);
 
     /**
-     * This operator blits pixles from a source buffer with the source alpha value
+     * This operation blits pixles from a source buffer with the source alpha value
      * specified to a destination buffer, but skipping the pixel value specified.
      *
-     * \note If this operator is set as NULL, the driver does not support
+     * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blit with alpha and color key.
      */
     int (* alpha_key_blit) (DriDriver *driver,
@@ -259,14 +264,22 @@ typedef struct _DriDriverOps {
 
 } DriDriverOps;
 
-/** Implement this stub to return the DRI driver operators */
+/** Implement this stub to return the DRI driver operations */
 DriDriverOps* __dri_ex_driver_get (const char* driver_name);
+
+    /** @} end of external_stubs_dri */
 
 #endif /* _MGGAL_DRI */
 
 #ifdef _MGGAL_COMMLCD
 
-/* external stubs for COMMLCD NEWGAL engine */
+    /**
+     * \defgroup external_stubs_commlcd External Stubs for CommLCD NEWGAL Engine
+     *
+     * The external stubs for COMMLCD NEWGAL engine.
+     *
+     * @{
+     */
 
 /* The pixel format defined by depth */
 #define COMMLCD_PSEUDO_RGB332   1
@@ -282,28 +295,116 @@ DriDriverOps* __dri_ex_driver_get (const char* driver_name);
 #define COMMLCD_UPDATE_SYNC     1
 #define COMMLCD_UPDATE_ASYNC    2
 
+/**
+ * The structue represented the screen information of CommmLCD engine.
+ */
 struct commlcd_info {
-    int     height;         // vertical resolution of the screen
-    int     width;          // horinzontal resolution of the screen
-    int     pitch;          // Length of one scan line in bytes
-    int     bpp;            // Depth (bits-per-pixel)
-    int     type;           // Pixel type
-    int     update_method;  // Update method: none, asynchronously, or synchronously.
-    Uint8*  fb;             // Frame buffer
+    /** The vertical resolution of the screen. */
+    int     height;
+
+    /** The horizontal resolution of the screen. */
+    int     width;
+
+    /** The length of one scan line in bytes. */
+    int     pitch;
+
+    /** The color depth (bits-per-pixel). */
+    int     bpp;
+
+    /**
+     * The pixel type, can be one of the following values:
+     *  - COMMLCD_PSEUDO_RGB332
+     *  - COMMLCD_TRUE_RGB555
+     *  - COMMLCD_TRUE_RGB565
+     *  - COMMLCD_TRUE_RGB888
+     *  - COMMLCD_TRUE_RGB0888
+     *  - COMMLCD_TRUE_ARGB1555
+     *  - COMMLCD_TRUE_ARGB8888
+     *  - COMMLCD_TRUE_ABRG8888
+     */
+    int     type;
+
+    /**
+     * The update method, can be one of the following values:
+     *  - COMMLCD_UPDATE_NONE\n
+     *      No update method.
+     *  - COMMLCD_UPDATE_SYNC
+     *      The update method should be called synchronously.
+     *  - COMMLCD_UPDATE_ASYNC
+     *      The update method should be called asynchronously.
+     */
+    int     update_method;
+
+    /**
+     * The pointer to the frame buffer of the screen.
+     */
+    Uint8*  fb;
 };
 
+/**
+ * Implement this stub to initialize the CommLCD engine.
+ * Return 0 for success.
+ */
 int __commlcd_drv_init (void);
+
+/**
+ * Implement this stub to initialize the CommLCD engine.
+ *
+ * \param li The pointer to struct commlcd_info. This structure
+ *      will be used to return the LCD surface information.
+ * \param width The desired horizontal resolution of the screen.
+ * \param height The desired vertical resolution of the screen.
+ * \param depth The desired depth of the screen.
+ *
+ * Return 0 for success, otherwise for failure.
+ */
 int __commlcd_drv_getinfo (struct commlcd_info *li,
         int width, int height, int depth);
+
+/**
+ * Implement this stub to release (destroy) the CommLCD engine.
+ *
+ * Return 0 for success, otherwise for failure.
+ */
 int __commlcd_drv_release (void);
+
+/**
+ * Implement this stub to set the pallete when the pixel type
+ * is COMMLCD_PSEUDO_RGB332.
+ *
+ * \param firstcolor
+ *          The index value of the first entry of the pallete.
+ * \param ncolors
+ *          The number of entries of the pallete.
+ * \param colors
+ *          The array of the colors for each entries in the pallete.
+ *
+ * Return 0 for success, otherwise for failure.
+ */
 int __commlcd_drv_setclut (int firstcolor, int ncolors, GAL_Color *colors);
+
+/**
+ * Implement this stub to update the screen.
+ *
+ * \param rc_dirty The rectangle contains the dirty region.
+ *
+ * Return 0 for success, otherwise for failure.
+ */
 int __commlcd_drv_update (const RECT* rc_dirty);
+
+    /** @} end of external_stubs_commlcd */
 
 #endif /* _MGGAL_COMMLCD */
 
 #ifdef _MGIAL_COMM
 
-/* external stubs for COMM IAL engine */
+    /**
+     * \defgroup external_stubs_commial External Stubs for COMM IAL Engine
+     *
+     * The external stubs for COMM IAL engine
+     *
+     * @{
+     */
 
 #define COMM_MOUSEINPUT    0x01
 #define COMM_KBINPUT       0x02
@@ -311,11 +412,54 @@ int __commlcd_drv_update (const RECT* rc_dirty);
 #define COMM_MOUSELBUTTON  0x01
 #define COMM_MOUSERBUTTON  0x04
 
+/**
+ * Implement this stub to initialize the COMM IAL engine.
+ * Return 0 for success, otherwise for failure.
+ */
 int __comminput_init (void);
+
+/**
+ * Implement this stub to return the mouse event data.
+ * The implementation should return the position of mouse or touch,
+ * and the button status through the pointers \a x, \a y, and \a button.
+ * The position should be in absolute coordinates, and the button
+ * will have \a COMM_MOUSELBUTTON set if left button was pressed,
+ * and \a COMM_MOUSERBUTTON set if right button was pressed.
+ *
+ * Return 0 for success, otherwise for failure.
+ */
 int __comminput_ts_getdata (short *x, short *y, short *button);
+
+/**
+ * Implement this stub to return the keyboard event data.
+ * The implementation should return the key scancode pressed or released
+ * through the pointer \a key, and the pressed or released status of the
+ * key through \a status.
+ *
+ * Return 0 for success, otherwise for failure.
+ */
 int __comminput_kb_getdata (short *key, short *status);
+
+/**
+ * Implement this stub to wait for an event.
+ *
+ * \retval 0
+ *      The timeout period expires.
+ * \retval COMM_MOUSEINPUT
+ *      There is an mouse moved, button pressed, or button released event.
+ * \retval COMM_KBINPUT
+ *      There is a key pressed or released event.
+ * \retval others
+ *      Failed.
+ */
 int __comminput_wait_for_input (struct timeval *timeout);
+
+/**
+ * Implement this stub to de-initialize the COMM IAL engine.
+ */
 void __comminput_deinit (void);
+
+    /** @} end of external_stubs_commial */
 
 #endif /* _MGIAL_COMM */
 
@@ -323,7 +467,7 @@ void __comminput_deinit (void);
 }
 #endif  /* __cplusplus */
 
-    /** @} end of general_rw_fns */
+    /** @} end of external_stubs */
 
 #endif /* GUI_EXSTUBS_H */
 
