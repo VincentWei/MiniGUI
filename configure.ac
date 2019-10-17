@@ -92,8 +92,6 @@ message_string="no"
 
 runtime_mode="procs"
 
-stand_alone="no"
-
 incore_res="no"
 use_miniguientry="no"
 fixed_math="yes"
@@ -313,10 +311,6 @@ message_string=$enableval)
 AC_ARG_WITH(runmode,
 [  --with-runmode=procs/ths/sa  the MiniGUI runtime mode <default=procs>],
 runtime_mode=$withval)
-
-AC_ARG_ENABLE(standalone,
-[  --enable-standalone      build MiniGUI-Standalone version <default=no>],
-stand_alone=$enableval)
 
 AC_ARG_ENABLE(incoreres,
 [  --enable-incoreres       use incore resource instead file IO to initialize MiniGUI <default=no>],
