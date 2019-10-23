@@ -103,11 +103,15 @@ for examples:
 FMSoft had created the public repositories for MiniGUI core, MiniGUI
 components, and other open source apps on GitHub. You can visit them on:
 
-https://github.com/VincentWei
+<https://github.com/VincentWei>
 
-We now maintain the documents about MiniGUI on GitHub Wiki:
+and
 
-https://github.com/VincentWei/minigui/wiki
+<https://github.com/FMSoftCN>
+
+We now maintain all documents about MiniGUI on the following public repo:
+
+<https://github.com/VincentWei/minigui-docs>
 
 
 ## A BRIEF BUILDING INSTRUCTION
