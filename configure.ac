@@ -726,9 +726,8 @@ AC_ARG_ENABLE(ctrlbidisledit,
 [  --enable-ctrlbidisledit  include Single-Line BIDI EDIT control <default=no>],
 build_ctrl_bidisledit=$enableval)
 
-dnl enable new textedit
-AC_ARG_ENABLE(newtextedit,
-[  --enable-ctrlnewtextedit include the new implementation of TEXTEDIT control <default=yes>],
+AC_ARG_ENABLE(ctrlnewtextedit,
+[  --disable-ctrlnewtextedit    include the new implementation of TEXTEDIT control <default=yes>],
 build_ctrl_textedit_new=$enableval)
 
 AC_ARG_ENABLE(ctrllistbox,

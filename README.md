@@ -102,12 +102,15 @@ for examples:
 FMSoft had created the public repositories for MiniGUI core, MiniGUI
 components, and other open source apps on GitHub. You can visit them on:
 
-https://github.com/VincentWei
+<https://github.com/VincentWei>
 
-FMSoft also releases miniStudio, which is a WYSIWYG IDE for MiniGUI, as a shareware.
-You can also download it from the official site of MiniGUI.
+and
 
-http://www.minigui.com/en/download
+<https://github.com/FMSoftCN>
+
+We now maintain all documents about MiniGUI on the following public repo:
+
+<https://github.com/VincentWei/minigui-docs>
 
 
 ## A BRIEF BUILDING INSTRUCTION
