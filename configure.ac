@@ -90,6 +90,7 @@ detail_debug="no"
 trace_message="no"
 message_string="no"
 
+osname="unspecified"
 runtime_mode="procs"
 
 incore_res="no"
@@ -1487,36 +1488,42 @@ case "$with_osname" in
   uclinux)
     AC_DEFINE(__uClinux__, 1,
             [Define if compile for uClinux])
+    osname="uClinux"
     ;;
   rtt)
     AC_DEFINE(__RTTHREAD__, 1,
             [Define if compile for RT-Thread])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="RT-Thread"
     ;;
   rtems)
     AC_DEFINE(__RTEMS__, 1,
             [Define if compile for RTEMS])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="RTEMS"
     ;;
   freertos)
     AC_DEFINE(__FREERTOS__, 1,
             [Define if compile for FreeRTOS])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="FreeRTOS"
     ;;
   ecos)
     AC_DEFINE(__ECOS__, 1,
             [Define if compile for eCos])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="eCos"
     ;;
   ucos2)
     AC_DEFINE(__UCOSII__, 1,
             [Define if compile for uC/OS-II])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="uC/OS-II"
     incore_res="yes"
     use_own_malloc="yes"
     use_own_stdio="yes"
@@ -1527,32 +1534,38 @@ case "$with_osname" in
                 [Define if compile for Winbond SWLinux])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="SWLinux"
     ;;
   vxworks)
     AC_DEFINE(__VXWORKS__, 1,
             [Define if compile for VxWorks])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="VxWorks"
     ;;
   cygwin)
     AC_DEFINE(__CYGWIN__, 1,
             [Define if compile for Cygwin platform])
+    osname="Cygwin"
     ;;
   win32)
     AC_DEFINE(WIN32, 1,
             [Define if compile for Win32 platform])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="Windows"
     ;;
   darwin)
     AC_DEFINE(__DARWIN__, 1,
             [Define if compile for OpenDarwin])
+    osname="macOS"
     ;;
   threadx)
     AC_DEFINE(__THREADX__, 1,
             [Define if compile for ThreadX])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="ThreadX"
     incore_res="yes"
     use_own_malloc="yes"
     use_own_stdio="yes"
@@ -1563,6 +1576,7 @@ case "$with_osname" in
             [Define if compile for Nucleus])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="Nucleus"
     incore_res="yes"
     use_own_malloc="yes"
     use_own_stdio="yes"
@@ -1573,6 +1587,7 @@ case "$with_osname" in
             [Define if compile for OSE])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="OSE"
     incore_res="yes"
     use_own_pthread="yes"
     ;;
@@ -1581,9 +1596,11 @@ case "$with_osname" in
             [Define if compile for pSOS])
     AC_DEFINE(__NOUNIX__, 1,
             [Define if compile for non-UNIX like OS])
+    osname="pSOS"
     ;;
   *)
     with_osname="linux"
+    osname="Linux"
     AC_DEFINE(__LINUX__, 1,
             [Define if compile for Linux])
     ;;
@@ -2685,6 +2702,7 @@ AC_MSG_NOTICE([
 # Main building configuration:
 
 ## Global Features:
+  * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
