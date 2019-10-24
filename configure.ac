@@ -1478,7 +1478,7 @@ case "$with_libsuffix" in
 esac
 
 AC_ARG_WITH(osname,
-   [  --with-osname=linux/uclinux/ecos/ucos2/swlinux/vxworks/win32/darwin/threadx/cygwin/nucleus/ose/psos])
+   [  --with-osname=linux/uclinux/rtt/rtems/freertos/ecos/ucos2/swlinux/vxworks/win32/darwin/threadx/cygwin/nucleus/ose/psos])
 
 dnl configure.in file is used only for the following OSes: linux/uclinux/swlinux/ecos/darwin/cygwin
 dnl for other OSes, you should use makefile.ng or else.
@@ -1487,6 +1487,24 @@ case "$with_osname" in
   uclinux)
     AC_DEFINE(__uClinux__, 1,
             [Define if compile for uClinux])
+    ;;
+  rtt)
+    AC_DEFINE(__RTTHREAD__, 1,
+            [Define if compile for RT-Thread])
+    AC_DEFINE(__NOUNIX__, 1,
+            [Define if compile for non-UNIX like OS])
+    ;;
+  rtems)
+    AC_DEFINE(__RTEMS__, 1,
+            [Define if compile for RTEMS])
+    AC_DEFINE(__NOUNIX__, 1,
+            [Define if compile for non-UNIX like OS])
+    ;;
+  freertos)
+    AC_DEFINE(__FREERTOS__, 1,
+            [Define if compile for FreeRTOS])
+    AC_DEFINE(__NOUNIX__, 1,
+            [Define if compile for non-UNIX like OS])
     ;;
   ecos)
     AC_DEFINE(__ECOS__, 1,
