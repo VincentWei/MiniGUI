@@ -1,5 +1,22 @@
 # Release Notes
 
+## Version 3.2.3
+
+The MiniGUI development team announces the availability of MiniGUI 3.2.3.
+All users of MiniGUI are recommended strongly to use this version.
+Please report any bugs and incompatibilities in
+
+    https://github.com/VincentWei/minigui
+
+* ENHANCEMENTS:
+   - Support for RTEMS operating system
+* BUGFIXES:
+   - Fixed errors in makefile.ng files
+* CLEANUP:
+   - `README.md` for correct markdown tags.
+
+### What's new in this version
+
 ## Version 3.2.2
 
 The MiniGUI development team announces the availability of MiniGUI 3.2.2.

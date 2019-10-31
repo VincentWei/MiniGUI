@@ -2,18 +2,17 @@
 
 A mature and proven cross-platform GUI system for embedded and smart IoT devices.
 
-
 ## TABLE OF CONTENTS
 
-  1. Introduction 
-  1. A brief building instruction 
-  1. New features in version 3.2.x 
-  1. The runtime modes of MiniGUI 
-  1. History 
-  1. About the authors 
-  1. If you have a problem 
-  1. A little FAQ 
-  1. Not free for commercial use 
+  1. Introduction
+  1. A brief building instruction
+  1. New features in version 3.2.x
+  1. The runtime modes of MiniGUI
+  1. History
+  1. About the authors
+  1. If you have a problem
+  1. A little FAQ
+  1. Not free for commercial use
   1. Copying
 
 
@@ -22,7 +21,7 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 MiniGUI is a mature cross-platform windowing system and a GUI (Graphics
 User Interface) support system for embedded systems and smart IoT devices.
 This is the version 3.2.x of MiniGUI maintained by WEI Yongming
-(Vincent Wei, https://github.com/VincentWei).
+(Vincent Wei, <https://github.com/VincentWei>).
 
 MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
 use.
@@ -30,45 +29,39 @@ use.
 MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
 windowing and GUI support system, which is especially fit for
 embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
-traditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II,
+traditional RTOSes, such as RTEMS, VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II,
 and OSE.
 
 This is the MiniGUI core source tree, which provides windowing
-and graphics interfaces as well as a lot of standard controls (tookit).
+and graphics interfaces as well as a lot of standard controls (toolkit).
 
 Besides MiniGUI core, FMSoft also provides some components
 for the developers to develop app much easier:
 
-  * mGUtils: A MiniGUI component which contains miscellaneous utilities
-    like ColorSelectionDialogBox, FileOpenDialogBox, and so on.
-
-  * mGPlus: A MiniGUI component which provides support for advanced graphics
-    functions like path, gradient, anti-aliase stretch, and color combination.
-
-  * mGEff: mGEff provides an animation framework for MiniGUI app.
-     It also provides some popular UI/UE special effects.
-
-  * mGNCS: This component provides a new control set for MiniGUI app.
-    By using mGNCS, you can use miniStudio to develop MiniGUI app in
-    WYSIWYG way.
-
-  * mGNCS4Touch: This component provides some new controls, which are
-    compliant to the new control API spec of mGNCS, for devices with
-    a touch screen.
+* mGUtils: A MiniGUI component which contains miscellaneous utilities
+  like ColorSelectionDialogBox, FileOpenDialogBox, and so on.
+* mGPlus: A MiniGUI component which provides support for advanced graphics
+  functions like path, gradient, anti-aliase stretch, and color combination.
+* mGEff: mGEff provides an animation framework for MiniGUI app.
+  It also provides some popular UI/UE special effects.
+* mGNCS: This component provides a new control set for MiniGUI app.
+  By using mGNCS, you can use miniStudio to develop MiniGUI app in
+  WYSIWYG way.
+* mGNCS4Touch: This component provides some new controls, which are
+  compliant to the new control API spec of mGNCS, for devices with
+  a touch screen.
 
 There are also some legacy MiniGUI components. We will not maintain these
 components for MiniGUI core v3.2:
 
-  * mGi: An input method component for MiniGUI. This component provides
-    some typical input methods (such as softkey, hand-writing, and predict
-    text input for mobile phone) for MiniGUI apps.
-
-  * mGp: A printing component for MiniGUI. By using mGp, you can print
-    out the graphics created by MiniGUI app to general-purpose printers.
-
-  * mG3d: A simple three-dimension component for MiniGUI. This component
-    provides a simple 3D API for app. You can use mG3d to create simple
-    3D UI.
+* mGi: An input method component for MiniGUI. This component provides
+  some typical input methods (such as softkey, hand-writing, and predict
+  text input for mobile phone) for MiniGUI apps.
+* mGp: A printing component for MiniGUI. By using mGp, you can print
+  out the graphics created by MiniGUI app to general-purpose printers.
+* mG3d: A simple three-dimension component for MiniGUI. This component
+  provides a simple 3D API for app. You can use mG3d to create simple
+  3D UI.
 
 MiniGUI is a free software project. In December 1998, the initiator of
 FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public
@@ -80,24 +73,21 @@ as a free software project.
 You can download the source code tarball of MiniGUI and the dependent libraries
 from the download zone of the site:
 
-  http://www.minigui.com
+<http://www.minigui.com>
 
 FMSoft also releases some open source apps for MiniGUI on the site above,
 for examples:
 
-  * mDolphin, licensed under Apache 2.0, is a full-featured
-    WEB/WAP browser, which is developed based on the open source browser
-    core WebKit and uses MiniGUI as its underlying graphics support system.
-
-  * mGallery, licensed under Apache 2.0, intends to
-    provide a total solution for PMP (Portable Multimedia Player),
-    which uses MiniGUI as the graphics platform.
-
-  * mSpider, licensed under GPL 3.0, intends to provide a
-    light-weight MiniGUI-based web browser (HTML 3.2 and part JavaScript)
-
-  * mEagle, licensed under GPL 3.0, is an embedded GIS development platform
-    which addresses the needs of map browse, query, analysis, etc
+* mDolphin, licensed under Apache 2.0, is a full-featured
+  WEB/WAP browser, which is developed based on the open source browser
+  core WebKit and uses MiniGUI as its underlying graphics support system.
+* mGallery, licensed under Apache 2.0, intends to
+  provide a total solution for PMP (Portable Multimedia Player),
+  which uses MiniGUI as the graphics platform.
+* mSpider, licensed under GPL 3.0, intends to provide a
+  light-weight MiniGUI-based web browser (HTML 3.2 and part JavaScript)
+* mEagle, licensed under GPL 3.0, is an embedded GIS development platform
+  which addresses the needs of map browse, query, analysis, etc
 
 FMSoft had created the public repositories for MiniGUI core, MiniGUI
 components, and other open source apps on GitHub. You can visit them on:
@@ -347,12 +337,12 @@ the commercial license of MiniGUI, please refer to the LICENSE-POLICY file.
 
 We provide you the commercial license of MiniGUI according to the number
 of the run-time binary copies of MiniGUI. If you are interested in
-the commercial license of MiniGUI, please write to sales@minigui.com.
+the commercial license of MiniGUI, please write to <sales@minigui.com>
 
 
 ## COPYING
 
-Copyright (C) 2002 ~ 2019, Beijing FMSoft Technologies Co., Ltd.
+Copyright (C) 2002 ~ 2019, Beijing FMSoft Technologies Co., Ltd.  
 Copyright (C) 1998 ~ 2002, WEI Yongming
 
 This program is free software: you can redistribute it and/or modify
