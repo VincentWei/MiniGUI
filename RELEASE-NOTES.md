@@ -6,12 +6,12 @@ The MiniGUI development team announces the availability of MiniGUI 3.2.3.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui
+<https://github.com/VincentWei/minigui>
 
 * ENHANCEMENTS:
-   - Support for RTEMS operating system
+   - Support for RTEMS operating system.
 * BUGFIXES:
-   - Fixed errors in makefile.ng files
+   - Fixed errors in makefile.ng files.
 * CLEANUP:
    - `README.md` for correct markdown tags.
 
