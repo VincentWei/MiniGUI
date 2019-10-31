@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
 /*
-** nposix.c: This file include some miscelleous functions not 
-**      provided by POSIX. 
+** nposix.c: This file include some miscelleous functions not
+**      provided by POSIX.
 **
 ** Create date: 2003/11/22
 **
@@ -104,7 +104,7 @@ int strncasecmp (const char *s1, const char *s2, unsigned int n)
 #ifdef WIN32
 int fread_long_win32(char* buff, size_t size, int count, FILE* fp)
 {
-    char *tmp;	
+    char *tmp;
     size_t ret, rest = size * count;
     int len;
 
@@ -116,7 +116,7 @@ int fread_long_win32(char* buff, size_t size, int count, FILE* fp)
     tmp = buff;
     ret = 0;
     while(rest > 0)
-    {	  
+    {
         if((len = fread(tmp, 1, 1024, fp)) != 1024)
         {
             ret += len;
@@ -140,7 +140,7 @@ double hypot(double x, double y)
 
 #if defined (__VXWORKS__) ||defined(WIN32) || defined (__NUCLEUS_MNT__) || defined (_EM86_IAL) || defined (_EM85_IAL)
 
-/* 
+/*
  * Implementation of cbrt(x) for Win32 platform.
  * cbrt(x): Return cube root of x
  */
@@ -218,7 +218,7 @@ do {                                \
 } while (0)
 
 
-static const Uint32 
+static const Uint32
     B1 = 715094163, /* B1 = (682-0.03306235651)*2**20 */
     B2 = 696219795; /* B2 = (664-0.03306235651)*2**20 */
 
@@ -229,7 +229,7 @@ E =  1.41428571428571436819e+00, /* 99/70     = 0x3FF6A0EA, 0x0EA0EA0F */
 F =  1.60714285714285720630e+00, /* 45/28     = 0x3FF9B6DB, 0x6DB6DB6E */
 G =  3.57142857142857150787e-01; /* 5/14      = 0x3FD6DB6D, 0xB6DB6DB7 */
 
-double cbrt (double x) 
+double cbrt (double x)
 {
     Sint32 hx;
     double r,s,t=0.0,w;
@@ -241,7 +241,7 @@ double cbrt (double x)
     hx ^=sign;
     if(hx>=0x7ff00000) return(x+x); /* cbrt(NaN,INF) is itself */
     GET_LOW_WORD(low,x);
-    if((hx|low)==0) 
+    if((hx|low)==0)
         return(x);        /* cbrt(0) is itself */
 
     SET_HIGH_WORD(x,hx);    /* x <- |x| */
@@ -257,9 +257,9 @@ double cbrt (double x)
     /* new cbrt to 23 bits, may be implemented in single precision */
     r=t*t/x;
     s=C+r*t;
-    t*=G+F/(s+E+D/s);    
+    t*=G+F/(s+E+D/s);
 
-    /* chopped to 20 bits and make it larger than cbrt(x) */ 
+    /* chopped to 20 bits and make it larger than cbrt(x) */
     GET_HIGH_WORD(high,t);
     INSERT_WORDS(t,high+0x00000001,0);
 
@@ -284,7 +284,7 @@ double cbrt (double x)
     double x1, x2;
     double x3;
 
-    if (x <= 1E-6) 
+    if (x <= 1E-6)
         return 0.0;
 
     x2 = x;
@@ -292,7 +292,7 @@ double cbrt (double x)
         x1 = x2;
         x2 = (2.0 * x1 + x / (x1 *x1)) /3.0;
         x3 = (x2 - x1) / x1;
-        if (x3 < 0.0) 
+        if (x3 < 0.0)
             x3 = -x3;
         if (x3 < 1E-6) break;
     }
@@ -411,7 +411,7 @@ void __mg_os_time_delay (int ms)
     while (select (0, NULL, NULL, NULL, &timeout) < 0);
 #elif defined (__UCOSII__)
     OSTimeDly (OS_TICKS_PER_SEC * ms / 1000);
-#elif defined (__VXWORKS__) 
+#elif defined (__VXWORKS__)
     taskDelay (sysClkRateGet() * ms / 1000);
 #elif defined (__PSOS__) || defined (__ECOS__) || defined (__RTEMS__)
     struct timespec ts;
@@ -481,8 +481,8 @@ int snprintf( char *s, size_t size, const char *format, ... )
 
 int __modsi3 (int numer, int denom)
 {
-	int quot = numer / denom;
-	return numer - (quot * denom);
+    int quot = numer / denom;
+    return numer - (quot * denom);
 }
 
 #endif
