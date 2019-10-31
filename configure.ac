@@ -1509,7 +1509,7 @@ dnl esac
 
 AC_ARG_WITH(targetname,
   [  --with-targetname=unknown/customer/fmsoft/mstudio/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
-                        S3C6410/S3C2440/S3C2410/hi3560a/movidius     Define the target board name])
+                        S3C6410/S3C2440/S3C2410/hi3560a     Define the target board name])
 
 case "$with_targetname" in
   external)
@@ -1567,10 +1567,6 @@ case "$with_targetname" in
    ;;
   hi3560a)
     CFLAGS="$CFLAGS -D_WITH_TARGET_HI3560A"
-   ;;
-  movidius)
-    AC_DEFINE(__TARGET_MOVIDIUS__, 1,
-	    [Define for Intel ma2150])
    ;;
   *)
     with_targetname="unknown"
