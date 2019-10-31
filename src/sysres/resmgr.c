@@ -44,7 +44,9 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#if !defined(__NOUNIX__) && !defined(WIN32) && !defined(__RTEMS__)
+#include "common.h"
+
+#ifdef HAVE_UNISTD_H
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -54,8 +56,6 @@
 #include <pthread.h>
 #endif
 
-
-#include "common.h"
 #include "minigui.h"
 #include "gdi.h"
 #include "window.h"
@@ -364,13 +364,13 @@ static void delete_entry_data(RES_ENTRY* entry)
 BOOL InitializeResManager(int hash_table_size)
 {
     char szpath[MAX_PATH+1];
-#if !defined(__NOUNIX__) || defined(WIN32) || !defined(__RTEMS__)
+#if !defined(__NOUNIX__) || defined(WIN32)
     char* p = NULL;
 #endif
     pwd_res_path = strdup("./");
 
     //initialize paths
-#if !defined(__NOUNIX__) || defined(WIN32) || !defined(__RTEMS__)
+#if !defined(__NOUNIX__) || defined(WIN32)
     if ((p = getenv ("MG_RES_PATH"))) {
         int len = strlen(p);
         if (p[len-1] == '/')
@@ -516,7 +516,7 @@ int SetResPath(const char* path)
     }
 
     //test path is valid directory
-#if  !defined(__NOUNIX__) && !defined(WIN32)
+#if !defined(__NOUNIX__) && !defined(WIN32)
     struct stat buf;
     if(stat(path, &buf) != 0 || !S_ISDIR(buf.st_mode)) {
 #   ifdef _DEBUG

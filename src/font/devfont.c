@@ -813,7 +813,7 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
     char *font_file_name = NULL;
     MEM_RES* memres = NULL;
 
-    char key[12];
+    char key[32];
     int added_num = 0;
 
     font_file_name = font_file;

@@ -259,7 +259,7 @@ BOOL GUIAPI SetWindowElementRenderer (HWND hWnd, const char* werdr_name,
     pwnd = MG_GET_WINDOW_PTR(hWnd);
 
     if (NULL == pwnd || 
-            ((NULL == werdr_name || '\0' == werdr_name) && NULL == we_attrs))
+            ((NULL == werdr_name || '\0' == *werdr_name) && NULL == we_attrs))
     {
         return FALSE;
     }
