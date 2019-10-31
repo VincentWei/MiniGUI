@@ -39,9 +39,9 @@ Besides MiniGUI core, FMSoft also provides some components
 for the developers to develop app much easier:
 
 * mGUtils: A MiniGUI component which contains miscellaneous utilities
-  like ColorSelectionDialogBox, FileOpenDialogBox, and so on.
+  like `ColorSelectionDialogBox`, `FileOpenDialogBox`, and so on.
 * mGPlus: A MiniGUI component which provides support for advanced graphics
-  functions like path, gradient, anti-aliase stretch, and color combination.
+  functions like path, gradient, anti-aliased stretch, and color combination.
 * mGEff: mGEff provides an animation framework for MiniGUI app.
   It also provides some popular UI/UE special effects.
 * mGNCS: This component provides a new control set for MiniGUI app.
@@ -52,10 +52,10 @@ for the developers to develop app much easier:
   a touch screen.
 
 There are also some legacy MiniGUI components. We will not maintain these
-components for MiniGUI core v3.2:
+components for MiniGUI 3.2.x:
 
 * mGi: An input method component for MiniGUI. This component provides
-  some typical input methods (such as softkey, hand-writing, and predict
+  some typical input methods (such as soft keyboard, hand-writing, and predict
   text input for mobile phone) for MiniGUI apps.
 * mGp: A printing component for MiniGUI. By using mGp, you can print
   out the graphics created by MiniGUI app to general-purpose printers.
