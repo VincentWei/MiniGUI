@@ -1,21 +1,42 @@
 # Release Notes
 
-## Version 4.0.1
+## Version 4.0.2
 
-The MiniGUI development team announces the availability of MiniGUI 4.0.0.
+The MiniGUI development team announces the availability of MiniGUI 4.0.2.
 We strongly recommend that you use this version for any new MiniGUI
-apps, especially if the new features of MiniGUI 4.0.0 are must for your
+apps, especially if the new features of MiniGUI 4.0 are must for your
 new apps.
 
 Please report any bugs and incompatibilities in
 
-https://github.com/VincentWei/minigui
+<https://github.com/VincentWei/minigui>
+
+### What's new in this version
+
+* ENHANCEMENTS:
+   - Support for RTEMS operating system
+   - Basic support for RT-Thread and FreeRTOS operating systems.
+* BUGFIXES:
+   - Fixed errors in makefile.ng files.
+* CLEANUP:
+   - `README.md` for correct markdown tags.
+
+## Version 4.0.1
+
+The MiniGUI development team announces the availability of MiniGUI 4.0.1.
+We strongly recommend that you use this version for any new MiniGUI
+apps, especially if the new features of MiniGUI 4.0 are must for your
+new apps.
+
+Please report any bugs and incompatibilities in
+
+<https://github.com/VincentWei/minigui>
 
 ### What's new in this version
 
 This version mainly fixed some minor issues:
 
-- Use FVN algorithm to implement Str2Key.
+- Use FVN algorithm to implement `Str2Key`.
 - Tune some API description.
 - Tune format string to use '%z' instead of '%l' or '%ll' for `size_t` values.
 
@@ -28,7 +49,7 @@ new apps.
 
 Please report any bugs and incompatibilities in
 
-https://github.com/VincentWei/minigui
+<https://github.com/VincentWei/minigui>
 
 ### What's new in this version
 
@@ -290,7 +311,7 @@ run MiniGUI apps on a Linux box on which the DRI
 
 The `dri` engine uses `libdrm` developed by Free Desktop project:
 
-https://dri.freedesktop.org/wiki/
+<https://dri.freedesktop.org/wiki/>
 
 Libdrm is a user-space library implements the Direct Rendering Manager.
 MiniGUI mainly uses this library to support the dumb frame buffer
@@ -841,38 +862,38 @@ The MiniGUI development team announces the availability of MiniGUI 3.0.13.
 All users of MiniGUI are encouraged to test this version carefully, and
 report any bugs and incompatibilities in
 
-https://github.com/VincentWei/minigui.
+<https://github.com/VincentWei/minigui>.
 
 ### What's new in this version
 
-  * Merge new APIs which are introduced by miniStudio.
-  * The autoconf/automake config scripts are cleaned up.
-  * Remove most of compilation warnings (not used variables).
-  * Remove some inline function definitions, especially GetIMEPos/SetIMEPos.
-  * Fix some bugs.
+* Merge new APIs which are introduced by miniStudio.
+* The autoconf/automake config scripts are cleaned up.
+* Remove most of compilation warnings (not used variables).
+* Remove some inline function definitions, especially GetIMEPos/SetIMEPos.
+* Fix some bugs.
 
 ### API changes
 
-  * [NEW] CopyCursor: Copies a cursor object.
-  * [NEW] GetKeyboardState: Gets status of all keys on keyboard.
-  * [NEW] ToUnicode/ToAscii: Converts the key code between Unicode and ASCII.
-  * [NEW] GetWindowRegion: The function obtains a copy of the window region of a window.
-  * [NEW] InvalidateRegion: Invalidates the client area within the specified region.
-  * [NEW] ValidateRect: Validates the client area within a rectangle by removing the
-            rectangle from the update region of the specified window.
-  * [NEW] ValidateRegion: Validates the client area within a region by removing the
-            region from the current update region of the specified window.
-  * [NEW] GetUpdateRegion: Copy the update region of a window to a region.
-  * [NEW] AdjustWindowRectEx: Calculates the required size of the window rectangle
-            based on the desired size of the client rectangle.
-  * [NEW] WindowFromPointEx: Retrieves a handle to the window that contains the specified point.
-  * [NEW] ChildWindowFromPointEx: Retrieves a handle to the child window that contains the
-            speicified point and meets the certain criteria.
-  * [NEW] ScrollWindowEx: Scrolls the content of a window's client area.
-  * [ADJUST] GetIMEPos/SetIMEPos: inline functions -> normal functions.
-  * [ADJUST] WindowFromPoint: normal function -> inline function.
-  * [ADJUST] ChildWindowFromPoint: normal function -> inline function.
-  * [ADJUST] ScrollWindow: normal function -> inline function.
+* [NEW] CopyCursor: Copies a cursor object.
+* [NEW] GetKeyboardState: Gets status of all keys on keyboard.
+* [NEW] ToUnicode/ToAscii: Converts the key code between Unicode and ASCII.
+* [NEW] GetWindowRegion: The function obtains a copy of the window region of a window.
+* [NEW] InvalidateRegion: Invalidates the client area within the specified region.
+* [NEW] ValidateRect: Validates the client area within a rectangle by removing the
+        rectangle from the update region of the specified window.
+* [NEW] ValidateRegion: Validates the client area within a region by removing the
+        region from the current update region of the specified window.
+* [NEW] GetUpdateRegion: Copy the update region of a window to a region.
+* [NEW] AdjustWindowRectEx: Calculates the required size of the window rectangle
+        based on the desired size of the client rectangle.
+* [NEW] WindowFromPointEx: Retrieves a handle to the window that contains the specified point.
+* [NEW] ChildWindowFromPointEx: Retrieves a handle to the child window that contains the
+        speicified point and meets the certain criteria.
+* [NEW] ScrollWindowEx: Scrolls the content of a window's client area.
+* [ADJUST] GetIMEPos/SetIMEPos: inline functions -> normal functions.
+* [ADJUST] WindowFromPoint: normal function -> inline function.
+* [ADJUST] ChildWindowFromPoint: normal function -> inline function.
+* [ADJUST] ScrollWindow: normal function -> inline function.
 
 
 ## Version 3.0.2
@@ -885,48 +906,48 @@ https://github.com/VincentWei/minigui.
 
 ### What's new in this version
 
-  * Append non-rectangle window support.
-  * Append support of double buffer of maindow.
-  * Support for Look and Feel (LF) concept.
-  * Remove SKIN interfaces of MGExt library, move MGExt library and vcongui into mGUtils component.
-  * Newly added bitmap font.
-  * Developing interfaces of desktop for MiniGUI.
-  * Support direct draw to DC for higher efficiency.
-  * Enhancement of resource management
-  * Enhancement of controls: Support of independent scrollbar and transparent control.
-  * Enhancement of font and character set, support bidi text support.
-  * Enhancement of zoom of picture
+* Append non-rectangle window support.
+* Append support of double buffer of maindow.
+* Support for Look and Feel (LF) concept.
+* Remove SKIN interfaces of MGExt library, move MGExt library and vcongui into mGUtils component.
+* Newly added bitmap font.
+* Developing interfaces of desktop for MiniGUI.
+* Support direct draw to DC for higher efficiency.
+* Enhancement of resource management
+* Enhancement of controls: Support of independent scrollbar and transparent control.
+* Enhancement of font and character set, support bidi text support.
+* Enhancement of zoom of picture
 
 
 ### API changes
 
-  * [NEW] ScaleBitmapEx: a bilinear interpolation algorithm which is better than the original.
-  * [NEW] GetWindowInfo: get New structure WINDOWINFO.
-  * [NEW] CreateMainWindowEx: enhance of CreeateMainWindow, compatiable with CreeateMainWindow.
-  * [NEW] CreateWindowEx2：enhance of CreateWindowEx2, compatiable with CreateWindowEx2.
-  * [NEW] DialogBoxIndirectParamEx: new create dialog.
-  * [NEW] CreateMainWindowIndirectParamEx:new create dialog.
-  * [NEW] GetWindowRendererFromName: get LF renderer by name
-  * [NEW] AddWindowElementRenderer:  append a LF renderer to MiniGU
-  * [NEW] RemoveWindowElementRenderer: delete a LF renderer from MiniG
-  * [NEW] GetDefaultWindowElementRenderer: get default LF renderer
-  * [NEW] SetDefaultWindowElementRenderer: set default LF renderer
-  * [NEW] SetWindowElementRenderer: set a LF renderer for one window’s render
-  * [NEW] SetWindowElementAttr: set window’s attributes.
-  * [NEW] GetWindowElementAttr: get window’s attributes value
-  * [NEW] CreateBMPDevFont: create an bitmap device font.
-  * [NEW] AddGlyphsToBMPFont: add an bitmap font glyph.
-  * [NEW] DestroyBMPFont: destroy bitmap device font.
-  * [NEW] SetCustomDesktopOperationSet: set the custom desktop operation set.
-  * [NEW] DesktopUpdateAllWindow:  refresh all windows on the desktop.
-  * [NEW] PopupDesktopMenu: pop up a menu on the desktop
-  * [NEW] GetTextAlign: get the current text-alignment flags of a DC.
-  * [NEW] SetTextAlign: set text-alignment flags of a DC.
-  * [NEW] SetWindowMask: set non-rectangle window mask rect.
-  * [NEW] SetWindowRegion: set non-rectangle window  visible region
-  * [NEW] LockDCEx: support for directly read and write the pixels in a DC.
-  * [NEW] CreateSecondaryDC: Creates a secondary window DC of a window.
-  * [NEW] SetSecondaryDC:set a window's secondary DC and the callback for double buffer window.
+* [NEW] ScaleBitmapEx: a bilinear interpolation algorithm which is better than the original.
+* [NEW] GetWindowInfo: get New structure WINDOWINFO.
+* [NEW] CreateMainWindowEx: enhance of CreeateMainWindow, compatiable with CreeateMainWindow.
+* [NEW] CreateWindowEx2：enhance of CreateWindowEx2, compatiable with CreateWindowEx2.
+* [NEW] DialogBoxIndirectParamEx: new create dialog.
+* [NEW] CreateMainWindowIndirectParamEx:new create dialog.
+* [NEW] GetWindowRendererFromName: get LF renderer by name
+* [NEW] AddWindowElementRenderer:  append a LF renderer to MiniGU
+* [NEW] RemoveWindowElementRenderer: delete a LF renderer from MiniG
+* [NEW] GetDefaultWindowElementRenderer: get default LF renderer
+* [NEW] SetDefaultWindowElementRenderer: set default LF renderer
+* [NEW] SetWindowElementRenderer: set a LF renderer for one window’s render
+* [NEW] SetWindowElementAttr: set window’s attributes.
+* [NEW] GetWindowElementAttr: get window’s attributes value
+* [NEW] CreateBMPDevFont: create an bitmap device font.
+* [NEW] AddGlyphsToBMPFont: add an bitmap font glyph.
+* [NEW] DestroyBMPFont: destroy bitmap device font.
+* [NEW] SetCustomDesktopOperationSet: set the custom desktop operation set.
+* [NEW] DesktopUpdateAllWindow:  refresh all windows on the desktop.
+* [NEW] PopupDesktopMenu: pop up a menu on the desktop
+* [NEW] GetTextAlign: get the current text-alignment flags of a DC.
+* [NEW] SetTextAlign: set text-alignment flags of a DC.
+* [NEW] SetWindowMask: set non-rectangle window mask rect.
+* [NEW] SetWindowRegion: set non-rectangle window  visible region
+* [NEW] LockDCEx: support for directly read and write the pixels in a DC.
+* [NEW] CreateSecondaryDC: Creates a secondary window DC of a window.
+* [NEW] SetSecondaryDC:set a window's secondary DC and the callback for double buffer window.
 
 
 [HybridOS]: https://github.com/FMSoftCN/hybridos

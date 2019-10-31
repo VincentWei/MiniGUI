@@ -407,6 +407,11 @@ unsigned int __mg_os_get_random_seed (void)
     return 0;
 #elif defined (__UCOSII__)
     return 0;
+#elif defined (__RTTHREAD__)
+    // rt_tick_t rt_tick_get(void);
+    unsigned int rt_tick_get(void);
+    return rt_tick_get();
+#elif defined (__FREERTOS__)
 #else
     /*other os use time, for example: linux, OSE, etc.*/
     return time (NULL);
@@ -425,7 +430,7 @@ void __mg_os_time_delay (int ms)
     OSTimeDly (OS_TICKS_PER_SEC * ms / 1000);
 #elif defined (__VXWORKS__)
     taskDelay (sysClkRateGet() * ms / 1000);
-#elif defined (__PSOS__) || defined (__ECOS__)
+#elif defined (__PSOS__) || defined (__ECOS__) || defined (__RTEMS__)
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = ms * 1000000;
@@ -439,6 +444,13 @@ void __mg_os_time_delay (int ms)
     NU_Sleep (ms/10);
 #elif defined (__OSE__)
     delay(ms);
+#elif defined (__RTTHREAD__)
+    // rt_err_t rt_thread_mdelay(rt_int32_t ms);
+    extern int rt_thread_mdelay(int ms);
+    rt_thread_mdelay(ms);
+#elif defined (__FREERTOS__)
+#else
+#error "Please implement __mg_os_time_delay for your OS"
 #endif
 }
 

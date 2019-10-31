@@ -33,43 +33,37 @@ use.
 MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
 windowing and GUI support system, which is especially fit for
 embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
-traditional RTOSes, such as VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II,
-and OSE.
+traditional RTOSes, such as RT-Thread, FreeRTOS, RTEMS, VxWorks, ThreadX,
+Nucleus, pSOS, uC/OS-II, and OSE.
 
 This is the MiniGUI core source tree, which provides windowing
-and graphics interfaces as well as a lot of standard controls (tookit).
+and graphics interfaces as well as a lot of standard controls (toolkit).
 
 Besides MiniGUI core, FMSoft also provides some components
 for the developers to develop app much easier:
 
-  * mGUtils: A MiniGUI component which contains miscellaneous utilities
-    like ColorSelectionDialogBox, FileOpenDialogBox, and so on.
-
-  * mGPlus: A MiniGUI component which provides support for advanced graphics
-    functions like path, gradient, anti-aliase stretch, and color combination.
-
-  * mGEff: mGEff provides an animation framework for MiniGUI app.
-    It also provides some popular UI/UE special effects.
-
-  * mGNCS: This component provides a new control set for MiniGUI app.
-
-  * mGNCS4Touch: This component provides some new controls, which are
-    compliant to the new control API spec of mGNCS, for devices with
-    touch screens.
+* mGUtils: A MiniGUI component which contains miscellaneous utilities
+  like `ColorSelectionDialogBox`, `FileOpenDialogBox`, and so on.
+* mGPlus: A MiniGUI component which provides support for advanced graphics
+  functions like path, gradient, anti-aliased stretch, and color combination.
+* mGEff: mGEff provides an animation framework for MiniGUI app.
+  It also provides some popular UI/UE special effects.
+* mGNCS: This component provides a new control set for MiniGUI app.
+* mGNCS4Touch: This component provides some new controls, which are
+  compliant to the new control API spec of mGNCS, for devices with
+  touch screens.
 
 There are also some legacy MiniGUI components. But we will not maintain these
 components since MiniGUI v3.2.0:
 
-  * mGi: An input method component for MiniGUI. This component provides
-    some typical input methods (such as softkey, hand-writing, and predict
-    text input for mobile phone) for MiniGUI apps.
-
-  * mGp: A printing component for MiniGUI. By using mGp, you can print
-    out the graphics created by MiniGUI app to general-purpose printers.
-
-  * mG3d: A simple three-dimension component for MiniGUI. This component
-    provides a simple 3D API for app. You can use mG3d to create simple
-    3D UI.
+* mGi: An input method component for MiniGUI. This component provides
+  some typical input methods (such as soft keyboard, hand-writing, and predict
+  text input for mobile phone) for MiniGUI apps.
+* mGp: A printing component for MiniGUI. By using mGp, you can print
+  out the graphics created by MiniGUI app to general-purpose printers.
+* mG3d: A simple three-dimension component for MiniGUI. This component
+  provides a simple 3D API for app. You can use mG3d to create simple
+  3D UI.
 
 MiniGUI is a free software project. In December 1998, the initiator of
 FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public
@@ -81,24 +75,21 @@ as a free software project.
 You can download the source code tarball of MiniGUI and the dependent libraries
 from the download zone of the site:
 
-http://www.minigui.com
+<http://www.minigui.com>
 
 FMSoft also releases some open source apps for MiniGUI on the site above,
 for examples:
 
-  * mDolphin, licensed under Apache 2.0, is a full-featured
-    WEB/WAP browser, which is developed based on the open source browser
-    core WebKit and uses MiniGUI as its underlying graphics support system.
-
-  * mGallery, licensed under Apache 2.0, intends to
-    provide a total solution for PMP (Portable Multimedia Player),
-    which uses MiniGUI as the graphics platform.
-
-  * mSpider, licensed under GPL 3.0, intends to provide a
-    light-weight MiniGUI-based web browser (HTML 3.2 and part JavaScript)
-
-  * mEagle, licensed under GPL 3.0, is an embedded GIS development platform
-    which addresses the needs of map browse, query, analysis, etc
+* mDolphin, licensed under Apache 2.0, is a full-featured
+  WEB/WAP browser, which is developed based on the open source browser
+  core WebKit and uses MiniGUI as its underlying graphics support system.
+* mGallery, licensed under Apache 2.0, intends to
+  provide a total solution for PMP (Portable Multimedia Player),
+  which uses MiniGUI as the graphics platform.
+* mSpider, licensed under GPL 3.0, intends to provide a
+  light-weight MiniGUI-based web browser (HTML 3.2 and part JavaScript)
+* mEagle, licensed under GPL 3.0, is an embedded GIS development platform
+  which addresses the needs of map browse, query, analysis, etc
 
 FMSoft had created the public repositories for MiniGUI core, MiniGUI
 components, and other open source apps on GitHub. You can visit them on:
@@ -112,7 +103,6 @@ and
 We now maintain all documents about MiniGUI on the following public repo:
 
 <https://github.com/VincentWei/minigui-docs>
-
 
 ## A BRIEF BUILDING INSTRUCTION
 
@@ -179,37 +169,31 @@ If you are interested in hacking the MiniGUI code, please visit this repository.
 In this version, we enhanced and tuned the APIs related to text rendering,
 in order to support [HybridOS Foundation Class Library].
 
+* Since 4.0.2, MiniGUI provides support for RTEMS, RT-Thread, and FreeRTOS.
 * MiniGUI now provides complete APIs for Unicode characters processing.
   These APIs conform to Unicode 12.0.
-
 * MiniGUI also provides new APIs to lay out, shape, and render glyphs
   from complex and mixed scripts, such as Arabic, Thai, and Indic.
-
 * We tuned and optimized MiniGUI's logical and device font interfaces to
   support the new features above.
-
 * MiniGUI now is enhanced to support input events which may be generated
   by input devices other than standard mouse (or single-touch panel) and
   keyboard, such as multi-touch panel (gesture), joystick, tablet tool,
   table pad, and switch. In MiniGUI 4.0, we introduce `MSG_EXIN_XXX` messages
   to support the input events from devices other than standard mouse
   and keyboard. We call these messages as 'extra input messages'.
-
 * The NEWGAL engine of `dri` to support modern DRI/DRM-driven graphics cards
   or GPUs on Linux.
-
 * The IAL engine of `libinput` to support all modern input devices including
   mouse, keyboard, joystick, switch, multiple touch panel, gesture, tablet tool,
   and table pad on Linux.
-
 * We introduced a Slice Memory Allocator for fast concurrent memory chunk
   allocation.
-
 * Cleanup and tune code for GCC 7.3.
 
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md
+<https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md>
 
 Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
@@ -224,26 +208,26 @@ We introduce some new features in MiniGUI Version 3.2.x:
 
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md
+<https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md>
 
 ## THE RUNTIME MODES OF MINIGUI
 
 You can configure and compile MiniGUI as one of three runtime modes:
 
-  * `MiniGUI-Threads`: A program running on MiniGUI-Threads can create
-    multiple cascaded windows in different threads, and all the windows
-    belong to a single process. MiniGUI-Threads is fit for some real-time
-    systems on Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX,
-    and OSE.
+* `MiniGUI-Threads`: A program running on MiniGUI-Threads can create
+  multiple cascaded windows in different threads, and all the windows
+  belong to a single process. MiniGUI-Threads is fit for some real-time
+  systems on Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX,
+  and OSE.
 
-  * `MiniGUI-Processes`: A program running on MiniGUI-Processes is
-    an independent process, which can also create multiple windows.
-    MiniGUI-Processes is fit for some complex embedded systems, such as
-    PDAs, Thin-Clients or STBs. This mode is only useful for full-featured
-    UNIX-like operating systems, like Linux.
+* `MiniGUI-Processes`: A program running on MiniGUI-Processes is
+  an independent process, which can also create multiple windows.
+  MiniGUI-Processes is fit for some complex embedded systems, such as
+  PDAs, Thin-Clients or STBs. This mode is only useful for full-featured
+  UNIX-like operating systems, like Linux.
 
-  * `MiniGUI-Standalone`: A single process version of MiniGUI. This mode
-    is useful for some small systems, like uClinux or RTOSes.
+* `MiniGUI-Standalone`: A single process version of MiniGUI. This mode
+  is useful for some small systems, like uClinux or RTOSes.
 
 The original MiniGUI (version 1.0) run in MiniGUI-Threads mode.
 It is based on POSIX-compliant thread library. And this thread-based
@@ -258,7 +242,7 @@ You can use MiniGUI-Processes to run more than one MiniGUI-based
 program in the form of UNIX process at the same time. MiniGUI-Processes
 is a full-featured multi-process version of original MiniGUI -- You
 can run a program based on MiniGUI-Processes from a program called
-'mginit'. Just like X Window, the former process is called a client,
+`mginit`. Just like X Window, the former process is called a client,
 and the latter the server.
 
 Clients connect to the server via UNIX domain socket, and the server
@@ -445,7 +429,7 @@ A: x86 32/64-bit, ARM 32/64-bit (e.g., ARMv7 and ARM Cortex-A7),
 Q: Does MiniGUI offer the support for grey LCD with 4bpp (bits per pixel)?  
 A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
 
-Q: Can I get the tech. support from MiniGUI team?  
+Q: Can I get the tech support from MiniGUI team?  
 A: Yes, FMSoft can provide you with guaranteed commercial technical
    support services. Please send messages to <sales@minigui.com>.
 

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -205,8 +205,8 @@ void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue)
 }
 
 /*
- * hWnd may belong to a different thread, 
- * so this function should be thread-safe 
+ * hWnd may belong to a different thread,
+ * so this function should be thread-safe
  */
 PMSGQUEUE kernel_GetMsgQueue (HWND hWnd)
 {
@@ -230,7 +230,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
     msg->time = __mg_timer_counter;
 
     /* check for the duplicated messages */
-    if (msg->message == MSG_MOUSEMOVE 
+    if (msg->message == MSG_MOUSEMOVE
             || msg->message == MSG_NCMOUSEMOVE
             || msg->message == MSG_DT_MOUSEMOVE) {
         int readpos = msg_que->readpos;
@@ -255,7 +255,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
             goto ret;
         }
     }
-    else if (msg->message == MSG_TIMEOUT 
+    else if (msg->message == MSG_TIMEOUT
                 || msg->message == MSG_IDLE
                 || msg->message == MSG_CARETBLINK) {
         int readpos = msg_que->readpos;
@@ -264,7 +264,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
         while (readpos != msg_que->writepos) {
             a_msg = msg_que->msg + readpos;
 
-            if (a_msg->message == msg->message 
+            if (a_msg->message == msg->message
                     && a_msg->hwnd == msg->hwnd) {
                 a_msg->wParam = msg->wParam;
                 a_msg->lParam = msg->lParam;
@@ -335,7 +335,7 @@ HWND kernel_CheckInvalidRegion (PMAINWIN pWin)
 static PMAINWIN msgGetHostingRoot (PMAINWIN pHosted)
 {
     PMAINWIN pHosting;
- 
+
     pHosting = pHosted->pHosting;
     if (pHosting)
         return msgGetHostingRoot (pHosting);
@@ -405,9 +405,9 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
     if (pMsgQueue->TimerMask)
         goto retok;
 #ifndef _MGRM_THREADS
-    /* 
+    /*
      * FIXME
-     * We do not need to check QS_DESKTIMER, because it is for the 
+     * We do not need to check QS_DESKTIMER, because it is for the
      * desktop window, and user don't care it.
      */
     if (!bNoDeskTimer && (pMsgQueue->dwState & QS_DESKTIMER)) {
@@ -435,7 +435,7 @@ BOOL GUIAPI HavePendingMessage (HWND hWnd)
 int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     MSG msg;
-    
+
     msg.message = nMsg;
     msg.wParam = wParam;
     msg.lParam = lParam;
@@ -462,7 +462,7 @@ const char* GUIAPI Message2Str (UINT message)
         return "MSG_USER";
 }
 
-void GUIAPI PrintMessage (FILE* fp, HWND hWnd, 
+void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
                 UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     fprintf (fp, "Message %s: hWnd: %p, wP: %p, lP: %p.\n",
@@ -473,9 +473,9 @@ void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
 
 static inline void CheckCapturedMouseMessage (PMSG pMsg)
 {
-    if (__mg_capture_wnd == pMsg->hwnd 
-            && pMsg->message >= MSG_FIRSTMOUSEMSG 
-            && pMsg->message <= MSG_LASTMOUSEMSG 
+    if (__mg_capture_wnd == pMsg->hwnd
+            && pMsg->message >= MSG_FIRSTMOUSEMSG
+            && pMsg->message <= MSG_LASTMOUSEMSG
             && !(pMsg->wParam & KS_CAPTURED)) {
         int x, y;
         x = LOSWORD (pMsg->lParam);
@@ -493,7 +493,7 @@ static inline void CheckCapturedMouseMessage (PMSG pMsg)
           (nMsgFilterMin > 0 && nMsgFilterMax >= nMsgFilterMin && \
            message >= nMsgFilterMin && message <= nMsgFilterMax) )
 
-BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax, 
+BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax,
                           BOOL bWait, UINT uRemoveMsg)
 {
     PMSGQUEUE pMsgQueue;
@@ -537,7 +537,7 @@ checkagain:
                 pMsgQueue->dwState &= ~QS_QUIT;
             }
         }
- 
+
         UNLOCK_MSGQ (pMsgQueue);
         return FALSE;
     }
@@ -614,7 +614,7 @@ checkagain:
         PMAINWIN pHostingRoot;
         HWND hNeedPaint;
         PMAINWIN pWin;
- 
+
 #ifdef _MGRM_THREADS
         /* REMIND this */
         if (hWnd == HWND_DESKTOP) {
@@ -650,7 +650,7 @@ checkagain:
             UNLOCK_MSGQ (pMsgQueue);
             return TRUE;
         }
- 
+
         /* no paint message */
         pMsgQueue->dwState &= ~QS_PAINT;
     }
@@ -719,7 +719,7 @@ checkagain:
                 UNLOCK_MSGQ (pMsgQueue);
 
                 /* calling the timer callback procedure */
-                ret_timer_proc = timer->proc (timer->hWnd, 
+                ret_timer_proc = timer->proc (timer->hWnd,
                         timer->id, timer->tick_count);
 
                 /* lock the message queue again */
@@ -730,7 +730,7 @@ checkagain:
                     __mg_remove_timer (timer, slot);
                 }
                 UNLOCK_MSGQ (pMsgQueue);
-				goto checkagain;
+                goto checkagain;
             }
             else {
                 pMsg->message = MSG_TIMER;
@@ -765,17 +765,17 @@ checkagain:
     return FALSE;
 }
 
-/* 
+/*
 The following two functions are moved to window.h as inline functions.
 int GUIAPI GetMessage (PMSG pMsg, HWND hWnd)
 {
     return PeekMessageEx (pMsg, hWnd, 0, 0, TRUE, PM_REMOVE);
 }
 
-BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, 
+BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
                          UINT nMsgFilterMax, UINT uRemoveMsg)
 {
-    return PeekMessageEx (pMsg, hWnd, nMsgFilterMin, nMsgFilterMax, 
+    return PeekMessageEx (pMsg, hWnd, nMsgFilterMin, nMsgFilterMax,
                            FALSE, uRemoveMsg);
 }
 */
@@ -826,7 +826,7 @@ checkagain:
     if (pMsgQueue->dwState & QS_PAINT) {
         goto getit;
     }
-    
+
 #ifndef _MGRM_THREADS
     if (pMsgQueue->dwState & QS_DESKTIMER) {
         goto getit;
@@ -853,7 +853,7 @@ getit:
     return TRUE;
 }
 
-BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, 
+BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
                         UINT nMsgFilterMax, UINT uRemoveMsg)
 {
     PMSGQUEUE pMsgQueue;
@@ -869,7 +869,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
     memset (pMsg, 0, sizeof(MSG));
 
     if (pMsgQueue->dwState & QS_POSTMSG) {
-    
+
         if (pMsgQueue->readpos != pMsgQueue->writepos) {
 
             pPostMsg = pMsgQueue->msg + pMsgQueue->readpos;
@@ -882,7 +882,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
                 UNLOCK_MSGQ (pMsgQueue);
                 return FALSE;
             }
-            
+
             SET_PADD (NULL);
 
             if (uRemoveMsg == PM_REMOVE) {
@@ -915,7 +915,7 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
     if (!BE_THIS_THREAD(hWnd))
         return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
-    
+
     if ( !(WndProc = GetWndProc(hWnd)) )
         return ERR_INV_HWND;
 
@@ -933,7 +933,7 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
         return ERR_INV_HWND;
-  
+
     pqmsg = QMSGAlloc();
 
     LOCK_MSGQ (pMsgQueue);
@@ -973,7 +973,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
         return ERR_INV_HWND;
-  
+
     pqmsg = QMSGAlloc();
 
     LOCK_MSGQ (pMsgQueue);
@@ -1091,7 +1091,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
             sem_post (pSyncMsg->sem_handle);
         }
 #endif
-        
+
 #ifdef _MGHAVE_TRACE_MSG
         if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
             fprintf (stderr, "Message %u (%s) has been thrown away.\n",
@@ -1157,11 +1157,11 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
 
     if (pMsgQueue->pFirstNotifyMsg) {
         pQMsg = pMsgQueue->pFirstNotifyMsg;
-        
+
         while (pQMsg) {
             pMsg = &pQMsg->Msg;
 
-            if (pMsg->hwnd == hWnd || gui_GetMainWindowPtrOfControl (pMsg->hwnd) 
+            if (pMsg->hwnd == hWnd || gui_GetMainWindowPtrOfControl (pMsg->hwnd)
                     == (PMAINWIN)hWnd) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountN ++;
@@ -1179,7 +1179,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     if (pMsgQueue->pFirstSyncMsg) {
         PSYNCMSG pSyncMsg, pSyncPrev = NULL;
         pSyncMsg = pMsgQueue->pFirstSyncMsg;
-        
+
         while (pSyncMsg) {
             pMsg = &pSyncMsg->Msg;
 
@@ -1188,8 +1188,8 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
                 pMsg->hwnd = HWND_INVALID;
                 nCountS ++;
 
-                /* 
-                 * notify the waiting thread and remove the node from 
+                /*
+                 * notify the waiting thread and remove the node from
                  * msg queue
                  */
                 pSyncMsg->retval = ERR_MSG_CANCELED;
@@ -1211,7 +1211,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
             pSyncMsg = pSyncMsg->pNext;
         }
     }
-    
+
 #ifdef _DEBUG_TAM
     printf ("ThrowAwayMessages: %d sync messages thrown\n", nCountS);
 #endif
@@ -1227,7 +1227,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
             pMsg->hwnd = HWND_INVALID;
             nCountP ++;
         }
-        
+
         readpos++;
 #if 0
         if (readpos >= pMsgQueue->len) readpos = 0;
@@ -1303,7 +1303,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return ERR_INV_HWND;
 
 #define _SYNC_NEED_REENTERABLE
-#ifndef _SYNC_NEED_REENTERABLE 
+#ifndef _SYNC_NEED_REENTERABLE
     if ((thinfo = GetMsgQueueThisThread ())) {
         /* avoid to create a new semaphore object, Note: it's not reenterable.*/
         SyncMsg.sem_handle = &thinfo->sync_msg;
@@ -1330,7 +1330,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     SyncMsg.pNext = NULL;
 
 #if 1
-    /* add by houhh 20081030, deal with itself's SyncMsg first before 
+    /* add by houhh 20081030, deal with itself's SyncMsg first before
      * SendSyncMessage to other thread, because other thread maybe wait
      * for SyncMsg for you.*/
     if (thinfo) {
@@ -1379,11 +1379,11 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     /* suspend until the message has been handled. */
     if (sem_wait (SyncMsg.sem_handle) < 0) {
-        fprintf (stderr, 
+        fprintf (stderr,
             "KERNEL>SendSyncMessage: thread is interrupted abnormally!\n");
     }
 
-#ifndef _SYNC_NEED_REENTERABLE 
+#ifndef _SYNC_NEED_REENTERABLE
     if (thinfo == NULL)
         sem_destroy (&sync_msg);
 #else
@@ -1406,7 +1406,7 @@ LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
-    
+
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
 
     if (!(WndProc = GetWndProc(hWnd)))

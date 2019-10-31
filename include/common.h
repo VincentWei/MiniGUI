@@ -1963,7 +1963,7 @@ typedef struct _GAL_Rect {
 #endif
 
 /* Commonly used definitions */
-#if !defined(__NOUNIX__) || defined (__ECOS__)
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
 
