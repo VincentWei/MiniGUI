@@ -56,17 +56,29 @@ static char* _system_keys[]={
     "mdev",
     "mtype"
 };
+
+#ifdef __TARGET_EXTERNAL__
 static char* _system_values[]={ 
 // GAL engine and default options
-//    "dummy",
     "commlcd",
-    "800x480-32bpp",
+    "480x960-32bpp",
 // IAL engine
-    "dummy",
-//    "comm",
+    "comm",
     "/dev/input/mice",
     "IMPS2"
 };
+#else
+static char* _system_values[]={ 
+// GAL engine and default options
+    "dummy",
+    "480x960-32bpp",
+// IAL engine
+    "dummy",
+    "/dev/input/mice",
+    "IMPS2"
+};
+#endif
+
 // Section: fbcon
 static char* _fbcon_keys[]={ 
     "defaultmode"
