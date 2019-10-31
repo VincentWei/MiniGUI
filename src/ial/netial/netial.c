@@ -217,7 +217,7 @@ BOOL InitNetInput (INPUT* input, const char* mdev, const char* mtype)
     }
     printf ("Please start the PC side of the client process.\n");
 
-    temp_sock_descriptor = accept (sock_descriptor, (struct sockaddr *)&pin, &address_size);
+    temp_sock_descriptor = accept (sock_descriptor, (struct sockaddr *)&pin, (socklen_t *)&address_size);
     if (temp_sock_descriptor == -1)
     {
         perror ("call to accept");
