@@ -6,7 +6,9 @@ The MiniGUI development team announces the availability of MiniGUI 3.2.3.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
-<https://github.com/VincentWei/minigui>
+<https://github.com/VincentWei/minigui/tree/rel-3-2>
+
+### What's new in this version
 
 * ENHANCEMENTS:
    - Support for RTEMS operating system.
@@ -23,7 +25,7 @@ The MiniGUI development team announces the availability of MiniGUI 3.2.2.
 All users of MiniGUI are recommended strongly to use this version.
 Please report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui
+<https://github.com/VincentWei/minigui>
 
 ### What's new in this version
 
