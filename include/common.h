@@ -1701,7 +1701,7 @@ typedef struct _GAL_Rect {
 #endif
 
 /* Commonly used definitions */
-#if HAVE_LIMITS_H
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
 
