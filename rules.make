@@ -14,7 +14,6 @@ include $(abs_top_srcdir)/$(TARGET_RULES)
 # Flags that can be set on the nmake command line:
 #   DEBUG=1   for compiling a debugging version
 #   PREFIX=Some/Directory       Base directory for installation
-#   CONFIGH=YourConfigHeader    for defining the mgconfig.h file to use
 
 ifndef DEBUG
 DEBUG=0
@@ -37,8 +36,6 @@ docdir = $(datadir)/doc/minigui
 
 # The directory where the include files will be installed
 libminiguiincludedir = $(includedir)/minigui
-libmgextincludedir = $(includedir)/minigui
-
 
 # Programs used by "make":
 CP = cp
@@ -93,14 +90,6 @@ TIFF_LIBS = $(TIFF_NOLZW_LIBS)
 ZLIB_CFLAGS = -I $(ZLIB)
 ZLIB_LIBS = $(ZLIB)/zlib.lib
 
-ifdef COMPILE_MGEXTLIB
-MGEXT_CFLAGS = -D__MGEXT_LIB__
-else
-MGEXT_CFLAGS =
-endif
-
-MG_PRE_DEFINES = -D__MINIGUI_LIB__ $(MGEXT_CFLAGS)
-
 #################################################################################
 
 ifdef LOCAL_INC
@@ -119,10 +108,10 @@ endif
 
 DEPLIBINC = -I$(DEPLIBDIR)/include
 
-CFLAGS += $(OPTIMIZE) $(DEBUGINFO) $(DEPLIBINC) $(INCLUDES) $(DEFINES) $(DEPCFLAGS) $(MG_PRE_DEFINES) -c
+CFLAGS += $(OPTIMIZE) $(DEBUGINFO) $(DEPLIBINC) $(DEFINES) $(DEPCFLAGS) -c
 
 DEFS += -D__MINIGUI_LIB__ -D_REENTRANT
-CFLAGS += -I$(abs_top_srcdir) $(INCLUDES) $(DEFS) $(INCS)
+CFLAGS += -I$(abs_top_srcdir) -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/src/include $(INCLUDES) $(DEFS) $(INCS)
 
 %.$(OBJ): %.c
 	$(CC) $(CFLAGS) $(COFLAG) $< 

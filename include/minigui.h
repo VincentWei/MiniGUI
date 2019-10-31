@@ -2726,6 +2726,7 @@ MG_EXPORT HCURSOR GUIAPI GetSystemCursor (int csrid);
  * \return Handle to the current system cursor, zero means no current cursor.
  */
 MG_EXPORT HCURSOR GUIAPI GetCurrentCursor (void);
+
 #else
 //  #define LoadCursorFromFile(filename)    (do_nothing(), 0)
 //  #define CreateCursor(x, y, w, h, ANDbs, XORbs, cr) (do_nothing(), 0)
@@ -2866,6 +2867,7 @@ MG_EXPORT void GUIAPI GetCursorPos (POINT* ppt);
 MG_EXPORT void GUIAPI SetCursorPos (int x, int y);
 
 #ifdef _MGHAVE_CURSOR
+
 /**
  * \fn HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL set_def)
  * \brief Changes the current cursor.
@@ -2884,7 +2886,7 @@ MG_EXPORT void GUIAPI SetCursorPos (int x, int y);
  *
  * \sa SetCursor, SetDefaultCursor, GetDefaultCursor
  */
- MG_EXPORT HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL set_def);
+MG_EXPORT HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL set_def);
 
 /**
  * \fn HCURSOR GUIAPI GetDefaultCursor (void)
@@ -2897,77 +2899,6 @@ MG_EXPORT void GUIAPI SetCursorPos (int x, int y);
  * \sa SetCursorEx, SetDefaultCursor
  */
 MG_EXPORT  HCURSOR GUIAPI GetDefaultCursor (void);
-
-#else
-static inline HCURSOR SetCursorEx(HCURSOR hcsr, BOOL set_def) {
-    return (HCURSOR)0;
-}
-
-static inline HCURSOR GetDefaultCursor(void) {
-    return (HCURSOR)0;
-}
-
-#endif /* _MGHAVE_CURSOR */
-
-/**
- * \def SetCursor(hcsr)
- * \brief Changes the current cursor.
- *
- * This function changes the current cursor to be \a hcsr.
- *
- * \param hcsr The expected cursor handle.
- * \return The old cursor handle.
- *
- * \note This function defined as a macro calling \a SetCursorEx with 
- *       passing \a set_def as FALSE.
- *
- * \sa SetCursorEx, SetDefaultCursor
- */
-  #define SetCursor(hcsr) SetCursorEx (hcsr, FALSE)
-
-/**
- * \def SetDefaultCursor(hcsr)
- * \brief Changes the current cursor, and set it as the default cursor.
- *
- * This function changes the current cursor to be \a hcsr, and set it as 
- * the default cursor.
- *
- * \param hcsr The expected cursor handle.
- * \return The old cursor handle.
- *
- * \note This function defined as a macro calling \a SetCursorEx with
- * passing \a set_def as TRUE.
- *
- * \sa SetCursorEx, SetCursor
- */
-  #define SetDefaultCursor(hcsr) SetCursorEx (hcsr, TRUE)
-
-/**
- * \fn HCURSOR GUIAPI GetDefaultCursor (void)
- * \brief Gets the default cursor.
- *
- * This function gets the current default cursor.
- *
- * \return The current default cursor handle.
- *
- * \sa SetCursorEx, SetDefaultCursor
- */
-//MG_EXPORT  HCURSOR GUIAPI GetDefaultCursor (void);
-
-#else
-////  #define SetCursorEx(hcsr, set_def)    (do_nothing(), (HCURSOR)0)
-////  #define SetCursor(hcsr)               (do_nothing(), (HCURSOR)0)
-////  #define SetDefaultCursor(hcsr)        (do_nothing(), (HCURSOR)0)
-////  #define GetDefaultCursor()            (do_nothing(), (HCURSOR)0)
-
-//static inline HCURSOR SetCursorEx(HCURSOR hcsr, BOOL set_def) { return (HCURSOR) 0;}
-//static inline HCURSOR SetCursor(HCURSOR hcsr) { return (HCURSOR) 0;}
-//static inline HCURSOR SetDefaultCursor(HCURSOR hcsr) { return (HCURSOR) 0;}
-//static inline HCURSOR GetDefaultCursor(void) { return (HCURSOR) 0;}
-
-#endif /* _MGHAVE_CURSOR */
-
-#ifdef _MGHAVE_CURSOR
 
 /**
  * \fn int GUIAPI ShowCursor (BOOL fShow)
@@ -2985,15 +2916,54 @@ static inline HCURSOR GetDefaultCursor(void) {
  */
 MG_EXPORT int GUIAPI ShowCursor (BOOL fShow);
 
-#else
-////  #define ShowCursor(fShow)             (do_nothing(), (HCURSOR)0)
-//static inline int ShowCursor(BOOL fShow) {return 0;}
+#else /* _MGHAVE_CURSOR */
+
+static inline HCURSOR SetCursorEx(HCURSOR hcsr, BOOL set_def) {
+    return (HCURSOR)0;
+}
+
+static inline HCURSOR GetDefaultCursor(void) {
+    return (HCURSOR)0;
+}
 
 static inline int GUIAPI ShowCursor (BOOL fShow) {
     return 0;
 }
 
-#endif /* _MGHAVE_CURSOR */
+#endif /* !_MGHAVE_CURSOR */
+
+/**
+ * \def SetCursor(hcsr)
+ * \brief Changes the current cursor.
+ *
+ * This function changes the current cursor to be \a hcsr.
+ *
+ * \param hcsr The expected cursor handle.
+ * \return The old cursor handle.
+ *
+ * \note This function defined as a macro calling \a SetCursorEx with 
+ *       passing \a set_def as FALSE.
+ *
+ * \sa SetCursorEx, SetDefaultCursor
+ */
+#define SetCursor(hcsr) SetCursorEx (hcsr, FALSE)
+
+/**
+ * \def SetDefaultCursor(hcsr)
+ * \brief Changes the current cursor, and set it as the default cursor.
+ *
+ * This function changes the current cursor to be \a hcsr, and set it as 
+ * the default cursor.
+ *
+ * \param hcsr The expected cursor handle.
+ * \return The old cursor handle.
+ *
+ * \note This function defined as a macro calling \a SetCursorEx with
+ * passing \a set_def as TRUE.
+ *
+ * \sa SetCursorEx, SetCursor
+ */
+#define SetDefaultCursor(hcsr) SetCursorEx (hcsr, TRUE)
 
     /** @} end of cursor_fns */
 

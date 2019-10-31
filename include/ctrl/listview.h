@@ -871,7 +871,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  */
 #define LVM_GETITEMSTATE	0xF128 
 
-/**
+/*
  * \def LVM_GETSELECTEDCOLUMN
  * \brief Retrieves the index of the currently selected column of a listview.
  *

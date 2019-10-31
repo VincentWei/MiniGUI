@@ -18,7 +18,7 @@ MINIGUI_MAJOR_VERSION=3
 MINIGUI_MINOR_VERSION=2
 MINIGUI_MICRO_VERSION=2
 MINIGUI_INTERFACE_AGE=0
-MINIGUI_BINARY_AGE=1
+MINIGUI_BINARY_AGE=2
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
 
 AC_SUBST(MINIGUI_MAJOR_VERSION)
@@ -76,7 +76,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(time mktime localtime strdup strcasecmp strncasecmp strerror setlocale getpt)
+AC_CHECK_FUNCS(time mktime localtime strdup strcasecmp strncasecmp strerror setlocale)
 
 dnl ========================================================================
 dnl User selectable options
@@ -88,8 +88,6 @@ trace_message="no"
 message_string="no"
 
 runtime_mode="procs"
-
-stand_alone="no"
 
 incore_res="no"
 use_miniguientry="no"
@@ -303,10 +301,6 @@ message_string=$enableval)
 AC_ARG_WITH(runmode,
 [  --with-runmode=procs/ths/sa  the MiniGUI runtime mode <default=procs>],
 runtime_mode=$withval)
-
-AC_ARG_ENABLE(standalone,
-[  --enable-standalone      build MiniGUI-Standalone version <default=no>],
-stand_alone=$enableval)
 
 AC_ARG_ENABLE(incoreres,
 [  --enable-incoreres       use incore resource instead file IO to initialize MiniGUI <default=no>],
@@ -732,9 +726,8 @@ AC_ARG_ENABLE(ctrlbidisledit,
 [  --enable-ctrlbidisledit  include Single-Line BIDI EDIT control <default=no>],
 build_ctrl_bidisledit=$enableval)
 
-dnl enable new textedit
-AC_ARG_ENABLE(newtextedit,
-[  --enable-ctrlnewtextedit include the new implementation of TEXTEDIT control <default=yes>],
+AC_ARG_ENABLE(ctrlnewtextedit,
+[  --disable-ctrlnewtextedit    include the new implementation of TEXTEDIT control <default=yes>],
 build_ctrl_textedit_new=$enableval)
 
 AC_ARG_ENABLE(ctrllistbox,

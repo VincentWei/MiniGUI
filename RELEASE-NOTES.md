@@ -18,7 +18,7 @@ Please report any bugs and incompatibilities in
     * macro: `_MGUSE_SYNC_UPDATE`
   1. New API `UpdateInvalidClient`. You can use this function to update
     the invalid client region of a window instantly.
-  1. New API `LoadDevFontFromFile`. You can use this function to load
+  1. New API `LoadDevFontFromIncoreData`. You can use this function to load
     a device font from incore data.
   1. Use different colors for the output of `_DBG_PRINTF` and `_ERR_PRINTF`.
   1. Add `__mg_save_jpg` function for storing MYBITMAP as JPEG file (10km).

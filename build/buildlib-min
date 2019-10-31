@@ -1,6 +1,7 @@
 #!/bin/sh
 
 ./configure \
+    --with-runmode=ths \
     --disable-dblclk \
     --disable-cursor \
     --disable-mousecalibrate \
