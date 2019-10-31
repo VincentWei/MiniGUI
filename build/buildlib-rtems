@@ -1,0 +1,44 @@
+#!/bin/sh
+
+RTEMS_DIR=/home/projects/movidius/m8_gui/tools/18.11.4/linux64/sparc-myriad-rtems-6.3.0
+
+#RTEMS_GLOBAL_CFLAGS="-ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -finit-priority"
+
+rm -f config.cache config.status
+
+CC=${RTEMS_DIR}/bin/sparc-myriad-rtems-gcc \
+CFLAGS="-I${RTEMS_DIR}/sparc-myriad-rtems/include -I${RTEMS_DIR}/pnglib/include -I${RTEMS_DIR}/zlib/include" \
+LDFLAGS="-L${RTEMS_DIR}/lib/gcc/sparc-myriad-rtems/6.3.0 -L${RTEMS_DIR}/pnglib/lib -L${RTEMS_DIR}/zlib/lib" \
+./configure --prefix=/home/projects/movidius/m8_gui/tools/18.11.4/linux64/sparc-myriad-rtems-6.3.0/minigui \
+    --build=i686-linux \
+    --host=sparc-myriad-rtems \
+    --target=sparc-myriad-rtems \
+    --with-osname=rtems \
+	--with-runmode=ths \
+	--enable-miniguientry \
+    --enable-incoreres \
+    --disable-cursor \
+    --disable-videofbcon \
+    --disable-qvfbial \
+    --disable-vbfsupport \
+    --disable-qpfsupport \
+    --disable-latin9support \
+    --enable-gbksupport \
+    --disable-big5support \
+    --enable-unicodesupport \
+    --disable-savebitmap \
+    --disable-jpgsupport \
+    --disable-pngsupport \
+    --disable-aboutdlg \
+    --enable-adv2dapi \
+	--enable-videodummy \
+	--disable-consoleial \
+	--disable-videopcxvfb \
+	--with-targetname=external \
+	--enable-pngsupport \
+	--disable-develmode \
+	--disable-detaildebug \
+	--disable-tracemsg \
+	--enable-videocommlcd \
+	--enable-commial \
+	--disable-splash
