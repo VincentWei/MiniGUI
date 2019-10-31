@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -135,7 +135,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
 
     /* Get the pixels */
     if ( surface->w && surface->h ) {
-        if ( ((flags&GAL_HWSURFACE) == GAL_SWSURFACE) || 
+        if ( ((flags&GAL_HWSURFACE) == GAL_SWSURFACE) ||
                 (video->AllocHWSurface(this, surface) < 0) ) {
             surface->pixels = malloc(surface->h*surface->pitch);
             if ( surface->pixels == NULL ) {
@@ -247,9 +247,9 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
         } else {
             flag = GAL_SRCALPHA;
         }
-    
+
         /* Optimize away operations that don't change anything */
-        if ( (flag == (surface->flags & (GAL_SRCALPHA|GAL_RLEACCELOK))) 
+        if ( (flag == (surface->flags & (GAL_SRCALPHA|GAL_RLEACCELOK)))
                 && (!flag || value == oldalpha) ) {
             return(0);
         }
@@ -275,9 +275,9 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
             surface->format->alpha = value;
         } else if ( flag & GAL_SRCPIXELALPHA ){
             surface->flags |= GAL_SRCPIXELALPHA;
-        } 
+        }
 
-        
+
         if ( (surface->flags & GAL_HWACCEL) == GAL_HWACCEL ) {
             if ( (video->SetHWAlpha == NULL) ||
                  (video->SetHWAlpha(this, surface, value) < 0) ) {
@@ -409,7 +409,7 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
 
     GAL_Rect src1, dst1;
 
-    /* vertical overlapped. 
+    /* vertical overlapped.
      * if left-up right-up left-down right-down, horizontal is faster than vertical than use horizonatl mode. */
     if ((dst_rc.top != src_rc.top) && (RECTH(intersect) <= RECTW(intersect))) {
         h = RECTH(intersect);
@@ -425,10 +425,10 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
                 }
                 src1.x = src_rc.left;
                 src1.y = src_rc.top + y - delta;
-            
+
                 dst1.x = dst_rc.left;
                 dst1.y = dst_rc.top + y - delta;
-            
+
                 src1.w = dst1.w = srcrect->w;
                 src1.h = dst1.h = delta;
 
@@ -443,10 +443,10 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
                 }
                 src1.x = src_rc.left;
                 src1.y = src_rc.top + y;
-            
+
                 dst1.x = dst_rc.left;
                 dst1.y = dst_rc.top + y;
-            
+
                 src1.w = dst1.w = srcrect->w;
                 src1.h = dst1.h = delta;
 
@@ -459,7 +459,7 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
         w = RECTW(intersect);
         W = RECTW(src_rc);
         delta = W - w;
-        
+
         /* horizontal right overlapped, separate into per not-Intersect rect to blit,
          * from right to left */
         if (dst_rc.left > src_rc.left) {
@@ -469,10 +469,10 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
                 }
                 src1.x = src_rc.left + x - delta;
                 src1.y = src_rc.top;
-            
+
                 dst1.x = dst_rc.left + x - delta;
                 dst1.y = dst_rc.top;
-            
+
                 src1.w = dst1.w = delta;
                 src1.h = dst1.h = srcrect->h;
 
@@ -488,10 +488,10 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
                 }
                 src1.x = src_rc.left + x;
                 src1.y = src_rc.top;
-            
+
                 dst1.x = dst_rc.left + x;
                 dst1.y = dst_rc.top;
-            
+
                 src1.w = dst1.w = delta;
                 src1.h = dst1.h = srcrect->h;
 
@@ -504,13 +504,13 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
 }
 #endif
 
-/* 
+/*
  * Set up a blit between two surfaces -- split into three parts:
- * The upper part, GAL_UpperBlit(), performs clipping and rectangle 
+ * The upper part, GAL_UpperBlit(), performs clipping and rectangle
  * verification.  The lower part is a pointer to a low level
  * accelerated blitting function.
  *
- * These parts are separated out and each used internally by this 
+ * These parts are separated out and each used internally by this
  * library in the optimimum places.  They are exported so that if
  * you know exactly what you are doing, you can optimize your code
  * by calling the one(s) you need.
@@ -601,7 +601,7 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
     /* clip the source rectangle to the source surface */
     if(srcrect) {
         int maxw, maxh;
-    
+
         srcx = srcrect->x;
         w = srcrect->w;
         if(srcx < 0) {
@@ -623,7 +623,7 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
         maxh = src->h - srcy;
         if(maxh < h)
             h = maxh;
-        
+
     } else {
         srcx = srcy = 0;
         w = src->w;
@@ -668,7 +668,7 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
     return 0;
 }
 
-/* 
+/*
  * This function performs a fast fill of the given rectangle with 'color'
  */
 int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
@@ -829,7 +829,7 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
     return(0);
 }
 
-/* 
+/*
  * Calculate the pad-aligned box sizew in a surface
  */
 Uint32 GAL_GetBoxSize (GAL_Surface *surface, Uint32 w, Uint32 h, Uint32* pitch_p)
@@ -857,7 +857,7 @@ Uint32 GAL_GetBoxSize (GAL_Surface *surface, Uint32 w, Uint32 h, Uint32* pitch_p
     return pitch * h;
 }
 
-/* 
+/*
  * This function performs a fast HW -> SW box copying.
  */
 int GAL_GetBox (GAL_Surface *src, const GAL_Rect *rect, BITMAP* box)
@@ -907,7 +907,7 @@ int GAL_GetBox (GAL_Surface *src, const GAL_Rect *rect, BITMAP* box)
 
     switch (box->bmBytesPerPixel) {
         case 1:
-            if (((DWORD)srcrow & 3) || ((DWORD)dstrow & 3) 
+            if (((DWORD)srcrow & 3) || ((DWORD)dstrow & 3)
                     || (linelen & 3) || (box->bmPitch & 3) || (src->pitch & 3))
                 goto slow_copy;
             else {
@@ -921,7 +921,7 @@ int GAL_GetBox (GAL_Surface *src, const GAL_Rect *rect, BITMAP* box)
             break;
 
         case 2:
-            if ((((DWORD)srcrow & 3) != ((DWORD)dstrow & 3)) 
+            if ((((DWORD)srcrow & 3) != ((DWORD)dstrow & 3))
                     || (box->bmPitch & 3) || (src->pitch & 3))
                 goto slow_copy;
 
@@ -970,7 +970,7 @@ slow_copy:
     return(0);
 }
 
-/* 
+/*
  * This function performs a fast SW -> HW box copying.
  */
 
@@ -997,11 +997,11 @@ static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, 
 
 
     if (bpp == 1)
-	{
+    {
         return -1;
-	}
+    }
 
-	if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
+    if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
         while ( h-- ) {
             dstpixels = dstrow;
             srcpixels = srcrow;
@@ -1026,9 +1026,9 @@ static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, 
             srcrow += box->bmPitch;
             dstrow += dst->pitch;
         }
-	} else {
+    } else {
         /* for aligned 32-bits bound */
-		int alpha_mask_index;
+        int alpha_mask_index;
         int alpha_mask_pitch;
         int alpha_mask_row;
         GET_ALPHA_MASK_INDEX (srcrow, box, alpha_mask_pitch, alpha_mask_row);
@@ -1036,7 +1036,7 @@ static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, 
         while ( h-- ) {
             dstpixels = dstrow;
             srcpixels = srcrow;
-			alpha_mask_index = alpha_mask_row;
+            alpha_mask_index = alpha_mask_row;
             DUFFS_LOOP(
                 {
                     Uint32 pixel;
@@ -1049,19 +1049,19 @@ static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, 
                     unsigned dB;
                     DISEMBLE_RGB (srcpixels, bpp, dstfmt, pixel, sR, sG, sB);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
-				    sA = box->bmAlphaMask[alpha_mask_index];
+                    sA = box->bmAlphaMask[alpha_mask_index];
                     ALPHA_BLEND (sR, sG, sB, (alpha*sA)/255, dR, dG, dB);
                     ASSEMBLE_RGBA (dstpixels, bpp, dstfmt, dR, dG, dB, alpha);
                     dstpixels += bpp;
                     srcpixels += bpp;
-				    alpha_mask_index++;
+                    alpha_mask_index++;
                 },
                 w);
             srcrow += box->bmPitch;
             dstrow += dst->pitch;
-			alpha_mask_row += alpha_mask_pitch;
+            alpha_mask_row += alpha_mask_pitch;
         }
-	}
+    }
 
     return 0;
 }
@@ -1074,13 +1074,13 @@ static int _PutBoxAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w,
     int bpp = dstfmt->BytesPerPixel;
     unsigned alpha = dstfmt->Amask ? GAL_ALPHA_OPAQUE : 0;
 
-    
-    if (bpp == 1)
-	{
-        return -1;
-	}
 
-	if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
+    if (bpp == 1)
+    {
+        return -1;
+    }
+
+    if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
         if (dstfmt->Amask == 0xff000000 && dstfmt->BitsPerPixel == 32)
         {
             while(h--) {
@@ -1132,7 +1132,7 @@ static int _PutBoxAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w,
                         unsigned dR = 0;
                         unsigned dG = 0;
                         unsigned dB = 0;
-                        unsigned dA = 0; 
+                        unsigned dA = 0;
                         DISEMBLE_RGBA (srcpixels, bpp, dstfmt, pixel, sR, sG, sB, sA);
                         DISEMBLE_RGBA (dstpixels, bpp, dstfmt, pixel, dR, dG, dB, dA);
                         ALPHA_BLEND (sR, sG, sB, sA, dR, dG, dB);
@@ -1147,42 +1147,42 @@ static int _PutBoxAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w,
                 dstrow += dst->pitch;
             }
         }
-	} else {
+    } else {
         /* for aligned 32-bits bound */
         int alpha_mask_index;
         int alpha_mask_pitch;
         int alpha_mask_row;
         GET_ALPHA_MASK_INDEX (srcrow, box, alpha_mask_pitch, alpha_mask_row);
-    
-		while ( h-- ) {
-			dstpixels = dstrow;
-			srcpixels = srcrow;
-			alpha_mask_index = alpha_mask_row;
-			DUFFS_LOOP(
-			{
-				Uint32 pixel;
-				unsigned sR;
-				unsigned sG;
-				unsigned sB;
-				unsigned sA;
-				unsigned dR;
-				unsigned dG;
-				unsigned dB;
+
+        while ( h-- ) {
+            dstpixels = dstrow;
+            srcpixels = srcrow;
+            alpha_mask_index = alpha_mask_row;
+            DUFFS_LOOP(
+            {
+                Uint32 pixel;
+                unsigned sR;
+                unsigned sG;
+                unsigned sB;
+                unsigned sA;
+                unsigned dR;
+                unsigned dG;
+                unsigned dB;
                 DISEMBLE_RGB (srcpixels, bpp, dstfmt, pixel, sR, sG, sB);
-				DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
+                DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
                 sA = box->bmAlphaMask[alpha_mask_index];
-				ALPHA_BLEND (sR, sG, sB, sA, dR, dG, dB);
-				ASSEMBLE_RGBA (dstpixels, bpp, dstfmt, dR, dG, dB, alpha);
-				dstpixels += bpp;
-				srcpixels += bpp;
-				alpha_mask_index++;
-			},
-			w);
-			srcrow += box->bmPitch;
-			dstrow += dst->pitch;
-			alpha_mask_row += alpha_mask_pitch;
-		}
-	}
+                ALPHA_BLEND (sR, sG, sB, sA, dR, dG, dB);
+                ASSEMBLE_RGBA (dstpixels, bpp, dstfmt, dR, dG, dB, alpha);
+                dstpixels += bpp;
+                srcpixels += bpp;
+                alpha_mask_index++;
+            },
+            w);
+            srcrow += box->bmPitch;
+            dstrow += dst->pitch;
+            alpha_mask_row += alpha_mask_pitch;
+        }
+    }
 
     return 0;
 }
@@ -1232,16 +1232,14 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
     Uint32 ckey = box->bmColorKey;
     GAL_PixelFormat *dstfmt = dst->format;
     int bpp = dstfmt->BytesPerPixel;
-	Uint32 rgbmask = ~dstfmt->Amask;
+    Uint32 rgbmask = ~dstfmt->Amask;
     unsigned alpha = box->bmAlpha;
 
 
     if (bpp == 1)
-	{
-    	return -1;
-	}
+        return -1;
 
-	if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
+    if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
         while ( h-- ) {
             dstpixels = dstrow;
             srcpixels = srcrow;
@@ -1257,7 +1255,7 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
                 unsigned dB;
                 RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
                 if ((pixel & rgbmask) != ckey ) {
-				    RGBA_FROM_PIXEL (pixel, dstfmt, sR, sG, sB, sA);
+                    RGBA_FROM_PIXEL (pixel, dstfmt, sR, sG, sB, sA);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
                     ALPHA_BLEND (sR, sG, sB, (alpha*sA)/255, dR, dG, dB);
                     ASSEMBLE_RGBA (dstpixels, bpp, dstfmt, dR, dG, dB, alpha);
@@ -1269,9 +1267,9 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
             srcrow += box->bmPitch;
             dstrow += dst->pitch;
         }
-	} else {
+    } else {
         /* for aligned 32-bits bound */
-		int alpha_mask_index;
+        int alpha_mask_index;
         int alpha_mask_pitch;
         int alpha_mask_row;
         GET_ALPHA_MASK_INDEX (srcrow, box, alpha_mask_pitch, alpha_mask_row);
@@ -1279,7 +1277,7 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
         while ( h-- ) {
             dstpixels = dstrow;
             srcpixels = srcrow;
-			alpha_mask_index = alpha_mask_row;
+            alpha_mask_index = alpha_mask_row;
             DUFFS_LOOP(
             {
                 Uint32 pixel;
@@ -1292,22 +1290,22 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
                 unsigned dB;
                 RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
                 if ((pixel & rgbmask) != ckey ) {
-				    RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
+                    RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
-				    sA = box->bmAlphaMask[alpha_mask_index];
+                    sA = box->bmAlphaMask[alpha_mask_index];
                     ALPHA_BLEND (sR, sG, sB, (alpha*sA)/255, dR, dG, dB);
                     ASSEMBLE_RGBA (dstpixels, bpp, dstfmt, dR, dG, dB, alpha);
                 }
                 dstpixels += bpp;
                 srcpixels += bpp;
-			    alpha_mask_index++;
+                alpha_mask_index++;
             },
             w);
             srcrow += box->bmPitch;
             dstrow += dst->pitch;
-			alpha_mask_row += alpha_mask_pitch;
+            alpha_mask_row += alpha_mask_pitch;
         }
-	}
+    }
 
     return 0;
 }
@@ -1319,7 +1317,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
     Uint32 ckey = box->bmColorKey;
     GAL_PixelFormat *dstfmt = dst->format;
     int bpp = dstfmt->BytesPerPixel;
-	Uint32 rgbmask = ~dstfmt->Amask;
+    Uint32 rgbmask = ~dstfmt->Amask;
     unsigned alpha = dstfmt->Amask ? GAL_ALPHA_OPAQUE : 0;
 
 
@@ -1327,7 +1325,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
         return -1;
 
     if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
-		while ( h-- ) {
+        while ( h-- ) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             DUFFS_LOOP(
@@ -1354,7 +1352,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
             srcrow += box->bmPitch;
             dstrow += dst->pitch;
         }
-	} else {
+    } else {
         /* for aligned 32-bits bound */
         int alpha_mask_index;
         int alpha_mask_pitch;
@@ -1364,7 +1362,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
         while ( h-- ) {
             dstpixels = dstrow;
             srcpixels = srcrow;
-			alpha_mask_index = alpha_mask_row;
+            alpha_mask_index = alpha_mask_row;
             DUFFS_LOOP(
             {
                 Uint32 pixel;
@@ -1377,22 +1375,22 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
                 unsigned dB;
                 RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
                 if ((pixel & rgbmask) != ckey ) {
-				    RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
+                    RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
-				    sA = box->bmAlphaMask[alpha_mask_index];
+                    sA = box->bmAlphaMask[alpha_mask_index];
                     ALPHA_BLEND (sR, sG, sB, sA, dR, dG, dB);
                     ASSEMBLE_RGBA (dstpixels, bpp, dstfmt, dR, dG, dB, alpha);
                 }
                 dstpixels += bpp;
                 srcpixels += bpp;
-			    alpha_mask_index++;
+                alpha_mask_index++;
             },
             w);
             srcrow += box->bmPitch;
             dstrow += dst->pitch;
-			alpha_mask_row += alpha_mask_pitch;
+            alpha_mask_row += alpha_mask_pitch;
          }
-	}
+    }
 
     return 0;
 }
@@ -1582,7 +1580,7 @@ int GAL_PutBox (GAL_Surface *dst, const GAL_Rect *dstrect, BITMAP* box)
 
     switch (dst->format->BytesPerPixel) {
         case 1:
-            if (((DWORD)srcrow & 3) || ((DWORD)dstrow & 3) 
+            if (((DWORD)srcrow & 3) || ((DWORD)dstrow & 3)
                     || (linelen & 3) || (box->bmPitch & 3) || (dst->pitch & 3))
                 goto slow_copy;
             else {
@@ -1596,7 +1594,7 @@ int GAL_PutBox (GAL_Surface *dst, const GAL_Rect *dstrect, BITMAP* box)
             break;
 
         case 2:
-            if ((((DWORD)dstrow & 3) != ((DWORD)srcrow & 3)) 
+            if ((((DWORD)dstrow & 3) != ((DWORD)srcrow & 3))
                     || (box->bmPitch & 3) || (dst->pitch & 3))
                 goto slow_copy;
 
@@ -1645,7 +1643,7 @@ slow_copy:
     return 0;
 }
 
-/* 
+/*
  * Convert a surface into the specified pixel format.
  */
 GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
@@ -1799,7 +1797,7 @@ void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
 
 #endif
 
-BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow, 
+BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow,
                 Uint32 pixel, MYBITMAP_CONTXT* mybmp)
 {
     //BYTE* dstpixels = dstrow;
@@ -1845,7 +1843,7 @@ BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow,
     return dstrow;
 }
 
-BYTE* gal_PutPixelAlpha (GAL_Surface* dst, BYTE* dstrow, 
+BYTE* gal_PutPixelAlpha (GAL_Surface* dst, BYTE* dstrow,
                 Uint32 pixel, MYBITMAP_CONTXT* mybmp)
 {
     //BYTE* dstpixels = dstrow;
@@ -1889,7 +1887,7 @@ BYTE* gal_PutPixelAlpha (GAL_Surface* dst, BYTE* dstrow,
     return dstrow;
 }
 
-BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow, 
+BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
                 Uint32 pixel, MYBITMAP_CONTXT* mybmp)
 {
     //BYTE* dstpixels = dstrow;
@@ -1932,7 +1930,7 @@ BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
     return dstrow;
 }
 
-BYTE*  gal_PutPixelKey (GAL_Surface* dst, BYTE* dstrow,  
+BYTE*  gal_PutPixelKey (GAL_Surface* dst, BYTE* dstrow,
             Uint32 pixel, MYBITMAP_CONTXT* mybmp)
 {
     //BYTE* dstpixels = dstrow;
@@ -2009,7 +2007,7 @@ BYTE*  gal_PutPixelKey (GAL_Surface* dst, BYTE* dstrow,
     return dstrow;
 }
 
-BYTE* gal_PutPixelAlphaChannel (GAL_Surface* dst, BYTE* dstrow, 
+BYTE* gal_PutPixelAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
         Uint32 pixel, MYBITMAP_CONTXT* mybmp)
 {
     //BYTE* dstpixels = dstrow;

@@ -35,22 +35,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <linux/input.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 #include "common.h"
 
 #ifdef _MGIAL_NET
 
+#include <linux/input.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 #include "minigui.h"
 #include "netial.h"
 
 #include <sys/ioctl.h>
-//#include <sys/poll.h>
+#include <sys/poll.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-//#include <linux/kd.h>
+#include <linux/kd.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>

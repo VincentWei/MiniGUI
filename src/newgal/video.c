@@ -668,7 +668,6 @@ GAL_Surface *GAL_DisplayFormatAlpha(GAL_Surface *surface)
                optimised alpha format is written, add the converter here */
             break;
     }
-printf("============================================================================================== in GAL_DisplayFormatAlpha\n");
     format = GAL_AllocFormat(32, rmask, gmask, bmask, amask);
     flags = GAL_PublicSurface->flags & GAL_HWSURFACE;
     flags |= surface->flags & (GAL_SRCALPHA | GAL_RLEACCELOK);
@@ -1072,7 +1071,6 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     if (Amask){
         surface->flags |= GAL_SRCPIXELALPHA;
     }
-printf("============================================================================================== in Slave_CreateSurface\n");
     surface->format = GAL_AllocFormat(depth, Rmask, Gmask, Bmask, Amask);
 
     if ( surface->format == NULL ) {

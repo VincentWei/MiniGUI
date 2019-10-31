@@ -2728,12 +2728,6 @@ MG_EXPORT HCURSOR GUIAPI GetSystemCursor (int csrid);
 MG_EXPORT HCURSOR GUIAPI GetCurrentCursor (void);
 
 #else
-//  #define LoadCursorFromFile(filename)    (do_nothing(), 0)
-//  #define CreateCursor(x, y, w, h, ANDbs, XORbs, cr) (do_nothing(), 0)
-//  #define DestroyCursor(hcsr)             (do_nothing(), 0)
-////  #define GetSystemCursor(csrid)          (do_nothing(), 0)
-//  #define GetCurrentCursor()              (do_nothing(), 0)
-//static inline HCURSOR GetSystemCursor(int csrid) { return (HCURSOR) 0;}
 
 static inline HCURSOR LoadCursorFromFile(const char* filename) {
     return (HCURSOR)0;

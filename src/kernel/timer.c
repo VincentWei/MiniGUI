@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -37,7 +37,7 @@
 ** Current maintainer: Wei Yongming.
 **
 ** Create date: 1999/04/21
-*/ 
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,15 +127,14 @@ static OS_TIMER_ID __mg_os_timer = 0;
 #else /* __AOS__ */
 static void* TimerEntry (void* data)
 {
-	sem_post ((sem_t*)data);
+    sem_post ((sem_t*)data);
 
 #ifdef _MG_USE_BETTER_TIMER
     g_timer_started = times(NULL);
     g_last_tick = 0;
 #endif /* _MG_USE_BETTER_TIMER */
 
-    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) 
-	{
+    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
         __mg_os_time_delay (10);
         __mg_timer_action (NULL);
     }
@@ -152,14 +151,14 @@ int __mg_timer_init (void)
     }
 
 #ifdef __AOS__
-    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_timer_action, 
-                                         NULL, AOS_TIMER_TICKT, 
+    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_timer_action,
+                                         NULL, AOS_TIMER_TICKT,
                                          OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
 #else /* NOT __AOS__ */
     {
-    	sem_t wait;
+        sem_t wait;
         sem_init (&wait, 0, 0);
-		
+
         pthread_create (&__mg_timer, NULL, TimerEntry, &wait);
         sem_wait (&wait);
         sem_destroy (&wait);
@@ -196,7 +195,7 @@ BOOL mg_InstallIntervalTimer (void)
 {
     struct itimerval timerv;
     struct sigaction siga;
-    
+
     sigaction (SIGALRM, NULL, &old_alarm_handler);
 
     siga = old_alarm_handler;
@@ -307,7 +306,7 @@ void mg_dispatch_timer_message (DWORD inter)
                 timerstr[i]->tick_count = __mg_timer_counter;
 #endif
                 /* setting timer flag is simple, we do not need to lock msgq,
-                   or else we may encounter dead lock here */ 
+                   or else we may encounter dead lock here */
                 SetMsgQueueTimerFlag (timerstr[i]->msg_queue, i);
                 timerstr[i]->count -= timerstr[i]->speed;
             }
@@ -378,7 +377,7 @@ void __mg_move_timer_last (TIMER* timer, int slot)
 }
 #endif
 
-BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed, 
+BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
                 TIMERPROC timer_proc)
 {
     int i;
@@ -439,7 +438,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
 
     TIMER_UNLOCK ();
     return TRUE;
-    
+
 badret:
     TIMER_UNLOCK ();
     return FALSE;
@@ -520,7 +519,7 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
     TIMER_LOCK ();
 
     for (i = 0; i < DEF_NR_TIMERS; i++) {
-        if ((timerstr [i] && timerstr [i]->hWnd == hWnd) && 
+        if ((timerstr [i] && timerstr [i]->hWnd == hWnd) &&
                         (id == 0 || timerstr [i]->id == id)) {
             RemoveMsgQueueTimerFlag (pMsgQueue, i);
             free (timerstr[i]);
@@ -540,7 +539,7 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
     return killed;
 }
 
-BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed, 
+BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
                 TIMERPROC timer_proc)
 {
     int i;

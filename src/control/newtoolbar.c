@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -98,18 +98,18 @@ static void draw_left_right_line_vert (HWND hwnd, HDC hdc, RECT *rc)
     DWORD darker_dword;
     DWORD lighter_dword;
     DWORD bgc_dword;
-    
+
     gal_pixel darker_pixel;
     gal_pixel lighter_pixel;
-    
+
     PCONTROL pWin = (PCONTROL) hwnd;
     if (!pWin || !pWin->we_rdr)  return;
 
     bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
 
-    darker_dword = pWin->we_rdr->calc_3dbox_color 
+    darker_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
-    lighter_dword = pWin->we_rdr->calc_3dbox_color 
+    lighter_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
     darker_pixel = DWORD2Pixel (hdc, darker_dword);
@@ -154,17 +154,17 @@ static int get_max_right_in_col (NTBITEM *item, NTBCTRLDATA *ntbar)
 {
     NTBITEM *it;
     int maxr = 0;
-    
+
     it = item;
-    
+
     if (!(ntbar->style & NTBS_WITHTEXT)) {
         return it->rc_item.right;
-    }    
-       
+    }
+
     while (it && ((it->flags & NTBIF_TYPEMASK) != NTBIF_NEWLINE)) {
-        
+
         if (it->rc_text.right > maxr) {
-            if ((it->flags & NTBIF_TYPEMASK) != NTBIF_SEPARATOR 
+            if ((it->flags & NTBIF_TYPEMASK) != NTBIF_SEPARATOR
                 && (it->flags & NTBIF_TYPEMASK) != NTBIF_NEWLINE) {
                 maxr = it->rc_text.right;
             }
@@ -174,9 +174,9 @@ static int get_max_right_in_col (NTBITEM *item, NTBCTRLDATA *ntbar)
 
     it = item;
     while (it && ((it->flags & NTBIF_TYPEMASK) != NTBIF_NEWLINE)) {
-        
+
         if (it->rc_text.right > maxr) {
-            if ((it->flags & NTBIF_TYPEMASK) != NTBIF_SEPARATOR 
+            if ((it->flags & NTBIF_TYPEMASK) != NTBIF_SEPARATOR
                 && (it->flags & NTBIF_TYPEMASK) != NTBIF_NEWLINE) {
                 maxr = it->rc_text.right;
             }
@@ -193,18 +193,18 @@ static void draw_separator_vert (HWND hwnd, HDC hdc, int l, int t, NTBCTRLDATA *
     DWORD darker_dword;
     DWORD lighter_dword;
     DWORD bgc_dword;
-    
+
     gal_pixel darker_pixel;
     gal_pixel lighter_pixel;
-    
+
     PCONTROL pWin = (PCONTROL) hwnd;
     if (!pWin || !pWin->we_rdr)  return;
 
     bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
 
-    darker_dword = pWin->we_rdr->calc_3dbox_color 
+    darker_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
-    lighter_dword = pWin->we_rdr->calc_3dbox_color 
+    lighter_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
     darker_pixel = DWORD2Pixel (hdc, darker_dword);
@@ -214,7 +214,7 @@ static void draw_separator_vert (HWND hwnd, HDC hdc, int l, int t, NTBCTRLDATA *
     pta.y = t + 1;
     ptb.x = get_max_right_in_col (it, ntbar) - MARGIN_V_HORZ * 2;
     ptb.y = pta.y;
-    line_a2b (hdc, &pta, &ptb, darker_pixel); 
+    line_a2b (hdc, &pta, &ptb, darker_pixel);
 
     pta.x = l;
     pta.y += 1;
@@ -225,7 +225,7 @@ static void draw_separator_vert (HWND hwnd, HDC hdc, int l, int t, NTBCTRLDATA *
 
 
 
-static void draw_checked_item_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_checked_item_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
                  NTBITEM *item, int l, int t, int w, int h)
 {
     gal_pixel bgc_pixel;
@@ -239,20 +239,20 @@ static void draw_checked_item_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
                                w * 2, h * item->bmp_cell);
     } else {
         if (ntb_data->nr_cols >=2 ) {
-            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image, 
+            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                    w, h * item->bmp_cell);
         } else {
             POINT pta, ptb;
             int r, b;
-            
-            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,                     
+
+            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                    0, h * item->bmp_cell);
             r = l + w ;
             b = t + h ;
 
             bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
 
-            bgc_dword = pWin->we_rdr->calc_3dbox_color 
+            bgc_dword = pWin->we_rdr->calc_3dbox_color
                 (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
 
             bgc_pixel = DWORD2Pixel (hdc, bgc_dword);
@@ -263,7 +263,7 @@ static void draw_checked_item_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
             pta.x = l; pta.y = t;
             ptb.x = r; ptb.y = t;
             line_a2b (hdc, &pta, &ptb, bgc_pixel);
-            
+
             pta.x = r; pta.y = t;
             ptb.x = r; ptb.y = b;
             line_a2b (hdc, &pta, &ptb, bgc_pixel);
@@ -276,7 +276,7 @@ static void draw_checked_item_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
 
 
 
-static void draw_normal_item_vert (HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_normal_item_vert (HDC hdc, PNTBCTRLDATA ntb_data,
                 NTBITEM *item, int l, int t, int w, int h)
 {
     if (item == ntb_data->sel_item) {
@@ -299,21 +299,21 @@ static void draw_normal_item_vert (HDC hdc, PNTBCTRLDATA ntb_data,
 
 
 
-static void draw_disabled_item_vert (HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_disabled_item_vert (HDC hdc, PNTBCTRLDATA ntb_data,
                 NTBITEM *item, int l, int t, int w, int h)
 {
     if (ntb_data->nr_cols == 4) {
-        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image, 
+        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                w * 3, h * item->bmp_cell);
     } else {
-        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image, 
+        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                0, h * item->bmp_cell);
     }
 }
 
 
 
-static void draw_item_state_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_item_state_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
                 NTBITEM *item, int l, int t, int w, int h, int r, int b)
 {
     DWORD bgc_dword;
@@ -336,11 +336,11 @@ static void draw_item_state_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
         rect.bottom = b;
         bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
         if (ntb_data->btn_down) {
-            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword, 
+            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword,
                     LFRDR_BTN_STATUS_PRESSED);
         }
         else {
-            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword, 
+            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword,
                     LFRDR_BTN_STATUS_HILITE);
         }
     }
@@ -352,7 +352,7 @@ static void draw_item_text_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data, NTBI
 {
     DWORD format = DT_SINGLELINE | DT_VCENTER;
     gal_pixel bk_pixel;
-    
+
     if (ntb_data->style & NTBS_TEXTRIGHT)
         format |= DT_LEFT;
     else
@@ -374,13 +374,13 @@ static void draw_tool_bar_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data)
     NTBITEM *item;
 
     GetClientRect (hwnd, &rc);
-   
+
     draw_left_right_line_vert (hwnd, hdc, &rc);
 
     item = ntb_data->head;
 
     while (item) {
-        
+
         if ((item->flags & NTBIF_TYPEMASK) == NTBIF_NEWLINE) {
             /*
              * if new line just skip it :)
@@ -390,39 +390,39 @@ static void draw_tool_bar_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data)
             }
             item = item->next;
         }
-        
+
         l = item->rc_item.left;
         t = item->rc_item.top;
         r = item->rc_item.right;
         b = item->rc_item.bottom;
         w = ntb_data->w_cell;
         h = ntb_data->h_cell;
-                
-        if ((item->flags & NTBIF_TYPEMASK) == NTBIF_SEPARATOR) { 
-            /* 
-             * draw separator 
+
+        if ((item->flags & NTBIF_TYPEMASK) == NTBIF_SEPARATOR) {
+            /*
+             * draw separator
              */
             if (ntb_data->style & NTBS_DRAWSEPARATOR) {
                 draw_separator_vert (hwnd, hdc, l, t, ntb_data, item);
             }
             item = item->next;
             continue;
-        } 
+        }
 
-        if (item->flags & NTBIF_DISABLED) { 
+        if (item->flags & NTBIF_DISABLED) {
             /*
-             * draw disabled item 
+             * draw disabled item
              */
             draw_disabled_item_vert (hdc, ntb_data, item, l, t, w, h);
-        
+
         } else {
-            
-            if (item->flags & NTBIF_CHECKED) { 
+
+            if (item->flags & NTBIF_CHECKED) {
                 /*
                  * draw checked item
                  */
                 draw_checked_item_vert (hwnd, hdc, ntb_data, item, l, t, w, h);
-            
+
             } else {
                 /*
                  * draw normal item
@@ -440,7 +440,7 @@ static void draw_tool_bar_vert (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data)
 
         if (ntb_data->style & NTBS_WITHTEXT) {
             /*
-             * draw item's text 
+             * draw item's text
              */
             draw_item_text_vert (hwnd, hdc, ntb_data, item);
         }
@@ -457,18 +457,18 @@ static void draw_top_bottom_line_horz (HWND hwnd, HDC hdc, RECT *rc)
     DWORD darker_dword;
     DWORD lighter_dword;
     DWORD bgc_dword;
-    
+
     gal_pixel darker_pixel;
     gal_pixel lighter_pixel;
-    
+
     PCONTROL pWin = (PCONTROL) hwnd;
     if (!pWin || !pWin->we_rdr)  return;
 
     bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
 
-    darker_dword = pWin->we_rdr->calc_3dbox_color 
+    darker_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
-    lighter_dword = pWin->we_rdr->calc_3dbox_color 
+    lighter_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
     darker_pixel = DWORD2Pixel (hdc, darker_dword);
@@ -517,18 +517,18 @@ static void draw_separator_horz (HWND hwnd, HDC hdc, int l, int t, NTBITEM *it)
     DWORD darker_dword;
     DWORD lighter_dword;
     DWORD bgc_dword;
-    
+
     gal_pixel darker_pixel;
     gal_pixel lighter_pixel;
-    
+
     PCONTROL pWin = (PCONTROL) hwnd;
     if (!pWin || !pWin->we_rdr)  return;
 
     bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
 
-    darker_dword = pWin->we_rdr->calc_3dbox_color 
+    darker_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
-    lighter_dword = pWin->we_rdr->calc_3dbox_color 
+    lighter_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
     darker_pixel = DWORD2Pixel (hdc, darker_dword);
@@ -539,7 +539,7 @@ static void draw_separator_horz (HWND hwnd, HDC hdc, int l, int t, NTBITEM *it)
     ptb.x = pta.x;
     ptb.y = it->rc_item.bottom;
     line_a2b (hdc, &pta, &ptb, darker_pixel);
-    
+
     pta.x += 1;
     pta.y = t;
     ptb.x = pta.x;
@@ -549,21 +549,21 @@ static void draw_separator_horz (HWND hwnd, HDC hdc, int l, int t, NTBITEM *it)
 
 
 
-static void draw_disabled_item_horz (HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_disabled_item_horz (HDC hdc, PNTBCTRLDATA ntb_data,
                                      NTBITEM *item, int l, int t, int w, int h)
 {
     if (ntb_data->nr_cols == 4) {
-        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image, 
+        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                w * 3, h * item->bmp_cell);
     } else {
-        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image, 
+        FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                0, h * item->bmp_cell);
     }
 }
 
 
 
-static void draw_checked_item_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_checked_item_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
                                     NTBITEM *item, int l, int t, int w, int h)
 {
     gal_pixel bgc_pixel;
@@ -577,20 +577,20 @@ static void draw_checked_item_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
                                w * 2, h * item->bmp_cell);
     } else {
         if (ntb_data->nr_cols >=2 ) {
-            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image, 
+            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                    w, h * item->bmp_cell);
         } else {
             int r, b;
             POINT pta, ptb;
 
-            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image, 
+            FillBoxWithBitmapPart (hdc, l, t, w, h, 0, 0, ntb_data->image,
                                    0, h * item->bmp_cell);
             r = l + w ;
             b = t + h ;
 
             bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
 
-            bgc_dword = pWin->we_rdr->calc_3dbox_color 
+            bgc_dword = pWin->we_rdr->calc_3dbox_color
                 (bgc_dword, LFRDR_3DBOX_COLOR_DARKEST);
 
             bgc_pixel = DWORD2Pixel (hdc, bgc_dword);
@@ -601,7 +601,7 @@ static void draw_checked_item_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
             pta.x = l; pta.y = t;
             ptb.x = r; ptb.y = t;
             line_a2b (hdc, &pta, &ptb, bgc_pixel);
-            
+
             pta.x = r; pta.y = t;
             ptb.x = r; ptb.y = b;
             line_a2b (hdc, &pta, &ptb, bgc_pixel);
@@ -610,12 +610,12 @@ static void draw_checked_item_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
             line_a2b (hdc, &pta, &ptb, bgc_pixel);
         }
     }
-    
+
 }
 
 
 
-static void draw_normal_item_horz (HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_normal_item_horz (HDC hdc, PNTBCTRLDATA ntb_data,
                                    NTBITEM *item, int l, int t, int w, int h)
 {
     if (item == ntb_data->sel_item) {
@@ -639,7 +639,7 @@ static void draw_normal_item_horz (HDC hdc, PNTBCTRLDATA ntb_data,
 
 
 
-static void draw_item_state_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data, 
+static void draw_item_state_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
                 NTBITEM *item, int l, int t, int w, int h, int r, int b)
 {
     DWORD bgc_dword;
@@ -662,11 +662,11 @@ static void draw_item_state_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data,
         rect.bottom = b;
         bgc_dword = PIXEL2DWORD (hdc, pWin->iBkColor);
         if (ntb_data->btn_down) {
-            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword, 
+            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword,
                     LFRDR_BTN_STATUS_PRESSED);
         }
         else {
-            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword, 
+            pWin->we_rdr->draw_3dbox (hdc, &rect, bgc_dword,
                     LFRDR_BTN_STATUS_HILITE);
         }
     }
@@ -678,7 +678,7 @@ static void draw_item_text_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data, NTBI
 {
     DWORD format = DT_SINGLELINE | DT_VCENTER;
     gal_pixel bk_pixel;
-    
+
     if (ntb_data->style & NTBS_TEXTRIGHT)
         format |= DT_LEFT;
     else
@@ -697,15 +697,15 @@ static void draw_tool_bar_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data)
 {
     int         l, t, r, b, w, h;
     RECT        rc;
-    
+
     NTBITEM*    item = NULL;
-    
+
     GetClientRect (hwnd, &rc);
     draw_top_bottom_line_horz (hwnd, hdc, &rc);
     item = ntb_data->head;
-    
+
     while (item) {
-        
+
         if ((item->flags & NTBIF_TYPEMASK) == NTBIF_NEWLINE) {
             /*
              * if new line just skip it :)
@@ -715,17 +715,17 @@ static void draw_tool_bar_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data)
             }
             item = item->next;
         }
-        
+
         l = item->rc_item.left;
         t = item->rc_item.top;
         r = item->rc_item.right;
         b = item->rc_item.bottom;
         w = ntb_data->w_cell;
         h = ntb_data->h_cell;
-        
+
         if ((item->flags & NTBIF_TYPEMASK) == NTBIF_SEPARATOR) {
-            /* 
-             * draw separator 
+            /*
+             * draw separator
              */
             if (ntb_data->style & NTBS_DRAWSEPARATOR) {
                 draw_separator_horz (hwnd, hdc, l, t, item);
@@ -736,27 +736,27 @@ static void draw_tool_bar_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data)
 
         if (item->flags & NTBIF_DISABLED) {
             /*
-             * draw disalbed item 
+             * draw disalbed item
              */
             draw_disabled_item_horz (hdc, ntb_data, item, l, t, w, h);
 
         } else {
-            
+
             if (item->flags & NTBIF_CHECKED) {
-                /* 
-                 * draw checked item 
+                /*
+                 * draw checked item
                  */
                 draw_checked_item_horz (hwnd, hdc, ntb_data, item, l, t, w, h);
-            
+
             } else {
                 /*
-                 * draw normal item 
+                 * draw normal item
                  */
                 draw_normal_item_horz (hdc, ntb_data, item, l, t, w, h);
             }
-        } 
+        }
         if (ntb_data->style & NTBS_DRAWSTATES) {
-            /* 
+            /*
              * draw item's state
              */
             draw_item_state_horz (hwnd, hdc, ntb_data, item, l, t, w, h, r, b);
@@ -770,7 +770,7 @@ static void draw_tool_bar_horz (HWND hwnd, HDC hdc, PNTBCTRLDATA ntb_data)
         }
 
         item = item->next;
-    } 
+    }
 }
 
 
@@ -795,15 +795,15 @@ static int get_last_col_max_right (NTBCTRLDATA *ntbar)
 {
     NTBITEM *it;
     int maxr = 0;
-    
+
     it = ntbar->tail->prev;
     while (it && ((it->flags & NTBIF_TYPEMASK) != NTBIF_NEWLINE)) {
-        if (it->rc_item.right > maxr) { 
-            maxr = it->rc_item.right; 
+        if (it->rc_item.right > maxr) {
+            maxr = it->rc_item.right;
         }
         it = it->prev;
     }
-    
+
     return maxr;
 }
 
@@ -814,34 +814,34 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
 
     hdc = GetClientDC (hwnd);
     if (!(ntbar->style & NTBS_VERTICAL)) {
-        
+
         //horizontal
         if (ntbar->tail == NULL) {
-            
+
             new_item->rc_item.top = MARGIN_VERT;
             new_item->rc_item.left = MARGIN_HORZ;
-        
+
         } else {
-            
+
             if ((new_item->flags & NTBIF_TYPEMASK ) == NTBIF_NEWLINE) {
                 new_item->rc_item.top = ntbar->tail->rc_item.bottom + GAP_ITEM_ITEM_VERT;
                 new_item->rc_item.left = MARGIN_HORZ;
                 new_item->rc_item.bottom = new_item->rc_item.top;
                 new_item->rc_item.right = new_item->rc_item.left;
                 goto  end;
-            
+
             } else {
-            
+
                 new_item->rc_item.top = ntbar->tail->rc_item.top;
                 if ((ntbar->tail->flags & NTBIF_TYPEMASK) == NTBIF_NEWLINE)
                     new_item->rc_item.left = MARGIN_HORZ;
                 else
                     new_item->rc_item.left = ntbar->tail->rc_item.right + GAP_ITEM_ITEM_HORZ;
-            
+
             }
         }
-        
-        
+
+
         switch (new_item->flags & NTBIF_TYPEMASK) {
         case NTBIF_PUSHBUTTON:
         case NTBIF_CHECKBUTTON:
@@ -852,7 +852,7 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
                     SIZE sz_text;
                     GetTextExtent (hdc, new_item->text, -1, &sz_text);
 
-                    new_item->rc_item.bottom 
+                    new_item->rc_item.bottom
                             = new_item->rc_item.top + ntbar->h_cell + 1;
 
                     new_item->rc_text.left = new_item->rc_item.left + ntbar->w_cell + GAP_BMP_TEXT_HORZ;
@@ -866,7 +866,7 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
 
                     new_item->rc_text.left = new_item->rc_item.left;
                     new_item->rc_text.right = new_item->rc_item.right;
-                    new_item->rc_text.top 
+                    new_item->rc_text.top
                             = new_item->rc_item.top + ntbar->h_cell + GAP_BMP_TEXT_VERT;
                     new_item->rc_text.bottom = new_item->rc_text.top + GetFontHeight (hdc);
 
@@ -877,7 +877,7 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
                 new_item->rc_item.bottom = new_item->rc_item.top + ntbar->h_cell + 1;
             }
             break;
-            
+
         case NTBIF_NEWLINE:
         case NTBIF_SEPARATOR:
         default:
@@ -892,32 +892,32 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
     }
     else
     {
-        // vertical 
-        
+        // vertical
+
         if (ntbar->tail == NULL) {
             /*
-             * It is the first item of the bar! 
+             * It is the first item of the bar!
              */
             new_item->rc_item.top = MARGIN_V_VERT;
             new_item->rc_item.left = MARGIN_V_HORZ;
         } else {
-            
+
             if ((new_item->flags & NTBIF_TYPEMASK ) == NTBIF_NEWLINE) {
-                new_item->rc_item.left = ntbar->tail->rc_item.right + GAP_ITEM_ITEM_HORZ;                    
+                new_item->rc_item.left = ntbar->tail->rc_item.right + GAP_ITEM_ITEM_HORZ;
                 new_item->rc_item.top = MARGIN_V_VERT;
                 new_item->rc_item.bottom = new_item->rc_item.top;
                 new_item->rc_item.right = new_item->rc_item.left;
                 goto  end;
             } else {
                 if ((ntbar->tail->flags & NTBIF_TYPEMASK) == NTBIF_NEWLINE) {
-                    new_item->rc_item.top = MARGIN_V_VERT; 
+                    new_item->rc_item.top = MARGIN_V_VERT;
                     new_item->rc_item.left = get_last_col_max_right (ntbar) + GAP_ITEM_ITEM_HORZ; /**/
                 } else {
                     new_item->rc_item.top = ntbar->tail->rc_item.bottom + GAP_ITEM_ITEM_VERT;
-                    new_item->rc_item.left = ntbar->tail->rc_item.left; 
+                    new_item->rc_item.left = ntbar->tail->rc_item.left;
                 }
                 //new_item->rc_item.left = ntbar->tail->rc_item.left;
-                
+
             }
         }
         switch (new_item->flags & NTBIF_TYPEMASK) {
@@ -929,8 +929,8 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
 
                     SIZE sz_text;
                     GetTextExtent (hdc, new_item->text, -1, &sz_text);
-                    
-                    new_item->rc_item.bottom 
+
+                    new_item->rc_item.bottom
                             = new_item->rc_item.top + ntbar->h_cell + 1;
 
                     new_item->rc_text.left = new_item->rc_item.left + ntbar->w_cell + GAP_BMP_TEXT_HORZ;
@@ -944,7 +944,7 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
 
                     new_item->rc_text.left = new_item->rc_item.left;
                     new_item->rc_text.right = new_item->rc_item.right;
-                    new_item->rc_text.top 
+                    new_item->rc_text.top
                             = new_item->rc_item.top + ntbar->h_cell + GAP_BMP_TEXT_VERT;
                     new_item->rc_text.bottom = new_item->rc_text.top + GetFontHeight (hdc);
 
@@ -956,7 +956,7 @@ static void append_new_item (HWND hwnd, NTBCTRLDATA* ntbar, NTBITEM* new_item)
                 new_item->rc_item.bottom = new_item->rc_item.top + ntbar->h_cell + 1;
             }
             break;
-                        
+
         case NTBIF_SEPARATOR:
         default:
             if (ntbar->style & NTBS_DRAWSEPARATOR) {
@@ -1000,7 +1000,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
     {
         while (item) {
             //horizontal
-            
+
             if (prev == NULL )
             {
                 item->rc_item.top = MARGIN_VERT;
@@ -1034,7 +1034,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
                     SIZE sz_text;
                     GetTextExtent (hdc, item->text, -1, &sz_text);
 
-                    item->rc_item.bottom 
+                    item->rc_item.bottom
                             = item->rc_item.top + ntb_data->h_cell + 1;
 
                     item->rc_text.left = item->rc_item.left + ntb_data->w_cell + GAP_BMP_TEXT_HORZ + 1;
@@ -1049,7 +1049,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
 
                     item->rc_text.left = item->rc_item.left;
                     item->rc_text.right = item->rc_item.right;
-                    item->rc_text.top 
+                    item->rc_text.top
                             = item->rc_item.top + ntb_data->h_cell + GAP_BMP_TEXT_VERT;
                     item->rc_text.bottom = item->rc_text.top + GetFontHeight (hdc);
 
@@ -1061,7 +1061,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
                 item->rc_item.bottom = item->rc_item.top + ntb_data->h_cell + 1;
             }
             break;
-                        
+
             case NTBIF_SEPARATOR:
             default:
                 if (ntb_data->style & NTBS_DRAWSEPARATOR)
@@ -1096,7 +1096,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
             else
             {
                 if ( (prev->flags & NTBIF_TYPEMASK) == NTBIF_NEWLINE )
-                    item->rc_item.top = MARGIN_V_VERT; 
+                    item->rc_item.top = MARGIN_V_VERT;
                 else
                     item->rc_item.top = prev->rc_item.bottom + GAP_ITEM_ITEM_VERT;
                 item->rc_item.left = prev->rc_item.left;
@@ -1112,7 +1112,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
                     SIZE sz_text;
                     GetTextExtent (hdc, item->text, -1, &sz_text);
 
-                    item->rc_item.bottom 
+                    item->rc_item.bottom
                             = item->rc_item.top + ntb_data->h_cell + 1;
 
                     item->rc_text.left = item->rc_item.left + ntb_data->w_cell + GAP_BMP_TEXT_HORZ + 1;
@@ -1127,7 +1127,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
 
                     item->rc_text.left = item->rc_item.left;
                     item->rc_text.right = item->rc_item.right;
-                    item->rc_text.top 
+                    item->rc_text.top
                             = item->rc_item.top + ntb_data->h_cell + GAP_BMP_TEXT_VERT;
                     item->rc_text.bottom = item->rc_text.top + GetFontHeight (hdc);
 
@@ -1139,7 +1139,7 @@ static void recalc_items (HWND hwnd, NTBCTRLDATA* ntb_data)
                 item->rc_item.bottom = item->rc_item.top + ntb_data->h_cell + 1;
             }
             break;
-                        
+
             case NTBIF_SEPARATOR:
             default:
                 if (ntb_data->style & NTBS_DRAWSEPARATOR)
@@ -1161,9 +1161,9 @@ end:
 
 
 /*
- * 
- * helper functions for NewToolbarCtrlProc () 
- * 
+ *
+ * helper functions for NewToolbarCtrlProc ()
+ *
  */
 
 static void bar_size_changing_horz (HWND hwnd, PNTBCTRLDATA ntb_data, const RECT *expect, RECT *result)
@@ -1207,23 +1207,23 @@ static int bar_add_item (HWND hwnd, PNTBCTRLDATA ntb_data, NTBITEMINFO* item_inf
     new_item->flags = item_info->flags;
     new_item->id = item_info->id;
     new_item->bmp_cell = item_info->bmp_cell;
-    
+
     if (item_info->text == NULL) {
         new_item->text[0] = '\0';
     } else {
         text_len = strlen (item_info->text);
         strncpy (new_item->text, item_info->text, NTB_TEXT_LEN);
-        
+
         if (text_len > NTB_TEXT_LEN + 1) {
             int i, fit[2 * NTB_TEXT_LEN + 1], pos[2 * NTB_TEXT_LEN + 1], dx[2 * NTB_TEXT_LEN + 1];
             char buff [2 * NTB_TEXT_LEN + 1];
             SIZE size;
             HDC hdc = GetClientDC (hwnd);
-            
+
             memset (fit, 0, sizeof (fit));
             memset (pos, 0, sizeof (pos));
             memset (dx, 0, sizeof (dx));
-            
+
             if (text_len > 2 * NTB_TEXT_LEN) {
                 memcpy (buff, item_info->text, NTB_TEXT_LEN * 2);
                 buff[2 * NTB_TEXT_LEN] = 0;
@@ -1233,13 +1233,13 @@ static int bar_add_item (HWND hwnd, PNTBCTRLDATA ntb_data, NTBITEMINFO* item_inf
             }
             GetTextExtentPoint (hdc, buff, strlen (buff), 0xfffffff, fit, pos, dx, &size);
             ReleaseDC (hdc);
-            for (i = 0; pos[i] <= NTB_TEXT_LEN; i++) 
+            for (i = 0; pos[i] <= NTB_TEXT_LEN; i++)
                 ;
-            
+
             memcpy (new_item->text, buff, pos[i-1]);
 
             new_item->text[pos[i-1]] = '\0';
-            
+
         }
     }
 
@@ -1248,11 +1248,11 @@ static int bar_add_item (HWND hwnd, PNTBCTRLDATA ntb_data, NTBITEMINFO* item_inf
     } else {
         new_item->tip [0] = '\0';
     }
-    
+
     new_item->rc_hotspot = item_info->rc_hotspot;
     new_item->hotspot_proc = item_info->hotspot_proc;
     new_item->add_data = item_info->add_data;
-    
+
     append_new_item (hwnd, ntb_data, new_item);
     InvalidateRect (hwnd, &new_item->rc_item, TRUE);
     return 0;
@@ -1260,19 +1260,17 @@ static int bar_add_item (HWND hwnd, PNTBCTRLDATA ntb_data, NTBITEMINFO* item_inf
 
 static void ShowCurItemHintText (HWND hWnd, NTBCTRLDATA *ntb_data , NTBITEM * pitem)
 {
-	int x,y;
+    int x,y;
 
-	if(!pitem)
-		return;
+    if(!pitem)
+        return;
 
     if (pitem->tip[0] == '\0')
-	{
         return;
-	}
 
-	x = pitem->rc_item.right;
-	y = pitem->rc_item.bottom;
-	ClientToScreen (hWnd, &x, &y);
+    x = pitem->rc_item.right;
+    y = pitem->rc_item.bottom;
+    ClientToScreen (hWnd, &x, &y);
 
     if (!IsWindow(ntb_data->hToolTip)) {
         ntb_data->hToolTip = CreateToolTipWin (hWnd, x, y, 1000, pitem->tip);
@@ -1291,86 +1289,86 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
     ntb_data = (PNTBCTRLDATA) myself->dwAddData2;
 
     switch (message) {
-        
+
     case MSG_CREATE: {
         NTBINFO* data = (NTBINFO*)myself->dwAddData;
-        
+
         ntb_data = (NTBCTRLDATA*) calloc (1, sizeof (NTBCTRLDATA));
         if (ntb_data == NULL)
             return -1;
-        
+
         ntb_data->head = NULL;
         ntb_data->style = myself->dwStyle;
-        
+
         ntb_data->image = data->image;
         ntb_data->nr_cells = data->nr_cells;
         ntb_data->nr_cols = data->nr_cols;
         if (data->nr_cols == 0)
             ntb_data->nr_cols = 4;
-        
+
         ntb_data->w_cell = data->w_cell;
         if (data->w_cell == 0)
             ntb_data->w_cell = data->image->bmWidth / ntb_data->nr_cols;
-        
+
         ntb_data->h_cell = data->h_cell;
         if (data->h_cell == 0)
             ntb_data->h_cell = data->image->bmHeight / ntb_data->nr_cells;
-        
+
         ntb_data->nr_items = 0;
         ntb_data->sel_item = NULL;
-        
+
         myself->dwAddData2 = (DWORD)ntb_data;
         break;
     }
 
 
-      
+
     case MSG_DESTROY: {
         NTBITEM *item, *tmp;
-		
-		if (ntb_data->hToolTip) 
-		{
-			DestroyToolTipWin(ntb_data->hToolTip);
-			ntb_data->hToolTip = 0;
-		}
-		
+
+        if (ntb_data->hToolTip)
+        {
+            DestroyToolTipWin(ntb_data->hToolTip);
+            ntb_data->hToolTip = 0;
+        }
+
         item = ntb_data->head;
         while (item) {
             tmp = item->next;
             free (item);
             item = tmp;
         }
-        
+
         free (ntb_data);
         break;
     }
 
 
-        
+
     case MSG_FONTCHANGED: {
           RECT rc;
-          
+
           recalc_items (hwnd, ntb_data);
           GetWindowRect (hwnd, &rc);
           MoveWindow (hwnd, rc.left, rc.top, RECTW(rc), RECTH(rc), TRUE);
           break;
     }
-        
-        
-        
+
+
+
     case MSG_NCPAINT:
         return 0;
 
-    
 
-    case MSG_SIZECHANGING: 
-        
+
+    case MSG_SIZECHANGING:
+
         if (!(ntb_data->style & NTBS_VERTICAL)) {
             /*
              * size changing , style == HORZ
              */
             bar_size_changing_horz (hwnd, ntb_data, (const RECT *)(wParam), (RECT*)(lParam));
-        
+
         } else {
             /*
              * style == Vertical ;
@@ -1378,65 +1376,65 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
             bar_size_changing_vert (ntb_data, (const RECT *)(wParam), (RECT*)(lParam));
         }
         return 0;
-        
-    
-    
+
+
+
     case NTBM_ADDITEM:
-        
+
         return bar_add_item (hwnd, ntb_data, (NTBITEMINFO*)lParam);
-      
-        
-      
+
+
+
     case NTBM_GETITEM: {
 
         int id = wParam;
         PNTBITEMINFO item_info = (PNTBITEMINFO) lParam;
         NTBITEM* item = NULL;
-        
+
         if (!item_info)
             return NTB_ERR;
-        
+
         item = ntb_data->head;
-        
+
         while (item) {
             if (id == item->id) {
                 if (item_info->which & MTB_WHICH_FLAGS)
                       item_info->flags = item->flags;
-                
+
                 if (item_info->which & MTB_WHICH_ID)
                     item_info->id = item->id;
-                
+
                 if (item_info->which & MTB_WHICH_CELL)
                     item_info->bmp_cell = item->bmp_cell;
-                
+
                 if (item_info->which & MTB_WHICH_HOTSPOT) {
                     item_info->hotspot_proc = item->hotspot_proc;
                     item_info->rc_hotspot = item->rc_hotspot;
                 }
-                
+
                 if (item_info->which & MTB_WHICH_ADDDATA)
                     item_info->add_data = item->add_data;
-                
+
                 if (item_info->which & MTB_WHICH_TEXT)
                     strncpy (item_info->text, item->text, NTB_TEXT_LEN);
-                
+
                 if (item_info->which & MTB_WHICH_TIP)
                     strncpy (item_info->tip, item->tip, NTB_TIP_LEN);
-                
+
                 return NTB_OKAY;
             }
             item = item->next;
         }
-        
+
         return NTB_ERR;
     }
-        
+
     case NTBM_SETITEM:
       {
           int id = wParam;
           PNTBITEMINFO item_info = (PNTBITEMINFO) lParam;
           NTBITEM* item = NULL;
-            
+
             if (!item_info) {
                 return NTB_ERR;
             }
@@ -1515,7 +1513,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
 
             return NTB_ERR;
         }
-        
+
         case NTBM_SETBITMAP:
         {
             NTBINFO *ntb_newdata = NULL;
@@ -1537,7 +1535,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
             ntb_data->h_cell = ntb_newdata->h_cell;
             if (ntb_newdata->h_cell == 0)
                 ntb_data->h_cell = ntb_newdata->image->bmHeight / ntb_data->nr_cells;
-            
+
             InvalidateRect(hwnd, NULL, TRUE);
             break;
             //return NTB_OKAY;
@@ -1546,7 +1544,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
 
         case MSG_PAINT: {
             HDC hdc = BeginPaint (hwnd);
-            
+
             if (!(ntb_data->style & NTBS_VERTICAL)) {
                 draw_tool_bar_horz (hwnd, hdc, ntb_data);
             } else {
@@ -1561,20 +1559,20 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
             if (!wParam && ntb_data->sel_item) {
                 InvalidateRect (hwnd, &ntb_data->sel_item->rc_item, TRUE);
                 ntb_data->sel_item = NULL;
-				ShowWindow(ntb_data->hToolTip, SW_HIDE);
+                ShowWindow(ntb_data->hToolTip, SW_HIDE);
             }
-			else
-			{
-				ShowWindow(ntb_data->hToolTip, SW_HIDE);
-			}
+            else
+            {
+                ShowWindow(ntb_data->hToolTip, SW_HIDE);
+            }
             break;
         }
 
         case MSG_MOUSEMOVE: {
- 
+
             PNTBITEM item;
             int x = LOSWORD(lParam), y = HISWORD(lParam);
-            
+
             if (GetCapture () == hwnd) {
                 break;
             }
@@ -1586,12 +1584,12 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
                     }
                     ntb_data->sel_item = item;
                     InvalidateRect (hwnd, &ntb_data->sel_item->rc_item, TRUE);
-				    ShowCurItemHintText(hwnd, ntb_data, item);	
+                    ShowCurItemHintText(hwnd, ntb_data, item);
                 }
                 break;
             } else {
                 if (ntb_data->sel_item) {
-					ShowWindow(ntb_data->hToolTip, SW_HIDE);
+                    ShowWindow(ntb_data->hToolTip, SW_HIDE);
                     InvalidateRect (hwnd, &ntb_data->sel_item->rc_item, TRUE);
                     ntb_data->sel_item = NULL;
                 }
@@ -1599,7 +1597,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
             break;
         }
 
- 
+
         case MSG_LBUTTONDOWN: {
             int posx, posy;
             NTBITEM* item;
@@ -1609,7 +1607,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
 
             if ((item = get_item_by_pos (ntb_data, posx, posy)) == NULL)
                 break;
-                
+
             if (GetCapture () == hwnd)
                 break;
             SetCapture (hwnd);
@@ -1619,7 +1617,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
             InvalidateRect (hwnd, &item->rc_item, TRUE);
             break;
         }
-            
+
 
         case MSG_LBUTTONUP: {
             int sx, sy, x, y;
@@ -1636,9 +1634,9 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
 
             ScreenToClient (hwnd, &x, &y);
 
-            if ((item = get_item_by_pos (ntb_data, x, y)) 
+            if ((item = get_item_by_pos (ntb_data, x, y))
                             && item == ntb_data->sel_item) {
-                if ((item->flags & NTBIF_TYPEMASK) == NTBIF_HOTSPOTBUTTON 
+                if ((item->flags & NTBIF_TYPEMASK) == NTBIF_HOTSPOTBUTTON
                                 && item->hotspot_proc) {
 
                     RECT rc_hotspot = item->rc_hotspot;
@@ -1646,7 +1644,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
 
                     if (PtInRect (&rc_hotspot, x, y)) {
                         RECT rc_item = item->rc_item;
-                            
+
                         ClientToScreen (hwnd, &rc_item.left, &rc_item.top);
                         ClientToScreen (hwnd, &rc_item.right, &rc_item.bottom);
 
@@ -1711,9 +1709,9 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
 
             ScreenToClient (hwnd, &x, &y);
 
-            if ((item = get_item_by_pos (ntb_data, x, y)) 
+            if ((item = get_item_by_pos (ntb_data, x, y))
                             && item == ntb_data->sel_item) {
-                if ((item->flags & NTBIF_TYPEMASK) == NTBIF_HOTSPOTBUTTON 
+                if ((item->flags & NTBIF_TYPEMASK) == NTBIF_HOTSPOTBUTTON
                                 && item->hotspot_proc) {
 
                     RECT rc_hotspot = item->rc_hotspot;
@@ -1721,7 +1719,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
 
                     if (PtInRect (&rc_hotspot, x, y)) {
                         RECT rc_item = item->rc_item;
-                            
+
                         ClientToScreen (hwnd, &rc_item.left, &rc_item.top);
                         ClientToScreen (hwnd, &rc_item.right, &rc_item.bottom);
 
@@ -1741,7 +1739,7 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
             }
             break;
         }
-        
+
         default:
             break;
     }

@@ -38,9 +38,6 @@
 
 #include "common.h"
 
-//#ifdef _MGGAL_COMMLCD
-
-//#if defined (__VXWORKS__) || defined (__TARGET_UNKNOWN__) || defined(__RTEMS__)
 #if defined(_MGGAL_COMMLCD) && defined(__TARGET_EXTERNAL__)
 
 #include "minigui.h"

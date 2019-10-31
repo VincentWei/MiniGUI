@@ -246,9 +246,9 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         Bmask = 0x001F;
         break;
     case COMMLCD_TRUE_RGB565:
-        Rmask = 0x07E0;
-        Gmask = 0x001F;
-        Bmask = 0xF800;
+        Rmask = 0xF800;
+        Gmask = 0x07E0;
+        Bmask = 0x001F;
         break;
     case COMMLCD_TRUE_RGB888:
     case COMMLCD_TRUE_RGB0888:

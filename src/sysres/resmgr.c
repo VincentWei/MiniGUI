@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -367,15 +367,15 @@ BOOL InitializeResManager(int hash_table_size)
 #if !defined(__NOUNIX__) || defined(WIN32) || !defined(__RTEMS__)
     char* p = NULL;
 #endif
-	pwd_res_path = strdup("./");
+    pwd_res_path = strdup("./");
 
     //initialize paths
-#if !defined(__NOUNIX__) || defined(WIN32)
+#if !defined(__NOUNIX__) || defined(WIN32) || !defined(__RTEMS__)
     if ((p = getenv ("MG_RES_PATH"))) {
         int len = strlen(p);
-        if (p[len-1] == '/') 
+        if (p[len-1] == '/')
             sprintf(szpath, "%s", p);
-        else 
+        else
             sprintf(szpath, "%s/", p);
         cfg_res_path = strdup(szpath);
     }
@@ -636,20 +636,17 @@ int UnregisterResType(int type)
 
 static char* get_res_file(const char* res_name, char* filename)
 {
-#ifndef __RTEMS__
+#ifndef _MGINCORE_RES
+
     int i;
-#endif
     if (res_name == NULL || filename == NULL)
         return NULL;
 
-#ifdef __RTEMS__
-	return NULL;
-#else
-
     //test it is a full path or not
-    for(i=0; res_name[i] && res_name[i] == '/'; i++);
-    if(i>0) //is full path
-    {
+    for (i=0; res_name[i] && res_name[i] == '/'; i++)
+        ;
+
+    if (i > 0) {
 #ifndef __NOUNIX__
         struct stat buf;
         if(stat(res_name, &buf) == 0
@@ -661,8 +658,8 @@ static char* get_res_file(const char* res_name, char* filename)
         }
     }
 
-    for(i=0; res_paths[i]; i++)
-    {
+    for(i=0; res_paths[i]; i++) {
+
 #ifndef __NOUNIX__
         struct stat buf;
         sprintf(filename,"%s/%s", res_paths[i], res_name);
@@ -678,7 +675,8 @@ static char* get_res_file(const char* res_name, char* filename)
             return filename;
         }
     }
-#endif
+#endif /* !_MGINCORE_RES */
+
     return NULL;
 }
 
@@ -709,7 +707,7 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     RES_ENTRY * entry;
     RES_KEY key;
     RES_TYPE_INFO *ti = NULL;
-	int     src_type = 0;
+    int     src_type = 0;
     void *data = NULL;
     char szfilename[MAX_PATH+1]={0};
 
@@ -760,11 +758,11 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     {
         //add type info's
         ti->ops_ref ++;
-		src_type = GetSourceType(entry);
-		if(src_type == REF_SRC_NOTYPE){
-			src_type = ti->def_source;
-			SetSourceType(entry, src_type);
-		}
+        src_type = GetSourceType(entry);
+        if(src_type == REF_SRC_NOTYPE){
+            src_type = ti->def_source;
+            SetSourceType(entry, src_type);
+        }
         switch(src_type)
         {
         case REF_SRC_FILE:
@@ -845,7 +843,7 @@ static void delete_entry(HASH_TABLE *table, RES_ENTRY* entry)
 
 int ReleaseRes(RES_KEY key)
 {
-	int ref = 0;
+    int ref = 0;
     RES_ENTRY *entry = NULL;
     RES_LOCK();
     entry = get_entry(&hash_table, key, FALSE);
@@ -853,7 +851,7 @@ int ReleaseRes(RES_KEY key)
         RES_UNLOCK();
         return -1;
     }
-	ref = --entry->refcnt;
+    ref = --entry->refcnt;
     if(ref <= 0)
         delete_entry(&hash_table, entry);
     RES_UNLOCK();

@@ -1,33 +1,33 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/en/about/licensing-policy/>.
  */
@@ -219,7 +219,7 @@ GAL_PixelFormat *GAL_AllocFormat(int bpp,
             format->Amask = Amask;
             break;
     }
-    /* Calculate some standard bitmasks, if necessary 
+    /* Calculate some standard bitmasks, if necessary
      * Note:  This could conflict with an alpha mask, if given.
      */
     if ( (bpp > 8) && !format->Rmask && !format->Gmask && !format->Bmask ) {
@@ -248,7 +248,7 @@ GAL_PixelFormat *GAL_ReallocFormat(GAL_Surface *surface, int bpp,
         GAL_FormatChanged(surface);
     }
 
-   surface->format = GAL_AllocFormat(bpp, Rmask, Gmask, Bmask, Amask);
+    surface->format = GAL_AllocFormat(bpp, Rmask, Gmask, Bmask, Amask);
     return surface->format;
 }
 
@@ -327,7 +327,7 @@ Uint8 GAL_FindDitheredColor (int bpp, Uint8 r, Uint8 g, Uint8 b)
     return r | g | b;
 }
 
-/* 
+/*
  * Calculate the pad-aligned scanline width of a surface
  */
 Uint32 GAL_CalculatePitch(GAL_Surface *surface)
@@ -361,7 +361,7 @@ Uint8 GAL_FindColor(GAL_Palette *pal, Uint8 r, Uint8 g, Uint8 b)
     int rd, gd, bd;
     int i;
     Uint8 pixel=0;
-        
+
     smallest = ~0;
     for ( i=0; i<pal->ncolors; ++i ) {
         rd = pal->colors[i].r - r;
