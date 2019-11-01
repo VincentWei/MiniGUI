@@ -96,15 +96,17 @@ typedef struct _DriDriver DriDriver;
  * MiniGUI NEWGAL engine for hardware surface.
  */
 typedef struct _DriSurfaceBuffer {
-    uint32_t buff_id;
+    uint32_t handle;
+    uint32_t id;
     uint32_t width;
     uint32_t height;
     uint32_t pitch;
-
     uint32_t drm_format;
+
     uint16_t bpp:8;
     uint16_t cpp:8;
 
+    unsigned long size;
     uint8_t* pixels;
 } DriSurfaceBuffer;
 
@@ -157,14 +159,28 @@ typedef struct _DriDriverOps {
 
     /**
      * This operation creates a buffer with the specified pixel format,
-     * width, and height. If succeed, a valid (not zero) buffer identifier
-     * and the picth (row stride in bytes) will be returned.
+     * width, and height. If succeed, a valid (not zero) buffer identifier,
+     * the picth (row stride in bytes), and the handle will be returned.
      * If failed, it returns 0.
      *
      * \note The driver must implement this operation.
      */
     uint32_t (* create_buffer) (DriDriver *driver,
             uint32_t drm_format,
+            unsigned int width, unsigned int height,
+            unsigned int *pitch);
+
+    /**
+     * This operation creates a buffer for the given system global name
+     * with the specified pixel format, width, and height. If succeed,
+     * a valid (not zero) buffer identifier,
+     * the picth (row stride in bytes), and the handle will be returned.
+     * If failed, it returns 0.
+     *
+     * \note The driver must implement this operation.
+     */
+    uint32_t (* create_buffer_from_name) (DriDriver *driver,
+            uint32_t name, uint32_t drm_format,
             unsigned int width, unsigned int height,
             unsigned int *pitch);
 

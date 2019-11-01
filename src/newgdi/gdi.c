@@ -3709,6 +3709,12 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpi
     return old_rop;
 }
 
+MG_EXPORT GHANDLE GetSurfaceHandle (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC (hdc);
+    return (GHANDLE)pdc->surface;
+}
+
 MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc)
 {
 #ifdef _MGUSE_SYNC_UPDATE

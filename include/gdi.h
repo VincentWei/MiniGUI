@@ -13646,6 +13646,18 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
         CB_COMP_PUTHLINE comp_puthline,
         void* user_comp_ctxt);
 
+/**
+ * This function gets the handle to the surface which corresponds to the given
+ * device context.
+ *
+ * \param hdc The device context.
+ *
+ * \return The handle to the surface; NULL on error.
+ *
+ * Since 4.0.3.
+ */
+MG_EXPORT GHANDLE GetSurfaceHandle (HDC hdc);
+
 #ifdef _MGGAL_DRI
 
 /**
@@ -13668,50 +13680,44 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
 /**
  * This function gets the file descriptor opened by the Linux DRI engine.
  *
- * \param screen_dc \a HDC_SCREEN or the DC returned by \a InitSlaveScreen or
- *        \a InitSlaveScreenEx
+ * \param surface The handle to a surface returned by \a GetSurfaceHandle.
  *
- * \return The file descriptor opened by the Linux DRI engine; >= 0 for success
- *      and <0 on error. If \a screen_dc is not a DC created by the DRI engine,
- *      this function returns -1.
+ * \return The DRI device file descriptor opened by the Linux DRI engine;
+ *      >= 0 for success and < 0 on error. If \a surface is not a hardware
+ *      surface created by the DRI engine, this function returns -1.
  */
-MG_EXPORT int GetDRIDeviceFD (HDC screen_dc);
+MG_EXPORT int driGetDeviceFD (GHANDLE surface);
 
 /**
  * THe struct type defines the DRI surface information.
  */
 typedef struct _DriSurfaceInfo {
+    /** The local handle of the buffer object. */
+    uint32_t handle;
     /** The buffer identifier. */
-    uint32_t buff_id;
-    /** The buffer name if it has a name. */
-    uint32_t name;
+    uint32_t id;
     /** The width of the surface. */
     uint32_t width;
     /** The height of the surface. */
     uint32_t height;
     /** The row stride of the surface. */
     uint32_t pitch;
-
     /** The DRM pixel format. */
     uint32_t drm_format;
-
-    /** The bits per pixel */
-    uint16_t bpp:8;
-
-    /** The bytes per pixel */
-    uint16_t cpp:8;
+    /** Size in bytes of the buffer object. */
+    unsigned long size;
 } DriSurfaceInfo;
 
 /**
- * This function gets the DRI surface information from a DC.
+ * This function gets the DRI surface information from the handle of the surface.
  *
- * \param dc The device context.
+ * \param surface The handle to the surface.
  * \param info The pointer to a DriSurfaceInfo structure to hold
  *      the surface information.
  *
  * \return TRUE for success, FALSE for failure.
  */
-MG_EXPORT BOOL GetDIMSurfaceInfoFromDC (HDC hdc, DriSurfaceInfo* info);
+MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE surface, DriSurfaceInfo* info);
 
 /** @} end of gdi_dri_fns */
 

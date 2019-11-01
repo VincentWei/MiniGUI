@@ -1539,7 +1539,7 @@ static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
     surface_buffer = (DriSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
         vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
-        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer->buff_id);
+        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer->id);
     }
 
     surface->pixels = NULL;
@@ -1651,6 +1651,41 @@ static int DRI_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
 static int DRI_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
 {
     return 0;
+}
+
+MG_EXPORT int driGetDeviceFD (GHANDLE surface)
+{
+    GAL_VideoDevice *this = (GAL_VideoDevice *)((GAL_Surface*)surface)->video;
+    if (this && this->VideoInit == DRI_VideoInit) {
+        DriVideoData* vdata = this->hidden;
+        return vdata->dev_fd;
+    }
+
+    return -1;
+}
+
+MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE surface_handle, DriSurfaceInfo* info)
+{
+    GAL_Surface *surface = (GAL_Surface*)surface_handle;
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
+
+    if (this && this->VideoInit == DRI_VideoInit &&
+            (surface->flags & GAL_HWSURFACE)) {
+        DriSurfaceBuffer* surface_buffer = (DriSurfaceBuffer*)surface->hwdata;
+
+        if (surface_buffer) {
+            info->handle = surface_buffer->handle;
+            info->id = surface_buffer->id;
+            info->width = surface_buffer->width;
+            info->height = surface_buffer->height;
+            info->pitch = surface_buffer->pitch;
+            info->drm_format = surface_buffer->drm_format;
+            info->size = surface_buffer->size;
+            return TRUE;
+        }
+    }
+
+    return FALSE;
 }
 
 #endif /* _MGGAL_DRI */
