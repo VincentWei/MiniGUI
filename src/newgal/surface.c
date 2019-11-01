@@ -65,8 +65,8 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
             int width, int height, int depth,
             Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
 {
-    GAL_VideoDevice *video = current_video;
-    GAL_VideoDevice *this  = current_video;
+    GAL_VideoDevice *video = __mg_current_video;
+    GAL_VideoDevice *this  = __mg_current_video;
     GAL_Surface *screen;
     GAL_Surface *surface;
 
@@ -81,12 +81,12 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
             flags |= GAL_HWSURFACE;
         }
         if ( (flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY ) {
-            if ( ! current_video->info.blit_hw_CC ) {
+            if ( ! __mg_current_video->info.blit_hw_CC ) {
                 flags &= ~GAL_HWSURFACE;
             }
         }
         if ( (flags & GAL_SRCALPHA) == GAL_SRCALPHA ) {
-            if ( ! current_video->info.blit_hw_A ) {
+            if ( ! __mg_current_video->info.blit_hw_A ) {
                 flags &= ~GAL_HWSURFACE;
             }
         }
@@ -101,7 +101,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
         return(NULL);
     }
     if ((flags & GAL_HWSURFACE) == GAL_HWSURFACE)
-        surface->video = current_video;
+        surface->video = __mg_current_video;
     else
         surface->video = NULL;
 
@@ -224,8 +224,8 @@ int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key)
     }
 
     if ( flag ) {
-        GAL_VideoDevice *video = current_video;
-        GAL_VideoDevice *this  = current_video;
+        GAL_VideoDevice *video = __mg_current_video;
+        GAL_VideoDevice *this  = __mg_current_video;
 
         surface->flags |= GAL_SRCCOLORKEY;
         surface->format->colorkey = key;
@@ -279,8 +279,8 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
         GAL_UnRLESurface(surface, 1);
 
     if ( flag ) {
-        GAL_VideoDevice *video = current_video;
-        GAL_VideoDevice *this  = current_video;
+        GAL_VideoDevice *video = __mg_current_video;
+        GAL_VideoDevice *this  = __mg_current_video;
 
         if ( flag & GAL_SRCALPHA ) {
             surface->flags |= GAL_SRCALPHA;
@@ -693,8 +693,8 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
 
     if (!video)
     {
-        video = current_video;
-        this = current_video;
+        video = __mg_current_video;
+        this = __mg_current_video;
     }
 
     /* If 'dstrect' == NULL, then fill the whole surface */
@@ -1729,7 +1729,7 @@ void GAL_FreeSurface (GAL_Surface *surface)
 {
     /* Free anything that's not NULL, and not the screen surface */
     if ((surface == NULL) ||
-        (current_video && (surface == GAL_VideoSurface))) {
+        (__mg_current_video && (surface == GAL_VideoSurface))) {
         return;
     }
 
@@ -1753,8 +1753,8 @@ void GAL_FreeSurface (GAL_Surface *surface)
         surface->map = NULL;
     }
     if ( (surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE ) {
-        GAL_VideoDevice *video = current_video;
-        GAL_VideoDevice *this  = current_video;
+        GAL_VideoDevice *video = __mg_current_video;
+        GAL_VideoDevice *this  = __mg_current_video;
         video->FreeHWSurface(this, surface);
     }
     if ( surface->pixels &&
@@ -1770,8 +1770,8 @@ void GAL_FreeSurface (GAL_Surface *surface)
 #ifdef _MGRM_PROCESSES
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
 {
-    if (current_video->RequestHWSurface) {
-        current_video->RequestHWSurface (current_video, request, reply);
+    if (__mg_current_video->RequestHWSurface) {
+        __mg_current_video->RequestHWSurface (__mg_current_video, request, reply);
     } else if (request->offset == 0) {
         reply->offset = 0;
     } else {

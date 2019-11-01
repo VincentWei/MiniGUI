@@ -1099,7 +1099,7 @@ static int GFX_CheckHWBlit (_THIS, GAL_Surface* src, GAL_Surface* dst)
 static int GFX_HWAccelBlit (GAL_Surface* src, GAL_Rect* srec, GAL_Surface* dst, GAL_Rect* drec)
 {
     FUNC_ENTER();
-    GAL_VideoDevice * this = current_video;
+    GAL_VideoDevice * this = __mg_current_video;
     struct GFXEngine_BlendAndScaleRectangles_type blend_param;
     struct GFXEngine_Surface_type surface_param;
     struct GFXEngine_ColorFormat_type format_param;

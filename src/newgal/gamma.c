@@ -115,8 +115,8 @@ static void CalculateGammaFromRamp(float *gamma, Uint16 *ramp)
 int GAL_SetGamma(float red, float green, float blue)
 {
 	int succeeded;
-	GAL_VideoDevice *video = current_video;
-	GAL_VideoDevice *this  = current_video;	
+	GAL_VideoDevice *video = __mg_current_video;
+	GAL_VideoDevice *this  = __mg_current_video;	
 
 	succeeded = -1;
 #ifdef HAVE_MATH_H
@@ -145,8 +145,8 @@ int GAL_SetGamma(float red, float green, float blue)
 int GAL_GetGamma(float *red, float *green, float *blue)
 {
 	int succeeded;
-	GAL_VideoDevice *video = current_video;
-	GAL_VideoDevice *this  = current_video;	
+	GAL_VideoDevice *video = __mg_current_video;
+	GAL_VideoDevice *this  = __mg_current_video;	
 
 	succeeded = -1;
 #ifdef HAVE_MATH_H
@@ -174,8 +174,8 @@ int GAL_GetGamma(float *red, float *green, float *blue)
 int GAL_SetGammaRamp(Uint16 *red, Uint16 *green, Uint16 *blue)
 {
 	int succeeded;
-	GAL_VideoDevice *video = current_video;
-	GAL_VideoDevice *this  = current_video;	
+	GAL_VideoDevice *video = __mg_current_video;
+	GAL_VideoDevice *this  = __mg_current_video;	
 	GAL_Surface *screen = GAL_PublicSurface;
 
 	/* Verify the screen parameter */
@@ -225,8 +225,8 @@ int GAL_SetGammaRamp(Uint16 *red, Uint16 *green, Uint16 *blue)
 
 int GAL_GetGammaRamp(Uint16 *red, Uint16 *green, Uint16 *blue)
 {
-	GAL_VideoDevice *video = current_video;
-	GAL_VideoDevice *this  = current_video;	
+	GAL_VideoDevice *video = __mg_current_video;
+	GAL_VideoDevice *this  = __mg_current_video;	
 
 	/* Lazily allocate the gamma table */
 	if ( ! video->gamma ) {

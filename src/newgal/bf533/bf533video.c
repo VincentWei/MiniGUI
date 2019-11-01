@@ -469,7 +469,7 @@ int bf533_suspend_spi (void)
 
     spi_ok = FALSE;
     BLOCK_ALARM
-    return current_video->hidden->fd_spi;
+    return __mg_current_video->hidden->fd_spi;
 }
 
 void bf533_resume_spi (void)
@@ -479,6 +479,6 @@ void bf533_resume_spi (void)
 
     spi_ok = TRUE;
     UNBLOCK_ALARM
-    BF533_UpdateRects (current_video, 1, &standard_mode);
+    BF533_UpdateRects (__mg_current_video, 1, &standard_mode);
 }
 

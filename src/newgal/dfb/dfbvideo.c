@@ -315,7 +315,7 @@ static GAL_Surface *DFB_SetVideoMode (_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
     if (!ISSERVER) {
-        current = current_video->screen;
+        current = __mg_current_video->screen;
         return (current);
     }
 

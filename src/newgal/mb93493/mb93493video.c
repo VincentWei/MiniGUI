@@ -528,6 +528,6 @@ void mb93493_resume_spi (void)
         return;
     is_suspend = FALSE;
     UNBLOCK_ALARM
-    MB93493_UpdateRects (current_video, 1, &standard_mode);
+    MB93493_UpdateRects (__mg_current_video, 1, &standard_mode);
 }
 

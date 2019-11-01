@@ -104,7 +104,7 @@ typedef struct tagfb_colorkey
 #endif
 
 extern BOOL mgIsServer;
-//extern GAL_VideoDevice* current_video;
+//extern GAL_VideoDevice* __mg_current_video;
 
 #ifndef _MGRM_THREADS
 struct private_hwdata
@@ -368,7 +368,7 @@ static int HI3510_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
     /*if dst is current video surface, should do antiflicker*/
 #ifdef _MGRM_THREADS
     if ((src == __gal_screen) && (src->flags & GAL_HWSURFACE) 	
-    	&& (dst == current_video->screen))
+    	&& (dst == __mg_current_video->screen))
 #else
     if (mgIsServer && (src->flags & GAL_DOUBLEBUF) 
     	&& (src->flags & GAL_HWSURFACE)	&& (dst == this->screen))
@@ -377,7 +377,7 @@ static int HI3510_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
        if ((TAP_MIN_VALUE <= tap_level) && (TAP_MAX_VALUE >= tap_level))
        {
 #ifdef _MGRM_THREADS
-	       if (0 == HI3510_AntiFlicker(current_video, src, srcrect, dst, 
+	       if (0 == HI3510_AntiFlicker(__mg_current_video, src, srcrect, dst, 
 	       	                           dstrect, &uiOffsetX, &uiOffsetY))
 #else
            if (0 == HI3510_AntiFlicker(this, src, srcrect, dst, dstrect,
@@ -1705,7 +1705,7 @@ void* HI3510_MallocFromVram(int size)
     size += sizeof(struct private_hwdata *);
     request.h = (size+pitch-1)/pitch;
 
-    HI3510_RequestHWSurface (current_video, &request, &reply);
+    HI3510_RequestHWSurface (__mg_current_video, &request, &reply);
     
     if (reply.bucket == NULL)
     {
@@ -1727,7 +1727,7 @@ void HI3510_FreeToVram(void* p)
     request.bucket = *(char**)((char*)p - sizeof(struct private_hwdata *));
     request.h = request.offset;
 
-    HI3510_RequestHWSurface (current_video, &request, &reply);
+    HI3510_RequestHWSurface (__mg_current_video, &request, &reply);
 }
 #endif
 
@@ -1753,7 +1753,7 @@ static struct private_hwdata* HI3510_CreateHwData(_THIS, const vidmem_bucket* pB
 int HI3510_ServerSetScreenAttr(Uint8 siAttr, void* pValue)
 {
 
-    return HI3510_SetScreenAttr(current_video, siAttr, pValue);
+    return HI3510_SetScreenAttr(__mg_current_video, siAttr, pValue);
 }    
 
 
@@ -1882,13 +1882,13 @@ VideoBootStrap HI3510_bootstrap = {
 //Added by l56244 on 27,July 2006
 int HI3510_GetVideoFD(void)
 {
-	GAL_VideoDevice* this = current_video;
+	GAL_VideoDevice* this = __mg_current_video;
 	return console_fd;
 }
 
 void* HI3510_GetMM_0(void)
 {
-	GAL_VideoDevice* this = current_video;
+	GAL_VideoDevice* this = __mg_current_video;
 	return mapped_mem;
 }
 

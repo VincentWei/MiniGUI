@@ -13646,6 +13646,77 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
         CB_COMP_PUTHLINE comp_puthline,
         void* user_comp_ctxt);
 
+#ifdef _MGGAL_DRI
+
+/**
+  * \defgroup gdi_dri_fns Functions for Linux DRI integration
+  *
+  * These functions can be used to get the DRI device file descriptor and the
+  * information of the hardware surface corresponding to the DC which is
+  * created by the Linux DRI engine. By using the information, we can
+  * integrate MiniGUI with other graphics libraries, such as Cairo
+  * (vector graphics) and Mesa (3D graphics).
+  *
+  * \note Only available when support for Linuxe DRI NEWGAL engine
+  * (`_MGGAL_DRI`) is enabled.
+  *
+  * Since 4.0.3
+  *
+  * @{
+  */
+
+/**
+ * This function gets the file descriptor opened by the Linux DRI engine.
+ *
+ * \param screen_dc \a HDC_SCREEN or the DC returned by \a InitSlaveScreen or
+ *        \a InitSlaveScreenEx
+ *
+ * \return The file descriptor opened by the Linux DRI engine; >= 0 for success
+ *      and <0 on error. If \a screen_dc is not a DC created by the DRI engine,
+ *      this function returns -1.
+ */
+MG_EXPORT int GetDRIDeviceFD (HDC screen_dc);
+
+/**
+ * THe struct type defines the DRI surface information.
+ */
+typedef struct _DriSurfaceInfo {
+    /** The buffer identifier. */
+    uint32_t buff_id;
+    /** The buffer name if it has a name. */
+    uint32_t name;
+    /** The width of the surface. */
+    uint32_t width;
+    /** The height of the surface. */
+    uint32_t height;
+    /** The row stride of the surface. */
+    uint32_t pitch;
+
+    /** The DRM pixel format. */
+    uint32_t drm_format;
+
+    /** The bits per pixel */
+    uint16_t bpp:8;
+
+    /** The bytes per pixel */
+    uint16_t cpp:8;
+} DriSurfaceInfo;
+
+/**
+ * This function gets the DRI surface information from a DC.
+ *
+ * \param dc The device context.
+ * \param info The pointer to a DriSurfaceInfo structure to hold
+ *      the surface information.
+ *
+ * \return TRUE for success, FALSE for failure.
+ */
+MG_EXPORT BOOL GetDIMSurfaceInfoFromDC (HDC hdc, DriSurfaceInfo* info);
+
+/** @} end of gdi_dri_fns */
+
+#endif
+
     /** @} end of gdi_fns */
 
 #ifdef _MGGAL_HI3560

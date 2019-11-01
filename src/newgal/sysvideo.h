@@ -333,10 +333,10 @@ extern VideoBootStrap DRI_bootstrap;
 #endif
 
 /* This is the current video device */
-extern GAL_VideoDevice *current_video;
+extern GAL_VideoDevice *__mg_current_video;
 
-#define GAL_VideoSurface    (current_video->screen)
-#define GAL_PublicSurface    (current_video->screen)
+#define GAL_VideoSurface    (__mg_current_video->screen)
+#define GAL_PublicSurface    (__mg_current_video->screen)
 
 GAL_VideoDevice *GAL_GetVideo(const char* driver_name);
 void Slave_FreeSurface (GAL_Surface *surface);

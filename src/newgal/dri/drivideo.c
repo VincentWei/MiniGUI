@@ -1549,7 +1549,7 @@ static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
 static int DRI_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
                        GAL_Surface *dst, GAL_Rect *dst_rc)
 {
-    GAL_VideoDevice *this = current_video;
+    GAL_VideoDevice *this = __mg_current_video;
     DriVideoData* vdata = this->hidden;
     DriSurfaceBuffer *src_buf, *dst_buf;
 

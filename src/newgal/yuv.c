@@ -60,8 +60,8 @@
 GAL_Overlay *GAL_CreateYUVOverlay(int w, int h, Uint32 format,
                                   GAL_Surface *display)
 {
-	GAL_VideoDevice *video = current_video;
-	GAL_VideoDevice *this  = current_video;
+	GAL_VideoDevice *video = __mg_current_video;
+	GAL_VideoDevice *this  = __mg_current_video;
 	const char *yuv_hwaccel;
 	GAL_Overlay *overlay;
 
@@ -89,24 +89,24 @@ GAL_Overlay *GAL_CreateYUVOverlay(int w, int h, Uint32 format,
 
 int GAL_LockYUVOverlay(GAL_Overlay *overlay)
 {
-	return overlay->hwfuncs->Lock(current_video, overlay);
+	return overlay->hwfuncs->Lock(__mg_current_video, overlay);
 }
 
 void GAL_UnlockYUVOverlay(GAL_Overlay *overlay)
 {
-	overlay->hwfuncs->Unlock(current_video, overlay);
+	overlay->hwfuncs->Unlock(__mg_current_video, overlay);
 }
 
 int GAL_DisplayYUVOverlay(GAL_Overlay *overlay, GAL_Rect *dstrect)
 {
-	return overlay->hwfuncs->Display(current_video, overlay, dstrect);
+	return overlay->hwfuncs->Display(__mg_current_video, overlay, dstrect);
 }
 
 void GAL_FreeYUVOverlay(GAL_Overlay *overlay)
 {
 	if ( overlay ) {
 		if ( overlay->hwfuncs ) {
-			overlay->hwfuncs->FreeHW(current_video, overlay);
+			overlay->hwfuncs->FreeHW(__mg_current_video, overlay);
 		}
 		free(overlay);
 	}

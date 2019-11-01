@@ -109,7 +109,7 @@ static int FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
 static int HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
                        GAL_Surface *dst, GAL_Rect *dstrect)
 {
-    GAL_VideoDevice *this = current_video;
+    GAL_VideoDevice *this = __mg_current_video;
     int bpp;
     Uint32 src_format;
     /* Uint32 dst_format; */
