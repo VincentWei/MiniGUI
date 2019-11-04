@@ -96,17 +96,27 @@ typedef struct _DriDriver DriDriver;
  * MiniGUI NEWGAL engine for hardware surface.
  */
 typedef struct _DriSurfaceBuffer {
+    /** The handle of the buffer */
     uint32_t handle;
+    /** The buffer identifier */
     uint32_t id;
+    /** The widht of the buffer */
     uint32_t width;
+    /** The height of the buffer */
     uint32_t height;
+    /** The pitch (row stride in bytes) of the buffer */
     uint32_t pitch;
+    /** The DRM format of the buffer */
     uint32_t drm_format;
 
+    /** The bits per pixel */
     uint16_t bpp:8;
+    /** The bytes per pixel */
     uint16_t cpp:8;
 
+    /** The whole size in bytes of the buffer */
     unsigned long size;
+    /** The mapped address of the buffer; NULL when the buffer is not mapped yet. */
     uint8_t* pixels;
 } DriSurfaceBuffer;
 
@@ -159,35 +169,26 @@ typedef struct _DriDriverOps {
 
     /**
      * This operation creates a buffer with the specified pixel format,
-     * width, and height. If succeed, a valid (not zero) buffer identifier,
-     * the picth (row stride in bytes), and the handle will be returned.
-     * If failed, it returns 0.
+     * width, and height. If succeed, a valid DriSurfaceBuffer object will
+     * be returned; NULL on error. Note that the field of `pixels` of the
+     * DriSurfaceBuffer object is NULL until the \a map_buffer was called.
      *
      * \note The driver must implement this operation.
      */
-    uint32_t (* create_buffer) (DriDriver *driver,
+    DriSurfaceBuffer* (* create_buffer) (DriDriver *driver,
             uint32_t drm_format,
-            unsigned int width, unsigned int height,
-            unsigned int *pitch);
+            unsigned int width, unsigned int height);
 
     /**
      * This operation creates a buffer for the given system global name
      * with the specified pixel format, width, and height. If succeed,
-     * a valid (not zero) buffer identifier,
-     * the picth (row stride in bytes), and the handle will be returned.
-     * If failed, it returns 0.
+     * a valid DriSurfaceBuffer object will be returned; NULL on error.
      *
      * \note The driver must implement this operation.
      */
-    uint32_t (* create_buffer_from_name) (DriDriver *driver,
+    DriSurfaceBuffer* (* create_buffer_from_name) (DriDriver *driver,
             uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height,
-            unsigned int *pitch);
-
-    BOOL (* fetch_buffer) (DriDriver *driver,
-            uint32_t buffer_id,
-            unsigned int *width, unsigned int *height,
-            unsigned int *pitch);
+            unsigned int width, unsigned int height);
 
     /**
      * This operation maps the buffer into the current process's virtual memory
@@ -195,8 +196,7 @@ typedef struct _DriDriverOps {
      *
      * \note The driver must implement this operation.
      */
-    DriSurfaceBuffer* (* map_buffer) (DriDriver *driver,
-            uint32_t buffer_id);
+    uint8_t* (* map_buffer) (DriDriver *driver, DriSurfaceBuffer* buffer);
 
     /**
      * This operation un-maps a buffer.
@@ -210,7 +210,7 @@ typedef struct _DriDriverOps {
      *
      * \note The driver must implement this operation.
      */
-    void (* destroy_buffer) (DriDriver *driver, uint32_t buffer_id);
+    void (* destroy_buffer) (DriDriver *driver, DriSurfaceBuffer* buffer);
 
     /**
      * This operation clears the specific rectangle area of a buffer

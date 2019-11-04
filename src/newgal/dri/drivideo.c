@@ -157,8 +157,6 @@ static void drm_cleanup(DriVideoData* vdata)
     if (vdata->scanout_fb) {
         if (vdata->driver_ops) {
             // do nothing for hardware surface.
-            // vdata->driver_ops->unmap_buffer(vdata->driver, vdata->scanout_buff_id);
-            // vdata->driver_ops->destroy_buffer(vdata->driver, vdata->scanout_buff_id);
         }
         else {
             /* dumb buffer */
@@ -1378,7 +1376,6 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     uint32_t drm_format;
     Uint32 RGBAmasks[4];
     DriSurfaceBuffer* scanout_buff = NULL;
-    unsigned int pitch;
 
     drm_format = get_drm_format_from_etc(&bpp);
     if (drm_format == 0) {
@@ -1404,15 +1401,14 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
 #endif
 
     /* create the scanout buffer and set up it as frame buffer */
-    vdata->scanout_buff_id =
-        vdata->driver_ops->create_buffer(vdata->driver, drm_format,
-            info->width, info->height, &pitch);
-    if (vdata->scanout_buff_id == 0) {
+    scanout_buff = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
+            info->width, info->height);
+    if (scanout_buff == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: cannot create scanout frame buffer: %m\n");
         goto error;
     }
 
-    scanout_buff = vdata->driver_ops->map_buffer(vdata->driver, vdata->scanout_buff_id);
-    if (scanout_buff == NULL) {
+    if (NULL == vdata->driver_ops->map_buffer(vdata->driver, scanout_buff)) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot map scanout frame buffer: %m\n");
         goto error;
     }
@@ -1420,9 +1416,10 @@ static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     vdata->width = info->width;
     vdata->height = info->height;
     vdata->bpp = bpp;
-    vdata->pitch = pitch;
-    vdata->size = pitch * info->height;
+    vdata->pitch = scanout_buff->pitch;
+    vdata->size = scanout_buff->pitch * info->height;
     vdata->handle = 0;
+    vdata->scanout_buff_id = scanout_buff->id;
     vdata->scanout_fb = scanout_buff->pixels;
 
     _DBG_PRINTF("NEWGAL>DRM: scanout frame buffer: size (%dx%d), pitch(%d)\n",
@@ -1483,7 +1480,7 @@ error:
     }
 
     if (vdata->scanout_buff_id) {
-        vdata->driver_ops->destroy_buffer(vdata->driver, vdata->scanout_buff_id);
+        vdata->driver_ops->destroy_buffer(vdata->driver, scanout_buff);
         vdata->scanout_buff_id = 0;
     }
 
@@ -1494,8 +1491,6 @@ static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
 {
     DriVideoData* vdata = this->hidden;
     uint32_t drm_format;
-    unsigned int pitch;
-    uint32_t buff_id = 0;
     DriSurfaceBuffer* surface_buffer;
 
     drm_format = translate_gal_format(surface->format);
@@ -1506,27 +1501,26 @@ static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
         return -1;
     }
 
-    buff_id = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
-            surface->w, surface->h, &pitch);
-    if (buff_id == 0) {
+    surface_buffer = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
+            surface->w, surface->h);
+    if (surface_buffer == NULL) {
         return -1;
     }
 
-    surface_buffer = vdata->driver_ops->map_buffer(vdata->driver, buff_id);
-    if (surface_buffer == NULL) {
+    if (vdata->driver_ops->map_buffer(vdata->driver, surface_buffer) == NULL) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
         goto error;
     }
 
     surface->pixels = surface_buffer->pixels;
     surface->flags |= GAL_HWSURFACE;
-    surface->pitch = pitch;
+    surface->pitch = surface_buffer->pitch;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
     return 0;
 
 error:
-    if (buff_id)
-        vdata->driver_ops->destroy_buffer(vdata->driver, buff_id);
+    if (surface_buffer)
+        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
 
     return -1;
 }
@@ -1538,8 +1532,9 @@ static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
 
     surface_buffer = (DriSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
-        vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
-        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer->id);
+        if (surface_buffer->pixels)
+            vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
+        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
     }
 
     surface->pixels = NULL;
