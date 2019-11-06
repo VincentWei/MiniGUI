@@ -1390,6 +1390,20 @@ MG_EXPORT HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height);
 MG_EXPORT BOOL GUIAPI IsCompatibleDC (HDC hdc1, HDC hdc2);
 
 /**
+ * \fn BOOL GUIAPI IsMemDC (HDC hdc1)
+ * \brief Check whether a given DC is a memory DC.
+ *
+ * This function checks whether a give DC \a hdc is a memory DC.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return TRUE for memory DC, otherwise FALSE.
+ *
+ * \sa CreateMemDCEx
+ */
+MG_EXPORT BOOL GUIAPI IsMemDC (HDC hdc);
+
+/**
  * \fn HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags, \
  Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask,
  void* bits, int pitch)

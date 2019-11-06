@@ -3731,3 +3731,9 @@ MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc)
 #endif
 }
 
+MG_EXPORT BOOL GUIAPI IsMemDC (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    return dc_IsMemDC (pdc);
+}
+
