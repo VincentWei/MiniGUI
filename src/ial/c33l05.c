@@ -29,7 +29,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** c33l05.c: Low Level Input Engine for c33l05, EPSONARM7-LCD-R4 Dev Boards.
