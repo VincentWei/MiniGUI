@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** hh44b0.c: Low Level Input Engine for Embest ARM44B0

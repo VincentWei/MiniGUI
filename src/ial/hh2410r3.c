@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** hh2410r3.c: Low Level Input Engine for HH2410-R3, HHARM9-LCD-R4 Dev Boards.

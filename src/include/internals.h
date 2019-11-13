@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** internals.h: this head file declares all internal types and data.

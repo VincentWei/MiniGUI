@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** $Id: bf533video.h 7345 2007-08-16 03:57:17Z xgwang $
