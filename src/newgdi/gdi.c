@@ -3709,12 +3709,6 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpi
     return old_rop;
 }
 
-MG_EXPORT GHANDLE GetSurfaceHandle (HDC hdc)
-{
-    PDC pdc = dc_HDC2PDC (hdc);
-    return (GHANDLE)pdc->surface;
-}
-
 MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc)
 {
 #ifdef _MGUSE_SYNC_UPDATE
@@ -3737,3 +3731,130 @@ MG_EXPORT BOOL GUIAPI IsMemDC (HDC hdc)
     return dc_IsMemDC (pdc);
 }
 
+MG_EXPORT GHANDLE GetVideoHandle (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC (hdc);
+    return (GHANDLE)pdc->surface->video;
+}
+
+#ifdef _MGGAL_DRI
+
+/* implemented in DRI engine. */
+BOOL __dri_get_surface_info (GAL_Surface *surface, DriSurfaceInfo* info);
+
+MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE video, HDC hdc, DriSurfaceInfo* info)
+{
+    PDC pdc = dc_HDC2PDC (hdc);
+    if (pdc->surface->video != (GHANDLE)video)
+        return FALSE;
+
+    return __dri_get_surface_info(pdc->surface, info);
+}
+
+/* implemented in DRI engine. */
+GAL_Surface* __dri_create_surface_from_name (GHANDLE video,
+            uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+MG_EXPORT HDC driCreateDCFromName (GHANDLE video,
+            uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch)
+{
+    PDC pmem_dc = NULL;
+    GAL_Surface* surface;
+
+    if (!(pmem_dc = malloc (sizeof(DC))))
+        return HDC_INVALID;
+
+    LOCK (&__mg_gdilock);
+    surface = __dri_create_surface_from_name (video, name,
+                drm_format, width, height, pitch);
+    UNLOCK (&__mg_gdilock);
+
+    if (!surface) {
+        free (pmem_dc);
+        return HDC_INVALID;
+    }
+
+    if (surface->format->Amask) {
+        surface->flags |= GAL_SRCPIXELALPHA;
+    }
+
+    pmem_dc->DataType = TYPE_HDC;
+    pmem_dc->DCType   = TYPE_MEMDC;
+    pmem_dc->inuse    = TRUE;
+    pmem_dc->surface  = surface;
+
+    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+
+    InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
+    InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+    pmem_dc->pGCRInfo = NULL;
+    pmem_dc->oldage = 0;
+
+    pmem_dc->DevRC.left = 0;
+    pmem_dc->DevRC.top  = 0;
+    pmem_dc->DevRC.right = width;
+    pmem_dc->DevRC.bottom = height;
+
+    SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect(&pmem_dc->lcrgn, &pmem_dc->DevRC);
+
+    return (HDC)pmem_dc;
+}
+
+/* implemented in DRI engine. */
+GAL_Surface* __dri_create_surface_from_handle (GHANDLE video,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+MG_EXPORT HDC driCreateDCFromHandle (GHANDLE video,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch)
+{
+    PDC pmem_dc = NULL;
+    GAL_Surface* surface;
+
+    if (!(pmem_dc = malloc (sizeof(DC))))
+        return HDC_INVALID;
+
+    LOCK (&__mg_gdilock);
+    surface = __dri_create_surface_from_handle (video, handle, size,
+                drm_format, width, height, pitch);
+    UNLOCK (&__mg_gdilock);
+
+    if (!surface) {
+        free (pmem_dc);
+        return HDC_INVALID;
+    }
+
+    if (surface->format->Amask) {
+        surface->flags |= GAL_SRCPIXELALPHA;
+    }
+
+    pmem_dc->DataType = TYPE_HDC;
+    pmem_dc->DCType   = TYPE_MEMDC;
+    pmem_dc->inuse    = TRUE;
+    pmem_dc->surface  = surface;
+
+    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+
+    InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
+    InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+    pmem_dc->pGCRInfo = NULL;
+    pmem_dc->oldage = 0;
+
+    pmem_dc->DevRC.left = 0;
+    pmem_dc->DevRC.top  = 0;
+    pmem_dc->DevRC.right = width;
+    pmem_dc->DevRC.bottom = height;
+
+    SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect(&pmem_dc->lcrgn, &pmem_dc->DevRC);
+
+    return (HDC)pmem_dc;
+}
+
+#endif
