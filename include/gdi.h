@@ -13661,16 +13661,16 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
         void* user_comp_ctxt);
 
 /**
- * This function gets the handle to the surface which corresponds to the given
+ * This function gets the video handle which corresponds to the given
  * device context.
  *
  * \param hdc The device context.
  *
- * \return The handle to the surface; NULL on error.
+ * \return The handle to the video; NULL on error.
  *
- * Since 4.0.3.
+ * Since 4.0.4
  */
-MG_EXPORT GHANDLE GetSurfaceHandle (HDC hdc);
+MG_EXPORT GHANDLE GetVideoHandle (HDC hdc);
 
 #ifdef _MGGAL_DRI
 
@@ -13686,7 +13686,7 @@ MG_EXPORT GHANDLE GetSurfaceHandle (HDC hdc);
   * \note Only available when support for Linuxe DRI NEWGAL engine
   * (`_MGGAL_DRI`) is enabled.
   *
-  * Since 4.0.3
+  * Since 4.0.4
   *
   * @{
   */
@@ -13694,13 +13694,13 @@ MG_EXPORT GHANDLE GetSurfaceHandle (HDC hdc);
 /**
  * This function gets the file descriptor opened by the Linux DRI engine.
  *
- * \param surface The handle to a surface returned by \a GetSurfaceHandle.
+ * \param video The video handle returned by \a GetVideoHandle.
  *
  * \return The DRI device file descriptor opened by the Linux DRI engine;
  *      >= 0 for success and < 0 on error. If \a surface is not a hardware
  *      surface created by the DRI engine, this function returns -1.
  */
-MG_EXPORT int driGetDeviceFD (GHANDLE surface);
+MG_EXPORT int driGetDeviceFD (GHANDLE video);
 
 /**
  * THe struct type defines the DRI surface information.
@@ -13731,7 +13731,42 @@ typedef struct _DriSurfaceInfo {
  *
  * \return TRUE for success, FALSE for failure.
  */
-MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE surface, DriSurfaceInfo* info);
+MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE video, HDC hdc, DriSurfaceInfo* info);
+
+/**
+ * This function creates a memory DC with a DRI surface which is created by
+ * a foreign process.
+ *
+ * \param video The video handle.
+ * \param name The name of the DRI surface.
+ * \param drm_format The DRM pixel format.
+ * \param width The width of the DRI surface.
+ * \param height The height of the DRI surface.
+ * \param pitch The pitch (row stride) of the DRI surface.
+ *
+ * \return The handle to the memory DC for success, HDC_INVALID for failure.
+ */
+MG_EXPORT HDC driCreateDCFromName (GHANDLE video,
+            uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+/**
+ * This function creates a memory DC with a DRI surface which is created by
+ * a foreign graphics component.
+ *
+ * \param video The video handle.
+ * \param handle The handle of the DRI surface.
+ * \param size The size of the DRI surface in bytes.
+ * \param drm_format The DRM pixel format.
+ * \param width The width of the DRI surface.
+ * \param height The height of the DRI surface.
+ * \param pitch The pitch (row stride) of the DRI surface.
+ *
+ * \return The handle to the memory DC for success, HDC_INVALID for failure.
+ */
+MG_EXPORT HDC driCreateDCFromHandle (GHANDLE video,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
 
 /** @} end of gdi_dri_fns */
 
