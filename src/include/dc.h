@@ -298,7 +298,8 @@ static inline BOOL dc_IsVisible (PDC pdc)
         if (dc_IsMemDC(pdc)){
             if (!pdc->hwnd) return TRUE;
         }
-        else return TRUE;
+        else
+            return TRUE;
     }
 #endif
 
