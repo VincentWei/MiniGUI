@@ -110,9 +110,11 @@ typedef struct _DriSurfaceBuffer {
     uint32_t drm_format;
 
     /** The bits per pixel */
-    uint16_t bpp:8;
+    uint32_t bpp:8;
     /** The bytes per pixel */
-    uint16_t cpp:8;
+    uint32_t cpp:8;
+    /** Is foreign surface */
+    uint32_t foreign:1;
 
     /** The whole size in bytes of the buffer */
     unsigned long size;
@@ -180,6 +182,17 @@ typedef struct _DriDriverOps {
             unsigned int width, unsigned int height);
 
     /**
+     * This operation creates a buffer for the given handle
+     * with the specified pixel format, width, and height. If succeed,
+     * a valid DriSurfaceBuffer object will be returned; NULL on error.
+     *
+     * \note The driver must implement this operation.
+     */
+    DriSurfaceBuffer* (* create_buffer_from_handle) (DriDriver *driver,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, unsigned int pitch);
+
+    /**
      * This operation creates a buffer for the given system global name
      * with the specified pixel format, width, and height. If succeed,
      * a valid DriSurfaceBuffer object will be returned; NULL on error.
@@ -188,7 +201,7 @@ typedef struct _DriDriverOps {
      */
     DriSurfaceBuffer* (* create_buffer_from_name) (DriDriver *driver,
             uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height);
+            unsigned int width, unsigned int height, unsigned int pitch);
 
     /**
      * This operation maps the buffer into the current process's virtual memory
