@@ -3731,6 +3731,18 @@ MG_EXPORT BOOL GUIAPI IsMemDC (HDC hdc)
     return dc_IsMemDC (pdc);
 }
 
+MG_EXPORT BOOL GUIAPI IsScreenDC (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    return dc_IsScreenDC (pdc);
+}
+
+MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    return dc_IsGeneralDC (pdc);
+}
+
 MG_EXPORT GHANDLE GetVideoHandle (HDC hdc)
 {
     PDC pdc = dc_HDC2PDC (hdc);
