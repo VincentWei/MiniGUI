@@ -1390,7 +1390,7 @@ MG_EXPORT HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height);
 MG_EXPORT BOOL GUIAPI IsCompatibleDC (HDC hdc1, HDC hdc2);
 
 /**
- * \fn BOOL GUIAPI IsMemDC (HDC hdc1)
+ * \fn BOOL GUIAPI IsMemDC (HDC hdc)
  * \brief Check whether a given DC is a memory DC.
  *
  * This function checks whether a give DC \a hdc is a memory DC.
@@ -1402,6 +1402,34 @@ MG_EXPORT BOOL GUIAPI IsCompatibleDC (HDC hdc1, HDC hdc2);
  * \sa CreateMemDCEx
  */
 MG_EXPORT BOOL GUIAPI IsMemDC (HDC hdc);
+
+/**
+ * \fn BOOL GUIAPI IsScreenDC (HDC hdc)
+ * \brief Check whether a given DC is a screen DC.
+ *
+ * This function checks whether a give DC \a hdc is a screen DC.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return TRUE for screen DC, otherwise FALSE.
+ *
+ * \sa CreateMemDCEx
+ */
+MG_EXPORT BOOL GUIAPI IsScreenDC (HDC hdc);
+
+/**
+ * \fn BOOL GUIAPI IsWindowDC (HDC hdc)
+ * \brief Check whether a given DC is a window DC.
+ *
+ * This function checks whether a give DC \a hdc is a window DC.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return TRUE for window DC, otherwise FALSE.
+ *
+ * \sa CreateMemDCEx
+ */
+MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc);
 
 /**
  * \fn HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags, \
@@ -13788,7 +13816,7 @@ MG_EXPORT HDC driCreateDCFromHandle (GHANDLE video,
 
 /** @} end of gdi_dri_fns */
 
-#endif
+#endif /* _MGGAL_DRI */
 
     /** @} end of gdi_fns */
 
