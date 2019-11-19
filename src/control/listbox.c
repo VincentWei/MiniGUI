@@ -573,11 +573,11 @@ static void lstOnDrawSListBoxItems (HWND hWnd, HDC hdc,
     gal_pixel gp_bkcolor;
 
     pWin = (PCONTROL) hWnd;
-    if (NULL == pWin) return;
+    if (NULL == pWin)
+        return;
 
-    if (!pWin->we_rdr)
-    {
-        _WRN_PRINTF ("NULL LFRDR.");
+    if (!pWin->we_rdr) {
+        _ERR_PRINTF ("CONTROL>LISTBOX: NULL LFRDR.\n");
         return;
     }
 
@@ -720,10 +720,8 @@ static int lstSelectItem (HWND hwnd, PLISTBOXDATA pData, int newSel)
     if (newItem->dwFlags & LBIF_DISABLE)
         return newSel;
 
-#ifdef _DEBUG
     if (!newItem)
-        _WRN_PRINTF ("return value of lstGetItem is NULL.");
-#endif
+        _DBG_PRINTF ("return value of lstGetItem is NULL.\n");
 
     if (GetWindowStyle (hwnd) & LBS_MULTIPLESEL) {
         newItem->dwFlags ^= LBIF_SELECTED;

@@ -116,7 +116,6 @@ ProgressBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case MSG_CREATE:
             if (!(pData = malloc (sizeof (PROGRESSDATA)))) {
-                _WRN_PRINTF ("Create control failure!");
                 return -1;
             }
 

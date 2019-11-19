@@ -3532,19 +3532,18 @@ void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
 {
     PMAINWIN pWin = (PMAINWIN)hMainWnd;
 
-    _WRN_PRINTF ("MainWindowThreadCleanup called: %p (%s)", pWin, pWin->spCaption);
+    _DBG_PRINTF ("window(%p), caption(%s)\n", pWin, pWin->spCaption);
 
     if (!MG_IS_DESTROYED_WINDOW (hMainWnd)) {
-        _WRN_PRINTF ("Unexpected calling of "
-                "(MainWindowThreadCleanup); Window (%p) "
-                "not destroyed yet!", hMainWnd);
+        _WRN_PRINTF ("Unexpected calling(%s); Window(%p) not destroyed yet!\n",
+                __FUNCTION__, hMainWnd);
         return;
     }
 
 #ifdef _MGRM_THREADS
     if (pWin->pHosting == NULL) {
         mg_FreeMsgQueueThisThread ();
-        _WRN_PRINTF ("Message queure is freed: %p (%s)", pWin, pWin->spCaption);
+        _DBG_PRINTF ("Message queure is freed: %p (%s)\n", pWin, pWin->spCaption);
     }
 #endif
 
@@ -5976,7 +5975,7 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                     (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
 
                 if (!pCtrl->mask_rects) {
-                    _WRN_PRINTF ("No enough memory!");
+                    _WRN_PRINTF ("No enough memory!\n");
                     free (rect);
                     return FALSE;
                 }
@@ -5991,7 +5990,7 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                     new_maskrect =
                         (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
                     if (!new_maskrect) {
-                        _WRN_PRINTF ("No enough memory!");
+                        _WRN_PRINTF ("No enough memory!\n");
                         free (rect);
                         return FALSE;
                     }
@@ -6106,7 +6105,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
                     (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
 
                 if (!pCtrl->mask_rects) {
-                    _WRN_PRINTF ("No enough memory!");
+                    _WRN_PRINTF ("No enough memory!\n");
                     return FALSE;
                 }
             }
@@ -6120,7 +6119,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
                         (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
 
                     if (!new_maskrect) {
-                        _WRN_PRINTF ("No enough memory!");
+                        _WRN_PRINTF ("No enough memory!\n");
                         return FALSE;
                     }
                     free (pCtrl->mask_rects);
@@ -6156,7 +6155,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
 
     rect = (RECT4MASK *) calloc(rect_size, sizeof(RECT4MASK));
     if(rect == NULL) {
-        _WRN_PRINTF ("No enough memory!");
+        _WRN_PRINTF ("No enough memory!\n");
         return FALSE;
     }
 

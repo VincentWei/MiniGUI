@@ -177,7 +177,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
          }
 
         if (';' == c) {/* GIF terminator */
-             _WRN_PRINTF ("MYBMP>Gif: no image \n" );
+             _WRN_PRINTF ("MYBMP>Gif: no image\n" );
             goto fini;
          }
         
@@ -442,7 +442,7 @@ LWZReadByte(MG_RWops *src, int flag, int input_code_size , void * info_data)
             while ((count = GetDataBlock(src, buf , info)) > 0);
 
             if (count != 0) {
-                _WRN_PRINTF ("MYBMP>Gif: missing EOD in data stream (common occurence)");
+                _WRN_PRINTF ("MYBMP>Gif: missing EOD in data stream (common occurence)\n");
             }
             return -2;
         }

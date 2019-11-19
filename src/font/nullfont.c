@@ -166,7 +166,7 @@ static void* load_font_data (DEVFONT* devfont, const char* fontname,
 static void unload_font_data (DEVFONT* devfont, void* data)
 {
     if (data != &null_bitmap) {
-        _WRN_PRINTF("data is not null_bitmap");
+        _WRN_PRINTF("data is not null_bitmap\n");
     }
 }
 

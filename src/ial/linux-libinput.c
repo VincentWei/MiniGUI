@@ -1316,7 +1316,7 @@ static void update_default_device(void)
     }
 
     if (!default_seat_found) {
-        _WRN_PRINTF("no default seat found for seat_id: %s", my_ctxt.seat_id);
+        _WRN_PRINTF("no default seat found for seat_id: %s\n", my_ctxt.seat_id);
     }
 
     my_ctxt.li_fd = libinput_get_fd(my_ctxt.li);
@@ -1400,7 +1400,7 @@ BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
     if (GetMgEtcValue ("libinput", "seat",
             my_ctxt.seat_id, LEN_SEAT_ID) < 0) {
         strcpy(my_ctxt.seat_id, "seat0");
-        _WRN_PRINTF("No libinput.seat defined, use the default 'seat0'");
+        _WRN_PRINTF("No libinput.seat defined, use the default 'seat0'\n");
     }
 
     if (libinput_udev_assign_seat(my_ctxt.li, my_ctxt.seat_id))

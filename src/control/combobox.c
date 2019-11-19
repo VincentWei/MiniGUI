@@ -364,7 +364,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             DWORD list_style, edit_style;
 
             if (!(pData = calloc (1, sizeof (COMBOBOXDATA)))) {
-                _WRN_PRINTF ("Create control failure!");
+                _ERR_PRINTF ("CONTROL>COMBOBOX: failed to allocate memory to create control instance!\n");
                 return -1;
             }
 

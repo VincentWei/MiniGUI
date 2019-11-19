@@ -185,15 +185,15 @@ static int init_sbdata (HWND hwnd, PSCROLLBARDATA pdata, RECT * scRect)
     DWORD win_style = GetWindowStyle (hwnd);
 
     if (!GetWindowRect (hwnd, scRect)) {
-        _WRN_PRINTF ("ScrollBar Rect error!");
+        _ERR_PRINTF ("CONTROL>SCROLLBAR: internal error!\n");
         return -1;
     }
 
-    if ((win_style & SBS_NOSHAFT) && (win_style & SBS_NOARROW))
-    {
-        _WRN_PRINTF ("ScrollBar styles error!");
+    if ((win_style & SBS_NOSHAFT) && (win_style & SBS_NOARROW)) {
+        _ERR_PRINTF ("CONTROL>SCROLLBAR: wrong styles of scrollbar!\n");
         return -1;
     }
+
     if (!(win_style & SBS_HORZ))
         win_style |= SBS_VERT;
 
@@ -294,14 +294,12 @@ int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
     int mouse_pos;
     const WINDOWINFO* winfo;
 
-    if (!data)
-    {
-        _WRN_PRINTF ("addtional data2 is NULL");
+    if (!data) {
+        _ERR_PRINTF ("CONTROL>SCROLLBAR: addtional data2 is NULL\n");
         return -1;
     }
 
-    if (data->status & SBS_PRESSED_THUMB)
-    {
+    if (data->status & SBS_PRESSED_THUMB) {
         winfo = GetWindowInfo(hwnd);
 
         thumb_move_range = get_shaft_len (hwnd) - data->barLen;
@@ -375,16 +373,14 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 /* create the main data construction for the control */
                 if (!(data = (PSCROLLBARDATA) malloc (sizeof (SCROLLBARDATA))))
                 {
-                    _WRN_PRINTF ("Create ScrollBar control failure!");
+                    _ERR_PRINTF ("CONTROL>SCROLLBAR: failed to allocate memroy to create ScrollBar control!\n");
                     return -1;
                 }
                 memset (data, 0 , sizeof (SCROLLBARDATA));
 
                 /* initialization */
-                if(0 != init_sbdata(hwnd, data, &rc))
-                {
+                if(0 != init_sbdata(hwnd, data, &rc)) {
                     free(data);
-                    _WRN_PRINTF ("Create ScrollBar control failure!");
                     return -1;
                 }
 
@@ -413,9 +409,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
-                if (!data)
-                {
-                    _WRN_PRINTF ("addition data2 is NULL");
+                if (!data) {
                     return 1;
                 }
 
@@ -1088,11 +1082,8 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 new_nMax  = data->maxPos;
                 new_nPage = data->pageStep;
 
-                if (info->fMask & SIF_RANGE)
-                {
-                    if (info->nMax < info->nMin)
-                    {
-                        _WRN_PRINTF ( "Error range");
+                if (info->fMask & SIF_RANGE) {
+                    if (info->nMax < info->nMin) {
                         return -1;
                     }
                     new_nMin = info->nMin;
@@ -1102,9 +1093,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if (info->fMask & SIF_PAGE)
                 {
                     if (info->nPage > new_nMax - new_nMin + 1
-                        || info->nPage <= 0)
-                    {
-                        _WRN_PRINTF ( "Error page step");
+                        || info->nPage <= 0) {
                         return -1;
                     }
                     new_nPage = info->nPage;
@@ -1123,7 +1112,6 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     if (info->nPos < new_nMin ||
                         info->nPos > new_nMax)
                     {
-                        _WRN_PRINTF ( "Error postion to set");
                         return -1;
                     }
                     new_nPos = info->nPos;
@@ -1180,9 +1168,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 int max = (int) lParam;
                 data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
-                if(max < data->curPos || min > data->curPos)
-                {
-                    _WRN_PRINTF ( "Error range to set");
+                if(max < data->curPos || min > data->curPos) {
                     return -1;
                 }
                 data->minPos = min;
@@ -1209,9 +1195,7 @@ static LRESULT ScrollBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 int max = (int) lParam;
                 data = (PSCROLLBARDATA) GetWindowAdditionalData2 (hwnd);
 
-                if(max < data->curPos || min > data->curPos)
-                {
-                    _WRN_PRINTF ( "Error range to set");
+                if(max < data->curPos || min > data->curPos) {
                     return -1;
                 }
                 data->minPos = min;

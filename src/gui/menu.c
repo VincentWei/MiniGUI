@@ -1380,7 +1380,7 @@ static void mnuDrawMenuBarItem (HWND hwnd, HDC hdc, PMENUITEM pmi,
         return;
 
     if (!pWin->we_rdr) {
-        _WRN_PRINTF ("LFRDR is NULL for window: %p", pWin);
+        _WRN_PRINTF ("LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 
@@ -2021,7 +2021,7 @@ static int mnuDrawMenuPic (HWND hwnd, HDC hdc, RECT* rect,
     if (NULL == pWin) return -1;
 
     if (!pWin->we_rdr) {
-        _WRN_PRINTF ("LFRDR is NULL for window: %p", pWin);
+        _WRN_PRINTF ("LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
 
@@ -2266,7 +2266,7 @@ static void draw_bottom_scroll_button(PTRACKMENUINFO ptmi)
     if (NULL == pWin) return;
 
     if (!pWin->we_rdr) {
-        _WRN_PRINTF ("LFRDR is NULL for window: %p", pWin);
+        _WRN_PRINTF ("LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 
@@ -2306,7 +2306,7 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
     if (NULL == pWin) return -1;
 
     if (!pWin->we_rdr) {
-        _WRN_PRINTF ("LFRDR is NULL for window: %p", pWin);
+        _WRN_PRINTF ("LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
 
@@ -2626,7 +2626,7 @@ static void draw_top_scroll_button(PTRACKMENUINFO ptmi)
     if (NULL == pWin) return;
 
     if (!pWin->we_rdr) {
-        _WRN_PRINTF ("LFRDR is NULL for window: %p", pWin);
+        _WRN_PRINTF ("LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 
@@ -2669,7 +2669,7 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
     if (NULL == pWin) return -1;
 
     if (!pWin->we_rdr) {
-        _WRN_PRINTF ("LFRDR is NULL for window: %p", pWin);
+        _WRN_PRINTF ("LFRDR is NULL for window: %p\n", pWin);
         return -1;
     }
 
@@ -3099,7 +3099,7 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
     if (NULL == pWin) return;
 
     if (!pWin->we_rdr) {
-        _WRN_PRINTF ("LFRDR is NULL for window: %p", pWin);
+        _WRN_PRINTF ("LFRDR is NULL for window: %p\n", pWin);
         return;
     }
 

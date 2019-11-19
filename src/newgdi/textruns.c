@@ -466,7 +466,7 @@ TEXTRUNS* GUIAPI CreateTextRuns(const Uchar32* ucs, int nr_ucs,
     }
 
     if (!is_fontname_conformed(logfont_name)) {
-        _WRN_PRINTF("Please check your fontname; it must in Unicode charset.");
+        _WRN_PRINTF("Please check your fontname; it must be in Unicode charset.\n");
         return NULL;
     }
 
