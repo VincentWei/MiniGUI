@@ -186,7 +186,7 @@ typedef struct _DriDriverOps {
      * with the specified pixel format, width, and height. If succeed,
      * a valid DriSurfaceBuffer object will be returned; NULL on error.
      *
-     * \note The driver must implement this operation.
+     * \note This operation can be NULL.
      */
     DriSurfaceBuffer* (* create_buffer_from_handle) (DriDriver *driver,
             uint32_t handle, unsigned long size, uint32_t drm_format,
@@ -197,10 +197,21 @@ typedef struct _DriDriverOps {
      * with the specified pixel format, width, and height. If succeed,
      * a valid DriSurfaceBuffer object will be returned; NULL on error.
      *
-     * \note The driver must implement this operation.
+     * \note This operation can be NULL.
      */
     DriSurfaceBuffer* (* create_buffer_from_name) (DriDriver *driver,
             uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, unsigned int pitch);
+
+    /**
+     * This operation creates a buffer for the given PRIME file descriptor
+     * with the specified pixel format, width, height, and pitch. If succeed,
+     * a valid DriSurfaceBuffer object will be returned; NULL on error.
+     *
+     * \note This operation can be NULL.
+     */
+    DriSurfaceBuffer* (* create_buffer_from_prime_fd) (DriDriver *driver,
+            int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, unsigned int pitch);
 
     /**
