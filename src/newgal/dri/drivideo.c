@@ -295,7 +295,7 @@ static int open_drm_device(GAL_VideoDevice *device)
     device->hidden->dev_fd = device_fd;
     device->hidden->driver = device->hidden->driver_ops->create_driver(device_fd);
     if (device->hidden->driver == NULL) {
-        _WRN_PRINTF("NEWGAL>DRM: failed to create DRM driver");
+        _WRN_PRINTF("NEWGAL>DRM: failed to create DRM driver\n");
         device->hidden->driver_ops = NULL;
     }
 
@@ -325,7 +325,7 @@ static GAL_VideoDevice *DRI_CreateDevice(int devindex)
     if (GetMgEtcValue ("dri", "device",
             device->hidden->dev_name, LEN_DEVICE_NAME) < 0) {
         strcpy(device->hidden->dev_name, "/dev/dri/card0");
-        _WRN_PRINTF("NEWGAL>DRM: No dri.device defined, use the default '/dev/dri/card0'");
+        _WRN_PRINTF("NEWGAL>DRM: No dri.device defined, use the default '/dev/dri/card0'\n");
     }
 
     device->hidden->dev_fd = -1;
@@ -1703,6 +1703,11 @@ GAL_Surface* __dri_create_surface_from_name (GHANDLE video,
         return NULL;
     }
 
+    if (vdata->driver_ops->create_buffer_from_name == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: not implemented method: create_buffer_from_name!\n");
+        return NULL;
+    }
+
     depth = translate_drm_format(drm_format, RGBAmasks);
     if (depth == 0) {
         _ERR_PRINTF("NEWGAL>DRM: not supported drm format: %u\n",
@@ -1713,6 +1718,7 @@ GAL_Surface* __dri_create_surface_from_name (GHANDLE video,
     surface_buffer = vdata->driver_ops->create_buffer_from_name(vdata->driver,
             name, drm_format, width, height, pitch);
     if (surface_buffer == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name failed!\n");
         return NULL;
     }
     /* not a foreign surface */
@@ -1792,6 +1798,106 @@ GAL_Surface* __dri_create_surface_from_handle (GHANDLE video,
         return NULL;
     }
 
+    if (vdata->driver_ops->create_buffer_from_handle == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: not implemented method: create_buffer_from_handle!\n");
+        return NULL;
+    }
+
+    depth = translate_drm_format (drm_format, RGBAmasks);
+    if (depth == 0) {
+        _ERR_PRINTF ("NEWGAL>DRM: not supported drm format: %u\n",
+            drm_format);
+        return NULL;
+    }
+
+    surface_buffer = vdata->driver_ops->create_buffer_from_handle (vdata->driver,
+            handle, size, drm_format, width, height, pitch);
+    if (surface_buffer == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_handle failed!\n");
+        return NULL;
+    }
+    /* this is a foreign surface */
+    surface_buffer->foreign = 1;
+
+    if (vdata->driver_ops->map_buffer (vdata->driver, surface_buffer) == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
+        goto error;
+    }
+
+    /* Allocate the surface */
+    surface = (GAL_Surface *)malloc (sizeof(*surface));
+    if (surface == NULL) {
+        goto error;
+    }
+
+    /* Allocate the format */
+    surface->format = GAL_AllocFormat (depth, RGBAmasks[0], RGBAmasks[1],
+                RGBAmasks[2], RGBAmasks[3]);
+    if (surface->format == NULL) {
+        goto error;
+        return(NULL);
+    }
+
+    /* Allocate an empty mapping */
+    surface->map = GAL_AllocBlitMap ();
+    if (surface->map == NULL) {
+        goto error;
+    }
+
+    surface->format_version = 0;
+    surface->video = this;
+    surface->flags = GAL_HWSURFACE;
+    surface->dpi = GDCAP_DPI_DEFAULT;
+    surface->w = width;
+    surface->h = height;
+    surface->pitch = pitch;
+    surface->offset = 0;
+    surface->pixels = surface_buffer->pixels;
+    surface->hwdata = (struct private_hwdata *)surface_buffer;
+
+    /* The surface is ready to go */
+    surface->refcount = 1;
+
+    GAL_SetClipRect(surface, NULL);
+
+#ifdef _MGUSE_SYNC_UPDATE
+    /* Initialize update region */
+    InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
+#endif
+
+    return(surface);
+
+error:
+    if (surface)
+        GAL_FreeSurface(surface);
+
+    if (surface_buffer)
+        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+
+    return NULL;
+}
+
+/* called by driCreateDCFromPrimeFd */
+GAL_Surface* __dri_create_surface_from_prime_fd (GHANDLE video,
+            int prime_fd, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch)
+{
+    GAL_VideoDevice *this = (GAL_VideoDevice *)video;
+    DriVideoData* vdata = this->hidden;
+    DriSurfaceBuffer* surface_buffer;
+    GAL_Surface* surface = NULL;
+    Uint32 RGBAmasks[4];
+    int depth;
+
+    if (this && this->VideoInit != DRI_VideoInit) {
+        return NULL;
+    }
+
+    if (vdata->driver_ops->create_buffer_from_prime_fd == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: not implemented method: create_buffer_from_prime_fd.\n");
+        return NULL;
+    }
+
     depth = translate_drm_format(drm_format, RGBAmasks);
     if (depth == 0) {
         _ERR_PRINTF("NEWGAL>DRM: not supported drm format: %u\n",
@@ -1799,15 +1905,16 @@ GAL_Surface* __dri_create_surface_from_handle (GHANDLE video,
         return NULL;
     }
 
-    surface_buffer = vdata->driver_ops->create_buffer_from_handle(vdata->driver,
-            handle, size, drm_format, width, height, pitch);
+    surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd (vdata->driver,
+            prime_fd, size, drm_format, width, height, pitch);
     if (surface_buffer == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_prime_fd failed!\n");
         return NULL;
     }
-    /* this is a foreign surface */
+    /* not a foreign surface */
     surface_buffer->foreign = 1;
 
-    if (vdata->driver_ops->map_buffer(vdata->driver, surface_buffer) == NULL) {
+    if (vdata->driver_ops->map_buffer (vdata->driver, surface_buffer) == NULL) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
         goto error;
     }
