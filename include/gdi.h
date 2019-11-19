@@ -13735,10 +13735,10 @@ MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE video, HDC hdc, DriSurfaceInfo* info);
 
 /**
  * This function creates a memory DC with a DRI surface which is created by
- * a foreign process.
+ * a foreign process and identified by a global name handle.
  *
  * \param video The video handle.
- * \param name The name of the DRI surface.
+ * \param name The name handle of the DRI surface.
  * \param drm_format The DRM pixel format.
  * \param width The width of the DRI surface.
  * \param height The height of the DRI surface.
@@ -13748,6 +13748,24 @@ MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE video, HDC hdc, DriSurfaceInfo* info);
  */
 MG_EXPORT HDC driCreateDCFromName (GHANDLE video,
             uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+/**
+ * This function creates a memory DC with a DRI surface which is created by
+ * a foreign process and identified by a PRIME file descriptor.
+ *
+ * \param video The video handle.
+ * \param prime_fd The PRIME file descriptor.
+ * \param size The size of the DRI surface in bytes.
+ * \param drm_format The DRM pixel format.
+ * \param width The width of the DRI surface.
+ * \param height The height of the DRI surface.
+ * \param pitch The pitch (row stride) of the DRI surface.
+ *
+ * \return The handle to the memory DC for success, HDC_INVALID for failure.
+ */
+MG_EXPORT HDC driCreateDCFromPrimeFd (GHANDLE video,
+            int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch);
 
 /**
