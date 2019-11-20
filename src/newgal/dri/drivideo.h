@@ -63,6 +63,7 @@ typedef struct GAL_PrivateVideoData {
     char            dev_name[LEN_DEVICE_NAME + 1];
     int             dev_fd;
 
+    void*           exdrv_handle;
     DriDriverOps*   driver_ops;
     DriDriver*      driver;
 
