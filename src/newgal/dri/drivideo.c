@@ -52,6 +52,7 @@
 
 #ifdef _MGGAL_DRI
 
+#include <dlfcn.h>
 #include <sys/mman.h>
 #include <sys/sysmacros.h>
 #include <sys/types.h>
@@ -195,6 +196,8 @@ static void drm_cleanup(DriVideoData* vdata)
         /* free allocated memory */
         free(iter);
     }
+
+    close (vdata->dev_fd);
 }
 
 static void DRI_DeleteDevice(GAL_VideoDevice *device)
@@ -204,6 +207,9 @@ static void DRI_DeleteDevice(GAL_VideoDevice *device)
     if (device->hidden->driver && device->hidden->driver_ops) {
         device->hidden->driver_ops->destroy_driver(device->hidden->driver);
     }
+
+    if (device->hidden->exdrv_handle)
+        dlclose(device->hidden->exdrv_handle);
 
     free(device->hidden);
     free(device);
@@ -254,6 +260,45 @@ static char* find_driver_for_device (const char *dev_name)
     return strdup (driver + strlen ("/"));
 }
 
+#define LEN_DRIVER_FILENAME     255
+
+static DriDriverOps* load_external_driver (DriVideoData* vdata,
+        const char* driver_name, int device_fd)
+{
+    const char* filename = NULL;
+    char buff[LEN_DRIVER_FILENAME + 1];
+    DriDriverOps* (*get_exdrv) (const char* driver_name, int device_fd);
+    char* error;
+
+    filename = getenv ("MG_GAL_DRI_DRIVER");
+    if (filename == NULL) {
+        memset (buff, 0, sizeof (buff));
+        if (GetMgEtcValue ("dri", "exdriver", buff, LEN_DRIVER_FILENAME) < 0)
+            return NULL;
+
+        filename = buff;
+    }
+
+    vdata->exdrv_handle = dlopen (filename, RTLD_LAZY);
+    if (!vdata->exdrv_handle) {
+        _WRN_PRINTF("Failed to open specified external DRI driver: %s (%s)\n",
+                filename, dlerror());
+        return NULL;
+    }
+
+    dlerror();    /* Clear any existing error */
+    get_exdrv = dlsym (vdata->exdrv_handle, "__dri_ex_driver_get");
+    error = dlerror();
+    if (error) {
+        _WRN_PRINTF("Failed to get symbol: %s\n", error);
+        dlclose (vdata->exdrv_handle);
+        vdata->exdrv_handle = NULL;
+        return NULL;
+    }
+
+    return get_exdrv (driver_name, device_fd);
+}
+
 static int open_drm_device(GAL_VideoDevice *device)
 {
     char *driver_name;
@@ -270,9 +315,9 @@ static int open_drm_device(GAL_VideoDevice *device)
         return -errno;
     }
 
-#ifdef __TARGET_EXTERNAL__
-    device->hidden->driver_ops = __dri_ex_driver_get(driver_name);
-#endif
+    device->hidden->driver_ops = load_external_driver (device->hidden,
+            driver_name, device_fd);
+
     free (driver_name);
 
     if (device->hidden->driver_ops == NULL) {
