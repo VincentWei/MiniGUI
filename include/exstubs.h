@@ -62,6 +62,8 @@
 #ifndef GUI_EXSTUBS_H
     #define GUI_EXSTUBS_H
 
+#include <stdint.h>
+
     /**
      * \defgroup external_stubs External Stubs
      *
@@ -75,8 +77,6 @@ extern "C" {
 #endif  /* __cplusplus */
 
 #ifdef _MGGAL_DRI
-
-#include <stdint.h>
 
     /**
      * \defgroup external_stubs_dri External Stubs for DRI sub driver
@@ -305,7 +305,7 @@ typedef struct _DriDriverOps {
 } DriDriverOps;
 
 /** Implement this stub to return the DRI driver operations */
-DriDriverOps* __dri_ex_driver_get (const char* driver_name);
+DriDriverOps* __dri_ex_driver_get (const char* driver_name, int device_fd);
 
     /** @} end of external_stubs_dri */
 
