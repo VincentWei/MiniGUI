@@ -273,7 +273,7 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
     filename = getenv ("MG_GAL_DRM_DRIVER");
     if (filename == NULL) {
         memset (buff, 0, sizeof (buff));
-        if (GetMgEtcValue ("dri", "exdriver", buff, LEN_DRIVER_FILENAME) < 0)
+        if (GetMgEtcValue ("drm", "exdriver", buff, LEN_DRIVER_FILENAME) < 0)
             return NULL;
 
         filename = buff;
@@ -367,7 +367,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     }
 
     memset(device->hidden, 0, (sizeof (*device->hidden)));
-    if (GetMgEtcValue ("dri", "device",
+    if (GetMgEtcValue ("drm", "device",
             device->hidden->dev_name, LEN_DEVICE_NAME) < 0) {
         strcpy(device->hidden->dev_name, "/dev/dri/card0");
         _WRN_PRINTF("NEWGAL>DRM: No dri.device defined, use the default '/dev/dri/card0'\n");
@@ -859,7 +859,7 @@ static uint32_t get_drm_format_from_etc(int* bpp)
     uint32_t format;
     char fourcc[8] = {};
 
-    if (GetMgEtcValue ("dri", "pixelformat",
+    if (GetMgEtcValue ("drm", "pixelformat",
             fourcc, 4) < 0) {
         return get_def_drm_format(*bpp);
     }
@@ -1697,7 +1697,7 @@ static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
     return 0;
 }
 
-MG_EXPORT int driGetDeviceFD (GHANDLE video)
+MG_EXPORT int drmGetDeviceFD (GHANDLE video)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;
     if (this && this->VideoInit == DRM_VideoInit) {
@@ -1708,7 +1708,7 @@ MG_EXPORT int driGetDeviceFD (GHANDLE video)
     return -1;
 }
 
-/* called by driGetSurfaceInfo */
+/* called by drmGetSurfaceInfo */
 BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
@@ -1732,7 +1732,7 @@ BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info)
     return FALSE;
 }
 
-/* called by driCreateDCFromName */
+/* called by drmCreateDCFromName */
 GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
             uint32_t name, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
@@ -1827,7 +1827,7 @@ error:
     return NULL;
 }
 
-/* called by driCreateDCFromHandle */
+/* called by drmCreateDCFromHandle */
 GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
             uint32_t handle, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
@@ -1922,7 +1922,7 @@ error:
     return NULL;
 }
 
-/* called by driCreateDCFromPrimeFd */
+/* called by drmCreateDCFromPrimeFd */
 GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
             int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
