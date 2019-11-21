@@ -2102,7 +2102,7 @@ PREDEFINED             = _MGRM_STANDALONE \
                          _MGFONT_FT2 \
                          _MGFONT_UPF \
                          _MGFONT_BMPF \
-                         _MGGAL_DRI \
+                         _MGGAL_DRM \
                          _MGGAL_COMMLCD \
                          _MGIAL_COMM
 

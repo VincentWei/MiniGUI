@@ -50,7 +50,7 @@
 #define _DEBUG
 #include "common.h"
 
-#ifdef _MGGAL_DRI
+#ifdef _MGGAL_DRM
 
 #include <dlfcn.h>
 #include <sys/mman.h>
@@ -68,38 +68,38 @@
 #include "exstubs.h"
 
 #include "pixels_c.h"
-#include "drivideo.h"
+#include "drmvideo.h"
 
-#define DRI_DRIVER_NAME "dri"
+#define DRM_DRIVER_NAME "drm"
 
 /* DRM engine methods for both dumb buffer and acclerated buffers */
-static int DRI_VideoInit(_THIS, GAL_PixelFormat *vformat);
-static GAL_Rect **DRI_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags);
-static int DRI_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors);
-static void DRI_VideoQuit(_THIS);
-static int DRI_Suspend(_THIS);
-static int DRI_Resume(_THIS);
+static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat);
+static GAL_Rect **DRM_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags);
+static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors);
+static void DRM_VideoQuit(_THIS);
+static int DRM_Suspend(_THIS);
+static int DRM_Resume(_THIS);
 
 /* DRM engine operators for dumb buffer */
-static GAL_Surface *DRI_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
+static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags);
-static int DRI_AllocHWSurface_Dumb(_THIS, GAL_Surface *surface);
-static void DRI_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface);
+static int DRM_AllocHWSurface_Dumb(_THIS, GAL_Surface *surface);
+static void DRM_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface);
 
 /* DRM engine operators accelerated */
-static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
+static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags);
-static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface);
-static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface);
-static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst);
-static int DRI_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
+static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface);
+static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface);
+static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst);
+static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
         Uint32 color);
-static void DRI_UpdateRects_Accl (_THIS, int numrects, GAL_Rect *rects);
-static int DRI_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
-static int DRI_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
+static void DRM_UpdateRects_Accl (_THIS, int numrects, GAL_Rect *rects);
+static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
+static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
 
 /* DRM driver bootstrap functions */
-static int DRI_Available(void)
+static int DRM_Available(void)
 {
     return drmAvailable();
 }
@@ -136,7 +136,7 @@ struct drm_mode_info {
  * drm_prepare(). It resets the CRTCs to their saved states and deallocates
  * all memory.
  */
-static void drm_cleanup(DriVideoData* vdata)
+static void drm_cleanup(DrmVideoData* vdata)
 {
     if (vdata->saved_crtc) {
         /* restore saved CRTC configuration */
@@ -200,7 +200,7 @@ static void drm_cleanup(DriVideoData* vdata)
     close (vdata->dev_fd);
 }
 
-static void DRI_DeleteDevice(GAL_VideoDevice *device)
+static void DRM_DeleteDevice(GAL_VideoDevice *device)
 {
     drm_cleanup(device->hidden);
 
@@ -262,15 +262,15 @@ static char* find_driver_for_device (const char *dev_name)
 
 #define LEN_DRIVER_FILENAME     255
 
-static DriDriverOps* load_external_driver (DriVideoData* vdata,
+static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
         const char* driver_name, int device_fd)
 {
     const char* filename = NULL;
     char buff[LEN_DRIVER_FILENAME + 1];
-    DriDriverOps* (*get_exdrv) (const char* driver_name, int device_fd);
+    DrmDriverOps* (*get_exdrv) (const char* driver_name, int device_fd);
     char* error;
 
-    filename = getenv ("MG_GAL_DRI_DRIVER");
+    filename = getenv ("MG_GAL_DRM_DRIVER");
     if (filename == NULL) {
         memset (buff, 0, sizeof (buff));
         if (GetMgEtcValue ("dri", "exdriver", buff, LEN_DRIVER_FILENAME) < 0)
@@ -281,13 +281,13 @@ static DriDriverOps* load_external_driver (DriVideoData* vdata,
 
     vdata->exdrv_handle = dlopen (filename, RTLD_LAZY);
     if (!vdata->exdrv_handle) {
-        _WRN_PRINTF("Failed to open specified external DRI driver: %s (%s)\n",
+        _WRN_PRINTF("Failed to open specified external DRM driver: %s (%s)\n",
                 filename, dlerror());
         return NULL;
     }
 
     dlerror();    /* Clear any existing error */
-    get_exdrv = dlsym (vdata->exdrv_handle, "__dri_ex_driver_get");
+    get_exdrv = dlsym (vdata->exdrv_handle, "__drm_ex_driver_get");
     error = dlerror();
     if (error) {
         _WRN_PRINTF("Failed to get symbol: %s\n", error);
@@ -347,7 +347,7 @@ static int open_drm_device(GAL_VideoDevice *device)
     return 0;
 }
 
-static GAL_VideoDevice *DRI_CreateDevice(int devindex)
+static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 {
     GAL_VideoDevice *device;
 
@@ -379,53 +379,53 @@ static GAL_VideoDevice *DRI_CreateDevice(int devindex)
         return NULL;
     }
 
-    device->VideoInit = DRI_VideoInit;
-    device->ListModes = DRI_ListModes;
-    device->SetColors = DRI_SetColors;
-    device->VideoQuit = DRI_VideoQuit;
+    device->VideoInit = DRM_VideoInit;
+    device->ListModes = DRM_ListModes;
+    device->SetColors = DRM_SetColors;
+    device->VideoQuit = DRM_VideoQuit;
     if (device->hidden->driver) {
         /* Use accelerated driver */
-        device->SetVideoMode = DRI_SetVideoMode_Accl;
+        device->SetVideoMode = DRM_SetVideoMode_Accl;
 #ifndef _MGRM_THREADS
         device->RequestHWSurface = NULL;
 #endif
-        device->AllocHWSurface = DRI_AllocHWSurface_Accl;
-        device->FreeHWSurface = DRI_FreeHWSurface_Accl;
-        device->UpdateRects = DRI_UpdateRects_Accl;
+        device->AllocHWSurface = DRM_AllocHWSurface_Accl;
+        device->FreeHWSurface = DRM_FreeHWSurface_Accl;
+        device->UpdateRects = DRM_UpdateRects_Accl;
     }
     else {
         /* Use DUMB buffer */
-        device->SetVideoMode = DRI_SetVideoMode_Dumb;
+        device->SetVideoMode = DRM_SetVideoMode_Dumb;
 #ifndef _MGRM_THREADS
         device->RequestHWSurface = NULL;
 #endif
-        device->AllocHWSurface = DRI_AllocHWSurface_Dumb;
-        device->FreeHWSurface = DRI_FreeHWSurface_Dumb;
+        device->AllocHWSurface = DRM_AllocHWSurface_Dumb;
+        device->FreeHWSurface = DRM_FreeHWSurface_Dumb;
         device->UpdateRects = NULL;
     }
 
-    /* set accelerated methods in DRI_VideoInit */
+    /* set accelerated methods in DRM_VideoInit */
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
     device->SetHWColorKey = NULL;
     device->SetHWAlpha = NULL;
-    device->Suspend = DRI_Suspend;
-    device->Resume = DRI_Resume;
-    device->free = DRI_DeleteDevice;
+    device->Suspend = DRM_Suspend;
+    device->Resume = DRM_Resume;
+    device->free = DRM_DeleteDevice;
 
     return device;
 }
 
-VideoBootStrap DRI_bootstrap = {
-    DRI_DRIVER_NAME, "Linux DRI video driver",
-    DRI_Available, DRI_CreateDevice
+VideoBootStrap DRM_bootstrap = {
+    DRM_DRIVER_NAME, "Linux DRI video driver",
+    DRM_Available, DRM_CreateDevice
 };
 
 /*
  * drm_find_crtc(vdata, res, conn, info):
  * This small helper tries to find a suitable CRTC for the given connector.
  */
-static int drm_find_crtc(DriVideoData* vdata,
+static int drm_find_crtc(DrmVideoData* vdata,
             drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *info)
 {
     drmModeEncoder *enc;
@@ -506,7 +506,7 @@ static int drm_find_crtc(DriVideoData* vdata,
  * drm_setup_connector:
  * Set up a single connector.
  */
-static int drm_setup_connector(DriVideoData* vdata,
+static int drm_setup_connector(DrmVideoData* vdata,
             drmModeRes *res, drmModeConnector *conn, struct drm_mode_info *info)
 {
     int ret;
@@ -547,7 +547,7 @@ static int drm_setup_connector(DriVideoData* vdata,
  * drm_prepare:
  *  Collect the connnectors and mode information.
  */
-static int drm_prepare(DriVideoData* vdata)
+static int drm_prepare(DrmVideoData* vdata)
 {
     drmModeRes *res;
     drmModeConnector *conn;
@@ -604,7 +604,7 @@ static int drm_prepare(DriVideoData* vdata)
 }
 
 /* DRM engine methods for both dumb buffer and acclerated buffers */
-static int DRI_VideoInit(_THIS, GAL_PixelFormat *vformat)
+static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 {
     int n = 0;
     struct drm_mode_info *iter;
@@ -644,15 +644,15 @@ static int DRI_VideoInit(_THIS, GAL_PixelFormat *vformat)
     if (this->hidden->driver) {
         if (this->hidden->driver_ops->clear_buffer) {
             this->info.blit_fill = 1;
-            this->FillHWRect = DRI_FillHWRect_Accl;
+            this->FillHWRect = DRM_FillHWRect_Accl;
         }
         else
             this->FillHWRect = NULL;
 
         if (this->hidden->driver_ops->check_blit) {
-            this->CheckHWBlit = DRI_CheckHWBlit_Accl;
-            this->SetHWColorKey = DRI_SetHWColorKey_Accl;
-            this->SetHWAlpha = DRI_SetHWAlpha_Accl;
+            this->CheckHWBlit = DRM_CheckHWBlit_Accl;
+            this->SetHWColorKey = DRM_SetHWColorKey_Accl;
+            this->SetHWAlpha = DRM_SetHWAlpha_Accl;
 
             this->info.blit_hw = 1;
             if (this->hidden->driver_ops->alpha_blit)
@@ -671,7 +671,7 @@ static int DRI_VideoInit(_THIS, GAL_PixelFormat *vformat)
     return(0);
 }
 
-static GAL_Rect **DRI_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
+static GAL_Rect **DRM_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
 {
     if (format->BitsPerPixel != 32) {
         return NULL;
@@ -680,22 +680,22 @@ static GAL_Rect **DRI_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
     return this->hidden->modes;
 }
 
-static int DRI_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
+static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
 {
     /* do nothing of note. */
     return(1);
 }
 
-static void DRI_VideoQuit(_THIS)
+static void DRM_VideoQuit(_THIS)
 {
     if (this->screen->pixels != NULL) {
         this->screen->pixels = NULL;
     }
 }
 
-static int DRI_Resume(_THIS)
+static int DRM_Resume(_THIS)
 {
-    DriVideoData* vdata = this->hidden;
+    DrmVideoData* vdata = this->hidden;
     int ret = -1;
 
     _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
@@ -718,9 +718,9 @@ static int DRI_Resume(_THIS)
     return ret;
 }
 
-static int DRI_Suspend(_THIS)
+static int DRM_Suspend(_THIS)
 {
-    DriVideoData* vdata = this->hidden;
+    DrmVideoData* vdata = this->hidden;
     int ret = -1;
 
     _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
@@ -751,7 +751,7 @@ static int DRI_Suspend(_THIS)
  * Call this function to create a so called "dumb buffer".
  * We can use it for unaccelerated software rendering on the CPU.
  */
-static int drm_create_dumb_fb(DriVideoData* vdata, const DrmModeInfo* info,
+static int drm_create_dumb_fb(DrmVideoData* vdata, const DrmModeInfo* info,
         uint32_t format, int bpp)
 {
     struct drm_mode_create_dumb creq;
@@ -824,7 +824,7 @@ err_destroy:
     return ret;
 }
 
-static DrmModeInfo* find_mode(DriVideoData* vdata, int width, int height)
+static DrmModeInfo* find_mode(DrmVideoData* vdata, int width, int height)
 {
     DrmModeInfo *iter;
 
@@ -1327,11 +1327,11 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
 }
 
 /* DRM engine methods for dumb buffers */
-static GAL_Surface *DRI_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
+static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
     uint32_t drm_format;
-    DriVideoData* vdata = this->hidden;
+    DrmVideoData* vdata = this->hidden;
     DrmModeInfo* info;
     Uint32 RGBAmasks[4];
     int ret;
@@ -1402,25 +1402,25 @@ static GAL_Surface *DRI_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
     return(current);
 }
 
-static int DRI_AllocHWSurface_Dumb(_THIS, GAL_Surface *surface)
+static int DRM_AllocHWSurface_Dumb(_THIS, GAL_Surface *surface)
 {
     return(-1);
 }
 
-static void DRI_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface)
+static void DRM_FreeHWSurface_Dumb(_THIS, GAL_Surface *surface)
 {
     surface->pixels = NULL;
 }
 
 /* DRM engine methods for accelerated buffers */
-static GAL_Surface *DRI_SetVideoMode_Accl(_THIS, GAL_Surface *current,
+static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags)
 {
-    DriVideoData* vdata = this->hidden;
+    DrmVideoData* vdata = this->hidden;
     DrmModeInfo* info;
     uint32_t drm_format;
     Uint32 RGBAmasks[4];
-    DriSurfaceBuffer* scanout_buff = NULL;
+    DrmSurfaceBuffer* scanout_buff = NULL;
 
     drm_format = get_drm_format_from_etc(&bpp);
     if (drm_format == 0) {
@@ -1534,11 +1534,11 @@ error:
     return NULL;
 }
 
-static int DRI_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
+static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
 {
-    DriVideoData* vdata = this->hidden;
+    DrmVideoData* vdata = this->hidden;
     uint32_t drm_format;
-    DriSurfaceBuffer* surface_buffer;
+    DrmSurfaceBuffer* surface_buffer;
 
     drm_format = translate_gal_format(surface->format);
     if (drm_format == 0) {
@@ -1574,12 +1574,12 @@ error:
     return -1;
 }
 
-static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
+static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
 {
-    DriVideoData* vdata = this->hidden;
-    DriSurfaceBuffer* surface_buffer;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer* surface_buffer;
 
-    surface_buffer = (DriSurfaceBuffer*)surface->hwdata;
+    surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
         if (surface_buffer->pixels)
             vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
@@ -1590,15 +1590,15 @@ static void DRI_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
     surface->hwdata = NULL;
 }
 
-static int DRI_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
+static int DRM_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
                        GAL_Surface *dst, GAL_Rect *dst_rc)
 {
     GAL_VideoDevice *this = __mg_current_video;
-    DriVideoData* vdata = this->hidden;
-    DriSurfaceBuffer *src_buf, *dst_buf;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer *src_buf, *dst_buf;
 
-    src_buf = (DriSurfaceBuffer*)src->hwdata;
-    dst_buf = (DriSurfaceBuffer*)dst->hwdata;
+    src_buf = (DrmSurfaceBuffer*)src->hwdata;
+    dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
 
     if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
             (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
@@ -1624,14 +1624,14 @@ static int DRI_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
     return 0;
 }
 
-static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
+static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
 {
-    DriVideoData* vdata = this->hidden;
-    DriSurfaceBuffer *src_buf, *dst_buf;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer *src_buf, *dst_buf;
     int accelerated;
 
-    src_buf = (DriSurfaceBuffer*)src->hwdata;
-    dst_buf = (DriSurfaceBuffer*)dst->hwdata;
+    src_buf = (DrmSurfaceBuffer*)src->hwdata;
+    dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
 
     /* Set initial acceleration on */
     src->flags |= GAL_HWACCEL;
@@ -1658,7 +1658,7 @@ static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
     accelerated = !!(src->flags & GAL_HWACCEL);
     if (accelerated &&
             vdata->driver_ops->check_blit(vdata->driver, src_buf, dst_buf) == 0) {
-        src->map->hw_blit = DRI_HWBlit;
+        src->map->hw_blit = DRM_HWBlit;
     }
     else {
         src->map->hw_blit = NULL;
@@ -1669,30 +1669,30 @@ static int DRI_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
     return accelerated;
 }
 
-static int DRI_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
+static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
         Uint32 color)
 {
-    DriVideoData* vdata = this->hidden;
-    DriSurfaceBuffer *dst_buf;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer *dst_buf;
 
-    dst_buf = (DriSurfaceBuffer*)dst->hwdata;
+    dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
     return vdata->driver_ops->clear_buffer(vdata->driver, dst_buf, rect, color);
 }
 
-static void DRI_UpdateRects_Accl (_THIS, int numrects, GAL_Rect *rects)
+static void DRM_UpdateRects_Accl (_THIS, int numrects, GAL_Rect *rects)
 {
-    DriVideoData* vdata = this->hidden;
+    DrmVideoData* vdata = this->hidden;
 
     if (vdata->driver_ops->flush_driver)
         vdata->driver_ops->flush_driver(vdata->driver);
 }
 
-static int DRI_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
+static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
 {
     return 0;
 }
 
-static int DRI_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
+static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
 {
     return 0;
 }
@@ -1700,8 +1700,8 @@ static int DRI_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
 MG_EXPORT int driGetDeviceFD (GHANDLE video)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;
-    if (this && this->VideoInit == DRI_VideoInit) {
-        DriVideoData* vdata = this->hidden;
+    if (this && this->VideoInit == DRM_VideoInit) {
+        DrmVideoData* vdata = this->hidden;
         return vdata->dev_fd;
     }
 
@@ -1709,13 +1709,13 @@ MG_EXPORT int driGetDeviceFD (GHANDLE video)
 }
 
 /* called by driGetSurfaceInfo */
-BOOL __dri_get_surface_info (GAL_Surface *surface, DriSurfaceInfo* info)
+BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
-    if (this && this->VideoInit == DRI_VideoInit &&
+    if (this && this->VideoInit == DRM_VideoInit &&
             (surface->flags & GAL_HWSURFACE)) {
-        DriSurfaceBuffer* surface_buffer = (DriSurfaceBuffer*)surface->hwdata;
+        DrmSurfaceBuffer* surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
 
         if (surface_buffer) {
             info->handle = surface_buffer->handle;
@@ -1733,18 +1733,18 @@ BOOL __dri_get_surface_info (GAL_Surface *surface, DriSurfaceInfo* info)
 }
 
 /* called by driCreateDCFromName */
-GAL_Surface* __dri_create_surface_from_name (GHANDLE video,
+GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
             uint32_t name, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;
-    DriVideoData* vdata = this->hidden;
-    DriSurfaceBuffer* surface_buffer;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer* surface_buffer;
     GAL_Surface* surface = NULL;
     Uint32 RGBAmasks[4];
     int depth;
 
-    if (this && this->VideoInit != DRI_VideoInit) {
+    if (this && this->VideoInit != DRM_VideoInit) {
         return NULL;
     }
 
@@ -1828,18 +1828,18 @@ error:
 }
 
 /* called by driCreateDCFromHandle */
-GAL_Surface* __dri_create_surface_from_handle (GHANDLE video,
+GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
             uint32_t handle, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;
-    DriVideoData* vdata = this->hidden;
-    DriSurfaceBuffer* surface_buffer;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer* surface_buffer;
     GAL_Surface* surface = NULL;
     Uint32 RGBAmasks[4];
     int depth;
 
-    if (this && this->VideoInit != DRI_VideoInit) {
+    if (this && this->VideoInit != DRM_VideoInit) {
         return NULL;
     }
 
@@ -1923,18 +1923,18 @@ error:
 }
 
 /* called by driCreateDCFromPrimeFd */
-GAL_Surface* __dri_create_surface_from_prime_fd (GHANDLE video,
+GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
             int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;
-    DriVideoData* vdata = this->hidden;
-    DriSurfaceBuffer* surface_buffer;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer* surface_buffer;
     GAL_Surface* surface = NULL;
     Uint32 RGBAmasks[4];
     int depth;
 
-    if (this && this->VideoInit != DRI_VideoInit) {
+    if (this && this->VideoInit != DRM_VideoInit) {
         return NULL;
     }
 
@@ -2017,5 +2017,5 @@ error:
     return NULL;
 }
 
-#endif /* _MGGAL_DRI */
+#endif /* _MGGAL_DRM */
 

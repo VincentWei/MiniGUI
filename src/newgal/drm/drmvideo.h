@@ -64,8 +64,8 @@ typedef struct GAL_PrivateVideoData {
     int             dev_fd;
 
     void*           exdrv_handle;
-    DriDriverOps*   driver_ops;
-    DriDriver*      driver;
+    DrmDriverOps*   driver_ops;
+    DrmDriver*      driver;
 
     DrmModeInfo*    mode_list;
     GAL_Rect**      modes;
@@ -87,7 +87,7 @@ typedef struct GAL_PrivateVideoData {
 
     /* only valid when using DRM driver */
     uint32_t        console_buff_id;
-} DriVideoData;
+} DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */
 

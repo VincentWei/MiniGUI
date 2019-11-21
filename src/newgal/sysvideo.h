@@ -328,8 +328,8 @@ extern VideoBootStrap STGFB_bootstrap;
 #ifdef _MGGAL_USVFB
 extern VideoBootStrap USVFB_bootstrap;
 #endif
-#ifdef _MGGAL_DRI
-extern VideoBootStrap DRI_bootstrap;
+#ifdef _MGGAL_DRM
+extern VideoBootStrap DRM_bootstrap;
 #endif
 
 /* This is the current video device */

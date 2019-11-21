@@ -3749,26 +3749,26 @@ MG_EXPORT GHANDLE GetVideoHandle (HDC hdc)
     return (GHANDLE)pdc->surface->video;
 }
 
-#ifdef _MGGAL_DRI
+#ifdef _MGGAL_DRM
 
 /* implemented in DRI engine. */
-BOOL __dri_get_surface_info (GAL_Surface *surface, DriSurfaceInfo* info);
+BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
 
-MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE video, HDC hdc, DriSurfaceInfo* info)
+MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
 {
     PDC pdc = dc_HDC2PDC (hdc);
     if (pdc->surface->video != (GHANDLE)video)
         return FALSE;
 
-    return __dri_get_surface_info(pdc->surface, info);
+    return __drm_get_surface_info(pdc->surface, info);
 }
 
 /* implemented in DRI engine. */
-GAL_Surface* __dri_create_surface_from_name (GHANDLE video,
+GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
             uint32_t name, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch);
 
-MG_EXPORT HDC driCreateDCFromName (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
             uint32_t name, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
 {
@@ -3779,7 +3779,7 @@ MG_EXPORT HDC driCreateDCFromName (GHANDLE video,
         return HDC_INVALID;
 
     LOCK (&__mg_gdilock);
-    surface = __dri_create_surface_from_name (video, name,
+    surface = __drm_create_surface_from_name (video, name,
                 drm_format, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
@@ -3817,11 +3817,11 @@ MG_EXPORT HDC driCreateDCFromName (GHANDLE video,
 }
 
 /* implemented in DRI engine. */
-GAL_Surface* __dri_create_surface_from_handle (GHANDLE video,
+GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
             uint32_t handle, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch);
 
-MG_EXPORT HDC driCreateDCFromHandle (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
             uint32_t handle, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
 {
@@ -3832,7 +3832,7 @@ MG_EXPORT HDC driCreateDCFromHandle (GHANDLE video,
         return HDC_INVALID;
 
     LOCK (&__mg_gdilock);
-    surface = __dri_create_surface_from_handle (video, handle, size,
+    surface = __drm_create_surface_from_handle (video, handle, size,
                 drm_format, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
@@ -3870,11 +3870,11 @@ MG_EXPORT HDC driCreateDCFromHandle (GHANDLE video,
 }
 
 /* implemented in DRI engine. */
-GAL_Surface* __dri_create_surface_from_prime_fd (GHANDLE video,
+GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
             int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch);
 
-MG_EXPORT HDC driCreateDCFromPrimeFd (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
             int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
 {
@@ -3885,7 +3885,7 @@ MG_EXPORT HDC driCreateDCFromPrimeFd (GHANDLE video,
         return HDC_INVALID;
 
     LOCK (&__mg_gdilock);
-    surface =__dri_create_surface_from_prime_fd (video, prime_fd, size,
+    surface =__drm_create_surface_from_prime_fd (video, prime_fd, size,
                 drm_format, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 

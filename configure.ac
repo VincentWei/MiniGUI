@@ -264,7 +264,7 @@ enable_video_dfb="no"
 enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
 
-enable_video_dri="yes"
+enable_video_drm="yes"
 enable_video_fbcon="no"
 enable_video_commlcd="no"
 enable_video_shadow="no"
@@ -886,24 +886,24 @@ dnl Find the DRM includes
 CheckDRM()
 {
     if test "x$runtime_mode" = "xprocs"; then
-        enable_video_dri="no; DRI engine does not support MiniGUI-Processes runtime mode currently"
+        enable_video_drm="no; DRI engine does not support MiniGUI-Processes runtime mode currently"
     else
-        AC_ARG_ENABLE(videodri,
-    [  --enable-videodri      include Linux DRI NEWGAL engine <default=yes>],
-        enable_video_dri=$enableval)
-        if test "x$enable_video_dri" = "xyes"; then
-            PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_dri="yes",
-                video_dri="no; Linux DRI NEWGAL engine requires libdrm 2.4+")
-            if test "x$video_dri" = "xyes"; then
-                AC_DEFINE(_MGGAL_DRI, 1,
+        AC_ARG_ENABLE(videodrm,
+    [  --enable-videodrm      include Linux DRI NEWGAL engine <default=yes>],
+        enable_video_drm=$enableval)
+        if test "x$enable_video_drm" = "xyes"; then
+            PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
+                video_drm="no; Linux DRI NEWGAL engine requires libdrm 2.4+")
+            if test "x$video_drm" = "xyes"; then
+                AC_DEFINE(_MGGAL_DRM, 1,
                     [Define if include Linux DRI NEWGAL engine])
-                VIDEO_SUBDIRS="$VIDEO_SUBDIRS dri"
-                VIDEO_DRIVERS="$VIDEO_DRIVERS dri/libvideo_dri.la"
-                DEP_LIBS="$DEP_LIBS -ldrm"
+                VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
+                VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
+                DEP_LIBS="$DEP_LIBS -ldrm -ldl"
                 DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
                 AC_SUBST(DRM_INC_DIR)
             else
-                AC_MSG_WARN([$video_dri])
+                AC_MSG_WARN([$video_drm])
             fi
         fi
     fi
@@ -2636,7 +2636,7 @@ src/font/Makefile
 src/font/in-core/Makefile
 src/newgal/Makefile
 src/newgal/fbcon/Makefile
-src/newgal/dri/Makefile
+src/newgal/drm/Makefile
 src/newgal/qvfb/Makefile
 src/newgal/pcxvfb/Makefile
 src/newgal/wvfb/Makefile
@@ -2713,7 +2713,7 @@ AC_MSG_NOTICE([
   * dummy:              ${enable_video_dummy}
   * pc_xvfb:            ${enable_video_pc_xvfb}
   * usvfb:              ${enable_video_usvfb}
-  * dri:                ${enable_video_dri}
+  * drm:                ${enable_video_drm}
   * fbcon:              ${enable_video_fbcon}
   * commlcd:            ${enable_video_commlcd}
 

@@ -13700,19 +13700,19 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
  */
 MG_EXPORT GHANDLE GetVideoHandle (HDC hdc);
 
-#ifdef _MGGAL_DRI
+#ifdef _MGGAL_DRM
 
 /**
-  * \defgroup gdi_dri_fns Functions for Linux DRI integration
+  * \defgroup gdi_drm_fns Functions for Linux DRM integration
   *
-  * These functions can be used to get the DRI device file descriptor and the
+  * These functions can be used to get the DRM device file descriptor and the
   * information of the hardware surface corresponding to the DC which is
-  * created by the Linux DRI engine. By using the information, we can
+  * created by the Linux DRM engine. By using the information, we can
   * integrate MiniGUI with other graphics libraries, such as Cairo
   * (vector graphics) and Mesa (3D graphics).
   *
-  * \note Only available when support for Linuxe DRI NEWGAL engine
-  * (`_MGGAL_DRI`) is enabled.
+  * \note Only available when support for Linuxe DRM NEWGAL engine
+  * (`_MGGAL_DRM`) is enabled.
   *
   * Since 4.0.4
   *
@@ -13720,20 +13720,20 @@ MG_EXPORT GHANDLE GetVideoHandle (HDC hdc);
   */
 
 /**
- * This function gets the file descriptor opened by the Linux DRI engine.
+ * This function gets the file descriptor opened by the Linux DRM engine.
  *
  * \param video The video handle returned by \a GetVideoHandle.
  *
- * \return The DRI device file descriptor opened by the Linux DRI engine;
+ * \return The DRM device file descriptor opened by the Linux DRM engine;
  *      >= 0 for success and < 0 on error. If \a surface is not a hardware
- *      surface created by the DRI engine, this function returns -1.
+ *      surface created by the DRM engine, this function returns -1.
  */
-MG_EXPORT int driGetDeviceFD (GHANDLE video);
+MG_EXPORT int drmGetDeviceFD (GHANDLE video);
 
 /**
- * THe struct type defines the DRI surface information.
+ * THe struct type defines the DRM surface information.
  */
-typedef struct _DriSurfaceInfo {
+typedef struct _DrmSurfaceInfo {
     /** The local handle of the buffer object. */
     uint32_t handle;
     /** The buffer identifier. */
@@ -13748,75 +13748,75 @@ typedef struct _DriSurfaceInfo {
     uint32_t drm_format;
     /** Size in bytes of the buffer object. */
     unsigned long size;
-} DriSurfaceInfo;
+} DrmSurfaceInfo;
 
 /**
- * This function gets the DRI surface information from the handle of the surface.
+ * This function gets the DRM surface information from the handle of the surface.
  *
  * \param surface The handle to the surface.
- * \param info The pointer to a DriSurfaceInfo structure to hold
+ * \param info The pointer to a DrmSurfaceInfo structure to hold
  *      the surface information.
  *
  * \return TRUE for success, FALSE for failure.
  */
-MG_EXPORT BOOL driGetSurfaceInfo (GHANDLE video, HDC hdc, DriSurfaceInfo* info);
+MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info);
 
 /**
- * This function creates a memory DC with a DRI surface which is created by
+ * This function creates a memory DC with a DRM surface which is created by
  * a foreign process and identified by a global name handle.
  *
  * \param video The video handle.
- * \param name The name handle of the DRI surface.
+ * \param name The name handle of the DRM surface.
  * \param drm_format The DRM pixel format.
- * \param width The width of the DRI surface.
- * \param height The height of the DRI surface.
- * \param pitch The pitch (row stride) of the DRI surface.
+ * \param width The width of the DRM surface.
+ * \param height The height of the DRM surface.
+ * \param pitch The pitch (row stride) of the DRM surface.
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC driCreateDCFromName (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
             uint32_t name, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch);
 
 /**
- * This function creates a memory DC with a DRI surface which is created by
+ * This function creates a memory DC with a DRM surface which is created by
  * a foreign process and identified by a PRIME file descriptor.
  *
  * \param video The video handle.
  * \param prime_fd The PRIME file descriptor.
- * \param size The size of the DRI surface in bytes.
+ * \param size The size of the DRM surface in bytes.
  * \param drm_format The DRM pixel format.
- * \param width The width of the DRI surface.
- * \param height The height of the DRI surface.
- * \param pitch The pitch (row stride) of the DRI surface.
+ * \param width The width of the DRM surface.
+ * \param height The height of the DRM surface.
+ * \param pitch The pitch (row stride) of the DRM surface.
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC driCreateDCFromPrimeFd (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
             int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch);
 
 /**
- * This function creates a memory DC with a DRI surface which is created by
+ * This function creates a memory DC with a DRM surface which is created by
  * a foreign graphics component.
  *
  * \param video The video handle.
- * \param handle The handle of the DRI surface.
- * \param size The size of the DRI surface in bytes.
+ * \param handle The handle of the DRM surface.
+ * \param size The size of the DRM surface in bytes.
  * \param drm_format The DRM pixel format.
- * \param width The width of the DRI surface.
- * \param height The height of the DRI surface.
- * \param pitch The pitch (row stride) of the DRI surface.
+ * \param width The width of the DRM surface.
+ * \param height The height of the DRM surface.
+ * \param pitch The pitch (row stride) of the DRM surface.
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC driCreateDCFromHandle (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
             uint32_t handle, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch);
 
-/** @} end of gdi_dri_fns */
+/** @} end of gdi_drm_fns */
 
-#endif /* _MGGAL_DRI */
+#endif /* _MGGAL_DRM */
 
     /** @} end of gdi_fns */
 
