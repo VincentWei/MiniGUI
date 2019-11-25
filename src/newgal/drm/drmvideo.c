@@ -1718,6 +1718,8 @@ BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info)
         DrmSurfaceBuffer* surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
 
         if (surface_buffer) {
+            info->prime_fd = surface_buffer->prime_fd;
+            info->name = surface_buffer->name;
             info->handle = surface_buffer->handle;
             info->id = surface_buffer->id;
             info->width = surface_buffer->width;

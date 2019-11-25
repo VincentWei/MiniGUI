@@ -23,7 +23,7 @@
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -13734,6 +13734,10 @@ MG_EXPORT int drmGetDeviceFD (GHANDLE video);
  * THe struct type defines the DRM surface information.
  */
 typedef struct _DrmSurfaceInfo {
+    /** The prime fd of the buffer object. */
+    int prime_fd;
+    /** The global name of the buffer object. */
+    uint32_t name;
     /** The local handle of the buffer object. */
     uint32_t handle;
     /** The buffer identifier. */

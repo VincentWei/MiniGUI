@@ -24,7 +24,7 @@
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2007~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2007~2019, Beijing FMSoft Technologies Co., Ltd.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,7 +96,11 @@ typedef struct _DrmDriver DrmDriver;
  * MiniGUI NEWGAL engine for hardware surface.
  */
 typedef struct _DrmSurfaceBuffer {
-    /** The handle of the buffer */
+    /** The prime fd of the buffer */
+    int prime_fd;
+    /** The global name of the buffer */
+    uint32_t name;
+    /** The local handle of the buffer */
     uint32_t handle;
     /** The buffer identifier */
     uint32_t id;
