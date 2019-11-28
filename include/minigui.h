@@ -274,13 +274,13 @@ extern MG_EXPORT MG_Layer* mgLayers;
      */
 
 /**
-* \fn int GUIAPI InitGUI (int, const char **)
+* \fn int GUIAPI InitGUI (int argc, const char *argv[])
 * \brief Initialize MiniGUI.
 *
 * The meaning of two parameters is same with parameters of main function.
 *
 **/
-MG_EXPORT int GUIAPI InitGUI (int, const char **);
+MG_EXPORT int GUIAPI InitGUI (int argc, const char *argv[]);
 
 /**
 * \fn void GUIAPI TerminateGUI (int not_used)
