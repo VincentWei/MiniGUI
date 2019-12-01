@@ -1792,7 +1792,6 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
                 RGBAmasks[2], RGBAmasks[3]);
     if (surface->format == NULL) {
         goto error;
-        return(NULL);
     }
 
     /* Allocate an empty mapping */
@@ -1892,7 +1891,6 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
                 RGBAmasks[2], RGBAmasks[3]);
     if (surface->format == NULL) {
         goto error;
-        return(NULL);
     }
 
     /* Allocate an empty mapping */
@@ -1992,7 +1990,6 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
                 RGBAmasks[2], RGBAmasks[3]);
     if (surface->format == NULL) {
         goto error;
-        return(NULL);
     }
 
     /* Allocate an empty mapping */
