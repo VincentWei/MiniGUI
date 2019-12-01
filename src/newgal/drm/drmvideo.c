@@ -1750,6 +1750,11 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
         return NULL;
     }
 
+    if (vdata->driver_ops == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: not hardware accelerated!\n");
+        return NULL;
+    }
+
     if (vdata->driver_ops->create_buffer_from_name == NULL) {
         _ERR_PRINTF ("NEWGAL>DRM: not implemented method: create_buffer_from_name!\n");
         return NULL;
@@ -1845,6 +1850,11 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
         return NULL;
     }
 
+    if (vdata->driver_ops == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: not hardware accelerated!\n");
+        return NULL;
+    }
+
     if (vdata->driver_ops->create_buffer_from_handle == NULL) {
         _ERR_PRINTF ("NEWGAL>DRM: not implemented method: create_buffer_from_handle!\n");
         return NULL;
@@ -1937,6 +1947,11 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
     int depth;
 
     if (this && this->VideoInit != DRM_VideoInit) {
+        return NULL;
+    }
+
+    if (vdata->driver_ops == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: not hardware accelerated!\n");
         return NULL;
     }
 
