@@ -309,7 +309,7 @@ typedef struct _DrmDriverOps {
 } DrmDriverOps;
 
 /** Implement this stub to return the DRI driver operations */
-DrmDriverOps* __dri_ex_driver_get (const char* driver_name, int device_fd);
+DrmDriverOps* __drm_ex_driver_get (const char* driver_name, int device_fd);
 
     /** @} end of external_stubs_dri */
 
