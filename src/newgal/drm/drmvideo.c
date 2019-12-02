@@ -250,7 +250,7 @@ static char* find_driver_for_device (const char *dev_name)
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: device link path: %s\n", device_link_path);
+    _DBG_PRINTF("device link path: %s\n", device_link_path);
 
     free (device_path);
     driver = strrchr (device_link_path, '/');
@@ -306,7 +306,7 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     driver_name = find_driver_for_device(device->hidden->dev_name);
 
-    _DBG_PRINTF("NEWGAL>DRM: Try to load DRM driver: %s\n", driver_name);
+    _DBG_PRINTF("Try to load DRM driver: %s\n", driver_name);
 
     device_fd = drmOpen(driver_name, NULL);
     if (device_fd < 0) {
@@ -513,14 +513,14 @@ static int drm_setup_connector(DrmVideoData* vdata,
 
     /* check if a monitor is connected */
     if (conn->connection != DRM_MODE_CONNECTED) {
-        _DBG_PRINTF("NEWGAL>DRM: ignoring unused connector %u\n",
+        _ERR_PRINTF("NEWGAL>DRM: ignoring unused connector %u\n",
             conn->connector_id);
         return -ENOENT;
     }
 
     /* check if there is at least one valid mode */
     if (conn->count_modes == 0) {
-        _DBG_PRINTF("NEWGAL>DRM: no valid mode for connector %u\n",
+        _ERR_PRINTF("NEWGAL>DRM: no valid mode for connector %u\n",
             conn->connector_id);
         return -EFAULT;
     }
@@ -535,7 +535,7 @@ static int drm_setup_connector(DrmVideoData* vdata,
     /* find a crtc for this connector */
     ret = drm_find_crtc(vdata, res, conn, info);
     if (ret) {
-        _DBG_PRINTF("NEWGAL>DRM: no valid crtc for connector %u\n",
+        _ERR_PRINTF("NEWGAL>DRM: no valid crtc for connector %u\n",
             conn->connector_id);
         return ret;
     }
@@ -612,7 +612,7 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
     drm_prepare(this->hidden);
 
     for (iter = this->hidden->mode_list; iter; iter = iter->next) {
-        _DBG_PRINTF("NEWGAL>DRM: mode #%d: %ux%u, conn: %u, crtc: %u\n", n,
+        _DBG_PRINTF("mode #%d: %ux%u, conn: %u, crtc: %u\n", n,
                 iter->width, iter->height, iter->conn, iter->crtc);
         n++;
     }
@@ -698,7 +698,7 @@ static int DRM_Resume(_THIS)
     DrmVideoData* vdata = this->hidden;
     int ret = -1;
 
-    _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
+    _DBG_PRINTF ("%s called\n", __FUNCTION__);
 
     if (vdata->saved_info) {
         vdata->saved_crtc = drmModeGetCrtc(vdata->dev_fd,
@@ -723,7 +723,7 @@ static int DRM_Suspend(_THIS)
     DrmVideoData* vdata = this->hidden;
     int ret = -1;
 
-    _DBG_PRINTF ("NEWGAL>DRM: %s called\n", __FUNCTION__);
+    _DBG_PRINTF ("%s called\n", __FUNCTION__);
 
     if (vdata->saved_crtc) {
         /* restore saved CRTC configuration */
@@ -1349,7 +1349,7 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("going setting video mode: %dx%d-%dbpp\n",
             info->width, info->height, bpp);
 
     /* create a dumb framebuffer for current CRTC */
@@ -1389,7 +1389,7 @@ static GAL_Surface *DRM_SetVideoMode_Dumb(_THIS, GAL_Surface *current,
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: real screen mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("real screen mode: %dx%d-%dbpp\n",
             width, height, bpp);
 
     current->flags = flags & GAL_FULLSCREEN;
@@ -1435,7 +1435,7 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: going setting video mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("going setting video mode: %dx%d-%dbpp\n",
             info->width, info->height, bpp);
 
 #if 0
@@ -1445,13 +1445,29 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     }
 #endif
 
-    /* create the scanout buffer and set up it as frame buffer */
+    /* create the scanout buffer */
     scanout_buff = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
             info->width, info->height);
     if (scanout_buff == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot create scanout frame buffer: %m\n");
+        _ERR_PRINTF ("NEWGAL>DRM: cannot create scanout buffer: %m\n");
         goto error;
     }
+
+    /* set up it as frame buffer */
+    {
+        uint32_t handles[4], pitches[4], offsets[4];
+        handles[0] = scanout_buff->handle;
+        pitches[0] = scanout_buff->pitch;
+        offsets[0] = 0;
+
+        if (drmModeAddFB2(vdata->dev_fd,
+                info->width, info->height, drm_format,
+                handles, pitches, offsets, &scanout_buff->id, 0) != 0) {
+            _ERR_PRINTF ("NEWGAL>DRM: cannot set up scanout frame buffer: %m\n");
+            goto error;
+        }
+    }
+
     /* not a foreign surface */
     scanout_buff->foreign = 0;
 
@@ -1469,7 +1485,7 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
     vdata->scanout_buff_id = scanout_buff->id;
     vdata->scanout_fb = scanout_buff->pixels;
 
-    _DBG_PRINTF("NEWGAL>DRM: scanout frame buffer: size (%dx%d), pitch(%d)\n",
+    _DBG_PRINTF("scanout frame buffer: size (%dx%d), pitch(%d)\n",
             vdata->width, vdata->height, vdata->pitch);
 
     /* get console buffer id */
@@ -1501,7 +1517,7 @@ static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
         return NULL;
     }
 
-    _DBG_PRINTF("NEWGAL>DRM: real screen mode: %dx%d-%dbpp\n",
+    _DBG_PRINTF("real screen mode: %dx%d-%dbpp\n",
         width, height, bpp);
 
     current->flags |= (GAL_FULLSCREEN | GAL_HWSURFACE);
