@@ -3746,7 +3746,10 @@ MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc)
 MG_EXPORT GHANDLE GetVideoHandle (HDC hdc)
 {
     PDC pdc = dc_HDC2PDC (hdc);
-    return (GHANDLE)pdc->surface->video;
+    if (pdc->surface)
+        return (GHANDLE)pdc->surface->video;
+
+    return NULL;
 }
 
 #ifdef _MGGAL_DRM
