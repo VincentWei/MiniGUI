@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** progressbar.c: the Progress Bar Control module.
@@ -116,7 +116,6 @@ ProgressBarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case MSG_CREATE:
             if (!(pData = malloc (sizeof (PROGRESSDATA)))) {
-                _WRN_PRINTF ("Create control failure!");
                 return -1;
             }
 

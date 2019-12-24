@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** The graphics display interface module of MiniGUI.
@@ -233,7 +233,7 @@ void mg_TerminateScreenDC (void)
 #define INIT_SPECIFICAL_FONTS(etc_section) \
 { \
     if (!font_InitSpecificalFonts (etc_section)) { \
-        _WRN_PRINTF ("Can not initialize fonts defined in section %s!", etc_section); \
+        _WRN_PRINTF ("Can not initialize fonts defined in section %s!\n", etc_section); \
         goto error; \
     } \
 }
@@ -242,7 +242,7 @@ void mg_TerminateScreenDC (void)
 BOOL mg_InitGDI (void)
 {
     if (!InitTextBitmapBuffer ()) {
-        _WRN_PRINTF ("Can not initialize text bitmap buffer!");
+        _WRN_PRINTF ("Can not initialize text bitmap buffer!\n");
         goto error;
     }
 
@@ -264,7 +264,7 @@ BOOL mg_InitGDI (void)
 
 #if (defined (_MGFONT_TTF) || defined (_MGFONT_FT2)) && defined(_MGRM_THREADS)
     if (!font_InitFreetypeLibrary ()) {
-        _WRN_PRINTF ("Can not initialize freetype fonts!");
+        _WRN_PRINTF ("Can not initialize freetype fonts!\n");
         goto error;
     }
     INIT_SPECIFICAL_FONTS (FONT_ETC_SECTION_NAME_TTF);
@@ -273,13 +273,13 @@ BOOL mg_InitGDI (void)
     /* TODO: add other font support here */
 #if defined (_MGFONT_SEF) && !defined(_LITE_VERSION)
     if(!initialize_scripteasy()) {
-        _WRN_PRINTF ("Can not initialize ScriptEasy fonts!");
+        _WRN_PRINTF ("Can not initialize ScriptEasy fonts!\n");
         goto error;
     }
 #endif
 
     if (!font_InitIncoreFonts ()) {
-        _WRN_PRINTF ("Can not initialize incore fonts!");
+        _WRN_PRINTF ("Can not initialize incore fonts!\n");
         goto error;
     }
 
@@ -288,7 +288,7 @@ BOOL mg_InitGDI (void)
 #endif
 
     if (!mg_InitSysFont ()) {
-        _WRN_PRINTF ("Can not create system fonts!");
+        _WRN_PRINTF ("Can not create system fonts!\n");
         goto error;
     }
 
@@ -2660,7 +2660,7 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     UNLOCK(&dcslot);
 
     if (i >= DCSLOTNUMBER) {
-        _WRN_PRINTF ("NEWGDI>GetSecondarySubDC: no DC slot.");
+        _WRN_PRINTF ("No DC slot.\n");
         return HDC_SCREEN;
     }
 
@@ -3405,7 +3405,7 @@ HDC GUIAPI InitSlaveScreenEx (const char* name, const char* mode, int dpi)
     }
     else {
         free (pmem_dc);
-        _WRN_PRINTF ("Can not init the slave screen: %s (%s)",
+        _WRN_PRINTF ("Can not init the slave screen: %s (%s)\n",
                         name, mode);
         return HDC_INVALID;
     }
@@ -3725,3 +3725,204 @@ MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc)
 #endif
 }
 
+MG_EXPORT BOOL GUIAPI IsMemDC (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    return dc_IsMemDC (pdc);
+}
+
+MG_EXPORT BOOL GUIAPI IsScreenDC (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    return dc_IsScreenDC (pdc);
+}
+
+MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    return dc_IsGeneralDC (pdc);
+}
+
+MG_EXPORT GHANDLE GetVideoHandle (HDC hdc)
+{
+    PDC pdc = dc_HDC2PDC (hdc);
+    if (pdc->surface)
+        return (GHANDLE)pdc->surface->video;
+
+    return NULL;
+}
+
+#ifdef _MGGAL_DRM
+
+/* implemented in DRI engine. */
+BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
+
+MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
+{
+    PDC pdc = dc_HDC2PDC (hdc);
+    if (pdc->surface->video != (GHANDLE)video)
+        return FALSE;
+
+    return __drm_get_surface_info(pdc->surface, info);
+}
+
+/* implemented in DRI engine. */
+GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
+            uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
+            uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch)
+{
+    PDC pmem_dc = NULL;
+    GAL_Surface* surface;
+
+    if (!(pmem_dc = malloc (sizeof(DC))))
+        return HDC_INVALID;
+
+    LOCK (&__mg_gdilock);
+    surface = __drm_create_surface_from_name (video, name,
+                drm_format, width, height, pitch);
+    UNLOCK (&__mg_gdilock);
+
+    if (!surface) {
+        free (pmem_dc);
+        return HDC_INVALID;
+    }
+
+    if (surface->format->Amask) {
+        surface->flags |= GAL_SRCPIXELALPHA;
+    }
+
+    pmem_dc->DataType = TYPE_HDC;
+    pmem_dc->DCType   = TYPE_MEMDC;
+    pmem_dc->inuse    = TRUE;
+    pmem_dc->surface  = surface;
+
+    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+
+    InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
+    InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+    pmem_dc->pGCRInfo = NULL;
+    pmem_dc->oldage = 0;
+
+    pmem_dc->DevRC.left = 0;
+    pmem_dc->DevRC.top  = 0;
+    pmem_dc->DevRC.right = width;
+    pmem_dc->DevRC.bottom = height;
+
+    SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect(&pmem_dc->lcrgn, &pmem_dc->DevRC);
+
+    return (HDC)pmem_dc;
+}
+
+/* implemented in DRI engine. */
+GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch)
+{
+    PDC pmem_dc = NULL;
+    GAL_Surface* surface;
+
+    if (!(pmem_dc = malloc (sizeof(DC))))
+        return HDC_INVALID;
+
+    LOCK (&__mg_gdilock);
+    surface = __drm_create_surface_from_handle (video, handle, size,
+                drm_format, width, height, pitch);
+    UNLOCK (&__mg_gdilock);
+
+    if (!surface) {
+        free (pmem_dc);
+        return HDC_INVALID;
+    }
+
+    if (surface->format->Amask) {
+        surface->flags |= GAL_SRCPIXELALPHA;
+    }
+
+    pmem_dc->DataType = TYPE_HDC;
+    pmem_dc->DCType   = TYPE_MEMDC;
+    pmem_dc->inuse    = TRUE;
+    pmem_dc->surface  = surface;
+
+    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+
+    InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
+    InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+    pmem_dc->pGCRInfo = NULL;
+    pmem_dc->oldage = 0;
+
+    pmem_dc->DevRC.left = 0;
+    pmem_dc->DevRC.top  = 0;
+    pmem_dc->DevRC.right = width;
+    pmem_dc->DevRC.bottom = height;
+
+    SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect(&pmem_dc->lcrgn, &pmem_dc->DevRC);
+
+    return (HDC)pmem_dc;
+}
+
+/* implemented in DRI engine. */
+GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
+            int prime_fd, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
+            int prime_fd, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch)
+{
+    PDC pmem_dc = NULL;
+    GAL_Surface* surface;
+
+    if (!(pmem_dc = malloc (sizeof(DC))))
+        return HDC_INVALID;
+
+    LOCK (&__mg_gdilock);
+    surface =__drm_create_surface_from_prime_fd (video, prime_fd, size,
+                drm_format, width, height, pitch);
+    UNLOCK (&__mg_gdilock);
+
+    if (!surface) {
+        free (pmem_dc);
+        return HDC_INVALID;
+    }
+
+    if (surface->format->Amask) {
+        surface->flags |= GAL_SRCPIXELALPHA;
+    }
+
+    pmem_dc->DataType = TYPE_HDC;
+    pmem_dc->DCType   = TYPE_MEMDC;
+    pmem_dc->inuse    = TRUE;
+    pmem_dc->surface  = surface;
+
+    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+
+    InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
+    InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+    pmem_dc->pGCRInfo = NULL;
+    pmem_dc->oldage = 0;
+
+    pmem_dc->DevRC.left = 0;
+    pmem_dc->DevRC.top  = 0;
+    pmem_dc->DevRC.right = width;
+    pmem_dc->DevRC.bottom = height;
+
+    SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect(&pmem_dc->lcrgn, &pmem_dc->DevRC);
+
+    return (HDC)pmem_dc;
+}
+
+#endif

@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** ctrlclass.c: the Control Class module.
@@ -238,70 +238,60 @@ BOOL mg_InitControlClass ()
 
 #ifdef _MGCTRL_TREEVIEW
     if (!RegisterTreeViewControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: TreeView");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_TREEVIEW_RDR
     if (!RegisterTreeViewRdrControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: TreeView_rdr");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_MONTHCAL
     if (!RegisterMonthCalendarControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: MonthCalendar");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_SPINBOX
     if (!RegisterSpinControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: Spin");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_COOLBAR
     if (!RegisterCoolBarControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: CoolBar");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_LISTVIEW
     if (!RegisterListViewControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: ListView");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_GRIDVIEW
     if (!RegisterGridViewControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: GridView");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_ICONVIEW
     if (!RegisterIconViewControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: IconView");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_ANIMATION
     if (!RegisterAnimationControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: Animation");
         return FALSE;
     }
 #endif
 
 #ifdef _MGCTRL_SCROLLBAR
     if (!RegisterScrollBarControl ()) {
-        _WRN_PRINTF ("Init MiniGUI control error: ScrollBar");
         return FALSE;
     }
 #endif

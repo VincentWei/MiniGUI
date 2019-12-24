@@ -49,7 +49,7 @@
     under the terms and conditions of the commercial license.
 
     For more information about the commercial license, please refer to
-    <http://www.minigui.com/en/about/licensing-policy/>.
+    <http://www.minigui.com/blog/minigui-licensing-policy/>.
 
  \endverbatim
  */
@@ -274,13 +274,13 @@ extern MG_EXPORT MG_Layer* mgLayers;
      */
 
 /**
-* \fn int GUIAPI InitGUI (int, const char **)
+* \fn int GUIAPI InitGUI (int argc, const char *argv[])
 * \brief Initialize MiniGUI.
 *
 * The meaning of two parameters is same with parameters of main function.
 *
 **/
-MG_EXPORT int GUIAPI InitGUI (int, const char **);
+MG_EXPORT int GUIAPI InitGUI (int argc, const char *argv[]);
 
 /**
 * \fn void GUIAPI TerminateGUI (int not_used)

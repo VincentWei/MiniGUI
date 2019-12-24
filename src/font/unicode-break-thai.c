@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /*
@@ -70,7 +70,7 @@
 void __mg_unicode_break_thai(const Uchar32* ucs, int nr_ucs,
         BreakOppo* break_oppos)
 {
-    _WRN_PRINTF("NOT IMPLEMENTED");
+    _WRN_PRINTF("NOT IMPLEMENTED\n");
 }
 
 #endif /* _MGCHARSET_UNICODE */

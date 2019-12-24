@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** linux-tty.c: handle linux tty device, e.g., VT switching.
@@ -157,8 +157,8 @@ int mg_linux_tty_init(BOOL graf_mode)
 
         /* enter graphics mode */
         if (ioctl (ttyfd, KDSETMODE, KD_GRAPHICS) == -1) {
-            _WRN_PRINTF("Failed when setting the terminal to graphics mode: %m.");
-            _WRN_PRINTF("It might is not a console.");
+            _WRN_PRINTF("Failed when setting the terminal to graphics mode: %m.\n");
+            _WRN_PRINTF("It might is not a console.\n");
         }
     }
 

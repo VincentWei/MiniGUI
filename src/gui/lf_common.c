@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*! ============================================================================
  * @file lf_common.c 
@@ -76,7 +76,7 @@ char* gui_GetIconFile(const char* rdr_name, char* file, char* _szValue)
 
     if (GetMgEtcValue (rdr_name, file,
                 iconname, sizeof(szValue)-(iconname-szValue)) < 0 ) {
-        _WRN_PRINTF ("can't get %s's value from section %s in etc.",
+        _WRN_PRINTF ("can't get %s's value from section %s in etc.\n",
                 file, rdr_name);
         return NULL;
     }
@@ -93,7 +93,7 @@ BOOL gui_LoadIconRes(HDC hdc, const char* rdr_name, char* file)
     if (LoadResource(szValue, RES_TYPE_ICON, (DWORD)hdc) != NULL)
         return TRUE;
 
-    _WRN_PRINTF ("can't get %s's value from section %s in etc.",
+    _WRN_PRINTF ("can't get %s's value from section %s in etc.\n",
             file, rdr_name);
 
     return FALSE;

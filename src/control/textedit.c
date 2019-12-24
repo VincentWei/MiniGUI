@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** textedit.c: text edit control
@@ -928,7 +928,7 @@ textdoc_insert_text (TextDoc *txtdoc, const char* newtext, int len)
     /* insert last strings */
     /* FIXME */
     if (!nextnode) {
-        _WRN_PRINTF ("nextnode is NULL!");
+        _WRN_PRINTF ("nextnode is NULL!\n");
         /* set_current_node (txtdoc, LASTNODE(txtdoc), FALSE, TRUE); */
     }
     else {
@@ -1458,7 +1458,7 @@ static int get_line_nr (HWND hWnd, PTEDATA ptedata, TextNode *node, int indent)
     HDC hdc;
 
     if (!node) {
-        _WRN_PRINTF ("pass NULL text node to get_line_nr");
+        _WRN_PRINTF ("pass NULL text node to get_line_nr\n");
         return 0;
     }
 
@@ -1583,7 +1583,7 @@ set_line_width (HWND hWnd, PTEDATA ptedata, TextNode *node, int indent)
     HDC hdc;
 
     if (!node) {
-        _WRN_PRINTF ("pass NULL text node to set_line_width");
+        _WRN_PRINTF ("pass NULL text node to set_line_width\n");
         return -1;
     }
 

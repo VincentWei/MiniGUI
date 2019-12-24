@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** cobmobox.c: the cobmobox control.
@@ -364,7 +364,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             DWORD list_style, edit_style;
 
             if (!(pData = calloc (1, sizeof (COMBOBOXDATA)))) {
-                _WRN_PRINTF ("Create control failure!");
+                _ERR_PRINTF ("CONTROL>COMBOBOX: failed to allocate memory to create control instance!\n");
                 return -1;
             }
 

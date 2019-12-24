@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /*
@@ -193,7 +193,7 @@ static BOOL shape_layout_run(SEInstance* inst,
                     gs->glyphs[j-1].is_cluster_start = 1;
                 }
                 else {
-                    _WRN_PRINTF("ligatured at the first glyph?");
+                    _WRN_PRINTF("ligatured at the first glyph?\n");
                 }
             }
             else {
@@ -304,7 +304,7 @@ static BOOL destroy_instance(SEInstance* instance)
         return TRUE;
     }
 
-    _WRN_PRINTF("You are destroying a non-basic shaping engine instance");
+    _WRN_PRINTF("You are destroying a non-basic shaping engine instance\n");
     return FALSE;
 }
 

@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: mb93493video.c 8944 2007-12-29 08:29:16Z xwyan $
@@ -528,6 +528,6 @@ void mb93493_resume_spi (void)
         return;
     is_suspend = FALSE;
     UNBLOCK_ALARM
-    MB93493_UpdateRects (current_video, 1, &standard_mode);
+    MB93493_UpdateRects (__mg_current_video, 1, &standard_mode);
 }
 

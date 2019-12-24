@@ -30,7 +30,7 @@
 ##   under the terms and conditions of the commercial license.
 ## 
 ##   For more information about the commercial license, please refer to
-##   <http://www.minigui.com/en/about/licensing-policy/>.
+##   <http://www.minigui.com/blog/minigui-licensing-policy/>.
 ##
 
 MGCFG_TRANS=mgcfg-trans #get it from svn+ssh://devsrv/home/projects/svn/mg-tools/trunk/mgcfg-trans/bin/windowsxp or bin/ubuntu10.04

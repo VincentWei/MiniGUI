@@ -50,7 +50,7 @@
     under the terms and conditions of the commercial license.
 
     For more information about the commercial license, please refer to
-    <http://www.minigui.com/en/about/licensing-policy/>.
+    <http://www.minigui.com/blog/minigui-licensing-policy/>.
 
  \endverbatim
  */
@@ -2318,7 +2318,6 @@ int init_minigui_printf (int (*output_char) (int ch),
         TCS_BROWN (stderr);                    \
         fprintf (stderr, "%s: ", __FUNCTION__); \
         fprintf (stderr, fmt, ##__VA_ARGS__);   \
-        fprintf (stderr, "\n");                 \
         TCS_NONE (stderr);                      \
     } while (0)
 
@@ -2333,11 +2332,12 @@ int init_minigui_printf (int (*output_char) (int ch),
 #   define _DBG_PRINTF(fmt, ...)                \
     do {                                        \
         TCS_YELLOW (stderr);                    \
+        fprintf (stderr, "%s: ", __FUNCTION__); \
         fprintf (stderr, fmt, ##__VA_ARGS__);   \
         TCS_NONE (stderr);                      \
     } while (0)
 # else
-#   define _DBG_PRINTF(fmt, ...)
+#   define _DBG_PRINTF(fmt, ...) do { } while (0)
 #endif
 
 #ifdef _MGRM_THREADS

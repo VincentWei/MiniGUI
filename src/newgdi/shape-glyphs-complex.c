@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /*
@@ -168,7 +168,7 @@ static BOOL destroy_instance(SEInstance* inst)
         __FUNCTION__, inst);
 
     if (inst->signature != 0x77520388) {
-        _WRN_PRINTF("you passed a non-complex shaping engine instance.");
+        _WRN_PRINTF("you passed a non-complex shaping engine instance.\n");
         return FALSE;
     }
 
@@ -286,7 +286,7 @@ static BOOL shape_layout_run(SEInstance* inst,
             gv = GetGlyphValueAlt(run->lf,
                     UCHAR2ACHAR(run->ucs[glyph_info[i].cluster]));
             if (REAL_GLYPH(gv) == 0) {
-                _WRN_PRINTF("Got an invalid glyph for uchar: 0x%04x",
+                _WRN_PRINTF("Got an invalid glyph for uchar: 0x%04x\n",
                     run->ucs[glyph_info[i].cluster]);
             }
         }

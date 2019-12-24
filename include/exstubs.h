@@ -24,7 +24,7 @@
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2007~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2007~2019, Beijing FMSoft Technologies Co., Ltd.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
     under the terms and conditions of the commercial license.
 
     For more information about the commercial license, please refer to
-    <http://www.minigui.com/en/about/licensing-policy/>.
+    <http://www.minigui.com/blog/minigui-licensing-policy/>.
 
  \endverbatim
  */
@@ -61,6 +61,8 @@
 
 #ifndef GUI_EXSTUBS_H
     #define GUI_EXSTUBS_H
+
+#include <stdint.h>
 
     /**
      * \defgroup external_stubs External Stubs
@@ -74,9 +76,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#ifdef _MGGAL_DRI
-
-#include <stdint.h>
+#ifdef _MGGAL_DRM
 
     /**
      * \defgroup external_stubs_dri External Stubs for DRI sub driver
@@ -88,30 +88,48 @@ extern "C" {
  * The struct type represents the DRI sub driver.
  * The concrete struct should be defined by the driver.
  */
-struct _DriDriver;
-typedef struct _DriDriver DriDriver;
+struct _DrmDriver;
+typedef struct _DrmDriver DrmDriver;
 
 /**
  * The struct type represents the bufffer can be used by
  * MiniGUI NEWGAL engine for hardware surface.
  */
-typedef struct _DriSurfaceBuffer {
-    uint32_t buff_id;
+typedef struct _DrmSurfaceBuffer {
+    /** The prime fd of the buffer */
+    int prime_fd;
+    /** The global name of the buffer */
+    uint32_t name;
+    /** The local handle of the buffer */
+    uint32_t handle;
+    /** The buffer identifier */
+    uint32_t id;
+    /** The widht of the buffer */
     uint32_t width;
+    /** The height of the buffer */
     uint32_t height;
+    /** The pitch (row stride in bytes) of the buffer */
     uint32_t pitch;
-
+    /** The DRM format of the buffer */
     uint32_t drm_format;
-    uint16_t bpp:8;
-    uint16_t cpp:8;
 
+    /** The bits per pixel */
+    uint32_t bpp:8;
+    /** The bytes per pixel */
+    uint32_t cpp:8;
+    /** Is foreign surface */
+    uint32_t foreign:1;
+
+    /** The whole size in bytes of the buffer */
+    unsigned long size;
+    /** The mapped address of the buffer; NULL when the buffer is not mapped yet. */
     uint8_t* pixels;
-} DriSurfaceBuffer;
+} DrmSurfaceBuffer;
 
 /**
  * The color logic operations.
  */
-enum DriColorLogicOp {
+enum DrmColorLogicOp {
    COLOR_LOGICOP_CLEAR = 0,
    COLOR_LOGICOP_NOR = 1,
    COLOR_LOGICOP_AND_INVERTED = 2,
@@ -133,45 +151,72 @@ enum DriColorLogicOp {
 /**
  * The struct type defines the operations for a DRI driver.
  */
-typedef struct _DriDriverOps {
+typedef struct _DrmDriverOps {
     /**
-     * This operation creates the DriDriver object.
+     * This operation creates the DrmDriver object.
      *
      * \note The driver must implement this operation.
      */
-    DriDriver* (*create_driver) (int device_fd);
+    DrmDriver* (*create_driver) (int device_fd);
 
     /**
-     * This operation destroies the DriDriver object.
+     * This operation destroies the DrmDriver object.
      *
      * \note The driver must implement this operation.
      */
-    void (*destroy_driver) (DriDriver *driver);
+    void (*destroy_driver) (DrmDriver *driver);
 
     /**
      * This operation flushs the batch buffer of the driver or the hardware cache.
      *
      * \note This operation can be NULL.
      */
-    void (* flush_driver) (DriDriver *driver);
+    void (* flush_driver) (DrmDriver *driver);
 
     /**
      * This operation creates a buffer with the specified pixel format,
-     * width, and height. If succeed, a valid (not zero) buffer identifier
-     * and the picth (row stride in bytes) will be returned.
-     * If failed, it returns 0.
+     * width, and height. If succeed, a valid DrmSurfaceBuffer object will
+     * be returned; NULL on error. Note that the field of `pixels` of the
+     * DrmSurfaceBuffer object is NULL until the \a map_buffer was called.
      *
      * \note The driver must implement this operation.
      */
-    uint32_t (* create_buffer) (DriDriver *driver,
+    DrmSurfaceBuffer* (* create_buffer) (DrmDriver *driver,
             uint32_t drm_format,
-            unsigned int width, unsigned int height,
-            unsigned int *pitch);
+            unsigned int width, unsigned int height);
 
-    BOOL (* fetch_buffer) (DriDriver *driver,
-            uint32_t buffer_id,
-            unsigned int *width, unsigned int *height,
-            unsigned int *pitch);
+    /**
+     * This operation creates a buffer for the given handle
+     * with the specified pixel format, width, and height. If succeed,
+     * a valid DrmSurfaceBuffer object will be returned; NULL on error.
+     *
+     * \note This operation can be NULL.
+     */
+    DrmSurfaceBuffer* (* create_buffer_from_handle) (DrmDriver *driver,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, unsigned int pitch);
+
+    /**
+     * This operation creates a buffer for the given system global name
+     * with the specified pixel format, width, and height. If succeed,
+     * a valid DrmSurfaceBuffer object will be returned; NULL on error.
+     *
+     * \note This operation can be NULL.
+     */
+    DrmSurfaceBuffer* (* create_buffer_from_name) (DrmDriver *driver,
+            uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, unsigned int pitch);
+
+    /**
+     * This operation creates a buffer for the given PRIME file descriptor
+     * with the specified pixel format, width, height, and pitch. If succeed,
+     * a valid DrmSurfaceBuffer object will be returned; NULL on error.
+     *
+     * \note This operation can be NULL.
+     */
+    DrmSurfaceBuffer* (* create_buffer_from_prime_fd) (DrmDriver *driver,
+            int prime_fd, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, unsigned int pitch);
 
     /**
      * This operation maps the buffer into the current process's virtual memory
@@ -179,22 +224,21 @@ typedef struct _DriDriverOps {
      *
      * \note The driver must implement this operation.
      */
-    DriSurfaceBuffer* (* map_buffer) (DriDriver *driver,
-            uint32_t buffer_id);
+    uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
      * This operation un-maps a buffer.
      *
      * \note The driver must implement this operation.
      */
-    void (* unmap_buffer) (DriDriver *driver, DriSurfaceBuffer* buffer);
+    void (* unmap_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
      * This operation destroies a buffer.
      *
      * \note The driver must implement this operation.
      */
-    void (* destroy_buffer) (DriDriver *driver, uint32_t buffer_id);
+    void (* destroy_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
      * This operation clears the specific rectangle area of a buffer
@@ -203,8 +247,8 @@ typedef struct _DriDriverOps {
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated clear operation.
      */
-    int (* clear_buffer) (DriDriver *driver,
-            DriSurfaceBuffer* dst_buf, const GAL_Rect* rc, uint32_t pixel_value);
+    int (* clear_buffer) (DrmDriver *driver,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* rc, uint32_t pixel_value);
 
     /**
      * This operation checks whether a hardware accelerated blit
@@ -214,8 +258,8 @@ typedef struct _DriDriverOps {
      * \note If this operation is set as NULL, it will be supposed that
      * the driver does not support any hardware accelerated blit operation.
      */
-    int (* check_blit) (DriDriver *driver,
-            DriSurfaceBuffer* src_buf, DriSurfaceBuffer* dst_buf);
+    int (* check_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf);
 
     /**
      * This operation copies bits from a source buffer to a destination buffer.
@@ -223,10 +267,10 @@ typedef struct _DriDriverOps {
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated copy blit.
      */
-    int (* copy_blit) (DriDriver *driver,
-            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            enum DriColorLogicOp logic_op);
+    int (* copy_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            enum DrmColorLogicOp logic_op);
 
     /**
      * This operation blits pixles from a source buffer with the source alpha value
@@ -235,9 +279,9 @@ typedef struct _DriDriverOps {
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blit with alpha.
      */
-    int (* alpha_blit) (DriDriver *driver,
-            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint8_t alpha);
+    int (* alpha_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint8_t alpha);
 
     /**
      * This operation blits pixles from a source buffer to a destination buffer,
@@ -246,9 +290,9 @@ typedef struct _DriDriverOps {
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blit with color key.
      */
-    int (* key_blit) (DriDriver *driver,
-            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint32_t color_key);
+    int (* key_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint32_t color_key);
 
     /**
      * This operation blits pixles from a source buffer with the source alpha value
@@ -257,19 +301,19 @@ typedef struct _DriDriverOps {
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blit with alpha and color key.
      */
-    int (* alpha_key_blit) (DriDriver *driver,
-            DriSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DriSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+    int (* alpha_key_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
             uint8_t alpha, uint32_t color_key);
 
-} DriDriverOps;
+} DrmDriverOps;
 
 /** Implement this stub to return the DRI driver operations */
-DriDriverOps* __dri_ex_driver_get (const char* driver_name);
+DrmDriverOps* __drm_ex_driver_get (const char* driver_name, int device_fd);
 
     /** @} end of external_stubs_dri */
 
-#endif /* _MGGAL_DRI */
+#endif /* _MGGAL_DRM */
 
 #ifdef _MGGAL_COMMLCD
 

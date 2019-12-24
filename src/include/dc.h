@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** dc.h: this head file declares all internal types and data of GDI module.
@@ -298,7 +298,8 @@ static inline BOOL dc_IsVisible (PDC pdc)
         if (dc_IsMemDC(pdc)){
             if (!pdc->hwnd) return TRUE;
         }
-        else return TRUE;
+        else
+            return TRUE;
     }
 #endif
 

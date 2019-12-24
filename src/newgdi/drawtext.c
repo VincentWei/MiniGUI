@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** drawtext.c: Implementation of DrawTextEx2
@@ -249,7 +249,7 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     /* If output rect is zero, we shouldn't output any text.*/
     if (RECTW(rcDraw) < pdc->pLogFont->size
             && RECTH(rcDraw) < pdc->pLogFont->size) {
-        _WRN_PRINTF ("Output rect is too small, we won't output any text.");
+        _WRN_PRINTF ("Output rect is too small, we won't output any text.\n");
         return -1;
     }
 #endif

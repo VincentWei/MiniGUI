@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** $Id: hi3560_fbvideo.c 12360 2009-12-16 09:56:03Z dongkai $
@@ -138,7 +138,7 @@ typedef enum {
 
 
 //extern BOOL mgIsServer;
-extern GAL_VideoDevice* current_video;
+extern GAL_VideoDevice* __mg_current_video;
 
 #ifndef _MGRM_THREADS
 struct private_hwdata
@@ -523,7 +523,7 @@ HI_U8* Hi3560_GetPhyAddr(HI_VOID* pvirtaddr)
 {
     HI_U32 offset;
 
-    GAL_VideoDevice *this =current_video;
+    GAL_VideoDevice *this =__mg_current_video;
     offset =(HI_U32)pvirtaddr - (HI_U32)mapped_mem;
 
     return (HI_U8 *)saved_finfo.smem_start + offset;
@@ -561,7 +561,7 @@ static int HI3560_HWAccelBlit(GAL_Surface *gal_src, GAL_Rect *psrcrect,
     HI_S32  ret;
     GAL_Rect srcrect,dstrect;
 
-    GAL_VideoDevice* this = current_video;
+    GAL_VideoDevice* this = __mg_current_video;
     TDE_HANDLE tdehandle;
 
     psrcsurface =&srcsurface;
@@ -1660,7 +1660,7 @@ void* HI3560_MallocFromVram(int size)
     size += sizeof(struct private_hwdata *);
     request.h = (size+pitch-1)/pitch;
 
-    HI3560_RequestHWSurface (current_video, &request, &reply);
+    HI3560_RequestHWSurface (__mg_current_video, &request, &reply);
     
     if (reply.bucket == NULL)
     {
@@ -1681,7 +1681,7 @@ void HI3560_FreeToVram(void* p)
     request.bucket = *(char**)((char*)p - sizeof(struct private_hwdata *));
     request.h = request.offset;
 
-    HI3560_RequestHWSurface (current_video, &request, &reply);
+    HI3560_RequestHWSurface (__mg_current_video, &request, &reply);
 }
 #endif
 
@@ -1872,19 +1872,19 @@ VideoBootStrap HI3560_bootstrap = {
 /* some APIs specific to this engine */
 int hi3560GetVideoFD (void)
 {
-	GAL_VideoDevice* this = current_video;
+	GAL_VideoDevice* this = __mg_current_video;
 	return console_fd;
 }
 
 void* hi3560GetFBAddress (void)
 {
-	GAL_VideoDevice* this = current_video;
+	GAL_VideoDevice* this = __mg_current_video;
 	return mapped_mem;
 }
 
 int hi3560SetScreenAttr (Uint8 siAttr, void* pValue)
 {
-    return HI3560_SetLayerAttr (current_video, siAttr, pValue);
+    return HI3560_SetLayerAttr (__mg_current_video, siAttr, pValue);
 }    
 
 #endif /* _MGGAL_HI3560 */

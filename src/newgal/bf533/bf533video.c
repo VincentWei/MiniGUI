@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: bf533video.c 8944 2007-12-29 08:29:16Z xwyan $
@@ -469,7 +469,7 @@ int bf533_suspend_spi (void)
 
     spi_ok = FALSE;
     BLOCK_ALARM
-    return current_video->hidden->fd_spi;
+    return __mg_current_video->hidden->fd_spi;
 }
 
 void bf533_resume_spi (void)
@@ -479,6 +479,6 @@ void bf533_resume_spi (void)
 
     spi_ok = TRUE;
     UNBLOCK_ALARM
-    BF533_UpdateRects (current_video, 1, &standard_mode);
+    BF533_UpdateRects (__mg_current_video, 1, &standard_mode);
 }
 

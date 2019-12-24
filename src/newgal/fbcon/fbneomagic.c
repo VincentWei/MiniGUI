@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 #include <stdio.h>
@@ -152,7 +152,7 @@ static int FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
 static void HWAccelBlit_helper (GAL_Surface *src, GAL_Rect *srcrect,
                        GAL_Surface *dst, GAL_Rect *dstrect)
 {
-    GAL_VideoDevice *this = current_video;
+    GAL_VideoDevice *this = __mg_current_video;
     Uint32 src_base;
     Uint32 dst_base;
 

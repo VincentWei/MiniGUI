@@ -40,7 +40,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 #ifndef _NEWGAL_DRIVIDEO_H
@@ -63,8 +63,9 @@ typedef struct GAL_PrivateVideoData {
     char            dev_name[LEN_DEVICE_NAME + 1];
     int             dev_fd;
 
-    DriDriverOps*   driver_ops;
-    DriDriver*      driver;
+    void*           exdrv_handle;
+    DrmDriverOps*   driver_ops;
+    DrmDriver*      driver;
 
     DrmModeInfo*    mode_list;
     GAL_Rect**      modes;
@@ -86,7 +87,7 @@ typedef struct GAL_PrivateVideoData {
 
     /* only valid when using DRM driver */
     uint32_t        console_buff_id;
-} DriVideoData;
+} DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */
 

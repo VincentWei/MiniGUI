@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /*
@@ -88,7 +88,7 @@ static BOOL fontname_get_from_orient(char* fontname, GlyphOrient ort)
         fontname[orient_pos] = FONT_ORIENT_SIDEWAYS_LEFT;
         break;
     default:
-        _WRN_PRINTF("bad orientation param: %d", ort);
+        _WRN_PRINTF("bad orientation param: %d\n", ort);
         return FALSE;
     }
 
@@ -267,7 +267,7 @@ LayoutRun* __mg_layout_run_new_from_offset(const LAYOUT* layout,
     LayoutRun* lrun;
 
     if (offset >= trun->len) {
-        _WRN_PRINTF("offset(%d) >= trun->len(%p, %d)",
+        _WRN_PRINTF("offset(%d) >= trun->len(%p, %d)\n",
             offset, trun, trun->len);
         return NULL;
     }
@@ -381,7 +381,7 @@ void __mg_glyph_string_set_size (GlyphString* string, int new_len)
                 more_space = max_space;
 
                 if ((unsigned int)new_len > max_space) {
-                    _WRN_PRINTF("Too large glyph string of length %d", new_len);
+                    _WRN_PRINTF("Too large glyph string of length %d\n", new_len);
                 }
             }
 

@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** glyph.c: Low level glyph routines.
@@ -2574,7 +2574,7 @@ static void draw_back_area (PDC pdc, POINT* area, GAL_Rect* gal_rc,
         break;
 
     default:
-        _WRN_PRINTF ("No way to draw background");
+        _WRN_PRINTF ("No way to draw background\n");
         break;
     }
 }

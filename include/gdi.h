@@ -23,7 +23,7 @@
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2019, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -49,7 +49,7 @@
     under the terms and conditions of the commercial license.
 
     For more information about the commercial license, please refer to
-    <http://www.minigui.com/en/about/licensing-policy/>.
+    <http://www.minigui.com/blog/minigui-licensing-policy/>.
 
  \endverbatim
  */
@@ -1388,6 +1388,48 @@ MG_EXPORT HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height);
  * \sa CreateCompatibleDCEx
  */
 MG_EXPORT BOOL GUIAPI IsCompatibleDC (HDC hdc1, HDC hdc2);
+
+/**
+ * \fn BOOL GUIAPI IsMemDC (HDC hdc)
+ * \brief Check whether a given DC is a memory DC.
+ *
+ * This function checks whether a give DC \a hdc is a memory DC.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return TRUE for memory DC, otherwise FALSE.
+ *
+ * \sa CreateMemDCEx
+ */
+MG_EXPORT BOOL GUIAPI IsMemDC (HDC hdc);
+
+/**
+ * \fn BOOL GUIAPI IsScreenDC (HDC hdc)
+ * \brief Check whether a given DC is a screen DC.
+ *
+ * This function checks whether a give DC \a hdc is a screen DC.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return TRUE for screen DC, otherwise FALSE.
+ *
+ * \sa CreateMemDCEx
+ */
+MG_EXPORT BOOL GUIAPI IsScreenDC (HDC hdc);
+
+/**
+ * \fn BOOL GUIAPI IsWindowDC (HDC hdc)
+ * \brief Check whether a given DC is a window DC.
+ *
+ * This function checks whether a give DC \a hdc is a window DC.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return TRUE for window DC, otherwise FALSE.
+ *
+ * \sa CreateMemDCEx
+ */
+MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc);
 
 /**
  * \fn HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags, \
@@ -13645,6 +13687,140 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
         CB_COMP_SETHLINE comp_sethline,
         CB_COMP_PUTHLINE comp_puthline,
         void* user_comp_ctxt);
+
+/**
+ * This function gets the video handle which corresponds to the given
+ * device context.
+ *
+ * \param hdc The device context.
+ *
+ * \return The handle to the video; NULL on error.
+ *
+ * Since 4.0.4
+ */
+MG_EXPORT GHANDLE GetVideoHandle (HDC hdc);
+
+#ifdef _MGGAL_DRM
+
+/**
+  * \defgroup gdi_drm_fns Functions for Linux DRM integration
+  *
+  * These functions can be used to get the DRM device file descriptor and the
+  * information of the hardware surface corresponding to the DC which is
+  * created by the Linux DRM engine. By using the information, we can
+  * integrate MiniGUI with other graphics libraries, such as Cairo
+  * (vector graphics) and Mesa (3D graphics).
+  *
+  * \note Only available when support for Linuxe DRM NEWGAL engine
+  * (`_MGGAL_DRM`) is enabled.
+  *
+  * Since 4.0.4
+  *
+  * @{
+  */
+
+/**
+ * This function gets the file descriptor opened by the Linux DRM engine.
+ *
+ * \param video The video handle returned by \a GetVideoHandle.
+ *
+ * \return The DRM device file descriptor opened by the Linux DRM engine;
+ *      >= 0 for success and < 0 on error. If \a surface is not a hardware
+ *      surface created by the DRM engine, this function returns -1.
+ */
+MG_EXPORT int drmGetDeviceFD (GHANDLE video);
+
+/**
+ * THe struct type defines the DRM surface information.
+ */
+typedef struct _DrmSurfaceInfo {
+    /** The prime fd of the buffer object. */
+    int prime_fd;
+    /** The global name of the buffer object. */
+    uint32_t name;
+    /** The local handle of the buffer object. */
+    uint32_t handle;
+    /** The buffer identifier. */
+    uint32_t id;
+    /** The width of the surface. */
+    uint32_t width;
+    /** The height of the surface. */
+    uint32_t height;
+    /** The row stride of the surface. */
+    uint32_t pitch;
+    /** The DRM pixel format. */
+    uint32_t drm_format;
+    /** Size in bytes of the buffer object. */
+    unsigned long size;
+} DrmSurfaceInfo;
+
+/**
+ * This function gets the DRM surface information from the handle of the surface.
+ *
+ * \param surface The handle to the surface.
+ * \param info The pointer to a DrmSurfaceInfo structure to hold
+ *      the surface information.
+ *
+ * \return TRUE for success, FALSE for failure.
+ */
+MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info);
+
+/**
+ * This function creates a memory DC with a DRM surface which is created by
+ * a foreign process and identified by a global name handle.
+ *
+ * \param video The video handle.
+ * \param name The name handle of the DRM surface.
+ * \param drm_format The DRM pixel format.
+ * \param width The width of the DRM surface.
+ * \param height The height of the DRM surface.
+ * \param pitch The pitch (row stride) of the DRM surface.
+ *
+ * \return The handle to the memory DC for success, HDC_INVALID for failure.
+ */
+MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
+            uint32_t name, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+/**
+ * This function creates a memory DC with a DRM surface which is created by
+ * a foreign process and identified by a PRIME file descriptor.
+ *
+ * \param video The video handle.
+ * \param prime_fd The PRIME file descriptor.
+ * \param size The size of the DRM surface in bytes.
+ * \param drm_format The DRM pixel format.
+ * \param width The width of the DRM surface.
+ * \param height The height of the DRM surface.
+ * \param pitch The pitch (row stride) of the DRM surface.
+ *
+ * \return The handle to the memory DC for success, HDC_INVALID for failure.
+ */
+MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
+            int prime_fd, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+/**
+ * This function creates a memory DC with a DRM surface which is created by
+ * a foreign graphics component.
+ *
+ * \param video The video handle.
+ * \param handle The handle of the DRM surface.
+ * \param size The size of the DRM surface in bytes.
+ * \param drm_format The DRM pixel format.
+ * \param width The width of the DRM surface.
+ * \param height The height of the DRM surface.
+ * \param pitch The pitch (row stride) of the DRM surface.
+ *
+ * \return The handle to the memory DC for success, HDC_INVALID for failure.
+ */
+MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
+            uint32_t handle, unsigned long size, uint32_t drm_format,
+            unsigned int width, unsigned int height, uint32_t pitch);
+
+/** @} end of gdi_drm_fns */
+
+#endif /* _MGGAL_DRM */
 
     /** @} end of gdi_fns */
 

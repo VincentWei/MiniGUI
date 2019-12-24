@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: em86gfx.c 8944 2007-12-29 08:29:16Z xwyan $
@@ -444,7 +444,7 @@ static int GFX_CheckHWBlit (_THIS, GAL_Surface* src, GAL_Surface* dst)
 static int GFX_HWAccelBlit (GAL_Surface* src, GAL_Rect* srec, 
                 GAL_Surface* dst, GAL_Rect* drec)
 {
-	GAL_VideoDevice * this = current_video;
+	GAL_VideoDevice * this = __mg_current_video;
 
     struct GFXEngine_BlendAndScaleRectangles_type blend_param;
     struct GFXEngine_Surface_type surface_param;

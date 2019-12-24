@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  This is the NEWGAL common DirectFB engine, base on DirectFB 1.0.
@@ -315,7 +315,7 @@ static GAL_Surface *DFB_SetVideoMode (_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
     if (!ISSERVER) {
-        current = current_video->screen;
+        current = __mg_current_video->screen;
         return (current);
     }
 

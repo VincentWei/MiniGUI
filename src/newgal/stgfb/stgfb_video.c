@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  * 
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: stgfb_video.c 13621 2010-11-10 08:14:16Z humingming $
@@ -1326,9 +1326,9 @@ static int STGFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *
         dstrect->h = src_st_bitmap->Height - srcrect->y;
 
 #if 1
-    return STAPI_Blit(current_video, framebuffer_fd, src, srcrect, dst, dstrect, TRUE);
+    return STAPI_Blit(__mg_current_video, framebuffer_fd, src, srcrect, dst, dstrect, TRUE);
 #else
-    return STAPI_BlitWrapper(current_video, framebuffer_fd, src, srcrect, dst, dstrect, TRUE);
+    return STAPI_BlitWrapper(__mg_current_video, framebuffer_fd, src, srcrect, dst, dstrect, TRUE);
 #endif
 }
 

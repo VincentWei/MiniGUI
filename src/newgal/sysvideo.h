@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 #ifndef _GAL_sysvideo_h
@@ -328,15 +328,15 @@ extern VideoBootStrap STGFB_bootstrap;
 #ifdef _MGGAL_USVFB
 extern VideoBootStrap USVFB_bootstrap;
 #endif
-#ifdef _MGGAL_DRI
-extern VideoBootStrap DRI_bootstrap;
+#ifdef _MGGAL_DRM
+extern VideoBootStrap DRM_bootstrap;
 #endif
 
 /* This is the current video device */
-extern GAL_VideoDevice *current_video;
+extern GAL_VideoDevice *__mg_current_video;
 
-#define GAL_VideoSurface    (current_video->screen)
-#define GAL_PublicSurface    (current_video->screen)
+#define GAL_VideoSurface    (__mg_current_video->screen)
+#define GAL_PublicSurface    (__mg_current_video->screen)
 
 GAL_VideoDevice *GAL_GetVideo(const char* driver_name);
 void Slave_FreeSurface (GAL_Surface *surface);

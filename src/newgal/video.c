@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /* The high-level video driver subsystem */
@@ -156,13 +156,13 @@ static VideoBootStrap *bootstrap[] = {
 #ifdef _MGGAL_USVFB
     &USVFB_bootstrap,
 #endif
-#ifdef _MGGAL_DRI
-    &DRI_bootstrap,
+#ifdef _MGGAL_DRM
+    &DRM_bootstrap,
 #endif
     NULL
 };
 
-GAL_VideoDevice *current_video = NULL;
+GAL_VideoDevice *__mg_current_video = NULL;
 
 #ifdef _MGUSE_SYNC_UPDATE
 BLOCKHEAP __mg_free_update_region_list;
@@ -205,7 +205,7 @@ GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
 
     video->name = bootstrap[i]->name;
     /* Do some basic variable initialization */
-    if (current_video == NULL)
+    if (__mg_current_video == NULL)
         video->screen = NULL;
 
     video->physpal = NULL;
@@ -229,8 +229,8 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
     InitFreeClipRectList (&__mg_free_update_region_list, SIZE_UPDATERECTHEAP);
 #endif
 
-    /* Check to make sure we don't overwrite 'current_video' */
-    if ( current_video != NULL ) {
+    /* Check to make sure we don't overwrite '__mg_current_video' */
+    if ( __mg_current_video != NULL ) {
         GAL_VideoQuit();
     }
 
@@ -240,7 +240,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
         return (-1);
     }
     video->screen = NULL;
-    current_video = video;
+    __mg_current_video = video;
 
     /* Initialize the video subsystem */
     memset(&vformat, 0, sizeof(vformat));
@@ -281,7 +281,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
         return(-1);
     }
 
-    GAL_VideoSurface->video = current_video;
+    GAL_VideoSurface->video = __mg_current_video;
 
     video->info.vfmt = GAL_VideoSurface->format;
 
@@ -290,8 +290,8 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
 
 char *GAL_VideoDriverName(char *namebuf, int maxlen)
 {
-    if ( current_video != NULL ) {
-        strncpy(namebuf, current_video->name, maxlen-1);
+    if ( __mg_current_video != NULL ) {
+        strncpy(namebuf, __mg_current_video->name, maxlen-1);
         namebuf[maxlen-1] = '\0';
         return(namebuf);
     }
@@ -306,8 +306,8 @@ GAL_Surface *GAL_GetVideoSurface(void)
     GAL_Surface *visible;
 
     visible = NULL;
-    if ( current_video ) {
-        visible = current_video->screen;
+    if ( __mg_current_video ) {
+        visible = __mg_current_video->screen;
     }
     return(visible);
 }
@@ -320,8 +320,8 @@ const GAL_VideoInfo *GAL_GetVideoInfo(void)
     const GAL_VideoInfo *info;
 
     info = NULL;
-    if ( current_video ) {
-        info = &current_video->info;
+    if ( __mg_current_video ) {
+        info = &__mg_current_video->info;
     }
     return(info);
 }
@@ -335,8 +335,8 @@ const GAL_VideoInfo *GAL_GetVideoInfo(void)
  */
 GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags)
 {
-    GAL_VideoDevice *video = current_video;
-    GAL_VideoDevice *this  = current_video;
+    GAL_VideoDevice *video = __mg_current_video;
+    GAL_VideoDevice *this  = __mg_current_video;
     GAL_Rect **modes;
 
     modes = NULL;
@@ -398,7 +398,7 @@ int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags)
         }
         else {
             if ( (sizes == (GAL_Rect **)-1) ||
-                    current_video->handles_any_size ) {
+                    __mg_current_video->handles_any_size ) {
                 /* Any size supported at this bit-depth */
                 supported = 1;
                 continue;
@@ -512,7 +512,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     int video_h;
     int video_bpp;
 
-    this = video = current_video;
+    this = video = __mg_current_video;
 
     /* Default to the current video bpp */
     if ( bpp == 0 ) {
@@ -614,7 +614,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 #endif
 
     video->info.vfmt = GAL_VideoSurface->format;
-    GAL_VideoSurface->video = current_video;
+    GAL_VideoSurface->video = __mg_current_video;
 
     return(GAL_PublicSurface);
 }
@@ -852,7 +852,7 @@ static void SetPalette_logical(GAL_Surface *screen, GAL_Color *colors,
 static int SetPalette_physical(GAL_Surface *screen,
         GAL_Color *colors, int firstcolor, int ncolors)
 {
-    /* GAL_VideoDevice *video = current_video; */
+    /* GAL_VideoDevice *video = __mg_current_video; */
     GAL_VideoDevice *video;
     int gotall = 1;
     if ( screen->video == NULL ) {
@@ -903,7 +903,7 @@ int GAL_SetPalette(GAL_Surface *screen, int which,
     GAL_Palette *pal;
     int gotall;
     int palsize;
-    if ( ! current_video ) {
+    if ( ! __mg_current_video ) {
         return 0;
     }
     if ( screen->video == NULL ) {
@@ -936,7 +936,7 @@ int GAL_SetPalette(GAL_Surface *screen, int which,
         SetPalette_logical(screen, colors, firstcolor, ncolors);
     }
     if (which & GAL_PHYSPAL) {
-        /* GAL_VideoDevice *video = current_video; */
+        /* GAL_VideoDevice *video = __mg_current_video; */
         GAL_VideoDevice *video = (GAL_VideoDevice *)(screen->video);
         /*
          * Physical palette change: This doesn't affect the
@@ -950,7 +950,7 @@ int GAL_SetPalette(GAL_Surface *screen, int which,
             /* Lazy physical palette allocation */
             int size;
             GAL_Palette *pp = malloc(sizeof(*pp));
-            /* current_video->physpal = pp; */
+            /* __mg_current_video->physpal = pp; */
             video->physpal = pp;
             pp->ncolors = pal->ncolors;
             size = pp->ncolors * sizeof(GAL_Color);
@@ -981,9 +981,9 @@ void GAL_VideoQuit (void)
 {
     GAL_Surface *ready_to_go;
 
-    if ( current_video ) {
-        GAL_VideoDevice *video = current_video;
-        GAL_VideoDevice *this  = current_video;
+    if ( __mg_current_video ) {
+        GAL_VideoDevice *video = __mg_current_video;
+        GAL_VideoDevice *this  = __mg_current_video;
         /* Clean up the system video */
         video->VideoQuit (this);
 
@@ -1002,7 +1002,7 @@ void GAL_VideoQuit (void)
 
         /* Finish cleaning up video subsystem */
         video->free(this);
-        current_video = NULL;
+        __mg_current_video = NULL;
 
 #ifdef _MGUSE_SYNC_UPDATE
 	    DestroyFreeClipRectList (&__mg_free_update_region_list);
@@ -1363,8 +1363,8 @@ int GAL_ResumeVideo(void)
 #ifdef _MGRM_PROCESSES
     if (mgIsServer) {
 #endif
-        if (current_video && current_video->Resume) {
-            current_video->Resume(current_video);
+        if (__mg_current_video && __mg_current_video->Resume) {
+            __mg_current_video->Resume(__mg_current_video);
         }
 #ifdef _MGRM_PROCESSES
     }
@@ -1396,8 +1396,8 @@ int GAL_SuspendVideo(void)
 #ifdef _MGRM_PROCESSES
     if (mgIsServer) {
 #endif
-        if (current_video && current_video->Suspend) {
-            current_video->Suspend(current_video);
+        if (__mg_current_video && __mg_current_video->Suspend) {
+            __mg_current_video->Suspend(__mg_current_video);
         }
 #ifdef _MGRM_PROCESSES
     }

@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** lf_manager.c: The Look and Feel manager file.
@@ -735,7 +735,7 @@ GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
     gal_pixel pixel;
 
     if ((we_attr_id & WE_ATTR_TYPE_MASK) != WE_ATTR_TYPE_COLOR) {
-        _WRN_PRINTF ("Can't get color; invalid attr id: %x.", we_attr_id);
+        _WRN_PRINTF ("Can't get color; invalid attr id: %x.\n", we_attr_id);
         return -1;
     }
 
@@ -834,7 +834,7 @@ BOOL GUIAPI InitWindowElementAttrs (PWERENDERER rdr)
                 if (GetMgEtcValue (rdr->name, szCKeyNames[i][j],
                         buff, 12) != ETC_OK) {
                     _WRN_PRINTF ("InitWindowElementAttrs error: \
-                            Can not Get %s color.", szCKeyNames[i][j]);
+                            Can not Get %s color.\n", szCKeyNames[i][j]);
                     return FALSE;
                 }
 
@@ -863,7 +863,7 @@ BOOL mg_InitLFManager (void)
         return FALSE;
 
     if (rdr->init && 0 != rdr->init (rdr)) {
-        _WRN_PRINTF ("failed to initialize default renderer's private info.");
+        _ERR_PRINTF ("GUI>LFRDR: failed to initialize default renderer's private info.\n");
         return FALSE;
     }
 
@@ -875,7 +875,7 @@ BOOL mg_InitLFManager (void)
 
         if (rdr->init && 0 != rdr->init (rdr)) {
             wnd_lf_info[i].wnd_rdr = NULL;
-            _WRN_PRINTF ("failed to initialize renderer[%d]'s private info.", i);
+            _WRN_PRINTF ("failed to initialize renderer[%d]'s private info.\n", i);
             continue;
         }
     }

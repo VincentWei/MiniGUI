@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more layoutrmation about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /*
@@ -836,7 +836,7 @@ static inline void print_uc (LAYOUT* layout, int index, const char* desc)
 
     memset(utf8_char, 0, 10);
     uc32_to_utf8(uc, utf8_char);
-    _WRN_PRINTF("%s: character: %s (0x%x) at index: %d",
+    _WRN_PRINTF("%s: character: %s (0x%x) at index: %d\n",
             desc, utf8_char, uc, index);
     assert(uc != 0xa);
 }
@@ -872,7 +872,7 @@ static inline BOOL can_break_at (LAYOUT *layout,
             (layout->bos[offset - 1] & BOV_GB_CHAR_BREAK));
     }
     else {
-        _WRN_PRINTF ("broken Layout");
+        _WRN_PRINTF ("broken layout\n");
     }
 
     return TRUE;

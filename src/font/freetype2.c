@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** freetype2.c: TrueType font support based on FreeType 2.
@@ -282,12 +282,12 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     *face = ft_face_info->face;
     ft_inst_info->cur_index = gv;
     if (FT_Load_Glyph (*face, ft_inst_info->cur_index, ft_load_flags)) {
-        _WRN_PRINTF ("FONT>FT2: FT_Load_Glyph error");
+        _ERR_PRINTF ("FONT>FT2: FT_Load_Glyph failed\n");
         return -1;
     }
 
     if (FT_Get_Glyph ((*face)->glyph, &(ft_inst_info->glyph))) {
-        _WRN_PRINTF ("FONT>FT2: FT_Get_Glyph error");
+        _ERR_PRINTF ("FONT>FT2: FT_Get_Glyph failed\n");
         return -1;
     }
 
@@ -302,13 +302,13 @@ load_or_search_glyph (FTINSTANCEINFO* ft_inst_info, FT_Face* face,
     ft_inst_info->cur_index = gv;
     if ((error = FTC_ImageCache_Lookup (ft_image_cache, &ft_inst_info->image_type,
                 ft_inst_info->cur_index, &ft_glyph_tmp, NULL))) {
-        _WRN_PRINTF ("FONT>FT2: can't access image cache for index: 0x%X: %X",
+        _ERR_PRINTF ("FONT>FT2: can't access image cache for index: 0x%X: %X\n",
             ft_inst_info->cur_index, error);
         return -1;
     }
 
     if (FT_Glyph_Copy (ft_glyph_tmp, &ft_inst_info->glyph)) {
-        _WRN_PRINTF ("FONT>FT2: can't copy glyph from cache.");
+        _ERR_PRINTF ("FONT>FT2: can't copy glyph from cache.\n");
         return -1;
     }
 
@@ -1213,7 +1213,7 @@ BOOL font_InitFreetypeLibrary (void)
 #endif
 
     if (__mg_ttc_sys_init (_MGMAX_TTF_CACHE, _MGTTF_CACHE_SIZE * 1024)) {
-        _WRN_PRINTF ("init ttf cache sys failed");
+        _ERR_PRINTF ("FONT>FT2: failed to initialize TTF cache system\n");
         goto error_library;
     }
 
@@ -1236,7 +1236,7 @@ error_ftc_manager:
     return TRUE;
 
 error_library:
-    _ERR_PRINTF ("%s: Could not initialise FreeType 2 library\n", __FUNCTION__);
+    _ERR_PRINTF ("FONT>FT2: Could not initialise FreeType 2 library\n");
 
     FT_DESTROY_LOCK(&ft_lock);
     FT_Done_FreeType (ft_library);

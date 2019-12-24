@@ -41,7 +41,7 @@
  *   under the terms and conditions of the commercial license.
  *
  *   For more information about the commercial license, please refer to
- *   <http://www.minigui.com/en/about/licensing-policy/>.
+ *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** random.c: the random IAL Engine.
@@ -1538,17 +1538,16 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
     if (GetMgEtcValue ("random", "logfile", logfile, MAX_PATH) == ETC_OK) {
         my_ctxt.log_fp = fopen(logfile, "a");
         if (my_ctxt.log_fp == NULL) {
-            _WRN_PRINTF("Failed to open file %s for logging; log disabled",
+            _WRN_PRINTF("Failed to open file %s for logging; log disabled\n",
                 logfile);
         }
     }
     else {
-        _WRN_PRINTF("No log file defined; log disabled");
+        _WRN_PRINTF("No log file defined; log disabled\n");
     }
 
     if (GetMgEtcValue ("random", "eventtypes", eventtypes, LEN_EVENT_TYPES) < 0) {
-        _WRN_PRINTF("Bad ETC key value: random.eventtypes; use default: %s",
-                "mouse");
+        _WRN_PRINTF("Bad ETC key value: random.eventtypes; use default: mouse\n");
         strcpy(eventtypes, "mouse");
     }
 
@@ -1561,7 +1560,7 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
                 if (GetMgEtcIntValue ("random", "minkeycode", &my_ctxt.min_keycode) < 0 ||
                         my_ctxt.min_keycode < MIN_SCANCODE ||
                         my_ctxt.min_keycode > MAX_SCANCODE) {
-                    _WRN_PRINTF("Bad ETC key value: random.minkeycode; use default: %d",
+                    _WRN_PRINTF("Bad ETC key value: random.minkeycode; use default: %d\n",
                             MIN_SCANCODE);
                     my_ctxt.min_keycode = MIN_SCANCODE;
                 }
@@ -1569,7 +1568,7 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
                 if (GetMgEtcIntValue ("random", "maxkeycode", &my_ctxt.max_keycode) < 0 ||
                         my_ctxt.max_keycode < MIN_SCANCODE ||
                         my_ctxt.max_keycode < my_ctxt.min_keycode) {
-                    _WRN_PRINTF("Bad ETC key value: random.maxkeycode; use default: %d",
+                    _WRN_PRINTF("Bad ETC key value: random.maxkeycode; use default: %d\n",
                             MAX_SCANCODE);
                     my_ctxt.max_keycode = MAX_SCANCODE;
                 }
@@ -1585,7 +1584,7 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
                 if (GetMgEtcIntValue ("random", "minbtncode", &my_ctxt.min_btncode) < 0 ||
                         my_ctxt.min_btncode < MIN_BTNCODE ||
                         my_ctxt.min_btncode > MAX_BTNCODE) {
-                    _WRN_PRINTF("Bad ETC key value: random.minbtncode; use default: %d",
+                    _WRN_PRINTF("Bad ETC key value: random.minbtncode; use default: %d\n",
                             MIN_BTNCODE);
                     my_ctxt.min_btncode = MIN_BTNCODE;
                 }
@@ -1593,7 +1592,7 @@ BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
                 if (GetMgEtcIntValue ("random", "maxbtncode", &my_ctxt.max_btncode) < 0 ||
                         my_ctxt.max_btncode < MIN_SCANCODE ||
                         my_ctxt.max_btncode < my_ctxt.min_btncode) {
-                    _WRN_PRINTF("Bad ETC key value: random.maxbtncode; use default: %d",
+                    _WRN_PRINTF("Bad ETC key value: random.maxbtncode; use default: %d\n",
                             MAX_BTNCODE);
                     my_ctxt.max_btncode = MAX_BTNCODE;
                 }

@@ -85,7 +85,7 @@ typedef enum {
 }HI_GC_PIXEL_FMT;
 
 extern BOOL mgIsServer;
-extern GAL_VideoDevice* current_video;
+extern GAL_VideoDevice* __mg_current_video;
 
 #ifndef _MGRM_THREADS
 struct private_hwdata
@@ -423,7 +423,7 @@ static int HI3560_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
     /*if dst is current video surface, should do antiflicker*/
 #ifdef _MGRM_THREADS
     if ((src == __gal_screen) && (src->flags & GAL_HWSURFACE) 	
-    	&& (dst == current_video->screen))
+    	&& (dst == __mg_current_video->screen))
 #else
     if (mgIsServer && (src->flags & GAL_DOUBLEBUF) 
     	&& (src->flags & GAL_HWSURFACE)	&& (dst == this->screen))
@@ -433,7 +433,7 @@ static int HI3560_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
        if ((TAP_MIN_VALUE <= tap_level) && (TAP_MAX_VALUE >= tap_level))
        {
 #ifdef _MGRM_THREADS
-	       if (0 == HI3560_AntiFlicker(current_video, src, srcrect, dst, 
+	       if (0 == HI3560_AntiFlicker(__mg_current_video, src, srcrect, dst, 
 	       	                           dstrect, &uiOffsetX, &uiOffsetY))
 #else
            if (0 == HI3560_AntiFlicker(this, src, srcrect, dst, dstrect,
@@ -1869,7 +1869,7 @@ void* HI3560_MallocFromVram(int size)
     size += sizeof(struct private_hwdata *);
     request.h = (size+pitch-1)/pitch;
 
-    HI3560_RequestHWSurface (current_video, &request, &reply);
+    HI3560_RequestHWSurface (__mg_current_video, &request, &reply);
     
     if (reply.bucket == NULL)
     {
@@ -1891,7 +1891,7 @@ void HI3560_FreeToVram(void* p)
     request.bucket = *(char**)((char*)p - sizeof(struct private_hwdata *));
     request.h = request.offset;
 
-    HI3560_RequestHWSurface (current_video, &request, &reply);
+    HI3560_RequestHWSurface (__mg_current_video, &request, &reply);
 }
 #endif
 
@@ -2112,13 +2112,13 @@ VideoBootStrap HI3560_bootstrap = {
 //Added by l56244 on 27,July 2006
 int HI3560_GetVideoFD(void)
 {
-	GAL_VideoDevice* this = current_video;
+	GAL_VideoDevice* this = __mg_current_video;
 	return console_fd;
 }
 
 void* HI3560_GetMM_0(void)
 {
-	GAL_VideoDevice* this = current_video;
+	GAL_VideoDevice* this = __mg_current_video;
 	return mapped_mem;
 }
 
