@@ -1,5 +1,33 @@
 # Release Notes
 
+## Version 4.0.4
+
+The MiniGUI development team announces the availability of MiniGUI 4.0.4.
+We strongly recommend that you use this version for any new MiniGUI
+apps, especially if the new features of MiniGUI 4.0 are must for your
+new apps.
+
+Please report any bugs and incompatibilities in
+
+<https://github.com/VincentWei/minigui>
+
+### What's new in this version
+
+In this version, we mainly enhance the DRM engine of MiniGUI in order
+to integrate MiniGUI with Mesa and Cairo, for example, to implement EGL
+for MiniGUI platform.
+
+* MODIFICATIONS:
+   - Change the name of old `dri` NEWGAL engine to `drm`.
+   - Change the configuration option of DRM engine to `--enable-videodrm`.
+   - Change the macro for DRM engine to `_MGGAL_DRM`.
+   - Change the runtime configuration section for DRM engine to `drm`.
+* ENHANCEMENTS:
+   - New APIs for GPU integration, such as `IsMemDC`, `IsScreenDC`, `IsWindowDC`, `GetVideoHandle`, and `drmGetDeviceFD`.
+   - Add new operation for DRM engine: `create_buffer_from_prime_fd`.
+   - Use `dlopen` to load the external DRM driver.
+   - Add a new runtime configuration key for DRM engine `drm.exdriver` to define the external DRM driver.
+
 ## Version 4.0.2
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.2.

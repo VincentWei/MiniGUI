@@ -13696,7 +13696,7 @@ MG_EXPORT int GUIAPI SetUserCompositionOps (HDC hdc,
  *
  * \return The handle to the video; NULL on error.
  *
- * Since 4.1.0
+ * Since 4.0.4
  */
 MG_EXPORT GHANDLE GetVideoHandle (HDC hdc);
 
@@ -13714,7 +13714,7 @@ MG_EXPORT GHANDLE GetVideoHandle (HDC hdc);
   * \note Only available when support for Linuxe DRM NEWGAL engine
   * (`_MGGAL_DRM`) is enabled.
   *
-  * Since 4.1.0
+  * Since 4.0.4
   *
   * @{
   */
