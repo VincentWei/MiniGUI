@@ -147,11 +147,11 @@ and MiniGUI components, please fetch one of the following repositories
 from GitHub and follow the instructions to build the samples and
 the demonstration programs:
 
-https://github.com/VincentWei/build-minigui-4.0
+<https://github.com/VincentWei/build-minigui-4.0>
 
 or
 
-https://github.com/VincentWei/build-minigui-3.2
+<https://github.com/VincentWei/build-minigui-3.2>
 
 
 ### Unit Tests
@@ -159,7 +159,7 @@ https://github.com/VincentWei/build-minigui-3.2
 Since MiniGUI 4.0.0, we organize the unit test code of MiniGUI APIs in the
 following repository:
 
-https://github.com/VincentWei/mg-tests
+<https://github.com/VincentWei/mg-tests>
 
 If you are interested in hacking the MiniGUI code, please visit this repository.
 

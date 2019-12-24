@@ -13,7 +13,7 @@ Please report any bugs and incompatibilities in
 
 ### What's new in this version
 
-In this version, we mainly enhance the DRM engine of MiniGUI in order
+In this version, we mainly enhanced the DRM engine of MiniGUI in order
 to integrate MiniGUI with Mesa and Cairo, for example, to implement EGL
 for MiniGUI platform.
 
