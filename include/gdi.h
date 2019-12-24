@@ -13755,9 +13755,10 @@ typedef struct _DrmSurfaceInfo {
 } DrmSurfaceInfo;
 
 /**
- * This function gets the DRM surface information from the handle of the surface.
+ * This function gets the DRM surface information from specified device context.
  *
- * \param surface The handle to the surface.
+ * \param video The handle to the video.
+ * \param hdc The handle to the device context.
  * \param info The pointer to a DrmSurfaceInfo structure to hold
  *      the surface information.
  *
