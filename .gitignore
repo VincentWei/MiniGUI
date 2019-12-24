@@ -24,3 +24,7 @@ Makefile.in
 /*config.h.in
 /*config.h.in~
 
+/src/font/utils/emoji/
+/src/font/utils/ucd/
+/src/sysres/font_list
+/src/sysres/license/dat_files/
