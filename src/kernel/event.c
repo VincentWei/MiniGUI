@@ -55,6 +55,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _DEBUG
+
 #include "common.h"
 
 #ifndef __NOUNIX__
@@ -252,7 +254,7 @@ static void treat_longpress (PKEYEVENT ke, DWORD interval)
                 ke->event = KE_KEYLONGPRESS;
             }
             else
-                ke->event = 0;
+                ke->event = KE_KEYDOWN;
         }
         else if (interval >= __mg_key_alwayspress_time) {
             if (flag2) {
@@ -261,7 +263,7 @@ static void treat_longpress (PKEYEVENT ke, DWORD interval)
                 ke->event = KE_KEYALWAYSPRESS;
             }
             else if (__mg_timer_counter - starttime < __mg_interval_time) {
-                ke->event = 0;
+                ke->event = KE_KEYDOWN;
             }
             else {
                 starttime = __mg_timer_counter;
@@ -278,7 +280,7 @@ static void treat_longpress (PKEYEVENT ke, DWORD interval)
                 ke->event = KE_KEYALWAYSPRESS;
             }
             else if (__mg_timer_counter - starttime < __mg_interval_time) {
-                ke->event = 0;
+                ke->event = KE_KEYDOWN;
             }
             else {
                 starttime = __mg_timer_counter;
@@ -291,7 +293,7 @@ static void treat_longpress (PKEYEVENT ke, DWORD interval)
                 ke->event = KE_KEYLONGPRESS;
             }
             else
-                ke->event = 0;
+                ke->event = KE_KEYDOWN;
         }
     }
 }
@@ -465,8 +467,12 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             ke->scancode = olddownkey;
             interval = __mg_timer_counter - ke_time;
             treat_longpress (ke, interval);
-            if (ke->event == 0)
+            if (ke->event == 0) {
                 return 0;
+            }
+            else if (ke->event == KE_KEYDOWN) {
+                status |= KS_REPEATED;
+            }
         }
 
         make = (ke->event == KE_KEYDOWN)?1:0;
@@ -765,8 +771,12 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             ke->scancode = olddownkey;
             interval = __mg_timer_counter - ke_time;
             treat_longpress (ke, interval);
-            if (ke->event == 0)
+            if (ke->event == 0) {
                 return 0;
+            }
+            else if (ke->event == KE_KEYDOWN) {
+                status |= KS_REPEATED;
+            }
         }
 
         make = (ke->event == KE_KEYDOWN) ? 1 : 0;
