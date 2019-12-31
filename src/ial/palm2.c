@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** palm2.c: Low Level Input Engine for OKWAP PalmII.
 **          This engine runs on eCos.
-** 
+**
 ** Created by Wei Yongming, 2004/01/29
 */
 
@@ -182,16 +182,16 @@ static int keyboard_update(void)
 
     switch (key)
     {
-    case 1: 
+    case 1:
         state[SCANCODE_LEFTSHIFT] = status;
     break;
-    case 2: 
+    case 2:
         state[H3600_SCANCODE_CALENDAR] = status;
     break;
-    case 3: 
+    case 3:
         state[H3600_SCANCODE_CONTACTS] = status;
     break;
-    case 4: 
+    case 4:
         state[H3600_SCANCODE_Q] = status;
     break;
     case 5:
@@ -226,43 +226,29 @@ static const char* keyboard_getstate(void)
     return (char *)state;
 }
 
-#ifdef _LITE_VERSION 
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set rfds;
     int    retvalue = 0;
     int    e;
-    
-	if (!in) {
+
+    if (!in) {
         in = &rfds;
         FD_ZERO (in);
     }
 
     if ((which & IAL_MOUSEEVENT) && ts >= 0) {
         FD_SET (ts, in);
-#ifdef _LITE_VERSION
         if (ts > maxfd) maxfd = ts;
-#endif
     }
     if ((which & IAL_KEYEVENT) && btn_fd >= 0){
         FD_SET (btn_fd, in);
-#ifdef _LITE_VERSION
         if(btn_fd > maxfd) maxfd = btn_fd;
-#endif
     }
 
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout) ;
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout) ;
-#endif
-
-    if (e > 0) { 
+    if (e > 0) {
         if (ts >= 0 && FD_ISSET (ts, in)) {
             short data [4];
 
@@ -284,33 +270,33 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
         }
 
         if (btn_fd >= 0 && FD_ISSET(btn_fd, in)) {
-			int ret = 0;
+            int ret = 0;
             FD_CLR (btn_fd, in);
             ret = read (btn_fd, &cur_key, sizeof (cur_key));
-			if (ret != sizeof (cur_key)) {
-				printf ("%s:IAL_ENGINE,read error!!!!:ret:%i\n", __FUNCTION__, ret);
-				return -1;
-			}
-			printf ("%s:IAL_ENGINE:cur_key:%i\n", __FUNCTION__, cur_key);
-			if (cur_key < 30 && cur_key >= 0) {
-				state[key2scancode[cur_key]] = 1;
-				prev_key = cur_key;
-				retvalue |= IAL_KEYEVENT;
-			}
-			else if (cur_key >= 0x80 && cur_key < (0x80 | 30)) {
-				state[key2scancode[prev_key]] = 0;
-				retvalue |= IAL_KEYEVENT;
-			}
-		}
+            if (ret != sizeof (cur_key)) {
+                printf ("%s:IAL_ENGINE,read error!!!!:ret:%i\n", __FUNCTION__, ret);
+                return -1;
+            }
+            printf ("%s:IAL_ENGINE:cur_key:%i\n", __FUNCTION__, cur_key);
+            if (cur_key < 30 && cur_key >= 0) {
+                state[key2scancode[cur_key]] = 1;
+                prev_key = cur_key;
+                retvalue |= IAL_KEYEVENT;
+            }
+            else if (cur_key >= 0x80 && cur_key < (0x80 | 30)) {
+                state[key2scancode[prev_key]] = 0;
+                retvalue |= IAL_KEYEVENT;
+            }
+        }
 
     }
     else if (e == 0) {
         /* simulate the key up when time out */
         //if (cur_key >= 0 && cur_key < 30) {
           //  cur_key = 111;
-			if (state[key2scancode[prev_key]] == 1) {
-            	return IAL_KEYEVENT;
-			}
+            if (state[key2scancode[prev_key]] == 1) {
+                return IAL_KEYEVENT;
+            }
     }
     else {
         return -1;
@@ -347,7 +333,7 @@ BOOL InitPALMIIInput (INPUT* input, const char* mdev, const char* mtype)
     mousex = 0;
     mousey = 0;
     pos.x = pos.y = pos.b = 0;
-    
+
     return TRUE;
 }
 

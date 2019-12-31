@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** rtos_xvfb.c: Input Engine for RTOS X Virtual FrameBuffer
-** 
+**
 ** Created by Liu Peng, 2007/09/29
 */
 
@@ -98,7 +98,7 @@ void* xVFBCreateEventBuffer (int nr_events)
     buf->buffer_released = FALSE;
 
     return buf;
-    
+
 }
 
 void xVFBDestroyEventBuffer (void* buf)
@@ -113,7 +113,7 @@ void xVFBDestroyEventBuffer (void* buf)
     free (buf);
 }
 
-/* Get the mouse data if there is a mouse event. 
+/* Get the mouse data if there is a mouse event.
 * Return values:
 *   0: ok;
 *   1: the buffer full.
@@ -124,7 +124,7 @@ int xVFBNotifyNewEvent (const void* xvfb_event_buffer, XVFBEVENT* event)
     XVFBEVENTBUFFER* buf = (XVFBEVENTBUFFER*)xvfb_event_buffer;
     if (buf->buffer_released == TRUE)
         return 2;
-    
+
 
     pthread_mutex_lock (&buf->lock);
 
@@ -140,7 +140,7 @@ int xVFBNotifyNewEvent (const void* xvfb_event_buffer, XVFBEVENT* event)
 
     buf->events [buf->writepos] = *event;
     buf->writepos++;
-    if (buf->writepos >= buf->size) 
+    if (buf->writepos >= buf->size)
         buf->writepos = 0;
 
     pthread_mutex_unlock(&buf->lock);
@@ -150,7 +150,7 @@ int xVFBNotifyNewEvent (const void* xvfb_event_buffer, XVFBEVENT* event)
     fprintf (stderr, "event is put into buf.event_type =%d, mouse_x =%d, mouse_y =%d, mouse_btn =%d\n",
              event->event_type, event->data.mouse.x, event->data.mouse.y, event->data.mouse.button);
 #endif
-    
+
     return 0;
 }
 
@@ -180,18 +180,18 @@ static int mouse_getbutton (void)
     if (mouse_buttons & MIDBUTTON)
         buttons |= IAL_MOUSE_MIDDLEBUTTON;
 
-    return buttons;    
+    return buttons;
 }
 
 static int keyboard_update (void)
 {
     unsigned char scan_code;
-    unsigned char nr_changed_keys = 0;        
+    unsigned char nr_changed_keys = 0;
 
     scan_code = kbd_data.key_code;
     kbd_state [scan_code] = kbd_data.key_state ? 1 : 0;
 
-    nr_changed_keys = scan_code + 1;    
+    nr_changed_keys = scan_code + 1;
     return nr_changed_keys;
 }
 
@@ -204,16 +204,16 @@ static const char* keyboard_getstate (void)
 static XVFBEVENT* get_event_data (XVFBEVENTBUFFER* buf)
 {
     XVFBEVENT* event = NULL;
-    
+
     sem_wait (&buf->wait);
 
     pthread_mutex_lock (&buf->lock);
 
     if (buf->readpos != buf->writepos) {
         event = buf->events + buf->readpos;
-        
+
         buf->readpos++;
-        if (buf->readpos >= buf->size) 
+        if (buf->readpos >= buf->size)
             buf->readpos = 0;
 
     }
@@ -221,11 +221,11 @@ static XVFBEVENT* get_event_data (XVFBEVENTBUFFER* buf)
     pthread_mutex_unlock(&buf->lock);
 
     return event;
-    
+
 }
 
 
-static int wait_event (int which, int maxfd, fd_set *in, 
+static int wait_event (int which, int maxfd, fd_set *in,
         fd_set *out, fd_set *except, struct timeval *timeout)
 {
     int retvalue = 0;

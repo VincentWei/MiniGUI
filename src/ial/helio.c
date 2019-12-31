@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** helio.c: Low Level Input Engine for Helio Touch Panel
-** 
+**
 ** Created by Wei YongMing, 2001/01/17
 */
 
@@ -100,7 +100,7 @@ typedef struct
      */
 
     int a, b, c, d, e, f, s;
-} TRANSF_COEF;    
+} TRANSF_COEF;
 
 static TRANSF_COEF tc;
 
@@ -120,7 +120,7 @@ static int GetPointerCalibrationData(void)
     if ( f == NULL ) {
         /* now if we can't open /etc/pointercal, we should launch an application
          * to calibrate touch panel. so we should disable enable_coor_transf
-         * so that the application could get raw data from touch panel 
+         * so that the application could get raw data from touch panel
          */
         enable_coor_transf = 0;
         return 0;
@@ -129,7 +129,7 @@ static int GetPointerCalibrationData(void)
     items = fscanf(f, "%d %d %d %d %d %d %d",
         &tc.a, &tc.b, &tc.c, &tc.d, &tc.e, &tc.f, &tc.s);
     if ( items != 7 ) {
-    	fprintf(stderr, "Improperly formatted pointer calibration file %s.\n", cal_filename);
+        fprintf(stderr, "Improperly formatted pointer calibration file %s.\n", cal_filename);
         return -1;
     }
 
@@ -186,7 +186,7 @@ static int PD_Open(void)
 
     tp_fd = open(TPH_DEV_FILE, O_RDONLY);
     if (tp_fd < 0) {
-    	fprintf(stderr, "Error %d opening touch panel\n", errno);
+        fprintf(stderr, "Error %d opening touch panel\n", errno);
         return -1;
     }
 #ifdef _TP_TSBREF
@@ -207,10 +207,10 @@ static int PD_Open(void)
     s.settletime = settle_upper_limit * 50 / 100;
     result = ioctl(tp_fd, TPSETSCANPARM, &s);
     if ( result < 0 )
-    	fprintf(stderr, "Error %d, result %d setting scan parameters.\n", result, errno);
+        fprintf(stderr, "Error %d, result %d setting scan parameters.\n", result, errno);
 #endif
 
-    if (enable_coor_transf) { 
+    if (enable_coor_transf) {
         if (GetPointerCalibrationData() < 0) {
             close (tp_fd);
             return -1;
@@ -510,13 +510,8 @@ static const char* keyboard_getstate(void)
     return (char *)state;
 }
 
-#ifdef _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set rfds;
     int e;
@@ -530,32 +525,23 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
     if (which & IAL_MOUSEEVENT) {
         FD_SET (tp_fd, in);
-#ifdef _LITE_VERSION
         if (tp_fd > maxfd) maxfd = tp_fd;
-#endif
     }
 #ifdef _HELIO_BUTTONS
     if (which & IAL_KEYEVENT){
         FD_SET (btn_fd, in);
-#ifdef _LITE_VERSION
         if(btn_fd > maxfd) maxfd = btn_fd;
-#endif
     }
 #endif
 
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout) ;
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout) ;
-#endif
-
-    if (e > 0) { 
+    if (e > 0) {
         if (tp_fd >= 0 && FD_ISSET (tp_fd, in))
         {
             FD_CLR (tp_fd, in);
             result = PD_Read(&tp_px, &tp_py, &tp_pz, &tp_pb);
             if (result > 0) {
-            	retvalue |= IAL_MOUSEEVENT;
+                retvalue |= IAL_MOUSEEVENT;
             }
         }
 #ifdef _HELIO_BUTTONS

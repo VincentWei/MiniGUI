@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -69,12 +69,12 @@
 
 /* for data reading from /dev/ts */
 typedef struct  {
-	int x,y;    
-	int dx,dy;
-	int event;
-	int pressure; 
-	int ev_no;  
-	unsigned long ev_time;  
+    int x,y;
+    int dx,dy;
+    int event;
+    int pressure;
+    int ev_no;
+    unsigned long ev_time;
 }TS_EVENT;
 
 
@@ -123,7 +123,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     fd_set rfds;
     int    retvalue = 0;
     int    e;
-	int bytes_read=0;
+    int bytes_read=0;
     if (!in) {
         in = &rfds;
         FD_ZERO (in);
@@ -134,31 +134,31 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     }
     e = select (FD_SETSIZE, in, out, except, timeout) ;
 
-    if (e > 0) 
-	{ 
-        if (ts >= 0 && FD_ISSET (ts, in)) 
-	{
+    if (e > 0)
+    {
+        if (ts >= 0 && FD_ISSET (ts, in))
+    {
             FD_CLR (ts, in);
-	    //usleep(1);
+        //usleep(1);
             ts_event.x=0;
             ts_event.y=0;
 
-		bytes_read =  read (ts, &ts_event, sizeof (TS_EVENT));      
+        bytes_read =  read (ts, &ts_event, sizeof (TS_EVENT));
         while(bytes_read<sizeof(TS_EVENT))
-			bytes_read+=read(ts,(char *)&ts_event + bytes_read,sizeof(TS_EVENT) - bytes_read);
+            bytes_read+=read(ts,(char *)&ts_event + bytes_read,sizeof(TS_EVENT) - bytes_read);
 
 
-	
-				mousex = ts_event.x;
-				mousey = ts_event.y;
+
+                mousex = ts_event.x;
+                mousey = ts_event.y;
 
   //              printf ("mouse down: ts_event.x = %d, ts_event.y = %d\n", ts_event.x, ts_event.y);
-            
-				ts_event.pressure = ( ts_event.pressure == 0 ? IAL_MOUSE_LEFTBUTTON:0);
+
+                ts_event.pressure = ( ts_event.pressure == 0 ? IAL_MOUSE_LEFTBUTTON:0);
             retvalue |= IAL_MOUSEEVENT;
         }
 
-    } 
+    }
     else if (e < 0) {
         return -1;
     }
@@ -184,15 +184,15 @@ BOOL InitC33L05Input(INPUT* input, const char* mdev, const char* mtype)
     mousex = 0;
     mousey = 0;
     ts_event.x = ts_event.y = 0;
-	ts_event.pressure &= 0;
-    
+    ts_event.pressure &= 0;
+
     return TRUE;
 }
 
 void TermC33L05Input(void)
 {
     if (ts >= 0)
-        close(ts);    
+        close(ts);
 }
 
 #endif /* __TARGET_C33L05__ */

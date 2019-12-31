@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** utpmc.c: IAL Engine for UTPMC board.
-** 
+**
 ** Author: Zhong Shuyi (2003/12/28)
 */
 
@@ -148,13 +148,8 @@ static const unsigned char* keyboard_getpdtate(void)
     return (unsigned char *)key_state;
 }
 
-#ifdef _LITE_VERSION 
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     static unsigned int last_mouse_x;
     static unsigned int last_mouse_y;
@@ -170,25 +165,16 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
     if ((which & IAL_MOUSEEVENT) && touchpad_fd >= 0) {
         FD_SET (touchpad_fd, in);
-#ifdef _LITE_VERSION
         if (touchpad_fd > maxfd) maxfd = touchpad_fd;
-#endif
     }
 
     if ((which & IAL_KEYEVENT) && keypad_fd >= 0){
         FD_SET (keypad_fd, in);
-#ifdef _LITE_VERSION
         if (keypad_fd > maxfd) maxfd = keypad_fd;
-#endif
     }
 
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout);
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout);
-#endif
-
-    if (e > 0) { 
+    if (e > 0) {
         if (touchpad_fd >= 0 && FD_ISSET (touchpad_fd, in)) {
             PEN_XYZ touch_info_raw;
             TOUCHINFO touch_info;
@@ -203,14 +189,14 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
                 switch (touch_info.status) {
                 case 2: /* lbutton down */
                     /* mask small mouse move event */
-                    if (is_leftbutton_down 
+                    if (is_leftbutton_down
                             && (abs(last_mouse_x - touch_info.x) < PEN_X_THRESHOLD)
                             && (abs(last_mouse_y - touch_info.y) < PEN_Y_THRESHOLD))
                         break;
                     else {
                         last_mouse_x = touch_info.x;
                         last_mouse_y = touch_info.y;
-                                
+
                         mousex = touch_info.x;
                         mousey = touch_info.y;
 
@@ -291,7 +277,7 @@ BOOL InitUTPMCInput (INPUT* input, const char* mdev, const char* mtype)
     }
 
     set_calibration();
-    
+
     return TRUE;
 }
 
@@ -304,8 +290,8 @@ void TermUTPMCInput (void)
         close (keypad_fd);
 }
 
-/*************************************************** 
- following code doing touchpad calibration 
+/***************************************************
+ following code doing touchpad calibration
 ****************************************************/
 static void set_calibration(void)
 {
@@ -322,8 +308,8 @@ static void set_calibration(void)
         matrix.fn = -4865400;
         matrix.divider = 526662;
     }
-    
-    if (read (fd, &matrix, sizeof(CALIBRATION_MATRIX)) 
+
+    if (read (fd, &matrix, sizeof(CALIBRATION_MATRIX))
             != sizeof(CALIBRATION_MATRIX)) {
         matrix.an = 187720;
         matrix.bn = 2180;

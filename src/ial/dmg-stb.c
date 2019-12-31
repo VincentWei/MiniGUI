@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** dmg-stb.c: IAL Engine for Intel DMG GEN10 STB.
-** 
+**
 ** Author: Wei Yongming (2003/12/14)
 */
 
@@ -89,7 +89,7 @@ static int mouse_getbutton(void)
 static unsigned int cur_key;
 static unsigned char state [NR_KEYS];
 
-static unsigned char ir2kbd_map_b1 [] = 
+static unsigned char ir2kbd_map_b1 [] =
 {
     0,              // 0
     0,              // 1
@@ -98,7 +98,7 @@ static unsigned char ir2kbd_map_b1 [] =
     DMG_KB_BACK,    // 4
 };
 
-static unsigned char ir2kbd_map_b2 [] = 
+static unsigned char ir2kbd_map_b2 [] =
 {
     0,              // 0
     DMG_KB_UP,      // 1
@@ -111,14 +111,14 @@ static unsigned char ir2kbd_map_b2 [] =
     DMG_KB_RIGHT,   // 8
 };
 
-static unsigned char ir2kbd_map_b3 [] = 
+static unsigned char ir2kbd_map_b3 [] =
 {
     0,              // 0
     DMG_KB_PLAY,    // 1
     DMG_KB_STOP,    // 2
 };
 
-static unsigned char ir2kbd_map_b4 [] = 
+static unsigned char ir2kbd_map_b4 [] =
 {
     0,              // 0
     0,              // 1
@@ -155,13 +155,8 @@ static const char * keyboard_get_state(void)
     return (char *)state;
 }
 
-#ifdef  _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set rfds;
     int    e;
@@ -173,18 +168,11 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
     if ((which & IAL_KEYEVENT) && ir_fd >= 0) {
         FD_SET (ir_fd, in);
-#ifdef _LITE_VERSION
         if (ir_fd > maxfd) maxfd = ir_fd;
-#endif
     }
 
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout) ;
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout) ;
-#endif
-
-    if (e < 0) 
+    if (e < 0)
         return -1;
 
     if (ir_fd >= 0 && FD_ISSET (ir_fd, in)) {

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -48,7 +48,7 @@
 #define dbg() printf("%s %d\n", __FUNCTION__, __LINE__)
 
 /*
-** cisco_touchpad.c: Input Engine for Cisco touchpad 
+** cisco_touchpad.c: Input Engine for Cisco touchpad
 */
 
 #include "common.h"
@@ -56,48 +56,48 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <sys/ioctl.h> 
+#include <sys/ioctl.h>
 #include <errno.h>
 #include "mgsock.h"
 #include "minigui.h"
-#include "ial.h" 
+#include "ial.h"
 #include "window.h"
 #include "cliprect.h"
 #include "../include/internals.h"
 
 
 #include <dirent.h>
-#include <ctype.h> 
+#include <ctype.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <linux/vt.h>
 #include <linux/kd.h>
-#include <linux/keyboard.h> 
+#include <linux/keyboard.h>
 #include <madp.h>
 #include <madp/madp_ir.h>
 
 #define NOBUTTON         0x0000
 #define LEFTBUTTON       0x0001
-#define MOUSEBUTTONMASK  0x00FF 
+#define MOUSEBUTTONMASK  0x00FF
 
 #define MOUSE_MOVE_PIXEL    50
-#define MOUSE_MAX_X         1920 
-#define MOUSE_MAX_Y         1080 
+#define MOUSE_MAX_X         1920
+#define MOUSE_MAX_Y         1080
 
-static unsigned short xiKeyValue[256] = 
-{ /*      0          1        2             3           4          5          6          7          8           9 */ 
+static unsigned short xiKeyValue[256] =
+{ /*      0          1        2             3           4          5          6          7          8           9 */
 /*0*/   0x0030,    0x0031,    0x0032,    0x0033,        0x0034,    0x0035,    0x0036,    0x0037,    0x0038,    0x0039,
-/*10*/  '*',       0x0122,    0x001B,    SCANCODE_F1,   0x0081,    0x0009,    0x0043,SCANCODE_SLASH,0x0111,    0x0112, 
-/*20*/  0x0113,    0x0114,    0x008b,    SCANCODE_F2, SCANCODE_F3, 0x008e,SCANCODE_F4,   0x0123,    0x001B,    0x0091, 
-/*30*/  0x0092,    SCANCODE_F5,0x0039,    0x0047,        0x0048,    0x0049,    0x004a,    0x0025,    0x0026,    0x0028,  
-/*40*/  0x0028,    0x0029,    0x002a,    0x002b,        0x0033,    0x000c,    0x0034,    0x0035,    0x000b,    0x0002,  
+/*10*/  '*',       0x0122,    0x001B,    SCANCODE_F1,   0x0081,    0x0009,    0x0043,SCANCODE_SLASH,0x0111,    0x0112,
+/*20*/  0x0113,    0x0114,    0x008b,    SCANCODE_F2, SCANCODE_F3, 0x008e,SCANCODE_F4,   0x0123,    0x001B,    0x0091,
+/*30*/  0x0092,    SCANCODE_F5,0x0039,    0x0047,        0x0048,    0x0049,    0x004a,    0x0025,    0x0026,    0x0028,
+/*40*/  0x0028,    0x0029,    0x002a,    0x002b,        0x0033,    0x000c,    0x0034,    0x0035,    0x000b,    0x0002,
 /*50*/  0x0003,    0x0004,    0x0005,    0x0006,        0x0007,    0x0008,    0x0009,    0x000a,    0x000b,    0x0027,
-/*60*/  0x003c,    0x000d,    0x003e,    0x003f,        0x0127, 0x0128,SCANCODE_CURSORUP,SCANCODE_CURSORDOWN,SCANCODE_CURSORLEFT,SCANCODE_CURSORRIGHT, 
+/*60*/  0x003c,    0x000d,    0x003e,    0x003f,        0x0127, 0x0128,SCANCODE_CURSORUP,SCANCODE_CURSORDOWN,SCANCODE_CURSORLEFT,SCANCODE_CURSORRIGHT,
 /*70*/  SCANCODE_ENTER, SCANCODE_HOME,SCANCODE_END,0x0049,        0x0125,    0x0126,    0x004c,    0x004d, SCANCODE_F7,  0x004f,
 /*80*/ SCANCODE_F6,0x0051, SCANCODE_F8,  0x0124,        0x0054,    0x0055,    0x0056,    0x0057,    0x0058,    0x0059,
 /*90*/  0x005a,    0x001a,    0x002b,    0x001b,        0x005e,    0x005f,    0x0060,    0x001e,    0x0030,    0x002e,
@@ -117,19 +117,19 @@ static unsigned short xiKeyValue[256] =
 /*230*/ 0x00e6,    0x00e7,    0x00e8,    0x00e9,        0x00ea,    0x00eb,    0x00ec,    0x00ed,    0x00ee,    0x00ef,
 /*240*/ 0x00f0,    0x00f1,    0x00f2,    0x00f3,        0x00f4,    0x00f5,    0x00f6,    0x00f7,    0x00f8,    0x00f9,
 /*250*/ 0x00fa,    0x00fb,    0x00fc,    0x00fd,        0x00fe,    0x00ff
-}; 
+};
 static unsigned int cur_key;
-static char state[NR_KEYS]; 
+static char state[NR_KEYS];
 static int    xpos;        /* current x position of mouse */
 static int    ypos;        /* current y position of mouse */
-static int    minx;        
-static int    maxx;        
-static int    miny;       
-static int    maxy;       
-static int buttons = 0; 
+static int    minx;
+static int    maxx;
+static int    miny;
+static int    maxy;
+static int buttons = 0;
 static int ir_fd = -1;
 
-/************************  Low Level Input Operations **********************/ 
+/************************  Low Level Input Operations **********************/
 static int mouse_update (void)
 {
     return 1;
@@ -164,13 +164,8 @@ static const char * keyboard_get_state(void)
 }
 
 /* NOTE by weiym: Do not ignore the fd_set in, out, and except */
-#ifdef _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif /* _LITE_VERSION */ 
 {
     int e, fd;
     fd_set rfds;
@@ -184,7 +179,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
         if (buttons) {
             buttons = 0;
             e |= IAL_MOUSEEVENT;
-        } 
+        }
         return e;
     }
 
@@ -194,11 +189,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     }
     fd = ir_fd;
     mg_fd_set (fd, in);
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout);
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout); 
-#endif
     if(e > 0) {
         //printf("e > 0, key pressed\n");
         fd = ir_fd;
@@ -209,11 +200,11 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
         int rawcode;
         int read_len = read (ir_fd, &rawcode, sizeof(unsigned int));
         if (read_len == sizeof(unsigned int)) {
-            unsigned char code = (rawcode& 0x0000FF00) >> 8;	
+            unsigned char code = (rawcode& 0x0000FF00) >> 8;
             int key = xiKeyValue[code%MGUI_NR_KEYS];
             printf("read results: rawcode = %d, code = %d, key = 0x%x\n", rawcode ,code, key);
             switch (key) {
-                case SCANCODE_CURSORLEFT: 
+                case SCANCODE_CURSORLEFT:
                     printf("SCANCODE_CURSORLEFT\n");
                     xpos -= MOUSE_MOVE_PIXEL;
                     if (xpos < 0)
@@ -248,7 +239,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
                     cur_key = key;
                     return IAL_KEYEVENT;
             }
-        } 
+        }
     }
     return 0;
 }
@@ -257,16 +248,16 @@ BOOL InitMStarInput (INPUT* input, const char* mdev, const char* mtype)
 {
 #ifndef USE_MSTAR_CHAKRA
     //ENTER();
-    int flag = 1; 
+    int flag = 1;
     ir_fd = open ("/dev/ir", O_RDWR);
-    
+
     if ( ir_fd < 0 ) {
         fprintf (stderr, "IAL: Can not open xilleon ir device!\n");
         return -1;
-    }   
+    }
     int masterIrPid;
     ioctl(ir_fd, MDRV_IR_GET_MASTER_PID, &masterIrPid);
-    if (masterIrPid > 0) { 
+    if (masterIrPid > 0) {
         printf("kill master Ir Pid\n");
         kill(masterIrPid, 0);
     }
@@ -300,7 +291,7 @@ BOOL InitMStarInput (INPUT* input, const char* mdev, const char* mtype)
     input->get_keyboard_state = keyboard_get_state;
     input->set_leds = NULL;
 
-    input->wait_event = wait_event; 
+    input->wait_event = wait_event;
     //LEAVE();
 
     return TRUE;
@@ -315,5 +306,5 @@ void TermMStarInput (void)
 #endif
     ir_fd = -1;
     LEAVE();
-} 
+}
 #endif // _MGIAL_MSTAR

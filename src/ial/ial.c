@@ -194,7 +194,7 @@ static INPUT inputs [] =
     {"tslib", InitTSLibInput, TermTSLibInput},
 #endif
 #ifdef _MGIAL_NEXUS
-	{"nexus", InitNexusInput, TermNexusInput},
+    {"nexus", InitNexusInput, TermNexusInput},
 #endif
 #ifdef _MGIAL_DAVINCI6446
     {"davinci6446", InitDavinci6446Input, TermDavinci6446Input},

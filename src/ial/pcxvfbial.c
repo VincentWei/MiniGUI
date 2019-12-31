@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** pcxvfb.c: Input Engine for PCX Virtual FrameBuffer
-** 
+**
 ** Created by xgwang, 2007/09/28
 */
 
@@ -141,7 +141,7 @@ static int record_fd = -1;
 static long long int record_time_start = 0;
 
 #ifdef IAL_RECORD_MANUAL_START
-#define IAL_RECORD_START_KEY	SCANCODE_F5
+#define IAL_RECORD_START_KEY    SCANCODE_F5
 
 static BOOL record_started = FALSE;
 #endif
@@ -153,58 +153,58 @@ static void (*exit_gui)(void);
 
 void VFBSetIMETextCallback(void (*setIMEText)(void *, const char* text), void *user_data)
 {
-	set_ime_text = setIMEText;
-	ime_text_callback_data = user_data;
-	return;
+    set_ime_text = setIMEText;
+    ime_text_callback_data = user_data;
+    return;
 }
 
 void VFBSetCaption(const char* caption)
 {
-	int len = 0;
-	char szCaption[1024];
-	XVFBCaptionEventData *ced = (XVFBCaptionEventData*)szCaption;
+    int len = 0;
+    char szCaption[1024];
+    XVFBCaptionEventData *ced = (XVFBCaptionEventData*)szCaption;
 
-	if(caption == NULL || (len = strlen(caption)) <= 0)
-		return;
+    if(caption == NULL || (len = strlen(caption)) <= 0)
+        return;
 
-	ced->event_type = CAPTION_TYPE;
-	ced->size = len;
-	strcpy(ced->buff,caption);
+    ced->event_type = CAPTION_TYPE;
+    ced->size = len;
+    strcpy(ced->buff,caption);
 
-	if(__mg_pcxvfb_client_sockfd == -1)
-		return;
-	/*one XVFBCaptionEventData struct costs 8 bytes,
-	 * change that '8' below if the struct is changed*/
-	if (mg_writesocket(__mg_pcxvfb_client_sockfd, ced, 8+len) < (8+len)) {
+    if(__mg_pcxvfb_client_sockfd == -1)
+        return;
+    /*one XVFBCaptionEventData struct costs 8 bytes,
+     * change that '8' below if the struct is changed*/
+    if (mg_writesocket(__mg_pcxvfb_client_sockfd, ced, 8+len) < (8+len)) {
         _ERR_PRINTF ("IAL>PCXVFB: error occurred when calling VFBSetCaption.\n");
     }
 }
 
 void VFBOpenIME(int bOpen)
 {
-	XVFBIMEEventData ime={
-			IME_TYPE,
-			bOpen
-	};
+    XVFBIMEEventData ime={
+            IME_TYPE,
+            bOpen
+    };
 
-	if(__mg_pcxvfb_client_sockfd == -1)
-		return;
+    if(__mg_pcxvfb_client_sockfd == -1)
+        return;
 
-	if (mg_writesocket(__mg_pcxvfb_client_sockfd, &ime, sizeof(ime)) < sizeof(ime)) {
+    if (mg_writesocket(__mg_pcxvfb_client_sockfd, &ime, sizeof(ime)) < sizeof(ime)) {
         _ERR_PRINTF ("IAL>PCXVFB: error occurred when calling VFBOpenIME.\n");
     }
 }
 
 void VFBShowWindow(int show)
 {
-	int info[2] = {
-			SHOW_HIDE_TYPE,
-			show
-	};
-	if(__mg_pcxvfb_client_sockfd == -1)
-		return;
+    int info[2] = {
+            SHOW_HIDE_TYPE,
+            show
+    };
+    if(__mg_pcxvfb_client_sockfd == -1)
+        return;
 
-	if (mg_writesocket(__mg_pcxvfb_client_sockfd, info, sizeof(info)) < sizeof(info)) {
+    if (mg_writesocket(__mg_pcxvfb_client_sockfd, info, sizeof(info)) < sizeof(info)) {
         _ERR_PRINTF ("IAL>PCXVFB: error occurred when calling VFBShowWindow.\n");
     }
 }
@@ -283,7 +283,7 @@ static long long int getcurtime(void)
 #ifdef WIN32
     /* TODO: */
     return 0;
-#else    
+#else
     struct timeval tv;
     gettimeofday( &tv, NULL );
     return (long long int)tv.tv_sec * 1000 + (long long int)tv.tv_usec / 1000;
@@ -354,7 +354,7 @@ static void do_record(AUTO_IAL_INPUT_EVENT *event)
     }
     event->type = ArchSwap32(event->type);
 #endif
-    
+
 
     write_rec (event, sizeof(*event));
 
@@ -381,9 +381,9 @@ static void mouse_setxy (int x, int y)
     int mouse_event[3] = {MOUSE_TYPE, x, y};
 
     if(__mg_pcxvfb_client_sockfd == -1)
-		return;
+        return;
 
-	if (mg_writesocket (__mg_pcxvfb_client_sockfd, &mouse_event, sizeof(XVFBEVENT)) < sizeof(XVFBEVENT)) {
+    if (mg_writesocket (__mg_pcxvfb_client_sockfd, &mouse_event, sizeof(XVFBEVENT)) < sizeof(XVFBEVENT)) {
         _ERR_PRINTF ("IAL>PCXVFB: error occurred when setting mouse position.\n");
     }
 }
@@ -406,7 +406,7 @@ static int mouse_update (void)
 {
     cur_retvalue = 0;
 #ifndef WIN32
-    
+
     if (if_record_ial ()) {
         AUTO_IAL_INPUT_EVENT event;
         event.timestamp = getcurtime() - record_time_start;
@@ -427,14 +427,14 @@ static int keyboard_update (void)
 {
     unsigned char scancode;
     static unsigned char last = 0;
-    unsigned int unicode; 
+    unsigned int unicode;
     BYTE press;
 
-	cur_retvalue = 0;
+    cur_retvalue = 0;
 
     unicode = s_pcxvfb_event_key.data.key.key_code;
     press = (s_pcxvfb_event_key.data.key.key_state) ? 1 : 0;
-    
+
     if (!(GetShiftKeyStatus() & KS_NUMLOCK)) {
         if (unicode == SCANCODE_CURSORUP)
             unicode = SCANCODE_CURSORBLOCKUP;
@@ -528,7 +528,7 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
                 }
 
                 return IAL_MOUSEEVENT;
-            } 
+            }
         case KB_TYPE:
             {
                 if (mg_readsocket (fd, &pcxvfb_event->data, sizeof(pcxvfb_event->data))
@@ -541,8 +541,8 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
             }
         case IME_MESSAGE_TYPE:
             {
-				int size;
-				unsigned char szBuff[1024];
+                int size;
+                unsigned char szBuff[1024];
                 if(mg_readsocket (fd, &size, sizeof(size)) != sizeof(size)) {
                     return 0;
                 }
@@ -551,21 +551,21 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
                 }
                 if(mg_readsocket (fd, szBuff, size) == size) {
                     /*
-					int i;
-					for (i = 0; i < size; ++i)
-						fprintf (stderr, "%02x ", szBuff[i]);
-					fprintf (stderr, "%d\n", size);
+                    int i;
+                    for (i = 0; i < size; ++i)
+                        fprintf (stderr, "%02x ", szBuff[i]);
+                    fprintf (stderr, "%d\n", size);
                     */
                     szBuff[size] = '\0';
                     set_ime_text(ime_text_callback_data, (const char *)szBuff);
-				} else {
-				}
+                } else {
+                }
                 return 0;
             }
         case -1:
-		case XVFB_CLOSE_TYPE:
+        case XVFB_CLOSE_TYPE:
             {
-				if (__mg_pcxvfb_client_sockfd >= 0) {
+                if (__mg_pcxvfb_client_sockfd >= 0) {
 #ifdef WIN32
                     win_PCXVFbCloseSocket (__mg_pcxvfb_client_sockfd);
 #else
@@ -591,11 +591,11 @@ static int read_event(int fd, XVFBEVENT *pcxvfb_event)
     return -1;
 }
 
-static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, 
+static int wait_event (int which, int maxfd, fd_set *in, fd_set *out,
                       fd_set *except, struct timeval *timeout)
 {
     int    retvalue = 0;
-#ifndef	WIN32
+#ifndef    WIN32
     fd_set rfds;
 #else
     _fd_set rfds;
@@ -644,7 +644,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out,
     e = mg_select (FD_SETSIZE, in, out, except, timeout) ;
 #endif
 
-    if (e > 0) { 
+    if (e > 0) {
         fd = __mg_pcxvfb_client_sockfd;
         /* If data is present on the mouse fd, service it: */
         if (fd >= 0 && mg_fd_isset (fd, in)) {

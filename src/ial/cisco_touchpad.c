@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 #define dbg() printf("%s %d\n", __FUNCTION__, __LINE__)
 
 /*
-** cisco_touchpad.c: Input Engine for Cisco touchpad 
+** cisco_touchpad.c: Input Engine for Cisco touchpad
 */
 
 #include "common.h"
@@ -54,16 +54,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <sys/ioctl.h> 
+#include <sys/ioctl.h>
 #include <errno.h>
 #include "mgsock.h"
 #include "minigui.h"
-#include "ial.h" 
+#include "ial.h"
 #include "native/native.h"
 #include "cisco_touchpad.h"
 #include "window.h"
@@ -92,8 +92,8 @@ static KBDDEVICE * kbddev = &kbddev_event;
 static MOUSEDEVICE * mousedev = &mousedev_IMPS2;
 static int    scale;       /* acceleration scale factor */
 static int    thresh;      /* acceleration threshhold */
-static int buttons = 0; 
-static int s_current_mode = -1; 
+static int buttons = 0;
+static int s_current_mode = -1;
 static int s_expect_mode = MICE_MODE;
 static int kbd_fd = -1;
 static int mouse_fd = -1;
@@ -102,7 +102,7 @@ static char state[NR_KEYS];
 static int s_enable_appmode;
 
 void mg_ial_ioctl(unsigned int cmd, unsigned int value)
-{ 
+{
     if (s_enable_appmode) {
         if (cmd == CMD_SET_MODE) {
             switch (value) {
@@ -122,7 +122,7 @@ void mg_ial_ioctl(unsigned int cmd, unsigned int value)
 
 static int touchpad_set_mode(int mode) {
     int ret = 0;
-    unsigned char packet[] = { 0x00, 0x04,0x81,0x00 }; 
+    unsigned char packet[] = { 0x00, 0x04,0x81,0x00 };
     if(mode == MICE_MODE) {
         packet[sizeof(packet)-1] = 0x00;
         ret = write(app_fd, packet, sizeof(packet));
@@ -130,7 +130,7 @@ static int touchpad_set_mode(int mode) {
         memset(state, 0, NR_KEYS);
         packet[sizeof(packet)-1] = 0x03;
         ret = write(app_fd, packet, sizeof(packet));
-    } 
+    }
     if (ret < 0) {
         perror("write()");
     }
@@ -138,8 +138,8 @@ static int touchpad_set_mode(int mode) {
     return 0;
 }
 
-/************************  Low Level Input Operations **********************/ 
-/* * Mouse operations -- Event */ 
+/************************  Low Level Input Operations **********************/
+/* * Mouse operations -- Event */
 static int mouse_update (void)
 {
     if(MICE_MODE == s_current_mode) {
@@ -246,13 +246,13 @@ static int mouse_resume(void)
 static int keyboard_update (void)
 {
     int retvalue = 0;
-    if(MICE_MODE == s_current_mode) { 
+    if(MICE_MODE == s_current_mode) {
         unsigned char buf;
         int modifier;
         int ch;
         int is_pressed;
 
-        retvalue = kbddev->Read (&buf, &modifier); 
+        retvalue = kbddev->Read (&buf, &modifier);
         if ((retvalue == -1) || (retvalue == 0)) {
             return 0;
         } else { /* retvalue > 0 */
@@ -265,7 +265,7 @@ static int keyboard_update (void)
                 state[ch] = 0;
             }
             // printf("is_pressed=%d, ch=%d, state[%d]=%d\n", is_pressed, ch, ch, state[ch]);
-        } 
+        }
         return NR_KEYS;
     } else if(APP_MODE == s_current_mode) {
         unsigned char buf[16];
@@ -305,7 +305,7 @@ static int keyboard_update (void)
         }
     }
     return 0;
-} 
+}
 
 static const char* keyboard_getstate (void)
 {
@@ -349,7 +349,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
         }
     }
 
-    if( MICE_MODE == s_current_mode) { 
+    if( MICE_MODE == s_current_mode) {
         if (which & IAL_MOUSEEVENT && mouse_fd >= 0) {
             fd = mouse_fd;
             mg_fd_set (fd, in);
@@ -376,12 +376,12 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
             if (fd >= 0 && FD_ISSET (fd, in)) {
                 FD_CLR (fd, in);
                 retvalue |= IAL_KEYEVENT;
-            }      
-        } else if (e < 0) {        
+            }
+        } else if (e < 0) {
             return -1;
         }
         return retvalue;
-    } else { 
+    } else {
         static int s_app_key;
         static int s_app_key_status = -1; /* -1: empty, 0:up, but not send to app yet, 1:down */
         unsigned char buf[16];
@@ -423,7 +423,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
                     }
                 }
             }
-        }else if (e < 0) { 
+        }else if (e < 0) {
             return -1;
         }else{ /* timedout */
             if (s_app_key_status == 0) {
@@ -432,12 +432,12 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
             }
         }
         return 0;
-    } 
+    }
 }
 
 static void keyboard_suspend(void)
 {
-    kbddev->Suspend();    
+    kbddev->Suspend();
     kbd_fd = -1;
 }
 
@@ -492,14 +492,14 @@ BOOL InitCiscoTouchpadInput (INPUT* input, const char* mdev, const char* mtype)
         system("mknod "KBD" c 13 64 > /dev/null 2>&1");
         kbd_fd = keyboard_open(keyboard_device);
         if (kbd_fd < 0) {
-            fprintf (stderr, "[WARNING] IAL Native Engine: Can not init keyboard right now, %s(%s).\nPlease plug in the KEYBOARD!\n", 
+            fprintf (stderr, "[WARNING] IAL Native Engine: Can not init keyboard right now, %s(%s).\nPlease plug in the KEYBOARD!\n",
                     strerror(errno), keyboard_device);
         }
     }
 
     mouse_fd = mouse_open(mdev);
     if (mouse_fd <0) {
-        fprintf (stderr, "[WARNING] IAL Native Engine: Can not init mouse right now, %s(%s).\nPlease plug in the MOUSE!\n", 
+        fprintf (stderr, "[WARNING] IAL Native Engine: Can not init mouse right now, %s(%s).\nPlease plug in the MOUSE!\n",
                 strerror(errno), mdev);
     }
 
@@ -547,12 +547,12 @@ BOOL InitCiscoTouchpadInput (INPUT* input, const char* mdev, const char* mtype)
     input->resume_keyboard = keyboard_resume;
     input->set_leds = NULL;
 
-    input->wait_event = wait_event; 
+    input->wait_event = wait_event;
     return TRUE;
 }
 
 void TermCiscoTouchpadInput (void)
-{ 
+{
     if (mousedev)
         mousedev->Close();
 
@@ -565,3 +565,4 @@ void TermCiscoTouchpadInput (void)
     }
 }
 #endif // _MGIAL_CISCO_TOUCHPAD
+

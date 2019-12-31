@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -102,14 +102,14 @@ static inline void chmousestatus (void)
 {
     mousestatus ^= 1;
 
-	if(mousestatus)
+    if(mousestatus)
     {
-		printf("+++++++++++++ MiniGUI:Swtich to MOUSE Mode ++++++++++++++\n");
+        printf("+++++++++++++ MiniGUI:Swtich to MOUSE Mode ++++++++++++++\n");
         ShowCursor(TRUE);
     }
-	else
+    else
     {
-		printf("+++++++++++++ MiniGUI:Back to KEYBOARD Mode ++++++++++++++\n");
+        printf("+++++++++++++ MiniGUI:Back to KEYBOARD Mode ++++++++++++++\n");
         ShowCursor(FALSE);
     }
 }
@@ -130,79 +130,79 @@ static struct _ir2key {
     {KEY_0,         SCANCODE_0},
     {KEY_1,         SCANCODE_1},
     {KEY_2,         SCANCODE_2},
-    {KEY_3,        	SCANCODE_3},
+    {KEY_3,            SCANCODE_3},
     {KEY_4,         SCANCODE_4},
     {KEY_5,         SCANCODE_5},
     {KEY_6,         SCANCODE_6},
-    {KEY_7,        	SCANCODE_7},
-    {KEY_8,        	SCANCODE_8},
+    {KEY_7,            SCANCODE_7},
+    {KEY_8,            SCANCODE_8},
     {KEY_9,         SCANCODE_9},
 
     {KEY_UP,        SCANCODE_CURSORBLOCKUP},
-    {KEY_DOWN,		SCANCODE_CURSORBLOCKDOWN},
-    {KEY_LEFT,     	SCANCODE_CURSORBLOCKLEFT},
+    {KEY_DOWN,        SCANCODE_CURSORBLOCKDOWN},
+    {KEY_LEFT,         SCANCODE_CURSORBLOCKLEFT},
     {KEY_RIGHT,     SCANCODE_CURSORBLOCKRIGHT},
 
-	{KEY_PGUP,		SCANCODE_PAGEUP},
-    {KEY_PGDN,     	SCANCODE_PAGEDOWN},
+    {KEY_PGUP,        SCANCODE_PAGEUP},
+    {KEY_PGDN,         SCANCODE_PAGEDOWN},
 
     {KEY_VOLINC,    SCANCODE_EQUAL},
     {KEY_VOLDEC,    SCANCODE_MINUS},
 
-	{KEY_CAPS,		SCANCODE_CAPSLOCK},
+    {KEY_CAPS,        SCANCODE_CAPSLOCK},
     {KEY_TAB,       SCANCODE_TAB},
-	{KEY_REFRESH,	SCANCODE_F5},
-	{KEY_BACK,		SCANCODE_BACKSPACE},
+    {KEY_REFRESH,    SCANCODE_F5},
+    {KEY_BACK,        SCANCODE_BACKSPACE},
 
     {KEY_OK,        SCANCODE_ENTER},
-	{KEY_CANCEL,	SCANCODE_ESCAPE},
+    {KEY_CANCEL,    SCANCODE_ESCAPE},
 
-	{KEY_MOUSE,		SCANCODE_F8},
+    {KEY_MOUSE,        SCANCODE_F8},
 
-	{KEY_RED,		SCANCODE_F9},
-	{KEY_GREEN,		SCANCODE_F10},
-	{KEY_YELLOW,	SCANCODE_F11},
-	{KEY_BLUE,		SCANCODE_F12}
+    {KEY_RED,        SCANCODE_F9},
+    {KEY_GREEN,        SCANCODE_F10},
+    {KEY_YELLOW,    SCANCODE_F11},
+    {KEY_BLUE,        SCANCODE_F12}
 };
 
 static KeyReg_t RegKeys[] =
 {
-	{KEY_0,			RC},
-	{KEY_1,			RC},
-	{KEY_2,			RC},
-	{KEY_3,			RC},
-	{KEY_4,			RC},
-	{KEY_5,			RC},
-	{KEY_6,			RC},
-	{KEY_7,			RC},
-	{KEY_8,			RC},
-	{KEY_9,			RC},
-	
+    {KEY_0,            RC},
+    {KEY_1,            RC},
+    {KEY_2,            RC},
+    {KEY_3,            RC},
+    {KEY_4,            RC},
+    {KEY_5,            RC},
+    {KEY_6,            RC},
+    {KEY_7,            RC},
+    {KEY_8,            RC},
+    {KEY_9,            RC},
+
     {KEY_UP,        RC},
-    {KEY_DOWN,		RC},
-    {KEY_LEFT,     	RC},
+    {KEY_DOWN,        RC},
+    {KEY_LEFT,         RC},
     {KEY_RIGHT,     RC},
-	
-	{KEY_PGUP,		RC},
-    {KEY_PGDN,     	RC},
-    
-	{KEY_VOLINC,    RC},
+
+    {KEY_PGUP,        RC},
+    {KEY_PGDN,         RC},
+
+    {KEY_VOLINC,    RC},
     {KEY_VOLDEC,    RC},
 
-	{KEY_CAPS,		RC},
+    {KEY_CAPS,        RC},
     {KEY_TAB,       RC},
-	{KEY_REFRESH,	RC},
-	{KEY_BACK,		RC},
-    
-	{KEY_OK,       	RC},
-	{KEY_CANCEL,	RC},
-    
-	{KEY_RED,		RC},
-	{KEY_GREEN,		RC},
-	{KEY_YELLOW,	RC},
-	{KEY_BLUE,		RC},
+    {KEY_REFRESH,    RC},
+    {KEY_BACK,        RC},
 
-	{KEY_MOUSE,		RC},
+    {KEY_OK,           RC},
+    {KEY_CANCEL,    RC},
+
+    {KEY_RED,        RC},
+    {KEY_GREEN,        RC},
+    {KEY_YELLOW,    RC},
+    {KEY_BLUE,        RC},
+
+    {KEY_MOUSE,        RC},
 
     {KEY_UP,        PN},
     {KEY_DOWN,      PN},
@@ -215,7 +215,7 @@ static KeyReg_t RegKeys[] =
 
 };
 
-static int 
+static int
 find_ir_key(unsigned long key)
 {
     int i;
@@ -248,7 +248,7 @@ static int keyboard_update (void)
     return NR_KEYS;
 }
 
-static const char * 
+static const char *
 keyboard_get_state(void)
 {
     return (char *)state;
@@ -269,42 +269,37 @@ static int looprcvMsg(Msg_t *pMsg, struct timeval *timeout)
     while (interval < (timeout->tv_sec*1000000 + timeout->tv_usec)) {
         ret = rcvMcMsgNoWait(pMsg);
         if (ret > 0) {
-			printf("+++++++++++++++ MiniGUI:recieved Message ++++++++++++++++\n");
+            printf("+++++++++++++++ MiniGUI:recieved Message ++++++++++++++++\n");
             return ret;
-		}
-		else if (ret < 0)	/* error */
-			return ret;
+        }
+        else if (ret < 0)    /* error */
+            return ret;
 
         usleep(10000);
         gettimeofday(&curt, NULL);
         interval =
-            (curt.tv_sec - startt.tv_sec)*1000000 + (curt.tv_usec - startt.tv_usec);     
-	}
+            (curt.tv_sec - startt.tv_sec)*1000000 + (curt.tv_usec - startt.tv_usec);
+    }
 
-    return 0;	/* time out */
+    return 0;    /* time out */
 }
 
-#ifdef  _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
-	unsigned int ret;
+    unsigned int ret;
     unsigned int key;
-	int e;
-	unsigned long usec;
-	int msgtype;
-	Msg_t msg;
-	unsigned char *url;
+    int e;
+    unsigned long usec;
+    int msgtype;
+    Msg_t msg;
+    unsigned char *url;
     int number = 0;
-	
-	usec = timeout->tv_sec*1000000+timeout->tv_usec;
+
+    usec = timeout->tv_sec*1000000+timeout->tv_usec;
 
     if (cur_key || button) {
-		usleep(usec);
+        usleep(usec);
 
         if (cur_key) {
             cur_key = 0;
@@ -319,50 +314,50 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
         return e;
     }
 
-	if (!MCIsInit)
-	{
-		if (initMsgQueue(ST_BrowserControl) < 0) {
-			fprintf(stderr, "Cannot Init MC MsgQueue\n");
-			return -1;
-		}
+    if (!MCIsInit)
+    {
+        if (initMsgQueue(ST_BrowserControl) < 0) {
+            fprintf(stderr, "Cannot Init MC MsgQueue\n");
+            return -1;
+        }
 
         if (requestKeys(__mg_with_panel ? TABLESIZE(RegKeys):(TABLESIZE(RegKeys) - 8), RegKeys) < 0) {
             fprintf(stderr, "Request Keys Error\n");
             return -1;
         }
-		
-		MCIsInit = 1;
-	}
 
-	ret = looprcvMsg(&msg, timeout);
-	if (ret > 0) {	/* have msg */
-		msgtype = getMsgId(&msg);
+        MCIsInit = 1;
+    }
 
-	    printf("@@@@@@@@@@@@@@@ MiniGUI:KEY Message msgtype (%d) \n", msgtype);
-		switch(msgtype) {
-		case MSG_KEY:
-			printf("+++++++++++++++ MiniGUI:KEY Message +++++++++++++++++\n");
-			key = *(unsigned int*)getMsgContent(&msg);
-			break;
-		case MSG_CMD_ACTIVATE:
-			printf("MiniGUI:Receive the MSG_CMD_ACTIVATE Message =================\n");
-			ActiveApp();
-			acknowledgeCmd(MSG_APP_STATUS_ACTIVE);
-			printf("MiniGUI:have sent the MSG_APP_STATUS_ACTIVE Message =================\n");
-			return 0;
-		case MSG_CMD_DEACTIVATE:
-			printf("MiniGUI:Receive the MSG_CMD_DEACTIVATE Message =================\n");
-			DeActiveApp();
-			acknowledgeCmd(MSG_APP_STATUS_STANDBY);
-			printf("MiniGUI:have sent the MSG_APP_STATUS_STANDBY Message =================\n");
-			return 0;
+    ret = looprcvMsg(&msg, timeout);
+    if (ret > 0) {    /* have msg */
+        msgtype = getMsgId(&msg);
 
-		case MSG_CMD_UNLOAD:
-			printf("MiniGUI:Receive the MSG_CMD_UNLOAD Message =================\n");
-			acknowledgeCmd(MSG_APP_STATUS_UNLOAD);
-			UnLoadApp();
-			printf("MiniGUI:have sent the MSG_APP_STATUS_UNLOAD Message =================\n");
-			return 0;
+        printf("@@@@@@@@@@@@@@@ MiniGUI:KEY Message msgtype (%d) \n", msgtype);
+        switch(msgtype) {
+        case MSG_KEY:
+            printf("+++++++++++++++ MiniGUI:KEY Message +++++++++++++++++\n");
+            key = *(unsigned int*)getMsgContent(&msg);
+            break;
+        case MSG_CMD_ACTIVATE:
+            printf("MiniGUI:Receive the MSG_CMD_ACTIVATE Message =================\n");
+            ActiveApp();
+            acknowledgeCmd(MSG_APP_STATUS_ACTIVE);
+            printf("MiniGUI:have sent the MSG_APP_STATUS_ACTIVE Message =================\n");
+            return 0;
+        case MSG_CMD_DEACTIVATE:
+            printf("MiniGUI:Receive the MSG_CMD_DEACTIVATE Message =================\n");
+            DeActiveApp();
+            acknowledgeCmd(MSG_APP_STATUS_STANDBY);
+            printf("MiniGUI:have sent the MSG_APP_STATUS_STANDBY Message =================\n");
+            return 0;
+
+        case MSG_CMD_UNLOAD:
+            printf("MiniGUI:Receive the MSG_CMD_UNLOAD Message =================\n");
+            acknowledgeCmd(MSG_APP_STATUS_UNLOAD);
+            UnLoadApp();
+            printf("MiniGUI:have sent the MSG_APP_STATUS_UNLOAD Message =================\n");
+            return 0;
 
         case MSG_CMD_URL:
             url = (unsigned char*)getMsgContent(&msg);
@@ -370,20 +365,20 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
             OpenUrl(url);
             return 0;
 
-		default:
-			printf("MiniGUI:the Message type not found!&&&&&&&&&&&&&&&\n");
-			return 0;
-		}
-	}
-	else if (ret = 0)	/* timeout */
-	{
-		return 0;
-	}
-	else	/* error */
-	{
-		return -1;
-	}
-    
+        default:
+            printf("MiniGUI:the Message type not found!&&&&&&&&&&&&&&&\n");
+            return 0;
+        }
+    }
+    else if (ret = 0)    /* timeout */
+    {
+        return 0;
+    }
+    else    /* error */
+    {
+        return -1;
+    }
+
     if (key == KEY_MOUSE) {
         printf("helloworld change the mouse and keyboard mode -====================================\n");
         chmousestatus();
@@ -394,7 +389,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
         switch (key) {
 #if 1
         case KEY_LEFT:
-			printf("+++++++++++++ MiniGUI: LEFT Message ++++++++++++++\n");
+            printf("+++++++++++++ MiniGUI: LEFT Message ++++++++++++++\n");
             mousex -= MOUSE_MOVE_PIXEL;
             if (mousex < 0)
                 mousex = 0;
@@ -402,28 +397,28 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 #endif
 
         case KEY_RIGHT:
-			printf("+++++++++++++ MiniGUI: RIGHT Message ++++++++++++++\n");
+            printf("+++++++++++++ MiniGUI: RIGHT Message ++++++++++++++\n");
             mousex += MOUSE_MOVE_PIXEL_F;
             if (mousex > MOUSE_MAX_X)
                 mousex = MOUSE_MAX_X;
             return IAL_MOUSEEVENT;
 
         case KEY_UP:
-			printf("+++++++++++++ MiniGUI: UP Message ++++++++++++++\n");
+            printf("+++++++++++++ MiniGUI: UP Message ++++++++++++++\n");
             mousey -= MOUSE_MOVE_PIXEL;
             if (mousey < 0)
                 mousey = 0;
             return IAL_MOUSEEVENT;
 
         case KEY_DOWN:
-			printf("+++++++++++++ MiniGUI: DOWN Message ++++++++++++++\n");
+            printf("+++++++++++++ MiniGUI: DOWN Message ++++++++++++++\n");
             mousey += MOUSE_MOVE_PIXEL_F;
             if (mousey > MOUSE_MAX_Y)
                 mousey = MOUSE_MAX_Y;
             return IAL_MOUSEEVENT;
 
         case KEY_OK:
-			printf("+++++++++++++ MiniGUI: OK Message ++++++++++++++\n");
+            printf("+++++++++++++ MiniGUI: OK Message ++++++++++++++\n");
             button = IAL_MOUSE_LEFTBUTTON;
             return IAL_MOUSEEVENT;
         }

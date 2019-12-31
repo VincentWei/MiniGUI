@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** hh5249kbdir.c: IAL Engine for HH5249 PS/2 keyboard and IrDA.
-** 
+**
 ** Author: Wei Yongming (2004/05/19)
 */
 
@@ -121,39 +121,39 @@ static struct _irkey_scancode_map {
     {IRKEY_LH_INC,      SCANCODE_USER+21},
     {IRKEY_LH_DEC,      SCANCODE_USER+22},
 #else
-	{IRKEY_1,   SCANCODE_ESCAPE},
-	{IRKEY_2,   SCANCODE_1},
-	{IRKEY_3,   SCANCODE_2},
-	{IRKEY_4,   SCANCODE_3},
-	{IRKEY_5,   SCANCODE_4},
-	{IRKEY_6,   SCANCODE_5},
-	{IRKEY_7,   SCANCODE_6},
-	{IRKEY_8,   SCANCODE_7},
-	{IRKEY_9,   SCANCODE_8},
-	{IRKEY_10,  SCANCODE_9},
-	{IRKEY_11,  SCANCODE_0},
-	{IRKEY_12,  SCANCODE_USER+2},
-	{IRKEY_13,  SCANCODE_USER+3},
-	{IRKEY_14,  SCANCODE_USER+4},
-	{IRKEY_15,  SCANCODE_USER+5},
-	{IRKEY_16,  SCANCODE_USER+6},
-	{IRKEY_17,  SCANCODE_TAB},
-	{IRKEY_18,  SCANCODE_USER+8},
-	{IRKEY_19,  SCANCODE_ENTER},
-	{IRKEY_20,  SCANCODE_USER+10},
-	{IRKEY_21,  SCANCODE_USER+11},
-	{IRKEY_22,  SCANCODE_BACKSPACE},
-	{IRKEY_23,  SCANCODE_USER+9},
-	{IRKEY_24,  SCANCODE_USER+14},
-	{IRKEY_25,  SCANCODE_USER+15},
-	{IRKEY_26,  SCANCODE_USER+16},
-	{IRKEY_27,  SCANCODE_USER+17},
-	{IRKEY_28,  SCANCODE_USER+18},
-	{IRKEY_29,  SCANCODE_USER+19},
-	{IRKEY_30,  SCANCODE_USER+20},
-	{IRKEY_31,  SCANCODE_USER+21},
-	{IRKEY_32,  SCANCODE_USER+22},
-	{IRKEY_33,  SCANCODE_USER+23},
+    {IRKEY_1,   SCANCODE_ESCAPE},
+    {IRKEY_2,   SCANCODE_1},
+    {IRKEY_3,   SCANCODE_2},
+    {IRKEY_4,   SCANCODE_3},
+    {IRKEY_5,   SCANCODE_4},
+    {IRKEY_6,   SCANCODE_5},
+    {IRKEY_7,   SCANCODE_6},
+    {IRKEY_8,   SCANCODE_7},
+    {IRKEY_9,   SCANCODE_8},
+    {IRKEY_10,  SCANCODE_9},
+    {IRKEY_11,  SCANCODE_0},
+    {IRKEY_12,  SCANCODE_USER+2},
+    {IRKEY_13,  SCANCODE_USER+3},
+    {IRKEY_14,  SCANCODE_USER+4},
+    {IRKEY_15,  SCANCODE_USER+5},
+    {IRKEY_16,  SCANCODE_USER+6},
+    {IRKEY_17,  SCANCODE_TAB},
+    {IRKEY_18,  SCANCODE_USER+8},
+    {IRKEY_19,  SCANCODE_ENTER},
+    {IRKEY_20,  SCANCODE_USER+10},
+    {IRKEY_21,  SCANCODE_USER+11},
+    {IRKEY_22,  SCANCODE_BACKSPACE},
+    {IRKEY_23,  SCANCODE_USER+9},
+    {IRKEY_24,  SCANCODE_USER+14},
+    {IRKEY_25,  SCANCODE_USER+15},
+    {IRKEY_26,  SCANCODE_USER+16},
+    {IRKEY_27,  SCANCODE_USER+17},
+    {IRKEY_28,  SCANCODE_USER+18},
+    {IRKEY_29,  SCANCODE_USER+19},
+    {IRKEY_30,  SCANCODE_USER+20},
+    {IRKEY_31,  SCANCODE_USER+21},
+    {IRKEY_32,  SCANCODE_USER+22},
+    {IRKEY_33,  SCANCODE_USER+23},
 #endif
 };
 
@@ -182,13 +182,8 @@ static const char * keyboard_get_state(void)
     return (char *)key_state;
 }
 
-#ifdef  _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set rfds;
     int retvalue = 0;
@@ -197,11 +192,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
     if (cur_ir_scancode) {
 
-#ifdef _LITE_VERSION
         select (maxfd + 1, in, out, except, timeout);
-#else
-        select (FD_SETSIZE, in, out, except, timeout);
-#endif
         if (cur_ir_scancode) {
             key_state [cur_ir_scancode] = 0;
             cur_ir_scancode = 0;
@@ -221,18 +212,11 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
             FD_SET (ps2kbd_fd, in);
         if (irkbd_fd >= 0)
             FD_SET (irkbd_fd, in);
-#ifdef _LITE_VERSION
         if (MAX (ps2kbd_fd, irkbd_fd) > maxfd) maxfd = MAX (ps2kbd_fd, irkbd_fd);
-#endif
     }
 
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout) ;
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout) ;
-#endif
-
-    if (e > 0) { 
+    if (e > 0) {
         if (ps2kbd_fd >= 0 && FD_ISSET (ps2kbd_fd, in)) {
             unsigned char scancode;
 
