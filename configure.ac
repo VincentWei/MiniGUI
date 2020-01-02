@@ -92,6 +92,7 @@ message_string="no"
 
 osname="unspecified"
 runtime_mode="procs"
+use_compositor="yes"
 
 incore_res="no"
 use_miniguientry="no"
@@ -248,7 +249,7 @@ build_ctrl_monthcal="no"
 build_ctrl_treeview="no"
 build_ctrl_treeview_rdr="no"
 build_ctrl_spinbox="yes"
-build_ctrl_coolbar="no"
+build_ctrl_coolbar="yes"
 build_ctrl_listview="yes"
 build_ctrl_iconview="no"
 build_ctrl_gridview="no"
@@ -829,6 +830,12 @@ AC_ARG_ENABLE(ctrlanimation,
 [  --enable-ctrlanimation   include ANIMATION control and GIF87a/GIF89a support <default=yes>],
 build_ctrl_animation=$enableval)
 
+if test "x$runtime_mode" == "xprocs"; then
+    AC_ARG_ENABLE(compositor,
+[  --enable-compositor      enable compositor (MiniGUI-Processes runmode only) <default=yes>],
+    use_compositor=$enableval)
+fi
+
 dnl Set up the Null video driver.
 CheckDummyVideo()
 {
@@ -885,26 +892,22 @@ CheckFBCON()
 dnl Find the DRM includes
 CheckDRM()
 {
-    if test "x$runtime_mode" = "xprocs"; then
-        enable_video_drm="no; DRI engine does not support MiniGUI-Processes runtime mode currently"
-    else
-        AC_ARG_ENABLE(videodrm,
-    [  --enable-videodrm      include Linux DRI NEWGAL engine <default=yes>],
-        enable_video_drm=$enableval)
-        if test "x$enable_video_drm" = "xyes"; then
-            PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
-                video_drm="no; Linux DRI NEWGAL engine requires libdrm 2.4+")
-            if test "x$video_drm" = "xyes"; then
-                AC_DEFINE(_MGGAL_DRM, 1,
-                    [Define if include Linux DRI NEWGAL engine])
-                VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
-                VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
-                DEP_LIBS="$DEP_LIBS -ldrm -ldl"
-                DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
-                AC_SUBST(DRM_INC_DIR)
-            else
-                AC_MSG_WARN([$video_drm])
-            fi
+    AC_ARG_ENABLE(videodrm,
+[  --enable-videodrm      include Linux DRM NEWGAL engine <default=yes>],
+    enable_video_drm=$enableval)
+    if test "x$enable_video_drm" = "xyes"; then
+        PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
+            video_drm="no; Linux DRM NEWGAL engine requires libdrm 2.4+")
+        if test "x$video_drm" = "xyes"; then
+            AC_DEFINE(_MGGAL_DRM, 1,
+                [Define if include Linux DRM NEWGAL engine])
+            VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
+            VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
+            DEP_LIBS="$DEP_LIBS -ldrm -ldl"
+            DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
+            AC_SUBST(DRM_INC_DIR)
+        else
+            AC_MSG_WARN([$video_drm])
         fi
     fi
 }
@@ -1719,6 +1722,10 @@ case "$runtime_mode" in
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         MINIGUI_RUNMODE="procs"
+        if test "x$use_compositor" = "xyes"; then
+          AC_DEFINE(_MGUSE_COMPOSITOR, 1,
+                    [Define if use compositor for MiniGUI-Processes])
+        fi
     ;;
 esac
 
@@ -2698,6 +2705,7 @@ AC_MSG_NOTICE([
 ## Global Features:
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
+  * Compositor:         ${use_compositor}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}
