@@ -565,7 +565,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 
             fwrite (&shmid, sizeof(int), 1, fp);
             fclose(fp);
-#endif
+#endif /* _MGRM_PROCESSES */
         }
 
 #if defined(_MGRM_PROCESSES)
@@ -589,7 +589,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             data->shmrgn = (unsigned char *)shmat (shmid, 0, 0);
         }
     }
-#endif
+#endif /* _MGRM_PROCESSES */
 #endif //end of os (windows, cygwin, linux)
 
     if ((INT_PTR)data->shmrgn == -1 || data->shmrgn == NULL) {
@@ -608,7 +608,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             break;
         case 4:
             break;
-#endif
+#endif /* _MGGAL_SHADOW */
         case 8:
             vformat->BytesPerPixel = 1;
             break;

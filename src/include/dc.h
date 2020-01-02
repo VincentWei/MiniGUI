@@ -265,9 +265,9 @@ extern DC __mg_screen_sys_dc;
 static inline PDC dc_HDC2PDC (HDC hdc)
 {
     if (hdc == HDC_SCREEN_SYS)
-      	return &__mg_screen_sys_dc;
+        return &__mg_screen_sys_dc;
     else if (hdc == HDC_SCREEN)
-      	return &__mg_screen_dc;
+        return &__mg_screen_dc;
     return (PDC) hdc;
 }
 

@@ -2775,7 +2775,8 @@ Uint8* GUIAPI LockDC (HDC hdc, const RECT* rw_rc, int* width, int* height,
         goto fail1;
     */
     LOCK (&__mg_gdilock);
-    if (!dc_IsMemDC (pdc)) kernel_ShowCursorForGDI (FALSE, pdc);
+    if (!dc_IsMemDC (pdc))
+        kernel_ShowCursorForGDI (FALSE, pdc);
 
     if (width) *width = RECTW(pdc->rc_output);
     if (height) *height = RECTH(pdc->rc_output);

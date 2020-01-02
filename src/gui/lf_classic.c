@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -91,8 +91,8 @@ WINDOW_ELEMENT_RENDERER __mg_wnd_rdr_classic;
  */
 static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
 {
-    fixed min; 
-    fixed max; 
+    fixed min;
+    fixed max;
     fixed delta;
     fixed tmp;
 
@@ -130,12 +130,12 @@ static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
     else if( g == max )
         /*between cyan & yellow*/
         *h = fixadd(itofix(2), fixdiv(fixsub(b, r), delta));
-    else 
+    else
         /*magenta & cyan*/
         *h = fixadd(itofix(4), fixdiv(fixsub(r, g), delta));
 
     /*degrees*/
-    *h = fixmul(*h, itofix(60)); 
+    *h = fixmul(*h, itofix(60));
 
     if (*h < itofix(0))
         *h = fixadd(*h, itofix(360));
@@ -167,14 +167,14 @@ static void HSV2RGB(fixed h, fixed s, fixed v, fixed* r, fixed* g, fixed* b)
     p = fixmul(v, fixsub(itofix(1), s));
     /*q = v * (1 - s*f)*/
     q = fixmul (v, fixsub (itofix(1), fixmul(s, f)));
-   
+
     /*t = v * (1 - s*(1-f))*/
     t = fixmul (v, fixsub (itofix(1), fixmul(s, fixsub( itofix(1), f))));
-    
+
     switch (i) {
-        case 0: 
-            *r = fixmul (v, itofix(255)); 
-            *g = fixmul (t, itofix(255)); 
+        case 0:
+            *r = fixmul (v, itofix(255));
+            *g = fixmul (t, itofix(255));
             *b = fixmul (p, itofix(255));
             break;
         case 1:
@@ -212,8 +212,8 @@ static void HSV2RGB(fixed h, fixed s, fixed v, fixed* r, fixed* g, fixed* b)
  * Author: XuguangWang
  * Date: 2007-11-22
  */
-static void 
-increase_vh(fixed src_v, fixed src_h, fixed* dest_v, fixed* dest_h, 
+static void
+increase_vh(fixed src_v, fixed src_h, fixed* dest_v, fixed* dest_h,
             BOOL is_half)
 {
     int h;
@@ -261,8 +261,8 @@ increase_vh(fixed src_v, fixed src_h, fixed* dest_v, fixed* dest_h,
 
 /*
  * calc_3dbox_color:
- *      calc a less brighter, much bright, less darker, or much darker           
- *      color of color which used in 3dbox.     
+ *      calc a less brighter, much bright, less darker, or much darker
+ *      color of color which used in 3dbox.
  * Author: XuguangWang
  * Date: 2007-11-22
  */
@@ -317,19 +317,19 @@ static DWORD calc_3dbox_color (DWORD color, int flag)
  * Author: XuguangWang
  * Date: 2007-11-22
  */
-static void 
+static void
 draw_one_frame (HDC hdc, const RECT* rc, DWORD lt_color, DWORD rb_color)
 {
-    SetPenColor (hdc, RGBA2Pixel(hdc, GetRValue(lt_color), 
-                GetGValue(lt_color), GetBValue(lt_color), 
+    SetPenColor (hdc, RGBA2Pixel(hdc, GetRValue(lt_color),
+                GetGValue(lt_color), GetBValue(lt_color),
                 GetAValue(lt_color)));
 
     MoveTo(hdc, rc->left, rc->bottom-1);
     LineTo(hdc, rc->left, rc->top);
     LineTo(hdc, rc->right-1, rc->top);
 
-    SetPenColor(hdc, RGBA2Pixel(hdc, GetRValue(rb_color), 
-                GetGValue(rb_color), GetBValue(rb_color), 
+    SetPenColor(hdc, RGBA2Pixel(hdc, GetRValue(rb_color),
+                GetGValue(rb_color), GetBValue(rb_color),
                 GetAValue(rb_color)));
 
     MoveTo (hdc, rc->left+1, rc->bottom-1);
@@ -337,9 +337,9 @@ draw_one_frame (HDC hdc, const RECT* rc, DWORD lt_color, DWORD rb_color)
     LineTo (hdc, rc->right-1, rc->top);
 }
 
-static int fill_iso_triangle_snd(HDC hdc, DWORD color, 
+static int fill_iso_triangle_snd(HDC hdc, DWORD color,
                                 POINT ap, POINT bp1, POINT bp2)
-{ 
+{
     int x1, y1;
     int  startx,endx,starty,endy;
     int xinc, yinc;
@@ -386,7 +386,7 @@ static int fill_iso_triangle_snd(HDC hdc, DWORD color,
 }
 
 /*initialize and terminate interface*/
-static int init (PWERENDERER renderer) 
+static int init (PWERENDERER renderer)
 {
     InitWindowElementAttrs (renderer);
 
@@ -398,7 +398,7 @@ static int init (PWERENDERER renderer)
     renderer->we_fonts[2] = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
     renderer->we_fonts[3] = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
     /*icon*/
-    if (!InitRendererSystemIcon (renderer->name, 
+    if (!InitRendererSystemIcon (renderer->name,
                 renderer->we_icon[0], renderer->we_icon[1]))
         return -1;
 
@@ -407,7 +407,7 @@ static int init (PWERENDERER renderer)
 
     if (!RegisterSystemBitmap (HDC_SCREEN, renderer->name, SYSBMP_CHECKBUTTON))
         return -1;
-    
+
     gui_LoadIconRes(HDC_SCREEN, renderer->name, (char*)SYSICON_TREEFOLD);
     gui_LoadIconRes(HDC_SCREEN, renderer->name, (char*)SYSICON_TREEUNFOLD);
 
@@ -423,7 +423,7 @@ static int deinit (PWERENDERER renderer)
 
     UnregisterSystemBitmap (HDC_SCREEN, renderer->name, SYSBMP_RADIOBUTTON);
     UnregisterSystemBitmap (HDC_SCREEN, renderer->name, SYSBMP_CHECKBUTTON);
-    
+
     gui_UnLoadIconRes(HDC_SCREEN, renderer->name, (char*)SYSICON_TREEFOLD);
     gui_UnLoadIconRes(HDC_SCREEN, renderer->name, (char*)SYSICON_TREEUNFOLD);
 
@@ -435,9 +435,9 @@ static int deinit (PWERENDERER renderer)
 /*
  * draw_3dbox:
  *      draw a 3dbox.
- * param color - the main color of 3dbox     
- * param flag - how to draw the 3dbox (thin or thick frame, filled or 
- *      unfilled)   
+ * param color - the main color of 3dbox
+ * param flag - how to draw the 3dbox (thin or thick frame, filled or
+ *      unfilled)
  * Author: XuguangWang
  * Date: 2007-11-22
  */
@@ -456,7 +456,7 @@ static void draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
 
     old_brush_color = GetBrushColor(hdc);
     old_pen_color = GetPenColor(hdc);
-    
+
     /*draw outer frame*/
     light_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTEST);
     dark_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_DARKEST);
@@ -475,7 +475,7 @@ static void draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
     }
 
     /*draw inner frame*/
-    if ((flag & LFRDR_3DBOX_THICKFRAME) 
+    if ((flag & LFRDR_3DBOX_THICKFRAME)
             && (RECTW(rc_tmp)>6 && RECTH(rc_tmp)>6)) {
         light_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTER);
         dark_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_DARKER);
@@ -497,11 +497,11 @@ static void draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
         switch (flag & LFRDR_BTN_STATUS_MASK) {
             case LFRDR_BTN_STATUS_HILITE:
                 if (!is_have_lighter_color)
-                    light_color = 
+                    light_color =
                         calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTER);
 
-                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(light_color), 
-                            GetGValue(light_color), GetBValue(light_color), 
+                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(light_color),
+                            GetGValue(light_color), GetBValue(light_color),
                             GetAValue(light_color)));
                 break;
 
@@ -509,8 +509,8 @@ static void draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
                 /*FIXME*/
             default:
 
-                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(color), 
-                            GetGValue(color), GetBValue(color), 
+                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(color),
+                            GetGValue(color), GetBValue(color),
                             GetAValue(color)));
         }
         FillBox(hdc,  rc_tmp.left, rc_tmp.top,
@@ -543,12 +543,12 @@ static void draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
     if (w < 6 || h < 6)
         return;
 
-    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color), 
+    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color),
                         GetBValue(color), GetAValue(color));
     new_c = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTEST);
     new_c = calc_3dbox_color (new_c, LFRDR_3DBOX_COLOR_LIGHTEST);
     new_c = calc_3dbox_color (new_c, LFRDR_3DBOX_COLOR_LIGHTEST);
-    color_lightest = RGBA2Pixel (hdc, GetRValue(new_c), GetGValue(new_c), 
+    color_lightest = RGBA2Pixel (hdc, GetRValue(new_c), GetGValue(new_c),
                         GetBValue(new_c), GetAValue(new_c));
 
     radius = w>h ? (h>>1)-1 : (w>>1)-1;
@@ -594,7 +594,7 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
 
     if (pRect == NULL)
         return;
-    
+
     w = pRect->right - pRect->left;
     h = pRect->bottom - pRect->top;
 
@@ -605,11 +605,11 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
     side_len = w>=h ? h : w;
     boundary = w>=h ? (w-h)>>1: (h-w)>>1;
     border_cut = (side_len+1)>>3;
-    
-    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color), 
+
+    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color),
                         GetBValue(color), GetAValue(color));
     pen_color_old = SetPenColor (hdc, color_pixel);
-    
+
     if (w > h)
     {
         box_l = pRect->left + boundary;
@@ -631,12 +631,12 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
         box_r = pRect->right-1;
         box_b = pRect->bottom-1;
     }
-    
+
     cross_l = box_l + ((side_len+1)>>2);
     cross_t = box_t + ((side_len+1)>>2);
     cross_r = box_r - ((side_len+1)>>2);
     cross_b = box_b - ((side_len+1)>>2);
-    
+
     /*Draw border.*/
     if (status & LFRDR_MARK_HAVESHELL)
     {
@@ -650,13 +650,13 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
 
             MoveTo (hdc, box_r-i+1, box_t);
             LineTo (hdc, box_r-i+1, box_b);
-            
+
             MoveTo (hdc, box_l+i-1, box_b);
             LineTo (hdc, box_l+i-1, box_t);
-          
+
         }
     }
-    
+
     /*Draw cross*/
     if (status & LFRDR_MARK_ALL_SELECTED)
     {
@@ -664,7 +664,7 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
         {
             MoveTo (hdc, cross_l+i-1, cross_b);
             LineTo (hdc, cross_r-((side_len>>3)-i+1), cross_t);
-            
+
             MoveTo (hdc, cross_l+i-1, cross_t);
             LineTo (hdc, cross_r-((side_len>>3)-i+1), cross_b);
         }
@@ -672,23 +672,23 @@ static void draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
     else if (status & LFRDR_MARK_HALF_SELECTED)
     {
         bru_color_old = SetBrushColor (hdc, COLOR_lightgray);
-        FillBox (hdc, box_l + border_cut, box_t + border_cut, 
-                        (box_r-box_l) - (border_cut<<1)+1, 
+        FillBox (hdc, box_l + border_cut, box_t + border_cut,
+                        (box_r-box_l) - (border_cut<<1)+1,
                         (box_b-box_t) - (border_cut<<1)+1) ;
 
         for (i=(side_len+1)>>3; i>0; i--)
         {
             MoveTo (hdc, cross_l+i-1, cross_b);
             LineTo (hdc, cross_r-((side_len>>3)-i+1), cross_t);
-            
+
             MoveTo (hdc, cross_l+i-1, cross_t);
             LineTo (hdc, cross_r-((side_len>>3)-i+1), cross_b);
         }
         SetBrushColor (hdc, bru_color_old);
     }
-    
+
     SetPenColor (hdc, pen_color_old);
-    
+
     return;
 }
 
@@ -703,13 +703,13 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
     int hook_l, hook_t, hook_r, hook_b;
     int border_cut;
     gal_pixel color_pixel, pen_color_old, bru_color_old;
-    
+
     if (pRect == NULL)
         return;
-    
+
     w = pRect->right - pRect->left;
     h = pRect->bottom - pRect->top;
-    
+
     /*Draw nothing.*/
     if (w < 6 || h < 6)
         return;
@@ -718,10 +718,10 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
     boundary = w>=h ? (w-h)>>1: (h-w)>>1;
     border_cut = (side_len+1)>>3;
 
-    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color), 
+    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color),
                         GetBValue(color), GetAValue(color));
     pen_color_old = SetPenColor (hdc, color_pixel);
-    
+
     if (w > h)
     {
         box_l = pRect->left + boundary;
@@ -743,16 +743,16 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
         box_r = pRect->right-1;
         box_b = pRect->bottom-1;
     }
-    
-  
+
+
     hook_l = box_l + (side_len>>2);
     hook_t = box_t + (side_len>>2);
     hook_r = box_r - (side_len>>2);
     hook_b = box_b - (side_len>>2);
 
     bru_color_old = SetBrushColor (hdc, GetBkColor (hdc));
-    FillBox (hdc, box_l + border_cut, box_t + border_cut, 
-                    (box_r-box_l) - (border_cut<<1)+1, 
+    FillBox (hdc, box_l + border_cut, box_t + border_cut,
+                    (box_r-box_l) - (border_cut<<1)+1,
                     (box_b-box_t) - (border_cut<<1)+1) ;
     SetBrushColor (hdc, bru_color_old);
 
@@ -769,12 +769,12 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
 
             MoveTo (hdc, box_r-i+1, box_t);
             LineTo (hdc, box_r-i+1, box_b);
-            
+
             MoveTo (hdc, box_l+i-1, box_b);
             LineTo (hdc, box_l+i-1, box_t);
         }
     }
-    
+
     /*Draw hook*/
     if (status & LFRDR_MARK_ALL_SELECTED)
     {
@@ -788,8 +788,8 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
     else if (status & LFRDR_MARK_HALF_SELECTED)
     {
         bru_color_old = SetBrushColor (hdc, COLOR_lightgray);
-        FillBox (hdc, box_l + border_cut, box_t + border_cut, 
-                        (box_r-box_l) - (border_cut<<1)+1, 
+        FillBox (hdc, box_l + border_cut, box_t + border_cut,
+                        (box_r-box_l) - (border_cut<<1)+1,
                         (box_b-box_t) - (border_cut<<1)+1) ;
 
         for (i=(side_len+1)>>3; i>0; i--)
@@ -800,7 +800,7 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
         }
         SetBrushColor (hdc, bru_color_old);
     }
-    
+
     SetPenColor (hdc, pen_color_old);
 
     return;
@@ -809,7 +809,7 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
 /*
  * draw_arrow:
  *  This function draw a arrow by the color.
- * 
+ *
  * param hdc : the HDC .
  * param pRect : the point to the rectangle area to drawing.
  * param color : the brush color.
@@ -821,10 +821,10 @@ static void draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
 static void draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
 {
     int w, h;
-    int     _index, col_index; 
+    int     _index, col_index;
     // p1, the apex point of the isosceles triangle,
     // p2,p3, the 2 base points if the isosceles tiangle.
-    POINT p1, p2, p3; 
+    POINT p1, p2, p3;
     gal_pixel old_pen_color;
     DWORD color_3d;
     int vdelta,hdelta;
@@ -839,13 +839,13 @@ static void draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int 
     if(status & LFRDR_ARROW_HAVESHELL)
     {
         _index = WE_MAINC_THREED_BODY & WE_ATTR_INDEX_MASK;
-        col_index = 
+        col_index =
             (WE_MAINC_THREED_BODY & WE_ATTR_TYPE_COLOR_MASK) >> 8;
         color_3d = __mg_wnd_rdr_classic.we_colors[_index][col_index];
-        
-        draw_3dbox(hdc, pRect, color_3d, 
+
+        draw_3dbox(hdc, pRect, color_3d,
                 status | LFRDR_3DBOX_FILLED);
-    } 
+    }
     switch(status & LFRDR_ARROW_DIRECT_MASK)
     {
         case LFRDR_ARROW_UP:
@@ -904,7 +904,7 @@ static void draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int 
 /*
  * draw_fold:
  *  This function draw a fold by the color.
- * 
+ *
  * param hdc : the HDC .
  * param pRect : the point to the rectangle area to drawing.
  * param color : the pen color.
@@ -913,7 +913,7 @@ static void draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int 
  * Author : wangjian<wangjian@minigui.org>
  * Date : 2007-11-23.
  */
-static void draw_fold (HWND hWnd, HDC hdc, const RECT* pRect, 
+static void draw_fold (HWND hWnd, HDC hdc, const RECT* pRect,
         DWORD color, int status, int next)
 {
     int i;
@@ -997,17 +997,17 @@ static void draw_fold (HWND hWnd, HDC hdc, const RECT* pRect,
 
         for(i = 0; i < pen_width; i++)
         {
-            Rectangle(hdc, centerX - minSize + i, centerY - minSize + i, 
+            Rectangle(hdc, centerX - minSize + i, centerY - minSize + i,
                     centerX + minSize - 1 - i, centerY + minSize - 1 - i);
 
-            MoveTo(hdc, centerX - minSize + 2 * pen_width, 
+            MoveTo(hdc, centerX - minSize + 2 * pen_width,
                     centerY - (pen_width>>1) + i);
-            LineTo(hdc, centerX + minSize -1 - 2 * pen_width, 
+            LineTo(hdc, centerX + minSize -1 - 2 * pen_width,
                     centerY - (pen_width>>1) + i);
 
             if(status & LFRDR_TREE_FOLD)
             {
-                MoveTo(hdc, centerX - (pen_width>>1) + i, 
+                MoveTo(hdc, centerX - (pen_width>>1) + i,
                         centerY - minSize + 2 * pen_width);
                 LineTo(hdc, centerX - (pen_width>>1) + i,
                         centerY + minSize - 1 - 2 * pen_width);
@@ -1033,19 +1033,19 @@ static void draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 {
 #if 0
     gal_pixel old_pen_color;
-    
+
     old_pen_color = SetPenColor(hdc, RGBA2Pixel(hdc, GetRValue(~color),
                     GetGValue(~color),GetBValue(~color),GetAValue(~color)));
-    FocusRect(hdc, pRect->left, pRect->top, 
+    FocusRect(hdc, pRect->left, pRect->top,
             pRect->right, pRect->bottom);
     SetPenColor(hdc, old_pen_color);
     return;
-#else    
+#else
     int i;
     gal_pixel pixel;
 
-    
-    pixel = RGBA2Pixel(hdc, GetRValue(color), GetGValue(color), 
+
+    pixel = RGBA2Pixel(hdc, GetRValue(color), GetGValue(color),
                             GetBValue(color), GetAValue(color));
 
     for(i = pRect->left; i < pRect->right; i++)
@@ -1068,7 +1068,7 @@ static void draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 #endif
 }
 
-static void draw_normal_item 
+static void draw_normal_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1077,7 +1077,7 @@ static void draw_normal_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_hilite_item 
+static void draw_hilite_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1086,7 +1086,7 @@ static void draw_hilite_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_disabled_item 
+static void draw_disabled_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1095,7 +1095,7 @@ static void draw_disabled_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_significant_item 
+static void draw_significant_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1104,7 +1104,7 @@ static void draw_significant_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_normal_menu_item 
+static void draw_normal_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1113,7 +1113,7 @@ static void draw_normal_menu_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_hilite_menu_item 
+static void draw_hilite_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1122,7 +1122,7 @@ static void draw_hilite_menu_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_disabled_menu_item 
+static void draw_disabled_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1147,7 +1147,7 @@ static void draw_disabled_menu_item
 
 #define STATUS_GET_CHECK(status) ((status) & BST_CHECK_MASK)
 
-static void draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect, 
+static void draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
         DWORD color1, DWORD color2, int status)
 {
     DWORD dark_color;
@@ -1168,7 +1168,7 @@ static void draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
         if (STATUS_GET_CHECK (status) == BST_CHECKED)
         {
             /*checked looks like a pressed button*/
-            draw_3dbox (hdc, pRect, color1, 
+            draw_3dbox (hdc, pRect, color1,
                     LFRDR_BTN_STATUS_PRESSED|LFRDR_3DBOX_THICKFRAME);
 
             /*fill content with a darker color*/
@@ -1180,7 +1180,7 @@ static void draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
 
         else if (STATUS_GET_CHECK (status) == BST_INDETERMINATE)
         {
-            draw_3dbox (hdc, pRect, color1, 
+            draw_3dbox (hdc, pRect, color1,
                     LFRDR_BTN_STATUS_PRESSED);
 
             /*checked looks like a half pressed button*/
@@ -1203,7 +1203,7 @@ static void draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     int box_l, box_t;
     const BITMAP* radio_bmp;
 
-    radio_bmp = 
+    radio_bmp =
         GetSystemBitmapEx (__mg_wnd_rdr_classic.name, SYSBMP_RADIOBUTTON);
 
     w = pRect->right - pRect->left;
@@ -1217,11 +1217,11 @@ static void draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
         /*parity check*/
         if (w & 0x1)
             box_l += 1;
-    
+
         if (h & 0x1)
             box_t += 1;
-    
-        FillBoxWithBitmapPart (hdc, box_l, box_t, 12, 12, 0, 0, radio_bmp, 
+
+        FillBoxWithBitmapPart (hdc, box_l, box_t, 12, 12, 0, 0, radio_bmp,
                     /*status * 12*/
                     (status<<3)+(status<<2), 0);
     }
@@ -1234,11 +1234,11 @@ static void draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     int box_l, box_t, off_h = 0, off_v = 0;
     const BITMAP* radio_bmp;
 
-    radio_bmp = 
+    radio_bmp =
         GetSystemBitmapEx (__mg_wnd_rdr_classic.name, SYSBMP_RADIOBUTTON);
 
-    /* 
-     * We do not scale the image, but restrict the output in the specified 
+    /*
+     * We do not scale the image, but restrict the output in the specified
      * rectangle, and paint the image in the center of the rectangle.
      */
 
@@ -1262,8 +1262,8 @@ static void draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
         box_t = pRect->top;
     }
 
-    gui_fill_box_with_bitmap_part_except_incompatible(hdc, box_l, box_t, 
-            SIZE_RADIOBTN - (off_h << 1), SIZE_RADIOBTN - (off_v << 1), 0, 0, 
+    gui_fill_box_with_bitmap_part_except_incompatible(hdc, box_l, box_t,
+            SIZE_RADIOBTN - (off_h << 1), SIZE_RADIOBTN - (off_v << 1), 0, 0,
             radio_bmp, status * SIZE_RADIOBTN + off_h, off_v);
 #endif
 }
@@ -1277,7 +1277,7 @@ static void draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     int box_l, box_t;
     const BITMAP* check_bmp;
 
-    check_bmp = 
+    check_bmp =
         GetSystemBitmapEx (__mg_wnd_rdr_classic.name, SYSBMP_CHECKBUTTON);
 
     w = pRect->right - pRect->left;
@@ -1290,11 +1290,11 @@ static void draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
         /*parity check*/
         if (w & 0x1)
             box_l += 1;
-    
+
         if (h & 0x1)
             box_t += 1;
 
-        FillBoxWithBitmapPart (hdc, box_l, box_t, 13, 13, 0, 0, check_bmp, 
+        FillBoxWithBitmapPart (hdc, box_l, box_t, 13, 13, 0, 0, check_bmp,
                         /*status * 13*/
                         (status<<3)+(status<<2)+status, 0);
     }
@@ -1308,11 +1308,11 @@ static void draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     int box_l, box_t, off_h = 0, off_v = 0;
     const BITMAP* check_bmp;
 
-    check_bmp = 
+    check_bmp =
         GetSystemBitmapEx (__mg_wnd_rdr_classic.name, SYSBMP_CHECKBUTTON);
 
-    /* 
-     * We do not scale the image, but restrict the output in the specified 
+    /*
+     * We do not scale the image, but restrict the output in the specified
      * rectangle, and paint the image in the center of the rectangle.
      */
 
@@ -1337,8 +1337,8 @@ static void draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     }
 
     if (IsCompatibleDC (HDC_SCREEN, hdc)) {
-        FillBoxWithBitmapPart (hdc, box_l, box_t, 
-                    SIZE_CHECKBOX - (off_h << 1), SIZE_CHECKBOX - (off_v << 1), 0, 0, 
+        FillBoxWithBitmapPart (hdc, box_l, box_t,
+                    SIZE_CHECKBOX - (off_h << 1), SIZE_CHECKBOX - (off_v << 1), 0, 0,
                     check_bmp, status * SIZE_CHECKBOX + off_h, off_v);
     }
     else {
@@ -1346,7 +1346,7 @@ static void draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
         mem_dc = CreateMemDCFromBitmap (HDC_SCREEN, check_bmp);
 
         if (mem_dc != HDC_INVALID) {
-            BitBlt (mem_dc, status * SIZE_CHECKBOX + off_h, off_v, 
+            BitBlt (mem_dc, status * SIZE_CHECKBOX + off_h, off_v,
                     SIZE_CHECKBOX - (off_h << 1), SIZE_CHECKBOX - (off_v << 1),
                     hdc, box_l, box_t, 0);
             DeleteMemDC (mem_dc);
@@ -1385,35 +1385,35 @@ static int get_window_border (HWND hWnd, int dwStyle, int win_type)
             if (_dwStyle & WS_BORDER)
                 return 3;
             else if (_dwStyle & WS_THINFRAME)
-                return 1; 
+                return 1;
             else if (_dwStyle & WS_THICKFRAME)
-                return 2; 
+                return 2;
             break;
         }
         case LFRDR_WINTYPE_CONTROL:
         {
 #if 1
             if(_dwStyle& WS_BORDER) {
-                if(_dwStyle & WS_THICKFRAME)    
+                if(_dwStyle & WS_THICKFRAME)
                     return 2;
-                else if(_dwStyle & WS_THINFRAME)    
+                else if(_dwStyle & WS_THINFRAME)
                     return 1;
-                else 
+                else
                     return 2;
             }
             else if (_dwStyle & WS_THINFRAME)
-                return 1; 
+                return 1;
             else if (_dwStyle & WS_THICKFRAME)
-                return 2; 
+                return 2;
 #else
             if ((_dwStyle & WS_BORDER) && (_dwStyle & WS_THINFRAME))
-                return 1; 
+                return 1;
             else if (_dwStyle & WS_BORDER)
-                return 2; 
+                return 2;
             else if (_dwStyle & WS_THINFRAME)
-                return 1; 
+                return 1;
             else if (_dwStyle & WS_THICKFRAME)
-                return 2; 
+                return 2;
 #endif
             break;
         }
@@ -1443,13 +1443,13 @@ static int calc_capbtn_area (HWND hWnd, int which, RECT* we_area)
 
     switch (which)
     {
-        case HT_CLOSEBUTTON:            
+        case HT_CLOSEBUTTON:
             CHECKNOT_RET_ERR (IS_CLOSEBTN_VISIBLE (win_info));
             border = get_window_border (hWnd, 0, 0);
             capbtn_h = cap_h - (CAP_BTN_INTERVAL<<1);
             we_area->right = win_w - border - CAP_BTN_INTERVAL;
             we_area->left = we_area->right - capbtn_h;
-            we_area->top = border + ((cap_h-capbtn_h)>>1); 
+            we_area->top = border + ((cap_h-capbtn_h)>>1);
             we_area->bottom = we_area->top + capbtn_h;
             return 0;
 
@@ -1461,7 +1461,7 @@ static int calc_capbtn_area (HWND hWnd, int which, RECT* we_area)
             we_area->right = win_w - border - capbtn_h
                         - (CAP_BTN_INTERVAL<<1);
             we_area->left = we_area->right - capbtn_h;
-            we_area->top = border + ((cap_h-capbtn_h)>>1); 
+            we_area->top = border + ((cap_h-capbtn_h)>>1);
             we_area->bottom = we_area->top + capbtn_h;
             return 0;
 
@@ -1474,7 +1474,7 @@ static int calc_capbtn_area (HWND hWnd, int which, RECT* we_area)
             we_area->right = win_w - border - (capbtn_h<<1)
                             - CAP_BTN_INTERVAL*3;
             we_area->left = we_area->right - capbtn_h;
-            we_area->top = border + ((cap_h-capbtn_h)>>1); 
+            we_area->top = border + ((cap_h-capbtn_h)>>1);
             we_area->bottom = we_area->top + capbtn_h;
             return 0;
 
@@ -1526,7 +1526,7 @@ static int calc_hscroll_area(HWND hWnd, int which, RECT* we_area)
     scrollbar = GetWindowElementAttr(hWnd, WE_METRICS_SCROLLBAR);
 
     if (IS_VSCROLL_VISIBLE (win_info)) {
-        if (IS_LEFT_VSCOLLBAR (win_info)) 
+        if (IS_LEFT_VSCOLLBAR (win_info))
             left_inner = scrollbar;
         else
             right_inner = scrollbar;
@@ -1652,7 +1652,7 @@ static int calc_vscroll_area(HWND hWnd, int which, RECT* we_area)
 
 }
 
-static int calc_we_metrics (HWND hWnd, 
+static int calc_we_metrics (HWND hWnd,
             LFRDR_WINSTYLEINFO* style_info, int which)
 {
     const WINDOWINFO* win_info;
@@ -1667,9 +1667,9 @@ static int calc_we_metrics (HWND hWnd,
     {
         case LFRDR_METRICS_BORDER:
             if (style_info)
-                return get_window_border (HWND_NULL, 
+                return get_window_border (HWND_NULL,
                         style_info->dwStyle, style_info->winType);
-            else if (hWnd != HWND_NULL) 
+            else if (hWnd != HWND_NULL)
                 return get_window_border (hWnd, 0, 0);
             else
                 return GetWindowElementAttr(hWnd, WE_METRICS_WND_BORDER);
@@ -1725,7 +1725,7 @@ static int calc_we_metrics (HWND hWnd,
                     return 0;
 
                 icon = (PICON)(win_info->hIcon);
-                cap_h = 
+                cap_h =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
                 icon_h = icon ? icon->height : 0;
 
@@ -1735,7 +1735,7 @@ static int calc_we_metrics (HWND hWnd,
                 return 16;
             }
         }
-            
+
         case LFRDR_METRICS_ICON_W:
         {
             PICON       icon;
@@ -1747,7 +1747,7 @@ static int calc_we_metrics (HWND hWnd,
                     return 0;
 
                 icon = (PICON)(win_info->hIcon);
-                cap_h = 
+                cap_h =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
                 icon_h = icon ? icon->height : 0;
                 icon_w = icon ? icon->width : 0;
@@ -1758,7 +1758,7 @@ static int calc_we_metrics (HWND hWnd,
                 return 16;
             }
         }
-            
+
         case LFRDR_METRICS_VSCROLL_W:
         {
             int _idx;
@@ -1799,7 +1799,7 @@ static int calc_we_metrics (HWND hWnd,
         {
             int _style, _win_type;
 
-            win_width = 
+            win_width =
                 (calc_we_metrics (hWnd, style_info, LFRDR_METRICS_BORDER)<< 1);
 
             if (style_info) {
@@ -1819,13 +1819,13 @@ static int calc_we_metrics (HWND hWnd,
             if (!(_style & WS_CAPTION))
                 return win_width;
 
-            cap_h = 
+            cap_h =
                 calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
 
             if (_win_type==LFRDR_WINTYPE_MAINWIN) {
-                icon_w = 
+                icon_w =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_ICON_W);
-                icon_h = 
+                icon_h =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_ICON_H);
             }
 
@@ -1835,20 +1835,20 @@ static int calc_we_metrics (HWND hWnd,
 
             cap_font = (PLOGFONT)GetWindowElementAttr (hWnd, WE_FONT_CAPTION);
 
-            win_width += (cap_font) ? 
+            win_width += (cap_font) ?
                          ((cap_font->size << 1) + CAP_BTN_INTERVAL) : 0;
 
             /*two char and internal*/
             btn_w = GetWindowElementAttr(hWnd, WE_METRICS_CAPTION)
                     - CAP_BTN_INTERVAL;
-            
+
             /*buttons and internvals*/
-            win_width += btn_w; 
+            win_width += btn_w;
 
             if (_style & WS_MINIMIZEBOX)
-                win_width += btn_w; 
+                win_width += btn_w;
             if (_style & WS_MAXIMIZEBOX)
-                win_width += btn_w; 
+                win_width += btn_w;
 
             return win_width;
         }
@@ -1857,7 +1857,7 @@ static int calc_we_metrics (HWND hWnd,
         {
             win_height =
                 (calc_we_metrics (hWnd, style_info, LFRDR_METRICS_BORDER)<< 1);
-            win_height += 
+            win_height +=
                 calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
 
             return win_height;
@@ -1904,10 +1904,10 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
             we_area->left = border;
             we_area->right = win_w - border;
             we_area->top = border;
-            we_area->bottom = we_area->top + cap_h; 
+            we_area->bottom = we_area->top + cap_h;
             return 0;
 
-        case HT_CLOSEBUTTON:            
+        case HT_CLOSEBUTTON:
         case HT_MAXBUTTON:
         case HT_MINBUTTON:
         case HT_ICON:
@@ -1922,7 +1922,7 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
 
             we_area->left = border;
             we_area->top = border + cap_h;
-            we_area->right = win_w - border; 
+            we_area->right = win_w - border;
             we_area->bottom = we_area->top + menu_h;
             return 0;
 
@@ -1932,7 +1932,7 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
             menu_h = get_window_menubar (hWnd);
 
             we_area->top = border + cap_h + menu_h;
-            we_area->bottom = win_h - border - 
+            we_area->bottom = win_h - border -
                 get_window_scrollbar(hWnd, FALSE);
 
             if (IS_LEFT_VSCOLLBAR (win_info)) {
@@ -1985,7 +1985,7 @@ static void calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
     div_t divt;
     int size = 0;
     RECT rcBar;
-    
+
     if (vertical) {
         *sb_info = GetWindowInfo(hWnd)->vscroll;
         calc_vscroll_area(hWnd, HT_VSCROLL, &rc);
@@ -2013,7 +2013,7 @@ static void calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
         move_range = 0;
 
     /* only have one page. */
-    if ((sb_info->minPos == sb_info->maxPos) 
+    if ((sb_info->minPos == sb_info->maxPos)
         || (sb_info->maxPos <= sb_info->pageStep - 1)) {
         sb_info->barStart = 0;
         sb_info->barLen   = move_range;
@@ -2023,13 +2023,13 @@ static void calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
     divt = div (move_range, sb_info->maxPos - sb_info->minPos + 1);
 
     sb_info->barLen = sb_info->pageStep * divt.quot +
-        sb_info->pageStep * divt.rem / 
+        sb_info->pageStep * divt.rem /
         (sb_info->maxPos - sb_info->minPos + 1);
 
     /* houhh 20090728, if vthumb height is not zero, then
      * set is to smallest barLen.*/
     if ((sb_info->barLen || sb_info->pageStep != 0) &&
-            sb_info->barLen < LFRDR_SB_MINBARLEN) 
+            sb_info->barLen < LFRDR_SB_MINBARLEN)
     {
         if (size < LFRDR_SB_MINBARLEN)
         {
@@ -2046,16 +2046,16 @@ static void calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
         sb_info->barStart = 0;
         return;
     }
-    else if (sb_info->curPos + sb_info->pageStep - 1 
-            >= sb_info->maxPos) { 
+    else if (sb_info->curPos + sb_info->pageStep - 1
+            >= sb_info->maxPos) {
         /* last page */
         sb_info->barStart = move_range - sb_info->barLen;
         return;
     }
     else {
         /* middle page */
-        sb_info->barStart = 
-            (sb_info->curPos - sb_info->minPos) * divt.quot + 
+        sb_info->barStart =
+            (sb_info->curPos - sb_info->minPos) * divt.quot +
             (sb_info->curPos - sb_info->minPos) * divt.rem /
             (sb_info->maxPos - sb_info->minPos) + 0.5;
 
@@ -2090,7 +2090,7 @@ static int find_interval(int* array, int len, int val)
 
 /*
  * test_caption:
- *     test mouse in which part of caption 
+ *     test mouse in which part of caption
  * Author: XuguangWang
  * Date: 2007-11-22
  */
@@ -2114,11 +2114,11 @@ static int test_caption(HWND hWnd, int x, int y)
 
 /*
  * test_scroll:
- *     test mouse in which part of the scrollbar indicated by is_vertival. 
+ *     test mouse in which part of the scrollbar indicated by is_vertival.
  * Author: XuguangWang
  * Date: 2007-11-22
  */
-static int test_scroll(const LFSCROLLBARINFO* sb_info, 
+static int test_scroll(const LFSCROLLBARINFO* sb_info,
         int left, int right, int x, BOOL is_vertival)
 {
     static int x_poses[5] = {
@@ -2204,7 +2204,7 @@ static int hit_test (HWND hWnd, int x, int y)
         array[1] = array[0] + tmp;
         array[3] = win_h;
         array[2] = array[3] - tmp;
-        y_pos = find_interval(array, 4, y);    
+        y_pos = find_interval(array, 4, y);
 
         if (x_pos!=-1 && y_pos!=-1)
             return ht_on_border[y_pos][x_pos];
@@ -2218,7 +2218,7 @@ static int hit_test (HWND hWnd, int x, int y)
         array[0] = array[1] - get_window_caption(hWnd);
         array[3] = win_info->cb - win_info->top;
         array[4] = array[3] + get_window_scrollbar(hWnd, FALSE);
-        y_pos = find_interval(array, 5, y);    
+        y_pos = find_interval(array, 5, y);
         if (y_pos != -1)
             switch (ht_inner_border[y_pos]) {
                 case HT_CAPTION:
@@ -2229,14 +2229,14 @@ static int hit_test (HWND hWnd, int x, int y)
 
                 case HT_HSCROLL:
                     return test_scroll(&(win_info->hscroll),
-                           win_info->cl - win_info->left, 
-                           win_info->cr - win_info->left, 
+                           win_info->cl - win_info->left,
+                           win_info->cr - win_info->left,
                            x, FALSE);
 
                 case HT_VSCROLL:
-                    return test_scroll(&(win_info->vscroll), 
-                            win_info->ct - win_info->top, 
-                            win_info->cb - win_info->top, 
+                    return test_scroll(&(win_info->vscroll),
+                            win_info->ct - win_info->top,
+                            win_info->cb - win_info->top,
                             y, TRUE);
                 default:
                     return HT_UNKNOWN;
@@ -2248,7 +2248,7 @@ static int hit_test (HWND hWnd, int x, int y)
 }
 
 /* draw_border:
- *   This function draw the border of a window. 
+ *   This function draw the border of a window.
  *
  * param hWnd : the handle of the window.
  * param hdc : the DC of the window.
@@ -2264,41 +2264,41 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
     DWORD main_3d;
     RECT rect;
     gal_pixel border_color, old_pen_color;
-        
+
     main_3d = GetWindowElementAttr(hWnd, WE_MAINC_THREED_BODY);
     border = (int)GetWindowElementAttr(hWnd, WE_METRICS_WND_BORDER);
 
     if (border < -2)
         return ;
-    
+
     if(is_active)
     border_color = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_ACTIVE_WND_BORDER);
     else
     border_color = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_INACTIVE_WND_BORDER);
-    
+
     win_info = GetWindowInfo(hWnd);
-    
+
     if(calc_we_area(hWnd, HT_BORDER, &rect) == -1)
         return;
 
     old_pen_color = SetPenColor(hdc, border_color);
 
     if (IsDialog(hWnd))   // for dialog
-    {    
+    {
         if(win_info->dwStyle & WS_BORDER)
         {
             if(is_active)
-                draw_3dbox(hdc, &rect, main_3d, 
+                draw_3dbox(hdc, &rect, main_3d,
                         LFRDR_3DBOX_THICKFRAME | LFRDR_BTN_STATUS_NORMAL);
             else
-                draw_3dbox(hdc, &rect, main_3d, 
+                draw_3dbox(hdc, &rect, main_3d,
                         LFRDR_3DBOX_THICKFRAME | LFRDR_BTN_STATUS_NORMAL);
-            SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(main_3d), 
+            SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(main_3d),
                         GetGValue(main_3d), GetBValue(main_3d)));
-            Rectangle(hdc, rect.left+2, rect.top+2, 
+            Rectangle(hdc, rect.left+2, rect.top+2,
                     rect.right-2-1, rect.bottom-2-1);
         }
-        else if(win_info->dwStyle & WS_THICKFRAME)    
+        else if(win_info->dwStyle & WS_THICKFRAME)
         {
             for(i = 0; i < 2 && i < border; i++)
             {
@@ -2317,10 +2317,10 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
         if(win_info->dwStyle & WS_BORDER)
         {
             if(is_active)
-                draw_3dbox(hdc, &rect, main_3d, 
+                draw_3dbox(hdc, &rect, main_3d,
                         LFRDR_3DBOX_THICKFRAME | LFRDR_BTN_STATUS_NORMAL);
             else
-                draw_3dbox(hdc, &rect, main_3d, 
+                draw_3dbox(hdc, &rect, main_3d,
                         LFRDR_3DBOX_THICKFRAME | LFRDR_BTN_STATUS_NORMAL);
             for(i = 2; i < border + 2; i++)
             {
@@ -2328,7 +2328,7 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                         rect.right-i-1, rect.bottom-i-1);
             }
         }
-        else if(win_info->dwStyle & WS_THICKFRAME)    
+        else if(win_info->dwStyle & WS_THICKFRAME)
         {
             for(i = 0; i < (border<<1); i++)
             {
@@ -2338,9 +2338,9 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
         }
         else
         {
-            SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(main_3d), 
+            SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(main_3d),
                         GetGValue(main_3d), GetBValue(main_3d)));
-            Rectangle(hdc, rect.left, rect.top, 
+            Rectangle(hdc, rect.left, rect.top,
                     rect.right-1, rect.bottom-1);
             SetPenColor(hdc, border_color);
             for(i = 1; i < border+1; i++)
@@ -2349,17 +2349,17 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                         rect.right-i-1, rect.bottom-i-1);
             }
         }
-        SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(main_3d), 
+        SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(main_3d),
                     GetGValue(main_3d), GetBValue(main_3d)));
-        Rectangle(hdc, rect.left+i, rect.top+i, 
+        Rectangle(hdc, rect.left+i, rect.top+i,
                     rect.right-i-1, rect.bottom-i-1);
     }
 
     else if(IsControl(hWnd))   // for control
-    {   
+    {
         if(win_info->dwStyle & WS_BORDER) {
             if(win_info->dwStyle & WS_THICKFRAME) {
-                draw_3dbox(hdc, &rect, main_3d, 
+                draw_3dbox(hdc, &rect, main_3d,
                        LFRDR_3DBOX_THICKFRAME | LFRDR_BTN_STATUS_PRESSED);
                 for(i = 2; i < border + 2; i++) {
                     Rectangle(hdc, rect.left+i, rect.top+i,
@@ -2367,11 +2367,11 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                 }
             }
             else if(win_info->dwStyle & WS_THINFRAME) {
-                draw_3dbox(hdc, &rect, main_3d, 
+                draw_3dbox(hdc, &rect, main_3d,
                         LFRDR_BTN_STATUS_PRESSED);
             }
             else {
-                draw_3dbox(hdc, &rect, main_3d, 
+                draw_3dbox(hdc, &rect, main_3d,
                         LFRDR_3DBOX_THICKFRAME | LFRDR_BTN_STATUS_PRESSED);
             }
         }
@@ -2386,13 +2386,13 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
                     rect.right-1, rect.bottom-1);
         }
     }
-    
+
     SetPenColor(hdc, old_pen_color);
     return;
 }
 
 /* draw_caption:
- *   This function draw the caption of a window. 
+ *   This function draw the caption of a window.
  *
  * param hWnd : the handle of the window.
  * param hdc : the DC of the window.
@@ -2416,7 +2416,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     RECT rcTmp = {0};
 
     win_info = GetWindowInfo(hWnd);
-    
+
     if (!(win_info->dwStyle & WS_CAPTION))
         return;
 
@@ -2428,25 +2428,25 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     if (calc_we_area(hWnd, HT_CAPTION, &rect) == -1)
         return;
-    
+
     if (is_active)
     {
-        old_brush_color = SetBrushColor (hdc, active_color); 
-        old_text_color = SetTextColor (hdc, text_active_color); 
-    } else { 
-        old_brush_color = SetBrushColor (hdc, inactive_color); 
-        old_text_color = SetTextColor (hdc, text_inact_color); 
+        old_brush_color = SetBrushColor (hdc, active_color);
+        old_text_color = SetTextColor (hdc, text_active_color);
+    } else {
+        old_brush_color = SetBrushColor (hdc, inactive_color);
+        old_text_color = SetTextColor (hdc, text_inact_color);
     }
-    
+
     FillBox (hdc, rect.left, rect.top, RECTW(rect),RECTH(rect));
-    
+
     if (win_info->hIcon)
     {
         if(calc_we_area (hWnd, HT_ICON, &icon_rect) != -1)
             DrawIcon (hdc, icon_rect.left, icon_rect.top,
                     RECTW(icon_rect), RECTH(icon_rect), win_info->hIcon);
     }
-    
+
     if (win_info->spCaption)
     {
         SetBkMode(hdc, BM_TRANSPARENT);
@@ -2467,19 +2467,19 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
             ncbutton_w += RECTW(rcTmp);
         }
 #if 0
-        TextOutOmitted (hdc, rect.left + RECTW(icon_rect) + 
+        TextOutOmitted (hdc, rect.left + RECTW(icon_rect) +
                 (ICON_ORIGIN << 1),
                 rect.top + ((RECTH(rect)-font_h)>>1),
                 win_info->spCaption,
-                strlen (win_info->spCaption), rcTmp.left - 
+                strlen (win_info->spCaption), rcTmp.left -
                 (rect.left + RECTW(icon_rect)+ (ICON_ORIGIN << 1)));
 #endif
 
-        TextOutOmitted (hdc, rect.left + RECTW(icon_rect) + 
+        TextOutOmitted (hdc, rect.left + RECTW(icon_rect) +
                 (ICON_ORIGIN << 1),
                 rect.top + ((RECTH(rect)-font_h)>>1),
                 win_info->spCaption,
-                strlen (win_info->spCaption),  
+                strlen (win_info->spCaption),
                 (RECTW(rect) - RECTW(icon_rect) - (ICON_ORIGIN << 1) - ncbutton_w));
 
         SelectFont(hdc, old_font);
@@ -2491,7 +2491,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 }
 
 /* draw_caption_button:
- *   This function draw the caption button of a window. 
+ *   This function draw the caption button of a window.
  *
  * param hWnd : the handle of the window.
  * param hdc : the DC of the window.
@@ -2507,7 +2507,7 @@ static void draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
     RECT rect;
     DWORD color_3d;
     gal_pixel fgc_3d, old_col;
-        
+
     color_3d = GetWindowElementAttr(hWnd, WE_MAINC_THREED_BODY);
     fgc_3d = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY);
 
@@ -2518,15 +2518,15 @@ static void draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
         case HT_CLOSEBUTTON:
             if(calc_we_area(hWnd, HT_CLOSEBUTTON, &rect) != -1)
             {
-                draw_3dbox(hdc, &rect, color_3d, 
+                draw_3dbox(hdc, &rect, color_3d,
                         status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
 
                 if(status == LFRDR_BTN_STATUS_DISABLED)
-                    /*FIXME , wangjian ????? disable fg color ???????*/ 
+                    /*FIXME , wangjian ????? disable fg color ???????*/
                     old_col = SetPenColor(hdc, fgc_3d);
                 else
                     old_col = SetPenColor(hdc, fgc_3d);
-                
+
                 w = RECTW(rect);
                 h = RECTH(rect);
 
@@ -2542,31 +2542,31 @@ static void draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                     LineTo(hdc, rect.right - i, rect.bottom);
                     MoveTo(hdc, rect.left + i, rect.bottom);
                     LineTo(hdc, rect.right, rect.top + i);
-                    
+
                     MoveTo(hdc, rect.left + i, rect.top);
                     LineTo(hdc, rect.right, rect.bottom - i);
                     MoveTo(hdc, rect.left, rect.bottom - i);
                     LineTo(hdc, rect.right - i, rect.top);
                 }
                 SetPenColor(hdc, old_col);
-            } 
+            }
             if(ht_code == HT_CLOSEBUTTON) break;
 
         case HT_MAXBUTTON:
             if(calc_we_area(hWnd, HT_MAXBUTTON, &rect) != -1)
             {
-                draw_3dbox(hdc, &rect, color_3d, 
+                draw_3dbox(hdc, &rect, color_3d,
                         status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
 
                 if(status == LFRDR_BTN_STATUS_DISABLED)
-                    /*FIXME , wangjian ????? disable fg color ???????*/ 
+                    /*FIXME , wangjian ????? disable fg color ???????*/
                     old_col = SetPenColor(hdc, fgc_3d);
                 else
                     old_col = SetPenColor(hdc, fgc_3d);
-                
+
                 w = RECTW(rect);
                 h = RECTH(rect);
-                
+
                 rect.left += (w>>2);
                 rect.top += (h>>2);
                 rect.right -= (w>>2)+1;
@@ -2586,15 +2586,15 @@ static void draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
         case HT_MINBUTTON:
             if(calc_we_area(hWnd, HT_MINBUTTON, &rect) != -1)
             {
-                draw_3dbox(hdc, &rect, color_3d, 
+                draw_3dbox(hdc, &rect, color_3d,
                         status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
 
                 if(status == LFRDR_BTN_STATUS_DISABLED)
-                    /*FIXME , wangjian ????? disable fg color ???????*/ 
+                    /*FIXME , wangjian ????? disable fg color ???????*/
                     old_col = SetPenColor(hdc, fgc_3d);
                 else
                     old_col = SetPenColor(hdc, fgc_3d);
-                
+
                 w = RECTW(rect);
                 h = RECTH(rect);
 
@@ -2602,7 +2602,7 @@ static void draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 rect.top += (h>>2);
                 rect.right -= (w>>2)+1;
                 rect.bottom -= (h>>2)+1;
-                
+
                 for(i = 0; i < 2*((w>>4)+1); i++) // pen width (w/16+1)X2.
                 {
                     MoveTo(hdc, rect.left, rect.bottom - i - (w>>4) - 1);
@@ -2623,7 +2623,7 @@ static int calc_scrollbarctrl_area(HWND hWnd, int sb_pos, PRECT prc)
 {
     PSCROLLBARDATA pScData = (PSCROLLBARDATA) GetWindowAdditionalData2 (hWnd);
     GetClientRect (hWnd, prc);
-    
+
     switch (sb_pos)
     {
         case HT_HSCROLL:
@@ -2666,15 +2666,15 @@ static int calc_scrollbarctrl_area(HWND hWnd, int sb_pos, PRECT prc)
     }
     if(0 >= prc->right - prc->left || 0 >= prc->bottom - prc->top)
         return -1;
-  
+
     return 0;
 }
 
 static int get_scroll_status (HWND hWnd, BOOL isVert)
 {
-    int sb_status; 
+    int sb_status;
     const WINDOWINFO  *info;
-    
+
     if (0 == strncasecmp(CTRL_SCROLLBAR, GetClassName(hWnd), strlen(CTRL_SCROLLBAR)))
     {
         sb_status = ((PSCROLLBARDATA)GetWindowAdditionalData2(hWnd))->status;
@@ -2683,15 +2683,15 @@ static int get_scroll_status (HWND hWnd, BOOL isVert)
     {
         info = GetWindowInfo (hWnd);
         if(isVert)
-            sb_status = info->vscroll.status; 
+            sb_status = info->vscroll.status;
         else
-            sb_status = info->hscroll.status; 
+            sb_status = info->hscroll.status;
     }
-   return sb_status; 
+   return sb_status;
 }
 
 /* draw_scrollbar:
- *   This function draw the scrollbar of a window. 
+ *   This function draw the scrollbar of a window.
  *
  * param hWnd : the handle of the window.
  * param hdc : the DC of the window.
@@ -2708,43 +2708,43 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
     DWORD color_3d, fgc_3d, fgc_dis;
     gal_pixel old_brush_color;
     BOOL isCtrl = FALSE;    /** if TRUE it is scrollbar control else not */
-    const WINDOWINFO  *info = 
+    const WINDOWINFO  *info =
         (WINDOWINFO*)GetWindowInfo (hWnd);
-        
+
     color_3d = GetWindowElementAttr(hWnd, WE_MAINC_THREED_BODY);
     fgc_3d = GetWindowElementAttr(hWnd, WE_FGC_THREED_BODY);
     fgc_dis = GetWindowElementAttr(hWnd, WE_FGC_DISABLED_ITEM);
-    
+
     if (0 == strncasecmp(CTRL_SCROLLBAR, GetClassName(hWnd), strlen(CTRL_SCROLLBAR)))
     {
         isCtrl = TRUE;
     }
-    
+
     if (isCtrl)
     {
         if (0 != calc_scrollbarctrl_area(hWnd, sb_pos, &rect))
             return;
     }
     else
-    { 
+    {
            /** draw the rect between H and V */
            if(calc_we_area(hWnd, HT_HSCROLL, &rect) != -1)
            {
                if(info->dwStyle & WS_VSCROLL)
                {
-                   if (info->dwExStyle & WS_EX_LEFTSCROLLBAR) 
+                   if (info->dwExStyle & WS_EX_LEFTSCROLLBAR)
                    {
                        rect.right = rect.left;
                        rect.left = rect.right - RECTH(rect);
                    }
-                   else 
+                   else
                    {
                        rect.left = rect.right;
                        rect.right = rect.left + RECTH(rect);
                    }
-                   old_brush_color = SetBrushColor(hdc, 
+                   old_brush_color = SetBrushColor(hdc,
                            RGBA2Pixel(hdc,GetRValue(color_3d),
-                               GetGValue(color_3d), GetBValue(color_3d), 
+                               GetGValue(color_3d), GetBValue(color_3d),
                                GetAValue(color_3d)));
                    FillBox(hdc, rect.left, rect.top, RECTW(rect), RECTH(rect));
                    SetBrushColor(hdc, old_brush_color);
@@ -2753,7 +2753,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
 
            if (sb_pos != 0)
            {
-               if (0 != calc_we_area(hWnd, sb_pos, &rect)) 
+               if (0 != calc_we_area(hWnd, sb_pos, &rect))
                    return;
            }
            else
@@ -2769,10 +2769,10 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
         case HT_HSCROLL:       // paint the hscrollbar
             {
                 if (!isCtrl || !(info->dwStyle & SBS_NOSHAFT))
-                { 
-                    old_brush_color = SetBrushColor(hdc, 
+                {
+                    old_brush_color = SetBrushColor(hdc,
                             RGBA2Pixel(hdc,GetRValue(color_3d),
-                                GetGValue(color_3d), GetBValue(color_3d), 
+                                GetGValue(color_3d), GetBValue(color_3d),
                                 GetAValue(color_3d)));
                     FillBox(hdc, rect.left, rect.top, RECTW(rect), RECTH(rect));
                     SetBrushColor(hdc, old_brush_color);
@@ -2786,10 +2786,10 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
         case HT_VSCROLL:         // paint the vscrollbar
             {
                 if (!isCtrl || !(info->dwStyle & SBS_NOSHAFT))
-                { 
-                    old_brush_color = SetBrushColor(hdc, 
+                {
+                    old_brush_color = SetBrushColor(hdc,
                             RGBA2Pixel(hdc,GetRValue(color_3d),
-                                GetGValue(color_3d), GetBValue(color_3d), 
+                                GetGValue(color_3d), GetBValue(color_3d),
                                 GetAValue(color_3d)));
                     FillBox(hdc, rect.left, rect.top, RECTW(rect), RECTH(rect));
                     SetBrushColor(hdc, old_brush_color);
@@ -2813,9 +2813,9 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                         bn_status |= LFRDR_BTN_STATUS_HILITE;
                 }
 
-                draw_3dbox(hdc, &rect, color_3d, 
+                draw_3dbox(hdc, &rect, color_3d,
                         bn_status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
-                
+
                 if(sb_status & SBS_DISABLED_LTUP || sb_status & SBS_DISABLED)
                     draw_arrow(hWnd, hdc, &rect, fgc_dis, LFRDR_ARROW_LEFT);
                 else
@@ -2826,7 +2826,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
         case HT_SB_RIGHTARROW:
             {
                 sb_status = get_scroll_status(hWnd, FALSE);
-                if (sb_status & SBS_DISABLED_BTDN) 
+                if (sb_status & SBS_DISABLED_BTDN)
                     bn_status |= LFRDR_BTN_STATUS_DISABLED;
                 else
                 {
@@ -2835,8 +2835,8 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     else if(sb_status & SBS_HILITE_BTDN)
                         bn_status |= LFRDR_BTN_STATUS_HILITE;
                 }
-                
-                draw_3dbox(hdc, &rect, color_3d, 
+
+                draw_3dbox(hdc, &rect, color_3d,
                         bn_status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
 
                 if(sb_status & SBS_DISABLED_BTDN || sb_status & SBS_DISABLED)
@@ -2847,14 +2847,14 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
             }
 
         case HT_SB_HTHUMB:
-            { 
+            {
                 sb_status = get_scroll_status(hWnd, FALSE);
                 if(sb_status & SBS_PRESSED_THUMB)
                     bn_status |= LFRDR_BTN_STATUS_PRESSED;
                 else if(sb_status & SBS_HILITE_THUMB)
                     bn_status |= LFRDR_BTN_STATUS_HILITE;
-                 
-                draw_3dbox(hdc, &rect, color_3d, 
+
+                draw_3dbox(hdc, &rect, color_3d,
                         bn_status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
                 break;
             }
@@ -2872,7 +2872,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                         bn_status |= LFRDR_BTN_STATUS_HILITE;
                 }
 
-                draw_3dbox(hdc, &rect, color_3d, 
+                draw_3dbox(hdc, &rect, color_3d,
                         bn_status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
 
                 if(sb_status & SBS_DISABLED_LTUP || sb_status & SBS_DISABLED)
@@ -2894,8 +2894,8 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     else if(sb_status & SBS_HILITE_BTDN)
                         bn_status |= LFRDR_BTN_STATUS_HILITE;
                 }
-                
-                draw_3dbox(hdc, &rect, color_3d, 
+
+                draw_3dbox(hdc, &rect, color_3d,
                         bn_status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
 
                 if(sb_status & SBS_DISABLED_BTDN || sb_status & SBS_DISABLED)
@@ -2905,18 +2905,18 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 break;
             }
 
-        case HT_SB_VTHUMB: 
+        case HT_SB_VTHUMB:
             {
                 sb_status = get_scroll_status(hWnd, TRUE);
                 if(sb_status & SBS_PRESSED_THUMB)
                     bn_status |= LFRDR_BTN_STATUS_PRESSED;
                 else if(sb_status & SBS_HILITE_THUMB)
                     bn_status |= LFRDR_BTN_STATUS_HILITE;
-                
-                draw_3dbox(hdc, &rect, color_3d, 
+
+                draw_3dbox(hdc, &rect, color_3d,
                         bn_status | LFRDR_3DBOX_THICKFRAME | LFRDR_3DBOX_FILLED);
                 break;
-            } 
+            }
         default:
             return;
     }
@@ -2924,13 +2924,13 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
 
 /*
  * draw_trackbar_thumb
- *    
+ *
  * This function draw thumb of trackbar
  *
  * Author : zhounuohua<zhounuohua@minigi.com>
  * Data   : 2007-12-18
  */
-static void draw_trackbar_thumb (HWND hWnd, HDC hdc, 
+static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
         const RECT* pRect, DWORD dwStyle)
 {
     /** trackbar status , pressed or hilite */
@@ -2971,36 +2971,36 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
 
     SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_THREED_BODY));
     if (dwStyle & TBS_VERTICAL) {
-        MoveTo (hdc, sliderx + (sliderw >> 1) - 3 - 1, 
+        MoveTo (hdc, sliderx + (sliderw >> 1) - 3 - 1,
                 slidery + (sliderh >> 1));
-        LineTo (hdc, sliderx + (sliderw >> 1) + 3 - 1, 
+        LineTo (hdc, sliderx + (sliderw >> 1) + 3 - 1,
                 slidery + (sliderh >> 1));
-        MoveTo (hdc, sliderx + (sliderw >> 1) - 2 - 1, 
+        MoveTo (hdc, sliderx + (sliderw >> 1) - 2 - 1,
                 slidery + (sliderh >> 1) - 2);
-        LineTo (hdc, sliderx + (sliderw >> 1) + 2 - 1, 
+        LineTo (hdc, sliderx + (sliderw >> 1) + 2 - 1,
                 slidery + (sliderh >> 1) - 2);
-        MoveTo (hdc, sliderx + (sliderw >> 1) - 2 - 1, 
+        MoveTo (hdc, sliderx + (sliderw >> 1) - 2 - 1,
                 slidery + (sliderh >> 1) + 2);
-        LineTo (hdc, sliderx + (sliderw >> 1) + 2 - 1, 
+        LineTo (hdc, sliderx + (sliderw >> 1) + 2 - 1,
                 slidery + (sliderh >> 1) + 2);
     }
     else {
-        MoveTo (hdc, sliderx + (sliderw >> 1), 
+        MoveTo (hdc, sliderx + (sliderw >> 1),
                 slidery + (sliderh >> 1) - 3 - 1);
-        LineTo (hdc, sliderx + (sliderw >> 1), 
+        LineTo (hdc, sliderx + (sliderw >> 1),
                 slidery + (sliderh >> 1) + 3 - 1);
-        MoveTo (hdc, sliderx + (sliderw >> 1) - 2, 
+        MoveTo (hdc, sliderx + (sliderw >> 1) - 2,
                 slidery + (sliderh >> 1) - 2 - 1);
-        LineTo (hdc, sliderx + (sliderw >> 1) - 2, 
+        LineTo (hdc, sliderx + (sliderw >> 1) - 2,
                 slidery + (sliderh >> 1) + 2 - 1);
-        MoveTo (hdc, sliderx + (sliderw >> 1) + 2, 
+        MoveTo (hdc, sliderx + (sliderw >> 1) + 2,
                 slidery + (sliderh >> 1) - 2 - 1);
-        LineTo (hdc, sliderx + (sliderw >> 1) + 2, 
+        LineTo (hdc, sliderx + (sliderw >> 1) + 2,
                 slidery + (sliderh >> 1) + 2 - 1);
     }
 }
 
-static void 
+static void
 calc_trackbar_rect (HWND hWnd, LFRDR_TRACKBARINFO *info, DWORD dwStyle,
         const RECT* rcClient, RECT* rcRuler, RECT* rcBar, RECT* rcBorder)
 {
@@ -3057,15 +3057,15 @@ calc_trackbar_rect (HWND hWnd, LFRDR_TRACKBARINFO *info, DWORD dwStyle,
         }
 
         if (dwStyle & TBS_VERTICAL) {
-            sliderx = x + ((w - sliderw) >> 1); 
+            sliderx = x + ((w - sliderw) >> 1);
             slidery = y + (HEIGHT_VERT_SLIDER>>1) + fixtoi(fixmul(itofix(h - HEIGHT_VERT_SLIDER), fixdiv (itofix (max - pos), itofix (max - min)))) - (sliderh>>1);
-            //slidery = y + (HEIGHT_VERT_SLIDER>>1)+ (int)((max - pos) * 
+            //slidery = y + (HEIGHT_VERT_SLIDER>>1)+ (int)((max - pos) *
             //        (h - HEIGHT_VERT_SLIDER) / (float)(max - min)) - (sliderh>>1);
         }
         else {
-            slidery = y + ((h - sliderh) >> 1); 
+            slidery = y + ((h - sliderh) >> 1);
             sliderx = x + (WIDTH_HORZ_SLIDER >> 1) + fixtoi (fixmul (itofix (w - WIDTH_HORZ_SLIDER), fixdiv (itofix (pos - min), itofix (max - min)))) - (sliderw>>1);
-            //sliderx = x + (WIDTH_HORZ_SLIDER >> 1) + (int)((pos - min) * 
+            //sliderx = x + (WIDTH_HORZ_SLIDER >> 1) + (int)((pos - min) *
             //        (w - WIDTH_HORZ_SLIDER) / (float)(max - min)) - (sliderw>>1);
         }
 
@@ -3073,7 +3073,7 @@ calc_trackbar_rect (HWND hWnd, LFRDR_TRACKBARINFO *info, DWORD dwStyle,
     }
 }
 
-static void 
+static void
 draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
 {
     RECT    rc_client, rc_border, rc_ruler, rc_bar, rc_draw;
@@ -3093,7 +3093,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     GetClientRect (hWnd, &rc_client);
     dwStyle = GetWindowStyle (hWnd);
 
-    calc_trackbar_rect (hWnd, info, dwStyle, &rc_client, 
+    calc_trackbar_rect (hWnd, info, dwStyle, &rc_client,
             &rc_ruler, &rc_bar, &rc_border);
 
     x = rc_border.left;
@@ -3132,7 +3132,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
             fTickGap = fixmul (fTickGap, fixdiv (itofix (TickFreq), itofix (max - min)));
             //TickGap = (h - HEIGHT_VERT_SLIDER) / (float)(max - min) * TickFreq;
             TickEnd = y + h - (HEIGHT_VERT_SLIDER >> 1);
-#if 1        
+#if 1
             for (fTick = itofix (TickStart); (int)(fixtof(fTick)) <= TickEnd; fTick = fixadd (fTick, fTickGap) ) {
                 MoveTo (hdc, x + (w>>1) + (sliderw>>1) + GAP_TICK_SLIDER, (int)(fixtof (fTick)));
                 LineTo (hdc, x + (w>>1) + (sliderw>>1) + GAP_TICK_SLIDER + LEN_TICK, (int)(fixtof (fTick)));
@@ -3144,7 +3144,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
 #endif
         } else {
 
-            TickStart = x + (WIDTH_HORZ_SLIDER >> 1); 
+            TickStart = x + (WIDTH_HORZ_SLIDER >> 1);
             fTickGap = fixmul (itofix (w - WIDTH_HORZ_SLIDER), fixdiv (itofix (TickFreq), itofix (max - min)));
 
             TickEnd = x + w - (WIDTH_HORZ_SLIDER >> 1);
@@ -3168,13 +3168,13 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
         light_dword = calc_3dbox_color (bgc, LFRDR_3DBOX_COLOR_LIGHTEST);
         rc_draw.left   = x + 1;
         rc_draw.top    = y + 1;
-        rc_draw.right  = x + w - 3; 
+        rc_draw.right  = x + w - 3;
         rc_draw.bottom = y + h - 3;
         draw_focus_frame (hdc, &rc_draw, light_dword);
     }
 }
 
-/* 
+/*
  * disabled_text_out:
  *
  * This function outputs disabled text.
@@ -3183,11 +3183,11 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
  * Date: 2007-12-04
  */
 
-static void 
+static void
 disabled_text_out (HWND hWnd, HDC hdc, const char* spText, PRECT rc, DWORD dt_fmt)
 {
     DWORD mainc, color;
-    
+
     SetBkMode (hdc, BM_TRANSPARENT);
     SetBkColor (hdc, GetWindowBkColor (hWnd));
 
@@ -3199,7 +3199,7 @@ disabled_text_out (HWND hWnd, HDC hdc, const char* spText, PRECT rc, DWORD dt_fm
     mainc = GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY);
     color = calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_LIGHTER);
     SetTextColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     DrawText (hdc, spText, -1, rc, dt_fmt);
 
@@ -3210,27 +3210,27 @@ disabled_text_out (HWND hWnd, HDC hdc, const char* spText, PRECT rc, DWORD dt_fm
 
     color = calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_DARKER);
     SetTextColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     DrawText (hdc, spText, -1, rc, dt_fmt);
 }
 
-/* 
+/*
  * draw_tab:
  *
- * This function draw a propsheet tab. 
+ * This function draw a propsheet tab.
  *
  * Author: Peng LIU
  * Date: 2007-12-07
  */
-static void 
+static void
 draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HICON icon)
 {
     int x, ty, by, text_extent;
     SIZE size;
     int eff_chars, eff_len;
     DWORD light_c, darker_c, darkest_c;
-   
+
     light_c = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTEST);
     darker_c = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_DARKER);
     darkest_c = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_DARKEST);
@@ -3254,18 +3254,18 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     /* draw the title's edge */
     /* pc3d style & flat & grap */
     if (flag & LFRDR_TAB_BOTTOM) {
-        SetPenColor(hdc, DWORD2Pixel (hdc, light_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, light_c));
         MoveTo (hdc, rect->left, ty);
         LineTo (hdc, rect->left, by - 3 );
-        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c));
         MoveTo (hdc, rect->left + 2, by - 1);
         LineTo (hdc, rect->right - 4, by - 1);
 
         MoveTo (hdc, rect->left + 1, by - 2);
         LineTo (hdc, rect->left + 1, by - 2);
- 
+
     } else {
-        SetPenColor(hdc, DWORD2Pixel (hdc, light_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, light_c));
         MoveTo (hdc, rect->left, by - 1);
         LineTo (hdc, rect->left, ty + 2);
         MoveTo (hdc, rect->left + 2, ty);
@@ -3276,26 +3276,26 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     }
 
     if (flag & LFRDR_TAB_BOTTOM) {
-        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c));
         MoveTo (hdc, rect->right - 2, by - 3);
         LineTo (hdc, rect->right - 2, ty);
 
         MoveTo (hdc, rect->right - 3, by - 2 );
         LineTo (hdc, rect->right - 3, by - 2);
 
-        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c));
         MoveTo (hdc, rect->right - 3, by -3);
         LineTo (hdc, rect->right - 3, ty);
- 
+
     }else {
-        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c));
         MoveTo (hdc, rect->right - 2, ty + 2 );
         LineTo (hdc, rect->right - 2, by - 2);
 
         MoveTo (hdc, rect->right - 3, ty + 1 );
         LineTo (hdc, rect->right - 3, ty + 1);
 
-        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c));
         MoveTo (hdc, rect->right - 3, ty + 2 );
         LineTo (hdc, rect->right - 3, by - 2);
 
@@ -3308,17 +3308,17 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
         int icon_x, icon_y;
         icon_x = RECTHP(rect) - 8;
         icon_y = icon_x;
-        
+
         DrawIcon (hdc, x, ty, icon_x, icon_y, icon);
         x += icon_x;
         x += 2;
         text_extent -= icon_x + 2;
     }
-        
+
     /* draw the TEXT */
-    SetBkColor (hdc, DWORD2Pixel (hdc, color)); 
+    SetBkColor (hdc, DWORD2Pixel (hdc, color));
     text_extent -= 4;
-    eff_len = GetTextExtentPoint (hdc, title, strlen(title), 
+    eff_len = GetTextExtentPoint (hdc, title, strlen(title),
                   text_extent, &eff_chars, NULL, NULL, &size);
 
     TextOutLen (hdc, x + 2, ty, title, eff_len);
@@ -3326,8 +3326,8 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     return;
 }
 
-static void 
-draw_progress (HWND hWnd, HDC hdc, 
+static void
+draw_progress (HWND hWnd, HDC hdc,
         int nMax, int nMin, int nPos, BOOL fVertical)
 {
     RECT    rcClient;
@@ -3344,14 +3344,14 @@ draw_progress (HWND hWnd, HDC hdc,
 
     if (nMax == nMin)
         return;
-    
+
     if ((nMax - nMin) > 5)
         step = 5;
     else
         step = 1;
 
     GetClientRect (hWnd, &rcClient);
-    draw_3dbox (hdc, &rcClient, 
+    draw_3dbox (hdc, &rcClient,
         GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY),
                     LFRDR_BTN_STATUS_PRESSED);
 
@@ -3363,7 +3363,7 @@ draw_progress (HWND hWnd, HDC hdc,
     if (hWnd != HWND_NULL)
         old_color = SetBrushColor (hdc, GetWindowBkColor (hWnd));
     else
-        old_color = SetBrushColor (hdc, 
+        old_color = SetBrushColor (hdc,
                 GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP));
 
     //draw the erase background
@@ -3372,24 +3372,24 @@ draw_progress (HWND hWnd, HDC hdc,
 
     ndiv_progress = ldiv (nMax - nMin, step);
     nAllPart = ndiv_progress.quot;
-    
+
     ndiv_progress = ldiv (nPos - nMin, step);
     nNowPart = ndiv_progress.quot;
     if (fVertical)
         ndiv_progress = ldiv (h, nAllPart);
     else
         ndiv_progress = ldiv (w, nAllPart);
-        
+
     whOne = ndiv_progress.quot;
     nRem = ndiv_progress.rem;
 
-    SetBrushColor (hdc, 
+    SetBrushColor (hdc,
             GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
- 
+
     if (whOne >= 4) {
         if (fVertical) {
             for (i = 0, iy = y + h - 1; i < nNowPart; ++i) {
-                if ((iy - whOne) < y) 
+                if ((iy - whOne) < y)
                     whOne = iy - y;
 
                 FillBox (hdc, x + 1, iy - whOne, w - 2, whOne - 1);
@@ -3402,7 +3402,7 @@ draw_progress (HWND hWnd, HDC hdc,
         }
         else {
             for (i = 0, ix = x + 1; i < nNowPart; ++i) {
-                if ((ix + whOne) > (x + w)) 
+                if ((ix + whOne) > (x + w))
                     whOne = x + w - ix;
 
                 FillBox (hdc, ix, y + 1, whOne - 1, h - 2);
@@ -3420,7 +3420,7 @@ draw_progress (HWND hWnd, HDC hdc,
         if (fVertical) {
             int prog = h * nNowPart/nAllPart;
 
-            FillBox (hdc, x + 1, rcClient.bottom - pbar_border - prog, 
+            FillBox (hdc, x + 1, rcClient.bottom - pbar_border - prog,
                     w - 2, prog);
         }
         else {
@@ -3439,9 +3439,9 @@ draw_progress (HWND hWnd, HDC hdc,
 
             rc_clip.right = prog;
             SelectClipRect (hdc, &rc_clip);
-            SetTextColor (hdc, 
+            SetTextColor (hdc,
                     GetWindowElementPixel (hWnd, WE_FGC_HIGHLIGHT_ITEM));
-            SetBkColor (hdc, 
+            SetBkColor (hdc,
                     GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
             TextOut (hdc, x, y, szText);
 
@@ -3504,7 +3504,7 @@ WINDOW_ELEMENT_RENDERER __mg_wnd_rdr_classic = {
 
     calc_thumb_area,
     disabled_text_out,
- 
+
     draw_tab,
     draw_progress,
     draw_header,

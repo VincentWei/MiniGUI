@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -89,9 +89,9 @@ static RECT cliprc = { 0, 0, 0, 0};
 #ifdef _MGHAVE_CURSOR
 
 #if defined(__THREADX__) && defined(__TARGET_VFANVIL__)
-#ifndef fgetc 
+#ifndef fgetc
 #define fgetc my_fgetc
-#endif 
+#endif
 #endif
 
 static PCURSOR SysCursor [MAX_SYSCURSORINDEX + 1];
@@ -100,7 +100,7 @@ static BYTE* savedbits = NULL;
 static BYTE* cursorbits = NULL;
 static unsigned int csrimgsize;
 static unsigned int csrimgpitch;
- 
+
 static int oldboxleft = -100, oldboxtop = -100;
 static int nShowCount = 0;
 static PCURSOR pCurCsr = NULL;
@@ -108,7 +108,7 @@ static PCURSOR pCurCsr = NULL;
 Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
 {
     Uint8* dst = NULL;
-    
+
     pthread_mutex_lock (&__mg_mouselock);
     if (nShowCount >= 0 && pCurCsr
             && x >= oldboxleft && y >= oldboxtop
@@ -139,16 +139,14 @@ HCURSOR GUIAPI LoadCursorFromMem (const void* area)
     return load_cursor_from_mem (area);
 }
 
-static BITMAP csr_bmp = {
-    BMP_TYPE_NORMAL, 0, 0, 0, 0, CURSORWIDTH, CURSORHEIGHT
-};
+static BITMAP csr_bmp;
 
 /* Only called from InitCursor and client code. */
 HCURSOR GUIAPI CreateCursor(int xhotspot, int yhotspot, int w, int h,
                      const BYTE* pANDBits, const BYTE* pXORBits, int colornum)
 {
     PCURSOR pcsr;
-    
+
     if( w != CURSORWIDTH || h != CURSORHEIGHT ) return 0;
 
     /* allocate memory. */
@@ -169,23 +167,23 @@ HCURSOR GUIAPI CreateCursor(int xhotspot, int yhotspot, int w, int h,
     pcsr->height = h;
 
     if (colornum == 1) {
-        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch, 
+        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch,
                         pANDBits, MONOPITCH, w, h, MYBMP_FLOW_UP,
-                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF), 
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF),
                         RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0xFF));
-        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, 
+        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch,
                         pXORBits, MONOPITCH,
-                        w, h, MYBMP_FLOW_UP, 
-                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0x00), 
+                        w, h, MYBMP_FLOW_UP,
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0x00),
                         RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0x00));
     }
     else if (colornum == 4) {
-        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch, 
+        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch,
                         pANDBits, MONOPITCH,
-                        w, h, MYBMP_FLOW_UP, 
-                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF), 
+                        w, h, MYBMP_FLOW_UP,
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF),
                         RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0xFF));
-        Expand16CBitmapEx (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, pXORBits, 
+        Expand16CBitmapEx (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, pXORBits,
                         MONOPITCH*4, w, h, MYBMP_FLOW_UP, NULL, FALSE, 0x00);
     }
 
@@ -257,7 +255,7 @@ BOOL GUIAPI DestroyCursor(HCURSOR hcsr)
 HCURSOR GUIAPI GetSystemCursor(int csrid)
 {
     if(csrid > MAX_SYSCURSORINDEX || csrid < 0)
-        return 0; 
+        return 0;
 
     return (HCURSOR)(SysCursor[csrid]);
 }
@@ -275,15 +273,15 @@ BOOL realInitCursor(void)
     int number;
     int i;
 
-    csrimgsize = GAL_GetBoxSize (__gal_screen, CURSORWIDTH, CURSORHEIGHT, 
+    csrimgsize = GAL_GetBoxSize (__gal_screen, CURSORWIDTH, CURSORHEIGHT,
                     &csrimgpitch);
 
+    /* NOTE: Always initialize the structue fields with explicit assignments */
     csr_bmp.bmType = BMP_TYPE_NORMAL;
-    csr_bmp.bmWidth = CURSORWIDTH;
-    csr_bmp.bmHeight = CURSORHEIGHT;
-    
     csr_bmp.bmBitsPerPixel = __gal_screen->format->BitsPerPixel;
     csr_bmp.bmBytesPerPixel = __gal_screen->format->BytesPerPixel;
+    csr_bmp.bmWidth = CURSORWIDTH;
+    csr_bmp.bmHeight = CURSORHEIGHT;
     csr_bmp.bmPitch = csrimgpitch;
 
     if( !(savedbits = malloc(csrimgsize)) )
@@ -298,20 +296,20 @@ BOOL realInitCursor(void)
 
     if( GetMgEtcValue (CURSORSECTION, "cursornumber", szValue, 10) < 0 )
         goto error;
-    
+
     number = atoi(szValue);
 
     if(number <= 0)
         return TRUE;
 
-    number = number < (MAX_SYSCURSORINDEX + 1) ? 
+    number = number < (MAX_SYSCURSORINDEX + 1) ?
              number : (MAX_SYSCURSORINDEX + 1);
 
     for(i = 0; i < number; i++) {
         if ( !(SysCursor[i] = sysres_load_system_cursor(i)) )
              goto error;
     }
-	
+
 
     return TRUE;
 error:
@@ -333,7 +331,7 @@ void mg_TerminateCursor( void )
     savedbits = NULL;
     pCurCsr = NULL;
     nShowCount = 0;
- 
+
     for(i = 0; i<= MAX_SYSCURSORINDEX; i++)
     {
         if( SysCursor[i] ) {
@@ -350,7 +348,7 @@ HCURSOR GUIAPI GetCurrentCursor(void)
     HCURSOR hcsr;
 
     pthread_mutex_lock (&__mg_mouselock);
-    
+
     hcsr = (HCURSOR)pCurCsr;
     pthread_mutex_unlock(&__mg_mouselock);
 
@@ -379,7 +377,7 @@ static void hidecursor (void)
     csr_bmp.bmBits = savedbits;
 
     GAL_SetClipRect (__gal_screen, NULL);
-    GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp); 
+    GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
 }
 
@@ -475,7 +473,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
 
     if (cur_pdc->surface != __gal_screen) {
         if (fShow) {
-            GAL_UpdateRect (cur_pdc->surface, 
+            GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
         }
     }
@@ -495,7 +493,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
 
         if (intleft >= intright || inttop >= intbottom) {
             if (fShow) {
-                GAL_UpdateRect (cur_pdc->surface, 
+                GAL_UpdateRect (cur_pdc->surface,
                                 prc->left, prc->top, RECTWP(prc), RECTHP(prc));
                 pthread_mutex_unlock(&__mg_mouselock);
             }
@@ -510,7 +508,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
         }
 
         if (fShow) {
-            GAL_UpdateRect (cur_pdc->surface, 
+            GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
             pthread_mutex_unlock(&__mg_mouselock);
         }
@@ -552,7 +550,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     prc = &cur_pdc->rc_output;
 
     if (fShow)
-        GAL_UpdateRect (cur_pdc->surface, 
+        GAL_UpdateRect (cur_pdc->surface,
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
 }
 
