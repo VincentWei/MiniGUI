@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -69,7 +69,7 @@ typedef int key_t;
 
 #else                    /* not ECOS */
 
-#ifndef WIN32            /* not WIN32 */ 
+#ifndef WIN32            /* not WIN32 */
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -86,7 +86,7 @@ typedef int key_t;
 
 #include "pcxvfb-winfb.h"
 
-#endif                   /* end win32 def*/    
+#endif                   /* end win32 def*/
 
 #include "minigui.h"
 #include "misc.h"
@@ -94,7 +94,7 @@ typedef int key_t;
 #include "../sysvideo.h"
 #include "pcxvfb.h"
 
-#endif                  /* end ECOS */  
+#endif                  /* end ECOS */
 
 #define WINDOW_CAPTION_LEN 255
 #define EXECL_FILENAME_LEN 255
@@ -103,7 +103,7 @@ typedef int key_t;
 /* Initialization/Query functions */
 static int PCXVFB_VideoInit(_THIS, GAL_PixelFormat *vformat);
 
-static GAL_Rect **PCXVFB_ListModes(_THIS, 
+static GAL_Rect **PCXVFB_ListModes(_THIS,
         GAL_PixelFormat *format, Uint32 flags);
 
 static GAL_Surface *PCXVFB_SetVideoMode(_THIS, GAL_Surface *current,
@@ -129,7 +129,7 @@ static int shm_init_lock(key_t key)
         struct semid_ds* buf;
         unsigned short* array;
     } sem;
-    
+
     semid = semget(key,1,IPC_CREAT|0666);
     if(semid==-1){
         _ERR_PRINTF ("NEWGAL>PCXVFB: Failed to create semaphore.\n");
@@ -137,7 +137,7 @@ static int shm_init_lock(key_t key)
     }
     sem.val=1;
     semctl(semid,0,SETVAL,sem);
-    
+
     return 0;
 }
 
@@ -192,7 +192,7 @@ static int execl_pcxvfb(void)
 
     skin[0] = '\0';
     GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
-    
+
     _DBG_PRINTF ("NEWGAL>PCXVFB: %s %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
 
     if (execlp (execl_file, "pcxvfb", ch_pid, window_caption, mode, skin, NULL) < 0) {
@@ -224,7 +224,7 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
     int i;
     RECT bound;
-#ifdef WIN32    
+#ifdef WIN32
     //win_PCXVFbLock ();
 #else
     shm_lock(semid);
@@ -240,7 +240,7 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                 rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -254,7 +254,7 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     this->hidden->hdr->dirty_rc_b = bound.bottom;
 
     this->hidden->hdr->dirty = TRUE;
-#ifdef WIN32   
+#ifdef WIN32
     //win_PCXVFbUnlock ();
 #else
     shm_unlock(semid);
@@ -269,7 +269,7 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
     this = (GAL_VideoDevice *)malloc(sizeof(GAL_VideoDevice));
     if (this) {
         memset (this, 0, (sizeof *this));
-        this->hidden 
+        this->hidden
             = (struct GAL_PrivateVideoData *) malloc ((sizeof *this->hidden));
     }
 
@@ -360,13 +360,13 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     char etc_param[128];
     char skin[256];
 #endif
-    
-    if (GetMgEtcValue ("pc_xvfb", "exec_file", 
+
+    if (GetMgEtcValue ("pc_xvfb", "exec_file",
                 execl_file, EXECL_FILENAME_LEN) < 0)
         return ERR_CONFIG_FILE;
     execl_file[EXECL_FILENAME_LEN] = '\0';
 
-    if (GetMgEtcValue ("pc_xvfb", "window_caption", 
+    if (GetMgEtcValue ("pc_xvfb", "window_caption",
                 window_caption, WINDOW_CAPTION_LEN) < 0)
         return ERR_CONFIG_FILE;
     window_caption[WINDOW_CAPTION_LEN] = '\0';
@@ -383,18 +383,18 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             return ERR_CONFIG_FILE;
 
     mode[LEN_MODE] = '\0';
-    
+
     for(i=0;i<LEN_MODE;i++)
     {
         mode[i]=tolower(mode[i]);
     }
-    
+
 #ifdef WIN32 //-----------win32----------------
     sprintf(etc_param, "%s %s", window_caption, mode);
     memset (skin, 0, sizeof (skin));
     GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
-    data->shmrgn = win_PCXVFbInit (execl_file, etc_param, skin); 
-#elif defined(__CYGWIN__) //----------cygwin-------------- 
+    data->shmrgn = win_PCXVFbInit (execl_file, etc_param, skin);
+#elif defined(__CYGWIN__) //----------cygwin--------------
     pid_t  pid;
     int    shmid;
     socklen_t client_len;
@@ -413,27 +413,27 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     } else {
         pitch = ((w * d + 31) / 32) * 4;
     }
-    
+
     if(d <= 8)
         color_num = 1 << d;
     else
         color_num = 0;
 
     dataSize = pitch * h + sizeof(XVFBHeader) + color_num * sizeof(XVFBPalEntry);
-    
+
     sprintf(mapFile,"%s-%d", preMapFile, getpid());
-      
+
     __mg_pcxvfb_server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    
+
     srv_addr.sin_family = AF_INET;
     srv_addr.sin_port = htons(getpid()); //port : use the pid
     srv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    bind(__mg_pcxvfb_server_sockfd, 
+    bind(__mg_pcxvfb_server_sockfd,
             (struct sockaddr *)&srv_addr, sizeof(struct sockaddr));
-    
+
     listen(__mg_pcxvfb_server_sockfd, 3);
-    
+
     //shm_init_lock(getpid());
 
     if ((pid = fork()) < 0) {
@@ -448,10 +448,10 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     }
 
     client_len = sizeof(clt_addr);
-    __mg_pcxvfb_client_sockfd = 
-            accept (__mg_pcxvfb_server_sockfd, 
+    __mg_pcxvfb_client_sockfd =
+            accept (__mg_pcxvfb_server_sockfd,
                 (struct sockaddr *)&clt_addr, &client_len);
-    
+
     fd = open (mapFile, O_RDWR);
 
     if (fd < 0){
@@ -459,10 +459,9 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         return NULL;
     }
 
-    data->shmrgn = (unsigned char *)mmap(NULL, dataSize, 
+    data->shmrgn = (unsigned char *)mmap(NULL, dataSize,
             PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-            
-        close(fd);
+    close(fd);
 #else //-----------------linux----------------------
 
     pid_t  pid;
@@ -478,7 +477,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     FILE  *fp;
 #endif
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
 #endif
         __mg_pcxvfb_server_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -490,7 +489,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 
         //FIXME
         server_len = sizeof(server_address);
-        bind(__mg_pcxvfb_server_sockfd, 
+        bind(__mg_pcxvfb_server_sockfd,
                 (struct sockaddr *)&server_address, server_len);
         listen(__mg_pcxvfb_server_sockfd, 5);
         client_len = sizeof(client_address);
@@ -528,8 +527,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
                 return -1;
             }
         }
-        __mg_pcxvfb_client_sockfd = 
-                accept (__mg_pcxvfb_server_sockfd, 
+        __mg_pcxvfb_client_sockfd =
+                accept (__mg_pcxvfb_server_sockfd,
                     (struct sockaddr *)&client_address, &client_len);
 
         {
@@ -569,7 +568,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 #endif
         }
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     }
     else {
         fp = fopen ("/var/tmp/.pcxvfb_tmp", "r");
@@ -597,7 +596,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to virtual frame buffer server.\n");
         return -1;
     }
-    
+
     data->hdr = (XVFBHeader *) data->shmrgn;
 
     vformat->BitsPerPixel = data->hdr->depth;
@@ -635,7 +634,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             vformat->Bmask = data->hdr->Bmask;
             break;
         default:
-            GAL_SetError ("NEWGAL>PCXVFB: Not supported depth: %d, " 
+            GAL_SetError ("NEWGAL>PCXVFB: Not supported depth: %d, "
                     "please try to use Shadow NEWGAL engine with targetname pc_xvfb.\n",
                     vformat->BitsPerPixel);
             return -1;
@@ -674,7 +673,7 @@ static void PCXVFB_FreeHWSurface(_THIS, GAL_Surface *surface)
     surface->pixels = NULL;
 }
 
-static int PCXVFB_SetColors(_THIS, int firstcolor, 
+static int PCXVFB_SetColors(_THIS, int firstcolor,
         int ncolors, GAL_Color *colors)
 {
     XVFBPalEntry *palette;
@@ -682,7 +681,7 @@ static int PCXVFB_SetColors(_THIS, int firstcolor,
     int bpp = this->screen->format->BitsPerPixel;
     int pixel = firstcolor;
 
-    palette = (XVFBPalEntry *)((BYTE *)this->hidden->hdr 
+    palette = (XVFBPalEntry *)((BYTE *)this->hidden->hdr
             + this->hidden->hdr->palette_offset);
 
     if (bpp < 8) {
