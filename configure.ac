@@ -92,7 +92,7 @@ message_string="no"
 
 osname="unspecified"
 runtime_mode="procs"
-use_compositor="yes"
+compositing_schema="yes"
 
 incore_res="no"
 use_miniguientry="no"
@@ -831,9 +831,9 @@ AC_ARG_ENABLE(ctrlanimation,
 build_ctrl_animation=$enableval)
 
 if test "x$runtime_mode" == "xprocs"; then
-    AC_ARG_ENABLE(compositor,
-[  --enable-compositor      enable compositor (MiniGUI-Processes runmode only) <default=yes>],
-    use_compositor=$enableval)
+    AC_ARG_ENABLE(compositing,
+[  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=yes>],
+    compositing_schema=$enableval)
 fi
 
 dnl Set up the Null video driver.
@@ -1722,9 +1722,9 @@ case "$runtime_mode" in
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         MINIGUI_RUNMODE="procs"
-        if test "x$use_compositor" = "xyes"; then
-          AC_DEFINE(_MGUSE_COMPOSITOR, 1,
-                    [Define if use compositor for MiniGUI-Processes])
+        if test "x$compositing_schema" = "xyes"; then
+          AC_DEFINE(_MGUSE_COMPOSITING, 1,
+                    [Define if use compositing schema for MiniGUI-Processes])
         fi
     ;;
 esac
@@ -2705,7 +2705,7 @@ AC_MSG_NOTICE([
 ## Global Features:
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
-  * Compositor:         ${use_compositor}
+  * Compositing schema: ${compositing_schema}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}

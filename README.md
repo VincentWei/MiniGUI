@@ -164,6 +164,43 @@ following repository:
 If you are interested in hacking the MiniGUI code, please visit this repository.
 
 
+## NEW FEATURES IN VERSION 4.2.x
+
+In this version, we enhanced the MiniGUI-Processes runtime mode to support
+the compositing schema. Under compositing schema, regardless a main window
+is created by the server (`mginit`) or a client, it renders the content in
+a separate rendering buffer, and the server composites the contents from
+all visible main windows to the ultimate scan-out frame buffer according to
+the z-order information.
+
+On the contrary, the legacy schema of MiniGUI-Processes uses the same
+frame buffer for all processes (and all main windows) in the system.
+
+MiniGUI Core implements the default compositor. But you can implement
+your own compositor by programming your own server, i.e., `mginit`.
+
+By enabling the compositing schema, MiniGUI now provides a better
+implementation for multi-process environment:
+
+- Easy to implement advanced user interfaces with alpha blending,
+  blurring, and so on.
+- Easy to implement animations for switching among main windows.
+- Better security. One client cannot read/write contents in/to
+  another windows owned by other clients.
+
+The major flaws of the compositing schema are as follow:
+
+- It needs larger memory than the legacy schema to show multiple
+  windows at the same time. Therefore, we need a client manager to
+  kill the clients which runs in background if you are
+  running MiniGUI on an embedded system. Like Android or iOS does.
+- It needs a hardware-accelerated NEWGAL engine to get a smooth
+  user experience.
+
+Usage:
+
+- Use `--enable-compositing` to enable the compositing schema.
+
 ## NEW FEATURES IN VERSION 4.0.x
 
 In this version, we enhanced and tuned the APIs related to text rendering,
