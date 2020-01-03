@@ -108,9 +108,7 @@ HCURSOR GUIAPI LoadCursorFromMem (const void* area)
     return load_cursor_from_mem (area);
 }
 
-static BITMAP csr_bmp = {
-    BMP_TYPE_NORMAL, 0, 0, 0, 0, CURSORWIDTH, CURSORHEIGHT
-};
+static BITMAP csr_bmp;
 
 /* Only called from InitCursor and client code. */
 HCURSOR GUIAPI CreateCursor(int xhotspot, int yhotspot, int w, int h,
@@ -242,6 +240,10 @@ BOOL mg_InitCursor(void)
 
     csrimgsize = GAL_GetBoxSize (__gal_screen, CURSORWIDTH, CURSORHEIGHT, &csrimgpitch);
 
+    /* always initialize fields by explicitly assignments */
+    csr_bmp.bmType = BMP_TYPE_NORMAL;
+    csr_bmp.bmWidth = CURSORWIDTH;
+    csr_bmp.bmHeight = CURSORHEIGHT;
     csr_bmp.bmBitsPerPixel = __gal_screen->format->BitsPerPixel;
     csr_bmp.bmBytesPerPixel = __gal_screen->format->BytesPerPixel;
     csr_bmp.bmPitch = csrimgpitch;

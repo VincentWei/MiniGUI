@@ -370,9 +370,7 @@ HCURSOR GUIAPI GetDefaultCursor (void)
     return def_cursor;
 }
 
-static BITMAP csr_bmp = {
-    BMP_TYPE_NORMAL, 0, 0, 0, 0, CURSORWIDTH, CURSORHEIGHT
-};
+static BITMAP csr_bmp;
 
 BOOL mg_InitCursor (void)
 {
@@ -392,10 +390,14 @@ BOOL mg_InitCursor (void)
         CSR_OLDBOXTOP = -100;
     }
 
+    /* always initialize fields by explicitly assignments */
+    csr_bmp.bmType = BMP_TYPE_NORMAL;
     csr_bmp.bmBitsPerPixel = __gal_screen->format->BitsPerPixel;
     csr_bmp.bmBytesPerPixel = __gal_screen->format->BytesPerPixel;
+    csr_bmp.bmWidth = CURSORWIDTH;
+    csr_bmp.bmHeight = CURSORHEIGHT;
     csr_bmp.bmPitch = __gal_screen->format->BytesPerPixel * CURSORWIDTH;
-    
+
     return TRUE;
 }
 
