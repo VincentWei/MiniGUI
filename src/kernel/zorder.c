@@ -71,7 +71,7 @@
 unsigned int g_license_message_offset;
 #endif
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE) 
+#if defined(_MGRM_PROCESSES)
 #include "ourhdr.h"
 #include "sockio.h"
 #include "client.h"
@@ -81,7 +81,7 @@ unsigned int g_license_message_offset;
 #endif
 #include "misc.h"
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE) 
+#if defined(_MGRM_PROCESSES)
 
 #define SHM_PARAM 0644
 
@@ -102,7 +102,7 @@ inline static key_t get_layer_shm_key (void)
 
 int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 {
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE) 
+#if defined(_MGRM_PROCESSES)
     key_t shm_key;
     int zorder_shmid;
 
@@ -199,7 +199,7 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 
 void kernel_free_z_order_info (ZORDERINFO* zi)
 {
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE) 
+#if defined(_MGRM_PROCESSES)
     if (shmdt (zi) < 0)
         perror ("Detaches shared zorder nodes");
 #else
