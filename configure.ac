@@ -1738,8 +1738,8 @@ case "$runtime_mode" in
         fi
 
         if test "x$use_shmopen" = "xyes"; then
-          AC_CHECK_LIB(rt, shm_open, ,
-                use_shmopen="no; shm_open function not found in rt library")
+          AC_CHECK_LIB(rt, shm_open, [DEP_LIBS="$DEP_LIBS -lrt"],
+                [use_shmopen="no; shm_open function not found in rt library"])
         fi
 
         if test "x$use_shmopen" = "xyes"; then
