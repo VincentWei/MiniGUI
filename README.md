@@ -175,6 +175,7 @@ the z-order information.
 
 On the contrary, the legacy schema of MiniGUI-Processes uses the same
 frame buffer for all processes (and all main windows) in the system.
+So the legacy schema is also called shared frame buffer schema.
 
 MiniGUI Core implements the default compositor. But you can implement
 your own compositor by programming your own server, i.e., `mginit`.
@@ -182,8 +183,8 @@ your own compositor by programming your own server, i.e., `mginit`.
 By enabling the compositing schema, MiniGUI now provides a better
 implementation for multi-process environment:
 
-- Easy to implement advanced user interfaces with alpha blending,
-  blurring, and so on.
+- Easy to implement advanced user interfaces with rounded corners,
+  alpha blending, blurring, and so on.
 - Easy to implement animations for switching among main windows.
 - Better security. One client cannot read/write contents in/to
   another windows owned by other clients.
@@ -191,15 +192,20 @@ implementation for multi-process environment:
 The major flaws of the compositing schema are as follow:
 
 - It needs larger memory than the legacy schema to show multiple
-  windows at the same time. Therefore, we need a client manager to
-  kill the clients which runs in background if you are
-  running MiniGUI on an embedded system. Like Android or iOS does.
+  windows at the same time. Therefore, we may need a client manager
+  to kill a client which runs in background and in full screen mode
+  if you are running MiniGUI on an embedded system, like Android
+  or iOS does.
 - It needs a hardware-accelerated NEWGAL engine to get a smooth
   user experience.
 
 Usage:
 
-- Use `--enable-compositing` to enable the compositing schema.
+- Use `--enable-compositing` (default) to enable the compositing
+  schema when you configure the runtime mode of MiniGUI as
+  MiniGUI-Processes (`--with-runmode=procs`).
+  Use `--disable-compositing` to enable
+  the legacy schema (the shared frame buffer schema).
 
 ## NEW FEATURES IN VERSION 4.0.x
 
