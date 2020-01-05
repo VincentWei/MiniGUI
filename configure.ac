@@ -93,6 +93,7 @@ message_string="no"
 osname="unspecified"
 runtime_mode="procs"
 compositing_schema="yes"
+use_shm_open="no"
 
 incore_res="no"
 use_miniguientry="no"
@@ -834,6 +835,10 @@ if test "x$runtime_mode" == "xprocs"; then
     AC_ARG_ENABLE(compositing,
 [  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=yes>],
     compositing_schema=$enableval)
+
+    AC_ARG_ENABLE(shmopen,
+[  --enable-shmopen         use shm_open <default=no>],
+    use_shmopen=$enableval)
 fi
 
 dnl Set up the Null video driver.
@@ -1730,6 +1735,15 @@ case "$runtime_mode" in
         else
           AC_DEFINE(_MGUSE_SHAREDFB, 1,
                     [Define if use legacy schema (shared frame buffer) for MiniGUI-Processes])
+        fi
+
+        if test "x$use_shmopen" = "xyes"; then
+          AC_CHECK_LIB(rt, shm_open, ,
+                use_shmopen="no; shm_open function not found in rt library")
+        fi
+
+        if test "x$use_shmopen" = "xyes"; then
+          AC_DEFINE(_MGUSE_SHMOPEN, 1, [Define if use shm_open])
         fi
     ;;
 esac
@@ -2711,6 +2725,7 @@ AC_MSG_NOTICE([
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
   * Surface schema:     ${surface_schema}
+  * Use shm_open:       ${use_shmopen}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}
