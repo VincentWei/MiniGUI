@@ -1706,17 +1706,20 @@ fi
 
 CPPFLAGS="$CPPFLAGS -D__MINIGUI_LIB__"
 
+sharedfb_schema="yes"
 case "$runtime_mode" in
     sa)
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
         MINIGUI_RUNMODE="sa"
+        compositing_schema="no"
     ;;
     ths)
         AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
         CPPFLAGS="$CPPFLAGS -D_REENTRANT"
         MINIGUI_RUNMODE="ths"
+        compositing_schema="no"
     ;;
     *)
         AC_DEFINE(_MGRM_PROCESSES, 1,
@@ -1725,6 +1728,12 @@ case "$runtime_mode" in
         if test "x$compositing_schema" = "xyes"; then
           AC_DEFINE(_MGUSE_COMPOSITING, 1,
                     [Define if use compositing schema for MiniGUI-Processes])
+          sharedfb_schema="no"
+        else
+          AC_DEFINE(_MGUSE_SHAREDFB, 1,
+                    [Define if use legacy schema (shared frame buffer) for MiniGUI-Processes])
+          compositing_schema="no"
+          sharedfb_schema="yes"
         fi
     ;;
 esac
@@ -2706,6 +2715,7 @@ AC_MSG_NOTICE([
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
   * Compositing schema: ${compositing_schema}
+  * Shared FB schema:   ${sharedfb_schema}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}
