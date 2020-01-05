@@ -62,7 +62,7 @@ dnl ========================================================================
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS(limits.h math.h locale.h unistd.h termio.h sys/types.h sys/time.h)
+AC_CHECK_HEADERS(limits.h math.h locale.h unistd.h termio.h sys/types.h sys/time.h sys/memfd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -77,7 +77,7 @@ AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(time mktime localtime clock_gettime strdup strcasecmp strncasecmp strerror setlocale)
-AC_CHECK_FUNCS(posix_memalign memalign valloc)
+AC_CHECK_FUNCS(posix_memalign memalign valloc memfd_create)
 
 PKG_CHECK_MODULES(UDEV, [libudev >= 200], have_udev="yes", have_udev="no; need libudev 200+")
 
@@ -1706,20 +1706,18 @@ fi
 
 CPPFLAGS="$CPPFLAGS -D__MINIGUI_LIB__"
 
-sharedfb_schema="yes"
+surface_schema="shared frame buffer"
 case "$runtime_mode" in
     sa)
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
         MINIGUI_RUNMODE="sa"
-        compositing_schema="no"
     ;;
     ths)
         AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
         CPPFLAGS="$CPPFLAGS -D_REENTRANT"
         MINIGUI_RUNMODE="ths"
-        compositing_schema="no"
     ;;
     *)
         AC_DEFINE(_MGRM_PROCESSES, 1,
@@ -1728,12 +1726,10 @@ case "$runtime_mode" in
         if test "x$compositing_schema" = "xyes"; then
           AC_DEFINE(_MGUSE_COMPOSITING, 1,
                     [Define if use compositing schema for MiniGUI-Processes])
-          sharedfb_schema="no"
+          surface_schema="compositing"
         else
           AC_DEFINE(_MGUSE_SHAREDFB, 1,
                     [Define if use legacy schema (shared frame buffer) for MiniGUI-Processes])
-          compositing_schema="no"
-          sharedfb_schema="yes"
         fi
     ;;
 esac
@@ -2714,8 +2710,7 @@ AC_MSG_NOTICE([
 ## Global Features:
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
-  * Compositing schema: ${compositing_schema}
-  * Shared FB schema:   ${sharedfb_schema}
+  * Surface schema:     ${surface_schema}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}
