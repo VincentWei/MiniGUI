@@ -467,7 +467,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
         (!OnTrylockClientReq || !OnUnlockClientReq
         || (OnTrylockClientReq && OnUnlockClientReq && !OnTrylockClientReq()))) {
 
-#if 0
+#if 1
         if ( (nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();

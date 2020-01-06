@@ -401,7 +401,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
             int req_id;
 
             /* read request id from client */
-            if ( (nread = sock_read (clifd, &req_id, sizeof (int)))
+            if ((nread = sock_read (clifd, &req_id, sizeof (int)))
                             == SOCKERR_IO) {
 #ifdef _DEBUG
                 err_msg ("server: read error on fd %d", clifd);
@@ -412,7 +412,8 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
             else if (nread == SOCKERR_CLOSED) {
                 if (OnNewDelClient) OnNewDelClient (LCO_DEL_CLIENT, i);
                 __mg_remove_client (i, clifd);
-            } else            /* process client's rquest */
+            }
+            else    /* process client's rquest */
                 __mg_handle_request (clifd, req_id, i);
         }
     }
