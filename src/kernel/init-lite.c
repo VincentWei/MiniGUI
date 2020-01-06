@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** init-lite.c: The Initialization/Termination routines for 
+** init-lite.c: The Initialization/Termination routines for
 ** MiniGUI-Processes and MiniGUI-Standalone.
 **
 ** Current maintainer: Wei Yongming.
@@ -101,7 +101,7 @@ void kernel_ShowCursorForGDI(BOOL fShow, void* pdc)
     prc = &cur_pdc->rc_output;
 
     if (fShow)
-        GAL_UpdateRect (cur_pdc->surface, 
+        GAL_UpdateRect (cur_pdc->surface,
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
 }
 
@@ -300,6 +300,16 @@ static BOOL InstallSEGVHandler (void)
 #include <locale.h>
 #endif
 
+#ifdef _MGRM_PROCESSES
+static BOOL _is_server = FALSE;
+
+BOOL IsServer(void)
+{
+    return _is_server;
+}
+
+#endif
+
 int InitGUI (int argc, const char* agr[])
 {
     int step = 1;
@@ -315,7 +325,7 @@ int InitGUI (int argc, const char* agr[])
         name ++;
 
     if (!strcmp (name, "mginit"))
-        mgIsServer = TRUE;
+        _is_server = TRUE;
 #endif
 
 #ifdef HAVE_SETLOCALE
@@ -324,7 +334,7 @@ int InitGUI (int argc, const char* agr[])
 
     /* Save original termio */
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer)
+    if (_is_server)
 #endif
 //#ifndef WIN32
 #ifndef __NOUNIX__
@@ -355,7 +365,7 @@ int InitGUI (int argc, const char* agr[])
     step++;
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer && !kernel_IsOnlyMe ()) {
+    if (_is_server && !kernel_IsOnlyMe ()) {
         err_message (step, "There is already an instance of 'mginit'!");
         return step;
     }
@@ -363,7 +373,7 @@ int InitGUI (int argc, const char* agr[])
 #endif
 
 #ifdef _MGRM_PROCESSES
-    if (!mgIsServer) {
+    if (!_is_server) {
         if (!client_ClientStartup ()) {
             err_message (step, "Can not start client (Please run mginit first)!");
             return step;
@@ -401,7 +411,7 @@ int InitGUI (int argc, const char* agr[])
 
     /* install signal handlers */
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer)
+    if (_is_server)
 #endif
         InstallSEGVHandler ();
 
@@ -436,7 +446,7 @@ int InitGUI (int argc, const char* agr[])
     g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer) {
+    if (_is_server) {
         /* Load shared resource and create shared memory. */
         if ((mgSharedRes = kernel_LoadSharedResource ()) == NULL) {
             err_message (step, "Can not load shared resource!");
@@ -458,11 +468,11 @@ int InitGUI (int argc, const char* agr[])
 
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer) 
+    if (_is_server)
 #endif
     {
         license_create();
-        splash_draw_framework(); 
+        splash_draw_framework();
         splash_delay();
     }
 
@@ -493,7 +503,7 @@ int InitGUI (int argc, const char* agr[])
 
 #else
 
-    if (mgIsServer) {
+    if (_is_server) {
         /* Init IAL engine.. */
         if (!mg_InitLWEvent ()) {
             err_message (step, "Can not initialize low level event!");
@@ -533,7 +543,7 @@ void TerminateGUI (int rcByGUI)
 #endif
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer) 
+    if (_is_server)
 #endif
     {
         license_destroy();
@@ -544,7 +554,7 @@ void TerminateGUI (int rcByGUI)
 
     salone_StandAloneCleanup ();
 #else
-    if (mgIsServer) {
+    if (_is_server) {
         mg_TerminateDesktop ();
 
         /* Cleanup UNIX domain socket and other IPC objects. */
