@@ -789,7 +789,6 @@ int __mg_handle_request (int clifd, int req_id, int cli)
         struct iovec    iov[2];
         struct msghdr   msg;
         struct cmsghdr  *cmsg = NULL;
-        int newfd = -1;
 
         iov[0].iov_base = buff;
         iov[0].iov_len  = req_data_len;
