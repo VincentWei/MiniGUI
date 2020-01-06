@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** client.c: routines for client.
-** 
+**
 ** The idea comes from sample code in APUE.
 ** Thank Mr. Richard Stevens for his perfect work.
 **
@@ -150,10 +150,11 @@ int GUIAPI GetSockFD2Server (void)
     return conn_fd;
 }
 
-static void process_network_message(MSG *msg) {
-    if (msg->message == MSG_UPDATECLIWIN && 
+static void process_socket_message (MSG *msg)
+{
+    if (msg->message == MSG_UPDATECLIWIN &&
             __mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
-        __mg_update_window (msg->hwnd, 
+        __mg_update_window (msg->hwnd,
                 LOSWORD(msg->wParam), HISWORD(msg->wParam),
                 LOSWORD(msg->lParam), HISWORD(msg->lParam));
     } else {
@@ -166,17 +167,17 @@ static void process_network_message(MSG *msg) {
     }
 }
 
-int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_data_len, 
-                void* result, int len_rslt)
+int GUIAPI ClientRequestEx2 (const REQUEST* request,
+                const void* ex_data, size_t ex_data_len, int fd_to_send,
+                void* result, size_t len_rslt, int* fd_received)
 {
     int n;
-    size_t len_data;
-    MSG msg;
+
     if (mgIsServer)
         return -1;
 
 #ifdef _MGGAL_MLSHADOW
-    if ((request->id != REQID_MLSHADOW_CLIREQ) 
+    if ((request->id != REQID_MLSHADOW_CLIREQ)
             && (__mg_client_id == 0 && request->id != REQID_JOINLAYER)) {
 #elif defined(_MGGAL_NEXUS)
     if ((request->id != REQID_NEXUS_CLIENT_GET_SURFACE)
@@ -184,7 +185,7 @@ int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_
 #else
     if (__mg_client_id == 0 && request->id != REQID_JOINLAYER) {
 #endif
-        fprintf (stderr, "CLIENT: please call JoinLayer first.\n");
+        _ERR_PRINTF ("CLIENT: please call JoinLayer first.\n");
         exit (255);
         return -1;
     }
@@ -192,25 +193,76 @@ int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_
     if (OnLockClientReq && OnUnlockClientReq)
         OnLockClientReq();
 
-    n = sock_write (conn_fd, &request->id, sizeof (int));
-    if (n < 0) goto sock_error;
+#if 0
+    {
+        size_t len_data;
 
-    if (ex_data_len <= 0 || ex_data == NULL) {
-        ex_data = NULL;
-        ex_data_len = 0;
-    }
-
-    len_data = request->len_data + ex_data_len;
-    n = sock_write (conn_fd, &len_data, sizeof (size_t));
-    if (n < 0) goto sock_error;
-
-    n = sock_write (conn_fd, request->data, request->len_data);
-    if (n < 0) goto sock_error;
-
-    if (ex_data_len > 0) {
-        n = sock_write (conn_fd, ex_data, ex_data_len);
+        n = sock_write (conn_fd, &request->id, sizeof (int));
         if (n < 0) goto sock_error;
+
+        if (ex_data_len <= 0 || ex_data == NULL) {
+            ex_data = NULL;
+            ex_data_len = 0;
+        }
+
+        len_data = request->len_data + ex_data_len;
+        n = sock_write (conn_fd, &len_data, sizeof (size_t));
+        if (n < 0) goto sock_error;
+
+        n = sock_write (conn_fd, request->data, request->len_data);
+        if (n < 0) goto sock_error;
+
+        if (ex_data_len > 0) {
+            n = sock_write (conn_fd, ex_data, ex_data_len);
+            if (n < 0) goto sock_error;
+        }
     }
+#else /* use sendmsg */
+    {
+        struct iovec    iov[2];
+        struct msghdr   msg;
+        struct cmsghdr  *cmsg = NULL;
+
+        n = sock_write (conn_fd, &request->id, sizeof (int));
+        if (n < 0) goto sock_error;
+
+        n = sock_write (conn_fd, &request->len_data, sizeof (size_t));
+        if (n < 0) goto sock_error;
+
+        n = sock_write (conn_fd, &ex_data_len, sizeof (size_t));
+        if (n < 0) goto sock_error;
+
+        iov[0].iov_base = (void*)request->data;
+        iov[0].iov_len  = request->len_data;
+
+        iov[1].iov_base = (void*)ex_data;
+        iov[1].iov_len  = ex_data_len;
+
+        msg.msg_iov     = iov;
+        msg.msg_iovlen  = 2;
+        msg.msg_name    = NULL;
+        msg.msg_namelen = 0;
+
+        if (fd_to_send >= 0) {
+            cmsg = alloca (CMSG_LEN (sizeof (int)));
+
+            cmsg->cmsg_level    = SOL_SOCKET;
+            cmsg->cmsg_type     = SCM_RIGHTS;
+            cmsg->cmsg_len      = CMSG_LEN (sizeof (int));
+            memcpy (CMSG_DATA (cmsg), &fd_to_send, sizeof (int));
+
+            msg.msg_control     = cmsg;
+            msg.msg_controllen  = CMSG_LEN (sizeof (int));
+        }
+        else {
+            msg.msg_control    = NULL;
+            msg.msg_controllen = 0;
+        }
+
+        if ((n = sock_sendmsg (conn_fd, &msg, 0)) < 0)
+            goto sock_error;
+    }
+#endif
 
     if (result == NULL || len_rslt == 0) {
         if (OnLockClientReq && OnUnlockClientReq)
@@ -218,21 +270,69 @@ int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_
         return 0;
     }
 
-    do {
-        n = sock_read (conn_fd, &msg, sizeof (MSG));
-        if (n < 0) {
+    {
+        MSG msg;
+
+        do {
+            n = sock_read (conn_fd, &msg, sizeof (MSG));
+            if (n < 0) {
+                goto sock_error;
+            }
+
+            if (msg.hwnd == HWND_INVALID) {
+                break;
+            }
+            else {
+                process_socket_message(&msg);
+            }
+        } while (TRUE);
+    }
+
+#if 0
+    {
+        n = sock_read (conn_fd, result, len_rslt);
+        if (n < 0) goto sock_error;
+    }
+#else /* use recvmsg */
+    {
+        struct iovec    iov[1];
+        struct msghdr   msg;
+        struct cmsghdr  *cmsg = NULL;
+
+        /* receive the real reply result */
+        iov[0].iov_base = result;
+        iov[0].iov_len  = len_rslt;
+
+        msg.msg_iov     = iov;
+        msg.msg_iovlen  = 1;
+        msg.msg_name    = NULL;
+        msg.msg_namelen = 0;
+
+        if (fd_received) {
+            *fd_received = -1;
+
+            cmsg = alloca (CMSG_LEN (sizeof (int)));
+            msg.msg_control     = cmsg;
+            msg.msg_controllen  = CMSG_LEN (sizeof (int));
+        }
+        else {
+            msg.msg_control     = NULL;
+            msg.msg_controllen  = 0;
+        }
+
+        if ((n = sock_recvmsg (conn_fd, &msg, 0)) < 0) {
             goto sock_error;
         }
 
-        if (msg.hwnd == HWND_INVALID) {
-            break;
-        } else {
-            process_network_message(&msg);
+        if (fd_received && msg.msg_controllen == CMSG_LEN (sizeof (int))) {
+            memcpy (fd_received, CMSG_DATA(cmsg), sizeof (int));
         }
-    } while (TRUE);
 
-    n = sock_read (conn_fd, result, len_rslt);
-    if (n < 0) goto sock_error;
+        if (fd_received && *fd_received == -1) {
+            _WRN_PRINTF ("Received an invalid file descriptor.\n");
+        }
+    }
+#endif
 
     if (OnLockClientReq && OnUnlockClientReq)
         OnUnlockClientReq();
@@ -299,7 +399,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
         sel_timeout.tv_usec = 0;
     }
 
-    if ((n = select (mg_maxfd + 1, 
+    if ((n = select (mg_maxfd + 1,
             &rset, wsetptr, esetptr, &sel_timeout)) < 0) {
         if (errno == EINTR) {
             /* it is time to check message again. */
@@ -309,7 +409,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
     }
     else if (n == 0) {
         check_live ();
-        if (msg_que 
+        if (msg_que
                 && (__mg_timer_counter - old_timer) >= repeat_timeout) {
             Msg.hwnd = HWND_DESKTOP;
             Msg.message = MSG_TIMEOUT;
@@ -357,21 +457,42 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
         return FALSE;
     }
     /* check fd only: for HavePendingMessage function. */
-    else if (msg_que == NULL) 
+    else if (msg_que == NULL)
         return TRUE;
 
     old_timer = __mg_timer_counter;
     repeat_timeout = TIMEOUT_START_REPEAT;
 
-    if (FD_ISSET (conn_fd, &rset) && 
+    if (FD_ISSET (conn_fd, &rset) &&
         (!OnTrylockClientReq || !OnUnlockClientReq
         || (OnTrylockClientReq && OnUnlockClientReq && !OnTrylockClientReq()))) {
 
+#if 0
         if ( (nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
             err_sys ("client: read error on fd %d", conn_fd);
         }
+#else /* use recvmsg */
+        struct iovec    iov[1];
+        struct msghdr   msg;
+
+        iov[0].iov_base = &Msg;
+        iov[0].iov_len  = sizeof (MSG);
+
+        msg.msg_name        = NULL;
+        msg.msg_namelen     = 0;
+        msg.msg_iov         = iov;
+        msg.msg_iovlen      = 1;
+        msg.msg_control     = NULL;
+        msg.msg_controllen  = 0;
+
+        if ((nread = sock_recvmsg (conn_fd, &msg, 0)) < 0) {
+            if (OnTrylockClientReq && OnUnlockClientReq)
+                OnUnlockClientReq();
+            err_sys ("client: read error on fd %d", conn_fd);
+        }
+#endif
         else if (nread == 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
@@ -381,7 +502,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
         else {           /* process event from server */
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            process_network_message(&Msg);
+            process_socket_message(&Msg);
         }
     }
 
@@ -488,7 +609,7 @@ ret:
     return layer_handle;
 }
 
-GHANDLE GUIAPI GetLayerInfo (const char* layer_name, 
+GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
                 int* nr_clients, BOOL* is_topmost, int* cli_active)
 {
     if (mgIsServer)
@@ -518,7 +639,7 @@ ret:
     return INV_LAYER_HANDLE;
 }
 
-BOOL GUIAPI SetTopmostLayer (BOOL handle_name, 
+BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
                 GHANDLE handle, const char* name)
 {
     BOOL ret = FALSE;
@@ -555,7 +676,7 @@ BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
     return ret;
 }
 
-BOOL GUIAPI DeleteLayer (BOOL handle_name, 
+BOOL GUIAPI DeleteLayer (BOOL handle_name,
                 GHANDLE handle, const char* name)
 {
     BOOL ret = FALSE;
