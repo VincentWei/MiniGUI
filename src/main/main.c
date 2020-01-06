@@ -61,7 +61,7 @@
 void GUIAPI MiniGUIPanic (int exitcode)
 {
     exitcode = 1;
-#ifndef _MGRM_THREADS
+#ifdef _MGRM_PROCESSES
     if (mgIsServer)
 #endif
     {
