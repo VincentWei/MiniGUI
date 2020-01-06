@@ -100,6 +100,9 @@ void screensaver_hide(void);
 
 #include "zorder.h"
 
+struct _MAINWIN;
+typedef struct _MAINWIN* PMAINWIN;
+
 typedef struct _SCROLLWINDOWINFO
 {
     int iOffx;
@@ -202,9 +205,6 @@ struct _MSGQUEUE
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
-
-struct _MAINWIN;
-typedef struct _MAINWIN* PMAINWIN;
 
 BOOL mg_InitFreeQMSGList (void);
 void mg_DestroyFreeQMSGList (void);
