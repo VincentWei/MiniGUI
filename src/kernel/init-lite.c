@@ -63,7 +63,8 @@
 #ifndef WIN32
 #include <unistd.h>
 #include <sys/termios.h>
-#endif
+#endif /* WIN32 */
+
 #include <signal.h>
 
 #include "minigui.h"
@@ -105,9 +106,9 @@ void kernel_ShowCursorForGDI(BOOL fShow, void* pdc)
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
 }
 
-
 int InitGUI (int argc, const char* agr[])
 {
+    char engine [LEN_ENGINE_NAME + 1];
     int step = 1;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
@@ -135,7 +136,7 @@ int InitGUI (int argc, const char* agr[])
     step++;
 
     /* Init GAL engine. */
-    switch (mg_InitGAL ()) {
+    switch (mg_InitGAL (engine)) {
     case ERR_CONFIG_FILE:
         err_message (step, "Reading configuration failure!");
         return step;
@@ -181,17 +182,16 @@ void TerminateGUI (int rcByGUI)
 
 #warning ExitGUISafely?
 
-#else
+#else /* _MG_MINIMALGDI */
 
 #ifdef _MGRM_PROCESSES
-  #include "sharedres.h"
-  #include "client.h"
-  #include "server.h"
+#include "sharedres.h"
+#include "client.h"
+#include "server.h"
 
-  void* mgSharedRes;
-  size_t mgSizeRes;
-
-#endif
+void* mgSharedRes;
+size_t mgSizeRes;
+#endif /* _MGRM_PROCESSES */
 
 BOOL GUIAPI ReinitDesktopEx (BOOL init_sys_text)
 {
@@ -206,7 +206,7 @@ void* GUIAPI GetOriginalTermIO (void)
 {
 #ifdef _MGRM_STANDALONE
 #ifdef WIN32
-	return NULL;
+    return NULL;
 #else
     return &savedtermio;
 #endif
@@ -312,6 +312,7 @@ BOOL IsServer(void)
 
 int InitGUI (int argc, const char* agr[])
 {
+    char engine [LEN_ENGINE_NAME + 1];
     int step = 1;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
@@ -389,7 +390,7 @@ int InitGUI (int argc, const char* agr[])
 #endif
 
     /* Init GAL engine. */
-    switch (mg_InitGAL ()) {
+    switch (mg_InitGAL (engine)) {
     case ERR_CONFIG_FILE:
         err_message (step, "Reading configuration failure!");
         return step;
@@ -454,10 +455,29 @@ int InitGUI (int argc, const char* agr[])
         }
         atexit (kernel_UnloadSharedResource);
         SHAREDRES_TERMIOS = savedtermio;
+
+        /* Since 4.2.0
+         * Copy the video engine information to the shared resource segement
+         */
+        strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);
+        if (GetMgEtcValue (engine, "defaultmode", SHAREDRES_VIDEO_MODE, LEN_DEVICE_NAME) < 0)
+            *SHAREDRES_VIDEO_MODE = 0;
+        if (GetMgEtcValue (engine, "device", SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME) < 0)
+            *SHAREDRES_VIDEO_DEVICE = 0;
+        if (GetMgEtcValue (engine, "pixelformat", SHAREDRES_VIDEO_FOURCC, LEN_FOURCC_FORMAT) < 0)
+            *SHAREDRES_VIDEO_FOURCC = 0;
+        if (GetMgEtcValue (engine, "exdriver", SHAREDRES_VIDEO_EXDRIVER, LEN_EXDRIVER_NAME) < 0)
+            *SHAREDRES_VIDEO_EXDRIVER = 0;
+
+        SHAREDRES_VIDEO_DPI = __gal_screen->dpi;
+    }
+    else {
+        _DBG_PRINTF("Engien info from shared resource: %s %s %d\n",
+                SHAREDRES_VIDEO_ENGINE, SHAREDRES_VIDEO_MODE, SHAREDRES_VIDEO_DPI);
     }
 
     step++;
-#endif
+#endif /* _MGRM_PROCESSES */
 
     if (!mg_InitLFManager ()) {
         err_message (step, "Can not initialize LFManager!\n");
@@ -569,6 +589,6 @@ void TerminateGUI (int rcByGUI)
     mg_TerminateFixStr ();
     mg_TerminateSliceAllocator();
 }
-#endif /* ifdef _MG_MINIMALGDI */
+#endif /* ifndef _MG_MINIMALGDI */
 
 #endif /* !_MGRM_THREADS */

@@ -419,6 +419,7 @@ static BOOL InstallSEGVHandler (void)
 
 int GUIAPI InitGUI (int args, const char *agr[])
 {
+    char engine [LEN_ENGINE_NAME + 1];
     int step = 0;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
@@ -464,7 +465,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     }
 
     step++;
-    switch (mg_InitGAL ()) {
+    switch (mg_InitGAL (engine)) {
     case ERR_CONFIG_FILE:
         fprintf (stderr,
             "KERNEL>InitGUI: Reading configuration failure!\n");

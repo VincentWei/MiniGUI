@@ -56,7 +56,7 @@
 
 #define DEF_NR_TIMERS           NR_BITS_DWORD
 
-// constants for clip rects heap and message heap
+/* constants for clip rects heap and message heap */
 #if defined (__NOUNIX__) || defined (__uClinux__)
   #define DEF_MSGQUEUE_LEN    32
   #define SIZE_CLIPRECTHEAP   16
@@ -76,7 +76,7 @@
  #endif
 #endif
 
-// constants for fix string module
+/* constants for fix string module */
 #if defined (__NOUNIX__) || defined (__uClinux__)
   #define MAX_LEN_FIXSTR      64
   #define NR_HEAP             5
@@ -93,10 +93,17 @@
  #endif
 #endif
 
-// constants for engine name and video mode
+/* constants for engine name and video mode */
+#define LEN_DEVICE_NAME     127
+#define LEN_EXDRIVER_NAME   127
+
 #define LEN_ENGINE_NAME     23
 #define LEN_VIDEO_MODE      31
 #define LEN_MTYPE_NAME      23
+#define LEN_FOURCC_FORMAT   7
+
+// misc constants
+// #define MAX_SRV_CLIP_RECTS      8
 
 #endif // GUI_CONSTANTS_H
 

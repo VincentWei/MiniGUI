@@ -52,10 +52,14 @@
 #ifndef GUI_SHAREDRES_H
     #define GUI_SHAREDRES_H
 
+#include "common.h"
+
+#ifdef _MGRM_PROCESSES
+
 #include <sys/time.h>
 #include <sys/termios.h>
 
-#define MAX_SRV_CLIP_RECTS      8
+#include "constants.h"
 
 enum {
     _IDX_SEM_DRAW = 0,
@@ -73,6 +77,14 @@ enum {
 typedef struct tagG_RES {
     int semid;
     int shmid;
+
+    /* information of NEWGAL engine; since 4.2.0 */
+    char video_engine [LEN_ENGINE_NAME + 1];
+    char video_mode [LEN_VIDEO_MODE + 1];
+    char video_device [LEN_DEVICE_NAME + 1];
+    char video_exdriver [LEN_EXDRIVER_NAME + 1];
+    char video_fourcc [LEN_FOURCC_FORMAT + 1];
+    int  video_dpi;
 
     int nr_layers;
     int semid_layer;
@@ -121,18 +133,26 @@ typedef struct tagG_RES {
     unsigned long iconoffset;
     unsigned long bmpoffset;
 */
-
 } G_RES;
 typedef G_RES* PG_RES;
+
+#define SHAREDRES_VIDEO_ENGINE  (((PG_RES)mgSharedRes)->video_engine)
+#define SHAREDRES_VIDEO_MODE    (((PG_RES)mgSharedRes)->video_mode)
+#define SHAREDRES_VIDEO_DEVICE  (((PG_RES)mgSharedRes)->video_device)
+#define SHAREDRES_VIDEO_FOURCC  (((PG_RES)mgSharedRes)->video_fourcc)
+#define SHAREDRES_VIDEO_DPI     (((PG_RES)mgSharedRes)->video_dpi)
+#define SHAREDRES_VIDEO_EXDRIVER  (((PG_RES)mgSharedRes)->video_exdriver)
 
 #define SHAREDRES_TIMER_COUNTER (((PG_RES)mgSharedRes)->timer_counter)
 #define SHAREDRES_TICK_ON_LOCKSEM  (((PG_RES)mgSharedRes)->tick_on_locksem)
 #define SHAREDRES_TIMEOUT       (((PG_RES)mgSharedRes)->timeout)
 #define SHAREDRES_TERMIOS       (((PG_RES)mgSharedRes)->savedtermio)
+
 #ifdef _MGRM_PROCESSES
 #   define SHAREDRES_MOUSEMOVECLIENT (((PG_RES)mgSharedRes)->mouse_move_client)
 #   define SHAREDRES_MOUSEMOVESERIAL (((PG_RES)mgSharedRes)->mouse_move_serial)
 #endif
+
 #define SHAREDRES_MOUSEX        (((PG_RES)mgSharedRes)->mousex)
 #define SHAREDRES_MOUSEY        (((PG_RES)mgSharedRes)->mousey)
 #define SHAREDRES_BUTTON        (((PG_RES)mgSharedRes)->mousebutton)
@@ -155,8 +175,10 @@ extern "C" {
 
 
 #ifdef __cplusplus
-
+}
 #endif  /* __cplusplus */
+
+#endif // _MGRM_PROCESSES
 
 #endif // GUI_SHAREDRES_H
 
