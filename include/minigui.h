@@ -108,13 +108,29 @@ extern MG_EXPORT RECT g_rcScr;
 #include <sys/types.h>
 
 /**
- * \var BOOL mgIsServer
- * \brief Indicates whether the process is the server or a client on
+ * \fn BOOL GUIAPI IsServer(void);
+ * \brief Check whether the current process is the server of MiniGUI-Processes.
+ *
+ * \return TRUE if the current process is the server, and FALSE for any client.
+ *
+ * \note Only available on MiniGUI-Processes.
+ *
+ * \sa mgIsServer
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI IsServer(void);
+
+/**
+ * \def mgIsServer
+ * \brief Indicates whether the current process is the server or a client on
  * MiniGUI-Processes.
  *
  * \note Only defined for MiniGUI-Processes.
+ *
+ * \note Since 4.2.0, mgIsServer is defined as a macro to call \a IsServer.
  */
-extern MG_EXPORT BOOL mgIsServer;
+#define mgIsServer (IsServer())
 
 /**
  * \var void* mgSharedRes
@@ -1106,8 +1122,45 @@ typedef struct _REQUEST {
 typedef REQUEST* PREQUEST;
 
 /**
- * \fn int ClientRequestEx (const REQUEST* request, const void* ex_data,
-                int ex_data_len, void* result, int len_rslt)
+ * \fn int ClientRequestEx2 (const REQUEST* request,
+                const void* ex_data, size_t ex_data_len, int fd_to_send,
+                void* result, int len_rslt, int* fd_received)
+ * \brief Sends a request to the server and wait reply.
+ *
+ * If \a result is NULL or \a len_rslt is zero, the function will return
+ * immediately after sent the data to the server.
+ *
+ * \param request The pointer to REQUEST, which contains the data of
+ *        the request.
+ * \param ex_data The pointer to extra data to be sent to the server.
+ * \param ex_data_len The length of the extra data in bytes.
+ * \param fd_to_send The file descriptor which will be sent to the server;
+ *      it will be ignored if it is less than 0.
+ * \param result The buffer receives the reply.
+ * \param len_rslt The lenght of the buffer.
+ * \param fd_recevied The buffer will be used to return the file descriptor
+ *      which was recevied from the server.
+ *      If it is NULL, the file descriptor will be ignored.
+ *      If there is no file descriptor received and it is not NULL,
+ *      it will contain -1.
+ *
+ * \return Zero on success, no-zero on error.
+ *
+ * \note Only used by clients to send a request to the server of
+ *       MiniGUI-Processes.
+ *
+ * \sa ServerSendReply
+ *
+ * Since: 4.2.0
+ */
+MG_EXPORT int GUIAPI ClientRequestEx2 (const REQUEST* request,
+                const void* ex_data, size_t ex_data_len, int fd_to_send,
+                void* result, size_t len_rslt, int* fd_received);
+
+/**
+ * \fn int ClientRequestEx (const REQUEST* request,
+                const void* ex_data, int ex_data_len,
+                void* result, int len_rslt)
  * \brief Sends a request to the server and wait reply.
  *
  * If \a result is NULL or \a len_rslt is zero, the function will return
@@ -1125,10 +1178,18 @@ typedef REQUEST* PREQUEST;
  * \note Only used by clients to send a request to the server of
  *       MiniGUI-Processes.
  *
- * \sa ServerSendReply
+ * \note If the reply containes a file descriptor sent from the server,
+ *      you should call \a ClientRequestEx2 instead.
+ *
+ * \sa ClientRequestEx2, ServerSendReply
  */
-MG_EXPORT int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data,
-                int ex_data_len, void* result, int len_rslt);
+static inline int GUIAPI ClientRequestEx (const REQUEST* request,
+                const void* ex_data, int ex_data_len,
+                void* result, int len_rslt)
+{
+    return ClientRequestEx2 (request, ex_data, ex_data_len, -1,
+                result, len_rslt, NULL);
+}
 
 /**
  * \fn int ClientRequest (const REQUEST* request, void* result, int len_rslt)
@@ -1150,7 +1211,10 @@ MG_EXPORT int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_dat
  * \note Only used by clients to send a request to the server of
  *       MiniGUI-Processes.
  *
- * \sa ClientRequestEx, ServerSendReply
+ * \note If the reply containes a file descriptor sent from the server,
+ *      you should call \a ClientRequestEx2 instead.
+ *
+ * \sa ClientRequestEx2, ClientRequestEx, ServerSendReply
  */
 static inline int ClientRequest (const REQUEST* request,
                 void* result, int len_rslt)
@@ -1172,6 +1236,33 @@ static inline int ClientRequest (const REQUEST* request,
 MG_EXPORT int GUIAPI GetSockFD2Server (void);
 
 /**
+ * \fn int GUIAPI ServerSendReplyEx (int clifd,
+                const void* reply, int len, int fd_to_send)
+ * \brief Sends a reply to the client.
+ *
+ * This function sends a replay pointed to by \a reply which is
+ * \a len bytes long to the client, as well as the file descriptor
+ * will be sent to the client.
+ *
+ * \note Only used by the server to send the reply to the client.
+ *       This function typically called in your customized request handler.
+ *
+ * \param clifd The fd connected to the client.
+ * \param reply The buffer contains the reply data.
+ * \param len The length of the reply data in bytes.
+ * \param fd_to_send The file descriptor which will be sent to the client;
+ *      it will be ignored if it is less than 0.
+ *
+ * \return Zero on success, no-zero on error.
+ *
+ * \sa ClientRequest, RegisterRequestHandler
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT int GUIAPI ServerSendReplyEx (int clifd,
+                const void* reply, int len, int fd_to_send);
+
+/**
  * \fn int GUIAPI ServerSendReply (int clifd, const void* reply, int len)
  * \brief Sends the reply to the client.
  *
@@ -1184,25 +1275,44 @@ MG_EXPORT int GUIAPI GetSockFD2Server (void);
  * \param clifd The fd connected to the client.
  * \param reply The buffer contains the reply data.
  * \param len The length of the reply data in bytes.
+ *
  * \return Zero on success, no-zero on error.
  *
- * \sa ClientRequest, RegisterRequestHandler
+ * \note If there is a file descriptor to send along with the reply,
+ *      you should call \a ServerSendReplyEx instead.
+ *
+ * \sa ServerSendReplyEx, ClientRequestEx2, RegisterRequestHandler
  */
-MG_EXPORT int GUIAPI ServerSendReply (int clifd, const void* reply, int len);
+static inline int GUIAPI ServerSendReply (int clifd, const void* reply, int len)
+{
+    return ServerSendReplyEx (clifd, reply, len, -1);
+}
 
 /**
  * \var typedef int (* REQ_HANDLER)(int cli, int clifd, void* buff, size_t len)
- * \brief Request handler.
+ * \brief The prototype of a request handler (version 0).
  *
  * \sa RegisterRequestHandler
  */
 typedef int (* REQ_HANDLER) (int cli, int clifd, void* buff, size_t len);
 
 /**
- * \fn BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
- * \brief Registers a customize request handler.
+ * \var typedef int (* REQ_HANDLER_V1)(int cli, int clifd,
+                void* buff, size_t len, int fd_received)
+ * \brief The prototype of an extended request handler (version 1).
  *
- * This function registers a request handler to the server, i.e. \a mginit.
+ * \sa RegisterRequestHandlerV1
+ *
+ * Since 4.2.0
+ */
+typedef int (* REQ_HANDLER_V1) (int cli, int clifd,
+                void* buff, size_t len, int fd_received);
+
+/**
+ * \fn BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
+ * \brief Registers a customized request handler of version 0.
+ *
+ * This function registers a request handler (version 0) to the server.
  *
  * \param req_id The identifier of the customized request.
  * \param your_handler The handler of the request.
@@ -1219,7 +1329,31 @@ typedef int (* REQ_HANDLER) (int cli, int clifd, void* buff, size_t len);
 MG_EXPORT BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler);
 
 /**
- * \fn EQ_HANDLER GUIAPI GetRequestHandler (int req_id)
+ * \fn BOOL GUIAPI RegisterRequestHandlerV1 (int req_id,
+                REQ_HANDLER_V1 your_handler_v1)
+ * \brief Registers a customized extended request handler of version 1.
+ *
+ * This function registers an extended request handler (version 1) to the server.
+ *
+ * \param req_id The identifier of the customized request.
+ * \param your_handler_v1 The handler (version 1) of the request.
+ *        Being NULL to unregister the request handler.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \note Only used by the server to register an extended request handler.
+ *       And the identifier should be larger than \a MAX_SYS_REQID and
+ *       less than or equal to \a MAX_REQID.
+ *
+ * \sa ClientRequest, ServerSendReply, MAX_SYS_REQID, MAX_REQID
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI RegisterRequestHandlerV1 (int req_id,
+                REQ_HANDLER_V1 your_handler_v1);
+
+/**
+ * \fn REQ_HANDLER GUIAPI GetRequestHandler (int req_id)
  * \brief Gets the request handler by request identifier.
  *
  * This function returns the request handler of the specified request
@@ -1229,11 +1363,61 @@ MG_EXPORT BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handl
  *
  * \return The handler on success, NULL on error.
  *
- * \note Only can be used by the server.
+ * \note If the registered request handler is an extended handler (version 1),
+ *      The function returns NULL.
+ *
+ * \note Only used by the server to retrieve the current request handler.
+ *
+ * \note This function dose not return the request handler in different version.
+ *      Please use \a GetRequestHandlerEx instead.
  *
  * \sa RegisterRequestHandler
  */
 MG_EXPORT REQ_HANDLER GUIAPI GetRequestHandler (int req_id);
+
+/**
+ * \fn REQ_HANDLER_V1 GUIAPI GetRequestHandlerV1 (int req_id)
+ * \brief Gets the extended request handler by a request identifier.
+ *
+ * This function returns the request handler of the specified request
+ * identifier \a req_id.
+ *
+ * \param req_id The request identifier.
+ *
+ * \return The handler on success, NULL on error.
+ *
+ * \note If the registered request handler is not an extended handler (version 1),
+ *      The function returns NULL.
+ *
+ * \note Only used by the server to retrieve the current request handler.
+ *
+ * \note This function dose not return the request handler in different version.
+ *      Please use \a GetRequestHandlerEx instead.
+ *
+ * \sa RegisterRequestHandler
+ */
+MG_EXPORT REQ_HANDLER_V1 GUIAPI GetRequestHandlerV1 (int req_id);
+
+/**
+ * \fn void* GUIAPI GetRequestHandlerEx (int req_id, int* handler_ver)
+ * \brief Gets the request handler and the version by request identifier.
+ *
+ * This function returns the request handler and the version of
+ * the specified request identifier \a req_id.
+ *
+ * \param req_id The request identifier.
+ * \param version The pointer to an integer to store the version number of
+ *      the request handler.
+ *
+ * \return The pointer to the handler on success, NULL on error.
+ *
+ * \note Only used by the server to retrieve the current request handler.
+ *
+ * \sa RegisterRequestHandler, RegisterRequestHandlerV1
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT void* GUIAPI GetRequestHandlerEx (int req_id, int* version);
 
     /** @} end of lite_request_fns */
 
@@ -1323,8 +1507,8 @@ MG_EXPORT int cli_conn (const char* name, char project);
 #define SOCKERR_OK          0
 
 /**
- * \fn int sock_write_t (int fd, const void* buff,\
-                int count, unsigned int timeout)
+ * \fn ssize_t sock_write_t (int fd, const void* buff,\
+                size_t count, unsigned int timeout)
  * \brief Writes data to socket.
  *
  * This function writes the data block pointed to by \a buff
@@ -1350,11 +1534,11 @@ MG_EXPORT int cli_conn (const char* name, char project);
  *
  * \sa sock_read_t
  */
-MG_EXPORT int sock_write_t (int fd, const void* buff,
-                int count, unsigned int timeout);
+MG_EXPORT ssize_t sock_write_t (int fd, const void* buff, size_t count,
+                DWORD timeout);
 
 /**
- * \fn int sock_read_t (int fd, void* buff, int count, unsigned int timeout)
+ * \fn ssize_t sock_read_t (int fd, void* buff, size_t count, DWORD timeout)
  * \brief Reads data from socket.
  *
  * This function reads data which is \a count bytes long to the buffer \a buff
@@ -1380,7 +1564,8 @@ MG_EXPORT int sock_write_t (int fd, const void* buff,
  *
  * \sa sock_write_t
  */
-MG_EXPORT int sock_read_t (int fd, void* buff, int count, unsigned int timeout);
+MG_EXPORT ssize_t sock_read_t (int fd, void* buff, size_t count,
+                DWORD timeout);
 
 /**
  * \def sock_write(fd, buff, count)
