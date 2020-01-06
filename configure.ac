@@ -93,7 +93,7 @@ message_string="no"
 osname="unspecified"
 runtime_mode="procs"
 compositing_schema="yes"
-use_shm_open="no"
+use_shmopen="no"
 
 incore_res="no"
 use_miniguientry="no"
