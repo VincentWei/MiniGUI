@@ -757,7 +757,7 @@ extern GAL_Surface* __gal_screen;
 #define GAL_BMask(surface)          (surface->format->Bmask)
 #define GAL_AMask(surface)          (surface->format->Amask)
 
-extern int mg_InitGAL (void);
+extern int mg_InitGAL (char* engine);
 
 /* Since 4.0.0; suspend/resume video device, for switching virtual terminals */
 extern int GAL_SuspendVideo(void);
