@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** request.c: handle request of clients.
-** 
+**
 ** Current maintainer: Wei Yongming.
 **
 ** Create date: 2000/12/21
@@ -82,7 +82,7 @@ struct GlobalRes
     ReleaseProc release_proc;
 };
 
-static void add_global_res (int cli, void* key, 
+static void add_global_res (int cli, void* key,
                 void* res, ReleaseProc release_proc)
 {
     MG_Client* client = mgClients + cli;
@@ -155,19 +155,60 @@ void __mg_release_global_res (int cli)
     }
 }
 
-int GUIAPI ServerSendReply (int clifd, const void* reply, int len)
+int GUIAPI ServerSendReplyEx (int clifd,
+                const void* reply, int len, int fd_to_send)
 {
-    MSG reply_msg = {HWND_INVALID, 0};
     if (!mgIsServer)
         return SOCKERR_IO;
 
-    /* send a reply message to indicate this is a reply of request */
-    if (sock_write (clifd, &reply_msg, sizeof (MSG)) < 0)
-        return SOCKERR_IO;
+    {
+        MSG msg = {HWND_INVALID, 0};
 
-    if (sock_write (clifd, reply, len) < 0)
-        return SOCKERR_IO;
-    return SOCKERR_OK;
+        /* send a reply message to indicate this is a reply of request */
+        if (sock_write (clifd, &msg, sizeof (MSG)) < 0)
+            return SOCKERR_IO;
+    }
+
+#if 0
+    {
+        if (sock_write (clifd, reply, len) < 0)
+            return SOCKERR_IO;
+
+        return SOCKERR_OK;
+    }
+#else /* use sendmsg */
+    {
+        struct iovec    iov[1];
+        struct msghdr   msg;
+        struct cmsghdr  *cmsg = NULL;
+
+        iov[0].iov_base = (void*)reply;
+        iov[0].iov_len  = len;
+
+        msg.msg_iov     = iov;
+        msg.msg_iovlen  = 1;
+        msg.msg_name    = NULL;
+        msg.msg_namelen = 0;
+
+        if (fd_to_send >= 0) {
+            cmsg = alloca (CMSG_LEN (sizeof (int)));
+
+            cmsg->cmsg_level    = SOL_SOCKET;
+            cmsg->cmsg_type     = SCM_RIGHTS;
+            cmsg->cmsg_len      = CMSG_LEN (sizeof (int));
+            memcpy (CMSG_DATA (cmsg), &fd_to_send, sizeof (int));
+
+            msg.msg_control     = cmsg;
+            msg.msg_controllen  = CMSG_LEN (sizeof (int));
+        }
+        else {
+            msg.msg_control    = NULL;
+            msg.msg_controllen = 0;
+        }
+
+        return sock_sendmsg (clifd, &msg, 0);
+    }
+#endif
 }
 
 static int load_cursor (int cli, int clifd, void* buff, size_t len)
@@ -178,7 +219,7 @@ static int load_cursor (int cli, int clifd, void* buff, size_t len)
 
 #ifdef _MGHAVE_CURSOR
     if (hcsr) {
-        add_global_res (cli, (void*) hcsr, 
+        add_global_res (cli, (void*) hcsr,
                         (void*)hcsr, (ReleaseProc)DestroyCursor);
     }
 #endif
@@ -195,7 +236,7 @@ static int create_cursor (int cli, int clifd, void* buff, size_t len)
     and_bits = (BYTE*)(tmp + 6);
     xor_bits = and_bits + tmp [5];
 
-    hcsr = CreateCursor (tmp [0], tmp [1], tmp [2], tmp [3], 
+    hcsr = CreateCursor (tmp [0], tmp [1], tmp [2], tmp [3],
                     and_bits, xor_bits, tmp [4]);
 
 #ifdef _MGHAVE_CURSOR
@@ -324,7 +365,7 @@ static int join_layer (int cli, int clifd, void* buff, size_t len)
     JOINEDCLIENTINFO joined_info = {INV_LAYER_HANDLE};
 
     info = (JOINLAYERINFO*) buff;
-    
+
     if (info->layer_name [0] == '\0') {
         strcpy (info->layer_name, mgTopmostLayer->name);
         nr_layers ++;
@@ -467,22 +508,22 @@ static int register_hook (int cli, int clifd, void* buff, size_t len)
 static int set_ime_stat (int cli, int clifd, void* buff, size_t len)
 {
     int ret, data;
-    
+
     memcpy(&data, buff, sizeof(int));
 
-    ret = SendMessage (HWND_DESKTOP, MSG_IME_SETSTATUS, 
+    ret = SendMessage (HWND_DESKTOP, MSG_IME_SETSTATUS,
             HISWORD(data), LOSWORD(data));
-    return ServerSendReply (clifd, &ret, sizeof (int)); 
+    return ServerSendReply (clifd, &ret, sizeof (int));
 }
 
 static int get_ime_stat (int cli, int clifd, void* buff, size_t len)
 {
     int ret, data;
-    
+
     memcpy(&data, buff, sizeof(int));
-    
+
     ret = SendMessage (HWND_DESKTOP, MSG_IME_GETSTATUS, (WPARAM)data, 0);
-    return ServerSendReply (clifd, &ret , sizeof (int)); 
+    return ServerSendReply (clifd, &ret , sizeof (int));
 }
 
 static int set_ime_targetinfo (int cli, int clifd, void* buff, size_t len)
@@ -514,43 +555,43 @@ static int handle_mlshadow_req (int cli, int clifd, void* buff, size_t len)
 
     op_id = buff;
     switch(*op_id) {
-        case MLSOP_ID_GET_MASTERINFO: 
+        case MLSOP_ID_GET_MASTERINFO:
             {
-                MLSHADOW_REPLY_MASTER_INFO reply; 
+                MLSHADOW_REPLY_MASTER_INFO reply;
                 MLSHADOW_Server(buff, &reply);
                 ServerSendReply (clifd, &reply, sizeof(reply));
-                break;  
+                break;
             }
         case MLSOP_ID_CREATE_SURFACE:
             {
-                MLSHADOW_REPLY_SURFACE_CREATE reply;  
+                MLSHADOW_REPLY_SURFACE_CREATE reply;
                 MLSHADOW_Server(buff, &reply);
-                add_global_res (cli, (void*)reply.surface_key, 
+                add_global_res (cli, (void*)reply.surface_key,
                         (void*)reply.surface_key, (ReleaseProc)srvMLSHADOW_DelSurface);
                 ServerSendReply (clifd, &reply, sizeof(reply));
                 break;
             }
         case MLSOP_ID_GET_SLAVEINFO:
             {
-                MLSHADOW_REPLY_SLAVE_GETINFO reply; 
-                MLSHADOW_Server(buff, &reply);
-                ServerSendReply (clifd, &reply, sizeof(reply));
-                break;  
-            }
-        case MLSOP_ID_SET_SLAVEINFO: 
-            {
-                BOOL reply; 
+                MLSHADOW_REPLY_SLAVE_GETINFO reply;
                 MLSHADOW_Server(buff, &reply);
                 ServerSendReply (clifd, &reply, sizeof(reply));
                 break;
-            }   
-        case MLSOP_ID_DESTROY_SLAVE: 
+            }
+        case MLSOP_ID_SET_SLAVEINFO:
             {
                 BOOL reply;
                 MLSHADOW_Server(buff, &reply);
                 ServerSendReply (clifd, &reply, sizeof(reply));
                 break;
-            }  
+            }
+        case MLSOP_ID_DESTROY_SLAVE:
+            {
+                BOOL reply;
+                MLSHADOW_Server(buff, &reply);
+                ServerSendReply (clifd, &reply, sizeof(reply));
+                break;
+            }
     }
     return 0;
 }
@@ -586,7 +627,7 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
             allocated->offset = reply.offset;
             allocated->bucket = reply.bucket;
 
-            add_global_res (cli, allocated->bucket, 
+            add_global_res (cli, allocated->bucket,
                             allocated, (ReleaseProc)release_HWS);
         }
     }
@@ -601,51 +642,54 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
 extern int clipboard_op (int cli, int clifd, void* buff, size_t len);
 #endif
 
-static REQ_HANDLER handlers [MAX_REQID] =
+static struct req_request {
+    void* handler;
+    int version;
+} handlers [MAX_REQID] =
 {
-    load_cursor,
-    create_cursor,
-    destroy_cursor,
-    clip_cursor,
-    get_clip_cursor,
-    set_cursor,
-    get_current_cursor,
-    show_cursor,
-    set_cursor_pos,
-    layer_info,
-    join_layer,
-    layer_op,
-    zorder_op,
-    im_live,
-    open_ime_wnd,
-    set_ime_stat,
-    get_ime_stat,
-    register_hook,
-    req_hw_surface,
+    { load_cursor, 0 },
+    { create_cursor, 0 },
+    { destroy_cursor, 0 },
+    { clip_cursor, 0 },
+    { get_clip_cursor, 0 },
+    { set_cursor, 0 },
+    { get_current_cursor, 0 },
+    { show_cursor, 0 },
+    { set_cursor_pos, 0 },
+    { layer_info, 0 },
+    { join_layer, 0 },
+    { layer_op, 0 },
+    { zorder_op, 0 },
+    { im_live, 0 },
+    { open_ime_wnd, 0 },
+    { set_ime_stat, 0 },
+    { get_ime_stat, 0 },
+    { register_hook, 0 },
+    { req_hw_surface, 0 },
 #ifdef _MGHAVE_CLIPBOARD
-    clipboard_op,
+    { clipboard_op, 0 },
 #else
-    NULL,
+    { NULL, 0 },
 #endif
 #ifdef _MGGAL_MLSHADOW
-    handle_mlshadow_req,
+    { handle_mlshadow_req, 0 },
 #else
-    NULL,
+    { NULL, 0 },
 #endif
-    change_zorder_maskrect,
+    { change_zorder_maskrect, 0 },
 #ifdef _MGGAL_NEXUS
-    nexus_client_get_surface,
+    { nexus_client_get_surface, 0 },
 #else
-    NULL,
+    { NULL, 0 },
 #endif
 #ifdef _MGGAL_SIGMA8654
-    sigma8654_client_get_surface,
+    { sigma8654_client_get_surface, 0 },
 #else
-    NULL,
+    { NULL, 0 },
 #endif
-    get_ime_targetinfo,
-    set_ime_targetinfo,
-    copy_cursor,
+    { get_ime_targetinfo, 0 },
+    { set_ime_targetinfo, 0 },
+    { copy_cursor, 0 },
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
@@ -653,7 +697,18 @@ BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
     if (req_id <= MAX_SYS_REQID || req_id > MAX_REQID)
         return FALSE;
 
-    handlers [req_id - 1] = your_handler;
+    handlers[req_id - 1].handler = your_handler;
+    handlers[req_id - 1].version = 0;
+    return TRUE;
+}
+
+BOOL GUIAPI RegisterRequestHandlerV1 (int req_id, REQ_HANDLER_V1 your_handler)
+{
+    if (req_id <= MAX_SYS_REQID || req_id > MAX_REQID)
+        return FALSE;
+
+    handlers[req_id - 1].handler = your_handler;
+    handlers[req_id - 1].version = 1;
     return TRUE;
 }
 
@@ -662,7 +717,33 @@ REQ_HANDLER GUIAPI GetRequestHandler (int req_id)
     if (req_id <= 0 || req_id > MAX_REQID)
         return NULL;
 
-    return handlers [req_id - 1];
+    if (handlers[req_id - 1].version == 0)
+        return handlers [req_id - 1].handler;
+
+    return NULL;
+}
+
+REQ_HANDLER_V1 GUIAPI GetRequestHandlerV1 (int req_id)
+{
+    if (req_id <= 0 || req_id > MAX_REQID)
+        return NULL;
+
+    if (handlers[req_id - 1].version == 1)
+        return handlers [req_id - 1].handler;
+
+    return NULL;
+}
+
+void* GUIAPI GetRequestHandlerEx (int req_id, int* version)
+{
+    if (req_id <= 0 || req_id > MAX_REQID)
+        return NULL;
+
+    if (version) {
+        *version = handlers [req_id - 1].version;
+    }
+
+    return handlers [req_id - 1].handler;
 }
 
 static char _request_data_buff [1024];
@@ -671,14 +752,23 @@ int __mg_handle_request (int clifd, int req_id, int cli)
 {
     int n;
     char* buff;
+    size_t req_data_len, ex_data_len;
     size_t len_data;
+    int fd_received = -1;
 
-    if ((n = sock_read (clifd, &len_data, sizeof (size_t))) == SOCKERR_IO)
+    if ((n = sock_read (clifd, &req_data_len, sizeof (size_t))) == SOCKERR_IO)
         return SOCKERR_IO;
     else if (n == SOCKERR_CLOSED) {
         goto error;
     }
 
+    if ((n = sock_read (clifd, &ex_data_len, sizeof (size_t))) == SOCKERR_IO)
+        return SOCKERR_IO;
+    else if (n == SOCKERR_CLOSED) {
+        goto error;
+    }
+
+    len_data = req_data_len + ex_data_len;
     if (len_data <= sizeof (_request_data_buff)) {
         buff = _request_data_buff;
     }
@@ -688,16 +778,65 @@ int __mg_handle_request (int clifd, int req_id, int cli)
             return SOCKERR_INVARG;
     }
 
+#if 0
     if ((n = sock_read (clifd, buff, len_data)) == SOCKERR_IO)
         return SOCKERR_IO;
     else if (n == SOCKERR_CLOSED) {
         goto error;
     }
+#else /* use recvmsg */
+    {
+        struct iovec    iov[2];
+        struct msghdr   msg;
+        struct cmsghdr  *cmsg = NULL;
+        int newfd = -1;
 
-    if (req_id > MAX_REQID || req_id <= 0 || handlers [req_id - 1] == NULL)
+        iov[0].iov_base = buff;
+        iov[0].iov_len  = req_data_len;
+
+        iov[1].iov_base = buff + req_data_len;
+        iov[1].iov_len  = ex_data_len;
+
+        msg.msg_iov     = iov;
+        msg.msg_iovlen  = 2;
+        msg.msg_name    = NULL;
+        msg.msg_namelen = 0;
+
+        cmsg = alloca (CMSG_LEN (sizeof (int)));
+        msg.msg_control     = cmsg;
+        msg.msg_controllen  = CMSG_LEN (sizeof (int));
+
+        if ((n = sock_recvmsg (clifd, &msg, 0)) == SOCKERR_IO) {
+            return SOCKERR_IO;
+        }
+        else if (n == SOCKERR_CLOSED) {
+            goto error;
+        }
+
+        if (msg.msg_controllen == CMSG_LEN (sizeof (int))) {
+            memcpy (&fd_received, CMSG_DATA(cmsg), sizeof (int));
+        }
+    }
+#endif
+
+    if (req_id > MAX_REQID || req_id <= 0 ||
+            handlers [req_id - 1].handler == NULL)
         return SOCKERR_INVARG;
 
-    n = handlers [req_id - 1] (cli, clifd, buff, len_data);
+    if (handlers [req_id - 1].version == 1) {
+        REQ_HANDLER_V1 handler = handlers [req_id - 1].handler;
+        n = handler (cli, clifd, buff, len_data, fd_received);
+    }
+    else {
+        REQ_HANDLER handler = handlers [req_id - 1].handler;
+
+        if (fd_received >= 0) {
+            close (fd_received);
+            _WRN_PRINTF ("A file descriptor received, but the request handler is version 0.\n");
+        }
+
+        n = handler (cli, clifd, buff, len_data);
+    }
 
     if (len_data > sizeof (_request_data_buff))
         free (buff);
@@ -714,5 +853,4 @@ error:
     __mg_remove_client (cli, clifd);
     return SOCKERR_CLOSED;
 }
-
 
