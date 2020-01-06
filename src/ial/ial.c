@@ -56,6 +56,7 @@
 #include "common.h"
 
 #include "minigui.h"
+#include "constants.h"
 #include "misc.h"
 #include "ial.h"
 
@@ -132,9 +133,6 @@
 #ifdef _MGIAL_LIBINPUT
     #include "linux-libinput.h"
 #endif
-
-#define LEN_ENGINE_NAME        16
-#define LEN_MTYPE_NAME         16
 
 static INPUT inputs [] =
 {

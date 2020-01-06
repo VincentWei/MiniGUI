@@ -57,15 +57,12 @@
 
 #include "common.h"
 #include "minigui.h"
+#include "constants.h"
 #include "newgal.h"
 #include "misc.h"
 #include "license.h"
 
-
 GAL_Surface* __gal_screen;
-
-#define LEN_ENGINE_NAME 10
-#define LEN_MODE        20
 
 BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* depth)
 {
@@ -92,7 +89,7 @@ int mg_InitGAL (void)
     int i;
     int w, h, depth;
     char engine [LEN_ENGINE_NAME + 1];
-    char mode [LEN_MODE + 1];
+    char mode [LEN_VIDEO_MODE + 1];
 
 #if defined (WIN32) || !defined(__NOUNIX__)
 	char* env_value;
@@ -127,13 +124,13 @@ int mg_InitGAL (void)
 
 #if defined (WIN32) || !defined(__NOUNIX__)
     if ((env_value = getenv ("MG_DEFAULTMODE"))) {
-        strncpy (mode, env_value, LEN_MODE);
-        mode [LEN_MODE] = '\0';
+        strncpy (mode, env_value, LEN_VIDEO_MODE);
+        mode [LEN_VIDEO_MODE] = '\0';
     }
     else
 #endif
-    if (GetMgEtcValue (engine, "defaultmode", mode, LEN_MODE) < 0)
-        if (GetMgEtcValue ("system", "defaultmode", mode, LEN_MODE) < 0)
+    if (GetMgEtcValue (engine, "defaultmode", mode, LEN_VIDEO_MODE) < 0)
+        if (GetMgEtcValue ("system", "defaultmode", mode, LEN_VIDEO_MODE) < 0)
             return ERR_CONFIG_FILE;
 
     if (!GAL_ParseVideoMode (mode, &w, &h, &depth)) {

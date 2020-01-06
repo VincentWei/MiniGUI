@@ -11,44 +11,44 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** newgal.h: the head file of New Graphics Abstraction Layer.
-** 
+**
 ** Note: The architechture of new GAL is borrowed from SDL.
 ** Thank Sam Lantinga and many others for their great work.
-** 
+**
 ** Created date: 2001/10/03
 */
 
@@ -229,7 +229,7 @@ extern GAL_Surface * GAL_GetVideoSurface (void);
  */
 extern const GAL_VideoInfo * GAL_GetVideoInfo (void);
 
-/* 
+/*
  * Check to see if a particular video mode is supported.
  * It returns 0 if the requested mode is not supported under any bit depth,
  * or returns the bits-per-pixel of the closest available mode with the
@@ -244,11 +244,11 @@ extern int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags);
 
 /*
  * Return a pointer to an array of available screen dimensions for the
- * given format and video flags, sorted largest to smallest.  Returns 
- * NULL if there are no dimensions available for a particular format, 
+ * given format and video flags, sorted largest to smallest.  Returns
+ * NULL if there are no dimensions available for a particular format,
  * or (GAL_Rect **)-1 if any dimension is okay for the given format.
  *
- * If 'format' is NULL, the mode list will be for the format given 
+ * If 'format' is NULL, the mode list will be for the format given
  * by GAL_GetVideoInfo()->vfmt
  */
 extern GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags);
@@ -277,21 +277,21 @@ extern GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags);
  * Otherwise, in 8-bit mode, GAL_SetColors() may not be able to set all
  * of the colors exactly the way they are requested, and you should look
  * at the video surface structure to determine the actual palette.
- * If GAL cannot guarantee that the colors you request can be set, 
+ * If GAL cannot guarantee that the colors you request can be set,
  * i.e. if the colormap is shared, then the video surface may be created
  * under emulation in system memory, overriding the GAL_HWSURFACE flag.
  *
  * If GAL_FULLSCREEN is set in 'flags', the GAL library will try to set
  * a fullscreen video mode.  The default is to create a windowed mode
  * if the current graphics system has a window manager.
- * If the GAL library is able to set a fullscreen video mode, this flag 
+ * If the GAL library is able to set a fullscreen video mode, this flag
  * will be set in the surface that is returned.
  *
  * If GAL_DOUBLEBUF is set in 'flags', the GAL library will try to set up
- * two surfaces in video memory and swap between them when you call 
+ * two surfaces in video memory and swap between them when you call
  * GAL_Flip().  This is usually slower than the normal single-buffering
- * scheme, but prevents "tearing" artifacts caused by modifying video 
- * memory while the monitor is refreshing.  It should only be used by 
+ * scheme, but prevents "tearing" artifacts caused by modifying video
+ * memory while the monitor is refreshing.  It should only be used by
  * applications that redraw the entire screen on every update.
  *
  * If GAL_RESIZABLE is set in 'flags', the GAL library will allow the
@@ -353,13 +353,13 @@ extern int GAL_Flip (GAL_Surface *screen);
  * determine the actual color palette.
  *
  * When 'surface' is the surface associated with the current display, the
- * display colormap will be updated with the requested colors.  If 
+ * display colormap will be updated with the requested colors.  If
  * GAL_HWPALETTE was set in GAL_SetVideoMode() flags, GAL_SetColors()
  * will always return 1, and the palette is guaranteed to be set the way
  * you desire, even if the window colormap has to be warped or run under
  * emulation.
  */
-extern int GAL_SetColors (GAL_Surface *surface, 
+extern int GAL_SetColors (GAL_Surface *surface,
                         GAL_Color *colors, int firstcolor, int ncolors);
 
 /*
@@ -433,7 +433,7 @@ extern Uint8 GAL_FindColor(GAL_Palette *pal, Uint8 r, Uint8 g, Uint8 b);
  * two surfaces in video memory, GAL will try to place the surface in
  * video memory. If this isn't possible or if there is no hardware
  * acceleration available, the surface will be placed in system memory.
- * GAL_SRCALPHA means that the surface will be used for alpha blits and 
+ * GAL_SRCALPHA means that the surface will be used for alpha blits and
  * if the hardware supports hardware acceleration of alpha blits between
  * two surfaces in video memory, to place the surface in video memory
  * if possible, otherwise it will be placed in system memory.
@@ -448,7 +448,7 @@ extern Uint8 GAL_FindColor(GAL_Palette *pal, Uint8 r, Uint8 g, Uint8 b);
  */
 #define GAL_AllocSurface    GAL_CreateRGBSurface
 extern GAL_Surface *GAL_CreateRGBSurface
-                        (Uint32 flags, int width, int height, int depth, 
+                        (Uint32 flags, int width, int height, int depth,
                         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 extern GAL_Surface *GAL_CreateRGBSurfaceFrom (void *pixels,
                         int width, int height, int depth, int pitch,
@@ -510,8 +510,8 @@ extern void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* r
 /*
  * GAL_LockSurface() sets up a surface for directly accessing the pixels.
  * Between calls to GAL_LockSurface()/GAL_UnlockSurface(), you can write
- * to and read from 'surface->pixels', using the pixel format stored in 
- * 'surface->format'.  Once you are done accessing the surface, you should 
+ * to and read from 'surface->pixels', using the pixel format stored in
+ * 'surface->format'.  Once you are done accessing the surface, you should
  * use GAL_UnlockSurface() to release it.
  *
  * Not all surfaces require locking.  If GAL_MUSTLOCK(surface) evaluates
@@ -519,7 +519,7 @@ extern void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* r
  * pixel format of the surface will not change.  In particular, if the
  * GAL_HWSURFACE flag is not given when calling GAL_SetVideoMode(), you
  * will not need to lock the display surface before accessing it.
- * 
+ *
  * No operating system or library calls should be made between lock/unlock
  * pairs, as critical system locks may be held during this time.
  *
@@ -531,7 +531,7 @@ extern void GAL_UnlockSurface (GAL_Surface *surface);
 
 /*
  * Sets the color key (transparent pixel) in a blittable surface.
- * If 'flag' is GAL_SRCCOLORKEY (optionally OR'd with GAL_RLEACCEL), 
+ * If 'flag' is GAL_SRCCOLORKEY (optionally OR'd with GAL_RLEACCEL),
  * 'key' will be the transparent pixel in the source image of a blit.
  * GAL_RLEACCEL requests RLE acceleration for the surface if present,
  * and removes RLE acceleration if absent.
@@ -577,11 +577,11 @@ extern GAL_bool GAL_SetClipRect (GAL_Surface *surface, GAL_Rect *rect);
 extern void GAL_GetClipRect (GAL_Surface *surface, GAL_Rect *rect);
 
 /*
- * Creates a new surface of the specified format, and then copies and maps 
- * the given surface to it so the blit of the converted surface will be as 
+ * Creates a new surface of the specified format, and then copies and maps
+ * the given surface to it so the blit of the converted surface will be as
  * fast as possible.  If this function fails, it returns NULL.
  *
- * The 'flags' parameter is passed to GAL_CreateRGBSurface() and has those 
+ * The 'flags' parameter is passed to GAL_CreateRGBSurface() and has those
  * semantics.  You can also pass GAL_RLEACCEL in the flags parameter and
  * GAL will try to RLE accelerate colorkey and alpha blits in the resulting
  * surface.
@@ -613,7 +613,7 @@ extern GAL_Surface *GAL_ConvertSurface
  *         if GAL_SRCCOLORKEY set, only copy the pixels matching the
  *         RGB values of the source colour key, ignoring alpha in the
  *         comparison.
- * 
+ *
  * RGB->RGBA:
  *     GAL_SRCALPHA set:
  *         alpha-blend (using the source per-surface alpha value);
@@ -623,7 +623,7 @@ extern GAL_Surface *GAL_ConvertSurface
  *     both:
  *         if GAL_SRCCOLORKEY set, only copy the pixels matching the
  *         source colour key.
- * 
+ *
  * RGBA->RGBA:
  *     GAL_SRCALPHA set:
  *         alpha-blend (using the source alpha channel) the RGB values;
@@ -634,8 +634,8 @@ extern GAL_Surface *GAL_ConvertSurface
  *         if GAL_SRCCOLORKEY set, only copy the pixels matching the
  *         RGB values of the source colour key, ignoring alpha in the
  *         comparison.
- * 
- * RGB->RGB: 
+ *
+ * RGB->RGB:
  *     GAL_SRCALPHA set:
  *         alpha-blend (using the source per-surface alpha value).
  *     GAL_SRCALPHA not set:
@@ -645,7 +645,7 @@ extern GAL_Surface *GAL_ConvertSurface
  *         source colour key.
  *
  * If either of the surfaces were in video memory, and the blit returns -2,
- * the video memory was lost, so it should be reloaded with artwork and 
+ * the video memory was lost, so it should be reloaded with artwork and
  * re-blitted:
         while ( GAL_BlitSurface(image, imgrect, screen, dstrect) == -2 ) {
                 while ( GAL_LockSurface(image) < 0 )
@@ -678,7 +678,7 @@ extern int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
  * The given rectangle is clipped to the destination surface clip area
  * and the final fill rectangle is saved in the passed in pointer.
  * If 'dstrect' is NULL, the whole surface will be filled with 'color'
- * The color should be a pixel of the format used by the surface, and 
+ * The color should be a pixel of the format used by the surface, and
  * can be generated by the GAL_MapRGB() function.
  * This function returns 0 on success, or -1 on error.
  */
@@ -710,7 +710,7 @@ extern int GAL_GetBox (GAL_Surface *src, const GAL_Rect* srcrect, BITMAP* box);
  */
 extern int GAL_PutBox (GAL_Surface *dst, const GAL_Rect* dstrect, BITMAP* box);
 
-/* 
+/*
  * This function takes a surface and copies it to a new surface of the
  * pixel format and colors of the video framebuffer, suitable for fast
  * blitting onto the display surface.  It calls GAL_ConvertSurface()
@@ -723,7 +723,7 @@ extern int GAL_PutBox (GAL_Surface *dst, const GAL_Rect* dstrect, BITMAP* box);
  */
 extern GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface);
 
-/* 
+/*
  * This function takes a surface and copies it to a new surface of the
  * pixel format and colors of the video framebuffer (if possible),
  * suitable for fast alpha blitting onto the display surface.

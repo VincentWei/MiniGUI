@@ -52,6 +52,8 @@
 #ifndef GUI_INTERNALS_H
     #define GUI_INTERNALS_H
 
+#include "constants.h"
+
 /******************* Internal data *******************************************/
 
 /* Internal window message. */
@@ -63,6 +65,7 @@ __attribute__ ((visibility ("hidden"))) void screensaver_hide(void);
 #else
 void screensaver_hide(void);
 #endif
+
 #endif
 
 /* Internal use extended style. */
@@ -74,50 +77,6 @@ void screensaver_hide(void);
  *        which contains the control.
  */
 #define WS_EX_CTRLASMAINWIN     0x20000000L
-
-#define DEF_NR_TIMERS           NR_BITS_DWORD
-
-#if defined (__NOUNIX__) || defined (__uClinux__)
-  #define DEF_MSGQUEUE_LEN    32
-  #define SIZE_CLIPRECTHEAP   16
-  #define SIZE_INVRECTHEAP    32
-  #define SIZE_QMSG_HEAP      32
-#else
- #ifndef _MGRM_THREADS
-  #define DEF_MSGQUEUE_LEN    32
-  #define SIZE_CLIPRECTHEAP   16
-  #define SIZE_INVRECTHEAP    32
-  #define SIZE_QMSG_HEAP      32
- #else
-  #define DEF_MSGQUEUE_LEN    32
-  #define SIZE_CLIPRECTHEAP   32
-  #define SIZE_INVRECTHEAP    64
-  #define SIZE_QMSG_HEAP      32
- #endif
-#endif
-
-/* IME info define.*/
-#define IME_SET_STATUS        1
-#define IME_GET_STATUS        2
-#define IME_SET_POS           3
-#define IME_GET_POS           4
-
-/******************* Internal data of fix string module **********************/
-#if defined (__NOUNIX__) || defined (__uClinux__)
-  #define MAX_LEN_FIXSTR      64
-  #define NR_HEAP             5
-  #define LEN_BITMAP          (1+2+4+8+16)
-#else
- #ifdef _MGRM_THREADS
-  #define MAX_LEN_FIXSTR      2048
-  #define NR_HEAP             10
-  #define LEN_BITMAP          (1+2+4+8+16+32+64+128+256+512)
- #else
-  #define MAX_LEN_FIXSTR      64
-  #define NR_HEAP             5
-  #define LEN_BITMAP          (1+2+4+8+16)
- #endif
-#endif
 
 /******************** Handle type and child type. ***************************/
 #define TYPE_HWND           0x01
@@ -138,13 +97,6 @@ void screensaver_hide(void);
 
 #define TYPE_WINTODEL       0xF1
 #define TYPE_UNDEFINED      0xFF
-
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
-struct _MAINWIN;
-typedef struct _MAINWIN* PMAINWIN;
 
 #include "zorder.h"
 
@@ -246,6 +198,13 @@ struct _MSGQUEUE
 
     int loop_depth;             /* message loop depth, for dialog boxes. */
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
+
+struct _MAINWIN;
+typedef struct _MAINWIN* PMAINWIN;
 
 BOOL mg_InitFreeQMSGList (void);
 void mg_DestroyFreeQMSGList (void);

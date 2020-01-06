@@ -1,5 +1,5 @@
 noinst_HEADERS = \
-    accelkey.h bidi.h bitmap.h cliprect.h ctrlclass.h \
+    accelkey.h bidi.h bitmap.h cliprect.h constants.h ctrlclass.h \
     cursor.h dc.h event.h list.h element.h \
     ial.h inline.h internals.h zorder.h menu.h misc.h \
     msgstr.h sysfont.h timer.h devfont.h fontname.h \
