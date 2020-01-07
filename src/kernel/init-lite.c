@@ -86,7 +86,7 @@
 #ifdef _MG_MINIMALGDI
 static struct termios savedtermio;
 
-#define err_message(step, message) fprintf (stderr, "KERNEL>InitGUI (step %d): %s\n", step, message)
+#define err_message(step, message) _ERR_PRINTF ("KERNEL>InitGUI (step %d): %s\n", step, message)
 static void sig_handler (int v)
 {
     ;
@@ -120,7 +120,7 @@ int InitGUI (int argc, const char* agr[])
 
     step++;
     if (!mg_InitSliceAllocator ()) {
-        fprintf (stderr, "KERNEL>InitGUI: failed to initialize slice allocator!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to initialize slice allocator!\n");
         return step;
     }
 
@@ -220,40 +220,40 @@ static BOOL InitResource (void)
 {
 #ifdef _MGHAVE_CURSOR
     if (!mg_InitCursor ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Can not initialize mouse cursor!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize mouse cursor!\n");
         goto failure;
     }
 #endif
 
 #ifdef _MGHAVE_MENU
     if (!mg_InitMenu ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Menu module failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Menu module failure!\n");
         goto failure;
     }
 #endif
 
     if (!mg_InitControlClass ()) {
-        fprintf(stderr, "KERNEL>InitGUI: Init Control Class failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Control Class failure!\n");
         goto failure;
     }
 
     if (!mg_InitAccel ()) {
-        fprintf(stderr, "KERNEL>InitGUI: Init Accelerator failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Accelerator failure!\n");
         goto failure;
     }
 
     if (!mg_InitDesktop ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Desktop error!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Desktop error!\n");
         goto failure;
     }
 
     if (!mg_InitFreeQMSGList ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init free QMSG list error!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init free QMSG list error!\n");
         goto failure;
     }
 
     if (!InitDskMsgQueue ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init MSG queue error!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init MSG queue error!\n");
         goto failure;
     }
 
@@ -263,7 +263,7 @@ failure:
     return FALSE;
 }
 
-#define err_message(step, message) fprintf (stderr, "KERNEL>InitGUI (step %d): %s\n", step, message)
+#define err_message(step, message) _ERR_PRINTF ("KERNEL>InitGUI (step %d): %s\n", step, message)
 
 static void sig_handler (int v)
 {
@@ -339,7 +339,6 @@ int InitGUI (int argc, const char* agr[])
 #ifdef _MGRM_PROCESSES
     if (_is_server)
 #endif
-//#ifndef WIN32
 #ifndef __NOUNIX__
         tcgetattr (0, &savedtermio);
 #endif
@@ -351,7 +350,7 @@ int InitGUI (int argc, const char* agr[])
 
     step++;
     if (!mg_InitSliceAllocator ()) {
-        fprintf (stderr, "KERNEL>InitGUI: failed to initialize slice allocator!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to initialize slice allocator!\n");
         return step;
     }
 
@@ -360,6 +359,14 @@ int InitGUI (int argc, const char* agr[])
         return step;
     }
     step++;
+
+#if IS_COMPOSITING_SCHEMA
+    if (!mg_InitSemManger (NR_COMPOSITING_SEMS)) {
+        err_message (step, "Can not initialize semaphore manager!");
+        return step;
+    }
+    step++;
+#endif
 
     if (!mg_InitMisc ()) {
         err_message (step, "Can not initialize miscellous things!");
@@ -420,7 +427,7 @@ int InitGUI (int argc, const char* agr[])
 
     /** initialize icon bitmap resource.*/
     if (mg_InitSystemRes () == FALSE) {
-        fprintf (stderr, "KERNEL>IniGUI: init system res error!\n");
+        _ERR_PRINTF ("KERNEL>IniGUI: init system res error!\n");
         return step;
     }
     step++;
@@ -518,7 +525,7 @@ int InitGUI (int argc, const char* agr[])
     SetDskIdleHandler (salone_IdleHandler4StandAlone);
 
     if (!salone_StandAloneStartup ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Can not start MiniGUI-StandAlone version.\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not start MiniGUI-StandAlone version.\n");
         return step;
     }
 
@@ -584,6 +591,10 @@ void TerminateGUI (int rcByGUI)
     else {
         client_ClientCleanup ();
     }
+#endif
+
+#if IS_COMPOSITING_SCHEMA
+    mg_TerminateSemManager();
 #endif
 
     mg_TerminateMisc ();
