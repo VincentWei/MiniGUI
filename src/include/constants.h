@@ -56,6 +56,22 @@
 
 #define DEF_NR_TIMERS           NR_BITS_DWORD
 
+#if defined(_MGRM_PROCESSES) && defined(_MGUSE_COMPOSITING)
+#   define IS_COMPOSITING_SCHEMA    1
+#   define NR_DIRTY_RECTS           8
+#   define NR_COMPOSITING_SEMS      128
+#else
+#   define IS_COMPOSITING_SCHEMA    0
+#   define NR_DIRTY_RECTS           0
+#   define NR_COMPOSITING_SEMS      0
+#endif
+
+#if defined(_MGRM_PROCESSES) && defined(_MGUSE_SHAREDFB)
+#   define IS_SHAREDFB_SCHEMA       1
+#else
+#   define IS_SHAREDFB_SCHEMA       0
+#endif
+
 /* constants for clip rects heap and message heap */
 #if defined (__NOUNIX__) || defined (__uClinux__)
   #define DEF_MSGQUEUE_LEN    32
