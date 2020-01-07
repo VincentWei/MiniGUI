@@ -183,9 +183,6 @@ static GAL_VideoDevice *COMMLCD_CreateDevice (int devindex)
     device->SetVideoMode = COMMLCD_SetVideoMode;
     device->SetColors = COMMLCD_SetColors;
     device->VideoQuit = COMMLCD_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = COMMLCD_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;

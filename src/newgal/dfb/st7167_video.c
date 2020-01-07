@@ -69,7 +69,6 @@
 
 extern GAL_FunctionTable mgGALFuncTable;
 
-
 static int ST7167_VideoInit (_THIS, GAL_PixelFormat *vformat)
 {
     /* call the common dfb function */

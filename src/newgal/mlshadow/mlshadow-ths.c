@@ -119,7 +119,7 @@ static int MLSHADOW_Available(void);
 
 extern BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* depth);
 extern void Slave_FreeSurface (GAL_Surface *surface);
-extern GAL_VideoDevice *GAL_GetVideo(const char* driver_name);
+extern GAL_VideoDevice *GAL_GetVideo(const char* driver_name, BOOL check_compos);
 
 /* MLSHADOW driver bootstrap functions */
 VideoBootStrap MLSHADOW_bootstrap = {
@@ -524,7 +524,7 @@ static int MLSHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
     }
 
     /* init real video engine here and get real_device. */
-    this->hidden->_real_device = GAL_GetVideo (real_engine);
+    this->hidden->_real_device = GAL_GetVideo (real_engine, FALSE);
     if (this->hidden->_real_device == NULL) {
         return (-1);
     }

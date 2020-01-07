@@ -93,7 +93,6 @@ IDirectFB *__mg_dfb = NULL;
 /* The primary layer of DirectFB */
 IDirectFBSurface *pFrameBuffer = NULL;
 
-
 /* Initialization/Query functions */
 static int DFB_VideoInit (_THIS, GAL_PixelFormat *vformat);
 static GAL_Rect **DFB_ListModes (_THIS, GAL_PixelFormat *format, Uint32 flags);
@@ -110,7 +109,6 @@ static int DFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *ds
 static int DFB_CheckHWBlit (_THIS, GAL_Surface * src, GAL_Surface * dst);
 static int DFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
 
-
 /* common dfb function address */
 GAL_FunctionTable mgGALFuncTable = {
     DFB_VideoInit,
@@ -119,7 +117,7 @@ GAL_FunctionTable mgGALFuncTable = {
     DFB_SetColors,
     DFB_UpdateRects,
     DFB_VideoQuit,
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA
     DFB_RequestHWSurface,
 #endif
     DFB_AllocHWSurface,
@@ -169,7 +167,7 @@ static GAL_VideoDevice *DFB_CreateDevice (int devindex)
         device->SetColors = DFB_SetColors;
         device->VideoQuit = DFB_VideoQuit;
         device->UpdateRects = DFB_UpdateRects;
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA
         device->RequestHWSurface = DFB_RequestHWSurface;
 #endif
         device->AllocHWSurface = DFB_AllocHWSurface;

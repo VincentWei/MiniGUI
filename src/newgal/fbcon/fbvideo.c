@@ -161,7 +161,7 @@ static GAL_VideoDevice *FB_CreateDevice(int devindex)
     this->SetVideoMode = FB_SetVideoMode;
     this->SetColors = FB_SetColors;
     this->VideoQuit = FB_VideoQuit;
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA
     this->RequestHWSurface = FB_RequestHWSurface;
 #endif
     this->AllocHWSurface = FB_AllocHWSurface;

@@ -154,9 +154,6 @@ static GAL_VideoDevice *BF533_CreateDevice(int devindex)
     device->SetVideoMode = BF533_SetVideoMode;
     device->SetColors = BF533_SetColors;
     device->VideoQuit = BF533_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = BF533_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;

@@ -347,9 +347,6 @@ static GAL_VideoDevice *UTPMC_CreateDevice (int devindex)
     device->SetVideoMode = UTPMC_SetVideoMode;
     device->SetColors = UTPMC_SetColors;
     device->VideoQuit = UTPMC_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = UTPMC_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;

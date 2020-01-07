@@ -279,7 +279,7 @@ static char* _mmaped_mem;
 static VIDEO_MEM_INFO video_mem_info;
 
 extern int bmp_ComputePitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
-extern GAL_VideoDevice* GAL_GetVideo (const char* );
+extern GAL_VideoDevice* GAL_GetVideo (const char*, BOOL);
 
 /* MLSHADOW driver bootstrap functions */
 
@@ -361,7 +361,7 @@ static int MLSHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
             return -1;
         }
         /* init real video engine here and get real_device. */
-        this->hidden->_real_device = GAL_GetVideo ((const char*) real_engine);
+        this->hidden->_real_device = GAL_GetVideo (real_engine, FALSE);
         if (this->hidden->_real_device == NULL) {
             return (-1);
         }

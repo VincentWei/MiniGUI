@@ -386,7 +386,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     if (device->hidden->driver) {
         /* Use accelerated driver */
         device->SetVideoMode = DRM_SetVideoMode_Accl;
-#ifndef _MGRM_THREADS
+#if IS_SHAREDFB_SCHEMA
         device->RequestHWSurface = NULL;
 #endif
         device->AllocHWSurface = DRM_AllocHWSurface_Accl;
@@ -396,7 +396,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     else {
         /* Use DUMB buffer */
         device->SetVideoMode = DRM_SetVideoMode_Dumb;
-#ifndef _MGRM_THREADS
+#if IS_SHAREDFB_SCHEMA
         device->RequestHWSurface = NULL;
 #endif
         device->AllocHWSurface = DRM_AllocHWSurface_Dumb;

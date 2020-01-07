@@ -263,7 +263,7 @@ void *kernel_LoadSharedResource (void)
     if ((sem_key = get_sem_key ()) == -1) {
         goto error;
     }
-    semid = semget (sem_key, _NR_SEM, SEM_PARAM | IPC_CREAT | IPC_EXCL);
+    semid = semget (sem_key, _NR_SYS_SEM, SEM_PARAM | IPC_CREAT | IPC_EXCL);
     if (semid == -1) {
         goto error;
     }

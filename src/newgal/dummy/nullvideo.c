@@ -120,9 +120,6 @@ static GAL_VideoDevice *DUMMY_CreateDevice(int devindex)
     device->SetVideoMode = DUMMY_SetVideoMode;
     device->SetColors = DUMMY_SetColors;
     device->VideoQuit = DUMMY_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = DUMMY_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;

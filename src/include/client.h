@@ -92,15 +92,19 @@
 #define REQID_SIGMA8654_CLIENT_GET_SURFACE 0x0018
 #endif
 
-#define REQID_GETIMEPOS        0x0019
-#define REQID_SETIMEPOS        0x001A
+#define REQID_GETIMEPOS         0x0019
+#define REQID_SETIMEPOS         0x001A
 
 #define REQID_COPYCURSOR        0x001B
 
-/*
- * XXX: To fellows who need to add a new REQID, please make sure your new ID _less_ than MAX_SYS_REQID (defined in /include/minigui.h).
- */
+/* Since 4.2.0: get global wallpaper pattern surface */
+#define REQID_GETWPSURFACE      0x001C
 
+/*
+ * XXX: To fellows who need to add a new REQID,
+ * please make sure your new ID _less_ than MAX_SYS_REQID
+ * (defined in /include/minigui.h).
+ */
 
 typedef struct JoinLayerInfo
 {
@@ -254,10 +258,20 @@ typedef struct tagREQUEST {
 typedef REQUEST* PREQUEST;
 
 int cli_conn (const char* name, char project);
-int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_data_len,
-                void* result, int len_rslt);
+
+int ClientRequestEx2 (const REQUEST* request,
+            const void* ex_data, size_t ex_data_len, int fd_to_send,
+            void* result, size_t len_rslt, int* fd_received);
+
+static inline int ClientRequestEx (const REQUEST* request,
+            const void* ex_data, int ex_data_len,
+            void* result, int len_rslt)
+{
+    return ClientRequestEx2 (request, NULL, 0, -1, result, len_rslt, NULL);
+}
+
 static inline int ClientRequest (const REQUEST* request,
-                void* result, int len_rslt)
+            void* result, int len_rslt)
 {
     return ClientRequestEx (request, NULL, 0, result, len_rslt);
 }

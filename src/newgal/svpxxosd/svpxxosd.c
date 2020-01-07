@@ -134,9 +134,6 @@ static GAL_VideoDevice * SVPXXOSD_CreateDevice (int devindex)
     device->SetVideoMode = SVPXXOSD_SetVideoMode;
     device->SetColors = SVPXXOSD_SetColors;
     device->VideoQuit = SVPXXOSD_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = SVPXXOSD_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;

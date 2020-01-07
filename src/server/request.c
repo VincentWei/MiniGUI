@@ -597,7 +597,8 @@ static int handle_mlshadow_req (int cli, int clifd, void* buff, size_t len)
 }
 #endif
 
-void release_HWS (REQ_HWSURFACE* allocated)
+#if IS_SHAREDFB_SCHEMA
+void release_hw_surface (REQ_HWSURFACE* allocated)
 {
     /*[humingming./2010/11/24]: don't call GAL_RequestHWSurface,
      * this will casue double free or same other problem */
@@ -628,7 +629,7 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
             allocated->bucket = reply.bucket;
 
             add_global_res (cli, allocated->bucket,
-                            allocated, (ReleaseProc)release_HWS);
+                            allocated, (ReleaseProc)release_hw_surface);
         }
     }
     else {
@@ -637,10 +638,22 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
 
     return ServerSendReply (clifd, &reply, sizeof (REP_HWSURFACE));
 }
+#endif /* IS_SHAREDFB_SCHEMA */
 
 #ifdef _MGHAVE_CLIPBOARD
 extern int clipboard_op (int cli, int clifd, void* buff, size_t len);
 #endif
+
+#if IS_COMPOSITING_SCHEMA
+static int get_wp_surface (int cli, int clifd, void* buff, size_t len)
+{
+    int fd = 0;
+
+    /* TODO: get file descriptor of wallpaper pattern surface here */
+
+    return ServerSendReplyEx (clifd, NULL, 0, fd);
+}
+#endif /* IS_COMPOSITING_SCHEMA */
 
 static struct req_request {
     void* handler;
@@ -665,7 +678,11 @@ static struct req_request {
     { set_ime_stat, 0 },
     { get_ime_stat, 0 },
     { register_hook, 0 },
+#if IS_SHAREDFB_SCHEMA
     { req_hw_surface, 0 },
+#else
+    { NULL, 0 },
+#endif
 #ifdef _MGHAVE_CLIPBOARD
     { clipboard_op, 0 },
 #else
@@ -690,6 +707,11 @@ static struct req_request {
     { get_ime_targetinfo, 0 },
     { set_ime_targetinfo, 0 },
     { copy_cursor, 0 },
+#if IS_COMPOSITING_SCHEMA
+    { get_wp_surface, 0 },
+#else
+    { NULL, 0 },
+#endif
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)

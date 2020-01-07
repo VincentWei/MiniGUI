@@ -172,7 +172,7 @@ BLOCKHEAP __mg_free_update_region_list;
 int GAL_VideoInit(const char *driver_name, Uint32 flags);
 void GAL_VideoQuit(void);
 
-GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
+GAL_VideoDevice *GAL_GetVideo(const char* driver_name, BOOL check_compos)
 {
     GAL_VideoDevice *video;
     int index;
@@ -180,26 +180,33 @@ GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
 
     index = 0;
     video = NULL;
-    if ( driver_name != NULL ) {
-        for ( i=0; bootstrap[i]; ++i ) {
-            if ( strncmp(bootstrap[i]->name, driver_name,
-                        strlen(bootstrap[i]->name)) == 0 ) {
-                if ( bootstrap[i]->available() ) {
+    if (driver_name != NULL) {
+        for (i=0; bootstrap[i]; ++i) {
+            if (strncmp(bootstrap[i]->name, driver_name,
+                        strlen(bootstrap[i]->name)) == 0) {
+                if (bootstrap[i]->available()) {
+                    if (check_compos && !bootstrap[i]->compositing_enabled)
+                        return NULL;
+
                     video = bootstrap[i]->create(index);
                     break;
                 }
             }
         }
     } else {
-        for ( i=0; bootstrap[i]; ++i ) {
-            if ( bootstrap[i]->available() ) {
+        for (i=0; bootstrap[i]; ++i) {
+            if (bootstrap[i]->available()) {
+                if (check_compos && !bootstrap[i]->compositing_enabled)
+                    continue;
+
                 video = bootstrap[i]->create(index);
-                if ( video != NULL ) {
+                if (video != NULL) {
                     break;
                 }
             }
         }
     }
+
     if (video == NULL)
         return NULL;
 
@@ -230,21 +237,25 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
 #endif
 
     /* Check to make sure we don't overwrite '__mg_current_video' */
-    if ( __mg_current_video != NULL ) {
+    if (__mg_current_video != NULL) {
         GAL_VideoQuit();
     }
 
-    video = GAL_GetVideo(driver_name);
-
-    if ( video == NULL ) {
+#if defined(_MGRM_PROCESSES) && defined(_MGUSE_COMPOSITING)
+    video = GAL_GetVideo(driver_name, TRUE);
+#else
+    video = GAL_GetVideo(driver_name, FALSE);
+#endif
+    if (video == NULL) {
         return (-1);
     }
+
     video->screen = NULL;
     __mg_current_video = video;
 
     /* Initialize the video subsystem */
     memset(&vformat, 0, sizeof(vformat));
-    if ( video->VideoInit(video, &vformat) < 0 ) {
+    if (video->VideoInit(video, &vformat) < 0 ) {
         GAL_VideoQuit();
         return(-1);
     }
@@ -1313,7 +1324,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     unsigned int w, h, depth;
 
     /* Select the proper video driver */
-    video = GAL_GetVideo(driver_name);
+    video = GAL_GetVideo(driver_name, FALSE);
 
     if (video == NULL) {
         _DBG_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n",

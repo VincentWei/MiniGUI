@@ -1851,7 +1851,9 @@ static GAL_VideoDevice *HI3510_CreateDevice (int devindex)
     this->SetVideoMode = HI3510_SetVideoMode;
     //this->SetColors = FB_SetColors;
     this->VideoQuit = HI3510_VideoQuit;
+#if IS_SHAREDFB_SCHEMA
     this->RequestHWSurface = HI3510_RequestHWSurface;
+#endif
     this->AllocHWSurface = HI3510_AllocHWSurface;
 #ifdef _USE_2D_ACCEL
 #ifdef _USE_DBUF

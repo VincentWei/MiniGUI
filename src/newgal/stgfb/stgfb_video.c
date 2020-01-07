@@ -847,7 +847,7 @@ static GAL_VideoDevice *STGFB_CreateDevice (int devindex)
     this->SetColors = STGFB_SetColors;
     this->VideoQuit = STGFB_VideoQuit;
     this->UpdateRects = STGFB_UpdateRects;
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA
     this->RequestHWSurface = STGFB_RequestHWSurface;
 #endif
     this->AllocHWSurface = STGFB_AllocHWSurface;

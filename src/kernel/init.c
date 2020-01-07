@@ -448,43 +448,39 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     step++;
     if (!mg_InitSliceAllocator ()) {
-        fprintf (stderr, "KERNEL>InitGUI: failed to initialize slice allocator!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to initialize slice allocator!\n");
         return step;
     }
 
     step++;
     if (!mg_InitFixStr ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Fixed String module failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Fixed String module failure!\n");
         return step;
     }
 
     step++;
     /* Init miscelleous*/
     if (!mg_InitMisc ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Initialization of misc things failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Initialization of misc things failure!\n");
         return step;
     }
 
     step++;
     switch (mg_InitGAL (engine, mode)) {
     case ERR_CONFIG_FILE:
-        fprintf (stderr,
-            "KERNEL>InitGUI: Reading configuration failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Reading configuration failure!\n");
         return step;
 
     case ERR_NO_ENGINE:
-        fprintf (stderr,
-            "KERNEL>InitGUI: No graphics engine defined!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: No graphics engine defined!\n");
         return step;
 
     case ERR_NO_MATCH:
-        fprintf (stderr,
-            "KERNEL>InitGUI: Can not get graphics engine information!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not get graphics engine information!\n");
         return step;
 
     case ERR_GFX_ENGINE:
-        fprintf (stderr,
-            "KERNEL>InitGUI: Can not initialize graphics engine!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize graphics engine!\n");
         return step;
     }
 
@@ -497,21 +493,21 @@ int GUIAPI InitGUI (int args, const char *agr[])
      */
     step++;
     if (!mg_InitSystemRes ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Can not initialize system resource!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize system resource!\n");
         goto failure1;
     }
 
     /* Init GDI. */
     step++;
     if(!mg_InitGDI()) {
-        fprintf (stderr, "KERNEL>InitGUI: Initialization of GDI failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Initialization of GDI failure!\n");
         goto failure1;
     }
 
     /* Init Master Screen DC here */
     step++;
     if (!mg_InitScreenDC (__gal_screen)) {
-        fprintf (stderr, "KERNEL>InitGUI: Can not initialize screen DC!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize screen DC!\n");
         goto failure1;
     }
 
@@ -526,7 +522,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init mouse cursor. */
     step++;
     if( !mg_InitCursor() ) {
-        fprintf (stderr, "KERNEL>InitGUI: Count not init mouse cursor!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Count not init mouse cursor!\n");
         goto failure1;
     }
     splash_progress();
@@ -534,7 +530,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init low level event */
     step++;
     if(!mg_InitLWEvent()) {
-        fprintf(stderr, "KERNEL>InitGUI: Low level event initialization failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Low level event initialization failure!\n");
         goto failure1;
     }
     splash_progress();
@@ -542,7 +538,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /** Init LF Manager */
     step++;
     if (!mg_InitLFManager ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Initialization of LF Manager failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Initialization of LF Manager failure!\n");
         goto failure;
     }
     splash_progress();
@@ -551,7 +547,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init menu */
     step++;
     if (!mg_InitMenu ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Menu module failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Menu module failure!\n");
         goto failure;
     }
 #endif
@@ -559,7 +555,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init control class */
     step++;
     if(!mg_InitControlClass()) {
-        fprintf(stderr, "KERNEL>InitGUI: Init Control Class failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Control Class failure!\n");
         goto failure;
     }
     splash_progress();
@@ -567,28 +563,28 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init accelerator */
     step++;
     if(!mg_InitAccel()) {
-        fprintf(stderr, "KERNEL>InitGUI: Init Accelerator failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Accelerator failure!\n");
         goto failure;
     }
     splash_progress();
 
     step++;
     if (!mg_InitDesktop ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Desktop failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init Desktop failure!\n");
         goto failure;
     }
     splash_progress();
 
     step++;
     if (!mg_InitFreeQMSGList ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init free QMSG list failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init free QMSG list failure!\n");
         goto failure;
     }
     splash_progress();
 
     step++;
     if (!createThreadInfoKey ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init thread hash table failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init thread hash table failure!\n");
         goto failure;
     }
 
@@ -596,7 +592,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     step++;
     if (!SystemThreads()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init system threads failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Init system threads failure!\n");
         goto failure;
     }
 
@@ -614,7 +610,7 @@ failure:
     mg_TerminateLWEvent ();
 failure1:
     mg_TerminateGAL ();
-    fprintf (stderr, "KERNEL>InitGUI: Init failure, please check "
+    _ERR_PRINTF ("KERNEL>InitGUI: Init failure, please check "
             "your MiniGUI configuration or resource.\n");
     return step;
 }

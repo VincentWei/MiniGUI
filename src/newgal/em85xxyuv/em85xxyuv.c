@@ -451,9 +451,6 @@ static GAL_VideoDevice *EM85XXYUV_CreateDevice(int devindex)
     device->SetVideoMode = EM85XXYUV_SetVideoMode;
     device->SetColors = EM85XXYUV_SetColors;
     device->VideoQuit = EM85XXYUV_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = EM85XXYUV_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;

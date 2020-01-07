@@ -248,9 +248,6 @@ static GAL_VideoDevice *MB93493_CreateDevice(int devindex)
     device->SetVideoMode = MB93493_SetVideoMode;
     device->SetColors = MB93493_SetColors;
     device->VideoQuit = MB93493_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = MB93493_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;

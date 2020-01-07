@@ -1767,7 +1767,7 @@ void GAL_FreeSurface (GAL_Surface *surface)
 #endif
 }
 
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
 {
     if (__mg_current_video->RequestHWSurface) {
@@ -1778,7 +1778,6 @@ void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
         /* NULL */
     }
 }
-
 #endif
 
 BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow,

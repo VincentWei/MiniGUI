@@ -110,7 +110,7 @@ extern void _get_dst_rect_cw (RECT* dst_rect, const RECT* src_rect, RealFBInfo *
 extern void _get_dst_rect_hflip (RECT* src_rect, RealFBInfo *realfb_info);
 extern void _get_dst_rect_vflip (RECT* src_rect, RealFBInfo *realfb_info);
 extern void _get_dst_rect_ccw (RECT* dst_rect, const RECT* src_rect, RealFBInfo *realfb_info);
-extern GAL_VideoDevice *GAL_GetVideo(const char* driver_name);
+extern GAL_VideoDevice *GAL_GetVideo(const char* driver_name, BOOL check_compos);
 
 extern void refresh_normal_msb_left (ShadowFBHeader * shadowfb_header, RealFBInfo *realfb_info, void* update);
 
@@ -303,7 +303,7 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
     depth = atoi (strrchr (mode, '-') + 1);
 
     memset (&real_vformat, 0, sizeof(real_vformat));
-    real_device = GAL_GetVideo (engine);
+    real_device = GAL_GetVideo (engine, FALSE);
 
     if (real_device == NULL)
         fprintf (stderr, "NEWGAL>SHADOW: can not init real engine (%s) \n", engine);

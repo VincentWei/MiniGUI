@@ -378,9 +378,6 @@ static GAL_VideoDevice *USVFB_CreateDevice (int devindex)
     device->SetVideoMode = USVFB_SetVideoMode;
     device->SetColors = USVFB_SetColors;
     device->VideoQuit = USVFB_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = USVFB_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
@@ -388,7 +385,7 @@ static GAL_VideoDevice *USVFB_CreateDevice (int devindex)
     device->SetHWAlpha = NULL;
     device->FreeHWSurface = USVFB_FreeHWSurface;
     device->UpdateRects = USVFB_UpdateRects;
-    
+
     device->free = USVFB_DeleteDevice;
     return device;
 }

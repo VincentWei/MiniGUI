@@ -180,9 +180,6 @@ static GAL_VideoDevice *EM85XXOSD_CreateDevice(int devindex)
     device->SetVideoMode = EM85XXOSD_SetVideoMode;
     device->SetColors = EM85XXOSD_SetColors;
     device->VideoQuit = EM85XXOSD_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = EM85XXOSD_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
