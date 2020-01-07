@@ -626,6 +626,14 @@ void gui_WndClientRect(HWND hWnd, PRECT prc);
 
 /* -------------------------------------------------------------------------- */
 
+/* Since 4.2.0 */
+#if IS_COMPOSITING_SCHEMA
+BOOL mg_InitSemManger (int nr_sems);
+void mg_TerminateSemManager (void);
+int __mg_alloc_sem_for_compos (void);
+void __mg_free_sem_for_compos (int sem_num);
+#endif
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
