@@ -162,7 +162,10 @@ int mg_InitGAL (char* engine, char* mode)
 
     if (GAL_VideoInit (engine, 0)) {
         GAL_VideoQuit ();
-        fprintf (stderr, "NEWGAL: Does not find matched engine: %s.\n", engine);
+        _ERR_PRINTF ("NEWGAL: Does not find matched engine: %s.\n", engine);
+        if (IS_COMPOSITING_SCHEMA) {
+            _ERR_PRINTF ("    Or the specified engine does not support compositing schema.\n");
+        }
         return ERR_NO_MATCH;
     }
 
@@ -184,21 +187,21 @@ int mg_InitGAL (char* engine, char* mode)
 
     if (!GAL_ParseVideoMode (mode, &w, &h, &depth)) {
         GAL_VideoQuit ();
-        fprintf (stderr, "NEWGAL: bad video mode parameter: %s.\n", mode);
+        _ERR_PRINTF ("NEWGAL: bad video mode parameter: %s.\n", mode);
         return ERR_CONFIG_FILE;
     }
 
     if (!(__gal_screen = GAL_SetVideoMode (w, h, depth, GAL_HWPALETTE))) {
         GAL_VideoQuit ();
-        fprintf (stderr, "NEWGAL: Set video mode failure.\n");
+        _ERR_PRINTF ("NEWGAL: Set video mode failure.\n");
         return ERR_GFX_ENGINE;
     }
 
 #ifndef _MGRM_THREADS
     if (w != __gal_screen->w || h != __gal_screen->h) {
-        fprintf (stderr, "The resolution specified in MiniGUI.cfg is not "
-                        "the same as the actual resolution: %dx%d.\n"
-                        "This may confuse the clients. Please change it.\n",
+        _ERR_PRINTF ("The resolution specified in MiniGUI.cfg is not "
+                     "the same as the actual resolution: %dx%d.\n"
+                     "This may confuse the clients. Please change it.\n",
                          __gal_screen->w, __gal_screen->h);
         GAL_VideoQuit ();
         return ERR_GFX_ENGINE;
