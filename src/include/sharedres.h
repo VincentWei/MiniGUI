@@ -71,7 +71,7 @@ enum {
 #ifdef _MGRM_PROCESSES
     _IDX_SEM_MOUSEMOVE,
 #endif
-    _NR_SEM
+    _NR_SYS_SEM,
 };
 
 typedef struct tagG_RES {
