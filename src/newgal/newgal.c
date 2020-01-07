@@ -85,19 +85,11 @@ BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* depth)
     return TRUE;
 }
 
-int mg_InitGAL (char* engine)
+static void get_engine_from_etc (char* engine)
 {
-    int i;
-    int w, h, depth;
-    char mode [LEN_VIDEO_MODE + 1];
-
 #if defined (WIN32) || !defined(__NOUNIX__)
     char* env_value;
-#endif
 
-    LICENSE_CHECK_CUSTIMER_ID ();
-
-#ifndef __NOUNIX__
     if ((env_value = getenv ("MG_GAL_ENGINE"))) {
         strncpy (engine, env_value, LEN_ENGINE_NAME);
         engine [LEN_ENGINE_NAME] = '\0';
@@ -106,7 +98,7 @@ int mg_InitGAL (char* engine)
 #endif
 #ifndef _MG_MINIMALGDI
     if (GetMgEtcValue ("system", "gal_engine", engine, LEN_ENGINE_NAME) < 0) {
-        return ERR_CONFIG_FILE;
+        engine [0] = '\0';
     }
 #else /* _MG_MINIMALGDI */
 #   ifdef _MGGAL_PCXVFB
@@ -115,14 +107,13 @@ int mg_InitGAL (char* engine)
     strcpy(engine, "dummy");
 #   endif
 #endif /* _MG_MINIMALGDI */
+}
 
-    if (GAL_VideoInit (engine, 0)) {
-        GAL_VideoQuit ();
-        fprintf (stderr, "NEWGAL: Does not find matched engine: %s.\n", engine);
-        return ERR_NO_MATCH;
-    }
-
+static void get_mode_from_etc (const char* engine, char* mode)
+{
 #if defined (WIN32) || !defined(__NOUNIX__)
+    char* env_value;
+
     if ((env_value = getenv ("MG_DEFAULTMODE"))) {
         strncpy (mode, env_value, LEN_VIDEO_MODE);
         mode [LEN_VIDEO_MODE] = '\0';
@@ -131,7 +122,65 @@ int mg_InitGAL (char* engine)
 #endif
     if (GetMgEtcValue (engine, "defaultmode", mode, LEN_VIDEO_MODE) < 0)
         if (GetMgEtcValue ("system", "defaultmode", mode, LEN_VIDEO_MODE) < 0)
-            return ERR_CONFIG_FILE;
+            mode [0] = '\0';
+}
+
+static int get_dpi_from_etc (const char* engine)
+{
+    int dpi;
+
+    if (GetMgEtcIntValue (engine, "dpi", &dpi) < 0)
+        dpi = GDCAP_DPI_DEFAULT;
+    else if (dpi < GDCAP_DPI_MINIMAL)
+        dpi = GDCAP_DPI_MINIMAL;
+
+    return dpi;
+}
+
+int mg_InitGAL (char* engine, char* mode)
+{
+    int i;
+    int w, h, depth;
+
+    LICENSE_CHECK_CUSTIMER_ID ();
+
+#ifdef _MGRM_PROCESSES
+    if (IsServer()) {
+        get_engine_from_etc (engine);
+    }
+    else {
+        strncpy (engine, SHAREDRES_VIDEO_ENGINE, LEN_ENGINE_NAME);
+        engine [LEN_ENGINE_NAME] = '\0';
+    }
+#else
+    get_engine_from_etc (engine);
+#endif /* _MGRM_PROCESSES */
+
+    if (engine[0] == 0) {
+        return ERR_CONFIG_FILE;
+    }
+
+    if (GAL_VideoInit (engine, 0)) {
+        GAL_VideoQuit ();
+        fprintf (stderr, "NEWGAL: Does not find matched engine: %s.\n", engine);
+        return ERR_NO_MATCH;
+    }
+
+#ifdef _MGRM_PROCESSES
+    if (IsServer()) {
+        get_mode_from_etc (engine, mode);
+    }
+    else {
+        strncpy (mode, SHAREDRES_VIDEO_MODE, LEN_VIDEO_MODE);
+        mode [LEN_VIDEO_MODE] = '\0';
+    }
+#else
+    get_mode_from_etc (engine, mode);
+#endif /* _MGRM_PROCESSES */
+
+    if (mode[0] == 0) {
+        return ERR_CONFIG_FILE;
+    }
 
     if (!GAL_ParseVideoMode (mode, &w, &h, &depth)) {
         GAL_VideoQuit ();
@@ -156,10 +205,16 @@ int mg_InitGAL (char* engine)
     }
 #endif
 
-    if (GetMgEtcIntValue (engine, "dpi", &__gal_screen->dpi) < 0)
-        __gal_screen->dpi = GDCAP_DPI_DEFAULT;
-    else if (__gal_screen->dpi < GDCAP_DPI_MINIMAL)
-        __gal_screen->dpi = GDCAP_DPI_MINIMAL;
+#ifdef _MGRM_PROCESSES
+    if (IsServer()) {
+        __gal_screen->dpi = get_dpi_from_etc (engine);
+    }
+    else {
+        __gal_screen->dpi = SHAREDRES_VIDEO_DPI;
+    }
+#else
+    __gal_screen->dpi = get_dpi_from_etc (engine);
+#endif /* _MGRM_PROCESSES */
 
     for (i = 0; i < 17; i++) {
         SysPixelIndex [i] = GAL_MapRGB (__gal_screen->format,

@@ -109,6 +109,7 @@ void kernel_ShowCursorForGDI(BOOL fShow, void* pdc)
 int InitGUI (int argc, const char* agr[])
 {
     char engine [LEN_ENGINE_NAME + 1];
+    char mode [LEN_VIDEO_MODE + 1];
     int step = 1;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
@@ -136,7 +137,7 @@ int InitGUI (int argc, const char* agr[])
     step++;
 
     /* Init GAL engine. */
-    switch (mg_InitGAL (engine)) {
+    switch (mg_InitGAL (engine, mode)) {
     case ERR_CONFIG_FILE:
         err_message (step, "Reading configuration failure!");
         return step;
@@ -313,6 +314,7 @@ BOOL IsServer(void)
 int InitGUI (int argc, const char* agr[])
 {
     char engine [LEN_ENGINE_NAME + 1];
+    char mode [LEN_VIDEO_MODE + 1];
     int step = 1;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
@@ -390,7 +392,7 @@ int InitGUI (int argc, const char* agr[])
 #endif
 
     /* Init GAL engine. */
-    switch (mg_InitGAL (engine)) {
+    switch (mg_InitGAL (engine, mode)) {
     case ERR_CONFIG_FILE:
         err_message (step, "Reading configuration failure!");
         return step;
@@ -460,8 +462,7 @@ int InitGUI (int argc, const char* agr[])
          * Copy the video engine information to the shared resource segement
          */
         strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);
-        if (GetMgEtcValue (engine, "defaultmode", SHAREDRES_VIDEO_MODE, LEN_DEVICE_NAME) < 0)
-            *SHAREDRES_VIDEO_MODE = 0;
+        strncpy (SHAREDRES_VIDEO_MODE, mode, LEN_VIDEO_MODE);
         if (GetMgEtcValue (engine, "device", SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME) < 0)
             *SHAREDRES_VIDEO_DEVICE = 0;
         if (GetMgEtcValue (engine, "pixelformat", SHAREDRES_VIDEO_FOURCC, LEN_FOURCC_FORMAT) < 0)
