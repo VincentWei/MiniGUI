@@ -348,17 +348,19 @@ int InitGUI (int argc, const char* agr[])
     __mg_def_proc[1] = PreDefDialogProc;
     __mg_def_proc[2] = PreDefControlProc;
 
-    step++;
     if (!mg_InitSliceAllocator ()) {
         _ERR_PRINTF ("KERNEL>InitGUI: failed to initialize slice allocator!\n");
         return step;
     }
+    step++;
+    atexit (mg_TerminateSliceAllocator);
 
     if (!mg_InitFixStr ()) {
         err_message (step, "Can not initialize Fixed String heap!\n");
         return step;
     }
     step++;
+    atexit (mg_TerminateFixStr);
 
 #if IS_COMPOSITING_SCHEMA
     if (!mg_InitSemManger (NR_COMPOSITING_SEMS)) {
@@ -366,6 +368,7 @@ int InitGUI (int argc, const char* agr[])
         return step;
     }
     step++;
+    atexit (mg_TerminateSemManager);
 #endif
 
     if (!mg_InitMisc ()) {
@@ -373,6 +376,7 @@ int InitGUI (int argc, const char* agr[])
         return step;
     }
     step++;
+    atexit (mg_TerminateMisc);
 
 #ifdef _MGRM_PROCESSES
     if (_is_server && !kernel_IsOnlyMe ()) {
