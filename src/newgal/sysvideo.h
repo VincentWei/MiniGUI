@@ -52,7 +52,6 @@
  */
 
 /* The GAL video driver */
-typedef struct GAL_VideoDevice GAL_VideoDevice;
 struct REQ_HWSURFACE;
 struct REP_HWSURFACE;
 
@@ -140,13 +139,18 @@ struct GAL_VideoDevice {
     /* Information about the video hardware */
     GAL_VideoInfo info;
 
-#ifndef _MGRM_THREADS
+#ifdef IS_SHAREDFB_SCHEMA
     /* Request a surface in video memory */
     void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
 #endif
 
     /* Allocates a surface in video memory */
     int (*AllocHWSurface)(_THIS, GAL_Surface *surface);
+
+#if IS_COMPOSITING_SCHEMA
+    /* Allocates a shared surface in video memory */
+    int (*AllocSharedHWSurface)(_THIS, GAL_Surface *surface, BOOL global);
+#endif
 
     /* Sets the hardware accelerated blit function, if any, based
        on the current flags of the surface (colorkey, alpha, etc.)
@@ -224,6 +228,8 @@ typedef struct VideoBootStrap {
     const char *desc;
     int (*available)(void);
     GAL_VideoDevice *(*create)(int devindex);
+    /* Since 4.2.0; used to check where the video engine support composition schema */
+    BOOL compositing_enabled;
 } VideoBootStrap;
 
 #ifdef _MGGAL_DUMMY
@@ -335,10 +341,10 @@ extern VideoBootStrap DRM_bootstrap;
 /* This is the current video device */
 extern GAL_VideoDevice *__mg_current_video;
 
-#define GAL_VideoSurface    (__mg_current_video->screen)
-#define GAL_PublicSurface    (__mg_current_video->screen)
+#define GAL_VideoSurface        (__mg_current_video->screen)
+#define GAL_PublicSurface       (__mg_current_video->screen)
 
-GAL_VideoDevice *GAL_GetVideo(const char* driver_name);
+GAL_VideoDevice *GAL_GetVideo (const char* driver_name, BOOL check_compos);
 void Slave_FreeSurface (GAL_Surface *surface);
 
 #endif /* _GAL_sysvideo_h */
