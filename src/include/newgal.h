@@ -46,7 +46,7 @@
 /*
 ** newgal.h: the head file of New Graphics Abstraction Layer.
 **
-** Note: The architechture of new GAL is borrowed from SDL.
+** Note: The architechture of new GAL is borrowed from LGPL'd SDL.
 ** Thank Sam Lantinga and many others for their great work.
 **
 ** Created date: 2001/10/03
@@ -89,11 +89,13 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+typedef struct GAL_VideoDevice GAL_VideoDevice;
+
 /*
  * Allocate a pixel format structure and fill it according to the given info.
  */
 GAL_PixelFormat *GAL_AllocFormat (int bpp,
-			Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+            Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 
 /*
  * Free a previously allocated format structure
@@ -105,9 +107,41 @@ struct GAL_Surface;
 typedef int (*GAL_blit)(struct GAL_Surface *src, GAL_Rect *srcrect,
                         struct GAL_Surface *dst, GAL_Rect *dstrect);
 
-/* This structure should be treated as read-only, except for 'pixels',
-   which, if not NULL, contains the raw pixel data for the surface.
-*/
+#if IS_COMPOSITING_SCHEMA
+/*
+ * Note that the shared surface are always read-only for any process other
+ * than the creator.
+ */
+typedef struct _SharedSurfaceHeader {
+    /* The SysV semaphore set identifier for synchronizing the shared surfaces. */
+    int             semid;
+    /* The number of semphore for this surface. */
+    int             sem_num;
+
+    /* the dirty sync age */
+    unsigned long   dirty_age;
+
+    /* the dirty rectangles */
+    GAL_Rect        dirty_rcs [NR_DIRTY_RECTS];
+
+    /* the size of the surface */
+    int             width, height;
+    /* the pitch of the surface */
+    int             pitch;
+    /* the pixel format in fourcc */
+    unsigned int    fourcc;
+
+    /* the size of the buffer */
+    size_t          buf_size;
+    /* the pixels */
+    char            buf[0];
+} GAL_SharedSurfaceHeader;
+#endif /* IS_COMPOSITING_SCHEMA */
+
+/*
+ * This structure should be treated as read-only, except for 'pixels',
+ * which, if not NULL, contains the raw pixel data for the surface.
+ */
 typedef struct GAL_Surface {
     Uint32 flags;                       /* Read-only */
     GAL_PixelFormat *format;            /* Read-only */
@@ -131,13 +165,19 @@ typedef struct GAL_Surface {
 #endif
 
     /* info for fast blit mapping to other surfaces */
-    struct GAL_BlitMap *map;             /* Private */
+    struct GAL_BlitMap *map;            /* Private */
 
     /* format version, bumped at every change to invalidate blit maps */
     unsigned int format_version;        /* Private */
 
-    /* Reference count -- used when freeing surface */
+    /* reference count -- used when freeing surface */
     int refcount;                       /* Read-mostly */
+
+#if IS_COMPOSITING_SCHEMA
+    /* the pointer to GAL_SharedSurfaceHeader if the surface
+       is a shared surface among processes. */
+    GAL_SharedSurfaceHeader *shared_header;
+#endif
 } GAL_Surface;
 
 /* These are the currently supported flags for the GAL_surface */
@@ -200,18 +240,18 @@ typedef struct {
  * GAL_Init() before opening the sound device, otherwise under Win32 DirectX,
  * you won't be able to set full-screen display modes.
  */
-extern int GAL_VideoInit (const char *driver_name, Uint32 flags);
-extern void GAL_VideoQuit (void);
+int GAL_VideoInit (const char *driver_name, Uint32 flags);
+void GAL_VideoQuit (void);
 
-extern void gal_SlaveVideoQuit (GAL_Surface * surface);
-extern GAL_Surface *gal_SlaveVideoInit(const char* driver_name,
+void gal_SlaveVideoQuit (GAL_Surface * surface);
+GAL_Surface *gal_SlaveVideoInit(const char* driver_name,
         const char* mode, int dpi);
 
 /* This function fills the given character buffer with the name of the
  * video driver, and returns a pointer to it if the video driver has
  * been initialized.  It returns NULL if no driver has been initialized.
  */
-extern char *GAL_VideoDriverName (char *namebuf, int maxlen);
+char *GAL_VideoDriverName (char *namebuf, int maxlen);
 
 /*
  * This function returns a pointer to the current display surface.
@@ -219,7 +259,7 @@ extern char *GAL_VideoDriverName (char *namebuf, int maxlen);
  * function returns the publicly visible surface, not the real video
  * surface.
  */
-extern GAL_Surface * GAL_GetVideoSurface (void);
+GAL_Surface * GAL_GetVideoSurface (void);
 
 /*
  * This function returns a read-only pointer to information about the
@@ -227,7 +267,7 @@ extern GAL_Surface * GAL_GetVideoSurface (void);
  * member of the returned structure will contain the pixel format of the
  * "best" video mode.
  */
-extern const GAL_VideoInfo * GAL_GetVideoInfo (void);
+const GAL_VideoInfo * GAL_GetVideoInfo (void);
 
 /*
  * Check to see if a particular video mode is supported.
@@ -240,7 +280,7 @@ extern const GAL_VideoInfo * GAL_GetVideoInfo (void);
  * The arguments to GAL_VideoModeOK() are the same ones you would pass to
  * GAL_SetVideoMode()
  */
-extern int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags);
+int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags);
 
 /*
  * Return a pointer to an array of available screen dimensions for the
@@ -251,7 +291,7 @@ extern int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags);
  * If 'format' is NULL, the mode list will be for the format given
  * by GAL_GetVideoInfo()->vfmt
  */
-extern GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags);
+GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags);
 
 /*
  * Set up a video mode with the specified width, height and bits-per-pixel.
@@ -311,7 +351,7 @@ extern GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags);
  * GAL will fall back to reduced functionality if the exact flags you wanted
  * are not available.
  */
-extern GAL_Surface *GAL_SetVideoMode
+GAL_Surface *GAL_SetVideoMode
                         (int width, int height, int bpp, Uint32 flags);
 
 /*
@@ -320,14 +360,14 @@ extern GAL_Surface *GAL_SetVideoMode
  * screen.
  * These functions should not be called while 'screen' is locked.
  */
-extern void GAL_UpdateRects
+void GAL_UpdateRects
                 (GAL_Surface *screen, int numrects, GAL_Rect *rects);
-extern void GAL_UpdateRect
+void GAL_UpdateRect
                 (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h);
 
 #ifdef _MGUSE_SYNC_UPDATE
-extern BLOCKHEAP __mg_free_update_region_list;
-extern BOOL GAL_SyncUpdate (GAL_Surface *screen);
+BLOCKHEAP __mg_free_update_region_list;
+BOOL GAL_SyncUpdate (GAL_Surface *screen);
 #endif
 
 #if 0
@@ -341,7 +381,7 @@ extern BOOL GAL_SyncUpdate (GAL_Surface *screen);
  * setting the video mode for this function to perform hardware flipping.
  * This function returns 0 if successful, or -1 if there was an error.
  */
-extern int GAL_Flip (GAL_Surface *screen);
+int GAL_Flip (GAL_Surface *screen);
 #endif
 
 /*
@@ -359,7 +399,7 @@ extern int GAL_Flip (GAL_Surface *screen);
  * you desire, even if the window colormap has to be warped or run under
  * emulation.
  */
-extern int GAL_SetColors (GAL_Surface *surface,
+int GAL_SetColors (GAL_Surface *surface,
                         GAL_Color *colors, int firstcolor, int ncolors);
 
 /*
@@ -378,39 +418,39 @@ extern int GAL_SetColors (GAL_Surface *surface,
  * GAL_SetColors() is equivalent to calling this function with
  *     flags = (GAL_LOGPAL|GAL_PHYSPAL).
  */
-extern int GAL_SetPalette (GAL_Surface *surface, int flags,
+int GAL_SetPalette (GAL_Surface *surface, int flags,
                                    GAL_Color *colors, int firstcolor,
                                    int ncolors);
 
-extern void GAL_DitherColors(GAL_Color *colors, int bpp);
+void GAL_DitherColors(GAL_Color *colors, int bpp);
 
 /*
  * Maps an RGB triple to an opaque pixel value for a given pixel format
  */
-extern Uint32 GAL_MapRGB (GAL_PixelFormat *format, Uint8 r, Uint8 g, Uint8 b);
+Uint32 GAL_MapRGB (GAL_PixelFormat *format, Uint8 r, Uint8 g, Uint8 b);
 
 /*
  * Maps an RGBA quadruple to a pixel value for a given pixel format
  */
-extern Uint32 GAL_MapRGBA (GAL_PixelFormat *format,
+Uint32 GAL_MapRGBA (GAL_PixelFormat *format,
                                    Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 
 /*
  * Maps a pixel value into the RGB components for a given pixel format
  */
-extern void GAL_GetRGB (Uint32 pixel, GAL_PixelFormat *fmt,
+void GAL_GetRGB (Uint32 pixel, GAL_PixelFormat *fmt,
                                 Uint8 *r, Uint8 *g, Uint8 *b);
 
 /*
  * Maps a pixel value into the RGBA components for a given pixel format
  */
-extern void GAL_GetRGBA (Uint32 pixel, GAL_PixelFormat *fmt,
+void GAL_GetRGBA (Uint32 pixel, GAL_PixelFormat *fmt,
                                  Uint8 *r, Uint8 *g, Uint8 *b, Uint8 *a);
 
 /*
  * Match an RGB value to a particular palette index
  */
-extern Uint8 GAL_FindColor(GAL_Palette *pal, Uint8 r, Uint8 g, Uint8 b);
+Uint8 GAL_FindColor(GAL_Palette *pal, Uint8 r, Uint8 g, Uint8 b);
 
 /*
  * Allocate and free an RGB surface (must be called after GAL_SetVideoMode)
@@ -447,13 +487,20 @@ extern Uint8 GAL_FindColor(GAL_Palette *pal, Uint8 r, Uint8 g, Uint8 b);
  * the GAL_HWSURFACE flag set, and will be created in system memory instead.
  */
 #define GAL_AllocSurface    GAL_CreateRGBSurface
-extern GAL_Surface *GAL_CreateRGBSurface
+GAL_Surface *GAL_CreateRGBSurface
                         (Uint32 flags, int width, int height, int depth,
                         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
-extern GAL_Surface *GAL_CreateRGBSurfaceFrom (void *pixels,
+GAL_Surface *GAL_CreateRGBSurfaceFrom (void *pixels,
                         int width, int height, int depth, int pitch,
                         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
-extern void GAL_FreeSurface (GAL_Surface *surface);
+void GAL_FreeSurface (GAL_Surface *surface);
+
+/*
+ * Allocate a shared RGB surface from the specific video device.
+ */
+GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice* video,
+            Uint32 flags, BOOL global, int width, int height, int depth,
+            Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 
 typedef struct REQ_HWSURFACE {
     /* for allocation */
@@ -502,8 +549,8 @@ typedef struct _REP_SIGMA8654_GETSURFACE {
 } REP_SIGMA8654_GETSURFACE;
 #endif
 
-#ifndef _MGRM_THREADS
-extern void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
+#if IS_SHAREDFB_SCHEMA
+void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
 #endif
 
 #if 0
@@ -525,8 +572,8 @@ extern void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* r
  *
  * GAL_LockSurface() returns 0, or -1 if the surface couldn't be locked.
  */
-extern int GAL_LockSurface (GAL_Surface *surface);
-extern void GAL_UnlockSurface (GAL_Surface *surface);
+int GAL_LockSurface (GAL_Surface *surface);
+void GAL_UnlockSurface (GAL_Surface *surface);
 #endif
 
 /*
@@ -538,7 +585,7 @@ extern void GAL_UnlockSurface (GAL_Surface *surface);
  * If 'flag' is 0, this function clears any current color key.
  * This function returns 0, or -1 if there was an error.
  */
-extern int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key);
+int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key);
 
 /*
  * This function sets the alpha value for the entire surface, as opposed to
@@ -553,7 +600,7 @@ extern int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key);
  * OR:ing the flag with GAL_RLEACCEL requests RLE acceleration for the
  * surface; if GAL_RLEACCEL is not specified, the RLE accel will be removed.
  */
-extern int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 alpha);
+int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 alpha);
 
 /*
  * Sets the clipping rectangle for the destination surface in a blit.
@@ -567,14 +614,14 @@ extern int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 alpha);
  * Note that blits are automatically clipped to the edges of the source
  * and destination surfaces.
  */
-extern GAL_bool GAL_SetClipRect (GAL_Surface *surface, GAL_Rect *rect);
+GAL_bool GAL_SetClipRect (GAL_Surface *surface, GAL_Rect *rect);
 
 /*
  * Gets the clipping rectangle for the destination surface in a blit.
  * 'rect' must be a pointer to a valid rectangle which will be filled
  * with the correct values.
  */
-extern void GAL_GetClipRect (GAL_Surface *surface, GAL_Rect *rect);
+void GAL_GetClipRect (GAL_Surface *surface, GAL_Rect *rect);
 
 /*
  * Creates a new surface of the specified format, and then copies and maps
@@ -588,7 +635,7 @@ extern void GAL_GetClipRect (GAL_Surface *surface, GAL_Rect *rect);
  *
  * This function is used internally by GAL_DisplayFormat().
  */
-extern GAL_Surface *GAL_ConvertSurface
+GAL_Surface *GAL_ConvertSurface
                         (GAL_Surface *src, GAL_PixelFormat *fmt, Uint32 flags);
 
 /*
@@ -665,12 +712,12 @@ extern GAL_Surface *GAL_ConvertSurface
 /* This is the public blit function, GAL_BlitSurface(), and it performs
    rectangle validation and clipping before passing it to GAL_LowerBlit()
 */
-extern int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
+int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
                          GAL_Surface *dst, GAL_Rect *dstrect);
 /* This is a semi-private blit function and it performs low-level surface
    blitting only.
 */
-extern int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
+int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
                          GAL_Surface *dst, GAL_Rect *dstrect);
 
 /*
@@ -682,13 +729,13 @@ extern int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
  * can be generated by the GAL_MapRGB() function.
  * This function returns 0 on success, or -1 on error.
  */
-extern int GAL_FillRect
+int GAL_FillRect
                 (GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color);
 
 /*
  * This function returns the size of pad-aligned box bitmap.
  */
-extern Uint32 GAL_GetBoxSize
+Uint32 GAL_GetBoxSize
                 (GAL_Surface *src, Uint32 w, Uint32 h, Uint32* pitch_p);
 
 /*
@@ -698,7 +745,7 @@ extern Uint32 GAL_GetBoxSize
  *  size = GAL_GetBoxSize (src, &rect, NULL);
  *
  */
-extern int GAL_GetBox (GAL_Surface *src, const GAL_Rect* srcrect, BITMAP* box);
+int GAL_GetBox (GAL_Surface *src, const GAL_Rect* srcrect, BITMAP* box);
 
 /*
  * This function put pixels in a box to the rect on the surface.
@@ -708,7 +755,7 @@ extern int GAL_GetBox (GAL_Surface *src, const GAL_Rect* srcrect, BITMAP* box);
  *  size = GAL_GetBoxSize (src, &rect, NULL);
  *
  */
-extern int GAL_PutBox (GAL_Surface *dst, const GAL_Rect* dstrect, BITMAP* box);
+int GAL_PutBox (GAL_Surface *dst, const GAL_Rect* dstrect, BITMAP* box);
 
 /*
  * This function takes a surface and copies it to a new surface of the
@@ -721,7 +768,7 @@ extern int GAL_PutBox (GAL_Surface *dst, const GAL_Rect* dstrect, BITMAP* box);
  *
  * If the conversion fails or runs out of memory, it returns NULL
  */
-extern GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface);
+GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface);
 
 /*
  * This function takes a surface and copies it to a new surface of the
@@ -735,13 +782,13 @@ extern GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface);
  *
  * If the conversion fails or runs out of memory, it returns NULL
  */
-extern GAL_Surface * GAL_DisplayFormatAlpha (GAL_Surface *surface);
+GAL_Surface * GAL_DisplayFormatAlpha (GAL_Surface *surface);
 
 /* Not in public API at the moment - do not use! */
-extern int GAL_SoftStretch (GAL_Surface *src, GAL_Rect *srcrect,
+int GAL_SoftStretch (GAL_Surface *src, GAL_Rect *srcrect,
                                     GAL_Surface *dst, GAL_Rect *dstrect);
 
-extern GAL_Surface* __gal_screen;
+GAL_Surface* __gal_screen;
 
 #define WIDTHOFPHYGC        (__gal_screen->w)
 #define HEIGHTOFPHYGC       (__gal_screen->h)
@@ -757,23 +804,23 @@ extern GAL_Surface* __gal_screen;
 #define GAL_BMask(surface)          (surface->format->Bmask)
 #define GAL_AMask(surface)          (surface->format->Amask)
 
-extern int mg_InitGAL (char* engine, char* mode);
+int mg_InitGAL (char* engine, char* mode);
 
 /* Since 4.0.0; suspend/resume video device, for switching virtual terminals */
-extern int GAL_SuspendVideo(void);
-extern int GAL_ResumeVideo(void);
+int GAL_SuspendVideo(void);
+int GAL_ResumeVideo(void);
 
-extern BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* bpp);
+BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* bpp);
 
-extern BYTE*  gal_PutPixelAlphaChannel (GAL_Surface* dst,
+BYTE*  gal_PutPixelAlphaChannel (GAL_Surface* dst,
         BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelKey (GAL_Surface* dst,
+BYTE*  gal_PutPixelKey (GAL_Surface* dst,
         BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst,
+BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst,
         BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelAlpha (GAL_Surface* dst,
+BYTE*  gal_PutPixelAlpha (GAL_Surface* dst,
         BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
-extern BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst,
+BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst,
         BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
 
 #define mg_TerminateGAL GAL_VideoQuit
