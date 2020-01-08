@@ -56,6 +56,7 @@
     #define GUI_NEWGAL_H
 
 #include "gdi.h"
+#include "constants.h"
 
 #define DISABLE_THREADS
 #define GAL_mutex       int

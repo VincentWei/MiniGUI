@@ -55,8 +55,6 @@
 
 /* Private display data */
 
-#define LEN_DEVICE_NAME     31
-
 typedef struct drm_mode_info DrmModeInfo;
 
 typedef struct GAL_PrivateVideoData {
