@@ -92,7 +92,7 @@ message_string="no"
 
 osname="unspecified"
 runtime_mode="procs"
-compositing_schema="yes"
+compositing_schema="no"
 use_shmopen="no"
 
 incore_res="no"
@@ -833,7 +833,7 @@ build_ctrl_animation=$enableval)
 
 if test "x$runtime_mode" == "xprocs"; then
     AC_ARG_ENABLE(compositing,
-[  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=yes>],
+[  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=no>],
     compositing_schema=$enableval)
 
     AC_ARG_ENABLE(shmopen,
