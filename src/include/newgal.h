@@ -514,24 +514,34 @@ void GAL_FreeSurface (GAL_Surface *surface);
 #ifdef _MGRM_PROCESSES
 
 #ifdef _MGUSE_COMPOSITING
-/*
- * Allocate a shared RGB surface from the specific video device.
- */
+
+/* Allocate a shared RGB surface from the specific video device. */
 GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice* video,
             Uint32 flags, Uint32 rw_modes, int width, int height, int depth,
             Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
-/*
- * Free a shared RGB surface.
- */
+
+/* Free a shared RGB surface. */
 void GAL_FreeSharedSurfaceData (GAL_Surface *surface);
 
-/*
- * Attache to a shared RGB surface from the specific video device.
- */
+/* Attach to a shared RGB surface from the specific video device. */
 GAL_Surface *GAL_AttachSharedRGBSurface (int fd, size_t map_size,
             Uint32 flags, BOOL with_rw);
 
+/* Dettach from a shared RGB surface from the specific video device. */
 void GAL_DettachSharedSurfaceData (GAL_Surface *surface);
+
+/* Create a cursor surface from the specific video device. */
+GAL_Surface* GAL_CreateCursorSurface (GAL_VideoDevice* video,
+        int width, int height);
+
+/* Free a cursor surface. */
+void GAL_FreeCursorSurface (GAL_Surface* surface);
+
+/* Set a cursor. */
+void GAL_SetCursor (GAL_Surface* surface, int hot_x, int hot_y);
+
+/* Move cursor. */
+void GAL_MoveCursor (GAL_VideoDevice* video, int x, int y);
 
 #else /* _MGUSE_SHAREDFD */
 
