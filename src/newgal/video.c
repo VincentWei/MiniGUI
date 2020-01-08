@@ -1120,6 +1120,9 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
+#if IS_COMPOSITING_SCHEMA
+    surface->shared_header = NULL;
+#endif
     GAL_SetClipRect(surface, NULL);
 
 #ifdef _MGUSE_SYNC_UPDATE
