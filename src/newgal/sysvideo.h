@@ -167,16 +167,22 @@ struct GAL_VideoDevice {
 
     /* Dettach from a shared surface in hardware video memory.
        Set to NULL if no hardware shared surface supported.
-       Return 0 if success, otherwize -1. */
+       Return 0 if success, otherwise -1. */
     int (*DettachSharedHWSurface)(_THIS, GAL_Surface *surface);
 
-    /* Get hardware surface for cursor.
-       Set to NULL or return -1 if no hardware cursor support. */
-    int (*GetCursorSurface)(_THIS, GAL_Surface *surface, int width, int height);
+    /* Allocate a dumb surface from hardware.
+       Set to NULL if dumb surface is not supported.
+       Return 0 if success, otherwise -1. */
+    int (*AllocDumbSurface)(_THIS, GAL_Surface *surface);
 
-    /* Set hot spot of hardware cursor.
+    /* Free a dumb surface allocated from hardware.
+       Set to NULL if dumb surface is not supported.
+       Return 0 if success, otherwise -1. */
+    int (*FreeDumbSurface)(_THIS, GAL_Surface *surface);
+
+    /* Set hardware cursor.
        Set to NULL or return -1 if no hardware cursor support. */
-    int (*SetCursorHotspot)(_THIS, int hot_x, int hot_y);
+    int (*SetCursor)(_THIS, GAL_Surface *surface, int hot_x, int hot_y);
 
     /* Move hardware cursor to new position.
        Set to NULL or return -1 if no hardware cursor support. */

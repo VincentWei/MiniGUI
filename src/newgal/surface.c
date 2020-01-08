@@ -1746,6 +1746,9 @@ void GAL_FreeSurface (GAL_Surface *surface)
             GAL_FreeSharedSurfaceData(surface);
         else
             GAL_DettachSharedSurfaceData(surface);
+
+        surface->hwdata = NULL;
+        surface->pixels = NULL;
     }
 #endif
 
@@ -1754,26 +1757,37 @@ void GAL_FreeSurface (GAL_Surface *surface)
 #endif
 
     if ((surface->flags & GAL_RLEACCEL) == GAL_RLEACCEL) {
-            GAL_UnRLESurface(surface, 0);
+        GAL_UnRLESurface(surface, 0);
     }
+
     if (surface->format) {
         GAL_FreeFormat(surface->format);
         surface->format = NULL;
     }
+
     if (surface->map != NULL) {
         GAL_FreeBlitMap(surface->map);
         surface->map = NULL;
     }
-    if ((surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
-        GAL_VideoDevice *video = __mg_current_video;
-        GAL_VideoDevice *this  = __mg_current_video;
-        video->FreeHWSurface(this, surface);
+
+    /* Use surface->hwdata to check hardware surface instead of
+            if (surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE)
+     */
+    if (surface->hwdata) {
+        GAL_VideoDevice *video = surface->video;
+
+        assert (video);
+        assert (video->FreeHWSurface);
+        video->FreeHWSurface (video, surface);
     }
+
     if (surface->pixels &&
-         ((surface->flags & GAL_PREALLOC) != GAL_PREALLOC)) {
-        free(surface->pixels);
+            ((surface->flags & GAL_PREALLOC) != GAL_PREALLOC)) {
+        free (surface->pixels);
     }
-    free(surface);
+
+    free (surface);
+
 #ifdef CHECK_LEAKS
     --surfaces_allocated;
 #endif

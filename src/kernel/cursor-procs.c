@@ -245,7 +245,7 @@ HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,
         req.len_data = sizeof (int) * 6 + len_and_bits + len_xor_bits;
 
         if ((tmp = (int*) ALLOCATE_LOCAL (req.len_data)) == NULL)
-                return 0;
+            return 0;
 
         tmp [0] = xhotspot; tmp [1] = yhotspot;
         tmp [2] = w;        tmp [3] = h;
@@ -494,7 +494,7 @@ static void showcursor (void)
 
         for (i = 0; i < __mg_csrimgsize >> 2; i++) {
             dst [i] &= andbits [i];
-            dst [i] ^= xorbits[i];
+            dst [i] ^= xorbits [i];
         }
     }
 #endif

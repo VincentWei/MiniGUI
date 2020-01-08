@@ -204,7 +204,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             goto error;
 
         surface->pixels = surface->shared_header->buf;
-        memset (surface->pixels, 0, buf_size);
+        // memset (surface->pixels, 0, buf_size);
 
         if (byhw)
             surface->flags |= GAL_HWSURFACE;
@@ -233,6 +233,7 @@ error:
             if (surface->shared_header->byhw) {
                 assert(video->FreeSharedHWSurface);
                 video->FreeSharedHWSurface (video, surface);
+                surface->hwdata = NULL; /* set to NULL for GAL_FreeSurface */
             }
             else {
                 close (surface->shared_header->fd);
@@ -240,8 +241,11 @@ error:
                     surface->shared_header->buf_size
                         + sizeof(GAL_SharedSurfaceHeader));
             }
+
+            surface->shared_header = NULL;
         }
 
+        surface->pixels = NULL;
         GAL_FreeSurface (surface);
     }
 
@@ -266,6 +270,7 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
     if (surface->shared_header->byhw) {
         assert (video->FreeSharedHWSurface);
         video->FreeSharedHWSurface (video, surface);
+        surface->hwdata = NULL;
     }
     else {
         close (surface->shared_header->fd);
@@ -273,12 +278,16 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
             surface->shared_header->buf_size
                 + sizeof (GAL_SharedSurfaceHeader));
     }
+
+    surface->pixels = NULL;
+    surface->shared_header = NULL;
 }
 
 /*
  * Attach to a shared RGB surface
  */
-GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size, Uint32 flags, BOOL with_wr)
+GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
+        Uint32 flags, BOOL with_wr)
 {
     GAL_VideoDevice *video;
     GAL_Surface *surface;
@@ -410,11 +419,14 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
 
     if (video && video->DettachSharedHWSurface) {
         video->DettachSharedHWSurface (video, surface);
+        surface->hwdata = NULL;
     }
 
     munmap (surface->shared_header,
         surface->shared_header->buf_size
             + sizeof (GAL_SharedSurfaceHeader));
+    surface->pixels = NULL;
+    surface->shared_header = NULL;
 }
 
 #endif /* IS_COMPOSITING_SCHEMA */
