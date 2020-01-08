@@ -52,13 +52,6 @@
 #ifndef GUI_MISC_H
     #define GUI_MISC_H
 
-/* Function definitions */
-
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
-
 #ifndef HAVE_SYS_TIME_H
 
 struct timeval {
@@ -74,6 +67,16 @@ struct timezone {
 #else
   #include <sys/time.h>
 #endif
+
+#ifndef __NOUNIX__
+  #include <sys/types.h>
+#endif
+
+/* Function definitions */
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 unsigned int __mg_os_get_random_seed (void);
 void __mg_os_time_delay (int ms);
@@ -107,9 +110,21 @@ int __mg_lookfor_unused_slot (unsigned char* bitmap, int len_bmp, int set);
 void __mg_slot_set_use (unsigned char* bitmap, int index);
 int __mg_slot_clear_use (unsigned char* bitmap, int index);
 
-BOOL __mg_is_abs_path(const char* path);
-int __mg_path_joint(char* dst, int dst_size, const char* abs_path,
+BOOL __mg_is_abs_path (const char* path);
+int __mg_path_joint (char* dst, int dst_size, const char* abs_path,
         const char* sub_path);
+
+/* Since 4.2.0 */
+#ifndef __NOUNIX__
+int __mg_create_anonymous_file (off_t size, const char* debug_name,
+        mode_t rw_modes);
+#endif
+
+/* Since 4.2.0 */
+#ifdef _MGRM_PROCESSES
+int __mg_alloc_mutual_sem (int *semid);
+void __mg_free_mutual_sem (int sem_num);
+#endif
 
 #if defined (__VXWORKS__) || defined(WIN32) || defined (__NUCLEUS_MNT__) || defined (_EM86_IAL) || defined (_EM85_IAL)
 double cbrt(double x);

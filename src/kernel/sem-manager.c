@@ -98,7 +98,7 @@ BOOL mg_InitSemManger (int nr_sems)
 
     manager.semid = semget (IPC_PRIVATE, nr_sems,
                 0666 | IPC_CREAT | IPC_EXCL);
-    if (manager.semid == -1) {
+    if (manager.semid < 0) {
         _ERR_PRINTF ("SemManager: cannot create semset for compositing.\n");
         free (manager.use_bmp);
         return FALSE;
@@ -134,7 +134,7 @@ void mg_TerminateSemManager (void)
 #endif
 }
 
-int __mg_alloc_sem_for_compos (void)
+int __mg_alloc_mutual_sem (int *semid)
 {
     int n = -1, i, j;
     BYTE* bitmap = manager.use_bmp;
@@ -155,8 +155,14 @@ int __mg_alloc_sem_for_compos (void)
         bitmap++;
     }
 
-    if (n >= manager.nr_sems)
+    if (n >= manager.nr_sems) {
         n = -1;
+    }
+
+    if (n < 0)
+        *semid = -1;
+    else
+        *semid = manager.semid;
 
 #ifndef _MGRM_STANDALONE
     pthread_mutex_unlock (&manager.lock);
@@ -165,7 +171,7 @@ int __mg_alloc_sem_for_compos (void)
     return n;
 }
 
-void __mg_free_sem_for_compos (int sem_num)
+void __mg_free_mutual_sem (int sem_num)
 {
     BYTE* bitmap = manager.use_bmp;
 

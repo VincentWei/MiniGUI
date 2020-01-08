@@ -30,6 +30,7 @@ COMMON_SRCS =       \
     pixels.c        \
     pixels_c.h      \
     surface.c       \
+    surface-shared.c \
     stretch.c       \
     stretch_c.h     \
     sysvideo.h      \

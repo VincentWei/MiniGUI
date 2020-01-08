@@ -118,6 +118,14 @@ typedef struct _SharedSurfaceHeader {
     /* The number of semphore for this surface. */
     int             sem_num;
 
+    /* The pid of the creator */
+    pid_t           creator;
+
+    /* The file descriptor in context of the creator. */
+    int             fd;
+    /* Not zero for hardware surface. */
+    int             byhw;
+
     /* the dirty sync age */
     unsigned long   dirty_age;
 
@@ -128,8 +136,10 @@ typedef struct _SharedSurfaceHeader {
     int             width, height;
     /* the pitch of the surface */
     int             pitch;
-    /* the pixel format in fourcc */
-    unsigned int    fourcc;
+    /* the pixel depth */
+    int             depth;
+    /* the RGBA masks */
+    Uint32          Rmask, Gmask, Bmask, Amask;
 
     /* the size of the buffer */
     size_t          buf_size;
@@ -175,7 +185,7 @@ typedef struct GAL_Surface {
 
 #if IS_COMPOSITING_SCHEMA
     /* the pointer to GAL_SharedSurfaceHeader if the surface
-       is a shared surface among processes. */
+       is a shared surface across processes. */
     GAL_SharedSurfaceHeader *shared_header;
 #endif
 } GAL_Surface;
@@ -495,12 +505,29 @@ GAL_Surface *GAL_CreateRGBSurfaceFrom (void *pixels,
                         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 void GAL_FreeSurface (GAL_Surface *surface);
 
+#ifdef _MGRM_PROCESSES
+
+#ifdef _MGUSE_COMPOSITING
 /*
  * Allocate a shared RGB surface from the specific video device.
  */
 GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice* video,
-            Uint32 flags, BOOL global, int width, int height, int depth,
+            Uint32 flags, Uint32 rw_modes, int width, int height, int depth,
             Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+/*
+ * Free a shared RGB surface.
+ */
+void GAL_FreeSharedSurfaceData (GAL_Surface *surface);
+
+/*
+ * Attache to a shared RGB surface from the specific video device.
+ */
+GAL_Surface *GAL_AttachSharedRGBSurface (int fd, size_t map_size,
+            Uint32 flags, BOOL with_rw);
+
+void GAL_DettachSharedRGBSurfaceData (GAL_Surface *surface);
+
+#else /* _MGUSE_SHAREDFD */
 
 typedef struct REQ_HWSURFACE {
     /* for allocation */
@@ -549,9 +576,10 @@ typedef struct _REP_SIGMA8654_GETSURFACE {
 } REP_SIGMA8654_GETSURFACE;
 #endif
 
-#if IS_SHAREDFB_SCHEMA
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
-#endif
+#endif /* _MGUSE_SHAREDFB */
+
+#endif /* _MGRM_PROCESSES */
 
 #if 0
 /*

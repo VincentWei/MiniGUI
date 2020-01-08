@@ -59,7 +59,7 @@
 #if defined(_MGRM_PROCESSES) && defined(_MGUSE_COMPOSITING)
 #   define IS_COMPOSITING_SCHEMA    1
 #   define NR_DIRTY_RECTS           8
-#   define NR_COMPOSITING_SEMS      128
+#   define NR_COMPOSITING_SEMS      64
 #else
 #   define IS_COMPOSITING_SCHEMA    0
 #   define NR_DIRTY_RECTS           0

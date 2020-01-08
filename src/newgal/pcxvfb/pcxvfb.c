@@ -304,7 +304,8 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
 
 VideoBootStrap PCXVFB_bootstrap = {
     "pc_xvfb", "PCX Virtual FrameBuffer",
-    PCXVFB_Available, PCXVFB_CreateDevice
+    PCXVFB_Available, PCXVFB_CreateDevice,
+    TRUE, /* Compositing enabled */
 };
 
 #ifndef WIN32

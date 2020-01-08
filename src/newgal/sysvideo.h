@@ -139,17 +139,48 @@ struct GAL_VideoDevice {
     /* Information about the video hardware */
     GAL_VideoInfo info;
 
-#ifdef IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA
     /* Request a surface in video memory */
-    void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
+    void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request,
+            REP_HWSURFACE* reply);
 #endif
 
     /* Allocates a surface in video memory */
     int (*AllocHWSurface)(_THIS, GAL_Surface *surface);
 
 #if IS_COMPOSITING_SCHEMA
-    /* Allocates a shared surface in video memory */
-    int (*AllocSharedHWSurface)(_THIS, GAL_Surface *surface, BOOL global);
+    /* Allocate a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return the PRIME file descriptor if success, otherwize -1. */
+    int (*AllocSharedHWSurface)(_THIS, GAL_Surface *surface,
+            size_t* buf_size, off_t* buf_off, Uint32 rw_modes);
+
+    /* Free a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return 0 if success, otherwize -1. */
+    int (*FreeSharedHWSurface)(_THIS, GAL_Surface *surface);
+
+    /* Attach to a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return 0 if success, otherwize -1. */
+    int (*AttachSharedHWSurface)(_THIS, GAL_Surface *surface, int fd);
+
+    /* Dettach from a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return 0 if success, otherwize -1. */
+    int (*DettachSharedHWSurface)(_THIS, GAL_Surface *surface);
+
+    /* Get hardware surface for cursor.
+       Set to NULL or return -1 if no hardware cursor support. */
+    int (*GetCursorSurface)(_THIS, GAL_Surface *surface, int width, int height);
+
+    /* Set hot spot of hardware cursor.
+       Set to NULL or return -1 if no hardware cursor support. */
+    int (*SetCursorHotspot)(_THIS, int hot_x, int hot_y);
+
+    /* Move hardware cursor to new position.
+       Set to NULL or return -1 if no hardware cursor support. */
+    int (*MoveCursor)(_THIS, int x, int y);
 #endif
 
     /* Sets the hardware accelerated blit function, if any, based
