@@ -596,14 +596,6 @@ void TerminateGUI (int rcByGUI)
         client_ClientCleanup ();
     }
 #endif
-
-#if IS_COMPOSITING_SCHEMA
-    mg_TerminateSemManager();
-#endif
-
-    mg_TerminateMisc ();
-    mg_TerminateFixStr ();
-    mg_TerminateSliceAllocator();
 }
 #endif /* ifndef _MG_MINIMALGDI */
 

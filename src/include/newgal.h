@@ -58,6 +58,11 @@
 #include "gdi.h"
 #include "constants.h"
 
+#if IS_COMPOSITING_SCHEMA
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 #define DISABLE_THREADS
 #define GAL_mutex       int
 
@@ -526,7 +531,7 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface);
 GAL_Surface *GAL_AttachSharedRGBSurface (int fd, size_t map_size,
             Uint32 flags, BOOL with_rw);
 
-void GAL_DettachSharedRGBSurfaceData (GAL_Surface *surface);
+void GAL_DettachSharedSurfaceData (GAL_Surface *surface);
 
 #else /* _MGUSE_SHAREDFD */
 
