@@ -52,6 +52,8 @@
 #ifndef GUI_CURSOR_H
     #define GUI_CURSOR_H
 
+#include "constants.h"
+
 /* Struct definitions */
 typedef struct _CURSORDIRENTRY {
     BYTE bWidth;
@@ -62,27 +64,32 @@ typedef struct _CURSORDIRENTRY {
     WORD wYhotspot;
     DWORD lBytesInRes;
     DWORD dwImageOffset;
-}CURSORDIRENTRY;
+} CURSORDIRENTRY;
 
 typedef struct _CURSORDIR {
     WORD cdReserved;
-    WORD cdType;	// must be 2.
+    WORD cdType;    // must be 2.
     WORD cdCount;
-}CURSORDIR;
+} CURSORDIR;
 
 typedef struct _CURSOR {
     int xhotspot;
     int yhotspot;
+#if IS_COMPOSITING_SCHEMA
+    /* Since 4.2.0; for compositing schema */
+    void* surface;
+#else
     int width;
     int height;
     void* AndBits;
     void* XorBits;
-}CURSOR;
+#endif
+} CURSOR;
 typedef CURSOR* PCURSOR;
 
-#define CURSORWIDTH	    32
-#define CURSORHEIGHT	32
-#define MONOSIZE	    (CURSORWIDTH*CURSORHEIGHT/8)
+#define CURSORWIDTH     32
+#define CURSORHEIGHT    32
+#define MONOSIZE        (CURSORWIDTH*CURSORHEIGHT/8)
 #define MONOPITCH       4
 
 /* Function definitions */

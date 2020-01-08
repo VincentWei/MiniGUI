@@ -92,6 +92,68 @@
 
 #define CURSORSECTION   "cursorinfo"
 
+#ifdef _MGUSE_COMPOSITING
+
+static BOOL LoadCursorRes (void)
+{
+    int number;
+    int i;
+    char szValue [12];
+
+    if (GetMgEtcValue (CURSORSECTION, "cursornumber", szValue, 10) < 0) {
+        _ERR_PRINTF ("Failed to get number of system cursors\n");
+        return FALSE;
+    }
+
+    number = atoi (szValue);
+    if (number < 0) {
+        _ERR_PRINTF ("Bad number of system cursor: %d\n", number);
+        return FALSE;
+    }
+
+    number = number < (MAX_SYSCURSORINDEX + 1) ? number : (MAX_SYSCURSORINDEX + 1);
+    // realloc for shared resource
+    mgSharedRes = realloc (mgSharedRes, mgSizeRes + number * (sizeof (HCURSOR)));
+    if (mgSharedRes == NULL) {
+        _ERR_PRINTF ("Failed to realloc shared memory for system cursor.\n");
+        return FALSE;
+    }
+
+    // set cursor number
+    ((PG_RES)mgSharedRes)->csrnum = number;
+    mgSizeRes += number * (sizeof (HCURSOR));
+
+    for (i = 0; i < number; i++) {
+        ((PG_RES)mgSharedRes)->sys_cursors[i] = NULL;
+    }
+
+    for (i = 0; i < number; i++) {
+        PCURSOR tempcsr;
+
+        if (!(tempcsr = sysres_load_system_cursor (i)))
+            goto error;
+
+        ((PG_RES)mgSharedRes)->sys_cursors[i] = tempcsr;
+    }
+
+    return TRUE;
+
+error:
+    for (i = 0; i < number; i++) {
+        PCURSOR tempcsr;
+        tempcsr = ((PG_RES)mgSharedRes)->sys_cursors[i];
+        if (tempcsr) {
+            GAL_FreeCursorSurface (tempcsr->surface);
+            free (tempcsr);
+            ((PG_RES)mgSharedRes)->sys_cursors[i] = NULL;
+        }
+    }
+
+    return FALSE;
+}
+
+#else /* _MGUSE_COMPOSITING */
+
 extern unsigned int __mg_csrimgpitch;
 static BOOL LoadCursorRes (void)
 {
@@ -150,6 +212,8 @@ static BOOL LoadCursorRes (void)
 error:
     return FALSE;
 }
+
+#endif /* _MGUSE_COMPOSITING */
 
 #endif /* _MGHAVE_CURSOR */
 

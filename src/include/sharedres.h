@@ -116,8 +116,13 @@ typedef struct tagG_RES {
     int csr_show_count;
 
     int csrnum;
+#ifdef _MGUSE_COMPOSITING
+    DWORD   __align;
+    HCURSOR sys_cursors[0];
+#else
     unsigned long svdbitsoffset;
     unsigned long csroffset;
+#endif
 #endif
 
 /*

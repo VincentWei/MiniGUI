@@ -88,7 +88,6 @@ static RECT cliprc = {0, 0, 0, 0};
 
 #ifdef _MGHAVE_CURSOR
 
-#define CSR_SAVEDBITS   ((BYTE*)mgSharedRes + (((PG_RES)mgSharedRes)->svdbitsoffset))
 #define CSR_CURSORX     (((PG_RES)mgSharedRes)->cursorx)
 #define CSR_CURSORY     (((PG_RES)mgSharedRes)->cursory)
 #define CSR_OLDBOXLEFT  (((PG_RES)mgSharedRes)->oldboxleft)
@@ -102,7 +101,138 @@ static RECT cliprc = {0, 0, 0, 0};
 
 static PCURSOR *sys_cursors;
 static HCURSOR def_cursor;
+
+/* Cursor pointer shape and hiding and showing. */
+inline static int boxleft (void)
+{
+    if (!CSR_CURRENT) return -100;
+    return CSR_CURSORX - CSR_XHOTSPOT;
+}
+
+inline static int boxtop (void)
+{
+    if (!CSR_CURRENT) return -100;
+    return CSR_CURSORY - CSR_YHOTSPOT;
+}
+
+#ifdef _MGUSE_SHAREDFB
+#define CSR_SAVEDBITS   ((BYTE*)mgSharedRes + (((PG_RES)mgSharedRes)->svdbitsoffset))
 static BYTE* cursorbits = NULL;
+#endif
+
+#ifdef _MGUSE_COMPOSITING
+
+/* Cursor creating and destroying. */
+static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
+                     const BYTE* pANDBits, const BYTE* pXORBits, int colornum)
+{
+    GAL_Surface* csr_surf;
+    PCURSOR pcsr;
+
+    if (w != CURSORWIDTH || h != CURSORHEIGHT)
+        return 0;
+
+    if (!(pcsr = (PCURSOR)malloc (sizeof (CURSOR))))
+        return 0;
+
+    csr_surf = GAL_CreateCursorSurface (NULL, w, h);
+    if (!csr_surf) {
+        free (pcsr);
+        return 0;
+    }
+
+    pcsr->xhotspot = xhotspot;
+    pcsr->yhotspot = yhotspot;
+    pcsr->surface = csr_surf;
+
+    if (colornum == 1) {
+    }
+    else if (colornum == 4) {
+    }
+
+    return (HCURSOR)pcsr;
+}
+
+static HCURSOR srvCopyCursor (HCURSOR hcsr)
+{
+    PCURSOR pcsr = (PCURSOR)hcsr;
+    PCURSOR pdcsr;
+    GAL_Surface* dcsr_surf;
+    GAL_Surface* scsr_surf;
+
+    if (!(pdcsr = (PCURSOR)malloc (sizeof (CURSOR))))
+        return 0;
+
+    dcsr_surf = GAL_CreateCursorSurface (NULL, CURSORWIDTH, CURSORHEIGHT);
+    if (dcsr_surf == NULL) {
+        free (pdcsr);
+        return 0;
+    }
+
+    pdcsr->xhotspot = pcsr->xhotspot;
+    pdcsr->yhotspot = pcsr->yhotspot;
+    scsr_surf = pcsr->surface;
+
+    memcpy(dcsr_surf->pixels, scsr_surf->pixels, __mg_csrimgsize);
+    return (HCURSOR) pdcsr;
+}
+
+static BOOL srvDestroyCursor (HCURSOR hcsr)
+{
+    int i;
+    PCURSOR pcsr = (PCURSOR)hcsr;
+
+    if (pcsr == NULL)
+        return TRUE;
+
+    for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
+        if (pcsr == sys_cursors [i])
+            return FALSE;
+    }
+
+    if (pcsr == CSR_CURRENT)
+        SetCursor(def_cursor);
+
+    GAL_FreeCursorSurface(pcsr->surface);
+    free(pcsr);
+    return TRUE;
+}
+
+BOOL mg_InitCursor (void)
+{
+    if (mgIsServer) {
+
+        sys_cursors = (PCURSOR*)((PG_RES)mgSharedRes)->sys_cursors;
+        CSR_CURRENT_SET = 0;
+        CSR_SHOW_COUNT = 0;
+        CSR_OLDBOXLEFT  = -100;
+        CSR_OLDBOXTOP = -100;
+    }
+
+    return TRUE;
+}
+
+/* The following function must be called at last.  */
+void mg_TerminateCursor (void)
+{
+    int i;
+
+    if (mgIsServer) {
+
+        CSR_CURRENT_SET = 0;
+        CSR_SHOW_COUNT = 0;
+
+        for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
+            if (sys_cursors [i]) {
+                GAL_FreeCursorSurface (sys_cursors[i]->surface);
+                free (sys_cursors [i]);
+                sys_cursors [i] = NULL;
+            }
+        }
+    }
+}
+
+#else /* _MGUSE_COMPOSITING */
 
 #if 0 /* FIXME: I do not know why this can not work :( */
 Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
@@ -174,8 +304,7 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
     return (HCURSOR)pcsr;
 }
 
-#define _LEN_BITS   (MONOPITCH * CURSORHEIGHT)
-static HCURSOR GUIAPI srvCopyCursor (HCURSOR hcsr)
+static HCURSOR srvCopyCursor (HCURSOR hcsr)
 {
     PCURSOR pcsr = (PCURSOR)hcsr;
     PCURSOR pdcsr;
@@ -201,96 +330,6 @@ static HCURSOR GUIAPI srvCopyCursor (HCURSOR hcsr)
     return (HCURSOR) pdcsr;
 }
 
-HCURSOR GUIAPI CopyCursor (HCURSOR hcsr)
-{
-    if (mgIsServer) {
-        return srvCopyCursor(hcsr);
-    }
-    else {
-        HCURSOR hcursor;
-        REQUEST req;
-
-        req.id = REQID_COPYCURSOR;
-        req.len_data = sizeof(HCURSOR);
-        req.data = &hcsr;
-
-        if (ClientRequest (&req, &hcursor, sizeof (HCURSOR)) < 0)
-            hcursor = 0;
-
-        DEALLOCATE_LOCAL (tmp);
-        return hcursor;
-    }
-}
-
-HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,
-                     const BYTE* pANDBits, const BYTE* pXORBits, int colornum)
-{
-    if (mgIsServer) {
-        return srvCreateCursor (xhotspot, yhotspot, w, h,
-                        pANDBits, pXORBits, colornum);
-    }
-    else {
-        HCURSOR hcursor;
-        REQUEST req;
-        int len_and_bits, len_xor_bits;
-        int* tmp;
-
-        if (w != CURSORWIDTH || h != CURSORHEIGHT)
-            return 0;
-
-        len_and_bits = _LEN_BITS;
-        len_xor_bits = _LEN_BITS * ((colornum == 1) ? 1 : 4);
-
-        req.id = REQID_CREATECURSOR;
-        req.len_data = sizeof (int) * 6 + len_and_bits + len_xor_bits;
-
-        if ((tmp = (int*) ALLOCATE_LOCAL (req.len_data)) == NULL)
-            return 0;
-
-        tmp [0] = xhotspot; tmp [1] = yhotspot;
-        tmp [2] = w;        tmp [3] = h;
-        tmp [4] = colornum;
-        tmp [5] = _LEN_BITS;
-        memcpy (tmp + 6, pANDBits, len_and_bits);
-        memcpy ((BYTE*)(tmp + 6) + len_and_bits, pXORBits, len_xor_bits);
-
-        req.data = tmp;
-
-        if (ClientRequest (&req, &hcursor, sizeof (HCURSOR)) < 0)
-            hcursor = 0;
-
-        DEALLOCATE_LOCAL (tmp);
-        return hcursor;
-    }
-}
-
-#include "cursor-comm.c"
-
-HCURSOR GUIAPI LoadCursorFromFile (const char* filename)
-{
-    if (mgIsServer) {
-        return load_cursor_from_file (filename);
-    }
-    else {
-        HCURSOR hcursor;
-        REQUEST req;
-
-        req.id = REQID_LOADCURSOR;
-        req.data = filename;
-        req.len_data = strlen (filename) + 1;
-
-        if (ClientRequest (&req, &hcursor, sizeof (HCURSOR)) < 0)
-            return 0;
-
-        return hcursor;
-    }
-}
-
-HCURSOR GUIAPI LoadCursorFromMem (const void* area)
-{
-    return load_cursor_from_mem (area);
-}
-
 static BOOL srvDestroyCursor (HCURSOR hcsr)
 {
     int i;
@@ -311,26 +350,6 @@ static BOOL srvDestroyCursor (HCURSOR hcsr)
     free(pcsr->XorBits);
     free(pcsr);
     return TRUE;
-}
-
-BOOL GUIAPI DestroyCursor (HCURSOR hcsr)
-{
-    if (mgIsServer) {
-        return srvDestroyCursor (hcsr);
-    }
-    else {
-        REQUEST req;
-        BOOL ret_value;
-
-        req.id = REQID_DESTROYCURSOR;
-        req.data = &hcsr;
-        req.len_data = sizeof (HCURSOR);
-
-        if (ClientRequest (&req, &ret_value, sizeof (BOOL)) < 0)
-            return FALSE;
-
-        return ret_value;
-    }
 }
 
 static void init_system_cursor (void)
@@ -422,19 +441,6 @@ void mg_TerminateCursor (void)
     }
 }
 
-/* Cursor pointer shape and hiding and showing. */
-inline static int boxleft (void)
-{
-    if (!CSR_CURRENT) return -100;
-    return CSR_CURSORX - CSR_XHOTSPOT;
-}
-
-inline static int boxtop (void)
-{
-    if (!CSR_CURRENT) return -100;
-    return CSR_CURSORY - CSR_YHOTSPOT;
-}
-
 static GAL_Rect csr_rect = {0, 0, CURSORWIDTH, CURSORHEIGHT};
 
 static void hidecursor (void)
@@ -504,6 +510,132 @@ static void showcursor (void)
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
 }
 
+#endif /* _MGUSE_COMPOSITING */
+
+HCURSOR GUIAPI CopyCursor (HCURSOR hcsr)
+{
+    if (mgIsServer) {
+        return srvCopyCursor(hcsr);
+    }
+    else {
+        HCURSOR hcursor;
+        REQUEST req;
+
+        req.id = REQID_COPYCURSOR;
+        req.len_data = sizeof(HCURSOR);
+        req.data = &hcsr;
+
+        if (ClientRequest (&req, &hcursor, sizeof (HCURSOR)) < 0)
+            hcursor = 0;
+
+        DEALLOCATE_LOCAL (tmp);
+        return hcursor;
+    }
+}
+
+#define _LEN_BITS   (MONOPITCH * CURSORHEIGHT)
+HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,
+                     const BYTE* pANDBits, const BYTE* pXORBits, int colornum)
+{
+    if (mgIsServer) {
+        return srvCreateCursor (xhotspot, yhotspot, w, h,
+                        pANDBits, pXORBits, colornum);
+    }
+    else {
+        HCURSOR hcursor;
+        REQUEST req;
+        int len_and_bits, len_xor_bits;
+        int* tmp;
+
+        if (w != CURSORWIDTH || h != CURSORHEIGHT)
+            return 0;
+
+        len_and_bits = _LEN_BITS;
+        len_xor_bits = _LEN_BITS * ((colornum == 1) ? 1 : 4);
+
+        req.id = REQID_CREATECURSOR;
+        req.len_data = sizeof (int) * 6 + len_and_bits + len_xor_bits;
+
+        if ((tmp = (int*) ALLOCATE_LOCAL (req.len_data)) == NULL)
+            return 0;
+
+        tmp [0] = xhotspot; tmp [1] = yhotspot;
+        tmp [2] = w;        tmp [3] = h;
+        tmp [4] = colornum;
+        tmp [5] = _LEN_BITS;
+        memcpy (tmp + 6, pANDBits, len_and_bits);
+        memcpy ((BYTE*)(tmp + 6) + len_and_bits, pXORBits, len_xor_bits);
+
+        req.data = tmp;
+
+        if (ClientRequest (&req, &hcursor, sizeof (HCURSOR)) < 0)
+            hcursor = 0;
+
+        DEALLOCATE_LOCAL (tmp);
+        return hcursor;
+    }
+}
+
+#include "cursor-comm.c"
+
+HCURSOR GUIAPI LoadCursorFromFile (const char* filename)
+{
+    if (mgIsServer) {
+        return load_cursor_from_file (filename);
+    }
+    else {
+        HCURSOR hcursor;
+        REQUEST req;
+
+        req.id = REQID_LOADCURSOR;
+        req.data = filename;
+        req.len_data = strlen (filename) + 1;
+
+        if (ClientRequest (&req, &hcursor, sizeof (HCURSOR)) < 0)
+            return 0;
+
+        return hcursor;
+    }
+}
+
+HCURSOR GUIAPI LoadCursorFromMem (const void* area)
+{
+    return load_cursor_from_mem (area);
+}
+
+BOOL GUIAPI DestroyCursor (HCURSOR hcsr)
+{
+    if (mgIsServer) {
+        return srvDestroyCursor (hcsr);
+    }
+    else {
+        REQUEST req;
+        BOOL ret_value;
+
+        req.id = REQID_DESTROYCURSOR;
+        req.data = &hcsr;
+        req.len_data = sizeof (HCURSOR);
+
+        if (ClientRequest (&req, &ret_value, sizeof (BOOL)) < 0)
+            return FALSE;
+
+        return ret_value;
+    }
+}
+
+HCURSOR GUIAPI GetSystemCursor (int csrid)
+{
+    if (csrid >= ((PG_RES)mgSharedRes)->csrnum || csrid < 0)
+        return 0;
+
+    return (HCURSOR) (sys_cursors [csrid]);
+}
+
+HCURSOR GUIAPI GetDefaultCursor (void)
+{
+    return def_cursor;
+}
+
 #endif /* _MGHAVE_CURSOR */
 
 /* The return value indicates whether mouse has moved.  */
@@ -524,9 +656,8 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
     if (oldx != curx || oldy != cury) {
 
-#ifdef _MGHAVE_CURSOR
+#if defined (_MGHAVE_CURSOR) && defined(_MGUSE_SHAREDFB)
         lock_cursor_sem ();
-
         CSR_CURSORX = curx;
         CSR_CURSORY = cury;
         if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
@@ -540,7 +671,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
             showcursor ();
         }
         unlock_cursor_sem ();
-#endif /* _MGHAVE_CURSOR */
+#endif /* _MGHAVE_CURSOR && _MGUSE_SHAREDFB*/
 
         oldx = curx;
         oldy = cury;
@@ -552,6 +683,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
 #ifdef _MGHAVE_CURSOR
 
+#ifdef _MGUSE_SHAREDFB
 /* show cursor hidden by client GDI function */
 void kernel_ReShowCursor (void)
 {
@@ -564,6 +696,7 @@ void kernel_ReShowCursor (void)
     }
     unlock_cursor_sem ();
 }
+#endif /* _MGUSE_SHAREDFB */
 
 /* Always call with "setdef = FALSE" for clients at server side. */
 HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
@@ -597,6 +730,17 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     pcsr = (PCURSOR)hcsr;
 
     lock_cursor_sem ();
+#ifdef _MGUSE_COMPOSITING
+    CSR_CURRENT_SET = (HCURSOR)pcsr;
+    CSR_XHOTSPOT = pcsr ? pcsr->xhotspot : -100;
+    CSR_YHOTSPOT = pcsr ? pcsr->yhotspot : -100;
+
+    if (CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+        GAL_SetCursor (pcsr->surface, pcsr->xhotspot, pcsr->yhotspot);
+    else
+        GAL_SetCursor (NULL, 0, 0);
+
+#else /* _MGUSE_SHAREDFB */
     if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
                     && get_hidecursor_sem_val () == 0)
         hidecursor();
@@ -608,6 +752,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
                     && get_hidecursor_sem_val () == 0)
         showcursor();
+#endif
     unlock_cursor_sem ();
 
     return (HCURSOR) old;
@@ -659,6 +804,7 @@ inline static BOOL does_need_hide (const RECT* prc)
     return TRUE;
 }
 
+#ifdef _MGUSE_SHAREDFB
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
     PDC cur_pdc = (PDC)pdc;
@@ -692,6 +838,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         }
     }
 }
+#endif
 
 int GUIAPI ShowCursor (BOOL fShow)
 {
@@ -707,6 +854,7 @@ int GUIAPI ShowCursor (BOOL fShow)
         return ret_value;
     }
 
+#ifdef _MGUSE_SHAREDFB
     lock_cursor_sem ();
     if (fShow) {
         CSR_SHOW_COUNT++;
@@ -720,11 +868,26 @@ int GUIAPI ShowCursor (BOOL fShow)
            hidecursor();
     }
     unlock_cursor_sem ();
+#else /* _MGUSE_SHAREDFB */
+    if (fShow) {
+        CSR_SHOW_COUNT++;
+        if (CSR_SHOW_COUNT == 0 && CSR_CURRENT) {
+            PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
+            GAL_SetCursor (pcsr->surface, pcsr->xhotspot, pcsr->yhotspot);
+        }
+    }
+    else {
+        CSR_SHOW_COUNT--;
+        if (CSR_SHOW_COUNT == -1 && CSR_CURRENT) {
+            GAL_SetCursor (NULL, 0, 0);
+        }
+    }
+#endif /* _MGUSE_COMPOSITING */
 
     return CSR_SHOW_COUNT;
 }
 
-#else
+#else /* _MGHAVE_CURSOR */
 
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
