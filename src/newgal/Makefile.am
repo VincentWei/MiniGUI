@@ -30,14 +30,16 @@ COMMON_SRCS =       \
     pixels.c        \
     pixels_c.h      \
     surface.c       \
-    surface-shared.c \
     stretch.c       \
     stretch_c.h     \
     sysvideo.h      \
     video.c         \
     newgal.c        \
-    videomem-bucket.h \
-    videomem-bucket.c
+    videomem-bucket.h   \
+    videomem-bucket.c   \
+    surface-shared.c    \
+    surface-cursor.c    \
+    $(NULL_FILE)
 
 libnewgal_la_SOURCES = $(COMMON_SRCS)
 libnewgal_la_LIBADD = $(DRIVERS)
