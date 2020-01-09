@@ -226,6 +226,57 @@ static int load_cursor (int cli, int clifd, void* buff, size_t len)
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
 }
 
+#if IS_COMPOSITING_SCHEMA
+static int load_cursor_png_file (int cli, int clifd, void* buff, size_t len)
+{
+    int hotspot[2];
+    HCURSOR hcsr = 0;
+
+    if (len <= (sizeof (hotspot) + 1)) // length of file name is 0.
+        goto ret;
+
+    memcpy (hotspot, buff, sizeof(hotspot));
+    hcsr = LoadCursorFromPNGFile (buff + sizeof(hotspot), hotspot[0], hotspot[1]);
+
+#ifdef _MGHAVE_CURSOR
+    if (hcsr) {
+        add_global_res (cli, (void*) hcsr,
+                        (void*)hcsr, (ReleaseProc)DestroyCursor);
+    }
+#endif
+
+ret:
+    return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
+}
+
+static int load_cursor_png_mem (int cli, int clifd, void* buff, size_t len)
+{
+    int hotspot[2];
+    HCURSOR hcsr;
+
+    /* check wheter has enough PNG data.
+     * see: https://garethrees.org/2007/11/14/pngcrush/
+     */
+    if (len < (sizeof (hotspot) + 67))
+        goto ret;
+
+    memcpy (hotspot, buff, sizeof(hotspot));
+    hcsr = LoadCursorFromPNGMem (buff + sizeof(hotspot), len - sizeof (hotspot),
+            hotspot[0], hotspot[1]);
+
+#ifdef _MGHAVE_CURSOR
+    if (hcsr) {
+        add_global_res (cli, (void*) hcsr,
+                        (void*)hcsr, (ReleaseProc)DestroyCursor);
+    }
+#endif
+
+ret:
+    return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
+}
+
+#endif /* IS_COMPOSITING_SCHEMA */
+
 static int create_cursor (int cli, int clifd, void* buff, size_t len)
 {
     HCURSOR hcsr;
@@ -709,7 +760,11 @@ static struct req_request {
     { copy_cursor, 0 },
 #if IS_COMPOSITING_SCHEMA
     { get_wp_surface, 0 },
+    { load_cursor_png_file, 0 },
+    { load_cursor_png_mem, 0 },
 #else
+    { NULL, 0 },
+    { NULL, 0 },
     { NULL, 0 },
 #endif
 };
