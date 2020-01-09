@@ -2794,7 +2794,7 @@ MG_EXPORT void GUIAPI FreeFixStr (char* str);
  *
  * \return Handle to the cursor, zero on error.
  *
- * \note MiniGUI does not support 256-color or animation cursor.
+ * \note This function does not support 256-color or animation cursor.
  *
  * \sa SetCursor
  */
@@ -2812,11 +2812,64 @@ MG_EXPORT HCURSOR GUIAPI LoadCursorFromFile (const char* filename);
  *
  * \return Handle to the cursor, zero on error.
  *
- * \note MiniGUI does not support 256-color or animation cursor.
+ * \note This function does not support 256-color or animation cursor.
  *
  * \sa SetCursor
  */
 MG_EXPORT HCURSOR GUIAPI LoadCursorFromMem (const void* area);
+
+#ifdef _MGUSE_COMPOSITING
+
+/**
+ * \fn HCURSOR GUIAPI LoadCursorFromPNGFile (const char* filename,
+        int hotspot_x, int hotspot_y)
+ * \brief Loads a cursor from a PNG file.
+ *
+ * This function loads a cursor from a PNG file
+ * named \a filename and returns the handle to loaded cursor.
+ * The returned handle can be used by \a SetCursor to set new mouse cursor.
+ *
+ * \param filename The path name of the PNG file.
+ * \param hotspot_x The x-coordinate of the hot spot.
+ * \param hotspot_y The y-coordinate of the hot spot.
+ *
+ * \return Handle to the cursor, zero on error.
+ *
+ * \note This function only available when using compoisting schema.
+ *
+ * \sa SetCursor
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGFile (const char* filename,
+        int hotspot_x, int hotspot_y);
+
+/**
+ * \fn HCURSOR GUIAPI LoadCursorFromPNGMem (const void* area, size_t size,
+        int hotspot_x, int hotspot_y)
+ * \brief Loads a cursor from a memory area in PNG layout.
+ *
+ * This function loads a cursor from a memory area pointed to by \a area.
+ * The memory has the same layout as a PNG file.
+ * The returned handle can be used by \a SetCursor to set new mouse cursor.
+ *
+ * \param area The pointer to the PNG data.
+ * \param size The size of the PNG data in bytes.
+ * \param hotspot_x The x-coordinate of the hot spot.
+ * \param hotspot_y The y-coordinate of the hot spot.
+ *
+ * \return Handle to the cursor, zero on error.
+ *
+ * \note This function only available when using compoisting schema.
+ *
+ * \sa SetCursor
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGMem (const void* area, size_t size,
+        int hotspot_x, int hotspot_y);
+
+#endif /* _MGUSE_COMPOSITING */
 
 /**
  * \fn HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,\
@@ -2841,7 +2894,7 @@ MG_EXPORT HCURSOR GUIAPI LoadCursorFromMem (const void* area);
  *
  * \return Handle to the cursor, zero on error.
  *
- * \note MiniGUI only support 2-color or 16-color cursor.
+ * \note This function only supports 2-color or 16-color cursor.
  */
 MG_EXPORT HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,
                const BYTE* pANDBits, const BYTE* pXORBits, int colornum);
@@ -2944,12 +2997,32 @@ MG_EXPORT HCURSOR GUIAPI GetCurrentCursor (void);
 
 #else /* _MGHAVE_CURSOR */
 
-static inline HCURSOR LoadCursorFromFile(const char* filename) {
+static inline HCURSOR LoadCursorFromFile (const char* filename) {
     return (HCURSOR)0;
 }
 
-static inline HCURSOR CreateCursor(int xhotspot, int yhotspot, int w, int h,
-               const BYTE* pANDBits, const BYTE* pXORBits, int colornum) {
+static inline HCURSOR GUIAPI LoadCursorFromMem (const void* area) {
+    return (HCURSOR)0;
+}
+
+#ifdef _MGUSE_COMPOSITING
+static inline
+HCURSOR LoadCursorFromPNGFile(const char* filename,
+        int hotspot_x, int hotspot_y) {
+    return (HCURSOR)0;
+}
+
+static inline
+HCURSOR GUIAPI LoadCursorFromPNGMem(const void* area, size_t size,
+        int hotspot_x, int hotspot_y) {
+    return (HCURSOR)0;
+}
+
+#endif
+
+static inline
+HCURSOR CreateCursor (int xhotspot, int yhotspot, int w, int h,
+        const BYTE* pANDBits, const BYTE* pXORBits, int colornum) {
     return (HCURSOR)0;
 }
 
