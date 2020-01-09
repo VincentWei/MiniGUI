@@ -10493,6 +10493,14 @@ struct _BITMAP
 #include "endianrw.h"
 
 /**
+ * \var typedef void (* CB_ALLOC_BITMAP_BUFF) (void* context, BITMAP* bmp)
+ * \brief The type of callback to allocate pixel buffer for BITMAP object.
+ *
+ * Return TRUE for success, otherwise FALSE.
+ */
+typedef BOOL (* CB_ALLOC_BITMAP_BUFF) (void* context, BITMAP* bmp);
+
+/**
  * \var typedef void (* CB_ONE_SCANLINE) (void* context, MYBITMAP* my_bmp, int y)
  * \brief The type of scanline loaded callback.
  */
@@ -10628,7 +10636,6 @@ MG_EXPORT BOOL GUIAPI mlsGetSlaveScreenInfo (HDC dc_mls, DWORD mask, int* offset
  */
 MG_EXPORT BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable);
 
-
 #define ERR_BMP_OK              0
 #define ERR_BMP_IMAGE_TYPE      -1
 #define ERR_BMP_UNKNOWN_TYPE    -2
@@ -10640,6 +10647,45 @@ MG_EXPORT BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable);
 #define ERR_BMP_FILEIO          -8
 #define ERR_BMP_OTHER           -9
 #define ERR_BMP_ERROR_SOURCE    -10
+
+/**
+ * \fn int GUIAPI LoadBitmapEx2 (HDC hdc, PBITMAP pBitmap,
+                MG_RWops* area, const char* ext,
+                CB_ALLOC_BITMAP_BUFF cb_alloc_buff, void* context)
+ * \brief Loads a device-dependent bitmap from a general data source.
+ *
+ * This function loads a device-dependent bitmap from the data source \a area.
+ * This function gives a chance to the caller to allocate the pixel buffer
+ * of the BITMAP object in a different way.
+ *
+ * \param hdc The device context.
+ * \param pBitmap The pointer to the BITMAP object.
+ * \param area The data source.
+ * \param ext The extension of the type of this bitmap.
+ * \param cb_alloc_buff The callback to allocate the buffer for the pixels.
+ *      If it is NULL, the function will allocate the buffer by calling malloc.
+ * \param context The context will be passed to the \a cb_alloc_buff.
+ *
+ * \return 0 on success, less than 0 on error.
+ *
+ * \retval ERR_BMP_OK Loading successfully
+ * \retval ERR_BMP_IMAGE_TYPE Not a valid bitmap.
+ * \retval ERR_BMP_UNKNOWN_TYPE Not recongnized bitmap type.
+ * \retval ERR_BMP_CANT_READ Read error.
+ * \retval ERR_BMP_CANT_SAVE Save error.
+ * \retval ERR_BMP_NOT_SUPPORTED Not supported bitmap type.
+ * \retval ERR_BMP_MEM Memory allocation error.
+ * \retval ERR_BMP_LOAD Loading error.
+ * \retval ERR_BMP_FILEIO I/O failed.
+ * \retval ERR_BMP_OTHER Other error.
+ * \retval ERR_BMP_ERROR_SOURCE A error data source.
+ *
+ * \sa LoadBitmapFromFile, LoadBitmapFromMem, CB_ALLOC_BITMAP_BUFF
+ */
+MG_EXPORT int GUIAPI LoadBitmapEx2 (HDC hdc, PBITMAP pBitmap,
+                MG_RWops* area, const char* ext,
+                CB_ALLOC_BITMAP_BUFF cb_alloc_buff, void* context);
+
 /**
  * \fn int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP pBitmap, \
                 MG_RWops* area, const char* ext)
@@ -10667,8 +10713,10 @@ MG_EXPORT BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable);
  *
  * \sa LoadBitmapFromFile, LoadBitmapFromMem
  */
-MG_EXPORT int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP pBitmap,
-                MG_RWops* area, const char* ext);
+static inline int LoadBitmapEx (HDC hdc, PBITMAP pBitmap,
+                MG_RWops* area, const char* ext) {
+    return LoadBitmapEx2 (hdc, pBitmap, area, ext, NULL, NULL);
+}
 
 /**
  * \fn int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP pBitmap, \
