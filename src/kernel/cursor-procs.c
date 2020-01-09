@@ -80,9 +80,6 @@
 #include "drawsemop.h"
 #include "readbmp.h"
 
-unsigned int __mg_csrimgsize;
-unsigned int __mg_csrimgpitch;
-
 static int oldx = -1, oldy;
 static RECT cliprc = {0, 0, 0, 0};
 
@@ -99,8 +96,8 @@ static RECT cliprc = {0, 0, 0, 0};
 #define CSR_YHOTSPOT    (((PG_RES)mgSharedRes)->yhotspot)
 #define CSR_SHOW_COUNT  (((PG_RES)mgSharedRes)->csr_show_count)
 
-static PCURSOR *sys_cursors;
-static HCURSOR def_cursor;
+static PCURSOR *_sys_cursors;
+static HCURSOR _def_cursor;
 
 /* Cursor pointer shape and hiding and showing. */
 inline static int boxleft (void)
@@ -116,11 +113,19 @@ inline static int boxtop (void)
 }
 
 #ifdef _MGUSE_SHAREDFB
+
+unsigned int __mg_csrimgsize;
+unsigned int __mg_csrimgpitch;
+
 #define CSR_SAVEDBITS   ((BYTE*)mgSharedRes + (((PG_RES)mgSharedRes)->svdbitsoffset))
-static BYTE* cursorbits = NULL;
+
+static BYTE* _cursor_bits = NULL;
 #endif
 
 #ifdef _MGUSE_COMPOSITING
+
+/* the empty global DC for cursor */
+static HDC _dc_cursor;
 
 /* Cursor creating and destroying. */
 static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
@@ -129,7 +134,7 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
     GAL_Surface* csr_surf;
     PCURSOR pcsr;
 
-    if (w != CURSORWIDTH || h != CURSORHEIGHT)
+    if (w <= 0 || w > MAX_CURSORWIDTH || h <= 0 || h > MAX_CURSORHEIGHT)
         return 0;
 
     if (!(pcsr = (PCURSOR)malloc (sizeof (CURSOR))))
@@ -163,7 +168,8 @@ static HCURSOR srvCopyCursor (HCURSOR hcsr)
     if (!(pdcsr = (PCURSOR)malloc (sizeof (CURSOR))))
         return 0;
 
-    dcsr_surf = GAL_CreateCursorSurface (NULL, CURSORWIDTH, CURSORHEIGHT);
+    scsr_surf = pcsr->surface;
+    dcsr_surf = GAL_CreateCursorSurface (NULL, scsr_surf->w, scsr_surf->h);
     if (dcsr_surf == NULL) {
         free (pdcsr);
         return 0;
@@ -171,9 +177,8 @@ static HCURSOR srvCopyCursor (HCURSOR hcsr)
 
     pdcsr->xhotspot = pcsr->xhotspot;
     pdcsr->yhotspot = pcsr->yhotspot;
-    scsr_surf = pcsr->surface;
 
-    memcpy(dcsr_surf->pixels, scsr_surf->pixels, __mg_csrimgsize);
+    memcpy(dcsr_surf->pixels, scsr_surf->pixels, scsr_surf->h * scsr_surf->pitch);
     return (HCURSOR) pdcsr;
 }
 
@@ -186,29 +191,172 @@ static BOOL srvDestroyCursor (HCURSOR hcsr)
         return TRUE;
 
     for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
-        if (pcsr == sys_cursors [i])
+        if (pcsr == _sys_cursors [i])
             return FALSE;
     }
 
     if (pcsr == CSR_CURRENT)
-        SetCursor(def_cursor);
+        SetCursor(_def_cursor);
 
     GAL_FreeCursorSurface(pcsr->surface);
     free(pcsr);
     return TRUE;
 }
 
+static BOOL my_buff_allocator (void* context, BITMAP* bmp)
+{
+    PCURSOR* pcsr = context;
+    GAL_Surface* csr_surf;
+
+    if (bmp->bmWidth <= 0 || bmp->bmWidth > MAX_CURSORWIDTH ||
+            bmp->bmHeight <= 0 || bmp->bmHeight > MAX_CURSORHEIGHT)
+        return FALSE;
+
+    assert (bmp->bmAlphaPitch == 0);
+
+    csr_surf = GAL_CreateCursorSurface (NULL, bmp->bmWidth, bmp->bmHeight);
+    if (!csr_surf) {
+        return FALSE;
+    }
+
+    bmp->bmBits = csr_surf->pixels;
+    (*pcsr)->surface = csr_surf;
+
+    return TRUE;
+}
+
+static PCURSOR srvLoadCursorFromPNG (MG_RWops* area)
+{
+    BITMAP bmp;
+    PCURSOR pcsr;
+    int ret;
+
+    if (!(pcsr = (PCURSOR)malloc (sizeof (CURSOR))))
+        return NULL;
+
+    ret = LoadBitmapEx2 (_dc_cursor, &bmp, area, "png", my_buff_allocator, &pcsr);
+    if (ret) {
+        goto error;
+    }
+
+    return (HCURSOR)pcsr;
+
+error:
+    if (pcsr->surface) {
+        GAL_FreeCursorSurface(pcsr->surface);
+    }
+    free (pcsr);
+    return NULL;
+}
+
+static HCURSOR srvLoadCursorFromPNGFile (const char* filename,
+        int xhotspot, int yhotspot)
+{
+    PCURSOR csr;
+    MG_RWops* area;
+
+    if (!(area = MGUI_RWFromFile (filename, "rb"))) {
+        _WRN_PRINTF ("Failed to make RWOps\n");
+        return NULL;
+    }
+
+    csr = srvLoadCursorFromPNG(area);
+    if (csr) {
+        csr->xhotspot = xhotspot;
+        csr->yhotspot = yhotspot;
+    }
+
+    MGUI_RWclose (area);
+
+    return csr;
+}
+
+HCURSOR GUIAPI LoadCursorFromPNGFile (const char* filename,
+        int xhotspot, int yhotspot)
+{
+    if (mgIsServer) {
+        return srvLoadCursorFromPNGFile (filename, xhotspot, yhotspot);
+    }
+    else {
+        HCURSOR hcursor;
+        REQUEST req;
+        int hotspot[2] = { xhotspot, yhotspot };
+
+        req.id = REQID_LOADCURSOR_PNG;
+        req.data = hotspot;
+        req.len_data = sizeof (hotspot);
+
+        if (ClientRequestEx (&req, filename, strlen (filename) + 1,
+                &hcursor, sizeof (HCURSOR)) < 0)
+            return 0;
+
+        return hcursor;
+    }
+}
+
+static HCURSOR srvLoadCursorFromPNGMem (const void* mem, size_t size,
+        int xhotspot, int yhotspot)
+{
+    PCURSOR csr;
+    MG_RWops* area;
+
+    if (!(area = MGUI_RWFromMem ((void*)mem, size))) {
+        _WRN_PRINTF ("Failed to make RWOps\n");
+        return NULL;
+    }
+
+    csr = srvLoadCursorFromPNG(area);
+
+    if (csr) {
+        csr->xhotspot = xhotspot;
+        csr->yhotspot = yhotspot;
+    }
+
+    MGUI_RWclose (area);
+
+    return csr;
+}
+
+HCURSOR GUIAPI LoadCursorFromPNGMem (const void* area, size_t size,
+        int xhotspot, int yhotspot)
+{
+    if (mgIsServer) {
+        return srvLoadCursorFromPNGMem (area, size, xhotspot, yhotspot);
+    }
+    else {
+        HCURSOR hcursor;
+        REQUEST req;
+        int hotspot[2] = { xhotspot, yhotspot };
+
+        req.id = REQID_LOADCURSOR_PNG_MEM;
+        req.data = hotspot;
+        req.len_data = sizeof(hotspot);
+
+        if (ClientRequestEx (&req, area, size, &hcursor, sizeof (HCURSOR)) < 0)
+            return 0;
+
+        return hcursor;
+    }
+}
+
 BOOL mg_InitCursor (void)
 {
     if (mgIsServer) {
-
-        sys_cursors = (PCURSOR*)((PG_RES)mgSharedRes)->sys_cursors;
         CSR_CURRENT_SET = 0;
         CSR_SHOW_COUNT = 0;
         CSR_OLDBOXLEFT  = -100;
         CSR_OLDBOXTOP = -100;
+
+        static char fake_bits [4];
+        _dc_cursor = CreateMemDCEx (1, 1, 32,
+                MEMDC_FLAG_SWSURFACE | MEMDC_FLAG_SRCALPHA,
+                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000,
+                fake_bits, sizeof (fake_bits));
+        if (_dc_cursor == HDC_INVALID)
+            return FALSE;
     }
 
+    _sys_cursors = (PCURSOR*)((PG_RES)mgSharedRes)->sys_cursors;
     return TRUE;
 }
 
@@ -223,12 +371,14 @@ void mg_TerminateCursor (void)
         CSR_SHOW_COUNT = 0;
 
         for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
-            if (sys_cursors [i]) {
-                GAL_FreeCursorSurface (sys_cursors[i]->surface);
-                free (sys_cursors [i]);
-                sys_cursors [i] = NULL;
+            if (_sys_cursors [i]) {
+                GAL_FreeCursorSurface (_sys_cursors[i]->surface);
+                free (_sys_cursors [i]);
+                _sys_cursors [i] = NULL;
             }
         }
+
+        DeleteMemDC (_dc_cursor);
     }
 }
 
@@ -339,12 +489,12 @@ static BOOL srvDestroyCursor (HCURSOR hcsr)
         return TRUE;
 
     for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
-        if (pcsr == sys_cursors [i])
+        if (pcsr == _sys_cursors [i])
             return FALSE;
     }
 
     if (pcsr == CSR_CURRENT)
-        SetCursor(def_cursor);
+        SetCursor(_def_cursor);
 
     free(pcsr->AndBits);
     free(pcsr->XorBits);
@@ -362,15 +512,15 @@ static void init_system_cursor (void)
 
     for (csrid = 0; csrid < ((PG_RES)mgSharedRes)->csrnum; csrid++) {
 
-        if (!(sys_cursors [csrid] = (PCURSOR) malloc (sizeof(CURSOR))))
+        if (!(_sys_cursors [csrid] = (PCURSOR) malloc (sizeof(CURSOR))))
             return;
 
-        sys_cursors [csrid]->xhotspot = ((PCURSOR)temp)->xhotspot;
-        sys_cursors [csrid]->yhotspot = ((PCURSOR)temp)->yhotspot;
-        sys_cursors [csrid]->width    = ((PCURSOR)temp)->width;
-        sys_cursors [csrid]->height   = ((PCURSOR)temp)->height;
-        sys_cursors [csrid]->AndBits  = temp + sizeof(CURSOR);
-        sys_cursors [csrid]->XorBits  = temp + sizeof(CURSOR) + __mg_csrimgsize;
+        _sys_cursors [csrid]->xhotspot = ((PCURSOR)temp)->xhotspot;
+        _sys_cursors [csrid]->yhotspot = ((PCURSOR)temp)->yhotspot;
+        _sys_cursors [csrid]->width    = ((PCURSOR)temp)->width;
+        _sys_cursors [csrid]->height   = ((PCURSOR)temp)->height;
+        _sys_cursors [csrid]->AndBits  = temp + sizeof(CURSOR);
+        _sys_cursors [csrid]->XorBits  = temp + sizeof(CURSOR) + __mg_csrimgsize;
 
         temp += (sizeof(CURSOR) + 2 * __mg_csrimgsize);
     }
@@ -381,23 +531,23 @@ HCURSOR GUIAPI GetSystemCursor (int csrid)
     if (csrid >= ((PG_RES)mgSharedRes)->csrnum || csrid < 0)
         return 0;
 
-    return (HCURSOR) (sys_cursors [csrid]);
+    return (HCURSOR) (_sys_cursors [csrid]);
 }
 
 HCURSOR GUIAPI GetDefaultCursor (void)
 {
-    return def_cursor;
+    return _def_cursor;
 }
 
 static BITMAP csr_bmp;
 
 BOOL mg_InitCursor (void)
 {
-    sys_cursors = mgSharedRes + ((PG_RES)mgSharedRes)->csroffset;
+    _sys_cursors = mgSharedRes + ((PG_RES)mgSharedRes)->csroffset;
 
     if (mgIsServer) {
 
-        if (!(cursorbits = malloc (__mg_csrimgsize))) {
+        if (!(_cursor_bits = malloc (__mg_csrimgsize))) {
             return FALSE;
         }
 
@@ -427,15 +577,15 @@ void mg_TerminateCursor (void)
 
     if (mgIsServer) {
 
-        free (cursorbits);
+        free (_cursor_bits);
 
         CSR_CURRENT_SET = 0;
         CSR_SHOW_COUNT = 0;
 
         for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
-            if (sys_cursors [i]) {
-                free (sys_cursors [i]);
-                sys_cursors [i] = NULL;
+            if (_sys_cursors [i]) {
+                free (_sys_cursors [i]);
+                _sys_cursors [i] = NULL;
             }
         }
     }
@@ -486,17 +636,17 @@ static void showcursor (void)
     CSR_OLDBOXLEFT = x;
     CSR_OLDBOXTOP = y;
 
-    GAL_memcpy4 (cursorbits, CSR_SAVEDBITS, __mg_csrimgsize >> 2);
+    GAL_memcpy4 (_cursor_bits, CSR_SAVEDBITS, __mg_csrimgsize >> 2);
 
 #ifdef ASM_memandcpy4
-    ASM_memandcpy4 (cursorbits, CSR_CURRENT->AndBits, __mg_csrimgsize >> 2);
-    ASM_memxorcpy4 (cursorbits, CSR_CURRENT->XorBits, __mg_csrimgsize >> 2);
+    ASM_memandcpy4 (_cursor_bits, CSR_CURRENT->AndBits, __mg_csrimgsize >> 2);
+    ASM_memxorcpy4 (_cursor_bits, CSR_CURRENT->XorBits, __mg_csrimgsize >> 2);
 #else
     {
         int i;
         Uint32* andbits = (Uint32*) CSR_CURRENT->AndBits;
         Uint32* xorbits = (Uint32*) CSR_CURRENT->XorBits;
-        Uint32* dst = (Uint32*) cursorbits;
+        Uint32* dst = (Uint32*) _cursor_bits;
 
         for (i = 0; i < __mg_csrimgsize >> 2; i++) {
             dst [i] &= andbits [i];
@@ -505,7 +655,7 @@ static void showcursor (void)
     }
 #endif
 
-    csr_bmp.bmBits = cursorbits;
+    csr_bmp.bmBits = _cursor_bits;
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
 }
@@ -628,12 +778,12 @@ HCURSOR GUIAPI GetSystemCursor (int csrid)
     if (csrid >= ((PG_RES)mgSharedRes)->csrnum || csrid < 0)
         return 0;
 
-    return (HCURSOR) (sys_cursors [csrid]);
+    return (HCURSOR) (_sys_cursors [csrid]);
 }
 
 HCURSOR GUIAPI GetDefaultCursor (void)
 {
-    return def_cursor;
+    return _def_cursor;
 }
 
 #endif /* _MGHAVE_CURSOR */
@@ -717,8 +867,8 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     }
 
     if (setdef) {
-        old = (PCURSOR) def_cursor;
-        def_cursor = hcsr;
+        old = (PCURSOR) _def_cursor;
+        _def_cursor = hcsr;
     }
     else
         old = CSR_CURRENT;
