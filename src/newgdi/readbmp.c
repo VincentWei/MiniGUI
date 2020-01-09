@@ -201,9 +201,14 @@ inline static BOOL device_has_alpha(HDC hdc)
     return FALSE;
 }
 
+#define ALLOC_BUFF_NONE     0
+#define ALLOC_BUFF_LINE     1
+#define ALLOC_BUFF_ALL      1
+#define ALLOC_ALL (alloc_method == ALLOC_BUFF_ALL)
+
 /* Initializes a bitmap object with a mybitmap object */
 static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
-                const MYBITMAP* my_bmp, RGB* pal, BOOL alloc_all)
+                const MYBITMAP* my_bmp, RGB* pal, int alloc_method)
 {
     int ret = ERR_BMP_OK;
     unsigned int size;
@@ -214,18 +219,19 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
 
     bmp->bmBitsPerPixel = pdc->surface->format->BitsPerPixel;
     bmp->bmBytesPerPixel = pdc->surface->format->BytesPerPixel;
+    bmp->bmWidth = my_bmp->w;
+    bmp->bmHeight = my_bmp->h;
+    bmp->bmBits = NULL;
     bmp->bmAlphaMask = NULL;
     bmp->bmAlphaPitch = 0;
 
     size = GAL_GetBoxSize (pdc->surface, my_bmp->w, my_bmp->h, &bmp->bmPitch);
-
-    if (!(bmp->bmBits = malloc (alloc_all?size:bmp->bmPitch))) {
-        ret = ERR_BMP_MEM;
-        goto cleanup_and_ret;
+    if (alloc_method) {
+        if (!(bmp->bmBits = malloc (ALLOC_ALL?size:bmp->bmPitch))) {
+            ret = ERR_BMP_MEM;
+            goto cleanup_and_ret;
+        }
     }
-
-    bmp->bmWidth = my_bmp->w;
-    bmp->bmHeight = my_bmp->h;
 
     bmp->bmType = BMP_TYPE_NORMAL;
     if (my_bmp->flags & MYBMP_TRANSPARENT) {
@@ -265,21 +271,20 @@ static int init_bitmap_from_mybmp (HDC hdc, PBITMAP bmp,
 
     if (my_bmp->flags & MYBMP_ALPHA && my_bmp->depth == 32) {
         bmp->bmType |= BMP_TYPE_ALPHA;
-        if (!device_has_alpha(hdc)) {
+        if (!device_has_alpha (hdc)) {
             bmp->bmType |= BMP_TYPE_ALPHA_MASK;
             alpha_pitch = (bmp->bmWidth + 3) & (~3);
-
-            if (alloc_all) {
-                size = bmp->bmHeight * alpha_pitch;
-            } else {
-                size = alpha_pitch;
-            }
-            bmp->bmAlphaMask = calloc(1, size);
             bmp->bmAlphaPitch = alpha_pitch;
 
-            if (bmp->bmAlphaMask == NULL) {
-                ret = ERR_BMP_MEM;
-                goto cleanup_and_ret;
+            if (alloc_method) {
+                size = alpha_pitch;
+                if (ALLOC_ALL) size *= bmp->bmHeight;
+
+                bmp->bmAlphaMask = calloc (1, size);
+                if (bmp->bmAlphaMask == NULL) {
+                    ret = ERR_BMP_MEM;
+                    goto cleanup_and_ret;
+                }
             }
         }
     }
@@ -377,7 +382,7 @@ int GUIAPI ExpandMyBitmap (HDC hdc, PBITMAP bmp, const MYBITMAP* my_bmp,
         memcpy (new_pal, pal, sizeof (RGB) * nr_colors);
     }
 
-    ret = init_bitmap_from_mybmp (hdc, bmp, my_bmp, new_pal, TRUE);
+    ret = init_bitmap_from_mybmp (hdc, bmp, my_bmp, new_pal, ALLOC_BUFF_ALL);
     if (ret) return ret;
 
     pal = new_pal;
@@ -493,7 +498,9 @@ static void cb_load_bitmap_sl (void* context, MYBITMAP* my_bmp, int y)
     }
 }
 
-int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP bmp, MG_RWops* area, const char* ext)
+int GUIAPI LoadBitmapEx2 (HDC hdc, PBITMAP bmp,
+        MG_RWops* area, const char* ext,
+        CB_ALLOC_BITMAP_BUFF cb_alloc_buff, void* context)
 {
     MYBITMAP my_bmp;
     RGB pal [256];
@@ -510,7 +517,16 @@ int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP bmp, MG_RWops* area, const char* ext)
         return ERR_BMP_IMAGE_TYPE;
     }
 
-    ret = init_bitmap_from_mybmp (hdc, bmp, &my_bmp, pal, TRUE);
+    if (cb_alloc_buff) {
+        ret = init_bitmap_from_mybmp (hdc, bmp, &my_bmp, pal, ALLOC_BUFF_ALL);
+    }
+    else {
+        /* if use ALLOC_BUFF_NONE, it always returns ERR_BMP_OK */
+        ret = init_bitmap_from_mybmp (hdc, bmp, &my_bmp, pal, ALLOC_BUFF_NONE);
+        if (!cb_alloc_buff (context, bmp))
+            ret = ERR_BMP_MEM;
+    }
+
     if (ret) {
         CleanupMyBitmapSL (&my_bmp, load_info);
         return ret;
@@ -654,7 +670,7 @@ int GUIAPI PaintImageEx (HDC hdc, int x, int y, MG_RWops* area, const char *ext)
         return ERR_BMP_IMAGE_TYPE;
     }
 
-    ret = init_bitmap_from_mybmp (hdc, &bmp, &my_bmp, pal, FALSE);
+    ret = init_bitmap_from_mybmp (hdc, &bmp, &my_bmp, pal, ALLOC_BUFF_LINE);
     if (ret)
         goto fail1;
 
@@ -988,7 +1004,7 @@ int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h,
     tmp_mybmp_h = my_bmp.h;
 
     my_bmp.w = w; my_bmp.h = h;
-    ret = init_bitmap_from_mybmp (hdc, &bmp, &my_bmp, pal, FALSE);
+    ret = init_bitmap_from_mybmp (hdc, &bmp, &my_bmp, pal, ALLOC_BUFF_LINE);
     my_bmp.w = tmp_mybmp_w; my_bmp.h = tmp_mybmp_h;
 
     if (ret)
