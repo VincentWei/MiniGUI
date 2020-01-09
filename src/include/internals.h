@@ -492,11 +492,13 @@ extern LRESULT SendSyncMessage (HWND hWnd,
                 UINT msg, WPARAM wParam, LPARAM lParam);
 
 #ifndef _MGRM_THREADS
-    extern unsigned int __mg_csrimgsize;
-    extern unsigned int __mg_csrimgpitch;
+#   ifndef _MGUSE_COMPOSITING
+extern unsigned int __mg_csrimgsize;
+extern unsigned int __mg_csrimgpitch;
+#   endif
 #else
-    extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
-    extern pthread_t __mg_desktop, __mg_parsor, __mg_timer;
+extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
+extern pthread_t __mg_desktop, __mg_parsor, __mg_timer;
 #endif
 
 
