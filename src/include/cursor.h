@@ -92,6 +92,11 @@ typedef CURSOR* PCURSOR;
 #define MONOSIZE        (CURSORWIDTH*CURSORHEIGHT/8)
 #define MONOPITCH       4
 
+#ifdef _MGUSE_COMPOSITING
+#   define MAX_CURSORWIDTH     64
+#   define MAX_CURSORHEIGHT    64
+#endif
+
 /* Function definitions */
 #ifdef __cplusplus
 extern "C" {
@@ -102,17 +107,20 @@ BOOL mg_InitCursor (void);
 void mg_TerminateCursor(void);
 
 #ifdef _MGHAVE_CURSOR
+
 #ifndef _MGRM_THREADS
 
-/* Use shared memory to emulate MSG_MOUSEMOVE message
- */
+/* Use shared memory to emulate MSG_MOUSEMOVE message */
 #define _MG_CONFIG_FAST_MOUSEMOVE 1
 
 /* show cursor hidden by client GDI function */
 void kernel_ReShowCursor (void);
-#else
+
+#else /* _MGRM_THREADS */
+
 Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel);
-#endif
+
+#endif /* _MGRM_THREADS */
 
 #endif /* _MGHAVE_CURSOR */
 
