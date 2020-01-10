@@ -1111,23 +1111,61 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
 
 /**
  * \def HDC_SCREEN
- * \brief Handle to the device context of the whole screen.
+ * \brief Handle to the device context of the whole screen or the fake screen
+ * when MiniGUI is running under MiniGUI-Processes with compositing schema.
  *
- * This DC is a special one. MiniGUI uses it to draw popup menus and
- * other global objects. You can also use this DC to draw lines or text on
- * the screen directly, and there is no need to get or release it.
+ * This DC is a special one. Under MiniGUI-Standalone runmode, MiniGUI-Threads
+ * runmode, and MiniGUI-Processes runmode with shared frame buffer schema,
+ * MiniGUI uses it to draw popup menus and other global objects. You can also
+ * use this DC to draw lines or text on the screen directly, and there is no
+ * need to get or release it.
  *
  * If you do not want to create any main window, but you want to draw on
- * the screen, you can use this DC.
+ * the screen, you can use this DC. Note that MiniGUI does not do any
+ * clipping operation for this DC, so drawing something on this DC may
+ * make a mess of other windows.
  *
- * \note MiniGUI does not do any clipping operation for this DC,
- *       so use this DC may make a mess of other windows.
+ * However, under MiniGUI-Processes with compositing schema, HDC_SCREEN
+ * stands for a global surface for wallpaper. This surface is the ONLY
+ * surface that can be accessed by all processess (including the server
+ * and all clients) under compositing schema.
+ *
+ * This surface will have the same pixel format as the real screen.
+ * Therefore, one app can still use HDC_SCREEN to create a compatible
+ * memory DC, load bitmaps, or draw something to the surface. However,
+ * the content in the wallpaper surface may not be reflected to
+ * the whole screen; the compositor decides how to display its content.
+ *
+ * On the other hand, you can configure MiniGUI to create a smaller
+ * surface than the whole screen as the underlaying surface of HDC_SCREEN,
+ * and the compositor may use it as a pattern to tile the content
+ * to the whole wallpaer. You can use the key
+ * `compositing_schema.wallpaper_pattern_size` to specify the pattern size,
+ * i.e., the size of HDC_SCREEN.
+ *
+ * Because of the change of HDC_SCREEN's connotation, you should avoid
+ * to use \a GetGDCapability to determine the screen resolution. Instead,
+ * you use the global variable \a g_rcScr.
+ *
+ * \sa HDC_SCREEN_SYS
  */
 #define HDC_SCREEN          ((HDC)0)
 
 /*
- * This is a system screen DC create for MiniGUI internal usage, for example,
- * menu and z-order operations
+ * \def HDC_SCREEN_SYS
+ * \brief This is a system screen DC created for internal use.
+ *
+ * Under compositing schema, this DC stands for the surface of the
+ * real screen surface. The compositor running in the server will
+ * use this DC to compositing the surfaces created and rendered by
+ * the server and the clients to the screen. For clients, this DC
+ * essentially is HDC_SCREEN.
+ *
+ * Under MiniGUI-Standalone runmode, MiniGUI-Threads
+ * runmode, and MiniGUI-Processes runmode with shared frame buffer schema,
+ * MiniGUI uses it to draw popup menus and other global objects.
+ *
+ * \sa HDC_SCREEN
  */
 #define HDC_SCREEN_SYS      ((HDC)1)
 
