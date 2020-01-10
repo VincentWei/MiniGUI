@@ -134,7 +134,7 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
     GAL_Surface* csr_surf;
     PCURSOR pcsr;
 
-    if (w <= 0 || w > MAX_CURSORWIDTH || h <= 0 || h > MAX_CURSORHEIGHT)
+    if (w != CURSORWIDTH || h != CURSORHEIGHT)
         return 0;
 
     if (!(pcsr = (PCURSOR)malloc (sizeof (CURSOR))))
@@ -151,8 +151,87 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
     pcsr->surface = csr_surf;
 
     if (colornum == 1) {
+        int x, y;
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+        gal_pixel trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
+        gal_pixel white_pixel = RGBA2Pixel (_dc_cursor, 0xFF, 0xFF, 0xFF, 0xFF);
+        gal_pixel black_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0xFF);
+
+        pANDBits += MONOPITCH * (CURSORHEIGHT - 1);
+        pXORBits += MONOPITCH * (CURSORHEIGHT - 1);
+        gal_pixel* pixels = (gal_pixel*)csr_surf->pixels;
+
+        for (y = 0; y < CURSORHEIGHT; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < CURSORWIDTH; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                    xor_byte = *xor_bytes++;
+                }
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else {
+                    if (xor_byte & (0x80 >> (x % 8))) {
+                        pixels [x] = white_pixel;
+                    }
+                    else {
+                        pixels [x] = black_pixel;
+                    }
+                }
+            }
+
+            pANDBits -= MONOPITCH;
+            pXORBits -= MONOPITCH;
+            pixels += csr_surf->pitch;
+        }
     }
     else if (colornum == 4) {
+        int x, y;
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+        int idx_16c = 0;
+        gal_pixel trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
+        const RGB* std16c_rgb = __mg_bmp_get_std_16c ();
+
+        pANDBits += MONOPITCH * (CURSORHEIGHT - 1);
+        pXORBits += MONOPITCH * 4 * (CURSORHEIGHT - 1);
+        gal_pixel* pixels = (gal_pixel*)csr_surf->pixels;
+
+        for (y = 0; y < CURSORHEIGHT; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < CURSORWIDTH; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                }
+                if (x % 2 == 0) {
+                    xor_byte = *xor_bytes++;
+                    idx_16c = (xor_byte >> 4) & 0x0F;
+                }
+                else {
+                    idx_16c = xor_byte & 0x0F;
+                }
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else {
+                    pixels [x] = RGBA2Pixel (_dc_cursor,
+                            std16c_rgb[idx_16c].r, std16c_rgb[idx_16c].g,
+                            std16c_rgb[idx_16c].b, 0xFF);
+                }
+            }
+
+            pANDBits -= MONOPITCH;
+            pXORBits -= (MONOPITCH * 4);
+            pixels += csr_surf->pitch;
+        }
     }
 
     return (HCURSOR)pcsr;
