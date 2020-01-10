@@ -138,13 +138,16 @@ int __mg_save_png (MG_RWops* fp, MYBITMAP* bmp, RGB* pal);
 BOOL __mg_check_png (MG_RWops* fp);
 #endif
 
-int bmp_ComputePitch (int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
+int __mg_bmp_compute_pitch (int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
 
 #define fp_getc(fp)     MGUI_RWgetc(fp)
 #define fp_igetw(fp)    MGUI_ReadLE16(fp)
 #define fp_igetl(fp)    MGUI_ReadLE32(fp)
 #define fp_mgetw(fp)    MGUI_ReadBE16(fp)
 #define fp_mgetl(fp)    MGUI_ReadBE32(fp)
+
+/* Since 4.2.0 */
+const RGB* __mg_bmp_get_std_16c (void);
 
 #ifdef __cplusplus
 }

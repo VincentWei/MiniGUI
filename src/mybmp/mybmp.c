@@ -154,7 +154,7 @@ BOOL GUIAPI RegisterBitmapFileType (const char *ext,
  * compute image line size and bytes per pixel
  * from bits per pixel and width
  */
-int bmp_ComputePitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round)
+int __mg_bmp_compute_pitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round)
 {
     int linesize;
     int bytespp = 1;

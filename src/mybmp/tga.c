@@ -312,7 +312,7 @@ void * __mg_init_tga (MG_RWops* f, MYBITMAP* bmp, RGB *pal)
          goto err;//ERR_BMP_NOT_SUPPORTED;
    }
 
-    bytes_per_pixel = bmp_ComputePitch (bpp, image_width, &pitch, TRUE);
+    bytes_per_pixel = __mg_bmp_compute_pitch (bpp, image_width, &pitch, TRUE);
     size = pitch * image_height;
 //    if( !(bits = malloc (size)) ) {
 //        goto err;

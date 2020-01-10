@@ -278,7 +278,7 @@ static void* task_do_update (_THIS);
 static char* _mmaped_mem;
 static VIDEO_MEM_INFO video_mem_info;
 
-extern int bmp_ComputePitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
+extern int __mg_bmp_compute_pitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
 extern GAL_VideoDevice* GAL_GetVideo (const char*, BOOL);
 
 /* MLSHADOW driver bootstrap functions */
@@ -471,7 +471,7 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
     current->w = width;
     current->h = height;
     current->flags = flags;
-    bmp_ComputePitch(bpp, (unsigned int)width, (unsigned int* )
+    __mg_bmp_compute_pitch(bpp, (unsigned int)width, (unsigned int* )
                     &current->pitch, 1);
 
     if (!GAL_ReallocFormat (current, bpp, 0, 0, 0, 0)) {
@@ -521,7 +521,7 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
             int swap_fb_size;
             int swap_fb_pitch;
             GAL_PixelFormat real_vformat = *this->hidden->_real_surface->format;
-            bmp_ComputePitch(depth, (unsigned int)w, (unsigned int* )&swap_fb_pitch, 1);
+            __mg_bmp_compute_pitch(depth, (unsigned int)w, (unsigned int* )&swap_fb_pitch, 1);
             swap_fb_size = swap_fb_pitch * h; 
             // bugfixed 20071116, should GAL_ReallocFormat the swap surface's palette. 
             // memcpy(this->hidden->swap_surface, this->hidden->_real_surface, 
@@ -540,7 +540,7 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
         /* houhh 20071116. add the real_surface's fb_size. */
         if(video_mem_info.type == MLS_FB_TYPE_VIDEOMEM){
             int fb_size, fb_pitch;
-            bmp_ComputePitch(depth, (unsigned int)w, (unsigned int* )&fb_pitch, 1);
+            __mg_bmp_compute_pitch(depth, (unsigned int)w, (unsigned int* )&fb_pitch, 1);
             fb_size = fb_pitch * h; 
             video_mem_info.video_mem_offset += fb_size;
         }
@@ -615,7 +615,7 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
             /* houhh 20071116, add the real_surface's fb_size.*/
             if(video_mem_info.type == MLS_FB_TYPE_VIDEOMEM)
             {
-                bmp_ComputePitch(depth, (unsigned int)w, (unsigned int* )&fb_pitch, 1);
+                __mg_bmp_compute_pitch(depth, (unsigned int)w, (unsigned int* )&fb_pitch, 1);
                 fb_size = fb_pitch * h; 
                 video_mem_info.video_mem_offset += fb_size;
             }
@@ -877,7 +877,7 @@ static int MLSHADOW_CreateFrameBuffer(MLSHADOW_REQ_SURFACE_CREATE* request,
 
     /* houhh 20071116, alloc slave surface from system memory. */
     if(video_mem_info.type == MLS_FB_TYPE_SYSTEMMEM || !videomem_enough) { 
-        bmp_ComputePitch(depth, (unsigned int)width, (unsigned int* )&pitch, 1);
+        __mg_bmp_compute_pitch(depth, (unsigned int)width, (unsigned int* )&pitch, 1);
         fb_size = pitch * height;
         shm_size = fb_size + sizeof(MLShadowFBHeader);
 

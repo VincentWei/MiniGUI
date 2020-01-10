@@ -442,7 +442,7 @@ void * __mg_init_bmp (MG_RWops* fp, MYBITMAP * bmp, RGB * pal)
     else
         effect_depth = infoheader.biBitCount;
 
-    bmp_ComputePitch(effect_depth, infoheader.biWidth, (Uint32 *)(&bmp->pitch), TRUE);
+    __mg_bmp_compute_pitch(effect_depth, infoheader.biWidth, (Uint32 *)(&bmp->pitch), TRUE);
 
     bmp->flags |= MYBMP_TYPE_BGR | MYBMP_FLOW_DOWN;
     bmp->depth = effect_depth;

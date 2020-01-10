@@ -776,7 +776,7 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
             int swap_fb_size;
             int swap_fb_pitch;
             GAL_PixelFormat real_vformat = *this->hidden->_real_surface->format;
-            bmp_ComputePitch(depth, (unsigned int)w, (unsigned int* )&swap_fb_pitch, 1);
+            __mg_bmp_compute_pitch(depth, (unsigned int)w, (unsigned int* )&swap_fb_pitch, 1);
             swap_fb_size = swap_fb_pitch * h;
             
             /* bugfixed 20071116, This will result GAL_FreeSurface() error. 

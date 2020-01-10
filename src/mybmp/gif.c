@@ -244,7 +244,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
     gif->h = info->height;
     gif->frames = 1;
     gif->depth = 8;
-    bmp_ComputePitch (8, info->width, &gif->pitch, TRUE);
+    __mg_bmp_compute_pitch (8, info->width, &gif->pitch, TRUE);
   
     gif->flags |= MYBMP_FLOW_DOWN;
     if ( info->gif89.transparent > 0 ) {

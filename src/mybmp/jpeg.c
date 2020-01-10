@@ -410,7 +410,7 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     mybmp->w = cinfo->output_width;
     mybmp->h = cinfo->output_height;
     mybmp->frames = 1;
-    bmp_ComputePitch (mybmp->depth, mybmp->w, &mybmp->pitch, TRUE);
+    __mg_bmp_compute_pitch (mybmp->depth, mybmp->w, &mybmp->pitch, TRUE);
     mybmp->flags |= MYBMP_TYPE_NORMAL | MYBMP_FLOW_DOWN;
 
     init_info->jpeg_info = cinfo;

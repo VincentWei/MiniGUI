@@ -82,7 +82,7 @@ typedef struct {
 extern "C" {
 #endif  /* __cplusplus */
 
-int bmp_ComputePitch (int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
+int __mg_bmp_compute_pitch (int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
 
 PDC _begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
                 const BITMAP* bmp, FILLINFO *fill_info);
