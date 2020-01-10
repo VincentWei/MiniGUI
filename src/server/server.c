@@ -345,7 +345,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         esetptr = &eset;
     }
 
-#ifdef _MGHAVE_CURSOR
+#if defined (_MGHAVE_CURSOR) && defined(_MGUSE_SHAREDFB)
     /* if the cursor has been hide by GDI function of clients
      * this call will show the cursor
      */
