@@ -11,39 +11,39 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-/* 
+/*
 ** Bitmap operations of GDI.
 **
 ** Current maintainer: Wei Yongming.
@@ -70,9 +70,9 @@
 #include "bitmap.h"
 #include "fixedmath.h"
 
-BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp, 
+BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
         int dst_w, int dst_h,
-        CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled, 
+        CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled,
         GAL_PixelFormat *format);
 
 BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_h,
@@ -81,7 +81,7 @@ BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_
 #define BitmapDDAScaler(context, src_bmp, dst_w, \
                     dst_h, cb_get_line_buff, cb_line_scaled) \
         BitmapDDAScalerEx(context, src_bmp, dst_w,  \
-                    dst_h, cb_get_line_buff, cb_line_scaled, NULL) 
+                    dst_h, cb_get_line_buff, cb_line_scaled, NULL)
 
 BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_h,
             CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled);
@@ -124,7 +124,7 @@ void _dc_fillbox_clip_nosolid_brush (PDC pdc, const GAL_Rect* rect)
 {
     PCLIPRECT cliprect;
     RECT eff_rc;
-    
+
     SetRect(&eff_rc, rect->x, rect->y,
             rect->x + rect->w, rect->y + rect->h);
 
@@ -288,7 +288,7 @@ static void _line_scaled_fillbox (void* context, const void* line, int y)
         rc_output.right = info->dst_rc.right;
         rc_output.top = info->dst_rc.top + y;
         rc_output.bottom = rc_output.top + 1;
-        
+
         tmp_bmp.bmWidth = rect.w;
         tmp_bmp.bmHeight = 1;
         tmp_bmp.bmPitch = GAL_BytesPerPixel (info->pdc->surface) * rect.w;
@@ -325,7 +325,7 @@ static void _line_scaled_fillbox (void* context, const void* line, int y)
         while (cliprect && cliprect->rc.top == top) {
             if (IntersectRect (&eff_rc, &rc_output, &cliprect->rc)) {
                 BYTE* row = (BYTE*)line;
-                row += GAL_BytesPerPixel (info->pdc->surface) * 
+                row += GAL_BytesPerPixel (info->pdc->surface) *
                         (eff_rc.left - rc_output.left);
                 info->pdc->move_to (info->pdc, eff_rc.left, eff_rc.top);
                 info->pdc->draw_src_span (PDC_TO_COMP_CTXT(info->pdc),
@@ -357,14 +357,14 @@ static int _bmp_decode_rle (const BITMAP* bmp, const BYTE* encoded,
     }
 
     for (i = 0; i < *run; i++) {
-        decoded = _mem_set_pixel (decoded, bmp->bmBytesPerPixel, 
+        decoded = _mem_set_pixel (decoded, bmp->bmBytesPerPixel,
                 *((gal_pixel*)encoded));
     }
 
     if (*run > 0) {
         consumed += bmp->bmBytesPerPixel;
     }
-    
+
     return consumed;
 }
 
@@ -386,7 +386,7 @@ static int _bmp_decode_alpha_rle (const BITMAP* bmp, const BYTE* encoded,
         consumed += 2;
         encoded += 2;
     }
-    
+
     for (i = 0; i < *run; i++) {
         decoded[i] = *encoded;
     }
@@ -394,11 +394,11 @@ static int _bmp_decode_alpha_rle (const BITMAP* bmp, const BYTE* encoded,
     if (*run > 0) {
         consumed += 1;
     }
-    
+
     return consumed;
 }
 
-PDC _begin_fill_bitmap (HDC hdc, int x, int y, int w, int h, 
+PDC _begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
                              const BITMAP* bmp, FILLINFO* fill_info)
 {
     PDC pdc;
@@ -452,7 +452,7 @@ PDC _begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
     if (w != sw || h != sh) {
         info->pdc = pdc;
         info->bmp = bmp;
-        SetRect (&info->dst_rc, rect.x, rect.y, 
+        SetRect (&info->dst_rc, rect.x, rect.y,
                         rect.x + rect.w, rect.y + rect.h);
         info->line_buff = malloc (GAL_BytesPerPixel (pdc->surface) * w);
         if (info->line_buff == NULL) {
@@ -530,7 +530,7 @@ static void _fill_bitmap (PDC pdc, const BITMAP *bmp, FILLINFO *fill_info)
     if (w != sw || h != sh) {
         if (pdc->bitmap_scaler) {
             pdc->bitmap_scaler(&fill_info->scaler_info, bmp, w, h,
-                _get_line_buff_fillbox, _line_scaled_fillbox, 
+                _get_line_buff_fillbox, _line_scaled_fillbox,
                 pdc->surface->format);
         }
         else{
@@ -543,7 +543,7 @@ static void _fill_bitmap (PDC pdc, const BITMAP *bmp, FILLINFO *fill_info)
     }
 }
 
-void _fill_bitmap_scanline (PDC pdc, const BITMAP* bmp, 
+void _fill_bitmap_scanline (PDC pdc, const BITMAP* bmp,
                 FILLINFO* fill_info, int y)
 {
     GAL_Rect dst_rect;
@@ -555,7 +555,7 @@ void _fill_bitmap_scanline (PDC pdc, const BITMAP* bmp,
     _dc_fillbox_bmp_clip (pdc, &dst_rect, (BITMAP*)bmp);
 }
 
-BOOL GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h, 
+BOOL GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h,
                 const BITMAP* bmp)
 {
     PDC pdc;
@@ -583,10 +583,10 @@ BOOL GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h,
 
             do {
                 /* Decode pixel data */
-                consumed = _bmp_decode_rle (bmp, fill_info.encoded_bits, 
+                consumed = _bmp_decode_rle (bmp, fill_info.encoded_bits,
                         fill_info.decoded_buff, &skip, &run);
                 fill_info.encoded_bits += consumed;
-                
+
                 /* Decode alpha data */
                 if (bmp->bmType & BMP_TYPE_ALPHA_MASK) {
                     consumed_alpha = _bmp_decode_alpha_rle (bmp, fill_info.encoded_alpha_mask,
@@ -609,7 +609,7 @@ BOOL GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h,
                 }
             } while (skip || run);
         }
-        
+
     }
     else
         _fill_bitmap (pdc, bmp, &fill_info);
@@ -636,7 +636,7 @@ static int _get_skip_run(HDC hdc, PBITMAP bmp, const BYTE *bits,
     if (len >= bmp->bmWidth) {
         return -1;
     }
-    
+
     switch (bmp->bmBytesPerPixel) {
         case 1:
         case 2:
@@ -691,7 +691,7 @@ static int _get_skip_run(HDC hdc, PBITMAP bmp, const BYTE *bits,
             }
             break;
     }
-    
+
     return (*skip + *run);
 }
 
@@ -734,7 +734,7 @@ static int _bmp_encode_rle_sl(HDC hdc, PBITMAP bmp,
                         p_src_bits += run * bmp->bmBytesPerPixel;
                         (*size_pixel) += bmp->bmBytesPerPixel;
                     }
-                    
+
                     /* Encode alpha mask */
                     if (bmp->bmType & BMP_TYPE_ALPHA_MASK) {
                         p_dst_alpha = bmp->bmAlphaMask + *size_alpha;
@@ -766,7 +766,7 @@ static int _bmp_encode_rle_sl(HDC hdc, PBITMAP bmp,
             bmp->bmAlphaMask[(*size_alpha)++] = 0;
         }
     }
-    
+
     return 0;
 }
 int GUIAPI EncodeRleBitmap(HDC hdc, PBITMAP bmp)
@@ -834,7 +834,7 @@ int GUIAPI EncodeRleBitmap(HDC hdc, PBITMAP bmp)
         }
     }
     bmp->bmBits = bmBits;
-    
+
     /* Encode pixel data */
     for (y = 0; y < bmp->bmHeight; y++) {
         _bmp_encode_rle_sl(hdc, bmp, src_bits, src_alpha_mask,
@@ -849,7 +849,7 @@ int GUIAPI EncodeRleBitmap(HDC hdc, PBITMAP bmp)
     if (bmp->bmType & BMP_TYPE_ALPHA_MASK) {
         bmp->bmAlphaMask = realloc(bmp->bmAlphaMask, total_alpha);
     }
-    
+
     bmp->bmType |= BMP_TYPE_RLE;
 
     /* End: free data */
@@ -880,7 +880,7 @@ struct _SCALER_INFO_FILLBMPPART
 
 static void* _get_line_buff_fillboxpart (void* context, int y, void** alpha_line_mask)
 {
-    struct _SCALER_INFO_FILLBMPPART* info = 
+    struct _SCALER_INFO_FILLBMPPART* info =
             (struct _SCALER_INFO_FILLBMPPART*) context;
 
     *(BYTE**)alpha_line_mask = info->line_alpha_buff;
@@ -891,9 +891,9 @@ static void _line_scaled_fillboxpart (void* context, const void* line, int y)
 {
     int top;
     RECT rc_output, eff_rc;
-    CLIPRECT* cliprect; 
+    CLIPRECT* cliprect;
 
-    struct _SCALER_INFO_FILLBMPPART* info = 
+    struct _SCALER_INFO_FILLBMPPART* info =
             (struct _SCALER_INFO_FILLBMPPART*) context;
 
     if (y < info->off_y || y >= (info->off_y + info->dst_h))
@@ -952,7 +952,7 @@ static void _line_scaled_fillboxpart (void* context, const void* line, int y)
         while (cliprect && cliprect->rc.top == top) {
             if (IntersectRect (&eff_rc, &rc_output, &cliprect->rc)) {
                 BYTE* row = (BYTE*)line;
-                row += GAL_BytesPerPixel (info->pdc->surface) * 
+                row += GAL_BytesPerPixel (info->pdc->surface) *
                         (info->off_x + eff_rc.left - rc_output.left);
                 info->pdc->move_to (info->pdc, eff_rc.left, eff_rc.top);
                 info->pdc->draw_src_span (PDC_TO_COMP_CTXT(info->pdc),
@@ -970,7 +970,7 @@ BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
     GAL_Rect rect;
     int old_bkmode;
     struct _SCALER_INFO_FILLBMPPART info;
-    
+
     if (bmp->bmWidth == 0 || bmp->bmHeight == 0 || bmp->bmBits == NULL)
         return FALSE;
 
@@ -1035,14 +1035,14 @@ BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
     if (bw != bmp->bmWidth || bh != bmp->bmHeight) {
 
         pdc->bitmap_scaler(&info, bmp, bw, bh,
-                _get_line_buff_fillboxpart, 
+                _get_line_buff_fillboxpart,
                 _line_scaled_fillboxpart,
                 pdc->surface->format);
     }
     else {
         BITMAP part = *bmp;
         if (xo != 0 || yo != 0) {
-            part.bmBits += part.bmPitch * yo + 
+            part.bmBits += part.bmPitch * yo +
                     xo * GAL_BytesPerPixel (pdc->surface);
             if (part.bmType & BMP_TYPE_ALPHA_MASK) {
                 part.bmAlphaMask += yo * part.bmAlphaPitch + xo;
@@ -1066,15 +1066,15 @@ BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
     return TRUE;
 }
 
-BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y, int box_w, int box_h, 
+BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y, int box_w, int box_h,
     const BITMAP* pbmp, int bmp_left, int bmp_top, int bmp_width, int bmp_height)
 {
     int w_scale, h_scale;
     BOOL bret;
-    if(!pbmp) 
+    if(!pbmp)
         return FALSE;
-    
-    if(bmp_width<=0) 
+
+    if(bmp_width<=0)
         bmp_width = pbmp->bmWidth;
     if(bmp_height<=0)
         bmp_height = pbmp->bmHeight;
@@ -1082,10 +1082,10 @@ BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y, int box_w, int b
         box_w = bmp_width;
     if(box_h<=0)
         box_h = bmp_height;
-    
+
     if(bmp_width<=0 || bmp_height<=0)
         return FALSE;
-    
+
     w_scale = ((box_w<<16) + bmp_width - 1)/bmp_width;
     h_scale = ((box_h<<16) + bmp_height - 1)/bmp_height;
 
@@ -1153,13 +1153,13 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     /*
      * The CLIPRECT's RECT order is: rc1 rc2 rc3 rc4 rc5 rc6
      *
-     * In same TOP   rc1 -> rc2 -> rc3..  -->   
+     * In same TOP   rc1 -> rc2 -> rc3..  -->
      *      ( rc1.left > rc2.left > rc3.left .. rc1.top == rc2.top == rc3.top ...)
-     * In same TOP   rc4 -> rc5 -> rc6 .. -->   
+     * In same TOP   rc4 -> rc5 -> rc6 .. -->
      *      ( rc4.left > rc5.left ...  rc4.top==rc5.top ...  rc1.top < rc4.top < rc6.top ... )
      * ....
      *
-     * if surface is same, and dy > sy, should 
+     * if surface is same, and dy > sy, should
      *      if dx > sx, should copy every rect like order: rc6 rc5 rc4, rc3 ... rc1
      *      else like: rc4 rc5 rc6, rc1 rc2 rc3 ...
      *
@@ -1304,7 +1304,7 @@ struct _SCALER_INFO_STRETCHBLT
 
 static void* _get_line_buff_stretchblt (void* context, int y, void** alpha_line_mask)
 {
-    struct _SCALER_INFO_STRETCHBLT* info = 
+    struct _SCALER_INFO_STRETCHBLT* info =
             (struct _SCALER_INFO_STRETCHBLT*) context;
 
     return info->line_buff;
@@ -1312,7 +1312,7 @@ static void* _get_line_buff_stretchblt (void* context, int y, void** alpha_line_
 
 static void _line_scaled_stretchblt (void* context, const void* line, int y)
 {
-    struct _SCALER_INFO_STRETCHBLT* info = 
+    struct _SCALER_INFO_STRETCHBLT* info =
             (struct _SCALER_INFO_STRETCHBLT*) context;
 
     if (info->bottom2top)
@@ -1334,7 +1334,7 @@ static void _line_scaled_stretchblt (void* context, const void* line, int y)
         while (cliprect && cliprect->rc.top == top) {
             if (IntersectRect (&eff_rc, &rc_output, &cliprect->rc)) {
                 BYTE* row = (BYTE*)line;
-                row += GAL_BytesPerPixel (info->pdc->surface) * 
+                row += GAL_BytesPerPixel (info->pdc->surface) *
                         (eff_rc.left - rc_output.left);
                 info->pdc->move_to (info->pdc, eff_rc.left, eff_rc.top);
                 info->pdc->draw_src_span (PDC_TO_COMP_CTXT(info->pdc),
@@ -1425,8 +1425,8 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     bmp.bmWidth = sw;
     bmp.bmHeight = sh;
     bmp.bmPitch = psdc->surface->pitch;
-    bmp.bmBits = (unsigned char*)psdc->surface->pixels 
-            + sy * psdc->surface->pitch 
+    bmp.bmBits = (unsigned char*)psdc->surface->pixels
+            + sy * psdc->surface->pitch
             + sx * GAL_BytesPerPixel (psdc->surface);
 
     if (pddc->surface ==  psdc->surface)
@@ -1468,7 +1468,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
 #else
     pddc->step = 1;
     pddc->cur_ban = NULL;
-    if (pddc->surface == psdc->surface 
+    if (pddc->surface == psdc->surface
                     && DoesIntersect (&srcOutput, &dstOutput)) {
         info.bottom2top = TRUE;
         BitmapDDAScaler2 (&info, &bmp, dw, dh,
@@ -1480,10 +1480,10 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
         BitmapDDAScaler (&info, &bmp, dw, dh,
                 _get_line_buff_stretchblt, _line_scaled_stretchblt);
                 */
-        if ( pddc->bitmap_scaler ) 
+        if ( pddc->bitmap_scaler )
         {
             pddc->bitmap_scaler(&info, &bmp, dw, dh,
-                    _get_line_buff_stretchblt, 
+                    _get_line_buff_stretchblt,
                     _line_scaled_stretchblt,
                     pddc->surface->format);
         }
@@ -1507,7 +1507,7 @@ error_ret:
     UNLOCK_GCRINFO (pddc);
 }
 
-/* 
+/*
  * This function performs a fast box scaling.
  * This is a DDA-based algorithm; Iteration over target bitmap.
  *
@@ -1584,8 +1584,8 @@ static inline Int32 Div64by32( Int64 *x, Int32 y )
     tmp.hi = x->hi;
     tmp.lo = x->lo;
 
-    s  = tmp.hi; 
-    if ( s < 0 ) 
+    s  = tmp.hi;
+    if ( s < 0 )
         Neg64( &tmp );
     s ^= y;
     y = ABS( y );
@@ -1679,12 +1679,12 @@ static void inline get_alpha_with_alphamask (BYTE *src, const BITMAP* src_bmp, U
     *pa = src_bmp->bmAlphaMask[y * src_bmp->bmAlphaPitch + x / src_bmp->bmBytesPerPixel];
 }
 
-/* 
- * f(i+u, j+v) = (1-u) * (1-v) * f(i, j) + (1-u)  * v * f(i, j+1) + 
- *                        u * (1-v) * f(i+1,j) + u * v * f(i+1, j+1) 
- * 
+/*
+ * f(i+u, j+v) = (1-u) * (1-v) * f(i, j) + (1-u)  * v * f(i, j+1) +
+ *                        u * (1-v) * f(i+1,j) + u * v * f(i+1, j+1)
+ *
  */
-static inline void get_linear_pt(BYTE *dst, int dst_off, BYTE *src, int sx, int sy, 
+static inline void get_linear_pt(BYTE *dst, int dst_off, BYTE *src, int sx, int sy,
         const BITMAP* src_bmp, GAL_PixelFormat *format, BYTE* alpha_mask)
 {
     int i = sx>>16;
@@ -1704,7 +1704,7 @@ static inline void get_linear_pt(BYTE *dst, int dst_off, BYTE *src, int sx, int 
     Uint16 nr, ng, nb;
     gal_pixel pt1, pt2, pt3, pt4;
 
-    Int64 tmp1, tmp2, tmp3, tmp4; 
+    Int64 tmp1, tmp2, tmp3, tmp4;
     int pm1, pm2, pm3, pm4;
     gal_pixel result;
 
@@ -1731,16 +1731,16 @@ static inline void get_linear_pt(BYTE *dst, int dst_off, BYTE *src, int sx, int 
     /*RGB in point(i+1, j+1)*/
     pt4 = _mem_get_pixel (src4, bytesperpixel);
 
-    if ((src_bmp->bmType & BMP_TYPE_COLORKEY) && 
-         (pt1 == src_bmp->bmColorKey)) 
+    if ((src_bmp->bmType & BMP_TYPE_COLORKEY) &&
+         (pt1 == src_bmp->bmColorKey))
     {
-        _mem_set_pixel(dst + dst_off*bytesperpixel, 
+        _mem_set_pixel(dst + dst_off*bytesperpixel,
                                     bytesperpixel, pt1);
         return;
     }
 
     if (!format)
-    { 
+    {
         PDC pdc = dc_HDC2PDC(HDC_SCREEN_SYS);
         format = pdc->surface->format;
     }
@@ -1771,8 +1771,8 @@ static inline void get_linear_pt(BYTE *dst, int dst_off, BYTE *src, int sx, int 
     MulTo64( v, u, &tmp4);
 
     /* (1-u)*(1-v) */
-    pm1 = Div64by32( &tmp1, 65536); 
-    /* v*(1-u) */ 
+    pm1 = Div64by32( &tmp1, 65536);
+    /* v*(1-u) */
     pm2 = Div64by32( &tmp2, 65536);
     /* u*(1-v) */
     pm3 = Div64by32( &tmp3, 65536);
@@ -1803,11 +1803,11 @@ static inline void get_linear_pt(BYTE *dst, int dst_off, BYTE *src, int sx, int 
 }
 
 BOOL BitmapBilinerScaler(
-    void* context, 
-    const BITMAP* src_bmp, 
+    void* context,
+    const BITMAP* src_bmp,
     int dst_w, int dst_h,
-    CB_GET_LINE_BUFF cb_line_buff, 
-    CB_LINE_SCALED cb_line_scaled, 
+    CB_GET_LINE_BUFF cb_line_buff,
+    CB_LINE_SCALED cb_line_scaled,
     GAL_PixelFormat *format)
 {
     BYTE *dp1 = src_bmp->bmBits;
@@ -1844,32 +1844,32 @@ BOOL BitmapBilinerScaler(
 
 /**
  * \fn BOOL GUIAPI BitmapDDAScalerEx (void* context, \
-                const BITMAP* src_bmp, int dst_w, int dst_h, \ 
+                const BITMAP* src_bmp, int dst_w, int dst_h, \
                 CB_GET_LINE_BUFF cb_get_line_buff, \
-                CB_LINE_SCALED cb_line_scaled, 
+                CB_LINE_SCALED cb_line_scaled,
                 GAL_PixelFormat *format)
  * \brief A bitmap scaler using DDA algorithm.
  *
- * This function is a general bitmap scaler using DDA algorithm. 
+ * This function is a general bitmap scaler using DDA algorithm.
  * This function scales the bitmap from bottom to top.
  *
- * MiniGUI implements ScaleBitmap, FillBoxWithBitmap, FillBoxWithBitmapPart, and 
+ * MiniGUI implements ScaleBitmap, FillBoxWithBitmap, FillBoxWithBitmapPart, and
  * StretchBlt functions by using this scaler.
  *
  * \param context The context will be passed to the callbacks.
  * \param src_bmp The source BITMAP object.
  * \param dst_w The width of the destination BITMAP object.
  * \param dst_h The height of the destination BITMAP object.
- * \param cb_get_line_buff The callback to get the line buffer of 
+ * \param cb_get_line_buff The callback to get the line buffer of
  *        the destination BITMAP object.
  * \param cb_line_scaled The callback to tell the line is scaled.
  * \param formt reserve.
  *
  * \sa ScaleBitmap, StretchBlt, BitmapDDAScaler2
  */
-BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp, 
+BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
         int dst_w, int dst_h,
-        CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled, 
+        CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled,
         GAL_PixelFormat *format)
 {
     BYTE *dp1 = src_bmp->bmBits;
@@ -1984,7 +1984,7 @@ BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
                     *(unsigned char *) (dp2 + x * 3 + 2) =
                         *(unsigned char *) (dp1 + (sx >> 16) * 3 + 2);
 #else
-                    _mem_set_pixel (dp2 + x * 3, 3, 
+                    _mem_set_pixel (dp2 + x * 3, 3,
                             _mem_get_pixel (dp1 + (sx >> 16) * 3, 3));
 #endif
                     if (dp4 && src_bmp->bmType & BMP_TYPE_ALPHA_MASK) {
@@ -2055,7 +2055,7 @@ BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
     }
 
     return TRUE;
-    
+
 }
 
 /**
@@ -2065,7 +2065,7 @@ BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
                 CB_LINE_SCALED cb_line_scaled)
  * \brief A bitmap scaler using DDA algorithm.
  *
- * This function is a general bitmap scaler using DDA algorithm. 
+ * This function is a general bitmap scaler using DDA algorithm.
  * This function scales the bitmap from bottom to top.
  *
  * MiniGUI implements StretchBlt functions by using this scaler.
@@ -2074,7 +2074,7 @@ BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
  * \param src_bmp The source BITMAP object.
  * \param dst_w The width of the destination BITMAP object.
  * \param dst_h The height of the destination BITMAP object.
- * \param cb_get_line_buff The callback to get the line buffer of 
+ * \param cb_get_line_buff The callback to get the line buffer of
  *        the destination BITMAP object.
  * \param cb_line_scaled The callback to tell the line is scaled.
  *
@@ -2196,7 +2196,7 @@ BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_
                     *(unsigned char *) (dp2 + x * 3 + 2) =
                         *(unsigned char *) (dp1 + (sx >> 16) * 3 + 2);
 #else
-                    _mem_set_pixel (dp2 + x * 3, 3, 
+                    _mem_set_pixel (dp2 + x * 3, 3,
                             _mem_get_pixel (dp1 + (sx >> 16) * 3, 3));
 #endif
                     if (dp4 && src_bmp->bmType & BMP_TYPE_ALPHA_MASK) {
@@ -2267,7 +2267,7 @@ BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_
     }
 
     return TRUE;
-    
+
 }
 
 struct _SCALER_INFO
@@ -2328,7 +2328,7 @@ BOOL ScaleBitmap (BITMAP *dst, const BITMAP *src)
 BOOL ScaleBitmapEx(BITMAP *dst, const BITMAP *src, HDC ref_dc)
 {
     struct _SCALER_INFO info;
-        
+
     info.dst = dst;
     info.last_y = 0;
 
@@ -2346,7 +2346,7 @@ BOOL ScaleBitmapEx(BITMAP *dst, const BITMAP *src, HDC ref_dc)
     {
         PDC pdc = dc_HDC2PDC(ref_dc);
         pdc->bitmap_scaler(&info, src, dst->bmWidth, dst->bmHeight,
-                _get_line_buff_scalebitmap, _line_scaled_scalebitmap, 
+                _get_line_buff_scalebitmap, _line_scaled_scalebitmap,
                 pdc->surface->format);
     }
 
@@ -2358,7 +2358,7 @@ int GUIAPI SetBitmapScalerType (HDC hdc,  int scaler_type)
     PDC pdc = dc_HDC2PDC(hdc);
     if ( scaler_type == BITMAP_SCALER_BILINEAR )
         pdc->bitmap_scaler = BitmapBilinerScaler;
-    else 
+    else
         pdc->bitmap_scaler = BitmapDDAScalerEx;
 
     return TRUE;
@@ -2380,7 +2380,7 @@ gal_pixel GUIAPI GetPixelInBitmapEx (const BITMAP* bmp, int x, int y, Uint8* alp
     return _mem_get_pixel (dst, bmp->bmBytesPerPixel);
 }
 
-BOOL GUIAPI SetPixelInBitmapEx (const BITMAP* bmp, int x, int y, 
+BOOL GUIAPI SetPixelInBitmapEx (const BITMAP* bmp, int x, int y,
         gal_pixel pixel, const Uint8* alpha)
 {
     BYTE* dst;
@@ -2401,9 +2401,9 @@ BOOL GUIAPI SetPixelInBitmapEx (const BITMAP* bmp, int x, int y,
 #ifdef _FILL_MYBITMAP
 
 /* This function expand monochorate bitmap. */
-void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
-                Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg, 
+                Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg,
                 int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
 {
     Uint32 x, y;
@@ -2443,7 +2443,7 @@ void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
             if(cb_draw)
                 cb_draw(hdc,mybmp,pixel,dst);
         }
-        
+
         if (flags & MYBMP_FLOW_UP)
             src_line -= my_pitch;
         else
@@ -2456,7 +2456,7 @@ void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
 #endif
 
 /* This function expand monochorate bitmap. */
-void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, Uint32 bg, Uint32 fg)
 {
@@ -2487,7 +2487,7 @@ void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
                 pixel = bg;
             dst = _mem_set_pixel (dst, bpp, pixel);
         }
-        
+
         if (flags & MYBMP_FLOW_UP)
             src_line -= my_pitch;
         else
@@ -2516,10 +2516,15 @@ static const RGB WindowsStdColor [] = {
     {0xFF, 0xFF, 0xFF},     // light white   --15
 };
 
+const RGB* __mg_bitmap_get_std_16c (void)
+{
+    return WindowsStdColor;
+}
+
 #ifdef _FILL_MYBITMAP
 /* This function expand 16-color bitmap. */
-void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, const BYTE* my_bits, 
-        Uint32 my_pitch, Uint32 w, Uint32 h, DWORD flags, 
+void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, const BYTE* my_bits,
+        Uint32 my_pitch, Uint32 w, Uint32 h, DWORD flags,
         const RGB* pal, BYTE use_pal_alpha, BYTE alpha,
         int stepx, CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
 {
@@ -2563,13 +2568,13 @@ void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, const BYTE
             }
 
             if (pal)
-                pixel = GAL_MapRGBA (pdc->surface->format, 
-                                pal[index].r, pal[index].g, pal[index].b, 
+                pixel = GAL_MapRGBA (pdc->surface->format,
+                                pal[index].r, pal[index].g, pal[index].b,
                                 use_pal_alpha?pal[index].a:0xFF);
             else
-                pixel = GAL_MapRGBA (pdc->surface->format, 
-                                WindowsStdColor[index].r, 
-                                WindowsStdColor[index].g, 
+                pixel = GAL_MapRGBA (pdc->surface->format,
+                                WindowsStdColor[index].r,
+                                WindowsStdColor[index].g,
                                 WindowsStdColor[index].b,
                                 alpha);
             if(cb_draw)
@@ -2590,9 +2595,9 @@ void GUIAPI ExpandPart16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, const BYTE
 #endif
 
 /* This function expand 16-color bitmap. */
-void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
+void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
-                Uint32 w, Uint32 h, DWORD flags, 
+                Uint32 w, Uint32 h, DWORD flags,
                 const RGB* pal, BYTE use_pal_alpha, BYTE alpha)
 {
     PDC pdc;
@@ -2624,13 +2629,13 @@ void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
                 index = byte & 0x0f;
 
             if (pal)
-                pixel = GAL_MapRGBA (pdc->surface->format, 
+                pixel = GAL_MapRGBA (pdc->surface->format,
                                 pal[index].r, pal[index].g, pal[index].b,
                                 use_pal_alpha?pal[index].a:0xFF);
             else
-                pixel = GAL_MapRGBA (pdc->surface->format, 
-                                WindowsStdColor[index].r, 
-                                WindowsStdColor[index].g, 
+                pixel = GAL_MapRGBA (pdc->surface->format,
+                                WindowsStdColor[index].r,
+                                WindowsStdColor[index].g,
                                 WindowsStdColor[index].b,
                                 alpha);
 
@@ -2647,9 +2652,9 @@ void GUIAPI Expand16CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
 }
 
 /* This function expands 256-color bitmap. */
-void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
+void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
-                Uint32 w, Uint32 h, DWORD flags, 
+                Uint32 w, Uint32 h, DWORD flags,
                 const RGB* pal, BYTE use_pal_alpha, BYTE alpha,
                 CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
 {
@@ -2677,20 +2682,20 @@ void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
             byte = *src++;
 
             if (pal)
-                pixel = GAL_MapRGBA (pdc->surface->format, 
+                pixel = GAL_MapRGBA (pdc->surface->format,
                                 pal[byte].r, pal[byte].g, pal[byte].b,
                                 use_pal_alpha?pal[byte].a:0xFF);
             else if (bpp == 1)
-                /* 
-                 * Assume that the palette of the bitmap is the same as 
+                /*
+                 * Assume that the palette of the bitmap is the same as
                  * the palette of the DC.
                  */
                 pixel = byte;
             else
-                /* 
+                /*
                  * Treat the bitmap uses the dithered colorful palette.
                  */
-                pixel = GAL_MapRGBA (pdc->surface->format, 
+                pixel = GAL_MapRGBA (pdc->surface->format,
                                     (byte >> 5) & 0x07,
                                     (byte >> 2) & 0x07,
                                     byte & 0x03,
@@ -2712,7 +2717,7 @@ void GUIAPI Expand256CBitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
 }
 
 /* This function compile a RGBA bitmap. */
-void GUIAPI CompileRGBABitmap (HDC hdc, BYTE* bits, Uint32 pitch, 
+void GUIAPI CompileRGBABitmap (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, void* pixel_format,
                 CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp)
@@ -2753,11 +2758,11 @@ void GUIAPI CompileRGBABitmap (HDC hdc, BYTE* bits, Uint32 pitch,
             if (flags & MYBMP_RGBSIZE_4) {
                 if (flags & MYBMP_ALPHA) {
                     rgb.a = *src;
-                    pixel = GAL_MapRGBA (pdc->surface->format, 
+                    pixel = GAL_MapRGBA (pdc->surface->format,
                                     rgb.r, rgb.g, rgb.b, rgb.a);
                 }
                 else {
-                    pixel = GAL_MapRGB (pdc->surface->format, 
+                    pixel = GAL_MapRGB (pdc->surface->format,
                                     rgb.r, rgb.g, rgb.b);
                 }
                 src++;
@@ -2781,7 +2786,7 @@ void GUIAPI CompileRGBABitmap (HDC hdc, BYTE* bits, Uint32 pitch,
     }
 }
 
-void GUIAPI CompileRGBABitmapEx (HDC hdc, BYTE* bits, Uint32 pitch, 
+void GUIAPI CompileRGBABitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
                 const BYTE* my_bits, Uint32 my_pitch,
                 Uint32 w, Uint32 h, DWORD flags, void* pixel_format,
                 CB_DRAW_PIXEL cb_draw, MYBITMAP_CONTXT* mybmp,
@@ -2830,12 +2835,12 @@ void GUIAPI CompileRGBABitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
                         pixel = GAL_MapRGB(pdc->surface->format,
                                 rgb.r, rgb.g, rgb.b);
                     } else {
-                        pixel = GAL_MapRGBA (pdc->surface->format, 
+                        pixel = GAL_MapRGBA (pdc->surface->format,
                                 rgb.r, rgb.g, rgb.b, rgb.a);
                     }
                 }
                 else {
-                    pixel = GAL_MapRGB (pdc->surface->format, 
+                    pixel = GAL_MapRGB (pdc->surface->format,
                                     rgb.r, rgb.g, rgb.b);
                 }
                 src++;
@@ -2864,7 +2869,7 @@ void GUIAPI CompileRGBABitmapEx (HDC hdc, BYTE* bits, Uint32 pitch,
 }
 
 /* This function replaces one color with specified color. */
-void GUIAPI ReplaceBitmapColor (HDC hdc, BITMAP* bmp, 
+void GUIAPI ReplaceBitmapColor (HDC hdc, BITMAP* bmp,
                 gal_pixel iOColor, gal_pixel iNColor)
 {
     PDC pdc;
@@ -2901,12 +2906,12 @@ void GUIAPI ReplaceBitmapColor (HDC hdc, BITMAP* bmp,
                 line += bmp->bmPitch;
             }
             break;
-        case 3: 
+        case 3:
             while (h--) {
                 bits = line;
                 for (i = 0; i < w; i++) {
 #if 0
-                    if ((*(Uint16 *) bits == iOColor) 
+                    if ((*(Uint16 *) bits == iOColor)
                            && (*(bits + 2) == (iOColor >> 16)) )
                     {
                         *(Uint16 *) bits = iNColor;
@@ -2921,7 +2926,7 @@ void GUIAPI ReplaceBitmapColor (HDC hdc, BITMAP* bmp,
                 line += bmp->bmPitch;
             }
             break;
-        case 4:    
+        case 4:
             while (h--) {
                 bits = line;
                 for (i = 0; i < w; i++) {
@@ -2987,7 +2992,7 @@ void GUIAPI VFlipBitmap (BITMAP* bmp, unsigned char* inter_buff)
 {
     int y;
     unsigned char* sline, *dline;
-    
+
     if (bmp->bmType & BMP_TYPE_ALPHA_MASK) {
         int alpha_pitch = bmp->bmAlphaPitch;
         unsigned char* alpha_inter_buff = (unsigned char*)malloc(sizeof(char) * alpha_pitch);
