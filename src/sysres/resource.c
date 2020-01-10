@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** resource.c: This file include some functions for system resource loading. 
+** resource.c: This file include some functions for system resource loading.
 **           some functions are from misc.c.
 **
 ** Create date: 2003/09/06
@@ -82,8 +82,8 @@ BOOL GUIAPI RegisterResFromFile (HDC hdc, const char* file)
     return LoadResource(file, RES_TYPE_IMAGE,(DWORD)HDC_SCREEN)!=NULL;
 }
 
-BOOL GUIAPI 
-RegisterResFromMem (HDC hdc, const char* file, const unsigned char* data, 
+BOOL GUIAPI
+RegisterResFromMem (HDC hdc, const char* file, const unsigned char* data,
                 size_t data_size)
 {
     if (!data || !file)
@@ -115,7 +115,7 @@ BOOL GUIAPI RegisterResFromBitmap (const char* file, const BITMAP* bmp)
         _WRN_PRINTF ("SYSRES>RegisterResFromBitmap: file or bitmap is NULL\n");
         return FALSE;
     }
-    
+
     {
     INNER_RES inner_res = {
         Str2Key(file),
@@ -123,7 +123,7 @@ BOOL GUIAPI RegisterResFromBitmap (const char* file, const BITMAP* bmp)
         sizeof(BITMAP),
         NULL
     };
-    
+
     if(AddInnerRes(&inner_res, 1, TRUE) == 0){
         return LoadResource(file, RES_TYPE_IMAGE, 0) != NULL;
     }
@@ -143,21 +143,7 @@ void GUIAPI UnregisterRes (const char* file)
 }
 
 /****************************** System resource support *********************/
-
-#ifdef _MGHAVE_CURSOR
-extern HCURSOR mg_LoadCursorFromRes (int i);
-
-PCURSOR sysres_load_system_cursor (int i)
-{
-    HCURSOR hCursor;
-
-    hCursor = mg_LoadCursorFromRes (i);
-
-    return (PCURSOR)hCursor;
-}
-#endif
-
-HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name, 
+HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name,
         const char* szItemName, int which)
 {
     char szValue[MAX_NAME + 1];
@@ -181,7 +167,7 @@ HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name,
         return 0;
     }
 
-    //load resource didnot support which param, so, we must 
+    //load resource didnot support which param, so, we must
     //get the mem of this icon, and then load it
     dwMem = LoadResource(szValue,RES_TYPE_MEM_RES, 0);
     if(dwMem)
@@ -199,7 +185,7 @@ HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name,
     return hIcon;
 }
 
-BOOL InitRendererSystemIcon (const char* rdr_name, 
+BOOL InitRendererSystemIcon (const char* rdr_name,
             HICON *small_icon, HICON *large_icon)
 {
     int i;
@@ -208,7 +194,7 @@ BOOL InitRendererSystemIcon (const char* rdr_name,
     /*
      * Load system icons here.
      */
-    if (GetMgEtcValue (rdr_name, "iconnumber", 
+    if (GetMgEtcValue (rdr_name, "iconnumber",
                             szValue, 10) < 0) {
         _WRN_PRINTF ("SYSRES: can't get icon number for LFRDR %s.\n", rdr_name);
         return FALSE;
@@ -222,7 +208,7 @@ BOOL InitRendererSystemIcon (const char* rdr_name,
 
     for (i = 0; i < nIconNr; i++) {
         sprintf(szValue, "icon%d", i);
-        
+
         small_icon [i] = LoadSystemIconEx (HDC_SCREEN, rdr_name, szValue, 1);
         large_icon [i] = LoadSystemIconEx (HDC_SCREEN, rdr_name, szValue, 0);
 
@@ -234,7 +220,7 @@ BOOL InitRendererSystemIcon (const char* rdr_name,
 }
 
 
-void TermRendererSystemIcon (HICON *small_icon, 
+void TermRendererSystemIcon (HICON *small_icon,
         HICON *large_icon)
 {
     int i;
@@ -260,20 +246,20 @@ HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem)
 
 HICON GUIAPI LoadSystemIcon (const char* szItemName, int which)
 {
-    const WINDOW_ELEMENT_RENDERER * rdr = 
+    const WINDOW_ELEMENT_RENDERER * rdr =
         GetDefaultWindowElementRenderer();
 
     return LoadSystemIconEx (HDC_SCREEN, rdr->name, szItemName, which);
 }
 
-const BITMAP* GUIAPI 
+const BITMAP* GUIAPI
 GetSystemBitmapEx (const char* rdr_name, const char* id)
 {
     char file[MAX_NAME + 1] = "bmp/";
     char *filename = file + strlen(file);
 
     if (GetMgEtcValue (rdr_name, id, filename, sizeof(file)-(filename-file)) < 0 ) {
-        _WRN_PRINTF ("SYSRES: Can't get bitmap file name for LFRDR %s: %s!\n", 
+        _WRN_PRINTF ("SYSRES: Can't get bitmap file name for LFRDR %s: %s!\n",
                     rdr_name, id);
         return NULL;
     }
@@ -286,10 +272,10 @@ const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
 {
     const WINDOWINFO* win_info;
 
-    if (hWnd == HWND_NULL) {		
-		return NULL;//SystemBitmap + id;
+    if (hWnd == HWND_NULL) {
+        return NULL;//SystemBitmap + id;
     }
-    
+
     win_info = GetWindowInfo(hWnd);
     return GetSystemBitmapEx (win_info->we_rdr->name, id);
 }
