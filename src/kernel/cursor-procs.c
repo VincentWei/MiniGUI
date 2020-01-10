@@ -897,29 +897,12 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
 
 HCURSOR GUIAPI GetCurrentCursor (void)
 {
-#if 1
     return (HCURSOR)CSR_CURRENT;
-#else
-    HCURSOR hcsr;
-
-    if (!mgIsServer) {
-        REQUEST req;
-
-        req.id = REQID_GETCURRENTCURSOR;
-        req.data = 0;
-        req.len_data = 0;
-
-        if (ClientRequest (&req, &hcsr, sizeof (HCURSOR)) < 0)
-            return 0;
-
-        return hcsr;
-    }
-
-    return (HCURSOR)CSR_CURRENT;
-#endif
 }
 
-inline static BOOL does_need_hide (const RECT* prc)
+#ifdef _MGUSE_SHAREDFB
+
+static inline BOOL does_need_hide (const RECT* prc)
 {
     int csrleft, csrright, csrtop, csrbottom;
     int intleft, intright, inttop, intbottom;
@@ -941,7 +924,6 @@ inline static BOOL does_need_hide (const RECT* prc)
     return TRUE;
 }
 
-#ifdef _MGUSE_SHAREDFB
 /* version for _MGUSE_SHAREDFB */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
@@ -976,7 +958,9 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         }
     }
 }
+
 #else
+
 /* version for _MGUSE_COMPOSITING */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
@@ -993,6 +977,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
     }
 }
+
 #endif /* _MGUSE_SHAREDFB */
 
 int GUIAPI ShowCursor (BOOL fShow)
@@ -1044,6 +1029,7 @@ int GUIAPI ShowCursor (BOOL fShow)
 
 #else /* _MGHAVE_CURSOR */
 
+/* version for no cursor support */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
     PDC cur_pdc = (PDC)pdc;
