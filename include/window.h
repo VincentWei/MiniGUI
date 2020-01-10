@@ -5548,7 +5548,7 @@ MG_EXPORT const char* GetResPath (void);
 MG_EXPORT int SetResPath (const char* path);
 
 /**
- * \fn int AddInnerRes (INNER_RES* inner_res, int count, BOOL copy)
+ * \fn int AddInnerRes (const INNER_RES* inner_res, int count, BOOL copy)
  * \brief Add some incore resource into the resource manager in order to
  * call LoadResource to get those resource.
  *

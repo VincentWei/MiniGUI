@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** resmgr.h: This head file include some functions for resource manager. 
+** resmgr.h: This head file include some functions for resource manager.
 **
 ** Create date: 2008/08/05
 **
@@ -58,7 +58,7 @@ typedef struct _RES_TYPE_INFO{
     short type;
     unsigned short flag;
     int ops_ref;
-	int def_source;
+    int def_source;
     RES_TYPE_OPS *ops;
 }RES_TYPE_INFO;
 #define RETIF_AUTO_DELETE 0x01
@@ -88,15 +88,22 @@ typedef struct _RES_ENTRY{
 
 #define DEF_HASH_SIZE  97
 
-typedef struct _HASH_TABLE{
+typedef struct _HASH_TABLE {
     int size;  //size of array of entries
     int count; //count of current RES_ENTRY in table
     RES_ENTRY** entries;
-}HASH_TABLE;
+} HASH_TABLE;
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 BOOL InitializeResManager(int hash_table_size);
-
 void TerminateResManager(void);
+
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
 
 #define NEWEX(type, count)   (type*)calloc(count,sizeof(type))
 #define NEW(type)  NEWEX(type,1)
@@ -115,5 +122,5 @@ void TerminateResManager(void);
 
 #define MG_RES_PATH  "MG_RES_PATH"
 
-#endif
+#endif /* RES_MANAGER_H */
 

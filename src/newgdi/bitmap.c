@@ -2516,7 +2516,7 @@ static const RGB WindowsStdColor [] = {
     {0xFF, 0xFF, 0xFF},     // light white   --15
 };
 
-const RGB* __mg_bitmap_get_std_16c (void)
+const RGB* __mg_bmp_get_std_16c (void)
 {
     return WindowsStdColor;
 }

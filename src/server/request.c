@@ -82,6 +82,7 @@ struct GlobalRes
     ReleaseProc release_proc;
 };
 
+#if defined(_MGHAVE_CURSOR) || defined(_MGGAL_MLSHADOW) || defined(_MGUSE_SHAREDFB)
 static void add_global_res (int cli, void* key,
                 void* res, ReleaseProc release_proc)
 {
@@ -106,10 +107,13 @@ static void add_global_res (int cli, void* key,
         }
     }
 }
+#endif // defined(_MGHAVE_CURSOR) || defined(_MGGAL_MLSHADOW) || defined(_MGUSE_SHAREDFB)
+
 #ifdef _MGGAL_MLSHADOW
-    extern int MLSHADOW_Server(void* request, void* reply);
-    extern void srvMLSHADOW_DelSurface(void *res);
+extern int MLSHADOW_Server(void* request, void* reply);
+extern void srvMLSHADOW_DelSurface(void *res);
 #endif
+
 static void del_global_res (int cli, void* key)
 {
     MG_Client* client = mgClients + cli;
