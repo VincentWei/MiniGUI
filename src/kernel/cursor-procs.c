@@ -942,6 +942,7 @@ inline static BOOL does_need_hide (const RECT* prc)
 }
 
 #ifdef _MGUSE_SHAREDFB
+/* version for _MGUSE_SHAREDFB */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
     PDC cur_pdc = (PDC)pdc;
@@ -975,7 +976,24 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         }
     }
 }
-#endif
+#else
+/* version for _MGUSE_COMPOSITING */
+void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
+{
+    PDC cur_pdc = (PDC)pdc;
+    const RECT* prc = NULL;
+
+    if (!mgIsServer && (SHAREDRES_TOPMOST_LAYER != __mg_layer)) {
+        return;
+    }
+
+    prc = &cur_pdc->rc_output;
+    if (cur_pdc->surface->video && fShow) {
+        GAL_UpdateRect (cur_pdc->surface,
+                            prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+    }
+}
+#endif /* _MGUSE_SHAREDFB */
 
 int GUIAPI ShowCursor (BOOL fShow)
 {
