@@ -147,8 +147,11 @@ HCURSOR __mg_load_cursor_from_res (int i)
         char path [MAX_PATH + 1];
 
         strncpy (path, sysres_get_system_res_path(), MAX_PATH);
+        path [MAX_PATH] = 0;
         strcat (path, "cursor/");
+        path [MAX_PATH] = 0;
         strcat (path, filename);
+        path [MAX_PATH] = 0;
 
 #ifdef _MGUSE_COMPOSITING
         if (is_png)

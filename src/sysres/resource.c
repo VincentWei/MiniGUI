@@ -82,9 +82,8 @@ BOOL GUIAPI RegisterResFromFile (HDC hdc, const char* file)
     return LoadResource(file, RES_TYPE_IMAGE,(DWORD)HDC_SCREEN)!=NULL;
 }
 
-BOOL GUIAPI
-RegisterResFromMem (HDC hdc, const char* file, const unsigned char* data,
-                size_t data_size)
+BOOL GUIAPI RegisterResFromMem (HDC hdc, const char* file,
+        const unsigned char* data, size_t data_size)
 {
     if (!data || !file)
     {

@@ -133,6 +133,7 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
 {
     GAL_Surface* csr_surf;
     PCURSOR pcsr;
+    gal_pixel trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
 
     if (w != CURSORWIDTH || h != CURSORHEIGHT)
         return 0;
@@ -154,13 +155,12 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
         int x, y;
         BYTE and_byte = 0;
         BYTE xor_byte = 0;
-        gal_pixel trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
         gal_pixel white_pixel = RGBA2Pixel (_dc_cursor, 0xFF, 0xFF, 0xFF, 0xFF);
         gal_pixel black_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0xFF);
 
         pANDBits += MONOPITCH * (CURSORHEIGHT - 1);
         pXORBits += MONOPITCH * (CURSORHEIGHT - 1);
-        gal_pixel* pixels = (gal_pixel*)csr_surf->pixels;
+        Uint32* pixels = (Uint32*)csr_surf->pixels;
 
         for (y = 0; y < CURSORHEIGHT; y++) {
             const BYTE* and_bytes = pANDBits;
@@ -187,7 +187,7 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
 
             pANDBits -= MONOPITCH;
             pXORBits -= MONOPITCH;
-            pixels += csr_surf->pitch;
+            pixels += (csr_surf->pitch >> 2);
         }
     }
     else if (colornum == 4) {
@@ -195,12 +195,11 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
         BYTE and_byte = 0;
         BYTE xor_byte = 0;
         int idx_16c = 0;
-        gal_pixel trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
         const RGB* std16c_rgb = __mg_bmp_get_std_16c ();
 
         pANDBits += MONOPITCH * (CURSORHEIGHT - 1);
         pXORBits += MONOPITCH * 4 * (CURSORHEIGHT - 1);
-        gal_pixel* pixels = (gal_pixel*)csr_surf->pixels;
+        Uint32* pixels = (Uint32*)csr_surf->pixels;
 
         for (y = 0; y < CURSORHEIGHT; y++) {
             const BYTE* and_bytes = pANDBits;
@@ -230,7 +229,7 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
 
             pANDBits -= MONOPITCH;
             pXORBits -= (MONOPITCH * 4);
-            pixels += csr_surf->pitch;
+            pixels += (csr_surf->pitch >> 2);
         }
     }
 

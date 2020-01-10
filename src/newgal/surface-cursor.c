@@ -106,23 +106,22 @@ GAL_Surface * GAL_CreateCursorSurface (GAL_VideoDevice *video,
     GAL_SetClipRect (surface, NULL);
 
     /* Get the pixels */
-    if (video && video->AllocDumbSurface) {
-        if (video->AllocDumbSurface (video, surface) < 0) {
+    if (video == NULL || video->AllocDumbSurface == NULL ||
+            video->AllocDumbSurface (video, surface) < 0) {
 
-            // fallback to allocate in system memory
-            surface->hwdata = NULL;
-            surface->pixels = malloc (surface->h*surface->pitch);
-            if (surface->pixels == NULL) {
-                goto error;
-            }
+        // fallback to allocate in system memory
+        surface->hwdata = NULL;
+        surface->pixels = malloc (surface->h*surface->pitch);
+        if (surface->pixels == NULL) {
+            goto error;
+        }
 
-            surface->video = NULL;
-            surface->flags &= ~GAL_HWSURFACE;
-        }
-        else {
-            surface->video = video;
-            surface->flags |= GAL_HWSURFACE;
-        }
+        surface->video = NULL;
+        surface->flags &= ~GAL_HWSURFACE;
+    }
+    else {
+        surface->video = video;
+        surface->flags |= GAL_HWSURFACE;
     }
 
     surface->map = GAL_AllocBlitMap();
