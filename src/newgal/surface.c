@@ -1770,18 +1770,14 @@ void GAL_FreeSurface (GAL_Surface *surface)
         surface->map = NULL;
     }
 
-    /* Use surface->hwdata to check hardware surface instead of
-            if (surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE)
-     */
-    if (surface->hwdata) {
+    if ((surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
         GAL_VideoDevice *video = surface->video;
 
         assert (video);
         assert (video->FreeHWSurface);
         video->FreeHWSurface (video, surface);
     }
-
-    if (surface->pixels &&
+    else if (surface->pixels &&
             ((surface->flags & GAL_PREALLOC) != GAL_PREALLOC)) {
         free (surface->pixels);
     }
