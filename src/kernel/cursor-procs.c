@@ -526,19 +526,6 @@ static void init_system_cursor (void)
     }
 }
 
-HCURSOR GUIAPI GetSystemCursor (int csrid)
-{
-    if (csrid >= ((PG_RES)mgSharedRes)->csrnum || csrid < 0)
-        return 0;
-
-    return (HCURSOR) (_sys_cursors [csrid]);
-}
-
-HCURSOR GUIAPI GetDefaultCursor (void)
-{
-    return _def_cursor;
-}
-
 static BITMAP csr_bmp;
 
 BOOL mg_InitCursor (void)
