@@ -72,8 +72,9 @@ struct timezone {
   #include <sys/types.h>
 #endif
 
-/* Function definitions */
+#include <string.h> // for strrchr
 
+/* Function definitions */
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -113,6 +114,20 @@ int __mg_slot_clear_use (unsigned char* bitmap, int index);
 BOOL __mg_is_abs_path (const char* path);
 int __mg_path_joint (char* dst, int dst_size, const char* abs_path,
         const char* sub_path);
+
+/* Since 4.2.0 */
+static inline
+const char* __mg_get_extension (const char* filename) {
+    const char* ext;
+    ext = strrchr (filename, '.');
+    if (ext)
+        return ext + 1;
+    return NULL;
+}
+
+// Extract integers in pattern like "100x100" or "100,100", and returns
+// the number of integers extracted successfully.
+int __mg_extract_integers (const char* s, int c, int* ab, int max_nr);
 
 /* Since 4.2.0 */
 #ifndef __NOUNIX__
