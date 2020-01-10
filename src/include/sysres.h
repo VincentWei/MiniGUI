@@ -60,10 +60,17 @@ extern "C" {
 /*Load system cursor */
 #ifdef _MGHAVE_CURSOR
 HCURSOR __mg_load_cursor_from_res (int i);
-PCURSOR sysres_load_system_cursor (int i);
+
+static inline PCURSOR sysres_load_system_cursor (int i) {
+    HCURSOR hCursor;
+    hCursor = __mg_load_cursor_from_res (i);
+    return (PCURSOR)hCursor;
+}
 #else
-#define sysres_load_system_cursor(i)    ((PCURSOR)(NULL))
-#endif
+static inline PCURSOR sysres_load_system_cursor (int i) {
+    return ((PCURSOR)(NULL));
+}
+#endif /* _MGHAVE_CURSOR */
 
 BOOL sysres_init_inner_resource(void);
 const char* sysres_get_system_res_path(void);
