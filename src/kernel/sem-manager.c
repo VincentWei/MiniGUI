@@ -71,6 +71,7 @@
 #include "gal.h"
 #include "internals.h"
 #include "ourhdr.h"
+#include "misc.h"
 
 static struct _manager {
     int             semid;
@@ -136,25 +137,13 @@ void mg_TerminateSemManager (void)
 
 int __mg_alloc_mutual_sem (int *semid)
 {
-    int n = -1, i, j;
-    BYTE* bitmap = manager.use_bmp;
+    int n;
 
 #ifndef _MGRM_STANDALONE
     pthread_mutex_lock (&manager.lock);
 #endif
 
-    for (i = 0; i < manager.len_use_bmp; i++) {
-        for (j = 0; j < 8; j++) {
-            if (*bitmap & (0x80 >> j)) {
-                *bitmap &= (~(0x80 >> j));
-                n = i * 8 + j;
-                break;
-            }
-        }
-
-        bitmap++;
-    }
-
+    n = __mg_lookfor_unused_slot (manager.use_bmp, manager.len_use_bmp, 1);
     if (n >= manager.nr_sems) {
         n = -1;
     }
@@ -173,8 +162,6 @@ int __mg_alloc_mutual_sem (int *semid)
 
 void __mg_free_mutual_sem (int sem_num)
 {
-    BYTE* bitmap = manager.use_bmp;
-
     if (sem_num < 0 || sem_num >= manager.nr_sems) {
         _DBG_PRINTF("Bad semaphore number: %d\n", sem_num);
         return;
@@ -184,15 +171,9 @@ void __mg_free_mutual_sem (int sem_num)
     pthread_mutex_lock (&manager.lock);
 #endif
 
-    bitmap = bitmap + (sem_num >> 3);
-
-#ifdef _DEBUG
-    if (*bitmap & (0x80 >> (sem_num % 8))) {
+    if (!__mg_slot_clear_use (manager.use_bmp, sem_num)) {
         _WRN_PRINTF("The semaphore is not marked as used: %d\n", sem_num);
     }
-#endif
-
-    *bitmap |= (0x80 >> (sem_num % 8));
 
 #ifndef _MGRM_STANDALONE
     pthread_mutex_unlock (&manager.lock);

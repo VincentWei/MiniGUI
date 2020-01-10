@@ -108,8 +108,21 @@ BOOL mg_InitSystemRes (void);
 void mg_TerminateSystemRes (void);
 
 int __mg_lookfor_unused_slot (unsigned char* bitmap, int len_bmp, int set);
-void __mg_slot_set_use (unsigned char* bitmap, int index);
-int __mg_slot_clear_use (unsigned char* bitmap, int index);
+static inline
+void __mg_slot_set_use (unsigned char* bitmap, int index) {
+    bitmap += index >> 3;
+    *bitmap &= (~(0x80 >> (index % 8)));
+}
+
+static inline
+int __mg_slot_clear_use (unsigned char* bitmap, int index) {
+    bitmap += index >> 3;
+    if (*bitmap & (0x80 >> (index % 8)))
+        return 0;
+
+    *bitmap |= (0x80 >> (index % 8));
+    return 1;
+}
 
 BOOL __mg_is_abs_path (const char* path);
 int __mg_path_joint (char* dst, int dst_size, const char* abs_path,
