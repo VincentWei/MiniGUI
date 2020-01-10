@@ -517,7 +517,7 @@ int GUIAPI LoadBitmapEx2 (HDC hdc, PBITMAP bmp,
         return ERR_BMP_IMAGE_TYPE;
     }
 
-    if (cb_alloc_buff) {
+    if (cb_alloc_buff == NULL) {
         ret = init_bitmap_from_mybmp (hdc, bmp, &my_bmp, pal, ALLOC_BUFF_ALL);
     }
     else {
@@ -546,7 +546,7 @@ int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP bmp, const char* file_name)
     const char* ext;
 
     /* format, png, jpg etc. */
-    if ((ext = get_extension (file_name)) == NULL) {
+    if ((ext = __mg_get_extension (file_name)) == NULL) {
         return ERR_BMP_UNKNOWN_TYPE;
     }
 
@@ -699,7 +699,7 @@ int GUIAPI PaintImageFromFile (HDC hdc, int x, int y, const char *file_name)
     MG_RWops* area;
     const char* ext;
 
-    if ((ext = get_extension (file_name)) == NULL)
+    if ((ext = __mg_get_extension (file_name)) == NULL)
         return ERR_BMP_UNKNOWN_TYPE;
 
     if (!(area = MGUI_RWFromFile (file_name, "rb"))) {
@@ -1041,7 +1041,7 @@ int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y, int w, int h,
     MG_RWops* area;
     const char* ext;
 
-    if ((ext = get_extension (file_name)) == NULL)
+    if ((ext = __mg_get_extension (file_name)) == NULL)
         return ERR_BMP_UNKNOWN_TYPE;
 
     if (!(area = MGUI_RWFromFile (file_name, "rb"))) {
