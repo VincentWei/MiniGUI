@@ -702,11 +702,21 @@ extern int clipboard_op (int cli, int clifd, void* buff, size_t len);
 #if IS_COMPOSITING_SCHEMA
 static int get_wp_surface (int cli, int clifd, void* buff, size_t len)
 {
-    int fd = 0;
+    size_t map_size;
 
-    /* TODO: get file descriptor of wallpaper pattern surface here */
+    assert (__gal_fake_screen);
 
-    return ServerSendReplyEx (clifd, NULL, 0, fd);
+    if (__gal_fake_screen->shared_header) {
+        map_size = sizeof (GAL_SharedSurfaceHeader);
+        map_size += __gal_fake_screen->shared_header->buf_size;
+
+        return ServerSendReplyEx (clifd, &map_size, sizeof (size_t),
+                    __gal_fake_screen->shared_header->fd);
+    }
+    else {
+        map_size = 0;
+        return ServerSendReplyEx (clifd, &map_size, sizeof (size_t), -1);
+    }
 }
 #endif /* IS_COMPOSITING_SCHEMA */
 

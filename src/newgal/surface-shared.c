@@ -72,13 +72,14 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
     GAL_Surface *screen;
     GAL_Surface *surface;
 
-    /* Check to see if we desire the surface in video memory */
     if (video == NULL) {
         video = __mg_current_video;
     }
 
-    screen = GAL_PublicSurface;
+    assert (width > 0 && height > 0);
 
+    /* Check to see if we desire the surface in video memory */
+    screen = GAL_PublicSurface;
     if (screen && ((screen->flags & GAL_HWSURFACE) == GAL_HWSURFACE)) {
         if ((flags & (GAL_SRCCOLORKEY | GAL_SRCALPHA)) != 0) {
             flags |= GAL_HWSURFACE;
@@ -141,7 +142,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 #endif
 
     /* Get the pixels */
-    if (surface->w && surface->h) {
+    {
         int fd = -1;
         size_t buf_size;
         off_t buf_off;

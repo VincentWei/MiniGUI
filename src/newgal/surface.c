@@ -1740,18 +1740,6 @@ void GAL_FreeSurface (GAL_Surface *surface)
         return;
     }
 
-#if IS_COMPOSITING_SCHEMA
-    if (surface->shared_header) {
-        if (surface->shared_header->creator == getpid())
-            GAL_FreeSharedSurfaceData(surface);
-        else
-            GAL_DettachSharedSurfaceData(surface);
-
-        surface->hwdata = NULL;
-        surface->pixels = NULL;
-    }
-#endif
-
 #ifdef _MGUSE_SYNC_UPDATE
     EmptyClipRgn (&surface->update_region);
 #endif
@@ -1769,6 +1757,19 @@ void GAL_FreeSurface (GAL_Surface *surface)
         GAL_FreeBlitMap(surface->map);
         surface->map = NULL;
     }
+
+#if IS_COMPOSITING_SCHEMA
+    if (surface->shared_header) {
+        if (surface->shared_header->creator == getpid())
+            GAL_FreeSharedSurfaceData(surface);
+        else
+            GAL_DettachSharedSurfaceData(surface);
+
+        surface->hwdata = NULL;
+        surface->pixels = NULL;
+    }
+    else
+#endif
 
     if ((surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
         GAL_VideoDevice *video = surface->video;

@@ -370,6 +370,10 @@ GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags);
 GAL_Surface *GAL_SetVideoMode
                         (int width, int height, int bpp, Uint32 flags);
 
+#ifdef _MGUSE_COMPOSITING
+void GAL_SetVideoModeInfo(GAL_Surface* screen);
+#endif
+
 /*
  * Makes sure the given list of rectangles is updated on the given screen.
  * If 'x', 'y', 'w' and 'h' are all 0, GAL_UpdateRect will update the entire

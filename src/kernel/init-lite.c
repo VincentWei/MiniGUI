@@ -485,7 +485,12 @@ int InitGUI (int argc, const char* agr[])
         if (GetMgEtcValue (engine, "exdriver", SHAREDRES_VIDEO_EXDRIVER, LEN_EXDRIVER_NAME) < 0)
             *SHAREDRES_VIDEO_EXDRIVER = 0;
 
-        SHAREDRES_VIDEO_DPI = __gal_screen->dpi;
+        SHAREDRES_VIDEO_DPI   = __gal_screen->dpi;
+        SHAREDRES_VIDEO_DEPTH = __gal_screen->format->BytesPerPixel;
+        SHAREDRES_VIDEO_RMASK = __gal_screen->format->Rmask;
+        SHAREDRES_VIDEO_GMASK = __gal_screen->format->Gmask;
+        SHAREDRES_VIDEO_BMASK = __gal_screen->format->Bmask;
+        SHAREDRES_VIDEO_AMASK = __gal_screen->format->Amask;
     }
     else {
         _DBG_PRINTF("Engien info from shared resource: %s %s %d\n",

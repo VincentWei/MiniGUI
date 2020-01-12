@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _DEBUG
 #include "common.h"
 #include "minigui.h"
 #include "constants.h"
@@ -64,6 +65,10 @@
 #include "sharedres.h"
 
 GAL_Surface* __gal_screen;
+
+#ifdef _MGUSE_COMPOSITING
+GAL_Surface* __gal_fake_screen;
+#endif
 
 RECT GUIAPI GetScreenRect (void)
 {
@@ -143,10 +148,102 @@ static int get_dpi_from_etc (const char* engine)
     return dpi;
 }
 
+#ifdef _MGUSE_COMPOSITING
+
+#define LEN_WALLPAPER_PATTER_SIZE       31
+#include "client.h"
+
+static GAL_Surface* create_wp_surface(GAL_Surface* screen)
+{
+    GAL_Surface* wp_surf;
+    if (IsServer()) {
+        int size[2];
+        char wp_size [LEN_WALLPAPER_PATTER_SIZE + 1];
+
+        if (GetMgEtcValue ("compositing_schema", "wallpaper_pattern_size",
+                    wp_size, LEN_WALLPAPER_PATTER_SIZE) < 0) {
+            strcpy (wp_size, "empty");
+        }
+
+        // parse wallpaper pattern size
+        if (strcasecmp (wp_size, "full") == 0) {
+            size[0] = screen->w;
+            size[1] = screen->h;
+        }
+        else if (strcasecmp (wp_size, "half") == 0) {
+            size[0] = screen->w >> 1;
+            size[1] = screen->h >> 1;
+        }
+        else if (strcasecmp (wp_size, "quarter") == 0) {
+            size[0] = screen->w >> 2;
+            size[1] = screen->h >> 2;
+        }
+        else if (strcasecmp (wp_size, "octant") == 0) {
+            size[0] = screen->w >> 3;
+            size[1] = screen->h >> 3;
+        }
+        else if (strcasecmp (wp_size, "empty") == 0) {
+            size[0] = 0;
+            size[1] = 0;
+        }
+        else if (__mg_extract_integers (wp_size, 'x', size, 2) < 2) {
+            size[0] = 0;
+            size[1] = 0;
+        }
+
+        _DBG_PRINTF ("wallpaper pattern size: %d x %d\n", size[0], size[1]);
+
+        if (size[0] > 0 && size[1] > 0) {
+            wp_surf = GAL_CreateSharedRGBSurface (screen->video,
+                        GAL_HWSURFACE, 0666, size[0], size[1],
+                        screen->format->BitsPerPixel,
+                        screen->format->Rmask, screen->format->Gmask,
+                        screen->format->Bmask, screen->format->Amask);
+        }
+        else {
+            goto empty;
+        }
+
+        return wp_surf;
+    }
+    else {
+        REQUEST req;
+        int fd = -1;
+        size_t map_size;
+
+        req.id = REQID_GETWPSURFACE;
+        req.data = &fd;
+        req.len_data = sizeof(int);
+
+        if ((ClientRequestEx2 (&req, NULL, 0, -1,
+                &map_size, sizeof (size_t), &fd) < 0) || (fd < 0))
+            goto empty;
+
+        _DBG_PRINTF ("REQID_GETWPSURFACE: map_size: %lu, fd: %d\n", map_size, fd);
+        assert (map_size > 0);
+
+        wp_surf = GAL_AttachSharedRGBSurface (fd, map_size,
+            GAL_HWSURFACE, TRUE);
+        close (fd);
+
+        return wp_surf;
+    }
+
+empty:
+    _DBG_PRINTF ("creating an empty wallpaper pattern surface\n");
+    return GAL_CreateRGBSurface (GAL_SWSURFACE, 0, 0,
+                screen->format->BitsPerPixel,
+                screen->format->Rmask, screen->format->Gmask,
+                screen->format->Bmask, screen->format->Amask);
+}
+
+#endif
+
 int mg_InitGAL (char* engine, char* mode)
 {
     int i;
     int w, h, depth;
+    BOOL need_set_mode = TRUE;
 
     LICENSE_CHECK_CUSTIMER_ID ();
 
@@ -157,6 +254,13 @@ int mg_InitGAL (char* engine, char* mode)
     else {
         strncpy (engine, SHAREDRES_VIDEO_ENGINE, LEN_ENGINE_NAME);
         engine [LEN_ENGINE_NAME] = '\0';
+
+        strncpy (mode, SHAREDRES_VIDEO_MODE, LEN_VIDEO_MODE);
+        mode [LEN_VIDEO_MODE] = '\0';
+
+#ifdef _MGUSE_COMPOSITING
+        need_set_mode = FALSE;
+#endif
     }
 #else
     get_engine_from_etc (engine);
@@ -175,35 +279,41 @@ int mg_InitGAL (char* engine, char* mode)
         return ERR_NO_MATCH;
     }
 
-#ifdef _MGRM_PROCESSES
-    if (IsServer()) {
+    if (need_set_mode) {
         get_mode_from_etc (engine, mode);
-    }
-    else {
-        strncpy (mode, SHAREDRES_VIDEO_MODE, LEN_VIDEO_MODE);
-        mode [LEN_VIDEO_MODE] = '\0';
-    }
-#else
-    get_mode_from_etc (engine, mode);
-#endif /* _MGRM_PROCESSES */
 
-    if (mode[0] == 0) {
-        return ERR_CONFIG_FILE;
+        if (mode[0] == 0) {
+            return ERR_CONFIG_FILE;
+        }
+
+        if (!GAL_ParseVideoMode (mode, &w, &h, &depth)) {
+            GAL_VideoQuit ();
+            _ERR_PRINTF ("NEWGAL: bad video mode parameter: %s.\n", mode);
+            return ERR_CONFIG_FILE;
+        }
+
+        if (!(__gal_screen = GAL_SetVideoMode (w, h, depth, GAL_HWPALETTE))) {
+            GAL_VideoQuit ();
+            _ERR_PRINTF ("NEWGAL: Set video mode failure.\n");
+            return ERR_GFX_ENGINE;
+        }
     }
 
-    if (!GAL_ParseVideoMode (mode, &w, &h, &depth)) {
+#ifdef _MGUSE_COMPOSITING
+    if (!(__gal_fake_screen = create_wp_surface(__gal_screen))) {
         GAL_VideoQuit ();
-        _ERR_PRINTF ("NEWGAL: bad video mode parameter: %s.\n", mode);
-        return ERR_CONFIG_FILE;
-    }
-
-    if (!(__gal_screen = GAL_SetVideoMode (w, h, depth, GAL_HWPALETTE))) {
-        GAL_VideoQuit ();
-        _ERR_PRINTF ("NEWGAL: Set video mode failure.\n");
+        _ERR_PRINTF ("NEWGAL: Failed to create wallpaper pattern surface.\n");
         return ERR_GFX_ENGINE;
     }
 
-#ifndef _MGRM_THREADS
+    if (!IsServer()) {
+        __gal_screen = __gal_fake_screen;
+
+        GAL_SetVideoModeInfo(__gal_screen);
+    }
+#endif
+
+#if 0 /* no need when we use the video infor in shared resource */
     if (w != __gal_screen->w || h != __gal_screen->h) {
         _ERR_PRINTF ("The resolution specified in MiniGUI.cfg is not "
                      "the same as the actual resolution: %dx%d.\n"
@@ -214,15 +324,13 @@ int mg_InitGAL (char* engine, char* mode)
     }
 #endif
 
-#ifdef _MGRM_PROCESSES
-    if (IsServer()) {
+    if (need_set_mode) {
         __gal_screen->dpi = get_dpi_from_etc (engine);
     }
+#ifdef _MGRM_PROCESSES
     else {
         __gal_screen->dpi = SHAREDRES_VIDEO_DPI;
     }
-#else
-    __gal_screen->dpi = get_dpi_from_etc (engine);
 #endif /* _MGRM_PROCESSES */
 
     for (i = 0; i < 17; i++) {

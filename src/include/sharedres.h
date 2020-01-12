@@ -85,6 +85,8 @@ typedef struct tagG_RES {
     char video_exdriver [LEN_EXDRIVER_NAME + 1];
     char video_fourcc [LEN_FOURCC_FORMAT + 1];
     int  video_dpi;
+    int  video_depth;
+    Uint32 video_rmask, video_gmask, video_bmask, video_amask;
 
     int nr_layers;
     int semid_layer;
@@ -141,12 +143,17 @@ typedef struct tagG_RES {
 } G_RES;
 typedef G_RES* PG_RES;
 
-#define SHAREDRES_VIDEO_ENGINE  (((PG_RES)mgSharedRes)->video_engine)
-#define SHAREDRES_VIDEO_MODE    (((PG_RES)mgSharedRes)->video_mode)
-#define SHAREDRES_VIDEO_DEVICE  (((PG_RES)mgSharedRes)->video_device)
-#define SHAREDRES_VIDEO_FOURCC  (((PG_RES)mgSharedRes)->video_fourcc)
-#define SHAREDRES_VIDEO_DPI     (((PG_RES)mgSharedRes)->video_dpi)
-#define SHAREDRES_VIDEO_EXDRIVER  (((PG_RES)mgSharedRes)->video_exdriver)
+#define SHAREDRES_VIDEO_ENGINE      (((PG_RES)mgSharedRes)->video_engine)
+#define SHAREDRES_VIDEO_MODE        (((PG_RES)mgSharedRes)->video_mode)
+#define SHAREDRES_VIDEO_DEVICE      (((PG_RES)mgSharedRes)->video_device)
+#define SHAREDRES_VIDEO_FOURCC      (((PG_RES)mgSharedRes)->video_fourcc)
+#define SHAREDRES_VIDEO_DPI         (((PG_RES)mgSharedRes)->video_dpi)
+#define SHAREDRES_VIDEO_EXDRIVER    (((PG_RES)mgSharedRes)->video_exdriver)
+#define SHAREDRES_VIDEO_DEPTH       (((PG_RES)mgSharedRes)->video_depth)
+#define SHAREDRES_VIDEO_RMASK       (((PG_RES)mgSharedRes)->video_rmask)
+#define SHAREDRES_VIDEO_GMASK       (((PG_RES)mgSharedRes)->video_gmask)
+#define SHAREDRES_VIDEO_BMASK       (((PG_RES)mgSharedRes)->video_bmask)
+#define SHAREDRES_VIDEO_AMASK       (((PG_RES)mgSharedRes)->video_amask)
 
 #define SHAREDRES_TIMER_COUNTER (((PG_RES)mgSharedRes)->timer_counter)
 #define SHAREDRES_TICK_ON_LOCKSEM  (((PG_RES)mgSharedRes)->tick_on_locksem)

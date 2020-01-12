@@ -536,16 +536,17 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     video_h = height;
     video_bpp = bpp;
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer && !GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)){
+    if (mgIsServer && !GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)) {
 #else
 
     if (!GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)) {
 #endif
-            GAL_SetError ("NEWGAL: GAL_GetVideoMode error, "
-                        "not supported video mode: %dx%d-%dbpp.\n",
-                        video_w, video_h, video_bpp);
-            return(NULL);
-        }
+        GAL_SetError ("NEWGAL: GAL_GetVideoMode error, "
+                    "not supported video mode: %dx%d-%dbpp.\n",
+                    video_w, video_h, video_bpp);
+        return(NULL);
+    }
+
     /* Check the requested flags */
     /* There's no palette in > 8 bits-per-pixel mode */
     if (video_bpp > 8) {
@@ -629,6 +630,23 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 
     return(GAL_PublicSurface);
 }
+
+#ifdef _MGUSE_COMPOSITING
+void GAL_SetVideoModeInfo(GAL_Surface* screen)
+{
+    assert(screen);
+
+    GAL_VideoSurface = screen;
+    __mg_current_video->info.vfmt = __gal_screen->format;
+    __mg_current_video->offset_x = 0;
+    __mg_current_video->offset_y = 0;
+
+    __gal_screen->video = __mg_current_video;
+    __gal_screen->offset = 0;
+    GAL_SetClipRect(screen, NULL);
+}
+
+#endif
 
 /*
  * Convert a surface into the video pixel format.
@@ -990,7 +1008,6 @@ int GAL_SetColors(GAL_Surface *screen, GAL_Color *colors, int firstcolor,
  */
 void GAL_VideoQuit (void)
 {
-    GAL_Surface *ready_to_go;
 
     if (__mg_current_video) {
         GAL_VideoDevice *video = __mg_current_video;
@@ -999,10 +1016,23 @@ void GAL_VideoQuit (void)
         video->VideoQuit (this);
 
         if (GAL_VideoSurface != NULL) {
+#ifdef _MGUSE_COMPOSITING
+            GAL_VideoSurface = NULL;
+            if (IsServer()) {
+                GAL_FreeSurface (__gal_screen);
+                GAL_FreeSurface (__gal_fake_screen);
+            }
+            else {
+                GAL_FreeSurface (__gal_screen);
+            }
+#else
+            GAL_Surface *ready_to_go;
             ready_to_go = GAL_VideoSurface;
             GAL_VideoSurface = NULL;
             GAL_FreeSurface (ready_to_go);
+#endif
         }
+
         GAL_PublicSurface = NULL;
         /* Clean up miscellaneous memory */
         if (video->physpal) {
@@ -1016,7 +1046,7 @@ void GAL_VideoQuit (void)
         __mg_current_video = NULL;
 
 #ifdef _MGUSE_SYNC_UPDATE
-	    DestroyFreeClipRectList (&__mg_free_update_region_list);
+        DestroyFreeClipRectList (&__mg_free_update_region_list);
 #endif
     }
     return;
