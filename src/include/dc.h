@@ -88,8 +88,8 @@ void __mg_unlock_gcrinfo (PDC pdc);
 #define LOCK_GCRINFO(pdc)       __mg_lock_recalc_gcrinfo (pdc)
 #define UNLOCK_GCRINFO(pdc)     if (dc_IsGeneralDC(pdc)) __mg_unlock_gcrinfo (pdc)
 #else
-RECT g_rcScr;
-PLOGFONT g_SysLogFont[1];
+RECT g_rcScr;               // TODO: bad coding
+PLOGFONT g_SysLogFont[1];   // TODO: bad coding
 #define LOCK_GCRINFO(pdc)
 #define UNLOCK_GCRINFO(pdc)
 #define __mg_hwnd_desktop                     0xFFFFFFFD

@@ -165,10 +165,12 @@ int InitGUI (int argc, const char* agr[])
     step++;
     atexit (mg_TerminateScreenDC);
 
+#if 0
     g_rcScr.left = 0;
     g_rcScr.top = 0;
     g_rcScr.right = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXX) + 1;
     g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
+#endif
 
     mg_TerminateMgEtc ();
     return 0;
@@ -454,10 +456,12 @@ int InitGUI (int argc, const char* agr[])
     step++;
     atexit (mg_TerminateScreenDC);
 
+#if 0
     g_rcScr.left = 0;
     g_rcScr.top = 0;
     g_rcScr.right = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXX) + 1;
     g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
+#endif
 
 #ifdef _MGRM_PROCESSES
     if (_is_server) {

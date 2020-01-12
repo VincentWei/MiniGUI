@@ -912,7 +912,7 @@ static void get_box_xy (HWND hParentWnd, DWORD dwStyle, DLGTEMPLATE* MsgBoxData)
         GetWindowRect (hParentWnd, &rcTemp);
     }
     else {
-        rcTemp = g_rcDesktop;
+        rcTemp = g_rcScr;
     }
 
     switch (dwStyle & MB_ALIGNMASK) {
@@ -942,12 +942,12 @@ static void get_box_xy (HWND hParentWnd, DWORD dwStyle, DLGTEMPLATE* MsgBoxData)
             break;
     }
 
-    if ((MsgBoxData->x + MsgBoxData->w) > g_rcDesktop.right) {
-        MsgBoxData->x = g_rcDesktop.right - MsgBoxData->w;
+    if ((MsgBoxData->x + MsgBoxData->w) > g_rcScr.right) {
+        MsgBoxData->x = g_rcScr.right - MsgBoxData->w;
     }
 
-    if ((MsgBoxData->y + MsgBoxData->h) > g_rcDesktop.bottom) {
-        MsgBoxData->y = g_rcDesktop.bottom - MsgBoxData->h;
+    if ((MsgBoxData->y + MsgBoxData->h) > g_rcScr.bottom) {
+        MsgBoxData->y = g_rcScr.bottom - MsgBoxData->h;
     }
 }
 

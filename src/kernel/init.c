@@ -511,10 +511,12 @@ int GUIAPI InitGUI (int args, const char *agr[])
         goto failure1;
     }
 
+#if 0
     g_rcScr.left = 0;
     g_rcScr.top = 0;
     g_rcScr.right = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXX) + 1;
     g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
+#endif
 
     license_create();
     splash_draw_framework();

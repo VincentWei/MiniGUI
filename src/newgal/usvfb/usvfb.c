@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -70,7 +70,7 @@
        via the UNIX socket.
 
     5. Note that the resolution of the virtual frame buffer should be sent by the server as
-       the first message. 
+       the first message.
 
     6. The server accepts the connection request from the MiniGUI client, gets the
        identifier of the shared memory sent by the client via the UNIX socket,
@@ -313,7 +313,7 @@ static void USVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
         SetRect (&bound, 0, 0, 0, 0);
         for (i = 0; i < numrects; i++) {
             RECT rc;
-            SetRect (&rc, rects[i].x, rects[i].y, 
+            SetRect (&rc, rects[i].x, rects[i].y,
                     rects[i].x + rects[i].w, rects[i].y + rects[i].h);
             if (IsRectEmpty (&bound))
                 bound = rc;
@@ -333,7 +333,7 @@ static void USVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     bound = this->hidden->rc_dirty;
     for (i = 0; i < numrects; i++) {
         RECT rc;
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                 rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -342,7 +342,9 @@ static void USVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->rc_dirty = bound;
             this->hidden->dirty = TRUE;
         }
@@ -437,7 +439,7 @@ static GAL_Surface *USVFB_SetVideoMode(_THIS, GAL_Surface *current,
 {
     Uint32 Rmask = 0, Gmask = 0, Bmask = 0, Amask = 0;
     int retval;
-    struct _vfb_info li;	
+    struct _vfb_info li;
     memset (&li, 0, sizeof (struct _vfb_info));
 
     if ((retval = a_getinfo (&li, width, height, bpp))) {
@@ -510,7 +512,7 @@ static GAL_Surface *USVFB_SetVideoMode(_THIS, GAL_Surface *current,
 
         pthread_attr_init (&new_attr);
         pthread_attr_setdetachstate (&new_attr, PTHREAD_CREATE_DETACHED);
-        pthread_create (&this->hidden->update_th, &new_attr, 
+        pthread_create (&this->hidden->update_th, &new_attr,
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
         pthread_mutex_init(&this->hidden->update_lock, NULL);
@@ -537,7 +539,7 @@ static void USVFB_VideoQuit (_THIS)
     return;
 }
 
-static GAL_Rect **USVFB_ListModes (_THIS, GAL_PixelFormat *format, 
+static GAL_Rect **USVFB_ListModes (_THIS, GAL_PixelFormat *format,
                 Uint32 flags)
 {
     return (GAL_Rect **) -1;
@@ -554,7 +556,7 @@ static void USVFB_FreeHWSurface (_THIS, GAL_Surface *surface)
     surface->pixels = NULL;
 }
 
-static int USVFB_SetColors (_THIS, int firstcolor, int ncolors, 
+static int USVFB_SetColors (_THIS, int firstcolor, int ncolors,
                 GAL_Color *colors)
 {
     return 0;

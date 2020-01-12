@@ -446,6 +446,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
     ZORDERINFO* zi = __mg_zorder_info;
     PTRACKMENUINFO plast = NULL;
     RECT rc;
+    RECT rcScr = GetScreenRect();
 
     if (sg_ptmi == ptmi) {
         sg_ptmi = NULL;
@@ -475,7 +476,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
         }
         ptmi = ptmi->next;
     }
-    SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
 
     return 0;
 }
@@ -1260,6 +1261,8 @@ static int dskStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
 
 static int dskCancelDragWindow (PMAINWIN pWin)
 {
+    RECT rcScr = GetScreenRect();
+
     if (!(pWin->dwStyle & WS_VISIBLE))
         return -1;
 
@@ -1268,8 +1271,7 @@ static int dskCancelDragWindow (PMAINWIN pWin)
 
     _dd_info.hwnd = (HWND)-1;
     unlock_zorder_info ();
-    SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
-   // SetDefaultCursor (GetSystemCursor (IDC_ARROW));
+    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
     return 0;
 }
 
@@ -1338,6 +1340,8 @@ static int do_drag_drop_window (UINT msg, int x, int y)
         _dd_info.last_y = y;
     }
     else {
+        RECT rcScr = GetScreenRect();
+
         SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
@@ -1347,7 +1351,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
                           MAKELONG (_dd_info.rc.left, _dd_info.rc.top),
                           MAKELONG (_dd_info.rc.right, _dd_info.rc.bottom));
         unlock_zorder_info ();
-        SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+        SelectClipRect (HDC_SCREEN_SYS, &rcScr);
 
         if(_dd_info.hwnd != (HWND)gui_GetMainWindowPtrUnderPoint (x, y))
             SetDefaultCursor (GetSystemCursor (IDC_ARROW));

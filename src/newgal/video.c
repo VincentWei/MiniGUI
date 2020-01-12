@@ -503,7 +503,7 @@ static int GAL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
     return(supported);
 }
 
-/* This should probably go somewhere else -- like GAL_surface.c */
+/* This should probably go somewhere else -- like surface.c */
 static void GAL_ClearSurface(GAL_Surface *surface)
 {
     Uint32 black;

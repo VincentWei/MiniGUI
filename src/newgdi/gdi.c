@@ -207,18 +207,20 @@ BOOL mg_InitScreenDC (void* surface)
 
 void mg_TerminateScreenDC (void)
 {
-    SelectClipRect (HDC_SCREEN, &g_rcScr);
+    RECT rcScr = GetScreenRect ();
+
+    SelectClipRect (HDC_SCREEN, &rcScr);
     SetBrushColor (HDC_SCREEN, 0);
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
 #endif
-        FillBox (HDC_SCREEN, g_rcScr.left, g_rcScr.top,
-                       g_rcScr.right, g_rcScr.bottom);
+        FillBox (HDC_SCREEN, rcScr.left, rcScr.top,
+                       rcScr.right, rcScr.bottom);
 
     if (__mg_screen_dc.alpha_pixel_format)
         free (__mg_screen_dc.alpha_pixel_format);
 
-    SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
     if (__mg_screen_sys_dc.alpha_pixel_format)
         free (__mg_screen_sys_dc.alpha_pixel_format);
 

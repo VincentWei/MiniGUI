@@ -579,7 +579,9 @@ void GUIAPI UpdateTopmostLayer (const RECT* dirty_rc)
 
     if (dirty_rc) {
         RECT eff_rc;
-        IntersectRect (&eff_rc, dirty_rc, &g_rcScr);
+        RECT rcScr = GetScreenRect();
+
+        IntersectRect (&eff_rc, dirty_rc, &rcScr);
         msg.wParam = MAKELONG (eff_rc.left, eff_rc.top);
         msg.lParam = MAKELONG (eff_rc.right, eff_rc.bottom);
     }

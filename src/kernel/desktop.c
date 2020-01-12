@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-/* 
+/*
 ** desktop.c: The Desktop module.
 **
-** Current maintainer: 
+** Current maintainer:
 **
 */
 
@@ -54,8 +54,6 @@
 #ifdef _MG_ENABLE_LICENSE
 #   include "../sysres/license/c_files/00_minigui.dat.c"
 #endif
-
-RECT g_rcScr;
 
 ZORDERINFO* __mg_zorder_info;
 
@@ -89,7 +87,7 @@ static BLOCKHEAP sg_FreeClipRectList;
 #define ZT_NORMAL       0x00000004
 #define ZT_ALL          0x0000000F
 
-typedef BOOL (* CB_ONE_ZNODE) (void* context, 
+typedef BOOL (* CB_ONE_ZNODE) (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node);
 
 typedef struct _DEF_CONTEXT
@@ -122,15 +120,15 @@ static BOOL subtract_rgn_by_node (PCLIPRGN region, const ZORDERINFO* zi,
             maskrect = firstmaskrect + idx;
             x = maskrect->left;
             y = maskrect->top;
-            
+
             /* convert to screen coordinate*/
             x = x + node->rc.left;
             y = y + node->rc.top;
 
-            SetRect(&tmprc, x, y, 
+            SetRect(&tmprc, x, y,
                         x+maskrect->right - maskrect->left,
                         y+maskrect->bottom - maskrect->top);
-            
+
             IntersectRect(&tmprc, &tmprc, &(node->rc));
 
             SubtractClipRect(region, &tmprc);
@@ -152,15 +150,15 @@ static int pt_in_maskrect (const ZORDERINFO* zi,
     MASKRECT *maskrect, *firstmaskrect;
     int idx = nodes->idx_mask_rect;
 
-    if (idx != 0 && PtInRect (&(nodes->rc), x, y)) 
-    { 
+    if (idx != 0 && PtInRect (&(nodes->rc), x, y))
+    {
         cx = x - nodes->rc.left;
         cy = y - nodes->rc.top;
 
         firstmaskrect = GET_MASKRECT(zi);
         while(idx != 0) {
             maskrect = firstmaskrect + idx;
-            SetRect (&tmprc, maskrect->left, maskrect->top, 
+            SetRect (&tmprc, maskrect->left, maskrect->top,
                         maskrect->right, maskrect->bottom);
 
             if (PtInRect (&tmprc, cx, cy))
@@ -176,14 +174,14 @@ static int pt_in_maskrect (const ZORDERINFO* zi,
     }
 }
 
-static int get_znode_at_point (const ZORDERINFO* zi, 
+static int get_znode_at_point (const ZORDERINFO* zi,
                 const ZORDERNODE* nodes, int x, int y)
 {
     int slot = 0;
 
     slot = zi->first_global;
     for (; slot > 0; slot = nodes [slot].next) {
-        if (nodes [slot].flags & ZOF_VISIBLE && 
+        if (nodes [slot].flags & ZOF_VISIBLE &&
                         pt_in_maskrect(zi, &nodes[slot], x, y))
             goto ret;
     }
@@ -249,7 +247,7 @@ static void clean_znode_maskrect (ZORDERINFO* zi, ZORDERNODE* nodes, int idx_zno
     nodes[idx_znode].idx_mask_rect = 0;
 }
 
-static int do_for_all_znodes (void* context, const ZORDERINFO* zi, 
+static int do_for_all_znodes (void* context, const ZORDERINFO* zi,
                 CB_ONE_ZNODE cb, DWORD types)
 {
     int slot;
@@ -282,8 +280,8 @@ static int do_for_all_znodes (void* context, const ZORDERINFO* zi,
 
     return count;
 }
- 
-static void dskScreenToClient (PMAINWIN pWin, 
+
+static void dskScreenToClient (PMAINWIN pWin,
             const RECT* rcScreen, RECT* rcClient)
 {
     PCONTROL pParent;
@@ -302,7 +300,7 @@ static void dskScreenToClient (PMAINWIN pWin,
     }
 }
 
-static void dskScreenToWindow (PMAINWIN pWin, 
+static void dskScreenToWindow (PMAINWIN pWin,
                 const RECT* rcScreen, RECT* rcWindow)
 {
     PCONTROL pParent;
@@ -321,7 +319,7 @@ static void dskScreenToWindow (PMAINWIN pWin,
     }
 }
 
-static void dskClientToScreen (PMAINWIN pWin, 
+static void dskClientToScreen (PMAINWIN pWin,
                 const RECT* rcClient, RECT* rcScreen)
 {
     PCONTROL pParent;
@@ -359,17 +357,17 @@ static void dskGetWindowRectInScreen (PMAINWIN pWin, RECT* prc)
     }
 }
 
-void __mg_update_window (HWND hwnd, 
+void __mg_update_window (HWND hwnd,
         int left, int top, int right, int bottom)
 {
     PMAINWIN pWin = (PMAINWIN)hwnd;
 
-    if (pWin 
+    if (pWin
             && ((pWin->WinType == TYPE_CONTROL && (pWin->dwExStyle & WS_EX_CTRLASMAINWIN))
                 || pWin->WinType != TYPE_CONTROL)
             && pWin->dwStyle & WS_VISIBLE) {
         RECT invrc;
-        SetRect(&invrc, left, top, right, bottom);  
+        SetRect(&invrc, left, top, right, bottom);
 
         if (IsRectEmpty (&invrc)) {
             SendAsyncMessage ((HWND)pWin, MSG_NCPAINT, 0, 0);
@@ -384,10 +382,10 @@ void __mg_update_window (HWND hwnd,
             else
                 GetWindowRect(hwnd, &rcWin);
 
-            if (IntersectRect (&rcTemp, 
+            if (IntersectRect (&rcTemp,
                         &rcWin, &invrc)) {
                 dskScreenToWindow (pWin, &rcTemp, &rcInv);
-                SendAsyncMessage ((HWND)pWin, 
+                SendAsyncMessage ((HWND)pWin,
                                 MSG_NCPAINT, 0, (LPARAM)(&rcInv));
                 dskScreenToClient (pWin, &rcTemp, &rcInv);
                 InvalidateRect ((HWND)pWin, &rcInv, TRUE);
@@ -406,20 +404,20 @@ static int update_client_window (ZORDERNODE* znode, const RECT* rc)
         if (rc) {
 
             if (IsRectEmpty (&znode->dirty_rc)){
-                SetRect(&znode->dirty_rc, 
-                    rc->left, rc->top, rc->right, rc->bottom);  
+                SetRect(&znode->dirty_rc,
+                    rc->left, rc->top, rc->right, rc->bottom);
             }
             else{
-                GetBoundRect (&znode->dirty_rc, &znode->dirty_rc, rc);    
+                GetBoundRect (&znode->dirty_rc, &znode->dirty_rc, rc);
             }
         }
         mgClients [znode->cli].has_dirty = TRUE;
     }
-    else 
+    else
 #endif
     {
         if (rc)
-            __mg_update_window (znode->fortestinghwnd, rc->left, rc->top, 
+            __mg_update_window (znode->fortestinghwnd, rc->left, rc->top,
                             rc->right, rc->bottom);
         else
             __mg_update_window (znode->fortestinghwnd, 0, 0, 0, 0);
@@ -429,7 +427,7 @@ static int update_client_window (ZORDERNODE* znode, const RECT* rc)
 }
 
 
-static BOOL _cb_update_znode (void* context, 
+static BOOL _cb_update_znode (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* znode)
 {
     const RECT* rc = (RECT*)context;
@@ -443,7 +441,7 @@ static BOOL _cb_update_znode (void* context,
     return FALSE;
 }
 
-static BOOL _cb_intersect_rc (void* context, 
+static BOOL _cb_intersect_rc (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     RECT* rc = (RECT*)context;
@@ -456,12 +454,12 @@ static BOOL _cb_intersect_rc (void* context,
     return FALSE;
 }
 
-static BOOL _cb_update_rc (void* context, 
+static BOOL _cb_update_rc (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     CLIPRGN* cliprgn = (CLIPRGN*)context;
 
-    if (node->flags & ZOF_VISIBLE && 
+    if (node->flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(cliprgn, zi, node)) {
         node->age ++;
         node->flags |= ZOF_REFERENCE;
@@ -471,7 +469,7 @@ static BOOL _cb_update_rc (void* context,
     return FALSE;
 }
 
-static BOOL _cb_exclude_rc (void* context, 
+static BOOL _cb_exclude_rc (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     if (!(node->flags & ZOF_VISIBLE))
@@ -486,7 +484,7 @@ static BOOL _cb_exclude_rc (void* context,
         while(idx != 0) {
             x = node->rc.left + (first+idx)->left;
             y = node->rc.top + (first+idx)->top;
-            SetRect(&rc, x, y, 
+            SetRect(&rc, x, y,
                         x+(first+idx)->right-(first+idx)->left,
                         y+(first+idx)->bottom-(first+idx)->top);
             ExcludeClipRect (HDC_SCREEN_SYS, &rc);
@@ -502,10 +500,11 @@ static BOOL _cb_exclude_rc (void* context,
 static void reset_window (PMAINWIN pWin, RECT* rcWin)
 {
     PGCRINFO pGCRInfo;
-    RECT rcTemp;
+    RECT rcScr, rcTemp;
 
     pGCRInfo = pWin->pGCRInfo;
-    IntersectRect (&rcTemp, rcWin, &g_rcScr);
+    rcScr = GetScreenRect();
+    IntersectRect (&rcTemp, rcWin, &rcScr);
     SetClipRgn (&pGCRInfo->crgn, &rcTemp);
 }
 
@@ -574,7 +573,7 @@ static int RestrictControlRect(PMAINWIN pWin, RECT *minimal)
         return FALSE;
 
     do {
-        PCONTROL pParent = pCtrl; 
+        PCONTROL pParent = pCtrl;
 
         rcMove.left = pRoot->cl + off_x;
         rcMove.top  = pRoot->ct + off_y;
@@ -648,7 +647,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
             SelectClipRect (hdc, &rcMove);
 
-            BitBlt (hdc, rcMove.left, rcMove.top, 
+            BitBlt (hdc, rcMove.left, rcMove.top,
                     rcMove.right - rcMove.left,
                     rcMove.bottom - rcMove.top,
                     hdc, pswi->iOffx + rcMove.left, pswi->iOffy + rcMove.top, 0);
@@ -657,7 +656,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
         pcrc = pcrc->next;
     }
     //ReleaseDC (hdc);
-    //BUGFIXED: we must update the secondaryDC to clientDC, to ensure 
+    //BUGFIXED: we must update the secondaryDC to clientDC, to ensure
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
     if(pWin->pMainWin->secondaryDC){
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
@@ -674,7 +673,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
         pthread_mutex_lock (&pInvRgn->lock);
 #endif
         /*scroll whole screen, offset invalid region*/
-        if (EqualRect (pswi->rc1, &rcClient)) 
+        if (EqualRect (pswi->rc1, &rcClient))
             OffsetRegion (&(pInvRgn->rgn), pswi->iOffx, pswi->iOffy);
         else
             OffsetRegionEx (&(pInvRgn->rgn), &rcClient,
@@ -712,11 +711,11 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             rcInvalid.right = rcInvalid.left + pswi->iOffx;
             bNeedInvalidate = TRUE;
         }
-        
+
         /*
          * BUGFIXED: offx and offy would make the two diffrent areas invalidate
          * we should invalid both them (dongjunjie) 2010/07/30
-         *  
+         *
          *                   content
          *  ---------------------------
          *  |//: offX                 |
@@ -736,7 +735,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             bNeedInvalidate = FALSE; //resotre the inved value
             inved = TRUE;
         }
-    
+
         if (pswi->iOffy < 0) {
             rcInvalid.top = rcInvalid.bottom + pswi->iOffy;
             bNeedInvalidate = TRUE;
@@ -772,7 +771,7 @@ void __mg_unlock_gcrinfo (PDC pdc)
     return;
 }
 
-static BOOL _cb_recalc_gcrinfo (void* context, 
+static BOOL _cb_recalc_gcrinfo (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     PGCRINFO gcrinfo;
@@ -796,7 +795,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
 
     gcrinfo = kernel_GetGCRgnInfo (pdc->hwnd);
     mainwin = (PMAINWIN)(pdc->hwnd);
-    
+
 #ifdef _MGRM_THREADS
     pthread_mutex_lock (&pdc->pGCRInfo->lock);
 #endif
@@ -829,14 +828,14 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
 
     switch (nodes[idx_znode].flags & ZOF_TYPE_MASK) {
         case ZOF_TYPE_NORMAL:
-            do_for_all_znodes (gcrinfo, zi, 
+            do_for_all_znodes (gcrinfo, zi,
                             _cb_recalc_gcrinfo, ZT_GLOBAL);
-            do_for_all_znodes (gcrinfo, zi, 
+            do_for_all_znodes (gcrinfo, zi,
                             _cb_recalc_gcrinfo, ZT_TOPMOST);
             slot = zi->first_normal;
             break;
         case ZOF_TYPE_TOPMOST:
-            do_for_all_znodes (gcrinfo, zi, 
+            do_for_all_znodes (gcrinfo, zi,
                             _cb_recalc_gcrinfo, ZT_GLOBAL);
             slot = zi->first_topmost;
             break;
@@ -844,7 +843,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
             slot = zi->first_global;
             break;
         case ZOF_TYPE_DESKTOP:
-            do_for_all_znodes (gcrinfo, zi, 
+            do_for_all_znodes (gcrinfo, zi,
                             _cb_recalc_gcrinfo, ZT_ALL);
             break;
         default:
@@ -857,7 +856,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
         }
 
         if (nodes [slot].flags & ZOF_VISIBLE)
-           subtract_rgn_by_node(&gcrinfo->crgn, zi, &nodes[slot]); 
+           subtract_rgn_by_node(&gcrinfo->crgn, zi, &nodes[slot]);
 
         slot = nodes [slot].next;
     }
@@ -870,7 +869,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
  */
 static void dskInitGCRInfo (PMAINWIN pWin)
 {
-    RECT rcWin, rcTemp;
+    RECT rcWin, rcScr, rcTemp;
 
     dskGetWindowRectInScreen (pWin, &rcWin);
 
@@ -881,7 +880,8 @@ static void dskInitGCRInfo (PMAINWIN pWin)
     pWin->pGCRInfo->old_zi_age = 0;
 
     InitClipRgn (&pWin->pGCRInfo->crgn, &sg_FreeClipRectList);
-    IntersectRect (&rcTemp, &rcWin, &g_rcScr);
+    rcScr = GetScreenRect();
+    IntersectRect (&rcTemp, &rcWin, &rcScr);
     SetClipRgn (&pWin->pGCRInfo->crgn, &rcTemp);
 }
 
@@ -908,7 +908,7 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
 
         while (next) {
             if (nodes [next].flags & ZOF_TF_MAINWIN
-                    && (nodes [next].flags & ZOF_VISIBLE) 
+                    && (nodes [next].flags & ZOF_VISIBLE)
                     && !(nodes [next].flags & ZOF_DISABLED))
                 return next;
 
@@ -919,7 +919,7 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
     next = zi->first_global;
     while (next) {
         if (nodes [next].flags & ZOF_TF_MAINWIN
-                && (nodes [next].flags & ZOF_VISIBLE) 
+                && (nodes [next].flags & ZOF_VISIBLE)
                 && !(nodes [next].flags & ZOF_DISABLED))
             return next;
 
@@ -929,7 +929,7 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
     next = zi->first_topmost;
     while (next) {
         if (nodes [next].flags & ZOF_TF_MAINWIN
-                && (nodes [next].flags & ZOF_VISIBLE) 
+                && (nodes [next].flags & ZOF_VISIBLE)
                 && !(nodes [next].flags & ZOF_DISABLED))
             return next;
 
@@ -939,7 +939,7 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
     next = zi->first_normal;
     while (next) {
         if (nodes [next].flags & ZOF_TF_MAINWIN
-                && (nodes [next].flags & ZOF_VISIBLE) 
+                && (nodes [next].flags & ZOF_VISIBLE)
                 && !(nodes [next].flags & ZOF_DISABLED))
             return next;
 
@@ -955,7 +955,7 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
 static void dskAddNewHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
 {
     PMAINWIN head, prev;
-    
+
     pHosted->pNextHosted = NULL;
 
     head = pHosting->pFirstHosted;
@@ -974,13 +974,13 @@ static void dskAddNewHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
     return;
 }
 
-/* 
+/*
  * Remove a hosted main window.
  */
 void dskRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
 {
     PMAINWIN head, prev;
-    
+
     head = pHosting->pFirstHosted;
     if (head == pHosted)
     {
@@ -991,7 +991,7 @@ void dskRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
     while (head) {
         prev = head;
         head = head->pNextHosted;
-            
+
         if (head == pHosted) {
             prev->pNextHosted = head->pNextHosted;
             return;
@@ -1052,7 +1052,7 @@ static HMENU sg_DesktopMenu = 0;      /* system global desktop menu handle */
 
 // call back proc of tracking menu.
 // defined in Menu module.
-int PopupMenuTrackProc (PTRACKMENUINFO ptmi, 
+int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
         int message, WPARAM wParam, LPARAM lParam);
 
 static int srvForceCloseMenu (int cli)
@@ -1064,7 +1064,7 @@ static int srvForceCloseMenu (int cli)
 #endif
     ZORDERNODE* menu_nodes;
     ZORDERNODE* win_nodes;
-    RECT rc_bound;
+    RECT rc_screen, rc_bound;
 
     if (zi->cli_trackmenu < 0 || zi->nr_popupmenus == 0)
         return 0;
@@ -1086,7 +1086,8 @@ static int srvForceCloseMenu (int cli)
     /* check influenced window zorder nodes */
     do_for_all_znodes (&sg_UpdateRgn, zi, _cb_update_rc, ZT_ALL);
 
-    if (SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
+    rc_screen = GetScreenRect ();
+    if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
         win_nodes [0].age ++;
         win_nodes [0].flags |= ZOF_REFERENCE;
     }
@@ -1104,7 +1105,7 @@ static int srvForceCloseMenu (int cli)
     do_for_all_znodes (&rc_bound, zi, _cb_update_znode, ZT_ALL);
 
     if (win_nodes [0].flags & ZOF_REFERENCE) {
-        SendMessage (HWND_DESKTOP, 
+        SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (LPARAM)&rc_bound);
         win_nodes [0].flags &= ~ZOF_REFERENCE;
     }
@@ -1129,6 +1130,7 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi)
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* menu_nodes;
     ZORDERNODE* win_nodes;
+    RECT rc_screen;
 
     if (zi->cli_trackmenu >= 0 && zi->cli_trackmenu != cli) {
         srvForceCloseMenu (0);
@@ -1139,14 +1141,15 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi)
 
     menu_nodes = GET_MENUNODE(zi);
     win_nodes = menu_nodes + DEF_NR_POPUPMENUS;
-    
+
     /* lock zi for change */
     lock_zi_for_change (zi);
 
     /* check influenced window zorder nodes */
     do_for_all_znodes ((void*)rc, zi, _cb_intersect_rc, ZT_ALL);
 
-    if (DoesIntersect (rc, &g_rcScr)) {
+    rc_screen = GetScreenRect();
+    if (DoesIntersect (rc, &rc_screen)) {
         win_nodes [0].age ++;
     }
 
@@ -1168,7 +1171,7 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* menu_nodes;
     ZORDERNODE* win_nodes;
-    RECT rc;
+    RECT rc, rc_screen;
 
     if (zi->cli_trackmenu != cli
                     || zi->nr_popupmenus != (idx_znode + 1))
@@ -1176,7 +1179,7 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
 
     menu_nodes = GET_MENUNODE(zi);
     win_nodes = menu_nodes + DEF_NR_POPUPMENUS;
-    
+
     /* lock zi for change */
     lock_zi_for_change (zi);
 
@@ -1186,7 +1189,8 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
     /* check influenced window zorder nodes */
     do_for_all_znodes (&sg_UpdateRgn, zi, _cb_update_rc, ZT_ALL);
 
-    if (SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
+    rc_screen = GetScreenRect();
+    if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
         win_nodes [0].age ++;
         win_nodes [0].flags |= ZOF_REFERENCE;
     }
@@ -1202,7 +1206,7 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
     do_for_all_znodes (&rc, zi, _cb_update_znode, ZT_ALL);
 
     if (win_nodes [0].flags & ZOF_REFERENCE) {
-        SendMessage (HWND_DESKTOP, 
+        SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (LPARAM)&rc);
         win_nodes [0].flags &= ~ZOF_REFERENCE;
     }
@@ -1215,8 +1219,8 @@ static BOOL dskCloseMenu (void)
     if (sg_ptmi == NULL)
         return FALSE;
 
-    SendNotifyMessage (sg_ptmi->hwnd, 
-            MSG_DEACTIVEMENU, 
+    SendNotifyMessage (sg_ptmi->hwnd,
+            MSG_DEACTIVEMENU,
                        (WPARAM)sg_ptmi->pmb,
                        (LPARAM)sg_ptmi->pmi);
 
@@ -1229,7 +1233,7 @@ static BOOL dskCloseMenu (void)
 
 #endif
 
-int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode, 
+int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode,
                 int message, WPARAM wParam, LPARAM lParam)
 {
     int ret = 0;
@@ -1241,12 +1245,12 @@ int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode,
     nodes = GET_ZORDERNODE(zi);
 
     if (nodes [znode].cli == 0) {
-        ret = PostMessage (nodes [znode].main_win, 
+        ret = PostMessage (nodes [znode].main_win,
                             message, wParam, lParam);
     }
 #if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
     else {
-        MSG msg = {nodes [znode].main_win, 
+        MSG msg = {nodes [znode].main_win,
                 message, wParam, lParam, __mg_timer_counter};
 
         ret = __mg_send2client (&msg, mgClients + nodes [znode].cli);
@@ -1256,8 +1260,8 @@ int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode,
     return ret;
 }
 
-static int 
-post_msg_by_znode_p (const ZORDERINFO* zi, const ZORDERNODE* znode, 
+static int
+post_msg_by_znode_p (const ZORDERINFO* zi, const ZORDERNODE* znode,
                 int message, WPARAM wParam, LPARAM lParam)
 {
     int ret = 0;
@@ -1270,7 +1274,7 @@ post_msg_by_znode_p (const ZORDERINFO* zi, const ZORDERNODE* znode,
     }
 #if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
     else {
-        MSG msg = {znode->main_win, 
+        MSG msg = {znode->main_win,
                 message, wParam, lParam, __mg_timer_counter};
 
         ret = __mg_send2client (&msg, mgClients + znode->cli);
@@ -1287,7 +1291,7 @@ static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
     ZORDERNODE* nodes;
     HWND old_hwnd = HWND_NULL, new_hwnd = HWND_NULL;
 
-    if (idx_znode > zi->max_nr_globals 
+    if (idx_znode > zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) {
         return HWND_INVALID;
     }
@@ -1332,27 +1336,27 @@ static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
     }
 
     if (old_active && (nodes [zi->active_win].flags & ZOF_VISIBLE)) {
-        post_msg_by_znode_p (zi, nodes + old_active, 
+        post_msg_by_znode_p (zi, nodes + old_active,
                         MSG_NCACTIVATE, FALSE, 0);
-        post_msg_by_znode_p (zi, nodes + old_active, 
+        post_msg_by_znode_p (zi, nodes + old_active,
                         MSG_ACTIVE, FALSE, 0);
-        post_msg_by_znode_p (zi, nodes + old_active, 
+        post_msg_by_znode_p (zi, nodes + old_active,
                         MSG_KILLFOCUS, (WPARAM)new_hwnd, 0);
     }
 
     if (idx_znode) {
-        post_msg_by_znode_p (zi, nodes + idx_znode, 
+        post_msg_by_znode_p (zi, nodes + idx_znode,
                         MSG_NCACTIVATE, TRUE, 0);
-        post_msg_by_znode_p (zi, nodes + idx_znode, 
+        post_msg_by_znode_p (zi, nodes + idx_znode,
                         MSG_ACTIVE, TRUE, 0);
-        post_msg_by_znode_p (zi, nodes + idx_znode, 
+        post_msg_by_znode_p (zi, nodes + idx_znode,
                         MSG_SETFOCUS, (WPARAM)old_hwnd, 0);
     }
 
     return old_hwnd;
 }
 
-static void get_text_char_pos (PLOGFONT log_font, const char *text, 
+static void get_text_char_pos (PLOGFONT log_font, const char *text,
                int len, int fit_bytes, int *fit_chars, int *pos_chars)
 {
     DEVFONT* sbc_devfont = log_font->devfonts[0];
@@ -1365,8 +1369,8 @@ static void get_text_char_pos (PLOGFONT log_font, const char *text,
         if (pos_chars) {
             pos_chars[char_count] = len - left_bytes;
         }
-        if ((mbc_devfont) && 
-            (len_cur_char = mbc_devfont->charset_ops->len_first_char 
+        if ((mbc_devfont) &&
+            (len_cur_char = mbc_devfont->charset_ops->len_first_char
              ((const unsigned char*)text, left_bytes)) > 0) {
             char_count ++;
             left_bytes -= len_cur_char;
@@ -1384,7 +1388,7 @@ static void get_text_char_pos (PLOGFONT log_font, const char *text,
             }
         }
     }
-    
+
     if (fit_chars) {
         *fit_chars = char_count;
     }
@@ -1398,7 +1402,7 @@ int __mg_get_idle_slot (unsigned char* bitmap, int len_bmp)
 
     for (i = 0; i < len_bmp; i++) {
         for (j = 0; j < 8; j++) {
-            if (*bitmap & (0x80 >> j)) 
+            if (*bitmap & (0x80 >> j))
                 idle++;
         }
         bitmap++;
@@ -1425,9 +1429,9 @@ int __mg_get_idle_slot (unsigned char* bitmap, int len_bmp)
             else { \
                 CopyRect(&(drc[idx]), &src); \
                 idx++; \
-            } 
+            }
 
-int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node, 
+int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
         const DWORD type, const RECT *rc)
 {
     RECT* roundrc = NULL;
@@ -1474,7 +1478,7 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
         for(i = 1; i < r; i++)
         {
             z = sqrt (r*r-i*i);
-            SetRect (&rect, rc->left+r-z, 
+            SetRect (&rect, rc->left+r-z,
                             rc->top+RECTHP(rc)-r+i-1,
                             rc->left+RECTWP(rc)-r+z,
                             rc->top+RECTHP(rc)-r+i+1);
@@ -1487,8 +1491,8 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
                     rc->left+RECTWP(rc), rc->top+RECTHP(rc));
         do_with_round_rect (rect, roundrc, rc_idx);
     }
-  
-    /* if have enough mask rect */  
+
+    /* if have enough mask rect */
     if ( rc_idx > __mg_get_idle_slot((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
                 zi->size_maskrect_usage_bmp))
     {
@@ -1502,7 +1506,7 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
     idx = 0;
     for(i = 0; i < rc_idx; i++) {
         free_slot = __mg_lookfor_unused_slot (
-                            (unsigned char*)GET_MASKRECT_USAGEBMP(zi), 
+                            (unsigned char*)GET_MASKRECT_USAGEBMP(zi),
                             zi->size_maskrect_usage_bmp, 1);
         if (free_slot == -1) {
             _WRN_PRINTF ("KERNEL: __mg_lookfor_unused_slot failed\n");
@@ -1514,7 +1518,7 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
             (firstmaskrect+idx)->next = free_slot;
         }
         else {
-            node->idx_mask_rect = free_slot;  
+            node->idx_mask_rect = free_slot;
         }
         idx = free_slot;
     }
@@ -1522,7 +1526,7 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
     if (idx != 0) {
         (firstmaskrect+idx)->prev = 0;
     }
- 
+
     /*get value*/
     idx = node->idx_mask_rect;
     i=0;
@@ -1534,13 +1538,13 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
         idx = (firstmaskrect+idx)->next;
         i++;
     }
- 
+
     free (roundrc);
 
     return 0;
 }
 
-static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win, 
+static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption)
 {
     DWORD type = flags & ZOF_TYPE_MASK;
@@ -1548,6 +1552,9 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     int *first = NULL, *nr_nodes = NULL;
     int free_slot, slot, old_first;
     ZORDERNODE* nodes;
+    RECT rc_screen;
+
+    rc_screen = GetScreenRect();
 
     switch (flags & ZOF_TYPE_MASK) {
         case ZOF_TYPE_GLOBAL:
@@ -1589,11 +1596,11 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 
     /* the slot must be larger than zero */
     if (type == ZOF_TYPE_GLOBAL)
-        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1), 
+        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1),
                                         zi->max_nr_globals, 1);
     else {
-        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1) 
-                        + (zi->max_nr_globals >> 3), 
+        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1)
+                        + (zi->max_nr_globals >> 3),
                         zi->size_usage_bmp - (zi->max_nr_globals >> 3), 1);
 
         if (free_slot >= 0) {
@@ -1619,9 +1626,9 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     if (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS) {
         RECT cli_rect;
 
-        SetRect(&cli_rect, 0, 0, RECTW(nodes[free_slot].rc), 
+        SetRect(&cli_rect, 0, 0, RECTW(nodes[free_slot].rc),
                 RECTH(nodes[free_slot].rc));
-        CreateNodeRoundMaskRect (__mg_zorder_info, 
+        CreateNodeRoundMaskRect (__mg_zorder_info,
                 &nodes[free_slot], flags, &cli_rect);
     }
 
@@ -1670,7 +1677,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
         if (type >= ZOF_TYPE_TOPMOST) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
                 }
@@ -1679,19 +1686,19 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
         if (type >= ZOF_TYPE_GLOBAL) {
             slot = zi->first_global;
             for (; slot > 0; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
                 }
             }
         }
-        if (DoesIntersect (&nodes [free_slot].rc, &g_rcScr)) {
+        if (DoesIntersect (&nodes [free_slot].rc, &rc_screen)) {
             nodes [0].age ++;
         }
     }
 
 #if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
-    if (*first == 0 
+    if (*first == 0
             || (nodes [*first].flags & ZOF_TF_TOPFOREVER) != ZOF_TF_TOPFOREVER )
     {
         old_first = *first;
@@ -1745,14 +1752,15 @@ static int FreeZOrderNode (int cli, int idx_znode)
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
     int slot, old_active, next_active;
-    RECT rc;
+    RECT rc, rc_screen;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
             || idx_znode <= 0) {
         return -1;
     }
 
+    rc_screen = GetScreenRect ();
     nodes = GET_ZORDERNODE(zi);
 
 #ifdef _MGHAVE_MENU
@@ -1791,7 +1799,7 @@ static int FreeZOrderNode (int cli, int idx_znode)
     lock_zi_for_change (zi);
 
     /* Free round corners mask rect. */
-    if (type & ZOF_TW_TROUNDCNS || 
+    if (type & ZOF_TW_TROUNDCNS ||
             type & ZOF_TW_BROUNDCNS) {
 
 #if 0
@@ -1837,7 +1845,7 @@ static int FreeZOrderNode (int cli, int idx_znode)
         if (type > ZOF_TYPE_NORMAL) {
             slot = zi->first_normal;
             for (; slot > 0; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                     nodes [slot].age ++;
                     nodes [slot].flags |= ZOF_REFERENCE;
@@ -1845,7 +1853,7 @@ static int FreeZOrderNode (int cli, int idx_znode)
             }
         }
 
-        if (SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
+        if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
             nodes [0].age ++;
             nodes [0].flags |= ZOF_REFERENCE;
         }
@@ -1871,7 +1879,7 @@ static int FreeZOrderNode (int cli, int idx_znode)
     do_for_all_znodes (&rc, zi, _cb_update_znode, ZT_ALL);
 
     if (nodes [0].flags & ZOF_REFERENCE) {
-        SendMessage (HWND_DESKTOP, 
+        SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (WPARAM)&rc);
         nodes [0].flags &= ~ZOF_REFERENCE;
     }
@@ -1889,15 +1897,15 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
 {
     DWORD zt_type = 0;
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE) 
+#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
     if (mgIsServer) {
        zt_type |= ZOF_TYPE_GLOBAL;
-    } else 
+    } else
 #endif
     {
         if (pWin->dwExStyle & WS_EX_TOPMOST)
             zt_type |= ZOF_TYPE_TOPMOST;
-        else if (pWin->WinType == TYPE_CONTROL && 
+        else if (pWin->WinType == TYPE_CONTROL &&
                     (pWin->pMainWin->dwExStyle & WS_EX_TOPMOST))
             zt_type |= ZOF_TYPE_TOPMOST;
         else
@@ -1924,7 +1932,7 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
     return zt_type;
 }
 
-static int AllocZOrderMaskRect (int cli, int idx_znode, 
+static int AllocZOrderMaskRect (int cli, int idx_znode,
         int flags, const RECT4MASK *rc, const int nr_rc)
 {
     MASKRECT *firstmaskrect;
@@ -1932,7 +1940,7 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
     ZORDERINFO* zi = _get_zorder_info(cli);
     int free_slot, i, cur_idx, idx, old_num = 0;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
             || idx_znode <= 0) {
         return -1;
@@ -1954,7 +1962,7 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
 
     if (nr_rc > old_num) {
         /* check the number of mask rect if enough */
-        int idle = __mg_get_idle_slot((unsigned char*)GET_MASKRECT_USAGEBMP(zi), 
+        int idle = __mg_get_idle_slot((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
                 zi->size_maskrect_usage_bmp);
         if (idle < nr_rc-old_num) {
             unlock_zi_for_change (zi);
@@ -1965,13 +1973,13 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
         idx = nodes[idx_znode].idx_mask_rect;
         for(i = 0; i < nr_rc-old_num; i++) {
             free_slot = __mg_lookfor_unused_slot (
-                            (unsigned char*)GET_MASKRECT_USAGEBMP(zi), 
+                            (unsigned char*)GET_MASKRECT_USAGEBMP(zi),
                             zi->size_maskrect_usage_bmp, 1);
             if (free_slot == -1) {
                 unlock_zi_for_change (zi);
                 return -1;
             }
-    
+
             (firstmaskrect+free_slot)->next = idx;
             if (idx != 0) {
                 (firstmaskrect+idx)->prev = free_slot;
@@ -2010,7 +2018,7 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
     /* unlock zi for change ... */
     unlock_zi_for_change (zi);
 
-    return 0; 
+    return 0;
 }
 
 static int FreeZOrderMaskRect (int cli, int idx_znode)
@@ -2018,7 +2026,7 @@ static int FreeZOrderMaskRect (int cli, int idx_znode)
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
             || idx_znode <= 0) {
         return -1;
@@ -2066,7 +2074,7 @@ void dskRefreshAllClient (const RECT* invrc)
 #if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
     if (mgIsServer) {
         ZORDERINFO* zi = _get_zorder_info (0);
-        SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 
+        SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0,
                 (LPARAM)(invrc));
 
         lock_zi_for_read (zi);
@@ -2110,7 +2118,7 @@ int dskSetTopForEver(int cli, int idx_znode, BOOL show)
     ZORDERINFO* zi = _get_zorder_info (cli);
     ZORDERNODE* nodes;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
             || idx_znode <= 0) {
         return -1;
@@ -2127,7 +2135,7 @@ int dskSetTopForEver(int cli, int idx_znode, BOOL show)
     /* lock zi for change */
     lock_zi_for_change (zi);
 
-    nodes[idx_znode].flags |= ZOF_TF_TOPFOREVER;  
+    nodes[idx_znode].flags |= ZOF_TF_TOPFOREVER;
 
     /* unlock zi for change */
     unlock_zi_for_change (zi);
@@ -2149,7 +2157,7 @@ static int dskMove2Top (int cli, int idx_znode)
     int *first = NULL;
     ZORDERNODE* nodes;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
             || idx_znode <= 0) {
         return -1;
@@ -2202,7 +2210,7 @@ static int dskMove2Top (int cli, int idx_znode)
         if (type == ZOF_TYPE_TOPMOST) {
             slot = zi->first_topmost;
             for (; slot != idx_znode; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                                 DoesIntersect (&rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
                     AddClipRect (&sg_UpdateRgn, &nodes [slot].rc);
@@ -2212,7 +2220,7 @@ static int dskMove2Top (int cli, int idx_znode)
         if (type == ZOF_TYPE_GLOBAL) {
             slot = zi->first_global;
             for (; slot != idx_znode; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                                 DoesIntersect (&rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
                     AddClipRect (&sg_UpdateRgn, &nodes [slot].rc);
@@ -2268,7 +2276,7 @@ static int dskMove2Top (int cli, int idx_znode)
     unlock_zi_for_change (zi);
 
     if ((nodes [idx_znode].flags & ZOF_VISIBLE) && nodes [idx_znode].fortestinghwnd) {
-        update_client_window_rgn (nodes [idx_znode].cli, 
+        update_client_window_rgn (nodes [idx_znode].cli,
                         nodes [idx_znode].fortestinghwnd);
 
     }
@@ -2279,11 +2287,11 @@ static int dskMove2Top (int cli, int idx_znode)
 static int dskShowWindow (int cli, int idx_znode)
 {
     DWORD type;
-    ZORDERINFO* zi = _get_zorder_info(cli); 
+    ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
     int *first = NULL;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
             idx_znode <= 0) {
         return -1;
@@ -2295,7 +2303,7 @@ static int dskShowWindow (int cli, int idx_znode)
 #endif
 
     nodes = GET_ZORDERNODE(__mg_zorder_info);
-    
+
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
     switch (type) {
         case ZOF_TYPE_GLOBAL:
@@ -2320,6 +2328,7 @@ static int dskShowWindow (int cli, int idx_znode)
     {
         int slot;
         RECT rc = nodes [idx_znode].rc;
+        RECT rc_screen = GetScreenRect();
 
         if (type > ZOF_TYPE_NORMAL) {
             do_for_all_znodes (&rc, zi, _cb_intersect_rc, ZT_NORMAL);
@@ -2334,13 +2343,13 @@ static int dskShowWindow (int cli, int idx_znode)
         slot = nodes [idx_znode].next;
         for (; slot != 0; slot = nodes [slot].next)
         {
-            if (nodes [slot].flags & ZOF_VISIBLE && 
+            if (nodes [slot].flags & ZOF_VISIBLE &&
                             DoesIntersect (&rc, &nodes [slot].rc)) {
                 nodes [slot].age ++;
             }
         }
 
-        if (DoesIntersect (&rc, &g_rcScr)) {
+        if (DoesIntersect (&rc, &rc_screen)) {
             nodes [0].age ++;
         }
         nodes [idx_znode].age ++;
@@ -2360,7 +2369,7 @@ static int dskHideWindow (int cli, int idx_znode)
     int *first = NULL;
     ZORDERNODE* nodes;
 
-    if (idx_znode > zi->max_nr_globals 
+    if (idx_znode > zi->max_nr_globals
             + zi->max_nr_topmosts + zi->max_nr_normals) {
         return -1;
     }
@@ -2371,7 +2380,7 @@ static int dskHideWindow (int cli, int idx_znode)
 #endif
 
     nodes = GET_ZORDERNODE(zi);
-    
+
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
     switch (type) {
         case ZOF_TYPE_GLOBAL:
@@ -2397,10 +2406,11 @@ static int dskHideWindow (int cli, int idx_znode)
     SetClipRgn (&sg_UpdateRgn, &nodes [idx_znode].rc);
     if (nodes [idx_znode].flags & ZOF_VISIBLE) {
         int slot;
+        RECT rcScr = GetScreenRect ();
 
         slot = nodes [idx_znode].next;
         for (; slot > 0; slot = nodes [slot].next) {
-            if (nodes [slot].flags & ZOF_VISIBLE && 
+            if (nodes [slot].flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                 nodes [slot].age ++;
                 nodes [slot].flags |= ZOF_REFERENCE;
@@ -2412,7 +2422,7 @@ static int dskHideWindow (int cli, int idx_znode)
         if (type > ZOF_TYPE_NORMAL) {
             do_for_all_znodes (&sg_UpdateRgn, zi, _cb_update_rc, ZT_NORMAL);
         }
-        if (SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
+        if (SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
             nodes [0].age ++;
             nodes [0].flags |= ZOF_REFERENCE;
         }
@@ -2420,11 +2430,11 @@ static int dskHideWindow (int cli, int idx_znode)
 
     if (idx_znode && (nodes [idx_znode].flags & ZOF_TF_MAINWIN
          && (nodes [idx_znode].flags & ZOF_VISIBLE))) {
-        post_msg_by_znode_p (zi, nodes + idx_znode, 
+        post_msg_by_znode_p (zi, nodes + idx_znode,
                         MSG_NCACTIVATE, FALSE, 0);
-        post_msg_by_znode_p (zi, nodes + idx_znode, 
+        post_msg_by_znode_p (zi, nodes + idx_znode,
                         MSG_ACTIVE, FALSE, 0);
-        post_msg_by_znode_p (zi, nodes + idx_znode, 
+        post_msg_by_znode_p (zi, nodes + idx_znode,
                         MSG_KILLFOCUS, 0, 0);
     }
 
@@ -2441,7 +2451,7 @@ static int dskHideWindow (int cli, int idx_znode)
     do_for_all_znodes (&nodes [idx_znode].rc, zi, _cb_update_znode, ZT_ALL);
 
     if (nodes [0].flags & ZOF_REFERENCE) {
-        SendMessage (HWND_DESKTOP, 
+        SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (WPARAM)&nodes [idx_znode].rc);
         nodes [0].flags &= ~ZOF_REFERENCE;
     }
@@ -2456,12 +2466,12 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
     ZORDERNODE* nodes;
     RECT rcInv[4], rcOld, rcInter, tmprc;
     int i, slot, nInvCount;
-    unsigned short idx; 
+    unsigned short idx;
     CLIPRGN bblt_rgn;
     MASKRECT *firstmaskrect, *maskrect;
     ZORDERINFO* zi = _get_zorder_info(cli);
-    
-    if (idx_znode > (zi->max_nr_globals 
+
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
             idx_znode < 0) {
         return -1;
@@ -2490,10 +2500,10 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
     if (memcmp (&nodes [idx_znode].rc, rcWin, sizeof (RECT)) == 0)
         return 0;
 
-    if ( (RECTW(nodes[idx_znode].rc) != RECTWP(rcWin)  || 
-            RECTH(nodes[idx_znode].rc) != RECTHP(rcWin)) && 
-            (nodes[idx_znode].flags & ZOF_TW_TROUNDCNS || 
-             nodes[idx_znode].flags & ZOF_TW_BROUNDCNS) ) 
+    if ( (RECTW(nodes[idx_znode].rc) != RECTWP(rcWin)  ||
+            RECTH(nodes[idx_znode].rc) != RECTHP(rcWin)) &&
+            (nodes[idx_znode].flags & ZOF_TW_TROUNDCNS ||
+             nodes[idx_znode].flags & ZOF_TW_BROUNDCNS) )
     {
         RECT cli_rect;
         SetRect(&cli_rect, 0, 0, RECTWP(rcWin), RECTHP(rcWin));
@@ -2502,7 +2512,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
 
         if (nodes[idx_znode].idx_mask_rect != 0) {
 
-            idx = nodes[idx_znode].idx_mask_rect; 
+            idx = nodes[idx_znode].idx_mask_rect;
             firstmaskrect = GET_MASKRECT(zi);
 
             while (idx) {
@@ -2511,7 +2521,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             }
         }
 
-        CreateNodeRoundMaskRect (zi, &nodes[idx_znode], 
+        CreateNodeRoundMaskRect (zi, &nodes[idx_znode],
                 nodes[idx_znode].flags, &cli_rect);
 
         unlock_zi_for_change(zi);
@@ -2525,6 +2535,8 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
     nInvCount = SubtractRect (rcInv, &nodes [idx_znode].rc, rcWin);
 
     if (nodes [idx_znode].flags & ZOF_VISIBLE) {
+        RECT rcScr = GetScreenRect ();
+
         /* lock zi for change */
         lock_zi_for_change (zi);
 
@@ -2538,61 +2550,59 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         slot = nodes [idx_znode].next;
         for (; slot != 0; slot = nodes [slot].next)
         {
-            if (nodes [slot].flags & ZOF_VISIBLE && 
+            if (nodes [slot].flags & ZOF_VISIBLE &&
                             DoesIntersect (rcWin, &nodes [slot].rc)) {
                 nodes [slot].age ++;
             }
         }
 
-        if (DoesIntersect (rcWin, &g_rcScr)) {
+        if (DoesIntersect (rcWin, &rcScr)) {
             nodes [0].age ++;
         }
 
         /* check influenced zorder nodes */
-       // for (i = 0; i < nInvCount; i++) {
-            //SetClipRgn (&sg_UpdateRgn, rcInv + i);
-            SetClipRgn (&sg_UpdateRgn, &(nodes [idx_znode].rc));
+        //SetClipRgn (&sg_UpdateRgn, rcInv + i);
+        SetClipRgn (&sg_UpdateRgn, &(nodes [idx_znode].rc));
 
-            slot = nodes [idx_znode].next;
+        slot = nodes [idx_znode].next;
+        for (; slot > 0; slot = nodes [slot].next) {
+            if (nodes [slot].flags & ZOF_VISIBLE &&
+                    !(nodes [slot].flags & ZOF_REFERENCE) &&
+                    subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
+                nodes [slot].age ++;
+                nodes [slot].flags |= ZOF_REFERENCE;
+            }
+        }
+
+        if (type > ZOF_TYPE_TOPMOST) {
+            slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                         !(nodes [slot].flags & ZOF_REFERENCE) &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                     nodes [slot].age ++;
                     nodes [slot].flags |= ZOF_REFERENCE;
                 }
             }
+        }
 
-            if (type > ZOF_TYPE_TOPMOST) {
-                slot = zi->first_topmost;
-                for (; slot > 0; slot = nodes [slot].next) {
-                    if (nodes [slot].flags & ZOF_VISIBLE && 
-                            !(nodes [slot].flags & ZOF_REFERENCE) &&
-                            subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                        nodes [slot].age ++;
-                        nodes [slot].flags |= ZOF_REFERENCE;
-                    }
+        if (type > ZOF_TYPE_NORMAL) {
+            slot = zi->first_normal;
+            for (; slot > 0; slot = nodes [slot].next) {
+                if (nodes [slot].flags & ZOF_VISIBLE &&
+                        !(nodes [slot].flags & ZOF_REFERENCE) &&
+                        subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
+                    nodes [slot].age ++;
+                    nodes [slot].flags |= ZOF_REFERENCE;
                 }
             }
+        }
 
-            if (type > ZOF_TYPE_NORMAL) {
-                slot = zi->first_normal;
-                for (; slot > 0; slot = nodes [slot].next) {
-                    if (nodes [slot].flags & ZOF_VISIBLE && 
-                            !(nodes [slot].flags & ZOF_REFERENCE) &&
-                            subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                        nodes [slot].age ++;
-                        nodes [slot].flags |= ZOF_REFERENCE;
-                    }
-                }
-            }
-
-            if (!(nodes [0].flags & ZOF_REFERENCE) &&
-                            SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
-                nodes [0].age ++;
-                nodes [0].flags |= ZOF_REFERENCE;
-            }
-       // }
+        if (!(nodes [0].flags & ZOF_REFERENCE) &&
+                        SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
+            nodes [0].age ++;
+            nodes [0].flags |= ZOF_REFERENCE;
+        }
 
         rcOld = nodes [idx_znode].rc;
         nodes [idx_znode].rc = *rcWin;
@@ -2611,30 +2621,30 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
 
                 while (idx) {
                     maskrect = firstmaskrect + idx;
-                    SetRect (&tmprc, rcWin->left + maskrect->left, 
-                            rcWin->top + maskrect->top, 
-                            rcWin->left + maskrect->right, 
+                    SetRect (&tmprc, rcWin->left + maskrect->left,
+                            rcWin->top + maskrect->top,
+                            rcWin->left + maskrect->right,
                             rcWin->top + maskrect->bottom);
-                    if ( DoesIntersect (&tmprc, &g_rcScr)) {
-                        IntersectRect (&tmprc, &tmprc, &g_rcScr);
+                    if ( DoesIntersect (&tmprc, &rcScr)) {
+                        IntersectRect (&tmprc, &tmprc, &rcScr);
                         AddClipRect (&bblt_rgn, &tmprc);
                     }
                     idx = maskrect->next;
                 }
                 SelectClipRegion(HDC_SCREEN_SYS, &bblt_rgn);
             }
-            
+
             slot = 0;
             switch (type) {
             case ZOF_TYPE_NORMAL:
-                do_for_all_znodes (NULL, zi, 
+                do_for_all_znodes (NULL, zi,
                                 _cb_exclude_rc, ZT_GLOBAL);
-                do_for_all_znodes (NULL, zi, 
+                do_for_all_znodes (NULL, zi,
                                 _cb_exclude_rc, ZT_TOPMOST);
                 slot = zi->first_normal;
                 break;
             case ZOF_TYPE_TOPMOST:
-                do_for_all_znodes (NULL, zi, 
+                do_for_all_znodes (NULL, zi,
                                 _cb_exclude_rc, ZT_GLOBAL);
                 slot = zi->first_topmost;
                 break;
@@ -2642,7 +2652,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
                 slot = zi->first_global;
                 break;
             case ZOF_TYPE_DESKTOP:
-                do_for_all_znodes (NULL, zi, 
+                do_for_all_znodes (NULL, zi,
                                 _cb_exclude_rc, ZT_ALL);
                 break;
             default:
@@ -2669,12 +2679,12 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
                         idx = nodes [slot].idx_mask_rect;
                         while (idx) {
                             maskrect = firstmaskrect + idx;
-                            SetRect (&tmprc, rc.left + maskrect->left, 
-                                    rc.top + maskrect->top, 
-                                    rc.left + maskrect->right, 
+                            SetRect (&tmprc, rc.left + maskrect->left,
+                                    rc.top + maskrect->top,
+                                    rc.left + maskrect->right,
                                     rc.top + maskrect->bottom);
-                            if ( DoesIntersect (&tmprc, &g_rcScr)) {
-                                IntersectRect (&tmprc, &tmprc, &g_rcScr);
+                            if ( DoesIntersect (&tmprc, &rcScr)) {
+                                IntersectRect (&tmprc, &tmprc, &rcScr);
                                 ExcludeClipRect (HDC_SCREEN_SYS, &tmprc);
                             }
                             idx = maskrect->next;
@@ -2683,13 +2693,13 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
                 }
                 slot = nodes [slot].next;
             }
-            BitBlt (HDC_SCREEN_SYS, rcOld.left, rcOld.top, 
-                            MIN (RECTWP (rcWin), RECTW (rcOld)), 
+            BitBlt (HDC_SCREEN_SYS, rcOld.left, rcOld.top,
+                            MIN (RECTWP (rcWin), RECTW (rcOld)),
                             MIN (RECTHP (rcWin), RECTH (rcOld)),
                             HDC_SCREEN_SYS, rcWin->left, rcWin->top, 0);
-            
+
             /* Restore the clip region of HDC_SCREEN_SYS */
-            SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+            SelectClipRect (HDC_SCREEN_SYS, &rcScr);
             EmptyClipRgn(&bblt_rgn);
 #if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
         }
@@ -2700,7 +2710,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
 
         /* check the invalid rect of the window */
         EmptyClipRgn (&sg_UpdateRgn);
-        nInvCount = SubtractRect (rcInv, &rcOld, &g_rcScr);
+        nInvCount = SubtractRect (rcInv, &rcOld, &rcScr);
         for (i = 0; i < nInvCount; i++) {
             AddClipRect (&sg_UpdateRgn, rcInv + i);
         }
@@ -2708,7 +2718,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         if (type < ZOF_TYPE_GLOBAL) {
             slot = zi->first_global;
             for (; slot > 0; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                             IntersectRect (&rcInter, &rcOld, &nodes [slot].rc))
                     AddClipRect(&sg_UpdateRgn, &rcInter);
             }
@@ -2717,7 +2727,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         if (type < ZOF_TYPE_TOPMOST) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
-                if (nodes [slot].flags & ZOF_VISIBLE && 
+                if (nodes [slot].flags & ZOF_VISIBLE &&
                             IntersectRect (&rcInter, &rcOld, &nodes [slot].rc))
                     AddClipRect(&sg_UpdateRgn, &rcInter);
             }
@@ -2725,23 +2735,23 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
 
         slot = *first;
         for (; slot != idx_znode; slot = nodes [slot].next) {
-            if (nodes [slot].flags & ZOF_VISIBLE && 
+            if (nodes [slot].flags & ZOF_VISIBLE &&
                         IntersectRect (&rcInter, &rcOld, &nodes [slot].rc))
                 AddClipRect(&sg_UpdateRgn, &rcInter);
         }
         do_for_all_znodes (&rcOld, zi, _cb_update_znode, ZT_ALL);
 
         if (nodes [0].flags & ZOF_REFERENCE) {
-            SendMessage (HWND_DESKTOP, 
-                            MSG_ERASEDESKTOP, 0, (LPARAM)&rcOld); 
+            SendMessage (HWND_DESKTOP,
+                            MSG_ERASEDESKTOP, 0, (LPARAM)&rcOld);
             nodes [0].flags &= ~ZOF_REFERENCE;
         }
 
-        OffsetRegion (&sg_UpdateRgn, 
-                        rcWin->left - rcOld.left, 
+        OffsetRegion (&sg_UpdateRgn,
+                        rcWin->left - rcOld.left,
                         rcWin->top - rcOld.top);
 
-        update_client_window_rgn (nodes [idx_znode].cli, 
+        update_client_window_rgn (nodes [idx_znode].cli,
                 nodes [idx_znode].fortestinghwnd);
     }
     else {
@@ -2761,14 +2771,14 @@ static int dskEnableZOrderNode (int cli, int idx_znode, int flags)
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
 
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
             idx_znode < 0) {
         return -1;
     }
 
     nodes = GET_ZORDERNODE(zi);
-    
+
     /* lock zi for change */
     lock_zi_for_change (zi);
 
@@ -2784,12 +2794,13 @@ static int dskEnableZOrderNode (int cli, int idx_znode, int flags)
 }
 
 /*======================== customize desktop =========================*/
-static void 
+static void
 def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
 {
     PBITMAP bg_bmp = NULL;
     int pic_x = 0, pic_y = 0;
-    
+    RECT rcScr = GetScreenRect ();
+
     if(context)
     {
         bg_bmp = ((DEF_CONTEXT *)context)->bg;
@@ -2797,19 +2808,18 @@ def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
         pic_y  = ((DEF_CONTEXT *)context)->y;
     }
 
-    SetBrushColor (dc_desktop, 
+    SetBrushColor (dc_desktop,
         GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP));
 
     if (inv_rc) {
         SelectClipRect (dc_desktop, inv_rc);
-        FillBox (dc_desktop, inv_rc->left, inv_rc->top, 
+        FillBox (dc_desktop, inv_rc->left, inv_rc->top,
                 RECTWP (inv_rc), RECTHP (inv_rc));
     }
     else {
-        SelectClipRect (dc_desktop, &g_rcDesktop);
-        FillBox(dc_desktop, g_rcDesktop.left, g_rcDesktop.top,
-                g_rcDesktop.right,
-                g_rcDesktop.bottom);
+        SelectClipRect (dc_desktop, &rcScr);
+        FillBox(dc_desktop, rcScr.left, rcScr.top,
+                rcScr.right, rcScr.bottom);
     }
 
     if (bg_bmp) {
@@ -2819,7 +2829,7 @@ def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
 
 }
 
-static void def_keyboard_handler(void* context, int message, 
+static void def_keyboard_handler(void* context, int message,
 		                               WPARAM wParam, LPARAM lParam)
 {
     switch(message)
@@ -2852,7 +2862,7 @@ static void def_customize_desktop_menu (void* context, HMENU hmnu, int start_pos
 #endif
 }
 
-static void def_mouse_handler(void* context, int message, 
+static void def_mouse_handler(void* context, int message,
 		                            WPARAM wParam, LPARAM lParam)
 {
 #ifdef _MGHAVE_MENU
@@ -2911,7 +2921,7 @@ static int dskGetBgPicturePos (void)
 {
     char szValue [21];
 
-    if(GetMgEtcValue (__mg_def_renderer->name, 
+    if(GetMgEtcValue (__mg_def_renderer->name,
                 SYSBMP_BGPICPOS, szValue, 20) < 0) {
         strcpy (szValue, "center");
     }
@@ -2942,7 +2952,7 @@ static int dskGetBgPicturePos (void)
 
 static PBITMAP dskLoadBgPicture (void)
 {
-    return (PBITMAP)GetSystemBitmapEx (__mg_def_renderer->name, 
+    return (PBITMAP)GetSystemBitmapEx (__mg_def_renderer->name,
             SYSBMP_BGPICTURE);
 }
 
@@ -3012,7 +3022,7 @@ static void* def_init(void)
         bg_bmp = dskLoadBgPicture ();
 
     if (bg_bmp)
-        dskGetBgPictureXY (pos, 
+        dskGetBgPictureXY (pos,
                 bg_bmp->bmWidth, bg_bmp->bmHeight, &pic_x, &pic_y);
 
     con->bg = bg_bmp;
@@ -3039,7 +3049,7 @@ static void *dt_context;
 DESKTOPOPS* GUIAPI SetCustomDesktopOperationSet (DESKTOPOPS* usr_dsk_ops)
 {
 	DESKTOPOPS *tmp_ops = NULL;
-	
+
     if (usr_dsk_ops == NULL) {
 		return dsk_ops;
 	}
@@ -3060,7 +3070,7 @@ DESKTOPOPS* GUIAPI SetCustomDesktopOperationSet (DESKTOPOPS* usr_dsk_ops)
     return tmp_ops;
 }
 
-static BOOL _cb_bcast_msg (void* context, 
+static BOOL _cb_bcast_msg (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
     PMAINWIN pWin;
@@ -3206,12 +3216,12 @@ void GUIAPI DumpWindow (FILE* fp, HWND hWnd)
     }
 
     if (pWin->WinType == TYPE_MAINWIN) {
-        fprintf (fp, "=============== Main Window %#x==================\n", 
+        fprintf (fp, "=============== Main Window %#x==================\n",
                         hWnd);
 
-        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n", 
+        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n",
                         pWin->left, pWin->top, pWin->right, pWin->bottom);
-        fprintf (fp, "Client      -- (%d, %d, %d, %d)\n", 
+        fprintf (fp, "Client      -- (%d, %d, %d, %d)\n",
                         pWin->cl, pWin->ct, pWin->cr, pWin->cb);
 
         fprintf (fp, "Style       -- %lx\n", pWin->dwStyle);
@@ -3230,7 +3240,7 @@ void GUIAPI DumpWindow (FILE* fp, HWND hWnd)
         fprintf (fp, "FirstChild  -- %#x\n", pWin->hFirstChild);
         pCtrl = (PCONTROL)pWin->hFirstChild;
         while (pCtrl) {
-            fprintf (fp, "    Child   -- %p(%d), %s(%d)\n", pCtrl, pCtrl->id, 
+            fprintf (fp, "    Child   -- %p(%d), %s(%d)\n", pCtrl, pCtrl->id,
                                 pCtrl->pcci->name, pCtrl->pcci->nUseCount);
             pCtrl = pCtrl->next;
         }
@@ -3251,9 +3261,9 @@ void GUIAPI DumpWindow (FILE* fp, HWND hWnd)
         fprintf (fp, "=============== Control %#x==================\n", hWnd);
         pCtrl = (PCONTROL)hWnd;
 
-        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n", 
+        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n",
                         pCtrl->left, pCtrl->top, pCtrl->right, pCtrl->bottom);
-        fprintf (fp, "Client      -- (%d, %d, %d, %d)\n", 
+        fprintf (fp, "Client      -- (%d, %d, %d, %d)\n",
                         pCtrl->cl, pCtrl->ct, pCtrl->cr, pCtrl->cb);
 
         fprintf (fp, "Style       -- %lx\n", pCtrl->dwStyle);
@@ -3276,14 +3286,14 @@ void GUIAPI DumpWindow (FILE* fp, HWND hWnd)
 
         pCtrl = (PCONTROL)pCtrl->children;
         while (pCtrl) {
-            fprintf (fp, "    Child   -- %p(%d), %s(%d)\n", pCtrl, pCtrl->id, 
+            fprintf (fp, "    Child   -- %p(%d), %s(%d)\n", pCtrl, pCtrl->id,
                                 pCtrl->pcci->name, pCtrl->pcci->nUseCount);
             pCtrl = pCtrl->next;
         }
     }
 
     fprintf (fp, "=================== End ==================\n");
-    return; 
+    return;
 }
 #endif /* _DEBUG */
 
@@ -3302,7 +3312,7 @@ int kernel_get_window_region (HWND pWin, CLIPRGN* region)
 #endif
 
     idx_znode = ((PMAINWIN)pWin)->idx_znode;
-    if (idx_znode > (zi->max_nr_globals 
+    if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
             || idx_znode <= 0) {
         return -1;

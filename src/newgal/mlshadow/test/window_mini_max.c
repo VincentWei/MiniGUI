@@ -68,8 +68,8 @@ static void* do_update (void* data)
     int timer = 0;
     int screen_w, screen_h;
     
-    screen_w =g_rcDesktop.right - g_rcDesktop.left;
-    screen_h =g_rcDesktop.bottom - g_rcDesktop.top;
+    screen_w =g_rcScr.right - g_rcScr.left;
+    screen_h =g_rcScr.bottom - g_rcScr.top;
     
     while (1) {
         usleep (10000);

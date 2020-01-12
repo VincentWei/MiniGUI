@@ -617,8 +617,10 @@ static intptr_t cliChangeCaption (PMAINWIN pWin)
 
 void __mg_start_server_desktop (void)
 {
+    RECT rcScr = GetScreenRect ();
+
     InitClipRgn (&sg_ScrGCRInfo.crgn, &sg_FreeClipRectList);
-    SetClipRgn (&sg_ScrGCRInfo.crgn, &g_rcScr);
+    SetClipRgn (&sg_ScrGCRInfo.crgn, &rcScr);
     sg_ScrGCRInfo.age = 0;
     sg_ScrGCRInfo.old_zi_age = 0;
 
@@ -721,6 +723,7 @@ static BOOL _cb_update_cli_znode (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* znode)
 {
     RECT rcInv;
+    RECT rcScr = GetScreenRect ();
     int cli = (int)(intptr_t)context;
 
     if (znode->cli == cli && znode->flags & ZOF_VISIBLE && znode->fortestinghwnd) {
@@ -728,7 +731,7 @@ static BOOL _cb_update_cli_znode (void* context,
 
         if (!IsRectEmpty(&(znode->dirty_rc))) {
 
-            IntersectRect(&rcInv, &znode->dirty_rc, &g_rcScr);
+            IntersectRect(&rcInv, &znode->dirty_rc, &rcScr);
 
             msg.wParam = MAKELONG (rcInv.left, rcInv.top);
             msg.lParam = MAKELONG (rcInv.right, rcInv.bottom);
@@ -844,6 +847,7 @@ static int srvStartDragWindow (int cli, int idx_znode,
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
+    RECT rcScr = GetScreenRect ();
 
     if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
@@ -899,7 +903,7 @@ static int srvStartDragWindow (int cli, int idx_znode,
     }
 
     SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
-    SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
     do_for_all_znodes (NULL, zi, _cb_exclude_rc, ZT_GLOBAL);
     FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
@@ -913,6 +917,7 @@ static int srvStartDragWindow (int cli, int idx_znode,
 static int srvCancelDragWindow (int cli, int idx_znode)
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
+    RECT rcScr = GetScreenRect ();
 
     if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
@@ -927,7 +932,7 @@ static int srvCancelDragWindow (int cli, int idx_znode)
 
     _dd_info.cli = -1;
     unlock_zi_for_change (zi);
-    SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
     //SetDefaultCursor (GetSystemCursor (IDC_ARROW));
 
     if (OnZNodeOperation)
@@ -939,6 +944,7 @@ static int srvCancelDragWindow (int cli, int idx_znode)
 int __mg_do_drag_drop_window (int msg, int x, int y)
 {
     HWND hwnd;
+    RECT rcScr = GetScreenRect ();
 
     if (_dd_info.cli < 0)
         return 0;
@@ -1023,7 +1029,7 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
         }
 
         unlock_zi_for_change (_dd_info.zi);
-        SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+        SelectClipRect (HDC_SCREEN_SYS, &rcScr);
         __mg_get_znode_at_point (__mg_zorder_info, x, y, &hwnd);
         if(_dd_info.hwnd != hwnd)
             SetDefaultCursor (GetSystemCursor (IDC_ARROW));
@@ -1191,6 +1197,7 @@ int __mg_remove_all_znodes_of_client (int cli)
     ZORDERNODE* nodes;
     int slot, slot2, old_active;
     RECT rc_bound = {0, 0, 0, 0};
+    RECT rcScr = GetScreenRect();
 
     nodes = GET_ZORDERNODE(zi);
 
@@ -1212,7 +1219,7 @@ int __mg_remove_all_znodes_of_client (int cli)
         /* check influenced window zorder nodes */
         do_for_all_znodes ((void*)(intptr_t)cli, zi, _cb_update_rc_nocli, ZT_ALL);
 
-        if (SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
+        if (SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
             nodes [0].age ++;
             nodes [0].flags |= ZOF_REFERENCE;
         }
@@ -1251,7 +1258,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                                 _cb_intersect_rc_no_cli, ZT_NORMAL);
 
                 if (!(nodes [0].flags & ZOF_REFERENCE) &&
-                                SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
+                                SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
                     nodes [0].age ++;
                     nodes [0].flags |= ZOF_REFERENCE;
                 }
@@ -1287,7 +1294,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                     }
                 }
                 if (!(nodes [0].flags & ZOF_REFERENCE) &&
-                        SubtractClipRect (&sg_UpdateRgn, &g_rcScr)) {
+                        SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
                     nodes [0].age ++;
                     nodes [0].flags |= ZOF_REFERENCE;
                 }
@@ -1754,6 +1761,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
 {
     PTRACKMENUINFO plast = NULL;
     RECT rc;
+    RECT rcScr = GetScreenRect ();
 
     if (sg_ptmi == ptmi) {
         sg_ptmi = NULL;
@@ -1787,7 +1795,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
         }
         ptmi = ptmi->next;
     }
-    SelectClipRect (HDC_SCREEN_SYS, &g_rcScr);
+    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
 
     return 0;
 }
@@ -3283,7 +3291,7 @@ static void srvSaveScreen (BOOL active)
     if (cliActive == -1) {
         cliActive = 0;
         hwndActive = 0;
-        rcActive = g_rcScr;
+        rcActive = GetScreenRect();
     }
 
     sprintf (buffer, "%d-%p-%d.bmp", cliActive, hwndActive, n);

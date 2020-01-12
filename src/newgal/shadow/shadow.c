@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -69,12 +69,12 @@
 
 #ifdef _MGRM_PROCESSES
 
-#include <errno.h> 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
-#include <sys/stat.h> 
+#include <sys/stat.h>
 
 union semun {
     int val;                    /* value for SETVAL */
@@ -83,7 +83,7 @@ union semun {
     struct seminfo *__buf;      /* buffer for IPC_INFO */
 };
 
-#endif 
+#endif
 
 #include "minigui.h"
 #include "newgal.h"
@@ -99,8 +99,8 @@ union semun {
 #define _ROT_DIR_HFLIP 0x08
 #define _ROT_DIR_VFLIP 0x10
 
-#define SHADOW_SHM_KEY 0x4D475344 
-#define SHADOW_SEM_KEY 0x4D475344 
+#define SHADOW_SHM_KEY 0x4D475344
+#define SHADOW_SEM_KEY 0x4D475344
 
 #define LEN_ENGINE_NAME 10
 #define LEN_MODE 20
@@ -173,7 +173,7 @@ again:
         }
     }
 }
-#endif 
+#endif
 
 static ShadowFBHeader* _shadowfbheader;
 
@@ -208,7 +208,7 @@ static void SHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 
     for (i = 0; i < numrects; i++) {
         RECT rc;
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                 rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -217,7 +217,9 @@ static void SHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             _shadowfbheader->dirty_rect = bound;
             _shadowfbheader->dirty = TRUE;
         }
@@ -239,7 +241,7 @@ static GAL_VideoDevice *SHADOW_CreateDevice(int devindex)
     device = (GAL_VideoDevice *)malloc(sizeof(GAL_VideoDevice));
     if (device) {
         memset (device, 0, (sizeof *device));
-        device->hidden = (struct GAL_PrivateVideoData *) 
+        device->hidden = (struct GAL_PrivateVideoData *)
             malloc (sizeof(struct GAL_PrivateVideoData));
     }
     if ( (device == NULL) || (device->hidden == NULL)) {
@@ -312,13 +314,13 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
     real_device->VideoInit(realfb_info->real_device, &real_vformat);
 
     real_device->screen = GAL_CreateRGBSurface (GAL_SWSURFACE,
-            0, 0, real_vformat.BitsPerPixel, real_vformat.Rmask, 
+            0, 0, real_vformat.BitsPerPixel, real_vformat.Rmask,
             real_vformat.Gmask, real_vformat.Bmask, 0);
 
     if (real_device->screen == NULL)
-        fprintf (stderr, "NEWGAL>SHADOW: can't create screen of real engine.\n");    
+        fprintf (stderr, "NEWGAL>SHADOW: can't create screen of real engine.\n");
 
-    real_device->SetVideoMode(realfb_info->real_device, 
+    real_device->SetVideoMode(realfb_info->real_device,
             real_device->screen, w, h, depth, GAL_HWPALETTE);
 
     realfb_info->height = real_device->screen->h;
@@ -326,7 +328,7 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
     realfb_info->depth = real_device->screen->format->BitsPerPixel;
     realfb_info->fb = real_device->screen->pixels;
     realfb_info->pitch = real_device->screen->pitch;
-    realfb_info->flags = 0; 
+    realfb_info->flags = 0;
 
     if (realfb_info->depth <= 8)
         pitch_size = realfb_info->width;
@@ -383,8 +385,8 @@ static int RealEngine_Release(RealFBInfo * realfb_info)
         if (realfb_info->flags == FLAG_REALFB_PREALLOC)
             realfb_info->fb = NULL;
 
-        video->VideoQuit (this); 
-        if (video->physpal) 
+        video->VideoQuit (this);
+        if (video->physpal)
         {
             free (video->physpal->colors);
             free (video->physpal);
@@ -398,14 +400,14 @@ static int RealEngine_Release(RealFBInfo * realfb_info)
     return 0;
 }
 
-static int RealEngine_SetPalette(RealFBInfo *realfb_info, int firstcolor, 
+static int RealEngine_SetPalette(RealFBInfo *realfb_info, int firstcolor,
         int ncolors, void *colors)
 {
     GAL_Color* pal_colors;
     pal_colors = (GAL_Color*)((char*)_shadowfbheader + _shadowfbheader->palette_offset);
 
     if (colors != pal_colors + firstcolor)
-        memcpy (pal_colors + firstcolor, colors, ncolors * sizeof(GAL_Color)); 
+        memcpy (pal_colors + firstcolor, colors, ncolors * sizeof(GAL_Color));
 
     return 1;
 }
@@ -428,7 +430,7 @@ static int RealEngine_Init(void)
         fprintf(stderr, "NEWGAL>SHADOW: RealEngine_Init failure.\n");
         return -1;
     }
-    memset(__mg_shadow_fb_ops, 0, sizeof(ShadowFBOps));  
+    memset(__mg_shadow_fb_ops, 0, sizeof(ShadowFBOps));
 
     __mg_shadow_fb_ops->get_realfb_info = RealEngine_GetInfo;
     __mg_shadow_fb_ops->init = RealEngine_Init;
@@ -507,7 +509,7 @@ static void* task_do_update (void* data)
             break;
         }
 
-        if (_shadowfbheader->dirty || _shadowfbheader->palette_changed) 
+        if (_shadowfbheader->dirty || _shadowfbheader->palette_changed)
         {
 #ifdef _MGRM_PROCESSES
             _sysvipc_sem_op (this->hidden->semid, 0, -1);
@@ -521,25 +523,25 @@ static void* task_do_update (void* data)
                             _shadowfbheader->ncolors,
                             (GAL_Color*)((char*)_shadowfbheader + _shadowfbheader->palette_offset));
                     SetRect (&_shadowfbheader->dirty_rect, 0, 0,
-                            _shadowfbheader->width, _shadowfbheader->height); 
+                            _shadowfbheader->width, _shadowfbheader->height);
                 }
 
                 __mg_shadow_fb_ops->refresh (_shadowfbheader,
                         this->hidden->realfb_info, &(_shadowfbheader->dirty_rect));
 
                 if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
-                    _get_dst_rect_cw (&qvfb_rect, &(_shadowfbheader->dirty_rect), 
+                    _get_dst_rect_cw (&qvfb_rect, &(_shadowfbheader->dirty_rect),
                             this->hidden->realfb_info);
                 }
-                else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW)    
-                    _get_dst_rect_ccw (&qvfb_rect, &(_shadowfbheader->dirty_rect), 
+                else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW)
+                    _get_dst_rect_ccw (&qvfb_rect, &(_shadowfbheader->dirty_rect),
                             this->hidden->realfb_info);
-                else if (this->hidden->realfb_info->flags & _ROT_DIR_HFLIP) 
+                else if (this->hidden->realfb_info->flags & _ROT_DIR_HFLIP)
                 {
                     qvfb_rect = _shadowfbheader->dirty_rect;
                     _get_dst_rect_hflip (&qvfb_rect, this->hidden->realfb_info);
                 }
-                else if (this->hidden->realfb_info->flags & _ROT_DIR_VFLIP) 
+                else if (this->hidden->realfb_info->flags & _ROT_DIR_VFLIP)
                 {
                     qvfb_rect = _shadowfbheader->dirty_rect;
                     _get_dst_rect_vflip (&qvfb_rect, this->hidden->realfb_info);
@@ -682,7 +684,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     _shadowfbheader->info_size = size;
 
     _shadowfbheader->dirty = FALSE;
-    SetRect (&(_shadowfbheader->dirty_rect), 0, 0, 0, 0); 
+    SetRect (&(_shadowfbheader->dirty_rect), 0, 0, 0, 0);
     _shadowfbheader->palette_changed = FALSE;
     _shadowfbheader->palette_offset = sizeof(ShadowFBHeader);
 
@@ -692,11 +694,11 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         _shadowfbheader->fb_offset = _shadowfbheader->palette_offset;
 
     if ((realfb_info->real_device))
-        GAL_SetClipRect (real_device->screen, NULL); 
+        GAL_SetClipRect (real_device->screen, NULL);
 
-    if (!GAL_ReallocFormat (current, _shadowfbheader->depth, 
-                real_device->screen->format->Rmask, 
-                real_device->screen->format->Gmask, 
+    if (!GAL_ReallocFormat (current, _shadowfbheader->depth,
+                real_device->screen->format->Rmask,
+                real_device->screen->format->Gmask,
                 real_device->screen->format->Bmask,
                 real_device->screen->format->Amask))
     {
@@ -725,7 +727,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         pthread_attr_setstacksize (&new_attr, 512);
 #endif
         pthread_attr_setdetachstate (&new_attr, PTHREAD_CREATE_DETACHED);
-        ret = pthread_create (&this->hidden->update_th, &new_attr, 
+        ret = pthread_create (&this->hidden->update_th, &new_attr,
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
     }
@@ -772,7 +774,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     RealFBInfo * realfb_info;
     GAL_VideoDevice* real_device = NULL;
     realfb_info = NULL;
-    shmid = 0; 
+    shmid = 0;
     size = 0;
     ret = 0;
 
@@ -839,7 +841,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
             return NULL;
         }
 
-        _shadowfbheader = (ShadowFBHeader *) shmat (shmid, 0, 0); 
+        _shadowfbheader = (ShadowFBHeader *) shmat (shmid, 0, 0);
         memcpy (_shadowfbheader, &shadowfbheader, sizeof (ShadowFBHeader));
 
         this->hidden->realfb_info = realfb_info;
@@ -849,13 +851,13 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         /* INIT  Share Memory  ShadowFBHeader */
         _shadowfbheader->info_size = size;
         _shadowfbheader->dirty = FALSE;
-        SetRect (&(_shadowfbheader->dirty_rect), 0, 0, 0, 0); 
+        SetRect (&(_shadowfbheader->dirty_rect), 0, 0, 0, 0);
         _shadowfbheader->palette_changed = FALSE;
         _shadowfbheader->palette_offset = sizeof(ShadowFBHeader);
 
         if(shadowfbheader.depth <= 8)
             _shadowfbheader->fb_offset = _shadowfbheader->palette_offset + PALETTE_SIZE;
-        else 
+        else
             _shadowfbheader->fb_offset = _shadowfbheader->palette_offset;
 
         _shadowfbheader->Rmask = real_device->screen->format->Rmask;
@@ -864,7 +866,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         _shadowfbheader->Amask = real_device->screen->format->Amask;
 
         if ((realfb_info->real_device))
-            GAL_SetClipRect (real_device->screen, NULL); 
+            GAL_SetClipRect (real_device->screen, NULL);
     }
     else {
         shmid = shmget(SHADOW_SHM_KEY, 0, 0);
@@ -872,8 +874,8 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     }
 
     /* Allocate the new pixel format for the screen */
-    if (!GAL_ReallocFormat (current, _shadowfbheader->depth, 
-                _shadowfbheader->Rmask, _shadowfbheader->Gmask, 
+    if (!GAL_ReallocFormat (current, _shadowfbheader->depth,
+                _shadowfbheader->Rmask, _shadowfbheader->Gmask,
                 _shadowfbheader->Bmask, _shadowfbheader->Amask)){
         if (__mg_shadow_fb_ops->release)
             __mg_shadow_fb_ops->release (realfb_info);
@@ -902,7 +904,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         pthread_attr_setstacksize (&new_attr, 512);
 #endif
         pthread_attr_setdetachstate (&new_attr, PTHREAD_CREATE_DETACHED);
-        ret = pthread_create (&this->hidden->update_th, &new_attr, 
+        ret = pthread_create (&this->hidden->update_th, &new_attr,
                         task_do_update, this);
         pthread_attr_destroy (&new_attr);
 
@@ -944,7 +946,7 @@ static void SHADOW_VideoQuit (_THIS)
 
 #endif
 
-static GAL_Rect **SHADOW_ListModes (_THIS, GAL_PixelFormat *format, 
+static GAL_Rect **SHADOW_ListModes (_THIS, GAL_PixelFormat *format,
         Uint32 flags)
 {
     return (GAL_Rect **) -1;
@@ -961,15 +963,15 @@ static void SHADOW_FreeHWSurface (_THIS, GAL_Surface *surface)
     surface->pixels = NULL;
 }
 
-static int SHADOW_SetColors (_THIS, int firstcolor, int ncolors, 
+static int SHADOW_SetColors (_THIS, int firstcolor, int ncolors,
         GAL_Color *colors)
 {
     _shadowfbheader->firstcolor = firstcolor;
     _shadowfbheader->ncolors = ncolors;
 #ifdef _MGRM_PROCESSES
     if(mgIsServer) {
-#endif            
-        if ((__mg_shadow_fb_ops->set_palette != NULL) 
+#endif
+        if ((__mg_shadow_fb_ops->set_palette != NULL)
                 && (_shadowfbheader->depth <= 8)){
             __mg_shadow_fb_ops->set_palette(this->hidden->realfb_info,
                     firstcolor, ncolors, colors);

@@ -147,7 +147,9 @@ static void COMMLCD_UpdateRects_Async (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->rc_dirty = bound;
             this->hidden->dirty = TRUE;
         }

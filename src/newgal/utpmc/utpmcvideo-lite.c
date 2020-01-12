@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: utpmcvideo-lite.c 8944 2007-12-29 08:29:16Z xwyan $
-**  
-**  This is NEWGAL engine for UTStarcom PocketMedia Center based-on 
+**
+**  This is NEWGAL engine for UTStarcom PocketMedia Center based-on
 **  ARM7TDMI/uClinux/uClibc for MiniGUI-Lite.
 **
 **  Copyright (C) 2004 ~ 2007 Feynman Software.
@@ -126,7 +126,7 @@ static YCRCB* init_rgb2ycrcb_map_16bit (void)
 
     tmp = map;
     for (i = 0; i < 65536; i++) {
-        RGB2YCrCb (((i & 0xF800) >> 8), ((i & 0x07E0) >> 3), ((i & 0x001F) << 3), 
+        RGB2YCrCb (((i & 0xF800) >> 8), ((i & 0x07E0) >> 3), ((i & 0x001F) << 3),
                 &tmp->yy, &tmp->cb, &tmp->cr);
         tmp++;
     }
@@ -195,7 +195,7 @@ static int task_do_update_16bit (void* data)
                     else {
                         dst_line [1] = yy;
                     }
-                    
+
                     src_line++;
                     dst_line += 2;
                 }
@@ -274,7 +274,7 @@ static int task_do_update_8bit (void* data)
                     else {
                         dst_line [1] = yy;
                     }
-                    
+
                     src_line++;
                     dst_line += 2;
                 }
@@ -395,7 +395,7 @@ static int UTPMC_VideoInit (_THIS, GAL_PixelFormat *vformat)
         this->hidden->fb_size = finfo.smem_len;
         this->hidden->fb = mmap (NULL, finfo.smem_len,
                         PROT_READ | PROT_WRITE, 0, this->hidden->fd, 0);
-    
+
         fprintf (stderr, "UTPMC NEWGAL Engine: mapped address: %p, length: %d.\n",
                     this->hidden->fb, this->hidden->fb_size);
 
@@ -417,7 +417,7 @@ static int UTPMC_VideoInit (_THIS, GAL_PixelFormat *vformat)
             fprintf (stderr, "UTPMC NEWGAL Engine: can not open lock file: %s!\n", LOCK_FILE);
             return -1;
         }
-            
+
         read (this->hidden->fd_lock, &this->hidden->shadow_info, sizeof (UTPMC_SHADOWINFO*));
 
         _MY_PRINTF ("Shadow info read from the lock file: %p\n", this->hidden->shadow_info);
@@ -550,8 +550,8 @@ static GAL_Surface *UTPMC_SetVideoMode (_THIS, GAL_Surface *current,
         {
             int ret;
 
-            ret = clone ((bpp == 8) ? task_do_update_8bit : task_do_update_16bit, 
-                        this->hidden->stack + _MY_STACK_SIZE, 
+            ret = clone ((bpp == 8) ? task_do_update_8bit : task_do_update_16bit,
+                        this->hidden->stack + _MY_STACK_SIZE,
                         CLONE_VM | CLONE_FS | CLONE_FILES, this);
 
             if (ret < 0) {
@@ -593,7 +593,7 @@ static int UTPMC_SetColors (_THIS, int firstcolor, int ncolors, GAL_Color *color
     ycrcb += firstcolor;
 
     for (i = 0; i < ncolors; i++) {
-        RGB2YCrCb (colors->r, colors->g, colors->b, 
+        RGB2YCrCb (colors->r, colors->g, colors->b,
                     &ycrcb->yy, &ycrcb->cb, &ycrcb->cr);
         ycrcb++;
         colors++;
@@ -613,7 +613,7 @@ static void UTPMC_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                         rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -622,7 +622,8 @@ static void UTPMC_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->shadow_info->update = bound;
             this->hidden->shadow_info->dirty = TRUE;
         }
@@ -652,4 +653,4 @@ static void UTPMC_VideoQuit (_THIS)
 }
 
 #endif /* _MGGAL_UTPMC */
-#endif 
+#endif

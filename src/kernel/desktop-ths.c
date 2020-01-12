@@ -11,39 +11,39 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-/* 
+/*
 ** desktop-ths.c: The desktop for MiniGUI-Threads.
 **
 ** Current maintainer: Wei Yongming.
@@ -85,6 +85,8 @@ PMSGQUEUE __mg_dsk_msg_queue;
 
 static BOOL InitWndManagementInfo (void)
 {
+    RECT rcScr = GetScreenRect();
+
     __mg_capture_wnd = 0;
 
 #ifdef _MGHAVE_MENU
@@ -95,7 +97,7 @@ static BOOL InitWndManagementInfo (void)
     sg_hCaretWnd = 0;
 
     InitClipRgn (&sg_ScrGCRInfo.crgn, &sg_FreeClipRectList);
-    SetClipRgn (&sg_ScrGCRInfo.crgn, &g_rcScr);
+    SetClipRgn (&sg_ScrGCRInfo.crgn, &rcScr);
     pthread_mutex_init (&sg_ScrGCRInfo.lock, NULL);
     sg_ScrGCRInfo.age = 0;
     sg_ScrGCRInfo.old_zi_age = 0;
@@ -108,13 +110,13 @@ static BOOL InitWndManagementInfo (void)
 
 BOOL mg_InitDesktop (void)
 {
-    int ret = 0; 
+    int ret = 0;
 
     /*
      * Init ZOrderInfo here.
      */
     ret = kernel_alloc_z_order_info (DEF_NR_TOPMOSTS, DEF_NR_NORMALS);
-    
+
     if (ret < 0) {
         _WRN_PRINTF ("KERNEL>Desktop: Can not initialize ZOrderInfo!\n");
         return FALSE;
@@ -173,15 +175,15 @@ void* DesktopMain (void* data)
         }
 #endif
 
-        lRet = DesktopWinProc (HWND_DESKTOP, 
+        lRet = DesktopWinProc (HWND_DESKTOP,
                         Msg.message, Msg.wParam, Msg.lParam);
 
         if (Msg.pAdd) /* this is a sync message. */
         {
             PSYNCMSG pSyncMsg = (PSYNCMSG)(Msg.pAdd);
             pSyncMsg->retval = lRet;
-			if(pSyncMsg->sem_handle)
-	            sem_post(pSyncMsg->sem_handle);
+            if(pSyncMsg->sem_handle)
+                sem_post(pSyncMsg->sem_handle);
         }
 
 #ifdef _MGHAVE_TRACE_MSG
@@ -200,7 +202,7 @@ void* DesktopMain (void* data)
 }
 
 pthread_t GUIAPI GetMainWinThread(HWND hMainWnd)
-{ 
+{
 #ifdef WIN32
     pthread_t ret;
     memset(&ret, 0, sizeof(pthread_t));
@@ -208,7 +210,7 @@ pthread_t GUIAPI GetMainWinThread(HWND hMainWnd)
 #else
     MG_CHECK_RET (MG_IS_WINDOW(hMainWnd), 0);
 #endif
-    
+
     return ((PMAINWIN)hMainWnd)->th;
 }
 

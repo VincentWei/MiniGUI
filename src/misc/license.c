@@ -158,18 +158,20 @@ static void watermark_update(void)
 
 static void watermark_init(void)
 {
+    RECT rcScr = GetScreenRect();
+
     fourcorner_info[0].bmp = &g_license_bitmaps[WATERMARK_1];
     fourcorner_info[1].bmp = &g_license_bitmaps[WATERMARK_2];
     fourcorner_info[2].bmp = &g_license_bitmaps[WATERMARK_3];
     fourcorner_info[3].bmp = &g_license_bitmaps[WATERMARK_3];
 
     /* right-top.*/
-    fourcorner_info[1].pos.x += RECTW(g_rcScr) - fourcorner_info[1].bmp->bmWidth;
+    fourcorner_info[1].pos.x += RECTW(rcScr) - fourcorner_info[1].bmp->bmWidth;
     /* left-bottom.*/
-    fourcorner_info[2].pos.y += RECTH(g_rcScr) - fourcorner_info[2].bmp->bmHeight;
+    fourcorner_info[2].pos.y += RECTH(rcScr) - fourcorner_info[2].bmp->bmHeight;
     /* right-bottom.*/
-    fourcorner_info[3].pos.x += RECTW(g_rcScr) - fourcorner_info[3].bmp->bmWidth;
-    fourcorner_info[3].pos.y += RECTH(g_rcScr) - fourcorner_info[3].bmp->bmHeight;
+    fourcorner_info[3].pos.x += RECTW(rcScr) - fourcorner_info[3].bmp->bmWidth;
+    fourcorner_info[3].pos.y += RECTH(rcScr) - fourcorner_info[3].bmp->bmHeight;
 }
 
 #else
@@ -197,8 +199,8 @@ void screensaver_create(void)
 {
     /* create screensaver node. */
     if (!s_screensaver_node) {
-        RECT rc = g_rcScr;
-        s_screensaver_node  = dskCreateTopZOrderNode(0, &rc);
+        RECT rcScr = GetScreenRect();
+        s_screensaver_node  = dskCreateTopZOrderNode(0, &rcScr);
         dskSetTopForEver(0, s_screensaver_node, TRUE);
         screensaver_hide();
     }
@@ -215,21 +217,23 @@ void screensaver_destroy(void)
 
 static void screensaver_update(void)
 {
+    RECT rcScr = GetScreenRect();
+
     /* fixed size 200 * 99 */
     /* g_bitmap_minigui 200 * 55 at 0  * 44 */
     /* g_bitmap_feiman  118 * 41 at 61 * 0  */
     /* g_bitmap_fmsoft  50  * 11 at 4  * 30 */
 
-    int pos_x = (RECTW(g_rcScr) > 200)
-                ? (rand() % (RECTW(g_rcScr) - 200))
+    int pos_x = (RECTW(rcScr) > 200)
+                ? (rand() % (RECTW(rcScr) - 200))
                 : 0;
-    int pos_y = (RECTH(g_rcScr) > 99)
-                ? (rand() % (RECTH(g_rcScr) - 99))
+    int pos_y = (RECTH(rcScr) > 99)
+                ? (rand() % (RECTH(rcScr) - 99))
                 : 0;
 
     /* clean screen */
     SetBrushColor (HDC_SCREEN_SYS, PIXEL_black);
-    FillBox (HDC_SCREEN_SYS, 0, 0, RECTW(g_rcScr), RECTH(g_rcScr));
+    FillBox (HDC_SCREEN_SYS, 0, 0, RECTW(rcScr), RECTH(rcScr));
 
     /* put picture to screen */
     /* g_bitmap_minigui */
@@ -280,12 +284,15 @@ static int splash_bar_direction;
 #define SPLASH_BAR_LEFT  0
 #define SPLASH_BAR_RIGHT 1
 
-static void splash_init(void) {
+static void splash_init(void)
+{
+    RECT rcScr = GetScreenRect();
+
     splash_bar_postion = 0;
     splash_bar_direction = SPLASH_BAR_RIGHT;
 
-    splash_adjust_x = (RECTW(g_rcScr) - SPLASH_W) / 2;
-    splash_adjust_y = (RECTH(g_rcScr) - SPLASH_H)*3 / 5;
+    splash_adjust_x = (RECTW(rcScr) - SPLASH_W) / 2;
+    splash_adjust_y = (RECTH(rcScr) - SPLASH_H)*3 / 5;
 }
 
 void splash_draw_framework (void)
@@ -293,6 +300,7 @@ void splash_draw_framework (void)
     char text[64];
     RECT rc_text;
     PLOGFONT font, old_font;
+    RECT rcScr = GetScreenRect();
 
     gal_pixel old_brush = SetBrushColor(HDC_SCREEN_SYS, PIXEL_black);
     gal_pixel old_text = SetTextColor(HDC_SCREEN_SYS, RGB2Pixel(HDC_SCREEN_SYS, 0x32, 0xa0, 0xe4));
@@ -304,7 +312,7 @@ void splash_draw_framework (void)
             8, 0); 
     old_font = SelectFont(HDC_SCREEN_SYS, font);
 
-    FillBox(HDC_SCREEN_SYS, 0 ,0, RECTW(g_rcScr), RECTH(g_rcScr));
+    FillBox(HDC_SCREEN_SYS, 0 ,0, RECTW(rcScr), RECTH(rcScr));
 
     FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_FEIMAN_X, SPLASH_FEIMAN_Y, 0, 0, &g_bitmap_feiman);
     FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_FMSOFT_X, SPLASH_FMSOFT_Y, 0, 0, &g_bitmap_fmsoft);
@@ -313,7 +321,7 @@ void splash_draw_framework (void)
     FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_BAR_X, SPLASH_BAR_Y, 0, 0, &g_bitmap_progressbar);
 
     memset(text, 0, sizeof(text));
-    SetRect(&rc_text, SPLASH_ID_X, SPLASH_ID_Y, SPLASH_ID_X+SPLASH_ID_W, RECTH(g_rcScr));
+    SetRect(&rc_text, SPLASH_ID_X, SPLASH_ID_Y, SPLASH_ID_X+SPLASH_ID_W, RECTH(rcScr));
 
 #ifdef _MG_PRODUCTID
     int customer_id = license_get_customer_id();
@@ -542,6 +550,10 @@ void license_destroy (void) {
 #if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
 void license_on_input(void)
 {
+#ifdef _MGRM_PROCESSES
+    RECT rcScr = GetScreenRect();
+#endif
+
     s_tick_last_input = GetTickCount();
 
     if (screensaver_running == TRUE) {
@@ -560,7 +572,7 @@ void license_on_input(void)
 #else
         screensaver_hide();
 #if defined(_MGRM_PROCESSES)
-        dskRefreshAllClient (&g_rcScr);
+        dskRefreshAllClient (&rcScr);
 #elif defined(_MGRM_STANDALONE)
         SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
 #else

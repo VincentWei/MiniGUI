@@ -416,7 +416,8 @@ static void BF533_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->update = bound;
             this->hidden->dirty = TRUE;
         }

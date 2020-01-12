@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -76,34 +76,33 @@ static LRESULT ToolTipWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
                 SetTimer (hWnd, _ID_TIMER, timeout / 10);
 
             info = GetWindowInfo (hWnd);
-            iBorder = 
+            iBorder =
                 info->we_rdr->calc_we_area (hWnd, LFRDR_METRICS_BORDER, NULL);
-            SetWindowFont (hWnd, 
+            SetWindowFont (hWnd,
                 (PLOGFONT)GetWindowElementAttr(hWnd, WE_FONT_TOOLTIP));
             break;
         }
 
         case MSG_TIMER:
             KillTimer (hWnd, _ID_TIMER);
-            if(IsWindowVisible(hWnd))
-	{
-		ShowWindow (hWnd, SW_HIDE);
-	}
+            if(IsWindowVisible(hWnd)) {
+                ShowWindow (hWnd, SW_HIDE);
+            }
             break;
 
         case MSG_PAINT:
         {
             HDC hdc;
             const char* text;
-            
+
             hdc = BeginPaint (hWnd);
- 
+
             text = GetWindowCaption (hWnd);
             SetBkMode (hdc, BM_TRANSPARENT);
 
             SetTextColor (hdc, GetWindowElementPixel(hWnd, WE_FGC_TOOLTIP));
             TabbedTextOut (hdc, iBorder, iBorder, text);
- 
+
             EndPaint (hWnd, hdc);
             return 0;
         }
@@ -125,12 +124,12 @@ static LRESULT ToolTipWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
             break;
         }
     }
- 
+
     return DefaultMainWinProc(hWnd, message, wParam, lParam);
 }
 
 /* ToolTip Win without border or frame. */
-HWND CreateToolTipWin (HWND hParentWnd, int x, int y, int timeout_ms, 
+HWND CreateToolTipWin (HWND hParentWnd, int x, int y, int timeout_ms,
                 const char* text, ...)
 {
     HWND hwnd;
@@ -152,8 +151,8 @@ HWND CreateToolTipWin (HWND hParentWnd, int x, int y, int timeout_ms,
         } while (i == size);
         va_end(args);
     }
-        
-    SelectFont (HDC_SCREEN, 
+
+    SelectFont (HDC_SCREEN,
             (PLOGFONT)GetWindowElementAttr(hParentWnd, WE_FONT_TOOLTIP));
     GetTabbedTextExtent (HDC_SCREEN, buf ? buf : text, -1, &text_size);
 
@@ -205,7 +204,7 @@ void ResetToolTipWin (HWND hwnd, int x, int y, const char* text, ...)
         va_end(args);
     }
 
-    SelectFont (HDC_SCREEN, 
+    SelectFont (HDC_SCREEN,
             (PLOGFONT)GetWindowElementAttr(hwnd, WE_FONT_TOOLTIP));
     GetTabbedTextExtent (HDC_SCREEN, buf ? buf : text, -1, &text_size);
 
@@ -249,7 +248,7 @@ void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
         notif_proc (hwnd, id, code, add_data);
     }
     else {
-        SendNotifyMessage (GetParent (hwnd), MSG_COMMAND, 
+        SendNotifyMessage (GetParent (hwnd), MSG_COMMAND,
                                  (WPARAM) MAKELONG (id, code), (LPARAM)hwnd);
     }
 }
@@ -268,7 +267,7 @@ LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             return GetDlgCtrlID (hDef);
         return 0;
     }
-    
+
     case MSG_DESTROY:
         DestroyAllControls (hWnd);
         break;
@@ -292,10 +291,10 @@ LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         }
         break;
     }
-        
+
     case MSG_KEYDOWN:
         if ((hCurFocus = GetFocusChild (hWnd))) {
-            if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) 
+            if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L)
                         & DLGC_WANTALLKEYS)
                 break;
         }
@@ -326,7 +325,7 @@ LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             HWND hNewFocus;
 
             if (hCurFocus) {
-                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) 
+                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L)
                         & DLGC_WANTTAB)
                     break;
             }
@@ -350,9 +349,9 @@ LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         case SCANCODE_CURSORBLOCKLEFT:
         {
             HWND hNewFocus;
-                
+
             if (hCurFocus) {
-                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) 
+                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L)
                         & DLGC_WANTARROWS)
                     break;
             }
@@ -362,9 +361,9 @@ LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
                 hNewFocus = GetNextDlgGroupItem (hWnd, hCurFocus, FALSE);
             else
                 hNewFocus = GetNextDlgGroupItem (hWnd, hCurFocus, TRUE);
-            
+
             if (hNewFocus != hCurFocus) {
-                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) 
+                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L)
                         & DLGC_STATIC)
                     return 0;
 
@@ -385,7 +384,7 @@ LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         }
         break;
     }
-    
+
     return DefaultControlProc (hWnd, message, wParam, lParam);
 }
 

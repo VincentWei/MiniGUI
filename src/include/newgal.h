@@ -828,11 +828,15 @@ GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface);
  */
 GAL_Surface * GAL_DisplayFormatAlpha (GAL_Surface *surface);
 
-/* Not in public API at the moment - do not use! */
 int GAL_SoftStretch (GAL_Surface *src, GAL_Rect *srcrect,
                                     GAL_Surface *dst, GAL_Rect *dstrect);
 
-GAL_Surface* __gal_screen;
+#ifdef _MGUSE_COMPOSITING
+extern GAL_Surface* __gal_screen;
+extern GAL_Surface* __gal_fake_screen;
+#else
+extern GAL_Surface* __gal_screen;
+#endif
 
 #define WIDTHOFPHYGC        (__gal_screen->w)
 #define HEIGHTOFPHYGC       (__gal_screen->h)
