@@ -1834,6 +1834,7 @@ if test "x$devel_mode" = "xyes"; then
     build_ctrl_iconview="yes"
     build_ctrl_gridview="yes"
 
+    enable_video_fbcon="yes"
     enable_video_shadow="yes"
     enable_video_mlshadow="yes"
     enable_video_custom="yes"
