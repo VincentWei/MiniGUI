@@ -65,6 +65,12 @@
 
 GAL_Surface* __gal_screen;
 
+RECT GUIAPI GetScreenRect (void)
+{
+    RECT rc = { 0, 0, __gal_screen->w, __gal_screen->h };
+    return rc;
+}
+
 BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* depth)
 {
     const char* tmp;

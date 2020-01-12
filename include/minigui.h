@@ -81,16 +81,26 @@ extern "C" {
      */
 
 /**
- * \var RECT g_rcScr
- * \brief Contains the rectangle of the whole screen.
+ * \fn RECT GUIAPI GetScreenRect (void);
+ * \brief Return the rectangle of the physical screen.
+ *
+ * Since 4.2.0
  */
-extern MG_EXPORT RECT g_rcScr;
+MG_EXPORT RECT GUIAPI GetScreenRect (void);
+
+/**
+ * \def g_rcScr
+ * \brief Contains the rectangle of the whole screen.
+ *
+ * \note Since 4.2.0, g_rcScr is defined a macro to call \a GetScreenRect.
+ */
+#define g_rcScr (GetScreenRect())
 
 /**
  * \def g_rcDesktop
  * \brief Contains the rectangle of desktop of the application.
  *
- * \a g_rcDesktop is defined as an alias (macro) of \a g_rcScr.
+ * \note This global variable is defined as an alias (macro) of \a g_rcScr.
  *
  * \sa g_rcScr
  */
