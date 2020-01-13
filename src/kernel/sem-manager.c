@@ -44,7 +44,9 @@
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** fixstr.c: the Fixed String module for MiniGUI.
+** sem-manager.c: the System V semaphore manager module for MiniGUI.
+**
+** Create date: 2020-01-08
 **
 ** Current maintainer: Wei Yongming.
 */
