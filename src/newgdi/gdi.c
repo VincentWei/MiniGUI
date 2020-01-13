@@ -547,6 +547,9 @@ PDC __mg_check_ecrgn (HDC hdc)
 {
     PDC pdc = dc_HDC2PDC(hdc);
 
+    if (pdc->surface->w <= 0 || pdc->surface->h <= 0)
+        return NULL;
+
     if (dc_IsGeneralDC (pdc)) {
         LOCK_GCRINFO (pdc);
         if (!dc_GenerateECRgn (pdc, FALSE)) {
