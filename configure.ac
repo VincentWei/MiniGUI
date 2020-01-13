@@ -1729,17 +1729,22 @@ case "$runtime_mode" in
             [Define if build MiniGUI-Processes])
         MINIGUI_RUNMODE="procs"
         if test "x$compositing_schema" = "xyes"; then
-          AC_DEFINE(_MGUSE_COMPOSITING, 1,
+          AC_DEFINE(_MGSCHEMA_COMPOSITING, 1,
                     [Define if use compositing schema for MiniGUI-Processes])
           surface_schema="compositing"
         else
-          AC_DEFINE(_MGUSE_SHAREDFB, 1,
+          AC_DEFINE(_MGSCHEMA_SHAREDFB, 1,
                     [Define if use legacy schema (shared frame buffer) for MiniGUI-Processes])
         fi
 
         if test "x$use_shmopen" = "xyes"; then
           AC_CHECK_LIB(rt, shm_open, [DEP_LIBS="$DEP_LIBS -lrt"],
                 [use_shmopen="no; shm_open function not found in rt library"])
+        fi
+        if test "x$use_shmopen" = "xyes"; then
+          AC_CHECK_DECLS(SHM_ANON, foo=bar,
+                [use_shmopen="no; SHM_ANON is not declared in <sys/mman.h>"],
+                [#include <sys/mman.h>])
         fi
 
         if test "x$use_shmopen" = "xyes"; then
