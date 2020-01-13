@@ -71,6 +71,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 {
     GAL_Surface *screen;
     GAL_Surface *surface;
+    BOOL sem_inited = FALSE;
 
     if (video == NULL) {
         video = __mg_current_video;
@@ -187,7 +188,6 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 
         /* fill fileds of shared header */
         memset (hdr, 0, sizeof(GAL_SharedSurfaceHeader));
-        hdr->semid      = -1;
         hdr->creator    = getpid();
         hdr->fd         = fd;
         hdr->byhw       = byhw;
@@ -200,9 +200,22 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         hdr->Bmask      = Bmask;
         hdr->Amask      = Amask;
         hdr->buf_size   = buf_size;
+
+#if 1
+        /* Use a unnamed POSIX semaphore shared between processes */
+        if (sem_init (&hdr->sem_lock, 1, 1) < 0) {
+            if (errno == ENOSYS) {
+                _ERR_PRINTF("The system does not support process-shared semaphore.\n");
+            }
+            goto error;
+        }
+        sem_inited = TRUE;
+#else
+        hdr->semid      = -1;
         hdr->sem_num    = __mg_alloc_mutual_sem (&hdr->semid);
         if (hdr->sem_num < 0)
             goto error;
+#endif
 
         surface->pixels = surface->shared_header->buf;
         // memset (surface->pixels, 0, buf_size);
@@ -226,10 +239,16 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 error:
     if (surface) {
         if (surface->shared_header) {
+#if 1
+            if (sem_inited) {
+                sem_destroy (&surface->shared_header->sem_lock);
+            }
+#else
             if (surface->shared_header->semid >= 0) {
                 assert (surface->shared_header->sem_num >= 0);
                 __mg_free_mutual_sem (surface->shared_header->sem_num);
             }
+#endif
 
             if (surface->shared_header->byhw) {
                 assert(video->FreeSharedHWSurface);
@@ -263,10 +282,14 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
 
     assert (surface->shared_header);
 
+#if 1
+    sem_destroy (&surface->shared_header->sem_lock);
+#else
     if (surface->shared_header->semid >= 0) {
         assert (surface->shared_header->sem_num >= 0);
         __mg_free_mutual_sem (surface->shared_header->sem_num);
     }
+#endif
 
     if (surface->shared_header->byhw) {
         assert (video->FreeSharedHWSurface);
