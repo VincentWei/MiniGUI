@@ -105,7 +105,7 @@ HCURSOR __mg_load_cursor_from_res (int i)
     int nr_cursors = 0;
     char key [32];
     char filename [MAX_NAME + 1];
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
     const char* ext;
     BOOL is_png = FALSE;
     int hotspot[2] = { 0, 0 };
@@ -121,7 +121,7 @@ HCURSOR __mg_load_cursor_from_res (int i)
     if (GetMgEtcValue (CURSORSECTION, key, filename, MAX_NAME) < 0)
         return 0;
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
     ext = __mg_get_extension (filename);
     if (ext && strcasecmp (ext, "png") == 0) {
         sprintf (key, "hotspot%d", i);
@@ -134,7 +134,7 @@ HCURSOR __mg_load_cursor_from_res (int i)
 #endif
 
 #ifdef _MGINCORE_RES
-#   ifdef _MGUSE_COMPOSITING
+#   ifdef _MGSCHEMA_COMPOSITING
     if (is_png)
         hCursor = LoadCursorFromPNGMem (__mg_cursors_data + __mg_cursors_offset [i],
                 hotspot[0], hotspot[1]);
@@ -153,7 +153,7 @@ HCURSOR __mg_load_cursor_from_res (int i)
         strcat (path, filename);
         path [MAX_PATH] = 0;
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
         if (is_png)
             hCursor = LoadCursorFromPNGFile (path, hotspot[0], hotspot[1]);
         else

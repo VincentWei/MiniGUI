@@ -112,7 +112,7 @@ inline static int boxtop (void)
     return CSR_CURSORY - CSR_YHOTSPOT;
 }
 
-#ifdef _MGUSE_SHAREDFB
+#ifdef _MGSCHEMA_SHAREDFB
 
 unsigned int __mg_csrimgsize;
 unsigned int __mg_csrimgpitch;
@@ -122,7 +122,7 @@ unsigned int __mg_csrimgpitch;
 static BYTE* _cursor_bits = NULL;
 #endif
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 
 /* the empty global DC for cursor */
 static HDC _dc_cursor;
@@ -460,7 +460,7 @@ void mg_TerminateCursor (void)
     }
 }
 
-#else /* _MGUSE_COMPOSITING */
+#else /* _MGSCHEMA_COMPOSITING */
 
 #if 0 /* FIXME: I do not know why this can not work :( */
 Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
@@ -725,7 +725,7 @@ static void showcursor (void)
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
 }
 
-#endif /* _MGUSE_COMPOSITING */
+#endif /* _MGSCHEMA_COMPOSITING */
 
 HCURSOR GUIAPI CopyCursor (HCURSOR hcsr)
 {
@@ -871,7 +871,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
     if (oldx != curx || oldy != cury) {
 
-#if defined (_MGHAVE_CURSOR) && defined(_MGUSE_SHAREDFB)
+#if defined (_MGHAVE_CURSOR) && defined(_MGSCHEMA_SHAREDFB)
         lock_cursor_sem ();
         CSR_CURSORX = curx;
         CSR_CURSORY = cury;
@@ -886,7 +886,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
             showcursor ();
         }
         unlock_cursor_sem ();
-#endif /* _MGHAVE_CURSOR && _MGUSE_SHAREDFB*/
+#endif /* _MGHAVE_CURSOR && _MGSCHEMA_SHAREDFB*/
 
         oldx = curx;
         oldy = cury;
@@ -898,7 +898,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
 #ifdef _MGHAVE_CURSOR
 
-#ifdef _MGUSE_SHAREDFB
+#ifdef _MGSCHEMA_SHAREDFB
 /* show cursor hidden by client GDI function */
 void kernel_ReShowCursor (void)
 {
@@ -911,7 +911,7 @@ void kernel_ReShowCursor (void)
     }
     unlock_cursor_sem ();
 }
-#endif /* _MGUSE_SHAREDFB */
+#endif /* _MGSCHEMA_SHAREDFB */
 
 /* Always call with "setdef = FALSE" for clients at server side. */
 HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
@@ -945,7 +945,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     pcsr = (PCURSOR)hcsr;
 
     lock_cursor_sem ();
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
     CSR_CURRENT_SET = (HCURSOR)pcsr;
     CSR_XHOTSPOT = pcsr ? pcsr->xhotspot : -100;
     CSR_YHOTSPOT = pcsr ? pcsr->yhotspot : -100;
@@ -955,7 +955,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     else
         GAL_SetCursor (NULL, 0, 0);
 
-#else /* _MGUSE_SHAREDFB */
+#else /* _MGSCHEMA_SHAREDFB */
     if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
                     && get_hidecursor_sem_val () == 0)
         hidecursor();
@@ -978,7 +978,7 @@ HCURSOR GUIAPI GetCurrentCursor (void)
     return (HCURSOR)CSR_CURRENT;
 }
 
-#ifdef _MGUSE_SHAREDFB
+#ifdef _MGSCHEMA_SHAREDFB
 
 static inline BOOL does_need_hide (const RECT* prc)
 {
@@ -1002,7 +1002,7 @@ static inline BOOL does_need_hide (const RECT* prc)
     return TRUE;
 }
 
-/* version for _MGUSE_SHAREDFB */
+/* version for _MGSCHEMA_SHAREDFB */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
     PDC cur_pdc = (PDC)pdc;
@@ -1039,7 +1039,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 
 #else
 
-/* version for _MGUSE_COMPOSITING */
+/* version for _MGSCHEMA_COMPOSITING */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
     PDC cur_pdc = (PDC)pdc;
@@ -1056,7 +1056,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     }
 }
 
-#endif /* _MGUSE_SHAREDFB */
+#endif /* _MGSCHEMA_SHAREDFB */
 
 int GUIAPI ShowCursor (BOOL fShow)
 {
@@ -1072,7 +1072,7 @@ int GUIAPI ShowCursor (BOOL fShow)
         return ret_value;
     }
 
-#ifdef _MGUSE_SHAREDFB
+#ifdef _MGSCHEMA_SHAREDFB
     lock_cursor_sem ();
     if (fShow) {
         CSR_SHOW_COUNT++;
@@ -1086,7 +1086,7 @@ int GUIAPI ShowCursor (BOOL fShow)
            hidecursor();
     }
     unlock_cursor_sem ();
-#else /* _MGUSE_SHAREDFB */
+#else /* _MGSCHEMA_SHAREDFB */
     if (fShow) {
         CSR_SHOW_COUNT++;
         if (CSR_SHOW_COUNT == 0 && CSR_CURRENT) {
@@ -1100,7 +1100,7 @@ int GUIAPI ShowCursor (BOOL fShow)
             GAL_SetCursor (NULL, 0, 0);
         }
     }
-#endif /* _MGUSE_COMPOSITING */
+#endif /* _MGSCHEMA_COMPOSITING */
 
     return CSR_SHOW_COUNT;
 }

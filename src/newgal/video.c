@@ -241,7 +241,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
         GAL_VideoQuit();
     }
 
-#if defined(_MGRM_PROCESSES) && defined(_MGUSE_COMPOSITING)
+#if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
     video = GAL_GetVideo(driver_name, TRUE);
 #else
     video = GAL_GetVideo(driver_name, FALSE);
@@ -631,7 +631,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     return(GAL_PublicSurface);
 }
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 void GAL_SetVideoModeInfo(GAL_Surface* screen)
 {
     assert(screen);
@@ -1016,7 +1016,7 @@ void GAL_VideoQuit (void)
         video->VideoQuit (this);
 
         if (GAL_VideoSurface != NULL) {
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
             GAL_VideoSurface = NULL;
             if (IsServer()) {
                 GAL_FreeSurface (__gal_screen);

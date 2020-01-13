@@ -92,7 +92,7 @@
 
 #define CURSORSECTION   "cursorinfo"
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 
 static BOOL LoadCursorRes (void)
 {
@@ -152,7 +152,7 @@ error:
     return FALSE;
 }
 
-#else /* _MGUSE_COMPOSITING */
+#else /* _MGSCHEMA_COMPOSITING */
 
 extern unsigned int __mg_csrimgpitch;
 static BOOL LoadCursorRes (void)
@@ -213,7 +213,7 @@ error:
     return FALSE;
 }
 
-#endif /* _MGUSE_COMPOSITING */
+#endif /* _MGSCHEMA_COMPOSITING */
 
 #endif /* _MGHAVE_CURSOR */
 

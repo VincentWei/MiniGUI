@@ -182,7 +182,7 @@ int GUIAPI ClientRequestEx2 (const REQUEST* request,
 #elif defined(_MGGAL_NEXUS)
     if ((request->id != REQID_NEXUS_CLIENT_GET_SURFACE)
             && (__mg_client_id == 0 && request->id != REQID_JOINLAYER)) {
-#elif defined(_MGUSE_COMPOSITING)
+#elif defined(_MGSCHEMA_COMPOSITING)
     if (__mg_client_id == 0 && request->id != REQID_JOINLAYER &&
             request->id != REQID_GETWPSURFACE) {
 #else

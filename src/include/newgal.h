@@ -61,6 +61,7 @@
 #if IS_COMPOSITING_SCHEMA
 #include <sys/types.h>
 #include <unistd.h>
+#include <semaphore.h>
 #endif
 
 #define DISABLE_THREADS
@@ -119,10 +120,15 @@ typedef int (*GAL_blit)(struct GAL_Surface *src, GAL_Rect *srcrect,
  * than the creator.
  */
 typedef struct _SharedSurfaceHeader {
+#if 1
+    /* The semaphore for this shared surface */
+    sem_t           sem_lock;
+#else
     /* The SysV semaphore set identifier for synchronizing the shared surfaces. */
     int             semid;
     /* The number of semphore for this surface. */
     int             sem_num;
+#endif
 
     /* The pid of the creator */
     pid_t           creator;
@@ -370,7 +376,7 @@ GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags);
 GAL_Surface *GAL_SetVideoMode
                         (int width, int height, int bpp, Uint32 flags);
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 void GAL_SetVideoModeInfo(GAL_Surface* screen);
 #endif
 
@@ -517,7 +523,7 @@ void GAL_FreeSurface (GAL_Surface *surface);
 
 #ifdef _MGRM_PROCESSES
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 
 /* Allocate a shared RGB surface from the specific video device. */
 GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice* video,
@@ -597,7 +603,7 @@ typedef struct _REP_SIGMA8654_GETSURFACE {
 #endif
 
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
-#endif /* _MGUSE_SHAREDFB */
+#endif /* _MGSCHEMA_SHAREDFB */
 
 #endif /* _MGRM_PROCESSES */
 
@@ -835,7 +841,7 @@ GAL_Surface * GAL_DisplayFormatAlpha (GAL_Surface *surface);
 int GAL_SoftStretch (GAL_Surface *src, GAL_Rect *srcrect,
                                     GAL_Surface *dst, GAL_Rect *dstrect);
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 extern GAL_Surface* __gal_screen;
 extern GAL_Surface* __gal_fake_screen;
 #else

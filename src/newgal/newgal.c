@@ -66,7 +66,7 @@
 
 GAL_Surface* __gal_screen;
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 GAL_Surface* __gal_fake_screen;
 #endif
 
@@ -75,7 +75,7 @@ RECT GUIAPI GetScreenRect (void)
     static RECT rc;
 
     if (RECTH (rc) == 0) {
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
         rc.left = 0;
         rc.top = 0;
         rc.right = SHAREDRES_VIDEO_HRES;
@@ -163,7 +163,7 @@ static int get_dpi_from_etc (const char* engine)
     return dpi;
 }
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 
 #define LEN_WALLPAPER_PATTER_SIZE       31
 #include "client.h"
@@ -282,7 +282,7 @@ int mg_InitGAL (char* engine, char* mode)
         strncpy (mode, SHAREDRES_VIDEO_MODE, LEN_VIDEO_MODE);
         mode [LEN_VIDEO_MODE] = '\0';
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
         need_set_mode = FALSE;
 #endif
     }
@@ -323,7 +323,7 @@ int mg_InitGAL (char* engine, char* mode)
         }
     }
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
     if (!(__gal_fake_screen = create_wp_surface(__gal_screen))) {
         GAL_VideoQuit ();
         _ERR_PRINTF ("NEWGAL: Failed to create wallpaper pattern surface.\n");
