@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -3783,7 +3783,9 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
             (WPARAM)&pCreateInfo->lx, (LPARAM)&pWin->left);
     SendMessage ((HWND)pWin, MSG_CHANGESIZE, (WPARAM)&pWin->left, 0);
 
+#ifndef _MGSCHEMA_COMPOSITING
     pWin->pGCRInfo = &pWin->GCRInfo;
+#endif
 
     if (SendMessage (HWND_DESKTOP, MSG_ADDNEWMAINWIN, (WPARAM) pWin, 0) < 0)
         goto err;
@@ -3913,7 +3915,9 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     }
 #endif
 
+#ifndef _MGSCHEMA_COMPOSITING
     EmptyClipRgn (&pWin->pGCRInfo->crgn);
+#endif
     EmptyClipRgn (&pWin->InvRgn.rgn);
 
     free_window_element_data (hWnd);
@@ -5340,12 +5344,20 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     pNewCtrl->pcci     = cci;
 
     if (dwExStyle & WS_EX_CTRLASMAINWIN) {
-        if ( !(pNewCtrl->pGCRInfo = malloc (sizeof (GCRINFO))) ) {
+#ifdef _MGSCHEMA_COMPOSITING
+        // TODO: create shared surface here.
+#else
+        if (!(pNewCtrl->pGCRInfo = malloc (sizeof (GCRINFO)))) {
             goto error;
         }
+#endif
     }
     else {
+#ifdef _MGSCHEMA_COMPOSITING
+        // TODO: create shared surface here.
+#else
         pNewCtrl->pGCRInfo = pMainWin->pGCRInfo;
+#endif
         pNewCtrl->idx_znode = pMainWin->idx_znode;
     }
 
@@ -5407,7 +5419,11 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
 
 error:
     if (dwExStyle & WS_EX_CTRLASMAINWIN) {
+#ifdef _MGSCHEMA_COMPOSITING
+        // TODO: free shared surface here
+#else
         if (pNewCtrl->pGCRInfo) free (pNewCtrl->pGCRInfo);
+#endif
     }
     free (pNewCtrl);
 
@@ -5474,11 +5490,17 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
 
     if (pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) {
         PMAINWIN pMainWin;
+#ifndef _MGSCHEMA_COMPOSITING
         EmptyClipRgn (&pCtrl->pGCRInfo->crgn);
+#endif
 #ifdef _MGRM_THREADS
         pthread_mutex_destroy (&pCtrl->pGCRInfo->lock);
 #endif
+#ifdef _MGSCHEMA_COMPOSITING
+        // TODO: free shared surface here.
+#else
         free (pCtrl->pGCRInfo);
+#endif
 
         pMainWin = pCtrl->pMainWin;
         if ((PCONTROL) pMainWin->hFirstChildAsMainWin == pCtrl)
