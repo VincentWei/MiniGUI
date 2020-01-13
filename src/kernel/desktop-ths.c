@@ -138,7 +138,7 @@ BOOL mg_InitDesktop (void)
     return TRUE;
 }
 
-void* DesktopMain (void* data)
+void* __kernel_desktop_main (void* data)
 {
     MSG Msg;
 
@@ -191,7 +191,7 @@ void* DesktopMain (void* data)
 #endif
     }
 
-    /* printf("Quit from DesktopMain()\n"); */
+    /* printf("Quit from __kernel_desktop_main()\n"); */
 
     __mg_quiting_stage = _MG_QUITING_STAGE_EVENT;
 

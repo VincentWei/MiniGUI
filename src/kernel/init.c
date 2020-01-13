@@ -87,7 +87,7 @@ int __mg_quiting_stage;
 int __mg_enter_terminategui;
 
 /******************************* extern data *********************************/
-extern void* DesktopMain (void* data);
+extern void* __kernel_desktop_main (void* data);
 
 /************************* Entry of the thread of parsor *********************/
 static void ParseEvent (PLWEVENT lwe)
@@ -341,11 +341,11 @@ static BOOL SystemThreads(void)
         pthread_attr_t new_attr;
         pthread_attr_init (&new_attr);
         pthread_attr_setstacksize (&new_attr, 16 * 1024);
-        pthread_create (&__mg_desktop, &new_attr, DesktopMain, &wait);
+        pthread_create (&__mg_desktop, &new_attr, __kernel_desktop_main, &wait);
         pthread_attr_destroy (&new_attr);
     }
 #else
-    pthread_create (&__mg_desktop, NULL, DesktopMain, &wait);
+    pthread_create (&__mg_desktop, NULL, __kernel_desktop_main, &wait);
 #endif
 
     sem_wait (&wait);

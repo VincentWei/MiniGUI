@@ -66,6 +66,8 @@ int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
             get_znode_flags_from_style ((PMAINWIN)pWin), rc, nr_rc);
 }
 
+static LRESULT DesktopWinProc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 static void init_desktop_win (void)
 {
     static MAINWIN sg_desktop_win;
@@ -2005,7 +2007,7 @@ void GUIAPI DesktopUpdateAllWindow(void)
 #   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1)
 #endif
 
-LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static HDC hDesktopDC;
     int flags, x, y;

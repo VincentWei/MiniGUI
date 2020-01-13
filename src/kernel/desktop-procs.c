@@ -215,6 +215,7 @@ static void TerminateSharedSysRes (void)
     return;
 }
 
+static LRESULT DesktopWinProc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 static void init_desktop_win (void)
 {
     static MAINWIN desktop_win;
@@ -3534,7 +3535,7 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     int flags, x, y;
 

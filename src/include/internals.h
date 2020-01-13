@@ -492,8 +492,6 @@ extern PTRACKMENUINFO __mg_ptmi;
 extern PMAINWIN __mg_dsk_win;
 extern HWND __mg_hwnd_desktop;
 
-extern LRESULT DesktopWinProc (HWND hWnd,
-                UINT message, WPARAM wParam, LPARAM lParam);
 extern LRESULT SendSyncMessage (HWND hWnd,
                 UINT msg, WPARAM wParam, LPARAM lParam);
 
