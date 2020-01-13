@@ -163,6 +163,12 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
             surface->flags &= ~GAL_HWSURFACE;
         }
     }
+    else {
+        /* set a static buff to pixels for empty surface */
+        static char buff[8];
+        surface->flags |= GAL_PREALLOC;
+        surface->pixels = buff;
+    }
 
     /* Allocate an empty mapping */
     surface->map = GAL_AllocBlitMap();
