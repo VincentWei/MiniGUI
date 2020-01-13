@@ -46,7 +46,7 @@
 /*
 ** desktop.c: The Desktop module.
 **
-** Current maintainer:
+** Current maintainer: Wei Yongming
 **
 */
 
@@ -96,10 +96,12 @@ typedef struct _DEF_CONTEXT
     int x, y;
 } DEF_CONTEXT;
 
+#ifndef _MGSCHEMA_COMPOSITING
 PGCRINFO kernel_GetGCRgnInfo (HWND hWnd)
 {
     return ((PMAINWIN)hWnd)->pGCRInfo;
 }
+#endif /* _MGSCHEMA_COMPOSITING */
 
 #if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
 static DEF_CONTEXT g_def_context;
@@ -497,6 +499,9 @@ static BOOL _cb_exclude_rc (void* context,
     return TRUE;
 }
 
+#ifdef _MGSCHEMA_COMPOSITING
+static inline void reset_window (PMAINWIN pWin, RECT* rcWin) { }
+#else
 static void reset_window (PMAINWIN pWin, RECT* rcWin)
 {
     PGCRINFO pGCRInfo;
@@ -507,56 +512,58 @@ static void reset_window (PMAINWIN pWin, RECT* rcWin)
     IntersectRect (&rcTemp, rcWin, &rcScr);
     SetClipRgn (&pGCRInfo->crgn, &rcTemp);
 }
+#endif
 
 #ifdef _MGRM_THREADS
 #ifndef __NOUNIX__
 /*for unix system, using read/write lock*/
-void lock_zi_for_change (const ZORDERINFO* zi)
+static inline void lock_zi_for_change (const ZORDERINFO* zi)
 {
     pthread_rwlock_wrlock(&((ZORDERINFO*)zi)->rwlock);
 }
 
-void unlock_zi_for_change (const ZORDERINFO* zi)
+static inline void unlock_zi_for_change (const ZORDERINFO* zi)
 {
     pthread_rwlock_unlock(&((ZORDERINFO*)zi)->rwlock);
 }
 
-void lock_zi_for_read (const ZORDERINFO* zi)
+static inline void lock_zi_for_read (const ZORDERINFO* zi)
 {
     pthread_rwlock_rdlock(&((ZORDERINFO*)zi)->rwlock);
 }
 
-void unlock_zi_for_read (const ZORDERINFO* zi)
+static inline void unlock_zi_for_read (const ZORDERINFO* zi)
 {
     pthread_rwlock_unlock(&((ZORDERINFO*)zi)->rwlock);
 }
-#else
+#else /* __NOUNIX__ */
 /*for non-unix system, using mutex*/
-void lock_zi_for_change (const ZORDERINFO* zi)
+static inline void lock_zi_for_change (const ZORDERINFO* zi)
 {
     pthread_mutex_lock(&((ZORDERINFO*)zi)->rwlock);
 }
 
-void unlock_zi_for_change (const ZORDERINFO* zi)
+static inline void unlock_zi_for_change (const ZORDERINFO* zi)
 {
     pthread_mutex_unlock(&((ZORDERINFO*)zi)->rwlock);
 }
 
-void lock_zi_for_read (const ZORDERINFO* zi)
+static inline void lock_zi_for_read (const ZORDERINFO* zi)
 {
     pthread_mutex_lock(&((ZORDERINFO*)zi)->rwlock);
 }
 
-void unlock_zi_for_read (const ZORDERINFO* zi)
+static inline void unlock_zi_for_read (const ZORDERINFO* zi)
 {
     pthread_mutex_unlock(&((ZORDERINFO*)zi)->rwlock);
 }
-#endif
-#elif defined(_MGRM_STANDALONE)  /*for _MGRM_STANDALONE*/
-void lock_zi_for_change (const ZORDERINFO* zi) { }
-void unlock_zi_for_change (const ZORDERINFO* zi) { }
-void lock_zi_for_read (const ZORDERINFO* zi) { }
-void unlock_zi_for_read (const ZORDERINFO* zi) { }
+#endif /* __NOUNIX__ */
+
+#elif defined(_MGRM_STANDALONE)
+static inline void lock_zi_for_change (const ZORDERINFO* zi) { }
+static inline void unlock_zi_for_change (const ZORDERINFO* zi) { }
+static inline void lock_zi_for_read (const ZORDERINFO* zi) { }
+static inline void unlock_zi_for_read (const ZORDERINFO* zi) { }
 #else /* for procs */
 /* NULL. see desktop-procs.c */
 #endif /* _MGRM_THREADS */
@@ -564,7 +571,7 @@ void unlock_zi_for_read (const ZORDERINFO* zi) { }
 static int RestrictControlRect(PMAINWIN pWin, RECT *minimal)
 {
     RECT rcMove;
-	int off_x = 0, off_y = 0;
+    int off_x = 0, off_y = 0;
 
     PCONTROL pCtrl = gui_Control((HWND)pWin);
     PCONTROL pRoot = (PCONTROL)(pWin->pMainWin);
@@ -622,7 +629,11 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //hdc = GetClientDC ((HWND)pWin);
     hdc = get_valid_dc(pWin, TRUE);
 
+#ifndef _MGSCHEMA_COMPOSITING
     pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
+#else
+    pcrc = NULL; // TODO
+#endif
     while (pcrc) {
         RECT rcMove;
 
@@ -639,7 +650,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
         if (pWin->dwExStyle & WS_EX_TRANSPARENT) {
             /* set invalidate rect. */
-			InvalidateRect ((HWND)pWin, &rcMove, TRUE);
+            InvalidateRect ((HWND)pWin, &rcMove, TRUE);
             inved = TRUE;
         }
         else {
@@ -658,7 +669,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //ReleaseDC (hdc);
     //BUGFIXED: we must update the secondaryDC to clientDC, to ensure
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
-    if(pWin->pMainWin->secondaryDC){
+    if(pWin->pMainWin->secondaryDC) {
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
         update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
         ReleaseDC (real_dc);
@@ -684,10 +695,14 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     }
 
     prgn = CreateClipRgn();
+#ifndef _MGSCHEMA_COMPOSITING
     lock_zi_for_read (__mg_zorder_info);
     CopyRegion(prgn, &kernel_GetGCRgnInfo((HWND)pWin)->crgn);
     pcrc = prgn->head;
     unlock_zi_for_read (__mg_zorder_info);
+#else
+    pcrc = NULL; // TODO
+#endif
 
     while (pcrc) {
         BOOL bNeedInvalidate = FALSE;
@@ -730,7 +745,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
          */
         if(bNeedInvalidate)
         {
-			InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
+            InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             rcInvalid = rcMove; //restore the invalidate area
             bNeedInvalidate = FALSE; //resotre the inved value
             inved = TRUE;
@@ -747,7 +762,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
         if (bNeedInvalidate)
         {
-			InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
+            InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             inved = TRUE;
         }
 
@@ -867,6 +882,9 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
 /*
  * Init a window's global clipping region.
  */
+#ifdef _MGSCHEMA_COMPOSITING
+static inline void dskInitGCRInfo (PMAINWIN pWin) {}
+#else
 static void dskInitGCRInfo (PMAINWIN pWin)
 {
     RECT rcWin, rcScr, rcTemp;
@@ -884,6 +902,7 @@ static void dskInitGCRInfo (PMAINWIN pWin)
     IntersectRect (&rcTemp, &rcWin, &rcScr);
     SetClipRgn (&pWin->pGCRInfo->crgn, &rcTemp);
 }
+#endif /* _MGSCHEMA_COMPOSITING */
 
 /*
  * Init a window's invalid region.
@@ -2830,7 +2849,7 @@ def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
 }
 
 static void def_keyboard_handler(void* context, int message,
-		                               WPARAM wParam, LPARAM lParam)
+                                       WPARAM wParam, LPARAM lParam)
 {
     switch(message)
     {
@@ -2863,7 +2882,7 @@ static void def_customize_desktop_menu (void* context, HMENU hmnu, int start_pos
 }
 
 static void def_mouse_handler(void* context, int message,
-		                            WPARAM wParam, LPARAM lParam)
+                                    WPARAM wParam, LPARAM lParam)
 {
 #ifdef _MGHAVE_MENU
     int x, y;
@@ -2875,17 +2894,17 @@ static void def_mouse_handler(void* context, int message,
         case MSG_DT_MOUSEMOVE:
         case MSG_DT_RBUTTONDOWN:
         case MSG_DT_RBUTTONDBLCLK:
-			break;
+            break;
 
         case MSG_DT_RBUTTONUP:
-			{
-				x = LOSWORD (lParam);
-				y = HISWORD (lParam);
+            {
+                x = LOSWORD (lParam);
+                y = HISWORD (lParam);
 
-				TrackPopupMenu (sg_DesktopMenu, TPM_DEFAULT, x, y, HWND_DESKTOP);
+                TrackPopupMenu (sg_DesktopMenu, TPM_DEFAULT, x, y, HWND_DESKTOP);
 
-				break;
-			}
+                break;
+            }
     }
 #endif
 }
@@ -2905,14 +2924,14 @@ static void def_desktop_menucmd_handler (void* context, int id)
 
 static void def_deinit(void* context)
 {
-	if(context) {
-		if (((DEF_CONTEXT *)context)->bg)
-			UnloadBitmap (((DEF_CONTEXT *)context)->bg);
+    if(context) {
+        if (((DEF_CONTEXT *)context)->bg)
+            UnloadBitmap (((DEF_CONTEXT *)context)->bg);
 
 #if defined(_MGRM_THREADS) || defined(_MGRM_STANDALONE)
-		free(context);
+        free(context);
 #endif
-	}
+    }
 
     return;
 }
@@ -3048,22 +3067,22 @@ static void *dt_context;
 
 DESKTOPOPS* GUIAPI SetCustomDesktopOperationSet (DESKTOPOPS* usr_dsk_ops)
 {
-	DESKTOPOPS *tmp_ops = NULL;
+    DESKTOPOPS *tmp_ops = NULL;
 
     if (usr_dsk_ops == NULL) {
-		return dsk_ops;
-	}
+        return dsk_ops;
+    }
 
-	if (dsk_ops->deinit) {
-		dsk_ops->deinit(dt_context);
-	}
+    if (dsk_ops->deinit) {
+        dsk_ops->deinit(dt_context);
+    }
 
-	if (usr_dsk_ops->init) {
-		dt_context = usr_dsk_ops->init();
-	}
+    if (usr_dsk_ops->init) {
+        dt_context = usr_dsk_ops->init();
+    }
 
-	tmp_ops = dsk_ops;
-	dsk_ops = usr_dsk_ops;
+    tmp_ops = dsk_ops;
+    dsk_ops = usr_dsk_ops;
 
     SendMessage(HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
 
