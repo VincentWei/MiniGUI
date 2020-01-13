@@ -112,6 +112,7 @@ void mg_TerminateDesktop (void)
 #endif
 
     kernel_free_z_order_info (__mg_zorder_info);
+    __mg_zorder_info = NULL;
     DestroyFreeClipRectList (&sg_FreeClipRectList);
     DestroyFreeClipRectList (&sg_FreeInvRectList);
 
