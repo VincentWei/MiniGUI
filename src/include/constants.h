@@ -54,23 +54,53 @@
 
 #include "common.h"
 
-#define DEF_NR_TIMERS           NR_BITS_DWORD
-
-#if defined(_MGRM_PROCESSES) && defined(_MGUSE_COMPOSITING)
+/* conditional macros for compositing/sharedfb schema */
+#if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
 #   define IS_COMPOSITING_SCHEMA    1
 #   define NR_DIRTY_RECTS           8
-#   define NR_COMPOSITING_SEMS      64
 #else
 #   define IS_COMPOSITING_SCHEMA    0
 #   define NR_DIRTY_RECTS           0
-#   define NR_COMPOSITING_SEMS      0
 #endif
 
-#if defined(_MGRM_PROCESSES) && defined(_MGUSE_SHAREDFB)
+#if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_SHAREDFB)
 #   define IS_SHAREDFB_SCHEMA       1
 #else
 #   define IS_SHAREDFB_SCHEMA       0
 #endif
+
+/* constants for z-order nodes */
+#define MAX_NR_LAYERS               16
+
+#ifdef _MGRM_PROCESSES
+#   define DEF_NR_GLOBALS           16
+#else
+#   define DEF_NR_GLOBALS           0
+#endif
+
+#define DEF_NR_MASKRECT             1024
+#define DEF_NR_POPUPMENUS           16
+#define DEF_NR_TOPMOSTS             16
+#define DEF_NR_NORMALS              128
+
+/* constants for MiniGUI-Processes runtime mode */
+#ifdef _MGRM_PROCESSES
+
+// the lock file
+#define LOCKFILE                    "/var/tmp/mginit"
+// the well-known Unix domain socket name
+#define CS_PATH                     "/var/tmp/minigui"
+
+// key base for System V IPC
+#define IPC_KEY_BASE                0x464D4700
+
+// Live threshold: 5 seconds
+#define THRES_LIVE                  500
+
+// timeout value for socket I/O: 1 second
+#define TO_SOCKIO                   100
+
+#endif /* _MGRM_PROCESSES */
 
 /* constants for clip rects heap and message heap */
 #if defined (__NOUNIX__) || defined (__uClinux__)
@@ -103,25 +133,30 @@
   #define NR_HEAP             10
   #define LEN_BITMAP          (1+2+4+8+16+32+64+128+256+512)
  #else
-  #define MAX_LEN_FIXSTR      64
-  #define NR_HEAP             5
-  #define LEN_BITMAP          (1+2+4+8+16)
+  #define MAX_LEN_FIXSTR      1024
+  #define NR_HEAP             9
+  #define LEN_BITMAP          (1+2+4+8+16+32+64+128+256)
  #endif
 #endif
 
 /* constants for engine name and video mode */
 #define LEN_DEVICE_NAME     127
 #define LEN_EXDRIVER_NAME   127
-
 #define LEN_ENGINE_NAME     23
 #define LEN_VIDEO_MODE      31
 #define LEN_MTYPE_NAME      23
 #define LEN_FOURCC_FORMAT   7
 
-#define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
+/* misc constants and utilities */
 
-// misc constants
-// #define MAX_SRV_CLIP_RECTS      8
+// Number of timers.
+#define DEF_NR_TIMERS           NR_BITS_DWORD
+
+// maximal lenght for z-order node caption
+#define MAX_CAPTION_LEN         39
+
+// round n to multiple of m
+#define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
 
 #endif // GUI_CONSTANTS_H
 
