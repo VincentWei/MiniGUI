@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -100,6 +100,7 @@ void screensaver_hide(void);
 
 #include "zorder.h"
 
+struct GAL_Surface;
 struct _MAINWIN;
 typedef struct _MAINWIN* PMAINWIN;
 
@@ -323,7 +324,11 @@ typedef struct _MAINWIN
 
     HDC   privCDC;      // the private client DC.
     INVRGN InvRgn;      // the invalid region of this main window.
+#ifdef _MGSCHEMA_COMPOSITING
+    struct GAL_Surface* surf;  // the shared surface of this main window.
+#else
     PGCRINFO pGCRInfo;  // pointer to global clip region info struct.
+#endif
 
     // the Z order node.
     int idx_znode;
@@ -381,9 +386,10 @@ typedef struct _MAINWIN
     PMSGQUEUE pMessages;
                         // the message queue.
 
-    GCRINFO GCRInfo;
-                        // the global clip region info struct.
+#ifndef _MGSCHEMA_COMPOSITING
+    GCRINFO GCRInfo;    // the global clip region info struct.
                         // put here to avoid invoking malloc function.
+#endif
 
 #ifdef _MGRM_THREADS
     pthread_t th;        // the thread which creates this main window.
@@ -492,7 +498,7 @@ extern LRESULT SendSyncMessage (HWND hWnd,
                 UINT msg, WPARAM wParam, LPARAM lParam);
 
 #ifndef _MGRM_THREADS
-#   ifndef _MGUSE_COMPOSITING
+#   ifndef _MGSCHEMA_COMPOSITING
 extern unsigned int __mg_csrimgsize;
 extern unsigned int __mg_csrimgpitch;
 #   endif
