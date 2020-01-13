@@ -145,13 +145,15 @@ int __mg_create_anonymous_file(off_t size, const char *debug_name,
 {
     int fd, ret;
 #ifdef _MGUSE_SHMOPEN
-    (void*)debug_name;
     fd = shm_open (SHM_ANON, O_CREAT | O_RDWR | O_CLOEXEC, rw_modes);
 #elif defined(HAVE_MEMFD_CREATE)
     (void)rw_modes;
     if (!debug_name)
         debug_name = "minigui-shared";
     fd = syscall(SYS_memfd_create, debug_name, MFD_CLOEXEC);
+    /* TODO: use fcntl(2) F_ADD_SEALS to restrict the further
+        modifications on this memfd.
+     */
 #else
     const char *path;
     char *name;
