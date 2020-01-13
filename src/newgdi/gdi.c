@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -107,7 +107,7 @@ pthread_mutex_t __mg_gdilock;
 /* the following functions, which defined in other module */
 /* but used in this module. */
 #ifndef _MG_MINIMALGDI
-extern PGCRINFO kernel_GetGCRgnInfo (HWND hWnd);
+//extern PGCRINFO kernel_GetGCRgnInfo (HWND hWnd);
 #endif
 
 /**************************** static data ************************************/
@@ -436,9 +436,11 @@ static void dc_InitClipRgnInfo(void)
         InitClipRgn (&DCSlot[i].lcrgn, &__mg_FreeClipRectList);
         MAKE_REGION_INFINITE(&DCSlot[i].lcrgn);
 
+#ifndef _MGSCHEMA_COMPOSITING
         /* Global clip region info */
         DCSlot[i].pGCRInfo = NULL;
         DCSlot[i].oldage = 0;
+#endif
 
         /* Effective clip region */
         InitClipRgn (&DCSlot[i].ecrgn, &__mg_FreeClipRectList);
@@ -466,11 +468,6 @@ static void dc_DeinitClipRgnInfo(void)
 
 BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
 {
-    PCLIPRECT pcr;
-    PCONTROL pCtrl;
-    RECT minimal;
-    CLIPRGN ergn;
-
     /* is global clip region is empty? */
     if ((!fForce) && (!dc_IsVisible (pdc)))
         return FALSE;
@@ -479,8 +476,15 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
     return TRUE;
 #endif
 
+#ifdef _MGSCHEMA_COMPOSITING
+    // TODO
+#else   /* not defined _MGSCHEMA_COMPOSITING */
     /* need regenerate? */
     if (fForce || (pdc->oldage != pdc->pGCRInfo->age)) {
+        PCLIPRECT pcr;
+        PCONTROL pCtrl;
+        RECT minimal;
+        CLIPRGN ergn;
 
         /*
          * update pdc->DevRC, and restrict the effective
@@ -539,6 +543,7 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
 
         pdc->oldage = pdc->pGCRInfo->age;
     }
+#endif   /* not defined _MGSCHEMA_COMPOSITING */
 
     return TRUE;
 }
@@ -1782,11 +1787,15 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
     if (dc_IsGeneralDC (pdc)) {
         RECT minimal;
 
+#ifdef _MGSCHEMA_COMPOSITING
+        // TODO:
+#else
         pdc->pGCRInfo = kernel_GetGCRgnInfo (hWnd);
         LOCK_GCRINFO (pdc);
 
         pdc->oldage = pdc->pGCRInfo->age;
         ClipRgnCopy (&pdc->ecrgn, &pdc->pGCRInfo->crgn);
+#endif
 
         pdc->bIsClient = bIsClient;
         if (bIsClient)
@@ -1814,7 +1823,9 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
             IntersectClipRect (&pdc->ecrgn, &minimal);
         }
 
+#ifndef _MGSCHEMA_COMPOSITING
         UNLOCK_GCRINFO (pdc);
+#endif
     }
 
     /* context info and raster operations. */
@@ -1952,9 +1963,11 @@ static void dc_InitScreenDC (PDC pdc, GAL_Surface *surface)
     /* init effective clippping region */
     InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
+#ifndef _MGSCHEMA_COMPOSITING
     /* init global clip region information */
     pdc->pGCRInfo = NULL;
     pdc->oldage = 0;
+#endif
 
     pdc->DevRC.left = 0;
     pdc->DevRC.top  = 0;
@@ -2110,13 +2123,15 @@ void GUIAPI ReleaseDC (HDC hDC)
 
     pWin = (PMAINWIN)(pdc->hwnd);
     if (pWin && pWin->privCDC == hDC) {
-        RECT minimal;
-        PCONTROL pCtrl;
-        CLIPRGN ergn;
-
         /* for private DC, we reset the clip region info. */
         /* houhh 20090113, for private dc with secondaryDC, pGCRInfo is NULL. */
+#ifdef _MGSCHEMA_COMPOSITING
+        // TODO
+#else /* not defined _MGSCHEMA_COMPOSITING */
         if (pdc->pGCRInfo) {
+            RECT minimal;
+            PCONTROL pCtrl;
+            CLIPRGN ergn;
 
             LOCK (&pdc->pGCRInfo->lock);
 
@@ -2147,14 +2162,17 @@ void GUIAPI ReleaseDC (HDC hDC)
 
             UNLOCK (&pdc->pGCRInfo->lock);
         }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
     }
     else {
         EmptyClipRgn (&pdc->lcrgn);
         MAKE_REGION_INFINITE(&pdc->lcrgn);
         EmptyClipRgn (&pdc->ecrgn);
         MAKE_REGION_INFINITE(&pdc->ecrgn);
+#ifndef _MGSCHEMA_COMPOSITING
         pdc->pGCRInfo = NULL;
         pdc->oldage = 0;
+#endif
 
         LOCK (&dcslot);
         pdc->inuse = FALSE;
@@ -2198,7 +2216,9 @@ static BOOL InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
     pdc->DevRC.right  = pdc->DevRC.left + width;
     pdc->DevRC.bottom = pdc->DevRC.top + height;
     pdc->surface      = pdc_parent->surface;
+#ifndef _MGSCHEMA_COMPOSITING
     pdc->pGCRInfo     = pdc_parent->pGCRInfo;
+#endif
 
     dc_InitMemDCFrom(pdc, pdc_parent);
     /* should set after InitMemDC.*/
@@ -2702,8 +2722,10 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     if (!(pdc->pLogFont = GetWindowFont (hwnd_child)))
         pdc->pLogFont = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
 
+#ifndef _MGSCHEMA_COMPOSITING
     pdc->pGCRInfo = NULL;
     pdc->oldage = 0;
+#endif
 
     EmptyClipRgn (&pdc->lcrgn);
     InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
@@ -2974,8 +2996,10 @@ HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height)
     dc_InitMemDCFrom (pmem_dc, pdc);
 
     /* clip region info */
+#ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
+#endif
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
@@ -3045,8 +3069,10 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+#ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
+#endif
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3143,8 +3169,11 @@ HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
         dc_InitDC (pdc_sub, HWND_DESKTOP, FALSE);
     }
 
+#ifndef _MGSCHEMA_COMPOSITING
     pdc_sub->pGCRInfo = NULL;
     pdc_sub->oldage = 0;
+#endif
+
     InitClipRgn (&pdc_sub->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pdc_sub->lcrgn);
     InitClipRgn (&pdc_sub->ecrgn, &__mg_FreeClipRectList);
@@ -3213,8 +3242,10 @@ HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, const BITMAP* bmp)
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
 
+#ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
+#endif
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3326,8 +3357,10 @@ HDC GUIAPI CreateMemDCFromMyBitmap (const MYBITMAP* my_bmp, const RGB* pal)
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
 
+#ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
+#endif
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3811,8 +3844,10 @@ MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+#ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
+#endif
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3864,8 +3899,10 @@ MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+#ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
+#endif
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3917,8 +3954,10 @@ MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+#ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
+#endif
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
