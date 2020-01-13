@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -97,6 +97,15 @@ GHANDLE __mg_layer;
 /* always be zero for clients. */
 BOOL __mg_switch_away;
 
+#ifdef _MGSCHEMA_COMPOSITING
+
+static inline void lock_zi_for_change (const ZORDERINFO* zi) { }
+static inline void unlock_zi_for_change (const ZORDERINFO* zi) { }
+static inline void lock_zi_for_read (const ZORDERINFO* zi) { }
+static inline void unlock_zi_for_read (const ZORDERINFO* zi) { }
+
+#else /* not _MGSCHEMA_COMPOSITING */
+
 void lock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
@@ -176,6 +185,8 @@ again:
     }
 }
 
+#endif /* not _MGSCHEMA_COMPOSITING */
+
 inline void* get_zi_from_client(int cli)
 {
     return (((cli>0)?mgClients[cli].layer:mgTopmostLayer)->zorder_info);
@@ -224,7 +235,9 @@ static void init_desktop_win (void)
     pDesktopWin->iBkColor          = 0;
 
     if (mgIsServer) {
+#ifndef _MGSCHEMA_COMPOSITING
         pDesktopWin->pGCRInfo      = &sg_ScrGCRInfo;
+#endif
         pDesktopWin->idx_znode     = 0;
     }
 
@@ -3627,8 +3640,10 @@ LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message) {
         case MSG_TIMEOUT:
             {
-                MSG msg = {0, MSG_IDLE, wParam, 0};
-                dskBroadcastMessage (&msg);
+                if (mgIsServer) {
+                    MSG msg = {0, MSG_IDLE, wParam, 0};
+                    dskBroadcastMessage (&msg);
+                }
                 break;
             }
 
