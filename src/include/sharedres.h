@@ -84,8 +84,7 @@ typedef struct tagG_RES {
     char video_device [LEN_DEVICE_NAME + 1];
     char video_exdriver [LEN_EXDRIVER_NAME + 1];
     char video_fourcc [LEN_FOURCC_FORMAT + 1];
-    int  video_dpi;
-    int  video_depth;
+    int  video_dpi, video_hres, video_vres, video_depth;
     Uint32 video_rmask, video_gmask, video_bmask, video_amask;
 
     int nr_layers;
@@ -147,8 +146,10 @@ typedef G_RES* PG_RES;
 #define SHAREDRES_VIDEO_MODE        (((PG_RES)mgSharedRes)->video_mode)
 #define SHAREDRES_VIDEO_DEVICE      (((PG_RES)mgSharedRes)->video_device)
 #define SHAREDRES_VIDEO_FOURCC      (((PG_RES)mgSharedRes)->video_fourcc)
-#define SHAREDRES_VIDEO_DPI         (((PG_RES)mgSharedRes)->video_dpi)
 #define SHAREDRES_VIDEO_EXDRIVER    (((PG_RES)mgSharedRes)->video_exdriver)
+#define SHAREDRES_VIDEO_DPI         (((PG_RES)mgSharedRes)->video_dpi)
+#define SHAREDRES_VIDEO_HRES        (((PG_RES)mgSharedRes)->video_hres)
+#define SHAREDRES_VIDEO_VRES        (((PG_RES)mgSharedRes)->video_vres)
 #define SHAREDRES_VIDEO_DEPTH       (((PG_RES)mgSharedRes)->video_depth)
 #define SHAREDRES_VIDEO_RMASK       (((PG_RES)mgSharedRes)->video_rmask)
 #define SHAREDRES_VIDEO_GMASK       (((PG_RES)mgSharedRes)->video_gmask)
