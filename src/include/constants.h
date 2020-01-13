@@ -118,6 +118,8 @@
 #define LEN_MTYPE_NAME      23
 #define LEN_FOURCC_FORMAT   7
 
+#define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
+
 // misc constants
 // #define MAX_SRV_CLIP_RECTS      8
 
