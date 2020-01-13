@@ -81,13 +81,21 @@ typedef struct tagDC* PDC;
 #define DESTROY_LOCK(lock)      pthread_mutex_destroy(lock)
 #endif
 
-/* for support mGEff mini MiniGUI by humingming 2010.7.8 */
 #ifndef _MG_MINIMALGDI
+# ifdef _MGSCHEMA_COMPOSITING
+#   define LOCK_GCRINFO(pdc)
+#   define UNLOCK_GCRINFO(pdc)
+#   define kernel_GetGCRgnInfo(hwnd)             NULL
+# else /* not defined _MGSCHEMA_COMPOSITING */
 void __mg_lock_recalc_gcrinfo (PDC pdc);
 void __mg_unlock_gcrinfo (PDC pdc);
 #define LOCK_GCRINFO(pdc)       __mg_lock_recalc_gcrinfo (pdc)
 #define UNLOCK_GCRINFO(pdc)     if (dc_IsGeneralDC(pdc)) __mg_unlock_gcrinfo (pdc)
-#else
+# endif /* not defined _MGSCHEMA_COMPOSITING */
+
+#else /* _MG_MINIMALGDI */
+
+/* for support mGEff mini MiniGUI by humingming 2010.7.8 */
 RECT g_rcScr;               // TODO: bad coding
 PLOGFONT g_SysLogFont[1];   // TODO: bad coding
 #define LOCK_GCRINFO(pdc)
@@ -250,8 +258,10 @@ struct tagDC
     BOOL bIsClient;
     RECT DevRC;
 
+#ifndef _MGSCHEMA_COMPOSITING
     PGCRINFO pGCRInfo;
     unsigned int oldage;
+#endif
 
     CB_BITMAP_SCALER_FUNC bitmap_scaler;
 };
