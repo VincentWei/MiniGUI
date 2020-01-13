@@ -166,7 +166,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 
             /* rounde file size to multiple of page size */
             file_size = buf_off + buf_size;
-            file_size &= ~(getpagesize () - 1);
+            file_size = ROUND_TO_MULTIPLE(file_size, getpagesize ());
             buf_size = file_size - buf_off;
 
             fd = __mg_create_anonymous_file (file_size, NULL, rw_modes);
