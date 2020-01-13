@@ -88,7 +88,9 @@ typedef struct tagG_RES {
     Uint32 video_rmask, video_gmask, video_bmask, video_amask;
 
     int nr_layers;
+#if IS_SHAREDFB_SCHEMA
     int semid_layer;
+#endif
 
     int nr_globals;
     int def_nr_topmosts;
@@ -117,7 +119,7 @@ typedef struct tagG_RES {
     int csr_show_count;
 
     int csrnum;
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
     DWORD   __align;
     HCURSOR sys_cursors[0];
 #else
@@ -176,7 +178,10 @@ typedef G_RES* PG_RES;
 #define SHAREDRES_TOPMOST_LAYER (((PG_RES)mgSharedRes)->topmost_layer)
 
 #define SHAREDRES_NR_LAYSERS    (((PG_RES)mgSharedRes)->nr_layers)
-#define SHAREDRES_SEMID_LAYER   (((PG_RES)mgSharedRes)->semid_layer)
+
+#if IS_SHAREDFB_SCHEMA
+#   define SHAREDRES_SEMID_LAYER   (((PG_RES)mgSharedRes)->semid_layer)
+#endif
 
 #define SHAREDRES_NR_GLOBALS    (((PG_RES)mgSharedRes)->nr_globals)
 #define SHAREDRES_DEF_NR_TOPMOSTS   (((PG_RES)mgSharedRes)->def_nr_topmosts)
