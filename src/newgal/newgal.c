@@ -72,7 +72,22 @@ GAL_Surface* __gal_fake_screen;
 
 RECT GUIAPI GetScreenRect (void)
 {
-    RECT rc = { 0, 0, __gal_screen->w, __gal_screen->h };
+    static RECT rc;
+
+    if (RECTH (rc) == 0) {
+#ifdef _MGUSE_COMPOSITING
+        rc.left = 0;
+        rc.top = 0;
+        rc.right = SHAREDRES_VIDEO_HRES;
+        rc.bottom = SHAREDRES_VIDEO_VRES;
+#else
+        rc.left = 0;
+        rc.top = 0;
+        rc.right = __gal_screen->w;
+        rc.bottom = __gal_screen->h;
+#endif
+    }
+
     return rc;
 }
 
@@ -199,6 +214,7 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
                         screen->format->BitsPerPixel,
                         screen->format->Rmask, screen->format->Gmask,
                         screen->format->Bmask, screen->format->Amask);
+            _DBG_PRINTF ("GAL_CreateSharedRGBSurface: buf_size: %lu, fd: %d\n", wp_surf->shared_header->buf_size, wp_surf->shared_header->fd);
         }
         else {
             goto empty;
@@ -231,10 +247,18 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
 
 empty:
     _DBG_PRINTF ("creating an empty wallpaper pattern surface\n");
-    return GAL_CreateRGBSurface (GAL_SWSURFACE, 0, 0,
-                screen->format->BitsPerPixel,
-                screen->format->Rmask, screen->format->Gmask,
-                screen->format->Bmask, screen->format->Amask);
+    if (IsServer()) {
+        return GAL_CreateRGBSurface (GAL_SWSURFACE, 0, 0,
+                    screen->format->BitsPerPixel,
+                    screen->format->Rmask, screen->format->Gmask,
+                    screen->format->Bmask, screen->format->Amask);
+    }
+    else {
+        return GAL_CreateRGBSurface (GAL_SWSURFACE, 0, 0,
+                    SHAREDRES_VIDEO_DEPTH,
+                    SHAREDRES_VIDEO_RMASK, SHAREDRES_VIDEO_GMASK,
+                    SHAREDRES_VIDEO_BMASK, SHAREDRES_VIDEO_AMASK);
+    }
 }
 
 #endif
