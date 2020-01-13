@@ -236,8 +236,10 @@ typedef struct _MG_Layer
 
     /** Internal field. */
     void* zorder_info;
+#ifdef _MGSCHEMA_SHAREDFB
     /** Internal field. */
     int   zorder_shmid;
+#endif
 } MG_Layer;
 
 /*screen attr type*/
@@ -2828,7 +2830,7 @@ MG_EXPORT HCURSOR GUIAPI LoadCursorFromFile (const char* filename);
  */
 MG_EXPORT HCURSOR GUIAPI LoadCursorFromMem (const void* area);
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 
 /**
  * \fn HCURSOR GUIAPI LoadCursorFromPNGFile (const char* filename,
@@ -2879,7 +2881,7 @@ MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGFile (const char* filename,
 MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGMem (const void* area, size_t size,
         int hotspot_x, int hotspot_y);
 
-#endif /* _MGUSE_COMPOSITING */
+#endif /* _MGSCHEMA_COMPOSITING */
 
 /**
  * \fn HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,\
@@ -3015,7 +3017,7 @@ static inline HCURSOR GUIAPI LoadCursorFromMem (const void* area) {
     return (HCURSOR)0;
 }
 
-#ifdef _MGUSE_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
 static inline
 HCURSOR LoadCursorFromPNGFile(const char* filename,
         int hotspot_x, int hotspot_y) {
