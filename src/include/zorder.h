@@ -101,9 +101,12 @@ typedef struct _ZORDERNODE
     RECT            dirty_rc;
     unsigned int    age;
 
-    int             cli;    /* which client? */
-    HWND            fortestinghwnd;   /* which window of the client? */
-    HWND            main_win;   /* handle to the main window */
+    int             cli;            /* which client? */
+    HWND            fortestinghwnd; /* which window of the client? */
+    HWND            main_win;       /* handle to the main window */
+#ifdef _MGSCHEMA_COMPOSITING
+    HDC             mem_dc;         /* The memory DC for this znode. */
+#endif
 
     int             next;
     int             prev;
@@ -136,10 +139,8 @@ typedef struct _ZORDERINFO
     int             cli_trackmenu;
     HWND            ptmi_in_cli;
 
-#if IS_SHAREDFB_SCHEMA
     int             zi_semid;
     int             zi_semnum;
-#endif
 
     /* The usage bitmap for mask rect. */
     int             size_maskrect_usage_bmp;
@@ -186,12 +187,7 @@ typedef ZORDERINFO* PZORDERINFO;
 extern "C" {
 #endif  /* __cplusplus */
 
-#if IS_SHAREDFB_SCHEMA
 int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals);
-#else
-ZORDERINFO* kernel_alloc_z_order_info (int nr_topmosts, int nr_normals);
-#endif
-
 void kernel_free_z_order_info (ZORDERINFO* zi);
 int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc);
 int kernel_get_window_region (HWND pWin, CLIPRGN* region);
