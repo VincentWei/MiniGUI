@@ -139,18 +139,20 @@ typedef struct _ZORDERINFO
     int             cli_trackmenu;
     HWND            ptmi_in_cli;
 
-    int             zi_semid;
-    int             zi_semnum;
-
     /* The usage bitmap for mask rect. */
     int             size_maskrect_usage_bmp;
+
 #ifdef _MGRM_THREADS
-#ifndef __NOUNIX__
+# ifndef __NOUNIX__
     pthread_rwlock_t rwlock;
-#else
+# else
     pthread_mutex_t  rwlock;
+# endif
+#elif defined(_MGRM_PROCESSES)
+    int             zi_semid;
+    int             zi_semnum;
 #endif
-#endif
+
 } ZORDERINFO;
 typedef ZORDERINFO* PZORDERINFO;
 

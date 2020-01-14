@@ -147,6 +147,22 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
                     + zi->max_nr_topmosts + zi->max_nr_normals;
         semctl (zi->zi_semid, zi->zi_semnum, SETVAL, arg);
     }
+#if 0
+    {
+        int ret;
+        pthread_rwlockattr_t attr;
+        pthread_rwlockattr_init (&attr);
+        pthread_rwlockattr_setpshared (&attr, PTHREAD_PROCESS_SHARED);
+        ret = pthread_rwlock_init (&zi->rwlock, &attr);
+        pthread_rwlockattr_destroy(&attr);
+
+        if (ret) {
+            _ERR_PRINTF("Failed to initialize the pthread rwlock for layer");
+            return FALSE;
+        }
+
+    }
+#endif
 
     memset (zi + 1, 0xFF, SIZE_USAGE_BMP);
     /* get a unused mask rect slot. */
@@ -265,11 +281,10 @@ error:
 
 int __mg_init_layers ()
 {
-    key_t sem_key;
     int semid = 0;
+    key_t sem_key;
 
     mgLayers = calloc (1, sizeof (MG_Layer));
-
     if (mgLayers == NULL)
         return -1;
 

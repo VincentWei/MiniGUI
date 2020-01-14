@@ -3682,10 +3682,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
     switch (message) {
         case MSG_TIMEOUT:
             {
-                if (mgIsServer) {
-                    MSG msg = {0, MSG_IDLE, wParam, 0};
-                    dskBroadcastMessage (&msg);
-                }
+                MSG msg = {0, MSG_IDLE, wParam, 0};
+                dskBroadcastMessage (&msg);
                 break;
             }
 

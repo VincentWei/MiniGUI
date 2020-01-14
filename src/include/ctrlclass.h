@@ -114,7 +114,11 @@ typedef struct tagCONTROL
 
     HDC   privCDC;          // the private client DC.
     INVRGN InvRgn;          // the invalid region of this control.
+#ifdef _MGSCHEMA_COMPOSITING
+    struct GAL_Surface* surf;  // the shared surface of this main window.
+#else
     PGCRINFO pGCRInfo;      // pointer to global clip region info struct.
+#endif
 
     // the Z order node, 
     // only for control with WS_EX_CTRLASMAINWIN.

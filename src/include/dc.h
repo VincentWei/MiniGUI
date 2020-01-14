@@ -85,7 +85,6 @@ typedef struct tagDC* PDC;
 # ifdef _MGSCHEMA_COMPOSITING
 #   define LOCK_GCRINFO(pdc)
 #   define UNLOCK_GCRINFO(pdc)
-#   define kernel_GetGCRgnInfo(hwnd)             NULL
 # else /* not defined _MGSCHEMA_COMPOSITING */
 void __mg_lock_recalc_gcrinfo (PDC pdc);
 void __mg_unlock_gcrinfo (PDC pdc);
@@ -633,12 +632,8 @@ HDC CreateMemDCFromSurface (GAL_Surface* surface);
 
 static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
 {
-#if 1
     if (!(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
             && (pWin->pMainWin->secondaryDC)) {
-#else
-    if (pWin->pMainWin->secondaryDC) {
-#endif
         if (client && (pWin->dwExStyle & WS_EX_USEPRIVATECDC)) {
             return pWin->privCDC;
         }

@@ -96,12 +96,21 @@ typedef struct _DEF_CONTEXT
     int x, y;
 } DEF_CONTEXT;
 
-#ifndef _MGSCHEMA_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
+unsigned int kernel_GetWndAge (HWND hWnd)
+{
+    PMAINWIN mainwin = ((PMAINWIN)hWnd)->pMainWin;
+    const ZORDERNODE* nodes;
+
+    nodes = GET_ZORDERNODE(__mg_zorder_info);
+    return nodes[mainwin->idx_znode].age;
+}
+#else /* not defined _MGSCHEMA_COMPOSITING */
 PGCRINFO kernel_GetGCRgnInfo (HWND hWnd)
 {
     return ((PMAINWIN)hWnd)->pGCRInfo;
 }
-#endif /* _MGSCHEMA_COMPOSITING */
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 #if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
 static DEF_CONTEXT g_def_context;
@@ -777,6 +786,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     return 0;
 }
 
+#ifndef _MGSCHEMA_COMPOSITING
 void __mg_unlock_gcrinfo (PDC pdc)
 {
 #ifdef _MGRM_THREADS
@@ -878,6 +888,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
     gcrinfo->old_zi_age = nodes [idx_znode].age;
     gcrinfo->age ++;
 }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 /*
  * Init a window's global clipping region.
