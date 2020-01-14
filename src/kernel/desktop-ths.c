@@ -110,11 +110,13 @@ static BOOL InitWndManagementInfo (void)
 
 BOOL mg_InitDesktop (void)
 {
+    int ret;
+
     /*
      * Init ZOrderInfo here.
      */
-    __mg_zorder_info = kernel_alloc_z_order_info (DEF_NR_TOPMOSTS, DEF_NR_NORMALS);
-    if (__mg_zorder_info == NULL) {
+    ret = kernel_alloc_z_order_info (DEF_NR_TOPMOSTS, DEF_NR_NORMALS);
+    if (ret < 0) {
         _WRN_PRINTF ("KERNEL>Desktop: Can not initialize ZOrderInfo!\n");
         return FALSE;
     }
