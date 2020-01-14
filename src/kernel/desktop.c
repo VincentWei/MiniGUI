@@ -1564,7 +1564,7 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
 }
 
 static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
-                DWORD flags, const RECT *rc, const char *caption)
+                DWORD flags, const RECT *rc, const char *caption, HDC mem_dc)
 {
     DWORD type = flags & ZOF_TYPE_MASK;
     ZORDERINFO* zi = _get_zorder_info(cli);
@@ -1640,6 +1640,9 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].cli = cli;
     nodes [free_slot].fortestinghwnd = hwnd;
     nodes [free_slot].main_win = main_win;
+#ifdef _MGSCHEMA_COMPOSITING
+    nodes [free_slot].mem_dc = mem_dc;
+#endif
     nodes [free_slot].idx_mask_rect = 0;
 
     if (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS) {
@@ -1764,7 +1767,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     return free_slot;
 }
 
-static int FreeZOrderNode (int cli, int idx_znode)
+static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
 {
     DWORD type;
     int *first = NULL, *nr_nodes = NULL;
@@ -1813,6 +1816,11 @@ static int FreeZOrderNode (int cli, int idx_znode)
     if (first == NULL) {
         return -1;
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (memdc)
+        *memdc = nodes[idx_znode].mem_dc;
+#endif
 
     /* please lock zi for change*/
     lock_zi_for_change (zi);
@@ -2121,14 +2129,14 @@ int dskCreateTopZOrderNode (int cli, const RECT *rc)
     idx_znode = AllocZOrderNode (0, 0,
             (HWND)0,
             zt_type,
-            rc, "");
+            rc, "", HDC_SCREEN_SYS);
     dskShowWindow (cli, idx_znode);
     return idx_znode;
 }
 
 int dskDestroyTopZOrderNode (int cli, int idx_znode)
 {
-        return FreeZOrderNode (cli, idx_znode);
+    return FreeZOrderNode (cli, idx_znode, NULL);
 }
 
 int dskSetTopForEver(int cli, int idx_znode, BOOL show)
