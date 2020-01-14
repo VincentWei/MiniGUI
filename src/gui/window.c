@@ -3607,16 +3607,13 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
         const char* window_name, const char* layer_name)
 {
-    //
     PMAINWIN pWin;
 
     if (pCreateInfo == NULL) {
-
         return HWND_INVALID;
     }
 
     if (!(pWin = calloc(1, sizeof(MAINWIN)))) {
-
         return HWND_INVALID;
     }
 
@@ -3783,7 +3780,10 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
             (WPARAM)&pCreateInfo->lx, (LPARAM)&pWin->left);
     SendMessage ((HWND)pWin, MSG_CHANGESIZE, (WPARAM)&pWin->left, 0);
 
-#ifndef _MGSCHEMA_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
+    pWin->surf = GAL_CreateSurfaceForZNode (pWin->right - pWin->left,
+                pWin->bottom - pWin->top);
+#else
     pWin->pGCRInfo = &pWin->GCRInfo;
 #endif
 
@@ -3823,6 +3823,12 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
     screensaver_create();
 #endif
 
+#ifdef _MGSCHEMA_COMPOSITING
+    // Close file descriptor to free kernel memory?
+    close (pWin->surf->shared_header->fd);
+    pWin->surf->shared_header->fd = -1;
+#endif
+
     return (HWND)pWin;
 
 err:
@@ -3832,9 +3838,14 @@ err:
     }
 #endif
 
-    if (pWin->secondaryDC) DeleteSecondaryDC ((HWND)pWin);
-    free (pWin);
+#ifdef _MGSCHEMA_COMPOSITING
+    if (pWin->surf)
+        GAL_FreeSurface (pWin->surf);
+#endif
 
+    if (pWin->secondaryDC)
+        DeleteSecondaryDC ((HWND)pWin);
+    free (pWin);
 
     return HWND_INVALID;
 }
@@ -3915,7 +3926,9 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     }
 #endif
 
-#ifndef _MGSCHEMA_COMPOSITING
+#ifdef _MGSCHEMA_COMPOSITING
+    GAL_FreeSurface (pWin->surf);
+#else
     EmptyClipRgn (&pWin->pGCRInfo->crgn);
 #endif
     EmptyClipRgn (&pWin->InvRgn.rgn);
