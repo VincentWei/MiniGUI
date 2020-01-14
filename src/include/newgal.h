@@ -530,6 +530,9 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice* video,
             Uint32 flags, Uint32 rw_modes, int width, int height, int depth,
             Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 
+/* Allocate a shared RGB surface from the specific video device. */
+GAL_Surface *GAL_CreateSurfaceForZNode (int width, int height);
+
 /* Free a shared RGB surface. */
 void GAL_FreeSharedSurfaceData (GAL_Surface *surface);
 
