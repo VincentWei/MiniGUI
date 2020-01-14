@@ -192,7 +192,7 @@ static int dskAllocZOrderNode (PMAINWIN pWin)
     return AllocZOrderNode (0, (HWND)pWin,
                     (HWND)pWin->pMainWin,
                     get_znode_flags_from_style (pWin),
-                    &rc, pWin->spCaption);
+                    &rc, pWin->spCaption, HDC_INVALID);
 }
 
 /*
@@ -361,7 +361,7 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
 {
     FreeZOrderMaskRect (0, pWin->idx_znode);
     // Update window Z order list.
-    FreeZOrderNode (0, pWin->idx_znode);
+    FreeZOrderNode (0, pWin->idx_znode, NULL);
 
     // Handle main window hosting.
     if (pWin->pHosting)
@@ -1837,7 +1837,7 @@ static int dskOnRemoveCtrlInstance (PCONTROL pParent, PCONTROL pCtrl)
 
     if (pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) {
         FreeZOrderMaskRect (0, pCtrl->idx_znode);
-        FreeZOrderNode (0, pCtrl->idx_znode);
+        FreeZOrderNode (0, pCtrl->idx_znode, NULL);
     }
 
     if ((HWND)pCtrl == __mg_capture_wnd) {
