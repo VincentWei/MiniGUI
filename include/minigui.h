@@ -236,10 +236,8 @@ typedef struct _MG_Layer
 
     /** Internal field. */
     void* zorder_info;
-#ifdef _MGSCHEMA_SHAREDFB
     /** Internal field. */
     int   zorder_shmid;
-#endif
 } MG_Layer;
 
 /*screen attr type*/
@@ -971,6 +969,13 @@ typedef struct _ZNODEINFO
      * with WS_EX_CTRLASMAINWIN style.
      */
     HWND            main_win;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    /**
+     * The memory DC for this znode.
+     */
+    HDC             mem_dc;
+#endif
 } ZNODEINFO;
 
 /**
