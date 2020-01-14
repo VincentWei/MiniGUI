@@ -97,15 +97,6 @@ GHANDLE __mg_layer;
 /* always be zero for clients. */
 BOOL __mg_switch_away;
 
-#ifdef _MGSCHEMA_COMPOSITING
-
-static inline void lock_zi_for_change (const ZORDERINFO* zi) { }
-static inline void unlock_zi_for_change (const ZORDERINFO* zi) { }
-static inline void lock_zi_for_read (const ZORDERINFO* zi) { }
-static inline void unlock_zi_for_read (const ZORDERINFO* zi) { }
-
-#else /* not _MGSCHEMA_COMPOSITING */
-
 void lock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
@@ -184,8 +175,6 @@ again:
         }
     }
 }
-
-#endif /* not _MGSCHEMA_COMPOSITING */
 
 inline void* get_zi_from_client(int cli)
 {
@@ -359,8 +348,18 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
+#ifdef _MGSCHEMA_COMPOSITING
+    assert (pWin->surf && pWin->surf->shared_header);
+
+    info.map_size = pWin->surf->shared_header->buf_size;
+    info.map_size += sizeof (*pWin->surf->shared_header);
+    if (ClientRequestEx2 (&req, NULL, 0, pWin->surf->shared_header->fd,
+            &ret, sizeof (intptr_t), NULL) < 0)
+        return -1;
+#else   /* ndef _MGSCHEMA_COMPOSITING */
     if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
+#endif  /* ndef _MGSCHEMA_COMPOSITING */
 
     return ret;
 }
@@ -722,10 +721,45 @@ int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
 ON_ZNODE_OPERATION OnZNodeOperation;
 
 static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
-                DWORD flags, const RECT *rc, const char *caption)
+                DWORD flags, const RECT *rc, const char *caption, int fd)
 {
-    int free_slot = AllocZOrderNode (cli, hwnd,
-                    main_win, flags, rc, caption);
+    int free_slot;
+    HDC memdc = HDC_INVALID;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    GAL_Surface *surf = NULL;
+
+    if (cli == 0) {
+        PMAINWIN pwin = (PMAINWIN)hwnd;
+        surf = pwin->surf;
+    }
+    else if (fd >= 0) {
+        surf = GAL_AttachSharedRGBSurface (fd, 0, GAL_HWSURFACE, FALSE);
+    }
+    else {
+        _ERR_PRINTF("KERNEL: not server but fd for shared surface is not valid\n");
+        return -1;
+    }
+
+    if (surf) {
+        memdc = CreateMemDCFromSurface (surf);
+        if (memdc == HDC_INVALID) {
+            if (cli > 0) {
+                GAL_FreeSurface (surf);
+            }
+
+            _ERR_PRINTF("KERNEL: failed to create memory dc for znode\n");
+            return -1;
+        }
+    }
+    else {
+        _ERR_PRINTF("KERNEL: invalid surface or failed to attach to surface\n");
+        return -1;
+    }
+#endif /* def _MGSCHEMA_COMPOSITING */
+
+    free_slot = AllocZOrderNode (cli, hwnd,
+                    main_win, flags, rc, caption, memdc);
 
     if ((free_slot != -1) && OnZNodeOperation)
         OnZNodeOperation (ZNOP_ALLOCATE, cli, free_slot);
@@ -782,10 +816,17 @@ static intptr_t srvSetActiveWindow (int cli, int idx_znode)
 
 static int srvFreeZOrderNode (int cli, int idx_znode)
 {
-    int ret = FreeZOrderNode (cli, idx_znode);
+    HDC memdc = HDC_INVALID;
+    int ret = FreeZOrderNode (cli, idx_znode, &memdc);
 
     if (!ret && OnZNodeOperation)
         OnZNodeOperation (ZNOP_FREE, cli, idx_znode);
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (memdc != HDC_INVALID) {
+        DeleteMemDC (memdc);
+    }
+#endif  /* def _MGSCHEMA_COMPOSITING */
 
     return ret;
 }
@@ -1103,14 +1144,14 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
     return ret;
 }
 
-intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info)
+intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
 {
     intptr_t ret = -1;
 
     switch (info->id_op) {
         case ID_ZOOP_ALLOC:
             ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
-                            info->flags, &info->rc, info->caption);
+                            info->flags, &info->rc, info->caption, fd);
             break;
         case ID_ZOOP_FREE:
             ret = srvFreeZOrderNode (cli, info->idx_znode);
@@ -1456,7 +1497,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         memcpy (&rcWin, &pWin->left, sizeof (RECT));
         pWin->idx_znode = srvAllocZOrderNode (0, (HWND)pWin, (HWND)pWin->pMainWin,
                                               get_znode_flags_from_style (pWin),
-                                              &rcWin, pWin->spCaption);
+                                              &rcWin, pWin->spCaption, -1);
     }
     else
         pWin->idx_znode = cliAllocZOrderNode (pWin);
@@ -2783,7 +2824,7 @@ static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
             pNewCtrl->idx_znode = srvAllocZOrderNode (0,
                             (HWND)pNewCtrl, (HWND)pNewCtrl->pMainWin,
                             get_znode_flags_from_style ((PMAINWIN)pNewCtrl),
-                            &rcWin, pNewCtrl->spCaption);
+                            &rcWin, pNewCtrl->spCaption, -1);
         else
             pNewCtrl->idx_znode = cliAllocZOrderNode ((PMAINWIN)pNewCtrl);
 
