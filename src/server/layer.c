@@ -90,7 +90,6 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     ZORDERNODE* znodes;
     void* maskrect_usage_bmp;
 
-#ifdef _MGSCHEMA_SHAREDFB
     layer->zorder_shmid = kernel_alloc_z_order_info (nr_topmosts, nr_normals);
 
     if (layer->zorder_shmid == -1)
@@ -103,7 +102,8 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
 
     if (shmctl (layer->zorder_shmid, IPC_RMID, NULL) < 0)
         return FALSE;
-#else   /* _MGSCHEMA_COMPOSITING */
+
+#if 0
     zi = kernel_alloc_z_order_info (nr_topmosts, nr_normals);
     if (zi == NULL)
         return FALSE;
@@ -135,7 +135,6 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     zi->cli_trackmenu = -1;
     zi->ptmi_in_cli = HWND_INVALID;
 
-#ifdef _MGSCHEMA_SHAREDFB
     zi->zi_semid = SHAREDRES_SEMID_LAYER;
 
     /* find one unused semaphore slot here */
@@ -148,7 +147,6 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
                     + zi->max_nr_topmosts + zi->max_nr_normals;
         semctl (zi->zi_semid, zi->zi_semnum, SETVAL, arg);
     }
-#endif /* _MGSCHEMA_SHAREDFB */
 
     memset (zi + 1, 0xFF, SIZE_USAGE_BMP);
     /* get a unused mask rect slot. */
@@ -180,10 +178,8 @@ static void do_free_layer (MG_Layer* layer)
 {
     ZORDERINFO* zi = layer->zorder_info;
 
-#ifdef _MGSCHEMA_SHAREDFB
     /* free zorder_semid for reuse here... */
     __mg_slot_clear_use (sem_usage, zi->zi_semnum);
-#endif
 
     kernel_free_z_order_info (zi);
 
@@ -255,7 +251,6 @@ inline static key_t get_sem_key (void)
     return (key_t)(IPC_KEY_BASE + 0x03);
 }
 
-#ifdef _MGSCHEMA_SHAREDFB
 static void delete_zi_sem (void)
 {
     union semun ignored;
@@ -267,13 +262,10 @@ static void delete_zi_sem (void)
 error:
     perror("remove semaphore");
 }
-#endif /* _MGSCHEMA_SHAREDFB */
 
 int __mg_init_layers ()
 {
-#ifdef _MGSCHEMA_SHAREDFB
     key_t sem_key;
-#endif /* _MGSCHEMA_SHAREDFB */
     int semid = 0;
 
     mgLayers = calloc (1, sizeof (MG_Layer));
@@ -283,7 +275,6 @@ int __mg_init_layers ()
 
     memset (sem_usage, 0xFF, sizeof (sem_usage));
 
-#ifdef _MGSCHEMA_SHAREDFB
     if ((sem_key = get_sem_key ()) == -1) {
         return -1;
     }
@@ -294,7 +285,6 @@ int __mg_init_layers ()
     atexit (delete_zi_sem);
 
     SHAREDRES_SEMID_LAYER = semid;
-#endif /* _MGSCHEMA_SHAREDFB */
 
     /* allocate the first layer for the default layer. */
     if (!do_alloc_layer (mgLayers, NAME_DEF_LAYER,
@@ -446,11 +436,7 @@ static void do_client_join_layer (int cli,
 
     if (new_client->layer == layer) {   /* duplicated calling of JoinLayer */
         joined_info->cli_id = cli;
-#ifdef _MGSCHEMA_SHAREDFB
         joined_info->zo_shmid = layer->zorder_shmid;
-#else
-        joined_info->zo_shmid = 0;
-#endif
         return;
     }
 
@@ -472,11 +458,7 @@ static void do_client_join_layer (int cli,
     layer->cli_head = new_client;
 
     joined_info->cli_id = cli;
-#ifdef _MGSCHEMA_SHAREDFB
     joined_info->zo_shmid = layer->zorder_shmid;
-#else
-    joined_info->zo_shmid = 0;
-#endif
 }
 
 /* Join a client to a layer, the server side of JoinLayer */
@@ -765,7 +747,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
             return FALSE;
     }
 
-    __mg_do_zorder_operation (nodes[idx_znode].cli, &info);
+    __mg_do_zorder_operation (nodes[idx_znode].cli, &info, -1);
 
     return TRUE;
 }
