@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -1090,7 +1090,7 @@ int GUIAPI SetMenuItemInfo (HMENU hmnu, LINT item,
         case MFT_MARKCHECK:
         case MFT_BMPSTRING:
             {
-				int len;
+                int len;
                 if (pmii->typedata == 0) {
                     pmi->typedata = 0;
                     return ERR_INVALID_ARGS;
@@ -4172,4 +4172,5 @@ int GUIAPI TrackMenuBar (HWND hwnd, int pos)
 
     return 0;
 }
-#endif
+#endif /* defined _MGHAVE_MENU */
+
