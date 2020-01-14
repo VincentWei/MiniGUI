@@ -296,7 +296,7 @@ Nexus_ClientGetPrimarySurface(int width, int height, unsigned int *pPitch,
     REQ_NEXUS_GETSURFACE request;
     REP_NEXUS_GETSURFACE reply;
 
-    cmd.id = REQID_NEXUS_CLIENT_GET_SURFACE;
+    cmd.id = REQID_NEXUS_HWSURFACE;
     cmd.data = &request;
     cmd.len_data = sizeof(request);
 
