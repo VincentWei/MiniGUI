@@ -892,11 +892,11 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
         SBS_PRESSED_LTUP | SBS_PRESSED_BTDN | SBS_PRESSED_THUMB |
         SBS_HILITE_LTUP | SBS_HILITE_BTDN | SBS_HILITE_THUMB;
 
-	if(hdc == 0)
-	{
-		hdc = get_valid_dc (pWin, FALSE);
-		fGetDC = TRUE;
-	}
+    if(hdc == 0)
+    {
+        hdc = get_valid_dc (pWin, FALSE);
+        fGetDC = TRUE;
+    }
 
     switch (downCode) {
         case HT_ICON:
@@ -1127,8 +1127,8 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
         draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
     }
 
-	if(fGetDC)
-	    release_valid_dc (pWin, hdc);
+    if(fGetDC)
+        release_valid_dc (pWin, hdc);
 
     pWin->hscroll.status &= ~_status;
     pWin->vscroll.status &= ~_status;
@@ -2062,7 +2062,7 @@ void gui_WndRect(HWND hWnd, PRECT prc)
     /* dongjunjie 2009/7/9 main window and control as main window
      * don't need offset
      * */
-    if (pCtrl->WinType == TYPE_MAINWIN )
+    if (pCtrl->WinType == TYPE_MAINWIN)
         return ;
 
     while ((pParent = pParent->pParent)) {
