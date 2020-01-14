@@ -601,7 +601,6 @@ GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
         __mg_layer = layer_handle;
 
         zi  = (ZORDERINFO*) shmat (joined_info.zo_shmid, 0, SHM_RDONLY);
-
         if (zi == (void*)-1) {
             return INV_LAYER_HANDLE;
         }
