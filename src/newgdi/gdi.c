@@ -3085,6 +3085,43 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     return (HDC)pmem_dc;
 }
 
+/* Since 4.2.0 */
+HDC CreateMemDCFromSurface (GAL_Surface* surface)
+{
+    PDC pmem_dc = NULL;
+
+    if (surface == NULL)
+        return HDC_INVALID;
+
+    if (!(pmem_dc = malloc (sizeof(DC))))
+        return HDC_INVALID;
+
+    pmem_dc->DataType = TYPE_HDC;
+    pmem_dc->DCType   = TYPE_MEMDC;
+    pmem_dc->inuse    = TRUE;
+    pmem_dc->surface  = surface;
+
+    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+
+    InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
+    InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+#ifndef _MGSCHEMA_COMPOSITING
+    pmem_dc->pGCRInfo = NULL;
+    pmem_dc->oldage = 0;
+#endif
+
+    pmem_dc->DevRC.left = 0;
+    pmem_dc->DevRC.top  = 0;
+    pmem_dc->DevRC.right = surface->w;
+    pmem_dc->DevRC.bottom = surface->h;
+
+    SetClipRgn (&pmem_dc->ecrgn, &pmem_dc->DevRC);
+    IntersectClipRect (&pmem_dc->lcrgn, &pmem_dc->DevRC);
+
+    return (HDC)pmem_dc;
+}
+
 HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
                 int width, int height, BOOL comp_to_parent)
 {
