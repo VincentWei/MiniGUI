@@ -470,12 +470,13 @@ ret:
     return ServerSendReply (clifd, &ret_value, sizeof (BOOL));
 }
 
-static int zorder_op (int cli, int clifd, void* buff, size_t len)
+/* Since 4.2.0: handle fd received for shared surface */
+static int zorder_op (int cli, int clifd, void* buff, size_t len, int fd)
 {
     intptr_t ret_value;
     ZORDEROPINFO* info = (ZORDEROPINFO*)buff;
 
-    ret_value = __mg_do_zorder_operation (cli, info);
+    ret_value = __mg_do_zorder_operation (cli, info, fd);
 
     return ServerSendReply (clifd, &ret_value, sizeof (intptr_t));
 }
@@ -737,7 +738,7 @@ static struct req_request {
     { layer_info, 0 },
     { join_layer, 0 },
     { layer_op, 0 },
-    { zorder_op, 0 },
+    { zorder_op, 1 },
     { im_live, 0 },
     { open_ime_wnd, 0 },
     { set_ime_stat, 0 },
@@ -909,6 +910,7 @@ int __mg_handle_request (int clifd, int req_id, int cli)
     }
 #endif
 
+    req_id &= ~REQMASK_FLAGS;
     if (req_id > MAX_REQID || req_id <= 0 ||
             handlers [req_id - 1].handler == NULL)
         return SOCKERR_INVARG;
