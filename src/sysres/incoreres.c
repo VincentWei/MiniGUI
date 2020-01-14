@@ -135,9 +135,21 @@ HCURSOR __mg_load_cursor_from_res (int i)
 
 #ifdef _MGINCORE_RES
 #   ifdef _MGSCHEMA_COMPOSITING
-    if (is_png)
+    if (is_png) {
+        size_t size;
+
+        if (i == 0) {
+            size = __mg_cursors_offset [1] - __mg_cursors_offset [0];
+        }
+        else {
+            /* For LoadCursorFromPNGMem, the array of offsets
+             * must have NR_CURSORS + 1 units. */
+            size = __mg_cursors_offset [i + 1] - __mg_cursors_offset [i];
+        }
+
         hCursor = LoadCursorFromPNGMem (__mg_cursors_data + __mg_cursors_offset [i],
-                hotspot[0], hotspot[1]);
+                size, hotspot[0], hotspot[1]);
+    }
     else
 #   endif
     hCursor = LoadCursorFromMem (__mg_cursors_data + __mg_cursors_offset [i]);
