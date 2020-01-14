@@ -49,12 +49,15 @@
 #include <string.h>
 
 #include "common.h"
+#include "minigui.h"
 #include "constants.h"
 
 #if IS_COMPOSITING_SCHEMA
 
-#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include "misc.h"
 #include "newgal.h"
@@ -297,7 +300,9 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
         surface->hwdata = NULL;
     }
     else {
-        close (surface->shared_header->fd);
+        // the file descriptor may have been closed.
+        if (surface->shared_header->fd >= 0)
+            close (surface->shared_header->fd);
         munmap (surface->shared_header,
             surface->shared_header->buf_size
                 + sizeof (GAL_SharedSurfaceHeader));
@@ -321,6 +326,16 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
 
     if (with_wr) {
         prot |= PROT_WRITE;
+    }
+
+    if (map_size == 0) {
+        struct stat statbuf;
+        if (fstat (fd, &statbuf)) {
+            _ERR_PRINTF("NEWGAL: Failed to get map size of shared RGB surface (%d): %m\n", fd);
+            return NULL;
+        }
+
+        map_size = statbuf.st_size;
     }
 
     data_map = mmap (NULL, map_size, prot, MAP_SHARED, fd, 0);
@@ -451,6 +466,21 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
             + sizeof (GAL_SharedSurfaceHeader));
     surface->pixels = NULL;
     surface->shared_header = NULL;
+}
+
+GAL_Surface *GAL_CreateSurfaceForZNode (int width, int height)
+{
+    if (IsServer()) {
+        return GAL_CreateRGBSurface (
+            GAL_HWSURFACE, width, height, __gal_screen->format->BytesPerPixel,
+            __gal_screen->format->Rmask, __gal_screen->format->Gmask,
+            __gal_screen->format->Bmask, __gal_screen->format->Amask);
+    }
+
+    return GAL_CreateSharedRGBSurface (__gal_screen->video,
+        GAL_HWSURFACE, 0600, width, height, __gal_screen->format->BytesPerPixel,
+        __gal_screen->format->Rmask, __gal_screen->format->Gmask,
+        __gal_screen->format->Bmask, __gal_screen->format->Amask);
 }
 
 #endif /* IS_COMPOSITING_SCHEMA */
