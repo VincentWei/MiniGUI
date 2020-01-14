@@ -54,6 +54,9 @@
 
 #define CL_PATH "/var/tmp/"
 
+#define REQMASK_FLAGS           0xFF00
+#define REQMASK_JOINLAYERFIRST  0x1000
+
 #define REQID_LOADCURSOR        0x0001
 #define REQID_CREATECURSOR      0x0002
 #define REQID_DESTROYCURSOR     0x0003
@@ -65,13 +68,13 @@
 #define REQID_SETCURSORPOS      0x0009
 #define REQID_LAYERINFO         0x000A
 #define REQID_JOINLAYER         0x000B
-#define REQID_LAYEROP           0x000C
-#define REQID_ZORDEROP          0x000D
+#define REQID_LAYEROP           0x100C
+#define REQID_ZORDEROP          0x100D
 #define REQID_IAMLIVE           0x000E
-#define REQID_OPENIMEWND        0x000F
-#define REQID_SETIMESTAT        0x0010
-#define REQID_GETIMESTAT        0x0011
-#define REQID_REGISTERHOOK      0x0012
+#define REQID_OPENIMEWND        0x100F
+#define REQID_SETIMESTAT        0x1010
+#define REQID_GETIMESTAT        0x1011
+#define REQID_REGISTERHOOK      0x1012
 
 #define REQID_HWSURFACE         0x0013
 
@@ -83,17 +86,17 @@
 #define REQID_MLSHADOW_CLIREQ   0x0015
 #endif
 
-#define REQID_ZORDERMASKRECTOP  0x0016
+#define REQID_ZORDERMASKRECTOP  0x1016
 
 #ifdef _MGGAL_NEXUS
-#define REQID_NEXUS_CLIENT_GET_SURFACE  0x0017
+#define REQID_NEXUS_HWSURFACE   0x0017
 #endif
 #ifdef _MGGAL_SIGMA8654
-#define REQID_SIGMA8654_CLIENT_GET_SURFACE 0x0018
+#define REQID_SIGMA_HWSURFACE   0x0018
 #endif
 
-#define REQID_GETIMEPOS         0x0019
-#define REQID_SETIMEPOS         0x001A
+#define REQID_GETIMEPOS         0x1019
+#define REQID_SETIMEPOS         0x101A
 
 #define REQID_COPYCURSOR        0x001B
 
@@ -195,6 +198,9 @@ typedef struct ZorderOpInfo
     RECT    rcA;
     int     location;
     char    caption[MAX_CAPTION_LEN + 1];
+#ifdef _MGSCHEMA_COMPOSITING
+    size_t  map_size;
+#endif
 } ZORDEROPINFO;
 
 #define ID_REG_KEY          1
