@@ -3844,6 +3844,12 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 #define WS_NONE             0x00000000L
 
 /**
+ * \def WS_ALWAYSTOP
+ * \brief Indicates the main window is always on top of others.
+ */
+#define WS_ALWAYSTOP        0x80000000L
+
+/**
  * \def WS_CHILD
  * \brief Indicates the window is a child.
  */
@@ -3953,15 +3959,9 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /**
  * \def WS_EX_CONTROL_MASK
- * \brief The extended style mask for control usage.
+ * \brief The extended style mask for control use.
  */
 #define WS_EX_CONTROL_MASK      0x0000000FL
-
-/**
- * \def WS_EX_INTERNAL_MASK
- * \brief The extended style mask for internal usage.
- */
-#define WS_EX_INTERNAL_MASK     0xF0000000L
 
 /**
  * \def WS_EX_NONE
@@ -4124,6 +4124,52 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /* Obsolete style, back-compatibility definitions. */
 #define WS_EX_IMECOMPOSE        0x00000000L
+
+/**
+ * \def WS_EX_WINTYPE_MASK
+ * \brief The style mask for main window type.
+ */
+#define WS_EX_WINTYPE_MASK          0xF0000000L
+
+/**
+ * \def WS_EX_WINTYPE_SCREENLOCK
+ * \brief The main window type is screen lock.
+ *
+ * Use this style when you want to create a main window acting as
+ * a screen lock. The screen lock will have the highest z-index.
+ *
+ * \note If there is already a main window acts as the screen lock,
+ *  a topmost main window will be created.
+ */
+#define WS_EX_WINTYPE_SCREENLOCK    0x10000000L
+
+/**
+ * \def WS_EX_WINTYPE_DOCKER
+ * \brief The main window type is a docker.
+ *
+ * Use this style when you want to create a main window acting as
+ * a docker. The docker will have the z-index lower than screen lock.
+ *
+ * \note If there is already a main window acts as the docker,
+ *  a topmost main window will be created.
+ */
+#define WS_EX_WINTYPE_DOCKER        0x20000000L
+
+/**
+ * \def WS_EX_WINTYPE_LAUNCHER
+ * \brief The main window type is a launcher.
+ *
+ * Use this style when you want to create a main window acting as
+ * a launcher (or window manager). The launcher will have the lowest
+ * z-index.
+ *
+ * \note If there is already a main window acts as the launcher,
+ *  a normal main window will be created.
+ */
+#define WS_EX_WINTYPE_LAUNCHER      0x30000000L
+
+/* Not used, obsolete. */
+#define WS_EX_INTERNAL_MASK         0xF0000000L
 
     /** @} end of styles */
 
@@ -5879,6 +5925,45 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
  */
 #define MainWindowCleanup(hwnd)      MainWindowThreadCleanup(hwnd)
 
+#define CT_OPAQUE       0x00
+#define CT_COLORKEY     0x01
+#define CT_ALPHACHANNEL 0x02
+#define CT_ALPHAPIXEL   0x03
+#define CT_BLURRED      0x04
+
+/**
+ * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
+ *              const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+ *              int compos_type, DWORD ct_arg,
+ *              const char* window_name, const char* layer_name)
+ * \brief Creates a main window with specified compositing type.
+ *
+ * This function creates a main window by using information and the speicified
+ * compositing type, and returns the handle to the main window.
+ *
+ * \param pCreateInfo The pointer to a MAINWINCREATE structure.
+ * \param werdr_name The name of window element renderer. NULL for default
+ *                   renderer.
+ * \param we_attrs The pointer to window element attribute table. NULL for
+ *                   default window attribute table.
+ * \param compos_type The compositing type of the main window.
+ * \param ct_arg The compositing argument of the main window.
+ * \param window_name The window name; reserved for future use.
+ * \param layer_name The layer name; reserved for future use.
+ *
+ * \return The handle to the new main window; HWND_INVALID indicates an error.
+ *
+ * \sa CreateMainWindowEx, CreateMainWindow, MAINWINCREATE, styles
+ *
+ * Example:
+ *
+ * \include createmainwindow.c
+ */
+MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
+                const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+                int compos_type, DWORD ct_arg,
+                const char* window_name, const char* layer_name);
+
 /**
  * \fn HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo, \
  *                const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs, \
@@ -5904,9 +5989,12 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
  *
  * \include createmainwindow.c
  */
-MG_EXPORT HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
-                        const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-                        const char* window_name, const char* layer_name);
+static inline HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
+                const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+                const char* window_name, const char* layer_name) {
+    return CreateMainWindowEx2 (pCreateInfo, werdr_name, we_attrs,
+            CT_OPAQUE, 0, window_name, layer_name);
+}
 
 /**
  * \fn HWND GUIAPI CreateMainWindow (PMAINWINCREATE pCreateInfo)
@@ -5977,6 +6065,67 @@ MG_EXPORT BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask);
  * \sa SetWindowRegion
  */
 MG_EXPORT BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask);
+
+/**
+ * \fn BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd)
+ * \brief Set a main window being always top.
+ *
+ * This function set a main window being always top on others.
+ * If it succeed, the main window will have the exteneded style:
+ * \a WS_ALWAYSTOP.
+ *
+ * \param hWnd The handle to the window.
+ *
+ * \return return TRUE on success, otherwise FALSE.
+ *
+ * \sa GetWindowStyle, WS_ALWAYSTOP
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd);
+
+#ifdef _MGSCHEMA_COMPOSITING
+
+/**
+ * \fn BOOL GUIAPI SetMainWindowCompositing (HWND hWnd,
+        int type, DWORD arg)
+ * \brief Set the compositing type of a main window.
+ *
+ * This function set the compositing type of a main window.
+ *
+ * \param hWnd The handle to the window.
+ * \param type The compositing type, can be one of the following values:
+ *  - CT_OPAQUE\n
+ *      The main window is opaque. This is the default compositing
+ *      type of a main window.
+ *  - CT_COLORKEY\n
+ *      Use the specified color key for transparency. You should also specify
+ *      the color along with the parameter \a arg in a RGBA triple value.
+ *  - CT_ALPHACHANNEL\n
+ *      Use the specified alpha channel value. You should also specify
+ *      the alpha channel value (0~255) along with the parameter \a arg.
+ *  - CT_ALPHAPIXEL\n
+ *      Use the alpha component value of pixel.
+ *  - CT_BLURRED\n
+ *      Apply a Gaussian blur to the background of the main window. You should
+ *      also specify the radius of the blur (0 ~ 255) in pixles along with the
+ *      paramter \a arg. It defines the value of the standard deviation to the
+ *      Gaussian function, i.e., how many pixels on the screen blend into each
+ *      other; thus, a larger value will create more blur. A value of 0 leaves
+ *      the input unchanged.
+ *
+ * \return return TRUE on success, otherwise FALSE.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa CreateMainWindowEx
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI SetMainWindowCompositing (HWND hWnd,
+        int type, DWORD arg);
+
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
 /**
  * \fn BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN* region)
