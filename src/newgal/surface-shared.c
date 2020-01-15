@@ -324,13 +324,8 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
 {
     GAL_VideoDevice *video;
     GAL_Surface *surface;
-    int prot = PROT_READ;
     void* data_map = MAP_FAILED;
     GAL_SharedSurfaceHeader* hdr;
-
-    if (with_wr) {
-        prot |= PROT_WRITE;
-    }
 
     if (map_size == 0) {
         struct stat statbuf;
@@ -343,61 +338,50 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
         _DBG_PRINTF("map_size got by calling fstat: %lu\n", map_size);
     }
 
-    /* XXX: checke to see whether the surface is created by hardware first */
-
-    data_map = mmap (NULL, map_size, prot, MAP_SHARED, fd, 0);
-    if (data_map == MAP_FAILED) {
-        _ERR_PRINTF("NEWGAL: Failed to map shared RGB surface: %d\n", fd);
-        return NULL;
-    }
-
-    /* XXX: We may find the video according to engine name in the future */
-    video = __mg_current_video;
-
     /* Allocate the surface */
     surface = (GAL_Surface *)malloc (sizeof (*surface));
     if (surface == NULL) {
         goto error;
     }
 
-    hdr = (GAL_SharedSurfaceHeader*) data_map;
-    surface->shared_header = hdr;
-
-    /* check flags */
-    if (hdr->byhw) {
-        if ((flags & (GAL_SRCCOLORKEY | GAL_SRCALPHA)) != 0) {
-            flags |= GAL_HWSURFACE;
-        }
-
-        if ((flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
-            if (!video->info.blit_hw_CC) {
-                flags &= ~GAL_HWSURFACE;
-            }
-        }
-        if ((flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
-            if (!video->info.blit_hw_A) {
-                flags &= ~GAL_HWSURFACE;
-            }
-        }
-    }
-    else {
-        flags &= ~GAL_HWSURFACE;
-    }
-
     if ((flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
-        surface->flags = GAL_HWSURFACE;
-        surface->video = video;
+        video = __mg_current_video;
     }
     else {
-        surface->flags = GAL_SWSURFACE;
-        surface->video = NULL;
         video = NULL;
     }
 
-    if (hdr->Amask) {
-        surface->flags |= GAL_SRCPIXELALPHA;
+    surface->video = video;
+    surface->flags = flags;
+
+    surface->shared_header = NULL;
+    if (video && video->AttachSharedHWSurface) {
+        // this method should fill hwdata and shared_header fields if success
+        video->AttachSharedHWSurface (video, surface, fd, map_size, with_wr);
     }
 
+    if (surface->shared_header == NULL) {
+        // fallback to software
+        int prot = PROT_READ;
+
+        if (with_wr) {
+            prot |= PROT_WRITE;
+        }
+
+        data_map = mmap (NULL, map_size, prot, MAP_SHARED, fd, 0);
+        if (data_map == MAP_FAILED) {
+            _ERR_PRINTF("NEWGAL: Failed to map shared RGB surface: %d\n", fd);
+            return NULL;
+        }
+
+        surface->hwdata = NULL;
+        surface->shared_header = (GAL_SharedSurfaceHeader*) data_map;
+    }
+
+    /* map successfully */
+    hdr = surface->shared_header;
+
+    surface->pixels = hdr->buf;
     surface->format = GAL_AllocFormat (hdr->depth,
             hdr->Rmask, hdr->Gmask, hdr->Bmask, hdr->Amask);
     if (surface->format == NULL) {
@@ -411,7 +395,6 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     surface->offset = 0;
     // for off-screen surface, DPI always be the default value
     surface->dpi = GDCAP_DPI_DEFAULT;
-    surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
     GAL_SetClipRect (surface, NULL);
@@ -420,22 +403,6 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif
-
-    /* Get the pixels */
-    if (surface->w && surface->h) {
-        if (video && video->AttachSharedHWSurface) {
-            munmap (data_map, map_size);
-            data_map = MAP_FAILED;
-            surface->shared_header = NULL;
-            video->AttachSharedHWSurface (video, surface, fd);
-        }
-
-        if (surface->shared_header == NULL) {
-            goto error;
-        }
-
-        surface->pixels = surface->shared_header->buf;
-    }
 
     /* Allocate an empty mapping */
     surface->map = GAL_AllocBlitMap();
@@ -452,8 +419,8 @@ error:
         if (video && video->DettachSharedHWSurface) {
             video->DettachSharedHWSurface (video, surface);
         }
-
-        munmap (data_map, map_size);
+        else
+            munmap (data_map, map_size);
     }
 
     if (surface)
