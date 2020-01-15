@@ -340,7 +340,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             lwe->type = LWETYPE_TIMEOUT;
             lwe->count = __mg_timer_counter;
 
-            license_on_timeout();
+            __mg_license_on_timeout();
 
             return 1;
         }
@@ -367,7 +367,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) &&
               (button & IAL_MOUSE_LEFTBUTTON) )
         {
-            license_on_input();
+            __mg_license_on_input();
 
             interval = __mg_timer_counter - time1;
             if (interval <= dblclicktime)
@@ -382,7 +382,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) &&
              !(button & IAL_MOUSE_LEFTBUTTON) )
         {
-            license_on_input();
+            __mg_license_on_input();
 
             me->event = ME_LEFTUP;
             goto mouseret;
@@ -435,7 +435,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if (nr_keys == 0)
             return 0;
 
-        license_on_input();
+        __mg_license_on_input();
 
         lwe->type = LWETYPE_KEY;
         keystate = IAL_GetKeyboardState ();
@@ -654,7 +654,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             lwe->type = LWETYPE_TIMEOUT;
             lwe->count = ++timeout_count;
 
-            license_on_timeout();
+            __mg_license_on_timeout();
 
             return 1;
         }
@@ -683,7 +683,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( !(oldbutton & IAL_MOUSE_LEFTBUTTON) &&
               (button & IAL_MOUSE_LEFTBUTTON) )
         {
-            license_on_input();
+            __mg_license_on_input();
 
             interval = __mg_timer_counter - time1;
             if (interval <= dblclicktime)
@@ -698,7 +698,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         if ( (oldbutton & IAL_MOUSE_LEFTBUTTON) &&
              !(button & IAL_MOUSE_LEFTBUTTON) )
         {
-            license_on_input();
+            __mg_license_on_input();
 
             me->event = ME_LEFTUP;
             goto mouseret;
@@ -746,7 +746,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
     }
 
     if (event & IAL_KEYEVENT) {
-        license_on_input();
+        __mg_license_on_input();
 
         lwe->type = LWETYPE_KEY;
         keystate = IAL_GetKeyboardState ();

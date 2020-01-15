@@ -85,17 +85,19 @@ typedef MASKRECT* PMASKRECT;
 #define ZOF_TYPE_FLAG_MASK      0xFFF00000
 
 #define ZOF_TYPE_MASK           0xF0000000
-#define ZOF_TYPE_DOCKER         0x60000000  /* Since 4.2.0 */
-#define ZOF_TYPE_DESKTOP        0x50000000
-#define ZOF_TYPE_MENU           0x40000000
-#define ZOF_TYPE_GLOBAL         0x30000000
-#define ZOF_TYPE_TOPMOST        0x20000000
-#define ZOF_TYPE_NORMAL         0x10000000
+#define ZOF_TYPE_MENU           0x10000000
+#define ZOF_TYPE_SCREENLOCK     0x20000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_DOCKER         0x30000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_GLOBAL         0x40000000
+#define ZOF_TYPE_TOPMOST        0x50000000
+#define ZOF_TYPE_NORMAL         0x60000000
+#define ZOF_TYPE_LAUNCHER       0x70000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_DESKTOP        0x80000000  /* fixed and only one */
 
 #define ZOF_TF_FLAG_MASK        0x0F000000
 #define ZOF_TF_MAINWIN          0x01000000
 #define ZOF_TF_TOOLWIN          0x02000000
-#define ZOF_TF_STUCK            0x04000000
+#define ZOF_TF_ALWAYSTOP        0x04000000
 
 #define ZOF_TW_FLAG_MASK        0x00F00000
 #define ZOF_TW_TBROUNDCNS       0x00300000

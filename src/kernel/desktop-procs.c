@@ -3061,7 +3061,7 @@ static BOOL _cb_update_dskmenu (void* context,
     UPDATA_DSKMENU_INFO* info = (UPDATA_DSKMENU_INFO*) context;
 
     if (node->flags & ZOF_TF_MAINWIN
-            && !(node->flags & ZOF_TF_STUCK)) {
+            && !(node->flags & ZOF_TF_ALWAYSTOP)) {
         if (node->flags & ZOF_VISIBLE)
             info->mii.state       = MFS_ENABLED;
         else
@@ -3548,7 +3548,7 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
 
         case MSG_ENDSESSION:
             if (SERVER_HAS_NO_MAINWINDOW()) {
-                screensaver_destroy();
+                __mg_screensaver_destroy();
 
                 if (hDesktopDC) {
                     ReleaseDC (hDesktopDC);

@@ -1777,9 +1777,12 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
         }
     }
 
-#if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
+
+#if 1
+    /* Since 4.2.0. Support for always top znode.
+     * defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK) */
     if (*first == 0
-            || (nodes [*first].flags & ZOF_TF_STUCK) != ZOF_TF_STUCK)
+            || (nodes [*first].flags & ZOF_TF_ALWAYSTOP) != ZOF_TF_ALWAYSTOP)
     {
         old_first = *first;
         nodes [old_first].prev = free_slot;
@@ -1788,12 +1791,13 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     }
     else {
         int pre_idx = *first;
-        while(*first) {
-            if ((nodes [*first].flags & ZOF_TF_STUCK) == ZOF_TF_STUCK) {
+        while (*first) {
+            if ((nodes [*first].flags & ZOF_TF_ALWAYSTOP) == ZOF_TF_ALWAYSTOP) {
                 pre_idx = *first;
                 first = &nodes[*first].next;
             }
-            else break;
+            else
+                break;
         }
         old_first = pre_idx;
         nodes [free_slot].prev = old_first;
@@ -2147,14 +2151,13 @@ static int FreeZOrderMaskRect (int cli, int idx_znode)
 }
 
 static int update_client_window_rgn (int cli, HWND hwnd);
-
-#if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
 static int dskMove2Top (int cli, int idx_znode);
 static int dskShowWindow (int cli, int idx_znode);
 static int dskHideWindow (int cli, int idx_znode);
 static ZORDERINFO* _get_zorder_info (int cli);
 
-void dskRefreshAllClient (const RECT* invrc)
+#if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
+static void dskRefreshAllClient (const RECT* invrc)
 {
 #if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
@@ -2173,7 +2176,7 @@ void dskRefreshAllClient (const RECT* invrc)
 #endif
 }
 
-int dskCreateTopZOrderNode (int cli, const RECT *rc)
+static int dskCreateTopZOrderNode (int cli, const RECT *rc)
 {
     int idx_znode = 0;
     int zt_type = ZOF_VISIBLE | ZOF_TF_MAINWIN;
@@ -2192,12 +2195,13 @@ int dskCreateTopZOrderNode (int cli, const RECT *rc)
     return idx_znode;
 }
 
-int dskDestroyTopZOrderNode (int cli, int idx_znode)
+static int dskDestroyTopZOrderNode (int cli, int idx_znode)
 {
     return FreeZOrderNode (cli, idx_znode, NULL);
 }
+#endif /* _MG_ENABLE_SCREENSAVER || _MG_ENABLE_WATERMARK */
 
-int dskSetTopForEver(int cli, int idx_znode, BOOL show)
+/*XXX static */int dskSetZNodeAlwaysTop (int cli, int idx_znode)
 {
     // NUV DWORD type;
     ZORDERINFO* zi = _get_zorder_info (cli);
@@ -2219,21 +2223,47 @@ int dskSetTopForEver(int cli, int idx_znode, BOOL show)
 
     /* lock zi for change */
     lock_zi_for_change (zi);
-
-    nodes[idx_znode].flags |= ZOF_TF_STUCK;
-
+    nodes[idx_znode].flags |= ZOF_TF_ALWAYSTOP;
     /* unlock zi for change */
     unlock_zi_for_change (zi);
 
-    if (show) {
-        dskShowWindow (cli, idx_znode);
-        return dskMove2Top (cli, idx_znode);
-    }
-    else {
-        return dskHideWindow (cli, idx_znode);
+    return 0;
+}
+
+#ifdef _MG_ENABLE_SCREENSAVER
+static int _screensaver_node;
+
+void __mg_screensaver_show(void)
+{
+    dskShowWindow (0, _screensaver_node);
+    dskMove2Top (0, _screensaver_node);
+}
+
+void __mg_screensaver_hide(void)
+{
+    dskHideWindow (0, _screensaver_node);
+}
+
+void __mg_screensaver_create(void)
+{
+    /* create screensaver node. */
+    if (!_screensaver_node) {
+        RECT rcScr = GetScreenRect();
+        _screensaver_node  = dskCreateTopZOrderNode (0, &rcScr);
+        dskSetZNodeAlwaysTop (0, _screensaver_node);
+        dskHideWindow (0, _screensaver_node);
     }
 }
-#endif /* _MG_ENABLE_SCREENSAVER || _MG_ENABLE_WATERMARK */
+
+void __mg_screensaver_destroy(void)
+{
+    /* destroy screensaver node. */
+    if (_screensaver_node) {
+        dskDestroyTopZOrderNode(0, _screensaver_node);
+        _screensaver_node = 0;
+    }
+}
+#endif /* defined _MG_ENABLE_SCREENSAVER */
 
 static int dskMove2Top (int cli, int idx_znode)
 {
@@ -2322,21 +2352,24 @@ static int dskMove2Top (int cli, int idx_znode)
         nodes [nodes [idx_znode].next].prev = nodes [idx_znode].prev;
     }
 
-#if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
-    if (!(*first) || ((nodes [*first].flags & ZOF_TF_STUCK) != ZOF_TF_STUCK))
-    {
+#if 1
+    /* Since 4.2.0. Support for stuck znode.
+     * defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK) */
+    if (!(*first) ||
+            ((nodes [*first].flags & ZOF_TF_ALWAYSTOP) != ZOF_TF_ALWAYSTOP)) {
         nodes [idx_znode].prev = nodes[*first].prev;
         nodes [idx_znode].next = *first;
         nodes [*first].prev = idx_znode;
     }
     else {
         int pre_idx = *first;
-        while(*first) {
-            if ((nodes [*first].flags & ZOF_TF_STUCK) == ZOF_TF_STUCK) {
+        while (*first) {
+            if ((nodes [*first].flags & ZOF_TF_ALWAYSTOP) == ZOF_TF_ALWAYSTOP) {
                 pre_idx = *first;
                 first = &nodes[*first].next;
             }
-            else break;
+            else
+                break;
         }
         nodes [idx_znode].prev = pre_idx;
         nodes [idx_znode].next = nodes [pre_idx].next;

@@ -263,7 +263,7 @@ static void default_cb(void *user_data, const char* str)
 #endif
     }
 
-    license_on_input();
+    __mg_license_on_input();
 }
 
 /********************  Low Level Input Operations ******************/

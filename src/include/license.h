@@ -85,45 +85,45 @@ extern MG_LOCAL BITMAP g_license_bitmaps[];
 #define g_bitmap_progressbar    g_license_bitmaps[SPLASH_PROGRESSBAR]
 #define g_bitmap_progressbar_bk g_license_bitmaps[SPLASH_PROGRESSBAR_BK]
 
-MG_LOCAL void license_create(void);
-MG_LOCAL void license_destroy(void);
+MG_LOCAL void __mg_license_create(void);
+MG_LOCAL void __mg_license_destroy(void);
 
 #else
-#   define license_create() /* NULL */
-#   define license_destroy() /* NULL */
+#   define __mg_license_create() /* NULL */
+#   define __mg_license_destroy() /* NULL */
 #endif /* endif _MG_ENABLE_SPLASH or _MG_ENABLE_SCREENSAVER or _MG_ENABLE_WATERMARK*/
 
 
 #ifdef _MG_ENABLE_SCREENSAVER
-MG_LOCAL void screensaver_create(void);
-MG_LOCAL void screensaver_destroy(void);
+MG_LOCAL void __mg_screensaver_create(void);
+MG_LOCAL void __mg_screensaver_destroy(void);
 #else
-#   define screensaver_create() /* NULL */
-#   define screensaver_destroy() /* NULL */
+#   define __mg_screensaver_create() /* NULL */
+#   define __mg_screensaver_destroy() /* NULL */
 #endif
 
 /*
  * Splash
  */
 #ifdef _MG_ENABLE_SPLASH 
-MG_LOCAL void splash_draw_framework(void);
-MG_LOCAL void splash_progress(void);
-MG_LOCAL void splash_delay(void);
+MG_LOCAL void __mg_splash_draw_framework(void);
+MG_LOCAL void __mg_splash_progress(void);
+MG_LOCAL void __mg_splash_delay(void);
 #else
-#   define splash_draw_framework() /* NULL */
-#   define splash_progress() /* NULL */
-#   define splash_delay() /* NULL */
+#   define __mg_splash_draw_framework() /* NULL */
+#   define __mg_splash_progress() /* NULL */
+#   define __mg_splash_delay() /* NULL */
 #endif /* endif _MG_ENABLE_SPLASH */
 
 /*
  * ScreenSaver & Watermark
  */
 #if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
-MG_LOCAL void license_on_input(void);
-MG_LOCAL void license_on_timeout(void);
+MG_LOCAL void __mg_license_on_input(void);
+MG_LOCAL void __mg_license_on_timeout(void);
 #else
-#   define license_on_input() /* NULL */
-#   define license_on_timeout() /* NULL */
+#   define __mg_license_on_input() /* NULL */
+#   define __mg_license_on_timeout() /* NULL */
 #endif /* _MG_ENABLE_SCREENSAVER || _MG_ENABLE_WATERMARK */
 
 /*

@@ -100,10 +100,11 @@ static int  s_tick_last_input;
 static BOOL screensaver_running;
 extern int dskCreateTopZOrderNode (int cli, const RECT *rc);
 extern int dskDestroyTopZOrderNode (int cli, int idx_znode);
-extern int dskSetTopForEver(int cli, int idx_znode, BOOL show);
 extern void dskRefreshAllClient (const RECT* invrc);
 #endif
 #endif
+
+extern int dskSetZNodeAlwaysTop(int cli, int idx_znode, BOOL show);
 
 /***********************************************************
  * Product ID
@@ -182,31 +183,33 @@ static void watermark_init(void)
 /***********************************************************
  * Screensaver
  ***********************************************************/
-#ifdef _MG_ENABLE_SCREENSAVER
+#if 0
+// moved to desktop.c
 static int s_screensaver_node;
 
 void screensaver_show(void)
 {
-    dskSetTopForEver(0, s_screensaver_node, TRUE);
+    dskShowWindow (0, s_screensaver_node);
+    dskMove2Top (0, s_screensaver_node);
 }
 
 void screensaver_hide(void)
 {
-    dskSetTopForEver(0, s_screensaver_node, FALSE);
+    dskHideWindow (0, s_screensaver_node);
 }
 
-void screensaver_create(void)
+void __mg_screensaver_create(void)
 {
     /* create screensaver node. */
     if (!s_screensaver_node) {
         RECT rcScr = GetScreenRect();
-        s_screensaver_node  = dskCreateTopZOrderNode(0, &rcScr);
-        dskSetTopForEver(0, s_screensaver_node, TRUE);
-        screensaver_hide();
+        s_screensaver_node  = dskCreateTopZOrderNode (0, &rcScr);
+        dskSetZNodeAlwaysTop (0, s_screensaver_node);
+        dskHideWindow (0, s_screensaver_node);
     }
 }
 
-void screensaver_destroy(void)
+void __mg_screensaver_destroy(void)
 {
     /* destroy screensaver node. */
     if (s_screensaver_node) {
@@ -214,6 +217,9 @@ void screensaver_destroy(void)
         s_screensaver_node = 0;
     }
 }
+#endif
+
+#ifdef _MG_ENABLE_SCREENSAVER
 
 static void screensaver_update(void)
 {
@@ -295,7 +301,7 @@ static void splash_init(void)
     splash_adjust_y = (RECTH(rcScr) - SPLASH_H)*3 / 5;
 }
 
-void splash_draw_framework (void)
+void __mg_splash_draw_framework (void)
 {
     char text[64];
     RECT rc_text;
@@ -344,7 +350,7 @@ void splash_draw_framework (void)
     SetTextColor(HDC_SCREEN_SYS, old_text);
 }
 
-void splash_progress (void)
+void __mg_splash_progress (void)
 {
     if (SPLASH_BAR_RIGHT == splash_bar_direction) {
         splash_bar_postion += SPLASH_BAR_STEP;
@@ -366,14 +372,14 @@ void splash_progress (void)
             0, 0, &g_bitmap_progressbar);
 }
 
-void splash_delay (void)
+void __mg_splash_delay (void)
 {
     int i;
 
     for (i = 0;
         __mg_quiting_stage > 0 && i < _MG_LICENSE_SPLASH_STEP;
         i++) {
-        splash_progress();
+        __mg_splash_progress();
         __mg_os_time_delay (_MG_LICENSE_SPLASH_MSEC);
     }
 }
@@ -510,7 +516,7 @@ static int my_decrypt(RC4_KEY *key, int in_len, unsigned char *in) {
 }
 #endif /* ENCRYPTED */
 
-void license_create(void) {
+void __mg_license_create(void) {
     int i;
 
     for (i=0; i<LICENSE_BITMAP_NR; ++i) {
@@ -538,7 +544,7 @@ void license_create(void) {
     watermark_init();
 }
 
-void license_destroy (void) {
+void __mg_license_destroy (void) {
     int i;
     for (i = 0; i < LICENSE_BITMAP_NR; i++) {
         UnloadBitmap(&g_license_bitmaps[i]);
@@ -548,7 +554,7 @@ void license_destroy (void) {
 #endif /* _MG_ENABLE_SPLASH || _MG_ENABLE_SCREENSAVER || _MG_ENABLE_WATERMARK */
 
 #if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
-void license_on_input(void)
+void __mg_license_on_input(void)
 {
 #ifdef _MGRM_PROCESSES
     RECT rcScr = GetScreenRect();
@@ -565,12 +571,12 @@ void license_on_input(void)
             if (activeWnd) {
                 SendNotifyMessage(activeWnd, MSG_CANCELSCREENSAVER, 0, 0);
             } else {
-                screensaver_hide();
+                __mg_screensaver_hide();
                 SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
             }
         }
 #else
-        screensaver_hide();
+        __mg_screensaver_hide();
 #if defined(_MGRM_PROCESSES)
         dskRefreshAllClient (&rcScr);
 #elif defined(_MGRM_STANDALONE)
@@ -584,7 +590,7 @@ void license_on_input(void)
     }
 }
 
-void license_on_timeout(void)
+void __mg_license_on_timeout(void)
 {
     static unsigned int old_tick_count;
     unsigned int current_tick_count;
@@ -607,7 +613,7 @@ void license_on_timeout(void)
         /* screensaver is not running, show it */
         if ((current_tick_count - s_tick_last_input) > _MG_LICENSE_SCREENSAVER_TIMEOUT) {
             screensaver_running = TRUE;
-            screensaver_show();
+            __mg_screensaver_show();
         }
     }
 }

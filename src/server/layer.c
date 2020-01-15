@@ -116,7 +116,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     zi->size_usage_bmp = SIZE_USAGE_BMP;
     zi->size_maskrect_usage_bmp = SIZE_MASKRECT_USAGE_BMP;
 
-    _DGB_PRINTF("size_zi: %lu, size_usage_bmp: %d, size_maskrect_usage_bmp: %d\n",
+    _DBG_PRINTF("size_zi: %lu, size_usage_bmp: %d, size_maskrect_usage_bmp: %d\n",
                 sizeof (*zi), zi->size_usage_bmp, zi->size_maskrect_usage_bmp);
 
     zi->max_nr_popupmenus = DEF_NR_POPUPMENUS;

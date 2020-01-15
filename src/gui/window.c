@@ -3820,7 +3820,7 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
 #endif
 
 #ifndef _MGRM_PROCESSES
-    screensaver_create();
+    __mg_screensaver_create();
 #endif
 
 #ifdef _MGSCHEMA_COMPOSITING

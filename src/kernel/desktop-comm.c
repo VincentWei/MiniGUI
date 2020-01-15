@@ -1636,7 +1636,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     {
         pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
         if (pWin && pWin->WinType == TYPE_MAINWIN &&
-                !(nodes[slot].flags & ZOF_TF_STUCK)) {
+                !(nodes[slot].flags & ZOF_TF_ALWAYSTOP)) {
             if (pWin->dwStyle & WS_VISIBLE)
                 mii.state       = MFS_ENABLED;
             else
@@ -2135,7 +2135,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
                     && __mg_enter_terminategui
 #endif
                     ) {
-                screensaver_destroy();
+                __mg_screensaver_destroy();
 
                 if (hDesktopDC) ReleaseDC (hDesktopDC);
                 hDesktopDC = 0;

@@ -514,9 +514,9 @@ int InitGUI (int argc, const char* agr[])
     if (_is_server)
 #endif
     {
-        license_create();
-        splash_draw_framework();
-        splash_delay();
+        __mg_license_create();
+        __mg_splash_draw_framework();
+        __mg_splash_delay();
     }
 
     /* Initialize resource */
@@ -589,7 +589,7 @@ void TerminateGUI (int rcByGUI)
     if (_is_server)
 #endif
     {
-        license_destroy();
+        __mg_license_destroy();
     }
 
 #ifdef _MGRM_STANDALONE

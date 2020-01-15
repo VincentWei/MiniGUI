@@ -518,8 +518,8 @@ int GUIAPI InitGUI (int args, const char *agr[])
     g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
 #endif
 
-    license_create();
-    splash_draw_framework();
+    __mg_license_create();
+    __mg_splash_draw_framework();
 
     /* Init mouse cursor. */
     step++;
@@ -527,7 +527,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
         _ERR_PRINTF ("KERNEL>InitGUI: Count not init mouse cursor!\n");
         goto failure1;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     /* Init low level event */
     step++;
@@ -535,7 +535,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
         _ERR_PRINTF ("KERNEL>InitGUI: Low level event initialization failure!\n");
         goto failure1;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     /** Init LF Manager */
     step++;
@@ -543,7 +543,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
         _ERR_PRINTF ("KERNEL>InitGUI: Initialization of LF Manager failure!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
 #ifdef _MGHAVE_MENU
     /* Init menu */
@@ -560,7 +560,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
         _ERR_PRINTF ("KERNEL>InitGUI: Init Control Class failure!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     /* Init accelerator */
     step++;
@@ -568,21 +568,21 @@ int GUIAPI InitGUI (int args, const char *agr[])
         _ERR_PRINTF ("KERNEL>InitGUI: Init Accelerator failure!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     step++;
     if (!mg_InitDesktop ()) {
         _ERR_PRINTF ("KERNEL>InitGUI: Init Desktop failure!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     step++;
     if (!mg_InitFreeQMSGList ()) {
         _ERR_PRINTF ("KERNEL>InitGUI: Init free QMSG list failure!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     step++;
     if (!createThreadInfoKey ()) {
@@ -590,7 +590,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
         goto failure;
     }
 
-    splash_delay();
+    __mg_splash_delay();
 
     step++;
     if (!SystemThreads()) {
@@ -627,7 +627,7 @@ void GUIAPI TerminateGUI (int not_used)
     pthread_join (__mg_parsor, NULL);
 
     deleteThreadInfoKey ();
-    license_destroy();
+    __mg_license_destroy();
 
     __mg_quiting_stage = _MG_QUITING_STAGE_TIMER;
     mg_TerminateTimer ();

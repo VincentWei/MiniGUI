@@ -301,7 +301,7 @@ BOOL GUIAPI ServerStartup (int nr_globals,
 
     __mg_start_server_desktop ();
 
-    screensaver_create();
+    __mg_screensaver_create();
 
     return TRUE;
 
