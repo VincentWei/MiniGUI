@@ -1155,12 +1155,16 @@ static int srvForceCloseMenu (int cli)
     return ret;
 }
 
-static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi)
+static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
+        Uint32 surf_flags, size_t surf_size, int fd)
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* menu_nodes;
     ZORDERNODE* win_nodes;
     RECT rc_screen;
+#ifdef _MGSCHEMA_COMPOSITING
+    HDC memdc = HDC_INVALID;
+#endif
 
     if (zi->cli_trackmenu >= 0 && zi->cli_trackmenu != cli) {
         srvForceCloseMenu (0);
@@ -1168,6 +1172,36 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi)
 
     if (zi->nr_popupmenus == zi->max_nr_popupmenus)
         return -1;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    {
+        if (cli == 0) {
+            memdc = ((PTRACKMENUINFO)ptmi)->dc;
+        }
+        else if (fd >= 0) {
+            GAL_Surface* surf = GAL_AttachSharedRGBSurface (fd,
+                    surf_size, surf_flags, TRUE);
+            close (fd);
+
+            if (surf) {
+                memdc = CreateMemDCFromSurface (surf);
+                if (memdc == HDC_INVALID) {
+                    GAL_FreeSurface (surf);
+                    _ERR_PRINTF("KERNEL: failed to create memory dc for znode\n");
+                    return -1;
+                }
+            }
+            else {
+                _ERR_PRINTF("KERNEL: failed to attach to surface\n");
+                return -1;
+            }
+        }
+        else {
+            _ERR_PRINTF("KERNEL: not server but fd for shared surface is invalid\n");
+            return -1;
+        }
+    }
+#endif /* def _MGSCHEMA_COMPOSITING */
 
     menu_nodes = GET_MENUNODE(zi);
     win_nodes = menu_nodes + DEF_NR_POPUPMENUS;
@@ -1185,6 +1219,9 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi)
 
     menu_nodes [zi->nr_popupmenus].rc = *rc;
     menu_nodes [zi->nr_popupmenus].fortestinghwnd = ptmi;
+#ifdef _MGSCHEMA_COMPOSITING
+    menu_nodes [zi->nr_popupmenus].mem_dc = memdc;
+#endif
 
     if (zi->cli_trackmenu == -1)
         zi->cli_trackmenu = cli;
@@ -1209,6 +1246,10 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
 
     menu_nodes = GET_MENUNODE(zi);
     win_nodes = menu_nodes + DEF_NR_POPUPMENUS;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    DeleteMemDC (menu_nodes [idx_znode].mem_dc);
+#endif
 
     /* lock zi for change */
     lock_zi_for_change (zi);
