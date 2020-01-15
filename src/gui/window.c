@@ -3603,8 +3603,9 @@ static void ResetMenuSize (HWND hwnd)
     }
 }
 
-HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
+HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+        int compos_type, DWORD ct_arg,
         const char* window_name, const char* layer_name)
 {
     PMAINWIN pWin;
