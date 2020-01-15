@@ -3229,6 +3229,7 @@ HDC CreateMemDCFromSurface (GAL_Surface* surface)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->inuse    = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
 
@@ -3249,6 +3250,13 @@ HDC CreateMemDCFromSurface (GAL_Surface* surface)
     IntersectClipRect (&pmem_dc->lcrgn, &pmem_dc->DevRC);
 
     return (HDC)pmem_dc;
+}
+
+struct GAL_Surface* GetSurfaceFromDC (HDC hdc)
+{
+    PDC pdc;
+    pdc = dc_HDC2PDC (hdc);
+    return pdc->surface;
 }
 
 HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
@@ -3584,6 +3592,7 @@ void GUIAPI DeleteMemDC (HDC hdc)
 
     pmem_dc = dc_HDC2PDC(hdc);
 
+    pmem_dc->surface->refcount--;
     GAL_FreeSurface (pmem_dc->surface);
 
     if (pmem_dc->alpha_pixel_format)
