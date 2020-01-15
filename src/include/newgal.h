@@ -536,9 +536,9 @@ GAL_Surface *GAL_CreateSurfaceForZNode (int width, int height);
 /* Free a shared RGB surface. */
 void GAL_FreeSharedSurfaceData (GAL_Surface *surface);
 
-/* Attach to a shared RGB surface from the specific video device. */
+/* Attach to a shared RGB surface. */
 GAL_Surface *GAL_AttachSharedRGBSurface (int fd, size_t map_size,
-            Uint32 flags, BOOL with_rw);
+            Uint32 flags, BOOL with_wr);
 
 /* Dettach from a shared RGB surface from the specific video device. */
 void GAL_DettachSharedSurfaceData (GAL_Surface *surface);
