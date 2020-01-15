@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _DEBUG
 #include "common.h"
 #include "minigui.h"
 #include "constants.h"
@@ -172,6 +173,9 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             file_size = buf_off + buf_size;
             file_size = ROUND_TO_MULTIPLE(file_size, getpagesize ());
             buf_size = file_size - buf_off;
+
+            _DBG_PRINTF("shared surface: size (%d x %d), pitch (%d), file_size (%lu)\n",
+                    surface->w, surface->h, surface->pitch, file_size);
 
             fd = __mg_create_anonymous_file (file_size, NULL, rw_modes);
             if (fd < 0) {
@@ -336,7 +340,10 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
         }
 
         map_size = statbuf.st_size;
+        _DBG_PRINTF("map_size got by calling fstat: %lu\n", map_size);
     }
+
+    /* XXX: checke to see whether the surface is created by hardware first */
 
     data_map = mmap (NULL, map_size, prot, MAP_SHARED, fd, 0);
     if (data_map == MAP_FAILED) {
@@ -417,7 +424,14 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     /* Get the pixels */
     if (surface->w && surface->h) {
         if (video && video->AttachSharedHWSurface) {
+            munmap (data_map, map_size);
+            data_map = MAP_FAILED;
+            surface->shared_header = NULL;
             video->AttachSharedHWSurface (video, surface, fd);
+        }
+
+        if (surface->shared_header == NULL) {
+            goto error;
         }
 
         surface->pixels = surface->shared_header->buf;
@@ -440,8 +454,10 @@ error:
         }
 
         munmap (data_map, map_size);
-        GAL_FreeSurface (surface);
     }
+
+    if (surface)
+        GAL_FreeSurface (surface);
 
     GAL_OutOfMemory ();
     return NULL;
@@ -470,15 +486,17 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
 
 GAL_Surface *GAL_CreateSurfaceForZNode (int width, int height)
 {
+    _DBG_PRINTF("size: %d x %d\n", width, height);
+
     if (IsServer()) {
         return GAL_CreateRGBSurface (
-            GAL_HWSURFACE, width, height, __gal_screen->format->BytesPerPixel,
+            GAL_HWSURFACE, width, height, __gal_screen->format->BitsPerPixel,
             __gal_screen->format->Rmask, __gal_screen->format->Gmask,
             __gal_screen->format->Bmask, __gal_screen->format->Amask);
     }
 
     return GAL_CreateSharedRGBSurface (__gal_screen->video,
-        GAL_HWSURFACE, 0600, width, height, __gal_screen->format->BytesPerPixel,
+        GAL_HWSURFACE, 0600, width, height, __gal_screen->format->BitsPerPixel,
         __gal_screen->format->Rmask, __gal_screen->format->Gmask,
         __gal_screen->format->Bmask, __gal_screen->format->Amask);
 }

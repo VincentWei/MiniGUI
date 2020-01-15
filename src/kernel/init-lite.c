@@ -488,7 +488,7 @@ int InitGUI (int argc, const char* agr[])
         SHAREDRES_VIDEO_DPI   = __gal_screen->dpi;
         SHAREDRES_VIDEO_HRES  = __gal_screen->w;
         SHAREDRES_VIDEO_VRES  = __gal_screen->h;
-        SHAREDRES_VIDEO_DEPTH = __gal_screen->format->BytesPerPixel;
+        SHAREDRES_VIDEO_DEPTH = __gal_screen->format->BitsPerPixel;
         SHAREDRES_VIDEO_RMASK = __gal_screen->format->Rmask;
         SHAREDRES_VIDEO_GMASK = __gal_screen->format->Gmask;
         SHAREDRES_VIDEO_BMASK = __gal_screen->format->Bmask;
