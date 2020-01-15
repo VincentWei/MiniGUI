@@ -95,15 +95,14 @@ typedef MASKRECT* PMASKRECT;
 #define ZOF_TF_FLAG_MASK        0x0F000000
 #define ZOF_TF_MAINWIN          0x01000000
 #define ZOF_TF_TOOLWIN          0x02000000
-#define ZOF_TF_TOPFOREVER       0x04000000
+#define ZOF_TF_STUCK            0x04000000
 
 #define ZOF_TW_FLAG_MASK        0x00F00000
 #define ZOF_TW_TBROUNDCNS       0x00300000
 #define ZOF_TW_BROUNDCNS        0x00200000
 #define ZOF_TW_TROUNDCNS        0x00100000
 
-typedef struct _ZORDERNODE
-{
+typedef struct _ZORDERNODE {
     DWORD           flags;
 
     char            caption[MAX_CAPTION_LEN+1];
@@ -127,8 +126,7 @@ typedef struct _ZORDERNODE
 } ZORDERNODE;
 typedef ZORDERNODE* PZORDERNODE;
 
-typedef struct _ZORDERINFO
-{
+typedef struct _ZORDERINFO {
     int             size_usage_bmp;
 
     int             max_nr_popupmenus;
@@ -148,9 +146,8 @@ typedef struct _ZORDERINFO
     int             active_win;
 
     int             cli_trackmenu;
-    HWND            ptmi_in_cli;
 
-    /* The usage bitmap for mask rect. */
+    /* The size of usage bitmap for mask rect. */
     int             size_maskrect_usage_bmp;
 
 #ifdef _MGRM_THREADS
@@ -164,6 +161,8 @@ typedef struct _ZORDERINFO
     int             zi_semnum;
 #endif
 
+    /* move to last for alignment */
+    HWND            ptmi_in_cli;
 } ZORDERINFO;
 typedef ZORDERINFO* PZORDERINFO;
 
@@ -191,10 +190,10 @@ typedef ZORDERINFO* PZORDERINFO;
                 (zi)->size_maskrect_usage_bmp))
 
 #define SIZE_USAGE_BMP \
-        ((7 + SHAREDRES_NR_GLOBALS + nr_topmosts + nr_normals) / 8)
+        ROUND_TO_MULTIPLE((7 + SHAREDRES_NR_GLOBALS + nr_topmosts + nr_normals) / 8, 8)
 
 #define SIZE_MASKRECT_USAGE_BMP \
-        ((7 + DEF_NR_MASKRECT) / 8)
+        ROUND_TO_MULTIPLE((7 + DEF_NR_MASKRECT) / 8, 8)
 
 #ifdef __cplusplus
 extern "C" {
