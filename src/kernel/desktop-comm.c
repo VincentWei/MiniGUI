@@ -1636,7 +1636,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     {
         pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
         if (pWin && pWin->WinType == TYPE_MAINWIN &&
-                !(nodes[slot].flags & ZOF_TF_TOPFOREVER)) {
+                !(nodes[slot].flags & ZOF_TF_STUCK)) {
             if (pWin->dwStyle & WS_VISIBLE)
                 mii.state       = MFS_ENABLED;
             else

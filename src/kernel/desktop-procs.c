@@ -3061,7 +3061,7 @@ static BOOL _cb_update_dskmenu (void* context,
     UPDATA_DSKMENU_INFO* info = (UPDATA_DSKMENU_INFO*) context;
 
     if (node->flags & ZOF_TF_MAINWIN
-            && !(node->flags & ZOF_TF_TOPFOREVER)) {
+            && !(node->flags & ZOF_TF_STUCK)) {
         if (node->flags & ZOF_VISIBLE)
             info->mii.state       = MFS_ENABLED;
         else

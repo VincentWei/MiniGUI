@@ -1779,7 +1779,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 
 #if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
     if (*first == 0
-            || (nodes [*first].flags & ZOF_TF_TOPFOREVER) != ZOF_TF_TOPFOREVER)
+            || (nodes [*first].flags & ZOF_TF_STUCK) != ZOF_TF_STUCK)
     {
         old_first = *first;
         nodes [old_first].prev = free_slot;
@@ -1789,7 +1789,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     else {
         int pre_idx = *first;
         while(*first) {
-            if ((nodes [*first].flags & ZOF_TF_TOPFOREVER) == ZOF_TF_TOPFOREVER) {
+            if ((nodes [*first].flags & ZOF_TF_STUCK) == ZOF_TF_STUCK) {
                 pre_idx = *first;
                 first = &nodes[*first].next;
             }
@@ -2220,7 +2220,7 @@ int dskSetTopForEver(int cli, int idx_znode, BOOL show)
     /* lock zi for change */
     lock_zi_for_change (zi);
 
-    nodes[idx_znode].flags |= ZOF_TF_TOPFOREVER;
+    nodes[idx_znode].flags |= ZOF_TF_STUCK;
 
     /* unlock zi for change */
     unlock_zi_for_change (zi);
@@ -2323,7 +2323,7 @@ static int dskMove2Top (int cli, int idx_znode)
     }
 
 #if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
-    if (!(*first) || ((nodes [*first].flags & ZOF_TF_TOPFOREVER) != ZOF_TF_TOPFOREVER))
+    if (!(*first) || ((nodes [*first].flags & ZOF_TF_STUCK) != ZOF_TF_STUCK))
     {
         nodes [idx_znode].prev = nodes[*first].prev;
         nodes [idx_znode].next = *first;
@@ -2332,7 +2332,7 @@ static int dskMove2Top (int cli, int idx_znode)
     else {
         int pre_idx = *first;
         while(*first) {
-            if ((nodes [*first].flags & ZOF_TF_TOPFOREVER) == ZOF_TF_TOPFOREVER) {
+            if ((nodes [*first].flags & ZOF_TF_STUCK) == ZOF_TF_STUCK) {
                 pre_idx = *first;
                 first = &nodes[*first].next;
             }
