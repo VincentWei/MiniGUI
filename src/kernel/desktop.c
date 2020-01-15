@@ -112,7 +112,7 @@ PGCRINFO kernel_GetGCRgnInfo (HWND hWnd)
 }
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
 static DEF_CONTEXT g_def_context;
 #endif
 
@@ -407,7 +407,7 @@ void __mg_update_window (HWND hwnd,
 
 static int update_client_window (ZORDERNODE* znode, const RECT* rc)
 {
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     if (!mgIsServer)
         return -1;
 
@@ -1089,7 +1089,7 @@ static int srvForceCloseMenu (int cli)
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
     int i, ret = 0;
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     int cli_trackmenu;
 #endif
     ZORDERNODE* menu_nodes;
@@ -1101,6 +1101,12 @@ static int srvForceCloseMenu (int cli)
 
     menu_nodes = GET_MENUNODE(zi);
     win_nodes = menu_nodes + DEF_NR_POPUPMENUS;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    for (i = 0; i < zi->nr_popupmenus; i++) {
+        DeleteMemDC (menu_nodes [i].mem_dc);
+    }
+#endif
 
     SetRect (&rc_bound, 0, 0, 0, 0);
 
@@ -1122,7 +1128,7 @@ static int srvForceCloseMenu (int cli)
         win_nodes [0].flags |= ZOF_REFERENCE;
     }
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     cli_trackmenu = zi->cli_trackmenu;
 #endif
     zi->cli_trackmenu = -1;
@@ -1142,7 +1148,7 @@ static int srvForceCloseMenu (int cli)
 
     /* notify the client to close the menu */
     {
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
         MSG msg = {0, MSG_CLOSEMENU, 0, 0, __mg_timer_counter};
 
         if (cli_trackmenu)
@@ -1319,7 +1325,7 @@ int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode,
         ret = PostMessage (nodes [znode].main_win,
                             message, wParam, lParam);
     }
-#if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
+#if defined (_MGRM_PROCESSES)
     else {
         MSG msg = {nodes [znode].main_win,
                 message, wParam, lParam, __mg_timer_counter};
@@ -1343,7 +1349,7 @@ post_msg_by_znode_p (const ZORDERINFO* zi, const ZORDERNODE* znode,
     if (znode->cli == 0) {
         ret = PostMessage (znode->main_win, message, wParam, lParam);
     }
-#if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
+#if defined (_MGRM_PROCESSES)
     else {
         MSG msg = {znode->main_win,
                 message, wParam, lParam, __mg_timer_counter};
@@ -1773,7 +1779,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 
 #if defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)
     if (*first == 0
-            || (nodes [*first].flags & ZOF_TF_TOPFOREVER) != ZOF_TF_TOPFOREVER )
+            || (nodes [*first].flags & ZOF_TF_TOPFOREVER) != ZOF_TF_TOPFOREVER)
     {
         old_first = *first;
         nodes [old_first].prev = free_slot;
@@ -1976,7 +1982,7 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
 {
     DWORD zt_type = 0;
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
        zt_type |= ZOF_TYPE_GLOBAL;
     } else
@@ -2150,7 +2156,7 @@ static ZORDERINFO* _get_zorder_info (int cli);
 
 void dskRefreshAllClient (const RECT* invrc)
 {
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
         ZORDERINFO* zi = _get_zorder_info (0);
         SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0,
@@ -2171,7 +2177,7 @@ int dskCreateTopZOrderNode (int cli, const RECT *rc)
 {
     int idx_znode = 0;
     int zt_type = ZOF_VISIBLE | ZOF_TF_MAINWIN;
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
         zt_type |= ZOF_TYPE_GLOBAL;
     } else
@@ -2687,7 +2693,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         nodes [idx_znode].rc = *rcWin;
         nodes [idx_znode].age ++;
 
-#if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
+#if defined (_MGRM_PROCESSES)
         if (cli == 0 || mgClients [cli].layer == SHAREDRES_TOPMOST_LAYER) {
 #endif
             /* Copy window content to new postion */
@@ -2780,7 +2786,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             /* Restore the clip region of HDC_SCREEN_SYS */
             SelectClipRect (HDC_SCREEN_SYS, &rcScr);
             EmptyClipRgn(&bblt_rgn);
-#if defined (_MGRM_PROCESSES) && !defined (_MGRM_STANDALONE)
+#if defined (_MGRM_PROCESSES)
         }
 #endif
 
@@ -3155,7 +3161,7 @@ static BOOL _cb_bcast_msg (void* context,
     PMAINWIN pWin;
     PMSG pMsg = (PMSG)context;
 
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     if (node->cli == __mg_client_id) {
 #endif
         pWin = (PMAINWIN)node->fortestinghwnd;
@@ -3163,7 +3169,7 @@ static BOOL _cb_bcast_msg (void* context,
             PostMessage ((HWND)pWin, pMsg->message, pMsg->wParam, pMsg->lParam);
             return TRUE;
         }
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     }
 #endif
 
