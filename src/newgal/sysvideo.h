@@ -163,7 +163,8 @@ struct GAL_VideoDevice {
     /* Attach to a shared surface in hardware video memory.
        Set to NULL if no hardware shared surface supported.
        Return 0 if success, otherwize -1. */
-    int (*AttachSharedHWSurface)(_THIS, GAL_Surface *surface, int fd);
+    int (*AttachSharedHWSurface)(_THIS, GAL_Surface *surface,
+            int fd, size_t mapsize, BOOL with_rw);
 
     /* Dettach from a shared surface in hardware video memory.
        Set to NULL if no hardware shared surface supported.
