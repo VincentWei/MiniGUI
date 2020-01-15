@@ -419,7 +419,8 @@ static int dskStartTrackPopupMenu(PTRACKMENUINFO ptmi)
         ptmi->prev = NULL;
     }
 
-    PopupMenuTrackProc (ptmi, MSG_INITMENU, 0, 0);
+    if (PopupMenuTrackProc (ptmi, MSG_INITMENU, 0, 0))
+        return -1;
 
     ptmi->idx_znode = srvStartTrackPopupMenu (0, &ptmi->rc, (HWND)ptmi);
 
@@ -440,7 +441,6 @@ static int dskStartTrackPopupMenu(PTRACKMENUINFO ptmi)
     }
 
     PopupMenuTrackProc (ptmi, MSG_SHOWMENU, 0, 0);
-
     return 0;
 }
 
