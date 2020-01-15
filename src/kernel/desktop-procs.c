@@ -495,8 +495,26 @@ static intptr_t cliStartTrackPopupMenu (PTRACKMENUINFO ptmi)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
+#ifdef _MGSCHEMA_COMPOSITING
+    {
+        GAL_Surface* surf;
+
+        assert (ptmi->dc != HDC_INVALID);
+
+        surf = GetSurfaceFromDC (ptmi->dc);
+        assert (surf->shared_header);
+
+        info.surf_flags = surf->flags;
+        info.surf_size = surf->shared_header->buf_size;
+        info.surf_size += sizeof (*surf->shared_header);
+        if (ClientRequestEx2 (&req, NULL, 0, surf->shared_header->fd,
+                &ret, sizeof (intptr_t), NULL) < 0)
+            return -1;
+    }
+#else   /* ndef _MGSCHEMA_COMPOSITING */
     if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
         return -1;
+#endif  /* ndef _MGSCHEMA_COMPOSITING */
 
     return ret;
 }
@@ -1155,12 +1173,12 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
         case ID_ZOOP_ALLOC:
 #ifdef _MGSCHEMA_COMPOSITING
             ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
-                            info->flags, &info->rc, info->caption,
-                            info->surf_flags, info->surf_size, fd);
+                        info->flags, &info->rc, info->caption,
+                        info->surf_flags, info->surf_size, fd);
 #else
             ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
-                            info->flags, &info->rc, info->caption,
-                            0, 0, fd);
+                        info->flags, &info->rc, info->caption,
+                        0, 0, fd);
 #endif
             break;
         case ID_ZOOP_FREE:
@@ -1183,7 +1201,13 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
             break;
 #ifdef _MGHAVE_MENU
         case ID_ZOOP_START_TRACKMENU:
-            ret = srvStartTrackPopupMenu (cli, &info->rc, info->hwnd);
+#ifdef _MGSCHEMA_COMPOSITING
+            ret = srvStartTrackPopupMenu (cli, &info->rc, info->hwnd,
+                        info->surf_flags, info->surf_size, fd);
+#else
+            ret = srvStartTrackPopupMenu (cli, &info->rc, info->hwnd,
+                        0, 0, fd);
+#endif
             break;
         case ID_ZOOP_END_TRACKMENU:
             ret = srvEndTrackPopupMenu (cli, info->idx_znode);
@@ -1799,7 +1823,8 @@ static int dskStartTrackPopupMenu (PTRACKMENUINFO ptmi)
         return -1;
 
     if (mgIsServer)
-        ptmi->idx_znode = srvStartTrackPopupMenu (0, &ptmi->rc, (HWND)ptmi);
+        ptmi->idx_znode = srvStartTrackPopupMenu (0, &ptmi->rc, (HWND)ptmi,
+                0, 0, -1);
     else
         ptmi->idx_znode = cliStartTrackPopupMenu (ptmi);
 
