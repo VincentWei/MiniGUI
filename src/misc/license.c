@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -118,7 +118,7 @@ static unsigned char product_id_buffer[40] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-/* use this for splash display customer id by humingming 2010.8.12 */ 
+/* use this for splash display customer id by humingming 2010.8.12 */
 int license_get_customer_id(void) {
     return ((product_id_t*)product_id_buffer)->customer_id;
 }
@@ -151,8 +151,8 @@ static void watermark_update(void)
 {
     int i = 0;
     for (i = 0; i < TABLESIZE(fourcorner_info); i++)
-        FillBoxWithBitmap (HDC_SCREEN_SYS, 
-                fourcorner_info[i].pos.x, fourcorner_info[i].pos.y, 
+        FillBoxWithBitmap (HDC_SCREEN_SYS,
+                fourcorner_info[i].pos.x, fourcorner_info[i].pos.y,
                 0, 0, fourcorner_info[i].bmp);
 }
 
@@ -237,21 +237,21 @@ static void screensaver_update(void)
 
     /* put picture to screen */
     /* g_bitmap_minigui */
-    FillBoxWithBitmap (HDC_SCREEN_SYS, 
+    FillBoxWithBitmap (HDC_SCREEN_SYS,
             pos_x, pos_y + 44,
-            0, 0, 
+            0, 0,
             &g_bitmap_minigui);
 
     /* g_bitmap_feiman */
-    FillBoxWithBitmap (HDC_SCREEN_SYS, 
+    FillBoxWithBitmap (HDC_SCREEN_SYS,
             pos_x + 61, pos_y,
-            0, 0, 
+            0, 0,
             &g_bitmap_feiman);
 
     /* g_bitmap_fmsoft */
-    FillBoxWithBitmap (HDC_SCREEN_SYS, 
+    FillBoxWithBitmap (HDC_SCREEN_SYS,
             pos_x + 4, pos_y + 30,
-            0, 0, 
+            0, 0,
             &g_bitmap_fmsoft);
 }
 #else
@@ -305,11 +305,11 @@ void splash_draw_framework (void)
     gal_pixel old_brush = SetBrushColor(HDC_SCREEN_SYS, PIXEL_black);
     gal_pixel old_text = SetTextColor(HDC_SCREEN_SYS, RGB2Pixel(HDC_SCREEN_SYS, 0x32, 0xa0, 0xe4));
 
-    font = CreateLogFont ("rbf", "vgaoem", "ISO8859-1", 
-            FONT_WEIGHT_REGULAR, 
+    font = CreateLogFont ("rbf", "vgaoem", "ISO8859-1",
+            FONT_WEIGHT_REGULAR,
             FONT_SLANT_ROMAN, FONT_SETWIDTH_NORMAL,
-            FONT_OTHER_AUTOSCALE, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE,      
-            8, 0); 
+            FONT_OTHER_AUTOSCALE, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE,
+            8, 0);
     old_font = SelectFont(HDC_SCREEN_SYS, font);
 
     FillBox(HDC_SCREEN_SYS, 0 ,0, RECTW(rcScr), RECTH(rcScr));
@@ -335,7 +335,7 @@ void splash_draw_framework (void)
 #endif
 
     SetBkMode(HDC_SCREEN_SYS, BM_TRANSPARENT);
-    DrawText(HDC_SCREEN_SYS, text, -1, &rc_text, DT_TOP | DT_RIGHT | DT_SINGLELINE); 
+    DrawText(HDC_SCREEN_SYS, text, -1, &rc_text, DT_TOP | DT_RIGHT | DT_SINGLELINE);
 
     SelectFont(HDC_SCREEN_SYS, old_font);
     DestroyLogFont(font);
@@ -360,9 +360,9 @@ void splash_progress (void)
         }
     }
 
-    FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_BAR_X, SPLASH_BAR_Y, 
+    FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_BAR_X, SPLASH_BAR_Y,
             0, 0, &g_bitmap_progressbar_bk);
-    FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_BAR_X+splash_bar_postion, SPLASH_BAR_Y, 
+    FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_BAR_X+splash_bar_postion, SPLASH_BAR_Y,
             0, 0, &g_bitmap_progressbar);
 }
 
@@ -584,7 +584,7 @@ void license_on_input(void)
     }
 }
 
-void license_on_timeout(void) 
+void license_on_timeout(void)
 {
     static unsigned int old_tick_count;
     unsigned int current_tick_count;
@@ -631,7 +631,7 @@ void license_get_processor_id (void) {
         fd = open(LICENSE_ENCRYPTED_CONST_STRING(path, sizeof(path)), O_RDWR);
         if (fd <= 0) {
             return;
-        } 
+        }
 
 #ifdef _WITH_TARGET_S3C6410
         SFR_offest = LICENSE_ENCRYPTED_CONST_INT(0x3CADA1AD /* 0x7E00F000 */);
@@ -644,7 +644,7 @@ void license_get_processor_id (void) {
         cpuid_offest = LICENSE_ENCRYPTED_CONST_INT(0xADADADE4 /* 0x000000B0 */);
 #endif
 
-        addr = mmap(NULL, (4<<10), PROT_READ, MAP_SHARED, fd, SFR_offest); 
+        addr = mmap(NULL, (4<<10), PROT_READ, MAP_SHARED, fd, SFR_offest);
 
 #if _WITH_TARGET_HI3560A
         g_license_processor_id = *(unsigned int*)(addr+cpuid_offest+12) << 24 |
