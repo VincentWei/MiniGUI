@@ -2239,7 +2239,6 @@ static void restore_dc_under_menu (TRACKMENUINFO* ptmi)
 #else /* not defined _MENU_SAVE_BOX */
 
 static inline int save_box_under_menu(TRACKMENUINFO* ptmi) { return 0; }
-static inline void delete_memdc_for_menu(TRACKMENUINFO* ptmi) {}
 
 static int mnuShowPopupMenu (PTRACKMENUINFO ptmi);
 static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite);
