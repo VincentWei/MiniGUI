@@ -2236,8 +2236,6 @@ static void restore_dc_under_menu (TRACKMENUINFO* ptmi)
     free (ptmi->savedbox.bmBits);
 }
 
-static inline void delete_memdc_for_menu (TRACKMENUINFO* ptmi) { }
-
 #else /* not defined _MENU_SAVE_BOX */
 
 static inline int save_box_under_menu(TRACKMENUINFO* ptmi) { return 0; }
