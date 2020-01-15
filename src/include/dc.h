@@ -626,10 +626,6 @@ leave_drawing:
 
 #endif // #if MGUI_BYTEORDER == MGUI_LIL_ENDIAN
 
-HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client);
-void ReleaseSecondarySubDC (HDC secondary_subdc);
-HDC CreateMemDCFromSurface (GAL_Surface* surface);
-
 static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
 {
     if (!(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
