@@ -3592,7 +3592,6 @@ void GUIAPI DeleteMemDC (HDC hdc)
 
     pmem_dc = dc_HDC2PDC(hdc);
 
-    pmem_dc->surface->refcount--;
     GAL_FreeSurface (pmem_dc->surface);
 
     if (pmem_dc->alpha_pixel_format)
