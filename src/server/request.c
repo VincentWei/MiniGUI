@@ -703,20 +703,21 @@ extern int clipboard_op (int cli, int clifd, void* buff, size_t len);
 #if IS_COMPOSITING_SCHEMA
 static int get_wp_surface (int cli, int clifd, void* buff, size_t len)
 {
-    size_t map_size;
+    SHAREDSURFINFO info;
 
     assert (__gal_fake_screen);
 
+    info.flags = __gal_fake_screen->flags;
     if (__gal_fake_screen->shared_header) {
-        map_size = sizeof (GAL_SharedSurfaceHeader);
-        map_size += __gal_fake_screen->shared_header->buf_size;
+        info.map_size = sizeof (GAL_SharedSurfaceHeader);
+        info.map_size += __gal_fake_screen->shared_header->buf_size;
 
-        return ServerSendReplyEx (clifd, &map_size, sizeof (size_t),
+        return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO),
                     __gal_fake_screen->shared_header->fd);
     }
     else {
-        map_size = 0;
-        return ServerSendReplyEx (clifd, &map_size, sizeof (size_t), -1);
+        info.map_size = 0;
+        return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), -1);
     }
 }
 #endif /* IS_COMPOSITING_SCHEMA */
