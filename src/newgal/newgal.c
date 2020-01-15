@@ -225,21 +225,20 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
     else {
         REQUEST req;
         int fd = -1;
-        size_t map_size;
+        SHAREDSURFINFO info;
 
         req.id = REQID_GETWPSURFACE;
         req.data = &fd;
         req.len_data = sizeof(int);
 
         if ((ClientRequestEx2 (&req, NULL, 0, -1,
-                &map_size, sizeof (size_t), &fd) < 0) || (fd < 0))
+                &info, sizeof (SHAREDSURFINFO), &fd) < 0) || (fd < 0))
             goto empty;
 
-        _DBG_PRINTF ("REQID_GETWPSURFACE: map_size: %lu, fd: %d\n", map_size, fd);
-        assert (map_size > 0);
-
-        wp_surf = GAL_AttachSharedRGBSurface (fd, map_size,
-            GAL_HWSURFACE, TRUE);
+        _DBG_PRINTF ("REQID_GETWPSURFACE: map_size (%lu), flags (0x%x), fd: %d\n",
+                    info.map_size, info.flags, fd);
+        wp_surf = GAL_AttachSharedRGBSurface (fd, info.map_size,
+            info.flags, TRUE);
         close (fd);
 
         return wp_surf;
