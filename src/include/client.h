@@ -114,6 +114,12 @@
  * (defined in /include/minigui.h).
  */
 
+/* Since 4.2.0 */
+typedef struct _SharedSurfInfo {
+    Uint32 flags;
+    size_t map_size;
+} SHAREDSURFINFO;
+
 typedef struct JoinLayerInfo
 {
     char layer_name [LEN_LAYER_NAME + 1];
@@ -199,7 +205,8 @@ typedef struct ZorderOpInfo
     int     location;
     char    caption[MAX_CAPTION_LEN + 1];
 #ifdef _MGSCHEMA_COMPOSITING
-    size_t  map_size;
+    Uint32  surf_flags;
+    size_t  surf_size;
 #endif
 } ZORDEROPINFO;
 
@@ -239,7 +246,7 @@ typedef struct _MLSHADOW_REPLY_SURFACE_CREATE {
     int ret_value;
     int shm_id_header;
     int surface_key;
-}MLSHADOW_REPLY_SURFACE_CREATE;
+} MLSHADOW_REPLY_SURFACE_CREATE;
 
 typedef struct _MLSHADOW_REPLY_SLAVE_GETINFO {
     BOOL ret_value;
@@ -250,7 +257,7 @@ typedef struct _MLSHADOW_REPLY_SLAVE_GETINFO {
     gal_pixel color_key;
     int alpha;
     int z_order;
-}MLSHADOW_REPLY_SLAVE_GETINFO;
+} MLSHADOW_REPLY_SLAVE_GETINFO;
 
 #endif
 
