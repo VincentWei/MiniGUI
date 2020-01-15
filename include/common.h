@@ -844,7 +844,7 @@ typedef UINT_PTR LPARAM;
 #define MAKELONG(low, high) ((DWORD)(((WORD)(low)) | (((DWORD)((WORD)(high))) << NR_BITS_WORD)))
 
 /**
- * \var typedef DWORD RGBCOLOR
+ * \var typedef DWORD32 RGBCOLOR
  * \brief A type definition for a RGB color.
  */
 typedef DWORD32 RGBCOLOR;
