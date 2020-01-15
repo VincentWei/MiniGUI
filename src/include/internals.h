@@ -632,7 +632,11 @@ BOOL gui_LoadIconRes(HDC hdc, const char* rdr_name, char* file);
 void gui_WndRect(HWND hWnd, PRECT prc);
 void gui_WndClientRect(HWND hWnd, PRECT prc);
 
-/* -------------------------------------------------------------------------- */
+/* Move from dc.h */
+HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client);
+void ReleaseSecondarySubDC (HDC secondary_subdc);
+HDC CreateMemDCFromSurface (struct GAL_Surface* surface);
+struct GAL_Surface* GetSurfaceFromDC (HDC hdc);
 
 /* Since 4.2.0 */
 #ifdef _MGRM_PROCESSES
