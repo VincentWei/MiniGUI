@@ -73,11 +73,12 @@ typedef MASKRECT* PMASKRECT;
 #define ZOF_DISABLED            0x00000004
 
 /* Since 4.2.0 */
-#define ZOF_LUCENCY_MASK        0x000000F0
-#define ZOF_LT_OPAQUE           0x00000000
-#define ZOF_LT_ALPHACHANNEL     0x00000010
-#define ZOF_LT_BLURRED          0x00000030
-#define ZOF_LT_ALPHAPIXEL       0x00000020
+#define ZOF_COMPOSITING_MASK    0x000000F0
+#define ZOF_COMPOS_OPAQUE       0x00000000
+#define ZOF_COMPOS_COLORKEY     0x00000010
+#define ZOF_COMPOS_ALPHACHANNEL 0x00000020
+#define ZOF_COMPOS_ALPHAPIXEL   0x00000030
+#define ZOF_COMPOS_BLURRED      0x00000040
 
 /* Since 4.2.0; The alpha channel value or the radius of blur in pixels */
 #define ZOF_ALPHA_BLUR_MASK     0x0000FF00
