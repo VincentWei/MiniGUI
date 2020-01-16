@@ -723,6 +723,7 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     znode_info->main_win = nodes [idx_znode].main_win;
 #ifdef _MGSCHEMA_COMPOSITING
     znode_info->mem_dc = nodes [idx_znode].mem_dc;
+    znode_info->ct_arg = nodes [idx_znode].ct_arg;
 #endif
 
     return TRUE;
