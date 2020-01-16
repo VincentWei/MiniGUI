@@ -652,13 +652,13 @@ BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
     REQUEST req;
 
     if (mgIsServer)
-        return ret;
+        return FALSE;
 
     if (!handle_name && name == NULL)
-        return ret;
+        return FALSE;
 
     if (handle_name && handle == INV_LAYER_HANDLE)
-        return ret;
+        return FALSE;
 
     info.id_op = ID_LAYEROP_SETTOP;
     info.handle_name = handle_name;
@@ -689,13 +689,13 @@ BOOL GUIAPI DeleteLayer (BOOL handle_name,
     REQUEST req;
 
     if (mgIsServer)
-        return ret;
+        return FALSE;
 
     if (!handle_name && name == NULL)
-        return ret;
+        return FALSE;
 
     if (handle_name && handle == INV_LAYER_HANDLE)
-        return ret;
+        return FALSE;
 
     info.id_op = ID_LAYEROP_DELETE;
     info.handle_name = handle_name;
@@ -716,5 +716,68 @@ BOOL GUIAPI DeleteLayer (BOOL handle_name,
         ret = FALSE;
 
     return ret;
+}
+
+/* Since 4.2.0 */
+BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
+{
+    if (layer_handle != INV_LAYER_HANDLE) {
+        ZORDERINFO* zi;
+
+        __mg_layer = INV_LAYER_HANDLE;
+        __mg_zorder_info = NULL;
+
+        if (shmdt (__mg_zorder_info) < 0) {
+            _ERR_PRINTF ("Failed to detach from the shared zorder info: %m\n");
+            return FALSE;
+        }
+
+        zi  = (ZORDERINFO*) shmat (zi_shmid, 0, SHM_RDONLY);
+        if (zi == (void*)-1) {
+            _ERR_PRINTF ("Failed to attach to the shared zorder info: %m\n");
+            return FALSE;
+        }
+
+        __mg_layer = layer_handle;
+        __mg_zorder_info = zi;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/* Since 4.2.0 */
+BOOL GUIAPI MoveToLayer (BOOL handle_name, GHANDLE handle, const char* name)
+{
+    MOVETOLAYERINFO info;
+    MOVEDCLIENTINFO moved_info;
+    REQUEST req;
+
+    if (mgIsServer)
+        return FALSE;
+
+    if (!handle_name && name == NULL)
+        return FALSE;
+
+    if (handle_name && handle == INV_LAYER_HANDLE)
+        return FALSE;
+
+    info.handle_name = handle_name;
+    if (handle_name) {
+        info.layer.handle = handle;
+    }
+    else {
+        strncpy (info.layer.name, name, LEN_LAYER_NAME);
+        info.layer.name [LEN_LAYER_NAME] = '\0';
+    }
+
+    req.id = REQID_MOVETOLAYER;
+    req.data = &info;
+    req.len_data = sizeof (MOVETOLAYERINFO);
+
+    if (ClientRequest (&req, &moved_info, sizeof (MOVEDCLIENTINFO)) < 0)
+        return FALSE;
+
+    return __mg_client_on_layer_changed (moved_info.layer, moved_info.zo_shmid);
 }
 
