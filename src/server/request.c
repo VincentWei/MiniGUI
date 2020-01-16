@@ -279,6 +279,36 @@ ret:
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
 }
 
+static int move_to_layer (int cli, int clifd, void* buff, size_t len)
+{
+    MOVETOLAYERINFO* info = (MOVETOLAYERINFO*)buff;
+    MOVEDCLIENTINFO moved_info = { INV_LAYER_HANDLE };
+    MG_Layer* dst_layer;
+
+    if (!info->handle_name) {
+        if (info->layer.name[0] == '\0')
+            dst_layer = mgClients [cli].layer;
+        else
+            dst_layer = __mg_find_layer_by_name (info->layer.name);
+    }
+    else
+        dst_layer = (MG_Layer*)info->layer.handle;
+
+    if (dst_layer == NULL)
+        goto ret;
+
+    if (!__mg_is_valid_layer (dst_layer))
+        goto ret;
+
+    if (__mg_move_client_to_layer (mgClients + cli, dst_layer)) {
+        moved_info.layer = dst_layer;
+        moved_info.zo_shmid = dst_layer->zorder_shmid;
+    }
+
+ret:
+    return ServerSendReply (clifd, &moved_info, sizeof (MOVEDCLIENTINFO));
+}
+
 #endif /* IS_COMPOSITING_SCHEMA */
 
 static int create_cursor (int cli, int clifd, void* buff, size_t len)
@@ -461,8 +491,7 @@ static int layer_op (int cli, int clifd, void* buff, size_t len)
             break;
 
         case ID_LAYEROP_SETTOP:
-            ServerSetTopmostLayer (layer);
-            ret_value = TRUE;
+            ret_value = ServerSetTopmostLayer (layer);
             break;
     }
 
@@ -783,6 +812,7 @@ static struct req_request {
     { NULL, 0 },
     { NULL, 0 },
 #endif
+    { move_to_layer, 0 },
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
