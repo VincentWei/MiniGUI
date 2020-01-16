@@ -189,6 +189,29 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     __mg_slot_set_use ((unsigned char*)(zi + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
+    /* Since 4.2.0; init null znode for other fixed main windows */
+    if (sg_nr_layers == 0) {
+        int i;
+        int fixed_ztypes [] = {
+            ZOF_TYPE_SCREENLOCK, ZOF_TYPE_DOCKER, ZOF_TYPE_LAUNCHER };
+
+        for (i = 0; i < TABLESIZE (fixed_ztypes); i++) {
+            znodes [i + ZNIDX_SCREENLOCK].flags = fixed_ztypes [i];
+            znodes [i + ZNIDX_SCREENLOCK].age = 0;
+            znodes [i + ZNIDX_SCREENLOCK].cli = -1;
+            znodes [i + ZNIDX_SCREENLOCK].hwnd = HWND_NULL;
+            znodes [i + ZNIDX_SCREENLOCK].next = 0;
+            znodes [i + ZNIDX_SCREENLOCK].prev = 0;
+            znodes [i + ZNIDX_SCREENLOCK].idx_mask_rect = 0;
+
+            SetRectEmpty (&znodes [i + ZNIDX_SCREENLOCK].rc);
+        }
+    }
+
+    __mg_slot_set_use ((unsigned char*)(zi + 1), ZNIDX_SCREENLOCK);
+    __mg_slot_set_use ((unsigned char*)(zi + 1), ZNIDX_DOCKER);
+    __mg_slot_set_use ((unsigned char*)(zi + 1), ZNIDX_LAUNCHER);
+
     sg_nr_layers ++;
     return TRUE;
 }
@@ -506,7 +529,7 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
         return FALSE;
 
     if (layer == mgTopmostLayer)
-        return FALSE;
+        return TRUE;        // return TRUE for already topmost layer
 
     if (mgTopmostLayer && mgTopmostLayer->cli_head)
         IsPaint = 1;
@@ -772,5 +795,30 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
     __mg_do_zorder_operation (nodes[idx_znode].cli, &info, -1);
 
     return TRUE;
+}
+
+/* Since 4.2.0 */
+BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer)
+{
+    MG_Client* client = mgClients + cli;
+
+    if (!mgIsServer)
+        return FALSE;
+
+    if (client->layer == dst_layer) {
+        return TRUE;
+    }
+
+    if (__mg_move_client_to_layer (client, dst_layer)) {
+        MSG msg = { HWND_DESKTOP,
+                MSG_LAYERCHANGED, (WPARAM)dst_layer,
+                (LPARAM)dst_layer->zorder_shmid, __mg_timer_counter };
+
+        __mg_send2client (&msg, client);
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
