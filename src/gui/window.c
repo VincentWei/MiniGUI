@@ -3587,10 +3587,10 @@ static void ResetMenuSize (HWND hwnd)
     /** font size of renderer */
     int font_size;
 
-    /** min menu size of renderer*/
+    /** min menu size of renderer */
     int menu_height_min;
 
-    /** expect menu size of renderer*/
+    /** expect menu size of renderer */
     int menu_height_expect;
 
     font_size = ((PLOGFONT)GetWindowElementAttr (hwnd, WE_FONT_MENU))->size;
