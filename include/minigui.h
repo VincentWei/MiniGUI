@@ -586,16 +586,16 @@ MG_EXPORT GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
                 int* nr_clients, BOOL* is_topmost, int* cli_active);
 
 /**
- * \fn BOOL GUIAPI SetTopmostLayer (BOOL handle_name,\
- *                 GHANDLE handle, const char* name)
+ * \fn BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
+ *                 GHANDLE layer_handle, const char* layer_name)
  * \brief Brings a layer to be the topmost one.
  *
  * This function brings the specified layer \a handle to be the topmost layer.
  *
  * \param handle_name The way specifing the layer; TRUE for handle of
  *        the layer, FALSE for name.
- * \param handle The handle to the layer.
- * \param name The name of the layer. You can use NAME_SELF_LAYER to
+ * \param layer_handle The handle to the layer.
+ * \param layer_name The name of the layer. You can use NAME_SELF_LAYER to
  *        specify the layer to which the calling client belongs.
  *
  * \return TRUE on success, otherwise FALSE.
@@ -603,16 +603,16 @@ MG_EXPORT GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
  * \note Only call this function in clients of MiniGUI-Processes.
  */
 MG_EXPORT BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
-                GHANDLE handle, const char* name);
+                GHANDLE layer_handle, const char* layer_name);
 
 /**
- * \fn BOOL GUIAPI DeleteLayer (BOOL handle_name,\
-                        GHANDLE handle, const char* layer_name)
+ * \fn BOOL GUIAPI DeleteLayer (BOOL handle_name,
+                        GHANDLE layer_handle, const char* layer_name)
  * \brief Deletes a specific layer.
  *
  * \param handle_name The way specifing the layer; TRUE for handle of
  *        the layer, FALSE for name.
- * \param handle The handle to the layer.
+ * \param layer_handle The handle to the layer.
  * \param layer_name The name of the layer. You can use NAME_SELF_LAYER to
  *        specify the layer to which the calling client belongs.
  *
@@ -623,7 +623,33 @@ MG_EXPORT BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
  * \sa JoinLayer
  */
 MG_EXPORT BOOL GUIAPI DeleteLayer (BOOL handle_name,
-                        GHANDLE handle, const char* layer_name);
+                        GHANDLE layer_handle, const char* layer_name);
+
+/**
+ * \fn BOOL GUIAPI MoveToLayer (BOOL handle_name,
+                        GHANDLE layer_handle, const char* layer_name)
+ * \brief Move current client to the specified layer.
+ *
+ * This function moves the current client to other layer specified
+ * \a handle or \a layer_name.
+ *
+ * \param handle_name The way specifing the layer; TRUE for handle of
+ *        the layer, FALSE for name.
+ * \param layer_handle The handle to the layer.
+ * \param layer_name The name of the layer.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \note The client which created a fixed main window
+ * (a main window acts as the screen lock, the docker, or the launcher) will
+ * be moved to the topmost layer automatically.
+ *
+ * \sa ServerMoveClientToLayer
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT BOOL GUIAPI MoveToLayer (BOOL handle_name,
+                        GHANDLE layer_handle, const char* layer_name);
 
     /** @} end of lite_layer_fns */
 
@@ -910,7 +936,7 @@ MG_EXPORT MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
  * \fn BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
  * \brief Sets topmost layer from the server.
  *
- * This functions sets the specified layer \a layer to be the topmost layer.
+ * This function sets the specified layer \a layer to be the topmost layer.
  *
  * \param layer The pointer to the layer.
  *
@@ -926,7 +952,7 @@ MG_EXPORT BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer);
  * \fn BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer)
  * \brief Delete a layer from the server.
  *
- * This functions deletes the specified layer \a layer.
+ * This function deletes the specified layer \a layer.
  *
  * \param layer The pointer to the layer.
  *
@@ -943,7 +969,7 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
  *              int* cli)
  * \brief Get the next z-node in the specified layer from the server.
  *
- * This functions gets the next z-node in the specified layer \a layer from
+ * This function gets the next z-node in the specified layer \a layer from
  * the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
@@ -1051,7 +1077,7 @@ typedef struct _ZNODEINFO {
  *              ZNODEINFO* znode_info)
  * \brief Get the z-node information in the specified layer from the server.
  *
- * This functions gets the z-node information in the specified layer \a layer
+ * This function gets the z-node information in the specified layer \a layer
  * from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
@@ -1074,7 +1100,7 @@ MG_EXPORT BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
  * \brief Does an operation on the z-node in the specified layer
  *        from the server.
  *
- * This functions does an operation upon the z-node in the specified
+ * This function does an operation upon the z-node in the specified
  * layer \a layer from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
@@ -1102,6 +1128,28 @@ MG_EXPORT BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
  */
 MG_EXPORT BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode,
                 int op_code, void* op_data, BOOL notify);
+
+/**
+ * \fn BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer)
+ * \brief Move a client to the specified layer.
+ *
+ * This function moves a client specified by \a cli to other layer specified
+ * \a dst_layer. 
+ *
+ * \param cli The identifier of the client.
+ * \param dst_layer The pointer to the destination layer.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \note Server-only function. The client which created a fixed main window
+ * (a main window acts as the screen lock, the docker, or the launcher) will
+ * be moved to the topmost layer automatically.
+ *
+ * \sa MoveToLayer
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer);
 
 /**
  * \fn int GUIAPI GetClientByPID (int pid)
