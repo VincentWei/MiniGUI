@@ -261,7 +261,6 @@ static int maxi;
 BOOL GUIAPI ServerStartup (int nr_globals,
                 int def_nr_topmosts, int def_nr_normals)
 {
-
     if (!mgIsServer)
         return FALSE;
 
