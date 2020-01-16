@@ -1621,8 +1621,30 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
     return 0;
 }
 
+#ifdef _MGSCHEMA_COMPOSITING
+static inline DWORD compositing_type_to_flag (int type)
+{
+    switch (type) {
+    case CT_OPAQUE:
+    default:
+        return ZOF_COMPOS_OPAQUE;
+    case CT_COLORKEY:
+        return ZOF_COMPOS_COLORKEY;
+    case CT_ALPHACHANNEL:
+        return ZOF_COMPOS_ALPHACHANNEL;
+    case CT_ALPHAPIXEL:
+        return ZOF_COMPOS_ALPHAPIXEL;
+    case CT_BLURRED:
+        return ZOF_COMPOS_BLURRED;
+    }
+
+    return ZOF_COMPOS_OPAQUE;
+}
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
 static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
-                DWORD flags, const RECT *rc, const char *caption, HDC mem_dc)
+                DWORD flags, const RECT *rc, const char *caption,
+                HDC mem_dc, int ct, DWORD ct_arg)
 {
     DWORD type = flags & ZOF_TYPE_MASK;
     ZORDERINFO* zi = _get_zorder_info(cli);
@@ -1700,6 +1722,8 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].main_win = main_win;
 #ifdef _MGSCHEMA_COMPOSITING
     nodes [free_slot].mem_dc = mem_dc;
+    nodes [free_slot].flags |= compositing_type_to_flag(ct);
+    nodes [free_slot].ct_arg = ct_arg;
 #endif
     nodes [free_slot].idx_mask_rect = 0;
 
@@ -2288,25 +2312,6 @@ void __mg_screensaver_destroy(void)
 #endif /* defined _MG_ENABLE_SCREENSAVER */
 
 #ifdef _MGSCHEMA_COMPOSITING
-static inline DWORD compositing_type_to_flag (int type)
-{
-    switch (type) {
-    case CT_OPAQUE:
-    default:
-        return ZOF_COMPOS_OPAQUE;
-    case CT_COLORKEY:
-        return ZOF_COMPOS_COLORKEY;
-    case CT_ALPHACHANNEL:
-        return ZOF_COMPOS_ALPHACHANNEL;
-    case CT_ALPHAPIXEL:
-        return ZOF_COMPOS_ALPHAPIXEL;
-    case CT_BLURRED:
-        return ZOF_COMPOS_BLURRED;
-    }
-
-    return ZOF_COMPOS_OPAQUE;
-}
-
 /* Since 4.2.0 */
 static int dskSetZNodeCompositing (int cli, int idx_znode, int ct, DWORD ct_arg)
 {

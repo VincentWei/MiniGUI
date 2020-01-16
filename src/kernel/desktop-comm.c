@@ -190,9 +190,10 @@ static int dskAllocZOrderNode (PMAINWIN pWin)
     dskGetWindowRectInScreen (pWin, &rc);
 
     return AllocZOrderNode (0, (HWND)pWin,
-                    (HWND)pWin->pMainWin,
-                    get_znode_flags_from_style (pWin),
-                    &rc, pWin->spCaption, HDC_INVALID);
+                (HWND)pWin->pMainWin,
+                get_znode_flags_from_style (pWin),
+                &rc, pWin->spCaption, HDC_INVALID,
+                CT_OPAQUE, 0);
 }
 
 /*

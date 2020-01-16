@@ -3605,10 +3605,11 @@ static void ResetMenuSize (HWND hwnd)
 
 HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-        int compos_type, DWORD ct_arg,
+        int ct, DWORD ct_arg,
         const char* window_name, const char* layer_name)
 {
     PMAINWIN pWin;
+    COMPOSITINGINFO ct_info = { ct, ct_arg };
 
     if (pCreateInfo == NULL) {
         return HWND_INVALID;
@@ -3788,7 +3789,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     pWin->pGCRInfo = &pWin->GCRInfo;
 #endif
 
-    if (SendMessage (HWND_DESKTOP, MSG_ADDNEWMAINWIN, (WPARAM) pWin, 0) < 0)
+    if (SendMessage (HWND_DESKTOP, MSG_ADDNEWMAINWIN,
+            (WPARAM)pWin, (LPARAM)&ct_info) < 0)
         goto err;
 
     /* houhh20081127, Move these code into dskAddNewMainWindow().*/

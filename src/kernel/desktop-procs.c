@@ -322,7 +322,7 @@ void __mg_start_client_desktop (void)
     SendMessage (HWND_DESKTOP, MSG_STARTSESSION, 0, 0);
 }
 
-static intptr_t cliAllocZOrderNode (PMAINWIN pWin)
+static intptr_t cliAllocZOrderNode (PMAINWIN pWin, const COMPOSITINGINFO* ct_info)
 {
     intptr_t ret;
     REQUEST req;
@@ -354,6 +354,15 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin)
     info.surf_flags = pWin->surf->flags;
     info.surf_size = pWin->surf->shared_header->buf_size;
     info.surf_size += sizeof (*pWin->surf->shared_header);
+
+    if (ct_info) {
+        info.ct = ct_info->type;
+        info.ct_arg = ct_info->arg;
+    }
+    else {
+        info.ct = CT_OPAQUE;
+        info.ct_arg = 0;
+    }
     if (ClientRequestEx2 (&req, NULL, 0, pWin->surf->shared_header->fd,
             &ret, sizeof (intptr_t), NULL) < 0)
         return -1;
@@ -786,7 +795,8 @@ ON_ZNODE_OPERATION OnZNodeOperation;
 
 static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
-                Uint32 surf_flags, size_t surf_size, int fd)
+                Uint32 surf_flags, size_t surf_size, int fd,
+                int ct, DWORD ct_arg)
 {
     int free_slot;
     HDC memdc = HDC_INVALID;
@@ -825,7 +835,7 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 #endif /* def _MGSCHEMA_COMPOSITING */
 
     free_slot = AllocZOrderNode (cli, hwnd,
-                    main_win, flags, rc, caption, memdc);
+                    main_win, flags, rc, caption, memdc, ct, ct_arg);
 
     if ((free_slot != -1) && OnZNodeOperation)
         OnZNodeOperation (ZNOP_ALLOCATE, cli, free_slot);
@@ -1202,7 +1212,13 @@ static inline int srvSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
 static inline int srvSetZNodeCompositing (int cli, int idx_znode,
         int type, DWORD arg)
 {
-    return dskSetZNodeCompositing (cli, idx_znode, type, arg);
+    int ret;
+
+    ret = dskSetZNodeCompositing (cli, idx_znode, type, arg);
+    if (ret == 0 && OnZNodeOperation)
+        OnZNodeOperation (ZNOP_COMPOSITINGCHANGED, cli, idx_znode);
+
+    return ret;
 }
 #endif /* _MGSCHEMA_COMPOSITING */
 
@@ -1233,11 +1249,12 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
 #ifdef _MGSCHEMA_COMPOSITING
             ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
                         info->flags, &info->rc, info->caption,
-                        info->surf_flags, info->surf_size, fd);
+                        info->surf_flags, info->surf_size, fd,
+                        info->ct, info->ct_arg);
 #else
             ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
                         info->flags, &info->rc, info->caption,
-                        0, 0, fd);
+                        0, 0, fd, CT_OPAQUE, 0);
 #endif
             break;
         case ID_ZOOP_FREE:
@@ -1591,7 +1608,7 @@ static HWND dskSetActiveWindow (PMAINWIN pWin)
  *
  * Return 0 if OK, else -1;
  */
-static int dskAddNewMainWindow (PMAINWIN pWin)
+static int dskAddNewMainWindow (PMAINWIN pWin, const COMPOSITINGINFO* ct_info)
 {
     RECT rcWin;
 
@@ -1599,10 +1616,11 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         memcpy (&rcWin, &pWin->left, sizeof (RECT));
         pWin->idx_znode = srvAllocZOrderNode (0, (HWND)pWin, (HWND)pWin->pMainWin,
                               get_znode_flags_from_style (pWin),
-                              &rcWin, pWin->spCaption, 0, 0, -1);
+                              &rcWin, pWin->spCaption, 0, 0, -1,
+                              ct_info->type, ct_info->arg);
     }
     else
-        pWin->idx_znode = cliAllocZOrderNode (pWin);
+        pWin->idx_znode = cliAllocZOrderNode (pWin, ct_info);
 
     if (pWin->idx_znode <= 0)
         return -1;
@@ -2295,7 +2313,7 @@ static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lPar
 {
     switch (message) {
         case MSG_ADDNEWMAINWIN:
-            return dskAddNewMainWindow (pWin);
+            return dskAddNewMainWindow (pWin, (const COMPOSITINGINFO *)lParam);
 
         case MSG_REMOVEMAINWIN:
             dskRemoveMainWindow (pWin);
@@ -2984,9 +3002,9 @@ static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
             pNewCtrl->idx_znode = srvAllocZOrderNode (0,
                             (HWND)pNewCtrl, (HWND)pNewCtrl->pMainWin,
                             get_znode_flags_from_style ((PMAINWIN)pNewCtrl),
-                            &rcWin, pNewCtrl->spCaption, 0, 0, -1);
+                            &rcWin, pNewCtrl->spCaption, 0, 0, -1, CT_OPAQUE, 0);
         else
-            pNewCtrl->idx_znode = cliAllocZOrderNode ((PMAINWIN)pNewCtrl);
+            pNewCtrl->idx_znode = cliAllocZOrderNode ((PMAINWIN)pNewCtrl, NULL);
 
         if (pNewCtrl->idx_znode <= 0)
             return -1;

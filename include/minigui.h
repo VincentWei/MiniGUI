@@ -735,6 +735,7 @@ typedef void (* ON_CHANGE_LAYER) (int op, MG_Layer* layer,
 #define ZNOP_STARTDRAG           13
 #define ZNOP_CANCELDRAG          14
 #define ZNOP_CHANGECAPTION       15
+#define ZNOP_COMPOSITINGCHANGED  16
 
 /**
  * \var typedef void (* ON_ZNODE_OPERATION) (int op, int cli, int idx_znode)
@@ -832,6 +833,8 @@ extern MG_EXPORT ON_CHANGE_LAYER OnChangeLayer;
  *    Cancel to drag the z-node.
  *  - ZNOP_CHANGECAPTION\n
  *    The caption of the z-node has changed.
+ *  - ZNOP_COMPOSITINGCHANGED\n
+ *    The compositing type or the argument of the z-node has changed.
  *
  * The event will be passed through the argument of \a op; the
  * pointers to the layer, the identifier of the client, and the index of
