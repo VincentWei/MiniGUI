@@ -108,6 +108,9 @@
 // Load cursor from in-memory PNG
 #define REQID_LOADCURSOR_PNG_MEM    0x001E
 
+// Move the current client to another layer
+#define REQID_MOVETOLAYER           0x001F
+
 /*
  * XXX: To fellows who need to add a new REQID,
  * please make sure your new ID _less_ than MAX_SYS_REQID
@@ -120,8 +123,7 @@ typedef struct _SharedSurfInfo {
     size_t map_size;
 } SHAREDSURFINFO;
 
-typedef struct JoinLayerInfo
-{
+typedef struct JoinLayerInfo {
     char layer_name [LEN_LAYER_NAME + 1];
     char client_name [LEN_CLIENT_NAME + 1];
 
@@ -129,12 +131,9 @@ typedef struct JoinLayerInfo
     int max_nr_normals;
 } JOINLAYERINFO;
 
-typedef struct JoinedClientInfo
-{
+typedef struct JoinedClientInfo {
     GHANDLE layer;
-
     int cli_id;
-
     int zo_shmid;
 } JOINEDCLIENTINFO;
 
@@ -157,6 +156,20 @@ typedef struct LayerOpInfo {
         char name [LEN_LAYER_NAME + 1];
     } layer;
 } LAYEROPINFO;
+
+/* Since 4.2.0 */
+typedef struct _MoveToLayerInfo {
+    BOOL handle_name;   /* specify the layer by handle or name */
+    union {
+        GHANDLE handle;
+        char name [LEN_LAYER_NAME + 1];
+    } layer;
+} MOVETOLAYERINFO;
+
+typedef struct _MovedClientInfo {
+    GHANDLE layer;
+    int zo_shmid;
+} MOVEDCLIENTINFO;
 
 #define ID_ZOOP_ALLOC               1
 #define ID_ZOOP_FREE                2
@@ -312,6 +325,7 @@ void __mg_start_client_desktop (void);
 void __mg_update_window (HWND hwnd, int left, int top, int right, int bottom);
 
 BOOL __mg_client_check_hwnd (HWND hwnd, int cli);
+BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid);
 
 #ifdef __cplusplus
 }
