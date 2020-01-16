@@ -2864,9 +2864,11 @@ typedef struct _DRAGINFO {
  */
 #define MSG_SRVNOTIFY       0x0147
 
-#ifdef _MGRM_PROCESSES
-    #define MSG_UPDATECLIWIN    0x0148
-#endif
+#define MSG_UPDATECLIWIN    0x0148
+
+/* Since 4.2.0; the server send this message to the client
+   if the client moved to a new layer */
+#define MSG_LAYERCHANGED    0x0149
 
 #endif /* !_MGRM_THREADS */
 
