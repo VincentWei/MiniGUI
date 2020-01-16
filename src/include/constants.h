@@ -69,8 +69,8 @@
 #   define IS_SHAREDFB_SCHEMA       0
 #endif
 
-/* constants for z-order nodes */
-#define MAX_NR_LAYERS               16
+/* constants for layers and z-order nodes */
+#define MAX_NR_LAYERS               8
 
 #ifdef _MGRM_PROCESSES
 #   define DEF_NR_GLOBALS           16

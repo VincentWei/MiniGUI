@@ -54,11 +54,11 @@
 
 #include "constants.h"
 
-/* Since 4.2.0 */
-#define ZNODE_IDX_DESKTOP       0
-#define ZNODE_IDX_SCREENLOCK    1
-#define ZNODE_IDX_DOCKER        2
-#define ZNODE_IDX_LAUNCHER      3
+/* Since 4.2.0; the fixed znode index for special main window */
+#define ZNIDX_DESKTOP           0
+#define ZNIDX_SCREENLOCK        1
+#define ZNIDX_DOCKER            2
+#define ZNIDX_LAUNCHER          3
 
 typedef struct _RECT4MASK {
     unsigned short left, top, right, bottom;

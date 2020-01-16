@@ -1042,7 +1042,7 @@ typedef struct _ZNODEINFO {
      * The compositing argument for this znode.
      * For more information, see \a SetMainWindowCompositing.
      */
-    DWORD           cmps_arg;
+    DWORD           ct_arg;
 #endif
 } ZNODEINFO;
 
