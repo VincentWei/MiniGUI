@@ -109,6 +109,8 @@ int __mg_do_drag_drop_window (int msg, int x, int y);
 
 void __mg_check_dirty_znode (int cli);
 
+BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* layer);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
