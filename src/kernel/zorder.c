@@ -178,7 +178,7 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     znodes [0].rc = g_rcScr;
     znodes [0].age = 0;
     znodes [0].cli = 0;
-    znodes [0].fortestinghwnd = HWND_DESKTOP;
+    znodes [0].hwnd = HWND_DESKTOP;
     znodes [0].next = 0;
     znodes [0].prev = 0;
     znodes [0].idx_mask_rect = 0;
@@ -302,7 +302,7 @@ ZORDERINFO* kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     znodes [0].rc = g_rcScr;
     znodes [0].age = 0;
     znodes [0].cli = 0;
-    znodes [0].fortestinghwnd = HWND_DESKTOP;
+    znodes [0].hwnd = HWND_DESKTOP;
     znodes [0].next = 0;
     znodes [0].prev = 0;
     znodes [0].idx_mask_rect = 0;

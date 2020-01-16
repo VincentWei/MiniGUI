@@ -795,8 +795,8 @@ static BOOL _cb_update_cli_znode (void* context,
     RECT rcScr = GetScreenRect ();
     int cli = (int)(intptr_t)context;
 
-    if (znode->cli == cli && znode->flags & ZOF_VISIBLE && znode->fortestinghwnd) {
-       MSG msg = {znode->fortestinghwnd, MSG_UPDATECLIWIN, 0, 0, __mg_timer_counter};
+    if (znode->cli == cli && znode->flags & ZOF_VISIBLE && znode->hwnd) {
+       MSG msg = {znode->hwnd, MSG_UPDATECLIWIN, 0, 0, __mg_timer_counter};
 
         if (!IsRectEmpty(&(znode->dirty_rc))) {
 
@@ -940,7 +940,7 @@ static int srvStartDragWindow (int cli, int idx_znode,
 
     _dd_info.cli = cli;
     _dd_info.idx_znode = idx_znode;
-    _dd_info.hwnd = nodes [idx_znode].fortestinghwnd;
+    _dd_info.hwnd = nodes [idx_znode].hwnd;
     _dd_info.zi = zi;
     _dd_info.rc = nodes [idx_znode].rc;
 
@@ -1257,7 +1257,7 @@ static BOOL _cb_intersect_rc_no_cli (void* context,
                     //SubtractClipRect (&sg_UpdateRgn, &node->rc)) {
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, node)) {
         node->age ++;
-        node->flags |= ZOF_REFERENCE;
+        node->flags |= ZOF_IF_REFERENCE;
         return TRUE;
     }
 
@@ -1273,7 +1273,7 @@ static BOOL _cb_update_rc_nocli (void* context,
                     //SubtractClipRect (&sg_UpdateRgn, &node->rc)) {
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, node)) {
         node->age ++;
-        node->flags |= ZOF_REFERENCE;
+        node->flags |= ZOF_IF_REFERENCE;
         return TRUE;
     }
 
@@ -1310,7 +1310,7 @@ int __mg_remove_all_znodes_of_client (int cli)
 
         if (SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
             nodes [0].age ++;
-            nodes [0].flags |= ZOF_REFERENCE;
+            nodes [0].flags |= ZOF_IF_REFERENCE;
         }
 
         zi->cli_trackmenu = -1;
@@ -1339,17 +1339,17 @@ int __mg_remove_all_znodes_of_client (int cli)
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
 
                         nodes [slot2].age ++;
-                        nodes [slot2].flags |= ZOF_REFERENCE;
+                        nodes [slot2].flags |= ZOF_IF_REFERENCE;
                     }
                 }
 
                 do_for_all_znodes (nodes + slot, zi,
                                 _cb_intersect_rc_no_cli, ZT_NORMAL);
 
-                if (!(nodes [0].flags & ZOF_REFERENCE) &&
+                if (!(nodes [0].flags & ZOF_IF_REFERENCE) &&
                                 SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
                     nodes [0].age ++;
-                    nodes [0].flags |= ZOF_REFERENCE;
+                    nodes [0].flags |= ZOF_IF_REFERENCE;
                 }
             }
 
@@ -1379,13 +1379,13 @@ int __mg_remove_all_znodes_of_client (int cli)
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
 
                         nodes [slot2].age ++;
-                        nodes [slot2].flags |= ZOF_REFERENCE;
+                        nodes [slot2].flags |= ZOF_IF_REFERENCE;
                     }
                 }
-                if (!(nodes [0].flags & ZOF_REFERENCE) &&
+                if (!(nodes [0].flags & ZOF_IF_REFERENCE) &&
                         SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
                     nodes [0].age ++;
-                    nodes [0].flags |= ZOF_REFERENCE;
+                    nodes [0].flags |= ZOF_IF_REFERENCE;
                 }
             }
 
@@ -1409,10 +1409,10 @@ int __mg_remove_all_znodes_of_client (int cli)
     /* update all znode if it's dirty */
     do_for_all_znodes (&rc_bound, zi, _cb_update_znode, ZT_ALL);
 
-    if (nodes [0].flags & ZOF_REFERENCE) {
+    if (nodes [0].flags & ZOF_IF_REFERENCE) {
         SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (WPARAM)&rc_bound);
-        nodes [0].flags &= ~ZOF_REFERENCE;
+        nodes [0].flags &= ~ZOF_IF_REFERENCE;
     }
 
     /* if active_win belongs to the client, change it */
@@ -1481,7 +1481,7 @@ static HWND dskGetActiveWindow (int* cli)
     if (__mg_zorder_info->active_win) {
         active_cli = nodes [__mg_zorder_info->active_win].cli;
         if (active_cli == __mg_client_id)
-            active = nodes [__mg_zorder_info->active_win].fortestinghwnd;
+            active = nodes [__mg_zorder_info->active_win].hwnd;
         else
             active = HWND_OTHERPROC;
 
@@ -1649,7 +1649,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
 
         if (nodes [first].cli == __mg_client_id) {
             RECT rc = nodes [first].rc;
-            PMAINWIN pCurTop = (PMAINWIN) nodes [first].fortestinghwnd;
+            PMAINWIN pCurTop = (PMAINWIN) nodes [first].hwnd;
 
             pCurTop->dwStyle &= ~WS_VISIBLE;
             cliHideWindow (pCurTop);
@@ -2123,7 +2123,7 @@ static HWND dskGetNextMainWindow (PMAINWIN pWin)
             }
         }
 
-        hWnd = nodes[slot].fortestinghwnd;
+        hWnd = nodes[slot].hwnd;
 
         if (0
                 || !hWnd
@@ -2369,14 +2369,14 @@ BOOL __mg_client_check_hwnd (HWND hwnd, int cli)
 
     slot = zi->first_topmost;
     for (; slot > 0; slot = nodes [slot].next) {
-        if (hwnd == nodes [slot].fortestinghwnd && cli == nodes [slot].cli) {
+        if (hwnd == nodes [slot].hwnd && cli == nodes [slot].cli) {
             goto ret_true;
         }
     }
 
     slot = zi->first_normal;
     for (; slot > 0; slot = nodes [slot].next) {
-        if (hwnd == nodes [slot].fortestinghwnd && cli == nodes [slot].cli) {
+        if (hwnd == nodes [slot].hwnd && cli == nodes [slot].cli) {
             goto ret_true;
         }
     }
@@ -2506,7 +2506,7 @@ int __mg_get_znode_at_point (const ZORDERINFO* zi, int x, int y, HWND* hwnd)
     if (slot == 0)
         return -1;
 
-    if (hwnd) *hwnd = nodes [slot].fortestinghwnd;
+    if (hwnd) *hwnd = nodes [slot].hwnd;
     return nodes [slot].cli;
 }
 
@@ -2526,7 +2526,7 @@ int __mg_handle_normal_mouse_move (const ZORDERINFO* zi, int x, int y)
 
     if (old_slot != cur_slot) {
         if (old_slot > 0 && nodes [old_slot].cli == old_cli &&
-                    nodes [old_slot].fortestinghwnd == old_hwnd) {
+                    nodes [old_slot].hwnd == old_hwnd) {
             post_msg_by_znode_p (zi, nodes + old_slot,
                         MSG_MOUSEMOVEIN, FALSE, 0);
 
@@ -2571,7 +2571,7 @@ int __mg_handle_normal_mouse_move (const ZORDERINFO* zi, int x, int y)
     old_slot = cur_slot;
     if (cur_slot > 0) {
         old_cli = nodes [cur_slot].cli;
-        old_hwnd = nodes [cur_slot].fortestinghwnd;
+        old_hwnd = nodes [cur_slot].hwnd;
     }
     else {
         old_cli = -1;
@@ -3061,7 +3061,7 @@ static BOOL _cb_update_dskmenu (void* context,
     UPDATA_DSKMENU_INFO* info = (UPDATA_DSKMENU_INFO*) context;
 
     if (node->flags & ZOF_TF_MAINWIN
-            && !(node->flags & ZOF_TF_ALWAYSTOP)) {
+            && !(node->flags & ZOF_IF_ALWAYSTOP)) {
         if (node->flags & ZOF_VISIBLE)
             info->mii.state       = MFS_ENABLED;
         else
@@ -3284,7 +3284,7 @@ static BOOL _cb_refresh_znode (void* context,
     REFRESH_INFO* info = (REFRESH_INFO*) context;
 
     if (node->cli == __mg_client_id) {
-        pTemp = (PMAINWIN)node->fortestinghwnd;
+        pTemp = (PMAINWIN)node->hwnd;
 
         if (pTemp && pTemp->WinType != TYPE_CONTROL
                         && pTemp->dwStyle & WS_VISIBLE) {
@@ -3373,7 +3373,7 @@ static void srvSaveScreen (BOOL active)
 
         if (__mg_zorder_info->active_win) {
             cliActive = nodes [__mg_zorder_info->active_win].cli;
-            hwndActive = nodes [__mg_zorder_info->active_win].fortestinghwnd;
+            hwndActive = nodes [__mg_zorder_info->active_win].hwnd;
             rcActive = nodes [__mg_zorder_info->active_win].rc;
         }
     }

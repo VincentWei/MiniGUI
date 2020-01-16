@@ -180,7 +180,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     znodes [0].rc = g_rcScr;
     znodes [0].age = 0;
     znodes [0].cli = 0;
-    znodes [0].fortestinghwnd = HWND_DESKTOP;
+    znodes [0].hwnd = HWND_DESKTOP;
     znodes [0].next = 0;
     znodes [0].prev = 0;
     /*for mask rect.*/
@@ -715,12 +715,15 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     nodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp +
                     sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
     znode_info->type = (nodes [idx_znode].flags & ZOF_TYPE_FLAG_MASK);
-    znode_info->flags = (nodes [idx_znode].flags & ZOF_FLAG_MASK);
+    znode_info->flags = nodes [idx_znode].flags;
     znode_info->caption = nodes [idx_znode].caption;
     znode_info->rc = nodes [idx_znode].rc;
     znode_info->cli = nodes [idx_znode].cli;
-    znode_info->hwnd = nodes [idx_znode].fortestinghwnd;
+    znode_info->hwnd = nodes [idx_znode].hwnd;
     znode_info->main_win = nodes [idx_znode].main_win;
+#ifdef _MGSCHEMA_COMPOSITING
+    znode_info->mem_dc = nodes [idx_znode].mem_dc;
+#endif
 
     return TRUE;
 }

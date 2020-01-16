@@ -428,10 +428,10 @@ static int update_client_window (ZORDERNODE* znode, const RECT* rc)
 #endif
     {
         if (rc)
-            __mg_update_window (znode->fortestinghwnd, rc->left, rc->top,
+            __mg_update_window (znode->hwnd, rc->left, rc->top,
                             rc->right, rc->bottom);
         else
-            __mg_update_window (znode->fortestinghwnd, 0, 0, 0, 0);
+            __mg_update_window (znode->hwnd, 0, 0, 0, 0);
     }
 
     return 0;
@@ -443,9 +443,9 @@ static BOOL _cb_update_znode (void* context,
 {
     const RECT* rc = (RECT*)context;
 
-    if (znode->flags & ZOF_VISIBLE && znode->flags & ZOF_REFERENCE) {
+    if (znode->flags & ZOF_VISIBLE && znode->flags & ZOF_IF_REFERENCE) {
         update_client_window (znode, rc);
-        znode->flags &= ~ZOF_REFERENCE;
+        znode->flags &= ~ZOF_IF_REFERENCE;
         return TRUE;
     }
 
@@ -473,7 +473,7 @@ static BOOL _cb_update_rc (void* context,
     if (node->flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(cliprgn, zi, node)) {
         node->age ++;
-        node->flags |= ZOF_REFERENCE;
+        node->flags |= ZOF_IF_REFERENCE;
         return TRUE;
     }
 
@@ -1125,7 +1125,7 @@ static int srvForceCloseMenu (int cli)
     rc_screen = GetScreenRect ();
     if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
         win_nodes [0].age ++;
-        win_nodes [0].flags |= ZOF_REFERENCE;
+        win_nodes [0].flags |= ZOF_IF_REFERENCE;
     }
 
 #if defined(_MGRM_PROCESSES)
@@ -1140,10 +1140,10 @@ static int srvForceCloseMenu (int cli)
     /* update all znode if it's dirty */
     do_for_all_znodes (&rc_bound, zi, _cb_update_znode, ZT_ALL);
 
-    if (win_nodes [0].flags & ZOF_REFERENCE) {
+    if (win_nodes [0].flags & ZOF_IF_REFERENCE) {
         SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (LPARAM)&rc_bound);
-        win_nodes [0].flags &= ~ZOF_REFERENCE;
+        win_nodes [0].flags &= ~ZOF_IF_REFERENCE;
     }
 
     /* notify the client to close the menu */
@@ -1224,7 +1224,7 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
     }
 
     menu_nodes [zi->nr_popupmenus].rc = *rc;
-    menu_nodes [zi->nr_popupmenus].fortestinghwnd = ptmi;
+    menu_nodes [zi->nr_popupmenus].hwnd = ptmi;
 #ifdef _MGSCHEMA_COMPOSITING
     menu_nodes [zi->nr_popupmenus].mem_dc = memdc;
 #endif
@@ -1269,7 +1269,7 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
     rc_screen = GetScreenRect();
     if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
         win_nodes [0].age ++;
-        win_nodes [0].flags |= ZOF_REFERENCE;
+        win_nodes [0].flags |= ZOF_IF_REFERENCE;
     }
 
     zi->nr_popupmenus --;
@@ -1282,10 +1282,10 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
     /* update all znode if it's dirty */
     do_for_all_znodes (&rc, zi, _cb_update_znode, ZT_ALL);
 
-    if (win_nodes [0].flags & ZOF_REFERENCE) {
+    if (win_nodes [0].flags & ZOF_IF_REFERENCE) {
         SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (LPARAM)&rc);
-        win_nodes [0].flags &= ~ZOF_REFERENCE;
+        win_nodes [0].flags &= ~ZOF_IF_REFERENCE;
     }
 
     return 0;
@@ -1398,7 +1398,7 @@ static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
 
     if (old_active) {
         if (nodes [old_active].cli == cli) {
-            old_hwnd = nodes [old_active].fortestinghwnd;
+            old_hwnd = nodes [old_active].hwnd;
         }
         else
             old_hwnd = HWND_OTHERPROC;
@@ -1406,7 +1406,7 @@ static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
 
     if (idx_znode) {
         if (nodes [idx_znode].cli == cli) {
-            new_hwnd = nodes [idx_znode].fortestinghwnd;
+            new_hwnd = nodes [idx_znode].hwnd;
         }
         else
             new_hwnd = HWND_OTHERPROC;
@@ -1696,7 +1696,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].rc = *rc;
     nodes [free_slot].age = 1;
     nodes [free_slot].cli = cli;
-    nodes [free_slot].fortestinghwnd = hwnd;
+    nodes [free_slot].hwnd = hwnd;
     nodes [free_slot].main_win = main_win;
 #ifdef _MGSCHEMA_COMPOSITING
     nodes [free_slot].mem_dc = mem_dc;
@@ -1782,7 +1782,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     /* Since 4.2.0. Support for always top znode.
      * defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK) */
     if (*first == 0
-            || (nodes [*first].flags & ZOF_TF_ALWAYSTOP) != ZOF_TF_ALWAYSTOP)
+            || (nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)
     {
         old_first = *first;
         nodes [old_first].prev = free_slot;
@@ -1792,7 +1792,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     else {
         int pre_idx = *first;
         while (*first) {
-            if ((nodes [*first].flags & ZOF_TF_ALWAYSTOP) == ZOF_TF_ALWAYSTOP) {
+            if ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) == ZOF_IF_ALWAYSTOP) {
                 pre_idx = *first;
                 first = &nodes[*first].next;
             }
@@ -1918,7 +1918,7 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
             if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                 nodes [slot].age ++;
-                nodes [slot].flags |= ZOF_REFERENCE;
+                nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
         if (type > ZOF_TYPE_TOPMOST) {
@@ -1927,7 +1927,7 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                     nodes [slot].age ++;
-                    nodes [slot].flags |= ZOF_REFERENCE;
+                    nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
         }
@@ -1937,20 +1937,20 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                     nodes [slot].age ++;
-                    nodes [slot].flags |= ZOF_REFERENCE;
+                    nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
         }
 
         if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
             nodes [0].age ++;
-            nodes [0].flags |= ZOF_REFERENCE;
+            nodes [0].flags |= ZOF_IF_REFERENCE;
         }
     }
 
     /* unchain it */
     unchain_znode ((unsigned char*)(zi+1), nodes, idx_znode);
-    nodes [idx_znode].fortestinghwnd = 0;
+    nodes [idx_znode].hwnd = 0;
 
     if (*first == idx_znode) {
         *first = nodes [idx_znode].next;
@@ -1967,10 +1967,10 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
     /* update all znode if it's dirty */
     do_for_all_znodes (&rc, zi, _cb_update_znode, ZT_ALL);
 
-    if (nodes [0].flags & ZOF_REFERENCE) {
+    if (nodes [0].flags & ZOF_IF_REFERENCE) {
         SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (WPARAM)&rc);
-        nodes [0].flags &= ~ZOF_REFERENCE;
+        nodes [0].flags &= ~ZOF_IF_REFERENCE;
     }
 
     /* if active_win is this window, change it */
@@ -2223,7 +2223,7 @@ static int dskDestroyTopZOrderNode (int cli, int idx_znode)
 
     /* lock zi for change */
     lock_zi_for_change (zi);
-    nodes[idx_znode].flags |= ZOF_TF_ALWAYSTOP;
+    nodes[idx_znode].flags |= ZOF_IF_ALWAYSTOP;
     /* unlock zi for change */
     unlock_zi_for_change (zi);
 
@@ -2356,7 +2356,7 @@ static int dskMove2Top (int cli, int idx_znode)
     /* Since 4.2.0. Support for stuck znode.
      * defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK) */
     if (!(*first) ||
-            ((nodes [*first].flags & ZOF_TF_ALWAYSTOP) != ZOF_TF_ALWAYSTOP)) {
+            ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)) {
         nodes [idx_znode].prev = nodes[*first].prev;
         nodes [idx_znode].next = *first;
         nodes [*first].prev = idx_znode;
@@ -2364,7 +2364,7 @@ static int dskMove2Top (int cli, int idx_znode)
     else {
         int pre_idx = *first;
         while (*first) {
-            if ((nodes [*first].flags & ZOF_TF_ALWAYSTOP) == ZOF_TF_ALWAYSTOP) {
+            if ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) == ZOF_IF_ALWAYSTOP) {
                 pre_idx = *first;
                 first = &nodes[*first].next;
             }
@@ -2393,9 +2393,9 @@ static int dskMove2Top (int cli, int idx_znode)
     /* unlock zi for change */
     unlock_zi_for_change (zi);
 
-    if ((nodes [idx_znode].flags & ZOF_VISIBLE) && nodes [idx_znode].fortestinghwnd) {
+    if ((nodes [idx_znode].flags & ZOF_VISIBLE) && nodes [idx_znode].hwnd) {
         update_client_window_rgn (nodes [idx_znode].cli,
-                        nodes [idx_znode].fortestinghwnd);
+                        nodes [idx_znode].hwnd);
 
     }
 
@@ -2531,7 +2531,7 @@ static int dskHideWindow (int cli, int idx_znode)
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                 nodes [slot].age ++;
-                nodes [slot].flags |= ZOF_REFERENCE;
+                nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
         if (type > ZOF_TYPE_TOPMOST) {
@@ -2542,7 +2542,7 @@ static int dskHideWindow (int cli, int idx_znode)
         }
         if (SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
             nodes [0].age ++;
-            nodes [0].flags |= ZOF_REFERENCE;
+            nodes [0].flags |= ZOF_IF_REFERENCE;
         }
     }
 
@@ -2568,10 +2568,10 @@ static int dskHideWindow (int cli, int idx_znode)
     /* update all znode if it's dirty */
     do_for_all_znodes (&nodes [idx_znode].rc, zi, _cb_update_znode, ZT_ALL);
 
-    if (nodes [0].flags & ZOF_REFERENCE) {
+    if (nodes [0].flags & ZOF_IF_REFERENCE) {
         SendMessage (HWND_DESKTOP,
                         MSG_ERASEDESKTOP, 0, (WPARAM)&nodes [idx_znode].rc);
-        nodes [0].flags &= ~ZOF_REFERENCE;
+        nodes [0].flags &= ~ZOF_IF_REFERENCE;
     }
 
     return 0;
@@ -2685,10 +2685,10 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         slot = nodes [idx_znode].next;
         for (; slot > 0; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
-                    !(nodes [slot].flags & ZOF_REFERENCE) &&
+                    !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                 nodes [slot].age ++;
-                nodes [slot].flags |= ZOF_REFERENCE;
+                nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
 
@@ -2696,10 +2696,10 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
-                        !(nodes [slot].flags & ZOF_REFERENCE) &&
+                        !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                     nodes [slot].age ++;
-                    nodes [slot].flags |= ZOF_REFERENCE;
+                    nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
         }
@@ -2708,18 +2708,18 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             slot = zi->first_normal;
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
-                        !(nodes [slot].flags & ZOF_REFERENCE) &&
+                        !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
                     nodes [slot].age ++;
-                    nodes [slot].flags |= ZOF_REFERENCE;
+                    nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
         }
 
-        if (!(nodes [0].flags & ZOF_REFERENCE) &&
+        if (!(nodes [0].flags & ZOF_IF_REFERENCE) &&
                         SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
             nodes [0].age ++;
-            nodes [0].flags |= ZOF_REFERENCE;
+            nodes [0].flags |= ZOF_IF_REFERENCE;
         }
 
         rcOld = nodes [idx_znode].rc;
@@ -2792,7 +2792,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
                         ExcludeClipRect (HDC_SCREEN_SYS, &nodes [slot].rc);
                     } else {
                         RECT rc;
-                        GetWindowRect(nodes [slot].fortestinghwnd, &rc);
+                        GetWindowRect(nodes [slot].hwnd, &rc);
                         firstmaskrect = GET_MASKRECT(zi);
                         idx = nodes [slot].idx_mask_rect;
                         while (idx) {
@@ -2859,10 +2859,10 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         }
         do_for_all_znodes (&rcOld, zi, _cb_update_znode, ZT_ALL);
 
-        if (nodes [0].flags & ZOF_REFERENCE) {
+        if (nodes [0].flags & ZOF_IF_REFERENCE) {
             SendMessage (HWND_DESKTOP,
                             MSG_ERASEDESKTOP, 0, (LPARAM)&rcOld);
-            nodes [0].flags &= ~ZOF_REFERENCE;
+            nodes [0].flags &= ~ZOF_IF_REFERENCE;
         }
 
         OffsetRegion (&sg_UpdateRgn,
@@ -2870,7 +2870,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
                         rcWin->top - rcOld.top);
 
         update_client_window_rgn (nodes [idx_znode].cli,
-                nodes [idx_znode].fortestinghwnd);
+                nodes [idx_znode].hwnd);
     }
     else {
         lock_zi_for_change (zi);
@@ -3197,7 +3197,7 @@ static BOOL _cb_bcast_msg (void* context,
 #if defined(_MGRM_PROCESSES)
     if (node->cli == __mg_client_id) {
 #endif
-        pWin = (PMAINWIN)node->fortestinghwnd;
+        pWin = (PMAINWIN)node->hwnd;
         if (pWin && pWin->WinType != TYPE_CONTROL) {
             PostMessage ((HWND)pWin, pMsg->message, pMsg->wParam, pMsg->lParam);
             return TRUE;

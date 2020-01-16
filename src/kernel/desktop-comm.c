@@ -129,7 +129,7 @@ static PMAINWIN dskGetActiveWindow (void)
 
     nodes = GET_ZORDERNODE(__mg_zorder_info);
 
-    return (PMAINWIN)nodes[__mg_zorder_info->active_win].fortestinghwnd;
+    return (PMAINWIN)nodes[__mg_zorder_info->active_win].hwnd;
 }
 
 static PMAINWIN dskSetActiveWindow (PMAINWIN pWin)
@@ -286,7 +286,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
                     && (nodes [first].flags & ZOF_VISIBLE)) {
 
         RECT rc = nodes [first].rc;
-        PMAINWIN pCurTop = (PMAINWIN) nodes [first].fortestinghwnd;
+        PMAINWIN pCurTop = (PMAINWIN) nodes [first].hwnd;
 
         pCurTop->dwStyle &= ~WS_VISIBLE;
         dskHideWindow (0, pCurTop->idx_znode);
@@ -752,7 +752,7 @@ PMAINWIN gui_GetMainWindowPtrUnderPoint (int x, int y)
     if (slot == 0)
         return NULL;
     else
-        return (PMAINWIN)(nodes[slot].fortestinghwnd);
+        return (PMAINWIN)(nodes[slot].hwnd);
 }
 
 static int HandleSpecialKey (int scancode)
@@ -1165,7 +1165,7 @@ static void lock_zorder_info (void)
     slot = __mg_zorder_info->first_topmost;
     for (; slot > 0; slot = nodes[slot].next)
     {
-        pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+        pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_lock (&pWin->pGCRInfo->lock);
     }
@@ -1173,7 +1173,7 @@ static void lock_zorder_info (void)
     slot = __mg_zorder_info->first_normal;
     for (; slot > 0; slot = nodes[slot].next)
     {
-        pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+        pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_lock (&pWin->pGCRInfo->lock);
     }
@@ -1188,7 +1188,7 @@ static void unlock_zorder_info (void)
     slot = __mg_zorder_info->first_topmost;
     for (; slot > 0; slot = nodes[slot].next)
     {
-        pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+        pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_unlock (&pWin->pGCRInfo->lock);
     }
@@ -1196,7 +1196,7 @@ static void unlock_zorder_info (void)
     slot = __mg_zorder_info->first_normal;
     for (; slot > 0; slot = nodes[slot].next)
     {
-        pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+        pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_unlock (&pWin->pGCRInfo->lock);
     }
@@ -1501,7 +1501,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
                     }
                 }
 
-                hWnd = nodes[slot].fortestinghwnd;
+                hWnd = nodes[slot].hwnd;
                 if (0
                         || !hWnd
                         || !(pWin = gui_CheckAndGetMainWindowPtr (hWnd))
@@ -1634,9 +1634,9 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     slot = __mg_zorder_info->first_topmost;
     for (; slot > 0; slot = nodes[slot].next)
     {
-        pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+        pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin && pWin->WinType == TYPE_MAINWIN &&
-                !(nodes[slot].flags & ZOF_TF_ALWAYSTOP)) {
+                !(nodes[slot].flags & ZOF_IF_ALWAYSTOP)) {
             if (pWin->dwStyle & WS_VISIBLE)
                 mii.state       = MFS_ENABLED;
             else
@@ -1667,7 +1667,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     slot = __mg_zorder_info->first_normal;
     for (; slot > 0; slot = nodes[slot].next)
     {
-        pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+        pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin && pWin->WinType == TYPE_MAINWIN) {
             if (pWin->dwStyle & WS_VISIBLE)
                 mii.state       = MFS_ENABLED;
@@ -1708,7 +1708,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         slot = __mg_zorder_info->first_topmost;
         for (; slot > 0; slot = nodes[slot].next)
         {
-            pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+            pWin = (PMAINWIN)(nodes[slot].hwnd);
             if (pWin && (pWin->WinType != TYPE_CONTROL)
 #ifndef _MGRM_THREADS
                     && (pWin->pHosting == __mg_dsk_win)
@@ -1722,7 +1722,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         slot = __mg_zorder_info->first_normal;
         for (; slot > 0; slot = nodes[slot].next)
         {
-            pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+            pWin = (PMAINWIN)(nodes[slot].hwnd);
             if (pWin && (pWin->WinType == TYPE_MAINWIN)
 #ifndef _MGRM_THREADS
                     && (pWin->pHosting == __mg_dsk_win)
@@ -1867,7 +1867,7 @@ static BOOL _cb_refresh_znode (void* context,
 
     REFRESH_INFO* info = (REFRESH_INFO*) context;
 
-    pTemp = (PMAINWIN)node->fortestinghwnd;
+    pTemp = (PMAINWIN)node->hwnd;
 
     if (pTemp
             && ((pTemp->WinType == TYPE_CONTROL && (pTemp->dwExStyle & WS_EX_CTRLASMAINWIN))
@@ -2299,7 +2299,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 
                 /* XXX: wake up other theads */
                 for (slot=__mg_zorder_info->first_topmost; slot > 0; slot = nodes[slot].next) {
-                    pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+                    pWin = (PMAINWIN)(nodes[slot].hwnd);
                     if (pWin && (pWin->WinType != TYPE_CONTROL) && (pWin->pHosting == NULL)) {
                         if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
                             POST_MSGQ(pMsgQueue);
@@ -2307,7 +2307,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
                     }
                 }
                 for (slot = __mg_zorder_info->first_normal; slot > 0; slot = nodes[slot].next) {
-                    pWin = (PMAINWIN)(nodes[slot].fortestinghwnd);
+                    pWin = (PMAINWIN)(nodes[slot].hwnd);
                     if (pWin && (pWin->WinType == TYPE_MAINWIN) && (pWin->pHosting == NULL)){
                         if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
                             POST_MSGQ(pMsgQueue);
