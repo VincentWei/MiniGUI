@@ -645,6 +645,51 @@ static intptr_t cliChangeCaption (PMAINWIN pWin)
     return ret;
 }
 
+/* Since 4.2.0 */
+static intptr_t cliSetMainWinAlwaysTop (PMAINWIN pWin, BOOL fSet)
+{
+    intptr_t ret;
+    REQUEST req;
+    ZORDEROPINFO info;
+
+    info.id_op = ID_ZOOP_SETALWAYSTOP;
+    info.idx_znode = pWin->idx_znode;
+    info.flags = fSet;
+
+    req.id = REQID_ZORDEROP;
+    req.data = &info;
+    req.len_data = sizeof (ZORDEROPINFO);
+
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
+        return -1;
+
+    return ret;
+}
+
+#ifdef _MGSCHEMA_COMPOSITING
+static intptr_t cliSetMainWinCompositing (PMAINWIN pWin,
+        const COMPOSITINGINFO* my_info)
+{
+    intptr_t ret;
+    REQUEST req;
+    ZORDEROPINFO info;
+
+    info.id_op = ID_ZOOP_SETCOMPOSITING;
+    info.idx_znode = pWin->idx_znode;
+    info.ct = my_info->type;
+    info.ct_arg = my_info->arg;
+
+    req.id = REQID_ZORDEROP;
+    req.data = &info;
+    req.len_data = sizeof (ZORDEROPINFO);
+
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
+        return -1;
+
+    return ret;
+}
+#endif /* defined _MGSCHEMA_COMPOSTING */
+
 /*********************** Server-side routines ********************************/
 
 void __mg_start_server_desktop (void)
@@ -1147,6 +1192,20 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
     return 0;
 }
 
+/* Since 4.2.0 */
+static inline int srvSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
+{
+    return dskSetZNodeAlwaysTop (cli, idx_znode, fSet);
+}
+
+#ifdef _MGSCHEMA_COMPOSITING
+static inline int srvSetZNodeCompositing (int cli, int idx_znode,
+        int type, DWORD arg)
+{
+    return dskSetZNodeCompositing (cli, idx_znode, type, arg);
+}
+#endif /* _MGSCHEMA_COMPOSITING */
+
 intptr_t __mg_do_zorder_maskrect_operation (int cli,
         const ZORDERMASKRECTOPINFO* info)
 {
@@ -1229,6 +1288,15 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
         case ID_ZOOP_CHANGECAPTION:
             srvChangeCaption (cli, info->idx_znode, info->caption);
             break;
+        case ID_ZOOP_SETALWAYSTOP:
+            srvSetZNodeAlwaysTop (cli, info->idx_znode, info->flags);
+            break;
+#ifdef _MGSCHEMA_COMPOSITING
+        case ID_ZOOP_SETCOMPOSITING:
+            srvSetZNodeCompositing (cli, info->idx_znode,
+                            info->ct, info->ct_arg);
+            break;
+#endif
         default:
             break;
     }
@@ -2178,6 +2246,51 @@ static int dskChangeCaption (PMAINWIN pWin)
         return cliChangeCaption (pWin);
 }
 
+/* Since 4.2.0 */
+static BOOL dskSetMainWinAlwaysTop (PMAINWIN pWin, BOOL fSet)
+{
+    if ((pWin->dwStyle & WS_ALWAYSTOP) && fSet)
+        return TRUE;
+
+    if (!(pWin->dwStyle & WS_ALWAYSTOP) && !fSet)
+        return TRUE;
+
+    if (mgIsServer) {
+        if (srvSetZNodeAlwaysTop (0, pWin->idx_znode, fSet))
+            return FALSE;
+    }
+    else {
+        if (cliSetMainWinAlwaysTop (pWin, fSet))
+            return FALSE;
+    }
+
+    if (fSet) {
+        pWin->dwStyle |= WS_ALWAYSTOP;
+    }
+    else {
+        pWin->dwStyle &= ~WS_ALWAYSTOP;
+    }
+
+    return TRUE;
+}
+
+#ifdef _MGSCHEMA_COMPOSITING
+/* Since 4.2.0 */
+static BOOL dskSetMainWinCompositing (PMAINWIN pWin, const COMPOSITINGINFO* info)
+{
+    if (mgIsServer) {
+        if (srvSetZNodeCompositing (0, pWin->idx_znode, info->type, info->arg))
+            return FALSE;
+    }
+    else {
+        if (cliSetMainWinCompositing (pWin, info))
+            return FALSE;
+    }
+
+    return TRUE;
+}
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
 static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lParam)
 {
     switch (message) {
@@ -2283,6 +2396,17 @@ static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lPar
 
         case MSG_CHANGECAPTION:
             return dskChangeCaption (pWin);
+
+        /* Since 4.2.0 */
+        case MSG_SETALWAYSTOP:
+            return dskSetMainWinAlwaysTop (pWin, (BOOL)lParam);
+
+#ifdef _MGSCHEMA_COMPOSITING
+        /* Since 4.2.0 */
+        case MSG_SETCOMPOSITING:
+            return dskSetMainWinCompositing (pWin, (const COMPOSITINGINFO*)lParam);
+#endif
+
    }
 
    return 0;

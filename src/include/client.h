@@ -158,24 +158,26 @@ typedef struct LayerOpInfo {
     } layer;
 } LAYEROPINFO;
 
-#define ID_ZOOP_ALLOC       1
-#define ID_ZOOP_FREE        2
-#define ID_ZOOP_MOVE2TOP    3
-#define ID_ZOOP_SHOW        4
-#define ID_ZOOP_HIDE        5
-#define ID_ZOOP_MOVEWIN     6
-#define ID_ZOOP_SETACTIVE   7
+#define ID_ZOOP_ALLOC               1
+#define ID_ZOOP_FREE                2
+#define ID_ZOOP_MOVE2TOP            3
+#define ID_ZOOP_SHOW                4
+#define ID_ZOOP_HIDE                5
+#define ID_ZOOP_MOVEWIN             6
+#define ID_ZOOP_SETACTIVE           7
+#define ID_ZOOP_SETALWAYSTOP        8   /* since 4.2.0 */
+#define ID_ZOOP_SETCOMPOSITING      9   /* since 4.2.0 */
 
-#define ID_ZOOP_START_TRACKMENU     9
-#define ID_ZOOP_END_TRACKMENU       10
-#define ID_ZOOP_CLOSEMENU           11
-#define ID_ZOOP_ENABLEWINDOW        12
-#define ID_ZOOP_STARTDRAG           13
-#define ID_ZOOP_CANCELDRAG          14
-#define ID_ZOOP_CHANGECAPTION       15
+#define ID_ZOOP_START_TRACKMENU     10
+#define ID_ZOOP_END_TRACKMENU       11
+#define ID_ZOOP_CLOSEMENU           12
+#define ID_ZOOP_ENABLEWINDOW        13
+#define ID_ZOOP_STARTDRAG           14
+#define ID_ZOOP_CANCELDRAG          15
+#define ID_ZOOP_CHANGECAPTION       16
 
-#define ID_ZOOP_MASKRECT_SET        16
-#define ID_ZOOP_MASKRECT_FREE       17
+#define ID_ZOOP_MASKRECT_SET        17
+#define ID_ZOOP_MASKRECT_FREE       18
 
 #ifndef MAX_CAPTION_LEN
  #define MAX_CAPTION_LEN            39 //40
@@ -197,16 +199,25 @@ typedef struct ZorderOpInfo
     int     id_op;
 
     int     idx_znode;
+
+    /* reuse for the flag of ID_ZOOP_SETALWAYSTOP */
     DWORD   flags;
+
     HWND    hwnd;
     HWND    main_win;
     RECT    rc;
     RECT    rcA;
+
     int     location;
     char    caption[MAX_CAPTION_LEN + 1];
+
 #ifdef _MGSCHEMA_COMPOSITING
     Uint32  surf_flags;
     size_t  surf_size;
+    /* the compositing type of ID_ZOOP_SETCOMPOSITING */
+    int     ct;
+    /* the compositing argument of ID_ZOOP_SETCOMPOSITING */
+    DWORD   ct_arg;
 #endif
 } ZORDEROPINFO;
 

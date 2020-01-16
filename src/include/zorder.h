@@ -54,6 +54,12 @@
 
 #include "constants.h"
 
+/* Since 4.2.0 */
+#define ZNODE_IDX_DESKTOP       0
+#define ZNODE_IDX_SCREENLOCK    1
+#define ZNODE_IDX_DOCKER        2
+#define ZNODE_IDX_LAUNCHER      3
+
 typedef struct _RECT4MASK {
     unsigned short left, top, right, bottom;
 } RECT4MASK;
@@ -81,6 +87,7 @@ typedef struct _ZORDERNODE {
     HWND            main_win;       /* handle to the main window */
 #ifdef _MGSCHEMA_COMPOSITING
     HDC             mem_dc;         /* The memory DC for this znode. */
+    DWORD           ct_arg;         /* the argument for compositing. */
 #endif
 
     int             next;

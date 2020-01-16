@@ -2398,6 +2398,15 @@ extern DWORD __mg_interval_time;
 
 #define MSG_GETNEXTMAINWIN  0x0103
 
+#define MSG_SETALWAYSTOP    0x0104
+
+typedef struct _COMPOSITINGINFO {
+    int     type;
+    DWORD   arg;
+} COMPOSITINGINFO;
+
+#define MSG_SETCOMPOSITING  0x0105
+
 #define MSG_SHOWGLOBALCTRL  0x010A
 #define MSG_HIDEGLOBALCTRL  0x010B
 
@@ -4133,10 +4142,10 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /**
  * \def WS_EX_WINTYPE_SCREENLOCK
- * \brief The main window type is screen lock.
+ * \brief The main window type is the screen lock.
  *
  * Use this style when you want to create a main window acting as
- * a screen lock. The screen lock will have the highest z-index.
+ * the screen lock. The screen lock will have the highest z-index.
  *
  * \note If there is already a main window acts as the screen lock,
  *  a topmost main window will be created.
@@ -4145,10 +4154,10 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /**
  * \def WS_EX_WINTYPE_DOCKER
- * \brief The main window type is a docker.
+ * \brief The main window type is the docker.
  *
  * Use this style when you want to create a main window acting as
- * a docker. The docker will have the z-index lower than screen lock.
+ * the docker. The docker will have the z-index lower than screen lock.
  *
  * \note If there is already a main window acts as the docker,
  *  a topmost main window will be created.
@@ -4157,10 +4166,10 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /**
  * \def WS_EX_WINTYPE_LAUNCHER
- * \brief The main window type is a launcher.
+ * \brief The main window type is the launcher.
  *
  * Use this style when you want to create a main window acting as
- * a launcher (or window manager). The launcher will have the lowest
+ * the launcher (or the window manager). The launcher will have the lowest
  * z-index.
  *
  * \note If there is already a main window acts as the launcher,
@@ -4169,7 +4178,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 #define WS_EX_WINTYPE_LAUNCHER      0x30000000L
 
 /* Not used, obsolete. */
-#define WS_EX_INTERNAL_MASK         0xF0000000L
+#define WS_EX_INTERNAL_MASK         0x00000000L
 
     /** @} end of styles */
 
@@ -6067,14 +6076,14 @@ MG_EXPORT BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask);
 MG_EXPORT BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask);
 
 /**
- * \fn BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd)
- * \brief Set a main window being always top.
+ * \fn BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet)
+ * \brief Set or cancel a main window being always top.
  *
- * This function set a main window being always top on others.
- * If it succeed, the main window will have the exteneded style:
- * \a WS_ALWAYSTOP.
+ * This function set or cancel a main window being always top on others.
+ * If it succeed, the main window will have the style \a WS_ALWAYSTOP.
  *
  * \param hWnd The handle to the window.
+ * \param fSet Set or cancel the always top style; TRUE to set, FALSE to cancel.
  *
  * \return return TRUE on success, otherwise FALSE.
  *
@@ -6082,7 +6091,7 @@ MG_EXPORT BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask);
  *
  * Since 4.2.0
  */
-MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd);
+MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
 
 #ifdef _MGSCHEMA_COMPOSITING
 

@@ -6350,5 +6350,41 @@ int GUIAPI SetWindowZOrder(HWND hWnd, int zorder)
     return idx;
 }
 
-#endif
+#endif /* defined __TARGET_MSTUDIO__ */
+
+/* Since 4.2.0 */
+BOOL GUIAPI SetMainWindowAlwaysTop (HWND hMainWnd, BOOL fSet)
+{
+    PMAINWIN pMainWin;
+
+    if (hMainWnd == HWND_DESKTOP || hMainWnd == 0) {
+        return FALSE;
+    }
+    else if (!(pMainWin = gui_CheckAndGetMainWindowPtr (hMainWnd))) {
+        return FALSE;
+    }
+
+    return (BOOL) SendMessage (HWND_DESKTOP,
+            MSG_SETALWAYSTOP, (WPARAM)pMainWin, (LPARAM)fSet);
+}
+
+#ifdef _MGSCHEMA_COMPOSITING
+BOOL GUIAPI SetMainWindowCompositing (HWND hMainWnd, int type, DWORD arg)
+{
+    PMAINWIN pMainWin;
+    COMPOSITINGINFO info;
+
+    if (hMainWnd == HWND_DESKTOP || hMainWnd == 0) {
+        return FALSE;
+    }
+    else if (!(pMainWin = gui_CheckAndGetMainWindowPtr (hMainWnd))) {
+        return FALSE;
+    }
+
+    info.type = type;
+    info.arg = arg;
+    return (BOOL) SendMessage (HWND_DESKTOP,
+            MSG_SETCOMPOSITING, (WPARAM)pMainWin, (LPARAM)&info);
+}
+#endif /* defined _MGSCHEMA_COMPOSITING */
 

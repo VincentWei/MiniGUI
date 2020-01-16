@@ -341,6 +341,28 @@ static void dskMoveToTopMost (PMAINWIN pWin, int reason, LPARAM lParam)
         dskSetActiveWindow (pWin);
 }
 
+/* Since 4.2.0 */
+static BOOL dskSetMainWindowAlwaysTop (PMAINWIN pWin, BOOL fSet)
+{
+    if ((pWin->dwStyle & WS_ALWAYSTOP) && fSet)
+        return TRUE;
+
+    if (!(pWin->dwStyle & WS_ALWAYSTOP) && !fSet)
+        return TRUE;
+
+    if (dskSetZNodeAlwaysTop (0, pWin->idx_znode, fSet))
+        return FALSE;
+
+    if (fSet) {
+        pWin->dwStyle |= WS_ALWAYSTOP;
+    }
+    else {
+        pWin->dwStyle &= ~WS_ALWAYSTOP;
+    }
+
+    return TRUE;
+}
+
 static void dskHideMainWindow (PMAINWIN pWin)
 {
     if (!(pWin->dwStyle & WS_VISIBLE))
@@ -1514,6 +1536,10 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
             }
             break;
         }
+
+        /* Since 4.2.0 */
+        case MSG_SETALWAYSTOP:
+            return dskSetMainWindowAlwaysTop(pWin, (BOOL)lParam);
 
         case MSG_SHOWGLOBALCTRL:
 #ifdef _MGHAVE_MENU

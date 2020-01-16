@@ -2001,10 +2001,27 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
             zt_type |= ZOF_TYPE_NORMAL;
     }
 
-    if (pWin->dwStyle & WS_VISIBLE)
+    /* XXX: Since 4.2.0 */
+    if (!(pWin->dwStyle & WS_CHILD)) {
+        if (pWin->dwStyle & WS_MINIMIZE) {
+            zt_type |= ZOF_MINIMIZED;
+        }
+        else if (pWin->dwStyle & WS_MAXIMIZE) {
+            zt_type |= ZOF_MAXIMIZED;
+            /* TODO: change main window rect here */
+        }
+    }
+
+    if (pWin->dwStyle & WS_VISIBLE) {
         zt_type |= ZOF_VISIBLE;
+    }
+
     if (pWin->dwStyle & WS_DISABLED)
         zt_type |= ZOF_DISABLED;
+
+    /* Since 4.2.0 */
+    if (pWin->dwStyle & WS_ALWAYSTOP)
+        zt_type |= ZOF_IF_ALWAYSTOP;
 
     if (pWin->WinType == TYPE_MAINWIN)
         zt_type |= ZOF_TF_MAINWIN;
@@ -2201,7 +2218,7 @@ static int dskDestroyTopZOrderNode (int cli, int idx_znode)
 }
 #endif /* _MG_ENABLE_SCREENSAVER || _MG_ENABLE_WATERMARK */
 
-/*XXX static */int dskSetZNodeAlwaysTop (int cli, int idx_znode)
+/*XXX static */int dskSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
 {
     // NUV DWORD type;
     ZORDERINFO* zi = _get_zorder_info (cli);
@@ -2223,7 +2240,12 @@ static int dskDestroyTopZOrderNode (int cli, int idx_znode)
 
     /* lock zi for change */
     lock_zi_for_change (zi);
-    nodes[idx_znode].flags |= ZOF_IF_ALWAYSTOP;
+    if (fSet) {
+        nodes[idx_znode].flags |= ZOF_IF_ALWAYSTOP;
+    }
+    else {
+        nodes[idx_znode].flags &= ~ZOF_IF_ALWAYSTOP;
+    }
     /* unlock zi for change */
     unlock_zi_for_change (zi);
 
@@ -2250,7 +2272,7 @@ void __mg_screensaver_create(void)
     if (!_screensaver_node) {
         RECT rcScr = GetScreenRect();
         _screensaver_node  = dskCreateTopZOrderNode (0, &rcScr);
-        dskSetZNodeAlwaysTop (0, _screensaver_node);
+        dskSetZNodeAlwaysTop (0, _screensaver_node, TRUE);
         dskHideWindow (0, _screensaver_node);
     }
 }
@@ -2264,6 +2286,65 @@ void __mg_screensaver_destroy(void)
     }
 }
 #endif /* defined _MG_ENABLE_SCREENSAVER */
+
+#ifdef _MGSCHEMA_COMPOSITING
+static inline DWORD compositing_type_to_flag (int type)
+{
+    switch (type) {
+    case CT_OPAQUE:
+    default:
+        return ZOF_COMPOS_OPAQUE;
+    case CT_COLORKEY:
+        return ZOF_COMPOS_COLORKEY;
+    case CT_ALPHACHANNEL:
+        return ZOF_COMPOS_ALPHACHANNEL;
+    case CT_ALPHAPIXEL:
+        return ZOF_COMPOS_ALPHAPIXEL;
+    case CT_BLURRED:
+        return ZOF_COMPOS_BLURRED;
+    }
+
+    return ZOF_COMPOS_OPAQUE;
+}
+
+/* Since 4.2.0 */
+static int dskSetZNodeCompositing (int cli, int idx_znode, int ct, DWORD ct_arg)
+{
+    ZORDERINFO* zi = _get_zorder_info (cli);
+    DWORD type;
+    DWORD flag, old_flag;
+    ZORDERNODE* nodes;
+
+    if (idx_znode > (zi->max_nr_globals
+                    + zi->max_nr_topmosts + zi->max_nr_normals)
+            || idx_znode <= 0) {
+        return -1;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
+    if (type == ZOF_TYPE_NULL || type >= ZOF_TYPE_DESKTOP) {
+        return -1;
+    }
+
+    flag = compositing_type_to_flag (ct);
+    old_flag = nodes [idx_znode].flags & ZOF_COMPOSITING_MASK;
+    if ((flag == old_flag) && (nodes [idx_znode].ct_arg == ct_arg)) {
+        return 0;
+    }
+
+    /* lock zi for change */
+    lock_zi_for_change (zi);
+
+    nodes [idx_znode].flags &= ~ZOF_COMPOSITING_MASK;
+    nodes [idx_znode].flags |= flag;
+    nodes [idx_znode].ct_arg = ct_arg;
+
+    /* unlock zi for change */
+    unlock_zi_for_change (zi);
+    return 0;
+}
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
 static int dskMove2Top (int cli, int idx_znode)
 {

@@ -75,6 +75,72 @@ extern "C" {
      * @{
      */
 
+#define ZOF_STATUS_MASK         0x0000000F
+#define ZOF_VISIBLE             0x00000001
+#define ZOF_DISABLED            0x00000002
+#define ZOF_MAXIMIZED           0x00000004  /* Since 4.2.0 */
+#define ZOF_MINIMIZED           0x00000008  /* Since 4.2.0 */
+
+/* Since 4.2.0 */
+#define ZOF_COMPOSITING_MASK    0x000000F0
+#define ZOF_COMPOS_OPAQUE       0x00000000
+#define ZOF_COMPOS_COLORKEY     0x00000010
+#define ZOF_COMPOS_ALPHACHANNEL 0x00000020
+#define ZOF_COMPOS_ALPHAPIXEL   0x00000030
+#define ZOF_COMPOS_BLURRED      0x00000040
+
+/* Since 4.2.0 */
+#define ZOF_INTERNAL_FLAGS_MASK 0X000F0000
+#define ZOF_IF_REFERENCE        0x00010000
+#define ZOF_IF_ALWAYSTOP        0x00020000
+
+#define ZOF_TW_FLAG_MASK        0x00F00000
+#define ZOF_TW_TROUNDCNS        0x00100000
+#define ZOF_TW_BROUNDCNS        0x00200000
+#define ZOF_TW_TBROUNDCNS       0x00300000
+
+#define ZOF_TYPE_FLAG_MASK      0xFF000000
+
+#define ZOF_TYPE_MASK           0xF0000000
+#define ZOF_TYPE_NULL           0x00000000
+#define ZOF_TYPE_POPUPMENU      0x10000000
+#define ZOF_TYPE_SCREENLOCK     0x20000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_DOCKER         0x30000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_GLOBAL         0x40000000
+#define ZOF_TYPE_TOPMOST        0x50000000
+#define ZOF_TYPE_NORMAL         0x60000000
+#define ZOF_TYPE_LAUNCHER       0x70000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_DESKTOP        0x80000000  /* fixed and only one */
+
+#define ZOF_TF_FLAG_MASK        0x0F000000
+#define ZOF_TF_CONTROL          0x00000000
+#define ZOF_TF_MAINWIN          0x01000000
+#define ZOF_TF_TOOLWIN          0x02000000
+
+#define ZNIT_NULL               (ZOF_TYPE_NULL)
+#define ZNIT_POPUPMENU          (ZOF_TYPE_POPUPMENU)
+#define ZNIT_SCREENLOCK         (ZOF_TYPE_SCREENLOCK)
+#define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
+#define ZNIT_LAUNCHER           (ZOF_TYPE_LAUNCHER)
+#define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
+
+#define ZNIT_GLOBAL_MAINWIN     (ZOF_TYPE_GLOBAL | ZOF_TF_MAINWIN)
+#define ZNIT_GLOBAL_TOOLWIN     (ZOF_TYPE_GLOBAL | ZOF_TF_TOOLWIN)
+#define ZNIT_GLOBAL_CONTROL     (ZOF_TYPE_GLOBAL | ZOF_TF_CONTROL)
+
+#define ZNIT_TOPMOST_MAINWIN    (ZOF_TYPE_TOPMOST | ZOF_TF_MAINWIN)
+#define ZNIT_TOPMOST_TOOLWIN    (ZOF_TYPE_TOPMOST | ZOF_TF_TOOLWIN)
+#define ZNIT_TOPMOST_CONTROL    (ZOF_TYPE_TOPMOST | ZOF_TF_CONTROL)
+
+#define ZNIT_NORMAL_MAINWIN     (ZOF_TYPE_NORMAL | ZOF_TF_MAINWIN)
+#define ZNIT_NORMAL_TOOLWIN     (ZOF_TYPE_NORMAL | ZOF_TF_TOOLWIN)
+#define ZNIT_NORMAL_CONTROL     (ZOF_TYPE_NORMAL | ZOF_TF_CONTROL)
+
+#define ZNIF_VISIBLE            (ZOF_VISIBLE)
+#define ZNIF_DISABLED           (ZOF_DISABLED)
+#define ZNIF_MAXIMIZED          (ZOF_MAXIMIZED) /* Since 4.2.0 */
+#define ZNIF_MINIMIZED          (ZOF_MINIMIZED) /* Since 4.2.0 */
+
     /**
      * \defgroup rect_vars Global Rectangles
      * @{
@@ -896,75 +962,6 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
 MG_EXPORT int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
                 int* cli);
 
-#define ZOF_STATUS_MASK         0x0000000F
-#define ZOF_VISIBLE             0x00000001
-#define ZOF_DISABLED            0x00000002
-#define ZOF_MAXIMIZED           0x00000004  /* Since 4.2.0 */
-#define ZOF_MINIMIZED           0x00000008  /* Since 4.2.0 */
-
-/* Since 4.2.0 */
-#define ZOF_COMPOSITING_MASK    0x000000F0
-#define ZOF_COMPOS_OPAQUE       0x00000000
-#define ZOF_COMPOS_COLORKEY     0x00000010
-#define ZOF_COMPOS_ALPHACHANNEL 0x00000020
-#define ZOF_COMPOS_ALPHAPIXEL   0x00000030
-#define ZOF_COMPOS_BLURRED      0x00000040
-
-/* Since 4.2.0; The alpha channel value or the radius of blur in pixels */
-#define ZOF_ALPHA_BLUR_MASK     0x0000FF00
-
-/* Since 4.2.0 */
-#define ZOF_INTERNAL_FLAGS_MASK 0X000F0000
-#define ZOF_IF_REFERENCE        0x00010000
-#define ZOF_IF_ALWAYSTOP        0x00020000
-
-#define ZOF_TW_FLAG_MASK        0x00F00000
-#define ZOF_TW_TROUNDCNS        0x00100000
-#define ZOF_TW_BROUNDCNS        0x00200000
-#define ZOF_TW_TBROUNDCNS       0x00300000
-
-#define ZOF_TYPE_FLAG_MASK      0xFF000000
-
-#define ZOF_TYPE_MASK           0xF0000000
-#define ZOF_TYPE_NULL           0x00000000
-#define ZOF_TYPE_POPUPMENU      0x10000000
-#define ZOF_TYPE_SCREENLOCK     0x20000000  /* Since 4.2.0; fixed and only one */
-#define ZOF_TYPE_DOCKER         0x30000000  /* Since 4.2.0; fixed and only one */
-#define ZOF_TYPE_GLOBAL         0x40000000
-#define ZOF_TYPE_TOPMOST        0x50000000
-#define ZOF_TYPE_NORMAL         0x60000000
-#define ZOF_TYPE_LAUNCHER       0x70000000  /* Since 4.2.0; fixed and only one */
-#define ZOF_TYPE_DESKTOP        0x80000000  /* fixed and only one */
-
-#define ZOF_TF_FLAG_MASK        0x0F000000
-#define ZOF_TF_CONTROL          0x00000000
-#define ZOF_TF_MAINWIN          0x01000000
-#define ZOF_TF_TOOLWIN          0x02000000
-
-#define ZNIT_NULL               (ZOF_TYPE_NULL)
-#define ZNIT_POPUPMENU          (ZOF_TYPE_POPUPMENU)
-#define ZNIT_SCREENLOCK         (ZOF_TYPE_SCREENLOCK)
-#define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
-#define ZNIT_LAUNCHER           (ZOF_TYPE_LAUNCHER)
-#define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
-
-#define ZNIT_GLOBAL_MAINWIN     (ZOF_TYPE_GLOBAL | ZOF_TF_MAINWIN)
-#define ZNIT_GLOBAL_TOOLWIN     (ZOF_TYPE_GLOBAL | ZOF_TF_TOOLWIN)
-#define ZNIT_GLOBAL_CONTROL     (ZOF_TYPE_GLOBAL | ZOF_TF_CONTROL)
-
-#define ZNIT_TOPMOST_MAINWIN    (ZOF_TYPE_TOPMOST | ZOF_TF_MAINWIN)
-#define ZNIT_TOPMOST_TOOLWIN    (ZOF_TYPE_TOPMOST | ZOF_TF_TOOLWIN)
-#define ZNIT_TOPMOST_CONTROL    (ZOF_TYPE_TOPMOST | ZOF_TF_CONTROL)
-
-#define ZNIT_NORMAL_MAINWIN     (ZOF_TYPE_NORMAL | ZOF_TF_MAINWIN)
-#define ZNIT_NORMAL_TOOLWIN     (ZOF_TYPE_NORMAL | ZOF_TF_TOOLWIN)
-#define ZNIT_NORMAL_CONTROL     (ZOF_TYPE_NORMAL | ZOF_TF_CONTROL)
-
-#define ZNIF_VISIBLE            (ZOF_VISIBLE)
-#define ZNIF_DISABLED           (ZOF_DISABLED)
-#define ZNIF_MAXIMIZED          (ZOF_MAXIMIZED) /* Since 4.2.0 */
-#define ZNIF_MINIMIZED          (ZOF_MINIMIZED) /* Since 4.2.0 */
-
 /** Z-node information structure */
 typedef struct _ZNODEINFO {
     /**
@@ -1038,6 +1035,11 @@ typedef struct _ZNODEINFO {
      * The memory DC for this znode.
      */
     HDC             mem_dc;
+    /**
+     * The compositing argument for this znode.
+     * For more information, see \a SetMainWindowCompositing.
+     */
+    DWORD           cmps_arg;
 #endif
 } ZNODEINFO;
 
