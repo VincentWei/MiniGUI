@@ -58,8 +58,7 @@
 
 #include "common.h"
 
-//#ifdef _MGRM_PROCESSES
-#if defined _MGRM_PROCESSES && !defined _MGRM_STANDALONE
+#ifdef _MGRM_PROCESSES
 
 #include "minigui.h"
 #include "gdi.h"
@@ -97,7 +96,7 @@ GHANDLE __mg_layer;
 /* always be zero for clients. */
 BOOL __mg_switch_away;
 
-void lock_zi_for_read (const ZORDERINFO* zi)
+static void lock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
 
@@ -116,7 +115,7 @@ again:
 
 }
 
-void unlock_zi_for_read (const ZORDERINFO* zi)
+static void unlock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
 
@@ -134,7 +133,7 @@ again:
     }
 }
 
-void lock_zi_for_change (const ZORDERINFO* zi)
+static void lock_zi_for_change (const ZORDERINFO* zi)
 {
     int clients = 0;
     struct sembuf sb;
@@ -157,7 +156,7 @@ again:
     }
 }
 
-void unlock_zi_for_change (const ZORDERINFO* zi)
+static void unlock_zi_for_change (const ZORDERINFO* zi)
 {
     int clients = 0;
     struct sembuf sb;
@@ -176,7 +175,7 @@ again:
     }
 }
 
-inline void* get_zi_from_client(int cli)
+static inline void* get_zi_from_client(int cli)
 {
     return (((cli>0)?mgClients[cli].layer:mgTopmostLayer)->zorder_info);
 }
@@ -1976,8 +1975,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
 
     return 0;
 }
-
-#endif
+#endif /* defined _MGHAVE_MENU */
 
 static void dskEnableWindow (PMAINWIN pWin, int flags)
 {
@@ -2132,7 +2130,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
          */
         if(bNeedInvalidate)
         {
-			InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
+            InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             rcInvalid = rcMove; //restore the invalidate area
             bNeedInvalidate = FALSE; //resotre the inved value
             inved = TRUE;
@@ -2147,9 +2145,8 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             bNeedInvalidate = TRUE;
         }
 
-        if (bNeedInvalidate)
-        {
-			InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
+        if (bNeedInvalidate) {
+            InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             inved = TRUE;
         }
 
@@ -2163,7 +2160,8 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 
     return 0;
 }
-#endif
+#endif /* disabled code */
+
 static HWND dskGetCaptureWindow (void)
 {
     return __mg_capture_wnd;
@@ -2200,11 +2198,13 @@ static HWND dskGetNextMainWindow (PMAINWIN pWin)
                 last_type = ZOF_TYPE_TOPMOST;
                 slot = __mg_zorder_info->first_topmost;
                 continue;
-            }else if (last_type == ZOF_TYPE_TOPMOST) {
+            }
+            else if (last_type == ZOF_TYPE_TOPMOST) {
                 last_type = ZOF_TYPE_NORMAL;
                 slot = __mg_zorder_info->first_normal;
                 continue;
-            }else{
+            }
+            else {
                 return HWND_NULL;
             }
         }
@@ -2218,7 +2218,8 @@ static HWND dskGetNextMainWindow (PMAINWIN pWin)
                 || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
             slot = nodes[slot].next;
             continue;
-        }else{
+        }
+        else {
             return hWnd;
         }
     }
@@ -2287,6 +2288,30 @@ static BOOL dskSetMainWinAlwaysTop (PMAINWIN pWin, BOOL fSet)
     }
     else {
         pWin->dwStyle &= ~WS_ALWAYSTOP;
+    }
+
+    return TRUE;
+}
+
+/* Since 4.2.0 */
+BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer)
+{
+    ZORDERINFO *src_zi, *dst_zi;
+    ZORDERNODE *src_nodes, *dst_nodes;
+    int cli = client - mgClients;
+    int i;
+
+    src_zi = (ZORDERINFO*)client->layer->zorder_info;
+    src_nodes = GET_ZORDERNODE(src_zi);
+
+    dst_zi = (ZORDERINFO*)dst_layer->zorder_info;
+    dst_nodes = GET_ZORDERNODE(dst_zi);
+
+    /* move fixed znodes */
+    for (i = ZNIDX_SCREENLOCK; i <= ZNIDX_LAUNCHER; i++) {
+        if (src_nodes[i].cli == cli) {
+            memcpy (src_nodes + i, dst_nodes + i, sizeof (ZORDERNODE));
+        }
     }
 
     return TRUE;
@@ -3221,7 +3246,7 @@ static BOOL _cb_update_dskmenu (void* context,
     info->pos++;
     return TRUE;
 }
-#endif
+#endif /* defined _MGHAVE_MENU */
 
 static BOOL _cb_close_mainwin (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
@@ -3307,11 +3332,10 @@ static int srvDesktopCommand (int id)
             ServerDeleteLayer ((MG_Layer*) mii.itemdata);
         }
     }
-#endif
+#endif /* defined _MGHAVE_MENU */
 
     return 0;
 }
-
 
 static int srvRegisterIMEWnd (HWND hwnd)
 {
@@ -3660,7 +3684,7 @@ static void srvUpdateDesktopMenu (void)
 
     dsk_ops->customize_desktop_menu (dt_context, sg_DesktopMenu, 7);
 }
-#endif
+#endif /* defined _MGHAVE_MENU */
 
 static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
 {
@@ -3857,106 +3881,113 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
     }
 
     switch (message) {
-        case MSG_TIMEOUT:
-            {
-                MSG msg = {0, MSG_IDLE, wParam, 0};
-                dskBroadcastMessage (&msg);
-                break;
+    case MSG_LAYERCHANGED: {
+        if (mgIsServer) {
+            _WRN_PRINTF("The server got a MSG_LAYERCHANGED message\n");
+        }
+        else {
+            __mg_client_on_layer_changed ((GHANDLE)wParam, (int)lParam);
+        }
+        break;
+    }
+
+    case MSG_TIMEOUT: {
+        MSG msg = {0, MSG_IDLE, wParam, 0};
+        dskBroadcastMessage (&msg);
+        break;
+    }
+
+    case MSG_SRVNOTIFY: {
+        MSG msg = {0, MSG_SRVNOTIFY, wParam, lParam};
+        dskBroadcastMessage (&msg);
+        break;
+    }
+
+    case MSG_PAINT: {
+        RECT invrc;
+
+        invrc.left = LOWORD(wParam);
+        invrc.top = HIWORD(wParam);
+        invrc.right = LOWORD(lParam);
+        invrc.bottom = HIWORD(lParam);
+
+        dskRefreshAllWindow (&invrc);
+        break;
+    }
+
+    case MSG_REGISTERWNDCLASS:
+        return AddNewControlClass ((PWNDCLASS)lParam);
+
+    case MSG_UNREGISTERWNDCLASS:
+        return gui_DeleteControlClass ((const char*)lParam);
+
+    case MSG_NEWCTRLINSTANCE:
+        return dskOnNewCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
+
+    case MSG_REMOVECTRLINSTANCE:
+        return dskOnRemoveCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
+
+    case MSG_GETCTRLCLASSINFO:
+        return (LRESULT)gui_GetControlClassInfo ((const char*)lParam);
+
+    case MSG_CTRLCLASSDATAOP:
+        return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
+
+    case MSG_IME_REGISTER:
+        if (mgIsServer)
+            return srvRegisterIMEWnd ((HWND)wParam);
+        break;
+
+    case MSG_IME_UNREGISTER:
+        if (mgIsServer)
+            return srvUnregisterIMEWnd ((HWND)wParam);
+        break;
+
+    case MSG_IME_SETSTATUS:
+        if (mgIsServer)
+            return dskSetIMEStatus ((int)wParam, (int)lParam);
+        break;
+
+    case MSG_IME_GETSTATUS:
+        if (mgIsServer)
+            return dskGetIMEStatus ((int)wParam);
+        break;
+
+    case MSG_IME_SET_TARGET_INFO:
+        if (mgIsServer)
+            return dskSetIMETargetInfo ((IME_TARGET_INFO*)lParam);
+        break;
+
+    case MSG_IME_GET_TARGET_INFO:
+        if (mgIsServer)
+            return dskGetIMETargetInfo ((IME_TARGET_INFO*)lParam);
+        break;
+
+    case MSG_BROADCASTMSG:
+        return dskBroadcastMessage ((PMSG)lParam);
+
+    case MSG_TIMER:
+        if (__mg_quiting_stage < 0) {
+            if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE && __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
+                -- __mg_quiting_stage;
+                /* printf("try to quit %d\n", __mg_quiting_stage); */
+            }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
+                /* printf("force to quit !!!\n"); */
             }
 
-        case MSG_SRVNOTIFY:
-            {
-                MSG msg = {0, MSG_SRVNOTIFY, wParam, lParam};
-                dskBroadcastMessage (&msg);
-                break;
+            if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
+                    && (mgIsServer ? SERVER_HAS_NO_MAINWINDOW() : CLIENT_HAS_NO_MAINWINDOW())) {
+                __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
+            }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
+                PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
             }
+        }
 
-        case MSG_PAINT:
-            {
-                RECT invrc;
-
-                invrc.left = LOWORD(wParam);
-                invrc.top = HIWORD(wParam);
-                invrc.right = LOWORD(lParam);
-                invrc.bottom = HIWORD(lParam);
-
-                dskRefreshAllWindow (&invrc);
-                break;
-            }
-
-        case MSG_REGISTERWNDCLASS:
-            return AddNewControlClass ((PWNDCLASS)lParam);
-
-        case MSG_UNREGISTERWNDCLASS:
-            return gui_DeleteControlClass ((const char*)lParam);
-
-        case MSG_NEWCTRLINSTANCE:
-            return dskOnNewCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
-
-        case MSG_REMOVECTRLINSTANCE:
-            return dskOnRemoveCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
-
-        case MSG_GETCTRLCLASSINFO:
-            return (LRESULT)gui_GetControlClassInfo ((const char*)lParam);
-
-        case MSG_CTRLCLASSDATAOP:
-            return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
-
-        case MSG_IME_REGISTER:
-            if (mgIsServer)
-                return srvRegisterIMEWnd ((HWND)wParam);
-            break;
-
-        case MSG_IME_UNREGISTER:
-            if (mgIsServer)
-                return srvUnregisterIMEWnd ((HWND)wParam);
-            break;
-
-        case MSG_IME_SETSTATUS:
-            if (mgIsServer)
-                return dskSetIMEStatus ((int)wParam, (int)lParam);
-            break;
-
-        case MSG_IME_GETSTATUS:
-            if (mgIsServer)
-                return dskGetIMEStatus ((int)wParam);
-            break;
-
-        case MSG_IME_SET_TARGET_INFO:
-            if (mgIsServer)
-                return dskSetIMETargetInfo ((IME_TARGET_INFO*)lParam);
-            break;
-
-        case MSG_IME_GET_TARGET_INFO:
-            if (mgIsServer)
-                return dskGetIMETargetInfo ((IME_TARGET_INFO*)lParam);
-            break;
-
-        case MSG_BROADCASTMSG:
-            return dskBroadcastMessage ((PMSG)lParam);
-
-        case MSG_TIMER:
-            if (__mg_quiting_stage < 0) {
-                if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE && __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
-                    -- __mg_quiting_stage;
-                    /* printf("try to quit %d\n", __mg_quiting_stage); */
-                }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
-                    /* printf("force to quit !!!\n"); */
-                }
-
-                if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
-                        && (mgIsServer ? SERVER_HAS_NO_MAINWINDOW() : CLIENT_HAS_NO_MAINWINDOW())) {
-                    __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
-                }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
-                    PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
-                }
-            }
-
-            dskOnTimer ();
-            break;
+        dskOnTimer ();
+        break;
     }
 
     return 0;
 }
+#endif /* defined _MGRM_PROCESSES */
 
-#endif
