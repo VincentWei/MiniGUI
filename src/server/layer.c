@@ -659,11 +659,21 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
                     sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
 
     if (idx_znode <= 0) {
-        next = zi->first_global;
-        if (next == 0)
-            next = zi->first_topmost;
-        if (next == 0)
-            next = zi->first_normal;
+        if (nodes [ZNIDX_SCREENLOCK].hwnd) {
+            next = ZNIDX_SCREENLOCK;
+        }
+        else if (nodes [ZNIDX_DOCKER].hwnd) {
+            next = ZNIDX_DOCKER;
+        }
+        else {
+            next = zi->first_global;
+            if (next == 0)
+                next = zi->first_topmost;
+            if (next == 0)
+                next = zi->first_normal;
+            if (next == 0 && nodes [ZNIDX_LAUNCHER].hwnd)
+                next = ZNIDX_LAUNCHER;
+        }
 
         if (next > 0 && cli) {
             *cli = nodes [next].cli;
@@ -673,38 +683,13 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
     }
 
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-    if (type != ZOF_TYPE_GLOBAL && type != ZOF_TYPE_TOPMOST
-            && type != ZOF_TYPE_NORMAL)
+    if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
         return -1;
 
-    if (idx_znode > 0) {
-        next = nodes [idx_znode].next;
-    }
-
+    next = kernel_get_next_znode (zi, idx_znode);
     if (next > 0 && cli) {
         *cli = nodes [next].cli;
         return next;
-    }
-
-    switch (nodes [idx_znode].flags & ZOF_TYPE_MASK) {
-        case ZOF_TYPE_GLOBAL:
-            next = zi->first_topmost;
-            if (next == 0)
-                next = zi->first_normal;
-            break;
-
-        case ZOF_TYPE_TOPMOST:
-            next = zi->first_normal;
-            break;
-
-        case ZOF_TYPE_NORMAL:
-            break;
-        default:
-            return -1;
-    }
-
-    if (next > 0 && cli) {
-        *cli = nodes [next].cli;
     }
 
     return next;
@@ -742,6 +727,7 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     znode_info->main_win = nodes [idx_znode].main_win;
 #ifdef _MGSCHEMA_COMPOSITING
     znode_info->mem_dc = nodes [idx_znode].mem_dc;
+    znode_info->ct = nodes [idx_znode].ct;
     znode_info->ct_arg = nodes [idx_znode].ct_arg;
 #endif
 
@@ -770,10 +756,15 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
 
     nodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp +
                     sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
+
+    /* Since 4.2.0: handle fixed znodes */
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-    if (type != ZOF_TYPE_GLOBAL && type != ZOF_TYPE_TOPMOST
-            && type != ZOF_TYPE_NORMAL)
+    if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
         return FALSE;
+
+    if (nodes [idx_znode].hwnd == HWND_NULL) {
+        return FALSE;
+    }
 
     switch (op_code) {
         case ZNOP_MOVE2TOP:
@@ -789,7 +780,6 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
     }
 
     __mg_do_zorder_operation (nodes[idx_znode].cli, &info, -1);
-
     return TRUE;
 }
 
