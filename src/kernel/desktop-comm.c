@@ -215,6 +215,30 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         return -1;
     }
 
+    /* Since 4.2.0: handle window style if failed to allocate znode for fixed ones */
+    if (pWin->dwExStyle & WS_EX_WINTYPE_MASK) {
+        ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
+
+        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
+        switch (nodes [pWin->idx_znode].flags & ZOF_TYPE_MASK) {
+        case ZOF_TYPE_SCREENLOCK:
+            pWin->dwExStyle |= WS_EX_WINTYPE_SCREENLOCK;
+            break;
+        case ZOF_TYPE_DOCKER:
+            pWin->dwExStyle |= WS_EX_WINTYPE_DOCKER;
+            break;
+        case ZOF_TYPE_LAUNCHER:
+            pWin->dwExStyle |= WS_EX_WINTYPE_LAUNCHER;
+            break;
+        case ZOF_TYPE_TOPMOST:
+            pWin->dwExStyle |= WS_EX_TOPMOST;
+            break;
+        case ZOF_TYPE_NORMAL:
+        default:
+            break;
+        }
+    }
+
     // Handle main window hosting.
     if (pWin->pHosting)
         dskAddNewHostedMainWindow (pWin->pHosting, pWin);
