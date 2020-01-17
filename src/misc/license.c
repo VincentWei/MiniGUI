@@ -104,8 +104,6 @@ extern void dskRefreshAllClient (const RECT* invrc);
 #endif
 #endif
 
-extern int dskSetZNodeAlwaysTop(int cli, int idx_znode, BOOL show);
-
 /***********************************************************
  * Product ID
  ***********************************************************/
