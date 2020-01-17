@@ -6111,7 +6111,7 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  *      The main window is opaque. This is the default compositing
  *      type of a main window.
  *  - CT_COLORKEY\n
- *      Use the specified color key for transparency. You should also specify
+ *      Use the specified color as the transparency key. You should also specify
  *      the color along with the parameter \a arg in a RGBA triple value.
  *  - CT_ALPHACHANNEL\n
  *      Use the specified alpha channel value. You should also specify
