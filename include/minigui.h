@@ -95,14 +95,14 @@ extern "C" {
 
 #define ZOF_TYPE_MASK           0xF0000000
 #define ZOF_TYPE_NULL           0x00000000
-#define ZOF_TYPE_POPUPMENU      0x10000000
-#define ZOF_TYPE_SCREENLOCK     0x20000000  /* Since 4.2.0; fixed and only one */
-#define ZOF_TYPE_DOCKER         0x30000000  /* Since 4.2.0; fixed and only one */
-#define ZOF_TYPE_GLOBAL         0x40000000
-#define ZOF_TYPE_TOPMOST        0x50000000
-#define ZOF_TYPE_NORMAL         0x60000000
-#define ZOF_TYPE_LAUNCHER       0x70000000  /* Since 4.2.0; fixed and only one */
-#define ZOF_TYPE_DESKTOP        0x80000000  /* fixed and only one */
+#define ZOF_TYPE_DESKTOP        0x10000000  /* fixed and only one */
+#define ZOF_TYPE_LAUNCHER       0x20000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_NORMAL         0x30000000
+#define ZOF_TYPE_TOPMOST        0x40000000
+#define ZOF_TYPE_GLOBAL         0x50000000
+#define ZOF_TYPE_DOCKER         0x60000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_SCREENLOCK     0x70000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_POPUPMENU      0x80000000
 
 #define ZOF_TF_FLAG_MASK        0x0F000000
 #define ZOF_TF_CONTROL          0x00000000
@@ -111,9 +111,9 @@ extern "C" {
 
 #define ZNIT_NULL               (ZOF_TYPE_NULL)
 #define ZNIT_POPUPMENU          (ZOF_TYPE_POPUPMENU)
-#define ZNIT_SCREENLOCK         (ZOF_TYPE_SCREENLOCK)
-#define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
-#define ZNIT_LAUNCHER           (ZOF_TYPE_LAUNCHER)
+#define ZNIT_SCREENLOCK         (ZOF_TYPE_SCREENLOCK | ZOF_TF_MAINWIN)
+#define ZNIT_DOCKER             (ZOF_TYPE_DOCKER | ZOF_TF_MAINWIN)
+#define ZNIT_LAUNCHER           (ZOF_TYPE_LAUNCHER | ZOF_TF_MAINWIN)
 #define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
 
 #define ZNIT_GLOBAL_MAINWIN     (ZOF_TYPE_GLOBAL | ZOF_TF_MAINWIN)
