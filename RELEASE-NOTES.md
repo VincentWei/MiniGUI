@@ -1,5 +1,147 @@
 # Release Notes
 
+## Version 4.1.0
+
+The MiniGUI development team announces the availability of MiniGUI 4.1.0.
+This is a unstable release to test some new and exciting features.
+We recommend that you test this version and report any bugs and
+incompatibilities in
+
+<https://github.com/VincentWei/minigui>
+
+### What's new in this version
+
+In this version, we enhanced the MiniGUI-Processes runtime mode to support
+the compositing schema. Under compositing schema, regardless a main window
+is created by the server (`mginit`) or a client, it renders the content in
+a separate rendering buffer, and the server composites the contents from
+all visible main windows to the ultimate scan-out frame buffer according to
+the z-order information.
+
+On the contrary, the legacy schema of MiniGUI-Processes uses the same
+frame buffer for all processes (and all main windows) in the system.
+So the legacy schema is also called the shared frame buffer schema.
+
+MiniGUI Core implements the default compositor. But you can implement
+your own compositor by writing your own server, i.e., `mginit`. You
+can also implement your own compositor in a shared library which
+can be loaded by MiniGUI Core dynamically.
+
+By enabling the compositing schema, MiniGUI now provides a better
+implementation for multi-process environment:
+
+- Easy to implement advanced user interfaces with rounded corners,
+  alpha blending, blurring, and so on.
+- Easy to implement animations for switching among main windows.
+- Better security. One client created by different user cannot
+  read/write contents in/to another windows owned by other clients.
+
+The major flaws of the compositing schema are as follow:
+
+- It needs larger memory than the legacy schema to show multiple
+  windows at the same time. Therefore, we may need a client manager
+  to kill a client which runs in background and in full screen mode
+  if you are running MiniGUI on an embedded system, like Android
+  or iOS does.
+- It needs a hardware-accelerated NEWGAL engine to get a smooth
+  user experience.
+
+Usage:
+
+- Use `--enable-compositing` to enable the compositing
+  schema when you configure the runtime mode of MiniGUI as
+  MiniGUI-Processes (`--with-runmode=procs`).
+  Use `--disable-compositing` to enable
+  the legacy schema (the shared frame buffer schema).
+
+In order to use the compositing schema on Linux-based system, we introduce
+some new APIs for your new apps.
+
+### New runtime configuration
+
+```
+[compositing_schema]
+# The size of wallpaper pattern surface (the fake screen for clients).
+# Optional values: <w>x<h>, full, half, quarter, octant, and empty.
+# Default value is empty.
+wallpaper_pattern_size=full
+# wallpaper_pattern_size=half
+# wallpaper_pattern_size=quarter
+# wallpaper_pattern_size=octant
+# wallpaper_pattern_size=empty
+# wallpaper_pattern_size=32x32
+compositor=my_compositor.so
+```
+
+### Compositing types
+
+You can call the following function to set the compositing type and argument
+of a main window:
+
+- `CreateMainWindowEx2` creates a main window with a specific compositing type
+  and argument.
+- `SetMainWindowCompositing` changes the compositing type and argument of a
+  main window.
+
+MiniGUI provides you the following compositing type:
+
+- `CT_OPAQUE`: The main window is opaque. This is the default compositing type
+  if you create a main window by calling `CreateMainWindow` and
+  `CreateMainWindowEx`.
+- `CT_COLORKEY`: Use a specific color as the transparency key when composting
+  the contents of the main window to the screen. You should specify
+  the color along with the compositing argument in a RGBA triple value.
+- `CT_ALPHACHANNEL`: Use a specific alpha channel value when compositing the
+  contents of the main window to the screen.
+- `CT_ALPHAPIXEL`: Use the alpha component of the rendering buffer when composting
+  the contents of the main window.
+- `CT_BLURRED`: Apply a Gaussian blur to the background of the main window.
+
+### New main window types
+
+In this version, we also enhanced the window manager of MiniGUI Core
+to support some special main window types.
+
+- Screen Lock. Use `WS_EX_WINTYPE_SCREENLOCK` extended window style
+to create a screen lock. The main window acts as a screen lock will
+have the highest z-order index in the system.
+- Docker. Use `WS_EX_WINTYPE_DOCKER` extended window style
+to create a docker. The main window acts as a docker will
+have the z-order index lower than the screen lock in the system.
+- Launcher. Use `WS_EX_WINTYPE_LAUNCHER` extended window style
+to create a docker. The main window acts as a docker will
+have the z-order index higher than the desktop in the system.
+
+Note that if there is already a main window acts as the screen lock,
+the docker, or the launcher, MiniGUI will create a normal main window.
+
+Also note that the new main window types are available for the legacy schema.
+
+### Enhancement of cursor
+
+Under the compositing schema, MiniGUI now can use the hardware cursor to show
+the cursor. And you can use the following APIs to load a PNG file as the cursor:
+
+- `LoadCursorFromPNGFile`
+- `LoadCursorFromPNGMem`
+
+### Other new APIs
+
+- `ServerMoveClientToLayer`
+- `MoveToLayer`
+- `LoadBitmapEx2`
+- `ServerSendReplyEx`
+- `RegisterRequestHandlerV1`
+- `GetRequestHandlerV1`
+- `GetRequestHandlerEx`
+- `IsServer`
+- `GetScreenRect`
+
+### Changes leading to incompatibility
+
+- We make `mgIsServer` to be a macro calling `IsServer`.
+- We make `g_rcScr` to be a macro calling `GetScreenRect`.
+
 ## Version 4.0.4
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.4.
@@ -265,7 +407,7 @@ The styles of LOGFONT changed.
   1. `FONT_DECORATE_ANY`: Not specified.
   1. `FONT_DECORATE_NONE`: None.
   1. `FONT_DECORATE_UNDERLINE`: glyphs are underscored.
-  1. `FONT_DECORATE_STRUCKOUT`: glyphs are overstruck.
+  1. `FONT_DECORATE_STRUCKOUT`: glyphs are over-struck.
   1. `FONT_DECORATE_US`: Both `FONT_DECORATE_UNDERLINE`
 and `FONT_DECORATE_STRUCKOUT`.
   1. `FONT_DECORATE_OUTLINE`: Outline (hollow) glyphs.
