@@ -1520,11 +1520,11 @@ int __mg_do_change_topmost_layer (void)
 #endif
 
     old_use_bmp = (unsigned char*)old_zorder_info + sizeof (ZORDERINFO);
-
     old_nodes = GET_ZORDERNODE(old_zorder_info);
 
     __mg_zorder_info = mgTopmostLayer->zorder_info;
 
+    /* copy globals to new layer */
     lock_zi_for_change (__mg_zorder_info);
     __mg_zorder_info->nr_globals = old_zorder_info->nr_globals;
     __mg_zorder_info->first_global = old_zorder_info->first_global;
@@ -1534,24 +1534,70 @@ int __mg_do_change_topmost_layer (void)
     }
 
     new_use_bmp = (unsigned char*)__mg_zorder_info + sizeof (ZORDERINFO);
-
     new_nodes = GET_ZORDERNODE(__mg_zorder_info);
-
     memcpy (new_use_bmp, old_use_bmp, old_zorder_info->max_nr_globals/8);
-
     memcpy (new_nodes, old_nodes,
                     (old_zorder_info->max_nr_globals)*sizeof(ZORDERNODE));
 
     for (i = old_zorder_info->max_nr_globals;
             i <= old_zorder_info->max_nr_globals +
             old_zorder_info->max_nr_topmosts +
-            old_zorder_info->max_nr_normals; i++)
-    {
+            old_zorder_info->max_nr_normals; i++) {
         new_nodes [i].age = old_nodes [i].age + 1;
     }
 
     new_nodes [0].age = old_nodes [0].age + 1;
     unlock_zi_for_change (__mg_zorder_info);
+
+    /* Since 4.2.0: check clients which created fixed znodes */
+    {
+        int cli_moving[3] = { 0 }, nr_clients = 0, i;
+        MG_Layer* dst_layer = mgTopmostLayer;
+        MSG msg = { HWND_DESKTOP,
+                MSG_LAYERCHANGED, (WPARAM)dst_layer,
+                (LPARAM)dst_layer->zorder_shmid, __mg_timer_counter };
+
+
+        if (old_nodes[ZNIDX_SCREENLOCK].hwnd &&
+                old_nodes[ZNIDX_SCREENLOCK].cli > 0) {
+            cli_moving[0] = old_nodes[ZNIDX_SCREENLOCK].cli;
+            nr_clients++;
+        }
+
+        if (old_nodes[ZNIDX_DOCKER].hwnd &&
+                old_nodes[ZNIDX_DOCKER].cli > 0) {
+            for (i = 0; i < nr_clients; i++) {
+                if (cli_moving[i] == old_nodes[ZNIDX_DOCKER].cli)
+                    break;
+            }
+
+            if (i < nr_clients) {
+                cli_moving[nr_clients] = old_nodes[ZNIDX_DOCKER].cli;
+                nr_clients++;
+            }
+        }
+
+        if (old_nodes[ZNIDX_LAUNCHER].hwnd &&
+                old_nodes[ZNIDX_LAUNCHER].cli > 0) {
+            for (i = 0; i < nr_clients; i++) {
+                if (cli_moving[i] == old_nodes[ZNIDX_DOCKER].cli)
+                    break;
+            }
+
+            if (i < nr_clients) {
+                cli_moving[nr_clients] = old_nodes[ZNIDX_DOCKER].cli;
+                nr_clients++;
+            }
+        }
+
+        for (i = 0; i < nr_clients; i++) {
+            __mg_move_client_to_layer (mgClients + cli_moving[i],
+                mgTopmostLayer);
+
+            __mg_send2client (&msg, mgClients + cli_moving[i]);
+        }
+    }
+
     return 0;
 }
 
@@ -2321,23 +2367,69 @@ static BOOL dskSetMainWinAlwaysTop (PMAINWIN pWin, BOOL fSet)
 BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer)
 {
     ZORDERINFO *src_zi, *dst_zi;
-    ZORDERNODE *src_nodes, *dst_nodes;
+    ZORDERNODE *src_nodes;
     int cli = client - mgClients;
-    int i;
+    int next, from = 0;
+    int nr_moving = 0, nr_free;
 
     src_zi = (ZORDERINFO*)client->layer->zorder_info;
     src_nodes = GET_ZORDERNODE(src_zi);
 
-    dst_zi = (ZORDERINFO*)dst_layer->zorder_info;
-    dst_nodes = GET_ZORDERNODE(dst_zi);
+    /* number of znodes of the client */
+    do {
+        if ((next = kernel_get_next_znode (src_zi, from)) <= 0)
+            break;
 
-    /* move fixed znodes */
-    for (i = ZNIDX_SCREENLOCK; i <= ZNIDX_LAUNCHER; i++) {
-        if (src_nodes[i].cli == cli) {
-            memcpy (src_nodes + i, dst_nodes + i, sizeof (ZORDERNODE));
+        if (src_nodes [next].cli == cli) {
+            if (next > ZNIDX_LAUNCHER) {    // do not count fixed znodes
+                nr_moving++;
+            }
         }
+
+        from = next;
+    } while (1);
+
+    /* check free slots */
+    dst_zi = (ZORDERINFO*)dst_layer->zorder_info;
+    nr_free = dst_zi->max_nr_globals + dst_zi->max_nr_topmosts +
+                dst_zi->max_nr_normals;
+    nr_free -= dst_zi->nr_globals + dst_zi->nr_topmosts +
+                dst_zi->nr_normals;
+
+    if (nr_free < nr_moving) {
+        _WRN_PRINTF ("Not enough free slots to move the client: "
+            "nr_moving (%d), nr_free (%d)\n", nr_moving, nr_free);
+        return FALSE;
     }
 
+    /* nr znodes of the client */
+    do {
+        if ((next = kernel_get_next_znode (src_zi, from)) <= 0)
+            break;
+
+        if (src_nodes [next].cli == cli) {
+            AllocZOrderNodeEx (dst_zi, cli,
+                            src_nodes [next].hwnd,
+                            src_nodes [next].main_win,
+                            src_nodes [next].flags,
+                            &src_nodes [next].rc,
+                            src_nodes [next].caption,
+#ifdef _MGSCHEMA_COMPOSITING
+                            src_nodes [next].mem_dc,
+                            src_nodes [next].ct,
+                            src_nodes [next].ct_arg
+#else
+                            HDC_INVALID, CT_OPAQUE, 0
+#endif
+                );
+            FreeZOrderNodeEx (src_zi, next, NULL);
+        }
+
+        from = next;
+    } while (1);
+
+    /* Set layer of the client */
+    client->layer = dst_layer;
     return TRUE;
 }
 
