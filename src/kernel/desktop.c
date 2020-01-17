@@ -82,10 +82,13 @@ WNDPROC __mg_def_proc[3];
 static BLOCKHEAP sg_FreeInvRectList;
 static BLOCKHEAP sg_FreeClipRectList;
 
+#define ZT_SCREENLOCK   0x00000010
+#define ZT_DOCKER       0x00000020
 #define ZT_GLOBAL       0x00000001
 #define ZT_TOPMOST      0x00000002
 #define ZT_NORMAL       0x00000004
-#define ZT_ALL          0x0000000F
+#define ZT_LAUNCHER     0x00000040
+#define ZT_ALL          0x000000FF
 
 typedef BOOL (* CB_ONE_ZNODE) (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node);
@@ -1638,37 +1641,71 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     DWORD type = flags & ZOF_TYPE_MASK;
     ZORDERINFO* zi = _get_zorder_info(cli);
     int *first = NULL, *nr_nodes = NULL;
-    int free_slot, slot, old_first;
+    int free_slot = -1, slot, old_first;
     ZORDERNODE* nodes;
     RECT rc_screen;
 
+    nodes = GET_ZORDERNODE(zi);
     rc_screen = GetScreenRect();
 
+    /* Since 4.2.0: check fixed znode type first */
     switch (flags & ZOF_TYPE_MASK) {
-        case ZOF_TYPE_GLOBAL:
-            if (zi->nr_globals < zi->max_nr_globals) {
-                first = &zi->first_global;
-                nr_nodes = &zi->nr_globals;
-            }
-            break;
-        case ZOF_TYPE_TOPMOST:
-            if (zi->nr_topmosts < zi->max_nr_topmosts) {
-                first = &zi->first_topmost;
-                nr_nodes = &zi->nr_topmosts;
-            }
-            break;
-        case ZOF_TYPE_NORMAL:
-            if (zi->nr_normals < zi->max_nr_normals) {
-                first = &zi->first_normal;
-                nr_nodes = &zi->nr_normals;
-            }
-            break;
-        default:
-            break;
+    case ZOF_TYPE_SCREENLOCK:
+        if (nodes [ZNIDX_SCREENLOCK].hwnd) {
+            flags &= ~ZOF_TYPE_MASK;
+            flags |= ZOF_TYPE_TOPMOST;
+        }
+        else {
+            free_slot = ZNIDX_SCREENLOCK;
+        }
+        break;
+
+    case ZOF_TYPE_DOCKER:
+        if (nodes [ZNIDX_DOCKER].hwnd) {
+            flags &= ~ZOF_TYPE_MASK;
+            flags |= ZOF_TYPE_TOPMOST;
+        }
+        else {
+            free_slot = ZNIDX_DOCKER;
+        }
+        break;
+
+    case ZOF_TYPE_LAUNCHER:
+        if (nodes [ZNIDX_LAUNCHER].hwnd) {
+            flags &= ~ZOF_TYPE_MASK;
+            flags |= ZOF_TYPE_NORMAL;
+        }
+        else {
+            free_slot = ZNIDX_LAUNCHER;
+        }
+        break;
     }
 
-    if (first == NULL) {
-        fprintf (stderr, "Cann't find first zorder node. \n");
+    switch (flags & ZOF_TYPE_MASK) {
+    case ZOF_TYPE_GLOBAL:
+        if (zi->nr_globals < zi->max_nr_globals) {
+            first = &zi->first_global;
+            nr_nodes = &zi->nr_globals;
+        }
+        break;
+    case ZOF_TYPE_TOPMOST:
+        if (zi->nr_topmosts < zi->max_nr_topmosts) {
+            first = &zi->first_topmost;
+            nr_nodes = &zi->nr_topmosts;
+        }
+        break;
+    case ZOF_TYPE_NORMAL:
+        if (zi->nr_normals < zi->max_nr_normals) {
+            first = &zi->first_normal;
+            nr_nodes = &zi->nr_normals;
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (free_slot == -1 && first == NULL) {
+        _ERR_PRINTF ("Cann't find first zorder node.\n");
         return -1;
     }
 
@@ -1677,29 +1714,29 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
         srvForceCloseMenu (0);
 #endif
 
-    nodes = GET_ZORDERNODE(zi);
-
     /* lock zi for change */
     lock_zi_for_change (zi);
 
     /* the slot must be larger than zero */
-    if (type == ZOF_TYPE_GLOBAL)
-        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1),
-                                        zi->max_nr_globals, 1);
-    else {
-        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1)
-                        + (zi->max_nr_globals >> 3),
-                        zi->size_usage_bmp - (zi->max_nr_globals >> 3), 1);
+    if (free_slot == -1) {
+        if (type == ZOF_TYPE_GLOBAL)
+            free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1),
+                                            zi->max_nr_globals, 1);
+        else {
+            free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1)
+                            + (zi->max_nr_globals >> 3),
+                            zi->size_usage_bmp - (zi->max_nr_globals >> 3), 1);
 
-        if (free_slot >= 0) {
-            free_slot += zi->max_nr_globals;
+            if (free_slot >= 0) {
+                free_slot += zi->max_nr_globals;
+            }
         }
     }
 
     if (-1 == free_slot) {
         /* unlock zorderinfo for change. */
         unlock_zi_for_change (zi);
-        fprintf (stderr, "Cann't find unused slot. \n");
+        _ERR_PRINTF ("Cann't find unused slot. \n");
         return -1;
     }
 
@@ -1758,15 +1795,25 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 
     /* check influenced zorder nodes */
     if (flags & ZOF_VISIBLE) {
+        /* Since 4.2.0 */
+        if (type >= ZOF_TYPE_LAUNCHER) {
+            int slot = ZNIDX_LAUNCHER;
+            if (nodes [slot].flags & ZOF_VISIBLE &&
+                    DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
+                    nodes [slot].age ++;
+            }
+        }
+
         if (type >= ZOF_TYPE_NORMAL) {
             slot = zi->first_normal;
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
-                    DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
+                        DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
                 }
             }
         }
+
         if (type >= ZOF_TYPE_TOPMOST) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
@@ -1776,6 +1823,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 }
             }
         }
+
         if (type >= ZOF_TYPE_GLOBAL) {
             slot = zi->first_global;
             for (; slot > 0; slot = nodes [slot].next) {
@@ -1785,6 +1833,24 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 }
             }
         }
+
+        if (type >= ZOF_TYPE_DOCKER) {
+            int slot = ZNIDX_DOCKER;
+            if (nodes [slot].flags & ZOF_VISIBLE &&
+                    DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
+                    nodes [slot].age ++;
+            }
+        }
+
+        if (type >= ZOF_TYPE_SCREENLOCK) {
+            int slot = ZNIDX_SCREENLOCK;
+            if (nodes [slot].flags & ZOF_VISIBLE &&
+                    DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
+                    nodes [slot].age ++;
+            }
+        }
+
+        /* for destkop */
         if (DoesIntersect (&nodes [free_slot].rc, &rc_screen)) {
             nodes [0].age ++;
         }
@@ -1794,47 +1860,50 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 #if 1
     /* Since 4.2.0. Support for always top znode.
      * defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK) */
-    if (*first == 0
-            || (nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)
-    {
+    if (first) {        // not a fixed znode
+        if (*first == 0
+                || (nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)
+        {
+            old_first = *first;
+            nodes [old_first].prev = free_slot;
+            nodes [free_slot].prev = 0;
+            nodes [free_slot].next = old_first;
+        }
+        else {
+            int pre_idx = *first;
+            while (*first) {
+                if ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) == ZOF_IF_ALWAYSTOP) {
+                    pre_idx = *first;
+                    first = &nodes[*first].next;
+                }
+                else
+                    break;
+            }
+            old_first = pre_idx;
+            nodes [free_slot].prev = old_first;
+            nodes [free_slot].next = nodes [old_first].next;
+            nodes [nodes [old_first].next].prev = free_slot;
+            nodes [old_first].next = free_slot;
+        }
+
+        if (first == &zi->first_global || first == &zi->first_topmost
+                || first == &zi->first_normal) {
+            *first = free_slot;
+        }
+    }
+#else
+    if (first) {    // not a fixed znode
+        /* chain the new node */
         old_first = *first;
         nodes [old_first].prev = free_slot;
         nodes [free_slot].prev = 0;
         nodes [free_slot].next = old_first;
-    }
-    else {
-        int pre_idx = *first;
-        while (*first) {
-            if ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) == ZOF_IF_ALWAYSTOP) {
-                pre_idx = *first;
-                first = &nodes[*first].next;
-            }
-            else
-                break;
-        }
-        old_first = pre_idx;
-        nodes [free_slot].prev = old_first;
-        nodes [free_slot].next = nodes [old_first].next;
-        nodes [nodes [old_first].next].prev = free_slot;
-        nodes [old_first].next = free_slot;
-    }
-
-    if (first == &zi->first_global || first == &zi->first_topmost
-            || first == &zi->first_normal) {
         *first = free_slot;
     }
-
-#else
-
-    /* chain the new node */
-    old_first = *first;
-    nodes [old_first].prev = free_slot;
-    nodes [free_slot].prev = 0;
-    nodes [free_slot].next = old_first;
-    *first = free_slot;
 #endif
 
-    *nr_nodes += 1;
+    if (nr_nodes)
+        *nr_nodes += 1;
 
     /* unlock zi for change ... */
     unlock_zi_for_change (zi);
@@ -1850,6 +1919,7 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
     ZORDERNODE* nodes;
     int slot, old_active, next_active;
     RECT rc, rc_screen;
+    int fixed_idx;
 
     if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
@@ -1867,25 +1937,44 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
 
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
 
+    /* Since 4.2.0 */
     switch (type) {
-        case ZOF_TYPE_GLOBAL:
-            first = &zi->first_global;
-            nr_nodes = &zi->nr_globals;
-            break;
-        case ZOF_TYPE_TOPMOST:
-            if (zi->nr_topmosts < zi->max_nr_topmosts) {
-                first = &zi->first_topmost;
-                nr_nodes = &zi->nr_topmosts;
-            }
-            break;
-        case ZOF_TYPE_NORMAL:
-            if (zi->nr_normals < zi->max_nr_normals) {
-                first = &zi->first_normal;
-                nr_nodes = &zi->nr_normals;
-            }
-            break;
-        default:
-            break;
+    case ZOF_TYPE_SCREENLOCK:
+        fixed_idx = ZNIDX_SCREENLOCK;
+        first = &fixed_idx;
+        break;
+
+    case ZOF_TYPE_DOCKER:
+        fixed_idx = ZNIDX_DOCKER;
+        first = &fixed_idx;
+        break;
+
+    case ZOF_TYPE_GLOBAL:
+        first = &zi->first_global;
+        nr_nodes = &zi->nr_globals;
+        break;
+
+    case ZOF_TYPE_TOPMOST:
+        if (zi->nr_topmosts < zi->max_nr_topmosts) {
+            first = &zi->first_topmost;
+            nr_nodes = &zi->nr_topmosts;
+        }
+        break;
+
+    case ZOF_TYPE_NORMAL:
+        if (zi->nr_normals < zi->max_nr_normals) {
+            first = &zi->first_normal;
+            nr_nodes = &zi->nr_normals;
+        }
+        break;
+
+    case ZOF_TYPE_LAUNCHER:
+        fixed_idx = ZNIDX_LAUNCHER;
+        first = &fixed_idx;
+        break;
+
+    default:
+        break;
     }
 
     if (first == NULL) {
@@ -1934,6 +2023,28 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
                 nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
+
+        /* Since 4.2.0 */
+        if (type > ZOF_TYPE_DOCKER) {
+            slot = ZNIDX_DOCKER;
+            if (nodes [slot].flags & ZOF_VISIBLE &&
+                    subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
+                nodes [slot].age ++;
+                nodes [slot].flags |= ZOF_IF_REFERENCE;
+            }
+        }
+
+        if (type > ZOF_TYPE_GLOBAL) {
+            slot = zi->first_global;
+            for (; slot > 0; slot = nodes [slot].next) {
+                if (nodes [slot].flags & ZOF_VISIBLE &&
+                        subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
+                    nodes [slot].age ++;
+                    nodes [slot].flags |= ZOF_IF_REFERENCE;
+                }
+            }
+        }
+
         if (type > ZOF_TYPE_TOPMOST) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
@@ -1944,6 +2055,7 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
                 }
             }
         }
+
         if (type > ZOF_TYPE_NORMAL) {
             slot = zi->first_normal;
             for (; slot > 0; slot = nodes [slot].next) {
@@ -1955,6 +2067,15 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
             }
         }
 
+        if (type > ZOF_TYPE_LAUNCHER) {
+            slot = ZNIDX_LAUNCHER;
+            if (nodes [slot].flags & ZOF_VISIBLE &&
+                    subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
+                nodes [slot].age ++;
+                nodes [slot].flags |= ZOF_IF_REFERENCE;
+            }
+        }
+
         if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
             nodes [0].age ++;
             nodes [0].flags |= ZOF_IF_REFERENCE;
@@ -1962,13 +2083,17 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
     }
 
     /* unchain it */
-    unchain_znode ((unsigned char*)(zi+1), nodes, idx_znode);
-    nodes [idx_znode].hwnd = 0;
-
-    if (*first == idx_znode) {
-        *first = nodes [idx_znode].next;
+    if (first == &fixed_idx) {
+        nodes [idx_znode].hwnd = 0;
+        nodes [idx_znode].flags &= ~ZOF_VISIBLE;
     }
-    *nr_nodes -= 1;
+    else if (*first == idx_znode) {
+        unchain_znode ((unsigned char*)(zi+1), nodes, idx_znode);
+        nodes [idx_znode].hwnd = 0;
+
+        *first = nodes [idx_znode].next;
+        *nr_nodes -= 1;
+    }
 
     old_active = zi->active_win;
     if (idx_znode == zi->active_win)
@@ -2001,17 +2126,35 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
 
 #if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
-       zt_type |= ZOF_TYPE_GLOBAL;
+        /* Always be global ones */
+        zt_type |= ZOF_TYPE_GLOBAL;
     } else
 #endif
     {
-        if (pWin->dwExStyle & WS_EX_TOPMOST)
-            zt_type |= ZOF_TYPE_TOPMOST;
-        else if (pWin->WinType == TYPE_CONTROL &&
-                    (pWin->pMainWin->dwExStyle & WS_EX_TOPMOST))
-            zt_type |= ZOF_TYPE_TOPMOST;
-        else
-            zt_type |= ZOF_TYPE_NORMAL;
+        /* Since 4.2.0 */
+        switch (pWin->dwExStyle & WS_EX_WINTYPE_MASK) {
+        case WS_EX_WINTYPE_SCREENLOCK:
+            zt_type |= ZOF_TYPE_SCREENLOCK;
+            break;
+
+        case WS_EX_WINTYPE_DOCKER:
+            zt_type |= ZOF_TYPE_DOCKER;
+            break;
+
+        case WS_EX_WINTYPE_LAUNCHER:
+            zt_type |= ZOF_TYPE_LAUNCHER;
+            break;
+
+        default:
+            if (pWin->dwExStyle & WS_EX_TOPMOST)
+                zt_type |= ZOF_TYPE_TOPMOST;
+            else if (pWin->WinType == TYPE_CONTROL &&
+                        (pWin->pMainWin->dwExStyle & WS_EX_TOPMOST))
+                zt_type |= ZOF_TYPE_TOPMOST;
+            else
+                zt_type |= ZOF_TYPE_NORMAL;
+            break;
+        }
     }
 
     /* XXX: Since 4.2.0 */
@@ -2210,6 +2353,7 @@ static int dskCreateTopZOrderNode (int cli, const RECT *rc)
 {
     int idx_znode = 0;
     int zt_type = ZOF_VISIBLE | ZOF_TF_MAINWIN;
+
 #if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
         zt_type |= ZOF_TYPE_GLOBAL;
@@ -2231,7 +2375,7 @@ static int dskDestroyTopZOrderNode (int cli, int idx_znode)
 }
 #endif /* _MG_ENABLE_SCREENSAVER || _MG_ENABLE_WATERMARK */
 
-/*XXX static */int dskSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
+static int dskSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
 {
     // NUV DWORD type;
     ZORDERINFO* zi = _get_zorder_info (cli);
