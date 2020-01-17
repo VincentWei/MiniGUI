@@ -78,10 +78,18 @@
 #   define DEF_NR_GLOBALS           0
 #endif
 
+/* number of znodes */
 #define DEF_NR_MASKRECT             1024
 #define DEF_NR_POPUPMENUS           16
 #define DEF_NR_TOPMOSTS             16
 #define DEF_NR_NORMALS              128
+#define DEF_NR_FIXEDZNODES          4
+
+/* Since 4.2.0; the fixed znode index for special main window */
+#define ZNIDX_DESKTOP           0
+#define ZNIDX_SCREENLOCK        1
+#define ZNIDX_DOCKER            2
+#define ZNIDX_LAUNCHER          3
 
 /* constants for MiniGUI-Processes runtime mode */
 #ifdef _MGRM_PROCESSES
