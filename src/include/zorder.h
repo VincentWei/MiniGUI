@@ -54,12 +54,6 @@
 
 #include "constants.h"
 
-/* Since 4.2.0; the fixed znode index for special main window */
-#define ZNIDX_DESKTOP           0
-#define ZNIDX_SCREENLOCK        1
-#define ZNIDX_DOCKER            2
-#define ZNIDX_LAUNCHER          3
-
 typedef struct _RECT4MASK {
     unsigned short left, top, right, bottom;
 } RECT4MASK;
@@ -163,8 +157,10 @@ typedef ZORDERINFO* PZORDERINFO;
                 GET_MASKRECT_USAGEBMP(zi) + \
                 (zi)->size_maskrect_usage_bmp))
 
+/* Since 4.2.0: maximal number of fixed znodes: 4 */
 #define SIZE_USAGE_BMP \
-        ROUND_TO_MULTIPLE((7 + SHAREDRES_NR_GLOBALS + nr_topmosts + nr_normals) / 8, 8)
+        ROUND_TO_MULTIPLE((7 + SHAREDRES_NR_GLOBALS + nr_topmosts + nr_normals + \
+            DEF_NR_FIXEDZNODES) / 8, 8)
 
 #define SIZE_MASKRECT_USAGE_BMP \
         ROUND_TO_MULTIPLE((7 + DEF_NR_MASKRECT) / 8, 8)

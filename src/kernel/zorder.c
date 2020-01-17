@@ -113,10 +113,11 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     zorder_shmid = shmget (shm_key,
                 sizeof (ZORDERINFO) + SIZE_USAGE_BMP +
                 sizeof (ZORDERNODE) *
-                        (DEF_NR_POPUPMENUS + /* for the popup menus */
-                        SHAREDRES_NR_GLOBALS + /* for the global windows */
-                        nr_topmosts +       /* for the topmost windows */
-                        nr_normals)+        /* for the normal windows */
+                        (DEF_NR_POPUPMENUS +    /* for the popup menus */
+                        SHAREDRES_NR_GLOBALS +  /* for the global windows */
+                        nr_topmosts +           /* for the topmost windows */
+                        nr_normals +            /* for the normal windows */
+                        DEF_NR_FIXEDZNODES) +   /* for the fixed znodes */
                         SIZE_MASKRECT_USAGE_BMP +
                 sizeof (MASKRECT) * DEF_NR_MASKRECT,
                 SHM_PARAM | IPC_CREAT | IPC_EXCL);
@@ -132,7 +133,8 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
                             (DEF_NR_POPUPMENUS +    /* for the popup menus */
                             SHAREDRES_NR_GLOBALS +  /* for global window: 0*/
                             nr_topmosts +           /* for the topmost windows */
-                            nr_normals)+            /* for the normal windows */
+                            nr_normals +            /* for the normal windows */
+                            DEF_NR_FIXEDZNODES) +   /* for the fixed znodes */
                             SIZE_MASKRECT_USAGE_BMP +
                     sizeof (MASKRECT) * DEF_NR_MASKRECT);
 
