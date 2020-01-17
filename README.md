@@ -175,10 +175,12 @@ the z-order information.
 
 On the contrary, the legacy schema of MiniGUI-Processes uses the same
 frame buffer for all processes (and all main windows) in the system.
-So the legacy schema is also called shared frame buffer schema.
+So the legacy schema is also called the shared frame buffer schema.
 
 MiniGUI Core implements the default compositor. But you can implement
-your own compositor by programming your own server, i.e., `mginit`.
+your own compositor by writing your own server, i.e., `mginit`. You
+can also implement your own compositor in a shared library which
+can be loaded by MiniGUI Core dynamically.
 
 By enabling the compositing schema, MiniGUI now provides a better
 implementation for multi-process environment:
@@ -186,8 +188,8 @@ implementation for multi-process environment:
 - Easy to implement advanced user interfaces with rounded corners,
   alpha blending, blurring, and so on.
 - Easy to implement animations for switching among main windows.
-- Better security. One client cannot read/write contents in/to
-  another windows owned by other clients.
+- Better security. One client created by different user cannot
+  read/write contents in/to another windows owned by other clients.
 
 The major flaws of the compositing schema are as follow:
 
@@ -201,11 +203,28 @@ The major flaws of the compositing schema are as follow:
 
 Usage:
 
-- Use `--enable-compositing` (default) to enable the compositing
+- Use `--enable-compositing` to enable the compositing
   schema when you configure the runtime mode of MiniGUI as
   MiniGUI-Processes (`--with-runmode=procs`).
   Use `--disable-compositing` to enable
   the legacy schema (the shared frame buffer schema).
+
+In this version, we also enhanced the window manager of MiniGUI Core
+to support some special main window types:
+
+- Screen Lock. Use `WS_EX_WINTYPE_SCREENLOCK` extended window style
+to create a screen lock. The main window acts as a screen lock will
+have the highest z-order index in the system.
+- Docker. Use `WS_EX_WINTYPE_DOCKER` extended window style
+to create a docker. The main window acts as a docker will
+have the z-order index lower than the screen lock in the system.
+- Launcher. Use `WS_EX_WINTYPE_LAUNCHER` extended window style
+to create a docker. The main window acts as a docker will
+have the z-order index higher than the desktop in the system.
+
+For more information, please refer to `RELEASE-NOTES.md` file:
+
+<https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md>
 
 ## NEW FEATURES IN VERSION 4.0.x
 
