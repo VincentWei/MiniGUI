@@ -1622,23 +1622,12 @@ int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-static inline DWORD compositing_type_to_flag (int type)
+static inline int validate_compositing_type (int type)
 {
-    switch (type) {
-    case CT_OPAQUE:
-    default:
-        return ZOF_COMPOS_OPAQUE;
-    case CT_COLORKEY:
-        return ZOF_COMPOS_COLORKEY;
-    case CT_ALPHACHANNEL:
-        return ZOF_COMPOS_ALPHACHANNEL;
-    case CT_ALPHAPIXEL:
-        return ZOF_COMPOS_ALPHAPIXEL;
-    case CT_BLURRED:
-        return ZOF_COMPOS_BLURRED;
-    }
+    if (type < CT_OPAQUE || type > CT_MAX_VALUE)
+        return CT_OPAQUE;
 
-    return ZOF_COMPOS_OPAQUE;
+    return type;
 }
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
@@ -1722,7 +1711,7 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].main_win = main_win;
 #ifdef _MGSCHEMA_COMPOSITING
     nodes [free_slot].mem_dc = mem_dc;
-    nodes [free_slot].flags |= compositing_type_to_flag(ct);
+    nodes [free_slot].ct = validate_compositing_type (ct);
     nodes [free_slot].ct_arg = ct_arg;
 #endif
     nodes [free_slot].idx_mask_rect = 0;
@@ -2317,7 +2306,6 @@ static int dskSetZNodeCompositing (int cli, int idx_znode, int ct, DWORD ct_arg)
 {
     ZORDERINFO* zi = _get_zorder_info (cli);
     DWORD type;
-    DWORD flag, old_flag;
     ZORDERNODE* nodes;
 
     if (idx_znode > (zi->max_nr_globals
@@ -2332,18 +2320,17 @@ static int dskSetZNodeCompositing (int cli, int idx_znode, int ct, DWORD ct_arg)
         return -1;
     }
 
-    flag = compositing_type_to_flag (ct);
-    old_flag = nodes [idx_znode].flags & ZOF_COMPOSITING_MASK;
-    if ((flag == old_flag) && (nodes [idx_znode].ct_arg == ct_arg)) {
+    if ((nodes [idx_znode].ct == ct) && (nodes [idx_znode].ct_arg == ct_arg)) {
         return 0;
     }
 
     /* lock zi for change */
     lock_zi_for_change (zi);
 
-    nodes [idx_znode].flags &= ~ZOF_COMPOSITING_MASK;
-    nodes [idx_znode].flags |= flag;
+    nodes [idx_znode].ct = ct;
     nodes [idx_znode].ct_arg = ct_arg;
+
+    /* TODO */
 
     /* unlock zi for change */
     unlock_zi_for_change (zi);

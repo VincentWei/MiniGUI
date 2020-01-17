@@ -5941,6 +5941,7 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
 #define CT_ALPHACHANNEL 0x02
 #define CT_ALPHAPIXEL   0x03
 #define CT_BLURRED      0x04
+#define CT_MAX_VALUE    0x04
 
 /**
  * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,

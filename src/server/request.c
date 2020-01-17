@@ -279,6 +279,8 @@ ret:
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
 }
 
+#endif /* IS_COMPOSITING_SCHEMA */
+
 static int move_to_layer (int cli, int clifd, void* buff, size_t len)
 {
     MOVETOLAYERINFO* info = (MOVETOLAYERINFO*)buff;
@@ -308,8 +310,6 @@ static int move_to_layer (int cli, int clifd, void* buff, size_t len)
 ret:
     return ServerSendReply (clifd, &moved_info, sizeof (MOVEDCLIENTINFO));
 }
-
-#endif /* IS_COMPOSITING_SCHEMA */
 
 static int create_cursor (int cli, int clifd, void* buff, size_t len)
 {

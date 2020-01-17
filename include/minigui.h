@@ -82,14 +82,6 @@ extern "C" {
 #define ZOF_MINIMIZED           0x00000008  /* Since 4.2.0 */
 
 /* Since 4.2.0 */
-#define ZOF_COMPOSITING_MASK    0x000000F0
-#define ZOF_COMPOS_OPAQUE       0x00000000
-#define ZOF_COMPOS_COLORKEY     0x00000010
-#define ZOF_COMPOS_ALPHACHANNEL 0x00000020
-#define ZOF_COMPOS_ALPHAPIXEL   0x00000030
-#define ZOF_COMPOS_BLURRED      0x00000040
-
-/* Since 4.2.0 */
 #define ZOF_INTERNAL_FLAGS_MASK 0X000F0000
 #define ZOF_IF_REFERENCE        0x00010000
 #define ZOF_IF_ALWAYSTOP        0x00020000
@@ -1069,6 +1061,11 @@ typedef struct _ZNODEINFO {
      * For more information, see \a SetMainWindowCompositing.
      */
     DWORD           ct_arg;
+    /**
+     * The compositing type for this znode.
+     * For more information, see \a SetMainWindowCompositing.
+     */
+    int             ct;
 #endif
 } ZNODEINFO;
 

@@ -85,9 +85,11 @@ typedef struct _ZORDERNODE {
     int             cli;            /* which client? */
     HWND            hwnd;           /* which window of the client? */
     HWND            main_win;       /* handle to the main window */
+
 #ifdef _MGSCHEMA_COMPOSITING
-    HDC             mem_dc;         /* The memory DC for this znode. */
-    DWORD           ct_arg;         /* the argument for compositing. */
+    HDC             mem_dc;         /* the memory DC for this znode */
+    DWORD           ct_arg;         /* the argument for compositing */
+    int             ct;             /* the compositing type */
 #endif
 
     int             next;
