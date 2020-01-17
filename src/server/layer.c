@@ -125,7 +125,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     zi->max_nr_normals = nr_normals;
 
     zi->nr_popupmenus = 0;
-    zi->nr_globals = 1;
+    zi->nr_globals = 0;
     zi->nr_topmosts = 0;
     zi->nr_normals = 0;
 
@@ -548,8 +548,7 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
     if (OnChangeLayer)
         OnChangeLayer (LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
 
-    if (IsPaint)
-    {
+    if (IsPaint) {
         SendMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
     }
 
