@@ -190,10 +190,10 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
     /* Since 4.2.0; init null znode for other fixed main windows */
-    if (sg_nr_layers == 0) {
+    {
         int i;
-        int fixed_ztypes [] = {
-            ZOF_TYPE_SCREENLOCK, ZOF_TYPE_DOCKER, ZOF_TYPE_LAUNCHER };
+        static int fixed_ztypes [] = {
+            ZNIT_SCREENLOCK, ZNIT_DOCKER, ZNIT_LAUNCHER };
 
         for (i = 0; i < TABLESIZE (fixed_ztypes); i++) {
             znodes [i + ZNIDX_SCREENLOCK].flags = fixed_ztypes [i];
@@ -203,14 +203,10 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
             znodes [i + ZNIDX_SCREENLOCK].next = 0;
             znodes [i + ZNIDX_SCREENLOCK].prev = 0;
             znodes [i + ZNIDX_SCREENLOCK].idx_mask_rect = 0;
-
             SetRectEmpty (&znodes [i + ZNIDX_SCREENLOCK].rc);
+            __mg_slot_set_use ((unsigned char*)(zi + 1), i + ZNIDX_SCREENLOCK);
         }
     }
-
-    __mg_slot_set_use ((unsigned char*)(zi + 1), ZNIDX_SCREENLOCK);
-    __mg_slot_set_use ((unsigned char*)(zi + 1), ZNIDX_DOCKER);
-    __mg_slot_set_use ((unsigned char*)(zi + 1), ZNIDX_LAUNCHER);
 
     sg_nr_layers ++;
     return TRUE;
