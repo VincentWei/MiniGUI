@@ -1098,6 +1098,8 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
 
     do {
         next = kernel_get_next_znode (zi, from);
+        if (next <= 0)
+            break;
 
         if (nodes [next].flags & ZOF_TF_MAINWIN
                 && (nodes [next].flags & ZOF_VISIBLE)
@@ -1105,7 +1107,7 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
             return next;
 
         from = next;
-    } while (from > 0);
+    } while (1);
 
     return 0;
 }
@@ -1763,12 +1765,11 @@ static inline int validate_compositing_type (int type)
 }
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
-static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
+static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
                 HDC mem_dc, int ct, DWORD ct_arg)
 {
     DWORD type = flags & ZOF_TYPE_MASK;
-    ZORDERINFO* zi = _get_zorder_info(cli);
     int *first = NULL, *nr_nodes = NULL;
     int free_slot = -1, slot, old_first;
     ZORDERNODE* nodes;
@@ -2039,11 +2040,18 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     return free_slot;
 }
 
-static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
+static inline int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
+                DWORD flags, const RECT *rc, const char *caption,
+                HDC mem_dc, int ct, DWORD ct_arg)
+{
+    return AllocZOrderNodeEx (_get_zorder_info(cli), cli, hwnd, main_win,
+            flags, rc, caption, mem_dc, ct, ct_arg);
+}
+
+static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
 {
     DWORD type;
     int *first = NULL, *nr_nodes = NULL;
-    ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
     int slot, old_active, next_active;
     RECT rc, rc_screen;
@@ -2213,12 +2221,14 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
     if (first == &fixed_idx) {
         /* Since 4.2.0: handle fixed znodes */
         nodes [idx_znode].hwnd = 0;
+        nodes [idx_znode].cli = -1;
         nodes [idx_znode].flags &= ~ZOF_VISIBLE;
     }
     else if (*first == idx_znode) {
         /* unchain it */
         unchain_znode ((unsigned char*)(zi+1), nodes, idx_znode);
         nodes [idx_znode].hwnd = 0;
+        nodes [idx_znode].cli = -1;
 
         *first = nodes [idx_znode].next;
         *nr_nodes -= 1;
@@ -2247,6 +2257,11 @@ static int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
     }
 
     return 0;
+}
+
+static inline int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
+{
+    return FreeZOrderNodeEx (_get_zorder_info(cli), idx_znode, memdc);
 }
 
 static DWORD get_znode_flags_from_style (PMAINWIN pWin)
