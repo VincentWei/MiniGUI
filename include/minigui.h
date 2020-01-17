@@ -972,11 +972,12 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
  *        through this pointer. NULL is okay.
  *
  * \return The index of the next z-node. Zero when the next z-node is
- *         the last one; < 0 when error;
+ *         the desktop; < 0 when error;
  *
  * \note Server-only function. Note that this function will not return
  *       the z-node of the desktop, and the desktop always has the index
- *       of z-node zero.
+ *       of z-node zero. Also note that this function travels all znodes
+ *       from top to bottom.
  *
  * \sa ServerGetZNodeInfo
  */
