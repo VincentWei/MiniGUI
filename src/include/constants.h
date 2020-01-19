@@ -154,15 +154,12 @@
 #define LEN_VIDEO_MODE      31
 #define LEN_MTYPE_NAME      23
 #define LEN_FOURCC_FORMAT   7
-#define LEN_SO_NAME         255 // SO: shared object (shared library)
+#define LEN_SO_NAME         255 // name length of a shared object (library)
 
 /* misc constants and utilities */
 
 // Number of timers.
 #define DEF_NR_TIMERS           NR_BITS_DWORD
-
-// maximal lenght for z-order node caption
-#define MAX_CAPTION_LEN         39
 
 // round n to multiple of m
 #define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
