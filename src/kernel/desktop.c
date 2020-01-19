@@ -1091,6 +1091,138 @@ int kernel_get_next_znode (const ZORDERINFO* zi, int from)
     return next;
 }
 
+int kernel_get_prev_znode (const ZORDERINFO* zi, int from)
+{
+    int prev = 0;
+    ZORDERNODE* nodes = GET_ZORDERNODE(zi);
+
+    if (from <= 0) {
+        if (nodes [ZNIDX_LAUNCHER].hwnd) {
+            prev = ZNIDX_LAUNCHER;
+        }
+        else {
+            if (zi->first_normal) {
+                prev = zi->first_normal;
+                while (nodes [prev].next) {
+                    prev = nodes [prev].next;
+                }
+            }
+            else if (zi->first_topmost) {
+                prev = zi->first_topmost;
+                while (nodes [prev].next) {
+                    prev = nodes [prev].next;
+                }
+            }
+            else if (zi->first_global) {
+                prev = zi->first_global;
+                while (nodes [prev].next) {
+                    prev = nodes [prev].next;
+                }
+            }
+
+            if (prev == 0 && nodes [ZNIDX_DOCKER].hwnd)
+                prev = ZNIDX_DOCKER;
+            if (prev == 0 && nodes [ZNIDX_SCREENLOCK].hwnd)
+                prev = ZNIDX_SCREENLOCK;
+        }
+
+        return prev;
+    }
+
+    switch (from) {
+    case ZNIDX_LAUNCHER:
+        if (zi->first_normal) {
+            prev = zi->first_normal;
+            while (nodes [prev].next) {
+                prev = nodes [prev].next;
+            }
+        }
+        else if (zi->first_topmost) {
+            prev = zi->first_topmost;
+            while (nodes [prev].next) {
+                prev = nodes [prev].next;
+            }
+        }
+        else if (zi->first_global) {
+            prev = zi->first_global;
+            while (nodes [prev].next) {
+                prev = nodes [prev].next;
+            }
+        }
+
+        if (prev == 0 && nodes [ZNIDX_DOCKER].hwnd)
+            prev = ZNIDX_DOCKER;
+        if (prev == 0 && nodes [ZNIDX_SCREENLOCK].hwnd)
+            prev = ZNIDX_SCREENLOCK;
+        break;
+
+    case ZNIDX_DOCKER:
+        if (nodes [ZNIDX_SCREENLOCK].hwnd)
+            prev = ZNIDX_SCREENLOCK;
+        break;
+
+    case ZNIDX_SCREENLOCK:
+        return 0;  /* the topmost znode */
+        break;
+
+    default:
+        prev = nodes [from].prev;
+        break;
+    }
+
+    if (prev > 0)
+        return prev;
+
+    // prev is still zero, and from is not fixed znode.
+    switch (nodes [from].flags & ZOF_TYPE_MASK) {
+    case ZOF_TYPE_NORMAL:
+        if (zi->first_topmost) {
+            prev = zi->first_topmost;
+            while (nodes [prev].next) {
+                prev = nodes [prev].next;
+            }
+        }
+        else if (zi->first_global) {
+            prev = zi->first_global;
+            while (nodes [prev].next) {
+                prev = nodes [prev].next;
+            }
+        }
+
+        if (prev == 0 && nodes [ZNIDX_DOCKER].hwnd)
+            prev = ZNIDX_DOCKER;
+        if (prev == 0 && nodes [ZNIDX_SCREENLOCK].hwnd)
+            prev = ZNIDX_SCREENLOCK;
+        break;
+
+    case ZOF_TYPE_TOPMOST:
+        if (zi->first_global) {
+            prev = zi->first_global;
+            while (nodes [prev].next) {
+                prev = nodes [prev].next;
+            }
+        }
+
+        if (prev == 0 && nodes [ZNIDX_DOCKER].hwnd)
+            prev = ZNIDX_DOCKER;
+        if (prev == 0 && nodes [ZNIDX_SCREENLOCK].hwnd)
+            prev = ZNIDX_SCREENLOCK;
+        break;
+
+    case ZOF_TYPE_GLOBAL:
+        if (nodes [ZNIDX_DOCKER].hwnd)
+            prev = ZNIDX_DOCKER;
+        if (prev == 0 && nodes [ZNIDX_SCREENLOCK].hwnd)
+            prev = ZNIDX_SCREENLOCK;
+        break;
+
+    default:
+        return -1;
+    }
+
+    return prev;
+}
+
 static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
 {
     int next;
@@ -1357,10 +1489,12 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
         win_nodes [0].age ++;
     }
 
+    menu_nodes [zi->nr_popupmenus].flags = ZOF_TYPE_POPUPMENU;
     menu_nodes [zi->nr_popupmenus].rc = *rc;
     menu_nodes [zi->nr_popupmenus].hwnd = ptmi;
 #ifdef _MGSCHEMA_COMPOSITING
     menu_nodes [zi->nr_popupmenus].mem_dc = memdc;
+    menu_nodes [zi->nr_popupmenus].ct = CT_OPAQUE;
 #endif
 
     if (zi->cli_trackmenu == -1)
@@ -1893,6 +2027,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     }
 
     if (caption) {
+#if 0 /* Since 4.2.0, use strdup to duplicate the caption */
         PLOGFONT menufont;
         int fit_chars, pos_chars[MAX_CAPTION_LEN], caplen;
 
@@ -1901,7 +2036,8 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
         if (caplen < 32) {
             strcpy (nodes[free_slot].caption, caption);
-        } else {
+        }
+        else {
             int tail_pos;
             get_text_char_pos (menufont, caption, caplen, (32 - 3), /* '...' = 3*/
                             &fit_chars, pos_chars);
@@ -1919,8 +2055,14 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             }
             memcpy(nodes[free_slot].caption, caption, tail_pos);
             strcpy ((nodes[free_slot].caption + tail_pos), "...");
-
         }
+#else
+        nodes[free_slot].caption = strdup (caption);
+        _MG_PRINTF("Caption of ZNODE: %s\n", caption);
+#endif
+    }
+    else {
+        nodes[free_slot].caption = NULL;
     }
 
     /* check influenced zorder nodes */
@@ -2124,6 +2266,12 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
 
     /* please lock zi for change*/
     lock_zi_for_change (zi);
+
+    /* Since 4.2.0, use strdup to duplicate the caption */
+    if (nodes[idx_znode].caption) {
+        free (nodes[idx_znode].caption);
+        nodes[idx_znode].caption = NULL;
+    }
 
     /* Free round corners mask rect. */
     if (type & ZOF_TW_TROUNDCNS ||
