@@ -961,13 +961,14 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
  *              int* cli)
  * \brief Get the next z-node in the specified layer from the server.
  *
- * This function gets the next z-node in the specified layer \a layer from
- * the server.
+ * This function gets the next z-node of the z-node specified by
+ * \a idx_znode, i.e., the z-node below it, in the specified layer
+ * \a layer from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
  * \param idx_znode The initial z-node. If the initial z-node index is
  *        less than or equal to zero, the function will return
- *        the index of the first z-node in the layer.
+ *        the index of the first (the topmost) z-node in the layer.
  * \param cli The client identifier of the next znode will be returned
  *        through this pointer. NULL is okay.
  *
@@ -976,12 +977,43 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
  *
  * \note Server-only function. Note that this function will not return
  *       the z-node of the desktop, and the desktop always has the index
- *       of z-node zero. Also note that this function travels all znodes
- *       from top to bottom.
+ *       of z-node zero. Also note that you can use this function to
+ *       travel all znodes from top to bottom.
  *
  * \sa ServerGetZNodeInfo
  */
 MG_EXPORT int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
+                int* cli);
+
+/**
+ * \fn int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode, \
+ *              int* cli)
+ * \brief Get the previous z-node in the specified layer from the server.
+ *
+ * This function gets the previous z-node of the z-node specified by
+ * \a idx_znode, i.e., the z-node above it, in the specified layer
+ * \a layer from the server.
+ *
+ * \param layer The pointer to the layer, NULL for the current topmost layer.
+ * \param idx_znode The initial z-node. If the initial z-node index is
+ *        less than or equal to zero, the function will return
+ *        the index of the last (the bottommost) z-node in the layer.
+ * \param cli The client identifier of the next znode will be returned
+ *        through this pointer. NULL is okay.
+ *
+ * \return The index of the previous z-node. Zero when there is no z-node;
+ *         < 0 when error;
+ *
+ * \note Server-only function. Note that this function will not return
+ *       the z-node of the desktop, and the desktop always has the index
+ *       of z-node zero. Also note that you can use this function to
+ *       travel all znodes from bottom to top.
+ *
+ * \sa ServerGetZNodeInfo
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode,
                 int* cli);
 
 /** Z-node information structure */
@@ -1039,11 +1071,13 @@ typedef struct _ZNODEINFO {
 
     /** The pointer to the caption string of the znode if it is a window. */
     const char*     caption;
+
     /** The rectangle of the znode in the screen. */
     RECT            rc;
 
     /** Client id of the znode. */
     int             cli;
+
     /** The window handle of the znode if it is a window. */
     HWND            hwnd;
     /**
@@ -1075,7 +1109,8 @@ typedef struct _ZNODEINFO {
  *              ZNODEINFO* znode_info)
  * \brief Get the z-node information in the specified layer from the server.
  *
- * This function gets the z-node information in the specified layer \a layer
+ * This function copies the z-node information of a window which uses
+ * the specific z-node index \a idx_znode in the specified layer \a layer
  * from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
@@ -1091,6 +1126,118 @@ typedef struct _ZNODEINFO {
  */
 MG_EXPORT BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
                 ZNODEINFO* znode_info);
+
+/** Z-node header structure */
+typedef struct _ZNODEHEADER {
+    /**
+     * The flags of the znode, can be OR'd with the following values:
+     * - ZNIF_VISIBLE\n
+     *   a visible window.
+     * - ZNIF_DISABLED\n
+     *   a disabled window.
+     * - ZNIF_MAXIMIZED\n
+     *   a maximized window.
+     * - ZNIF_MINIMIZED\n
+     *   a minimized window.
+     *  Note that the flags are only applied to window.
+     */
+    DWORD           flags;
+
+    /** The pointer to the caption string of the znode if it is a window. */
+    const char*     caption;
+
+    /** The rectangle of the znode in the screen. */
+    RECT            rc;
+
+    /** Client id of the znode. */
+    int             cli;
+
+    /** The window handle of the znode if it is a window. */
+    HWND            hwnd;
+    /**
+     * The window handle of the znode's main window if it is a control
+     * with WS_EX_CTRLASMAINWIN style.
+     */
+    HWND            main_win;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    /**
+     * The memory DC for this znode.
+     */
+    HDC             mem_dc;
+    /**
+     * The compositing argument for this znode.
+     * For more information, see \a SetMainWindowCompositing.
+     */
+    DWORD           ct_arg;
+    /**
+     * The compositing type for this znode.
+     * For more information, see \a SetMainWindowCompositing.
+     */
+    int             ct;
+#endif
+} ZNODEHEADER;
+
+/**
+ * \fn const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
+                MG_Layer* layer, int idx_znode)
+ * \brief Get the pointer to the z-node header of a specific window
+ * in the specified layer.
+ *
+ * This function gets the pointer to the z-node header of the window
+ * which uses the specific z-node index \a idx_znode in the specified
+ * layer \a layer.
+ *
+ * \param layer The pointer to the layer, NULL for the current topmost layer.
+ * \param idx_znode The index of the znode.
+ *
+ * \return The pointer to the z-node header; NULL on error.
+ *
+ * \note This is the fast version of \a ServerGetZNodeInfo.
+ *
+ * \note Server-only function.
+ *
+ * \sa ServerGetZNodeInfo, ZNODEHEADER
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
+                MG_Layer* layer, int idx_znode);
+
+/**
+ * \fn int GUIAPI ServerGetPopupMenusCount (void)
+ * \brief Get the number of popup menus shown on the screen.
+ *
+ * This function gets the number of popup menus shown currently on the screen.
+ *
+ * \return The number of the popup menus shown.
+ *
+ * \note Server-only function.
+ *
+ * \sa ServerGetPopupMenuZNodeHeader, ZNODEHEADER
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
+
+/**
+ * \fn const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx)
+ * \brief Get the pointer to the z-node header of the specific popup menu.
+ *
+ * This function gets the pointer to the z-node header of the specific
+ * popup menu which is currently shown on the screen.
+ *
+ * \param idx The index of the popup menu. 0 means the first popup menu.
+ *
+ * \return The pointer to the z-node header; NULL on error.
+ *
+ * \note Server-only function.
+ *
+ * \sa ServerGetPopupMenusCount, ZNODEHEADER
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx);
 
 /**
  * \fn BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode, \
