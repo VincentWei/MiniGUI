@@ -505,7 +505,8 @@ static int zorder_op (int cli, int clifd, void* buff, size_t len, int fd)
     intptr_t ret_value;
     ZORDEROPINFO* info = (ZORDEROPINFO*)buff;
 
-    ret_value = __mg_do_zorder_operation (cli, info, fd);
+    ret_value = __mg_do_zorder_operation (cli, info,
+                buff + sizeof (ZORDEROPINFO), fd);
 
     return ServerSendReply (clifd, &ret_value, sizeof (intptr_t));
 }
@@ -519,8 +520,10 @@ static int change_zorder_maskrect (int cli, int clifd, void* buff, size_t len)
 
     return ServerSendReply (clifd, &ret_value, sizeof (intptr_t));
 }
+
 #ifdef _MGGAL_SIGMA8654
-extern int Sigma8654_ServerOnGetSurface(REQ_SIGMA8654_GETSURFACE *request, REP_SIGMA8654_GETSURFACE *reply);
+extern int Sigma8654_ServerOnGetSurface(REQ_SIGMA8654_GETSURFACE *request,
+            REP_SIGMA8654_GETSURFACE *reply);
 static int sigma8654_client_get_surface(int cli, int clifd, void* buff, size_t len)
 {
         REQ_SIGMA8654_GETSURFACE *request;
@@ -537,7 +540,8 @@ static int sigma8654_client_get_surface(int cli, int clifd, void* buff, size_t l
 
 
 #ifdef _MGGAL_NEXUS
-extern int Nexus_ServerOnGetSurface(REQ_NEXUS_GETSURFACE *request, REP_NEXUS_GETSURFACE *reply);
+extern int Nexus_ServerOnGetSurface(REQ_NEXUS_GETSURFACE *request,
+            REP_NEXUS_GETSURFACE *reply);
 static int nexus_client_get_surface(int cli, int clifd, void* buff, size_t len)
 {
         REQ_NEXUS_GETSURFACE *request;
