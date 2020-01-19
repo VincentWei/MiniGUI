@@ -67,15 +67,11 @@ typedef struct _MASKRECT {
 } MASKRECT;
 typedef MASKRECT* PMASKRECT;
 
+/* This structure should keep the same layout with ZNODEHEADER */
 typedef struct _ZORDERNODE {
-    DWORD           flags;
-
-    char            caption[MAX_CAPTION_LEN+1];
-
-    RECT            rc;
-    RECT            dirty_rc;
-    unsigned int    age;
-
+    DWORD           flags;          /* znode flags */
+    char            *caption;       /* caption */
+    RECT            rc;             /* rect on the screen */
     int             cli;            /* which client? */
     HWND            hwnd;           /* which window of the client? */
     HWND            main_win;       /* handle to the main window */
@@ -86,11 +82,13 @@ typedef struct _ZORDERNODE {
     int             ct;             /* the compositing type */
 #endif
 
+    RECT            dirty_rc;       /* dirty rect */
+    unsigned int    age;            /* change age */
+
     int             next;
     int             prev;
 
-    /*The first position of mask rect.*/
-    int             idx_mask_rect;
+    int             idx_mask_rect;  /* The first position of mask rect. */
 } ZORDERNODE;
 typedef ZORDERNODE* PZORDERNODE;
 
@@ -174,6 +172,7 @@ void kernel_free_z_order_info (ZORDERINFO* zi);
 int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc);
 int kernel_get_window_region (HWND pWin, CLIPRGN* region);
 int kernel_get_next_znode (const ZORDERINFO* zi, int from);
+int kernel_get_prev_znode (const ZORDERINFO* zi, int from);
 
 #ifdef __cplusplus
 }
