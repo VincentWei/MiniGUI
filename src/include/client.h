@@ -222,7 +222,9 @@ typedef struct ZorderOpInfo
     RECT    rcA;
 
     int     location;
+    /* Since 4.2.0: use extra data to pass the caption string
     char    caption[MAX_CAPTION_LEN + 1];
+    */
 
 #ifdef _MGSCHEMA_COMPOSITING
     Uint32  surf_flags;
