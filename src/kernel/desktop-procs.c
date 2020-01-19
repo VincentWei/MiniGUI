@@ -1199,6 +1199,7 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
     nodes = GET_ZORDERNODE(zi);
 
     if (caption && idx_znode > 0) {
+#if 0 /* Since 4.2.0, use strdup to duplicate the caption */
         PLOGFONT menufont ;
         int fit_chars, pos_chars[MAX_CAPTION_LEN];
         int caplen;
@@ -1215,6 +1216,12 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
             strcpy ((nodes[idx_znode].caption + pos_chars[fit_chars-1]),
                     "...");
         }
+#else
+        if (nodes[idx_znode].caption)
+            free (nodes[idx_znode].caption)
+
+        nodes[idx_znode].caption = strdup (caption);
+#endif
     }
 
     if (OnZNodeOperation)

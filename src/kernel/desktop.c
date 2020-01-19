@@ -1701,6 +1701,7 @@ static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
     return old_hwnd;
 }
 
+#if 0 /* Since 4.2.0, use strdup to duplicate the caption */
 static void get_text_char_pos (PLOGFONT log_font, const char *text,
                int len, int fit_bytes, int *fit_chars, int *pos_chars)
 {
@@ -1738,6 +1739,7 @@ static void get_text_char_pos (PLOGFONT log_font, const char *text,
         *fit_chars = char_count;
     }
 }
+#endif
 
 /*get the count of idle mask rect*/
 int __mg_get_idle_slot (unsigned char* bitmap, int len_bmp)
