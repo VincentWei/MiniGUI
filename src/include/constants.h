@@ -154,6 +154,7 @@
 #define LEN_VIDEO_MODE      31
 #define LEN_MTYPE_NAME      23
 #define LEN_FOURCC_FORMAT   7
+#define LEN_SO_NAME         255 // SO: shared object (shared library)
 
 /* misc constants and utilities */
 
