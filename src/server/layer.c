@@ -173,9 +173,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     memset (maskrect_usage_bmp, 0xFF, zi->size_maskrect_usage_bmp);
 
     /* init z-order node for desktop */
-    znodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp +
-                    sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
-
+    znodes = GET_ZORDERNODE(zi);
     znodes [0].flags = ZOF_TYPE_DESKTOP | ZOF_VISIBLE;
     znodes [0].rc = g_rcScr;
     znodes [0].age = 0;
@@ -640,7 +638,6 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
     int next = 0;
-    DWORD type;
 
     if (layer == NULL)
         layer = mgTopmostLayer;
@@ -654,36 +651,12 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
         return -1;
     }
 
-    nodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp +
-                    sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
-
-    if (idx_znode <= 0) {
-        if (nodes [ZNIDX_SCREENLOCK].hwnd) {
-            next = ZNIDX_SCREENLOCK;
-        }
-        else if (nodes [ZNIDX_DOCKER].hwnd) {
-            next = ZNIDX_DOCKER;
-        }
-        else {
-            next = zi->first_global;
-            if (next == 0)
-                next = zi->first_topmost;
-            if (next == 0)
-                next = zi->first_normal;
-            if (next == 0 && nodes [ZNIDX_LAUNCHER].hwnd)
-                next = ZNIDX_LAUNCHER;
-        }
-
-        if (next > 0 && cli) {
-            *cli = nodes [next].cli;
-        }
-
-        return next;
+    nodes = GET_ZORDERNODE(zi);
+    if (idx_znode > 0) {
+        DWORD type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
+        if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
+            return -1;
     }
-
-    type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-    if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
-        return -1;
 
     next = kernel_get_next_znode (zi, idx_znode);
     if (next > 0 && cli) {
@@ -692,6 +665,40 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
     }
 
     return next;
+}
+
+int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode, int* cli)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+    int prev = 0;
+
+    if (layer == NULL)
+        layer = mgTopmostLayer;
+
+    if (!__mg_is_valid_layer (layer))
+        return -1;
+
+    zi = (ZORDERINFO*)layer->zorder_info;
+    if (idx_znode > zi->max_nr_globals
+            + zi->max_nr_topmosts + zi->max_nr_normals) {
+        return -1;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    if (idx_znode > 0) {
+        DWORD type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
+        if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
+            return -1;
+    }
+
+    prev = kernel_get_prev_znode (zi, idx_znode);
+    if (prev > 0 && cli) {
+        *cli = nodes [prev].cli;
+        return prev;
+    }
+
+    return prev;
 }
 
 BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
@@ -715,8 +722,7 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
         return FALSE;
     }
 
-    nodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp +
-                    sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
+    nodes = GET_ZORDERNODE(zi);
     znode_info->type = (nodes [idx_znode].flags & ZOF_TYPE_FLAG_MASK);
     znode_info->flags = nodes [idx_znode].flags;
     znode_info->caption = nodes [idx_znode].caption;
@@ -733,6 +739,49 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     return TRUE;
 }
 
+const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (MG_Layer* layer, int idx_znode)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+
+    if (layer == NULL)
+        layer = mgTopmostLayer;
+
+    if (!__mg_is_valid_layer (layer))
+        return NULL;
+
+    zi = (ZORDERINFO*)layer->zorder_info;
+    if (idx_znode > zi->max_nr_globals
+            + zi->max_nr_topmosts + zi->max_nr_normals) {
+        return NULL;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    return (ZNODEHEADER*)(nodes + idx_znode);
+}
+
+int GUIAPI ServerGetPopupMenusCount (void)
+{
+    ZORDERINFO* zi;
+    zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
+
+    return zi->nr_popupmenus;
+}
+
+const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* menu_nodes;
+
+    zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
+
+    if (idx >= zi->nr_popupmenus)
+        return NULL;
+
+    menu_nodes = GET_MENUNODE(zi);
+    return (ZNODEHEADER*)(menu_nodes + idx);
+}
+
 BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
                 int idx_znode, int op_code, void* op_data, BOOL notify)
 {
@@ -743,8 +792,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
 
     if (layer == NULL)
         layer = mgTopmostLayer;
-
-    if (!__mg_is_valid_layer (layer))
+    else if (!__mg_is_valid_layer (layer))
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
@@ -753,8 +801,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
         return FALSE;
     }
 
-    nodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp +
-                    sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
+    nodes = GET_ZORDERNODE(zi);
 
     /* Since 4.2.0: handle fixed znodes */
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
@@ -778,7 +825,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
             return FALSE;
     }
 
-    __mg_do_zorder_operation (nodes[idx_znode].cli, &info, -1);
+    __mg_do_zorder_operation (nodes[idx_znode].cli, &info, NULL, -1);
     return TRUE;
 }
 
