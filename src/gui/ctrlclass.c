@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -164,7 +164,7 @@ PCONTROL gui_Control (HWND hWnd)
 BOOL mg_InitControlClass ()
 {
     int i;
-    
+
     for (i=0; i<LEN_CCITABLE; i++)
         ccitable[i] = NULL;
 
@@ -316,23 +316,23 @@ PCTRLCLASSINFO gui_GetControlClassInfo (const char* szClassName)
     szName[MAXLEN_CLASSNAME] = '\0';
 
     if (!isalpha ((int)szName[0])) return NULL;
-    
+
     while (szName[i]) {
         szName[i] = toupper(szName[i]);
 
         i++;
     }
-    
+
     cci = ccitable [szName[0] - 'A'];
 
     while (cci) {
-    
+
         if (strcmp (cci->name, szName) == 0)
             break;
 
         cci = cci->next;
     }
-    
+
     return cci;
 }
 
@@ -387,7 +387,7 @@ int GetCtrlClassAddData (const char* szClassName, DWORD* pAddData)
         *pAddData = cci->dwAddData;
         return ERR_OK;
     }
-    
+
     return ERR_CTRLCLASS_INVNAME;
 }
 
@@ -401,7 +401,7 @@ int SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
         cci->dwAddData = dwAddData;
         return ERR_OK;
     }
-    
+
     return ERR_CTRLCLASS_INVNAME;
 }
 
@@ -414,7 +414,7 @@ int AddNewControlClass (PWNDCLASS pWndClass)
     strncpy (szClassName, pWndClass->spClassName, MAXLEN_CLASSNAME);
 
     if (!isalpha ((int)szClassName[0])) return ERR_CTRLCLASS_INVNAME;
-    
+
     while (szClassName[i]) {
         szClassName[i] = toupper(szClassName[i]);
 
@@ -422,7 +422,7 @@ int AddNewControlClass (PWNDCLASS pWndClass)
         if (i > MAXLEN_CLASSNAME)
             return ERR_CTRLCLASS_INVLEN;
     }
-    
+
     i = szClassName[0] - 'A';
     cci = ccitable [i];
     if (cci) {
@@ -437,7 +437,7 @@ int AddNewControlClass (PWNDCLASS pWndClass)
     cci = ccitable[i];
 
     newcci = malloc (sizeof (CTRLCLASSINFO));
-    
+
     if (newcci == NULL) return ERR_CTRLCLASS_MEM;
 
     newcci->next = NULL;
@@ -458,7 +458,7 @@ int AddNewControlClass (PWNDCLASS pWndClass)
     }
     else
         ccitable [i] = newcci;
-    
+
     return ERR_OK;
 }
 
@@ -469,24 +469,24 @@ int gui_DeleteControlClass (const char* szClassName)
     char szName [MAXLEN_CLASSNAME + 1];
 
     if (szClassName == NULL) return ERR_CTRLCLASS_INVNAME;
-    
+
     strncpy (szName, szClassName, MAXLEN_CLASSNAME);
 
     if (!isalpha ((int)szName[0])) return ERR_CTRLCLASS_INVNAME;
-    
+
     while (szName[i]) {
         szName[i] = toupper(szName[i]);
 
         i++;
     }
-    
+
     i = szName[0] - 'A';
     head = ccitable [i];
-    
+
     cci = head;
     prev = head;
     while (cci) {
-    
+
         if (strcmp (cci->name, szName) == 0)
             break;
 
@@ -569,7 +569,7 @@ void DumpCtrlClassInfoTable()
 
         printf ("CCI Table Element: %d\n", i);
         while (cci) {
-       
+
             mnuDumpCtrlClassInfo (cci);
 
             cci = cci->next;
