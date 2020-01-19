@@ -90,7 +90,8 @@ void __mg_set_active_client (MG_Client* client);
 void __mg_start_server_desktop (void);
 int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode,
                 int message, WPARAM wParam, LPARAM lParam);
-intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd);
+intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info,
+                const char* caption, int fd);
 intptr_t __mg_do_zorder_maskrect_operation (int cli,
                 const ZORDERMASKRECTOPINFO* info);
 int __mg_remove_all_znodes_of_client (int cli);
