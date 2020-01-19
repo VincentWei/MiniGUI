@@ -527,25 +527,21 @@ int InitGUI (int argc, const char* agr[])
     step++;
 
 #ifdef _MGRM_STANDALONE
-
     /* Init IAL engine.. */
     if (!mg_InitLWEvent ()) {
         err_message (step, "Can not initialize low level event!");
         return step;
     }
     step++;
-
     atexit (mg_TerminateLWEvent);
 
     SetDskIdleHandler (salone_IdleHandler4StandAlone);
-
     if (!salone_StandAloneStartup ()) {
         _ERR_PRINTF ("KERNEL>InitGUI: Can not start MiniGUI-StandAlone version.\n");
         return step;
     }
 
-#else
-
+#else   /* not defined _MGRM_STANDALONE */
     if (_is_server) {
         /* Init IAL engine.. */
         if (!mg_InitLWEvent ()) {
@@ -561,11 +557,22 @@ int InitGUI (int argc, const char* agr[])
     else {
         SetDskIdleHandler (client_IdleHandler4Client);
     }
-#endif
+#endif   /* not defined _MGRM_STANDALONE */
 
     SetKeyboardLayout ("default");
 
     mg_TerminateMgEtc ();
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (_is_server) {
+        if (!mg_InitCompositor ()) {
+            err_message (step, "Can not initialize compositor!");
+            return step;
+        }
+        atexit (mg_TerminateCompositor);
+    }
+#endif
+
     return 0;
 }
 
