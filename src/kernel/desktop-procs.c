@@ -326,6 +326,8 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin, const COMPOSITINGINFO* ct_inf
     intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
+    /* Since 4.2.0, use extra data of request to pass the caption */
+    const char* caption;
 
     info.id_op = ID_ZOOP_ALLOC;
     info.flags = get_znode_flags_from_style (pWin);
@@ -333,12 +335,18 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin, const COMPOSITINGINFO* ct_inf
     info.main_win = (HWND)pWin->pMainWin;
 
     if (pWin->spCaption) {
+        caption = pWin->spCaption;
+#if 0 /* Since 4.2.0, use extra data of request to pass the caption */
         if (strlen (pWin->spCaption) <= MAX_CAPTION_LEN) {
             strcpy (info.caption, pWin->spCaption);
         } else {
             memcpy (info.caption, pWin->spCaption, MAX_CAPTION_LEN);
             info.caption[MAX_CAPTION_LEN] = '\0';
         }
+#endif
+    }
+    else {
+        caption = "<No caption>";
     }
 
     dskGetWindowRectInScreen (pWin, &info.rc);
@@ -362,11 +370,14 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin, const COMPOSITINGINFO* ct_inf
         info.ct = CT_OPAQUE;
         info.ct_arg = 0;
     }
-    if (ClientRequestEx2 (&req, NULL, 0, pWin->surf->shared_header->fd,
+
+    if (ClientRequestEx2 (&req, caption, strlen(caption) + 1,
+            pWin->surf->shared_header->fd,
             &ret, sizeof (intptr_t), NULL) < 0)
         return -1;
 #else   /* ndef _MGSCHEMA_COMPOSITING */
-    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
+    if (ClientRequestEx (&req, caption, strlen(caption) + 1,
+            &ret, sizeof (intptr_t)) < 0)
         return -1;
 #endif  /* ndef _MGSCHEMA_COMPOSITING */
 
@@ -632,21 +643,32 @@ static intptr_t cliChangeCaption (PMAINWIN pWin)
     intptr_t ret;
     REQUEST req;
     ZORDEROPINFO info;
+    const char* caption;
 
     info.id_op = ID_ZOOP_CHANGECAPTION;
     info.idx_znode = pWin->idx_znode;
 
+#if 0 /* Since 4.2.0, use extra data to pass the caption */
     if (strlen (pWin->spCaption) <= MAX_CAPTION_LEN) {
         strcpy (info.caption, pWin->spCaption);
     } else {
         memcpy (info.caption, pWin->spCaption, MAX_CAPTION_LEN);
         info.caption[MAX_CAPTION_LEN] = '\0';
     }
+#else
+    if (pWin->spCaption) {
+        caption = pWin->spCaption;
+    }
+    else {
+        caption = "<No caption>";
+    }
+#endif
 
     req.id = REQID_ZORDEROP;
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
-    if ((ret = ClientRequest (&req, &ret, sizeof (intptr_t))) < 0) {
+    if ((ret = ClientRequestEx (&req, caption, strlen (caption) + 1,
+                &ret, sizeof (intptr_t))) < 0) {
         return -1;
     }
 
@@ -1239,7 +1261,8 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
     return ret;
 }
 
-intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
+intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info,
+        const char* caption, int fd)
 {
     intptr_t ret = -1;
 
@@ -1247,12 +1270,12 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
         case ID_ZOOP_ALLOC:
 #ifdef _MGSCHEMA_COMPOSITING
             ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
-                        info->flags, &info->rc, info->caption,
+                        info->flags, &info->rc, caption,
                         info->surf_flags, info->surf_size, fd,
                         info->ct, info->ct_arg);
 #else
             ret = srvAllocZOrderNode (cli, info->hwnd, info->main_win,
-                        info->flags, &info->rc, info->caption,
+                        info->flags, &info->rc, caption,
                         0, 0, fd, CT_OPAQUE, 0);
 #endif
             break;
@@ -1302,7 +1325,7 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info, int fd)
             ret = srvCancelDragWindow (cli, info->idx_znode);
             break;
         case ID_ZOOP_CHANGECAPTION:
-            srvChangeCaption (cli, info->idx_znode, info->caption);
+            srvChangeCaption (cli, info->idx_znode, caption);
             break;
         case ID_ZOOP_SETALWAYSTOP:
             srvSetZNodeAlwaysTop (cli, info->idx_znode, info->flags);
