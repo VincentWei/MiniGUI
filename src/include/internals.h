@@ -644,6 +644,12 @@ BOOL mg_InitSemManger (int nr_sems);
 void mg_TerminateSemManager (void);
 #endif
 
+/* Since 4.2.0 */
+#ifdef _MGSCHEMA_COMPOSITING
+BOOL mg_InitCompositor (void);
+void mg_TerminateCompositor (void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
