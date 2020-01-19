@@ -1194,6 +1194,210 @@ MG_EXPORT void GUIAPI DisableClientsOutput (void);
  */
 MG_EXPORT void GUIAPI UpdateTopmostLayer (const RECT* dirty_rc);
 
+#ifdef _MGSCHEMA_COMPOSITING
+
+/**
+ * The struct type represents the context of a compositor.
+ * The concrete struct should be defined by the implementation of the compositor.
+ */
+struct _CompositorCtxt;
+typedef struct _CompositorCtxt CompositorCtxt;
+
+struct _CLIPRGN;
+typedef struct _CLIPRGN CLIPRGN;
+
+/**
+ * The struct type defines the operations for a compositor.
+ */
+typedef struct _CompositorOps {
+    /**
+     * This operation initializes the compositor
+     * and returns the compositing context.
+     */
+    CompositorCtxt* (*initialize) (const char* name);
+
+    /**
+     * This operation destroies the compositing context
+     * and terminates the compositor.
+     */
+    void (*terminate) (CompositorCtxt* ctxt);
+
+    /**
+     * This operation refreshes the whole screen due to the change of
+     * the compositor or the topmost layer.
+     */
+    void (*refresh) (CompositorCtxt* ctxt);
+
+    /**
+     * This operation composites the contents to screen when
+     * there are some dirty rects in the specific znode.
+     */
+    void (*on_dirty_contents) (CompositorCtxt* ctxt,
+            int zidx, const RECT* dirty_rcs);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is showing a popup menu.
+     */
+    void (*on_show_popupmenu) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is hidding a popup menu.
+     */
+    void (*on_hide_popupmenu) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is closing a popup menu.
+     */
+    void (*on_close_menu) (CompositorCtxt* ctxt,
+            HDC screen_dc);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is showing a window.
+     */
+    void (*on_show_window) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is hidding a window.
+     */
+    void (*on_hide_window) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is moving a window.
+     */
+    void (*on_move_window) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is maximizing a window.
+     */
+    void (*on_maximize_window) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is minimizing a window.
+     */
+    void (*on_minimize_window) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+
+    /**
+     * This operation composites the contents to screen when
+     * the system is changing the z-order.
+     */
+    void (*on_change_zorder) (CompositorCtxt* ctxt,
+            HDC screen_dc, int zidx);
+} CompositorOps;
+
+/**
+ * \brief Get the operations of a specific compositor.
+ *
+ * This function gets the operations of a specific compositor.
+ *
+ * \param name The name of the compositor. MiniGUI reserved `default`
+ *      as the default compositor which is implemented in MiniGUI Core.
+ *      You can use some operations of the default compositor as the
+ *      corresponding operations for your own compositor.
+ *
+ * \return The object represents the compositor operations; NULL for
+ *      no such compositor registered.
+ *
+ * \note Only called by the server.
+ *
+ * \sa ServerRegisterCompositor
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT const CompositorOps* GUIAPI ServerGetCompositorOps (const char* name);
+
+/**
+ * \brief Register a new compositor.
+ *
+ * This function registers a new compositor.
+ *
+ * \param name The name of the compositor.
+ * \param ops The new compositor object.
+ *
+ * \return TRUE for success; otherwize (duplicated or no enough space) FALSE.
+ *
+ * \note Only called by the server.
+ *
+ * \sa ServerUnregisterCompositor
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT BOOL GUIAPI ServerRegisterCompositor (
+            const char* name, const CompositorOps* ops);
+
+/**
+ * \brief Un-register a new compositor.
+ *
+ * This function un-registers a compositor.
+ *
+ * \param name The name of the compositor.
+ * \param ops The new compositor object.
+ *
+ * \return The object represents the compositor implementation.
+ *
+ * \note Only called by the server.
+ *
+ * \sa ServerRegisterCompositor
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT BOOL GUIAPI ServerUnregisterCompositor (const char* name);
+
+#define LEN_COMPOSITOR_NAME         15
+#define COMPSOR_NAME_DEFAULT        "default"
+#define COMPSOR_NAME_FALLBACK       "fallback"
+
+/**
+ * \brief Select a compositor as the current compositor.
+ *
+ * This function selects a compositor as the current compositor
+ * and returns the compositor object.
+ * It also destroies the old compositor object if there is old one.
+ *
+ * \param name The name of the compositor. If the argument is NULL,
+ *      this function will return the current compositor.
+ *      Use \a DEF_COMPOSITOR_NAME when you want to refer to the
+ *      default compositor.
+ * \param ctxt The buffer used to return the compositor context.
+ *
+ * \return The pointer to the compositor operations; NULL for error.
+ *
+ * \note Only called by the server.
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT const CompositorOps* GUIAPI ServerSelectCompositor (
+            const char* name, CompositorCtxt** ctxt);
+
+/**
+  * Implement this stub to return the compositor operations
+  * for a specific compositor name if you implement the compositor
+  * in a shared library.
+  *
+  * \param name The name of the compositor desired.
+  * \param fallback The fallback operations for this compositor.
+  *
+  * \return The compositor operations for specific name, NULL for error.
+  */
+const CompositorOps* __ex_compositor_get (const char* name,
+            const CompositorOps* fallback);
+
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
     /** @} end of lite_server_fns */
 
     /**
