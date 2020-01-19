@@ -260,20 +260,18 @@ static char* find_driver_for_device (const char *dev_name)
     return strdup (driver + strlen ("/"));
 }
 
-#define LEN_DRIVER_FILENAME     255
-
 static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
         const char* driver_name, int device_fd)
 {
     const char* filename = NULL;
-    char buff[LEN_DRIVER_FILENAME + 1];
+    char buff[LEN_SO_NAME + 1];
     DrmDriverOps* (*get_exdrv) (const char* driver_name, int device_fd);
     char* error;
 
     filename = getenv ("MG_GAL_DRM_DRIVER");
     if (filename == NULL) {
         memset (buff, 0, sizeof (buff));
-        if (GetMgEtcValue ("drm", "exdriver", buff, LEN_DRIVER_FILENAME) < 0)
+        if (GetMgEtcValue ("drm", "exdriver", buff, LEN_SO_NAME) < 0)
             return NULL;
 
         filename = buff;
