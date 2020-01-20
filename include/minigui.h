@@ -1160,24 +1160,27 @@ typedef struct _ZNODEHEADER {
     /** Client id of the znode. */
     int             cli;
 
-    /** The content change age */
+    /** The znode change age; no use for compositing schema */
     unsigned int    age;
 
 #ifdef _MGSCHEMA_COMPOSITING
+    /** The count for changes of content */
+    unsigned int    changes;
+
     /**
-     * The memory DC for this znode.
+     * The compositing type for this znode.
+     * For more information, see \a SetMainWindowCompositing.
      */
-    HDC             mem_dc;
+    int             ct;
     /**
      * The compositing argument for this znode.
      * For more information, see \a SetMainWindowCompositing.
      */
     DWORD           ct_arg;
     /**
-     * The compositing type for this znode.
-     * For more information, see \a SetMainWindowCompositing.
+     * The memory DC for this znode.
      */
-    int             ct;
+    HDC             mem_dc;
 #endif
 } ZNODEHEADER;
 
@@ -1400,19 +1403,19 @@ typedef struct _CompositorOps {
      * in the surface of the popup menu; but it can update some internal data
      * in this operation.
      */
-    void (*on_show_ppp) (CompositorCtxt* ctxt, int zidx);
+    void (*on_showing_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation will be called when the system is hidding a popup menu.
+     * This operation will be called when the system is hiding a popup menu.
      * The compositor can play an animation in this operation.
      */
-    void (*on_hide_ppp) (CompositorCtxt* ctxt, int zidx);
+    void (*on_hiding_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when the system is closing a popup menu.
      * The compositor can play an animation in this operation.
      */
-    void (*on_close_menu) (CompositorCtxt* ctxt);
+    void (*on_closing_menu) (CompositorCtxt* ctxt);
 
     /**
      * This operation will be called when the system is showing a window.
@@ -1420,37 +1423,38 @@ typedef struct _CompositorOps {
      * the surface of the window, but it can update some internal data
      * in this operation.
      */
-    void (*on_show_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_showing_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when the system is hidding a window.
      * The compositor can play an animation in this operation.
      */
-    void (*on_hide_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_hiding_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when the system is moving a window.
      * The compositor can play an animation in this operation.
      */
-    void (*on_move_win) (CompositorCtxt* ctxt, int zidx, const RECT* dst_rc);
+    void (*on_moving_win) (CompositorCtxt* ctxt, int zidx, const RECT* dst_rc);
+
+    /**
+     * This operation will be called when the system is moveing the z-order
+     * to top.
+     */
+    void (*on_moving_to_top) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when the system is maximizing a window.
      * The compositor can play an animation in this operation.
      */
-    void (*on_maximize_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_maximizing_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when the system is manimizing a window.
      * The compositor can play an animation in this operation.
      */
-    void (*on_minimize_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_minimizing_win) (CompositorCtxt* ctxt, int zidx);
 
-    /**
-     * This operation will be called when the system is changing the z-order
-     * of one window z-node.
-     */
-    void (*on_change_zorder) (CompositorCtxt* ctxt, int zidx);
 } CompositorOps;
 
 /**

@@ -349,14 +349,14 @@ static void refresh (CompositorCtxt* ctxt)
     on_dirty_win (ctxt, 0, NULL, 0);
 }
 
-static void on_show_ppp (CompositorCtxt* ctxt, int zidx)
+static void on_showing_ppp (CompositorCtxt* ctxt, int zidx)
 {
     const ZNODEHEADER* znode_hdr = ServerGetPopupMenuZNodeHeader (zidx);
     if (znode_hdr)
         SubtractClipRect (&ctxt->wins_rgn, &znode_hdr->rc);
 }
 
-static void on_hide_ppp (CompositorCtxt* ctxt, int zidx)
+static void on_hiding_ppp (CompositorCtxt* ctxt, int zidx)
 {
     const ZNODEHEADER* znode_hdr;
 
@@ -368,7 +368,7 @@ static void on_hide_ppp (CompositorCtxt* ctxt, int zidx)
     }
 }
 
-static void on_close_menu (CompositorCtxt* ctxt)
+static void on_closing_menu (CompositorCtxt* ctxt)
 {
     SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
 }
@@ -379,9 +379,9 @@ CompositorOps __mg_fallback_compositor = {
     refresh: refresh,
     on_dirty_ppp: on_dirty_ppp,
     on_dirty_win: on_dirty_win,
-    on_show_ppp: on_show_ppp,
-    on_hide_ppp: on_hide_ppp,
-    on_close_menu: on_close_menu,
+    on_showing_ppp: on_showing_ppp,
+    on_hiding_ppp: on_hiding_ppp,
+    on_closing_menu: on_closing_menu,
 };
 
 #endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING) */

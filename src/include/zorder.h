@@ -76,16 +76,18 @@ typedef struct _ZORDERNODE {
 
     RECT            rc;             /* rect on the screen */
     int             cli;            /* which client? */
-    unsigned int    age;            /* change age */
+    unsigned int    age;            /* znode age */
 
 #ifdef _MGSCHEMA_COMPOSITING
-    HDC             mem_dc;         /* the memory DC for this znode */
-    DWORD           ct_arg;         /* the argument for compositing */
+    unsigned int    changes;        /* count for changes of content */
     int             ct;             /* the compositing type */
+    DWORD           ct_arg;         /* the argument for compositing */
+    HDC             mem_dc;         /* the memory DC for this znode */
 #endif
 
     RECT            dirty_rc;       /* dirty rect */
     int             idx_mask_rect;  /* The first position of mask rect. */
+    int             _padding;
 
     int             next;
     int             prev;

@@ -1414,11 +1414,10 @@ int __mg_remove_all_znodes_of_client (int cli)
     nodes = GET_ZORDERNODE(zi);
 
     if (zi->cli_trackmenu == cli) {
-        int i;
 #ifndef _MGSCHEMA_COMPOSITING
+        int i;
         ZORDERNODE* menu_nodes = GET_MENUNODE(zi);
 #endif
-
         /* lock zi for change */
         lock_zi_for_change (zi);
 
@@ -1437,9 +1436,7 @@ int __mg_remove_all_znodes_of_client (int cli)
             nodes [0].flags |= ZOF_IF_REFERENCE;
         }
 #else   /* defined _MGSCHEMA_COMPOSITING */
-        for (i = 0; i < zi->nr_popupmenus; i++) {
-            DO_COMPSOR_OP_ARGS (on_hide_ppp, i);
-        }
+        DO_COMPSOR_OP(on_closing_menu);
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
         zi->cli_trackmenu = -1;
@@ -1467,7 +1464,7 @@ int __mg_remove_all_znodes_of_client (int cli)
             do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
                             _cb_intersect_rc_no_cli, ZT_LAUNCHER);
 #else   /* defined _MGSCHEMA_COMPOSITING */
-        DO_COMPSOR_OP_ARGS(on_hide_win, ZNIDX_SCREENLOCK);
+            DO_COMPSOR_OP_ARGS(on_hiding_win, ZNIDX_SCREENLOCK);
 #endif  /* defined _MGSCHEMA_COMPOSITING */
         }
 
@@ -1489,7 +1486,7 @@ int __mg_remove_all_znodes_of_client (int cli)
             do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
                             _cb_intersect_rc_no_cli, ZT_LAUNCHER);
 #else   /* defined _MGSCHEMA_COMPOSITING */
-        DO_COMPSOR_OP_ARGS(on_hide_win, ZNIDX_DOCKER);
+            DO_COMPSOR_OP_ARGS(on_hiding_win, ZNIDX_DOCKER);
 #endif  /* defined _MGSCHEMA_COMPOSITING */
         }
 
@@ -1531,7 +1528,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                     nodes [0].flags |= ZOF_IF_REFERENCE;
                 }
 #else   /* defined _MGSCHEMA_COMPOSITING */
-                DO_COMPSOR_OP_ARGS(on_hide_win, slot);
+                DO_COMPSOR_OP_ARGS(on_hiding_win, slot);
 #endif  /* defined _MGSCHEMA_COMPOSITING */
             }
 
@@ -1574,7 +1571,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                     nodes [0].flags |= ZOF_IF_REFERENCE;
                 }
 #else   /* defined _MGSCHEMA_COMPOSITING */
-                DO_COMPSOR_OP_ARGS(on_hide_win, slot);
+                DO_COMPSOR_OP_ARGS(on_hiding_win, slot);
 #endif  /* defined _MGSCHEMA_COMPOSITING */
             }
 
@@ -1598,7 +1595,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                 nodes [0].flags |= ZOF_IF_REFERENCE;
             }
 #else   /* defined _MGSCHEMA_COMPOSITING */
-                DO_COMPSOR_OP_ARGS(on_hide_win, ZNIDX_LAUNCHER);
+                DO_COMPSOR_OP_ARGS(on_hiding_win, ZNIDX_LAUNCHER);
 #endif  /* defined _MGSCHEMA_COMPOSITING */
         }
 
