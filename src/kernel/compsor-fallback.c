@@ -123,15 +123,14 @@ static void composite_with_wallpaper (CompositorCtxt* ctxt,
 
     SelectClipRect (HDC_SCREEN_SYS, dirty_rc);
     if (wp_w > 0 && wp_h > 0) {
-        RECT rcScr = GetScreenRect ();
 
         // tile the wallpaper pattern
         int y = 0;
-        int left_h = RECTH (rcScr);
+        int left_h = RECTH (ctxt->rc_screen);
         while (left_h > 0) {
 
             int x = 0;
-            int left_w = RECTW (rcScr);
+            int left_w = RECTW (ctxt->rc_screen);
             while (left_w > 0) {
                 BitBlt (HDC_SCREEN, 0, 0, wp_w, wp_h, HDC_SCREEN_SYS, x, y, 0);
 
@@ -256,6 +255,8 @@ static void on_dirty_win (CompositorCtxt* ctxt,
     else {
         SetClipRgn (&ctxt->dirty_rgn, &ctxt->rc_screen);
     }
+
+    SelectClipRect (HDC_SCREEN_SYS, &ctxt->rc_screen);
 
     IntersectRegion (&ctxt->comps_rgn, &ctxt->dirty_rgn, &ctxt->wins_rgn);
     EmptyClipRgn (&ctxt->dirty_rgn);
