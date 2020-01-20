@@ -63,27 +63,285 @@
 
 #include "minigui.h"
 #include "gdi.h"
+#include "window.h"
+
+#define SIZE_CLIPRC_HEAP        64
+
+struct _CompositorCtxt {
+    RECT      rc_screen;    // screen rect - avoid duplicated GetScreenRect calls
+    BLOCKHEAP cliprc_heap;  // heap for clipping rects
+    CLIPRGN wins_rgn;       // visible region for all windows (subtract popupmenus)
+    CLIPRGN dirty_rgn;      // the dirty region
+    CLIPRGN comps_rgn;      // the region needed to re-composite
+    CLIPRGN left_rgn;       // the left region
+};
 
 static CompositorCtxt* initialize (const char* name)
 {
-    _DBG_PRINTF("called\n");
-    return (CompositorCtxt*)1;
+    CompositorCtxt* ctxt;
+
+    ctxt = malloc (sizeof (CompositorCtxt));
+    if (ctxt) {
+        ctxt->rc_screen = GetScreenRect();
+        InitFreeClipRectList (&ctxt->cliprc_heap, SIZE_CLIPRC_HEAP);
+        InitClipRgn (&ctxt->wins_rgn, &ctxt->cliprc_heap);
+        InitClipRgn (&ctxt->dirty_rgn, &ctxt->cliprc_heap);
+        InitClipRgn (&ctxt->comps_rgn, &ctxt->cliprc_heap);
+        InitClipRgn (&ctxt->left_rgn, &ctxt->cliprc_heap);
+
+        SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
+    }
+
+    _DBG_PRINTF("called: %p\n", ctxt);
+    return ctxt;
 }
 
 static void terminate (CompositorCtxt* ctxt)
 {
+    if (ctxt) {
+        EmptyClipRgn (&ctxt->wins_rgn);
+        EmptyClipRgn (&ctxt->dirty_rgn);
+        EmptyClipRgn (&ctxt->comps_rgn);
+        EmptyClipRgn (&ctxt->left_rgn);
+        DestroyFreeClipRectList (&ctxt->cliprc_heap);
+        free (ctxt);
+    }
+
     _DBG_PRINTF("called\n");
 }
 
-void refresh (CompositorCtxt* ctxt)
+static void on_dirty_ppp (CompositorCtxt* ctxt,
+            int zidx, const RECT* dirty_rcs, int nr_rcs)
 {
-    _DBG_PRINTF("called\n");
+}
+
+static void composite_with_wallpaper (CompositorCtxt* ctxt,
+            const RECT* dirty_rc)
+{
+    int wp_w = GetGDCapability (HDC_SCREEN, GDCAP_HPIXEL);
+    int wp_h = GetGDCapability (HDC_SCREEN, GDCAP_VPIXEL);
+
+    SelectClipRect (HDC_SCREEN_SYS, dirty_rc);
+    if (wp_w > 0 && wp_h > 0) {
+        RECT rcScr = GetScreenRect ();
+
+        // tile the wallpaper pattern
+        int y = 0;
+        int left_h = RECTH (rcScr);
+        while (left_h > 0) {
+
+            int x = 0;
+            int left_w = RECTW (rcScr);
+            while (left_w > 0) {
+                BitBlt (HDC_SCREEN, 0, 0, wp_w, wp_h, HDC_SCREEN_SYS, x, y, 0);
+
+                x += wp_w;
+                left_w -= wp_w;
+            }
+
+            left_h -= wp_h;
+            y += wp_h;
+        }
+    }
+    else {
+        SetBrushColor (HDC_SCREEN_SYS,
+            GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP));
+        FillBox (HDC_SCREEN_SYS, dirty_rc->left, dirty_rc->top,
+                RECTWP(dirty_rc), RECTHP(dirty_rc));
+    }
+}
+
+static void composite_win_znode (CompositorCtxt* ctxt,
+            int from, const RECT* dirty_rc, BOOL is_top)
+{
+    RECT rc;
+    const ZNODEHEADER* znode_hdr;
+
+    znode_hdr = ServerGetZNodeHeader (NULL, from);
+    if (znode_hdr == NULL)
+        return;
+
+    if (znode_hdr->flags & ZNIF_VISIBLE) {
+        if (IntersectRect (&rc, dirty_rc, &znode_hdr->rc)) {
+            if (znode_hdr->ct == CT_OPAQUE) {
+                SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
+                SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
+                BitBlt (znode_hdr->mem_dc,
+                        rc.left - znode_hdr->rc.left,
+                        rc.top - znode_hdr->rc.top,
+                        RECTW(rc), RECTH(rc),
+                        HDC_SCREEN_SYS, rc.left, rc.top, 0);
+            }
+            else {
+                // composite znodes below from first
+                int next = ServerGetNextZNode (NULL, from, NULL);
+                if (next) {
+                    composite_win_znode (ctxt, next, &rc, FALSE);
+                }
+                else {
+                    composite_with_wallpaper (ctxt, &rc);
+                }
+
+                switch (znode_hdr->ct) {
+                case CT_COLORKEY:
+                    SetMemDCColorKey (znode_hdr->mem_dc, MEMDC_FLAG_SRCCOLORKEY,
+                        DWORD2Pixel (znode_hdr->mem_dc, znode_hdr->ct_arg));
+                    break;
+
+                case CT_ALPHACHANNEL:
+                    SetMemDCAlpha (znode_hdr->mem_dc, MEMDC_FLAG_SRCALPHA,
+                            (BYTE)znode_hdr->ct_arg);
+                    break;
+
+                case CT_ALPHAPIXEL:
+                    SetMemDCAlpha (znode_hdr->mem_dc, MEMDC_FLAG_SRCPIXELALPHA, 0);
+                    break;
+
+                case CT_BLURRED:
+                    _WRN_PRINTF("CT_BLURRED is not implemented\n");
+                    break;
+
+                default:
+                    assert (0); // never touch here.
+                    break;
+                }
+            }
+
+            if (is_top)
+                SubtractClipRect (&ctxt->left_rgn, &rc);
+        }
+    }
+    else {
+        // not visible znode; composite with znodes below
+        int next = ServerGetNextZNode (NULL, from, NULL);
+        if (next) {
+            composite_win_znode (ctxt, next, dirty_rc, FALSE);
+        }
+        else {
+            composite_with_wallpaper (ctxt, dirty_rc);
+        }
+    }
+}
+
+static void on_dirty_win (CompositorCtxt* ctxt,
+            int zidx, const RECT* dirty_rcs, int nr_rcs)
+{
+    int i, next;
+    const ZNODEHEADER* znode_hdr = NULL;
+    CLIPRECT *crc;
+
+    if (zidx > 0) {
+        znode_hdr = ServerGetZNodeHeader (NULL, zidx);
+    }
+
+    if (dirty_rcs && znode_hdr) {
+        EmptyClipRgn (&ctxt->dirty_rgn);
+        for (i = 0; i < nr_rcs; i++) {
+            RECT rc;
+
+            // device coordinates to screen coordinates
+#if 1
+            rc = dirty_rcs [i];
+            OffsetRect (&rc, znode_hdr->rc.left, znode_hdr->rc.top);
+#else
+            rc.left = dirty_rcs [i].left + znode_hdr->rc.left;
+            rc.top = dirty_rcs [i].top + znode_hdr->rc.top;
+            rc.right = dirty_rcs [i].right + znode_hdr->rc.left;
+            rc.bottom = dirty_rcs [i].bottom + znode_hdr->rc.top;
+#endif
+
+            AddClipRect (&ctxt->dirty_rgn, &rc);
+        }
+    }
+    else {
+        SetClipRgn (&ctxt->dirty_rgn, &ctxt->rc_screen);
+    }
+
+    IntersectRegion (&ctxt->comps_rgn, &ctxt->dirty_rgn, &ctxt->wins_rgn);
+    EmptyClipRgn (&ctxt->dirty_rgn);
+
+    CopyRegion (&ctxt->left_rgn, &ctxt->comps_rgn);
+
+    next = ServerGetNextZNode (NULL, 0, NULL);
+    while (next > 0) {
+        crc = ctxt->comps_rgn.head;
+        while (crc) {
+            composite_win_znode (ctxt, next, &crc->rc, TRUE);
+
+            crc = crc->next;
+        }
+
+        next = ServerGetNextZNode (NULL, next, NULL);
+    }
+    EmptyClipRgn (&ctxt->comps_rgn);
+
+    // fill left region with wallpaper
+    crc = ctxt->left_rgn.head;
+    while (crc) {
+        composite_with_wallpaper (ctxt, &crc->rc);
+
+        crc = crc->next;
+    }
+
+    EmptyClipRgn (&ctxt->left_rgn);
+}
+
+static const ZNODEHEADER* rebuild_wins_region (CompositorCtxt* ctxt)
+{
+    int i, nr_ppps;
+    const ZNODEHEADER* znode_hdr = NULL;
+
+    SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
+
+    nr_ppps = ServerGetPopupMenusCount ();
+    for (i = 0; i < nr_ppps; i++) {
+        znode_hdr = ServerGetPopupMenuZNodeHeader (i);
+        if (znode_hdr)
+            SubtractClipRect (&ctxt->wins_rgn, &znode_hdr->rc);
+    }
+
+    return znode_hdr;
+}
+
+static void refresh (CompositorCtxt* ctxt)
+{
+    rebuild_wins_region (ctxt);
+    on_dirty_win (ctxt, 0, NULL, 0);
+}
+
+void on_show_ppp (CompositorCtxt* ctxt, int zidx)
+{
+    const ZNODEHEADER* znode_hdr = ServerGetPopupMenuZNodeHeader (zidx);
+    if (znode_hdr)
+        SubtractClipRect (&ctxt->wins_rgn, &znode_hdr->rc);
+}
+
+void on_hide_ppp (CompositorCtxt* ctxt, int zidx)
+{
+    const ZNODEHEADER* znode_hdr;
+
+    rebuild_wins_region (ctxt);
+    znode_hdr = ServerGetPopupMenuZNodeHeader (zidx);
+
+    if (znode_hdr) {
+        on_dirty_win (ctxt, 0, &znode_hdr->rc, 1);
+    }
+}
+
+void on_close_menu (CompositorCtxt* ctxt)
+{
+    SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
 }
 
 CompositorOps __mg_fallback_compositor = {
     initialize: initialize,
     terminate: terminate,
     refresh: refresh,
+    on_dirty_ppp: on_dirty_ppp,
+    on_dirty_win: on_dirty_win,
+    on_show_ppp: on_show_ppp,
+    on_hide_ppp: on_hide_ppp,
+    on_close_menu: on_close_menu,
 };
 
 #endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING) */
