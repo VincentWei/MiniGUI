@@ -1377,73 +1377,71 @@ typedef struct _CompositorOps {
 
     /**
      * This operation composites the contents to screen when
-     * there are some dirty rects in the specific znode.
+     * there are some dirty rects in the specific popup menu znode.
      */
-    void (*on_dirty_contents) (CompositorCtxt* ctxt,
-            int zidx, const RECT* dirty_rcs);
+    void (*on_dirty_ppp) (CompositorCtxt* ctxt,
+            int zidx, const RECT* dirty_rcs, int nr_rcs);
+
+    /**
+     * This operation composites the contents to screen when
+     * there are some dirty rects in the specific window znode.
+     */
+    void (*on_dirty_win) (CompositorCtxt* ctxt,
+            int zidx, const RECT* dirty_rcs, int nr_rcs);
 
     /**
      * This operation composites the contents to screen when
      * the system is showing a popup menu.
      */
-    void (*on_show_popupmenu) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_show_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation composites the contents to screen when
      * the system is hidding a popup menu.
      */
-    void (*on_hide_popupmenu) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_hide_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation composites the contents to screen when
      * the system is closing a popup menu.
      */
-    void (*on_close_menu) (CompositorCtxt* ctxt,
-            HDC screen_dc);
+    void (*on_close_menu) (CompositorCtxt* ctxt);
 
     /**
      * This operation composites the contents to screen when
      * the system is showing a window.
      */
-    void (*on_show_window) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_show_window) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation composites the contents to screen when
      * the system is hidding a window.
      */
-    void (*on_hide_window) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_hide_window) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation composites the contents to screen when
      * the system is moving a window.
      */
-    void (*on_move_window) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_move_window) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation composites the contents to screen when
      * the system is maximizing a window.
      */
-    void (*on_maximize_window) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_maximize_window) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation composites the contents to screen when
      * the system is minimizing a window.
      */
-    void (*on_minimize_window) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_minimize_window) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation composites the contents to screen when
      * the system is changing the z-order.
      */
-    void (*on_change_zorder) (CompositorCtxt* ctxt,
-            HDC screen_dc, int zidx);
+    void (*on_change_zorder) (CompositorCtxt* ctxt, int zidx);
 } CompositorOps;
 
 /**
