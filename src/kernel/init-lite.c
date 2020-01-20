@@ -563,16 +563,6 @@ int InitGUI (int argc, const char* agr[])
 
     mg_TerminateMgEtc ();
 
-#ifdef _MGSCHEMA_COMPOSITING
-    if (_is_server) {
-        if (!mg_InitCompositor ()) {
-            err_message (step, "Can not initialize compositor!");
-            return step;
-        }
-        atexit (mg_TerminateCompositor);
-    }
-#endif
-
     return 0;
 }
 

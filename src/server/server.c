@@ -302,6 +302,14 @@ BOOL GUIAPI ServerStartup (int nr_globals,
 
     __mg_screensaver_create();
 
+#ifdef _MGSCHEMA_COMPOSITING
+    if (!mg_InitCompositor ()) {
+        _ERR_PRINTF ("Can not initialize compositor!");
+        goto fail;
+    }
+    atexit (mg_TerminateCompositor);
+#endif
+
     return TRUE;
 
 fail:
