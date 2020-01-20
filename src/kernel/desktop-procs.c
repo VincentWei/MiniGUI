@@ -1218,7 +1218,7 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
         }
 #else
         if (nodes[idx_znode].caption)
-            free (nodes[idx_znode].caption)
+            free (nodes[idx_znode].caption);
 
         nodes[idx_znode].caption = strdup (caption);
 #endif
