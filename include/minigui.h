@@ -1148,6 +1148,7 @@ typedef struct _ZNODEHEADER {
 
     /** The window handle of the znode if it is a window. */
     HWND            hwnd;
+
     /**
      * The window handle of the znode's main window if it is a control
      * with WS_EX_CTRLASMAINWIN style.
@@ -1166,7 +1167,6 @@ typedef struct _ZNODEHEADER {
 #ifdef _MGSCHEMA_COMPOSITING
     /** The count for changes of content */
     unsigned int    changes;
-
     /**
      * The compositing type for this znode.
      * For more information, see \a SetMainWindowCompositing.

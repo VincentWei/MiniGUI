@@ -1530,8 +1530,10 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
     menu_nodes [zi->nr_popupmenus].rc = *rc;
     menu_nodes [zi->nr_popupmenus].hwnd = ptmi;
 #ifdef _MGSCHEMA_COMPOSITING
-    menu_nodes [zi->nr_popupmenus].mem_dc = memdc;
+    menu_nodes [zi->nr_popupmenus].changes = 0;
     menu_nodes [zi->nr_popupmenus].ct = CT_OPAQUE;
+    menu_nodes [zi->nr_popupmenus].ct_arg = 0;
+    menu_nodes [zi->nr_popupmenus].mem_dc = memdc;
 #endif
 
     if (zi->cli_trackmenu == -1)
@@ -2326,23 +2328,8 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     }
 
     /* Free round corners mask rect. */
-    if (type & ZOF_TW_TROUNDCNS ||
-            type & ZOF_TW_BROUNDCNS) {
-
-#if 0
-        int tmp, idx = nodes[idx_znode].idx_mask_rect;
-        MASKRECT * first = GET_MASKRECT(zi);
-
-        while (idx) {
-            __mg_slot_clear_use ((unsigned char*)GET_MASKRECT_USAGEBMP(zi), idx);
-            tmp = (first+idx)->next;
-            (first+idx)->next = 0;
-            (first+idx)->prev = 0;
-            idx = tmp;
-        }
-#else
+    if (type & ZOF_TW_TROUNDCNS || type & ZOF_TW_BROUNDCNS) {
         clean_znode_maskrect (zi, nodes, idx_znode);
-#endif
     }
 
 #ifndef _MGSCHEMA_COMPOSITING
