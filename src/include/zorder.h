@@ -71,10 +71,12 @@ typedef MASKRECT* PMASKRECT;
 typedef struct _ZORDERNODE {
     DWORD           flags;          /* znode flags */
     char            *caption;       /* caption */
-    RECT            rc;             /* rect on the screen */
-    int             cli;            /* which client? */
     HWND            hwnd;           /* which window of the client? */
     HWND            main_win;       /* handle to the main window */
+
+    RECT            rc;             /* rect on the screen */
+    int             cli;            /* which client? */
+    unsigned int    age;            /* change age */
 
 #ifdef _MGSCHEMA_COMPOSITING
     HDC             mem_dc;         /* the memory DC for this znode */
@@ -83,12 +85,10 @@ typedef struct _ZORDERNODE {
 #endif
 
     RECT            dirty_rc;       /* dirty rect */
-    unsigned int    age;            /* change age */
+    int             idx_mask_rect;  /* The first position of mask rect. */
 
     int             next;
     int             prev;
-
-    int             idx_mask_rect;  /* The first position of mask rect. */
 } ZORDERNODE;
 typedef ZORDERNODE* PZORDERNODE;
 
