@@ -2240,6 +2240,9 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     ZORDERNODE* nodes;
     int old_active, next_active;
     int fixed_idx;
+#ifndef _MGSCHEMA_COMPOSITING
+    RECT rc;
+#endif
 
     if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals)
@@ -2340,7 +2343,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     /* check influenced zorder nodes */
     if (nodes [idx_znode].flags & ZOF_VISIBLE) {
         int slot;
-        RECT rc, rc_screen = GetScreenRect ();
+        RECT rc_screen = GetScreenRect ();
 
         rc = nodes [idx_znode].rc;
 
