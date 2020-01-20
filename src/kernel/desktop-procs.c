@@ -245,14 +245,12 @@ static void init_desktop_win (void)
 
 BOOL mg_InitDesktop (void)
 {
-    /*
-     * Init heap of clipping rects.
-     */
+#ifndef _MGSCHEMA_COMPOSITING
+    /* Init heap of clipping rects. */
     InitFreeClipRectList (&sg_FreeClipRectList, SIZE_CLIPRECTHEAP);
+#endif
 
-    /*
-     * Init heap of invalid rects.
-     */
+    /* Init heap of invalid rects.*/
     InitFreeClipRectList (&sg_FreeInvRectList, SIZE_INVRECTHEAP);
 
     // Init Window Management information.
@@ -268,11 +266,14 @@ void mg_TerminateDesktop (void)
 {
     TerminateSharedSysRes ();
 
+#ifndef _MGSCHEMA_COMPOSITING
     DestroyFreeClipRectList (&sg_FreeClipRectList);
+#endif
     DestroyFreeClipRectList (&sg_FreeInvRectList);
 }
 
 /********************** Common routines for ZORDERINFO ***********************/
+#ifndef _MGSCHEMA_COMPOSITING
 static int update_client_window_rgn (int cli, HWND hwnd)
 {
     int ret = 0;
@@ -313,6 +314,7 @@ static int update_client_window_rgn (int cli, HWND hwnd)
 
     return 0;
 }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 /*********************** Client-side routines ********************************/
 
@@ -724,6 +726,7 @@ static intptr_t cliSetMainWinCompositing (PMAINWIN pWin,
 
 void __mg_start_server_desktop (void)
 {
+#ifndef _MGSCHEMA_COMPOSITING
     RECT rcScr = GetScreenRect ();
 
     InitClipRgn (&sg_ScrGCRInfo.crgn, &sg_FreeClipRectList);
@@ -733,6 +736,7 @@ void __mg_start_server_desktop (void)
 
     InitClipRgn (&sg_UpdateRgn, &sg_FreeClipRectList);
     MAKE_REGION_INFINITE(&sg_UpdateRgn);
+#endif
 
     SendMessage (HWND_DESKTOP, MSG_STARTSESSION, 0, 0);
     SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
@@ -1361,6 +1365,7 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info,
     return ret;
 }
 
+#ifndef _MGSCHEMA_COMPOSITING
 static BOOL _cb_intersect_rc_no_cli (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
 {
@@ -1393,26 +1398,31 @@ static BOOL _cb_update_rc_nocli (void* context,
 
     return FALSE;
 }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 int __mg_remove_all_znodes_of_client (int cli)
 {
     ZORDERINFO* zi = _get_zorder_info(cli);
     ZORDERNODE* nodes;
-    int slot, slot2, old_active;
+    int slot, old_active;
+#ifndef _MGSCHEMA_COMPOSITING
+    int slot2;
     RECT rc_bound = {0, 0, 0, 0};
     RECT rcScr = GetScreenRect();
+#endif
 
     nodes = GET_ZORDERNODE(zi);
 
     if (zi->cli_trackmenu == cli) {
         int i;
-        ZORDERNODE* menu_nodes;
-
-        menu_nodes = GET_MENUNODE(zi);
+#ifndef _MGSCHEMA_COMPOSITING
+        ZORDERNODE* menu_nodes = GET_MENUNODE(zi);
+#endif
 
         /* lock zi for change */
         lock_zi_for_change (zi);
 
+#ifndef _MGSCHEMA_COMPOSITING
         for (i = 0; i < zi->nr_popupmenus; i++) {
             GetBoundRect (&rc_bound, &rc_bound, &menu_nodes [i].rc);
         }
@@ -1426,6 +1436,11 @@ int __mg_remove_all_znodes_of_client (int cli)
             nodes [0].age ++;
             nodes [0].flags |= ZOF_IF_REFERENCE;
         }
+#else   /* defined _MGSCHEMA_COMPOSITING */
+        for (i = 0; i < zi->nr_popupmenus; i++) {
+            DO_COMPSOR_OP_ARGS (on_hide_ppp, i);
+        }
+#endif  /* defined _MGSCHEMA_COMPOSITING */
 
         zi->cli_trackmenu = -1;
         zi->nr_popupmenus = 0;
@@ -1437,20 +1452,68 @@ int __mg_remove_all_znodes_of_client (int cli)
     /* lock zi for change */
     lock_zi_for_change (zi);
 
+    /* handle screen lock znode */
+    if (nodes [ZNIDX_SCREENLOCK].cli == cli && nodes [ZNIDX_SCREENLOCK].hwnd) {
+        if (nodes [ZNIDX_SCREENLOCK].flags & ZOF_VISIBLE) {
+#ifndef _MGSCHEMA_COMPOSITING
+            do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
+                            _cb_intersect_rc_no_cli, ZT_DOCKER);
+            do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
+                            _cb_intersect_rc_no_cli, ZT_GLOBAL);
+            do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
+                            _cb_intersect_rc_no_cli, ZT_TOPMOST);
+            do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
+                            _cb_intersect_rc_no_cli, ZT_NORMAL);
+            do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
+                            _cb_intersect_rc_no_cli, ZT_LAUNCHER);
+#else   /* defined _MGSCHEMA_COMPOSITING */
+        DO_COMPSOR_OP_ARGS(on_hide_win, ZNIDX_SCREENLOCK);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+        }
+
+        clean_znode_maskrect (zi, nodes, ZNIDX_SCREENLOCK);
+        nodes [ZNIDX_SCREENLOCK].cli  = -1;
+        nodes [ZNIDX_SCREENLOCK].hwnd = HWND_NULL;
+    }
+
+    /* handle docker znode */
+    if (nodes [ZNIDX_DOCKER].cli == cli && nodes [ZNIDX_DOCKER].hwnd) {
+        if (nodes [ZNIDX_DOCKER].flags & ZOF_VISIBLE) {
+#ifndef _MGSCHEMA_COMPOSITING
+            do_for_all_znodes (nodes + ZNIDX_DOCKER, zi,
+                            _cb_intersect_rc_no_cli, ZT_GLOBAL);
+            do_for_all_znodes (nodes + ZNIDX_DOCKER, zi,
+                            _cb_intersect_rc_no_cli, ZT_TOPMOST);
+            do_for_all_znodes (nodes + ZNIDX_DOCKER, zi,
+                            _cb_intersect_rc_no_cli, ZT_NORMAL);
+            do_for_all_znodes (nodes + ZNIDX_SCREENLOCK, zi,
+                            _cb_intersect_rc_no_cli, ZT_LAUNCHER);
+#else   /* defined _MGSCHEMA_COMPOSITING */
+        DO_COMPSOR_OP_ARGS(on_hide_win, ZNIDX_DOCKER);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+        }
+
+        clean_znode_maskrect (zi, nodes, ZNIDX_DOCKER);
+        nodes [ZNIDX_DOCKER].cli  = -1;
+        nodes [ZNIDX_DOCKER].hwnd = HWND_NULL;
+    }
+
+    /* skip global ones */
+
     /* handle topmosts */
     slot = zi->first_topmost;
     for (; slot > 0; slot = nodes [slot].next) {
         if (nodes [slot].cli == cli) {
             if (nodes [slot].flags & ZOF_VISIBLE) {
+#ifndef _MGSCHEMA_COMPOSITING
                 SetClipRgn (&sg_UpdateRgn, &nodes [slot].rc);
                 GetBoundRect (&rc_bound, &rc_bound, &nodes [slot].rc);
 
                 slot2 = nodes [slot].next;
                 for (; slot2 > 0; slot2 = nodes [slot2].next) {
                     if (nodes [slot2].cli != cli &&
-                        nodes [slot2].flags & ZOF_VISIBLE &&
-                        //SubtractClipRect (&sg_UpdateRgn, &nodes [slot2].rc)) {
-                        subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
+                            nodes [slot2].flags & ZOF_VISIBLE &&
+                            subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
 
                         nodes [slot2].age ++;
                         nodes [slot2].flags |= ZOF_IF_REFERENCE;
@@ -1459,12 +1522,17 @@ int __mg_remove_all_znodes_of_client (int cli)
 
                 do_for_all_znodes (nodes + slot, zi,
                                 _cb_intersect_rc_no_cli, ZT_NORMAL);
+                do_for_all_znodes (nodes + slot, zi,
+                                _cb_intersect_rc_no_cli, ZT_LAUNCHER);
 
                 if (!(nodes [0].flags & ZOF_IF_REFERENCE) &&
                                 SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
                     nodes [0].age ++;
                     nodes [0].flags |= ZOF_IF_REFERENCE;
                 }
+#else   /* defined _MGSCHEMA_COMPOSITING */
+                DO_COMPSOR_OP_ARGS(on_hide_win, slot);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
             }
 
             unchain_znode ((unsigned char *)(zi+1), nodes, slot);
@@ -1482,25 +1550,32 @@ int __mg_remove_all_znodes_of_client (int cli)
     for (; slot > 0; slot = nodes [slot].next) {
         if (nodes [slot].cli == cli) {
             if (nodes [slot].flags & ZOF_VISIBLE) {
+#ifndef _MGSCHEMA_COMPOSITING
                 SetClipRgn (&sg_UpdateRgn, &nodes [slot].rc);
                 GetBoundRect (&rc_bound, &rc_bound, &nodes [slot].rc);
 
                 slot2 = nodes [slot].next;
                 for (; slot2 > 0; slot2 = nodes [slot2].next) {
                     if (nodes [slot2].cli != cli &&
-                        nodes [slot2].flags & ZOF_VISIBLE &&
-                        //SubtractClipRect (&sg_UpdateRgn, &nodes [slot2].rc)) {
-                        subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
+                            nodes [slot2].flags & ZOF_VISIBLE &&
+                            subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes [slot2])) {
 
                         nodes [slot2].age ++;
                         nodes [slot2].flags |= ZOF_IF_REFERENCE;
                     }
                 }
+
+                do_for_all_znodes (nodes + slot, zi,
+                                _cb_intersect_rc_no_cli, ZT_LAUNCHER);
+
                 if (!(nodes [0].flags & ZOF_IF_REFERENCE) &&
                         SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
                     nodes [0].age ++;
                     nodes [0].flags |= ZOF_IF_REFERENCE;
                 }
+#else   /* defined _MGSCHEMA_COMPOSITING */
+                DO_COMPSOR_OP_ARGS(on_hide_win, slot);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
             }
 
             unchain_znode ((unsigned char *)(zi+1), nodes, slot);
@@ -1513,6 +1588,25 @@ int __mg_remove_all_znodes_of_client (int cli)
         }
     }
 
+    /* handle launcher znode */
+    if (nodes [ZNIDX_LAUNCHER].cli == cli && nodes [ZNIDX_LAUNCHER].hwnd) {
+        if (nodes [ZNIDX_LAUNCHER].flags & ZOF_VISIBLE) {
+#ifndef _MGSCHEMA_COMPOSITING
+            if (!(nodes [0].flags & ZOF_IF_REFERENCE) &&
+                    SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
+                nodes [0].age ++;
+                nodes [0].flags |= ZOF_IF_REFERENCE;
+            }
+#else   /* defined _MGSCHEMA_COMPOSITING */
+                DO_COMPSOR_OP_ARGS(on_hide_win, ZNIDX_LAUNCHER);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+        }
+
+        clean_znode_maskrect (zi, nodes, ZNIDX_LAUNCHER);
+        nodes [ZNIDX_LAUNCHER].cli  = -1;
+        nodes [ZNIDX_LAUNCHER].hwnd = HWND_NULL;
+    }
+
     old_active = zi->active_win;
     if (nodes [old_active].cli == cli)
         zi->active_win = 0; /* set the active_win to desktop temp */
@@ -1520,6 +1614,7 @@ int __mg_remove_all_znodes_of_client (int cli)
     /* unlock zi for change  */
     unlock_zi_for_change (zi);
 
+#ifndef _MGSCHEMA_COMPOSITING
     /* update all znode if it's dirty */
     do_for_all_znodes (&rc_bound, zi, _cb_update_znode, ZT_ALL);
 
@@ -1528,6 +1623,7 @@ int __mg_remove_all_znodes_of_client (int cli)
                         MSG_ERASEDESKTOP, 0, (WPARAM)&rc_bound);
         nodes [0].flags &= ~ZOF_IF_REFERENCE;
     }
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
 
     /* if active_win belongs to the client, change it */
     if (nodes [old_active].cli == cli) {
