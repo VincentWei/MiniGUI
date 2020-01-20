@@ -1146,12 +1146,6 @@ typedef struct _ZNODEHEADER {
     /** The pointer to the caption string of the znode if it is a window. */
     const char*     caption;
 
-    /** The rectangle of the znode in the screen. */
-    RECT            rc;
-
-    /** Client id of the znode. */
-    int             cli;
-
     /** The window handle of the znode if it is a window. */
     HWND            hwnd;
     /**
@@ -1159,6 +1153,15 @@ typedef struct _ZNODEHEADER {
      * with WS_EX_CTRLASMAINWIN style.
      */
     HWND            main_win;
+
+    /** The rectangle of the znode in the screen. */
+    RECT            rc;
+
+    /** Client id of the znode. */
+    int             cli;
+
+    /** The content change age */
+    unsigned int    age;
 
 #ifdef _MGSCHEMA_COMPOSITING
     /**
@@ -1376,70 +1379,76 @@ typedef struct _CompositorOps {
     void (*refresh) (CompositorCtxt* ctxt);
 
     /**
-     * This operation composites the contents to screen when
-     * there are some dirty rects in the specific popup menu znode.
+     * This operation will be called when there are some dirty
+     * rects in the specific popup menu znode.
      */
     void (*on_dirty_ppp) (CompositorCtxt* ctxt,
             int zidx, const RECT* dirty_rcs, int nr_rcs);
 
     /**
-     * This operation composites the contents to screen when
-     * there are some dirty rects in the specific window znode.
+     * This operation will be called when there are some dirty rects
+     * in the specific window znode or on the screen. For the later
+     * situation, \a zidx will be zero and coordiantes in the dirty rects
+     * will be under screen coordinate system.
      */
     void (*on_dirty_win) (CompositorCtxt* ctxt,
             int zidx, const RECT* dirty_rcs, int nr_rcs);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is showing a popup menu.
+     * This operation will be called when the system is showing a new popup menu.
+     * Note that the compositor can not assume that there are contents
+     * in the surface of the popup menu; but it can update some internal data
+     * in this operation.
      */
     void (*on_show_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is hidding a popup menu.
+     * This operation will be called when the system is hidding a popup menu.
+     * The compositor can play an animation in this operation.
      */
     void (*on_hide_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is closing a popup menu.
+     * This operation will be called when the system is closing a popup menu.
+     * The compositor can play an animation in this operation.
      */
     void (*on_close_menu) (CompositorCtxt* ctxt);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is showing a window.
+     * This operation will be called when the system is showing a window.
+     * Note that the compositor can not assume that there are contents in
+     * the surface of the window, but it can update some internal data
+     * in this operation.
      */
-    void (*on_show_window) (CompositorCtxt* ctxt, int zidx);
+    void (*on_show_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is hidding a window.
+     * This operation will be called when the system is hidding a window.
+     * The compositor can play an animation in this operation.
      */
-    void (*on_hide_window) (CompositorCtxt* ctxt, int zidx);
+    void (*on_hide_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is moving a window.
+     * This operation will be called when the system is moving a window.
+     * The compositor can play an animation in this operation.
      */
-    void (*on_move_window) (CompositorCtxt* ctxt, int zidx);
+    void (*on_move_win) (CompositorCtxt* ctxt, int zidx, const RECT* dst_rc);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is maximizing a window.
+     * This operation will be called when the system is maximizing a window.
+     * The compositor can play an animation in this operation.
      */
-    void (*on_maximize_window) (CompositorCtxt* ctxt, int zidx);
+    void (*on_maximize_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is minimizing a window.
+     * This operation will be called when the system is manimizing a window.
+     * The compositor can play an animation in this operation.
      */
-    void (*on_minimize_window) (CompositorCtxt* ctxt, int zidx);
+    void (*on_minimize_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation composites the contents to screen when
-     * the system is changing the z-order.
+     * This operation will be called when the system is changing the z-order
+     * of one window z-node.
      */
     void (*on_change_zorder) (CompositorCtxt* ctxt, int zidx);
 } CompositorOps;
