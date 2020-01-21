@@ -1037,7 +1037,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     }
 }
 
-#else
+#else   /* not defined _MGSCHEMA_SHAREDFB */
 
 /* version for _MGSCHEMA_COMPOSITING */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
@@ -1045,18 +1045,18 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     PDC cur_pdc = (PDC)pdc;
     const RECT* prc = NULL;
 
-    if (!mgIsServer && (SHAREDRES_TOPMOST_LAYER != __mg_layer)) {
+    if (!mgIsServer) {
         return;
     }
 
     prc = &cur_pdc->rc_output;
-    if (cur_pdc->surface->video && fShow) {
+    if (cur_pdc->surface == __gal_screen && fShow) {
         GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
     }
 }
 
-#endif /* _MGSCHEMA_SHAREDFB */
+#endif  /* not defined _MGSCHEMA_SHAREDFB */
 
 int GUIAPI ShowCursor (BOOL fShow)
 {
