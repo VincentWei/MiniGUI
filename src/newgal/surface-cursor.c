@@ -174,30 +174,26 @@ void GAL_FreeCursorSurface (GAL_Surface *surface)
 
 void GAL_SetCursor (GAL_Surface* surface, int hot_x, int hot_y)
 {
-    if (surface) {
+    if (surface && surface->video) {
         GAL_VideoDevice *video = surface->video;
 
-        if (surface->hwdata) {
-            assert (video->SetCursor);
+        if (video->SetCursor) {
+            assert (surface->hwdata);
             video->SetCursor (video, surface, hot_x, hot_y);
         }
-        else {
-            // TODO: software cursor
-        }
-    }
-    else {
-        // TODO: hide cursor
     }
 }
 
 /* Move cursor. */
-void GAL_MoveCursor (GAL_VideoDevice* video, int x, int y)
+void GAL_MoveCursor (GAL_Surface* surface, int x, int y)
 {
-    if (video->MoveCursor) {
-        video->MoveCursor (video, x, y);
-    }
-    else {
-        // TODO: software cursor
+    if (surface && surface->video) {
+        GAL_VideoDevice *video = surface->video;
+
+        if (video->MoveCursor) {
+            assert (surface->hwdata);
+            video->MoveCursor (video, x, y);
+        }
     }
 }
 
