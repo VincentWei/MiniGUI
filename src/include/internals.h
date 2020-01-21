@@ -443,7 +443,7 @@ void client_ClientCleanup (void);
 
 #endif
 
-BOOL mg_InitScreenDC (void* surface);
+BOOL mg_InitScreenDC (void);
 void mg_TerminateScreenDC (void);
 
 BOOL mg_InitGDI (void);
