@@ -381,9 +381,6 @@ static void hidecursor (void)
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
 }
 
-void _dc_restore_alpha_in_bitmap (const GAL_PixelFormat* format,
-                void* dst_bits, unsigned int nr_bytes);
-
 static void showcursor (void)
 {
     int x, y;
