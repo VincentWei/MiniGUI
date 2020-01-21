@@ -467,7 +467,7 @@ Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
 {
     Uint8* dst = NULL;
 
-    lock_cursor_sem ();
+    LOCK_CURSOR_SEM ();
     if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT
             && x >= CSR_OLDBOXLEFT && y >= CSR_OLDBOXTOP
             && (x < CSR_OLDBOXLEFT + CURSORWIDTH)
@@ -480,7 +480,7 @@ Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
                 + _x * __gal_screen->format->BytesPerPixel;
         *pixel = _mem_get_pixel (dst, __gal_screen->format->BytesPerPixel);
     }
-    unlock_cursor_sem ();
+    UNLOCK_CURSOR_SEM ();
 
     return dst;
 }
@@ -872,7 +872,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
     if (oldx != curx || oldy != cury) {
 
 #if defined (_MGHAVE_CURSOR) && defined(_MGSCHEMA_SHAREDFB)
-        lock_cursor_sem ();
+        LOCK_CURSOR_SEM ();
         CSR_CURSORX = curx;
         CSR_CURSORY = cury;
         if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
@@ -885,7 +885,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
             showcursor ();
         }
-        unlock_cursor_sem ();
+        UNLOCK_CURSOR_SEM ();
 #endif /* _MGHAVE_CURSOR && _MGSCHEMA_SHAREDFB*/
 
         oldx = curx;
@@ -902,14 +902,14 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 /* show cursor hidden by client GDI function */
 void kernel_ReShowCursor (void)
 {
-    lock_cursor_sem ();
+    LOCK_CURSOR_SEM ();
     if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
         if (get_hidecursor_sem_val ()) {
             reset_hidecursor_sem ();
             showcursor ();
         }
     }
-    unlock_cursor_sem ();
+    UNLOCK_CURSOR_SEM ();
 }
 #endif /* _MGSCHEMA_SHAREDFB */
 
@@ -944,7 +944,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
 
     pcsr = (PCURSOR)hcsr;
 
-    lock_cursor_sem ();
+    LOCK_CURSOR_SEM ();
 #ifdef _MGSCHEMA_COMPOSITING
     CSR_CURRENT_SET = (HCURSOR)pcsr;
     CSR_XHOTSPOT = pcsr ? pcsr->xhotspot : -100;
@@ -968,7 +968,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
                     && get_hidecursor_sem_val () == 0)
         showcursor();
 #endif
-    unlock_cursor_sem ();
+    UNLOCK_CURSOR_SEM ();
 
     return (HCURSOR) old;
 }
@@ -1021,7 +1021,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         }
 
         if (!fShow) {
-            lock_cursor_sem ();
+            LOCK_CURSOR_SEM ();
             if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT && does_need_hide (prc)) {
                 if (get_hidecursor_sem_val () == 0) {
                     inc_hidecursor_sem ();
@@ -1032,7 +1032,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         else {
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-            unlock_cursor_sem ();
+            UNLOCK_CURSOR_SEM ();
         }
     }
 }
@@ -1073,7 +1073,7 @@ int GUIAPI ShowCursor (BOOL fShow)
     }
 
 #ifdef _MGSCHEMA_SHAREDFB
-    lock_cursor_sem ();
+    LOCK_CURSOR_SEM ();
     if (fShow) {
         CSR_SHOW_COUNT++;
         if (CSR_SHOW_COUNT == 0 && CSR_CURRENT
@@ -1085,7 +1085,7 @@ int GUIAPI ShowCursor (BOOL fShow)
         if (CSR_SHOW_COUNT == -1 && CSR_CURRENT)
            hidecursor();
     }
-    unlock_cursor_sem ();
+    UNLOCK_CURSOR_SEM ();
 #else /* _MGSCHEMA_SHAREDFB */
     if (fShow) {
         CSR_SHOW_COUNT++;
