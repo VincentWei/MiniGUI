@@ -78,8 +78,14 @@ RECT GUIAPI GetScreenRect (void)
 #ifdef _MGSCHEMA_COMPOSITING
         rc.left = 0;
         rc.top = 0;
-        rc.right = SHAREDRES_VIDEO_HRES;
-        rc.bottom = SHAREDRES_VIDEO_VRES;
+        if (mgIsServer) {
+            rc.right = __gal_screen->w;
+            rc.bottom = __gal_screen->h;
+        }
+        else {
+            rc.right = SHAREDRES_VIDEO_HRES;
+            rc.bottom = SHAREDRES_VIDEO_VRES;
+        }
 #else
         rc.left = 0;
         rc.top = 0;
