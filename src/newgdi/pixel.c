@@ -92,17 +92,13 @@ static void _my_set_pixel (PDC pdc, int x, int y, gal_pixel pixel)
         }
     }
 
-#ifndef _MGRM_THREADS
-    if (CHECK_DRAWING (pdc)) goto no_draw;
-#endif
+    if (WITHOUT_DRAWING (pdc)) goto no_draw;
 
     coor_LP2SP (pdc, &x, &y);
     pdc->cur_pixel = pixel;
     _set_pixel_helper (pdc, x, y);
 
-#ifndef _MGRM_THREADS
 no_draw:
-#endif
     UNLOCK_GCRINFO (pdc);
 }
 
