@@ -563,6 +563,8 @@ do {                                                    \
 
 #  define BLOCK_DRAW_SEM(pdc)
 #  define UNBLOCK_DRAW_SEM(pdc)
+#  define IS_SCREEN_SURFACE(pdc)                        \
+    (pdc->surface == __gal_screen)
 #  define WITHOUT_DRAWING(pdc)                          \
     (__mg_switch_away && pdc->surface == __gal_screen)
 #endif /* defined _MGRM_THREADS */
