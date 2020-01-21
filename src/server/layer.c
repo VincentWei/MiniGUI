@@ -76,9 +76,9 @@ MG_Layer* mgTopmostLayer = NULL;
 ON_CHANGE_LAYER OnChangeLayer = NULL;
 
 #define CHANGE_TOPMOST_LAYER(layer)             \
-    lock_draw_sem ();                           \
+    LOCK_DRAW_SEM ();                      \
     SHAREDRES_TOPMOST_LAYER = (GHANDLE)layer;   \
-    unlock_draw_sem ();
+    UNLOCK_DRAW_SEM ();
 
 static int sg_nr_layers = 0;
 static unsigned char sem_usage [(MAX_NR_LAYERS + 7)/8];
