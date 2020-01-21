@@ -282,11 +282,6 @@ BOOL __mg_is_valid_layer (MG_Layer* layer)
     return FALSE;
 }
 
-inline static key_t get_sem_key (void)
-{
-    return (key_t)(IPC_KEY_BASE + 0x03);
-}
-
 static void delete_zi_sem (void)
 {
     union semun ignored;
@@ -310,7 +305,7 @@ int __mg_init_layers ()
 
     memset (sem_usage, 0xFF, sizeof (sem_usage));
 
-    if ((sem_key = get_sem_key ()) == -1) {
+    if ((sem_key = get_sem_key_for_layers ()) == -1) {
         return -1;
     }
 
