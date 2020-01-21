@@ -57,10 +57,8 @@
 /* conditional macros for compositing/sharedfb schema */
 #if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
 #   define IS_COMPOSITING_SCHEMA    1
-#   define NR_DIRTY_RECTS           8
 #else
 #   define IS_COMPOSITING_SCHEMA    0
-#   define NR_DIRTY_RECTS           0
 #endif
 
 #if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_SHAREDFB)
@@ -68,6 +66,9 @@
 #else
 #   define IS_SHAREDFB_SCHEMA       0
 #endif
+
+/* the maximal number of the dirty rects */
+#define NR_DIRTY_RECTS              16
 
 /* constants for layers and z-order nodes */
 #define MAX_NR_LAYERS               8
