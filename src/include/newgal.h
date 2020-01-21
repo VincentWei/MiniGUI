@@ -139,10 +139,13 @@ typedef struct _SharedSurfaceHeader {
     int             byhw;
 
     /* the dirty sync age */
-    unsigned long   dirty_age;
+    unsigned int    dirty_age;
+
+    /* the number of dirty rects */
+    int             nr_dirty_rcs;
 
     /* the dirty rectangles */
-    GAL_Rect        dirty_rcs [NR_DIRTY_RECTS];
+    RECT            dirty_rcs [NR_DIRTY_RECTS];
 
     /* the size of the surface */
     int             width, height;
