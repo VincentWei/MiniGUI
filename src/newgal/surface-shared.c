@@ -181,6 +181,8 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             if (fd < 0) {
                 goto error;
             }
+
+            surface->video = NULL;
         }
 
         map_size = buf_off + buf_size;
@@ -207,6 +209,8 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         hdr->Bmask      = Bmask;
         hdr->Amask      = Amask;
         hdr->buf_size   = buf_size;
+        hdr->dirty_age  = 0;
+        hdr->nr_dirty_rcs   = 0;
 
 #if 1
         /* Use a unnamed POSIX semaphore shared between processes */
@@ -375,6 +379,7 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
         }
 
         surface->hwdata = NULL;
+        surface->video = NULL;
         surface->shared_header = (GAL_SharedSurfaceHeader*) data_map;
     }
 
