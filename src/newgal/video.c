@@ -1401,6 +1401,8 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     return surface;
 }
 
+BOOL __mg_switch_away;
+
 /* Since 4.0.0; activate/deactivate video device, for switching virtual terminals */
 int GAL_ResumeVideo(void)
 {
@@ -1414,9 +1416,7 @@ int GAL_ResumeVideo(void)
     }
 #endif
 
-#ifndef _MGRM_THREADS
     __mg_switch_away = FALSE;
-#endif
 
 #ifdef _MGRM_PROCESSES
     UpdateTopmostLayer (NULL);
@@ -1433,9 +1433,7 @@ int GAL_SuspendVideo(void)
     DisableClientsOutput ();
 #endif
 
-#ifndef _MGRM_THREADS
     __mg_switch_away = TRUE;
-#endif
 
 #ifdef _MGRM_PROCESSES
     if (mgIsServer) {
