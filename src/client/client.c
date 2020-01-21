@@ -434,7 +434,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
             static unsigned int old_mouse_move_serial = 0xdeadbeef;
             int flag = 0, mouse_x = -1, mouse_y = -1, buttons = -1;
 
-            lock_mousemove_sem();
+            LOCK_MOUSEMOVE_SEM();
             if (SHAREDRES_MOUSEMOVECLIENT == __mg_client_id
                     && SHAREDRES_MOUSEMOVESERIAL != old_mouse_move_serial) {
                 mouse_x = SHAREDRES_MOUSEX;
@@ -443,7 +443,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
                 flag = 1;
             }
             old_mouse_move_serial = SHAREDRES_MOUSEMOVESERIAL;
-            unlock_mousemove_sem();
+            UNLOCK_MOUSEMOVE_SEM();
 
             if (flag && (mouse_x != old_mouse_x || mouse_y != old_mouse_y || buttons != old_buttons)) {
                 MSG msg;
