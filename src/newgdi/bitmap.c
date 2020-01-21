@@ -1144,8 +1144,7 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
 
     ENTER_DRAWING_NOCHECK (pddc);
 
-    if (pddc->surface != psdc->surface && (psdc->surface ==
-                __gal_screen)) {
+    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE(psdc)) {
         psdc->rc_output = srcOutput;
         kernel_ShowCursorForGDI (FALSE, psdc);
     }
@@ -1282,8 +1281,7 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
         }
     }
 
-    if (pddc->surface != psdc->surface && (psdc->surface ==
-                __gal_screen))
+    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE(psdc))
         kernel_ShowCursorForGDI (TRUE, psdc);
 
     LEAVE_DRAWING_NOCHECK (pddc);
@@ -1439,7 +1437,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
 
     ENTER_DRAWING (pddc);
 
-    if (pddc->surface !=  psdc->surface && (psdc->surface == __gal_screen))
+    if (pddc->surface !=  psdc->surface && IS_SCREEN_SURFACE (psdc))
         kernel_ShowCursorForGDI (FALSE, psdc);
 
 #if 0
@@ -1496,7 +1494,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     }
 #endif
 
-    if (pddc->surface !=  psdc->surface && (psdc->surface == __gal_screen))
+    if (pddc->surface !=  psdc->surface && IS_SCREEN_SURFACE (psdc))
         kernel_ShowCursorForGDI (TRUE, psdc);
 
     LEAVE_DRAWING (pddc);
