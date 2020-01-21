@@ -257,7 +257,7 @@ static BOOL RestrictControlMemDCECRGNEx (RECT* minimal,
 }
 
 /******************* Initialization and termination of GDI *******************/
-BOOL mg_InitScreenDC (void* surface)
+BOOL mg_InitScreenDC (void)
 {
     InitFreeClipRectList (&__mg_FreeClipRectList, SIZE_CLIPRECTHEAP);
 
@@ -265,8 +265,22 @@ BOOL mg_InitScreenDC (void* surface)
     INIT_LOCK (&dcslot, NULL);
 
     dc_InitClipRgnInfo ();
-    dc_InitScreenDC (&__mg_screen_dc, (GAL_Surface *)surface);
-    dc_InitScreenDC (&__mg_screen_sys_dc, (GAL_Surface *)surface);
+#ifdef _MGSCHEMA_COMPOSITING
+    if (mgIsServer) {
+        // use wallpaper pattern for HDC_SCREEN
+        dc_InitScreenDC (&__mg_screen_dc, __gal_fake_screen);
+        // use real screen surface for HDC_SCREEN_SYS
+        dc_InitScreenDC (&__mg_screen_sys_dc, __gal_screen);
+    }
+    else {
+        dc_InitScreenDC (&__mg_screen_dc, __gal_screen);
+        dc_InitScreenDC (&__mg_screen_sys_dc, __gal_screen);
+    }
+#else
+    dc_InitScreenDC (&__mg_screen_dc, __gal_screen);
+    dc_InitScreenDC (&__mg_screen_sys_dc, __gal_screen);
+#endif
+
     return TRUE;
 }
 
@@ -641,12 +655,8 @@ int __mg_enter_drawing (PDC pdc)
 {
     BLOCK_DRAW_SEM (pdc);
 
-#ifndef _MGRM_THREADS
-    if (CHECK_DRAWING (pdc))
+    if (WITHOUT_DRAWING (pdc))
         goto fail;
-    if (CHECK_CLI_SCREEN (pdc, pdc->rc_output))
-        goto fail;
-#endif
 
     if (!IntersectRect (&pdc->rc_output, &pdc->rc_output, &pdc->ecrgn.rcBound)) {
         goto fail;
