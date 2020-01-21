@@ -759,22 +759,57 @@ void GAL_UpdateRect (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h
     }
 }
 
-#ifdef _MGUSE_SYNC_UPDATE
-
-void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
+#ifdef _MGSCHEMA_COMPOSITING
+static void mark_shared_surface_dirty (GAL_Surface* surface,
+            int numrects, GAL_Rect* rects)
 {
     int i;
-    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
+    GAL_SharedSurfaceHeader* hdr = surface->shared_header;
 
-    if (this == NULL)
-        return;
+    assert (hdr);
+    assert (numrects <= NR_DIRTY_RECTS);
 
-    if (this->info.mlt_surfaces == 0 && this->UpdateRects == NULL) {
-        return;
+    if (hdr->nr_dirty_rcs + numrects <= NR_DIRTY_RECTS) {
+        for (i = hdr->nr_dirty_rcs; i < (hdr->nr_dirty_rcs + numrects); i++) {
+            int j = i - hdr->nr_dirty_rcs;
+            hdr->dirty_rcs [i].left     = rects[j].x;
+            hdr->dirty_rcs [i].top      = rects[j].y;
+            hdr->dirty_rcs [i].right    = rects[j].x + rects[j].w;
+            hdr->dirty_rcs [i].bottom   = rects[j].y + rects[j].h;
+        }
+
+        hdr->nr_dirty_rcs += numrects;
     }
-    else if (this->UpdateSurfaceRects) {
-        return;
+    else {
+        RECT rc_bound;
+
+        SetRect (&rc_bound, 0, 0, 0, 0);
+        for (i = 0; i < hdr->nr_dirty_rcs; i++) {
+            UnionRect (&rc_bound, &rc_bound, hdr->dirty_rcs + i);
+        }
+
+        for (i = 0; i < numrects; i++) {
+            RECT rc = { rects [i].x,  rects [i].y,
+                        rects [i].x + rects [i].w,
+                        rects [i].y + rects [i].h };
+
+            UnionRect (&rc_bound, &rc_bound, &rc);
+        }
+
+        hdr->nr_dirty_rcs = 1;
+        hdr->dirty_rcs[0] = rc_bound;
     }
+
+    hdr->dirty_age++;
+}
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
+#ifdef _MGUSE_SYNC_UPDATE
+
+static inline void add_rects_to_update_region (CLIPRGN* region,
+        int numrects, GAL_Rect *rects)
+{
+    int i;
 
     for (i = 0; i < numrects; i++) {
         RECT rc;
@@ -782,8 +817,36 @@ void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
         rc.top    = rects[i].y;
         rc.right  = rects[i].x + rects[i].w;
         rc.bottom = rects[i].y + rects[i].h;
-        AddClipRect (&screen->update_region, &rc);
+        AddClipRect (region, &rc);
     }
+}
+
+void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
+{
+    int i;
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (surface->shared_header) {
+        add_rects_to_update_region (&surface->update_region, numrects, rects);
+        return;
+    }
+#endif
+
+    if (this == NULL)
+        goto notsupport;
+
+    if (this->info.mlt_surfaces == 0 && this->UpdateRects == NULL) {
+        goto notsupport;
+    }
+    else if (this->UpdateSurfaceRects)
+        goto notsupport;
+    }
+
+    add_rects_to_update_region (&surface->update_region, numrects, rects);
+
+notsupport:
+    _WRN_PRINTF ("Not support GAL_UpdateRects for surface: %p\n", surface);
 }
 
 static int convert_region_to_rects (const CLIPRGN * rgn, GAL_Rect *rects, int max_nr)
@@ -822,48 +885,62 @@ static int convert_region_to_rects (const CLIPRGN * rgn, GAL_Rect *rects, int ma
     return nr;
 }
 
-BOOL GAL_SyncUpdate (GAL_Surface *screen)
+BOOL GAL_SyncUpdate (GAL_Surface *surface)
 {
-    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
-    GAL_Rect rects[8];
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
+    GAL_Rect rects[NR_DIRTY_RECTS];
     int numrects;
 
-    if (this == NULL)
-        return FALSE;
-
-    numrects = convert_region_to_rects (&screen->update_region, rects, 8);
+    numrects = convert_region_to_rects (&surface->update_region,
+            rects, NR_DIRTY_RECTS);
     if (numrects <= 0)
         return FALSE;
 
-    if (this->info.mlt_surfaces == 0 && this->UpdateRects) {
-        this->UpdateRects (this, numrects, rects);
+#ifdef _MGSCHEMA_COMPOSITING
+    if (surface->shared_header) {
+        mark_shared_surface_dirty (surface, numrects, rects);
     }
-    else if (this->UpdateSurfaceRects) {
-        this->UpdateSurfaceRects (this, screen, numrects, rects);
+#endif
+
+    if (this) {
+        if (this->info.mlt_surfaces == 0 && this->UpdateRects) {
+            this->UpdateRects (this, numrects, rects);
+        }
+        else if (this->UpdateSurfaceRects) {
+            this->UpdateSurfaceRects (this, surface, numrects, rects);
+        }
     }
 
-    EmptyClipRgn (&screen->update_region);
+    EmptyClipRgn (&surface->update_region);
     return TRUE;
 }
 
-#else
+#else /* not defined _MGUSE_SYNC_UPDATE */
 
-void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
+void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
 {
-    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
-    if (this->info.mlt_surfaces == 0) {
-        if (this && this->UpdateRects)
-            this->UpdateRects (this, numrects, rects);
+#ifdef _MGSCHEMA_COMPOSITING
+    if (surface->shared_header) {
+        mark_shared_surface_dirty (surface, numrects, rects);
     }
-    else {
-        if (this && this->UpdateSurfaceRects) {
-            this->UpdateSurfaceRects (this, screen, numrects, rects);
+#endif
+
+    if (this) {
+        if (this->info.mlt_surfaces == 0) {
+            if (this && this->UpdateRects)
+                this->UpdateRects (this, numrects, rects);
+        }
+        else {
+            if (this && this->UpdateSurfaceRects) {
+                this->UpdateSurfaceRects (this, surface, numrects, rects);
+            }
         }
     }
 }
 
-#endif /* _MGUSE_SYNC_UPDATE */
+#endif /* not defined _MGUSE_SYNC_UPDATE */
 
 static void SetPalette_logical(GAL_Surface *screen, GAL_Color *colors,
         int firstcolor, int ncolors)
