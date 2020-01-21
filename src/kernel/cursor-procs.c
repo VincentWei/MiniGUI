@@ -57,6 +57,7 @@
 #include <string.h>
 #include <errno.h>
 
+#define _DEBUG
 #include "common.h"
 
 #ifdef _MGRM_PROCESSES
@@ -125,7 +126,22 @@ static BYTE* _cursor_bits = NULL;
 #ifdef _MGSCHEMA_COMPOSITING
 
 /* the empty global DC for cursor */
-static HDC _dc_cursor;
+static HDC _dc_cursor = HDC_INVALID;
+
+static BOOL create_dc_for_cursor (void)
+{
+    static char fake_bits [4];
+    if (_dc_cursor == HDC_INVALID) {
+        _dc_cursor = CreateMemDCEx (1, 1, 32,
+                MEMDC_FLAG_SWSURFACE | MEMDC_FLAG_SRCALPHA,
+                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000,
+                fake_bits, sizeof (fake_bits));
+        if (_dc_cursor == HDC_INVALID)
+            return FALSE;
+    }
+
+    return TRUE;
+}
 
 /* Cursor creating and destroying. */
 static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
@@ -133,7 +149,12 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
 {
     GAL_Surface* csr_surf;
     PCURSOR pcsr;
-    gal_pixel trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
+    gal_pixel trans_pixel;
+
+    if (!create_dc_for_cursor())
+        return 0;
+
+    trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
 
     if (w != CURSORWIDTH || h != CURSORHEIGHT)
         return 0;
@@ -286,8 +307,7 @@ static BOOL my_buff_allocator (void* context, BITMAP* bmp)
     PCURSOR* pcsr = context;
     GAL_Surface* csr_surf;
 
-    if (bmp->bmWidth <= 0 || bmp->bmWidth > MAX_CURSORWIDTH ||
-            bmp->bmHeight <= 0 || bmp->bmHeight > MAX_CURSORHEIGHT)
+    if (bmp->bmWidth != CURSORWIDTH || bmp->bmHeight != CURSORHEIGHT)
         return FALSE;
 
     assert (bmp->bmAlphaPitch == 0);
@@ -428,6 +448,9 @@ static void hidecursor (void)
     GAL_SetClipRect (__gal_screen, NULL);
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
+#ifdef _MGUSE_SYNC_UPDATE
+    GAL_SyncUpdate (__gal_screen);
+#endif
 }
 
 static void showcursor (void)
@@ -444,13 +467,24 @@ static void showcursor (void)
     GAL_SetClipRect (__gal_screen, NULL);
     GAL_GetBox (__gal_screen, &csr_rect, &csr_bmp);
 
+    CSR_OLDBOXLEFT = x;
+    CSR_OLDBOXTOP = y;
+
     src_rect.x = 0;
     src_rect.y = 0;
     src_rect.w = CURSORWIDTH;
     src_rect.h = CURSORHEIGHT;
 
+    GAL_SetClipRect (__gal_screen, NULL);
+#if 1
     GAL_BlitSurface (CSR_CURRENT->surface, &src_rect, __gal_screen, &csr_rect);
+#else
+    GAL_FillRect (__gal_screen, &csr_rect, 0xFFFFFFFF);
+#endif
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
+#ifdef _MGUSE_SYNC_UPDATE
+    GAL_SyncUpdate (__gal_screen);
+#endif
 }
 
 BOOL mg_InitCursor (void)
@@ -461,12 +495,7 @@ BOOL mg_InitCursor (void)
         CSR_OLDBOXLEFT  = -100;
         CSR_OLDBOXTOP = -100;
 
-        static char fake_bits [4];
-        _dc_cursor = CreateMemDCEx (1, 1, 32,
-                MEMDC_FLAG_SWSURFACE | MEMDC_FLAG_SRCALPHA,
-                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000,
-                fake_bits, sizeof (fake_bits));
-        if (_dc_cursor == HDC_INVALID)
+        if (!create_dc_for_cursor ())
             return FALSE;
 
         if (!GAL_GetVideoInfo()->hw_cursor) {
@@ -700,6 +729,9 @@ static void hidecursor (void)
     GAL_SetClipRect (__gal_screen, NULL);
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
+#ifdef _MGUSE_SYNC_UPDATE
+    GAL_SyncUpdate (__gal_screen);
+#endif
 
 #if 0 // Debug code
     if (!mgIsServer) {
@@ -752,6 +784,9 @@ static void showcursor (void)
     csr_bmp.bmBits = _cursor_bits;
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
+#ifdef _MGUSE_SYNC_UPDATE
+    GAL_SyncUpdate (__gal_screen);
+#endif
 }
 
 #endif /* _MGSCHEMA_COMPOSITING */
@@ -1020,7 +1055,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
                     && get_hidecursor_sem_val () == 0)
         showcursor();
     UNLOCK_CURSOR_SEM ();
-#endif
+#endif /* _MGSCHEMA_SHAREDFB */
 
     return (HCURSOR) old;
 }
@@ -1110,8 +1145,10 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
             }
         }
         else {
-            if (csr_bmp.bmBits && CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+            if (csr_bmp.bmBits && CSR_CURRENT && CSR_SHOW_COUNT >= 0 &&
+                    does_need_hide (prc)) {
                 showcursor();
+            }
 
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
