@@ -676,8 +676,8 @@ fail:
 void __mg_enter_drawing_nocheck (PDC pdc)
 {
     BLOCK_DRAW_SEM (pdc);
-
     LOCK (&__mg_gdilock);
+
     if (!dc_IsMemDC (pdc))
         kernel_ShowCursorForGDI (FALSE, pdc);
 }
@@ -686,9 +686,15 @@ void __mg_leave_drawing(PDC pdc)
 {
     if (!dc_IsMemDC (pdc))
         kernel_ShowCursorForGDI (TRUE, pdc);
+#ifdef _MGSCHEMA_COMPOSITING
+    else if (pdc->surface->shared_header) {
+        GAL_UpdateRect (pdc->surface,
+                pdc->rc_output.left, pdc->rc_output.top,
+                RECTW(pdc->rc_output), RECTH(pdc->rc_output));
+    }
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
     UNLOCK (&__mg_gdilock);
-
     UNBLOCK_DRAW_SEM (pdc);
 }
 
@@ -3057,6 +3063,13 @@ void GUIAPI UnlockDC (HDC hdc)
     if (!dc_IsMemDC (pdc)) {
         kernel_ShowCursorForGDI (TRUE, pdc);
     }
+#ifdef _MGSCHEMA_COMPOSITING
+    else if (pdc->surface->shared_header) {
+        GAL_UpdateRect (pdc->surface,
+                pdc->rc_output.left, pdc->rc_output.top,
+                RECTW(pdc->rc_output), RECTH(pdc->rc_output));
+    }
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
     UNLOCK (&__mg_gdilock);
 
