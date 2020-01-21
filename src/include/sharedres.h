@@ -74,6 +74,21 @@ enum {
     _NR_SYS_SEM,
 };
 
+inline static key_t get_shm_key_for_system (void)
+{
+    return (key_t)(IPC_KEY_BASE + 0x01);
+}
+
+inline static key_t get_sem_key_for_system (void)
+{
+    return (key_t)(IPC_KEY_BASE + 0x02);
+}
+
+inline static key_t get_sem_key_for_layers (void)
+{
+    return (key_t)(IPC_KEY_BASE + 0x03);
+}
+
 typedef struct tagG_RES {
     int semid;
     int shmid;
