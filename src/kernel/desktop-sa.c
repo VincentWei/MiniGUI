@@ -83,8 +83,6 @@
 MSGQUEUE __mg_desktop_msg_queue;
 PMSGQUEUE __mg_dsk_msg_queue = &__mg_desktop_msg_queue;
 
-BOOL __mg_switch_away; // always be zero for clients.
-
 #include "desktop-comm.c"
 /********************* Window management support *****************************/
 
