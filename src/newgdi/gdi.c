@@ -269,12 +269,16 @@ BOOL mg_InitScreenDC (void)
     if (mgIsServer) {
         // use wallpaper pattern for HDC_SCREEN
         dc_InitScreenDC (&__mg_screen_dc, __gal_fake_screen);
+        __mg_screen_dc.DCType = TYPE_MEMDC; // mark mem dc
+
         // use real screen surface for HDC_SCREEN_SYS
         dc_InitScreenDC (&__mg_screen_sys_dc, __gal_screen);
     }
     else {
         dc_InitScreenDC (&__mg_screen_dc, __gal_screen);
+        __mg_screen_dc.DCType = TYPE_MEMDC;     // mark mem dc
         dc_InitScreenDC (&__mg_screen_sys_dc, __gal_screen);
+        __mg_screen_sys_dc.DCType = TYPE_MEMDC; // mark mem dc
     }
 #else
     dc_InitScreenDC (&__mg_screen_dc, __gal_screen);
@@ -3954,6 +3958,24 @@ BOOL GUIAPI SyncUpdateDC (HDC hdc)
     LOCK (&__mg_gdilock);
     rc = GAL_SyncUpdate (pdc->surface);
     UNLOCK (&__mg_gdilock);
+
+    return rc;
+#else
+    return FALSE;
+#endif
+}
+
+BOOL GUIAPI SyncUpdateSurface (HWND hwnd)
+{
+#if defined(_MGUSE_SYNC_UPDATE) && defined(_MGSCHEMA_COMPOSITING)
+    BOOL rc = FALSE;
+    PMAINWIN main_win = getMainWindowPtr (hwnd);
+
+    if (main_win && main_win->surf) {
+        LOCK (&__mg_gdilock);
+        rc = GAL_SyncUpdate (main_win->surf);
+        UNLOCK (&__mg_gdilock);
+    }
 
     return rc;
 #else
