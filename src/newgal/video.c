@@ -823,7 +823,6 @@ static inline void add_rects_to_update_region (CLIPRGN* region,
 
 void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
 {
-    int i;
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
 #ifdef _MGSCHEMA_COMPOSITING
@@ -833,13 +832,14 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     }
 #endif
 
-    if (this == NULL)
+    if (this == NULL) {
         goto notsupport;
+    }
 
     if (this->info.mlt_surfaces == 0 && this->UpdateRects == NULL) {
         goto notsupport;
     }
-    else if (this->UpdateSurfaceRects)
+    else if (this->UpdateSurfaceRects) {
         goto notsupport;
     }
 
