@@ -346,6 +346,7 @@ void __mg_splash_draw_framework (void)
 
     SetBrushColor(HDC_SCREEN_SYS, old_brush);
     SetTextColor(HDC_SCREEN_SYS, old_text);
+    SyncUpdateDC(HDC_SCREEN_SYS);
 }
 
 void __mg_splash_progress (void)
@@ -368,6 +369,7 @@ void __mg_splash_progress (void)
             0, 0, &g_bitmap_progressbar_bk);
     FillBoxWithBitmap(HDC_SCREEN_SYS, SPLASH_BAR_X+splash_bar_postion, SPLASH_BAR_Y,
             0, 0, &g_bitmap_progressbar);
+    SyncUpdateDC(HDC_SCREEN_SYS);
 }
 
 void __mg_splash_delay (void)
