@@ -158,7 +158,7 @@ int InitGUI (int argc, const char* agr[])
     atexit (mg_TerminateGAL);
 
     /* Init Master Screen DC here */
-    if (!mg_InitScreenDC (__gal_screen)) {
+    if (!mg_InitScreenDC ()) {
         err_message (step, "Can not initialize screen DC!");
         return step;
     }
@@ -449,7 +449,7 @@ int InitGUI (int argc, const char* agr[])
     atexit (mg_TerminateGDI);
 
     /* Init Master Screen DC here */
-    if (!mg_InitScreenDC (__gal_screen)) {
+    if (!mg_InitScreenDC ()) {
         err_message (step, "Can not initialize screen DC!");
         return step;
     }

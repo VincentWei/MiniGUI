@@ -506,7 +506,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     /* Init Master Screen DC here */
     step++;
-    if (!mg_InitScreenDC (__gal_screen)) {
+    if (!mg_InitScreenDC ()) {
         _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize screen DC!\n");
         goto failure1;
     }
