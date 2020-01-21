@@ -93,9 +93,6 @@ PMSGQUEUE __mg_dsk_msg_queue = &__mg_desktop_msg_queue;
 
 GHANDLE __mg_layer;
 
-/* always be zero for clients. */
-BOOL __mg_switch_away;
-
 static void lock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
