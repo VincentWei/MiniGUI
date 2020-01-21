@@ -844,6 +844,7 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     }
 
     add_rects_to_update_region (&surface->update_region, numrects, rects);
+    return;
 
 notsupport:
     _WRN_PRINTF ("Not support GAL_UpdateRects for surface: %p\n", surface);
