@@ -497,43 +497,67 @@ static inline void _dc_step_y (PDC pdc, int step)
 }
 
 #ifndef _MGRM_THREADS
-
-#ifdef _MGRM_STANDALONE
-
-#define BLOCK_DRAW_SEM(pdc)
-#define UNBLOCK_DRAW_SEM(pdc)
-
-#ifndef _MG_MINIMALGDI
-#define CHECK_DRAWING(pdc)      \
+#  ifdef _MGRM_STANDALONE
+#   define BLOCK_DRAW_SEM(pdc)
+#   define UNBLOCK_DRAW_SEM(pdc)
+#   ifndef _MG_MINIMALGDI
+#     define WITHOUT_DRAWING(pdc)      \
         (__mg_switch_away && pdc->surface == __gal_screen)
-#else
-#define CHECK_DRAWING(pdc)      \
-        (FALSE)
-#endif
+#   else    /* defined _MG_MINIMALGDI */
+#     define WITHOUT_DRAWING(pdc)      (FALSE)
+#   endif   /* defined _MG_MINIMALGDI */
+#  else     /* defined _MGRM_PROCESSES */
 
-#define CHECK_CLI_SCREEN(pdc, rcOutput) FALSE
+#    ifdef _MGSCHEMA_COMPOSITING
 
-#else
+#       define BLOCK_DRAW_SEM(pdc)                          \
+do {                                                        \
+    if (pdc->surface->shared_header)                        \
+        sem_wait (&pdc->surface->shared_header->sem_lock);  \
+} while (0)
 
-#define BLOCK_DRAW_SEM(pdc)     \
-        if (!mgIsServer && pdc->surface == __gal_screen) lock_draw_sem ()
-#define UNBLOCK_DRAW_SEM(pdc)   \
-        if (!mgIsServer && pdc->surface == __gal_screen) unlock_draw_sem ()
+#       define UNBLOCK_DRAW_SEM(pdc)                        \
+do {                                                        \
+    if (pdc->surface->shared_header)                        \
+        sem_post (&pdc->surface->shared_header->sem_lock);  \
+} while (0)
 
-#define CHECK_DRAWING(pdc)      \
-        (((!mgIsServer && (SHAREDRES_TOPMOST_LAYER != __mg_layer)) \
-            || __mg_switch_away) && pdc->surface == __gal_screen)
+#       define WITHOUT_DRAWING(pdc)                         \
+            (mgIsServer && __mg_switch_away &&              \
+                pdc->surface == __gal_screen)
 
-#define CHECK_CLI_SCREEN(pdc, rcOutput)  FALSE
+#    else /* not defined _MGSCHEMA_COMPOSITING */
 
-#endif
+#       define BLOCK_DRAW_SEM(pdc)                      \
+do {                                                    \
+    if (!mgIsServer && pdc->surface == __gal_screen)    \
+        LOCK_DRAW_SEM ();                          \
+} while (0)
 
-#else
+#       define UNBLOCK_DRAW_SEM(pdc)                    \
+do {                                                    \
+    if (!mgIsServer && pdc->surface == __gal_screen)    \
+        UNLOCK_DRAW_SEM ();                        \
+} while (0)
 
-#define BLOCK_DRAW_SEM(pdc)
-#define UNBLOCK_DRAW_SEM(pdc)
+#       define WITHOUT_DRAWING(pdc)                     \
+    (((!mgIsServer &&                                   \
+        (SHAREDRES_TOPMOST_LAYER != __mg_layer)) ||     \
+        __mg_switch_away) &&                            \
+        pdc->surface == __gal_screen)
 
-#endif
+#     endif /* not defined _MGSCHEMA_COMPOSITING */
+
+#  endif    /* defined _MGRM_PROCESSES */
+
+#else   /* defined _MGRM_THREADS */
+
+#  define BLOCK_DRAW_SEM(pdc)
+#  define UNBLOCK_DRAW_SEM(pdc)
+#  define WITHOUT_DRAWING(pdc)                          \
+    (__mg_switch_away && pdc->surface == __gal_screen)
+#endif /* defined _MGRM_THREADS */
+
 
 int __mg_enter_drawing (PDC pdc);
 void __mg_enter_drawing_nocheck (PDC pdc);
