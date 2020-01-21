@@ -898,7 +898,9 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (surface->shared_header) {
+        sem_wait (&surface->shared_header->sem_lock);
         mark_shared_surface_dirty (surface, numrects, rects);
+        sem_post (&surface->shared_header->sem_lock);
     }
 #endif
 
