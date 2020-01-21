@@ -85,7 +85,8 @@ GAL_Surface * GAL_CreateCursorSurface (GAL_VideoDevice *video,
     surface->flags |= GAL_SRCPIXELALPHA;
 
     /* Always use ARGB8888 pixel format for cursor */
-    surface->format = GAL_AllocFormat (32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    surface->format = GAL_AllocFormat (32,
+                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
     if (surface->format == NULL) {
         free (surface);
         surface = NULL;
