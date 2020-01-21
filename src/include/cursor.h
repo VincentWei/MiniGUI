@@ -92,11 +92,6 @@ typedef CURSOR* PCURSOR;
 #define MONOSIZE        (CURSORWIDTH*CURSORHEIGHT/8)
 #define MONOPITCH       4
 
-#ifdef _MGSCHEMA_COMPOSITING
-#   define MAX_CURSORWIDTH     64
-#   define MAX_CURSORHEIGHT    64
-#endif
-
 /* Function definitions */
 #ifdef __cplusplus
 extern "C" {
