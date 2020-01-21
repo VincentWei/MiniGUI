@@ -417,6 +417,42 @@ HCURSOR GUIAPI LoadCursorFromPNGMem (const void* area, size_t size,
     }
 }
 
+static BITMAP csr_bmp;
+static GAL_Rect csr_rect = {0, 0, CURSORWIDTH, CURSORHEIGHT};
+
+static void hidecursor (void)
+{
+    csr_rect.x = CSR_OLDBOXLEFT;
+    csr_rect.y = CSR_OLDBOXTOP;
+
+    GAL_SetClipRect (__gal_screen, NULL);
+    GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
+    GAL_UpdateRects (__gal_screen, 1, &csr_rect);
+}
+
+static void showcursor (void)
+{
+    int x, y;
+    GAL_Rect src_rect;
+
+    x = boxleft ();
+    y = boxtop ();
+
+    csr_rect.x = x;
+    csr_rect.y = y;
+
+    GAL_SetClipRect (__gal_screen, NULL);
+    GAL_GetBox (__gal_screen, &csr_rect, &csr_bmp);
+
+    src_rect.x = 0;
+    src_rect.y = 0;
+    src_rect.w = CURSORWIDTH;
+    src_rect.h = CURSORHEIGHT;
+
+    GAL_BlitSurface (CSR_CURRENT->surface, &src_rect, __gal_screen, &csr_rect);
+    GAL_UpdateRects (__gal_screen, 1, &csr_rect);
+}
+
 BOOL mg_InitCursor (void)
 {
     if (mgIsServer) {
@@ -432,6 +468,23 @@ BOOL mg_InitCursor (void)
                 fake_bits, sizeof (fake_bits));
         if (_dc_cursor == HDC_INVALID)
             return FALSE;
+
+        if (!GAL_GetVideoInfo()->hw_cursor) {
+            /* software cursor */
+            csr_bmp.bmType = BMP_TYPE_NORMAL;
+            csr_bmp.bmBitsPerPixel = __gal_screen->format->BitsPerPixel;
+            csr_bmp.bmBytesPerPixel = __gal_screen->format->BytesPerPixel;
+            csr_bmp.bmWidth = CURSORWIDTH;
+            csr_bmp.bmHeight = CURSORHEIGHT;
+            csr_bmp.bmPitch = __gal_screen->format->BytesPerPixel * CURSORWIDTH;
+            csr_bmp.bmBits = malloc (csr_bmp.bmPitch * CURSORHEIGHT);
+            if (csr_bmp.bmBits == NULL) {
+                DeleteMemDC (_dc_cursor);
+                return FALSE;
+            }
+
+            _WRN_PRINTF("We are using software cursor!\n");
+        }
     }
 
     _sys_cursors = (PCURSOR*)((PG_RES)mgSharedRes)->sys_cursors;
@@ -456,35 +509,14 @@ void mg_TerminateCursor (void)
             }
         }
 
+        if (csr_bmp.bmBits)
+            free (csr_bmp.bmBits);
+
         DeleteMemDC (_dc_cursor);
     }
 }
 
-#else /* _MGSCHEMA_COMPOSITING */
-
-#if 0 /* FIXME: I do not know why this can not work :( */
-Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
-{
-    Uint8* dst = NULL;
-
-    LOCK_CURSOR_SEM ();
-    if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT
-            && x >= CSR_OLDBOXLEFT && y >= CSR_OLDBOXTOP
-            && (x < CSR_OLDBOXLEFT + CURSORWIDTH)
-            && (y < CSR_OLDBOXTOP + CURSORHEIGHT)
-            && get_hidecursor_sem_val () == 0) {
-        int _x = x - CSR_OLDBOXLEFT;
-        int _y = y - CSR_OLDBOXTOP;
-
-        dst = CSR_SAVEDBITS + _y * __mg_csrimgpitch
-                + _x * __gal_screen->format->BytesPerPixel;
-        *pixel = _mem_get_pixel (dst, __gal_screen->format->BytesPerPixel);
-    }
-    UNLOCK_CURSOR_SEM ();
-
-    return dst;
-}
-#endif
+#else /* not define _MGSCHEMA_COMPOSITING */
 
 /* Cursor creating and destroying. */
 static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
@@ -681,9 +713,6 @@ static void hidecursor (void)
 #endif
 }
 
-void _dc_restore_alpha_in_bitmap (const GAL_PixelFormat* format,
-                void* dst_bits, unsigned int nr_bytes);
-
 static void showcursor (void)
 {
     int x, y;
@@ -861,7 +890,8 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
     int curx, cury;
     BOOL moved = FALSE;
 
-    if (!mgIsServer) return FALSE;
+    if (!mgIsServer)
+        return FALSE;
 
     IAL_GetMouseXY (x, y);
     SHAREDRES_MOUSEX = curx = *x;
@@ -871,7 +901,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
     if (oldx != curx || oldy != cury) {
 
-#if defined (_MGHAVE_CURSOR) && defined(_MGSCHEMA_SHAREDFB)
+#if defined(_MGHAVE_CURSOR) && defined(_MGSCHEMA_SHAREDFB)
         LOCK_CURSOR_SEM ();
         CSR_CURSORX = curx;
         CSR_CURSORY = cury;
@@ -886,7 +916,21 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
             showcursor ();
         }
         UNLOCK_CURSOR_SEM ();
-#endif /* _MGHAVE_CURSOR && _MGSCHEMA_SHAREDFB*/
+#elif defined(_MGHAVE_CURSOR) && defined(_MGSCHEMA_COMPOSITING)
+        CSR_CURSORX = curx;
+        CSR_CURSORY = cury;
+        if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
+            if (csr_bmp.bmBits) {
+                hidecursor ();
+                showcursor ();
+            }
+            else {
+                PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
+                GAL_MoveCursor (pcsr->surface, curx, cury);
+            }
+        }
+
+#endif /* _MGHAVE_CURSOR && _MGSCHEMA_COMPOSITING */
 
         oldx = curx;
         oldy = cury;
@@ -944,18 +988,26 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
 
     pcsr = (PCURSOR)hcsr;
 
-    LOCK_CURSOR_SEM ();
 #ifdef _MGSCHEMA_COMPOSITING
-    CSR_CURRENT_SET = (HCURSOR)pcsr;
-    CSR_XHOTSPOT = pcsr ? pcsr->xhotspot : -100;
-    CSR_YHOTSPOT = pcsr ? pcsr->yhotspot : -100;
+    if (csr_bmp.bmBits) {
+        if (CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+            hidecursor();
 
-    if (CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+        CSR_CURRENT_SET = (HCURSOR)pcsr;
+        CSR_XHOTSPOT = pcsr ? pcsr->xhotspot : -100;
+        CSR_YHOTSPOT = pcsr ? pcsr->yhotspot : -100;
+
+        if (CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+            showcursor();
+    }
+    else {
+        CSR_CURRENT_SET = (HCURSOR)pcsr;
+        CSR_XHOTSPOT = pcsr ? pcsr->xhotspot : -100;
+        CSR_YHOTSPOT = pcsr ? pcsr->yhotspot : -100;
         GAL_SetCursor (pcsr->surface, pcsr->xhotspot, pcsr->yhotspot);
-    else
-        GAL_SetCursor (NULL, 0, 0);
-
+    }
 #else /* _MGSCHEMA_SHAREDFB */
+    LOCK_CURSOR_SEM ();
     if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
                     && get_hidecursor_sem_val () == 0)
         hidecursor();
@@ -967,8 +1019,8 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
                     && get_hidecursor_sem_val () == 0)
         showcursor();
-#endif
     UNLOCK_CURSOR_SEM ();
+#endif
 
     return (HCURSOR) old;
 }
@@ -977,8 +1029,6 @@ HCURSOR GUIAPI GetCurrentCursor (void)
 {
     return (HCURSOR)CSR_CURRENT;
 }
-
-#ifdef _MGSCHEMA_SHAREDFB
 
 static inline BOOL does_need_hide (const RECT* prc)
 {
@@ -1002,14 +1052,15 @@ static inline BOOL does_need_hide (const RECT* prc)
     return TRUE;
 }
 
+#ifdef _MGSCHEMA_SHAREDFB
+
 /* version for _MGSCHEMA_SHAREDFB */
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
     PDC cur_pdc = (PDC)pdc;
-    const RECT* prc = NULL;
+    const RECT* prc;
 
     prc = &cur_pdc->rc_output;
-
     if (cur_pdc->surface != __gal_screen) {
         if (fShow)
             GAL_UpdateRect (cur_pdc->surface,
@@ -1043,16 +1094,28 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 {
     PDC cur_pdc = (PDC)pdc;
-    const RECT* prc = NULL;
+    const RECT* prc;
 
     if (!mgIsServer) {
         return;
     }
 
     prc = &cur_pdc->rc_output;
-    if (cur_pdc->surface == __gal_screen && fShow) {
-        GAL_UpdateRect (cur_pdc->surface,
+    if (cur_pdc->surface == __gal_screen) {
+        // only call showcursor/hidecursor for software cursor.
+        if (!fShow) {
+            if (csr_bmp.bmBits && CSR_SHOW_COUNT >= 0 && CSR_CURRENT &&
+                    does_need_hide (prc)) {
+                hidecursor ();
+            }
+        }
+        else {
+            if (csr_bmp.bmBits && CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+                showcursor();
+
+            GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+        }
     }
 }
 
@@ -1090,14 +1153,23 @@ int GUIAPI ShowCursor (BOOL fShow)
     if (fShow) {
         CSR_SHOW_COUNT++;
         if (CSR_SHOW_COUNT == 0 && CSR_CURRENT) {
-            PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
-            GAL_SetCursor (pcsr->surface, pcsr->xhotspot, pcsr->yhotspot);
+            if (csr_bmp.bmBits)
+                showcursor();
+            else {
+                PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
+                GAL_SetCursor (pcsr->surface, pcsr->xhotspot, pcsr->yhotspot);
+            }
         }
     }
     else {
         CSR_SHOW_COUNT--;
         if (CSR_SHOW_COUNT == -1 && CSR_CURRENT) {
-            GAL_SetCursor (NULL, 0, 0);
+            if (csr_bmp.bmBits)
+                hidecursor();
+            else {
+                PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
+                GAL_MoveCursor (pcsr->surface, -100, -100);
+            }
         }
     }
 #endif /* _MGSCHEMA_COMPOSITING */
