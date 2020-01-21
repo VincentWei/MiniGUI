@@ -294,7 +294,7 @@ void *kernel_LoadSharedResource (void)
 
 #ifdef _MGHAVE_CURSOR
     if (!LoadCursorRes()) {
-        perror ("InitCursor");
+        _ERR_PRINTF ("KERNEL>LoadSharedResource: %m\n");
         return NULL;
     }
 #endif
@@ -383,7 +383,7 @@ void *kernel_LoadSharedResource (void)
     return mgSharedRes;
 
 error:
-    perror ("KERNEL>LoadSharedResource");
+    _ERR_PRINTF ("KERNEL>LoadSharedResource: %m\n");
     return NULL;
 }
 
