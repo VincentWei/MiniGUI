@@ -217,23 +217,46 @@ error:
 
 #endif /* _MGHAVE_CURSOR */
 
-inline static key_t get_shm_key (void)
-{
-    return (key_t)(IPC_KEY_BASE + 0x01);
-}
-
-inline static key_t get_sem_key (void)
-{
-    return (key_t)(IPC_KEY_BASE + 0x02);
-}
-
 BOOL kernel_IsOnlyMe (void)
 {
     int fd;
 
-    if ((fd = open (LOCKFILE, O_RDONLY)) == -1)
+    if ((fd = open (LOCKFILE, O_RDONLY)) == -1) {
         return TRUE;
+    }
 
+    if (flock (fd, LOCK_EX | LOCK_NB) == 0) {
+        // It is time to remove the old SysV IPC objects.
+        key_t sem_key = get_sem_key_for_system ();
+
+        // remove system semaphore set.
+        int semid = semget (sem_key, 0, SEM_PARAM);
+        if (semid >= 0) {
+            union semun ignored;
+            if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
+                goto failed;
+            }
+            _WRN_PRINTF("The old semaphore set for system (0x%06x) dicarded\n",
+                    semid);
+        }
+
+        // remove system semaphore set.
+        sem_key = get_sem_key_for_layers ();
+        semid = semget (sem_key, 0, SEM_PARAM);
+        if (semid >= 0) {
+            union semun ignored;
+            if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
+                goto failed;
+            }
+            _WRN_PRINTF("The old semaphore set for layers (0x%06x) dicarded\n",
+                    semid);
+        }
+
+        close (fd);
+        return TRUE;
+    }
+
+failed:
     close (fd);
     return FALSE;
 }
@@ -250,6 +273,8 @@ error:
     perror("remove semaphore");
 }
 
+static int lockfd;
+
 void *kernel_LoadSharedResource (void)
 {
     key_t sem_key;
@@ -257,7 +282,7 @@ void *kernel_LoadSharedResource (void)
     key_t shm_key;
     void *memptr;
 #endif
-    int lockfd, semid;
+    int semid;
 #ifndef _USE_MMAP
     int shmid;
 #endif
@@ -275,7 +300,7 @@ void *kernel_LoadSharedResource (void)
 #endif
 
 #ifndef _USE_MMAP
-    if ((shm_key = get_shm_key ()) == -1) {
+    if ((shm_key = get_shm_key_for_system ()) == -1) {
         goto error;
     }
     shmid = shmget (shm_key, mgSizeRes, SHM_PARAM | IPC_CREAT | IPC_EXCL);
@@ -316,15 +341,15 @@ void *kernel_LoadSharedResource (void)
         goto error;
     }
 #endif
-#if 0
-    if (flock (lockfd, LOCK_EX | LOCK_NB) == -1)
-        goto error;
-#endif
 
-    close (lockfd);
+    if (flock (lockfd, LOCK_EX) == -1)
+        goto error;
+
+    // close lockfd will release the exclusive lock
+    // close (lockfd);
 
     // Obtain the semophore syncing drawing.
-    if ((sem_key = get_sem_key ()) == -1) {
+    if ((sem_key = get_sem_key_for_system ()) == -1) {
         goto error;
     }
     semid = semget (sem_key, _NR_SYS_SEM, SEM_PARAM | IPC_CREAT | IPC_EXCL);
@@ -364,6 +389,7 @@ error:
 
 void kernel_UnloadSharedResource (void)
 {
+    close (lockfd);
     unlink (LOCKFILE);
 }
 
