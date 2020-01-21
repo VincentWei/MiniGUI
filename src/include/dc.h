@@ -501,10 +501,13 @@ static inline void _dc_step_y (PDC pdc, int step)
 #   define BLOCK_DRAW_SEM(pdc)
 #   define UNBLOCK_DRAW_SEM(pdc)
 #   ifndef _MG_MINIMALGDI
+#     define IS_SCREEN_SURFACE(pdc)      \
+        (pdc->surface == __gal_screen)
 #     define WITHOUT_DRAWING(pdc)      \
         (__mg_switch_away && pdc->surface == __gal_screen)
 #   else    /* defined _MG_MINIMALGDI */
-#     define WITHOUT_DRAWING(pdc)      (FALSE)
+#     define IS_SCREEN_SURFACE(pdc)     (TRUE)
+#     define WITHOUT_DRAWING(pdc)       (FALSE)
 #   endif   /* defined _MG_MINIMALGDI */
 #  else     /* defined _MGRM_PROCESSES */
 
@@ -522,6 +525,9 @@ do {                                                        \
         sem_post (&pdc->surface->shared_header->sem_lock);  \
 } while (0)
 
+#       define IS_SCREEN_SURFACE(pdc)                       \
+            (mgIsServer && pdc->surface == __gal_screen)
+
 #       define WITHOUT_DRAWING(pdc)                         \
             (mgIsServer && __mg_switch_away &&              \
                 pdc->surface == __gal_screen)
@@ -531,14 +537,17 @@ do {                                                        \
 #       define BLOCK_DRAW_SEM(pdc)                      \
 do {                                                    \
     if (!mgIsServer && pdc->surface == __gal_screen)    \
-        LOCK_DRAW_SEM ();                          \
+        LOCK_DRAW_SEM ();                               \
 } while (0)
 
 #       define UNBLOCK_DRAW_SEM(pdc)                    \
 do {                                                    \
     if (!mgIsServer && pdc->surface == __gal_screen)    \
-        UNLOCK_DRAW_SEM ();                        \
+        UNLOCK_DRAW_SEM ();                             \
 } while (0)
+
+#       define IS_SCREEN_SURFACE(pdc)                   \
+            (pdc->surface == __gal_screen)
 
 #       define WITHOUT_DRAWING(pdc)                     \
     (((!mgIsServer &&                                   \
