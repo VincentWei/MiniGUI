@@ -232,8 +232,8 @@ typedef struct GAL_Surface {
 /* Useful for determining the video hardware capabilities */
 typedef struct {
     Uint32 hw_available :1;         /* Flag: Can you create hardware surfaces? */
+    Uint32 hw_cursor    :1;         /* Flag: Can you create hardware cursor? */
     Uint32 mlt_surfaces :1;         /* Flag: Does VideoInit return different surfaces? */
-    Uint32 UnusedBits   :8;         /* Flag: Can you talk to a window manager? */
     Uint32 blit_hw      :1;         /* Flag: Accelerated blits HW --> HW */
     Uint32 blit_hw_CC   :1;         /* Flag: Accelerated blits with Colorkey */
     Uint32 blit_hw_A    :1;         /* Flag: Accelerated blits with Alpha */
@@ -241,7 +241,8 @@ typedef struct {
     Uint32 blit_sw_CC   :1;         /* Flag: Accelerated blits with Colorkey */
     Uint32 blit_sw_A    :1;         /* Flag: Accelerated blits with Alpha */
     Uint32 blit_fill    :1;         /* Flag: Accelerated color fill */
-    Uint32 UnusedBits3  :16;
+    Uint32 UnusedBits1  :6;
+    Uint32 UnusedBits2  :16;
     Uint32 video_mem;               /* The total amount of video memory (in K) */
     GAL_PixelFormat *vfmt;          /* Value: The format of the video surface */
 } GAL_VideoInfo;
@@ -557,7 +558,7 @@ void GAL_FreeCursorSurface (GAL_Surface* surface);
 void GAL_SetCursor (GAL_Surface* surface, int hot_x, int hot_y);
 
 /* Move cursor. */
-void GAL_MoveCursor (GAL_VideoDevice* video, int x, int y);
+void GAL_MoveCursor (GAL_Surface* surface, int x, int y);
 
 #else /* _MGUSE_SHAREDFD */
 
