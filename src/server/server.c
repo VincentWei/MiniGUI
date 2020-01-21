@@ -226,7 +226,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
                 Msg.hwnd = 0;
 #ifdef _MG_CONFIG_FAST_MOUSEMOVE
                 if (Msg.message == MSG_MOUSEMOVE) {
-                    lock_mousemove_sem();
+                    LOCK_MOUSEMOVE_SEM();
                     {
                         if (SHAREDRES_MOUSEMOVECLIENT > 0 && SHAREDRES_MOUSEMOVECLIENT != target_client) {
                             printf("drop a mouse move message, old_client=%d, target_client=%d\n", SHAREDRES_MOUSEMOVECLIENT, target_client);
@@ -234,7 +234,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
                     }
                     SHAREDRES_MOUSEMOVECLIENT = target_client;
                     ++ SHAREDRES_MOUSEMOVESERIAL;
-                    unlock_mousemove_sem();
+                    UNLOCK_MOUSEMOVE_SEM();
                 }
                 else
 #endif
