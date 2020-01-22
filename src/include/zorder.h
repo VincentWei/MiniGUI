@@ -83,6 +83,9 @@ typedef struct _ZORDERNODE {
     int             ct;             /* the compositing type */
     DWORD           ct_arg;         /* the argument for compositing */
     HDC             mem_dc;         /* the memory DC for this znode */
+    unsigned int    dirty_age;      /* the dirty age of this znode */
+    int             nr_dirty_rcs;   /* the number of dirty rects */
+    const RECT*     dirty_rcs;      /* the pointer to the dirty rectangles */
 #endif
 
     RECT            dirty_rc;       /* dirty rect */
