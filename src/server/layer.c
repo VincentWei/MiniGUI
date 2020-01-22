@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** layer.c: maintain the layers in server.
-** 
+**
 ** Current maintainer: Wei Yongming.
 **
 ** Create date: 2005/08/14
@@ -83,7 +83,7 @@ ON_CHANGE_LAYER OnChangeLayer = NULL;
 static int sg_nr_layers = 0;
 static unsigned char sem_usage [(MAX_NR_LAYERS + 7)/8];
 
-static BOOL do_alloc_layer (MG_Layer* layer, const char* name, 
+static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
                 int nr_topmosts, int nr_normals)
 {
     ZORDERINFO* zi;
@@ -97,10 +97,10 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
 
     /* Attach to the share memory. */
     zi = shmat (layer->zorder_shmid, 0, 0);
-    if (zi == (void*)-1) 
+    if (zi == (void*)-1)
         return FALSE;
 
-    if (shmctl (layer->zorder_shmid, IPC_RMID, NULL) < 0) 
+    if (shmctl (layer->zorder_shmid, IPC_RMID, NULL) < 0)
         return FALSE;
 
     strcpy (layer->name, name);
@@ -148,7 +148,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     memset (maskrect_usage_bmp, 0xFF, zi->size_maskrect_usage_bmp);
 
     /* init z-order node for desktop */
-    znodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp + 
+    znodes = (ZORDERNODE*) ((char*)(zi + 1) + zi->size_usage_bmp +
                     sizeof (ZORDERNODE) * DEF_NR_POPUPMENUS);
 
     znodes [0].flags = ZOF_TYPE_DESKTOP | ZOF_VISIBLE;
@@ -239,11 +239,6 @@ BOOL __mg_is_valid_layer (MG_Layer* layer)
     return FALSE;
 }
 
-inline static key_t get_sem_key (void)
-{
-    return (key_t)(IPC_KEY_BASE + 0x03);
-}
-
 void __mg_delete_zi_sem (void)
 {
     union semun ignored;
@@ -268,11 +263,11 @@ int __mg_init_layers ()
 
     memset (sem_usage, 0xFF, sizeof (sem_usage));
 
-    if ((sem_key = get_sem_key ()) == -1) {
+    if ((sem_key = get_sem_key_for_layers ()) == -1) {
         return -1;
     }
 
-    semid = semget (sem_key, MAX_NR_LAYERS, SEM_PARAM | IPC_CREAT | IPC_EXCL); 
+    semid = semget (sem_key, MAX_NR_LAYERS, SEM_PARAM | IPC_CREAT | IPC_EXCL);
     if (semid == -1)
         return -1;
     atexit (__mg_delete_zi_sem);
@@ -280,7 +275,7 @@ int __mg_init_layers ()
     SHAREDRES_SEMID_LAYER = semid;
 
     /* allocate the first layer for the default layer. */
-    if (!do_alloc_layer (mgLayers, NAME_DEF_LAYER, 
+    if (!do_alloc_layer (mgLayers, NAME_DEF_LAYER,
                     SHAREDRES_DEF_NR_TOPMOSTS, SHAREDRES_DEF_NR_NORMALS)) {
 
         free (mgLayers);
@@ -349,18 +344,18 @@ static MG_Layer* alloc_layer (const char* layer_name,
 
     mgTopmostLayer = new_layer;
 
-    _WRN_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n", 
+    _WRN_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n",
             mgTopmostLayer->zorder_info);
 
     /* Topmost layer changed */
     CHANGE_TOPMOST_LAYER(mgTopmostLayer);
 
     __mg_do_change_topmost_layer ();
-    _WRN_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n", 
+    _WRN_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n",
             mgTopmostLayer->zorder_info);
 
     /* Notify that a new topmost layer have been set. */
-    if (OnChangeLayer) 
+    if (OnChangeLayer)
         OnChangeLayer (LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
 
     PostMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
@@ -421,7 +416,7 @@ void __mg_get_layer_info (int cli, const char* layer_name, LAYERINFO* info)
     }
 }
 
-static void do_client_join_layer (int cli, 
+static void do_client_join_layer (int cli,
                 const JOINLAYERINFO* info, JOINEDCLIENTINFO* joined_info)
 {
     MG_Layer* layer = (MG_Layer*)(joined_info->layer);
@@ -433,11 +428,11 @@ static void do_client_join_layer (int cli,
         return;
     }
 
-    _WRN_PRINTF ("SERVER: Join a client (%s) to layer %s\n", 
+    _WRN_PRINTF ("SERVER: Join a client (%s) to layer %s\n",
                 info->client_name, layer->name);
 
     strcpy (new_client->name, info->client_name);
-    
+
     new_client->layer = layer;
 
     /* Notify that a new client joined to this layer. */
@@ -455,13 +450,13 @@ static void do_client_join_layer (int cli,
 }
 
 /* Join a client to a layer, the server side of JoinLayer */
-void __mg_client_join_layer (int cli, 
+void __mg_client_join_layer (int cli,
                 const JOINLAYERINFO* info, JOINEDCLIENTINFO* joined_info)
 {
     MG_Layer* layer;
 
     if ((layer = __mg_find_layer_by_name (info->layer_name)) == NULL) {
-        layer = alloc_layer (info->layer_name, 
+        layer = alloc_layer (info->layer_name,
             (info->max_nr_topmosts <= 0)?SHAREDRES_DEF_NR_TOPMOSTS:
                     info->max_nr_topmosts,
             (info->max_nr_normals<= 0)?SHAREDRES_DEF_NR_NORMALS:
@@ -512,7 +507,7 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
     return TRUE;
 }
 
-MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name, 
+MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
                 int max_nr_topmosts, int max_nr_normals)
 {
     MG_Layer* new_layer;
@@ -604,7 +599,7 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals 
+    if (idx_znode > zi->max_nr_globals
             + zi->max_nr_topmosts + zi->max_nr_normals) {
         return -1;
     }
@@ -680,7 +675,7 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals 
+    if (idx_znode > zi->max_nr_globals
             + zi->max_nr_topmosts + zi->max_nr_normals) {
         return FALSE;
     }
@@ -713,7 +708,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals 
+    if (idx_znode > zi->max_nr_globals
             + zi->max_nr_topmosts + zi->max_nr_normals) {
         return FALSE;
     }
