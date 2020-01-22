@@ -739,7 +739,9 @@ const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (MG_Layer* layer,
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
     ZNODEHEADER* hdr;
+#ifdef _MGSCHEMA_COMPOSITING
     PDC pdc;
+#endif
 
     if (layer == NULL)
         layer = mgTopmostLayer;
@@ -775,7 +777,7 @@ const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (MG_Layer* layer,
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
-    return NULL;
+    return hdr;
 }
 
 int GUIAPI ServerGetPopupMenusCount (void)
@@ -791,7 +793,9 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx, BOOL lock)
     ZORDERINFO* zi;
     ZORDERNODE* menu_nodes;
     ZNODEHEADER* hdr;
+#ifdef _MGSCHEMA_COMPOSITING
     PDC pdc;
+#endif
 
     zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
 
