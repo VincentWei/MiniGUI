@@ -733,7 +733,7 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     return TRUE;
 }
 
-const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (MG_Layer* layer,
+const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
             int idx_znode, BOOL lock)
 {
     ZORDERINFO* zi;
@@ -829,7 +829,7 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx, BOOL lock)
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-BOOL GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode)
+BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
 {
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
