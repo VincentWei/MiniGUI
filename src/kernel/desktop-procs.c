@@ -97,7 +97,7 @@ GHANDLE __mg_layer;
 /* always be zero for clients. */
 BOOL __mg_switch_away;
 
-void lock_zi_for_read (const ZORDERINFO* zi)
+static void lock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
 
@@ -116,7 +116,7 @@ again:
 
 }
 
-void unlock_zi_for_read (const ZORDERINFO* zi)
+static void unlock_zi_for_read (const ZORDERINFO* zi)
 {
     struct sembuf sb;
 
@@ -134,7 +134,7 @@ again:
     }
 }
 
-void lock_zi_for_change (const ZORDERINFO* zi)
+static void lock_zi_for_change (const ZORDERINFO* zi)
 {
     int clients = 0;
     struct sembuf sb;
@@ -157,7 +157,7 @@ again:
     }
 }
 
-void unlock_zi_for_change (const ZORDERINFO* zi)
+static void unlock_zi_for_change (const ZORDERINFO* zi)
 {
     int clients = 0;
     struct sembuf sb;
@@ -176,7 +176,7 @@ again:
     }
 }
 
-inline void* get_zi_from_client(int cli)
+static inline void* get_zi_from_client(int cli)
 {
     return (((cli>0)?mgClients[cli].layer:mgTopmostLayer)->zorder_info);
 }
