@@ -1,5 +1,28 @@
 # Release Notes
 
+## Version 4.0.5
+
+The MiniGUI development team announces the availability of MiniGUI 4.0.5.
+We strongly recommend that you use this version for any new MiniGUI
+apps, especially if the new features of MiniGUI 4.0 are must for your
+new apps.
+
+Please report any bugs and incompatibilities in
+
+<https://github.com/VincentWei/minigui>
+
+### What's new in this version
+
+In this version, we mainly fixed some bugs found.
+
+* BUGFIXING:
+   - Always initialize BITMAP fields with explicit assignments.
+     This bug makes the cursor messy.
+   - Fix some conditional compilation of mg-tests.
+* ENHANCEMENTS:
+   - The server of MiniGUI-Processes now can delete global System V IPC
+     objects left by a previous failed run.
+
 ## Version 4.0.4
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.4.
