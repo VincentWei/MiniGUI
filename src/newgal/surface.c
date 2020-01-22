@@ -329,41 +329,6 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
 }
 
 /*
- * A function to calculate the intersection of two rectangles:
- * return true if the rectangles intersect, false otherwise
- */
-static inline
-GAL_bool GAL_IntersectRect(const GAL_Rect *A, const GAL_Rect *B, GAL_Rect *intersection)
-{
-    int Amin, Amax, Bmin, Bmax;
-
-    /* Horizontal intersection */
-    Amin = A->x;
-    Amax = Amin + A->w;
-    Bmin = B->x;
-    Bmax = Bmin + B->w;
-    if(Bmin > Amin)
-            Amin = Bmin;
-    intersection->x = Amin;
-    if(Bmax < Amax)
-            Amax = Bmax;
-    intersection->w = Amax - Amin > 0 ? Amax - Amin : 0;
-
-    /* Vertical intersection */
-    Amin = A->y;
-    Amax = Amin + A->h;
-    Bmin = B->y;
-    Bmax = Bmin + B->h;
-    if(Bmin > Amin)
-            Amin = Bmin;
-    intersection->y = Amin;
-    if(Bmax < Amax)
-            Amax = Bmax;
-    intersection->h = Amax - Amin > 0 ? Amax - Amin : 0;
-
-    return (intersection->w && intersection->h);
-}
-/*
  * Set the clipping rectangle for a blittable surface
  */
 GAL_bool GAL_SetClipRect(GAL_Surface *surface, GAL_Rect *rect)
@@ -388,6 +353,7 @@ GAL_bool GAL_SetClipRect(GAL_Surface *surface, GAL_Rect *rect)
     }
     return GAL_IntersectRect(rect, &full_rect, &surface->clip_rect);
 }
+
 void GAL_GetClipRect(GAL_Surface *surface, GAL_Rect *rect)
 {
     if (surface && rect) {
@@ -402,14 +368,7 @@ void GAL_GetClipRect(GAL_Surface *surface, GAL_Rect *rect)
 #ifdef MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
 #include <assert.h>
 
-static inline void galrect_2_rect(GAL_Rect *gal_rect, RECT *rc) {
-    rc->left = gal_rect->x;
-    rc->top = gal_rect->y;
-    rc->right = gal_rect->x + gal_rect->w;
-    rc->bottom = gal_rect->y + gal_rect->h;
-}
-
-int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect *srcrect,
+static int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect *srcrect,
         struct GAL_Surface *dst, GAL_Rect *dstrect) {
     int w, W, x;
     int h, H, y;
@@ -419,8 +378,8 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
 
     assert(srcrect->w == dstrect->w || srcrect->h == dstrect->h);
 
-    galrect_2_rect(srcrect, &src_rc);
-    galrect_2_rect(dstrect, &dst_rc);
+    GAL_Rect2RECT(srcrect, &src_rc);
+    GAL_Rect2RECT(dstrect, &dst_rc);
 
     /* don't intersect or horizontal left or up or left-up overlapped blit directly */
     if (! IntersectRect(&intersect, &src_rc, &dst_rc)

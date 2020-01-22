@@ -664,6 +664,59 @@ int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key);
 int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 alpha);
 
 /*
+ * A function to calculate the intersection of two rectangles:
+ * return true if the rectangles intersect, false otherwise
+ */
+static inline
+GAL_bool GAL_IntersectRect (const GAL_Rect *A, const GAL_Rect *B,
+        GAL_Rect *intersection)
+{
+    int Amin, Amax, Bmin, Bmax;
+
+    /* Horizontal intersection */
+    Amin = A->x;
+    Amax = Amin + A->w;
+    Bmin = B->x;
+    Bmax = Bmin + B->w;
+    if (Bmin > Amin)
+            Amin = Bmin;
+    intersection->x = Amin;
+    if (Bmax < Amax)
+            Amax = Bmax;
+    intersection->w = Amax - Amin > 0 ? Amax - Amin : 0;
+
+    /* Vertical intersection */
+    Amin = A->y;
+    Amax = Amin + A->h;
+    Bmin = B->y;
+    Bmax = Bmin + B->h;
+    if (Bmin > Amin)
+            Amin = Bmin;
+    intersection->y = Amin;
+    if (Bmax < Amax)
+            Amax = Bmax;
+    intersection->h = Amax - Amin > 0 ? Amax - Amin : 0;
+
+    return (intersection->w && intersection->h);
+}
+
+static inline void GAL_Rect2RECT (const GAL_Rect *gal_rect, RECT *rc)
+{
+    rc->left = gal_rect->x;
+    rc->top = gal_rect->y;
+    rc->right = gal_rect->x + gal_rect->w;
+    rc->bottom = gal_rect->y + gal_rect->h;
+}
+
+static inline void RECT2GAL_Rect (const RECT *rc, GAL_Rect *gal_rect)
+{
+    gal_rect->x = rc->left;
+    gal_rect->y = rc->top;
+    gal_rect->w = rc->right - rc->left;
+    gal_rect->h = rc->bottom - rc->top;
+}
+
+/*
  * Sets the clipping rectangle for the destination surface in a blit.
  *
  * If the clip rectangle is NULL, clipping will be disabled.
