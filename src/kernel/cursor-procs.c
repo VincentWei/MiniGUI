@@ -476,14 +476,27 @@ static void showcursor (void)
     src_rect.h = CURSORHEIGHT;
 
     GAL_SetClipRect (__gal_screen, NULL);
-#if 1
-    GAL_BlitSurface (CSR_CURRENT->surface, &src_rect, __gal_screen, &csr_rect);
-#else
-    GAL_FillRect (__gal_screen, &csr_rect, 0xFFFFFFFF);
-#endif
-    GAL_UpdateRects (__gal_screen, 1, &csr_rect);
+    {
+        GAL_Rect scr_rect = { 0, 0, __gal_screen->w, __gal_screen->h };
+        GAL_Rect inter_rect;
+
+        if (GAL_IntersectRect (&csr_rect, &scr_rect, &inter_rect)) {
+            src_rect.x = csr_rect.x - inter_rect.x;
+            src_rect.y = csr_rect.y - inter_rect.y;
+            src_rect.w = inter_rect.w;
+            src_rect.h = inter_rect.h;
+
+            GAL_BlitSurface (CSR_CURRENT->surface, &src_rect,
+                    __gal_screen, &inter_rect);
+            GAL_UpdateRects (__gal_screen, 1, &inter_rect);
 #ifdef _MGUSE_SYNC_UPDATE
-    GAL_SyncUpdate (__gal_screen);
+            GAL_SyncUpdate (__gal_screen);
+#endif
+        }
+    }
+
+#if 0 // debug code
+    GAL_FillRect (__gal_screen, &csr_rect, 0xFFFFFFFF);
 #endif
 }
 
