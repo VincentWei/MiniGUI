@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** sharedres.c: Load and init shared resource.
-** 
+**
 ** Create date: 2000/12/22
 */
 
@@ -85,7 +85,7 @@
 #define SEM_PARAM 0666
 
 // define to use mmap instead of shared memory.
-#undef  _USE_MMAP 
+#undef  _USE_MMAP
 // #define _USE_MMAP 1
 
 #ifdef _MGHAVE_CURSOR
@@ -125,7 +125,7 @@ static BOOL LoadCursorRes (void)
     mgSizeRes += __mg_csrimgsize;
     ((PG_RES)mgSharedRes)->csroffset = mgSizeRes;
 
-    // pointer to begin of cursor struct, 
+    // pointer to begin of cursor struct,
     // and reserve a space for handles for system cursors.
     temp = (char*)mgSharedRes + mgSizeRes + sizeof (PCURSOR) * number;
 
@@ -133,12 +133,12 @@ static BOOL LoadCursorRes (void)
         if ( !(tempcsr = sysres_load_system_cursor (i)) )
             goto error;
 
-        memcpy (temp, tempcsr, sizeof(CURSOR));        
+        memcpy (temp, tempcsr, sizeof(CURSOR));
         temp += sizeof(CURSOR);
         memcpy (temp, tempcsr->AndBits, __mg_csrimgsize);
-        temp += __mg_csrimgsize; 
+        temp += __mg_csrimgsize;
         memcpy (temp, tempcsr->XorBits, __mg_csrimgsize);
-        temp += __mg_csrimgsize; 
+        temp += __mg_csrimgsize;
         free (tempcsr->AndBits);
         free (tempcsr->XorBits);
         free (tempcsr);
@@ -153,23 +153,46 @@ error:
 
 #endif /* _MGHAVE_CURSOR */
 
-inline static key_t get_shm_key (void)
-{
-    return (key_t)(IPC_KEY_BASE + 0x01);
-}
-
-inline static key_t get_sem_key (void)
-{
-    return (key_t)(IPC_KEY_BASE + 0x02);
-}
-
 BOOL kernel_IsOnlyMe (void)
 {
     int fd;
 
-    if ((fd = open (LOCKFILE, O_RDONLY)) == -1)
+    if ((fd = open (LOCKFILE, O_RDONLY)) == -1) {
         return TRUE;
+    }
 
+    if (flock (fd, LOCK_EX | LOCK_NB) == 0) {
+        // It is time to remove the old SysV IPC objects.
+        key_t sem_key = get_sem_key_for_system ();
+
+        // remove system semaphore set.
+        int semid = semget (sem_key, 0, SEM_PARAM);
+        if (semid >= 0) {
+            union semun ignored;
+            if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
+                goto failed;
+            }
+            _WRN_PRINTF("The old semaphore set for system (0x%06x) dicarded\n",
+                    semid);
+        }
+
+        // remove system semaphore set.
+        sem_key = get_sem_key_for_layers ();
+        semid = semget (sem_key, 0, SEM_PARAM);
+        if (semid >= 0) {
+            union semun ignored;
+            if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
+                goto failed;
+            }
+            _WRN_PRINTF("The old semaphore set for layers (0x%06x) dicarded\n",
+                    semid);
+        }
+
+        close (fd);
+        return TRUE;
+    }
+
+failed:
     close (fd);
     return FALSE;
 }
@@ -186,6 +209,8 @@ error:
     perror("remove semaphore");
 }
 
+static int lockfd;
+
 void *kernel_LoadSharedResource (void)
 {
     key_t sem_key;
@@ -193,7 +218,7 @@ void *kernel_LoadSharedResource (void)
     key_t shm_key;
     void *memptr;
 #endif
-    int lockfd, semid;
+    int semid;
 #ifndef _USE_MMAP
     int shmid;
 #endif
@@ -205,30 +230,30 @@ void *kernel_LoadSharedResource (void)
 
 #ifdef _MGHAVE_CURSOR
     if (!LoadCursorRes()) {
-        perror ("InitCursor"); 
+        perror ("InitCursor");
         return NULL;
     }
 #endif
 
 #ifndef _USE_MMAP
-    if ((shm_key = get_shm_key ()) == -1) {
+    if ((shm_key = get_shm_key_for_system ()) == -1) {
         goto error;
     }
-    shmid = shmget (shm_key, mgSizeRes, SHM_PARAM | IPC_CREAT | IPC_EXCL); 
-    if (shmid == -1) { 
+    shmid = shmget (shm_key, mgSizeRes, SHM_PARAM | IPC_CREAT | IPC_EXCL);
+    if (shmid == -1) {
         goto error;
-    } 
+    }
 
-    // Attach to the share memory. 
+    // Attach to the share memory.
     memptr = shmat (shmid, 0, 0);
-    if (memptr == (char*)-1) 
+    if (memptr == (char*)-1)
         goto error;
     else {
         memcpy (memptr, mgSharedRes, mgSizeRes);
         free (mgSharedRes);
     }
 
-    if (shmctl (shmid, IPC_RMID, NULL) < 0) 
+    if (shmctl (shmid, IPC_RMID, NULL) < 0)
         goto error;
 #endif
 
@@ -252,19 +277,19 @@ void *kernel_LoadSharedResource (void)
         goto error;
     }
 #endif
-#if 0
-    if (flock (lockfd, LOCK_EX | LOCK_NB) == -1)
-        goto error;
-#endif
 
-    close (lockfd);
+    if (flock (lockfd, LOCK_EX) == -1)
+        goto error;
+
+    // close lockfd will release the exclusive lock
+    // close (lockfd);
 
     // Obtain the semophore syncing drawing.
-    if ((sem_key = get_sem_key ()) == -1) {
+    if ((sem_key = get_sem_key_for_system ()) == -1) {
         goto error;
     }
-    semid = semget (sem_key, _NR_SEM, SEM_PARAM | IPC_CREAT | IPC_EXCL); 
-    if (semid == -1) { 
+    semid = semget (sem_key, _NR_SEM, SEM_PARAM | IPC_CREAT | IPC_EXCL);
+    if (semid == -1) {
         goto error;
     }
     atexit (__mg_delete_sharedres_sem);
@@ -291,15 +316,16 @@ void *kernel_LoadSharedResource (void)
 #endif
     SHAREDRES_SEMID = semid;
 
-    return mgSharedRes; 
+    return mgSharedRes;
 
 error:
-    perror ("KERNEL>LoadSharedResource"); 
+    perror ("KERNEL>LoadSharedResource");
     return NULL;
-} 
+}
 
 void kernel_UnloadSharedResource (void)
 {
+    close (lockfd);
     unlink (LOCKFILE);
 }
 
@@ -324,12 +350,12 @@ void* kernel_AttachSharedResource (void)
 
     memptr = shmat (shmid, 0, SHM_RDONLY);
 #endif
-    if (memptr == (char*)-1) 
+    if (memptr == (char*)-1)
         goto error;
     return memptr;
 
 error:
-    perror ("AttachSharedResource"); 
+    perror ("AttachSharedResource");
     return NULL;
 }
 
@@ -337,10 +363,10 @@ void kernel_UnattachSharedResource (void)
 {
 #ifdef _USE_MMAP
     if (munmap(mgSharedRes, mgSizeRes))
-        perror("detaches shared resource");        
+        perror("detaches shared resource");
 #else
     if (shmdt (mgSharedRes) < 0)
-        perror("detaches shared resource");        
+        perror("detaches shared resource");
 #endif
 }
 
