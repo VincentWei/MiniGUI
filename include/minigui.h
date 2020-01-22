@@ -1088,10 +1088,6 @@ typedef struct _ZNODEINFO {
 
 #ifdef _MGSCHEMA_COMPOSITING
     /**
-     * The memory DC for this znode.
-     */
-    HDC             mem_dc;
-    /**
      * The compositing argument for this znode.
      * For more information, see \a SetMainWindowCompositing.
      */
@@ -1181,12 +1177,21 @@ typedef struct _ZNODEHEADER {
      * The memory DC for this znode.
      */
     HDC             mem_dc;
+
+    /** the dirty age of this znode */
+    unsigned int    dirty_age;
+
+    /** the number of dirty rects */
+    int             nr_dirty_rcs;
+
+    /** the pointer to the dirty rectangles */
+    const RECT*     dirty_rcs;
 #endif
 } ZNODEHEADER;
 
 /**
  * \fn const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
-                MG_Layer* layer, int idx_znode)
+                MG_Layer* layer, int idx_znode, BOOL lock)
  * \brief Get the pointer to the z-node header of a specific window
  * in the specified layer.
  *
@@ -1196,19 +1201,55 @@ typedef struct _ZNODEHEADER {
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
  * \param idx_znode The index of the znode.
+ * \param lock Whether to lock the shared surface.
  *
  * \return The pointer to the z-node header; NULL on error.
  *
  * \note This is the fast version of \a ServerGetZNodeInfo.
  *
+ * \note Under compositing schema, this function will lock the shared surface
+ *      of this z-node if the argument \a lock is TRUE. You should call
+ *      \a ServerReleaseZNodeHeader to release the lock.
+ *
  * \note Server-only function.
  *
- * \sa ServerGetZNodeInfo, ZNODEHEADER
+ * \sa ServerGetZNodeInfo, ServerReleaseZNodeHeader, ZNODEHEADER
  *
  * Since 4.2.0
  */
 MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
-                MG_Layer* layer, int idx_znode);
+                MG_Layer* layer, int idx_znode, BOOL lock);
+
+/**
+ * \fn void GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode)
+ * \brief Release z-node header of a specific window in the specified layer.
+ *
+ * This function releases the z-node header of the window
+ * which uses the specific z-node index \a idx_znode in the specified
+ * layer \a layer.
+ *
+ * \param layer The pointer to the layer, NULL for the current topmost layer.
+ * \param idx_znode The index of the znode.
+ *
+ * \return TRUE for success, otherwise FALSE;
+ *
+ * \note Under compositing schema, this function will release the shared surface
+ *      of this z-node locked by \a ServerGetZNodeHeader to release the lock.
+ *
+ * \note Server-only function.
+ *
+ * \sa ServerGetZNodeHeader
+ *
+ * Since 4.2.0
+ */
+#ifdef _MGSCHEMA_COMPOSITING
+MG_EXPORT BOOL GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode);
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+static inline BOOL GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode)
+{
+    return TRUE;
+}
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
 
 /**
  * \fn int GUIAPI ServerGetPopupMenusCount (void)
@@ -1227,23 +1268,61 @@ MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
 MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
 
 /**
- * \fn const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx)
+ * \fn const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
+                int idx, BOOL lock)
  * \brief Get the pointer to the z-node header of the specific popup menu.
  *
  * This function gets the pointer to the z-node header of the specific
- * popup menu which is currently shown on the screen.
+ * popup menu which is currently shown on the current layer.
  *
  * \param idx The index of the popup menu. 0 means the first popup menu.
+ * \param lock Whether to lock the shared surface.
  *
  * \return The pointer to the z-node header; NULL on error.
  *
  * \note Server-only function.
  *
- * \sa ServerGetPopupMenusCount, ZNODEHEADER
+ * \note Under compositing schema, this function will lock the shared surface
+ *      of this z-node if the argument \a lock is TRUE. You should call
+ *      \a ServerReleasePopupMenuZNodeHeader to release the lock.
+ *
+ * \sa ServerGetPopupMenusCount, ServerReleasePopupMenuZNodeHeader, ZNODEHEADER
  *
  * Since 4.2.0
  */
-MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx);
+MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
+                int idx, BOOL lock);
+
+/**
+ * \fn BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
+ * \brief Release the lock of the z-node header of the specific popup menu.
+ *
+ * This function releases the lock of the z-node header of the specific
+ * popup menu which is currently shown on the current layer.
+ *
+ * \param idx The index of the popup menu. 0 means the first popup menu.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \note Server-only function.
+ *
+ * \note Under compositing schema, this function will release the lock of
+ *      the shared surface of this z-node. You should call
+ *      \a ServerReleasePopupMenuZNodeHeader to release the lock.
+ *
+ * \sa ServerGetPopupMenusCount, ServerReleasePopupMenuZNodeHeader, ZNODEHEADER
+ *
+ * Since 4.2.0
+ */
+
+#ifdef _MGSCHEMA_COMPOSITING
+MG_EXPORT BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx);
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+static inline BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
+{
+    return TRUE;
+}
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
 
 /**
  * \fn BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode, \
@@ -1385,17 +1464,21 @@ typedef struct _CompositorOps {
      * This operation will be called when there are some dirty
      * rects in the specific popup menu znode.
      */
-    void (*on_dirty_ppp) (CompositorCtxt* ctxt,
-            int zidx, const RECT* dirty_rcs, int nr_rcs);
+    void (*on_dirty_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when there are some dirty rects
-     * in the specific window znode or on the screen. For the later
+     * in the specific window znode. For the later
      * situation, \a zidx will be zero and coordiantes in the dirty rects
      * will be under screen coordinate system.
      */
-    void (*on_dirty_win) (CompositorCtxt* ctxt,
-            int zidx, const RECT* dirty_rcs, int nr_rcs);
+    void (*on_dirty_win) (CompositorCtxt* ctxt, int zidx);
+
+    /**
+     * This operation will be called when there are some dirty rects
+     * in the wallpaper pattern.
+     */
+    void (*on_dirty_wpp) (CompositorCtxt* ctxt);
 
     /**
      * This operation will be called when the system is showing a new popup menu.
