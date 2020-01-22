@@ -396,7 +396,6 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     surface->w = hdr->width;
     surface->h = hdr->height;
     surface->pitch = GAL_CalculatePitch (surface);
-    surface->pixels = NULL;
     surface->offset = 0;
     // for off-screen surface, DPI always be the default value
     surface->dpi = GDCAP_DPI_DEFAULT;
