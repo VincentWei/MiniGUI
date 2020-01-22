@@ -14,7 +14,6 @@ libkernel_la_SOURCES = timer.c init.c init-lite.c \
                        blockheap.c fixstr.c slotset.c zorder.c sem-manager.c \
                        compsor-manager.c compsor-fallback.c
 endif
-# hash.c
 
 EXTRA_DIST= desktop.c desktop-comm.c cursor-comm.c makefile.ng makefile.msvc
 
