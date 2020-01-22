@@ -2096,7 +2096,12 @@ MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
  *
  * \note This function only works when _MGUSE_SYNC_UPDATE defined.
  */
+#ifdef _MGUSE_SYNC_UPDATE
 MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc);
+#else
+static inline BOOL GUIAPI SyncUpdateDC (HDC hdc)
+{ return TRUE; }
+#endif
 
 /**
  * \fn BOOL GUIAPI SyncUpdateSurface (HWND hwnd)
@@ -2115,7 +2120,12 @@ MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc);
  * \note This function only works when _MGSCHEMA_COMPOSITING and
  *      _MGUSE_SYNC_UPDATE defined.
  */
+#if defined(_MGUSE_SYNC_UPDATE) && defined(_MGSCHEMA_COMPOSITING)
 MG_EXPORT BOOL GUIAPI SyncUpdateSurface (HWND hwnd);
+#else
+static inline BOOL GUIAPI SyncUpdateSurface (HWND hwnd)
+{ return TRUE; }
+#endif
 
     /** @} end of dc_fns */
 
