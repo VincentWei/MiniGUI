@@ -649,6 +649,7 @@ void mg_TerminateSemManager (void);
 #ifdef _MGSCHEMA_COMPOSITING
 BOOL mg_InitCompositor (void);
 void mg_TerminateCompositor (void);
+void __compsor_check_znodes (void);
 #endif
 
 #ifdef __cplusplus
