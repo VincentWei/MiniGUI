@@ -1190,7 +1190,7 @@ typedef struct _ZNODEHEADER {
 } ZNODEHEADER;
 
 /**
- * \fn const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
+ * \fn const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
                 MG_Layer* layer, int idx_znode, BOOL lock)
  * \brief Get the pointer to the z-node header of a specific window
  * in the specified layer.
@@ -1209,19 +1209,19 @@ typedef struct _ZNODEHEADER {
  *
  * \note Under compositing schema, this function will lock the shared surface
  *      of this z-node if the argument \a lock is TRUE. You should call
- *      \a ServerReleaseZNodeHeader to release the lock.
+ *      \a ServerReleaseWinZNodeHeader to release the lock.
  *
  * \note Server-only function.
  *
- * \sa ServerGetZNodeInfo, ServerReleaseZNodeHeader, ZNODEHEADER
+ * \sa ServerGetZNodeInfo, ServerReleaseWinZNodeHeader, ZNODEHEADER
  *
  * Since 4.2.0
  */
-MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
+MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
                 MG_Layer* layer, int idx_znode, BOOL lock);
 
 /**
- * \fn void GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode)
+ * \fn void GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
  * \brief Release z-node header of a specific window in the specified layer.
  *
  * This function releases the z-node header of the window
@@ -1234,18 +1234,18 @@ MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (
  * \return TRUE for success, otherwise FALSE;
  *
  * \note Under compositing schema, this function will release the shared surface
- *      of this z-node locked by \a ServerGetZNodeHeader to release the lock.
+ *      of this z-node locked by \a ServerGetWinZNodeHeader to release the lock.
  *
  * \note Server-only function.
  *
- * \sa ServerGetZNodeHeader
+ * \sa ServerGetWinZNodeHeader
  *
  * Since 4.2.0
  */
 #ifdef _MGSCHEMA_COMPOSITING
-MG_EXPORT BOOL GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode);
+MG_EXPORT BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode);
 #else   /* not defined _MGSCHEMA_COMPOSITING */
-static inline BOOL GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode)
+static inline BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
 {
     return TRUE;
 }
