@@ -49,12 +49,16 @@
 ** Create Date: 1999/xx/xx
 */
 
-#ifndef _DC_H
-    #define _DC_H
+#ifndef GUI_DC_H
+    #define GUI_DC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+#include "gal.h"
+#include "internals.h"
+#include "ctrlclass.h"
 
 #if defined (__NOUNIX__) || defined (__uClinux__)
     #define DCSLOTNUMBER        8
@@ -705,4 +709,4 @@ void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
 }
 #endif  /* __cplusplus */
 
-#endif // _DC_H
+#endif // GUI_DC_H
