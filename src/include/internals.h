@@ -53,6 +53,7 @@
     #define GUI_INTERNALS_H
 
 #include "constants.h"
+#include "cliprect.h"
 
 /******************* Internal data *******************************************/
 
