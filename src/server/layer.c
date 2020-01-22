@@ -68,6 +68,7 @@
 #include "sharedres.h"
 #include "drawsemop.h"
 #include "misc.h"
+#include "dc.h"
 
 #define SEM_PARAM 0666
 MG_Layer* mgLayers = NULL;
@@ -636,8 +637,7 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
 
     if (layer == NULL)
         layer = mgTopmostLayer;
-
-    if (!__mg_is_valid_layer (layer))
+    else if (!__mg_is_valid_layer (layer))
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
@@ -670,8 +670,7 @@ int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode, int* cli)
 
     if (layer == NULL)
         layer = mgTopmostLayer;
-
-    if (!__mg_is_valid_layer (layer))
+    else if (!__mg_is_valid_layer (layer))
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
@@ -707,8 +706,7 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
 
     if (layer == NULL)
         layer = mgTopmostLayer;
-
-    if (!__mg_is_valid_layer (layer))
+    else if (!__mg_is_valid_layer (layer))
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
@@ -726,7 +724,8 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     znode_info->hwnd = nodes [idx_znode].hwnd;
     znode_info->main_win = nodes [idx_znode].main_win;
 #ifdef _MGSCHEMA_COMPOSITING
-    znode_info->mem_dc = nodes [idx_znode].mem_dc;
+    // do not return mem_dc for this function
+    // znode_info->mem_dc = nodes [idx_znode].mem_dc;
     znode_info->ct = nodes [idx_znode].ct;
     znode_info->ct_arg = nodes [idx_znode].ct_arg;
 #endif
@@ -734,15 +733,17 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     return TRUE;
 }
 
-const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (MG_Layer* layer, int idx_znode)
+const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (MG_Layer* layer,
+            int idx_znode, BOOL lock)
 {
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
+    ZNODEHEADER* hdr;
+    PDC pdc;
 
     if (layer == NULL)
         layer = mgTopmostLayer;
-
-    if (!__mg_is_valid_layer (layer))
+    else if (!__mg_is_valid_layer (layer))
         return NULL;
 
     zi = (ZORDERINFO*)layer->zorder_info;
@@ -752,7 +753,29 @@ const ZNODEHEADER* GUIAPI ServerGetZNodeHeader (MG_Layer* layer, int idx_znode)
     }
 
     nodes = GET_ZORDERNODE(zi);
-    return (ZNODEHEADER*)(nodes + idx_znode);
+    hdr = (ZNODEHEADER*)(nodes + idx_znode);
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc)) &&
+            pdc->surface->shared_header) {
+
+        // XXX use sem_timedwait
+        if (hdr->dirty_rcs == NULL) {
+            sem_wait (&pdc->surface->shared_header->sem_lock);
+
+            hdr->dirty_age = pdc->surface->shared_header->dirty_age;
+            hdr->nr_dirty_rcs = pdc->surface->shared_header->nr_dirty_rcs;
+            hdr->dirty_rcs = pdc->surface->shared_header->dirty_rcs;
+        }
+    }
+    else {
+        hdr->dirty_age = 0;
+        hdr->nr_dirty_rcs = 0;
+        hdr->dirty_rcs = NULL;
+    }
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+
+    return NULL;
 }
 
 int GUIAPI ServerGetPopupMenusCount (void)
@@ -763,10 +786,12 @@ int GUIAPI ServerGetPopupMenusCount (void)
     return zi->nr_popupmenus;
 }
 
-const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx)
+const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx, BOOL lock)
 {
     ZORDERINFO* zi;
     ZORDERNODE* menu_nodes;
+    ZNODEHEADER* hdr;
+    PDC pdc;
 
     zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
 
@@ -774,8 +799,92 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx)
         return NULL;
 
     menu_nodes = GET_MENUNODE(zi);
-    return (ZNODEHEADER*)(menu_nodes + idx);
+    hdr = (ZNODEHEADER*)(menu_nodes + idx);
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc)) &&
+            pdc->surface->shared_header) {
+
+        // XXX use sem_timedwait
+        if (hdr->dirty_rcs == NULL) {
+            sem_wait (&pdc->surface->shared_header->sem_lock);
+
+            hdr->dirty_age = pdc->surface->shared_header->dirty_age;
+            hdr->nr_dirty_rcs = pdc->surface->shared_header->nr_dirty_rcs;
+            hdr->dirty_rcs = pdc->surface->shared_header->dirty_rcs;
+        }
+    }
+    else {
+        hdr->dirty_age = 0;
+        hdr->nr_dirty_rcs = 0;
+        hdr->dirty_rcs = NULL;
+    }
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+
+    return hdr;
 }
+
+#ifdef _MGSCHEMA_COMPOSITING
+BOOL GUIAPI ServerReleaseZNodeHeader (MG_Layer* layer, int idx_znode)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+    ZNODEHEADER* hdr;
+    PDC pdc;
+
+    if (layer == NULL)
+        layer = mgTopmostLayer;
+    else if (!__mg_is_valid_layer (layer))
+        return FALSE;
+
+    zi = (ZORDERINFO*)layer->zorder_info;
+    if (idx_znode > zi->max_nr_globals
+            + zi->max_nr_topmosts + zi->max_nr_normals) {
+        return FALSE;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    hdr = (ZNODEHEADER*)(nodes + idx_znode);
+    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) &&
+            pdc->surface->shared_header && hdr->dirty_rcs) {
+
+        // XXX use sem_timedwait
+        sem_post (&pdc->surface->shared_header->sem_lock);
+
+        hdr->dirty_age = 0;
+        hdr->nr_dirty_rcs = 0;
+        hdr->dirty_rcs = NULL;
+    }
+
+    return TRUE;
+}
+
+BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* menu_nodes;
+    ZNODEHEADER* hdr;
+    PDC pdc;
+
+    zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
+    if (idx >= zi->nr_popupmenus)
+        return FALSE;
+
+    menu_nodes = GET_MENUNODE(zi);
+    hdr = (ZNODEHEADER*)(menu_nodes + idx);
+    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) &&
+            pdc->surface->shared_header && hdr->dirty_rcs) {
+
+        sem_post (&pdc->surface->shared_header->sem_lock);
+        hdr->dirty_age = 0;
+        hdr->nr_dirty_rcs = 0;
+        hdr->dirty_rcs = NULL;
+    }
+
+    return TRUE;
+}
+
+#endif  /* defined _MGSCHEMA_COMPOSITING */
 
 BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
                 int idx_znode, int op_code, void* op_data, BOOL notify)
