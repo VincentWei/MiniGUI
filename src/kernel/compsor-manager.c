@@ -63,7 +63,11 @@
 #include <dlfcn.h>
 
 #include "minigui.h"
+#include "gdi.h"
+#include "window.h"
 #include "constants.h"
+#include "zorder.h"
+#include "dc.h"
 
 #define MAX_NR_COMPOSITORS      8
 #define LEN_COMPOSITOR_NAME     15
@@ -142,6 +146,63 @@ void mg_TerminateCompositor (void)
 
     if (dl_handle)
         dlclose (dl_handle);
+}
+
+void __compsor_check_znodes (void)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+    CompositorCtxt* ctxt;
+    const CompositorOps* ops = ServerSelectCompositor (NULL, &ctxt);
+    int i, next;
+    unsigned int changes_in_dc;
+    PDC pdc;
+
+    assert (ops);
+
+    zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
+
+    // travel menu znodes
+    if (zi->nr_popupmenus > 0) {
+        nodes = GET_MENUNODE(zi);
+        for (i = 0; i < zi->nr_popupmenus; i++) {
+            pdc = dc_HDC2PDC (nodes[i].mem_dc);
+            assert (pdc->surface->shared_header);
+
+            changes_in_dc = pdc->surface->shared_header->dirty_age;
+            if (changes_in_dc != nodes[i].changes) {
+                ops->on_dirty_ppp (ctxt, i);
+                nodes[i].changes = changes_in_dc;
+            }
+        }
+    }
+
+    // travel win znodes
+    nodes = GET_ZORDERNODE(zi);
+    next = 0;
+    while ( (next = kernel_get_next_znode (zi, next)) > 0) {
+        if (nodes [next].flags & ZOF_VISIBLE) {
+            pdc = dc_HDC2PDC (nodes[next].mem_dc);
+            assert (pdc->surface->shared_header);
+
+            changes_in_dc = pdc->surface->shared_header->dirty_age;
+            if (changes_in_dc != nodes[next].changes) {
+                ops->on_dirty_win (ctxt, next);
+                nodes[next].changes = changes_in_dc;
+            }
+        }
+    }
+
+    // check wallpaper pattern
+    pdc = dc_HDC2PDC (HDC_SCREEN);
+    assert (pdc->surface->shared_header);
+    if (pdc->surface->w > 0 && pdc->surface->h > 0) {
+        changes_in_dc = pdc->surface->shared_header->dirty_age;
+        if (changes_in_dc != nodes[0].changes) {
+            ops->on_dirty_wpp (ctxt);
+            nodes[0].changes = changes_in_dc;
+        }
+    }
 }
 
 const CompositorOps* GUIAPI ServerGetCompositorOps (const char* name)
