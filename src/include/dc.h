@@ -517,16 +517,16 @@ static inline void _dc_step_y (PDC pdc, int step)
 
 #    ifdef _MGSCHEMA_COMPOSITING
 
-#       define BLOCK_DRAW_SEM(pdc)                          \
-do {                                                        \
-    if (pdc->surface->shared_header)                        \
-        sem_wait (&pdc->surface->shared_header->sem_lock);  \
+#       define BLOCK_DRAW_SEM(pdc)                                  \
+do {                                                                \
+    if (pdc->surface->shared_header)                                \
+        LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);    \
 } while (0)
 
-#       define UNBLOCK_DRAW_SEM(pdc)                        \
-do {                                                        \
-    if (pdc->surface->shared_header)                        \
-        sem_post (&pdc->surface->shared_header->sem_lock);  \
+#       define UNBLOCK_DRAW_SEM(pdc)                                \
+do {                                                                \
+    if (pdc->surface->shared_header)                                \
+        UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);  \
 } while (0)
 
 #       define IS_SCREEN_SURFACE(pdc)                       \
