@@ -107,6 +107,11 @@ void mg_TerminateMisc (void);
 BOOL mg_InitSystemRes (void);
 void mg_TerminateSystemRes (void);
 
+#ifdef _MGSCHEMA_COMPOSITING
+int __mg_alloc_sem_for_shared_surf (void);
+int __mg_free_sem_for_shared_surf (int sem_num);
+#endif /* _MGSCHEMA_COMPOSITING */
+
 int __mg_lookfor_unused_slot (unsigned char* bitmap, int len_bmp, int set);
 static inline
 void __mg_slot_set_use (unsigned char* bitmap, int index) {
@@ -146,12 +151,6 @@ int __mg_extract_integers (const char* s, int c, int* ab, int max_nr);
 #ifndef __NOUNIX__
 int __mg_create_anonymous_file (off_t size, const char* debug_name,
         mode_t rw_modes);
-#endif
-
-/* Since 4.2.0 */
-#ifdef _MGRM_PROCESSES
-int __mg_alloc_mutual_sem (int *semid);
-void __mg_free_mutual_sem (int sem_num);
 #endif
 
 #if defined (__VXWORKS__) || defined(WIN32) || defined (__NUCLEUS_MNT__) || defined (_EM86_IAL) || defined (_EM85_IAL)
