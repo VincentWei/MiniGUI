@@ -107,9 +107,13 @@
 #define REQID_LOADCURSOR_PNG        0x001D
 // Load cursor from in-memory PNG
 #define REQID_LOADCURSOR_PNG_MEM    0x001E
+// allocate semaphore for shared surface
+#define REQID_ALLOC_SURF_SEM        0x001F
+// free semaphore of shared surface
+#define REQID_FREE_SURF_SEM         0x0020
 
 // Move the current client to another layer
-#define REQID_MOVETOLAYER           0x001F
+#define REQID_MOVETOLAYER           0x0021
 
 /*
  * XXX: To fellows who need to add a new REQID,
