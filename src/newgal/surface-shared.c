@@ -67,7 +67,7 @@
 #include "blit.h"
 
 /*
- * Create a shared empty RGB surface of the appropriate depth
+ * Create a shared empty RGB surface of the appropriate depth and pixel format
  */
 GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             Uint32 flags, Uint32 rw_modes, int width, int height, int depth,
@@ -75,7 +75,6 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 {
     GAL_Surface *screen;
     GAL_Surface *surface;
-    BOOL sem_inited = FALSE;
 
     if (video == NULL) {
         video = __mg_current_video;
@@ -212,7 +211,20 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         hdr->dirty_age  = 0;
         hdr->nr_dirty_rcs   = 0;
 
-#if 1
+        /* allocate semaphore from semaphore for shared surface */
+        if (IsServer() && __gal_fake_screen == NULL) {
+            // use 0 for wallpaper pattern,
+            // because the semaphore set manager is not ready.
+            hdr->sem_num = 0;
+        }
+        else {
+            hdr->sem_num = __mg_alloc_sem_for_shared_surf();
+            if (hdr->sem_num < 0) {
+                goto error;
+            }
+        }
+
+#if 0
         /* Use a unnamed POSIX semaphore shared between processes */
         if (sem_init (&hdr->sem_lock, 1, 1) < 0) {
             if (errno == ENOSYS) {
@@ -220,12 +232,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             }
             goto error;
         }
-        sem_inited = TRUE;
-#else
-        hdr->semid      = -1;
-        hdr->sem_num    = __mg_alloc_mutual_sem (&hdr->semid);
-        if (hdr->sem_num < 0)
-            goto error;
+        BOOL sem_inited = TRUE;
 #endif
 
         surface->pixels = surface->shared_header->buf;
@@ -250,16 +257,15 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 error:
     if (surface) {
         if (surface->shared_header) {
-#if 1
+#if 0
             if (sem_inited) {
                 sem_destroy (&surface->shared_header->sem_lock);
             }
-#else
-            if (surface->shared_header->semid >= 0) {
-                assert (surface->shared_header->sem_num >= 0);
-                __mg_free_mutual_sem (surface->shared_header->sem_num);
-            }
 #endif
+
+            if (surface->shared_header->sem_num >= 0) {
+                __mg_free_sem_for_shared_surf (surface->shared_header->sem_num);
+            }
 
             if (surface->shared_header->byhw) {
                 assert(video->FreeSharedHWSurface);
@@ -293,14 +299,13 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
 
     assert (surface->shared_header);
 
-#if 1
+#if 0
     sem_destroy (&surface->shared_header->sem_lock);
-#else
-    if (surface->shared_header->semid >= 0) {
-        assert (surface->shared_header->sem_num >= 0);
-        __mg_free_mutual_sem (surface->shared_header->sem_num);
-    }
 #endif
+
+    if (surface->shared_header->sem_num >= 0) {
+        __mg_free_sem_for_shared_surf (surface->shared_header->sem_num);
+    }
 
     if (surface->shared_header->byhw) {
         assert (video->FreeSharedHWSurface);
