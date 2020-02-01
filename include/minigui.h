@@ -1675,7 +1675,7 @@ const CompositorOps* __ex_compositor_get (const char* name,
  *
  * \sa RegisterRequestHandler
  */
-#define MAX_SYS_REQID           0x0020
+#define MAX_SYS_REQID           0x0022
 
 /**
  * \def MAX_REQID
