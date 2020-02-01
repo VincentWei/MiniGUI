@@ -44,7 +44,7 @@
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** sem-manager.c: the System V semaphore manager module for MiniGUI.
+** sem-manager->c: the System V semaphore manager module for MiniGUI.
 **
 ** Create date: 2020-01-08
 **
@@ -75,111 +75,156 @@
 #include "ourhdr.h"
 #include "misc.h"
 
-static struct _manager {
+struct _SemSetManager {
     int             semid;
+    int             pre_created;
     int             nr_sems;
     int             len_use_bmp;
     BYTE*           use_bmp;
-#ifndef _MGRM_STANDALONE
+#ifdef _MGUSE_THREADS
     pthread_mutex_t lock;
 #endif
-} manager;
+};
 
-BOOL mg_InitSemManger (int nr_sems)
+SemSetManager* __mg_create_sem_set_manager (int semid, int nr_sems)
 {
+    SemSetManager* manager = NULL;
+
     if (nr_sems <= 0) {
-        _ERR_PRINTF ("SemManager: cannot allocate use bitmap.\n");
-        return FALSE;
+        return NULL;
     }
 
-    manager.len_use_bmp = (nr_sems + 7) >> 3;
-    manager.use_bmp = malloc(manager.len_use_bmp);
-    if (manager.use_bmp == NULL) {
-        _ERR_PRINTF ("SemManager: cannot allocate use bitmap.\n");
-        return FALSE;
+    manager = calloc (sizeof (SemSetManager), 1);
+    if (manager == NULL) {
+        return NULL;
     }
-
-    manager.semid = semget (IPC_PRIVATE, nr_sems,
+    
+    if (semid < 0) {
+        /* create an anonymous semaphore set */
+        manager->semid = semget (IPC_PRIVATE, nr_sems,
                 0666 | IPC_CREAT | IPC_EXCL);
-    if (manager.semid < 0) {
-        _ERR_PRINTF ("SemManager: cannot create semset for compositing.\n");
-        free (manager.use_bmp);
-        return FALSE;
+        if (manager->semid < 0) {
+            _ERR_PRINTF ("SEMSETMANAGER: cannot create anonymous semaphore set.\n");
+            goto failed;
+        }
+        manager->pre_created = 0;
+    }
+    else {
+        manager->semid = semid;
+        manager->pre_created = 1;
     }
 
-#ifndef _MGRM_STANDALONE
-    pthread_mutex_init (&manager.lock, NULL);
+    manager->len_use_bmp = (nr_sems + 7) >> 3;
+    manager->use_bmp = malloc (manager->len_use_bmp);
+    if (manager->use_bmp == NULL) {
+        _ERR_PRINTF ("SEMSETMANAGER: cannot allocate use bitmap.\n");
+        goto failed;
+    }
+
+    manager->nr_sems = nr_sems;
+    memset (manager->use_bmp, 0xFF, manager->len_use_bmp);
+
+#ifdef _MGUSE_THREADS
+    pthread_mutex_init (&manager->lock, NULL);
 #endif
 
-    manager.nr_sems = nr_sems;
-    memset (manager.use_bmp, 0xFF, manager.len_use_bmp);
-    return TRUE;
+    return manager;
+
+failed:
+    if (manager->use_bmp) {
+        free (manager->use_bmp);
+    }
+
+    if (manager->semid >= 0 && manager->pre_created == 0) {
+        union semun ignored;
+        if (semctl (manager->semid, 0, IPC_RMID, ignored) < 0) {
+            _WRN_PRINTF ("SEMSETMANAGER: failed to remove semaphore set.\n");
+        }
+    }
+
+#ifdef _MGUSE_THREADS
+    if (manager->nr_sems > 0)
+        pthread_mutex_destroy (&manager->lock);
+#endif
+
+    return NULL;
 }
 
-void mg_TerminateSemManager (void)
+/* use void* in order to use on_exit */
+void __mg_delete_sem_set_manager (int code, void* data)
 {
-    union semun ignored;
-    if (manager.nr_sems == 0) {
-        _ERR_PRINTF ("SemManager: not intialized.\n");
+    SemSetManager* manager = (SemSetManager*)data;
+
+    if (manager == NULL || manager->nr_sems == 0) {
+        _ERR_PRINTF ("SEMSETMANAGER: bad manager or not initialized.\n");
         return;
     }
 
-    if (semctl (manager.semid, 0, IPC_RMID, ignored) < 0) {
-        _WRN_PRINTF ("SemManager: failed to remove semset for compositing.\n");
+    free (manager->use_bmp);
+
+    if (manager->semid >= 0 && manager->pre_created == 0) {
+        union semun ignored;
+        if (semctl (manager->semid, 0, IPC_RMID, ignored) < 0) {
+            _WRN_PRINTF ("SEMSETMANAGER: failed to remove semaphore set.\n");
+        }
     }
 
-    free (manager.use_bmp);
-
-    manager.nr_sems = 0;
-
-#ifndef _MGRM_STANDALONE
-    pthread_mutex_destroy (&manager.lock);
+#ifdef _MGUSE_THREADS
+    pthread_mutex_destroy (&manager->lock);
 #endif
+
+    free (manager);
 }
 
-int __mg_alloc_mutual_sem (int *semid)
+int __mg_alloc_mutual_sem (SemSetManager* manager, int *semid)
 {
     int n;
+    union semun sunion;
 
-#ifndef _MGRM_STANDALONE
-    pthread_mutex_lock (&manager.lock);
+#ifdef _MGUSE_THREADS
+    pthread_mutex_lock (&manager->lock);
 #endif
 
-    n = __mg_lookfor_unused_slot (manager.use_bmp, manager.len_use_bmp, 1);
-    if (n >= manager.nr_sems) {
+    n = __mg_lookfor_unused_slot (manager->use_bmp, manager->len_use_bmp, 1);
+    if (n >= manager->nr_sems) {
         n = -1;
     }
 
-    if (n < 0)
-        *semid = -1;
-    else
-        *semid = manager.semid;
+    if (n >= 0 && semid) {
+        *semid = manager->semid;
+    }
 
-#ifndef _MGRM_STANDALONE
-    pthread_mutex_unlock (&manager.lock);
+    sunion.val = 1;
+    semctl (manager->semid, n, SETVAL, sunion);
+
+#ifdef _MGUSE_THREADS
+    pthread_mutex_unlock (&manager->lock);
 #endif
 
     return n;
 }
 
-void __mg_free_mutual_sem (int sem_num)
+int __mg_free_mutual_sem (SemSetManager* manager, int sem_num)
 {
-    if (sem_num < 0 || sem_num >= manager.nr_sems) {
+    if (sem_num < 0 || sem_num >= manager->nr_sems) {
         _DBG_PRINTF("Bad semaphore number: %d\n", sem_num);
-        return;
+        return -1;
     }
 
-#ifndef _MGRM_STANDALONE
-    pthread_mutex_lock (&manager.lock);
+#ifdef _MGUSE_THREADS
+    pthread_mutex_lock (&manager->lock);
 #endif
 
-    if (!__mg_slot_clear_use (manager.use_bmp, sem_num)) {
+    if (!__mg_slot_clear_use (manager->use_bmp, sem_num)) {
         _WRN_PRINTF("The semaphore is not marked as used: %d\n", sem_num);
+        return -1;
     }
 
-#ifndef _MGRM_STANDALONE
-    pthread_mutex_unlock (&manager.lock);
+#ifdef _MGUSE_THREADS
+    pthread_mutex_unlock (&manager->lock);
 #endif
+
+    return 0;
 }
 
 #endif /* _MGRM_PROCESSES */
