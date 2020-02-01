@@ -120,13 +120,13 @@ typedef int (*GAL_blit)(struct GAL_Surface *src, GAL_Rect *srcrect,
  * than the creator.
  */
 typedef struct _SharedSurfaceHeader {
-#if 1
+#if 0
     /* The semaphore for this shared surface */
     sem_t           sem_lock;
 #else
-    /* The SysV semaphore set identifier for synchronizing the shared surfaces. */
-    int             semid;
-    /* The number of semphore for this surface. */
+    /* The number of semphore for this surface.
+       The SysV semaphore set id for synchronizing this shared surface:
+       SHAREDRES_SEMID_SHARED_SURF. */
     int             sem_num;
 #endif
 
