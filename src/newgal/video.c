@@ -886,6 +886,16 @@ static int convert_region_to_rects (const CLIPRGN * rgn, GAL_Rect *rects, int ma
     return nr;
 }
 
+#ifdef _MGSCHEMA_COMPOSITING
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+
+#include "sharedres.h"
+#include "ourhdr.h"
+#include "drawsemop.h"
+#endif
+
 BOOL GAL_SyncUpdate (GAL_Surface *surface)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
@@ -899,9 +909,11 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (surface->shared_header) {
-        sem_wait (&surface->shared_header->sem_lock);
+        //sem_wait (&surface->shared_header->sem_lock);
+        LOCK_SURFACE_SEM (surface->shared_header->sem_num);
         mark_shared_surface_dirty (surface, numrects, rects);
-        sem_post (&surface->shared_header->sem_lock);
+        //sem_post (&surface->shared_header->sem_lock);
+        UNLOCK_SURFACE_SEM (surface->shared_header->sem_num);
     }
 #endif
 
