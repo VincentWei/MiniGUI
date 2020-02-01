@@ -69,6 +69,7 @@
 #include "client.h"
 #include "server.h"
 #include "sharedres.h"
+#include "misc.h"
 
 typedef void (* ReleaseProc) (void* );
 
@@ -82,7 +83,6 @@ struct GlobalRes
     ReleaseProc release_proc;
 };
 
-#if defined(_MGHAVE_CURSOR) || defined(_MGGAL_MLSHADOW) || defined(_MGSCHEMA_SHAREDFB)
 static void add_global_res (int cli, void* key,
                 void* res, ReleaseProc release_proc)
 {
@@ -107,14 +107,13 @@ static void add_global_res (int cli, void* key,
         }
     }
 }
-#endif // defined(_MGHAVE_CURSOR) || defined(_MGGAL_MLSHADOW) || defined(_MGSCHEMA_SHAREDFB)
 
 #ifdef _MGGAL_MLSHADOW
 extern int MLSHADOW_Server(void* request, void* reply);
 extern void srvMLSHADOW_DelSurface(void *res);
 #endif
 
-static void del_global_res (int cli, void* key)
+static void del_global_res (int cli, void* key, void* res)
 {
     MG_Client* client = mgClients + cli;
     struct GlobalRes *global_res = client->global_res, *next;
@@ -122,7 +121,7 @@ static void del_global_res (int cli, void* key)
     while (global_res) {
         next = global_res->next;
 
-        if (global_res->key == key) {
+        if (global_res->key == key && global_res->res == res) {
             if (global_res->release_proc)
                 global_res->release_proc (global_res->res);
 
@@ -223,8 +222,7 @@ static int load_cursor (int cli, int clifd, void* buff, size_t len)
 
 #ifdef _MGHAVE_CURSOR
     if (hcsr) {
-        add_global_res (cli, (void*) hcsr,
-                        (void*)hcsr, (ReleaseProc)DestroyCursor);
+        add_global_res (cli, hcsr, hcsr, (ReleaseProc)DestroyCursor);
     }
 #endif
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
@@ -244,8 +242,7 @@ static int load_cursor_png_file (int cli, int clifd, void* buff, size_t len)
 
 #ifdef _MGHAVE_CURSOR
     if (hcsr) {
-        add_global_res (cli, (void*) hcsr,
-                        (void*)hcsr, (ReleaseProc)DestroyCursor);
+        add_global_res (cli, hcsr, hcsr, (ReleaseProc)DestroyCursor);
     }
 #endif
 
@@ -258,7 +255,7 @@ static int load_cursor_png_mem (int cli, int clifd, void* buff, size_t len)
     int hotspot[2];
     HCURSOR hcsr;
 
-    /* check wheter has enough PNG data.
+    /* check whether has enough PNG data.
      * see: https://garethrees.org/2007/11/14/pngcrush/
      */
     if (len < (sizeof (hotspot) + 67))
@@ -270,13 +267,50 @@ static int load_cursor_png_mem (int cli, int clifd, void* buff, size_t len)
 
 #ifdef _MGHAVE_CURSOR
     if (hcsr) {
-        add_global_res (cli, (void*) hcsr,
-                        (void*)hcsr, (ReleaseProc)DestroyCursor);
+        add_global_res (cli, hcsr, hcsr, (ReleaseProc)DestroyCursor);
     }
 #endif
 
 ret:
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
+}
+
+static void my_release_sem_for_shared_surf (void* res)
+{
+    int sem_num = (int)(intptr_t)res;
+
+    if (__mg_free_sem_for_shared_surf (sem_num)) {
+        _WRN_PRINTF("Failed to call __mg_free_sem_for_shared_surf (%d)\n",
+                        sem_num);
+    }
+}
+
+static int alloc_sem_for_shared_surf (int cli, int clifd, void* buff, size_t len)
+{
+    int sem_num;
+
+    sem_num = __mg_alloc_sem_for_shared_surf ();
+    if (sem_num >= 0) {
+        add_global_res (cli, (void*)alloc_sem_for_shared_surf,
+                         (void*)(intptr_t)sem_num,
+                         my_release_sem_for_shared_surf);
+    }
+
+    return ServerSendReply (clifd, &sem_num, sizeof (int));
+}
+
+static int free_sem_for_shared_surf (int cli, int clifd, void* buff, size_t len)
+{
+    int ret_value;
+    int sem_num;
+
+    sem_num = *((int*)buff);
+
+    ret_value = __mg_free_sem_for_shared_surf (sem_num);
+    del_global_res (cli, (void*)alloc_sem_for_shared_surf,
+                    (void*)(intptr_t)sem_num);
+
+    return ServerSendReply (clifd, &ret_value, sizeof (int));
 }
 
 #endif /* IS_COMPOSITING_SCHEMA */
@@ -326,7 +360,7 @@ static int create_cursor (int cli, int clifd, void* buff, size_t len)
 
 #ifdef _MGHAVE_CURSOR
     if (hcsr) {
-        add_global_res (cli, (void*) hcsr, (void*)hcsr, NULL);
+        add_global_res (cli, hcsr, hcsr, NULL);
     }
 #endif
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
@@ -337,7 +371,7 @@ static int copy_cursor (int cli, int clifd, void* buff, size_t len)
     HCURSOR hcsr = CopyCursor ((HCURSOR)*(intptr_t*)buff);
 #ifdef _MGHAVE_CURSOR
     if (hcsr) {
-        add_global_res (cli, (void*) hcsr, (void*)hcsr, NULL);
+        add_global_res (cli, hcsr, hcsr, NULL);
     }
 #endif
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
@@ -351,7 +385,7 @@ static int destroy_cursor (int cli, int clifd, void* buff, size_t len)
     hcsr = *((HCURSOR*)buff);
 
     ret_value = DestroyCursor(hcsr);
-    del_global_res (cli, (void*)hcsr);
+    del_global_res (cli, hcsr, hcsr);
 
     return ServerSendReply (clifd, &ret_value, sizeof (BOOL));
 }
@@ -717,12 +751,12 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
             allocated->offset = reply.offset;
             allocated->bucket = reply.bucket;
 
-            add_global_res (cli, allocated->bucket,
+            add_global_res (cli, (void*)req_hw_surface,
                             allocated, (ReleaseProc)release_hw_surface);
         }
     }
     else {
-       del_global_res (cli, request->bucket);
+       del_global_res (cli, (void*)req_hw_surface, request->bucket);
     }
 
     return ServerSendReply (clifd, &reply, sizeof (REP_HWSURFACE));
@@ -811,7 +845,11 @@ static struct req_request {
     { get_wp_surface, 0 },
     { load_cursor_png_file, 0 },
     { load_cursor_png_mem, 0 },
+    { alloc_sem_for_shared_surf, 0 },
+    { free_sem_for_shared_surf, 0 },
 #else
+    { NULL, 0 },
+    { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
