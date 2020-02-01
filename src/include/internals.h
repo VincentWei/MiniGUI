@@ -410,15 +410,13 @@ void __mg_init_local_sys_text (void);
 /* the zorder information of the server */
 extern ZORDERINFO* __mg_zorder_info;
 
-#ifndef _MGRM_THREADS
-
 #ifdef _MGRM_STANDALONE
 
 BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_que);
 BOOL salone_StandAloneStartup (void);
 void salone_StandAloneCleanup (void);
 
-#else
+#elif defined (_MGRM_PROCESSES)
 
 /*
  * Common for server and client.
@@ -440,9 +438,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que);
 BOOL client_ClientStartup (void);
 void client_ClientCleanup (void);
 
-#endif
-
-#endif
+#endif  /* defined (_MGRM_PROCESSES) */
 
 BOOL mg_InitScreenDC (void);
 void mg_TerminateScreenDC (void);
@@ -641,9 +637,14 @@ struct GAL_Surface* GetSurfaceFromDC (HDC hdc);
 
 /* Since 4.2.0 */
 #ifdef _MGRM_PROCESSES
-BOOL mg_InitSemManger (int nr_sems);
-void mg_TerminateSemManager (void);
-#endif
+struct _SemSetManager;
+typedef struct _SemSetManager SemSetManager;
+
+SemSetManager* __mg_create_sem_set_manager (int semid, int nr_sems);
+void __mg_delete_sem_set_manager (int code, void* manager);
+int __mg_alloc_mutual_sem (SemSetManager* manager, int *semid);
+int __mg_free_mutual_sem (SemSetManager* manager, int sem_num);
+#endif /* _MGRM_PROCESSES */
 
 /* Since 4.2.0 */
 #ifdef _MGSCHEMA_COMPOSITING
