@@ -57,7 +57,7 @@ extern "C" {
 
 #include <errno.h>
 
-static inline void my_sem_op (int num, int op)
+static inline void my_sem_op (int semid, int num, int op)
 {
     struct sembuf sb;
 
@@ -66,30 +66,35 @@ again:
     sb.sem_op = op;
     sb.sem_flg = SEM_UNDO;
 
-    if (semop (SHAREDRES_SEMID, &sb, 1) == -1) {
+    if (semop (semid, &sb, 1) == -1) {
         if (errno == EINTR) {
             goto again;
         }
     }
 }
 
-#define LOCK_DRAW_SEM()     my_sem_op(_IDX_SEM_DRAW, -1)
-#define UNLOCK_DRAW_SEM()   my_sem_op(_IDX_SEM_DRAW, 1)
+#define LOCK_DRAW_SEM()     my_sem_op(SHAREDRES_SEMID, _IDX_SEM_DRAW, -1)
+#define UNLOCK_DRAW_SEM()   my_sem_op(SHAREDRES_SEMID, _IDX_SEM_DRAW, 1)
 
-#define LOCK_SCREEN_SEM()   my_sem_op(_IDX_SEM_SCR, -1)
-#define UNLOCK_SCREEN_SEM() my_sem_op(_IDX_SEM_SCR, 1)
+#define LOCK_SCREEN_SEM()   my_sem_op(SHAREDRES_SEMID, _IDX_SEM_SCR, -1)
+#define UNLOCK_SCREEN_SEM() my_sem_op(SHAREDRES_SEMID, _IDX_SEM_SCR, 1)
+
+#ifdef _MGSCHEMA_COMPOSITING
+#   define LOCK_SURFACE_SEM(num)    my_sem_op(SHAREDRES_SEMID_SHARED_SURF, num, -1)
+#   define UNLOCK_SURFACE_SEM(num)  my_sem_op(SHAREDRES_SEMID_SHARED_SURF, num, 1)
+#endif
 
 #ifdef _MGHAVE_CURSOR
 
-#define LOCK_CURSOR_SEM()   my_sem_op(_IDX_SEM_CURSOR, -1)
-#define UNLOCK_CURSOR_SEM() my_sem_op(_IDX_SEM_CURSOR, 1)
+#define LOCK_CURSOR_SEM()   my_sem_op(SHAREDRES_SEMID, _IDX_SEM_CURSOR, -1)
+#define UNLOCK_CURSOR_SEM() my_sem_op(SHAREDRES_SEMID, _IDX_SEM_CURSOR, 1)
 
-static inline int get_sem_pid (int num)
+static inline int get_sem_pid (int semid, int num)
 {
     int pid;
     union semun ignored;
 
-    pid = semctl (SHAREDRES_SEMID, num, GETPID, ignored);
+    pid = semctl (semid, num, GETPID, ignored);
 #ifdef _DEBUG
     if (pid == -1)
         perror ("get_sem_pid");
@@ -98,7 +103,7 @@ static inline int get_sem_pid (int num)
     return pid;
 }
 
-#define get_cursor_sem_pid() get_sem_pid(_IDX_SEM_CURSOR)
+#define get_cursor_sem_pid() get_sem_pid(SHAREDRES_SEMID, _IDX_SEM_CURSOR)
 
 static inline int get_hidecursor_sem_val (void)
 {
@@ -148,8 +153,8 @@ again:
 #endif /* _MGHAVE_CURSOR */
 
 #ifdef _MGRM_PROCESSES
-#   define LOCK_MOUSEMOVE_SEM()     my_sem_op(_IDX_SEM_MOUSEMOVE, -1)
-#   define UNLOCK_MOUSEMOVE_SEM()   my_sem_op(_IDX_SEM_MOUSEMOVE, 1)
+#   define LOCK_MOUSEMOVE_SEM()     my_sem_op(SHAREDRES_SEMID, _IDX_SEM_MOUSEMOVE, -1)
+#   define UNLOCK_MOUSEMOVE_SEM()   my_sem_op(SHAREDRES_SEMID, _IDX_SEM_MOUSEMOVE, 1)
 #endif /* _MGRM_PROCESSES */
 
 #ifdef __cplusplus
