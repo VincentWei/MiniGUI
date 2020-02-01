@@ -86,6 +86,11 @@
 #define DEF_NR_NORMALS              128
 #define DEF_NR_FIXEDZNODES          4
 
+#if IS_COMPOSITING_SCHEMA
+/* max number of shared surfaces */
+#   define MAX_NR_SHARED_SURF      (DEF_NR_NORMALS * (MAX_NR_LAYERS >> 1))
+#endif
+
 /* Since 4.2.0; the fixed znode index for special main window */
 #define ZNIDX_DESKTOP           0
 #define ZNIDX_SCREENLOCK        1
