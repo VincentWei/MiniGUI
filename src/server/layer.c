@@ -283,7 +283,67 @@ BOOL __mg_is_valid_layer (MG_Layer* layer)
     return FALSE;
 }
 
-static void delete_zi_sem (void)
+#ifdef _MGSCHEMA_COMPOSITING
+
+static SemSetManager* _ssm_shared_surf;
+
+int __mg_alloc_sem_for_shared_surf (void)
+{
+    if (IsServer()) {
+        return __mg_alloc_mutual_sem (_ssm_shared_surf, NULL);
+    }
+    else {
+        int sem_num, ignore;
+        REQUEST req;
+
+        req.id = REQID_ALLOC_SURF_SEM;
+        req.data = &ignore;
+        req.len_data = sizeof (int);
+
+        if (ClientRequestEx (&req, NULL, 0,
+                &sem_num, sizeof (int)) < 0)
+            return -1;
+
+        return sem_num;
+    }
+}
+
+int __mg_free_sem_for_shared_surf (int sem_num)
+{
+    if (IsServer()) {
+        return __mg_free_mutual_sem (_ssm_shared_surf, sem_num);
+    }
+    else {
+        int ret_value;
+        REQUEST req;
+
+        req.id = REQID_FREE_SURF_SEM;
+        req.data = &sem_num;
+        req.len_data = sizeof (int);
+
+        if (ClientRequestEx (&req, NULL, 0,
+                &ret_value, sizeof (int)) < 0)
+            return FALSE;
+
+        return ret_value;
+    }
+}
+
+static void delete_sem_set_for_shared_surf (void)
+{
+    union semun ignored;
+    if (semctl (SHAREDRES_SEMID_SHARED_SURF, 0, IPC_RMID, ignored) < 0)
+        goto error;
+
+    return;
+
+error:
+    _ERR_PRINTF ("KERNEL: failed to remove semaphore set for shared surfaces: %m\n");
+}
+
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
+static void delete_sem_set_for_layers (void)
 {
     union semun ignored;
     if (semctl (SHAREDRES_SEMID_LAYER, 0, IPC_RMID, ignored) < 0)
@@ -292,7 +352,7 @@ static void delete_zi_sem (void)
     return;
 
 error:
-    perror("remove semaphore");
+    _ERR_PRINTF ("KERNEL: failed to remove semaphore set for layers: %m\n");
 }
 
 int __mg_init_layers ()
@@ -306,6 +366,28 @@ int __mg_init_layers ()
 
     memset (sem_usage, 0xFF, sizeof (sem_usage));
 
+#ifdef _MGSCHEMA_COMPOSITING
+    if ((sem_key = get_sem_key_for_shared_surf ()) == -1) {
+        return -1;
+    }
+
+    semid = semget (sem_key, MAX_NR_SHARED_SURF, SEM_PARAM | IPC_CREAT | IPC_EXCL);
+    if (semid == -1)
+        return -1;
+
+    SHAREDRES_SEMID_SHARED_SURF = semid;
+    atexit (delete_sem_set_for_shared_surf);
+
+    _ssm_shared_surf = __mg_create_sem_set_manager (semid, MAX_NR_SHARED_SURF);
+    if (_ssm_shared_surf == NULL)
+        return -1;
+
+    // mark the first semphore is used
+    assert (__mg_alloc_mutual_sem (_ssm_shared_surf, NULL) == 0);
+
+    on_exit (__mg_delete_sem_set_manager, _ssm_shared_surf);
+#endif
+
     if ((sem_key = get_sem_key_for_layers ()) == -1) {
         return -1;
     }
@@ -313,9 +395,9 @@ int __mg_init_layers ()
     semid = semget (sem_key, MAX_NR_LAYERS, SEM_PARAM | IPC_CREAT | IPC_EXCL);
     if (semid == -1)
         return -1;
-    atexit (delete_zi_sem);
 
     SHAREDRES_SEMID_LAYER = semid;
+    atexit (delete_sem_set_for_layers);
 
     /* allocate the first layer for the default layer. */
     if (!do_alloc_layer (mgLayers, NAME_DEF_LAYER,
@@ -763,7 +845,8 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
 
         // XXX use sem_timedwait
         if (hdr->dirty_rcs == NULL) {
-            sem_wait (&pdc->surface->shared_header->sem_lock);
+            //sem_wait (&pdc->surface->shared_header->sem_lock);
+            LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
 
             hdr->dirty_age = pdc->surface->shared_header->dirty_age;
             hdr->nr_dirty_rcs = pdc->surface->shared_header->nr_dirty_rcs;
@@ -811,7 +894,8 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx, BOOL lock)
 
         // XXX use sem_timedwait
         if (hdr->dirty_rcs == NULL) {
-            sem_wait (&pdc->surface->shared_header->sem_lock);
+            //sem_wait (&pdc->surface->shared_header->sem_lock);
+            LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
 
             hdr->dirty_age = pdc->surface->shared_header->dirty_age;
             hdr->nr_dirty_rcs = pdc->surface->shared_header->nr_dirty_rcs;
@@ -852,8 +936,8 @@ BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
     if ((pdc = dc_HDC2PDC (hdr->mem_dc)) &&
             pdc->surface->shared_header && hdr->dirty_rcs) {
 
-        // XXX use sem_timedwait
-        sem_post (&pdc->surface->shared_header->sem_lock);
+        //sem_post (&pdc->surface->shared_header->sem_lock);
+        UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
 
         hdr->dirty_age = 0;
         hdr->nr_dirty_rcs = 0;
@@ -879,7 +963,8 @@ BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
     if ((pdc = dc_HDC2PDC (hdr->mem_dc)) &&
             pdc->surface->shared_header && hdr->dirty_rcs) {
 
-        sem_post (&pdc->surface->shared_header->sem_lock);
+        //sem_post (&pdc->surface->shared_header->sem_lock);
+        UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
         hdr->dirty_age = 0;
         hdr->nr_dirty_rcs = 0;
         hdr->dirty_rcs = NULL;
