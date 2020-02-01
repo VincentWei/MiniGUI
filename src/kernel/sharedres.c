@@ -229,18 +229,18 @@ BOOL kernel_IsOnlyMe (void)
         // It is time to remove the old SysV IPC objects.
         key_t sem_key = get_sem_key_for_system ();
 
-        // remove system semaphore set.
+        // remove semaphore set for system.
         int semid = semget (sem_key, 0, SEM_PARAM);
         if (semid >= 0) {
             union semun ignored;
             if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
                 goto failed;
             }
-            _WRN_PRINTF("The old semaphore set for system (0x%06x) dicarded\n",
+            _WRN_PRINTF("The old semaphore set for system (0x%06x) discarded\n",
                     semid);
         }
 
-        // remove system semaphore set.
+        // remove semaphore set for layers.
         sem_key = get_sem_key_for_layers ();
         semid = semget (sem_key, 0, SEM_PARAM);
         if (semid >= 0) {
@@ -248,7 +248,19 @@ BOOL kernel_IsOnlyMe (void)
             if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
                 goto failed;
             }
-            _WRN_PRINTF("The old semaphore set for layers (0x%06x) dicarded\n",
+            _WRN_PRINTF("The old semaphore set for layers (0x%06x) discarded\n",
+                    semid);
+        }
+
+        // remove semaphore set for shared surfaces.
+        sem_key = get_sem_key_for_shared_surf ();
+        semid = semget (sem_key, 0, SEM_PARAM);
+        if (semid >= 0) {
+            union semun ignored;
+            if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
+                goto failed;
+            }
+            _WRN_PRINTF("The old semaphore set for shared surfaces (0x%06x) discarded\n",
                     semid);
         }
 
