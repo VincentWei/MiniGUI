@@ -89,6 +89,11 @@ inline static key_t get_sem_key_for_layers (void)
     return (key_t)(IPC_KEY_BASE + 0x03);
 }
 
+inline static key_t get_sem_key_for_shared_surf (void)
+{
+    return (key_t)(IPC_KEY_BASE + 0x04);
+}
+
 typedef struct tagG_RES {
     int semid;
     int shmid;
@@ -104,6 +109,9 @@ typedef struct tagG_RES {
 
     int nr_layers;
     int semid_layer;
+#ifdef _MGSCHEMA_COMPOSITING
+    int semid_shared_surf;  /* the id of semaphore set for shared surfaces */
+#endif
 
     int nr_globals;
     int def_nr_topmosts;
@@ -192,6 +200,10 @@ typedef G_RES* PG_RES;
 
 #define SHAREDRES_NR_LAYSERS    (((PG_RES)mgSharedRes)->nr_layers)
 #define SHAREDRES_SEMID_LAYER   (((PG_RES)mgSharedRes)->semid_layer)
+
+#ifdef _MGSCHEMA_COMPOSITING
+# define SHAREDRES_SEMID_SHARED_SURF (((PG_RES)mgSharedRes)->semid_shared_surf)
+#endif
 
 #define SHAREDRES_NR_GLOBALS    (((PG_RES)mgSharedRes)->nr_globals)
 #define SHAREDRES_DEF_NR_TOPMOSTS   (((PG_RES)mgSharedRes)->def_nr_topmosts)
