@@ -90,11 +90,12 @@ typedef struct _ZORDERNODE {
     RECT            dirty_rc;       /* dirty rect */
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
-    int             idx_mask_rect;  /* The first position of mask rect. */
-    int             _padding;
+    int             idx_mask_rect;  /* the first position of the mask rects. */
 
     int             next;
     int             prev;
+
+    void*           priv_data;      /* the private data of this znode. */
 } ZORDERNODE;
 typedef ZORDERNODE* PZORDERNODE;
 
