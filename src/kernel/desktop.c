@@ -1536,6 +1536,7 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
     menu_nodes [zi->nr_popupmenus].mem_dc = memdc;
     menu_nodes [zi->nr_popupmenus].dirty_rcs = NULL;
 #endif
+    menu_nodes [zi->nr_popupmenus].priv_data = NULL;
 
     if (zi->cli_trackmenu == -1)
         zi->cli_trackmenu = cli;
@@ -2071,6 +2072,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].dirty_rcs = NULL;
 #endif
     nodes [free_slot].idx_mask_rect = 0;
+    nodes [free_slot].priv_data = NULL;
 
     if (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS) {
         RECT cli_rect;
