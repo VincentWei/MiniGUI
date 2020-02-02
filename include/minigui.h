@@ -1075,9 +1075,6 @@ typedef struct _ZNODEINFO {
     /** The rectangle of the z-node in the screen. */
     RECT            rc;
 
-    /** Client id of the z-node. */
-    int             cli;
-
     /** The window handle of the z-node if it is a window. */
     HWND            hwnd;
     /**
@@ -1086,18 +1083,26 @@ typedef struct _ZNODEINFO {
      */
     HWND            main_win;
 
+    /** Client id of the z-node. */
+    int             cli;
+
 #ifdef _MGSCHEMA_COMPOSITING
-    /**
-     * The compositing argument for this z-node.
-     * For more information, see \a SetMainWindowCompositing.
-     */
-    DWORD           ct_arg;
     /**
      * The compositing type for this z-node.
      * For more information, see \a SetMainWindowCompositing.
      */
     int             ct;
+    /**
+     * The compositing argument for this z-node.
+     * For more information, see \a SetMainWindowCompositing.
+     */
+    DWORD           ct_arg;
 #endif
+    /**
+     * The private data for this z-node.
+     * The initial value is NULL.
+     */
+    void*           priv_data;
 } ZNODEINFO;
 
 /**
@@ -1161,7 +1166,7 @@ typedef struct _ZNODEHEADER {
     unsigned int    age;
 
 #ifdef _MGSCHEMA_COMPOSITING
-    /** The count for changes of content */
+    /** The count for changes of the content. */
     unsigned int    changes;
     /**
      * The compositing type for this z-node.
@@ -1173,25 +1178,24 @@ typedef struct _ZNODEHEADER {
      * For more information, see \a SetMainWindowCompositing.
      */
     DWORD           ct_arg;
-    /**
-     * The memory DC for this z-node.
-     */
+
+    /** The memory DC for this z-node. */
     HDC             mem_dc;
 
-    /** the dirty age of this z-node */
+    /** The dirty age of this z-node. */
     unsigned int    dirty_age;
 
-    /** the number of dirty rects */
+    /** The number of dirty rects. */
     int             nr_dirty_rcs;
 
-    /** the pointer to the dirty rectangles */
+    /** The pointer to the dirty rectangles. */
     const RECT*     dirty_rcs;
 #endif
 } ZNODEHEADER;
 
 /**
  * \fn const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
-                MG_Layer* layer, int idx_znode, BOOL lock)
+                MG_Layer* layer, int idx_znode, void** priv_data, BOOL lock)
  * \brief Get the pointer to the z-node header of a specific window
  * in the specified layer.
  *
@@ -1201,6 +1205,8 @@ typedef struct _ZNODEHEADER {
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
  * \param idx_znode The index of the z-node.
+ * \param priv_data The buffer to return the private data of the z-node;
+ *      can be NULL.
  * \param lock Whether to lock the shared surface.
  *
  * \return The pointer to the z-node header; NULL on error.
@@ -1218,7 +1224,7 @@ typedef struct _ZNODEHEADER {
  * Since 4.2.0
  */
 MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
-                MG_Layer* layer, int idx_znode, BOOL lock);
+                MG_Layer* layer, int idx_znode, void** priv_data, BOOL lock);
 
 /**
  * \fn void GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
@@ -1276,6 +1282,8 @@ MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
  * popup menu which is currently shown on the current layer.
  *
  * \param idx_znode The index of the popup menu. 0 means the first popup menu.
+ * \param priv_data The buffer to return the private data of the z-node;
+ *      can be NULL.
  * \param lock Whether to lock the shared surface.
  *
  * \return The pointer to the z-node header; NULL on error.
@@ -1291,7 +1299,7 @@ MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
  * Since 4.2.0
  */
 MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
-                int idx_znode, BOOL lock);
+                int idx_znode, void** priv_data, BOOL lock);
 
 /**
  * \fn BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx_znode)
@@ -1400,7 +1408,55 @@ MG_EXPORT BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
  * Since 4.2.0
  */
 MG_EXPORT BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
-                DWORD rgn_ops, CLIPRGN* dst_rgn);
+        DWORD rgn_ops, CLIPRGN* dst_rgn);
+
+/**
+ * \fn BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
+        int idx_znode, void* priv_data)
+ * \brief Set the private data of the z-node of a specific window
+ * in the specified layer.
+ *
+ * This function sets the private data of the z-node header of the window
+ * which uses the specific z-node index \a idx_znode in the specified
+ * layer \a layer.
+ *
+ * \param layer The pointer to the layer, NULL for the current topmost layer.
+ * \param idx_znode The index of the z-node.
+ * \param priv_data The private data.
+ *
+ * \return TRUE on success, otherwise FALSE;
+ *
+ * \note Server-only function.
+ *
+ * \sa ServerGetWinZNodeHeader, ServerSetPopupMenuZNodePrivateData
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
+        int idx_znode, void* priv_data);
+
+/**
+ * \fn BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx,
+        void* priv_data)
+ * \brief Set the private data of the z-node of the specific popup menu.
+ *
+ * This function sets the private data of the z-node header of the specific
+ * popup menu which is currently shown on the current layer.
+ *
+ * \param idx_znode The index of the popup menu. 0 means the first popup menu.
+ * \param priv_data The private data.
+ *
+ * \return TRUE on success, otherwise FALSE;
+ *
+ * \note Server-only function.
+ *
+ * \sa ServerGetPopupMenuZNodeHeader, ServerSetWinZNodePrivateData
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx,
+        void* priv_data);
+
 /**
  * \fn BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode, \
  *              int op_code, void* op_data, BOOL notify)
@@ -1538,6 +1594,16 @@ typedef struct _CompositorOps {
     void (*refresh) (CompositorCtxt* ctxt);
 
     /**
+     * This operation purges the private data of a popup menu z-node.
+     */
+    void (*purge_ppp_data) (CompositorCtxt* ctxt, int zidx, void* data);
+
+    /**
+     * This operation purges the private data of a window z-node.
+     */
+    void (*purge_win_data) (CompositorCtxt* ctxt, int zidx, void* data);
+
+    /**
      * This operation will be called when there are some dirty
      * rects in the specific popup menu z-node.
      */
@@ -1558,10 +1624,10 @@ typedef struct _CompositorOps {
     void (*on_dirty_wpp) (CompositorCtxt* ctxt);
 
     /**
-     * This operation will be called when the system is showing a new popup menu.
-     * Note that the compositor can not assume that there are contents
-     * in the surface of the popup menu; but it can update some internal data
-     * in this operation.
+     * This operation will be called when the system is showing a new
+     * popup menu. Note that the compositor can not assume that there
+     * are contents in the surface of the popup menu; but it can update
+     * some internal data in this operation.
      */
     void (*on_showing_ppp) (CompositorCtxt* ctxt, int zidx);
 
@@ -1572,7 +1638,8 @@ typedef struct _CompositorOps {
     void (*on_hiding_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation will be called when the system is closing a popup menu.
+     * This operation will be called when the system is closing a menu,
+     * including all popup menus of contained in the menu.
      * The compositor can play an animation in this operation.
      */
     void (*on_closing_menu) (CompositorCtxt* ctxt);
