@@ -1835,7 +1835,7 @@ static int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
     RECT* roundrc = NULL;
     RECT rect;
     int max_rect_num = 1, free_slot, rc_idx;
-    int i, z, r = 10;
+    int i, z, r = RADIUS_WINDOW_CORNERS;
     unsigned short idx;
     MASKRECT *firstmaskrect;
 
@@ -4153,8 +4153,9 @@ int __kernel_get_window_region (HWND pWin, CLIPRGN* region)
     }
 
     if (nr_mask_rects == 0) {
-        rc = nodes[idx_znode].rc;
-        OffsetRect (&rc, rc.left, rc.top);
+        rc = nodes [idx_znode].rc;
+        /* VW: 2020-02-02: bad call to `OffsetRect (&rc, rc.left, rc.top);` */
+        OffsetRect (&rc, -rc.left, -rc.top);
         if (!SetClipRgn (region, &rc))
             nr_mask_rects = -1;
     }
@@ -4165,4 +4166,218 @@ err_ret:
 
     return nr_mask_rects;
 }
+
+#ifdef _MGRM_PROCESSES
+BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
+                DWORD rgn_ops, CLIPRGN* dst_rgn)
+{
+    RECT rc;
+    MASKRECT *maskrect;
+    ZORDERNODE* nodes;
+    ZORDERINFO* zi;
+    int idx, nr_mask_rects;
+
+    if (!mgIsServer || idx_znode <= 0)
+        return FALSE;
+
+    if (layer) {
+        zi = mgTopmostLayer->zorder_info;
+    }
+    else {
+        if (!__mg_is_valid_layer (layer))
+            return FALSE;
+        zi = layer->zorder_info;
+    }
+
+    if (idx_znode > (zi->max_nr_globals +
+            zi->max_nr_topmosts + zi->max_nr_normals)) {
+        return FALSE;
+    }
+
+    if ((rgn_ops & RGN_OP_MASK) == RGN_OP_SET) {
+        EmptyClipRgn (dst_rgn);
+        rgn_ops &= ~RGN_OP_MASK;
+        rgn_ops |= RGN_OP_INCLUDE;
+    }
+
+    /* lock zi for read */
+    lock_zi_for_read (zi);
+
+    nr_mask_rects = 0;
+    nodes = GET_ZORDERNODE(zi);
+    maskrect = GET_MASKRECT(zi);
+    idx = nodes [idx_znode].idx_mask_rect;
+    while (idx) {
+        rc.left = maskrect->left;
+        rc.top = maskrect->top;
+        rc.right = maskrect->left;
+        rc.bottom = maskrect->bottom;
+
+        if (rgn_ops & RGN_OP_FLAG_ABS) {
+            OffsetRect (&rc, nodes[idx_znode].rc.left, nodes[idx_znode].rc.top);
+        }
+
+        if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
+            if (!SubtractClipRect (dst_rgn, &rc)) {
+                nr_mask_rects = -1;
+                goto err_ret;
+            }
+        }
+        else {
+            if (!AddClipRect (dst_rgn, &rc)) {
+                nr_mask_rects = -1;
+                goto err_ret;
+            }
+        }
+
+        idx = maskrect->next;
+        nr_mask_rects ++;
+    }
+
+    if (nr_mask_rects == 0) {
+        rc = nodes[idx_znode].rc;
+        if (!(rgn_ops & RGN_OP_FLAG_ABS)) {
+            OffsetRect (&rc, -rc.left, -rc.top);
+        }
+
+        if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
+            if (!SubtractClipRect (dst_rgn, &rc)) {
+                nr_mask_rects = -1;
+                goto err_ret;
+            }
+        }
+        else {
+            if (!AddClipRect (dst_rgn, &rc)) {
+                nr_mask_rects = -1;
+                goto err_ret;
+            }
+        }
+    }
+
+err_ret:
+    /* unlock zi for read */
+    unlock_zi_for_read (zi);
+
+    return nr_mask_rects >= 0;
+}
+
+#ifdef _MGSCHEMA_COMPOSITING
+struct _my_circle_context {
+    int         status;
+    int         r;
+    RECT        rc;
+    DWORD       rgn_ops;
+    CLIPRGN*    dst_rgn;
+};
+
+static void cb_circle_corners (void* context, int x1, int x2, int y)
+{
+    struct _my_circle_context* ctxt = (struct _my_circle_context*)context;
+    RECT rc;
+
+    if (ctxt->status) // check status first
+        return;
+
+    if (y < 0) {
+        rc.left = ctxt->rc.left + x1;
+        rc.right = ctxt->rc.right + x2;
+        rc.top = ctxt->rc.top + y;
+        rc.bottom = ctxt->rc.top + 1;
+    }
+    else if (y > 0) {
+        rc.left = ctxt->rc.left + x1;
+        rc.right = ctxt->rc.right + x2;
+        rc.top = ctxt->rc.bottom + y;
+        rc.bottom = ctxt->rc.top + 1;
+    }
+    else {
+        return; // return directly when y == 0
+    }
+
+    if ((ctxt->rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
+        if (!SubtractClipRect (ctxt->dst_rgn, &rc))
+            ctxt->status = -1;
+    }
+    else {
+        if (!AddClipRect (ctxt->dst_rgn, &rc))
+            ctxt->status = -1;
+    }
+}
+#endif /* _MGSCHEMA_COMPOSITING */
+
+BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
+                DWORD rgn_ops, CLIPRGN* dst_rgn)
+{
+    RECT rc;
+    ZORDERNODE* nodes;
+    ZORDERINFO* zi;
+    int nr_mask_rects = 0;
+
+    if (!mgIsServer || idx_znode <= 0)
+        return FALSE;
+
+    zi = mgTopmostLayer->zorder_info;
+    if (idx_znode >= zi->nr_popupmenus)
+        return FALSE;
+
+    if ((rgn_ops & RGN_OP_MASK) == RGN_OP_SET) {
+        EmptyClipRgn (dst_rgn);
+        rgn_ops &= ~RGN_OP_MASK;
+        rgn_ops |= RGN_OP_INCLUDE;
+    }
+
+    /* lock zi for read */
+    lock_zi_for_read (zi);
+
+    nodes = GET_MENUNODE(zi);
+    rc = nodes[idx_znode].rc;
+    if (!(rgn_ops & RGN_OP_FLAG_ABS)) {
+        OffsetRect (&rc, -rc.left, -rc.top);
+    }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    {
+        struct _my_circle_context ctxt = { 0, RADIUS_POPUPMENU_CORNERS, };
+
+        if (RECTW(rc) >= (RADIUS_POPUPMENU_CORNERS << 1) &&
+                RECTH(rc) >= (RADIUS_POPUPMENU_CORNERS << 1)) {
+            rc.top += RADIUS_POPUPMENU_CORNERS;
+            rc.bottom -= RADIUS_POPUPMENU_CORNERS;
+
+            ctxt.rc = rc;
+            ctxt.rgn_ops = rgn_ops;
+            ctxt.dst_rgn = dst_rgn;
+
+            CircleGenerator (&ctxt, 0, 0, RADIUS_POPUPMENU_CORNERS,
+                    cb_circle_corners);
+
+            if (ctxt.status) {
+                nr_mask_rects = -1;
+                goto err_ret;
+            }
+        }
+    }
+#endif /* _MGSCHEMA_COMPOSITING */
+
+    if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
+        if (!SubtractClipRect (dst_rgn, &rc)) {
+            nr_mask_rects = -1;
+            goto err_ret;
+        }
+    }
+    else {
+        if (!AddClipRect (dst_rgn, &rc)) {
+            nr_mask_rects = -1;
+            goto err_ret;
+        }
+    }
+
+err_ret:
+    /* unlock zi for read */
+    unlock_zi_for_read (zi);
+
+    return nr_mask_rects >= 0;
+}
+
+#endif /* _MGRM_PROCESSES */
 
