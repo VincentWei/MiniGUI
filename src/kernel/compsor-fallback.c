@@ -70,7 +70,7 @@
 struct _CompositorCtxt {
     RECT        rc_screen;  // screen rect - avoid duplicated GetScreenRect calls
     BLOCKHEAP   cliprc_heap;// heap for clipping rects
-    CLIPRGN     wins_rgn;   // visible region for all windows (subtract popupmenus)
+    CLIPRGN     wins_rgn;   // visible region for all windows (subtract popup menus)
     CLIPRGN     dirty_rgn;  // the dirty region
     CLIPRGN     comps_rgn;  // the region needed to re-composite
     CLIPRGN     left_rgn;   // the left region
@@ -167,7 +167,7 @@ static void composite_win_znode (CompositorCtxt* ctxt,
     RECT rc;
     const ZNODEHEADER* znode_hdr;
 
-    znode_hdr = ServerGetWinZNodeHeader (NULL, from, TRUE);
+    znode_hdr = ServerGetWinZNodeHeader (NULL, from, NULL, TRUE);
     if (znode_hdr == NULL)
         return;
 
@@ -242,7 +242,7 @@ static void on_dirty_win (CompositorCtxt* ctxt, int zidx)
     CLIPRECT *crc;
 
     if (zidx > 0) {
-        znode_hdr = ServerGetWinZNodeHeader (NULL, zidx, TRUE);
+        znode_hdr = ServerGetWinZNodeHeader (NULL, zidx, NULL, TRUE);
         if (znode_hdr && znode_hdr->dirty_rcs) {
             EmptyClipRgn (&ctxt->dirty_rgn);
             for (i = 0; i < znode_hdr->nr_dirty_rcs; i++) {
@@ -259,7 +259,7 @@ static void on_dirty_win (CompositorCtxt* ctxt, int zidx)
         prev = ServerGetPrevZNode (NULL, zidx, NULL);
         while (prev > 0) {
 
-            znode_hdr = ServerGetWinZNodeHeader (NULL, prev, FALSE);
+            znode_hdr = ServerGetWinZNodeHeader (NULL, prev, NULL, FALSE);
             if (znode_hdr->ct == CT_OPAQUE) {
                 SubtractClipRect (&ctxt->dirty_rgn, &znode_hdr->rc);
             }
@@ -326,7 +326,7 @@ static void subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
     while (prev > 0) {
         const ZNODEHEADER* znode_hdr;
 
-        znode_hdr = ServerGetWinZNodeHeader (NULL, prev, FALSE);
+        znode_hdr = ServerGetWinZNodeHeader (NULL, prev, NULL, FALSE);
         if (znode_hdr && znode_hdr->ct == CT_OPAQUE) {
             SubtractClipRect (&ctxt->dirty_rgn, &znode_hdr->rc);
         }
@@ -344,7 +344,7 @@ static void subtract_opaque_ppp_znodes (CompositorCtxt* ctxt)
     for (i = 0; i < nr_ppp; i++) {
         const ZNODEHEADER* znode_hdr;
 
-        znode_hdr = ServerGetPopupMenuZNodeHeader (i, FALSE);
+        znode_hdr = ServerGetPopupMenuZNodeHeader (i, NULL, FALSE);
         if (znode_hdr && znode_hdr->ct == CT_OPAQUE) {
             SubtractClipRect (&ctxt->dirty_rgn, &znode_hdr->rc);
         }
@@ -359,7 +359,7 @@ static void on_dirty_wpp (CompositorCtxt* ctxt)
 
     _DBG_PRINTF("called\n");
 
-    znode_hdr = ServerGetWinZNodeHeader (NULL, 0, TRUE);
+    znode_hdr = ServerGetWinZNodeHeader (NULL, 0, NULL, TRUE);
     if (znode_hdr && znode_hdr->dirty_rcs) {
         int i;
 
@@ -438,7 +438,7 @@ static const ZNODEHEADER* rebuild_wins_region (CompositorCtxt* ctxt)
 
     nr_ppps = ServerGetPopupMenusCount ();
     for (i = 0; i < nr_ppps; i++) {
-        znode_hdr = ServerGetPopupMenuZNodeHeader (i, FALSE);
+        znode_hdr = ServerGetPopupMenuZNodeHeader (i, NULL, FALSE);
         if (znode_hdr)
             SubtractClipRect (&ctxt->wins_rgn, &znode_hdr->rc);
     }
@@ -455,7 +455,7 @@ static void refresh (CompositorCtxt* ctxt)
 
 static void on_showing_ppp (CompositorCtxt* ctxt, int zidx)
 {
-    const ZNODEHEADER* znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, FALSE);
+    const ZNODEHEADER* znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, NULL, FALSE);
     if (znode_hdr)
         SubtractClipRect (&ctxt->wins_rgn, &znode_hdr->rc);
 }
@@ -465,7 +465,7 @@ static void on_hiding_ppp (CompositorCtxt* ctxt, int zidx)
     const ZNODEHEADER* znode_hdr;
 
     rebuild_wins_region (ctxt);
-    znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, FALSE);
+    znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, NULL, FALSE);
 
     if (znode_hdr) {
         on_dirty_win (ctxt, 0);

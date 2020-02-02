@@ -119,36 +119,7 @@ static const CompositorOps* load_default_compositor (void)
     return ex_compsor_get (COMPSOR_NAME_DEFAULT, &__mg_fallback_compositor);
 }
 
-BOOL mg_InitCompositor (void)
-{
-    const char* name = COMPSOR_NAME_FALLBACK;
-    const CompositorOps* ops;
-    CompositorCtxt* ctxt = NULL;
-
-    ops = load_default_compositor ();
-    if (ops && ServerRegisterCompositor (COMPSOR_NAME_DEFAULT, ops)) {
-        name = COMPSOR_NAME_DEFAULT;
-    }
-
-    ServerSelectCompositor (name, &ctxt);
-    return (ctxt != NULL);
-}
-
-void mg_TerminateCompositor (void)
-{
-    CompositorCtxt* ctxt = NULL;
-
-    // Select fallback compositor and terminate the fallback compositor.
-    ServerSelectCompositor (COMPSOR_NAME_FALLBACK, &ctxt);
-    if (ctxt) {
-        __mg_fallback_compositor.terminate (ctxt);
-    }
-
-    if (dl_handle)
-        dlclose (dl_handle);
-}
-
-void __mg_compsor_check_znodes (void)
+void __mg_composite_dirty_znodes (void)
 {
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
@@ -180,7 +151,7 @@ void __mg_compsor_check_znodes (void)
     // travel win znodes
     nodes = GET_ZORDERNODE(zi);
     next = 0;
-    while ( (next = __kernel_get_next_znode (zi, next)) > 0) {
+    while ((next = __kernel_get_next_znode (zi, next)) > 0) {
         if (nodes [next].flags & ZOF_VISIBLE) {
             pdc = dc_HDC2PDC (nodes[next].mem_dc);
             assert (pdc->surface->shared_header);
@@ -203,6 +174,79 @@ void __mg_compsor_check_znodes (void)
             nodes[0].changes = changes_in_dc;
         }
     }
+}
+
+static void purge_znodes_private_data_in_layer (const CompositorOps* ops,
+        CompositorCtxt* ctxt, MG_Layer* layer)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+    int i, next;
+
+    zi = (ZORDERINFO*)layer->zorder_info;
+
+    // travel popup menu znodes
+    if (zi->nr_popupmenus > 0) {
+        nodes = GET_MENUNODE(zi);
+        for (i = 0; i < zi->nr_popupmenus; i++) {
+            if (nodes[i].priv_data) {
+                ops->purge_ppp_data (ctxt, i, nodes[i].priv_data);
+                nodes[i].priv_data = NULL;
+            }
+        }
+    }
+
+    // travel window znodes
+    nodes = GET_ZORDERNODE(zi);
+    next = 0;
+    while ((next = __kernel_get_next_znode (zi, next)) > 0) {
+        if (nodes[next].priv_data) {
+            ops->purge_win_data (ctxt, next, nodes[next].priv_data);
+            nodes[next].priv_data = NULL;
+        }
+    }
+}
+
+static inline void purge_all_znodes_private_data (const CompositorOps* ops,
+        CompositorCtxt* ctxt)
+{
+    MG_Layer* layer;
+
+    layer = mgLayers;
+    while (layer) {
+        purge_znodes_private_data_in_layer (ops, ctxt, layer);
+        layer = layer->next;
+    }
+}
+
+BOOL mg_InitCompositor (void)
+{
+    const char* name = COMPSOR_NAME_FALLBACK;
+    const CompositorOps* ops;
+    CompositorCtxt* ctxt = NULL;
+
+    ops = load_default_compositor ();
+    if (ops && ServerRegisterCompositor (COMPSOR_NAME_DEFAULT, ops)) {
+        name = COMPSOR_NAME_DEFAULT;
+    }
+
+    ServerSelectCompositor (name, &ctxt);
+    return (ctxt != NULL);
+}
+
+void mg_TerminateCompositor (void)
+{
+    CompositorCtxt* ctxt = NULL;
+
+    // Select fallback compositor and terminate the fallback compositor.
+    ServerSelectCompositor (COMPSOR_NAME_FALLBACK, &ctxt);
+    if (ctxt) {
+        purge_all_znodes_private_data (&__mg_fallback_compositor, ctxt);
+        __mg_fallback_compositor.terminate (ctxt);
+    }
+
+    if (dl_handle)
+        dlclose (dl_handle);
 }
 
 const CompositorOps* GUIAPI ServerGetCompositorOps (const char* name)
@@ -288,8 +332,10 @@ const CompositorOps* GUIAPI ServerSelectCompositor (const char* name,
 
         ctxt = ops->initialize (name);
         if (ctxt) {
-            if (curr_ops)
+            if (curr_ops) {
+                purge_all_znodes_private_data (curr_ops, curr_ctxt);
                 curr_ops->terminate (curr_ctxt);
+            }
             curr_ops = ops;
             curr_ctxt = ctxt;
             curr_ops->refresh (ctxt);
