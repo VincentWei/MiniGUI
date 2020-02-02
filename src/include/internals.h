@@ -642,7 +642,7 @@ int __mg_free_mutual_sem (SemSetManager* manager, int sem_num);
 #ifdef _MGSCHEMA_COMPOSITING
 BOOL mg_InitCompositor (void);
 void mg_TerminateCompositor (void);
-void __mg_compsor_check_znodes (void);
+void __mg_composite_dirty_znodes (void);
 #endif
 
 #ifdef __cplusplus

@@ -36,7 +36,7 @@ tab2space() {
 # sed -i 's/\<free_window_element_data\>/__mg_free_window_element_data/g' `grep free_window_element_data -rl include/ src/`
 # sed -i 's/\<append_window_element_data\>/__mg_append_window_element_data/g' `grep append_window_element_data -rl include/ src/`
 # sed -i 's/\<set_window_element_data\>/__mg_set_window_element_data/g' `grep set_window_element_data -rl include/ src/`
-# sed -i 's/\<__compsor_check_znodes\>/__mg_compsor_check_znodes/g' `grep __compsor_check_znodes -rl include/ src/`
+# sed -i 's/\<__compsor_check_znodes\>/__mg_composite_dirty_znodes/g' `grep __compsor_check_znodes -rl include/ src/`
 
 # sed -i 's/\<mg_linux_tty_init\>/__mg_linux_tty_init/g' `grep mg_linux_tty_init -rl include/ src/`
 # sed -i 's/\<mg_linux_tty_enable_vt_switch\>/__mg_linux_tty_enable_vt_switch/g' `grep mg_linux_tty_enable_vt_switch -rl include/ src/`
