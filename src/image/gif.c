@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -59,10 +59,10 @@ int unpack_gif(gif_info_t* ginfo)
     int palette_size;
 
     assert(ginfo->gif_surface==NULL);
-	assert(ginfo->gif_buffer!=NULL);
+    assert(ginfo->gif_buffer!=NULL);
 
     ginfo->gif_cur_buffer=ginfo->gif_buffer;
-    
+
     memcpy(&(ginfo->gif_global),
              ginfo->gif_cur_buffer,
              sizeof(gif_global_t));
@@ -90,14 +90,14 @@ int unpack_gif(gif_info_t* ginfo)
         char block_type=*(ginfo->gif_cur_buffer);
         ginfo->gif_cur_buffer++;
         switch(block_type) {
-        case ',': 
+        case ',':
             // unpack local image block
             return unpack_local_image(ginfo);
             break;
         case '!':
             {
             // char sub_block_type=*(ginfo->gif_cur_buffer++);
-			unsigned char sub_block_size=*(ginfo->gif_cur_buffer++);
+            unsigned char sub_block_size=*(ginfo->gif_cur_buffer++);
 
             ginfo->gif_cur_buffer+=sub_block_size; // skip subblock
             ginfo->gif_cur_buffer++;  // skip '0x00'
@@ -105,7 +105,7 @@ int unpack_gif(gif_info_t* ginfo)
             break;
         default:
             // unknown block , return false .
-            return -1; 
+            return -1;
         }
     }
     return 0;
@@ -141,12 +141,12 @@ int unpack_local_image(gif_info_t* ginfo)
 int unpack_image_data(gif_info_t* ginfo)
 {
     ginfo->first_ch=*(ginfo->gif_cur_buffer);
-    
+
     assert(ginfo->first_ch==1||
            ginfo->first_ch==2||
            ginfo->first_ch==4||
            ginfo->first_ch==8);
-    
+
     ginfo->gif_cur_buffer++;
 
     ginfo->gif_x=0;
@@ -171,7 +171,7 @@ int unpack_image_data(gif_info_t* ginfo)
                 }
             }
             // output code ...
-            output_code(ginfo,ginfo->code); 
+            output_code(ginfo,ginfo->code);
             ginfo->prefix=ginfo->code;
         }
     }
@@ -187,9 +187,9 @@ void clear_code_table(gif_info_t* ginfo,int clear)
     ginfo->prefix=-1;
 
     for(i=0;i<clear;i++) {
-        ginfo->code_table[i].first=i;   // first char 
-        ginfo->code_table[i].last=i;    // last char 
-        ginfo->code_table[i].prefix=-1; // prefix index 
+        ginfo->code_table[i].first=i;   // first char
+        ginfo->code_table[i].last=i;    // last char
+        ginfo->code_table[i].prefix=-1; // prefix index
     }
     for(i=clear;i<4096;i++) {
         ginfo->code_table[i].prefix=-2;
@@ -225,7 +225,7 @@ void output_code(gif_info_t* ginfo,int code)
     }
 }
 
-void output_pixel(gif_info_t* ginfo,unsigned char pixel) 
+void output_pixel(gif_info_t* ginfo,unsigned char pixel)
 {
     unsigned char r,g,b;
 
@@ -290,7 +290,7 @@ int get_code(gif_info_t* ginfo)
         // store remain useful bits to low bits of data
         ginfo->data>>=use_bits;
         mask<<=position;
-        // new position that bits should be placed next time 
+        // new position that bits should be placed next time
         position+=use_bits;
         // insert these bits to the value
         value|=mask;
@@ -327,7 +327,7 @@ void draw_pixel(gif_info_t* ginfo,int r,int g,int b)
     mem++;
 }
 
-void destroy_gif(gif_info_t* ginfo) 
+void destroy_gif(gif_info_t* ginfo)
 {
     if (ginfo->gif_surface!=NULL) {
         free(ginfo->gif_surface);

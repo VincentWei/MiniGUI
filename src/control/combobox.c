@@ -121,12 +121,12 @@ static void ComboBoxDrawSpinButton (HWND hwnd, HDC hdc , int which, int status)
     PCONTROL pCtrl;
     const WINDOWINFO *win_info;
     DWORD fg_3d;
-	BOOL  bGetDC = FALSE;
+    BOOL  bGetDC = FALSE;
 
-	if (hdc == 0) {
-		bGetDC = TRUE;
-		hdc = GetClientDC(hwnd);
-	}
+    if (hdc == 0) {
+        bGetDC = TRUE;
+        hdc = GetClientDC(hwnd);
+    }
 
     pCtrl = gui_Control (hwnd);
     win_info = GetWindowInfo(hwnd);
@@ -184,11 +184,11 @@ static void ComboBoxDrawSpinButton (HWND hwnd, HDC hdc , int which, int status)
                             status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_DOWN);
             break;
     }
-	
-	if(bGetDC)
-	{
-		ReleaseDC(hdc);
-	}
+
+    if(bGetDC)
+    {
+        ReleaseDC(hdc);
+    }
     return ;
 }
 
@@ -441,9 +441,9 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             if (pData->list_height >= 0) {
                 DWORD ex_style = WS_EX_NONE;
                 if ((dwStyle & CBS_TYPEMASK) == CBS_SIMPLE) {
-					ex_style |= (pCtrl->dwExStyle & WS_EX_TRANSPARENT);
-				}
-				else{
+                    ex_style |= (pCtrl->dwExStyle & WS_EX_TRANSPARENT);
+                }
+                else{
                     ex_style |= WS_EX_CTRLASMAINWIN;
                 }
 
@@ -602,7 +602,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             {
                 //SendMessage(hwnd, MSG_PAINT,
                 //        MAKELONG(DEC_BOX, LFRDR_BTN_STATUS_HILITE), 0);
-				ComboBoxDrawSpinButton(hwnd, 0, DEC_BOX, LFRDR_BTN_STATUS_HILITE);
+                ComboBoxDrawSpinButton(hwnd, 0, DEC_BOX, LFRDR_BTN_STATUS_HILITE);
                 mouse_old = DEC_BOX;
             }
 
@@ -744,24 +744,24 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 else if (code == EN_CHANGE) {
                     if (GetFocusChild(hwnd) == pData->EditControl) {
                         if (pData->ListBoxControl) {
-							int len = GetWindowTextLength(pData->EditControl);
+                            int len = GetWindowTextLength(pData->EditControl);
                             if ( len > 0) {
 #ifdef HAVE_ALLOCA
-                            	char *str = (char*)alloca(len+1);
+                                char *str = (char*)alloca(len+1);
 #else
-								char *str = (char*)malloc(len+1);
+                                char *str = (char*)malloc(len+1);
 #endif
-								if(str){
-	                            	GetWindowText (pData->EditControl, str, len);
-    	                            if ((sel = SendMessage (pData->ListBoxControl,
-        	                                        LB_FINDSTRING, 0, (LPARAM)str)) >= 0)
-            	                        SendMessage (pData->ListBoxControl,
-                                 	           LB_SETCURSEL, sel, 0);
+                                if(str){
+                                    GetWindowText (pData->EditControl, str, len);
+                                    if ((sel = SendMessage (pData->ListBoxControl,
+                                                    LB_FINDSTRING, 0, (LPARAM)str)) >= 0)
+                                        SendMessage (pData->ListBoxControl,
+                                                LB_SETCURSEL, sel, 0);
 #ifndef HAVE_ALLOCA
-									free(str);
+                                    free(str);
 #endif
-                           		 }
-							}
+                                    }
+                            }
                         }
                     }
 
@@ -785,7 +785,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             mouse_old = 0;
             if(!(BOOL)wParam)
                 //SendMessage(hwnd, MSG_PAINT, 0, 0);
-				ComboBoxDrawSpinButton(hwnd, 0, 0, 0);
+                ComboBoxDrawSpinButton(hwnd, 0, 0, 0);
             break;
         case MSG_MOUSEMOVE:
             {
@@ -804,7 +804,7 @@ static LRESULT ComboBoxCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 {
                     //SendMessage(hwnd, MSG_PAINT,
                     //            MAKELONG(mouse, LFRDR_BTN_STATUS_HILITE), 0);
-					ComboBoxDrawSpinButton(hwnd, 0, mouse, LFRDR_BTN_STATUS_HILITE);
+                    ComboBoxDrawSpinButton(hwnd, 0, mouse, LFRDR_BTN_STATUS_HILITE);
                     mouse_old = mouse;
                 }
                 break;

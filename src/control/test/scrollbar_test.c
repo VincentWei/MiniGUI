@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -67,7 +67,7 @@
 
 #include "resource.h"
 
-static int 
+static int
 PageProc1 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
 {
 
@@ -84,9 +84,9 @@ PageProc1 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
             buffer [18] = '\0';
 
             if (buffer [0] == '\0') {
-                MessageBox (hDlg, 
-                            "Please input something in the first edit box.", 
-                            "Warning!", 
+                MessageBox (hDlg,
+                            "Please input something in the first edit box.",
+                            "Warning!",
                             MB_OK | MB_ICONEXCLAMATION | MB_BASEDONPARENT);
                 return -1;
             }
@@ -97,17 +97,17 @@ PageProc1 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
         switch (wParam) {
         case IDOK:
         case IDCANCEL:
-            MessageBox (hDlg, "Button pushed", "OK", 
+            MessageBox (hDlg, "Button pushed", "OK",
                             MB_OK | MB_ICONINFORMATION | MB_BASEDONPARENT);
             break;
         }
         break;
     }
-    
+
     return DefaultPageProc (hDlg, message, wParam, lParam);
 }
 
-static int 
+static int
 PageProc2 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
 {
     static HWND  hScrollbar=HWND_INVALID;
@@ -131,7 +131,7 @@ PageProc2 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
                 MoveWindow(hScrollbar,100+delta,30,100,20,1);
             }
         }
-        break;        
+        break;
     case MSG_COMMAND:
         switch (wParam) {
         case IDOK:
@@ -150,13 +150,13 @@ PageProc2 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
             break;
         }
         break;
-        
+
     }
-    
+
     return DefaultPageProc (hDlg, message, wParam, lParam);
 }
 
-static int 
+static int
 PageProc3 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
 {
     //int i;
@@ -164,12 +164,12 @@ PageProc3 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
 
     switch (message) {
     case MSG_INITPAGE:
-        /*for (i = 0; i < 20; i++) { 
+        /*for (i = 0; i < 20; i++) {
             sprintf (temp, "%d-Welcome", i);
             SendDlgItemMessage (hDlg, IDC_BOX1, CB_ADDSTRING, 0, (LPARAM)temp) ;
             SendDlgItemMessage (hDlg, IDC_BOX2, CB_ADDSTRING, 0, (LPARAM)temp) ;
             SendDlgItemMessage (hDlg, IDC_BOX4, CB_ADDSTRING, 0, (LPARAM)temp) ;
-        }*/ 
+        }*/
         break;
 
     case MSG_SHOWPAGE:
@@ -192,9 +192,9 @@ PageProc3 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
             break;
         }
         break;
-        
+
     }
-    
+
     return DefaultPageProc (hDlg, message, wParam, lParam);
 }
 
@@ -332,7 +332,7 @@ static int ScrollbarMessageTest(HWND hScrollbar, HWND hDlg, int message, WPARAM 
                     strcpy(messagebuffer,"message SBM_ENABLE_ARROW :SB_ARROW_BTDN");
                     mIndex +=1;
                 }
-                
+
                 SetWindowText(hMessageTestRe,messagebuffer);
             }
     }
@@ -340,7 +340,7 @@ static int ScrollbarMessageTest(HWND hScrollbar, HWND hDlg, int message, WPARAM 
     return 0;
 }
 
-static int 
+static int
 PageProc4 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
 {
     static HWND  hScrollbar=HWND_INVALID;
@@ -543,12 +543,12 @@ PageProc4 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
         break;
         }
     }
-    
+
     return DefaultPageProc (hDlg, message, wParam, lParam);
 }
 
 
-static int 
+static int
 PageProc5 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
@@ -561,12 +561,12 @@ PageProc5 (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
         switch (wParam) {
         case IDOK:
         case IDCANCEL:
-            MessageBox (hDlg, "Button pushed", "OK", 
+            MessageBox (hDlg, "Button pushed", "OK",
                             MB_OK | MB_ICONINFORMATION | MB_BASEDONPARENT);
             break;
         }
     }
-    
+
     return DefaultPageProc (hDlg, message, wParam, lParam);
 }
 
@@ -579,23 +579,23 @@ static int PropSheetProc (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
             HWND pshwnd = GetDlgItem (hDlg, IDC_PROPSHEET);
 
             DlgInitProgress.controls = CtrlInitProgress;
-            SendMessage ( pshwnd, PSM_ADDPAGE, 
+            SendMessage ( pshwnd, PSM_ADDPAGE,
                             (WPARAM)&DlgInitProgress, (LPARAM) PageProc4);
 
             DlgStartupMode.controls = CtrlStartupMode;
-            SendMessage ( pshwnd, PSM_ADDPAGE, 
+            SendMessage ( pshwnd, PSM_ADDPAGE,
                             (WPARAM)&DlgStartupMode,(LPARAM)PageProc3);
-            
+
             DlgPassword.controls = CtrlPassword;
-            SendMessage ( pshwnd, PSM_ADDPAGE, 
+            SendMessage ( pshwnd, PSM_ADDPAGE,
                             (WPARAM)&DlgPassword,(LPARAM) PageProc2);
-            
+
             DlgStructParams.controls = CtrlStructParams;
             SendMessage (pshwnd, PSM_ADDPAGE,
                             (WPARAM)&DlgStructParams, (LPARAM)PageProc1);
 
             Dlgutmost.controls =Ctrlutmost;
-            SendMessage ( pshwnd, PSM_ADDPAGE, 
+            SendMessage ( pshwnd, PSM_ADDPAGE,
                             (WPARAM)&Dlgutmost, (LPARAM) PageProc5);
 
 
@@ -603,20 +603,20 @@ static int PropSheetProc (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
         }
 
         case MSG_COMMAND:
-        switch (wParam) 
+        switch (wParam)
         {
             /*case IDC_APPLY:
             break;
 
             case IDOK:
             {
-                int index = SendDlgItemMessage (hDlg, IDC_PROPSHEET, 
+                int index = SendDlgItemMessage (hDlg, IDC_PROPSHEET,
                                 PSM_SHEETCMD, IDOK, 0);
                 if (index) {
-                    SendDlgItemMessage (hDlg, IDC_PROPSHEET, 
+                    SendDlgItemMessage (hDlg, IDC_PROPSHEET,
                                     PSM_SETACTIVEINDEX, index - 1, 0);
                 }
-                else 
+                else
                     EndDialog (hDlg, wParam);
 
                 break;
@@ -663,7 +663,7 @@ int MiniGUIMain (int args, const char* arg[])
         return 1;
     }
 
-    
+
 #endif
 
     ScrollbarTest();

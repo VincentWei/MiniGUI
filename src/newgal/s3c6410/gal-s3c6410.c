@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -82,54 +82,54 @@
 #endif
 
 int s3c6410_size_table[48] = {
-	290, /* speed: 4775 */
-	370, /* speed: 4688 */
-	220, /* speed: 5125 */
-	240, /* speed: 3925 */
-	210, /* speed: 3856 */
-	170, /* speed: 3968 */
-	170, /* speed: 3461 */
-	140, /* speed: 3861 */
-	130, /* speed: 3616 */
-	120, /* speed: 3413 */
-	110, /* speed: 3530 */
-	100, /* speed: 3584 */
-	90, /* speed: 3530 */
-	80, /* speed: 3664 */
-	90, /* speed: 3285 */
-	80, /* speed: 3552 */
-	80, /* speed: 3184 */
-	80, /* speed: 3088 */
-	70, /* speed: 3306 */
-	70, /* speed: 3200 */
-	70, /* speed: 3061 */
-	60, /* speed: 3280 */
-	60, /* speed: 3189 */
-	50, /* speed: 3733 */
-	70, /* speed: 2698 */
-	50, /* speed: 3296 */
-	40, /* speed: 3813 */
-	50, /* speed: 3194 */
-	50, /* speed: 3082 */
-	70, /* speed: 2330 */
-	40, /* speed: 3477 */
-	30, /* speed: 4458 */
-	50, /* speed: 2810 */
-	30, /* speed: 3957 */
-	40, /* speed: 3168 */
-	50, /* speed: 2656 */
-	40, /* speed: 3061 */
-	30, /* speed: 3658 */
-	30, /* speed: 3610 */
-	40, /* speed: 3061 */
-	30, /* speed: ? */
-	30, /* speed: ? */
-	30, /* speed: ? */
-	30, /* speed: ? */
-	20, /* speed: ? */
-	20, /* speed: ? */
-	20, /* speed: ? */
-	20, /* speed: ? */
+    290, /* speed: 4775 */
+    370, /* speed: 4688 */
+    220, /* speed: 5125 */
+    240, /* speed: 3925 */
+    210, /* speed: 3856 */
+    170, /* speed: 3968 */
+    170, /* speed: 3461 */
+    140, /* speed: 3861 */
+    130, /* speed: 3616 */
+    120, /* speed: 3413 */
+    110, /* speed: 3530 */
+    100, /* speed: 3584 */
+    90, /* speed: 3530 */
+    80, /* speed: 3664 */
+    90, /* speed: 3285 */
+    80, /* speed: 3552 */
+    80, /* speed: 3184 */
+    80, /* speed: 3088 */
+    70, /* speed: 3306 */
+    70, /* speed: 3200 */
+    70, /* speed: 3061 */
+    60, /* speed: 3280 */
+    60, /* speed: 3189 */
+    50, /* speed: 3733 */
+    70, /* speed: 2698 */
+    50, /* speed: 3296 */
+    40, /* speed: 3813 */
+    50, /* speed: 3194 */
+    50, /* speed: 3082 */
+    70, /* speed: 2330 */
+    40, /* speed: 3477 */
+    30, /* speed: 4458 */
+    50, /* speed: 2810 */
+    30, /* speed: 3957 */
+    40, /* speed: 3168 */
+    50, /* speed: 2656 */
+    40, /* speed: 3061 */
+    30, /* speed: 3658 */
+    30, /* speed: 3610 */
+    40, /* speed: 3061 */
+    30, /* speed: ? */
+    30, /* speed: ? */
+    30, /* speed: ? */
+    30, /* speed: ? */
+    20, /* speed: ? */
+    20, /* speed: ? */
+    20, /* speed: ? */
+    20, /* speed: ? */
 };
 
 /* Initialization/Query functions */
@@ -348,7 +348,7 @@ S3C6410_CheckHWBlit(_THIS, GAL_Surface * src, GAL_Surface * dst)
     // only supported the hw surface accelerated.
     if (!(src->flags & GAL_HWSURFACE) || !(dst->flags & GAL_HWSURFACE))
     {
-        printf("src(%s) dst(%s)\n", 
+        printf("src(%s) dst(%s)\n",
                 (src->flags & GAL_HWSURFACE) ? "HW" : "SW",
                 (dst->flags & GAL_HWSURFACE) ? "HW" : "SW");
         return -1;
@@ -422,24 +422,24 @@ static unsigned int get_colormode(GAL_Surface *surface) {
     return (unsigned int)-1;
 }
 
-static int setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *param) 
+static int setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *param)
 {
-    param->src_base_addr = src->hwdata->addr_phy; //Base address of the source image	
+    param->src_base_addr = src->hwdata->addr_phy; //Base address of the source image
     param->src_full_width = src->w; //source screen full width
     param->src_full_height = src->h; //source screen full heiht
-    param->src_start_x = 0;			//coordinate start x of source image
-    param->src_start_y = 0;			//coordinate start y of source image
-    param->src_work_width = 0;			//source image width for work
-    param->src_work_height = 0;		//source image height for work
+    param->src_start_x = 0;            //coordinate start x of source image
+    param->src_start_y = 0;            //coordinate start y of source image
+    param->src_work_width = 0;            //source image width for work
+    param->src_work_height = 0;        //source image height for work
     param->src_colormode = get_colormode(src);
 
-    param->dst_base_addr = dst->hwdata->addr_phy;			//Base address of the destination image	
-    param->dst_full_width = dst->w;			//destination screen full width
-    param->dst_full_height = dst->h;		//destination screen full height
-    param->dst_start_x = 0;			//coordinate start x of destination screen
-    param->dst_start_y = 0;			//coordinate start y of destination screen
-    param->dst_work_width = 0;			//destination screen width for work
-    param->dst_work_height = 0;		//destination screen height for work
+    param->dst_base_addr = dst->hwdata->addr_phy;            //Base address of the destination image
+    param->dst_full_width = dst->w;            //destination screen full width
+    param->dst_full_height = dst->h;        //destination screen full height
+    param->dst_start_x = 0;            //coordinate start x of destination screen
+    param->dst_start_y = 0;            //coordinate start y of destination screen
+    param->dst_work_width = 0;            //destination screen width for work
+    param->dst_work_height = 0;        //destination screen height for work
     param->dst_colormode = get_colormode(dst);
 
     // cos
@@ -462,8 +462,8 @@ static int setup_param(GAL_Surface *src, GAL_Surface *dst, s3c_g2d_params *param
     param->alpha_mode = 0;
     param->alpha_val = 0;
 
-    param->color_key_mode = 0;			//true : enable, false : disable
-    param->color_key_val = 0;			//transparent color value
+    param->color_key_mode = 0;            //true : enable, false : disable
+    param->color_key_val = 0;            //transparent color value
 
     if ((src->flags & GAL_SRCPIXELALPHA)) {
         param->alpha_mode |= S3C_G2D_ROP_REG_ABM_SRC_BITMAP;
@@ -499,7 +499,7 @@ S3C6410_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_R
     param.src_start_y = srcrect->y;
     param.src_work_width = srcrect->w;
     param.src_work_height = srcrect->h;
-    
+
     param.dst_start_x = dstrect->x;
     param.dst_start_y = dstrect->y;
     param.dst_work_width = dstrect->w;

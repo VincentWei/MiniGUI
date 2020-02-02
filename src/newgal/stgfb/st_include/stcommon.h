@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -58,12 +58,12 @@
 /*        EXCLUDED TO THE FULLEST EXTENT PERMITTED BY LAW                    */
 /*                                                                           */
 /*****************************************************************************/
-/**                                                                            
- @File   stcommon.h                                                            
- @brief                                                                         
-                                                                               
- Interface to revision reporting and clock info functions                                                                             
-                                                                               
+/**
+ @File   stcommon.h
+ @brief
+
+ Interface to revision reporting and clock info functions
+
 */
 
 #ifndef _STCOMMON_H_
@@ -131,7 +131,7 @@ typedef struct ST_ClockInfo_s
 typedef struct ST_ClockInfo_s
 {
  /* Clock gen A */
- struct 
+ struct
   {
    U32 pll0_clk;     /* PLL0 clock                  */
    U32 pll1_clk;     /* PLL1 clock                  */
@@ -151,7 +151,7 @@ typedef struct ST_ClockInfo_s
    U32 emi_clk;      /* Emi clock                   */
   } ckga;
  /* Clock gen B */
- struct 
+ struct
   {
    U32 fs0_1_clk;    /* Frequency synth0 clock 1    */
    U32 fs0_2_clk;    /* Frequency synth0 clock 2    */
@@ -178,7 +178,7 @@ typedef struct ST_ClockInfo_s
    U32 lpc_clk;      /* Low power  clock            */
   } ckgb;
  /* Clock gen C */
- struct 
+ struct
   {
    U32 pcm_0_clk;    /* PCM 0 clock                 */
    U32 pcm_1_clk;    /* PCM 1 clock                 */
@@ -193,7 +193,7 @@ typedef struct ST_ClockInfo_s
 typedef struct ST_ClockInfo_s
 {
  /* Clock gen A */
- struct 
+ struct
   {
    U32 lmi_clk;         /* LMI PLL clock               */
    U32 pll0_clk;        /* PLL0 clock                  */
@@ -215,7 +215,7 @@ typedef struct ST_ClockInfo_s
    U32 emi_clk;         /* Emi clock                   */
   } ckga;
  /* Clock gen B */
- struct 
+ struct
   {
    U32 fs0_1_clk;    /* Frequency synth0 clock 1    */
    U32 fs0_2_clk;    /* Frequency synth0 clock 2    */
@@ -250,7 +250,7 @@ typedef struct ST_ClockInfo_s
 typedef struct ST_ClockInfo_s
 {
  /* Clock gen A */
- struct 
+ struct
   {
    U32 lmi_clk;         /* LMI PLL clock               */
    U32 pll0_clk;        /* PLL0 clock                  */
@@ -273,7 +273,7 @@ typedef struct ST_ClockInfo_s
    U32 emi_clk;         /* Emi clock                   */
   } ckga;
  /* Clock gen B */
- struct 
+ struct
   {
    U32 fs0_1_clk;    /* Frequency synth0 clock 1    */
    U32 fs0_2_clk;    /* Frequency synth0 clock 2    */
@@ -308,7 +308,7 @@ typedef struct ST_ClockInfo_s
 typedef struct ST_ClockInfo_s
 {
  /* Clock gen A */
- struct 
+ struct
   {
    U32 lmi_clk;         /* LMI PLL clock               */
    U32 pll0_clk;        /* PLL0 clock                  */
@@ -340,7 +340,7 @@ typedef struct ST_ClockInfo_s
    U32 com_clk;         /* Peripherals clock           */
   } ckga;
  /* Clock gen B */
- struct 
+ struct
   {
    U32 pll0_clk;        /* PLL0 clock                  */
    U32 bdisp_266_clk;   /* Blitter display 266 clock   */
@@ -389,7 +389,7 @@ typedef struct ST_ClockInfo_s
    U32 lpc_clk;         /* Low power  clock            */
   } ckgb;
  /* Clock gen C */
- struct 
+ struct
   {
    U32 fs0_1_clk;       /* Frequency synth0 clock 1    */
    U32 fs0_2_clk;       /* Frequency synth0 clock 2    */
@@ -413,12 +413,12 @@ typedef struct ST_ClockInfo_s
    U32 main_pix_clk;     /* HDTVOUT main pixel clock   */
    U32 fdvo_clk;         /* HDTVOUT Flex DVO clock     */
    U32 hdmi_bch_clk;     /* HDTVOUT HDMI BCH clock     */
-   U32 hdmi_tmds_clk;    /* HDTVOUT TMDS clock         */ 
+   U32 hdmi_tmds_clk;    /* HDTVOUT TMDS clock         */
    U32 hdmi_tmds_phy_clk;/* TMDS PHY clock             */
    U32 obelix_main_clk;  /* Obelix main clock          */
    U32 obelix_aux_clk;   /* Obelix aux clock           */
    U32 obelix_gdp_clk;   /* Obelix gdp clock           */
-   U32 obelix_vdp_clk;   /* Obelix video display pipe  */ 
+   U32 obelix_vdp_clk;   /* Obelix video display pipe  */
    U32 obelix_cap_clk;   /* Obelix capture port clock  */
    U32 aux_ref_clk;      /* SDTVOUT aux local clock    */
    U32 aux_pix_clk;      /* SDTVOUT aux pixel clock    */
@@ -426,7 +426,7 @@ typedef struct ST_ClockInfo_s
    U32 ch34_clk;         /* SDTVOUT channel 3/4 clock  */
   } loctvout;
  /* Clockgen Remote SD TV output */
- struct 
+ struct
  {
    U32 ref_clk;          /* SDTVOUT remote clock        */
    U32 pix_clk;          /* SDTVOUT pixel clock         */
@@ -440,11 +440,11 @@ typedef struct ST_ClockInfo_s
 
 /* Clock infos structure for 7106*/
 /* ------------------------------ */
-#if defined(ST_7106) 
+#if defined(ST_7106)
 typedef struct ST_ClockInfo_s
 {
  /* Clock gen A */
- struct 
+ struct
   {
    U32 pll0hs_clk;        /* PLL0 HS clock              */
    U32 pll0ls_clk;        /* PLL0 LS clock              */
@@ -470,7 +470,7 @@ typedef struct ST_ClockInfo_s
    U32 mes_clk;           /*CLKA_IC_IF_200              */
  } ckga;
   /* Clock gen B */
- struct 
+ struct
   {
    U32 fs0_1_clk;    /* Frequency synth0 clock 1    */
    U32 fs0_2_clk;    /* Frequency synth0 clock 2    */
@@ -511,11 +511,11 @@ typedef struct ST_ClockInfo_s
 
 /* Clock infos structure for 5206*/
 /* ------------------------------ */
-#if defined(ST_5206) 
+#if defined(ST_5206)
 typedef struct ST_ClockInfo_s
 {
  /* Clock gen A */
-  struct 
+  struct
   {
    U32 pll0hs_clk;      /* PLL0 HS clock                */
    U32 pll0ls_clk;      /* PLL0 LS clock                */
@@ -539,9 +539,9 @@ typedef struct ST_ClockInfo_s
    U32 ic_clk;          /* Interconnect clock           */
    U32 mes_clk;         /* MES clock                    */
   } ckga;
- 
-  /* Clock gen B */  
- struct 
+
+  /* Clock gen B */
+ struct
   {
    U32 fs0_1_clk;    /* Frequency synth0 clock 1    */
    U32 fs0_2_clk;    /* Frequency synth0 clock 2    */
@@ -552,8 +552,8 @@ typedef struct ST_ClockInfo_s
    U32 fs1_3_clk;    /* Frequency synth3 clock 3    */
    U32 fs1_4_clk;    /* Frequency synth4 clock 4    */
    U32 fs_spare_clk; /* FS0 Spare clock             */
-   U32 sdpix_clk;    /* SD pixel clock              */ 
-   U32 hdpix_clk;    /* HD pixel clock              */ 
+   U32 sdpix_clk;    /* SD pixel clock              */
+   U32 hdpix_clk;    /* HD pixel clock              */
    U32 lpc_clk;      /* Low power  clock            */
   } ckgb;
 
@@ -576,12 +576,12 @@ typedef struct ST_ClockInfo_s
 
 /* Clock infos structure for 7108*/
 /* ------------------------------ */
-#if defined(ST_7108) 
+#if defined(ST_7108)
 typedef struct ST_ClockInfo_s
 {
  /* Clock gen A */
- 
- struct 
+
+ struct
   {
    U32 pll0hs_l_clk;      /* PLL0 HS Left clock         */
    U32 pll0ls_l_clk;      /* PLL0 LS Left clock         */
@@ -607,10 +607,10 @@ typedef struct ST_ClockInfo_s
    U32 compo_clk;         /* Compositor clock           */
    U32 vdp_clk;           /* Video display pipe clock   */
    U32 blit_clk;          /* Blitter clock              */
-  
+
  } ckga;
   /* Clock gen B */
- struct 
+ struct
   {
    U32 fs0_1_clk;    /* Frequency synth0 clock 1    */
    U32 fs0_2_clk;    /* Frequency synth0 clock 2    */
@@ -627,7 +627,7 @@ typedef struct ST_ClockInfo_s
    U32 sddisp_clk;   /* SD display clock            */
    U32 c656_clk;     /* DVO pixel clock             */
    U32 gdp1_clk;     /* GDP1 pixel clock            */
-   U32 gdp2_clk;     /* GDP2 pixel clock            */   
+   U32 gdp2_clk;     /* GDP2 pixel clock            */
    U32 sdpix_clk;    /* SD pixel clock              */
    U32 lpc_clk;      /* Low power  clock            */
    U32 usb_clk;      /*USB clock                    */
@@ -668,7 +668,7 @@ typedef struct ST_LegacyClockInfo_s
     U32     ST40Per;
     U32     PCI;
     U32     Aux;
-    
+
 } ST_LegacyClockInfo_t;
 
 
@@ -683,7 +683,7 @@ U32  ST_GetClocksPerSecondLow(void);
 U32  ST_GetMajorRevision(ST_Revision_t *ptRevision_p);
 U32  ST_GetMinorRevision(ST_Revision_t *ptRevision_p);
 U32  ST_GetPatchRevision(ST_Revision_t *ptRevision_p);
-#if !defined (ST_7109) && !defined (ST_5197) && !defined(ST_7100)  && !defined(ST_7108) 
+#if !defined (ST_7109) && !defined (ST_5197) && !defined(ST_7100)  && !defined(ST_7108)
 //U32            ST_GetIpVersion(ST_HWIPtype_t ipname);
 #endif
 U32            ST_GetSocRevision(void);

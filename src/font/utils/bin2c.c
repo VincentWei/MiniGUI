@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -216,9 +216,9 @@ main (argc, argv)
     sourceLen = 0;
     while (!feof (infile)) {
       if (sourceLen + BUFSIZE > sourceBufSize) {
-	sourceBufSize += BUFSIZE;
-	source = realloc (source, sourceBufSize);
-	if (source == NULL) return error ("memory exhausted", "", "");
+    sourceBufSize += BUFSIZE;
+    source = realloc (source, sourceBufSize);
+    if (source == NULL) return error ("memory exhausted", "", "");
       }
       sourceLen += fread (source+sourceLen, 1, BUFSIZE, infile);
       if (ferror (infile)) return error ("error reading '", argv[i], "'");
@@ -254,20 +254,20 @@ main (argc, argv)
     position = strlen(argv[i]) - 1;
     while (position && argv[i][position] != '/') position--;
     if (argv[i][position] == '/') position++;
-    
+
     fprintf (outfile, "static const unsigned char %s_data_%s[] = {\n", argv[i] + position, suffix);
 
     for (j=0; j<destLen-1; j++) {
       switch (j%8) {
       case 0:
-	fprintf (outfile, "  0x%02x, ", ((unsigned) dest[j]) & 0xffu);
-	break;
+    fprintf (outfile, "  0x%02x, ", ((unsigned) dest[j]) & 0xffu);
+    break;
       case 7:
-	fprintf (outfile, "0x%02x,\n", ((unsigned) dest[j]) & 0xffu);
-	break;
+    fprintf (outfile, "0x%02x,\n", ((unsigned) dest[j]) & 0xffu);
+    break;
       default:
-	fprintf (outfile, "0x%02x, ", ((unsigned) dest[j]) & 0xffu);
-	break;
+    fprintf (outfile, "0x%02x, ", ((unsigned) dest[j]) & 0xffu);
+    break;
       }
     }
 

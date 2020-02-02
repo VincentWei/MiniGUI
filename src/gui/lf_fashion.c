@@ -11,39 +11,39 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-/* 
+/*
 ** lf_fashion.c: The fashion LF implementation file.
 */
 
@@ -81,7 +81,7 @@
 #define SCROLL_BK_COLOR_A 0xFFECF1F3
 #define SCROLL_BK_COLOR_B 0xFFFBFEFE
 #define SCROLL_BTN_COLOR_A 0xFFFCD8C9
-#define SCROLL_BTN_COLOR_B 0xFFFBCDB6 
+#define SCROLL_BTN_COLOR_B 0xFFFBCDB6
 /*button highlight color*/
 #define BTN_HILITE_COLOR 0xFF3CC7FF
 
@@ -92,7 +92,7 @@
 WINDOW_ELEMENT_RENDERER wnd_rdr_fashion;
 
 /*initialize and terminate interface*/
-static int init (PWERENDERER renderer) 
+static int init (PWERENDERER renderer)
 {
    /*get information from MiniGUI.cfg file*/
     InitWindowElementAttrs (renderer);
@@ -106,10 +106,10 @@ static int init (PWERENDERER renderer)
     renderer->we_fonts[3] = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
 
     /*icon*/
-    if (!InitRendererSystemIcon (renderer->name, 
+    if (!InitRendererSystemIcon (renderer->name,
                 renderer->we_icon[0], renderer->we_icon[1]))
         return -1;
-    
+
     if (!RegisterSystemBitmap (HDC_SCREEN, renderer->name, SYSBMP_RADIOBUTTON))
         return -1;
 
@@ -140,8 +140,8 @@ static int deinit (PWERENDERER renderer)
  */
 static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
 {
-    fixed min; 
-    fixed max; 
+    fixed min;
+    fixed max;
     fixed delta;
     fixed tmp;
 
@@ -179,12 +179,12 @@ static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
     else if( g == max )
         /*between cyan & yellow*/
         *h = fixadd(itofix(2), fixdiv(fixsub(b, r), delta));
-    else 
+    else
         /*magenta & cyan*/
         *h = fixadd(itofix(4), fixdiv(fixsub(r, g), delta));
 
     /*degrees*/
-    *h = fixmul(*h, itofix(60)); 
+    *h = fixmul(*h, itofix(60));
 
     if (*h < itofix(0))
         *h = fixadd(*h, itofix(360));
@@ -216,14 +216,14 @@ static void HSV2RGB(fixed h, fixed s, fixed v, fixed* r, fixed* g, fixed* b)
     p = fixmul(v, fixsub(itofix(1), s));
     /*q = v * (1 - s*f)*/
     q = fixmul (v, fixsub (itofix(1), fixmul(s, f)));
-   
+
     /*t = v * (1 - s*(1-f))*/
     t = fixmul (v, fixsub (itofix(1), fixmul(s, fixsub( itofix(1), f))));
-    
+
     switch (i) {
-        case 0: 
-            *r = fixmul (v, itofix(255)); 
-            *g = fixmul (t, itofix(255)); 
+        case 0:
+            *r = fixmul (v, itofix(255));
+            *g = fixmul (t, itofix(255));
             *b = fixmul (p, itofix(255));
             break;
         case 1:
@@ -256,7 +256,7 @@ static void HSV2RGB(fixed h, fixed s, fixed v, fixed* r, fixed* g, fixed* b)
 
 /*
  * gradient_color:
- *      calc a brighter or darker color           
+ *      calc a brighter or darker color
  * color  : RGB color
  * flag   : LFRDR_3DBOX_COLOR_DARKER or LFRDR_3DBOX_COLOR_LIGHTER
  * degree : in [0, 255]
@@ -292,7 +292,7 @@ static DWORD gradient_color (DWORD color, int flag, int degree)
                 else
                     v = fixadd (v, degree * v/255);
 
-                if (v > FULL_V) 
+                if (v > FULL_V)
                     v = FULL_V;
 
                 if (v == FULL_V) {
@@ -313,8 +313,8 @@ static DWORD gradient_color (DWORD color, int flag, int degree)
 
 /*
  * calc_3dbox_color:
- *      calc a less brighter, much bright, less darker, or much darker           
- *      color of color which used in 3dbox.     
+ *      calc a less brighter, much bright, less darker, or much darker
+ *      color of color which used in 3dbox.
  * Author: XuguangWang
  * Date: 2007-11-22
  */
@@ -342,20 +342,20 @@ static DWORD calc_3dbox_color (DWORD color, int flag)
     return gradient_color (color, flag, degree);
 }
 
-static void 
-draw_one_frame (HDC hdc, const RECT* rc, 
+static void
+draw_one_frame (HDC hdc, const RECT* rc,
         DWORD lt_color, DWORD rb_color)
 {
-    SetPenColor (hdc, RGBA2Pixel(hdc, GetRValue(lt_color), 
-                GetGValue(lt_color), GetBValue(lt_color), 
+    SetPenColor (hdc, RGBA2Pixel(hdc, GetRValue(lt_color),
+                GetGValue(lt_color), GetBValue(lt_color),
                 GetAValue(lt_color)));
 
     MoveTo(hdc, rc->left, rc->bottom-1);
     LineTo(hdc, rc->left, rc->top);
     LineTo(hdc, rc->right-2, rc->top);
 
-    SetPenColor(hdc, RGBA2Pixel(hdc, GetRValue(rb_color), 
-                GetGValue(rb_color), GetBValue(rb_color), 
+    SetPenColor(hdc, RGBA2Pixel(hdc, GetRValue(rb_color),
+                GetGValue(rb_color), GetBValue(rb_color),
                 GetAValue(rb_color)));
 
     MoveTo (hdc, rc->left+1, rc->bottom-1);
@@ -363,21 +363,21 @@ draw_one_frame (HDC hdc, const RECT* rc,
     LineTo (hdc, rc->right-1, rc->top);
 }
 
-static int fill_iso_triangle (HDC hdc, DWORD color, 
+static int fill_iso_triangle (HDC hdc, DWORD color,
                                 POINT ap, POINT bp1, POINT bp2)
-{ 
+{
     int x1, x2, y1, y2;
     int xdelta, ydelta;
     int xinc, yinc;
     int rem;
     gal_pixel old_color;
 
-    if(bp1.y != bp2.y && bp1.x != bp2.x) return -1;        
+    if(bp1.y != bp2.y && bp1.x != bp2.x) return -1;
 
-    x1 = ap.x; 
-    y1 = ap.y; 
+    x1 = ap.x;
+    y1 = ap.y;
     x2 = bp1.x;
-    y2 = bp1.y; 
+    y2 = bp1.y;
 
     xdelta = x2 - x1;
     ydelta = y2 - y1;
@@ -392,14 +392,14 @@ static int fill_iso_triangle (HDC hdc, DWORD color,
     old_color = SetPenColor(hdc, RGBA2Pixel(hdc,GetRValue(color),
                 GetGValue(color), GetBValue(color), GetAValue(color)));
 
-    if (xdelta >= ydelta) 
+    if (xdelta >= ydelta)
     {
         rem = xdelta >> 1;
-        while (x1 != x2) 
+        while (x1 != x2)
         {
             x1 += xinc;
             rem += ydelta;
-            if (rem >= xdelta) 
+            if (rem >= xdelta)
             {
                 rem -= xdelta;
                 y1 += yinc;
@@ -410,15 +410,15 @@ static int fill_iso_triangle (HDC hdc, DWORD color,
             else
                 LineTo(hdc, x1, y1 + (ap.y -y1)*2);
         }
-    } 
-    else 
+    }
+    else
     {
         rem = ydelta >> 1;
-        while (y1 != y2) 
+        while (y1 != y2)
         {
             y1 += yinc;
             rem += xdelta;
-            if (rem >= ydelta) 
+            if (rem >= ydelta)
             {
                 rem -= ydelta;
                 x1 += xinc;
@@ -430,9 +430,9 @@ static int fill_iso_triangle (HDC hdc, DWORD color,
                 LineTo(hdc, x1, y1 + (ap.y -y1)*2);
         }
     }
-    
+
     SetPenColor(hdc, old_color);
-    
+
     return 0;
 }
 
@@ -442,19 +442,19 @@ static int fill_iso_triangle (HDC hdc, DWORD color,
 static void draw_fashion_frame(HDC hdc, RECT rect, DWORD color)
 {
     gal_pixel old_pen_color;
-    
+
     rect.right--;
     rect.bottom--;
-    
-    old_pen_color = SetPenColor(hdc, 
-            RGBA2Pixel(hdc, GetRValue(color), GetGValue(color), 
+
+    old_pen_color = SetPenColor(hdc,
+            RGBA2Pixel(hdc, GetRValue(color), GetGValue(color),
                 GetBValue(color), GetAValue(color)));
-    
+
     MoveTo(hdc, rect.left+1, rect.top);
     LineTo(hdc, rect.right-1, rect.top);
     MoveTo(hdc, rect.left, rect.top+1);
     LineTo(hdc, rect.left, rect.bottom-1);
-    
+
     MoveTo(hdc, rect.left+1, rect.bottom);
     LineTo(hdc, rect.right-1, rect.bottom);
     MoveTo(hdc, rect.right, rect.bottom-1);
@@ -463,7 +463,7 @@ static void draw_fashion_frame(HDC hdc, RECT rect, DWORD color)
     SetPenColor(hdc, old_pen_color);
 }
 
-static void 
+static void
 draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
 {
     DWORD light_color;
@@ -479,7 +479,7 @@ draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
 
     old_brush_color = GetBrushColor(hdc);
     old_pen_color = GetPenColor(hdc);
-    
+
     /*draw outer frame*/
     light_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTEST);
     dark_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_DARKEST);
@@ -497,7 +497,7 @@ draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
     }
 
     /*draw inner frame*/
-    if ((flag & LFRDR_3DBOX_THICKFRAME) 
+    if ((flag & LFRDR_3DBOX_THICKFRAME)
             && (RECTW(rc_tmp)>6 && RECTH(rc_tmp)>6)) {
         light_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTER);
         dark_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_DARKER);
@@ -519,19 +519,19 @@ draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
         switch (flag & LFRDR_BTN_STATUS_MASK) {
             case LFRDR_BTN_STATUS_HILITE:
                 if (!is_have_lighter_color)
-                    light_color = 
+                    light_color =
                         calc_3dbox_color (color, LFRDR_3DBOX_COLOR_LIGHTER);
 
-                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(light_color), 
-                            GetGValue(light_color), GetBValue(light_color), 
+                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(light_color),
+                            GetGValue(light_color), GetBValue(light_color),
                             GetAValue(light_color)));
                 break;
 
             case LFRDR_BTN_STATUS_DISABLED:
             default:
 
-                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(color), 
-                            GetGValue(color), GetBValue(color), 
+                SetBrushColor(hdc, RGBA2Pixel(hdc, GetRValue(color),
+                            GetGValue(color), GetBValue(color),
                             GetAValue(color)));
         }
         FillBox(hdc,  rc_tmp.left, rc_tmp.top,
@@ -542,7 +542,7 @@ draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
     SetBrushColor(hdc, old_brush_color);
 }
 
-static void 
+static void
 draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
 {
     int radius, center_x, center_y, w, h;
@@ -560,8 +560,8 @@ draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
         if (w < 6 || h < 6)
             return;
 
-        _pixel = RGBA2Pixel (hdc, GetRValue(color), 
-                        GetGValue(color), GetBValue(color), 
+        _pixel = RGBA2Pixel (hdc, GetRValue(color),
+                        GetGValue(color), GetBValue(color),
                         GetAValue(color));
 
         radius = w>h ? (h>>1)-1 : (w>>1)-1;
@@ -576,12 +576,12 @@ draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
     }
 }
 
-static void 
+static void
 draw_checkbox (HDC hdc, const RECT* pRect, DWORD color, int status)
 {
 }
 
-static void 
+static void
 draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
 {
     int i, w, h, side_len, boundary;
@@ -589,16 +589,16 @@ draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
     int hook_l, hook_t, hook_r, hook_b;
     int border_cut;
     gal_pixel _pixel, old_pixel;
-    
+
     if (!pRect)
         return;
-    
-    if ((status & LFRDR_MARK_HALF_SELECTED) 
-            || (status & LFRDR_MARK_ALL_SELECTED))  
+
+    if ((status & LFRDR_MARK_HALF_SELECTED)
+            || (status & LFRDR_MARK_ALL_SELECTED))
     {
         w = RECTWP (pRect);
         h = RECTHP (pRect);
-        
+
         if (w < 6 || h < 6)
             return;
 
@@ -606,13 +606,13 @@ draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
         boundary = ABS(w-h)>>1;
         border_cut = (side_len+1)>>3;
 
-        _pixel = RGBA2Pixel (hdc, GetRValue(color), 
-                        GetGValue(color), 
-                        GetBValue(color), 
+        _pixel = RGBA2Pixel (hdc, GetRValue(color),
+                        GetGValue(color),
+                        GetBValue(color),
                         GetAValue(color));
 
         old_pixel = SetPenColor (hdc, _pixel);
-    
+
         if (w > h) {
             box_l = pRect->left + boundary;
             box_t = pRect->top;
@@ -631,7 +631,7 @@ draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
             box_r = pRect->right-1;
             box_b = pRect->bottom-1;
         }
-    
+
         hook_l = box_l + (side_len>>2);
         hook_t = box_t + (side_len>>2);
         hook_r = box_r - (side_len>>2);
@@ -640,7 +640,7 @@ draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
         for (i=(side_len+1)>>3; i>0; i--)
         {
             MoveTo (hdc, hook_l, hook_t+((side_len+1)>>3)+i-1);
-            LineTo (hdc, hook_l+((side_len+1)>>3), 
+            LineTo (hdc, hook_l+((side_len+1)>>3),
                     hook_b-(((side_len+1)>>3)-i+1));
             LineTo (hdc, hook_r, hook_t+i-1);
         }
@@ -649,7 +649,7 @@ draw_checkmark (HDC hdc, const RECT* pRect, DWORD color, int status)
     }
 }
 
-static void 
+static void
 draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
 {
     DWORD c1, c2;
@@ -659,7 +659,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
     // p2,p3, the 2 base points if the isosceles tiangle.
     POINT p1, p2, p3, point;
     gal_pixel pixel;
-    gal_pixel gradcolor; 
+    gal_pixel gradcolor;
     gal_pixel old_pen_color, pixels[2], pixel2[2];
     mgplus_pattern_t ptn;
 
@@ -671,7 +671,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
     {
         c1 = GetWindowElementAttr (hWnd, WE_BGCB_ACTIVE_CAPTION);
         c2 = gradient_color (c1, LFRDR_3DBOX_COLOR_LIGHTER, 80);
-       switch (status & LFRDR_BTN_STATUS_MASK) 
+       switch (status & LFRDR_BTN_STATUS_MASK)
         {
             case LFRDR_BTN_STATUS_HILITE:
                 pixel = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 220);
@@ -680,7 +680,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel = gradient_color (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100);
                 pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-                
+
                 pixel = gradient_color (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100);
                 pixel2[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
@@ -688,17 +688,17 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel2[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2Pixel (hdc, gradient_color 
-                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 220)); 
-                pixel[1] = DWORD2Pixel (hdc, gradient_color 
-                        (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100)); 
-
-                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color
+                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 220));
+                pixel[1] = DWORD2Pixel (hdc, gradient_color
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100));
-                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
+
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color
+                        (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100));
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 200));
 #endif
-                break; 
+                break;
             case LFRDR_BTN_STATUS_PRESSED:
                 pixel = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 200);
                 pixels[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
@@ -706,7 +706,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel = gradient_color (c1, LFRDR_3DBOX_COLOR_DARKER, 100);
                 pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-                
+
                 pixel = gradient_color (c1, LFRDR_3DBOX_COLOR_DARKER, 100);
                 pixel2[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                            (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
@@ -714,14 +714,14 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel2[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                            (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2Pixel (hdc, gradient_color 
-                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 200)); 
-                pixel[1] = DWORD2Pixel (hdc, gradient_color 
-                        (c1, LFRDR_3DBOX_COLOR_DARKER, 100)); 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color
+                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 200));
+                pixel[1] = DWORD2Pixel (hdc, gradient_color
+                        (c1, LFRDR_3DBOX_COLOR_DARKER, 100));
 
-                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
-                        (c1, LFRDR_3DBOX_COLOR_DARKER, 100)); 
-                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color
+                        (c1, LFRDR_3DBOX_COLOR_DARKER, 100));
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
                 break;
@@ -732,7 +732,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10);
                 pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-                
+
                 pixel = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10);
                 pixel2[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
@@ -740,20 +740,20 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 pixel2[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                             (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2Pixel (hdc, gradient_color 
-                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 250)); 
-                pixel[1] = DWORD2Pixel (hdc, gradient_color 
-                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10)); 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color
+                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 250));
+                pixel[1] = DWORD2Pixel (hdc, gradient_color
+                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10));
 
-                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
-                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10)); 
-                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color
+                        (c2, LFRDR_3DBOX_COLOR_LIGHTER, 10));
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color
                         (c1, LFRDR_3DBOX_COLOR_LIGHTER, 150));
 #endif
                 break;
         }
-        draw_fashion_frame(hdc, rc_tmp, 
-                gradient_color (c1, LFRDR_3DBOX_COLOR_DARKEST, 110)); 
+        draw_fashion_frame(hdc, rc_tmp,
+                gradient_color (c1, LFRDR_3DBOX_COLOR_DARKEST, 110));
         switch (status & LFRDR_ARROW_DIRECT_MASK)
         {
             case LFRDR_ARROW_UP:
@@ -768,7 +768,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                     rc_tmp2.left = rc_tmp.right + 1;
                     rc_tmp2.right = pRect->right -2;
                     rc_tmp2.bottom = rc_tmp.bottom;
-                    ptn = mGPlusCreateLinearPattern (rc_tmp, 
+                    ptn = mGPlusCreateLinearPattern (rc_tmp,
                             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
                     for (i = rc_tmp.left; i <= rc_tmp.right; i ++)
@@ -781,7 +781,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                         LineTo (hdc, i, rc_tmp.bottom);
                     }
                     mGPlusFreeColorPattern (ptn);
-                    ptn = mGPlusCreateLinearPattern (rc_tmp2, 
+                    ptn = mGPlusCreateLinearPattern (rc_tmp2,
                             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixel2, 2, MGPLUS_GRADIENT_BIT_16);
 
                     for (i = rc_tmp2.left; i <= rc_tmp2.right; i ++)
@@ -808,7 +808,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                     rc_tmp2.left = rc_tmp.left;
                     rc_tmp2.right = rc_tmp.right;
                     rc_tmp2.bottom = pRect->bottom - 2;
-                    ptn = mGPlusCreateLinearPattern (rc_tmp, 
+                    ptn = mGPlusCreateLinearPattern (rc_tmp,
                             MGPLUS_GRADIENT_LINEAR_VERTICAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
                     for (i = rc_tmp.top; i <= rc_tmp.bottom; i ++)
@@ -821,7 +821,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                         LineTo (hdc, rc_tmp.right, i);
                     }
                     mGPlusFreeColorPattern (ptn);
-                    ptn = mGPlusCreateLinearPattern (rc_tmp2, 
+                    ptn = mGPlusCreateLinearPattern (rc_tmp2,
                             MGPLUS_GRADIENT_LINEAR_VERTICAL, pixel2, 2, MGPLUS_GRADIENT_BIT_16);
 
                     for (i = rc_tmp2.top; i <= rc_tmp2.bottom; i ++)
@@ -838,7 +838,7 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
                 break;
         }
    }
-     
+
     switch(status & LFRDR_ARROW_DIRECT_MASK)
     {
         case LFRDR_ARROW_UP:
@@ -895,8 +895,8 @@ draw_arrow (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color, int status)
     return ;
 }
 
-static void 
-draw_fold (HWND hWnd, HDC hdc, const RECT* pRect, 
+static void
+draw_fold (HWND hWnd, HDC hdc, const RECT* pRect,
         DWORD color, int status, int next)
 {
     int flag;
@@ -907,20 +907,20 @@ draw_fold (HWND hWnd, HDC hdc, const RECT* pRect,
         else
             flag = LFRDR_ARROW_DOWN;
     }
-    else 
+    else
         return;
 
     return draw_arrow (hWnd, hdc, pRect, color, flag);
 }
 
-static void 
+static void
 draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 {
     int i;
     gal_pixel pixel;
 
-    
-    pixel = RGBA2Pixel(hdc, GetRValue(color), GetGValue(color), 
+
+    pixel = RGBA2Pixel(hdc, GetRValue(color), GetGValue(color),
                             GetBValue(color), GetAValue(color));
 
     for(i = pRect->left; i < pRect->right; i++)
@@ -941,7 +941,7 @@ draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
     }
 }
 
-static void draw_normal_item 
+static void draw_normal_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -950,7 +950,7 @@ static void draw_normal_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_hilite_item 
+static void draw_hilite_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel pixels[3];
@@ -961,7 +961,7 @@ static void draw_hilite_item
     gal_pixel pixel_org;
     gal_pixel conver_pixel;
     int corner, l, t, r, b;
-   
+
     conver_pixel = color;
     pixels[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
@@ -971,11 +971,11 @@ static void draw_hilite_item
     pixels[2] = pixels[0];
 #if 0
     pixels[0] = DWORD2Pixel (hdc, color);
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 120));
     pixels[2] = pixels[0];
 #endif
-    ptn = mGPlusCreateLinearPattern (*pRect, 
+    ptn = mGPlusCreateLinearPattern (*pRect,
             MGPLUS_GRADIENT_LINEAR_VERTICAL,
             pixels, 3, MGPLUS_GRADIENT_BIT_16);
 
@@ -1003,7 +1003,7 @@ static void draw_hilite_item
     r = pRect->right;
     b = pRect->bottom;
 
-    SetPenColor(hdc, pixels[0]); 
+    SetPenColor(hdc, pixels[0]);
     MoveTo(hdc, l + corner, t);
     LineTo(hdc, r - 1 - corner, t);
     LineTo(hdc, r - 1, t+corner);
@@ -1015,7 +1015,7 @@ static void draw_hilite_item
     LineTo(hdc, l+corner, t);
 }
 
-static void draw_disabled_item 
+static void draw_disabled_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1024,7 +1024,7 @@ static void draw_disabled_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_significant_item 
+static void draw_significant_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1033,7 +1033,7 @@ static void draw_significant_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_normal_menu_item 
+static void draw_normal_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1042,7 +1042,7 @@ static void draw_normal_menu_item
     SetBrushColor (hdc, old_bc);
 }
 
-static void draw_hilite_menu_item 
+static void draw_hilite_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel pixels[3];
@@ -1057,7 +1057,7 @@ static void draw_hilite_menu_item
     conver_pixel = color;
     pixels[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
+
     conver_pixel = gradient_color (color, LFRDR_3DBOX_COLOR_LIGHTER, 240);
     pixels[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
@@ -1065,14 +1065,14 @@ static void draw_hilite_menu_item
     conver_pixel = gradient_color (color, LFRDR_3DBOX_COLOR_LIGHTER, 100);
     pixels[2] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-#if 0 
+#if 0
     pixels[1] = DWORD2Pixel (hdc, color);
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 240));
-    pixels[2] = DWORD2Pixel (hdc, gradient_color 
+    pixels[2] = DWORD2Pixel (hdc, gradient_color
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
-    ptn = mGPlusCreateLinearPattern (*pRect, 
+    ptn = mGPlusCreateLinearPattern (*pRect,
             MGPLUS_GRADIENT_LINEAR_VERTICAL,
             pixels, 3, MGPLUS_GRADIENT_BIT_16);
 
@@ -1100,9 +1100,9 @@ static void draw_hilite_menu_item
     r = pRect->right;
     b = pRect->bottom;
 
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (color, LFRDR_3DBOX_COLOR_DARKER, 140));
-    SetPenColor(hdc, pixels[0]); 
+    SetPenColor(hdc, pixels[0]);
     --r;
     --b;
     Rectangle (hdc, l, t, r, b);
@@ -1113,7 +1113,7 @@ static void draw_hilite_menu_item
     Rectangle (hdc, l, t, r, b);
 }
 
-static void draw_disabled_menu_item 
+static void draw_disabled_menu_item
 (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     gal_pixel old_bc;
@@ -1126,8 +1126,8 @@ static void draw_disabled_menu_item
 
 #define GET_BTN_POSE_STATUS(status) ((status) & BST_POSE_MASK)
 
-static void 
-draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect, 
+static void
+draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
         DWORD color1, DWORD color2, int status)
 {
     POINT   point;
@@ -1180,7 +1180,7 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
 #if 0
             uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 250));
-            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
+            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 70));
             downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 50));
@@ -1220,10 +1220,10 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
             pixel = gradient_color (c1, LFRDR_3DBOX_COLOR_LIGHTER, 150);
             downpixel[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                            (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-#if 0 
+#if 0
             uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 200));
-            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
+            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 70));
             downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 50));
@@ -1248,7 +1248,7 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
 #if 0
             uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 250));
-            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
+            uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                         LFRDR_3DBOX_COLOR_LIGHTER, 70));
             downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                         LFRDR_3DBOX_COLOR_LIGHTER, 90));
@@ -1288,7 +1288,7 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
 #if 0
         uppixel[0] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                     LFRDR_3DBOX_COLOR_LIGHTER, 250));
-        uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor, 
+        uppixel[1] = DWORD2Pixel (hdc, gradient_color (tmpcolor,
                     LFRDR_3DBOX_COLOR_LIGHTER, 70));
         downpixel[0] = DWORD2Pixel (hdc, gradient_color (c1,
                     LFRDR_3DBOX_COLOR_LIGHTER, 50));
@@ -1373,18 +1373,18 @@ draw_push_button (HWND hWnd, HDC hdc, const RECT* pRect,
     SetPenColor(hdc, old_pen_color);
 }
 
-static void 
-_draw_check_button (HDC hdc, 
+static void
+_draw_check_button (HDC hdc,
         const RECT* pRect, int status, const BITMAP* pBmp)
 {
     int w, h;
     int box_l = 0, box_t = 0;
     int bmp_w, bmp_h;
 
-    w = RECTWP(pRect); 
+    w = RECTWP(pRect);
     h = RECTHP(pRect);
 
-    bmp_w = pBmp->bmWidth; 
+    bmp_w = pBmp->bmWidth;
     bmp_h = pBmp->bmHeight/BTN_STATUS_NUM;
 
     if (w >= bmp_w && h >= bmp_h){
@@ -1392,23 +1392,23 @@ _draw_check_button (HDC hdc,
 
         box_t = pRect->top + ((h - bmp_h)>>1);
 
-	    /*parity check*/
-    	if (w & 0x1)
-        	box_l += 1;
-    
-	    if (h & 0x1)
-    	    box_t += 1;
+        /*parity check*/
+        if (w & 0x1)
+            box_l += 1;
 
-	    FillBoxWithBitmapPart (hdc, box_l, box_t, bmp_w, bmp_h, 
+        if (h & 0x1)
+            box_t += 1;
+
+        FillBoxWithBitmapPart (hdc, box_l, box_t, bmp_w, bmp_h,
             0, 0, pBmp, 0, status * bmp_h);
-	}
-	else {
-		FillBitmapPartInBox(hdc, pRect->left, pRect->top, w, h,
-			(PBITMAP)pBmp, 0, status*bmp_h, bmp_w, bmp_h);
-	}
+    }
+    else {
+        FillBitmapPartInBox(hdc, pRect->left, pRect->top, w, h,
+            (PBITMAP)pBmp, 0, status*bmp_h, bmp_w, bmp_h);
+    }
 }
 
-static void 
+static void
 _draw_radio_button (HWND hWnd, HDC hdc,
         const RECT* pRect, int status, const BITMAP* pBmp)
 {
@@ -1417,31 +1417,31 @@ _draw_radio_button (HWND hWnd, HDC hdc,
     int bmp_w, bmp_h;
     gal_pixel bgc;
 
-    w = RECTWP(pRect); 
+    w = RECTWP(pRect);
     h = RECTHP(pRect);
 
-    bmp_w = pBmp->bmWidth; 
+    bmp_w = pBmp->bmWidth;
     bmp_h = pBmp->bmHeight/BTN_STATUS_NUM;
 
-	if( w >= bmp_w && h >= bmp_w){
+    if( w >= bmp_w && h >= bmp_w){
         box_l = pRect->left + ((w - bmp_w)>>1);
 
         box_t = pRect->top + ((h - bmp_h)>>1);
 
-	    /*parity check*/
-    	if (w & 0x1)
-        	box_l += 1;
-    
-	    if (h & 0x1)
-    	    box_t += 1;
+        /*parity check*/
+        if (w & 0x1)
+            box_l += 1;
 
-   		FillBoxWithBitmapPart (hdc, box_l, box_t, bmp_w, bmp_h, 
-            	0, 0, pBmp, 0, status * bmp_h);
-	}
-	else{
-		FillBitmapPartInBox(hdc, pRect->left, pRect->top, w, h,
-			(PBITMAP)pBmp, 0, status*bmp_h, bmp_w, bmp_h);
-	}
+        if (h & 0x1)
+            box_t += 1;
+
+           FillBoxWithBitmapPart (hdc, box_l, box_t, bmp_w, bmp_h,
+                0, 0, pBmp, 0, status * bmp_h);
+    }
+    else{
+        FillBitmapPartInBox(hdc, pRect->left, pRect->top, w, h,
+            (PBITMAP)pBmp, 0, status*bmp_h, bmp_w, bmp_h);
+    }
 
     box_r = box_l + bmp_w;
     box_b = box_t + bmp_h;
@@ -1454,7 +1454,7 @@ _draw_radio_button (HWND hWnd, HDC hdc,
     SetPixel (hdc, box_l + 2, box_t, bgc);
     SetPixel (hdc, box_l + 3, box_t, bgc);
     SetPixel (hdc, box_l + 4, box_t, bgc);
-    
+
     SetPixel (hdc, box_l, box_t + 1, bgc);
     SetPixel (hdc, box_l + 1, box_t + 1, bgc);
     SetPixel (hdc, box_l + 2, box_t + 1, bgc);
@@ -1497,7 +1497,7 @@ _draw_radio_button (HWND hWnd, HDC hdc,
     SetPixel (hdc, box_l + 2, box_b, bgc);
     SetPixel (hdc, box_l + 3, box_b, bgc);
     SetPixel (hdc, box_l + 4, box_b, bgc);
-    
+
     SetPixel (hdc, box_l, box_b - 1, bgc);
     SetPixel (hdc, box_l + 1, box_b - 1, bgc);
     SetPixel (hdc, box_l + 2, box_b - 1, bgc);
@@ -1536,19 +1536,19 @@ _draw_radio_button (HWND hWnd, HDC hdc,
     SetPixel (hdc, box_r, box_b - 4, bgc);
 }
 
-static void 
+static void
 draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status)
 {
-    const BITMAP* bmp = 
+    const BITMAP* bmp =
         GetSystemBitmapEx (wnd_rdr_fashion.name, SYSBMP_RADIOBUTTON);
 
     _draw_radio_button (hWnd, hdc, pRect, status, bmp);
 }
 
-static void 
+static void
 draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status)
 {
-    const BITMAP* bmp = 
+    const BITMAP* bmp =
         GetSystemBitmapEx (wnd_rdr_fashion.name, SYSBMP_CHECKBUTTON);
 
     _draw_check_button (hdc, pRect, status, bmp);
@@ -1569,13 +1569,13 @@ static int calc_capbtn_area (HWND hWnd, int which, RECT* we_area)
 
     switch (which)
     {
-        case HT_CLOSEBUTTON:            
+        case HT_CLOSEBUTTON:
             CHECKNOT_RET_ERR (IS_CLOSEBTN_VISIBLE (win_info));
             border = get_window_border (hWnd, 0, 0);
             capbtn_h = cap_h - (CAP_BTN_INTERVAL<<1);
             we_area->right = win_w - border - CAP_BTN_INTERVAL;
             we_area->left = we_area->right - capbtn_h;
-            we_area->top = border + ((cap_h-capbtn_h)>>1); 
+            we_area->top = border + ((cap_h-capbtn_h)>>1);
             we_area->bottom = we_area->top + capbtn_h;
             return 0;
 
@@ -1587,7 +1587,7 @@ static int calc_capbtn_area (HWND hWnd, int which, RECT* we_area)
             we_area->right = win_w - border - capbtn_h
                         - (CAP_BTN_INTERVAL<<1);
             we_area->left = we_area->right - capbtn_h;
-            we_area->top = border + ((cap_h-capbtn_h)>>1); 
+            we_area->top = border + ((cap_h-capbtn_h)>>1);
             we_area->bottom = we_area->top + capbtn_h;
             return 0;
 
@@ -1600,7 +1600,7 @@ static int calc_capbtn_area (HWND hWnd, int which, RECT* we_area)
             we_area->right = win_w - border - (capbtn_h<<1)
                             - CAP_BTN_INTERVAL*3;
             we_area->left = we_area->right - capbtn_h;
-            we_area->top = border + ((cap_h-capbtn_h)>>1); 
+            we_area->top = border + ((cap_h-capbtn_h)>>1);
             we_area->bottom = we_area->top + capbtn_h;
             return 0;
 
@@ -1646,7 +1646,7 @@ static int calc_hscroll_area(HWND hWnd, int which, RECT* we_area)
     scrollbar = GetWindowElementAttr(hWnd, WE_METRICS_SCROLLBAR);
 
     if (IS_VSCROLL_VISIBLE (win_info)) {
-        if (IS_LEFT_VSCOLLBAR (win_info)) 
+        if (IS_LEFT_VSCOLLBAR (win_info))
             left_inner = scrollbar;
         else
             right_inner = scrollbar;
@@ -1766,7 +1766,7 @@ static int calc_vscroll_area(HWND hWnd, int which, RECT* we_area)
 
 }
 
-static int 
+static int
 get_window_border (HWND hWnd, int dwStyle, int win_type)
 {
     int _dwStyle = dwStyle;
@@ -1793,21 +1793,21 @@ get_window_border (HWND hWnd, int dwStyle, int win_type)
                 ||_dwStyle & WS_THICKFRAME)
                 return 3;
             else if(_dwStyle & WS_THINFRAME)
-                return 0; 
+                return 0;
         }
         case LFRDR_WINTYPE_CONTROL:
         {
             if (_dwStyle & WS_BORDER
                     || _dwStyle & WS_THINFRAME
                     || _dwStyle & WS_THICKFRAME)
-                return 1; 
+                return 1;
         }
     }
 
     return 0;
 }
 
-static int calc_we_metrics (HWND hWnd, 
+static int calc_we_metrics (HWND hWnd,
             LFRDR_WINSTYLEINFO* style_info, int which)
 {
     const WINDOWINFO* win_info;
@@ -1822,9 +1822,9 @@ static int calc_we_metrics (HWND hWnd,
     {
         case LFRDR_METRICS_BORDER:
             if (style_info)
-                return get_window_border (HWND_NULL, 
+                return get_window_border (HWND_NULL,
                         style_info->dwStyle, style_info->winType);
-            else if (hWnd != HWND_NULL) 
+            else if (hWnd != HWND_NULL)
                 return get_window_border (hWnd, 0, 0);
             else
                 return GetWindowElementAttr(hWnd, WE_METRICS_WND_BORDER);
@@ -1880,7 +1880,7 @@ static int calc_we_metrics (HWND hWnd,
                     return 0;
 
                 icon = (PICON)(win_info->hIcon);
-                cap_h = 
+                cap_h =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
                 icon_h = icon ? icon->height : 0;
 
@@ -1890,7 +1890,7 @@ static int calc_we_metrics (HWND hWnd,
                 return 16;
             }
         }
-            
+
         case LFRDR_METRICS_ICON_W:
         {
             PICON       icon;
@@ -1902,7 +1902,7 @@ static int calc_we_metrics (HWND hWnd,
                     return 0;
 
                 icon = (PICON)(win_info->hIcon);
-                cap_h = 
+                cap_h =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
                 icon_h = icon ? icon->height : 0;
                 icon_w = icon ? icon->width : 0;
@@ -1913,7 +1913,7 @@ static int calc_we_metrics (HWND hWnd,
                 return 16;
             }
         }
-            
+
         case LFRDR_METRICS_VSCROLL_W:
         {
             int _idx;
@@ -1954,7 +1954,7 @@ static int calc_we_metrics (HWND hWnd,
         {
             int _style, _win_type;
 
-            win_width = 
+            win_width =
                 (calc_we_metrics (hWnd, style_info, LFRDR_METRICS_BORDER)<< 1);
 
             if (style_info) {
@@ -1974,13 +1974,13 @@ static int calc_we_metrics (HWND hWnd,
             if (!(_style & WS_CAPTION))
                 return win_width;
 
-            cap_h = 
+            cap_h =
                 calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
 
             if (_win_type==LFRDR_WINTYPE_MAINWIN) {
-                icon_w = 
+                icon_w =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_ICON_W);
-                icon_h = 
+                icon_h =
                     calc_we_metrics (hWnd, style_info, LFRDR_METRICS_ICON_H);
             }
 
@@ -1990,20 +1990,20 @@ static int calc_we_metrics (HWND hWnd,
 
             cap_font = (PLOGFONT)GetWindowElementAttr (hWnd, WE_FONT_CAPTION);
 
-            win_width += (cap_font) ? 
+            win_width += (cap_font) ?
                          ((cap_font->size << 1) + CAP_BTN_INTERVAL) : 0;
 
             /*two char and internal*/
             btn_w = GetWindowElementAttr(hWnd, WE_METRICS_CAPTION)
                     - CAP_BTN_INTERVAL;
-            
+
             /*buttons and internvals*/
-            win_width += btn_w; 
+            win_width += btn_w;
 
             if (_style & WS_MINIMIZEBOX)
-                win_width += btn_w; 
+                win_width += btn_w;
             if (_style & WS_MAXIMIZEBOX)
-                win_width += btn_w; 
+                win_width += btn_w;
 
             return win_width;
         }
@@ -2012,7 +2012,7 @@ static int calc_we_metrics (HWND hWnd,
         {
             win_height =
                 (calc_we_metrics (hWnd, style_info, LFRDR_METRICS_BORDER)<< 1);
-            win_height += 
+            win_height +=
                 calc_we_metrics (hWnd, style_info, LFRDR_METRICS_CAPTION_H);
 
             return win_height;
@@ -2051,10 +2051,10 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
             we_area->left = border;
             we_area->right = win_w - border;
             we_area->top = border;
-            we_area->bottom = we_area->top + cap_h; 
+            we_area->bottom = we_area->top + cap_h;
             return 0;
 
-        case HT_CLOSEBUTTON:            
+        case HT_CLOSEBUTTON:
         case HT_MAXBUTTON:
         case HT_MINBUTTON:
         case HT_ICON:
@@ -2069,7 +2069,7 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
 
             we_area->left = border;
             we_area->top = border + cap_h;
-            we_area->right = win_w - border; 
+            we_area->right = win_w - border;
             we_area->bottom = we_area->top + menu_h;
             return 0;
 
@@ -2079,7 +2079,7 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
             menu_h = get_window_menubar (hWnd);
 
             we_area->top = border + cap_h + menu_h;
-            we_area->bottom = win_h - border - 
+            we_area->bottom = win_h - border -
                 get_window_scrollbar(hWnd, FALSE);
 
             if (IS_LEFT_VSCOLLBAR (win_info)) {
@@ -2120,13 +2120,13 @@ static int calc_we_area (HWND hWnd, int which, RECT* we_area)
 }
 
 
-static void 
+static void
 calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
 {
     RECT rc;
     int move_range;
     div_t divt;
-    
+
     if (vertical) {
         *sb_info = GetWindowInfo(hWnd)->vscroll;
         calc_vscroll_area(hWnd, HT_VSCROLL, &rc);
@@ -2145,7 +2145,7 @@ calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
 
     divt = div (move_range, sb_info->maxPos - sb_info->minPos + 1);
     sb_info->barLen = sb_info->pageStep * divt.quot +
-        sb_info->pageStep * divt.rem / 
+        sb_info->pageStep * divt.rem /
         (sb_info->maxPos - sb_info->minPos + 1);
 
     if (sb_info->barLen < LFRDR_SB_MINBARLEN)
@@ -2159,8 +2159,8 @@ calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
     else
     {
         divt = div (move_range, sb_info->maxPos - sb_info->minPos + 1);
-        sb_info->barStart = 
-            (sb_info->curPos - sb_info->minPos) * divt.quot + 
+        sb_info->barStart =
+            (sb_info->curPos - sb_info->minPos) * divt.quot +
             (sb_info->curPos - sb_info->minPos) * divt.rem /
             (sb_info->maxPos - sb_info->minPos + 1) + 0.5;
 
@@ -2188,7 +2188,7 @@ static int find_interval(int* array, int len, int val)
 
 /*
  * test_caption:
- *     test mouse in which part of caption 
+ *     test mouse in which part of caption
  * Author: XuguangWang
  * Date: 2007-11-22
  */
@@ -2212,11 +2212,11 @@ static int test_caption(HWND hWnd, int x, int y)
 
 /*
  * test_scroll:
- *     test mouse in which part of the scrollbar indicated by is_vertival. 
+ *     test mouse in which part of the scrollbar indicated by is_vertival.
  * Author: XuguangWang
  * Date: 2007-11-22
  */
-static int test_scroll(const LFSCROLLBARINFO* sb_info, 
+static int test_scroll(const LFSCROLLBARINFO* sb_info,
         int left, int right, int x, BOOL is_vertival)
 {
     static int x_poses[5] = {
@@ -2303,7 +2303,7 @@ static int hit_test (HWND hWnd, int x, int y)
         array[1] = array[0] + tmp;
         array[3] = win_h;
         array[2] = array[3] - tmp;
-        y_pos = find_interval(array, 4, y);    
+        y_pos = find_interval(array, 4, y);
 
         if (x_pos!=-1 && y_pos!=-1)
             return ht_on_border[y_pos][x_pos];
@@ -2317,7 +2317,7 @@ static int hit_test (HWND hWnd, int x, int y)
         array[0] = array[1] - get_window_caption(hWnd);
         array[3] = win_info->cb - win_info->top;
         array[4] = array[3] + get_window_scrollbar(hWnd, FALSE);
-        y_pos = find_interval(array, 5, y);    
+        y_pos = find_interval(array, 5, y);
         if (y_pos != -1)
             switch (ht_inner_border[y_pos]) {
                 case HT_CAPTION:
@@ -2328,14 +2328,14 @@ static int hit_test (HWND hWnd, int x, int y)
 
                 case HT_HSCROLL:
                     return test_scroll(&(win_info->hscroll),
-                           win_info->cl - win_info->left, 
-                           win_info->cr - win_info->left, 
+                           win_info->cl - win_info->left,
+                           win_info->cr - win_info->left,
                            x, FALSE);
 
                 case HT_VSCROLL:
-                    return test_scroll(&(win_info->vscroll), 
-                            win_info->ct - win_info->top, 
-                            win_info->cb - win_info->top, 
+                    return test_scroll(&(win_info->vscroll),
+                            win_info->ct - win_info->top,
+                            win_info->cb - win_info->top,
                             y, TRUE);
                 default:
                     return HT_UNKNOWN;
@@ -2347,12 +2347,12 @@ static int hit_test (HWND hWnd, int x, int y)
 }
 
 /* draw_border:
- *   This function draw the border of a window. 
+ *   This function draw the border of a window.
  *
  * \param hWnd : the handle of the window.
  * \param hdc : the DC of the window.
  * \param is_active : whether the window is actived.
- * \return : 0 for succeed, other for failure. 
+ * \return : 0 for succeed, other for failure.
  *
  * Author: wangjian<wangjian@minigui.org>
  * Date: 2007-12-13
@@ -2365,22 +2365,22 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
     DWORD c1, c2;
     int l, t, r, b;
     gal_pixel old_pen_color;
-    
+
     if(calc_we_area(hWnd, HT_BORDER, &rect) == -1)
         return;
-    
+
     l = rect.left;
     t = rect.top;
     r = rect.right-1;
     b = rect.bottom-1;
-    
+
     if(is_active) {
         c1 = GetWindowElementAttr(hWnd, WE_BGCB_ACTIVE_CAPTION);
     } else {
         c1 = GetWindowElementAttr(hWnd, WE_BGCB_INACTIVE_CAPTION);
     }
     c2 = c1;
-    
+
     border = (int)GetWindowElementAttr(hWnd, WE_METRICS_WND_BORDER);
     win_info = GetWindowInfo(hWnd);
     old_pen_color = GetPenColor(hdc);
@@ -2388,7 +2388,7 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
     if (IsMainWindow (hWnd)) // for main window
     {
         if (IsDialog(hWnd))   // for dialog
-            border = 0;    
+            border = 0;
         if(win_info->dwStyle & WS_BORDER
                 || win_info->dwStyle & WS_THICKFRAME)
         {
@@ -2449,20 +2449,20 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
     {
         if(win_info->dwStyle & WS_BORDER
                 || win_info->dwStyle & WS_THICKFRAME
-                || win_info->dwStyle & WS_THINFRAME)    
+                || win_info->dwStyle & WS_THINFRAME)
         {
             SetPenColor(hdc, DWORD2Pixel (hdc, c2));
             Rectangle(hdc, rect.left, rect.top,
                     rect.right-1, rect.bottom-1);
         }
-        
+
     }
 
     SetPenColor(hdc, old_pen_color);
 }
 
 /* draw_caption:
- *   This function draw the caption of a window. 
+ *   This function draw the caption of a window.
  *
  * \param hWnd : the handle of the window.
  * \param hdc : the DC of the window.
@@ -2494,14 +2494,14 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     SetRectEmpty (&icon_rect);
     win_info = GetWindowInfo(hWnd);
-    
+
     if (!(win_info->dwStyle & WS_CAPTION))
         return;
     if(calc_we_area(hWnd, HT_CAPTION, &rect) == -1)
         return;
     if(RECTH(rect) <= 1 || RECTW(rect) <= 0)
         return;
-    
+
     cap_font = (PLOGFONT)GetWindowElementAttr(hWnd, WE_FONT_CAPTION);
 
     if(is_active) {
@@ -2524,10 +2524,10 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
 #if 0
     pixels[1] = DWORD2Pixel (hdc, ca);
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (ca, LFRDR_3DBOX_COLOR_LIGHTER, 180));
 #endif
-    ptn = mGPlusCreateLinearPattern (rect, 
+    ptn = mGPlusCreateLinearPattern (rect,
             MGPLUS_GRADIENT_LINEAR_VERTICAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
     old_pen_color = GetPenColor (hdc);
     pixel_org = GetPenColor (hdc);
@@ -2546,7 +2546,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     SetPenColor (hdc, pixel_org);
     mGPlusFreeColorPattern (ptn);
-    
+
     /** draw backgroup left */
     memset (&rcTmp, 0, sizeof (RECT));
     if (win_info->dwStyle & WS_MINIMIZEBOX) {
@@ -2560,20 +2560,20 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     }
 
 #if 0
-    pixels[1] = DWORD2Pixel (hdc, 
+    pixels[1] = DWORD2Pixel (hdc,
         gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 60));
-    pixels[0] = DWORD2Pixel (hdc, 
+    pixels[0] = DWORD2Pixel (hdc,
         gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #endif
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 80);
     pixels[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-    
+
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 60);
     pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-    
-    ptn = mGPlusCreateLinearPattern (rect, 
+
+    ptn = mGPlusCreateLinearPattern (rect,
             MGPLUS_GRADIENT_LINEAR_VERTICAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
     pixel_org = GetPenColor (hdc);
     point.x = rect.left;
@@ -2596,30 +2596,30 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     /** draw the first dark line */
 #if 0
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40));
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 65));
 #endif
-    
+
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40);
     pixels[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 65);
     pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-    
+
     rect_line.left = rect.left;
     rect_line.top = rect.top + 2;
     rect_line.right = rect_line.left + rcTmp.left - 10 - (rect.bottom - rect.top) - 10;
     rect_line.bottom = rect_line.top + 1;
-   
+
     SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40)));
     MoveTo (hdc, rect_line.left, rect_line.top);
     LineTo (hdc, rect_line.right - 10, rect_line.top);
-    
+
     rect_line.left = rect_line.right - 10;
-    ptn = mGPlusCreateLinearPattern (rect_line, 
+    ptn = mGPlusCreateLinearPattern (rect_line,
             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
     /* Draw right little */
@@ -2644,9 +2644,9 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     rect_line.bottom = rect_line.top + 1;
     rect_line.right = rect_line.left + rcTmp.left - 10 - 20;
 #if 0
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_DARKER, 100));
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_DARKER, 50));
 #endif
 
@@ -2656,13 +2656,13 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 50);
     pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-    
+
     SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 100)));
     MoveTo (hdc, rect_line.left, rect_line.top);
     LineTo (hdc, rect_line.right - 10, rect_line.top);
 
     rect_line.left = rect_line.right - 10;
-    ptn = mGPlusCreateLinearPattern (rect_line, 
+    ptn = mGPlusCreateLinearPattern (rect_line,
             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
     for (i = rect_line.left; i <= rect_line.right; ++i) {
@@ -2680,10 +2680,10 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     mGPlusFreeColorPattern (ptn);
 
     /** draw the third light line */
-#if 0 
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 100));
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 70));
 #endif
 
@@ -2693,8 +2693,8 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 70);
     pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-    
-    
+
+
     rect_line.left = rect.left;
     rect_line.top = rect.top + 3;
     rect_line.right = rect_line.left + rcTmp.left - 10 - (rect.bottom - rect.top) - 10;
@@ -2706,7 +2706,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     rect_line.left = rect_line.right - 10;
 
-    ptn = mGPlusCreateLinearPattern (rect_line, 
+    ptn = mGPlusCreateLinearPattern (rect_line,
             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
     for (i = rect_line.left; i <= rect_line.right; ++i) {
@@ -2730,19 +2730,19 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     rect_line.bottom = rect_line.top + 1;
     rect_line.right = rect_line.left + rcTmp.left - 10 - 20;
     /** FIXE ME */
-#if 0 
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40));
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (cb, LFRDR_3DBOX_COLOR_DARKER, 55));
-#else 
+#else
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40);
     pixels[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
     pixel = gradient_color (cb, LFRDR_3DBOX_COLOR_DARKER, 55);
     pixels[1] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-//    pixel = DWORD2Pixel (hdc, gradient_color 
+//    pixel = DWORD2Pixel (hdc, gradient_color
 //            (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40));
 #endif
     SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (cb, LFRDR_3DBOX_COLOR_LIGHTER, 40)));
@@ -2753,7 +2753,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
 
     //pixels[1] = DWORD2Pixel (hdc, cb);
 
-    ptn = mGPlusCreateLinearPattern (rect_line, 
+    ptn = mGPlusCreateLinearPattern (rect_line,
             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
     for (i = rect_line.left; i <= rect_line.right; ++i) {
@@ -2778,10 +2778,10 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     }
 
     /** draw caption title */
-    
+
     if(win_info->spCaption)
     {
-        border = get_window_border (hWnd, win_info->dwStyle, 
+        border = get_window_border (hWnd, win_info->dwStyle,
                 lf_get_win_type(hWnd));
         win_w = win_info->right - win_info->left;
 
@@ -2794,7 +2794,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
         else if(calc_we_area(hWnd, HT_MAXBUTTON, &del_rect) != -1){
 
         }
-        else 
+        else
         {
             del_rect.left = win_w - border;
         }
@@ -2802,7 +2802,7 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
         del_rect.left -= CAP_BTN_INTERVAL;
 
         del_rect.top = border;
-        del_rect.bottom = border + 
+        del_rect.bottom = border +
                     GetWindowElementAttr (hWnd, WE_METRICS_CAPTION);
 
         ExcludeClipRect (hdc, &del_rect);
@@ -2821,19 +2821,19 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
         {
             calc_we_area(hWnd, HT_MINBUTTON, &rcTmp);
         }
-        
-        TextOutOmitted (hdc, rect.left + RECTW(icon_rect)+ 
+
+        TextOutOmitted (hdc, rect.left + RECTW(icon_rect)+
                 (ICON_ORIGIN << 1),
-                rect.top + ((RECTH(rect)-font_h)>>1), 
+                rect.top + ((RECTH(rect)-font_h)>>1),
                 win_info->spCaption,
-                strlen (win_info->spCaption), rcTmp.left - 
+                strlen (win_info->spCaption), rcTmp.left -
                 (rect.left + RECTW(icon_rect)+ (ICON_ORIGIN << 1)));
 
         SetTextColor(hdc, old_text_color);
         SelectFont(hdc, old_font);
         IncludeClipRect (hdc, &del_rect);
     }
-    
+
     SetPenColor(hdc, old_pen_color);
 }
 
@@ -2859,7 +2859,7 @@ static DWORD calc_alpha(DWORD c1, DWORD c2)
     r = (r1 + r2) >> 1;
     g = (g1 + g2) >> 1;
     b = (b1 + b2) >> 1;
-    
+
     return MakeRGB(r,g,b);
 
 }
@@ -2910,7 +2910,7 @@ void fill_path_cb (void *context, int x1, int x2, int y)
 }
 
 /* draw_caption_button:
- *   This function draw the caption button of a window. 
+ *   This function draw the caption button of a window.
  *
  * \param hWnd : the handle of the window.
  * \param hdc : the DC of the window.
@@ -2920,7 +2920,7 @@ void fill_path_cb (void *context, int x1, int x2, int y)
  * Author: wangjian<wangjian@minigui.org>
  * Date: 2007-12-15
  */
-static void 
+static void
 draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 {
     int i, w, h;
@@ -2930,7 +2930,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
     DWORD cap_c, alp_c;
     MGPLUS_PATH   *path;
     POINT inPoint, outPoint;
-        
+
     old_col = GetPenColor(hdc);
     cap_c = GetWindowElementAttr(hWnd, WE_BGCB_ACTIVE_CAPTION);
     gal_pixel pixels[2];
@@ -2953,7 +2953,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                     return;
                 if(status & LFRDR_BTN_STATUS_PRESSED){
 #if 0
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50));
 #endif
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50);
@@ -2962,7 +2962,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else if(status & LFRDR_BTN_STATUS_HILITE){
 #if 0
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #endif
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80);
@@ -2971,7 +2971,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else {
 #if 0
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10));
 #endif
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10);
@@ -2979,7 +2979,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
                 }
 #if 0
-                pixels[0] = DWORD2Pixel (hdc, gradient_color 
+                pixels[0] = DWORD2Pixel (hdc, gradient_color
                         (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250));
 #endif
 
@@ -2991,13 +2991,13 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                     return;
 
                 mGPlusNewSubPath (path);
-                mGPlusPathAddCircle (path, (rect.left + rect.right) >> 1, 
+                mGPlusPathAddCircle (path, (rect.left + rect.right) >> 1,
                         (rect.top + rect.bottom) >> 1, RECTH (rect) >> 1);
 
                 PathCxt context;
                 context.hdc = hdc;
 #if 0
-                context.ptn = mGPlusCreateLinearPattern (rect, 
+                context.ptn = mGPlusCreateLinearPattern (rect,
                         MGPLUS_GRADIENT_LINEAR_VERTICAL,
                         pixels, 2);
 #else
@@ -3008,7 +3008,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 //outPoint.y = rect.bottom - 3;
                 outPoint.y = ((rect.top + rect.bottom) >> 1); //+ 2;
 
-                context.ptn = mGPlusCreateRadialPattern (&inPoint, 
+                context.ptn = mGPlusCreateRadialPattern (&inPoint,
                         //&outPoint, 0, ((RECTW (rect) * 3) >> 2) + 1,
                         &outPoint, 0, RECTW(rect)/2,
                         pixels, 2, MGPLUS_GRADIENT_BIT_16);
@@ -3020,16 +3020,16 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 mGPlusFreePath (path);
 
                 alp_c = calc_alpha(cap_c, pixels[1]);
-                SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(alp_c), 
+                SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(alp_c),
                                         GetGValue(alp_c), GetBValue(alp_c)));
-                Circle(hdc, 
+                Circle(hdc,
                     rect.left + (RECTW(rect)>>1), rect.top + (RECTW(rect)>>1),
                     (RECTW(rect)>>1));
-             
+
                 SetPenColor(hdc, PIXEL_black);
-                
+
                 rect.right --; rect.bottom --;
-                
+
                 w = RECTW(rect);
                 h = RECTH(rect);
 
@@ -3044,13 +3044,13 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                     LineTo(hdc, rect.right - i, rect.bottom);
                     MoveTo(hdc, rect.left + i, rect.bottom);
                     LineTo(hdc, rect.right, rect.top + i);
-                    
+
                     MoveTo(hdc, rect.left + i, rect.top);
                     LineTo(hdc, rect.right, rect.bottom - i);
                     MoveTo(hdc, rect.left, rect.bottom - i);
                     LineTo(hdc, rect.right - i, rect.top);
                 }
-            } 
+            }
             if(ht_code == HT_CLOSEBUTTON) break;
 
         case HT_MAXBUTTON:
@@ -3059,8 +3059,8 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 if(RECTH(rect) <= 0 || RECTW(rect) <= 0)
                     return;
                 if(status & LFRDR_BTN_STATUS_PRESSED){
-#if 0 
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             //(cap_c, LFRDR_3DBOX_COLOR_DARKER, 90));
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50));
 #else
@@ -3070,8 +3070,8 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 #endif
                 }
                 else if(status & LFRDR_BTN_STATUS_HILITE){
-#if 0 
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             //(cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 30));
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #else
@@ -3081,8 +3081,8 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 #endif
                 }
                 else {
-#if 0 
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             //(cap_c, LFRDR_3DBOX_COLOR_DARKER, 30));
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10));
 #else
@@ -3092,27 +3092,27 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 #endif
                 }
 
-#if 0 
-                pixels[0] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+                pixels[0] = DWORD2Pixel (hdc, gradient_color
                         (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250));
 #else
-                
+
                 pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250);
                 pixels[0] = (pixel & 0xFF000000) | ((pixel & 0x000000FF) << 16) |
                                 (pixel & 0x0000FF00) | ((pixel & 0x00FF0000) >> 16);
-#endif           
+#endif
                 path = mGPlusCreatePath(MGPLUS_PATH_WIND_EVEN_ODD);
                 if (!path)
                     return;
 
                 mGPlusNewSubPath (path);
-                mGPlusPathAddCircle (path, (rect.left + rect.right) >> 1, 
+                mGPlusPathAddCircle (path, (rect.left + rect.right) >> 1,
                         (rect.top + rect.bottom) >> 1, RECTH (rect) >> 1);
 
                 PathCxt context;
                 context.hdc = hdc;
 #if 0
-                context.ptn = mGPlusCreateLinearPattern (rect, 
+                context.ptn = mGPlusCreateLinearPattern (rect,
                         MGPLUS_GRADIENT_LINEAR_VERTICAL,
                         pixels, 2);
 #else
@@ -3124,7 +3124,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 //outPoint.y = rect.bottom - 3;
                 outPoint.y = ((rect.top + rect.bottom) >> 1);// + 2;
 
-                context.ptn = mGPlusCreateRadialPattern (&inPoint, 
+                context.ptn = mGPlusCreateRadialPattern (&inPoint,
                         &outPoint, 0, RECTW (rect)/2,
                         pixels, 2, MGPLUS_GRADIENT_BIT_16);
 #endif
@@ -3133,16 +3133,16 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 mGPlusFreePath (path);
                 alp_c = calc_alpha(cap_c, pixels[1]);
 
-                SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(alp_c), 
+                SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(alp_c),
                                         GetGValue(alp_c), GetBValue(alp_c)));
-                Circle(hdc, 
+                Circle(hdc,
                     rect.left + (RECTW(rect)>>1), rect.top + (RECTW(rect)>>1),
                     (RECTW(rect)>>1));
-             
+
                 SetPenColor(hdc, PIXEL_black);
-                
+
                 rect.right --; rect.bottom --;
-                
+
                 w = RECTW(rect);
                 h = RECTH(rect);
 
@@ -3150,7 +3150,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 rect.top    += (h>>2)+1;
                 rect.right  -= (w>>2)+1;
                 rect.bottom -= (h>>2)+1;
-                
+
                 for(i = 0; i < (w>>4)+1; i++) // pen width w/16+1.
                 {
                     Rectangle(hdc, rect.left + i, rect.top + i,
@@ -3169,7 +3169,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 
                 if(status & LFRDR_BTN_STATUS_PRESSED){
 #if 0
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50));
 #else
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 50);
@@ -3179,7 +3179,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else if(status & LFRDR_BTN_STATUS_HILITE){
 #if 0
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80));
 #else
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 80);
@@ -3189,7 +3189,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 }
                 else {
 #if 0
-                    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+                    pixels[1] = DWORD2Pixel (hdc, gradient_color
                             (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10));
 #else
                     pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 10);
@@ -3198,7 +3198,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
 #endif
                 }
 #if 0
-                pixels[0] = DWORD2Pixel (hdc, gradient_color 
+                pixels[0] = DWORD2Pixel (hdc, gradient_color
                         (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250));
 #else
                 pixel = gradient_color (cap_c, LFRDR_3DBOX_COLOR_LIGHTER, 250);
@@ -3211,13 +3211,13 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                     return;
 
                 mGPlusNewSubPath (path);
-                mGPlusPathAddCircle (path, (rect.left + rect.right) >> 1, 
+                mGPlusPathAddCircle (path, (rect.left + rect.right) >> 1,
                         (rect.top + rect.bottom) >> 1, RECTH (rect) >> 1);
 
                 PathCxt context;
                 context.hdc = hdc;
 #if 0
-                context.ptn = mGPlusCreateLinearPattern (rect, 
+                context.ptn = mGPlusCreateLinearPattern (rect,
                         MGPLUS_GRADIENT_LINEAR_VERTICAL,
                         pixels, 2);
 #else
@@ -3229,7 +3229,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 //outPoint.y = rect.bottom - 3;
                 outPoint.y = ((rect.top + rect.bottom) >> 1);// + 2;
 
-                context.ptn = mGPlusCreateRadialPattern (&inPoint, 
+                context.ptn = mGPlusCreateRadialPattern (&inPoint,
                         &outPoint, 0, RECTW (rect)/2,
                         pixels, 2, MGPLUS_GRADIENT_BIT_16);
 #endif
@@ -3237,16 +3237,16 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 mGPlusFreePath (path);
 
                 alp_c = calc_alpha(cap_c, pixels[1]);
-                SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(alp_c), 
+                SetPenColor(hdc, RGB2Pixel(hdc, GetRValue(alp_c),
                                         GetGValue(alp_c), GetBValue(alp_c)));
-                Circle(hdc, 
+                Circle(hdc,
                     rect.left + (RECTW(rect)>>1), rect.top + (RECTW(rect)>>1),
                     (RECTW(rect)>>1));
-             
+
                 SetPenColor(hdc, PIXEL_black);
-                
+
                 rect.right --; rect.bottom --;
-                
+
                 w = RECTW(rect);
                 h = RECTH(rect);
 
@@ -3254,7 +3254,7 @@ draw_caption_button (HWND hWnd, HDC hdc, int ht_code, int status)
                 rect.top    += (h>>2)+1;
                 rect.right  -= (w>>2)+1;
                 rect.bottom -= (h>>2)+1;
-                
+
                 for(i = 0; i < ((w>>4)+1); i++) // pen width (w/16+1)X2.
                 {
                     MoveTo(hdc, rect.left + i, rect.bottom - i - (w>>3));
@@ -3277,7 +3277,7 @@ static int calc_scrollbarctrl_area(HWND hWnd, int sb_pos, PRECT prc)
 {
     PSCROLLBARDATA pScData = (PSCROLLBARDATA) GetWindowAdditionalData2 (hWnd);
     GetClientRect (hWnd, prc);
-    
+
     switch (sb_pos)
     {
         case HT_HSCROLL:
@@ -3320,15 +3320,15 @@ static int calc_scrollbarctrl_area(HWND hWnd, int sb_pos, PRECT prc)
     }
     if(0 >= prc->right - prc->left || 0 >= prc->bottom - prc->top)
         return -1;
-  
+
     return 0;
 }
 
 static int get_scroll_status (HWND hWnd, BOOL isVert)
 {
-    int sb_status; 
+    int sb_status;
     const WINDOWINFO  *info;
-    
+
     if (0 == strncasecmp(CTRL_SCROLLBAR, GetClassName(hWnd), strlen(CTRL_SCROLLBAR)))
     {
         sb_status = ((PSCROLLBARDATA)GetWindowAdditionalData2(hWnd))->status;
@@ -3337,20 +3337,20 @@ static int get_scroll_status (HWND hWnd, BOOL isVert)
     {
         info = (WINDOWINFO*)GetWindowInfo (hWnd);
         if(isVert)
-            sb_status = info->vscroll.status; 
+            sb_status = info->vscroll.status;
         else
-            sb_status = info->hscroll.status; 
+            sb_status = info->hscroll.status;
     }
-   return sb_status; 
+   return sb_status;
 }
 
 /* draw_scrollbar:
- *   This function draw the scrollbar of a window. 
+ *   This function draw the scrollbar of a window.
  *
  * \param hWnd : the handle of the window.
  * \param hdc : the DC of the window.
  * \param sb_pos : the pos need to draw.
- * \param status : the status of the drawing part. 
+ * \param status : the status of the drawing part.
  *
  * Author: wangjian<wangjian@minigui.org>
  * Date: 2007-11-22
@@ -3367,43 +3367,43 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
     DWORD fgc_3d, fgc_dis, bgc;
     gal_pixel pixel[2], pixel2[2], color, conver_pixel;
     gal_pixel old_brush_color, old_pen_color;
-    const WINDOWINFO  *info = 
+    const WINDOWINFO  *info =
         (WINDOWINFO*)GetWindowInfo (hWnd);
-        
+
     old_pen_color = GetPenColor(hdc);
     fgc_dis = GetWindowElementAttr(hWnd, WE_BGCB_ACTIVE_CAPTION);
     fgc_3d = gradient_color (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 80);
     bgc = GetWindowElementAttr(hWnd, WE_BGC_WINDOW);
-    
-    if (0 == strncasecmp(CTRL_SCROLLBAR, GetClassName(hWnd), 
+
+    if (0 == strncasecmp(CTRL_SCROLLBAR, GetClassName(hWnd),
                 strlen(CTRL_SCROLLBAR)))
     {
         isCtrl = TRUE;
     }
-    
+
     if (isCtrl)
     {
         if (0 != calc_scrollbarctrl_area(hWnd, sb_pos, &rect))
             return;
     }
     else
-    { 
+    {
            /** draw the rect between H and V */
            if(calc_we_area(hWnd, HT_HSCROLL, &rect) != -1)
            {
                if(info->dwStyle & WS_VSCROLL)
                {
-                   if (info->dwExStyle & WS_EX_LEFTSCROLLBAR) 
+                   if (info->dwExStyle & WS_EX_LEFTSCROLLBAR)
                    {
                        rect.right = rect.left;
                        rect.left = rect.right - RECTH(rect);
                    }
-                   else 
+                   else
                    {
                        rect.left = rect.right;
                        rect.right = rect.left + RECTH(rect);
                    }
-                   old_brush_color = 
+                   old_brush_color =
                        SetBrushColor(hdc, RGB2Pixel(hdc, 0xEE,0xED,0xE5));
                    FillBox(hdc, rect.left, rect.top, RECTW(rect), RECTH(rect));
                    SetBrushColor(hdc, old_brush_color);
@@ -3412,7 +3412,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
 
            if (sb_pos != 0)
            {
-               if (0 != calc_we_area(hWnd, sb_pos, &rect)) 
+               if (0 != calc_we_area(hWnd, sb_pos, &rect))
                    return;
            }
            else
@@ -3426,15 +3426,15 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
     switch(sb_pos)
     {
         case HT_HSCROLL:       // paint the hscrollbar
-            { 
+            {
                 if (!isCtrl || !(info->dwStyle & SBS_NOSHAFT))
-                { 
-                    SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis, 
+                {
+                    SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis,
                                     LFRDR_3DBOX_COLOR_DARKER, 10)));
-                    Rectangle(hdc, rect.left, rect.top, rect.right-1, 
+                    Rectangle(hdc, rect.left, rect.top, rect.right-1,
                             rect.bottom-1);
 #if 0
-                    pixel[0] = DWORD2Pixel (hdc, gradient_color (bgc, 
+                    pixel[0] = DWORD2Pixel (hdc, gradient_color (bgc,
                                 LFRDR_3DBOX_COLOR_LIGHTER, 20));
                     pixel[1] = DWORD2Pixel (hdc, gradient_color (bgc,
                                 LFRDR_3DBOX_COLOR_LIGHTER, 220));
@@ -3445,10 +3445,10 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     conver_pixel = gradient_color (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 220);
                     pixel[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                                (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-                    
+
                     rect.top++; rect.left++;
                     rect.right-=2; rect.bottom-=2;
-                    
+
                     ptn = mGPlusCreateLinearPattern (rect,
                             MGPLUS_GRADIENT_LINEAR_VERTICAL, pixel, 2, MGPLUS_GRADIENT_BIT_16);
 
@@ -3462,7 +3462,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                         LineTo (hdc, rect.right, i);
                     }
                     mGPlusFreeColorPattern (ptn);
-                } 
+                }
                 draw_scrollbar(hWnd, hdc, HT_SB_LEFTARROW);
                 draw_scrollbar(hWnd, hdc, HT_SB_RIGHTARROW);
                 draw_scrollbar(hWnd, hdc, HT_SB_HTHUMB);
@@ -3471,8 +3471,8 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
         case HT_VSCROLL:         // paint the vscrollbar
             {
                 if (!isCtrl || !(info->dwStyle & SBS_NOSHAFT))
-                { 
-                    SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis, 
+                {
+                    SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis,
                                     LFRDR_3DBOX_COLOR_DARKER, 10)));
                     Rectangle(hdc, rect.left, rect.top, rect.right-1, rect.bottom-1);
                     conver_pixel = gradient_color (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 20);
@@ -3482,15 +3482,15 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     pixel[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                                (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
 #if 0
-                    pixel[1] = DWORD2Pixel (hdc, gradient_color (bgc, 
+                    pixel[1] = DWORD2Pixel (hdc, gradient_color (bgc,
                                 LFRDR_3DBOX_COLOR_LIGHTER, 20));
                     pixel[0] = DWORD2Pixel (hdc, gradient_color (bgc,
                                 LFRDR_3DBOX_COLOR_LIGHTER, 200));
 #endif
                     rect.top++; rect.left++;
                     rect.right-=2; rect.bottom-=2;
-                    
-                    ptn = mGPlusCreateLinearPattern (rect, 
+
+                    ptn = mGPlusCreateLinearPattern (rect,
                             MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixel, 2, MGPLUS_GRADIENT_BIT_16);
 
                     for (i = rect.left; i<= rect.right; i ++)
@@ -3503,7 +3503,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                         LineTo (hdc, i, rect.bottom);
                     }
                     mGPlusFreeColorPattern (ptn);
-                } 
+                }
                 draw_scrollbar(hWnd, hdc, HT_SB_UPARROW);
                 draw_scrollbar(hWnd, hdc, HT_SB_DOWNARROW);
                 draw_scrollbar(hWnd, hdc, HT_SB_VTHUMB);
@@ -3521,19 +3521,19 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     else if(sb_status & SBS_HILITE_LTUP)
                         bn_status |= LFRDR_BTN_STATUS_HILITE;
                 }
-                
+
                 if(sb_status & SBS_DISABLED_LTUP || sb_status & SBS_DISABLED)
-                    draw_arrow(hWnd, hdc, &rect, fgc_3d, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_3d,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_LEFT);
                 else
-                    draw_arrow(hWnd, hdc, &rect, fgc_dis, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_dis,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_LEFT);
                 break;
             }
         case HT_SB_RIGHTARROW:
             {
                 sb_status = get_scroll_status(hWnd, FALSE);
-                if (sb_status & SBS_DISABLED_BTDN) 
+                if (sb_status & SBS_DISABLED_BTDN)
                     bn_status |= LFRDR_BTN_STATUS_DISABLED;
                 else
                 {
@@ -3542,17 +3542,17 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     else if(sb_status & SBS_HILITE_BTDN)
                         bn_status |= LFRDR_BTN_STATUS_HILITE;
                 }
-                
+
                 if(sb_status & SBS_DISABLED_BTDN || sb_status & SBS_DISABLED)
-                    draw_arrow(hWnd, hdc, &rect, fgc_3d, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_3d,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_RIGHT);
                 else
-                    draw_arrow(hWnd, hdc, &rect, fgc_dis, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_dis,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_RIGHT);
                 break;
             }
         case HT_SB_HTHUMB:
-            { 
+            {
                 //draw left and right sides
                 SetPenColor (hdc, DWORD2Pixel (hdc, gradient_color (fgc_dis,
                                 LFRDR_3DBOX_COLOR_DARKER, 10)));
@@ -3560,29 +3560,29 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 LineTo (hdc, rect.left, rect.bottom-2);
                 MoveTo (hdc, rect.right, rect.top+1);
                 LineTo (hdc, rect.right, rect.bottom-2);
-                    
+
                 conver_pixel = gradient_color (fgc_3d, LFRDR_3DBOX_COLOR_LIGHTER, 250);
                 pixel[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                            (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
                 conver_pixel = gradient_color (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70);
                 pixel[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                            (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-                
+
                 conver_pixel = gradient_color (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70);
                 pixel2[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                             (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
                 conver_pixel = gradient_color (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 100);
                 pixel2[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                             (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-#if 0 
-                pixel[0] = DWORD2Pixel (hdc, gradient_color 
-                        (fgc_3d, LFRDR_3DBOX_COLOR_LIGHTER, 250)); 
-                pixel[1] = DWORD2Pixel (hdc, gradient_color 
-                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
+#if 0
+                pixel[0] = DWORD2Pixel (hdc, gradient_color
+                        (fgc_3d, LFRDR_3DBOX_COLOR_LIGHTER, 250));
+                pixel[1] = DWORD2Pixel (hdc, gradient_color
+                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70));
 
-                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
-                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
-                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color
+                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70));
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
                 rect1.top = rect.top + 1;
@@ -3595,7 +3595,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 rect2.right = rect1.right;
                 rect2.bottom = rect.bottom-2;
 
-                ptn = mGPlusCreateLinearPattern (rect1, 
+                ptn = mGPlusCreateLinearPattern (rect1,
                         MGPLUS_GRADIENT_LINEAR_VERTICAL, pixel, 2, MGPLUS_GRADIENT_BIT_16);
 
                 for (i = rect1.top; i <= rect1.bottom; i ++)
@@ -3608,7 +3608,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     LineTo (hdc, rect1.right, i);
                 }
                 mGPlusFreeColorPattern (ptn);
-                ptn = mGPlusCreateLinearPattern (rect2, 
+                ptn = mGPlusCreateLinearPattern (rect2,
                         MGPLUS_GRADIENT_LINEAR_VERTICAL, pixel2, 2, MGPLUS_GRADIENT_BIT_16);
 
                 for (i = rect2.top; i <= rect2.bottom; i ++)
@@ -3637,10 +3637,10 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 }
 
                 if(sb_status & SBS_DISABLED_LTUP || sb_status & SBS_DISABLED)
-                    draw_arrow(hWnd, hdc, &rect, fgc_3d, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_3d,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_UP);
                 else
-                    draw_arrow(hWnd, hdc, &rect, fgc_dis, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_dis,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_UP);
                 break;
             }
@@ -3656,19 +3656,19 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     else if(sb_status & SBS_HILITE_BTDN)
                         bn_status |= LFRDR_BTN_STATUS_HILITE;
                 }
-                
+
                 if(sb_status & SBS_DISABLED_BTDN || sb_status & SBS_DISABLED)
-                    draw_arrow(hWnd, hdc, &rect, fgc_3d, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_3d,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_DOWN);
                 else
-                    draw_arrow(hWnd, hdc, &rect, fgc_dis, 
+                    draw_arrow(hWnd, hdc, &rect, fgc_dis,
                             bn_status | LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_DOWN);
                 break;
             }
-        case HT_SB_VTHUMB: 
+        case HT_SB_VTHUMB:
             {
                 //draw top and bottom sides
-                SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color 
+                SetPenColor(hdc, DWORD2Pixel (hdc, gradient_color
                             (fgc_3d, LFRDR_3DBOX_COLOR_DARKER, 10)));
                 MoveTo (hdc, rect.left+1, rect.top);
                 LineTo (hdc, rect.right-2, rect.top);
@@ -3681,7 +3681,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 conver_pixel = gradient_color (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70);
                 pixel[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                            (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-                
+
                 conver_pixel = gradient_color (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70);
                 pixel2[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                             (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
@@ -3689,16 +3689,16 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 pixel2[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                             (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
 #if 0
-                pixel[0] = DWORD2Pixel (hdc, gradient_color 
-                        (fgc_3d, LFRDR_3DBOX_COLOR_LIGHTER, 250)); 
-                pixel[1] = DWORD2Pixel (hdc, gradient_color 
-                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
-                        //(fgc_dis, LFRDR_3DBOX_COLOR_DARKER, 20)); 
-
-                pixel2[0] = DWORD2Pixel (hdc, gradient_color 
-                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70)); 
+                pixel[0] = DWORD2Pixel (hdc, gradient_color
+                        (fgc_3d, LFRDR_3DBOX_COLOR_LIGHTER, 250));
+                pixel[1] = DWORD2Pixel (hdc, gradient_color
+                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70));
                         //(fgc_dis, LFRDR_3DBOX_COLOR_DARKER, 20));
-                pixel2[1] = DWORD2Pixel (hdc, gradient_color 
+
+                pixel2[0] = DWORD2Pixel (hdc, gradient_color
+                        (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 70));
+                        //(fgc_dis, LFRDR_3DBOX_COLOR_DARKER, 20));
+                pixel2[1] = DWORD2Pixel (hdc, gradient_color
                         (fgc_dis, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
                 rect1.top = rect.top + 1;
@@ -3711,7 +3711,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 rect2.right = rect.right - 2;
                 rect2.bottom = rect1.bottom;
 
-                ptn = mGPlusCreateLinearPattern (rect1, 
+                ptn = mGPlusCreateLinearPattern (rect1,
                         MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixel, 2, MGPLUS_GRADIENT_BIT_16);
 
                 for (i = rect1.left; i <= rect1.right; i ++)
@@ -3724,7 +3724,7 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                     LineTo (hdc, i, rect1.bottom);
                 }
                 mGPlusFreeColorPattern (ptn);
-                ptn = mGPlusCreateLinearPattern (rect2, 
+                ptn = mGPlusCreateLinearPattern (rect2,
                         MGPLUS_GRADIENT_LINEAR_HORIZONTAL, pixel2, 2, MGPLUS_GRADIENT_BIT_16);
 
                 for (i = rect2.left; i <= rect2.right; i ++)
@@ -3738,14 +3738,14 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
                 }
                 mGPlusFreeColorPattern (ptn);
                 break;
-            } 
+            }
         default:
             break;
     }
     SetPenColor(hdc, old_pen_color);
 }
 
-static void draw_trackbar_thumb (HWND hWnd, HDC hdc, 
+static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
         const RECT* pRect, DWORD dwStyle)
 {
     RECT    rc_draw;
@@ -3782,20 +3782,20 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
     conver_pixel = bgc;
     pixels[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
+
     bgc = GetWindowElementAttr(hWnd, WE_BGCB_ACTIVE_CAPTION);
     conver_pixel = gradient_color(bgc, LFRDR_3DBOX_COLOR_LIGHTER, 20);
     pixels[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
     pixels[2] = pixels[0];
-#if 0 
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 20));
     pixels[2] = pixels[0];
 #endif
 
     if (!vertical) {
-        ptn = mGPlusCreateLinearPattern (rc_draw, 
+        ptn = mGPlusCreateLinearPattern (rc_draw,
                 MGPLUS_GRADIENT_LINEAR_VERTICAL,
                 pixels, 3, MGPLUS_GRADIENT_BIT_16);
 
@@ -3813,7 +3813,7 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
             }
         }
     }else {
-        ptn = mGPlusCreateLinearPattern (rc_draw, 
+        ptn = mGPlusCreateLinearPattern (rc_draw,
                 MGPLUS_GRADIENT_LINEAR_HORIZONTAL,
                 pixels, 3, MGPLUS_GRADIENT_BIT_16);
 
@@ -3842,7 +3842,7 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
     r = rc_draw.right;
     b = rc_draw.bottom;
 
-    SetPenColor(hdc, pixels[1]); 
+    SetPenColor(hdc, pixels[1]);
     MoveTo(hdc, l + corner, t);
     LineTo(hdc, r - 1 - corner, t);
     LineTo(hdc, r - 1, t+corner);
@@ -3854,7 +3854,7 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
     LineTo(hdc, l+corner, t);
 }
 
-static void 
+static void
 calc_trackbar_rect (HWND hWnd, LFRDR_TRACKBARINFO *info, DWORD dwStyle,
         const RECT* rcClient, RECT* rcRuler, RECT* rcBar, RECT* rcBorder)
 {
@@ -3911,13 +3911,13 @@ calc_trackbar_rect (HWND hWnd, LFRDR_TRACKBARINFO *info, DWORD dwStyle,
         }
 
         if (dwStyle & TBS_VERTICAL) {
-            sliderx = x + ((w - sliderw) >> 1); 
-            slidery = y + (HEIGHT_VERT_SLIDER>>1)+ (int)((max - pos) * 
+            sliderx = x + ((w - sliderw) >> 1);
+            slidery = y + (HEIGHT_VERT_SLIDER>>1)+ (int)((max - pos) *
                     (h - HEIGHT_VERT_SLIDER) / (float)(max - min)) - (sliderh>>1);
         }
         else {
-            slidery = y + ((h - sliderh) >> 1); 
-            sliderx = x + (WIDTH_HORZ_SLIDER >> 1) + (int)((pos - min) * 
+            slidery = y + ((h - sliderh) >> 1);
+            sliderx = x + (WIDTH_HORZ_SLIDER >> 1) + (int)((pos - min) *
                     (w - WIDTH_HORZ_SLIDER) / (float)(max - min)) - (sliderw>>1);
         }
 
@@ -3926,7 +3926,7 @@ calc_trackbar_rect (HWND hWnd, LFRDR_TRACKBARINFO *info, DWORD dwStyle,
 }
 
 
-static void 
+static void
 draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
 {
     RECT    rc_client, rc_border, rc_ruler, rc_bar, rc_draw, rect;
@@ -3950,7 +3950,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     GetClientRect (hWnd, &rc_client);
     dwStyle = GetWindowStyle (hWnd);
 
-    calc_trackbar_rect (hWnd, info, dwStyle, &rc_client, 
+    calc_trackbar_rect (hWnd, info, dwStyle, &rc_client,
             &rc_ruler, &rc_bar, &rc_border);
 
     x = rc_border.left;
@@ -3976,9 +3976,9 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     gal_pixel pixel_dst;
     gal_pixel pixel_org;
 #if 0
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (bgc, LFRDR_3DBOX_COLOR_DARKER, 60));
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 90));
 #endif
 
@@ -3988,9 +3988,9 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     conver_pixel = gradient_color (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 90);
     pixels[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
+
     if (!(dwStyle & TBS_VERTICAL)) {
-        ptn = mGPlusCreateLinearPattern (rect, 
+        ptn = mGPlusCreateLinearPattern (rect,
                 MGPLUS_GRADIENT_LINEAR_VERTICAL,
                 pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
@@ -4008,7 +4008,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
             }
         }
     }else {
-        ptn = mGPlusCreateLinearPattern (rect, 
+        ptn = mGPlusCreateLinearPattern (rect,
                 MGPLUS_GRADIENT_LINEAR_HORIZONTAL,
                 pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
@@ -4043,9 +4043,9 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     --rect.right;
     --rect.bottom;
 #if 0
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (bgc, LFRDR_3DBOX_COLOR_DARKER, 40));
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 100));
 #endif
 
@@ -4055,9 +4055,9 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     conver_pixel = gradient_color (bgc, LFRDR_3DBOX_COLOR_LIGHTER, 100);
     pixels[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
+
     if (!(dwStyle & TBS_VERTICAL)) {
-        ptn = mGPlusCreateLinearPattern (rect, 
+        ptn = mGPlusCreateLinearPattern (rect,
                 MGPLUS_GRADIENT_LINEAR_VERTICAL,
                 pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
@@ -4075,7 +4075,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
             }
         }
     }else {
-        ptn = mGPlusCreateLinearPattern (rect, 
+        ptn = mGPlusCreateLinearPattern (rect,
                 MGPLUS_GRADIENT_LINEAR_HORIZONTAL,
                 pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
@@ -4106,13 +4106,13 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
     if (!(dwStyle & TBS_NOTICK)) {
         SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_THREED_BODY));
         if (dwStyle & TBS_VERTICAL) {
-            TickStart = y + (HEIGHT_VERT_SLIDER >> 1); 
+            TickStart = y + (HEIGHT_VERT_SLIDER >> 1);
             //TickGap = (h - HEIGHT_VERT_SLIDER) / (float)(max - min) * TickFreq;
             TickGap = itofix (h - HEIGHT_VERT_SLIDER);
             TickGap = fixmul (TickGap, fixdiv (itofix (TickFreq), itofix (max - min)));
             TickEnd = y + h - (HEIGHT_VERT_SLIDER >> 1);
 #if 0
-            for (Tick = TickStart; (int)Tick <= TickEnd; Tick += TickGap) { 
+            for (Tick = TickStart; (int)Tick <= TickEnd; Tick += TickGap) {
                 MoveTo (hdc, x + (w>>1) + (sliderw>>1) + GAP_TICK_SLIDER, (int) Tick);
                 LineTo (hdc, x + (w>>1) + (sliderw>>1) + GAP_TICK_SLIDER + LEN_TICK, (int) Tick);
             }
@@ -4131,12 +4131,12 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
             }
 #endif
         } else {
-            TickStart = x + (WIDTH_HORZ_SLIDER >> 1); 
+            TickStart = x + (WIDTH_HORZ_SLIDER >> 1);
             //TickGap = (w - WIDTH_HORZ_SLIDER) / (float)(max - min) * TickFreq;
             TickGap = fixmul (itofix (w - WIDTH_HORZ_SLIDER), fixdiv (itofix (TickFreq), itofix (max - min)));
             TickEnd = x + w - (WIDTH_HORZ_SLIDER >> 1);
 #if 0
-            for (Tick = TickStart; (int)Tick <= TickEnd; Tick += TickGap) { 
+            for (Tick = TickStart; (int)Tick <= TickEnd; Tick += TickGap) {
                 MoveTo (hdc, (int)Tick, y + (h>>1) + (sliderh>>1) + GAP_TICK_SLIDER);
                 LineTo (hdc, (int)Tick, y + (h>>1) + (sliderh>>1) + GAP_TICK_SLIDER + LEN_TICK);
             }
@@ -4165,18 +4165,18 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
         light_dword = calc_3dbox_color (bgc, LFRDR_3DBOX_COLOR_LIGHTEST);
         rc_draw.left   = x + 1;
         rc_draw.top    = y + 1;
-        rc_draw.right  = x + w - 3; 
+        rc_draw.right  = x + w - 3;
         rc_draw.bottom = y + h - 3;
         draw_focus_frame (hdc, &rc_draw, light_dword);
     }
 }
 
-static void 
-disabled_text_out (HWND hWnd, HDC hdc, 
+static void
+disabled_text_out (HWND hWnd, HDC hdc,
         const char* spText, PRECT rc, DWORD dt_fmt)
 {
     DWORD mainc, color;
-    
+
     SetBkMode (hdc, BM_TRANSPARENT);
     SetBkColor (hdc, GetWindowBkColor (hWnd));
 
@@ -4187,7 +4187,7 @@ disabled_text_out (HWND hWnd, HDC hdc,
     rc->bottom+=1;
     color = calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_LIGHTER);
     SetTextColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     DrawText (hdc, spText, -1, rc, dt_fmt);
 
@@ -4197,7 +4197,7 @@ disabled_text_out (HWND hWnd, HDC hdc,
     rc->bottom-=1;
     color = calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_DARKER);
     SetTextColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     DrawText (hdc, spText, -1, rc, dt_fmt);
 }
@@ -4208,7 +4208,7 @@ disabled_text_out (HWND hWnd, HDC hdc,
  * Author : wangjian<wangjian@minigui.org>
  * Date : 2007-12-18.
  */
-static void 
+static void
 draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HICON icon)
 {
     int x, ty, by, text_extent;
@@ -4216,7 +4216,7 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     int eff_chars, eff_len;
     DWORD light_c, darker_c, darkest_c;
     DWORD c1;
-#if 0   
+#if 0
     gal_pixel pixels[2];
     mgplus_pattern_t ptn;
     int i;
@@ -4224,9 +4224,9 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     gal_pixel pixel_dst;
     gal_pixel pixel_org;
     pixels[1] = DWORD2Pixel (hdc, color);
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 200));
-    ptn = mGPlusCreateLinearPattern (*rect, 
+    ptn = mGPlusCreateLinearPattern (*rect,
             MGPLUS_GRADIENT_LINEAR_VERTICAL,
             pixels, 2);
 
@@ -4274,11 +4274,11 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
     /* pc3d style & flat & grap */
     if (flag & LFRDR_TAB_BOTTOM) {
         /* left and bottom */
-        SetPenColor(hdc, DWORD2Pixel (hdc, light_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, light_c));
         MoveTo (hdc, rect->left, ty);
         LineTo (hdc, rect->left, by - 3 );
         if (flag & LFRDR_TAB_ACTIVE) {
-            SetPenColor(hdc, DWORD2Pixel (hdc, c1)); 
+            SetPenColor(hdc, DWORD2Pixel (hdc, c1));
             MoveTo (hdc, rect->left + 2, by - 1);
             LineTo (hdc, rect->right - 4, by - 1);
             MoveTo (hdc, rect->left + 1, by - 2);
@@ -4286,28 +4286,28 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
             MoveTo (hdc, rect->left , by - 3);
             LineTo (hdc, rect->right - 2, by - 3);
         } else {
-            SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
+            SetPenColor(hdc, DWORD2Pixel (hdc, darker_c));
             MoveTo (hdc, rect->left + 2, by - 1);
             LineTo (hdc, rect->right - 4, by - 1);
             MoveTo (hdc, rect->left + 1, by - 2);
             LineTo (hdc, rect->left + 1, by - 2);
         }
         /*right*/
-        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c));
         MoveTo (hdc, rect->right - 2, by - 3);
         LineTo (hdc, rect->right - 2, ty);
         MoveTo (hdc, rect->right - 3, by - 2 );
         LineTo (hdc, rect->right - 3, by - 2);
-        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c));
         MoveTo (hdc, rect->right - 3, by -3);
         LineTo (hdc, rect->right - 3, ty);
     } else {
         /*left and top */
-        SetPenColor(hdc, DWORD2Pixel (hdc, light_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, light_c));
         MoveTo (hdc, rect->left, by - 1);
         LineTo (hdc, rect->left, ty + 2);
         if (flag & LFRDR_TAB_ACTIVE) {
-            SetPenColor(hdc, DWORD2Pixel (hdc, c1)); 
+            SetPenColor(hdc, DWORD2Pixel (hdc, c1));
             MoveTo (hdc, rect->left , ty+2);
             LineTo (hdc, rect->right - 2, ty+2);
             MoveTo (hdc, rect->left + 1, ty+1);
@@ -4321,12 +4321,12 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
             LineTo (hdc, rect->left + 1, ty + 1);
         }
         /*right*/
-        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darkest_c));
         MoveTo (hdc, rect->right - 2, ty + 2 );
         LineTo (hdc, rect->right - 2, by - 2);
         MoveTo (hdc, rect->right - 3, ty + 1 );
         LineTo (hdc, rect->right - 3, ty + 1);
-        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c)); 
+        SetPenColor(hdc, DWORD2Pixel (hdc, darker_c));
         MoveTo (hdc, rect->right - 3, ty + 2 );
         LineTo (hdc, rect->right - 3, by - 2);
     }
@@ -4338,24 +4338,24 @@ draw_tab (HWND hWnd, HDC hdc, RECT *rect, char *title, DWORD color, int flag, HI
         int icon_x, icon_y;
         icon_x = RECTHP(rect) - 8;
         icon_y = icon_x;
-        
+
         DrawIcon (hdc, x, ty, icon_x, icon_y, icon);
         x += icon_x;
         x += 2;
         text_extent -= icon_x + 2;
     }
-        
+
     /* draw the TEXT */
-    SetBkColor (hdc, DWORD2Pixel (hdc, color)); 
+    SetBkColor (hdc, DWORD2Pixel (hdc, color));
     text_extent -= 4;
-    eff_len = GetTextExtentPoint (hdc, title, strlen(title), 
+    eff_len = GetTextExtentPoint (hdc, title, strlen(title),
                   text_extent, &eff_chars, NULL, NULL, &size);
 
     TextOutLen (hdc, x + 2, ty, title, eff_len);
 }
 
-static void 
-draw_progress (HWND hWnd, HDC hdc, 
+static void
+draw_progress (HWND hWnd, HDC hdc,
         int nMax, int nMin, int nPos, BOOL fVertical)
 {
     POINT   point;
@@ -4374,7 +4374,7 @@ draw_progress (HWND hWnd, HDC hdc,
 
     if (nMax == nMin)
         return;
-    
+
     if ((nMax - nMin) > 5)
         step = 5;
     else
@@ -4387,19 +4387,19 @@ draw_progress (HWND hWnd, HDC hdc,
 
 #if 0
     bkpixel[0] = DWORD2Pixel (hdc, c1);
-    bkpixel[1] = DWORD2Pixel (hdc, gradient_color (bkpixel[0], 
+    bkpixel[1] = DWORD2Pixel (hdc, gradient_color (bkpixel[0],
                 LFRDR_3DBOX_COLOR_LIGHTER, 120));
 #endif
 
     conver_pixel = c1;
     bkpixel[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                  (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
+
     conver_pixel = gradient_color (bkpixel[0], LFRDR_3DBOX_COLOR_LIGHTER, 120);
     bkpixel[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                  (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
-    ptn = mGPlusCreateLinearPattern (rcClient, MGPLUS_GRADIENT_LINEAR_VERTICAL, 
+
+    ptn = mGPlusCreateLinearPattern (rcClient, MGPLUS_GRADIENT_LINEAR_VERTICAL,
             bkpixel, 2, MGPLUS_GRADIENT_BIT_16);
 
     point.x = rcClient.left;
@@ -4424,14 +4424,14 @@ draw_progress (HWND hWnd, HDC hdc,
 
     ndiv_progress = ldiv (nMax - nMin, step);
     nAllPart = ndiv_progress.quot;
-    
+
     ndiv_progress = ldiv (nPos - nMin, step);
     nNowPart = ndiv_progress.quot;
 
 #if 0
     pixel[1] = DWORD2Pixel (hdc, gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER,
                 50));
-    pixel[0] = DWORD2Pixel (hdc, gradient_color (gradient_color 
+    pixel[0] = DWORD2Pixel (hdc, gradient_color (gradient_color
                 (c2, LFRDR_3DBOX_COLOR_LIGHTER, 80), LFRDR_3DBOX_COLOR_LIGHTER,
                 250));
 #endif
@@ -4439,13 +4439,13 @@ draw_progress (HWND hWnd, HDC hdc,
     conver_pixel = gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 50);
     pixel[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
+
     conver_pixel = gradient_color (gradient_color (c2, LFRDR_3DBOX_COLOR_LIGHTER, 80),
                                    LFRDR_3DBOX_COLOR_LIGHTER,
                                    250);
     pixel[1] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-    
+
     if (fVertical) {
         prog = h * nNowPart/nAllPart;
         if (nPos == nMax)
@@ -4512,13 +4512,13 @@ static void draw_header (HWND hWnd, HDC hdc, const RECT *pRect, DWORD color)
     conver_pixel = gradient_color (color, LFRDR_3DBOX_COLOR_LIGHTER, 120);
     pixels[0] = (conver_pixel & 0xFF000000) | ((conver_pixel & 0x000000FF) << 16) |
                 (conver_pixel & 0x0000FF00) | ((conver_pixel & 0x00FF0000) >> 16);
-#if 0 
-    pixels[1] = DWORD2Pixel (hdc, gradient_color 
+#if 0
+    pixels[1] = DWORD2Pixel (hdc, gradient_color
             (color, LFRDR_3DBOX_COLOR_DARKER, 60));
-    pixels[0] = DWORD2Pixel (hdc, gradient_color 
+    pixels[0] = DWORD2Pixel (hdc, gradient_color
             (color, LFRDR_3DBOX_COLOR_LIGHTER, 120));
 #endif
-    ptn = mGPlusCreateLinearPattern (*pRect, 
+    ptn = mGPlusCreateLinearPattern (*pRect,
             MGPLUS_GRADIENT_LINEAR_VERTICAL,
             pixels, 2, MGPLUS_GRADIENT_BIT_16);
 
@@ -4583,7 +4583,7 @@ WINDOW_ELEMENT_RENDERER wnd_rdr_fashion = {
 
     calc_thumb_area,
     disabled_text_out,
- 
+
     draw_tab,
     draw_progress,
     draw_header,

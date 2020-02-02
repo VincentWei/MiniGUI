@@ -14,8 +14,8 @@
  * \file ose_semaphore.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2006/05/19
- * 
- * \brief This is the Semaphore implementation in order to run 
+ *
+ * \brief This is the Semaphore implementation in order to run
  *        MiniGUI on OSE.
  *
  \verbatim
@@ -27,7 +27,7 @@
 
     We do this work in order to run MiniGUI on OSE.
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -65,7 +65,7 @@
 /*
  * $Id: ose_semaphore.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -78,7 +78,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define OSEPTH_LEN_NAME		256
+#define OSEPTH_LEN_NAME        256
 
 /**
  * @\type SEMAPHORE
@@ -94,7 +94,7 @@ typedef struct _sem_t
     char       name [OSEPTH_LEN_NAME];
 } sem_t;
 
-#define SEM_VALUE_MAX	UINT_MAX
+#define SEM_VALUE_MAX    UINT_MAX
 
 /*-----------------------------------------------------------------------------
 ** Semaphore functions

@@ -14,10 +14,10 @@
  * \file progressbar.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: progressbar.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_PROGRESSBAR_H
 #define _MGUI_CTRL_PROGRESSBAR_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,8 +95,8 @@ extern "C" {
 /**
  * \def PBS_NOTIFY
  * \brief Notifies the parent window.
- * 
- * Sends the parent window notification messages when 
+ *
+ * Sends the parent window notification messages when
  * the user clicks or double-clicks the control.
  */
 #define PBS_NOTIFY              0x0001L
@@ -118,7 +118,7 @@ extern "C" {
  * \def PBM_SETRANGE
  * \brief Sets the limits of the range.
  *
- * Sets the upper and lower limits of the progress bar control's range, 
+ * Sets the upper and lower limits of the progress bar control's range,
  * and redraws the bar to reflect the new ranges.
  *
  * \code
@@ -157,7 +157,7 @@ extern "C" {
  * \def PBM_SETPOS
  * \brief Sets the progress bar control's current position.
  *
- * Sets the progress bar control's current position as specified by nPos, 
+ * Sets the progress bar control's current position as specified by nPos,
  * and redraw the bar to reflect the new position.
  *
  * \code
@@ -175,9 +175,9 @@ extern "C" {
 
 /**
  * \def PBM_DELTAPOS
- * \brief Advances the progress bar control's current position. 
+ * \brief Advances the progress bar control's current position.
  *
- * Advances the progress bar control's current position as specified by posInc, 
+ * Advances the progress bar control's current position as specified by posInc,
  * and redraw the bar to reflect the new position.
  *
  * \code
@@ -197,7 +197,7 @@ extern "C" {
  * \def PBM_STEPIT
  * \brief Advances the current position by the step increment.
  *
- * Advances the current position for a progress bar control by 
+ * Advances the current position for a progress bar control by
  * the step increment, and redraw the bar to reflect the new position.
  *
  * \code

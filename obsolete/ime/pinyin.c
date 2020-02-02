@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -50,10 +50,10 @@
 **
 ** Porting to MiniGUI from CCE by Zheng Xiang
 **
-** Copyright (C) 2000 by Zheng Xiang (zx@minigui.org) 
+** Copyright (C) 2000 by Zheng Xiang (zx@minigui.org)
 ** Copyright (C) 2000 ~ 2002 Wei Yongming
 ** Copyright (C) 2003 ~ 2007 Feynman Software.
-** 
+**
 ** Current maintainer: Wei Yongming
 **
 ** Create date: 2000/11/01
@@ -105,7 +105,7 @@
 */
 
 /*
-** TODO: 
+** TODO:
 */
 
 #include <stdio.h>
@@ -117,7 +117,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #endif
- 
+
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -165,8 +165,8 @@ static void get_user_phrase_file (const char* tabpath, char* file_name)
         strcat (file_name, "usrphrase.tab");
     }
 #elif defined(WIN32)
-	strcpy (file_name, tabpath);
-	strcat (file_name, "usrphrase.tab");
+    strcpy (file_name, tabpath);
+    strcat (file_name, "usrphrase.tab");
 #endif
 }
 
@@ -231,7 +231,7 @@ void RefreshPYInputArea (InputModule *inmd, HDC hDC, BOOL bTwoLines)
 
 void Pinyin_HZFilter(InputModule* inmd, unsigned char key, LPARAM lParam)
 {
-  if ( (key>='a' && key<='z') || (key=='\''&& strlen(inmd->inbuf)) || key=='\010' || key=='\177') 
+  if ( (key>='a' && key<='z') || (key=='\''&& strlen(inmd->inbuf)) || key=='\010' || key=='\177')
       PinyinKeyPressed(inmd,key,lParam);
   else if (!strlen(inmd->inbuf)) {
      __mg_ime_outchar(key, lParam);
@@ -317,7 +317,7 @@ static void PinyinKeyPressed(InputModule *inmd,char ch,LPARAM lParam)
       if (strlen(inbuf) + strlen(strbuf) + 1 < MAX_INPUT_BUF) {
           strcat(inbuf,strbuf);
           strcat(inbuftmp,strbuf);
-      } 
+      }
       else {
           Ping ();
 #ifdef _DEBUG
@@ -421,7 +421,7 @@ static void SelectKeyPressed(InputModule *inmd,char ch,LPARAM lParam)
       }
 
       __mg_ime_writemsg(pybuftmp, strlen(pybuftmp), lParam, 1); //1 means as the format of WORD
- 
+
       ResetPinyinInput(inmd);
       return;//strlen(strbuf);
           /* All the pinyin are translated to char/phrases!  */
@@ -445,7 +445,7 @@ static void SelectKeyPressed(InputModule *inmd,char ch,LPARAM lParam)
       for(j = inmd->pinyinpos; j < inmd->lenpy; j++) {
           if (strlen(inbuftmp) + strlen(inmd->pinyin[j]) + 1 < MAX_INPUT_BUF) {
               strcat(inbuftmp, inmd->pinyin[j]);
-          } 
+          }
           else {
               Ping ();
 #ifdef _DEBUG
@@ -485,7 +485,7 @@ static BOOL LoadPinyinTable (InputModule *inmd, char* pathname)
     FILE *stream;
     char str[250],strpy[15],strhz[241];
     int i=0, j=0, lastpy=0, curpy;
-   
+
     if ( (stream = fopen (pathname, "rb" )) == NULL ) {
         fprintf(stderr, "IME (Pinyin): Can not open Pinyin Table to read.\n");
         return FALSE;
@@ -495,7 +495,7 @@ static BOOL LoadPinyinTable (InputModule *inmd, char* pathname)
         if ( fgets(str,250,stream) != NULL) {
             sscanf(str,"%14s %240s",strpy,strhz);
             curpy = strpy[0]-'a';
-            if (curpy != lastpy) j = 0; 
+            if (curpy != lastpy) j = 0;
             strncpy( inmd->pytab[curpy][j].py,strpy, MAX_PY_LEN);
             inmd->pytab[curpy][j].key = i+1;
             lastpy = curpy;
@@ -503,7 +503,7 @@ static BOOL LoadPinyinTable (InputModule *inmd, char* pathname)
         }
     }
     fclose(stream);
-  
+
     return TRUE;
 }
 
@@ -552,7 +552,7 @@ static BOOL LoadUsrPhrase (InputModule *inmd, char *pathname)
        {
           fread(&len,sizeof(len),1,stream);
           fread(&size,sizeof(size),1,stream);
-          
+
           if ((kph = (UsrPhrase *)malloc(6+len+1+(2*len+1)*size)) == NULL) {
                 fprintf (stderr, "IME (Pinyin): No enough memory.\n");
                 fclose (stream);
@@ -568,7 +568,7 @@ static BOOL LoadUsrPhrase (InputModule *inmd, char *pathname)
           ahead = kph->key[1];
           ahead |= (kph->key[0] & 0x01) << 8;
 
-         if (inmd->usrph[ahead] == NULL) 
+         if (inmd->usrph[ahead] == NULL)
             inmd->usrph[ahead] = kph;
          else
          {
@@ -604,12 +604,12 @@ static BOOL LoadSysPhrase (InputModule *inmd, char *pathname)
       !(inmd->sys_size = MGUI_ReadLE32FP (stream)) ||
       inmd->sys_size != ftell (stream)-4)   // error!!
     {
-        fprintf (stderr, "IME (Pinyin): %s is not a valid pinyin phrase file.\n", 
+        fprintf (stderr, "IME (Pinyin): %s is not a valid pinyin phrase file.\n",
                 pathname);
         fclose (stream);
         return FALSE;
     }
- 
+
     fseek (stream, 0, SEEK_SET);
 
     if ((p = malloc(inmd->sys_size)) == NULL) {
@@ -624,7 +624,7 @@ static BOOL LoadSysPhrase (InputModule *inmd, char *pathname)
         free (p);
         return FALSE;
     }
-   
+
     for(i = 1; i < MAX_PY_NUM; i++) {
       inmd->sysph[i] = sysph = (SysPhrase*)p;
 
@@ -635,7 +635,7 @@ static BOOL LoadSysPhrase (InputModule *inmd, char *pathname)
       p = (char*)sysph->phrase;
       for(j = 0; j < sysph->count; j++) {
          kph = (Phrase*)p;
-         p += SizeOfPhrase (kph->len,kph->count);  // skip the string 
+         p += SizeOfPhrase (kph->len,kph->count);  // skip the string
       }
    }
 
@@ -662,7 +662,7 @@ static void AdjustPhraseFreq (InputModule *inmd)
             if (uph->key[index] > 25)
                 uph->key[index] = 25 + (uph->key[index]-25)/10;
          }
-     }   
+     }
 
      // system phrases
      sysph = inmd->sysph[i];
@@ -675,7 +675,7 @@ static void AdjustPhraseFreq (InputModule *inmd)
             index = sph->len+1 + (2*sph->len+1)*k + 2*sph->len;
             if (sph->key[index] > 25)
                  sph->key[index] = 25 + (sph->key[index] - 25)/10;
-        }   
+        }
         p += SizeOfPhrase(sph->len,sph->count);
      }
   }
@@ -754,7 +754,7 @@ static BOOL SaveUsrPhrase (InputModule *inmd, char *pathname)
          len = p0->len;
          for (q0 = inmd->usrph[i]; q0 != p0; q0 = q0->next)
             if (q0->len == len && !memcmp(p0->key, q0->key, len+1)) break;
-         if (p0 == q0) total++;  
+         if (p0 == q0) total++;
       }
 
       MGUI_WriteLE16FP (out, total);
@@ -771,10 +771,10 @@ static BOOL SaveUsrPhrase (InputModule *inmd, char *pathname)
           if (tmpcount > 255)
               tmpcount = 255;
           else count = (u_char)tmpcount;
- 
+
           fsize += SizeOfPhrase(len,count);
 
-          // u_char count, count must less than 256 phrases       
+          // u_char count, count must less than 256 phrases
           fwrite(&len,sizeof(len),1,out);
           fwrite(&count,sizeof(count),1,out);
           fwrite(p0->key,len+1,1,out);
@@ -783,7 +783,7 @@ static BOOL SaveUsrPhrase (InputModule *inmd, char *pathname)
              if (q0->len == len && !memcmp(q0->key,p0->key,len+1))
              {
                  fwrite(q0->key+len+1,q0->count*(2*len+1),1,out);
-                 q0->count = 0; 
+                 q0->count = 0;
              }
        }
     }
@@ -801,7 +801,7 @@ static void SaveUsrPhraseToMem(InputModule *inmd,u_char *str,u_char *key,int len
 {
   UsrPhrase *kph, *tmp;
   short ahead;
-  
+
   if (len<1) return;
 
   ahead = (short)key[1];
@@ -813,12 +813,12 @@ static void SaveUsrPhraseToMem(InputModule *inmd,u_char *str,u_char *key,int len
 
   kph->len = len;
   memcpy(kph->key,key,len+1);
-  kph->count = 1; 
+  kph->count = 1;
   kph->next = NULL;
   memcpy(kph->key + len+1,str,len*2);
   kph->key[len+1+2*len] = freq;
 
-  if (inmd->usrph[ahead] == NULL) 
+  if (inmd->usrph[ahead] == NULL)
       inmd->usrph[ahead] = kph;
   else
   {
@@ -847,14 +847,14 @@ static int ParsePy(InputModule *inmd, char *pybuf, PYString pinyin[])
 {
   int len, ahead,i, total = 0;
   int offset = 0, count, valid;
- 
+
   len = strlen(pybuf);
   if (len < 1 || len > MAX_PHRASE_LEN * (MAX_PY_LEN+1) ) return 0;
-  
+
   count = 2;  /* 1 always valid */
   while (offset + count <= len)
   {
-      if (pybuf[offset] == '\'')  // delimitor ' 
+      if (pybuf[offset] == '\'')  // delimitor '
       {
           strcpy(pinyin[total++],"\'");
           offset++; count = 2; continue;
@@ -871,7 +871,7 @@ static int ParsePy(InputModule *inmd, char *pybuf, PYString pinyin[])
          {
             valid = 1; break;
          }
-      } 
+      }
 
      if (valid) count++;
      else
@@ -886,7 +886,7 @@ static int ParsePy(InputModule *inmd, char *pybuf, PYString pinyin[])
   // copy the remaining pinyin
   if (offset < len)
   {
-    strncpy(pinyin[total], pybuf+offset, count-1); 
+    strncpy(pinyin[total], pybuf+offset, count-1);
     pinyin[total++][count-1] = '\0';
   }
   return total;
@@ -917,8 +917,8 @@ static void FindMatchPhrase(InputModule *inmd,PYString pinyin[],int lenpy)
   for (i=0; i<lenpy; i++)
   {
     ch = pinyin[i][0];
-    if (ch == 'i' || ch == 'u' || ch == 'v' || ch < 'a' || ch > 'z') 
-        continue;  // ignore the i/u/v beginning and non a-z 
+    if (ch == 'i' || ch == 'u' || ch == 'v' || ch < 'a' || ch > 'z')
+        continue;  // ignore the i/u/v beginning and non a-z
 
     ahead = pinyin[i][0] - 'a';
     lenkey=0;
@@ -931,19 +931,19 @@ static void FindMatchPhrase(InputModule *inmd,PYString pinyin[],int lenpy)
         pykey[count][lenkey++] = keytmp;
         continue;
       }
-      else if (inmd->FuzzyPinyin && (ch == 'z' || ch == 'c' || ch == 's')) 
-      { 
+      else if (inmd->FuzzyPinyin && (ch == 'z' || ch == 'c' || ch == 's'))
+      {
          if (pinyin[i][1] != 'h')
          {
             strncpy(py+1,pinyin[i], MAX_PY_LEN);
-            py[0] = py[1]; 
+            py[0] = py[1];
             py[1] = 'h';
          }
          else
          {
             strncpy(py,pinyin[i]+1, MAX_PY_LEN);
             py[0] = ch;
-         }  
+         }
          if (!strncmp(py,inmd->pytab[ahead][j].py,strlen(py)))
             pykey[count][lenkey++] = keytmp;
       }
@@ -970,7 +970,7 @@ static void FindMatchPhrase(InputModule *inmd,PYString pinyin[],int lenpy)
 
     //  single char phrase
     result = QueryPhrase(inmd, key, 1);
-    if (result > 0)  //save the possible multiple-char phrases 
+    if (result > 0)  //save the possible multiple-char phrases
         memcpy(keyarr[0][lenarr[0]++],key,2);
   }
 
@@ -1010,7 +1010,7 @@ static void SortOutput(InputModule *inmd)
          }
       }
 
-     // sort the phrases 
+     // sort the phrases
      for(k=0; k<lenph; k++)
      for(j=k; j<lenph; j++)
      if (*GetFreq(ph+k) < *GetFreq(ph+j))
@@ -1020,7 +1020,7 @@ static void SortOutput(InputModule *inmd)
         ph[j] = phtmp;
      }
 
-     totalph += lenph; 
+     totalph += lenph;
      ph += lenph;
   }
 
@@ -1134,7 +1134,7 @@ static int QueryPhrase(InputModule *inmd, u_char *key, int len)
 
   for(i=0;i<len;i++)
     mask += 1<<i;
-   
+
    for( uph = inmd->usrph[ahead]; uph != NULL; uph = uph->next)
    {
       if (uph->len < len) continue;
@@ -1152,15 +1152,15 @@ static int QueryPhrase(InputModule *inmd, u_char *key, int len)
       {
           if (uph->len == len )   // exact match
           {
-              inmd->tempsel[len-1][ inmd->seltotal[len-1]++ ] = 
+              inmd->tempsel[len-1][ inmd->seltotal[len-1]++ ] =
                    (Phrase*)( ((char*)uph) + 4 );
            }
           else count++;  // calculate the phrase longer than len
       }
    }
 
-    // search in user phrase lib first, then system phrase libray 
-     sysph = inmd->sysph[ahead]; 
+    // search in user phrase lib first, then system phrase libray
+     sysph = inmd->sysph[ahead];
      p = (char*)sysph->phrase;   // count = total pinyin number
      for(j = 0; j < sysph->count; j++)
      {
@@ -1185,7 +1185,7 @@ static int QueryPhrase(InputModule *inmd, u_char *key, int len)
         }
         p += SizeOfPhrase(sph->len,sph->count);
   }
-   
+
   return count;
 }
- 
+

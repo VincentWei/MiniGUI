@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -83,8 +83,8 @@ static void freeIvItem (IconviewItem *pivi)
 /*
  * ivlistItemAdd : add an new icon item to the icon list
  */
-static IconviewItem* 
-ivlistItemAdd (IconviewList* pivlist, IconviewItem* preitem, 
+static IconviewItem*
+ivlistItemAdd (IconviewList* pivlist, IconviewItem* preitem,
             IconviewItem* nextitem, PIVITEMINFO pii, int *idx)
 {
     IconviewItem* ci;
@@ -101,7 +101,7 @@ ivlistItemAdd (IconviewList* pivlist, IconviewItem* preitem,
             ci->label = strdup (pii->label);
     }
 
-    ret = mglist_add_item ( (MgList *)pivlist, (MgItem *)ci, 
+    ret = mglist_add_item ( (MgList *)pivlist, (MgItem *)ci,
             (MgItem *)preitem, (MgItem *)nextitem, pii->nItem, idx);
 
     if (ret < 0) {
@@ -139,7 +139,7 @@ static void ivlist_reset_content (HWND hWnd, IconviewList* pivlist)
 /*
  * isInItem : Decides wheter an item is being clicked
  */
-static int isInItem (MgList *mglst, int mouseX, int mouseY, 
+static int isInItem (MgList *mglst, int mouseX, int mouseY,
                      MgItem** pRet, int *itemy)
 {
     IconviewList *pivlist = (IconviewList *)mglst;
@@ -164,11 +164,11 @@ static int isInItem (MgList *mglst, int mouseX, int mouseY,
     return index;
 }
 
-int 
-iconview_is_in_item (IconviewData* pivdata, 
+int
+iconview_is_in_item (IconviewData* pivdata,
         int mousex, int mousey, HITEM *phivi)
 {
-    return isInItem ((MgList *)&pivdata->ivlist, 
+    return isInItem ((MgList *)&pivdata->ivlist,
             mousex, mousey, (MgItem**)phivi, NULL);
 }
 
@@ -181,17 +181,17 @@ HITEM iconview_add_item (HWND hWnd, IconviewData* pivdata, HITEM prehivi,
     IconviewItem* pci;
     int index;
 
-    if ((pci = 
+    if ((pci =
         ivlistItemAdd (pivlist, (IconviewItem*)prehivi, NULL, pii, &index))) {
         int newh = 0;
         int count = mglist_get_item_count((MgList *)pivlist) ;
 
-        if (pivlist->nCol == 1 
+        if (pivlist->nCol == 1
             || count % pivlist->nCol == 1)
             newh = pivlist->nItemHeight;
 
         if(count <=  pivlist->nCol) {
-            scrolled_set_cont_width (hWnd, pivscr, 
+            scrolled_set_cont_width (hWnd, pivscr,
                     count * pivdata->ivlist.nItemWidth);
         }
         mglist_adjust_items_height (hWnd, (MgList *)pivlist, pivscr, newh);
@@ -204,22 +204,22 @@ HITEM iconview_add_item (HWND hWnd, IconviewData* pivdata, HITEM prehivi,
 }
 
 //FIXME
-HITEM iconview_add_item_ex (HWND hWnd, IconviewData* pivdata, HITEM prehivi, 
+HITEM iconview_add_item_ex (HWND hWnd, IconviewData* pivdata, HITEM prehivi,
                 HITEM nexthivi, PIVITEMINFO pii, int *idx)
 {
     IconviewList* pivlist = &pivdata->ivlist;
     IconviewItem* pci;
     int index;
 
-    if ( (pci = ivlistItemAdd (pivlist, 
+    if ( (pci = ivlistItemAdd (pivlist,
             (IconviewItem*)prehivi, (IconviewItem*)nexthivi, pii, &index))) {
         int count = mglist_get_item_count((MgList *)pivlist) ;
 
         if (count % pivlist->nCol == 1)
-            mglist_adjust_items_height (hWnd, 
+            mglist_adjust_items_height (hWnd,
                 (MgList *)pivlist, pivscr, pivlist->nItemHeight);
         if(count <=  pivlist->nCol) {
-            scrolled_set_cont_width (hWnd, pivscr, 
+            scrolled_set_cont_width (hWnd, pivscr,
                     count * pivdata->ivlist.nItemWidth);
         }
     }
@@ -235,13 +235,13 @@ int iconview_move_item (IconviewData* pivdata, HITEM hivi, HITEM prehivi)
     if (!hivi)
         return -1;
 
-    mglist_move_item ((MgList *)&pivdata->ivlist, 
+    mglist_move_item ((MgList *)&pivdata->ivlist,
             (MgItem *)hivi, (MgItem *)prehivi);
     scrolled_refresh_content (pivscr);
     return 0;
 }
 
-int 
+int
 iconview_del_item (HWND hWnd, IconviewData* pivdata, int nItem, HITEM hivi)
 {
     IconviewList* pivlist = &pivdata->ivlist;
@@ -262,7 +262,7 @@ iconview_del_item (HWND hWnd, IconviewData* pivdata, int nItem, HITEM hivi)
             delh = pivlist->nItemHeight;
 
         if(count <=  pivlist->nCol) {
-            scrolled_set_cont_width (hWnd, pivscr, 
+            scrolled_set_cont_width (hWnd, pivscr,
                     count * pivdata->ivlist.nItemWidth);
         }
         mglist_adjust_items_height (hWnd, (MgList *)pivlist, pivscr, -delh);
@@ -292,18 +292,18 @@ static void recalc_total_h (HWND hWnd, IconviewData *pivdata)
     content = pivdata->ivlist.nCol * pivdata->ivlist.nItemWidth;
     scrolled_set_cont_width (hWnd, pivscr, content);
 
-	//FIXED BY Dongjunjie
-	if(pivdata->ivlist.nCol <= 0)
-		pivdata->ivlist.nCol = 1;
+    //FIXED BY Dongjunjie
+    if(pivdata->ivlist.nCol <= 0)
+        pivdata->ivlist.nCol = 1;
     newh = (mglist_get_item_count ((MgList *)pivlist) + pivlist->nCol - 1)
            / pivlist->nCol * pivlist->nItemHeight;
     if (newh != oldh) {
-        mglist_adjust_items_height (hWnd, 
+        mglist_adjust_items_height (hWnd,
             (MgList *)pivlist, pivscr, newh - oldh);
     }
 }
 
-static int 
+static int
 iconview_get_item_rect (HWND hWnd, HITEM hivi, RECT *rcItem, BOOL bConv)
 {
     IconviewData *pivdata = (IconviewData *)GetWindowAdditionalData2(hWnd);
@@ -381,31 +381,31 @@ static void ivDrawItem (HWND hWnd, GHANDLE hivi, HDC hdc, RECT *rcDraw)
 
     if (iconview_is_item_hilight(hWnd, hivi)) {
         SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_HIGHLIGHT_ITEM));
-        win_info->we_rdr->draw_hilite_item (hWnd, hdc, rcDraw, 
+        win_info->we_rdr->draw_hilite_item (hWnd, hdc, rcDraw,
                 GetWindowElementAttr (hWnd, WE_BGC_HIGHLIGHT_ITEM));
     }
     else {
         SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
-       // win_info->we_rdr->draw_normal_item (hWnd, hdc, rcDraw, 
+       // win_info->we_rdr->draw_normal_item (hWnd, hdc, rcDraw,
        //         GetWindowElementAttr (hWnd, WE_BGC_WINDOW));
     }
 
     if (ivitem->label) {
         rcTxt = *rcDraw;
         rcTxt.top = rcTxt.bottom - GetWindowFont(hWnd)->size - 2;
-        DrawText (hdc, ivitem->label, -1, 
+        DrawText (hdc, ivitem->label, -1,
                 &rcTxt, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
     }
 
     if (ivitem->bmp) {
         int bmpw = 0, bmph = 0;
 
-        x = rcDraw->left + (RECTWP(rcDraw) - (int)ivitem->bmp->bmWidth ) / 2; 
+        x = rcDraw->left + (RECTWP(rcDraw) - (int)ivitem->bmp->bmWidth ) / 2;
         if (x < rcDraw->left) {
             x = rcDraw->left;
             bmpw = RECTWP(rcDraw);
         }
-        y = rcDraw->top 
+        y = rcDraw->top
             + ( RECTHP(rcDraw) - RECTH(rcTxt) - (int)ivitem->bmp->bmHeight) / 2;
         if (y < rcDraw->top) {
             y = rcDraw->top;
@@ -451,7 +451,7 @@ static int ivInitData (HWND hWnd, IconviewData* pivdata)
     RECT rcWnd;
 
     GetClientRect (hWnd, &rcWnd);
-    scrolled_init (hWnd, &pivdata->scrdata, 
+    scrolled_init (hWnd, &pivdata->scrdata,
                     RECTW(rcWnd) - IV_LEFTMARGIN - IV_RIGHTMARGIN,
                     RECTH(rcWnd) - IV_TOPMARGIN - IV_BOTTOMMARGIN);
 
@@ -464,16 +464,16 @@ static int ivInitData (HWND hWnd, IconviewData* pivdata)
 
     ivlist_init (hWnd, &pivdata->ivlist);
     pivdata->ivlist.nCol = pivscr->nContWidth / pivdata->ivlist.nItemWidth;
-	if(pivdata->ivlist.nCol <= 0)
-		pivdata->ivlist.nCol = 1;
+    if(pivdata->ivlist.nCol <= 0)
+        pivdata->ivlist.nCol = 1;
 
-    pivdata->scrdata.move_content = iconview_set_ivlist; 
+    pivdata->scrdata.move_content = iconview_set_ivlist;
     pivdata->flags = 0;
 
     return 0;
 }
 
-/* 
+/*
  * shoulded be called before iconview is used
  * hWnd: the scrolled window
  */
@@ -533,7 +533,7 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         iconview_destroy (pivdata);
         free (pivdata);
         break;
-    
+
     case MSG_GETDLGCODE:
         return DLGC_WANTARROWS;
 
@@ -543,7 +543,7 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         int cursel;
         int count = mglist_get_item_count ((MgList *)&pivdata->ivlist);
 
-        curHilighted = 
+        curHilighted =
             (HITEM) mglist_get_hilighted_item((MgList *)&pivdata->ivlist);
         cursel = mglist_get_item_index (
                 (MgList *)&pivdata->ivlist, (MgItem *)curHilighted);
@@ -551,7 +551,7 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         if (wParam == SCANCODE_CURSORBLOCKDOWN) {
             int next = cursel + pivdata->ivlist.nCol;
             if (GetWindowStyle(hWnd) & IVS_LOOP && next >= count) {
-                next -= (count + pivdata->ivlist.nCol 
+                next -= (count + pivdata->ivlist.nCol
                         - count % pivdata->ivlist.nCol);
                 if (next < 0) next += pivdata->ivlist.nCol;
             }
@@ -561,7 +561,7 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         else if (wParam == SCANCODE_CURSORBLOCKUP) {
             int next = cursel - pivdata->ivlist.nCol;
             if (GetWindowStyle(hWnd) & IVS_LOOP && next < 0) {
-                next += (count + pivdata->ivlist.nCol 
+                next += (count + pivdata->ivlist.nCol
                         - count % pivdata->ivlist.nCol);
                 if (next >= count) next -= pivdata->ivlist.nCol;
             }
@@ -591,7 +591,7 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             if (hivi != curHilighted) {
                 mglist_hilight_item (
                     (MgList *)&pivdata->ivlist, (MgItem *)hivi);
-                NotifyParentEx (hWnd, 
+                NotifyParentEx (hWnd,
                     GetDlgCtrlID(hWnd), IVN_SELCHANGED, (DWORD)hivi);
             }
             mglist_make_item_visible ((MgList *)&pivdata->ivlist, pivscr, hivi);
@@ -646,7 +646,7 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
     case MSG_SIZECHANGED:
         if (pivdata) {
-            DefaultItemViewProc (hWnd, message, wParam, lParam, 
+            DefaultItemViewProc (hWnd, message, wParam, lParam,
                                  pivscr, (MgList *)&pivdata->ivlist);
             recalc_total_h (hWnd, pivdata);
         }
@@ -673,26 +673,26 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
     case IVM_SETITEMSIZE:
     {
-        
-        if (wParam == 0) 
+
+        if (wParam == 0)
             pivdata->ivlist.nItemWidth = IV_DEF_ITEMWIDTH;
         else
             pivdata->ivlist.nItemWidth = wParam;
-        
+
         if (lParam == 0)
             pivdata->ivlist.nItemHeight = IV_DEF_ITEMHEIGHT;
         else
             pivdata->ivlist.nItemHeight = lParam;
-        
+
         pivdata->ivlist.nCol = pivscr->nContWidth / pivdata->ivlist.nItemWidth;
-		if(pivdata->ivlist.nCol <= 0)
-			pivdata->ivlist.nCol = 1;
+        if(pivdata->ivlist.nCol <= 0)
+            pivdata->ivlist.nCol = 1;
         return 0;
     }
     case IVM_GETFIRSTVISIBLEITEM:
     {
         int i = 0;
-        int top = 0, bottom = 0; 
+        int top = 0, bottom = 0;
         list_t *me;
 
         mglist_for_each (me, pivlist) {
@@ -711,7 +711,7 @@ static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
     }/* end switch */
 
-    return DefaultItemViewProc (hWnd, message, wParam, lParam, 
+    return DefaultItemViewProc (hWnd, message, wParam, lParam,
                                 pivscr, (MgList *)&pivdata->ivlist);
 }
 
@@ -733,36 +733,36 @@ BOOL RegisterIconViewControl (void)
 // Add by dongjunjie
 GHANDLE iconview_get_item(HWND hwnd, int index)
 {
-	IconviewData* pivdata = (IconviewData*)GetWindowAdditionalData2(hwnd);
-	return (GHANDLE)mglist_getitem_byindex((MgList*)&pivdata->ivlist, index);
+    IconviewData* pivdata = (IconviewData*)GetWindowAdditionalData2(hwnd);
+    return (GHANDLE)mglist_getitem_byindex((MgList*)&pivdata->ivlist, index);
 }
 
 BOOL iconview_set_item_lable(GHANDLE hivi, const char* strLabel)
 {
-	IconviewItem * iitem;
+    IconviewItem * iitem;
 
-	if (hivi == 0 || strLabel == NULL) {
-		return FALSE;
-	}
+    if (hivi == 0 || strLabel == NULL) {
+        return FALSE;
+    }
 
-	iitem = (IconviewItem*)hivi;
-	if(iitem->label)
-		free(iitem->label);
-	iitem->label = strdup(strLabel);
-	return TRUE;
+    iitem = (IconviewItem*)hivi;
+    if(iitem->label)
+        free(iitem->label);
+    iitem->label = strdup(strLabel);
+    return TRUE;
 }
 
 PBITMAP iconview_set_item_bitmap(GHANDLE hivi, PBITMAP pbmp)
 {
-	IconviewItem * iitem;
-	PBITMAP pold;
-	if (hivi == 0)
-		return NULL;
+    IconviewItem * iitem;
+    PBITMAP pold;
+    if (hivi == 0)
+        return NULL;
 
-	iitem = (IconviewItem*)hivi;
-	pold = iitem->bmp;
-	iitem->bmp = pbmp;
-	return pold;
+    iitem = (IconviewItem*)hivi;
+    pold = iitem->bmp;
+    iitem->bmp = pbmp;
+    return pold;
 }
 
 

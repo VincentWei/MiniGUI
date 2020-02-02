@@ -14,13 +14,13 @@
  * \file psos.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2007/05/28
- * 
+ *
  * \brief This header contains the declaration of pSOS+ system calls, the definition
  *        of related structures, and the error codes.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -57,7 +57,7 @@
 /*
  * $Id: psos.h 7183 2007-05-16 08:19:34Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -92,7 +92,7 @@ extern "C" {
 #define ERR_NOSTK       0x0F
 /* Stack too small. */
 #define ERR_TINYSTK     0x10
-/* Priority out of range. For mu, the MU_PRIO_PROTECT flag has been specified. 
+/* Priority out of range. For mu, the MU_PRIO_PROTECT flag has been specified.
  * The priority must be more than 0 and less than 256. */
 #define ERR_PRIOR       0x11
 /* Task already started. */
@@ -180,23 +180,23 @@ extern "C" {
 #define T_NOISR         0x00020000 /* Interrupts are disabled while ASR runs. */
 
 /*
- * This system call allows a task to specify an asynchronous signal routine 
- * (ASR) to handle asynchronous signals. as_catch() supplies the starting 
- * address of the task's ASR, and its initial execution mode. If the input 
- * ASR address is zero, then the caller is deemed to have an invalid ASR, 
+ * This system call allows a task to specify an asynchronous signal routine
+ * (ASR) to handle asynchronous signals. as_catch() supplies the starting
+ * address of the task's ASR, and its initial execution mode. If the input
+ * ASR address is zero, then the caller is deemed to have an invalid ASR,
  * and any signals sent to it will be rejected.
  *
- * A task's ASR gains control much like an ISR. If a task has pending signals 
- * (sent via as_send()), then the next time the task is dispatched to run, 
- * it will be forced to first execute the task's specified ASR. A task 
- * executes its ASR according to the mode supplied by the as_catch() call 
- * (for example, Non-preemptible, Time-slicing enabled, etc.) Upon entry to 
- * the ASR, all pending signals - including all those received since the 
+ * A task's ASR gains control much like an ISR. If a task has pending signals
+ * (sent via as_send()), then the next time the task is dispatched to run,
+ * it will be forced to first execute the task's specified ASR. A task
+ * executes its ASR according to the mode supplied by the as_catch() call
+ * (for example, Non-preemptible, Time-slicing enabled, etc.) Upon entry to
+ * the ASR, all pending signals - including all those received since the
  * last ASR invocation - are passed as an argument to the ASR. In addition,
  * a stack frame is built to facilitate the return from the ASR.
  *
- * as_catch() replaces any previous ASR for the calling task. Therefore, a 
- * task can have only one ASR at any time. An ASR must exit using the 
+ * as_catch() replaces any previous ASR for the calling task. Therefore, a
+ * task can have only one ASR at any time. An ASR must exit using the
  * as_return() system call.
  */
 unsigned long as_catch (
@@ -205,9 +205,9 @@ unsigned long as_catch (
 );
 
 /*
- * This system call registers a set of bit-encoded events for the calling 
- * task that are used to notify the posting of asynchronous signals to 
- * the task. The event notification mechanism provides a way for a task to 
+ * This system call registers a set of bit-encoded events for the calling
+ * task that are used to notify the posting of asynchronous signals to
+ * the task. The event notification mechanism provides a way for a task to
  * synchronously wait for asynchronous signals via an ev_receive() call.
  */
 unsigned long as_notify (
@@ -215,32 +215,32 @@ unsigned long as_notify (
 );
 
 /*
- * This system call must be used by a task's ASR to exit and return to 
- * the original flow of execution of the task. The purpose of this call is 
- * to enable the pSOS+ kernel to restore the task to its state before 
+ * This system call must be used by a task's ASR to exit and return to
+ * the original flow of execution of the task. The purpose of this call is
+ * to enable the pSOS+ kernel to restore the task to its state before
  * the ASR. as_return() cannot be called except from an ASR.
  */
 unsigned long as_return (void);
 
 /*
- * This system call sends asynchronous signals to a task. Additionally, 
- * if signal notification via event has been requested, the notification 
- * events are also posted to the task. The purpose of these signals is to 
- * force a task to break from its normal flow of execution and execute 
+ * This system call sends asynchronous signals to a task. Additionally,
+ * if signal notification via event has been requested, the notification
+ * events are also posted to the task. The purpose of these signals is to
+ * force a task to break from its normal flow of execution and execute
  * its Asynchronous Signal Routine (ASR).
  *
- * Asynchronous signals are like software interrupts, with ASRs taking on 
- * the role of ISRs. Unlike an interrupt, which is serviced almost 
- * immediately, an asynchronous signal does not immediately affect the 
- * state of the task. An as_send() call is serviced only when the task is 
- * next dispatched to run (and that depends on the state of the task and 
+ * Asynchronous signals are like software interrupts, with ASRs taking on
+ * the role of ISRs. Unlike an interrupt, which is serviced almost
+ * immediately, an asynchronous signal does not immediately affect the
+ * state of the task. An as_send() call is serviced only when the task is
+ * next dispatched to run (and that depends on the state of the task and
  * its priority).
  *
- * Each task has 32 signals. These signals are encoded bit-wise in a single 
- * long word. 
+ * Each task has 32 signals. These signals are encoded bit-wise in a single
+ * long word.
  *
- * Like events, signals are neither queued nor counted.  For example, if 
- * three identical signals are sent to a task before its ASR has a chance 
+ * Like events, signals are neither queued nor counted.  For example, if
+ * three identical signals are sent to a task before its ASR has a chance
  * to execute, the three signals have the same effect as one.
  */
 unsigned long as_send (
@@ -250,20 +250,20 @@ unsigned long as_send (
 
 /* system calls for task management */
 
-/* 
+/*
  * This system call adds a task variable to a task. t_addvar() allocates to the specified
  * task a storage area which is used to hold a private copy of the specified variable.
  */
 unsigned long t_addvar (
-	unsigned long tid,  /* task identifier */
-	void **tv_addr,     /* address of variable */
-	void *tv_value      /* initial value for task variable */
+    unsigned long tid,  /* task identifier */
+    void **tv_addr,     /* address of variable */
+    void *tv_value      /* initial value for task variable */
 );
 
-#define T_GLOBAL	0x0001
-#define T_LOCAL		0x0002
-#define T_FPU		0x0010
-#define T_NOFPU		0x0020
+#define T_GLOBAL    0x0001
+#define T_LOCAL        0x0002
+#define T_FPU        0x0010
+#define T_NOFPU        0x0020
 
 
 /*
@@ -274,12 +274,12 @@ unsigned long t_addvar (
  * the task into the ready state for execution.
  */
 unsigned long t_create (
-	char name[4], /* task name */
-	unsigned long prio, /* task priority */
-	unsigned long sstack, /* task supervisor stack size */
-	unsigned long ustack, /* task user stack size */
-	unsigned long flags, /* task attributes */
-	unsigned long *tid /* task identifier */
+    char name[4], /* task name */
+    unsigned long prio, /* task priority */
+    unsigned long sstack, /* task supervisor stack size */
+    unsigned long ustack, /* task user stack size */
+    unsigned long flags, /* task attributes */
+    unsigned long *tid /* task identifier */
 );
 
 /*
@@ -292,7 +292,7 @@ unsigned long t_create (
  * However, a task must be deleted from the node on which it was created.
  */
 unsigned long t_delete (
-	unsigned long tid /* task identifier */
+    unsigned long tid /* task identifier */
 );
 
 /*
@@ -300,8 +300,8 @@ unsigned long t_delete (
  * private storage allocated for the task variable.
  */
 unsigned long t_delvar (
-	unsigned long tid, /* task identifier */
-	void **tv_addr /* address of variable*/
+    unsigned long tid, /* task identifier */
+    void **tv_addr /* address of variable*/
 );
 
 /*
@@ -312,9 +312,9 @@ unsigned long t_delvar (
  * specific purposes.
  */
 unsigned long t_getreg (
-	unsigned long tid, /* task identifier */
-	unsigned long regnum, /* register number */
-	unsigned long *reg_value /* register contents */
+    unsigned long tid, /* task identifier */
+    unsigned long regnum, /* register number */
+    unsigned long *reg_value /* register contents */
 );
 
 /*
@@ -325,63 +325,63 @@ unsigned long t_getreg (
  * obtain the task ID is to use t_ident().
  */
 unsigned long t_ident (
-	char name[4], /* task name */
-	unsigned long node, /* node number */
-	unsigned long *tid /* task ID */
+    char name[4], /* task name */
+    unsigned long node, /* node number */
+    unsigned long *tid /* task ID */
 );
 
-#define TS_DEBUG	0x8000 /* Blocked by debugger */
-#define TS_SUSP		0x4000 /* Suspended */
-#define TS_TIMING	0x1000 /* Being timed */
-#define TS_PAUSE	0x0800 /* Task paused */
-#define TS_ABSTIME	0x0400 /* Timed for absolute time */
-#define TS_VWAIT	0x0200 /* Waiting for events */
-#define TS_SWAIT	0x0080 /* Waiting for semaphore */
-#define TS_MWAIT	0x0040 /* Waiting for memory */
-#define TS_QWAIT	0x0020 /* Waiting for message */
-#define TS_RWAIT	0x0010 /* Waiting for reply packet */
-#define TS_MUWAIT	0x0008 /* Waiting for mutex */
-#define TS_CVWAIT	0x0004 /* Waiting for condition variable */
-#define TS_CWAIT	0x0001 /* Waiting for component resource */
-#define TS_READY	0x0000 /* Task is in Ready State */
+#define TS_DEBUG    0x8000 /* Blocked by debugger */
+#define TS_SUSP        0x4000 /* Suspended */
+#define TS_TIMING    0x1000 /* Being timed */
+#define TS_PAUSE    0x0800 /* Task paused */
+#define TS_ABSTIME    0x0400 /* Timed for absolute time */
+#define TS_VWAIT    0x0200 /* Waiting for events */
+#define TS_SWAIT    0x0080 /* Waiting for semaphore */
+#define TS_MWAIT    0x0040 /* Waiting for memory */
+#define TS_QWAIT    0x0020 /* Waiting for message */
+#define TS_RWAIT    0x0010 /* Waiting for reply packet */
+#define TS_MUWAIT    0x0008 /* Waiting for mutex */
+#define TS_CVWAIT    0x0004 /* Waiting for condition variable */
+#define TS_CWAIT    0x0001 /* Waiting for component resource */
+#define TS_READY    0x0000 /* Task is in Ready State */
 
 struct tinfo {
-	char name[4]; 		/* Task name */
-	unsigned long flags; 	/* Task attributes */
-	void (*iip)(void); 	/* Task's initial starting addr. */
-	unsigned long next; 	/* ID of the next waiting task */
-	unsigned short status; 	/* Task status.*/
-	unsigned char cpriority; 	/* Task's current priority.*/
-	unsigned char bpriority; 	/* Task's base priority */
-	unsigned char ipriority; 	/* Task's initial priority */
-	unsigned char evwantcond; 	/* Task's event wait condition */
-	unsigned short mode; 	/* Task's current mode.*/
-	unsigned short imode; 	/* Task's initial mode */
-	unsigned short amode; 	/* Task's ASR mode.*/
-	unsigned long tslice_quantum;	/* Per task's time slice in ticks*/
-	long tslice_remain; 	/* Remainder time slice in ticks.*/
-	unsigned long wtobid; 	/* Object where task is blocked */
-	unsigned long evwait;	/* Events - task waiting for.*/
-	unsigned long evcaught;	/* Events caught */
-	unsigned long evrcvd;	/* Events received */
-	unsigned long ss_size;	/* Supervisor stack size */
-	unsigned long us_size;	/* User stack size */
-	unsigned long *ssp;	/* Current supervisor stack */
-	/* pointer */
-	unsigned long *issp;	/* Initial supervisor stack pointer */
-	unsigned long *usp;	/* Current user stack pointer */
-	unsigned long *iusp;	/* Initial user stack pointer */
-	unsigned long imask;	/* Interrupt priority level */
-	void (*asr_addr)(void);	/* Task's ASR address */
-	unsigned long signal;	/* Asynchronous signals pending */
-	unsigned long xdate;	/* Timer expiry date */
-	unsigned long xtime;	/* Timer expiry time */
-	unsigned long xticks;	/* Timer expiry ticks */
-	unsigned long nrnunits;	/* No. of region units wanted */
-	void **tsdp;	/* Task_specific_Data pointer */
-	unsigned long co_toproc;	/* Callouts to process */
-	unsigned long co_inprog;	/* Callouts in progress */
-	unsigned long evasr_ntfy;	/* ev used for ASR notification */
+    char name[4];         /* Task name */
+    unsigned long flags;     /* Task attributes */
+    void (*iip)(void);     /* Task's initial starting addr. */
+    unsigned long next;     /* ID of the next waiting task */
+    unsigned short status;     /* Task status.*/
+    unsigned char cpriority;     /* Task's current priority.*/
+    unsigned char bpriority;     /* Task's base priority */
+    unsigned char ipriority;     /* Task's initial priority */
+    unsigned char evwantcond;     /* Task's event wait condition */
+    unsigned short mode;     /* Task's current mode.*/
+    unsigned short imode;     /* Task's initial mode */
+    unsigned short amode;     /* Task's ASR mode.*/
+    unsigned long tslice_quantum;    /* Per task's time slice in ticks*/
+    long tslice_remain;     /* Remainder time slice in ticks.*/
+    unsigned long wtobid;     /* Object where task is blocked */
+    unsigned long evwait;    /* Events - task waiting for.*/
+    unsigned long evcaught;    /* Events caught */
+    unsigned long evrcvd;    /* Events received */
+    unsigned long ss_size;    /* Supervisor stack size */
+    unsigned long us_size;    /* User stack size */
+    unsigned long *ssp;    /* Current supervisor stack */
+    /* pointer */
+    unsigned long *issp;    /* Initial supervisor stack pointer */
+    unsigned long *usp;    /* Current user stack pointer */
+    unsigned long *iusp;    /* Initial user stack pointer */
+    unsigned long imask;    /* Interrupt priority level */
+    void (*asr_addr)(void);    /* Task's ASR address */
+    unsigned long signal;    /* Asynchronous signals pending */
+    unsigned long xdate;    /* Timer expiry date */
+    unsigned long xtime;    /* Timer expiry time */
+    unsigned long xticks;    /* Timer expiry ticks */
+    unsigned long nrnunits;    /* No. of region units wanted */
+    void **tsdp;    /* Task_specific_Data pointer */
+    unsigned long co_toproc;    /* Callouts to process */
+    unsigned long co_inprog;    /* Callouts in progress */
+    unsigned long evasr_ntfy;    /* ev used for ASR notification */
 };
 
 /*
@@ -390,21 +390,21 @@ struct tinfo {
  * state information which is not static.
  */
 unsigned long t_info (
-	unsigned long tid, /* Task ID */
-	struct tinfo *buf  /* Object Information buffer */
+    unsigned long tid, /* Task ID */
+    struct tinfo *buf  /* Object Information buffer */
 );
 
 #if 0
-#define T_PREEMPT	0x0001 /* Task is preemptible. */
-#define T_NOPREEMPT	0x0002 /* Task is non-preemptible. */
-#define T_TSLICE 	0x0004 /* Task can be time-sliced. */
-#define T_NOTSLICE	0x0008 /* Task cannot be time-sliced. */
-#define T_ASR		0x0010 /* Task's ASR is enabled. */
-#define T_NOASR		0x0020 /* Task's ASR is disabled. */
-#define T_USER		0X0040 /* Task runs in user mode. */
-#define T_SUPV		0x0080 /* Task runs in supervisor mode. */
-#define T_ISR		0x0100 /* Hardware interrupts are enabled while the task runs. */
-#define T_NOISR		0x0200 /* Hardware interrupts are disabled while the task runs. */
+#define T_PREEMPT    0x0001 /* Task is preemptible. */
+#define T_NOPREEMPT    0x0002 /* Task is non-preemptible. */
+#define T_TSLICE     0x0004 /* Task can be time-sliced. */
+#define T_NOTSLICE    0x0008 /* Task cannot be time-sliced. */
+#define T_ASR        0x0010 /* Task's ASR is enabled. */
+#define T_NOASR        0x0020 /* Task's ASR is disabled. */
+#define T_USER        0X0040 /* Task runs in user mode. */
+#define T_SUPV        0x0080 /* Task runs in supervisor mode. */
+#define T_ISR        0x0100 /* Hardware interrupts are enabled while the task runs. */
+#define T_NOISR        0x0200 /* Hardware interrupts are disabled while the task runs. */
 #endif
 
 /*
@@ -418,9 +418,9 @@ unsigned long t_info (
  * To obtain a task's current execution mode without changing it, use a mask of 0.
  */
 unsigned long t_mode (
-	unsigned long mask, /* attributes to be changed */
-	unsigned long new_mode, /* new attributes */
-	unsigned long *old_mode /* prior mode */
+    unsigned long mask, /* attributes to be changed */
+    unsigned long new_mode, /* new attributes */
+    unsigned long *old_mode /* prior mode */
 );
 
 /*
@@ -440,8 +440,8 @@ unsigned long t_mode (
  * However, a task must be restarted from the node on which it was created.
  */
 unsigned long t_restart (
-	unsigned long tid, /* task identifier */
-	unsigned long targs[4] /* startup arguments */
+    unsigned long tid, /* task identifier */
+    unsigned long targs[4] /* startup arguments */
 );
 
 /*
@@ -451,7 +451,7 @@ unsigned long t_restart (
  * removes only the suspension. This leaves the task in the blocked state.
  */
 unsigned long t_resume (
-	unsigned long tid /* task identifier */
+    unsigned long tid /* task identifier */
 );
 
 /*
@@ -465,9 +465,9 @@ unsigned long t_resume (
  * run.
  */
 unsigned long t_setpri (
-	unsigned long tid, /* task identifier */
-	unsigned long newprio, /* new priority */
-	unsigned long *oldprio /* previous priority */
+    unsigned long tid, /* task identifier */
+    unsigned long newprio, /* new priority */
+    unsigned long *oldprio /* previous priority */
 );
 
 /*
@@ -478,9 +478,9 @@ unsigned long t_setpri (
  * application-specific purposes.
  */
 unsigned long t_setreg (
-	unsigned long tid, /* task identifier */
-	unsigned long regnum, /* register number */
-	unsigned long reg_value /* register value */
+    unsigned long tid, /* task identifier */
+    unsigned long regnum, /* register number */
+    unsigned long reg_value /* register value */
 );
 
 /*
@@ -493,10 +493,10 @@ unsigned long t_setreg (
  * which it was created.
  */
 unsigned long t_start (
-	unsigned long tid, /* task identifier */
-	unsigned long mode, /* initial task attributes */
-	void (*start_addr) (unsigned long), /* task address */
-	unsigned long targs[4] /* startup task arguments */
+    unsigned long tid, /* task identifier */
+    unsigned long mode, /* initial task attributes */
+    void (*start_addr) (unsigned long), /* task address */
+    unsigned long targs[4] /* startup task arguments */
 );
 
 /*
@@ -506,7 +506,7 @@ unsigned long t_start (
  * does not directly prevent contention for any other resource.
  */
 unsigned long t_suspend (
-	unsigned long tid /* task identifier */
+    unsigned long tid /* task identifier */
 );
 
 /*
@@ -516,33 +516,33 @@ unsigned long t_suspend (
  * timeslice quantum.
  */
 unsigned long t_tslice (
-	unsigned long tid, /* task identifier */
-	unsigned long new_tslice, /* new timeslice value*/
-	unsigned long *old_tslice /* old timeslice value */
+    unsigned long tid, /* task identifier */
+    unsigned long new_tslice, /* new timeslice value*/
+    unsigned long *old_tslice /* old timeslice value */
 );
 
 
 /* system calls for mutext */
 
-#define MU_GLOBAL		0x0001 /* Mutex is globally addressable by other nodes of a multiprocessor system. The single-processor version of the pSOS+ kernel ignores MU_GLOBAL. */
-#define MU_LOCAL		0x0002 /* Mutex can be addressed only by the local node where it was created. */
-#define MU_RECURSIVE		0x0004 /* Mutex can be acquired in a recursive fashion. */
-#define MU_NORECURSIVE		0x0008 /* Mutex cannot be acquired in a recursive fashion. */
-#define MU_FIFO			0x0010 /* The waiting tasks are queued in the FIFO order.  This flag can be specified with MU_PRIO_NONE flag, but not with MU_PRIO_INHERIT or MU_PRIO_PROTECT. */
-#define MU_PRIOR		0x0020 /* The waiting tasks are queued in decreasing order of their current priority. */
-#define MU_PRIO_NONE		0x0100 /* Mutex does not protect against unbounded priority inversion. */
-#define MU_PRIO_INHERIT		0x0200 /* Mutex uses the priority inheritance protocol to prevent unbounded priority inversion. */
-#define MU_PRIO_PROTECT		0x0400 /* Mutex uses the priority protect protocol to prevent unbounded priority inversion. */
+#define MU_GLOBAL        0x0001 /* Mutex is globally addressable by other nodes of a multiprocessor system. The single-processor version of the pSOS+ kernel ignores MU_GLOBAL. */
+#define MU_LOCAL        0x0002 /* Mutex can be addressed only by the local node where it was created. */
+#define MU_RECURSIVE        0x0004 /* Mutex can be acquired in a recursive fashion. */
+#define MU_NORECURSIVE        0x0008 /* Mutex cannot be acquired in a recursive fashion. */
+#define MU_FIFO            0x0010 /* The waiting tasks are queued in the FIFO order.  This flag can be specified with MU_PRIO_NONE flag, but not with MU_PRIO_INHERIT or MU_PRIO_PROTECT. */
+#define MU_PRIOR        0x0020 /* The waiting tasks are queued in decreasing order of their current priority. */
+#define MU_PRIO_NONE        0x0100 /* Mutex does not protect against unbounded priority inversion. */
+#define MU_PRIO_INHERIT        0x0200 /* Mutex uses the priority inheritance protocol to prevent unbounded priority inversion. */
+#define MU_PRIO_PROTECT        0x0400 /* Mutex uses the priority protect protocol to prevent unbounded priority inversion. */
 
 /*
  * This system call creates a mutex and initializes it according to the specifications
  * supplied with the call.
  */
 unsigned long mu_create (
-	char name[4], /* user assigned name */
-	unsigned long flags, /* mutex attributes */
-	unsigned long ceiling, /* ceiling priority */
-	unsigned long *muid /* newly created mutex id */
+    char name[4], /* user assigned name */
+    unsigned long flags, /* mutex attributes */
+    unsigned long ceiling, /* ceiling priority */
+    unsigned long *muid /* newly created mutex id */
 );
 
 /*
@@ -555,7 +555,7 @@ unsigned long mu_create (
  * them.
  */
 unsigned long mu_delete (
-	unsigned long muid /* MUTEX identifier */
+    unsigned long muid /* MUTEX identifier */
 );
 
 /*
@@ -570,21 +570,21 @@ unsigned long mu_delete (
  * pSOSystem System Concepts manual.
  */
 unsigned long mu_ident (
-	char name[4], /* mutex name */
-	unsigned long node, /* node number */
-	unsigned long *muid /* mutex identifier */
+    char name[4], /* mutex name */
+    unsigned long node, /* node number */
+    unsigned long *muid /* mutex identifier */
 );
 
 struct muinfo {
-	char name[4]; /* Name of the Mutex */
-	unsigned long flags; /* Mutex attributes */
-	unsigned long wqlen; /* No. of waiting tasks */
-	unsigned long wtid;/* ID of the first waiting task */
-	unsigned long count; /* Mutex reference count */
-	unsigned long ownid; /* ID of mutex owner */
-	unsigned long node; /* Owner task's node number */
-	unsigned long ceilprio; /* ceiling priority for MU_PROTECT mutexes */
-	unsigned long phpwt; /* Highest of all waiting task priorities */
+    char name[4]; /* Name of the Mutex */
+    unsigned long flags; /* Mutex attributes */
+    unsigned long wqlen; /* No. of waiting tasks */
+    unsigned long wtid;/* ID of the first waiting task */
+    unsigned long count; /* Mutex reference count */
+    unsigned long ownid; /* ID of mutex owner */
+    unsigned long node; /* Owner task's node number */
+    unsigned long ceilprio; /* ceiling priority for MU_PROTECT mutexes */
+    unsigned long phpwt; /* Highest of all waiting task priorities */
 };
 
 /*
@@ -593,12 +593,12 @@ struct muinfo {
  * internal state information which is not static.
  */
 unsigned long mu_info (
-	unsigned long muid, /* Mutex ID */
-	struct muinfo *buf  /* Object Information buffer */
+    unsigned long muid, /* Mutex ID */
+    struct muinfo *buf  /* Object Information buffer */
 );
 
-#define MU_WAIT		0x01 /* If the mutex is locked, block until it is available. */
-#define MU_NOWAIT	0x02 /* Return with error if the mutex is locked. */
+#define MU_WAIT        0x01 /* If the mutex is locked, block until it is available. */
+#define MU_NOWAIT    0x02 /* Return with error if the mutex is locked. */
 
 /*
  * This system call allows a task to lock a mutex specified by the muid argument. If the
@@ -615,9 +615,9 @@ unsigned long mu_info (
  * with the mutex, or an error is returned.
  */
 unsigned long mu_lock (
-	unsigned long muid, /* mutex identifier */
-	unsigned long flags, /* call attributes */
-	unsigned long timeout /* timeout interval */
+    unsigned long muid, /* mutex identifier */
+    unsigned long flags, /* call attributes */
+    unsigned long timeout /* timeout interval */
 );
 
 /*
@@ -632,9 +632,9 @@ unsigned long mu_lock (
  * priority may change according to the priority protect protocol.
  */
 unsigned long mu_setceil (
-	unsigned long muid, /* mutex identifier */
-	unsigned long newprio, /* new ceiling priority */
-	unsigned long *oldprio /* previous ceiling priority */
+    unsigned long muid, /* mutex identifier */
+    unsigned long newprio, /* new ceiling priority */
+    unsigned long *oldprio /* previous ceiling priority */
 );
 
 /*
@@ -659,7 +659,7 @@ unsigned long mu_setceil (
  * is empty, or a task which can successfully lock the mutex is found.
  */
 unsigned long mu_unlock (
-	unsigned long muid /* mutex identifier */
+    unsigned long muid /* mutex identifier */
 );
 
 /*
@@ -669,15 +669,15 @@ unsigned long mu_unlock (
  * (the multiprocessor version).
  */
 unsigned long sm_av (
-	unsigned long smid /* semaphore identifier */
+    unsigned long smid /* semaphore identifier */
 );
 
-#define SM_GLOBAL	0x0001 /* Semaphore can be addressed by other nodes. */
-#define SM_LOCAL	0x0002 /* Semaphore can be addressed by local node only. */
-#define SM_PRIOR	0x0004 /* Tasks are queued by priority. */
-#define SM_FIFO		0x0008 /* Tasks are queued by FIFO. */
-#define SM_UNBOUNDED	0x0010 /* Semaphore count is not bounded. */
-#define SM_BOUNDED	0x0020 /* Semaphore count is bounded. When the SM_BOUNDED flag is specified the count parameter specifies the initial semaphore token count, as well as the upper bound of available tokens. */
+#define SM_GLOBAL    0x0001 /* Semaphore can be addressed by other nodes. */
+#define SM_LOCAL    0x0002 /* Semaphore can be addressed by local node only. */
+#define SM_PRIOR    0x0004 /* Tasks are queued by priority. */
+#define SM_FIFO        0x0008 /* Tasks are queued by FIFO. */
+#define SM_UNBOUNDED    0x0010 /* Semaphore count is not bounded. */
+#define SM_BOUNDED    0x0020 /* Semaphore count is bounded. When the SM_BOUNDED flag is specified the count parameter specifies the initial semaphore token count, as well as the upper bound of available tokens. */
 
 /*
  * This system call creates a semaphore by allocating and initializing a Semaphore
@@ -688,10 +688,10 @@ unsigned long sm_av (
  * priority or strictly FIFO.
  */
 unsigned long sm_create (
-	char name[4], /* semaphore name */
-	unsigned long count, /* number of tokens */
-	unsigned long flags, /* semaphore attributes */
-	unsigned long *smid /* semaphore identifier */
+    char name[4], /* semaphore name */
+    unsigned long count, /* number of tokens */
+    unsigned long flags, /* semaphore attributes */
+    unsigned long *smid /* semaphore identifier */
 );
 
 /*
@@ -702,7 +702,7 @@ unsigned long sm_create (
  * However, a semaphore must be deleted from the node on which it was created.
  */
 unsigned long sm_delete (
-	unsigned long smid /* semaphore ID */
+    unsigned long smid /* semaphore ID */
 );
 
 /*
@@ -714,20 +714,20 @@ unsigned long sm_delete (
  * creator. For other tasks, one way to obtain the semaphore ID is to use sm_ident().
  */
 unsigned long sm_ident (
-	char name[4], /* semaphore name */
-	unsigned long node, /* node selector */
-	unsigned long *smid /* semaphore ID */
+    char name[4], /* semaphore name */
+    unsigned long node, /* node selector */
+    unsigned long *smid /* semaphore ID */
 );
 
 struct sminfo {
-	char name[4]; 		/* Name of semaphore */
-	unsigned long flags; 	/* Semaphore attributes */
-	unsigned long wqlen; 	/* No. of waiting tasks */
-	unsigned long wtid; 	/* ID of the first waiting task */
-	unsigned long count; 	/* Semaphore count */
-	unsigned long maxcount; /* Limit for bounded semaphores */
-	unsigned long tid_ntfy; /* Task to notify of availability */
-	unsigned long ev_ntfy;  /* Ev to post to notify availability */
+    char name[4];         /* Name of semaphore */
+    unsigned long flags;     /* Semaphore attributes */
+    unsigned long wqlen;     /* No. of waiting tasks */
+    unsigned long wtid;     /* ID of the first waiting task */
+    unsigned long count;     /* Semaphore count */
+    unsigned long maxcount; /* Limit for bounded semaphores */
+    unsigned long tid_ntfy; /* Task to notify of availability */
+    unsigned long ev_ntfy;  /* Ev to post to notify availability */
 };
 
 /*
@@ -736,8 +736,8 @@ struct sminfo {
  * certain internal state information which is not static.
  */
 unsigned long sm_info (
-	unsigned long smid, /* Semaphore ID */
-	struct sminfo *buf  /* Object Information buffer */
+    unsigned long smid, /* Semaphore ID */
+    struct sminfo *buf  /* Object Information buffer */
 );
 
 /*
@@ -747,13 +747,13 @@ unsigned long sm_info (
  * events). The task can choose to receive the notification via ev_receive() call.
  */
 unsigned long sm_notify (
-	unsigned long smid, /* ID of target semaphore */
-	unsigned long tid, /* ID of task to be notified */
-	unsigned long events /* bit-encoded events */
+    unsigned long smid, /* ID of target semaphore */
+    unsigned long tid, /* ID of task to be notified */
+    unsigned long events /* bit-encoded events */
 );
 
-#define SM_WAIT		0x01 /* Block until semaphore is available. */
-#define SM_NOWAIT	0x02 /* Return with error code if semaphore is unavailable. */
+#define SM_WAIT        0x01 /* Block until semaphore is available. */
+#define SM_NOWAIT    0x02 /* Return with error code if semaphore is unavailable. */
 
 /*
  * This system call enables a task or an ISR to acquire a semaphore token. A calling
@@ -765,9 +765,9 @@ unsigned long sm_notify (
  * timeout occurs, whichever occurs first.
  */
 unsigned long sm_p (
-	unsigned long smid, /* semaphore identifier */
-	unsigned long flags, /* attributes */
-	unsigned long timeout /* timeout */
+    unsigned long smid, /* semaphore identifier */
+    unsigned long flags, /* attributes */
+    unsigned long timeout /* timeout */
 );
 
 /*
@@ -780,10 +780,10 @@ unsigned long sm_p (
  * send the registered events to the registered task.
  */
 unsigned long sm_v (
-	unsigned long smid /* semaphore identifier */
+    unsigned long smid /* semaphore identifier */
 );
 
-/* 
+/*
  * This system call asynchronously removes all tasks from a condition-variable¡¯s wait
  * queue. It is identical to cv_broadcast() except that the call is made asynchro-
  * nously. Refer to the description of cv_broadcast() for further information.
@@ -814,7 +814,7 @@ unsigned long cv_broadcast (
 );
 
 /*
- * This system call creates a condition variable and initializes it according to the 
+ * This system call creates a condition variable and initializes it according to the
  * specifications supplied with the call.
  * Like all objects, a condition variable has a user-assigned name and a pSOS-
  * assigned condition variable ID returned by cv_create(). Several flag bits specify
@@ -827,7 +827,7 @@ unsigned long cv_create (
    unsigned long *cvid
 );
 
-/* 
+/*
  * This system call deletes a condition variable specified by its ID (cvid) and frees the
  * associated kernel resources. If there are tasks waiting at the condition variable, the
  * tasks are unblocked and given an error code.
@@ -839,7 +839,7 @@ unsigned long cv_delete (
    unsigned long cvid    /* condition variable identifier */
 );
 
-/* 
+/*
  * This system call enables the calling task to obtain the ID of a condition variable it
  * only knows by name. This condition variable ID can be used in all other operations
  * relating to the condition variable.
@@ -857,7 +857,7 @@ unsigned long cv_ident (
 );
 
 #if 0
-/* 
+/*
  * This system call returns object information for a given condition variable object. The
  * information includes the static information that was specified at object creation
  * time and certain internal state information which is not static.

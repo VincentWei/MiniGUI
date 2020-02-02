@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -94,9 +94,9 @@ _MACRO_END
 int sem_init (sem_t *sem, int pshared, unsigned int value)
 {
     UINT status;
-   
+
     SEMA_ENTRY ();
-    
+
     if (pshared) {
         fprintf (stderr, "pshared argument is not supported!");
         SEMA_RETURN (ENOSYS);
@@ -104,8 +104,8 @@ int sem_init (sem_t *sem, int pshared, unsigned int value)
 
     if (value > SEM_VALUE_MAX)
         SEMA_RETURN (EINVAL);
-    
-    //obtain semaphore name    
+
+    //obtain semaphore name
     __nupth_get_name (sem->name, NAME_TYPE_SEM, 1);
 
     //create semaphore
@@ -115,7 +115,7 @@ int sem_init (sem_t *sem, int pshared, unsigned int value)
     if (status == NU_SUCCESS) {
         SEMA_RETURN (0);
     }
-        
+
     SEMA_RETURN (ENOMEM);
 }
 
@@ -129,10 +129,10 @@ int sem_destroy  (sem_t *sem)
     SEMA_ENTRY();
 
     status = NU_Delete_Semaphore (&sem->nu_sem);
-    
+
     if (status == NU_SUCCESS)
         SEMA_RETURN (0);
-        
+
     SEMA_RETURN (EINVAL);
 }
 
@@ -148,7 +148,7 @@ int sem_wait  (sem_t *sem)
 
     // check for cancellation first.
     pthread_testcancel ();
-    
+
     status = NU_Obtain_Semaphore (&sem->nu_sem, NU_SUSPEND);
 
     if (status != NU_SUCCESS)
@@ -168,7 +168,7 @@ int sem_trywait  (sem_t *sem)
     int ret;
 
     SEMA_ENTRY ();
-    
+
     switch (NU_Obtain_Semaphore (&sem->nu_sem, NU_NO_SUSPEND)) {
     case NU_SUCCESS:
         ret = 0;
@@ -197,13 +197,13 @@ int sem_post  (sem_t *sem)
     SEMA_ENTRY ();
 
     status = NU_Release_Semaphore (&sem->nu_sem);
-    
+
     if (status != NU_SUCCESS)
         ret = EINVAL;
 
     SEMA_RETURN (ret);
 }
-    
+
 
 // -------------------------------------------------------------------------
 // Get current value
@@ -219,8 +219,8 @@ int sem_getvalue  (sem_t *sem, int *sval)
     NU_TASK *first_task;
 
     SEMA_ENTRY ();
-    
-    status = NU_Semaphore_Information (&sem->nu_sem, name, 
+
+    status = NU_Semaphore_Information (&sem->nu_sem, name,
                 (UNSIGNED *)&cur_value, &suspend_type, &tasks_suspended, &first_task);
 
     if (status == NU_SUCCESS) {

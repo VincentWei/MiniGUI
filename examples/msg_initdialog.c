@@ -1,11 +1,11 @@
 static LRESULT DepInfoBoxProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     struct _DepInfo *info;
-   
+
     switch(message) {
     case MSG_INITDIALOG:
     {
-        /* 
+        /*
          * Get the lParam passed to this dialog box, and assign it
          * to the second private additional data assoiciated
          * with the dialog box.
@@ -17,7 +17,7 @@ static LRESULT DepInfoBoxProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 
     case MSG_COMMAND:
     {
-        /* 
+        /*
          * Get the parameter from the second private data assoiciated
          * with the dialog box.
          */
@@ -34,6 +34,6 @@ static LRESULT DepInfoBoxProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
         }
     }
     }
-    
+
     return DefaultDialogProc (hDlg, message, wParam, lParam);
 }

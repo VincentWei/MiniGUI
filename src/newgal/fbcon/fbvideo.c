@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
-/* 
+/*
  * Framebuffer console based video driver implementation.
  */
 
@@ -74,7 +74,7 @@
 #include "fbmatrox.h"
 #include "fbneomagic.h"
 
-#ifdef _MGGAL_SIGMA8654 
+#ifdef _MGGAL_SIGMA8654
 extern int sigma8654_hdmi_init();
 extern int sigma8654_hdmi_quit();
 #endif
@@ -258,7 +258,7 @@ static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info)
     if ( GAL_fbdev == NULL ) {
         GAL_fbdev = "/dev/fb0";
     }
-    
+
     fd = open(GAL_fbdev, O_RDWR, 0);
     if ( fd < 0 ) {
         GAL_SetError("NEWGAL>FBCON: Unable to open %s\n", GAL_fbdev);
@@ -271,7 +271,7 @@ static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info)
         GAL_SetError("NEWGAL>FBCON: Couldn't get console hardware info\n");
         return(-1);
     }
-    
+
     offset = (((long)finfo.smem_start) -
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     memlen = finfo.smem_len+offset;
@@ -281,7 +281,7 @@ static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info)
     video_mem_info->video_pitch = finfo.line_length;
     video_mem_info->type = 2;
     video_mem_info->video_mem_offset = 0;
-    
+
 #ifdef FBCON_DEBUG
     fprintf(stderr, "Printing finfo:\n");
     fprintf(stderr, "tsmem_start = %p\n", (char *)finfo.smem_start);
@@ -356,7 +356,7 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     mapped_offset = (((long)finfo.smem_start) -
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     mapped_memlen = finfo.smem_len+mapped_offset;
-    
+
 #ifdef __uClinux__
 #  if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
     mapped_mem = mmap(NULL, mapped_memlen,
@@ -369,7 +369,7 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     mapped_mem = mmap(NULL, mapped_memlen,
                             PROT_READ|PROT_WRITE, MAP_SHARED, console_fd, 0);
 #endif
-    
+
     if (mapped_mem == (char *)-1) {
         GAL_SetError("NEWGAL>FBCON: Unable to memory map the video hardware\n");
         mapped_mem = NULL;
@@ -900,7 +900,7 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
             bucket->used = 0;
             if ( bucket->next && ! bucket->next->used ) {
 #ifdef FBCON_DEBUG
-                fprintf(stderr, "NEWGAL>FBCON: Merging with next bucket, for %d total bytes\n", 
+                fprintf(stderr, "NEWGAL>FBCON: Merging with next bucket, for %d total bytes\n",
                                 bucket->size+bucket->next->size);
 #endif
                 freeable = bucket->next;
@@ -913,7 +913,7 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
             }
             if ( bucket->prev && ! bucket->prev->used ) {
 #ifdef FBCON_DEBUG
-                fprintf(stderr, "NEWGAL>FBCON: Merging with previous bucket, for %d total bytes\n", 
+                fprintf(stderr, "NEWGAL>FBCON: Merging with previous bucket, for %d total bytes\n",
                                 bucket->prev->size+bucket->size);
 #endif
                 freeable = bucket;

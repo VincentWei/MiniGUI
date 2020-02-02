@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -133,7 +133,7 @@ HACCEL GUIAPI CreateAcceleratorTable (HWND hWnd)
 
     if (!(pac = AccelTableAlloc ()))
         return 0;
-    
+
     pac->category = TYPE_HACCEL;
     pac->hwnd = hWnd;
     pac->head = NULL;
@@ -159,7 +159,7 @@ int GUIAPI DestroyAcceleratorTable (HACCEL hacc)
 
     if (pac->category != TYPE_HACCEL)
         return ERR_INVALID_HANDLE;
-    
+
     pai = pac->head;
     while (pai) {
         ptmpai = pai->next;
@@ -210,7 +210,7 @@ static PACCELITEM *accFindMatchAccelKeys (HACCEL hacc, int key, DWORD keymask)
             return &(pacc->head);
         else {
             while (pai->next) {
-                if (pai->next->key == key 
+                if (pai->next->key == key
                         && does_mask_match (pai->next->keymask, keymask))
                     return &(pai->next);
                 pai = pai ->next;
@@ -220,8 +220,8 @@ static PACCELITEM *accFindMatchAccelKeys (HACCEL hacc, int key, DWORD keymask)
 
     return NULL;
 }
- 
-int GUIAPI AddAccelerators (HACCEL hacc, int key, DWORD keymask, 
+
+int GUIAPI AddAccelerators (HACCEL hacc, int key, DWORD keymask,
                 WPARAM wParam , LPARAM lParam)
 {
     PACCELTABLE pac;
@@ -230,15 +230,15 @@ int GUIAPI AddAccelerators (HACCEL hacc, int key, DWORD keymask,
     pac = (PACCELTABLE) hacc;
 
     if (pac->category != TYPE_HACCEL)
-        return ERR_INVALID_HANDLE; 
+        return ERR_INVALID_HANDLE;
     if (accFindMatchAccelKeys (hacc, key, keymask))
        return  ERR_ALREADY_EXIST;
-    if (!(pnewai = AccelItemAlloc ())) 
+    if (!(pnewai = AccelItemAlloc ()))
         return ERR_RES_ALLOCATION;
 
     pnewai->key     = key;
     pnewai->keymask = keymask;
-    pnewai->wParam  = wParam;  
+    pnewai->wParam  = wParam;
     pnewai->lParam  = lParam;
     pnewai->next    = pac->head ;
     pac->head       = pnewai ;
@@ -259,8 +259,8 @@ int GUIAPI DeleteAccelerators (HACCEL hacc,int key, DWORD keymask)
 
     ptempac1= ((*ptempac)->next);
     FreeAccelItem (*ptempac);
-    (*ptempac) = ptempac1; 
-    return 0;  
+    (*ptempac) = ptempac1;
+    return 0;
 }
 
 HACCEL GUIAPI CopyAcceleratorTable (HACCEL hacc)
@@ -272,19 +272,19 @@ HACCEL GUIAPI CopyAcceleratorTable (HACCEL hacc)
     if ((hac = (HACCEL) CreateAcceleratorTable (pac->hwnd))) {
         pai = pac -> head;
         while (pai) {
-            if (AddAccelerators (hac, pai->key, pai->keymask, 
+            if (AddAccelerators (hac, pai->key, pai->keymask,
                                     pai->wParam, pai->lParam)) {
                 DestroyAcceleratorTable(hac);
                 return (HACCEL) NULL;
             }
             pai = pai -> next;
-                     
+
         }
 
         return hac;
     }
     else
-        return (HACCEL) NULL; 
+        return (HACCEL) NULL;
 }
 
 int GUIAPI TranslateAccelerator (HACCEL hAccel, PMSG pMsg)
@@ -302,18 +302,18 @@ int GUIAPI TranslateAccelerator (HACCEL hAccel, PMSG pMsg)
         key = pMsg->wParam | 256;
     else if (pMsg->message == MSG_CHAR || pMsg->message == MSG_SYSCHAR)
         key = pMsg->wParam & 255;
-    else 
+    else
         return ERR_NO_MATCH;
 
     if ((pai = accFindMatchAccelKeys (hAccel, key, pMsg->lParam))) {
         if (pMsg->message == MSG_SYSKEYDOWN || pMsg->message == MSG_SYSCHAR)
-            return SendNotifyMessage (pMsg->hwnd, 
+            return SendNotifyMessage (pMsg->hwnd,
                             MSG_SYSCOMMAND, (*pai)->wParam, (*pai)->lParam);
-        else 
-            return SendNotifyMessage (pMsg->hwnd, 
+        else
+            return SendNotifyMessage (pMsg->hwnd,
                            MSG_COMMAND, (*pai)->wParam , (*pai)->lParam);
     }
-    else 
+    else
         return ERR_NO_MATCH;
 }
 

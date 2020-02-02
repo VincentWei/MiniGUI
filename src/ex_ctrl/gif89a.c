@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -323,7 +323,7 @@ static int DoExtension (MG_RWops *area, int label, GIFSCREEN* GifScreen)
     case 0xf9:                        /* Graphic Control Extension */
         GetDataBlock (area, (unsigned char *) buf);
         GifScreen->disposal = (buf[0] >> 2) & 0x7;//000 000 0 0 the middle 2 bit is disposal
-        GifScreen->inputFlag = (buf[0] >> 1) & 0x1;//000 000 0 0 the secand last bit 
+        GifScreen->inputFlag = (buf[0] >> 1) & 0x1;//000 000 0 0 the secand last bit
                             //is user input flag
         GifScreen->delayTime = LM_to_uint(buf[1], buf[2]);
         if ((buf[0] & 0x1) != 0)// 000 000 0 0 the last bit is transparent flag
@@ -396,7 +396,7 @@ static int ReadGIFGlobal (MG_RWops *area, GIFSCREEN* GifScreen)
     GifScreen->AspectRatio = buf[6];
 
     if (BitSet(buf[4], LOCALCOLORMAP)) {        /* Global Colormap */
-        _DBG_PRINTF ("EX_CTRL>GIF89a: have global colormap: %d\n", 
+        _DBG_PRINTF ("EX_CTRL>GIF89a: have global colormap: %d\n",
                     GifScreen->Background);
         if (ReadColorMap (area, GifScreen->BitPixel, GifScreen->ColorMap)) {
             _DBG_PRINTF ("EX_CTRL>GIF89a: bad global colormap\n");
@@ -540,7 +540,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
 
     ANIMATION* anim;
     ANIMATIONFRAME* frame, *current = NULL;
-    
+
     anim = calloc (1, sizeof (ANIMATION));
     if (anim == NULL)
         return NULL;
@@ -578,7 +578,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
             }
             DoExtension (area, c, &GifScreen);
             _DBG_PRINTF ("EX_CTRL>GIF89a: Extension info: %d, %d, %d, %d, %d, %d\n",
-                        GifScreen.Width, GifScreen.Height, 
+                        GifScreen.Width, GifScreen.Height,
                         GifScreen.AspectRatio, GifScreen.delayTime,
                         GifScreen.disposal, GifScreen.transparent);
             break;
@@ -607,8 +607,8 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
                 frame->width = mybmp.w;
                 frame->height = mybmp.h;
                 frame->delay_time = (GifScreen.delayTime>10)?GifScreen.delayTime:10;
-                _DBG_PRINTF ("EX_CTRL>GIF89a: frame info: %d, %d, %d, %d\n", 
-                        frame->off_x, frame->off_y, frame->delay_time, 
+                _DBG_PRINTF ("EX_CTRL>GIF89a: frame info: %d, %d, %d, %d\n",
+                        frame->off_x, frame->off_y, frame->delay_time,
                         GifScreen.transparent);
 
                 if ((frame->mem_dc = CreateMemDCFromMyBitmap (&mybmp, ImageDesc.ColorMap)) == 0) {
@@ -618,7 +618,7 @@ ANIMATION* CreateAnimationFromGIF89a (HDC hdc, MG_RWops* area)
                     goto error;
                 }
                 frame->bits = mybmp.bits;
-                
+
                 if (anim->frames == NULL) {
                     anim->frames = frame;
                     current = frame;
@@ -680,7 +680,7 @@ ANIMATION* CreateAnimationFromGIF89aMem (HDC hdc, const void* mem, int size)
 void DestroyAnimation (ANIMATION* anim, BOOL free_it)
 {
     ANIMATIONFRAME *tmp, *frame;
-        
+
     frame = anim->frames;
     while (frame) {
         tmp = frame->next;

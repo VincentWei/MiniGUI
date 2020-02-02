@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -103,7 +103,7 @@ static void create_combobox (HWND parent)
     DIR*    dir;
     struct  dirent* dir_ent;
 
-    hwnd1 = CreateWindow (CTRL_COMBOBOX, 
+    hwnd1 = CreateWindow (CTRL_COMBOBOX,
             "combobox",
             WS_VISIBLE | CBS_DROPDOWNLIST | CBS_NOTIFY | CBS_READONLY,
             IDC_BOX1,
@@ -154,7 +154,7 @@ static void create_combobox (HWND parent)
     }
     closedir (dir);
 
-    for (i = 0; i < 1000; i++) { 
+    for (i = 0; i < 1000; i++) {
         sprintf (temp, "Welcome: %03d", i);
         SendMessage (hwnd2, CB_ADDSTRING, 0, (LPARAM)temp);
         SendMessage (hwnd5, CB_ADDSTRING, 0, (LPARAM)temp);
@@ -169,15 +169,15 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
               create_combobox (hWnd);
 
               CreateWindow (CTRL_STATIC,
-                        "selected", 
-                        WS_CHILD | WS_VISIBLE | SS_SIMPLE, 
-                        IDC_SELECTED, 
+                        "selected",
+                        WS_CHILD | WS_VISIBLE | SS_SIMPLE,
+                        IDC_SELECTED,
                         210, 10, 200, 25, hWnd, 0);
 
               CreateWindow (CTRL_BUTTON,
-                        "Close", 
-                        WS_CHILD | WS_VISIBLE, 
-                        IDCANCEL, 
+                        "Close",
+                        WS_CHILD | WS_VISIBLE,
+                        IDCANCEL,
                         320, 190, 60, 25, hWnd, 0);
 
         break;
@@ -187,7 +187,7 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
             int id   = LOWORD(wParam);
             int code = HIWORD(wParam);
             char str [NAME_MAX + 20], file [NAME_MAX + 1];
-            int selected; 
+            int selected;
 
             if (wParam == IDCANCEL) {
                 PostMessage (hWnd, MSG_CLOSE, 0, 0);
@@ -216,7 +216,7 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
         case MSG_DESTROY:
             DestroyAllControls (hWnd);
             hMainWnd = HWND_INVALID;
-	    return 0;
+        return 0;
 
         case MSG_CLOSE:
             DestroyMainWindow (hWnd);
@@ -236,11 +236,11 @@ static void InitCreateInfo(PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor(IDC_ARROW);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = ControlTestWinProc;
-    pCreateInfo->lx = 0; 
+    pCreateInfo->lx = 0;
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 400;
     pCreateInfo->by = 260;
-    pCreateInfo->iBkColor = GetWindowElementColor (WE_MAINC_THREED_BODY); 
+    pCreateInfo->iBkColor = GetWindowElementColor (WE_MAINC_THREED_BODY);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }

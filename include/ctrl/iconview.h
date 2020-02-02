@@ -14,10 +14,10 @@
  * \file iconview.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: iconview.h 11576 2009-04-27 01:01:57Z dongjunjie $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -76,7 +76,7 @@ extern "C" {
      * \defgroup mgext_ctrl_iconview IconView control
      * @{
      */
-/** 
+/**
  * \def CTRL_ICONVIEW
  * \brief The class name of iconview control.
  */
@@ -88,16 +88,16 @@ extern "C" {
 #define IV_ERR                  (-1)
 /** Iconview return value */
 #define IV_ERRSPACE             (-2)
-    
+
 /**
  * \var typedef GHANDLE HIVITEM
  * \brief Icon view item handle
  */
 typedef GHANDLE HIVITEM;
 
-/** 
+/**
  * Structure of the iconview item info, contains information about an item.
- * This structure is used for creating or retrieving an item. 
+ * This structure is used for creating or retrieving an item.
  */
 typedef struct _IVITEMINFO
 {
@@ -128,22 +128,22 @@ typedef struct _IVITEMINFO
 typedef IVITEMINFO* PIVITEMINFO;
 
 /** Iconview bitmap flags, reserved */
-#define IVFLAG_BITMAP	0x0001
+#define IVFLAG_BITMAP    0x0001
 /** Iconview icon flags, reserved */
-#define IVFLAG_ICON	0x0002
+#define IVFLAG_ICON    0x0002
 
 
 /**
  * \fn int iconview_is_item_hilight (HWND hWnd, GHANDLE hivi)
  * \brief Uses this to get an iconview item is hilighted or not.
  *
- * \returns TRUE when item is hilighted, or FALSE. 
+ * \returns TRUE when item is hilighted, or FALSE.
  */
 MG_EXPORT int iconview_is_item_hilight (HWND hWnd, GHANDLE hivi);
 
 /**
  * \fn DWORD iconview_get_item_bitmap (GHANDLE hivi)
- * \brief Uses this to get bitmap handle from an iconview item. 
+ * \brief Uses this to get bitmap handle from an iconview item.
  *
  * \returns the bitmap handle of iconview item.
  */
@@ -157,7 +157,7 @@ MG_EXPORT PBITMAP iconview_get_item_bitmap (GHANDLE hivi);
  */
 MG_EXPORT const char* iconview_get_item_label (GHANDLE hivi);
 
-/** 
+/**
  * \fn DWORD iconview_get_item_adddata (GHANDLE hivi)
  * \brief Uses this to get additional data from an iconview item.
  *
@@ -182,7 +182,7 @@ MG_EXPORT PBITMAP iconview_set_item_bitmap(GHANDLE hivi, PBITMAP pbmp);
  * \def IVS_NOTIFY
  * \brief The notify style of iconview control
  * \sa SVS_NOTIFY
- */ 
+ */
 #define IVS_NOTIFY              SVS_NOTIFY
 
 /**
@@ -196,14 +196,14 @@ MG_EXPORT PBITMAP iconview_set_item_bitmap(GHANDLE hivi, PBITMAP pbmp);
  * \def IVS_AUTOSORT
  * \brief The auto sort style of iconview control
  * \sa SVS_AUTOSORT
- */ 
+ */
 #define IVS_AUTOSORT            SVS_AUTOSORT
 
 /**
  * \def IVS_LOOP
  * \brief The loop style of iconview control
  * \sa SVS_LOOP
- */ 
+ */
 #define IVS_LOOP                SVS_LOOP
 
 
@@ -216,17 +216,17 @@ MG_EXPORT PBITMAP iconview_set_item_bitmap(GHANDLE hivi, PBITMAP pbmp);
 
 /**
  *  \def IVM_ADDITEM
- *  \brief Adds a item to iconview. 
- *  
- *  \code 
+ *  \brief Adds a item to iconview.
+ *
+ *  \code
  *  IVM_ADDITEM
  *  PIVITEMINFO p
  *
  *  p =(LPARAM)lParam;
  *  \endcode
  *
- *  \param p Pointes to a IVITEMINFO structure that contains the information of 
- *           the new item to be added. nItem member of the IVITEMINFO struct speficied 
+ *  \param p Pointes to a IVITEMINFO structure that contains the information of
+ *           the new item to be added. nItem member of the IVITEMINFO struct speficied
  *           the item position in its parent item, beginning with zero.
  *
  *  \return Returns the handle of the new item if successful, or 0 otherwise.

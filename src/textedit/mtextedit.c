@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -60,7 +60,7 @@
 #include "gdi.h"
 #include "window.h"
 #include "object.h"
-#elif defined (__MGNCS_LIB__) 
+#elif defined (__MGNCS_LIB__)
 #include <minigui/common.h>
 #include <minigui/minigui.h>
 #include <minigui/gdi.h>
@@ -186,7 +186,7 @@ static inline void set_textbuffer(mTextBuffer* self, const char* title, int len)
     self->char_len = len + 1;
 }
 
-static void update_observers(mTextBuffer* self, 
+static void update_observers(mTextBuffer* self,
         int begin, int delcount, int insertcount)
 {
     mTextBufferObserverNode* node = self->observers;
@@ -230,7 +230,7 @@ static void mTextBuffer_destroy(mTextBuffer* self)
     Class(mObject).destroy((mObject*)self);
 }
 
-static int mTextBuffer_replace(mTextBuffer* self, int at, 
+static int mTextBuffer_replace(mTextBuffer* self, int at,
         int count, const char* str, int str_count)
 {
     int i, j;
@@ -238,7 +238,7 @@ static int mTextBuffer_replace(mTextBuffer* self, int at,
         at = self->char_len;
     if(str_count <= 0 && str)
         str_count = strlen(str);
-    
+
     if(str_count < 0)
         str_count = 0;
 
@@ -258,7 +258,7 @@ static int mTextBuffer_replace(mTextBuffer* self, int at,
             self->buffer = alloc_str_buffer(self->buffer, &self->max_size);
         }
     }
-    
+
     if(self->char_len>(at+count) && str_count != count)
     {
         memmove(self->buffer + at + str_count, self->buffer + at + count, self->char_len - at - count);
@@ -286,14 +286,14 @@ static int mTextBuffer_replace(mTextBuffer* self, int at,
             j ++;
         }
     }
-    
+
     //update the observer
     update_observers(self, at, count, str_count);
-    
+
     return str_count;
 }
 
-static int mTextBuffer_getText(mTextBuffer* self, 
+static int mTextBuffer_getText(mTextBuffer* self,
         int at, char* str_buffer, int str_count)
 {
     int len;
@@ -324,7 +324,7 @@ static ITextIterator* mTextBuffer_getAt(mTextBuffer* self, int charIndex)
     return INTERFACE_CAST(ITextIterator, it);
 }
 
-static BOOL mTextBuffer_addObserver(mTextBuffer* self, 
+static BOOL mTextBuffer_addObserver(mTextBuffer* self,
         ITextBufferObserver* observer)
 {
     mTextBufferObserverNode * node;
@@ -338,24 +338,24 @@ static BOOL mTextBuffer_addObserver(mTextBuffer* self,
     if(node)
         return TRUE;
 
-    node = 
+    node =
         (mTextBufferObserverNode*)calloc(1, sizeof(mTextBufferObserverNode));
     node->next = self->observers;
     node->observer = observer;
-    
+
     self->observers = node;
 
     return TRUE;
 }
 
-static BOOL mTextBuffer_removeObserver(mTextBuffer* self, 
+static BOOL mTextBuffer_removeObserver(mTextBuffer* self,
         ITextBufferObserver* observer)
 {
     mTextBufferObserverNode * node, *prev;
 
     if(!self->observers)
         return FALSE;
-    
+
     node = self->observers;
     prev = NULL;
     while(node)
@@ -365,7 +365,7 @@ static BOOL mTextBuffer_removeObserver(mTextBuffer* self,
         prev = node;
         node = node->next;
     }
-    
+
     if(prev == NULL) {
         self->observers = node->next;
     }
@@ -434,7 +434,7 @@ static int mTextBuffer_getCount(mTextBuffer * self)
     return self->char_len;
 }
 
-static int findnstr(const char* text, int text_len, 
+static int findnstr(const char* text, int text_len,
         const char* str, int str_count)
 {
     int i = 0;
@@ -458,7 +458,7 @@ static int findnstr(const char* text, int text_len,
     return -1;
 }
 
-static int mTextBuffer_find(mTextBuffer* self, int start, 
+static int mTextBuffer_find(mTextBuffer* self, int start,
         const char* str, int str_count)
 {
     int pos = -1;
@@ -537,7 +537,7 @@ END_MINI_CLASS
 static void mTextIterator_construct(mTextIterator* self, va_list va)
 {
     Class(mObject).construct((mObject*)self, 0);
-    ncsParseConstructParams(va, "pi", &self->buffer, &self->index); 
+    ncsParseConstructParams(va, "pi", &self->buffer, &self->index);
 }
 
 static void mTextIterator_nextChar(mTextIterator* self)
@@ -583,7 +583,7 @@ static BOOL mTextIterator_isHead(mTextIterator* self)
     return (!self->buffer || self->index <= 0);
 }
 
-static const char* mTextIterator_getMore(mTextIterator* self, 
+static const char* mTextIterator_getMore(mTextIterator* self,
         int *pTextLen, int *pVisibleTextLen, BOOL bAutoSkip)
 {
     const char* str;
@@ -617,13 +617,13 @@ static const char* mTextIterator_getMore(mTextIterator* self,
     else {
         len = 0;
 
-        while(str[len] && str[len] != '\n' 
+        while(str[len] && str[len] != '\n'
                 && len != len_limit && len < left_count) {
             len ++;
         }
-        
+
         *pVisibleTextLen = len;
-        
+
         if(str[len] == '\n' && len != len_limit && len < left_count) {
             len ++;
         }
@@ -638,7 +638,7 @@ static const char* mTextIterator_getMore(mTextIterator* self,
     return str;
 }
 
-static int mTextIterator_diff(mTextIterator* self, 
+static int mTextIterator_diff(mTextIterator* self,
         const ITextIterator* another)
 {
     mTextIterator* ti;
@@ -649,21 +649,21 @@ static int mTextIterator_diff(mTextIterator* self,
     return self->index - ti->index;
 }
 
-static int mTextIterator_inRange(mTextIterator* self, 
+static int mTextIterator_inRange(mTextIterator* self,
         const ITextIterator* left, const ITextIterator* right)
 {
     mTextIterator* tileft, *tiright;
     if(left == NULL || right == NULL)
         return TXTITER_RANGE_INVALID;
-    
+
     tileft = INTERFACE2OBJECT(mTextIterator,left);
     tiright = INTERFACE2OBJECT(mTextIterator,right);
 
-    if(!tileft->buffer || !tiright->buffer 
+    if(!tileft->buffer || !tiright->buffer
             || tileft->buffer != self->buffer
             || tiright->buffer != self->buffer)
         return TXTITER_RANGE_INVALID;
-    
+
     if(tileft->index > self->index)
         return TXTITER_RANGE_LEFTOUT;
     else if(tileft->index == self->index)
@@ -710,7 +710,7 @@ static int mTextIterator_getCharType(mTextIterator* self, int offset)
         if(self->buffer->buffer[idx] == 0)
             return TI_EOF;
 
-        return TI_VISIBILE_CHAR;    
+        return TI_VISIBILE_CHAR;
     }
     return TI_OUTOFRANGE;
 }
@@ -815,7 +815,7 @@ static inline mTextLayoutNode* textlayout_get_last_node(mTextLayout* self, BOOL 
 }
 
 
-static int mTextLayoutNode_compareNode(mTextLayoutNode* self, 
+static int mTextLayoutNode_compareNode(mTextLayoutNode* self,
         mTextLayoutNodeSearchInfo* searchInfo)
 {
     unsigned int text_count, str_count;
@@ -849,7 +849,7 @@ static int mTextLayoutNode_compareNode(mTextLayoutNode* self,
     return BTREE_ERRNO_SNEXT;
 }
 
-static void mTextLayoutNode_recompute(mTextLayoutNode* self, 
+static void mTextLayoutNode_recompute(mTextLayoutNode* self,
         mTextLayoutNode* child)
 {
     Class(mCommBTreeNode).recompute((mCommBTreeNode*)self, (mCommBTreeNode*)child);
@@ -865,7 +865,7 @@ static void mTextLayoutNode_recompute(mTextLayoutNode* self,
     self->height += child->height;
 }
 
-static void mTextLayoutNode_changeKey(mTextLayoutNode* self, 
+static void mTextLayoutNode_changeKey(mTextLayoutNode* self,
         mTextLayoutNodeDiff* pdiff, int deltaChild)
 {
     mTextLayoutNodeDiff diff;
@@ -877,7 +877,7 @@ static void mTextLayoutNode_changeKey(mTextLayoutNode* self,
         diff.new_width = self->width;
         diff.hdiff = self->height;
         pdiff = &diff;
-        
+
     }
     else if(pdiff == (mTextLayoutNodeDiff*)(-1))
     {
@@ -888,7 +888,7 @@ static void mTextLayoutNode_changeKey(mTextLayoutNode* self,
         diff.hdiff = -self->height;
         pdiff = &diff;
     }
-    else 
+    else
     {
         if(self->level > 0)
         {
@@ -896,13 +896,13 @@ static void mTextLayoutNode_changeKey(mTextLayoutNode* self,
             self->str_count  += pdiff->strdiff;
             self->height += pdiff->hdiff;
 
-            if(pdiff->new_width > pdiff->old_width) 
+            if(pdiff->new_width > pdiff->old_width)
             {   //replace the old max width
                 if(pdiff->new_width > self->width)
                     self->width = pdiff->new_width;
             }
-            else if(pdiff->new_width < pdiff->old_width 
-                    && pdiff->old_width == self->width) 
+            else if(pdiff->new_width < pdiff->old_width
+                    && pdiff->old_width == self->width)
             {//the old width is the max width, we must refind the new max width.
                 int max_width = 0;
                 mTextLayoutNode* node = (mTextLayoutNode*)self->children;
@@ -937,7 +937,7 @@ END_MINI_CLASS
 
 //////////////////////////////////////////////
 //get the text byte length
-static inline int textlayout_get_text_byte_length(ITextIterator* txtit, 
+static inline int textlayout_get_text_byte_length(ITextIterator* txtit,
         HDC hdc, int text_count)
 {
     int str_len = 0;
@@ -961,7 +961,7 @@ static inline int textlayout_get_text_byte_length(ITextIterator* txtit,
 }
 
 //get the text count by length
-static int textlayout_get_text_count_by_length(ITextIterator* txtit, 
+static int textlayout_get_text_count_by_length(ITextIterator* txtit,
         HDC hdc, int str_len, int *pstr_len)
 {
     ITextRender* render;
@@ -974,7 +974,7 @@ static int textlayout_get_text_count_by_length(ITextIterator* txtit,
 
     if(str_len <= 0)
         return 0;
-    
+
     count = 0;
     old_index = index = (txtit)->_vtable->index(INTEFACE_ADJUST(txtit));
     while(str_len > 0)
@@ -1000,7 +1000,7 @@ static int textlayout_get_text_count_by_length(ITextIterator* txtit,
 //get the width of text by str index, return the width
 static int textlayout_get_text_width_by_strindex(mTextLayout* self,
         mTextLayoutNode* node,
-        HDC hdc, 
+        HDC hdc,
         ITextIterator *txtit,
         /*in out*/int *pstr_index,
         /*out*/int *ptext_index)
@@ -1022,7 +1022,7 @@ static int textlayout_get_text_width_by_strindex(mTextLayout* self,
         int len;
         int text_count;
         render = (txtit)->_vtable->getTextRender(INTEFACE_ADJUST(txtit));
-        len = (render)->_vtable->calc(INTEFACE_ADJUST(render), hdc, txtit, str_index - index, 
+        len = (render)->_vtable->calc(INTEFACE_ADJUST(render), hdc, txtit, str_index - index,
                 &text_count, &rcLimit, &rcBound);
         if(len == 0 || RECTW(rcBound) == 0)
             break;
@@ -1083,7 +1083,7 @@ static int textlayout_get_text_index_by_width(mTextLayout* self,
         int index = (txtit)->_vtable->index(INTEFACE_ADJUST(txtit));
         rcLimit.right = width;
         render = (txtit)->_vtable->getTextRender(INTEFACE_ADJUST(txtit));
-        len = (render)->_vtable->calc(INTEFACE_ADJUST(render), hdc, txtit, str_len, 
+        len = (render)->_vtable->calc(INTEFACE_ADJUST(render), hdc, txtit, str_len,
                 &text_count, &rcLimit, &rcBound);
         if(len >0 && (txtit)->_vtable->getCharType(INTEFACE_ADJUST(txtit), len - 1) == TI_LINERETURN)
         {
@@ -1123,11 +1123,11 @@ static inline void append_updaterc(mTextLayout* self, RECT *prcupate)
     AddClipRect(self->dirty_area, prcupate);
 }
 
-static void textlayout_update_selection_ex(mTextLayout* self, 
+static void textlayout_update_selection_ex(mTextLayout* self,
         int *begin, int *end)
 {
-    RECT rcUpdate;      
-        
+    RECT rcUpdate;
+
     rcUpdate.left = begin[0]; //begin.x
     rcUpdate.top  = begin[1]; //begin.y
     //printf("--- update selection from : begin(%d,%d)-end(%d,%d)\n", begin[0],begin[1],end[0],end[1]);
@@ -1148,9 +1148,9 @@ static void textlayout_update_selection_ex(mTextLayout* self,
         //(self->context)->_vtable->update(INTEFACE_ADJUST(self->context), &rcUpdate);
         append_updaterc(self, &rcUpdate);
 
-        //second: update middle line(s) 
+        //second: update middle line(s)
         rcUpdate.top  = begin[1] + begin[2]; //begin.y + begin.height
-        if(rcUpdate.top < end[1]/*end.y*/) 
+        if(rcUpdate.top < end[1]/*end.y*/)
         {
             //int top = rcUpdate.top;
             rcUpdate.left = 0;
@@ -1210,7 +1210,7 @@ static void textlayout_updateselection(mTextLayout* self)
         {
             end[1] = end[1] + self->new_height - self->old_height;
         }
- 
+
     }
 
     textlayout_update_selection_ex(self, begin, end);
@@ -1220,12 +1220,12 @@ static void textlayout_resetsel(mTextLayout* self)
 {
     self->sel_begin = self->cursor;
     self->sel_begin_x = self->cursor_x;
-    self->sel_begin_y = self->cursor_y; 
+    self->sel_begin_y = self->cursor_y;
     self->sel_begin_height = self->cursor_height;
     self->text_sel_begin = self->text_cursor;
 }
 
-static void textlayout_update_new_selection(mTextLayout* self, 
+static void textlayout_update_new_selection(mTextLayout* self,
         int new_index, int x_sel, int y_sel, int height)
 {
     //get the max update selection
@@ -1257,8 +1257,8 @@ static inline mTextLayoutNode* textlayout_get_first_node(mTextLayout* self)
     return _get_first_child((mTextLayoutNode*)self->rootNode);
 }
 
-static inline mTextLayoutNode* 
-search_textlayout_node_by_textindex(mTextLayout* self, 
+static inline mTextLayoutNode*
+search_textlayout_node_by_textindex(mTextLayout* self,
         mTextLayoutNodeSearchInfo* searchInfo,
         int index, int search_flags)
 {
@@ -1274,8 +1274,8 @@ search_textlayout_node_by_textindex(mTextLayout* self,
     return (mTextLayoutNode*)_c(self)->search(self, (void*)searchInfo, search_flags);
 }
 
-static inline mTextLayoutNode* 
-search_textlayout_node_by_strindex(mTextLayout* self, 
+static inline mTextLayoutNode*
+search_textlayout_node_by_strindex(mTextLayout* self,
         mTextLayoutNodeSearchInfo* searchInfo,
         int index, int search_flags)
 {
@@ -1289,8 +1289,8 @@ search_textlayout_node_by_strindex(mTextLayout* self,
     return (mTextLayoutNode*)_c(self)->search(self, (void*)searchInfo, search_flags);
 }
 
-static inline mTextLayoutNode* 
-search_textlayout_node_by_pos(mTextLayout* self, 
+static inline mTextLayoutNode*
+search_textlayout_node_by_pos(mTextLayout* self,
         mTextLayoutNodeSearchInfo* searchInfo,
         int x, int y, int search_flags)
 {
@@ -1303,8 +1303,8 @@ search_textlayout_node_by_pos(mTextLayout* self,
     return (mTextLayoutNode*)_c(self)->search(self, (void*)searchInfo, search_flags);
 }
 
-static inline int calc_line(ITextIterator* txtit, HDC hdc, 
-        int str_len, /*out*/ int *ptext_count, 
+static inline int calc_line(ITextIterator* txtit, HDC hdc,
+        int str_len, /*out*/ int *ptext_count,
         const RECT* prcLimit, RECT *prcBound)
 {
     int             text_count;
@@ -1328,7 +1328,7 @@ static inline int calc_line(ITextIterator* txtit, HDC hdc,
 
         render = (txtit)->_vtable->getTextRender(INTEFACE_ADJUST(txtit));
         (void)(txtit)->_vtable->getMore(INTEFACE_ADJUST(txtit), &all_len, NULL, FALSE);
-        tlen = (render)->_vtable->calc(INTEFACE_ADJUST(render), hdc,txtit,  
+        tlen = (render)->_vtable->calc(INTEFACE_ADJUST(render), hdc,txtit,
                 str_len - len, &text_count, prcLimit, &rcBound);
 
         //attempt to output a character
@@ -1345,7 +1345,7 @@ static inline int calc_line(ITextIterator* txtit, HDC hdc,
         len += tlen;
         prcBound->right += RECTW(rcBound);
         if(prcBound->bottom < RECTH(rcBound))
-            prcBound->bottom = RECTH(rcBound);  
+            prcBound->bottom = RECTH(rcBound);
         if(ptext_count)
             *ptext_count += text_count;
 
@@ -1357,11 +1357,11 @@ static inline int calc_line(ITextIterator* txtit, HDC hdc,
     return len;
 }
 
-static int calc_node(mTextLayout* self, 
-        mTextLayoutNode* node, 
+static int calc_node(mTextLayout* self,
+        mTextLayoutNode* node,
         ITextIterator*  txtit,
         HDC             hdc,
-        const RECT     *rcLimit, 
+        const RECT     *rcLimit,
         int             linespace)
 {
     RECT rcBound;
@@ -1383,11 +1383,11 @@ static int calc_node(mTextLayout* self,
     if(old_len <= 0 && str_len <= 0)
         return -old_len;
     //If node is changed from non-null to null, we should differ its information.
-    //important: don't reset the width and height value. 
+    //important: don't reset the width and height value.
     //because we would use them to calc the update area.
     node->width = RECTW(rcBound);
     node->height = RECTH(rcBound) + linespace;
-    
+
     diff.textdiff = node->text_count - old_count;
     diff.strdiff  = node->str_count - old_len;
     diff.new_width = node->width;
@@ -1398,7 +1398,7 @@ static int calc_node(mTextLayout* self,
     return old_len - str_len;
 }
 
-static void textlayout_relayout(mTextLayout* self, int begin, 
+static void textlayout_relayout(mTextLayout* self, int begin,
         int delCount, int insertCount, BOOL bAutoUpdate)
 {
     mTextLayoutNodeSearchInfo searchInfo;
@@ -1419,10 +1419,10 @@ static void textlayout_relayout(mTextLayout* self, int begin,
 
     //1. find the begin node
 
-    //if begin is equal with the character number of old contents, 
+    //if begin is equal with the character number of old contents,
     //then we need to use begin-1 to get last valid node.
-    begin_node = search_textlayout_node_by_strindex(self, 
-                    &searchInfo, begin >= count ? begin - 1: begin, 
+    begin_node = search_textlayout_node_by_strindex(self,
+                    &searchInfo, begin >= count ? begin - 1: begin,
                     BTSF_RETLAST_IF_OUTOFRANGE);
 
     // get the end not
@@ -1446,7 +1446,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
 
     delCount    += (begin - begin_index);
     insertCount += (begin - begin_index);
-  
+
 
     linespace = (self->context)->_vtable->getMetrics(INTEFACE_ADJUST(self->context), TEXTMETRICS_LINESPACE);
     maxwidth  = (self->context)->_vtable->getMetrics(INTEFACE_ADJUST(self->context), TEXTMETRICS_MAXWIDTH);
@@ -1468,7 +1468,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
         //recalc the start left
         RECT rcBound;
         ITextRender *textRender = _I(txtit)->getTextRender(INTEFACE_ADJUST(txtit));
-        _I(textRender)->calc(INTEFACE_ADJUST(textRender), hdc, txtit, 
+        _I(textRender)->calc(INTEFACE_ADJUST(textRender), hdc, txtit,
                 begin - begin_index, NULL, &rcLimit, &rcBound);
         rcUpdate.left = RECTW(rcBound);
     }
@@ -1530,7 +1530,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
         }
         if(tnode->str_count > 0)
             self->old_height += tnode->height;
-        
+
         delCount -= tnode->str_count; //old count
         calc_node(self, tnode, txtit, hdc, &rcLimit, linespace);
         insertCount -= tnode->str_count;
@@ -1551,7 +1551,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
             goto END;
         }
 
-        
+
         if(!bHeightChanged)
         {
             if(height != tnode->height)
@@ -1566,7 +1566,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
                 //use max width
                 rcUpdate.right = maxwidth;
                 rcUpdate.bottom = rcUpdate.top + height;
-                //add region 
+                //add region
                 append_updaterc(self, &rcUpdate);
                 rcUpdate.left = 0; //new line
                 rcUpdate.top = rcUpdate.bottom;
@@ -1611,7 +1611,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
             int text_count;
             int str_len ;
             RECT rcBound;
-            str_len = calc_line(txtit, hdc, insertCount, 
+            str_len = calc_line(txtit, hdc, insertCount,
                     &text_count, &rcLimit, &rcBound);
             if(str_len <= 0)
                 break;
@@ -1657,7 +1657,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
         {
             mTextLayoutNode* tnode = (mTextLayoutNode*)(node_it.current);
             delCount -= tnode->str_count;
-            
+
             if(tnode->str_count > 0)
                  self->old_height += tnode->height;
             _c(&node_it)->remove(&node_it);
@@ -1669,7 +1669,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
 
 
 END:
-    //if last node is ended with '\n', we should add a new empty line 
+    //if last node is ended with '\n', we should add a new empty line
     //to make sure root node's height correct.
     end_node = textlayout_get_last_node(self, FALSE);
     //printf("---- end_node=%p, text count = %d\n", end_node, end_node?end_node->text_count:0);
@@ -1711,7 +1711,7 @@ END:
     (txtit)->_vtable->releaseIterator(INTEFACE_ADJUST(txtit));
 
     //printf("--- old height=%d, new height=%d\n",self->old_height, self->new_height);
-    
+
     if(bHeightChanged)
     {
         int maxheight = self->new_height;
@@ -1738,12 +1738,12 @@ static void mTextLayout_reset(mTextLayout* self)
     textlayout_relayout(self, 0, count, count, FALSE);
 
     //recalc cursor and sel_begin position
-    self->text_cursor = _c(self)->getCharPos(self, self->cursor, 
+    self->text_cursor = _c(self)->getCharPos(self, self->cursor,
             &self->cursor_x, &self->cursor_y, &self->cursor_height, FALSE);
 
     if (self->sel_begin != self->cursor) {
-        self->text_sel_begin = _c(self)->getCharPos(self, self->sel_begin, 
-                &self->sel_begin_x, &self->sel_begin_y, 
+        self->text_sel_begin = _c(self)->getCharPos(self, self->sel_begin,
+                &self->sel_begin_x, &self->sel_begin_y,
                 &self->sel_begin_height, FALSE);
     }
     else
@@ -1757,7 +1757,7 @@ static void mTextLayout_reset(mTextLayout* self)
 static void mTextLayout_construct(mTextLayout* self, va_list va)
 {
     Class(mCommBTree).construct((mCommBTree*)self, 0);
-    
+
     ncsParseConstructParams(va, "pp", &self->text_buffer, &self->context);
 
     self->old_height = -1;
@@ -1808,7 +1808,7 @@ static int textlayout_get_text_para_pos(mTextLayout* self, int text_index, int *
         else
             *offChar = 0;
     }
-    
+
     return para_idx;
 }
 #endif
@@ -1820,7 +1820,7 @@ static int textlayout_get_text_para_pos(mTextLayout* self, int text_index, int *
     if(pstr_index)  *pstr_index  = (str_index); \
     return (text_index);  }while(0)
 
-static int mTextLayout_getCharIndex(mTextLayout* self, int* px, int* py, 
+static int mTextLayout_getCharIndex(mTextLayout* self, int* px, int* py,
         int *plineHeight, int *pstr_index)
 {
     mTextLayoutNodeSearchInfo searchInfo;
@@ -1850,8 +1850,8 @@ static int mTextLayout_getCharIndex(mTextLayout* self, int* px, int* py,
         // FALSE can get the last empty node, if have.
         //node = textlayout_get_last_node(self, TRUE);
         node = textlayout_get_last_node(self, FALSE);
-        GETCHARINDEX_RET(node->width, 
-                textlayout_get_total_height(self) - node->height, 
+        GETCHARINDEX_RET(node->width,
+                textlayout_get_total_height(self) - node->height,
                 node->height,
                 textlayout_get_str_count(self),
                 textlayout_get_text_count(self));
@@ -1859,7 +1859,7 @@ static int mTextLayout_getCharIndex(mTextLayout* self, int* px, int* py,
 
     if(searchInfo.x_count == x)
     {
-        GETCHARINDEX_RET(0, searchInfo.y_count, node->height, 
+        GETCHARINDEX_RET(0, searchInfo.y_count, node->height,
                 searchInfo.str_count, searchInfo.text_count);
     }
     else if(node->width <= x)
@@ -1875,22 +1875,22 @@ static int mTextLayout_getCharIndex(mTextLayout* self, int* px, int* py,
         //printf("-- reduce=%d\n",reduce);
 
         GETCHARINDEX_RET(node->width, searchInfo.y_count, node->height,
-                searchInfo.str_count + node->str_count - reduce , 
+                searchInfo.str_count + node->str_count - reduce ,
                 searchInfo.text_count + node->text_count - reduce);
     }
 
     //recalc the left size
     txtit = (self->text_buffer)->_vtable->getAt(INTEFACE_ADJUST(self->text_buffer), searchInfo.str_count);
     width = x - searchInfo.x_count;
-    text_index = textlayout_get_text_index_by_width(self, 
+    text_index = textlayout_get_text_index_by_width(self,
             node,
             &width,
             0,
             txtit,
             &str_index) + searchInfo.text_count;
 
-    GETCHARINDEX_RET(width, 
-            searchInfo.y_count, 
+    GETCHARINDEX_RET(width,
+            searchInfo.y_count,
             node->height,
             str_index + searchInfo.str_count,
             text_index);
@@ -1902,7 +1902,7 @@ static int mTextLayout_getCharIndex(mTextLayout* self, int* px, int* py,
     if(py) *py = (y);                     \
     return (index); } while(0)
 
-static int _get_str_width(mTextLayout *self, 
+static int _get_str_width(mTextLayout *self,
         mTextLayoutNode *node, int str_index, int len)
 {
     ITextIterator   * txtit;
@@ -1913,14 +1913,14 @@ static int _get_str_width(mTextLayout *self,
     hdc = (self->context)->_vtable->getDC(INTEFACE_ADJUST(self->context));
 
     str_index += len;
-    width = textlayout_get_text_width_by_strindex(self, node, 
+    width = textlayout_get_text_width_by_strindex(self, node,
                         hdc, txtit, &str_index, NULL);
     (self->context)->_vtable->releaseDC(INTEFACE_ADJUST(self->context), hdc);
     (txtit)->_vtable->releaseIterator(INTEFACE_ADJUST(txtit));
     return width;
 }
 
-static int mTextLayout_getCharPos(mTextLayout* self, int index, 
+static int mTextLayout_getCharPos(mTextLayout* self, int index,
         int *px, int *py, int *plineHeight, BOOL bAsText)
 {
     mTextLayoutNodeSearchInfo searchInfo;
@@ -1935,7 +1935,7 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
     if (index < 0)
         index = 0;
 
-    count = bAsText ? textlayout_get_text_count(self) 
+    count = bAsText ? textlayout_get_text_count(self)
                     : textlayout_get_str_count(self);
     if (count <= 0)
         GETCHARPOS_RET(0, 0, 0);
@@ -1946,12 +1946,12 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
     if(bAsText) {
         //only for last text, need to use last index to get correct node.
         text_index = index >= count ? count - 1 : index;
-        node = search_textlayout_node_by_textindex(self, &searchInfo, 
+        node = search_textlayout_node_by_textindex(self, &searchInfo,
                 text_index, BTSF_RETLAST_IF_OUTOFRANGE);
         if(!node)
             return -1;
 
-    
+
         if(plineHeight)
             *plineHeight = node->height;
 
@@ -1969,7 +1969,7 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
                     (txtit)->_vtable->releaseIterator(INTEFACE_ADJUST(txtit));
                     //for null line, should skip to next line's start position.
                     if (isLnSep) {
-                        GETCHARPOS_RET(0, searchInfo.y_count + node->height, 
+                        GETCHARPOS_RET(0, searchInfo.y_count + node->height,
                                 searchInfo.str_count + len);
                     }
                 }
@@ -1987,7 +1987,7 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
     {
         //only for last char, need to use last index to get correct node.
         str_index = index >= count ? count -1 : index;
-        node = search_textlayout_node_by_strindex(self, 
+        node = search_textlayout_node_by_strindex(self,
                 &searchInfo, str_index, BTSF_RETLAST_IF_OUTOFRANGE);
         if(!node)
             return -1;
@@ -2004,11 +2004,11 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
                 //for last char, need add the last index's length and width.
                 // and for null line, should skip to next line's start position.
                 if(isLnSep) {
-                    GETCHARPOS_RET(0, searchInfo.y_count + node->height, 
+                    GETCHARPOS_RET(0, searchInfo.y_count + node->height,
                             searchInfo.text_count + 1);
                 }
                 else {
-                    GETCHARPOS_RET(_get_str_width(self, node, str_index, 1), 
+                    GETCHARPOS_RET(_get_str_width(self, node, str_index, 1),
                         searchInfo.y_count, searchInfo.text_count + 1);
                 }
             }
@@ -2037,7 +2037,7 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
         }
 
         (txtit)->_vtable->releaseIterator(INTEFACE_ADJUST(txtit));
-        GETCHARPOS_RET(xtmp, ytmp, 
+        GETCHARPOS_RET(xtmp, ytmp,
                 bAsText?(searchInfo.str_count + node->str_count)
                     :(searchInfo.text_count + node->text_count));
     }
@@ -2045,11 +2045,11 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
     hdc = (self->context)->_vtable->getDC(INTEFACE_ADJUST(self->context));
 
     if(bAsText)
-        str_index = searchInfo.str_count + 
-            textlayout_get_text_byte_length(txtit, hdc, 
+        str_index = searchInfo.str_count +
+            textlayout_get_text_byte_length(txtit, hdc,
                     text_index - searchInfo.text_count);
 
-    width = textlayout_get_text_width_by_strindex(self, 
+    width = textlayout_get_text_width_by_strindex(self,
                     node, hdc, txtit, &str_index, &text_index);
     text_index += searchInfo.text_count;
 
@@ -2062,7 +2062,7 @@ static int mTextLayout_getCharPos(mTextLayout* self, int index,
 }
 #undef GETCHARPOS_RET
 
-static int mTextLayout_setSelBeginPos(mTextLayout* self, 
+static int mTextLayout_setSelBeginPos(mTextLayout* self,
         int x, int y, BOOL bUpdate)
 {
     int x_sel, y_sel, height;
@@ -2090,8 +2090,8 @@ static int mTextLayout_setSelBeginPos(mTextLayout* self,
         return self->sel_begin;
 
     //printf("---- x_sel=%d,    y_sel=%d,    str_index=%d, text_index=%d\n", x_sel, y_sel, str_index, text_index);
-    //printf("---- cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor); 
-    if(bUpdate) 
+    //printf("---- cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
+    if(bUpdate)
         textlayout_update_new_selection(self, str_index, x_sel, y_sel, height);
 
     self->sel_begin        = str_index;
@@ -2101,10 +2101,10 @@ static int mTextLayout_setSelBeginPos(mTextLayout* self,
     self->text_sel_begin   = text_index;
 
     (self->context)->_vtable->updateCaret(INTEFACE_ADJUST(self->context));
-    return text_index;  
+    return text_index;
 }
 
-static BOOL mTextLayout_setSelBegin(mTextLayout* self, 
+static BOOL mTextLayout_setSelBegin(mTextLayout* self,
         int text_index, BOOL bUpdate)
 {
     int x_sel, y_sel;
@@ -2128,10 +2128,10 @@ static BOOL mTextLayout_setSelBegin(mTextLayout* self,
         textlayout_resetsel(self);
         return TRUE;
     }
-    
+
     str_index = _c(self)->getCharPos(self, text_index, &x_sel, &y_sel,&height, TRUE);
 
-    if(bUpdate) 
+    if(bUpdate)
         textlayout_update_new_selection(self, str_index, x_sel, y_sel, height);
 
     self->sel_begin        = str_index;
@@ -2139,7 +2139,7 @@ static BOOL mTextLayout_setSelBegin(mTextLayout* self,
     self->sel_begin_y      = y_sel;
     self->sel_begin_height = height;
     self->text_sel_begin   = text_index;
-    
+
     (self->context)->_vtable->updateCaret(INTEFACE_ADJUST(self->context));
     return TRUE;
 }
@@ -2177,11 +2177,11 @@ static BOOL mTextLayout_setCursor(mTextLayout* self, int text_index, BOOL isSel)
         else
             self->text_cursor = text_index;
     }
-    
-    self->cursor = _c(self)->getCharPos(self, self->text_cursor, &self->cursor_x, 
+
+    self->cursor = _c(self)->getCharPos(self, self->text_cursor, &self->cursor_x,
             &self->cursor_y, &self->cursor_height, TRUE);
 
-    //printf("===== cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor); 
+    //printf("===== cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
 
     textlayout_resetsel(self);
 
@@ -2207,17 +2207,17 @@ static int mTextLayout_setCursorPos(mTextLayout* self, int x, int y, BOOL isSel)
 
     self->cursor_x = x;
     self->cursor_y = y;
-    self->text_cursor = _c(self)->getCharIndex(self, &self->cursor_x, 
+    self->text_cursor = _c(self)->getCharIndex(self, &self->cursor_x,
             &self->cursor_y, &self->cursor_height, &self->cursor);
-    //printf("++++ cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor); 
-    
+    //printf("++++ cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
+
     textlayout_resetsel(self);
 
     (self->context)->_vtable->updateCaret(INTEFACE_ADJUST(self->context));
     return self->text_cursor;
 }
 
-static int mTextLayout_getCursor(mTextLayout* self, int *px, int *py, 
+static int mTextLayout_getCursor(mTextLayout* self, int *px, int *py,
         int *pcursorHeight, BOOL isSel)
 {
     if (isSel) {
@@ -2233,7 +2233,7 @@ static int mTextLayout_getCursor(mTextLayout* self, int *px, int *py,
     return self->text_cursor;
 }
 
-static mTextLayoutNode* get_begin_line(mTextLayout* self, 
+static mTextLayoutNode* get_begin_line(mTextLayout* self,
         int* px, int* py, int *pindex)
 {
     mTextLayoutNodeSearchInfo searchInfo;
@@ -2243,7 +2243,7 @@ static mTextLayoutNode* get_begin_line(mTextLayout* self,
         return node;
     if(pindex)
         *pindex = searchInfo.str_count;
-    
+
     if(py)
         *py = searchInfo.y_count;
     if(px)
@@ -2252,13 +2252,13 @@ static mTextLayoutNode* get_begin_line(mTextLayout* self,
 }
 
 static int textlayout_drawline(mTextLayout* self,
-        HDC hdc, 
-        int* px, int y, 
-        mTextLayoutNode* node, 
-        int *pcount_left, ITextIterator* it, 
+        HDC hdc,
+        int* px, int y,
+        mTextLayoutNode* node,
+        int *pcount_left, ITextIterator* it,
         int max_selection, BOOL bsel)
 {
-    int index = (it)->_vtable->index(INTEFACE_ADJUST(it));  
+    int index = (it)->_vtable->index(INTEFACE_ADJUST(it));
     int total_count = *pcount_left;
     int index_begin = index;
     int draw_count;
@@ -2292,7 +2292,7 @@ static int textlayout_drawline(mTextLayout* self,
         if(bRecalcWidth && !drawLeftBg) //if drawLeftBg is true, mean we should draw whole line
         {
             RECT rcBounds;
-            (textRender)->_vtable->calc(INTEFACE_ADJUST(textRender), hdc, 
+            (textRender)->_vtable->calc(INTEFACE_ADJUST(textRender), hdc,
                     it, total_count, NULL, &rcbg, &rcBounds);
             rcbg.right = rcbg.left + RECTW(rcBounds);
         }
@@ -2315,17 +2315,17 @@ static int textlayout_drawline(mTextLayout* self,
         }
         total_count -= (index - old_index);
     }
-    
+
     draw_count = index - index_begin;
     *pcount_left -= draw_count;
     return draw_count;
 }
 
 //return the x pos of last line
-static int textlayout_drawlines(mTextLayout* self, HDC hdc, 
-                int x_begin,int x, int *py, 
+static int textlayout_drawlines(mTextLayout* self, HDC hdc,
+                int x_begin,int x, int *py,
                 mCommBTreeLeafIterator* pnode_it, ITextIterator* it,
-                int first_line_left_count, int *plast_line_left_count, 
+                int first_line_left_count, int *plast_line_left_count,
                 int max_selection, int bottom, BOOL bsel)
 {
     int left_count = first_line_left_count;
@@ -2342,20 +2342,20 @@ static int textlayout_drawlines(mTextLayout* self, HDC hdc,
 
     while(*py < bottom && !(it)->_vtable->isEnd(INTEFACE_ADJUST(it)))
     {
-        if (left_count == 0 && !_c(pnode_it)->hasNext(pnode_it) 
-                && pnode_it->current 
+        if (left_count == 0 && !_c(pnode_it)->hasNext(pnode_it)
+                && pnode_it->current
                 && ((mTextLayoutNode*)pnode_it->current)->height > 0) {
-            //only last node is empty node possiblely, 
+            //only last node is empty node possiblely,
             //we should draw it's background.
-            textlayout_drawline(self, hdc, &x, *py, 
-                    (mTextLayoutNode*)pnode_it->current, 
+            textlayout_drawline(self, hdc, &x, *py,
+                    (mTextLayoutNode*)pnode_it->current,
                     &left_count, it, max_selection, bsel);
         }
 
         while(left_count > 0 && !(it)->_vtable->isEnd(INTEFACE_ADJUST(it)))
         {
-            textlayout_drawline(self, hdc, &x, *py, 
-                    (mTextLayoutNode*)pnode_it->current, 
+            textlayout_drawline(self, hdc, &x, *py,
+                    (mTextLayoutNode*)pnode_it->current,
                     &left_count, it, max_selection, bsel);
             if(max_selection > 0 && (it)->_vtable->index(INTEFACE_ADJUST(it)) >= max_selection)
             {
@@ -2364,7 +2364,7 @@ static int textlayout_drawlines(mTextLayout* self, HDC hdc,
                     *py += ((mTextLayoutNode*)pnode_it->current)->height;
                     _c(pnode_it)->next(pnode_it);
                     if(pnode_it->current)
-                        *plast_line_left_count = 
+                        *plast_line_left_count =
                             ((mTextLayoutNode*)pnode_it->current)->str_count;
                     else
                         *plast_line_left_count = 0;
@@ -2387,7 +2387,7 @@ static int textlayout_drawlines(mTextLayout* self, HDC hdc,
 }
 
 
-static void mTextLayout_draw(mTextLayout* self, 
+static void mTextLayout_draw(mTextLayout* self,
         HDC hdc, int x, int y, int width, int height)
 {
     mTextLayoutNode* node;
@@ -2399,14 +2399,14 @@ static void mTextLayout_draw(mTextLayout* self,
 
     x_off = -x;
     y_off = -y;
-    
+
     node = get_begin_line(self, &x, &y, &index);
     if(!node)
         return;
 
     (void)INIT_OBJV(mCommBTreeLeafIterator, &node_it,2,self, node);
 
-    
+
     it = (self->text_buffer)->_vtable->getAt(INTEFACE_ADJUST(self->text_buffer), index);
 
     if(self->sel_begin == self->cursor)
@@ -2414,7 +2414,7 @@ static void mTextLayout_draw(mTextLayout* self,
         x += x_off;
         y += y_off;
         (self->context)->_vtable->setupDC(INTEFACE_ADJUST(self->context), hdc);
-        textlayout_drawlines(self, hdc, x, x, &y, &node_it, it, 
+        textlayout_drawlines(self, hdc, x, x, &y, &node_it, it,
                 node->str_count, &last_left_count, -1, height,FALSE);
     }
     else
@@ -2436,21 +2436,21 @@ static void mTextLayout_draw(mTextLayout* self,
         //printf("--- sel_begin=%d, sel_end=%d\n", sel_begin, sel_end);
 
         (self->context)->_vtable->setupDC(INTEFACE_ADJUST(self->context), hdc);
-        x_sel_begin = textlayout_drawlines(self, hdc, x, x, &y, &node_it, 
-                        it, node->str_count, &last_left_count, 
+        x_sel_begin = textlayout_drawlines(self, hdc, x, x, &y, &node_it,
+                        it, node->str_count, &last_left_count,
                         sel_begin, height, FALSE);
         if(y >= height)
             goto END;
 
         (self->context)->_vtable->beginSelection(INTEFACE_ADJUST(self->context), hdc);
-        x_sel_begin = textlayout_drawlines(self, hdc, x, x_sel_begin, &y, 
-                &node_it, it, last_left_count, &last_left_count, 
+        x_sel_begin = textlayout_drawlines(self, hdc, x, x_sel_begin, &y,
+                &node_it, it, last_left_count, &last_left_count,
                 sel_end, height, TRUE);
         (self->context)->_vtable->endSelection(INTEFACE_ADJUST(self->context), hdc);
         if(y >= height)
             goto END;
 
-        textlayout_drawlines(self, hdc, x, x_sel_begin, &y, &node_it, it, 
+        textlayout_drawlines(self, hdc, x, x_sel_begin, &y, &node_it, it,
                 last_left_count, &last_left_count, -1, height,FALSE);
 
     }
@@ -2459,7 +2459,7 @@ END:
     (it)->_vtable->releaseIterator(INTEFACE_ADJUST(it));
 }
 
-static void 
+static void
 textlayout_te_set_cursor_by_strindex(mTextLayout* self, int str_index)
 {
     if(self->sel_begin != self->cursor)
@@ -2477,15 +2477,15 @@ textlayout_te_set_cursor_by_strindex(mTextLayout* self, int str_index)
             self->cursor = str_index;
     }
 
-    self->text_cursor = _c(self)->getCharPos(self, self->cursor, 
+    self->text_cursor = _c(self)->getCharPos(self, self->cursor,
             &self->cursor_x, &self->cursor_y, &self->cursor_height, FALSE);
-    
+
     textlayout_resetsel(self);
 
     (self->context)->_vtable->updateCaret(INTEFACE_ADJUST(self->context));
 }
 
-static void mTextLayout_onTextChanged(mTextLayout* self, 
+static void mTextLayout_onTextChanged(mTextLayout* self,
         int begin, int delCount, int insertCount)
 {
     textlayout_relayout(self, begin, delCount, insertCount, FALSE);
@@ -2510,8 +2510,8 @@ static int mTextLayout_getLineHeight(mTextLayout* self, int textindex)
         textindex = 0;
     else if(textindex > textlayout_get_text_count(self))
         textindex = textlayout_get_text_count(self);
-    
-    node = search_textlayout_node_by_textindex(self, &searchInfo, 
+
+    node = search_textlayout_node_by_textindex(self, &searchInfo,
             textindex, BTSF_RETLAST_IF_OUTOFRANGE);
 
     if(!node)
@@ -2529,7 +2529,7 @@ static BOOL mTextLayout_getTextBoundSize(mTextLayout* self, int *cx, int *cy)
     return TRUE;
 }
 
-static int mTextLayout_textCount2Len(mTextLayout* self, int text_index, 
+static int mTextLayout_textCount2Len(mTextLayout* self, int text_index,
         int text_count, int *plen)
 {
     mTextLayoutNodeSearchInfo searchInfo;
@@ -2560,7 +2560,7 @@ static int mTextLayout_textCount2Len(mTextLayout* self, int text_index,
         }
     }
 
-    node = search_textlayout_node_by_textindex(self, 
+    node = search_textlayout_node_by_textindex(self,
             &searchInfo, text_index, BTSF_RETLAST_IF_OUTOFRANGE);
 
     if(!node)
@@ -2582,7 +2582,7 @@ static int mTextLayout_textCount2Len(mTextLayout* self, int text_index,
 
     if(node->str_count == node->text_count)
     {
-        if(!plen 
+        if(!plen
             ||text_count<=(node->text_count+searchInfo.text_count-text_index))
         {
             if(plen)
@@ -2605,7 +2605,7 @@ CALC:
 
     if(bcalcIndex)
     {
-        str_index += textlayout_get_text_byte_length(txtit, hdc, 
+        str_index += textlayout_get_text_byte_length(txtit, hdc,
                 text_index - searchInfo.text_count);
         (txtit)->_vtable->reset(INTEFACE_ADJUST(txtit), str_index);
     }
@@ -2618,7 +2618,7 @@ CALC:
     return str_index;
 }
 
-static int mTextLayout_textLen2Count(mTextLayout* self, int str_index, 
+static int mTextLayout_textLen2Count(mTextLayout* self, int str_index,
         int str_len, int *ptext_count, int *poutstr_index, int *poutstr_count)
 {
     mTextLayoutNodeSearchInfo searchInfo;
@@ -2650,7 +2650,7 @@ static int mTextLayout_textLen2Count(mTextLayout* self, int str_index,
         }
     }
 
-    node = search_textlayout_node_by_strindex(self, &searchInfo, 
+    node = search_textlayout_node_by_strindex(self, &searchInfo,
                         str_index, BTSF_RETLAST_IF_OUTOFRANGE);
 
     if(!node)
@@ -2673,7 +2673,7 @@ static int mTextLayout_textLen2Count(mTextLayout* self, int str_index,
 
     if(node->str_count == node->text_count) {
         //no need output length information or information in this range.
-        if(!(ptext_count || poutstr_count) 
+        if(!(ptext_count || poutstr_count)
             || str_len <= (searchInfo.str_count + node->str_count - str_index ))
         {
             if(ptext_count) *ptext_count = str_len;
@@ -2694,7 +2694,7 @@ CALC:
     if(bcalcIndex) {
         int len;
         txtit = (self->text_buffer)->_vtable->getAt(INTEFACE_ADJUST(self->text_buffer), searchInfo.str_count);
-        text_index += textlayout_get_text_count_by_length(txtit, hdc, 
+        text_index += textlayout_get_text_count_by_length(txtit, hdc,
                             str_index - searchInfo.str_count, &len);
 
         if (poutstr_index) *poutstr_index = searchInfo.str_count + len;
@@ -2705,7 +2705,7 @@ CALC:
 
     //calc text count
     if((ptext_count || poutstr_count) && str_len > 0) {
-        int count = textlayout_get_text_count_by_length(txtit, 
+        int count = textlayout_get_text_count_by_length(txtit,
                         hdc, str_len, poutstr_count);
         if (ptext_count) *ptext_count = count;
     }
@@ -2715,7 +2715,7 @@ CALC:
     return text_index;
 }
 
-static void mTextLayout_foreachLine(mTextLayout* self, int x, int y, int maxWidth, int maxHeight, 
+static void mTextLayout_foreachLine(mTextLayout* self, int x, int y, int maxWidth, int maxHeight,
         CB_LINE_PROC proc, mObject* proc_owern, void* user_param)
 {
     mTextLayoutNode* node;
@@ -2754,7 +2754,7 @@ static void mTextLayout_foreachLine(mTextLayout* self, int x, int y, int maxWidt
         goto DEFAULT_LINE;
     }
 
-    
+
     (void)initObjectArgs((mObject*)((void*)(&node_it)), (mObjectClass*)((void*)(&Class(mCommBTreeLeafIterator))), 2, self, node);
 
     xline = 0;
@@ -2885,11 +2885,11 @@ static int mTextLayout_getLineByIndex(mTextLayout* self, int index, int *pcol, B
     mCommBTreeLeafIterator node_it;
     ITextIterator *txtit;
     //mTextEditor* obj_texteditor = (mTextEditor*)(INTEFACE_ADJUST(self->context));
-    
+
     if(!node)
         return 0;
 
-    if(index <= 0) 
+    if(index <= 0)
     {
         if(pcol)
             *pcol = 0;
@@ -2900,7 +2900,7 @@ static int mTextLayout_getLineByIndex(mTextLayout* self, int index, int *pcol, B
 
     (void)initObjectArgs((mObject*)((void*)(&node_it)), (mObjectClass*)((void*)(&Class(mCommBTreeLeafIterator))), 2, self, node);
 
-    while(1) 
+    while(1)
     {
         node = (mTextLayoutNode*)node_it.current;
         if(!node)
@@ -2909,7 +2909,7 @@ static int mTextLayout_getLineByIndex(mTextLayout* self, int index, int *pcol, B
         if(bText)
            count = node->text_count;
         else
-           count = node->str_count; 
+           count = node->str_count;
 
         if(idx + count >= index)
             break;
@@ -2932,7 +2932,7 @@ static int mTextLayout_getLineByIndex(mTextLayout* self, int index, int *pcol, B
         *pcol = index - idx;
 
     _I(txtit)->releaseIterator(INTEFACE_ADJUST(txtit));
-    
+
     return line_idx;
 }
 
@@ -2975,7 +2975,7 @@ static int mTextLayout_getIndexByPara(mTextLayout* self, int paraNo, int col, BO
         col_idx += node->text_count;
         if(_I(txtit)->getCharType(INTEFACE_ADJUST(txtit), col_str_idx - 1) == TI_LINERETURN)
             col_para_idx ++;
-        
+
         _c(&node_it)->next(&node_it);
     }
 
@@ -2999,7 +2999,7 @@ static int mTextLayout_getIndexByPara(mTextLayout* self, int paraNo, int col, BO
             if (col > count)
                 SMART_ASSIGN(outOfRange, TRUE);
 
-            // ignore the '\n' 
+            // ignore the '\n'
             if (_I(txtit)->getCharType(INTEFACE_ADJUST(txtit), str_idx - 1) == TI_LINERETURN)
             {
                 SMART_ASSIGN(outOfRange, TRUE);
@@ -3025,7 +3025,7 @@ static int mTextLayout_getIndexByPara(mTextLayout* self, int paraNo, int col, BO
 /* Internal interface: the index is contain the title context. */
 static int mTextLayout_getIndexByLine(mTextLayout* self, int lineIdx, int col, BOOL* outOfRange, BOOL bText)
 {
-    int index = 0, str_idx = 0; 
+    int index = 0, str_idx = 0;
     int i = 0, count = 0;
     BOOL found = FALSE;
 
@@ -3045,10 +3045,10 @@ static int mTextLayout_getIndexByLine(mTextLayout* self, int lineIdx, int col, B
 
     while (node)
     {
-        if (lineIdx == i) 
+        if (lineIdx == i)
         {
             found = TRUE;
-            break; 
+            break;
         }
 
         index += node->text_count;
@@ -3058,7 +3058,7 @@ static int mTextLayout_getIndexByLine(mTextLayout* self, int lineIdx, int col, B
         node = (mTextLayoutNode*)_c(&iter)->next(&iter);
     }
 
-    if (found) 
+    if (found)
     {
         ITextIterator* txtit = _c(obj_texteditor->textBuffer)->getAt(obj_texteditor->textBuffer, 0);
 
@@ -3076,7 +3076,7 @@ static int mTextLayout_getIndexByLine(mTextLayout* self, int lineIdx, int col, B
             if (col > count)
                 SMART_ASSIGN(outOfRange, TRUE);
 
-            // ignore the '\n' 
+            // ignore the '\n'
             if (_I(txtit)->getCharType(INTEFACE_ADJUST(txtit), str_idx - 1) == TI_LINERETURN)
             {
                 SMART_ASSIGN(outOfRange, TRUE);
@@ -3135,8 +3135,8 @@ END_MINI_CLASS
 
 /////////////////////////////////////////////////////////
 //mTextRender
-static int mTextRender_calc(mTextRender* self, HDC hdc, 
-        ITextIterator* begin, int str_count, int *ptext_count, 
+static int mTextRender_calc(mTextRender* self, HDC hdc,
+        ITextIterator* begin, int str_count, int *ptext_count,
         const RECT* maxBound, RECT *bound)
 {
     int rel_count;
@@ -3145,7 +3145,7 @@ static int mTextRender_calc(mTextRender* self, HDC hdc,
     const char* text;
     if(!begin)
         return 0;
-    
+
     text = (begin)->_vtable->getMore(INTEFACE_ADJUST(begin), &str_count, &visible_str_count, FALSE);
     rel_count = GetTabbedTextExtentPoint(hdc, text, visible_str_count,
             maxBound ? RECTWP(maxBound) : 0,
@@ -3168,17 +3168,17 @@ static int mTextRender_calc(mTextRender* self, HDC hdc,
     return rel_count;
 }
 
-static int mTextRender_draw(mTextRender* self, HDC hdc, 
+static int mTextRender_draw(mTextRender* self, HDC hdc,
         int x, int y, ITextIterator* text, int str_count)
 {
     int visible_str_count;
-    const char* str_text = 
+    const char* str_text =
         (text)->_vtable->getMore(INTEFACE_ADJUST(text), &str_count, &visible_str_count, TRUE);
     //usleep(100000); //to make it slowed
     return TabbedTextOutLen(hdc, x, y, str_text, visible_str_count);
 }
 
-static int mTextRender_getTextByteLen(mTextRender* self, 
+static int mTextRender_getTextByteLen(mTextRender* self,
         HDC hdc, ITextIterator* it, int *ptext_count)
 {
     int text_count;
@@ -3195,7 +3195,7 @@ static int mTextRender_getTextByteLen(mTextRender* self,
 
     if(!str)
         return 0;
-    
+
     plogfont = GetCurFont(hdc);
 
     while(text_count > 0)
@@ -3208,7 +3208,7 @@ static int mTextRender_getTextByteLen(mTextRender* self,
 
 }
 
-static int mTextRender_getTextCount(mTextRender* self, 
+static int mTextRender_getTextCount(mTextRender* self,
         HDC hdc, ITextIterator* it, int *pstr_len)
 {
     int     text_count = 0;
@@ -3227,12 +3227,12 @@ static int mTextRender_getTextCount(mTextRender* self,
         return 0;
 
     plogfont = GetCurFont(hdc);
-    
+
     while (len < all_len) {
         first_len = get_first_char_len(plogfont, str + len, 4);
 
         //if failure or overflow, we should delete current character.
-        if (first_len <= 0 || len + first_len > all_len) 
+        if (first_len <= 0 || len + first_len > all_len)
             break;
 
         text_count ++;
@@ -3260,7 +3260,7 @@ static int mTextRender_getCaretSize(mTextRender* self, HDC hdc, ITextIterator* i
 
     plogfont = GetCurFont(hdc);
     GetFontMetrics(plogfont, &font_metrics);
-    if(pwidth) 
+    if(pwidth)
         *pwidth = font_metrics.ave_width;
     if(pheight)
         *pheight = font_metrics.font_height;
@@ -3326,7 +3326,7 @@ enum {
 #define TE_SEL_CHANGING(self)\
     int old_txt_selidx, old_txt_cursoridx;\
     old_txt_selidx = _c(pTextLayout)->getCursor(pTextLayout, NULL, NULL, NULL, TRUE);\
-    old_txt_cursoridx = _c(pTextLayout)->getCursor(pTextLayout, NULL, NULL, NULL, FALSE);    
+    old_txt_cursoridx = _c(pTextLayout)->getCursor(pTextLayout, NULL, NULL, NULL, FALSE);
 
 #define TE_SEL_CHANGED(self, isSel)\
 do{ \
@@ -3349,24 +3349,24 @@ static void texteditor_update_title_line(mTextEditor* self)
     mCommBTreeLeafIterator node_it;
     mTextLayoutNode* node;
 
-    self->title_linecount = _c(pTextLayout)->getLineByIndex(pTextLayout, 
+    self->title_linecount = _c(pTextLayout)->getLineByIndex(pTextLayout,
             self->title_text_idx, &self->title_last_line_text_index, TRUE);
-    
+
     /* FixMe: this determine depend text.
      * deal with when the title last line just autowrap. */
     if(self->title_last_line_text_index != 0)
     {
         node = textlayout_get_first_node(pTextLayout);
-        (void)initObjectArgs((mObject*)((void*)(&node_it)), 
+        (void)initObjectArgs((mObject*)((void*)(&node_it)),
                 (mObjectClass*)((void*)(&Class(mCommBTreeLeafIterator))), 2, pTextLayout, node);
-        
+
         for (i = 0; i <= self->title_linecount; i++)
         {
             node = (mTextLayoutNode*)node_it.current;
             _c(&node_it)->next(&node_it);
         }
-        
-        if(node->text_count == self->title_last_line_text_index) 
+
+        if(node->text_count == self->title_last_line_text_index)
         {
             self->title_linecount ++;
             self->title_last_line_text_index = 0;
@@ -3395,7 +3395,7 @@ static void texteditor_update_title(mTextEditor* self)
 }
 #else
 #define texteditor_update_title(self)
-#define texteditor_update_title_line(mTextEditor* self) 
+#define texteditor_update_title_line(mTextEditor* self)
 #endif
 
 
@@ -3404,9 +3404,9 @@ static inline void texteditor_get_view_rect(mTextEditor* self, RECT *prc)
 {
     if(!prc)
         return ;
-    
+
     GetClientRect(self->hwnd, prc);
-    
+
     prc->left  += self->margins.left;
     prc->right -= (self->margins.right/*- (self->margins.right>0?1:0)*/);
     prc->top   += self->margins.top;
@@ -3465,7 +3465,7 @@ static void texteditor_add_title_content(mTextEditor* self, int* idx, int* offse
     }
 }
 #else
-#define texteditor_add_title_content(mTextEditor* self, int* idx, int* offset, BOOL bLine) 
+#define texteditor_add_title_content(mTextEditor* self, int* idx, int* offset, BOOL bLine)
 #endif
 
 static  void _update_scrollbar(mTextEditor *self)
@@ -3595,7 +3595,7 @@ static void _scroll_invalidate_window(mTextEditor* self, int offX, int offY)
             InvalidateRect(self->hwnd, NULL, TRUE);
             return ;
         }
-        else 
+        else
         {
             RECT rc;
             texteditor_get_view_rect(self, &rc);
@@ -3622,7 +3622,7 @@ static void _scroll_invalidate_window(mTextEditor* self, int offX, int offY)
             InvalidateRect(self->hwnd, &rcScrolled, TRUE);
 
         }
-        
+
         if(offY != self->offY)
         {
             rcScrolled = rc;
@@ -3665,7 +3665,7 @@ static void _update_scrolled_margins(mTextEditor* self, int offX, int offY)
             InvalidateRect(self->hwnd, &rcScrolled, TRUE);
         }
     }
-    
+
     if(offY != self->offY)
     {
         rcScrolled = rc;
@@ -3740,11 +3740,11 @@ static void _update_height_changed(mTextEditor* self, int offX, int offY)
 {
     //ScrollWindow may offset the invalidate area of window, so, we must call it firstly
 
-    if(self->textLayout->old_height != -1 
+    if(self->textLayout->old_height != -1
             && self->textLayout->old_height != self->textLayout->new_height)
     {
         RECT rc;
-        if(texteditor_must_update_bkgnd(self)) //text layout's height changed, 
+        if(texteditor_must_update_bkgnd(self)) //text layout's height changed,
         {
             int top;
             //invalidate All changed part
@@ -3754,7 +3754,7 @@ static void _update_height_changed(mTextEditor* self, int offX, int offY)
             InvalidateRect(self->hwnd, &rc, TRUE);
             self->textLayout->old_height = -1;
         }
-        else 
+        else
         {
 #if 1
             //scroll the area
@@ -3779,10 +3779,10 @@ static void _update_height_changed_margins(mTextEditor* self)
     int mintop;
     int right;
 
-    if(texteditor_must_update_bkgnd(self)) //text layout's height changed, 
+    if(texteditor_must_update_bkgnd(self)) //text layout's height changed,
         return;
 
-    if(!(self->textLayout->old_height != -1 
+    if(!(self->textLayout->old_height != -1
             && self->textLayout->old_height != self->textLayout->new_height))
         return;
 
@@ -3838,7 +3838,7 @@ static void _update_content_dirty_region(mTextEditor* self)
                 InvalidateRect(self->hwnd, &rc, TRUE);
             }
             prc = prc->next;
-            
+
         }
         EmptyClipRgn(self->textLayout->dirty_area);
     }
@@ -3985,14 +3985,14 @@ static void mTextEditor_construct(mTextEditor* self, DWORD addData)
     self->scrollVStep   = 18;
     self->textLayout    = NEWV(mTextLayout, 2,
                             INTERFACE_CAST(ITextBuffer, self->textBuffer),
-                            INTERFACE_CAST(ITextLayoutContext, self)); 
+                            INTERFACE_CAST(ITextLayoutContext, self));
 
 #ifdef _MGHAVE_TEXTEDITTITLE
     self->title_idx = -1;
     self->title_text_idx = -1;
     self->title_x = self->title_y = self->title_last_height = -1;
 #endif
-    
+
     style = GetWindowStyle(self->hwnd);
     if(style & (NCSS_TE_AUTOHSCROLL | NCSS_TE_AUTOVSCROLL))
         self->scrollBarMode = NCS_TEF_SCROLLBAR_AUTO;
@@ -4003,7 +4003,7 @@ static void mTextEditor_construct(mTextEditor* self, DWORD addData)
 
     TE_CLEAR_CUSROR_PAGE_MOVE(self);
 
-    _c(pTextBuffer)->addObserver(pTextBuffer, 
+    _c(pTextBuffer)->addObserver(pTextBuffer,
        (ITextBufferObserver*)INTERFACE_CAST(ITextLayout, pTextLayout));
 }
 
@@ -4027,7 +4027,7 @@ static void mTextEditor_destroy(mTextEditor* self)
     Class(mWidget).destroy((mWidget*)self);
 }
 
-static int mTextEditor_getMetrics(mTextEditor *self,int type)            
+static int mTextEditor_getMetrics(mTextEditor *self,int type)
 {
     if (self) {
         switch (type) {
@@ -4035,7 +4035,7 @@ static int mTextEditor_getMetrics(mTextEditor *self,int type)
                 if(GetWindowStyle(self->hwnd)&NCSS_TE_AUTOWRAP)
                     return self->visWidth;
                 else {
-                    //max value, to void the signal int overflow, 
+                    //max value, to void the signal int overflow,
                     //we only give the half of max integer
                     return 0x7FFFFFFF/2;
                 }
@@ -4061,17 +4061,17 @@ static void mTextEditor_beginSelection(mTextEditor *self, HDC hdc)
 
     SetBkMode(hdc, BM_OPAQUE);
 
-    SetTextColor (hdc, 
-        GetWindowElementPixel (self->hwnd, 
+    SetTextColor (hdc,
+        GetWindowElementPixel (self->hwnd,
             GetWindowStyle(self->hwnd)&WS_DISABLED?
                 WE_FGC_DISABLED_ITEM : WE_FGC_SELECTED_ITEM));
 
     if (TE_IS_FOCUS(self)) {
-        SetBkColor (hdc, 
+        SetBkColor (hdc,
             GetWindowElementPixel(self->hwnd, WE_BGC_SELECTED_ITEM));
     }
     else {
-        SetBkColor (hdc, 
+        SetBkColor (hdc,
             GetWindowElementPixel (self->hwnd, WE_BGC_SELECTED_LOSTFOCUS));
     }
 }
@@ -4082,8 +4082,8 @@ static void mTextEditor_setupDC(mTextEditor *self, HDC hdc)
         SetBkMode (hdc, BM_TRANSPARENT);
         SetBkColor (hdc, GetWindowBkColor (self->hwnd));
 
-        SetTextColor (hdc, 
-            GetWindowElementPixel (self->hwnd, 
+        SetTextColor (hdc,
+            GetWindowElementPixel (self->hwnd,
                 GetWindowStyle(self->hwnd)&WS_DISABLED?
                     WE_FGC_DISABLED_ITEM : WE_FGC_WINDOW));
     }
@@ -4099,12 +4099,12 @@ static void mTextEditor_endSelection(mTextEditor *self, HDC hdc)
     if (self) _c(self)->setupDC(self, hdc);
 }
 
-static HDC mTextEditor_getDC(mTextEditor *self)                         
+static HDC mTextEditor_getDC(mTextEditor *self)
 {
-    return self ? GetSecondaryClientDC(self->hwnd) : HDC_INVALID; 
+    return self ? GetSecondaryClientDC(self->hwnd) : HDC_INVALID;
 }
 
-static void mTextEditor_releaseDC(mTextEditor *self, HDC hdc)            
+static void mTextEditor_releaseDC(mTextEditor *self, HDC hdc)
 {
     if (self) ReleaseSecondaryDC(self->hwnd, hdc);
 }
@@ -4155,7 +4155,7 @@ static int mTextEditor_getInvalidBkgnd(mTextEditor *self, RECT *prc)
         return 0;
     }
 
-    _c(pTextLayout)->getTextBoundSize(pTextLayout, &cx, &cy);   
+    _c(pTextLayout)->getTextBoundSize(pTextLayout, &cx, &cy);
     GetClientRect(self->hwnd, prc);
 
     if (RECTWP(prc) != self->visWidth)
@@ -4168,7 +4168,7 @@ static int mTextEditor_getInvalidBkgnd(mTextEditor *self, RECT *prc)
         memset(prc, 0, sizeof(RECT));
         return 0;
     }
-    
+
     prc->top = cy - self->offY;
     return 1;
 }
@@ -4186,10 +4186,10 @@ static int mTextEditor_getInvalidBkgnd(mTextEditor *self, RECT *prc)
 #define INIT_NORMAL_BRUSH(self, hdc, oldColor) \
     oldColor = SetBrushColor(hdc, GetWindowBkColor(self->hwnd));
 
-static inline void _fill_bkgnd(mTextEditor *self, 
+static inline void _fill_bkgnd(mTextEditor *self,
         HDC hdc, const RECT *prcBk, BOOL isSel)
 {
-    gal_pixel oldColor; 
+    gal_pixel oldColor;
     RECT rc;
 
 
@@ -4215,12 +4215,12 @@ static inline void _fill_bkgnd(mTextEditor *self,
 
 }
 
-static BOOL 
+static BOOL
 mTextEditor_onEraseBkgnd(mTextEditor* self, HDC hdc, const PRECT pClip)
 {
     //do nothing, we clear the bkground in onPaint
     //return TRUE;
-    
+
 #ifdef __MINIGUI_LIB__
     if (!self || (GetWindowExStyle(self->hwnd) && WS_EX_TRANSPARENT))
         return TRUE;
@@ -4233,7 +4233,7 @@ mTextEditor_onEraseBkgnd(mTextEditor* self, HDC hdc, const PRECT pClip)
 }
 
 #if 0
-static void mTextEditor_drawBkgnd(mTextEditor* self, HDC hdc, 
+static void mTextEditor_drawBkgnd(mTextEditor* self, HDC hdc,
         const RECT *prcBk, BOOL isSel)
 {
 /*  RECT rcClient;
@@ -4258,7 +4258,7 @@ static void mTextEditor_drawBkgnd(mTextEditor* self, HDC hdc,
         _fill_bkgnd(self, hdc, &rcClient, TRUE);
     }
     else
-        //SendMessage(self->hwnd, MSG_ERASEBKGND, hdc, (LPARAM)&rcClient);          
+        //SendMessage(self->hwnd, MSG_ERASEBKGND, hdc, (LPARAM)&rcClient);
         _c(self)->onEraseBkgnd(self, hdc, &rcClient);*/
 }
 #endif
@@ -4277,7 +4277,7 @@ static inline void min_swap(int *pa, int *pb)
     if(*pa > *pb) {
         int tmp = *pa;
         *pa = *pb;
-        *pb = tmp;  
+        *pb = tmp;
     }
 }
 
@@ -4300,7 +4300,7 @@ static inline void _remove_chars(mTextEditor* self, BOOL bback)
 
     selBegin = pTextLayout->sel_begin;
     selEnd = pTextLayout->cursor;
-    
+
     min_swap(&selBegin, &selEnd);
 
 #ifdef _MGHAVE_TEXTEDITTITLE
@@ -4329,7 +4329,7 @@ static inline void _set_cont_changed(mTextEditor *self, BOOL changed)
     if (self) {
         if(changed)
             self->flags |= NCS_TEF_CONTCHANGED;
-        else 
+        else
             self->flags &= ~NCS_TEF_CONTCHANGED;
     }
 }
@@ -4364,7 +4364,7 @@ static int mTextEditor_onChar(mTextEditor *self, WPARAM eucCode, DWORD keyFlags)
         _remove_chars(self, TRUE);
         return 0;
     }
-  
+
     ch [0] = FIRSTBYTE (eucCode);
     ch [1] = SECONDBYTE (eucCode);
     ch [2] = THIRDBYTE (eucCode);
@@ -4390,7 +4390,7 @@ static int mTextEditor_onChar(mTextEditor *self, WPARAM eucCode, DWORD keyFlags)
         int newCount = textlayout_get_text_count(pTextLayout) ;
         if(selBegin == selEnd)
         {
-            if(!mTextEditor_isReplaceMode(self) || 
+            if(!mTextEditor_isReplaceMode(self) ||
                     pTextLayout->text_sel_begin >= newCount)
                 newCount ++;
         }
@@ -4461,7 +4461,7 @@ static void _te_set_cursor_pos(mTextEditor *self, int x, int y, BOOL isSel)
         //printf("--- x=%d, y=%d, title:(x=%d,y=%d, height=%d, idx=%d, text_idx=%d\n", x, y, self->title_x, self->title_y, self->title_last_height, self->title_idx, self->title_text_idx);
 
         // click at title rect
-        if(y <= title_y 
+        if(y <= title_y
                 || (y >= title_y  && y <= (title_y + title_last_height) && x < title_x))
         {
             x = title_x;
@@ -4503,7 +4503,7 @@ static void _te_set_cursor(mTextEditor *self, int pos, BOOL isSel)
     }
 }
 
-static int 
+static int
 mTextEditor_onKeyDown(mTextEditor *self, int scancode, DWORD keyFlags)
 {
     BOOL bShift = keyFlags & KS_SHIFT;
@@ -4536,16 +4536,16 @@ mTextEditor_onKeyDown(mTextEditor *self, int scancode, DWORD keyFlags)
             return 0;
 
         case SCANCODE_CURSORBLOCKLEFT:
-            _te_set_cursor(self, 
-                    (bShift ? pTextLayout->text_sel_begin 
-                            : pTextLayout->text_cursor) - 1, 
+            _te_set_cursor(self,
+                    (bShift ? pTextLayout->text_sel_begin
+                            : pTextLayout->text_cursor) - 1,
                     bShift);
             return 0;
 
         case SCANCODE_CURSORBLOCKRIGHT:
-            _te_set_cursor(self, 
-                    (bShift ? pTextLayout->text_sel_begin 
-                            : pTextLayout->text_cursor) + 1, 
+            _te_set_cursor(self,
+                    (bShift ? pTextLayout->text_sel_begin
+                            : pTextLayout->text_cursor) + 1,
                     bShift);
             return 0;
 
@@ -4566,7 +4566,7 @@ mTextEditor_onKeyDown(mTextEditor *self, int scancode, DWORD keyFlags)
         case SCANCODE_PAGEUP:
         {
             TE_SET_CURSORE_PAGE_MOVE(self);
-            _c(self)->onVScroll(self, 
+            _c(self)->onVScroll(self,
                 scancode == SCANCODE_PAGEUP ?  SB_PAGEUP : SB_PAGEDOWN, 0);
             return 0;
         }
@@ -4576,14 +4576,14 @@ mTextEditor_onKeyDown(mTextEditor *self, int scancode, DWORD keyFlags)
         {
             int caretX, caretY;
             int height;
-            
+
             _c(pTextLayout)->getCursor(pTextLayout, &caretX, &caretY, &height, bShift);
             if(scancode == SCANCODE_CURSORBLOCKUP && caretY <= 0)
                 break;
-        
+
             if(scancode == SCANCODE_CURSORBLOCKDOWN)
                 caretY += (height+1);
-            else 
+            else
                 caretY -= (height-1);
             _te_set_cursor_pos(self, caretX, caretY, bShift);
 
@@ -4606,20 +4606,20 @@ mTextEditor_onKeyDown(mTextEditor *self, int scancode, DWORD keyFlags)
                 selEnd = pTextLayout->cursor;
 
                 if (selBegin == selEnd)
-                   return 0; 
+                   return 0;
 
                 min_swap(&selBegin, &selEnd);
 
                 //clear clipboard
                 SetClipBoardData (CBNAME_TEXT, NULL, 0, CBOP_NORMAL);
 
-                SetClipBoardData(CBNAME_TEXT, 
-                        pTextBuffer->buffer + selBegin, 
+                SetClipBoardData(CBNAME_TEXT,
+                        pTextBuffer->buffer + selBegin,
                         selEnd - selBegin, CBOP_APPEND);
 
                 //for SCANCODE_X: need delete selected text
                 if (scancode == SCANCODE_X && !_read_only(self)) {
-                    _c(pTextBuffer)->replace(pTextBuffer, 
+                    _c(pTextBuffer)->replace(pTextBuffer,
                             selBegin, selEnd - selBegin, NULL, -1);
                     ncsNotifyParent(self, NCSN_TE_CHANGE);
                 }
@@ -4647,7 +4647,7 @@ mTextEditor_onKeyDown(mTextEditor *self, int scancode, DWORD keyFlags)
 
                     if(pTextLayout->sel_begin > pTextLayout->cursor)
                         begin_pos = pTextLayout->cursor;
-                    else 
+                    else
                         begin_pos = pTextLayout->sel_begin;
 
                     _c(self)->insertText(self, txtBuffer, inserting);
@@ -4718,7 +4718,7 @@ static int mTextEditor_setText(mTextEditor *self, const char* text)
     if (len > 0 && self->hardLimit != -1) {
         int text_count;
         text_count = texteditor_get_text_count(self, at, FALSE, text, len);
-        
+
         if(text_count > self->hardLimit)
             len = texteditor_get_text_length(self, at, FALSE, text, self->hardLimit, len);
     }
@@ -4728,7 +4728,7 @@ static int mTextEditor_setText(mTextEditor *self, const char* text)
 
     str = texteditor_case_copy(self, text, len);
 
-    len = _c(pTextBuffer)->replace(pTextBuffer, at, 
+    len = _c(pTextBuffer)->replace(pTextBuffer, at,
                 _c(pTextBuffer)->getCount(pTextBuffer) - at, str, len);
 
     if(str && str != text)
@@ -4772,15 +4772,15 @@ static int mTextEditor_insertText(mTextEditor *self, const char* text, int len)
         int selBegin, selEnd;
         int newCount;
         int text_len;
-        
-        text_len = texteditor_get_text_count(self, begin_pos,  FALSE, text, len); 
+
+        text_len = texteditor_get_text_count(self, begin_pos,  FALSE, text, len);
 
         selBegin = pTextLayout->text_sel_begin;
         selEnd = pTextLayout->text_cursor;
         min_swap(&selBegin, &selEnd);
 
        newCount = textlayout_get_text_count(pTextLayout);
-     
+
        if(text_len != (selEnd - selBegin))
        {
            if(mTextEditor_isReplaceMode(self))
@@ -4795,7 +4795,7 @@ static int mTextEditor_insertText(mTextEditor *self, const char* text, int len)
                    newCount += (text_len - selEnd + selBegin);
            }
            else
-               newCount += (text_len - (selEnd - selBegin)); 
+               newCount += (text_len - (selEnd - selBegin));
        }
 
 #ifdef _MGHAVE_TEXTEDITTITLE
@@ -4823,7 +4823,7 @@ static int mTextEditor_insertText(mTextEditor *self, const char* text, int len)
     str = texteditor_case_copy(self, text, len);
 
     length = _c(pTextBuffer)->replace(pTextBuffer, begin_pos, replace_len, str, len);
-    
+
     if(str && str != text)
         FreeFixStr(str);
 
@@ -4835,11 +4835,11 @@ static int mTextEditor_insertText(mTextEditor *self, const char* text, int len)
 
 static int mTextEditor_getText(mTextEditor *self, char* text, int len)
 {
-    if (TE_VALID_OBJ(self)) 
+    if (TE_VALID_OBJ(self))
     {
 #ifdef _MGHAVE_TEXTEDITTITLE
         int at = self->title_idx;
-        if(at < 0) 
+        if(at < 0)
             at = 0;
 #else
         int at = 0;
@@ -4877,7 +4877,7 @@ static void mTextEditor_onSetFocus(mTextEditor *self, HWND oldActiveWnd, int lPa
     text_len = self->title_idx <= -1 ? 0: self->title_idx;
 #endif
 
-    /*[bug5291]: when get focus don't auto move caret. 
+    /*[bug5291]: when get focus don't auto move caret.
      * only there is empty text, call it to show the caret. */
     if (self->textBuffer->char_len == text_len)
         _c(self)->updateCaret(self);
@@ -4939,18 +4939,18 @@ static void mTextEditor_onPaint(mTextEditor *self, HDC hdc, const PCLIPRGN pClip
                     ))
         {
             //we scroll the view area
-            //use bitblt to scroll the area 
+            //use bitblt to scroll the area
             int offx = self->oldOffX - self->offX;
-            int offy = self->oldOffY - self->offY; 
+            int offy = self->oldOffY - self->offY;
             int sx, sy, sw, sh, dx, dy;
             RECT rc;
             PCLIPRGN prgn = CreateClipRgn();
-        
+
             //save clipRgn
             GetClipRegion(hdc,prgn);
 
             //set ClipRgn make the scrolled area enabled
-           
+
             if(self->oldOffX != self->offX || self->oldOffY != self->offY)
             {
                 if(offx == 0) {
@@ -5024,7 +5024,7 @@ static void mTextEditor_onPaint(mTextEditor *self, HDC hdc, const PCLIPRGN pClip
                 BitBlt(hdc, sx, sy, sw, sh, hdc, dx, dy, 0);
                 self->textLayout->old_height = -1;
             }
-            
+
             SelectClipRegion(hdc, prgn);
             DestroyClipRgn(prgn);
         }
@@ -5048,7 +5048,7 @@ static void mTextEditor_onPaint(mTextEditor *self, HDC hdc, const PCLIPRGN pClip
         //usleep(50000);
 
         ClipRectIntersect(hdc, &rcView);
-        _c(pTextLayout)->draw(pTextLayout, hdc, self->offX, 
+        _c(pTextLayout)->draw(pTextLayout, hdc, self->offX,
                 self->offY, self->visWidth, self->visHeight);
 
         //draw margin
@@ -5128,7 +5128,7 @@ static int mTextEditor_getParaText(mTextEditor *self, int index,
         return 0;
 
     // get whole text
-    if(index == -1) 
+    if(index == -1)
         return _c(self)->getText(self, buffer, len);
 
     count = _c(pTextBuffer)->getCount(pTextBuffer);
@@ -5138,7 +5138,7 @@ static int mTextEditor_getParaText(mTextEditor *self, int index,
     {
         if(index == 0)
         {
-            _c(pTextLayout)->textCount2Len(pTextLayout, 
+            _c(pTextLayout)->textCount2Len(pTextLayout,
                     self->title_text_idx - self->title_last_para_text_index,
                     self->title_last_para_text_index, &char_start);
         }
@@ -5149,7 +5149,7 @@ static int mTextEditor_getParaText(mTextEditor *self, int index,
 #else
     char_start = 0;
 #endif
-    
+
     if(index > 0)
         char_start = _c(pTextLayout)->getIndexByPara(pTextLayout, index, char_start, NULL, FALSE);
 
@@ -5164,7 +5164,7 @@ static int mTextEditor_getParaText(mTextEditor *self, int index,
         goto RETURN_0;
 
     /* set start
-     * don't need to judge the copy_len whether overrange the line. 
+     * don't need to judge the copy_len whether overrange the line.
      * because mTextIterator_getMore will stop when have '\n'. */
     (txtit)->_vtable->reset(INTEFACE_ADJUST(txtit), char_start + start);
     copy_len -= start;
@@ -5194,12 +5194,12 @@ static int mTextEditor_getLineText(mTextEditor *self, int index,
         return 0;
 
     // get whole text
-    if(index == -1) 
+    if(index == -1)
         return _c(self)->getText(self, buffer, len);
 
     count = _c(pTextBuffer)->getCount(pTextBuffer);
 
-    // col must be byte 
+    // col must be byte
     // texteditor_add_title_content(self, &index, &col, TRUE);
 #ifdef _MGHAVE_TEXTEDITTITLE
     texteditor_update_title_line(self);
@@ -5211,14 +5211,14 @@ static int mTextEditor_getLineText(mTextEditor *self, int index,
     {
         if (0 == index)
         {
-            _c(pTextLayout)->textCount2Len(pTextLayout, 
-                    self->title_text_idx - self->title_last_line_text_index, 
+            _c(pTextLayout)->textCount2Len(pTextLayout,
+                    self->title_text_idx - self->title_last_line_text_index,
                     self->title_last_line_text_index, &col);
         }
         index += self->title_linecount;
     }
 #endif
-    
+
     if(index > 0)
         char_start = _c(pTextLayout)->getIndexByLine(pTextLayout, index, col, NULL, FALSE);
 
@@ -5266,25 +5266,25 @@ static int mTextEditor_getLineText(mTextEditor *self, int index,
 
 static int mTextEditor_getParaNum(mTextEditor *self)
 {
-    if (TE_VALID_OBJ(self)) { 
+    if (TE_VALID_OBJ(self)) {
         int count = _c(pTextBuffer)->getCount(pTextBuffer);
 #ifdef _MGHAVE_TEXTEDITTITLE
         if(count == self->title_idx)
             return 0;
 #endif
-        return count ? 
+        return count ?
             (_c(pTextLayout)->getParaByIndex(pTextLayout, count, NULL, FALSE) + 1
 #ifdef _MGHAVE_TEXTEDITTITLE
              - (self->title_idx > 0 ? self->title_paracount : 0)
 #endif
-            ) 
+            )
             : 0;
     }
-        
+
     return 0;
 }
 
-// index: begin 0 
+// index: begin 0
 static int mTextEditor_getParaLength(mTextEditor *self, int index, int *startPos)
 {
     int start = 0, count;
@@ -5301,8 +5301,8 @@ static int mTextEditor_getParaLength(mTextEditor *self, int index, int *startPos
     {
         if(index == 0)
         {
-            _c(pTextLayout)->textCount2Len(pTextLayout, 
-                    self->title_text_idx - self->title_last_para_text_index, 
+            _c(pTextLayout)->textCount2Len(pTextLayout,
+                    self->title_text_idx - self->title_last_para_text_index,
                     self->title_last_para_text_index, &start);
         }
         index += self->title_paracount;
@@ -5356,7 +5356,7 @@ static int mTextEditor_getParaLengthInMChar(mTextEditor *self, int paraNo, int *
     ITextIterator * txtit;
     mCommBTreeLeafIterator node_it;
 
-    if (paraNo < 0 || !TE_VALID_OBJ(self)) 
+    if (paraNo < 0 || !TE_VALID_OBJ(self))
         return -1;
 
     total = _c(pTextBuffer)->getCount(pTextBuffer);
@@ -5367,7 +5367,7 @@ static int mTextEditor_getParaLengthInMChar(mTextEditor *self, int paraNo, int *
 
     txtit = _c(pTextBuffer)->getAt(pTextBuffer, 0);
 
-    (void)initObjectArgs((mObject*)((void*)(&node_it)), 
+    (void)initObjectArgs((mObject*)((void*)(&node_it)),
             (mObjectClass*)((void*)(&Class(mCommBTreeLeafIterator))), 2, pTextLayout, node);
 
     while((node = (mTextLayoutNode*)node_it.current))
@@ -5394,7 +5394,7 @@ static int mTextEditor_getParaLengthInMChar(mTextEditor *self, int paraNo, int *
 
     if (str_idx >= total)
     {
-        SMART_ASSIGN(startPos, total); 
+        SMART_ASSIGN(startPos, total);
         return 0;
     }
 
@@ -5418,7 +5418,7 @@ static int mTextEditor_getLineLength(mTextEditor *self, int lineNo, int *startPo
     ITextIterator * txtit;
     mCommBTreeLeafIterator node_it;
 
-    if (lineNo < 0 || !TE_VALID_OBJ(self)) 
+    if (lineNo < 0 || !TE_VALID_OBJ(self))
         return -1;
 
     total = _c(pTextBuffer)->getCount(pTextBuffer);
@@ -5427,7 +5427,7 @@ static int mTextEditor_getLineLength(mTextEditor *self, int lineNo, int *startPo
 
     node = textlayout_get_first_node(pTextLayout);
 
-    (void)initObjectArgs((mObject*)((void*)(&node_it)), 
+    (void)initObjectArgs((mObject*)((void*)(&node_it)),
             (mObjectClass*)((void*)(&Class(mCommBTreeLeafIterator))), 2, pTextLayout, node);
 
     txtit = _c(pTextBuffer)->getAt(pTextBuffer, 0);
@@ -5458,7 +5458,7 @@ static int mTextEditor_getLineLength(mTextEditor *self, int lineNo, int *startPo
 
     if (str_idx >= total)
     {
-        SMART_ASSIGN(startPos, total); 
+        SMART_ASSIGN(startPos, total);
         return 0;
     }
 
@@ -5469,8 +5469,8 @@ static int mTextEditor_getLineLength(mTextEditor *self, int lineNo, int *startPo
 
         if (!bMChar)
         {
-            _c(pTextLayout)->textCount2Len(pTextLayout, 
-                    self->title_text_idx - self->title_last_line_text_index, 
+            _c(pTextLayout)->textCount2Len(pTextLayout,
+                    self->title_text_idx - self->title_last_line_text_index,
                     self->title_last_line_text_index, &total);
             str_len -= total;
         }
@@ -5592,14 +5592,14 @@ static BOOL mTextEditor_setProperty(mTextEditor *self, int id, DWORD value)
                     Ping();
                     return FALSE;
                 }
-                else 
+                else
                     self->hardLimit = newLimit;
             }
             else
                 self->hardLimit = -1; //cancel limit
             return TRUE;
         }
-        
+
         default:
             break;
     }
@@ -5665,10 +5665,10 @@ static BOOL mTextEditor_enableCaret(mTextEditor *self, BOOL enable)
     return FALSE;
 }
 
-static int mTextEditor_setCaretPosByPara(mTextEditor *self, int paraIdx, 
+static int mTextEditor_setCaretPosByPara(mTextEditor *self, int paraIdx,
         int charPos, BOOL isSel)
 {
-    int index = 0, cursor = 0; 
+    int index = 0, cursor = 0;
     BOOL out_of_range = FALSE;
 
     if (!TE_VALID_OBJ(self) || charPos < 0 || paraIdx < 0)
@@ -5692,7 +5692,7 @@ static int mTextEditor_setCaretPosByPara(mTextEditor *self, int paraIdx,
             ;
 }
 
-static int mTextEditor_setCaretPosByLine(mTextEditor *self, int lineIdx, 
+static int mTextEditor_setCaretPosByLine(mTextEditor *self, int lineIdx,
         int charPos, BOOL isSel)
 {
     int index = 0, cursor = 0;
@@ -5704,7 +5704,7 @@ static int mTextEditor_setCaretPosByLine(mTextEditor *self, int lineIdx,
 #ifdef _MGHAVE_TEXTEDITTITLE
     {
         int total = _c(self->textBuffer)->getCount(self->textBuffer);
-        /* when have any text, the texteditor_update_title_line can't calc correct. 
+        /* when have any text, the texteditor_update_title_line can't calc correct.
          * so don't call it in this situation. */
         if (total <= self->title_idx)
         {
@@ -5735,8 +5735,8 @@ static int mTextEditor_setCaretPosByLine(mTextEditor *self, int lineIdx,
             ;
 }
 
-static int mTextEditor_setSel(mTextEditor *self, 
-        unsigned int startParaIdx, unsigned int startOffChar, 
+static int mTextEditor_setSel(mTextEditor *self,
+        unsigned int startParaIdx, unsigned int startOffChar,
         unsigned int endParaIdx, unsigned int endOffChar)
 {
     if (_c(self)->setCaretPosByPara(self, startParaIdx, startOffChar, FALSE) != -1
@@ -5753,7 +5753,7 @@ static int mTextEditor_getLineCount(mTextEditor *self)
     int line = 0;
 #ifdef _MGHAVE_TEXTEDITTITLE
     int str_count = 0;
-    
+
     /* if last node is ended with '\n', it will add a new empty line.
      * so when the title last is '\n', and there has any real text,
      * it will make line count overrange 1. */
@@ -5788,7 +5788,7 @@ static int mTextEditor_getLineCount(mTextEditor *self)
     return line;
 }
 
-static int mTextEditor_getCaretPosByPara(mTextEditor *self, 
+static int mTextEditor_getCaretPosByPara(mTextEditor *self,
         int *paraIdx, int *offChar, int *height, BOOL isSel)
 {
     int cursor, paraNo;
@@ -5797,7 +5797,7 @@ static int mTextEditor_getCaretPosByPara(mTextEditor *self,
         return -1;
 
     //cursor is the text not charactors
-    //cursor = _c(pTextLayout)->getCursor(pTextLayout, NULL, NULL, height, isSel); 
+    //cursor = _c(pTextLayout)->getCursor(pTextLayout, NULL, NULL, height, isSel);
     //FIXEDME: add Get string cursor pos interface
     //cursor = isSel? pTextLayout->sel_begin : pTextLayout->cursor;
     cursor = isSel ? pTextLayout->text_sel_begin : pTextLayout->text_cursor;
@@ -5825,7 +5825,7 @@ static int mTextEditor_getCaretPosByPara(mTextEditor *self,
         ;
 }
 
-static int mTextEditor_getCaretPosByLine(mTextEditor *self, 
+static int mTextEditor_getCaretPosByLine(mTextEditor *self,
         int *lineIdx, int *offChar, int *height, BOOL isSel)
 {
     int cursor, lineNo, i;
@@ -5870,7 +5870,7 @@ static int mTextEditor_getCaretPosByLine(mTextEditor *self,
     if (*offChar != 0)
     {
         node = textlayout_get_first_node(pTextLayout);
-        (void)initObjectArgs((mObject*)((void*)(&node_it)), 
+        (void)initObjectArgs((mObject*)((void*)(&node_it)),
                 (mObjectClass*)((void*)(&Class(mCommBTreeLeafIterator))), 2, pTextLayout, node);
 
         for (i = 0; i <= lineNo; i++)
@@ -5881,8 +5881,8 @@ static int mTextEditor_getCaretPosByLine(mTextEditor *self,
             _c(&node_it)->next(&node_it);
         }
 
-        if(node && (idx == cursor) 
-                && (pTextLayout->cursor_y >= h)) 
+        if(node && (idx == cursor)
+                && (pTextLayout->cursor_y >= h))
         {
             lineNo ++;
             *offChar = 0;
@@ -5894,7 +5894,7 @@ static int mTextEditor_getCaretPosByLine(mTextEditor *self,
         lineNo -= self->title_linecount;
 #endif
 
-    if (lineIdx) 
+    if (lineIdx)
         *lineIdx = lineNo;
 
     return cursor
@@ -5932,7 +5932,7 @@ static void _change_caret_size(mTextEditor* self, BOOL show_caret)
         ShowCaret(self->hwnd);
     }
 
-}   
+}
 
 static void _update_caret_size(mTextEditor* self)
 {
@@ -5961,7 +5961,7 @@ static void _update_caret_size(mTextEditor* self)
 
 
 
-static void _make_caret_visible(mTextEditor *self, 
+static void _make_caret_visible(mTextEditor *self,
         int caretX, int caretY, int caretW, int caretH)
 {
     int cx, cy;
@@ -5990,7 +5990,7 @@ static void _make_caret_visible(mTextEditor *self,
     else {
         offY = 0;
     }
-    
+
     if(cx >= self->visWidth) {
         if(caretX < offX)
             offX = caretX;
@@ -6031,7 +6031,7 @@ static void _make_caret_visible(mTextEditor *self,
 
         self->offX = offX;
         self->offY = offY;
-        
+
     }
     else {
         _update_height_changed(self, self->offX, self->offY);
@@ -6043,7 +6043,7 @@ static void _make_caret_visible(mTextEditor *self,
     _update_content_dirty_region(self);
 }
 
-static void _update_caret(mTextEditor *self, 
+static void _update_caret(mTextEditor *self,
         void (*cb)(mTextEditor*, int, int,int, int))
 {
     int posx, posy, height, cursor;
@@ -6101,7 +6101,7 @@ static void mTextEditor_updateCaret(mTextEditor *self)
         layout->sel_begin_height = layout->cursor_height;  \
         layout->sel_begin = layout->cursor;                \
         layout->text_sel_begin = layout->text_cursor;      \
-    } while(0)      
+    } while(0)
 
 #ifdef _MGHAVE_TEXTEDITTITLE
 #define OUT_CURSOR_FORM_TITLE(self)                           \
@@ -6112,12 +6112,12 @@ static void mTextEditor_updateCaret(mTextEditor *self)
             pTextLayout->cursor = self->title_idx;            \
             pTextLayout->text_cursor = self->title_text_idx;  \
         }                                                     \
-    } while(0) 
+    } while(0)
 #else
-#define OUT_CURSOR_FORM_TITLE(self)     
+#define OUT_CURSOR_FORM_TITLE(self)
 #endif
 
-static void _update_scroll_region(mTextEditor* self, 
+static void _update_scroll_region(mTextEditor* self,
         int scrollVal, int newPos, int code, BOOL bHScroll)
 {
     int scrollBoundMax, scrollBoundMin, scroll = 0;
@@ -6125,7 +6125,7 @@ static void _update_scroll_region(mTextEditor* self,
     BOOL bScroll = FALSE;
 
     _c(pTextLayout)->getTextBoundSize(pTextLayout, &cx, &cy);
-    
+
     if (bHScroll) {
         scrollBoundMax = cx - self->visWidth;
         nOffset = self->offX;
@@ -6136,7 +6136,7 @@ static void _update_scroll_region(mTextEditor* self,
     }
     scrollBoundMin = 0;
 
-    if (newPos >= 0) { 
+    if (newPos >= 0) {
         scrollVal = newPos - nOffset;
     }
 
@@ -6167,10 +6167,10 @@ static void _update_scroll_region(mTextEditor* self,
                 _scroll_invalidate_window(self, x, self->offY);
                 _update_height_changed(self, x, self->offY);
                 _update_scrolled_margins(self, x, self->offY);
-           
+
                 self->offX = x;
                 _update_caret(self, NULL);
-                
+
                 _update_height_changed_margins(self);
                 pTextLayout->old_height = -1;
                 _update_content_dirty_region(self);
@@ -6185,20 +6185,20 @@ static void _update_scroll_region(mTextEditor* self,
 
                 _scroll_invalidate_window(self, self->offX, y);
                 _update_height_changed(self, self->offX, y);
-                
+
                 _update_scrolled_margins(self, self->offX, y);
 
                 self->offY = y;
 
                 // PAGEUP or PAGEDOWN will move the cursor
                 if (TE_IS_CURSORE_PAGE_MOVE(self) && (code == SB_PAGEUP || code == SB_PAGEDOWN)) {
-                    pTextLayout->cursor_y += scrollVal; 
-                    pTextLayout->text_cursor = _c(pTextLayout)->getCharIndex(pTextLayout, &pTextLayout->cursor_x, 
+                    pTextLayout->cursor_y += scrollVal;
+                    pTextLayout->text_cursor = _c(pTextLayout)->getCharIndex(pTextLayout, &pTextLayout->cursor_x,
                             &pTextLayout->cursor_y, &pTextLayout->cursor_height, &pTextLayout->cursor);
 
                     // cursor can't move to title
                     OUT_CURSOR_FORM_TITLE(self);
-                    
+
                     // move cursor, so cancel selection
                     EQUAL_SEL_TO_CURSOR(pTextLayout);
                     _update_caret(self, _make_caret_visible);
@@ -6214,8 +6214,8 @@ static void _update_scroll_region(mTextEditor* self,
     }
     else {
         if ((!bHScroll) && (code == SB_PAGEUP || code == SB_PAGEDOWN)) {
-                pTextLayout->cursor_y += scrollVal; 
-                pTextLayout->text_cursor = _c(pTextLayout)->getCharIndex(pTextLayout, &pTextLayout->cursor_x, 
+                pTextLayout->cursor_y += scrollVal;
+                pTextLayout->text_cursor = _c(pTextLayout)->getCharIndex(pTextLayout, &pTextLayout->cursor_x,
                         &pTextLayout->cursor_y, &pTextLayout->cursor_height, &pTextLayout->cursor);
                 OUT_CURSOR_FORM_TITLE(self);
                 EQUAL_SEL_TO_CURSOR(pTextLayout);
@@ -6251,7 +6251,7 @@ static void mTextEditor_onHScroll(mTextEditor *self, int code, int mouseX)
             newPos = mouseX;
             break;
     }
-    
+
     _update_scroll_region(self, hScroll, newPos, code, TRUE);
 }
 
@@ -6280,7 +6280,7 @@ static void mTextEditor_onVScroll(mTextEditor *self, int code, int mouseY)
             newPos = mouseY;
             break;
     }
-    
+
     _update_scroll_region(self, hScroll, newPos, code, FALSE);
 }
 
@@ -6310,8 +6310,8 @@ static void mTextEditor_lineDecorative(mTextEditor* self, int x, int y, int w, i
     if(y > rcview.bottom || y < rcview.top)
         return ;
     //printf("-- lineNo=%d\n", lineNo);
-    //TODO hear, draw some information, e.g line No 
-#if MARGIN_UPDATE 
+    //TODO hear, draw some information, e.g line No
+#if MARGIN_UPDATE
     //implement it if need
     if(lineNo >= 0)
     {
@@ -6336,7 +6336,7 @@ static void mTextEditor_lineDecorative(mTextEditor* self, int x, int y, int w, i
      */
     DrawHDotLine(hdc, self->margins.left + x + (self->offX % 2) ,
             y,
-            self->visWidth - x);  
+            self->visWidth - x);
 #else
     LineEx(hdc, self->margins.left + x, y, self->margins.left + self->visWidth, y);
 #endif
@@ -6467,7 +6467,7 @@ static void mTextEditor_setTitle(mTextEditor* self, const char* buff, int len)
     }
     else{
         self->title_idx = len;
-    } 
+    }
 
     texteditor_update_title(self);
 
@@ -6476,7 +6476,7 @@ static void mTextEditor_setTitle(mTextEditor* self, const char* buff, int len)
 static int mTextEditor_getTitle(mTextEditor* self, char* buff, int max)
 {
     if(GetWindowStyle(self->hwnd) & NCSS_TE_TITLE)
-        return _c(pTextBuffer)->getText(pTextBuffer, 0, buff, self->title_idx > max ? max : self->title_idx); 
+        return _c(pTextBuffer)->getText(pTextBuffer, 0, buff, self->title_idx > max ? max : self->title_idx);
     else
     {
         if(buff)
@@ -6525,7 +6525,7 @@ BEGIN_CMPT_CLASS(mTextEditor, mWidget)
     CLASS_METHOD_MAP(mTextEditor, contentPosToDCPos)
     CLASS_METHOD_MAP(mTextEditor, update)
     CLASS_METHOD_MAP(mTextEditor, updateCaret)
-    
+
     //message
     CLASS_METHOD_MAP(mTextEditor, onChar)
     CLASS_METHOD_MAP(mTextEditor, onKeyDown)
@@ -6667,7 +6667,7 @@ static LRESULT mTextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM
 
         case EM_GETSELPOS:
         case EM_GETCARETPOS:
-            return _c(self)->getCaretPosByPara(self, (int*)wParam, (int*)lParam, 
+            return _c(self)->getCaretPosByPara(self, (int*)wParam, (int*)lParam,
                     NULL, message == EM_GETSELPOS);
 
         case EM_SETCARETPOS:
@@ -6680,7 +6680,7 @@ static LRESULT mTextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM
 
         case EM_GETCARETPOSBYLINE:
         case EM_GETSELPOSBYLINE:
-            return _c(self)->getCaretPosByLine(self, (int*)wParam, (int*)lParam, 
+            return _c(self)->getCaretPosByLine(self, (int*)wParam, (int*)lParam,
                     NULL, message == EM_GETSELPOSBYLINE);
 
         case EM_REFRESHCARET:
@@ -6725,7 +6725,7 @@ static LRESULT mTextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM
             return 0;
 
         case EM_GETNUMOFPARAGRAPHS:
-            return _c(self)->getParaNum(self); 
+            return _c(self)->getParaNum(self);
 
         case EM_GETPARAGRAPHTEXT:
         {

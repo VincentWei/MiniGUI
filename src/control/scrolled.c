@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -71,10 +71,10 @@
 
 #define SV_H_OUTRANGE() \
             (pscrdata->nContWidth > pscrdata->visibleWidth)
-                
+
 #define SV_V_OUTRANGE() \
             (pscrdata->nContHeight > pscrdata->visibleHeight)
-                
+
 #define svHScroll(scrollval, newpos) \
             svScroll(hWnd, pscrdata, scrollval, newpos, TRUE);
 
@@ -147,7 +147,7 @@ BOOL scrolled_set_cont_pos (HWND hWnd, PSCRDATA pscrdata, int cont_x, int cont_y
 
     cont_w = pscrdata->nContWidth - pscrdata->visibleWidth;
     cont_h = pscrdata->nContHeight - pscrdata->visibleHeight;
-    
+
     if (cont_x > cont_w && cont_w > 0)
         cont_x = cont_w;
 
@@ -207,7 +207,7 @@ static void svScroll (HWND hWnd, PSCRDATA pscrdata, int scrollval, int newpos, B
     int scroll = 0;
     BOOL bScroll = FALSE;
     int nOffset;
-    
+
     if (bHScroll) {
         scrollBoundMax = pscrdata->nContWidth - pscrdata->visibleWidth;
         nOffset = pscrdata->nContX;
@@ -253,31 +253,31 @@ void scrolled_set_visible (HWND hWnd, PSCRDATA pscrdata)
 #if 0
         pscrdata->nContWidth = pscrdata->visibleWidth;
 #endif
-		pscrdata->nContX = 0;
-		pscrdata->prevnContX = 0;
+        pscrdata->nContX = 0;
+        pscrdata->prevnContX = 0;
     }
-	else {
-		if(pscrdata->nContX > pscrdata->nContWidth - pscrdata->visibleWidth
+    else {
+        if(pscrdata->nContX > pscrdata->nContWidth - pscrdata->visibleWidth
                 &&(pscrdata->nContWidth - pscrdata->visibleWidth) > 0 ) {
             pscrdata->prevnContX = pscrdata->nContX;
-			pscrdata->nContX = pscrdata->nContWidth - pscrdata->visibleWidth;
+            pscrdata->nContX = pscrdata->nContWidth - pscrdata->visibleWidth;
         }
-	}
+    }
 
     if (pscrdata->nContHeight < pscrdata->visibleHeight) {
 #if 0
         pscrdata->nContHeight = pscrdata->visibleHeight;
 #endif
-		pscrdata->nContY = 0;
-		pscrdata->prevnContY = 0;
+        pscrdata->nContY = 0;
+        pscrdata->prevnContY = 0;
     }
-	else{
-		if(pscrdata->nContY > pscrdata->nContHeight - pscrdata->visibleHeight
+    else{
+        if(pscrdata->nContY > pscrdata->nContHeight - pscrdata->visibleHeight
                 && (pscrdata->nContHeight - pscrdata->visibleHeight) > 0) {
-			pscrdata->nContY = pscrdata->nContHeight - pscrdata->visibleHeight;
+            pscrdata->nContY = pscrdata->nContHeight - pscrdata->visibleHeight;
             pscrdata->prevnContY = pscrdata->nContY;
         }
-	}
+    }
     /* refresh the whole window as long as the visible area is changed */
     scrolled_set_content (hWnd, pscrdata, TRUE);
     pscrdata->prevnContX = pscrdata->nContX;
@@ -322,7 +322,7 @@ void scrolled_recalc_areas (HWND hWnd, PSCRDATA pscrdata, int new_w, int new_h)
     pscrdata->visibleHeight = new_h;
     scrolled_set_visible (hWnd, pscrdata);
 
-/*    
+/*
     int old_vw, old_vh;
 
     old_vw = pscrdata->visibleWidth;
@@ -383,7 +383,7 @@ void scrolled_vscroll (HWND hWnd, PSCRDATA pscrdata, WPARAM wParam, LPARAM lPara
         newpos = lParam;
     }
 
-    if (wParam != SB_THUMBPOSITION) 
+    if (wParam != SB_THUMBPOSITION)
         svVScroll (vscroll, newpos);
 }
 
@@ -535,7 +535,7 @@ void scrolled_init_contsize (HWND hWnd, PSCRDATA pscrdata)
     pscrdata->nContHeight = pscrdata->visibleHeight;
 }
 
-void scrolled_init_margins (PSCRDATA pscrdata, int left, int top, 
+void scrolled_init_margins (PSCRDATA pscrdata, int left, int top,
                             int right, int bottom)
 {
     pscrdata->leftMargin = left;
@@ -570,8 +570,8 @@ int scrolled_init (HWND hWnd, PSCRDATA pscrdata, int w, int h)
         pscrdata->visibleHeight = RECTH(rcWnd);
     }
 
-    pscrdata->nContWidth = pscrdata->visibleWidth; 
-    pscrdata->nContHeight = pscrdata->visibleHeight; 
+    pscrdata->nContWidth = pscrdata->visibleWidth;
+    pscrdata->nContHeight = pscrdata->visibleHeight;
 
     pscrdata->sbPolicy = SB_POLICY_AUTOMATIC;
 
@@ -602,8 +602,8 @@ int DefaultScrolledProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
         scrolled_vscroll (hWnd, pscrdata, wParam, lParam);
         break;
 
-    /* 
-     * three cases: 
+    /*
+     * three cases:
      * 1. move window; 2. set content range; 3. show scrollbar
      */
     case MSG_SIZECHANGED:
@@ -618,7 +618,7 @@ int DefaultScrolledProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             return 0;
 
         //scrolled_recalc_areas (hWnd, pscrdata, RECTWP(rcClient), RECTHP(rcClient));
-        scrolled_recalc_areas (hWnd, pscrdata, 
+        scrolled_recalc_areas (hWnd, pscrdata,
                         RECTWP(rcClient) - pscrdata->leftMargin - pscrdata->rightMargin,
                         RECTHP(rcClient) - pscrdata->topMargin - pscrdata->bottomMargin);
         return 0;

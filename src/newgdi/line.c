@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** line.c: drawing of line, rectangle, and spline.
 **
-**      Spline drawing algorithm comes from Allegro by 
+**      Spline drawing algorithm comes from Allegro by
 **      Shawn Hargreaves and others.
 **      So thank them for their great work and good copyright statement.
 **
@@ -132,7 +132,7 @@ void GUIAPI LineTo (HDC hdc, int x, int y)
         cliprect = pdc->ecrgn.head;
         while (cliprect) {
             if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)) {
-                int x0 = startx, y0 = starty, x1 = x, y1 = y; 
+                int x0 = startx, y0 = starty, x1 = x, y1 = y;
                 if (LineClipper (&eff_rc, &x0, &y0, &x1, &y1)) {
                     pdc->move_to (pdc, x0, y0);
                     LineGenerator (pdc, x0, y0, x1, y1, _dc_set_pixel_noclip);
@@ -166,8 +166,8 @@ void GUIAPI Rectangle (HDC hdc, int x0, int y0, int x1, int y1)
         return;
 
     /* Transfer logical to device to screen here. */
-    coor_LP2SP (pdc, &x0, &y0); 
-    coor_LP2SP (pdc, &x1, &y1); 
+    coor_LP2SP (pdc, &x0, &y0);
+    coor_LP2SP (pdc, &x1, &y1);
     SetRect (&pdc->rc_output, x0, y0, x1, y1);
     NormalizeRect (&pdc->rc_output);
     x0 = pdc->rc_output.left; y0 = pdc->rc_output.top;
@@ -208,8 +208,8 @@ void GUIAPI FocusRect (HDC hdc, int x0, int y0, int x1, int y1)
         return;
 
     /* Transfer logical to device to screen here. */
-    coor_LP2SP (pdc, &x0, &y0); 
-    coor_LP2SP (pdc, &x1, &y1); 
+    coor_LP2SP (pdc, &x0, &y0);
+    coor_LP2SP (pdc, &x1, &y1);
     SetRect (&pdc->rc_output, x0, y0, x1, y1);
     NormalizeRect (&pdc->rc_output);
     x0 = pdc->rc_output.left; y0 = pdc->rc_output.top;
@@ -254,7 +254,7 @@ void GUIAPI DrawHVDotLine (HDC hdc, int x, int y, int w_h, BOOL H_V)
     if (!(pdc = __mg_check_ecrgn (hdc)))
         return;
 
-    coor_LP2SP (pdc, &x, &y); 
+    coor_LP2SP (pdc, &x, &y);
 
     if (w_h == 1) {
         if ((H_V && !(x % 2)) || (!H_V && !(y % 2))) {
@@ -352,7 +352,7 @@ void calc_spline (const POINT* points, int npts, POINT* out_pts)
 }
 
 #define MAX_POINTS   64
-/* 
+/*
  * SplineTo: Draws a bezier spline.
  */
 void GUIAPI SplineTo (HDC hdc, const POINT* points)

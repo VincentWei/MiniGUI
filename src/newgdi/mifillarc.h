@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -91,11 +91,11 @@ typedef struct _miFillArcD {
 } miFillArcDRec;
 
 #define miFillArcEmpty(arc) (!(arc)->angle2 || \
-			     !(arc)->width || !(arc)->height || \
-			     (((arc)->width == 1) && ((arc)->height & 1)))
+                 !(arc)->width || !(arc)->height || \
+                 (((arc)->width == 1) && ((arc)->height & 1)))
 
 #define miCanFillArc(arc) (((arc)->width == (arc)->height) || \
-			   (((arc)->width <= 800) && ((arc)->height <= 800)))
+               (((arc)->width <= 800) && ((arc)->height <= 800)))
 
 #define MIFILLARCSETUP() \
     x = 0; \
@@ -114,15 +114,15 @@ typedef struct _miFillArcD {
     e += yk; \
     while (e >= 0) \
     { \
-	x++; \
-	xk -= xm; \
-	e += xk; \
+    x++; \
+    xk -= xm; \
+    e += xk; \
     } \
     y--; \
     yk -= ym; \
     slw = (x << 1) + dx; \
     if ((e == xk) && (slw > 1)) \
-	slw--
+    slw--
 
 #define MIFILLCIRCSTEP(slw) MIFILLARCSTEP(slw)
 #define MIFILLELLSTEP(slw) MIFILLARCSTEP(slw)
@@ -130,12 +130,12 @@ typedef struct _miFillArcD {
 #define miFillArcLower(slw) (((y + dy) != 0) && ((slw > 1) || (e != xk)))
 
 typedef struct _miSliceEdge {
-    int	    x;
+    int        x;
     int     stepx;
-    int	    deltax;
-    int	    e;
-    int	    dy;
-    int	    dx;
+    int        deltax;
+    int        e;
+    int        dy;
+    int        dx;
 } miSliceEdgeRec, *miSliceEdgePtr;
 
 typedef struct _miArcSlice {
@@ -151,31 +151,31 @@ typedef struct _miArcSlice {
     edge.e -= edge.dx; \
     if (edge.e <= 0) \
     { \
-	edge.x -= edge.deltax; \
-	edge.e += edge.dy; \
+    edge.x -= edge.deltax; \
+    edge.e += edge.dy; \
     }
 
 #define miFillSliceUpper(slice) \
-		((y >= slice.min_top_y) && (y <= slice.max_top_y))
+        ((y >= slice.min_top_y) && (y <= slice.max_top_y))
 
 #define miFillSliceLower(slice) \
-		((y >= slice.min_bot_y) && (y <= slice.max_bot_y))
+        ((y >= slice.min_bot_y) && (y <= slice.max_bot_y))
 
 #define MIARCSLICEUPPER(xl,xr,slice,slw) \
     xl = xorg - x; \
     xr = xl + slw - 1; \
     if (slice.edge1_top && (slice.edge1.x < xr)) \
-	xr = slice.edge1.x; \
+    xr = slice.edge1.x; \
     if (slice.edge2_top && (slice.edge2.x > xl)) \
-	xl = slice.edge2.x;
+    xl = slice.edge2.x;
 
 #define MIARCSLICELOWER(xl,xr,slice,slw) \
     xl = xorg - x; \
     xr = xl + slw - 1; \
     if (!slice.edge1_top && (slice.edge1.x > xl)) \
-	xl = slice.edge1.x; \
+    xl = slice.edge1.x; \
     if (!slice.edge2_top && (slice.edge2.x < xr)) \
-	xr = slice.edge2.x;
+    xr = slice.edge2.x;
 
 #define MIWIDEARCSETUP(x,y,dy,slw,e,xk,xm,yk,ym) \
     x = 0; \
@@ -185,39 +185,39 @@ typedef struct _miArcSlice {
     ym = 8; \
     if (dy) \
     { \
-	xk = 0; \
-	if (slw & 1) \
-	    e = -1; \
-	else \
-	    e = -(y << 2) - 2; \
+    xk = 0; \
+    if (slw & 1) \
+        e = -1; \
+    else \
+        e = -(y << 2) - 2; \
     } \
     else \
     { \
-	y++; \
-	yk += 4; \
-	xk = -4; \
-	if (slw & 1) \
-	    e = -(y << 2) - 3; \
-	else \
-	    e = - (y << 3); \
+    y++; \
+    yk += 4; \
+    xk = -4; \
+    if (slw & 1) \
+        e = -(y << 2) - 3; \
+    else \
+        e = - (y << 3); \
     }
 
 #define MIFILLINARCSTEP(slw) \
     ine += inyk; \
     while (ine >= 0) \
     { \
-	inx++; \
-	inxk -= inxm; \
-	ine += inxk; \
+    inx++; \
+    inxk -= inxm; \
+    ine += inxk; \
     } \
     iny--; \
     inyk -= inym; \
     slw = (inx << 1) + dx; \
     if ((ine == inxk) && (slw > 1)) \
-	slw--
+    slw--
 
 #define miFillInArcLower(slw) (((iny + dy) != 0) && \
-			       ((slw > 1) || (ine != inxk)))
+                   ((slw > 1) || (ine != inxk)))
 
 /* extern int miFreeArcCache (void* data, unsigned int id); */
 extern void mg_miFreeArcCache (void);

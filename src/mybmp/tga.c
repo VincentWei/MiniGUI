@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -47,7 +47,7 @@
 ** Low-level TGA bitmap file read/save function.
 **
 ** Create date: 2000/08/27, derived from original bitmap.c
-** 
+**
 ** Current maintainer: Wei Yongming.
 **
 ** FIXME: Some errors occurred when RLE used.
@@ -207,8 +207,8 @@ static void rle_tga_read16(unsigned short *b, int len, MG_RWops *f)
  *  should be an array of at least 256 RGB structures).
  */
 typedef struct {
-	int compressed;
-	unsigned char image_type;
+    int compressed;
+    unsigned char image_type;
 } tga_init_info_t;
 
 void * __mg_init_tga (MG_RWops* f, MYBITMAP* bmp, RGB *pal)
@@ -224,10 +224,10 @@ void * __mg_init_tga (MG_RWops* f, MYBITMAP* bmp, RGB *pal)
    int pitch, bytes_per_pixel;
    unsigned int size;
    unsigned char* bits;
-	tga_init_info_t * tga_info=NULL;
-	tga_info=(tga_init_info_t *)malloc(sizeof(tga_init_info_t));
-	if(!tga_info)
-		return NULL;
+    tga_init_info_t * tga_info=NULL;
+    tga_info=(tga_init_info_t *)malloc(sizeof(tga_init_info_t));
+    if(!tga_info)
+        return NULL;
    id_length = fp_getc(f);
    palette_type = fp_getc(f);
    image_type = fp_getc(f);
@@ -285,7 +285,7 @@ void * __mg_init_tga (MG_RWops* f, MYBITMAP* bmp, RGB *pal)
 
       case 2:
          /* truecolor image */
-         if ((palette_type == 0) 
+         if ((palette_type == 0)
                     && ((bpp == 15) || (bpp == 16)
                     || (bpp == 24) || (bpp == 32))) {
          }
@@ -316,7 +316,7 @@ void * __mg_init_tga (MG_RWops* f, MYBITMAP* bmp, RGB *pal)
     size = pitch * image_height;
 //    if( !(bits = malloc (size)) ) {
 //        goto err;
-//	}
+//    }
 
     bmp->flags = MYBMP_TYPE_RGB;
     if (bpp == 24)
@@ -336,95 +336,95 @@ void * __mg_init_tga (MG_RWops* f, MYBITMAP* bmp, RGB *pal)
     bmp->frames = 1;
     bmp->size  = size;
     bmp->bits  = bits;
-	return tga_info;
-	err:
-		free(tga_info);
-		return NULL;
+    return tga_info;
+    err:
+        free(tga_info);
+        return NULL;
 }
 void __mg_cleanup_tga (void * init_info)
 {
-	if (init_info)
-		free(init_info);
-	init_info = NULL;
+    if (init_info)
+        free(init_info);
+    init_info = NULL;
 
 }
 int __mg_load_tga (MG_RWops* f, void* init_info, MYBITMAP *bmp, CB_ONE_SCANLINE cb, void* context)
 {
-	tga_init_info_t *info = (tga_init_info_t *)init_info;
-	int compressed,x,y;
-	unsigned char image_type,rgb[4];
-	BYTE * bits;
-	unsigned short *s;
-//	bmp->bits=malloc(bmp->size);
-	bits=bmp->bits;
-	compressed=info->compressed;
-	image_type=info->image_type;
-//	printf("compressed=%d image_type=%d bmp->depth=%d\n,bmp->w=%d bmp->h=%d\n",compressed,image_type,bmp->depth,bmp->w,bmp->h);
-    	for (y=bmp->h;y;y--,bits +=bmp->pitch) {
-      		switch (image_type) {
-			case 1:
-         		case 3:
-            			if (compressed) {
-               				rle_tga_read(bmp->bits, bmp->w * bmp->h, f);
-               				return ERR_BMP_OK;
-            			}
-            			else
-               				MGUI_RWread (f, bmp->bits, 1, bmp->w);
-            			break;
+    tga_init_info_t *info = (tga_init_info_t *)init_info;
+    int compressed,x,y;
+    unsigned char image_type,rgb[4];
+    BYTE * bits;
+    unsigned short *s;
+//    bmp->bits=malloc(bmp->size);
+    bits=bmp->bits;
+    compressed=info->compressed;
+    image_type=info->image_type;
+//    printf("compressed=%d image_type=%d bmp->depth=%d\n,bmp->w=%d bmp->h=%d\n",compressed,image_type,bmp->depth,bmp->w,bmp->h);
+        for (y=bmp->h;y;y--,bits +=bmp->pitch) {
+              switch (image_type) {
+            case 1:
+                 case 3:
+                        if (compressed) {
+                               rle_tga_read(bmp->bits, bmp->w * bmp->h, f);
+                               return ERR_BMP_OK;
+                        }
+                        else
+                               MGUI_RWread (f, bmp->bits, 1, bmp->w);
+                        break;
 
-         		case 2:
-            			if (bmp->depth == 32) {
-               				if (compressed) {
-                  				rle_tga_read32(bmp->bits, bmp->w * bmp->h, f);
-                  				return ERR_BMP_OK;
-               				}
-               				else {
-                  				for (x=0; x<bmp->w; x++) {
-                     					MGUI_RWread (f, rgb, 1, 4);
-                     					bmp->bits[x*4+3] = rgb[3];
-                     					bmp->bits[x*4+2] = rgb[2];
-                     					bmp->bits[x*4+1] = rgb[1];
-                     					bmp->bits[x*4+0] = rgb[0];
-                  				}
-               				}
-				}
-            			else if (bmp->depth == 24) {
-               				if (compressed) {
-                  				rle_tga_read24(bmp->bits, bmp->w * bmp->h, f);
-                  				return ERR_BMP_OK;
-               				}
-               				else {
-                  				for (x=0; x<bmp->w; x++) {
-                     					MGUI_RWread (f, rgb, 1, 3);
-                     					bmp->bits[x*3+2] = rgb[2];
-                     					bmp->bits[x*3+1] = rgb[1];
-                     					bmp->bits[x*3+0] = rgb[0];
-                  				}
-               				}
-            			}
-            			else {
-               				if (compressed) {
-                  				rle_tga_read16((unsigned short *)bmp->bits, bmp->w * bmp->h, f);
-                  				return ERR_BMP_OK;
-               				}
-               				else {
-                  				s = (unsigned short *)bmp->bits;
-                  				for (x=0; x<bmp->w; x++) {
-                     				s [x] = fp_igetw(f);
-                  				}
-               				}
-            			}
-            			break;
-			default:
-				break;
-      			}
-//		printf("y=%d\n",y);
-	  	if (cb ) cb(context, bmp, y);
+                 case 2:
+                        if (bmp->depth == 32) {
+                               if (compressed) {
+                                  rle_tga_read32(bmp->bits, bmp->w * bmp->h, f);
+                                  return ERR_BMP_OK;
+                               }
+                               else {
+                                  for (x=0; x<bmp->w; x++) {
+                                         MGUI_RWread (f, rgb, 1, 4);
+                                         bmp->bits[x*4+3] = rgb[3];
+                                         bmp->bits[x*4+2] = rgb[2];
+                                         bmp->bits[x*4+1] = rgb[1];
+                                         bmp->bits[x*4+0] = rgb[0];
+                                  }
+                               }
+                }
+                        else if (bmp->depth == 24) {
+                               if (compressed) {
+                                  rle_tga_read24(bmp->bits, bmp->w * bmp->h, f);
+                                  return ERR_BMP_OK;
+                               }
+                               else {
+                                  for (x=0; x<bmp->w; x++) {
+                                         MGUI_RWread (f, rgb, 1, 3);
+                                         bmp->bits[x*3+2] = rgb[2];
+                                         bmp->bits[x*3+1] = rgb[1];
+                                         bmp->bits[x*3+0] = rgb[0];
+                                  }
+                               }
+                        }
+                        else {
+                               if (compressed) {
+                                  rle_tga_read16((unsigned short *)bmp->bits, bmp->w * bmp->h, f);
+                                  return ERR_BMP_OK;
+                               }
+                               else {
+                                  s = (unsigned short *)bmp->bits;
+                                  for (x=0; x<bmp->w; x++) {
+                                     s [x] = fp_igetw(f);
+                                  }
+                               }
+                        }
+                        break;
+            default:
+                break;
+                  }
+//        printf("y=%d\n",y);
+          if (cb ) cb(context, bmp, y);
    }
 
 #if 0
     if (bpp == 8) {                  /* look for a 256 color palette */
-        while (!MGUI_RWeof(f)) { 
+        while (!MGUI_RWeof(f)) {
             if (fp_getc(f)==12) {
                 for (c=0; c<256; c++) {
                     pal[c].r = fp_getc(f);
@@ -436,7 +436,7 @@ int __mg_load_tga (MG_RWops* f, void* init_info, MYBITMAP *bmp, CB_ONE_SCANLINE 
         }
     }
 #endif
-//	free(bmp->bits);
+//    free(bmp->bits);
      return ERR_BMP_OK;
 }
 

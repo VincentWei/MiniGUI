@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -1371,8 +1371,8 @@ _draw_radio_check_button (HDC hdc,
         box_t = pRect->top;
     }
 
-    gui_fill_box_with_bitmap_part_except_incompatible(hdc, box_l, box_t, 
-                SIZE_BUTTON - (off_h << 1), SIZE_BUTTON - (off_v << 1), 0, 0, 
+    gui_fill_box_with_bitmap_part_except_incompatible(hdc, box_l, box_t,
+                SIZE_BUTTON - (off_h << 1), SIZE_BUTTON - (off_v << 1), 0, 0,
                 pBmp, off_h, status * SIZE_BUTTON + off_v);
 #endif
 }
@@ -1540,7 +1540,7 @@ static int calc_vscroll_area(HWND hWnd, int which, RECT* we_area)
     int bottom_inner = 0;
 
     const WINDOWINFO* win_info = GetWindowInfo (hWnd);
-	//const WINDOW_ELEMENT_RENDERER * rdr = win_info->we_rdr;
+    //const WINDOW_ELEMENT_RENDERER * rdr = win_info->we_rdr;
     const LFSCROLLBARINFO* sbar_info = &(win_info->vscroll);
 
     int win_w = win_info->right - win_info->left;
@@ -1659,7 +1659,7 @@ static int calc_we_metrics (HWND hWnd,
 
     /* DK[24/21/09]: Bug4319
      * Fix a bug that want dereference a NULL Pointer */
-	if(HWND_NULL != hWnd) win_info = GetWindowInfo(hWnd);
+    if(HWND_NULL != hWnd) win_info = GetWindowInfo(hWnd);
 
     switch (which & LFRDR_METRICS_MASK)
     {
@@ -1685,7 +1685,7 @@ static int calc_we_metrics (HWND hWnd,
                 cap_h = __mg_wnd_rdr_skin.we_metrics[_idx];
                 return cap_h;
             }
-            else if (hWnd != HWND_NULL) { 
+            else if (hWnd != HWND_NULL) {
                 if (!IS_CAPTION_VISIBLE (win_info))
                     return 0;
             }
@@ -1970,7 +1970,7 @@ calc_thumb_area (HWND hWnd, BOOL vertical, LFSCROLLBARINFO* sb_info)
     div_t divt;
     int size = 0;
     RECT rcBar;
-    
+
     if (vertical) {
         *sb_info = GetWindowInfo(hWnd)->vscroll;
         calc_vscroll_area(hWnd, HT_VSCROLL, &rc);
@@ -2150,7 +2150,7 @@ static int hit_test (HWND hWnd, int x, int y)
     int win_h;
 
     const WINDOWINFO* win_info = GetWindowInfo(hWnd);
-	//const WINDOW_ELEMENT_RENDERER * rdr = win_info->we_rdr;
+    //const WINDOW_ELEMENT_RENDERER * rdr = win_info->we_rdr;
     win_w = win_info->right - win_info->left;
     win_h = win_info->bottom - win_info->top;
 
@@ -2486,11 +2486,11 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
             ncbutton_w += RECTW(rcTmp);
         }
 
-        TextOutOmitted (hdc, rect.left + RECTW(icon_rect) + 
+        TextOutOmitted (hdc, rect.left + RECTW(icon_rect) +
                 (ICON_ORIGIN << 1),
                 rect.top + ((RECTH(rect)-font_h)>>1),
                 win_info->spCaption,
-                strlen (win_info->spCaption),  
+                strlen (win_info->spCaption),
                 (RECTW(rect) - RECTW(icon_rect) - (ICON_ORIGIN << 1) - ncbutton_w));
 
         SetTextColor (hdc, old_text_color);

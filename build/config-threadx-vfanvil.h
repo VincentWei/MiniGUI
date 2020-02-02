@@ -377,7 +377,7 @@
 /* #undef _MGINCOREFONT_VGAS */
 
 /* Define if include in-core font: 12x12 RBF for GB2312 */
-#define	_MGINCORERBF_GB12 1
+#define    _MGINCORERBF_GB12 1
 /* Define if include in-core font: 16x16 RBF for GB2312 */
 #define _MGINCORERBF_GB16 1
 

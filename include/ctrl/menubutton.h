@@ -14,10 +14,10 @@
  * \file menubutton.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: menubutton.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_MENUBUTTON_H
 #define _MGUI_CTRL_MENUBUTTON_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,7 +109,7 @@ extern "C" {
 typedef struct _MENUBUTTONITEM
 {
     /**
-     * Which fields are valid when sets/retrives the item information 
+     * Which fields are valid when sets/retrives the item information
      * (ignored when add item). It can be OR'd with the following values:
      *
      *  - MB_WHICH_TEXT The \a text field is valid.
@@ -138,8 +138,8 @@ typedef MENUBUTTONITEM* PMENUBUTTONITEM;
 
 /**
  * \def MBS_SORT
- * \brief If this bit is set, the items listed in the control 
- * are displayed in a specified order.  
+ * \brief If this bit is set, the items listed in the control
+ * are displayed in a specified order.
  */
 #define MBS_SORT                0x0001
 
@@ -201,12 +201,12 @@ typedef MENUBUTTONITEM* PMENUBUTTONITEM;
  *
  * \param pos The position at which to add the item. If the control
  *        was created with the style of \a MBS_SORT, this parameter
- *        will be ignored. If this parameter is less than 0, 
+ *        will be ignored. If this parameter is less than 0,
  *        the new item will be append to the tail of the menu list.
  * \param newitem Pointer to the menubutton item info structure.
  *
  * \return The position at which the item has been added, i.e.,
- *         the index of the added item if success. Otherwise, 
+ *         the index of the added item if success. Otherwise,
  *         the following error code will be returned:
  *
  *        - MB_ERR_SPACE\n  No memory can be allocated for new item.
@@ -260,7 +260,7 @@ typedef MENUBUTTONITEM* PMENUBUTTONITEM;
  * \endcode
  *
  * \param index The index of the item to be altered.
- * \param pmbi Pointer to the MENUBUTTONITEM structure that stores the new 
+ * \param pmbi Pointer to the MENUBUTTONITEM structure that stores the new
  *         menubutton item data.
  *
  * \return MB_OKAY if success, otherwise will be one of the following error codes:
@@ -284,7 +284,7 @@ typedef MENUBUTTONITEM* PMENUBUTTONITEM;
  * \endcode
  *
  * \param index The index of the specific item.
- * \param pmbi Pointer to the MENUBUTTONITEM structure for storing the 
+ * \param pmbi Pointer to the MENUBUTTONITEM structure for storing the
  *         menubutton item data.
  *
  * \return MB_OKAY if success, otherwise MB_INV_ITEM to indicate invalid index.
@@ -329,10 +329,10 @@ typedef MENUBUTTONITEM* PMENUBUTTONITEM;
  * \def MBM_SETSTRCMPFUNC
  * \brief Sets the STRCMP function used to sort items.
  *
- * An application sends a MBM_SETSTRCMPFUNC message to set a 
+ * An application sends a MBM_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the menubutton.
  *
- * Note that you should send this message before adding 
+ * Note that you should send this message before adding
  * any item to the menubutton control.
  *
  * \code

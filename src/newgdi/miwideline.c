@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -67,8 +67,8 @@ from The Open Group.
 */
 
 /*
- * Author:  Keith Packard, MIT X Consortium 
- * 
+ * Author:  Keith Packard, MIT X Consortium
+ *
  * Port to MiniGUI by Wei Yongming.
  *
  * Mostly integer wideline code.  Uses a technique similar to
@@ -133,7 +133,7 @@ void miFillPolyHelper (PDC pdc, SpanDataPtr spanData, int y, int overall_height,
 
     left_height = 0;
     right_height = 0;
-    
+
     if (!spanData) {
         pptInit = (Span*) ALLOCATE_LOCAL (overall_height * sizeof(*ppt));
         if (!pptInit)
@@ -167,7 +167,7 @@ void miFillPolyHelper (PDC pdc, SpanDataPtr spanData, int y, int overall_height,
                 ppt++;
             }
             y++;
-            
+
             MIPOLYSTEPLEFT
 
             MIPOLYSTEPRIGHT
@@ -195,7 +195,7 @@ void miFillPolyHelper (PDC pdc, SpanDataPtr spanData, int y, int overall_height,
     }
 }
 
-static void miFillRectPolyHelper (PDC pdc, SpanDataPtr spanData, 
+static void miFillRectPolyHelper (PDC pdc, SpanDataPtr spanData,
                     int x, int y, int w, int h)
 {
     register Span*  ppt;
@@ -223,7 +223,7 @@ static void miFillRectPolyHelper (PDC pdc, SpanDataPtr spanData,
 }
 
 int miPolyBuildEdge (double x0, double y0, double k, /* x0 * dy - y0 * dx */
-                 register int dx, register int dy, 
+                 register int dx, register int dy,
                 int xi, int yi, int left, register PolyEdgePtr edge)
 {
     int x, y, e;
@@ -275,8 +275,8 @@ int miPolyBuildEdge (double x0, double y0, double k, /* x0 * dy - y0 * dx */
 
 #define StepAround(v, incr, max) (((v) + (incr) < 0) ? (max - 1) : ((v) + (incr) == max) ? 0 : ((v) + (incr)))
 
-int miPolyBuildPoly (register PolyVertexPtr vertices, register PolySlopePtr slopes, 
-                int count, int xi, int yi, PolyEdgePtr left, PolyEdgePtr right, 
+int miPolyBuildPoly (register PolyVertexPtr vertices, register PolySlopePtr slopes,
+                int count, int xi, int yi, PolyEdgePtr left, PolyEdgePtr right,
                 int* pnleft, int* pnright, int* h)
 {
     register int    i;
@@ -349,9 +349,9 @@ int miPolyBuildPoly (register PolyVertexPtr vertices, register PolySlopePtr slop
     i = top;
     while (i != bottom) {
         if (slopes[s].dy != 0) {
-            y = miPolyBuildEdge (vertices[i].x, vertices[i].y, slopes[s].k, 
+            y = miPolyBuildEdge (vertices[i].x, vertices[i].y, slopes[s].k,
                         slopes[s].dx,  slopes[s].dy, xi, yi, 1, &left[nleft]);
-    
+
             if (nleft != 0)
                     left[nleft-1].height = y - lasty;
             nleft++;
@@ -776,7 +776,7 @@ int miRoundJoinFace (register LineFacePtr face, register PolyEdgePtr edge, BOOL*
     return y;
 }
 
-void miRoundJoinClip (register LineFacePtr pLeft, register LineFacePtr pRight, 
+void miRoundJoinClip (register LineFacePtr pLeft, register LineFacePtr pRight,
                 PolyEdgePtr edge1, PolyEdgePtr edge2, int* y1, int* y2, BOOL* left1, BOOL* left2)
 {
     double  denom;
@@ -843,8 +843,8 @@ int miRoundCapClip (register LineFacePtr face, BOOL isInt, register PolyEdgePtr 
     return y;
 }
 
-static void miLineArc (PDC pdc, SpanDataPtr spanData, 
-                register LineFacePtr leftFace, register LineFacePtr rightFace, 
+static void miLineArc (PDC pdc, SpanDataPtr spanData,
+                register LineFacePtr leftFace, register LineFacePtr rightFace,
                 double xorg, double yorg, BOOL isInt)
 {
     Span*       points;
@@ -921,7 +921,7 @@ static void miLineArc (PDC pdc, SpanDataPtr spanData,
     }
 }
 
-void miLineProjectingCap (PDC pdc, SpanDataPtr spanData, 
+void miLineProjectingCap (PDC pdc, SpanDataPtr spanData,
                 register LineFacePtr face, BOOL isLeft, double xorg, double yorg, BOOL isInt)
 {
     int         xorgi = 0, yorgi = 0;
@@ -937,7 +937,7 @@ void miLineProjectingCap (PDC pdc, SpanDataPtr spanData,
     double      projectXoff, projectYoff;
     double      maxy;
     int         finaly;
-    
+
     if (isInt) {
         xorgi = face->x;
         yorgi = face->y;
@@ -1014,7 +1014,7 @@ void miLineProjectingCap (PDC pdc, SpanDataPtr spanData,
 
         if (isLeft) {
             righty = miPolyBuildEdge (xa, ya, k, dx, dy, xorgi, yorgi, 0, right);
-            
+
             xa = -xa;
             ya = -ya;
             k = -k;
@@ -1035,7 +1035,7 @@ void miLineProjectingCap (PDC pdc, SpanDataPtr spanData,
         else {
             righty = miPolyBuildEdge (xa - projectXoff, ya - projectYoff,
                      k, dx, dy, xorgi, yorgi, 0, right);
-            
+
             xa = -xa;
             ya = -ya;
             k = -k;
@@ -1069,7 +1069,7 @@ void miLineProjectingCap (PDC pdc, SpanDataPtr spanData,
 }
 
 static void miWideSegment (PDC pdc, SpanDataPtr spanData,
-               int x1, int y1, int x2, int y2, BOOL projectLeft, BOOL projectRight, 
+               int x1, int y1, int x2, int y2, BOOL projectLeft, BOOL projectRight,
                 LineFacePtr leftFace, LineFacePtr rightFace)
 {
     double      l, L, r;
@@ -1386,7 +1386,7 @@ void miWideLine (PDC pdc, register int npt, register POINT* pPts)
 #define V_LEFT          3
 
 static void miWideDashSegment (PDC pdc, SpanDataPtr spanData, int* pDashOffset, int* pDashIndex,
-            int x1, int y1, int x2, int y2, BOOL projectLeft, BOOL projectRight, 
+            int x1, int y1, int x2, int y2, BOOL projectLeft, BOOL projectRight,
             LineFacePtr leftFace, LineFacePtr rightFace)
 {
     int             dashIndex, dashRemain;
@@ -1409,7 +1409,7 @@ static void miWideDashSegment (PDC pdc, SpanDataPtr spanData, int* pDashOffset, 
     double          saveK = 0.0;
     BOOL            first = TRUE;
     double          lcenterx, lcentery, rcenterx = 0.0, rcentery = 0.0;
-    
+
     dx = x2 - x1;
     dy = y2 - y1;
     dashIndex = *pDashIndex;
@@ -1530,18 +1530,18 @@ static void miWideDashSegment (PDC pdc, SpanDataPtr spanData, int* pDashOffset, 
                 saveRight = vertices[V_RIGHT];
                 saveBottom = vertices[V_BOTTOM];
                 saveK = slopes[V_RIGHT].k;
-                
+
                 if (!first) {
                     vertices[V_TOP].x -= rdx;
                     vertices[V_TOP].y -= rdy;
-    
+
                     vertices[V_LEFT].x -= rdx;
                     vertices[V_LEFT].y -= rdy;
 
                     slopes[V_LEFT].k = vertices[V_LEFT].x * slopes[V_LEFT].dy -
                                        vertices[V_LEFT].y * slopes[V_LEFT].dx;
                 }
-                
+
                 vertices[V_RIGHT].x += rdx;
                 vertices[V_RIGHT].y += rdy;
 
@@ -1631,7 +1631,7 @@ static void miWideDashSegment (PDC pdc, SpanDataPtr spanData, int* pDashOffset, 
         if (projectRight) {
             vertices[V_RIGHT].x += rdx;
             vertices[V_RIGHT].y += rdy;
-    
+
             vertices[V_BOTTOM].x += rdx;
             vertices[V_BOTTOM].y += rdy;
             slopes[V_RIGHT].k = vertices[V_RIGHT].x *
@@ -1729,7 +1729,7 @@ void miWideDash (PDC pdc, register int npt, register POINT* pPts)
     if (npt == 0)
         return;
 
-    if (pdc->pen_type == PT_DOUBLE_DASH && 
+    if (pdc->pen_type == PT_DOUBLE_DASH &&
         (pdc->brush_type == BT_OPAQUE_STIPPLED || pdc->brush_type == BT_TILED)) {
         miWideLine (pdc, npt, pPts);
         return;

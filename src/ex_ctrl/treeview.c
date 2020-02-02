@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -129,10 +129,10 @@ void TreeViewControlCleanup (void)
  * Initialize Treeview.
  */
 static BOOL tvInitTVData (HWND hwnd, PTVDATA pData, DWORD dwStyle, PTVITEMINFO root_ii)
-{    
+{
     PTVITEM    tvRoot;
     HDC hdc;
-    char* text; 
+    char* text;
 
     if (root_ii) {
         if (root_ii->text ==  NULL || root_ii->text[0] == '\0')
@@ -210,7 +210,7 @@ static BOOL tvInitTVData (HWND hwnd, PTVDATA pData, DWORD dwStyle, PTVITEMINFO r
  * Get the parent node of the given node.
  */
 static PTVITEM getParent (PTVDATA pData, PTVITEM pChild)
-{ 
+{
     if (pChild == pData->root || pChild == NULL)
         return NULL;
 
@@ -320,7 +320,7 @@ static int getTVWidth (PTVDATA pData)
 {
     int width = 0;
 
-    TVWidth (pData, pData->root, &width); 
+    TVWidth (pData, pData->root, &width);
 
     return width;
 }
@@ -349,7 +349,7 @@ static void RemoveSubTree (PTVDATA pData, PTVITEM p)
 #endif
     free (p);
     p = NULL;
-    pData->nItemCount--;    
+    pData->nItemCount--;
 }
 
 /*
@@ -493,7 +493,7 @@ static PTVITEM ItemFromCount (PTVITEM p, int count, int* cnt)
         q = p->child;
         while (q != NULL && !(t = ItemFromCount (q, count, cnt)))
             q = q->next;
-    } else 
+    } else
         return NULL;
 
     return t;
@@ -590,7 +590,7 @@ static void InsertChild (HWND hwnd, PTVDATA pData, PTVITEM pParent, PTVITEM pChi
     ReleaseDC (hdc);
 }
 
-static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX, int centerY, 
+static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX, int centerY,
         PTVITEM p, int up, int down)
 {
     int h = pData->nItemHeight;
@@ -599,14 +599,14 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX, int cent
     SetBkColor (hdc, PIXEL_lightwhite);
 
     if (p->child != NULL) {
-        Rectangle (hdc, centerX - TV_BOXHALFHEIGHT, centerY - TV_BOXHALFHEIGHT, 
+        Rectangle (hdc, centerX - TV_BOXHALFHEIGHT, centerY - TV_BOXHALFHEIGHT,
                 centerX + TV_BOXHALFHEIGHT, centerY + TV_BOXHALFHEIGHT);
         MoveTo (hdc, centerX - TV_BOXHALFHEIGHT + 2, centerY);
         LineTo (hdc, centerX + TV_BOXHALFHEIGHT - 1, centerY);
         if (p->dwFlags & TVIF_FOLD) {
             MoveTo (hdc, centerX, centerY - TV_BOXHALFHEIGHT + 2);
             LineTo (hdc, centerX, centerY + TV_BOXHALFHEIGHT - 2);
-        }        
+        }
         MoveTo (hdc, centerX, centerY - (h>>1) - h * up);
         LineTo (hdc, centerX, centerY - TV_BOXHALFHEIGHT);
         MoveTo (hdc, centerX + TV_BOXHALFHEIGHT, centerY);
@@ -630,17 +630,17 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX, int cent
         if (!(pData->dwStyle & TVS_ICONFORSELECT)
                 && (!p->child || (p->dwFlags & TVIF_FOLD))) {
             if ((p->hIconFold)) {
-                DrawIcon (hdc, centerX, centerY - (h>>1), 
+                DrawIcon (hdc, centerX, centerY - (h>>1),
                         h, h, p->hIconFold);
             }
         } else if ((pData->dwStyle & TVS_ICONFORSELECT) && p->dwFlags & TVIF_SELECTED) {
             if ((p->hIconFold)) {
-                DrawIcon (hdc, centerX, centerY - (h>>1), 
+                DrawIcon (hdc, centerX, centerY - (h>>1),
                         h, h, p->hIconFold);
             }
-        } else 
+        } else
             if ((p->hIconUnfold)) {
-                DrawIcon (hdc, centerX, centerY - (h>>1), 
+                DrawIcon (hdc, centerX, centerY - (h>>1),
                         h, h, p->hIconUnfold);
             }
         centerX += h + TV_ICONGAP;
@@ -653,7 +653,7 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX, int cent
         TextOut (hdc, centerX, centerY - (h>>1), p->text);
 #ifndef _GRAY_SCREEN
         if (pData->dwStyle & TVS_FOCUS) {
-            FocusRect (hdc, centerX, centerY - (h>>1), 
+            FocusRect (hdc, centerX, centerY - (h>>1),
                     centerX + p->text_ext.cx - 1,
                     centerY + (h>>1) - 1);
         }
@@ -676,7 +676,7 @@ static void doAll (HWND hWnd, HDC hdc, PTVDATA pData, PTVITEM p, int cenX, int c
 
     up = getItemsWithPrev (pData, p);
     down = getItemsWithNext (pData, p);
-    tvDrawItem (hWnd, hdc, pData, cenX + *depth * h, cenY + (*count - pData->nItemTop) * h, 
+    tvDrawItem (hWnd, hdc, pData, cenX + *depth * h, cenY + (*count - pData->nItemTop) * h,
             p, up, down);
     (*count)++;
     if (!(p->dwFlags & TVIF_FOLD)) {
@@ -684,7 +684,7 @@ static void doAll (HWND hWnd, HDC hdc, PTVDATA pData, PTVITEM p, int cenX, int c
         (*depth)++;
         while (t) {
             doAll (hWnd, hdc, pData, t, cenX, cenY, count, depth);
-            if (*count > pData->nItemTop + pData->nVisCount) 
+            if (*count > pData->nItemTop + pData->nVisCount)
                 return;
             t = t->next;
         }
@@ -710,7 +710,7 @@ static void tvOnDraw (HWND hwnd, HDC hdc, PTVDATA pData)
         y += TV_BORDER;
         w -= (TV_BORDER<<1);
         h -= (TV_BORDER<<1);
-    }        
+    }
 
     centerX = x - pData->nLeft + TV_BOXGAP + (pData->nItemHeight>>1);
     centerY = y + (pData->nItemHeight >> 1);
@@ -974,9 +974,9 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
                 count = getCountFromItem (pData, new_sel);
 
-                if (count <= pData->nItemTop) 
+                if (count <= pData->nItemTop)
                     pData->nItemTop = count;
-                else if (count >= pData->nItemTop + pData->nVisCount) 
+                else if (count >= pData->nItemTop + pData->nVisCount)
                     pData->nItemTop = count - pData->nVisCount;
 
                 recalc_redraw (hwnd, pData);
@@ -1181,13 +1181,13 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 if (pData->dwStyle & TVS_WITHICON) {
                     newItem->hIconFold = (HICON) pTVItemInfo->hIconFold;
                     newItem->hIconUnfold = (HICON) pTVItemInfo->hIconUnfold;
-                } 
+                }
                 else {
                     newItem->hIconFold = 0L;
                     newItem->hIconUnfold = 0L;
                 }
 
-                if (pTVItemInfo->dwFlags & TVIF_FOLD) 
+                if (pTVItemInfo->dwFlags & TVIF_FOLD)
                     newItem->dwFlags = TVIF_FOLD;
 
                 newItem->dwAddData = pTVItemInfo->dwAddData;
@@ -1196,7 +1196,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 tvSetVScrollInfo (hwnd, pData, TRUE);
                 tvSetHScrollInfo (hwnd, pData, TRUE);
                 InvalidateRect (hwnd, NULL, TRUE);
-                return (LRESULT) newItem;    
+                return (LRESULT) newItem;
             }
 
         case MSG_KEYDOWN:
@@ -1250,7 +1250,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                                 rc.top += TV_BORDER;
                             rc.bottom = rc.top + pData->nItemHeight;
                             InvalidateRect (hwnd, &rc, TRUE);
-                        }            
+                        }
                         break;
 
                     case SCANCODE_CURSORBLOCKLEFT:
@@ -1451,7 +1451,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     break;
 
                 p = getItemFromCount(pData, count);
-                if (p == NULL) 
+                if (p == NULL)
                     break;
 
                 h = pData->nItemHeight;
@@ -1538,7 +1538,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     PLOGFONT logfont;
                     //bugfix: 4864 zhaochengzhang
                     logfont = GetWindowFont(hwnd);
-                    if (logfont->style & (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)) { 
+                    if (logfont->style & (FS_WEIGHT_BOOK | FS_WEIGHT_LIGHT)) {
                         rc.left--; rc.top--;
                         rc.right++; rc.bottom++;
                     }
@@ -1565,7 +1565,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     break;
 
                 p = getItemFromCount(pData, count);
-                if (p == NULL) 
+                if (p == NULL)
                     break;
 
                 h = pData->nItemHeight;

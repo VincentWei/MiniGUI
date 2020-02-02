@@ -110,7 +110,7 @@ static void print_joining_types(const BidiLevel *embedding_levels,
      ? BIDI_SENTINEL \
      : embedding_levels[(i)])
 
-#define BIDI_LEVELS_MATCH(i, j)	\
+#define BIDI_LEVELS_MATCH(i, j)    \
     ((i) == (j) || (i) == BIDI_SENTINEL || (j) == BIDI_SENTINEL)
 
 void GUIAPI UBidiJoinArabic(const BidiType *bidi_types,

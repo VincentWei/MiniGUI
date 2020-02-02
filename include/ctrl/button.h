@@ -14,10 +14,10 @@
  * \file button.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: button.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_BUTTON_H
 #define _MGUI_CTRL_BUTTON_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,24 +105,24 @@ extern "C" {
 /**
  * \def BS_DEFPUSHBUTTON
  * \brief Creates a push button that behaves like a BS_PUSHBUTTON style button.
- 
- * Creates a push button that behaves like a BS_PUSHBUTTON style button, 
- * but also has a heavy black border.  If the button is in a dialog box, 
- * the user can select the button by pressing the enter key, 
- * even when the button does not have the input focus. 
- * This style is useful for enabling the user to quickly select 
+
+ * Creates a push button that behaves like a BS_PUSHBUTTON style button,
+ * but also has a heavy black border.  If the button is in a dialog box,
+ * the user can select the button by pressing the enter key,
+ * even when the button does not have the input focus.
+ * This style is useful for enabling the user to quickly select
  * the most likely (default) option.
  */
 #define BS_DEFPUSHBUTTON    0x00000001L
 
 /**
  * \def BS_CHECKBOX
- * \brief Creates a check button is a button that can be either selected 
- * or deselected, and its selection is independent of the selections of 
+ * \brief Creates a check button is a button that can be either selected
+ * or deselected, and its selection is independent of the selections of
  * any other buttons.
  *
- * By default, the text is displayed to the right of the check box. 
- * To display the text to the left of the check box, combine this flag 
+ * By default, the text is displayed to the right of the check box.
+ * To display the text to the left of the check box, combine this flag
  * with the BS_LEFTTEXT style (or with the equivalent BS_RIGHTBUTTON style).
  */
 #define BS_CHECKBOX         0x00000002L
@@ -131,8 +131,8 @@ extern "C" {
  * \def BS_AUTOCHECKBOX
  * \brief Creates a button that is almost the same as a check box.
  *
- * Creates a button that is the same as a check box, 
- * except that the check state automatically toggles between 
+ * Creates a button that is the same as a check box,
+ * except that the check state automatically toggles between
  * checked and unchecked each time the user selects the check box.
  */
 #define BS_AUTOCHECKBOX     0x00000003L
@@ -140,12 +140,12 @@ extern "C" {
 /**
  * \def BS_RADIOBUTTON
  * \brief Creates a radio button that can be either selected
- * or deselected, but when selecting it any other buttons in 
- * its group will be cleared. 
+ * or deselected, but when selecting it any other buttons in
+ * its group will be cleared.
  *
- * By default, the text is displayed to the right of the circle. 
- * To display the text to the left of the circle, combine this flag 
- * with the BS_LEFTTEXT style (or with the equivalent BS_RIGHTBUTTON style). 
+ * By default, the text is displayed to the right of the circle.
+ * To display the text to the left of the circle, combine this flag
+ * with the BS_LEFTTEXT style (or with the equivalent BS_RIGHTBUTTON style).
  * Use radio buttons for groups of related, but mutually exclusive choices.
  */
 #define BS_RADIOBUTTON      0x00000004L
@@ -153,11 +153,11 @@ extern "C" {
 /**
  * \def BS_AUTORADIOBUTTON
  * \brief Creates a button that is almost the same as a radio button.
- * 
- * Creates a button that is the same as a radio button, 
- * except that when the user selects it, The system automatically 
+ *
+ * Creates a button that is the same as a radio button,
+ * except that when the user selects it, The system automatically
  * sets the button's check state to checked
- * and automatically sets the check state for all other buttons 
+ * and automatically sets the check state for all other buttons
  * in the same group to unchecked.
  */
 #define BS_AUTORADIOBUTTON  0x00000005L
@@ -165,10 +165,10 @@ extern "C" {
 /**
  * \def BS_3STATE
  * \brief Creates a button that is almost the same as a check box.
- * 
- * Creates a button that is the same as a check box, except 
+ *
+ * Creates a button that is the same as a check box, except
  * that the box can be grayed as well as checked or unchecked.
- * Use the grayed state to show that the state of the check box 
+ * Use the grayed state to show that the state of the check box
  * is not determined.
  */
 #define BS_3STATE           0x00000006L
@@ -177,7 +177,7 @@ extern "C" {
  * \def BS_AUTO3STATE
  * \brief Creates a button that is almost the same as a three-state check box.
  *
- * Creates a button that is the same as a three-state check box, 
+ * Creates a button that is the same as a three-state check box,
  * except that the box changes its state when the user selects it.
  * The state cycles through checked, grayed, and unchecked.
  */
@@ -212,7 +212,7 @@ extern "C" {
  * \def BS_LEFTTEXT
  * \brief Places text on the left side.
  *
- * Places text on the left side of the radio button 
+ * Places text on the left side of the radio button
  * or check box when combined with a radio button or check box style.
  */
 #define BS_LEFTTEXT         0x00000020L
@@ -238,8 +238,8 @@ extern "C" {
  * \def BS_LEFT
  * \brief Left-justifies the text in the button rectangle.
  *
- * However, if the button is a check box or radio button that 
- * does not have the BS_RIGHTBUTTON style, the text is left 
+ * However, if the button is a check box or radio button that
+ * does not have the BS_RIGHTBUTTON style, the text is left
  * justified on the right side of the check box or radio button.
  */
 #define BS_LEFT             0x00000100L
@@ -247,9 +247,9 @@ extern "C" {
 /**
  * \def BS_RIGHT
  * \brief Right-justifies text in the button rectangle.
- * 
- * However, if the button is a check box or radio button that 
- * does not have the BS_RIGHTBUTTON style, the text is 
+ *
+ * However, if the button is a check box or radio button that
+ * does not have the BS_RIGHTBUTTON style, the text is
  * right justified on the right side of the check box or radio button.
  */
 #define BS_RIGHT            0x00000200L
@@ -294,8 +294,8 @@ extern "C" {
  * \def BS_PUSHLIKE
  * \brief Makes a button look and act like a push button.
  *
- * Makes a button (such as a check box, three-state check box, or radio button) 
- * look and act like a push button. The button looks raised when it isn't 
+ * Makes a button (such as a check box, three-state check box, or radio button)
+ * look and act like a push button. The button looks raised when it isn't
  * pushed or checked, and sunken when it is pushed or checked.
  */
 #define BS_PUSHLIKE         0x00001000L
@@ -304,7 +304,7 @@ extern "C" {
  * \def BS_MULTLINE
  * \brief Wraps the button text to multiple lines.
  *
- * Wraps the button text to multiple lines if the text string is 
+ * Wraps the button text to multiple lines if the text string is
  * too long to fit on a single line in the button rectangle.
  */
 #define BS_MULTLINE         0x00002000L
@@ -329,7 +329,7 @@ extern "C" {
 
 /**
  * \def BS_NOBORDER
- * \brief The no border style of button. 
+ * \brief The no border style of button.
  */
 #define BS_NOBORDER         0x00010000L
 
@@ -349,7 +349,7 @@ extern "C" {
 
 /**
  * \def BST_POSE_MASK
- * \brief The pose(normal, hilite, pushed and disable) mask of 
+ * \brief The pose(normal, hilite, pushed and disable) mask of
  *        status of button.
  */
 #define BST_POSE_MASK        0x0003
@@ -381,7 +381,7 @@ extern "C" {
 
 /**
  * \def BST_CHECK_MASK
- * \brief The check(unchecked, checked and indeterminate) mask of 
+ * \brief The check(unchecked, checked and indeterminate) mask of
  *        status of button.
  */
 #define BST_CHECK_MASK      0x000c
@@ -400,7 +400,7 @@ extern "C" {
 
 /**
  * \def BST_INDETERMINATE
- * \brief Indicates the button is grayed because 
+ * \brief Indicates the button is grayed because
  * the state of the button is indeterminate.
  */
 #define BST_INDETERMINATE   0x0008
@@ -422,7 +422,7 @@ extern "C" {
  * \def BM_GETCHECK
  * \brief Retrieves the check state of a radio button or check box.
  *
- * An application sends a BM_GETCHECK message to retrieve 
+ * An application sends a BM_GETCHECK message to retrieve
  * the check state of a radio button or check box.
  *
  * \code
@@ -445,7 +445,7 @@ extern "C" {
  * \def BM_SETCHECK
  * \brief Sets the check state of a radio button or check box.
  *
- * An application sends a BM_SETCHECK message to set 
+ * An application sends a BM_SETCHECK message to set
  * the check state of a radio button or check box.
  *
  * \code
@@ -471,7 +471,7 @@ extern "C" {
  * \def BM_GETSTATE
  * \brief Gets the state of a button or check box.
  *
- * An application sends a BM_GETSTATE message to 
+ * An application sends a BM_GETSTATE message to
  * determine the state of a button or check box.
  *
  * \code
@@ -490,7 +490,7 @@ extern "C" {
  * \def BM_SETSTATE
  * \brief Sets the state of a button.
  *
- * An application sends a BM_SETSTATE message to set the state of a 
+ * An application sends a BM_SETSTATE message to set the state of a
  * button.
  *
  * \code
@@ -551,8 +551,8 @@ extern "C" {
 
 /**
  * \def BM_ENABLE
- * \brief enable or disable the button. 
- *If it is disabled, it can receive mouse and key messages 
+ * \brief enable or disable the button.
+ *If it is disabled, it can receive mouse and key messages
  *but don't response them
  *
  * \code
@@ -571,7 +571,7 @@ extern "C" {
  * \def BM_GETIMAGE
  * \brief Retrieves the handle to the image.
  *
- * An application sends a BM_GETIMAGE message to 
+ * An application sends a BM_GETIMAGE message to
  * retrieve a handle to the image (icon or bitmap) associated with the button.
  *
  * \code
@@ -595,15 +595,15 @@ extern "C" {
 
 #define BM_IMAGE_BITMAP         1
 #define BM_IMAGE_ICON           2
-    
+
 /**
  * \def BM_SETIMAGE
  * \brief Associates a new image (icon or bitmap) with the button.
  *
- * An application sends a BM_SETIMAGE message to 
+ * An application sends a BM_SETIMAGE message to
  * associate a new image (icon or bitmap) with the button.
  *
- * Please use BM_IMAGE_BITMAP or BM_IMAGE_ICON as the first parameter of the message 
+ * Please use BM_IMAGE_BITMAP or BM_IMAGE_ICON as the first parameter of the message
  * to indicate the type of button control image:
  *  - BM_IMAGE_BITMAP\n
  *          Specifies the type of image to associate with the button to be a bitmap.
@@ -615,7 +615,7 @@ extern "C" {
 #define BM_MSGMAX               0xF100
 
     /** @} end of ctrl_button_msgs */
-    
+
     /**
      * \defgroup ctrl_button_ncs Notification codes of button control
      * @{
@@ -642,7 +642,7 @@ extern "C" {
 
 /**
  * \def BN_UNHILITE
- * \brief The BN_UNHILITE notification message is sent when the user unhilite a button, 
+ * \brief The BN_UNHILITE notification message is sent when the user unhilite a button,
  *      (the user moves the mouse leaving it)
  */
 #define BN_UNHILITE         3

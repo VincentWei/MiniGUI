@@ -1,4 +1,4 @@
-/** 
+/**
  * Selecting a logical font to the DC and output text in GB2312 charset
  * by using DrawText.
  */
@@ -10,7 +10,7 @@ void OnModeDrawText (HDC hdc)
     const char* szBuff2 = "This is a good day. \n"
             "This text is drawn by calling DrawText.";
     const char* szBuff3 = "Single line text, center.";
-    const char* szBuff4 = 
+    const char* szBuff4 =
             "This text is drawn by calling DrawText.";
 
     rc1.left = 1; rc1.top  = 1; rc1.right = 401; rc1.bottom = 101;

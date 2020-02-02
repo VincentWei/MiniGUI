@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -264,7 +264,7 @@ static GAL_Surface *GDL_SetVideoMode (_THIS, GAL_Surface *current,
     /* di.color_space = (di.tvmode.height <= 576)
         ? GDL_COLOR_SPACE_BT601
         : GDL_COLOR_SPACE_BT709; */
-    
+
     di.gamma        = GDL_GAMMA_LINEAR;
     di.tvmode.width      = width;
     di.tvmode.height     = height;
@@ -319,7 +319,7 @@ static int GDL_AllocHWSurface(_THIS, GAL_Surface *surface)
 {
     gdl_surface_info_t info;
     gdl_pixel_format_t pf = GDL_PF_ARGB_32;//pixel_format_conversion(surface->format->BitsPerPixel);
-    if (GDL_SUCCESS == 
+    if (GDL_SUCCESS ==
             gdl_alloc_surface (pf, surface->w, surface->h, 0, &info)) {
         gdl_color_t  color = {255, 255, 255, 255};
         surface->hwdata = (struct private_hwdata *)calloc(1, sizeof(struct private_hwdata));
@@ -342,7 +342,7 @@ static int GDL_AllocHWSurface(_THIS, GAL_Surface *surface)
 static void GDL_FreeHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface->hwdata->info.id != GDL_SURFACE_INVALID)
-    {   
+    {
         gdl_unmap_surface (surface->hwdata->info.id);
         gdl_free_surface(surface->hwdata->info.id);
     }
@@ -371,7 +371,7 @@ static void GDL_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                         rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -397,12 +397,12 @@ static int GDL_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
         for (i = pixel; i < num; i++) {
             int index = i << (8 - bpp);
             if (index) index--;
-            this->hidden->clut [pixel] 
+            this->hidden->clut [pixel]
                 = (0xff << 24) | ((colors[index].r & 0xff) << 16) | ((colors[index].g & 0xff) << 8) | (colors[index].b & 0xff);
             pixel ++;
         }
         /* set final color. */
-        this->hidden->clut [(1<<bpp)-1] 
+        this->hidden->clut [(1<<bpp)-1]
             = (0xff << 24) | ((colors[255].r & 0xff) << 16) | ((colors[255].g & 0xff) << 8) | (colors[255].b & 0xff);
 
     }

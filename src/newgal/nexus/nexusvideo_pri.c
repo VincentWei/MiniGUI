@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -325,7 +325,7 @@ static void hotplug_callback(void *pParam, int iParam)
     NEXUS_DisplaySettings displaySettings;
 
     NEXUS_HdmiOutput_GetStatus(hdmi, &status);
-    
+
     if ( connected != status.connected )
     {
         if ( connected )
@@ -334,7 +334,7 @@ static void hotplug_callback(void *pParam, int iParam)
             /*
             disconnect_hdmi_audio(hdmi);
             */
-            NEXUS_Display_RemoveOutput(display, NEXUS_HdmiOutput_GetVideoConnector(hdmi));           
+            NEXUS_Display_RemoveOutput(display, NEXUS_HdmiOutput_GetVideoConnector(hdmi));
         }
         else
         {
@@ -346,7 +346,7 @@ static void hotplug_callback(void *pParam, int iParam)
                 NEXUS_Display_SetSettings(display, &displaySettings);
             }
 
-            
+
             fprintf(stderr, "\nHotplug - connecting HDMI to display\n");
             NEXUS_Display_AddOutput(display, NEXUS_HdmiOutput_GetVideoConnector(hdmi));
             /*
@@ -491,7 +491,7 @@ NexusPrivate_init_server(void **pThis, int width, int height)
     hdmiSettings.hotplugCallback.param = (int) this->display;
     NEXUS_HdmiOutput_SetSettings(platformConfig.outputs.hdmi[0], &hdmiSettings);
     hotplug_callback(platformConfig.outputs.hdmi[0], (int) this->display);
-    
+
 
     this->gfx = NEXUS_Graphics2D_Open(0, NULL);
     if (!this->gfx)
@@ -862,7 +862,7 @@ NexusPrivate_BitBlitEx(void *is_null, NexusPrivate_HWSurface_hwdata * src,
     UNUSED(is_null);            /* use dst->gfx */
     UNUSED(colorkey_dst);
     /*
-    printf("<%d> Enter NexusPrivate_BitBlit(%p(%d,%d,%d,%d) -> %p(%d,%d,%d,%d)) flag=%d colorkey(0x%x,0x%x) alpha(0x%x)\n", 
+    printf("<%d> Enter NexusPrivate_BitBlit(%p(%d,%d,%d,%d) -> %p(%d,%d,%d,%d)) flag=%d colorkey(0x%x,0x%x) alpha(0x%x)\n",
             times(NULL),
             src->surfaceHandle, src_x, src_y, src_w, src_h,
             dst->surfaceHandle, dst_x, dst_y, dst_w, dst_h,

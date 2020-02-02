@@ -7,7 +7,7 @@ static LRESULT InitDialogBoxProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM
     switch (message) {
     case MSG_INITDIALOG:
         return 1;
-        
+
     case MSG_COMMAND:
         switch (wParam) {
         case IDOK:
@@ -16,16 +16,16 @@ static LRESULT InitDialogBoxProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM
             break;
         }
         break;
-        
+
     }
-    
+
     return DefaultDialogProc (hDlg, message, wParam, lParam);
 }
 static void InitDialogBox (HWND hWnd)
 {
     /* Assoiciate the dialog with the controls */
     DlgInitProgress.controls = CtrlInitProgress;
-    
+
     /* Display the dialog box and wait */
     DialogBoxIndirectParam (&DlgInitProgress, hWnd, InitDialogBoxProc, 0L);
 }

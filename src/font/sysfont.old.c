@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** sysfont.c: Load, create and handle system font and system charset.
-** 
+**
 ** Current maintainer: Wei Yongming.
 **
 ** Create date: 1999.01.03 by Wei Yongming.
@@ -78,7 +78,7 @@ BOOL mg_InitSysFont (void)
     int i;
     char font_name [LEN_DEVFONT_NAME + 1];
 
-    if (GetMgEtcIntValue ("systemfont", "font_number", 
+    if (GetMgEtcIntValue ("systemfont", "font_number",
                            &nr_fonts) < 0 )
         return FALSE;
     if ( nr_fonts < 1)
@@ -102,38 +102,38 @@ BOOL mg_InitSysFont (void)
         char file [MAX_PATH + 1];
 
         sprintf (key, "name%d", i);
-        if (GetMgEtcValue ("systemfont", key, 
+        if (GetMgEtcValue ("systemfont", key,
                            font_name, LEN_DEVFONT_NAME) < 0 )
             goto error_load;
 
         if (!fontGetCharsetFromName (font_name, charset)) {
-            fprintf (stderr, "GDI: Invalid font name (charset): %s.\n", 
+            fprintf (stderr, "GDI: Invalid font name (charset): %s.\n",
                     font_name);
             goto error_load;
         }
 
-        if ((SysRBFInfos [i].charset_ops 
+        if ((SysRBFInfos [i].charset_ops
                = GetCharsetOps (charset)) == NULL) {
             fprintf (stderr, "GDI: Not supported charset: %s.\n", charset);
             goto error_load;
         }
 
         if ((SysRBFInfos [i].width = fontGetWidthFromName (font_name)) == -1) {
-            fprintf (stderr, "GDI: Invalid font name (width): %s.\n", 
+            fprintf (stderr, "GDI: Invalid font name (width): %s.\n",
                     font_name);
             goto error_load;
         }
-        
+
         if ((SysRBFInfos [i].height = fontGetHeightFromName (font_name)) == -1) {
             fprintf (stderr, "GDI: Invalid font name (height): %s.\n",
                     font_name);
             goto error_load;
         }
-        
+
         SysRBFInfos [i].nr_chars = SysRBFInfos [i].charset_ops->nr_chars;
 
         sprintf (key, "fontfile%d", i);
-        if (GetMgEtcValue ("systemfont", key, 
+        if (GetMgEtcValue ("systemfont", key,
                            file, MAX_PATH) < 0)
             goto error_load;
 
@@ -173,7 +173,7 @@ error_load:
     fprintf (stderr, "GDI: Error in loading system fonts!\n");
     for (i = 0; i < nr_fonts; i++)
         UnloadRawBitmapFont (SysRBFInfos + i);
-    
+
     free (SysRBFInfos);
     free (SysDevFonts);
     SysRBFInfos = NULL;
@@ -187,7 +187,7 @@ void mg_TermSysFont (void)
 
     for (i = 0; i < nr_fonts; i++)
         UnloadRawBitmapFont (SysRBFInfos + i);
-    
+
     free (SysRBFInfos);
     free (SysDevFonts);
 
@@ -200,7 +200,7 @@ const char* GUIAPI GetSysCharset (void)
 {
     if (SysLogFont.mbc_devfont == NULL)
         return SBC_DEVFONT_INFO (SysLogFont)->charset_ops->name;
-    else 
+    else
         return MBC_DEVFONT_INFO (SysLogFont)->charset_ops->name;
 }
 
@@ -231,7 +231,7 @@ int GUIAPI SetSysCharset (const char* charset)
     SysLogFont.sbc_devfont = SysDevFonts;
     if (i == 0)
         SysLogFont.mbc_devfont = NULL;
-    else 
+    else
         SysLogFont.mbc_devfont = SysDevFonts + i;
 
     return 0;
@@ -264,7 +264,7 @@ void GUIAPI GetSysTabbedTextExtent (const char* spText, SIZE* pSize)
     int y = 0;
 
     pSize->cx = 0;
-    pSize->cy = 0; 
+    pSize->cy = 0;
 
     for (; *spText; spText++) {
         switch (*spText) {

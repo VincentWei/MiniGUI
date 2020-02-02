@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -47,7 +47,7 @@
  * Todo:
  *  - reorganize code and funcionize some repeated code block.
  *  - Comment
- */ 
+ */
 
 #include <pthread.h>
 #include <stdio.h>
@@ -61,7 +61,7 @@
 #include <minigui/minigui.h>
 
 #include <minigui/xvfb.h>
-//#define USE_MSBLEFT 
+//#define USE_MSBLEFT
 
 static guchar *xvfb_buf;
 static guchar *gtk_buf;
@@ -179,16 +179,16 @@ static void* start_minigui_app (void* argv)
 
 int
 on_darea_expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
-{       
+{
     switch (__mg_rtos_xvfb_header->depth) {
 
-        case 1: 
+        case 1:
         case 2:
-        case 4: 
+        case 4:
         case 8: {
             GdkRgbCmap *cmap;
 
-            cmap = gdk_rgb_cmap_new (pal_entry, 1<<__mg_rtos_xvfb_header->depth);                
+            cmap = gdk_rgb_cmap_new (pal_entry, 1<<__mg_rtos_xvfb_header->depth);
             if (__mg_rtos_xvfb_header->depth < 8) {
                 gdk_draw_indexed_image(widget->window,
                         widget->style->fg_gc[GTK_STATE_NORMAL],
@@ -201,7 +201,7 @@ on_darea_expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
                         __mg_rtos_xvfb_header->width,
                         cmap);
             }
-            else { 
+            else {
                 gdk_draw_indexed_image(widget->window,
                         widget->style->fg_gc[GTK_STATE_NORMAL],
                         0,
@@ -219,7 +219,7 @@ on_darea_expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
         }
 
 
-        case 16: { 
+        case 16: {
             gdk_draw_rgb_image(widget->window,
                     widget->style->fg_gc[GTK_STATE_NORMAL],
                     0,
@@ -232,7 +232,7 @@ on_darea_expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
             break;
         }
 
-        case 24: {               
+        case 24: {
             gdk_draw_rgb_image(widget->window,
                     widget->style->fg_gc[GTK_STATE_NORMAL],
                     0,
@@ -255,7 +255,7 @@ on_darea_expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
                     __mg_rtos_xvfb_header->width,
                     __mg_rtos_xvfb_header->height,
                     GDK_RGB_DITHER_MAX,
-                    xvfb_buf, 
+                    xvfb_buf,
                     __mg_rtos_xvfb_header->width*4);
             break;
         }
@@ -299,7 +299,7 @@ Repaint(gpointer data)
 
     if (color_depth <= 8 && __mg_rtos_xvfb_header->palette_changed == 1) {
         p = (XVFBPalEntry *)(
-                (unsigned char *)__mg_rtos_xvfb_header + 
+                (unsigned char *)__mg_rtos_xvfb_header +
                 __mg_rtos_xvfb_header->palette_offset
                 );
 
@@ -312,7 +312,7 @@ Repaint(gpointer data)
 
         guchar *sp;
         guchar *dp;
-        int row, col;                    
+        int row, col;
 
         switch (__mg_rtos_xvfb_header->depth) {
 
@@ -397,7 +397,7 @@ Repaint(gpointer data)
                 gdk_rgb_cmap_free (cmap);
 
                 break;
-            }            
+            }
 
             case 4: {
                 GdkRgbCmap *cmap;
@@ -443,7 +443,7 @@ Repaint(gpointer data)
             }
 
             case 8: {
-                GdkRgbCmap *cmap;               
+                GdkRgbCmap *cmap;
 
 
                 cmap = gdk_rgb_cmap_new (pal_entry, 256);
@@ -462,7 +462,7 @@ Repaint(gpointer data)
                 gdk_rgb_cmap_free (cmap);
 
                 break;
-            }            
+            }
 
             case 16: {
                 Uint16 word;
@@ -477,9 +477,9 @@ Repaint(gpointer data)
                         word = *((Uint16*)sp);
                         sp+=2;
 
-                        *dp++ = ((word & 0xF800) >> 11) << 3; /* red */                        
-                        *dp++ = ((word & 0x07E0) >> 5) << 2;  /* green */              
-                        *dp++ = (word & 0x001F) << 3;         /* blue */                         
+                        *dp++ = ((word & 0xF800) >> 11) << 3; /* red */
+                        *dp++ = ((word & 0x07E0) >> 5) << 2;  /* green */
+                        *dp++ = (word & 0x001F) << 3;         /* blue */
 
                     }
                 }
@@ -495,7 +495,7 @@ Repaint(gpointer data)
                         gtk_pitch);
 
                 break;
-            }            
+            }
 
             case 24: {
 
@@ -532,7 +532,7 @@ Repaint(gpointer data)
 #ifdef _DEBUG
         fprintf (stderr, "dirty == TRUE and window is repained. \n");
 #endif
-    }        
+    }
 
 
     return TRUE;
@@ -551,10 +551,10 @@ on_motion(GtkWidget *widget, GdkEventMotion*event)
 
     event_data.mouse_data.btn = 0;
     if (event->state & GDK_BUTTON1_MASK)
-        event_data.mouse_data.btn |= 0x0001; 
+        event_data.mouse_data.btn |= 0x0001;
     if (event->state & GDK_BUTTON3_MASK)
-        event_data.mouse_data.btn |= 0x0002; 
-    
+        event_data.mouse_data.btn |= 0x0002;
+
     if (xVFBNotifyNewEvent (__mg_rtos_xvfb_event_buffer, &event_data) == 2)
     {
         close_app();
@@ -562,16 +562,16 @@ on_motion(GtkWidget *widget, GdkEventMotion*event)
     }
 
 #ifdef _DEBUG
-    fprintf (stderr, "==================current mouse state = %d\n", event->state);    
+    fprintf (stderr, "==================current mouse state = %d\n", event->state);
 #endif
-    
+
     return TRUE;
 }
 
 int
 on_click(GtkWidget *widget, GdkEventButton * event)
 {
-    XVFBEVENT event_data;    
+    XVFBEVENT event_data;
     int x = event->x;;
     int y = event->y;
 
@@ -582,7 +582,7 @@ on_click(GtkWidget *widget, GdkEventButton * event)
 #ifdef _DEBUG
     fprintf (stderr, "button type = %d. \n", event->type);
 #endif
-    
+
     if(event->type == GDK_BUTTON_RELEASE) {
         event_data.mouse_data.btn = 0;
 #ifdef _DEBUG
@@ -598,13 +598,13 @@ on_click(GtkWidget *widget, GdkEventButton * event)
         fprintf (stderr, "===========button = %d \n", event->button);
 #endif
     }
-    
+
     if (xVFBNotifyNewEvent (__mg_rtos_xvfb_event_buffer, &event_data) == 2)
     {
         close_app();
         return FALSE;
     }
-        
+
     return TRUE;
 }
 
@@ -617,10 +617,10 @@ int keyboard_handler ( GtkWidget *wp, GdkEventKey *event, gpointer data )
         return TRUE;
 
     event_data.event_type = 1;
-    event_data.kb_data.key_code = translate_scancode(event->hardware_keycode, 
+    event_data.kb_data.key_code = translate_scancode(event->hardware_keycode,
                     event->state & GDK_MOD2_MASK);
 
-    if ( event->type == GDK_KEY_PRESS )    
+    if ( event->type == GDK_KEY_PRESS )
         event_data.kb_data.key_state = 1;
     else if (event->type == GDK_KEY_RELEASE)
         event_data.kb_data.key_state = 0;
@@ -631,7 +631,7 @@ int keyboard_handler ( GtkWidget *wp, GdkEventKey *event, gpointer data )
         close_app();
         return FALSE;
     }
-        
+
 
 #ifdef _DEBUG
     fprintf (stderr, "Keyboard event %d %s",
@@ -643,14 +643,14 @@ int keyboard_handler ( GtkWidget *wp, GdkEventKey *event, gpointer data )
         fprintf (stderr, " released" );
     else
         fprintf (stderr, " event-type-%d", event->type );
-    
+
     if ( event->length > 0 )
         fprintf (stderr, " string: %s\n", event->string );
 #endif
 
     return TRUE;
-} 
-  
+}
+
 
 
 static depth_to_rgbmask(int color_depth, int* r_mask, int* g_mask, int* b_mask, int* a_mask)
@@ -678,7 +678,7 @@ static depth_to_rgbmask(int color_depth, int* r_mask, int* g_mask, int* b_mask, 
         default:
             break;
     }
-    
+
 }
 
 static int init_xvfb (int buffer_width, int buffer_height, int color_depth)
@@ -698,24 +698,24 @@ static int init_xvfb (int buffer_width, int buffer_height, int color_depth)
 #endif
 
     xvfb_buf = (unsigned char *)__mg_rtos_xvfb_header + __mg_rtos_xvfb_header->fb_offset;
-    
+
     __mg_rtos_xvfb_event_buffer = xVFBCreateEventBuffer (20);
 
-    
+
     if (color_depth <= 8) {
         n_colors = 1 << color_depth;
-        pal_entry = (guint32 *)malloc (n_colors * sizeof(guint32));       
+        pal_entry = (guint32 *)malloc (n_colors * sizeof(guint32));
     }
-    
+
 
     /* Alloc gtk_buf when color_depth>8 or color_depth <8. If color_depth ==8, then alloc nothing.*/
     if (color_depth > 8)
         data_size = __mg_rtos_xvfb_header->width * __mg_rtos_xvfb_header->height * 3 ;
     else if (color_depth <= 8)
         data_size = __mg_rtos_xvfb_header->width * __mg_rtos_xvfb_header->height * 8 / 8;;
-    
-    gtk_buf = (guchar *)malloc (data_size);    
-        
+
+    gtk_buf = (guchar *)malloc (data_size);
+
     return 0;
 }
 
@@ -729,7 +729,7 @@ close_app (GtkWidget *widget, gpointer data)
 
     if (gtk_buf != NULL)
         free (gtk_buf);
-    
+
     gtk_main_quit ();
 
     xVFBFreeVirtualFrameBuffer(__mg_rtos_xvfb_header);
@@ -778,7 +778,7 @@ int main( int argc, char *argv[] )
     gtk_init (&argc, &argv);
     gdk_rgb_init();
 
-    
+
     init_xvfb (buffer_width, buffer_height, color_depth);
 
     if ( pthread_create( &minigui_thread, NULL,  start_minigui_app, argv) ) {
@@ -791,8 +791,8 @@ int main( int argc, char *argv[] )
     gtk_window_set_title ((GtkWindow *)window, "RTOS_XVFB Program");
     gtk_window_set_default_size ((GtkWindow *)window, buffer_width, buffer_height);
     g_signal_connect (window, "destroy", G_CALLBACK (close_app), NULL);
-    
-    
+
+
     darea=gtk_drawing_area_new();
     gtk_drawing_area_size(GTK_DRAWING_AREA(darea), buffer_width, buffer_height);
     gtk_container_add(GTK_CONTAINER(window), darea);
@@ -802,7 +802,7 @@ int main( int argc, char *argv[] )
 
     gtk_signal_connect(GTK_OBJECT (darea), "motion_notify_event",
                        GTK_SIGNAL_FUNC(on_motion),NULL);
-        
+
     gtk_signal_connect(GTK_OBJECT (darea), "button_press_event",
                        GTK_SIGNAL_FUNC(on_click),NULL);
 
@@ -810,7 +810,7 @@ int main( int argc, char *argv[] )
                        GTK_SIGNAL_FUNC(on_click),NULL);
 
     /* We never see the release event, unless we add the press
-     * event to the mask.*/    
+     * event to the mask.*/
     gtk_widget_add_events ( GTK_WIDGET(darea), GDK_BUTTON_RELEASE_MASK );
     gtk_widget_add_events ( GTK_WIDGET(darea), GDK_BUTTON_PRESS_MASK );
 
@@ -819,16 +819,16 @@ int main( int argc, char *argv[] )
 
     gtk_widget_add_events ( GTK_WIDGET(darea), GDK_KEY_PRESS_MASK );
     g_signal_connect ( darea, "key_press_event", G_CALLBACK(keyboard_handler), NULL );
-    g_signal_connect ( darea, "key_release_event", G_CALLBACK(keyboard_handler), NULL );    
-    
+    g_signal_connect ( darea, "key_release_event", G_CALLBACK(keyboard_handler), NULL );
+
 
     /* Update screen 1/20 second */
     gtk_timeout_add(50, Repaint,(gpointer)darea);
 
-    gtk_widget_add_events(darea, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK);    
+    gtk_widget_add_events(darea, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK);
     gtk_widget_show_all(window);
-    
+
     gtk_main ();
-    
+
     return 0;
 }

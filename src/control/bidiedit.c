@@ -2171,8 +2171,8 @@ esleft_input_char_refresh (HWND hWnd,
     char_size = cur_edit_pos_x - cur_sel_start_x;
     sel_size = abs(old_sel_start_x - old_sel_end_x);
 
-    scroll_rc.top = sled->rcVis.top;		
-    scroll_rc.bottom = sled->rcVis.bottom;		
+    scroll_rc.top = sled->rcVis.top;
+    scroll_rc.bottom = sled->rcVis.bottom;
     refresh_rc.top = sled->rcVis.top;
     refresh_rc.bottom = sled->rcVis.bottom;
 
@@ -2191,7 +2191,7 @@ esleft_input_char_refresh (HWND hWnd,
                     if ((old_nContX > 0) &&
                         ((achars_len_x - old_nContX) <= sled->rcVis.right)) {
                         scroll_len = sel_size - char_size;
-                        scroll_rc.left = sled->rcVis.left;		
+                        scroll_rc.left = sled->rcVis.left;
                         scroll_rc.right = old_sel_start_x < old_sel_end_x
                                 ? old_sel_start_x : old_sel_end_x;
 
@@ -2206,7 +2206,7 @@ esleft_input_char_refresh (HWND hWnd,
                     else{//left scroll window
                         scroll_len = -(sel_size - char_size);
                         scroll_rc.left = old_sel_start_x < old_sel_end_x
-                            ? old_sel_end_x : old_sel_start_x;		
+                            ? old_sel_end_x : old_sel_start_x;
                         scroll_rc.right = sled->rcVis.right;
 
                         ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
@@ -2220,8 +2220,8 @@ esleft_input_char_refresh (HWND hWnd,
                 else{//when char_size > sel_size right scroll window
                     scroll_len = char_size - sel_size;
                     scroll_rc.left = old_sel_start_x < old_sel_end_x
-                        ? old_sel_end_x : old_sel_start_x;		
-                    scroll_rc.right = sled->rcVis.right;		
+                        ? old_sel_end_x : old_sel_start_x;
+                    scroll_rc.right = sled->rcVis.right;
 
                     ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
@@ -2563,7 +2563,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         else{
             if (dwStyle & ES_LEFT) {
             //if ((dwStyle&0xffff) ==  ES_LEFT) {
-	            esleft_input_char_refresh(hWnd, sled, (char*)charBuffer, chars);
+                esleft_input_char_refresh(hWnd, sled, (char*)charBuffer, chars);
                 set_edit_caret_pos(hWnd, sled);
 
                 sled->changed = TRUE;

@@ -98,7 +98,7 @@ SemSetManager* __mg_create_sem_set_manager (int semid, int nr_sems)
     if (manager == NULL) {
         return NULL;
     }
-    
+
     if (semid < 0) {
         /* create an anonymous semaphore set */
         manager->semid = semget (IPC_PRIVATE, nr_sems,

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -177,115 +177,115 @@
     #define PREV_SCANCODE       0x807ff20d
 #elif defined EM85_IR
     /* KempVideo remote control */
-	#define NETSETUP_SCANCODE	0xe817cf00
-	#define POWER_SCANCODE		0xff00cf00
-	#define ONE_SCANCODE		0xfd02cf00
-	#define TWO_SCANCODE		0xfc03cf00
-	#define THREE_SCANCODE		0xfb04cf00
-	#define FOUR_SCANCODE		0xf906cf00
-	#define FIVE_SCANCODE		0xf807cf00
-	#define SIX_SCANCODE		0xf708cf00
-	#define SEVEN_SCANCODE		0xf50acf00
-	#define EIGHT_SCANCODE		0xf40bcf00
-	#define NINE_SCANCODE		0xf30ccf00
-	#define DOT_SCANCODE		0xb34ccf00
-	#define THERO_SCANCODE		0xf10ecf00
-	#define BS_SCANCODE			0xb44bcf00
-	#define PAGEUP_SCANCODE		0xe41bcf00
-	#define PAGEDN_SCANCODE		0xe31ccf00
-	#define LEFT_SCANCODE		0xe01fcf00
-	#define UP_SCANCODE			0xe11ecf00
-	#define RIGHT_SCANCODE		0xbe41cf00
-	#define DOWN_SCANCODE		0xbd42cf00
-	#define ENTER_SCANCODE		0xbf40cf00
-	#define VOLDN_SCANCODE		0xf609cf00
-	#define VOLUP_SCANCODE		0xfa05cf00
-	#define FRW_SCANCODE		0xba45cf00
-	#define PLAY_SCANCODE		0xbc43cf00
-	#define FFW_SCANCODE		0xb946cf00
-	#define PAUSE_SCANCODE		0xe21dcf00
-	#define STOP_SCANCODE		0xea15cf00
-	#define MUTE_SCANCODE		0xb14ecf00
-	#define REFRESH_SCANCODE	0xed12cf00
-	#define HOME_SCANCODE		0xec13cf00
-	#define TRACK_SCANCODE		0xe916cf00
-	#define WEB_SCANCODE		0xef10cf00
-	#define VK_SCANCODE			0xb24dcf00
-	#define OPTION_SCANCODE		0xe51acf00
+    #define NETSETUP_SCANCODE    0xe817cf00
+    #define POWER_SCANCODE        0xff00cf00
+    #define ONE_SCANCODE        0xfd02cf00
+    #define TWO_SCANCODE        0xfc03cf00
+    #define THREE_SCANCODE        0xfb04cf00
+    #define FOUR_SCANCODE        0xf906cf00
+    #define FIVE_SCANCODE        0xf807cf00
+    #define SIX_SCANCODE        0xf708cf00
+    #define SEVEN_SCANCODE        0xf50acf00
+    #define EIGHT_SCANCODE        0xf40bcf00
+    #define NINE_SCANCODE        0xf30ccf00
+    #define DOT_SCANCODE        0xb34ccf00
+    #define THERO_SCANCODE        0xf10ecf00
+    #define BS_SCANCODE            0xb44bcf00
+    #define PAGEUP_SCANCODE        0xe41bcf00
+    #define PAGEDN_SCANCODE        0xe31ccf00
+    #define LEFT_SCANCODE        0xe01fcf00
+    #define UP_SCANCODE            0xe11ecf00
+    #define RIGHT_SCANCODE        0xbe41cf00
+    #define DOWN_SCANCODE        0xbd42cf00
+    #define ENTER_SCANCODE        0xbf40cf00
+    #define VOLDN_SCANCODE        0xf609cf00
+    #define VOLUP_SCANCODE        0xfa05cf00
+    #define FRW_SCANCODE        0xba45cf00
+    #define PLAY_SCANCODE        0xbc43cf00
+    #define FFW_SCANCODE        0xb946cf00
+    #define PAUSE_SCANCODE        0xe21dcf00
+    #define STOP_SCANCODE        0xea15cf00
+    #define MUTE_SCANCODE        0xb14ecf00
+    #define REFRESH_SCANCODE    0xed12cf00
+    #define HOME_SCANCODE        0xec13cf00
+    #define TRACK_SCANCODE        0xe916cf00
+    #define WEB_SCANCODE        0xef10cf00
+    #define VK_SCANCODE            0xb24dcf00
+    #define OPTION_SCANCODE        0xe51acf00
 #elif !defined VCOM_IRKB
     #error NO RMOTE CONTROL DEFINIED!!!
 #endif
 
 #if defined VCOM_IRKB
-	#define VCOM_IRKB_1			0xfd02fe01
-	#define VCOM_IRKB_2			0xc639fe01
-	#define VCOM_IRKB_3			0xf50Afe01
-	#define VCOM_IRKB_4			0xed12fe01
-	#define VCOM_IRKB_5			0xe51Afe01
-	#define VCOM_IRKB_6			0xbd42fe01
-	#define VCOM_IRKB_7			0xb54Afe01
-	#define VCOM_IRKB_8			0xad52fe01
-	#define VCOM_IRKB_9			0xa55Afe01
-	#define VCOM_IRKB_0			0xde21fe01
-	#define VCOM_IRKB_MINUS		0xdc23fe01
-	#define VCOM_IRKB_EQUAL		0xac53fe01
-	#define VCOM_IRKB_Backspace	0xcf30fe01
-	#define VCOM_IRKB_Tab		0xc03Ffe01
-	#define VCOM_IRKB_Q			0xfe01fe01
-	#define VCOM_IRKB_W			0xc738fe01
-	#define VCOM_IRKB_E			0xf609fe01
-	#define VCOM_IRKB_R			0xee11fe01
-	#define VCOM_IRKB_T			0xe619fe01
-	#define VCOM_IRKB_Y			0xbe41fe01
-	#define VCOM_IRKB_U			0xb649fe01
-	#define VCOM_IRKB_I			0xae51fe01
-	#define VCOM_IRKB_O			0xa659fe01
-	#define VCOM_IRKB_P			0xdf20fe01
-	#define VCOM_IRKB_Caps		0xc53Afe01
-	#define VCOM_IRKB_A			0xf807fe01
-	#define VCOM_IRKB_S			0xc13Efe01
-	#define VCOM_IRKB_D			0xf00Ffe01
-	#define VCOM_IRKB_F			0xe817fe01
-	#define VCOM_IRKB_G			0xe01Ffe01
-	#define VCOM_IRKB_H			0xb847fe01
-	#define VCOM_IRKB_J			0xb04Ffe01
-	#define VCOM_IRKB_K			0xa857fe01
-	#define VCOM_IRKB_L			0xa05Ffe01
-	#define VCOM_IRKB_SEMICOLON	0xaa55fe01
-	#define VCOM_IRKB_Enter		0xec13fe01
-	#define VCOM_IRKB_Z			0xfa05fe01
-	#define VCOM_IRKB_X			0xc33Cfe01
-	#define VCOM_IRKB_C			0xf20Dfe01
-	#define VCOM_IRKB_V			0xea15fe01
-	#define VCOM_IRKB_B			0xe21Dfe01
-	#define VCOM_IRKB_N			0xba45fe01
-	#define VCOM_IRKB_M			0xb24Dfe01
-	#define VCOM_IRKB_COMMA		0xcb34fe01
-	#define VCOM_IRKB_PERIOD	0x24DBfe01
-	#define VCOM_IRKB_SLASH		0xcd32fe01
-	#define VCOM_IRKB_shift		0xd926fe01
-	#define VCOM_IRKB_ctrl		0xfc03fe01
-	#define VCOM_IRKB_alt		0xfb04fe01
-	#define VCOM_IRKB_Space		0xa25Dfe01
-	#define VCOM_IRKB_Del		0xdb24fe01
-	#define VCOM_IRKB_Up		0xf40Bfe01
-	#define VCOM_IRKB_Down		0xe41Bfe01
-	#define VCOM_IRKB_Pgup		0xbc43fe01
-	#define VCOM_IRKB_Pgdn		0xbb44fe01
-	#define VCOM_IRKB_Right		0xce31fe01
-	#define VCOM_IRKB_Left		0xdd22fe01
-	#define VCOM_IRKB_Esc		0xc43Bfe01
-	#define VCOM_IRKB_F1		0xff00fe01
-	#define VCOM_IRKB_F2		0xc837fe01
-	#define VCOM_IRKB_F3		0xf708fe01
-	#define VCOM_IRKB_F4		0xef10fe01
-	#define VCOM_IRKB_F5		0xe718fe01
-	#define VCOM_IRKB_F6		0xbf40fe01
-	#define VCOM_IRKB_F7		0xb748fe01
-	#define VCOM_IRKB_F8		0xaf50fe01
-	#define VCOM_IRKB_F9		0xa758fe01
-	#define VCOM_IRKB_F10		0xcc33fe01
-	#define VCOM_IRKB_F11		0xc936fe01
+    #define VCOM_IRKB_1            0xfd02fe01
+    #define VCOM_IRKB_2            0xc639fe01
+    #define VCOM_IRKB_3            0xf50Afe01
+    #define VCOM_IRKB_4            0xed12fe01
+    #define VCOM_IRKB_5            0xe51Afe01
+    #define VCOM_IRKB_6            0xbd42fe01
+    #define VCOM_IRKB_7            0xb54Afe01
+    #define VCOM_IRKB_8            0xad52fe01
+    #define VCOM_IRKB_9            0xa55Afe01
+    #define VCOM_IRKB_0            0xde21fe01
+    #define VCOM_IRKB_MINUS        0xdc23fe01
+    #define VCOM_IRKB_EQUAL        0xac53fe01
+    #define VCOM_IRKB_Backspace    0xcf30fe01
+    #define VCOM_IRKB_Tab        0xc03Ffe01
+    #define VCOM_IRKB_Q            0xfe01fe01
+    #define VCOM_IRKB_W            0xc738fe01
+    #define VCOM_IRKB_E            0xf609fe01
+    #define VCOM_IRKB_R            0xee11fe01
+    #define VCOM_IRKB_T            0xe619fe01
+    #define VCOM_IRKB_Y            0xbe41fe01
+    #define VCOM_IRKB_U            0xb649fe01
+    #define VCOM_IRKB_I            0xae51fe01
+    #define VCOM_IRKB_O            0xa659fe01
+    #define VCOM_IRKB_P            0xdf20fe01
+    #define VCOM_IRKB_Caps        0xc53Afe01
+    #define VCOM_IRKB_A            0xf807fe01
+    #define VCOM_IRKB_S            0xc13Efe01
+    #define VCOM_IRKB_D            0xf00Ffe01
+    #define VCOM_IRKB_F            0xe817fe01
+    #define VCOM_IRKB_G            0xe01Ffe01
+    #define VCOM_IRKB_H            0xb847fe01
+    #define VCOM_IRKB_J            0xb04Ffe01
+    #define VCOM_IRKB_K            0xa857fe01
+    #define VCOM_IRKB_L            0xa05Ffe01
+    #define VCOM_IRKB_SEMICOLON    0xaa55fe01
+    #define VCOM_IRKB_Enter        0xec13fe01
+    #define VCOM_IRKB_Z            0xfa05fe01
+    #define VCOM_IRKB_X            0xc33Cfe01
+    #define VCOM_IRKB_C            0xf20Dfe01
+    #define VCOM_IRKB_V            0xea15fe01
+    #define VCOM_IRKB_B            0xe21Dfe01
+    #define VCOM_IRKB_N            0xba45fe01
+    #define VCOM_IRKB_M            0xb24Dfe01
+    #define VCOM_IRKB_COMMA        0xcb34fe01
+    #define VCOM_IRKB_PERIOD    0x24DBfe01
+    #define VCOM_IRKB_SLASH        0xcd32fe01
+    #define VCOM_IRKB_shift        0xd926fe01
+    #define VCOM_IRKB_ctrl        0xfc03fe01
+    #define VCOM_IRKB_alt        0xfb04fe01
+    #define VCOM_IRKB_Space        0xa25Dfe01
+    #define VCOM_IRKB_Del        0xdb24fe01
+    #define VCOM_IRKB_Up        0xf40Bfe01
+    #define VCOM_IRKB_Down        0xe41Bfe01
+    #define VCOM_IRKB_Pgup        0xbc43fe01
+    #define VCOM_IRKB_Pgdn        0xbb44fe01
+    #define VCOM_IRKB_Right        0xce31fe01
+    #define VCOM_IRKB_Left        0xdd22fe01
+    #define VCOM_IRKB_Esc        0xc43Bfe01
+    #define VCOM_IRKB_F1        0xff00fe01
+    #define VCOM_IRKB_F2        0xc837fe01
+    #define VCOM_IRKB_F3        0xf708fe01
+    #define VCOM_IRKB_F4        0xef10fe01
+    #define VCOM_IRKB_F5        0xe718fe01
+    #define VCOM_IRKB_F6        0xbf40fe01
+    #define VCOM_IRKB_F7        0xb748fe01
+    #define VCOM_IRKB_F8        0xaf50fe01
+    #define VCOM_IRKB_F9        0xa758fe01
+    #define VCOM_IRKB_F10        0xcc33fe01
+    #define VCOM_IRKB_F11        0xc936fe01
 #endif
 
 #define SC_PANEL_RELEASE        0x00000000

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -108,7 +108,7 @@ static HMENU createpmenuabout (void)
     mii.id          = 0;
     mii.typedata    = (DWORD)"About...";
     hmnu = CreatePopupMenu (&mii);
-    
+
     memset (&mii, 0, sizeof(MENUITEMINFO));
     mii.type        = MFT_STRING ;
     mii.state       = 0;
@@ -161,26 +161,26 @@ static HMENU createpmenufile (void)
     mii.id          = 0;
     mii.typedata    = (DWORD)"File";
     hmnu = CreatePopupMenu (&mii);
-    
+
     memset (&mii, 0, sizeof(MENUITEMINFO));
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_NEW;
     mii.typedata    = (DWORD)"New";
     InsertMenuItem(hmnu, 0, TRUE, &mii);
-    
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_OPEN;
     mii.typedata    = (DWORD)"Open...";
     InsertMenuItem(hmnu, 1, TRUE, &mii);
-    
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_SAVE;
     mii.typedata    = (DWORD)"Save";
     InsertMenuItem(hmnu, 2, TRUE, &mii);
-    
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_SAVEAS;
@@ -192,7 +192,7 @@ static HMENU createpmenufile (void)
     mii.id          = IDM_CLOSE;
     mii.typedata    = (DWORD)"Close";
     InsertMenuItem(hmnu, 4, TRUE, &mii);
-    
+
     mii.type        = MFT_SEPARATOR;
     mii.state       = 0;
     mii.id          = 0;
@@ -218,25 +218,25 @@ static HMENU createpmenuobject (void)
     mii.id          = 0;
     mii.typedata    = (DWORD)"Controls";
     hmnu = CreatePopupMenu (&mii);
-    
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_STATIC;
     mii.typedata    = (DWORD)"Static control";
     InsertMenuItem(hmnu, 0, TRUE, &mii);
-     
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_BUTTON;
     mii.typedata    = (DWORD)"Button control";
     InsertMenuItem(hmnu, 1, TRUE, &mii);
-     
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_MENUBUTTON;
     mii.typedata    = (DWORD)"MenuButton control";
     InsertMenuItem(hmnu, 2, TRUE, &mii);
-     
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_EDIT;
@@ -284,7 +284,7 @@ static HMENU createpmenuobject (void)
     mii.id          = IDM_LISTVIEW;
     mii.typedata    = (DWORD)"ListView control";
     InsertMenuItem(hmnu, 10, TRUE, &mii);
-    
+
     mii.type        = MFT_STRING;
     mii.state       = 0;
     mii.id          = IDM_TREEVIEW;
@@ -350,7 +350,7 @@ static HMENU createmenu (void)
     mii.typedata    = (DWORD)"Controls";
     mii.hsubmenu    = createpmenuobject ();
     InsertMenuItem(hmnu, 2, TRUE, &mii);
-    
+
     mii.type        = MFT_STRING;
     mii.id          = 120;
     mii.typedata    = (DWORD)"Renderer";
@@ -362,7 +362,7 @@ static HMENU createmenu (void)
     mii.typedata    = (DWORD)"About";
     mii.hsubmenu    = createpmenuabout ();
     InsertMenuItem(hmnu, 4, TRUE, &mii);
-                   
+
     return hmnu;
 }
 
@@ -372,13 +372,13 @@ static int CtrlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam
     switch (message) {
         case MSG_PAINT:
             hdc = BeginPaint (hWnd);
-            TabbedTextOut (hdc, 0, 0, 
+            TabbedTextOut (hdc, 0, 0,
                                  "\nPlease choose a command from menu...");
             EndPaint (hWnd, hdc);
             return 0;
 
         case MSG_COMMAND:
-        switch (wParam) 
+        switch (wParam)
         {
             case IDM_CLASSIC:
                 SetDefaultWindowElementRenderer ("classic");
@@ -457,13 +457,13 @@ static int CtrlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam
                 break;
 
             case IDM_ABOUT_THIS:
-                MessageBox (hWnd, 
+                MessageBox (hWnd,
                     "MiniGUI Controls\n"
                     "Copyright (C) 2003 ~ 2007 Feynman Software.\n",
                     "About MiniGUI Controls",
                     MB_OK | MB_ICONINFORMATION | MB_BASEDONPARENT);
                 break;
-            
+
             case IDM_ABOUT:
 #ifdef _MGMISC_ABOUTDLG
 #ifdef _MGRM_THREADS
@@ -498,7 +498,7 @@ static void InitCreateInfo (PMAINWINCREATE pCreateInfo)
     pCreateInfo->ty = 100;
     pCreateInfo->rx = pCreateInfo->lx + 400;
     pCreateInfo->by = pCreateInfo->ty + 100;
-    pCreateInfo->iBkColor = PIXEL_lightwhite; 
+    pCreateInfo->iBkColor = PIXEL_lightwhite;
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }

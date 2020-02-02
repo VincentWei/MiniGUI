@@ -39,11 +39,11 @@ static void InitCreateInfo (PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor (0);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = HelloWinProc;
-    pCreateInfo->lx = 0; 
-    pCreateInfo->ty = 0; 
+    pCreateInfo->lx = 0;
+    pCreateInfo->ty = 0;
     pCreateInfo->rx = 320;
     pCreateInfo->by = 240;
-    pCreateInfo->iBkColor = PIXEL_lightwhite; 
+    pCreateInfo->iBkColor = PIXEL_lightwhite;
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }

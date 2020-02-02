@@ -9,7 +9,7 @@ BOOL listen_socket (HWND hwnd)
     return RegisterListenFD (fd, POLL_IN, hwnd, NULL);
 }
 
-/* 
+/*
  * When the server receives the request to connect from a client,
  * the window hwnd will receive a MSG_FDEVENT message.
  * Now the server can accept the request.
@@ -17,11 +17,11 @@ BOOL listen_socket (HWND hwnd)
 LRESULT MyWndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
-        
+
         ...
-        
+
         case MSG_FDEVENT:
-             if (LOWORD (wParam) == listen_fd) { 
+             if (LOWORD (wParam) == listen_fd) {
                   /* This message comes from the listen socket fd. */
                   pid_t pid;
                   uid_t uid;
@@ -31,7 +31,7 @@ LRESULT MyWndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                        RegisterListenFD (conn_fd, POLL_IN, hwnd, NULL);
                   }
              }
-             else { 
+             else {
                   /* Client send a request. */
                   int fd = LOWORD(wParam);
                   /* Handle the request from client. */
@@ -39,9 +39,9 @@ LRESULT MyWndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                   sock_write_t (fd, ....);
              }
         break;
-        
+
         ...
-        
+
     }
 }
 
@@ -50,7 +50,7 @@ LRESULT MyWndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
  */
 
     int conn_fd;
-    
+
     if ((conn_fd  = cli_conn (LISTEN_SOCKET, 'b')) >= 0) {
         /* Send a request to the server. */
         sock_write_t (fd, ....);

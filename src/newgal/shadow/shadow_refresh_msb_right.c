@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -56,9 +56,9 @@
 #include "sysvideo.h"
 #include "error.h"
 #include "shadow.h"
-   
+
 gal_uint8* __gal_a_line;
- 
+
 int refresh_init (int pitch)
 {
     __gal_a_line = malloc (pitch);
@@ -122,7 +122,7 @@ static void put_one_line_2bpp (const BYTE* src_bits, BYTE* dst_line,
     dst_line += left >> 2;
 
     for (x = 0; x < width; x += 4) {
-        *dst_line = ((*src_bits) & 0xC0) >> 6 | ((*(src_bits+1))  & 0xC0) >> 4 | 
+        *dst_line = ((*src_bits) & 0xC0) >> 6 | ((*(src_bits+1))  & 0xC0) >> 4 |
                         ((*(src_bits+2))  & 0xC0) >> 2 | ((*(src_bits+3)) & 0xC0);
         src_bits += 4;
         dst_line ++;
@@ -177,22 +177,22 @@ void refresh_normal_msb_right (ShadowFBHeader * shadowfb_header, RealFBInfo *rea
     int width, height;
     int y;
     const BYTE* src_line;
-    
+
     src_update.left = ((RECT*)update)->left;
     src_update.right = ((RECT*)update)->right;
     src_update.top = ((RECT*)update)->top;
     src_update.bottom = ((RECT*)update)->bottom;
-                
+
     /* Round the update rectangle.  */
     round_rect(realfb_info->depth, &src_update);
-    
+
     width = RECTW (src_update);
     height = RECTH (src_update);
 
     if (width <= 0 || height <= 0){
        return;
     }
-    
+
     /* Copy the bits from Shadow FrameBuffer to console FrameBuffer */
     dst_bits = (gal_uint8*)realfb_info->fb;
     src_bits = (gal_uint8*)shadowfb_header + shadowfb_header->fb_offset;
@@ -200,7 +200,7 @@ void refresh_normal_msb_right (ShadowFBHeader * shadowfb_header, RealFBInfo *rea
 
     if (realfb_info->depth == 1) {
         dst_bits += src_update.top * realfb_info->pitch;
-        
+
         for (y = 0; y < height; y++) {
             src_line = src_bits;
             dst_line = dst_bits;
@@ -232,7 +232,7 @@ void refresh_normal_msb_right (ShadowFBHeader * shadowfb_header, RealFBInfo *rea
         }
         return;
     }
-    else{    
+    else{
         dst_bits += src_update.top * realfb_info->pitch;
 
         for (y = 0; y < height; y++) {
@@ -283,12 +283,12 @@ void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_i
     BYTE* dst_line;
     int dst_width, dst_height;
     int x, y;
-    
+
     _get_dst_rect_cw (&dst_update, &src_update, realfb_info);
- 
+
     /* Round the update rectangle.  */
     round_rect(realfb_info->depth, &dst_update);
-    
+
     dst_width = RECTW (dst_update);
     dst_height = RECTH (dst_update);
 
@@ -299,15 +299,15 @@ void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_i
 
     /* Copy the bits from Shadow FrameBuffer to console FrameBuffer */
     src_bits = (gal_uint8*)shadowfb_header + shadowfb_header->fb_offset;
-    src_bits += (src_update.bottom -1) * shadowfb_header->pitch 
+    src_bits += (src_update.bottom -1) * shadowfb_header->pitch
                 + src_update.left * (shadowfb_header->depth / 8);
 
     dst_line = (gal_uint8*)realfb_info->fb + dst_update.top * realfb_info->pitch;
-    
+
     for (x = 0; x < dst_height; x++) {
         /* Copy the bits from vertical line to horizontal line */
         const BYTE* ver_bits = src_bits;
-        
+
         BYTE* hor_bits = __gal_a_line;
 
         switch (realfb_info->depth) {
@@ -353,13 +353,13 @@ void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_i
                 src_bits += 1;
                 dst_line += realfb_info->pitch;
                 break;
-                
+
             case 2:
                 put_one_line_2bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
                 src_bits +=1;
                 dst_line += realfb_info->pitch;
                 break;
-                
+
             case 4:
                 put_one_line_4bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
                 src_bits +=1;
@@ -390,7 +390,7 @@ void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_
 
     /* Round the update rectangle.  */
     round_rect(realfb_info->depth, &dst_update);
-    
+
     dst_width = RECTW (dst_update);
     dst_height = RECTH (dst_update);
 
@@ -401,7 +401,7 @@ void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_
 
     /* Copy the bits from Shadow FrameBuffer to console FrameBuffer */
     src_bits = (gal_uint8*)shadowfb_header + shadowfb_header->fb_offset;
-    src_bits += src_update.top * shadowfb_header->pitch 
+    src_bits += src_update.top * shadowfb_header->pitch
                 + src_update.left * shadowfb_header->depth/8;
 
     dst_line = (gal_uint8*)realfb_info->fb + (dst_update.bottom - 1) * realfb_info->pitch;
@@ -433,7 +433,7 @@ void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_
             case 15:
             case 16:
                 for (y = 0; y < dst_width; y++) {
-                
+
                     *(gal_uint16*) hor_bits = *(gal_uint16*) ver_bits;
                     ver_bits += shadowfb_header->pitch;
                     hor_bits += realfb_info->depth/8;
@@ -457,7 +457,7 @@ void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_
                 break;
 
             case 2:
-                put_one_line_2bpp (__gal_a_line, dst_line, dst_update.left, dst_width);                        
+                put_one_line_2bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
                 src_bits += 1;
                 dst_line -= realfb_info->pitch;
                 break;
@@ -481,7 +481,7 @@ void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_
 void _get_dst_rect_hflip (RECT* src_rect, RealFBInfo *realfb_info)
 {
     int old_left;
-    
+
     old_left = src_rect->left;
     src_rect->left = realfb_info->width - src_rect->right;
     src_rect->right = realfb_info->width - old_left;
@@ -497,18 +497,18 @@ void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
 
     /* Round the update rectangle.  */
     round_rect(realfb_info->depth, &src_update);
-    
+
     src_width = RECTW (src_update);
     src_height = RECTH (src_update);
 
     /* Copy the bits from Shadow FrameBuffer to console FrameBuffer */
     src_bits = (gal_uint8*)shadowfb_header + shadowfb_header->fb_offset;
-    
-    src_bits += src_update.top * shadowfb_header->pitch + (src_update.right - 1) 
+
+    src_bits += src_update.top * shadowfb_header->pitch + (src_update.right - 1)
                     * (shadowfb_header->depth / 8);
-    
+
     dst_line = (gal_uint8 *)realfb_info->fb + src_update.top * realfb_info->pitch;
-    
+
     for (x = 0; x < src_height; x++) {
         /* Copy the bits from vertical line to horizontal line */
         const BYTE* ver_bits = src_bits;
@@ -518,7 +518,7 @@ void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
             case 32:
                 for (y = 0; y < src_width; y++) {
                     *(gal_uint32*) hor_bits = *(gal_uint32*) ver_bits;
-                    ver_bits -= realfb_info->depth/8; 
+                    ver_bits -= realfb_info->depth/8;
                     hor_bits += realfb_info->depth/8;
                 }
                 break;
@@ -537,13 +537,13 @@ void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
             case 16:
                 for (y = 0; y < src_width; y++) {
                     *(gal_uint16*) hor_bits = *(gal_uint16*) ver_bits;
-                    ver_bits -= realfb_info->depth/8; 
+                    ver_bits -= realfb_info->depth/8;
                     hor_bits += realfb_info->depth/8;
                 }
                 break;
 
             default:
-                
+
                  for (y = 0; y < src_width; y++) {
                     *hor_bits = *ver_bits;
                     ver_bits -= 1;
@@ -557,13 +557,13 @@ void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
                 src_bits += shadowfb_header->pitch;
                 dst_line += realfb_info->pitch;
                 break;
-                
+
             case 2:
                 put_one_line_2bpp (__gal_a_line, dst_line, realfb_info->width - src_update.right, src_width);
                 src_bits += shadowfb_header->pitch;
                 dst_line += realfb_info->pitch;
                 break;
-                
+
             case 4:
                 put_one_line_4bpp (__gal_a_line, dst_line, realfb_info->width - src_update.right, src_width);
                 src_bits += shadowfb_header->pitch;/* realfb_info->depth;*/
@@ -599,14 +599,14 @@ void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
 
     /* Round the update rectangle.  */
     round_rect (realfb_info->depth, &src_update);
-    
+
     src_width = RECTW (src_update);
     src_height = RECTH (src_update);
 
     /* Copy the bits from Shadow FrameBuffer to console FrameBuffer */
     src_bits = (gal_uint8*)shadowfb_header + shadowfb_header->fb_offset;
 
-    src_bits += (src_update.bottom - 1) * shadowfb_header->pitch + src_update.left 
+    src_bits += (src_update.bottom - 1) * shadowfb_header->pitch + src_update.left
                     * shadowfb_header->depth / 8;
 
     dst_line = (gal_uint8*)realfb_info->fb + (realfb_info->height - src_update.bottom) * realfb_info->pitch;
@@ -620,7 +620,7 @@ void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
             case 32:
                 for (y = 0; y < src_width; y++) {
                     *(gal_uint32*) hor_bits = *(gal_uint32*) ver_bits;
-                    ver_bits += realfb_info->depth/8; 
+                    ver_bits += realfb_info->depth/8;
                     hor_bits += realfb_info->depth/8;
                 }
                 break;
@@ -640,7 +640,7 @@ void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
             case 16:
                 for (y = 0; y < src_width; y++) {
                     *(gal_uint16*) hor_bits = *(gal_uint16*) ver_bits;
-                    ver_bits += realfb_info->depth/8; 
+                    ver_bits += realfb_info->depth/8;
                     hor_bits += realfb_info->depth/8;
                 }
                 break;
@@ -672,7 +672,7 @@ void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
                 src_bits -= shadowfb_header->pitch;/* realfb_info->depth;*/
                 dst_line += realfb_info->pitch;
                 break;
-                
+
             default:
                 put_one_line_8bpp (__gal_a_line, dst_line, src_update.left, src_width, realfb_info);
                 src_bits -= realfb_info->pitch;

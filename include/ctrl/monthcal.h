@@ -14,10 +14,10 @@
  * \file monthcal.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: monthcal.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -97,7 +97,7 @@ typedef struct _SYSTEMTIME
 } SYSTEMTIME;
 /**
  * \var typedef SYSTEMTIME *PSYSTEMTIME;
- * \brief Data type of the pointer to a SYSTEMTIME.  
+ * \brief Data type of the pointer to a SYSTEMTIME.
  */
 typedef SYSTEMTIME *PSYSTEMTIME;
 
@@ -132,7 +132,7 @@ typedef struct _MCCOLORINFO
 
 /**
  * \var typedef MCCOLORINFO *PMCCOLORINFO;
- * \brief Data type of the pointer to a MCCOLORINFO.  
+ * \brief Data type of the pointer to a MCCOLORINFO.
  */
 typedef MCCOLORINFO *PMCCOLORINFO;
 
@@ -356,14 +356,14 @@ typedef MCCOLORINFO *PMCCOLORINFO;
  * lParam = (LPARAM)pcurdate;
  * \endcode
  *
- * \param pcurdate Pointer to the SYSTEMTIME structure to retreive the 
+ * \param pcurdate Pointer to the SYSTEMTIME structure to retreive the
  *             date of "today".
  */
 #define MCM_GETTODAY            0xF311
 
 /**
  * \def MCM_GETMINREQRECTW
- * \brief Gets the minimum width required to display a full month in a month 
+ * \brief Gets the minimum width required to display a full month in a month
  *         calendar control.
  *
  * \code
@@ -379,7 +379,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETMINREQRECTH
- * \brief Gets the minimum height required to display a full month in a month 
+ * \brief Gets the minimum height required to display a full month in a month
  *         calendar control.
  *
  * \code
@@ -405,7 +405,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
  * lParam = (LPARAM)pcurdate;
  * \endcode
  *
- * \param pcurdate Pointer to the SYSTEMTIME structure storing the values of 
+ * \param pcurdate Pointer to the SYSTEMTIME structure storing the values of
  *             the current selected date.
  */
 #define MCM_SETCURDATE          0xF314
@@ -422,7 +422,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
  * lParam = (LPARAM)newcolor;
  * \endcode
  *
- * \param newcolor Pointer to the MCCOLORINFO structure storing the vaules of 
+ * \param newcolor Pointer to the MCCOLORINFO structure storing the vaules of
  *             the new color info.
  */
 #define MCM_SETCOLOR            0xF315

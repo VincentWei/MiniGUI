@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -73,19 +73,19 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         case MSG_CREATE:
             sg_AboutWnd = hWnd;
             GetClientRect (hWnd, &rcClient);
-            CreateWindow ("button", "Close", 
-                                WS_CHILD | BS_DEFPUSHBUTTON | WS_VISIBLE, 
-                                IDOK, 
-                                (RECTW(rcClient) - 80)>>1, 
-                                rcClient.bottom - 40, 
+            CreateWindow ("button", "Close",
+                                WS_CHILD | BS_DEFPUSHBUTTON | WS_VISIBLE,
+                                IDOK,
+                                (RECTW(rcClient) - 80)>>1,
+                                rcClient.bottom - 40,
                                 80, 24, hWnd, 0);
             break;
-        
+
         case MSG_COMMAND:
             if (LOWORD (wParam) == IDOK && HIWORD (wParam) == BN_CLICKED)
                 PostMessage (hWnd, MSG_CLOSE, 0, 0);
             break;
-       
+
         case MSG_KEYDOWN:
             if (LOWORD (wParam) == SCANCODE_ESCAPE)
                 PostMessage (hWnd, MSG_CLOSE, 0, 0);
@@ -94,7 +94,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         case MSG_PAINT:
         {
             HDC hdc;
-            
+
             hdc = BeginPaint (hWnd);
             GetClientRect (hWnd, &rcClient);
             rcClient.top = 30;
@@ -103,7 +103,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
             rcClient.right -= 10;
             SetTextColor (hdc, PIXEL_black);
             SetBkMode (hdc, BM_TRANSPARENT);
-            DrawText (hdc, 
+            DrawText (hdc,
                     "MiniGUI -- a mature cross-platform windowing system "
                     "and GUI support system for embedded or IoT devices.\n\n"
                     "Copyright (C) 2002 ~ 2018 FMSoft Co., Ltd.",
@@ -128,12 +128,12 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 static void InitAboutDialogCreateInfo (PMAINWINCREATE pCreateInfo, char* caption)
 {
-    sprintf (caption, "About MiniGUI (Ver %d.%d.%d)", 
+    sprintf (caption, "About MiniGUI (Ver %d.%d.%d)",
                     MINIGUI_MAJOR_VERSION,
                     MINIGUI_MINOR_VERSION,
                     MINIGUI_MICRO_VERSION);
 
-    pCreateInfo->dwStyle = WS_CAPTION | WS_SYSMENU | WS_VISIBLE 
+    pCreateInfo->dwStyle = WS_CAPTION | WS_SYSMENU | WS_VISIBLE
                                       | WS_BORDER;
     pCreateInfo->dwExStyle = WS_EX_TOPMOST;
     pCreateInfo->spCaption = caption;
@@ -141,7 +141,7 @@ static void InitAboutDialogCreateInfo (PMAINWINCREATE pCreateInfo, char* caption
     pCreateInfo->hCursor = GetSystemCursor (0);
     pCreateInfo->hIcon = GetSmallSystemIcon (0);
     pCreateInfo->MainWindowProc = AboutWinProc;
-    pCreateInfo->lx = 10; 
+    pCreateInfo->lx = 10;
     pCreateInfo->ty = 5;
     if (GetSysCharWidth () == 6) {
         pCreateInfo->rx = 260;
@@ -151,7 +151,7 @@ static void InitAboutDialogCreateInfo (PMAINWINCREATE pCreateInfo, char* caption
         pCreateInfo->rx = 340;
         pCreateInfo->by = 240;
     }
-    pCreateInfo->iBkColor = PIXEL_lightwhite; 
+    pCreateInfo->iBkColor = PIXEL_lightwhite;
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }
@@ -184,7 +184,7 @@ static void* AboutDialogThread (void* data)
 void GUIAPI OpenAboutDialog (void)
 {
     pthread_t thread;
-    
+
     if (sg_AboutWnd != 0) {
         ShowWindow (sg_AboutWnd, SW_SHOWNORMAL);
         return;

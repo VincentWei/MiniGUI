@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -63,7 +63,7 @@
 **  ime: input method
 **  punc: punctuate mark
 **
-*/ 
+*/
 
 /*
 ** This program is free software; you can redistribute it and/or modify
@@ -103,12 +103,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "common.h" 
-#include "minigui.h" 
-#include "gdi.h" 
-#include "window.h" 
-#include "control.h" 
-#include "endianrw.h" 
+#include "common.h"
+#include "minigui.h"
+#include "gdi.h"
+#include "window.h"
+#include "control.h"
+#include "endianrw.h"
 #include "misc.h"
 
 #include "hzinput.h"
@@ -163,7 +163,7 @@ typedef struct PuncMark
     unsigned char*  cpunc;
 }PUNCMARK;
 
-static PUNCMARK puncmark[] = 
+static PUNCMARK puncmark[] =
 {
     {'`', 0, 0, "¡¤"},
     {'~', 0, 0, "¡«"},
@@ -200,7 +200,7 @@ static int IsOpened;        /* 1 for opened, 0 for closed */
 static int IsHanziInput;    /* 0 for ascii, 1 for hanzi input */
 static int IsFullChar;      /* 0 for half char, 1 for full char */
 static int IsFullPunc;      /* 0 for half punctuate marks, 1 for full marks */
- 
+
 static int CurIME;
 static int nIMENr;          /* effetive IME method number */
 
@@ -213,11 +213,11 @@ static int CurSelNum=0;   /* Current Total Selection Number */
 static unsigned long InpKey[MAX_INPUT_LENGTH],save_InpKey[MAX_INPUT_LENGTH];
    /* Input key buffer */
 static int InputCount,InputMatch, StartKey,EndKey;
-static int save_StartKey,save_EndKey, save_MultiPageMode, 
+static int save_StartKey,save_EndKey, save_MultiPageMode,
            save_NextPageIndex, save_CurrentPageIndex;
 static int NextPageIndex,CurrentPageIndex,MultiPageMode;
 /* When enter MultiPageMode:
-   StartKey .... CurrentPageIndex .... NextPageIndex .... EndKey 
+   StartKey .... CurrentPageIndex .... NextPageIndex .... EndKey
 */
 static unsigned long val1, val2,key1,key2;
 static int IsAssociateMode;
@@ -230,7 +230,7 @@ static int UseAssociateMode = 0;
 /* 6 bit a key mask */
 static const unsigned long mask[]=
 {
-  0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
+  0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
   0x3F000000, 0x3FFC0000, 0x3FFFF000, 0x3FFFFFC0, 0x3FFFFFFF, 0x3FFFFFFF,
   0x3FFFFFFF, 0x3FFFFFFF, 0x3FFFFFFF, 0x3FFFFFFF, 0x3FFFFFFF, 0x3FFFFFFF
 };
@@ -249,7 +249,7 @@ static hz_input_table* load_input_method(char *filename)
   FILE *fd;
   char phrase_filename[100],assoc_filename[100];
   hz_input_table *table;
-  
+
   table = calloc (1, sizeof(hz_input_table));
   if (table == NULL)
     return NULL;
@@ -279,11 +279,11 @@ static hz_input_table* load_input_method(char *filename)
     goto fail;
   }
 
-  table->item = (ITEM *)malloc (sizeof(ITEM) * table->TotalChar); 
+  table->item = (ITEM *)malloc (sizeof(ITEM) * table->TotalChar);
   if ( table->item == NULL ) {
     goto fail;
   }
- 
+
   if (fread (table->item, sizeof(ITEM), table->TotalChar, fd) < table->TotalChar)
     goto fail;
 
@@ -296,13 +296,13 @@ static hz_input_table* load_input_method(char *filename)
 #endif
 
   fclose (fd);
- 
+
   if (table->PhraseNum > 0) {
      strcpy( phrase_filename, filename );
      strcat( phrase_filename, ".phr" );
      strcpy( assoc_filename, filename );
      strcat( assoc_filename, ".lx");
-     
+
      table->PhraseFile = fopen( phrase_filename, "rb" );
      table->AssocFile = fopen( assoc_filename, "rb");
 
@@ -334,7 +334,7 @@ static void free_input_method(hz_input_table *table)
 
 static void ClrIn(void)
 {
-  memset(InpKey, 0, sizeof( InpKey)); 
+  memset(InpKey, 0, sizeof( InpKey));
   memset( seltab, 0, sizeof( seltab));
 
   MultiPageMode = NextPageIndex = CurrentPageIndex = 0;
@@ -346,14 +346,14 @@ static void FindAssociateKey(int index)
 {
     FILE *fp = cur_table->AssocFile;
     int ofs[2],offset;
-   
-    if (index < 0xB0A1) 
+
+    if (index < 0xB0A1)
     {
        StartKey = EndKey = 0;
        return;  /* no match */
-    }  
-   
-    offset = (index / 256 - 0xB0) * 94 + index % 256 - 0xA1; 
+    }
+
+    offset = (index / 256 - 0xB0) * 94 + index % 256 - 0xA1;
     fseek(fp, offset * sizeof(int), SEEK_SET);
     fread(ofs,sizeof(int),2,fp);
 #if MGUI_BYTEORDER == MGUI_BIG_ENDIAN
@@ -395,14 +395,14 @@ static void putstr (unsigned char *p ,LPARAM lParam)
     __mg_ime_writemsg(p, len, lParam, TRUE);
     if (InputCount <= InputMatch)  /* All Match */
     {
-        index = (int)p[len-2] * 256 + p[len-1]; 
+        index = (int)p[len-2] * 256 + p[len-1];
         ClrIn();
         if (UseAssociateMode)
         {
-             FindAssociateKey(index); 
+             FindAssociateKey(index);
              CurrentPageIndex = StartKey;
              MultiPageMode = 0;
-             FillAssociateChars(StartKey);  
+             FillAssociateChars(StartKey);
              if (CurSelNum > 0)
              {
                 IsAssociateMode = 1;
@@ -429,11 +429,11 @@ static void putstr (unsigned char *p ,LPARAM lParam)
              MultiPageMode = 0;
              CurrentPageIndex = StartKey;
              FillMatchChars(StartKey);
-         } 
+         }
       }
       if (InputMatch == 0)    /* left key has no match, delete */
       {
-         ClrIn(); 
+         ClrIn();
          return;
       }
     }
@@ -442,7 +442,7 @@ static void putstr (unsigned char *p ,LPARAM lParam)
 static int epunc2cpunc (unsigned char epunc, unsigned char* cpunc)
 {
     int i;
-    
+
     for (i = 0; i < 29; i++) {
         if (puncmark [i].epunc == epunc) {
             switch (puncmark [i].type)
@@ -481,9 +481,9 @@ static void FindMatchKey(void)
   save_NextPageIndex = NextPageIndex;
   save_CurrentPageIndex = CurrentPageIndex;
 
-  val1 = InpKey[4] | (InpKey[3]<<6) | (InpKey[2]<<12) | (InpKey[1]<<18) | 
+  val1 = InpKey[4] | (InpKey[3]<<6) | (InpKey[2]<<12) | (InpKey[1]<<18) |
         (InpKey[0]<<24);
-  val2 = InpKey[9] | (InpKey[8]<<6) | (InpKey[7]<<12) | (InpKey[6]<<18) | 
+  val2 = InpKey[9] | (InpKey[8]<<6) | (InpKey[7]<<12) | (InpKey[6]<<18) |
         (InpKey[5]<<24);
 
   if (InputCount == 1)
@@ -507,8 +507,8 @@ static void FindMatchKey(void)
 }
 
 /*  Find the matched chars/phrases and fill it into SelTab
-    The starting checked index is j 
- 
+    The starting checked index is j
+
     The Selection Line 1xxx 2xxx,  80-20=60 60/2=30 chinese chars only
     0-9 Selection can contain only 30 chinese chars
 */
@@ -517,8 +517,8 @@ static void FillAssociateChars(int index)
 {
     unsigned char str[25];
     int PhraseNo, CurLen = 0;
-   
-    CurSelNum = 0; 
+
+    CurSelNum = 0;
     while( CurSelNum < cur_table->MaxDupSel && index < EndKey &&
               CurLen < MAX_SEL_LENGTH)
     {
@@ -554,7 +554,7 @@ static void FillMatchChars(int j)
 
     while( ( cur_table->item[j].key1 & mask[InputCount+5] ) == val1 &&
             ( cur_table->item[j].key2 & mask[InputCount] ) == val2 &&
-              SelNum < cur_table->MaxDupSel && j < EndKey && 
+              SelNum < cur_table->MaxDupSel && j < EndKey &&
               CurLen < MAX_SEL_LENGTH)
     {
           unsigned short ch = cur_table->item[j].ch;
@@ -572,7 +572,7 @@ static void FillMatchChars(int j)
           CurLen += strlen(seltab[SelNum++]);
           j++;
     }
-    
+
     if (SelNum == 0)  /* some match found */
     {
         StartKey = save_StartKey;
@@ -597,7 +597,7 @@ static void FillMatchChars(int j)
       /* has another matched key, so enter MultiPageMode, has more pages */
         NextPageIndex = j;
         MultiPageMode = 1;
-    }  
+    }
     else if (MultiPageMode)
     {
         NextPageIndex = StartKey; /* rotate selection */
@@ -617,7 +617,7 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
         if (IsFullPunc) {
             unsigned char cpunc[4];
             int len;
-        
+
             len = epunc2cpunc (key, cpunc);
 
             if (len != 0) {
@@ -626,12 +626,12 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
                 return TRUE;
             }
         }
-    
+
         if (IsFullChar && key >= ' ' && key <= 127) {
             key = (key - ' ') << 1;
             cc[0] = (unsigned char)(fullchar[key]);
             cc[1] = (unsigned char)(fullchar[key+1]);
-       
+
             __mg_ime_writemsg(cc, 2, lParam, TRUE);
             return FALSE;
         }
@@ -656,31 +656,31 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
     switch ( key ) {
     case '\010':  /* BackSpace Ctrl+H */
     case '\177':  /* BackSpace */
-        if ( InputCount > 0 ) 
+        if ( InputCount > 0 )
         {
            InpKey[--InputCount]=0;
            if (InputCount == 0)
            {
                ClrIn();
-  
+
            }
            else if (InputCount < InputMatch)
            {
                FindMatchKey();
                MultiPageMode = 0;
                CurrentPageIndex = StartKey;
-               FillMatchChars(StartKey); 
+               FillMatchChars(StartKey);
            }
-  
+
         }
         else __mg_ime_outchar(key,lParam);
         break;
 
      case '\033':  /* ESCAPE */
-        if (InputCount > 0) 
+        if (InputCount > 0)
         {
            ClrIn();
- 
+
         }
         else __mg_ime_outchar(key,lParam);
         break;
@@ -688,13 +688,13 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
      case '-':
         if ( MultiPageMode )
         {
-           if ( CurrentPageIndex > StartKey) 
+           if ( CurrentPageIndex > StartKey)
                 CurrentPageIndex = CurrentPageIndex - cur_table->MaxDupSel;
            else CurrentPageIndex = StartKey;
            if (IsAssociateMode)
                 FillAssociateChars(CurrentPageIndex);
            else FillMatchChars(CurrentPageIndex);
- 
+
         }
         else __mg_ime_outchar(key,lParam);
         break;
@@ -706,7 +706,7 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
            if (IsAssociateMode)
                FillAssociateChars(CurrentPageIndex);
            else FillMatchChars(CurrentPageIndex);
-           
+
         }
         else __mg_ime_outchar(key,lParam);
         break;
@@ -722,11 +722,11 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
 
         inkey   = cur_table->KeyMap[key];
         is_sel_key = strchr( cur_table->selkey, key);
-        vv = is_sel_key - cur_table->selkey; 
+        vv = is_sel_key - cur_table->selkey;
           /* selkey index, strchr may return NULL */
- 
+
       /* if a key is simultaneously inkey & is_sel_key, then selkey first?*/
-        if ( (!inkey && !is_sel_key) || 
+        if ( (!inkey && !is_sel_key) ||
              (!inkey && is_sel_key && (CurSelNum == 0 || seltab[vv][0] == 0)) )
         {
            IsAssociateMode = 0;
@@ -740,13 +740,13 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
             putstr(seltab[vv],lParam);
             break;
         }
-        
+
         /* now it must be inkey? */
-        IsAssociateMode = 0; 
+        IsAssociateMode = 0;
         if ( inkey >= 1 && InputCount < MAX_INPUT_LENGTH )
             InpKey[InputCount++] = inkey;
-             
-        if (InputCount <= InputMatch+1) 
+
+        if (InputCount <= InputMatch+1)
         {
              FindMatchKey();
              CurrentPageIndex = StartKey;
@@ -755,11 +755,11 @@ static BOOL hz_filter(unsigned char key, LPARAM lParam)
              if (InputCount >= cur_table->MaxPress && CurSelNum == 1 &&
                  cur_table->last_full)
              {
-                // left only one selection 
+                // left only one selection
                  putstr(seltab[0],lParam);
              }
         }
-        
+
         break;
 
   } /* switch */
@@ -776,7 +776,7 @@ static void DispSelection(HDC hDC)
   char minibuf[2];
   minibuf[1]=0;
   str[0]=0;
-  if (MultiPageMode && CurrentPageIndex != StartKey) 
+  if (MultiPageMode && CurrentPageIndex != StartKey)
   {
     strcat(str,"< ");
       pos += 2;
@@ -785,8 +785,8 @@ static void DispSelection(HDC hDC)
   for( i = 0; i < CurSelNum; i++ )
   {
      if ( !seltab[i][0] ) {
-        if (CurIME == 0 && i == 0) 
-            continue; 
+        if (CurIME == 0 && i == 0)
+            continue;
         else
             break;
      }
@@ -794,14 +794,14 @@ static void DispSelection(HDC hDC)
      minibuf[0]= input_table[CurIME]->selkey[i];
      strcat(str,minibuf);
      strcat(str,seltab[i]);
-     strcat(str," "); 
+     strcat(str," ");
   }
 
-  if ( MultiPageMode && NextPageIndex != StartKey)  
+  if ( MultiPageMode && NextPageIndex != StartKey)
   {
      strcat (str,"> ");
   }
-  
+
   if (bTwoLines)
     TextOut (hDC, 2, 18, str);
   else
@@ -837,7 +837,7 @@ static int toggle_input_method(void)
 
     cur_table = input_table[CurIME];
     ClrIn();
-  }  
+  }
 
   return IsHanziInput;
 }
@@ -870,7 +870,7 @@ static BOOL hz_input_init(void)
     }
 
     IsOpened = 1;
-    IsHanziInput = 1;    // default is hanzi input 
+    IsHanziInput = 1;    // default is hanzi input
     IsFullChar = 0;
     IsFullPunc = 0;
     CurIME = 0;
@@ -889,7 +889,7 @@ static BOOL hz_input_init(void)
     nIMENr = 1;
 #endif
 
-    if ((sg_bmpIME = GetSystemBitmap (HWND_DESKTOP, SYSBMP_IMECTRLBTN)) 
+    if ((sg_bmpIME = GetSystemBitmap (HWND_DESKTOP, SYSBMP_IMECTRLBTN))
             == NULL) {
         fprintf (stderr, "IME: Load the control button failure!\n");
         return FALSE;
@@ -898,7 +898,7 @@ static BOOL hz_input_init(void)
     if( GetMgEtcValue  ("imeinfo", "imenumber",
             szValue, 10) < 0 )
         goto error;
-        
+
     number = atoi (szValue);
     if(number <= 0)
         goto error;
@@ -910,7 +910,7 @@ static BOOL hz_input_init(void)
         if( GetMgEtcValue ("imeinfo",
             szKey, szValue, MAX_NAME) < 0 )
         goto error;
-        
+
 #ifdef _DEBUG
         fprintf (stderr, "IME: Loading Input Method %d: %s\n",i, szValue);
 #endif
@@ -931,7 +931,7 @@ static BOOL hz_input_init(void)
     cur_table = input_table [CurIME];
 
     return TRUE;
-    
+
 error:
 #ifdef _IME_GB2312_PINYIN
     for (i = 0; i < nIMENr; i++) {
@@ -983,7 +983,7 @@ static void set_active_input_method(int active)
     if (CurIME == 0)
 #endif
         UseAssociateMode = 0;
-    else 
+    else
         UseAssociateMode = 1;
   }
 }
@@ -995,20 +995,20 @@ static void refresh_input_method_area(HWND hwnd, HDC hDC)
     int i;
     char minibuf[2];
     WINDOWINFO *info;
-    
+
     GetClientRect (hwnd, &rc);
-    FillBoxWithBitmapPart (hDC, rc.right - 4 - 32, 2, 
+    FillBoxWithBitmapPart (hDC, rc.right - 4 - 32, 2,
                            CTRLBTN_WIDTH, CTRLBTN_HEIGHT,
                            0, 0,
                            sg_bmpIME,
                            0, (IsFullChar*CTRLBTN_HEIGHT));
-        
-    FillBoxWithBitmapPart (hDC, rc.right - 4 - 16, 2, 
+
+    FillBoxWithBitmapPart (hDC, rc.right - 4 - 16, 2,
                            CTRLBTN_WIDTH, CTRLBTN_HEIGHT,
                            0, 0,
                            sg_bmpIME,
                            CTRLBTN_WIDTH, (IsFullPunc*CTRLBTN_HEIGHT));
-        
+
     if (!IsHanziInput) {
         rc.left += 2;
         rc.top += 2;
@@ -1023,21 +1023,21 @@ static void refresh_input_method_area(HWND hwnd, HDC hDC)
     {
         minibuf[1] = 0;
         strcpy (str, input_table[CurIME]->cname);
-        
+
         for( i = 0; i <= MAX_INPUT_LENGTH ; i++)
         {
             if (i < InputCount)
                 minibuf[0] = input_table[CurIME]->KeyName[InpKey[i]];
-            else 
+            else
                 minibuf[0]=' ';
-                
+
             if (i == InputMatch && InputCount > InputMatch && i != 0)
                 strcat (str,"-");
-                
+
             strcat (str,minibuf);
         }
-        
-        TextOut (hDC, 2, 2, str);                                        
+
+        TextOut (hDC, 2, 2, str);
         DispSelection (hDC);
     }
 #ifdef _IME_GB2312_PINYIN
@@ -1063,7 +1063,7 @@ static hz_input_table *IntCode_Init(void)
       fprintf(stderr, "IME: load_input_method");
 #endif
       return NULL;
-     } 
+     }
 
    /* reset to zero. */
    memset (table, 0, sizeof (hz_input_table));
@@ -1085,7 +1085,7 @@ static hz_input_table *IntCode_Init(void)
          table->KeyMap[i] = index;
          table->KeyName[index] = toupper(i);
       }
-   }    
+   }
    return table;
 }
 
@@ -1100,30 +1100,30 @@ static void IntCode_FindMatchKey(void)
          StartKey = EndKey = 0;    /* not display selection */
          break;
       case 2:
-         StartKey = Key + 0xA1; 
+         StartKey = Key + 0xA1;
          EndKey = Key + 0xFF;  /* A1-A9,B0-F7 A1-FE */
          break;
       case 3:
          StartKey = Key + (InpKey[2] << 4);
          if (InpKey[2] == 10) StartKey++; /* A1 */
-         EndKey = StartKey + 0x10;  
-         if (InpKey[2] == 15) EndKey--;  /* FE */ 
+         EndKey = StartKey + 0x10;
+         if (InpKey[2] == 15) EndKey--;  /* FE */
          break;
     }
 }
 
 /* ABCD  AB then C=a..f, Sel=0-9 begin display selection
-        ABC then D=0-f,  Sel=0-f 
+        ABC then D=0-f,  Sel=0-f
 */
 static void IntCode_FillMatchChars(int index)
 {
     int MaxSel,i;
-   
+
     CurSelNum = 0;
     if (InputCount < 2) return;
     if (InputCount == 2) MaxSel = 10; else MaxSel = 16;
-    
-    if (index % 256 == 0xA1 && InputCount == 3) 
+
+    if (index % 256 == 0xA1 && InputCount == 3)
     {
        seltab[0][0] = '\0';
        CurSelNum++;
@@ -1131,13 +1131,13 @@ static void IntCode_FillMatchChars(int index)
 
     while( CurSelNum < MaxSel && index < EndKey)
     {
-         seltab[CurSelNum][0] = index / 256; 
+         seltab[CurSelNum][0] = index / 256;
          seltab[CurSelNum][1] = index % 256;
          seltab[CurSelNum][2] = '\0';
          CurSelNum++;
          index++;
     }
-    
+
     for(i = CurSelNum; i < 16; i++)
        seltab[i][0] = '\0';  /* zero out the unused area */
 
@@ -1149,7 +1149,7 @@ static void IntCode_FillMatchChars(int index)
       /* has another matched key, so enter MultiPageMode, has more pages */
         NextPageIndex = index;
         MultiPageMode = 1;
-    }  
+    }
     else if (MultiPageMode)
     {
         NextPageIndex = StartKey; /* rotate selection */
@@ -1165,7 +1165,7 @@ static void intcode_hz_filter(unsigned char key,LPARAM lParam)
   {
      case '\010':  /* BackSpace Ctrl+H */
      case '\177':  /* BackSpace */
-        if ( InputCount > 0 ) 
+        if ( InputCount > 0 )
         {
            InpKey[--InputCount]=0;
            if (InputCount == 0)
@@ -1177,15 +1177,15 @@ static void intcode_hz_filter(unsigned char key,LPARAM lParam)
                IntCode_FindMatchKey();
                MultiPageMode = 0;
                CurrentPageIndex = StartKey;
-               IntCode_FillMatchChars(StartKey); 
-               
+               IntCode_FillMatchChars(StartKey);
+
            }
         }
         else __mg_ime_outchar(key,lParam);
         break;
 
    case '\033':  /* ESCAPE */
-        if (InputCount > 0) 
+        if (InputCount > 0)
         {
            ClrIn();
         }
@@ -1195,11 +1195,11 @@ static void intcode_hz_filter(unsigned char key,LPARAM lParam)
      case '-':
         if ( MultiPageMode )
         {
-           if ( CurrentPageIndex > StartKey) 
+           if ( CurrentPageIndex > StartKey)
                 CurrentPageIndex = CurrentPageIndex - 10;
            else CurrentPageIndex = StartKey;
            IntCode_FillMatchChars(CurrentPageIndex);
-           
+
         }
         else __mg_ime_outchar(key,lParam);
         break;
@@ -1209,7 +1209,7 @@ static void intcode_hz_filter(unsigned char key,LPARAM lParam)
         {
            CurrentPageIndex = NextPageIndex;
            IntCode_FillMatchChars(CurrentPageIndex);
-           
+
         }
         else __mg_ime_outchar(key,lParam);
         break;
@@ -1229,22 +1229,22 @@ static void intcode_hz_filter(unsigned char key,LPARAM lParam)
            case 1:  /* 0-F */
            case 2:  /* A-F */
               if (inkey >=0 && !(InputCount != 1 && inkey < 10) &&
-                   !(InputCount == 1 && 
-                      ( (InpKey[0]==10 && inkey>9) ||       //A1-A9 
+                   !(InputCount == 1 &&
+                      ( (InpKey[0]==10 && inkey>9) ||       //A1-A9
                         (InpKey[0]==10 && inkey==0) ||
-                        (InpKey[0]==15 && inkey>7)) ) )      //B0-F7  
+                        (InpKey[0]==15 && inkey>7)) ) )      //B0-F7
               {
                   InpKey[InputCount++] = inkey;
-                  
+
                   if (InputCount >=2)
                   {
                       IntCode_FindMatchKey();
                       MultiPageMode = 0;
                       CurrentPageIndex = StartKey;
                       IntCode_FillMatchChars(StartKey);
-                  
+
                   }
-                  
+
               }
               else if (InputCount == 2 && inkey >= 0 && inkey < CurSelNum &&
                        seltab[inkey][0])
@@ -1430,7 +1430,7 @@ void __mg_ime_outchar (unsigned char c, LPARAM lParam)
         scancode = SCANCODE_TAB;
         break;
     }
- 
+
     if (scancode) {
 #if defined(_LITE_VERSION) && !defined(_STAND_ALONE)
         if (!sg_hTargetWnd) {
@@ -1503,7 +1503,7 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 IsOpened = 0;
             }
         break;
-        
+
         case MSG_IME_SETSTATUS:
             imeSetStatus ((int)wParam, (int)lParam);
         break;
@@ -1554,7 +1554,7 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                     InvalidateRect (hWnd, NULL, TRUE);
                     return 0;
                 }
-        
+
 #ifndef _LITE_VERSION
                 if (sg_hTargetWnd && imeIsEffectiveIME () && imeIsSpecialKey (wParam))
                     PostMessage (sg_hTargetWnd, MSG_KEYDOWN, wParam, lParam);
@@ -1613,7 +1613,7 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             }
 #endif
         return 0;
-        
+
         case MSG_PAINT:
             hdc = BeginPaint (hWnd);
             SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_MAINC_THREED_BODY));
@@ -1631,8 +1631,8 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 
             oldx = LOWORD (lParam);
             oldy = HIWORD (lParam);
-            
-            if (IsHanziInput && oldx > 0 && oldx < 4*zwidth && oldy > 2 && oldy < zheight+2){ 
+
+            if (IsHanziInput && oldx > 0 && oldx < 4*zwidth && oldy > 2 && oldy < zheight+2){
                 imeSetStatus (IS_METHOD, -1);
                 InvalidateRect (hWnd, NULL, TRUE);
                 return 0;
@@ -1648,7 +1648,7 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 InvalidateRect (hWnd, NULL, TRUE);
                 return 0;
             }
-            
+
             SetCapture (hWnd);
             ClientToScreen (hWnd, &oldx, &oldy);
             fCaptured = TRUE;
@@ -1659,7 +1659,7 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             ReleaseCapture ();
             fCaptured = FALSE;
         break;
-        
+
         case MSG_MOUSEMOVE:
             if (fCaptured) {
                 GetWindowRect (hWnd, &rcWindow);
@@ -1708,7 +1708,7 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 #endif
 
         return 0;
-        
+
         case MSG_CLOSE:
             SendMessage (HWND_DESKTOP, MSG_IME_UNREGISTER, (WPARAM)hWnd, 0);
             hz_input_done ();
@@ -1731,12 +1731,12 @@ static void InitIMEWinCreateInfo (PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor(0);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = GBIMEWinProc;
-    pCreateInfo->lx = GetGDCapability (HDC_SCREEN, GDCAP_MAXX) - 400; 
-    pCreateInfo->ty = GetGDCapability (HDC_SCREEN, GDCAP_MAXY) - 80; 
+    pCreateInfo->lx = GetGDCapability (HDC_SCREEN, GDCAP_MAXX) - 400;
+    pCreateInfo->ty = GetGDCapability (HDC_SCREEN, GDCAP_MAXY) - 80;
     pCreateInfo->rx = GetGDCapability (HDC_SCREEN, GDCAP_MAXX);
     pCreateInfo->by = GetGDCapability (HDC_SCREEN, GDCAP_MAXY) - 40;
-    pCreateInfo->iBkColor = 
-        GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY); 
+    pCreateInfo->iBkColor =
+        GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = 0;
 }
@@ -1768,7 +1768,7 @@ HWND GBIMEWindowEx (HWND hosting, int lx, int ty, int rx, int by, BOOL two_lines
     if (hMainWnd == HWND_INVALID)
         return HWND_INVALID;
 
-    ShowWindow (hMainWnd, SW_SHOWNORMAL); 
+    ShowWindow (hMainWnd, SW_SHOWNORMAL);
 
     return hMainWnd;
 }
@@ -1801,7 +1801,7 @@ static void* start_gb_ime (void* data)
             if (IsOpened && IsHanziInput)
                 TranslateMessage (&Msg);
             else if (sg_hTargetWnd) {
-                PostMessage (sg_hTargetWnd, 
+                PostMessage (sg_hTargetWnd,
                     Msg.message, Msg.wParam, Msg.lParam | KS_IMEPOST);
             }
         }

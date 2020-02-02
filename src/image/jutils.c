@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -52,7 +52,7 @@
  * of a DCT block read in natural order (left to right, top to bottom).
  */
 
-#if 0				/* This table is not actually needed in v6a */
+#if 0                /* This table is not actually needed in v6a */
 
 const int jpeg_zigzag_order[DCTSIZE2] = {
    0,  1,  5,  6, 14, 15, 27, 28,
@@ -127,21 +127,21 @@ jround_up (long a, long b)
  * is not all that great, because these routines aren't very heavily used.)
  */
 
-#ifndef NEED_FAR_POINTERS	/* normal case, same as regular macros */
-#define FMEMCOPY(dest,src,size)	MEMCOPY(dest,src,size)
-#define FMEMZERO(target,size)	MEMZERO(target,size)
-#else				/* 80x86 case, define if we can */
+#ifndef NEED_FAR_POINTERS    /* normal case, same as regular macros */
+#define FMEMCOPY(dest,src,size)    MEMCOPY(dest,src,size)
+#define FMEMZERO(target,size)    MEMZERO(target,size)
+#else                /* 80x86 case, define if we can */
 #ifdef USE_FMEM
-#define FMEMCOPY(dest,src,size)	_fmemcpy((void *)(dest), (const void FAR *)(src), (size_t)(size))
-#define FMEMZERO(target,size)	_fmemset((void *)(target), 0, (size_t)(size))
+#define FMEMCOPY(dest,src,size)    _fmemcpy((void *)(dest), (const void FAR *)(src), (size_t)(size))
+#define FMEMZERO(target,size)    _fmemset((void *)(target), 0, (size_t)(size))
 #endif
 #endif
 
 
 GLOBAL(void)
 jcopy_sample_rows (JSAMPARRAY input_array, int source_row,
-		   JSAMPARRAY output_array, int dest_row,
-		   int num_rows, JDIMENSION num_cols)
+           JSAMPARRAY output_array, int dest_row,
+           int num_rows, JDIMENSION num_cols)
 /* Copy some rows of samples from one place to another.
  * num_rows rows are copied from input_array[source_row++]
  * to output_array[dest_row++]; these areas may overlap for duplication.
@@ -166,7 +166,7 @@ jcopy_sample_rows (JSAMPARRAY input_array, int source_row,
     FMEMCOPY(outptr, inptr, count);
 #else
     for (count = num_cols; count > 0; count--)
-      *outptr++ = *inptr++;	/* needn't bother with GETJSAMPLE() here */
+      *outptr++ = *inptr++;    /* needn't bother with GETJSAMPLE() here */
 #endif
   }
 }
@@ -174,7 +174,7 @@ jcopy_sample_rows (JSAMPARRAY input_array, int source_row,
 
 GLOBAL(void)
 jcopy_block_row (JBLOCKROW input_row, JBLOCKROW output_row,
-		 JDIMENSION num_blocks)
+         JDIMENSION num_blocks)
 /* Copy a row of coefficient blocks from one place to another. */
 {
 #ifdef FMEMCOPY

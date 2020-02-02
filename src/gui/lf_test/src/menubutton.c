@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -100,11 +100,11 @@ static void create_normal_menubutton (HWND hparent)
     struct  stat my_stat;
 
     menubtn = CreateWindowEx (CTRL_MENUBTN,
-                        "Files in the current directory", 
+                        "Files in the current directory",
 #if _MINIGUI_VERSION_CODE >= _VERSION_CODE (1, 5, 3)
-                        WS_CHILD | WS_VISIBLE | MBS_ALIGNCENTER, 
+                        WS_CHILD | WS_VISIBLE | MBS_ALIGNCENTER,
 #else
-                        WS_CHILD | WS_VISIBLE, 
+                        WS_CHILD | WS_VISIBLE,
 #endif
                         WS_EX_NONE,
                         IDC_MENUBUTTON,
@@ -141,9 +141,9 @@ static void create_sorted_menubutton (HWND hparent)
     struct  stat my_stat;
 
     menubtn = CreateWindowEx (CTRL_MENUBTN,
-                        "Files and directories in the current directory (sorted)", 
+                        "Files and directories in the current directory (sorted)",
 #if _MINIGUI_VERSION_CODE >= _VERSION_CODE (1, 5, 3)
-                        WS_CHILD | WS_VISIBLE | MBS_SORT | MBS_NOBUTTON | MBS_LEFTARROW, 
+                        WS_CHILD | WS_VISIBLE | MBS_SORT | MBS_NOBUTTON | MBS_LEFTARROW,
 #else
                         WS_CHILD | WS_VISIBLE | MBS_SORT,
 #endif
@@ -185,9 +185,9 @@ static void create_bitmap_menubutton (HWND hparent)
     struct  stat my_stat;
 
     menubtn = CreateWindowEx (CTRL_MENUBTN,
-                        "Files and directories in the current directory (sorted, bitmap)", 
+                        "Files and directories in the current directory (sorted, bitmap)",
 #if _MINIGUI_VERSION_CODE >= _VERSION_CODE (1, 5, 3)
-                        WS_CHILD | WS_VISIBLE | MBS_SORT | MBS_LEFTARROW | MBS_ALIGNLEFT, 
+                        WS_CHILD | WS_VISIBLE | MBS_SORT | MBS_LEFTARROW | MBS_ALIGNLEFT,
 #else
                         WS_CHILD | WS_VISIBLE | MBS_SORT,
 #endif
@@ -229,10 +229,10 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
             create_sorted_menubutton (hWnd);
             create_bitmap_menubutton (hWnd);
 
-            CreateWindow (CTRL_BUTTON, 
-                                "Close", 
-                                WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE, 
-                                IDCANCEL, 
+            CreateWindow (CTRL_BUTTON,
+                                "Close",
+                                WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE,
+                                IDCANCEL,
                                 230, 140, 60, 24, hWnd, 0);
             LoadBitmapFromFile (HDC_SCREEN, &bmp_folder, "./res/folder.bmp");
         break;
@@ -253,22 +253,22 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
                     printf ("Selected item in the control %d has changed.\n", id);
                 }
                 break;
-            
+
             case IDCANCEL:
                 PostMessage (hWnd, MSG_CLOSE, 0, 0);
                 break;
-                
+
             default:
                 break;
             }
         }
         break;
-       
+
         case MSG_DESTROY:
             UnloadBitmap (&bmp_folder);
             DestroyAllControls (hWnd);
             hMainWnd = HWND_INVALID;
-	    return 0;
+        return 0;
 
         case MSG_CLOSE:
             DestroyMainWindow (hWnd);
@@ -288,7 +288,7 @@ static void InitCreateInfo(PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor(1);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = ControlTestWinProc;
-    pCreateInfo->lx = 0; 
+    pCreateInfo->lx = 0;
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 300;
     pCreateInfo->by = 200;

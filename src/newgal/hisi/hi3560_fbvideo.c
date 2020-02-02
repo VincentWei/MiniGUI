@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -72,23 +72,23 @@
 #include "newgal.h"
 #include "pixels_c.h"
 #include "hi3560_fb.h"
-#include "hi3560_fbvideo.h" 
+#include "hi3560_fbvideo.h"
 #include "hi_api.h"
 #include "api_display.h"
 #include "hi_type.h"
 
 //#define DBGLINE() printf("---%s;%s:%d\n",__FILE__,__func__,__LINE__);
-#define DBGLINE()  
-#define  GAL_ROP            0x00100000 
+#define DBGLINE()
+#define  GAL_ROP            0x00100000
 #define  GAL_DESTCOLORKEY   0x00002000
 static char devname[15];
 
 typedef struct taghifb_argb
 {
-	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
-	struct fb_bitfield green;	/* else only length is significant */
-	struct fb_bitfield blue;
-	struct fb_bitfield transp;	/* transparency			*/	
+    struct fb_bitfield red;        /* bitfield in fb mem if true color, */
+    struct fb_bitfield green;    /* else only length is significant */
+    struct fb_bitfield blue;
+    struct fb_bitfield transp;    /* transparency            */
 }HI_GC_CMAP_S;
 
 #ifndef _MGRM_THREADS
@@ -96,12 +96,12 @@ typedef struct taghifb_argb
 #endif
 
 //#define FBCON_DEBUG 1
-//#define _PC_DEBUG 1  
+//#define _PC_DEBUG 1
 #define _USE_2D_ACCEL 1
 
 #ifdef _USE_2D_ACCEL
 #include "tde_interface.h"
-//#include "hi_tde.h" 
+//#include "hi_tde.h"
 #endif
 
 #ifdef _PC_DEBUG
@@ -109,8 +109,8 @@ typedef struct taghifb_argb
 typedef struct tagfb_colorkey
 {
     unsigned long key;
-    unsigned char key_enable;	
-    unsigned char mask_enable;	
+    unsigned char key_enable;
+    unsigned char mask_enable;
     unsigned char rmask;
     unsigned char gmask;
     unsigned char bmask;
@@ -128,12 +128,12 @@ typedef struct tagfb_colorkey
 //#define     TDE_OFFSET      0x300 /* 3560 */
 #define     TDE_OFFSET      0x800   /* 3560 */
 typedef enum {
-	HI_GC_PF_PALETTE,
-	HI_GC_PF_RGB4444,
-	HI_GC_PF_RGB1555,
-	HI_GC_PF_RGB565,
-	HI_GC_PF_RGB8888,
-	HI_GC_PF_MAX,
+    HI_GC_PF_PALETTE,
+    HI_GC_PF_RGB4444,
+    HI_GC_PF_RGB1555,
+    HI_GC_PF_RGB565,
+    HI_GC_PF_RGB8888,
+    HI_GC_PF_MAX,
 }HI_GC_PIXEL_FMT;
 
 
@@ -143,7 +143,7 @@ extern GAL_VideoDevice* __mg_current_video;
 #ifndef _MGRM_THREADS
 struct private_hwdata
 {
-	const vidmem_bucket* pBucket;
+    const vidmem_bucket* pBucket;
     GAL_VideoDevice* pDevice; //该变量用于区分哪个图层，在硬件加速blit中用到
 };
 
@@ -266,7 +266,7 @@ static void HI_DEVICE_CLOSE(void)
             return ;
         }
 #endif
- 
+
 #ifdef _MGRM_PROCESSES
     if(mgIsServer)
 #endif
@@ -281,7 +281,7 @@ static int HI3560_Available(void)
 
     hwDisplaySetting(&hw_display_attr);
     strncpy(devname, hw_display_attr.dev_name, sizeof(hw_display_attr.dev_name));
-    
+
     GAL_fbdev = getenv("FRAMEBUFFER");
     if ( GAL_fbdev == NULL ) {
         //strncpy(GAL_fbdev,devname,sizeof(devname));
@@ -296,7 +296,7 @@ static int HI3560_Available(void)
         close(hi3560_console);
     }
     else {
-    	fprintf(stderr, "NEWGAL>HI3560: failed to open file :%s!\n", GAL_fbdev);
+        fprintf(stderr, "NEWGAL>HI3560: failed to open file :%s!\n", GAL_fbdev);
         return 0;
     }
 
@@ -332,67 +332,67 @@ static  int HI3560_GetColorFmt(const GAL_PixelFormat* pixel_fmt, TDE_COLOR_FMT_E
     Gmask = pixel_fmt->Gmask;
     Bmask = pixel_fmt->Bmask;
     Amask = pixel_fmt->Amask;
-    
+
     switch (pixel_fmt->BitsPerPixel)
     {
        case 12 : //RGB,4:4:4
            if (Rmask==0x0f00 && (Gmask == 0x00f0) && Bmask == 0x000f)
            {
-           	   *fmt = TDE_COLOR_FMT_RGB444;
-           	   ret = 0;
+                  *fmt = TDE_COLOR_FMT_RGB444;
+                  ret = 0;
            }
            break;
-           
+
        case 16 :
            if (Rmask == 0x0f00 && (Gmask == 0x00f0) && Bmask == 0x000f && Amask == 0xf000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FMT_RGB4444;
                ret = 0;
            }
-           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x0000)	
+           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x0000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FMT_RGB555;
                ret = 0;
            }
-           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x8000)	
+           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x8000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FMT_RGB1555;
                ret = 0;
            }
-           else if (Rmask == 0xf800 && (Gmask == 0x07e0) && Bmask == 0x001f && Amask == 0x0000)	
+           else if (Rmask == 0xf800 && (Gmask == 0x07e0) && Bmask == 0x001f && Amask == 0x0000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FMT_RGB565;
                ret = 0;
            }
            break;
        case 24 :
-           if (Rmask == 0xff0000 && (Gmask == 0x00ff0) && Bmask == 0x0000ff && Amask == 0x000000)	
+           if (Rmask == 0xff0000 && (Gmask == 0x00ff0) && Bmask == 0x0000ff && Amask == 0x000000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffffff);
                *fmt = TDE_COLOR_FMT_RGB888;
                ret = 0;
            }
            break;
        case 32 :
-           if (Rmask == 0xff0000 && (Gmask == 0x00ff00) && Bmask == 0x0000ff && Amask == 0xff000000)	
+           if (Rmask == 0xff0000 && (Gmask == 0x00ff00) && Bmask == 0x0000ff && Amask == 0xff000000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffffffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffffffff);
                *fmt = TDE_COLOR_FMT_RGB8888;
                ret = 0;
            }
            break;
-           
+
        default:
            ret = -1;
     }
 
-	return ret;
+    return ret;
 }
-	
+
 #define HI3560_GET_PHY(virtual_addr) ((U8*)(virtual_addr-mapped_mem + saved_finfo.smem_start))
 #define HI3560_CHECK_VIRTUAL_ADDR(virtual_addr)  assert(virtual_addr-mapped_mem < saved_finfo.smem_len)
 
@@ -539,7 +539,7 @@ HI_S32 Hi3560_InitTdeSurface(TDE_SURFACE_S *ptdesurface, const GAL_Surface *dst,
         return -1;
     }
 
-    ptdesurface->pu8PhyAddr =Hi3560_GetPhyAddr(dst->pixels) +rect->x * 
+    ptdesurface->pu8PhyAddr =Hi3560_GetPhyAddr(dst->pixels) +rect->x *
         dst->format->BytesPerPixel + rect->y * dst->pitch;
     ptdesurface->u16Height =rect->h;
     ptdesurface->u16Width =rect->w;
@@ -568,12 +568,12 @@ static int HI3560_HWAccelBlit(GAL_Surface *gal_src, GAL_Rect *psrcrect,
     pdstsurface =&dstsurface;
 
 #ifdef _MGRM_PROCESSES
-    if(mgIsServer && (gal_src->flags & GAL_DOUBLEBUF) 
-            && (gal_src->flags & GAL_HWSURFACE) && 
+    if(mgIsServer && (gal_src->flags & GAL_DOUBLEBUF)
+            && (gal_src->flags & GAL_HWSURFACE) &&
             (gal_dst == this->screen)){
 #else
-        if((gal_src->flags & GAL_DOUBLEBUF) 
-            && (gal_src->flags & GAL_HWSURFACE) && 
+        if((gal_src->flags & GAL_DOUBLEBUF)
+            && (gal_src->flags & GAL_HWSURFACE) &&
             (gal_dst == this->screen)){
 #endif
         srcrect.x =0;
@@ -581,7 +581,7 @@ static int HI3560_HWAccelBlit(GAL_Surface *gal_src, GAL_Rect *psrcrect,
         srcrect.w = this->screen->w;
         srcrect.h = this->screen->h;
         dstrect = srcrect;
-        assert(pdstrect->w == this->screen->w && 
+        assert(pdstrect->w == this->screen->w &&
                 pdstrect->h == this->screen->h);
     }
     else{
@@ -589,7 +589,7 @@ static int HI3560_HWAccelBlit(GAL_Surface *gal_src, GAL_Rect *psrcrect,
         dstrect = *pdstrect;
     }
 
-    if(Hi3560_InitTdeSurface(psrcsurface,gal_src,&srcrect) <0 || 
+    if(Hi3560_InitTdeSurface(psrcsurface,gal_src,&srcrect) <0 ||
             Hi3560_InitTdeSurface(pdstsurface,gal_dst,&dstrect) <0){
         return -1;
     }
@@ -599,7 +599,7 @@ static int HI3560_HWAccelBlit(GAL_Surface *gal_src, GAL_Rect *psrcrect,
     }
 
     tdehandle = HI_API_TDE_BeginJob();
-    if(tdehandle == HI_ERR_TDE_INVALID_HANDLE || 
+    if(tdehandle == HI_ERR_TDE_INVALID_HANDLE ||
        tdehandle == HI_ERR_TDE_DEV_NOT_OPEN){
         printf("----HI_API_TDE_BeginJob error\n");
         return -1;
@@ -607,12 +607,12 @@ static int HI3560_HWAccelBlit(GAL_Surface *gal_src, GAL_Rect *psrcrect,
 
 #ifdef _MGRM_PROCESSES
     if(mgIsServer && (gal_src->flags & GAL_DOUBLEBUF) &&
-            (gal_src->flags & GAL_HWSURFACE) && 
+            (gal_src->flags & GAL_HWSURFACE) &&
             (gal_src == this->screen)){
 #else
     if((gal_src->flags & GAL_DOUBLEBUF) &&
-            (gal_src->flags & GAL_HWSURFACE) && 
-            (gal_src == this->screen)){   
+            (gal_src->flags & GAL_HWSURFACE) &&
+            (gal_src == this->screen)){
 #endif
         TDE_DEFLICKER_COEF_S deflickerparam={0};
         HI_U8 alpha =0x80;
@@ -651,18 +651,18 @@ static int HI3560_CheckHWBlit(_THIS, GAL_Surface *src, GAL_Surface *dst)
     //only supported the hw surface accelerated.
     if (!(src->flags & GAL_HWSURFACE) || !(dst->flags & GAL_HWSURFACE))
     {
-    	return -1;
+        return -1;
     }
 
     if ((src->flags&GAL_DESTCOLORKEY)) {
-    	fprintf(stderr, "NEWGAL>HI3560: src->flags:%x,unsupported GAL_DESTCOLORKEY\n", src->flags);
+        fprintf(stderr, "NEWGAL>HI3560: src->flags:%x,unsupported GAL_DESTCOLORKEY\n", src->flags);
         return -1;
     }
-    
+
     //if ((src->flags&GAL_SRCALPHA) && (src->flags&GAL_ROP) && (src->format->rop != ROP_SET))
     if ((src->flags & GAL_SRCALPHA) && (src->flags & GAL_ROP)) {
-    	fprintf(stderr, "NEWGAL>HI3560: unsupported GAL_SRCALPHA|GAL_ROP\n");
-        return -1;	
+        fprintf(stderr, "NEWGAL>HI3560: unsupported GAL_SRCALPHA|GAL_ROP\n");
+        return -1;
     }
 
     if(HI3560_GetColorFmt(src->format, &color_fmt) < 0)
@@ -701,7 +701,7 @@ static Sint32 Hi3560_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 
     param.stAlpha.enOutAlphaFrom = TDE_OUTALPHA_FROM_REG;
     param.stAlpha.u8AlphaGlobal = 0xff;
     tdehandle = HI_API_TDE_BeginJob();
-    if(tdehandle == HI_ERR_TDE_INVALID_HANDLE || 
+    if(tdehandle == HI_ERR_TDE_INVALID_HANDLE ||
        tdehandle == HI_ERR_TDE_DEV_NOT_OPEN){
         printf("----%s,HI_API_TDE_BeginJob error\n");
         return -1;
@@ -716,15 +716,15 @@ static Sint32 Hi3560_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 
  /* Fills a surface rectangle with the given color */
 int HI3560_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
 {
-	Uint8 r,g,b;
-	Uint8* pvirtual_addr;
-	TDE_SolidDrawParam param;
+    Uint8 r,g,b;
+    Uint8* pvirtual_addr;
+    TDE_SolidDrawParam param;
     TDE_COLOR_FORMAT color_fmt;
-    	
-	if (!(dst->flags & GAL_HWSURFACE))
-	{
-		return -1;
-	}
+
+    if (!(dst->flags & GAL_HWSURFACE))
+    {
+        return -1;
+    }
 
     memset(&param, 0x00, sizeof(param));
 
@@ -735,8 +735,8 @@ int HI3560_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
 
     if (dst->format->Amask == 0xff000000)
     {
- 	    param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
-    	    param.InternalAlpha = 0xff;
+         param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
+            param.InternalAlpha = 0xff;
             param.OutAlphaFrom = TDE_OUT_ALPHAFROM_INTERNAL;
     }
     else
@@ -747,9 +747,9 @@ int HI3560_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
     if (HI3560_GetColorFmt(dst->format, &color_fmt) < 0)
     {
         fprintf(stderr, "error: file:%s, line:%d\n", __FILE__, __LINE__);
-    	return -1;
+        return -1;
     }
-    
+
     param.InColorFormat = color_fmt;
     param.OutColorFormat = color_fmt;
 
@@ -766,27 +766,27 @@ int HI3560_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
         return -1;
     }
 
-    	
+
     printSDParam(&param);
-	return 0;
+    return 0;
 }
 #endif
 
 
 /* Fills a surface rectangle with the given bitmap */
 #if 0
-int HI3560_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMAP pattern)
+int HI3560_FillHWRectWithPattern(_THIS, GAL_Surface    *dst, GAL_Rect *rect, PBITMAP pattern)
 {
-	Uint8* pvirtual_addr;
-	TDE_PatternFillParam param;
+    Uint8* pvirtual_addr;
+    TDE_PatternFillParam param;
     TDE_COLOR_FORMAT color_fmt;
-    
-	if (!(dst->flags & GAL_HWSURFACE))
-	{
+
+    if (!(dst->flags & GAL_HWSURFACE))
+    {
         fprintf(stderr,"error: file:%s, line:%d\n", __FILE__, __LINE__);
-		return -1;
-	}
-  
+        return -1;
+    }
+
     if (pattern->bmPitch > 64)
     {
         return -1;
@@ -802,13 +802,13 @@ int HI3560_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
     if (HI3560_GetColorFmt(dst->format, &color_fmt) < 0)
     {
         fprintf(stderr, "error,file:%s, line:%d\n", __FILE__, __LINE__);
-    	return -1;
+        return -1;
     }
 
     if (rect == NULL)
     {
         fprintf(stderr, "error,file:%s, line:%d\n", __FILE__, __LINE__);
-    	return -1;
+        return -1;
     }
 
     if (pattern->bmType & BMP_TYPE_COLORKEY)
@@ -820,8 +820,8 @@ int HI3560_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
 
     if (pattern->bmType & BMP_TYPE_ALPHACHANNEL)
     {
-    	param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
-    	param.InternalAlpha = pattern->bmAlpha;
+        param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
+        param.InternalAlpha = pattern->bmAlpha;
     }
 
     param.opt_width = (U16)(rect->w);
@@ -833,7 +833,7 @@ int HI3560_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
     param.InColorFormat = param.OutColorFormat = color_fmt;
     param.pattern_width= pattern->bmWidth;
     param.pattern_height = pattern->bmHeight;
-    
+
     //memmove(pattern_addr, pattern->bmBits, pattern_size);
     param.src_pixels = HI3560_GET_PHY(pattern->bmBits);
     param.src_stride = HI3560_ALIGN_4(pattern->bmPitch);
@@ -843,7 +843,7 @@ int HI3560_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
         return -1;
     }
     printPFParam(&param);
-	return 0;
+    return 0;
 }
 #endif
 
@@ -870,13 +870,13 @@ BOOL HI3560_CreateDevice(GAL_VideoDevice *device)
     //strncpy(GAL_fbdev,devname,sizeof(devname));
     GAL_fbdev = devname;
     console_fd = open(GAL_fbdev, O_RDWR, 0);
-    if ( console_fd < 0 ) 
+    if ( console_fd < 0 )
     {
         return FALSE;
     }
-    
+
     memset(this, 0, (sizeof *this));
- 
+
     wait_vbl = HI3560_WaitVBL;
     wait_idle = HI3560_WaitIdle;
 
@@ -919,9 +919,9 @@ static int HI3560_VideoInit(_THIS, GAL_PixelFormat *vformat)
             return ;
         }
 #endif
- 
+
     /* Get the type of video hardware */
-    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 ) 
+    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 )
     {
         fprintf (stderr, "NEWGAL>HI3560: Couldn't get console hardware info\n");
         HI3560_VideoQuit(this);
@@ -1059,16 +1059,16 @@ static void print_finfo(struct fb_fix_screeninfo *finfo)
 }
 #endif
 
-static const HI_GC_CMAP_S s_fbargb[] = 
+static const HI_GC_CMAP_S s_fbargb[] =
 {
-#if 0	
+#if 0
     {
         .red    = {8, 4, 0}, //RGB444
         .green  = {4, 4, 0},
         .blue   = {0, 4, 0},
         .transp = {0, 0, 0},
     },
-#endif    
+#endif
     {
         .red    = {8, 4, 0}, //RGB4444
         .green  = {4, 4, 0},
@@ -1076,13 +1076,13 @@ static const HI_GC_CMAP_S s_fbargb[] =
         .transp = {12, 4, 0},
     },
 #if 0
-	{
+    {
         .red    = {10, 5, 0}, //RGB555
         .green  = {5, 5, 0},
         .blue   = {0, 5, 0},
         .transp = {0, 0, 0},
     },
- #endif   
+ #endif
     {
         .red    = {10, 5, 0},//RGB1555
         .green  = {5, 5, 0},
@@ -1096,15 +1096,15 @@ static const HI_GC_CMAP_S s_fbargb[] =
         .blue   = {0, 5, 0},
         .transp = {0, 0, 0},
     },
-    
+
 #if 0
-	{
+    {
         .red    = {16, 8, 0},//RGB888
         .green  = {8, 8, 0},
         .blue   = {0, 8, 0},
         .transp = {0, 0, 0},
     },
- #endif   
+ #endif
     {
         .red    = {16, 8, 0},//RGB8888
         .green  = {8, 8, 0},
@@ -1124,83 +1124,83 @@ static GAL_Surface *HI3560_SetVideoMode(_THIS, GAL_Surface *current,
     Uint8 *surfaces_mem;
     int surfaces_len;
     int iAFBufLen = -1;
-    
+
     /* Set the video mode and get the final screen format */
-    if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 ) 
+    if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 )
     {
         fprintf (stderr, "NEWGAL>HI3560: Couldn't get console screen info");
         return(NULL);
     }
-    
+
 #ifdef FBCON_DEBUG
     fprintf(stderr, "Printing original vinfo:\n");
     print_vinfo(&vinfo);
 #endif
 
 #ifdef _MGRM_PROCESSES
-  	if (mgIsServer)
+      if (mgIsServer)
 #endif
-  	{
-	    vinfo.activate = FB_ACTIVATE_NOW;
-	    vinfo.accel_flags = 0;
-	    vinfo.bits_per_pixel = bpp;
-	    vinfo.xres = width;
-	    vinfo.xres_virtual = width;
-	    //vinfo.xres_virtual = 800;
-	    vinfo.yres = height;
-	    vinfo.yres_virtual = height;
-	    //vinfo.yres_virtual = 480;
-	    vinfo.xoffset = 0;
-	    vinfo.yoffset = 0;
-#if 0	    
-	    vinfo.red.length = vinfo.red.offset = 0;
-	    vinfo.green.length = vinfo.green.offset = 0;
-	    vinfo.blue.length = vinfo.blue.offset = 0;
-	    vinfo.transp.length = vinfo.transp.offset = 0;
+      {
+        vinfo.activate = FB_ACTIVATE_NOW;
+        vinfo.accel_flags = 0;
+        vinfo.bits_per_pixel = bpp;
+        vinfo.xres = width;
+        vinfo.xres_virtual = width;
+        //vinfo.xres_virtual = 800;
+        vinfo.yres = height;
+        vinfo.yres_virtual = height;
+        //vinfo.yres_virtual = 480;
+        vinfo.xoffset = 0;
+        vinfo.yoffset = 0;
+#if 0
+        vinfo.red.length = vinfo.red.offset = 0;
+        vinfo.green.length = vinfo.green.offset = 0;
+        vinfo.blue.length = vinfo.blue.offset = 0;
+        vinfo.transp.length = vinfo.transp.offset = 0;
 #endif
         if(bpp == 16)
         {
             vinfo.red  = s_fbargb[HI_GC_PF_RGB565-1].red;
-		    vinfo.blue = s_fbargb[HI_GC_PF_RGB565-1].blue;
-		    vinfo.green = s_fbargb[HI_GC_PF_RGB565-1].green;		
-		    vinfo.transp = s_fbargb[HI_GC_PF_RGB565-1].transp;
+            vinfo.blue = s_fbargb[HI_GC_PF_RGB565-1].blue;
+            vinfo.green = s_fbargb[HI_GC_PF_RGB565-1].green;
+            vinfo.transp = s_fbargb[HI_GC_PF_RGB565-1].transp;
         }
         else if(bpp == 32)
         {
-		    vinfo.red  = s_fbargb[HI_GC_PF_RGB8888-1].red;
-		    vinfo.blue = s_fbargb[HI_GC_PF_RGB8888-1].blue;
-		    vinfo.green = s_fbargb[HI_GC_PF_RGB8888-1].green;		
-		    vinfo.transp = s_fbargb[HI_GC_PF_RGB8888-1].transp;
+            vinfo.red  = s_fbargb[HI_GC_PF_RGB8888-1].red;
+            vinfo.blue = s_fbargb[HI_GC_PF_RGB8888-1].blue;
+            vinfo.green = s_fbargb[HI_GC_PF_RGB8888-1].green;
+            vinfo.transp = s_fbargb[HI_GC_PF_RGB8888-1].transp;
         }
 #ifdef FBCON_DEBUG
-	    fprintf(stderr, "Printing wanted vinfo:\n");
-	    print_vinfo(&vinfo);
+        fprintf(stderr, "Printing wanted vinfo:\n");
+        print_vinfo(&vinfo);
 #endif
-	    if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 ) 
-	    {
-	            fprintf (stderr, "NEWGAL>HI3560: Couldn't set console screen info");
-	            return(NULL);
-	    }
+        if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 )
+        {
+                fprintf (stderr, "NEWGAL>HI3560: Couldn't set console screen info");
+                return(NULL);
+        }
 
 #ifdef FBCON_DEBUG
-        if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 ) 
+        if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 )
         {
             fprintf (stderr, "NEWGAL>HI3560: Couldn't get console screen info");
             return(NULL);
-        }   
-	    print_vinfo(&vinfo);
+        }
+        print_vinfo(&vinfo);
 #endif
     }
 
     /* Get the fixed information about the console hardware.
        This is necessary since finfo.line_length changes.
      */
-    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &saved_finfo) < 0) 
+    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &saved_finfo) < 0)
     {
         fprintf (stderr, "NEWGAL>HI3560: Couldn't get console hardware info");
         return(NULL);
     }
-    
+
 #ifdef FBCON_DEBUG
     fprintf (stderr, "Printing actual vinfo:\n");
     print_vinfo(&vinfo);
@@ -1228,10 +1228,10 @@ static GAL_Surface *HI3560_SetVideoMode(_THIS, GAL_Surface *current,
     }
 
     if (!GAL_ReallocFormat(current, vinfo.bits_per_pixel,
-                                      Rmask, Gmask, Bmask, Amask) ) 
+                                      Rmask, Gmask, Bmask, Amask) )
     {
         return(NULL);
-    }    
+    }
 
     /* Set up the new mode framebuffer */
     //current->flags = (GAL_FULLSCREEN|GAL_HWSURFACE);
@@ -1246,8 +1246,8 @@ static GAL_Surface *HI3560_SetVideoMode(_THIS, GAL_Surface *current,
         /* Set up the information for hardware surfaces */
         surfaces_mem = (char *)current->pixels + vinfo.yres * current->pitch;
     }
-    
-    surfaces_len = (mapped_memlen -(surfaces_mem-mapped_mem));    
+
+    surfaces_len = (mapped_memlen -(surfaces_mem-mapped_mem));
 
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
@@ -1266,10 +1266,10 @@ static GAL_Surface *HI3560_SetVideoMode(_THIS, GAL_Surface *current,
         DBGLINE();
     }
 #ifdef _MGRM_PROCESSES
-    else 
+    else
     {
-    	static struct private_hwdata data;
-    	data.pDevice = this;
+        static struct private_hwdata data;
+        data.pDevice = this;
         current->hwdata = &data;
     }
 #endif
@@ -1342,7 +1342,7 @@ static int HI3560_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int siz
     screen->hwdata = HI3560_CreateHwData(this, &surfaces);
 #else
     screen->hwdata = (struct private_hwdata *)&surfaces;
-#endif    
+#endif
     return(0);
 }
 
@@ -1489,13 +1489,13 @@ static int HI3560_AllocHWSurface (_THIS, GAL_Surface *surface)
     REP_HWSURFACE reply = {0, 0, NULL};
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
-        
+
         HI3560_RequestHWSurface (this, &request, &reply);
     else {
         REQUEST req;
         if (surface->w*surface->h == 0)
         {
-            goto NEXT;   	
+            goto NEXT;
         }
         req.id = REQID_HWSURFACE;
         req.data = &request;
@@ -1661,10 +1661,10 @@ void* HI3560_MallocFromVram(int size)
     request.h = (size+pitch-1)/pitch;
 
     HI3560_RequestHWSurface (__mg_current_video, &request, &reply);
-    
+
     if (reply.bucket == NULL)
     {
-        fprintf(stderr, "NEWGAL>HI3560: failed to malloc vram, size:%d!\n", size); 
+        fprintf(stderr, "NEWGAL>HI3560: failed to malloc vram, size:%d!\n", size);
         return NULL;
     }
 
@@ -1688,20 +1688,20 @@ void HI3560_FreeToVram(void* p)
 #ifndef _MGRM_THREADS
 static struct private_hwdata* HI3560_CreateHwData(_THIS, const vidmem_bucket* pBucket)
 {
-	struct private_hwdata* pData;
-	pData = (struct private_hwdata*)malloc(sizeof(struct private_hwdata));
-	if (pData == NULL)
-	{
-		fprintf(stderr, "NEWGAL>HI3560: failed to create private_hwdata!\n");
-		exit(-1);
-	}
-	else
-	{
-		pData->pBucket = pBucket;
-		pData->pDevice = this;
-	}
-		
-	return pData;
+    struct private_hwdata* pData;
+    pData = (struct private_hwdata*)malloc(sizeof(struct private_hwdata));
+    if (pData == NULL)
+    {
+        fprintf(stderr, "NEWGAL>HI3560: failed to create private_hwdata!\n");
+        exit(-1);
+    }
+    else
+    {
+        pData->pBucket = pBucket;
+        pData->pDevice = this;
+    }
+
+    return pData;
 }
 
 static int HI3560_SetLayerAlpha(int  fd,  Uint32* pAlpha)
@@ -1728,35 +1728,35 @@ static int HI3560_SetLayerAlpha(int  fd,  Uint32* pAlpha)
 
 static int HI3560_SetLayerAttr(_THIS, Uint8 siAttr, void * pValue)
 {
-	int ret = 0;
+    int ret = 0;
 
-	switch(siAttr) {
-		case SCREEN_ATTR_ALPHA_CHANNEL:
-		{
-#if 0			
-    		Uint8 alpha0, alpha1;
-    		Uint32 alpha;
-			if (pValue != NULL)
-			{
-				alpha1 = alpha0 = *(Uint8*)pValue;
-			}
-			else
-			{
-				alpha1 = alpha0 = 0xff;
-			}
-			
-			alpha  = (alpha1 << 8) + alpha0; 
-			if (ioctl(console_fd, FBIOPUT_ALPHA_HIFB,  &alpha) <0)
-			{
-				fprintf(stderr, "failed to set layer alpha attribute!\n");
-				ret = -1;
-			}
+    switch(siAttr) {
+        case SCREEN_ATTR_ALPHA_CHANNEL:
+        {
+#if 0
+            Uint8 alpha0, alpha1;
+            Uint32 alpha;
+            if (pValue != NULL)
+            {
+                alpha1 = alpha0 = *(Uint8*)pValue;
+            }
+            else
+            {
+                alpha1 = alpha0 = 0xff;
+            }
+
+            alpha  = (alpha1 << 8) + alpha0;
+            if (ioctl(console_fd, FBIOPUT_ALPHA_HIFB,  &alpha) <0)
+            {
+                fprintf(stderr, "failed to set layer alpha attribute!\n");
+                ret = -1;
+            }
 #endif
             ret = HI3560_SetLayerAlpha(console_fd, (Uint32*)pValue);
-			break;
-		}
+            break;
+        }
 
-		case SCREEN_ATTR_COLORKEY:
+        case SCREEN_ATTR_COLORKEY:
         {
             fb_colorkey ck = {0};
 
@@ -1776,11 +1776,11 @@ static int HI3560_SetLayerAttr(_THIS, Uint8 siAttr, void * pValue)
             }
             break;
         }
-		
-		default:
-			fprintf(stderr, "NEWGAL>HI3560: the attribute :%d is not supported!\n", siAttr);
-			ret = -1;
-	}
+
+        default:
+            fprintf(stderr, "NEWGAL>HI3560: the attribute :%d is not supported!\n", siAttr);
+            ret = -1;
+    }
 
    return ret;
 }
@@ -1872,20 +1872,20 @@ VideoBootStrap HI3560_bootstrap = {
 /* some APIs specific to this engine */
 int hi3560GetVideoFD (void)
 {
-	GAL_VideoDevice* this = __mg_current_video;
-	return console_fd;
+    GAL_VideoDevice* this = __mg_current_video;
+    return console_fd;
 }
 
 void* hi3560GetFBAddress (void)
 {
-	GAL_VideoDevice* this = __mg_current_video;
-	return mapped_mem;
+    GAL_VideoDevice* this = __mg_current_video;
+    return mapped_mem;
 }
 
 int hi3560SetScreenAttr (Uint8 siAttr, void* pValue)
 {
     return HI3560_SetLayerAttr (__mg_current_video, siAttr, pValue);
-}    
+}
 
 #endif /* _MGGAL_HI3560 */
 

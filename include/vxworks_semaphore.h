@@ -14,8 +14,8 @@
  * \file vxworks_semaphore.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2005/01/11
- * 
- * \brief This is the POSIX semaphore implementation in order to 
+ *
+ * \brief This is the POSIX semaphore implementation in order to
  *        run MiniGUI on VxWorks.
  *
  *  This header contains all the definitions needed to support
@@ -29,10 +29,10 @@
     POSIX semaphore under ThreadX. The reader is referred to the POSIX
     standard or equivalent documentation for details of the
     functionality contained herein.
- 
+
     We do this work in order to run MiniGUI on VxWorks.
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -69,7 +69,7 @@
 /*
  * $Id: vxworks_semaphore.h 13674 2010-12-06 06:45:01Z wanzheng $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -89,7 +89,7 @@ typedef struct _sem_t
     unsigned int    value;
 } sem_t;
 
-#define SEM_VALUE_MAX	UINT_MAX
+#define SEM_VALUE_MAX    UINT_MAX
 
 /*-----------------------------------------------------------------------------
 ** Semaphore functions

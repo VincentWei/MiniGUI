@@ -1,4 +1,4 @@
-/* 
+/*
  * This program tries to create a new layer named "vcongui" if
  * there is no such layer. If there is already a layer named "vcongui",
  * this program brings the layer to be the topmost one.

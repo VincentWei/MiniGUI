@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -100,8 +100,8 @@ typedef struct BITMAPFILEHEADER
 } BITMAPFILEHEADER;
 
 
-/* Used for both OS/2 and Windows BMP. 
- * Contains only the parameters needed to load the image 
+/* Used for both OS/2 and Windows BMP.
+ * Contains only the parameters needed to load the image
  */
 typedef struct BITMAPINFOHEADER
 {
@@ -217,7 +217,7 @@ static void read_bmicolors (int ncols, RGB *pal, MG_RWops *f, int win_flag)
       pal[i].g = fp_getc(f);
       pal[i].r = fp_getc(f);
       if (win_flag)
-	    fp_getc(f);
+        fp_getc(f);
    }
 }
 
@@ -234,43 +234,43 @@ static int read_RLE8_compressed_image(MG_RWops * f, BYTE * bits, int pitch, int 
     int flag = BMP_ERR;
 
     while (pos <= width && flag == BMP_ERR) {
-	    count = fp_getc(f);
-	    val = fp_getc(f);
+        count = fp_getc(f);
+        val = fp_getc(f);
 
         if (count > 0) {
-	        for (j = 0;j < count;j++) {
-	            bits[pos] = val;
-	            pos++;
-	        }
-	    }
-	    else {
+            for (j = 0;j < count;j++) {
+                bits[pos] = val;
+                pos++;
+            }
+        }
+        else {
             switch (val) {
 
             case 0:                       /* end of line flag */
-	            flag = BMP_LINE;
-	        break;
+                flag = BMP_LINE;
+            break;
 
-	        case 1:                       /* end of picture flag */
-	            flag = BMP_END;
-	        break;
+            case 1:                       /* end of picture flag */
+                flag = BMP_END;
+            break;
 
-	        case 2:                       /* displace picture */
+            case 2:                       /* displace picture */
                 count = fp_getc(f);
-	            val = fp_getc(f);
-	            pos += count;
-	        break;
+                val = fp_getc(f);
+                pos += count;
+            break;
 
             default:                      /* read in absolute mode */
-	            for (j = 0; j < val; j++) {
-	                val0 = fp_getc(f);
+                for (j = 0; j < val; j++) {
+                    val0 = fp_getc(f);
                     bits[pos] = val0;
-	                pos++;
-	            }
-	            if (j % 2 == 1)
-	                val0 = fp_getc(f);    /* align on word boundary */
-	        break;
-	        }
-	    }
+                    pos++;
+                }
+                if (j % 2 == 1)
+                    val0 = fp_getc(f);    /* align on word boundary */
+            break;
+            }
+        }
     }
 
     return flag;
@@ -421,7 +421,7 @@ void * __mg_init_bmp (MG_RWops* fp, MYBITMAP * bmp, RGB * pal)
 
         MGUI_RWseek (fp, biSize - WININFOHEADERSIZE, SEEK_CUR);
         ncol = (fileheader.bfOffBits - biSize - 14) / 4;
-        
+
         /* there only 1,4,8 bit read color panel data */
         if (infoheader.biBitCount <= 8)
             read_bmicolors(ncol, pal, fp, 1);
@@ -554,7 +554,7 @@ BOOL __mg_check_bmp (MG_RWops* fp)
 }
 
 #ifdef _MGMISC_SAVEBITMAP
-static void bmpGet16CScanline(BYTE* bits, BYTE* scanline, 
+static void bmpGet16CScanline(BYTE* bits, BYTE* scanline,
                         int pixels)
 {
     int i;
@@ -569,7 +569,7 @@ static void bmpGet16CScanline(BYTE* bits, BYTE* scanline,
     }
 }
 
-static inline void bmpGet256CScanline (BYTE* bits, BYTE* scanline, 
+static inline void bmpGet256CScanline (BYTE* bits, BYTE* scanline,
                         int pixels)
 {
     memcpy (scanline, bits, pixels);
@@ -599,7 +599,7 @@ static inline void pixel2rgb (gal_pixel pixel, GAL_Color* color, int depth)
     }
 }
 
-static void bmpGetHighCScanline (BYTE* bits, BYTE* scanline, 
+static void bmpGetHighCScanline (BYTE* bits, BYTE* scanline,
                         int pixels, int bpp, int depth)
 {
     int i;
@@ -634,7 +634,7 @@ inline static int depth2bpp (int depth)
     case 32:
         return 4;
     }
-    
+
     return 1;
 }
 
@@ -685,7 +685,7 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
             MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD16), 1);
             MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD16), 1);
             MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD32), 1);
-            
+
             MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD32), 1);
             MGUI_RWwrite (fp, &bmih.biWidth, sizeof (DWORD32), 1);
             MGUI_RWwrite (fp, &bmih.biHeight, sizeof (DWORD32), 1);
@@ -705,7 +705,7 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
                 rgbquad.rgbGreen = pal [i].g;
                 MGUI_RWwrite (fp, &rgbquad, sizeof (char), sizeof (RGBQUAD));
             }
-            
+
             for (i = bmp->h  - 1; i >= 0; i--) {
                 bmpGet16CScanline (bmp->bits + i * bmp->pitch, scanline, bmp->w);
                 MGUI_RWwrite (fp, scanline, sizeof (char), scanlinebytes);
@@ -748,7 +748,7 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
             MGUI_RWwrite (fp, &bmih.biYPelsPerMeter, sizeof (DWORD32), 1);
             MGUI_RWwrite (fp, &bmih.biClrUsed, sizeof (DWORD32), 1);
             MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD32), 1);
-            
+
             for (i = 0; i < 256; i++) {
                 RGBQUAD rgbquad;
                 rgbquad.rgbRed = pal [i].r;
@@ -756,7 +756,7 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
                 rgbquad.rgbGreen = pal [i].g;
                 MGUI_RWwrite (fp, &rgbquad, sizeof (char), sizeof (RGBQUAD));
             }
-            
+
             for (i = bmp->h - 1; i >= 0; i--) {
                 bmpGet256CScanline (bmp->bits + bmp->pitch * i, scanline, bmp->w);
                 MGUI_RWwrite (fp, scanline, sizeof (char), scanlinebytes);
@@ -784,7 +784,7 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
             MGUI_RWwrite (fp, &bmfh.bfReserved1, sizeof (WORD16), 1);
             MGUI_RWwrite (fp, &bmfh.bfReserved2, sizeof (WORD16), 1);
             MGUI_RWwrite (fp, &bmfh.bfOffBits, sizeof (DWORD32), 1);
-            
+
             MGUI_RWwrite (fp, &bmih.biSize, sizeof (DWORD32), 1);
             MGUI_RWwrite (fp, &bmih.biWidth, sizeof (DWORD32), 1);
             MGUI_RWwrite (fp, &bmih.biHeight, sizeof (DWORD32), 1);
@@ -798,7 +798,7 @@ int __mg_save_bmp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
             MGUI_RWwrite (fp, &bmih.biClrImportant, sizeof (DWORD32), 1);
 
             for (i = bmp->h - 1; i >= 0; i--) {
-                bmpGetHighCScanline (bmp->bits + i * bmp->pitch, scanline, 
+                bmpGetHighCScanline (bmp->bits + i * bmp->pitch, scanline,
                                 bmp->w, bpp, bmp->depth);
                 MGUI_RWwrite (fp, scanline, sizeof (char), scanlinebytes);
             }

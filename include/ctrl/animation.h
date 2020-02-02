@@ -14,10 +14,10 @@
  * \file animation.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: animation.h 10865 2008-08-27 06:52:22Z wangjian $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -83,10 +83,10 @@ typedef struct _ANIMATIONFRAME
     /** The disposal method (from GIF89a specification):
      *  Indicates the way in which the graphic is to be treated after being displayed.
      *  - 0\n No disposal specified. The decoder is not required to take any action.
-     *  - 1\n Do not dispose. The graphic is to be left in place. 
-     *  - 2\n Restore to background color. The area used by the frame must be restored to 
+     *  - 1\n Do not dispose. The graphic is to be left in place.
+     *  - 2\n Restore to background color. The area used by the frame must be restored to
      *        the background color.
-     *  - 3\n Restore to previous. The decoder is required to restore the area overwritten by 
+     *  - 3\n Restore to previous. The decoder is required to restore the area overwritten by
      *        the frmae with what was there prior to rendering the frame.
      */
     int disposal;
@@ -251,7 +251,7 @@ MG_EXPORT void DestroyAnimation (ANIMATION* anim, BOOL free_it);
 #define ANS_FITTOANI                    0x0004L
 
 /**
- * \def ANS_WINBGC 
+ * \def ANS_WINBGC
  * \brief Use the background color of the window.
  */
 #define ANS_WINBGC                      0x0010L
@@ -302,7 +302,7 @@ MG_EXPORT void DestroyAnimation (ANIMATION* anim, BOOL free_it);
  * \def ANM_STARTPLAY
  * \brief Indicates the control to start playing the animation.
  *
- * The animation will not be played when create the control, 
+ * The animation will not be played when create the control,
  * an application should send ANM_STARTPLAY to an animation control
  * to start playing the animation.
  *

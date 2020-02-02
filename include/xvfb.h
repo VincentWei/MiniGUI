@@ -14,13 +14,13 @@
  * \file xvfb.h
  * \author FMSoft
  * \date 2007/10/25
- * 
- * \brief This file includes global and miscellaneous interfaces of 
+ *
+ * \brief This file includes global and miscellaneous interfaces of
  *        xVFB for MiniGUI.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -56,8 +56,8 @@
 
 /*
  * $Id: xvfb.h 7682 2007-09-26 03:27:02Z wangxuguang $
- * 
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -74,11 +74,11 @@ extern "C" {
      */
 
     /**
-     * \defgroup xvfb_vars x virtual framebuffer 
+     * \defgroup xvfb_vars x virtual framebuffer
      * @{
      */
 
-/** infomation header of xvfb frame buffer. */    
+/** infomation header of xvfb frame buffer. */
 typedef struct _XVFBHeader {
 
     /** size of infomation header*/
@@ -93,15 +93,15 @@ typedef struct _XVFBHeader {
     /** color depth of x virtual framebuffer */
     int depth;
 
-    /** 
+    /**
      * The flag indicating the Most Significant Bits (MSB)
-     * is left when depth is less than 8. 
+     * is left when depth is less than 8.
      */
     Uint8  MSBLeft;
 
     /** the pixel red color mask for x virtual framebuffer. */
     Uint32 Rmask;
- 
+
     /** the pixel green color mask for x virtual framebuffer. */
     Uint32 Gmask;
 
@@ -114,11 +114,11 @@ typedef struct _XVFBHeader {
     /** The pitch of x virtual framebuffer. */
     int pitch;
 
-    /** 
+    /**
      * Flag indicate whether x virtual framebuffer should be update,
-     * and should reset to false after refreshing the dirty area 
+     * and should reset to false after refreshing the dirty area
      */
-    int dirty;   
+    int dirty;
 
     /** the left of dirty area */
     int dirty_rc_l;
@@ -129,11 +129,11 @@ typedef struct _XVFBHeader {
     /** the bottom of dirty area */
     int dirty_rc_b;
 
-    /** 
-     * Flag indicate whether palette have been changed, 
+    /**
+     * Flag indicate whether palette have been changed,
      * and should reset to false after reflecting the change.
      */
-    int palette_changed;  
+    int palette_changed;
 
     /** the offset off palette based on address of XVFBHeader. */
     int palette_offset;
@@ -149,11 +149,11 @@ typedef struct _XVFBKEYDATA
     /** the scancode in minigui of the keyboard. */
     unsigned short key_code;
 
-    /** 
+    /**
      * the keyboard state
      * - 0  pressed
      * - 1  released
-     */ 
+     */
     unsigned short key_state;
 } XVFBKEYDATA;
 
@@ -162,14 +162,14 @@ typedef struct _XVFBMOUSEDATA
 {
     /** x coordinate of mouse */
     unsigned short x;
-    
+
     /** y coordinate of mouse */
     unsigned short y;
 
-    /** 
-     * buttons pressed of mouse, can be OR'ed by following values: 
+    /**
+     * buttons pressed of mouse, can be OR'ed by following values:
      * - 0x0001 left button pressed
-     * - 0x0002 right button pressed  
+     * - 0x0002 right button pressed
      */
     unsigned short btn;
 } XVFBMOUSEDATA;
@@ -178,9 +178,9 @@ typedef struct _XVFBMOUSEDATA
 /** event sended to minigui by x virtual framebuffer*/
 typedef struct _XVFBEVENT
 {
-    /** 
+    /**
      * - 0 the event is mouse event
-     * - 1 the event is keyboard event  
+     * - 1 the event is keyboard event
      */
     int event_type;
 
@@ -231,7 +231,7 @@ extern MG_EXPORT void* __mg_rtos_xvfb_event_buffer;
  *                   Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask, \
  *                   BOOL MSBLeft)
  * \brief create virtual framebuffer
- * \param width the width of virtual framebuffer 
+ * \param width the width of virtual framebuffer
  * \param height the height of virtual framebuffer
  * \param depth the color depth of virtual framebuffer
  * \param Rmask the pixel red color mask
@@ -239,8 +239,8 @@ extern MG_EXPORT void* __mg_rtos_xvfb_event_buffer;
  * \param Bmask the pixel blue color mask
  * \param Amask the pixel alpha mask
  * \param MSBLeft The flag indicating the Most Significant Bits (MSB) \
- *                  is left when depth is less than 8. 
- * \return the header of virtual framebuffer  
+ *                  is left when depth is less than 8.
+ * \return the header of virtual framebuffer
  */
 MG_EXPORT XVFBHeader* GUIAPI xVFBAllocVirtualFrameBuffer (int width, int height, int depth,
         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask, BOOL MSBLeft);
@@ -272,9 +272,9 @@ MG_EXPORT void GUIAPI xVFBDestroyEventBuffer (void* event_buf);
 /**
  * \fn int xVFBNotifyNewEvent (const void* xvfb_event_buffer, XVFBEVENT* event)
  * \brief put a event to event circular buffer
- * \param xvfb_event_buffer event circular buffer 
+ * \param xvfb_event_buffer event circular buffer
  * \param event event shall be put into xvfb_event_buffer
- * \return 
+ * \return
  *      - 0 indicate the event has been put into buffer
  *      - 1 indicate the buffer is full
  *      - 2 the buffer has been distroyed (MiniGUI terminated).

@@ -1,5 +1,5 @@
 /*
- * This program which should be named "mginit" calls "ServerStartup" 
+ * This program which should be named "mginit" calls "ServerStartup"
  * to start the server of MiniGUI-Processes.
  */
 int MiniGUIMain (int args, const char* arg[])

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -58,12 +58,12 @@
 /*        EXCLUDED TO THE FULLEST EXTENT PERMITTED BY LAW                    */
 /*                                                                           */
 /*****************************************************************************/
-/**                                                                            
- @File   stevt_ioctl.h                                                         
- @brief                                                                         
-                                                                               
-                                                                               
-                                                                               
+/**
+ @File   stevt_ioctl.h
+ @brief
+
+
+
 */
 #ifndef STEVT_IOCTL_H
 #define STEVT_IOCTL_H
@@ -100,7 +100,7 @@ typedef struct STEVT_EventReadBlock_s{
 #define STEVT_IOCTL_MAGIC_NUMBER 0xFF
 #endif
 
-                                                                                                 
+
 typedef struct
 {
     /* Error code retrieved by STAPI function */
@@ -193,14 +193,14 @@ typedef struct
 ST_ErrorCode_t STEVT_Register (STEVT_Handle_t        Handle,
                                STEVT_EventConstant_t EventConst,
                                STEVT_EventID_t      *EventID)
-*/    
+*/
 typedef struct
 {
     /* Parameters to the function */
     STEVT_Handle_t         Handle; /* In */
     STEVT_EventConstant_t EventConst; /* In */
-    const char		 *EventName;		/* In */
-    short		  EventNameSize;	/* In */
+    const char         *EventName;        /* In */
+    short          EventNameSize;    /* In */
     STEVT_EventID_t EventID;       /* Out */
 
     ST_ErrorCode_t  ErrorCode;     /* Out */
@@ -219,8 +219,8 @@ typedef struct
     STEVT_Handle_t         Handle; /* In */
     ST_DeviceName_t RegistrantName; /* In */
     STEVT_EventConstant_t EventConst; /* In */
-    const char		 *EventName;		/* In */
-    short		  EventNameSize;	/* In */
+    const char         *EventName;        /* In */
+    short          EventNameSize;    /* In */
     STEVT_EventID_t EventID;       /* Out */
 
     ST_ErrorCode_t  ErrorCode;     /* Out */
@@ -271,7 +271,7 @@ typedef struct
     STEVT_Handle_t         Handle; /* In */
     STEVT_EventConstant_t EventConst; /* In */
     STEVT_DeviceSubscribeParams_t SubscribeParams; /* In */
-    BOOL CBAck; /* In. The subscriber wants the CB thread to ACK and the Notify to wait until the ACK is recieved */ 
+    BOOL CBAck; /* In. The subscriber wants the CB thread to ACK and the Notify to wait until the ACK is recieved */
     ST_ErrorCode_t  ErrorCode;     /* Out */
 } STEVT_Ioctl_Subscribe_t;
 
@@ -290,7 +290,7 @@ typedef struct
     ST_DeviceName_t RegistrantName; /* In */
     STEVT_EventConstant_t EventConst; /* In */
     STEVT_DeviceSubscribeParams_t SubscribeParams; /* In */
-    BOOL CBAck; /* In. The subscriber wants the CB thread to ACK and the Notify to wait until the ACK is recieved */ 
+    BOOL CBAck; /* In. The subscriber wants the CB thread to ACK and the Notify to wait until the ACK is recieved */
     ST_ErrorCode_t  ErrorCode;     /* Out */
 } STEVT_Ioctl_SubscribeDeviceEvent_t;
 

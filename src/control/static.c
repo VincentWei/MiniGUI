@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -75,15 +75,15 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     const char* spCaption;
     PCONTROL    pCtrl;
     UINT        uFormat = DT_TOP;
-    DWORD       dwStyle;         
+    DWORD       dwStyle;
     BOOL        needShowCaption = TRUE;
-    
-    pCtrl = gui_Control (hwnd); 
+
+    pCtrl = gui_Control (hwnd);
     switch (message) {
         case MSG_CREATE:
 #ifdef __TARGET_MSTUDIO__
-            SetWindowBkColor (hwnd, 
-                    GetWindowElementPixel (hwnd, WE_MAINC_THREED_BODY)); 
+            SetWindowBkColor (hwnd,
+                    GetWindowElementPixel (hwnd, WE_MAINC_THREED_BODY));
 #endif
 
             pCtrl->dwAddData2 = pCtrl->dwAddData;
@@ -105,21 +105,21 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             return 0;
-            
+
         case STM_GETIMAGE:
-            return (int)(pCtrl->dwAddData2); 
-        
+            return (int)(pCtrl->dwAddData2);
+
         case STM_SETIMAGE:
         {
             int pOldValue;
-            
+
             pOldValue  = (int)(pCtrl->dwAddData2);
             pCtrl->dwAddData2 = (DWORD)wParam;
-            InvalidateRect (hwnd, NULL, 
+            InvalidateRect (hwnd, NULL,
                     (GetWindowStyle (hwnd) & SS_TYPEMASK) == SS_ICON);
             return pOldValue;
         }
-           
+
         case MSG_GETDLGCODE:
             return DLGC_STATIC;
 
@@ -134,7 +134,7 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             else
                 SetTextColor (hdc, GetWindowElementPixelEx (hwnd, hdc, WE_FGC_WINDOW));
 
-			// DK[11/01/2010]: For fix bug 4336
+            // DK[11/01/2010]: For fix bug 4336
             switch (dwStyle & SS_TYPEMASK)
             {
                 case SS_SIMPLE:
@@ -144,7 +144,7 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         TextOut (hdc, 0, 0, spCaption);
                         needShowCaption = FALSE;
                     }
-                    break; 
+                    break;
 
                 case SS_GRAYRECT:
                     SetBrushColor (hdc, PIXEL_lightgray);
@@ -163,23 +163,23 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 case SS_BLACKFRAME:
                     SetPenColor (hdc, PIXEL_black);
-                    Rectangle (hdc, 0, 0, rcClient.right - 1, rcClient.bottom - 1); 
+                    Rectangle (hdc, 0, 0, rcClient.right - 1, rcClient.bottom - 1);
                     break;
 
                 case SS_GRAYFRAME:
                     SetPenColor (hdc, PIXEL_lightgray);
-                    Rectangle (hdc, 0, 0, rcClient.right - 1, rcClient.bottom - 1); 
+                    Rectangle (hdc, 0, 0, rcClient.right - 1, rcClient.bottom - 1);
                     break;
 
                 case SS_WHITEFRAME:
                     SetPenColor (hdc, PIXEL_lightwhite);
-                    Rectangle (hdc, 0, 0, rcClient.right - 1, rcClient.bottom - 1); 
+                    Rectangle (hdc, 0, 0, rcClient.right - 1, rcClient.bottom - 1);
                     break;
 
-                case SS_GROUPBOX: 
+                case SS_GROUPBOX:
                     {
                         WINDOWINFO  *info;
-                        DWORD color; 
+                        DWORD color;
 
                         spCaption = GetWindowCaption (hwnd);
 
@@ -207,9 +207,9 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                         info = (WINDOWINFO*)GetWindowInfo (hwnd);
                         color = GetWindowElementAttr (hwnd, WE_MAINC_THREED_BODY);
-                        rcClient.top += (pCtrl->pLogFont->size >> 1); 
-                        info->we_rdr->draw_3dbox (hdc, 
-                                &rcClient, color, LFRDR_BTN_STATUS_NORMAL); 
+                        rcClient.top += (pCtrl->pLogFont->size >> 1);
+                        info->we_rdr->draw_3dbox (hdc,
+                                &rcClient, color, LFRDR_BTN_STATUS_NORMAL);
                     }
                     break;
 
@@ -329,12 +329,12 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case MSG_FONTCHANGED:
             InvalidateRect (hwnd, NULL, TRUE);
             return 0;
-            
+
         case MSG_SETTEXT:
             SetWindowCaption (hwnd, (char*)lParam);
             InvalidateRect (hwnd, NULL, TRUE);
             return 0;
-            
+
         default:
             break;
     }

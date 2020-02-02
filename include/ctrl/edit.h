@@ -14,10 +14,10 @@
  * \file edit.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: edit.h 13674 2010-12-06 06:45:01Z wanzheng $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_EDIT_H
 #define _MGUI_CTRL_EDIT_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -285,7 +285,7 @@ extern "C" {
  * \def EM_SETSELPOS
  * \sa EM_SETSEL
  */
-#define EM_SETSELPOS            EM_SETSEL  
+#define EM_SETSELPOS            EM_SETSEL
 
 /**
  * \def EM_SETSELECTION
@@ -296,7 +296,7 @@ extern "C" {
 /**
  * \def EM_SELECTALL
  * \brief Selects all the texts, the same meaning as ctrl+a
- *        
+ *
  * \code
  * EM_SELECTALL
  *
@@ -381,7 +381,7 @@ extern "C" {
 /**
  * \def EM_SETLFDISPCHAR
  * \brief Sets the char used to represent the line seperator.
- *        
+ *
  * In default case, the line sperator will not be shown.
  * If the char used to represent the line seperator is not zero,
  *    this char will be shown in place of line seperator.
@@ -401,7 +401,7 @@ extern "C" {
 /**
  * \def EM_SETLINESEP
  * \brief Sets the line seperator.
- *        
+ *
  * In default case, the line sperator is Line Feed
  * characters(LF , ASCII 10, '\n').
  *
@@ -465,7 +465,7 @@ extern "C" {
  *                 means the character position in a text string.
  * \param char_pos The new caret character position.
  *
- * \return Length of the string from the beginning to the caret position 
+ * \return Length of the string from the beginning to the caret position
  *         on success, otherwise -1.
  */
 #define EM_SETCARETPOS          0xF0BA
@@ -535,11 +535,11 @@ extern "C" {
 /* internal used now */
 /**
  * \def EM_LINESCROLL
- * \brief reserved. 
- *        
+ * \brief reserved.
+ *
  */
 #define EM_LINESCROLL           0xF0BF
- 
+
 /**
  * \def EM_INSERTTEXT
  * \brief Inserts the specified text to the current caret position
@@ -563,16 +563,16 @@ extern "C" {
 /* Not use */
 /**
  * \def EM_LINELENGTH
- * \brief reserved. 
- *        
+ * \brief reserved.
+ *
  */
 #define EM_LINELENGTH           0xF0C1
 
 /* Not use */
 /**
  * \def EM_REPLACESEL
- * \brief reserved. 
- *        
+ * \brief reserved.
+ *
  */
 #define EM_REPLACESEL           0xF0C2
 
@@ -585,8 +585,8 @@ extern "C" {
 /* Not use */
 /**
  * \def EM_GETLINE
- * \brief reserved. 
- *        
+ * \brief reserved.
+ *
  */
 #define EM_GETLINE              0xF0C4
 
@@ -619,7 +619,7 @@ extern "C" {
  */
 #define EM_REDO                 0xF0C6
 /*#define EM_CANUNDO              0xF0C6 */
- 
+
 /**
  * \def EM_UNDO
  * \brief Undo operation.
@@ -636,30 +636,30 @@ extern "C" {
 /* Not use */
 /**
  * \def EM_FMTLINES
- * \brief reserved. 
- *        
+ * \brief reserved.
+ *
  */
 #define EM_FMTLINES             0xF0C8
 
 /* Not use */
 /**
  * \def EM_LINEFROMCHAR
- * \brief reserved. 
- *        
+ * \brief reserved.
+ *
  */
 #define EM_LINEFROMCHAR         0xF0C9
 
 /* Not use */
 /**
  * \def EM_SETTABSTOPS
- * \brief reserved. 
- *        
+ * \brief reserved.
+ *
  */
 #define EM_SETTABSTOPS          0xF0CB
 
 /**
  * \def EM_SETPASSWORDCHAR
- * \brief Defines the character that edit control uses in conjunction with 
+ * \brief Defines the character that edit control uses in conjunction with
  * the ES_PASSWORD style.
  *
  * \code
@@ -707,7 +707,7 @@ extern "C" {
  * \param content The string which will be drawed.
  * \param len Length of the string which should be drawed by this callback.
  * \param selout Length of the selected string that have been drawed before calling this callback function.
- * 
+ *
  * \return Width of the outputed strings.
  */
 typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
@@ -755,7 +755,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_GETPASSWORDCHAR
- * \brief Returns the character that edit controls uses in conjunction with 
+ * \brief Returns the character that edit controls uses in conjunction with
  * the ES_PASSWORD style.
  *
  * \code
@@ -795,7 +795,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
  * EM_CHANGECARETSHAPE
  *
  * int caret_shape;
- * 
+ *
  * wParam = (WPARAM)caret_shape;
  * lParam = 0;
  * \endcode
@@ -833,17 +833,17 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_GETLIMITTEXT
- * \brief Get text limit value of the edit control. 
+ * \brief Get text limit value of the edit control.
  *
- * \return -1 when user doesn't set limit value, otherwise return current 
- * limit value. 
+ * \return -1 when user doesn't set limit value, otherwise return current
+ * limit value.
  */
 #define EM_GETLIMITTEXT         0xF0D6
 
 /*
  * \def EM_SETMARGINS
  * \brief Set the margins of edit control
- * 
+ *
  * \code
  * EM_SETMARGINS
  *
@@ -851,7 +851,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
  *
  * lParam = (LPARAM)prcMargins
  * \endcode
- * 
+ *
  * \param prcMargins : the margins info:
  *    - top : the top margin value
  *    - left: the left margin value
@@ -875,7 +875,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
  *
  * lParam = (LPARAM)prcMargins
  * \endcode
- * 
+ *
  * \param prcMargins : the margins info:
  *    - top : the top margin value
  *    - left: the left margin value
@@ -907,7 +907,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_SETTITLETEXT
- * \brief Sets the title text displayed before content text. 
+ * \brief Sets the title text displayed before content text.
  *
  * \code
  * EM_SETTITLETEXT
@@ -924,7 +924,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_GETTITLETEXT
- * \brief Gets the title text displayed before content text. 
+ * \brief Gets the title text displayed before content text.
  *
  * \code
  * EM_GETTITLETEXT
@@ -946,7 +946,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_SETTIPTEXT
- * \brief Sets the tip text displayed when content is empty. 
+ * \brief Sets the tip text displayed when content is empty.
  *
  * \code
  * EM_SETTIPTEXT
@@ -962,7 +962,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_GETTIPTEXT
- * \brief Gets the tip text displayed when content is empty. 
+ * \brief Gets the tip text displayed when content is empty.
  *
  * \code
  * EM_GETTIPTEXT
@@ -984,10 +984,10 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
  * Structure defines text position information.
  */
 typedef struct _TEXTPOSINFO {
-    /** The index of paragraph, if value is -1, 
+    /** The index of paragraph, if value is -1,
      *it will take effect on the whole text.*/
     int paragraph_index;
-    /** The index of line, if value is -1, 
+    /** The index of line, if value is -1,
      *it will take effect on the whole text.*/
     int line_index;
      /** The beginning byte position can be copied to the buffer.*/
@@ -995,21 +995,21 @@ typedef struct _TEXTPOSINFO {
      /** The maximal number of bytes can be copied to the buffer.
       * It includes terminate character 0x0.*/
     int copy_len;
-    /** The pointer to a buffer receives the text. 
+    /** The pointer to a buffer receives the text.
      *Please make sure buffer size is more than the value of copy_len.*/
     char *buff;
 }TEXTPOSINFO;
 
 /**
  * \def EM_GETNUMOFPARAGRAPHS
- * \brief Gets the number of paragraphs in textedit control. 
+ * \brief Gets the number of paragraphs in textedit control.
  *
  * \return The number of paragraphs.
  */
 #define EM_GETNUMOFPARAGRAPHS   0xF0E0
 /**
  * \def EM_GETPARAGRAPHLENGTH
- * \brief Gets the specified paragraph length in textedit control. 
+ * \brief Gets the specified paragraph length in textedit control.
  *
  * \code
  * EM_GETPARAGRAPHLENGTH
@@ -1021,7 +1021,7 @@ typedef struct _TEXTPOSINFO {
 #define EM_GETPARAGRAPHLENGTH  0xF0E1
 /**
  * \def EM_GETPARAGRAPHTEXT
- * \brief Gets the specified paragraph text from textedit control. 
+ * \brief Gets the specified paragraph text from textedit control.
  *
  * \code
  * EM_GETPARAGRAPHTEXT
@@ -1036,7 +1036,7 @@ typedef struct _TEXTPOSINFO {
  * wParam = (WPARAM)&info;
  * \endcode
  *
- * \return The copied length of text which doesn't include terminate 
+ * \return The copied length of text which doesn't include terminate
  * character 0x0.
  */
 #define EM_GETPARAGRAPHTEXT    0xF0E2
@@ -1135,7 +1135,7 @@ typedef struct _TEXTPOSINFO {
 /**
  * \def EM_GETPARAGRAPHLENGTHINMCHAR
  * \brief Gets the specified paragraph length in textedit control.
- * in text not charactors. 
+ * in text not charactors.
  *
  * \code
  * EM_GETPARAGRAPHLENGTHINCHAR
@@ -1149,7 +1149,7 @@ typedef struct _TEXTPOSINFO {
 /**
  * \def EM_GETLINELENGTHINMCHAR
  * \brief Gets the specified line length in textedit control.
- * in charactors not byte. 
+ * in charactors not byte.
  *
  * \code
  * EM_GETLINELENGTHINMCHAR
@@ -1175,7 +1175,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETLINETEXT
- * \brief Gets the specified line text from textedit control. 
+ * \brief Gets the specified line text from textedit control.
  *
  * \code
  * EM_GETLINETEXT
@@ -1190,7 +1190,7 @@ typedef struct _TEXTPOSINFO {
  * wParam = (WPARAM)&info;
  * \endcode
  *
- * \return The copied length of text which doesn't include terminate 
+ * \return The copied length of text which doesn't include terminate
  * character 0x0.
  */
 #define EM_GETLINETEXT    0xF0E8
@@ -1219,7 +1219,7 @@ typedef struct _TEXTPOSINFO {
  * \def EN_DBLCLK
  * \brief Notifies a double click in an edit control.
  *
- * An edit control sends the EN_CLICKED notification code when the user 
+ * An edit control sends the EN_CLICKED notification code when the user
  * double clicks in an edit control.
  */
 #define EN_DBLCLK           0x0002
@@ -1228,7 +1228,7 @@ typedef struct _TEXTPOSINFO {
  * \def EN_SETFOCUS
  * \brief Notifies the receipt of the input focus.
  *
- * The EN_SETFOCUS notification code is sent when an edit control receives 
+ * The EN_SETFOCUS notification code is sent when an edit control receives
  * the input focus.
  */
 #define EN_SETFOCUS         0x0100
@@ -1237,7 +1237,7 @@ typedef struct _TEXTPOSINFO {
  * \def EN_KILLFOCUS
  * \brief Notifies the lost of the input focus.
  *
- * The EN_KILLFOCUS notification code is sent when an edit control loses 
+ * The EN_KILLFOCUS notification code is sent when an edit control loses
  * the input focus.
  */
 #define EN_KILLFOCUS        0x0200
@@ -1246,7 +1246,7 @@ typedef struct _TEXTPOSINFO {
  * \def EN_CHANGE
  * \brief Notifies that the text is altered by the user.
  *
- * An edit control sends the EN_CHANGE notification code when the user takes 
+ * An edit control sends the EN_CHANGE notification code when the user takes
  * an action that may have altered text in an edit control.
  */
 #define EN_CHANGE           0x0300
@@ -1268,7 +1268,7 @@ typedef struct _TEXTPOSINFO {
  * \def EN_MAXTEXT
  * \brief Notifies reach of maximum text limitation.
  *
- * The EN_MAXTEXT notification message is sent when the current text 
+ * The EN_MAXTEXT notification message is sent when the current text
  * insertion has exceeded the specified number of characters for the edit control.
  */
 #define EN_MAXTEXT          0x0501

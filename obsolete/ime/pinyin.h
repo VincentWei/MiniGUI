@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-#ifndef	_INPUT_MODULE_H_
-#define	_INPUT_MODULE_H_
+#ifndef    _INPUT_MODULE_H_
+#define    _INPUT_MODULE_H_
 
 #define MAX_PY_NUM 410
  /* 1-405 */
@@ -73,7 +73,7 @@ typedef unsigned char u_char;
 
 /* Max single char pinyin length: 6, zhuang, chuang ... */
 
-typedef struct 
+typedef struct
 {
   u_short key;
   char py[MAX_PY_LEN];   // 7 + 2 = 9 bytes
@@ -93,22 +93,22 @@ typedef struct _UsrPhrase
 
 typedef struct _Phrase
 {
-	u_char len;   // phrase len
-	u_char count; // phrase number
-	u_char key[1];  // pinyin key [len+1]	
+    u_char len;   // phrase len
+    u_char count; // phrase number
+    u_char key[1];  // pinyin key [len+1]
 } __attribute__((packed)) Phrase;
 
 typedef struct _SysPhrase
 {
-	u_short count;
-	Phrase phrase[1];
+    u_short count;
+    Phrase phrase[1];
 } __attribute__((packed)) SysPhrase;
 
 
 typedef struct _ChoiceItem
 {
    Phrase *head;  // pointer to the len field
-   u_char index;    // index of the phrase in that 
+   u_char index;    // index of the phrase in that
 } __attribute__((packed)) ChoiceItem;
 
 typedef char PYString[MAX_PY_LEN];
@@ -124,7 +124,7 @@ typedef struct _InputModule
   int FuzzyPinyin;   // zh-ch-sh z-c-s
   UsrPhrase *usrph[MAX_PY_NUM];  //user defined phrase
 
-  char inbuf[MAX_INPUT_BUF];	/* input buffer for keystrokes */
+  char inbuf[MAX_INPUT_BUF];    /* input buffer for keystrokes */
       // whole inputed pinyin string
   char inbuftmp[MAX_INPUT_BUF];
       // un-selected pinyin string

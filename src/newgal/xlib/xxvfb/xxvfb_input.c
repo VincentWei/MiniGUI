@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -230,31 +230,31 @@ void SendMouseData(int x, int y, int buttons )
 {
     XXVFBEventData event;
     event.event_type            = MOUSE_TYPE;
-	event.data.mouse.x 		    = x;
-	event.data.mouse.y 		    = y;
-	event.data.mouse.button     = buttons;
-    
+    event.data.mouse.x             = x;
+    event.data.mouse.y             = y;
+    event.data.mouse.button     = buttons;
+
     write( xInfo.sockfd, &event, sizeof(XXVFBEventData) );
 }
 
 int isAlpha(unsigned char keycode)
 {
-	if (keycode > 0x41 && keycode < 0x5a || keycode == 0x20 || keycode == 0x21)
-		return 1;
-	else
-		return 0;
+    if (keycode > 0x41 && keycode < 0x5a || keycode == 0x20 || keycode == 0x21)
+        return 1;
+    else
+        return 0;
 }
 
 void sendKeyboardData( int unicode, int keycode, int modifiers,
         BOOL press, BOOL repeat )
 {
-	XXVFBEventData event;
+    XXVFBEventData event;
     unsigned char scancode;
 
     scancode = keycode_to_scancode (keycode, unicode);
     event.event_type         = KB_TYPE;
-	event.data.key.key_code  = scancode;
-	event.data.key.key_state = press | repeat << 8;
+    event.data.key.key_code  = scancode;
+    event.data.key.key_state = press | repeat << 8;
 
     write( xInfo.sockfd, &event, sizeof(XXVFBEventData) );
 }
@@ -263,47 +263,47 @@ void sendKeyboardData( int unicode, int keycode, int modifiers,
 int setPressedKey(int keycode,int unicode)
 {
     int i = 0;
-	for(i=0; unpressedKey[i][0] && i < sizeof(unpressedKey)/sizeof(unpressedKey[0]); i++)
-	{
-		if(unpressedKey[i][0] == keycode)
-			return 0;
-	}
-	unpressedKey[i][0] = keycode;
-	unpressedKey[i][1] = unicode;
-	unpressedKey[++i][0] = 0;
+    for(i=0; unpressedKey[i][0] && i < sizeof(unpressedKey)/sizeof(unpressedKey[0]); i++)
+    {
+        if(unpressedKey[i][0] == keycode)
+            return 0;
+    }
+    unpressedKey[i][0] = keycode;
+    unpressedKey[i][1] = unicode;
+    unpressedKey[++i][0] = 0;
     return 1;
 }
 BOOL clearPressedKey(int keycode)
 {
-	int i = 0;
-	int find_idx = -1;
-	for(i=0; unpressedKey[i][0] && i < sizeof(unpressedKey)/sizeof(unpressedKey[0]); i++)
-	{
-		if(keycode == unpressedKey[i][0])
-			find_idx = i;
-	}
-	//printf("--clean key code=%d, find:%d\n",keycode, find_idx);
+    int i = 0;
+    int find_idx = -1;
+    for(i=0; unpressedKey[i][0] && i < sizeof(unpressedKey)/sizeof(unpressedKey[0]); i++)
+    {
+        if(keycode == unpressedKey[i][0])
+            find_idx = i;
+    }
+    //printf("--clean key code=%d, find:%d\n",keycode, find_idx);
 
-	if(find_idx == -1)
-		return 0;
-	if(--i >= 0)
-	{
-		if(find_idx != i)
-		{
-			unpressedKey[find_idx][0] = unpressedKey[i][0];
-			unpressedKey[find_idx][1] = unpressedKey[i][1];
-		}
-		unpressedKey[i][0] = 0;
-	}
+    if(find_idx == -1)
+        return 0;
+    if(--i >= 0)
+    {
+        if(find_idx != i)
+        {
+            unpressedKey[find_idx][0] = unpressedKey[i][0];
+            unpressedKey[find_idx][1] = unpressedKey[i][1];
+        }
+        unpressedKey[i][0] = 0;
+    }
 
-	return 1;
+    return 1;
 }
 void sendUnPressedKeys()
 {
-	int i = 0;
-	for(i=0; unpressedKey[i][0] && i < sizeof(unpressedKey)/sizeof(unpressedKey[0]); i++)
-	{
-		sendKeyboardData(unpressedKey[i][1], unpressedKey[i][0], 0, 0, 0);
-		unpressedKey[i][0] = 0;
-	}
+    int i = 0;
+    for(i=0; unpressedKey[i][0] && i < sizeof(unpressedKey)/sizeof(unpressedKey[0]); i++)
+    {
+        sendKeyboardData(unpressedKey[i][1], unpressedKey[i][0], 0, 0, 0);
+        unpressedKey[i][0] = 0;
+    }
 }

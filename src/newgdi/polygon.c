@@ -11,47 +11,47 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** polygon.c: monoton vertical polygon and general polygon generators.
 **
-**      Monotone vertical polygon generator comes from 
+**      Monotone vertical polygon generator comes from
 **      "Michael Abrash's Graphics Programming Black Book Special Edition"
 **      by Michael Abrash.
 **
-**      General polygon generator comes from Allegro by 
-**      Shawn Hargreaves and others. 
+**      General polygon generator comes from Allegro by
+**      Shawn Hargreaves and others.
 **      Thank them for their great work and good copyright statement.
 **
 **      "Allegro is a gift-software"
@@ -80,9 +80,9 @@
 #include "cursor.h"
 #include "polygon.h"
 
-/* 
- * Returns TRUE if polygon described by passed-in vertex list is 
- * monotone with respect to a vertical line, FALSE otherwise. 
+/*
+ * Returns TRUE if polygon described by passed-in vertex list is
+ * monotone with respect to a vertical line, FALSE otherwise.
  * Doesn't matter if polygon is simple (non-self-intersecting) or not.
  */
 
@@ -112,10 +112,10 @@ BOOL GUIAPI PolygonIsMonotoneVertical (const POINT* pts, int vertices)
     if (i == (vertices-1))
         return TRUE;  /* polygon is a flat line */
 
-    /* 
-     * Now count Y reversals. Might miss one reversal, at the last vertex, 
-     * but because reversal counts must be even, being off by one 
-     * isn't a problem 
+    /*
+     * Now count Y reversals. Might miss one reversal, at the last vertex,
+     * but because reversal counts must be even, being off by one
+     * isn't a problem
      */
     do {
         if ((delta_y = SIGNUM(pts[i].y - pts[i+1].y)) != 0) {
@@ -136,15 +136,15 @@ typedef struct _hline {
     int x1, x2;
 } HLINE;
 
-/* 
- * Scan converts an edge from (x1, y1) to (x2, y2), not including 
- * the point at (x2, y2). This avoids overlapping the end of 
- * one line with the start of the next, and causes the bottom 
- * scan line of the polygon not to be drawn. If skip_first != 0, 
- * the point at (x1, y1) isn't drawn. For each scan line, 
- * the pixel closest to the scanned line without being to the 
+/*
+ * Scan converts an edge from (x1, y1) to (x2, y2), not including
+ * the point at (x2, y2). This avoids overlapping the end of
+ * one line with the start of the next, and causes the bottom
+ * scan line of the polygon not to be drawn. If skip_first != 0,
+ * the point at (x1, y1) isn't drawn. For each scan line,
+ * the pixel closest to the scanned line without being to the
  * left of the scanned line is chosen
- */ 
+ */
 
 static void scan_edge (int x1, int y1, int x2, int y2, int set_x1, int skip_first, HLINE** hlines_p)
 {
@@ -166,10 +166,10 @@ static void scan_edge (int x1, int y1, int x2, int y2, int set_x1, int skip_firs
         inverse_slope = fixdiv (itofix (delta_x), itofix (delta_y));
     }
 
-    /* 
-     * Store the x coordinate of the pixel closest to but not to 
-     * the left of the line for each y coordinate between y1 and y2, 
-     * not including y2 and also not including y1 if skip_first != 0 
+    /*
+     * Store the x coordinate of the pixel closest to but not to
+     * the left of the line for each y coordinate between y1 and y2,
+     * not including y2 and also not including y1 if skip_first != 0
      */
 
     hlines = *hlines_p;
@@ -191,10 +191,10 @@ static void scan_edge (int x1, int y1, int x2, int y2, int set_x1, int skip_firs
         return;     /* guard against 0-length and horizontal edges */
     inverse_slope = (double)delta_x / (double)delta_y;
 
-    /* 
-     * Store the x coordinate of the pixel closest to but not to 
-     * the left of the line for each y coordinate between y1 and y2, 
-     * not including y2 and also not including y1 if skip_first != 0 
+    /*
+     * Store the x coordinate of the pixel closest to but not to
+     * the left of the line for each y coordinate between y1 and y2,
+     * not including y2 and also not including y1 if skip_first != 0
      */
 
     hlines = *hlines_p;
@@ -208,13 +208,13 @@ static void scan_edge (int x1, int y1, int x2, int y2, int set_x1, int skip_firs
 #endif
 }
 
-/* 
- * "Monoton vertical" means "monotone with respect to a vertical line"; 
- * that is, every horizontal line drawn through the polygon at any point 
- * would cross exactly two active edges (neither horizontal lines 
- * nor zero-length edges count as active edges; both are acceptable 
- * anywhere in the polygon). Right & left edges may cross (polygons may be nonsimple). 
- * Polygons that are not convex according to this definition won't be drawn properly. 
+/*
+ * "Monoton vertical" means "monotone with respect to a vertical line";
+ * that is, every horizontal line drawn through the polygon at any point
+ * would cross exactly two active edges (neither horizontal lines
+ * nor zero-length edges count as active edges; both are acceptable
+ * anywhere in the polygon). Right & left edges may cross (polygons may be nonsimple).
+ * Polygons that are not convex according to this definition won't be drawn properly.
  */
 
 /* Advances the index by one vertex forward through the vertex list,
@@ -329,8 +329,8 @@ static POLYGON_Int32 Div64by32( POLYGON_Int64 *x, POLYGON_Int32 y )
     tmp.hi = x->hi;
     tmp.lo = x->lo;
 
-    s  = tmp.hi; 
-    if ( s < 0 ) 
+    s  = tmp.hi;
+    if ( s < 0 )
         Neg64( &tmp );
     s ^= y;
     y = ABS( y );
@@ -375,15 +375,15 @@ void  Add64( POLYGON_Int64*  x, POLYGON_Int64*  y, POLYGON_Int64*  z )
 }
 
 void  Sub64( POLYGON_Int64*  x, POLYGON_Int64*  y, POLYGON_Int64*  z )
-{ 
+{
     register POLYGON_Word32  lo, hi;
 
-    lo = x->lo - y->lo; 
+    lo = x->lo - y->lo;
     hi = x->hi - y->hi - ( (POLYGON_Int32)lo < 0 );
 
     z->lo = lo;
-    z->hi = hi; 
-} 
+    z->hi = hi;
+}
 
 void  MulTo64( POLYGON_Int32  x, POLYGON_Int32  y, POLYGON_Int64*  z )
 {
@@ -439,7 +439,7 @@ BOOL IsSmall(POLYGON_Int64 *x, POLYGON_Int32 x_off, POLYGON_Int64 *y, POLYGON_In
 {
     POLYGON_Int64 z1, z2, z3;
     int i;
-    
+
     Int64AddInt32(x, x_off, &z1);
     Int64AddInt32(y, y_off, &z2);
     Sub64(&z1, &z2, &z3);
@@ -487,7 +487,7 @@ void _fill_edge_structure (POLYGON_EDGE *edge, const int *i1, const int *i2)
 
     edge->w = MAX(ABS(edge->dx)-(1<<POLYGON_FIX_SHIFT), 0);
 #else
-    if (edge->dx < 0) 
+    if (edge->dx < 0)
         Int64AddInt32(&(edge->x), MIN(edge->dx+(1<<POLYGON_FIX_SHIFT), 0), &(edge->x));
 
     edge->w = MAX(ABS(edge->dx)-(1<<POLYGON_FIX_SHIFT), 0);
@@ -503,12 +503,12 @@ POLYGON_EDGE *_add_edge (POLYGON_EDGE *list, POLYGON_EDGE *edge, int sort_by_x)
     POLYGON_EDGE *prev = NULL;
 
     if (sort_by_x) {
-        while ( (pos) && 
+        while ( (pos) &&
 #ifndef POLYGON_64_SUPPORT
                 (pos->x + (pos->w + pos->dx) /2 ) <
                 (edge->x + (edge->w + edge->dx)/2)){
 #else
-                IsSmall(&(pos->x), (pos->w + pos->dx)/2, 
+                IsSmall(&(pos->x), (pos->w + pos->dx)/2,
                             &(edge->x), (edge->w + edge->dx)/2)) {
 #endif
             prev = pos;
@@ -542,7 +542,7 @@ POLYGON_EDGE *_add_edge (POLYGON_EDGE *list, POLYGON_EDGE *edge, int sort_by_x)
 
 POLYGON_EDGE *_remove_edge(POLYGON_EDGE *list, POLYGON_EDGE *edge)
 {
-    if (edge->next) 
+    if (edge->next)
         edge->next->prev = edge->prev;
 
     if (edge->prev) {
@@ -596,7 +596,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
         i1 += 2;
     }
 
-    /* if rc_output not NULL, the scanlines's range is 
+    /* if rc_output not NULL, the scanlines's range is
      * limit in the RECT. */
     if(rc_output){
         _DBG_PRINTF("rc_output:(%d,%d)\n", rc_output->top, rc_output->bottom);
@@ -604,7 +604,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
         while ((edge)) {
             next_edge = edge->next;
             /* add the edge between the rc_ouput. */
-            if(edge->top < rc_output->top 
+            if(edge->top < rc_output->top
                     && edge->bottom > rc_output->top) {
                 inactive_edges = _remove_edge(inactive_edges, edge);
                 active_edges = _add_edge(active_edges, edge, TRUE);
@@ -617,7 +617,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
                         "bottom=%d.\n", c, edge->top, edge->bottom);
             }
             /* add the edge outside the rc_ouput. */
-            else if(edge->bottom < rc_output->top 
+            else if(edge->bottom < rc_output->top
                     || edge->top > rc_output->bottom){
                 inactive_edges = _remove_edge(inactive_edges, edge);
                 _DBG_PRINTF("start delete edes c=%d,top=%d,"
@@ -658,7 +658,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
             Int64AddInt32(&(edge->next->x), (edge->next->w), &tmp);
             x2 = Div64by32(&tmp, 1<<POLYGON_FIX_SHIFT);
 #endif
-            cb (context, x1, x2, c); 
+            cb (context, x1, x2, c);
             edge = edge->next->next;
         }
 
@@ -677,7 +677,7 @@ BOOL GUIAPI PolygonGeneratorEx (void* context, const POINT* pts, int vertices,
 #else
                 Int64AddInt32(&(edge->x), edge->dx, &(edge->x));
 #endif
-                while ((edge->prev) && 
+                while ((edge->prev) &&
 #ifndef POLYGON_64_SUPPORT
                         (edge->x+edge->w/2 < edge->prev->x+edge->prev->w/2)) {
 #else
@@ -775,15 +775,15 @@ BOOL GUIAPI FillPolygon (HDC hdc, const POINT* pts, int vertices)
 #ifdef _MGHAVE_ADV_2DAPI
         if (pdc->brush_type == BT_SOLID) {
             if (is_mv)
-                MonotoneVerticalPolygonGenerator (pdc, points, 
+                MonotoneVerticalPolygonGenerator (pdc, points,
                                 vertices, _dc_draw_hline_clip);
             else
-                PolygonGeneratorEx(pdc, points, vertices, 
+                PolygonGeneratorEx(pdc, points, vertices,
                         _dc_draw_hline_clip, &pdc->rc_output);
         }
         else {
             if (is_mv)
-                MonotoneVerticalPolygonGenerator (pdc, points, 
+                MonotoneVerticalPolygonGenerator (pdc, points,
                                 vertices, _dc_fill_hline_clip);
             else
                 PolygonGeneratorEx(pdc, points, vertices,
@@ -791,10 +791,10 @@ BOOL GUIAPI FillPolygon (HDC hdc, const POINT* pts, int vertices)
         }
 #else
         if (is_mv)
-            MonotoneVerticalPolygonGenerator (pdc, points, 
+            MonotoneVerticalPolygonGenerator (pdc, points,
                             vertices, _dc_draw_hline_clip);
         else
-            PolygonGeneratorEx(pdc, points, vertices, 
+            PolygonGeneratorEx(pdc, points, vertices,
                     _dc_draw_hline_clip, &pdc->rc_output);
 #endif
     }

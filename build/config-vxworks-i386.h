@@ -156,7 +156,7 @@
 /* Define if include the automatic IAL engine */
 //#define _MGIAL_AUTO 1
 /* Define if include the COMM input engine */
-#define _MGIAL_COMM 1 
+#define _MGIAL_COMM 1
 
 /* Define if support BIG5 charset */
 /* #undef _MGCHARSET_BIG5 */
@@ -259,11 +259,11 @@
 
 /* Define if include full gif support */
 #define _MGHAVE_MOUSECALIBRATE 1
-#define _EXT_FULLGIF 1 
+#define _EXT_FULLGIF 1
 #define _MGCTRL_GRIDVIEW 1
 #define _MGCTRL_ICONVIEW 1
 /* Define if include skin support */
-#define _EXT_SKIN 1  
+#define _EXT_SKIN 1
 
 /* Define if include 16BPP FB subdriver */
 /* #undef _MGFONT_FBLIN16 */

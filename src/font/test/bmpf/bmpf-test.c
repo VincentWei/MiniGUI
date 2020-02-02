@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -68,7 +68,7 @@
 #define BMP_FILE_SYMBOL   "digits3.png"
 #define BMP_FILE_DDOT     "digits4.png"
 
-static LOGFONT *logfont, *old ; 
+static LOGFONT *logfont, *old ;
 static DEVFONT *dev_font;
 
 static BITMAP digit_bmp;
@@ -103,27 +103,27 @@ static int BmpfTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             if (LoadBitmap (HDC_SCREEN, &ddot_bmp, BMP_FILE_DDOT)) {
                 fprintf (stderr, "Fail to load bitmap. \n");
                 return 1;
-            }            
+            }
 
-            dev_font = CreateBMPDevFont ("bmp-led-rrncnn-10-15-ISO8859-1", 
+            dev_font = CreateBMPDevFont ("bmp-led-rrncnn-10-15-ISO8859-1",
                            &letter_bmp, "A", 6, 10);
             AddGlyphsToBMPFont (dev_font, &digit_bmp, "0", 10, 10);
             AddGlyphsToBMPFont (dev_font, &symbol_bmp, "+", 4, 10);
-            AddGlyphsToBMPFont (dev_font, &ddot_bmp, ":", 1, 10);            
+            AddGlyphsToBMPFont (dev_font, &ddot_bmp, ":", 1, 10);
 /*
-            logfont = CreateLogFont (FONT_TYPE_NAME_BITMAP_BMP, "led", 
+            logfont = CreateLogFont (FONT_TYPE_NAME_BITMAP_BMP, "led",
                           "ISO8859-1",
-                          FONT_WEIGHT_BOLD, FONT_SLANT_ITALIC, 
-                          FONT_SETWIDTH_NORMAL, FONT_SPACING_CHARCELL, 
-                          FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE, 
+                          FONT_WEIGHT_BOLD, FONT_SLANT_ITALIC,
+                          FONT_SETWIDTH_NORMAL, FONT_SPACING_CHARCELL,
+                          FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE,
                           10, 0); */
-            logfont = CreateLogFont (FONT_TYPE_NAME_BITMAP_BMP, "led", 
+            logfont = CreateLogFont (FONT_TYPE_NAME_BITMAP_BMP, "led",
                           "ISO8859-1",
-                          FONT_WEIGHT_REGULAR, FONT_SLANT_ROMAN, 
-                          FONT_SETWIDTH_NORMAL, FONT_SPACING_CHARCELL, 
-                          FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE, 
+                          FONT_WEIGHT_REGULAR, FONT_SLANT_ROMAN,
+                          FONT_SETWIDTH_NORMAL, FONT_SPACING_CHARCELL,
+                          FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE,
                           10, 0);
- 
+
         break;
 
         case MSG_PAINT:
@@ -135,7 +135,7 @@ static int BmpfTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             //SetBkColor (hdc, COLOR_black);
             TextOut (hdc, 10, 40, "ABCD");
             TextOut (hdc, 10, 60, "AC");
-            TextOut (hdc, 10, 80, "3.5+A:B-");            
+            TextOut (hdc, 10, 80, "3.5+A:B-");
             TextOutOmitted (hdc, 10, 100, "0 123ZX1", 8, 100);
             SelectFont (hdc, old);
             EndPaint (hWnd, hdc);
@@ -149,10 +149,10 @@ static int BmpfTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             UnloadBitmap (&digit_bmp);
             UnloadBitmap (&letter_bmp);
             UnloadBitmap (&symbol_bmp);
-            UnloadBitmap (&ddot_bmp);            
+            UnloadBitmap (&ddot_bmp);
             if (dev_font != NULL)
                 DestroyBMPFont (dev_font);
-            
+
             DestroyLogFont (logfont);
             DestroyMainWindow (hWnd);
             PostQuitMessage (hWnd);
@@ -189,9 +189,9 @@ int MiniGUIMain (int argc, const char* argv[])
     //CreateInfo.iBkColor = COLOR_lightwhite;
     CreateInfo.dwAddData = 0;
     CreateInfo.hHosting = HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindow (&CreateInfo);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

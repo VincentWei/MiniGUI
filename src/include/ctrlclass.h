@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -68,7 +68,7 @@ typedef struct _CTRLCLASSINFO
 
     gal_pixel iFgColor;         // control foreground color.
     gal_pixel iBkColor;         // control background color.
-    
+
     LRESULT (*ControlProc)(HWND, UINT, WPARAM, LPARAM);
                                 // control procedure.
 
@@ -95,11 +95,11 @@ typedef struct tagCONTROL
     DWORD dwExStyle;        // the extended styles of child window.
 
     gal_pixel iFgColor;     // control foreground color.
-    gal_pixel iBkColor;		// control background color.
-    HMENU hMenu;		    // handle of menu.
+    gal_pixel iBkColor;        // control background color.
+    HMENU hMenu;            // handle of menu.
     HACCEL hAccel;          // handle of accelerator table.
-    HCURSOR hCursor;	    // handle of cursor.
-    HICON hIcon;		    // handle of icon.
+    HCURSOR hCursor;        // handle of cursor.
+    HICON hIcon;            // handle of icon.
     HMENU hSysMenu;         // handle of system menu.
     PLOGFONT pLogFont;      // pointer to logical font.
 
@@ -120,7 +120,7 @@ typedef struct tagCONTROL
     PGCRINFO pGCRInfo;      // pointer to global clip region info struct.
 #endif
 
-    // the Z order node, 
+    // the Z order node,
     // only for control with WS_EX_CTRLASMAINWIN.
     int idx_znode;
 
@@ -153,14 +153,14 @@ typedef struct tagCONTROL
      * window element data.
      */
     struct _wnd_element_data* wed;
-    
+
     /*
      * some internal fields
      * VM[2018-01-18]: Move these fields from header to here to compatible with WINDOWINFO
      */
     unsigned char DataType;         // the data type
     unsigned char WinType;          // the window type
-	unsigned short Flags;           // speical runtime flags, such EraseBkGnd flags
+    unsigned short Flags;           // speical runtime flags, such EraseBkGnd flags
 
     /*
      * The following members are only implemented for control.
@@ -171,31 +171,31 @@ typedef struct tagCONTROL
     PCTRLCLASSINFO pcci;     // pointer to Control Class Info struct.
     MASKRECT * mask_rects;
 
-	//if a control is has WS_EX_CTRLASMAINWIN, this proc is the next control as main window
-	/*
-	 * MainWindow->hFirstChildAsMainWin --->
-	 *   control1->next_ctrl_as_main ---->
-	 *   control2->next_ctrl_as_main ---->
-	 *   .....
-	 *
-	 * Control have to list, one for browsers, the other for as main cotrol list:
-	 *
-	 *  hFirstChild :                   
-	 *     control1->next-->
-	 *     control2->next-->
-	 *     control3->next-->
-	 *     ....
-	 *
-	 *  hFirstChildAsMainWin:
-	 *  	control1->next_ctrl_as_main -->
-	 *  	control2-> .....
-	 *
-	 * THE TWO LIST USE A SAME CONTROL OBJECT, 
-	 * So, When Destroy a Control: YOU MUST REMOVE 
-	 * ITSELF FROM PARENT'S hFirstChildAsMainWin'S LIST
-	 *
-	 */
-	struct tagCONTROL* next_ctrl_as_main;	
+    //if a control is has WS_EX_CTRLASMAINWIN, this proc is the next control as main window
+    /*
+     * MainWindow->hFirstChildAsMainWin --->
+     *   control1->next_ctrl_as_main ---->
+     *   control2->next_ctrl_as_main ---->
+     *   .....
+     *
+     * Control have to list, one for browsers, the other for as main cotrol list:
+     *
+     *  hFirstChild :
+     *     control1->next-->
+     *     control2->next-->
+     *     control3->next-->
+     *     ....
+     *
+     *  hFirstChildAsMainWin:
+     *      control1->next_ctrl_as_main -->
+     *      control2-> .....
+     *
+     * THE TWO LIST USE A SAME CONTROL OBJECT,
+     * So, When Destroy a Control: YOU MUST REMOVE
+     * ITSELF FROM PARENT'S hFirstChildAsMainWin'S LIST
+     *
+     */
+    struct tagCONTROL* next_ctrl_as_main;
 
 }CONTROL;
 typedef CONTROL* PCONTROL;

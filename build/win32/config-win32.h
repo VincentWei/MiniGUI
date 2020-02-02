@@ -91,12 +91,12 @@
 /* Define to 1 if you have the `tmpfile' function. */
 #define HAVE_TMPFILE 1
 
-/*#define HAVE_MODE_T	1*/
+/*#define HAVE_MODE_T    1*/
 /* Define to 1 if you have the `mktime' function. */
 #define HAVE_MKTIME 1
 
 /* Define to 1 if you have the `time' function. */
-#define HAVE_TIME		1
+#define HAVE_TIME        1
 
 /* Define to 1 if you have the `localtime' function. */
 #define HAVE_LOCALTIME 1
@@ -140,9 +140,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+    STACK_DIRECTION > 0 => grows toward higher addresses
+    STACK_DIRECTION < 0 => grows toward lower addresses
+    STACK_DIRECTION = 0 => direction of growth unknown */
 /* #undef STACK_DIRECTION */
 
 /* Define to 1 if you have the ANSI C header files. */

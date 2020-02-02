@@ -29,15 +29,15 @@
 #define _MGFONT_UNICODE_ARABIC_SHAPING_TABLES_H
 
 
-#define X	JOINING_TYPE_X
-#define R	JOINING_TYPE_R
-#define T	JOINING_TYPE_T
-#define U	JOINING_TYPE_U
-#define A	JOINING_GROUP_ALAPH
-#define DR	JOINING_GROUP_DALATH_RISH
-#define L	JOINING_TYPE_L
-#define C	JOINING_TYPE_C
-#define D	JOINING_TYPE_D
+#define X    JOINING_TYPE_X
+#define R    JOINING_TYPE_R
+#define T    JOINING_TYPE_T
+#define U    JOINING_TYPE_U
+#define A    JOINING_GROUP_ALAPH
+#define DR    JOINING_GROUP_DALATH_RISH
+#define L    JOINING_TYPE_L
+#define C    JOINING_TYPE_C
+#define D    JOINING_TYPE_D
 
 static const Uint8 joining_table[] =
 {
@@ -413,8 +413,8 @@ static const Uint16 shaping_table[][4] =
   {0x0000u, 0x0000u, 0xFBB1u, 0xFBB0u}, /* U+06D3 ARABIC LETTER YEH BARREE WITH HAMZA ABOVE */
 };
 
-#define SHAPING_TABLE_FIRST	0x0621u
-#define SHAPING_TABLE_LAST	0x06D3u
+#define SHAPING_TABLE_FIRST    0x0621u
+#define SHAPING_TABLE_LAST    0x06D3u
 
 
 static const struct ligature_set_t {

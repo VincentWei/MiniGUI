@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -55,7 +55,7 @@ extern "C"
 {
 #endif
 
-#define LV_COLW_DEF	        62  // default column width
+#define LV_COLW_DEF            62  // default column width
 #define COLWIDTHMIN             10  // minimum column width
 
 #define LV_LEFTMARGIN           1
@@ -70,21 +70,21 @@ extern "C"
 //default item height
 #define LV_ITEMH_DEF(hwnd)      (GetWindowFont(hwnd)->size + 6)
 
-#define LV_HDR_TOP		0   // top of the header
+#define LV_HDR_TOP        0   // top of the header
 
 #define INDENT                  20  // tree node indent value
 
 typedef enum sorttype
 {
      NOTSORTED = 0,
-     HISORTED, 
+     HISORTED,
      LOSORTED
 } SORTTYPE;
 
 /** subitem flags */
-#define LVIF_NORMAL	0x0000L
-#define LVIF_BITMAP  	0x0001L
-#define LVIF_ICON  	0x0002L
+#define LVIF_NORMAL    0x0000L
+#define LVIF_BITMAP      0x0001L
+#define LVIF_ICON      0x0002L
 
 /** item flags */
 //#define LVIF_ROOT       0x0000L
@@ -150,10 +150,10 @@ typedef struct _lsthdr
 } LSTHDR;
 typedef LSTHDR *PLSTHDR;
 
-#define LVST_NORMAL	0x0000    //normal status
-#define LVST_BDDRAG	0x0001    //the border is being dragged
-#define LVST_HEADCLICK	0x0002    //the header is being clicked
-#define LVST_INHEAD	0x0004    //mouse move in header
+#define LVST_NORMAL    0x0000    //normal status
+#define LVST_BDDRAG    0x0001    //the border is being dragged
+#define LVST_HEADCLICK    0x0002    //the header is being clicked
+#define LVST_INHEAD    0x0004    //mouse move in header
 #define LVST_ITEMDRAG   0x0008    //mouse drag item
 #define LVST_CAPTURED   0x0010    //captured status
 
@@ -173,7 +173,7 @@ typedef struct _lstvwdata
     int        nCols;               // current column number
     //int        nRows;               // current item number
 
-    int        nColCurSel;	    // current column selected.
+    int        nColCurSel;        // current column selected.
 
     int        nItemDraged;         // the header beging dragged
     PLSTHDR    pHdrClicked;         // the header being clicked
@@ -186,7 +186,7 @@ typedef struct _lstvwdata
 
     PFNLVCOMPARE pfn_sort;          // FIXME, internal use
     int        col_sort;            // FIXME, internal use
-    int        cur_col;             // FIXME, internal use 
+    int        cur_col;             // FIXME, internal use
 
     ITEMDATA   rootitem;               // root item, not visible
 

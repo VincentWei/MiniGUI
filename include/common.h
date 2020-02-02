@@ -235,7 +235,7 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
 
 /* Here we provide MG_GNUC_EXTENSION as an alias for __extension__,
  * where this is valid. This allows for warningless compilation of
- * "long long" types even in the presence of '-ansi -pedantic'. 
+ * "long long" types even in the presence of '-ansi -pedantic'.
  */
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8)
 #define MG_GNUC_EXTENSION __extension__

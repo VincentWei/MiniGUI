@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -65,7 +65,7 @@ static char* data; //shell memory address
 
 static int my_connect(int sockfd, struct sockaddr *address, int len)
 {
-	return connect(sockfd, address, len);
+    return connect(sockfd, address, len);
 }
 
 static Display* InitXDisplay(Display* display, int* screen, unsigned int* dis_width, unsigned int* dis_height)
@@ -141,14 +141,14 @@ static void DrawDirtyRect()
     height = xInfo.xhdr->dirty_rc_b - xInfo.xhdr->dirty_rc_t;
     length = bpp * width * height;
 
-    fb_data = data + xInfo.xhdr->fb_offset 
-        + xInfo.xhdr->pitch * xInfo.xhdr->dirty_rc_t 
+    fb_data = data + xInfo.xhdr->fb_offset
+        + xInfo.xhdr->pitch * xInfo.xhdr->dirty_rc_t
         + bpp * xInfo.xhdr->dirty_rc_l;
 
     mem_data = (char*)calloc(1, length);
     memcpy(mem_data,fb_data,length);
 
-    DrawImage(xInfo.xhdr->dirty_rc_l,xInfo.xhdr->dirty_rc_t,width,height,mem_data); 
+    DrawImage(xInfo.xhdr->dirty_rc_l,xInfo.xhdr->dirty_rc_t,width,height,mem_data);
 
     xInfo.xhdr->dirty = 0;
     unlock();
@@ -203,16 +203,16 @@ static void EventProc(Display* display, Window win, GC gc, XEvent report)
                 setPressedKey(keycode,unicode);
                 if (isAlpha(keycode))
                 {
-                    sendKeyboardData(unicode, keycode, 
+                    sendKeyboardData(unicode, keycode,
                             0,//e->state()&(ShiftButton|ControlButton|AltButton),
                             True, False);
                 }
                 else
                 {
-                    sendKeyboardData(unicode, keycode, 
+                    sendKeyboardData(unicode, keycode,
                             0,//e->state()&(ShiftButton|ControlButton|AltButton),
                             True, False);
-                    sendKeyboardData(unicode, keycode, 
+                    sendKeyboardData(unicode, keycode,
                             0,//e->state()&(ShiftButton|ControlButton|AltButton),
                             False, False);
                 }
@@ -228,7 +228,7 @@ static void EventProc(Display* display, Window win, GC gc, XEvent report)
                 }
                 if (isAlpha(keycode))
                 {
-                    sendKeyboardData(unicode, keycode, 
+                    sendKeyboardData(unicode, keycode,
                             0,//e->state()&(ShiftButton|ControlButton|AltButton),
                             False, False);
                 }
@@ -257,9 +257,9 @@ int MainWndLoop(int ppid, int wnd_width, int wnd_height, int depth, char* captio
     GC gc;
     unsigned long valuemask = 0;
     XGCValues values;
-    XSizeHints *sz; 
-    XSetWindowAttributes attr; 
-    Colormap colormap; 
+    XSizeHints *sz;
+    XSetWindowAttributes attr;
+    Colormap colormap;
 
     unsigned int width, height; //窗口尺寸
     unsigned int display_width, display_height;//屏幕尺寸
@@ -271,12 +271,12 @@ int MainWndLoop(int ppid, int wnd_width, int wnd_height, int depth, char* captio
     int nr_entry = 0;
     XXVFBHeader *hdr;
     int sockfd;
-    
+
     displayid = ppid;
-    if(depth <= 8) 
+    if(depth <= 8)
         nr_entry = 1 << depth;
 
-    display = InitXDisplay(display,&screen_num,&display_width,&display_height); 
+    display = InitXDisplay(display,&screen_num,&display_width,&display_height);
     dev_depth = XDefaultDepth(display,screen_num);
 
     //创建窗口
@@ -291,14 +291,14 @@ int MainWndLoop(int ppid, int wnd_width, int wnd_height, int depth, char* captio
             CWBackPixel, &attr);
 
     //设置窗口大小位置
-    XStoreName(display, win, caption); 
-    sz = XAllocSizeHints(); 
-    sz->x = 0; 
-    sz->y = 0; 
-    sz->width = wnd_width; 
-    sz->height = wnd_height; 
-    sz->flags = USPosition | USSize; 
-    XSetNormalHints(display, win, sz); 
+    XStoreName(display, win, caption);
+    sz = XAllocSizeHints();
+    sz->x = 0;
+    sz->y = 0;
+    sz->width = wnd_width;
+    sz->height = wnd_height;
+    sz->flags = USPosition | USSize;
+    XSetNormalHints(display, win, sz);
 
     //建立GC
     gc = XCreateGC(display, win, valuemask, &values);
@@ -307,7 +307,7 @@ int MainWndLoop(int ppid, int wnd_width, int wnd_height, int depth, char* captio
     XMapWindow(display, win);
 
     //调整colormap
-    colormap = DefaultColormap(display, screen_num); 
+    colormap = DefaultColormap(display, screen_num);
 
     //选择窗口感兴趣的事件掩码
     XSelectInput(display, win,
@@ -350,7 +350,7 @@ int MainWndLoop(int ppid, int wnd_width, int wnd_height, int depth, char* captio
             fprintf(stderr, "Cannot attach to shared memory" );
             return;
         }
-    
+
         hdr = (XXVFBHeader *)data;
         hdr->width           = wnd_width;
         hdr->height          = wnd_height;
@@ -454,7 +454,7 @@ int MainWndLoop(int ppid, int wnd_width, int wnd_height, int depth, char* captio
             DrawDirtyRect();
         }
     }
-   
+
     XCloseDisplay(display);
 }
 

@@ -11,43 +11,43 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
  **  $Id: em86gfx.c 8944 2007-12-29 08:29:16Z xwyan $
- **  
+ **
  **  em86gfx.c: NEWGAL driver for EM86xx GFX.
- ** 
+ **
  **  Copyright (C) 2005 Feynman Software.
  */
 
@@ -64,7 +64,7 @@
 
 #ifdef _MGRM_PROCESSES
 #include "client.h"
-#endif 
+#endif
 
 #ifdef _MGGAL_SIGMA8654
 
@@ -77,7 +77,7 @@
 
 struct hwsrfc_item{
     list_t list;
-    GAL_Surface* surface; 
+    GAL_Surface* surface;
 };
 static struct list_head surface_list;
 
@@ -122,7 +122,7 @@ static struct list_head surface_list;
     RMDBGLOG((ENABLE, "Waiting for a command to finish\n")); \
 } \
 
-#else													
+#else
 
 #define SEND_GFX_COMMAND(pRUA, moduleID, propertyID, pValue, ValueSize) \
 { \
@@ -259,8 +259,8 @@ static int GFX_VideoInit(_THIS, GAL_PixelFormat * vformat)
 
     {
         GAL_VideoInfo *video_info = &this->info;
-        // Determine the screen depth (use default 8-bit depth) 
-        // we change this during the GAL_SetVideoMode implementation... 
+        // Determine the screen depth (use default 8-bit depth)
+        // we change this during the GAL_SetVideoMode implementation...
         vformat->BitsPerPixel = 32;
         vformat->BytesPerPixel = 4;
         vformat->Amask = 0xff000000;
@@ -283,11 +283,11 @@ static int GFX_VideoInit(_THIS, GAL_PixelFormat * vformat)
                 flags = atoi(env);
             }
             flags = 0;
-            // FillRect. Disabled because it is too slow with the stupid flush and wait policy 
-            video_info->blit_fill = (flags & FLAGS_BLIT_FILL) ? 1 : 0; 
+            // FillRect. Disabled because it is too slow with the stupid flush and wait policy
+            video_info->blit_fill = (flags & FLAGS_BLIT_FILL) ? 1 : 0;
             video_info->blit_hw = (flags & FLAGS_BLIT_HW) ? 1 : 0;   // BitBlit //
             video_info->blit_hw_CC = (flags & FLAGS_BLIT_HW_CC) ? 1 : 0; // Colorkey //
-            video_info->blit_hw_A  = (flags & FLAGS_BLIT_HW_A) ? 1 : 0; // Alpha 
+            video_info->blit_hw_A  = (flags & FLAGS_BLIT_HW_A) ? 1 : 0; // Alpha
         }
         video_info->mlt_surfaces = 0;
     }
@@ -328,7 +328,7 @@ static void local_hdmi_update_loop(void *c)
     } while(run_hdmi);
 }
 
-static RMstatus CreateSurface(_THIS) 
+static RMstatus CreateSurface(_THIS)
 {
     RMstatus err;
     RMuint32 mixer = EMHWLIB_MODULE(DispMainMixer, 0);
@@ -355,7 +355,7 @@ static RMstatus CreateSurface(_THIS)
     err = DCCGetScalerModuleID(PDCC, DCCRoute_Main, DCCSurface_OSD, 0, &OSD_SCALER);
     if (RMFAILED(err)) {
         RMDBGLOG((ENABLE, "Cannot get surface to display OSD source %d\n", err));
-        return err; 
+        return err;
     }
     err = RUAExchangeProperty(PRUA, mixer, RMGenericPropertyID_MixerSourceIndex, &(OSD_SCALER), sizeof(OSD_SCALER),
             &src_index, sizeof(src_index));
@@ -396,8 +396,8 @@ static RMstatus CreateSurface(_THIS)
         return err;
     }
 
-    //chech if the profile colormode is surpported  
-    err = RUASetProperty(PRUA, OSD_SCALER, RMGenericPropertyID_IsColorModeSupported, 
+    //chech if the profile colormode is surpported
+    err = RUASetProperty(PRUA, OSD_SCALER, RMGenericPropertyID_IsColorModeSupported,
             &(DCC_PROFILE.ColorMode), sizeof(DCC_PROFILE.ColorMode) ,0);
     if (RMFAILED(err)) {
         RMDBGLOG((ENABLE, "The scaler you selected does not support colorspace %d\n", DCC_PROFILE.ColorMode));
@@ -417,22 +417,22 @@ static RMstatus CreateSurface(_THIS)
 #ifdef _MGRM_PROCESSES
     if(mgIsServer) {
         RMbool persistent = TRUE;
-        DCCSPERR(PRUA, OSD_SCALER, RMGenericPropertyID_PersistentSurface, 
+        DCCSPERR(PRUA, OSD_SCALER, RMGenericPropertyID_PersistentSurface,
                 &persistent, sizeof(persistent), "can not set persistent surface");
-        DCCSPERR(PRUA, OSD_SCALER, RMGenericPropertyID_Validate, NULL, 0, "Cannot validate scaler configure");	
+        DCCSPERR(PRUA, OSD_SCALER, RMGenericPropertyID_Validate, NULL, 0, "Cannot validate scaler configure");
     }
 #endif
-    DCCSPERR(PRUA, OSD_SCALER, RMGenericPropertyID_Validate, NULL, 0, "Cannot validate scaler input window");	
+    DCCSPERR(PRUA, OSD_SCALER, RMGenericPropertyID_Validate, NULL, 0, "Cannot validate scaler input window");
     err = DCCGetOSDVideoSourceInfo(POSD_SOURCE, &LUMA_ADDR, &LUMA_SIZE, &CHROMA_ADDR, &CHROMA_SIZE);
     if (RMFAILED(err)) {
         fprintf(stderr, "NEWGAL>EM86GFX: Cannot get osd buffer info (%d)!\n", err);
         return err;
     }
     return RM_OK;
-} 
+}
 
 
-static RMstatus ForceMixerSourceToSlave(_THIS) 
+static RMstatus ForceMixerSourceToSlave(_THIS)
 {
     enum EMhwlibMixerSourceState state;
     RMstatus err = RM_OK;
@@ -440,7 +440,7 @@ static RMstatus ForceMixerSourceToSlave(_THIS)
 
 
     RMuint32 scaler= EMHWLIB_MODULE(DispGFXMultiScaler,0);
-    RMuint32 src_index; 
+    RMuint32 src_index;
     /* set a NULL surface, this will force a full register update when next surface is set */
     err = DCCSetSurfaceSource(PDCC, scaler, NULL);
     if (RMFAILED(err)) {
@@ -448,7 +448,7 @@ static RMstatus ForceMixerSourceToSlave(_THIS)
         return RM_ERROR;
     }
 
-    err = RUAExchangeProperty(PRUA, mixer, RMGenericPropertyID_MixerSourceIndex, &scaler, sizeof(scaler), 
+    err = RUAExchangeProperty(PRUA, mixer, RMGenericPropertyID_MixerSourceIndex, &scaler, sizeof(scaler),
             &src_index, sizeof(src_index));
     if (RMFAILED(err)) {
         RMDBGLOG((ENABLE, "Cannot get scaler index\n"));
@@ -491,7 +491,7 @@ static RMstatus ForceMixerSourceToSlave(_THIS)
 }
 
 #ifdef _MGRM_PROCESSES
-static RMstatus GetSurface(_THIS) 
+static RMstatus GetSurface(_THIS)
 {
     printf(">>>>>>>> Enter GetSurface\n");
     RMstatus err = RM_OK;
@@ -501,7 +501,7 @@ static RMstatus GetSurface(_THIS)
     err = DCCGetScalerModuleID(PDCC, DCCRoute_Main, DCCSurface_OSD, 0, &OSD_SCALER);
     if (RMFAILED(err)) {
         RMDBGLOG((ENABLE, "Cannot get surface to display OSD source %d\n", err));
-        return err; 
+        return err;
     }
     struct DisplayBlock_SurfaceSize_in_type size_in;
     struct DisplayBlock_SurfaceSize_out_type size_out;
@@ -527,17 +527,17 @@ static RMstatus GetSurface(_THIS)
     size_in.ColorFormat = config.ColorFormat;
     size_in.SamplingMode = config.SamplingMode;
 
-    err = RUAExchangeProperty(PRUA, DisplayBlock, RMDisplayBlockPropertyID_SurfaceSize, 
+    err = RUAExchangeProperty(PRUA, DisplayBlock, RMDisplayBlockPropertyID_SurfaceSize,
             &size_in, sizeof(size_in), &size_out, sizeof(size_out));
     if (RMFAILED(err)) {
         printf("can not get surface size\n");
         return err;
     }
 
-    LUMA_ADDR = config.LumaAddress; 
-    LUMA_SIZE = size_out.LumaSize; 
-    CHROMA_ADDR = config.ChromaAddress; 
-    CHROMA_SIZE = size_out.ChromaSize; 
+    LUMA_ADDR = config.LumaAddress;
+    LUMA_SIZE = size_out.LumaSize;
+    CHROMA_ADDR = config.ChromaAddress;
+    CHROMA_SIZE = size_out.ChromaSize;
     printf("LUMA_ADDR = %p, LUMA_SIZE = %p\n", (void*)LUMA_ADDR, (void*)LUMA_SIZE);
     printf("<<<<<<<< Leave  GetSurface\n");
     return err;
@@ -652,7 +652,7 @@ static GAL_Surface* GFX_SetVideoMode(_THIS, GAL_Surface * surface, int width, in
             return NULL;
         }
 
-        // the mixer should not modify the GFX scaler's config 
+        // the mixer should not modify the GFX scaler's config
         err = ForceMixerSourceToSlave(this);
         if (RMFAILED(err)) {
             fprintf(stderr, "can not force mixer source state to slave\n");
@@ -722,10 +722,10 @@ static GAL_Surface* GFX_SetVideoMode(_THIS, GAL_Surface * surface, int width, in
 static void GFX_VideoQuit (_THIS)
 {
     FUNC_ENTER();
-    RMstatus err; 
+    RMstatus err;
     //delete all hardware surface allocated
     struct list_head* ptr, *n;
-    struct hwsrfc_item* item; 
+    struct hwsrfc_item* item;
     list_for_each_safe(ptr, n,  &surface_list){
         list_del(ptr);
         item = list_entry(ptr, struct hwsrfc_item, list);
@@ -736,7 +736,7 @@ static void GFX_VideoQuit (_THIS)
 #ifdef _MGRM_PROCESSES
     if(mgIsServer) {
 #endif
-        //wait for all commands to be finished 
+        //wait for all commands to be finished
         struct RUAEvent evt;
         RMbool empty_queue = FALSE;
         evt.ModuleID = GFX_TARGET;
@@ -749,13 +749,13 @@ static void GFX_VideoQuit (_THIS)
                 }
             }
         }
-        
+
         RMuint32 close_profile = 0;
-        while ((err = RUASetProperty(PRUA, GFX_TARGET, RMGFXEnginePropertyID_Close, &close_profile, sizeof(close_profile), 0)) == RM_PENDING); 
+        while ((err = RUASetProperty(PRUA, GFX_TARGET, RMGFXEnginePropertyID_Close, &close_profile, sizeof(close_profile), 0)) == RM_PENDING);
         if (RMFAILED(err)) {
             RMDBGLOG((ENABLE, "Cannot close the gfx accelerator\n"));
             return;
-        } 
+        }
 
         if (GFX_PROFILE.CachedAddress)
             RUAFree(PRUA, GFX_PROFILE.CachedAddress);
@@ -802,21 +802,21 @@ static void GFX_VideoQuit (_THIS)
     }
 #endif
     if(LUMA_ADDR) {
-        RUAUnMap(PRUA, LUMA_ADDR_MAPPED, LUMA_SIZE); 
-        err = RUAUnLock(PRUA, LUMA_ADDR, LUMA_SIZE); 
-        if (RMFAILED(err)) { 
-            RMDBGLOG((ENABLE, "Error unlocking OSD buffer at 0x%08lX (0x%08lX bytes)\n", LUMA_ADDR, LUMA_SIZE)); 
-            return; 
+        RUAUnMap(PRUA, LUMA_ADDR_MAPPED, LUMA_SIZE);
+        err = RUAUnLock(PRUA, LUMA_ADDR, LUMA_SIZE);
+        if (RMFAILED(err)) {
+            RMDBGLOG((ENABLE, "Error unlocking OSD buffer at 0x%08lX (0x%08lX bytes)\n", LUMA_ADDR, LUMA_SIZE));
+            return;
         }
         LUMA_ADDR = 0;
-    } 
-    if(CHROMA_SIZE && CHROMA_ADDR){ 
-        RUAUnMap(PRUA, CHROMA_ADDR_MAPPED, CHROMA_SIZE); 
-        err = RUAUnLock(PRUA, CHROMA_ADDR, CHROMA_SIZE); 
-        if (RMFAILED(err)) { 
-            RMDBGLOG((ENABLE, "Error unlocking OSD buffer at 0x%08lX (0x%08lX bytes)\n", CHROMA_ADDR, CHROMA_SIZE)); 
-            return; 
-        } 
+    }
+    if(CHROMA_SIZE && CHROMA_ADDR){
+        RUAUnMap(PRUA, CHROMA_ADDR_MAPPED, CHROMA_SIZE);
+        err = RUAUnLock(PRUA, CHROMA_ADDR, CHROMA_SIZE);
+        if (RMFAILED(err)) {
+            RMDBGLOG((ENABLE, "Error unlocking OSD buffer at 0x%08lX (0x%08lX bytes)\n", CHROMA_ADDR, CHROMA_SIZE));
+            return;
+        }
         CHROMA_ADDR = 0;
     }
 #ifdef _MGRM_PROCESSES
@@ -900,9 +900,9 @@ static int init_GFXengine(_THIS)
     GFX_PROFILE.UncachedSize = dramSizeOut.UncachedSize;
 
     if (GFX_PROFILE.CachedSize > 0) {
-        fprintf (stderr, "NEWGAL>EM86GFX: about to malloc cached, size %ld\n", 
+        fprintf (stderr, "NEWGAL>EM86GFX: about to malloc cached, size %ld\n",
                 GFX_PROFILE.CachedSize);
-        GFX_PROFILE.CachedAddress = RUAMalloc(PRUA, 0, RUA_DRAM_CACHED, 
+        GFX_PROFILE.CachedAddress = RUAMalloc(PRUA, 0, RUA_DRAM_CACHED,
                 GFX_PROFILE.CachedSize);
     }
     else
@@ -910,7 +910,7 @@ static int init_GFXengine(_THIS)
 
     GFX_PROFILE.UncachedSize = dramSizeOut.UncachedSize;
     if (GFX_PROFILE.UncachedSize > 0)
-        GFX_PROFILE.UncachedAddress = RUAMalloc(PRUA, 0, RUA_DRAM_UNCACHED, 
+        GFX_PROFILE.UncachedAddress = RUAMalloc(PRUA, 0, RUA_DRAM_UNCACHED,
                 GFX_PROFILE.UncachedSize);
     else
         GFX_PROFILE.UncachedAddress = 0;
@@ -930,7 +930,7 @@ static int init_GFXengine(_THIS)
         GFX_TARGET = EMHWLIB_MODULE(GFXEngine, i);
         RMDBGLOG((ENABLE, "Trying on target %ld\n", i));
         err = RUASetProperty(PRUA, GFX_TARGET, RMGFXEnginePropertyID_Open, &GFX_PROFILE, sizeof(GFX_PROFILE), 0);
-        if (err == RM_OK) 
+        if (err == RM_OK)
             break;
     }
 
@@ -959,7 +959,7 @@ static int GFX_AllocHWSurface(_THIS, GAL_Surface * surface)
     struct DCCOSDProfile profile = (DCC_PROFILE);
     profile.Width = surface->w;
     profile.Height = surface->h;
-    RMuint32 luma_addr, luma_size; 
+    RMuint32 luma_addr, luma_size;
     RMuint8* pLuma;
 
     struct DisplayBlock_SurfaceSize_in_type dram_in;
@@ -973,14 +973,14 @@ static int GFX_AllocHWSurface(_THIS, GAL_Surface * surface)
     dram_in.SamplingMode = profile.SamplingMode;
     dram_in.Width = profile.Width;
     dram_in.Height = profile.Height;
-    err = RUAExchangeProperty(PRUA, DisplayBlock, RMDisplayBlockPropertyID_SurfaceSize, 
+    err = RUAExchangeProperty(PRUA, DisplayBlock, RMDisplayBlockPropertyID_SurfaceSize,
             &dram_in, sizeof(dram_in), &dram_out, sizeof(dram_out));
     if (RMFAILED(err)) {
         free(hwdata);
         RMDBGLOG((ENABLE, "Error Cannot get size to allocate the OSD surface, %s\n", RMstatusToString(err)));
         return err;
     }
-    addr = RUAMalloc(PRUA, 0, RUA_DRAM_UNCACHED, dram_out.BufferSize); 
+    addr = RUAMalloc(PRUA, 0, RUA_DRAM_UNCACHED, dram_out.BufferSize);
     if (addr == 0) {
         RMDBGLOG((ENABLE, "ERROR: could not allocate 0x%08lX bytes in system memory %lu!\n", dram_out.BufferSize));
         return RM_FATALOUTOFMEMORY;
@@ -996,7 +996,7 @@ static int GFX_AllocHWSurface(_THIS, GAL_Surface * surface)
     valueIn.ChromaSize = dram_out.ChromaSize;
     valueIn.ColorSpace = profile.ColorSpace;
     valueIn.PixelAspectRatio = profile.PixelAspectRatio;
-    err = RUAExchangeProperty(PRUA, DisplayBlock, RMDisplayBlockPropertyID_InitSurface, 
+    err = RUAExchangeProperty(PRUA, DisplayBlock, RMDisplayBlockPropertyID_InitSurface,
             &valueIn, sizeof(valueIn), &valueOut, sizeof(valueOut));
     if (RMFAILED(err)) {
         RMDBGLOG((ENABLE, "Cannot initialize OSD surface, %s\n", RMstatusToString(err)));
@@ -1015,19 +1015,19 @@ static int GFX_AllocHWSurface(_THIS, GAL_Surface * surface)
     }
 
     //printf("lumaAddr: pointer %p size: %d\n", (void*)luma_addr,(int)luma_size);
-    pLuma = RUAMap(PRUA,luma_addr, luma_size); 
+    pLuma = RUAMap(PRUA,luma_addr, luma_size);
     if (pLuma == NULL) {
         return RM_ERROR;
     }
 
     hwdata->unmapped_addr = luma_addr;
     hwdata->size=luma_size;
-    hwdata->gfx_addr =luma_addr; 
+    hwdata->gfx_addr =luma_addr;
     surface->pixels = (void*)pLuma;
     surface->hwdata = (void*)hwdata;
     surface->flags |= GAL_HWSURFACE;
     surface->flags |= GAL_PREALLOC;
-    
+
     struct hwsrfc_item* item = malloc(sizeof(struct hwsrfc_item));
     item->surface = surface;
     list_add(&item->list, &surface_list);
@@ -1037,7 +1037,7 @@ static int GFX_AllocHWSurface(_THIS, GAL_Surface * surface)
     return 0;
 }
 
-static void __GFX_FreeHWSurface(_THIS, GAL_Surface* surface) 
+static void __GFX_FreeHWSurface(_THIS, GAL_Surface* surface)
 {
     FUNC_ENTER();
     if(!surface) {
@@ -1064,14 +1064,14 @@ static void __GFX_FreeHWSurface(_THIS, GAL_Surface* surface)
     surface->hwdata = NULL;
     hwdata->gfx_addr = 0;
     FUNC_LEAVE();
- 
+
 }
-static void GFX_FreeHWSurface(_THIS, GAL_Surface * surface) 
+static void GFX_FreeHWSurface(_THIS, GAL_Surface * surface)
 {
     __GFX_FreeHWSurface(this, surface);
 
     struct list_head* ptr;
-    struct hwsrfc_item* item; 
+    struct hwsrfc_item* item;
     list_for_each(ptr, &surface_list){
         item = list_entry(ptr, struct hwsrfc_item, list);
         if(item->surface == surface) {
@@ -1109,28 +1109,28 @@ static int GFX_HWAccelBlit (GAL_Surface* src, GAL_Rect* srec, GAL_Surface* dst, 
     format_param.MainMode = DCC_PROFILE.ColorMode;
     format_param.SubMode = DCC_PROFILE.ColorFormat;
     format_param.SamplingMode = DCC_PROFILE.SamplingMode;
-    format_param.ColorSpace = DCC_PROFILE.ColorSpace; 
+    format_param.ColorSpace = DCC_PROFILE.ColorSpace;
 
     surface_param.Tiled = FALSE;
 
     //destination
-    surface_param.StartAddress = dst_hwdata->gfx_addr; 
-    surface_param.TotalWidth = (RMuint32)dst->w; 
+    surface_param.StartAddress = dst_hwdata->gfx_addr;
+    surface_param.TotalWidth = (RMuint32)dst->w;
     format_param.SurfaceID = GFX_SURFACE_ID_NX;
     surface_param.SurfaceID = GFX_SURFACE_ID_NX;
     SEND_GFX_COMMAND(PRUA, GFX_TARGET, RMGFXEnginePropertyID_ColorFormat, &format_param, sizeof(format_param));
     SEND_GFX_COMMAND(PRUA, GFX_TARGET, RMGFXEnginePropertyID_Surface, &surface_param, sizeof(surface_param));
 
     //source of pixels
-    surface_param.StartAddress = src_hwdata->gfx_addr; 
+    surface_param.StartAddress = src_hwdata->gfx_addr;
     surface_param.TotalWidth = (RMuint32)src->w;
     surface_param.SurfaceID = GFX_SURFACE_ID_X;
     format_param.SurfaceID = GFX_SURFACE_ID_X;
     SEND_GFX_COMMAND(PRUA, GFX_TARGET, RMGFXEnginePropertyID_ColorFormat, &format_param, sizeof(format_param));
     SEND_GFX_COMMAND(PRUA, GFX_TARGET, RMGFXEnginePropertyID_Surface, &surface_param, sizeof(surface_param));
 
-    //source of alpha 
-    surface_param.StartAddress = src_hwdata->gfx_addr; 
+    //source of alpha
+    surface_param.StartAddress = src_hwdata->gfx_addr;
     surface_param.TotalWidth = (RMuint32)src->w;
     format_param.SurfaceID = GFX_SURFACE_ID_Z;
     surface_param.SurfaceID = GFX_SURFACE_ID_Z;

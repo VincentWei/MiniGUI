@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -82,7 +82,7 @@ extern "C"
 #define DEF_LINE_HEIGHT         ( GetWindowFont(hWnd)->size + DEF_LINE_BASE_H + \
                                  DEF_LINE_ABOVE_H )
 
-/* default line buffer size */ 
+/* default line buffer size */
 #define DEF_LINE_BUFFER_SIZE    128
 /* default line step block size */
 #define DEF_LINE_BLOCK_SIZE     32
@@ -97,7 +97,7 @@ extern "C"
 
 
 /* draw text format */
-#define TE_FORMAT  (DT_LEFT | DT_TOP | DT_NOCLIP | DT_EXPANDTABS) 
+#define TE_FORMAT  (DT_LEFT | DT_TOP | DT_NOCLIP | DT_EXPANDTABS)
 
 #ifdef _UNDO_SUPPORT
 #define DEF_UNDO_DEPTH          3
@@ -137,7 +137,7 @@ typedef enum {
     TF_MEDIATEXT
 } TextFormat;
 
-/* one text line (end with '\n') is a scrollview item */ 
+/* one text line (end with '\n') is a scrollview item */
 /* structure of text node/line */
 typedef struct _textnode
 {
@@ -378,7 +378,7 @@ static inline int teGetLineIndent (PTEDATA ptedata, TextNode *node)
             ( ((node)->list.prev == &txtdoc->queue) ? NULL : \
                 list_entry((node)->list.prev, TextNode, list) )
 
- 
+
 #ifdef _SELECT_SUPPORT
 static BOOL textnode_is_selected (TextDoc *txtdoc, TextNode *node)
 {
@@ -439,7 +439,7 @@ textdoc_insert_string_ex_2 (TextDoc *txtdoc, TextNode *enode, int insert_pos,
         txtdoc->insert.pos_lnOff = ret;
 
     /*when newtext is '\b' and all text is selected ,
-     * txtdoc->insert.curNode change after call 
+     * txtdoc->insert.curNode change after call
      * funciton textdoc_insert_string_ex*/
     node = enode ? enode : txtdoc->insert.curNode;
 

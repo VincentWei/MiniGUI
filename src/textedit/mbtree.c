@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
  * btree.c: btree implementation.
- * 
+ *
  * Author: Yan Xiaowei
  *
  * Create date: 2004/03/01
@@ -89,7 +89,7 @@ static mCommBTreeNode* mCommBTree_newNode(mCommBTree *self)
     return NEW(mCommBTreeNode);
 }
 
-static BOOL mCommBTree_insertLeaf(mCommBTree *self, 
+static BOOL mCommBTree_insertLeaf(mCommBTree *self,
         mCommBTreeNode *parent, mCommBTreeNode *sibLeaf, mCommBTreeNode *leaf)
 {
     mCommBTreeNode *node = NULL;
@@ -150,17 +150,17 @@ static void mCommBTree_deleteNode(mCommBTree *self, mCommBTreeNode *node)
     parent = (mCommBTreeNode*)node->parent;
     //root should have two children at least.
     if (parent == self->rootNode && parent->numChildren <= 2 && parent->level == 1)
-	{
+    {
         _c(node)->changeKey(node, (void*)-1, -1);
 
-		_c(node)->resetKey(node);
-		node->children = NULL;
-		node->level = 0;
-		node->numLeaves = 0;
+        _c(node)->resetKey(node);
+        node->children = NULL;
+        node->level = 0;
+        node->numLeaves = 0;
 
         _c(self)->recomputeNodeInfo(self, parent);
         return;
-	}
+    }
 
     if (parent) {
         //delete node from children
@@ -271,7 +271,7 @@ static void mCommBTree_rebalanceNode(mCommBTree *self, mCommBTreeNode *node)
                     mCommBTreeNode *leaf;
                     for (i = self->minChildrenNum - 1,
                             leaf = node->children;
-                            i > 0; i--, leaf = leaf->next) 
+                            i > 0; i--, leaf = leaf->next)
                     {
                         /* Empty loop body. */
                     }
@@ -288,7 +288,7 @@ static void mCommBTree_rebalanceNode(mCommBTree *self, mCommBTreeNode *node)
                     break;
                 }
             } //end while(1)
-        } //end if (node->numChildren > self->maxChildrenNum) 
+        } //end if (node->numChildren > self->maxChildrenNum)
 
         while (node->numChildren < self->minChildrenNum) {
             mCommBTreeNode *other, *halfwaynode = NULL;
@@ -297,8 +297,8 @@ static void mCommBTree_rebalanceNode(mCommBTree *self, mCommBTreeNode *node)
             /*
              * Too few children for this mCommBTreeNode. If this is the root then,
              * it's OK for it to have less than self->minChildrenNum children
-             * as lon as it's at least two. If it has only one (and isn't at 
-             * level 1), then chop the root mCommBTreeNode out of the tree and 
+             * as lon as it's at least two. If it has only one (and isn't at
+             * level 1), then chop the root mCommBTreeNode out of the tree and
              * use its child as the new root.
              */
 
@@ -324,7 +324,7 @@ static void mCommBTree_rebalanceNode(mCommBTree *self, mCommBTreeNode *node)
             if (node->next == NULL) {
                 for (other = (mCommBTreeNode*)(((mCommBTreeNode*)(node->parent))->children);
                         other->next != node;
-                        other = other->next) 
+                        other = other->next)
                 {
                     /* Empty loop body. */
                 }
@@ -398,14 +398,14 @@ static mCommBTreeNode* _search_leaf(mCommBTreeNode *node, void *searchInfo, int 
         if (node->level == 0)
             return node;
         return _search_leaf(node->children, searchInfo,flags);
-    } 
+    }
     else if (ret == BTREE_ERRNO_SNEXT) {
-		if(!node->next && (flags & BTSF_RETLAST_IF_OUTOFRANGE))
-		{
-			while(node->level>0)
-				node = node->children;
-			return node;
-		}
+        if(!node->next && (flags & BTSF_RETLAST_IF_OUTOFRANGE))
+        {
+            while(node->level>0)
+                node = node->children;
+            return node;
+        }
         return _search_leaf(node->next, searchInfo, flags);
     }
 
@@ -451,7 +451,7 @@ static void mCommBTree_construct(mCommBTree* self, va_list va)
         leaf->next      = leaf2;
         leaf2->parent   = rootNode;
         leaf2->next     = NULL;
-        
+
         self->rootNode = rootNode;
     }
 }
@@ -489,22 +489,22 @@ static mCommBTreeNode* mCommBTree_getRoot(mCommBTree *self)
 }
 
 BEGIN_MINI_CLASS(mCommBTree, mObject)
-	CLASS_METHOD_MAP(mCommBTree, construct);
-	CLASS_METHOD_MAP(mCommBTree, destroy);
+    CLASS_METHOD_MAP(mCommBTree, construct);
+    CLASS_METHOD_MAP(mCommBTree, destroy);
 
-	CLASS_METHOD_MAP(mCommBTree, ref);
-	CLASS_METHOD_MAP(mCommBTree, unref);
-	CLASS_METHOD_MAP(mCommBTree, getRoot);
+    CLASS_METHOD_MAP(mCommBTree, ref);
+    CLASS_METHOD_MAP(mCommBTree, unref);
+    CLASS_METHOD_MAP(mCommBTree, getRoot);
 
-	CLASS_METHOD_MAP(mCommBTree, newNode);
-	CLASS_METHOD_MAP(mCommBTree, deleteNode);
+    CLASS_METHOD_MAP(mCommBTree, newNode);
+    CLASS_METHOD_MAP(mCommBTree, deleteNode);
 
-	CLASS_METHOD_MAP(mCommBTree, newLeaf);
-	CLASS_METHOD_MAP(mCommBTree, insertLeaf);
+    CLASS_METHOD_MAP(mCommBTree, newLeaf);
+    CLASS_METHOD_MAP(mCommBTree, insertLeaf);
 
-	CLASS_METHOD_MAP(mCommBTree, recomputeNodeInfo);
-	CLASS_METHOD_MAP(mCommBTree, rebalanceNode);
-	CLASS_METHOD_MAP(mCommBTree, search);
+    CLASS_METHOD_MAP(mCommBTree, recomputeNodeInfo);
+    CLASS_METHOD_MAP(mCommBTree, rebalanceNode);
+    CLASS_METHOD_MAP(mCommBTree, search);
 END_MINI_CLASS
 
 
@@ -524,10 +524,10 @@ static mCommBTreeNode* _get_left_leaf(mCommBTreeNode *node)
 
 static void mCommBTreeLeafIterator_construct(mCommBTreeLeafIterator* self, va_list va)
 {
-	ncsParseConstructParams(va, "pp", &self->tree, &self->current);
+    ncsParseConstructParams(va, "pp", &self->tree, &self->current);
     _SUPER(mObject, self, construct, 0);
 
-	if(self->tree && !self->current)
+    if(self->tree && !self->current)
         self->current = _get_left_leaf(self->tree->rootNode);
 
 }
@@ -539,7 +539,7 @@ static void mCommBTreeLeafIterator_remove(mCommBTreeLeafIterator* self)
     _c(self->tree)->deleteNode(self->tree, delNode);
 }
 
-static void mCommBTreeLeafIterator_insert(mCommBTreeLeafIterator* self, 
+static void mCommBTreeLeafIterator_insert(mCommBTreeLeafIterator* self,
         mCommBTreeNode *leaf)
 {
     if (!self || !self->tree || !self->current)
@@ -571,8 +571,8 @@ static mCommBTreeNode* mCommBTreeLeafIterator_getCurrent(mCommBTreeLeafIterator*
 static BOOL mCommBTreeLeafIterator_hasNext(mCommBTreeLeafIterator* self)
 {
     if (self && self->tree && self->current) {
-        if (self->current->next 
-                || _get_left_leaf(_get_next_parent(self->current->parent))) 
+        if (self->current->next
+                || _get_left_leaf(_get_next_parent(self->current->parent)))
             return TRUE;
     }
     return FALSE;
@@ -581,9 +581,9 @@ static BOOL mCommBTreeLeafIterator_hasNext(mCommBTreeLeafIterator* self)
 static mCommBTreeNode* mCommBTreeLeafIterator_next(mCommBTreeLeafIterator* self)
 {
     if (self && self->tree && self->current) {
-        if (self->current->next) 
+        if (self->current->next)
             self->current = self->current->next;
-        else 
+        else
             self->current = _get_left_leaf(_get_next_parent(self->current->parent));
         return self->current;
     }
@@ -592,12 +592,12 @@ static mCommBTreeNode* mCommBTreeLeafIterator_next(mCommBTreeLeafIterator* self)
 }
 
 BEGIN_MINI_CLASS(mCommBTreeLeafIterator, mObject)
-	CLASS_METHOD_MAP(mCommBTreeLeafIterator, construct);
-	CLASS_METHOD_MAP(mCommBTreeLeafIterator, hasNext);
-	CLASS_METHOD_MAP(mCommBTreeLeafIterator, next);
-	CLASS_METHOD_MAP(mCommBTreeLeafIterator, remove);
-	CLASS_METHOD_MAP(mCommBTreeLeafIterator, insert);
-	CLASS_METHOD_MAP(mCommBTreeLeafIterator, getCurrent);
+    CLASS_METHOD_MAP(mCommBTreeLeafIterator, construct);
+    CLASS_METHOD_MAP(mCommBTreeLeafIterator, hasNext);
+    CLASS_METHOD_MAP(mCommBTreeLeafIterator, next);
+    CLASS_METHOD_MAP(mCommBTreeLeafIterator, remove);
+    CLASS_METHOD_MAP(mCommBTreeLeafIterator, insert);
+    CLASS_METHOD_MAP(mCommBTreeLeafIterator, getCurrent);
 END_MINI_CLASS
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -655,17 +655,17 @@ static void mCommBTreeNode_changeKey(mCommBTreeNode *self, void *diffInfo, int d
         }
     }
 
-    if (self->parent) 
-		_c(self->parent)->changeKey(self->parent, diffInfo, deltaChild);
+    if (self->parent)
+        _c(self->parent)->changeKey(self->parent, diffInfo, deltaChild);
 }
 
 BEGIN_MINI_CLASS(mCommBTreeNode, mObject)
-	CLASS_METHOD_MAP(mCommBTreeNode, construct);
-	CLASS_METHOD_MAP(mCommBTreeNode, destroy);
-	CLASS_METHOD_MAP(mCommBTreeNode, compareNode);
-	CLASS_METHOD_MAP(mCommBTreeNode, recompute);
-	CLASS_METHOD_MAP(mCommBTreeNode, resetKey);
-	CLASS_METHOD_MAP(mCommBTreeNode, changeKey);
+    CLASS_METHOD_MAP(mCommBTreeNode, construct);
+    CLASS_METHOD_MAP(mCommBTreeNode, destroy);
+    CLASS_METHOD_MAP(mCommBTreeNode, compareNode);
+    CLASS_METHOD_MAP(mCommBTreeNode, recompute);
+    CLASS_METHOD_MAP(mCommBTreeNode, resetKey);
+    CLASS_METHOD_MAP(mCommBTreeNode, changeKey);
 END_MINI_CLASS
 
 #endif /* defined(_MGCTRL_TEXTEDIT_USE_NEW_IMPL) || defined(__MGNCS_TEXTEDITOR) */

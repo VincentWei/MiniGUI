@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -81,8 +81,8 @@
 
 static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
 {
-    fixed min; 
-    fixed max; 
+    fixed min;
+    fixed max;
     fixed delta;
     fixed tmp;
 
@@ -121,12 +121,12 @@ static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
     else if( g == max )
         /*between cyan & yellow*/
         *h = fixadd(itofix(2), fixdiv(fixsub(b, r), delta));
-    else 
+    else
         /*magenta & cyan*/
         *h = fixadd(itofix(4), fixdiv(fixsub(r, g), delta));
 
     /*degrees*/
-    *h = fixmul(*h, itofix(60)); 
+    *h = fixmul(*h, itofix(60));
     if (*h < itofix(0))
         *h = fixadd(*h, itofix(360));
 
@@ -152,14 +152,14 @@ static void HSV2RGB(fixed h, fixed s, fixed v, fixed* r, fixed* g, fixed* b)
     p = fixmul(v, fixsub(itofix(1), s));
     /*q = v * (1 - s*f)*/
     q = fixmul (v, fixsub (itofix(1), fixmul(s, f)));
-   
+
     /*t = v * (1 - s*(1-f))*/
     t = fixmul (v, fixsub (itofix(1), fixmul(s, fixsub( itofix(1), f))));
-    
+
     switch (i) {
-        case 0: 
-            *r = fixmul (v, itofix(255)); 
-            *g = fixmul (t, itofix(255)); 
+        case 0:
+            *r = fixmul (v, itofix(255));
+            *g = fixmul (t, itofix(255));
             *b = fixmul (p, itofix(255));
             break;
         case 1:
@@ -206,7 +206,7 @@ int MiniGUIMain (int argc, const char* argv[])
     DWORD darkest_color;
     DWORD lighter_color;
     DWORD lightest_color;
-    
+
     const WINDOW_ELEMENT_RENDERER* def_rdr =
              GetWindowRendererFromName ("classic");
     calc_3dbox_color = def_rdr->calc_3dbox_color;
@@ -242,25 +242,25 @@ int MiniGUIMain (int argc, const char* argv[])
         for (g_val=0; g_val<256; g_val+=1)
             for (b_val=0; b_val<256; b_val+=1)
             {
-                lighter_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val), 
+                lighter_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val),
                         LFRDR_3DBOX_COLOR_LIGHTER);
                 assert(GetRValue(lighter_color) >= r_val);
                 assert(GetGValue(lighter_color) >= g_val);
                 assert(GetBValue(lighter_color) >= b_val);
 
-                lightest_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val), 
+                lightest_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val),
                         LFRDR_3DBOX_COLOR_LIGHTER);
                 assert(GetRValue(lightest_color) >= GetRValue(lighter_color) );
                 assert(GetGValue(lightest_color) >= GetGValue(lighter_color) );
                 assert(GetBValue(lightest_color) >= GetBValue(lighter_color) );
 
-                darker_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val), 
+                darker_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val),
                         LFRDR_3DBOX_COLOR_DARKER);
                 assert(GetRValue(darker_color) <= r_val);
                 assert(GetGValue(darker_color) <= g_val);
                 assert(GetBValue(darker_color) <= b_val);
 
-                darkest_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val), 
+                darkest_color = calc_3dbox_color(MakeRGB(r_val, g_val, b_val),
                         LFRDR_3DBOX_COLOR_DARKEST);
                 assert(GetRValue(darkest_color) <= GetRValue(darker_color) );
                 assert(GetGValue(darkest_color) <= GetGValue(darker_color) );

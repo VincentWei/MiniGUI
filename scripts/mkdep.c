@@ -3,7 +3,7 @@
  * Smart CONFIG_* processing by Werner Almesberger, Michael Chastain.
  *
  * Usage: mkdep cflags -- file ...
- * 
+ *
  * Read source files and output makefile dependency lines for them.
  * I make simple dependency lines for #include <*.h> and #include "*.h".
  * I also find instances of CONFIG_FOO and generate dependencies
@@ -52,8 +52,8 @@ char cwd[PATH_MAX];
 int lcwd;
 
 struct path_struct {
-	int len;
-	char *buffer;
+    int len;
+    char *buffer;
 };
 struct path_struct *path_array;
 int paths;
@@ -75,12 +75,12 @@ int    len_config  = 0;
 static void
 do_depname(void)
 {
-	if (!hasdep) {
-		hasdep = 1;
-		printf("%s:", depname);
-		if (g_filename)
-			printf(" %s", g_filename);
-	}
+    if (!hasdep) {
+        hasdep = 1;
+        printf("%s:", depname);
+        if (g_filename)
+            printf(" %s", g_filename);
+    }
 }
 
 /*
@@ -89,13 +89,13 @@ do_depname(void)
  */
 void grow_config(int len)
 {
-	while (len_config + len > size_config) {
-		if (size_config == 0)
-			size_config = 2048;
-		str_config = realloc(str_config, size_config *= 2);
-		if (str_config == NULL)
-			{ perror("malloc config"); exit(1); }
-	}
+    while (len_config + len > size_config) {
+        if (size_config == 0)
+            size_config = 2048;
+        str_config = realloc(str_config, size_config *= 2);
+        if (str_config == NULL)
+            { perror("malloc config"); exit(1); }
+    }
 }
 
 
@@ -105,15 +105,15 @@ void grow_config(int len)
  */
 int is_defined_config(const char * name, int len)
 {
-	const char * pconfig;
-	const char * plast = str_config + len_config - len;
-	for ( pconfig = str_config + 1; pconfig < plast; pconfig++ ) {
-		if (pconfig[ -1] == '\n'
-		&&  pconfig[len] == '\n'
-		&&  !memcmp(pconfig, name, len))
-			return 1;
-	}
-	return 0;
+    const char * pconfig;
+    const char * plast = str_config + len_config - len;
+    for ( pconfig = str_config + 1; pconfig < plast; pconfig++ ) {
+        if (pconfig[ -1] == '\n'
+        &&  pconfig[len] == '\n'
+        &&  !memcmp(pconfig, name, len))
+            return 1;
+    }
+    return 0;
 }
 
 
@@ -123,11 +123,11 @@ int is_defined_config(const char * name, int len)
  */
 void define_config(const char * name, int len)
 {
-	grow_config(len + 1);
+    grow_config(len + 1);
 
-	memcpy(str_config+len_config, name, len);
-	len_config += len;
-	str_config[len_config++] = '\n';
+    memcpy(str_config+len_config, name, len);
+    len_config += len;
+    str_config[len_config++] = '\n';
 }
 
 
@@ -137,8 +137,8 @@ void define_config(const char * name, int len)
  */
 void clear_config(void)
 {
-	len_config = 0;
-	define_config("", 0);
+    len_config = 0;
+    define_config("", 0);
 }
 
 
@@ -159,13 +159,13 @@ int    len_precious  = 0;
  */
 void grow_precious(int len)
 {
-	while (len_precious + len > size_precious) {
-		if (size_precious == 0)
-			size_precious = 2048;
-		str_precious = realloc(str_precious, size_precious *= 2);
-		if (str_precious == NULL)
-			{ perror("malloc"); exit(1); }
-	}
+    while (len_precious + len > size_precious) {
+        if (size_precious == 0)
+            size_precious = 2048;
+        str_precious = realloc(str_precious, size_precious *= 2);
+        if (str_precious == NULL)
+            { perror("malloc"); exit(1); }
+    }
 }
 
 
@@ -175,13 +175,13 @@ void grow_precious(int len)
  */
 void define_precious(const char * filename)
 {
-	int len = strlen(filename);
-	grow_precious(len + 4);
-	*(str_precious+len_precious++) = '\t';
-	memcpy(str_precious+len_precious, filename, len);
-	len_precious += len;
-	memcpy(str_precious+len_precious, " \\\n", 3);
-	len_precious += 3;
+    int len = strlen(filename);
+    grow_precious(len + 4);
+    *(str_precious+len_precious++) = '\t';
+    memcpy(str_precious+len_precious, filename, len);
+    len_precious += len;
+    memcpy(str_precious+len_precious, " \\\n", 3);
+    len_precious += 3;
 }
 
 
@@ -191,38 +191,38 @@ void define_precious(const char * filename)
  */
 void handle_include(int start, const char * name, int len)
 {
-	struct path_struct *path;
-	int i;
+    struct path_struct *path;
+    int i;
 
-	if (len == 14 && !memcmp(name, "linux/config.h", len))
-		return;
+    if (len == 14 && !memcmp(name, "linux/config.h", len))
+        return;
 
-	if (len >= 7 && !memcmp(name, "config/", 7))
-		define_config(name+7, len-7-2);
+    if (len >= 7 && !memcmp(name, "config/", 7))
+        define_config(name+7, len-7-2);
 
-	for (i = start, path = path_array+start; i < paths; ++i, ++path) {
-		memcpy(path->buffer+path->len, name, len);
-		path->buffer[path->len+len] = '\0';
-		if (access(path->buffer, F_OK) == 0) {
-			int l = lcwd + strlen(path->buffer);
-			char name2[l+2], *p;
-			if (path->buffer[0] == '/') {
-				memcpy(name2, path->buffer, l+1);
-			}
-			else {
-				memcpy(name2, cwd, lcwd);
-				name2[lcwd] = '/';
-				memcpy(name2+lcwd+1, path->buffer, path->len+len+1);
-			}
-			while ((p = strstr(name2, "/../"))) {
-				*p = '\0';
-				strcpy(strrchr(name2, '/'), p+3);
-			}
-			do_depname();
-			printf(" \\\n   %s", name2);
-			return;
-		}
-	}
+    for (i = start, path = path_array+start; i < paths; ++i, ++path) {
+        memcpy(path->buffer+path->len, name, len);
+        path->buffer[path->len+len] = '\0';
+        if (access(path->buffer, F_OK) == 0) {
+            int l = lcwd + strlen(path->buffer);
+            char name2[l+2], *p;
+            if (path->buffer[0] == '/') {
+                memcpy(name2, path->buffer, l+1);
+            }
+            else {
+                memcpy(name2, cwd, lcwd);
+                name2[lcwd] = '/';
+                memcpy(name2+lcwd+1, path->buffer, path->len+len+1);
+            }
+            while ((p = strstr(name2, "/../"))) {
+                *p = '\0';
+                strcpy(strrchr(name2, '/'), p+3);
+            }
+            do_depname();
+            printf(" \\\n   %s", name2);
+            return;
+        }
+    }
 
 }
 
@@ -233,39 +233,39 @@ void handle_include(int start, const char * name, int len)
  */
 void add_path(const char * name)
 {
-	struct path_struct *path;
-	char resolved_path[PATH_MAX+1];
-	const char *name2;
+    struct path_struct *path;
+    char resolved_path[PATH_MAX+1];
+    const char *name2;
 
-	if (strcmp(name, ".")) {
-		name2 = realpath(name, resolved_path);
-		if (!name2) {
-			fprintf(stderr, "realpath(%s) failed, %m\n", name);
-			exit(1);
-		}
-	}
-	else {
-		name2 = "";
-	}
+    if (strcmp(name, ".")) {
+        name2 = realpath(name, resolved_path);
+        if (!name2) {
+            fprintf(stderr, "realpath(%s) failed, %m\n", name);
+            exit(1);
+        }
+    }
+    else {
+        name2 = "";
+    }
 
-	path_array = realloc(path_array, (++paths)*sizeof(*path_array));
-	if (!path_array) {
-		fprintf(stderr, "cannot expand path_arry\n");
-		exit(1);
-	}
+    path_array = realloc(path_array, (++paths)*sizeof(*path_array));
+    if (!path_array) {
+        fprintf(stderr, "cannot expand path_arry\n");
+        exit(1);
+    }
 
-	path = path_array+paths-1;
-	path->len = strlen(name2);
-	path->buffer = malloc(path->len+1+256+1);
-	if (!path->buffer) {
-		fprintf(stderr, "cannot allocate path buffer\n");
-		exit(1);
-	}
-	strcpy(path->buffer, name2);
-	if (path->len && *(path->buffer+path->len-1) != '/') {
-		*(path->buffer+path->len) = '/';
-		*(path->buffer+(++(path->len))) = '\0';
-	}
+    path = path_array+paths-1;
+    path->len = strlen(name2);
+    path->buffer = malloc(path->len+1+256+1);
+    if (!path->buffer) {
+        fprintf(stderr, "cannot allocate path buffer\n");
+        exit(1);
+    }
+    strcpy(path->buffer, name2);
+    if (path->len && *(path->buffer+path->len-1) != '/') {
+        *(path->buffer+path->len) = '/';
+        *(path->buffer+(++(path->len))) = '\0';
+    }
 }
 
 
@@ -275,28 +275,28 @@ void add_path(const char * name)
  */
 void use_config(const char * name, int len)
 {
-	char *pc;
-	int i;
+    char *pc;
+    int i;
 
-	pc = path_array[paths-1].buffer + path_array[paths-1].len;
-	memcpy(pc, "config/", 7);
-	pc += 7;
+    pc = path_array[paths-1].buffer + path_array[paths-1].len;
+    memcpy(pc, "config/", 7);
+    pc += 7;
 
-	for (i = 0; i < len; i++) {
-	    char c = name[i];
-	    if (isupper((int)c)) c = tolower((int)c);
-	    if (c == '_')   c = '/';
-	    pc[i] = c;
-	}
-	pc[len] = '\0';
+    for (i = 0; i < len; i++) {
+        char c = name[i];
+        if (isupper((int)c)) c = tolower((int)c);
+        if (c == '_')   c = '/';
+        pc[i] = c;
+    }
+    pc[len] = '\0';
 
-	if (is_defined_config(pc, len))
-	    return;
+    if (is_defined_config(pc, len))
+        return;
 
-	define_config(pc, len);
+    define_config(pc, len);
 
-	do_depname();
-	printf(" \\\n   $(wildcard %s.h)", path_array[paths-1].buffer);
+    do_depname();
+    printf(" \\\n   $(wildcard %s.h)", path_array[paths-1].buffer);
 }
 
 
@@ -307,7 +307,7 @@ void use_config(const char * name, int len)
  * Thus, there is one memory access per sizeof(unsigned long) characters.
  */
 
-#if defined(__alpha__) || defined(__i386__) || defined(__ia64__)  || defined(__x86_64__) || defined(__MIPSEL__)	\
+#if defined(__alpha__) || defined(__i386__) || defined(__ia64__)  || defined(__x86_64__) || defined(__MIPSEL__)    \
     || defined(__arm__)
 #define LE_MACHINE
 #endif
@@ -321,13 +321,13 @@ void use_config(const char * name, int len)
 #endif
 
 #define GETNEXT { \
-	next_byte(__buf); \
-	if ((unsigned long) next % sizeof(unsigned long) == 0) { \
-		if (next >= end) \
-			break; \
-		__buf = * (unsigned long *) next; \
-	} \
-	next++; \
+    next_byte(__buf); \
+    if ((unsigned long) next % sizeof(unsigned long) == 0) { \
+        if (next >= end) \
+            break; \
+        __buf = * (unsigned long *) next; \
+    } \
+    next++; \
 }
 
 /*
@@ -366,122 +366,122 @@ void use_config(const char * name, int len)
  */
 void state_machine(const char * map, const char * end)
 {
-	const char * next = map;
-	const char * map_dot;
-	unsigned long __buf = 0;
+    const char * next = map;
+    const char * map_dot;
+    unsigned long __buf = 0;
 
-	for (;;) {
+    for (;;) {
 start:
-	GETNEXT
+    GETNEXT
 __start:
-	if (current > MAX5('/','\'','"','#','C')) goto start;
-	if (current < MIN5('/','\'','"','#','C')) goto start;
-	CASE('/',  slash);
-	CASE('\'', squote);
-	CASE('"',  dquote);
-	CASE('#',  pound);
-	CASE('C',  cee);
-	goto start;
+    if (current > MAX5('/','\'','"','#','C')) goto start;
+    if (current < MIN5('/','\'','"','#','C')) goto start;
+    CASE('/',  slash);
+    CASE('\'', squote);
+    CASE('"',  dquote);
+    CASE('#',  pound);
+    CASE('C',  cee);
+    goto start;
 
 /* // */
 slash_slash:
-	GETNEXT
-	CASE('\n', start);
-	NOTCASE('\\', slash_slash);
-	GETNEXT
-	goto slash_slash;
+    GETNEXT
+    CASE('\n', start);
+    NOTCASE('\\', slash_slash);
+    GETNEXT
+    goto slash_slash;
 
 /* / */
 slash:
-	GETNEXT
-	CASE('/',  slash_slash);
-	NOTCASE('*', __start);
+    GETNEXT
+    CASE('/',  slash_slash);
+    NOTCASE('*', __start);
 slash_star_dot_star:
-	GETNEXT
+    GETNEXT
 __slash_star_dot_star:
-	NOTCASE('*', slash_star_dot_star);
-	GETNEXT
-	NOTCASE('/', __slash_star_dot_star);
-	goto start;
+    NOTCASE('*', slash_star_dot_star);
+    GETNEXT
+    NOTCASE('/', __slash_star_dot_star);
+    goto start;
 
 /* '.*?' */
 squote:
-	GETNEXT
-	CASE('\'', start);
-	NOTCASE('\\', squote);
-	GETNEXT
-	goto squote;
+    GETNEXT
+    CASE('\'', start);
+    NOTCASE('\\', squote);
+    GETNEXT
+    goto squote;
 
 /* ".*?" */
 dquote:
-	GETNEXT
-	CASE('"', start);
-	NOTCASE('\\', dquote);
-	GETNEXT
-	goto dquote;
+    GETNEXT
+    CASE('"', start);
+    NOTCASE('\\', dquote);
+    GETNEXT
+    goto dquote;
 
 /* #\s* */
 pound:
-	GETNEXT
-	CASE(' ',  pound);
-	CASE('\t', pound);
-	CASE('i',  pound_i);
-	CASE('d',  pound_d);
-	CASE('u',  pound_u);
-	goto __start;
+    GETNEXT
+    CASE(' ',  pound);
+    CASE('\t', pound);
+    CASE('i',  pound_i);
+    CASE('d',  pound_d);
+    CASE('u',  pound_u);
+    goto __start;
 
 /* #\s*i */
 pound_i:
-	GETNEXT NOTCASE('n', __start);
-	GETNEXT NOTCASE('c', __start);
-	GETNEXT NOTCASE('l', __start);
-	GETNEXT NOTCASE('u', __start);
-	GETNEXT NOTCASE('d', __start);
-	GETNEXT NOTCASE('e', __start);
-	goto pound_include;
+    GETNEXT NOTCASE('n', __start);
+    GETNEXT NOTCASE('c', __start);
+    GETNEXT NOTCASE('l', __start);
+    GETNEXT NOTCASE('u', __start);
+    GETNEXT NOTCASE('d', __start);
+    GETNEXT NOTCASE('e', __start);
+    goto pound_include;
 
 /* #\s*include\s* */
 pound_include:
-	GETNEXT
-	CASE(' ',  pound_include);
-	CASE('\t', pound_include);
-	map_dot = next;
-	CASE('"',  pound_include_dquote);
-	CASE('<',  pound_include_langle);
-	goto __start;
+    GETNEXT
+    CASE(' ',  pound_include);
+    CASE('\t', pound_include);
+    map_dot = next;
+    CASE('"',  pound_include_dquote);
+    CASE('<',  pound_include_langle);
+    goto __start;
 
 /* #\s*include\s*"(.*)" */
 pound_include_dquote:
-	GETNEXT
-	CASE('\n', start);
-	NOTCASE('"', pound_include_dquote);
-	handle_include(0, map_dot, next - map_dot - 1);
-	goto start;
+    GETNEXT
+    CASE('\n', start);
+    NOTCASE('"', pound_include_dquote);
+    handle_include(0, map_dot, next - map_dot - 1);
+    goto start;
 
 /* #\s*include\s*<(.*)> */
 pound_include_langle:
-	GETNEXT
-	CASE('\n', start);
-	NOTCASE('>', pound_include_langle);
-	handle_include(1, map_dot, next - map_dot - 1);
-	goto start;
+    GETNEXT
+    CASE('\n', start);
+    NOTCASE('>', pound_include_langle);
+    handle_include(1, map_dot, next - map_dot - 1);
+    goto start;
 
 /* #\s*d */
 pound_d:
-	GETNEXT NOTCASE('e', __start);
-	GETNEXT NOTCASE('f', __start);
-	GETNEXT NOTCASE('i', __start);
-	GETNEXT NOTCASE('n', __start);
-	GETNEXT NOTCASE('e', __start);
-	goto pound_define_undef;
+    GETNEXT NOTCASE('e', __start);
+    GETNEXT NOTCASE('f', __start);
+    GETNEXT NOTCASE('i', __start);
+    GETNEXT NOTCASE('n', __start);
+    GETNEXT NOTCASE('e', __start);
+    goto pound_define_undef;
 
 /* #\s*u */
 pound_u:
-	GETNEXT NOTCASE('n', __start);
-	GETNEXT NOTCASE('d', __start);
-	GETNEXT NOTCASE('e', __start);
-	GETNEXT NOTCASE('f', __start);
-	goto pound_define_undef;
+    GETNEXT NOTCASE('n', __start);
+    GETNEXT NOTCASE('d', __start);
+    GETNEXT NOTCASE('e', __start);
+    GETNEXT NOTCASE('f', __start);
+    goto pound_define_undef;
 
 /*
  * #\s*(define|undef)\s*CONFIG_(\w*)
@@ -491,43 +491,43 @@ pound_u:
  * does not count as a use.  -- mec
  */
 pound_define_undef:
-	GETNEXT
-	CASE(' ',  pound_define_undef);
-	CASE('\t', pound_define_undef);
+    GETNEXT
+    CASE(' ',  pound_define_undef);
+    CASE('\t', pound_define_undef);
 
-	        NOTCASE('C', __start);
-	GETNEXT NOTCASE('O', __start);
-	GETNEXT NOTCASE('N', __start);
-	GETNEXT NOTCASE('F', __start);
-	GETNEXT NOTCASE('I', __start);
-	GETNEXT NOTCASE('G', __start);
-	GETNEXT NOTCASE('_', __start);
+            NOTCASE('C', __start);
+    GETNEXT NOTCASE('O', __start);
+    GETNEXT NOTCASE('N', __start);
+    GETNEXT NOTCASE('F', __start);
+    GETNEXT NOTCASE('I', __start);
+    GETNEXT NOTCASE('G', __start);
+    GETNEXT NOTCASE('_', __start);
 
-	map_dot = next;
+    map_dot = next;
 pound_define_undef_CONFIG_word:
-	GETNEXT
-	if (isalnum(current) || current == '_')
-		goto pound_define_undef_CONFIG_word;
-	goto __start;
+    GETNEXT
+    if (isalnum(current) || current == '_')
+        goto pound_define_undef_CONFIG_word;
+    goto __start;
 
 /* \<CONFIG_(\w*) */
 cee:
-	if (next >= map+2 && (isalnum((int)next[-2]) || next[-2] == '_'))
-		goto start;
-	GETNEXT NOTCASE('O', __start);
-	GETNEXT NOTCASE('N', __start);
-	GETNEXT NOTCASE('F', __start);
-	GETNEXT NOTCASE('I', __start);
-	GETNEXT NOTCASE('G', __start);
-	GETNEXT NOTCASE('_', __start);
+    if (next >= map+2 && (isalnum((int)next[-2]) || next[-2] == '_'))
+        goto start;
+    GETNEXT NOTCASE('O', __start);
+    GETNEXT NOTCASE('N', __start);
+    GETNEXT NOTCASE('F', __start);
+    GETNEXT NOTCASE('I', __start);
+    GETNEXT NOTCASE('G', __start);
+    GETNEXT NOTCASE('_', __start);
 
-	map_dot = next;
+    map_dot = next;
 cee_CONFIG_word:
-	GETNEXT
-	if (isalnum(current) || current == '_')
-		goto cee_CONFIG_word;
-	use_config(map_dot, next - map_dot - 1);
-	goto __start;
+    GETNEXT
+    if (isalnum(current) || current == '_')
+        goto cee_CONFIG_word;
+    use_config(map_dot, next - map_dot - 1);
+    goto __start;
     }
 }
 
@@ -538,50 +538,50 @@ cee_CONFIG_word:
  */
 void do_depend(const char * filename, const char * command)
 {
-	int mapsize;
-	int pagesizem1 = getpagesize()-1;
-	int fd;
-	struct stat st;
-	char * map;
+    int mapsize;
+    int pagesizem1 = getpagesize()-1;
+    int fd;
+    struct stat st;
+    char * map;
 
-	fd = open(filename, O_RDONLY);
-	if (fd < 0) {
-		perror(filename);
-		return;
-	}
+    fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        perror(filename);
+        return;
+    }
 
-	fstat(fd, &st);
-	if (st.st_size == 0) {
-		fprintf(stderr,"%s is empty\n",filename);
-		close(fd);
-		return;
-	}
+    fstat(fd, &st);
+    if (st.st_size == 0) {
+        fprintf(stderr,"%s is empty\n",filename);
+        close(fd);
+        return;
+    }
 
-	mapsize = st.st_size;
-	mapsize = (mapsize+pagesizem1) & ~pagesizem1;
-	map = mmap(NULL, mapsize, PROT_READ, MAP_PRIVATE, fd, 0);
-	if ((long) map == -1) {
-		perror("mkdep: mmap");
-		close(fd);
-		return;
-	}
-	if ((unsigned long) map % sizeof(unsigned long) != 0)
-	{
-		fprintf(stderr, "do_depend: map not aligned\n");
-		exit(1);
-	}
+    mapsize = st.st_size;
+    mapsize = (mapsize+pagesizem1) & ~pagesizem1;
+    map = mmap(NULL, mapsize, PROT_READ, MAP_PRIVATE, fd, 0);
+    if ((long) map == -1) {
+        perror("mkdep: mmap");
+        close(fd);
+        return;
+    }
+    if ((unsigned long) map % sizeof(unsigned long) != 0)
+    {
+        fprintf(stderr, "do_depend: map not aligned\n");
+        exit(1);
+    }
 
-	hasdep = 0;
-	clear_config();
-	state_machine(map, map+st.st_size);
-	if (hasdep) {
-		puts(command);
-		if (*command)
-			define_precious(filename);
-	}
+    hasdep = 0;
+    clear_config();
+    state_machine(map, map+st.st_size);
+    if (hasdep) {
+        puts(command);
+        if (*command)
+            define_precious(filename);
+    }
 
-	munmap(map, mapsize);
-	close(fd);
+    munmap(map, mapsize);
+    close(fd);
 }
 
 
@@ -591,60 +591,60 @@ void do_depend(const char * filename, const char * command)
  */
 int main(int argc, char **argv)
 {
-	int len;
-	const char *hpath;
+    int len;
+    const char *hpath;
 
-	hpath = getenv("HPATH");
-	if (!hpath) {
-		fputs("mkdep: HPATH not set in environment.  "
-		      "Don't bypass the top level Makefile.\n", stderr);
-		return 1;
-	}
+    hpath = getenv("HPATH");
+    if (!hpath) {
+        fputs("mkdep: HPATH not set in environment.  "
+              "Don't bypass the top level Makefile.\n", stderr);
+        return 1;
+    }
 
-	if (!getcwd(cwd, sizeof(cwd))) {
-		fprintf(stderr, "mkdep: getcwd() failed %m\n");
-		return 1;
-	}
-	lcwd = strlen(cwd);
+    if (!getcwd(cwd, sizeof(cwd))) {
+        fprintf(stderr, "mkdep: getcwd() failed %m\n");
+        return 1;
+    }
+    lcwd = strlen(cwd);
 
-	add_path(".");		/* for #include "..." */
+    add_path(".");        /* for #include "..." */
 
-	while (++argv, --argc > 0) {
-		if (strncmp(*argv, "-I", 2) == 0) {
-			if (*((*argv)+2)) {
-				add_path((*argv)+2);
-			}
-			else {
-				++argv;
-				--argc;
-				add_path(*argv);
-			}
-		}
-		else if (strcmp(*argv, "--") == 0) {
-			break;
-		}
-	}
+    while (++argv, --argc > 0) {
+        if (strncmp(*argv, "-I", 2) == 0) {
+            if (*((*argv)+2)) {
+                add_path((*argv)+2);
+            }
+            else {
+                ++argv;
+                --argc;
+                add_path(*argv);
+            }
+        }
+        else if (strcmp(*argv, "--") == 0) {
+            break;
+        }
+    }
 
-	add_path(hpath);	/* must be last entry, for config files */
+    add_path(hpath);    /* must be last entry, for config files */
 
-	while (--argc > 0) {
-		const char * filename = *++argv;
-		const char * command  = __depname;
-		g_filename = 0;
-		len = strlen(filename);
-		memcpy(depname, filename, len+1);
-		if (len > 2 && filename[len-2] == '.') {
-			if (filename[len-1] == 'c' || filename[len-1] == 'S') {
-			    depname[len-1] = 'o';
-			    g_filename = filename;
-			    command = "";
-			}
-		}
-		do_depend(filename, command);
-	}
-	if (len_precious) {
-		*(str_precious+len_precious) = '\0';
-		printf(".PRECIOUS:%s\n", str_precious);
-	}
-	return 0;
+    while (--argc > 0) {
+        const char * filename = *++argv;
+        const char * command  = __depname;
+        g_filename = 0;
+        len = strlen(filename);
+        memcpy(depname, filename, len+1);
+        if (len > 2 && filename[len-2] == '.') {
+            if (filename[len-1] == 'c' || filename[len-1] == 'S') {
+                depname[len-1] = 'o';
+                g_filename = filename;
+                command = "";
+            }
+        }
+        do_depend(filename, command);
+    }
+    if (len_precious) {
+        *(str_precious+len_precious) = '\0';
+        printf(".PRECIOUS:%s\n", str_precious);
+    }
+    return 0;
 }

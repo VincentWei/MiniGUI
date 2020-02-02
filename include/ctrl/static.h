@@ -14,10 +14,10 @@
  * \file static.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: static.h 12453 2010-01-12 03:51:55Z dongkai $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_STATIC_H
 #define _MGUI_CTRL_STATIC_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,7 +90,7 @@ extern "C" {
 
 /**
  * \def SS_SIMPLE
- * \brief Designates a simple rectangle and displays a single line 
+ * \brief Designates a simple rectangle and displays a single line
  *        of text flush-left in the rectangle.
  */
 #define SS_SIMPLE           0x00000000L
@@ -155,10 +155,10 @@ extern "C" {
 /* Reserved */
 #define SS_ENHMETAFILE      0x0000000BL
 
-/** 
+/**
  * \def SS_TYPEMASK
  * \brief The mask code of the static control.
- */ 
+ */
 #define SS_TYPEMASK         0x0000000FL
 
 /**
@@ -169,7 +169,7 @@ extern "C" {
 
 /**
  * \def SS_CENTER
- * \brief Displays the given text centered in the rectangle. 
+ * \brief Displays the given text centered in the rectangle.
  */
 #define SS_CENTER           0x00000020L
 
@@ -179,16 +179,16 @@ extern "C" {
  */
 #define SS_RIGHT            0x00000030L
 
-/** 
+/**
  * \def SS_ALIGNMASK
  * \brief The mask code of the static control.
- */ 
+ */
 
 #define SS_ALIGNMASK        0x000000F0L
 
 /**
  * \def SS_NOPREFIX
- * \brief Prevents interpretation of any ampersand (&) characters in 
+ * \brief Prevents interpretation of any ampersand (&) characters in
  *        the control's text as accelerator prefix characters.
  *
  * \note Not implemented so far.
@@ -204,10 +204,10 @@ extern "C" {
 
 /**
  * \def SS_NOWORDWRAP
- * \brief Designates a simple rectangle and displays the given text 
- *        in single line in the rectangle. 
+ * \brief Designates a simple rectangle and displays the given text
+ *        in single line in the rectangle.
  *
- * Tabs are expanded, but words are not wrapped. 
+ * Tabs are expanded, but words are not wrapped.
  * Text that extends past the rectagnel is clipped.
  */
 #define SS_NOWORDWRAP       0x00000400L
@@ -228,40 +228,40 @@ extern "C" {
 
 /**
  * \def SS_NOTIFY
- * \brief Sends the parent window notification messages when the user 
+ * \brief Sends the parent window notification messages when the user
  *        clicks or double-clicks the control.
  */
 #define SS_NOTIFY           0x00001000L
 
     /** @} end of ctrl_static_styles */
-    
+
     /**
      * \defgroup ctrl_static_msgs Messages of static control
      * @{
      */
 /* Reserved */
 #define STM_SETICON         0xF170
-/* Reserved */    
+/* Reserved */
 #define STM_GETICON         0xF171
 
 /**
  * \def STM_SETIMAGE
  * \brief Associates a new image (icon or bitmap) with a static control.
  *
- * An application sends an STM_SETIMAGE message to 
+ * An application sends an STM_SETIMAGE message to
  * associate a new image (icon or bitmap) with a static control.
  *
  * \code
  * STM_SETIMAGE
  * HICON image;
- *  or 
+ *  or
  * BITMAP* image;
  *
  * wParam = (WPARAM)image;
  * lParam = 0;
  * \endcode
- * 
- * \param image The handle to an icon if the type of static control type 
+ *
+ * \param image The handle to an icon if the type of static control type
  *        is SS_ICON, or the pointer to a BITMAP object if the type is SS_BITMAP.
  *
  * \return The old image (handle or pointer).
@@ -272,7 +272,7 @@ extern "C" {
  * \def STM_GETIMAGE
  * \brief Retrieves a handle to the image.
  *
- * An application sends an STM_GETIMAGE message to retrieve a handle 
+ * An application sends an STM_GETIMAGE message to retrieve a handle
  * to the image associated with a static control.
  *
  * \code
@@ -281,7 +281,7 @@ extern "C" {
  * lParam = 0;
  * \endcode
  *
- * \return The handle to the icon if the type of static control type is SS_ICON, 
+ * \return The handle to the icon if the type of static control type is SS_ICON,
  *         or the pointer to the BITMAP object if the type is SS_BITMAP.
  */
 #define STM_GETIMAGE        0xF173
@@ -299,21 +299,21 @@ extern "C" {
  * \def STN_DBLCLK
  * \brief Notifies a double-click.
  *
- * The STN_DBLCLK notification message is sent when 
+ * The STN_DBLCLK notification message is sent when
  * the user double-clicks a static control that has the SS_NOTIFY style.
  */
 #define STN_DBLCLK          1
 
 /* Not use */
 #define STN_ENABLE          2
-/* Not use */    
+/* Not use */
 #define STN_DISABLE         3
 
 /**
  * \def STN_CLICKED
  * \brief Notifies that a static control is clicked.
  *
- * The STN_CLICKED notification message is sent 
+ * The STN_CLICKED notification message is sent
  * when the user clicks a static control that has the SS_NOTIFY style.
  */
 #define STN_CLICKED         4

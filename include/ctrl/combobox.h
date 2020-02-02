@@ -14,10 +14,10 @@
  * \file combobox.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: combobox.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_COMBOBOX_H
 #define _MGUI_CTRL_COMBOBOX_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -150,7 +150,7 @@ extern "C" {
  * \def CBS_NOTIFY
  * \brief Notifies the parent window.
  *
- * Causes the combo box to notify the parent window 
+ * Causes the combo box to notify the parent window
  * with a notification message.
  */
 #define CBS_NOTIFY              0x0008L
@@ -169,14 +169,14 @@ extern "C" {
 
 /**
  * \def CBS_AUTOHSCROLL
- * \brief This style is reserved. 
+ * \brief This style is reserved.
  */
 
 #define CBS_AUTOHSCROLL         0x0040L
 
 /**
  * \def CBS_DISABLENOSCROLL
- * \brief This style is reserved. 
+ * \brief This style is reserved.
  */
 
 #define CBS_DISABLENOSCROLL     0x0080L
@@ -238,10 +238,10 @@ extern "C" {
 
 /**
  * \def CB_GETEDITSEL
- * \brief Gets the starting and ending character positions of the current 
+ * \brief Gets the starting and ending character positions of the current
  *        selection.
  *
- * An application sends a CB_GETEDITSEL message to get the starting and ending 
+ * An application sends a CB_GETEDITSEL message to get the starting and ending
  * character positions of the current selection in the edit control of a combo box.
  *
  * \code
@@ -267,7 +267,7 @@ extern "C" {
  * \brief Limits the length of text in the edit control.
  *
  * An application sends a CB_LIMITTEXT message to limit the length of the text
- * the user may type into the edit control of a combo box. 
+ * the user may type into the edit control of a combo box.
  *
  * \code
  * CB_LIMITTEXT
@@ -285,10 +285,10 @@ extern "C" {
 
 /**
  * \def CB_SETEDITSEL
- * \brief Sets the starting and ending character positions of the current 
+ * \brief Sets the starting and ending character positions of the current
  *        selection.
  *
- * An application sends a CB_SETEDITSEL message to set the starting and ending 
+ * An application sends a CB_SETEDITSEL message to set the starting and ending
  * character positions of the current selection in the edit control of a combo box.
  *
  * \code
@@ -312,7 +312,7 @@ extern "C" {
  * \brief Adds a string to the list box of a combo box.
  *
  * An application sends a CB_ADDSTRING message to add a string to the list box
- * of a combo box. 
+ * of a combo box.
  *
  * \code
  * CB_ADDSTRING
@@ -337,7 +337,7 @@ extern "C" {
  * \brief Deletes a string in the list box of a combo box.
  *
  * An application sends a CB_DELETESTRING message to delete a string in the list box
- * of a combo box. 
+ * of a combo box.
  *
  * \code
  * CB_DELETESTRING
@@ -359,8 +359,8 @@ extern "C" {
  * \def CB_GETCOUNT
  * \brief Retreives the number of items in the list box of a combo box.
  *
- * An application sends a CB_GETCOUNT message to retreive the number of items 
- * in the list box of a combo box. 
+ * An application sends a CB_GETCOUNT message to retreive the number of items
+ * in the list box of a combo box.
  *
  * \code
  * CB_GETCOUNT
@@ -377,8 +377,8 @@ extern "C" {
  * \def CB_GETCURSEL
  * \brief Retreives the index of the currently selected item in the list box.
  *
- * An application sends a CB_GETCURSEL message to retreive the index of the 
- * currently selected item in the list box of a combo box. 
+ * An application sends a CB_GETCURSEL message to retreive the index of the
+ * currently selected item in the list box of a combo box.
  *
  * \code
  * CB_GETCURSEL
@@ -396,8 +396,8 @@ extern "C" {
  * \def CB_GETLBTEXT
  * \brief Retreives the string of an item in the list box.
  *
- * An application sends a CB_GETLBTEXT message to retreive the string of 
- * a specified item in the list box of a combo box. 
+ * An application sends a CB_GETLBTEXT message to retreive the string of
+ * a specified item in the list box of a combo box.
  *
  * \code
  * CB_GETLBTEXT
@@ -422,7 +422,7 @@ extern "C" {
  * \brief Gets the string length of an item in the list box.
  *
  * An application sends a CB_GETLBTEXTLEN message to get the string length
- * of a specified item in the list box of a combo box. 
+ * of a specified item in the list box of a combo box.
  *
  * \code
  * CB_GETLBTEXTLEN
@@ -442,7 +442,7 @@ extern "C" {
  * \def CB_INSERTSTRING
  * \brief Inserts a string to the list box of a combo box.
  *
- * An application sends a CB_INSERTSTRING message to insert a string to the list 
+ * An application sends a CB_INSERTSTRING message to insert a string to the list
  * box of a combo box. Unlike the CB_ADDSTRING message, the CB_INSERTSTRING message
  * do not cause a list to be sorted.
  *
@@ -471,7 +471,7 @@ extern "C" {
  * \brief Removes all items from the list box and edit control.
  *
  * An application sends a CB_RESETCONTENT message remove all items from the list
- * box and edit control of a combo box. 
+ * box and edit control of a combo box.
  *
  * \code
  * CB_RESETCONTENT
@@ -486,10 +486,10 @@ extern "C" {
 
 /**
  * \def CB_FINDSTRING
- * \brief Searchs the list box for an item beginning with the characters in a 
+ * \brief Searchs the list box for an item beginning with the characters in a
  *         specified string.
  *
- * An application sends a CB_FINDSTRING message to search the list box for an 
+ * An application sends a CB_FINDSTRING message to search the list box for an
  * item beginning with the characters in a specified string.
  *
  * \code
@@ -523,7 +523,7 @@ extern "C" {
  * lParam = 0;
  * \endcode
  *
- * \param index The index of the string to select. 
+ * \param index The index of the string to select.
  *
  * \return CB_OKAY on success; otherwise CB_ERR to indicate an invalid index.
  */
@@ -533,10 +533,10 @@ extern "C" {
 
 /**
  * \def CB_GETITEMADDDATA
- * \brief Retreives the application-supplied 32-bit value associated with the 
+ * \brief Retreives the application-supplied 32-bit value associated with the
  *         specified item.
  *
- * An application sends an CB_GETITEMADDDATA message to retrive the 32-bit data 
+ * An application sends an CB_GETITEMADDDATA message to retrive the 32-bit data
  * value associated with with an item in the list box of the combo box.
  *
  * \code
@@ -557,9 +557,9 @@ extern "C" {
 /**
  * \def CB_SETITEMADDDATA
  * \brief Sets a 32-bit data value with the specified item.
- * 
- * An application sends an CB_SETITEMADDDATA message to associate a 32-bit data 
- * value specified in the lParam parameter with an item in the list box that 
+ *
+ * An application sends an CB_SETITEMADDDATA message to associate a 32-bit data
+ * value specified in the lParam parameter with an item in the list box that
  * is specified in the wParam parameter.
  *
  * \code
@@ -582,7 +582,7 @@ extern "C" {
 
 /**
  * \def CB_GETDROPPEDCONTROLRECT
- * \brief Retreives the screen coordinates of the dropdown list box of a combo box. 
+ * \brief Retreives the screen coordinates of the dropdown list box of a combo box.
  *
  * \code
  * CB_GETDROPPEDCONTROLRECT
@@ -599,8 +599,8 @@ extern "C" {
 /**
  * \def CB_SETITEMHEIGHT
  * \brief Sets the height of all items of the list box in a combo box.
- * 
- * An application sends an CB_SETITEMHEIGHT message to set the height of 
+ *
+ * An application sends an CB_SETITEMHEIGHT message to set the height of
  * all items of the list box in a combo box.
  *
  * \code
@@ -646,16 +646,16 @@ extern "C" {
  * lParam = 0;
  * \endcode
  *
- * \return If the list box is visible, the return value is TRUE; 
+ * \return If the list box is visible, the return value is TRUE;
  *         otherwise, it is FALSE.
  */
 #define CB_GETDROPPEDSTATE          0xF157
 
 /**
  * \def CB_FINDSTRINGEXACT
- * \brief Searchs the list box for an item that matches the specified string. 
+ * \brief Searchs the list box for an item that matches the specified string.
  *
- * An application sends a CB_FINDSTRINGEXACT message to search the list box for an 
+ * An application sends a CB_FINDSTRINGEXACT message to search the list box for an
  * item that matches a specified string.
  *
  * \code
@@ -858,10 +858,10 @@ extern "C" {
  * \def CB_SETSTRCMPFUNC
  * \brief Sets the STRCMP function used to sort items.
  *
- * An application sends a CB_SETSTRCMPFUNC message to set a 
+ * An application sends a CB_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the combo-box.
  *
- * Note that you should send this message before adding 
+ * Note that you should send this message before adding
  * any item to the combo-box control.
  *
  * \code
@@ -891,7 +891,7 @@ extern "C" {
  * \def CB_GETCHILDREN
  * \brief Gets the handles to the children of a ComboBox control.
  *
- * An application sends a CB_GETCHILDREN message to get the handles 
+ * An application sends a CB_GETCHILDREN message to get the handles
  * to the children of a ComboBox control.
  *
  * \code
@@ -942,7 +942,7 @@ extern "C" {
  * \def CBN_DBLCLK
  * \brief Notifies the user has double clicked an item.
  *
- * A combo box created with the CBS_NOTIFY style sends an CBN_DBLCLK notification 
+ * A combo box created with the CBS_NOTIFY style sends an CBN_DBLCLK notification
  * message to its parent window when the user double-clicks a string in its listbox.
  */
 #define CBN_DBLCLK              2
@@ -986,7 +986,7 @@ extern "C" {
  * \def CBN_SELECTOK
  * \brief Notifies the selection of a list item.
  *
- * The CBN_SELECTOK notification code is sent when the user has 
+ * The CBN_SELECTOK notification code is sent when the user has
  * selected a list item.
  */
 #define CBN_SELECTOK            9
@@ -1007,7 +1007,7 @@ extern "C" {
  * The CBN_CLICKED notification code is sent when the user has clicked combo box.
  */
 #define CBN_CLICKED        11
-    
+
     /** @} end of ctrl_combobox_ncs */
 
     /** @} end of ctrl_combobox */

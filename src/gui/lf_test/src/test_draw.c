@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -76,7 +76,7 @@ enum {
     MPOS_CHECKBUTTON,
     MPOS_RADIOBUTTON,
     MPOS_FOLD,
-    MPOS_ITEM,         
+    MPOS_ITEM,
 };
 
 #define INSERT_MENU_ITEM(hmenu, mii, string, pos) \
@@ -127,7 +127,7 @@ typedef struct _DRAW_ARGS
 #define EVERY_COLOR(r, g, b) \
     for (r=0; r<=256; r+=51) \
     for (g=0; g<=256; g+=51) \
-    for (b=0; b<=256; b+=51) 
+    for (b=0; b<=256; b+=51)
 
 static int  change_rect (RECT* rc, int offx, int offy, int i, int win_h)
 {
@@ -158,7 +158,7 @@ static int draw_items (HWND hWnd)
 
     HDC hdc;
     int r,g,b;
-    int win_w; 
+    int win_w;
     int win_h;
     int offx;
     int offy;
@@ -195,7 +195,7 @@ static int draw_items (HWND hWnd)
                 rdr->draw_3dbox (hdc, &rc, MakeRGBA(r, g, b, 0xFF), status);
                 switch (change_rect (&rc, offx, offy, i, win_h))
                 {
-                    case 0: 
+                    case 0:
                         i++;
                         continue;
                     case 1:
@@ -213,7 +213,7 @@ static int draw_items (HWND hWnd)
                 rdr->draw_radio (hdc, &rc, MakeRGBA(r, g, b, 0xFF), status);
                 switch (change_rect (&rc, offx, offy, i, win_h))
                 {
-                    case 0: 
+                    case 0:
                         i++;
                         continue;
                     case 1:
@@ -230,7 +230,7 @@ static int draw_items (HWND hWnd)
                 rdr->draw_checkbox (hdc, &rc, MakeRGBA(r, g, b, 0xFF), status);
                 switch (change_rect (&rc, offx, offy, i, win_h))
                 {
-                    case 0: 
+                    case 0:
                         i++;
                         continue;
                     case 1:
@@ -247,7 +247,7 @@ static int draw_items (HWND hWnd)
                 rdr->draw_checkmark (hdc, &rc, MakeRGBA(r, g, b, 0xFF), status);
                 switch (change_rect (&rc, offx, offy, i, win_h))
                 {
-                    case 0: 
+                    case 0:
                         i++;
                         continue;
                     case 1:
@@ -264,7 +264,7 @@ static int draw_items (HWND hWnd)
                 rdr->draw_arrow (hWnd, hdc, &rc, MakeRGBA(r, g, b, 0xFF), status);
                 switch (change_rect (&rc, offx, offy, i, win_h))
                 {
-                    case 0: 
+                    case 0:
                         i++;
                         continue;
                     case 1:
@@ -281,7 +281,7 @@ static int draw_items (HWND hWnd)
                 rdr->draw_push_button (hWnd, hdc, &rc, MakeRGBA(r, g, b, 0xFF), 0, status);
                 switch (change_rect (&rc, offx, offy, i, win_h))
                 {
-                    case 0: 
+                    case 0:
                         i++;
                         continue;
                     case 1:
@@ -303,11 +303,11 @@ static int draw_items (HWND hWnd)
             TEST_VAL (draw_args->next, %d);
             EVERY_COLOR(r, g, b)
             {
-                rdr->draw_fold (hWnd, hdc, &rc, MakeRGBA(r, g, b, 0xFF), 
+                rdr->draw_fold (hWnd, hdc, &rc, MakeRGBA(r, g, b, 0xFF),
                         status, draw_args->next);
                 switch (change_rect (&rc, offx, offy, i, win_h))
                 {
-                    case 0: 
+                    case 0:
                         i++;
                         continue;
                     case 1:
@@ -319,7 +319,7 @@ static int draw_items (HWND hWnd)
             }
             break;
 
-        case MPOS_ITEM:         
+        case MPOS_ITEM:
             rdr->draw_normal_item (hWnd, hdc, &rc,
                     GetWindowElementAttr(hWnd, WE_BGC_WINDOW));
             change_rect (&rc, offx, offy, win_w, win_h);
@@ -349,7 +349,7 @@ end:
     SetMapMode (hdc, MM_TEXT);
     EndPaint (hWnd, hdc);
     return 0;
-    
+
 }
 
 #define SWITCH_POSE(args) \
@@ -425,7 +425,7 @@ static void change_status (DRAW_ARGS* args, int key)
                 case SCANCODE_T:
                     args->status ^= LFRDR_3DBOX_THICKFRAME;
                     return;
-                    
+
             }
             return;
 
@@ -437,12 +437,12 @@ static void change_status (DRAW_ARGS* args, int key)
             else if (key == SCANCODE_C)
                 args->status ^= LFRDR_MARK_ALL_SELECTED;
             return;
-            
+
         case MPOS_ARROW:
             if (key == SCANCODE_ENTER)
                 args->status = (args->status + 1 + 4) & 3;
             return;
-            
+
         case MPOS_PUSHBUTTON:
             if(key == SCANCODE_ENTER)
                 SWITCH_POSE(args);
@@ -450,7 +450,7 @@ static void change_status (DRAW_ARGS* args, int key)
             {
                 old_check = args->status & BST_CHECK_MASK;
                 old_check = old_check==BST_UNCHECKED ? BST_INDETERMINATE : (
-                        old_check == BST_INDETERMINATE ?      
+                        old_check == BST_INDETERMINATE ?
                         BST_CHECKED : BST_UNCHECKED);
                 args->status &= ~BST_CHECK_MASK;
                 args->status |= old_check;
@@ -480,7 +480,7 @@ static void change_status (DRAW_ARGS* args, int key)
              }
             return;
 
-        case MPOS_ITEM:  
+        case MPOS_ITEM:
             if (key == SCANCODE_ENTER)
                 args->status = (args->status + 1 + 4) & 3;
             return;
@@ -559,9 +559,9 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = COLOR_black;
     CreateInfo.dwAddData = (DWORD)&draw_args;
     CreateInfo.hHosting = (DWORD)HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindowEx (&CreateInfo, "classic", NULL, NULL, NULL);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

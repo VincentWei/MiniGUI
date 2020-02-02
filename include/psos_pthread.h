@@ -14,8 +14,8 @@
  * \file psos_pthread.h
  * \author Wei Yongming <ymwei@minigui.org>
  * \date 2007/05/16
- * 
- * \brief This is the POSIX PThreads implementation in order to 
+ *
+ * \brief This is the POSIX PThreads implementation in order to
  *        run MiniGUI on pSOS.
  *
  *
@@ -28,7 +28,7 @@
 
     We do this work in order to run MiniGUI on pSOS.
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -66,7 +66,7 @@
  * $Id: psos_pthread.h 11349 2009-03-02 05:00:43Z weiym $
  *
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -134,8 +134,8 @@ typedef struct pthread_attr_t
 } pthread_attr_t;
 
 /* Values for detachstate */
-#define PTHREAD_CREATE_JOINABLE	        1
-#define PTHREAD_CREATE_DETACHED	        2
+#define PTHREAD_CREATE_JOINABLE            1
+#define PTHREAD_CREATE_DETACHED            2
 
 #if 0
 /* Values for scope */
@@ -214,7 +214,7 @@ int pthread_detach (pthread_t thread);
 ** schedpolicy          = SCHED_PREEMPT
 ** schedparam           = PTHREAD_DEFAULT_PRIOR
 ** stacksize            = PTHREAD_STACK_MIN
-*/ 
+*/
 int pthread_attr_init (pthread_attr_t *attr);
 
 /* Destroy thread attributes object */
@@ -257,7 +257,7 @@ int pthread_attr_getschedpolicy (const pthread_attr_t *attr,
 
 /* Set scheduling parameters */
 int pthread_attr_setschedparam (pthread_attr_t *attr,
-				        const struct sched_param *param);
+                        const struct sched_param *param);
 
 /* Get scheduling parameters */
 int pthread_attr_getschedparam (const pthread_attr_t *attr,
@@ -344,8 +344,8 @@ void *pthread_getspecific (pthread_key_t key);
 struct pthread_cleanup_buffer
 {
     struct pthread_cleanup_buffer *prev;        /* Chain cleanup buffers */
-    void (*routine) (void *);     	            /* Function to call */
-    void *arg;				                    /* Arg to pass */
+    void (*routine) (void *);                     /* Function to call */
+    void *arg;                                    /* Arg to pass */
 };
 
 /*-----------------------------------------------------------------------------
@@ -434,9 +434,9 @@ typedef unsigned long pthread_mutex_t;
 #define PTHREAD_PRIO_PROTECT        4   /* MU_PRIOR | MU_PRIO_PROTECT */
 
 /*define pthread_mutexattr_t */
-typedef struct _pthread_mutexattr_t 
+typedef struct _pthread_mutexattr_t
 {
-	int type;
+    int type;
     int protocol;
     unsigned long prio_ceiling;
 } pthread_mutexattr_t;
@@ -453,8 +453,8 @@ int pthread_mutexattr_destroy ( pthread_mutexattr_t *attr);
 
 
 /*
- * Set mutex type: one of PTHREAD_MUTEX_NORMAL, 
- * PTHREAD_MUTEX_RECURSIVE, PTHREAD_MUTEX_ERRORCHECK, or 
+ * Set mutex type: one of PTHREAD_MUTEX_NORMAL,
+ * PTHREAD_MUTEX_RECURSIVE, PTHREAD_MUTEX_ERRORCHECK, or
  * PTHREAD_MUTEX_DEFAULT.
  */
 int pthread_mutexattr_settype (pthread_mutexattr_t *attr, int type);
@@ -464,7 +464,7 @@ int pthread_mutexattr_gettype (pthread_mutexattr_t *attr, int* type);
 
 
 /*
- * Set mutex protocol: one of PTHREAD_PRIO_FIFO, PTHREAD_PRIO_NONE, 
+ * Set mutex protocol: one of PTHREAD_PRIO_FIFO, PTHREAD_PRIO_NONE,
  * PTHREAD_PRIO_INHERIT, or PTHREAD_PRIO_PROTECT.
  */
 int pthread_mutexattr_setprotocol (pthread_mutexattr_t *attr, int protocol);
@@ -499,11 +499,11 @@ int pthread_mutex_trylock (pthread_mutex_t *mutex);
 /* Unlock mutex. */
 int pthread_mutex_unlock (pthread_mutex_t *mutex);
 
-/*  
- * Set the priority ceiling of MUTEX to CEILING, return 
+/*
+ * Set the priority ceiling of MUTEX to CEILING, return
  * old priority ceiling value in *OLD_CEILING
  */
-int pthread_mutex_setprioceiling (pthread_mutex_t *mutex, int ceiling, 
+int pthread_mutex_setprioceiling (pthread_mutex_t *mutex, int ceiling,
                 int* old_ceiling);
 
 /* Get the priority ceiling of MUTEX. */

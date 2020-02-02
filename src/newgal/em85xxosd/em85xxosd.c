@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -47,7 +47,7 @@
 **  $Id: em85xxosd.c 8944 2007-12-29 08:29:16Z xwyan $
 **
 **  em85xxosd.c: NEWGAL driver for EM85xx OSD.
-**  
+**
 **  Copyright (C) 2003 ~ 2007 Feynman Software.
 */
 
@@ -80,31 +80,31 @@
 // Cr =  0.439r + 0.368g + 0.071b + 128
 static RMuint8 rgb2y (RMuint8 r, RMuint8 g, RMuint8 b)
 {
-	RMint32 f = 257*(RMint32)r + 504*(RMint32)g + 98*(RMint32)b + 16000;
-	if (f > 255000)
-		f = 255000;
-	f = f / 1000;
-	return (RMuint8)f;
+    RMint32 f = 257*(RMint32)r + 504*(RMint32)g + 98*(RMint32)b + 16000;
+    if (f > 255000)
+        f = 255000;
+    f = f / 1000;
+    return (RMuint8)f;
 }
 static RMuint8 rgb2u (RMuint8 r, RMuint8 g, RMuint8 b)
 {
-	RMint32 f = -148*(RMint32)r - 291*(RMint32)g + 439*(RMint32)b + 128000;
-	if (f > 255000)
-		f = 255000;
-	if (f < 0)
-		f = 0;
-	f = f / 1000;
-	return (RMuint8)f;
+    RMint32 f = -148*(RMint32)r - 291*(RMint32)g + 439*(RMint32)b + 128000;
+    if (f > 255000)
+        f = 255000;
+    if (f < 0)
+        f = 0;
+    f = f / 1000;
+    return (RMuint8)f;
 }
 static RMuint8 rgb2v (RMuint8 r, RMuint8 g, RMuint8 b)
 {
-	RMint32 f = 439*(RMint32)r - 368*(RMint32)g - 71*(RMint32)b + 128000;
-	if (f > 255000)
-		f = 255000;
-	if (f < 0)
-		f = 0;
-	f = f / 1000;
-	return (RMuint8)f;
+    RMint32 f = 439*(RMint32)r - 368*(RMint32)g - 71*(RMint32)b + 128000;
+    if (f > 255000)
+        f = 255000;
+    if (f < 0)
+        f = 0;
+    f = f / 1000;
+    return (RMuint8)f;
 }
 
 #define EM85XXOSDVID_DRIVER_NAME "em85xxosd"
@@ -258,7 +258,7 @@ static int EM85XXOSD_VideoInit(_THIS, GAL_PixelFormat *vformat)
     fprintf (stderr, "NEWGAL>EM85xxOSD: Calling init method!\n");
 
 #ifdef _MGGAL_EM85XXYUV
-	h = __mg_em85xx_rua_handle;
+    h = __mg_em85xx_rua_handle;
 #else
     if ((h = RUA_OpenDevice (0)) == -1) {
         fprintf (stderr, "NEWGAL>EM85xxOSD: Fatal error: can't open kernel module\n");
@@ -278,7 +278,7 @@ static int EM85XXOSD_VideoInit(_THIS, GAL_PixelFormat *vformat)
         this->hidden->h = osdbuffer.height;
         this->hidden->pitch = osdbuffer.width;
         this->hidden->fb = osdbuffer.framebuffer + 8 + 1024;
-    
+
         osdbuffer.framebuffer[0] = 0x3e;
         osdbuffer.framebuffer[1] = ((osdbuffer.width*osdbuffer.height+1024+8) >> 16) & 0xff;
         osdbuffer.framebuffer[2] = ((osdbuffer.width*osdbuffer.height+1024+8) >>  8) & 0xff;
@@ -289,16 +289,16 @@ static int EM85XXOSD_VideoInit(_THIS, GAL_PixelFormat *vformat)
         osdbuffer.framebuffer[7] = (osdbuffer.height >> 0) & 0xff;
 
     }
-    
+
     if (osdbuffer.bpp != 8) {
         GAL_SetError ("NEWGAL>EM85xxOSD: Not supported depth: %d.\n", vformat->BitsPerPixel);
         return -1;
     }
-	//这里可以添加防止闪烁
+    //这里可以添加防止闪烁
 
     /* Setup the flicker filter
      * XXX - its also set in the kernel module, but it seems not to work very well
-     *  We reset it here, so that the microcode as already seen an osd frame.    
+     *  We reset it here, so that the microcode as already seen an osd frame.
      * 0 <= flicker <= 15*/
     flicker = 15;
     RUA_DECODER_SET_PROPERTY (this->hidden->handle, DECODER_SET, edecOsdFlicker, sizeof(flicker), &flicker);
@@ -322,7 +322,7 @@ static int EM85XXOSD_VideoInit(_THIS, GAL_PixelFormat *vformat)
     OutputDevice = evOutputDevice_TV;
     RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, evOutputDevice, sizeof(OutputDevice), &OutputDevice);
 
-    /* 
+    /*
      * set the osd window destination
      * do not scale - just center the image
      */
@@ -406,15 +406,15 @@ static void EM85XXOSD_FreeHWSurface(_THIS, GAL_Surface *surface)
 static void gammacorrectedrgbtoyuv (Uint16 R, Uint16 G, Uint16 B, Uint16 *y, Uint16 *u, Uint16 *v)
 {
     long yraw, uraw, vraw;
-    
+
     yraw = ( 257*R  +504*G + 98*B)/1000 + RANGE8TO16(16);
     uraw = (-148*R  -291*G +439*B)/1000 + RANGE8TO16(128);
     vraw = ( 439*R  -368*G - 71*B)/1000 + RANGE8TO16(128);
 
     /* Obviously the computation of yraw garantees >= RANGE8TO16(16) ;-)
        This is also true for uraw and vraw */
-    
-    *y = MAX(MIN(yraw,RANGE8TO16(235)),RANGE8TO16(16)); 
+
+    *y = MAX(MIN(yraw,RANGE8TO16(235)),RANGE8TO16(16));
     *u = MAX(MIN(uraw,RANGE8TO16(240)),RANGE8TO16(16));
     *v = MAX(MIN(vraw,RANGE8TO16(240)),RANGE8TO16(16));
 }
@@ -438,7 +438,7 @@ static int EM85XXOSD_SetColors(_THIS, int first, int count, GAL_Color *palette)
         R = RANGE8TO16 (p->r);
         G = RANGE8TO16 (p->g);
         B = RANGE8TO16 (p->b);
-    
+
         gammacorrectedrgbtoyuv (R, G, B, &Y, &U, &V);
 
         /* hardcode alpha blending values */

@@ -14,10 +14,10 @@
  * \file newtoolbar.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: newtoolbar.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_NEWTOOLBAR_H
 #define _MGUI_CTRL_NEWTOOLBAR_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,7 +75,7 @@ extern "C" {
     /**
      * \defgroup ctrl_newtoolbar NewToolBar control
      *
-     * \note You should pass information of the control through 
+     * \note You should pass information of the control through
      * the argument \a dwAddData of \a CreateWindowEx function.
      *
      * \code
@@ -119,17 +119,17 @@ typedef struct _NTBINFO
     int nr_cols;
 
     /**
-     * Width of bitmap cell. If w_cell is zero, it will be 
+     * Width of bitmap cell. If w_cell is zero, it will be
      * equal to (width_of_image / nr_cols).
      */
     int w_cell;
 
     /**
-     * Height of bitmap cell. If h_cell is zero, it will be 
+     * Height of bitmap cell. If h_cell is zero, it will be
      * equal to (height_of_image / nr_cells).
      */
     int h_cell;
-    
+
 } NTBINFO;
 
 /**
@@ -179,7 +179,7 @@ typedef void (* HOTSPOTPROC)(HWND hwnd, int id, const RECT* cell, int x, int y);
 typedef struct _NTBITEMINFO
 {
     /**
-     * Which fields are valid when sets/retrives the item information 
+     * Which fields are valid when sets/retrives the item information
      * (ignored when add item). It can be OR'd with the following values:
      *
      *  - MTB_WHICH_FLAGS\n     The flags is valid.
@@ -246,13 +246,13 @@ typedef NTBITEMINFO* PNTBITEMINFO;
 
 /**
  * \def NTBS_WITHTEXT
- * \brief Displays text with the item bitmap. 
+ * \brief Displays text with the item bitmap.
  */
 #define NTBS_WITHTEXT               0x000000001L
 
 /**
  * \def NTBS_TEXTRIGHT
- * \brief Displays text at the right side of the item bitmap. 
+ * \brief Displays text at the right side of the item bitmap.
  */
 #define NTBS_TEXTRIGHT              0x000000002L
 

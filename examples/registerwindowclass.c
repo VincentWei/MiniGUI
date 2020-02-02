@@ -7,7 +7,7 @@ static LRESULT StepControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 {
     HDC hdc;
     HELPWININFO* info;
-    
+
     switch (message) {
     case MSG_PAINT:
         hdc = BeginPaint (hwnd);

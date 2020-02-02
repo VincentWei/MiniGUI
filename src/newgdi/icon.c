@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -76,14 +76,14 @@
 #define fgetc my_fgetc
 int my_fgetc(FILE *stream)
 {
-	int c;
-	while (!feof (stream)) {
-		if (fread (&c, 1, 1, stream) == 1) 
-			return c;
-		else 
-			break;
-	}
-	return EOF;
+    int c;
+    while (!feof (stream)) {
+        if (fread (&c, 1, 1, stream) == 1)
+            return c;
+        else
+            break;
+    }
+    return EOF;
 }
 #endif
 /*-------------------------*/
@@ -129,7 +129,7 @@ static void read_bmicolors_f (int ncols, RGB *pal, FILE* f)
       pal[i].b = fgetc (f);
       pal[i].g = fgetc (f);
       pal[i].r = fgetc (f);
-	  fgetc (f);
+      fgetc (f);
    }
 }
 
@@ -157,7 +157,7 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
     BYTE* image;
     HICON icon = 0;
     RGB pal[256];
-    
+
     if (!(fp = fopen (filename, "rb"))) return 0;
 
     fseek (fp, sizeof (WORD16), SEEK_SET);
@@ -235,7 +235,7 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
     /* skip the rest members and the color table.*/
     fseek(fp, sizeof(DWORD32)*4, SEEK_CUR);
     read_bmicolors_f (1 << colornum, pal, fp);
-    
+
     /* allocate memory for image.*/
 #ifdef HAVE_ALLOCA
     /* Use alloca, the stack may be enough for the image.*/
@@ -250,8 +250,8 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
         goto error_free;
     }
 
-    icon = CreateIconEx (hdc, w, h, 
-                   image + (imagesize - (align_32_bits(w>>3) * h)), image, 
+    icon = CreateIconEx (hdc, w, h,
+                   image + (imagesize - (align_32_bits(w>>3) * h)), image,
                    colornum, pal);
 
 error_free:
@@ -274,7 +274,7 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     DWORD32 offset;
     DWORD32 imagesize;
     RGB pal[256];
-    
+
     p += sizeof (WORD16);
 
     /* the cbType of struct ICONDIR.*/
@@ -310,14 +310,14 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     DWORD32 size;
     size = MGUI_ReadLE32Mem (&p);
 #else
-    p += sizeof(DWORD32); 
+    p += sizeof(DWORD32);
 #endif
     offset = MGUI_ReadLE32Mem (&p);
 
     /* read the cursor image info. */
     p = (Uint8*)area + offset;
     /* skip the biSize member. */
-    p += sizeof(DWORD32); 
+    p += sizeof(DWORD32);
 #if 0
     DWORD32 imagew, imageh;
     imagew = MGUI_ReadLE32Mem (&p);
@@ -340,7 +340,7 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
         imagesize = align_32_bits(w>>3) * h;
     else if (colornum == 4)
         imagesize = align_32_bits(w>>1) * h;
-    else 
+    else
         imagesize = align_32_bits(w) * h;
 
     imagesize += align_32_bits(w>>3) * h;
@@ -350,16 +350,16 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     p += sizeof(DWORD32)*4;
     read_bmicolors_m (1 << colornum, pal, p);
     p += sizeof(BYTE)*(4<<colornum);
-    
-    return CreateIconEx (hdc, w, h, 
-                    p + (imagesize - (align_32_bits(w>>3) * h)), p, 
+
+    return CreateIconEx (hdc, w, h,
+                    p + (imagesize - (align_32_bits(w>>3) * h)), p,
                     colornum, pal);
 
 error:
     return 0;
 }
 
-HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pAndBits, 
+HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pAndBits,
                         const BYTE* pXorBits, int colornum, const RGB *pal)
 {
     PDC pdc;
@@ -367,7 +367,7 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pAndBits,
     Uint32 image_size;
 
     pdc = dc_HDC2PDC (hdc);
-    
+
     if( (w%16) != 0 || (h%16) != 0 ) return 0;
 
     /* allocate memory. */
@@ -385,21 +385,21 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pAndBits,
     picon->height = h;
 
     if (colornum == 1) {
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits, 
+        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        ExpandMonoBitmap (hdc, picon->XorBits, picon->pitch, pXorBits, 
+        ExpandMonoBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
     }
     else if (colornum == 4) {
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits, 
+        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        Expand16CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits, 
+        Expand16CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
                 align_32_bits (w >> 1), w, h, MYBMP_FLOW_UP, pal);
     }
     else if (colornum == 8){
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits, 
+        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        Expand256CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits, 
+        Expand256CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
                 align_32_bits (w), w, h, MYBMP_FLOW_UP, pal, NULL, NULL);
     }
 

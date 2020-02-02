@@ -228,9 +228,9 @@ static BOOL init(
 #endif
     init_info.cache_mem_pool = (void*)cache_mem_pool;
     init_info.cache_mem_pool_size = cache_mem_pool_size;
-	
+
     result = se_minigui_initialize( &init_info );
-	if(result != SE_STATUS_OK)
+    if(result != SE_STATUS_OK)
         return FALSE;
 
     return TRUE;

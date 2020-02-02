@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -97,23 +97,23 @@ static void usage (void)
 static void
 parse_command_line (char **args, struct test_options *options)
 {
-    
+
     options->insert_order = INS_ASCENDING;
     options->charset = ISO8859;
     options->node_cnt = 3;
 
     if (strcmp (args[1], "random") == 0)
         options->insert_order = INS_RANDOM;
-    else if (strcmp (args[1], "ascending") == 0)                       
+    else if (strcmp (args[1], "ascending") == 0)
         options->insert_order = INS_ASCENDING;
-    else if (strcmp (args[1], "descending") == 0)                          
+    else if (strcmp (args[1], "descending") == 0)
         options->insert_order = INS_DESCENDING;
-    else if (strcmp (args[1], "custom") == 0)                          
+    else if (strcmp (args[1], "custom") == 0)
         options->insert_order = INS_CUSTOM;
 
     if (strcmp (args[2], "ISO8859") == 0)
         options->charset = ISO8859;
-    else if (strcmp (args[2], "GB2312") == 0)                       
+    else if (strcmp (args[2], "GB2312") == 0)
         options->charset = GB2312;
 
     options->node_cnt = atoi(args[3]);
@@ -134,8 +134,8 @@ int main (int argc, char *argv[])
 
     parse_command_line (argv, &opts);
     insert = malloc (sizeof(*insert)*opts.node_cnt);
-   
-    //opts.seed = (int)time(0); 
+
+    //opts.seed = (int)time(0);
     srand ((int)time(0));
     gen_insertions (opts.insert_order, opts.charset, insert, opts.node_cnt);
 
@@ -144,7 +144,7 @@ int main (int argc, char *argv[])
         case ISO8859:
             strcat (font_name, "ISO8859-1");
             break;
-            
+
         case GB2312:
             strcat (font_name, "GB2312-0");
             break;
@@ -153,7 +153,7 @@ int main (int argc, char *argv[])
     fprintf (stderr, "font_name = %s \n", font_name);
 
     test_correctness (font_name, insert, opts.node_cnt);
-   
+
     free (insert);
 }
 

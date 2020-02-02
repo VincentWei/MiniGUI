@@ -14,13 +14,13 @@
  * \file ucos2_pthread.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2004/02/03
- * 
- * \brief This header contains the pthread definitions needed to 
- *        support MiniGUI under uC/OS-II. 
+ *
+ * \brief This header contains the pthread definitions needed to
+ *        support MiniGUI under uC/OS-II.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -57,7 +57,7 @@
 /*
  * $Id: ucos2_pthread.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -137,8 +137,8 @@ typedef struct pthread_attr_t
 } pthread_attr_t;
 
 /* Values for detachstate */
-#define PTHREAD_CREATE_JOINABLE	        1
-#define PTHREAD_CREATE_DETACHED	        2
+#define PTHREAD_CREATE_JOINABLE            1
+#define PTHREAD_CREATE_DETACHED            2
 
 #if 0
 /* not support in uC/OS-II */
@@ -187,7 +187,7 @@ int pthread_detach (pthread_t thread);
 
 #if 0
 /* not support in uC/OS-II */
-/*----------------------------------------------------------------------------- 
+/*-----------------------------------------------------------------------------
 ** Thread scheduling controls
 */
 
@@ -201,7 +201,7 @@ int pthread_getschedparam (pthread_t thread,
                                    int *policy,
                                    struct sched_param *param);
 /* not support in uC/OS-II */
-#endif 
+#endif
 
 /*-----------------------------------------------------------------------------
 ** Thread attribute handling.
@@ -216,7 +216,7 @@ int pthread_getschedparam (pthread_t thread,
 ** schedparam           == unset
 ** stackaddr            == unset
 ** stacksize            == 0
-*/ 
+*/
 int pthread_attr_init (pthread_attr_t *attr);
 
 /* Destroy thread attributes object */
@@ -257,7 +257,7 @@ int pthread_attr_getschedpolicy (const pthread_attr_t *attr,
 
 /* Set scheduling parameters */
 int pthread_attr_setschedparam (pthread_attr_t *attr,
-				        const struct sched_param *param);
+                        const struct sched_param *param);
 
 /* Get scheduling parameters */
 int pthread_attr_getschedparam (const pthread_attr_t *attr,
@@ -329,8 +329,8 @@ void *pthread_getspecific (pthread_key_t key);
 struct pthread_cleanup_buffer
 {
     struct pthread_cleanup_buffer *prev;        /* Chain cleanup buffers */
-    void (*routine) (void *);     	            /* Function to call */
-    void *arg;				                    /* Arg to pass */
+    void (*routine) (void *);                     /* Function to call */
+    void *arg;                                    /* Arg to pass */
 };
 
 /*-----------------------------------------------------------------------------

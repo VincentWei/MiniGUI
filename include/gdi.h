@@ -8649,7 +8649,7 @@ typedef Uint16  ParagraphDir;
         | BIDI_MASK_JOINS_LEFT ) ) )
 
 /*
- * Defining macros for needed queries, It is fully dependent on the 
+ * Defining macros for needed queries, It is fully dependent on the
  * implementation of BidiJoiningType.
  */
 

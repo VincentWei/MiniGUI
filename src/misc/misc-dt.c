@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
- ** misc-dt.c: This file include some miscelleous functions. 
+ ** misc-dt.c: This file include some miscelleous functions.
  **
  ** Create date: 1998/12/31
  **
@@ -57,7 +57,7 @@
  *  these change will greatly improve etc system write speed.
  *
  * 20051212:
- *  change fprintf releated and LoadEtcFile's sth here, 
+ *  change fprintf releated and LoadEtcFile's sth here,
  *  don't flush it before we realize fprintf
  *  this file changed to much , good luck.
  *  we realized fprintf in a wired way ,sa fprintf.c
@@ -107,12 +107,12 @@ int my_fputs (const char *s, FILE *stream)
 {
      int len = strlen (s);
      int ret = 0;
-	
-     ret = fwrite (s, 1, len, stream);	
+
+     ret = fwrite (s, 1, len, stream);
      if (ret != len)
-	  return EOF;
+      return EOF;
      else
-	  return ret;
+      return ret;
 }
 
 char * my_fgets (char *s, int size, FILE *stream)
@@ -121,30 +121,30 @@ char * my_fgets (char *s, int size, FILE *stream)
      int count = 0;
 
      while (!feof (stream)) {
-	  if (fread (&c, 1, 1, stream) != 1) {
-	       if (count == 0) 
-		    return NULL;
-	       else {
-		    s[count] = '\0';
-		    return s;
-	       }
-	  }
-		
-	  if (c == EOF || (char)c == '\r' ||(char)c == '\n') {
-	       s [count++] = (char)c;
-	       s [count++] = '\0';
-	       return s;
-	  }
-	  else
-	       s[count++] = (char)c;
+      if (fread (&c, 1, 1, stream) != 1) {
+           if (count == 0)
+            return NULL;
+           else {
+            s[count] = '\0';
+            return s;
+           }
+      }
+
+      if (c == EOF || (char)c == '\r' ||(char)c == '\n') {
+           s [count++] = (char)c;
+           s [count++] = '\0';
+           return s;
+      }
+      else
+           s[count++] = (char)c;
      }
      if (!count)
-	  return NULL;
+      return NULL;
      else
      {
-	  s[count] = '\0';
-	  return s;
-     }	
+      s[count] = '\0';
+      return s;
+     }
 }
 #endif
 ///////////////////////////////
@@ -167,33 +167,33 @@ static BOOL LookForEtcFile (void)
      strcat (etcfile, "/");
      strcat (etcfile, ETCFILENAME);
      if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) ==  ETC_OK) {
-	  strcpy (ETCFILEPATH, etcfile);
-	  return TRUE;
+      strcpy (ETCFILEPATH, etcfile);
+      return TRUE;
      }
 
      if ((pwd = getpwuid (geteuid ())) != NULL) {
-	  strcpy (etcfile, pwd->pw_dir);
-	  if (etcfile [strlen (etcfile) - 1] != '/')
-	       strcat (etcfile, "/");
-	  strcat (etcfile, ".");
-	  strcat (etcfile, ETCFILENAME);
+      strcpy (etcfile, pwd->pw_dir);
+      if (etcfile [strlen (etcfile) - 1] != '/')
+           strcat (etcfile, "/");
+      strcat (etcfile, ".");
+      strcat (etcfile, ETCFILENAME);
 
-	  if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) ==  ETC_OK) {
-	       strcpy (ETCFILEPATH, etcfile);
-	       return TRUE;
-	  }
+      if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) ==  ETC_OK) {
+           strcpy (ETCFILEPATH, etcfile);
+           return TRUE;
+      }
      }
 
      strcpy (etcfile, "/usr/local/etc/" ETCFILENAME);
      if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) ==  ETC_OK) {
-	  strcpy (ETCFILEPATH, etcfile);
-	  return TRUE;
+      strcpy (ETCFILEPATH, etcfile);
+      return TRUE;
      }
 
      strcpy (etcfile, "/etc/" ETCFILENAME);
      if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) ==  ETC_OK) {
-	  strcpy (ETCFILEPATH, etcfile);
-	  return TRUE;
+      strcpy (ETCFILEPATH, etcfile);
+      return TRUE;
      }
 
      return FALSE;
@@ -208,11 +208,11 @@ static BOOL LookForEtcFile (void)
      strcpy(etcfile, etcpath);
      strcat (etcfile, ETCFILENAME);
 #endif
-    
-     if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) ==  ETC_OK) 
+
+     if (GetValueFromEtcFile (etcfile, "system", "gal_engine", buff, 8) ==  ETC_OK)
      {
-	  strcpy (ETCFILEPATH, etcfile);
-	  return TRUE;
+      strcpy (ETCFILEPATH, etcfile);
+      return TRUE;
      }
      return FALSE;
 }
@@ -221,16 +221,16 @@ static BOOL LookForEtcFile (void)
 /* Initialize MiniGUI etc file object, call before accessing MiniGUI etc value */
 BOOL mg_InitMgEtc (void)
 {
-	if (!LookForEtcFile ())
+    if (!LookForEtcFile ())
      {
-	  fprintf (stderr, "MISC: Can not locate your MiniGUI.cfg file or bad files!\n");
-	  return FALSE;
+      fprintf (stderr, "MISC: Can not locate your MiniGUI.cfg file or bad files!\n");
+      return FALSE;
      }
      if (hMgEtc)
-	  return TRUE;
+      return TRUE;
 
      if ( !(hMgEtc = LoadEtcFile (ETCFILEPATH)) )
-	  return FALSE;
+      return FALSE;
      return TRUE;
 }
 
@@ -252,7 +252,7 @@ BOOL mg_InitMgEtc (void)
      hMgEtc = (GHANDLE) &MGETC;
 #else
      GHANDLE set_mgetc (void);//gaopan 20060124 add to avoid warning
-		
+
      hMgEtc = set_mgetc ();
 #endif
      return TRUE;
@@ -284,8 +284,8 @@ void mg_TerminateMisc (void)
 
 /****************************** ETC file support ******************************/
 /* *****************************************************************************************
- * this function copy LEN bytes data from SF's SFSTART to DF 
- * return value indicate how many bytes copied 
+ * this function copy LEN bytes data from SF's SFSTART to DF
+ * return value indicate how many bytes copied
  * if less than zero ,means sth wrong.
  * gaopan 20060124 add
  * *****************************************************************************************/
@@ -296,32 +296,32 @@ static int etc_DoCopy(FILE* sf,FILE* df,int sfstart,int len)
 
      /* do nothing if these happened */
      if(len <= 0)
-	  return ETC_OK;
-     
+      return ETC_OK;
+
      /* seek to sf's sfstart */
      if(tp_fseek(sf,sfstart,SEEK_SET))
-	  goto end;
+      goto end;
 
      /* malloc buffer */
      if(!(buf = (char *)malloc(len)))
      {
-	  ret = -10;		/* ETC_NOMEM */
-	  return ret;
+      ret = -10;        /* ETC_NOMEM */
+      return ret;
      }
 
      /* read from sf */
      if(!tp_fread(buf,len,1,sf))
-	  goto end;
-     
+      goto end;
+
      /* write to df */
      if(!tp_fwrite(buf,len,1,df))
-	  goto end;
-     
+      goto end;
+
      ret = ETC_OK;
 end:
      if(buf)
-	  free(buf);
-     
+      free(buf);
+
      return ret;
 }
 
@@ -332,28 +332,28 @@ static char* get_section_name (char *section_line)
      char* name;
 
      if (!section_line)
-	  return NULL;
+      return NULL;
 
      current = section_line;
 
-     while (*current == ' ' ||  *current == '\t') current++; 
+     while (*current == ' ' ||  *current == '\t') current++;
 
      if (*current == ';' || *current == '#')
-	  return NULL;
+      return NULL;
 
      if (*current++ == '[')
-	  while (*current == ' ' ||  *current == '\t') current ++;
+      while (*current == ' ' ||  *current == '\t') current ++;
      else
-	  return NULL;
+      return NULL;
 
      name = tail = current;
      while (*tail != ']' && *tail != '\n' &&
-	    *tail != ';' && *tail != '#' && *tail != '\0')
+        *tail != ';' && *tail != '#' && *tail != '\0')
           tail++;
      *tail = '\0';
      while (*tail == ' ' || *tail == '\t') {
-	  *tail = '\0';
-	  tail--; 
+      *tail = '\0';
+      tail--;
      }
 
      return name;
@@ -366,44 +366,44 @@ static int get_key_value (char *key_line, char **mykey, char **myvalue)
      char* value;
 
      if (!key_line)
-	  return -1;
+      return -1;
 
      current = key_line;
 
-     while (*current == ' ' ||  *current == '\t') current++; 
+     while (*current == ' ' ||  *current == '\t') current++;
 
      if (*current == ';' || *current == '#')
-	  return -1;
+      return -1;
 
      if (*current == '[')
-	  return 1;
+      return 1;
 
      if (*current == '\n' || *current == '\0')
-	  return -1;
+      return -1;
 
      tail = current;
      while (*tail != '=' && *tail != '\n' &&
-	    *tail != ';' && *tail != '#' && *tail != '\0')
+        *tail != ';' && *tail != '#' && *tail != '\0')
           tail++;
 
      value = tail + 1;
      if (*tail != '=')
-	  *value = '\0'; 
+      *value = '\0';
 
      *tail-- = '\0';
      while (*tail == ' ' || *tail == '\t') {
-	  *tail = '\0';
-	  tail--; 
+      *tail = '\0';
+      tail--;
      }
-        
+
      tail = value;
      while (*tail != '\n' && *tail != '\0') tail++;
-     *tail = '\0'; 
+     *tail = '\0';
 
      if (mykey)
-	  *mykey = current;
+      *mykey = current;
      if (myvalue)
-	  *myvalue = value;
+      *myvalue = value;
 
      return 0;
 }
@@ -421,21 +421,21 @@ static int etc_LocateSection(FILE* fp, const char* pSection)
      /* this loop look for section's name and set rw pointer just right after these section*/
      while (TRUE)
      {
-	  /* if end of file or any thing wrong */
-	  if (!fgets(szBuff, ETC_MAXLINE, fp))
-	  {
-	       /* this means sth wrong */
-	       if (!feof(fp))
-		    return ETC_FILEIOFAILED;
-	  }
-	  /* else we should check if this section is that we are looking for */
-	  name = get_section_name (szBuff);
-	  if (!name)
-	       continue;
+      /* if end of file or any thing wrong */
+      if (!fgets(szBuff, ETC_MAXLINE, fp))
+      {
+           /* this means sth wrong */
+           if (!feof(fp))
+            return ETC_FILEIOFAILED;
+      }
+      /* else we should check if this section is that we are looking for */
+      name = get_section_name (szBuff);
+      if (!name)
+           continue;
 
-	  /* if found speciafied section ,return ,leave rw pointer right after section's line*/
-	  if (strcmp (name, pSection) == 0)
-	       return ETC_OK;
+      /* if found speciafied section ,return ,leave rw pointer right after section's line*/
+      if (strcmp (name, pSection) == 0)
+           return ETC_OK;
      }
 
      return ETC_SECTIONNOTFOUND;
@@ -475,23 +475,23 @@ static int etc_FindNextSection(FILE* fp)
      char *name;
 
      while (TRUE) {
-	  int len;
-	  if (!fgets(szBuff, ETC_MAXLINE, fp)) {
-	       if (feof (fp))
-		    return ETC_OK;
-	       else
-		    return ETC_FILEIOFAILED;
-	  }
+      int len;
+      if (!fgets(szBuff, ETC_MAXLINE, fp)) {
+           if (feof (fp))
+            return ETC_OK;
+           else
+            return ETC_FILEIOFAILED;
+      }
 
-	  len = strlen(szBuff);
-	  name = get_section_name (szBuff);
-	  if (name) {
-	       fseek (fp, -len, SEEK_CUR);
-	       break;
-	  }
+      len = strlen(szBuff);
+      name = get_section_name (szBuff);
+      if (name) {
+           fseek (fp, -len, SEEK_CUR);
+           break;
+      }
      }
 
-     return ETC_OK; 
+     return ETC_OK;
 }
 
 /* This function locate the specified key in the etc file. */
@@ -504,33 +504,33 @@ static int etc_LocateKeyValue(FILE* fp, const char* pKey, char* pValue, int iLen
      int ret;
 
      while (TRUE) {
-	  int bufflen;
+      int bufflen;
 
-	  if (!fgets(szBuff, ETC_MAXLINE, fp))
-	       return ETC_KEYNOTFOUND;
-	  bufflen = strlen (szBuff);
-	  if (szBuff [bufflen - 1] == '\n')
-	       szBuff [bufflen - 1] = '\0';
+      if (!fgets(szBuff, ETC_MAXLINE, fp))
+           return ETC_KEYNOTFOUND;
+      bufflen = strlen (szBuff);
+      if (szBuff [bufflen - 1] == '\n')
+           szBuff [bufflen - 1] = '\0';
 
-	  ret = get_key_value (szBuff, &current, &value);
-	  if (ret < 0)
-	       continue;
-	  else if (ret > 0) {
-	       fseek (fp, -bufflen, SEEK_CUR);
-	       return ETC_KEYNOTFOUND;
-	  }
-            
-	  if (strcmp (current, pKey) == 0) 
-	  {
-	       if (pValue)
-		    strncpy (pValue, value, iLen);
+      ret = get_key_value (szBuff, &current, &value);
+      if (ret < 0)
+           continue;
+      else if (ret > 0) {
+           fseek (fp, -bufflen, SEEK_CUR);
+           return ETC_KEYNOTFOUND;
+      }
+
+      if (strcmp (current, pKey) == 0)
+      {
+           if (pValue)
+            strncpy (pValue, value, iLen);
 /* **************************************************************
- * MOVE FILE POINTER TO THE BEGIN OF THIS LINE,VERY VERY VERY IMPORTANT FOR OUR GOAL:ONE WRITE,SA SETVALUETOETCFILE,AND FINGURE OUT WHY WE SEEK BAK 
+ * MOVE FILE POINTER TO THE BEGIN OF THIS LINE,VERY VERY VERY IMPORTANT FOR OUR GOAL:ONE WRITE,SA SETVALUETOETCFILE,AND FINGURE OUT WHY WE SEEK BAK
  * ***************************************************************/
 
-	       fseek (fp, -bufflen, SEEK_CUR);
-	       return ETC_OK; 
-	  }
+           fseek (fp, -bufflen, SEEK_CUR);
+           return ETC_OK;
+      }
      }
 
      return ETC_KEYNOTFOUND;
@@ -541,12 +541,12 @@ static int etc_LocateKeyValue(FILE* fp, const char* pKey, char* pValue, int iLen
 static char *memfindstring (const char *buf, int size)
 {
      int i;
-    
+
      for (i = 0; i < size; i++) {
-	  if (buf [i] == '\0')
-	       continue;
-	  else 
-	       return (char *)(buf + i);
+      if (buf [i] == '\0')
+           continue;
+      else
+           return (char *)(buf + i);
      }
      return NULL;
 }
@@ -558,64 +558,64 @@ static int etc_ReadSection (const char *filebuf, int size, char **nextpos, PETCS
      unsigned char *p1;
      unsigned char *p2;
      static int nCurpos = 0;
-    
+
      psect->name = NULL;
      psect->key_nr = 0;
 
      if (nextpos == NULL || *nextpos == NULL)
-	  return ETC_SECTIONNOTFOUND;
+      return ETC_SECTIONNOTFOUND;
 
      p1 = (unsigned char*)*nextpos;
      while (TRUE) {
-	  int bufflen;
+      int bufflen;
 
-	  p2 = (unsigned char*)memfindstring ((const char*)p1,  size - (p1 - (unsigned char *)filebuf));
-	  if (p2 == NULL) {
-	       if (psect->name) {
-		    *nextpos = NULL;
-		    break;
-	       }
-	       else
-		    return ETC_SECTIONNOTFOUND;
-	  }
+      p2 = (unsigned char*)memfindstring ((const char*)p1,  size - (p1 - (unsigned char *)filebuf));
+      if (p2 == NULL) {
+           if (psect->name) {
+            *nextpos = NULL;
+            break;
+           }
+           else
+            return ETC_SECTIONNOTFOUND;
+      }
 
-	  strcpy (szBuff, (const char*)p2);
-	  bufflen = strlen (szBuff);
-	  p1 = p2 + bufflen;
+      strcpy (szBuff, (const char*)p2);
+      bufflen = strlen (szBuff);
+      p1 = p2 + bufflen;
 
-	  if (!psect->name) { /* read section name */
-	       sect_name = get_section_name (szBuff);
-	       if (!sect_name)
-		    continue;
+      if (!psect->name) { /* read section name */
+           sect_name = get_section_name (szBuff);
+           if (!sect_name)
+            continue;
 
-	       psect->name = strdup (sect_name);
-	       psect->key_nr = 0;
-	       psect->keys = malloc (sizeof(char*)*max_key_nr);
-	       psect->values = malloc (sizeof(char*)*max_key_nr);
-	  }
-	  else { /* read key and value */
-	       int ret;
-	       char *key, *value;
+           psect->name = strdup (sect_name);
+           psect->key_nr = 0;
+           psect->keys = malloc (sizeof(char*)*max_key_nr);
+           psect->values = malloc (sizeof(char*)*max_key_nr);
+      }
+      else { /* read key and value */
+           int ret;
+           char *key, *value;
 
-	       if (psect->key_nr == max_key_nr) {
-		    max_key_nr += 5;
-		    psect->keys = (char **) realloc (psect->keys, sizeof(char*)*max_key_nr);
-		    psect->values = (char **) realloc (psect->values, sizeof(char*)*max_key_nr);
-	       }
+           if (psect->key_nr == max_key_nr) {
+            max_key_nr += 5;
+            psect->keys = (char **) realloc (psect->keys, sizeof(char*)*max_key_nr);
+            psect->values = (char **) realloc (psect->values, sizeof(char*)*max_key_nr);
+           }
 
-	       ret = get_key_value (szBuff, &key, &value);
-	       if (ret < 0)
-		    continue;
-	       else if (ret > 0) {  /* another section begins */
-		    //fseek (fp, -bufflen, SEEK_CUR);
-		    *nextpos = (char*) p2;
-		    break;
-	       }
+           ret = get_key_value (szBuff, &key, &value);
+           if (ret < 0)
+            continue;
+           else if (ret > 0) {  /* another section begins */
+            //fseek (fp, -bufflen, SEEK_CUR);
+            *nextpos = (char*) p2;
+            break;
+           }
 
-	       *(psect->keys + psect->key_nr) = strdup (key);
-	       *(psect->values + psect->key_nr) = strdup (value);
-	       psect->key_nr ++;
-	  }
+           *(psect->keys + psect->key_nr) = strdup (key);
+           *(psect->values + psect->key_nr) = strdup (value);
+           psect->key_nr ++;
+      }
      }
 
      return ETC_OK;
@@ -629,13 +629,13 @@ GHANDLE GUIAPI LoadEtcFile (const char * pEtcFile)
      char *filebuf = NULL;//gaopan Bug00001206MiniGUI的LoadEtcFile存在隐患,filebuf指针没有初始化,后续的free可能出问题
      char *pnextread;
      int  nReadByte, nFileSize, i;
-#ifdef WIN32    
+#ifdef WIN32
      struct stat filestat;
 #endif
 
      if (!(fp = fopen(pEtcFile, "r")))
-	  return 0;
-    
+      return 0;
+
      petc = (ETC_S*) malloc (sizeof(ETC_S));
      petc->section_nr = 0;
 
@@ -650,12 +650,12 @@ GHANDLE GUIAPI LoadEtcFile (const char * pEtcFile)
 #endif
 
      if (nFileSize <= 0) {
-	  goto endflag;
+      goto endflag;
      }
 
      filebuf = (char *)CALLOC (1, nFileSize + 1);
      if (filebuf == NULL)
-	  goto endflag;
+      goto endflag;
 
      nReadByte = fread (filebuf, 1, nFileSize, fp);
 /*
@@ -665,19 +665,19 @@ GHANDLE GUIAPI LoadEtcFile (const char * pEtcFile)
 */
      filebuf [nFileSize] = '\0';
      for (i = 0; i< nFileSize; i++) {
-	  //if (filebuf [i] == '\n' || filebuf [i] == '\r')
-	  if (filebuf [i] == 0x0D || filebuf [i] == 0x0A)
-	       filebuf [i] = '\0';
+      //if (filebuf [i] == '\n' || filebuf [i] == '\r')
+      if (filebuf [i] == 0x0D || filebuf [i] == 0x0A)
+           filebuf [i] = '\0';
      }
-    
+
      pnextread = filebuf;
      while (etc_ReadSection (filebuf, nFileSize + 1, &pnextread, petc->sections + petc->section_nr) == ETC_OK) {
-	  petc->section_nr ++;
-	  if (petc->section_nr == max_sect_nr) {
-	       /* add 5 sections each time we realloc */
-	       max_sect_nr += 5;
-	       petc->sections = realloc (petc->sections, sizeof(ETCSECTION)*max_sect_nr);
-	  }
+      petc->section_nr ++;
+      if (petc->section_nr == max_sect_nr) {
+           /* add 5 sections each time we realloc */
+           max_sect_nr += 5;
+           petc->sections = realloc (petc->sections, sizeof(ETCSECTION)*max_sect_nr);
+      }
      }
 
 endflag:
@@ -697,55 +697,55 @@ static int etc_ReadSection (FILE* fp, PETCSECTION psect)
      psect->key_nr = 0;
 
      while (TRUE) {
-	  int bufflen;
+      int bufflen;
 
-	  if (!fgets(szBuff, ETC_MAXLINE, fp)) {
-	       if (feof (fp)) {
-		    if (psect->name)
-			 break;
-		    else
-			 return ETC_SECTIONNOTFOUND;
-	       }
-	       else
-		    return ETC_FILEIOFAILED;
-	  }
+      if (!fgets(szBuff, ETC_MAXLINE, fp)) {
+           if (feof (fp)) {
+            if (psect->name)
+             break;
+            else
+             return ETC_SECTIONNOTFOUND;
+           }
+           else
+            return ETC_FILEIOFAILED;
+      }
 
-	  bufflen = strlen (szBuff);
-	  if (szBuff [bufflen - 1] == '\n')
-	       szBuff [bufflen - 1] = '\0';
+      bufflen = strlen (szBuff);
+      if (szBuff [bufflen - 1] == '\n')
+           szBuff [bufflen - 1] = '\0';
 
-	  if (!psect->name) { /* read section name */
-	       sect_name = get_section_name (szBuff);
-	       if (!sect_name)
-		    continue;
+      if (!psect->name) { /* read section name */
+           sect_name = get_section_name (szBuff);
+           if (!sect_name)
+            continue;
 
-	       psect->name = strdup (sect_name);
-	       psect->key_nr = 0;
-	       psect->keys = (char **)malloc (sizeof(char*)*max_key_nr);
-	       psect->values = (char **)malloc (sizeof(char*)*max_key_nr);
-	  }
-	  else { /* read key and value */
-	       int ret;
-	       char *key, *value;
+           psect->name = strdup (sect_name);
+           psect->key_nr = 0;
+           psect->keys = (char **)malloc (sizeof(char*)*max_key_nr);
+           psect->values = (char **)malloc (sizeof(char*)*max_key_nr);
+      }
+      else { /* read key and value */
+           int ret;
+           char *key, *value;
 
-	       if (psect->key_nr == max_key_nr) {
-		    max_key_nr += 5;
-		    psect->keys = (char **) realloc (psect->keys, sizeof(char*)*max_key_nr);
-		    psect->values = (char **) realloc (psect->values, sizeof(char*)*max_key_nr);
-	       }
+           if (psect->key_nr == max_key_nr) {
+            max_key_nr += 5;
+            psect->keys = (char **) realloc (psect->keys, sizeof(char*)*max_key_nr);
+            psect->values = (char **) realloc (psect->values, sizeof(char*)*max_key_nr);
+           }
 
-	       ret = get_key_value (szBuff, &key, &value);
-	       if (ret < 0)
-		    continue;
-	       else if (ret > 0) {  /* another section begins */
-		    fseek (fp, -bufflen, SEEK_CUR);
-		    break;
-	       }
+           ret = get_key_value (szBuff, &key, &value);
+           if (ret < 0)
+            continue;
+           else if (ret > 0) {  /* another section begins */
+            fseek (fp, -bufflen, SEEK_CUR);
+            break;
+           }
 
-	       *(psect->keys + psect->key_nr) = strdup (key);
-	       *(psect->values + psect->key_nr) = strdup (value);
-	       psect->key_nr ++;
-	  }
+           *(psect->keys + psect->key_nr) = strdup (key);
+           *(psect->values + psect->key_nr) = strdup (value);
+           psect->key_nr ++;
+      }
      }
 
      return ETC_OK;
@@ -758,7 +758,7 @@ GHANDLE GUIAPI LoadEtcFile (const char * pEtcFile)
      ETC_S *petc;
 
      if (!(fp = fopen(pEtcFile, "r")))
-	  return 0;
+      return 0;
 
      petc = (ETC_S*) malloc (sizeof(ETC_S));
      petc->section_nr = 0;
@@ -766,12 +766,12 @@ GHANDLE GUIAPI LoadEtcFile (const char * pEtcFile)
      petc->sections = (PETCSECTION) malloc (sizeof(ETCSECTION)*max_sect_nr);
 
      while (etc_ReadSection (fp, petc->sections + petc->section_nr) == ETC_OK) {
-	  petc->section_nr ++;
-	  if (petc->section_nr == max_sect_nr) {
-	       /* add 5 sections each time we realloc */
-	       max_sect_nr += 5;
-	       petc->sections = realloc (petc->sections, sizeof(ETCSECTION)*max_sect_nr);
-	  }
+      petc->section_nr ++;
+      if (petc->section_nr == max_sect_nr) {
+           /* add 5 sections each time we realloc */
+           max_sect_nr += 5;
+           petc->sections = realloc (petc->sections, sizeof(ETCSECTION)*max_sect_nr);
+      }
      }
 
      fclose (fp);
@@ -784,10 +784,10 @@ static int etc_WriteSection (FILE* fp, PETCSECTION psect, BOOL bSectName)
      int i;
 
      if (bSectName)
-	  fprintf (fp, "[%s]\n", psect->name);
+      fprintf (fp, "[%s]\n", psect->name);
 
      for (i=0; i<psect->key_nr;i++) {
-	  fprintf (fp, "%s=%s\n", psect->keys[i], psect->values[i]);
+      fprintf (fp, "%s=%s\n", psect->keys[i], psect->values[i]);
      }
 
      fprintf (fp, "\n");
@@ -797,28 +797,28 @@ static int etc_WriteSection (FILE* fp, PETCSECTION psect, BOOL bSectName)
 
 /* *********************************************************************************
  * gaopan 20060124 rewrite this function
- * now, this function directly copy data from sf to df from where sf's file r/w 
+ * now, this function directly copy data from sf to df from where sf's file r/w
  * pointer to end of file
  * ******************************************************************************* */
 static int etc_FileCopy (FILE* sf, FILE* df)
 {
      int start = 0,sflen = 0;
-    
+
      /* see where copy should start */
      if(-1 == (start = tp_ftell(sf)))
-	  return ETC_FILEIOFAILED;
-     
+      return ETC_FILEIOFAILED;
+
      /* see file length,sflen - start result how long should be copied */
      if(-1 == (sflen = tp_flength(sf)))
-	  return ETC_FILEIOFAILED;
+      return ETC_FILEIOFAILED;
 
      /* resort etc_DoCopy To Copy Data */
      if(df)
-	  return etc_DoCopy(sf,df,start,sflen - start);
+      return etc_DoCopy(sf,df,start,sflen - start);
      return ETC_OK;
 }
 
-//int ReviseSectionInEtcFile (const char* pEtcFile, PETCSECTION psect, 
+//int ReviseSectionInEtcFile (const char* pEtcFile, PETCSECTION psect,
 //                            BOOL bRemove)
 //{
 //    FILE* etc_fp;
@@ -883,7 +883,7 @@ static int etc_FileCopy (FILE* sf, FILE* df)
 //
 // if ((rc = etc_FileCopy (etc_fp, tmp_fp)) != ETC_OK)
 // goto error;
-// 
+//
 // // replace etc content with tmp file content
 // // truncate etc content first
 // fclose (etc_fp);
@@ -895,7 +895,7 @@ static int etc_FileCopy (FILE* sf, FILE* df)
 //#endif
 // return ETC_FILEIOFAILED;
 // }
-// 
+//
 // rewind (tmp_fp);
 // rc = etc_FileCopy (tmp_fp, etc_fp);
 //
@@ -929,22 +929,22 @@ int GUIAPI UnloadEtcFile (GHANDLE hEtc)
      ETC_S *petc = (ETC_S*) hEtc;
 
      if (!petc)
-	  return -1;
+      return -1;
 
      for (i=0; i<petc->section_nr; i++) {
-	  PETCSECTION psect = petc->sections + i;
-	  int j;
+      PETCSECTION psect = petc->sections + i;
+      int j;
 
-	  if (!psect)
-	       continue;
+      if (!psect)
+           continue;
 
-	  for (j=0; j<psect->key_nr; j++) {
-	       free (psect->keys[j]);
-	       free (psect->values[j]);
-	  }
-	  free (psect->keys);
-	  free (psect->values);
-	  free (psect->name);
+      for (j=0; j<psect->key_nr; j++) {
+           free (psect->keys[j]);
+           free (psect->values[j]);
+      }
+      free (psect->keys);
+      free (psect->values);
+      free (psect->name);
      }
 
      free (petc->sections);
@@ -961,36 +961,36 @@ int GUIAPI GetValueFromEtc (GHANDLE hEtc, const char* pSection,
      PETCSECTION psect = NULL;
 
      if (!petc || !pValue)
-	  return -1;
+      return -1;
 
      for (i=0; i<petc->section_nr; i++) {
-	  psect = petc->sections + i;
-	  if (!psect)
-	       continue;
+      psect = petc->sections + i;
+      if (!psect)
+           continue;
 
-	  if (strcmp (psect->name, pSection) == 0) {
-	       break;
-	  }
+      if (strcmp (psect->name, pSection) == 0) {
+           break;
+      }
      }
 
      if (i >= petc->section_nr)
-	  return ETC_SECTIONNOTFOUND;
+      return ETC_SECTIONNOTFOUND;
 
      for (i=0; i<psect->key_nr; i++) {
-	  if (strcmp (psect->keys[i], pKey) == 0) {
-	       break;
-	  }
+      if (strcmp (psect->keys[i], pKey) == 0) {
+           break;
+      }
      }
 
      if (i >= psect->key_nr)
-	  return ETC_KEYNOTFOUND;
+      return ETC_KEYNOTFOUND;
 
      if (iLen > 0) { /* get value */
-	  strncpy (pValue, psect->values[i], iLen);
+      strncpy (pValue, psect->values[i], iLen);
      }
      else { /* set value */
-	  free (psect->values[i]);
-	  psect->values[i] = strdup(pValue);
+      free (psect->values[i]);
+      psect->values[i] = strdup(pValue);
      }
 
      return ETC_OK;
@@ -1004,12 +1004,12 @@ int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,
 
      ret = GetValueFromEtc (hEtc, pSection, pKey, szBuff, 50);
      if (ret < 0) {
-	  return ret;
+      return ret;
      }
 
      *value = strtol (szBuff, NULL, 0);
      if ((*value == LONG_MIN || *value == LONG_MAX) && errno == ERANGE)
-	  return ETC_INTCONV;
+      return ETC_INTCONV;
 
      return ETC_OK;
 }
@@ -1024,8 +1024,8 @@ int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,
  *     iLen:     The max length of value string.
  * Return:
  *     int               meaning
- *     ETC_FILENOTFOUND           The etc file not found. 
- *     ETC_SECTIONNOTFOUND        The section is not found. 
+ *     ETC_FILENOTFOUND           The etc file not found.
+ *     ETC_SECTIONNOTFOUND        The section is not found.
  *     ETC_EKYNOTFOUND        The Key is not found.
  *     ETC_OK            OK.
  */
@@ -1035,18 +1035,18 @@ int GUIAPI GetValueFromEtcFile(const char* pEtcFile, const char* pSection,
      FILE* fp;
 
      if (!(fp = fopen(pEtcFile, "r")))
-	  return ETC_FILENOTFOUND;
+      return ETC_FILENOTFOUND;
 
      if (pSection)
-	  if (etc_LocateSection (fp, pSection) != ETC_OK) {
-	       fclose (fp);
-	       return ETC_SECTIONNOTFOUND;
-	  }
+      if (etc_LocateSection (fp, pSection) != ETC_OK) {
+           fclose (fp);
+           return ETC_SECTIONNOTFOUND;
+      }
 
-     if (etc_LocateKeyValue (fp, pKey, pValue, iLen) != ETC_OK) 
+     if (etc_LocateKeyValue (fp, pKey, pValue, iLen) != ETC_OK)
      {
-	  fclose (fp);
-	  return ETC_KEYNOTFOUND;
+      fclose (fp);
+      return ETC_KEYNOTFOUND;
      }
 
      fclose (fp);
@@ -1061,24 +1061,24 @@ int GUIAPI GetValueFromEtcFile(const char* pEtcFile, const char* pSection,
  *     pKey:     Key name.
  * Return:
  *     int                      meaning
- *     ETC_FILENOTFOUND             The etc file not found. 
- *     ETC_SECTIONNOTFOUND          The section is not found. 
+ *     ETC_FILENOTFOUND             The etc file not found.
+ *     ETC_SECTIONNOTFOUND          The section is not found.
  *     ETC_EKYNOTFOUND              The Key is not found.
  *     ETC_OK                       OK.
  */
 int GUIAPI GetIntValueFromEtcFile(const char* pEtcFile, const char* pSection,
-				  const char* pKey, int* value)
+                  const char* pKey, int* value)
 {
      int ret;
      char szBuff [51];
 
      ret = GetValueFromEtcFile (pEtcFile, pSection, pKey, szBuff, 50);
      if (ret < 0)
-	  return ret;
+      return ret;
 
      *value = strtol (szBuff, NULL, 0);
      if ((*value == LONG_MIN || *value == LONG_MAX) && errno == ERANGE)
-	  return ETC_INTCONV;
+      return ETC_INTCONV;
 
      return ETC_OK;
 }
@@ -1087,16 +1087,16 @@ int GUIAPI GetIntValueFromEtcFile(const char* pEtcFile, const char* pSection,
  * gaopan 20060124 changed sth here.
  * after this function ,file rw pointer will point to right place,which means:
  * if the key found,the pointer will point to key's start
- * if the key not found,the pionter will point to the end of all keys of this sections 
+ * if the key not found,the pionter will point to the end of all keys of this sections
  * this behavior make caller know where to split old config file
  * **********************************************************************************/
 static int etc_CopyAndLocate (FILE* etc_fp,const char* pSection, const char* pKey)
 {
      if (pSection && etc_LocateSection (etc_fp, pSection) != ETC_OK)
-	  return ETC_SECTIONNOTFOUND;
+      return ETC_SECTIONNOTFOUND;
 
      if (etc_LocateKeyValue (etc_fp, pKey, NULL, 0) != ETC_OK)
-	  return ETC_KEYNOTFOUND;
+      return ETC_KEYNOTFOUND;
 
      return ETC_OK;
 }
@@ -1116,100 +1116,100 @@ static int etc_CopyAndLocate (FILE* etc_fp,const char* pSection, const char* pKe
  * gaopan 20060124 rewrite this function, now,we just write once.
  */
 int GUIAPI SetValueToEtcFile (const char* pEtcFile, const char* pSection,
-			      const char* pKey, char* pValue)
+                  const char* pKey, char* pValue)
 {
      FILE* pf;
      int ret = ETC_FILEIOFAILED;
-     int writepoint = -1;	/* where new section-key-value should be insert */
-     int backuppoint = -1;	/* from where we should backup to buffer and save to file later */
-     int backuplen = -1;	/* how much bytes need to save to buffer */
+     int writepoint = -1;    /* where new section-key-value should be insert */
+     int backuppoint = -1;    /* from where we should backup to buffer and save to file later */
+     int backuplen = -1;    /* how much bytes need to save to buffer */
      char* backupbuf = NULL;
-     int buflen;		/* this buflen is new key-value's len plus backuplen */
+     int buflen;        /* this buflen is new key-value's len plus backuplen */
      char newline = 0;
-	
+
      if(tp_fexist((char*)pEtcFile)) /* 0 means exist */
      {
-	  if (!(pf = tp_fopen (pEtcFile, "w")))
-	       return ETC_FILEIOFAILED;
-		
-	  fprintf (pf, "[%s]\n%s=%s\n", pSection,pKey,pValue);
-	  ret = ETC_OK;
-	  goto end;
+      if (!(pf = tp_fopen (pEtcFile, "w")))
+           return ETC_FILEIOFAILED;
+
+      fprintf (pf, "[%s]\n%s=%s\n", pSection,pKey,pValue);
+      ret = ETC_OK;
+      goto end;
      }
-	
+
      if (!(pf = tp_fopen (pEtcFile, "r+")))
-	  return ETC_FILEIOFAILED;
-	
-     switch (ret = etc_CopyAndLocate (pf, pSection, pKey)) 
+      return ETC_FILEIOFAILED;
+
+     switch (ret = etc_CopyAndLocate (pf, pSection, pKey))
      {
      case ETC_SECTIONNOTFOUND:
-	  /* write section and key and value ,nothing need to do */
-	  if(tp_fseek(pf,0,SEEK_END))
-	       goto end;
-	  /* prefix a '\n' help us out of warry about new line*/
-	  fprintf(pf,"\n[%s]\n%s=%s",pSection,pKey,pValue);
-	  goto end;
+      /* write section and key and value ,nothing need to do */
+      if(tp_fseek(pf,0,SEEK_END))
+           goto end;
+      /* prefix a '\n' help us out of warry about new line*/
+      fprintf(pf,"\n[%s]\n%s=%s",pSection,pKey,pValue);
+      goto end;
      case ETC_OK:
      {
-	  /* count writepoint and backuppoint */
-	  char buf[ETC_MAXLINE+1];
-	  if(-1 == (writepoint = tp_ftell(pf))
-	     || !fgets(buf, ETC_MAXLINE, pf)	  /* GETS USED TO SKIP CURRENT SECTION,BECAUSE IT SHOULD BE REWRITE!!!! */
-	     || -1 == (backuppoint = tp_ftell(pf)))
-	       goto end;
-	  break;
+      /* count writepoint and backuppoint */
+      char buf[ETC_MAXLINE+1];
+      if(-1 == (writepoint = tp_ftell(pf))
+         || !fgets(buf, ETC_MAXLINE, pf)      /* GETS USED TO SKIP CURRENT SECTION,BECAUSE IT SHOULD BE REWRITE!!!! */
+         || -1 == (backuppoint = tp_ftell(pf)))
+           goto end;
+      break;
      }
      case ETC_KEYNOTFOUND:
      {
-	  /* count writepoint and backuppoint */
-	  if(-1 == (writepoint = tp_ftell(pf)))
-	       goto end;
-	  backuppoint = writepoint;
-	  break;
+      /* count writepoint and backuppoint */
+      if(-1 == (writepoint = tp_ftell(pf)))
+           goto end;
+      backuppoint = writepoint;
+      break;
      }
      default:
-	  goto end;
+      goto end;
      }
 
      /* read backup data to buffer */
      if(-1 == (backuplen = tp_flength(pf)))
-	  goto end;
+      goto end;
      backuplen -= backuppoint;
      buflen = strlen(pKey) + strlen(pValue) + 10 + backuplen;/* in fact ,extra 3 is enough,one '=' and two '\n' char  */
 
      /* malloc buffer to write */
      if(!(backupbuf = (char *)malloc(buflen)))
      {
-	  ret = -10;		/* ETC_NOMEM */
-	  goto end;
+      ret = -10;        /* ETC_NOMEM */
+      goto end;
      }
      memset(backupbuf,0,buflen);
 
      //check if need write extra '\n' before new key-value
      if(tp_fseek(pf,-1,SEEK_CUR) || !tp_fread(&newline,1,1,pf))
-	  goto end;
+      goto end;
 
      /* format new key-value ,if need ,we insert a '\n' at first*/
      if(newline == '\n')
-	  sprintf(backupbuf,"%s=%s\n",pKey,pValue);
+      sprintf(backupbuf,"%s=%s\n",pKey,pValue);
      else
-	  sprintf(backupbuf,"\n%s=%s\n",pKey,pValue);
+      sprintf(backupbuf,"\n%s=%s\n",pKey,pValue);
 
      /* read from file to buf,right after new key-value */
      if(backuplen && !tp_fread(backupbuf + strlen(backupbuf),backuplen,1,pf))
-	  goto end;
+      goto end;
 
      /* save backup to file */
      if(tp_fseek(pf,writepoint,SEEK_SET))
-	  goto end;
+      goto end;
 
      if(!tp_fwrite(backupbuf,strlen(backupbuf),1,pf))
-	  goto end;
+      goto end;
      /* it seems everything right */
      ret = ETC_OK;
 end:
      if(backupbuf)
-	  free(backupbuf);
+      free(backupbuf);
      fclose (pf);
      return ret;
 }
@@ -1222,7 +1222,7 @@ void mswin_ping(void);
 void GUIAPI Ping(void)
 {
 #ifdef WIN32
-	mswin_ping();
+    mswin_ping();
 #else
     putchar ('\a');
     fflush (stdout);
@@ -1247,12 +1247,12 @@ void GUIAPI Tone (int frequency_hz, int duration_ms)
 char* strnchr (const char* s, size_t n, int c)
 {
      size_t i;
-    
-     for (i=0; i<n; i++) {
-	  if ( *s == c)
-	       return (char *)s;
 
-	  s ++;
+     for (i=0; i<n; i++) {
+      if ( *s == c)
+           return (char *)s;
+
+      s ++;
      }
 
      return NULL;
@@ -1265,13 +1265,13 @@ int substrlen (const char* text, int len, int delimiter, int* nr_delim)
      *nr_delim = 0;
 
      if ( (substr = strnchr (text, len, delimiter)) == NULL)
-	  return len;
+      return len;
 
      len = substr - text;
 
      while (*substr == delimiter) {
-	  (*nr_delim) ++;
-	  substr ++;
+      (*nr_delim) ++;
+      substr ++;
      }
 
      return len;
@@ -1283,20 +1283,20 @@ char* strtrimall (char *src)
      int  nLen;
 
      if (src == NULL)
-	  return NULL;
+      return NULL;
 
      if (src [0] == '\0')
-	  return src;
+      return src;
 
      nLen = strlen (src);
 
      nIndex1 = 0;
      while (isspace ((int)src[nIndex1]))
-	  nIndex1 ++;
+      nIndex1 ++;
 
      if (nIndex1 == nLen) {
-	  *src = '\0';
-	  return src;
+      *src = '\0';
+      return src;
      }
 
      strcpy (src, src + nIndex1);
@@ -1304,9 +1304,9 @@ char* strtrimall (char *src)
      nLen = strlen (src);
      nIndex1 = nLen - 1;
      while (isspace ((int)src[nIndex1]))
-	  nIndex1 --;
+      nIndex1 --;
 
-     src [nIndex1 + 1] = '\0';  
+     src [nIndex1 + 1] = '\0';
 
      return src;
 }

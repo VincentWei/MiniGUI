@@ -14,10 +14,10 @@
  * \file scrollview.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: scrollview.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_SCROLLVIEW_H
 #define _MGUI_CTRL_SCROLLVIEW_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,8 +100,8 @@ extern "C" {
  */
 #define CTRL_SCROLLWND            ("scrollwnd")
 
-/** Default container window procedure 
- * \sa DefaultDialogProc 
+/** Default container window procedure
+ * \sa DefaultDialogProc
  */
 MG_EXPORT LRESULT GUIAPI DefaultContainerProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -119,34 +119,34 @@ typedef struct _CONTAINERINFO
     int         x, y, w, h;             /** position and size of the container */
 #endif
     /** User-defined window procedure of the container */
-    WNDPROC     user_proc;              
+    WNDPROC     user_proc;
     /** Number of controls */
-    int         controlnr;              
+    int         controlnr;
     /** Pointer to control array */
-    PCTRLDATA   controls;               
+    PCTRLDATA   controls;
     /** Additional data */
-    DWORD       dwAddData;              
+    DWORD       dwAddData;
 } CONTAINERINFO;
 /** Data type of pointer to a CONTAINERINFO */
 typedef CONTAINERINFO* PCONTAINERINFO;
 
-/** 
+/**
  * \fn DWORD mglist_get_item_adddata (GHANDLE hi)
  * \brief Use this to get additional data from a list item in a control, such as
  *        scrollview and iconview.
  */
 MG_EXPORT DWORD mglist_get_item_adddata (GHANDLE hi);
 
-/** 
+/**
  * \fn DWORD scrollview_get_item_adddata (HSVITEM hsvi)
- * \brief Use this to get additional data from scrollview item 
+ * \brief Use this to get additional data from scrollview item
  */
 MG_EXPORT DWORD scrollview_get_item_adddata (HSVITEM hsvi);
 
 /**
  * \fn int scrollview_get_item_index (HWND hWnd, HSVITEM hsvi);
  * \brief To get item index
- */ 
+ */
 MG_EXPORT int scrollview_get_item_index (HWND hWnd, HSVITEM hsvi);
 
 /**
@@ -208,11 +208,11 @@ typedef int (*SVITEM_CMP) (HSVITEM hsvi1, HSVITEM hsvi2);
 typedef struct _svitem_operations
 {
     /** Called when an scrollview item is created */
-    SVITEM_INITFUNC     initItem;     
+    SVITEM_INITFUNC     initItem;
     /** Called when an item is destroied */
-    SVITEM_DESTROYFUNC  destroyItem;  
+    SVITEM_DESTROYFUNC  destroyItem;
     /** Call this to draw an item */
-    SVITEM_DRAWFUNC     drawItem;     
+    SVITEM_DRAWFUNC     drawItem;
 } SVITEMOPS;
 /** Data type of pointer to a SVITEMOPS */
 typedef SVITEMOPS* PSVITEMOPS;
@@ -221,11 +221,11 @@ typedef SVITEMOPS* PSVITEMOPS;
 typedef struct _SCROLLVIEWITEMINFO
 {
     /** Index of item */
-    int        nItem;           
+    int        nItem;
     /** Height of an item */
-    int        nItemHeight;     
+    int        nItemHeight;
     /** Item additional data */
-    DWORD      addData;         
+    DWORD      addData;
 } SVITEMINFO;
 /** Data type of pointer to a SVITEMINFO */
 typedef SVITEMINFO* PSVITEMINFO;
@@ -237,7 +237,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVS_UPNOTIFY
- * \brief Sends the notification messages to parent window when the keys is up. 
+ * \brief Sends the notification messages to parent window when the keys is up.
  */
 #define SVS_UPNOTIFY            0x0001L
 
@@ -249,7 +249,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVS_AUTOSORT
- * \brief Automatically sorts strings entered in the scrollview control. 
+ * \brief Automatically sorts strings entered in the scrollview control.
  */
 #define SVS_AUTOSORT            0x0004L
 
@@ -678,7 +678,7 @@ typedef SVITEMINFO* PSVITEMINFO;
  * \def SVM_GETCURSEL
  * \brief Gets the index of the current hilighted scrollview item.
  *
- * An application sends an this message to a scrollview window to get the index of 
+ * An application sends an this message to a scrollview window to get the index of
  * the currently selected item, if there is one, in a single-selection scrollview.
  * For multiple-selection case, appliction send this message to a scrollview
  * to get the index of the current highlighted item.
@@ -768,7 +768,7 @@ typedef SVITEMINFO* PSVITEMINFO;
  *
  * \param nitem Item index.
  * \param bVisible If bVisible is TRUE, this item wille be made visible.
- *                 
+ *
  * \return old hilighted item index on success, otherwise -1.
  */
 #define SVM_SETCURSEL             0xF322
@@ -1114,7 +1114,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 #define SVN_SELCHANGED          2
 
 /** Indicates the hilighted item changing */
-#define SVN_SELCHANGING			4
+#define SVN_SELCHANGING            4
 
     /** @} end of ctrl_scrollview_ncs */
 

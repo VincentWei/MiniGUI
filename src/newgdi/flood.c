@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -90,7 +90,7 @@ typedef struct FLOODER_INFO
 
 /* flooder:
  *  Fills a horizontal line around the specified position, and adds it
- *  to the list of drawn segments. Returns the first x coordinate after 
+ *  to the list of drawn segments. Returns the first x coordinate after
  *  the part of the line which it has dealt with.
  */
 static int flooder (FLOODER_INFO* fi, int x, int y)
@@ -103,12 +103,12 @@ static int flooder (FLOODER_INFO* fi, int x, int y)
     if (!fi->cb_equal_pixel (fi->context, x, y))
         return x + 1;
 
-    /* work left from starting point */ 
+    /* work left from starting point */
     for (left = x - 1; left >= fi->dst_rc->left; left--)
         if (!fi->cb_equal_pixel (fi->context, left, y))
             break;
 
-    /* work right from starting point */ 
+    /* work right from starting point */
     for (right = x + 1; right < fi->dst_rc->right; right++)
         if (!fi->cb_equal_pixel (fi->context, right, y))
             break;
@@ -130,7 +130,7 @@ static int flooder (FLOODER_INFO* fi, int x, int y)
         }
 
         p->next = c = fi->flood_count++;
-        fi->flooded_lines = realloc (fi->flooded_lines, 
+        fi->flooded_lines = realloc (fi->flooded_lines,
                         sizeof(FLOODED_LINE) * fi->flood_count);
         p = FLOOD_LINE_P (c);
     }
@@ -151,8 +151,8 @@ static int flooder (FLOODER_INFO* fi, int x, int y)
 }
 
 /* check_flood_line:
- *  Checks a line segment, using the scratch buffer is to store a list of 
- *  segments which have already been drawn in order to minimise the required 
+ *  Checks a line segment, using the scratch buffer is to store a list of
+ *  segments which have already been drawn in order to minimise the required
  *  number of tests.
  */
 static BOOL check_flood_line (FLOODER_INFO* fi, int y, int left, int right)
@@ -177,7 +177,7 @@ static BOOL check_flood_line (FLOODER_INFO* fi, int y, int left, int right)
          if (!c) {
             left = flooder(fi, left, y);
             ret = TRUE;
-            break; 
+            break;
          }
       }
    }
@@ -195,7 +195,7 @@ BOOL GUIAPI FloodFillGenerator (void* context, const RECT* dst_rc, int x, int y,
     int c, done;
     FLOODED_LINE *p;
 
-    /* make sure we have a valid starting point */ 
+    /* make sure we have a valid starting point */
     if ((x < dst_rc->left) || (x >= dst_rc->right) || (y < dst_rc->top) || (y >= dst_rc->bottom)) {
         return TRUE;
     }
@@ -231,7 +231,7 @@ BOOL GUIAPI FloodFillGenerator (void* context, const RECT* dst_rc, int x, int y,
         for (c = 0; c < fi.flood_count; c++) {
 
             p = FLOOD_LINE (c);
-    
+
             /* check below the segment? */
             if (p->flags & FLOOD_TODO_BELOW) {
                 p->flags &= ~FLOOD_TODO_BELOW;
@@ -288,7 +288,7 @@ static BOOL equal_pixel (void* context, int x, int y)
 
 /* FloodFill
  * Fills an enclosed area (starting at point x, y).
- */ 
+ */
 BOOL GUIAPI FloodFill (HDC hdc, int x, int y)
 {
     PDC pdc;
@@ -311,7 +311,7 @@ BOOL GUIAPI FloodFill (HDC hdc, int x, int y)
     if (pdc->skip_pixel == pdc->brushcolor)
         goto equal_pixel;
 
-    ret = FloodFillGenerator (pdc, &pdc->DevRC, x, y, 
+    ret = FloodFillGenerator (pdc, &pdc->DevRC, x, y,
                     equal_pixel, _flood_fill_draw_hline);
 
 equal_pixel:

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -58,20 +58,20 @@
 
 #define IDM_ABOUT       310
 
-#define IDC_MODE_MDI					101
-#define IDC_MODE_APP					102
-#define IDC_MODE_IIIE					103
-#define IDC_MODE_SETTINGS				104
-#define IDC_MODE_PLC					105
-#define IDC_PROMPTINFO					111
-#define IDC_PROMPTINFO2					1111
+#define IDC_MODE_MDI                    101
+#define IDC_MODE_APP                    102
+#define IDC_MODE_IIIE                    103
+#define IDC_MODE_SETTINGS                104
+#define IDC_MODE_PLC                    105
+#define IDC_PROMPTINFO                    111
+#define IDC_PROMPTINFO2                    1111
 #define IDC_BOX1                        112
 #define IDC_BOX2                        113
 #define IDC_BOX3                        114
 #define IDC_BOX4                        115
 
-#define IDC_PROGRESS					201
-#define IDC_PROGRESS2					2011
+#define IDC_PROGRESS                    201
+#define IDC_PROGRESS2                    2011
 
 #define IDC_EDIT1                       1011
 #define IDC_EDIT2                       1012

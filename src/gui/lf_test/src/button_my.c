@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -101,115 +101,115 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
     switch (message) {
         case MSG_CREATE:
             CreateWindow (CTRL_BUTTON,
-                          "Push Button", 
-                          WS_CHILD | BS_PUSHBUTTON | BS_CHECKED | WS_VISIBLE, 
-                          IDC_BUTTON, 
+                          "Push Button",
+                          WS_CHILD | BS_PUSHBUTTON | BS_CHECKED | WS_VISIBLE,
+                          IDC_BUTTON,
                           10, 10, 80, 40, hWnd, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Multiple Lines Push Button", 
-                          WS_CHILD | BS_PUSHBUTTON | BS_MULTLINE | WS_VISIBLE, 
-                          IDC_BUTTON + 1, 
+            CreateWindow (CTRL_BUTTON,
+                          "Multiple Lines Push Button",
+                          WS_CHILD | BS_PUSHBUTTON | BS_MULTLINE | WS_VISIBLE,
+                          IDC_BUTTON + 1,
                           110, 10, 80, 40, hWnd, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Normal check box", 
-                          WS_CHILD | BS_CHECKBOX | BS_CHECKED | WS_VISIBLE, 
-                          IDC_BUTTON + 2, 
+            CreateWindow (CTRL_BUTTON,
+                          "Normal check box",
+                          WS_CHILD | BS_CHECKBOX | BS_CHECKED | WS_VISIBLE,
+                          IDC_BUTTON + 2,
                           220, 10, 150, 40, hWnd, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Normal radio button", 
-                          WS_CHILD | BS_RADIOBUTTON | WS_VISIBLE, 
-                          IDC_BUTTON + 3, 
+            CreateWindow (CTRL_BUTTON,
+                          "Normal radio button",
+                          WS_CHILD | BS_RADIOBUTTON | WS_VISIBLE,
+                          IDC_BUTTON + 3,
                           390, 10, 150, 40, hWnd, 0);
 
-            hwnd = CreateWindow (CTRL_BUTTON, 
-                          "Auto 3-state check box", 
-                          WS_CHILD | BS_AUTO3STATE | BS_PUSHLIKE|WS_VISIBLE | BS_NOTIFY, 
-                          IDC_CHECKBOX, 
+            hwnd = CreateWindow (CTRL_BUTTON,
+                          "Auto 3-state check box",
+                          WS_CHILD | BS_AUTO3STATE | BS_PUSHLIKE|WS_VISIBLE | BS_NOTIFY,
+                          IDC_CHECKBOX,
                           10, 60, 150, 30, hWnd, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Auto check box on left", 
-                          WS_CHILD | BS_AUTOCHECKBOX | BS_LEFTTEXT | BS_RIGHT | WS_VISIBLE, 
-                          IDC_CHECKBOX + 1, 
+            CreateWindow (CTRL_BUTTON,
+                          "Auto check box on left",
+                          WS_CHILD | BS_AUTOCHECKBOX | BS_LEFTTEXT | BS_RIGHT | WS_VISIBLE,
+                          IDC_CHECKBOX + 1,
                           190, 60, 150, 30, hWnd, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Push-like 3state box", 
-                          WS_CHILD | BS_AUTO3STATE | BS_PUSHLIKE | WS_VISIBLE, 
-                          IDC_CHECKBOX + 2, 
+            CreateWindow (CTRL_BUTTON,
+                          "Push-like 3state box",
+                          WS_CHILD | BS_AUTO3STATE | BS_PUSHLIKE | WS_VISIBLE,
+                          IDC_CHECKBOX + 2,
                           390, 65, 110, 20, hWnd, 0);
 
-            CreateWindow (CTRL_STATIC, 
-                          "A Group Box", 
+            CreateWindow (CTRL_STATIC,
+                          "A Group Box",
                           WS_CHILD | SS_GROUPBOX | WS_VISIBLE,
-                          IDC_STATIC, 
+                          IDC_STATIC,
                           10, 100, 180, 140, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Auto Radio Button 1", 
+            CreateWindow (CTRL_BUTTON,
+                          "Auto Radio Button 1",
                           WS_CHILD | BS_AUTORADIOBUTTON | WS_VISIBLE | WS_GROUP,
                           IDC_RADIOBUTTON,
                           20, 120, 130, 30, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Auto Radio Button 2", 
+            CreateWindow (CTRL_BUTTON,
+                          "Auto Radio Button 2",
                           WS_CHILD | BS_AUTORADIOBUTTON | WS_VISIBLE,
                           IDC_RADIOBUTTON + 1,
                           20, 160, 130, 30, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Auto Radio Button 3", 
+            CreateWindow (CTRL_BUTTON,
+                          "Auto Radio Button 3",
                           WS_CHILD | BS_AUTORADIOBUTTON | WS_VISIBLE,
                           IDC_RADIOBUTTON + 2,
                           20, 200, 130, 30, hWnd, 0);
 
-            CreateWindow (CTRL_STATIC, 
-                          "A Group Box", 
+            CreateWindow (CTRL_STATIC,
+                          "A Group Box",
                           WS_CHILD | SS_GROUPBOX | WS_VISIBLE,
-                          IDC_STATIC, 
+                          IDC_STATIC,
                           220, 100, 170, 140, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Auto Radio Button 1", 
+            CreateWindow (CTRL_BUTTON,
+                          "Auto Radio Button 1",
                           WS_CHILD | BS_AUTORADIOBUTTON | BS_LEFTTEXT | BS_RIGHT | WS_VISIBLE | WS_GROUP,
                           IDC_RADIOBUTTON + 3,
                           230, 120, 140, 30, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Auto Radio Button 2", 
+            CreateWindow (CTRL_BUTTON,
+                          "Auto Radio Button 2",
                           WS_CHILD | BS_AUTORADIOBUTTON | BS_LEFTTEXT | BS_RIGHT | WS_VISIBLE,
                           IDC_RADIOBUTTON + 4,
                           230, 160, 140, 30, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Auto Radio Button 3", 
+            CreateWindow (CTRL_BUTTON,
+                          "Auto Radio Button 3",
                           WS_CHILD | BS_AUTORADIOBUTTON | BS_LEFTTEXT | BS_RIGHT | WS_VISIBLE,
                           IDC_RADIOBUTTON + 5,
                           230, 200, 140, 30, hWnd, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Push-like Radio 1", 
+            CreateWindow (CTRL_BUTTON,
+                          "Push-like Radio 1",
                           WS_CHILD | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_VISIBLE | WS_GROUP,
                           IDC_RADIOBUTTON + 3,
                           10, 260, 100, 30, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Push-like Radio 2", 
+            CreateWindow (CTRL_BUTTON,
+                          "Push-like Radio 2",
                           WS_CHILD | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_VISIBLE,
                           IDC_RADIOBUTTON + 4,
                           120, 260, 100, 30, hWnd, 0);
-            CreateWindow (CTRL_BUTTON, 
-                          "Push-like Radio 3", 
+            CreateWindow (CTRL_BUTTON,
+                          "Push-like Radio 3",
                           WS_CHILD | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_VISIBLE,
                           IDC_RADIOBUTTON + 5,
                           230, 260, 100, 30, hWnd, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Close", 
-                          WS_CHILD | BS_DEFPUSHBUTTON | BS_ICON |BS_REALSIZEIMAGE | BS_NOTIFY | WS_VISIBLE, 
-                          IDC_BUTTON + 4, 
+            CreateWindow (CTRL_BUTTON,
+                          "Close",
+                          WS_CHILD | BS_DEFPUSHBUTTON | BS_ICON |BS_REALSIZEIMAGE | BS_NOTIFY | WS_VISIBLE,
+                          IDC_BUTTON + 4,
                           340, 260, 100, 30, hWnd, (DWORD) GetLargeSystemIcon (IDI_APPLICATION));
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Close", 
-                          WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE, 
-                          IDCANCEL, 
+            CreateWindow (CTRL_BUTTON,
+                          "Close",
+                          WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE,
+                          IDCANCEL,
                           450, 260, 60, 30, hWnd, 0);
 
 
@@ -253,7 +253,7 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
             }
         }
         break;
-       
+
         case MSG_DESTROY:
             DestroyAllControls (hWnd);
         return 0;
@@ -276,7 +276,7 @@ static void InitCreateInfo(PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor(1);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = ControlTestWinProc;
-    pCreateInfo->lx = 0; 
+    pCreateInfo->lx = 0;
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 520;
     pCreateInfo->by = 350;

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
-#include <sys/mman.h> 
+#include <sys/mman.h>
 
 #include "common.h"
 #include "minigui.h"
@@ -67,12 +67,12 @@
 #define MMAP_GOP_REGDMABASE    ("GOP_REGDMABASE_APP")
 
 #undef USE_MSTAR_CHAKRA
-#undef USE_MUTI_LAYER 
-#define VIDEO_OFFSET	0x38000000 
-#define SURFACE_GAP 0x10 
-#define GFX_CURSOR_OFFSET 0 
+#undef USE_MUTI_LAYER
+#define VIDEO_OFFSET    0x38000000
+#define SURFACE_GAP 0x10
+#define GFX_CURSOR_OFFSET 0
 #define IS_MSTAR_BLIT_OP(op)  ((op) & 0xffff0000)
-#define MStarVID_DRIVER_NAME "mstar" 
+#define MStarVID_DRIVER_NAME "mstar"
 
 #define FUNC_ENTER()    fprintf(stderr, ">>> entering %s %s\n", __FILE__, __FUNCTION__)
 #define FUNC_LEAVE()    fprintf(stderr, "<<< leaving  %s %s\n", __FILE__, __FUNCTION__)
@@ -93,7 +93,7 @@ typedef enum
     MSTAR_STRETCH = 0x00020000,
     MSTAR_TRAPEZOID_BLIT = 0x00040000,
     MSTAR_OPT_MAX = 0xffffffff
-}MSTAR_OP_TYPE; 
+}MSTAR_OP_TYPE;
 
 
 /* Initialization/Query functions */
@@ -133,7 +133,7 @@ static Uint32 GALFmtToMStarFmt(GAL_PixelFormat  *fmt)
 static int MStar_Available(void)
 {
     return (1);
-} 
+}
 
 VideoBootStrap MSTAR_bootstrap = {
     MStarVID_DRIVER_NAME, "MStar video driver",
@@ -151,7 +151,7 @@ struct MStarEnumRect {
     struct MStarEnumRect* next;
 };*/
 
-/* MStar driver bootstrap functions */ 
+/* MStar driver bootstrap functions */
 static void MStar_DeleteDevice(GAL_VideoDevice *device)
 {
     free(device->hidden);
@@ -185,7 +185,7 @@ static GAL_VideoDevice * MStar_CreateDevice(int devindex)
     device->VideoInit = MStar_VideoInit;
     device->ListModes = MStar_ListModes;
     device->SetVideoMode = MStar_SetVideoMode;
-    device->SetColors = NULL; 
+    device->SetColors = NULL;
     device->VideoQuit = MStar_VideoQuit;
     device->AllocHWSurface = MStar_AllocHWSurface;
     device->CheckHWBlit = MStar_CheckHWBlit;
@@ -194,10 +194,10 @@ static GAL_VideoDevice * MStar_CreateDevice(int devindex)
     device->SetHWAlpha = MStar_SetHWAlpha;
     device->FreeHWSurface = MStar_FreeHWSurface;
     device->UpdateRects = MStar_DirectUpdate;
-    device->UpdateSurfaceRects = NULL; 
+    device->UpdateSurfaceRects = NULL;
     device->free = MStar_DeleteDevice;
 
-  	MAdp_MSGCH_Init(); 
+      MAdp_MSGCH_Init();
     return device;
 }
 
@@ -211,7 +211,7 @@ static Uint32 mstar_build_color(Uint32 pixel,  GAL_PixelFormat *fmt)
 
 static MS_U32 mstarGFXAddr(unsigned long phys)
 {
-#ifdef MSTAR_T3_PLATFORM 
+#ifdef MSTAR_T3_PLATFORM
     if(phys >= 0x40000000)
         return (phys-VIDEO_OFFSET);
     return phys;
@@ -237,10 +237,10 @@ static MS_U16 mstar_sc_get_h_cap_start(void)
 
 static void mstar_XC_Sys_PQ_ReduceBW_ForOSD(MS_U8 PqWin, MS_BOOL bOSD_On)
 {
-	  GLH_DEBUG("\nmstar_XC_Sys_PQ_ReduceBW_ForOSD>>>PqwIN=%d,bOSD_On=%d.",PqWin,bOSD_On);
+      GLH_DEBUG("\nmstar_XC_Sys_PQ_ReduceBW_ForOSD>>>PqwIN=%d,bOSD_On=%d.",PqWin,bOSD_On);
 }
 
-static MS_U32 mstar_OSD_RESOURCE_GetFontInfoGFX(FONTHANDLE handle, GFX_FontInfo* pinfo)   
+static MS_U32 mstar_OSD_RESOURCE_GetFontInfoGFX(FONTHANDLE handle, GFX_FontInfo* pinfo)
 {
    printf("Should not arrive here!!!\n");
    return 0;
@@ -270,18 +270,18 @@ static int driver_init_device(MSTARDeviceData * sdev)
     sdev->ge_render_alpha_from = (unsigned int)ABL_FROM_ASRC;
 
     gfx_config.u8Dither = FALSE;
-    gfx_config.bIsCompt = FALSE; 
+    gfx_config.bIsCompt = FALSE;
     gfx_config.bIsHK = TRUE;
     gfx_config.u8Miu = 1;
 
-#ifdef MSTAR_T3_PLATFORM    
+#ifdef MSTAR_T3_PLATFORM
     sdev->gfx_gop_index = MAdp_SYS_GetGFXGOPIndex();
 #else
     sdev->gfx_gop_index = 0;
 #endif
     MsOS_Init();
-    MDrv_SEM_Init(); 
-#ifdef USE_MSTAR_CHAKRA		
+    MDrv_SEM_Init();
+#ifdef USE_MSTAR_CHAKRA
     APP_REGISTER_INFO stAppReg;
     MAdp_APMNG_Init();
     //MAdp_IR_Init();
@@ -292,12 +292,12 @@ static int driver_init_device(MSTARDeviceData * sdev)
     MAdp_APMNG_AppRegister(&stAppReg);
 #endif
 
-    MAdp_SYS_GetPanelResolution(&pnlW,&pnlH); 
+    MAdp_SYS_GetPanelResolution(&pnlW,&pnlH);
     sdev->gfx_max_width = 0;
     sdev->gfx_max_height = 0;
     sdev->lcd_width = pnlW;
-    sdev->lcd_height= pnlH; 
-    sdev->gfx_max_width  &= ~3; 
+    sdev->lcd_height= pnlH;
+    sdev->gfx_max_width  &= ~3;
     sdev->gfx_h_offset = 0;
     sdev->gfx_v_offset= 0;
 
@@ -310,10 +310,10 @@ static int driver_init_device(MSTARDeviceData * sdev)
 
 #ifndef MSTAR_T3_PLATFORM
     u32GOP_Regdma_addr= GOP_REGDMABASE_ADR;
-    u32GOP_Regdma_size = GOP_REGDMABASE_LEN; 
+    u32GOP_Regdma_size = GOP_REGDMABASE_LEN;
 #else
     u32GOP_Regdma_addr= 0;
-    u32GOP_Regdma_size = 0; 
+    u32GOP_Regdma_size = 0;
 
     if(!MAdp_SYS_GetMemoryInfo(MMAP_GOP_REGDMABASE, (unsigned long *)&u32GOP_Regdma_addr, (unsigned long *)&u32GOP_Regdma_size,
                 (unsigned long *)&u32GOP_Regdma_aligned, (unsigned long *)&u32GOP_Regdma_miu)) {
@@ -329,8 +329,8 @@ static int driver_init_device(MSTARDeviceData * sdev)
     MApi_GOP_RegisterXCIsInterlaceCB(mstar_sc_is_interlace);
     MApi_GOP_RegisterXCGetCapHStartCB(mstar_sc_get_h_cap_start);
     MApi_GOP_RegisterXCReduceBWForOSDCB(mstar_XC_Sys_PQ_ReduceBW_ForOSD);
-#ifdef MSTAR_T3_PLATFORM 
-#ifdef USE_MUTI_LAYER   
+#ifdef MSTAR_T3_PLATFORM
+#ifdef USE_MUTI_LAYER
     MApi_GOP_InitByGOP(&gopInitInfo,  0);
     MApi_GOP_GWIN_SwitchGOP(0);
     MApi_GOP_GWIN_SetGOPDst(0, 2);
@@ -343,10 +343,10 @@ static int driver_init_device(MSTARDeviceData * sdev)
     MApi_GOP_InitByGOP(&gopInitInfo,  sdev->gfx_gop_index);
 #endif
 
-    MApi_GOP_GWIN_EnableTransClr(GOPTRANSCLR_FMT0, FALSE); 
+    MApi_GOP_GWIN_EnableTransClr(GOPTRANSCLR_FMT0, FALSE);
     MApi_GOP_GWIN_SetTransClr_8888(0xFF000000,0x00FFFFFF);
     MApi_GFX_RegisterGetFontCB(mstar_OSD_RESOURCE_GetFontInfoGFX);
-    MApi_GFX_RegisterGetBMPCB(msAPI_OSD_RESOURCE_GetBitmapInfoGFX);  
+    MApi_GFX_RegisterGetBMPCB(msAPI_OSD_RESOURCE_GetBitmapInfoGFX);
 
 #ifndef MSTAR_T3_PLATFORM
     u32GE_VQ_addr = GE_VQ_BUFFER_ADR + VIDEO_OFFSET;
@@ -374,24 +374,24 @@ static int driver_init_device(MSTARDeviceData * sdev)
         else if(u32VQBufSize>=256*1024)
             vqSize = GFX_VCMD_256K;
         else if(u32VQBufSize>=128*1024)
-            vqSize = GFX_VCMD_128K;          
+            vqSize = GFX_VCMD_128K;
         else if(u32VQBufSize>=64*1024)
-            vqSize = GFX_VCMD_64K;  
+            vqSize = GFX_VCMD_64K;
         else if(u32VQBufSize>=32*1024)
-            vqSize = GFX_VCMD_32K;    
+            vqSize = GFX_VCMD_32K;
         else if(u32VQBufSize>=16*1024)
-            vqSize = GFX_VCMD_16K;  
+            vqSize = GFX_VCMD_16K;
         else if(u32VQBufSize>=8*1024)
-            vqSize = GFX_VCMD_8K;    
+            vqSize = GFX_VCMD_8K;
         else
-            vqSize = GFX_VCMD_4K; 
+            vqSize = GFX_VCMD_4K;
 
         MApi_GFX_SetVCmdBuffer(u32GE_VQ_addr, vqSize);
         MApi_GFX_EnableVCmdQueue(TRUE);
         GLH_DEBUG("\nMApi_GFX_EnableVCmdQueue TRUE,vq=%d.",vqSize);
     } else {
         MApi_GFX_EnableVCmdQueue(FALSE);
-    } 
+    }
     return 0;
 }
 
@@ -446,7 +446,7 @@ int MStar_VideoInit(_THIS, GAL_PixelFormat *vformat)
     this->info.blit_hw_CC   = 1;
     this->info.blit_hw_A    = 1;
     this->info.blit_fill    = 1;
-    this->info.video_mem    = DFB_FRAME_BUFFER_LEN/1024; 
+    this->info.video_mem    = DFB_FRAME_BUFFER_LEN/1024;
     HIDDEN->initialized = 1;
     GLH_DEBUG("\nMStar_VideoInit>>>leave!!!");
     return 0;
@@ -462,7 +462,7 @@ static GAL_Rect **MStar_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
 
 static int MapMemAndReg(_THIS)
 {
-    FUNC_ENTER(); 
+    FUNC_ENTER();
     int fd;
     printf("MSTAR_T3_PLATFORM\n");
     unsigned long dfb_base,video_aligned,video_miu,video_len;
@@ -489,7 +489,7 @@ static int MapMemAndReg(_THIS)
     HIDDEN->video_miu = video_miu;
     GLH_DEBUG("\nMapMemAndReg>>>MAdp_SYS_GetMemoryInfo:::%x,%x,%x,%x.",HIDDEN->dfb_base,HIDDEN->video_length,video_aligned,video_miu);
 
-    fd = open( DEV_MEM, O_RDWR | O_SYNC ); 
+    fd = open( DEV_MEM, O_RDWR | O_SYNC );
     if (fd < 0) {
         GLH_DEBUG( "System/DevMem: Opening '%s' failed!\n", DEV_MEM );
         return -1;
@@ -537,14 +537,14 @@ static GAL_Surface* MStar_SetVideoMode(_THIS, GAL_Surface * surface, int width, 
     HIDDEN->sdev.gfx_max_width &= ~3;
 
     pitch = (((width * 4)+15)/16)*16;
-    phys_start = HIDDEN->video_length - dbuf * (pitch * height + SURFACE_GAP); 
-    u8GOP_Ret = MApi_GOP_GWIN_CreateFBFrom3rdSurf(width, height, mfmt, HIDDEN->dfb_base + phys_start, pitch, &u8FBId); 
+    phys_start = HIDDEN->video_length - dbuf * (pitch * height + SURFACE_GAP);
+    u8GOP_Ret = MApi_GOP_GWIN_CreateFBFrom3rdSurf(width, height, mfmt, HIDDEN->dfb_base + phys_start, pitch, &u8FBId);
     HIDDEN->u16FBId[0] = u8FBId;
     switched_away = pitch * height + SURFACE_GAP;
     HIDDEN->bdoublebuf = 0;
     HIDDEN->flip = 0;
     sdl_gwinid = MApi_GOP_GWIN_CreateWin_Assign_FB(HIDDEN->sdev.gfx_gop_index, u8FBId, 0, 0);
-    MApi_GOP_GWIN_SetGWinShared(sdl_gwinid,1); 
+    MApi_GOP_GWIN_SetGWinShared(sdl_gwinid,1);
     MApi_GOP_GWIN_SetGWinSharedCnt(sdl_gwinid,1);
 
     if(HIDDEN->sdev.gfx_max_width == HIDDEN->sdev.lcd_width) {
@@ -558,10 +558,10 @@ static GAL_Surface* MStar_SetVideoMode(_THIS, GAL_Surface * surface, int width, 
         MApi_GOP_GWIN_Set_VSCALE(TRUE, HIDDEN->sdev.gfx_max_height, HIDDEN->sdev.lcd_height) ;
     }
 
-    //MApi_GOP_GWIN_SetBlending(sdl_gwinid, TRUE, 0xFF>>2); 
-    MApi_GOP_GWIN_SetBlending(sdl_gwinid, TRUE, 0xff); 
-    MApi_GOP_GWIN_SetWinPosition(sdl_gwinid,0,0);  
-    MApi_GOP_GWIN_Enable(sdl_gwinid, TRUE) ; 
+    //MApi_GOP_GWIN_SetBlending(sdl_gwinid, TRUE, 0xFF>>2);
+    MApi_GOP_GWIN_SetBlending(sdl_gwinid, TRUE, 0xff);
+    MApi_GOP_GWIN_SetWinPosition(sdl_gwinid,0,0);
+    MApi_GOP_GWIN_Enable(sdl_gwinid, TRUE) ;
 
     surface->w     = width;
     surface->h     = height;
@@ -588,7 +588,7 @@ static GAL_Surface* MStar_SetVideoMode(_THIS, GAL_Surface * surface, int width, 
     GLH_DEBUG("\nafter memset>>>pixels=%x,surfaces_len=%d", surface->pixels,surfaces_len);
 
     //MStar_FreeHWSurfaces(this);
-    vidmem_bucket *bucket, *freeable; 
+    vidmem_bucket *bucket, *freeable;
     bucket = surfaces.next;
     while ( bucket ) {
         freeable = bucket;
@@ -618,7 +618,7 @@ static int CheckAlphaBlendType(MSTARDeviceData *sdev,GAL_Surface *src,GAL_Surfac
 
     if(src->flags & GAL_SRCALPHA) {
         //printf("GAL_SRCALPHA\n");
-        sdev->ge_render_coef = COEF_CONST; 
+        sdev->ge_render_coef = COEF_CONST;
         sdev->ge_render_alpha_from = (Uint32)ABL_FROM_ADST;
         sdev->ge_alpha_blend_enabled = 1;
         sdev->color16 = src->format->alpha;
@@ -631,8 +631,8 @@ static int CheckAlphaBlendType(MSTARDeviceData *sdev,GAL_Surface *src,GAL_Surfac
     } else {
         sdev->ge_render_alpha_from = (unsigned int)ABL_FROM_ASRC;
         sdev->ge_alpha_blend_enabled = 0;
-    } 
-    return 0;  	
+    }
+    return 0;
 }
 
 static void mstarSetEngineState(MSTAR_OP_TYPE op, MSTARDeviceData *sdev)
@@ -645,7 +645,7 @@ static void mstarSetEngineState(MSTAR_OP_TYPE op, MSTARDeviceData *sdev)
                 CK_OP_EQUAL, (GFX_Buffer_Format)sdev->src_ge_format, &sdev->src_ge_clr_key, &sdev->src_ge_clr_key);
     }
 
-    MApi_GFX_SetDstColorKey(FALSE,CK_OP_NOT_EQUAL, 
+    MApi_GFX_SetDstColorKey(FALSE,CK_OP_NOT_EQUAL,
             (GFX_Buffer_Format)sdev->dst_ge_format, &sdev->dst_ge_clr_key, &sdev->dst_ge_clr_key);
 
     if(sdev->ge_alpha_blend_enabled) {
@@ -673,7 +673,7 @@ static int MStar_CheckHWBlit(_THIS, GAL_Surface *src, GAL_Surface *dst)
 
 static int MStar_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dstrect)
 {
-    MSTARDeviceData sdev; 
+    MSTARDeviceData sdev;
     GFX_DrawRect rectInfo;
     GFX_BufferInfo srcBuf, dstBuf;
     GFX_Point v0, v1;
@@ -705,7 +705,7 @@ static int MStar_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *d
     MApi_GFX_SetSrcBufferInfo(&srcBuf, 0);
     if(src == dst) {
         MApi_GFX_BitBlt(&rectInfo, GFXDRAW_FLAG_DUPLICAPE);
-    } else { 
+    } else {
         MApi_GFX_BitBlt(&rectInfo, GFXDRAW_FLAG_DEFAULT);
     }
     MApi_GFX_SetTAGID(MApi_GFX_GetNextTAGID(TRUE));
@@ -755,7 +755,7 @@ static int MStar_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 colo
 
     rectInfo.colorRange.color_s.r = (color & dfmt->Rmask) >> (dfmt->Rshift - dfmt->Rloss);
     rectInfo.colorRange.color_s.g = (color & dfmt->Gmask) >> (dfmt->Gshift - dfmt->Gloss);
-    rectInfo.colorRange.color_s.b = (color & dfmt->Bmask) >> (dfmt->Bshift - dfmt->Bloss);	
+    rectInfo.colorRange.color_s.b = (color & dfmt->Bmask) >> (dfmt->Bshift - dfmt->Bloss);
 
     cleanEngineState(&sdev);
     rectInfo.flag = 0 ;
@@ -850,7 +850,7 @@ static int MStar_AllocHWSurface(_THIS, GAL_Surface *surface)
     /* Temporarily, we only allow surfaces the same width as display.
        Some blitters require the pitch between two hardware surfaces
        to be the same.  Others have interesting alignment restrictions.
-       Until someone who knows these details looks at the code...  */ 
+       Until someone who knows these details looks at the code...  */
     size = ((surface->h * ((surface->pitch+15)/16)*16) + 255)/256 * 256;
     /* Quick check for available mem */
     if ( size > surfaces_memleft ) {
@@ -959,13 +959,13 @@ void MStar_VideoQuit(_THIS)
         MApi_GOP_Switch_GWIN_2_FB(HIDDEN->gwinid, HIDDEN->u16FBId[1],
                 MApi_GFX_GetNextTAGID(FALSE), &u16QueueCnt);
     }
-    MApi_GOP_GWIN_DestroyWin(HIDDEN->gwinid);	
+    MApi_GOP_GWIN_DestroyWin(HIDDEN->gwinid);
     MApi_GOP_GWIN_DestroyFB(HIDDEN->u16FBId[0]);
 
     if(HIDDEN->bdoublebuf)
         MApi_GOP_GWIN_DestroyFB(HIDDEN->u16FBId[1]);
 
-    munmap(HIDDEN->video_phys,HIDDEN->video_length);	
+    munmap(HIDDEN->video_phys,HIDDEN->video_length);
     free(GAL_modearray[0]);
     HIDDEN->initialized = 0;
     FUNC_LEAVE();

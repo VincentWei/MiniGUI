@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -61,9 +61,9 @@
 // 初始化进程对话框
 DLGTEMPLATE DlgInitProgress =
 {
-    WS_BORDER | WS_CAPTION, 
+    WS_BORDER | WS_CAPTION,
     WS_EX_NONE,
-    120, 150, 420, 130, 
+    120, 150, 420, 130,
     "滚动条风格组合测试及消息和通知码的测试",
     0, 0,
     6, NULL,
@@ -71,12 +71,12 @@ DLGTEMPLATE DlgInitProgress =
 };
 
 CTRLDATA CtrlInitProgress [] =
-{ 
+{
     {
         "static",
         WS_VISIBLE | SS_SIMPLE,
-        60, 10, 80, 16, 
-        IDC_PROMPTINFO, 
+        60, 10, 80, 16,
+        IDC_PROMPTINFO,
         "风格组合",
         0
     },
@@ -92,8 +92,8 @@ CTRLDATA CtrlInitProgress [] =
     {
         "static",
         WS_VISIBLE | SS_SIMPLE,
-        30, 70, 380, 16, 
-        IDC_PROMPTINFO2, 
+        30, 70, 380, 16,
+        IDC_PROMPTINFO2,
         "风格组合的测试结果以及消息和通知码的测试结果",
         0
     },
@@ -108,17 +108,17 @@ CTRLDATA CtrlInitProgress [] =
     },
     {
         "button",
-        WS_TABSTOP | WS_VISIBLE | BS_DEFPUSHBUTTON, 
+        WS_TABSTOP | WS_VISIBLE | BS_DEFPUSHBUTTON,
         170, 290, 150, 25,
-        IDOK, 
+        IDOK,
         "下一个风格组合",
         0
     },
     {
         "button",
-        WS_TABSTOP | WS_VISIBLE | BS_DEFPUSHBUTTON, 
+        WS_TABSTOP | WS_VISIBLE | BS_DEFPUSHBUTTON,
         370, 290, 220, 25,
-        IDC_SCROLLBAR_MESSAGE_BUTTON, 
+        IDC_SCROLLBAR_MESSAGE_BUTTON,
         "消息及通知码测试",
         0
     }
@@ -139,19 +139,19 @@ DLGTEMPLATE DlgStartupMode =
 
 
 CTRLDATA CtrlStartupMode[] =
-{ 
+{
     {
         "button",
         WS_VISIBLE | BS_DEFPUSHBUTTON | WS_TABSTOP | WS_GROUP,
         272, 282, 95, 28,
-        IDOK, 
+        IDOK,
         "创建控件",
         0
     }
 };
 
 
-DLGTEMPLATE DlgStructParams = 
+DLGTEMPLATE DlgStructParams =
 {
     WS_BORDER | WS_CAPTION,
     WS_EX_NONE,
@@ -161,13 +161,13 @@ DLGTEMPLATE DlgStructParams =
     3, NULL
 };
 
-CTRLDATA CtrlStructParams[] = 
+CTRLDATA CtrlStructParams[] =
 {
     {
         "static",
         WS_VISIBLE | SS_RIGHT,
-        4, 14, 160, 22, 
-        IDC_STATIC, 
+        4, 14, 160, 22,
+        IDC_STATIC,
         "内存泄漏测试内容",
         0
     },
@@ -184,14 +184,14 @@ CTRLDATA CtrlStructParams[] =
         "button",
         WS_VISIBLE | BS_DEFPUSHBUTTON | WS_TABSTOP,
         300, 280, 100, 28,
-        IDOK, 
+        IDOK,
         "开始测试",
         0
     }
 };
 
 
-DLGTEMPLATE DlgPassword = 
+DLGTEMPLATE DlgPassword =
 {
     WS_BORDER | WS_CAPTION,
     WS_EX_NONE,
@@ -201,28 +201,28 @@ DLGTEMPLATE DlgPassword =
     2, NULL,
     0
 };
-     
-CTRLDATA CtrlPassword [] = 
+
+CTRLDATA CtrlPassword [] =
 {
     {
         "button",
-        WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 
-        272, 282, 100, 28, 
-        IDOK, 
+        WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP,
+        272, 282, 100, 28,
+        IDOK,
         "开始测试",
-        0 
+        0
     },
     {
         "button",
-        WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 
-        390, 282, 100, 28, 
-        IDCANCEL, 
+        WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP,
+        390, 282, 100, 28,
+        IDCANCEL,
         "退出",
-        0 
+        0
     }
 };
- 
-DLGTEMPLATE Dlgutmost = 
+
+DLGTEMPLATE Dlgutmost =
 {
     WS_BORDER | WS_CAPTION,
     WS_EX_NONE,
@@ -232,22 +232,22 @@ DLGTEMPLATE Dlgutmost =
     3, NULL,
     0
 };
-     
-CTRLDATA Ctrlutmost [] = 
+
+CTRLDATA Ctrlutmost [] =
 {
     {
         "static",
         WS_VISIBLE | SS_RIGHT,
         4, 10, 350, 18,
-        IDC_STATIC, 
+        IDC_STATIC,
         "下面是极限值测试的测试内容及测试结果",
         0
     },
     {
         CTRL_MLEDIT,
-        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_PASSWORD | WS_TABSTOP, 
-        20, 38, 600, 250, 
-        IDC_UTMOSTCONTENT, 
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_PASSWORD | WS_TABSTOP,
+        20, 38, 600, 250,
+        IDC_UTMOSTCONTENT,
         NULL,
         0,
         ES_READONLY
@@ -255,15 +255,15 @@ CTRLDATA Ctrlutmost [] =
     {
         "button",
         WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP,
-        280, 300, 100, 22, 
-        IDC_UTMOSTSTART, 
+        280, 300, 100, 22,
+        IDC_UTMOSTSTART,
         "开始测试",
         0
     }
 };
 
 
-DLGTEMPLATE DlgPropertySheet = 
+DLGTEMPLATE DlgPropertySheet =
 {
     WS_BORDER | WS_CAPTION,
     WS_EX_NONE,
@@ -274,38 +274,38 @@ DLGTEMPLATE DlgPropertySheet =
     0
 };
 
-CTRLDATA CtrlPropertySheet [] = 
+CTRLDATA CtrlPropertySheet [] =
 {
     {
         CTRL_PROPSHEET,
         WS_VISIBLE | WS_TABSTOP | PSS_COMPACTTAB,
         10, 10, 560+155, 360,
-        IDC_PROPSHEET, 
+        IDC_PROPSHEET,
         "Property sheet control",
         0
     },
     /*{
         "button",
-        WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 
-        200, 380, 100, 28, 
-        IDC_APPLY, 
+        WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP,
+        200, 380, 100, 28,
+        IDC_APPLY,
         "应用",
-        0 
+        0
     },
     {
         "button",
-        WS_VISIBLE | BS_DEFPUSHBUTTON | WS_TABSTOP, 
-        340, 380, 100, 28, 
-        IDOK, 
+        WS_VISIBLE | BS_DEFPUSHBUTTON | WS_TABSTOP,
+        340, 380, 100, 28,
+        IDOK,
         "确定",
-        0 
+        0
     },*/
     {
         "button",
         WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP,
-        460, 380, 100, 28, 
-        IDCANCEL, 
-        "退出", 
+        460, 380, 100, 28,
+        IDCANCEL,
+        "退出",
         0
     }
 };

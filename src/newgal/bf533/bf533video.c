@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: bf533video.c 8944 2007-12-29 08:29:16Z xwyan $
-**  
+**
 **  Copyright (C) 2004 ~ 2007 Feynman Software.
 */
 
@@ -212,7 +212,7 @@ static GAL_Rect **BF533_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
     if (format->BitsPerPixel == 8 || format->BitsPerPixel == 16) {
         return modes;
     }
-    
+
     return NULL;
 }
 
@@ -347,7 +347,7 @@ static int task_do_update (void* data)
             round_rect_to_even (&bound);
 
 #if 0
-            printf ("task_do_update: Do update rect: (%d, %d, %d, %d).\n", 
+            printf ("task_do_update: Do update rect: (%d, %d, %d, %d).\n",
                         bound.left, bound.top, bound.right, bound.bottom);
 #endif
 
@@ -366,7 +366,7 @@ static int task_do_update (void* data)
             BLOCK_ALARM
             write (this->hidden->fd_spi, &osd_op_header, sizeof (OSD_OP_HEADER));
 
-            update_buff = this->hidden->buffer 
+            update_buff = this->hidden->buffer
                     + this->screen->pitch * bound.top
                     + this->screen->format->BytesPerPixel * bound.left;
 
@@ -407,7 +407,7 @@ static void BF533_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                         rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;

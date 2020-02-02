@@ -1,6 +1,6 @@
 
 /*
- * This example trys to handle the event when the user presses 
+ * This example trys to handle the event when the user presses
  * left button and right button of the mouse at the same time.
  */
 LRESULT MyWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

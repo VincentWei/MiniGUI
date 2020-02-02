@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -67,11 +67,11 @@ static unsigned short pix_array[] = {0xffff,0xfffe,0xfffb,0xfff6,0xffef,0xffe6,0
 
 static void FillMemWithData(unsigned short* pDest)
 {
-	int i, j;
-	for(j = 0; j < BM_HEIGHT; ++j)
-		for(i = 0; i < BM_WIDTH; ++i)
-		{
-			*(pDest + j*BM_WIDTH + i) = (*(pix_array+ j*BM_WIDTH + i)) ^ (i*i+j);
-		}
+    int i, j;
+    for(j = 0; j < BM_HEIGHT; ++j)
+        for(i = 0; i < BM_WIDTH; ++i)
+        {
+            *(pDest + j*BM_WIDTH + i) = (*(pix_array+ j*BM_WIDTH + i)) ^ (i*i+j);
+        }
 }
 

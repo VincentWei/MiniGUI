@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -72,13 +72,13 @@
 static void update_viewport (gvGridViewData *view, int from, int to, int is_row)
 {
     RECT r;
-    
+
     GetClientRect (view->hCtrl, &r);
 
-    if (is_row) {        
+    if (is_row) {
         r.top = from;
         ScrollWindow (view->hCtrl, 0, to, &r, NULL);
-    } 
+    }
     else {
         r.left = from;
         ScrollWindow (view->hCtrl, to, 0, &r, NULL);
@@ -116,16 +116,16 @@ void gridview_set_content(HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
 {
     gvGridViewData* view = NULL;
     int w, h;
-    
+
     view = (gvGridViewData*) GetWindowAdditionalData2(hWnd);
-    
+
     w = view->ContX - pscrdata->nContX;
     h = view->ContY - pscrdata->nContY;
-    
+
     view->ContX = pscrdata->nContX;
     view->ContY = pscrdata->nContY;
-    
-    if (w != 0) 
+
+    if (w != 0)
         update_viewport (view, view->cells_rect.left, w, 0);
 
     if (h != 0)
@@ -185,7 +185,7 @@ static void update_row_col_size(gvGridViewData* view)
         view->cells_rect.bottom = view->cells_rect.top;
 
     scrolled_set_visible (view->hCtrl, &view->scrdata);
-    
+
     update_row_col_end_xy(view, row, cell->data.table.height, 1);
     update_row_col_end_xy(view, col, cell->data.table.width, 0);
 
@@ -420,7 +420,7 @@ static int set_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, int
     int need_set_value = FALSE;
     gvGridCellData* cell = view->modal->get_value_at(view, row, col);
     gvGridCellData newcell;
-    gvGridCellData celldata; 
+    gvGridCellData celldata;
     if(cell == NULL)
     {
         cell = &newcell;
@@ -482,7 +482,7 @@ static int set_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, int
             cell->func->merge(cell, &celldata);
             if (buff != NULL)
                 free (buff);
-            
+
             break;
         }
         case GV_TYPE_NUMBER:
@@ -498,7 +498,7 @@ static int set_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, int
             celldata.data.number.color_fg = data->color_fg;
             celldata.data.number.image = data->image;
             celldata.data.number.font = data->font;
-            number = (GRIDCELLDATANUMBER*)data->content;           
+            number = (GRIDCELLDATANUMBER*)data->content;
             celldata.data.number.num = number->number;
             if (number->format != NULL) {
                 int len;
@@ -511,7 +511,7 @@ static int set_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, int
             cell->func->merge(cell, &celldata);
             if (buff != NULL)
                 free (buff);
-            
+
             break;
         }
         case GV_TYPE_CHECKBOX:
@@ -528,7 +528,7 @@ static int set_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, int
             celldata.data.checkbox.image = data->image;
             celldata.data.checkbox.font = data->font;
             checkbox = (GRIDCELLDATACHECKBOX*) data->content;
-            celldata.data.checkbox.checked = checkbox->checked;            
+            celldata.data.checkbox.checked = checkbox->checked;
             if (checkbox->text != NULL) {
                 int len;
                 len = MIN(strlen(checkbox->text), checkbox->len_text);
@@ -540,7 +540,7 @@ static int set_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, int
             cell->func->merge(cell, &celldata);
             if (buff != NULL)
                 free (buff);
-            
+
             break;
         }
         case GV_TYPE_SELECTION:
@@ -569,7 +569,7 @@ static int set_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, int
             cell->func->merge(cell, &celldata);
             if (buff != NULL)
                 free (buff);
-            
+
             break;
         }
         default:
@@ -613,13 +613,13 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
                 header->len_buff = strlen(cell->data.header.text);
             else
                 header->len_buff = 0;
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
         if (header->len_buff != 0)
         {
             data->style = cell->style;
             data->mask = cell->mask;
-            strncpy(header->buff , 
+            strncpy(header->buff ,
                     cell->data.header.text,
                     header->len_buff);
             header->buff[header->len_buff] = '\0';
@@ -627,7 +627,7 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
             data->color_bg = cell->data.header.color_bg;
             data->color_fg = cell->data.header.color_fg;
             header->len_buff = strlen(cell->data.header.text);
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
     }
     else if ((data->style & GV_TYPE_MASK) == GV_TYPE_TEXT)
@@ -647,11 +647,11 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
                 text->len_buff = strlen(cell->data.text.text);
             else
                 text->len_buff = 0;
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
         if (text->len_buff != 0)
         {
-            strncpy(text->buff , 
+            strncpy(text->buff ,
                     cell->data.text.text,
                     text->len_buff);
             text->buff[text->len_buff] = '\0';
@@ -660,7 +660,7 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
             data->color_bg = cell->data.text.color_bg;
             data->color_fg = cell->data.text.color_fg;
             text->len_buff = strlen(cell->data.text.text);
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
     }
     else if((data->style & GV_TYPE_MASK) == GV_TYPE_NUMBER)
@@ -681,11 +681,11 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
                 number->len_format = strlen(cell->data.number.format);
             else
                 number->len_format = 0;
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
         if (number->len_format > 0)
         {
-            strncpy(number->format, 
+            strncpy(number->format,
                     cell->data.number.format,
                     number->len_format);
             number->format[number->len_format] = '\0';
@@ -712,11 +712,11 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
                 selection->len_sel = strlen(cell->data.selection.text);
             else
                 selection->len_sel = 0;
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
         if (selection->len_sel != 0)
         {
-            strncpy(selection->selections, 
+            strncpy(selection->selections,
                     cell->data.selection.text,
                     selection->len_sel);
             selection->selections[selection->len_sel] = '\0';
@@ -726,7 +726,7 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
             data->color_fg = cell->data.selection.color_fg;
             selection->cur_index = cell->data.selection.cur_index;
             selection->len_sel = strlen(cell->data.selection.text);
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
     }
     else if((data->style & GV_TYPE_MASK) == GV_TYPE_CHECKBOX)
@@ -746,11 +746,11 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
                 checkbox->len_text = strlen(cell->data.checkbox.text);
             else
                 checkbox->len_text = 0;
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
         if (checkbox->len_text != 0)
         {
-            strncpy(checkbox->text, 
+            strncpy(checkbox->text,
                     cell->data.checkbox.text,
                     checkbox->len_text);
             checkbox->text[checkbox->len_text] = '\0';
@@ -758,7 +758,7 @@ static int fetch_cell_value(gvGridViewData* view, GRIDCELLDATA* data, int row, i
             data->style = cell->style;
             data->mask = cell->mask;
             checkbox->len_text = strlen(cell->data.checkbox.text);
-            return GRID_OKAY; 
+            return GRID_OKAY;
         }
     }
     return GRID_ERR;
@@ -800,7 +800,7 @@ static void set_current_cell(gvGridViewData* view, int row, int col)
         InvalidateRect (view->hCtrl, &rect, FALSE);
         get_cell_rect(view, row, col, &rect);
         InvalidateRect (view->hCtrl, &rect, FALSE);
-        
+
         view->current_col = col;
         view->current_row = row;
 
@@ -820,7 +820,7 @@ static void set_highlight_cells_to(gvGridViewData* view, int row, int col)
 
     if(row <= 0 || col <= 0 || row > row_count || col > col_count)
         return;
-    
+
     r = view->highlight_cells.row;
     c = view->highlight_cells.column;
 
@@ -840,7 +840,7 @@ static int gvGridCellDep_add_dep_to_list(gvGridViewData* view, gvGridCellDepeden
 {
     gvGridCellDepedence *new_dep;
     new_dep = malloc(sizeof(gvGridCellDepedence));
-    memcpy(new_dep, dep, sizeof(gvGridCellDepedence)); 
+    memcpy(new_dep, dep, sizeof(gvGridCellDepedence));
     new_dep->next = NULL;
     view->depend_cur_id++;
     new_dep->id = view->depend_cur_id;
@@ -1067,14 +1067,14 @@ static int select_cell_mouse_move(gvGridViewData* view, int x, int y)
 {
     int row, col, r1, c1;
     RECT rect;
-    
+
     get_cell_from_xy(view, x, y, &row, &col);
     get_cell_rect (view, 0, 0, &rect);
 
     if (row == 0) {
         get_cell_from_xy(view, x, y + RECTH(rect), &r1, &c1);
         if (r1 != 1)
-            row = r1 -1;            
+            row = r1 -1;
     }
     if (col == 0) {
         get_cell_from_xy(view, x + RECTW(rect), y, &r1, &c1);
@@ -1091,12 +1091,12 @@ static int select_row_mouse_move(gvGridViewData* view, int x, int y)
     int begin_row, begin_col;
     int height;
     RECT rect;
-    
+
     get_cell_from_xy(view, x, y, &row, &col);
-    if (row < 0 || col < 0) 
+    if (row < 0 || col < 0)
         return -1;
     get_cell_rect (view, 0, 0, &rect);
-    
+
     if(row == 0) {
         row = 1;
     }
@@ -1115,9 +1115,9 @@ static int select_col_mouse_move(gvGridViewData* view, int x, int y)
     int begin_row, begin_col;
     int width;
     RECT rect;
-    
+
     get_cell_from_xy(view, x, y, &row, &col);
-    if (row < 0 || col < 0) 
+    if (row < 0 || col < 0)
         return -1;
     get_cell_rect (view, 0, 0, &rect);
     if(col == 0)
@@ -1144,7 +1144,7 @@ static int resize_row_mouse_down(gvGridViewData* view, int x, int y)
     LineEx (hdc, 0, y, RECTW(r), y);
     SetRasterOperation (hdc, oldrop);
     ReleaseDC (hdc);
-    
+
     view->drag_y = y;
     return 0;
 }
@@ -1162,13 +1162,13 @@ static int resize_col_mouse_down(gvGridViewData* view, int x, int y)
     LineEx (hdc, x, 0, x, RECTW(r));
     SetRasterOperation (hdc, oldrop);
     ReleaseDC (hdc);
-    
+
     view->drag_x = x;
     return 0;
 }
 
 static int resize_row_mouse_up(gvGridViewData* view, int x, int y)
-{   
+{
     HDC hdc;
     RECT r;
     RECT rect;
@@ -1181,12 +1181,12 @@ static int resize_row_mouse_up(gvGridViewData* view, int x, int y)
     LineEx (hdc, 0, view->drag_y, RECTW(r), view->drag_y);
     SetRasterOperation (hdc, oldrop);
     ReleaseDC (hdc);
-    
+
     if (y < view->drag_y) y = view->drag_y;
-    
+
     get_cell_rect (view, view->index_drag, 0, &rect);
     SendMessage (view->hCtrl, GRIDM_SETROWHEIGHT, view->index_drag, y-rect.top+2);
-    
+
     return 0;
 }
 
@@ -1221,7 +1221,7 @@ static int resize_col_mouse_up(gvGridViewData* view, int x, int y)
     LineEx (hdc, view->drag_x, 0, view->drag_x, RECTH(r));
     SetRasterOperation (hdc, oldrop);
     ReleaseDC (hdc);
-    
+
     if (x < view->drag_x) x = view->drag_x;
 
     get_cell_rect (view, 0, view->index_drag, &rect);
@@ -1243,20 +1243,20 @@ static int resize_row_mouse_move(gvGridViewData* view, int x, int y)
     RECT r1;
     RECT r2;
     int oldrop;
-    
+
     get_cell_rect (view, view->index_drag, 0, &r1);
-    if (y <= r1.top) 
+    if (y <= r1.top)
         return 0;
-    
+
     hdc = GetClientDC (view->hCtrl);
     GetClientRect (view->hCtrl, &r2);
     oldrop = SetRasterOperation (hdc, ROP_XOR);
-    SetPenColor (hdc, PIXEL_lightwhite); 
+    SetPenColor (hdc, PIXEL_lightwhite);
     LineEx (hdc, 0, view->drag_y, RECTW(r2), view->drag_y);
     LineEx (hdc, 0, y, RECTW(r2), y);
     SetRasterOperation (hdc, oldrop);
     ReleaseDC (hdc);
-    
+
     view->drag_y = y;
     return 0;
 }
@@ -1267,20 +1267,20 @@ static int resize_col_mouse_move(gvGridViewData* view, int x, int y)
     RECT r1;
     RECT r2;
     int oldrop;
-    
+
     get_cell_rect (view, 0, view->index_drag,  &r1);
-    if (x <= r1.left) 
+    if (x <= r1.left)
         return 0;
-    
+
     hdc = GetClientDC (view->hCtrl);
     GetClientRect (view->hCtrl, &r2);
     oldrop = SetRasterOperation (hdc, ROP_XOR);
-    SetPenColor (hdc, PIXEL_lightwhite); 
+    SetPenColor (hdc, PIXEL_lightwhite);
     LineEx (hdc, view->drag_x, 0, view->drag_x, RECTW(r2));
     LineEx (hdc, x, 0, x, RECTW(r2));
     SetRasterOperation (hdc, oldrop);
     ReleaseDC (hdc);
-    
+
     view->drag_x = x;
     return 0;
 }
@@ -1640,15 +1640,15 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             RECT rect;
 
             update_row_col_size(view);
-           
-            GetClientRect(hWnd, &rect); 
+
+            GetClientRect(hWnd, &rect);
             view->scrdata.visibleWidth = RECTW(rect);
             view->scrdata.visibleHeight = RECTH(rect);
-            view->scrdata.hScrollPageVal = RECTW(view->cells_rect); 
-            view->scrdata.vScrollPageVal =  RECTH(view->cells_rect); 
+            view->scrdata.hScrollPageVal = RECTW(view->cells_rect);
+            view->scrdata.vScrollPageVal =  RECTH(view->cells_rect);
             break;
         }
-            
+
         case MSG_PAINT:
         {
             int i, j;
@@ -1663,14 +1663,14 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             }
             row = view->modal->get_row_count(view);
             col = view->modal->get_col_count(view);
-            
+
             //draw cells
             for(i=1; i<=row; i++)
             {
                 for(j=1; j<=col; j++)
                     draw_cell(view, hWnd, hdc, i, j);
             }
-            
+
             //draw table header & row header
             j=0;
             for(i=0; i<=row; i++)
@@ -1727,7 +1727,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             BOOL is_capture;
             int x = LOSWORD (lParam);
             int y = HISWORD (lParam);
-        
+
             if(view->hEdit != HWND_INVALID)
             {
                 int row, col;
@@ -1823,7 +1823,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             RECT rect;
             int x = LOSWORD (lParam);
             int y = HISWORD (lParam);
-            
+
             GetClientRect(hWnd, &rect);
             if(view->hEdit != HWND_INVALID)
                 break;
@@ -1879,14 +1879,14 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                         break;
                     case SCANCODE_ENTER:
                         set_current_cell(view, view->current_row+1, view->current_col);
-                        set_highlight_cells(view, view->current_row, view->current_col, 1, 1);    
+                        set_highlight_cells(view, view->current_row, view->current_col, 1, 1);
                         break;
                     case SCANCODE_CURSORBLOCKUP:
                         if (lParam & KS_SHIFT)
                             set_highlight_cells_to(view, view->current_row-1, view->current_col);
                         else {
                             set_current_cell(view, view->current_row-1, view->current_col);
-                            set_highlight_cells(view, view->current_row, view->current_col, 1, 1);    
+                            set_highlight_cells(view, view->current_row, view->current_col, 1, 1);
                         }
                         break;
                     case SCANCODE_CURSORBLOCKDOWN:
@@ -1895,7 +1895,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                         }
                         else {
                             set_current_cell(view, view->current_row+1, view->current_col);
-                            set_highlight_cells(view, view->current_row, view->current_col, 1, 1);    
+                            set_highlight_cells(view, view->current_row, view->current_col, 1, 1);
                         }
                         break;
                     case SCANCODE_CURSORBLOCKLEFT:
@@ -1903,7 +1903,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                             set_highlight_cells_to(view, view->current_row, view->current_col-1);
                         else {
                             set_current_cell(view, view->current_row, view->current_col-1);
-                            set_highlight_cells(view, view->current_row, view->current_col, 1, 1);    
+                            set_highlight_cells(view, view->current_row, view->current_col, 1, 1);
                         }
                         break;
                     case SCANCODE_CURSORBLOCKRIGHT:
@@ -1951,9 +1951,9 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                             GetClientRect(view->hCtrl, &rect);
                             get_cell_rect (view, count, 0, &cell_rect);
 
-                            if (rect.bottom > cell_rect.bottom) 
+                            if (rect.bottom > cell_rect.bottom)
                                 get_cell_from_xy(view, cell_rect.left + 1, cell_rect.bottom - 1, &row, &col);
-                            else 
+                            else
                                 get_cell_from_xy(view, rect.left  -1, rect.bottom - 1, &row, &col);
 
                             SendMessage (view->hCtrl, MSG_VSCROLL, SB_PAGEDOWN, 0);
@@ -1975,9 +1975,9 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                             get_cell_from_xy(view, table->data.table.width,
                                              table->data.table.height,
                                              &row, &col);
-                            
+
                             SendMessage (view->hCtrl, MSG_VSCROLL, SB_PAGEUP, 0);
-                            
+
                             if (lParam & KS_SHIFT)
                                 set_highlight_cells_to(view, row, view->current_col);
                             else {
@@ -2043,9 +2043,9 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             int i, j;
             GRIDCELLS* cells = (GRIDCELLS*)wParam;
             GRIDCELLDATA* data = (GRIDCELLDATA*)lParam;
-            if (cells == NULL || data == NULL || data->content == NULL) 
+            if (cells == NULL || data == NULL || data->content == NULL)
                 return GRID_ERR;
-            
+
             for (i = 0; i<cells->height; i++)
             {
                 for (j = 0; j<cells->width; j++)
@@ -2062,7 +2062,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             gvGridCellDep_update_dep(view, cells);
             return 0;
         }
-        
+
         case GRIDM_GETCELLPROPERTY:
         {
             GRIDCELLS* cells = (GRIDCELLS*)wParam;
@@ -2071,7 +2071,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 return GRID_ERR;
             return fetch_cell_value(view, data, cells->row, cells->column);
         }
-        
+
         case GRIDM_ADDCOLUMN:
         {
             int index = wParam;
@@ -2080,12 +2080,12 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             gvGridCellData cell;
             RECT rect;
             RECT header_rect;
-            
+
             if(data != NULL
                     && ( (data->style & GV_TYPE_MASK) != GV_TYPE_HEADER
                         || data->content == NULL))
                 return GRID_ERR;
-            
+
             index = view->modal->add_new_col(view, index);
             if(index == -1)
                 return GRID_ERR;
@@ -2104,11 +2104,11 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             view->modal->set_value_at(view, 0, index, &cell);
 
             update_row_col_size(view);
-            
+
             get_cell_rect (view, 0, index, &rect);
-            
-            // Update column header default content, 
-            header_rect.bottom = rect.bottom; 
+
+            // Update column header default content,
+            header_rect.bottom = rect.bottom;
             header_rect.top = rect.top;
             header_rect.left = view->cells_rect.left;
             header_rect.right = view->cells_rect.right;
@@ -2118,7 +2118,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 InvalidateRect (hWnd, &header_rect, FALSE);
                 update_viewport (view, view->cells_rect.left, RECTW(rect), 0);
             }
-            if (rect.left > view->cells_rect.left && 
+            if (rect.left > view->cells_rect.left &&
                     rect.left < view->cells_rect.right) {
                 InvalidateRect (hWnd, &header_rect, FALSE);
                 update_viewport (view, rect.left, RECTW(rect), 0);
@@ -2127,8 +2127,8 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             // Change current col
             if (view->current_col >= index) {
                 set_highlight_cells(view, view->current_row, view->current_col, 1, 1);
-            }   
-            
+            }
+
             return GRID_OKAY;
         }
 
@@ -2138,14 +2138,14 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             int count;
             RECT rect;
             RECT header_rect;
-            
+
             count = view->modal->get_col_count(view);
             if(index >= count)
                 return GRID_ERR;
             if (count == 1) {
                 gvGridCellData *cell;
                 int row_count = view->modal->get_row_count(view);
-                
+
                 if (row_count > 1) {
                     int i;
                     for (i = 1; i < row_count; i++){
@@ -2163,22 +2163,22 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
             get_cell_rect (view, 0, index, &rect);
 
-            view->modal->delete_col(view, index);        
+            view->modal->delete_col(view, index);
 
             update_row_col_size(view);
 
-            // Update column header default content, 
-            header_rect.bottom = rect.bottom; 
+            // Update column header default content,
+            header_rect.bottom = rect.bottom;
             header_rect.top = rect.top;
             header_rect.left = view->cells_rect.left;
             header_rect.right = view->cells_rect.right;
-            
+
             // Change cols position
             if (rect.left <= view->cells_rect.left) {
                 InvalidateRect (hWnd, &header_rect, TRUE);
                 update_viewport (view, view->cells_rect.left, -RECTW(rect), 0);
             }
-            
+
             if (rect.left > view->cells_rect.left &&
                     rect.left <= view->cells_rect.right) {
                 InvalidateRect (hWnd, &header_rect, TRUE);
@@ -2200,8 +2200,8 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             gvGridCellData cell;
             RECT rect;
             RECT header_rect;
-            
-            if(data != NULL                    
+
+            if(data != NULL
                     && ( (data->style & GV_TYPE_MASK) != GV_TYPE_HEADER
                     ||  data->content == NULL))
                 return GRID_ERR;
@@ -2238,11 +2238,11 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 InvalidateRect (hWnd, &header_rect, TRUE);
                 update_viewport (view, rect.top, RECTH(rect), 1);
             }
-            
+
             if (view->current_row >= index) {
                 set_highlight_cells(view, view->current_row, view->current_col, 1, 1);
             }
-            
+
             return GRID_OKAY;
         }
 
@@ -2252,15 +2252,15 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             int count;
             RECT rect;
             RECT header_rect;
-            
+
             count = view->modal->get_row_count(view);
             if(index >= count)
                 return GRID_ERR;
-            
+
             if (count == 1) {
                 gvGridCellData *cell;
                 int col_count = view->modal->get_col_count(view);
-                
+
                 if (col_count > 1) {
                     int i;
                     for (i = 1; i < col_count; i++){
@@ -2275,9 +2275,9 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
                 return GRID_OKAY;
             }
-            
+
             get_cell_rect (view, index, 0, &rect);
-            
+
             view->modal->delete_row(view, index);
 
             update_row_col_size(view);
@@ -2322,7 +2322,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             int size, col, width;
             RECT up_rect;
             RECT re_rect;
-            
+
             col = (int) wParam;
             width = (int) lParam;
 
@@ -2339,9 +2339,9 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 col_head->data.header.size = width;
                 col_head->data.header.end_xy += size;
             }
-            
+
             get_cell_rect (view, 0, col, &up_rect);
-            
+
             update_row_col_size(view);
 
             if (up_rect.right >= view->cells_rect.left &&
@@ -2355,7 +2355,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
             if (up_rect.left < view->cells_rect.left)
                 update_viewport (view, view->cells_rect.left, size, 0);
-            
+
             break;
         }
 
@@ -2363,7 +2363,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         {
             int col = (int) lParam;
             gvGridCellData* col_head;
-            
+
             col_head = view->modal->get_value_at(view, 0, col);
             if (col_head == NULL)
                 return GRID_ERR;
@@ -2380,10 +2380,10 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             int size, row, height;
             RECT up_rect;
             RECT re_rect;
-            
+
             row = (int) wParam;
             height = (int) lParam;
-            
+
             row_head = view->modal->get_value_at(view, wParam, 0);
             if (row_head == NULL)
                 return -1;
@@ -2391,17 +2391,17 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             if (row == 0) {
                 size = height - row_head->data.table.height;
                 row_head->data.table.height = height;
-            } 
-            else {                
+            }
+            else {
                 size = height - row_head->data.header.size;
                 row_head->data.header.size = height;
                 row_head->data.header.end_xy += size;
             }
 
             get_cell_rect (view, row, 0, &up_rect);
-            
+
             update_row_col_size(view);
-            
+
             if (up_rect.top >= view->cells_rect.top &&
                     up_rect.top <= view->cells_rect.bottom) {
                 update_viewport (view, up_rect.bottom, size, 1);
@@ -2422,7 +2422,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         {
             int row = (int) lParam;
             gvGridCellData* row_head;
-            
+
             row_head = view->modal->get_value_at(view, row, 0);
             if (row_head == NULL)
                 return GRID_ERR;
@@ -2441,10 +2441,10 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             int i, j;
             RECT rect;
 
-            if (format == NULL || cells == NULL) 
+            if (format == NULL || cells == NULL)
                 break;
 
-            for (i = cells->row; i < cells->row + cells->height; ++i) 
+            for (i = cells->row; i < cells->row + cells->height; ++i)
             {
                 for (j = cells->column; j < cells->column + cells->width; ++j)
                 {
@@ -2498,7 +2498,7 @@ static LRESULT GridViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
         case GRIDM_DELDEPENDENCE:
         {
-            if (gvGridCellDep_delete_dep(view, wParam) == -1) 
+            if (gvGridCellDep_delete_dep(view, wParam) == -1)
                 return GRID_ERR;
             return GRID_OKAY;
         }

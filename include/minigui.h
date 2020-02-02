@@ -1364,7 +1364,7 @@ MG_EXPORT BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode,
  * \brief Move a client to the specified layer.
  *
  * This function moves a client specified by \a cli to other layer specified
- * \a dst_layer. 
+ * \a dst_layer.
  *
  * \param cli The identifier of the client.
  * \param dst_layer The pointer to the destination layer.

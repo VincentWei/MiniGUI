@@ -1,5 +1,13 @@
 #!/bin/bash
 
+tab2space() {
+    sed -i 's/\t/    /g' `find . -name '*.c'`
+    sed -i 's/\t/    /g' `find . -name '*.h'`
+
+    sed -i 's/\s\+$//g' `find . -name '*.c'`
+    sed -i 's/\s\+$//g' `find . -name '*.h'`
+}
+
 # templates
 # sed -i 's/\<AAA\>/__AAA/g' `grep AAA -rl include/ src/`
 # sed -i 's/\<AAA\>/__mgAAA/g' `grep AAA -rl include/ src/`
@@ -40,5 +48,7 @@
 
 # sed -i 's/\<sysres_init_inner_resource\>/__sysres_init_inner_resource/g' `grep sysres_init_inner_resource -rl include/ src/`
 # sed -i 's/\<sysres_get_system_res_path\>/__sysres_get_system_res_path/g' `grep sysres_get_system_res_path -rl include/ src/`
+
+tab2space
 
 exit 0

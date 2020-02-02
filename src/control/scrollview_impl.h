@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -125,7 +125,7 @@ MG_EXPORT LRESULT ScrollViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LP
 MG_EXPORT int     scrollview_init               (HWND hWnd, PSVDATA psv);
 MG_EXPORT void    scrollview_destroy            (PSVDATA psvdata);
 MG_EXPORT HSVITEM scrollview_add_item           (HWND hWnd, PSVDATA psvdata, HSVITEM hsvi, PSVITEMINFO pii, int *idx);
-MG_EXPORT HSVITEM scrollview_add_item_ex        (HWND hWnd, PSVDATA psvdata, HSVITEM hsvi, 
+MG_EXPORT HSVITEM scrollview_add_item_ex        (HWND hWnd, PSVDATA psvdata, HSVITEM hsvi,
                                                  HSVITEM nexthsvi, PSVITEMINFO pii, int *idx);
 MG_EXPORT int     scrollview_del_item           (HWND hWnd, PSVDATA psvdata, int nItem, HSVITEM hsvi);
 MG_EXPORT void    scrollview_reset_content      (HWND hWnd, PSVDATA psvdata);
@@ -249,7 +249,7 @@ static inline int scrollview_sort_items (PSVDATA psvdata, void* pfn, int fn_type
 {
     return mglist_sort_items ((MgList *)&psvdata->svlist, pfn, fn_type);
 }
-    
+
 static inline int scrollview_get_item_height (HSVITEM hsvi)
 {
     return ((PSVITEMDATA)hsvi)->nItemHeight;

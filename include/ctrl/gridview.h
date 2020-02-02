@@ -14,10 +14,10 @@
  * \file gridview.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: gridview.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -119,9 +119,9 @@ typedef struct _GRIDVIEWDATA
 #define GV_HALIGN_CENTER                        0x00000003
 /** Column text vertical top align */
 #define GV_VALIGN_TOP                           0x00000010
-/** Column text vertical bottom align */        
+/** Column text vertical bottom align */
 #define GV_VALIGN_BOTTOM                        0x00000020
-/** Column text vertical center align */        
+/** Column text vertical center align */
 #define GV_VALIGN_CENTER                        0x00000030
 
 /** Mask of horizontal align type */
@@ -165,7 +165,7 @@ typedef struct _GRIDVIEWDATA
 #define GVITEM_FGCOLOR                          0x0004
 #define GVITEM_FONT                             0x0008
 #define GVITEM_IMAGE                            0x0010
-#define GVITEM_MAINCONTENT                      0x0020 
+#define GVITEM_MAINCONTENT                      0x0020
 #define GVITEM_SIZE                             0x0040
 
 #define GVITEM_ALLCONTENT                       0x00FF
@@ -273,13 +273,13 @@ typedef struct _GRIDCELLDATA
     /** Mask of properties, can be OR'ed with following values:
      * Set or get a cell style
      * - GVITEM_STYLE\n
-     * Set or get a cell text color 
+     * Set or get a cell text color
      * - GVITEM_FGCOLOR\n
-     * Set or get a cell background color 
+     * Set or get a cell background color
      * - GVITEM_BGCOLOR\n
-     * Set or get a cell text font 
+     * Set or get a cell text font
      * - GVITEM_FONT\n
-     * Set or get a cell's image 
+     * Set or get a cell's image
      * - GVITEM_IMAGE\n
      * Set or get all of the content of a cell
      * - GVITEM_ALLCONTENT\n
@@ -310,9 +310,9 @@ typedef struct _GRIDCELLDATA
 
 /**
   * \def GRIDM_SETCELLPROPERTY
-  *  
-  * \brief An Application sends a GRIDM_SETCELLPROPERTY message to set the 
-  * cells' property in the grid control. 
+  *
+  * \brief An Application sends a GRIDM_SETCELLPROPERTY message to set the
+  * cells' property in the grid control.
   *
   * \code
   * GRIDM_SETCELLPROPERTY
@@ -320,7 +320,7 @@ typedef struct _GRIDCELLDATA
   * GRIDCELLDATA* celldata;
   *
   * wParam = (WPARAM)cells; // The cell(s) which you want to set it's(their) property
-  * lParam = (LPARAM)celldata; // The pointer of the property you want to set. 
+  * lParam = (LPARAM)celldata; // The pointer of the property you want to set.
   * \endcode
   *
   * \return Returns GRID_OKAY if successful, or GRID_ERR otherwise.
@@ -330,7 +330,7 @@ typedef struct _GRIDCELLDATA
 
 /**
   * \def GRIDM_GETCELLPROPERTY
-  * \brief An Application sends a GRIDM_GETCELLPROPERTY message to get a single 
+  * \brief An Application sends a GRIDM_GETCELLPROPERTY message to get a single
   * cell's property in the grid control.
   *
   * \code
@@ -339,7 +339,7 @@ typedef struct _GRIDCELLDATA
   * GRIDCELLDATA* celldata;
   *
   * wParam = (WPARAM)cell; // The cell(only for one cell now) which you want to get it's property
-  * lParam = (LPARAM)celldata; // The pointer of the property you want to get. 
+  * lParam = (LPARAM)celldata; // The pointer of the property you want to get.
   * \endcode
   *
   * \return Returns GRID_OKAY if successful, or GRID_ERR otherwise.
@@ -361,7 +361,7 @@ typedef struct _GRIDCELLDATA
   * int width;
   *
   * wParam = (WPARAM)index; // The index of the column which you want to set width.
-  * lParam = (LPARAM)width; // The width of the column you want to set. 
+  * lParam = (LPARAM)width; // The width of the column you want to set.
   * \endcode
   *
   * \return Returns GRID_OKAY if successful, or GRID_ERR otherwise.
@@ -379,13 +379,13 @@ typedef struct _GRIDCELLDATA
   * GRIDM_GETCOLWIDTH
   * int index;
   *
-  * wParam = 0; 
+  * wParam = 0;
   * lParam = (LPARAM)index; // The index of the column which you want to get width.
   * \endcode
   *
   * \return  The width of the column on success, otherwise -1.
   */
-#define  GRIDM_GETCOLWIDTH       0xF213 
+#define  GRIDM_GETCOLWIDTH       0xF213
 
 /**
   * \def GRIDM_SETROWHEIGHT
@@ -396,11 +396,11 @@ typedef struct _GRIDCELLDATA
   *
   * \code
   * GRIDM_SETROWHEIGHT
-  * int index 
+  * int index
   * int height;
   *
   * wParam = (WPARAM)index; // The index of the row which you want to set height.
-  * lParam = (LPARAM)height; //The height of the row you want to set. 
+  * lParam = (LPARAM)height; //The height of the row you want to set.
   * \endcode
   *
   * \return Returns GRID_OKAY if successful, or GRID_ERR otherwise.
@@ -418,7 +418,7 @@ typedef struct _GRIDCELLDATA
   * GRIDM_GETROWHEIGHT
   * int index ;
   *
-  * wParam = 0 
+  * wParam = 0
   * lParam = (LPARAM)index // The index of the row which you want to get height.
   * \endcode
   *
@@ -437,9 +437,9 @@ typedef struct _GRIDCELLDATA
   * GRIDM_ADDROW
   * int index;
   * GRIDCELLDATA* celldata;
-  * 
+  *
   * wParam = (WPARAM)index; // The index of the row which you want to add after it, zero base.
-  * lParam = (LPARAM)celldata; // The property which is setted to the new row. 
+  * lParam = (LPARAM)celldata; // The property which is setted to the new row.
   * \endcode
   *
   * \return Returns GRID_OKAY if successful, or GRID_ERR otherwise.
@@ -457,7 +457,7 @@ typedef struct _GRIDCELLDATA
   * GRIDM_DELROW
   * int index;
   *
-  * wParam = 0; 
+  * wParam = 0;
   * lParam = index; // The index of the row which you want to delete.
   * \endcode
   *
@@ -475,9 +475,9 @@ typedef struct _GRIDCELLDATA
   * GRIDM_ADDCOLUMN
   * int index;
   * GRIDCELLDATA* celldata;
-  * 
+  *
   * wParam = (WPARAM)index; // The index of the column which you want to add after it, zero base.
-  * lParam = (LPARAM)celldata; // The property which is setted to the new column. 
+  * lParam = (LPARAM)celldata; // The property which is setted to the new column.
   * \endcode
   *
   * \return Returns GRID_OKAY if successful, or GRID_ERR otherwise.
@@ -543,7 +543,7 @@ typedef struct _GRIDCELLDATA
  *
  * \code
  * GRIDCELLS cells;
- * char* format 
+ * char* format
  *
  * GRIDM_SETNUMFORMAT
  *
@@ -668,19 +668,19 @@ typedef struct _GRIDCELLDATA
 #define  GRIDN_KEYDOWN         3
 /**
  * \def GRIDN_CELLDBCLK
- * \brief This notification code informs a application when the current selected cell 
+ * \brief This notification code informs a application when the current selected cell
  *        has be double clicked.
  */
 #define  GRIDN_CELLDBCLK       4
 /**
  * \def GRIDN_CELLCLK
- * \brief This notification code informs a application when the current selected cell 
+ * \brief This notification code informs a application when the current selected cell
  *        has been clicked.
  */
 #define  GRIDN_CELLCLK         5
 /**
  * \def GRIDN_FOCUSCHANGED
- * \brief This notification code informs a application when the current selected item 
+ * \brief This notification code informs a application when the current selected item
  *        has changed.
  */
 #define  GRIDN_FOCUSCHANGED    6

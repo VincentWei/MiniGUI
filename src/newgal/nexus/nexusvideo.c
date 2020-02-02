@@ -11,46 +11,46 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id$
-**  
+**
 **  Copyright (C) 2003 ~ 2009 Feynman Software.
 **  Copyright (C) 2001 ~ 2002 Wei Yongming.
 */
 
-/* NEXUS GAL video driver implementation; 
+/* NEXUS GAL video driver implementation;
  */
 
 #include <stdio.h>
@@ -95,7 +95,7 @@ static int NEXUS_AllocHWSurface(_THIS, GAL_Surface * surface);
 static void NEXUS_FreeHWSurface(_THIS, GAL_Surface * surface);
 static int NEXUS_FillHWRect(_THIS, GAL_Surface * dst, GAL_Rect * rect,
                             Uint32 color);
-static void NEXUS_UpdateSurfaceRects(_THIS, GAL_Surface* surface, 
+static void NEXUS_UpdateSurfaceRects(_THIS, GAL_Surface* surface,
         int numrects, GAL_Rect *rects);
 static int NEXUS_CheckHWBlit(_THIS, GAL_Surface * src, GAL_Surface * dst);
 
@@ -187,7 +187,7 @@ NEXUS_HWAccelBlit(GAL_Surface * src, GAL_Rect * srcrect, GAL_Surface * dst,
         alpha_src = src->format->alpha;
     }
 
-    return NexusPrivate_BitBlitEx(NULL, 
+    return NexusPrivate_BitBlitEx(NULL,
             (NexusPrivate_HWSurface_hwdata *) src->hwdata,
             srcrect->x, srcrect->y, srcrect->w, srcrect->h,
             (NexusPrivate_HWSurface_hwdata *) dst->hwdata,
@@ -207,7 +207,7 @@ NEXUS_CheckHWBlit(_THIS, GAL_Surface * src, GAL_Surface * dst)
     // only supported the hw surface accelerated.
     if (!(src->flags & GAL_HWSURFACE) || !(dst->flags & GAL_HWSURFACE))
     {
-        printf("src(%s) dst(%s)\n", 
+        printf("src(%s) dst(%s)\n",
                 (src->flags & GAL_HWSURFACE) ? "HW" : "SW",
                 (dst->flags & GAL_HWSURFACE) ? "HW" : "SW");
         return -1;
@@ -469,7 +469,7 @@ NEXUS_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color * colors)
     return (1);
 }
 
-static void 
+static void
 NEXUS_UpdateSurfaceRects(_THIS, GAL_Surface* surface, int numrects, GAL_Rect *rects)
 {
     NexusPrivate_Flush(this, (NexusPrivate_HWSurface_hwdata *) surface->hwdata);

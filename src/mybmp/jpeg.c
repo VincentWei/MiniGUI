@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** jpg.c: Low-level JPEG file read/save routines.
-** 
+**
 ** Current maintainer: Wei Yongming
 **
 ** 2018-09-4
@@ -302,7 +302,7 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     Uint16 soi_marker;
 
     /* This struct contains the JPEG decompression parameters
-     * and pointers to working space 
+     * and pointers to working space
      * (which is allocated as needed by the JPEG library).
      */
     struct jpeg_decompress_struct *cinfo;
@@ -310,7 +310,7 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     jpeg_init_info_t* init_info;
 
     if (!read_be16(fp,&soi_marker) || JMK_SOI != soi_marker)
-    	goto err; /* not JPEG image*/
+        goto err; /* not JPEG image*/
 
     MGUI_RWseek (fp, 0, SEEK_SET);
 
@@ -349,7 +349,7 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     /* Step 3: read file parameters with jpeg_read_header() */
     if(JPEG_HEADER_OK != jpeg_read_header (cinfo, TRUE))
     {
-    	longjmp (jerr->setjmp_buffer, 1);
+        longjmp (jerr->setjmp_buffer, 1);
     }
 
     /* Step 4: set parameters for decompression */
@@ -359,10 +359,10 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     if (!(mybmp->flags & MYBMP_LOAD_GRAYSCALE)) {
         if (mybmp->depth <= 8) {
             cinfo->quantize_colors = TRUE;
-    
+
             /* Get system palette */
             cinfo->actual_number_of_colors = 0x01 << mybmp->depth;
-    
+
             /* Allocate jpeg colormap space */
             cinfo->colormap = (*cinfo->mem->alloc_sarray)
                 ((j_common_ptr) cinfo, JPOOL_IMAGE,

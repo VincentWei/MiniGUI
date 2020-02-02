@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -53,7 +53,7 @@
 
 #include "common.h"
 
-#ifdef _MGGAL_SHADOW 
+#ifdef _MGGAL_SHADOW
 
 #include "minigui.h"
 #include "newgal.h"
@@ -229,7 +229,7 @@ static void a_refresh_cw (_THIS, const RECT* update)
                 break;
         }
 
-        ecoslcd_info.put_one_line (ecoslcd_info.a_line, dst_line, 
+        ecoslcd_info.put_one_line (ecoslcd_info.a_line, dst_line,
                         dst_update.left, dst_width);
 
         src_bits += ecoslcd_info.Bpp;
@@ -283,7 +283,7 @@ static void a_refresh_ccw (_THIS, const RECT* update)
 
     /* Copy the bits from Shadow FrameBuffer to console FrameBuffer */
     src_bits = this->hidden->fb;
-    src_bits += src_update.top * this->hidden->pitch 
+    src_bits += src_update.top * this->hidden->pitch
                 + src_update.left * ecoslcd_info.Bpp;
 
     dst_line = ecoslcd_info.fb + (dst_update.bottom - 1) * ecoslcd_info.rlen;
@@ -331,7 +331,7 @@ static void a_refresh_ccw (_THIS, const RECT* update)
 
         }
 
-        ecoslcd_info.put_one_line (ecoslcd_info.a_line, dst_line, 
+        ecoslcd_info.put_one_line (ecoslcd_info.a_line, dst_line,
                         dst_update.left, dst_width);
 
         src_bits += ecoslcd_info.Bpp;
@@ -470,7 +470,7 @@ static int a_init (void)
 static int a_release (void)
 {
     /* TODO: reset hw palette */
-  
+
     if (ecoslcd_info.a_line) {
         free (ecoslcd_info.a_line);
         ecoslcd_info.a_line = NULL;

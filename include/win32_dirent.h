@@ -14,12 +14,12 @@
  * \file win32_dirent.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  * \brief This file includes dir entries APIs on Win32 platform.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -56,8 +56,8 @@
 
 /*
  * $Id: minigui.h 13674 2010-12-06 06:45:01Z wanzheng $
- * 
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 #ifndef _DIRENT_WIN32_
@@ -66,11 +66,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 #define DLL_EXPORT    __declspec(dllexport)
 #include <stdio.h>
 #include <time.h>
-    
+
 typedef int ff_t;
 typedef int mode_t;
 typedef int dev_t;
@@ -86,7 +86,7 @@ struct dirent
     ff_t d_off;
     signed short int d_reclen;
     unsigned char d_type;
-    char d_name[256];    
+    char d_name[256];
 };
 
 #define S_ISLNK(st_mode) ((st_mode) & 0020000) ? 1 : 0

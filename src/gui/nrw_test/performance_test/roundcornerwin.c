@@ -11,39 +11,39 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-/* 
+/*
    $Id: roundcornerwin.c 9578 2008-02-29 07:32:26Z wangjian $
 ******************************************************************************
 
@@ -86,7 +86,7 @@
 #define DEFAULT_GENTIME      200   /* msec */
 #define DEFAULT_MAXSIZE      100   /* percent */
 #define DEFAULT_CLUSTERSIZE  100   /* percent */
-#define DEFAULT_SPEED        30 
+#define DEFAULT_SPEED        30
 
 /* Global Info */
 
@@ -210,7 +210,7 @@ static void translate_hline(HDC hdc, int x, int y, int w, gal_uint8 *data)
         }
         break;
     }
-    
+
     bmp.bmBitsPerPixel = GetGDCapability (hdc, GDCAP_DEPTH);
     bmp.bmBytesPerPixel = GetGDCapability (hdc, GDCAP_BPP);
     bmp.bmPitch = w;
@@ -225,10 +225,10 @@ static void update_frame(HDC hdc)
         BITMAP bmp = {BMP_TYPE_NORMAL};
         bmp.bmBitsPerPixel = GetGDCapability (hdc, GDCAP_DEPTH);
         bmp.bmBytesPerPixel = GetGDCapability (hdc, GDCAP_BPP);
-    	bmp.bmPitch = screen_width;
-    	bmp.bmWidth = screen_width;
+        bmp.bmPitch = screen_width;
+        bmp.bmWidth = screen_width;
         bmp.bmHeight = screen_height;
-    	bmp.bmBits = image_buf;
+        bmp.bmBits = image_buf;
         FillBoxWithBitmap (hdc, 0, 0, 0, 0, &bmp);
     } else {
         int y;
@@ -251,13 +251,13 @@ static void free_textures(void)
     Texture *t;
 
         while (texture_list != NULL) {
-        
+
         t = texture_list;
         texture_list = t->succ;
-        
+
         free(t);
     }
-    
+
 }
 
 static void add_texture(int x, int y, gal_uint8 color)
@@ -302,9 +302,9 @@ static void render_texture(int width, int height, Texture *t)
                         dest = image_buf;
                         dest += ((sy>>16) * screen_width);
 
-                        for (x=0, sx=bx; (*pos != 0) && (sx < width); 
+                        for (x=0, sx=bx; (*pos != 0) && (sx < width);
                  x++, pos++, sx += dx) {
-            
+
                                 if ((sx >= 0) && (*pos == '#'))
                                 {
                                         dest[sx>>16] = t->color;
@@ -321,7 +321,7 @@ static void update_texture(Texture *t, Texture ***prev_ptr, int millis)
         t->size = t->millis * t->speed;
 
         if (t->size > max_size) {
-                
+
                 /* remove texture */
 
                 **prev_ptr = t->succ;
@@ -390,7 +390,7 @@ static void InitFlyingGUI (void)
         cluster_size = DEFAULT_CLUSTERSIZE;
     }
 
-    
+
     setup_palette();
 
     screen_width  = 320;
@@ -517,11 +517,11 @@ static void InitCreateInfo (PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor (0);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = FlyingGUIWinProc;
-    pCreateInfo->lx = 200; 
-    pCreateInfo->ty = 50; 
+    pCreateInfo->lx = 200;
+    pCreateInfo->ty = 50;
     pCreateInfo->rx = pCreateInfo->lx + DEFAULT_WIDTH;
     pCreateInfo->by = pCreateInfo->ty + DEFAULT_HEIGHT;
-    pCreateInfo->iBkColor = COLOR_black; 
+    pCreateInfo->iBkColor = COLOR_black;
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }
@@ -545,7 +545,7 @@ int MiniGUIMain (int args, const char* arg[])
 
     GetLayerInfo (layer, NULL, NULL, NULL);
 
-    if (JoinLayer (layer, arg[0], 
+    if (JoinLayer (layer, arg[0],
                     0, 0) == INV_LAYER_HANDLE) {
         printf ("JoinLayer: invalid layer handle.\n");
         exit (1);

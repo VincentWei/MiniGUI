@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -171,18 +171,18 @@ static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
         HWND timeedit, spin;
         SIZE size;
 
-        CreateWindow (CTRL_STATIC, 
+        CreateWindow (CTRL_STATIC,
                         "This is a time editor.\n\n"
                         "Pressing <Down-Arrow>, <Up-Arrow>, <PgDn>, and <PgUp> keys"
                         " when the box have input focus will change the time.\n\n"
                         "You can also change the time by clicking the SpinBox.\n",
-                        WS_CHILD | WS_VISIBLE | SS_LEFT, 
-                        IDC_STATIC, 
+                        WS_CHILD | WS_VISIBLE | SS_LEFT,
+                        IDC_STATIC,
                         10, 10, 380, 200, hWnd, 0);
 
-        timefont = CreateLogFont (NULL, "Arial", "ISO8859-1", 
+        timefont = CreateLogFont (NULL, "Arial", "ISO8859-1",
                         FONT_WEIGHT_REGULAR, FONT_SLANT_ROMAN, FONT_SETWIDTH_NORMAL,
-                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE, 
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE,
                         30, 0);
 
         hdc = GetClientDC (hWnd);
@@ -190,20 +190,20 @@ static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
         GetTextExtent (hdc, "00:00:00", -1, &size);
         ReleaseDC (hdc);
 
-        timeedit = CreateWindow (CTRL_SLEDIT, 
-                        "00:00:00", 
-                        WS_CHILD | WS_VISIBLE | ES_BASELINE, 
-                        IDC_EDIT, 
+        timeedit = CreateWindow (CTRL_SLEDIT,
+                        "00:00:00",
+                        WS_CHILD | WS_VISIBLE | ES_BASELINE,
+                        IDC_EDIT,
                         120, 220, size.cx + 4, size.cy + 4, hWnd, 0);
 
         SetWindowFont (timeedit, timefont);
         old_edit_proc = SetWindowCallbackProc (timeedit, TimeEditBox);
 
-        spin = CreateWindowEx (CTRL_SPINBOX, 
-                        "", 
-                        WS_CHILD | WS_VISIBLE, 
+        spin = CreateWindowEx (CTRL_SPINBOX,
+                        "",
+                        WS_CHILD | WS_VISIBLE,
                         WS_EX_NONE,
-                        IDC_SPINBOX, 
+                        IDC_SPINBOX,
                         120 + size.cx + 6, 220 + (size.cy + 4 - 14) / 2, 0, 0, hWnd, 0);
         SendMessage (spin, SPM_SETTARGET, 0, timeedit);
         break;
@@ -213,7 +213,7 @@ static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
         DestroyAllControls (hWnd);
         DestroyLogFont (timefont);
         hMainWnd = HWND_INVALID;
-	return 0;
+    return 0;
 
     case MSG_CLOSE:
         DestroyMainWindow (hWnd);
@@ -233,7 +233,7 @@ static void InitCreateInfo(PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor(0);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = ControlTestWinProc;
-    pCreateInfo->lx = 0; 
+    pCreateInfo->lx = 0;
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 400;
     pCreateInfo->by = 300;

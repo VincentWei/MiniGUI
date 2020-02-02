@@ -14,10 +14,10 @@
  * \file trackbar.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: trackbar.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_TRACKBAR
 #define _MGUI_CTRL_TRACKBAR
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,7 +96,7 @@ extern "C" {
 
 /**
  * \def TBS_NOTIFY
- * \brief Causes the trackbar to notify the parent window with a notification message 
+ * \brief Causes the trackbar to notify the parent window with a notification message
  *         when the user clicks or doubleclicks the trackbar.
  */
 #define TBS_NOTIFY                 0x0001L
@@ -137,7 +137,7 @@ extern "C" {
 
 /**
  * \def TBM_SETRANGE
- * \brief Sets the range of minimum and maximum logical positions for the 
+ * \brief Sets the range of minimum and maximum logical positions for the
  *         slider in a trackbar.
  *
  * \code
@@ -253,8 +253,8 @@ extern "C" {
  *         input from page keys..
  *
  * Sets the number of logical positions the trackbar's slider moves in response
- * to keyboard input form page keys, such as PAGE DOWN or PAGE UP keys. The 
- * logical positions are the integer increments in the trackbar's range of 
+ * to keyboard input form page keys, such as PAGE DOWN or PAGE UP keys. The
+ * logical positions are the integer increments in the trackbar's range of
  * minimum to maximum slider positions.
  *
  * \code
@@ -277,8 +277,8 @@ extern "C" {
  *        input from page keys..
  *
  * Gets the number of logical positions the trackbar's slider moves in response
- * to keyboard input form page keys, such as PAGE DOWN or PAGE UP keys. The 
- * logical positions are the integer increments in the trackbar's range of 
+ * to keyboard input form page keys, such as PAGE DOWN or PAGE UP keys. The
+ * logical positions are the integer increments in the trackbar's range of
  * minimum to maximum slider positions.
  *
  * \code
@@ -466,7 +466,7 @@ extern "C" {
 /**
  * \def LFRDR_TBS_PRESSED
  * \brief indicate left button down
- */ 
+ */
 #define LFRDR_TBS_PRESSED        0x0100L
 
 /**

@@ -14,15 +14,15 @@
  * \file endianrw.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
- * \brief This file includes functions for reading and writing data 
+ *
+ * \brief This file includes functions for reading and writing data
  *        from general sources, such as file, memory, etc., and also
- *        includes functions for reading and writing endian-specific 
+ *        includes functions for reading and writing endian-specific
  *        values.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -59,8 +59,8 @@
 
 /*
  * $Id: endianrw.h 11349 2009-03-02 05:00:43Z weiym $
- * 
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
  *      The idea comes from LGPL'ed SDL by Sam Lantinga.
@@ -90,8 +90,8 @@ extern "C" {
     /**
      * \defgroup general_rw_fns General read/write operations
      *
-     * MiniGUI's general read/write operation provides a general interface 
-     * to read from and write to various data source, such as files, memory, 
+     * MiniGUI's general read/write operation provides a general interface
+     * to read from and write to various data source, such as files, memory,
      * and so on.
      *
      * @{
@@ -124,7 +124,7 @@ typedef struct _MG_RWops {
      * pointed at by \a ptr to data source.
      * Returns \a num, or -1 if the write failed.
      */
-    int (*write)(struct _MG_RWops *context, const void *ptr, int objsize, 
+    int (*write)(struct _MG_RWops *context, const void *ptr, int objsize,
                     int num);
 
 #ifdef _MGUSE_OWN_STDIO
@@ -175,7 +175,7 @@ typedef struct _MG_RWops {
  * \brief Creates an MG_RWops object from a file.
  *
  * This function uses the mode specified by \a mode and opens the file \a file
- * by using stdio function \a fopen. If success, this function creates a 
+ * by using stdio function \a fopen. If success, this function creates a
  * MG_RWops object and returns it.
  *
  * \param file The file name.
@@ -190,11 +190,11 @@ MG_EXPORT MG_RWops* MGUI_RWFromFile(const char *file, const char *mode);
  * \fn MG_RWops* MGUI_RWFromFP(FILE *fp, int autoclose)
  * \brief Creates an MG_RWops object from an opened stdio FILE object.
  *
- * This function uses an opened stdio FILE object \a fp to create a 
+ * This function uses an opened stdio FILE object \a fp to create a
  * MG_RWops object.
  *
  * \param fp The opened stdio FILE object.
- * \param autoclose Indicates whether to close the FILE object when \a 
+ * \param autoclose Indicates whether to close the FILE object when \a
  *        close method is called.
  * \return The pointer to created MG_RWops structure, NULL indicates error.
  *
@@ -206,7 +206,7 @@ MG_EXPORT MG_RWops* MGUI_RWFromFP(FILE *fp, int autoclose);
  * \fn MG_RWops* MGUI_RWFromMem(void *mem, int size)
  * \brief Creates an MG_RWops object from a block of memory.
  *
- * This function creates an MG_RWops object from a block of memory pointed to 
+ * This function creates an MG_RWops object from a block of memory pointed to
  * by \a mem, which is \a size bytes long.
  *
  * \param mem The pointer to the memory block.
@@ -222,7 +222,7 @@ MG_EXPORT MG_RWops* MGUI_RWFromMem(void *mem, size_t size);
  * \fn void MGUI_InitMemRW (MG_RWops* area, void *mem, int size)
  * \brief Initializes an MG_RWops object from a block of memory.
  *
- * This function initializes an MG_RWops object pointed to by \a area 
+ * This function initializes an MG_RWops object pointed to by \a area
  * from a block of memory pointed to by \a mem, which is \a size bytes long.
  *
  * \param area The pointer to the MG_RWops object.
@@ -239,7 +239,7 @@ MG_EXPORT void MGUI_InitMemRW (MG_RWops* area, void *mem, size_t size);
  * \fn MG_RWops* MGUI_AllocRW(void)
  * \brief Allocates an uninitialized MG_RWops object.
  *
- * This function allocates an uninitialized MG_RWops object. You can specify the 
+ * This function allocates an uninitialized MG_RWops object. You can specify the
  * fields of the structure, and implemente a customized MG_RWops object.
  *
  * \return The pointer to allocated MG_RWops structure, NULL indicates error.
@@ -287,7 +287,7 @@ MG_EXPORT void MGUI_FreeRW(MG_RWops *area);
  * \def MGUI_RWtell(ctx)
  * \brief Obtains the current value of the position indicator for a data source.
  *
- * This macro obtains the current value of the position indicator for the 
+ * This macro obtains the current value of the position indicator for the
  * data source pointed to by \a ctx.
  *
  * \param ctx The pointer to the MG_RWops object.
@@ -340,7 +340,7 @@ MG_EXPORT void MGUI_FreeRW(MG_RWops *area);
  *
  * \param ctx The pointer to the MG_RWops object.
  *
- * \return Upon successful completion 0 is returned, 
+ * \return Upon successful completion 0 is returned,
  *         otherwise non-zero on error.
  *
  * \sa MGUI_RWread
@@ -351,7 +351,7 @@ MG_EXPORT void MGUI_FreeRW(MG_RWops *area);
  * \def MGUI_RWeof(ctx)
  * \brief Tests the end-of-file indicator for an data source.
  *
- * This macro tests the end-of-file indicator for the data source pointed to 
+ * This macro tests the end-of-file indicator for the data source pointed to
  * by \a ctx.
  *
  * \param ctx The pointer to the MG_RWops object.
@@ -366,8 +366,8 @@ MG_EXPORT void MGUI_FreeRW(MG_RWops *area);
  * \fn int MGUI_RWgetc (MG_RWops* area)
  * \brief Reads the next character from an data source.
  *
- * This function reads the next character from the data source pointed to 
- * by \a area, and returns it as an \a unsigned char cast to an \a int, 
+ * This function reads the next character from the data source pointed to
+ * by \a area, and returns it as an \a unsigned char cast to an \a int,
  * or \a EOF on end of file or error.
  *
  * \param area The pointer to the MG_RWops object.
@@ -386,7 +386,7 @@ MG_EXPORT int MGUI_RWgetc (MG_RWops* area);
      * \defgroup endian_rw_fns Endian specific read/write interfaces
      *
      * The endian specific read/write functions read and write data
-     * of the specified endianness, dynamically translating to 
+     * of the specified endianness, dynamically translating to
      * the host machine endianness.
      *
      * e.g.: If you want to read a 16 bit value on big-endian machine from
@@ -565,7 +565,7 @@ extern Uint64 MGUI_ReadBE64(MG_RWops *src);
 
 /**
  * \fn int MGUI_WriteLE16(MG_RWops *src, Uint16 value)
- * \brief Writes an 16-bit integer of native format to a MG_RWops object 
+ * \brief Writes an 16-bit integer of native format to a MG_RWops object
  *        in littlen endianness.
  *
  * This function writes a 16-bit integer of native format to the data source
@@ -581,7 +581,7 @@ extern int MGUI_WriteLE16(MG_RWops *dst, Uint16 value);
 
 /**
  * \fn int MGUI_WriteBE16(MG_RWops *src, Uint16 value)
- * \brief Writes an 16-bit integer of native format to a MG_RWops object 
+ * \brief Writes an 16-bit integer of native format to a MG_RWops object
  *        in big endianness.
  *
  * This function writes a 16-bit integer of native format to the data source
@@ -597,7 +597,7 @@ extern int MGUI_WriteBE16(MG_RWops *dst, Uint16 value);
 
 /**
  * \fn int MGUI_WriteLE32(MG_RWops *src, Uint32 value)
- * \brief Writes an 32-bit integer of native format to a MG_RWops object 
+ * \brief Writes an 32-bit integer of native format to a MG_RWops object
  *        in littlen endianness.
  *
  * This function writes a 32-bit integer of native format to the data source
@@ -613,7 +613,7 @@ extern int MGUI_WriteLE32(MG_RWops *dst, Uint32 value);
 
 /**
  * \fn int MGUI_WriteBE32(MG_RWops *src, Uint32 value)
- * \brief Writes an 32-bit integer of native format to a MG_RWops object 
+ * \brief Writes an 32-bit integer of native format to a MG_RWops object
  *        in big endianness.
  *
  * This function writes a 32-bit integer of native format to the data source
@@ -629,7 +629,7 @@ extern int MGUI_WriteBE32(MG_RWops *dst, Uint32 value);
 
 /**
  * \fn int MGUI_WriteLE64(MG_RWops *src, Uint64 value)
- * \brief Writes an 64-bit integer of native format to a MG_RWops object 
+ * \brief Writes an 64-bit integer of native format to a MG_RWops object
  *        in littlen endianness.
  *
  * This function writes a 64-bit integer of native format to the data source
@@ -645,7 +645,7 @@ extern int MGUI_WriteLE64(MG_RWops *dst, Uint64 value);
 
 /**
  * \fn int MGUI_WriteBE64(MG_RWops *src, Uint64 value)
- * \brief Writes an 64-bit integer of native format to a MG_RWops object 
+ * \brief Writes an 64-bit integer of native format to a MG_RWops object
  *        in big endianness.
  *
  * This function writes a 64-bit integer of native format to the data source
@@ -663,7 +663,7 @@ extern int MGUI_WriteBE64(MG_RWops *dst, Uint64 value);
  * \fn Uint16 MGUI_ReadLE16FP(FILE *src)
  * \brief Reads a 16-bit little endian integer from a stdio FILE object.
  *
- * This function reads a 16-bit little endian integer from the stdio 
+ * This function reads a 16-bit little endian integer from the stdio
  * FILE object pointed to by \a src, and return it in native format.
  *
  * \param src The pointer to the stdio FILE object.
@@ -677,7 +677,7 @@ extern Uint16 MGUI_ReadLE16FP(FILE *src);
  * \fn Uint32 MGUI_ReadLE32FP(FILE *src)
  * \brief Reads a 32-bit little endian integer from a stdio FILE object.
  *
- * This function reads a 32-bit little endian integer from the stdio 
+ * This function reads a 32-bit little endian integer from the stdio
  * FILE object pointed to by \a src, and return it in native format.
  *
  * \param src The pointer to the stdio FILE object.
@@ -689,10 +689,10 @@ extern Uint32 MGUI_ReadLE32FP(FILE *src);
 
 /**
  * \fn int MGUI_WriteLE16FP(FILE *dst, Uint16 value)
- * \brief Writes an 16-bit integer of native format to a stdio FILE object 
+ * \brief Writes an 16-bit integer of native format to a stdio FILE object
  *        in littlen endianness.
  *
- * This function writes a 16-bit integer of native format to the stdio 
+ * This function writes a 16-bit integer of native format to the stdio
  * FILE object pointed to by \a src in littlen endiannes.
  *
  * \param dst The pointer to the MG_RWops object.
@@ -705,10 +705,10 @@ extern int MGUI_WriteLE16FP(FILE *dst, Uint16 value);
 
 /**
  * \fn int MGUI_WriteLE32FP(FILE *dst, Uint32 value)
- * \brief Writes an 32-bit integer of native format to a stdio FILE object 
+ * \brief Writes an 32-bit integer of native format to a stdio FILE object
  *        in littlen endianness.
  *
- * This function writes a 32-bit integer of native format to the stdio 
+ * This function writes a 32-bit integer of native format to the stdio
  * FILE object pointed to by \a src in littlen endiannes.
  *
  * \param dst The pointer to the MG_RWops object.
