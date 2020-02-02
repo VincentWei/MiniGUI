@@ -393,9 +393,9 @@ char * __mg_msgstr3 [] =
     "MSG_TIMER",              // 0x0144
     "MSG_CARETBLINK",         // 0x0145
     "MSG_FDEVENT",            // 0x0146
-    "",                       // 0x0147
-    "",                       // 0x0148
-    "",                       // 0x0149
+    "MSG_SRVNOTIFY",          // 0x0147
+    "MSG_UPDATECLIWIN",       // 0x0148
+    "MSG_LAYERCHANGED",       // 0x0149
     "",                       // 0x014A
     "",                       // 0x014B
     "",                       // 0x014C
