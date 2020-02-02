@@ -823,7 +823,7 @@ extern MG_EXPORT ON_CHANGE_LAYER OnChangeLayer;
  * \var ON_ZNODE_OPERATION OnZNodeOperation
  * \brief Sets to a function to handle events of z-node.
  *
- * After the server does an operation on a znode, MiniGUI will call
+ * After the server does an operation on a z-node, MiniGUI will call
  * this function to tell you the event and the layer, the client, and
  * the z-node which leads to the event.
  *
@@ -857,7 +857,7 @@ extern MG_EXPORT ON_CHANGE_LAYER OnChangeLayer;
  * The event will be passed through the argument of \a op; the
  * pointers to the layer, the identifier of the client, and the index of
  * the z-node will be passed through the argument of \a layer, \a cli,
- * and \a idx_znode respectively.
+ * and \a idx_z-node respectively.
  *
  * \note Only available for the server of MiniGUI-Processes.
  *
@@ -962,14 +962,14 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
  * \brief Get the next z-node in the specified layer from the server.
  *
  * This function gets the next z-node of the z-node specified by
- * \a idx_znode, i.e., the z-node below it, in the specified layer
+ * \a idx_z-node, i.e., the z-node below it, in the specified layer
  * \a layer from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
- * \param idx_znode The initial z-node. If the initial z-node index is
+ * \param idx_z-node The initial z-node. If the initial z-node index is
  *        less than or equal to zero, the function will return
  *        the index of the first (the topmost) z-node in the layer.
- * \param cli The client identifier of the next znode will be returned
+ * \param cli The client identifier of the next z-node will be returned
  *        through this pointer. NULL is okay.
  *
  * \return The index of the next z-node. Zero when the next z-node is
@@ -978,7 +978,7 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
  * \note Server-only function. Note that this function will not return
  *       the z-node of the desktop, and the desktop always has the index
  *       of z-node zero. Also note that you can use this function to
- *       travel all znodes from top to bottom.
+ *       travel all z-nodes from top to bottom.
  *
  * \sa ServerGetZNodeInfo
  */
@@ -998,7 +998,7 @@ MG_EXPORT int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
  * \param idx_znode The initial z-node. If the initial z-node index is
  *        less than or equal to zero, the function will return
  *        the index of the last (the bottommost) z-node in the layer.
- * \param cli The client identifier of the next znode will be returned
+ * \param cli The client identifier of the next z-node will be returned
  *        through this pointer. NULL is okay.
  *
  * \return The index of the previous z-node. Zero when there is no z-node;
@@ -1007,7 +1007,7 @@ MG_EXPORT int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
  * \note Server-only function. Note that this function will not return
  *       the z-node of the desktop, and the desktop always has the index
  *       of z-node zero. Also note that you can use this function to
- *       travel all znodes from bottom to top.
+ *       travel all z-nodes from bottom to top.
  *
  * \sa ServerGetZNodeInfo
  *
@@ -1019,7 +1019,7 @@ MG_EXPORT int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode,
 /** Z-node information structure */
 typedef struct _ZNODEINFO {
     /**
-     * The type of the znode, can be one of the following values:
+     * The type of the z-node, can be one of the following values:
      * - ZNIT_POPUPMENU\n
      *   a popup menu.
      * - ZNIT_SCREENLOCK\n
@@ -1056,7 +1056,7 @@ typedef struct _ZNODEINFO {
     DWORD           type;
 
     /**
-     * The flags of the znode, can be OR'd with the following values:
+     * The flags of the z-node, can be OR'd with the following values:
      * - ZNIF_VISIBLE\n
      *   a visible window.
      * - ZNIF_DISABLED\n
@@ -1069,31 +1069,31 @@ typedef struct _ZNODEINFO {
      */
     DWORD           flags;
 
-    /** The pointer to the caption string of the znode if it is a window. */
+    /** The pointer to the caption string of the z-node if it is a window. */
     const char*     caption;
 
-    /** The rectangle of the znode in the screen. */
+    /** The rectangle of the z-node in the screen. */
     RECT            rc;
 
-    /** Client id of the znode. */
+    /** Client id of the z-node. */
     int             cli;
 
-    /** The window handle of the znode if it is a window. */
+    /** The window handle of the z-node if it is a window. */
     HWND            hwnd;
     /**
-     * The window handle of the znode's main window if it is a control
+     * The window handle of the z-node's main window if it is a control
      * with WS_EX_CTRLASMAINWIN style.
      */
     HWND            main_win;
 
 #ifdef _MGSCHEMA_COMPOSITING
     /**
-     * The compositing argument for this znode.
+     * The compositing argument for this z-node.
      * For more information, see \a SetMainWindowCompositing.
      */
     DWORD           ct_arg;
     /**
-     * The compositing type for this znode.
+     * The compositing type for this z-node.
      * For more information, see \a SetMainWindowCompositing.
      */
     int             ct;
@@ -1110,8 +1110,8 @@ typedef struct _ZNODEINFO {
  * from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
- * \param idx_znode The index of the znode.
- * \param znode_info The information of the requested znode will be returned
+ * \param idx_znode The index of the z-node.
+ * \param znode_info The information of the requested z-node will be returned
  *        through this structure.
  *
  * \return TRUE on success, otherwise FALSE.
@@ -1126,7 +1126,7 @@ MG_EXPORT BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
 /** Z-node header structure */
 typedef struct _ZNODEHEADER {
     /**
-     * The flags of the znode, can be OR'd with the following values:
+     * The flags of the z-node, can be OR'd with the following values:
      * - ZNIF_VISIBLE\n
      *   a visible window.
      * - ZNIF_DISABLED\n
@@ -1139,46 +1139,46 @@ typedef struct _ZNODEHEADER {
      */
     DWORD           flags;
 
-    /** The pointer to the caption string of the znode if it is a window. */
+    /** The pointer to the caption string of the z-node if it is a window. */
     const char*     caption;
 
-    /** The window handle of the znode if it is a window. */
+    /** The window handle of the z-node if it is a window. */
     HWND            hwnd;
 
     /**
-     * The window handle of the znode's main window if it is a control
+     * The window handle of the z-node's main window if it is a control
      * with WS_EX_CTRLASMAINWIN style.
      */
     HWND            main_win;
 
-    /** The rectangle of the znode in the screen. */
+    /** The rectangle of the z-node in the screen. */
     RECT            rc;
 
-    /** Client id of the znode. */
+    /** Client id of the z-node. */
     int             cli;
 
-    /** The znode change age; no use for compositing schema */
+    /** The z-node change age; no use for compositing schema */
     unsigned int    age;
 
 #ifdef _MGSCHEMA_COMPOSITING
     /** The count for changes of content */
     unsigned int    changes;
     /**
-     * The compositing type for this znode.
+     * The compositing type for this z-node.
      * For more information, see \a SetMainWindowCompositing.
      */
     int             ct;
     /**
-     * The compositing argument for this znode.
+     * The compositing argument for this z-node.
      * For more information, see \a SetMainWindowCompositing.
      */
     DWORD           ct_arg;
     /**
-     * The memory DC for this znode.
+     * The memory DC for this z-node.
      */
     HDC             mem_dc;
 
-    /** the dirty age of this znode */
+    /** the dirty age of this z-node */
     unsigned int    dirty_age;
 
     /** the number of dirty rects */
@@ -1200,7 +1200,7 @@ typedef struct _ZNODEHEADER {
  * layer \a layer.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
- * \param idx_znode The index of the znode.
+ * \param idx_znode The index of the z-node.
  * \param lock Whether to lock the shared surface.
  *
  * \return The pointer to the z-node header; NULL on error.
@@ -1229,7 +1229,7 @@ MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
  * layer \a layer.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
- * \param idx_znode The index of the znode.
+ * \param idx_znode The index of the z-node.
  *
  * \return TRUE for success, otherwise FALSE;
  *
@@ -1269,13 +1269,13 @@ MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
 
 /**
  * \fn const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
-                int idx, BOOL lock)
+                int idx_znode, BOOL lock)
  * \brief Get the pointer to the z-node header of the specific popup menu.
  *
  * This function gets the pointer to the z-node header of the specific
  * popup menu which is currently shown on the current layer.
  *
- * \param idx The index of the popup menu. 0 means the first popup menu.
+ * \param idx_znode The index of the popup menu. 0 means the first popup menu.
  * \param lock Whether to lock the shared surface.
  *
  * \return The pointer to the z-node header; NULL on error.
@@ -1291,16 +1291,16 @@ MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
  * Since 4.2.0
  */
 MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
-                int idx, BOOL lock);
+                int idx_znode, BOOL lock);
 
 /**
- * \fn BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
+ * \fn BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx_znode)
  * \brief Release the lock of the z-node header of the specific popup menu.
  *
  * This function releases the lock of the z-node header of the specific
  * popup menu which is currently shown on the current layer.
  *
- * \param idx The index of the popup menu. 0 means the first popup menu.
+ * \param idx_znode The index of the popup menu. 0 means the first popup menu.
  *
  * \return TRUE on success, otherwise FALSE.
  *
@@ -1316,14 +1316,91 @@ MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
  */
 
 #ifdef _MGSCHEMA_COMPOSITING
-MG_EXPORT BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx);
+MG_EXPORT BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx_znode);
 #else   /* not defined _MGSCHEMA_COMPOSITING */
-static inline BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
+static inline BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx_znode)
 {
     return TRUE;
 }
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
+typedef struct _CLIPRGN CLIPRGN;
+
+#define RGN_OP_MASK         0x000F
+#define RGN_OP_SET          0x0000
+#define RGN_OP_INCLUDE      0x0001
+#define RGN_OP_EXCLUDE      0x0002
+#define RGN_OP_FLAG_ABS     0x0010
+
+/**
+ * \fn BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
+                DWORD rgn_ops, CLIPRGN* dst_rgn)
+ * \brief Get the z-node region of a specific window in the specified layer.
+ *
+ * This function gets the region of the window which uses the specific
+ * z-node index \a idx_znode in the specified layer \a layer.
+ *
+ * \param layer The pointer to the layer, NULL for the current topmost layer.
+ * \param idx_znode The index of the z-node.
+ * \param rgn_ops The operation for the region of the window z-node and
+ *      the destination region given by the last argument. It can be one of
+ *      the following values and OR'ed with `RGN_OP_FLAG_ABS`:
+ *      - RGN_OP_SET\n
+ *        Set the destination region with the region of the window z-node.
+ *      - RGN_OP_INCLUDE\n
+ *        Union the region of the window z-node with the destination region.
+ *      - RGN_OP_EXCLUDE\n
+ *        Subtract the region of the window z-node from the destination region.
+ *      If RGN_OP_FLAG_ABS is set, the function will convert the region to
+ *      the screen coordinate system.
+ * \param dst_rgn The pointer to the destination region.
+ *
+ * \return TRUE for success, otherwise FALSE;
+ *
+ * \note Server-only function.
+ *
+ * \sa ServerGetPopupMenuZNodeRegion
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
+                DWORD rgn_ops, CLIPRGN* dst_rgn);
+
+/**
+ * \fn BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
+                DWORD rgn_ops, CLIPRGN* dst_rgn)
+ * \brief Get the z-node region of a specific popup menu in the current layer.
+ *
+ * This function gets the region of the popup menu which uses the specific
+ * z-node index \a idx_znode in the specified layer \a layer.
+ *
+ * \param idx_znode The z-node index of the popup menu.
+ * \param rgn_ops The operation for the region of the popup menu z-node and
+ *      the destination region given by the last argument. It can be one of
+ *      the following values and OR'ed with `RGN_OP_FLAG_ABS`:
+ *      - RGN_OP_SET\n
+ *        Set the destination region with the region of the window z-node.
+ *      - RGN_OP_INCLUDE\n
+ *        Union the region of the window z-node with the destination region.
+ *      - RGN_OP_EXCLUDE\n
+ *        Subtract the region of the window z-node from the destination region.
+ *      If RGN_OP_FLAG_ABS is set, the function will convert the region to
+ *      the screen coordinate system.
+ * \param dst_rgn The pointer to the destination region.
+ *
+ * \return TRUE for success, otherwise FALSE;
+ *
+ * \note Server-only function.
+ *
+ * \note This function will add round corners to popup menus automatically when
+ *      _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa ServerGetWinZNodeRegion
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
+                DWORD rgn_ops, CLIPRGN* dst_rgn);
 /**
  * \fn BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode, \
  *              int op_code, void* op_data, BOOL notify)
@@ -1334,20 +1411,20 @@ static inline BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
  * layer \a layer from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
- * \param idx_znode The index of the znode.
+ * \param idx_znode The index of the z-node.
  * \param op_code The code of the operation, can be one of the following
  *        values:
  *          - ZNOP_MOVE2TOP\n
- *            Move the znode to be the topmost one.
+ *            Move the z-node to be the topmost one.
  *          - ZNOP_SETACTIVE\n
- *            Set the znode to be the active one.
+ *            Set the z-node to be the active one.
  *       Note that the operation can be applied only for a main window.
  * \param op_data The data of the operation, used to pass the data need by
  *        the operation. For example, if the operation is moving the z-node,
  *        \a op_data will be a pointer to a RECT structure, which contains
- *        the new position and size of the znode. Not used currently, reserved
+ *        the new position and size of the z-node. Not used currently, reserved
  *        for future use.
- * \param notify Whether to notify the client about the change of the znode.
+ * \param notify Whether to notify the client about the change of the z-node.
  *
  * \return TRUE on success, otherwise FALSE.
  *
@@ -1462,13 +1539,13 @@ typedef struct _CompositorOps {
 
     /**
      * This operation will be called when there are some dirty
-     * rects in the specific popup menu znode.
+     * rects in the specific popup menu z-node.
      */
     void (*on_dirty_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when there are some dirty rects
-     * in the specific window znode. For the later
+     * in the specific window z-node. For the later
      * situation, \a zidx will be zero and coordiantes in the dirty rects
      * will be under screen coordinate system.
      */
