@@ -3857,6 +3857,8 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 /**
  * \def WS_ALWAYSTOP
  * \brief Indicates the main window is always on top of others.
+ *
+ * Since 4.2.0.
  */
 #define WS_ALWAYSTOP        0x80000000L
 
@@ -4139,6 +4141,8 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 /**
  * \def WS_EX_WINTYPE_MASK
  * \brief The style mask for main window type.
+ *
+ * Since 4.2.0.
  */
 #define WS_EX_WINTYPE_MASK          0xF0000000L
 
@@ -4151,6 +4155,8 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  *
  * \note If there is already a main window acts as the screen lock,
  *  a topmost main window will be created.
+ *
+ * Since 4.2.0.
  */
 #define WS_EX_WINTYPE_SCREENLOCK    0x10000000L
 
@@ -4163,6 +4169,8 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  *
  * \note If there is already a main window acts as the docker,
  *  a topmost main window will be created.
+ *
+ * Since 4.2.0.
  */
 #define WS_EX_WINTYPE_DOCKER        0x20000000L
 
@@ -4176,6 +4184,8 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  *
  * \note If there is already a main window acts as the launcher,
  *  a normal main window will be created.
+ *
+ * Since 4.2.0.
  */
 #define WS_EX_WINTYPE_LAUNCHER      0x30000000L
 
