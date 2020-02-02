@@ -802,21 +802,22 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
     znode_info->flags = nodes [idx_znode].flags;
     znode_info->caption = nodes [idx_znode].caption;
     znode_info->rc = nodes [idx_znode].rc;
-    znode_info->cli = nodes [idx_znode].cli;
     znode_info->hwnd = nodes [idx_znode].hwnd;
     znode_info->main_win = nodes [idx_znode].main_win;
+    znode_info->cli = nodes [idx_znode].cli;
 #ifdef _MGSCHEMA_COMPOSITING
     // do not return mem_dc for this function
     // znode_info->mem_dc = nodes [idx_znode].mem_dc;
     znode_info->ct = nodes [idx_znode].ct;
     znode_info->ct_arg = nodes [idx_znode].ct_arg;
 #endif
+    znode_info->priv_data = nodes [idx_znode].priv_data;
 
     return TRUE;
 }
 
 const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
-            int idx_znode, BOOL lock)
+            int idx_znode, void** priv_data, BOOL lock)
 {
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
@@ -860,6 +861,10 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
+    if (priv_data) {
+        *priv_data = nodes [idx_znode].priv_data;
+    }
+
     return hdr;
 }
 
@@ -871,7 +876,8 @@ int GUIAPI ServerGetPopupMenusCount (void)
     return zi->nr_popupmenus;
 }
 
-const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx, BOOL lock)
+const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx,
+        void** priv_data, BOOL lock)
 {
     ZORDERINFO* zi;
     ZORDERNODE* menu_nodes;
@@ -908,6 +914,10 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx, BOOL lock)
         hdr->dirty_rcs = NULL;
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
+
+    if (priv_data) {
+        *priv_data = menu_nodes [idx].priv_data;
+    }
 
     return hdr;
 }
@@ -972,8 +982,45 @@ BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
 
     return TRUE;
 }
-
 #endif  /* defined _MGSCHEMA_COMPOSITING */
+
+BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
+            int idx_znode, void* priv_data)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+
+    if (layer == NULL)
+        layer = mgTopmostLayer;
+    else if (!__mg_is_valid_layer (layer))
+        return FALSE;
+
+    zi = (ZORDERINFO*)layer->zorder_info;
+    if (idx_znode > zi->max_nr_globals
+            + zi->max_nr_topmosts + zi->max_nr_normals) {
+        return FALSE;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    nodes [idx_znode].priv_data = priv_data;
+
+    return TRUE;
+}
+
+BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx, void* priv_data)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* menu_nodes;
+
+    zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
+    if (idx >= zi->nr_popupmenus)
+        return FALSE;
+
+    menu_nodes = GET_MENUNODE(zi);
+    menu_nodes [idx].priv_data = priv_data;
+
+    return TRUE;
+}
 
 BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
                 int idx_znode, int op_code, void* op_data, BOOL notify)
