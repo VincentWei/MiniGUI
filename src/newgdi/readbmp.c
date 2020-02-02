@@ -648,7 +648,7 @@ static void cb_paint_image_sl (void* context, MYBITMAP* my_bmp, int y)
         break;
     }
 
-    _fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info, y);
+    __mg_fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info, y);
 }
 
 int GUIAPI PaintImageEx (HDC hdc, int x, int y, MG_RWops* area, const char *ext)
@@ -674,7 +674,7 @@ int GUIAPI PaintImageEx (HDC hdc, int x, int y, MG_RWops* area, const char *ext)
     if (ret)
         goto fail1;
 
-    info.pdc = _begin_fill_bitmap (hdc, x, y, 0, 0, &bmp, &info.fill_info);
+    info.pdc = __mg_begin_fill_bitmap (hdc, x, y, 0, 0, &bmp, &info.fill_info);
     if (info.pdc == NULL) {
         ret = ERR_BMP_OTHER;
         goto fail2;
@@ -683,7 +683,7 @@ int GUIAPI PaintImageEx (HDC hdc, int x, int y, MG_RWops* area, const char *ext)
     bmp.bmHeight = 1;
     ret = LoadMyBitmapSL (area, load_info, &my_bmp, cb_paint_image_sl, &info);
 
-    _end_fill_bitmap (info.pdc, &bmp, &info.fill_info);
+    __mg_end_fill_bitmap (info.pdc, &bmp, &info.fill_info);
 
 fail2:
     UnloadBitmap (&bmp);
@@ -894,13 +894,13 @@ static void _cb_stretch_paint_image_sl (void* context, MYBITMAP* my_bmp, int yy)
                int i = 0;
             nr_ident_lines = info->dda_ys [yy + 1] - info->dda_ys [yy];
             for (i = 0; i < nr_ident_lines; i++) {
-                _fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info,
+                __mg_fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info,
                                 info->dda_ys [yy] + i);
             }
         }
     }
     else
-        _fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info, yy);
+        __mg_fill_bitmap_scanline (info->pdc, info->bmp, &info->fill_info, yy);
 }
 
 static void _deinit_stretch_paint_info (STRETCH_PAINT_IMAGE_INFO* info)
@@ -1012,7 +1012,7 @@ int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h,
 
     _init_stretch_paint_info (&info, &my_bmp, &bmp);
 
-    info.pdc = _begin_fill_bitmap (hdc, x, y, 0, 0, &bmp, &info.fill_info);
+    info.pdc = __mg_begin_fill_bitmap (hdc, x, y, 0, 0, &bmp, &info.fill_info);
     if (info.pdc == NULL) {
         free (info.dda_ys);
         ret = ERR_BMP_OTHER;
@@ -1023,7 +1023,7 @@ int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h,
     ret = LoadMyBitmapSL (area, load_info, &my_bmp,
                     _cb_stretch_paint_image_sl, &info);
 
-    _end_fill_bitmap (info.pdc, &bmp, &info.fill_info);
+    __mg_end_fill_bitmap (info.pdc, &bmp, &info.fill_info);
 
     _deinit_stretch_paint_info (&info);
 

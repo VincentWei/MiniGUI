@@ -420,7 +420,7 @@ unsigned short font_GetBestScaleFactor (int height, int expect)
 }
 
 
-#ifdef _DEBUG
+#ifdef _DEBUG_DEVFONT
 
 #define PRINT_DEVFONTS(head, devfont, count) \
 { \
@@ -447,9 +447,7 @@ void dbg_dumpDevFonts (void)
     PRINT_DEVFONTS (mb_dev_font_head, devfont, count);
     _DBG_PRINTF ("========== End of MBDevFonts =========\n");
 }
-#endif
-
-
+#endif /* _DEBUG_DEVFONT */
 
 /***** Added in MiniGUI V2.2 for bitmap font *****/
 
@@ -847,7 +845,7 @@ BOOL font_InitIncoreFonts (void)
 #endif
 
 #ifdef _MGFONT_SEF
-    if(!initialize_scripteasy()) {
+    if(!font_InitializeScripteasy()) {
         _WRN_PRINTF ("Can not initialize ScriptEasy fonts!\n");
         return FALSE;
     }
@@ -880,7 +878,7 @@ BOOL font_TerminateIncoreFonts (void)
 #endif
 
 #ifdef _MGFONT_SEF
-    uninitialize_scripteasy();
+    font_UninitializeScripteasy();
 #endif
 
     return TRUE;
@@ -1072,7 +1070,7 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
             if ((add_dev_font (font_name, font_file, TRUE)) == TRUE)
                 added_num++;
             else if ((0 == __mg_path_joint(font_path, MAX_PATH + 1,
-                        sysres_get_system_res_path(), font_file))
+                        __sysres_get_system_res_path(), font_file))
                     && ((add_dev_font (font_name, font_path, TRUE)) == TRUE))
                 added_num++;
         }

@@ -91,7 +91,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     ZORDERNODE* znodes;
     void* maskrect_usage_bmp;
 
-    layer->zorder_shmid = kernel_alloc_z_order_info (nr_topmosts, nr_normals);
+    layer->zorder_shmid = __kernel_alloc_z_order_info (nr_topmosts, nr_normals);
 
     if (layer->zorder_shmid == -1)
         return FALSE;
@@ -105,7 +105,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
         return FALSE;
 
 #if 0
-    zi = kernel_alloc_z_order_info (nr_topmosts, nr_normals);
+    zi = __kernel_alloc_z_order_info (nr_topmosts, nr_normals);
     if (zi == NULL)
         return FALSE;
 #endif
@@ -218,7 +218,7 @@ static void do_free_layer (MG_Layer* layer)
     /* free zorder_semid for reuse here... */
     __mg_slot_clear_use (sem_usage, zi->zi_semnum);
 
-    kernel_free_z_order_info (zi);
+    __kernel_free_z_order_info (zi);
 
     if (layer->prev)
         layer->prev->next = layer->next;
@@ -735,7 +735,7 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
             return -1;
     }
 
-    next = kernel_get_next_znode (zi, idx_znode);
+    next = __kernel_get_next_znode (zi, idx_znode);
     if (next > 0 && cli) {
         *cli = nodes [next].cli;
         return next;
@@ -768,7 +768,7 @@ int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode, int* cli)
             return -1;
     }
 
-    prev = kernel_get_prev_znode (zi, idx_znode);
+    prev = __kernel_get_prev_znode (zi, idx_znode);
     if (prev > 0 && cli) {
         *cli = nodes [prev].cli;
         return prev;

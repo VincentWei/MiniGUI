@@ -181,42 +181,6 @@ static void watermark_init(void)
 /***********************************************************
  * Screensaver
  ***********************************************************/
-#if 0
-// moved to desktop.c
-static int s_screensaver_node;
-
-void screensaver_show(void)
-{
-    dskShowWindow (0, s_screensaver_node);
-    dskMove2Top (0, s_screensaver_node);
-}
-
-void screensaver_hide(void)
-{
-    dskHideWindow (0, s_screensaver_node);
-}
-
-void __mg_screensaver_create(void)
-{
-    /* create screensaver node. */
-    if (!s_screensaver_node) {
-        RECT rcScr = GetScreenRect();
-        s_screensaver_node  = dskCreateTopZOrderNode (0, &rcScr);
-        dskSetZNodeAlwaysTop (0, s_screensaver_node);
-        dskHideWindow (0, s_screensaver_node);
-    }
-}
-
-void __mg_screensaver_destroy(void)
-{
-    /* destroy screensaver node. */
-    if (s_screensaver_node) {
-        dskDestroyTopZOrderNode(0, s_screensaver_node);
-        s_screensaver_node = 0;
-    }
-}
-#endif
-
 #ifdef _MG_ENABLE_SCREENSAVER
 
 static void screensaver_update(void)

@@ -6,5 +6,5 @@ noinst_HEADERS = \
     readbmp.h icon.h blockheap.h \
     ourhdr.h client.h server.h sharedres.h sockio.h drawsemop.h \
     gal.h newgal.h memops.h incoreres.h sysres.h clipboard.h \
-    md5.h glyph.h license.h mgsock.h unicode-ops.h \
+    glyph.h license.h mgsock.h unicode-ops.h \
     linux-tty.h

@@ -86,9 +86,10 @@ typedef struct _ZORDERNODE {
     unsigned int    dirty_age;      /* the dirty age of this znode */
     int             nr_dirty_rcs;   /* the number of dirty rects */
     const RECT*     dirty_rcs;      /* the pointer to the dirty rectangles */
-#endif
-
+#else   /* defined _MGSCHEMA_COMPOSITING */
     RECT            dirty_rc;       /* dirty rect */
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
+
     int             idx_mask_rect;  /* The first position of mask rect. */
     int             _padding;
 
@@ -172,12 +173,12 @@ typedef ZORDERINFO* PZORDERINFO;
 extern "C" {
 #endif  /* __cplusplus */
 
-int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals);
-void kernel_free_z_order_info (ZORDERINFO* zi);
-int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc);
-int kernel_get_window_region (HWND pWin, CLIPRGN* region);
-int kernel_get_next_znode (const ZORDERINFO* zi, int from);
-int kernel_get_prev_znode (const ZORDERINFO* zi, int from);
+int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals);
+void __kernel_free_z_order_info (ZORDERINFO* zi);
+int __kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc);
+int __kernel_get_window_region (HWND pWin, CLIPRGN* region);
+int __kernel_get_next_znode (const ZORDERINFO* zi, int from);
+int __kernel_get_prev_znode (const ZORDERINFO* zi, int from);
 
 #ifdef __cplusplus
 }

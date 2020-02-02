@@ -1223,9 +1223,9 @@ int GUIAPI SetMenuItemBitmaps (HMENU hmnu, LINT item, UINT flags,
     return 0;
 }
 
-#ifdef _DEBUG
+#ifdef _DEBUG_MENU
 
-void mnuDumpMenuItem (PMENUITEM pmi)
+static void mnuDumpMenuItem (PMENUITEM pmi)
 {
     PMENUITEM ptmpmi;
 
@@ -1256,7 +1256,7 @@ void mnuDumpMenuItem (PMENUITEM pmi)
     printf ("End of Info of Menu Item: 0x%p\n", pmi);
 }
 
-void DumpMenu (HMENU hmnu)
+void dbg_DumpMenu (HMENU hmnu)
 {
     PMENUBAR pmb;
     PMENUITEM pmi;
@@ -1287,7 +1287,7 @@ void DumpMenu (HMENU hmnu)
         mnuDumpMenuItem (pmi);
     }
 }
-#endif  // _DEBUG
+#endif  // _DEBUG_MENU
 
 /***************************** Menu owner ***********************************/
 // Global function defined in Desktop module.

@@ -113,8 +113,8 @@ void font_TermFreetypeLibrary (void);
 #endif
 
 #ifdef _MGFONT_SEF
-BOOL initialize_scripteasy(void);
-void uninitialize_scripteasy(void);
+BOOL font_InitializeScripteasy(void);
+void font_UninitializeScripteasy(void);
 #endif
 
 BOOL font_InitSpecificalFonts (char* etc_section);
@@ -153,7 +153,7 @@ unsigned short font_GetBestScaleFactor (int height, int expect);
 void font_DelSBDevFont (DEVFONT* dev_font);
 void font_DelMBDevFont (DEVFONT* dev_font);
 
-#ifdef _DEBUG
+#ifdef _DEBUG_DEVFONT
 void dbg_dumpDevFonts (void);
 #endif
 

@@ -464,25 +464,25 @@ void __mg_update_window (HWND hwnd,
 
 static int update_client_window (ZORDERNODE* znode, const RECT* rc)
 {
-#if defined(_MGRM_PROCESSES)
+#if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_SHAREDFB)
     if (!mgIsServer)
         return -1;
 
     if (znode->cli != 0) {
         if (rc) {
 
-            if (IsRectEmpty (&znode->dirty_rc)){
-                SetRect(&znode->dirty_rc,
+            if (IsRectEmpty (&znode->dirty_rc)) {
+                SetRect (&znode->dirty_rc,
                     rc->left, rc->top, rc->right, rc->bottom);
             }
-            else{
+            else {
                 GetBoundRect (&znode->dirty_rc, &znode->dirty_rc, rc);
             }
         }
         mgClients [znode->cli].has_dirty = TRUE;
     }
     else
-#endif
+#endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_SHAREDFB) */
     {
         if (rc)
             __mg_update_window (znode->hwnd, rc->left, rc->top,
@@ -551,7 +551,7 @@ static BOOL _cb_exclude_rc (void* context,
         int x, y;
         RECT rc;
 
-        while(idx != 0) {
+        while (idx != 0) {
             x = node->rc.left + (first+idx)->left;
             y = node->rc.top + (first+idx)->top;
             SetRect(&rc, x, y,
@@ -739,7 +739,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
     if(pWin->pMainWin->secondaryDC) {
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
-        update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
+        __mg_update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
         ReleaseDC (real_dc);
     }
     release_valid_dc(pWin, hdc);
@@ -1025,7 +1025,7 @@ static void dskInitInvRgn (PMAINWIN pWin)
     MAKE_REGION_INFINITE(&pWin->InvRgn.rgn);
 }
 
-int kernel_get_next_znode (const ZORDERINFO* zi, int from)
+int __kernel_get_next_znode (const ZORDERINFO* zi, int from)
 {
     int next = 0;
     ZORDERNODE* nodes = GET_ZORDERNODE(zi);
@@ -1118,7 +1118,7 @@ int kernel_get_next_znode (const ZORDERINFO* zi, int from)
     return next;
 }
 
-int kernel_get_prev_znode (const ZORDERINFO* zi, int from)
+int __kernel_get_prev_znode (const ZORDERINFO* zi, int from)
 {
     int prev = 0;
     ZORDERNODE* nodes = GET_ZORDERNODE(zi);
@@ -1256,7 +1256,7 @@ static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
     ZORDERNODE* nodes = GET_ZORDERNODE(zi);
 
     do {
-        next = kernel_get_next_znode (zi, from);
+        next = __kernel_get_next_znode (zi, from);
         if (next <= 0)
             break;
 
@@ -3367,7 +3367,8 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             InitClipRgn (&bblt_rgn, &sg_FreeClipRectList);
             if (nodes[idx_znode].idx_mask_rect == 0){
                 SelectClipRect (HDC_SCREEN_SYS, rcWin);
-            } else {
+            }
+            else {
                 firstmaskrect = GET_MASKRECT(zi);
                 idx = nodes [idx_znode].idx_mask_rect;
 
@@ -3441,9 +3442,9 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
                     ExcludeClipRect (HDC_SCREEN_SYS, &nodes [slot].rc);
                 }
 #endif
-                /* houhh 20090730, if slot wind is no regular.*/
+                /* houhh 20090730, if slot window is no regular.*/
                 if (nodes [slot].flags & ZOF_VISIBLE) {
-                    if (nodes[slot].idx_mask_rect == 0){
+                    if (nodes[slot].idx_mask_rect == 0) {
                         ExcludeClipRect (HDC_SCREEN_SYS, &nodes [slot].rc);
                     }
                     else {
@@ -4106,7 +4107,7 @@ void GUIAPI DumpWindow (FILE* fp, HWND hWnd)
 }
 #endif /* _DEBUG */
 
-int kernel_get_window_region (HWND pWin, CLIPRGN* region)
+int __kernel_get_window_region (HWND pWin, CLIPRGN* region)
 {
     RECT rc;
     MASKRECT *maskrect;

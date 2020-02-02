@@ -100,7 +100,7 @@ inline static key_t get_layer_shm_key (void)
 }
 #endif
 
-int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
+int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 {
 #if defined(_MGRM_PROCESSES)
     key_t shm_key;
@@ -199,7 +199,7 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 #endif
 }
 
-void kernel_free_z_order_info (ZORDERINFO* zi)
+void __kernel_free_z_order_info (ZORDERINFO* zi)
 {
 #if defined(_MGRM_PROCESSES)
     if (shmdt (zi) < 0)
@@ -221,7 +221,7 @@ void kernel_free_z_order_info (ZORDERINFO* zi)
 #if 0
 #if IS_SHAREDFB_SCHEMA
 
-int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
+int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 {
     key_t shm_key;
     int zorder_shmid;
@@ -246,7 +246,7 @@ int kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 
 #else /* not IS_SHAREDFB_SCHEMA */
 
-ZORDERINFO* kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
+ZORDERINFO* __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 {
     ZORDERINFO* zi;
     ZORDERNODE* znodes;
@@ -325,7 +325,7 @@ ZORDERINFO* kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 
 #endif /* not IS_SHAREDFB_SCHEMA */
 
-void kernel_free_z_order_info (ZORDERINFO* zi)
+void __kernel_free_z_order_info (ZORDERINFO* zi)
 {
 #if IS_SHAREDFB_SCHEMA
     if (shmdt (zi) < 0)

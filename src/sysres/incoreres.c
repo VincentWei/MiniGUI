@@ -83,7 +83,7 @@
 
 #endif
 
-BOOL sysres_init_inner_resource()
+BOOL __sysres_init_inner_resource()
 {
 #ifdef _MGINCORE_RES
     AddInnerRes((INNER_RES*)__mgir_bmp_inner_res, TABLESIZE(__mgir_bmp_inner_res), FALSE);
@@ -158,7 +158,7 @@ HCURSOR __mg_load_cursor_from_res (int i)
     if (!hCursor) {
         char path [MAX_PATH + 1];
 
-        strncpy (path, sysres_get_system_res_path(), MAX_PATH);
+        strncpy (path, __sysres_get_system_res_path(), MAX_PATH);
         path [MAX_PATH] = 0;
         strcat (path, "cursor/");
         path [MAX_PATH] = 0;

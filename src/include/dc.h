@@ -573,7 +573,6 @@ do {                                                    \
     (__mg_switch_away && pdc->surface == __gal_screen)
 #endif /* defined _MGRM_THREADS */
 
-
 int __mg_enter_drawing (PDC pdc);
 void __mg_enter_drawing_nocheck (PDC pdc);
 void __mg_leave_drawing (PDC pdc);
@@ -702,7 +701,7 @@ static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
     }
 }
 
-void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
+void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* rc, DWORD flags);
 
 #ifdef __cplusplus

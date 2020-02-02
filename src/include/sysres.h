@@ -72,8 +72,8 @@ static inline PCURSOR sysres_load_system_cursor (int i) {
 }
 #endif /* _MGHAVE_CURSOR */
 
-BOOL sysres_init_inner_resource(void);
-const char* sysres_get_system_res_path(void);
+BOOL __sysres_init_inner_resource(void);
+const char* __sysres_get_system_res_path(void);
 
 #ifdef __cplusplus
 }

@@ -143,7 +143,7 @@ gal_pixel _dc_get_pixel_cursor (PDC pdc, int x, int y)
                 && x < pdc->DevRC.right && y < pdc->DevRC.bottom) {
 #ifdef _MGHAVE_CURSOR
         if (!dc_IsMemDC (pdc)) {
-            dst = GetPixelUnderCursor (x, y, &pixel);
+            dst = kernel_GetPixelUnderCursor (x, y, &pixel);
         }
 
         if (dst == NULL) {

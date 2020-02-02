@@ -211,15 +211,17 @@ void mg_TerminateControlClass (void);
 PCTRLCLASSINFO gui_GetControlClassInfo (const char* szClassName);
 int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass);
 
-MG_EXPORT int AddNewControlClass (PWNDCLASS pWndClass);
-MG_EXPORT BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle);
 int gui_DeleteControlClass (const char* szClassName);
 void gui_EmptyControlClassInfoTable (void);
 PCONTROL gui_Control (HWND hWnd);   // check whether hWnd is control
                                 // and return pointer to control hWnd.
 
-#ifdef _DEBUG
-void DumpCtrlClassInfoTable (void);
+/* Undisclosed APIs */
+MG_EXPORT int AddNewControlClass (PWNDCLASS pWndClass);
+MG_EXPORT BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle);
+
+#ifdef _DEBUG_CTRL
+void dbg_DumpCtrlClassInfoTable (void);
 #endif
 
 #ifdef __cplusplus

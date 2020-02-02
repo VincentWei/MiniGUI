@@ -113,7 +113,7 @@ void kernel_ReShowCursor (void);
 
 #else /* _MGRM_THREADS */
 
-Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel);
+Uint8* kernel_GetPixelUnderCursor (int x, int y, gal_pixel* pixel);
 
 #endif /* _MGRM_THREADS */
 

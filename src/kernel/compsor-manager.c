@@ -148,7 +148,7 @@ void mg_TerminateCompositor (void)
         dlclose (dl_handle);
 }
 
-void __compsor_check_znodes (void)
+void __mg_compsor_check_znodes (void)
 {
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
@@ -180,7 +180,7 @@ void __compsor_check_znodes (void)
     // travel win znodes
     nodes = GET_ZORDERNODE(zi);
     next = 0;
-    while ( (next = kernel_get_next_znode (zi, next)) > 0) {
+    while ( (next = __kernel_get_next_znode (zi, next)) > 0) {
         if (nodes [next].flags & ZOF_VISIBLE) {
             pdc = dc_HDC2PDC (nodes[next].mem_dc);
             assert (pdc->surface->shared_header);

@@ -548,9 +548,9 @@ BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle)
     return TRUE;
 }
 
-#ifdef _DEBUG
+#ifdef _DEBUG_CTRL
 
-void mnuDumpCtrlClassInfo (PCTRLCLASSINFO cci)
+static void DumpCtrlClassInfo (PCTRLCLASSINFO cci)
 {
     printf ("\tClass Name:             %s\n", cci->name);
     printf ("\tClass Cursor:           %p\n", cci->hCursor);
@@ -559,7 +559,7 @@ void mnuDumpCtrlClassInfo (PCTRLCLASSINFO cci)
     printf ("\tClass Use Count:        %d\n", cci->nUseCount);
 }
 
-void DumpCtrlClassInfoTable()
+void dbg_DumpCtrlClassInfoTable (void)
 {
     PCTRLCLASSINFO cci;
     int i;
@@ -570,12 +570,12 @@ void DumpCtrlClassInfoTable()
         printf ("CCI Table Element: %d\n", i);
         while (cci) {
 
-            mnuDumpCtrlClassInfo (cci);
+            DumpCtrlClassInfo (cci);
 
             cci = cci->next;
         }
     }
 }
 
-#endif
+#endif /* _DEBUG_CTRL */
 

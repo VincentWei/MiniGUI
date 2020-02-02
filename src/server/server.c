@@ -360,7 +360,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
 #endif
 
 #ifdef _MGSCHEMA_COMPOSITING
-    __compsor_check_znodes ();
+    __mg_compsor_check_znodes ();
 #endif
 
     extra.params_mask = 0;

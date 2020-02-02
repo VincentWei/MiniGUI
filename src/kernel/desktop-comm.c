@@ -59,7 +59,7 @@ extern int __mg_enter_terminategui;
 
 #if defined(_MGRM_THREADS) || defined(_MGRM_STANDALONE)
 
-int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
+int __kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
 {
     FreeZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode);
     return AllocZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode,
@@ -113,7 +113,7 @@ void mg_TerminateDesktop (void)
     pthread_mutex_destroy(&sg_ScrGCRInfo.lock);
 #endif
 
-    kernel_free_z_order_info (__mg_zorder_info);
+    __kernel_free_z_order_info (__mg_zorder_info);
     __mg_zorder_info = NULL;
     DestroyFreeClipRectList (&sg_FreeClipRectList);
     DestroyFreeClipRectList (&sg_FreeInvRectList);
@@ -617,7 +617,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
     if(pWin->pMainWin->secondaryDC){
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
-        update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
+        __mg_update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
         ReleaseDC (real_dc);
     }
     release_valid_dc(pWin, hdc);

@@ -108,7 +108,11 @@ MG_Layer* __mg_find_layer_by_name (const char* name);
 
 int __mg_do_drag_drop_window (int msg, int x, int y);
 
+#ifdef _MGSCHEMA_SHAREDFB
 void __mg_check_dirty_znode (int cli);
+#else
+static inline void __mg_check_dirty_znode (int cli) {}
+#endif
 
 BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* layer);
 

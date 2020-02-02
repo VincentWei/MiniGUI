@@ -75,9 +75,9 @@ typedef struct _wnd_element_data
 #define WED_NOTFOUND        -3
 #define WED_MEMERR          -4
 
-extern int free_window_element_data (HWND hwnd);
-extern int append_window_element_data (WND_ELEMENT_DATA** wed, Uint32 id, DWORD data);
-extern int set_window_element_data (HWND hwnd, Uint32 id, DWORD new_data, DWORD* old_data);
+int __mg_free_window_element_data (HWND hwnd);
+int __mg_append_window_element_data (WND_ELEMENT_DATA** wed, Uint32 id, DWORD data);
+int __mg_set_window_element_data (HWND hwnd, Uint32 id, DWORD new_data, DWORD* old_data);
 
 #ifdef __cplusplus
 }

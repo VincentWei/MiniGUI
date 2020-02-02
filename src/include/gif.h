@@ -43,8 +43,9 @@
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-// $Id: gif.h 241 2000-01-08 09:10:27Z weiym $
-//
+/*
+** NOTE THAT THIS FILE IS DEPRECATED.
+*/
 
 #ifndef _GIF_H_
 #define _GIF_H_

@@ -84,12 +84,13 @@ extern "C" {
 
 int __mg_bmp_compute_pitch (int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
 
-PDC _begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
+PDC __mg_begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
                 const BITMAP* bmp, FILLINFO *fill_info);
-void _fill_bitmap_scanline (PDC pdc, const BITMAP* bmp, 
+void __mg_fill_bitmap_scanline (PDC pdc, const BITMAP* bmp, 
                 FILLINFO *fill_info, int y);
-void _end_fill_bitmap (PDC pdc, const BITMAP* bmp, FILLINFO *fill_info);
+void __mg_end_fill_bitmap (PDC pdc, const BITMAP* bmp, FILLINFO *fill_info);
 
+/* Undisclosed API */
 MG_EXPORT int GUIAPI EncodeRleBitmap(HDC hdc, PBITMAP bmp);
 
 #ifdef __cplusplus

@@ -206,7 +206,7 @@ BOOL GUIAPI HideCaretEx (HWND hWnd, BOOL ime)
     }
 
     if (ime) {
-        gui_open_ime_window (pWin, FALSE, (HWND)hWnd);
+        __gui_open_ime_window (pWin, FALSE, (HWND)hWnd);
     }
 
     return TRUE;
@@ -310,7 +310,7 @@ BOOL GUIAPI ShowCaretEx (HWND hWnd, BOOL ime)
     /* XXX: In order to re-open ime window, we need to open ime window before checking fBlink flag
      */ 
     if (ime) {
-        gui_open_ime_window (pWin, TRUE, (HWND)hWnd);
+        __gui_open_ime_window (pWin, TRUE, (HWND)hWnd);
     }
 
     if (pWin->pCaretInfo->fBlink)

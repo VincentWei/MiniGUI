@@ -145,9 +145,9 @@ typedef struct _TRACKMENUINFO
 extern "C" {
 #endif  /* __cplusplus */
 
-#ifdef _DEBUG
-void DumpMenu (HMENU hmnu);
-#endif  /* _DEBUG */
+#ifdef _DEBUG_MENU
+void dbg_DumpMenu (HMENU hmnu);
+#endif  /* _DEBUG_MENU */
 
 #ifdef __cplusplus
 }

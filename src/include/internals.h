@@ -60,13 +60,6 @@
 /* Internal window message. */
 #if (defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)) && defined(_MGRM_THREADS)
 #define MSG_CANCELSCREENSAVER   0x0201
-
-#if defined(__GNUC__) && (__GNUC__ >= 4)
-__attribute__ ((visibility ("hidden"))) void screensaver_hide(void);
-#else
-void screensaver_hide(void);
-#endif
-
 #endif
 
 /* Internal use extended style. */
@@ -404,7 +397,6 @@ typedef struct _MAINWIN
 } MAINWIN;
 
 /************************* Initialization/Termination ************************/
-
 void __mg_init_local_sys_text (void);
 
 /* the zorder information of the server */
@@ -456,7 +448,7 @@ BOOL mg_InitDesktop (void);
 void mg_TerminateDesktop (void);
 
 /* send MSG_IME_OPEN/CLOSE message to ime window */
-void gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd);
+void __gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd);
 
 /* return main window contains hWnd. */
 PMAINWIN gui_GetMainWindowPtrOfControl (HWND hWnd);
@@ -629,7 +621,7 @@ BOOL gui_LoadIconRes(HDC hdc, const char* rdr_name, char* file);
 void gui_WndRect(HWND hWnd, PRECT prc);
 void gui_WndClientRect(HWND hWnd, PRECT prc);
 
-/* Move from dc.h */
+/* Undisclosed APIs */
 HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client);
 void ReleaseSecondarySubDC (HDC secondary_subdc);
 HDC CreateMemDCFromSurface (struct GAL_Surface* surface);
@@ -650,7 +642,7 @@ int __mg_free_mutual_sem (SemSetManager* manager, int sem_num);
 #ifdef _MGSCHEMA_COMPOSITING
 BOOL mg_InitCompositor (void);
 void mg_TerminateCompositor (void);
-void __compsor_check_znodes (void);
+void __mg_compsor_check_znodes (void);
 #endif
 
 #ifdef __cplusplus

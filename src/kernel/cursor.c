@@ -105,7 +105,7 @@ static int oldboxleft = -100, oldboxtop = -100;
 static int nShowCount = 0;
 static PCURSOR pCurCsr = NULL;
 
-Uint8* GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
+Uint8* kernel_GetPixelUnderCursor (int x, int y, gal_pixel* pixel)
 {
     Uint8* dst = NULL;
 

@@ -398,7 +398,7 @@ static int _bmp_decode_alpha_rle (const BITMAP* bmp, const BYTE* encoded,
     return consumed;
 }
 
-PDC _begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
+PDC __mg_begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
                              const BITMAP* bmp, FILLINFO* fill_info)
 {
     PDC pdc;
@@ -499,7 +499,7 @@ fail:
     return NULL;
 }
 
-void _end_fill_bitmap (PDC pdc, const BITMAP* bmp, FILLINFO *fill_info)
+void __mg_end_fill_bitmap (PDC pdc, const BITMAP* bmp, FILLINFO *fill_info)
 {
     pdc->bkmode = fill_info->old_bkmode;
 
@@ -543,7 +543,7 @@ static void _fill_bitmap (PDC pdc, const BITMAP *bmp, FILLINFO *fill_info)
     }
 }
 
-void _fill_bitmap_scanline (PDC pdc, const BITMAP* bmp,
+void __mg_fill_bitmap_scanline (PDC pdc, const BITMAP* bmp,
                 FILLINFO* fill_info, int y)
 {
     GAL_Rect dst_rect;
@@ -561,7 +561,7 @@ BOOL GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h,
     PDC pdc;
     FILLINFO fill_info;
 
-    pdc = _begin_fill_bitmap (hdc, x, y, w, h, bmp, &fill_info);
+    pdc = __mg_begin_fill_bitmap (hdc, x, y, w, h, bmp, &fill_info);
     if (pdc == NULL)
         return FALSE;
 
@@ -614,7 +614,7 @@ BOOL GUIAPI FillBoxWithBitmap (HDC hdc, int x, int y, int w, int h,
     else
         _fill_bitmap (pdc, bmp, &fill_info);
 
-    _end_fill_bitmap (pdc, bmp, &fill_info);
+    __mg_end_fill_bitmap (pdc, bmp, &fill_info);
 
     return TRUE;
 }

@@ -111,6 +111,17 @@ typedef LWEVENT* PLWEVENT;
 #define LWETYPE_KEY                     1
 #define LWETYPE_MOUSE                   2
 
+// Mouse event parameters.
+#define MOUSEPARA                           "mouse"
+#define MOUSEPARA_DBLCLICKTIME              "dblclicktime"
+#define DEF_MSEC_DBLCLICK                   300
+
+#define EVENTPARA                           "event"
+#define EVENTPARA_REPEATUSEC                "repeatusec"
+#define EVENTPARA_TIMEOUTUSEC               "timeoutusec"
+#define DEF_USEC_TIMEOUT                    300000
+#define DEF_REPEAT_TIME                     50000
+
 /* Function definitions */
 #ifdef __cplusplus
 extern "C" {
@@ -122,17 +133,6 @@ void mg_TerminateLWEvent (void);
 
 // Low level event support
 BOOL kernel_GetLWEvent (int event, PLWEVENT lwe);
-
-// Mouse event parameters.
-#define MOUSEPARA                           "mouse"
-#define MOUSEPARA_DBLCLICKTIME              "dblclicktime"
-#define DEF_MSEC_DBLCLICK                   300
-
-#define EVENTPARA                           "event"
-#define EVENTPARA_REPEATUSEC                "repeatusec"
-#define EVENTPARA_TIMEOUTUSEC               "timeoutusec"
-#define DEF_USEC_TIMEOUT                    300000
-#define DEF_REPEAT_TIME                     50000
 
 #ifdef __cplusplus
 }

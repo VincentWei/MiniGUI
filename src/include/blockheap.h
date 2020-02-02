@@ -57,8 +57,8 @@
 #define BDS_USED        0x0002
 
 #ifndef _MGUI_GDI_H /* included in include/gdi.h */
-typedef struct tagBLOCKHEAP
-{
+
+typedef struct tagBLOCKHEAP {
 #ifdef _MGRM_THREADS
     pthread_mutex_t lock;
 #endif
@@ -84,7 +84,7 @@ void DestroyBlockDataHeap (PBLOCKHEAP heap);
 }
 #endif  /* __cplusplus */
 
-#endif  /* GUI_GDI_H */
+#endif  /* not defined GUI_GDI_H */
 
 #endif  /* GUI_BLOCKHEAP_H */
 

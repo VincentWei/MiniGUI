@@ -49,9 +49,11 @@
 ** Create Date: 2003/12/xx
 */
 
-#ifndef MG_CLIPBOARD
-#define MG_CLIPBOARD
+#ifndef MG_CLIPBOARD_H
+#define MG_CLIPBOARD_H
+
 #ifdef _MGHAVE_CLIPBOARD
+
 #define CLIPBOARD_BUFFLENGTH	1024
 
 #ifdef _cplusplus
@@ -80,10 +82,11 @@ typedef struct _REQ_CLIPBOARD
 
 } REQ_CLIPBOARD;
 
-
 #ifdef _cplusplus
 }
 #endif /* _cplusplus */
 
-#endif
-#endif
+#endif /* defined _MGHAVE_CLIPBOARD */
+
+#endif /* not defined MG_CLIPBOARD_H */
+

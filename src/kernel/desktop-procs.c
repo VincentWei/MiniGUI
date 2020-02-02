@@ -796,7 +796,7 @@ static int srvFreeZOrderMaskRect (int cli, int idx_znode)
     return FreeZOrderMaskRect (cli, idx_znode);
 }
 
-int kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
+int __kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
 {
     if (!rc || !nr_rc)
         return -1;
@@ -865,6 +865,8 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     return free_slot;
 }
 
+#ifdef _MGSCHEMA_SHAREDFB
+/* only work for _MGSCHEMA_SHAREDFB */
 static BOOL _cb_update_cli_znode (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* znode)
 {
@@ -897,10 +899,11 @@ void __mg_check_dirty_znode (int cli)
     ZORDERINFO* zi = (ZORDERINFO *)get_zi_from_client (cli);
 
     do_for_all_znodes ((void*)(intptr_t)cli, zi,
-                    _cb_update_cli_znode, ZT_TOPMOST | ZT_NORMAL);
+                    _cb_update_cli_znode, ZT_ALL & ~ZT_GLOBAL);
 
     mgClients [cli].has_dirty = FALSE;
 }
+#endif /* defined _MGSCHEMA_SHAREDFB */
 
 static intptr_t srvSetActiveWindow (int cli, int idx_znode)
 {
@@ -2253,7 +2256,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
     if(pWin->pMainWin->secondaryDC){
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
-        update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
+        __mg_update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
         ReleaseDC (real_dc);
     }
     release_valid_dc(pWin, hdc);
@@ -2497,7 +2500,7 @@ BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer)
 
     /* number of znodes of the client */
     do {
-        if ((next = kernel_get_next_znode (src_zi, from)) <= 0)
+        if ((next = __kernel_get_next_znode (src_zi, from)) <= 0)
             break;
 
         if (src_nodes [next].cli == cli) {
@@ -2524,7 +2527,7 @@ BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer)
 
     /* nr znodes of the client */
     do {
-        if ((next = kernel_get_next_znode (src_zi, from)) <= 0)
+        if ((next = __kernel_get_next_znode (src_zi, from)) <= 0)
             break;
 
         if (src_nodes [next].cli == cli) {

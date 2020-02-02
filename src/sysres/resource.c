@@ -177,7 +177,7 @@ HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name,
     else{
         //load from file
         char szfile[MAX_PATH+1];
-        sprintf(szfile, "%s/%s",sysres_get_system_res_path(), szValue);
+        sprintf(szfile, "%s/%s",__sysres_get_system_res_path(), szValue);
         hIcon = LoadIconFromFile(hdc, szfile, which);
     }
 
@@ -345,7 +345,7 @@ BOOL mg_InitSystemRes (void)
 
 #undef _SIZE_RES_HASH_TABLE
 
-    sysres_init_inner_resource();
+    __sysres_init_inner_resource();
     return TRUE;
 }
 

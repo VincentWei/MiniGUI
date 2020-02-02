@@ -360,7 +360,7 @@ static void _parallelogram_map(HDC hdc, const BITMAP *bmp, fixed sx[4],
 
     _init_bitmap_buffer(&buffer, bmp, w);
  
-    pdc = _begin_fill_bitmap (hdc, leftx, topy, w, h, bmp, &fill_info);
+    pdc = __mg_begin_fill_bitmap (hdc, leftx, topy, w, h, bmp, &fill_info);
     if (pdc == NULL) {
         free (buffer.bmBits);
         if (buffer.bmAlphaMask) free (buffer.bmAlphaMask);
@@ -544,7 +544,7 @@ static void _parallelogram_map(HDC hdc, const BITMAP *bmp, fixed sx[4],
              fill_info.dst_rect.x = (unsigned int) rect_lx;
              fill_info.dst_rect.w = buffer.bmWidth;
 
-             _fill_bitmap_scanline(pdc, &buffer, &fill_info, scanline - topy);
+             __mg_fill_bitmap_scanline(pdc, &buffer, &fill_info, scanline - topy);
         }
 
 skip_draw:
@@ -560,7 +560,7 @@ skip_draw:
         dc_rx += dc_rdx;
     }
 
-    _end_fill_bitmap (pdc, &buffer, &fill_info); 
+    __mg_end_fill_bitmap (pdc, &buffer, &fill_info); 
 
     if (buffer.bmAlphaMask) free (buffer.bmAlphaMask);
     free (buffer.bmBits);

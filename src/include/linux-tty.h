@@ -56,11 +56,11 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-int mg_linux_tty_init(BOOL graf_mode);
-int mg_linux_tty_enable_vt_switch(void);
-int mg_linux_tty_disable_vt_switch(void);
-int mg_linux_tty_switch_vt(int vt);
-int mg_linux_tty_fini(void);
+int __mg_linux_tty_init(BOOL graf_mode);
+int __mg_linux_tty_enable_vt_switch(void);
+int __mg_linux_tty_disable_vt_switch(void);
+int __mg_linux_tty_switch_vt(int vt);
+int __mg_linux_tty_fini(void);
 
 #ifdef __cplusplus
 }

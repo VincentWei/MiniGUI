@@ -444,7 +444,7 @@ void TerminateResManager()
     UNINIT_LOCKER();
 }
 
-const char* sysres_get_system_res_path()
+const char* __sysres_get_system_res_path()
 {
     return cfg_res_path;
 }

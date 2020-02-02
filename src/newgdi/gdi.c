@@ -357,7 +357,7 @@ BOOL mg_InitGDI (void)
 
     /* TODO: add other font support here */
 #if defined (_MGFONT_SEF) && !defined(_LITE_VERSION)
-    if(!initialize_scripteasy()) {
+    if(!font_InitializeScripteasy()) {
         _WRN_PRINTF ("Can not initialize ScriptEasy fonts!\n");
         goto error;
     }
@@ -368,7 +368,7 @@ BOOL mg_InitGDI (void)
         goto error;
     }
 
-#ifdef _DEBUG
+#ifdef _DEBUG_DEVFONT
     dbg_dumpDevFonts ();
 #endif
 
@@ -411,7 +411,7 @@ void mg_TerminateGDI( void )
 #endif
 
 #if defined (_MGFONT_SEF) && !defined(_LITE_VERSION)
-    uninitialize_scripteasy();
+    font_UninitializeScripteasy();
 #endif
 
     font_TerminateIncoreFonts ();

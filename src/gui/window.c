@@ -681,7 +681,7 @@ BOOL wndGetHScrollBarRect (const MAINWIN* pWin,
 
 /* rc: position relative to secondary_dc, so need transform
  * it  relative to real_dc(screen).*/
-void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
+void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* rc, DWORD flags)
 {
     PDC pdc_main;
@@ -794,7 +794,7 @@ static void draw_secondary_nc_area (PMAINWIN pWin,
             break;
 
         if (!IsRectEmpty(&rc)){
-            update_secondary_dc (pWin, hdc, real_dc, &rc, flags);
+            __mg_update_secondary_dc (pWin, hdc, real_dc, &rc, flags);
         }
     } while (FALSE);
 
@@ -2097,7 +2097,7 @@ void gui_WndClientRect(HWND hWnd, PRECT prc)
 }
 
 extern HWND __mg_ime_wnd;
-void gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
+void __gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
 {
 #ifndef _MGRM_PROCESSES
     if (__mg_ime_wnd && pWin) {
@@ -2318,7 +2318,7 @@ static void wndEraseBackground(const PMAINWIN pWin,
     if (pWin->pMainWin->secondaryDC) {
         HDC real_dc = HDC_INVALID;
         real_dc = GetClientDC ((HWND)pWin->pMainWin);
-        update_secondary_dc ((PMAINWIN)pWin, hdc, real_dc, &rcTemp, HT_CLIENT);
+        __mg_update_secondary_dc ((PMAINWIN)pWin, hdc, real_dc, &rcTemp, HT_CLIENT);
         ReleaseDC (real_dc);
     }
 #endif
@@ -2665,7 +2665,7 @@ LRESULT PreDefMainWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
         return DefaultSystemMsgHandler(pWin, message, wParam, lParam);
 #if (defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)) && defined(_MGRM_THREADS)
     else if (message == MSG_CANCELSCREENSAVER) {
-        screensaver_hide();
+        __mg_screensaver_hide();
         SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
     }
 #endif
@@ -3750,10 +3750,10 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 
     /** set window element data */
     while (we_attrs && we_attrs->we_attr_id != -1) {
-        // append_window_element_data (pWin,
+        // __mg_append_window_element_data (pWin,
         //       we_attrs->we_attr_id, we_attrs->we_attr);
         DWORD _old;
-        set_window_element_data ((HWND)pWin,
+        __mg_set_window_element_data ((HWND)pWin,
                 we_attrs->we_attr_id, we_attrs->we_attr, &_old);
         ++we_attrs;
     }
@@ -3936,7 +3936,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 #endif
     EmptyClipRgn (&pWin->InvRgn.rgn);
 
-    free_window_element_data (hWnd);
+    __mg_free_window_element_data (hWnd);
     --pWin->we_rdr->refcount;
 
 #ifdef _MGRM_THREADS
@@ -5129,7 +5129,7 @@ void GUIAPI EndPaint (HWND hWnd, HDC hdc)
             HDC real_dc = HDC_INVALID;
             real_dc = GetClientDC ((HWND)pWin->pMainWin);
 
-            update_secondary_dc (pWin, hdc, real_dc,
+            __mg_update_secondary_dc (pWin, hdc, real_dc,
                     &pWin->pMainWin->update_rc, HT_CLIENT);
             ReleaseDC (real_dc);
         }
@@ -5320,10 +5320,10 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     /** set window element data */
     while (we_attrs && we_attrs->we_attr_id != -1)
     {
-        //append_window_element_data (pNewCtrl,
+        //__mg_append_window_element_data (pNewCtrl,
            //     we_attrs->we_attr_id, we_attrs->we_attr);
         DWORD _old;
-        set_window_element_data ((HWND)pNewCtrl,
+        __mg_set_window_element_data ((HWND)pNewCtrl,
                 we_attrs->we_attr_id, we_attrs->we_attr, &_old);
         ++we_attrs;
     }
@@ -5545,7 +5545,7 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
     if (pCtrl->spCaption)
         FreeFixStr (pCtrl->spCaption);
 
-    free_window_element_data (hWnd);
+    __mg_free_window_element_data (hWnd);
     --pCtrl->we_rdr->refcount;
 
     free (pCtrl);
@@ -6064,7 +6064,7 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
         }
     }
 
-    retval = kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
+    retval = __kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
     free (rect);
 
     pCtrl = (PCONTROL)hWnd;
@@ -6207,7 +6207,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
         cliprc = cliprc->next;
     }
 
-    retval = kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
+    retval = __kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
     free (rect);
 
     pCtrl = (PCONTROL) hWnd;
@@ -6255,7 +6255,7 @@ BOOL GUIAPI GetWindowRegion (HWND hWnd, CLIPRGN* region)
         }
     }
     else {
-        return kernel_get_window_region (hWnd, region) > 0;
+        return __kernel_get_window_region (hWnd, region) > 0;
     }
 
     return TRUE;

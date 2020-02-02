@@ -259,10 +259,10 @@ static void initialize_cert(void)
 }
 #endif
 
-SE_EXPORT BOOL initialize_scripteasy(void)
+SE_EXPORT BOOL font_InitializeScripteasy(void)
 {
 #if SE_MINIGUI_TRACE
-    printf("in initialize_scripteasy...\n");
+    printf("in font_InitializeScripteasy...\n");
 #endif
     if(is_se_initialized)
         return TRUE;
@@ -280,7 +280,7 @@ SE_EXPORT BOOL initialize_scripteasy(void)
     is_se_initialized = 1;
 
 #if SE_MINIGUI_TRACE
-    printf("initialize_scripteasy complete...\n");
+    printf("font_InitializeScripteasy complete...\n");
 #endif
 
 #ifdef __NOUNIX__
@@ -290,10 +290,10 @@ SE_EXPORT BOOL initialize_scripteasy(void)
     return TRUE;
 }
 
-SE_EXPORT void uninitialize_scripteasy(void)
+SE_EXPORT void font_UninitializeScripteasy(void)
 {
 #ifndef SE_OPT_ARM
-    printf("in uninitialize_scripteasy...\n");
+    printf("in font_UninitializeScripteasy...\n");
 #endif
     if(!is_se_initialized)
         return;
