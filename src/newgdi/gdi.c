@@ -691,7 +691,7 @@ void __mg_leave_drawing(PDC pdc)
     if (!dc_IsMemDC (pdc))
         kernel_ShowCursorForGDI (TRUE, pdc);
 #ifdef _MGSCHEMA_COMPOSITING
-    else if (pdc->surface->shared_header) {
+    else if (pdc->surface->dirty_info) {
         GAL_UpdateRect (pdc->surface,
                 pdc->rc_output.left, pdc->rc_output.top,
                 RECTW(pdc->rc_output), RECTH(pdc->rc_output));
@@ -3068,7 +3068,7 @@ void GUIAPI UnlockDC (HDC hdc)
         kernel_ShowCursorForGDI (TRUE, pdc);
     }
 #ifdef _MGSCHEMA_COMPOSITING
-    else if (pdc->surface->shared_header) {
+    else if (pdc->surface->dirty_info) {
         GAL_UpdateRect (pdc->surface,
                 pdc->rc_output.left, pdc->rc_output.top,
                 RECTW(pdc->rc_output), RECTH(pdc->rc_output));
