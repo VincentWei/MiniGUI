@@ -104,6 +104,7 @@ GAL_Surface * GAL_CreateCursorSurface (GAL_VideoDevice *video,
     surface->map = NULL;
     surface->format_version = 0;
     surface->shared_header = NULL;
+    surface->dirty_info = NULL;
     GAL_SetClipRect (surface, NULL);
 
     /* Get the pixels */
