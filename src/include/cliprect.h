@@ -52,9 +52,7 @@
 #ifndef GUI_CLIPRECT_H
     #define GUI_CLIPRECT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+#undef _DEBUG_REGION 
 
 typedef struct tagGCRINFO
 {
@@ -84,9 +82,11 @@ typedef INVRGN* PINVRGN;
         SetClipRgn(rgn, &rc); \
     } while (0)
 
-#undef _REGION_DEBUG
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
 void dbg_dumpRegion (CLIPRGN* region);
 #endif
 
