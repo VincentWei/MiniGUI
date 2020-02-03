@@ -3828,8 +3828,10 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 
 #ifdef _MGSCHEMA_COMPOSITING
     // Close file descriptor to free kernel memory?
-    close (pWin->surf->shared_header->fd);
-    pWin->surf->shared_header->fd = -1;
+    if (pWin->surf->shared_header) {
+        close (pWin->surf->shared_header->fd);
+        pWin->surf->shared_header->fd = -1;
+    }
 #endif
 
     return (HWND)pWin;
