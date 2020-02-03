@@ -4281,19 +4281,26 @@ static void cb_circle_corners (void* context, int x1, int x2, int y)
         return;
 
     if (y < 0) {
-        rc.left = ctxt->rc.left + x1;
-        rc.right = ctxt->rc.right + x2;
-        rc.top = ctxt->rc.top + y;
-        rc.bottom = ctxt->rc.top + 1;
+        rc.left = ctxt->rc.left + x1 + ctxt->r;
+        rc.right = ctxt->rc.right + x2 - ctxt->r;
+        rc.top = ctxt->rc.top + y + ctxt->r;
+        rc.bottom = rc.top + 1;
     }
     else if (y > 0) {
-        rc.left = ctxt->rc.left + x1;
-        rc.right = ctxt->rc.right + x2;
-        rc.top = ctxt->rc.bottom + y;
-        rc.bottom = ctxt->rc.top + 1;
+        rc.left = ctxt->rc.left + x1 + ctxt->r;
+        rc.right = ctxt->rc.right + x2 - ctxt->r;
+        rc.top = ctxt->rc.bottom + y - ctxt->r;
+        rc.bottom = rc.top + 1;
     }
     else {
-        return; // return directly when y == 0
+        rc.left = ctxt->rc.left + x1 + ctxt->r;
+        rc.right = ctxt->rc.right + x2 - ctxt->r;
+        rc.top = ctxt->rc.bottom - ctxt->r;
+        rc.bottom = rc.top + 1;
+    }
+
+    if (!(ctxt->rgn_ops & RGN_OP_FLAG_ABS)) {
+        OffsetRect (&rc, -ctxt->rc.left, -ctxt->rc.top);
     }
 
     if ((ctxt->rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
@@ -4301,6 +4308,8 @@ static void cb_circle_corners (void* context, int x1, int x2, int y)
             ctxt->status = -1;
     }
     else {
+        _DBG_PRINTF("add new rect: %d, %d, %d, %d for (%d, %d) to (%d, %d)\n",
+                rc.left, rc.top, rc.right, rc.bottom, x1, y, x2, y);
         if (!AddClipRect (ctxt->dst_rgn, &rc))
             ctxt->status = -1;
     }
@@ -4315,7 +4324,7 @@ BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
     ZORDERINFO* zi;
     int nr_mask_rects = 0;
 
-    if (!mgIsServer || idx_znode <= 0)
+    if (!mgIsServer || idx_znode < 0)
         return FALSE;
 
     zi = mgTopmostLayer->zorder_info;
@@ -4343,9 +4352,8 @@ BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
 
         if (RECTW(rc) >= (RADIUS_POPUPMENU_CORNERS << 1) &&
                 RECTH(rc) >= (RADIUS_POPUPMENU_CORNERS << 1)) {
-            rc.top += RADIUS_POPUPMENU_CORNERS;
-            rc.bottom -= RADIUS_POPUPMENU_CORNERS;
-
+            ctxt.status = 0;
+            ctxt.r = RADIUS_POPUPMENU_CORNERS;
             ctxt.rc = rc;
             ctxt.rgn_ops = rgn_ops;
             ctxt.dst_rgn = dst_rgn;
@@ -4357,6 +4365,9 @@ BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
                 nr_mask_rects = -1;
                 goto err_ret;
             }
+
+            rc.top += RADIUS_POPUPMENU_CORNERS;
+            rc.bottom -= RADIUS_POPUPMENU_CORNERS;
         }
     }
 #endif /* _MGSCHEMA_COMPOSITING */
