@@ -603,7 +603,7 @@ typedef CLIPRECT* PCLIPRECT;
 typedef struct _CLIPRGN
 {
    /**
-    * Type of the region, can be one of the following:
+    * Type of the region, can be one of the following value:
     *   - NULLREGION\n
     *     A null region.
     *   - SIMPLEREGION\n
