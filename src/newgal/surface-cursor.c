@@ -107,6 +107,11 @@ GAL_Surface * GAL_CreateCursorSurface (GAL_VideoDevice *video,
     surface->dirty_info = NULL;
     GAL_SetClipRect (surface, NULL);
 
+#ifdef _MGUSE_SYNC_UPDATE
+    /* Initialize update region */
+    InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
+#endif
+
     /* Get the pixels */
     if (video == NULL || video->AllocDumbSurface == NULL ||
             video->AllocDumbSurface (video, surface) < 0) {
