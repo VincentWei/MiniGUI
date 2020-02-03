@@ -475,6 +475,13 @@ static void on_showing_ppp (CompositorCtxt* ctxt, int zidx)
         InitClipRgn (rgn, &ctxt->cliprc_heap);
         ServerGetPopupMenuZNodeRegion (zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
         ServerSetPopupMenuZNodePrivateData (zidx, rgn);
+
+        _DBG_PRINTF("Initial rcBound of ppp znode region: %d, %d, %d, %d\n",
+                rgn->rcBound.left,
+                rgn->rcBound.top,
+                rgn->rcBound.right,
+                rgn->rcBound.bottom);
+
         SubtractClipRect (&ctxt->wins_rgn, &znode_hdr->rc);
     }
     else {
@@ -497,7 +504,6 @@ static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
         int i;
 
         InitClipRgn (&dirty_rgn, &ctxt->cliprc_heap);
-        ClipRgnCopy (&dirty_rgn, ppp_rgn);
 
         for (i = 0; i < znode_hdr->nr_dirty_rcs; i++) {
             RECT rc;
@@ -505,14 +511,29 @@ static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
             // convert device coordinates to screen coordinates
             rc = znode_hdr->dirty_rcs [i];
             OffsetRect (&rc, znode_hdr->rc.left, znode_hdr->rc.top);
-            // intersect the dirty rect with dirty region.
-            IntersectClipRect (&dirty_rgn, &rc);
-        }
+            _DBG_PRINTF("dirty rect (%d) in the surface: %d, %d, %d, %d\n", i,
+                    rc.left,
+                    rc.top,
+                    rc.right,
+                    rc.bottom);
 
-        //SelectClipRegion (HDC_SCREEN_SYS, &dirty_rgn);
+            // Union the dirty rectangle into the dirty region.
+            AddClipRect (&dirty_rgn, &rc);
+        }
+        ClipRgnIntersect (&dirty_rgn, &dirty_rgn, ppp_rgn);
+        _DBG_PRINTF("rcBound of dirty region: %d, %d, %d, %d; size (%d x %d)\n",
+                dirty_rgn.rcBound.left,
+                dirty_rgn.rcBound.top,
+                dirty_rgn.rcBound.right,
+                dirty_rgn.rcBound.bottom,
+                RECTW(dirty_rgn.rcBound), RECTH(dirty_rgn.rcBound));
+
+        SelectClipRegion (HDC_SCREEN_SYS, &dirty_rgn);
         BitBlt (znode_hdr->mem_dc, 0, 0,
                 RECTW (znode_hdr->rc), RECTH (znode_hdr->rc),
                 HDC_SCREEN_SYS, znode_hdr->rc.left, znode_hdr->rc.top, 0);
+        SyncUpdateDC (HDC_SCREEN_SYS);
+
         EmptyClipRgn (&dirty_rgn);
     }
 

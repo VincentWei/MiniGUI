@@ -56,6 +56,7 @@
 #include <string.h>
 #include <errno.h>
 
+#define _DEBUG
 #include "common.h"
 
 #if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
@@ -144,6 +145,7 @@ void __mg_composite_dirty_znodes (void)
             if (changes_in_dc != nodes[i].changes) {
                 ops->on_dirty_ppp (ctxt, i);
                 nodes[i].changes = changes_in_dc;
+                pdc->surface->dirty_info->nr_dirty_rcs = 0;
             }
         }
     }
@@ -160,6 +162,7 @@ void __mg_composite_dirty_znodes (void)
             if (changes_in_dc != nodes[next].changes) {
                 ops->on_dirty_win (ctxt, next);
                 nodes[next].changes = changes_in_dc;
+                pdc->surface->dirty_info->nr_dirty_rcs = 0;
             }
         }
     }
@@ -172,6 +175,7 @@ void __mg_composite_dirty_znodes (void)
         if (changes_in_dc != nodes[0].changes) {
             ops->on_dirty_wpp (ctxt);
             nodes[0].changes = changes_in_dc;
+            pdc->surface->dirty_info->nr_dirty_rcs = 0;
         }
     }
 }
