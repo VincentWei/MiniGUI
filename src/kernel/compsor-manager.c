@@ -138,9 +138,9 @@ void __mg_composite_dirty_znodes (void)
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
             pdc = dc_HDC2PDC (nodes[i].mem_dc);
-            assert (pdc->surface->shared_header);
+            assert (pdc->surface->dirty_info);
 
-            changes_in_dc = pdc->surface->shared_header->dirty_age;
+            changes_in_dc = pdc->surface->dirty_info->dirty_age;
             if (changes_in_dc != nodes[i].changes) {
                 ops->on_dirty_ppp (ctxt, i);
                 nodes[i].changes = changes_in_dc;
@@ -154,9 +154,9 @@ void __mg_composite_dirty_znodes (void)
     while ((next = __kernel_get_next_znode (zi, next)) > 0) {
         if (nodes [next].flags & ZOF_VISIBLE) {
             pdc = dc_HDC2PDC (nodes[next].mem_dc);
-            assert (pdc->surface->shared_header);
+            assert (pdc->surface->dirty_info);
 
-            changes_in_dc = pdc->surface->shared_header->dirty_age;
+            changes_in_dc = pdc->surface->dirty_info->dirty_age;
             if (changes_in_dc != nodes[next].changes) {
                 ops->on_dirty_win (ctxt, next);
                 nodes[next].changes = changes_in_dc;
@@ -166,9 +166,9 @@ void __mg_composite_dirty_znodes (void)
 
     // check wallpaper pattern
     pdc = dc_HDC2PDC (HDC_SCREEN);
-    assert (pdc->surface->shared_header);
+    assert (pdc->surface->dirty_info);
     if (pdc->surface->w > 0 && pdc->surface->h > 0) {
-        changes_in_dc = pdc->surface->shared_header->dirty_age;
+        changes_in_dc = pdc->surface->dirty_info->dirty_age;
         if (changes_in_dc != nodes[0].changes) {
             ops->on_dirty_wpp (ctxt);
             nodes[0].changes = changes_in_dc;
