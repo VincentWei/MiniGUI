@@ -841,17 +841,17 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
     hdr = (ZNODEHEADER*)(nodes + idx_znode);
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc)) &&
-            pdc->surface->shared_header) {
-
-        // XXX use sem_timedwait
+    if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc))) {
+        assert (pdc->surface->dirty_info);
         if (hdr->dirty_rcs == NULL) {
-            //sem_wait (&pdc->surface->shared_header->sem_lock);
-            LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+            if (pdc->surface->shared_header) {
+                // XXX: consider timeout.
+                LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+            }
 
-            hdr->dirty_age = pdc->surface->shared_header->dirty_age;
-            hdr->nr_dirty_rcs = pdc->surface->shared_header->nr_dirty_rcs;
-            hdr->dirty_rcs = pdc->surface->shared_header->dirty_rcs;
+            hdr->dirty_age = pdc->surface->dirty_info->dirty_age;
+            hdr->nr_dirty_rcs = pdc->surface->dirty_info->nr_dirty_rcs;
+            hdr->dirty_rcs = pdc->surface->dirty_info->dirty_rcs;
         }
     }
     else {
@@ -895,17 +895,18 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx,
     hdr = (ZNODEHEADER*)(menu_nodes + idx);
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc)) &&
-            pdc->surface->shared_header) {
+    if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc))) {
+        assert (pdc->surface->dirty_info);
 
-        // XXX use sem_timedwait
         if (hdr->dirty_rcs == NULL) {
-            //sem_wait (&pdc->surface->shared_header->sem_lock);
-            LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+            if (pdc->surface->shared_header) {
+                // XXX: consider timeout
+                LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+            }
 
-            hdr->dirty_age = pdc->surface->shared_header->dirty_age;
-            hdr->nr_dirty_rcs = pdc->surface->shared_header->nr_dirty_rcs;
-            hdr->dirty_rcs = pdc->surface->shared_header->dirty_rcs;
+            hdr->dirty_age = pdc->surface->dirty_info->dirty_age;
+            hdr->nr_dirty_rcs = pdc->surface->dirty_info->nr_dirty_rcs;
+            hdr->dirty_rcs = pdc->surface->dirty_info->dirty_rcs;
         }
     }
     else {
@@ -943,11 +944,10 @@ BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
 
     nodes = GET_ZORDERNODE(zi);
     hdr = (ZNODEHEADER*)(nodes + idx_znode);
-    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) &&
-            pdc->surface->shared_header && hdr->dirty_rcs) {
+    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) && hdr->dirty_rcs) {
 
-        //sem_post (&pdc->surface->shared_header->sem_lock);
-        UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+        if (pdc->surface->shared_header)
+            UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
 
         hdr->dirty_age = 0;
         hdr->nr_dirty_rcs = 0;
@@ -970,11 +970,11 @@ BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
 
     menu_nodes = GET_MENUNODE(zi);
     hdr = (ZNODEHEADER*)(menu_nodes + idx);
-    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) &&
-            pdc->surface->shared_header && hdr->dirty_rcs) {
+    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) && hdr->dirty_rcs) {
 
-        //sem_post (&pdc->surface->shared_header->sem_lock);
-        UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+        if (pdc->surface->shared_header)
+            UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+
         hdr->dirty_age = 0;
         hdr->nr_dirty_rcs = 0;
         hdr->dirty_rcs = NULL;
