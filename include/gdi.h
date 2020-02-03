@@ -789,7 +789,7 @@ MG_EXPORT BOOL GUIAPI ClipRgnCopy (PCLIPRGN pDstRgn, const CLIPRGN* pSrcRgn);
  * \return TRUE on success, otherwise FALSE.
  *
  * \note If \a pRgn1 does not intersected with \a pRgn2, the result region
- *       will be a emgty region.
+ *       will be an emgty region.
  *
  * \sa EmptyClipRgn, ClipRgnCopy, UnionRegion, SubtractRegion, XorRegion
  */
