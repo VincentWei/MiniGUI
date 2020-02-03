@@ -1481,29 +1481,29 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
 
 #ifdef _MGSCHEMA_COMPOSITING
     {
+        GAL_Surface* surf;
         if (cli == 0) {
-            memdc = ((PTRACKMENUINFO)ptmi)->dc;
+            surf = GetSurfaceFromDC (((PTRACKMENUINFO)ptmi)->dc);
         }
         else if (fd >= 0) {
-            GAL_Surface* surf = GAL_AttachSharedRGBSurface (fd,
-                    surf_size, surf_flags, TRUE);
+            surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);
             close (fd);
+        }
+        else {
+            _ERR_PRINTF("KERNEL: not server but fd for shared surface is invalid\n");
+            return -1;
+        }
 
-            if (surf) {
-                memdc = CreateMemDCFromSurface (surf);
-                if (memdc == HDC_INVALID) {
-                    GAL_FreeSurface (surf);
-                    _ERR_PRINTF("KERNEL: failed to create memory dc for znode\n");
-                    return -1;
-                }
-            }
-            else {
-                _ERR_PRINTF("KERNEL: failed to attach to surface\n");
+        if (surf) {
+            memdc = CreateMemDCFromSurface (surf);
+            if (memdc == HDC_INVALID) {
+                GAL_FreeSurface (surf);
+                _ERR_PRINTF("KERNEL: failed to create memory dc for znode\n");
                 return -1;
             }
         }
         else {
-            _ERR_PRINTF("KERNEL: not server but fd for shared surface is invalid\n");
+            _ERR_PRINTF("KERNEL: failed to attach to surface\n");
             return -1;
         }
     }
