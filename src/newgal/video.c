@@ -760,32 +760,32 @@ void GAL_UpdateRect (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-static void mark_shared_surface_dirty (GAL_Surface* surface,
+static void mark_surface_dirty (GAL_Surface* surface,
             int numrects, GAL_Rect* rects)
 {
     int i;
-    GAL_SharedSurfaceHeader* hdr = surface->shared_header;
+    GAL_DirtyInfo* di = surface->dirty_info;
 
-    assert (hdr);
+    assert (di);
     assert (numrects <= NR_DIRTY_RECTS);
 
-    if (hdr->nr_dirty_rcs + numrects <= NR_DIRTY_RECTS) {
-        for (i = hdr->nr_dirty_rcs; i < (hdr->nr_dirty_rcs + numrects); i++) {
-            int j = i - hdr->nr_dirty_rcs;
-            hdr->dirty_rcs [i].left     = rects[j].x;
-            hdr->dirty_rcs [i].top      = rects[j].y;
-            hdr->dirty_rcs [i].right    = rects[j].x + rects[j].w;
-            hdr->dirty_rcs [i].bottom   = rects[j].y + rects[j].h;
+    if (di->nr_dirty_rcs + numrects <= NR_DIRTY_RECTS) {
+        for (i = di->nr_dirty_rcs; i < (di->nr_dirty_rcs + numrects); i++) {
+            int j = i - di->nr_dirty_rcs;
+            di->dirty_rcs [i].left     = rects[j].x;
+            di->dirty_rcs [i].top      = rects[j].y;
+            di->dirty_rcs [i].right    = rects[j].x + rects[j].w;
+            di->dirty_rcs [i].bottom   = rects[j].y + rects[j].h;
         }
 
-        hdr->nr_dirty_rcs += numrects;
+        di->nr_dirty_rcs += numrects;
     }
     else {
         RECT rc_bound;
 
         SetRect (&rc_bound, 0, 0, 0, 0);
-        for (i = 0; i < hdr->nr_dirty_rcs; i++) {
-            UnionRect (&rc_bound, &rc_bound, hdr->dirty_rcs + i);
+        for (i = 0; i < di->nr_dirty_rcs; i++) {
+            UnionRect (&rc_bound, &rc_bound, di->dirty_rcs + i);
         }
 
         for (i = 0; i < numrects; i++) {
@@ -796,11 +796,11 @@ static void mark_shared_surface_dirty (GAL_Surface* surface,
             UnionRect (&rc_bound, &rc_bound, &rc);
         }
 
-        hdr->nr_dirty_rcs = 1;
-        hdr->dirty_rcs[0] = rc_bound;
+        di->nr_dirty_rcs = 1;
+        di->dirty_rcs[0] = rc_bound;
     }
 
-    hdr->dirty_age++;
+    di->dirty_age++;
 }
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
@@ -826,7 +826,7 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (surface->shared_header) {
+    if (surface->dirty_info) {
         add_rects_to_update_region (&surface->update_region, numrects, rects);
         return;
     }
@@ -850,7 +850,8 @@ notsupport:
     _WRN_PRINTF ("Not support GAL_UpdateRects for surface: %p\n", surface);
 }
 
-static int convert_region_to_rects (const CLIPRGN * rgn, GAL_Rect *rects, int max_nr)
+int __mg_convert_region_to_rects (const CLIPRGN * rgn,
+        GAL_Rect *rects, int max_nr)
 {
     int nr = 0;
     PCLIPRECT clip_rect = rgn->head;
@@ -902,18 +903,19 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
     GAL_Rect rects[NR_DIRTY_RECTS];
     int numrects;
 
-    numrects = convert_region_to_rects (&surface->update_region,
+    numrects = __mg_convert_region_to_rects (&surface->update_region,
             rects, NR_DIRTY_RECTS);
     if (numrects <= 0)
         return FALSE;
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (surface->shared_header) {
-        //sem_wait (&surface->shared_header->sem_lock);
         LOCK_SURFACE_SEM (surface->shared_header->sem_num);
-        mark_shared_surface_dirty (surface, numrects, rects);
-        //sem_post (&surface->shared_header->sem_lock);
+        mark_surface_dirty (surface, numrects, rects);
         UNLOCK_SURFACE_SEM (surface->shared_header->sem_num);
+    }
+    else if (surface->dirty_info) {
+        mark_surface_dirty (surface, numrects, rects);
     }
 #endif
 
@@ -937,9 +939,7 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (surface->shared_header) {
-        mark_shared_surface_dirty (surface, numrects, rects);
-    }
+    mark_surface_dirty (surface, numrects, rects);
 #endif
 
     if (this) {
@@ -1244,6 +1244,7 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     surface->format_version = 0;
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
+    surface->dirty_info = NULL;
 #endif
     GAL_SetClipRect(surface, NULL);
 
