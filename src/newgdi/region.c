@@ -414,7 +414,7 @@ static void REGION_SetExtents (CLIPRGN *region)
     }
 }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
 void dbg_dumpRegion (CLIPRGN* region)
 {
     CLIPRECT *cliprect;
@@ -1363,7 +1363,7 @@ BOOL GUIAPI AddClipRect (PCLIPRGN region, const RECT *rect)
     if (IsRectEmpty (rect))
         return FALSE;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "\n***************Before Union by rect (%d, %d, %d, %d):\n",
                     rect->left, rect->top, rect->right, rect->bottom);
     dbg_dumpRegion (region);
@@ -1381,7 +1381,7 @@ BOOL GUIAPI AddClipRect (PCLIPRGN region, const RECT *rect)
 
     UnionRegion (region, region, &my_region);
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************After Union\n");
 #endif
@@ -1400,7 +1400,7 @@ BOOL GUIAPI IntersectClipRect (PCLIPRGN region, const RECT* rect)
         return TRUE;
     }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "\n***************before intersect by rect (%d, %d, %d, %d):\n",
                     rect->left, rect->top, rect->right, rect->bottom);
     dbg_dumpRegion (region);
@@ -1418,7 +1418,7 @@ BOOL GUIAPI IntersectClipRect (PCLIPRGN region, const RECT* rect)
 
     ClipRgnIntersect (region, region, &my_region);
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************After intersect\n");
 #endif
@@ -1434,7 +1434,7 @@ BOOL GUIAPI SubtractClipRect (PCLIPRGN region, const RECT* rect)
     if (IsRectEmpty (rect) || !DoesIntersect (&region->rcBound, rect))
         return FALSE;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "\n***************Before subtract by rect (%d, %d, %d, %d):\n",
                     rect->left, rect->top, rect->right, rect->bottom);
     dbg_dumpRegion (region);
@@ -1452,7 +1452,7 @@ BOOL GUIAPI SubtractClipRect (PCLIPRGN region, const RECT* rect)
 
     SubtractRegion (region, region, &my_region);
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************After subtraction\n");
 #endif
@@ -1476,7 +1476,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
     if (!IntersectRect (&rc, rcClient, rcScroll))
         return;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "***************enter OffsetRegionEx\n");
     dbg_dumpRegion (region);
 #endif
@@ -1484,7 +1484,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         /*not in scroll window region, return*/
         if (!DoesIntersect (&cliprect->rc, &rc)) {
             cliprect = cliprect->next;
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "needn't scroll this cliprect.\n");
 #endif
             continue;
@@ -1497,7 +1497,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
 #if 0
             //nCount = SubtractRect (rc_array, &rc, &old_cliprc);
             nCount = SubtractRect (rc_array, &old_cliprc, &rc);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "add new %d cliprect to region.\n", nCount);
 #endif
             for (i = 0; i < nCount; i++) {
@@ -1507,7 +1507,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         }
 
         OffsetRect (&cliprect->rc, x, y);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
         fprintf (stderr, "offset current cliprect. \n");
 #endif
 
@@ -1526,7 +1526,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
 
             FreeClipRect (region->heap, cliprect);
             cliprect = pTemp;
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "remove current cliprect. \n");
 #endif
             continue;
@@ -1536,7 +1536,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         if (!IsCovered (&cliprect->rc, &rc)) {
             CopyRect (&old_cliprc, &cliprect->rc);
             IntersectRect (&cliprect->rc, &old_cliprc, &rc);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "tune current cliprect. \n");
 #endif
         }
@@ -1547,7 +1547,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         cliprect = cliprect->next;
     }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************after OffsetRegionEx\n");
 #endif
@@ -1566,13 +1566,13 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
     if (!IntersectRect (&rc, rcClient, rcScroll))
         return;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "***************enter OffsetRegionEx\n");
     dbg_dumpRegion (region);
 #endif
     while (cliprect) {
         OffsetRect (&cliprect->rc, x, y);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
         fprintf (stderr, "offset current cliprect. \n");
 #endif
         /*if not intersect, remove current cliprect from list*/
@@ -1590,7 +1590,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
 
             FreeClipRect (region->heap, cliprect);
             cliprect = pTemp;
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "remove current cliprect. \n");
 #endif
             continue;
@@ -1600,7 +1600,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         if (!IsCovered (&cliprect->rc, &rc)) {
             CopyRect (&old_cliprc, &cliprect->rc);
             IntersectRect (&cliprect->rc, &old_cliprc, &rc);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "tune current cliprect. \n");
 #endif
         }
@@ -1612,7 +1612,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         REGION_SetExtents(region);
     }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************after OffsetRegionEx\n");
 #endif

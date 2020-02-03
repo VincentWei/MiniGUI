@@ -597,7 +597,7 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
             coor_DP2SP (pdc, &pdc->ecrgn.rcBound.right,
                             &pdc->ecrgn.rcBound.bottom);
             ClipRgnIntersect (&pdc->ecrgn, &pdc->ecrgn, &pdc->pGCRInfo->crgn);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             dbg_dumpRegion (&pdc->pGCRInfo->crgn);
             dbg_dumpRegion (&pdc->ecrgn);
 #endif

@@ -50,6 +50,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _DEBUG
 #include "common.h"
 #include "minigui.h"
 #include "gal.h"
@@ -905,6 +906,7 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
 
     numrects = __mg_convert_region_to_rects (&surface->update_region,
             rects, NR_DIRTY_RECTS);
+
     if (numrects <= 0)
         return FALSE;
 

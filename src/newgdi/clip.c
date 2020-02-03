@@ -152,7 +152,7 @@ void GUIAPI SelectClipRect (HDC hdc, const RECT* prc)
         rc = pdc->DevRC;
     }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "\n----------------------------\n");
     dbg_dumpRegion (&pdc->ecrgn);
 #endif
@@ -162,7 +162,7 @@ void GUIAPI SelectClipRect (HDC hdc, const RECT* prc)
         MAKE_REGION_INFINITE(&pdc->lcrgn);
 
     clipOnChangeClipRegion(pdc);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (&pdc->ecrgn);
     fprintf (stderr, "----------------------------\n");
 #endif
