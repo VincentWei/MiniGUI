@@ -115,6 +115,17 @@ typedef int (*GAL_blit)(struct GAL_Surface *src, GAL_Rect *srcrect,
                         struct GAL_Surface *dst, GAL_Rect *dstrect);
 
 #if IS_COMPOSITING_SCHEMA
+typedef struct _DirtyInfo {
+    /* the dirty age */
+    unsigned int    dirty_age;
+
+    /* the number of dirty rects */
+    int             nr_dirty_rcs;
+
+    /* the dirty rectangles */
+    RECT            dirty_rcs [NR_DIRTY_RECTS];
+} GAL_DirtyInfo;
+
 /*
  * Note that the shared surface are always read-only for any process other
  * than the creator.
@@ -137,16 +148,8 @@ typedef struct _SharedSurfaceHeader {
     int             fd;
     /* Not zero for hardware surface. */
     int             byhw;
-
-    /* the dirty sync age */
-    unsigned int    dirty_age;
-
-    /* the number of dirty rects */
-    int             nr_dirty_rcs;
-
-    /* the dirty rectangles */
-    RECT            dirty_rcs [NR_DIRTY_RECTS];
-
+    /* The dirty information */
+    GAL_DirtyInfo   dirty_info;
     /* the size of the surface */
     int             width, height;
     /* the pitch of the surface */
@@ -199,9 +202,11 @@ typedef struct GAL_Surface {
     int refcount;                       /* Read-mostly */
 
 #if IS_COMPOSITING_SCHEMA
-    /* the pointer to GAL_SharedSurfaceHeader if the surface
+    /* The pointer to GAL_SharedSurfaceHeader if the surface
        is a shared surface across processes. */
-    GAL_SharedSurfaceHeader *shared_header;
+    GAL_SharedSurfaceHeader *shared_header;     /* Private */
+    /* The dirty info for non-shared surface. */
+    GAL_DirtyInfo *dirty_info;                  /* Private */
 #endif
 } GAL_Surface;
 
