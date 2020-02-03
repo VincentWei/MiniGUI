@@ -3621,8 +3621,9 @@ void GUIAPI DeleteMemDC (HDC hdc)
 
     GAL_FreeSurface (pmem_dc->surface);
 
-    if (pmem_dc->alpha_pixel_format)
+    if (pmem_dc->alpha_pixel_format) {
         GAL_FreeFormat (pmem_dc->alpha_pixel_format);
+    }
 
     EmptyClipRgn (&pmem_dc->lcrgn);
     EmptyClipRgn (&pmem_dc->ecrgn);

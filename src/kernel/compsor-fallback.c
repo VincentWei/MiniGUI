@@ -110,10 +110,6 @@ static void terminate (CompositorCtxt* ctxt)
     _DBG_PRINTF("called\n");
 }
 
-static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
-{
-}
-
 static void composite_with_wallpaper (CompositorCtxt* ctxt,
             const RECT* dirty_rc)
 {
@@ -453,22 +449,62 @@ static void refresh (CompositorCtxt* ctxt)
     on_dirty_win (ctxt, 0);
 }
 
+static void purge_ppp_data (CompositorCtxt* ctxt, int zidx, void* data)
+{
+    _DBG_PRINTF("called\n");
+    mg_slice_delete (CLIPRGN, data);
+}
+
+static void purge_win_data (CompositorCtxt* ctxt, MG_Layer* layer,
+        int zidx, void* data)
+{
+    _DBG_PRINTF("called\n");
+    mg_slice_delete (CLIPRGN, data);
+}
+
 static void on_showing_ppp (CompositorCtxt* ctxt, int zidx)
 {
-    const ZNODEHEADER* znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, NULL, FALSE);
-    if (znode_hdr)
+    const ZNODEHEADER* znode_hdr;
+    CLIPRGN* rgn;
+
+    _DBG_PRINTF("called\n");
+
+    znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, NULL, FALSE);
+    if (znode_hdr) {
+        rgn = mg_slice_new (CLIPRGN);
+        InitClipRgn (rgn, &ctxt->cliprc_heap);
+        ServerGetPopupMenuZNodeRegion (zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+        ServerSetPopupMenuZNodePrivateData (zidx, rgn);
         SubtractClipRect (&ctxt->wins_rgn, &znode_hdr->rc);
+    }
+    else {
+        _WRN_PRINTF ("failed to get znode header for znode: %d\n", zidx);
+    }
+}
+
+static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
+{
+    _DBG_PRINTF("called\n");
 }
 
 static void on_hiding_ppp (CompositorCtxt* ctxt, int zidx)
 {
     const ZNODEHEADER* znode_hdr;
+    CLIPRGN* rgn = NULL;
 
+    _DBG_PRINTF("called\n");
     rebuild_wins_region (ctxt);
-    znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, NULL, FALSE);
 
+    znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, FALSE);
     if (znode_hdr) {
+        assert (rgn);
+        mg_slice_delete (CLIPRGN, rgn);
+
+        ServerSetPopupMenuZNodePrivateData (zidx, NULL);
         on_dirty_win (ctxt, 0);
+    }
+    else {
+        _WRN_PRINTF ("failed to get znode header for znode: %d\n", zidx);
     }
 }
 
@@ -481,11 +517,13 @@ CompositorOps __mg_fallback_compositor = {
     initialize: initialize,
     terminate: terminate,
     refresh: refresh,
+    purge_ppp_data: purge_ppp_data,
+    purge_win_data: purge_win_data,
     on_dirty_ppp: on_dirty_ppp,
-    on_dirty_win: on_dirty_win,
-    on_dirty_wpp: on_dirty_wpp,
     on_showing_ppp: on_showing_ppp,
     on_hiding_ppp: on_hiding_ppp,
+    on_dirty_win: on_dirty_win,
+    on_dirty_wpp: on_dirty_wpp,
     on_closing_menu: on_closing_menu,
 };
 

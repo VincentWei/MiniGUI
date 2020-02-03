@@ -201,7 +201,7 @@ static void purge_znodes_private_data_in_layer (const CompositorOps* ops,
     next = 0;
     while ((next = __kernel_get_next_znode (zi, next)) > 0) {
         if (nodes[next].priv_data) {
-            ops->purge_win_data (ctxt, next, nodes[next].priv_data);
+            ops->purge_win_data (ctxt, layer, next, nodes[next].priv_data);
             nodes[next].priv_data = NULL;
         }
     }
