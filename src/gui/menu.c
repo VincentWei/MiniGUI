@@ -2201,8 +2201,10 @@ static int create_memdc_for_menu (TRACKMENUINFO* ptmi)
 
 static void delete_memdc_for_menu (TRACKMENUINFO* ptmi)
 {
-    if (ptmi->dc != HDC_INVALID)
+    if (ptmi->dc != HDC_INVALID) {
         DeleteMemDC (ptmi->dc);
+        ptmi->dc = HDC_INVALID;
+    }
 }
 
 static inline int save_box_under_menu (TRACKMENUINFO* ptmi) { return 0; }
@@ -4083,6 +4085,7 @@ static int mnuTrackMenuOnButtonUp (PTRACKMENUINFO ptmi,
 int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
         int message, WPARAM wParam, LPARAM lParam)
 {
+    int ret_value;
     switch (message) {
         case MSG_INITMENU:
             mnuGetPopupMenuExtent (ptmi);
@@ -4092,7 +4095,11 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
         case MSG_SHOWMENU:
             if (GetCurrentCursor() != GetSystemCursor(IDC_ARROW))
                 SetCursor(GetSystemCursor(IDC_ARROW));
-            return mnuShowPopupMenu (ptmi);
+            ret_value = mnuShowPopupMenu (ptmi);
+            /* Since 4.2.0 */
+            if (ptmi->dc != HDC_INVALID)
+                SyncUpdateDC (ptmi->dc);
+            return ret_value;
         break;
 
         case MSG_HIDEMENU:
@@ -4117,20 +4124,32 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
             if (mnuTrackMenuOnButtonDown (ptmi,
                     message, (int)wParam, (int)lParam) < 0)
                 return 1;
+            /* Since 4.2.0 */
+            if (ptmi->dc != HDC_INVALID)
+                SyncUpdateDC (ptmi->dc);
         break;
 
         case MSG_LBUTTONUP:
         case MSG_RBUTTONUP:
             mnuTrackMenuOnButtonUp (ptmi, message, (int)wParam, (int)lParam);
+            /* Since 4.2.0 */
+            if (ptmi->dc != HDC_INVALID)
+                SyncUpdateDC (ptmi->dc);
             return 1;
 
         case MSG_MOUSEMOVE:
             mnu_scroll_menu(ptmi, (int)wParam, (int)lParam);
+            /* Since 4.2.0 */
+            if (ptmi->dc != HDC_INVALID)
+                SyncUpdateDC (ptmi->dc);
             break;
 
         case MSG_KEYDOWN:
         case MSG_KEYUP:
             mnuTrackMenuWithKey (ptmi, message, (int)wParam, (DWORD)lParam);
+            /* Since 4.2.0 */
+            if (ptmi->dc != HDC_INVALID)
+                SyncUpdateDC (ptmi->dc);
             break;
 
         default:
