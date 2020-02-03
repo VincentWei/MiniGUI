@@ -484,7 +484,39 @@ static void on_showing_ppp (CompositorCtxt* ctxt, int zidx)
 
 static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
 {
+    const ZNODEHEADER* znode_hdr;
+    CLIPRGN* ppp_rgn;
+    CLIPRGN dirty_rgn;
+
     _DBG_PRINTF("called\n");
+    znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&ppp_rgn, TRUE);
+    if (znode_hdr == NULL)
+        return;
+
+    if (znode_hdr->dirty_rcs) {
+        int i;
+
+        InitClipRgn (&dirty_rgn, &ctxt->cliprc_heap);
+        ClipRgnCopy (&dirty_rgn, ppp_rgn);
+
+        for (i = 0; i < znode_hdr->nr_dirty_rcs; i++) {
+            RECT rc;
+
+            // convert device coordinates to screen coordinates
+            rc = znode_hdr->dirty_rcs [i];
+            OffsetRect (&rc, znode_hdr->rc.left, znode_hdr->rc.top);
+            // intersect the dirty rect with dirty region.
+            IntersectClipRect (&dirty_rgn, &rc);
+        }
+
+        //SelectClipRegion (HDC_SCREEN_SYS, &dirty_rgn);
+        BitBlt (znode_hdr->mem_dc, 0, 0,
+                RECTW (znode_hdr->rc), RECTH (znode_hdr->rc),
+                HDC_SCREEN_SYS, znode_hdr->rc.left, znode_hdr->rc.top, 0);
+        EmptyClipRgn (&dirty_rgn);
+    }
+
+    ServerReleasePopupMenuZNodeHeader (zidx);
 }
 
 static void on_hiding_ppp (CompositorCtxt* ctxt, int zidx)
