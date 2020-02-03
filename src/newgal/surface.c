@@ -125,7 +125,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     }
     surface->format = GAL_AllocFormat(depth, Rmask, Gmask, Bmask, Amask);
     if (surface->format == NULL) {
-        free(surface);
+        free (surface);
         return(NULL);
     }
     surface->w = width;
@@ -140,6 +140,12 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     surface->format_version = 0;
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
+    surface->dirty_info = calloc (sizeof (GAL_DirtyInfo), 1);
+    if (surface->dirty_info == NULL) {
+        GAL_FreeSurface(surface);
+        GAL_OutOfMemory();
+        return(NULL);
+    }
 #endif
     GAL_SetClipRect(surface, NULL);
 
@@ -1724,6 +1730,10 @@ void GAL_FreeSurface (GAL_Surface *surface)
     }
 
 #if IS_COMPOSITING_SCHEMA
+    if (surface->shared_header == NULL && surface->dirty_info != NULL) {
+        free (surface->dirty_info);
+    }
+
     if (surface->shared_header) {
         if (surface->shared_header->creator == getpid())
             GAL_FreeSharedSurfaceData(surface);
