@@ -138,6 +138,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
     surface->map = NULL;
     surface->format_version = 0;
     surface->shared_header = NULL;
+    surface->dirty_info = NULL;
     GAL_SetClipRect (surface, NULL);
 
 #ifdef _MGUSE_SYNC_UPDATE
@@ -208,8 +209,10 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         hdr->Bmask      = Bmask;
         hdr->Amask      = Amask;
         hdr->buf_size   = buf_size;
-        hdr->dirty_age  = 0;
-        hdr->nr_dirty_rcs   = 0;
+
+        surface->dirty_info = &hdr->dirty_info;
+        surface->dirty_info->dirty_age       = 0;
+        surface->dirty_info->nr_dirty_rcs    = 0;
 
         /* allocate semaphore from semaphore for shared surface */
         if (IsServer() && __gal_fake_screen == NULL) {
@@ -280,6 +283,7 @@ error:
             }
 
             surface->shared_header = NULL;
+            surface->dirty_info = NULL;
         }
 
         surface->pixels = NULL;
@@ -323,6 +327,7 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
 
     surface->pixels = NULL;
     surface->shared_header = NULL;
+    surface->dirty_info = NULL;
 }
 
 /*
@@ -391,6 +396,7 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     /* map successfully */
     hdr = surface->shared_header;
 
+    surface->dirty_info = &hdr->dirty_info;
     surface->pixels = hdr->buf;
     surface->format = GAL_AllocFormat (hdr->depth,
             hdr->Rmask, hdr->Gmask, hdr->Bmask, hdr->Amask);
@@ -458,6 +464,7 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
             + sizeof (GAL_SharedSurfaceHeader));
     surface->pixels = NULL;
     surface->shared_header = NULL;
+    surface->dirty_info = NULL;
 }
 
 GAL_Surface *GAL_CreateSurfaceForZNode (int width, int height)
