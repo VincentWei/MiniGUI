@@ -1601,7 +1601,8 @@ typedef struct _CompositorOps {
     /**
      * This operation purges the private data of a window z-node.
      */
-    void (*purge_win_data) (CompositorCtxt* ctxt, int zidx, void* data);
+    void (*purge_win_data) (CompositorCtxt* ctxt, MG_Layer* layer,
+            int zidx, void* data);
 
     /**
      * This operation will be called when there are some dirty
