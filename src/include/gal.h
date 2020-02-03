@@ -64,5 +64,17 @@ extern GHANDLE __mg_layer;
 #define WIDTHOFPHYSCREEN      WIDTHOFPHYGC
 #define HEIGHTOFPHYSCREEN     HEIGHTOFPHYGC
 
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
+
+// Since 4.2.0
+int __mg_convert_region_to_rects (const CLIPRGN * rgn,
+        GAL_Rect *rects, int max_nr);
+
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
 #endif  /* GUI_GAL_H */
 
