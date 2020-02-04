@@ -44,7 +44,7 @@
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** compsor-manager.c: the compositor manager module for MiniGUI.
+** compsor-fallback.c: the fallback compositor.
 **
 ** Create date: 2020-01-19
 **
@@ -534,6 +534,7 @@ static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
                 HDC_SCREEN_SYS, znode_hdr->rc.left, znode_hdr->rc.top, 0);
         SyncUpdateDC (HDC_SCREEN_SYS);
 
+        SelectClipRect (HDC_SCREEN_SYS, &ctxt->rc_screen);
         EmptyClipRgn (&dirty_rgn);
     }
 
@@ -545,24 +546,33 @@ static void on_hiding_ppp (CompositorCtxt* ctxt, int zidx)
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
 
-    _DBG_PRINTF("called\n");
-    rebuild_wins_region (ctxt);
-
     znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, FALSE);
     if (znode_hdr) {
         assert (rgn);
         mg_slice_delete (CLIPRGN, rgn);
 
         ServerSetPopupMenuZNodePrivateData (zidx, NULL);
-        on_dirty_win (ctxt, 0);
     }
     else {
         _WRN_PRINTF ("failed to get znode header for znode: %d\n", zidx);
     }
 }
 
+static void on_dirty_rect (CompositorCtxt* ctxt,
+        DWORD cause_type, const RECT* rc)
+{
+    _DBG_PRINTF("called: cause_type (0x%08lX), rc (%d, %d, %d, %d)\n",
+            cause_type, rc->left, rc->top, rc->right, rc->bottom);
+
+    if (cause_type == ZNIT_POPUPMENU) {
+        rebuild_wins_region (ctxt);
+        on_dirty_win (ctxt, 0);
+    }
+}
+
 static void on_closing_menu (CompositorCtxt* ctxt)
 {
+    _DBG_PRINTF("called\n");
     SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
 }
 
@@ -575,9 +585,10 @@ CompositorOps __mg_fallback_compositor = {
     on_dirty_ppp: on_dirty_ppp,
     on_showing_ppp: on_showing_ppp,
     on_hiding_ppp: on_hiding_ppp,
+    on_closing_menu: on_closing_menu,
     on_dirty_win: on_dirty_win,
     on_dirty_wpp: on_dirty_wpp,
-    on_closing_menu: on_closing_menu,
+    on_dirty_rect: on_dirty_rect,
 };
 
 #endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING) */
