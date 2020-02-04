@@ -279,7 +279,7 @@ typedef struct _MG_Layer
     /** The name of the layer. */
     char    name [LEN_LAYER_NAME + 1];
 
-    /** The pointer to the active client on the layer. */
+    /** The additional data for the layer; reserved for the server. */
     DWORD   dwAddData;
 
     /** The pointer to the list of clients in the layer. */
@@ -1616,9 +1616,9 @@ typedef struct _CompositorOps {
 
     /**
      * This operation will be called when there are some dirty rectangles
-     * in the specific window z-node.
+     * in the specific window z-node on the specific layer.
      */
-    void (*on_dirty_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_dirty_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when there are some dirty rectangles
@@ -1629,13 +1629,15 @@ typedef struct _CompositorOps {
     /**
      * This operation will be called when a z-node was out of action, e.g.,
      * the z-node was hidden or released.
+     * The argument \a layer gives the layer which has the dirty rectangle;
+     * NULL for the topmost layer.
      * The argument \a cause_type gives the type of the z-node which caused
      * the action. For the available z-node types, please refer to \a ZNODEINFO.
      * The argument \a rc contains the rectangle of the z-node in screen
-     * coordinates. The compositor should refresh the screen for the dirty
-     * rectangle.
+     * coordinates.
+     * The compositor should refresh the screen for the dirty rectangle.
      */
-    void (*on_dirty_rect) (CompositorCtxt* ctxt,
+    void (*on_dirty_screen) (CompositorCtxt* ctxt, MG_Layer* layer,
             DWORD cause_type, const RECT* rc);
 
     /**
@@ -1648,16 +1650,18 @@ typedef struct _CompositorOps {
 
     /**
      * This operation will be called when the system is hiding a popup menu.
+     * The compositor may purge the private data in this operation.
      * The compositor can play an animation in this operation.
      */
     void (*on_hiding_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation will be called when the system is closing a menu,
-     * including all popup menus of contained in the menu.
-     * The compositor can play an animation in this operation.
+     * This operation will be called when the system closed a tracking menu,
+     * The compositor can refresh the screen as there is no any popup menus.
+     * The argument \a rc_bound gives the bound rectangle of all visible
+     * popup menus before closing the menu.
      */
-    void (*on_closing_menu) (CompositorCtxt* ctxt);
+    void (*on_closed_menu) (CompositorCtxt* ctxt, const RECT* rc_bound);
 
     /**
      * This operation will be called when the system is showing a window.
@@ -1665,37 +1669,39 @@ typedef struct _CompositorOps {
      * the surface of the window, but it can update some internal data
      * in this operation.
      */
-    void (*on_showing_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_showing_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when the system is hidding a window.
+     * The compositor may purge the private data in this operation.
      * The compositor can play an animation in this operation.
      */
-    void (*on_hiding_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_hiding_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when the system is moving a window.
      * The compositor can play an animation in this operation.
      */
-    void (*on_moving_win) (CompositorCtxt* ctxt, int zidx, const RECT* dst_rc);
+    void (*on_moving_win) (CompositorCtxt* ctxt, MG_Layer* layer,
+            int zidx, const RECT* dst_rc);
 
     /**
      * This operation will be called when the system is raising the window
      * z-node to top.
      */
-    void (*on_raising_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_raising_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when the system is maximizing a window.
      * The compositor can play an animation in this operation.
      */
-    void (*on_maximizing_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_maximizing_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when the system is manimizing a window.
      * The compositor can play an animation in this operation.
      */
-    void (*on_minimizing_win) (CompositorCtxt* ctxt, int zidx);
+    void (*on_minimizing_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
 } CompositorOps;
 
