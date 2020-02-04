@@ -1595,34 +1595,48 @@ typedef struct _CompositorOps {
 
     /**
      * This operation purges the private data of a popup menu z-node.
+     * It will be called before terminating the compositor for any
+     * popup menu z-node which has a non-NULL private data.
      */
     void (*purge_ppp_data) (CompositorCtxt* ctxt, int zidx, void* data);
 
     /**
      * This operation purges the private data of a window z-node.
+     * It will be called before terminating the compositor for any
+     * window z-node which has a non-NULL private data.
      */
     void (*purge_win_data) (CompositorCtxt* ctxt, MG_Layer* layer,
             int zidx, void* data);
 
     /**
      * This operation will be called when there are some dirty
-     * rects in the specific popup menu z-node.
+     * rectangles in the specific popup menu z-node.
      */
     void (*on_dirty_ppp) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation will be called when there are some dirty rects
-     * in the specific window z-node. For the later
-     * situation, \a zidx will be zero and coordiantes in the dirty rects
-     * will be under screen coordinate system.
+     * This operation will be called when there are some dirty rectangles
+     * in the specific window z-node.
      */
     void (*on_dirty_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
-     * This operation will be called when there are some dirty rects
+     * This operation will be called when there are some dirty rectangles
      * in the wallpaper pattern.
      */
     void (*on_dirty_wpp) (CompositorCtxt* ctxt);
+
+    /**
+     * This operation will be called when a z-node was out of action, e.g.,
+     * the z-node was hidden or released.
+     * The argument \a cause_type gives the type of the z-node which caused
+     * the action. For the available z-node types, please refer to \a ZNODEINFO.
+     * The argument \a rc contains the rectangle of the z-node in screen
+     * coordinates. The compositor should refresh the screen for the dirty
+     * rectangle.
+     */
+    void (*on_dirty_rect) (CompositorCtxt* ctxt,
+            DWORD cause_type, const RECT* rc);
 
     /**
      * This operation will be called when the system is showing a new
@@ -1666,10 +1680,10 @@ typedef struct _CompositorOps {
     void (*on_moving_win) (CompositorCtxt* ctxt, int zidx, const RECT* dst_rc);
 
     /**
-     * This operation will be called when the system is moveing the z-order
-     * to top.
+     * This operation will be called when the system is raising the window
+     * z-node to top.
      */
-    void (*on_moving_to_top) (CompositorCtxt* ctxt, int zidx);
+    void (*on_raising_win) (CompositorCtxt* ctxt, int zidx);
 
     /**
      * This operation will be called when the system is maximizing a window.
