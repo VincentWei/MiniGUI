@@ -122,6 +122,7 @@ static const CompositorOps* load_default_compositor (void)
 
 void __mg_composite_dirty_znodes (void)
 {
+    MG_Layer* layer;
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
     CompositorCtxt* ctxt;
@@ -134,7 +135,7 @@ void __mg_composite_dirty_znodes (void)
 
     zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
 
-    // travel menu znodes
+    // travel menu znodes on the topmost layer
     if (zi->nr_popupmenus > 0) {
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
@@ -150,7 +151,7 @@ void __mg_composite_dirty_znodes (void)
         }
     }
 
-    // travel win znodes
+    // travel win znodes on the topmost layer
     nodes = GET_ZORDERNODE(zi);
     next = 0;
     while ((next = __kernel_get_next_znode (zi, next)) > 0) {
@@ -160,11 +161,36 @@ void __mg_composite_dirty_znodes (void)
 
             changes_in_dc = pdc->surface->dirty_info->dirty_age;
             if (changes_in_dc != nodes[next].changes) {
-                ops->on_dirty_win (ctxt, next);
+                ops->on_dirty_win (ctxt, mgTopmostLayer, next);
                 nodes[next].changes = changes_in_dc;
                 pdc->surface->dirty_info->nr_dirty_rcs = 0;
             }
         }
+    }
+
+    // travel win znodes on other layers
+    layer = mgLayers;
+    while (layer) {
+        if (layer != mgTopmostLayer) {
+            zi = (ZORDERINFO*)layer->zorder_info;
+            nodes = GET_ZORDERNODE(zi);
+            next = 0;
+            while ((next = __kernel_get_next_znode (zi, next)) > 0) {
+                if (nodes [next].flags & ZOF_VISIBLE) {
+                    pdc = dc_HDC2PDC (nodes[next].mem_dc);
+                    assert (pdc->surface->dirty_info);
+
+                    changes_in_dc = pdc->surface->dirty_info->dirty_age;
+                    if (changes_in_dc != nodes[next].changes) {
+                        ops->on_dirty_win (ctxt, layer, next);
+                        nodes[next].changes = changes_in_dc;
+                        pdc->surface->dirty_info->nr_dirty_rcs = 0;
+                    }
+                }
+            }
+        }
+
+        layer = layer->next;
     }
 
     // check wallpaper pattern
