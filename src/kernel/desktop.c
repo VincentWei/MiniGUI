@@ -1793,22 +1793,12 @@ static void get_text_char_pos (PLOGFONT log_font, const char *text,
 }
 #endif
 
-/*get the count of idle mask rect*/
-int __mg_get_idle_slot (unsigned char* bitmap, int len_bmp)
-{
-    int idle = 0;
-    int i, j;
-
-    for (i = 0; i < len_bmp; i++) {
-        for (j = 0; j < 8; j++) {
-            if (*bitmap & (0x80 >> j))
-                idle++;
-        }
-        bitmap++;
-    }
-    return idle;
-}
-
+/* Since 4.2.0:
+   Under compositing schema, we do not allocate mask rectangles
+   for round corners. Instead, we get the region of window znode
+   in ServerGetWinZNodeRegion.
+ */
+#ifndef _MGSCHEMA_COMPOSITING
 
 #define do_with_round_rect(src, drc, idx) \
             if ( idx != 0 ) { \
@@ -1830,7 +1820,7 @@ int __mg_get_idle_slot (unsigned char* bitmap, int len_bmp)
                 idx++; \
             }
 
-static int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
+static int alloc_mask_rects_for_round_corners (ZORDERINFO* zi, ZORDERNODE* node,
         const DWORD type, const RECT *rc)
 {
     RECT* roundrc = NULL;
@@ -1892,7 +1882,7 @@ static int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
     }
 
     /* if have enough mask rect */
-    if ( rc_idx > __mg_get_idle_slot((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
+    if ( rc_idx > __mg_get_nr_idle_slots((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
                 zi->size_maskrect_usage_bmp))
     {
         free(roundrc);
@@ -1942,6 +1932,7 @@ static int CreateNodeRoundMaskRect (ZORDERINFO* zi, ZORDERNODE* node,
 
     return 0;
 }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 #ifdef _MGSCHEMA_COMPOSITING
 static inline int validate_compositing_type (int type)
@@ -2074,14 +2065,16 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].idx_mask_rect = 0;
     nodes [free_slot].priv_data = NULL;
 
+#ifndef _MGSCHEMA_COMPOSITING
     if (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS) {
         RECT cli_rect;
 
         SetRect(&cli_rect, 0, 0, RECTW(nodes[free_slot].rc),
                 RECTH(nodes[free_slot].rc));
-        CreateNodeRoundMaskRect (__mg_zorder_info,
+        alloc_mask_rects_for_round_corners (__mg_zorder_info,
                 &nodes[free_slot], flags, &cli_rect);
     }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
     if (caption) {
 #if 0 /* Since 4.2.0, use strdup to duplicate the caption */
@@ -2570,7 +2563,7 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
 
     if (nr_rc > old_num) {
         /* check the number of mask rect if enough */
-        int idle = __mg_get_idle_slot((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
+        int idle = __mg_get_nr_idle_slots((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
                 zi->size_maskrect_usage_bmp);
         if (idle < nr_rc-old_num) {
             unlock_zi_for_change (zi);
@@ -3198,9 +3191,9 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
     int fixed_idx;
     int *first = NULL;
     ZORDERNODE* nodes;
+#ifndef _MGSCHEMA_COMPOSITING
     unsigned short idx;
     MASKRECT *firstmaskrect;
-#ifndef _MGSCHEMA_COMPOSITING
     int i, slot, nInvCount;
     RECT rcInv[4], rcOld, rcInter, tmprc;
     CLIPRGN bblt_rgn;
@@ -3249,6 +3242,7 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
     if (memcmp (&nodes [idx_znode].rc, rcWin, sizeof (RECT)) == 0)
         return 0;
 
+#ifndef _MGSCHEMA_COMPOSITING
     if ((RECTW(nodes[idx_znode].rc) != RECTWP(rcWin)  ||
             RECTH(nodes[idx_znode].rc) != RECTHP(rcWin)) &&
             (nodes[idx_znode].flags & ZOF_TW_TROUNDCNS ||
@@ -3269,11 +3263,12 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             }
         }
 
-        CreateNodeRoundMaskRect (zi, &nodes[idx_znode],
+        alloc_mask_rects_for_round_corners (zi, &nodes[idx_znode],
                 nodes[idx_znode].flags, &cli_rect);
 
         unlock_zi_for_change(zi);
     }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 #ifdef _MGHAVE_MENU
     if (nodes [idx_znode].flags & ZOF_VISIBLE && zi->cli_trackmenu >= 0)
@@ -4170,6 +4165,72 @@ err_ret:
 }
 
 #ifdef _MGRM_PROCESSES
+
+#ifdef _MGSCHEMA_COMPOSITING
+struct _my_circle_context {
+    int         status;     /* whether failed to allocate cliprect for region */
+    int         r;          /* the radius of the round corner */
+    RECT        rc;         /* the rectangle of the znode */
+    DWORD       tw_flags;   /* the corner flags of the znode */
+    DWORD       rgn_ops;    /* region operation */
+    CLIPRGN*    dst_rgn;    /* the destination region */
+};
+
+static void cb_circle_corners (void* context, int x1, int x2, int y)
+{
+    struct _my_circle_context* ctxt = (struct _my_circle_context*)context;
+    RECT rc;
+
+    if (ctxt->status) // check status first
+        return;
+
+    if (y < 0) {
+        if (ctxt->tw_flags & ZOF_TW_TROUNDCNS) {
+            rc.left = ctxt->rc.left + x1 + ctxt->r;
+            rc.right = ctxt->rc.right + x2 - ctxt->r;
+            rc.top = ctxt->rc.top + y + ctxt->r;
+            rc.bottom = rc.top + 1;
+        }
+        else {
+            return;
+        }
+    }
+    else if (y > 0) {
+        if (ctxt->tw_flags & ZOF_TW_BROUNDCNS) {
+            rc.left = ctxt->rc.left + x1 + ctxt->r;
+            rc.right = ctxt->rc.right + x2 - ctxt->r;
+            rc.top = ctxt->rc.bottom + y - ctxt->r;
+            rc.bottom = rc.top + 1;
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        rc.left = ctxt->rc.left + x1 + ctxt->r;
+        rc.right = ctxt->rc.right + x2 - ctxt->r;
+        rc.top = ctxt->rc.bottom - ctxt->r;
+        rc.bottom = rc.top + 1;
+    }
+
+    if (!(ctxt->rgn_ops & RGN_OP_FLAG_ABS)) {
+        OffsetRect (&rc, -ctxt->rc.left, -ctxt->rc.top);
+    }
+
+    if ((ctxt->rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
+        if (!SubtractClipRect (ctxt->dst_rgn, &rc))
+            ctxt->status = -1;
+    }
+    else {
+        _DBG_PRINTF("add new rect: %d, %d, %d, %d for (%d, %d) to (%d, %d)\n",
+                rc.left, rc.top, rc.right, rc.bottom, x1, y, x2, y);
+        if (!AddClipRect (ctxt->dst_rgn, &rc))
+            ctxt->status = -1;
+    }
+}
+#endif /* _MGSCHEMA_COMPOSITING */
+
+
 BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
                 DWORD rgn_ops, CLIPRGN* dst_rgn)
 {
@@ -4242,6 +4303,39 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
             OffsetRect (&rc, -rc.left, -rc.top);
         }
 
+#ifdef _MGSCHEMA_COMPOSITING
+        /* Since 4.2.0, we count in the round corners here */
+        if (nodes[idx_znode].flags & ZOF_TW_FLAG_MASK) {
+            struct _my_circle_context ctxt = { 0, RADIUS_WINDOW_CORNERS, };
+
+            if (RECTW(rc) >= (RADIUS_WINDOW_CORNERS << 1) &&
+                    RECTH(rc) >= (RADIUS_WINDOW_CORNERS << 1)) {
+                ctxt.status = 0;
+                ctxt.r = RADIUS_WINDOW_CORNERS;
+                ctxt.rc = rc;
+                /* both top and bottom corners for popup menu */
+                ctxt.tw_flags = nodes[idx_znode].flags & ZOF_TW_FLAG_MASK;    
+                ctxt.rgn_ops = rgn_ops;
+                ctxt.dst_rgn = dst_rgn;
+
+                CircleGenerator (&ctxt, 0, 0, RADIUS_WINDOW_CORNERS,
+                        cb_circle_corners);
+
+                if (ctxt.status) {
+                    nr_mask_rects = -1;
+                    goto err_ret;
+                }
+
+                if (nodes[idx_znode].flags & ZOF_TW_TROUNDCNS) {
+                    rc.top += RADIUS_WINDOW_CORNERS;
+                }
+                if (nodes[idx_znode].flags & ZOF_TW_BROUNDCNS) {
+                    rc.bottom -= RADIUS_WINDOW_CORNERS;
+                }
+            }
+        }
+#endif /* _MGSCHEMA_COMPOSITING */
+
         if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
             if (!SubtractClipRect (dst_rgn, &rc)) {
                 nr_mask_rects = -1;
@@ -4262,59 +4356,6 @@ err_ret:
 
     return nr_mask_rects >= 0;
 }
-
-#ifdef _MGSCHEMA_COMPOSITING
-struct _my_circle_context {
-    int         status;
-    int         r;
-    RECT        rc;
-    DWORD       rgn_ops;
-    CLIPRGN*    dst_rgn;
-};
-
-static void cb_circle_corners (void* context, int x1, int x2, int y)
-{
-    struct _my_circle_context* ctxt = (struct _my_circle_context*)context;
-    RECT rc;
-
-    if (ctxt->status) // check status first
-        return;
-
-    if (y < 0) {
-        rc.left = ctxt->rc.left + x1 + ctxt->r;
-        rc.right = ctxt->rc.right + x2 - ctxt->r;
-        rc.top = ctxt->rc.top + y + ctxt->r;
-        rc.bottom = rc.top + 1;
-    }
-    else if (y > 0) {
-        rc.left = ctxt->rc.left + x1 + ctxt->r;
-        rc.right = ctxt->rc.right + x2 - ctxt->r;
-        rc.top = ctxt->rc.bottom + y - ctxt->r;
-        rc.bottom = rc.top + 1;
-    }
-    else {
-        rc.left = ctxt->rc.left + x1 + ctxt->r;
-        rc.right = ctxt->rc.right + x2 - ctxt->r;
-        rc.top = ctxt->rc.bottom - ctxt->r;
-        rc.bottom = rc.top + 1;
-    }
-
-    if (!(ctxt->rgn_ops & RGN_OP_FLAG_ABS)) {
-        OffsetRect (&rc, -ctxt->rc.left, -ctxt->rc.top);
-    }
-
-    if ((ctxt->rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
-        if (!SubtractClipRect (ctxt->dst_rgn, &rc))
-            ctxt->status = -1;
-    }
-    else {
-        _DBG_PRINTF("add new rect: %d, %d, %d, %d for (%d, %d) to (%d, %d)\n",
-                rc.left, rc.top, rc.right, rc.bottom, x1, y, x2, y);
-        if (!AddClipRect (ctxt->dst_rgn, &rc))
-            ctxt->status = -1;
-    }
-}
-#endif /* _MGSCHEMA_COMPOSITING */
 
 BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
                 DWORD rgn_ops, CLIPRGN* dst_rgn)
@@ -4355,6 +4396,8 @@ BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
             ctxt.status = 0;
             ctxt.r = RADIUS_POPUPMENU_CORNERS;
             ctxt.rc = rc;
+            /* both top and bottom corners for popup menu */
+            ctxt.tw_flags = ZOF_TW_TROUNDCNS | ZOF_TW_BROUNDCNS;    
             ctxt.rgn_ops = rgn_ops;
             ctxt.dst_rgn = dst_rgn;
 
