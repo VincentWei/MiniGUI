@@ -268,21 +268,6 @@ BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer)
     return TRUE;
 }
 
-BOOL __mg_is_valid_layer (MG_Layer* layer)
-{
-    MG_Layer* myLayer;
-
-    myLayer = mgLayers;
-    while (myLayer) {
-        if (layer == myLayer)
-            return TRUE;
-
-        myLayer = myLayer->next;
-    }
-
-    return FALSE;
-}
-
 #ifdef _MGSCHEMA_COMPOSITING
 
 static SemSetManager* _ssm_shared_surf;
