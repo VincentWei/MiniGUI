@@ -193,7 +193,7 @@ static void purge_znodes_private_data_in_layer (const CompositorOps* ops,
     if (zi->nr_popupmenus > 0) {
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
-            if (nodes[i].priv_data) {
+            if (nodes[i].priv_data && ops->purge_ppp_data) {
                 ops->purge_ppp_data (ctxt, i, nodes[i].priv_data);
                 nodes[i].priv_data = NULL;
             }
@@ -204,7 +204,7 @@ static void purge_znodes_private_data_in_layer (const CompositorOps* ops,
     nodes = GET_ZORDERNODE(zi);
     next = 0;
     while ((next = __kernel_get_next_znode (zi, next)) > 0) {
-        if (nodes[next].priv_data) {
+        if (nodes[next].priv_data && ops->purge_win_data) {
             ops->purge_win_data (ctxt, layer, next, nodes[next].priv_data);
             nodes[next].priv_data = NULL;
         }
