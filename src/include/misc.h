@@ -129,6 +129,23 @@ int __mg_slot_clear_use (unsigned char* bitmap, int index) {
     return 1;
 }
 
+/* get the number of idle mask rectangles */
+static inline
+int __mg_get_nr_idle_slots (unsigned char* bitmap, int len_bmp)
+{
+    int idle = 0;
+    int i, j;
+
+    for (i = 0; i < len_bmp; i++) {
+        for (j = 0; j < 8; j++) {
+            if (*bitmap & (0x80 >> j))
+                idle++;
+        }
+        bitmap++;
+    }
+    return idle;
+}
+
 BOOL __mg_is_abs_path (const char* path);
 int __mg_path_joint (char* dst, int dst_size, const char* abs_path,
         const char* sub_path);
