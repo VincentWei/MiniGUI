@@ -69,7 +69,29 @@ void __mg_delete_sharedres_sem (void);
 int __mg_init_layers (void);
 void __mg_cleanup_layers (void);
 
-BOOL __mg_is_valid_layer (MG_Layer* layer);
+static inline
+BOOL __mg_is_valid_layer (const MG_Layer* layer) {
+    MG_Layer* _layer = mgLayers;
+    while (_layer) {
+        if (_layer == layer)
+            return TRUE;
+        _layer = _layer->next;
+    }
+
+    return FALSE;
+}
+
+static inline
+MG_Layer* __mg_get_layer_from_zi (const ZORDERINFO* zi) {
+    MG_Layer* layer = mgLayers;
+    while (layer) {
+        if (layer->zorder_info == zi)
+            return layer;
+        layer = layer->next;
+    }
+
+    return NULL;
+}
 
 void __mg_get_layer_info (int cli, const char* layer_name, LAYERINFO* info);
 void __mg_client_join_layer (int cli,
