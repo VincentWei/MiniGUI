@@ -731,33 +731,28 @@ GAL_Surface *GAL_DisplayFormatAlpha(GAL_Surface *surface)
 /*
  * Update a specific portion of the physical screen
  */
-void GAL_UpdateRect (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h)
+void GAL_UpdateRect (GAL_Surface *screen,
+        Sint32 x, Sint32 y, Uint32 w, Uint32 h)
 {
-    GAL_VideoDevice *video = (GAL_VideoDevice *)screen->video;
-    if (!video)
-        return;
+    GAL_Rect rect;
 
-    if (screen && (video->UpdateRects || video->UpdateSurfaceRects)) {
-        GAL_Rect rect;
+    /* Perform some checking */
+    if (w == 0)
+        w = screen->w;
+    if (h == 0)
+        h = screen->h;
 
-        /* Perform some checking */
-        if (w == 0)
-            w = screen->w;
-        if (h == 0)
-            h = screen->h;
+    if ((int)(x+w) > screen->w)
+        w = screen->w - x;
+    if ((int)(y+h) > screen->h)
+        h = screen->h - x;
 
-        if ((int)(x+w) > screen->w)
-            w = screen->w - x;
-        if ((int)(y+h) > screen->h)
-            h = screen->h - x;
-
-        /* Fill the rectangle */
-        rect.x = x;
-        rect.y = y;
-        rect.w = w;
-        rect.h = h;
-        GAL_UpdateRects (screen, 1, &rect);
-    }
+    /* Fill the rectangle */
+    rect.x = x;
+    rect.y = y;
+    rect.w = w;
+    rect.h = h;
+    GAL_UpdateRects (screen, 1, &rect);
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
@@ -934,7 +929,7 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
     return TRUE;
 }
 
-#else /* not defined _MGUSE_SYNC_UPDATE */
+#else /* defined _MGUSE_SYNC_UPDATE */
 
 void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
 {
@@ -1455,7 +1450,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     video = GAL_GetVideo(driver_name, FALSE);
 
     if (video == NULL) {
-        _DBG_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n",
+        _ERR_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n",
                         driver_name);
         return NULL;
     }
@@ -1464,7 +1459,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     memset(&vformat, 0, sizeof(vformat));
 
     if (video->VideoInit(video, &vformat) < 0) {
-        _DBG_PRINTF ("NEWGAL: Can not init the slave video engine: %s.\n",
+        _ERR_PRINTF ("NEWGAL: Can not init the slave video engine: %s.\n",
                         driver_name);
         gal_SlaveVideoQuit (video->screen);
         return NULL;
@@ -1473,7 +1468,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     surface = Slave_CreateSurface (video, 0, 0, vformat.BitsPerPixel,
             vformat.Rmask, vformat.Gmask, vformat.Bmask, 0);
     if (!surface) {
-        _DBG_PRINTF ("NEWGAL: Create slave video surface failure.\n");
+        _ERR_PRINTF ("NEWGAL: Create slave video surface failure.\n");
         return NULL;
     }
 
@@ -1484,7 +1479,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
 
     if (!(Slave_SetVideoMode(video, surface, w, h, depth, GAL_HWPALETTE))) {
         gal_SlaveVideoQuit (video->screen);
-        _DBG_PRINTF ("NEWGAL: Set video mode failure.\n");
+        _ERR_PRINTF ("NEWGAL: Set video mode failure.\n");
         return NULL;
     }
 
