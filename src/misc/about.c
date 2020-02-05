@@ -135,7 +135,7 @@ static void InitAboutDialogCreateInfo (PMAINWINCREATE pCreateInfo, char* caption
 
     pCreateInfo->dwStyle = WS_CAPTION | WS_SYSMENU | WS_VISIBLE
                                       | WS_BORDER;
-    pCreateInfo->dwExStyle = WS_EX_TOPMOST;
+    pCreateInfo->dwExStyle = WS_EX_TOPMOST | WS_EX_TROUNDCNS | WS_EX_BROUNDCNS;
     pCreateInfo->spCaption = caption;
     pCreateInfo->hMenu = 0;
     pCreateInfo->hCursor = GetSystemCursor (0);
