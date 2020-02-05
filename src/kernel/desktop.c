@@ -4254,6 +4254,13 @@ static void cb_circle_corners (void* context, int x1, int x2, int y)
         rc.bottom = rc.top + 1;
     }
 
+    // check out of bound
+    {
+        RECT eff_rc = ctxt->rc;
+        if (!IntersectRect (&rc, &eff_rc, &rc))
+            return;
+    }
+
     if (!(ctxt->rgn_ops & RGN_OP_FLAG_ABS)) {
         OffsetRect (&rc, -ctxt->rc.left, -ctxt->rc.top);
     }
