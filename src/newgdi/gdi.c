@@ -2293,6 +2293,12 @@ void GUIAPI ReleaseDC (HDC hDC)
         pdc->alpha_pixel_format = NULL;
     }
 
+#ifdef _MGUSE_SYNC_UPDATE
+    LOCK (&__mg_gdilock);
+    GAL_SyncUpdate (pdc->surface);
+    UNLOCK (&__mg_gdilock);
+#endif
+
     pWin = (PMAINWIN)(pdc->hwnd);
     if (pWin && pWin->privCDC == hDC) {
         /* for private DC, we reset the clip region info. */
@@ -2378,7 +2384,6 @@ void GUIAPI ReleaseDC (HDC hDC)
         pdc->pGCRInfo = NULL;
         pdc->oldage = 0;
 #endif
-
         LOCK (&dcslot);
         pdc->inuse = FALSE;
         UNLOCK(&dcslot);
