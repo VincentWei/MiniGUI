@@ -1633,12 +1633,12 @@ typedef struct _CompositorOps {
      * NULL for the topmost layer.
      * The argument \a cause_type gives the type of the z-node which caused
      * the action. For the available z-node types, please refer to \a ZNODEINFO.
-     * The argument \a rc contains the rectangle of the z-node in screen
+     * The argument \a rc_dirty contains the rectangle of the z-node in screen
      * coordinates.
      * The compositor should refresh the screen for the dirty rectangle.
      */
     void (*on_dirty_screen) (CompositorCtxt* ctxt, MG_Layer* layer,
-            DWORD cause_type, const RECT* rc);
+            DWORD cause_type, const RECT* rc_dirty);
 
     /**
      * This operation will be called when the system is showing a new
