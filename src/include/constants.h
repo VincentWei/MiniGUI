@@ -98,7 +98,7 @@
 #define ZNIDX_LAUNCHER          3
 
 /* Since 4.2.0; radius for round corners */
-#define RADIUS_WINDOW_CORNERS       10
+#define RADIUS_WINDOW_CORNERS       7
 #define RADIUS_POPUPMENU_CORNERS    7
 
 /* constants for MiniGUI-Processes runtime mode */
