@@ -135,7 +135,7 @@ void __mg_composite_dirty_znodes (void)
 
     zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
 
-    // travel menu znodes on the topmost layer
+    /* travel menu znodes on the topmost layer */
     if (zi->nr_popupmenus > 0) {
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
@@ -151,7 +151,7 @@ void __mg_composite_dirty_znodes (void)
         }
     }
 
-    // travel win znodes on the topmost layer
+    /* travel win znodes on the topmost layer first */
     nodes = GET_ZORDERNODE(zi);
     next = 0;
     while ((next = __kernel_get_next_znode (zi, next)) > 0) {
@@ -168,7 +168,7 @@ void __mg_composite_dirty_znodes (void)
         }
     }
 
-    // travel win znodes on other layers
+    /* then travel win znodes on other layers */
     layer = mgLayers;
     while (layer) {
         if (layer != mgTopmostLayer) {
@@ -193,7 +193,7 @@ void __mg_composite_dirty_znodes (void)
         layer = layer->next;
     }
 
-    // check wallpaper pattern
+    /* check wallpaper pattern */
     pdc = dc_HDC2PDC (HDC_SCREEN);
     assert (pdc->surface->dirty_info);
     if (pdc->surface->w > 0 && pdc->surface->h > 0) {
