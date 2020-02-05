@@ -76,7 +76,6 @@ typedef struct _ZORDERNODE {
 
     RECT            rc;             /* rect on the screen */
     int             cli;            /* which client? */
-    unsigned int    age;            /* znode age */
 
 #ifdef _MGSCHEMA_COMPOSITING
     unsigned int    changes;        /* count for changes of content */
@@ -87,6 +86,7 @@ typedef struct _ZORDERNODE {
     int             nr_dirty_rcs;   /* the number of dirty rects */
     const RECT*     dirty_rcs;      /* the pointer to the dirty rectangles */
 #else   /* defined _MGSCHEMA_COMPOSITING */
+    unsigned int    age;            /* znode age */
     RECT            dirty_rc;       /* dirty rect */
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 

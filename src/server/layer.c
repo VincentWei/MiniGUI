@@ -177,13 +177,20 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     znodes = GET_ZORDERNODE(zi);
     znodes [0].flags = ZOF_TYPE_DESKTOP | ZOF_VISIBLE;
     znodes [0].rc = g_rcScr;
+#ifndef _MGSCHEMA_COMPOSITING
     znodes [0].age = 0;
+    znodes [0].dirty_rc.left = 0;
+    znodes [0].dirty_rc.top = 0;
+    znodes [0].dirty_rc.right = 0;
+    znodes [0].dirty_rc.bottom = 0;
+#endif
     znodes [0].cli = 0;
     znodes [0].hwnd = HWND_DESKTOP;
     znodes [0].next = 0;
     znodes [0].prev = 0;
     /*for mask rect.*/
     znodes [0].idx_mask_rect = 0;
+    znodes [0].priv_data = NULL;
 
     __mg_slot_set_use ((unsigned char*)(zi + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
@@ -196,12 +203,20 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
 
         for (i = 0; i < TABLESIZE (fixed_ztypes); i++) {
             znodes [i + ZNIDX_SCREENLOCK].flags = fixed_ztypes [i];
+#ifndef _MGSCHEMA_COMPOSITING
             znodes [i + ZNIDX_SCREENLOCK].age = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.left = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.top = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.right = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.bottom = 0;
+#endif
             znodes [i + ZNIDX_SCREENLOCK].cli = -1;
             znodes [i + ZNIDX_SCREENLOCK].hwnd = HWND_NULL;
             znodes [i + ZNIDX_SCREENLOCK].next = 0;
             znodes [i + ZNIDX_SCREENLOCK].prev = 0;
             znodes [i + ZNIDX_SCREENLOCK].idx_mask_rect = 0;
+            znodes [i + ZNIDX_SCREENLOCK].priv_data = NULL;
+
             SetRectEmpty (&znodes [i + ZNIDX_SCREENLOCK].rc);
             __mg_slot_set_use ((unsigned char*)(zi + 1), i + ZNIDX_SCREENLOCK);
         }

@@ -1655,7 +1655,9 @@ int __mg_do_change_topmost_layer (void)
     ZORDERINFO* old_zorder_info = __mg_zorder_info;
     ZORDERNODE *new_nodes, *old_nodes;
     unsigned char *old_use_bmp, *new_use_bmp;
+#ifndef _MGSCHEMA_COMPOSITING
     int i;
+#endif
 
 #ifdef _MGHAVE_MENU
     srvForceCloseMenu (0);
@@ -1681,14 +1683,16 @@ int __mg_do_change_topmost_layer (void)
     memcpy (new_nodes, old_nodes,
                     (old_zorder_info->max_nr_globals)*sizeof(ZORDERNODE));
 
+#ifndef _MGSCHEMA_COMPOSITING
     for (i = old_zorder_info->max_nr_globals;
             i <= old_zorder_info->max_nr_globals +
             old_zorder_info->max_nr_topmosts +
             old_zorder_info->max_nr_normals; i++) {
         new_nodes [i].age = old_nodes [i].age + 1;
     }
-
     new_nodes [0].age = old_nodes [0].age + 1;
+#endif /* not defined _MGSCHEMA_COMPOSITING */
+
     unlock_zi_for_change (__mg_zorder_info);
 
     /* Since 4.2.0: check clients which created fixed znodes */

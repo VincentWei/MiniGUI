@@ -122,16 +122,7 @@ typedef struct _DEF_CONTEXT
     int x, y;
 } DEF_CONTEXT;
 
-#ifdef _MGSCHEMA_COMPOSITING
-unsigned int kernel_GetWndAge (HWND hWnd)
-{
-    PMAINWIN mainwin = ((PMAINWIN)hWnd)->pMainWin;
-    const ZORDERNODE* nodes;
-
-    nodes = GET_ZORDERNODE(__mg_zorder_info);
-    return nodes[mainwin->idx_znode].age;
-}
-#else /* not defined _MGSCHEMA_COMPOSITING */
+#ifndef _MGSCHEMA_COMPOSITING
 PGCRINFO kernel_GetGCRgnInfo (HWND hWnd)
 {
     return ((PMAINWIN)hWnd)->pGCRInfo;
@@ -1956,12 +1947,10 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 {
     DWORD type = flags & ZOF_TYPE_MASK;
     int *first = NULL, *nr_nodes = NULL;
-    int free_slot = -1, slot, old_first;
+    int free_slot = -1, old_first;
     ZORDERNODE* nodes;
-    RECT rc_screen;
 
     nodes = GET_ZORDERNODE(zi);
-    rc_screen = GetScreenRect();
 
     /* Since 4.2.0: check fixed znode type first */
     switch (type) {
@@ -2059,7 +2048,6 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
     nodes [free_slot].flags = flags;
     nodes [free_slot].rc = *rc;
-    nodes [free_slot].age = 1;
     nodes [free_slot].cli = cli;
     nodes [free_slot].hwnd = hwnd;
     nodes [free_slot].main_win = main_win;
@@ -2069,6 +2057,12 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].ct_arg = ct_arg;
     nodes [free_slot].mem_dc = mem_dc;
     nodes [free_slot].dirty_rcs = NULL;
+#else
+    nodes [free_slot].age = 1;
+    nodes [free_slot].dirty_rc.left = 0;
+    nodes [free_slot].dirty_rc.top = 0;
+    nodes [free_slot].dirty_rc.right = 0;
+    nodes [free_slot].dirty_rc.bottom = 0;
 #endif
     nodes [free_slot].idx_mask_rect = 0;
     nodes [free_slot].priv_data = NULL;
@@ -2126,8 +2120,12 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     /* check influenced zorder nodes */
     if (flags & ZOF_VISIBLE) {
         /* Since 4.2.0 */
+#ifndef _MGSCHEMA_COMPOSITING
+        int slot;
+        RECT rc_screen = GetScreenRect();
+
         if (type >= ZOF_TYPE_LAUNCHER) {
-            int slot = ZNIDX_LAUNCHER;
+            slot = ZNIDX_LAUNCHER;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
@@ -2165,7 +2163,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         }
 
         if (type >= ZOF_TYPE_DOCKER) {
-            int slot = ZNIDX_DOCKER;
+            slot = ZNIDX_DOCKER;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
@@ -2173,7 +2171,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         }
 
         if (type >= ZOF_TYPE_SCREENLOCK) {
-            int slot = ZNIDX_SCREENLOCK;
+            slot = ZNIDX_SCREENLOCK;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
                     nodes [slot].age ++;
@@ -2184,8 +2182,11 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         if (DoesIntersect (&nodes [free_slot].rc, &rc_screen)) {
             nodes [0].age ++;
         }
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+        DO_COMPSOR_OP_ARGS (on_showing_win,
+                __mg_get_layer_from_zi(zi), free_slot);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
     }
-
 
 #if 1
     /* Since 4.2.0. Support for always top znode. */
@@ -2970,9 +2971,10 @@ static int dskMove2Top (int cli, int idx_znode)
 
 #ifdef _MGSCHEMA_COMPOSITING
     DO_COMPSOR_OP_ARGS (on_raising_win, get_layer_from_client (cli), idx_znode);
+#else
+    nodes [idx_znode].age ++;
 #endif
 
-    nodes [idx_znode].age ++;
     /* unlock zi for change */
     unlock_zi_for_change (zi);
 
@@ -3605,7 +3607,6 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             get_layer_from_client (cli), idx_znode, rcWin);
 
     nodes [idx_znode].rc = *rcWin;
-    nodes [idx_znode].age ++;
 
     unlock_zi_for_change (zi);
 #endif  /* defined _MGSCHEMA_COMPOSITING */
