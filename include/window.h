@@ -3984,13 +3984,13 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /**
  * \def WS_EX_TROUNDCNS
- * \brief The window have round corners in top.
+ * \brief The window have round corners at top edge.
  */
 #define WS_EX_TROUNDCNS         0x00000010L
 
 /**
  * \def WS_EX_BROUNDCNS
- * \brief The window have round corners at bottom.
+ * \brief The window have round corners at bottom edge.
  */
 #define WS_EX_BROUNDCNS         0x00000020L
 
