@@ -3847,11 +3847,10 @@ err:
     if (pWin->surf)
         GAL_FreeSurface (pWin->surf);
 #endif
-
     if (pWin->secondaryDC)
         DeleteSecondaryDC ((HWND)pWin);
-    free (pWin);
 
+    free (pWin);
     return HWND_INVALID;
 }
 
@@ -5363,7 +5362,9 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
 
     if (dwExStyle & WS_EX_CTRLASMAINWIN) {
 #ifdef _MGSCHEMA_COMPOSITING
-        // TODO: create shared surface here.
+        pNewCtrl->surf = GAL_CreateSurfaceForZNode (
+                pNewCtrl->right - pNewCtrl->left,
+                pNewCtrl->bottom - pNewCtrl->top);
 #else
         if (!(pNewCtrl->pGCRInfo = malloc (sizeof (GCRINFO)))) {
             goto error;
@@ -5372,7 +5373,7 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     }
     else {
 #ifdef _MGSCHEMA_COMPOSITING
-        // TODO: create shared surface here.
+        pNewCtrl->surf = pMainWin->surf;
 #else
         pNewCtrl->pGCRInfo = pMainWin->pGCRInfo;
 #endif
@@ -5383,7 +5384,6 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
                 MSG_NEWCTRLINSTANCE,
                 (WPARAM)hParentWnd, (LPARAM)pNewCtrl) < 0)
         goto error;
-
 
     if (cci->dwStyle & CS_OWNDC)
         pNewCtrl->dwExStyle |= WS_EX_USEPRIVATECDC;
@@ -5433,14 +5433,24 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
 #endif
     }
 
+#ifdef _MGSCHEMA_COMPOSITING
+    // Close file descriptor to free kernel memory?
+    if (dwExStyle & WS_EX_CTRLASMAINWIN && pNewCtrl->surf->shared_header) {
+        close (pNewCtrl->surf->shared_header->fd);
+        pNewCtrl->surf->shared_header->fd = -1;
+    }
+#endif
+
     return (HWND)pNewCtrl;
 
 error:
     if (dwExStyle & WS_EX_CTRLASMAINWIN) {
 #ifdef _MGSCHEMA_COMPOSITING
-        // TODO: free shared surface here
+        if (pNewCtrl->surf)
+            GAL_FreeSurface (pNewCtrl->surf);
 #else
-        if (pNewCtrl->pGCRInfo) free (pNewCtrl->pGCRInfo);
+        if (pNewCtrl->pGCRInfo)
+            free (pNewCtrl->pGCRInfo);
 #endif
     }
     free (pNewCtrl);
@@ -5515,7 +5525,7 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
         pthread_mutex_destroy (&pCtrl->pGCRInfo->lock);
 #endif
 #ifdef _MGSCHEMA_COMPOSITING
-        // TODO: free shared surface here.
+        GAL_FreeSurface (pCtrl->surf);
 #else
         free (pCtrl->pGCRInfo);
 #endif
