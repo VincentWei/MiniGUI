@@ -1162,9 +1162,6 @@ typedef struct _ZNODEHEADER {
     /** Client id of the z-node. */
     int             cli;
 
-    /** The z-node change age; no use for compositing schema */
-    unsigned int    age;
-
 #ifdef _MGSCHEMA_COMPOSITING
     /** The count for changes of the content. */
     unsigned int    changes;
@@ -1190,6 +1187,9 @@ typedef struct _ZNODEHEADER {
 
     /** The pointer to the dirty rectangles. */
     const RECT*     dirty_rcs;
+#else
+    /** The z-node change age; no use for compositing schema */
+    unsigned int    age;
 #endif
 } ZNODEHEADER;
 
