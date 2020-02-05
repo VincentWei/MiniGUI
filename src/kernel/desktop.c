@@ -2970,7 +2970,7 @@ static int dskMove2Top (int cli, int idx_znode)
 #endif
 
 #ifdef _MGSCHEMA_COMPOSITING
-    DO_COMPSOR_OP_ARGS (on_raising_win, get_layer_from_client (cli), idx_znode);
+    DO_COMPSOR_OP_ARGS (on_raised_win, get_layer_from_client (cli), idx_znode);
 #else
     nodes [idx_znode].age ++;
 #endif
