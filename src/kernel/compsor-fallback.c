@@ -361,7 +361,7 @@ static void composite_win_znode (CompositorCtxt* ctxt,
             }
 
             if (is_top)
-                SubtractClipRect (&ctxt->left_rgn, &rc);
+                SubtractRegion (&ctxt->left_rgn, &ctxt->left_rgn, rgn);
         }
     }
     else {
@@ -445,8 +445,6 @@ static void on_dirty_wpp (CompositorCtxt* ctxt)
     int next;
     const ZNODEHEADER* znode_hdr;
     CLIPRECT *crc;
-
-    _DBG_PRINTF("called\n");
 
     znode_hdr = ServerGetWinZNodeHeader (NULL, 0, NULL, TRUE);
     if (generate_dirty_region (ctxt, znode_hdr, NULL)) {
