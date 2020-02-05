@@ -311,6 +311,9 @@ int __mg_alloc_sem_for_shared_surf (void)
 int __mg_free_sem_for_shared_surf (int sem_num)
 {
     if (IsServer()) {
+        /* the first semaphore is reserved for wallpaper pattern */
+        if (sem_num == 0)
+            return 0;
         return __mg_free_mutual_sem (_ssm_shared_surf, sem_num);
     }
     else {
@@ -382,7 +385,7 @@ int __mg_init_layers ()
     if (_ssm_shared_surf == NULL)
         return -1;
 
-    // mark the first semphore is used
+    /* mark the first semphore is used; it is reserved for wallpaper pattern */
     assert (__mg_alloc_mutual_sem (_ssm_shared_surf, NULL) == 0);
 
     on_exit (__mg_delete_sem_set_manager, _ssm_shared_surf);
