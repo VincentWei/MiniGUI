@@ -364,15 +364,6 @@ int InitGUI (int argc, const char* agr[])
     step++;
     atexit (mg_TerminateFixStr);
 
-#if 0
-    if (!mg_InitSemManger (NR_COMPOSITING_SEMS)) {
-        err_message (step, "Can not initialize SysV semaphore manager!");
-        return step;
-    }
-    step++;
-    atexit (mg_TerminateSemManager);
-#endif
-
     if (!mg_InitMisc ()) {
         err_message (step, "Can not initialize miscellous things!");
         return step;
