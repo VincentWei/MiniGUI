@@ -90,7 +90,6 @@ static CompositorCtxt* initialize (const char* name)
         SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
     }
 
-    _DBG_PRINTF("called: %p\n", ctxt);
     return ctxt;
 }
 
@@ -103,8 +102,6 @@ static void terminate (CompositorCtxt* ctxt)
         DestroyFreeClipRectList (&ctxt->cliprc_heap);
         free (ctxt);
     }
-
-    _DBG_PRINTF("called\n");
 }
 
 static void subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
@@ -395,6 +392,13 @@ static void on_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         // subtract opaque znodes above current znode.
         subtract_opaque_win_znodes_above (ctxt, zidx);
     }
+
+    /* It's time to play an animation for the first exposure of the window. */
+    if (znode_hdr->changes == 0) {
+        _DBG_PRINTF ("changes and dirty_age of this znode (%d): %u, %u\n",
+                zidx, znode_hdr->changes, znode_hdr->dirty_age);
+    }
+
     ServerReleaseWinZNodeHeader (NULL, zidx);
 
     if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
@@ -402,12 +406,24 @@ static void on_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         return;
     }
 
+    _DBG_PRINTF ("rcBound of dirty region: (%d, %d, %d, %d)\n",
+            ctxt->dirty_rgn.rcBound.left,
+            ctxt->dirty_rgn.rcBound.top,
+            ctxt->dirty_rgn.rcBound.right,
+            ctxt->dirty_rgn.rcBound.bottom);
+
     /* generate the compositing region */
     IntersectRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->wins_rgn);
     if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
         _DBG_PRINTF ("The compositing region is empty\n");
         return;
     }
+
+    _DBG_PRINTF ("rcBound of dirty region: (%d, %d, %d, %d)\n",
+            ctxt->dirty_rgn.rcBound.left,
+            ctxt->dirty_rgn.rcBound.top,
+            ctxt->dirty_rgn.rcBound.right,
+            ctxt->dirty_rgn.rcBound.bottom);
 
     /* compositing the window znodes */
     CopyRegion (&ctxt->left_rgn, &ctxt->dirty_rgn);
@@ -425,7 +441,7 @@ static void on_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 
     if (IsEmptyClipRgn (&ctxt->left_rgn)) {
         _DBG_PRINTF ("The left compositing region is empty\n");
-        return;
+        goto ret;
     }
 
     /* fill left region with wallpaper */
@@ -435,8 +451,8 @@ static void on_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         crc = crc->next;
     }
 
+ret:
     EmptyClipRgn (&ctxt->left_rgn);
-
     SyncUpdateDC (HDC_SCREEN_SYS);
 }
 
@@ -454,22 +470,21 @@ static void on_dirty_wpp (CompositorCtxt* ctxt)
 
         if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
             _DBG_PRINTF ("No need to composite wallpaper\n");
-            goto ret;
+            goto ret_no_compos;
         }
     }
     else {
         _DBG_PRINTF ("The dirty region is empty\n");
-        goto ret;
+        goto ret_no_compos;
     }
 
     IntersectRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->wins_rgn);
     if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
         _DBG_PRINTF ("The compositing region is empty\n");
-        goto ret;
+        goto ret_no_compos;
     }
 
     CopyRegion (&ctxt->left_rgn, &ctxt->dirty_rgn);
-
     next = ServerGetNextZNode (NULL, 0, NULL);
     while (next > 0) {
         crc = ctxt->dirty_rgn.head;
@@ -494,10 +509,11 @@ static void on_dirty_wpp (CompositorCtxt* ctxt)
         crc = crc->next;
     }
 
-    EmptyClipRgn (&ctxt->left_rgn);
-
-    SyncUpdateDC (HDC_SCREEN_SYS);
 ret:
+    EmptyClipRgn (&ctxt->left_rgn);
+    SyncUpdateDC (HDC_SCREEN_SYS);
+
+ret_no_compos:
     if (znode_hdr)
         ServerReleaseWinZNodeHeader (NULL, 0);
 }
@@ -671,7 +687,7 @@ static void on_dirty_screen (CompositorCtxt* ctxt,
 
     if (IsEmptyClipRgn (&ctxt->left_rgn)) {
         _DBG_PRINTF ("The left compositing region is empty\n");
-        return;
+        goto ret;
     }
 
     /* fill left region with wallpaper */
@@ -681,8 +697,8 @@ static void on_dirty_screen (CompositorCtxt* ctxt,
         crc = crc->next;
     }
 
+ret:
     EmptyClipRgn (&ctxt->left_rgn);
-
     SyncUpdateDC (HDC_SCREEN_SYS);
 }
 
