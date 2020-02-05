@@ -1686,10 +1686,10 @@ typedef struct _CompositorOps {
             int zidx, const RECT* dst_rc);
 
     /**
-     * This operation will be called when the system is raising the window
+     * This operation will be called when the system raised the window
      * z-node to top.
      */
-    void (*on_raising_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
+    void (*on_raised_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when the system is maximizing a window.
