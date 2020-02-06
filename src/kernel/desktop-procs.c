@@ -1268,6 +1268,10 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
         const ZORDERMASKRECTOPINFO* info)
 {
     intptr_t ret = -1;
+#ifdef _MGSCHEMA_COMPOSITING
+    RECT rc_org_bound;
+    get_znode_mask_bound (cli, info->idx_znode, &rc_org_bound);
+#endif
 
     switch (info->id_op) {
         case ID_ZOOP_MASKRECT_SET:
@@ -1285,8 +1289,10 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
         if (OnZNodeOperation)
             OnZNodeOperation (ZNOP_REGIONCHANGED, cli, info->idx_znode);
 
+#ifdef _MGSCHEMA_COMPOSITING
         DO_COMPSOR_OP_ARGS (on_changed_rgn,
-                get_layer_from_client (cli), info->idx_znode);
+                get_layer_from_client (cli), info->idx_znode, &rc_org_bound);
+#endif
     }
     return ret;
 }
