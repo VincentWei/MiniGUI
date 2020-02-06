@@ -72,7 +72,7 @@ struct _CompositorCtxt {
     BLOCKHEAP   cliprc_heap;// heap for clipping rects
     CLIPRGN     wins_rgn;   // visible region for all windows (subtract popup menus)
     CLIPRGN     dirty_rgn;  // the dirty region
-    CLIPRGN     tmp_rgn;   // the left region not composited
+    CLIPRGN     tmp_rgn;    // the temporary region
 };
 
 static CompositorCtxt* initialize (const char* name)
@@ -116,13 +116,9 @@ static int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
         CLIPRGN* rgn;
 
         znode_hdr = ServerGetWinZNodeHeader (NULL, prev, (void**)&rgn, FALSE);
-        if (znode_hdr == NULL) {
-            _WRN_PRINTF (
-                    "failed to get znode header for zidx (%d) on layer (%s)\n",
-                    from, mgTopmostLayer->name);
-        }
-        else if ((znode_hdr->flags & ZNIF_VISIBLE) &&
-                znode_hdr->ct == CT_OPAQUE) {
+        assert (znode_hdr);
+
+        if ((znode_hdr->flags & ZNIF_VISIBLE) && znode_hdr->ct == CT_OPAQUE) {
 
             assert (rgn);
             if (SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn)) {
@@ -294,8 +290,7 @@ static void composite_ppp_znodes (CompositorCtxt* ctxt)
         const ZNODEHEADER* znode_hdr = NULL;
         CLIPRGN* rgn;
         znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, TRUE);
-        if (znode_hdr == NULL)
-            continue;
+        assert (znode_hdr);
 
         // we use tmp_rgn as the clipping region of the popup menu znode
         ClipRgnIntersect (&ctxt->tmp_rgn, &ctxt->dirty_rgn, rgn);
@@ -332,11 +327,7 @@ static void composite_win_znode (CompositorCtxt* ctxt, int from)
     }
 
     znode_hdr = ServerGetWinZNodeHeader (NULL, from, (void**)&rgn, TRUE);
-    if (znode_hdr == NULL) {
-        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
-                from, mgTopmostLayer->name);
-        return;
-    }
+    assert (znode_hdr);
 
     if (znode_hdr->flags & ZNIF_VISIBLE) {
         CLIPRGN inv_rgn;
@@ -422,50 +413,44 @@ static void composite_lucent_win_znode_above (CompositorCtxt* ctxt,
         CLIPRGN* rgn;
 
         znode_hdr = ServerGetWinZNodeHeader (NULL, prev, (void**)&rgn, TRUE);
-        if (znode_hdr) {
+        assert (znode_hdr);
 
-           assert (rgn);
-           if ((znode_hdr->flags & ZNIF_VISIBLE) &&
-                   znode_hdr->ct != CT_OPAQUE &&
-                   IntersectRegion (&ctxt->tmp_rgn, dirty_rgn, rgn)) {
+        assert (rgn);
+        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
+               znode_hdr->ct != CT_OPAQUE &&
+               IntersectRegion (&ctxt->tmp_rgn, dirty_rgn, rgn)) {
 
-                SelectClipRegion (HDC_SCREEN_SYS, &ctxt->tmp_rgn);
-                switch (znode_hdr->ct) {
-                case CT_COLORKEY:
-                    SetMemDCColorKey (znode_hdr->mem_dc,
-                            MEMDC_FLAG_SRCCOLORKEY,
-                            DWORD2Pixel (znode_hdr->mem_dc, znode_hdr->ct_arg));
-                    break;
+            SelectClipRegion (HDC_SCREEN_SYS, &ctxt->tmp_rgn);
+            switch (znode_hdr->ct) {
+            case CT_COLORKEY:
+                SetMemDCColorKey (znode_hdr->mem_dc,
+                        MEMDC_FLAG_SRCCOLORKEY,
+                        DWORD2Pixel (znode_hdr->mem_dc, znode_hdr->ct_arg));
+                break;
 
-                case CT_ALPHACHANNEL:
-                    SetMemDCAlpha (znode_hdr->mem_dc,
-                            MEMDC_FLAG_SRCALPHA, (BYTE)znode_hdr->ct_arg);
-                    break;
+            case CT_ALPHACHANNEL:
+                SetMemDCAlpha (znode_hdr->mem_dc,
+                        MEMDC_FLAG_SRCALPHA, (BYTE)znode_hdr->ct_arg);
+                break;
 
-                case CT_ALPHAPIXEL:
-                    SetMemDCAlpha (znode_hdr->mem_dc,
-                            MEMDC_FLAG_SRCPIXELALPHA, 0);
-                    break;
+            case CT_ALPHAPIXEL:
+                SetMemDCAlpha (znode_hdr->mem_dc,
+                        MEMDC_FLAG_SRCPIXELALPHA, 0);
+                break;
 
-                case CT_BLURRED:
-                    _WRN_PRINTF("CT_BLURRED is not implemented\n");
-                    break;
+            case CT_BLURRED:
+                _WRN_PRINTF("CT_BLURRED is not implemented\n");
+                break;
 
-                default:
-                    assert (0); // never touch here.
-                    break;
-                }
-
-                EmptyClipRgn (&ctxt->tmp_rgn);
+            default:
+                assert (0); // never touch here.
+                break;
             }
 
-            ServerReleaseWinZNodeHeader (NULL, prev);
+            EmptyClipRgn (&ctxt->tmp_rgn);
         }
-        else {
-            _WRN_PRINTF (
-                    "failed to get znode header for zidx (%d) on layer (%s)\n",
-                    prev, mgTopmostLayer->name);
-        }
+
+        ServerReleaseWinZNodeHeader (NULL, prev);
 
         prev = ServerGetPrevZNode (NULL, prev, NULL);
     }
@@ -543,11 +528,7 @@ static void on_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 
     /* generate the dirty region */
     znode_hdr = ServerGetWinZNodeHeader (NULL, zidx, (void**)&rgn, TRUE);
-    if (znode_hdr == NULL) {
-        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
-                zidx, layer->name);
-        return;
-    }
+    assert (znode_hdr);
 
     if (generate_dirty_region (ctxt, znode_hdr, rgn)) {
         if (znode_hdr->changes == 0) {
@@ -572,10 +553,7 @@ static void on_dirty_wpp (CompositorCtxt* ctxt)
     const ZNODEHEADER* znode_hdr;
 
     znode_hdr = ServerGetWinZNodeHeader (NULL, 0, NULL, TRUE);
-    if (znode_hdr == NULL) {
-        _WRN_PRINTF ("failed to get znode header for wallpaper pattern\n");
-        return;
-    }
+    assert (znode_hdr);
 
     if (generate_dirty_region (ctxt, znode_hdr, NULL)) {
         tile_dirty_region_for_wallpaper (ctxt);
@@ -604,8 +582,9 @@ static void rebuild_wins_region (CompositorCtxt* ctxt)
     for (i = 0; i < nr_ppps; i++) {
         CLIPRGN* rgn;
         znode_hdr = ServerGetPopupMenuZNodeHeader (i, (void**)&rgn, FALSE);
-        if (znode_hdr)
-            SubtractRegion (&ctxt->wins_rgn, &ctxt->wins_rgn, rgn);
+        assert (znode_hdr);
+
+        SubtractRegion (&ctxt->wins_rgn, &ctxt->wins_rgn, rgn);
     }
 }
 
@@ -629,22 +608,19 @@ static void on_showing_ppp (CompositorCtxt* ctxt, int zidx)
 
     _DBG_PRINTF("called\n");
     znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, NULL, FALSE);
-    if (znode_hdr) {
-        rgn = mg_slice_new (CLIPRGN);
-        InitClipRgn (rgn, &ctxt->cliprc_heap);
-        ServerGetPopupMenuZNodeRegion (zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
-        ServerSetPopupMenuZNodePrivateData (zidx, rgn);
+    assert (znode_hdr);
 
-        _DBG_PRINTF("Initial rcBound of ppp znode region: %d, %d, %d, %d\n",
-                rgn->rcBound.left, rgn->rcBound.top,
-                rgn->rcBound.right, rgn->rcBound.bottom);
+    rgn = mg_slice_new (CLIPRGN);
+    InitClipRgn (rgn, &ctxt->cliprc_heap);
+    ServerGetPopupMenuZNodeRegion (zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+    ServerSetPopupMenuZNodePrivateData (zidx, rgn);
 
-        /* subtract region of this ppp from wins_rgn */
-        SubtractRegion (&ctxt->wins_rgn, &ctxt->wins_rgn, rgn);
-    }
-    else {
-        _WRN_PRINTF ("failed to get znode header for ppp: %d\n", zidx);
-    }
+    _DBG_PRINTF("Initial rcBound of ppp znode region: %d, %d, %d, %d\n",
+            rgn->rcBound.left, rgn->rcBound.top,
+            rgn->rcBound.right, rgn->rcBound.bottom);
+
+    /* subtract region of this ppp from wins_rgn */
+    SubtractRegion (&ctxt->wins_rgn, &ctxt->wins_rgn, rgn);
 }
 
 static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
@@ -654,8 +630,7 @@ static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
 
     _DBG_PRINTF("called\n");
     znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, TRUE);
-    if (znode_hdr == NULL)
-        return;
+    assert (znode_hdr);
 
     if (generate_dirty_region (ctxt, znode_hdr, rgn)) {
         _DBG_PRINTF("rcBound of dirty region: %d, %d, %d, %d; size (%d x %d)\n",
@@ -683,14 +658,11 @@ static void on_hiding_ppp (CompositorCtxt* ctxt, int zidx)
     CLIPRGN* rgn = NULL;
 
     znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, FALSE);
-    if (znode_hdr) {
-        assert (rgn);
-        mg_slice_delete (CLIPRGN, rgn);
-        ServerSetPopupMenuZNodePrivateData (zidx, NULL);
-    }
-    else {
-        _WRN_PRINTF ("failed to get znode header for popup menu: %d\n", zidx);
-    }
+    assert (znode_hdr);
+
+    assert (rgn);
+    mg_slice_delete (CLIPRGN, rgn);
+    ServerSetPopupMenuZNodePrivateData (zidx, NULL);
 }
 
 static void on_dirty_screen (CompositorCtxt* ctxt,
@@ -751,8 +723,7 @@ static void on_closed_menu (CompositorCtxt* ctxt, const RECT* rc_bound)
     SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
 
     /* composite the dirty screen rectangle.
-     * we pass cause_type with ZNIT_NULL for no any popup menu currently.
-     */
+     * we pass cause_type with ZNIT_NULL for no any popup menu currently. */
     on_dirty_screen (ctxt, NULL, ZNIT_NULL, rc_bound);
 }
 
@@ -767,20 +738,16 @@ static void on_showing_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         return;
 
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, NULL, FALSE);
-    if (znode_hdr) {
-        rgn = mg_slice_new (CLIPRGN);
-        InitClipRgn (rgn, &ctxt->cliprc_heap);
-        ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
-        ServerSetWinZNodePrivateData (layer, zidx, rgn);
+    assert (znode_hdr);
 
-        _DBG_PRINTF("Initial rcBound of win znode region: %d, %d, %d, %d\n",
-                rgn->rcBound.left, rgn->rcBound.top,
-                rgn->rcBound.right, rgn->rcBound.bottom);
-    }
-    else {
-        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
-                zidx, layer->name);
-    }
+    rgn = mg_slice_new (CLIPRGN);
+    InitClipRgn (rgn, &ctxt->cliprc_heap);
+    ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+    ServerSetWinZNodePrivateData (layer, zidx, rgn);
+
+    _DBG_PRINTF("Initial rcBound of win znode region: %d, %d, %d, %d\n",
+            rgn->rcBound.left, rgn->rcBound.top,
+            rgn->rcBound.right, rgn->rcBound.bottom);
 }
 
 static void on_hiding_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
@@ -794,15 +761,11 @@ static void on_hiding_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         return;
 
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
-    if (znode_hdr) {
-        assert (rgn);
-        mg_slice_delete (CLIPRGN, rgn);
-        ServerSetWinZNodePrivateData (layer, zidx, NULL);
-    }
-    else {
-        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
-                zidx, layer->name);
-    }
+    assert (znode_hdr);
+
+    assert (rgn);
+    mg_slice_delete (CLIPRGN, rgn);
+    ServerSetWinZNodePrivateData (layer, zidx, NULL);
 }
 
 /* for both on_raised_win and on_changed_ct */
@@ -817,15 +780,9 @@ static void refresh_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         return;
 
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
-    if (znode_hdr == NULL) {
-        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
-                zidx, layer->name);
-        return;
-    }
+    assert(znode_hdr);
 
     if (!(znode_hdr->flags & ZNIF_VISIBLE)) {
-        _WRN_PRINTF ("the znode (%d) on layer (%s) is invisible\n",
-                zidx, layer->name);
         return;
     }
 
@@ -847,25 +804,21 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
         return;
 
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
-    if (znode_hdr == NULL) {
-        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
-                zidx, layer->name);
-        return;
-    }
+    assert (znode_hdr);
 
     if (!(znode_hdr->flags & ZNIF_VISIBLE)) {
-        _WRN_PRINTF ("the znode (%d) on layer (%s) is invisible\n",
-                zidx, layer->name);
         return;
     }
 
     assert (rgn);
-    /* calculate the dirty region */
     CopyRegion (&ctxt->dirty_rgn, rgn);
-    OffsetRegion (&ctxt->dirty_rgn,
-            rc_org->left - znode_hdr->rc.left,
-            rc_org->top - znode_hdr->rc.top);
+    // re-generate the region
+    ServerGetWinZNodeRegion (layer, zidx,
+            RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+    ServerSetWinZNodePrivateData (layer, zidx, rgn);
     UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
+
+    /* calculate the dirty region */
     if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen))
         composite_on_dirty_region (ctxt, zidx);
 }
@@ -883,22 +836,21 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
 
     /* update the region of the current window znode. */
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
-    if (znode_hdr) {
-        if (znode_hdr->flags & ZNIF_VISIBLE) {
-            assert (rgn);
-            // re-generate the region
-            ServerGetWinZNodeRegion (layer, zidx,
-                    RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
-            ServerSetWinZNodePrivateData (layer, zidx, rgn);
-        }
-    }
-    else {
-        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
-                zidx, layer->name);
+    assert (znode_hdr);
+
+    if (!(znode_hdr->flags & ZNIF_VISIBLE)) {
+        return;
     }
 
+    assert (rgn);
+    CopyRegion (&ctxt->dirty_rgn, rgn);
+
+    // re-generate the region
+    ServerGetWinZNodeRegion (layer, zidx,
+            RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+    ServerSetWinZNodePrivateData (layer, zidx, rgn);
+
     /* calculate the dirty region */
-    SetClipRgn (&ctxt->dirty_rgn, rc_org_bound);
     UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
     if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen))
         composite_on_dirty_region (ctxt, zidx);
