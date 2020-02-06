@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -106,7 +106,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
             DrawText (hdc,
                     "MiniGUI -- a mature cross-platform windowing system "
                     "and GUI support system for embedded or IoT devices.\n\n"
-                    "Copyright (C) 2002 ~ 2018 FMSoft Co., Ltd.",
+                    "Copyright (C) 2002 ~ 2020 FMSoft Co., Ltd.",
                     -1, &rcClient, DT_WORDBREAK | DT_CENTER);
 
             EndPaint (hWnd, hdc);
