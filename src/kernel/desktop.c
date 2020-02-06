@@ -133,6 +133,15 @@ PGCRINFO kernel_GetGCRgnInfo (HWND hWnd)
 static DEF_CONTEXT g_def_context;
 #endif
 
+static ZORDERINFO* get_zorder_info (int cli)
+{
+#if defined (_MGRM_THREADS) || defined (_MGRM_STANDALONE)
+    return __mg_zorder_info;
+#else
+    return get_zi_from_client (cli);
+#endif
+}
+
 #ifndef _MGSCHEMA_COMPOSITING
 static BOOL subtract_rgn_by_node (PCLIPRGN region, const ZORDERINFO* zi,
                const ZORDERNODE* node)
@@ -170,7 +179,52 @@ static BOOL subtract_rgn_by_node (PCLIPRGN region, const ZORDERINFO* zi,
 
     return TRUE;
 }
-#endif /* not defined _MGSCHEMA_COMPOSITING */
+
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+
+static int get_znode_mask_bound (int cli, int idx_znode, RECT* rc_bound)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes, *node;
+
+    zi = get_zorder_info (cli);
+    if (idx_znode > (zi->max_nr_globals
+                    + zi->max_nr_topmosts + zi->max_nr_normals)
+            || idx_znode <= 0) {
+        return -1;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    node = nodes + idx_znode;
+    if (node->idx_mask_rect != 0) {
+        MASKRECT *firstmaskrect = NULL, *maskrect;
+        int idx;
+        RECT rc;
+
+        SetRect (rc_bound, 0, 0, 0, 0);
+
+        firstmaskrect = GET_MASKRECT (zi);
+        idx = node->idx_mask_rect;
+        while (idx) {
+            maskrect = firstmaskrect + idx;
+            rc.left = maskrect->left + node->rc.left;
+            rc.top  = maskrect->top + node->rc.top;
+            rc.right = rc.left + (maskrect->right - maskrect->left);
+            rc.bottom = rc.top + (maskrect->bottom - maskrect->top);
+
+            IntersectRect (&rc, &rc, &(node->rc));
+            UnionRect (rc_bound, rc_bound, &rc);
+
+            idx = maskrect->next;
+        }
+    }
+    else
+        *rc_bound = node->rc;
+
+    return 0;
+}
+
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
 static int pt_in_maskrect (const ZORDERINFO* zi,
        const ZORDERNODE* nodes, int x, int y)
@@ -235,15 +289,6 @@ ret:
     return slot;
 }
 
-static ZORDERINFO* get_zorder_info (int cli)
-{
-#if defined (_MGRM_THREADS) || defined (_MGRM_STANDALONE)
-    return __mg_zorder_info;
-#else
-    return get_zi_from_client (cli);
-#endif
-}
-
 static void unchain_znode (unsigned char* usage_bmp,
                 ZORDERNODE* nodes, int idx_znode)
 {
@@ -263,7 +308,8 @@ static void unchain_znode (unsigned char* usage_bmp,
     nodes [idx_znode].flags = 0;
 }
 
-static void clean_znode_maskrect (ZORDERINFO* zi, ZORDERNODE* nodes, int idx_znode)
+static void clean_znode_maskrect (ZORDERINFO* zi, ZORDERNODE* nodes,
+        int idx_znode)
 {
     int idx, tmp;
     MASKRECT *first;
@@ -2580,8 +2626,9 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
 
     if (nr_rc > old_num) {
         /* check the number of mask rect if enough */
-        int idle = __mg_get_nr_idle_slots((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
-                zi->size_maskrect_usage_bmp);
+        int idle =
+            __mg_get_nr_idle_slots((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
+            zi->size_maskrect_usage_bmp);
         if (idle < nr_rc-old_num) {
             unlock_zi_for_change (zi);
             return -1;
@@ -3603,14 +3650,19 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
         unlock_zi_for_change (zi);
     }
 #else   /* defined _MGSCHEMA_COMPOSITING */
-    lock_zi_for_change (zi);
+    {
+        RECT org_rc;
 
-    DO_COMPSOR_OP_ARGS (on_moving_win,
-            get_layer_from_client (cli), idx_znode, rcWin);
+        lock_zi_for_change (zi);
 
-    nodes [idx_znode].rc = *rcWin;
+        org_rc = nodes [idx_znode].rc;
+        nodes [idx_znode].rc = *rcWin;
 
-    unlock_zi_for_change (zi);
+        DO_COMPSOR_OP_ARGS (on_moved_win,
+                get_layer_from_client (cli), idx_znode, &org_rc);
+
+        unlock_zi_for_change (zi);
+    }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
     return 0;

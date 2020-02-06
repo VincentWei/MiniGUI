@@ -59,7 +59,7 @@ extern int __mg_enter_terminategui;
 
 #if defined(_MGRM_THREADS) || defined(_MGRM_STANDALONE)
 
-int __kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
+int __kernel_change_z_node_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
 {
     FreeZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode);
     return AllocZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode,
