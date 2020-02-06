@@ -3276,7 +3276,7 @@ static int dskHideWindow (int cli, int idx_znode)
     return 0;
 }
 
-static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
+static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 {
     DWORD type;
     int fixed_idx;
@@ -3348,7 +3348,8 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
             firstmaskrect = GET_MASKRECT(zi);
 
             while (idx) {
-                __mg_slot_clear_use((unsigned char*)GET_MASKRECT_USAGEBMP(zi), idx);
+                __mg_slot_clear_use((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
+                        idx);
                 idx = ((MASKRECT *)(firstmaskrect+idx))->next;
             }
         }
@@ -3657,6 +3658,10 @@ static int dskMoveWindow (int cli, int idx_znode, const RECT* rcWin)
 
         org_rc = nodes [idx_znode].rc;
         nodes [idx_znode].rc = *rcWin;
+        if (memdc != HDC_INVALID) {
+            DeleteMemDC (nodes [idx_znode].mem_dc);
+            nodes [idx_znode].mem_dc = memdc;
+        }
 
         DO_COMPSOR_OP_ARGS (on_moved_win,
                 get_layer_from_client (cli), idx_znode, &org_rc);
