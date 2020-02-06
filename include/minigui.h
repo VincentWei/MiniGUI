@@ -78,8 +78,8 @@ extern "C" {
 #define ZOF_STATUS_MASK         0x0000000F
 #define ZOF_VISIBLE             0x00000001
 #define ZOF_DISABLED            0x00000002
-#define ZOF_MAXIMIZED           0x00000004  /* Since 4.2.0 */
-#define ZOF_MINIMIZED           0x00000008  /* Since 4.2.0 */
+#define ZOF_MAXIMIZED           0x00000004  // Since 4.2.0
+#define ZOF_MINIMIZED           0x00000008  // Since 4.2.0
 
 /* Since 4.2.0 */
 #define ZOF_INTERNAL_FLAGS_MASK 0X000F0000
@@ -95,13 +95,13 @@ extern "C" {
 
 #define ZOF_TYPE_MASK           0xF0000000
 #define ZOF_TYPE_NULL           0x00000000
-#define ZOF_TYPE_DESKTOP        0x10000000  /* fixed and only one */
-#define ZOF_TYPE_LAUNCHER       0x20000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_DESKTOP        0x10000000  // fixed and only one.
+#define ZOF_TYPE_LAUNCHER       0x20000000  // Since 4.2.0; fixed and only one.
 #define ZOF_TYPE_NORMAL         0x30000000
 #define ZOF_TYPE_TOPMOST        0x40000000
 #define ZOF_TYPE_GLOBAL         0x50000000
-#define ZOF_TYPE_DOCKER         0x60000000  /* Since 4.2.0; fixed and only one */
-#define ZOF_TYPE_SCREENLOCK     0x70000000  /* Since 4.2.0; fixed and only one */
+#define ZOF_TYPE_DOCKER         0x60000000  // Since 4.2.0; fixed and only one.
+#define ZOF_TYPE_SCREENLOCK     0x70000000  // Since 4.2.0; fixed and only one.
 #define ZOF_TYPE_POPUPMENU      0x80000000
 
 #define ZOF_TF_FLAG_MASK        0x0F000000
@@ -224,19 +224,19 @@ extern MG_EXPORT size_t mgSizeRes;
 /**
  * \def LEN_LAYER_NAME
  * \brief The maximum length of name of layer in MiniGUI-Processes.
-**/
-#define LEN_LAYER_NAME      14
+ */
+#define LEN_LAYER_NAME      15
 
 /**
  * \def LEN_CLIENT_NAME
  * \brief The maximum length of name of client in MiniGUI-Processes.
 **/
-#define LEN_CLIENT_NAME     14
+#define LEN_CLIENT_NAME     15
 
 /**
  * \def INV_LAYER_HANDLE
  * \brief Invalid handle value of the layer.
-**/
+ */
 #define INV_LAYER_HANDLE    0
 
 struct _MG_Layer;
@@ -297,13 +297,6 @@ typedef struct _MG_Layer
     /** Internal field. */
     int   zorder_shmid;
 } MG_Layer;
-
-/*screen attr type*/
-#define SCREEN_ATTR_ALPHA_CHANNEL    0x01      //alpha channel
-#define SCREEN_ATTR_COLORKEY         0x02      //colorkey
-#define SCREEN_ATTR_COLORSPACE       0x03      //colorspace
-#define SCREEN_ATTR_ALPHA            0x04
-#define SCREEN_NO_EXIST              -99       //screen don't exist
 
 /**
  * \var int mgClientSize
@@ -433,7 +426,7 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
 #endif /* WIN32 */
 
 /**
- * \fn BOOL GUIAPI RegisterListenFD (int fd, int type,\
+ * \fn BOOL GUIAPI RegisterListenFD (int fd, int type,
                 HWND hwnd, void* context)
  * \brief Registers a listening file descriptor to MiniGUI-Lite.
  *
@@ -513,8 +506,8 @@ MG_EXPORT BOOL GUIAPI UnregisterListenFD (int fd);
 #define NAME_DEF_LAYER          "mginit"
 
 /**
- * \fn GHANDLE GUIAPI JoinLayer (const char* layer_name,\
-                const char* client_name,\
+ * \fn GHANDLE GUIAPI JoinLayer (const char* layer_name,
+                const char* client_name,
                 int max_nr_topmosts, int max_nr_normals)
  * \brief Joins to a layer.
  *
@@ -527,12 +520,12 @@ MG_EXPORT BOOL GUIAPI UnregisterListenFD (int fd);
  * If the client want to create a new layer, you should specify the maximal
  * number of topmost frame objects (max_nr_topmosts) and the maximal number of
  * normal frame objects (max_nr_normals) in the new layer. Passing zero to
- * \a max_nr_topmosts and max_nr_normals will use the default values, and the default
- * values are specified by ServerStartup.
+ * \a max_nr_topmosts and max_nr_normals will use the default values, and
+ * the default values are specified by ServerStartup.
  *
  * Note that the server will create a default layer named "mginit".
  *
- * \param layer_name The name of the layer.You can use NAME_TOPMOST_LAYER to
+ * \param layer_name The name of the layer. You can use NAME_TOPMOST_LAYER to
  *        specify the current topmost layer.
  * \param client_name The name of the client.
  * \param max_nr_topmosts The maximal number of topmost z-order nodes in
@@ -551,7 +544,7 @@ MG_EXPORT GHANDLE GUIAPI JoinLayer (const char* layer_name,
                 int max_nr_topmosts, int max_nr_normals);
 
 /**
- * \fn GHANDLE GUIAPI GetLayerInfo (const char* layer_name,\
+ * \fn GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
                 int* nr_clients, BOOL* is_topmost, int* cli_active)
  * \brief Gets information of a layer by a client.
  *
@@ -666,7 +659,6 @@ MG_EXPORT BOOL GUIAPI MoveToLayer (BOOL handle_name,
  */
 typedef int (* ON_LOCK_CLIENT_REQ) (void);
 
-
 /**
  * \var typedef void (* ON_TRYLOCK_CLIENT_REQ) (void)
  * \brief Type of client request lock callback.
@@ -753,7 +745,8 @@ typedef void (* ON_CHANGE_LAYER) (int op, MG_Layer* layer,
 #define ZNOP_STARTDRAG           13
 #define ZNOP_CANCELDRAG          14
 #define ZNOP_CHANGECAPTION       15
-#define ZNOP_COMPOSITINGCHANGED  16
+#define ZNOP_REGIONCHANGED       16
+#define ZNOP_COMPOSITINGCHANGED  17
 
 /**
  * \var typedef void (* ON_ZNODE_OPERATION) (int op, int cli, int idx_znode)
@@ -851,6 +844,8 @@ extern MG_EXPORT ON_CHANGE_LAYER OnChangeLayer;
  *    Cancel to drag the z-node.
  *  - ZNOP_CHANGECAPTION\n
  *    The caption of the z-node has changed.
+ *  - ZNOP_REGIONCHANGED\n
+ *    The region (mask rectangles) of the z-node has changed.
  *  - ZNOP_COMPOSITINGCHANGED\n
  *    The compositing type or the argument of the z-node has changed.
  *
@@ -866,7 +861,7 @@ extern MG_EXPORT ON_CHANGE_LAYER OnChangeLayer;
 extern MG_EXPORT ON_ZNODE_OPERATION OnZNodeOperation;
 
 /**
- * \fn BOOL GUIAPI ServerStartup (int nr_globals,\
+ * \fn BOOL GUIAPI ServerStartup (int nr_globals,
                 int def_nr_topmosts, int def_nr_normals)
  * \brief Initializes the server of MiniGUI-Processes.
  *
@@ -895,7 +890,7 @@ MG_EXPORT BOOL GUIAPI ServerStartup (int nr_globals,
                 int def_nr_topmosts, int def_nr_normals);
 
 /**
- * \fn MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,\
+ * \fn MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
                 int max_nr_topmosts, int max_nr_normals)
  * \brief Create a new layer from the server.
  *
@@ -909,7 +904,8 @@ MG_EXPORT BOOL GUIAPI ServerStartup (int nr_globals,
  * Note that the server will create a default layer named "mginit".
  *
  * \param layer_name The name of the layer. If there is already a layer
- *        named \a layer_name, the function will return the pointer to the layer.
+ *        named \a layer_name, the function will return the pointer to
+ *        that layer.
  * \param max_nr_topmosts The maximal number of topmost z-order nodes in
  *        the new layer.
  * \param max_nr_normals The maximal number of normal z-order nodes in
@@ -957,7 +953,7 @@ MG_EXPORT BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer);
 MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
 
 /**
- * \fn int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, \
+ * \fn int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
  *              int* cli)
  * \brief Get the next z-node in the specified layer from the server.
  *
@@ -986,7 +982,7 @@ MG_EXPORT int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
                 int* cli);
 
 /**
- * \fn int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode, \
+ * \fn int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode,
  *              int* cli)
  * \brief Get the previous z-node in the specified layer from the server.
  *
@@ -1051,7 +1047,8 @@ typedef struct _ZNODEINFO {
      * - ZNIT_DESKTOP\n
      *   the desktop.
      * - ZNIT_NULL\n
-     *   a null and not-used z-node which does not refer to any window/popupmenu.
+     *   a null and not-used z-node which does not refer to
+     *   any window/popupmenu.
      */
     DWORD           type;
 
@@ -1106,7 +1103,7 @@ typedef struct _ZNODEINFO {
 } ZNODEINFO;
 
 /**
- * \fn BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode, \
+ * \fn BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
  *              ZNODEINFO* znode_info)
  * \brief Get the z-node information in the specified layer from the server.
  *
@@ -1254,9 +1251,11 @@ MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
  * Since 4.2.0
  */
 #ifdef _MGSCHEMA_COMPOSITING
-MG_EXPORT BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode);
+MG_EXPORT BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer,
+        int idx_znode);
 #else   /* not defined _MGSCHEMA_COMPOSITING */
-static inline BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
+static inline BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer,
+        int idx_znode)
 {
     return TRUE;
 }
@@ -1463,7 +1462,7 @@ MG_EXPORT BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx,
         void* priv_data);
 
 /**
- * \fn BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode, \
+ * \fn BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode,
  *              int op_code, void* op_data, BOOL notify)
  * \brief Does an operation on the z-node in the specified layer
  *        from the server.
@@ -1684,17 +1683,34 @@ typedef struct _CompositorOps {
     void (*on_hiding_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
-     * This operation will be called when the system is moving a window.
-     * The compositor can play an animation in this operation.
-     */
-    void (*on_moving_win) (CompositorCtxt* ctxt, MG_Layer* layer,
-            int zidx, const RECT* dst_rc);
-
-    /**
-     * This operation will be called when the system raised the window
+     * This operation will be called after the system raised the window
      * z-node to top.
+     * The compositor should refresh the screen to reflect the change.
      */
     void (*on_raised_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
+
+    /**
+     * This operation will be called after the system changed the compositing
+     * type of the specific window z-node.
+     * The compositor should refresh the screen to reflect the change.
+     */
+    void (*on_changed_ct) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
+
+    /**
+     * This operation will be called after the system changed the region
+     * of the specific window z-node.
+     * The compositor should update the screen to reflect the change.
+     */
+    void (*on_changed_rgn) (CompositorCtxt* ctxt, MG_Layer* layer,
+            int zidx, const RECT* rc_org_bound);
+
+    /**
+     * This operation will be called after the system moved a window.
+     * The compositor should update the screen to reflect the change.
+     * The argument \a rc_org gives the original rectangle of the window.
+     */
+    void (*on_moved_win) (CompositorCtxt* ctxt, MG_Layer* layer,
+            int zidx, const RECT* rc_org);
 
     /**
      * This operation will be called when the system is maximizing a window.
@@ -2072,7 +2088,8 @@ typedef int (* REQ_HANDLER_V1) (int cli, int clifd,
  *
  * \sa ClientRequest, ServerSendReply, MAX_SYS_REQID, MAX_REQID
  */
-MG_EXPORT BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler);
+MG_EXPORT BOOL GUIAPI RegisterRequestHandler (int req_id,
+        REQ_HANDLER your_handler);
 
 /**
  * \fn BOOL GUIAPI RegisterRequestHandlerV1 (int req_id,
@@ -2253,7 +2270,7 @@ MG_EXPORT int cli_conn (const char* name, char project);
 #define SOCKERR_OK          0
 
 /**
- * \fn ssize_t sock_write_t (int fd, const void* buff,\
+ * \fn ssize_t sock_write_t (int fd, const void* buff,
                 size_t count, unsigned int timeout)
  * \brief Writes data to socket.
  *
@@ -2425,18 +2442,18 @@ MG_EXPORT void GUIAPI ExitGUISafely (int exitcode);
  *
  * \return The exit status will be retured to the parent process.
  */
-#define MiniGUIMain \
-MiniGUIAppMain (int args, const char* argv[]); \
-int main_entry (int args, const char* argv[]) \
-{ \
-    int iRet = 0; \
-    if (InitGUI (args, argv) != 0) { \
-        return 1; \
-    } \
-    iRet = MiniGUIAppMain (args, argv); \
-    TerminateGUI (iRet); \
-    return iRet; \
-} \
+#define MiniGUIMain                             \
+MiniGUIAppMain (int args, const char* argv[]);  \
+int main_entry (int args, const char* argv[])   \
+{                                               \
+    int iRet = 0;                               \
+    if (InitGUI (args, argv) != 0) {            \
+        return 1;                               \
+    }                                           \
+    iRet = MiniGUIAppMain (args, argv);         \
+    TerminateGUI (iRet);                        \
+    return iRet;                                \
+}                                               \
 int MiniGUIAppMain
 
 /**
@@ -2495,25 +2512,25 @@ typedef struct _DESKTOPOPS {
  *     ......
  * }
  *
- * static void this_paint_desktop(void* context,\
+ * static void this_paint_desktop(void* context,
  *                         HDC dc_desktop, const RECT* inv_rc)
  * {
  *     ......
  * }
  *
- * static void this_keyboard_handler(void* context, int message,\
+ * static void this_keyboard_handler(void* context, int message,
  *                                   WPARAM wParam, LPARAM lParam)
  * {
  *     ......
  * }
  *
- * static void this_mouse_handler(void* context, int message,\
+ * static void this_mouse_handler(void* context, int message,
  *                                    WPARAM wParam, LPARAM lParam)
  * {
  *     ......
  * }
  *
- * static void this_customize_desktop_menu (void* context,\
+ * static void this_customize_desktop_menu (void* context,
  *                                           HMENU hmnu, int start_pos)
  * {
  *     ......
@@ -2567,7 +2584,7 @@ MG_EXPORT void GUIAPI DesktopUpdateAllWindow (void);
      */
 
 /**
- * \fn BOOL GUIAPI SetMouseCalibrationParameters (const POINT* src_pts,\
+ * \fn BOOL GUIAPI SetMouseCalibrationParameters (const POINT* src_pts,
                 const POINT* dst_pts)
  * \brief Sets the parameters for doing mouse calibration.
  *
@@ -2820,7 +2837,7 @@ extern MG_EXPORT char ETCFILEPATH [];
 #endif /* !_MGINCORE_RES */
 
 /**
- * \fn int GUIAPI GetValueFromEtcFile (const char* pEtcFile,\
+ * \fn int GUIAPI GetValueFromEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, char* pValue, int iLen)
  * \brief Gets value from a configuration file.
  *
@@ -2850,10 +2867,10 @@ extern MG_EXPORT char ETCFILEPATH [];
  * \sa GetIntValueFromEtcFile, SetValueToEtcFile, strncpy(3)
  */
 MG_EXPORT int GUIAPI GetValueFromEtcFile (const char* pEtcFile,
-                const char* pSection, const char* pKey, char* pValue, int iLen);
+        const char* pSection, const char* pKey, char* pValue, int iLen);
 
 /**
- * \fn int GUIAPI GetIntValueFromEtcFile (const char* pEtcFile,\
+ * \fn int GUIAPI GetIntValueFromEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, int* value)
  * \brief Gets integer value from a configuration file.
  *
@@ -2893,7 +2910,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, int* value);
 
 /**
- * \fn int GUIAPI SetValueToEtcFile (const char* pEtcFile,\
+ * \fn int GUIAPI SetValueToEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, char* pValue)
  * \brief Sets a value in a configuration file.
  *
@@ -2921,7 +2938,7 @@ MG_EXPORT int GUIAPI SetValueToEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, char* pValue);
 
 /**
- * \fn int GUIAPI RemoveSectionInEtcFile (const char* pEtcFile,\
+ * \fn int GUIAPI RemoveSectionInEtcFile (const char* pEtcFile,
                 const char* pSection)
  * \brief Removes a section in an etc file.
  *
@@ -2944,7 +2961,7 @@ MG_EXPORT int GUIAPI RemoveSectionInEtcFile (const char* pEtcFile,
                 const char* pSection);
 
 /**
- * \fn int GUIAPI SaveSectionToEtcFile (const char* pEtcFile, \
+ * \fn int GUIAPI SaveSectionToEtcFile (const char* pEtcFile,
                 PETCSECTION psect);
  * \brief Saves a section to an etc file.
  *
@@ -3014,7 +3031,7 @@ MG_EXPORT int GUIAPI SaveEtcToFile (GHANDLE hEtc, const char* file_name);
 MG_EXPORT int GUIAPI UnloadEtcFile (GHANDLE hEtc);
 
 /**
- * \fn int GUIAPI GetValueFromEtc (GHANDLE hEtc, const char* pSection, \
+ * \fn int GUIAPI GetValueFromEtc (GHANDLE hEtc, const char* pSection,
                 const char* pKey, char* pValue, int iLen)
  * \brief Gets value from a configuration etc object.
  *
@@ -3045,7 +3062,7 @@ MG_EXPORT int GUIAPI GetValueFromEtc (GHANDLE hEtc, const char* pSection,
                 const char* pKey, char* pValue, int iLen);
 
 /**
- * \fn int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,\
+ * \fn int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,
                 const char* pKey, int* pValue)
  * \brief Gets the integer value from a configuration etc object.
  *
@@ -3055,7 +3072,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,
                 const char* pKey, int* pValue);
 
 /**
- * \def SetValueToEtc(GHANDLE hEtc, const char* pSection,\
+ * \def SetValueToEtc(GHANDLE hEtc, const char* pSection,
                 const char* pKey, char* pValue)
  * \brief Sets the value in the etc object.
  *
@@ -3068,7 +3085,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,
         GetValueFromEtc(hEtc, pSection, pKey, pValue, -1)
 
 /**
- * \fn GHANDLE GUIAPI FindSectionInEtc (GHANDLE hEtc,\
+ * \fn GHANDLE GUIAPI FindSectionInEtc (GHANDLE hEtc,
                 const char* pSection, BOOL bCreateNew)
  * \brief Finds/Creates a section from an etc object.
  *
@@ -3088,7 +3105,7 @@ MG_EXPORT GHANDLE GUIAPI FindSectionInEtc (GHANDLE hEtc,
                 const char* pSection, BOOL bCreateNew);
 
 /**
- * \fn int GUIAPI GetValueFromEtcSec (GHANDLE hSect,\
+ * \fn int GUIAPI GetValueFromEtcSec (GHANDLE hSect,
                 const char* pKey, char* pValue, int iLen)
  * \brief Gets value from an etc section object.
  *
@@ -3116,7 +3133,7 @@ MG_EXPORT int GUIAPI GetValueFromEtcSec (GHANDLE hSect,
                 const char* pKey, char* pValue, int iLen);
 
 /**
- * \fn int GUIAPI GetIntValueFromEtcSec (GHANDLE hSect,\
+ * \fn int GUIAPI GetIntValueFromEtcSec (GHANDLE hSect,
                 const char* pKey, int* pValue)
  * \brief Gets an integer value from an etc section object.
  *
@@ -3142,7 +3159,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtcSec (GHANDLE hSect,
                 const char* pKey, int* pValue);
 
 /**
- * \fn int GUIAPI SetValueToEtcSec (GHANDLE hSect,\
+ * \fn int GUIAPI SetValueToEtcSec (GHANDLE hSect,
                 const char* pKey, char* pValue)
  * \brief Sets the value in the etc section object.
  *
@@ -3180,7 +3197,7 @@ MG_EXPORT int GUIAPI RemoveSectionInEtc (GHANDLE hEtc, const char* pSection);
 extern MG_EXPORT GHANDLE hMgEtc;
 
 /**
- *  \fn static inline int GetMgEtcValue(const char* pSection,\
+ *  \fn static inline int GetMgEtcValue(const char* pSection,
                         const char *pKey, char *pValue, int iLen)
  * \brief Gets value from MiniGUI configuration etc object
  *
@@ -3200,7 +3217,7 @@ static inline int GetMgEtcValue(const char* pSection,
 }
 
 /**
- * \fn static inline int GetMgEtcIntValue (const char *pSection,\
+ * \fn static inline int GetMgEtcIntValue (const char *pSection,
                        const char* pKey, int *value)
  * \brief Gets integer value from MiniGUI configuration etc object
  *
@@ -3310,7 +3327,7 @@ MG_EXPORT int GUIAPI CreateClipBoard (const char* cb_name, size_t size);
 MG_EXPORT int GUIAPI DestroyClipBoard (const char* cb_name);
 
 /**
- * \fn int GUIAPI SetClipBoardData (const char* cb_name,\
+ * \fn int GUIAPI SetClipBoardData (const char* cb_name,
                 void* data, size_t n, int cbop)
  * \brief Sets the data of a clipboard.
  *
@@ -3350,7 +3367,7 @@ MG_EXPORT int GUIAPI SetClipBoardData (const char* cb_name,
 MG_EXPORT size_t GUIAPI GetClipBoardDataLen (const char* cb_name);
 
 /**
- * \fn size_t GUIAPI GetClipBoardData (const char* cb_name,\
+ * \fn size_t GUIAPI GetClipBoardData (const char* cb_name,
                 void* data, size_t n)
  * \brief Gets the data of a clipboard.
  *
@@ -3368,7 +3385,7 @@ MG_EXPORT size_t GUIAPI GetClipBoardData (const char* cb_name,
                 void* data, size_t n);
 
 /**
- * \fn int GUIAPI GetClipBoardByte (const char* cb_name,\
+ * \fn int GUIAPI GetClipBoardByte (const char* cb_name,
                 int index, unsigned char* byte);
  * \brief Gets a byte from a clipboard.
  *
@@ -3618,7 +3635,7 @@ MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGMem (const void* area, size_t size,
 #endif /* _MGSCHEMA_COMPOSITING */
 
 /**
- * \fn HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,\
+ * \fn HCURSOR GUIAPI CreateCursor (int xhotspot, int yhotspot, int w, int h,
                 const BYTE* pANDBits, const BYTE* pXORBits, int colornum)
  * \brief Creates a cursor from memory data.
  *
@@ -4530,7 +4547,7 @@ extern MG_EXPORT const char** GUIAPI GetSysTextInUTF8 (const char* language);
 MG_EXPORT char* strnchr (const char* s, size_t n, int c);
 
 /**
- * \fn int substrlen (const char* text, int len, int delimiter,\
+ * \fn int substrlen (const char* text, int len, int delimiter,
                 int* nr_delim)
  * \brief Locates a substring delimited by one or more delimiters in the
  * first \a len characters of string \a text.

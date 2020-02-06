@@ -6118,16 +6118,16 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  * \param hWnd The handle to the window.
  * \param type The compositing type, can be one of the following values:
  *  - CT_OPAQUE\n
- *      The main window is opaque. This is the default compositing
- *      type of a main window.
+ *      The main window is opaque. This is the default compositing type of
+ *      a main window.
  *  - CT_COLORKEY\n
  *      Use the specified color as the transparency key. You should also specify
- *      the color along with the parameter \a arg in a RGBA triple value.
+ *      the color along with the parameter \a arg in a RGBA quadruple value.
  *  - CT_ALPHACHANNEL\n
  *      Use the specified alpha channel value. You should also specify
  *      the alpha channel value (0~255) along with the parameter \a arg.
  *  - CT_ALPHAPIXEL\n
- *      Use the alpha component value of pixel.
+ *      The alpha component value of a pixel goes into effect.
  *  - CT_BLURRED\n
  *      Apply a Gaussian blur to the background of the main window. You should
  *      also specify the radius of the blur (0 ~ 255) in pixles along with the

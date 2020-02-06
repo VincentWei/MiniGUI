@@ -13946,7 +13946,12 @@ MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
 
 #ifdef _MGGAL_HI3560
 
-//#include <hi_api.h>
+/* screen attribute type */
+#define SCREEN_ATTR_ALPHA_CHANNEL    0x01      // alpha channel
+#define SCREEN_ATTR_COLORKEY         0x02      // colorkey
+#define SCREEN_ATTR_COLORSPACE       0x03      // colorspace
+#define SCREEN_ATTR_ALPHA            0x04
+#define SCREEN_NO_EXIST               -99      // screen don't exist
 
 /* API speicific to Hi3560 GAL engines */
 MG_EXPORT int hi3560GetVideoFD (void);

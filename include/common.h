@@ -129,7 +129,8 @@
  *
  * \sa _MINIGUI_VERSION_CODE
  */
-#define _VERSION_CODE(major, minor, micro)  (((major)<<16) | ((minor)<<8) | (micro))
+#define _VERSION_CODE(major, minor, micro)  \
+    (((major)<<16) | ((minor)<<8) | (micro))
 
 /**
  * \def _MINIGUI_VERSION_CODE
@@ -137,8 +138,10 @@
  *
  * \sa _VERSION_CODE
  */
-#define _MINIGUI_VERSION_CODE \
-        ((MINIGUI_MAJOR_VERSION << 16) | (MINIGUI_MINOR_VERSION << 8) | MINIGUI_MICRO_VERSION)
+#define _MINIGUI_VERSION_CODE           \
+    ((MINIGUI_MAJOR_VERSION << 16) |    \
+     (MINIGUI_MINOR_VERSION << 8) |     \
+     MINIGUI_MICRO_VERSION)
 
     /** @} end of version_info */
 
@@ -304,7 +307,8 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
  *
  * to write endianness independent code.
  */
-#if defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || defined(__amd64) || \
+#if defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || \
+        defined(__amd64) || \
         (defined(__alpha__) || defined(__alpha)) || \
         defined(__arm__) || defined(__aarch64__) || \
         defined(__riscv) || \
@@ -640,12 +644,12 @@ typedef unsigned char   QDWORD;
 #define QDWORD_SHIFT    8
 #endif
 
-#define MAKEDWORD(q1, q2, q3, q4) \
-    ((DWORD)( \
-        (((DWORD)(QDWORD)(q1))) | \
-        (((DWORD)((QDWORD)(q2))) << QDWORD_SHIFT) | \
+#define MAKEDWORD(q1, q2, q3, q4)                       \
+    ((DWORD)(                                           \
+        (((DWORD)(QDWORD)(q1))) |                       \
+        (((DWORD)((QDWORD)(q2))) << QDWORD_SHIFT) |     \
         (((DWORD)((QDWORD)(q3))) << (QDWORD_SHIFT*2)) | \
-        (((DWORD)((QDWORD)(q4))) << (QDWORD_SHIFT*3)) \
+        (((DWORD)((QDWORD)(q4))) << (QDWORD_SHIFT*3))   \
     ))
 
 #define FIRST_QDWORD(dw)    ((QDWORD)(((DWORD)(dw))))
@@ -729,7 +733,8 @@ typedef UINT_PTR LPARAM;
  *
  * \sa LOBYTE, HIBYTE
  */
-#define MAKEWORD(low, high) ((WORD)(((BYTE)(low)) | (((WORD)((BYTE)(high))) << NR_BITS_BYTE)))
+#define MAKEWORD(low, high)     \
+    ((WORD)(((BYTE)(low)) | (((WORD)((BYTE)(high))) << NR_BITS_BYTE)))
 
 /**
  * \def MAKEWORD16(low, high)
@@ -737,7 +742,8 @@ typedef UINT_PTR LPARAM;
  *
  * \sa LOBYTE, HIBYTE
  */
-#define MAKEWORD16(low, high) ((WORD16)(((BYTE)(low)) | (((WORD16)((BYTE)(high))) << 8)))
+#define MAKEWORD16(low, high)   \
+    ((WORD16)(((BYTE)(low)) | (((WORD16)((BYTE)(high))) << 8)))
 
 /**
  * \def MAKEDWORD32(first, second, third, fourth)
@@ -745,12 +751,12 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MAKEWORD16, FIRSTBYTE, SECONDBYTE, THIRDBYTE, FOURTHBYTE
  */
-#define MAKEDWORD32(first, second, third, fourth) \
-    ((DWORD32)( \
-        ((BYTE)(first)) | \
-        (((DWORD32)((BYTE)(second))) << 8) | \
-        (((DWORD32)((BYTE)(third))) << 16) | \
-        (((DWORD32)((BYTE)(fourth))) << 24) \
+#define MAKEDWORD32(first, second, third, fourth)   \
+    ((DWORD32)(                                     \
+        ((BYTE)(first)) |                           \
+        (((DWORD32)((BYTE)(second))) << 8) |        \
+        (((DWORD32)((BYTE)(third))) << 16) |        \
+        (((DWORD32)((BYTE)(fourth))) << 24)         \
     ))
 
 /**
@@ -759,12 +765,12 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MAKEWORD, FIRSTBYTE, SECONDBYTE, THIRDBYTE, FOURTHBYTE
  */
-#define MAKEWPARAM(first, second, third, fourth) \
-    ((WPARAM)( \
-        ((BYTE)(first)) | \
-        (((WPARAM)((BYTE)(second))) << 8) | \
-        (((WPARAM)((BYTE)(third))) << 16) | \
-        (((WPARAM)((BYTE)(fourth))) << 24) \
+#define MAKEWPARAM(first, second, third, fourth)    \
+    ((WPARAM)(                                      \
+        ((BYTE)(first)) |                           \
+        (((WPARAM)((BYTE)(second))) << 8) |         \
+        (((WPARAM)((BYTE)(third))) << 16) |         \
+        (((WPARAM)((BYTE)(fourth))) << 24)          \
     ))
 
 /**
@@ -851,7 +857,7 @@ typedef DWORD32 RGBCOLOR;
 
 /**
  * \def GetRValue(rgba)
- * \brief Gets the red component from a RGBA triple value \a rgba.
+ * \brief Gets the red component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *
@@ -860,7 +866,7 @@ typedef DWORD32 RGBCOLOR;
 #define GetRValue(rgba)      ((BYTE)(rgba))
 /**
  * \def GetGValue(rgba)
- * \brief Gets the green component from a RGBA triple value \a rgba.
+ * \brief Gets the green component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *
@@ -869,7 +875,7 @@ typedef DWORD32 RGBCOLOR;
 #define GetGValue(rgba)      ((BYTE)(((DWORD32)(rgba)) >> 8))
 /**
  * \def GetBValue(rgba)
- * \brief Gets the blue component from a RGBA triple value \a rgba.
+ * \brief Gets the blue component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *
@@ -878,7 +884,7 @@ typedef DWORD32 RGBCOLOR;
 #define GetBValue(rgba)      ((BYTE)((DWORD32)(rgba) >> 16))
 /**
  * \def GetAValue(rgba)
- * \brief Gets the alpha component from a RGBA triple value \a rgba.
+ * \brief Gets the alpha component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *
@@ -888,7 +894,7 @@ typedef DWORD32 RGBCOLOR;
 
 /**
  * \def MakeRGBA(r, g, b, a)
- * \brief Makes a RGBA triple value from red \a r, green \a g,
+ * \brief Makes a RGBA quadruple value from red \a r, green \a g,
  *        blue \a b and alpha \a components.
  *
  * \note The red, green, blue, and alpha components are all ranged
@@ -896,10 +902,10 @@ typedef DWORD32 RGBCOLOR;
  *
  * \sa GetRValue, GetGValue, GetBValue, GetAValue
  */
-#define MakeRGBA(r, g, b, a)    \
-                (((DWORD32)((BYTE)(r))) \
-                | ((DWORD32)((BYTE)(g)) << 8) \
-                | ((DWORD32)((BYTE)(b)) << 16) \
+#define MakeRGBA(r, g, b, a)                    \
+                (((DWORD32)((BYTE)(r)))         \
+                | ((DWORD32)((BYTE)(g)) << 8)   \
+                | ((DWORD32)((BYTE)(b)) << 16)  \
                 | ((DWORD32)((BYTE)(a)) << 24))
 
 /**
@@ -1014,7 +1020,7 @@ typedef struct _RGB
      */
     BYTE b;
     /**
-     * Reserved for alignment, maybe used for the alpha component of a RGB triple.
+     * Reserved for alignment; or the alpha component of a RGBA quadruple.
      */
     BYTE a;
 } RGB;
@@ -1390,7 +1396,7 @@ typedef struct _GAL_Rect {
 #define SCANCODE_MUTE                   113
 #define SCANCODE_VOLUMEDOWN             114
 #define SCANCODE_VOLUMEUP               115
-#define SCANCODE_POWER                  116     /* SC System Power Down */
+#define SCANCODE_POWER                  116    /* SC System Power Down */
 #define SCANCODE_KPEQUAL                117
 #define SCANCODE_KPPLUSMINUS            118
 #define SCANCODE_BREAK                  119
@@ -1678,8 +1684,9 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_CTRL
- * \brief This status indicate that either the left-Ctrl key or the right-Ctrl key
- * was pressed when the key or mouse message posted to the window.
+ * \brief This status indicate that either the left-Ctrl key or the
+ * right-Ctrl key was pressed when the key or mouse message posted
+ * to the window.
  *
  * \sa key_msgs
  */
@@ -1732,8 +1739,9 @@ typedef struct _GAL_Rect {
 
 /**
  * \def KS_SHIFT
- * \brief This status indicate that either the left-Shift key or the right-Shift key
- * was pressed when the key or mouse message posted to the window.
+ * \brief This status indicate that either the left-Shift key or
+ * the right-Shift key was pressed when the key or mouse message
+ * posted to the window.
  *
  * \sa key_msgs
  */
@@ -2027,19 +2035,20 @@ extern "C" {
 #include  "os_type.h"
 #include  "os_file_api.h"
 
-#define fopen     tp_fopen
-#define fclose     tp_fclose
-#define fwrite     tp_fwrite
-#define fread    tp_fread
-#define fseek    tp_fseek
-#define feof    tp_feof
+#define fopen       tp_fopen
+#define fclose      tp_fclose
+#define fwrite      tp_fwrite
+#define fread       tp_fread
+#define fseek       tp_fseek
+#define feof        tp_feof
 
 #undef assert
 #define _HAVE_ASSERT 1
 
-#define assert(e) do {          \
-                         e;     \
-                     } while (0)
+#define assert(e)   \
+    do {            \
+        e;          \
+    } while (0)
 
 #undef stdin
 #undef stdout
@@ -2077,21 +2086,24 @@ MG_EXPORT int strncasecmp(const char *s1, const char *s2, unsigned int n);
 #ifdef _MGUSE_OWN_MALLOC
 
 /**
- * \fn int init_minigui_malloc (unsigned char* heap, unsigned int heap_size, \
+ * \fn int init_minigui_malloc (unsigned char* heap, unsigned int heap_size,
                 int (*lock_heap) (void), int (*unlock_heap) (void))
  * \brief Initialize MiniGUI's own heap system.
  *
- * MiniGUI implements a heap system which is compatbile with ANIS C. When you
- * RTOS does not provide a re-entriable malloc implementation, you can use MiniGUI's
- * heap system.
+ * MiniGUI implements a heap system which is compatbile with ANIS C. When the
+ * RTOS does not provide a re-entriable malloc implementation, you can use
+ * MiniGUI's heap system.
  *
- * Before using MiniGUI's own heap system, you should provide a memory range to be
- * the heap, and provided two functions to lock the heap and unlock the heap.
+ * Before using MiniGUI's own heap system, you should provide a memory range
+ * to be the heap, and provided two functions to lock the heap and unlock
+ * the heap.
  *
  * \param heap The pointer to the heap bottom.
  * \param heap_size The size of the heap in bytes.
- * \param lock_heap A function will be called by MiniGUI's own heap system to lock the heap.
- * \param lock_heap A function will be called by MiniGUI's own heap system to unlock the heap.
+ * \param lock_heap A function will be called by MiniGUI's own heap system
+ *      to lock the heap.
+ * \param lock_heap A function will be called by MiniGUI's own heap system
+ *      to unlock the heap.
  *
  * \return Zero on success, non-zero on error.
  */
@@ -2315,7 +2327,7 @@ int init_minigui_printf (int (*output_char) (int ch),
 
 #define _WRN_PRINTF(fmt, ...)                   \
     do {                                        \
-        TCS_BROWN (stderr);                    \
+        TCS_BROWN (stderr);                     \
         fprintf (stderr, "%s: ", __FUNCTION__); \
         fprintf (stderr, fmt, ##__VA_ARGS__);   \
         TCS_NONE (stderr);                      \
@@ -2348,8 +2360,9 @@ int init_minigui_printf (int (*output_char) (int ch),
 #define MAIN_PTH_DEF_STACK_SIZE (1024*4)
 
 /**
- * \fn int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []), \
-                int argc, const char* argv[], \
+ * \fn int start_minigui_pthread (int (* pth_entry) (int argc,
+                const char* argv []),
+                int argc, const char* argv[],
                 char* stack_base, unsigned int stack_size)
  * \brief Initialize MiniGUI's own POSIX Threads system and start the main thread.
  *
