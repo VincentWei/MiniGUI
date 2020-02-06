@@ -1240,7 +1240,7 @@ int __kernel_get_prev_znode (const ZORDERINFO* zi, int from)
     return prev;
 }
 
-static int get_next_visible_mainwin (const ZORDERINFO* zi, int from)
+static int get_next_activable_mainwin (const ZORDERINFO* zi, int from)
 {
     int next;
     ZORDERNODE* nodes = GET_ZORDERNODE(zi);
@@ -2422,25 +2422,27 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
+    /* XXX: get next activable window znode before freeing the current znode */
+    next_active = get_next_activable_mainwin (zi, idx_znode);
+    old_active = zi->active_win;
+    if (idx_znode == zi->active_win)
+        zi->active_win = 0;
+
     if (first == &fixed_idx) {
         /* Since 4.2.0: handle fixed znodes */
-        nodes [idx_znode].hwnd = 0;
+        nodes [idx_znode].hwnd = HWND_NULL;
         nodes [idx_znode].cli = -1;
         nodes [idx_znode].flags &= ~ZOF_VISIBLE;
     }
     else if (*first == idx_znode) {
         /* unchain it */
         unchain_znode ((unsigned char*)(zi+1), nodes, idx_znode);
-        nodes [idx_znode].hwnd = 0;
+        nodes [idx_znode].hwnd = HWND_NULL;
         nodes [idx_znode].cli = -1;
 
         *first = nodes [idx_znode].next;
         *nr_nodes -= 1;
     }
-
-    old_active = zi->active_win;
-    if (idx_znode == zi->active_win)
-        zi->active_win = 0;
 
     /* unlock zi for change  */
     unlock_zi_for_change (zi);
@@ -2463,7 +2465,6 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
 
     /* if active_win is this window, change it */
     if (idx_znode == old_active) {
-        next_active = get_next_visible_mainwin (zi, idx_znode);
         dskSetActiveZOrderNode (nodes [next_active].cli, next_active);
     }
 

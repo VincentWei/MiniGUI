@@ -849,7 +849,7 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
                     dskForceCloseMenu ();
 #endif
                 next_node =
-                    get_next_visible_mainwin (__mg_zorder_info,
+                    get_next_activable_mainwin (__mg_zorder_info,
                             __mg_zorder_info->active_win);
 
                 if (next_node) {

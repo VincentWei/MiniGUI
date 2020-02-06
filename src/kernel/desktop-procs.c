@@ -1679,7 +1679,7 @@ int __mg_remove_all_znodes_of_client (int cli)
 
     /* if active_win belongs to the client, change it */
     if (nodes [old_active].cli == cli) {
-        int next_active = get_next_visible_mainwin (zi, 0);
+        int next_active = get_next_activable_mainwin (zi, 0);
         srvSetActiveWindow (nodes [next_active].cli, next_active);
     }
 
@@ -2900,7 +2900,7 @@ static int srvKeyMessageHandler (int message, int scancode, DWORD status)
 #ifdef _MGHAVE_MENU
                 srvForceCloseMenu (0);
 #endif
-                next_node = get_next_visible_mainwin (__mg_zorder_info,
+                next_node = get_next_activable_mainwin (__mg_zorder_info,
                                     __mg_zorder_info->active_win);
                 if (next_node) {
                     srvMove2Top (0, next_node);
