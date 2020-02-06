@@ -2051,6 +2051,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].cli = cli;
     nodes [free_slot].hwnd = hwnd;
     nodes [free_slot].main_win = main_win;
+    nodes [free_slot].lock_count = 0;
 #ifdef _MGSCHEMA_COMPOSITING
     nodes [free_slot].changes = 0;
     nodes [free_slot].ct = validate_compositing_type (ct);
