@@ -6076,7 +6076,7 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
         }
     }
 
-    retval = __kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
+    retval = __kernel_change_z_node_mask_rect (hWnd, rect, rect_size);
     free (rect);
 
     pCtrl = (PCONTROL)hWnd;
@@ -6219,7 +6219,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
         cliprc = cliprc->next;
     }
 
-    retval = __kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
+    retval = __kernel_change_z_node_mask_rect (hWnd, rect, rect_size);
     free (rect);
 
     pCtrl = (PCONTROL) hWnd;
