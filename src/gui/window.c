@@ -6079,6 +6079,9 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
     retval = __kernel_change_z_node_mask_rect (hWnd, rect, rect_size);
     free (rect);
 
+    /* Since 4.2.0. Under compositing schema, the compositor should refresh
+       the screen for the change of region. */
+#ifndef _MGSCHEMA_COMPOSITING
     pCtrl = (PCONTROL)hWnd;
 
     if (!retval && pCtrl->dwStyle & WS_VISIBLE) {
@@ -6089,6 +6092,7 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                 pCtrl->right - pCtrl->left + 1,
                 pCtrl->bottom - pCtrl->top + 1, FALSE);
     }
+#endif
 
     return retval;
 }
@@ -6222,6 +6226,9 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
     retval = __kernel_change_z_node_mask_rect (hWnd, rect, rect_size);
     free (rect);
 
+    /* Since 4.2.0. Under compositing schema, the compositor should refresh
+       the screen for the change of region. */
+#ifndef _MGSCHEMA_COMPOSITING
     pCtrl = (PCONTROL) hWnd;
 
     if (!retval && pCtrl->dwStyle & WS_VISIBLE) {
@@ -6232,6 +6239,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
                 pCtrl->right - pCtrl->left + 1,
                 pCtrl->bottom - pCtrl->top + 1, FALSE);
     }
+#endif
 
     return (retval == 0 ? TRUE : FALSE);
 }
