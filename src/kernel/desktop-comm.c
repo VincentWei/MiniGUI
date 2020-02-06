@@ -561,6 +561,7 @@ static void dskEnableWindow (PMAINWIN pWin, int flags)
         SendAsyncMessage ((HWND)pWin, MSG_NCPAINT, 0, 0);
     }
 }
+
 #if 0
 static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 {
@@ -715,31 +716,34 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     return 0;
 }
 #endif
-static void dskMoveMainWindow (PMAINWIN pWin, const RECT* prcExpect)
-{
-    RECT oldWinRect, rcResult;
 
-    memcpy (&oldWinRect, &pWin->left, sizeof (RECT));
+static int dskMoveMainWindow (PMAINWIN pWin, const RECT* prcExpect)
+{
+    RECT rcResult;
+
     SendAsyncMessage ((HWND)pWin, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
 
-    dskMoveWindow (0, pWin->idx_znode, &rcResult);
+    return dskMoveWindow (0, pWin->idx_znode, HDC_INVALID, &rcResult);
 }
 
-static void dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
+static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
 {
     RECT newWinRect, rcResult;
+    int ret;
 
     SendAsyncMessage ((HWND)pCtrl, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
     dskClientToScreen ((PMAINWIN)(pCtrl->hParent), prcExpect, &newWinRect);
 
-    dskMoveWindow (0, pCtrl->idx_znode, &newWinRect);
+    ret = dskMoveWindow (0, pCtrl->idx_znode, HDC_INVALID, &newWinRect);
 
-    if (pCtrl->dwStyle & WS_VISIBLE) {
+    if (ret == 0 && pCtrl->dwStyle & WS_VISIBLE) {
         SendAsyncMessage ((HWND)pCtrl, MSG_NCPAINT, 0, 0);
         InvalidateRect ((HWND)pCtrl, NULL, TRUE);
     }
+
+    return ret;
 }
 
 /*********************** Hook support ****************************************/
@@ -1463,11 +1467,11 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
 
         case MSG_MOVEMAINWIN:
             if (pWin->WinType == TYPE_CONTROL)
-                dskMoveGlobalControl (pWin, (RECT*)lParam);
+                lRet = (LRESULT)dskMoveGlobalControl (pWin, (RECT*)lParam);
             else {
-                dskMoveMainWindow (pWin, (RECT*)lParam);
+                lRet = (LRESULT)dskMoveMainWindow (pWin, (RECT*)lParam);
             }
-            return 0;
+            return lRet;
 
         case MSG_GETACTIVEMAIN:
             return (LRESULT)dskGetActiveWindow();
