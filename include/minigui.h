@@ -1162,6 +1162,9 @@ typedef struct _ZNODEHEADER {
     /** Client id of the z-node. */
     int             cli;
 
+    /** The lock count (only for compositing schema). */
+    int             lock_count;
+
 #ifdef _MGSCHEMA_COMPOSITING
     /** The count for changes of the content. */
     unsigned int    changes;
@@ -1190,6 +1193,8 @@ typedef struct _ZNODEHEADER {
 #else
     /** The z-node change age; no use for compositing schema */
     unsigned int    age;
+    /** The dirty recetangle of this z-node; no use for compositing schema */
+    RECT            dirty_rc;
 #endif
 } ZNODEHEADER;
 
