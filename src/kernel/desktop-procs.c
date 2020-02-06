@@ -790,18 +790,18 @@ static intptr_t cliFreeZOrderMaskRect (PMAINWIN pWin)
     return ret;
 }
 
-static int srvAllocZOrderMaskRect (int cli, int idx_znode,
+static inline int srvAllocZOrderMaskRect (int cli, int idx_znode,
         int flags, const RECT4MASK *rc, const int nr_rc)
 {
     return AllocZOrderMaskRect (cli, idx_znode, flags, rc, nr_rc);
 }
 
-static int srvFreeZOrderMaskRect (int cli, int idx_znode)
+static inline int srvFreeZOrderMaskRect (int cli, int idx_znode)
 {
     return FreeZOrderMaskRect (cli, idx_znode);
 }
 
-int __kernel_change_z_order_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
+int __kernel_change_z_node_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
 {
     if (!rc || !nr_rc)
         return -1;
@@ -1252,8 +1252,13 @@ static inline int srvSetZNodeCompositing (int cli, int idx_znode,
     int ret;
 
     ret = dskSetZNodeCompositing (cli, idx_znode, type, arg);
-    if (ret == 0 && OnZNodeOperation)
-        OnZNodeOperation (ZNOP_COMPOSITINGCHANGED, cli, idx_znode);
+    if (ret == 0) {
+        if (OnZNodeOperation)
+            OnZNodeOperation (ZNOP_COMPOSITINGCHANGED, cli, idx_znode);
+
+        DO_COMPSOR_OP_ARGS (on_changed_ct,
+                get_layer_from_client (cli), idx_znode);
+    }
 
     return ret;
 }
@@ -1273,6 +1278,15 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
         case ID_ZOOP_MASKRECT_FREE:
             ret = srvFreeZOrderMaskRect (cli, info->idx_znode);
             break;
+    }
+
+    /* Since 4.2.0 */
+    if (ret == 0) {
+        if (OnZNodeOperation)
+            OnZNodeOperation (ZNOP_REGIONCHANGED, cli, info->idx_znode);
+
+        DO_COMPSOR_OP_ARGS (on_changed_rgn,
+                get_layer_from_client (cli), info->idx_znode);
     }
     return ret;
 }
