@@ -464,7 +464,7 @@ static intptr_t cliHideWindow (PMAINWIN pWin)
     return ret;
 }
 
-static intptr_t cliMoveWindow (PMAINWIN pWin, const RECT* rcWin)
+static intptr_t cliMoveWindow (PMAINWIN pWin, const RECT* rcWin, int fd)
 {
     intptr_t ret;
     REQUEST req;
@@ -478,7 +478,14 @@ static intptr_t cliMoveWindow (PMAINWIN pWin, const RECT* rcWin)
     req.data = &info;
     req.len_data = sizeof (ZORDEROPINFO);
 
-    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
+#ifdef _MGSCHEMA_COMPOSITING
+    info.surf_flags = pWin->surf->flags;
+    info.surf_size = pWin->surf->shared_header->buf_size;
+    info.surf_size += sizeof (*pWin->surf->shared_header);
+#endif
+
+    if (ClientRequestEx2 (&req, NULL, 0, fd,
+                &ret, sizeof (intptr_t), NULL) < 0)
         return -1;
 
     return ret;
@@ -967,11 +974,46 @@ static int srvHideWindow (int cli, int idx_znode)
     return ret;
 }
 
-static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin)
+static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
+       HWND hwnd, Uint32 surf_flags, size_t surf_size, int fd)
 {
-    int ret = dskMoveWindow (cli, idx_znode, rcWin);
+    HDC memdc = HDC_INVALID;
+    int ret;
 
-    if (!ret && OnZNodeOperation)
+#ifdef _MGSCHEMA_COMPOSITING
+    GAL_Surface *surf = NULL;
+
+    if (fd >= 0) {  // surface resized
+        if (cli == 0) {
+            PMAINWIN pwin = (PMAINWIN)hwnd;
+            surf = pwin->surf;
+        }
+        else {
+            surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);
+            close (fd);
+        }
+    }
+
+    if (surf) {
+        memdc = CreateMemDCFromSurface (surf);
+        if (memdc == HDC_INVALID) {
+            if (cli > 0) {
+                GAL_FreeSurface (surf);
+            }
+
+            _ERR_PRINTF("KERNEL: failed to create new memory dc for znode\n");
+            return -1;
+        }
+    }
+    else if (fd >= 0) {
+        _ERR_PRINTF("KERNEL: failed to attach to shared surface\n");
+        return -1;
+    }
+
+#endif /* def _MGSCHEMA_COMPOSITING */
+
+    ret = dskMoveWindow (cli, idx_znode, memdc, rcWin);
+    if (ret == 0 && OnZNodeOperation)
         OnZNodeOperation (ZNOP_MOVEWIN, cli, idx_znode);
 
     return ret;
@@ -1328,7 +1370,13 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info,
             ret = srvHideWindow (cli, info->idx_znode);
             break;
         case ID_ZOOP_MOVEWIN:
-            ret = srvMoveWindow (cli, info->idx_znode, &info->rc);
+#ifdef _MGSCHEMA_COMPOSITING
+            ret = srvMoveWindow (cli, info->idx_znode, &info->rc,
+                    info->hwnd, info->surf_flags, info->surf_size, fd);
+#else
+            ret = srvMoveWindow (cli, info->idx_znode, &info->rc,
+                    info->hwnd, 0, 0, 0);
+#endif
             break;
         case ID_ZOOP_SETACTIVE:
             ret = srvSetActiveWindow (cli, info->idx_znode);
@@ -2096,37 +2144,101 @@ static void dskHideMainWindow (PMAINWIN pWin)
         cliHideWindow (pWin);
 }
 
-static void dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
+#ifdef _MGSCHEMA_COMPOSITING
+/* return values:
+   >= 0: window surface resized
+   -1: no need to resize surface
+   -2: failed to resize surface
+ */
+static int resize_window_surface (PMAINWIN pWin, const RECT* prcResult)
+{
+    int new_width = RECTWP(prcResult);
+    int new_height = RECTHP(prcResult);
+
+    if (pWin->surf->w < new_width || pWin->surf->h < new_height) {
+        GAL_Rect rect = { 0, 0, pWin->surf->w, pWin->surf->h };
+        GAL_Surface* new_surf;
+
+        new_surf = GAL_CreateSurfaceForZNode (new_width, new_height);
+        if (new_surf == NULL)
+            return -2;
+
+        GAL_BlitSurface (pWin->surf, &rect, new_surf, &rect);
+        GAL_FreeSurface (pWin->surf);
+        pWin->surf = new_surf;
+        if (pWin->surf->shared_header)
+            return pWin->surf->shared_header->fd;
+        else
+            return 0;
+    }
+
+    return -1;
+}
+#else   /* defined _MGSCHEMA_COMPOSITING */
+static inline int resize_surface (PMAINWIN pWin, const RECT* prcExpect)
+{
+    return -1;
+}
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
+
+static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
 {
     RECT newWinRect, rcResult;
+    int fd, ret;
 
     SendAsyncMessage ((HWND)pCtrl, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
     dskClientToScreen ((PMAINWIN)(pCtrl->hParent), &rcResult, &newWinRect);
 
-    if (mgIsServer)
-        srvMoveWindow (0, pCtrl->idx_znode, &newWinRect);
-    else
-        cliMoveWindow (pCtrl, &newWinRect);
+    if ((fd = resize_window_surface (pCtrl, &rcResult)) == -2)
+        return -1;
 
-    if (pCtrl->dwStyle & WS_VISIBLE) {
+    if (mgIsServer)
+        ret = srvMoveWindow (0, pCtrl->idx_znode, &newWinRect,
+                (HWND)pCtrl, 0, 0, 0);
+    else
+        ret = cliMoveWindow (pCtrl, &newWinRect, fd);
+
+    if (ret == 0 && pCtrl->dwStyle & WS_VISIBLE) {
         SendAsyncMessage ((HWND)pCtrl, MSG_NCPAINT, 0, 0);
         InvalidateRect ((HWND)pCtrl, NULL, TRUE);
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (pCtrl->surf->shared_header && pCtrl->surf->shared_header->fd >= 0) {
+        close (pCtrl->surf->shared_header->fd);
+        pCtrl->surf->shared_header->fd = -1;
+    }
+#endif
+
+    return ret;
 }
 
-static void dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
+static int dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
 {
-    RECT oldWinRect, rcResult;
+    RECT rcResult;
+    int fd, ret;
 
-    memcpy (&oldWinRect, &pWin->left, sizeof (RECT));
     SendAsyncMessage ((HWND)pWin, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
 
+    if ((fd = resize_window_surface (pWin, &rcResult)) == -2)
+        return -1;
+
     if (mgIsServer)
-        srvMoveWindow (0, pWin->idx_znode, &rcResult);
+        ret = srvMoveWindow (0, pWin->idx_znode, &rcResult,
+                (HWND)pWin, 0, 0, 0);
     else
-        cliMoveWindow (pWin, &rcResult);
+        ret = cliMoveWindow (pWin, &rcResult, fd);
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (pWin->surf->shared_header && pWin->surf->shared_header->fd >= 0) {
+        close (pWin->surf->shared_header->fd);
+        pWin->surf->shared_header->fd = -1;
+    }
+#endif
+
+    return ret;
 }
 
 #ifdef _MGHAVE_MENU
