@@ -805,7 +805,8 @@ static void on_hiding_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     }
 }
 
-static void on_raised_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
+/* for both on_raised_win and on_changed_ct */
+static void refresh_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 {
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
@@ -834,6 +835,75 @@ static void on_raised_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         composite_on_dirty_region (ctxt, zidx);
 }
 
+static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
+        const RECT* rc_org)
+{
+    const ZNODEHEADER* znode_hdr;
+    CLIPRGN* rgn = NULL;
+
+    _DBG_PRINTF("called\n");
+    // the fallback compositor only manages znodes on the topmost layer.
+    if (layer != mgTopmostLayer)
+        return;
+
+    znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
+    if (znode_hdr == NULL) {
+        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
+                zidx, layer->name);
+        return;
+    }
+
+    if (!(znode_hdr->flags & ZNIF_VISIBLE)) {
+        _WRN_PRINTF ("the znode (%d) on layer (%s) is invisible\n",
+                zidx, layer->name);
+        return;
+    }
+
+    assert (rgn);
+    /* calculate the dirty region */
+    CopyRegion (&ctxt->dirty_rgn, rgn);
+    OffsetRegion (&ctxt->dirty_rgn,
+            rc_org->left - znode_hdr->rc.left,
+            rc_org->top - znode_hdr->rc.top);
+    UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
+    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen))
+        composite_on_dirty_region (ctxt, zidx);
+}
+
+static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
+        int zidx, const RECT* rc_org_bound)
+{
+    const ZNODEHEADER* znode_hdr;
+    CLIPRGN* rgn = NULL;
+
+    _DBG_PRINTF("called\n");
+    /* the fallback compositor only manages znodes on the topmost layer. */
+    if (layer != mgTopmostLayer)
+        return;
+
+    /* update the region of the current window znode. */
+    znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
+    if (znode_hdr) {
+        if (znode_hdr->flags & ZNIF_VISIBLE) {
+            assert (rgn);
+            // re-generate the region
+            ServerGetWinZNodeRegion (layer, zidx,
+                    RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+            ServerSetWinZNodePrivateData (layer, zidx, rgn);
+        }
+    }
+    else {
+        _WRN_PRINTF ("failed to get znode header for zidx (%d) on layer (%s)\n",
+                zidx, layer->name);
+    }
+
+    /* calculate the dirty region */
+    SetClipRgn (&ctxt->dirty_rgn, rc_org_bound);
+    UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
+    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen))
+        composite_on_dirty_region (ctxt, zidx);
+}
+
 CompositorOps __mg_fallback_compositor = {
     initialize: initialize,
     terminate: terminate,
@@ -849,7 +919,10 @@ CompositorOps __mg_fallback_compositor = {
     on_closed_menu: on_closed_menu,
     on_showing_win: on_showing_win,
     on_hiding_win: on_hiding_win,
-    on_raised_win: on_raised_win,
+    on_raised_win: refresh_win,
+    on_changed_ct: refresh_win,
+    on_changed_rgn: on_changed_rgn,
+    on_moved_win: on_moved_win,
 };
 
 #endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING) */
