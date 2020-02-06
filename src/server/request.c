@@ -301,12 +301,10 @@ static int alloc_sem_for_shared_surf (int cli, int clifd, void* buff, size_t len
 
 static int free_sem_for_shared_surf (int cli, int clifd, void* buff, size_t len)
 {
-    int ret_value;
+    int ret_value = 0;
     int sem_num;
 
     sem_num = *((int*)buff);
-
-    ret_value = __mg_free_sem_for_shared_surf (sem_num);
     del_global_res (cli, (void*)alloc_sem_for_shared_surf,
                     (void*)(intptr_t)sem_num);
 
