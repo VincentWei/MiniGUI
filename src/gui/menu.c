@@ -3454,7 +3454,6 @@ static void cursor_block_down(PTRACKMENUINFO pcurtmi, PMENUITEM pcurmi)
     PMENUITEM pnewmi;
     int y;
 
-
     pnewmi = mnuGetNextMenuItem (pcurtmi, pcurmi);
 
     y = get_menu_item_y_from_pstart (pcurtmi, pnewmi);
@@ -4082,6 +4081,28 @@ static int mnuTrackMenuOnButtonUp (PTRACKMENUINFO ptmi,
     return 0;
 }
 
+/* Since 4.2.0 */
+#ifdef _MGUSE_SYNC_UPDATE
+static void sync_update_ppp (PTRACKMENUINFO ptmi)
+{
+    PTRACKMENUINFO phead;
+
+    // get first tracking menu.
+    phead = ptmi;
+    while (phead->prev) {
+        phead = phead->prev;
+    }
+
+    do {
+        if (phead->dc != HDC_INVALID)
+            SyncUpdateDC (phead->dc);
+        phead = phead->next;
+    } while (phead);
+}
+#else   /* defined _MGUSE_SYNC_UPDATE */
+static inline void sync_update_ppp (PTRACKMENUINFO ptmi) {}
+#endif  /* not defined _MGUSE_SYNC_UPDATE */
+
 int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
         int message, WPARAM wParam, LPARAM lParam)
 {
@@ -4097,8 +4118,7 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
                 SetCursor(GetSystemCursor(IDC_ARROW));
             ret_value = mnuShowPopupMenu (ptmi);
             /* Since 4.2.0 */
-            if (ptmi->dc != HDC_INVALID)
-                SyncUpdateDC (ptmi->dc);
+            sync_update_ppp (ptmi);
             return ret_value;
         break;
 
@@ -4125,31 +4145,27 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
                     message, (int)wParam, (int)lParam) < 0)
                 return 1;
             /* Since 4.2.0 */
-            if (ptmi->dc != HDC_INVALID)
-                SyncUpdateDC (ptmi->dc);
+            sync_update_ppp (ptmi);
         break;
 
         case MSG_LBUTTONUP:
         case MSG_RBUTTONUP:
             mnuTrackMenuOnButtonUp (ptmi, message, (int)wParam, (int)lParam);
             /* Since 4.2.0 */
-            if (ptmi->dc != HDC_INVALID)
-                SyncUpdateDC (ptmi->dc);
+            sync_update_ppp (ptmi);
             return 1;
 
         case MSG_MOUSEMOVE:
-            mnu_scroll_menu(ptmi, (int)wParam, (int)lParam);
+            mnu_scroll_menu (ptmi, (int)wParam, (int)lParam);
             /* Since 4.2.0 */
-            if (ptmi->dc != HDC_INVALID)
-                SyncUpdateDC (ptmi->dc);
+            sync_update_ppp (ptmi);
             break;
 
         case MSG_KEYDOWN:
         case MSG_KEYUP:
             mnuTrackMenuWithKey (ptmi, message, (int)wParam, (DWORD)lParam);
             /* Since 4.2.0 */
-            if (ptmi->dc != HDC_INVALID)
-                SyncUpdateDC (ptmi->dc);
+            sync_update_ppp (ptmi);
             break;
 
         default:
