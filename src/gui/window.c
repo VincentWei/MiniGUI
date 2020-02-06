@@ -4643,18 +4643,20 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
     SendMessage (hWnd, MSG_SIZECHANGING,
             (WPARAM)(&rcExpect), (LPARAM)(&rcResult));
 
-    if (EqualRect (&rcWindow, &rcResult))
-    {
+    if (EqualRect (&rcWindow, &rcResult)) {
         return FALSE;
     }
 
     if (IsMainWindow (hWnd) || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-        SendMessage (HWND_DESKTOP, MSG_MOVEMAINWIN,
-                (WPARAM)hWnd, (LPARAM)(&rcResult));
+        // Since 4.2.0: check the return value.
+        if (SendMessage (HWND_DESKTOP, MSG_MOVEMAINWIN,
+                (WPARAM)hWnd, (LPARAM)(&rcResult)))
+            return FALSE;
 
         if (RECTH (rcWindow) != RECTH (rcResult)
-                || RECTW (rcWindow) != RECTW (rcResult))
+                || RECTW (rcWindow) != RECTW (rcResult)) {
             fPaint = TRUE;
+        }
     }
     else {
         PCONTROL pParent;
