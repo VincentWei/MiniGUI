@@ -721,9 +721,12 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     HDC hdc;
     RECT rcClient, rcScreen, rcInvalid;
     BOOL inved = FALSE;
+#ifdef _MGSCHEMA_COMPOSITING
+    CLIPRECT crcOne;
+#endif
     PCLIPRECT pcrc;
     PINVRGN pInvRgn;
-    PCLIPRGN prgn;
+    PCLIPRGN prgn = NULL;
 
     dskClientToScreen (pWin, pswi->rc1, &rcScreen);
 
@@ -731,12 +734,17 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //client dc would be diffirent, so we must get the scondaryDC,
     //the update to client dc (dongjunjie 2010/7/28)
     //hdc = GetClientDC ((HWND)pWin);
-    hdc = get_valid_dc(pWin, TRUE);
+    hdc = get_valid_dc (pWin, TRUE);
 
 #ifndef _MGSCHEMA_COMPOSITING
     pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
 #else
-    pcrc = NULL; // TODO
+    crcOne.next = crcOne.prev = NULL;
+    crcOne.rc.left = pWin->left;
+    crcOne.rc.top = pWin->top;
+    crcOne.rc.right = pWin->right;
+    crcOne.rc.bottom = pWin->bottom;
+    pcrc = &crcOne;
 #endif
     while (pcrc) {
         RECT rcMove;
@@ -798,14 +806,14 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 #endif
     }
 
-    prgn = CreateClipRgn();
 #ifndef _MGSCHEMA_COMPOSITING
+    prgn = CreateClipRgn ();
     lock_zi_for_read (__mg_zorder_info);
-    CopyRegion(prgn, &kernel_GetGCRgnInfo((HWND)pWin)->crgn);
+    CopyRegion (prgn, &kernel_GetGCRgnInfo((HWND)pWin)->crgn);
     pcrc = prgn->head;
     unlock_zi_for_read (__mg_zorder_info);
 #else
-    pcrc = NULL; // TODO
+    pcrc = &crcOne;
 #endif
 
     while (pcrc) {
@@ -847,8 +855,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
          *  // - represent area need the Need invalidate
          *  see the to area must be invalidate
          */
-        if(bNeedInvalidate)
-        {
+        if (bNeedInvalidate) {
             InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             rcInvalid = rcMove; //restore the invalidate area
             bNeedInvalidate = FALSE; //resotre the inved value
@@ -864,15 +871,16 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             bNeedInvalidate = TRUE;
         }
 
-        if (bNeedInvalidate)
-        {
+        if (bNeedInvalidate) {
             InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             inved = TRUE;
         }
 
         pcrc = pcrc->next;
     }
-    DestroyClipRgn(prgn);
+
+    if (prgn)
+        DestroyClipRgn (prgn);
 
     if (inved) {
         PostMessage ((HWND)pWin, MSG_PAINT, 0, 0);
