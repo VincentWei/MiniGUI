@@ -65,60 +65,68 @@
 
 static HWND sg_AboutWnd = 0;
 
-static LRESULT AboutWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT AboutWinProc (HWND hWnd, UINT message,
+        WPARAM wParam, LPARAM lParam)
 {
     RECT    rcClient;
 
     switch (message) {
-        case MSG_CREATE:
-            sg_AboutWnd = hWnd;
-            GetClientRect (hWnd, &rcClient);
-            CreateWindow ("button", "Close",
-                                WS_CHILD | BS_DEFPUSHBUTTON | WS_VISIBLE,
-                                IDOK,
-                                (RECTW(rcClient) - 80)>>1,
-                                rcClient.bottom - 40,
-                                80, 24, hWnd, 0);
-            break;
+    case MSG_CREATE:
+        sg_AboutWnd = hWnd;
+        GetClientRect (hWnd, &rcClient);
+        CreateWindow ("button", "Close",
+                            WS_CHILD | BS_DEFPUSHBUTTON | WS_VISIBLE,
+                            IDOK,
+                            (RECTW(rcClient) - 80)>>1,
+                            rcClient.bottom - 40,
+                            80, 24, hWnd, 0);
+        break;
 
-        case MSG_COMMAND:
-            if (LOWORD (wParam) == IDOK && HIWORD (wParam) == BN_CLICKED)
-                PostMessage (hWnd, MSG_CLOSE, 0, 0);
-            break;
+    case MSG_SIZECHANGED:
+        GetClientRect (hWnd, &rcClient);
+        MoveWindow (GetNextChild (hWnd, HWND_NULL),
+                            (RECTW(rcClient) - 80)>>1,
+                            rcClient.bottom - 40,
+                            80, 24, FALSE);
+        break;
 
-        case MSG_KEYDOWN:
-            if (LOWORD (wParam) == SCANCODE_ESCAPE)
-                PostMessage (hWnd, MSG_CLOSE, 0, 0);
-            break;
+    case MSG_COMMAND:
+        if (LOWORD (wParam) == IDOK && HIWORD (wParam) == BN_CLICKED)
+            PostMessage (hWnd, MSG_CLOSE, 0, 0);
+        break;
 
-        case MSG_PAINT:
-        {
-            HDC hdc;
+    case MSG_KEYDOWN:
+        if (LOWORD (wParam) == SCANCODE_ESCAPE)
+            PostMessage (hWnd, MSG_CLOSE, 0, 0);
+        break;
 
-            hdc = BeginPaint (hWnd);
-            GetClientRect (hWnd, &rcClient);
-            rcClient.top = 30;
-            rcClient.bottom -= 50;
-            rcClient.left = 10;
-            rcClient.right -= 10;
-            SetTextColor (hdc, PIXEL_black);
-            SetBkMode (hdc, BM_TRANSPARENT);
-            DrawText (hdc,
-                    "MiniGUI -- a mature cross-platform windowing system "
-                    "and GUI support system for embedded or IoT devices.\n\n"
-                    "Copyright (C) 2002 ~ 2020 FMSoft Co., Ltd.",
-                    -1, &rcClient, DT_WORDBREAK | DT_CENTER);
+    case MSG_PAINT: {
+        HDC hdc;
 
-            EndPaint (hWnd, hdc);
-            return 0;
-        }
+        hdc = BeginPaint (hWnd);
+        GetClientRect (hWnd, &rcClient);
+        rcClient.top = 30;
+        rcClient.bottom -= 50;
+        rcClient.left = 10;
+        rcClient.right -= 10;
+        SetTextColor (hdc, PIXEL_black);
+        SetBkMode (hdc, BM_TRANSPARENT);
+        DrawText (hdc,
+                "MiniGUI -- a mature cross-platform windowing system "
+                "and GUI support system for embedded or IoT devices.\n\n"
+                "Copyright (C) 2002 ~ 2020 FMSoft Co., Ltd.",
+                -1, &rcClient, DT_WORDBREAK | DT_CENTER);
 
-        case MSG_CLOSE:
-            sg_AboutWnd = 0;
-            DestroyAllControls (hWnd);
-            DestroyMainWindow (hWnd);
+        EndPaint (hWnd, hdc);
+        return 0;
+    }
+
+    case MSG_CLOSE:
+        sg_AboutWnd = 0;
+        DestroyAllControls (hWnd);
+        DestroyMainWindow (hWnd);
 #ifdef _MGRM_THREADS
-            PostQuitMessage (hWnd);
+        PostQuitMessage (hWnd);
 #endif
         return 0;
     }
@@ -193,7 +201,7 @@ void GUIAPI OpenAboutDialog (void)
     CreateThreadForMainWindow (&thread, NULL, AboutDialogThread, 0);
 }
 
-#else
+#else /* defined _MGRM_THREADS */
 
 HWND GUIAPI OpenAboutDialog (HWND hHosting)
 {
@@ -218,7 +226,7 @@ HWND GUIAPI OpenAboutDialog (HWND hHosting)
     return hMainWnd;
 }
 
-#endif /* _MGRM_THREADS */
+#endif /* not defined _MGRM_THREADS */
 
 #endif /* _MGMISC_ABOUTDLG */
 
