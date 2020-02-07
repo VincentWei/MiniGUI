@@ -573,7 +573,6 @@ static BOOL _cb_update_rc (void* context,
 
     return FALSE;
 }
-#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 static BOOL _cb_exclude_rc (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node)
@@ -602,6 +601,7 @@ static BOOL _cb_exclude_rc (void* context,
 
     return TRUE;
 }
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 #ifdef _MGSCHEMA_COMPOSITING
 static inline void reset_window (PMAINWIN pWin, RECT* rcWin) { }
