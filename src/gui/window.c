@@ -410,7 +410,7 @@ static LRESULT DefaultDTMouseMsgHandler (PMAINWIN pWin, UINT message,
 
     /* houhh 20080804, if click on  scrollbar of mainwin's control, then
      * need to change hc_mainwin, else click on scrollbar of mainwin,
-     * hc_mainwin can not change to HT_CLIENT.*/
+     * hc_mainwin can not change to HT_CLIENT.  */
 
     if (pCtrl && pCtrl->WinType == TYPE_CONTROL &&
             (hc_mainwin >= HT_SB_LEFTARROW &&
@@ -418,61 +418,60 @@ static LRESULT DefaultDTMouseMsgHandler (PMAINWIN pWin, UINT message,
         hc_mainwin = HT_CLIENT;
 
     switch (message) {
-        case MSG_DT_MOUSEMOVE:
-            if (hc_mainwin == HT_CLIENT)
-            {
-                PostMessage ((HWND)pWin, MSG_SETCURSOR,
-                        0, MAKELONG (cx, cy));
-            }else{
-                PostMessage ((HWND)pWin, MSG_NCSETCURSOR,
-                        hc_mainwin, MAKELONG (cx, cy));
-            }
-        case MSG_DT_LBUTTONDBLCLK:
-        case MSG_DT_RBUTTONDBLCLK:
-            if (hc_mainwin == HT_CLIENT) {
-                PostMessage((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-                PostMessage((HWND)pWin,
-                        message - MSG_DT_MOUSEOFF,
-                        flags, MAKELONG (cx, cy));
-            }
-            else {
-                PostMessage((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-            }
-            break;
+    case MSG_DT_MOUSEMOVE:
+        if (hc_mainwin == HT_CLIENT) {
+            PostMessage ((HWND)pWin, MSG_SETCURSOR,
+                    0, MAKELONG (cx, cy));
+        }
+        else {
+            PostMessage ((HWND)pWin, MSG_NCSETCURSOR,
+                    hc_mainwin, MAKELONG (cx, cy));
+        }
+        // fallthrough
+    case MSG_DT_LBUTTONDBLCLK:
+    case MSG_DT_RBUTTONDBLCLK:
+        if (hc_mainwin == HT_CLIENT) {
+            PostMessage((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+            PostMessage((HWND)pWin,
+                    message - MSG_DT_MOUSEOFF,
+                    flags, MAKELONG (cx, cy));
+        }
+        else {
+            PostMessage((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+        }
+        break;
 
-        case MSG_DT_LBUTTONDOWN:
-        case MSG_DT_RBUTTONDOWN:
-            if (hc_mainwin != HT_CLIENT) {
-                PostMessage ((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-            }
-            else
-            {
-                PostMessage((HWND)pWin,
-                        message - MSG_DT_MOUSEOFF,
-                        flags, MAKELONG(cx, cy));
-            }
-            break;
+    case MSG_DT_LBUTTONDOWN:
+    case MSG_DT_RBUTTONDOWN:
+        if (hc_mainwin != HT_CLIENT) {
+            PostMessage ((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+        }
+        else {
+            PostMessage((HWND)pWin,
+                    message - MSG_DT_MOUSEOFF,
+                    flags, MAKELONG(cx, cy));
+        }
+        break;
 
-        case MSG_DT_LBUTTONUP:
-        case MSG_DT_RBUTTONUP:
-            if (hc_mainwin == HT_CLIENT) {
-                PostMessage((HWND)pWin,
-                        message - MSG_DT_MOUSEOFF,
-                        flags, MAKELONG(cx, cy));
-            }
-            else {
-                PostMessage ((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-            }
-            break;
-
+    case MSG_DT_LBUTTONUP:
+    case MSG_DT_RBUTTONUP:
+        if (hc_mainwin == HT_CLIENT) {
+            PostMessage((HWND)pWin,
+                    message - MSG_DT_MOUSEOFF,
+                    flags, MAKELONG(cx, cy));
+        }
+        else {
+            PostMessage ((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+        }
+        break;
     }
 
     return 0;
@@ -509,146 +508,145 @@ static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message,
     }
 
     switch (message) {
-        case MSG_MOUSEMOVE:
-            if (__mgs_captured_ctrl)
-                PostMessage((HWND)__mgs_captured_ctrl, MSG_NCMOUSEMOVE,
-                        CapHitCode, MAKELONG (x, y));
-            else {
-                if (pWin->hOldUnderPointer != (HWND)pUnderPointer) {
-                    if (pWin->hOldUnderPointer) {
-                        PostMessage ((HWND)pWin->hOldUnderPointer,
-                                MSG_MOUSEMOVEIN, FALSE, (LPARAM)pUnderPointer);
-                        PostMessage ((HWND)pWin->hOldUnderPointer,
-                                MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
-                    }
-
-                    if (pUnderPointer)
-                        PostMessage ((HWND)pUnderPointer, MSG_MOUSEMOVEIN,
-                                TRUE, (LPARAM)pWin->hOldUnderPointer);
-
-                    pWin->hOldUnderPointer = (HWND)pUnderPointer;
+    case MSG_MOUSEMOVE:
+        if (__mgs_captured_ctrl)
+            PostMessage((HWND)__mgs_captured_ctrl, MSG_NCMOUSEMOVE,
+                    CapHitCode, MAKELONG (x, y));
+        else {
+            if (pWin->hOldUnderPointer != (HWND)pUnderPointer) {
+                if (pWin->hOldUnderPointer) {
+                    PostMessage ((HWND)pWin->hOldUnderPointer,
+                            MSG_MOUSEMOVEIN, FALSE, (LPARAM)pUnderPointer);
+                    PostMessage ((HWND)pWin->hOldUnderPointer,
+                            MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
                 }
 
-                if (pUnderPointer == NULL) {
-                    pWin->hOldUnderPointer = 0;
-                    break;
-                }
+                if (pUnderPointer)
+                    PostMessage ((HWND)pUnderPointer, MSG_MOUSEMOVEIN,
+                            TRUE, (LPARAM)pWin->hOldUnderPointer);
 
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    SetCursor (GetSystemCursor (IDC_ARROW));
-                    break;
-                }
+                pWin->hOldUnderPointer = (HWND)pUnderPointer;
+            }
 
-                if (UndHitCode == HT_CLIENT) {
-                    PostMessage ((HWND)pUnderPointer,
-                            MSG_SETCURSOR, 0, MAKELONG (cx, cy));
+            if (pUnderPointer == NULL) {
+                pWin->hOldUnderPointer = 0;
+                break;
+            }
 
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
-                            UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE,
-                            flags, MAKELONG (cx, cy));
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                SetCursor (GetSystemCursor (IDC_ARROW));
+                break;
+            }
+
+            if (UndHitCode == HT_CLIENT) {
+                PostMessage ((HWND)pUnderPointer,
+                        MSG_SETCURSOR, 0, MAKELONG (cx, cy));
+
+                PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
+                        UndHitCode, MAKELONG (x, y));
+                PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE,
+                        flags, MAKELONG (cx, cy));
+            }
+            else
+            {
+                PostMessage((HWND)pUnderPointer, MSG_NCSETCURSOR,
+                        UndHitCode, MAKELONG (x, y));
+                PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
+                        UndHitCode, MAKELONG (x, y));
+            }
+        }
+        break;
+
+    case MSG_LBUTTONDOWN:
+    case MSG_RBUTTONDOWN:
+    case MSG_MBUTTONDOWN:
+        if (pUnderPointer) {
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                Ping ();
+                break;
+            }
+
+            SendNotifyMessage ((HWND) pUnderPointer,
+                    MSG_MOUSEACTIVE, UndHitCode, 0);
+
+            if (UndHitCode != HT_CLIENT) {
+                if (UndHitCode & HT_NEEDCAPTURE
+                        && message == MSG_LBUTTONDOWN) {
+                    SetCapture ((HWND)pWin);
+                    __mgs_captured_win = pWin;
+                    __mgs_captured_ctrl = pUnderPointer;
                 }
                 else
-                {
-                    PostMessage((HWND)pUnderPointer, MSG_NCSETCURSOR,
-                            UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
-                            UndHitCode, MAKELONG (x, y));
-                }
+                    __mgs_captured_ctrl = NULL;
+
+                PostMessage ((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                        UndHitCode, MAKELONG (x, y));
             }
-            break;
-
-        case MSG_LBUTTONDOWN:
-        case MSG_RBUTTONDOWN:
-        case MSG_MBUTTONDOWN:
-            if (pUnderPointer) {
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    Ping ();
-                    break;
-                }
-
-                SendNotifyMessage ((HWND) pUnderPointer,
-                        MSG_MOUSEACTIVE, UndHitCode, 0);
-
-                if (UndHitCode != HT_CLIENT) {
-                    if (UndHitCode & HT_NEEDCAPTURE
-                            && message == MSG_LBUTTONDOWN) {
-                        SetCapture ((HWND)pWin);
-                        __mgs_captured_win = pWin;
-                        __mgs_captured_ctrl = pUnderPointer;
-                    }
-                    else
-                        __mgs_captured_ctrl = NULL;
-
-                    PostMessage ((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
-                }
-                else if (__mgs_captured_ctrl == NULL) {
-                    PostMessage((HWND)pUnderPointer, message,
-                            flags, MAKELONG(cx, cy));
-                }
+            else if (__mgs_captured_ctrl == NULL) {
+                PostMessage((HWND)pUnderPointer, message,
+                        flags, MAKELONG(cx, cy));
             }
-            else if (pWin->hActiveChild) {
-                SendNotifyMessage (pWin->hActiveChild,
-                        MSG_MOUSEACTIVE, HT_OUT, 0);
-                PostMessage (pWin->hActiveChild, message + MSG_NCMOUSEOFF,
-                        HT_OUT, MAKELONG(x, y));
-            }
-            break;
+        }
+        else if (pWin->hActiveChild) {
+            SendNotifyMessage (pWin->hActiveChild,
+                    MSG_MOUSEACTIVE, HT_OUT, 0);
+            PostMessage (pWin->hActiveChild, message + MSG_NCMOUSEOFF,
+                    HT_OUT, MAKELONG(x, y));
+        }
+        break;
 
-        case MSG_RBUTTONUP:
-        case MSG_LBUTTONUP:
-        case MSG_MBUTTONUP:
-            if (__mgs_captured_ctrl && message == MSG_LBUTTONUP) {
-                PostMessage ((HWND)__mgs_captured_ctrl,
-                        message + MSG_NCMOUSEOFF,
-                        CapHitCode, MAKELONG (x, y));
-                ReleaseCapture ();
-                __mgs_captured_win = NULL;
-                __mgs_captured_ctrl = NULL;
+    case MSG_RBUTTONUP:
+    case MSG_LBUTTONUP:
+    case MSG_MBUTTONUP:
+        if (__mgs_captured_ctrl && message == MSG_LBUTTONUP) {
+            PostMessage ((HWND)__mgs_captured_ctrl,
+                    message + MSG_NCMOUSEOFF,
+                    CapHitCode, MAKELONG (x, y));
+            ReleaseCapture ();
+            __mgs_captured_win = NULL;
+            __mgs_captured_ctrl = NULL;
+        }
+        else if (pUnderPointer) {
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                break;
             }
-            else if (pUnderPointer) {
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    break;
-                }
 
-                if (UndHitCode == HT_CLIENT)
-                    PostMessage((HWND)pUnderPointer, message,
-                            flags, MAKELONG (cx, cy));
-                else
-                    PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
+            if (UndHitCode == HT_CLIENT)
+                PostMessage((HWND)pUnderPointer, message,
+                        flags, MAKELONG (cx, cy));
+            else
+                PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                        UndHitCode, MAKELONG (x, y));
+        }
+        else if (pWin->hActiveChild) {
+            PostMessage(pWin->hActiveChild, message + MSG_NCMOUSEOFF,
+                    HT_OUT, MAKELONG(x, y));
+        }
+        break;
+
+    case MSG_LBUTTONDBLCLK:
+    case MSG_RBUTTONDBLCLK:
+    case MSG_MBUTTONDBLCLK:
+        if (pUnderPointer) {
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                Ping ();
+                break;
             }
-            else if (pWin->hActiveChild) {
+
+            if (UndHitCode == HT_CLIENT)
+                PostMessage((HWND)pUnderPointer, message,
+                        flags, MAKELONG(cx, cy));
+            else
+                PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                        UndHitCode, MAKELONG (x, y));
+        }
+        else {
+            if (pWin->hActiveChild) {
                 PostMessage(pWin->hActiveChild, message + MSG_NCMOUSEOFF,
                         HT_OUT, MAKELONG(x, y));
             }
-            break;
-
-        case MSG_LBUTTONDBLCLK:
-        case MSG_RBUTTONDBLCLK:
-        case MSG_MBUTTONDBLCLK:
-            if (pUnderPointer) {
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    Ping ();
-                    break;
-                }
-
-                if (UndHitCode == HT_CLIENT)
-                    PostMessage((HWND)pUnderPointer, message,
-                            flags, MAKELONG(cx, cy));
-                else
-                    PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
-            }
-            else {
-                if (pWin->hActiveChild) {
-                    PostMessage(pWin->hActiveChild, message + MSG_NCMOUSEOFF,
-                            HT_OUT, MAKELONG(x, y));
-                }
-            }
-            break;
-
+        }
+        break;
     }
 
     return 0;
@@ -899,225 +897,208 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
     }
 
     switch (downCode) {
-        case HT_ICON:
-        case HT_MAXBUTTON:
-        case HT_MINBUTTON:
-        case HT_CLOSEBUTTON:
-            {
-                BOOL is_active = TRUE;
-                if (pWin->WinType == TYPE_MAINWIN)
-                    is_active = !(pWin->dwStyle & WS_DISABLED) &&
-                        (GetActiveWindow() == (HWND)pWin);
-                else
-                    is_active = !(pWin->dwStyle & WS_DISABLED) &&
-                        (((PCONTROL)pWin)->pParent->active == (PCONTROL)pWin);
+    case HT_ICON:
+    case HT_MAXBUTTON:
+    case HT_MINBUTTON:
+    case HT_CLOSEBUTTON: {
+        BOOL is_active = TRUE;
+        if (pWin->WinType == TYPE_MAINWIN)
+            is_active = !(pWin->dwStyle & WS_DISABLED) &&
+                (GetActiveWindow() == (HWND)pWin);
+        else
+            is_active = !(pWin->dwStyle & WS_DISABLED) &&
+                (((PCONTROL)pWin)->pParent->active == (PCONTROL)pWin);
 
-                if (is_active)
-                    info->we_rdr->draw_caption_button ((HWND)pWin,
-                            hdc, downCode, LFRDR_BTN_STATUS_NORMAL|status);
-                else
-                    info->we_rdr->draw_caption_button ((HWND)pWin,
-                            hdc, downCode, LFRDR_BTN_STATUS_INACTIVE|status);
+        if (is_active)
+            info->we_rdr->draw_caption_button ((HWND)pWin,
+                    hdc, downCode, LFRDR_BTN_STATUS_NORMAL|status);
+        else
+            info->we_rdr->draw_caption_button ((HWND)pWin,
+                    hdc, downCode, LFRDR_BTN_STATUS_INACTIVE|status);
 
-                if (pWin->pMainWin->secondaryDC) {
-                    draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
-                }
-                release_valid_dc (pWin, hdc);
-                return TRUE;
-            }
-
-        case HT_SB_UPARROW:
-            {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                {
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                }
-                else
-                {
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->vscroll.status |= SBS_PRESSED_LTUP;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->vscroll.status |= SBS_HILITE_LTUP;
-
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-
-                break;
-            }
-
-        case HT_SB_DOWNARROW:
-            {
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                {
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                }
-                else
-                {
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->vscroll.status |= SBS_PRESSED_BTDN;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->vscroll.status |= SBS_HILITE_BTDN;
-
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-
-                break;
-            }
-
-        case HT_SB_LEFTARROW:
-            {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                {
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                }
-                else
-                {
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->hscroll.status |= SBS_PRESSED_LTUP;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->hscroll.status |= SBS_HILITE_LTUP;
-
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-
-                break;
-            }
-
-        case HT_SB_RIGHTARROW:
-            {
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                {
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                }
-                else
-                {
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->hscroll.status |= SBS_PRESSED_BTDN;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->hscroll.status |= SBS_HILITE_BTDN;
-
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-
-                break;
-            }
-
-        case HT_SB_HTHUMB:
-            {
-                if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->hscroll.status |= SBS_HILITE_THUMB;
-
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-
-                if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
-                        - pWin->hscroll.minPos + 1)
-                {
-                    if (status == LFRDR_BTN_STATUS_PRESSED)
-                        pWin->hscroll.status |= SBS_PRESSED_THUMB;
-                }
-
-                break;
-            }
-
-        case HT_SB_VTHUMB:
-            {
-                if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->vscroll.status |= SBS_HILITE_THUMB;
-
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-
-                if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
-                        - pWin->vscroll.minPos + 1)
-                {
-                    if (status == LFRDR_BTN_STATUS_PRESSED)
-                        pWin->vscroll.status |= SBS_PRESSED_THUMB;
-                }
-
-                break;
-            }
-
-        case HT_SB_LEFTSPACE:
-        case HT_SB_RIGHTSPACE:
-        case HT_HSCROLL:
-            {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-                break;
-            }
-
-        case HT_SB_UPSPACE:
-        case HT_SB_DOWNSPACE:
-        case HT_VSCROLL:
-            {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-
-                break;
-            }
-        default:
-            release_valid_dc (pWin, hdc);
-            return FALSE;
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
+        }
+        release_valid_dc (pWin, hdc);
+        return TRUE;
     }
 
-    if (! pWin->pMainWin->secondaryDC) {
+    case HT_SB_UPARROW: {
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos) {
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        }
+        else {
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->vscroll.status |= SBS_PRESSED_LTUP;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->vscroll.status |= SBS_HILITE_LTUP;
+
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos)
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+
+        break;
+    }
+
+    case HT_SB_DOWNARROW: {
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos) {
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        }
+        else {
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->vscroll.status |= SBS_PRESSED_BTDN;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->vscroll.status |= SBS_HILITE_BTDN;
+
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+
+        break;
+    }
+
+    case HT_SB_LEFTARROW: {
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos) {
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        }
+        else {
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->hscroll.status |= SBS_PRESSED_LTUP;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->hscroll.status |= SBS_HILITE_LTUP;
+
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos)
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+
+        break;
+    }
+
+    case HT_SB_RIGHTARROW: {
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos) {
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        }
+        else {
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->hscroll.status |= SBS_PRESSED_BTDN;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->hscroll.status |= SBS_HILITE_BTDN;
+
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+
+        break;
+    }
+
+    case HT_SB_HTHUMB: {
+        if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->hscroll.status |= SBS_HILITE_THUMB;
+
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos)
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+
+        if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
+                - pWin->hscroll.minPos + 1)
+        {
+            if (status == LFRDR_BTN_STATUS_PRESSED)
+                pWin->hscroll.status |= SBS_PRESSED_THUMB;
+        }
+
+        break;
+    }
+
+    case HT_SB_VTHUMB: {
+        if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->vscroll.status |= SBS_HILITE_THUMB;
+
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos)
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+
+        if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
+                - pWin->vscroll.minPos + 1) {
+            if (status == LFRDR_BTN_STATUS_PRESSED)
+                pWin->vscroll.status |= SBS_PRESSED_THUMB;
+        }
+
+        break;
+    }
+
+    case HT_SB_LEFTSPACE:
+    case HT_SB_RIGHTSPACE:
+    case HT_HSCROLL: {
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos)
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+        break;
+    }
+
+    case HT_SB_UPSPACE:
+    case HT_SB_DOWNSPACE:
+    case HT_VSCROLL: {
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos)
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+
+        break;
+    }
+
+    default:
+        release_valid_dc (pWin, hdc);
+        return FALSE;
+    }
+
+    if (!pWin->pMainWin->secondaryDC) {
         ShrinkScrollbarClipRect((HWND)pWin, hdc, info, downCode);
     }
 
@@ -1127,7 +1108,7 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
         draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
     }
 
-    if(fGetDC)
+    if (fGetDC)
         release_valid_dc (pWin, hdc);
 
     pWin->hscroll.status &= ~_status;
@@ -1149,17 +1130,16 @@ static void wndTrackMenuBarOnMouseMove(PMAINWIN pWin, int message,
 
 static int set_hilite_sbpos (int location)
 {
-    switch (location)
-    {
-        case HT_SB_UPARROW:
-        case HT_SB_DOWNARROW:
-        case HT_SB_LEFTARROW:
-        case HT_SB_RIGHTARROW:
-        case HT_SB_HTHUMB:
-        case HT_SB_VTHUMB:
-            return location;
-        default:
-            return HT_SB_UNKNOWN;
+    switch (location) {
+    case HT_SB_UPARROW:
+    case HT_SB_DOWNARROW:
+    case HT_SB_LEFTARROW:
+    case HT_SB_RIGHTARROW:
+    case HT_SB_HTHUMB:
+    case HT_SB_VTHUMB:
+        return location;
+    default:
+        return HT_SB_UNKNOWN;
     }
 }
 
@@ -1193,142 +1173,141 @@ static int wndHandleHScrollBar (PMAINWIN pWin,
     rcBar.left += GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
     rcBar.right -= GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
 
-    switch( message )
-    {
-        case MSG_NCLBUTTONDOWN:
-            oldBarStart = pWin->hscroll.barStart;
-            oldThumbPos = pWin->hscroll.curPos;
-            oldx = x;
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
+        oldBarStart = pWin->hscroll.barStart;
+        oldThumbPos = pWin->hscroll.curPos;
+        oldx = x;
 
-            downPos = location;
-            movePos = location;
-            hilitePos = HT_SB_UNKNOWN;
+        downPos = location;
+        movePos = location;
+        hilitePos = HT_SB_UNKNOWN;
 
-            wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
+        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
 
-            if (location == HT_SB_LEFTARROW) {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    break;
-
-                sbCode = SB_LINELEFT;
-            }
-            else if (location == HT_SB_RIGHTARROW) {
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep
-                        >= pWin->hscroll.maxPos)
-                    break;
-
-                sbCode = SB_LINERIGHT;
-            }
-            else if (location == HT_SB_LEFTSPACE) {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    break;
-
-                sbCode = SB_PAGELEFT;
-            }
-            else if (location == HT_SB_RIGHTSPACE) {
-                if (pWin->hscroll.curPos == pWin->hscroll.maxPos)
-                    break;
-
-                sbCode = SB_PAGERIGHT;
-            }
-            else if (location == HT_SB_HTHUMB) {
-                sbCode = SB_THUMBTRACK;
+        if (location == HT_SB_LEFTARROW) {
+            if (pWin->hscroll.curPos == pWin->hscroll.minPos)
                 break;
-            }
 
-            if (location != HT_SB_UNKNOWN) {
-                SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
-                SetAutoRepeatMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
-            }
+            sbCode = SB_LINELEFT;
+        }
+        else if (location == HT_SB_RIGHTARROW) {
+            if (pWin->hscroll.curPos + pWin->hscroll.pageStep
+                    >= pWin->hscroll.maxPos)
+                break;
+
+            sbCode = SB_LINERIGHT;
+        }
+        else if (location == HT_SB_LEFTSPACE) {
+            if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+                break;
+
+            sbCode = SB_PAGELEFT;
+        }
+        else if (location == HT_SB_RIGHTSPACE) {
+            if (pWin->hscroll.curPos == pWin->hscroll.maxPos)
+                break;
+
+            sbCode = SB_PAGERIGHT;
+        }
+        else if (location == HT_SB_HTHUMB) {
+            sbCode = SB_THUMBTRACK;
             break;
+        }
 
-        case MSG_NCLBUTTONUP:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_HTHUMB) {
-                newBarStart = oldBarStart + x - oldx;
-                if (RECTW(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
+        if (location != HT_SB_UNKNOWN) {
+            SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
+            SetAutoRepeatMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
+        }
+        break;
 
-                pWin->hscroll.status &= ~SBS_PRESSED_LTUP;
-                pWin->hscroll.status &= ~SBS_PRESSED_BTDN;
+    case MSG_NCLBUTTONUP:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_HTHUMB) {
+            newBarStart = oldBarStart + x - oldx;
+            if (RECTW(rcBar) != 0)
+                newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
 
-                if (newThumbPos < pWin->hscroll.minPos)
-                    newThumbPos = pWin->hscroll.minPos;
-                if (newThumbPos > pWin->hscroll.maxPos)
-                    newThumbPos = pWin->hscroll.maxPos;
-                if (newBarStart != oldBarStart)
-                    SendNotifyMessage ((HWND)pWin,
-                            MSG_HSCROLL, SB_THUMBPOSITION, newThumbPos);
+            pWin->hscroll.status &= ~SBS_PRESSED_LTUP;
+            pWin->hscroll.status &= ~SBS_PRESSED_BTDN;
 
-                //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_HSCROLL, 0);
+            if (newThumbPos < pWin->hscroll.minPos)
+                newThumbPos = pWin->hscroll.minPos;
+            if (newThumbPos > pWin->hscroll.maxPos)
+                newThumbPos = pWin->hscroll.maxPos;
+            if (newBarStart != oldBarStart)
+                SendNotifyMessage ((HWND)pWin,
+                        MSG_HSCROLL, SB_THUMBPOSITION, newThumbPos);
 
-                downPos = HT_SB_UNKNOWN;
-                movePos = HT_SB_UNKNOWN;
-                hilitePos = HT_SB_UNKNOWN;
-                return -1;
-            }
-
-            if (downPos != HT_SB_UNKNOWN) {
-                //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_HSCROLL, 0);
-                SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, SB_ENDSCROLL, 0);
-                /* cancel repeat message */
-                SetAutoRepeatMessage (0, 0, 0, 0);
-            }
+            //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_HSCROLL, 0);
 
             downPos = HT_SB_UNKNOWN;
             movePos = HT_SB_UNKNOWN;
             hilitePos = HT_SB_UNKNOWN;
-            return 0;
+            return -1;
+        }
 
-        case MSG_NCMOUSEMOVE:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_HTHUMB) {
-                newBarStart = oldBarStart + x - oldx;
-                if (RECTW(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
+        if (downPos != HT_SB_UNKNOWN) {
+            //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_HSCROLL, 0);
+            SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, SB_ENDSCROLL, 0);
+            /* cancel repeat message */
+            SetAutoRepeatMessage (0, 0, 0, 0);
+        }
 
-                if (newThumbPos < pWin->hscroll.minPos)
-                    newThumbPos = pWin->hscroll.minPos;
-                if (newThumbPos > pWin->hscroll.maxPos)
-                    newThumbPos = pWin->hscroll.maxPos;
-                if (newThumbPos != oldThumbPos) {
-                    if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
-                            - pWin->hscroll.minPos + 1)
-                    {
-                        SendNotifyMessage ((HWND)pWin,
-                                MSG_HSCROLL, SB_THUMBTRACK, newThumbPos);
-                        oldThumbPos = newThumbPos;
-                    }
+        downPos = HT_SB_UNKNOWN;
+        movePos = HT_SB_UNKNOWN;
+        hilitePos = HT_SB_UNKNOWN;
+        return 0;
+
+    case MSG_NCMOUSEMOVE:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_HTHUMB) {
+            newBarStart = oldBarStart + x - oldx;
+            if (RECTW(rcBar) != 0)
+                newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
+
+            if (newThumbPos < pWin->hscroll.minPos)
+                newThumbPos = pWin->hscroll.minPos;
+            if (newThumbPos > pWin->hscroll.maxPos)
+                newThumbPos = pWin->hscroll.maxPos;
+            if (newThumbPos != oldThumbPos) {
+                if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
+                        - pWin->hscroll.minPos + 1)
+                {
+                    SendNotifyMessage ((HWND)pWin,
+                            MSG_HSCROLL, SB_THUMBTRACK, newThumbPos);
+                    oldThumbPos = newThumbPos;
                 }
             }
+        }
 
-            if (downPos != HT_SB_UNKNOWN) {
-                if (movePos == downPos && location != downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                else if (movePos != downPos && location == downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
-                movePos = location;
-            }
-            else {
-                PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
-                if (hilitePos != location) {
-                    if (hilitePos != HT_SB_UNKNOWN)
-                        wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
+        if (downPos != HT_SB_UNKNOWN) {
+            if (movePos == downPos && location != downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            else if (movePos != downPos && location == downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
+            movePos = location;
+        }
+        else {
+            PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
+            if (hilitePos != location) {
+                if (hilitePos != HT_SB_UNKNOWN)
+                    wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
 
-                    if (location != HT_SB_UNKNOWN
-                         && ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK))
-                        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
-                }
-
-                if ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK)
-                    hilitePos = set_hilite_sbpos (location);
-                else
-                    hilitePos = HT_SB_UNKNOWN;
+                if (location != HT_SB_UNKNOWN
+                     && ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK))
+                    wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
             }
 
-            return 0;
+            if ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK)
+                hilitePos = set_hilite_sbpos (location);
+            else
+                hilitePos = HT_SB_UNKNOWN;
+        }
+
+        return 0;
     }
 
     return 1;
@@ -1365,138 +1344,137 @@ static int wndHandleVScrollBar (PMAINWIN pWin,
     rcBar.top += GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
     rcBar.bottom -= GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
 
-    switch (message)
-    {
-        case MSG_NCLBUTTONDOWN:
-            oldBarStart = pWin->vscroll.barStart;
-            oldThumbPos = pWin->vscroll.curPos;
-            oldy = y;
-            downPos = location;
-            movePos = location;
-            hilitePos = HT_SB_UNKNOWN;
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
+        oldBarStart = pWin->vscroll.barStart;
+        oldThumbPos = pWin->vscroll.curPos;
+        oldy = y;
+        downPos = location;
+        movePos = location;
+        hilitePos = HT_SB_UNKNOWN;
 
-            wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
+        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
 
-            if (location == HT_SB_UPARROW) {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    break;
-                sbCode = SB_LINEUP;
-            }
-            else if (location == HT_SB_DOWNARROW) {
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    break;
-                sbCode = SB_LINEDOWN;
-            }
-            else if (location == HT_SB_UPSPACE) {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    break;
-                sbCode = SB_PAGEUP;
-            }
-            else if (location == HT_SB_DOWNSPACE) {
-                if (pWin->vscroll.curPos >= pWin->vscroll.maxPos)
-                    break;
-                sbCode = SB_PAGEDOWN;
-            }
-            else if (location == HT_SB_VTHUMB) {
-                sbCode = SB_THUMBTRACK;
+        if (location == HT_SB_UPARROW) {
+            if (pWin->vscroll.curPos == pWin->vscroll.minPos)
                 break;
-            }
-
-            if (location != HT_SB_UNKNOWN) {
-                SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
-                SetAutoRepeatMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
-            }
+            sbCode = SB_LINEUP;
+        }
+        else if (location == HT_SB_DOWNARROW) {
+            if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                    >= pWin->vscroll.maxPos)
+                break;
+            sbCode = SB_LINEDOWN;
+        }
+        else if (location == HT_SB_UPSPACE) {
+            if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+                break;
+            sbCode = SB_PAGEUP;
+        }
+        else if (location == HT_SB_DOWNSPACE) {
+            if (pWin->vscroll.curPos >= pWin->vscroll.maxPos)
+                break;
+            sbCode = SB_PAGEDOWN;
+        }
+        else if (location == HT_SB_VTHUMB) {
+            sbCode = SB_THUMBTRACK;
             break;
+        }
 
-        case MSG_NCLBUTTONUP:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_VTHUMB) {
-                newBarStart = oldBarStart + y - oldy;
-                if (RECTH(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
+        if (location != HT_SB_UNKNOWN) {
+            SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
+            SetAutoRepeatMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
+        }
+        break;
 
-                pWin->vscroll.status &= ~SBS_PRESSED_LTUP;
-                pWin->vscroll.status &= ~SBS_PRESSED_BTDN;
+    case MSG_NCLBUTTONUP:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_VTHUMB) {
+            newBarStart = oldBarStart + y - oldy;
+            if (RECTH(rcBar) != 0)
+                newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
 
-                if (newThumbPos < pWin->vscroll.minPos)
-                    newThumbPos = pWin->vscroll.minPos;
-                if (newThumbPos > pWin->vscroll.maxPos)
-                    newThumbPos = pWin->vscroll.maxPos;
-                if (newBarStart != oldBarStart) {
-                    SendNotifyMessage ((HWND)pWin,
-                            MSG_VSCROLL, SB_THUMBPOSITION, newThumbPos);
-                }
+            pWin->vscroll.status &= ~SBS_PRESSED_LTUP;
+            pWin->vscroll.status &= ~SBS_PRESSED_BTDN;
 
-                //    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_VSCROLL, 0);
-
-                downPos = HT_SB_UNKNOWN;
-                movePos = HT_SB_UNKNOWN;
-                hilitePos = HT_SB_UNKNOWN;
-                return -1;
+            if (newThumbPos < pWin->vscroll.minPos)
+                newThumbPos = pWin->vscroll.minPos;
+            if (newThumbPos > pWin->vscroll.maxPos)
+                newThumbPos = pWin->vscroll.maxPos;
+            if (newBarStart != oldBarStart) {
+                SendNotifyMessage ((HWND)pWin,
+                        MSG_VSCROLL, SB_THUMBPOSITION, newThumbPos);
             }
 
-            if (downPos != HT_SB_UNKNOWN) {
-                //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_VSCROLL, 0);
-                SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, SB_ENDSCROLL, 0);
-                /* cancel repeat message */
-                SetAutoRepeatMessage (0, 0, 0, 0);
-            }
+            //    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_VSCROLL, 0);
 
             downPos = HT_SB_UNKNOWN;
             movePos = HT_SB_UNKNOWN;
             hilitePos = HT_SB_UNKNOWN;
             return -1;
+        }
 
-        case MSG_NCMOUSEMOVE:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_VTHUMB) {
-                newBarStart = oldBarStart + y - oldy;
-                if (RECTH(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
+        if (downPos != HT_SB_UNKNOWN) {
+            //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_VSCROLL, 0);
+            SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, SB_ENDSCROLL, 0);
+            /* cancel repeat message */
+            SetAutoRepeatMessage (0, 0, 0, 0);
+        }
 
-                if (newThumbPos < pWin->vscroll.minPos)
-                    newThumbPos = pWin->vscroll.minPos;
-                if (newThumbPos >  (1 + pWin->vscroll.maxPos - pWin->vscroll.pageStep))
-                    newThumbPos = pWin->vscroll.maxPos - pWin->vscroll.pageStep + 1;
-                if (newThumbPos != oldThumbPos) {
-                    if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
-                            - pWin->vscroll.minPos + 1)
-                    {
-                        SendNotifyMessage ((HWND)pWin,
-                                MSG_VSCROLL, SB_THUMBTRACK, newThumbPos);
-                        oldThumbPos = newThumbPos;
-                    }
+        downPos = HT_SB_UNKNOWN;
+        movePos = HT_SB_UNKNOWN;
+        hilitePos = HT_SB_UNKNOWN;
+        return -1;
+
+    case MSG_NCMOUSEMOVE:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_VTHUMB) {
+            newBarStart = oldBarStart + y - oldy;
+            if (RECTH(rcBar) != 0)
+                newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
+
+            if (newThumbPos < pWin->vscroll.minPos)
+                newThumbPos = pWin->vscroll.minPos;
+            if (newThumbPos >  (1 + pWin->vscroll.maxPos - pWin->vscroll.pageStep))
+                newThumbPos = pWin->vscroll.maxPos - pWin->vscroll.pageStep + 1;
+            if (newThumbPos != oldThumbPos) {
+                if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
+                        - pWin->vscroll.minPos + 1)
+                {
+                    SendNotifyMessage ((HWND)pWin,
+                            MSG_VSCROLL, SB_THUMBTRACK, newThumbPos);
+                    oldThumbPos = newThumbPos;
                 }
             }
+        }
 
-            if (downPos != HT_SB_UNKNOWN) {
-                if (movePos == downPos && location != downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                else if (movePos != downPos && location == downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
-                movePos = location;
+        if (downPos != HT_SB_UNKNOWN) {
+            if (movePos == downPos && location != downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            else if (movePos != downPos && location == downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
+            movePos = location;
+        }
+        else {
+            PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
+
+            if (hilitePos != location) {
+                if (hilitePos != HT_SB_UNKNOWN)
+                    wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
+
+                if ((location != HT_SB_UNKNOWN)
+                     && ((location & HT_SB_VMASK) == HT_SB_VMASK))
+                    wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
             }
-            else {
-                PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
+            if ((location & HT_SB_VMASK) == HT_SB_VMASK)
+                hilitePos = set_hilite_sbpos (location);
+            else
+                hilitePos = HT_SB_UNKNOWN;
+        }
 
-                if (hilitePos != location) {
-                    if (hilitePos != HT_SB_UNKNOWN)
-                        wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
-
-                    if ((location != HT_SB_UNKNOWN)
-                         && ((location & HT_SB_VMASK) == HT_SB_VMASK))
-                        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
-                }
-                if ((location & HT_SB_VMASK) == HT_SB_VMASK)
-                    hilitePos = set_hilite_sbpos (location);
-                else
-                    hilitePos = HT_SB_UNKNOWN;
-            }
-
-            break;
+        break;
     }
 
     return 1;
@@ -1517,76 +1495,75 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
     if (rdr->calc_we_area ((HWND)pWin, location, &rc))
         return;
 
-    switch (message)
-    {
-        case MSG_NCLBUTTONDOWN:
-            downPos = location;
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
+        downPos = location;
+        movePos = location;
+        hilitePos = HT_UNKNOWN;
+
+        hdc = get_valid_dc (pWin, FALSE);
+        if (rdr->draw_custom_hotspot)
+            rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                    LFRDR_BTN_STATUS_PRESSED);
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, rdr, hdc, location);
+        }
+        release_valid_dc (pWin, hdc);
+
+        if (rdr->on_click_hotspot)
+            rdr->on_click_hotspot ((HWND)pWin, location);
+        break;
+
+    case MSG_NCLBUTTONUP:
+        hdc = get_valid_dc (pWin, FALSE);
+        if (rdr->draw_custom_hotspot && (downPos != HT_UNKNOWN)) {
+            rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                    LFRDR_BTN_STATUS_NORMAL);
+        }
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, rdr, hdc, location);
+        }
+        release_valid_dc (pWin, hdc);
+
+        downPos = HT_UNKNOWN;
+        movePos = HT_UNKNOWN;
+        hilitePos = HT_UNKNOWN;
+        break;
+
+    case MSG_NCMOUSEMOVE:
+        hdc = get_valid_dc (pWin, FALSE);
+        if (downPos != HT_UNKNOWN) {
+            if (rdr->draw_custom_hotspot) {
+                if (movePos == downPos && location != downPos)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_NORMAL);
+                else if (movePos != downPos && location == downPos)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_PRESSED);
+            }
             movePos = location;
-            hilitePos = HT_UNKNOWN;
+        }
+        else {
+            PostMessage((HWND)pWin,
+                    MSG_NCSETCURSOR, location, MAKELONG (x, y));
 
-            hdc = get_valid_dc (pWin, FALSE);
-            if (rdr->draw_custom_hotspot)
-                rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                        LFRDR_BTN_STATUS_PRESSED);
-            if (pWin->pMainWin->secondaryDC) {
-                draw_secondary_nc_area (pWin, rdr, hdc, location);
+            if (rdr->draw_custom_hotspot && (hilitePos != location)) {
+                if (hilitePos != HT_UNKNOWN)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_NORMAL);
+
+                if (location != HT_UNKNOWN)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_HILITE);
             }
-            release_valid_dc (pWin, hdc);
+            hilitePos = location;
+        }
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, rdr, hdc, location);
+        }
+        release_valid_dc (pWin, hdc);
 
-            if (rdr->on_click_hotspot)
-                rdr->on_click_hotspot ((HWND)pWin, location);
-            break;
-
-        case MSG_NCLBUTTONUP:
-            hdc = get_valid_dc (pWin, FALSE);
-            if (rdr->draw_custom_hotspot && (downPos != HT_UNKNOWN)) {
-                rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                        LFRDR_BTN_STATUS_NORMAL);
-            }
-            if (pWin->pMainWin->secondaryDC) {
-                draw_secondary_nc_area (pWin, rdr, hdc, location);
-            }
-            release_valid_dc (pWin, hdc);
-
-            downPos = HT_UNKNOWN;
-            movePos = HT_UNKNOWN;
-            hilitePos = HT_UNKNOWN;
-            break;
-
-        case MSG_NCMOUSEMOVE:
-            hdc = get_valid_dc (pWin, FALSE);
-            if (downPos != HT_UNKNOWN) {
-                if (rdr->draw_custom_hotspot) {
-                    if (movePos == downPos && location != downPos)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_NORMAL);
-                    else if (movePos != downPos && location == downPos)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_PRESSED);
-                }
-                movePos = location;
-            }
-            else {
-                PostMessage((HWND)pWin,
-                        MSG_NCSETCURSOR, location, MAKELONG (x, y));
-
-                if (rdr->draw_custom_hotspot && (hilitePos != location)) {
-                    if (hilitePos != HT_UNKNOWN)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_NORMAL);
-
-                    if (location != HT_UNKNOWN)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_HILITE);
-                }
-                hilitePos = location;
-            }
-            if (pWin->pMainWin->secondaryDC) {
-                draw_secondary_nc_area (pWin, rdr, hdc, location);
-            }
-            release_valid_dc (pWin, hdc);
-
-            break;
+        break;
     }
 }
 
@@ -1616,151 +1593,149 @@ static LRESULT DefaultNCMouseMsgHandler(PMAINWIN pWin, UINT message,
     /*process scrollbar*/
     if (pWin->dwStyle & WS_HSCROLL) {
         switch (wndHandleHScrollBar (pWin, message, location, x, y)) {
-            case 1:
-                return 0;
-            case -1:
-                downCode = HT_UNKNOWN;
-                moveCode = HT_UNKNOWN;
-                return 0;
-            /* hscroll do not response this message.*/
-            case 0:
-                break;
+        case 1:
+            return 0;
+        case -1:
+            downCode = HT_UNKNOWN;
+            moveCode = HT_UNKNOWN;
+            return 0;
+        /* hscroll do not response this message.*/
+        case 0:
+            break;
         }
     }
 
     if (pWin->dwStyle & WS_VSCROLL) {
         switch (wndHandleVScrollBar (pWin, message, location, x, y)) {
-            case 1:
-                return 0;
-            case -1:
-                downCode = HT_UNKNOWN;
-                moveCode = HT_UNKNOWN;
-                return 0;
+        case 1:
+            return 0;
+        case -1:
+            downCode = HT_UNKNOWN;
+            moveCode = HT_UNKNOWN;
+            return 0;
         }
     }
 
-    switch (message)
-    {
-        case MSG_NCLBUTTONDOWN:
-
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
 #ifdef _MGHAVE_MENU
-            if (location == HT_MENUBAR) {
-                barItem = MenuBarHitTest ((HWND)pWin, x, y);
-                if (barItem >= 0)
-                    TrackMenuBar ((HWND)pWin, barItem);
+        if (location == HT_MENUBAR) {
+            barItem = MenuBarHitTest ((HWND)pWin, x, y);
+            if (barItem >= 0)
+                TrackMenuBar ((HWND)pWin, barItem);
 
-                return 0;
-            }
-            else
+            return 0;
+        }
+        else
 #endif
-                if (location & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
-                    DRAGINFO drag_info;
+            if (location & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
+                DRAGINFO drag_info;
 
-                    drag_info.location = location;
-                    drag_info.init_x = x;
-                    drag_info.init_y = y;
-                    SendMessage (HWND_DESKTOP, MSG_STARTDRAGWIN,
-                            (WPARAM)pWin, (LPARAM)&drag_info);
-                }
-                else {
-                    downCode = location;
-                    moveCode = location;
-                    hiliteCode = HT_UNKNOWN;
-
-                    wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
-                }
-            break;
-
-        case MSG_NCMOUSEMOVE:
-            if (pWin->hOldUnderPointer && location == HT_OUT) {
-                PostMessage (pWin->hOldUnderPointer,
-                        MSG_MOUSEMOVEIN, FALSE, 0);
-                PostMessage (pWin->hOldUnderPointer,
-                        MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
-                pWin->hOldUnderPointer = 0;
-            }
-
-            if (downCode != HT_UNKNOWN) {
-                if (moveCode == downCode && location != downCode) {
-                    wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_NORMAL);
-                    moveCode = location;
-                }
-                else if (moveCode != downCode && location == downCode) {
-                    wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
-                    moveCode = location;
-                }
+                drag_info.location = location;
+                drag_info.init_x = x;
+                drag_info.init_y = y;
+                SendMessage (HWND_DESKTOP, MSG_STARTDRAGWIN,
+                        (WPARAM)pWin, (LPARAM)&drag_info);
             }
             else {
-                /*only move process*/
-                if (hiliteCode != location) {
-                    if (hiliteCode != HT_SB_UNKNOWN)
-                        wndDrawNCButton (pWin, hiliteCode, LFRDR_BTN_STATUS_NORMAL);
+                downCode = location;
+                moveCode = location;
+                hiliteCode = HT_UNKNOWN;
 
-                    wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
-                }
-                hiliteCode = location;
+                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
             }
+        break;
 
-            if (location != HT_CLIENT && downCode == HT_UNKNOWN) {
-                PostMessage((HWND)pWin, MSG_NCSETCURSOR,
-                        location, MAKELONG (x, y));
+    case MSG_NCMOUSEMOVE:
+        if (pWin->hOldUnderPointer && location == HT_OUT) {
+            PostMessage (pWin->hOldUnderPointer,
+                    MSG_MOUSEMOVEIN, FALSE, 0);
+            PostMessage (pWin->hOldUnderPointer,
+                    MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
+            pWin->hOldUnderPointer = 0;
+        }
+
+        if (downCode != HT_UNKNOWN) {
+            if (moveCode == downCode && location != downCode) {
+                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_NORMAL);
+                moveCode = location;
             }
-            break;
-
-        case MSG_NCLBUTTONUP:
-            if (downCode & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
-                SendMessage (HWND_DESKTOP, MSG_CANCELDRAGWIN, (WPARAM)pWin, 0L);
+            else if (moveCode != downCode && location == downCode) {
+                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
+                moveCode = location;
             }
-            else if (location == downCode) {
-                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_HILITE);
-                switch (location) {
-                    case HT_CLOSEBUTTON:
-                        SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-                        break;
+        }
+        else {
+            /*only move process*/
+            if (hiliteCode != location) {
+                if (hiliteCode != HT_SB_UNKNOWN)
+                    wndDrawNCButton (pWin, hiliteCode, LFRDR_BTN_STATUS_NORMAL);
 
-                    case HT_MAXBUTTON:
-                        SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0);
-                        break;
+                wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
+            }
+            hiliteCode = location;
+        }
 
-                    case HT_MINBUTTON:
-                        SendNotifyMessage ((HWND)pWin, MSG_MINIMIZE, 0, 0);
-                        break;
+        if (location != HT_CLIENT && downCode == HT_UNKNOWN) {
+            PostMessage((HWND)pWin, MSG_NCSETCURSOR,
+                    location, MAKELONG (x, y));
+        }
+        break;
+
+    case MSG_NCLBUTTONUP:
+        if (downCode & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
+            SendMessage (HWND_DESKTOP, MSG_CANCELDRAGWIN, (WPARAM)pWin, 0L);
+        }
+        else if (location == downCode) {
+            wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_HILITE);
+            switch (location) {
+                case HT_CLOSEBUTTON:
+                    SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+                    break;
+
+                case HT_MAXBUTTON:
+                    SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0);
+                    break;
+
+                case HT_MINBUTTON:
+                    SendNotifyMessage ((HWND)pWin, MSG_MINIMIZE, 0, 0);
+                    break;
 
 #ifdef _MGHAVE_MENU
-                    case HT_ICON:
-                        if (pWin->hSysMenu)
-                            TrackPopupMenu (pWin->hSysMenu,
-                                    TPM_SYSCMD, x, y, (HWND)pWin);
-                        break;
+                case HT_ICON:
+                    if (pWin->hSysMenu)
+                        TrackPopupMenu (pWin->hSysMenu,
+                                TPM_SYSCMD, x, y, (HWND)pWin);
+                    break;
 #endif
 
-                    case HT_CAPTION:
-                        break;
+                case HT_CAPTION:
+                    break;
 
-                }
             }
-            downCode = HT_UNKNOWN;
-            moveCode = HT_UNKNOWN;
-            hiliteCode = HT_UNKNOWN;
-            break;
+        }
+        downCode = HT_UNKNOWN;
+        moveCode = HT_UNKNOWN;
+        hiliteCode = HT_UNKNOWN;
+        break;
 
 #ifdef _MGHAVE_MENU
-        case MSG_NCRBUTTONUP:
-            if (location == HT_CAPTION && pWin->hSysMenu)
-                TrackPopupMenu (pWin->hSysMenu, TPM_SYSCMD, x, y, (HWND)pWin);
-            break;
+    case MSG_NCRBUTTONUP:
+        if (location == HT_CAPTION && pWin->hSysMenu)
+            TrackPopupMenu (pWin->hSysMenu, TPM_SYSCMD, x, y, (HWND)pWin);
+        break;
 #endif
 
-        case MSG_NCLBUTTONDBLCLK:
-            if (location == HT_ICON)
-                SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-            /*            else if (location == HT_CAPTION) */
-            /*                SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0); */
-            break;
+    case MSG_NCLBUTTONDBLCLK:
+        if (location == HT_ICON)
+            SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+        /*            else if (location == HT_CAPTION) */
+        /*                SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0); */
+        break;
 
-            /*        case MSG_NCRBUTTONDOWN: */
-            /*        case MSG_NCRBUTTONDBLCLK: */
-            /*            break; */
+        /*        case MSG_NCRBUTTONDOWN: */
+        /*        case MSG_NCRBUTTONDBLCLK: */
+        /*            break; */
 
     }
 
@@ -2112,7 +2087,8 @@ void __gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
                     || edit_status == IME_WINDOW_TYPE_PASSWORD)
                 && open_close) {
             SendNotifyMessage (__mg_ime_wnd, MSG_IME_OPEN, 0, 0);
-        } else {
+        }
+        else {
             SendNotifyMessage (__mg_ime_wnd, MSG_IME_CLOSE, 0, 0);
         }
     }
@@ -2143,139 +2119,140 @@ void __gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
 static LRESULT DefaultPostMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
-    {
-        case MSG_SETCURSOR:
-            /*
-             ** NOTE:
-             ** this message is only implemented for main window.
-             ** for CONTROL, must handle this message and should NOT
-             ** call default window procedure
-             ** when handle MSG_SETCURSOR.
-             */
-            if (wndMouseInWhichControl (pWin, LOSWORD(lParam), HISWORD(lParam),
-                        NULL))
-                break;
-
-            if (pWin->hCursor)
-                SetCursor(pWin->hCursor);
+    switch (message) {
+    case MSG_SETCURSOR:
+        /*
+         ** NOTE:
+         ** this message is only implemented for main window.
+         ** for CONTROL, must handle this message and should NOT
+         ** call default window procedure
+         ** when handle MSG_SETCURSOR.
+         */
+        if (wndMouseInWhichControl (pWin, LOSWORD(lParam), HISWORD(lParam),
+                    NULL))
             break;
 
-        case MSG_NCSETCURSOR:
-            /*
-             ** NOTE:
-             ** this message is only implemented for main window.
-             ** for CONTROL, must handle this message and should NOT
-             ** call default window procedure
-             ** when handle MSG_SETCURSOR.
-             */
-            switch (wParam) {
-                case HT_BORDER_TOP:
-                case HT_BORDER_BOTTOM:
-                    SetCursor (GetSystemCursor (IDC_SIZENS));
-                    break;
-                case HT_BORDER_LEFT:
-                case HT_BORDER_RIGHT:
-                    SetCursor (GetSystemCursor (IDC_SIZEWE));
-                    break;
-                case HT_CORNER_TL:
-                case HT_CORNER_BR:
-                    SetCursor (GetSystemCursor (IDC_SIZENWSE));
-                    break;
-                case HT_CORNER_BL:
-                case HT_CORNER_TR:
-                    SetCursor (GetSystemCursor (IDC_SIZENESW));
-                    break;
-                default:
-                    SetCursor (GetSystemCursor (IDC_ARROW));
-                    break;
-            }
-            break;
-
-        case MSG_HITTEST:
-            if (PtInRect((PRECT)(&(pWin->cl)), (int)wParam, (int)lParam))
-                return HT_CLIENT;
-            else {
-                CONTROL * pCtrl;
-                if(pWin->WinType == TYPE_MAINWIN && ( pCtrl= (CONTROL*)(pWin->hFirstChildAsMainWin)) != NULL){
-                    int x = (int)wParam;
-                    int y = (int)lParam;
-                    ScreenToClient((HWND)pCtrl->pParent,&x,&y);
-
-                    while(pCtrl){
-                        if((pCtrl->dwStyle&WS_VISIBLE) && PtInRect((PRECT)&(pCtrl->cl),x, y))
-                        {
-                            return HT_CLIENT;
-                        }
-                        pCtrl = pCtrl->next_ctrl_as_main;
-                    }
-                }
-                return HittestOnNClient (pWin,
-                            (int)wParam, (int)lParam);
-            }
+        if (pWin->hCursor)
+            SetCursor(pWin->hCursor);
         break;
 
-        case MSG_CHANGESIZE:
-            OnChangeSize (pWin, (PRECT)wParam, (PRECT)lParam);
-            RecalcClientArea ((HWND)pWin);
+    case MSG_NCSETCURSOR:
+        /*
+         ** NOTE:
+         ** this message is only implemented for main window.
+         ** for CONTROL, must handle this message and should NOT
+         ** call default window procedure
+         ** when handle MSG_SETCURSOR.
+         */
+        switch (wParam) {
+        case HT_BORDER_TOP:
+        case HT_BORDER_BOTTOM:
+            SetCursor (GetSystemCursor (IDC_SIZENS));
             break;
-
-        case MSG_SIZECHANGING:
-            memcpy ((PRECT)lParam, (PRECT)wParam, sizeof (RECT));
+        case HT_BORDER_LEFT:
+        case HT_BORDER_RIGHT:
+            SetCursor (GetSystemCursor (IDC_SIZEWE));
             break;
-
-        case MSG_QUERYNCRECT:
-            OnQueryNCRect(pWin, (PRECT)lParam);
+        case HT_CORNER_TL:
+        case HT_CORNER_BR:
+            SetCursor (GetSystemCursor (IDC_SIZENWSE));
             break;
-
-        case MSG_QUERYCLIENTAREA:
-            OnQueryClientArea(pWin, (PRECT)lParam);
+        case HT_CORNER_BL:
+        case HT_CORNER_TR:
+            SetCursor (GetSystemCursor (IDC_SIZENESW));
             break;
-
-        case MSG_SETFOCUS:
-        case MSG_KILLFOCUS:
-            if (pWin->hActiveChild && !lParam)
-                SendNotifyMessage (pWin->hActiveChild, message, 0, lParam);
+        default:
+            SetCursor (GetSystemCursor (IDC_ARROW));
             break;
+        }
+        break;
 
-        case MSG_MOUSEACTIVE:
-            if (pWin->WinType == TYPE_CONTROL
-                    && !(pWin->dwStyle & WS_DISABLED)) {
+    case MSG_HITTEST:
+        if (PtInRect ((PRECT)(&(pWin->cl)), (int)wParam, (int)lParam))
+            return HT_CLIENT;
+        else {
+            CONTROL * pCtrl;
+            if (pWin->WinType == TYPE_MAINWIN &&
+                    (pCtrl= (CONTROL*)(pWin->hFirstChildAsMainWin)) != NULL) {
+                int x = (int)wParam;
+                int y = (int)lParam;
+                ScreenToClient((HWND)pCtrl->pParent,&x,&y);
 
-                if (wParam != HT_OUT) {
-                    PCONTROL pCtrl = (PCONTROL)pWin;
-                    PCONTROL old_active = pCtrl->pParent->active;
-
-                    if (old_active != (PCONTROL)pWin) {
-                        if (old_active) {
-                            SendNotifyMessage ((HWND)old_active,
-                                    MSG_ACTIVE, FALSE, wParam);
-                            SendNotifyMessage ((HWND)old_active,
-                                    MSG_KILLFOCUS, (WPARAM)pWin, 0);
-                        }
-
-                        pCtrl->pParent->active = (PCONTROL)pWin;
-
-                        SendNotifyMessage ((HWND)pWin, MSG_ACTIVE, TRUE, 0);
-                        SendNotifyMessage ((HWND)pWin,
-                                MSG_SETFOCUS, (WPARAM)old_active, 0);
+                while (pCtrl) {
+                    if ((pCtrl->dwStyle&WS_VISIBLE) &&
+                            PtInRect((PRECT)&(pCtrl->cl),x, y)) {
+                        return HT_CLIENT;
                     }
+                    pCtrl = pCtrl->next_ctrl_as_main;
                 }
             }
-            break;
+            return HittestOnNClient (pWin, (int)wParam, (int)lParam);
+        }
+        break;
 
-        case MSG_WINDOWDROPPED:
-            {
-                RECT rc;
-                rc.left = LOSWORD (wParam);
-                rc.top = HISWORD (wParam);
-                rc.right = LOSWORD (lParam);
-                rc.bottom = HISWORD (lParam);
+    case MSG_CHANGESIZE:
+        OnChangeSize (pWin, (PRECT)wParam, (PRECT)lParam);
+        RecalcClientArea ((HWND)pWin);
+        break;
 
-                MoveWindow ((HWND)pWin, rc.left, rc.top,
-                        RECTW(rc), RECTH(rc), FALSE);
+    case MSG_SIZECHANGING:
+        memcpy ((PRECT)lParam, (PRECT)wParam, sizeof (RECT));
+        break;
+
+    case MSG_QUERYNCRECT:
+        OnQueryNCRect(pWin, (PRECT)lParam);
+        break;
+
+    case MSG_QUERYCLIENTAREA:
+        OnQueryClientArea(pWin, (PRECT)lParam);
+        break;
+
+    case MSG_SETFOCUS:
+    case MSG_KILLFOCUS:
+        if (pWin->hActiveChild && !lParam)
+            SendNotifyMessage (pWin->hActiveChild, message, 0, lParam);
+        break;
+
+    case MSG_MOUSEACTIVE:
+        if (pWin->WinType == TYPE_CONTROL
+                && !(pWin->dwStyle & WS_DISABLED)) {
+
+            if (wParam != HT_OUT) {
+                PCONTROL pCtrl = (PCONTROL)pWin;
+                PCONTROL old_active = pCtrl->pParent->active;
+
+                if (old_active != (PCONTROL)pWin) {
+                    if (old_active) {
+                        SendNotifyMessage ((HWND)old_active,
+                                MSG_ACTIVE, FALSE, wParam);
+                        SendNotifyMessage ((HWND)old_active,
+                                MSG_KILLFOCUS, (WPARAM)pWin, 0);
+                    }
+
+                    pCtrl->pParent->active = (PCONTROL)pWin;
+
+                    SendNotifyMessage ((HWND)pWin, MSG_ACTIVE, TRUE, 0);
+                    SendNotifyMessage ((HWND)pWin,
+                            MSG_SETFOCUS, (WPARAM)old_active, 0);
+                }
             }
-            break;
+        }
+        break;
+
+    case MSG_WINDOWDROPPED: {
+        RECT rc;
+        rc.left = LOSWORD (wParam);
+        rc.top = HISWORD (wParam);
+        rc.right = LOSWORD (lParam);
+        rc.bottom = HISWORD (lParam);
+
+        MoveWindow ((HWND)pWin, rc.left, rc.top,
+                RECTW(rc), RECTH(rc), FALSE);
+        break;
+    }
+
+    default:
+        break;
     }
 
     return 0;
@@ -2436,36 +2413,36 @@ static void wndActiveMainWindow (PMAINWIN pWin, BOOL fActive)
 static LRESULT DefaultPaintMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
-    switch( message )
-    {
-        case MSG_NCPAINT:
-            {
-                wndDrawNCFrame (pWin, (HDC)wParam, (const RECT*)lParam);
-                break;
-            }
+    switch( message ) {
+    case MSG_NCPAINT: {
+        wndDrawNCFrame (pWin, (HDC)wParam, (const RECT*)lParam);
+        break;
+    }
 
-        case MSG_ERASEBKGND:
-            if (pWin->WinType == TYPE_CONTROL &&
-                    pWin->dwExStyle & WS_EX_TRANSPARENT)
-                break;
-            wndEraseBackground (pWin, (HDC)wParam, (const RECT*)lParam);
+    case MSG_ERASEBKGND:
+        if (pWin->WinType == TYPE_CONTROL &&
+                pWin->dwExStyle & WS_EX_TRANSPARENT)
             break;
+        wndEraseBackground (pWin, (HDC)wParam, (const RECT*)lParam);
+        break;
 
-        case MSG_NCACTIVATE:
-            wndActiveMainWindow (pWin, (BOOL)wParam);
-            break;
+    case MSG_NCACTIVATE:
+        wndActiveMainWindow (pWin, (BOOL)wParam);
+        break;
 
-        case MSG_SYNCPAINT:
-            wndActiveMainWindow (pWin, (BOOL)wParam);
-            UpdateWindow ((HWND)pWin, TRUE);
-            break;
+    case MSG_SYNCPAINT:
+        wndActiveMainWindow (pWin, (BOOL)wParam);
+        UpdateWindow ((HWND)pWin, TRUE);
+        break;
 
-        case MSG_PAINT:
-            {
-                HDC hdc = BeginPaint ((HWND)pWin);
-                EndPaint ((HWND)pWin, hdc);
-            }
-            break;
+    case MSG_PAINT: {
+        HDC hdc = BeginPaint ((HWND)pWin);
+        EndPaint ((HWND)pWin, hdc);
+        break;
+    }
+
+    default:
+        break;
     }
 
     return 0;
@@ -2477,108 +2454,109 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
     HDC hdc;
     int len;
 
-    switch( message )
-    {
-        case MSG_ENABLE:
-            if ( (!(pWin->dwStyle & WS_DISABLED) && !wParam)
-                    || ((pWin->dwStyle & WS_DISABLED) && wParam) ) {
-                if (wParam)
-                    pWin->dwStyle &= ~WS_DISABLED;
-                else
-                    pWin->dwStyle |=  WS_DISABLED;
-            }
-            break;
-
-        case MSG_SYSCOMMAND:
-            if (wParam == SC_CLOSE)
-                SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-            break;
-
-        case MSG_GETTEXTLENGTH:
-            if (pWin->spCaption)
-                return strlen (pWin->spCaption);
+    switch (message) {
+    case MSG_ENABLE:
+        if ( (!(pWin->dwStyle & WS_DISABLED) && !wParam)
+                || ((pWin->dwStyle & WS_DISABLED) && wParam) ) {
+            if (wParam)
+                pWin->dwStyle &= ~WS_DISABLED;
             else
-                return 0;
+                pWin->dwStyle |=  WS_DISABLED;
+        }
+        break;
 
-        case MSG_GETTEXT:
-            if (pWin->spCaption) {
-                char* buffer = (char*)lParam;
+    case MSG_SYSCOMMAND:
+        if (wParam == SC_CLOSE)
+            SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+        break;
 
-                len = MIN (strlen (pWin->spCaption), wParam);
-                memcpy (buffer, pWin->spCaption, len);
-                buffer [len] = '\0';
-                return len;
-            }
-            else
-                return 0;
-            break;
+    case MSG_GETTEXTLENGTH:
+        if (pWin->spCaption)
+            return strlen (pWin->spCaption);
+        else
+            return 0;
 
-        case MSG_FONTCHANGED:
-            UpdateWindow ((HWND)pWin, TRUE);
-            break;
+    case MSG_GETTEXT:
+        if (pWin->spCaption) {
+            char* buffer = (char*)lParam;
 
-        case MSG_SETTEXT:
-            {
-                RECT  rc;
-                const WINDOWINFO *info;
-                /*
-                 ** NOTE:
-                 ** this message is only implemented for main window.
-                 ** for CONTROL, must handle this message and should NOT
-                 ** call default window procedure
-                 ** when handle MSG_SETTEXT.
-                 */
-                if (pWin->WinType == TYPE_CONTROL)
-                    return 0;
+            len = MIN (strlen (pWin->spCaption), wParam);
+            memcpy (buffer, pWin->spCaption, len);
+            buffer [len] = '\0';
+            return len;
+        }
+        else
+            return 0;
+        break;
 
-                FreeFixStr (pWin->spCaption);
-                len = strlen ((char*)lParam);
-                pWin->spCaption = FixStrAlloc (len);
-                if (len > 0)
-                    strcpy (pWin->spCaption, (char*)lParam);
+    case MSG_FONTCHANGED:
+        UpdateWindow ((HWND)pWin, TRUE);
+        break;
+
+    case MSG_SETTEXT: {
+        RECT  rc;
+        const WINDOWINFO *info;
+        /*
+         ** NOTE:
+         ** this message is only implemented for main window.
+         ** for CONTROL, must handle this message and should NOT
+         ** call default window procedure
+         ** when handle MSG_SETTEXT.
+         */
+        if (pWin->WinType == TYPE_CONTROL)
+            return 0;
+
+        FreeFixStr (pWin->spCaption);
+        len = strlen ((char*)lParam);
+        pWin->spCaption = FixStrAlloc (len);
+        if (len > 0)
+            strcpy (pWin->spCaption, (char*)lParam);
 
 #ifdef _MGRM_PROCESSES
-                SendMessage (HWND_DESKTOP, MSG_CHANGECAPTION, (WPARAM) pWin, 0L);
+        SendMessage (HWND_DESKTOP, MSG_CHANGECAPTION, (WPARAM) pWin, 0L);
 #endif
-                hdc = get_valid_dc (pWin, FALSE);
-                info = GetWindowInfo ((HWND)pWin);
-                SetRectEmpty (&rc);
+        hdc = get_valid_dc (pWin, FALSE);
+        info = GetWindowInfo ((HWND)pWin);
+        SetRectEmpty (&rc);
 
-                if (pWin->dwStyle & WS_MINIMIZEBOX) {
-                    info->we_rdr->calc_we_area ((HWND)pWin, HT_MINBUTTON, &rc);
-                    --rc.left;
-                    --rc.top;
-                    ExcludeClipRect (hdc, &rc);
-                }
+        if (pWin->dwStyle & WS_MINIMIZEBOX) {
+            info->we_rdr->calc_we_area ((HWND)pWin, HT_MINBUTTON, &rc);
+            --rc.left;
+            --rc.top;
+            ExcludeClipRect (hdc, &rc);
+        }
 
-                if (pWin->dwStyle & WS_MAXIMIZEBOX) {
-                    info->we_rdr->calc_we_area ((HWND)pWin, HT_MAXBUTTON, &rc);
-                    --rc.left;
-                    --rc.top;
-                    ExcludeClipRect (hdc, &rc);
-                }
+        if (pWin->dwStyle & WS_MAXIMIZEBOX) {
+            info->we_rdr->calc_we_area ((HWND)pWin, HT_MAXBUTTON, &rc);
+            --rc.left;
+            --rc.top;
+            ExcludeClipRect (hdc, &rc);
+        }
 
-                if (!(pWin->dwExStyle & WS_EX_NOCLOSEBOX)) {
-                    info->we_rdr->calc_we_area ((HWND)pWin, HT_CLOSEBUTTON, &rc);
-                    --rc.left;
-                    --rc.top;
-                    ExcludeClipRect (hdc, &rc);
-                }
+        if (!(pWin->dwExStyle & WS_EX_NOCLOSEBOX)) {
+            info->we_rdr->calc_we_area ((HWND)pWin, HT_CLOSEBUTTON, &rc);
+            --rc.left;
+            --rc.top;
+            ExcludeClipRect (hdc, &rc);
+        }
 
-                /*Draw caption text information*/
-                info->we_rdr->draw_caption ((HWND)pWin,
-                        hdc, GetForegroundWindow () == (HWND)pWin);
-                if (pWin->pMainWin->secondaryDC) {
-                    draw_secondary_nc_area (pWin, info->we_rdr, hdc, HT_CAPTION);
-                }
-                /*It maybe need to delete. */
+        /*Draw caption text information*/
+        info->we_rdr->draw_caption ((HWND)pWin,
+                hdc, GetForegroundWindow () == (HWND)pWin);
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, info->we_rdr, hdc, HT_CAPTION);
+        }
+        /*It maybe need to delete. */
 #if 0
-                if (info->we_rdr->draw_custom_hotspot)
-                    info->we_rdr->draw_custom_hotspot ((HWND)pWin, hdc, 0, 0);
+        if (info->we_rdr->draw_custom_hotspot)
+            info->we_rdr->draw_custom_hotspot ((HWND)pWin, hdc, 0, 0);
 #endif
-                release_valid_dc (pWin, hdc);
-                break;
-            }
+        release_valid_dc (pWin, hdc);
+        break;
+    }
+
+    default:
+        break;
     }
 
     return 0;
@@ -2587,7 +2565,6 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
 static LRESULT DefaultSessionMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
-
     /*
      ** NOTE:
      ** Currently does nothing, should handle fowllowing messages:
@@ -2604,12 +2581,10 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
 {
 
     /*
-     ** NOTE:
-     ** Currently does nothing, should handle following messages:
+     ** Should handle following messages:
      **
      ** MSG_IDLE, MSG_CARETBLINK:
      */
-
     if (message == MSG_IDLE) {
         if (pWin == gui_GetMainWindowPtrOfControl (sg_repeat_msg.hwnd)) {
             SendNotifyMessage (sg_repeat_msg.hwnd,
@@ -4051,22 +4026,21 @@ BOOL GUIAPI ShowWindow (HWND hWnd, int iCmdShow)
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
     if (IsMainWindow (hWnd)) {
-        switch (iCmdShow)
-        {
-            case SW_SHOWNORMAL:
-                SendMessage (HWND_DESKTOP,
-                        MSG_MOVETOTOPMOST, (WPARAM)hWnd, 0);
-                break;
+        switch (iCmdShow) {
+        case SW_SHOWNORMAL:
+            SendMessage (HWND_DESKTOP,
+                    MSG_MOVETOTOPMOST, (WPARAM)hWnd, 0);
+            break;
 
-            case SW_SHOW:
-                SendMessage (HWND_DESKTOP,
-                        MSG_SHOWMAINWIN, (WPARAM)hWnd, 0);
-                break;
+        case SW_SHOW:
+            SendMessage (HWND_DESKTOP,
+                    MSG_SHOWMAINWIN, (WPARAM)hWnd, 0);
+            break;
 
-            case SW_HIDE:
-                SendMessage (HWND_DESKTOP,
-                        MSG_HIDEMAINWIN, (WPARAM)hWnd, 0);
-                break;
+        case SW_HIDE:
+            SendMessage (HWND_DESKTOP,
+                    MSG_HIDEMAINWIN, (WPARAM)hWnd, 0);
+            break;
         }
     }
     else {
@@ -4088,24 +4062,24 @@ BOOL GUIAPI ShowWindow (HWND hWnd, int iCmdShow)
         }
         else {
             switch (iCmdShow) {
-                case SW_SHOWNORMAL:
-                case SW_SHOW:
-                    if (!(pControl->dwStyle & WS_VISIBLE)) {
-                        pControl->dwStyle |= WS_VISIBLE;
+            case SW_SHOWNORMAL:
+            case SW_SHOW:
+                if (!(pControl->dwStyle & WS_VISIBLE)) {
+                    pControl->dwStyle |= WS_VISIBLE;
 
-                        SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
-                        InvalidateRect (hWnd, NULL, TRUE);
-                    }
-                    break;
+                    SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
+                    InvalidateRect (hWnd, NULL, TRUE);
+                }
+                break;
 
-                case SW_HIDE:
-                    if (pControl->dwStyle & WS_VISIBLE) {
+            case SW_HIDE:
+                if (pControl->dwStyle & WS_VISIBLE) {
 
-                        pControl->dwStyle &= ~WS_VISIBLE;
-                        InvalidateRect ((HWND)(pControl->pParent),
-                                (RECT*)(&pControl->left), TRUE);
-                    }
-                    break;
+                    pControl->dwStyle &= ~WS_VISIBLE;
+                    InvalidateRect ((HWND)(pControl->pParent),
+                            (RECT*)(&pControl->left), TRUE);
+                }
+                break;
             }
         }
 
@@ -6316,14 +6290,14 @@ int GUIAPI GetWindowZOrder(HWND hWnd)
     return idx;
 }
 
-int GUIAPI SetWindowZOrder(HWND hWnd, int zorder)
+int GUIAPI SetWindowZOrder (HWND hWnd, int zorder)
 {
     int idx;
     PCONTROL pCtrl, pCtrlTmp;
-    if(!IsWindow(hWnd))
+    if (!IsWindow(hWnd))
         return -1;
 
-    if(IsMainWindow(hWnd))
+    if (IsMainWindow(hWnd))
         return 0;
 
     pCtrl = (PCONTROL)hWnd;
@@ -6331,50 +6305,52 @@ int GUIAPI SetWindowZOrder(HWND hWnd, int zorder)
     pCtrlTmp = pCtrl->pParent->children;
 
     idx = 0;
-    while(idx < zorder && pCtrlTmp && pCtrlTmp != pCtrl){
+    while (idx < zorder && pCtrlTmp && pCtrlTmp != pCtrl) {
         idx ++;
         pCtrlTmp = pCtrlTmp->next;
     }
 
-    if(idx < zorder) //Move Down
-    {
+    if (idx < zorder) {
+        // Move Down
         pCtrlTmp = pCtrlTmp->next;
-        if(pCtrlTmp && pCtrl == pCtrl->pParent->children)
+        if (pCtrlTmp && pCtrl == pCtrl->pParent->children)
             pCtrl->pParent->children = pCtrl->next;
-        while(idx < zorder && pCtrlTmp)
-        {
+        while (idx < zorder && pCtrlTmp) {
             //switch pCtrl and pCtrlTmp
             pCtrl->next = pCtrlTmp->next;
             pCtrlTmp->prev = pCtrl->prev;
             pCtrl->prev = pCtrlTmp;
             pCtrlTmp->next = pCtrl;
-            if(pCtrl->next)
+
+            if (pCtrl->next)
                 pCtrl->next->prev = pCtrl;
-            if(pCtrlTmp->prev)
+            if (pCtrlTmp->prev)
                 pCtrlTmp->prev->next = pCtrlTmp;
+
             pCtrlTmp = pCtrl->next;
         }
     }
-    else if(pCtrlTmp && pCtrlTmp != pCtrl) // Move Up
-    {
+    else if(pCtrlTmp && pCtrlTmp != pCtrl) {
+        // Move Up
         PCONTROL prev;
-        do{
+        do {
             prev = pCtrl->prev;
-            if(prev == NULL)
+            if (prev == NULL)
                 break;
             prev->next = pCtrl->next;
             pCtrl->prev = prev->prev;
             pCtrl->next = prev;
             prev->prev = pCtrl;
-            if(pCtrl->prev)
+            if (pCtrl->prev)
                 pCtrl->prev->next = pCtrl;
-            if(prev->next)
+            if (prev->next)
                 prev->next->prev = prev;
-        }while(prev != pCtrlTmp);
-        if(pCtrlTmp == pCtrl->pParent->children)
+        } while (prev != pCtrlTmp);
+
+        if (pCtrlTmp == pCtrl->pParent->children)
             pCtrl->pParent->children = pCtrl;
 
-        if(prev == NULL)
+        if (prev == NULL)
             return 0;
     }
 
@@ -6395,7 +6371,7 @@ BOOL GUIAPI SetMainWindowAlwaysTop (HWND hMainWnd, BOOL fSet)
         return FALSE;
     }
 
-    return (BOOL) SendMessage (HWND_DESKTOP,
+    return (BOOL)SendMessage (HWND_DESKTOP,
             MSG_SETALWAYSTOP, (WPARAM)pMainWin, (LPARAM)fSet);
 }
 
@@ -6414,7 +6390,7 @@ BOOL GUIAPI SetMainWindowCompositing (HWND hMainWnd, int type, DWORD arg)
 
     info.type = type;
     info.arg = arg;
-    return (BOOL) SendMessage (HWND_DESKTOP,
+    return (BOOL)SendMessage (HWND_DESKTOP,
             MSG_SETCOMPOSITING, (WPARAM)pMainWin, (LPARAM)&info);
 }
 #endif /* defined _MGSCHEMA_COMPOSITING */
