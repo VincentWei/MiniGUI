@@ -268,7 +268,7 @@ BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer)
         ServerSetTopmostLayer (layer->next);
 
     if (OnChangeLayer) OnChangeLayer (LCO_DEL_LAYER, layer, NULL);
-    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_DEL_LAYER, layer, client);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_DEL_LAYER, layer, NULL);
 
     client = layer->cli_head;
     while (client) {
