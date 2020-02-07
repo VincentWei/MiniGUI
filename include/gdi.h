@@ -4877,6 +4877,60 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
                 int bmp_w, int bmp_h);
 
 /**
+ * The color compositing (Porter-Duff) operations.
+ */
+typedef enum {
+    /** noop */
+    COLOR_COMP_OP_NOOP = 0,
+    /** Porter-Duff clear rule */
+    COLOR_COMP_OP_CLEAR,
+    /** Porter-Duff source rule */
+    COLOR_COMP_OP_SRC,
+    /** Porter-Duff destination rule */
+    COLOR_COMP_OP_DST,
+    /** Porter-Duff source over destination rule */
+    COLOR_COMP_OP_SRC_OVER,
+    /** Porter-Duff destination over source rule */
+    COLOR_COMP_OP_DST_OVER,
+    /** Porter-Duff souorce in destination rule */
+    COLOR_COMP_OP_SRC_IN,
+    /** Porter-Duff destination in souorce rule */
+    COLOR_COMP_OP_DST_IN,
+    /** Porter-Duff source held out by destination rule */
+    COLOR_COMP_OP_SRC_OUT,
+    /** Porter-Duff destination held out by source rule */
+    COLOR_COMP_OP_DST_OUT,
+    /** Porter-Duff source atop destination rule */
+    COLOR_COMP_OP_SRC_ATOP,
+    /** Porter-Duff destination atop source rule */
+    COLOR_COMP_OP_DST_ATOP,
+    /** Porter-Duff source xor destination rule */
+    COLOR_COMP_OP_XOR,
+} ColorCompositingOp;
+
+/**
+ * The color logical operations.
+ */
+typedef enum {
+    COLOR_LOGIC_OP_CLEAR = 0,
+    COLOR_LOGIC_OP_NOR,
+    COLOR_LOGIC_OP_AND_INVERTED,
+    COLOR_LOGIC_OP_COPY_INVERTED,
+    COLOR_LOGIC_OP_AND_REVERSE,
+    COLOR_LOGIC_OP_INVERT,
+    COLOR_LOGIC_OP_XOR,
+    COLOR_LOGIC_OP_NAND,
+    COLOR_LOGIC_OP_AND,
+    COLOR_LOGIC_OP_EQUIV,
+    COLOR_LOGIC_OP_NOOP,
+    COLOR_LOGIC_OP_OR_INVERTED,
+    COLOR_LOGIC_OP_COPY,
+    COLOR_LOGIC_OP_OR_REVERSE,
+    COLOR_LOGIC_OP_OR,
+    COLOR_LOGIC_OP_SET,
+} ColorLogicalOp;
+
+/**
  * \fn void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh, \
                 HDC hddc, int dx, int dy, DWORD dwRop)
  * \brief Performs a bit-block transfer from a device context into
@@ -4903,11 +4957,14 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
  *        in the destination DC.
  * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
- * \param dwRop The raster operation, currently ignored.
+ * \param dwRop The color logical or compositing operation.
+ *        Use the high word for the logical operation and the low word for
+ *        the compositing operation.
  *
  * \note The alpha and color key settings of the source DC will come into play.
  *
- * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey
+ * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorCompositingOp,
+ *      ColorLogicalOp
  */
 MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, DWORD dwRop);
