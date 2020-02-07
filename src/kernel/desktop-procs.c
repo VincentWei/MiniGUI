@@ -138,8 +138,10 @@ static void lock_zi_for_change (const ZORDERINFO* zi)
     clients = zi->max_nr_popupmenus + zi->max_nr_globals
             + zi->max_nr_topmosts + zi->max_nr_normals;
 
+#ifndef _MGSCHEMA_COMPOSITING
     /* Cancel the current drag and drop operation */
     __mg_do_drag_drop_window (MSG_IDLE, 0, 0);
+#endif
 
 again:
     sb.sem_num = zi->zi_semnum;
@@ -1032,7 +1034,9 @@ static int srvStartDragWindow (int cli, int idx_znode,
 {
     ZORDERINFO* zi = get_zorder_info(cli);
     ZORDERNODE* nodes;
+#ifndef _MGSCHEMA_COMPOSITING
     RECT rcScr = GetScreenRect ();
+#endif
 
     if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
@@ -1045,7 +1049,9 @@ static int srvStartDragWindow (int cli, int idx_znode,
 
     nodes = GET_ZORDERNODE(zi);
 
+#ifndef _MGSCHEMA_COMPOSITING
     lock_zi_for_change (zi);
+#endif
 
     _dd_info.cli = cli;
     _dd_info.idx_znode = idx_znode;
@@ -1087,11 +1093,13 @@ static int srvStartDragWindow (int cli, int idx_znode,
             break;
     }
 
+#ifndef _MGSCHEMA_COMPOSITING
     SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
     SelectClipRect (HDC_SCREEN_SYS, &rcScr);
     do_for_all_znodes (NULL, zi, _cb_exclude_rc, ZT_GLOBAL);
     FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+#endif
 
     if (OnZNodeOperation)
         OnZNodeOperation (ZNOP_STARTDRAG, cli, idx_znode);
@@ -1102,7 +1110,9 @@ static int srvStartDragWindow (int cli, int idx_znode,
 static int srvCancelDragWindow (int cli, int idx_znode)
 {
     ZORDERINFO* zi = get_zorder_info(cli);
+#ifndef _MGSCHEMA_COMPOSITING
     RECT rcScr = GetScreenRect ();
+#endif
 
     if (idx_znode > (zi->max_nr_globals
                     + zi->max_nr_topmosts + zi->max_nr_normals) ||
@@ -1116,9 +1126,11 @@ static int srvCancelDragWindow (int cli, int idx_znode)
         return -1;
 
     _dd_info.cli = -1;
+#ifndef _MGSCHEMA_COMPOSITING
     unlock_zi_for_change (zi);
     SelectClipRect (HDC_SCREEN_SYS, &rcScr);
     //SetDefaultCursor (GetSystemCursor (IDC_ARROW));
+#endif
 
     if (OnZNodeOperation)
         OnZNodeOperation (ZNOP_CANCELDRAG, cli, idx_znode);
@@ -1129,15 +1141,21 @@ static int srvCancelDragWindow (int cli, int idx_znode)
 int __mg_do_drag_drop_window (int msg, int x, int y)
 {
     HWND hwnd;
+#ifndef _MGSCHEMA_COMPOSITING
     RECT rcScr = GetScreenRect ();
+#endif
 
     if (_dd_info.cli < 0)
         return 0;
 
     if (msg == MSG_MOUSEMOVE) {
+#ifndef _MGSCHEMA_COMPOSITING
         SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+#else
+        MSG msg = {_dd_info.hwnd, MSG_WINDOWDROPPED, 0, 0, __mg_timer_counter};
+#endif
 
         switch (_dd_info.location) {
         case HT_CAPTION:
@@ -1187,13 +1205,29 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
             break;
         }
 
+#ifndef _MGSCHEMA_COMPOSITING
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+#else   /* not defined _MGSCHEMA_COMPOSITING */
 
+        msg.wParam = MAKELONG (_dd_info.rc.left, _dd_info.rc.top);
+        msg.lParam = MAKELONG (_dd_info.rc.right, _dd_info.rc.bottom);
+        /* post MSG_WINDOWDROPPED to the target window */
+        if (_dd_info.cli == 0) {
+            _MG_PRINTF("PostMessage MSG_WINDOWDROPPED\n");
+            PostMessage (_dd_info.hwnd, MSG_WINDOWDROPPED,
+                            msg.wParam, msg.lParam);
+        }
+        else {
+            mgClients [_dd_info.cli].last_live_time = __mg_timer_counter;
+            __mg_send2client (&msg, mgClients + _dd_info.cli);
+        }
+#endif  /* defined _MGSCHEMA_COMPOSITING */
         _dd_info.last_x = x;
         _dd_info.last_y = y;
     }
     else {
+#ifndef _MGSCHEMA_COMPOSITING
         MSG msg = {_dd_info.hwnd, MSG_WINDOWDROPPED, 0, 0, __mg_timer_counter};
 
         msg.wParam = MAKELONG (_dd_info.rc.left, _dd_info.rc.top);
@@ -1215,8 +1249,10 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
 
         unlock_zi_for_change (_dd_info.zi);
         SelectClipRect (HDC_SCREEN_SYS, &rcScr);
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
+
         __mg_get_znode_at_point (__mg_zorder_info, x, y, &hwnd);
-        if(_dd_info.hwnd != hwnd)
+        if (_dd_info.hwnd != hwnd)
             SetDefaultCursor (GetSystemCursor (IDC_ARROW));
         _dd_info.cli = -1;
     }
@@ -2299,7 +2335,9 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
 {
     PTRACKMENUINFO plast = NULL;
     RECT rc;
+#ifndef _MGSCHEMA_COMPOSITING
     RECT rcScr = GetScreenRect ();
+#endif
 
     if (sg_ptmi == ptmi) {
         sg_ptmi = NULL;
@@ -2328,12 +2366,17 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
     ptmi = sg_ptmi;
     while (ptmi) {
         if (DoesIntersect (&rc, &ptmi->rc)) {
+#ifndef _MGSCHEMA_COMPOSITING
             SelectClipRect (HDC_SCREEN_SYS, &rc);
+#endif
             PopupMenuTrackProc (ptmi, MSG_SHOWMENU, 0, 0);
         }
         ptmi = ptmi->next;
     }
+
+#ifndef _MGSCHEMA_COMPOSITING
     SelectClipRect (HDC_SCREEN_SYS, &rcScr);
+#endif
 
     return 0;
 }
