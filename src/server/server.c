@@ -189,13 +189,13 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         }
 
         switch (Msg.message) {
-            case MSG_LBUTTONDOWN:
-            case MSG_RBUTTONDOWN:
-                if (cur_client >= 0 && down_client == -1) {
-                    down_client = cur_client;
-                    down_by = Msg.message;
-                }
-                break;
+        case MSG_LBUTTONDOWN:
+        case MSG_RBUTTONDOWN:
+            if (cur_client >= 0 && down_client == -1) {
+                down_client = cur_client;
+                down_by = Msg.message;
+            }
+            break;
         }
 
         if (cur_client == -1)
@@ -227,10 +227,10 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
 #ifdef _MG_CONFIG_FAST_MOUSEMOVE
                 if (Msg.message == MSG_MOUSEMOVE) {
                     LOCK_MOUSEMOVE_SEM();
-                    {
-                        if (SHAREDRES_MOUSEMOVECLIENT > 0 && SHAREDRES_MOUSEMOVECLIENT != target_client) {
-                            printf("drop a mouse move message, old_client=%d, target_client=%d\n", SHAREDRES_MOUSEMOVECLIENT, target_client);
-                        }
+                    if (SHAREDRES_MOUSEMOVECLIENT > 0 &&
+                            SHAREDRES_MOUSEMOVECLIENT != target_client) {
+                        _DBG_PRINTF ("drop a mouse move message, old_client=%d, target_client=%d\n",
+                                SHAREDRES_MOUSEMOVECLIENT, target_client);
                     }
                     SHAREDRES_MOUSEMOVECLIENT = target_client;
                     ++ SHAREDRES_MOUSEMOVESERIAL;
