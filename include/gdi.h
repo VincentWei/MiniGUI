@@ -4877,57 +4877,156 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
                 int bmp_w, int bmp_h);
 
 /**
- * The color compositing (Porter-Duff) operations.
+ * The color blend mothed.
+ *
+ * See [Compositing and Blending Level 1](https://www.w3.org/TR/compositing-1/)
  */
 typedef enum {
-    /** noop */
-    COLOR_COMP_OP_NOOP = 0,
-    /** Porter-Duff clear rule */
-    COLOR_COMP_OP_CLEAR,
-    /** Porter-Duff source rule */
-    COLOR_COMP_OP_SRC,
-    /** Porter-Duff destination rule */
-    COLOR_COMP_OP_DST,
-    /** Porter-Duff source over destination rule */
-    COLOR_COMP_OP_SRC_OVER,
-    /** Porter-Duff destination over source rule */
-    COLOR_COMP_OP_DST_OVER,
-    /** Porter-Duff souorce in destination rule */
-    COLOR_COMP_OP_SRC_IN,
-    /** Porter-Duff destination in souorce rule */
-    COLOR_COMP_OP_DST_IN,
-    /** Porter-Duff source held out by destination rule */
-    COLOR_COMP_OP_SRC_OUT,
-    /** Porter-Duff destination held out by source rule */
-    COLOR_COMP_OP_DST_OUT,
-    /** Porter-Duff source atop destination rule */
-    COLOR_COMP_OP_SRC_ATOP,
-    /** Porter-Duff destination atop source rule */
-    COLOR_COMP_OP_DST_ATOP,
-    /** Porter-Duff source xor destination rule */
-    COLOR_COMP_OP_XOR,
-} ColorCompositingOp;
+    /** Porter Duff rule: source over destination */
+    COLOR_BLEND_PD_SRC_OVER = 0,
+    /** Porter Duff rule: destination over source */
+    COLOR_BLEND_PD_DST_OVER,
+    /** Porter Duff rule: clear */
+    COLOR_BLEND_PD_CLEAR,
+    /** Porter Duff rule: source */
+    COLOR_BLEND_PD_SRC,
+    /** Porter Duff rule: destination */
+    COLOR_BLEND_PD_DST,
+    /** Porter Duff rule: souorce in destination */
+    COLOR_BLEND_PD_SRC_IN,
+    /** Porter Duff rule: destination in souorce */
+    COLOR_BLEND_PD_DST_IN,
+    /** Porter Duff rule: source held out by destination */
+    COLOR_BLEND_PD_SRC_OUT,
+    /** Porter Duff rule: destination held out by source */
+    COLOR_BLEND_PD_DST_OUT,
+    /** Porter Duff rule: source atop destination */
+    COLOR_BLEND_PD_SRC_ATOP,
+    /** Porter Duff rule: destination atop source */
+    COLOR_BLEND_PD_DST_ATOP,
+    /** Porter Duff rule: source xor destination */
+    COLOR_BLEND_PD_XOR,
+    /** Porter Duff rule: plus */
+    COLOR_BLEND_PD_PLUS,
+    /** Porter Duff rule: modulate */
+    COLOR_BLEND_PD_MODULATE,
+
+    COLOR_BLEND_PD_FIRST = COLOR_BLEND_PD_SRC_OVER,
+    COLOR_BLEND_PD_LAST = COLOR_BLEND_PD_MODULATE,
+
+    /**
+     * Separable blend mode: normal
+     * The blending formula simply selects the source color.
+     */
+    COLOR_BLEND_SP_NORMAL,
+    /**
+     * Separable blend mode: multiply
+     * Darkens by multiplying colors: Sc·Dc.
+     */
+    COLOR_BLEND_SP_MULTIPLY,
+    /**
+     * Separable blend mode: screen
+     * Complements product of complements: Sc + Dc - Sc·Dc.
+     */
+    COLOR_BLEND_SP_SCREEN,
+    /**
+     * Separable blend mode: overlay
+     * Inverse of hard-light.
+     */
+    COLOR_BLEND_SP_OVERLAY,
+    /**
+     * Separable blend mode: darken
+     * Minimum of colors: min(Sc, Dc).
+     */
+    COLOR_BLEND_SP_DARKEN,
+    /**
+     * Separable blend mode: lighten
+     * Maximum of colors: max(Sc, Dc).
+     */
+    COLOR_BLEND_SP_LIGHTEN,
+    /**
+     * Separable blend mode: color-dodge
+     * Brightens destination based on source.
+     */
+    COLOR_BLEND_SP_COLOR_DODGE,
+    /**
+     * Separable blend mode: color-burn
+     * Darkens destination based on source.
+     */
+    COLOR_BLEND_SP_COLOR_BURN,
+    /**
+     * Separable blend mode: hard-light
+     * Similar to effect of harsh spotlight.
+     */
+    COLOR_BLEND_SP_HARD_LIGHT,
+    /**
+     * Separable blend mode: soft-light
+     * Similar to effect of soft spotlight.
+     */
+    COLOR_BLEND_SP_SOFT_LIGHT,
+    /**
+     * Separable blend mode: difference
+     * Subtracts the darker from the lighter: Abs(Dc - Sc).
+     */
+    COLOR_BLEND_SP_DIFFERENCE,
+    /**
+     * Separable blend mode: exclusion
+     * Similar to Difference but lower contrast.
+     */
+    COLOR_BLEND_SP_EXCLUSION,
+
+    COLOR_BLEND_SP_FIRST = COLOR_BLEND_SP_NORMAL,
+    COLOR_BLEND_SP_LAST = COLOR_BLEND_SP_EXCLUSION,
+
+    /**
+     * Non-Separable blend mode: hue
+     * Creates a color with the hue of the source color and
+     * the saturation and luminosity of the backdrop color.
+     */
+    COLOR_BLEND_NS_HUE,
+    /**
+     * Non-Separable blend mode: saturation
+     * Creates a color with the saturation of the source color and
+     * the hue and luminosity of the backdrop color.
+     */
+    COLOR_BLEND_NS_SATURATION,
+    /**
+     * Non-Separable blend mode: color
+     * Creates a color with the hue and saturation of the source color
+     * and the luminosity of the backdrop color.
+     */
+    COLOR_BLEND_NS_COLOR,
+    /**
+     * Non-Separable blend mode: luminosity
+     * Creates a color with the luminosity of the source color and
+     * the hue and saturation of the backdrop color.
+     */
+    COLOR_BLEND_NS_LUMINOSITY,
+
+    COLOR_BLEND_NS_FIRST = COLOR_BLEND_NS_HUE,
+    COLOR_BLEND_NS_LAST = COLOR_BLEND_NS_LUMINOSITY,
+} ColorBlendMethod;
 
 /**
  * The color logical operations.
  */
 typedef enum {
-    COLOR_LOGIC_OP_CLEAR = 0,
-    COLOR_LOGIC_OP_NOR,
-    COLOR_LOGIC_OP_AND_INVERTED,
+    COLOR_LOGIC_OP_COPY = 0,
     COLOR_LOGIC_OP_COPY_INVERTED,
-    COLOR_LOGIC_OP_AND_REVERSE,
+    COLOR_LOGIC_OP_CLEAR,
+    COLOR_LOGIC_OP_SET,
+    COLOR_LOGIC_OP_NOR,
+    COLOR_LOGIC_OP_NAND,
+    COLOR_LOGIC_OP_EQUIV,
     COLOR_LOGIC_OP_INVERT,
     COLOR_LOGIC_OP_XOR,
-    COLOR_LOGIC_OP_NAND,
     COLOR_LOGIC_OP_AND,
-    COLOR_LOGIC_OP_EQUIV,
-    COLOR_LOGIC_OP_NOOP,
-    COLOR_LOGIC_OP_OR_INVERTED,
-    COLOR_LOGIC_OP_COPY,
-    COLOR_LOGIC_OP_OR_REVERSE,
+    COLOR_LOGIC_OP_AND_INVERTED,
+    COLOR_LOGIC_OP_AND_REVERSE,
     COLOR_LOGIC_OP_OR,
-    COLOR_LOGIC_OP_SET,
+    COLOR_LOGIC_OP_OR_INVERTED,
+    COLOR_LOGIC_OP_OR_REVERSE,
+    COLOR_LOGIC_OP_NOOP,
 } ColorLogicalOp;
 
 /**
@@ -4957,13 +5056,13 @@ typedef enum {
  *        in the destination DC.
  * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
- * \param dwRop The color logical or compositing operation.
- *        Use the high word for the logical operation and the low word for
- *        the compositing operation.
+ * \param dwRop The color logical operation and the blend method.
+ *        Use the high word for the raster logical operation and
+ *        the low word for the blend method operation.
  *
  * \note The alpha and color key settings of the source DC will come into play.
  *
- * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorCompositingOp,
+ * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod,
  *      ColorLogicalOp
  */
 MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
@@ -4995,7 +5094,9 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  *        in the destination DC.
  * \param dw The width of the destination rectangle.
  * \param dh The height of the destination rectangle.
- * \param dwRop The raster operation, currently ignored.
+ * \param dwRop The color logical operation and the blend method.
+ *        Use the high word for the raster logical operation and
+ *        the low word for the blend method operation.
  *
  * \note The source rect should be contained in the device space entirely,
  *       and all coordinates should be in the device space.
@@ -13795,14 +13896,6 @@ typedef struct _COMPOSITE_CTXT {
     const int *far_step;
     const gal_pixel *far_skip_pixel;
 } COMPOSITE_CTXT;
-
-/*
- * \var typedef struct _RASTER_CTXT RASTER_CTXT
- * \brief raster context
- */
-typedef struct _RASTER_CTXT {
-    HDC dst_dc;
-} RASTER_CTXT;
 
 /*
  * \var typedef void (*CB_COMP_SETPIXEL) (COMP_CTXT* comp_ctxt)
