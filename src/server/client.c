@@ -223,6 +223,13 @@ void __mg_remove_client (int cli, int clifd)
 #ifdef _DEBUG
     err_msg ("client closed: uid %d, fd %d", mgClients [cli].uid, clifd);
 #endif
+
+    if (OnChangeLayer)
+        OnChangeLayer (LCO_REMOVE_CLIENT,
+                mgClients[cli].layer, mgClients + cli);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_REMOVE_CLIENT,
+                mgClients[cli].layer, mgClients + cli);
+
     __mg_client_del (cli);    /* client has closed conn */
     FD_CLR (clifd, &mg_rfdset);
     close (clifd);
@@ -294,6 +301,7 @@ void __mg_set_active_client (MG_Client* client)
     /* Notify that active client changed. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_ACTIVE_CHANGED, layer, client);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_ACTIVE_CHANGED, layer, client);
     layer->cli_active = client;
 }
 

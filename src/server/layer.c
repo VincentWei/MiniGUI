@@ -268,6 +268,7 @@ BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer)
         ServerSetTopmostLayer (layer->next);
 
     if (OnChangeLayer) OnChangeLayer (LCO_DEL_LAYER, layer, NULL);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_DEL_LAYER, layer, client);
 
     client = layer->cli_head;
     while (client) {
@@ -469,6 +470,7 @@ static MG_Layer* alloc_layer (const char* layer_name,
     /* Notify that a new layer created. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_NEW_LAYER, new_layer, NULL);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_NEW_LAYER, new_layer, NULL);
 
     mgTopmostLayer = new_layer;
 
@@ -485,6 +487,7 @@ static MG_Layer* alloc_layer (const char* layer_name,
     /* Notify that a new topmost layer have been set. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
 
     PostMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
 
@@ -566,6 +569,7 @@ static void do_client_join_layer (int cli,
     /* Notify that a new client joined to this layer. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_JOIN_CLIENT, layer, new_client);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_JOIN_CLIENT, layer, new_client);
 
     new_client->prev = NULL;
     new_client->next = layer->cli_head;
@@ -626,6 +630,7 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
     /* Notify that a new topmost layer have been set. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
 
     if (IsPaint) {
         SendMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
@@ -678,6 +683,7 @@ MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
     /* Notify that a new layer created. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_NEW_LAYER, new_layer, NULL);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_NEW_LAYER, new_layer, NULL);
 
     return new_layer;
 }
