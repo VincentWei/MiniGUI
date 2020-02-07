@@ -105,9 +105,9 @@ extern "C" {
 #define ZOF_TYPE_POPUPMENU      0x80000000
 
 #define ZOF_TF_FLAG_MASK        0x0F000000
-#define ZOF_TF_CONTROL          0x00000000
 #define ZOF_TF_MAINWIN          0x01000000
 #define ZOF_TF_TOOLWIN          0x02000000
+#define ZOF_TF_CONTROL          0x04000000
 
 #define ZNIT_NULL               (ZOF_TYPE_NULL)
 #define ZNIT_POPUPMENU          (ZOF_TYPE_POPUPMENU)
@@ -1612,6 +1612,12 @@ typedef struct _CompositorOps {
     void (*purge_win_data) (CompositorCtxt* ctxt, MG_Layer* layer,
             int zidx, void* data);
 
+    /**
+     * This operation will be called when there was a layer operation.
+     * For more information, please refer to \a OnChangeLayer.
+     */
+    void (*on_layer_op) (CompositorCtxt* ctxt, int layer_op,
+            MG_Layer* layer, MG_Client* client);
     /**
      * This operation will be called when there are some dirty
      * rectangles in the specific popup menu z-node.
