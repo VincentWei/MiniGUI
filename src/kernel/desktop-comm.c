@@ -274,7 +274,6 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     return 0;
 }
 
-
 static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
 {
     int first = 0;
@@ -282,9 +281,11 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
 
     lock_zi_for_read (__mg_zorder_info);
     switch (nodes [pWin->idx_znode].flags & ZOF_TYPE_MASK) {
+#if 0 /* no global ones */
         case ZOF_TYPE_GLOBAL:
             first = __mg_zorder_info->first_global;
             break;
+#endif
         case ZOF_TYPE_TOPMOST:
             first = __mg_zorder_info->first_topmost;
             break;
@@ -1200,27 +1201,35 @@ typedef struct _DRAGDROPINFO {
 static DRAGDROPINFO _dd_info;
 
 #ifndef _MGRM_THREADS
-inline static void lock_zorder_info (void) { }
 
+inline static void lock_zorder_info (void) { }
 inline static void unlock_zorder_info (void) { }
-#else
+
+#else   /* not define _MGRM_THREADS */
 static void lock_zorder_info (void)
 {
-    PMAINWIN pWin=NULL;
+    PMAINWIN pWin = NULL;
     int slot;
     ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
+    static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
+        ZNIDX_LAUNCHER };
+
+    /* Since 4.2.0 */
+    for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
+        pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
+        if (pWin)
+            pthread_mutex_lock (&pWin->pGCRInfo->lock);
+    }
 
     slot = __mg_zorder_info->first_topmost;
-    for (; slot > 0; slot = nodes[slot].next)
-    {
+    for (; slot > 0; slot = nodes[slot].next) {
         pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_lock (&pWin->pGCRInfo->lock);
     }
 
     slot = __mg_zorder_info->first_normal;
-    for (; slot > 0; slot = nodes[slot].next)
-    {
+    for (; slot > 0; slot = nodes[slot].next) {
         pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_lock (&pWin->pGCRInfo->lock);
@@ -1232,25 +1241,32 @@ static void unlock_zorder_info (void)
     PMAINWIN pWin;
     int slot;
     ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
+    static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
+        ZNIDX_LAUNCHER };
+
+    /* Since 4.2.0 */
+    for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
+        pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
+        if (pWin)
+            pthread_mutex_unlock (&pWin->pGCRInfo->lock);
+    }
 
     slot = __mg_zorder_info->first_topmost;
-    for (; slot > 0; slot = nodes[slot].next)
-    {
+    for (; slot > 0; slot = nodes[slot].next) {
         pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_unlock (&pWin->pGCRInfo->lock);
     }
 
     slot = __mg_zorder_info->first_normal;
-    for (; slot > 0; slot = nodes[slot].next)
-    {
+    for (; slot > 0; slot = nodes[slot].next) {
         pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin)
             pthread_mutex_unlock (&pWin->pGCRInfo->lock);
     }
 }
 
-#endif
+#endif  /* define _MGRM_THREADS */
 
 static int dskStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
 {
@@ -1521,46 +1537,35 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         return (LRESULT)old;
     }
 
-    /* TODO: bad implementation */
     case MSG_GETNEXTMAINWIN: {
-        HWND hWnd = HWND_NULL;
-        int slot;
-        ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
-        int last_type;
+        ZORDERINFO* zi = __mg_zorder_info;
+        ZORDERNODE* nodes = GET_ZORDERNODE(zi);
+        HWND hwnd = HWND_NULL;
+        int from;
 
         if (pWin) {
-            last_type = nodes[pWin->idx_znode].flags & ZOF_TYPE_MASK;
-            slot = nodes[pWin->idx_znode].next;
-        }else{
-            last_type = ZOF_TYPE_TOPMOST;
-            slot = __mg_zorder_info->first_topmost;
+            from = pWin->idx_znode;
         }
+        else {
+            from = 0;
+        }
+     
+        lock_zi_for_read (zi);
 
-        while (1) {
-            if (slot <= 0) {
-                if (last_type == ZOF_TYPE_TOPMOST) {
-                    last_type = ZOF_TYPE_NORMAL;
-                    slot = __mg_zorder_info->first_normal;
-                    continue;
-                }
-                else {
-                    return (LRESULT)HWND_NULL;
-                }
+        from = __kernel_get_next_znode (zi, from);
+        while (from) {
+            hwnd = nodes[from].hwnd;
+
+            if ((pWin = gui_CheckAndGetMainWindowPtr (hwnd)) &&
+                    !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+                break;
             }
 
-            hWnd = nodes[slot].hwnd;
-            if (0
-                    || !hWnd
-                    || !(pWin = gui_CheckAndGetMainWindowPtr (hWnd))
-                    || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-                slot = nodes[slot].next;
-                continue;
-            }
-            else{
-                return (LRESULT)hWnd;
-            }
+            from = __kernel_get_next_znode (zi, from);
         }
-        break;
+
+        unlock_zi_for_read (zi);
+        return (LRESULT)hWnd;
     }
 
     /* Since 4.2.0 */
@@ -1675,7 +1680,6 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
 
     hWinMenu = GetSubMenu (hDesktopMenu, 3);
-
     nCount = GetMenuItemCount (hWinMenu);
 
     for (iPos = nCount; iPos > 0; iPos --)
@@ -1687,6 +1691,52 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     id = IDM_FIRSTWINDOW;
     iPos = 0;
 
+    /* Since 4.2.0 */
+    slot = ZNIDX_SCREENLOCK;
+    if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
+            pWin->WinType == TYPE_MAINWIN) {
+        if (pWin->dwStyle & WS_VISIBLE)
+            mii.state       = MFS_ENABLED;
+        else
+            mii.state       = MFS_DISABLED;
+
+        mii.id              = id;
+        mii.typedata        = (DWORD)pWin->spCaption;
+        mii.itemdata        = (DWORD)pWin;
+        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
+
+        id++;
+        iPos++;
+    }
+
+    /* Since 4.2.0 */
+    slot = ZNIDX_DOCKER;
+    if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
+            pWin->WinType == TYPE_MAINWIN) {
+        if (pWin->dwStyle & WS_VISIBLE)
+            mii.state       = MFS_ENABLED;
+        else
+            mii.state       = MFS_DISABLED;
+
+        mii.id              = id;
+        mii.typedata        = (DWORD)pWin->spCaption;
+        mii.itemdata        = (DWORD)pWin;
+        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
+
+        id++;
+        iPos++;
+    }
+
+    if (iPos != 0) {
+        mii.type            = MFT_SEPARATOR;
+        mii.state           = 0;
+        mii.id              = 0;
+        mii.typedata        = 0;
+        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
+        iPos ++;
+        mii.type            = MFT_STRING;
+    }
+
     slot = __mg_zorder_info->first_topmost;
     for (; slot > 0; slot = nodes[slot].next) {
         pWin = (PMAINWIN)(nodes[slot].hwnd);
@@ -1696,7 +1746,8 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
                 mii.state       = MFS_ENABLED;
             else
                 mii.state       = MFS_DISABLED;
-        } else {
+        }
+        else {
             continue;
         }
 
@@ -1741,6 +1792,33 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
         iPos++;
     }
 
+    /* Since 4.2.0 */
+    slot = ZNIDX_LAUNCHER;
+    if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
+            pWin->WinType == TYPE_MAINWIN) {
+
+        mii.type            = MFT_SEPARATOR;
+        mii.state           = 0;
+        mii.id              = 0;
+        mii.typedata        = 0;
+        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
+        iPos ++;
+        mii.type            = MFT_STRING;
+
+        if (pWin->dwStyle & WS_VISIBLE)
+            mii.state       = MFS_ENABLED;
+        else
+            mii.state       = MFS_DISABLED;
+
+        mii.id              = id;
+        mii.typedata        = (DWORD)pWin->spCaption;
+        mii.itemdata        = (DWORD)pWin;
+        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
+
+        id++;
+        iPos++;
+    }
+
     nCount = GetMenuItemCount (hDesktopMenu);
     for (iPos = nCount; iPos > 5; iPos --)
         DeleteMenu (hDesktopMenu, iPos - 1, MF_BYPOSITION);
@@ -1758,6 +1836,21 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
     else if (id == IDM_CLOSEALLWIN) {
         PMAINWIN pWin;
+        static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
+            ZNIDX_LAUNCHER };
+
+        /* Since 4.2.0 */
+        for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
+            pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
+            if (pWin && (pWin->WinType != TYPE_CONTROL)
+#ifndef _MGRM_THREADS
+                    && (pWin->pHosting == __mg_dsk_win)
+#else
+                    && (pWin->pHosting == NULL)
+#endif
+            )
+                PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+        }
 
         slot = __mg_zorder_info->first_topmost;
         for (; slot > 0; slot = nodes[slot].next) {
@@ -1768,7 +1861,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
 #else
                     && (pWin->pHosting == NULL)
 #endif
-               )
+            )
                 PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
         }
 
@@ -2343,7 +2436,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
         uCounter += (__mg_timer_counter - blink_counter) * 10;
         blink_counter = __mg_timer_counter;
-#else
+#else   /* not defined _MGRM_THREADS */
         static DWORD blink_counter = 0;
         static DWORD sg_old_counter = 0;
 
@@ -2352,6 +2445,19 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
             PMSGQUEUE pMsgQueue;
             ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
             PMAINWIN pWin;
+            static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
+                ZNIDX_LAUNCHER };
+
+            /* Since 4.2.0 */
+            for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
+                pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
+                if (pWin && (pWin->WinType != TYPE_CONTROL) &&
+                        (pWin->pHosting == NULL)) {
+                    if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
+                        POST_MSGQ(pMsgQueue);
+                    }
+                }
+            }
 
             /* XXX: wake up other theads */
             for (slot=__mg_zorder_info->first_topmost;
@@ -2364,6 +2470,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                     }
                 }
             }
+
             for (slot = __mg_zorder_info->first_normal;
                     slot > 0; slot = nodes[slot].next) {
                 pWin = (PMAINWIN)(nodes[slot].hwnd);
@@ -2403,7 +2510,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
         uCounter += (__mg_timer_counter - blink_counter) * 10;
         blink_counter = __mg_timer_counter;
-#endif
+#endif /* defined _MGRM_THREADS */
+
         if (sg_hCaretWnd != 0
                 && gui_GetMainWindowPtrOfControl (sg_hCaretWnd) ==
                 dskGetActiveWindow()

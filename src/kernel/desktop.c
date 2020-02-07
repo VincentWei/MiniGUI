@@ -234,8 +234,7 @@ static int pt_in_maskrect (const ZORDERINFO* zi,
     MASKRECT *maskrect, *firstmaskrect;
     int idx = nodes->idx_mask_rect;
 
-    if (idx != 0 && PtInRect (&(nodes->rc), x, y))
-    {
+    if (idx != 0 && PtInRect (&(nodes->rc), x, y)) {
         cx = x - nodes->rc.left;
         cy = y - nodes->rc.top;
 
@@ -252,8 +251,7 @@ static int pt_in_maskrect (const ZORDERINFO* zi,
         }
         return FALSE;
     }
-    else
-    {
+    else {
         return PtInRect(&(nodes->rc), x, y);
     }
 }
@@ -261,12 +259,26 @@ static int pt_in_maskrect (const ZORDERINFO* zi,
 static int get_znode_at_point (const ZORDERINFO* zi,
                 const ZORDERNODE* nodes, int x, int y)
 {
-    int slot = 0;
+    int slot;
+
+    /* Since 4.2.0 */
+    slot = ZNIDX_SCREENLOCK;
+    if (nodes[slot].hwnd && (nodes[slot].flags & ZOF_VISIBLE) &&
+            pt_in_maskrect (zi, &nodes[slot], x, y)) {
+        goto ret;
+    }
+
+    /* Since 4.2.0 */
+    slot = ZNIDX_DOCKER;
+    if (nodes[slot].hwnd && (nodes[slot].flags & ZOF_VISIBLE) &&
+            pt_in_maskrect (zi, &nodes[slot], x, y)) {
+        goto ret;
+    }
 
     slot = zi->first_global;
     for (; slot > 0; slot = nodes [slot].next) {
-        if (nodes [slot].flags & ZOF_VISIBLE &&
-                        pt_in_maskrect(zi, &nodes[slot], x, y))
+        if (nodes[slot].flags & ZOF_VISIBLE &&
+                        pt_in_maskrect (zi, &nodes[slot], x, y))
             goto ret;
     }
 
@@ -283,6 +295,13 @@ static int get_znode_at_point (const ZORDERINFO* zi,
                         pt_in_maskrect(zi, &nodes[slot], x, y)) {
             goto ret;
         }
+    }
+
+    /* Since 4.2.0 */
+    slot = ZNIDX_LAUNCHER;
+    if (nodes[slot].hwnd && (nodes[slot].flags & ZOF_VISIBLE) &&
+            pt_in_maskrect (zi, &nodes[slot], x, y)) {
+        goto ret;
     }
 
 ret:
@@ -2249,8 +2268,8 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 #if 1
     /* Since 4.2.0. Support for always top znode. */
     if (first) {        // not a fixed znode
-        if (*first == 0
-                || (nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)
+        if (*first == 0 ||
+                (nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)
         {
             old_first = *first;
             nodes [old_first].prev = free_slot;
@@ -2260,7 +2279,8 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         else {
             int pre_idx = *first;
             while (*first) {
-                if ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) == ZOF_IF_ALWAYSTOP) {
+                if ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) ==
+                        ZOF_IF_ALWAYSTOP) {
                     pre_idx = *first;
                     first = &nodes[*first].next;
                 }
@@ -3316,29 +3336,29 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
     nodes = GET_ZORDERNODE(zi);
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
     switch (type) {
-        case ZOF_TYPE_SCREENLOCK:
-            fixed_idx = ZNIDX_SCREENLOCK;
-            first = &fixed_idx;
-            break;
-        case ZOF_TYPE_DOCKER:
-            fixed_idx = ZNIDX_DOCKER;
-            first = &fixed_idx;
-            break;
-        case ZOF_TYPE_GLOBAL:
-            first = &zi->first_global;
-            break;
-        case ZOF_TYPE_TOPMOST:
-            first = &zi->first_topmost;
-            break;
-        case ZOF_TYPE_NORMAL:
-            first = &zi->first_normal;
-            break;
-        case ZOF_TYPE_LAUNCHER:
-            fixed_idx = ZNIDX_LAUNCHER;
-            first = &fixed_idx;
-            break;
-        default:
-            break;
+    case ZOF_TYPE_SCREENLOCK:
+        fixed_idx = ZNIDX_SCREENLOCK;
+        first = &fixed_idx;
+        break;
+    case ZOF_TYPE_DOCKER:
+        fixed_idx = ZNIDX_DOCKER;
+        first = &fixed_idx;
+        break;
+    case ZOF_TYPE_GLOBAL:
+        first = &zi->first_global;
+        break;
+    case ZOF_TYPE_TOPMOST:
+        first = &zi->first_topmost;
+        break;
+    case ZOF_TYPE_NORMAL:
+        first = &zi->first_normal;
+        break;
+    case ZOF_TYPE_LAUNCHER:
+        fixed_idx = ZNIDX_LAUNCHER;
+        first = &fixed_idx;
+        break;
+    default:
+        break;
     }
 
     if (first == NULL)

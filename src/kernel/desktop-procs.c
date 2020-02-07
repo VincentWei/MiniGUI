@@ -2042,6 +2042,7 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
     }
 }
 
+/* Note: no global control for special main windows */
 static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
 {
     int first = 0;
@@ -2063,22 +2064,21 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
     }
     unlock_zi_for_read (__mg_zorder_info);
 
-    if (first > 0 && !(nodes [first].flags & ZOF_TF_MAINWIN)
-                    && (nodes [first].flags & ZOF_VISIBLE)) {
+    if (first > 0 && nodes [first].cli == __mg_client_id &&
+            (nodes [first].flags & ZOF_TF_CONTROL) &&
+            (nodes [first].flags & ZOF_VISIBLE)) {
 
-        if (nodes [first].cli == __mg_client_id) {
-            RECT rc = nodes [first].rc;
-            PMAINWIN pCurTop = (PMAINWIN) nodes [first].hwnd;
+        RECT rc = nodes [first].rc;
+        PMAINWIN pCurTop = (PMAINWIN)nodes [first].hwnd;
 
-            pCurTop->dwStyle &= ~WS_VISIBLE;
-            cliHideWindow (pCurTop);
-            dskSetPrimitiveChildren (pCurTop, FALSE);
-            SendNotifyMessage (pCurTop->hParent,
-                            MSG_CHILDHIDDEN, reason, lParam);
+        pCurTop->dwStyle &= ~WS_VISIBLE;
+        cliHideWindow (pCurTop);
+        dskSetPrimitiveChildren (pCurTop, FALSE);
+        SendNotifyMessage (pCurTop->hParent,
+                        MSG_CHILDHIDDEN, reason, lParam);
 
-            dskScreenToClient (pCurTop->pMainWin, &rc, &rc);
-            InvalidateRect ((HWND)pCurTop->pMainWin, &rc, TRUE);
-        }
+        dskScreenToClient (pCurTop->pMainWin, &rc, &rc);
+        InvalidateRect ((HWND)pCurTop->pMainWin, &rc, TRUE);
     }
 }
 
@@ -2090,6 +2090,7 @@ static void dskMoveToTopMost (PMAINWIN pWin, int reason, LPARAM lParam)
         return;
     }
 
+    /* hide the possible visible global control */
     dskHideGlobalControl (pWin, reason, lParam);
 
     if (mgIsServer)
@@ -2582,54 +2583,37 @@ static HWND dskSetCaptureWindow (PMAINWIN pWin)
     return old;
 }
 
-/* TODO: bad implementation */
 static HWND dskGetNextMainWindow (PMAINWIN pWin)
 {
-    HWND hWnd = HWND_NULL;
-    int slot;
-    ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
-    int last_type;
+    ZORDERINFO* zi = __mg_zorder_info;
+    ZORDERNODE* nodes = GET_ZORDERNODE(zi);
+    HWND hwnd = HWND_NULL;
+    int from;
 
     if (pWin) {
-        last_type = nodes[pWin->idx_znode].flags & ZOF_TYPE_MASK;
-        slot = nodes[pWin->idx_znode].next;
+        from = pWin->idx_znode;
     }
     else {
-        last_type = ZOF_TYPE_GLOBAL;
-        slot = __mg_zorder_info->first_global;
+        from = 0;
+    }
+ 
+    lock_zi_for_read (zi);
+
+    from = __kernel_get_next_znode (zi, from);
+    while (from) {
+        hwnd = nodes[from].hwnd;
+
+        if ((nodes[from].cli == __mg_client_id) &&
+                (pWin = gui_CheckAndGetMainWindowPtr (hwnd)) &&
+                !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+            break;
+        }
+
+        from = __kernel_get_next_znode (zi, from);
     }
 
-    while (1) {
-        if (slot <= 0) {
-            if (last_type == ZOF_TYPE_GLOBAL) {
-                last_type = ZOF_TYPE_TOPMOST;
-                slot = __mg_zorder_info->first_topmost;
-                continue;
-            }
-            else if (last_type == ZOF_TYPE_TOPMOST) {
-                last_type = ZOF_TYPE_NORMAL;
-                slot = __mg_zorder_info->first_normal;
-                continue;
-            }
-            else {
-                return HWND_NULL;
-            }
-        }
-
-        hWnd = nodes[slot].hwnd;
-
-        if (0
-                || !hWnd
-                || (nodes[slot].cli != __mg_client_id)
-                || !(pWin = gui_CheckAndGetMainWindowPtr (hWnd))
-                || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-            slot = nodes[slot].next;
-            continue;
-        }
-        else {
-            return hWnd;
-        }
-    }
+    unlock_zi_for_read (zi);
+    return hwnd;
 }
 
 static int dskStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
@@ -2880,24 +2864,22 @@ static LRESULT dskWindowMessageHandler (UINT message,
     case MSG_ISENABLED:
         return !(pWin->dwStyle & WS_DISABLED);
 
-    case MSG_SETWINCURSOR:
-        {
-            HCURSOR old = pWin->hCursor;
+    case MSG_SETWINCURSOR: {
+        HCURSOR old = pWin->hCursor;
 
-            pWin->hCursor = (HCURSOR)lParam;
-            return (LRESULT)old;
-        }
+        pWin->hCursor = (HCURSOR)lParam;
+        return (LRESULT)old;
+    }
 
     case MSG_GETNEXTMAINWIN:
         return (LRESULT)dskGetNextMainWindow (pWin);
 
-    case MSG_SHOWGLOBALCTRL:
-        {
-            dskMoveGlobalControl (pWin, (RECT*)&(pWin->left));
-            dskMoveToTopMost (pWin, RCTM_SHOWCTRL, 0);
-            dskSetPrimitiveChildren (pWin, TRUE);
-            break;
-        }
+    case MSG_SHOWGLOBALCTRL: {
+        dskMoveGlobalControl (pWin, (RECT*)&(pWin->left));
+        dskMoveToTopMost (pWin, RCTM_SHOWCTRL, 0);
+        dskSetPrimitiveChildren (pWin, TRUE);
+        break;
+    }
 
     case MSG_HIDEGLOBALCTRL:
         dskHideMainWindow (pWin);
@@ -3005,21 +2987,32 @@ BOOL __mg_client_check_hwnd (HWND hwnd, int cli)
     ZORDERINFO* zi = __mg_zorder_info;
     ZORDERNODE* nodes;
     int slot;
+    static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
+        ZNIDX_LAUNCHER };
 
     nodes = GET_ZORDERNODE(zi);
 
     lock_zi_for_read (zi);
 
+    /* Since 4.2.0 */
+    for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
+        if (nodes[fixed_slots[slot]].cli == cli &&
+                nodes[fixed_slots[slot]].hwnd == hwnd)
+            goto ret_true;
+    }
+
+    /* ignore global ones for client */
+
     slot = zi->first_topmost;
     for (; slot > 0; slot = nodes [slot].next) {
-        if (hwnd == nodes [slot].hwnd && cli == nodes [slot].cli) {
+        if (cli == nodes [slot].cli && hwnd == nodes [slot].hwnd) {
             goto ret_true;
         }
     }
 
     slot = zi->first_normal;
     for (; slot > 0; slot = nodes [slot].next) {
-        if (hwnd == nodes [slot].hwnd && cli == nodes [slot].cli) {
+        if (cli == nodes [slot].cli && hwnd == nodes [slot].hwnd) {
             goto ret_true;
         }
     }
@@ -4069,6 +4062,23 @@ static void srvUpdateDesktopMenu (void)
     info.id = IDM_FIRSTWINDOW;
     info.pos = 0;
 
+    info.mii.type = MFT_STRING;
+    count = do_for_all_znodes (&info,
+                    __mg_zorder_info, _cb_update_dskmenu, ZT_SCREENLOCK);
+    count += do_for_all_znodes (&info,
+                    __mg_zorder_info, _cb_update_dskmenu, ZT_DOCKER);
+
+    if (count) {
+        info.mii.type            = MFT_SEPARATOR;
+        info.mii.state           = 0;
+        info.mii.id              = 0;
+        info.mii.typedata        = 0;
+        InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
+
+        info.pos ++;
+    }
+
+    info.mii.type = MFT_STRING;
     count = do_for_all_znodes (&info,
                     __mg_zorder_info, _cb_update_dskmenu, ZT_GLOBAL);
 
@@ -4100,6 +4110,21 @@ static void srvUpdateDesktopMenu (void)
     info.mii.type = MFT_STRING;
     count = do_for_all_znodes (&info,
                     __mg_zorder_info, _cb_update_dskmenu, ZT_NORMAL);
+
+    if (count) {
+        info.mii.type            = MFT_SEPARATOR;
+        info.mii.state           = 0;
+        info.mii.id              = 0;
+        info.mii.typedata        = 0;
+        InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
+
+        info.pos ++;
+        info.mii.type = MFT_STRING;
+    }
+
+    info.mii.type = MFT_STRING;
+    count = do_for_all_znodes (&info,
+                    __mg_zorder_info, _cb_update_dskmenu, ZT_LAUNCHER);
 
     info.menu = GetSubMenu (sg_DesktopMenu, 4);
     nCount = GetMenuItemCount (info.menu);
