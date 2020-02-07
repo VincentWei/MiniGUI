@@ -1565,7 +1565,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         }
 
         unlock_zi_for_read (zi);
-        return (LRESULT)hWnd;
+        return (LRESULT)hwnd;
     }
 
     /* Since 4.2.0 */
