@@ -2986,10 +2986,9 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
      * BUGFIX: if we scrolled all area, the all area must
      * be set as invalidate (dongjunjie 2010/7/28)
      */
-    if((dx != 0 && abs(dx) >= RECTW(rcScroll))
-        || (dy != 0 && abs(dy) >= RECTH(rcScroll)))
-    {
-        InvalidateRect(hWnd, &rcScroll, TRUE);
+    if ((dx != 0 && abs(dx) >= RECTW(rcScroll)) ||
+            (dy != 0 && abs(dy) >= RECTH(rcScroll))) {
+        InvalidateRect (hWnd, &rcScroll, TRUE);
         goto UPDATERGIN;
     }
 
@@ -3007,7 +3006,8 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
         child = ((PCONTROL)hWnd)->children;
         while (child) {
 
-            if ((prcClip == NULL) || IsCovered ((const RECT*)&child->left, prcClip)) {
+            if ((prcClip == NULL) ||
+                    IsCovered ((const RECT*)&child->left, prcClip)) {
                 child->left += dx; child->top += dy;
                 child->right += dx; child->bottom += dy;
                 child->cl += dx; child->ct += dy;
@@ -3031,39 +3031,38 @@ UPDATERGIN:
         RECT rc;
         CopyRegion (pRgnUpdate, &pWin->InvRgn.rgn);
         /* FIXME: I have not the best idea to do this */
-        GetClientRect(hWnd, &rcClient);
+        GetClientRect (hWnd, &rcClient);
         rc = rcClient;
-        if(dx > 0)
+        if (dx > 0)
             rc.right = rc.left + dx + 1;
-        else if(dx < 0)
+        else if (dx < 0)
             rc.left = rc.right + dx - 1;
-        if(dx != 0)
-            AddClipRect(pRgnUpdate, &rc);
+        if (dx != 0)
+            AddClipRect (pRgnUpdate, &rc);
         rc = rcClient;
-        if(dy > 0)
+        if (dy > 0)
             rc.bottom = rc.top + dy + 1;
-        else if(dy < 0)
+        else if (dy < 0)
             rc.top = rc.bottom + dy - 1;
-        if(dy != 0)
-            AddClipRect(pRgnUpdate, &rc);
+        if (dy != 0)
+            AddClipRect (pRgnUpdate, &rc);
     }
+
     if (prcUpdate) {
-        if(pRgnUpdate)
+        if (pRgnUpdate)
             *prcUpdate = pRgnUpdate->rcBound;
-        else if(dx != 0 && dy != 0)
-            GetClientRect(hWnd, prcUpdate);
-        else if(dx != 0)
-        {
-            GetClientRect(hWnd, prcUpdate);
-            if(dx > 0)
+        else if (dx != 0 && dy != 0)
+            GetClientRect (hWnd, prcUpdate);
+        else if (dx != 0) {
+            GetClientRect (hWnd, prcUpdate);
+            if (dx > 0)
                 prcUpdate->right = prcUpdate->left + dx + 1;
             else
                 prcUpdate->left = prcUpdate->right + dx - 1;
         }
-        else if(dy != 0)
-        {
-            GetClientRect(hWnd, prcUpdate);
-            if(dy > 0)
+        else if (dy != 0) {
+            GetClientRect (hWnd, prcUpdate);
+            if (dy > 0)
                 prcUpdate->bottom = prcUpdate->top + dx + 1;
             else
                 prcUpdate->top = prcUpdate->bottom + dx - 1;
