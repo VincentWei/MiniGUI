@@ -818,7 +818,8 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MAKELONG
  */
-#define HIWORD(l)           ((WORD)((((DWORD)(l)) >> NR_BITS_WORD) & BITMASK_WORD))
+#define HIWORD(l)           \
+    ((WORD)((((DWORD)(l)) >> NR_BITS_WORD) & BITMASK_WORD))
 
 /**
  * \def LOSWORD(l)
@@ -833,21 +834,24 @@ typedef UINT_PTR LPARAM;
  *
  * \sa MAKELONG
  */
-#define HISWORD(l)          ((SWORD)((((DWORD)(l)) >> NR_BITS_WORD) & BITMASK_WORD))
+#define HISWORD(l)          \
+    ((SWORD)((((DWORD)(l)) >> NR_BITS_WORD) & BITMASK_WORD))
 
 /**
  * \def MAKELONG32(low, high)
  * \brief Makes a 32-bit double word from \a low word and \a high word which are both in 16-bit.
  * \sa MAKELONG
  */
-#define MAKELONG32(low, high) ((DWORD32)(((WORD16)(low)) | (((DWORD32)((WORD16)(high))) << 16)))
+#define MAKELONG32(low, high)   \
+    ((DWORD32)(((WORD16)(low)) | (((DWORD32)((WORD16)(high))) << 16)))
 
 /**
  * \def MAKELONG(low, high)
  * \brief Makes a double word with pointer precision from \a low word and \a high word.
  * \sa MAKELONG32
  */
-#define MAKELONG(low, high) ((DWORD)(((WORD)(low)) | (((DWORD)((WORD)(high))) << NR_BITS_WORD)))
+#define MAKELONG(low, high)     \
+    ((DWORD)(((WORD)(low)) | (((DWORD)((WORD)(high))) << NR_BITS_WORD)))
 
 /**
  * \var typedef DWORD32 RGBCOLOR
