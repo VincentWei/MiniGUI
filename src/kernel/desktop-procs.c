@@ -1276,12 +1276,8 @@ static inline int srvSetZNodeCompositing (int cli, int idx_znode,
     int ret;
 
     ret = dskSetZNodeCompositing (cli, idx_znode, type, arg);
-    if (ret == 0) {
-        if (OnZNodeOperation)
-            OnZNodeOperation (ZNOP_COMPOSITINGCHANGED, cli, idx_znode);
-
-        DO_COMPSOR_OP_ARGS (on_changed_ct,
-                get_layer_from_client (cli), idx_znode);
+    if (ret == 0 && OnZNodeOperation)
+        OnZNodeOperation (ZNOP_COMPOSITINGCHANGED, cli, idx_znode);
     }
 
     return ret;

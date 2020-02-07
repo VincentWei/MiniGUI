@@ -1978,9 +1978,12 @@ static int alloc_mask_rects_for_round_corners (ZORDERINFO* zi,
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
 #ifdef _MGSCHEMA_COMPOSITING
-static inline int validate_compositing_type (int type)
+static inline int validate_compositing_type (DWORD flags, int type)
 {
-    if (type < CT_OPAQUE || type > CT_MAX_VALUE)
+    if (flags & ZOF_TF_CONTROL) {
+        return CT_OPAQUE;
+    }
+    else if (type < CT_OPAQUE || type > CT_MAX_VALUE)
         return CT_OPAQUE;
 
     return type;
@@ -2100,7 +2103,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].lock_count = 0;
 #ifdef _MGSCHEMA_COMPOSITING
     nodes [free_slot].changes = 0;
-    nodes [free_slot].ct = validate_compositing_type (ct);
+    nodes [free_slot].ct = validate_compositing_type (flags, ct);
     nodes [free_slot].ct_arg = ct_arg;
     nodes [free_slot].mem_dc = mem_dc;
     nodes [free_slot].dirty_rcs = NULL;
@@ -2581,11 +2584,14 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
     if (pWin->dwStyle & WS_ALWAYSTOP)
         zt_type |= ZOF_IF_ALWAYSTOP;
 
-    if (pWin->WinType == TYPE_MAINWIN)
-        zt_type |= ZOF_TF_MAINWIN;
-
-    if (pWin->dwExStyle & WS_EX_TOOLWINDOW)
-        zt_type |= ZOF_TF_TOOLWIN;
+    if (pWin->WinType == TYPE_MAINWIN) {
+        if (pWin->dwExStyle & WS_EX_TOOLWINDOW)
+            zt_type |= ZOF_TF_TOOLWIN;
+        else
+            zt_type |= ZOF_TF_MAINWIN;
+    }
+    else
+        zt_type |= ZOF_TF_CONTROL;
 
     if (pWin->dwExStyle & WS_EX_TROUNDCNS)
         zt_type |= ZOF_TW_TROUNDCNS;
@@ -2870,7 +2876,8 @@ static int dskSetZNodeCompositing (int cli, int idx_znode, int ct, DWORD ct_arg)
     nodes [idx_znode].ct = ct;
     nodes [idx_znode].ct_arg = ct_arg;
 
-    /* TODO */
+    DO_COMPSOR_OP_ARGS (on_changed_ct,
+            get_layer_from_client (cli), idx_znode);
 
     /* unlock zi for change */
     unlock_zi_for_change (zi);
