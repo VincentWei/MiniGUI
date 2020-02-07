@@ -2158,7 +2158,7 @@ static int resize_window_surface (PMAINWIN pWin, const RECT* prcResult)
     return -1;
 }
 #else   /* defined _MGSCHEMA_COMPOSITING */
-static inline int resize_surface (PMAINWIN pWin, const RECT* prcExpect)
+static inline int resize_window_surface (PMAINWIN pWin, const RECT* prcExpect)
 {
     return -1;
 }
