@@ -3808,6 +3808,20 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     }
 #endif
 
+    /* Since 4.2.0: exclude the special window type style if failed */
+    if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_SCREENLOCK &&
+            pWin->idx_znode != ZNIDX_SCREENLOCK) {
+        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
+    }
+    else if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_DOCKER &&
+            pWin->idx_znode != ZNIDX_DOCKER) {
+        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
+    }
+    else if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_LAUNCHER &&
+            pWin->idx_znode != ZNIDX_LAUNCHER) {
+        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
+    }
+
     return (HWND)pWin;
 
 err:
@@ -5203,6 +5217,13 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     if (!(pMainWin = gui_GetMainWindowPtrOfControl (hParentWnd)))
         return HWND_INVALID;
 
+    /* Since 4.2.0 */
+    if (dwExStyle & WS_EX_CTRLASMAINWIN &&
+            (pMainWin->dwExStyle & WS_EX_WINTYPE_MASK)) {
+        _WRN_PRINTF("Cannot create global controls in a special main window\n");
+        return HWND_INVALID;
+    }
+
     cci = (PCTRLCLASSINFO)SendMessage (HWND_DESKTOP,
             MSG_GETCTRLCLASSINFO, 0, (LPARAM)spClassName);
 
@@ -5276,10 +5297,8 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
         pNewCtrl->hscroll.status = SBS_HIDE | SBS_DISABLED;
 
     /** prefer to use parent renderer */
-    if (pNewCtrl->dwExStyle & WS_EX_USEPARENTRDR)
-    {
-        if (((PCONTROL)hParentWnd)->we_rdr)
-        {
+    if (pNewCtrl->dwExStyle & WS_EX_USEPARENTRDR) {
+        if (((PCONTROL)hParentWnd)->we_rdr) {
             /** only get render from parent */
             pNewCtrl->we_rdr = ((PCONTROL)hParentWnd)->we_rdr;
             ++pNewCtrl->we_rdr->refcount;
@@ -5287,15 +5306,13 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
         else
             return HWND_INVALID;
     }
-    else
-    {
+    else {
         /** set window renderer */
         set_control_renderer (pNewCtrl, werdr_name);
     }
 
     /** set window element data */
-    while (we_attrs && we_attrs->we_attr_id != -1)
-    {
+    while (we_attrs && we_attrs->we_attr_id != -1) {
         //__mg_append_window_element_data (pNewCtrl,
            //     we_attrs->we_attr_id, we_attrs->we_attr);
         DWORD _old;
