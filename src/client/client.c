@@ -157,11 +157,13 @@ static void process_socket_message (MSG *msg)
         __mg_update_window (msg->hwnd,
                 LOSWORD(msg->wParam), HISWORD(msg->wParam),
                 LOSWORD(msg->lParam), HISWORD(msg->lParam));
-    } else {
+    }
+    else {
         if (msg->hwnd == 0) {
             msg->hwnd = HWND_DESKTOP;
             QueueDeskMessage (msg);
-        } else if (__mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
+        }
+        else if (__mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
             QueueDeskMessage (msg);
         }
     }
