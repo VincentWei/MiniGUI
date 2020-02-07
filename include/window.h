@@ -5956,12 +5956,14 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
  */
 #define MainWindowCleanup(hwnd)      MainWindowThreadCleanup(hwnd)
 
-#define CT_OPAQUE       0x00
-#define CT_COLORKEY     0x01
-#define CT_ALPHACHANNEL 0x02
-#define CT_ALPHAPIXEL   0x03
-#define CT_BLURRED      0x04
-#define CT_MAX_VALUE    0x04
+#define CT_OPAQUE       0x000000
+#define CT_COLORKEY     0x000001
+#define CT_ALPHACHANNEL 0x000002
+#define CT_LOGICALPIXEL 0x000003
+#define CT_ALPHAPIXEL   0x000004
+#define CT_BLURRED      0x000005
+#define CT_SYSTEM_MASK  0X0000FF
+#define CT_MAX_VALUE    0xFFFFFF
 
 /**
  * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
@@ -6129,15 +6131,21 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  * \param type The compositing type, can be one of the following values:
  *  - CT_OPAQUE\n
  *      The main window is opaque. This is the default compositing type of
- *      a main window.
+ *      a main window. The control as main window always use this
+ *      compositing type.
  *  - CT_COLORKEY\n
  *      Use the specified color as the transparency key. You should also specify
  *      the color along with the parameter \a arg in a RGBA quadruple value.
  *  - CT_ALPHACHANNEL\n
  *      Use the specified alpha channel value. You should also specify
  *      the alpha channel value (0~255) along with the parameter \a arg.
+ *  - CT_LOGICALPIXEL\n
+ *      Do the given color logical operation. You should specify the color
+ *      logical operation along with the pararmeter \a arg. See \a BitBlt.
  *  - CT_ALPHAPIXEL\n
- *      The alpha component value of a pixel goes into effect.
+ *      The alpha component value of the source or the destination pixel goes
+ *      into effect. You can specify the color compositing operation along
+ *      with the pararmeter \a arg. See \a BitBlt.
  *  - CT_BLURRED\n
  *      Apply a Gaussian blur to the background of the main window. You should
  *      also specify the radius of the blur (0 ~ 255) in pixles along with the
@@ -6149,6 +6157,10 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  * \return return TRUE on success, otherwise FALSE.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \note A customized compositor can also define other compositing type.
+ *      Please make sure that the customized compositing type should be
+ *      less than \a CT_MAX_VALUE.
  *
  * \sa CreateMainWindowEx
  *
