@@ -54,6 +54,36 @@
 
 #include "constants.h"
 
+#ifdef _MGSCHEMA_COMPOSITING
+
+#define DO_COMPSOR_OP(op)                                               \
+do {                                                                    \
+    CompositorCtxt* ctxt;                                               \
+    const CompositorOps* ops = ServerSelectCompositor (NULL, &ctxt);    \
+    if (ops && ops->op) {                                               \
+        ops->op(ctxt);                                                  \
+    }                                                                   \
+} while (0)
+
+#define DO_COMPSOR_OP_ARGS(op, ...)                                     \
+do {                                                                    \
+    CompositorCtxt* ctxt;                                               \
+    const CompositorOps* ops = ServerSelectCompositor (NULL, &ctxt);    \
+    if (ops && ops->op) {                                               \
+        ops->op(ctxt, __VA_ARGS__);                                     \
+    }                                                                   \
+} while (0)
+
+#else   /* defined _MGSCHEMA_COMPOSITING */
+
+#define DO_COMPSOR_OP(op)                                               \
+    do { } while (0)
+
+#define DO_COMPSOR_OP_ARGS(op, ...)                                     \
+    do { } while (0)
+
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
