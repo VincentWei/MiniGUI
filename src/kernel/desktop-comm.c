@@ -59,14 +59,8 @@ extern int __mg_enter_terminategui;
 
 #if defined(_MGRM_THREADS) || defined(_MGRM_STANDALONE)
 
-int __kernel_change_z_node_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
-{
-    FreeZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode);
-    return AllocZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode,
-            get_znode_flags_from_style ((PMAINWIN)pWin), rc, nr_rc);
-}
-
-static LRESULT DesktopWinProc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+static LRESULT DesktopWinProc (HWND hWnd, UINT msg,
+        WPARAM wParam, LPARAM lParam);
 
 static void init_desktop_win (void)
 {
@@ -161,11 +155,8 @@ static void dskShowMainWindow (PMAINWIN pWin, BOOL bActive)
     //dskUpdateGCRInfoOnShowMainWin (pWin);
 
     pWin->dwStyle |= WS_VISIBLE;
-
     dskShowWindow (0, pWin->idx_znode);
-
     SendAsyncMessage ((HWND)pWin, MSG_NCPAINT, 0, 0);
-
     InvalidateRect ((HWND)pWin, NULL, TRUE);
 
 #if 0
@@ -211,11 +202,12 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     pWin->idx_znode = dskAllocZOrderNode (pWin);
 
     if (pWin->idx_znode <= 0) {
-        _WRN_PRINTF ("KERNEL>Desktop: Alloc zorder node for main window fail.\n");
+        _WRN_PRINTF ("Failed to allocate znode for main window.\n");
         return -1;
     }
 
-    /* Since 4.2.0: handle window style if failed to allocate znode for fixed ones */
+    /* Since 4.2.0: handle window style if failed to allocate znode
+       for fixed ones */
     if (pWin->dwExStyle & WS_EX_WINTYPE_MASK) {
         ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
 
@@ -263,7 +255,8 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     /* Create private client dc. */
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
         if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
-            pWin->privCDC = GetSecondarySubDC (pWin->secondaryDC, (HWND)pWin, TRUE);
+            pWin->privCDC = GetSecondarySubDC (pWin->secondaryDC,
+                    (HWND)pWin, TRUE);
         else
             pWin->privCDC = CreatePrivateClientDC ((HWND)pWin);
     }
@@ -271,14 +264,10 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         pWin->privCDC = 0;
 
     // show and active this main window.
-    if ( pWin->dwStyle & WS_VISIBLE ) {
-
+    if (pWin->dwStyle & WS_VISIBLE) {
         SendAsyncMessage ((HWND)pWin, MSG_NCPAINT, 0, 0);
-
         SendNotifyMessage ((HWND)pWin, MSG_SHOWWINDOW, SW_SHOWNORMAL, 0);
-
         InvalidateRect ((HWND)pWin, NULL, TRUE);
-
         dskSetActiveWindow (pWin);
     }
 
@@ -386,6 +375,15 @@ static BOOL dskSetMainWindowAlwaysTop (PMAINWIN pWin, BOOL fSet)
     }
 
     return TRUE;
+}
+
+/* Since 4.2.0 */
+static int dskSetWindowMask (HWND pWin, const WINMASKINFO* mask_info)
+{
+    FreeZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode);
+    return AllocZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode,
+            get_znode_flags_from_style ((PMAINWIN)pWin),
+            mask_info->rcs, mask_info->nr_rcs);
 }
 
 static void dskHideMainWindow (PMAINWIN pWin)
@@ -532,7 +530,7 @@ static int dskEndTrackPopupMenu (PTRACKMENUINFO ptmi)
     return 0;
 }
 
-#endif
+#endif /* defiend _MGHAVE_MENU */
 
 static void dskEnableWindow (PMAINWIN pWin, int flags)
 {
@@ -682,8 +680,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
          *  // - represent area need the Need invalidate
          *  see the to area must be invalidate
          */
-        if(bNeedInvalidate)
-        {
+        if (bNeedInvalidate) {
             InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             rcInvalid = rcMove; //restore the invalidate area
             bNeedInvalidate = FALSE; //resotre the inved value
@@ -699,8 +696,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             bNeedInvalidate = TRUE;
         }
 
-        if (bNeedInvalidate)
-        {
+        if (bNeedInvalidate) {
             InvalidateRect ((HWND)pWin, &rcInvalid, TRUE);
             inved = TRUE;
         }
@@ -786,7 +782,8 @@ static int dskHandleMouseHooks (HWND dst_wnd, UINT message,
     int ret = HOOK_GOON;
 
     if (mousehook.hook) {
-        ret = mousehook.hook (mousehook.context, dst_wnd, message, wParam, lParam);
+        ret = mousehook.hook (mousehook.context, dst_wnd,
+                message, wParam, lParam);
     }
 
     return ret;
@@ -996,197 +993,197 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     }
 
     switch (message) {
-        case MSG_MOUSEMOVE:
-            if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window,
-                                message + MSG_DT_MOUSEOFF,
-                                flags, MAKELONG (x, y));
+    case MSG_MOUSEMOVE:
+        if (_mgs_button_down_main_window) {
+            PostMessage ((HWND)_mgs_button_down_main_window,
+                            message + MSG_DT_MOUSEOFF,
+                            flags, MAKELONG (x, y));
+        }
+        else {
+            if (_mgs_old_under_p != pUnderPointer) {
+                if (_mgs_old_under_p) {
+                    PostMessage ((HWND)_mgs_old_under_p,
+                        MSG_MOUSEMOVEIN, FALSE, (LPARAM)pUnderPointer);
+                    PostMessage ((HWND)_mgs_old_under_p,
+                        MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
+                }
+                if (pUnderPointer)
+                    PostMessage ((HWND)pUnderPointer,
+                        MSG_MOUSEMOVEIN, TRUE, (LPARAM)_mgs_old_under_p);
+                else
+                    SetCursor (GetSystemCursor (IDC_ARROW));
+
+                _mgs_old_under_p = pUnderPointer;
             }
-            else {
-                if (_mgs_old_under_p != pUnderPointer) {
-                    if (_mgs_old_under_p) {
-                        PostMessage ((HWND)_mgs_old_under_p,
-                            MSG_MOUSEMOVEIN, FALSE, (LPARAM)pUnderPointer);
-                        PostMessage ((HWND)_mgs_old_under_p,
-                            MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
-                    }
-                    if (pUnderPointer)
-                        PostMessage ((HWND)pUnderPointer,
-                            MSG_MOUSEMOVEIN, TRUE, (LPARAM)_mgs_old_under_p);
-                    else
-                        SetCursor (GetSystemCursor (IDC_ARROW));
 
-                    _mgs_old_under_p = pUnderPointer;
-                }
-
-                if (pUnderPointer) {
-                    if (pUnderPointer->dwStyle & WS_DISABLED) {
-                        HCURSOR def_cursor = GetDefaultCursor ();
-
-                        if (def_cursor)
-                            SetCursor (def_cursor);
-                    }
-                    else
-                        PostMessage ((HWND)pUnderPointer,
-                                message + MSG_DT_MOUSEOFF,
-                                flags, MAKELONG (x, y));
-                }
-                else {
+            if (pUnderPointer) {
+                if (pUnderPointer->dwStyle & WS_DISABLED) {
                     HCURSOR def_cursor = GetDefaultCursor ();
 
                     if (def_cursor)
                         SetCursor (def_cursor);
-                    PostMessage (HWND_DESKTOP, MSG_DT_MOUSEMOVE,
-                            flags, MAKELONG (x, y));
                 }
-            }
-            break;
-
-        case MSG_LBUTTONDOWN:
-        case MSG_RBUTTONDOWN:
-        case MSG_MBUTTONDOWN:
-            if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window,
-                                message + MSG_DT_MOUSEOFF,
-                                flags, MAKELONG (x, y));
-                if (message == MSG_LBUTTONDOWN)
-                    _mgs_down_buttons |= DOWN_BUTTON_LEFT;
-                else if (message == MSG_RBUTTONDOWN)
-                    _mgs_down_buttons |= DOWN_BUTTON_RIGHT;
                 else
-                    _mgs_down_buttons |= DOWN_BUTTON_MIDDLE;
+                    PostMessage ((HWND)pUnderPointer,
+                            message + MSG_DT_MOUSEOFF,
+                            flags, MAKELONG (x, y));
             }
-            else if (pUnderPointer) {
+            else {
+                HCURSOR def_cursor = GetDefaultCursor ();
+
+                if (def_cursor)
+                    SetCursor (def_cursor);
+                PostMessage (HWND_DESKTOP, MSG_DT_MOUSEMOVE,
+                        flags, MAKELONG (x, y));
+            }
+        }
+        break;
+
+    case MSG_LBUTTONDOWN:
+    case MSG_RBUTTONDOWN:
+    case MSG_MBUTTONDOWN:
+        if (_mgs_button_down_main_window) {
+            PostMessage ((HWND)_mgs_button_down_main_window,
+                            message + MSG_DT_MOUSEOFF,
+                            flags, MAKELONG (x, y));
+            if (message == MSG_LBUTTONDOWN)
+                _mgs_down_buttons |= DOWN_BUTTON_LEFT;
+            else if (message == MSG_RBUTTONDOWN)
+                _mgs_down_buttons |= DOWN_BUTTON_RIGHT;
+            else
+                _mgs_down_buttons |= DOWN_BUTTON_MIDDLE;
+        }
+        else if (pUnderPointer) {
 #ifdef _MGHAVE_MENU
-                if (sg_ptmi)
-                    dskForceCloseMenu ();
+            if (sg_ptmi)
+                dskForceCloseMenu ();
 #endif
 
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    Ping ();
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                Ping ();
+                break;
+            }
+
+            if (pCtrlPtrIn == NULL) {
+                if (!dskIsTopMost (pUnderPointer)) {
+                    dskMoveToTopMost (pUnderPointer,
+                                    RCTM_CLICK, MAKELONG (x, y));
+                }
+
+                if (pUnderPointer != dskSetActiveWindow (pUnderPointer))
+                    SendNotifyMessage ((HWND) pUnderPointer,
+                                    MSG_MOUSEACTIVE, 0, 0);
+            }
+
+
+            PostMessage ((HWND)pUnderPointer, message + MSG_DT_MOUSEOFF,
+                            flags, MAKELONG (x, y));
+
+            _mgs_button_down_main_window = pUnderPointer;
+            if (message == MSG_LBUTTONDOWN)
+                _mgs_down_buttons = DOWN_BUTTON_LEFT;
+            else if (message == MSG_RBUTTONDOWN)
+                _mgs_down_buttons = DOWN_BUTTON_RIGHT;
+            else
+                _mgs_down_buttons = DOWN_BUTTON_MIDDLE;
+        }
+        else {
+            dskSetActiveWindow (NULL);
+            PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
+                        flags, MAKELONG (x, y));
+            _mgs_button_down_main_window = NULL;
+            _mgs_down_buttons = DOWN_BUTTON_NONE;
+        }
+    break;
+
+    case MSG_LBUTTONUP:
+    case MSG_RBUTTONUP:
+    case MSG_MBUTTONUP:
+        if (_mgs_down_buttons == DOWN_BUTTON_LEFT &&
+                        message != MSG_LBUTTONUP) {
+            break;
+        }
+        if (_mgs_down_buttons == DOWN_BUTTON_RIGHT &&
+                        message != MSG_RBUTTONUP) {
+            break;
+        }
+        if (_mgs_down_buttons == DOWN_BUTTON_MIDDLE &&
+                        message != MSG_MBUTTONUP) {
+            break;
+        }
+
+        if (_mgs_button_down_main_window) {
+            PostMessage ((HWND)_mgs_button_down_main_window,
+                            message + MSG_DT_MOUSEOFF,
+                            flags, MAKELONG (x, y));
+            if (message == MSG_LBUTTONUP)
+                _mgs_down_buttons &= ~DOWN_BUTTON_LEFT;
+            else if (message == MSG_RBUTTONUP)
+                _mgs_down_buttons &= ~DOWN_BUTTON_RIGHT;
+            else
+                _mgs_down_buttons &= ~DOWN_BUTTON_MIDDLE;
+
+            if (!(_mgs_down_buttons & DOWN_BUTTON_ANY)) {
+                _mgs_button_down_main_window = NULL;
+                _mgs_down_buttons = DOWN_BUTTON_NONE;
+            }
+        }
+        else {
+            /* fixed bug 4961: for deal with when _mgs_button_down_main_window was reset,
+             * but there real has a mouse up message. by humingming 2010.9.1
+             */
+            if (pUnderPointer == NULL) {
+                PostMessage (HWND_DESKTOP,
+                        message + MSG_DT_MOUSEOFF,
+                        flags, MAKELONG (x, y));
+            }
+            else {
+                if ((pUnderPointer->dwStyle & WS_DISABLED)) {
                     break;
                 }
-
-                if (pCtrlPtrIn == NULL) {
-                    if (!dskIsTopMost (pUnderPointer)) {
-                        dskMoveToTopMost (pUnderPointer,
-                                        RCTM_CLICK, MAKELONG (x, y));
-                    }
-
-                    if (pUnderPointer != dskSetActiveWindow (pUnderPointer))
-                        SendNotifyMessage ((HWND) pUnderPointer,
-                                        MSG_MOUSEACTIVE, 0, 0);
-                }
-
-
-                PostMessage ((HWND)pUnderPointer, message + MSG_DT_MOUSEOFF,
-                                flags, MAKELONG (x, y));
-
-                _mgs_button_down_main_window = pUnderPointer;
-                if (message == MSG_LBUTTONDOWN)
-                    _mgs_down_buttons = DOWN_BUTTON_LEFT;
-                else if (message == MSG_RBUTTONDOWN)
-                    _mgs_down_buttons = DOWN_BUTTON_RIGHT;
-                else
-                    _mgs_down_buttons = DOWN_BUTTON_MIDDLE;
-            }
-            else {
-                dskSetActiveWindow (NULL);
-                PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
-                            flags, MAKELONG (x, y));
-                _mgs_button_down_main_window = NULL;
-                _mgs_down_buttons = DOWN_BUTTON_NONE;
-            }
-        break;
-
-        case MSG_LBUTTONUP:
-        case MSG_RBUTTONUP:
-        case MSG_MBUTTONUP:
-            if (_mgs_down_buttons == DOWN_BUTTON_LEFT &&
-                            message != MSG_LBUTTONUP) {
-                break;
-            }
-            if (_mgs_down_buttons == DOWN_BUTTON_RIGHT &&
-                            message != MSG_RBUTTONUP) {
-                break;
-            }
-            if (_mgs_down_buttons == DOWN_BUTTON_MIDDLE &&
-                            message != MSG_MBUTTONUP) {
-                break;
-            }
-
-            if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window,
-                                message + MSG_DT_MOUSEOFF,
-                                flags, MAKELONG (x, y));
-                if (message == MSG_LBUTTONUP)
-                    _mgs_down_buttons &= ~DOWN_BUTTON_LEFT;
-                else if (message == MSG_RBUTTONUP)
-                    _mgs_down_buttons &= ~DOWN_BUTTON_RIGHT;
-                else
-                    _mgs_down_buttons &= ~DOWN_BUTTON_MIDDLE;
-
-                if (!(_mgs_down_buttons & DOWN_BUTTON_ANY)) {
-                    _mgs_button_down_main_window = NULL;
-                    _mgs_down_buttons = DOWN_BUTTON_NONE;
-                }
-            }
-            else {
-                /* fixed bug 4961: for deal with when _mgs_button_down_main_window was reset,
-                 * but there real has a mouse up message. by humingming 2010.9.1
-                 */
-                if (pUnderPointer == NULL) {
-                    PostMessage (HWND_DESKTOP,
-                            message + MSG_DT_MOUSEOFF,
-                            flags, MAKELONG (x, y));
-                }
                 else {
-                    if ((pUnderPointer->dwStyle & WS_DISABLED)) {
-                        break;
-                    }
-                    else {
-                        PostMessage((HWND)pUnderPointer,
-                            message + MSG_DT_MOUSEOFF,
-                            flags, MAKELONG (x, y));
-                    }
+                    PostMessage((HWND)pUnderPointer,
+                        message + MSG_DT_MOUSEOFF,
+                        flags, MAKELONG (x, y));
                 }
             }
-        break;
+        }
+    break;
 
-        case MSG_LBUTTONDBLCLK:
-        case MSG_RBUTTONDBLCLK:
-        case MSG_MBUTTONDBLCLK:
-            if (_mgs_button_down_main_window) {
-                PostMessage ((HWND)_mgs_button_down_main_window,
-                                message + MSG_DT_MOUSEOFF,
-                                flags, MAKELONG (x, y));
-                if (message == MSG_LBUTTONDBLCLK)
-                    _mgs_down_buttons |= DOWN_BUTTON_LEFT;
-                else if (message == MSG_RBUTTONDBLCLK)
-                    _mgs_down_buttons |= DOWN_BUTTON_RIGHT;
-                else
-                    _mgs_down_buttons |= DOWN_BUTTON_MIDDLE;
-            }
-            else if (pUnderPointer) {
-                PostMessage ((HWND)pUnderPointer,
-                                message + MSG_DT_MOUSEOFF,
-                                flags, MAKELONG (x, y));
-                _mgs_button_down_main_window = pUnderPointer;
-                if (message == MSG_LBUTTONDBLCLK)
-                    _mgs_down_buttons = DOWN_BUTTON_LEFT;
-                else if (message == MSG_RBUTTONDBLCLK)
-                    _mgs_down_buttons = DOWN_BUTTON_RIGHT;
-                else
-                    _mgs_down_buttons = DOWN_BUTTON_MIDDLE;
-            }
-            else {
-                PostMessage (HWND_DESKTOP,
+    case MSG_LBUTTONDBLCLK:
+    case MSG_RBUTTONDBLCLK:
+    case MSG_MBUTTONDBLCLK:
+        if (_mgs_button_down_main_window) {
+            PostMessage ((HWND)_mgs_button_down_main_window,
                             message + MSG_DT_MOUSEOFF,
                             flags, MAKELONG (x, y));
-                _mgs_button_down_main_window = NULL;
-                _mgs_down_buttons = DOWN_BUTTON_NONE;
-            }
-            break;
+            if (message == MSG_LBUTTONDBLCLK)
+                _mgs_down_buttons |= DOWN_BUTTON_LEFT;
+            else if (message == MSG_RBUTTONDBLCLK)
+                _mgs_down_buttons |= DOWN_BUTTON_RIGHT;
+            else
+                _mgs_down_buttons |= DOWN_BUTTON_MIDDLE;
+        }
+        else if (pUnderPointer) {
+            PostMessage ((HWND)pUnderPointer,
+                            message + MSG_DT_MOUSEOFF,
+                            flags, MAKELONG (x, y));
+            _mgs_button_down_main_window = pUnderPointer;
+            if (message == MSG_LBUTTONDBLCLK)
+                _mgs_down_buttons = DOWN_BUTTON_LEFT;
+            else if (message == MSG_RBUTTONDBLCLK)
+                _mgs_down_buttons = DOWN_BUTTON_RIGHT;
+            else
+                _mgs_down_buttons = DOWN_BUTTON_MIDDLE;
+        }
+        else {
+            PostMessage (HWND_DESKTOP,
+                        message + MSG_DT_MOUSEOFF,
+                        flags, MAKELONG (x, y));
+            _mgs_button_down_main_window = NULL;
+            _mgs_down_buttons = DOWN_BUTTON_NONE;
+        }
+        break;
     }
 
     return 0;
@@ -1279,33 +1276,33 @@ static int dskStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
     _dd_info.last_y     = drag_info->init_y;
 
     switch (_dd_info.location) {
-        case HT_CAPTION:
-            //SetDefaultCursor (GetSystemCursor (IDC_MOVE));
-            SetCursor (GetSystemCursor (IDC_MOVE));
-            break;
-        case HT_BORDER_TOP:
-        case HT_BORDER_BOTTOM:
-            //SetDefaultCursor (GetSystemCursor (IDC_SIZENS));
-            SetCursor (GetSystemCursor (IDC_SIZENS));
-            break;
-        case HT_BORDER_LEFT:
-        case HT_BORDER_RIGHT:
-            //SetDefaultCursor (GetSystemCursor (IDC_SIZEWE));
-            SetCursor (GetSystemCursor (IDC_SIZEWE));
-            break;
-        case HT_CORNER_TL:
-        case HT_CORNER_BR:
-            //SetDefaultCursor (GetSystemCursor (IDC_SIZENWSE));
-            SetCursor (GetSystemCursor (IDC_SIZENWSE));
-            break;
-        case HT_CORNER_BL:
-        case HT_CORNER_TR:
-            //SetDefaultCursor (GetSystemCursor (IDC_SIZENESW));
-            SetCursor (GetSystemCursor (IDC_SIZENESW));
-            break;
-        default:
-            _WRN_PRINTF ("KERNEL>Desktop: Drag and drop window: bad location\n");
-            break;
+    case HT_CAPTION:
+        //SetDefaultCursor (GetSystemCursor (IDC_MOVE));
+        SetCursor (GetSystemCursor (IDC_MOVE));
+        break;
+    case HT_BORDER_TOP:
+    case HT_BORDER_BOTTOM:
+        //SetDefaultCursor (GetSystemCursor (IDC_SIZENS));
+        SetCursor (GetSystemCursor (IDC_SIZENS));
+        break;
+    case HT_BORDER_LEFT:
+    case HT_BORDER_RIGHT:
+        //SetDefaultCursor (GetSystemCursor (IDC_SIZEWE));
+        SetCursor (GetSystemCursor (IDC_SIZEWE));
+        break;
+    case HT_CORNER_TL:
+    case HT_CORNER_BR:
+        //SetDefaultCursor (GetSystemCursor (IDC_SIZENWSE));
+        SetCursor (GetSystemCursor (IDC_SIZENWSE));
+        break;
+    case HT_CORNER_BL:
+    case HT_CORNER_TR:
+        //SetDefaultCursor (GetSystemCursor (IDC_SIZENESW));
+        SetCursor (GetSystemCursor (IDC_SIZENESW));
+        break;
+    default:
+        _WRN_PRINTF ("KERNEL>Desktop: Drag and drop window: bad location\n");
+        break;
     }
 
     SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
@@ -1341,51 +1338,51 @@ static int do_drag_drop_window (UINT msg, int x, int y)
                 _dd_info.rc.right, _dd_info.rc.bottom);
 
         switch (_dd_info.location) {
-                case HT_CAPTION:
-                    OffsetRect (&_dd_info.rc,
-                                    x - _dd_info.last_x,
-                                    y - _dd_info.last_y);
-                    break;
+        case HT_CAPTION:
+            OffsetRect (&_dd_info.rc,
+                            x - _dd_info.last_x,
+                            y - _dd_info.last_y);
+            break;
 
-                case HT_BORDER_TOP:
-                    _dd_info.rc.top += y - _dd_info.last_y;
-                    break;
+        case HT_BORDER_TOP:
+            _dd_info.rc.top += y - _dd_info.last_y;
+            break;
 
-                case HT_BORDER_BOTTOM:
-                    _dd_info.rc.bottom += y - _dd_info.last_y;
-                    break;
+        case HT_BORDER_BOTTOM:
+            _dd_info.rc.bottom += y - _dd_info.last_y;
+            break;
 
-                case HT_BORDER_LEFT:
-                    _dd_info.rc.left += x - _dd_info.last_x;
-                    break;
+        case HT_BORDER_LEFT:
+            _dd_info.rc.left += x - _dd_info.last_x;
+            break;
 
-                case HT_BORDER_RIGHT:
-                    _dd_info.rc.right += x - _dd_info.last_x;
-                    break;
+        case HT_BORDER_RIGHT:
+            _dd_info.rc.right += x - _dd_info.last_x;
+            break;
 
-                case HT_CORNER_TL:
-                    _dd_info.rc.left += x - _dd_info.last_x;
-                    _dd_info.rc.top += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_TL:
+            _dd_info.rc.left += x - _dd_info.last_x;
+            _dd_info.rc.top += y - _dd_info.last_y;
+            break;
 
-                case HT_CORNER_TR:
-                    _dd_info.rc.right += x - _dd_info.last_x;
-                    _dd_info.rc.top += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_TR:
+            _dd_info.rc.right += x - _dd_info.last_x;
+            _dd_info.rc.top += y - _dd_info.last_y;
+            break;
 
-                case HT_CORNER_BL:
-                    _dd_info.rc.left += x - _dd_info.last_x;
-                    _dd_info.rc.bottom += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_BL:
+            _dd_info.rc.left += x - _dd_info.last_x;
+            _dd_info.rc.bottom += y - _dd_info.last_y;
+            break;
 
-                case HT_CORNER_BR:
-                    _dd_info.rc.right += x - _dd_info.last_x;
-                    _dd_info.rc.bottom += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_BR:
+            _dd_info.rc.right += x - _dd_info.last_x;
+            _dd_info.rc.bottom += y - _dd_info.last_y;
+            break;
 
-                default:
-                    _WRN_PRINTF ("KERNEL>Desktop: do_drag_drop_window: bad location\n");
-                    break;
+        default:
+            _WRN_PRINTF ("KERNEL>Desktop: do_drag_drop_window: bad location\n");
+            break;
         }
 
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
@@ -1408,7 +1405,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
         unlock_zorder_info ();
         SelectClipRect (HDC_SCREEN_SYS, &rcScr);
 
-        if(_dd_info.hwnd != (HWND)gui_GetMainWindowPtrUnderPoint (x, y))
+        if (_dd_info.hwnd != (HWND)gui_GetMainWindowPtrUnderPoint (x, y))
             SetDefaultCursor (GetSystemCursor (IDC_ARROW));
         _dd_info.hwnd = 0;
     }
@@ -1424,176 +1421,180 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
     do_drag_drop_window (message, 0, 0);
 
     switch (message) {
-        case MSG_ADDNEWMAINWIN:
+    case MSG_ADDNEWMAINWIN:
 #ifdef _MGHAVE_MENU
-            if (sg_ptmi)
-                dskForceCloseMenu ();
+        if (sg_ptmi)
+            dskForceCloseMenu ();
 #endif
-            return dskAddNewMainWindow(pWin);
+        return dskAddNewMainWindow(pWin);
 
-        case MSG_REMOVEMAINWIN:
+    case MSG_REMOVEMAINWIN:
 #ifdef _MGHAVE_MENU
-            if (sg_ptmi)
-                dskForceCloseMenu ();
+        if (sg_ptmi)
+            dskForceCloseMenu ();
 #endif
-            dskRemoveMainWindow(pWin);
-            __mg_reset_desktop_capture_info (pWin);
-            return 0;
+        dskRemoveMainWindow(pWin);
+        __mg_reset_desktop_capture_info (pWin);
+        return 0;
 
-        case MSG_MOVETOTOPMOST:
+    case MSG_MOVETOTOPMOST:
 #ifdef _MGHAVE_MENU
-            if (sg_ptmi)
-                dskForceCloseMenu ();
+        if (sg_ptmi)
+            dskForceCloseMenu ();
 #endif
-            dskMoveToTopMost(pWin, RCTM_MESSAGE, 0);
-            return 0;
+        dskMoveToTopMost(pWin, RCTM_MESSAGE, 0);
+        return 0;
 
-        case MSG_SHOWMAINWIN:
+    case MSG_SHOWMAINWIN:
 #ifdef _MGHAVE_MENU
-            if (sg_ptmi)
-                dskForceCloseMenu ();
+        if (sg_ptmi)
+            dskForceCloseMenu ();
 #endif
-            dskShowMainWindow(pWin, TRUE);
-            return 0;
+        dskShowMainWindow(pWin, TRUE);
+        return 0;
 
-        case MSG_HIDEMAINWIN:
+    case MSG_HIDEMAINWIN:
 #ifdef _MGHAVE_MENU
-            if (sg_ptmi)
-                dskForceCloseMenu ();
+        if (sg_ptmi)
+            dskForceCloseMenu ();
 #endif
-            dskHideMainWindow (pWin);
-            __mg_reset_desktop_capture_info (pWin);
-            return 0;
+        dskHideMainWindow (pWin);
+        __mg_reset_desktop_capture_info (pWin);
+        return 0;
 
-        case MSG_MOVEMAINWIN:
-            if (pWin->WinType == TYPE_CONTROL)
-                lRet = (LRESULT)dskMoveGlobalControl (pWin, (RECT*)lParam);
-            else {
-                lRet = (LRESULT)dskMoveMainWindow (pWin, (RECT*)lParam);
-            }
-            return lRet;
+    case MSG_MOVEMAINWIN:
+        if (pWin->WinType == TYPE_CONTROL)
+            lRet = (LRESULT)dskMoveGlobalControl (pWin, (RECT*)lParam);
+        else {
+            lRet = (LRESULT)dskMoveMainWindow (pWin, (RECT*)lParam);
+        }
+        return lRet;
 
-        case MSG_GETACTIVEMAIN:
-            return (LRESULT)dskGetActiveWindow();
+    case MSG_GETACTIVEMAIN:
+        return (LRESULT)dskGetActiveWindow();
 
-        case MSG_SETACTIVEMAIN:
-            lRet = (LRESULT)dskSetActiveWindow (pWin);
-            return lRet;
+    case MSG_SETACTIVEMAIN:
+        lRet = (LRESULT)dskSetActiveWindow (pWin);
+        return lRet;
 
-        case MSG_GETCAPTURE:
-            return (LRESULT)__mg_capture_wnd;
+    case MSG_GETCAPTURE:
+        return (LRESULT)__mg_capture_wnd;
 
-        case MSG_SETCAPTURE:
-            return (LRESULT)DesktopSetCapture ((HWND)pWin);
+    case MSG_SETCAPTURE:
+        return (LRESULT)DesktopSetCapture ((HWND)pWin);
 
 #ifdef _MGHAVE_MENU
-        case MSG_TRACKPOPUPMENU:
-            return dskStartTrackPopupMenu((PTRACKMENUINFO)lParam);
+    case MSG_TRACKPOPUPMENU:
+        return dskStartTrackPopupMenu((PTRACKMENUINFO)lParam);
 
-        case MSG_ENDTRACKMENU:
-            return dskEndTrackPopupMenu((PTRACKMENUINFO)lParam);
+    case MSG_ENDTRACKMENU:
+        return dskEndTrackPopupMenu((PTRACKMENUINFO)lParam);
 
-        case MSG_CLOSEMENU:
-            return dskCloseMenu ();
+    case MSG_CLOSEMENU:
+        return dskCloseMenu ();
 #endif
 
-        case MSG_SCROLLMAINWIN:
-            lRet = dskScrollMainWindow (pWin, (PSCROLLWINDOWINFO)lParam);
-            return lRet;
+    case MSG_SCROLLMAINWIN:
+        lRet = dskScrollMainWindow (pWin, (PSCROLLWINDOWINFO)lParam);
+        return lRet;
 
-        case MSG_CARET_CREATE:
-            sg_hCaretWnd = (HWND)pWin;
-            sg_uCaretBTime = pWin->pCaretInfo->uTime;
-            return 0;
+    case MSG_CARET_CREATE:
+        sg_hCaretWnd = (HWND)pWin;
+        sg_uCaretBTime = pWin->pCaretInfo->uTime;
+        return 0;
 
-        case MSG_CARET_DESTROY:
-            sg_hCaretWnd = 0;
-            return 0;
+    case MSG_CARET_DESTROY:
+        sg_hCaretWnd = 0;
+        return 0;
 
-        case MSG_ENABLEMAINWIN:
-            dskEnableWindow (pWin, lParam);
-            return 0;
+    case MSG_ENABLEMAINWIN:
+        dskEnableWindow (pWin, lParam);
+        return 0;
 
-        case MSG_ISENABLED:
-            return !(pWin->dwStyle & WS_DISABLED);
+    case MSG_ISENABLED:
+        return !(pWin->dwStyle & WS_DISABLED);
 
-        case MSG_SETWINCURSOR:
-        {
-            HCURSOR old = pWin->hCursor;
+    case MSG_SETWINCURSOR: {
+        HCURSOR old = pWin->hCursor;
 
-            pWin->hCursor = (HCURSOR)lParam;
-            return (LRESULT)old;
+        pWin->hCursor = (HCURSOR)lParam;
+        return (LRESULT)old;
+    }
+
+    /* TODO: bad implementation */
+    case MSG_GETNEXTMAINWIN: {
+        HWND hWnd = HWND_NULL;
+        int slot;
+        ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
+        int last_type;
+
+        if (pWin) {
+            last_type = nodes[pWin->idx_znode].flags & ZOF_TYPE_MASK;
+            slot = nodes[pWin->idx_znode].next;
+        }else{
+            last_type = ZOF_TYPE_TOPMOST;
+            slot = __mg_zorder_info->first_topmost;
         }
 
-        case MSG_GETNEXTMAINWIN:
-        {
-            HWND hWnd = HWND_NULL;
-            int slot;
-            ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
-            int last_type;
-
-            if (pWin) {
-                last_type = nodes[pWin->idx_znode].flags & ZOF_TYPE_MASK;
-                slot = nodes[pWin->idx_znode].next;
-            }else{
-                last_type = ZOF_TYPE_TOPMOST;
-                slot = __mg_zorder_info->first_topmost;
-            }
-
-            while (1) {
-                if (slot <= 0) {
-                    if (last_type == ZOF_TYPE_TOPMOST) {
-                        last_type = ZOF_TYPE_NORMAL;
-                        slot = __mg_zorder_info->first_normal;
-                        continue;
-                    }
-                    else {
-                        return (LRESULT)HWND_NULL;
-                    }
-                }
-
-                hWnd = nodes[slot].hwnd;
-                if (0
-                        || !hWnd
-                        || !(pWin = gui_CheckAndGetMainWindowPtr (hWnd))
-                        || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-                    slot = nodes[slot].next;
+        while (1) {
+            if (slot <= 0) {
+                if (last_type == ZOF_TYPE_TOPMOST) {
+                    last_type = ZOF_TYPE_NORMAL;
+                    slot = __mg_zorder_info->first_normal;
                     continue;
-                }else{
-                    return (LRESULT)hWnd;
+                }
+                else {
+                    return (LRESULT)HWND_NULL;
                 }
             }
-            break;
+
+            hWnd = nodes[slot].hwnd;
+            if (0
+                    || !hWnd
+                    || !(pWin = gui_CheckAndGetMainWindowPtr (hWnd))
+                    || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+                slot = nodes[slot].next;
+                continue;
+            }
+            else{
+                return (LRESULT)hWnd;
+            }
         }
+        break;
+    }
 
-        /* Since 4.2.0 */
-        case MSG_SETALWAYSTOP:
-            return dskSetMainWindowAlwaysTop(pWin, (BOOL)lParam);
+    /* Since 4.2.0 */
+    case MSG_SETALWAYSTOP:
+        return dskSetMainWindowAlwaysTop(pWin, (BOOL)lParam);
 
-        case MSG_SHOWGLOBALCTRL:
+    /* Since 4.2.0 */
+    case MSG_SETWINDOWMASK:
+        return dskSetWindowMask (pWin, (WINMASKINFO*)lParam);
+
+    case MSG_SHOWGLOBALCTRL:
 #ifdef _MGHAVE_MENU
-            if (sg_ptmi)
-                dskForceCloseMenu ();
+        if (sg_ptmi)
+            dskForceCloseMenu ();
 #endif
-            dskMoveGlobalControl (pWin, (RECT*)&(pWin->left));
-            dskMoveToTopMost (pWin, RCTM_SHOWCTRL, 0);
-            dskSetPrimitiveChildren (pWin, TRUE);
-            break;
+        dskMoveGlobalControl (pWin, (RECT*)&(pWin->left));
+        dskMoveToTopMost (pWin, RCTM_SHOWCTRL, 0);
+        dskSetPrimitiveChildren (pWin, TRUE);
+        break;
 
-        case MSG_HIDEGLOBALCTRL:
+    case MSG_HIDEGLOBALCTRL:
 #ifdef _MGHAVE_MENU
-            if (sg_ptmi)
-                dskForceCloseMenu ();
+        if (sg_ptmi)
+            dskForceCloseMenu ();
 #endif
-            dskHideMainWindow (pWin);
-            dskSetPrimitiveChildren (pWin, FALSE);
-            break;
+        dskHideMainWindow (pWin);
+        dskSetPrimitiveChildren (pWin, FALSE);
+        break;
 
-        case MSG_STARTDRAGWIN:
-            return dskStartDragWindow (pWin, (DRAGINFO*)lParam);
+    case MSG_STARTDRAGWIN:
+        return dskStartDragWindow (pWin, (DRAGINFO*)lParam);
 
-        case MSG_CANCELDRAGWIN:
-            return dskCancelDragWindow (pWin);
+    case MSG_CANCELDRAGWIN:
+        return dskCancelDragWindow (pWin);
    }
 
    return lRet;
@@ -1687,8 +1688,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     iPos = 0;
 
     slot = __mg_zorder_info->first_topmost;
-    for (; slot > 0; slot = nodes[slot].next)
-    {
+    for (; slot > 0; slot = nodes[slot].next) {
         pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin && pWin->WinType == TYPE_MAINWIN &&
                 !(nodes[slot].flags & ZOF_IF_ALWAYSTOP)) {
@@ -1720,8 +1720,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     }
 
     slot = __mg_zorder_info->first_normal;
-    for (; slot > 0; slot = nodes[slot].next)
-    {
+    for (; slot > 0; slot = nodes[slot].next) {
         pWin = (PMAINWIN)(nodes[slot].hwnd);
         if (pWin && pWin->WinType == TYPE_MAINWIN) {
             if (pWin->dwStyle & WS_VISIBLE)
@@ -1761,8 +1760,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         PMAINWIN pWin;
 
         slot = __mg_zorder_info->first_topmost;
-        for (; slot > 0; slot = nodes[slot].next)
-        {
+        for (; slot > 0; slot = nodes[slot].next) {
             pWin = (PMAINWIN)(nodes[slot].hwnd);
             if (pWin && (pWin->WinType != TYPE_CONTROL)
 #ifndef _MGRM_THREADS
@@ -1775,8 +1773,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         }
 
         slot = __mg_zorder_info->first_normal;
-        for (; slot > 0; slot = nodes[slot].next)
-        {
+        for (; slot > 0; slot = nodes[slot].next) {
             pWin = (PMAINWIN)(nodes[slot].hwnd);
             if (pWin && (pWin->WinType == TYPE_MAINWIN)
 #ifndef _MGRM_THREADS
@@ -1828,7 +1825,7 @@ static int dskOnNewCtrlInstance (PCONTROL pParent, PCONTROL pNewCtrl)
         pNewCtrl->idx_znode = dskAllocZOrderNode ((PMAINWIN)pNewCtrl);
 
         if (pNewCtrl->idx_znode <= 0) {
-            _WRN_PRINTF ("KERNEL>Desktop: Alloc zorder node for control fail.\n");
+            _WRN_PRINTF ("Failed to allocate znode for control.\n");
             return -1;
         }
 
@@ -1925,7 +1922,8 @@ static BOOL _cb_refresh_znode (void* context,
     pTemp = (PMAINWIN)node->hwnd;
 
     if (pTemp
-            && ((pTemp->WinType == TYPE_CONTROL && (pTemp->dwExStyle & WS_EX_CTRLASMAINWIN))
+            && ((pTemp->WinType == TYPE_CONTROL &&
+                    (pTemp->dwExStyle & WS_EX_CTRLASMAINWIN))
                 || pTemp->WinType != TYPE_CONTROL)
             && pTemp->dwStyle & WS_VISIBLE) {
         if (info->is_empty_invrc) {
@@ -1935,7 +1933,8 @@ static BOOL _cb_refresh_znode (void* context,
         else {
             RECT rcTemp, rcInv, rcWin;
 
-            if (pTemp->WinType == TYPE_CONTROL && (pTemp->dwExStyle & WS_EX_CTRLASMAINWIN)){
+            if (pTemp->WinType == TYPE_CONTROL &&
+                    (pTemp->dwExStyle & WS_EX_CTRLASMAINWIN)){
                 dskGetWindowRectInScreen (pTemp, &rcWin);
             }
             else
@@ -2057,13 +2056,16 @@ void GUIAPI DesktopUpdateAllWindow(void)
 }
 
 #ifndef _MG_ENABLE_SCREENSAVER
-#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0)
+#   define HAS_NO_MAINWINDOW()  \
+        ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0)
 #else
     /* The screensaver occupys one znode */
-#   define HAS_NO_MAINWINDOW() ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1)
+#   define HAS_NO_MAINWINDOW() \
+        ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1)
 #endif
 
-static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT DesktopWinProc (HWND hWnd, UINT message,
+        WPARAM wParam, LPARAM lParam)
 {
     static HDC hDesktopDC;
     int flags, x, y;
@@ -2076,7 +2078,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
         PostMessage ((HWND)active_mainwnd, message, wParam, lParam);
     }
     // VW: Since 4.0.0 for extra input messages.
-    else if (message >= MSG_FIRSTEXTRAINPUTMSG && message <= MSG_LASTEXTRAINPUTMSG) {
+    else if (message >= MSG_FIRSTEXTRAINPUTMSG &&
+            message <= MSG_LASTEXTRAINPUTMSG) {
         PostMessage ((HWND)active_mainwnd, message, wParam, lParam);
     }
     else if (message >= MSG_FIRSTKEYMSG && message <= MSG_LASTKEYMSG) {
@@ -2144,8 +2147,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
             dskDesktopCommand (sg_DesktopMenu, (int)wParam);
 #endif
         }
-        else
-        {
+        else {
             if(dsk_ops->desktop_menucmd_handler)
                 dsk_ops->desktop_menucmd_handler(dt_context, (int)wParam);
         }
@@ -2154,257 +2156,265 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
     }
 
     switch (message) {
-        case MSG_STARTSESSION:
-            __mg_init_local_sys_text ();
-            hDesktopDC = GetDC (HWND_DESKTOP);
+    case MSG_STARTSESSION:
+        __mg_init_local_sys_text ();
+        hDesktopDC = GetDC (HWND_DESKTOP);
 
-            dsk_ops = &def_dsk_ops;
-            if(dsk_ops->init)
-                dt_context = dsk_ops->init();
+        dsk_ops = &def_dsk_ops;
+        if(dsk_ops->init)
+            dt_context = dsk_ops->init();
 #ifdef _MGHAVE_MENU
-            sg_DesktopMenu = dskCreateDesktopMenu ();
+        sg_DesktopMenu = dskCreateDesktopMenu ();
+#endif
+        break;
+
+    case MSG_REINITSESSION:
+        if (wParam)
+            __mg_init_local_sys_text ();
+
+#ifdef _MGHAVE_MENU
+        if (sg_DesktopMenu) {
+            DestroyMenu (sg_DesktopMenu);
+            sg_DesktopMenu = 0;
+        }
+
+        sg_DesktopMenu = dskCreateDesktopMenu ();
 #endif
 
-            break;
+        SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
+        break;
 
-        case MSG_REINITSESSION:
-            if (wParam)
-                __mg_init_local_sys_text ();
+    case MSG_ENDSESSION:
+        if (
+                HAS_NO_MAINWINDOW()
+#ifdef _MGRM_THREADS
+                && __mg_enter_terminategui
+#endif
+                ) {
+            __mg_screensaver_destroy();
+
+            if (hDesktopDC)
+                ReleaseDC (hDesktopDC);
+            hDesktopDC = 0;
 
 #ifdef _MGHAVE_MENU
             if (sg_DesktopMenu) {
                 DestroyMenu (sg_DesktopMenu);
                 sg_DesktopMenu = 0;
             }
-
-            sg_DesktopMenu = dskCreateDesktopMenu ();
 #endif
+            if(dsk_ops->deinit)
+                dsk_ops->deinit(dt_context);
 
-            SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
-        break;
+            PostQuitMessage (HWND_DESKTOP);
 
-        case MSG_ENDSESSION:
-            if (
-                    HAS_NO_MAINWINDOW()
-#ifdef _MGRM_THREADS
-                    && __mg_enter_terminategui
-#endif
-                    ) {
-                __mg_screensaver_destroy();
-
-                if (hDesktopDC) ReleaseDC (hDesktopDC);
-                hDesktopDC = 0;
-
-#ifdef _MGHAVE_MENU
-                if (sg_DesktopMenu) {
-                    DestroyMenu (sg_DesktopMenu);
-                    sg_DesktopMenu = 0;
-                }
-#endif
-                if(dsk_ops->deinit)
-                    dsk_ops->deinit(dt_context);
-
-                PostQuitMessage (HWND_DESKTOP);
-
-                return 1;
-            }
-            break;
-
-        case MSG_ERASEDESKTOP:
-
-            if(dsk_ops->paint_desktop)
-                dsk_ops->paint_desktop(dt_context, hDesktopDC, (PRECT)lParam);
-
-            break;
-#ifndef _MGRM_THREADS
-        case MSG_SETFOCUS:
-            {
-                HWND active_win = (HWND)dskGetActiveWindow();
-                if (active_win) {
-                    SendNotifyMessage ((HWND)active_win, MSG_SETFOCUS, 0, 0);
-                }
-                break;
-            }
-#endif
-
-        case MSG_PAINT:
-        {
-            RECT invrc;
-
-            invrc.left = LOWORD(wParam);
-            invrc.top = HIWORD(wParam);
-            invrc.right = LOWORD(lParam);
-            invrc.bottom = HIWORD(lParam);
-
-            dskRefreshAllWindow (&invrc);
+            return 1;
         }
         break;
 
-        case MSG_BROADCASTMSG:
-            return dskBroadcastMessage ((PMSG)lParam);
-
-        case MSG_REGISTERWNDCLASS:
-            return AddNewControlClass ((PWNDCLASS)lParam);
-
-        case MSG_UNREGISTERWNDCLASS:
-            return gui_DeleteControlClass ((const char*)lParam);
-
-        case MSG_NEWCTRLINSTANCE:
-            return dskOnNewCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
-
-        case MSG_REMOVECTRLINSTANCE:
-            return dskOnRemoveCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
-
-        case MSG_GETCTRLCLASSINFO:
-            return (LRESULT)gui_GetControlClassInfo ((const char*)lParam);
-
-        case MSG_CTRLCLASSDATAOP:
-            return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
-
-        case MSG_REGISTERKEYHOOK:
-            return (LRESULT)dskRegisterKeyHook ((void*)wParam,
-                            (MSGHOOK)lParam);
-
-        case MSG_REGISTERMOUSEHOOK:
-            return (LRESULT)dskRegisterMouseHook ((void*)wParam,
-                            (MSGHOOK)lParam);
-
-        case MSG_IME_REGISTER:
-            return dskRegisterIMEWnd ((HWND)wParam);
-
-        case MSG_IME_UNREGISTER:
-            return dskUnregisterIMEWnd ((HWND)wParam);
-
-        case MSG_IME_SETSTATUS:
-            return dskSetIMEStatus ((int)wParam, (int)lParam);
-
-        case MSG_IME_SET_TARGET_INFO:
-            return dskSetIMETargetInfo ((IME_TARGET_INFO*)lParam);
-
-        case MSG_IME_GET_TARGET_INFO:
-            return dskGetIMETargetInfo ((IME_TARGET_INFO*)lParam);
-
-        case MSG_IME_GETSTATUS:
-            return dskGetIMEStatus ((int)wParam);
+    case MSG_ERASEDESKTOP:
+        if (dsk_ops->paint_desktop)
+            dsk_ops->paint_desktop(dt_context, hDesktopDC, (PRECT)lParam);
+        break;
 
 #ifndef _MGRM_THREADS
-        case MSG_SRVNOTIFY:
-            BroadcastMessage (MSG_SRVNOTIFY, wParam, lParam);
+    case MSG_SETFOCUS: {
+        HWND active_win = (HWND)dskGetActiveWindow();
+        if (active_win) {
+            SendNotifyMessage ((HWND)active_win, MSG_SETFOCUS, 0, 0);
+        }
+        break;
+    }
+#endif
+
+    case MSG_PAINT: {
+        RECT invrc;
+
+        invrc.left = LOWORD(wParam);
+        invrc.top = HIWORD(wParam);
+        invrc.right = LOWORD(lParam);
+        invrc.bottom = HIWORD(lParam);
+
+        dskRefreshAllWindow (&invrc);
+        break;
+    }
+
+    case MSG_BROADCASTMSG:
+        return dskBroadcastMessage ((PMSG)lParam);
+
+    case MSG_REGISTERWNDCLASS:
+        return AddNewControlClass ((PWNDCLASS)lParam);
+
+    case MSG_UNREGISTERWNDCLASS:
+        return gui_DeleteControlClass ((const char*)lParam);
+
+    case MSG_NEWCTRLINSTANCE:
+        return dskOnNewCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
+
+    case MSG_REMOVECTRLINSTANCE:
+        return dskOnRemoveCtrlInstance ((PCONTROL)wParam, (PCONTROL)lParam);
+
+    case MSG_GETCTRLCLASSINFO:
+        return (LRESULT)gui_GetControlClassInfo ((const char*)lParam);
+
+    case MSG_CTRLCLASSDATAOP:
+        return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
+
+    case MSG_REGISTERKEYHOOK:
+        return (LRESULT)dskRegisterKeyHook ((void*)wParam,
+                        (MSGHOOK)lParam);
+
+    case MSG_REGISTERMOUSEHOOK:
+        return (LRESULT)dskRegisterMouseHook ((void*)wParam,
+                        (MSGHOOK)lParam);
+
+    case MSG_IME_REGISTER:
+        return dskRegisterIMEWnd ((HWND)wParam);
+
+    case MSG_IME_UNREGISTER:
+        return dskUnregisterIMEWnd ((HWND)wParam);
+
+    case MSG_IME_SETSTATUS:
+        return dskSetIMEStatus ((int)wParam, (int)lParam);
+
+    case MSG_IME_SET_TARGET_INFO:
+        return dskSetIMETargetInfo ((IME_TARGET_INFO*)lParam);
+
+    case MSG_IME_GET_TARGET_INFO:
+        return dskGetIMETargetInfo ((IME_TARGET_INFO*)lParam);
+
+    case MSG_IME_GETSTATUS:
+        return dskGetIMEStatus ((int)wParam);
+
+#ifndef _MGRM_THREADS
+    case MSG_SRVNOTIFY:
+        BroadcastMessage (MSG_SRVNOTIFY, wParam, lParam);
         break;
 #endif
-        case MSG_TIMEOUT:
-            BroadcastMessage (MSG_IDLE, wParam, 0);
-            break;
 
-        case MSG_DT_KEYLONGPRESS:
-        case MSG_DT_KEYALWAYSPRESS:
-        case MSG_DT_KEYDOWN:
-        case MSG_DT_CHAR:
-        case MSG_DT_KEYUP:
-        case MSG_DT_SYSKEYDOWN:
-        case MSG_DT_SYSCHAR:
-        case MSG_DT_SYSKEYUP:
-            if(dsk_ops->keyboard_handler)
-                dsk_ops->keyboard_handler(dt_context, message, wParam, lParam);
-            break;
+    case MSG_TIMEOUT:
+        BroadcastMessage (MSG_IDLE, wParam, 0);
+        break;
+
+    case MSG_DT_KEYLONGPRESS:
+    case MSG_DT_KEYALWAYSPRESS:
+    case MSG_DT_KEYDOWN:
+    case MSG_DT_CHAR:
+    case MSG_DT_KEYUP:
+    case MSG_DT_SYSKEYDOWN:
+    case MSG_DT_SYSCHAR:
+    case MSG_DT_SYSKEYUP:
+        if(dsk_ops->keyboard_handler)
+            dsk_ops->keyboard_handler(dt_context, message, wParam, lParam);
+        break;
+
 #ifdef _MGHAVE_MENU
-        case MSG_DT_RBUTTONUP:
-                dskUpdateDesktopMenu (sg_DesktopMenu);
+    case MSG_DT_RBUTTONUP:
+        dskUpdateDesktopMenu (sg_DesktopMenu);
 #endif
-        case MSG_DT_LBUTTONDOWN:
-        case MSG_DT_LBUTTONUP:
-        case MSG_DT_LBUTTONDBLCLK:
-        case MSG_DT_MOUSEMOVE:
-        case MSG_DT_RBUTTONDOWN:
-        case MSG_DT_RBUTTONDBLCLK:
-        case MSG_DT_MBUTTONDOWN:
-        case MSG_DT_MBUTTONDBLCLK:
-        case MSG_DT_MBUTTONUP:
-            if(dsk_ops->mouse_handler)
-                dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
-            break;
+    case MSG_DT_LBUTTONDOWN:
+    case MSG_DT_LBUTTONUP:
+    case MSG_DT_LBUTTONDBLCLK:
+    case MSG_DT_MOUSEMOVE:
+    case MSG_DT_RBUTTONDOWN:
+    case MSG_DT_RBUTTONDBLCLK:
+    case MSG_DT_MBUTTONDOWN:
+    case MSG_DT_MBUTTONDBLCLK:
+    case MSG_DT_MBUTTONUP:
+        if(dsk_ops->mouse_handler)
+            dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
+        break;
 
-        case MSG_TIMER:      // per 0.01s
-        {
-            static DWORD uCounter = 0;
+    // per 0.01s
+    case MSG_TIMER: {
+        static DWORD uCounter = 0;
 #ifndef _MGRM_THREADS
-            static DWORD blink_counter = 0;
-            static DWORD sg_old_counter = 0;
+        static DWORD blink_counter = 0;
+        static DWORD sg_old_counter = 0;
 
-            if (sg_old_counter == 0)
-                sg_old_counter = __mg_timer_counter;
-
-            mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+        if (sg_old_counter == 0)
             sg_old_counter = __mg_timer_counter;
 
-            if (__mg_timer_counter < (blink_counter + 10))
-                break;
+        mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+        sg_old_counter = __mg_timer_counter;
 
-            uCounter += (__mg_timer_counter - blink_counter) * 10;
-            blink_counter = __mg_timer_counter;
+        if (__mg_timer_counter < (blink_counter + 10))
+            break;
+
+        uCounter += (__mg_timer_counter - blink_counter) * 10;
+        blink_counter = __mg_timer_counter;
 #else
-            static DWORD blink_counter = 0;
-            static DWORD sg_old_counter = 0;
+        static DWORD blink_counter = 0;
+        static DWORD sg_old_counter = 0;
 
-            if (__mg_quiting_stage < 0) {
-                int slot;
-                PMSGQUEUE pMsgQueue;
-                ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
-                PMAINWIN pWin;
+        if (__mg_quiting_stage < 0) {
+            int slot;
+            PMSGQUEUE pMsgQueue;
+            ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
+            PMAINWIN pWin;
 
-                /* XXX: wake up other theads */
-                for (slot=__mg_zorder_info->first_topmost; slot > 0; slot = nodes[slot].next) {
-                    pWin = (PMAINWIN)(nodes[slot].hwnd);
-                    if (pWin && (pWin->WinType != TYPE_CONTROL) && (pWin->pHosting == NULL)) {
-                        if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
-                            POST_MSGQ(pMsgQueue);
-                        }
+            /* XXX: wake up other theads */
+            for (slot=__mg_zorder_info->first_topmost;
+                    slot > 0; slot = nodes[slot].next) {
+                pWin = (PMAINWIN)(nodes[slot].hwnd);
+                if (pWin && (pWin->WinType != TYPE_CONTROL) &&
+                        (pWin->pHosting == NULL)) {
+                    if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
+                        POST_MSGQ(pMsgQueue);
                     }
                 }
-                for (slot = __mg_zorder_info->first_normal; slot > 0; slot = nodes[slot].next) {
-                    pWin = (PMAINWIN)(nodes[slot].hwnd);
-                    if (pWin && (pWin->WinType == TYPE_MAINWIN) && (pWin->pHosting == NULL)){
-                        if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
-                            POST_MSGQ(pMsgQueue);
-                        }
+            }
+            for (slot = __mg_zorder_info->first_normal;
+                    slot > 0; slot = nodes[slot].next) {
+                pWin = (PMAINWIN)(nodes[slot].hwnd);
+                if (pWin && (pWin->WinType == TYPE_MAINWIN) &&
+                        (pWin->pHosting == NULL)){
+                    if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
+                        POST_MSGQ(pMsgQueue);
                     }
-                }
-
-                if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE && __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
-                    -- __mg_quiting_stage;
-                    /* printf("try to quit %d\n", __mg_quiting_stage); */
-                }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
-                    /* printf("force to quit !!!\n"); */
-                }
-
-                if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
-                        && HAS_NO_MAINWINDOW()
-                        && __mg_enter_terminategui /* Let Desktop wait for MiniGUIMain() */
-                        ) {
-                    __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
-                }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
-                    PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
                 }
             }
 
-            if (MG_UNLIKELY(sg_old_counter == 0))
-                sg_old_counter = __mg_timer_counter;
-            mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
-            sg_old_counter = __mg_timer_counter;
+            if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE &&
+                    __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
+                __mg_quiting_stage--;
+            }
+            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
+                /* printf("force to quit !!!\n"); */
+            }
 
-            if (__mg_timer_counter < (blink_counter + 10))
-                break;
-
-            uCounter += (__mg_timer_counter - blink_counter) * 10;
-            blink_counter = __mg_timer_counter;
-#endif
-            if (sg_hCaretWnd != 0
-                    && gui_GetMainWindowPtrOfControl (sg_hCaretWnd) == dskGetActiveWindow()
-                    && uCounter >= sg_uCaretBTime) {
-                PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
-                uCounter = 0;
+            if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
+                    && HAS_NO_MAINWINDOW()
+                    && __mg_enter_terminategui) {
+                /* Let Desktop wait for MiniGUIMain() */
+                __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
+            } else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
+                PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
             }
         }
+
+        if (MG_UNLIKELY(sg_old_counter == 0))
+            sg_old_counter = __mg_timer_counter;
+        mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+        sg_old_counter = __mg_timer_counter;
+
+        if (__mg_timer_counter < (blink_counter + 10))
+            break;
+
+        uCounter += (__mg_timer_counter - blink_counter) * 10;
+        blink_counter = __mg_timer_counter;
+#endif
+        if (sg_hCaretWnd != 0
+                && gui_GetMainWindowPtrOfControl (sg_hCaretWnd) ==
+                dskGetActiveWindow()
+                && uCounter >= sg_uCaretBTime) {
+            PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
+            uCounter = 0;
+        }
+        break;
+    }
+
+    default:
         break;
     }
 

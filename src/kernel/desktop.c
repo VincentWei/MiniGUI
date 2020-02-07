@@ -773,7 +773,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //ReleaseDC (hdc);
     //BUGFIXED: we must update the secondaryDC to clientDC, to ensure
     //the secondaryDC and clientDC are same (dongjunjie 2010/07/08)
-    if(pWin->pMainWin->secondaryDC) {
+    if (pWin->pMainWin->secondaryDC) {
         HDC real_dc = GetClientDC((HWND)pWin->pMainWin);
         __mg_update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
         ReleaseDC (real_dc);

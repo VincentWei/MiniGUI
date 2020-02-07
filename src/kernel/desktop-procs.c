@@ -586,7 +586,7 @@ static intptr_t cliForceCloseMenu (void)
 
     return ret;
 }
-#endif
+#endif /* defined _MGHAVE_MENU */
 
 static intptr_t cliEnableWindow (PMAINWIN pWin, int flags)
 {
@@ -745,7 +745,7 @@ void __mg_start_server_desktop (void)
 
     InitClipRgn (&sg_UpdateRgn, &sg_FreeClipRectList);
     MAKE_REGION_INFINITE(&sg_UpdateRgn);
-#endif
+#endif /* not defiend _MGSCHEMA_COMPOSITING */
 
     SendMessage (HWND_DESKTOP, MSG_STARTSESSION, 0, 0);
     SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
@@ -808,23 +808,6 @@ static inline int srvFreeZOrderMaskRect (int cli, int idx_znode)
     return FreeZOrderMaskRect (cli, idx_znode);
 }
 
-int __kernel_change_z_node_mask_rect (HWND pWin, const RECT4MASK* rc, int nr_rc)
-{
-    if (!rc || !nr_rc)
-        return -1;
-
-    if (mgIsServer) {
-        return srvAllocZOrderMaskRect (0,
-                ((PMAINWIN)pWin)->idx_znode,
-                get_znode_flags_from_style((PMAINWIN)pWin),
-                rc, nr_rc);
-    }
-    else {
-        cliFreeZOrderMaskRect ((PMAINWIN)pWin);
-        return cliAllocZOrderMaskRect (pWin, rc, nr_rc);
-    }
-}
-
 ON_ZNODE_OPERATION OnZNodeOperation;
 
 static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
@@ -847,7 +830,7 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
         close (fd);
     }
     else {
-        _ERR_PRINTF("KERNEL: not server but fd for shared surface is not valid\n");
+        _ERR_PRINTF("KERNEL: not server but fd for shared surface is invalid\n");
         return -1;
     }
 
@@ -1009,7 +992,6 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
         _ERR_PRINTF("KERNEL: failed to attach to shared surface\n");
         return -1;
     }
-
 #endif /* def _MGSCHEMA_COMPOSITING */
 
     ret = dskMoveWindow (cli, idx_znode, memdc, rcWin);
@@ -1158,51 +1140,51 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
                 _dd_info.rc.right, _dd_info.rc.bottom);
 
         switch (_dd_info.location) {
-                case HT_CAPTION:
-                    OffsetRect (&_dd_info.rc,
-                                    x - _dd_info.last_x,
-                                    y - _dd_info.last_y);
-                    break;
+        case HT_CAPTION:
+            OffsetRect (&_dd_info.rc,
+                            x - _dd_info.last_x,
+                            y - _dd_info.last_y);
+            break;
 
-                case HT_BORDER_TOP:
-                    _dd_info.rc.top += y - _dd_info.last_y;
-                    break;
+        case HT_BORDER_TOP:
+            _dd_info.rc.top += y - _dd_info.last_y;
+            break;
 
-                case HT_BORDER_BOTTOM:
-                    _dd_info.rc.bottom += y - _dd_info.last_y;
-                    break;
+        case HT_BORDER_BOTTOM:
+            _dd_info.rc.bottom += y - _dd_info.last_y;
+            break;
 
-                case HT_BORDER_LEFT:
-                    _dd_info.rc.left += x - _dd_info.last_x;
-                    break;
+        case HT_BORDER_LEFT:
+            _dd_info.rc.left += x - _dd_info.last_x;
+            break;
 
-                case HT_BORDER_RIGHT:
-                    _dd_info.rc.right += x - _dd_info.last_x;
-                    break;
+        case HT_BORDER_RIGHT:
+            _dd_info.rc.right += x - _dd_info.last_x;
+            break;
 
-                case HT_CORNER_TL:
-                    _dd_info.rc.left += x - _dd_info.last_x;
-                    _dd_info.rc.top += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_TL:
+            _dd_info.rc.left += x - _dd_info.last_x;
+            _dd_info.rc.top += y - _dd_info.last_y;
+            break;
 
-                case HT_CORNER_TR:
-                    _dd_info.rc.right += x - _dd_info.last_x;
-                    _dd_info.rc.top += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_TR:
+            _dd_info.rc.right += x - _dd_info.last_x;
+            _dd_info.rc.top += y - _dd_info.last_y;
+            break;
 
-                case HT_CORNER_BL:
-                    _dd_info.rc.left += x - _dd_info.last_x;
-                    _dd_info.rc.bottom += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_BL:
+            _dd_info.rc.left += x - _dd_info.last_x;
+            _dd_info.rc.bottom += y - _dd_info.last_y;
+            break;
 
-                case HT_CORNER_BR:
-                    _dd_info.rc.right += x - _dd_info.last_x;
-                    _dd_info.rc.bottom += y - _dd_info.last_y;
-                    break;
+        case HT_CORNER_BR:
+            _dd_info.rc.right += x - _dd_info.last_x;
+            _dd_info.rc.bottom += y - _dd_info.last_y;
+            break;
 
-                default:
-                    _WRN_PRINTF ("KERNEL>Desktop: __mg_do_drag_drop_window: bad location\n");
-                    break;
+        default:
+            _WRN_PRINTF ("bad location\n");
+            break;
         }
 
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
@@ -1260,8 +1242,8 @@ static int srvChangeCaption (int cli, int idx_znode, const char *caption)
         if (caplen < 32) {
             strcpy (nodes[idx_znode].caption, caption);
         } else {
-            get_text_char_pos (menufont, caption, caplen, (32 - 3), /* '...' = 3*/
-                                 &fit_chars, pos_chars);
+            get_text_char_pos (menufont, caption, caplen,
+                    (32 - 3), /* '...' = 3*/ &fit_chars, pos_chars);
             memcpy(nodes[idx_znode].caption,
                    caption, pos_chars[fit_chars-1]);
             strcpy ((nodes[idx_znode].caption + pos_chars[fit_chars-1]),
@@ -1316,14 +1298,14 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
 #endif
 
     switch (info->id_op) {
-        case ID_ZOOP_MASKRECT_SET:
-            ret = srvAllocZOrderMaskRect (cli, info->idx_znode,
-                        info->flags, info->rc,
-                        info->nr_maskrect);
-            break;
-        case ID_ZOOP_MASKRECT_FREE:
-            ret = srvFreeZOrderMaskRect (cli, info->idx_znode);
-            break;
+    case ID_ZOOP_MASKRECT_SET:
+        ret = srvAllocZOrderMaskRect (cli, info->idx_znode,
+                    info->flags, info->rc,
+                    info->nr_maskrect);
+        break;
+    case ID_ZOOP_MASKRECT_FREE:
+        ret = srvFreeZOrderMaskRect (cli, info->idx_znode);
+        break;
     }
 
     /* Since 4.2.0 */
@@ -1908,10 +1890,11 @@ static int dskAddNewMainWindow (PMAINWIN pWin, const COMPOSITINGINFO* ct_info)
 
     if (mgIsServer) {
         memcpy (&rcWin, &pWin->left, sizeof (RECT));
-        pWin->idx_znode = srvAllocZOrderNode (0, (HWND)pWin, (HWND)pWin->pMainWin,
-                              get_znode_flags_from_style (pWin),
-                              &rcWin, pWin->spCaption, 0, 0, -1,
-                              ct_info->type, ct_info->arg);
+        pWin->idx_znode = srvAllocZOrderNode (0, (HWND)pWin,
+                (HWND)pWin->pMainWin,
+                get_znode_flags_from_style (pWin),
+                &rcWin, pWin->spCaption, 0, 0, -1,
+                ct_info->type, ct_info->arg);
     }
     else
         pWin->idx_znode = cliAllocZOrderNode (pWin, ct_info);
@@ -2000,7 +1983,7 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
         srvFreeZOrderNode (0, pWin->idx_znode);
     }
     else {
-        cliFreeZOrderMaskRect(pWin);
+        cliFreeZOrderMaskRect (pWin);
         cliFreeZOrderNode (pWin);
     }
 
@@ -2560,6 +2543,7 @@ static HWND dskSetCaptureWindow (PMAINWIN pWin)
     return old;
 }
 
+/* TODO: bad implementation */
 static HWND dskGetNextMainWindow (PMAINWIN pWin)
 {
     HWND hWnd = HWND_NULL;
@@ -2570,7 +2554,8 @@ static HWND dskGetNextMainWindow (PMAINWIN pWin)
     if (pWin) {
         last_type = nodes[pWin->idx_znode].flags & ZOF_TYPE_MASK;
         slot = nodes[pWin->idx_znode].next;
-    }else{
+    }
+    else {
         last_type = ZOF_TYPE_GLOBAL;
         slot = __mg_zorder_info->first_global;
     }
@@ -2677,6 +2662,26 @@ static BOOL dskSetMainWinAlwaysTop (PMAINWIN pWin, BOOL fSet)
 }
 
 /* Since 4.2.0 */
+static int dskSetWindowMask (HWND pWin, const WINMASKINFO* mask_info)
+{
+    if (!mask_info->rcs || !mask_info->nr_rcs)
+        return -1;
+
+    if (mgIsServer) {
+        /* XXX: free first */
+        srvFreeZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode);
+        return srvAllocZOrderMaskRect (0,
+                ((PMAINWIN)pWin)->idx_znode,
+                get_znode_flags_from_style((PMAINWIN)pWin),
+                mask_info->rcs, mask_info->nr_rcs);
+    }
+    else {
+        cliFreeZOrderMaskRect ((PMAINWIN)pWin);
+        return cliAllocZOrderMaskRect (pWin, mask_info->rcs, mask_info->nr_rcs);
+    }
+}
+
+/* Since 4.2.0 */
 BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer)
 {
     ZORDERINFO *src_zi, *dst_zi;
@@ -2754,131 +2759,134 @@ static BOOL dskSetMainWinCompositing (PMAINWIN pWin, const COMPOSITINGINFO* info
         if (srvSetZNodeCompositing (0, pWin->idx_znode, info->type, info->arg))
             return FALSE;
     }
-    else {
-        if (cliSetMainWinCompositing (pWin, info))
-            return FALSE;
+    else if (cliSetMainWinCompositing (pWin, info)) {
+        return FALSE;
     }
 
     return TRUE;
 }
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
-static LRESULT dskWindowMessageHandler (UINT message, PMAINWIN pWin, LPARAM lParam)
+static LRESULT dskWindowMessageHandler (UINT message,
+        PMAINWIN pWin, LPARAM lParam)
 {
     switch (message) {
-        case MSG_ADDNEWMAINWIN:
-            return dskAddNewMainWindow (pWin, (const COMPOSITINGINFO *)lParam);
+    case MSG_ADDNEWMAINWIN:
+        return dskAddNewMainWindow (pWin, (const COMPOSITINGINFO *)lParam);
 
-        case MSG_REMOVEMAINWIN:
-            dskRemoveMainWindow (pWin);
-            break;
+    case MSG_REMOVEMAINWIN:
+        dskRemoveMainWindow (pWin);
+        break;
 
-        case MSG_MOVETOTOPMOST:
-            dskMoveToTopMost (pWin, RCTM_MESSAGE, 0);
-            break;
+    case MSG_MOVETOTOPMOST:
+        dskMoveToTopMost (pWin, RCTM_MESSAGE, 0);
+        break;
 
-        case MSG_SHOWMAINWIN:
-            dskShowMainWindow (pWin, TRUE);
-            break;
+    case MSG_SHOWMAINWIN:
+        dskShowMainWindow (pWin, TRUE);
+        break;
 
-        case MSG_HIDEMAINWIN:
-            dskHideMainWindow (pWin);
-            break;
+    case MSG_HIDEMAINWIN:
+        dskHideMainWindow (pWin);
+        break;
 
-        case MSG_MOVEMAINWIN:
-            if (pWin->WinType == TYPE_CONTROL)
-                dskMoveGlobalControl (pWin, (RECT*)lParam);
-            else
-                dskMoveMainWindow (pWin, (RECT*)lParam);
-            break;
+    case MSG_MOVEMAINWIN:
+        if (pWin->WinType == TYPE_CONTROL)
+            dskMoveGlobalControl (pWin, (RECT*)lParam);
+        else
+            dskMoveMainWindow (pWin, (RECT*)lParam);
+        break;
 
-        case MSG_GETACTIVEMAIN:
-            return (LRESULT)dskGetActiveWindow (NULL);
+    case MSG_GETACTIVEMAIN:
+        return (LRESULT)dskGetActiveWindow (NULL);
 
-        case MSG_SETACTIVEMAIN:
-            return (LRESULT)dskSetActiveWindow (pWin);
+    case MSG_SETACTIVEMAIN:
+        return (LRESULT)dskSetActiveWindow (pWin);
 
-        case MSG_GETCAPTURE:
-            return (LRESULT)dskGetCaptureWindow ();
+    case MSG_GETCAPTURE:
+        return (LRESULT)dskGetCaptureWindow ();
 
-        case MSG_SETCAPTURE:
-            return (LRESULT)dskSetCaptureWindow (pWin);
+    case MSG_SETCAPTURE:
+        return (LRESULT)dskSetCaptureWindow (pWin);
 
 #ifdef _MGHAVE_MENU
-        case MSG_TRACKPOPUPMENU:
-            return dskStartTrackPopupMenu ((PTRACKMENUINFO)lParam);
+    case MSG_TRACKPOPUPMENU:
+        return dskStartTrackPopupMenu ((PTRACKMENUINFO)lParam);
 
-        case MSG_ENDTRACKMENU:
-            return dskEndTrackPopupMenu ((PTRACKMENUINFO)lParam);
+    case MSG_ENDTRACKMENU:
+        return dskEndTrackPopupMenu ((PTRACKMENUINFO)lParam);
 
-        case MSG_CLOSEMENU:
-            dskCloseMenu ();
-            break;
+    case MSG_CLOSEMENU:
+        dskCloseMenu ();
+        break;
 #endif
 
-        case MSG_SCROLLMAINWIN:
-            dskScrollMainWindow (pWin, (PSCROLLWINDOWINFO)lParam);
+    case MSG_SCROLLMAINWIN:
+        dskScrollMainWindow (pWin, (PSCROLLWINDOWINFO)lParam);
+        break;
+
+    case MSG_CARET_CREATE:
+        sg_hCaretWnd = (HWND)pWin;
+        sg_uCaretBTime = pWin->pCaretInfo->uTime;
+        return 0;
+
+    case MSG_CARET_DESTROY:
+        sg_hCaretWnd = 0;
+        return 0;
+
+    case MSG_ENABLEMAINWIN:
+        dskEnableWindow (pWin, lParam);
+        break;
+
+    case MSG_ISENABLED:
+        return !(pWin->dwStyle & WS_DISABLED);
+
+    case MSG_SETWINCURSOR:
+        {
+            HCURSOR old = pWin->hCursor;
+
+            pWin->hCursor = (HCURSOR)lParam;
+            return (LRESULT)old;
+        }
+
+    case MSG_GETNEXTMAINWIN:
+        return (LRESULT)dskGetNextMainWindow (pWin);
+
+    case MSG_SHOWGLOBALCTRL:
+        {
+            dskMoveGlobalControl (pWin, (RECT*)&(pWin->left));
+            dskMoveToTopMost (pWin, RCTM_SHOWCTRL, 0);
+            dskSetPrimitiveChildren (pWin, TRUE);
             break;
+        }
 
-        case MSG_CARET_CREATE:
-            sg_hCaretWnd = (HWND)pWin;
-            sg_uCaretBTime = pWin->pCaretInfo->uTime;
-            return 0;
+    case MSG_HIDEGLOBALCTRL:
+        dskHideMainWindow (pWin);
+        dskSetPrimitiveChildren (pWin, FALSE);
+        break;
 
-        case MSG_CARET_DESTROY:
-            sg_hCaretWnd = 0;
-            return 0;
+    case MSG_STARTDRAGWIN:
+        return dskStartDragWindow (pWin, (DRAGINFO*)lParam);
 
-        case MSG_ENABLEMAINWIN:
-            dskEnableWindow (pWin, lParam);
-            break;
+    case MSG_CANCELDRAGWIN:
+        return dskCancelDragWindow (pWin);
 
-        case MSG_ISENABLED:
-            return !(pWin->dwStyle & WS_DISABLED);
+    case MSG_CHANGECAPTION:
+        return dskChangeCaption (pWin);
 
-        case MSG_SETWINCURSOR:
-            {
-                HCURSOR old = pWin->hCursor;
+    /* Since 4.2.0 */
+    case MSG_SETALWAYSTOP:
+        return dskSetMainWinAlwaysTop (pWin, (BOOL)lParam);
 
-                pWin->hCursor = (HCURSOR)lParam;
-                return (LRESULT)old;
-            }
-
-        case MSG_GETNEXTMAINWIN:
-            return (LRESULT)dskGetNextMainWindow (pWin);
-
-        case MSG_SHOWGLOBALCTRL:
-            {
-                dskMoveGlobalControl (pWin, (RECT*)&(pWin->left));
-                dskMoveToTopMost (pWin, RCTM_SHOWCTRL, 0);
-                dskSetPrimitiveChildren (pWin, TRUE);
-                break;
-            }
-
-        case MSG_HIDEGLOBALCTRL:
-            dskHideMainWindow (pWin);
-            dskSetPrimitiveChildren (pWin, FALSE);
-            break;
-
-        case MSG_STARTDRAGWIN:
-            return dskStartDragWindow (pWin, (DRAGINFO*)lParam);
-
-        case MSG_CANCELDRAGWIN:
-            return dskCancelDragWindow (pWin);
-
-        case MSG_CHANGECAPTION:
-            return dskChangeCaption (pWin);
-
-        /* Since 4.2.0 */
-        case MSG_SETALWAYSTOP:
-            return dskSetMainWinAlwaysTop (pWin, (BOOL)lParam);
+    /* Since 4.2.0 */
+    case MSG_SETWINDOWMASK:
+        return dskSetWindowMask (pWin, (WINMASKINFO*)lParam);
 
 #ifdef _MGSCHEMA_COMPOSITING
-        /* Since 4.2.0 */
-        case MSG_SETCOMPOSITING:
-            return dskSetMainWinCompositing (pWin, (const COMPOSITINGINFO*)lParam);
+    /* Since 4.2.0 */
+    case MSG_SETCOMPOSITING:
+        return dskSetMainWinCompositing (pWin, (const COMPOSITINGINFO*)lParam);
 #endif
-
    }
 
    return 0;
@@ -2900,22 +2908,22 @@ HWND __mg_do_reghook_operation (int cli, const REGHOOKINFO* info)
     HWND ret = HWND_NULL;
 
     switch (info->id_op) {
-        case ID_REG_KEY:
-            ret = keyhook.hwnd;
-            keyhook.cli = cli;
-            keyhook.hwnd = info->hwnd;
-            keyhook.flag = info->flag;
-            break;
+    case ID_REG_KEY:
+        ret = keyhook.hwnd;
+        keyhook.cli = cli;
+        keyhook.hwnd = info->hwnd;
+        keyhook.flag = info->flag;
+        break;
 
-        case ID_REG_MOUSE:
-            ret = mousehook.hwnd;
-            mousehook.cli = cli;
-            mousehook.hwnd = info->hwnd;
-            mousehook.flag = info->flag;
-            break;
+    case ID_REG_MOUSE:
+        ret = mousehook.hwnd;
+        mousehook.cli = cli;
+        mousehook.hwnd = info->hwnd;
+        mousehook.flag = info->flag;
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
@@ -3213,27 +3221,27 @@ static int check_capture (int message)
                     && mgs_captured_main_win != NULL) {
 
         switch (message) {
-            case MSG_LBUTTONDOWN:
-            case MSG_RBUTTONDOWN:
-            case MSG_MBUTTONDOWN:
-                if (mgs_captured_by != message)
-                    return 1;
-                break;
+        case MSG_LBUTTONDOWN:
+        case MSG_RBUTTONDOWN:
+        case MSG_MBUTTONDOWN:
+            if (mgs_captured_by != message)
+                return 1;
+            break;
 
-            case MSG_LBUTTONUP:
-                if (mgs_captured_by != MSG_LBUTTONDOWN)
-                    return 1;
-                break;
+        case MSG_LBUTTONUP:
+            if (mgs_captured_by != MSG_LBUTTONDOWN)
+                return 1;
+            break;
 
-            case MSG_RBUTTONUP:
-                if (mgs_captured_by != MSG_RBUTTONDOWN)
-                    return 1;
-                break;
+        case MSG_RBUTTONUP:
+            if (mgs_captured_by != MSG_RBUTTONDOWN)
+                return 1;
+            break;
 
-            case MSG_MBUTTONUP:
-                if (mgs_captured_by != MSG_MBUTTONDOWN)
-                    return 1;
-                break;
+        case MSG_MBUTTONUP:
+            if (mgs_captured_by != MSG_MBUTTONDOWN)
+                return 1;
+            break;
         }
     }
 
@@ -3281,157 +3289,157 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
     }
 
     switch (message) {
-        case MSG_MOUSEMOVE:
-            if (mgs_captured_main_win != (void *)HWND_INVALID) {
-                if (mgs_captured_main_win)
-                    PostMessage((HWND)mgs_captured_main_win, MSG_NCMOUSEMOVE,
-                                CapHitCode, MAKELONG (x, y));
-                else
-                    PostMessage(HWND_DESKTOP, MSG_DT_MOUSEMOVE,
-                                pUnderPointer == NULL, MAKELONG (x, y));
-                break;
-            }
+    case MSG_MOUSEMOVE:
+        if (mgs_captured_main_win != (void *)HWND_INVALID) {
+            if (mgs_captured_main_win)
+                PostMessage((HWND)mgs_captured_main_win, MSG_NCMOUSEMOVE,
+                            CapHitCode, MAKELONG (x, y));
+            else
+                PostMessage(HWND_DESKTOP, MSG_DT_MOUSEMOVE,
+                            pUnderPointer == NULL, MAKELONG (x, y));
+            break;
+        }
 
-            if (pUnderPointer) {
-                HCURSOR def_cursor = GetDefaultCursor ();
-                if (UndHitCode == HT_CLIENT) {
-                    if (def_cursor)
-                        SetCursor (def_cursor);
-                    PostMessage ((HWND)pUnderPointer, MSG_SETCURSOR,
-                            UndHitCode, MAKELONG (cx, cy));
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
-                            UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE,
-                            flags, MAKELONG (cx, cy));
-                }
-                else {
-                    if (def_cursor)
-                        SetCursor (def_cursor);
-                    PostMessage ((HWND)pUnderPointer, MSG_NCSETCURSOR,
-                            UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
-                            UndHitCode, MAKELONG (x, y));
-                }
+        if (pUnderPointer) {
+            HCURSOR def_cursor = GetDefaultCursor ();
+            if (UndHitCode == HT_CLIENT) {
+                if (def_cursor)
+                    SetCursor (def_cursor);
+                PostMessage ((HWND)pUnderPointer, MSG_SETCURSOR,
+                        UndHitCode, MAKELONG (cx, cy));
+                PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
+                        UndHitCode, MAKELONG (x, y));
+                PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE,
+                        flags, MAKELONG (cx, cy));
             }
+            else {
+                if (def_cursor)
+                    SetCursor (def_cursor);
+                PostMessage ((HWND)pUnderPointer, MSG_NCSETCURSOR,
+                        UndHitCode, MAKELONG (x, y));
+                PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
+                        UndHitCode, MAKELONG (x, y));
+            }
+        }
         break;
 
-        case MSG_LBUTTONDOWN:
-        case MSG_RBUTTONDOWN:
-        case MSG_MBUTTONDOWN:
-            if (check_capture (message)) /* ignore the event */
-                break;
+    case MSG_LBUTTONDOWN:
+    case MSG_RBUTTONDOWN:
+    case MSG_MBUTTONDOWN:
+        if (check_capture (message)) /* ignore the event */
+            break;
 
-            if (pUnderPointer) {
+        if (pUnderPointer) {
 #ifdef _MGHAVE_MENU
-                dskForceCloseMenu ();
+            dskForceCloseMenu ();
 #endif
 
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    Ping ();
-                    break;
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                Ping ();
+                break;
+            }
+
+            if (pCtrlPtrIn == NULL) {
+                if (!dskIsTopMost (pUnderPointer)) {
+                    dskMoveToTopMost (pUnderPointer,
+                                    RCTM_CLICK, MAKELONG (x, y));
                 }
 
-                if (pCtrlPtrIn == NULL) {
-                    if (!dskIsTopMost (pUnderPointer)) {
-                        dskMoveToTopMost (pUnderPointer,
-                                        RCTM_CLICK, MAKELONG (x, y));
-                    }
+                if (pUnderPointer !=
+                        (PMAINWIN)dskSetActiveWindow (pUnderPointer))
+                    PostMessage ((HWND) pUnderPointer,
+                            MSG_MOUSEACTIVE, UndHitCode, 0);
+            }
 
-                    if (pUnderPointer !=
-                            (PMAINWIN)dskSetActiveWindow (pUnderPointer))
-                        PostMessage ((HWND) pUnderPointer,
-                                MSG_MOUSEACTIVE, UndHitCode, 0);
+            if (UndHitCode != HT_CLIENT) {
+                if (UndHitCode & HT_NEEDCAPTURE) {
+                    mgs_captured_main_win = pUnderPointer;
+                    mgs_captured_by = message;
                 }
-
-                if (UndHitCode != HT_CLIENT) {
-                    if (UndHitCode & HT_NEEDCAPTURE) {
-                        mgs_captured_main_win = pUnderPointer;
-                        mgs_captured_by = message;
-                    }
-                    else
-                        mgs_captured_main_win = (void*)HWND_INVALID;
-
-                    PostMessage ((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
-                }
-                else {
-                    PostMessage((HWND)pUnderPointer, message,
-                        flags, MAKELONG(cx, cy));
+                else
                     mgs_captured_main_win = (void*)HWND_INVALID;
-                }
-            }
-            else {
-                dskSetActiveWindow (NULL);
-                mgs_captured_main_win = NULL;
-                PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
-                            flags, MAKELONG (x, y));
-            }
-        break;
 
-        case MSG_LBUTTONUP:
-        case MSG_RBUTTONUP:
-        case MSG_MBUTTONUP:
-            if (check_capture (message)) /* ignore the event */
-                break;
-
-            if (mgs_captured_main_win != (void*)HWND_INVALID) {
-                if (mgs_captured_main_win)
-                    PostMessage ((HWND)mgs_captured_main_win,
-                        message + MSG_NCMOUSEOFF,
-                        CapHitCode, MAKELONG (x, y));
-                else if (!pUnderPointer)
-                    PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
-                        flags, MAKELONG (x, y));
-
-               // mgs_captured_main_win = NULL;
-                mgs_captured_main_win = (void*)HWND_INVALID;
-                break;
-            }
-            else {
-                if (pUnderPointer) {
-                    if (pUnderPointer->dwStyle & WS_DISABLED) {
-                        break;
-                    }
-
-                    if (UndHitCode == HT_CLIENT) {
-                        PostMessage((HWND)pUnderPointer, message,
-                            flags, MAKELONG (cx, cy));
-                    }
-                    else {
-                        PostMessage((HWND)pUnderPointer,
-                            message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
-                    }
-                }
-                else
-                    PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
-                        flags, MAKELONG (x, y));
-            }
-        break;
-
-        case MSG_LBUTTONDBLCLK:
-        case MSG_RBUTTONDBLCLK:
-        case MSG_MBUTTONDBLCLK:
-            if (pUnderPointer)
-            {
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    Ping ();
-                    break;
-                }
-
-                if(UndHitCode == HT_CLIENT)
-                    PostMessage((HWND)pUnderPointer, message,
-                        flags, MAKELONG(cx, cy));
-                else
-                    PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                PostMessage ((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
                         UndHitCode, MAKELONG (x, y));
             }
             else {
-                PostMessage(HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
-                        flags, MAKELONG (x, y));
+                PostMessage((HWND)pUnderPointer, message,
+                    flags, MAKELONG(cx, cy));
+                mgs_captured_main_win = (void*)HWND_INVALID;
             }
+        }
+        else {
+            dskSetActiveWindow (NULL);
+            mgs_captured_main_win = NULL;
+            PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
+                        flags, MAKELONG (x, y));
+        }
         break;
 
+    case MSG_LBUTTONUP:
+    case MSG_RBUTTONUP:
+    case MSG_MBUTTONUP:
+        if (check_capture (message)) /* ignore the event */
+            break;
+
+        if (mgs_captured_main_win != (void*)HWND_INVALID) {
+            if (mgs_captured_main_win)
+                PostMessage ((HWND)mgs_captured_main_win,
+                    message + MSG_NCMOUSEOFF,
+                    CapHitCode, MAKELONG (x, y));
+            else if (!pUnderPointer)
+                PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
+                    flags, MAKELONG (x, y));
+
+           // mgs_captured_main_win = NULL;
+            mgs_captured_main_win = (void*)HWND_INVALID;
+            break;
+        }
+        else {
+            if (pUnderPointer) {
+                if (pUnderPointer->dwStyle & WS_DISABLED) {
+                    break;
+                }
+
+                if (UndHitCode == HT_CLIENT) {
+                    PostMessage((HWND)pUnderPointer, message,
+                        flags, MAKELONG (cx, cy));
+                }
+                else {
+                    PostMessage((HWND)pUnderPointer,
+                        message + MSG_NCMOUSEOFF,
+                        UndHitCode, MAKELONG (x, y));
+                }
+            }
+            else
+                PostMessage (HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
+                    flags, MAKELONG (x, y));
+        }
+        break;
+
+    case MSG_LBUTTONDBLCLK:
+    case MSG_RBUTTONDBLCLK:
+    case MSG_MBUTTONDBLCLK:
+        if (pUnderPointer)
+        {
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                Ping ();
+                break;
+            }
+
+            if(UndHitCode == HT_CLIENT)
+                PostMessage((HWND)pUnderPointer, message,
+                    flags, MAKELONG(cx, cy));
+            else
+                PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                    UndHitCode, MAKELONG (x, y));
+        }
+        else {
+            PostMessage(HWND_DESKTOP, message + MSG_DT_MOUSEOFF,
+                    flags, MAKELONG (x, y));
+        }
+
+        break;
     }
 
     return 0;
@@ -3821,40 +3829,40 @@ static int znodes_of_this_client (void)
 static int cliSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
-        case MSG_STARTSESSION:
+    case MSG_STARTSESSION:
+        __mg_init_local_sys_text ();
+        break;
+
+    case MSG_REINITSESSION:
+        if (wParam)
             __mg_init_local_sys_text ();
-            break;
+        break;
 
-        case MSG_REINITSESSION:
-            if (wParam)
-                __mg_init_local_sys_text ();
-            break;
+    case MSG_ENDSESSION:
+        if (CLIENT_HAS_NO_MAINWINDOW()) {
+            PostQuitMessage (HWND_DESKTOP);
+            return 1;
+        }
+        break;
 
-        case MSG_ENDSESSION:
-            if (CLIENT_HAS_NO_MAINWINDOW()) {
-                PostQuitMessage (HWND_DESKTOP);
-                return 1;
-            }
-            break;
-
-        default:
-            break;
+    default:
+        break;
 #if 0
-        case MSG_ERASEDESKTOP:
-        case MSG_DT_KEYDOWN:
-        case MSG_DT_CHAR:
-        case MSG_DT_KEYUP:
-        case MSG_DT_SYSKEYDOWN:
-        case MSG_DT_SYSCHAR:
-        case MSG_DT_SYSKEYUP:
-        case MSG_DT_LBUTTONDOWN:
-        case MSG_DT_LBUTTONUP:
-        case MSG_DT_LBUTTONDBLCLK:
-        case MSG_DT_MOUSEMOVE:
-        case MSG_DT_RBUTTONDOWN:
-        case MSG_DT_RBUTTONDBLCLK:
-        case MSG_DT_RBUTTONUP:
-            break;
+    case MSG_ERASEDESKTOP:
+    case MSG_DT_KEYDOWN:
+    case MSG_DT_CHAR:
+    case MSG_DT_KEYUP:
+    case MSG_DT_SYSKEYDOWN:
+    case MSG_DT_SYSCHAR:
+    case MSG_DT_SYSKEYUP:
+    case MSG_DT_LBUTTONDOWN:
+    case MSG_DT_LBUTTONUP:
+    case MSG_DT_LBUTTONDBLCLK:
+    case MSG_DT_MOUSEMOVE:
+    case MSG_DT_RBUTTONDOWN:
+    case MSG_DT_RBUTTONDBLCLK:
+    case MSG_DT_RBUTTONUP:
+        break;
 #endif
     }
 
@@ -4119,93 +4127,94 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
     static HDC hDesktopDC;
 
     switch (message) {
-        case MSG_STARTSESSION:
+    case MSG_STARTSESSION:
+        __mg_init_local_sys_text ();
+        hDesktopDC = GetDC (HWND_DESKTOP);
+
+        if(dsk_ops->init)
+            dt_context = dsk_ops->init();
+#ifdef _MGHAVE_MENU
+        sg_DesktopMenu = srvCreateDesktopMenu ();
+#endif
+        break;
+
+    case MSG_REINITSESSION:
+        if (wParam)
             __mg_init_local_sys_text ();
-            hDesktopDC = GetDC (HWND_DESKTOP);
-
-            if(dsk_ops->init)
-                dt_context = dsk_ops->init();
-#ifdef _MGHAVE_MENU
-            sg_DesktopMenu = srvCreateDesktopMenu ();
-#endif
-            break;
-
-        case MSG_REINITSESSION:
-            if (wParam)
-                __mg_init_local_sys_text ();
 
 #ifdef _MGHAVE_MENU
-            sg_DesktopMenu = srvCreateDesktopMenu ();
+        sg_DesktopMenu = srvCreateDesktopMenu ();
 #endif
-            SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
-            break;
+        SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
+        break;
 
-        case MSG_ENDSESSION:
-            if (SERVER_HAS_NO_MAINWINDOW()) {
-                __mg_screensaver_destroy();
+    case MSG_ENDSESSION:
+        if (SERVER_HAS_NO_MAINWINDOW()) {
+            __mg_screensaver_destroy();
 
-                if (hDesktopDC) {
-                    ReleaseDC (hDesktopDC);
-                    hDesktopDC = 0;
-                }
-
-#ifdef _MGHAVE_MENU
-                if (sg_DesktopMenu) {
-                    DestroyMenu (sg_DesktopMenu);
-                    sg_DesktopMenu = 0;
-                }
-#endif
-
-                if(dsk_ops->deinit) {
-                    dsk_ops->deinit(dt_context);
-                }
-
-                PostQuitMessage (HWND_DESKTOP);
-                return 1;
+            if (hDesktopDC) {
+                ReleaseDC (hDesktopDC);
+                hDesktopDC = 0;
             }
-            break;
-
-        case MSG_ERASEDESKTOP:
-
-            if(dsk_ops->paint_desktop)
-                dsk_ops->paint_desktop(dt_context, hDesktopDC, (PRECT)lParam);
-
-            break;
-
-        case MSG_DT_KEYLONGPRESS:
-        case MSG_DT_KEYALWAYSPRESS:
-        case MSG_DT_KEYDOWN:
-        case MSG_DT_CHAR:
-        case MSG_DT_KEYUP:
-        case MSG_DT_SYSKEYDOWN:
-        case MSG_DT_SYSCHAR:
-        case MSG_DT_SYSKEYUP:
-            if(dsk_ops->keyboard_handler)
-                dsk_ops->keyboard_handler(dt_context, message, wParam, lParam);
-            break;
 
 #ifdef _MGHAVE_MENU
-        case MSG_DT_RBUTTONUP:
-                srvUpdateDesktopMenu ();
+            if (sg_DesktopMenu) {
+                DestroyMenu (sg_DesktopMenu);
+                sg_DesktopMenu = 0;
+            }
 #endif
-        case MSG_DT_LBUTTONDOWN:
-        case MSG_DT_LBUTTONUP:
-        case MSG_DT_LBUTTONDBLCLK:
-        case MSG_DT_MOUSEMOVE:
-        case MSG_DT_RBUTTONDOWN:
-        case MSG_DT_RBUTTONDBLCLK:
-        case MSG_DT_MBUTTONDOWN:
-        case MSG_DT_MBUTTONUP:
-        case MSG_DT_MBUTTONDBLCLK:
-            if(dsk_ops->mouse_handler)
-                dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
+
+            if(dsk_ops->deinit) {
+                dsk_ops->deinit(dt_context);
+            }
+
+            PostQuitMessage (HWND_DESKTOP);
+            return 1;
+        }
+        break;
+
+    case MSG_ERASEDESKTOP:
+
+        if(dsk_ops->paint_desktop)
+            dsk_ops->paint_desktop(dt_context, hDesktopDC, (PRECT)lParam);
+
+        break;
+
+    case MSG_DT_KEYLONGPRESS:
+    case MSG_DT_KEYALWAYSPRESS:
+    case MSG_DT_KEYDOWN:
+    case MSG_DT_CHAR:
+    case MSG_DT_KEYUP:
+    case MSG_DT_SYSKEYDOWN:
+    case MSG_DT_SYSCHAR:
+    case MSG_DT_SYSKEYUP:
+        if(dsk_ops->keyboard_handler)
+            dsk_ops->keyboard_handler(dt_context, message, wParam, lParam);
+        break;
+
+#ifdef _MGHAVE_MENU
+    case MSG_DT_RBUTTONUP:
+            srvUpdateDesktopMenu ();
+#endif
+    case MSG_DT_LBUTTONDOWN:
+    case MSG_DT_LBUTTONUP:
+    case MSG_DT_LBUTTONDBLCLK:
+    case MSG_DT_MOUSEMOVE:
+    case MSG_DT_RBUTTONDOWN:
+    case MSG_DT_RBUTTONDBLCLK:
+    case MSG_DT_MBUTTONDOWN:
+    case MSG_DT_MBUTTONUP:
+    case MSG_DT_MBUTTONDBLCLK:
+        if(dsk_ops->mouse_handler)
+            dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
         break;
     }
 
     return 0;
 }
 
-static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT DesktopWinProc (HWND hWnd, UINT message,
+        WPARAM wParam, LPARAM lParam)
 {
     int flags, x, y;
 
@@ -4213,7 +4222,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
         return dskWindowMessageHandler (message, (PMAINWIN)wParam, lParam);
     }
     // VW: Since 4.0.0 for extra input messages.
-    else if (message >= MSG_FIRSTEXTRAINPUTMSG && message <= MSG_LASTEXTRAINPUTMSG) {
+    else if (message >= MSG_FIRSTEXTRAINPUTMSG &&
+            message <= MSG_LASTEXTRAINPUTMSG) {
         if (mgIsServer && __mg_zorder_info->active_win) {
             __mg_post_msg_by_znode (__mg_zorder_info,
                             __mg_zorder_info->active_win, message,
@@ -4224,7 +4234,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
         if (mgIsServer) {
             if (wParam == SCANCODE_PRINTSCREEN && message == MSG_KEYDOWN) {
 #ifdef _MGMISC_SAVESCREEN
-            srvSaveScreen (lParam & KS_CTRL);
+                srvSaveScreen (lParam & KS_CTRL);
 #endif
             }
 #ifdef _MGHAVE_MENU
@@ -4236,9 +4246,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 #endif
 
             if (__mg_zorder_info->cli_trackmenu > 0) {
-
                 MSG msg = {0, message, wParam, lParam, __mg_timer_counter};
-
                 __mg_send2client (&msg, mgClients +
                                 __mg_zorder_info->cli_trackmenu);
             }
@@ -4290,13 +4298,11 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
         return 0;
     }
     else if (message == MSG_COMMAND) {
-        if (wParam <= MAXID_RESERVED && wParam >= MINID_RESERVED)
-        {
+        if (wParam <= MAXID_RESERVED && wParam >= MINID_RESERVED) {
             return srvDesktopCommand ((int)wParam);
         }
-        else
-        {
-            if(dsk_ops->desktop_menucmd_handler)
+        else {
+            if (dsk_ops->desktop_menucmd_handler)
                 dsk_ops->desktop_menucmd_handler(dt_context, (int)wParam);
             return 0;
         }
@@ -4396,17 +4402,21 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 
     case MSG_TIMER:
         if (__mg_quiting_stage < 0) {
-            if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE && __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
-                -- __mg_quiting_stage;
+            if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE &&
+                    __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
+                __mg_quiting_stage--;
                 /* printf("try to quit %d\n", __mg_quiting_stage); */
-            }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
+            }
+            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
                 /* printf("force to quit !!!\n"); */
             }
 
             if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
-                    && (mgIsServer ? SERVER_HAS_NO_MAINWINDOW() : CLIENT_HAS_NO_MAINWINDOW())) {
+                    && (mgIsServer ? SERVER_HAS_NO_MAINWINDOW() :
+                        CLIENT_HAS_NO_MAINWINDOW())) {
                 __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
-            }else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
+            }
+            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
                 PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
             }
         }

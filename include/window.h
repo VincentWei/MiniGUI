@@ -2405,6 +2405,7 @@ typedef struct _COMPOSITINGINFO {
     DWORD   arg;
 } COMPOSITINGINFO;
 
+/* Since 4.2.0 */
 #define MSG_SETCOMPOSITING  0x0105
 
 #define MSG_SHOWGLOBALCTRL  0x010A
@@ -2421,6 +2422,15 @@ typedef struct _DRAGINFO {
 #define MSG_CANCELDRAGWIN   0x010D
 
 #define MSG_CHANGECAPTION   0x010E
+
+struct _RECT4MASK;
+typedef struct _WINMASKINFO {
+    int                 nr_rcs;
+    struct _RECT4MASK*  rcs;
+} WINMASKINFO;
+
+/* Since 4.2.0 */
+#define MSG_SETWINDOWMASK   0x010F
 
 #define MSG_LASTWINDOWMSG   0x010F
 

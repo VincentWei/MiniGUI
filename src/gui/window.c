@@ -3615,7 +3615,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         return HWND_INVALID;
     }
 
-    if (!(pWin = calloc(1, sizeof(MAINWIN)))) {
+    if (!(pWin = calloc (1, sizeof(MAINWIN)))) {
         return HWND_INVALID;
     }
 
@@ -5828,13 +5828,13 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
 }
 
 /**
- * CalcXYBannedRects:
- *   this function calculates x-y-banned rectangles of MYBITMAP
- *   which is 8 bits per pixels.
+ * calc_xybanned_rects:
+ *   this function calculates x-y-banned rectangles of MYBITMAP or BITMAP.
  *
  * param hwnd           : the window handle
+ * param type           : the type of mask: TYPE_MYBITMAP or TYPE_BITMAP
  * param mask           : MYBITMAP with 8 bits per pixels
- * param rect_size(out) : number of the x-y-banned rectangles
+ * param nr_rcs(out)    : number of the x-y-banned rectangles
  *
  * return               : return NULL on failure, return the x-y-banned
  *                        rectangles on success.
@@ -5853,7 +5853,8 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
 
 #include "../newgal/blit.h"
 
-static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size, int type)
+static RECT4MASK* calc_xybanned_rects (HDC hdc, int type, const void* mask,
+        int* nr_rcs)
 {
     Uint32  x, y;
     Uint32  pixel;
@@ -5871,7 +5872,7 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
 
     if (!mask) return NULL;
 
-    if (type == TYPE_MYBITMAP){
+    if (type == TYPE_MYBITMAP) {
         w = ((MYBITMAP*)mask)->w;
         h = ((MYBITMAP*)mask)->h;
         bits = ((MYBITMAP*)mask)->bits;
@@ -5890,8 +5891,8 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
     }
     if (h <= 0) return NULL;
 
-    if (rect_size)
-        *rect_size = 0;
+    if (nr_rcs)
+        *nr_rcs = 0;
 
     max_calloced_nr = XYBANNED_RECT_NR_INIT;
     xybanned_rects  = (RECT4MASK *) calloc (max_calloced_nr, sizeof (RECT4MASK));
@@ -5992,27 +5993,27 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
         }
     }// for (y = 1; y < h; ++y)
 
-    if (rect_size)
-        *rect_size = max_index + 1;
+    if (nr_rcs)
+        *nr_rcs = max_index + 1;
 
     return xybanned_rects;
 }
 
-/* API for non-rectangle window.*/
-static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
+/* Internal functions for non-rectangle window. */
+static int set_window_mask_rect (HWND hWnd, WINMASKINFO* mask_info)
 {
     MASKRECT    *new_maskrect;
     PCONTROL    pCtrl;
     int         i, retval;
 
-    if (!rect)
+    if (!mask_info->rcs)
         return FALSE;
 
     if (IsControl (hWnd)) {
         /*
          * Because control without WS_EX_CTRLASMAINWIN has not
          * the own Z order node, we should allocate memory for an
-         * array of rect_size for mask_rects.
+         * array of mask_info->nr_rcs for mask_rects.
          *
          * The prev of first mask_rects indicates the number of the array.
          * The next of last mask_rects is 0.
@@ -6024,11 +6025,11 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
 
             if (pCtrl->mask_rects == NULL) {
                 pCtrl->mask_rects =
-                    (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                    (MASKRECT *) calloc (mask_info->nr_rcs, sizeof (MASKRECT));
 
                 if (!pCtrl->mask_rects) {
                     _WRN_PRINTF ("No enough memory!\n");
-                    free (rect);
+                    free (mask_info->rcs);
                     return FALSE;
                 }
             }
@@ -6037,13 +6038,13 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                  * when number of calloced mask_rects is not enough,
                  * free the old memory and calloc more.
                  */
-                if (pCtrl->mask_rects->prev < rect_size) {
+                if (pCtrl->mask_rects->prev < mask_info->nr_rcs) {
 
                     new_maskrect =
-                        (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                        (MASKRECT *) calloc (mask_info->nr_rcs, sizeof (MASKRECT));
                     if (!new_maskrect) {
                         _WRN_PRINTF ("No enough memory!\n");
-                        free (rect);
+                        free (mask_info->rcs);
                         return FALSE;
                     }
                     free (pCtrl->mask_rects);
@@ -6051,23 +6052,22 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                 }
             }
 
-            for (i = 0; i < rect_size; ++i)
-            {
-                (pCtrl->mask_rects + i)->left   = rect[i].left;
-                (pCtrl->mask_rects + i)->top    = rect[i].top;
-                (pCtrl->mask_rects + i)->right  = rect[i].right;
-                (pCtrl->mask_rects + i)->bottom = rect[i].bottom;
+            for (i = 0; i < mask_info->nr_rcs; ++i) {
+                (pCtrl->mask_rects + i)->left   = mask_info->rcs[i].left;
+                (pCtrl->mask_rects + i)->top    = mask_info->rcs[i].top;
+                (pCtrl->mask_rects + i)->right  = mask_info->rcs[i].right;
+                (pCtrl->mask_rects + i)->bottom = mask_info->rcs[i].bottom;
                 (pCtrl->mask_rects + i)->prev   = i;
                 (pCtrl->mask_rects + i)->next   = i + 1;
             }
 
             /** the field [prev] is used to store number of mask_rects */
-            pCtrl->mask_rects->prev = rect_size;
+            pCtrl->mask_rects->prev = mask_info->nr_rcs;
 
             /** mark the end with 0 */
-            (pCtrl->mask_rects + rect_size - 1)->next = 0;
+            (pCtrl->mask_rects + mask_info->nr_rcs - 1)->next = 0;
 
-            free (rect);
+            free (mask_info->rcs);
 
             if (pCtrl->dwStyle & WS_VISIBLE) {
                 ShowWindow (hWnd, SW_HIDE);
@@ -6078,8 +6078,12 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
         }
     }
 
-    retval = __kernel_change_z_node_mask_rect (hWnd, rect, rect_size);
-    free (rect);
+    /* Since 4.2.0: use MSG_SETWINDOWMASK messasge instead of
+       __kernel_change_z_node_mask_rect */
+    retval = (int)SendMessage (HWND_DESKTOP,
+            MSG_SETWINDOWMASK, (WPARAM)hWnd, (LPARAM)mask_info);
+    // retval = __kernel_change_z_node_mask_rect (hWnd, mask_info->rcs, mask_info->nr_rcs);
+    free (mask_info->rcs);
 
     /* Since 4.2.0. Under compositing schema, the compositor should refresh
        the screen for the change of region. */
@@ -6101,27 +6105,29 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
 
 BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask)
 {
-    int         retval, rect_size;
-    RECT4MASK   *rect;
+    WINMASKINFO mask_info;
+    int         retval;
 
-    rect = CalcXYBannedRects (HDC_SCREEN, mask, &rect_size, TYPE_MYBITMAP);
-    if (!rect)
+    mask_info.rcs = calc_xybanned_rects (HDC_SCREEN, TYPE_MYBITMAP, mask,
+            &mask_info.nr_rcs);
+    if (!mask_info.rcs)
         return FALSE;
 
-    retval = gui_GenerateMaskRect(hWnd, rect, rect_size);
+    retval = set_window_mask_rect (hWnd, &mask_info);
     return (retval == 0 ? TRUE : FALSE);
 }
 
 BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask)
 {
-    int         retval, rect_size;
-    RECT4MASK   *rect;
+    WINMASKINFO mask_info;
+    int         retval;
 
-    rect = CalcXYBannedRects (hdc, mask, &rect_size, TYPE_BITMAP);
-    if (!rect)
+    mask_info.rcs = calc_xybanned_rects (hdc, TYPE_BITMAP, mask,
+            &mask_info.nr_rcs);
+    if (!mask_info.rcs)
         return FALSE;
 
-    retval = gui_GenerateMaskRect(hWnd, rect, rect_size);
+    retval = set_window_mask_rect (hWnd, &mask_info);
     return (retval == 0 ? TRUE : FALSE);
 }
 
@@ -6129,9 +6135,9 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
 {
     MASKRECT    *new_maskrect;
     PCLIPRECT   cliprc;
-    RECT4MASK   *rect;
+    WINMASKINFO mask_info;
     PCONTROL    pCtrl;
-    int         retval, rect_size, i;
+    int         retval, nr_rcs, i;
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
@@ -6139,14 +6145,14 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
         return FALSE;
 
     /** number of rect */
-    for (rect_size = 1, cliprc = region->head;
-            cliprc && cliprc != region->tail; rect_size++, cliprc=cliprc->next);
+    for (nr_rcs = 1, cliprc = region->head;
+            cliprc && cliprc != region->tail; nr_rcs++, cliprc=cliprc->next);
 
     if (IsControl (hWnd)) {
         /*
          * Because control without WS_EX_CTRLASMAINWIN has not
          * the Z order node, we should allocate memory for an
-         * array of rect_size for mask_rects.
+         * array of nr_rcs for mask_rects.
          *
          * The prev of first mask_rects indicates the number of the array.
          * The next of last mask_rects is 0.
@@ -6158,7 +6164,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
 
             if (pCtrl->mask_rects == NULL) {
                 pCtrl->mask_rects =
-                    (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                    (MASKRECT *) calloc (nr_rcs, sizeof (MASKRECT));
 
                 if (!pCtrl->mask_rects) {
                     _WRN_PRINTF ("No enough memory!\n");
@@ -6170,9 +6176,9 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
                  * when number of calloced mask_rects is not enough,
                  * free the old memory and calloc more.
                  */
-                if (pCtrl->mask_rects->prev < rect_size) {
+                if (pCtrl->mask_rects->prev < nr_rcs) {
                     new_maskrect =
-                        (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                        (MASKRECT *) calloc (nr_rcs, sizeof (MASKRECT));
 
                     if (!new_maskrect) {
                         _WRN_PRINTF ("No enough memory!\n");
@@ -6185,7 +6191,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
 
             cliprc = region->head;
 
-            for (i = 0; i < rect_size; ++i) {
+            for (i = 0; i < nr_rcs; ++i) {
                 (pCtrl->mask_rects + i)->left   = cliprc->rc.left;
                 (pCtrl->mask_rects + i)->top    = cliprc->rc.top;
                 (pCtrl->mask_rects + i)->right  = cliprc->rc.right;
@@ -6196,10 +6202,10 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
             }
 
             /** the field [prev] is used to store number of mask_rects */
-            pCtrl->mask_rects->prev = rect_size;
+            pCtrl->mask_rects->prev = nr_rcs;
 
             /** mark the end with 0 */
-            (pCtrl->mask_rects + rect_size - 1)->next = 0;
+            (pCtrl->mask_rects + nr_rcs - 1)->next = 0;
 
             if (pCtrl->dwStyle & WS_VISIBLE) {
                 ShowWindow (hWnd, SW_HIDE);
@@ -6209,29 +6215,31 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
         }
     }
 
-    rect = (RECT4MASK *) calloc(rect_size, sizeof(RECT4MASK));
-    if(rect == NULL) {
+    mask_info.nr_rcs = nr_rcs;
+    mask_info.rcs = (RECT4MASK *) calloc (nr_rcs, sizeof(RECT4MASK));
+    if (mask_info.rcs == NULL) {
         _WRN_PRINTF ("No enough memory!\n");
         return FALSE;
     }
 
     cliprc = region->head;
-
-    for (i = 0; i < rect_size; ++i) {
-        (rect + i)->left    = cliprc->rc.left;
-        (rect + i)->top     = cliprc->rc.top;
-        (rect + i)->right   = cliprc->rc.right;
-        (rect + i)->bottom  = cliprc->rc.bottom;
+    for (i = 0; i < nr_rcs; ++i) {
+        mask_info.rcs[i].left    = cliprc->rc.left;
+        mask_info.rcs[i].top     = cliprc->rc.top;
+        mask_info.rcs[i].right   = cliprc->rc.right;
+        mask_info.rcs[i].bottom  = cliprc->rc.bottom;
         cliprc = cliprc->next;
     }
 
-    retval = __kernel_change_z_node_mask_rect (hWnd, rect, rect_size);
-    free (rect);
+    retval = (int)SendMessage (HWND_DESKTOP,
+            MSG_SETWINDOWMASK, (WPARAM)hWnd, (LPARAM)&mask_info);
+    // XXX: retval = __kernel_change_z_node_mask_rect (hWnd, rect, nr_rcs);
+    free (mask_info.rcs);
 
     /* Since 4.2.0. Under compositing schema, the compositor should refresh
        the screen for the change of region. */
 #ifndef _MGSCHEMA_COMPOSITING
-    pCtrl = (PCONTROL) hWnd;
+    pCtrl = (PCONTROL)hWnd;
 
     if (!retval && pCtrl->dwStyle & WS_VISIBLE) {
         MoveWindow (hWnd, pCtrl->left, pCtrl->top,
