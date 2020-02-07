@@ -6143,8 +6143,8 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  *      Do the given color logical operation. You should specify the color
  *      logical operation along with the pararmeter \a arg. See \a BitBlt.
  *  - CT_ALPHAPIXEL\n
- *      The alpha component value of the source or the destination pixel goes
- *      into effect. You can specify the color compositing operation along
+ *      The alpha component value of the source and/or the destination pixel go
+ *      into effect. You can specify the color blend method along
  *      with the pararmeter \a arg. See \a BitBlt.
  *  - CT_BLURRED\n
  *      Apply a Gaussian blur to the background of the main window. You should
