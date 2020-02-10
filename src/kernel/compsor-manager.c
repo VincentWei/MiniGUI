@@ -120,6 +120,37 @@ static const CompositorOps* load_default_compositor (void)
     return ex_compsor_get (COMPSOR_NAME_DEFAULT, &__mg_fallback_compositor);
 }
 
+static void lock_znode_surface (PDC pdc, ZORDERNODE* node)
+{
+    if (node->lock_count == 0) {
+        if (pdc->surface->shared_header) {
+            LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+        }
+
+        node->dirty_age = pdc->surface->dirty_info->dirty_age;
+        node->nr_dirty_rcs = pdc->surface->dirty_info->nr_dirty_rcs;
+        node->dirty_rcs = pdc->surface->dirty_info->dirty_rcs;
+
+    }
+
+    node->lock_count++;
+}
+
+static void unlock_znode_surface (PDC pdc, ZORDERNODE* node)
+{
+    if (node->lock_count > 0) {
+        node->lock_count--;
+        if (node->lock_count == 0) {
+            if (pdc->surface->shared_header)
+                UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+
+            node->dirty_age = 0;
+            node->nr_dirty_rcs = 0;
+            node->dirty_rcs = NULL;
+        }
+    }
+}
+
 void __mg_composite_dirty_znodes (void)
 {
     MG_Layer* layer;
@@ -142,12 +173,14 @@ void __mg_composite_dirty_znodes (void)
             pdc = dc_HDC2PDC (nodes[i].mem_dc);
             assert (pdc->surface->dirty_info);
 
+            lock_znode_surface (pdc, nodes + i);
             changes_in_dc = pdc->surface->dirty_info->dirty_age;
             if (changes_in_dc != nodes[i].changes) {
                 ops->on_dirty_ppp (ctxt, i);
                 nodes[i].changes = changes_in_dc;
                 pdc->surface->dirty_info->nr_dirty_rcs = 0;
             }
+            unlock_znode_surface (pdc, nodes + i);
         }
     }
 
@@ -159,12 +192,14 @@ void __mg_composite_dirty_znodes (void)
             pdc = dc_HDC2PDC (nodes[next].mem_dc);
             assert (pdc->surface->dirty_info);
 
+            lock_znode_surface (pdc, nodes + next);
             changes_in_dc = pdc->surface->dirty_info->dirty_age;
             if (changes_in_dc != nodes[next].changes) {
                 ops->on_dirty_win (ctxt, mgTopmostLayer, next);
                 nodes[next].changes = changes_in_dc;
                 pdc->surface->dirty_info->nr_dirty_rcs = 0;
             }
+            unlock_znode_surface (pdc, nodes + next);
         }
     }
 
@@ -180,12 +215,14 @@ void __mg_composite_dirty_znodes (void)
                     pdc = dc_HDC2PDC (nodes[next].mem_dc);
                     assert (pdc->surface->dirty_info);
 
+                    lock_znode_surface (pdc, nodes + next);
                     changes_in_dc = pdc->surface->dirty_info->dirty_age;
                     if (changes_in_dc != nodes[next].changes) {
                         ops->on_dirty_win (ctxt, layer, next);
                         nodes[next].changes = changes_in_dc;
                         pdc->surface->dirty_info->nr_dirty_rcs = 0;
                     }
+                    unlock_znode_surface (pdc, nodes + next);
                 }
             }
         }
@@ -197,12 +234,14 @@ void __mg_composite_dirty_znodes (void)
     pdc = dc_HDC2PDC (HDC_SCREEN);
     assert (pdc->surface->dirty_info);
     if (pdc->surface->w > 0 && pdc->surface->h > 0) {
+        lock_znode_surface (pdc, nodes);
         changes_in_dc = pdc->surface->dirty_info->dirty_age;
         if (changes_in_dc != nodes[0].changes) {
             ops->on_dirty_wpp (ctxt);
             nodes[0].changes = changes_in_dc;
             pdc->surface->dirty_info->nr_dirty_rcs = 0;
         }
+        unlock_znode_surface (pdc, nodes);
     }
 }
 
