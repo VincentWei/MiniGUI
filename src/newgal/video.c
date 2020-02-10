@@ -628,6 +628,12 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 
     video->info.vfmt = GAL_VideoSurface->format;
     GAL_VideoSurface->video = __mg_current_video;
+#ifdef _MGSCHEMA_COMPOSITING
+    if (GAL_VideoSurface->dirty_info) {
+        free (GAL_VideoSurface->dirty_info);
+        GAL_VideoSurface->dirty_info = NULL;
+    }
+#endif
 
     return(GAL_PublicSurface);
 }
@@ -646,7 +652,6 @@ void GAL_SetVideoModeInfo(GAL_Surface* screen)
     __gal_screen->offset = 0;
     GAL_SetClipRect(screen, NULL);
 }
-
 #endif
 
 /*
@@ -781,7 +786,7 @@ static void mark_surface_dirty (GAL_Surface* surface,
 
         SetRect (&rc_bound, 0, 0, 0, 0);
         for (i = 0; i < di->nr_dirty_rcs; i++) {
-            UnionRect (&rc_bound, &rc_bound, di->dirty_rcs + i);
+            GetBoundRect (&rc_bound, &rc_bound, di->dirty_rcs + i);
         }
 
         for (i = 0; i < numrects; i++) {
@@ -789,11 +794,14 @@ static void mark_surface_dirty (GAL_Surface* surface,
                         rects [i].x + rects [i].w,
                         rects [i].y + rects [i].h };
 
-            UnionRect (&rc_bound, &rc_bound, &rc);
+            GetBoundRect (&rc_bound, &rc_bound, &rc);
         }
 
         di->nr_dirty_rcs = 1;
         di->dirty_rcs[0] = rc_bound;
+
+        _WRN_PRINTF("Too many un-synced dirty rects, merged to one.\n");
+        assert (0);
     }
 
     di->dirty_age++;
@@ -866,19 +874,20 @@ int __mg_convert_region_to_rects (const CLIPRGN * rgn,
     if (clip_rect == NULL) {
         return nr;
     }
+    else {
+        SetRect (&left_rc, 0, 0, 0, 0);
+        while (clip_rect) {
+            GetBoundRect (&left_rc, &left_rc, &clip_rect->rc);
+            clip_rect = clip_rect->next;
+        }
 
-    SetRect (&left_rc, 0, 0, 0, 0);
-    while (clip_rect) {
-        UnionRect (&left_rc, &left_rc, &clip_rect->rc);
-        clip_rect = clip_rect->next;
+        rects [nr].x = left_rc.left;
+        rects [nr].y = left_rc.top;
+        rects [nr].w = left_rc.right - left_rc.left;
+        rects [nr].h = left_rc.bottom - left_rc.top;
+
+        nr++;
     }
-
-    rects [nr].x = left_rc.left;
-    rects [nr].y = left_rc.top;
-    rects [nr].w = left_rc.right - left_rc.left;
-    rects [nr].h = left_rc.bottom - left_rc.top;
-
-    nr++;
 
     return nr;
 }
@@ -936,18 +945,22 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
 #ifdef _MGSCHEMA_COMPOSITING
-    mark_surface_dirty (surface, numrects, rects);
+    if (surface->shared_header) {
+        LOCK_SURFACE_SEM (surface->shared_header->sem_num);
+        mark_surface_dirty (surface, numrects, rects);
+        UNLOCK_SURFACE_SEM (surface->shared_header->sem_num);
+    }
+    else if (surface->dirty_info) {
+        mark_surface_dirty (surface, numrects, rects);
+    }
 #endif
 
     if (this) {
-        if (this->info.mlt_surfaces == 0) {
-            if (this && this->UpdateRects)
-                this->UpdateRects (this, numrects, rects);
+        if (this->info.mlt_surfaces == 0 && this->UpdateRects)
+            this->UpdateRects (this, numrects, rects);
         }
-        else {
-            if (this && this->UpdateSurfaceRects) {
-                this->UpdateSurfaceRects (this, surface, numrects, rects);
-            }
+        else if (this->UpdateSurfaceRects) {
+            this->UpdateSurfaceRects (this, surface, numrects, rects);
         }
     }
 }
@@ -1097,7 +1110,6 @@ int GAL_SetColors(GAL_Surface *screen, GAL_Color *colors, int firstcolor,
  */
 void GAL_VideoQuit (void)
 {
-
     if (__mg_current_video) {
         GAL_VideoDevice *video = __mg_current_video;
         GAL_VideoDevice *this  = __mg_current_video;
@@ -1362,7 +1374,8 @@ static int Slave_GetVideoMode (GAL_VideoDevice *this,
 }
 
 static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
-                GAL_Surface* surface, int width, int height, int bpp, Uint32 flags)
+                GAL_Surface* surface, int width, int height,
+                int bpp, Uint32 flags)
 {
     GAL_VideoDevice *video, *this;
     int video_w;
@@ -1435,6 +1448,12 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
 
     video->info.vfmt = surface->format;
     surface->video = device;
+#ifdef _MGSCHEMA_COMPOSITING
+    if (surface->dirty_info) {
+        free (surface->dirty_info);
+        surface->dirty_info = NULL;
+    }
+#endif
 
     return surface;
 }
