@@ -220,7 +220,8 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
                         screen->format->BitsPerPixel,
                         screen->format->Rmask, screen->format->Gmask,
                         screen->format->Bmask, screen->format->Amask);
-            _DBG_PRINTF ("GAL_CreateSharedRGBSurface: buf_size: %lu, fd: %d\n", wp_surf->shared_header->buf_size, wp_surf->shared_header->fd);
+            _DBG_PRINTF ("GAL_CreateSharedRGBSurface: buf_size: %lu, fd: %d\n",
+                    wp_surf->shared_header->buf_size, wp_surf->shared_header->fd);
         }
         else {
             goto empty;
@@ -363,10 +364,9 @@ int mg_InitGAL (char* engine, char* mode)
 #endif /* _MGRM_PROCESSES */
 
     for (i = 0; i < 17; i++) {
-        SysPixelIndex [i] = GAL_MapRGB (__gal_screen->format,
-                        SysPixelColor [i].r,
-                        SysPixelColor [i].g,
-                        SysPixelColor [i].b);
+        SysPixelIndex [i] = GAL_MapRGBA (__gal_screen->format,
+                        SysPixelColor [i].r, SysPixelColor [i].g,
+                        SysPixelColor [i].b, SysPixelColor [i].a);
     }
 
     return 0;
