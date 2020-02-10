@@ -1214,7 +1214,6 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
         msg.lParam = MAKELONG (_dd_info.rc.right, _dd_info.rc.bottom);
         /* post MSG_WINDOWDROPPED to the target window */
         if (_dd_info.cli == 0) {
-            _MG_PRINTF("PostMessage MSG_WINDOWDROPPED\n");
             PostMessage (_dd_info.hwnd, MSG_WINDOWDROPPED,
                             msg.wParam, msg.lParam);
         }
@@ -1227,15 +1226,16 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
         _dd_info.last_y = y;
     }
     else {
-#ifndef _MGSCHEMA_COMPOSITING
         MSG msg = {_dd_info.hwnd, MSG_WINDOWDROPPED, 0, 0, __mg_timer_counter};
 
         msg.wParam = MAKELONG (_dd_info.rc.left, _dd_info.rc.top);
         msg.lParam = MAKELONG (_dd_info.rc.right, _dd_info.rc.bottom);
 
+#ifndef _MGSCHEMA_COMPOSITING
         SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
 
         /* post MSG_WINDOWDROPPED to the target window */
         if (_dd_info.cli == 0) {
@@ -1247,9 +1247,10 @@ int __mg_do_drag_drop_window (int msg, int x, int y)
             __mg_send2client (&msg, mgClients + _dd_info.cli);
         }
 
+#ifndef _MGSCHEMA_COMPOSITING
         unlock_zi_for_change (_dd_info.zi);
         SelectClipRect (HDC_SCREEN_SYS, &rcScr);
-#endif  /* not defined _MGSCHEMA_COMPOSITING */
+#endif
 
         __mg_get_znode_at_point (__mg_zorder_info, x, y, &hwnd);
         if (_dd_info.hwnd != hwnd)
