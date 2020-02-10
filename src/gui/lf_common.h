@@ -169,7 +169,8 @@ static inline void erase_bkgnd (HWND hWnd, HDC hdc, const RECT *rect)
 }
 
 BOOL gui_fill_box_with_bitmap_part_except_incompatible (HDC hdc,
-    int x, int y, int w, int h, int bw, int bh, const BITMAP *     bmp, int xo, int yo);
+    int x, int y, int w, int h, int bw, int bh,
+    const BITMAP *bmp, int xo, int yo);
 
 BOOL gui_fill_box_with_bitmap_except_incompatible (HDC hdc,
     int x, int y, int w, int h, const BITMAP *  bmp);
