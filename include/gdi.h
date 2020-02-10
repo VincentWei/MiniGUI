@@ -83,7 +83,7 @@ extern "C" {
  * \brief The pre-defined system pixel values.
  *
  * MiniGUI defines some system pixel values when initializing
- * graphics sub-system. You can access the arrary to get the
+ * the graphics sub-system. You can access the arrary to get the
  * system pixel values, or just use the following macros:
  *
  *  - PIXEL_black\n
@@ -118,6 +118,10 @@ extern "C" {
  *    cyan
  *  - PIXEL_lightwhite\n
  *    light white
+ *
+ * \note These pixel values are complient to pixel format of \a HDC_SCREEN.
+ *  Since 4.2.0, you should use the value returned by \a MakeRGBA macro
+ *  for the background color of a window.
  */
 extern MG_EXPORT gal_pixel SysPixelIndex [];
 
@@ -125,13 +129,13 @@ extern MG_EXPORT gal_pixel SysPixelIndex [];
  * \var RGB SysPixelColor []
  * \brief The pre-defined system RGB colors.
  *
- * The elements in this array are system colors in RGB triples.
+ * The elements in this array are system colors in RGBA quadruple.
  */
 extern const MG_EXPORT RGB SysPixelColor [];
 
 /**
  * \def PIXEL_invalid
- * \brief Invalid pixel.
+ * Compatiblity definition; obsolete.
  * \sa SysPixelIndex
  */
 #define PIXEL_invalid       0
@@ -255,120 +259,153 @@ extern const MG_EXPORT RGB SysPixelColor [];
  */
 #define PIXEL_black         SysPixelIndex[16]
 
-/* Compatiblity definitions */
 /**
  * \def COLOR_invalid
- * \sa PIXEL_invalid
+ * Compatiblity definition; obsolete.
  */
 #define COLOR_invalid       PIXEL_invalid
 
 /**
  * \def COLOR_transparent
- * \sa PIXEL_transparent
+ * The RGBA quadruple for transparent color.
  */
-#define COLOR_transparent   PIXEL_transparent
-
-/**
- * \def COLOR_darkred
- * \sa PIXEL_darkred
- */
-#define COLOR_darkred       PIXEL_darkred
-
-/**
- * \def COLOR_darkgreen
- * \sa PIXEL_darkgreen
- */
-#define COLOR_darkgreen     PIXEL_darkgreen
-
-/**
- * \def COLOR_darkyellow
- * \sa PIXEL_darkyellow
- */
-#define COLOR_darkyellow    PIXEL_darkyellow
+#define COLOR_transparent                               \
+    (MakeRGBA(SysPixelColor[0].r, SysPixelColor[0].g,   \
+              SysPixelColor[0].b, SysPixelColor[0].a))
 
 /**
  * \def COLOR_darkblue
- * \sa PIXEL_darkblue
+ * The RGBA quadruple for dark blue color.
  */
-#define COLOR_darkblue      PIXEL_darkblue
+#define COLOR_darkblue                                  \
+    (MakeRGBA(SysPixelColor[1].r, SysPixelColor[1].g,   \
+              SysPixelColor[1].b, SysPixelColor[1].a))
 
 /**
- * \def COLOR_darkmagenta
- * \sa PIXEL_darkmagenta
+ * \def COLOR_darkgreen
+ * The RGBA quadruple for dark green color.
  */
-#define COLOR_darkmagenta   PIXEL_darkmagenta
+#define COLOR_darkgreen                                 \
+    (MakeRGBA(SysPixelColor[2].r, SysPixelColor[2].g,   \
+              SysPixelColor[2].b, SysPixelColor[2].a))
 
 /**
  * \def COLOR_darkcyan
- * \sa PIXEL_darkcyan
+ * The RGBA quadruple for dark cyan color.
  */
-#define COLOR_darkcyan      PIXEL_darkcyan
+#define COLOR_darkcyan                                  \
+    (MakeRGBA(SysPixelColor[3].r, SysPixelColor[3].g,   \
+              SysPixelColor[3].b, SysPixelColor[3].a))
 
 /**
- * \def COLOR_lightgray
- * \sa PIXEL_lightgray
+ * \def COLOR_darkred
+ * The RGBA quadruple for dark red color.
  */
-#define COLOR_lightgray     PIXEL_lightgray
+#define COLOR_darkred                                   \
+    (MakeRGBA(SysPixelColor[4].r, SysPixelColor[4].g,   \
+              SysPixelColor[4].b, SysPixelColor[4].a))
+
+/**
+ * \def COLOR_darkmagenta
+ * The RGBA quadruple for dark magenta color.
+ */
+#define COLOR_darkmagenta                               \
+    (MakeRGBA(SysPixelColor[5].r, SysPixelColor[5].g,   \
+              SysPixelColor[5].b, SysPixelColor[5].a))
+
+/**
+ * \def COLOR_darkyellow
+ * The RGBA quadruple for dark yellow color.
+ */
+#define COLOR_darkyellow                                \
+    (MakeRGBA(SysPixelColor[6].r, SysPixelColor[6].g,   \
+              SysPixelColor[6].b, SysPixelColor[6].a))
 
 /**
  * \def COLOR_darkgray
- * \sa PIXEL_darkgray
+ * The RGBA quadruple for dark gray color.
  */
-#define COLOR_darkgray      PIXEL_darkgray
+#define COLOR_darkgray                                  \
+    (MakeRGBA(SysPixelColor[7].r, SysPixelColor[7].g,   \
+              SysPixelColor[7].b, SysPixelColor[7].a))
 
 /**
- * \def COLOR_red
- * \sa PIXEL_red
+ * \def COLOR_lightgray
+ * The RGBA quadruple for light gray color.
  */
-#define COLOR_red           PIXEL_red
-
-/**
- * \def COLOR_green
- * \sa PIXEL_green
- */
-#define COLOR_green         PIXEL_green
-
-/**
- * \def COLOR_yellow
- * \sa PIXEL_yellow
- */
-#define COLOR_yellow        PIXEL_yellow
+#define COLOR_lightgray                                 \
+    (MakeRGBA(SysPixelColor[8].r, SysPixelColor[8].g,   \
+              SysPixelColor[8].b, SysPixelColor[8].a))
 
 /**
  * \def COLOR_blue
- * \sa PIXEL_blue
+ * The RGBA quadruple for blue color.
  */
-#define COLOR_blue          PIXEL_blue
+#define COLOR_blue                                      \
+    (MakeRGBA(SysPixelColor[9].r, SysPixelColor[9].g,   \
+              SysPixelColor[9].b, SysPixelColor[9].a))
 
 /**
- * \def COLOR_magenta
- * \sa PIXEL_magenta
+ * \def COLOR_green
+ * The RGBA quadruple for green color.
  */
-#define COLOR_magenta       PIXEL_magenta
+#define COLOR_green                                     \
+    (MakeRGBA(SysPixelColor[10].r, SysPixelColor[10].g, \
+              SysPixelColor[10].b, SysPixelColor[10].a))
 
 /**
  * \def COLOR_cyan
- * \sa PIXEL_cyan
+ * The RGBA quadruple for cyan color.
  */
-#define COLOR_cyan          PIXEL_cyan
+#define COLOR_cyan                                      \
+    (MakeRGBA(SysPixelColor[11].r, SysPixelColor[11].g, \
+              SysPixelColor[11].b, SysPixelColor[11].a))
+
+/**
+ * \def COLOR_red
+ * The RGBA quadruple for red color.
+ */
+#define COLOR_red                                       \
+    (MakeRGBA(SysPixelColor[12].r, SysPixelColor[12].g, \
+              SysPixelColor[12].b, SysPixelColor[12].a))
+
+/**
+ * \def COLOR_magenta
+ * The RGBA quadruple for magenta color.
+ */
+#define COLOR_magenta                                   \
+    (MakeRGBA(SysPixelColor[13].r, SysPixelColor[13].g, \
+              SysPixelColor[13].b, SysPixelColor[13].a))
+
+/**
+ * \def COLOR_yellow
+ * The RGBA quadruple for yellow color.
+ */
+#define COLOR_yellow                                    \
+    (MakeRGBA(SysPixelColor[14].r, SysPixelColor[14].g, \
+              SysPixelColor[14].b, SysPixelColor[14].a))
 
 /**
  * \def COLOR_lightwhite
- * \sa PIXEL_lightwhite
+ * The RGBA quadruple for light white color.
  */
-#define COLOR_lightwhite    PIXEL_lightwhite
+#define COLOR_lightwhite                                \
+    (MakeRGBA(SysPixelColor[15].r, SysPixelColor[15].g, \
+              SysPixelColor[15].b, SysPixelColor[15].a))
 
 /**
  * \def COLOR_black
- * \sa PIXEL_black
+ * The RGBA quadruple for black color.
  */
-#define COLOR_black         PIXEL_black
+#define COLOR_black                                     \
+    (MakeRGBA(SysPixelColor[16].r, SysPixelColor[16].g, \
+              SysPixelColor[16].b, SysPixelColor[16].a))
 
 /**
  * \def SysColorIndex
- * \sa SysPixelIndex
+ * \sa SysPixelColor
  */
-#define SysColorIndex       SysPixelIndex
+#define SysColorIndex       SysPixelColor
 
     /** @} end of color_vars */
 
@@ -905,7 +942,7 @@ MG_EXPORT BOOL GUIAPI SubtractClipRect (PCLIPRGN pRgn, const RECT* pRect);
  *
  * \sa RectInRegion
  */
-MG_EXPORT BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y);
+MG_EXPORT BOOL GUIAPI PtInRegion (const PCLIPRGN region, int x, int y);
 
 /**
  * \fn BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect)
@@ -921,7 +958,34 @@ MG_EXPORT BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y);
  *
  * \sa PtInRegion
  */
-MG_EXPORT BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect);
+MG_EXPORT BOOL GUIAPI RectInRegion (const PCLIPRGN region, const RECT* rect);
+
+/**
+ * \fn BOOL GUIAPI AreRegionsIntersected (const PCLIPRGN s1, const PCLIPRGN s2)
+ * \brief Determine whether two regions are intersected.
+ *
+ * This function determines whether the region \a s1 and the region \a s2
+ * are intersected.
+ *
+ * \param s1 The pointer to the first region.
+ * \param s2 The pointer to the second region.
+ *
+ * \return TRUE if intersected, otherwise FALSE.
+ *
+ * \sa RectInRegion
+ */
+static inline
+BOOL GUIAPI AreRegionsIntersected (const PCLIPRGN s1, const PCLIPRGN s2)
+{
+    PCLIPRECT crc = s1->head;
+    while (crc) {
+        if (RectInRegion (s2, &crc->rc))
+            return TRUE;
+        crc = crc->next;
+    }
+
+    return FALSE;
+}
 
 /**
  * \fn void GUIAPI OffsetRegionEx (PCLIPRGN region, const RECT *rcClient, \
@@ -5056,14 +5120,12 @@ typedef enum {
  *        in the destination DC.
  * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
- * \param dwRop The color logical operation and the blend method.
- *        Use the high word for the raster logical operation and
- *        the low word for the blend method operation.
+ * \param dwRop The raster logical operation, see \a ColorLogicalOp.
+ *        this argument is reserved for future use, currently ignored.
  *
  * \note The alpha and color key settings of the source DC will come into play.
  *
- * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod,
- *      ColorLogicalOp
+ * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorLogicalOp
  */
 MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, DWORD dwRop);
@@ -5094,9 +5156,8 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  *        in the destination DC.
  * \param dw The width of the destination rectangle.
  * \param dh The height of the destination rectangle.
- * \param dwRop The color logical operation and the blend method.
- *        Use the high word for the raster logical operation and
- *        the low word for the blend method operation.
+ * \param dwRop The raster logical operation, see \a ColorLogicalOp.
+ *        this argument is reserved for future use, currently ignored.
  *
  * \note The source rect should be contained in the device space entirely,
  *       and all coordinates should be in the device space.
