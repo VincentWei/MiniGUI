@@ -852,7 +852,7 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
 #ifdef _MGSCHEMA_COMPOSITING
     if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc))) {
         assert (pdc->surface->dirty_info);
-        if (hdr->dirty_rcs == NULL && hdr->lock_count == 0) {
+        if (hdr->lock_count == 0) {
             if (pdc->surface->shared_header) {
                 // XXX: consider timeout.
                 LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
@@ -864,11 +864,6 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
         }
 
         hdr->lock_count++;
-    }
-    else {
-        hdr->dirty_age = 0;
-        hdr->nr_dirty_rcs = 0;
-        hdr->dirty_rcs = NULL;
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
@@ -909,7 +904,7 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx,
     if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc))) {
         assert (pdc->surface->dirty_info);
 
-        if (hdr->dirty_rcs == NULL && hdr->lock_count == 0) {
+        if (hdr->lock_count == 0) {
             if (pdc->surface->shared_header) {
                 // XXX: consider timeout
                 LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
@@ -921,11 +916,6 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx,
         }
 
         hdr->lock_count++;
-    }
-    else {
-        hdr->dirty_age = 0;
-        hdr->nr_dirty_rcs = 0;
-        hdr->dirty_rcs = NULL;
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
@@ -957,7 +947,7 @@ BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
 
     nodes = GET_ZORDERNODE(zi);
     hdr = (ZNODEHEADER*)(nodes + idx_znode);
-    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) && hdr->dirty_rcs) {
+    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) && hdr->lock_count > 0) {
 
         hdr->lock_count--;
         if (hdr->lock_count == 0) {
@@ -986,7 +976,7 @@ BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
 
     menu_nodes = GET_MENUNODE(zi);
     hdr = (ZNODEHEADER*)(menu_nodes + idx);
-    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) && hdr->dirty_rcs) {
+    if ((pdc = dc_HDC2PDC (hdr->mem_dc)) && hdr->lock_count > 0) {
 
         hdr->lock_count--;
         if (hdr->lock_count == 0) {
