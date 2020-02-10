@@ -182,7 +182,7 @@ typedef void (*voidProcp2)(CLIPRGN *region, const CLIPRECT *r, const CLIPRECT *r
 extern BLOCKHEAP __mg_FreeClipRectList;
 
 /* return TRUE if point is in region */
-BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y)
+BOOL GUIAPI PtInRegion (const PCLIPRGN region, int x, int y)
 {
     int top;
     PCLIPRECT cliprect = region->head;
@@ -216,7 +216,7 @@ BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y)
 }
 
 /* Returns TRUE if rect is at least partly inside region */
-BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect)
+BOOL GUIAPI RectInRegion (const PCLIPRGN region, const RECT* rect)
 {
     PCLIPRECT cliprect = region->head;
     BOOL ret = FALSE;
