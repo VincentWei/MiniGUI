@@ -140,12 +140,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     surface->format_version = 0;
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
-    surface->dirty_info = calloc (1, sizeof (GAL_DirtyInfo));
-    if (surface->dirty_info == NULL) {
-        GAL_FreeSurface(surface);
-        GAL_OutOfMemory();
-        return(NULL);
-    }
+    surface->dirty_info = NULL;
 #endif
     GAL_SetClipRect(surface, NULL);
 
