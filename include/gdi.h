@@ -133,9 +133,47 @@ extern MG_EXPORT gal_pixel SysPixelIndex [];
  */
 extern const MG_EXPORT RGB SysPixelColor [];
 
+/** Indexes for system standard colors. */
+enum {
+    /** Index for transparent color. */
+    IDX_COLOR_transparent = 0,
+    /** Index for dark blue color. */
+    IDX_COLOR_darkblue,
+    /** Index for dark green color. */
+    IDX_COLOR_darkgreen,
+    /** Index for dark cyan color. */
+    IDX_COLOR_darkcyan,
+    /** Index for dark red color. */
+    IDX_COLOR_darkred,
+    /** Index for draw magenta color. */
+    IDX_COLOR_darkmagenta,
+    /** Index for dark yellow color. */
+    IDX_COLOR_darkyellow,
+    /** Index for dark gray color. */
+    IDX_COLOR_darkgray,
+    /** Index for light gray color. */
+    IDX_COLOR_lightgray,
+    /** Index for blue color. */
+    IDX_COLOR_blue,
+    /** Index for green color. */
+    IDX_COLOR_green,
+    /** Index for cyan color. */
+    IDX_COLOR_cyan,
+    /** Index for red color. */
+    IDX_COLOR_red,
+    /** Index for magenta color. */
+    IDX_COLOR_magenta,
+    /** Index for yellow color. */
+    IDX_COLOR_yellow,
+    /** Index for light white color. */
+    IDX_COLOR_lightwhite,
+    /** Index for black color. */
+    IDX_COLOR_black,
+};
+
 /**
  * \def PIXEL_invalid
- * Compatiblity definition; obsolete.
+ * Compatiblity definition; deprecated.
  * \sa SysPixelIndex
  */
 #define PIXEL_invalid       0
@@ -3920,8 +3958,7 @@ typedef enum
  *  Stippled:
  *  OpaqueStippled:
  */
-typedef enum
-{
+typedef enum {
   /**
    * Draw with the current brush color.
    */
