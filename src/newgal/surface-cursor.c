@@ -181,26 +181,25 @@ void GAL_FreeCursorSurface (GAL_Surface *surface)
 
 void GAL_SetCursor (GAL_Surface* surface, int hot_x, int hot_y)
 {
-    if (surface && surface->video) {
-        GAL_VideoDevice *video = surface->video;
-
-        if (video->SetCursor) {
-            assert (surface->hwdata);
-            video->SetCursor (video, surface, hot_x, hot_y);
-        }
+    GAL_VideoDevice *video = __mg_current_video;
+    if (video->SetCursor) {
+        video->SetCursor (video, surface, hot_x, hot_y);
+    }
+    else {
+        _WRN_PRINTF("called but current video has no SetCursor method\n");
     }
 }
 
 /* Move cursor. */
 void GAL_MoveCursor (GAL_Surface* surface, int x, int y)
 {
-    if (surface && surface->video) {
-        GAL_VideoDevice *video = surface->video;
+    GAL_VideoDevice *video = __mg_current_video;
 
-        if (video->MoveCursor) {
-            assert (surface->hwdata);
-            video->MoveCursor (video, x, y);
-        }
+    if (video->MoveCursor) {
+        video->MoveCursor (video, x, y);
+    }
+    else {
+        _WRN_PRINTF("called but current video has no MoveCursor method\n");
     }
 }
 

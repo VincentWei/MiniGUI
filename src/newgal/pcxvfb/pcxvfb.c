@@ -163,11 +163,13 @@ static int execl_pcxvfb(void)
     char* env_value;
 #endif
 
-    if (GetMgEtcValue ("pc_xvfb", "exec_file", execl_file, EXECL_FILENAME_LEN) < 0)
+    if (GetMgEtcValue ("pc_xvfb", "exec_file",
+                execl_file, EXECL_FILENAME_LEN) < 0)
         return ERR_CONFIG_FILE;
     execl_file[EXECL_FILENAME_LEN] = '\0';
 
-    if (GetMgEtcValue ("pc_xvfb", "window_caption", window_caption, WINDOW_CAPTION_LEN) < 0)
+    if (GetMgEtcValue ("pc_xvfb", "window_caption",
+                window_caption, WINDOW_CAPTION_LEN) < 0)
         return ERR_CONFIG_FILE;
     window_caption[WINDOW_CAPTION_LEN] = '\0';
 
@@ -193,10 +195,12 @@ static int execl_pcxvfb(void)
     skin[0] = '\0';
     GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
 
-    _DBG_PRINTF ("NEWGAL>PCXVFB: %s %s %s %s %s\n", execl_file, ch_pid, window_caption, mode, skin);
+    _DBG_PRINTF ("NEWGAL>PCXVFB: %s %s %s %s %s\n",
+            execl_file, ch_pid, window_caption, mode, skin);
 
-    if (execlp (execl_file, "pcxvfb", ch_pid, window_caption, mode, skin, NULL) < 0) {
-        _ERR_PRINTF ("NEWGAL>PCXVFB: failed to start the virtual frame buffer process!\n");
+    if (execlp (execl_file, "pcxvfb",
+                ch_pid, window_caption, mode, skin, NULL) < 0) {
+        _ERR_PRINTF ("NEWGAL>PCXVFB: failed to start the XVFB process!\n");
     }
 
     return 0;
@@ -219,6 +223,103 @@ static void PCXVFB_DeleteDevice (GAL_VideoDevice *device)
     free (device->hidden);
     free (device);
 }
+
+#ifdef _MGSCHEMA_COMPOSITING
+static inline int boxleft (_THIS)
+{
+    if (this->hidden->cursor == NULL)
+        return -100;
+    return this->hidden->csr_x - this->hidden->hot_x;
+}
+
+static inline int boxtop (_THIS)
+{
+    if (this->hidden->cursor == NULL)
+        return -100;
+    return this->hidden->csr_y - this->hidden->hot_y;
+}
+
+#include "cursor.h"
+
+static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects);
+static int PCXVFB_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
+{
+    GAL_Rect rect;
+
+    _DBG_PRINTF ("called: cursor (%p), hot_x(%d), hot_y(%d)\n",
+            surface, hot_x, hot_y);
+
+    if (this->hidden->cursor == surface &&
+            this->hidden->hot_x == hot_x &&
+            this->hidden->hot_y == hot_y) {
+        return 0;
+    }
+
+    /* update screen to hide old cursor */
+    if (this->hidden->cursor) {
+        rect.x = boxleft (this);
+        rect.y = boxtop (this);
+        rect.w = CURSORWIDTH;
+        rect.h = CURSORHEIGHT;
+
+        this->hidden->cursor = NULL;
+        PCXVFB_UpdateRects (this, 1, &rect);
+    }
+
+    this->hidden->cursor = surface;
+    this->hidden->hot_x = hot_x;
+    this->hidden->hot_y = hot_y;
+
+    /* update screen to show new cursor */
+    if (this->hidden->cursor) {
+        rect.x = boxleft (this);
+        rect.y = boxtop (this);
+        rect.w = CURSORWIDTH;
+        rect.h = CURSORHEIGHT;
+        PCXVFB_UpdateRects (this, 1, &rect);
+    }
+
+    return 0;
+}
+
+static int PCXVFB_MoveCursor (_THIS, int x, int y)
+{
+    GAL_Surface* cursor;
+
+    _DBG_PRINTF ("called: x(%d), y(%d)\n", x, y);
+
+    if (this->hidden->csr_x == x &&
+             this->hidden->csr_y == y) {
+        return 0;
+    }
+
+    if (this->hidden->cursor) {
+        GAL_Rect rect;
+        rect.x = boxleft (this);
+        rect.y = boxtop (this);
+        rect.w = CURSORWIDTH;
+        rect.h = CURSORHEIGHT;
+
+        /* update screen to hide cursor */
+        cursor = this->hidden->cursor;
+        this->hidden->cursor = NULL;
+        PCXVFB_UpdateRects (this, 1, &rect);
+
+        /* update screen to show cursor */
+        this->hidden->cursor = cursor;
+        this->hidden->csr_x = x;
+        this->hidden->csr_y = y;
+        PCXVFB_UpdateRects (this, 1, &rect);
+    }
+    else {
+        this->hidden->csr_x = x;
+        this->hidden->csr_y = y;
+    }
+
+    return 0;
+}
+
+#endif /* _MGSCHEMA_COMPOSITING */
 
 static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
@@ -259,6 +360,29 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 
         GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
                 this->hidden->real_screen, &dst_rect);
+#ifdef _MGSCHEMA_COMPOSITING
+        if (this->hidden->cursor) {
+            RECT csr_rc, eff_rc;
+            csr_rc.left = boxleft (this);
+            csr_rc.top = boxtop (this);
+            csr_rc.right = csr_rc.left + CURSORWIDTH;
+            csr_rc.bottom = csr_rc.top + CURSORHEIGHT;
+
+            if (IntersectRect (&eff_rc, &csr_rc, &bound)) {
+                src_rect.x = eff_rc.left - csr_rc.left;
+                src_rect.y = eff_rc.top - csr_rc.top;
+                src_rect.w = RECTW (eff_rc);
+                src_rect.h = RECTH (eff_rc);
+
+                dst_rect.x = eff_rc.left;
+                dst_rect.y = eff_rc.top;
+                dst_rect.w = src_rect.w;
+                dst_rect.h = src_rect.h;
+                GAL_BlitSurface (this->hidden->cursor, &src_rect,
+                        this->hidden->real_screen, &dst_rect);
+            }
+        }
+#endif
     }
 
     this->hidden->hdr->dirty_rc_l = bound.left;
@@ -322,7 +446,8 @@ VideoBootStrap PCXVFB_bootstrap = {
 };
 
 #ifndef WIN32
-static int my_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout) {
+static int my_select(int nfds, fd_set *readfds, fd_set *writefds,
+        fd_set *exceptfds, struct timeval *timeout) {
     struct timeval _tv, *tv;
     struct timeval start, now;
     int ret;
@@ -331,7 +456,8 @@ static int my_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
         gettimeofday(&start, NULL);
         memcpy(&_tv, timeout, sizeof(_tv));
         tv = &_tv;
-    }else{
+    }
+    else {
         tv = NULL;
     }
 
@@ -340,19 +466,23 @@ static int my_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
         if (ret == -1 && errno == EINTR) {
             if (timeout) {
                 gettimeofday(&now, NULL);
-                ret = (timeout->tv_sec * 1000000 + timeout->tv_usec)
-                    - ((now.tv_sec - start.tv_sec) * 1000000 + (now.tv_usec - start.tv_usec));
+                ret = (timeout->tv_sec * 1000000 + timeout->tv_usec) -
+                    ((now.tv_sec - start.tv_sec) * 1000000 +
+                     (now.tv_usec - start.tv_usec));
                 if (ret <= 0) {
                     return 0; /* Timeout */
-                }else{
+                }
+                else {
                     _tv.tv_sec = ret / 1000000;
                     _tv.tv_usec = ret % 1000000;
                     continue;
                 }
-            }else{
+            }
+            else {
                 continue;
             }
-        }else{
+        }
+        else {
             return ret;
         }
     }
@@ -396,11 +526,9 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         if (GetMgEtcValue ("system", "defaultmode", mode, LEN_MODE) < 0)
             return ERR_CONFIG_FILE;
 
-    mode[LEN_MODE] = '\0';
-
-    for(i=0;i<LEN_MODE;i++)
-    {
-        mode[i]=tolower(mode[i]);
+    mode [LEN_MODE] = '\0';
+    for(i = 0; i < LEN_MODE; i++) {
+        mode[i] = tolower(mode[i]);
     }
 
 #ifdef WIN32 //-----------win32----------------
@@ -415,59 +543,58 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     char mapFile[128];
     int  w, h, d, pitch, dataSize, color_num;
     int fd;
-        struct sockaddr_in srv_addr;
-        struct sockaddr_in clt_addr;
+    struct sockaddr_in srv_addr;
+    struct sockaddr_in clt_addr;
 
-    w = atoi(mode);
-    h = atoi(strchr(mode, 'x')+1);
-    d = atoi(strrchr(mode, '-')+1);
+    w = atoi (mode);
+    h = atoi (strchr(mode, 'x')+1);
+    d = atoi (strrchr(mode, '-')+1);
 
-    if (d == 1){
+    if (d == 1) {
         pitch = (w * d + 7) / 8;
-    } else {
+    }
+    else {
         pitch = ((w * d + 31) / 32) * 4;
     }
 
-    if(d <= 8)
+    if (d <= 8)
         color_num = 1 << d;
     else
         color_num = 0;
 
     dataSize = pitch * h + sizeof(XVFBHeader) + color_num * sizeof(XVFBPalEntry);
 
-    sprintf(mapFile,"%s-%d", preMapFile, getpid());
+    sprintf (mapFile,"%s-%d", preMapFile, getpid());
 
-    __mg_pcxvfb_server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    __mg_pcxvfb_server_sockfd = socket (AF_INET, SOCK_STREAM, 0);
 
     srv_addr.sin_family = AF_INET;
     srv_addr.sin_port = htons(getpid()); //port : use the pid
     srv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    bind(__mg_pcxvfb_server_sockfd,
+    bind (__mg_pcxvfb_server_sockfd,
             (struct sockaddr *)&srv_addr, sizeof(struct sockaddr));
 
-    listen(__mg_pcxvfb_server_sockfd, 3);
+    listen (__mg_pcxvfb_server_sockfd, 3);
 
     //shm_init_lock(getpid());
 
     if ((pid = fork()) < 0) {
-        _WRN_PRINTF ("NEWGAL>PCXVFB: fork() error.\n");
+        _ERR_PRINTF ("NEWGAL>PCXVFB: fork() error.\n");
     }
     else if (pid == 0) {
         if (execl_pcxvfb() == ERR_CONFIG_FILE)
-            _WRN_PRINTF ("NEWGAL>PCXVFB: failed to read configuration failure.\n");
-
+            _ERR_PRINTF ("NEWGAL>PCXVFB: failed to read configuration.\n");
         perror ("execl");
         _exit (1);
     }
 
-    client_len = sizeof(clt_addr);
+    client_len = sizeof (clt_addr);
     __mg_pcxvfb_client_sockfd =
             accept (__mg_pcxvfb_server_sockfd,
                 (struct sockaddr *)&clt_addr, &client_len);
 
     fd = open (mapFile, O_RDWR);
-
     if (fd < 0){
         _ERR_PRINTF ("NEWGAL>PCXVFB: open file %s error.\n", mapFile);
         return NULL;
@@ -517,12 +644,12 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             ;/* do nothing */
         }
         else {
-            if (setpgid(getpid(), 0) < 0) {
-                GAL_SetError ("NEWGAL>PCXVFB: Failed to change the group id of the XVFB process.\n");
+            if (setpgid (getpid(), 0) < 0) {
+                GAL_SetError ("NEWGAL>PCXVFB: Failed to change the gid.\n");
             }
 
             if (execl_pcxvfb() == ERR_CONFIG_FILE) {
-                GAL_SetError ("NEWGAL>PCXVFB: Reading configuration failure!\n");
+                GAL_SetError ("NEWGAL>PCXVFB: Failed to read configuration!\n");
             }
 
             perror ("execl");
@@ -537,7 +664,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             FD_SET (__mg_pcxvfb_server_sockfd, &rset);
             tv.tv_sec = 2;
             tv.tv_usec = 0;
-            if (my_select (__mg_pcxvfb_server_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
+            if (my_select (__mg_pcxvfb_server_sockfd + 1, &rset,
+                        NULL, NULL, &tv) != 1) {
                 GAL_SetError ("NEWGAL>PCXVFB: Wait too long for CLIENT.\n");
                 close (__mg_pcxvfb_server_sockfd);
                 return -1;
@@ -555,7 +683,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             FD_SET (__mg_pcxvfb_client_sockfd, &rset);
             tv.tv_sec = 2;
             tv.tv_usec = 0;
-            if (my_select (__mg_pcxvfb_client_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
+            if (my_select (__mg_pcxvfb_client_sockfd + 1, &rset,
+                        NULL, NULL, &tv) != 1) {
                 GAL_SetError ("NEWGAL>PCXVFB: Wait too long for SHMID.\n");
                 close (__mg_pcxvfb_client_sockfd);
                 close (__mg_pcxvfb_server_sockfd);
@@ -563,7 +692,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             }
         }
 
-        if (read (__mg_pcxvfb_client_sockfd, &shmid, sizeof(int)) < sizeof (int)) {
+        if (read (__mg_pcxvfb_client_sockfd, &shmid, sizeof(int)) <
+                sizeof (int)) {
             GAL_SetError ("NEWGAL>PCXVFB: read error from client socket.\n");
             close (__mg_pcxvfb_client_sockfd);
             close (__mg_pcxvfb_server_sockfd);
@@ -575,7 +705,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 #ifdef _MGRM_PROCESSES
             fp = fopen ("/var/tmp/.pcxvfb_tmp", "w+");
             if (fp == NULL) {
-                GAL_SetError ("NEWGAL>PCXVFB: the server can't open file /var/tmp/.pcxvfb_tmp\n");
+                GAL_SetError ("NEWGAL>PCXVFB: failed to open tmp file\n");
                 return -1;
             }
 
@@ -589,12 +719,12 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     else {
         fp = fopen ("/var/tmp/.pcxvfb_tmp", "r");
         if (fp == NULL) {
-            GAL_SetError ("NEWGAL>PCXVFB: can't open file /var/tmp/.pcxvfb_tmp\n");
+            GAL_SetError ("NEWGAL>PCXVFB: can't open tmp file\n");
             return -1;
         }
 
         if (fread (&shmid, sizeof(int), 1, fp) < 1) {
-            GAL_SetError ("NEWGAL>PCXVFB: can't read from /var/tmp/.pcxvfb_tmp\n");
+            GAL_SetError ("NEWGAL>PCXVFB: can't read from tmp file\n");
             fclose (fp);
             return -1;
         }
@@ -609,7 +739,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 #endif //end of os (windows, cygwin, linux)
 
     if ((INT_PTR)data->shmrgn == -1 || data->shmrgn == NULL) {
-        GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to virtual frame buffer.\n");
+        GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to VFB.\n");
         return -1;
     }
 
@@ -651,7 +781,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             break;
         default:
             GAL_SetError ("NEWGAL>PCXVFB: Not supported depth: %d, "
-                    "please try to use Shadow NEWGAL engine with targetname pc_xvfb.\n",
+                    "please try to use Shadow NEWGAL engine with "
+                    "targetname `pc_xvfb`.\n",
                     vformat->BitsPerPixel);
             return -1;
     }
@@ -674,7 +805,9 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
     current->pitch  = this->hidden->hdr->pitch;
     current->format->MSBLeft = this->hidden->hdr->MSBLeft;
 
-    /* Since 4.2.0, check double buffers */
+    /* Since 4.2.0, check double buffers.
+     * XXX: not work for platforms other than Linux
+     */
     _DBG_PRINTF ("data_size: %u\n", this->hidden->hdr->data_size);
     if (this->hidden->hdr->data_size >=
             this->hidden->hdr->fb_offset + (current->pitch * current->h * 2)) {
@@ -689,7 +822,13 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
         if (this->hidden->real_screen) {
             current->pixels = real_pixels + (current->pitch * current->h);
             this->hidden->shadow_screen = current;
-            _DBG_PRINTF ("double buffering enabled\n");
+
+#ifdef _MGSCHEMA_COMPOSITING
+            this->info.hw_cursor = 1;
+            this->hidden->cursor = NULL;
+            this->SetCursor = PCXVFB_SetCursor;
+            this->MoveCursor = PCXVFB_MoveCursor;
+#endif
         }
         else {
             current->pixels = real_pixels;
@@ -788,3 +927,4 @@ static void PCXVFB_VideoQuit (_THIS)
 }
 
 #endif /* _MGGAL_PCXVFB*/
+

@@ -112,6 +112,12 @@ struct GAL_PrivateVideoData {
      */
     GAL_Surface *real_screen, *shadow_screen;
 
+#ifdef _MGSCHEMA_COMPOSITING
+    /* Since 4.2.0: support for hardware cursor. */
+    GAL_Surface *cursor;
+    int csr_x, csr_y;
+    int hot_x, hot_y;
+#endif
 };
 
 #endif /* _GAL_pcxvfb_h */
