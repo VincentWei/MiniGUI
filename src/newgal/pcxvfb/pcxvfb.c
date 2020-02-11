@@ -115,14 +115,14 @@ static int PCXVFB_SetColors(_THIS, int firstcolor, int ncolors,
 static void PCXVFB_VideoQuit(_THIS);
 
 /* Hardware surface functions */
-static int PCXVFB_AllocHWSurface(_THIS, GAL_Surface *surface);
-static void PCXVFB_FreeHWSurface(_THIS, GAL_Surface *surface);
+static int PCXVFB_AllocHWSurface (_THIS, GAL_Surface *surface);
+static void PCXVFB_FreeHWSurface (_THIS, GAL_Surface *surface);
 
 
 #ifndef WIN32
 static int semid;
 
-static int shm_init_lock(key_t key)
+static int shm_init_lock (key_t key)
 {
     union semun {
         int val;
@@ -130,34 +130,33 @@ static int shm_init_lock(key_t key)
         unsigned short* array;
     } sem;
 
-    semid = semget(key,1,IPC_CREAT|0666);
-    if(semid==-1){
+    semid = semget(key, 1, IPC_CREAT|0666);
+    if (semid == -1) {
         _ERR_PRINTF ("NEWGAL>PCXVFB: Failed to create semaphore.\n");
         exit(-1);
     }
-    sem.val=1;
-    semctl(semid,0,SETVAL,sem);
-
+    sem.val = 1;
+    semctl (semid, 0, SETVAL, sem);
     return 0;
 }
 
-static int shm_lock(int semid){
-    struct sembuf sops={0, -1, SEM_UNDO};
-    return(semop(semid,&sops,1));
+static int shm_lock (int semid) {
+    struct sembuf sops = {0, -1, SEM_UNDO};
+    return (semop (semid, &sops, 1));
 }
 
-static int shm_unlock(int semid){
+static int shm_unlock (int semid) {
     struct sembuf sops = {0, +1, SEM_UNDO};
-    return(semop(semid,&sops,1));
+    return (semop (semid, &sops, 1));
 }
 
-static int execl_pcxvfb(void)
+static int execl_pcxvfb (void)
 {
-    char execl_file[EXECL_FILENAME_LEN + 1];
-    char window_caption[WINDOW_CAPTION_LEN + 1];
+    char execl_file [EXECL_FILENAME_LEN + 1];
+    char window_caption [WINDOW_CAPTION_LEN + 1];
     char mode [LEN_MODE + 1];
-    char ch_pid[32];
-    char skin[256];
+    char ch_pid [32];
+    char skin [256];
     int i;
 #if defined (WIN32) || !defined(__NOUNIX__)
     char* env_value;
@@ -186,14 +185,14 @@ static int execl_pcxvfb(void)
 
     mode[LEN_MODE] = '\0';
 
-    for (i=0; i<LEN_MODE; i++) {
-        mode[i]=tolower(mode[i]);
+    for (i = 0; i < LEN_MODE; i++) {
+        mode[i] = tolower (mode[i]);
     }
 
-    sprintf(ch_pid, "%d", getppid());
+    sprintf (ch_pid, "%d", getppid ());
 
     skin[0] = '\0';
-    GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
+    GetMgEtcValue ("pc_xvfb", "skin", skin, sizeof(skin)-1);
 
     _DBG_PRINTF ("NEWGAL>PCXVFB: %s %s %s %s %s\n",
             execl_file, ch_pid, window_caption, mode, skin);
@@ -246,9 +245,6 @@ static int PCXVFB_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
 {
     GAL_Rect rect;
 
-    _DBG_PRINTF ("called: cursor (%p), hot_x(%d), hot_y(%d)\n",
-            surface, hot_x, hot_y);
-
     if (this->hidden->cursor == surface &&
             this->hidden->hot_x == hot_x &&
             this->hidden->hot_y == hot_y) {
@@ -285,8 +281,6 @@ static int PCXVFB_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
 static int PCXVFB_MoveCursor (_THIS, int x, int y)
 {
     GAL_Surface* cursor;
-
-    _DBG_PRINTF ("called: x(%d), y(%d)\n", x, y);
 
     if (this->hidden->csr_x == x &&
              this->hidden->csr_y == y) {
@@ -808,7 +802,6 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
     /* Since 4.2.0, check double buffers.
      * XXX: not work for platforms other than Linux
      */
-    _DBG_PRINTF ("data_size: %u\n", this->hidden->hdr->data_size);
     if (this->hidden->hdr->data_size >=
             this->hidden->hdr->fb_offset + (current->pitch * current->h * 2)) {
         unsigned char* real_pixels = this->hidden->shmrgn;
