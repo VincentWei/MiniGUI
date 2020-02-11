@@ -109,7 +109,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message,
         rcClient.bottom -= 50;
         rcClient.left = 10;
         rcClient.right -= 10;
-        SetTextColor (hdc, DWORD2Pixel (hdc, COLOR_black));
+        SetTextColor (hdc, DWORD2Pixel (hdc, RGBA_black));
         SetBkMode (hdc, BM_TRANSPARENT);
         DrawText (hdc,
                 "MiniGUI -- a mature cross-platform windowing system "

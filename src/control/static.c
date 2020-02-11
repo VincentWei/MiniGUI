@@ -92,13 +92,13 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             /* DK[01/11/10]: For bug 4336 */
             switch (pCtrl->dwStyle & SS_TYPEMASK) {
                 case SS_GRAYRECT:
-                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, COLOR_lightgray);
+                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, RGBA_lightgray);
                 break;
                 case SS_BLACKRECT:
-                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, COLOR_black);
+                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, RGBA_black);
                 break;
                 case SS_WHITERECT:
-                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, COLOR_lightwhite);
+                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, RGBA_lightwhite);
                 break;
                 default:
                 break;

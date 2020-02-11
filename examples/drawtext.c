@@ -18,7 +18,7 @@ void OnModeDrawText (HDC hdc)
     rc3.left = 0; rc3.top  = 361; rc3.right = 401; rc3.bottom = 451;
     rc4.left = 0; rc4.top  = 461; rc4.right = 401; rc4.bottom = 551;
 
-    SetBkColor (hdc, DWORD2Pixel (hdc, COLOR_lightwhite));
+    SetBkColor (hdc, DWORD2Pixel (hdc, RGBA_lightwhite));
 
     Rectangle (hdc, rc1.left, rc1.top, rc1.right, rc1.bottom);
     Rectangle (hdc, rc2.left, rc2.top, rc2.right, rc2.bottom);
