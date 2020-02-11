@@ -299,143 +299,245 @@ enum {
 
 /**
  * \def COLOR_invalid
- * Compatiblity definition; obsolete.
+ * Compatiblity definition; deprecated.
  */
 #define COLOR_invalid       PIXEL_invalid
 
 /**
  * \def COLOR_transparent
+ * Same as PIXEL_transparent; deprecated.
+ */
+#define COLOR_transparent   PIXEL_transparent
+
+/**
+ * \def COLOR_darkred
+ * Same as PIXEL_darkred; deprecated.
+ */
+#define COLOR_darkred       PIXEL_darkred
+
+/**
+ * \def COLOR_darkgreen
+ * Same as PIXEL_darkgreen; deprecated.
+ */
+#define COLOR_darkgreen     PIXEL_darkgreen
+
+/**
+ * \def COLOR_darkyellow
+ * Same as PIXEL_darkyellow; deprecated.
+ */
+#define COLOR_darkyellow    PIXEL_darkyellow
+
+/**
+ * \def COLOR_darkblue
+ * Same as PIXEL_darkblue; deprecated.
+ */
+#define COLOR_darkblue      PIXEL_darkblue
+
+/**
+ * \def COLOR_darkmagenta
+ * Same as PIXEL_darkmagenta; deprecated.
+ */
+#define COLOR_darkmagenta   PIXEL_darkmagenta
+
+/**
+ * \def COLOR_darkcyan
+ * Same as PIXEL_darkcyan; deprecated.
+ */
+#define COLOR_darkcyan      PIXEL_darkcyan
+
+/**
+ * \def COLOR_lightgray
+ * Same as PIXEL_lightgray; deprecated.
+ */
+#define COLOR_lightgray     PIXEL_lightgray
+
+/**
+ * \def COLOR_darkgray
+ * Same as PIXEL_darkgray; deprecated.
+ */
+#define COLOR_darkgray      PIXEL_darkgray
+
+/**
+ * \def COLOR_red
+ * Same as PIXEL_red; deprecated.
+ */
+#define COLOR_red           PIXEL_red
+
+/**
+ * \def COLOR_green
+ * Same as PIXEL_green; deprecated.
+ */
+#define COLOR_green         PIXEL_green
+
+/**
+ * \def COLOR_yellow
+ * Same as PIXEL_yellow; deprecated.
+ */
+#define COLOR_yellow        PIXEL_yellow
+
+/**
+ * \def COLOR_blue
+ * Same as PIXEL_blue; deprecated.
+ */
+#define COLOR_blue          PIXEL_blue
+
+/**
+ * \def COLOR_magenta
+ * Same as PIXEL_magenta; deprecated.
+ */
+#define COLOR_magenta       PIXEL_magenta
+
+/**
+ * \def COLOR_cyan
+ * Same as PIXEL_cyan; deprecated.
+ */
+#define COLOR_cyan          PIXEL_cyan
+
+/**
+ * \def COLOR_lightwhite
+ * Same as PIXEL_lightwhite; deprecated.
+ */
+#define COLOR_lightwhite    PIXEL_lightwhite
+
+/**
+ * \def COLOR_black
+ * Same as \a PIXEL_black; deprecated.
+ */
+#define COLOR_black         PIXEL_black
+
+/**
+ * \def RGBA_transparent
  * The RGBA quadruple for transparent color.
  */
-#define COLOR_transparent                               \
+#define RGBA_transparent                                \
     (MakeRGBA(SysPixelColor[0].r, SysPixelColor[0].g,   \
               SysPixelColor[0].b, SysPixelColor[0].a))
 
 /**
- * \def COLOR_darkblue
+ * \def RGBA_darkblue
  * The RGBA quadruple for dark blue color.
  */
-#define COLOR_darkblue                                  \
+#define RGBA_darkblue                                   \
     (MakeRGBA(SysPixelColor[1].r, SysPixelColor[1].g,   \
               SysPixelColor[1].b, SysPixelColor[1].a))
 
 /**
- * \def COLOR_darkgreen
+ * \def RGBA_darkgreen
  * The RGBA quadruple for dark green color.
  */
-#define COLOR_darkgreen                                 \
+#define RGBA_darkgreen                                  \
     (MakeRGBA(SysPixelColor[2].r, SysPixelColor[2].g,   \
               SysPixelColor[2].b, SysPixelColor[2].a))
 
 /**
- * \def COLOR_darkcyan
+ * \def RGBA_darkcyan
  * The RGBA quadruple for dark cyan color.
  */
-#define COLOR_darkcyan                                  \
+#define RGBA_darkcyan                                   \
     (MakeRGBA(SysPixelColor[3].r, SysPixelColor[3].g,   \
               SysPixelColor[3].b, SysPixelColor[3].a))
 
 /**
- * \def COLOR_darkred
+ * \def RGBA_darkred
  * The RGBA quadruple for dark red color.
  */
-#define COLOR_darkred                                   \
+#define RGBA_darkred                                    \
     (MakeRGBA(SysPixelColor[4].r, SysPixelColor[4].g,   \
               SysPixelColor[4].b, SysPixelColor[4].a))
 
 /**
- * \def COLOR_darkmagenta
+ * \def RGBA_darkmagenta
  * The RGBA quadruple for dark magenta color.
  */
-#define COLOR_darkmagenta                               \
+#define RGBA_darkmagenta                                \
     (MakeRGBA(SysPixelColor[5].r, SysPixelColor[5].g,   \
               SysPixelColor[5].b, SysPixelColor[5].a))
 
 /**
- * \def COLOR_darkyellow
+ * \def RGBA_darkyellow
  * The RGBA quadruple for dark yellow color.
  */
-#define COLOR_darkyellow                                \
+#define RGBA_darkyellow                                 \
     (MakeRGBA(SysPixelColor[6].r, SysPixelColor[6].g,   \
               SysPixelColor[6].b, SysPixelColor[6].a))
 
 /**
- * \def COLOR_darkgray
+ * \def RGBA_darkgray
  * The RGBA quadruple for dark gray color.
  */
-#define COLOR_darkgray                                  \
+#define RGBA_darkgray                                   \
     (MakeRGBA(SysPixelColor[7].r, SysPixelColor[7].g,   \
               SysPixelColor[7].b, SysPixelColor[7].a))
 
 /**
- * \def COLOR_lightgray
+ * \def RGBA_lightgray
  * The RGBA quadruple for light gray color.
  */
-#define COLOR_lightgray                                 \
+#define RGBA_lightgray                                  \
     (MakeRGBA(SysPixelColor[8].r, SysPixelColor[8].g,   \
               SysPixelColor[8].b, SysPixelColor[8].a))
 
 /**
- * \def COLOR_blue
+ * \def RGBA_blue
  * The RGBA quadruple for blue color.
  */
-#define COLOR_blue                                      \
+#define RGBA_blue                                       \
     (MakeRGBA(SysPixelColor[9].r, SysPixelColor[9].g,   \
               SysPixelColor[9].b, SysPixelColor[9].a))
 
 /**
- * \def COLOR_green
+ * \def RGBA_green
  * The RGBA quadruple for green color.
  */
-#define COLOR_green                                     \
+#define RGBA_green                                      \
     (MakeRGBA(SysPixelColor[10].r, SysPixelColor[10].g, \
               SysPixelColor[10].b, SysPixelColor[10].a))
 
 /**
- * \def COLOR_cyan
+ * \def RGBA_cyan
  * The RGBA quadruple for cyan color.
  */
-#define COLOR_cyan                                      \
+#define RGBA_cyan                                       \
     (MakeRGBA(SysPixelColor[11].r, SysPixelColor[11].g, \
               SysPixelColor[11].b, SysPixelColor[11].a))
 
 /**
- * \def COLOR_red
+ * \def RGBA_red
  * The RGBA quadruple for red color.
  */
-#define COLOR_red                                       \
+#define RGBA_red                                        \
     (MakeRGBA(SysPixelColor[12].r, SysPixelColor[12].g, \
               SysPixelColor[12].b, SysPixelColor[12].a))
 
 /**
- * \def COLOR_magenta
+ * \def RGBA_magenta
  * The RGBA quadruple for magenta color.
  */
-#define COLOR_magenta                                   \
+#define RGBA_magenta                                    \
     (MakeRGBA(SysPixelColor[13].r, SysPixelColor[13].g, \
               SysPixelColor[13].b, SysPixelColor[13].a))
 
 /**
- * \def COLOR_yellow
+ * \def RGBA_yellow
  * The RGBA quadruple for yellow color.
  */
-#define COLOR_yellow                                    \
+#define RGBA_yellow                                     \
     (MakeRGBA(SysPixelColor[14].r, SysPixelColor[14].g, \
               SysPixelColor[14].b, SysPixelColor[14].a))
 
 /**
- * \def COLOR_lightwhite
+ * \def RGBA_lightwhite
  * The RGBA quadruple for light white color.
  */
-#define COLOR_lightwhite                                \
+#define RGBA_lightwhite                                 \
     (MakeRGBA(SysPixelColor[15].r, SysPixelColor[15].g, \
               SysPixelColor[15].b, SysPixelColor[15].a))
 
 /**
- * \def COLOR_black
+ * \def RGBA_black
  * The RGBA quadruple for black color.
  */
-#define COLOR_black                                     \
+#define RGBA_black                                      \
     (MakeRGBA(SysPixelColor[16].r, SysPixelColor[16].g, \
               SysPixelColor[16].b, SysPixelColor[16].a))
 
