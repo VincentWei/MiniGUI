@@ -352,10 +352,9 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         esetptr = &eset;
     }
 
-#if defined (_MGHAVE_CURSOR)
+#if defined (_MGHAVE_CURSOR) && defined (_MGSCHEMA_SHAREDFB)
     /* if the cursor has been hide by GDI function of clients
-     * this call will show the cursor
-     */
+     * this call will re-show the cursor */
     kernel_ReShowCursor ();
 #endif
 
