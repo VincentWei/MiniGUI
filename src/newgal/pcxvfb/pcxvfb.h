@@ -58,9 +58,19 @@
 int __mg_pcxvfb_server_sockfd;
 int __mg_pcxvfb_client_sockfd;
 
-typedef struct _XVFbHeader
-{
-    unsigned int info_size;
+typedef struct _XVFbHeader {
+    /* Changes since 4.2.0.
+     *
+     * For a PCXVFB which creates double buffers, MiniGUI can use
+     * the double buffers to eliminate the mess screen due to the
+     * fast asynchronous update, and support the hardware cursor.
+     *
+     * When double buffers used, the value of the first field `data_size`
+     * in the header will be the size of the shared memory in bytes.
+     * This field is previously called `info_size`, which was initialized
+     * as 0 in old implementations.
+     */
+    unsigned int data_size;
 
     int width;
     int height;
@@ -84,16 +94,24 @@ typedef struct _XVFbHeader
     int Gmask;
     int Bmask;
     int Amask;
-}XVFBHeader;
+} XVFBHeader;
 
 typedef struct _XVFBPalEntry {
-        unsigned char r, g, b, a;
+    unsigned char r, g, b, a;
 } XVFBPalEntry;
 
 /* Private display data */
 struct GAL_PrivateVideoData {
     unsigned char* shmrgn;
     XVFBHeader* hdr;
+
+    /* Since 4.2.0.
+     * When double buffering supported, the real surface represents the ultimate
+     * frame buffer, and the shadow screen represents the rendering surface.
+     * When double buffering disabled, both are NULL.
+     */
+    GAL_Surface *real_screen, *shadow_screen;
+
 };
 
 #endif /* _GAL_pcxvfb_h */
