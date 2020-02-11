@@ -3579,7 +3579,7 @@ static void ResetMenuSize (HWND hwnd)
 
 HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-        int ct, DWORD ct_arg,
+        unsigned int surf_flag, int ct, DWORD ct_arg,
         const char* window_name, const char* layer_name)
 {
     PMAINWIN pWin;
@@ -3757,8 +3757,11 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     SendMessage ((HWND)pWin, MSG_CHANGESIZE, (WPARAM)&pWin->left, 0);
 
 #ifdef _MGSCHEMA_COMPOSITING
-    pWin->surf = GAL_CreateSurfaceForZNode (pWin->right - pWin->left,
+    pWin->surf = GAL_CreateSurfaceForZNode (surf_flag, pWin->right - pWin->left,
                 pWin->bottom - pWin->top);
+    pWin->iBkColor = GAL_MapRGBA (pWin->surf->format,
+            GetRValue (pCreateInfo->dwBkColor), GetGValue (pCreateInfo->dwBkColor),
+            GetBValue (pCreateInfo->dwBkColor), GetAValue (pCreateInfo->dwBkColor));
 #else
     pWin->pGCRInfo = &pWin->GCRInfo;
 #endif
@@ -4244,6 +4247,23 @@ BOOL GUIAPI GetClientRect (HWND hWnd, PRECT prc)
 }
 
 /******************** main window and control styles support *****************/
+/* Since 4.2.0. */
+gal_pixel GUIAPI DWORD2PixelByWindow (HWND hWnd, DWORD dwColor)
+{
+#ifdef _MGSCHEMA_COMPOSITING
+    PMAINWIN pWin = (PMAINWIN)hWnd;
+    if (hWnd == HWND_NULL || hWnd == HWND_DESKTOP || hWnd == HWND_INVALID) {
+        return DWORD2Pixel (HDC_SCREEN, dwColor);
+    }
+
+    return GAL_MapRGBA (pWin->surf->format,
+            GetRValue (dwColor), GetGValue (dwColor),
+            GetBValue (dwColor), GetAValue (dwColor));
+#else
+    return DWORD2Pixel (HDC_SCREEN, dwColor);
+#endif
+}
+
 gal_pixel GUIAPI GetWindowBkColor (HWND hWnd)
 {
     PMAINWIN pWin = (PMAINWIN)hWnd;
@@ -5257,7 +5277,6 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     pNewCtrl->dwStyle   = dwStyle | WS_CHILD | cci->dwStyle;
     pNewCtrl->dwExStyle = dwExStyle | cci->dwExStyle;
 
-    pNewCtrl->iBkColor  = cci->iBkColor;
     pNewCtrl->hCursor   = cci->hCursor;
     pNewCtrl->hMenu     = 0;
     pNewCtrl->hAccel    = 0;
@@ -5354,7 +5373,7 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
 
     if (dwExStyle & WS_EX_CTRLASMAINWIN) {
 #ifdef _MGSCHEMA_COMPOSITING
-        pNewCtrl->surf = GAL_CreateSurfaceForZNode (
+        pNewCtrl->surf = GAL_CreateSurfaceForZNodeAs (pMainWin->surf,
                 pNewCtrl->right - pNewCtrl->left,
                 pNewCtrl->bottom - pNewCtrl->top);
 #else
@@ -5371,6 +5390,14 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
 #endif
         pNewCtrl->idx_znode = pMainWin->idx_znode;
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    pNewCtrl->iBkColor = GAL_MapRGBA (pNewCtrl->surf->format,
+            GetRValue (cci->dwBkColor), GetGValue (cci->dwBkColor),
+            GetBValue (cci->dwBkColor), GetAValue (cci->dwBkColor));
+#else
+    pNewCtrl->iBkColor  = cci->iBkColor;
+#endif
 
     if (SendMessage (HWND_DESKTOP,
                 MSG_NEWCTRLINSTANCE,
