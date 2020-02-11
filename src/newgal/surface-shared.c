@@ -467,21 +467,85 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
     surface->dirty_info = NULL;
 }
 
-GAL_Surface *GAL_CreateSurfaceForZNode (int width, int height)
+static inline
+GAL_Surface *create_surface_for_znode (GAL_VideoDevice* video,
+        int width, int height, int bpp,
+        Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
 {
-    _DBG_PRINTF("size: %d x %d\n", width, height);
+    GAL_Surface * surface;
 
     if (IsServer()) {
-        return GAL_CreateRGBSurface (
-            GAL_HWSURFACE, width, height, __gal_screen->format->BitsPerPixel,
-            __gal_screen->format->Rmask, __gal_screen->format->Gmask,
-            __gal_screen->format->Bmask, __gal_screen->format->Amask);
+        surface = GAL_CreateRGBSurface (
+            GAL_HWSURFACE, width, height, bpp, Rmask, Gmask, Bmask, Amask);
+
+        if (surface) {
+            surface->dirty_info = calloc (1, sizeof (GAL_DirtyInfo));
+            if (surface->dirty_info == NULL) {
+                GAL_FreeSurface (surface);
+                GAL_OutOfMemory ();
+                return (NULL);
+            }
+        }
+
+        return surface;
     }
 
-    return GAL_CreateSharedRGBSurface (__gal_screen->video,
-        GAL_HWSURFACE, 0600, width, height, __gal_screen->format->BitsPerPixel,
-        __gal_screen->format->Rmask, __gal_screen->format->Gmask,
-        __gal_screen->format->Bmask, __gal_screen->format->Amask);
+    return GAL_CreateSharedRGBSurface (video,
+        GAL_HWSURFACE, 0600, width, height, bpp, Rmask, Gmask, Bmask, Amask);
+}
+
+GAL_Surface *GAL_CreateSurfaceForZNodeAs (const GAL_Surface* ref_surf,
+        int width, int height)
+{
+    return create_surface_for_znode (__gal_screen->video,
+            width, height, ref_surf->format->BitsPerPixel,
+            ref_surf->format->Rmask, ref_surf->format->Gmask,
+            ref_surf->format->Bmask, ref_surf->format->Amask);
+}
+
+GAL_Surface *GAL_CreateSurfaceForZNode (unsigned surf_flag, int width, int height)
+{
+    int bpp;
+    Uint32 Rmask, Gmask, Bmask, Amask;
+
+    _DBG_PRINTF("type: %u, size: %d x %d\n", surf_flag, width, height);
+
+    switch (surf_flag & ST_PIXEL_MASK) {
+    case ST_PIXEL_ARGB4444:
+        bpp = 16;
+        Amask = 0xF000;
+        Rmask = 0x0F00;
+        Gmask = 0x00F0;
+        Bmask = 0x000F;
+        break;
+
+    case ST_PIXEL_ARGB1555:
+        bpp = 16;
+        Amask = 0x8000;
+        Rmask = 0x7B00;
+        Gmask = 0x03E0;
+        Bmask = 0x001F;
+        break;
+
+    case ST_PIXEL_ARGB8888:
+        bpp = 32;
+        Amask = 0xFF000000;
+        Rmask = 0x00FF0000;
+        Gmask = 0x0000FF00;
+        Bmask = 0x000000FF;
+        break;
+
+    default:
+        bpp = __gal_screen->format->BitsPerPixel;
+        Amask = __gal_screen->format->Amask;
+        Rmask = __gal_screen->format->Rmask;
+        Gmask = __gal_screen->format->Gmask;
+        Bmask = __gal_screen->format->Bmask;
+        break;
+    }
+
+    return create_surface_for_znode (__gal_screen->video,
+            width, height, bpp, Rmask, Gmask, Bmask, Amask);
 }
 
 #endif /* IS_COMPOSITING_SCHEMA */
