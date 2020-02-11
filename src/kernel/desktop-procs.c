@@ -2169,14 +2169,14 @@ static void dskHideMainWindow (PMAINWIN pWin)
  */
 static int resize_window_surface (PMAINWIN pWin, const RECT* prcResult)
 {
-    int new_width = RECTWP(prcResult);
-    int new_height = RECTHP(prcResult);
+    int nw = RECTWP(prcResult);
+    int nh = RECTHP(prcResult);
 
-    if (pWin->surf->w < new_width || pWin->surf->h < new_height) {
+    if (pWin->surf->w < nw || pWin->surf->h < nh) {
         GAL_Rect rect = { 0, 0, pWin->surf->w, pWin->surf->h };
         GAL_Surface* new_surf;
 
-        new_surf = GAL_CreateSurfaceForZNode (new_width, new_height);
+        new_surf = GAL_CreateSurfaceForZNodeAs (pWin->surf, nw, nh);
         if (new_surf == NULL)
             return -2;
 
