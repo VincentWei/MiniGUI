@@ -109,7 +109,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message,
         rcClient.bottom -= 50;
         rcClient.left = 10;
         rcClient.right -= 10;
-        SetTextColor (hdc, PIXEL_black);
+        SetTextColor (hdc, DWORD2Pixel (hdc, COLOR_black));
         SetBkMode (hdc, BM_TRANSPARENT);
         DrawText (hdc,
                 "MiniGUI -- a mature cross-platform windowing system "
@@ -159,7 +159,15 @@ static void InitAboutDialogCreateInfo (PMAINWINCREATE pCreateInfo, char* caption
         pCreateInfo->rx = 340;
         pCreateInfo->by = 240;
     }
-    pCreateInfo->iBkColor = PIXEL_lightwhite;
+
+    pCreateInfo->iBkColor = RGBA2Pixel(HDC_SCREEN, 0xFF, 0xFF, 0xFF, 0x80);
+#ifdef _MGSCHEMA_COMPOSITING
+    pCreateInfo->dwBkColor = MakeRGBA (
+            SysPixelColor[IDX_COLOR_lightgray].r,
+            SysPixelColor[IDX_COLOR_lightgray].g,
+            SysPixelColor[IDX_COLOR_lightgray].b,
+            0x40);
+#endif
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }
@@ -217,7 +225,8 @@ HWND GUIAPI OpenAboutDialog (HWND hHosting)
     InitAboutDialogCreateInfo (&CreateInfo, caption);
     CreateInfo.hHosting = hHosting;
 
-    hMainWnd = CreateMainWindow (&CreateInfo);
+    hMainWnd = CreateMainWindowEx2 (&CreateInfo, NULL, NULL,
+            ST_PIXEL_ARGB8888, CT_ALPHAPIXEL, 0x80, NULL, NULL);
 
     if (hMainWnd == HWND_INVALID)
         return HWND_INVALID;
