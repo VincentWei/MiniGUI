@@ -628,12 +628,6 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 
     video->info.vfmt = GAL_VideoSurface->format;
     GAL_VideoSurface->video = __mg_current_video;
-#ifdef _MGSCHEMA_COMPOSITING
-    if (GAL_VideoSurface->dirty_info) {
-        free (GAL_VideoSurface->dirty_info);
-        GAL_VideoSurface->dirty_info = NULL;
-    }
-#endif
 
     return(GAL_PublicSurface);
 }
@@ -801,7 +795,6 @@ static void mark_surface_dirty (GAL_Surface* surface,
         di->dirty_rcs[0] = rc_bound;
 
         _WRN_PRINTF("Too many un-synced dirty rects, merged to one.\n");
-        assert (0);
     }
 
     di->dirty_age++;
@@ -1448,12 +1441,6 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
 
     video->info.vfmt = surface->format;
     surface->video = device;
-#ifdef _MGSCHEMA_COMPOSITING
-    if (surface->dirty_info) {
-        free (surface->dirty_info);
-        surface->dirty_info = NULL;
-    }
-#endif
 
     return surface;
 }
