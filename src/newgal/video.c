@@ -801,6 +801,16 @@ static void mark_surface_dirty (GAL_Surface* surface,
 }
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
+#ifdef _MGSCHEMA_COMPOSITING
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+
+#include "sharedres.h"
+#include "ourhdr.h"
+#include "drawsemop.h"
+#endif
+
 #ifdef _MGUSE_SYNC_UPDATE
 
 static inline void add_rects_to_update_region (CLIPRGN* region,
@@ -885,16 +895,6 @@ int __mg_convert_region_to_rects (const CLIPRGN * rgn,
     return nr;
 }
 
-#ifdef _MGSCHEMA_COMPOSITING
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-
-#include "sharedres.h"
-#include "ourhdr.h"
-#include "drawsemop.h"
-#endif
-
 BOOL GAL_SyncUpdate (GAL_Surface *surface)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
@@ -949,7 +949,7 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
 #endif
 
     if (this) {
-        if (this->info.mlt_surfaces == 0 && this->UpdateRects)
+        if (this->info.mlt_surfaces == 0 && this->UpdateRects) {
             this->UpdateRects (this, numrects, rects);
         }
         else if (this->UpdateSurfaceRects) {

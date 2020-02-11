@@ -5893,7 +5893,7 @@ typedef struct _MAINWINCREATE {
     /**
      * The background color of the main window.
      * Note that under compositing schema, if you specify the main windows's
-     * surface type other than default, you must use this field
+     * surface type other than the default, you must use this field
      * to specify the background color of the main window instead of
      * the pixel value (\a iBkColor).
      *
@@ -5901,7 +5901,7 @@ typedef struct _MAINWINCREATE {
      * You should use a value returned by \a MakeRGBA macro for this field.
      * Note that if you use the surface type \a ST_PIXEL_DEFAULT when creating
      * the main window, you can still use the pixel values which compliant
-     * to \a HDC_SCREEN, e.g., a values in \a SysPixelIndex array.
+     * to \a HDC_SCREEN, e.g., values in \a SysPixelIndex array.
      */
     DWORD dwBkColor;
 #endif
@@ -8452,7 +8452,7 @@ typedef struct _WNDCLASS {
      *
      * \code
      * #ifdef _MGSCHEMA_COMPOSITING
-     *      MyClass.dwBkColor   = COLOR_lightwhite;
+     *      MyClass.dwBkColor   = RGBA_lightwhite;
      * #else
      *      MyClass.iBkColor    = PIXEL_lightwhite;
      * #endif
