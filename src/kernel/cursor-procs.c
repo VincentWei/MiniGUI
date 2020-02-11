@@ -448,9 +448,6 @@ static void hidecursor (void)
     GAL_SetClipRect (__gal_screen, NULL);
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
-#ifdef _MGUSE_SYNC_UPDATE
-    GAL_SyncUpdate (__gal_screen);
-#endif
 }
 
 static void showcursor (void)
@@ -742,9 +739,6 @@ static void hidecursor (void)
     GAL_SetClipRect (__gal_screen, NULL);
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
-#ifdef _MGUSE_SYNC_UPDATE
-    GAL_SyncUpdate (__gal_screen);
-#endif
 
 #if 0 // Debug code
     if (!mgIsServer) {
@@ -949,8 +943,9 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
     if (oldx != curx || oldy != cury) {
 
-#if defined(_MGHAVE_CURSOR) && defined(_MGSCHEMA_SHAREDFB)
+#ifdef _MGHAVE_CURSOR
         LOCK_CURSOR_SEM ();
+#ifdef _MGSCHEMA_SHAREDFB
         CSR_CURSORX = curx;
         CSR_CURSORY = cury;
         if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
@@ -963,13 +958,18 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
             showcursor ();
         }
-        UNLOCK_CURSOR_SEM ();
-#elif defined(_MGHAVE_CURSOR) && defined(_MGSCHEMA_COMPOSITING)
+#else /* _MGSCHEMA_SHAREDFB */
         CSR_CURSORX = curx;
         CSR_CURSORY = cury;
         if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
             if (csr_bmp.bmBits) {
-                hidecursor ();
+                if (get_hidecursor_sem_val ()) {
+                    reset_hidecursor_sem ();
+                }
+                else {
+                    hidecursor ();
+                }
+
                 showcursor ();
             }
             else {
@@ -977,8 +977,9 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
                 GAL_MoveCursor (pcsr->surface, curx, cury);
             }
         }
-
-#endif /* _MGHAVE_CURSOR && _MGSCHEMA_COMPOSITING */
+#endif /* _MGSCHEMA_COMPOSITING */
+        UNLOCK_CURSOR_SEM ();
+#endif /* _MGHAVE_CURSOR */
 
         oldx = curx;
         oldy = cury;
@@ -990,7 +991,6 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
 #ifdef _MGHAVE_CURSOR
 
-#ifdef _MGSCHEMA_SHAREDFB
 /* show cursor hidden by client GDI function */
 void kernel_ReShowCursor (void)
 {
@@ -1003,7 +1003,6 @@ void kernel_ReShowCursor (void)
     }
     UNLOCK_CURSOR_SEM ();
 }
-#endif /* _MGSCHEMA_SHAREDFB */
 
 /* Always call with "setdef = FALSE" for clients at server side. */
 HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
@@ -1036,16 +1035,19 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
 
     pcsr = (PCURSOR)hcsr;
 
+    LOCK_CURSOR_SEM ();
 #ifdef _MGSCHEMA_COMPOSITING
     if (csr_bmp.bmBits) {
-        if (CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+        if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
+                    && get_hidecursor_sem_val () == 0)
             hidecursor();
 
         CSR_CURRENT_SET = (HCURSOR)pcsr;
         CSR_XHOTSPOT = pcsr ? pcsr->xhotspot : -100;
         CSR_YHOTSPOT = pcsr ? pcsr->yhotspot : -100;
 
-        if (CSR_CURRENT && CSR_SHOW_COUNT >= 0)
+        if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
+                    && get_hidecursor_sem_val () == 0)
             showcursor();
     }
     else {
@@ -1055,7 +1057,6 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
         GAL_SetCursor (pcsr->surface, pcsr->xhotspot, pcsr->yhotspot);
     }
 #else /* _MGSCHEMA_SHAREDFB */
-    LOCK_CURSOR_SEM ();
     if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
                     && get_hidecursor_sem_val () == 0)
         hidecursor();
@@ -1067,8 +1068,8 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     if (CSR_CURRENT && CSR_SHOW_COUNT >= 0
                     && get_hidecursor_sem_val () == 0)
         showcursor();
-    UNLOCK_CURSOR_SEM ();
 #endif /* _MGSCHEMA_SHAREDFB */
+    UNLOCK_CURSOR_SEM ();
 
     return (HCURSOR) old;
 }
@@ -1152,19 +1153,24 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     if (cur_pdc->surface == __gal_screen) {
         // only call showcursor/hidecursor for software cursor.
         if (!fShow) {
+            LOCK_CURSOR_SEM ();
             if (csr_bmp.bmBits && CSR_SHOW_COUNT >= 0 && CSR_CURRENT &&
-                    does_need_hide (prc)) {
+                    does_need_hide (prc) && get_hidecursor_sem_val () == 0) {
+                inc_hidecursor_sem ();
                 hidecursor ();
             }
         }
         else {
+#if 0
             if (csr_bmp.bmBits && CSR_CURRENT && CSR_SHOW_COUNT >= 0 &&
                     does_need_hide (prc)) {
                 showcursor();
             }
+#endif
 
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+            UNLOCK_CURSOR_SEM ();
         }
     }
 }
@@ -1185,8 +1191,8 @@ int GUIAPI ShowCursor (BOOL fShow)
         return ret_value;
     }
 
-#ifdef _MGSCHEMA_SHAREDFB
     LOCK_CURSOR_SEM ();
+#ifdef _MGSCHEMA_SHAREDFB
     if (fShow) {
         CSR_SHOW_COUNT++;
         if (CSR_SHOW_COUNT == 0 && CSR_CURRENT
@@ -1198,12 +1204,11 @@ int GUIAPI ShowCursor (BOOL fShow)
         if (CSR_SHOW_COUNT == -1 && CSR_CURRENT)
            hidecursor();
     }
-    UNLOCK_CURSOR_SEM ();
 #else /* _MGSCHEMA_SHAREDFB */
     if (fShow) {
         CSR_SHOW_COUNT++;
         if (CSR_SHOW_COUNT == 0 && CSR_CURRENT) {
-            if (csr_bmp.bmBits)
+            if (csr_bmp.bmBits && get_hidecursor_sem_val () == 0)
                 showcursor();
             else {
                 PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
@@ -1223,6 +1228,7 @@ int GUIAPI ShowCursor (BOOL fShow)
         }
     }
 #endif /* _MGSCHEMA_COMPOSITING */
+    UNLOCK_CURSOR_SEM ();
 
     return CSR_SHOW_COUNT;
 }
