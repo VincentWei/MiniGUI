@@ -353,7 +353,11 @@ int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass)
         if (pWndClass->opMask & COP_HCURSOR)
             pWndClass->hCursor      = cci->hCursor;
         if (pWndClass->opMask & COP_BKCOLOR)
+#ifdef _MGSCHEMA_COMPOSITING
+            pWndClass->dwBkColor    = cci->dwBkColor;
+#else
             pWndClass->iBkColor     = cci->iBkColor;
+#endif
         if (pWndClass->opMask & COP_WINPROC)
             pWndClass->WinProc      = cci->ControlProc;
         if (pWndClass->opMask & COP_ADDDATA)
@@ -367,7 +371,11 @@ int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass)
         if (pWndClass->opMask & COP_HCURSOR)
             cci->hCursor            = pWndClass->hCursor;
         if (pWndClass->opMask & COP_BKCOLOR)
+#ifdef _MGSCHEMA_COMPOSITING
+            cci->dwBkColor          = pWndClass->dwBkColor;
+#else
             cci->iBkColor           = pWndClass->iBkColor;
+#endif
         if (pWndClass->opMask & COP_WINPROC)
             cci->ControlProc        = pWndClass->WinProc;
         if (pWndClass->opMask & COP_ADDDATA)
@@ -445,7 +453,11 @@ int AddNewControlClass (PWNDCLASS pWndClass)
     newcci->dwStyle     = pWndClass->dwStyle;
     newcci->dwExStyle   = pWndClass->dwExStyle;
     newcci->hCursor     = pWndClass->hCursor;
+#ifdef _MGSCHEMA_COMPOSITING
+    newcci->dwBkColor   = pWndClass->dwBkColor;
+#else
     newcci->iBkColor    = pWndClass->iBkColor;
+#endif
     newcci->ControlProc = pWndClass->WinProc;
     newcci->dwAddData   = pWndClass->dwAddData;
     newcci->nUseCount   = 0;
@@ -554,7 +566,11 @@ static void DumpCtrlClassInfo (PCTRLCLASSINFO cci)
 {
     printf ("\tClass Name:             %s\n", cci->name);
     printf ("\tClass Cursor:           %p\n", cci->hCursor);
+#ifdef _MGSCHEMA_COMPOSITING
+    printf ("\tClass Background color: 0x%08X\n", (int)cci->dwBkColor);
+#else
     printf ("\tClass Background color: %d\n", cci->iBkColor);
+#endif
     printf ("\tClass Control Proc:     %p\n", cci->ControlProc);
     printf ("\tClass Use Count:        %d\n", cci->nUseCount);
 }

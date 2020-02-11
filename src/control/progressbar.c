@@ -223,8 +223,13 @@ BOOL RegisterProgressBarControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
-    WndClass.iBkColor    =
-        GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
+            WE_MAINC_THREED_BODY);
+#else
+    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL,
+            WE_MAINC_THREED_BODY);
+#endif
     WndClass.WinProc     = ProgressBarCtrlProc;
 
     return AddNewControlClass (&WndClass) == ERR_OK;

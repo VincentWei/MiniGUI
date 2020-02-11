@@ -2195,12 +2195,16 @@ BOOL RegisterListViewControl (void)
 {
     WNDCLASS WndClass;
 
-    WndClass.spClassName    = CTRL_LISTVIEW;
-    WndClass.dwStyle        = WS_NONE;
-    WndClass.dwExStyle      = WS_EX_NONE;
-    WndClass.hCursor        = GetSystemCursor (0);
-    WndClass.iBkColor       = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
-    WndClass.WinProc        = ListViewCtrlProc;
+    WndClass.spClassName = CTRL_LISTVIEW;
+    WndClass.dwStyle     = WS_NONE;
+    WndClass.dwExStyle   = WS_EX_NONE;
+    WndClass.hCursor     = GetSystemCursor (0);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#endif
+    WndClass.WinProc     = ListViewCtrlProc;
 
     return AddNewControlClass (&WndClass) == ERR_OK;
 }

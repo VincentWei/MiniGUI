@@ -93,8 +93,13 @@ BOOL RegisterComboBoxControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   =
+        GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
     WndClass.iBkColor    =
         GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = ComboBoxCtrlProc;
 
     return AddNewControlClass (&WndClass) == ERR_OK;

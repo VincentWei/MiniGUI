@@ -539,7 +539,7 @@ static void on_dirty_wpp (CompositorCtxt* ctxt)
 {
     const ZNODEHEADER* znode_hdr;
  
-    _DBG_PRINTF ("called\n");
+    //_DBG_PRINTF ("called\n");
     znode_hdr = ServerGetWinZNodeHeader (NULL, 0, NULL, TRUE);
     assert (znode_hdr);
 

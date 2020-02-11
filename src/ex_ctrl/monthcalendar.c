@@ -118,13 +118,16 @@ BOOL RegisterMonthCalendarControl (void)
 {
     WNDCLASS WndClass;
 
-    WndClass.spClassName    = "monthcalendar";
-    WndClass.dwStyle        = WS_NONE;
-    WndClass.dwExStyle      = WS_EX_NONE;
-    WndClass.hCursor        = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor       =
-        GetWindowElementPixel (HWND_DESKTOP, WE_BGC_WINDOW);
-    WndClass.WinProc        = MonthCalendarCtrlProc;
+    WndClass.spClassName = "monthcalendar";
+    WndClass.dwStyle     = WS_NONE;
+    WndClass.dwExStyle   = WS_EX_NONE;
+    WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    = GetWindowElementPixel (HWND_DESKTOP, WE_BGC_WINDOW);
+#endif
+    WndClass.WinProc     = MonthCalendarCtrlProc;
 
     return AddNewControlClass (&WndClass) == ERR_OK;
 }

@@ -66,8 +66,12 @@ typedef struct _CTRLCLASSINFO
 
     HCURSOR   hCursor;          // control cursor
 
+#ifdef _MGSCHEMA_COMPOSITING
+    DWORD     dwBkColor;        // control background color.
+#else
     gal_pixel iFgColor;         // control foreground color.
     gal_pixel iBkColor;         // control background color.
+#endif
 
     LRESULT (*ControlProc)(HWND, UINT, WPARAM, LPARAM);
                                 // control procedure.

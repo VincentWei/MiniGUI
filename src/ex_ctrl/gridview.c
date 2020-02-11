@@ -2525,12 +2525,16 @@ BOOL RegisterGridViewControl (void)
 {
     WNDCLASS WndClass;
 
-    WndClass.spClassName    = CTRL_GRIDVIEW;
-    WndClass.dwStyle        = WS_NONE;
-    WndClass.dwExStyle      = WS_EX_NONE;
-    WndClass.hCursor        = GetSystemCursor (0);
-    WndClass.iBkColor       = GetWindowElementPixel (HWND_DESKTOP, WE_BGC_WINDOW);
-    WndClass.WinProc        = GridViewCtrlProc;
+    WndClass.spClassName = CTRL_GRIDVIEW;
+    WndClass.dwStyle     = WS_NONE;
+    WndClass.dwExStyle   = WS_EX_NONE;
+    WndClass.hCursor     = GetSystemCursor (0);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#endif
+    WndClass.WinProc     = GridViewCtrlProc;
 
     return AddNewControlClass (&WndClass) == ERR_OK;
 }

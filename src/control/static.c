@@ -92,13 +92,13 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             /* DK[01/11/10]: For bug 4336 */
             switch (pCtrl->dwStyle & SS_TYPEMASK) {
                 case SS_GRAYRECT:
-                    pCtrl->iBkColor = PIXEL_lightgray;
+                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, COLOR_lightgray);
                 break;
                 case SS_BLACKRECT:
-                    pCtrl->iBkColor = PIXEL_black;
+                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, COLOR_black);
                 break;
                 case SS_WHITERECT:
-                    pCtrl->iBkColor = PIXEL_lightwhite;
+                    pCtrl->iBkColor = DWORD2PixelByWindow (hwnd, COLOR_lightwhite);
                 break;
                 default:
                 break;
@@ -350,7 +350,13 @@ BOOL RegisterStaticControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL,WE_MAINC_THREED_BODY);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
+            WE_MAINC_THREED_BODY);
+#else
+    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL,
+            WE_MAINC_THREED_BODY);
+#endif
     WndClass.WinProc     = StaticControlProc;
 
     return AddNewControlClass (&WndClass) == ERR_OK;

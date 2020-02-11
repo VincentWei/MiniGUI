@@ -855,7 +855,7 @@ typedef UINT_PTR LPARAM;
 
 /**
  * \var typedef DWORD32 RGBCOLOR
- * \brief A type definition for a RGB color.
+ * \brief A type definition for a RGB color value.
  */
 typedef DWORD32 RGBCOLOR;
 
