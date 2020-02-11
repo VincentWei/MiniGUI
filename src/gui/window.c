@@ -3759,9 +3759,11 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 #ifdef _MGSCHEMA_COMPOSITING
     pWin->surf = GAL_CreateSurfaceForZNode (surf_flag, pWin->right - pWin->left,
                 pWin->bottom - pWin->top);
-    pWin->iBkColor = GAL_MapRGBA (pWin->surf->format,
-            GetRValue (pCreateInfo->dwBkColor), GetGValue (pCreateInfo->dwBkColor),
-            GetBValue (pCreateInfo->dwBkColor), GetAValue (pCreateInfo->dwBkColor));
+    if ((surf_flag & ST_PIXEL_MASK) != ST_PIXEL_DEFAULT) {
+        pWin->iBkColor = GAL_MapRGBA (pWin->surf->format,
+                GetRValue (pCreateInfo->dwBkColor), GetGValue (pCreateInfo->dwBkColor),
+                GetBValue (pCreateInfo->dwBkColor), GetAValue (pCreateInfo->dwBkColor));
+    }
 #else
     pWin->pGCRInfo = &pWin->GCRInfo;
 #endif
