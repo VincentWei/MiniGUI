@@ -2180,7 +2180,8 @@ static int create_memdc_for_menu (TRACKMENUINFO* ptmi)
     if (IsRectEmpty(&ptmi->rc))
         return -1;
 
-    surf = GAL_CreateSurfaceForZNode (RECTW(ptmi->rc), RECTH(ptmi->rc));
+    surf = GAL_CreateSurfaceForZNode (ST_DEFAULT, RECTW(ptmi->rc),
+            RECTH(ptmi->rc));
     if (surf == NULL) {
         return -1;
     }
