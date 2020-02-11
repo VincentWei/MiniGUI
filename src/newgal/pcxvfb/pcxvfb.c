@@ -248,6 +248,19 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
             GetBoundRect (&bound, &bound, &rc);
     }
 
+    /* Since 4.2.0; blit dirty content to the ultimate buffer */
+    if (this->hidden->real_screen) {
+        GAL_Rect src_rect, dst_rect;
+        src_rect.x = bound.left;
+        src_rect.y = bound.top;
+        src_rect.w = RECTW (bound);
+        src_rect.h = RECTH (bound);
+        dst_rect = src_rect;
+
+        GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
+                this->hidden->real_screen, &dst_rect);
+    }
+
     this->hidden->hdr->dirty_rc_l = bound.left;
     this->hidden->hdr->dirty_rc_t = bound.top;
     this->hidden->hdr->dirty_rc_r = bound.right;
@@ -391,9 +404,9 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     }
 
 #ifdef WIN32 //-----------win32----------------
-    sprintf(etc_param, "%s %s", window_caption, mode);
+    sprintf (etc_param, "%s %s", window_caption, mode);
     memset (skin, 0, sizeof (skin));
-    GetMgEtcValue("pc_xvfb", "skin", skin, sizeof(skin)-1);
+    GetMgEtcValue ("pc_xvfb", "skin", skin, sizeof(skin)-1);
     data->shmrgn = win_PCXVFbInit (execl_file, etc_param, skin);
 #elif defined(__CYGWIN__) //----------cygwin--------------
     pid_t  pid;
@@ -460,7 +473,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         return NULL;
     }
 
-    data->shmrgn = (unsigned char *)mmap(NULL, dataSize,
+    data->shmrgn = (unsigned char *)mmap (NULL, dataSize,
             PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     close(fd);
 #else //-----------------linux----------------------
@@ -481,27 +494,29 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 #if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
 #endif
-        __mg_pcxvfb_server_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+        __mg_pcxvfb_server_sockfd = socket (AF_UNIX, SOCK_STREAM, 0);
         server_address.sun_family = AF_UNIX;
-        sprintf(socket_file, "/tmp/pcxvfb_socket%d", getpid());
+        sprintf (socket_file, "/tmp/pcxvfb_socket%d", getpid());
         socket_file[49] = '\0';
-        unlink(socket_file);
-        strcpy(server_address.sun_path, socket_file);
+        unlink (socket_file);
+        strcpy (server_address.sun_path, socket_file);
 
         //FIXME
         server_len = sizeof(server_address);
-        bind(__mg_pcxvfb_server_sockfd,
+        bind (__mg_pcxvfb_server_sockfd,
                 (struct sockaddr *)&server_address, server_len);
-        listen(__mg_pcxvfb_server_sockfd, 5);
+        listen (__mg_pcxvfb_server_sockfd, 5);
         client_len = sizeof(client_address);
 
         shm_init_lock(getpid());
 
         if ((pid = fork()) < 0) {
             GAL_SetError ("NEWGAL>PCXVFB: Error occurred when calling fork().\n");
-        } else if (pid > 0) {
+        }
+        else if (pid > 0) {
             ;/* do nothing */
-        } else {
+        }
+        else {
             if (setpgid(getpid(), 0) < 0) {
                 GAL_SetError ("NEWGAL>PCXVFB: Failed to change the group id of the XVFB process.\n");
             }
@@ -518,13 +533,13 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             fd_set rset;
             struct timeval tv;
 
-            FD_ZERO(&rset);
-            FD_SET(__mg_pcxvfb_server_sockfd, &rset);
+            FD_ZERO (&rset);
+            FD_SET (__mg_pcxvfb_server_sockfd, &rset);
             tv.tv_sec = 2;
             tv.tv_usec = 0;
-            if (my_select(__mg_pcxvfb_server_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
+            if (my_select (__mg_pcxvfb_server_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
                 GAL_SetError ("NEWGAL>PCXVFB: Wait too long for CLIENT.\n");
-                close(__mg_pcxvfb_server_sockfd);
+                close (__mg_pcxvfb_server_sockfd);
                 return -1;
             }
         }
@@ -536,19 +551,19 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             fd_set rset;
             struct timeval tv;
 
-            FD_ZERO(&rset);
-            FD_SET(__mg_pcxvfb_client_sockfd, &rset);
+            FD_ZERO (&rset);
+            FD_SET (__mg_pcxvfb_client_sockfd, &rset);
             tv.tv_sec = 2;
             tv.tv_usec = 0;
-            if (my_select(__mg_pcxvfb_client_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
+            if (my_select (__mg_pcxvfb_client_sockfd + 1, &rset, NULL, NULL, &tv) != 1) {
                 GAL_SetError ("NEWGAL>PCXVFB: Wait too long for SHMID.\n");
-                close(__mg_pcxvfb_client_sockfd);
-                close(__mg_pcxvfb_server_sockfd);
+                close (__mg_pcxvfb_client_sockfd);
+                close (__mg_pcxvfb_server_sockfd);
                 return -1;
             }
         }
 
-        if (read(__mg_pcxvfb_client_sockfd, &shmid, sizeof(int)) < sizeof (int)) {
+        if (read (__mg_pcxvfb_client_sockfd, &shmid, sizeof(int)) < sizeof (int)) {
             GAL_SetError ("NEWGAL>PCXVFB: read error from client socket.\n");
             close (__mg_pcxvfb_client_sockfd);
             close (__mg_pcxvfb_server_sockfd);
@@ -558,14 +573,14 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         if (shmid != -1) {
             data->shmrgn = (unsigned char *)shmat (shmid, 0, 0);
 #ifdef _MGRM_PROCESSES
-            fp = fopen("/var/tmp/.pcxvfb_tmp", "w+");
+            fp = fopen ("/var/tmp/.pcxvfb_tmp", "w+");
             if (fp == NULL) {
-                GAL_SetError ("NEWGAL>PCXVFB: mgServer can't open file /var/tmp/.pcxvfb_tmp\n");
+                GAL_SetError ("NEWGAL>PCXVFB: the server can't open file /var/tmp/.pcxvfb_tmp\n");
                 return -1;
             }
 
             fwrite (&shmid, sizeof(int), 1, fp);
-            fclose(fp);
+            fclose (fp);
 #endif /* _MGRM_PROCESSES */
         }
 
@@ -578,7 +593,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             return -1;
         }
 
-        if (fread(&shmid, sizeof(int), 1, fp) < 1) {
+        if (fread (&shmid, sizeof(int), 1, fp) < 1) {
             GAL_SetError ("NEWGAL>PCXVFB: can't read from /var/tmp/.pcxvfb_tmp\n");
             fclose (fp);
             return -1;
@@ -594,7 +609,7 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 #endif //end of os (windows, cygwin, linux)
 
     if ((INT_PTR)data->shmrgn == -1 || data->shmrgn == NULL) {
-        GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to virtual frame buffer server.\n");
+        GAL_SetError ("NEWGAL>PCXVFB: Unable to attach to virtual frame buffer.\n");
         return -1;
     }
 
@@ -657,8 +672,35 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
     current->w      = this->hidden->hdr->width;
     current->h      = this->hidden->hdr->height;
     current->pitch  = this->hidden->hdr->pitch;
-    current->pixels = this->hidden->shmrgn + this->hidden->hdr->fb_offset;
     current->format->MSBLeft = this->hidden->hdr->MSBLeft;
+
+    /* Since 4.2.0, check double buffers */
+    _DBG_PRINTF ("data_size: %u\n", this->hidden->hdr->data_size);
+    if (this->hidden->hdr->data_size >=
+            this->hidden->hdr->fb_offset + (current->pitch * current->h * 2)) {
+        unsigned char* real_pixels = this->hidden->shmrgn;
+        real_pixels += this->hidden->hdr->fb_offset;
+
+        this->hidden->real_screen = GAL_CreateRGBSurfaceFrom (real_pixels,
+                        current->w, current->h, current->format->BitsPerPixel,
+                        current->pitch,
+                        current->format->Rmask, current->format->Gmask,
+                        current->format->Bmask, current->format->Amask);
+        if (this->hidden->real_screen) {
+            current->pixels = real_pixels + (current->pitch * current->h);
+            this->hidden->shadow_screen = current;
+            _DBG_PRINTF ("double buffering enabled\n");
+        }
+        else {
+            current->pixels = real_pixels;
+            this->hidden->shadow_screen = NULL;
+        }
+    }
+    else {
+        current->pixels = this->hidden->shmrgn + this->hidden->hdr->fb_offset;
+        this->hidden->real_screen = NULL;
+        this->hidden->shadow_screen = NULL;
+    }
 
     /* We're done */
     return current;
@@ -720,23 +762,28 @@ static int PCXVFB_SetColors(_THIS, int firstcolor,
 
 static void PCXVFB_VideoQuit (_THIS)
 {
+    /* Since 4.2.0 */
+    if (this->hidden->real_screen) {
+        GAL_FreeSurface (this->hidden->real_screen);
+    }
+
 #ifdef WIN32 // windows
     win_PCXVFbClose ();
 #elif defined (__CYGWIN__) // cygwin
     int fd;
     char mapFile[128];
     struct stat sb;
-    sprintf(mapFile,"%s-%d", preMapFile, getpid());
-    fd = open(mapFile, O_RDONLY);
+    sprintf (mapFile,"%s-%d", preMapFile, getpid());
+    fd = open (mapFile, O_RDONLY);
     fstat (fd, &sb);
     int size = sb.st_size;
-    munmap(this->hidden->shmrgn, size);
-    close(fd);
-    remove(mapFile);
-    semctl(semid,0,IPC_RMID);
+    munmap (this->hidden->shmrgn, size);
+    close (fd);
+    remove (mapFile);
+    semctl (semid, 0, IPC_RMID);
 #else        // linux
     shmdt (this->hidden->shmrgn);
-    semctl(semid,0,IPC_RMID);
+    semctl (semid, 0, IPC_RMID);
 #endif
 }
 
