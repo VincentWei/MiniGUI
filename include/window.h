@@ -4996,10 +4996,12 @@ typedef struct _WINDOWINFO
     /** The extended styles of window.*/
     DWORD dwExStyle;
 
-    /** The foreground color (not used).*/
+    /** The foreground pixel value (not used).*/
     gal_pixel iFgColor;
-    /** The background color.*/
+
+    /** The background pixel value of this window. */
     gal_pixel iBkColor;
+
     /** The handle of menu.*/
     HMENU hMenu;
     /** The handle of accelerator table.*/
@@ -5174,9 +5176,9 @@ MG_EXPORT DWORD GUIAPI SetWindowElementAttr (HWND hwnd, int we_attr_id,
 /**
  * \fn gal_pixel GUIAPI GetWindowElementPixelEx (HWND hwnd, \
                                         HDC hdc, int we_attr_id)
- * \brief Get a window element gal_pixel color.
+ * \brief Get the pixel value of a window element.
  *
- * This function gets a window element gal_pixel color which is identified
+ * This function gets the pixel value of a window element which is identified
  * by \a we_attr_id and \a hdc.
  *
  * \param hwnd The handle to the window.
@@ -5854,8 +5856,7 @@ extern MG_EXPORT HWND __mg_hwnd_desktop;
 /**
  * Structure defines a main window.
  */
-typedef struct _MAINWINCREATE
-{
+typedef struct _MAINWINCREATE {
     /** The style of the main window */
     DWORD dwStyle;
 
@@ -5883,15 +5884,34 @@ typedef struct _MAINWINCREATE
     /** The position of the main window in the screen coordinates */
     int lx, ty, rx, by;
 
-    /** The pixel value of background color of the main window */
+    /**
+     * The background pixel value of the main window.
+     */
     gal_pixel iBkColor;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    /**
+     * The background color of the main window.
+     * Note that under compositing schema, if you specify the main windows's
+     * surface type other than default, you must use this field
+     * to specify the background color of the main window instead of
+     * the pixel value (\a iBkColor).
+     *
+     * The value of this field is a 32-bit RGBA quadruple essentially.
+     * You should use a value returned by \a MakeRGBA macro for this field.
+     * Note that if you use the surface type \a ST_PIXEL_DEFAULT when creating
+     * the main window, you can still use the pixel values which compliant
+     * to \a HDC_SCREEN, e.g., a values in \a SysPixelIndex array.
+     */
+    DWORD dwBkColor;
+#endif
 
     /** The first private data associated with the main window */
     DWORD dwAddData;
 
     /** Reserved, do not use */
     DWORD dwReserved;
-}MAINWINCREATE;
+} MAINWINCREATE;
 typedef MAINWINCREATE* PMAINWINCREATE;
 
 #ifdef _MGRM_THREADS
@@ -5956,19 +5976,31 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
  */
 #define MainWindowCleanup(hwnd)      MainWindowThreadCleanup(hwnd)
 
-#define CT_OPAQUE       0x000000
-#define CT_COLORKEY     0x000001
-#define CT_ALPHACHANNEL 0x000002
-#define CT_LOGICALPIXEL 0x000003
-#define CT_ALPHAPIXEL   0x000004
-#define CT_BLURRED      0x000005
-#define CT_SYSTEM_MASK  0X0000FF
-#define CT_MAX_VALUE    0xFFFFFF
+/* The flags for the surface pixel format */
+#define ST_PIXEL_MASK           0x00FF
+#define ST_PIXEL_DEFAULT        0x0000
+#define ST_PIXEL_ARGB4444       0x0001
+#define ST_PIXEL_ARGB1555       0x0002
+#define ST_PIXEL_ARGB8888       0x0003
+
+/* other flags for future use */
+
+/* for default surface flags */
+#define ST_DEFAULT              (ST_PIXEL_DEFAULT)
+
+#define CT_SYSTEM_MASK          0X0000FF
+#define CT_OPAQUE               0x000000
+#define CT_COLORKEY             0x000001
+#define CT_ALPHACHANNEL         0x000002
+#define CT_LOGICALPIXEL         0x000003
+#define CT_ALPHAPIXEL           0x000004
+#define CT_BLURRED              0x000005
+#define CT_MAX_VALUE            0xFFFFFF
 
 /**
  * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
  *              const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
- *              int compos_type, DWORD ct_arg,
+ *              unsigned int surf_flag, int compos_type, DWORD ct_arg,
  *              const char* window_name, const char* layer_name)
  * \brief Creates a main window with specified compositing type.
  *
@@ -5977,15 +6009,33 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
  *
  * \param pCreateInfo The pointer to a MAINWINCREATE structure.
  * \param werdr_name The name of window element renderer. NULL for default
- *                   renderer.
+ *        renderer.
  * \param we_attrs The pointer to window element attribute table. NULL for
- *                   default window attribute table.
+ *        default window attribute table.
+ * \param surf_flag The flag for the surface of the main window
+ *        under compositing schema. The value of this argument can be one
+ *        of the following values:
+ *          - ST_PIXEL_DEFAULT\n
+ *            Creating a surface which compliant to HDC_SCREEN.
+ *          - ST_PIXEL_ARGB4444\n
+ *            Creating a surface for this main window with
+ *            the pixel format ARGB4444.
+ *          - ST_PIXEL_ARGB1555\n
+ *            Creating a surface for this main window with
+ *            the pixel format ARGB1555.
+ *          - ST_PIXEL_ARGB8888\n
+ *            Creating a surface for this main window with
+ *            the pixel format ARGB8888.
  * \param compos_type The compositing type of the main window.
  * \param ct_arg The compositing argument of the main window.
  * \param window_name The window name; reserved for future use.
  * \param layer_name The layer name; reserved for future use.
  *
  * \return The handle to the new main window; HWND_INVALID indicates an error.
+ *
+ * \note Note When you specify a surface type other than ST_PIXEL_DEFAULT, you
+ *       must use \a dwBkColor field in MAINWINCREATE structure to specify
+ *       the background color of the main window.
  *
  * \sa CreateMainWindowEx, CreateMainWindow, MAINWINCREATE, styles
  *
@@ -5995,7 +6045,7 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
  */
 MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
                 const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-                int compos_type, DWORD ct_arg,
+                unsigned int surf_flag, int compos_type, DWORD ct_arg,
                 const char* window_name, const char* layer_name);
 
 /**
@@ -6025,9 +6075,10 @@ MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
  */
 static inline HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
                 const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-                const char* window_name, const char* layer_name) {
+                const char* window_name, const char* layer_name)
+{
     return CreateMainWindowEx2 (pCreateInfo, werdr_name, we_attrs,
-            CT_OPAQUE, 0, window_name, layer_name);
+            ST_DEFAULT, CT_OPAQUE, 0, window_name, layer_name);
 }
 
 /**
@@ -6141,18 +6192,22 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  *      the alpha channel value (0~255) along with the parameter \a arg.
  *  - CT_LOGICALPIXEL\n
  *      Do the given color logical operation. You should specify the color
- *      logical operation along with the pararmeter \a arg. See \a BitBlt.
+ *      logical raster operation along with the pararmeter \a arg. See \a BitBlt.
  *  - CT_ALPHAPIXEL\n
  *      The alpha component value of the source and/or the destination pixel go
  *      into effect. You can specify the color blend method along
- *      with the pararmeter \a arg. See \a BitBlt.
+ *      with the pararmeter \a arg. See \a ColorBlendMethod. Note that a specific
+ *      compositor may not support this compositing type. The built-in `fallback`
+ *      compositor ignores the blend mode argument and only always uses the
+ *      Porter Duff blend mode: source over destination (COLOR_BLEND_PD_SRC_OVER).
  *  - CT_BLURRED\n
  *      Apply a Gaussian blur to the background of the main window. You should
  *      also specify the radius of the blur (0 ~ 255) in pixles along with the
  *      paramter \a arg. It defines the value of the standard deviation to the
  *      Gaussian function, i.e., how many pixels on the screen blend into each
  *      other; thus, a larger value will create more blur. A value of 0 leaves
- *      the input unchanged.
+ *      the input unchanged. Note that the built-in `fallback` compositor
+ *      does not support this compositing type.
  *
  * \return return TRUE on success, otherwise FALSE.
  *
@@ -6411,6 +6466,20 @@ MG_EXPORT BOOL GUIAPI IsWindowEnabled (HWND hWnd);
  * \sa MoveWindow
  */
 MG_EXPORT BOOL GUIAPI GetClientRect(HWND hWnd, PRECT prc);
+
+/**
+ * \fn gal_pixel GUIAPI DWORD2PixelByWindow (HWND hWnd, DWORD dwColor)
+ * \brief Convert a DWORD color to gal_pixel for a window.
+ *
+ * This function converts a color in DWORD to the pixel value according to
+ * the surface of the main window.
+ *
+ * \param hWnd The handle to the window.
+ * \param dwColor The color value in DWORD.
+ *
+ * \return The converted pixel value.
+ */
+MG_EXPORT gal_pixel GUIAPI DWORD2PixelByWindow (HWND hWnd, DWORD dwColor);
 
 /**
  * \fn gal_pixel GUIAPI GetWindowBkColor (HWND hWnd)
@@ -8344,8 +8413,7 @@ MG_EXPORT BOOL GUIAPI GetScrollInfo (HWND hWnd, int iSBar, PSCROLLINFO lpsi);
 /**
  * Structure defines a window class
  */
-typedef struct _WNDCLASS
-{
+typedef struct _WNDCLASS {
     /** The class name */
     const char* spClassName;
 
@@ -8372,8 +8440,38 @@ typedef struct _WNDCLASS
     /** Cursor handle to all instances of this window class */
     HCURSOR hCursor;
 
-    /** Background color pixel value of all instances of this window class */
+#ifndef _MGSCHEMA_COMPOSITING
+    /**
+     * The background pixel value for all instances of this window class.
+     *
+     * Note that this field only available for shared frame buffer schema.
+     * Under compositing schema, you must use \a dwBkColor field to
+     * specify the background color for a control.
+     * This introduces a source code incompatibility, you should change
+     * you code with a conditional compilation statement block:
+     *
+     * \code
+     * #ifdef _MGSCHEMA_COMPOSITING
+     *      MyClass.dwBkColor   = COLOR_lightwhite;
+     * #else
+     *      MyClass.iBkColor    = PIXEL_lightwhite;
+     * #endif
+     * \endcode
+     */
     gal_pixel iBkColor;
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+    /**
+     * The background color for all instances of this window class.
+     *
+     * Note that under compositing schema, you must use this field
+     * to specify the background color of a control class instead of
+     * the pixel value (\a iBkColor).
+     *
+     * The value of this field is a 32-bit RGBA quadruple essentially.
+     * You should use a value returned by \a MakeRGBA macro for this field.
+     */
+    DWORD dwBkColor;
+#endif  /* defined _MGSCHEMA_COMPOSITING */
 
     /** Window callback procedure of all instances of this window class */
     LRESULT (*WinProc) (HWND, UINT, WPARAM, LPARAM);
