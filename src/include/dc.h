@@ -281,6 +281,8 @@ static inline PDC dc_HDC2PDC (HDC hdc)
         return &__mg_screen_sys_dc;
     else if (hdc == HDC_SCREEN)
         return &__mg_screen_dc;
+    else if (hdc == HDC_INVALID)
+        return NULL;
     return (PDC) hdc;
 }
 
@@ -606,25 +608,25 @@ leave_drawing:
             *(BYTE*)(ptr)     = (BYTE)(val); \
             *((BYTE*)(ptr)+1) = (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) = (BYTE)((val)>>16); \
-        }while(0)
+        } while(0)
 
     #define ORVAL_24BIT(ptr, val)  do { \
             *(BYTE*)(ptr)     |= (BYTE)(val); \
             *((BYTE*)(ptr)+1) |= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) |= (BYTE)((val)>>16);  \
-        }while(0)
+        } while(0)
 
     #define ANDVAL_24BIT(ptr, val) do { \
             *(BYTE*)(ptr)     &= (BYTE)(val); \
             *((BYTE*)(ptr)+1) &= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) &= (BYTE)((val)>>16);  \
-        }while(0)
+        } while(0)
 
     #define XORVAL_24BIT(ptr, val) do { \
             *(BYTE*)(ptr)     ^= (BYTE)(val); \
             *((BYTE*)(ptr)+1) ^= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) ^= (BYTE)((val)>>16); \
-        }while(0)
+        } while(0)
 
     #define READPTR_24BIT(val, ptr) ((val) = (*(BYTE*)ptr) \
                 + ((*((BYTE*)(ptr)+1))<<8) + ((*((BYTE*)(ptr)+2))<<16))
@@ -639,25 +641,25 @@ leave_drawing:
             *(BYTE*)(ptr)     = (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) = (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) = (BYTE)((val));  \
-        }while(0)
+        } while(0)
 
     #define ORVAL_24BIT(ptr, val)  do { \
             *(BYTE*)(ptr)     |= (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) |= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) |= (BYTE)((val));  \
-        }while(0)
+        } while(0)
 
     #define ANDVAL_24BIT(ptr, val)do { \
             *(BYTE*)(ptr)     &= (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) &= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) &= (BYTE)((val));  \
-        }while(0)
+        } while(0)
 
     #define XORVAL_24BIT(ptr, val) do { \
             *(BYTE*)(ptr)     ^= (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) ^= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) ^= (BYTE)((val)); \
-        }while(0)
+        } while(0)
 
     #define READPTR_24BIT(val, ptr) ((val) = (((*(BYTE*)ptr)<<16) \
             + ((*((BYTE*)(ptr)+1))<<8) + (*((BYTE*)(ptr)+2))))
@@ -704,8 +706,16 @@ static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
 void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* rc, DWORD flags);
 
+/* Since 4.2.0.
+ * helpers for getting and reseting common RGBA8888 DC for internal use.
+ */
+HDC __mg_get_common_rgba8888_dc (void);
+BOOL __mg_reset_common_rgba8888_dc (int width, int height, int pitch,
+        void* pixels);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
 #endif // GUI_DC_H
+
