@@ -128,6 +128,9 @@ struct GAL_VideoDevice {
      */
     void (*UpdateRects)(_THIS, int numrects, GAL_Rect *rects);
 
+    /* Synchronize the dirty content */
+    BOOL (*SyncUpdate)(_THIS);
+
     /* Reverse the effects VideoInit() -- called if VideoInit() fails
        or if the application is shutting down the video subsystem.
     */
