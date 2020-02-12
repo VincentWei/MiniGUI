@@ -472,9 +472,6 @@ static void showcursor (void)
             GAL_BlitSurface (CSR_CURRENT->surface, &src_rect,
                     __gal_screen, &inter_rect);
             GAL_UpdateRects (__gal_screen, 1, &inter_rect);
-#if 0 /// def _MGUSE_SYNC_UPDATE
-            GAL_SyncUpdate (__gal_screen);
-#endif
         }
     }
 
@@ -773,9 +770,7 @@ static void showcursor (void)
     csr_bmp.bmBits = _cursor_bits;
     GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
-#ifdef _MGUSE_SYNC_UPDATE
     GAL_SyncUpdate (__gal_screen);
-#endif
 }
 
 #endif /* _MGSCHEMA_COMPOSITING */
@@ -962,10 +957,8 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
         moved = TRUE;
     }
 
-#ifdef _MGUSE_SYNC_UPDATE
-    if (csr_bmp.bmBits)
+    if (moved)
         GAL_SyncUpdate (__gal_screen);
-#endif
     return moved;
 }
 
