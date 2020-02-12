@@ -4191,4 +4191,62 @@ HDC drmCreateDCFromPrimeFd (GHANDLE video,
     return (HDC)pmem_dc;
 }
 
-#endif
+#endif /* defined _MGGAL_DRM */
+
+/* Since 4.2.0 */
+HDC __mg_get_common_rgba8888_dc (void)
+{
+    static HDC _dc_common_rgba8888 = HDC_INVALID;
+    static char fake_bits [4];
+
+    if (_dc_common_rgba8888 == HDC_INVALID) {
+        _dc_common_rgba8888 = CreateMemDCEx (1, 1, 32,
+                MEMDC_FLAG_SWSURFACE | MEMDC_FLAG_SRCALPHA,
+                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000,
+                fake_bits, sizeof (fake_bits));
+        if (_dc_common_rgba8888 == HDC_INVALID) {
+            _WRN_PRINTF ("failed to create common RGBA8888 dc\n");
+        }
+    }
+
+    return _dc_common_rgba8888;
+}
+
+BOOL __mg_reset_common_rgba8888_dc (int width, int height, int pitch,
+        void* pixels)
+{
+    HDC hdc;
+    PDC pdc;
+
+    hdc = __mg_get_common_rgba8888_dc ();
+    pdc = dc_HDC2PDC (hdc);
+    if (pdc == NULL)
+        return FALSE;
+
+    assert (width > 0 && height > 0);
+    pdc->surface->w      = width;
+    pdc->surface->h      = height;
+    pdc->surface->pitch  = pitch;
+    pdc->surface->pixels = pixels;
+
+    pdc->DevRC.left   = 0;
+    pdc->DevRC.top    = 0;
+    pdc->DevRC.right  = width;
+    pdc->DevRC.bottom = height;
+
+    /* reset local and effective clipping region */
+    MAKE_REGION_INFINITE(&pdc->lcrgn);
+    SetClipRgn (&pdc->ecrgn, &pdc->DevRC);
+
+    /* reset context info. */
+    pdc->CurPenPos.x = pdc->CurTextPos.x = 0;
+    pdc->CurPenPos.y = pdc->CurTextPos.y = 0;
+
+    /* reset destination position */
+    pdc->cur_dst = (BYTE*)pdc->surface->pixels
+            + pdc->surface->pitch * pdc->DevRC.top
+            + pdc->surface->format->BytesPerPixel * pdc->DevRC.left;
+
+    return TRUE;
+}
+
