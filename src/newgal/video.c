@@ -939,9 +939,7 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (surface->shared_header) {
-        LOCK_SURFACE_SEM (surface->shared_header->sem_num);
         mark_surface_dirty (surface, numrects, rects);
-        UNLOCK_SURFACE_SEM (surface->shared_header->sem_num);
     }
     else if (surface->dirty_info) {
         mark_surface_dirty (surface, numrects, rects);
