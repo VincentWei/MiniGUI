@@ -64,6 +64,9 @@
 #ifndef _MGUI_GDI_H
     #define _MGUI_GDI_H
 
+#include <stdio.h>
+#include "endianrw.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -1330,28 +1333,30 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * make a mess of other windows.
  *
  * However, under MiniGUI-Processes with compositing schema, HDC_SCREEN
- * stands for a global surface for wallpaper. This surface is the ONLY
- * surface that can be accessed by all processess (including the server
- * and all clients) under compositing schema.
+ * stands for a global shared surface for wallpaper pattern. This surface
+ * is the ONLY surface that can be accessed by all processess (including
+ * the server and all clients) under compositing schema.
  *
  * This surface will have the same pixel format as the real screen.
  * Therefore, one app can still use HDC_SCREEN to create a compatible
  * memory DC, load bitmaps, or draw something to the surface. However,
  * the content in the wallpaper surface may not be reflected to
- * the whole screen; the compositor decides how to display its content.
+ * the whole screen; the compositor decides how to display the contents
+ * in it.
  *
  * On the other hand, you can configure MiniGUI to create a smaller
  * surface than the whole screen as the underlaying surface of HDC_SCREEN,
  * and the compositor may use it as a pattern to tile the content
  * to the whole wallpaer. You can use the key
  * `compositing_schema.wallpaper_pattern_size` to specify the pattern size,
- * i.e., the size of HDC_SCREEN.
+ * i.e., the size of HDC_SCREEN, in runtime configuration.
  *
  * Because of the change of HDC_SCREEN's connotation, you should avoid
  * to use \a GetGDCapability to determine the screen resolution. Instead,
- * you use the global variable \a g_rcScr.
+ * you use the global variable/macro \a g_rcScr or \a the functioin
+ * GetScreenRect();
  *
- * \sa HDC_SCREEN_SYS
+ * \sa HDC_SCREEN_SYS, GetScreenRect
  */
 #define HDC_SCREEN          ((HDC)0)
 
@@ -1360,7 +1365,7 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * \brief This is a system screen DC created for internal use.
  *
  * Under compositing schema, this DC stands for the surface of the
- * real screen surface. The compositor running in the server will
+ * real screen. The compositor running in the server will
  * use this DC to compositing the surfaces created and rendered by
  * the server and the clients to the screen. For clients, this DC
  * essentially is HDC_SCREEN.
@@ -3626,16 +3631,14 @@ MG_EXPORT BOOL GUIAPI FloodFillGenerator (void* context,
 
 /**
  * \fn int GUIAPI SetBitmapScalerType (HDC hdc, int scaler_type);
+ * \brief Set bitmap scaler algorithm callback of DC according by scaler_type.
  *
- * \brief set bitmap scaler algorithm callback of DC according by scaler_type.
- *
- * This function is a set general bitmap scaler type that is DDA or Bilinear
- interpolation algorithm.
- * MiniGUI implements StretchBlt functions by using this scaler.
+ * This function sets the bitmap scaler with DDA or bilinear interpolation
+ * algorithm. MiniGUI implements StretchBlt functions by using this scaler.
  *
  * \param hdc The device context.
- * \param scaler_type The type of scaler algorithm, BITMAP_SCALER_DDA
- *                    or BITMAP_SCALER_BILINEAR.
+ * \param scaler_type The type of scaler algorithm, use BITMAP_SCALER_DDA
+ *        or BITMAP_SCALER_BILINEAR.
  *
  * \sa BitmapDDAScaler, BitmapBinearScaler
  */
@@ -5488,11 +5491,12 @@ MG_EXPORT BOOL GUIAPI SaveMainWindowContent (HWND hWnd, const char* filename);
  * \brief Loads an icon from a Windows ICO file.
  *
  * This function loads an icon from a Windows ICO file named \a filename
- * and creates an icon object. This function can load mono-,16-color and
- * 256-color icons.Some Windows ICO file contain two icons in different
+ * and creates an icon object. This function can load monochrome, 16-color,
+ * and 256-color icons. Some Windows ICO file contain two icons in different
  * sizes. You can tell this function to load which icon though \a which,
  * 0 for the first icon, and 1 for the second icon. Generally, the later
  * icon is the larger icon.
+ *
  * \param hdc The device context.
  * \param filename The file name of the ICO file.
  * \param which Tell the function to load which icon.
@@ -5509,7 +5513,7 @@ MG_EXPORT HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename,
  *
  * This function loads an icon from a memroy area pointed to by \a area.
  * The memory area has the same layout as the M$ Windows ICO file.
- * This function can load mono- ,16-color and 256-color icons.
+ * This function can load monochrome, 16-color, and 256-color icons.
  * Some Windows ICO file contain two icons in different sizes. You can tell
  * this function to load which icon though \a which, 0 for the first icon,
  * and 1 for the second icon. Generally, the later icon is the larger icon.
@@ -5557,6 +5561,59 @@ MG_EXPORT HICON GUIAPI CreateIconEx (HDC hdc, int w, int h,
 #define CreateIcon(hdc, w, h, AndBits, XorBits, colornum) \
         CreateIconEx(hdc, w, h, AndBits, XorBits, colornum, NULL)
 
+/**
+ * \fn HICON GUIAPI LoadBitmapIconEx (MG_RWops* area, const char* ext)
+ * \brief Loads an icon from a general bitmap data source.
+ *
+ * This function loads an icon from the data source \a area, which contains
+ * the data of a bitmap in a specific type specified by \a ext.
+ *
+ * \param hdc The device context, currently ignored.
+ * \param area The data source.
+ * \param ext The type of the bitmap (extension of a bitmap file).
+ *
+ * \return 0 on failure, otherwise success.
+ *
+ * \sa LoadBitmapIconFromFile, LoadBitmapIconFromMem
+ */
+MG_EXPORT HICON GUIAPI LoadBitmapIconEx (HDC hdc, MG_RWops* area,
+        const char* ext);
+
+/**
+ * \fn HICON GUIAPI LoadBitmapIconFromFile (HDC hdc, const char* spFileName)
+ * \brief Loads an icon from a bitmap file.
+ *
+ * This function loads an icon from a bitmap file specified by \a file_name.
+ *
+ * \param hdc The device context, currently ignored.
+ * \param file_name The file name.
+ *
+ * \return 0 on failure, otherwise success.
+ *
+ * \sa LoadBitmapIconEx
+ */
+MG_EXPORT HICON GUIAPI LoadBitmapIconFromFile (HDC hdc,
+        const char* file_name);
+
+/**
+ * \fn HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, int size,
+ *      const char* ext)
+ * \brief Loads an icon from memory.
+ *
+ * This function loads an icon from a memory zone specified by \a mem
+ * and \a size.
+ *
+ * \param hdc The device context, currently ignored.
+ * \param mem The pointer to the memory zone.
+ * \param size The size of the memory zone in bytes.
+ * \param ext The the bitmap type (extension of a bitmap file).
+ *
+ * \return 0 on failure, otherwise success.
+ *
+ * \sa LoadBitmapIconEx
+ */
+MG_EXPORT HICON GUIAPI LoadBitmapIconFromMem (HDC hdc,
+        const void* mem, int size, const char* ext);
 
 /**
  * \fn BOOL GUIAPI DestroyIcon (HICON hicon)
@@ -10917,9 +10974,6 @@ struct _BITMAP
      *
      * \include bitmap.c
      */
-
-#include <stdio.h>
-#include "endianrw.h"
 
 /**
  * \var typedef void (* CB_ALLOC_BITMAP_BUFF) (void* context, BITMAP* bmp)
