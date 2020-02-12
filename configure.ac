@@ -106,7 +106,7 @@ use_own_malloc="no"
 use_own_pthread="no"
 
 build_adv2dapi="yes"
-build_syncupdate="no"
+build_updateregion="no"
 build_minimalgdi="no"
 
 dnl Options for look and feel renderer
@@ -355,9 +355,9 @@ AC_ARG_ENABLE(adv2dapi,
 [  --enable-adv2dapi        include advanced 2D graphics APIs <default=yes>],
 build_adv2dapi=$enableval)
 
-AC_ARG_ENABLE(syncupdate,
-[  --enable-syncupdate      include implementation of SyncUpdateDC <default=yes>],
-build_syncupdate=$enableval)
+AC_ARG_ENABLE(updateregion,
+[  --enable-updateregion    Use update region for cumulative updating surfaces <default=yes>],
+build_updateregion=$enableval)
 
 AC_ARG_ENABLE(minimalgdi,
 [  --enable-minimalgdi      build a minimal GDI library only <default=no>],
@@ -1775,9 +1775,9 @@ if test "x$build_adv2dapi" = "xyes"; then
         [Define if include advanced 2D graphics APIs])
 fi
 
-if test "x$build_syncupdate" = "xyes"; then
-    AC_DEFINE(_MGUSE_SYNC_UPDATE, 1,
-        [Define if include implementation of SyncUpdateDC])
+if test "x$build_updateregion" = "xyes"; then
+    AC_DEFINE(_MGUSE_UPDATE_REGION, 1,
+        [Define if use update region for cumulative updating surfaces])
 fi
 
 if test "x$fixed_math" = "xyes"; then
@@ -2736,6 +2736,7 @@ AC_MSG_NOTICE([
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}
   * Cursor:             ${build_cursor_support}
+  * Update Region:      ${build_updateregion}
 
 ## NEWGAL Engines:
   * dummy:              ${enable_video_dummy}
