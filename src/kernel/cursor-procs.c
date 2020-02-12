@@ -124,48 +124,31 @@ static BYTE* _cursor_bits = NULL;
 
 #ifdef _MGSCHEMA_COMPOSITING
 
-/* the empty global DC for cursor */
-static HDC _dc_cursor = HDC_INVALID;
-
-static BOOL create_dc_for_cursor (void)
-{
-    static char fake_bits [4];
-    if (_dc_cursor == HDC_INVALID) {
-        _dc_cursor = CreateMemDCEx (1, 1, 32,
-                MEMDC_FLAG_SWSURFACE | MEMDC_FLAG_SRCALPHA,
-                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000,
-                fake_bits, sizeof (fake_bits));
-        if (_dc_cursor == HDC_INVALID)
-            return FALSE;
-    }
-
-    return TRUE;
-}
-
 /* Cursor creating and destroying. */
 static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
                      const BYTE* pANDBits, const BYTE* pXORBits, int colornum)
 {
+    HDC dc;
     GAL_Surface* csr_surf;
     PCURSOR pcsr;
     gal_pixel trans_pixel;
 
-    if (!create_dc_for_cursor())
+    if ((dc = __mg_get_common_rgba8888_dc()) == HDC_INVALID)
         return 0;
-
-    trans_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0x00);
 
     if (w != CURSORWIDTH || h != CURSORHEIGHT)
         return 0;
 
-    if (!(pcsr = (PCURSOR)malloc (sizeof (CURSOR))))
+    if (!(pcsr = mg_slice_new (CURSOR)))
         return 0;
 
     csr_surf = GAL_CreateCursorSurface (NULL, w, h);
     if (!csr_surf) {
-        free (pcsr);
+        mg_slice_delete (CURSOR, pcsr);
         return 0;
     }
+
+    trans_pixel = GAL_MapRGBA (csr_surf->format, 0x00, 0x00, 0x00, 0x00);
 
     pcsr->xhotspot = xhotspot;
     pcsr->yhotspot = yhotspot;
@@ -175,8 +158,8 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
         int x, y;
         BYTE and_byte = 0;
         BYTE xor_byte = 0;
-        gal_pixel white_pixel = RGBA2Pixel (_dc_cursor, 0xFF, 0xFF, 0xFF, 0xFF);
-        gal_pixel black_pixel = RGBA2Pixel (_dc_cursor, 0x00, 0x00, 0x00, 0xFF);
+        gal_pixel white_pixel = GAL_MapRGBA (csr_surf->format, 0xFF, 0xFF, 0xFF, 0xFF);
+        gal_pixel black_pixel = GAL_MapRGBA (csr_surf->format, 0x00, 0x00, 0x00, 0xFF);
 
         pANDBits += MONOPITCH * (CURSORHEIGHT - 1);
         pXORBits += MONOPITCH * (CURSORHEIGHT - 1);
@@ -241,7 +224,7 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
                     pixels [x] = trans_pixel;
                 }
                 else {
-                    pixels [x] = RGBA2Pixel (_dc_cursor,
+                    pixels [x] = GAL_MapRGBA (csr_surf->format,
                             std16c_rgb[idx_16c].r, std16c_rgb[idx_16c].g,
                             std16c_rgb[idx_16c].b, 0xFF);
                 }
@@ -263,13 +246,13 @@ static HCURSOR srvCopyCursor (HCURSOR hcsr)
     GAL_Surface* dcsr_surf;
     GAL_Surface* scsr_surf;
 
-    if (!(pdcsr = (PCURSOR)malloc (sizeof (CURSOR))))
+    if (!(pdcsr = mg_slice_new (CURSOR)))
         return 0;
 
     scsr_surf = pcsr->surface;
     dcsr_surf = GAL_CreateCursorSurface (NULL, scsr_surf->w, scsr_surf->h);
     if (dcsr_surf == NULL) {
-        free (pdcsr);
+        mg_slice_delete (CURSOR, pdcsr);
         return 0;
     }
 
@@ -296,8 +279,8 @@ static BOOL srvDestroyCursor (HCURSOR hcsr)
     if (pcsr == CSR_CURRENT)
         SetCursor(_def_cursor);
 
-    GAL_FreeCursorSurface(pcsr->surface);
-    free(pcsr);
+    GAL_FreeCursorSurface (pcsr->surface);
+    mg_slice_delete (CURSOR, pcsr);
     return TRUE;
 }
 
@@ -324,14 +307,18 @@ static BOOL my_buff_allocator (void* context, BITMAP* bmp)
 
 static PCURSOR srvLoadCursorFromPNG (MG_RWops* area)
 {
+    HDC dc;
     BITMAP bmp;
     PCURSOR pcsr;
     int ret;
 
-    if (!(pcsr = (PCURSOR)malloc (sizeof (CURSOR))))
+    if ((dc = __mg_get_common_rgba8888_dc()) == HDC_INVALID)
         return NULL;
 
-    ret = LoadBitmapEx2 (_dc_cursor, &bmp, area, "png", my_buff_allocator, &pcsr);
+    if (!(pcsr = mg_slice_new (CURSOR)))
+        return NULL;
+
+    ret = LoadBitmapEx2 (dc, &bmp, area, "png", my_buff_allocator, &pcsr);
     if (ret) {
         goto error;
     }
@@ -342,7 +329,7 @@ error:
     if (pcsr->surface) {
         GAL_FreeCursorSurface(pcsr->surface);
     }
-    free (pcsr);
+    mg_slice_delete (CURSOR, pcsr);
     return NULL;
 }
 
@@ -504,7 +491,7 @@ BOOL mg_InitCursor (void)
         CSR_OLDBOXLEFT  = -100;
         CSR_OLDBOXTOP = -100;
 
-        if (!create_dc_for_cursor ())
+        if (__mg_get_common_rgba8888_dc() == HDC_INVALID)
             return FALSE;
 
         if (!GAL_GetVideoInfo()->hw_cursor) {
@@ -517,7 +504,6 @@ BOOL mg_InitCursor (void)
             csr_bmp.bmPitch = __gal_screen->format->BytesPerPixel * CURSORWIDTH;
             csr_bmp.bmBits = malloc (csr_bmp.bmPitch * CURSORHEIGHT);
             if (csr_bmp.bmBits == NULL) {
-                DeleteMemDC (_dc_cursor);
                 return FALSE;
             }
 
@@ -542,15 +528,13 @@ void mg_TerminateCursor (void)
         for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
             if (_sys_cursors [i]) {
                 GAL_FreeCursorSurface (_sys_cursors[i]->surface);
-                free (_sys_cursors [i]);
+                mg_slice_delete (CURSOR, _sys_cursors [i]);
                 _sys_cursors [i] = NULL;
             }
         }
 
         if (csr_bmp.bmBits)
             free (csr_bmp.bmBits);
-
-        DeleteMemDC (_dc_cursor);
     }
 }
 
@@ -564,14 +548,14 @@ static HCURSOR srvCreateCursor (int xhotspot, int yhotspot, int w, int h,
 
     if (w != CURSORWIDTH || h != CURSORHEIGHT) return 0;
 
-    if (!(pcsr = (PCURSOR)malloc (sizeof (CURSOR)))) return 0;
+    if (!(pcsr = mg_slice_new (CURSOR))) return 0;
     if (!(pcsr->AndBits = malloc (__mg_csrimgsize))) {
-        free(pcsr);
+        mg_slice_delete (CURSOR, pcsr);
         return 0;
     }
     if (!(pcsr->XorBits = malloc (__mg_csrimgsize))) {
         free (pcsr->AndBits);
-        free (pcsr);
+        mg_slice_delete (CURSOR, pcsr);
         return 0;
     }
 
@@ -607,14 +591,14 @@ static HCURSOR srvCopyCursor (HCURSOR hcsr)
     PCURSOR pcsr = (PCURSOR)hcsr;
     PCURSOR pdcsr;
 
-    if (!(pdcsr = (PCURSOR)malloc (sizeof (CURSOR)))) return 0;
+    if (!(pdcsr = mg_slice_new (CURSOR))) return 0;
     if (!(pdcsr->AndBits = malloc (__mg_csrimgsize))) {
-        free(pdcsr);
+        mg_slice_delete (CURSOR, pdcsr);
         return 0;
     }
     if (!(pdcsr->XorBits = malloc (__mg_csrimgsize))) {
         free (pdcsr->AndBits);
-        free (pdcsr);
+        mg_slice_delete (CURSOR, pdcsr);
         return 0;
     }
 
@@ -644,9 +628,9 @@ static BOOL srvDestroyCursor (HCURSOR hcsr)
     if (pcsr == CSR_CURRENT)
         SetCursor(_def_cursor);
 
-    free(pcsr->AndBits);
-    free(pcsr->XorBits);
-    free(pcsr);
+    free (pcsr->AndBits);
+    free (pcsr->XorBits);
+    mg_slice_delete (CURSOR, pcsr);
     return TRUE;
 }
 
@@ -660,7 +644,7 @@ static void init_system_cursor (void)
 
     for (csrid = 0; csrid < ((PG_RES)mgSharedRes)->csrnum; csrid++) {
 
-        if (!(_sys_cursors [csrid] = (PCURSOR) malloc (sizeof(CURSOR))))
+        if (!(_sys_cursors [csrid] = mg_slice_new (CURSOR)))
             return;
 
         _sys_cursors [csrid]->xhotspot = ((PCURSOR)temp)->xhotspot;
@@ -713,13 +697,12 @@ void mg_TerminateCursor (void)
     if (mgIsServer) {
 
         free (_cursor_bits);
-
         CSR_CURRENT_SET = 0;
         CSR_SHOW_COUNT = 0;
 
         for (i = 0; i < ((PG_RES)mgSharedRes)->csrnum; i++) {
             if (_sys_cursors [i]) {
-                free (_sys_cursors [i]);
+                mg_slice_delete (CURSOR, _sys_cursors [i]);
                 _sys_cursors [i] = NULL;
             }
         }
