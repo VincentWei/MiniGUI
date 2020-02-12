@@ -188,6 +188,35 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     __mg_slot_set_use ((unsigned char*)(__mg_zorder_info + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
+    /* Since 4.2.0; init null znode for other fixed main windows */
+    {
+        int i;
+        
+        static int fixed_ztypes [] = {
+            ZNIT_SCREENLOCK, ZNIT_DOCKER, ZNIT_LAUNCHER };
+
+        for (i = 0; i < TABLESIZE (fixed_ztypes); i++) {
+            znodes [i + ZNIDX_SCREENLOCK].flags = fixed_ztypes [i];
+#ifndef _MGSCHEMA_COMPOSITING
+            znodes [i + ZNIDX_SCREENLOCK].age = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.left = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.top = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.right = 0;
+            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.bottom = 0;
+#endif
+            znodes [i + ZNIDX_SCREENLOCK].cli = -1;
+            znodes [i + ZNIDX_SCREENLOCK].hwnd = HWND_NULL;
+            znodes [i + ZNIDX_SCREENLOCK].next = 0;
+            znodes [i + ZNIDX_SCREENLOCK].prev = 0;
+            znodes [i + ZNIDX_SCREENLOCK].idx_mask_rect = 0;
+            znodes [i + ZNIDX_SCREENLOCK].priv_data = NULL;
+
+            SetRectEmpty (&znodes [i + ZNIDX_SCREENLOCK].rc);
+            __mg_slot_set_use ((unsigned char*)(__mg_zorder_info + 1),
+                    i + ZNIDX_SCREENLOCK);
+        }
+    }
+
 #ifdef _MGRM_THREADS
 #ifndef __NOUNIX__
     pthread_rwlock_init(&__mg_zorder_info->rwlock, NULL);
