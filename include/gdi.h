@@ -2300,17 +2300,10 @@ MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
  * \param hdc The handle to the DC.
  *
  * \return TRUE when there are rectangles to be synchronized and updated;
- *      FALSE when _MGUSE_SYNC_UPDATE is not defined, hdc is a memory DC,
- *      or it is not necessory to update.
+ *      FALSE when it is not necessory to update.
  *
- * \note This function only works when _MGUSE_SYNC_UPDATE defined.
  */
-#ifdef _MGUSE_SYNC_UPDATE
 MG_EXPORT BOOL GUIAPI SyncUpdateDC (HDC hdc);
-#else
-static inline BOOL GUIAPI SyncUpdateDC (HDC hdc)
-{ return TRUE; }
-#endif
 
 /**
  * \fn BOOL GUIAPI SyncUpdateSurface (HWND hwnd)
@@ -2323,18 +2316,9 @@ static inline BOOL GUIAPI SyncUpdateDC (HDC hdc)
  * \param hwnd The handle to the window.
  *
  * \return TRUE when there are rectangles to be synchronized and updated;
- *      FALSE when _MGSCHEMA_COMPOSITING or _MGUSE_SYNC_UPDATE is not defined,
- *      hwnd is invalid, or it is not necessory to update.
- *
- * \note This function only works when _MGSCHEMA_COMPOSITING and
- *      _MGUSE_SYNC_UPDATE defined.
+ *      FALSE when hwnd is invalid, or it is not necessory to update.
  */
-#if defined(_MGUSE_SYNC_UPDATE) && defined(_MGSCHEMA_COMPOSITING)
 MG_EXPORT BOOL GUIAPI SyncUpdateSurface (HWND hwnd);
-#else
-static inline BOOL GUIAPI SyncUpdateSurface (HWND hwnd)
-{ return TRUE; }
-#endif
 
     /** @} end of dc_fns */
 
