@@ -111,7 +111,7 @@ HWND GUIAPI CreateMainWindowIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     CreateInfo.rx             = pDlgTemplate->x + pDlgTemplate->w;
     CreateInfo.by             = pDlgTemplate->y + pDlgTemplate->h;
     CreateInfo.iBkColor       =
-                    GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
     CreateInfo.dwAddData      = pDlgTemplate->dwAddData;
     CreateInfo.hHosting       = hOwner;
 

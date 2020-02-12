@@ -3751,7 +3751,7 @@ def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
     }
 
     SetBrushColor (dc_desktop,
-        GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP));
+        GetWindowElementPixelEx (HWND_DESKTOP, HDC_SCREEN, WE_BGC_DESKTOP));
 
     if (inv_rc) {
         SelectClipRect (dc_desktop, inv_rc);

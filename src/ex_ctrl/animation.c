@@ -79,7 +79,8 @@ BOOL RegisterAnimationControl (void)
 #ifdef _MGSCHEMA_COMPOSITING
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = AnimationCtrlProc;
 
@@ -295,10 +296,11 @@ static void setup_anim_mem_dc (HWND hwnd, ANIMATIONINFO* anim_info)
 
     if (GetWindowStyle (hwnd) & ANS_WINBGC) {
         if (hwnd != HWND_NULL) {
-            bk_pixel = GetWindowElementPixel (hwnd, WE_BGC_WINDOW);
+            bk_pixel = GetWindowElementPixelEx (hwnd, hdc, WE_BGC_WINDOW);
         }
         else {
-            bk_pixel = GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP);
+            bk_pixel = GetWindowElementPixelEx (HWND_DESKTOP,
+                    hdc, WE_BGC_DESKTOP);
         }
     }
     else {

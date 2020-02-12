@@ -96,8 +96,8 @@ BOOL RegisterPropSheetControl (void)
     WndClass.dwBkColor    = GetWindowElementAttr (HWND_NULL,
             WE_MAINC_THREED_BODY);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL,
-            WE_MAINC_THREED_BODY);
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_NULL,
+            HDC_SCREEN, WE_MAINC_THREED_BODY);
 #endif
     WndClass.WinProc     = PropSheetCtrlProc;
 
@@ -974,8 +974,8 @@ PropSheetCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case MSG_CREATE: {
 #ifdef __TARGET_MSTUDIO__
-        SetWindowBkColor(hwnd,
-                GetWindowElementPixel (hwnd, WE_MAINC_THREED_BODY));
+        SetWindowBkColor(hwnd, GetWindowElementPixelEx (hwnd,
+                    HDC_INVALID, WE_MAINC_THREED_BODY));
 #endif
 
         if (!(propsheet = calloc (1, sizeof (PROPSHEETDATA)))) {

@@ -380,12 +380,12 @@ static void ivDrawItem (HWND hWnd, GHANDLE hivi, HDC hdc, RECT *rcDraw)
     SetBkMode (hdc, BM_TRANSPARENT);
 
     if (iconview_is_item_hilight(hWnd, hivi)) {
-        SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_HIGHLIGHT_ITEM));
+        SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM));
         win_info->we_rdr->draw_hilite_item (hWnd, hdc, rcDraw,
                 GetWindowElementAttr (hWnd, WE_BGC_HIGHLIGHT_ITEM));
     }
     else {
-        SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+        SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
        // win_info->we_rdr->draw_normal_item (hWnd, hdc, rcDraw,
        //         GetWindowElementAttr (hWnd, WE_BGC_WINDOW));
     }
@@ -726,7 +726,8 @@ BOOL RegisterIconViewControl (void)
 #ifdef _MGSCHEMA_COMPOSITING
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = IconViewCtrlProc;
 

@@ -1616,7 +1616,8 @@ int GBIMEWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 
         case MSG_PAINT:
             hdc = BeginPaint (hWnd);
-            SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_MAINC_THREED_BODY));
+            SetBkColor (hdc,
+                    GetWindowElementPixelEx (hWnd, hdc, WE_MAINC_THREED_BODY));
             refresh_input_method_area (hWnd, hdc);
             EndPaint (hWnd, hdc);
         return 0;
@@ -1736,7 +1737,7 @@ static void InitIMEWinCreateInfo (PMAINWINCREATE pCreateInfo)
     pCreateInfo->rx = GetGDCapability (HDC_SCREEN, GDCAP_MAXX);
     pCreateInfo->by = GetGDCapability (HDC_SCREEN, GDCAP_MAXY) - 40;
     pCreateInfo->iBkColor =
-        GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = 0;
 }

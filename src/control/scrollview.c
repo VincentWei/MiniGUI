@@ -598,9 +598,10 @@ BOOL RegisterScrollViewControl (void)
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
 #ifdef _MGSCHEMA_COMPOSITING
-    WndClass.dwBkColor    = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = ScrollViewCtrlProc;
 

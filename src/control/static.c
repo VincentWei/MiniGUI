@@ -83,12 +83,13 @@ StaticControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case MSG_CREATE:
 #ifdef __TARGET_MSTUDIO__
             SetWindowBkColor (hwnd,
-                    GetWindowElementPixel (hwnd, WE_MAINC_THREED_BODY));
+                    GetWindowElementPixelEx (hwnd,
+                        HDC_INVALID, WE_MAINC_THREED_BODY));
 #endif
 
             pCtrl->dwAddData2 = pCtrl->dwAddData;
-            SetWindowBkColor (hwnd, GetWindowElementPixel (hwnd,
-                                                WE_MAINC_THREED_BODY));
+            SetWindowBkColor (hwnd, GetWindowElementPixelEx (hwnd,
+                        HDC_INVALID, WE_MAINC_THREED_BODY));
             /* DK[01/11/10]: For bug 4336 */
             switch (pCtrl->dwStyle & SS_TYPEMASK) {
                 case SS_GRAYRECT:
@@ -354,8 +355,8 @@ BOOL RegisterStaticControl (void)
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
             WE_MAINC_THREED_BODY);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL,
-            WE_MAINC_THREED_BODY);
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_NULL,
+            HDC_SCREEN, WE_MAINC_THREED_BODY);
 #endif
     WndClass.WinProc     = StaticControlProc;
 

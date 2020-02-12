@@ -100,7 +100,8 @@ static LRESULT ToolTipWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
             text = GetWindowCaption (hWnd);
             SetBkMode (hdc, BM_TRANSPARENT);
 
-            SetTextColor (hdc, GetWindowElementPixel(hWnd, WE_FGC_TOOLTIP));
+            SetTextColor (hdc,
+                    GetWindowElementPixelEx(hWnd, hdc, WE_FGC_TOOLTIP));
             TabbedTextOut (hdc, iBorder, iBorder, text);
 
             EndPaint (hWnd, hdc);
@@ -172,7 +173,8 @@ HWND CreateToolTipWin (HWND hParentWnd, int x, int y, int timeout_ms,
     CreateInfo.ty = y;
     CreateInfo.rx = CreateInfo.lx + text_size.cx;
     CreateInfo.by = CreateInfo.ty + text_size.cy;
-    CreateInfo.iBkColor = GetWindowElementPixel (hParentWnd, WE_BGC_TOOLTIP);
+    CreateInfo.iBkColor =
+        GetWindowElementPixelEx (hParentWnd, HDC_SCREEN, WE_BGC_TOOLTIP);
     CreateInfo.dwAddData = (DWORD) timeout_ms;
     CreateInfo.hHosting = hParentWnd;
 
@@ -229,9 +231,9 @@ void DestroyToolTipWin (HWND hwnd)
 void GUIAPI DisabledTextOutEx (HDC hdc, HWND hwnd, int x, int y, const char* szText)
 {
     SetBkMode (hdc, BM_TRANSPARENT);
-    SetTextColor (hdc, GetWindowElementColorEx (hwnd, WE_DISABLED_ITEM));
+    SetTextColor (hdc, GetWindowElementPixelEx (hwnd, hdc, WE_DISABLED_ITEM));
     TextOut (hdc, x + 1, y + 1, szText);
-    SetTextColor (hdc, GetWindowElementColorEx (hwnd, WE_SIGNIFICANT_ITEM));
+    SetTextColor (hdc, GetWindowElementPixelEx (hwnd, hdc, WE_SIGNIFICANT_ITEM));
     TextOut (hdc, x, y, szText);
 }
 

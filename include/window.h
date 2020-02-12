@@ -5175,7 +5175,7 @@ MG_EXPORT DWORD GUIAPI SetWindowElementAttr (HWND hwnd, int we_attr_id,
 
 /**
  * \fn gal_pixel GUIAPI GetWindowElementPixelEx (HWND hwnd, \
-                                        HDC hdc, int we_attr_id)
+                HDC hdc, int we_attr_id)
  * \brief Get the pixel value of a window element.
  *
  * This function gets the pixel value of a window element which is identified
@@ -7885,18 +7885,23 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
                 NULL, NULL, SW_ERASE | SW_INVALIDATE | SW_SCROLLCHILDREN);
 }
 
-/**
- * \def GetWindowElementColor
- * \brief Get window element color.
- */
+#if 0
+/* deprecated. */
 #define GetWindowElementColor(iItem)   \
         GetWindowElementPixelEx(HWND_NULL, (HDC)-1, iItem)
 
+/* deprecated. */
 #define GetWindowElementColorEx(hWnd, iItem)   \
         GetWindowElementPixelEx(hWnd, (HDC)-1, iItem)
+#endif
 
-#define GetWindowElementPixel(hWnd, iItem)   \
-        GetWindowElementPixelEx(hWnd, (HDC)-1, iItem)
+/**
+ * \def GetWindowElementPixel
+ * \brief Get window element pixel value.
+ * \sa GetWindowElementPixelEx
+ */
+#define GetWindowElementPixel(hWnd, iItem)          \
+        GetWindowElementPixelEx(hWnd, HDC_INVALID, iItem)
 
     /** @} end of window_general_fns */
 

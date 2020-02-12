@@ -98,7 +98,7 @@ BOOL RegisterComboBoxControl (void)
         GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
     WndClass.iBkColor    =
-        GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = ComboBoxCtrlProc;
 

@@ -280,7 +280,8 @@ static void composite_wallpaper_rect (CompositorCtxt* ctxt,
     }
     else {
         SetBrushColor (HDC_SCREEN_SYS,
-            GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP));
+            GetWindowElementPixelEx (HWND_DESKTOP, HDC_SCREEN_SYS,
+                WE_BGC_DESKTOP));
         SelectClipRect (HDC_SCREEN_SYS, &ctxt->rc_screen);
         FillBox (HDC_SCREEN_SYS, dirty_rc->left, dirty_rc->top,
                 RECTWP(dirty_rc), RECTHP(dirty_rc));
@@ -704,6 +705,7 @@ static void on_showing_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     if (layer != mgTopmostLayer)
         return;
 
+    _DBG_PRINTF ("called: %d\n", zidx);
     rgn = mg_slice_new (CLIPRGN);
     InitClipRgn (rgn, &ctxt->cliprc_heap);
     ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
@@ -719,6 +721,7 @@ static void on_hiding_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     if (layer != mgTopmostLayer)
         return;
 
+    _DBG_PRINTF ("called: %d\n", zidx);
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
     assert (znode_hdr);
 

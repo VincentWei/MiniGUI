@@ -4104,7 +4104,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
 
     /* draw the tick of trackbar. */
     if (!(dwStyle & TBS_NOTICK)) {
-        SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_THREED_BODY));
+        SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_THREED_BODY));
         if (dwStyle & TBS_VERTICAL) {
             TickStart = y + (HEIGHT_VERT_SLIDER >> 1);
             //TickGap = (h - HEIGHT_VERT_SLIDER) / (float)(max - min) * TickFreq;
@@ -4489,7 +4489,7 @@ draw_progress (HWND hWnd, HDC hdc,
     x += ((w - text_ext.cx) >> 1) + 1;
     y += ((h - text_ext.cy) >> 1);
 
-    SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_BGCB_ACTIVE_CAPTION));
+    SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_BGCB_ACTIVE_CAPTION));
     TextOut (hdc, x, y, szText);
 }
 

@@ -2532,7 +2532,8 @@ BOOL RegisterGridViewControl (void)
 #ifdef _MGSCHEMA_COMPOSITING
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = GridViewCtrlProc;
 

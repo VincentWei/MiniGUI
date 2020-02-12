@@ -315,7 +315,8 @@ InitCreateInfo (PMAINWINCREATE pCreateInfo)
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 500;
     pCreateInfo->by = 350;
-    pCreateInfo->iBkColor = GetWindowElementColor (BKC_CONTROL_DEF);
+    pCreateInfo->iBkColor =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, BKC_CONTROL_DEF);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }

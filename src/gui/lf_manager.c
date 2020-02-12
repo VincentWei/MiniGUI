@@ -731,7 +731,6 @@ GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
 {
     DWORD data;
     Uint8 r, g, b, a;
-    HDC dc;
     gal_pixel pixel;
 
     if ((we_attr_id & WE_ATTR_TYPE_MASK) != WE_ATTR_TYPE_COLOR) {
@@ -740,9 +739,6 @@ GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
     }
 
     data = GetWindowElementAttr (hwnd, we_attr_id);
-    if (data < 0)
-        return -1;
-
     r = GetRValue (data);
     g = GetGValue (data);
     b = GetBValue (data);
@@ -752,9 +748,12 @@ GetWindowElementPixelEx (HWND hwnd, HDC hdc, int we_attr_id)
         if (hwnd == HWND_NULL || hwnd == HWND_DESKTOP)
             pixel = RGBA2Pixel (HDC_SCREEN, r, g, b, a);
         else {
-            dc = GetDC (hwnd);
-            pixel = RGBA2Pixel (dc, r, g, b, a);
-            ReleaseDC (dc);
+#ifdef _MGSCHEMA_COMPOSITING
+            PMAINWIN pWin = (PMAINWIN)hwnd;
+            pixel = GAL_MapRGBA (pWin->surf->format, r, g, b, a);
+#else
+            pixel = RGBA2Pixel (HDC_SCREEN, r, g, b, a);
+#endif
         }
     }
     else

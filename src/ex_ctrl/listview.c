@@ -1290,9 +1290,9 @@ static void setup_color (HWND hWnd, PLVDATA plvdata)
 {
     int color;
 
-    color = (GetFocusChild(GetParent(hWnd)) == hWnd) ?
-        WE_BGC_SELECTED_ITEM: WE_BGC_SELECTED_LOSTFOCUS;
-    plvdata->bkc_selected = GetWindowElementPixel (hWnd, color);
+    color = (GetFocusChild (GetParent(hWnd)) == hWnd) ?
+        WE_BGC_SELECTED_ITEM : WE_BGC_SELECTED_LOSTFOCUS;
+    plvdata->bkc_selected = GetWindowElementPixelEx (hWnd, HDC_INVALID, color);
 }
 
 static SVITEMOPS listview_iops =
@@ -2202,7 +2202,8 @@ BOOL RegisterListViewControl (void)
 #ifdef _MGSCHEMA_COMPOSITING
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = ListViewCtrlProc;
 

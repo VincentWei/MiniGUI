@@ -2272,9 +2272,9 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
         return ;
 
     if(is_active)
-    border_color = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_ACTIVE_WND_BORDER);
+    border_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_ACTIVE_WND_BORDER);
     else
-    border_color = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_INACTIVE_WND_BORDER);
+    border_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_INACTIVE_WND_BORDER);
 
     win_info = GetWindowInfo(hWnd);
 
@@ -2420,11 +2420,11 @@ static void draw_caption (HWND hWnd, HDC hdc, BOOL is_active)
     if (!(win_info->dwStyle & WS_CAPTION))
         return;
 
-    active_color = GetWindowElementPixelEx(hWnd, hdc, WE_BGCA_ACTIVE_CAPTION);
-    inactive_color = GetWindowElementPixelEx(hWnd, hdc, WE_BGCA_INACTIVE_CAPTION);
-    text_active_color = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_ACTIVE_CAPTION);
-    text_inact_color = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_INACTIVE_CAPTION);
-    cap_font = (PLOGFONT)GetWindowElementAttr(hWnd, WE_FONT_CAPTION);
+    active_color = GetWindowElementPixelEx (hWnd, hdc, WE_BGCA_ACTIVE_CAPTION);
+    inactive_color = GetWindowElementPixelEx (hWnd, hdc, WE_BGCA_INACTIVE_CAPTION);
+    text_active_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_ACTIVE_CAPTION);
+    text_inact_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_INACTIVE_CAPTION);
+    cap_font = (PLOGFONT)GetWindowElementAttr (hWnd, WE_FONT_CAPTION);
 
     if (calc_we_area(hWnd, HT_CAPTION, &rect) == -1)
         return;
@@ -2969,7 +2969,7 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
 
     GetWindowInfo(hWnd)->we_rdr->draw_3dbox (hdc, &rc_draw, color_thumb, tbstatus);
 
-    SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_THREED_BODY));
+    SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_THREED_BODY));
     if (dwStyle & TBS_VERTICAL) {
         MoveTo (hdc, sliderx + (sliderw >> 1) - 3 - 1,
                 slidery + (sliderh >> 1));
@@ -3125,7 +3125,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
 
     /* draw the tick of trackbar. */
     if (!(dwStyle & TBS_NOTICK)) {
-        SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_THREED_BODY));
+        SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_THREED_BODY));
         if (dwStyle & TBS_VERTICAL) {
             TickStart = y + (HEIGHT_VERT_SLIDER >> 1);
             fTickGap = itofix (h - HEIGHT_VERT_SLIDER);
@@ -3364,7 +3364,7 @@ draw_progress (HWND hWnd, HDC hdc,
         old_color = SetBrushColor (hdc, GetWindowBkColor (hWnd));
     else
         old_color = SetBrushColor (hdc,
-                GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP));
+                GetWindowElementPixelEx (HWND_DESKTOP, hdc, WE_BGC_DESKTOP));
 
     //draw the erase background
     FillBox (hdc, rcClient.left + 1, rcClient.top + 1, RECTW (rcClient) - 2, RECTH (rcClient) - 2);
@@ -3384,7 +3384,7 @@ draw_progress (HWND hWnd, HDC hdc,
     nRem = ndiv_progress.rem;
 
     SetBrushColor (hdc,
-            GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
+            GetWindowElementPixelEx (hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM));
 
     if (whOne >= 4) {
         if (fVertical) {
@@ -3440,15 +3440,15 @@ draw_progress (HWND hWnd, HDC hdc,
             rc_clip.right = prog;
             SelectClipRect (hdc, &rc_clip);
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_HIGHLIGHT_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM));
             SetBkColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM));
             TextOut (hdc, x, y, szText);
 
             rc_clip.right = rcClient.right;
             rc_clip.left = prog;
             SelectClipRect (hdc, &rc_clip);
-            SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+            SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
             SetBkColor (hdc, GetWindowBkColor (hWnd));
             TextOut (hdc, x, y, szText);
         }

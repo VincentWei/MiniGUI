@@ -87,7 +87,8 @@ BOOL RegisterTreeViewRdrControl (void)
 #ifdef _MGSCHEMA_COMPOSITING
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = TreeViewCtrlProc;
 
@@ -626,8 +627,8 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX,
     if (p->dwFlags & TVIF_SELECTED)
     {
         SetBkMode (hdc, BM_OPAQUE);
-        SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
-        SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_HIGHLIGHT_ITEM));
+        SetBkColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM));
+        SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM));
 
         rc.left = centerX;
         rc.top = centerY - (h>>1);
@@ -644,7 +645,7 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX,
     } else {
         SetBkMode (hdc, BM_TRANSPARENT);
         SetBkColor (hdc, GetWindowBkColor (hWnd));
-        SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+        SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
 
         TextOut (hdc, centerX, centerY - (h>>1), p->text);
     }

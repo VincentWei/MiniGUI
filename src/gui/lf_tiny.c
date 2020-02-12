@@ -493,7 +493,8 @@ static void draw_3dbox (HDC hdc, const RECT* pRect, DWORD color, DWORD flag)
 
     /*draw outer frame*/
     //dark_color = calc_3dbox_color (color, LFRDR_3DBOX_COLOR_DARKEST);
-    old_pen_color = SetPenColor (hdc, GetWindowElementColor (WE_FGC_THREED_BODY));
+    old_pen_color = SetPenColor (hdc,
+            GetWindowElementPixelEx (HWND_DESKTOP, hdc, WE_FGC_THREED_BODY));
     Rectangle (hdc, pRect->left, pRect->top,
             pRect->right - 1, pRect->bottom - 1);
 
@@ -1133,7 +1134,7 @@ static void check_frame (HDC hdc, int x0, int y0, int x1, int y1)
     x1-=1;
     y1-=1;
 
-    pen_clr = GetWindowElementColor (WE_FGC_THREED_BODY);
+    pen_clr = GetWindowElementPixelEx (HWND_NULL, hdc, WE_FGC_THREED_BODY);
     old_pen_clr = SetPenColor (hdc, pen_clr);
 
     MoveTo (hdc, x1-4, y0+2);
@@ -1169,7 +1170,8 @@ static void normal_frame (HDC hdc, int x0, int y0, int x1, int y1)
     x1-=1;
     y1-=1;
 
-    old_pen_clr = SetPenColor (hdc, GetWindowElementColor (WE_FGC_THREED_BODY));
+    old_pen_clr = SetPenColor (hdc,
+            GetWindowElementPixelEx (HWND_NULL, hdc, WE_FGC_THREED_BODY));
 
     MoveTo (hdc, x1, y0+4);
     LineTo (hdc, x1, y1-4);
@@ -1191,7 +1193,8 @@ static void DrawFlatControlFrameEx (HDC hdc, int x0, int y0, int x1, int y1)
 {
     gal_pixel old_color;
 
-    old_color = SetPenColor (hdc, GetWindowElementColor (WE_FGC_THREED_BODY));
+    old_color = SetPenColor (hdc,
+            GetWindowElementPixelEx (HDC_NULL, hdc, WE_FGC_THREED_BODY));
     x1-=1;
     y1-=1;
 
@@ -3331,8 +3334,8 @@ static void draw_scrollbar (HWND hWnd, HDC hdc, int sb_pos)
         return;
     }
 
-    old_pen_clr = SetPenColor (hdc, GetWindowElementPixel(hWnd, WE_FGC_THREED_BODY));
-    old_bru_clr = SetBrushColor (hdc, GetWindowElementPixel (hWnd, WE_MAINC_THREED_BODY));
+    old_pen_clr = SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_THREED_BODY));
+    old_bru_clr = SetBrushColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_MAINC_THREED_BODY));
 
     if (0 == strncasecmp(CTRL_SCROLLBAR, GetClassName(hWnd), strlen(CTRL_SCROLLBAR)))
     {
@@ -3529,7 +3532,7 @@ static void draw_trackbar_thumb (HWND hWnd, HDC hdc,
 
     win_info->we_rdr->draw_3dbox (hdc, &rc_draw, color_thumb, tbstatus);
 
-    SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_THREED_BODY));
+    SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_THREED_BODY));
     if (dwStyle & TBS_VERTICAL) {
         MoveTo (hdc, sliderx + (sliderw >> 1) - 3 - 1,
                 slidery + (sliderh >> 1));
@@ -3685,7 +3688,7 @@ draw_trackbar (HWND hWnd, HDC hdc, LFRDR_TRACKBARINFO *info)
 
     /* draw the tick of trackbar. */
     if (!(dwStyle & TBS_NOTICK)) {
-        SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_THREED_BODY));
+        SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_THREED_BODY));
         if (dwStyle & TBS_VERTICAL) {
             TickStart = y + (HEIGHT_VERT_SLIDER >> 1);
             TickEnd = y + h - (HEIGHT_VERT_SLIDER >> 1);
@@ -3955,7 +3958,7 @@ draw_progress (HWND hWnd, HDC hdc,
     nRem = ndiv_progress.rem;
 
     SetBrushColor (hdc,
-            GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
+            GetWindowElementPixelEx (hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM));
 
     if (whOne >= 4) {
         if (fVertical) {
@@ -4011,15 +4014,15 @@ draw_progress (HWND hWnd, HDC hdc,
             rc_clip.right = prog;
             SelectClipRect (hdc, &rc_clip);
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_HIGHLIGHT_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM));
             SetBkColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM));
             TextOut (hdc, x, y, szText);
 
             rc_clip.right = rcClient.right;
             rc_clip.left = prog;
             SelectClipRect (hdc, &rc_clip);
-            SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+            SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
             SetBkColor (hdc, GetWindowBkColor (hWnd));
             TextOut (hdc, x, y, szText);
         }

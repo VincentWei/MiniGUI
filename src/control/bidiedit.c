@@ -109,7 +109,8 @@ BOOL RegisterBIDISLEditControl (void)
 #ifdef _MGSCHEMA_COMPOSITING
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_NULL,
+            HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = SLEditCtrlProc;
 
@@ -214,9 +215,10 @@ static void setup_dc (HWND hWnd, BIDISLEDITDATA *sled, HDC hdc, BOOL bSel)
 
         if (dwStyle & WS_DISABLED)
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_DISABLED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_DISABLED_ITEM));
         else
-            SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+            SetTextColor (hdc,
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
 
         SetBkColor (hdc, GetWindowBkColor (hWnd));
     }
@@ -226,17 +228,17 @@ static void setup_dc (HWND hWnd, BIDISLEDITDATA *sled, HDC hdc, BOOL bSel)
 
         if (dwStyle & WS_DISABLED)
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_DISABLED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_DISABLED_ITEM));
         else
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_SELECTED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_SELECTED_ITEM));
 
         if (sled->status & EST_FOCUSED)
             SetBkColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_BGC_SELECTED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_BGC_SELECTED_ITEM));
         else
             SetBkColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_BGC_SELECTED_LOSTFOCUS));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_BGC_SELECTED_LOSTFOCUS));
     }
 }
 
@@ -509,7 +511,7 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
     }
 
     if (dwStyle & ES_BASELINE) {
-        SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+        SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
 #ifdef _PHONE_WINDOW_STYLE
         MoveTo (hdc, sled->leftMargin, sled->rcVis.bottom);
         LineTo (hdc, sled->rcVis.right, sled->rcVis.bottom);

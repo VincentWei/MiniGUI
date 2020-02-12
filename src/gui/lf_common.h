@@ -162,7 +162,7 @@ static inline void erase_bkgnd (HWND hWnd, HDC hdc, const RECT *rect)
         old_color = SetBrushColor (hdc, GetWindowBkColor (hWnd));
     else
         old_color = SetBrushColor (hdc,
-                GetWindowElementPixel (HWND_DESKTOP, WE_BGC_DESKTOP));
+                GetWindowElementPixelEx (HWND_DESKTOP, hdc, WE_BGC_DESKTOP));
 
     FillBox(hdc, rect->left, rect->top, RECTWP(rect), RECTHP(rect));
     SetBrushColor (hdc, old_color);

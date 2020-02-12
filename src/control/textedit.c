@@ -964,7 +964,7 @@ static void tePaint(HWND hWnd, HDC hdc, RECT *rcDraw)
     h = ptedata->nLineHeight - 1;
 
     if (GetWindowStyle(hWnd) & ES_BASELINE) {
-        SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+        SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
         while (h < RECTHP(rc)) {
 #ifdef _TITLE_SUPPORT
             indent = (h == ptedata->nLineHeight - 1) ? ptedata->titleIndent : 0;
@@ -982,21 +982,25 @@ static void setup_dc (HWND hWnd, HDC hdc, BOOL bSel)
         SetBkColor (hdc, GetWindowBkColor (hWnd));
 
         SetTextColor (hdc,
-            GetWindowElementPixel (hWnd, GetWindowStyle(hWnd)&WS_DISABLED?
-            WE_FGC_DISABLED_ITEM : WE_FGC_WINDOW));
+            GetWindowElementPixelEx (hWnd, hdc,
+                (GetWindowStyle(hWnd) & WS_DISABLED) ?
+                WE_FGC_DISABLED_ITEM : WE_FGC_WINDOW));
     }
     else {
         SetBkMode (hdc, BM_OPAQUE);
 
         SetTextColor (hdc,
-            GetWindowElementPixel (hWnd, GetWindowStyle(hWnd)&WS_DISABLED?
+            GetWindowElementPixelEx (hWnd, hdc,
+                (GetWindowStyle(hWnd) & WS_DISABLED) ?
             WE_FGC_DISABLED_ITEM : WE_FGC_SELECTED_ITEM));
 
         if (hWnd == GetFocus(GetParent(hWnd))) {
-            SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_BGC_SELECTED_ITEM));
+            SetBkColor (hdc, GetWindowElementPixelEx (hWnd,
+                        hdc, WE_BGC_SELECTED_ITEM));
         }
         else {
-            SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_BGC_SELECTED_LOSTFOCUS));
+            SetBkColor (hdc, GetWindowElementPixelEx (hWnd,
+                        hdc, WE_BGC_SELECTED_LOSTFOCUS));
         }
     }
 }
@@ -3601,7 +3605,8 @@ BOOL RegisterTextEditControl (void)
 #ifdef _MGSCHEMA_COMPOSITING
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
 #endif
     WndClass.WinProc     = TextEditCtrlProc;
 

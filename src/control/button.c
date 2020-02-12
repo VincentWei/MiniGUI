@@ -671,7 +671,7 @@ BOOL RegisterButtonControl (void)
         GetWindowElementAttr (HWND_NULL, WE_MAINC_THREED_BODY);
 #else
     WndClass.iBkColor    =
-        GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
 #endif
     WndClass.WinProc     = ButtonCtrlProc;
 
@@ -707,8 +707,8 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
         case MSG_CREATE:
             pData = (BUTTONDATA*) calloc (1, sizeof(BUTTONDATA));
-            SetWindowBkColor (hWnd, GetWindowElementPixel (hWnd,
-                        WE_MAINC_THREED_BODY));
+            SetWindowBkColor (hWnd, GetWindowElementPixelEx (hWnd,
+                        HDC_INVALID, WE_MAINC_THREED_BODY));
             if (pData == NULL)
                 return -1;
 

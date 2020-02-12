@@ -85,8 +85,8 @@ BOOL RegisterCoolBarControl (void)
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
             WE_MAINC_THREED_BODY);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_DESKTOP,
-            WE_MAINC_THREED_BODY);
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_DESKTOP,
+            HDC_SCREEN, WE_MAINC_THREED_BODY);
 #endif
     WndClass.WinProc     = CoolBarCtrlProc;
 

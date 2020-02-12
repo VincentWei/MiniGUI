@@ -227,8 +227,8 @@ BOOL RegisterProgressBarControl (void)
     WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
             WE_MAINC_THREED_BODY);
 #else
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL,
-            WE_MAINC_THREED_BODY);
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_NULL,
+            HDC_SCREEN, WE_MAINC_THREED_BODY);
 #endif
     WndClass.WinProc     = ProgressBarCtrlProc;
 
