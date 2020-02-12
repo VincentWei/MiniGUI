@@ -659,8 +659,9 @@ int __mg_enter_drawing (PDC pdc)
 {
     BLOCK_DRAW_SEM (pdc);
 
-    if (WITHOUT_DRAWING (pdc))
+    if (WITHOUT_DRAWING (pdc)) {
         goto fail;
+    }
 
     if (!IntersectRect (&pdc->rc_output, &pdc->rc_output, &pdc->ecrgn.rcBound)) {
         goto fail;
@@ -1876,6 +1877,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         RECT minimal;
 
         pdc->pGCRInfo = kernel_GetGCRgnInfo (hWnd);
+
         LOCK_GCRINFO (pdc);
 
         pdc->oldage = pdc->pGCRInfo->age;

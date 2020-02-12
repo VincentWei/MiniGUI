@@ -86,6 +86,7 @@ typedef struct tagDC* PDC;
 #endif
 
 #ifndef _MG_MINIMALGDI
+
 # ifdef _MGSCHEMA_COMPOSITING
 #   define LOCK_GCRINFO(pdc)
 #   define UNLOCK_GCRINFO(pdc)

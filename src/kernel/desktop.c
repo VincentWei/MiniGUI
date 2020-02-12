@@ -571,7 +571,7 @@ static BOOL _cb_intersect_rc (void* context,
     RECT* rc = (RECT*)context;
 
     if (node->flags & ZOF_VISIBLE && DoesIntersect (rc, &node->rc)) {
-        node->age ++;
+        node->age++;
         return TRUE;
     }
 
@@ -585,7 +585,7 @@ static BOOL _cb_update_rc (void* context,
 
     if (node->flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(cliprgn, zi, node)) {
-        node->age ++;
+        node->age++;
         node->flags |= ZOF_IF_REFERENCE;
         return TRUE;
     }
@@ -938,7 +938,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
     ZORDERNODE* menu_nodes, *nodes;
     int i, slot = 0, idx_znode;
     unsigned short idx;
-    CLIPRGN unvisible_rgn;
+    CLIPRGN invisible_rgn;
 
     gcrinfo = kernel_GetGCRgnInfo (pdc->hwnd);
     mainwin = (PMAINWIN)(pdc->hwnd);
@@ -960,12 +960,12 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
     reset_window (mainwin, &nodes [idx_znode].rc);
     /* when idx=0, this is HDC_SCREEN_SYS */
     if (idx != 0) {
-        InitClipRgn (&unvisible_rgn, &sg_FreeClipRectList);
-        SetClipRgn (&unvisible_rgn, &nodes [idx_znode].rc);
+        InitClipRgn (&invisible_rgn, &sg_FreeClipRectList);
+        SetClipRgn (&invisible_rgn, &nodes [idx_znode].rc);
 
-        subtract_rgn_by_node(&unvisible_rgn, zi, &nodes[idx_znode]);
-        SubtractRegion (&gcrinfo->crgn, &gcrinfo->crgn, &unvisible_rgn);
-        EmptyClipRgn(&unvisible_rgn);
+        subtract_rgn_by_node(&invisible_rgn, zi, &nodes[idx_znode]);
+        SubtractRegion (&gcrinfo->crgn, &gcrinfo->crgn, &invisible_rgn);
+        EmptyClipRgn(&invisible_rgn);
     }
 
     /* clip by popup menus */
@@ -1041,12 +1041,12 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
     while (slot && slot != idx_znode) {
 
         if (nodes [slot].flags & ZOF_VISIBLE)
-           subtract_rgn_by_node(&gcrinfo->crgn, zi, &nodes[slot]);
+           subtract_rgn_by_node (&gcrinfo->crgn, zi, &nodes[slot]);
 
         slot = nodes [slot].next;
     }
     gcrinfo->old_zi_age = nodes [idx_znode].age;
-    gcrinfo->age ++;
+    gcrinfo->age++;
 }
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
@@ -1073,7 +1073,7 @@ static void dskInitGCRInfo (PMAINWIN pWin)
     IntersectRect (&rcTemp, &rcWin, &rcScr);
     SetClipRgn (&pWin->pGCRInfo->crgn, &rcTemp);
 }
-#endif /* _MGSCHEMA_COMPOSITING */
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 /*
  * Init a window's invalid region.
@@ -1479,7 +1479,7 @@ static int srvForceCloseMenu (int cli)
 
     rc_screen = GetScreenRect ();
     if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
-        win_nodes [0].age ++;
+        win_nodes [0].age++;
         win_nodes [0].flags |= ZOF_IF_REFERENCE;
     }
 #else   /* defined _MGSCHEMA_COMPOSITING */
@@ -1588,7 +1588,7 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
 
     rc_screen = GetScreenRect();
     if (DoesIntersect (rc, &rc_screen)) {
-        win_nodes [0].age ++;
+        win_nodes [0].age++;
     }
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
@@ -1651,7 +1651,7 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
 
     rc_screen = GetScreenRect();
     if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
-        win_nodes [0].age ++;
+        win_nodes [0].age++;
         win_nodes [0].flags |= ZOF_IF_REFERENCE;
     }
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
@@ -2205,7 +2205,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             slot = ZNIDX_LAUNCHER;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
             }
         }
 
@@ -2214,7 +2214,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                 }
             }
         }
@@ -2224,7 +2224,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                 }
             }
         }
@@ -2234,7 +2234,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                 }
             }
         }
@@ -2243,7 +2243,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             slot = ZNIDX_DOCKER;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
             }
         }
 
@@ -2251,13 +2251,13 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             slot = ZNIDX_SCREENLOCK;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     DoesIntersect (&nodes [free_slot].rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
             }
         }
 
         /* for destkop */
         if (DoesIntersect (&nodes [free_slot].rc, &rc_screen)) {
-            nodes [0].age ++;
+            nodes [0].age++;
         }
 #else   /* not defined _MGSCHEMA_COMPOSITING */
         DO_COMPSOR_OP_ARGS (on_showing_win,
@@ -2431,7 +2431,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
         for (; slot > 0; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                nodes [slot].age ++;
+                nodes [slot].age++;
                 nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
@@ -2441,7 +2441,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
             slot = ZNIDX_DOCKER;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                nodes [slot].age ++;
+                nodes [slot].age++;
                 nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
@@ -2451,7 +2451,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
@@ -2462,7 +2462,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
@@ -2473,7 +2473,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
@@ -2483,13 +2483,13 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
             slot = ZNIDX_LAUNCHER;
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                nodes [slot].age ++;
+                nodes [slot].age++;
                 nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
 
         if (SubtractClipRect (&sg_UpdateRgn, &rc_screen)) {
-            nodes [0].age ++;
+            nodes [0].age++;
             nodes [0].flags |= ZOF_IF_REFERENCE;
         }
     }
@@ -2982,7 +2982,7 @@ static int dskMove2Top (int cli, int idx_znode)
             for (; slot != idx_znode; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                                 DoesIntersect (&rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     AddClipRect(&sg_UpdateRgn, &nodes [slot].rc);
                 }
             }
@@ -2992,7 +2992,7 @@ static int dskMove2Top (int cli, int idx_znode)
             for (; slot != idx_znode; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                                 DoesIntersect (&rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     AddClipRect (&sg_UpdateRgn, &nodes [slot].rc);
                 }
             }
@@ -3002,7 +3002,7 @@ static int dskMove2Top (int cli, int idx_znode)
             for (; slot != idx_znode; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                                 DoesIntersect (&rc, &nodes [slot].rc)) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     AddClipRect (&sg_UpdateRgn, &nodes [slot].rc);
                 }
             }
@@ -3056,7 +3056,7 @@ static int dskMove2Top (int cli, int idx_znode)
 #ifdef _MGSCHEMA_COMPOSITING
     DO_COMPSOR_OP_ARGS (on_raised_win, get_layer_from_client (cli), idx_znode);
 #else
-    nodes [idx_znode].age ++;
+    nodes [idx_znode].age++;
 #endif
 
     /* unlock zi for change */
@@ -3158,14 +3158,14 @@ static int dskShowWindow (int cli, int idx_znode)
         for (; slot != 0; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
                             DoesIntersect (&rc, &nodes [slot].rc)) {
-                nodes [slot].age ++;
+                nodes [slot].age++;
             }
         }
 
         if (DoesIntersect (&rc, &rc_screen)) {
-            nodes [0].age ++;
+            nodes [0].age++;
         }
-        nodes [idx_znode].age ++;
+        nodes [idx_znode].age++;
         nodes [idx_znode].flags |= ZOF_VISIBLE;
     }
 #else   /* defined _MGSCHEMA_COMPOSITING */
@@ -3246,7 +3246,7 @@ static int dskHideWindow (int cli, int idx_znode)
         for (; slot > 0; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                nodes [slot].age ++;
+                nodes [slot].age++;
                 nodes [slot].flags |= ZOF_IF_REFERENCE;
             }
         }
@@ -3268,7 +3268,7 @@ static int dskHideWindow (int cli, int idx_znode)
         }
 
         if (SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
-            nodes [0].age ++;
+            nodes [0].age++;
             nodes [0].flags |= ZOF_IF_REFERENCE;
         }
     }
@@ -3410,6 +3410,9 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         /* lock zi for change */
         lock_zi_for_change (zi);
 
+        if (type > ZOF_TYPE_LAUNCHER) {
+            do_for_all_znodes ((void*)rcWin, zi, _cb_intersect_rc, ZT_LAUNCHER);
+        }
         if (type > ZOF_TYPE_NORMAL) {
             do_for_all_znodes ((void*)rcWin, zi, _cb_intersect_rc, ZT_NORMAL);
         }
@@ -3427,12 +3430,12 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         for (; slot != 0; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
                             DoesIntersect (rcWin, &nodes [slot].rc)) {
-                nodes [slot].age ++;
+                nodes [slot].age++;
             }
         }
 
         if (DoesIntersect (rcWin, &rcScr)) {
-            nodes [0].age ++;
+            nodes [0].age++;
         }
 
         /* check influenced zorder nodes */
@@ -3444,8 +3447,30 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             if (nodes [slot].flags & ZOF_VISIBLE &&
                     !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
                     subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                nodes [slot].age ++;
+                nodes [slot].age++;
                 nodes [slot].flags |= ZOF_IF_REFERENCE;
+            }
+        }
+
+        if (type > ZOF_TYPE_DOCKER) {
+            slot = ZNIDX_DOCKER;
+            if (nodes [slot].flags & ZOF_VISIBLE &&
+                    !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
+                    subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
+                nodes [slot].age++;
+                nodes [slot].flags |= ZOF_IF_REFERENCE;
+            }
+        }
+
+        if (type > ZOF_TYPE_GLOBAL) {
+            slot = zi->first_global;
+            for (; slot > 0; slot = nodes [slot].next) {
+                if (nodes [slot].flags & ZOF_VISIBLE &&
+                        !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
+                        subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
+                    nodes [slot].age++;
+                    nodes [slot].flags |= ZOF_IF_REFERENCE;
+                }
             }
         }
 
@@ -3455,7 +3480,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
@@ -3467,7 +3492,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                 if (nodes [slot].flags & ZOF_VISIBLE &&
                         !(nodes [slot].flags & ZOF_IF_REFERENCE) &&
                         subtract_rgn_by_node(&sg_UpdateRgn, zi, &nodes[slot])) {
-                    nodes [slot].age ++;
+                    nodes [slot].age++;
                     nodes [slot].flags |= ZOF_IF_REFERENCE;
                 }
             }
@@ -3475,13 +3500,13 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 
         if (!(nodes [0].flags & ZOF_IF_REFERENCE) &&
                         SubtractClipRect (&sg_UpdateRgn, &rcScr)) {
-            nodes [0].age ++;
+            nodes [0].age++;
             nodes [0].flags |= ZOF_IF_REFERENCE;
         }
 
         rcOld = nodes [idx_znode].rc;
         nodes [idx_znode].rc = *rcWin;
-        nodes [idx_znode].age ++;
+        nodes [idx_znode].age++;
 
 #if defined (_MGRM_PROCESSES)
         if (cli == 0 || mgClients [cli].layer == SHAREDRES_TOPMOST_LAYER) {
@@ -3681,7 +3706,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         lock_zi_for_change (zi);
 
         nodes [idx_znode].rc = *rcWin;
-        nodes [idx_znode].age ++;
+        nodes [idx_znode].age++;
 
         unlock_zi_for_change (zi);
     }

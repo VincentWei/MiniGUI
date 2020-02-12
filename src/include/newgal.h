@@ -579,7 +579,7 @@ void GAL_SetCursor (GAL_Surface* surface, int hot_x, int hot_y);
 /* Move cursor. */
 void GAL_MoveCursor (GAL_Surface* surface, int x, int y);
 
-#else /* _MGUSE_SHAREDFD */
+#else /* defined _MGSCHEMA_COMPOSITING */
 
 typedef struct REQ_HWSURFACE {
     /* for allocation */
@@ -629,7 +629,7 @@ typedef struct _REP_SIGMA8654_GETSURFACE {
 #endif
 
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
-#endif /* _MGSCHEMA_SHAREDFB */
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 #endif /* _MGRM_PROCESSES */
 

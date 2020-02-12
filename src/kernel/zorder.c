@@ -188,10 +188,9 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     __mg_slot_set_use ((unsigned char*)(__mg_zorder_info + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
-    /* Since 4.2.0; init null znode for other fixed main windows */
+    /* Since 4.2.0; allocate znodes for other fixed main windows */
     {
         int i;
-        
         static int fixed_ztypes [] = {
             ZNIT_SCREENLOCK, ZNIT_DOCKER, ZNIT_LAUNCHER };
 

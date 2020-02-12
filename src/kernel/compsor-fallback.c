@@ -369,16 +369,6 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
     ServerReleaseWinZNodeHeader (NULL, from);
 }
 
-static void dump_region (const CLIPRGN* rgn, const char* name)
-{
-    return;
-
-    _DBG_PRINTF("rcBound of %s: (%d, %d, %d, %d); size (%d x %d)\n", name,
-            rgn->rcBound.left, rgn->rcBound.top,
-            rgn->rcBound.right, rgn->rcBound.bottom,
-            RECTW(rgn->rcBound), RECTH(rgn->rcBound));
-}
-
 static void composite_all_lucent_win_znodes (CompositorCtxt* ctxt,
         const CLIPRGN* dirty_rgn)
 {
@@ -432,8 +422,6 @@ static void composite_all_lucent_win_znodes (CompositorCtxt* ctxt,
                 break;
             }
 
-            dump_region (&ctxt->inv_rgn, "invalid region");
-
             SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
             //SelectClipRect (HDC_SCREEN_SYS, &znode_hdr->rc);
             BitBlt (znode_hdr->mem_dc,
@@ -478,8 +466,6 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
     if (get_lucent_win_znodes_above (ctxt, from))
         CopyRegion (&tmp_rgn, &ctxt->dirty_rgn);
 
-    dump_region (&tmp_rgn, "dirty region for lucent win znodes");
-
     /* compositing the current window znode and the znodes below it */
     if (from <= 0)
         next = ServerGetNextZNode (NULL, 0, NULL);
@@ -490,8 +476,6 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
         composite_opaque_win_znode (ctxt, next);
         next = ServerGetNextZNode (NULL, next, NULL);
     }
-
-    dump_region (&ctxt->dirty_rgn, "dirty region for wallpaper");
 
     /* compositing the wallpaper */
     composite_wallpaper (ctxt);
