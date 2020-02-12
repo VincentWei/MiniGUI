@@ -66,15 +66,14 @@
 #include "memops.h"
 #include "dc.h"
 #include "icon.h"
-#include "cursor.h"
 #include "readbmp.h"
+#include "misc.h"
 
 #define align_32_bits(b) (((b) + 3) & -4)
 
-/*-------------------------*/
-#if ((defined(__THREADX__) && defined(__TARGET_VFANVIL__)) || (defined(__NUCLEUS__) && defined(__TARGET_MONACO__)))
-#define fgetc my_fgetc
-int my_fgetc(FILE *stream)
+#if ((defined(__THREADX__) && defined(__TARGET_VFANVIL__)) || \
+        (defined(__NUCLEUS__) && defined(__TARGET_MONACO__)))
+static int my_fgetc (FILE *stream)
 {
     int c;
     while (!feof (stream)) {
@@ -85,8 +84,10 @@ int my_fgetc(FILE *stream)
     }
     return EOF;
 }
-#endif
-/*-------------------------*/
+
+#define fgetc my_fgetc
+
+#endif /* (__THREADX__ && __TARGET_VFANVIL__)... */
 
 void _dc_restore_alpha_in_bitmap (const GAL_PixelFormat* format,
                 void* dst_bits, unsigned int nr_bytes)
@@ -359,58 +360,251 @@ error:
     return 0;
 }
 
-HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pAndBits,
-                        const BYTE* pXorBits, int colornum, const RGB *pal)
+HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
+                        const BYTE* pXORBits, int colornum, const RGB *pal)
 {
     PDC pdc;
     PICON picon;
     Uint32 image_size;
+    gal_pixel trans_pixel;
 
-    pdc = dc_HDC2PDC (hdc);
+    /* Since 4.2.0, we always decode an icon into RGBA8888 compliant pixels */
+    hdc = __mg_get_common_rgba8888_dc ();
+    if (!(pdc = dc_HDC2PDC (hdc)))
+        return 0;
 
-    if( (w%16) != 0 || (h%16) != 0 ) return 0;
+    if ((w % 16) != 0 || (h % 16) != 0 || w <= 0 || h <= 0)
+        return 0;
 
     /* allocate memory. */
-    if (!(picon = (PICON)malloc (sizeof(ICON))))
+    if (!(picon = mg_slice_new (ICON)))
         return 0;
 
     image_size = GAL_GetBoxSize (pdc->surface, w, h, &picon->pitch);
-
-    if (!(picon->AndBits = malloc (image_size)))
-        goto error1;
-    if (!(picon->XorBits = malloc (image_size)))
-        goto error2;
+    if (!(picon->pixels = malloc (image_size)))
+        goto error;
 
     picon->width = w;
     picon->height = h;
 
+    trans_pixel = GAL_MapRGBA (pdc->surface->format, 0x00, 0x00, 0x00, 0x00);
     if (colornum == 1) {
+#if 1
+        int x, y;
+        int mono_pitch = align_32_bits (w >> 3);
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+        gal_pixel white_pixel = GAL_MapRGBA (pdc->surface->format,
+                0xFF, 0xFF, 0xFF, 0xFF);
+        gal_pixel black_pixel = GAL_MapRGBA (pdc->surface->format,
+                0x00, 0x00, 0x00, 0xFF);
+
+        pANDBits += mono_pitch * (h - 1);
+        pXORBits += mono_pitch * (h - 1);
+        Uint32* pixels = (Uint32*)picon->pixels;
+
+        for (y = 0; y < h; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < w; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                    xor_byte = *xor_bytes++;
+                }
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else {
+                    if (xor_byte & (0x80 >> (x % 8))) {
+                        pixels [x] = white_pixel;
+                    }
+                    else {
+                        pixels [x] = black_pixel;
+                    }
+                }
+            }
+
+            pANDBits -= mono_pitch;
+            pXORBits -= mono_pitch;
+            pixels += (picon->pitch >> 2);
+        }
+#else
         ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
         ExpandMonoBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
+#endif
     }
     else if (colornum == 4) {
+#if 1
+        int x, y;
+        int pitch_mono = align_32_bits (w >> 3);
+        int pitch_16c = align_32_bits (w >> 1);
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+        int idx_16c = 0;
+        const RGB* std16c_rgb = __mg_bmp_get_std_16c ();
+
+        pANDBits += pitch_mono * (h - 1);
+        pXORBits += pitch_16c * (h - 1);
+        Uint32* pixels = (Uint32*)picon->pixels;
+
+        for (y = 0; y < h; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < w; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                }
+                if (x % 2 == 0) {
+                    xor_byte = *xor_bytes++;
+                    idx_16c = (xor_byte >> 4) & 0x0F;
+                }
+                else {
+                    idx_16c = xor_byte & 0x0F;
+                }
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else {
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            std16c_rgb[idx_16c].r, std16c_rgb[idx_16c].g,
+                            std16c_rgb[idx_16c].b, 0xFF);
+                }
+            }
+
+            pANDBits -= pitch_mono;
+            pXORBits -= pitch_16c;
+            pixels += (picon->pitch >> 2);
+        }
+#else
         ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
         Expand16CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
                 align_32_bits (w >> 1), w, h, MYBMP_FLOW_UP, pal);
+#endif
     }
-    else if (colornum == 8){
+    else if (colornum == 8) {
+#if 1
+        int x, y;
+        int pitch_mono = align_32_bits (w >> 3);
+        int pitch_256c = align_32_bits (w);
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+
+        pANDBits += pitch_mono * (h - 1);
+        pXORBits += pitch_256c * (h - 1);
+        Uint32* pixels = (Uint32*)picon->pixels;
+
+        for (y = 0; y < h; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < w; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                }
+
+                xor_byte = *xor_bytes++;
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else {
+                    /* Treat the bitmap uses the dithered colorful palette. */
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            (xor_byte >> 5) & 0x07, (xor_byte >> 2) & 0x07,
+                            xor_byte & 0x03, 0xFF);
+                }
+            }
+
+            pANDBits -= pitch_mono;
+            pXORBits -= pitch_256c;
+            pixels += (picon->pitch >> 2);
+        }
+#else
         ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
                 align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
         Expand256CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
                 align_32_bits (w), w, h, MYBMP_FLOW_UP, pal, NULL, NULL);
+#endif
     }
 
     return (HICON)picon;
 
-error2:
-    free(picon->AndBits);
-error1:
+error:
     free (picon);
-
     return 0;
+}
+
+HICON GUIAPI LoadBitmapIconEx (HDC hdc, MG_RWops* area, const char* ext)
+{
+    BITMAP bmp;
+    PICON ico;
+    int ret;
+
+    if ((hdc = __mg_get_common_rgba8888_dc()) == HDC_INVALID)
+        return 0;
+
+    if (!(ico = mg_slice_new (ICON)))
+        return 0;
+
+    ret = LoadBitmapEx (hdc, &bmp, area, ext);
+    if (ret) {
+        goto error;
+    }
+
+    ico->width = bmp.bmWidth;
+    ico->height = bmp.bmHeight;
+    ico->pitch = bmp.bmPitch;
+    ico->pixels = bmp.bmBits;
+    return (HICON)ico;
+
+error:
+    mg_slice_delete (ICON, ico);
+    return 0;
+}
+
+HICON GUIAPI LoadBitmapIconFromFile (HDC hdc, const char* file_name)
+{
+    PICON ico;
+    MG_RWops* area;
+    const char* ext;
+
+    /* format, png, jpg etc. */
+    if ((ext = __mg_get_extension (file_name)) == NULL) {
+        return 0;
+    }
+
+    if (!(area = MGUI_RWFromFile (file_name, "rb"))) {
+        _WRN_PRINTF ("Failed to make RWOps\n");
+        return 0;
+    }
+
+    ico = LoadBitmapIconEx (hdc, area, ext);
+    MGUI_RWclose (area);
+    return ico;
+}
+
+HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, int size,
+        const char* ext)
+{
+    PICON ico;
+    MG_RWops* area;
+
+    if (!(area = MGUI_RWFromMem ((void*)mem, size))) {
+        _WRN_PRINTF ("Failed to make RWOps\n");
+        return NULL;
+    }
+
+    ico = LoadBitmapIconEx (hdc, area, ext);
+
+    MGUI_RWclose (area);
+    return ico;
 }
 
 BOOL GUIAPI DestroyIcon (HICON hicon)
@@ -420,9 +614,8 @@ BOOL GUIAPI DestroyIcon (HICON hicon)
     if (!picon)
         return FALSE;
 
-    free(picon->AndBits);
-    free(picon->XorBits);
-    free(picon);
+    free (picon->pixels);
+    mg_slice_delete (ICON, picon);
     return TRUE;
 }
 
@@ -440,6 +633,37 @@ BOOL GUIAPI GetIconSize (HICON hicon, int* w, int* h)
 
 void GUIAPI DrawIcon (HDC hdc, int x, int y, int w, int h, HICON hicon)
 {
+#if 1
+    HDC icon_dc;
+    PICON picon = (PICON)hicon;
+
+    icon_dc = __mg_get_common_rgba8888_dc();
+    if (icon_dc == HDC_INVALID)
+        return;
+
+    if (!__mg_reset_common_rgba8888_dc (picon->width, picon->height,
+                picon->pitch, picon->pixels))
+        return;
+
+    if (w <= 0) w = picon->width;
+    if (h <= 0) h = picon->height;
+
+#if 0
+    SetMemDCAlpha (icon_dc, MEMDC_FLAG_SRCPIXELALPHA, 0);
+    if (w != picon->width || h != picon->height) {
+        StretchBlt (icon_dc, 0, 0, picon->width, picon->height,
+                hdc, x, y, w, h, 0);
+    }
+    else {
+        BitBlt (icon_dc, 0, 0, picon->width, picon->height,
+                hdc, x, y, 0);
+    }
+#else
+        BitBlt (icon_dc, 0, 0, picon->width, picon->height,
+                hdc, x, y, 0);
+#endif
+
+#else
     PDC pdc;
     PCLIPRECT cliprect;
     PICON picon = (PICON)hicon;
@@ -552,5 +776,6 @@ free_ret:
         free (andbits);
         free (xorbits);
     }
+#endif
 }
 
