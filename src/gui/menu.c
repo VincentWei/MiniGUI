@@ -4083,7 +4083,7 @@ static int mnuTrackMenuOnButtonUp (PTRACKMENUINFO ptmi,
 }
 
 /* Since 4.2.0 */
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGSCHEMA_COMPOSITING
 static void sync_update_ppp (PTRACKMENUINFO ptmi)
 {
     PTRACKMENUINFO phead;
@@ -4100,9 +4100,12 @@ static void sync_update_ppp (PTRACKMENUINFO ptmi)
         phead = phead->next;
     } while (phead);
 }
-#else   /* defined _MGUSE_SYNC_UPDATE */
-static inline void sync_update_ppp (PTRACKMENUINFO ptmi) {}
-#endif  /* not defined _MGUSE_SYNC_UPDATE */
+#else /* defined _MGSCHEMA_COMPOSITING */
+static inline void sync_update_ppp (PTRACKMENUINFO ptmi)
+{
+    SyncUpdateDC (HDC_SCREEN_SYS);
+}
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
         int message, WPARAM wParam, LPARAM lParam)
