@@ -82,7 +82,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message,
                             80, 24, hWnd, 0);
         break;
 
-    case MSG_SIZECHANGED:
+    case MSG_CSIZECHANGED:
         GetClientRect (hWnd, &rcClient);
         MoveWindow (GetNextChild (hWnd, HWND_NULL),
                             (RECTW(rcClient) - 80)>>1,
