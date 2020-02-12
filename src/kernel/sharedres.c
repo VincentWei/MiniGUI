@@ -144,7 +144,7 @@ error:
         tempcsr = ((PG_RES)mgSharedRes)->sys_cursors[i];
         if (tempcsr) {
             GAL_FreeCursorSurface (tempcsr->surface);
-            free (tempcsr);
+            mg_slice_delete (CURSOR, tempcsr);
             ((PG_RES)mgSharedRes)->sys_cursors[i] = NULL;
         }
     }
@@ -203,7 +203,7 @@ static BOOL LoadCursorRes (void)
         temp += __mg_csrimgsize;
         free (tempcsr->AndBits);
         free (tempcsr->XorBits);
-        free (tempcsr);
+        mg_slice_delete (CURSOR, tempcsr);
     }
 
     mgSizeRes += (sizeof (HCURSOR) + sizeof(CURSOR) + 2 * __mg_csrimgsize) * number;
