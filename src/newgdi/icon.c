@@ -470,6 +470,11 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
                 if (and_byte & (0x80 >> (x % 8))) {
                     pixels [x] = trans_pixel;
                 }
+                else if (pal) {
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            pal[idx_16c].r, pal[idx_16c].g,
+                            pal[idx_16c].b, 0xFF);
+                }
                 else {
                     pixels [x] = GAL_MapRGBA (pdc->surface->format,
                             std16c_rgb[idx_16c].r, std16c_rgb[idx_16c].g,
@@ -513,6 +518,11 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
 
                 if (and_byte & (0x80 >> (x % 8))) {
                     pixels [x] = trans_pixel;
+                }
+                else if (pal) {
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            pal[xor_byte].r, pal[xor_byte].g,
+                            pal[xor_byte].b, 0xFF);
                 }
                 else {
                     /* Treat the bitmap uses the dithered colorful palette. */
