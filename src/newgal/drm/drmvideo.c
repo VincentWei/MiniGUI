@@ -1830,7 +1830,7 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
 
     GAL_SetClipRect(surface, NULL);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif
@@ -1929,7 +1929,7 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
 
     GAL_SetClipRect(surface, NULL);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif
@@ -2028,7 +2028,7 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
 
     GAL_SetClipRect(surface, NULL);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif

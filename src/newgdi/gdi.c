@@ -2295,11 +2295,9 @@ void GUIAPI ReleaseDC (HDC hDC)
         pdc->alpha_pixel_format = NULL;
     }
 
-#ifdef _MGUSE_SYNC_UPDATE
     LOCK (&__mg_gdilock);
     GAL_SyncUpdate (pdc->surface);
     UNLOCK (&__mg_gdilock);
-#endif
 
     pWin = (PMAINWIN)(pdc->hwnd);
     if (pWin && pWin->privCDC == hDC) {
@@ -3957,7 +3955,6 @@ int GUIAPI SetUserCompositionOps (HDC hdc, CB_COMP_SETPIXEL comp_setpixel,
     return old_rop;
 }
 
-#ifdef _MGUSE_SYNC_UPDATE
 BOOL GUIAPI SyncUpdateDC (HDC hdc)
 {
     BOOL rc;
@@ -3969,12 +3966,12 @@ BOOL GUIAPI SyncUpdateDC (HDC hdc)
 
     return rc;
 }
-#endif
 
-#if defined(_MGUSE_SYNC_UPDATE) && defined(_MGSCHEMA_COMPOSITING)
 BOOL GUIAPI SyncUpdateSurface (HWND hwnd)
 {
     BOOL rc = FALSE;
+
+#ifdef _MGSCHEMA_COMPOSITING
     PMAINWIN main_win = getMainWindowPtr (hwnd);
 
     if (main_win && main_win->surf) {
@@ -3982,10 +3979,14 @@ BOOL GUIAPI SyncUpdateSurface (HWND hwnd)
         rc = GAL_SyncUpdate (main_win->surf);
         UNLOCK (&__mg_gdilock);
     }
+#else
+    LOCK (&__mg_gdilock);
+    rc = GAL_SyncUpdate (__gal_screen);
+    UNLOCK (&__mg_gdilock);
+#endif
 
     return rc;
 }
-#endif
 
 BOOL GUIAPI IsMemDC (HDC hdc)
 {

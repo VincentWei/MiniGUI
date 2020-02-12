@@ -50,7 +50,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
 #include "common.h"
 #include "minigui.h"
 #include "gal.h"
@@ -165,7 +164,7 @@ static VideoBootStrap *bootstrap[] = {
 
 GAL_VideoDevice *__mg_current_video = NULL;
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
 BLOCKHEAP __mg_free_update_region_list;
 #endif
 
@@ -233,7 +232,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
     GAL_PixelFormat vformat;
     Uint32 video_flags;
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     InitFreeClipRectList (&__mg_free_update_region_list, SIZE_UPDATERECTHEAP);
 #endif
 
@@ -794,7 +793,7 @@ static void mark_surface_dirty (GAL_Surface* surface,
         di->nr_dirty_rcs = 1;
         di->dirty_rcs[0] = rc_bound;
 
-        _WRN_PRINTF("Too many un-synced dirty rects, merged to one.\n");
+        _DBG_PRINTF("Too many un-synced dirty rects, merged to one.\n");
     }
 
     di->dirty_age++;
@@ -809,9 +808,9 @@ static void mark_surface_dirty (GAL_Surface* surface,
 #include "sharedres.h"
 #include "ourhdr.h"
 #include "drawsemop.h"
-#endif
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
 
 static inline void add_rects_to_update_region (CLIPRGN* region,
         int numrects, GAL_Rect *rects)
@@ -900,6 +899,7 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
     GAL_Rect rects[NR_DIRTY_RECTS];
     int numrects;
+    BOOL rc = TRUE;
 
     numrects = __mg_convert_region_to_rects (&surface->update_region,
             rects, NR_DIRTY_RECTS);
@@ -925,13 +925,17 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
         else if (this->UpdateSurfaceRects) {
             this->UpdateSurfaceRects (this, surface, numrects, rects);
         }
+
+        if (this->SyncUpdate) {
+            rc = this->SyncUpdate (this);
+        }
     }
 
     EmptyClipRgn (&surface->update_region);
-    return TRUE;
+    return rc;
 }
 
-#else /* defined _MGUSE_SYNC_UPDATE */
+#else /* defined _MGUSE_UPDATE_REGION */
 
 void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
 {
@@ -956,7 +960,18 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     }
 }
 
-#endif /* not defined _MGUSE_SYNC_UPDATE */
+BOOL GAL_SyncUpdate (GAL_Surface *surface)
+{
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
+
+    if (this && this->SyncUpdate) {
+        return this->SyncUpdate (this);
+    }
+
+    return FALSE;
+}
+
+#endif /* not defined _MGUSE_UPDATE_REGION */
 
 static void SetPalette_logical(GAL_Surface *screen, GAL_Color *colors,
         int firstcolor, int ncolors)
@@ -1137,7 +1152,7 @@ void GAL_VideoQuit (void)
         video->free(this);
         __mg_current_video = NULL;
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
         DestroyFreeClipRectList (&__mg_free_update_region_list);
 #endif
     }
@@ -1248,7 +1263,7 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
 #endif
     GAL_SetClipRect(surface, NULL);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif

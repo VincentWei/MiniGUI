@@ -187,7 +187,7 @@ typedef struct GAL_Surface {
     /* clipping information */
     GAL_Rect clip_rect;                 /* Read-only */
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* update region */
     CLIPRGN update_region;              /* Read-only */
 #endif
@@ -400,10 +400,11 @@ void GAL_UpdateRects
 void GAL_UpdateRect
                 (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
 BLOCKHEAP __mg_free_update_region_list;
-BOOL GAL_SyncUpdate (GAL_Surface *screen);
 #endif
+
+BOOL GAL_SyncUpdate (GAL_Surface *screen);
 
 #if 0
 /*

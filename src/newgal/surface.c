@@ -144,7 +144,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
 #endif
     GAL_SetClipRect(surface, NULL);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif
@@ -1706,7 +1706,7 @@ void GAL_FreeSurface (GAL_Surface *surface)
         return;
     }
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     EmptyClipRgn (&surface->update_region);
 #endif
 
