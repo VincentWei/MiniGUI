@@ -2187,7 +2187,6 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         }
 #else
         nodes[free_slot].caption = strdup (caption);
-        _MG_PRINTF("Caption of ZNODE: %s\n", caption);
 #endif
     }
     else {
@@ -3620,6 +3619,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                             MIN (RECTWP (rcWin), RECTW (rcOld)),
                             MIN (RECTHP (rcWin), RECTH (rcOld)),
                             HDC_SCREEN_SYS, rcWin->left, rcWin->top, 0);
+            SyncUpdateDC (HDC_SCREEN_SYS);
 
             /* Restore the clip region of HDC_SCREEN_SYS */
             SelectClipRect (HDC_SCREEN_SYS, &rcScr);
@@ -3794,6 +3794,7 @@ def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
                 bg_bmp->bmWidth, bg_bmp->bmHeight, bg_bmp);
     }
 
+    SyncUpdateDC (dc_desktop);
 }
 
 static void def_keyboard_handler(void* context, int message,

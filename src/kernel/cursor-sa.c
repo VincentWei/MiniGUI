@@ -395,6 +395,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
         if (nShowCount >= 0 && pCurCsr) {
             hidecursor ();
             showcursor ();
+            GAL_SyncUpdate (__gal_screen);
         }
 #endif /* _MGHAVE_CURSOR */
 
@@ -434,6 +435,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     if (pCurCsr && nShowCount >= 0)
         showcursor();
 
+    GAL_SyncUpdate (__gal_screen);
     return (HCURSOR) old;
 }
 
@@ -447,9 +449,11 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     prc = &cur_pdc->rc_output;
 
     if (cur_pdc->surface != __gal_screen) {
-        if (fShow)
+        if (fShow) {
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+            GAL_SyncUpdate (cur_pdc->surface);
+        }
     }
     else {
         csrleft = boxleft();
@@ -463,9 +467,11 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         intbottom = (csrbottom < prc->bottom) ? csrbottom : prc->bottom;
 
         if (intleft >= intright || inttop >= intbottom) {
-            if (fShow)
+            if (fShow) {
                 GAL_UpdateRect (cur_pdc->surface,
                                 prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+                GAL_SyncUpdate (cur_pdc->surface);
+            }
             return;
         }
 
@@ -476,8 +482,10 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
             hidecursor();
         }
 
-        if (fShow)
+        if (fShow) {
             GAL_UpdateRect (cur_pdc->surface, prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+            GAL_SyncUpdate (cur_pdc->surface);
+        }
     }
 }
 
@@ -494,6 +502,7 @@ int GUIAPI ShowCursor (BOOL fShow)
            hidecursor();
     }
 
+    GAL_SyncUpdate (__gal_screen);
     return nShowCount;
 }
 

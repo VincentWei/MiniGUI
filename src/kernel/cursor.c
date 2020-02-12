@@ -446,13 +446,17 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
 
     pcsr = (PCURSOR)hcsr;
 
-    if (nShowCount >= 0 && pCurCsr)
+    if (nShowCount >= 0 && pCurCsr) {
         hidecursor();
+        GAL_SyncUpdate (__gal_screen);
+    }
 
     pCurCsr = pcsr;
 
-    if (nShowCount >= 0 && pCurCsr)
+    if (nShowCount >= 0 && pCurCsr) {
         showcursor();
+        GAL_SyncUpdate (__gal_screen);
+    }
 
     pthread_mutex_unlock(&__mg_mouselock);
     pthread_mutex_unlock(&__mg_gdilock);
@@ -472,6 +476,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
         if (fShow) {
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+            GAL_SyncUpdate (cur_pdc->surface);
         }
     }
     else {
@@ -508,6 +513,8 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
             pthread_mutex_unlock(&__mg_mouselock);
+
+            GAL_SyncUpdate (__gal_screen);
         }
     }
 }
@@ -519,15 +526,19 @@ int GUIAPI ShowCursor(BOOL fShow)
     pthread_mutex_lock (&__mg_gdilock);
     pthread_mutex_lock (&__mg_mouselock);
 
-    if(fShow) {
+    if (fShow) {
         nShowCount++;
-        if (nShowCount == 0 && pCurCsr)
+        if (nShowCount == 0 && pCurCsr) {
             showcursor();
+            GAL_SyncUpdate (__gal_screen);
+        }
     }
     else {
         nShowCount--;
-        if (nShowCount == -1 && pCurCsr)
+        if (nShowCount == -1 && pCurCsr) {
             hidecursor();
+            GAL_SyncUpdate (__gal_screen);
+        }
     }
 
     count = nShowCount;
@@ -556,7 +567,6 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
 
 BOOL mg_InitCursor (void)
 {
-
     __mg_cursor_x=0, __mg_cursor_y=0;
     oldx = -1, oldy=-1;
     memset(&cliprc,0,sizeof(RECT));
@@ -589,9 +599,10 @@ BOOL kernel_RefreshCursor(int* x, int* y, int* button)
     *button = IAL_GetMouseButton ();
     if (oldx != __mg_cursor_x || oldy != __mg_cursor_y) {
 #ifdef _MGHAVE_CURSOR
-        if(nShowCount >= 0 && pCurCsr) {
+        if (nShowCount >= 0 && pCurCsr) {
             hidecursor();
             showcursor();
+            GAL_SyncUpdate (__gal_screen);
         }
 #endif
         oldx = __mg_cursor_x;
@@ -630,6 +641,7 @@ void GUIAPI SetCursorPos(int x, int y)
         if(nShowCount >= 0 && pCurCsr) {
             hidecursor();
             showcursor();
+            GAL_SyncUpdate (__gal_screen);
         }
 #endif
         oldx = __mg_cursor_x;

@@ -1324,6 +1324,7 @@ static int dskStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
     SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
     FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+    SyncUpdateDC (HDC_SCREEN_SYS);
     return 0;
 }
 
@@ -1352,6 +1353,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
         SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+        SyncUpdateDC (HDC_SCREEN_SYS);
 
         switch (_dd_info.location) {
         case HT_CAPTION:
@@ -1403,6 +1405,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
 
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+        SyncUpdateDC (HDC_SCREEN_SYS);
 
         _dd_info.last_x = x;
         _dd_info.last_y = y;
@@ -1413,6 +1416,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
         SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+        SyncUpdateDC (HDC_SCREEN_SYS);
 
         /* post MSG_WINDOWDROPPED to the target window */
         SendNotifyMessage (_dd_info.hwnd, MSG_WINDOWDROPPED,
