@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** icon.h: the head file of Icon Support Lib.
+** icon.h: the head file of icon support.
 **
 ** Create date: 1999/01/06
 */
@@ -62,22 +62,22 @@ typedef struct _ICONDIRENTRY {
     WORD wBitCount;
     DWORD dwBytesInRes;
     DWORD dwImageOffset;
-}ICONDIRENTRY;
+} ICONDIRENTRY;
 
 #define SIZEOF_ICONDIRENTRY 16
 typedef struct _ICONDIR {
     WORD cdReserved;
     WORD cdType;    // must be 1.
     WORD cdCount;
-}ICONDIR;
+} ICONDIR;
 
+/* Since 4.2.0, we always decode an icon into RGBA8888 compliant pixels */
 typedef struct _ICON {
     Uint32  width;
     Uint32  height;
     Uint32  pitch;
-    BYTE*   AndBits;
-    BYTE*   XorBits;
-}ICON;
+    BYTE*   pixels;
+} ICON;
 
 typedef ICON* PICON;
 
