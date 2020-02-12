@@ -746,10 +746,11 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         }
     }
 
-    if (pWin->pMainWin->update_secdc == ON_UPDSECDC_DEFAULT)
+    if (pWin->pMainWin->update_secdc == ON_UPDSECDC_DEFAULT) {
         BitBlt (secondary_dc, rc->left, rc->top,
                 RECTWP(rc), RECTHP(rc),
                 real_dc, clip_rc.left, clip_rc.top, 0);
+    }
     else if (pWin->pMainWin->update_secdc != ON_UPDSECDC_DONOTHING) {
         if (flags == HT_CLIENT){
             RECT main_update_rc;
@@ -767,6 +768,8 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
                     secondary_dc, real_dc, rc, &clip_rc, &clip_rc);
         }
     }
+
+    SyncUpdateDC (real_dc);
 }
 
 static void draw_secondary_nc_area (PMAINWIN pWin,
