@@ -241,6 +241,8 @@ static inline int boxtop (_THIS)
 #include "cursor.h"
 
 static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects);
+static BOOL PCXVFB_SyncUpdate (_THIS);
+
 static int PCXVFB_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
 {
     GAL_Rect rect;
@@ -319,11 +321,13 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
     int i;
     RECT bound;
-#ifdef WIN32
+
+#ifdef WIN32    
     //win_PCXVFbLock ();
 #else
     shm_lock(semid);
 #endif
+
     bound.left   = this->hidden->hdr->dirty_rc_l;
     bound.top    = this->hidden->hdr->dirty_rc_t;
     bound.right  = this->hidden->hdr->dirty_rc_r;
@@ -331,6 +335,8 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 
     if (bound.right == -1) bound.right = 0;
     if (bound.bottom == -1) bound.bottom = 0;
+
+    bound = this->hidden->dirty_rc;
 
     for (i = 0; i < numrects; i++) {
         RECT rc;
@@ -342,6 +348,30 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
         else
             GetBoundRect (&bound, &bound, &rc);
     }
+
+    this->hidden->dirty_rc = bound;
+
+#ifdef WIN32
+    //win_PCXVFbUnlock ();
+#else
+    shm_unlock(semid);
+#endif
+}
+
+static BOOL PCXVFB_SyncUpdate (_THIS)
+{
+    RECT bound;
+
+    if (IsRectEmpty (&this->hidden->dirty_rc))
+        return FALSE;
+
+#ifdef WIN32
+    //win_PCXVFbLock ();
+#else
+    shm_lock(semid);
+#endif
+
+    bound = this->hidden->dirty_rc;
 
     /* Since 4.2.0; blit dirty content to the ultimate buffer */
     if (this->hidden->real_screen) {
@@ -379,17 +409,18 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 #endif
     }
 
-    this->hidden->hdr->dirty_rc_l = bound.left;
-    this->hidden->hdr->dirty_rc_t = bound.top;
-    this->hidden->hdr->dirty_rc_r = bound.right;
-    this->hidden->hdr->dirty_rc_b = bound.bottom;
-
+    this->hidden->hdr->dirty_rc_l = this->hidden->dirty_rc.left;
+    this->hidden->hdr->dirty_rc_t = this->hidden->dirty_rc.top;
+    this->hidden->hdr->dirty_rc_r = this->hidden->dirty_rc.right;
+    this->hidden->hdr->dirty_rc_b = this->hidden->dirty_rc.bottom;
     this->hidden->hdr->dirty = TRUE;
+
 #ifdef WIN32
     //win_PCXVFbUnlock ();
 #else
     shm_unlock(semid);
 #endif
+    return TRUE;
 }
 
 static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
@@ -422,6 +453,7 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
     this->FreeHWSurface = PCXVFB_FreeHWSurface;
 
     this->UpdateRects = PCXVFB_UpdateRects;
+    this->SyncUpdate = PCXVFB_SyncUpdate;
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
