@@ -163,10 +163,10 @@ static void InitAboutDialogCreateInfo (PMAINWINCREATE pCreateInfo, char* caption
     pCreateInfo->iBkColor = RGBA2Pixel(HDC_SCREEN, 0xFF, 0xFF, 0xFF, 0x80);
 #ifdef _MGSCHEMA_COMPOSITING
     pCreateInfo->dwBkColor = MakeRGBA (
-            SysPixelColor[IDX_COLOR_lightgray].r,
-            SysPixelColor[IDX_COLOR_lightgray].g,
-            SysPixelColor[IDX_COLOR_lightgray].b,
-            0x40);
+            SysPixelColor[IDX_COLOR_darkgray].r,
+            SysPixelColor[IDX_COLOR_darkgray].g,
+            SysPixelColor[IDX_COLOR_darkgray].b,
+            0xA0);
 #endif
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;

@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -389,7 +389,6 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
 
     trans_pixel = GAL_MapRGBA (pdc->surface->format, 0x00, 0x00, 0x00, 0x00);
     if (colornum == 1) {
-#if 1
         int x, y;
         int mono_pitch = align_32_bits (w >> 3);
         BYTE and_byte = 0;
@@ -430,15 +429,8 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
             pXORBits -= mono_pitch;
             pixels += (picon->pitch >> 2);
         }
-#else
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        ExpandMonoBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-#endif
     }
     else if (colornum == 4) {
-#if 1
         int x, y;
         int pitch_mono = align_32_bits (w >> 3);
         int pitch_16c = align_32_bits (w >> 1);
@@ -486,15 +478,8 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
             pXORBits -= pitch_16c;
             pixels += (picon->pitch >> 2);
         }
-#else
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        Expand16CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
-                align_32_bits (w >> 1), w, h, MYBMP_FLOW_UP, pal);
-#endif
     }
     else if (colornum == 8) {
-#if 1
         int x, y;
         int pitch_mono = align_32_bits (w >> 3);
         int pitch_256c = align_32_bits (w);
@@ -536,12 +521,6 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
             pXORBits -= pitch_256c;
             pixels += (picon->pitch >> 2);
         }
-#else
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits,
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        Expand256CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits,
-                align_32_bits (w), w, h, MYBMP_FLOW_UP, pal, NULL, NULL);
-#endif
     }
 
     return (HICON)picon;
@@ -643,7 +622,6 @@ BOOL GUIAPI GetIconSize (HICON hicon, int* w, int* h)
 
 void GUIAPI DrawIcon (HDC hdc, int x, int y, int w, int h, HICON hicon)
 {
-#if 1
     HDC icon_dc;
     PICON picon = (PICON)hicon;
 
@@ -658,7 +636,6 @@ void GUIAPI DrawIcon (HDC hdc, int x, int y, int w, int h, HICON hicon)
     if (w <= 0) w = picon->width;
     if (h <= 0) h = picon->height;
 
-#if 0
     SetMemDCAlpha (icon_dc, MEMDC_FLAG_SRCPIXELALPHA, 0);
     if (w != picon->width || h != picon->height) {
         StretchBlt (icon_dc, 0, 0, picon->width, picon->height,
@@ -668,124 +645,5 @@ void GUIAPI DrawIcon (HDC hdc, int x, int y, int w, int h, HICON hicon)
         BitBlt (icon_dc, 0, 0, picon->width, picon->height,
                 hdc, x, y, 0);
     }
-#else
-        BitBlt (icon_dc, 0, 0, picon->width, picon->height,
-                hdc, x, y, 0);
-#endif
-
-#else
-    PDC pdc;
-    PCLIPRECT cliprect;
-    PICON picon = (PICON)hicon;
-    Uint32 imagesize, pitch;
-    BYTE* iconimage;
-    BITMAP bitmap;
-    BYTE* andbits = NULL;
-    BYTE* xorbits = NULL;
-    RECT eff_rc;
-    GAL_Rect rect;
-
-    if (!(pdc = __mg_check_ecrgn (hdc)))
-        return;
-
-    if (w <= 0) w = picon->width;
-    if (h <= 0) h = picon->height;
-
-    /* Transfer logical to device to screen here. */
-    w += x; h += y;
-    coor_LP2SP (pdc, &x, &y);
-    coor_LP2SP (pdc, &w, &h);
-    SetRect (&pdc->rc_output, x, y, w, h);
-    NormalizeRect (&pdc->rc_output);
-    w = RECTW (pdc->rc_output); h = RECTH (pdc->rc_output);
-
-    imagesize = GAL_GetBoxSize (pdc->surface, w, h, &pitch);
-
-    if ((iconimage = malloc (imagesize)) == NULL)
-        goto free_ret;
-
-    if (w != picon->width || h != picon->height) {
-        BITMAP unscaled, scaled;
-
-        andbits = malloc (imagesize);
-        xorbits = malloc (imagesize);
-        if (andbits == NULL || xorbits == NULL)
-            goto free_ret;
-
-        unscaled.bmType = BMP_TYPE_NORMAL;
-        unscaled.bmBytesPerPixel = GAL_BytesPerPixel (pdc->surface);
-        unscaled.bmWidth = picon->width;
-        unscaled.bmHeight = picon->height;
-        unscaled.bmPitch = picon->pitch;
-        unscaled.bmBits = picon->AndBits;
-
-        unscaled.bmType = BMP_TYPE_NORMAL;
-        scaled.bmBytesPerPixel = unscaled.bmBytesPerPixel;
-        scaled.bmWidth = w;
-        scaled.bmHeight = h;
-        scaled.bmPitch = pitch;
-        scaled.bmBits = andbits;
-
-        ScaleBitmap (&scaled, &unscaled);
-
-        unscaled.bmBits = picon->XorBits;
-        scaled.bmBits = xorbits;
-        ScaleBitmap (&scaled, &unscaled);
-    }
-    else {
-        andbits = picon->AndBits;
-        xorbits = picon->XorBits;
-        pitch = picon->pitch;
-    }
-
-    ENTER_DRAWING (pdc);
-
-    rect.x = x; rect.y = y; rect.w = w; rect.h = h;
-    bitmap.bmPitch = pitch;
-    bitmap.bmBits = iconimage;
-    GAL_GetBox (pdc->surface, &rect, &bitmap);
-
-#ifdef ASM_memandcpy4
-    ASM_memandcpy4 (iconimage, andbits, imagesize >> 2);
-    ASM_memxorcpy4 (iconimage, xorbits, imagesize >> 2);
-#else
-    {
-        int i;
-        Uint32* dst = (Uint32*)iconimage;
-        Uint32* src1 = (Uint32*)andbits;
-        Uint32* src2 = (Uint32*)xorbits;
-        for (i = 0; i < imagesize>>2; i++) {
-            dst [i] &= src1 [i];
-            dst [i] ^= src2 [i];
-        }
-    }
-#endif
-
-    if (pdc->surface->format->Amask) {
-        _dc_restore_alpha_in_bitmap (pdc->surface->format,
-                iconimage, imagesize);
-    }
-
-    cliprect = pdc->ecrgn.head;
-    while (cliprect) {
-        if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)) {
-            SET_GAL_CLIPRECT(pdc, eff_rc);
-
-            GAL_PutBox (pdc->surface, &rect, &bitmap);
-        }
-
-        cliprect = cliprect->next;
-    }
-
-    LEAVE_DRAWING (pdc);
-
-free_ret:
-    UNLOCK_GCRINFO (pdc);
-    free (iconimage);
-    if (w != picon->width || h != picon->height) {
-        free (andbits);
-        free (xorbits);
-    }
-#endif
 }
 
