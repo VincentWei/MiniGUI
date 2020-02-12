@@ -311,6 +311,7 @@ static void composite_ppp_znodes (CompositorCtxt* ctxt)
         CLIPRGN* rgn;
         znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, TRUE);
         assert (znode_hdr);
+        assert (rgn);
 
         // we use invalid region as the clipping region of the popup menu znode
         ClipRgnIntersect (&ctxt->inv_rgn, &ctxt->dirty_rgn, rgn);
@@ -349,11 +350,11 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
     znode_hdr = ServerGetWinZNodeHeader (NULL, from, (void**)&rgn, TRUE);
     assert (znode_hdr);
 
-    assert (rgn);
     if ((znode_hdr->flags & ZNIF_VISIBLE) &&
             ((znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) &&
             IntersectRegion (&ctxt->inv_rgn, &ctxt->dirty_rgn, rgn)) {
 
+        assert (rgn);
         SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
         SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
         SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
@@ -386,7 +387,6 @@ static void composite_all_lucent_win_znodes (CompositorCtxt* ctxt,
         znode_hdr = ServerGetWinZNodeHeader (NULL, prev, (void**)&rgn, TRUE);
         assert (znode_hdr);
 
-        assert (rgn);
         if ((znode_hdr->flags & ZNIF_VISIBLE) &&
                (znode_hdr->ct & CT_SYSTEM_MASK) != CT_OPAQUE &&
                IntersectRegion (&ctxt->inv_rgn, dirty_rgn, rgn)) {
@@ -556,6 +556,7 @@ static void rebuild_wins_region (CompositorCtxt* ctxt)
         CLIPRGN* rgn;
         znode_hdr = ServerGetPopupMenuZNodeHeader (i, (void**)&rgn, FALSE);
         assert (znode_hdr);
+        assert (rgn);
 
         SubtractRegion (&ctxt->wins_rgn, &ctxt->wins_rgn, rgn);
     }
@@ -595,6 +596,7 @@ static void on_dirty_ppp (CompositorCtxt* ctxt, int zidx)
     _DBG_PRINTF ("called\n");
     znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, TRUE);
     assert (znode_hdr);
+    assert (rgn);
 
     if (generate_dirty_region (ctxt, znode_hdr, rgn)) {
         SelectClipRegion (HDC_SCREEN_SYS, &ctxt->dirty_rgn);
