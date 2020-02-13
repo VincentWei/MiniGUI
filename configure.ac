@@ -1729,12 +1729,7 @@ case "$runtime_mode" in
             [Define if build MiniGUI-Processes])
         MINIGUI_RUNMODE="procs"
         if test "x$compositing_schema" = "xyes"; then
-          AC_DEFINE(_MGSCHEMA_COMPOSITING, 1,
-                    [Define if use compositing schema for MiniGUI-Processes])
           surface_schema="compositing"
-        else
-          AC_DEFINE(_MGSCHEMA_SHAREDFB, 1,
-                    [Define if use legacy schema (shared frame buffer) for MiniGUI-Processes])
         fi
 
         if test "x$use_shmopen" = "xyes"; then
@@ -1752,6 +1747,14 @@ case "$runtime_mode" in
         fi
     ;;
 esac
+
+if test "x$surface_schema" = "xcompositing"; then
+    AC_DEFINE(_MGSCHEMA_COMPOSITING, 1,
+            [Define if use compositing schema for the current runmode])
+else
+    AC_DEFINE(_MGSCHEMA_SHAREDFB, 1,
+            [Define if use legacy schema (shared frame buffer) for the current runmode])
+fi
 
 if test "x$incore_res" = "xno"; then
     AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
