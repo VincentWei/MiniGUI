@@ -56,7 +56,6 @@
 #include <string.h>
 #include <errno.h>
 
-#define _DEBUG
 #include "common.h"
 
 #if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
@@ -64,6 +63,7 @@
 #include "minigui.h"
 #include "gdi.h"
 #include "window.h"
+#include "debug.h"
 
 #define SIZE_CLIPRC_HEAP        64
 
@@ -747,7 +747,7 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
 
-    _DBG_PRINTF("called\n");
+    _DBG_PRINTF("called: %d\n", zidx);
     // the fallback compositor only manages znodes on the topmost layer.
     if (layer != mgTopmostLayer)
         return;
@@ -778,7 +778,7 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
 
-    _DBG_PRINTF("called\n");
+    _DBG_PRINTF("called: %d\n", zidx);
     /* the fallback compositor only manages znodes on the topmost layer. */
     if (layer != mgTopmostLayer)
         return;
