@@ -2510,13 +2510,15 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
         nodes [idx_znode].cli = -1;
         nodes [idx_znode].flags &= ~ZOF_VISIBLE;
     }
-    else if (*first == idx_znode) {
+    else {
         /* unchain it */
         unchain_znode ((unsigned char*)(zi+1), nodes, idx_znode);
         nodes [idx_znode].hwnd = HWND_NULL;
         nodes [idx_znode].cli = -1;
 
-        *first = nodes [idx_znode].next;
+        if (*first == idx_znode) {
+            *first = nodes [idx_znode].next;
+        }
         *nr_nodes -= 1;
     }
 
