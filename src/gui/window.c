@@ -680,9 +680,8 @@ BOOL wndGetHScrollBarRect (const MAINWIN* pWin,
 /* rc: position relative to secondary_dc, so need transform
  * it  relative to real_dc(screen).*/
 void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
-        HDC real_dc, const RECT* rc, DWORD flags)
+        HDC real_dc, const RECT* update_rc, DWORD flags)
 {
-    PDC pdc_main;
     RECT wnd_rc, clip_rc, client_rc;
 
     if (!dc_IsVisible((PDC)secondary_dc))
@@ -691,24 +690,26 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         return;
     }
 
-    pdc_main  = dc_HDC2PDC(real_dc);
-
     /* calculate offset postion. */
-    if (flags == HT_CLIENT){
+    if (flags == HT_CLIENT) {
         gui_WndClientRect ((HWND)pWin, &wnd_rc);
     }
     else {
         gui_WndRect ((HWND)pWin, &wnd_rc);
     }
 
-    /* 1. clip_rc.left/clip_rc.top is real_rc update in the screen (coordinate relative
-     *    to screen).
-     * 2. clip_rc.left/clip_rc.top need translate rc to relative real_dc's DevRC(BitBlt).
-     * */
-    clip_rc.left = wnd_rc.left + rc->left - pdc_main->DevRC.left;
-    clip_rc.top = wnd_rc.top  + rc->top  - pdc_main->DevRC.top;
-    clip_rc.right  = clip_rc.left + RECTWP(rc);
-    clip_rc.bottom = clip_rc.top  + RECTHP(rc);
+    /* 1. clip_rc.left/clip_rc.top is real_rc update in the screen (coordinate
+     *    relative to screen).
+     * 2. clip_rc.left/clip_rc.top need translate update_rc to relative
+     *    position of the the main window.
+     *
+     * XXX (VW): Use pWin->pMainWin->left and pWin->pMainWin->top to calculate
+     * the offset instead of real_dc's DevRC.
+     */
+    clip_rc.left = wnd_rc.left + update_rc->left - pWin->pMainWin->left;
+    clip_rc.top = wnd_rc.top  + update_rc->top  - pWin->pMainWin->top;
+    clip_rc.right  = clip_rc.left + RECTWP(update_rc);
+    clip_rc.bottom = clip_rc.top  + RECTHP(update_rc);
 
     IncludeClipRect (real_dc, &clip_rc);
 
@@ -721,19 +722,19 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
             ClientToWindow((HWND)pWin->pMainWin, &client_rc.right, &client_rc.bottom);
         }
         else
-            OffsetRect (&client_rc, -pdc_main->DevRC.left, -pdc_main->DevRC.top);
+            OffsetRect (&client_rc, -pWin->pMainWin->left, -pWin->pMainWin->top);
         ExcludeClipRect (real_dc, &client_rc);
     }
 
     /* exclude tranparent client rect.*/
     if (flags == HT_CLIENT) {
         PCONTROL child;
-        RECT rc = pWin->pMainWin->update_rc;
+        RECT update_rc = pWin->pMainWin->update_rc;
         child = (PCONTROL)pWin->hFirstChild;
         while (child) {
             //if ((child->dwStyle & WS_VISIBLE) && (child->dwExStyle & WS_EX_TRANSPARENT)
             if ((child->dwStyle & WS_VISIBLE)
-                    && DoesIntersect ((const RECT*)&child->left, &rc)) {
+                    && DoesIntersect ((const RECT*)&child->left, &update_rc)) {
                 RECT rcTmp;
                 gui_WndClientRect ((HWND)child, &rcTmp);
                 ScreenToClient ((HWND)pWin->pMainWin,
@@ -747,8 +748,8 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
     }
 
     if (pWin->pMainWin->update_secdc == ON_UPDSECDC_DEFAULT) {
-        BitBlt (secondary_dc, rc->left, rc->top,
-                RECTWP(rc), RECTHP(rc),
+        BitBlt (secondary_dc, update_rc->left, update_rc->top,
+                RECTWP(update_rc), RECTHP(update_rc),
                 real_dc, clip_rc.left, clip_rc.top, 0);
     }
     else if (pWin->pMainWin->update_secdc != ON_UPDSECDC_DONOTHING) {
@@ -761,15 +762,15 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
             ClientToWindow((HWND)pWin->pMainWin,
                     &main_update_rc.right, &main_update_rc.bottom);
             pWin->pMainWin->update_secdc ((HWND)pWin,
-                    secondary_dc, real_dc, rc, &clip_rc, &main_update_rc);
+                    secondary_dc, real_dc, update_rc, &clip_rc, &main_update_rc);
         }
         else {
             pWin->pMainWin->update_secdc ((HWND)pWin,
-                    secondary_dc, real_dc, rc, &clip_rc, &clip_rc);
+                    secondary_dc, real_dc, update_rc, &clip_rc, &clip_rc);
         }
     }
 
-    SyncUpdateDC (real_dc);
+    //SyncUpdateDC (real_dc);
 }
 
 static void draw_secondary_nc_area (PMAINWIN pWin,
