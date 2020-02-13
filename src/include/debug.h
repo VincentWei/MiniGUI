@@ -60,10 +60,18 @@ extern "C" {
 
 static inline void dump_region (const CLIPRGN* rgn, const char* name)
 {
-    _WRN_PRINTF("rcBound of %s: (%d, %d, %d, %d); size (%d x %d)\n", name,
+    _WRN_PRINTF("rcBound of %s (%p): (%d, %d, %d, %d); size (%d x %d)\n",
+            name, rgn,
             rgn->rcBound.left, rgn->rcBound.top,
             rgn->rcBound.right, rgn->rcBound.bottom,
             RECTW(rgn->rcBound), RECTH(rgn->rcBound));
+}
+
+static inline void dump_rect (const RECT* rect, const char* name)
+{
+    _WRN_PRINTF("rect of %s: (%d, %d, %d, %d); size (%d x %d)\n", name,
+            rect->left, rect->top, rect->right, rect->bottom,
+            RECTWP(rect), RECTHP(rect));
 }
 
 #ifdef __cplusplus
