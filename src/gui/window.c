@@ -2968,7 +2968,7 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
     if ((dx != 0 && abs(dx) >= RECTW(rcScroll)) ||
             (dy != 0 && abs(dy) >= RECTH(rcScroll))) {
         InvalidateRect (hWnd, &rcScroll, TRUE);
-        goto UPDATERGIN;
+        goto UPDATERGN;
     }
 
     swi.iOffx = dx;
@@ -3002,7 +3002,7 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
     /* show caret */
     if (fCaret) ShowCaretEx (hWnd, FALSE);
 
-UPDATERGIN:
+UPDATERGN:
     /* FIXME: we use the invalid region of the window as the update region directly. */
     if (pRgnUpdate) {
         /* copy from window's invalidate region */
