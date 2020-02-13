@@ -759,10 +759,10 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
 #else
     crcOne.next = crcOne.prev = NULL;
-    crcOne.rc.left = pWin->left;
-    crcOne.rc.top = pWin->top;
-    crcOne.rc.right = pWin->right;
-    crcOne.rc.bottom = pWin->bottom;
+    crcOne.rc.left = pWin->pMainWin->left;
+    crcOne.rc.top = pWin->pMainWin->top;
+    crcOne.rc.right = pWin->pMainWin->right;
+    crcOne.rc.bottom = pWin->pMainWin->bottom;
     pcrc = &crcOne;
 #endif
     while (pcrc) {
