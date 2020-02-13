@@ -498,6 +498,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
                 GAL_UpdateRect (cur_pdc->surface,
                                 prc->left, prc->top, RECTWP(prc), RECTHP(prc));
                 pthread_mutex_unlock(&__mg_mouselock);
+                GAL_SyncUpdate (cur_pdc->surface);
             }
             return;
         }
@@ -514,7 +515,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
             pthread_mutex_unlock(&__mg_mouselock);
 
-            GAL_SyncUpdate (__gal_screen);
+            GAL_SyncUpdate (cur_pdc->surface);
         }
     }
 }
