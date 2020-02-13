@@ -232,8 +232,8 @@ void __mg_composite_dirty_znodes (void)
 
     /* check wallpaper pattern */
     pdc = dc_HDC2PDC (HDC_SCREEN);
-    assert (pdc->surface->dirty_info);
     if (pdc->surface->w > 0 && pdc->surface->h > 0) {
+        assert (pdc->surface->dirty_info);
         lock_znode_surface (pdc, nodes);
         changes_in_dc = pdc->surface->dirty_info->dirty_age;
         if (changes_in_dc != nodes[0].changes) {
