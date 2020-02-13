@@ -7498,13 +7498,11 @@ MG_EXPORT void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
  * \return TRUE on success, FALSE on error.
  *
  * \note Only defined for non-threads runmode. If your MiniGUI configured as
- * MiniGUI-Threads, no need to initialize TrueType and Type1 font
- * renderer explicitly.
+ * MiniGUI-Threads, no need to initialize FreeType font engines explicitly.
  *
  * \sa TermVectorialFonts
  */
 MG_EXPORT BOOL GUIAPI InitVectorialFonts (void);
-
 
 /**
  * \fn void GUIAPI TermVectorialFonts (void)
