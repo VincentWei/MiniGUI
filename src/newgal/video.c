@@ -57,6 +57,7 @@
 #include "blit.h"
 #include "pixels_c.h"
 #include "license.h"
+#include "debug.h"
 
 /* Available video drivers */
 static VideoBootStrap *bootstrap[] = {
@@ -903,9 +904,9 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
 
     numrects = __mg_convert_region_to_rects (&surface->update_region,
             rects, NR_DIRTY_RECTS);
-
-    if (numrects <= 0)
+    if (numrects <= 0) {
         return FALSE;
+    }
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (surface->shared_header) {
@@ -942,10 +943,7 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (surface->shared_header) {
-        mark_surface_dirty (surface, numrects, rects);
-    }
-    else if (surface->dirty_info) {
+    if (surface->dirty_info) {
         mark_surface_dirty (surface, numrects, rects);
     }
 #endif
