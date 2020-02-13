@@ -212,22 +212,27 @@ BOOL GUIAPI HideCaretEx (HWND hWnd, BOOL ime)
     return TRUE;
 }
 
+/* Since 4.2.0: Use client dc instead of HDC_SCREEN_SYS of the owner
+   to get the caret bitmaps */
 void GetCaretBitmaps (PCARETINFO pCaretInfo)
 {
     int i;
     int sx, sy;
+    HDC hdc;
 
     // convert to screen coordinates
     sx = pCaretInfo->x;
     sy = pCaretInfo->y;
-    ClientToScreen (pCaretInfo->hOwner, &sx, &sy);
 
     // save normal bitmap first.
     pCaretInfo->caret_bmp.bmBits = pCaretInfo->pNormal;
-    GetBitmapFromDC (HDC_SCREEN_SYS, sx, sy,
+    hdc = GetClientDC (pCaretInfo->hOwner);
+    GetBitmapFromDC (hdc, sx, sy,
                     pCaretInfo->caret_bmp.bmWidth,
                     pCaretInfo->caret_bmp.bmHeight,
                     &pCaretInfo->caret_bmp);
+    ReleaseDC (hdc);
+
     // generate XOR bitmap.
     if (pCaretInfo->pBitmap) {
         BYTE* normal;
