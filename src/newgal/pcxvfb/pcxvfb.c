@@ -282,8 +282,6 @@ static int PCXVFB_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
 
 static int PCXVFB_MoveCursor (_THIS, int x, int y)
 {
-    GAL_Surface* cursor;
-
     if (this->hidden->csr_x == x &&
              this->hidden->csr_y == y) {
         return 0;
@@ -297,14 +295,17 @@ static int PCXVFB_MoveCursor (_THIS, int x, int y)
         rect.h = CURSORHEIGHT;
 
         /* update screen to hide cursor */
-        cursor = this->hidden->cursor;
         this->hidden->cursor = NULL;
         PCXVFB_UpdateRects (this, 1, &rect);
 
         /* update screen to show cursor */
-        this->hidden->cursor = cursor;
         this->hidden->csr_x = x;
         this->hidden->csr_y = y;
+
+        rect.x = boxleft (this);
+        rect.y = boxtop (this);
+        rect.w = CURSORWIDTH;
+        rect.h = CURSORHEIGHT;
         PCXVFB_UpdateRects (this, 1, &rect);
     }
     else {
