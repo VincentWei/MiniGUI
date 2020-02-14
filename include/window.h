@@ -64,6 +64,15 @@
 #ifndef _MGUI_WINDOW_H
 #define _MGUI_WINDOW_H
 
+#include "common.h"
+
+#include <stddef.h>
+#include <stdlib.h>
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+#include <pthread.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -3533,9 +3542,6 @@ MG_EXPORT BOOL GUIAPI SetKeyboardLayout (const char* kbd_layout);
 
 #ifdef _MGCHARSET_UNICODE
 
-#include <stddef.h>
-#include <stdlib.h>
-
 MG_EXPORT int GUIAPI ToUnicode (UINT keycode, const BYTE* kbd_state,
         wchar_t* wcs, int wcs_len, const char* kbd_layout);
 
@@ -3981,16 +3987,70 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 #define WS_ABSSCRPOS        0x00000000L
 
 /**
- * \def WS_EX_CONTROL_MASK
- * \brief The extended style mask for control use.
- */
-#define WS_EX_CONTROL_MASK      0x0000000FL
-
-/**
  * \def WS_EX_NONE
  * \brief No any extended window style.
  */
-#define WS_EX_NONE              0x00000000L
+#define WS_EX_NONE                  0x00000000L
+
+/**
+ * \def WS_EX_CONTROL_MASK
+ * \brief The extended style mask for control use.
+ */
+#define WS_EX_CONTROL_MASK          0x0000000FL
+
+/**
+ * \def WS_EX_WINTYPE_MASK
+ * \brief The style mask for main window type.
+ *
+ * \note This mask value is equal to the style mask \a WS_EX_CONTROL_MASK;
+ *      The former is for main window, and the later for control.
+ *
+ * Since 4.2.0.
+ */
+#define WS_EX_WINTYPE_MASK          0x0000000FL
+
+/**
+ * \def WS_EX_WINTYPE_SCREENLOCK
+ * \brief The main window type is the screen lock.
+ *
+ * Use this style when you want to create a main window acting as
+ * the screen lock. The screen lock will have the highest z-index.
+ *
+ * \note If there is already a main window acts as the screen lock,
+ *  a topmost main window will be created.
+ *
+ * Since 4.2.0.
+ */
+#define WS_EX_WINTYPE_SCREENLOCK    0x00000001L
+
+/**
+ * \def WS_EX_WINTYPE_DOCKER
+ * \brief The main window type is the docker.
+ *
+ * Use this style when you want to create a main window acting as
+ * the docker. The docker will have the z-index lower than screen lock.
+ *
+ * \note If there is already a main window acts as the docker,
+ *  a topmost main window will be created.
+ *
+ * Since 4.2.0.
+ */
+#define WS_EX_WINTYPE_DOCKER        0x00000002L
+
+/**
+ * \def WS_EX_WINTYPE_LAUNCHER
+ * \brief The main window type is the launcher.
+ *
+ * Use this style when you want to create a main window acting as
+ * the launcher (or the window manager). The launcher will have the lowest
+ * z-index.
+ *
+ * \note If there is already a main window acts as the launcher,
+ *  a normal main window will be created.
+ *
+ * Since 4.2.0.
+ */
+#define WS_EX_WINTYPE_LAUNCHER      0x00000003L
 
 /**
  * \def WS_EX_TROUNDCNS
@@ -4149,58 +4209,12 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 #define WS_EX_IMECOMPOSE        0x00000000L
 
 /**
- * \def WS_EX_WINTYPE_MASK
- * \brief The style mask for main window type.
+ * \def WS_EX_INTERNAL_MASK
+ * \brief The style mask for internal use.
  *
- * Since 4.2.0.
+ * Do not use the bits in this mask for applications.
  */
-#define WS_EX_WINTYPE_MASK          0xF0000000L
-
-/**
- * \def WS_EX_WINTYPE_SCREENLOCK
- * \brief The main window type is the screen lock.
- *
- * Use this style when you want to create a main window acting as
- * the screen lock. The screen lock will have the highest z-index.
- *
- * \note If there is already a main window acts as the screen lock,
- *  a topmost main window will be created.
- *
- * Since 4.2.0.
- */
-#define WS_EX_WINTYPE_SCREENLOCK    0x10000000L
-
-/**
- * \def WS_EX_WINTYPE_DOCKER
- * \brief The main window type is the docker.
- *
- * Use this style when you want to create a main window acting as
- * the docker. The docker will have the z-index lower than screen lock.
- *
- * \note If there is already a main window acts as the docker,
- *  a topmost main window will be created.
- *
- * Since 4.2.0.
- */
-#define WS_EX_WINTYPE_DOCKER        0x20000000L
-
-/**
- * \def WS_EX_WINTYPE_LAUNCHER
- * \brief The main window type is the launcher.
- *
- * Use this style when you want to create a main window acting as
- * the launcher (or the window manager). The launcher will have the lowest
- * z-index.
- *
- * \note If there is already a main window acts as the launcher,
- *  a normal main window will be created.
- *
- * Since 4.2.0.
- */
-#define WS_EX_WINTYPE_LAUNCHER      0x30000000L
-
-/* Not used, obsolete. */
-#define WS_EX_INTERNAL_MASK         0x00000000L
+#define WS_EX_INTERNAL_MASK     0x80000000L
 
     /** @} end of styles */
 
@@ -5026,6 +5040,10 @@ typedef struct _WINDOWINFO
     DWORD           dwAddData;
     /** The second additional data of this window */
     DWORD           dwAddData2;
+
+    void*           _padding6;
+    void*           _padding7;
+    void*           _padding8;
 
     /** The position and size of window.*/
     int left, top;
@@ -5954,44 +5972,58 @@ typedef struct _MAINWINCREATE {
 typedef MAINWINCREATE* PMAINWINCREATE;
 
 #ifdef _MGRM_THREADS
-
 /**
- * \fn int GUIAPI CreateThreadForMainWindow(pthread_t* thread, \
- *                                    pthread_attr_t* attr, \
- *                                    void * (*start_routine)(void *), \
- *                                    void * arg);
- *
+ * \fn int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
+ *      pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
  * \brief Create a thread for main window.
+ *
+ * The function creates a thread for main window by calling the POSIX
+ * thread function pthread_create().
+ *
+ * \param thread The buffer to return the thread identifier if
+ *      successfully created.
+ * \param attr  The pointer to the thread attribute.
+ * \param start_routine The function which is the entry of the thread.
+ * \param arg   The argument will be passed to \a start_routine.
+ *
+ * \return The return value of pthread_create (0 on success).
  *
  * \sa pthread_create
  */
-MG_EXPORT int GUIAPI CreateThreadForMainWindow(pthread_t* thread,
-                                     pthread_attr_t* attr,
-                                     void * (*start_routine)(void *),
-                                     void * arg);
+MG_EXPORT int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg);
 
 /**
- * \fn pthread_t GUIAPI GetMainWinThread(HWND hMainWnd)
- * \brief Get the thread id which main window belongs to.
+ * \fn pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
+ * \brief Get the thread identifier which main window belongs to.
  *
- * \return Thread id.
+ * \param hMainWnd The handle to the main window.
+ *
+ * \return The thread identifier.
  */
-MG_EXPORT pthread_t GUIAPI GetMainWinThread(HWND hMainWnd);
+MG_EXPORT pthread_t GUIAPI GetMainWinThread (HWND hMainWnd);
 
 /**
- * \fn int GUIAPI WaitMainWindowClose(HWND hWnd, void** returnval)
- * \brief Suspends execution of the calling thread which main window belongs
+ * \fn int GUIAPI WaitMainWindowClose (HWND hWnd, void** retval)
+ * \brief Suspend execution of the calling thread which main window belongs
  * to until the target thread terminates, unless the target thread has already
  * terminated.
  *
- * \return non-NULL value on success.
+ * This function waits for the terminate of the thread which the main window
+ * \a hWnd belongs to by calling the system POSIX thread function
+ * \a pthread_join().
+ *
+ * \param hWnd The handle to the main window.
+ * \param retval The buffer used to return the exit code of the target thread.
+ *
+ * \return The return value of pthread_join (0 on success).
  */
 
-MG_EXPORT int GUIAPI WaitMainWindowClose(HWND hWnd, void** returnval);
-#endif
+MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
+#endif /* defined _MGRM_THREADS */
 
 /**
- * \fn void GUIAPI MainWindowThreadCleanup(HWND hMainWnd)
+ * \fn void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
  * \brief Cleans up system resource associated with a main window.
  *
  * This function cleans up the system resource such as message queue associated
@@ -6005,10 +6037,10 @@ MG_EXPORT int GUIAPI WaitMainWindowClose(HWND hWnd, void** returnval);
  *
  * \sa DestroyMainWindow
  */
-MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
+MG_EXPORT void GUIAPI MainWindowThreadCleanup (HWND hMainWnd);
 
 /**
- * \def MainWindowCleanup(hwnd)
+ * \def MainWindowCleanup (hwnd)
  * \brief Is an alias of \a MainWindowThreadCleanup
  *
  * \sa MainWindowThreadCleanup
@@ -6154,6 +6186,55 @@ static inline HWND GUIAPI CreateMainWindow (PMAINWINCREATE pCreateInfo)
  * \include destroymainwindow.c
  */
 MG_EXPORT BOOL GUIAPI DestroyMainWindow (HWND hWnd);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+/**
+ * \fn HWND GUIAPI CreateVirtualWindow (HWND hHosting,
+ *      WNDPROC WndProc, DWORD dwAddData)
+ * \brief Create a virtual window.
+ *
+ * This function creates a virtual window for the purpose of
+ * multi-thread messaging.
+ *
+ * \param hHosting The hosting virutal window.
+ * \param WndProc The window callback procedure.
+ * \param dwAddData The additional data for the window.
+ *
+ * \return The handle to the new virtual window;
+ *      HWND_INVALID indicates an error.
+ *
+ * \sa VirtualWindowThreadCleanup
+ *
+ * Example:
+ *
+ * \include createvirtualwindow.c
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
+        WNDPROC WndProc, DWORD dwAddData);
+
+/**
+ * \fn BOOL GUIAPI DestroyVirtualWindow (HWND hWnd)
+ * \brief Destroy a virtual window.
+ *
+ * This function destroys a virtual window.
+ *
+ * \param hWnd The handle to the virtual window.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa VirtualWindowThreadCleanup
+ *
+ * Example:
+ *
+ * \include createvirtualwindow.c
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT BOOL GUIAPI DestroyVirtualWindow (HWND hWnd);
+
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 /**
  * \fn BOOL GUIAPI SetWindowMask (HWND hWnd,  \
